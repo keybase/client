@@ -178,6 +178,17 @@ func (s *SKB) unlockSecretKeyFromSecretRetriever(secretRetriever SecretRetriever
 	return
 }
 
+// unverifiedPassphraseStream takes a passphrase as a parameter and
+// also the salt from the Account and computes a Triplesec and
+// a passphrase stream.  It's not verified through a Login.
+func (s *SKB) unverifiedPassphraseStream(passphrase string) (tsec *triplesec.Cipher, ret PassphraseStream, err error) {
+	salt, err := s.G().Account().LoginSession().Salt()
+	if err != nil {
+		return nil, nil, err
+	}
+	return StretchPassphrase(passphrase, salt)
+}
+
 func (s *SKB) UnlockSecretKey(passphrase string, tsec *triplesec.Cipher, pps PassphraseStream, secretStorer SecretStorer) (key GenericKey, err error) {
 	if key = s.decryptedSecret; key != nil {
 		return
@@ -198,7 +209,7 @@ func (s *SKB) UnlockSecretKey(passphrase string, tsec *triplesec.Cipher, pps Pas
 	case LKSecVersion:
 		pps_in := pps
 		if pps == nil {
-			tsec, pps, err = s.G().LoginState().GetUnverifiedPassphraseStream(passphrase)
+			tsec, pps, err = s.unverifiedPassphraseStream(passphrase)
 			if err != nil {
 				return nil, err
 			}

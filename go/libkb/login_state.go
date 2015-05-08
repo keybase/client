@@ -136,37 +136,6 @@ func (s *LoginState) GetVerifiedTriplesec(ui SecretUI) (ret *triplesec.Cipher, e
 	return
 }
 
-// GetUnverifiedPassphraseStream takes a passphrase as a parameter and
-// also the salt from the LoginState and computes a Triplesec and
-// a passphrase stream.  It's not verified through a Login.
-func (s *LoginState) GetUnverifiedPassphraseStream(passphrase string) (tsec *triplesec.Cipher, ret PassphraseStream, err error) {
-	salt, err := s.G().Account().LoginSession().Salt()
-	if err != nil {
-		return nil, nil, err
-	}
-	return StretchPassphrase(passphrase, salt)
-}
-
-func (s *LoginState) stretchPassphrase(passphrase string) error {
-	if s.G().Account().StreamCache().Valid() {
-		return nil
-	}
-
-	salt, err := s.G().Account().LoginSession().Salt()
-	if err != nil {
-		return err
-	}
-
-	tsec, passphraseStream, err := StretchPassphrase(passphrase, salt)
-	if err != nil {
-		return err
-	}
-
-	s.G().Account().CreateStreamCache(tsec, passphraseStream)
-
-	return nil
-}
-
 func (s *LoginState) computeLoginPw() ([]byte, error) {
 	loginSession, err := s.G().Account().LoginSession().Session()
 	if err != nil {
@@ -456,8 +425,8 @@ func (s *LoginState) passphraseLogin(username, passphrase string, secretUI Secre
 		return
 	}
 
-	if _, err = s.getTriplesec(username, passphrase, secretUI, retryMsg); err != nil {
-		return
+	if err = s.stretchPassphraseIfNecessary(username, passphrase, secretUI, retryMsg); err != nil {
+		return err
 	}
 
 	lgpw, err := s.computeLoginPw()
@@ -478,9 +447,10 @@ func (s *LoginState) passphraseLogin(username, passphrase string, secretUI Secre
 	return nil
 }
 
-func (s *LoginState) getTriplesec(un string, pp string, ui SecretUI, retry string) (*triplesec.Cipher, error) {
-	if ts := s.G().Account().StreamCache().Triplesec(); ts != nil {
-		return ts, nil
+func (s *LoginState) stretchPassphraseIfNecessary(un string, pp string, ui SecretUI, retry string) error {
+	if s.G().Account().StreamCache().Valid() {
+		// already have stretched passphrase cached
+		return nil
 	}
 
 	arg := keybase1.GetKeybasePassphraseArg{
@@ -490,20 +460,20 @@ func (s *LoginState) getTriplesec(un string, pp string, ui SecretUI, retry strin
 
 	if len(pp) == 0 {
 		if ui == nil {
-			return nil, NoUiError{"secret"}
+			return NoUiError{"secret"}
 		}
 
 		var err error
 		if pp, err = ui.GetKeybasePassphrase(arg); err != nil {
-			return nil, err
+			return err
 		}
 	}
 
-	if err := s.stretchPassphrase(pp); err != nil {
-		return nil, err
+	if err := s.G().Account().CreateStreamCacheViaStretch(pp); err != nil {
+		return err
 	}
 
-	return s.G().Account().StreamCache().Triplesec(), nil
+	return nil
 }
 
 func (s *LoginState) verifyPassphrase(ui SecretUI) (err error) {
@@ -627,17 +597,4 @@ func (s *LoginState) logout() error {
 	s.G().Account().Logout()
 	s.G().Log.Debug("- Logout called")
 	return nil
-}
-
-func (s *LoginState) LoadSKBKeyring() (*SKBKeyringFile, error) {
-	if !s.G().Account().LoggedIn() {
-		return nil, LoginRequiredError{}
-	}
-	unp := s.G().Account().LocalSession().GetUsername()
-	// not sure how this could happen, but just in case:
-	if unp == nil {
-		return nil, NoUsernameError{}
-	}
-
-	return s.G().Keyrings.LoadSKBKeyring(*unp)
 }

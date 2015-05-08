@@ -121,6 +121,29 @@ func (a *Account) CreateStreamCache(tsec *triplesec.Cipher, pps PassphraseStream
 	a.streamCache = NewStreamCache(tsec, pps)
 }
 
+func (a *Account) CreateStreamCacheViaStretch(passphrase string) error {
+	a.Lock()
+	defer a.Unlock()
+
+	if a.streamCache.Valid() {
+		return nil
+	}
+
+	salt, err := a.loginSession.Salt()
+	if err != nil {
+		return err
+	}
+
+	tsec, pps, err := StretchPassphrase(passphrase, salt)
+	if err != nil {
+		return err
+	}
+
+	a.streamCache = NewStreamCache(tsec, pps)
+
+	return nil
+}
+
 func (a *Account) StreamCache() *StreamCache {
 	a.RLock()
 	defer a.RUnlock()
@@ -144,12 +167,40 @@ func (a *Account) RunSecretSyncer(uid *UID) error {
 	return RunSyncer(a.SecretSyncer(), uid)
 }
 
+func (a *Account) Keyring() (*SKBKeyringFile, error) {
+	if !a.LoggedIn() {
+		return nil, LoginRequiredError{}
+	}
+
+	a.RLock()
+	kr := a.skbKeyring
+	a.RUnlock()
+	if kr != nil {
+		return kr, nil
+	}
+
+	a.Lock()
+	defer a.Unlock()
+	unp := a.localSession.GetUsername()
+	// not sure how this could happen, but just in case:
+	if unp == nil {
+		return nil, NoUsernameError{}
+	}
+	kr, err := a.G().Keyrings.LoadSKBKeyring(*unp)
+	if err != nil {
+		return nil, err
+	}
+	a.skbKeyring = kr
+	return a.skbKeyring, nil
+}
+
 func (a *Account) Shutdown() error {
 	return a.LocalSession().Write()
 }
 
+// XXX not sure this is the best place for this...
+// XXX put it through loginstate external func?
 func (a *Account) UserInfo() (uid UID, username, token string, deviceSubkeyKid KID, err error) {
-
 	if !a.LoggedIn() {
 		err = LoginRequiredError{}
 		return
@@ -159,6 +210,7 @@ func (a *Account) UserInfo() (uid UID, username, token string, deviceSubkeyKid K
 	if err != nil {
 		return
 	}
+
 	// lock everything to make sure the values refer to same user
 	a.RLock()
 	defer a.RUnlock()
