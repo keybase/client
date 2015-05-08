@@ -3,10 +3,7 @@
 . `dirname $0`/test_common.sh
 
 usernum=$1
-
-iname=`instance_name $usernum`
-sdir=`socket_dir $usernum`
-socket="$sdir/$KBDAEMON_SOCKET_NAME"
+socket=""
 
 function check_daemon() {
     timeout=$1
@@ -35,6 +32,19 @@ function print_env() {
     echo "export KEYBASE_SOCKET_FILE=$socket"
     echo "export KBUSER=$user"
 }
+
+# If this is the first user, see if there's already a daemon running.
+# If so, you don't need to do anything!
+if [ $usernum -eq 1 ]; then
+    if check_daemon .2 1; then
+        print_env `KEYBASE_SOCKET_FILE= keybase status | grep Username | awk '{print $2}'`
+        exit 0
+    fi
+fi
+
+iname=`instance_name $usernum`
+sdir=`socket_dir $usernum`
+socket="$sdir/$KBDAEMON_SOCKET_NAME"
 
 # If there's already a daemon listening, just use it
 if check_daemon .2 1; then

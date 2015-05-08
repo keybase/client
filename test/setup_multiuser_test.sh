@@ -16,7 +16,15 @@ cmds=""
 userfile=`tempfile`
 while [ $u -le $num_users ] ; do
     env=`$KBFS_TEST_DIR/launch_daemon_for_new_user.sh $u | grep export`
+    if [ -z "$env" ]; then
+        echo "Environment for user $u already exists"
+        u=$[u+1]
+        continue
+    fi
     eval $env
+    if [ -z "$KEYBASE_SOCKET_FILE" ]; then
+        KEYBASE_SOCKET_FILE="\"\""
+    fi
     envfile=`user_env_file $u`
     cmds="$cmds write_user_env $KEYBASE_SOCKET_FILE $KBUSER $envfile;"
     echo "export KBUSER$u=$KBUSER" >> $userfile

@@ -60,10 +60,6 @@ From kbfs/:
     go test -i ./...
     go test ./...
 
-Run integration tests (TODO(jinyang): update with daemon commands):
-
-    go test -tags=integration ./...
-
 If you change anything in interfaces.go, you will have to regenerate
 the mock interfaces used by the tests:
 
@@ -73,8 +69,12 @@ the mock interfaces used by the tests:
 (Right now the mocks are checked into the repo; this isn't ideal and
 we should probably change it.)
 
+# Backend integration tests
 
-# Test backend only
+First, make sure you have these prereqs:
+    sudo apt-get install openjdk-7-jre
+    go get github.com/mattn/go-sqlite3
+
 From bserver/:
 	make test
 
