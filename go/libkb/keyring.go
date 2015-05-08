@@ -184,11 +184,15 @@ func (t SecretKeyType) nonDeviceKeyMatches(key GenericKey) bool {
 }
 
 type SecretKeyArg struct {
-	Me *User // Whose keys
+	// Whose keys to use. Must be non-nil.
+	Me *User
 
+	// The allowed key types.
 	KeyType SecretKeyType
 
-	KeyQuery string // a String to match the key prefix on
+	// For non-device keys, a string that the key has to match. If
+	// empty, any key is allowed.
+	KeyQuery string
 }
 
 // GetSecretKeyLocked gets a secret key for the current user by first
