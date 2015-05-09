@@ -1,79 +1,85 @@
 package service
 
 import (
+	"github.com/keybase/client/go/engine"
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/protocol/go"
 	"github.com/maxtaco/go-framed-msgpack-rpc/rpc2"
 )
 
+// ProveHandler is the service side of proving ownership of social media accounts
+// like Twitter and Github.
 type ProveHandler struct {
 	*BaseHandler
-	proveUI libkb.ProveUI
 }
 
-type ProveUI struct {
-	sessionId int
+type proveUI struct {
+	sessionID int
 	cli       keybase1.ProveUiClient
 }
 
+// NewProveHandler makes a new ProveHandler object from an RPC transport.
 func NewProveHandler(xp *rpc2.Transport) *ProveHandler {
 	return &ProveHandler{BaseHandler: NewBaseHandler(xp)}
 }
 
-func (p *ProveUI) PromptOverwrite(prompt string, typ keybase1.PromptOverwriteType) (b bool, err error) {
-	return p.cli.PromptOverwrite(keybase1.PromptOverwriteArg{SessionID: p.sessionId, Account: prompt, Typ: typ})
+func (p *proveUI) PromptOverwrite(arg keybase1.PromptOverwriteArg) (b bool, err error) {
+	arg.SessionID = p.sessionID
+	return p.cli.PromptOverwrite(arg)
 }
-func (p *ProveUI) PromptUsername(prompt string, prevError error) (un string, err error) {
-	return p.cli.PromptUsername(keybase1.PromptUsernameArg{SessionID: p.sessionId, Prompt: prompt, PrevError: libkb.ExportErrorAsStatus(prevError)})
+func (p *proveUI) PromptUsername(arg keybase1.PromptUsernameArg) (un string, err error) {
+	arg.SessionID = p.sessionID
+	return p.cli.PromptUsername(arg)
 }
-func (p *ProveUI) OutputPrechecks(txt keybase1.Text) {
-	p.cli.OutputPrechecks(keybase1.OutputPrechecksArg{SessionID: p.sessionId, Text: txt})
+func (p *proveUI) OutputPrechecks(arg keybase1.OutputPrechecksArg) error {
+	arg.SessionID = p.sessionID
+	return p.cli.OutputPrechecks(arg)
 }
-func (p *ProveUI) PreProofWarning(txt keybase1.Text) (ok bool, err error) {
-	return p.cli.PreProofWarning(keybase1.PreProofWarningArg{SessionID: p.sessionId, Text: txt})
+func (p *proveUI) PreProofWarning(arg keybase1.PreProofWarningArg) (ok bool, err error) {
+	arg.SessionID = p.sessionID
+	return p.cli.PreProofWarning(arg)
 }
-func (p *ProveUI) OutputInstructions(instructions keybase1.Text, proof string) (err error) {
-	return p.cli.OutputInstructions(keybase1.OutputInstructionsArg{SessionID: p.sessionId, Instructions: instructions, Proof: proof})
+func (p *proveUI) OutputInstructions(arg keybase1.OutputInstructionsArg) (err error) {
+	arg.SessionID = p.sessionID
+	return p.cli.OutputInstructions(arg)
 }
-func (p *ProveUI) OkToCheck(name string, attempt int) (bool, error) {
-	return p.cli.OkToCheck(keybase1.OkToCheckArg{SessionID: p.sessionId, Name: name, Attempt: attempt})
+func (p *proveUI) OkToCheck(arg keybase1.OkToCheckArg) (bool, error) {
+	arg.SessionID = p.sessionID
+	return p.cli.OkToCheck(arg)
 }
-func (p *ProveUI) DisplayRecheckWarning(text keybase1.Text) {
-	p.cli.DisplayRecheckWarning(keybase1.DisplayRecheckWarningArg{SessionID: p.sessionId, Text: text})
-	return
+func (p *proveUI) DisplayRecheckWarning(arg keybase1.DisplayRecheckWarningArg) error {
+	arg.SessionID = p.sessionID
+	return p.cli.DisplayRecheckWarning(arg)
 }
+
+// GetSecret gets a free-form secret from a pinentry
 func (l *SecretUI) GetSecret(pinentry keybase1.SecretEntryArg, terminal *keybase1.SecretEntryArg) (*keybase1.SecretEntryRes, error) {
 	res, err := l.cli.GetSecret(keybase1.GetSecretArg{SessionID: l.sessionId, Pinentry: pinentry, Terminal: terminal})
 	return &res, err
 }
+
+// GetNewPassphrase gets a new passphrase from pinentry
 func (l *SecretUI) GetNewPassphrase(arg keybase1.GetNewPassphraseArg) (string, error) {
 	return l.cli.GetNewPassphrase(arg)
 }
+
+// GetKeybasePassphrase gets the current keybase passphrase from pinentry.
 func (l *SecretUI) GetKeybasePassphrase(arg keybase1.GetKeybasePassphraseArg) (string, error) {
 	return l.cli.GetKeybasePassphrase(arg)
 }
 
-func (h *ProveHandler) getProveUI(sessionId int) libkb.ProveUI {
-	if h.proveUI == nil {
-		h.proveUI = &ProveUI{
-			sessionId: sessionId,
-			cli:       keybase1.ProveUiClient{Cli: h.getRpcClient()},
-		}
-	}
-	return h.proveUI
+func (ph *ProveHandler) getProveUI(sessionID int) libkb.ProveUI {
+	return &proveUI{sessionID, keybase1.ProveUiClient{Cli: ph.getRpcClient()}}
 }
 
+// Prove handles the `keybase.1.prove` RPC.
 func (ph *ProveHandler) Prove(arg keybase1.ProveArg) (err error) {
-	sessionId := nextSessionID()
-	eng := &libkb.ProofEngine{
-		Username: arg.Username,
-		Service:  arg.Service,
-		Force:    arg.Force,
-		ProveUI:  ph.getProveUI(sessionId),
-		LoginUI:  ph.getLoginUI(sessionId),
-		SecretUI: ph.getSecretUI(sessionId),
-		LogUI:    ph.getLogUI(sessionId),
+	eng := engine.NewProve(&arg, G)
+	ctx := engine.Context{
+		ProveUI:  ph.getProveUI(arg.Session),
+		SecretUI: ph.getSecretUI(arg.Session),
+		LogUI:    ph.getLogUI(arg.Session),
 	}
-	err = eng.Run()
+	err = engine.RunEngine(eng, &ctx)
 	return
 }

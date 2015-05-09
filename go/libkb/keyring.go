@@ -228,7 +228,9 @@ func (k *Keyrings) GetLockedLocalSecretKey(ska SecretKeyArg) (ret *SKB) {
 	} else if did := k.G().Env.GetDeviceID(); did == nil {
 		k.G().Log.Debug("| Could not get device id")
 	} else if key, err := ckf.GetSibkeyForDevice(*did); err != nil {
-		k.G().Log.Debug("| No key for current device: %s", err.Error())
+		k.G().Log.Debug("| Error in finding key for current device: %s", err.Error())
+	} else if key == nil {
+		k.G().Log.Debug("| No key for current device")
 	} else {
 		kid := key.GetKid()
 		k.G().Log.Debug("| Found KID for current device: %s", kid)

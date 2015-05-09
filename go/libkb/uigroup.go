@@ -11,6 +11,7 @@ const (
 	LocksmithUIKind
 	LogUIKind
 	LoginUIKind
+	ProveUIKind
 	SecretUIKind
 )
 
@@ -22,14 +23,16 @@ func (u UIKind) String() string {
 		return "LocksmithUI"
 	case GPGUIKind:
 		return "GPGUI"
+	case IdentifyUIKind:
+		return "IdentifyUI"
 	case LogUIKind:
 		return "LogUI"
 	case LoginUIKind:
 		return "LoginUI"
+	case ProveUIKind:
+		return "ProveUI"
 	case SecretUIKind:
 		return "SecretUI"
-	case IdentifyUIKind:
-		return "IdentifyUI"
 	}
 	panic(fmt.Sprintf("unhandled uikind: %d", u))
 }

@@ -599,11 +599,11 @@ func (e NoSessionWriterError) Error() string {
 //=============================================================================
 
 type BadServiceError struct {
-	n string
+	Service string
 }
 
 func (e BadServiceError) Error() string {
-	return e.n + ": unsupported service"
+	return e.Service + ": unsupported service"
 }
 
 //=============================================================================

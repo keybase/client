@@ -14,6 +14,7 @@ type Context struct {
 	LoginUI     libkb.LoginUI
 	SecretUI    libkb.SecretUI
 	IdentifyUI  libkb.IdentifyUI
+	ProveUI     libkb.ProveUI
 
 	// For everything else global...
 	GlobalContext *libkb.GlobalContext
@@ -35,6 +36,8 @@ func (c *Context) HasUI(kind libkb.UIKind) bool {
 		return c.SecretUI != nil
 	case libkb.IdentifyUIKind:
 		return c.IdentifyUI != nil
+	case libkb.ProveUIKind:
+		return c.ProveUI != nil
 	}
 	panic(fmt.Sprintf("unhandled kind:  %d", kind))
 }

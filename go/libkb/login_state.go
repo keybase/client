@@ -768,7 +768,11 @@ func (s *LoginState) logout() error {
 	if s.secretSyncer != nil {
 		s.secretSyncer.Clear()
 	}
-	s.G().Keyrings.ClearSecretKeys()
+
+	if kr := s.G().Keyrings; kr != nil {
+		kr.ClearSecretKeys()
+	}
+
 	s.G().Log.Debug("- Logout called")
 	return err
 }

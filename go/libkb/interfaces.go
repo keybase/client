@@ -231,13 +231,13 @@ type LoginUI interface {
 }
 
 type ProveUI interface {
-	PromptOverwrite(string, keybase1.PromptOverwriteType) (bool, error)
-	PromptUsername(prompt string, prevError error) (string, error)
-	OutputPrechecks(keybase1.Text)
-	PreProofWarning(keybase1.Text) (bool, error)
-	OutputInstructions(instructions keybase1.Text, proof string) error
-	OkToCheck(name string, attempt int) (bool, error)
-	DisplayRecheckWarning(keybase1.Text)
+	PromptOverwrite(keybase1.PromptOverwriteArg) (bool, error)
+	PromptUsername(keybase1.PromptUsernameArg) (string, error)
+	OutputPrechecks(keybase1.OutputPrechecksArg) error
+	PreProofWarning(keybase1.PreProofWarningArg) (bool, error)
+	OutputInstructions(keybase1.OutputInstructionsArg) error
+	OkToCheck(keybase1.OkToCheckArg) (bool, error)
+	DisplayRecheckWarning(keybase1.DisplayRecheckWarningArg) error
 }
 
 type SecretUI interface {

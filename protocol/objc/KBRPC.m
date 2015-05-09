@@ -711,8 +711,8 @@
 
 @implementation KBRProveRequest
 
-- (void)proveWithService:(NSString *)service username:(NSString *)username force:(BOOL)force completion:(void (^)(NSError *error))completion {
-  NSArray *params = @[@{@"service": KBRValue(service), @"username": KBRValue(username), @"force": @(force)}];
+- (void)proveWithSession:(NSInteger)session service:(NSString *)service username:(NSString *)username force:(BOOL)force completion:(void (^)(NSError *error))completion {
+  NSArray *params = @[@{@"session": @(session), @"service": KBRValue(service), @"username": KBRValue(username), @"force": @(force)}];
   [self.client sendRequestWithMethod:@"keybase.1.prove.prove" params:params sessionId:self.sessionId completion:^(NSError *error, id retval) {
     completion(error);
   }];
@@ -1770,6 +1770,7 @@
 
 - (instancetype)initWithParams:(NSArray *)params {
   if ((self = [super initWithParams:params])) {
+    self.session = [params[0][@"session"] integerValue];
     self.service = params[0][@"service"];
     self.username = params[0][@"username"];
     self.force = [params[0][@"force"] boolValue];

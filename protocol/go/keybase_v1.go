@@ -1761,6 +1761,7 @@ func (c PgpClient) PgpUpdate(__arg PgpUpdateArg) (err error) {
 }
 
 type ProveArg struct {
+	Session  int    `codec:"session" json:"session"`
 	Service  string `codec:"service" json:"service"`
 	Username string `codec:"username" json:"username"`
 	Force    bool   `codec:"force" json:"force"`

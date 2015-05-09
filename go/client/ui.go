@@ -438,60 +438,63 @@ type ProveUI struct {
 	outputHook func(string) error
 }
 
-func (p ProveUI) PromptOverwrite(a string, typ keybase1.PromptOverwriteType) (bool, error) {
+func (p ProveUI) PromptOverwrite(arg keybase1.PromptOverwriteArg) (bool, error) {
 	var prompt string
-	switch typ {
+	switch arg.Typ {
 	case keybase1.PromptOverwriteType_SOCIAL:
-		prompt = "You already have a proof for " + ColorString("bold", a) + "; overwrite?"
+		prompt = "You already have a proof for " + ColorString("bold", arg.Account) + "; overwrite?"
 	case keybase1.PromptOverwriteType_SITE:
-		prompt = "You already have claimed ownership of " + ColorString("bold", a) + "; overwrite?"
+		prompt = "You already have claimed ownership of " + ColorString("bold", arg.Account) + "; overwrite?"
 	default:
-		prompt = "Overwrite " + a + "?"
+		prompt = "Overwrite " + arg.Account + "?"
 	}
 	return p.parent.PromptYesNo(prompt, PromptDefaultNo)
 }
 
-func (p ProveUI) PromptUsername(prompt string, prevError error) (string, error) {
-	if prevError != nil {
-		G.Log.Error(prevError.Error())
+func (p ProveUI) PromptUsername(arg keybase1.PromptUsernameArg) (string, error) {
+	err := libkb.ImportStatusAsError(arg.PrevError)
+	if err != nil {
+		G.Log.Error(err.Error())
 	}
-	return p.parent.Terminal.Prompt(prompt + ": ")
+	return p.parent.Terminal.Prompt(arg.Prompt + ": ")
 }
 
-func (p ProveUI) Render(txt keybase1.Text) {
+func (p ProveUI) render(txt keybase1.Text) {
 	RenderText(os.Stdout, txt)
 }
 
-func (p ProveUI) OutputPrechecks(txt keybase1.Text) {
-	p.Render(txt)
+func (p ProveUI) OutputPrechecks(arg keybase1.OutputPrechecksArg) error {
+	p.render(arg.Text)
+	return nil
 }
 
-func (p ProveUI) PreProofWarning(txt keybase1.Text) (bool, error) {
-	p.Render(txt)
+func (p ProveUI) PreProofWarning(arg keybase1.PreProofWarningArg) (bool, error) {
+	p.render(arg.Text)
 	return p.parent.PromptYesNo("Proceed?", PromptDefaultNo)
 }
 
-func (p ProveUI) OutputInstructions(instructions keybase1.Text, proof string) (err error) {
-	p.Render(instructions)
+func (p ProveUI) OutputInstructions(arg keybase1.OutputInstructionsArg) (err error) {
+	p.render(arg.Instructions)
 	if p.outputHook != nil {
-		err = p.outputHook(proof)
+		err = p.outputHook(arg.Proof)
 	} else {
-		p.parent.Output("\n" + proof + "\n")
+		p.parent.Output("\n" + arg.Proof + "\n")
 	}
 	return
 }
 
-func (p ProveUI) OkToCheck(name string, attempt int) (bool, error) {
+func (p ProveUI) OkToCheck(arg keybase1.OkToCheckArg) (bool, error) {
 	var agn string
-	if attempt > 0 {
+	if arg.Attempt > 0 {
 		agn = "again "
 	}
-	prompt := "Check " + name + " " + agn + "now?"
+	prompt := "Check " + arg.Name + " " + agn + "now?"
 	return p.parent.PromptYesNo(prompt, PromptDefaultYes)
 }
 
-func (p ProveUI) DisplayRecheckWarning(txt keybase1.Text) {
-	p.Render(txt)
+func (p ProveUI) DisplayRecheckWarning(arg keybase1.DisplayRecheckWarningArg) error {
+	p.render(arg.Text)
+	return nil
 }
 
 //============================================================
