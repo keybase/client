@@ -62,7 +62,7 @@ func (e *Doctor) login(ctx *Context) {
 		return
 	}
 
-	ok, err := e.G().Account().LoggedInLoad()
+	ok, err := IsLoggedIn(e.G())
 	if err != nil {
 		e.runErr = err
 		return
@@ -162,11 +162,16 @@ func (e *Doctor) status(ctx *Context) {
 	}
 
 	// get list of active devices
-	devs, err := e.G().Account().SecretSyncer().ActiveDevices()
+	var err error
+	var devs libkb.DeviceKeyMap
+	e.G().LoginState().SecretSyncer(func(ss *libkb.SecretSyncer) {
+		devs, err = ss.ActiveDevices()
+	}, "Doctor - ActiveDevices")
 	if err != nil {
 		e.runErr = err
 		return
 	}
+
 	for k, v := range devs {
 		dev := keybase1.Device{Type: v.Type, Name: v.Description, DeviceID: k}
 		if v.Type != libkb.DEVICE_TYPE_WEB {

@@ -6,6 +6,7 @@ import (
 	"os"
 	"strings"
 
+	triplesec "github.com/keybase/go-triplesec"
 	"golang.org/x/crypto/openpgp"
 )
 
@@ -230,7 +231,13 @@ func (k *Keyrings) GetSecretKeyLocked(ska SecretKeyArg) (ret *SKB, which string,
 		}
 	}
 
-	if ret = k.getLockedLocalSecretKey(ska); ret != nil {
+	// XXX guessing this is going to block as this probably called deep
+	// in login...
+	k.G().Log.Warning("calling LockedLocalSecretKey")
+	k.G().LoginState().Account(func(a *Account) {
+		ret = a.LockedLocalSecretKey(ska)
+	}, "LockedLocalSecretKey")
+	if ret != nil {
 		k.G().Log.Debug("| Getting local secret key")
 		return
 	}
@@ -261,6 +268,7 @@ func (k *Keyrings) GetSecretKeyLocked(ska SecretKeyArg) (ret *SKB, which string,
 // getLockedLocalSecretKey looks in the local keyring to find a key
 // for the given user.  Return non-nil if one was found, and nil
 // otherwise.
+/*
 func (k *Keyrings) getLockedLocalSecretKey(ska SecretKeyArg) (ret *SKB) {
 	me := ska.Me
 
@@ -309,6 +317,7 @@ func (k *Keyrings) getLockedLocalSecretKey(ska SecretKeyArg) (ret *SKB) {
 	}
 	return ret
 }
+*/
 
 // TODO: Figure out whether and how to dep-inject the SecretStore.
 func (k *Keyrings) GetSecretKeyWithPrompt(ska SecretKeyArg, secretUI SecretUI, reason string) (key GenericKey, skb *SKB, err error) {
@@ -367,10 +376,12 @@ func (k *Keyrings) GetSecretKeyWithPassphrase(me *User, passphrase string, secre
 		return
 	}
 	skb.SetUID(me.GetUid().P())
-	// tsec := k.G().LoginState().GetCachedTriplesec()
-	tsec := k.G().Account().StreamCache().Triplesec()
-	// pps := k.G().LoginState().GetCachedPassphraseStream()
-	pps := k.G().Account().StreamCache().PassphraseStream()
+	var tsec *triplesec.Cipher
+	var pps PassphraseStream
+	k.G().LoginState().StreamCache(func(sc *StreamCache) {
+		tsec = sc.Triplesec()
+		pps = sc.PassphraseStream()
+	}, "StreamCache - tsec, pps")
 	return skb.UnlockSecretKey(passphrase, tsec, pps, secretStorer)
 }
 

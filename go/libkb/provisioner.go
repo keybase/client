@@ -15,17 +15,27 @@ func (sp *SelfProvisioner) LoadMe() (err error) {
 // CheckProvisionedKey checks the current status of our client, to see if
 // it has a provisioned key or not, and if so, whether we have the corresponding
 // private key.
-func (sp *SelfProvisioner) CheckKeyProvisioned() (err error) {
-	var key GenericKey
-	var ring *SKBKeyringFile
-	if did := G.Env.GetDeviceID(); did == nil {
-		err = NotProvisionedError{}
-	} else if ring, err = G.Account().Keyring(); err != nil {
-	} else if key, err = sp.me.GetComputedKeyFamily().GetSibkeyForDevice(*did); err != nil {
-	} else if sp.secretKey = ring.LookupByKid(key.GetKid()); sp.secretKey == nil {
-		err = NoSecretKeyError{}
+func (sp *SelfProvisioner) CheckKeyProvisioned() error {
+	did := G.Env.GetDeviceID()
+	if did == nil {
+		return NotProvisionedError{}
 	}
-	return
+
+	key, err := sp.me.GetComputedKeyFamily().GetSibkeyForDevice(*did)
+	if err != nil {
+		return err
+	}
+
+	err = G.LoginState().Keyring(func(ring *SKBKeyringFile) {
+		sp.secretKey = ring.LookupByKid(key.GetKid())
+	}, "SelfProvisioner - LookupByKid")
+	if err != nil {
+		return err
+	}
+	if sp.secretKey == nil {
+		return NoSecretKeyError{}
+	}
+	return nil
 }
 
 // FindBestReprovisionKey finds the best key to use for reprovisioning a device
@@ -43,23 +53,23 @@ func (sp *SelfProvisioner) FindBestReprovisionKey() (ret GenericKey, err error) 
 		return
 	}
 
-	var ring *SKBKeyringFile
-	if ring, err = G.Account().Keyring(); err != nil {
-		return
-	}
-
-	for i := len(ring.Blocks) - 1; i >= 0; i-- {
-		if block := ring.Blocks[i]; block == nil {
-			continue
-		} else if key, e2 := block.GetPubKey(); key == nil || e2 != nil {
-			continue
-		} else if key2, _, e2 := ckf.FindActiveSibkey(GenericKeyToFOKID(key)); key2 != nil && e2 == nil {
-			ret = key
-			return
+	kerr := G.LoginState().Keyring(func(ring *SKBKeyringFile) {
+		for i := len(ring.Blocks) - 1; i >= 0; i-- {
+			if block := ring.Blocks[i]; block == nil {
+				continue
+			} else if key, e2 := block.GetPubKey(); key == nil || e2 != nil {
+				continue
+			} else if key2, _, e2 := ckf.FindActiveSibkey(GenericKeyToFOKID(key)); key2 != nil && e2 == nil {
+				ret = key
+				return
+			}
 		}
+	}, "SelfProvisioner - FindBestReprovisionKey")
+	if kerr != nil {
+		err = kerr
+	} else if ret == nil {
+		err = NoSecretKeyError{}
 	}
-
-	err = NoSecretKeyError{}
 	return
 }
 

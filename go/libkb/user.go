@@ -126,8 +126,6 @@ type User struct {
 	// Computed as a result of sigchain traversal
 	cki *ComputedKeyInfos
 
-	loggedIn bool // if we were logged in when we loaded it
-
 	dirty bool
 	Contextified
 }
@@ -184,7 +182,6 @@ func NewUser(o *jsonw.Wrapper) (*User, error) {
 		keyFamily:  kf,
 		id:         *uid,
 		name:       name,
-		loggedIn:   false,
 		dirty:      false,
 		Image:      imagePtr,
 	}, nil
@@ -200,7 +197,6 @@ func (u *User) GetIdVersion() (int64, error) {
 func NewUserFromServer(o *jsonw.Wrapper) (*User, error) {
 	u, e := NewUser(o)
 	if e == nil {
-		u.loggedIn = G.Account().LoggedIn()
 		u.dirty = true
 	}
 	return u, e
@@ -476,12 +472,14 @@ func (u *User) GetSyncedSecretKey() (ret *SKB, err error) {
 		return
 	}
 
-	ret, err = G.Account().SecretSyncer().FindActiveKey(ckf)
+	G.LoginState().SecretSyncer(func(s *SecretSyncer) {
+		ret, err = s.FindActiveKey(ckf)
+	}, "User - FindActiveKey")
 	return
 }
 
 func (u *User) SyncSecrets() error {
-	return G.Account().RunSecretSyncer(&u.id)
+	return G.LoginState().RunSecretSyncer(&u.id)
 }
 
 func LookupMerkleLeaf(uid UID, local *User) (f *MerkleUserLeaf, err error) {

@@ -203,6 +203,52 @@ func (a *Account) Keyring() (*SKBKeyringFile, error) {
 	return a.skbKeyring, nil
 }
 
+// LockedLocalSecretKey looks in the local keyring to find a key
+// for the given user.  Returns non-nil if one was found, and nil
+// otherwise.
+func (a *Account) LockedLocalSecretKey(ska SecretKeyArg) *SKB {
+	var ret *SKB
+	me := ska.Me
+	a.EnsureUsername(me.GetName())
+
+	keyring, err := a.Keyring()
+	if err != nil || keyring == nil {
+		var s string
+		if err != nil {
+			s = " (" + err.Error() + ")"
+		}
+		a.G().Log.Debug("| No secret keyring found" + s)
+		return nil
+	}
+
+	ckf := me.GetComputedKeyFamily()
+	if ckf == nil {
+		a.G().Log.Warning("No ComputedKeyFamily found for %s", me.name)
+		return nil
+	}
+
+	if !ska.UseDeviceKey() {
+		a.G().Log.Debug("| not using device key; preferences have disabled it")
+	} else if did := a.G().Env.GetDeviceID(); did == nil {
+		a.G().Log.Debug("| Could not get device id")
+	} else if key, err := ckf.GetSibkeyForDevice(*did); err != nil {
+		a.G().Log.Debug("| No key for current device: %s", err.Error())
+	} else {
+		kid := key.GetKid()
+		a.G().Log.Debug("| Found KID for current device: %s", kid)
+		ret = keyring.LookupByKid(kid)
+		if ret != nil {
+			a.G().Log.Debug("| Using device key: %s", kid)
+		}
+	}
+
+	if ret == nil && ska.SearchForKey() {
+		a.G().Log.Debug("| Looking up secret key in local keychain")
+		ret = keyring.SearchWithComputedKeyFamily(ckf, ska)
+	}
+	return ret
+}
+
 func (a *Account) Shutdown() error {
 	return a.LocalSession().Write()
 }

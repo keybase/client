@@ -24,7 +24,14 @@ func NewSessionHandler(xp *rpc2.Transport) *SessionHandler {
 // the user isn't logged in, it returns ErrNoSession.
 func (h *SessionHandler) CurrentSession() (keybase1.Session, error) {
 	var s keybase1.Session
-	uid, username, token, deviceSubkeyKid, err := G.Account().UserInfo()
+	var username, token string
+	var uid libkb.UID
+	var dkid libkb.KID
+	var err error
+
+	G.LoginState().Account(func(a *libkb.Account) {
+		uid, username, token, dkid, err = a.UserInfo()
+	}, "Service - SessionHandler - UserInfo")
 	if err != nil {
 		if _, ok := err.(libkb.LoginRequiredError); ok {
 			return s, ErrNoSession
@@ -35,7 +42,7 @@ func (h *SessionHandler) CurrentSession() (keybase1.Session, error) {
 	s.Uid = uid.Export()
 	s.Username = username
 	s.Token = token
-	s.DeviceSubkeyKid = []byte(deviceSubkeyKid)
+	s.DeviceSubkeyKid = []byte(dkid)
 
 	return s, nil
 }

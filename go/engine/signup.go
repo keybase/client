@@ -115,7 +115,7 @@ func (s *SignupEngine) Run(ctx *Context) error {
 
 		return nil
 	}
-	return s.G().LoginState().ExternalFunc(f)
+	return s.G().LoginState().ExternalFunc(f, "SignupEngine - Run")
 }
 
 func (s *SignupEngine) genTSPassKey(passphrase string) error {
@@ -126,7 +126,7 @@ func (s *SignupEngine) genTSPassKey(passphrase string) error {
 	s.pwsalt = salt
 	var tsec *triplesec.Cipher
 	tsec, s.tspkey, err = libkb.StretchPassphrase(passphrase, salt)
-	s.G().Account().CreateStreamCache(tsec, s.tspkey)
+	s.G().LoginState().SetSignupStreamCache(tsec, s.tspkey)
 	return err
 }
 

@@ -53,16 +53,19 @@ func NewScanKeys(secui libkb.SecretUI, idui libkb.IdentifyUI, opts *TrackOptions
 	}
 
 	// if user provided, then load their local keys, and their synced secret key:
-	ring, err := sk.G().Account().Keyring()
-	if err != nil {
-		return nil, fmt.Errorf("G().Account().Keyring() err: %s", err)
-	}
 	synced, err := sk.me.GetSyncedSecretKey()
 	if err != nil {
 		return nil, fmt.Errorf("getsyncedsecret err: %s", err)
 	}
-	if err := sk.extractKeys(ring, synced, secui); err != nil {
-		return nil, fmt.Errorf("extract keys error: %s", err)
+
+	kerr := sk.G().LoginState().Keyring(func(ring *libkb.SKBKeyringFile) {
+		err = sk.extractKeys(ring, synced, secui)
+	}, "NewScanKeys - extractKeys")
+	if kerr != nil {
+		return nil, kerr
+	}
+	if err != nil {
+		return nil, err
 	}
 	return sk, nil
 }

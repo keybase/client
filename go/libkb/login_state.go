@@ -13,13 +13,24 @@ import (
 )
 
 type loginReq struct {
-	f   func() error
-	res chan error
+	f    func() error
+	res  chan error
+	name string
 }
+
+type acctReq struct {
+	f    func(*Account)
+	done chan struct{}
+	name string
+}
+
+type acctHandler func(*Account)
 
 type LoginState struct {
 	Contextified
-	requests chan loginReq
+	account   *Account
+	loginReqs chan loginReq
+	acctReqs  chan acctReq
 }
 
 type loginAPIResult struct {
@@ -32,7 +43,9 @@ type loginAPIResult struct {
 func NewLoginState(g *GlobalContext) *LoginState {
 	res := &LoginState{
 		Contextified: NewContextified(g),
-		requests:     make(chan loginReq),
+		account:      NewAccount(g),
+		loginReqs:    make(chan loginReq),
+		acctReqs:     make(chan acctReq),
 	}
 	go res.handleRequests()
 	return res
@@ -41,11 +54,11 @@ func NewLoginState(g *GlobalContext) *LoginState {
 // SetSignupRes should only be called by the signup engine, and
 // within an ExternalFunc handler.
 func (s *LoginState) SetSignupRes(sessionID, csrfToken, username string, uid UID, salt []byte) error {
-	if err := s.G().Account().LocalSession().Load(); err != nil {
+	if err := s.account.LocalSession().Load(); err != nil {
 		return err
 	}
 
-	if err := s.G().Account().CreateLoginSessionWithSalt(username, salt); err != nil {
+	if err := s.account.CreateLoginSessionWithSalt(username, salt); err != nil {
 		return err
 	}
 
@@ -57,13 +70,19 @@ func (s *LoginState) SetSignupRes(sessionID, csrfToken, username string, uid UID
 	})
 }
 
+// should only be called by the signup engine, and within an
+// ExternalFunc handler.
+func (s *LoginState) SetSignupStreamCache(tsec *triplesec.Cipher, pps PassphraseStream) {
+	s.account.CreateStreamCache(tsec, pps)
+}
+
 func (s *LoginState) LoginWithPrompt(username string, loginUI LoginUI, secretUI SecretUI) (err error) {
 	s.G().Log.Debug("+ LoginWithPrompt(%s) called", username)
 	defer func() { s.G().Log.Debug("- LoginWithPrompt -> %s", ErrToOk(err)) }()
 
 	err = s.handle(func() error {
 		return s.loginWithPromptHelper(username, loginUI, secretUI, false)
-	})
+	}, "loginWithPromptHelper")
 	return
 }
 
@@ -73,7 +92,7 @@ func (s *LoginState) LoginWithStoredSecret(username string) (err error) {
 
 	err = s.handle(func() error {
 		return s.loginWithStoredSecret(username)
-	})
+	}, "loginWithStoredSecret")
 	return
 }
 
@@ -83,26 +102,27 @@ func (s *LoginState) LoginWithPassphrase(username, passphrase string, storeSecre
 
 	err = s.handle(func() error {
 		return s.loginWithPassphrase(username, passphrase, storeSecret)
-	})
+	}, "loginWithPassphrase")
 	return
 }
 
 func (s *LoginState) Logout() error {
 	return s.handle(func() error {
 		return s.logout()
-	})
+	}, "logout")
 }
 
 // ExternalFunc is for having the LoginState handler call a
 // function outside of LoginState.  The current use case is
 // for signup, so that no logins/logouts happen while a signup is
 // happening.
-func (s *LoginState) ExternalFunc(f func() error) error {
-	return s.handle(f)
+func (s *LoginState) ExternalFunc(f func() error, name string) error {
+	return s.handle(f, name)
 }
 
 func (s *LoginState) Shutdown() error {
-	close(s.requests)
+	close(s.loginReqs)
+	close(s.acctReqs)
 	return nil
 }
 
@@ -110,49 +130,55 @@ func (s *LoginState) Shutdown() error {
 // (maybe from a previous login) or generates a new one via Login. It will
 // return the current Passphrase stream on success or an error on failure.
 func (s *LoginState) GetPassphraseStream(ui SecretUI) (ret PassphraseStream, err error) {
-	if ret = s.G().Account().StreamCache().PassphraseStream(); ret != nil {
-		return
-	}
-	if err = s.verifyPassphrase(ui); err != nil {
-		return
-	}
-	if ret = s.G().Account().StreamCache().PassphraseStream(); ret == nil {
+	s.Account(func(a *Account) {
+		if ret = a.StreamCache().PassphraseStream(); ret != nil {
+			return
+		}
+		if err = s.verifyPassphraseInLock(ui); err != nil {
+			return
+		}
+		if ret = a.StreamCache().PassphraseStream(); ret != nil {
+			return
+		}
 		err = InternalError{"No cached keystream data after login attempt"}
-	}
+	}, "GetPassphraseStream")
 	return
 }
 
 // GetVerifiedTripleSec either returns a cached, verified Triplesec
 // or generates a new one that's verified via Login.
 func (s *LoginState) GetVerifiedTriplesec(ui SecretUI) (ret *triplesec.Cipher, err error) {
-	if ret = s.G().Account().StreamCache().Triplesec(); ret != nil {
-		return
-	}
-	if err = s.verifyPassphrase(ui); err != nil {
-		return
-	}
-	if ret = s.G().Account().StreamCache().Triplesec(); ret != nil {
+	s.Account(func(a *Account) {
+		if ret = a.StreamCache().Triplesec(); ret != nil {
+			return
+		}
+		if err = s.verifyPassphraseInLock(ui); err != nil {
+			return
+		}
+		if ret = a.StreamCache().Triplesec(); ret != nil {
+			return
+		}
 		err = InternalError{"No cached keystream data after login attempt"}
-	}
+	}, "GetVerifiedTriplesec")
 	return
 }
 
 func (s *LoginState) computeLoginPw() ([]byte, error) {
-	loginSession, err := s.G().Account().LoginSession().Session()
+	loginSession, err := s.account.LoginSession().Session()
 	if err != nil {
 		return nil, err
 	}
 	if loginSession == nil {
 		return nil, fmt.Errorf("nil login session")
 	}
-	sec := s.G().Account().StreamCache().PassphraseStream().PWHash()
+	sec := s.account.StreamCache().PassphraseStream().PWHash()
 	mac := hmac.New(sha512.New, sec)
 	mac.Write(loginSession)
 	return mac.Sum(nil), nil
 }
 
 func (s *LoginState) postLoginToServer(eOu string, lgpw []byte) (*loginAPIResult, error) {
-	loginSessionEncoded, err := s.G().Account().LoginSession().SessionEncoded()
+	loginSessionEncoded, err := s.account.LoginSession().SessionEncoded()
 	if err != nil {
 		return nil, err
 	}
@@ -196,7 +222,7 @@ func (s *LoginState) postLoginToServer(eOu string, lgpw []byte) (*loginAPIResult
 }
 
 func (s *LoginState) saveLoginState(res *loginAPIResult) error {
-	if err := s.G().Account().LoginSession().Clear(); err != nil {
+	if err := s.account.LoginSession().Clear(); err != nil {
 		return err
 	}
 
@@ -205,7 +231,7 @@ func (s *LoginState) saveLoginState(res *loginAPIResult) error {
 		return NoConfigWriterError{}
 	}
 
-	salt, err := s.G().Account().LoginSession().Salt()
+	salt, err := s.account.LoginSession().Salt()
 	if err != nil {
 		return err
 	}
@@ -218,9 +244,9 @@ func (s *LoginState) saveLoginState(res *loginAPIResult) error {
 		return err
 	}
 
-	s.G().Account().LocalSession().SetLoggedIn(res.sessionID, res.csrfToken, res.username, res.uid)
+	s.account.LocalSession().SetLoggedIn(res.sessionID, res.csrfToken, res.username, res.uid)
 
-	if err := s.G().Account().LocalSession().Write(); err != nil {
+	if err := s.account.LocalSession().Write(); err != nil {
 		return err
 	}
 
@@ -228,7 +254,7 @@ func (s *LoginState) saveLoginState(res *loginAPIResult) error {
 	// out.
 	// (note: I really don't thinkn this matters since RunSyncer(SecretSyncer, uid)
 	// is always called with a uid... --PC)
-	s.G().Account().SecretSyncer().SetUID(&res.uid)
+	s.account.SecretSyncer().SetUID(&res.uid)
 
 	return nil
 }
@@ -263,7 +289,7 @@ func (s *LoginState) pubkeyLoginHelper(username string, getSecretKeyFn getSecret
 	s.G().Log.Debug("+ pubkeyLoginHelper()")
 	defer func() {
 		if err != nil {
-			s.G().Account().SecretSyncer().Clear()
+			s.account.SecretSyncer().Clear()
 		}
 		s.G().Log.Debug("- pubkeyLoginHelper() -> %s", ErrToOk(err))
 	}()
@@ -278,7 +304,7 @@ func (s *LoginState) pubkeyLoginHelper(username string, getSecretKeyFn getSecret
 	}
 
 	// Need the loginSession; the salt doesn't really matter here.
-	if err = s.G().Account().LoadLoginSession(username); err != nil {
+	if err = s.account.LoadLoginSession(username); err != nil {
 		return
 	}
 
@@ -286,7 +312,7 @@ func (s *LoginState) pubkeyLoginHelper(username string, getSecretKeyFn getSecret
 		return err
 	}
 
-	loginSessionEncoded, err := s.G().Account().LoginSession().SessionEncoded()
+	loginSessionEncoded, err := s.account.LoginSession().SessionEncoded()
 	if err != nil {
 		return err
 	}
@@ -321,12 +347,12 @@ func (s *LoginState) checkLoggedIn(username string, force bool) (loggedIn bool, 
 	defer func() { s.G().Log.Debug("- checkedLoggedIn() -> %t, %s", loggedIn, ErrToOk(err)) }()
 
 	var loggedInTmp bool
-	if loggedInTmp, err = s.G().Account().LoggedInLoad(); err != nil {
+	if loggedInTmp, err = s.account.LoggedInLoad(); err != nil {
 		s.G().Log.Debug("| Session failed to load")
 		return
 	}
 
-	un := s.G().Account().LocalSession().GetUsername()
+	un := s.account.LocalSession().GetUsername()
 	if loggedInTmp && len(username) > 0 && un != nil && username != *un {
 		err = LoggedInError{}
 		return
@@ -353,7 +379,7 @@ func (s *LoginState) switchUser(username string) error {
 		return nil
 	}
 
-	s.G().Account().EnsureUsername(username)
+	s.account.EnsureUsername(username)
 
 	s.G().Log.Debug("| Successfully switched user to %s", username)
 	return nil
@@ -423,7 +449,6 @@ func (s *LoginState) getEmailOrUsername(username *string, loginUI LoginUI) (err 
 
 	// username set, so redo config
 	s.G().ConfigureConfig()
-	s.G().Account().LocalSession().SetUsername(*username)
 	return s.switchUser(*username)
 }
 
@@ -433,7 +458,7 @@ func (s *LoginState) passphraseLogin(username, passphrase string, secretUI Secre
 		s.G().Log.Debug("- LoginState.passphraseLogin -> %s", ErrToOk(err))
 	}()
 
-	if err = s.G().Account().LoadLoginSession(username); err != nil {
+	if err = s.account.LoadLoginSession(username); err != nil {
 		return
 	}
 
@@ -448,7 +473,7 @@ func (s *LoginState) passphraseLogin(username, passphrase string, secretUI Secre
 
 	res, err := s.postLoginToServer(username, lgpw)
 	if err != nil {
-		s.G().Account().ClearStreamCache()
+		s.account.ClearStreamCache()
 		return err
 	}
 
@@ -460,7 +485,7 @@ func (s *LoginState) passphraseLogin(username, passphrase string, secretUI Secre
 }
 
 func (s *LoginState) stretchPassphraseIfNecessary(un string, pp string, ui SecretUI, retry string) error {
-	if s.G().Account().StreamCache().Valid() {
+	if s.account.StreamCache().Valid() {
 		// already have stretched passphrase cached
 		return nil
 	}
@@ -481,7 +506,7 @@ func (s *LoginState) stretchPassphraseIfNecessary(un string, pp string, ui Secre
 		}
 	}
 
-	if err := s.G().Account().CreateStreamCacheViaStretch(pp); err != nil {
+	if err := s.account.CreateStreamCacheViaStretch(pp); err != nil {
 		return err
 	}
 
@@ -490,8 +515,12 @@ func (s *LoginState) stretchPassphraseIfNecessary(un string, pp string, ui Secre
 
 func (s *LoginState) verifyPassphrase(ui SecretUI) (err error) {
 	return s.handle(func() error {
-		return s.loginWithPromptHelper(s.G().Env.GetUsername(), nil, ui, true)
-	})
+		return s.verifyPassphraseInLock(ui)
+	}, "verifyPassphraseInLock")
+}
+
+func (s *LoginState) verifyPassphraseInLock(ui SecretUI) error {
+	return s.loginWithPromptHelper(s.G().Env.GetUsername(), nil, ui, true)
 }
 
 func (s *LoginState) loginWithPromptHelper(username string, loginUI LoginUI, secretUI SecretUI, force bool) (err error) {
@@ -524,23 +553,73 @@ func (s *LoginState) loginWithPromptHelper(username string, loginUI LoginUI, sec
 	return s.tryPassphrasePromptLogin(username, secretUI)
 }
 
-func (s *LoginState) handle(f func() error) error {
+func (s *LoginState) handle(f func() error, name string) error {
 	req := loginReq{
-		f:   f,
-		res: make(chan error),
+		f:    f,
+		res:  make(chan error),
+		name: name,
 	}
-	s.requests <- req
+	s.G().Log.Info("+ send login request %q", name)
+	s.loginReqs <- req
+	s.G().Log.Info("- send login request %q", name)
 
-	return <-req.res
+	s.G().Log.Info("+ wait login request %q", name)
+	err := <-req.res
+	s.G().Log.Info("- wait login request %q", name)
+
+	return err
 }
 
+func (s *LoginState) acctHandle(f acctHandler, name string) {
+	req := acctReq{
+		f:    f,
+		done: make(chan struct{}),
+		name: name,
+	}
+	s.G().Log.Info("+ send acct request %q", name)
+	s.acctReqs <- req
+	s.G().Log.Info("- send acct request %q", name)
+
+	s.G().Log.Info("+ wait acct request %q", name)
+	<-req.done
+	s.G().Log.Info("- wait acct request %q", name)
+
+	return
+}
+
+// handleRequests runs in a goroutine and handles anything that
+// comes in on the loginReqs or acctReqs channels.  Once those
+// channels are closed, they are set to nil here (nil channels
+// block forever) and it stops when both channels are nil.
 func (s *LoginState) handleRequests() {
-	for req := range s.requests {
-		s.handleRequest(req)
+	for {
+		select {
+		case req, ok := <-s.loginReqs:
+			if ok {
+				s.G().Log.Info("+ login request %s", req.name)
+				req.res <- req.f()
+				s.G().Log.Info("- login request %s", req.name)
+			} else {
+				s.loginReqs = nil
+			}
+		case req, ok := <-s.acctReqs:
+			if ok {
+				s.G().Log.Info("+ account request %s", req.name)
+				req.f(s.account)
+				close(req.done)
+				s.G().Log.Info("- account request %s", req.name)
+			} else {
+				s.acctReqs = nil
+			}
+		}
+		if s.loginReqs == nil && s.acctReqs == nil {
+			break
+		}
 	}
+	s.G().Log.Debug("LoginState done handling requests")
 }
 
-func (s *LoginState) handleRequest(req loginReq) {
+func (s *LoginState) handleRequest(req *loginReq) {
 	requestFinished := false
 	var err error
 	// Defer this, so that it runs even when req.f() calls
@@ -605,7 +684,79 @@ func (s *LoginState) loginWithPassphrase(username, passphrase string, storeSecre
 
 func (s *LoginState) logout() error {
 	s.G().Log.Debug("+ Logout called")
-	s.G().Account().Logout()
+	s.account.Logout()
 	s.G().Log.Debug("- Logout called")
 	return nil
+}
+
+func (s *LoginState) Account(h acctHandler, name string) {
+	s.acctHandle(h, name)
+}
+
+func (s *LoginState) StreamCache(h func(*StreamCache), name string) {
+	s.Account(func(a *Account) {
+		h(a.StreamCache())
+	}, name)
+}
+
+func (s *LoginState) LocalSession(h func(*Session), name string) {
+	s.Account(func(a *Account) {
+		h(a.LocalSession())
+	}, name)
+}
+
+func (s *LoginState) LoginSession(h func(*LoginSession), name string) {
+	s.Account(func(a *Account) {
+		h(a.LoginSession())
+	}, name)
+}
+
+func (s *LoginState) SecretSyncer(h func(*SecretSyncer), name string) {
+	s.Account(func(a *Account) {
+		h(a.SecretSyncer())
+	}, name)
+}
+
+func (s *LoginState) RunSecretSyncer(uid *UID) error {
+	var err error
+	s.Account(func(a *Account) {
+		err = a.RunSecretSyncer(uid)
+	}, "RunSecretSyncer")
+	return err
+}
+
+func (s *LoginState) Keyring(h func(*SKBKeyringFile), name string) error {
+	var err error
+	s.Account(func(a *Account) {
+		var kr *SKBKeyringFile
+		kr, err = a.Keyring()
+		if err != nil {
+			return
+		}
+		h(kr)
+	}, name)
+	return err
+}
+
+func (s *LoginState) LoggedIn() bool {
+	var res bool
+	s.Account(func(a *Account) {
+		res = a.LoggedIn()
+	}, "LoggedIn")
+	return res
+}
+
+func (s *LoginState) LoggedInLoad() (lin bool, err error) {
+	s.Account(func(a *Account) {
+		lin, err = a.LoggedInLoad()
+	}, "LoggedInLoad")
+	return
+}
+
+func (s *LoginState) PassphraseStream() PassphraseStream {
+	var pps PassphraseStream
+	s.StreamCache(func(s *StreamCache) {
+		pps = s.PassphraseStream()
+	}, "PassphraseStream")
+	return pps
 }

@@ -90,8 +90,8 @@ func (d *Locksmith) check(ctx *Context) error {
 	d.status.NoKeys = !d.hasKeyFamily()
 	d.status.CurrentDeviceOk = d.arg.User.HasDeviceInCurrentInstall()
 	d.status.HavePGP = d.hasPGP()
-	d.status.HaveActiveDevice = d.G().Account().SecretSyncer().HasActiveDevice()
 	d.status.HaveDetKey = d.hasDetKey()
+	d.status.HaveActiveDevice = d.hasActiveDevice()
 	return nil
 }
 
@@ -138,7 +138,7 @@ func (d *Locksmith) Cancel() error {
 }
 
 func (d *Locksmith) syncSecrets() (err error) {
-	if err = d.G().Account().RunSecretSyncer(d.arg.User.GetUid().P()); err != nil {
+	if err = d.G().LoginState().RunSecretSyncer(d.arg.User.GetUid().P()); err != nil {
 		d.G().Log.Warning("Problem syncing secrets from server: %s", err)
 	}
 	return err
@@ -175,7 +175,7 @@ func (d *Locksmith) checkKeys(ctx *Context) error {
 
 	hasPGP := len(d.user.GetActivePgpKeys(false)) > 0
 
-	if d.G().Account().SecretSyncer().HasActiveDevice() {
+	if d.hasActiveDevice() {
 		// they have at least one device, just not this device...
 		d.G().Log.Debug("| User has an active device, just not this one")
 		return d.deviceSign(ctx, hasPGP)
@@ -312,7 +312,10 @@ func (d *Locksmith) deviceSign(ctx *Context, withPGPOption bool) error {
 		return err
 	}
 
-	devs, err := d.G().Account().SecretSyncer().ActiveDevices()
+	var devs libkb.DeviceKeyMap
+	d.G().LoginState().SecretSyncer(func(ss *libkb.SecretSyncer) {
+		devs, err = ss.ActiveDevices()
+	}, "Locksmith - deviceSign - ActiveDevices")
 	if err != nil {
 		return err
 	}
@@ -381,7 +384,13 @@ func (d *Locksmith) deviceSignPGP(ctx *Context) error {
 
 	ctx.LogUI.Debug("selected pgp key: %s", selected.VerboseDescription())
 	ctx.LogUI.Debug("selected pgp key kid: %s", selected.GetKid())
-	if pk, ok := d.G().Account().SecretSyncer().FindPrivateKey(selected.GetKid().String()); ok {
+
+	var pk libkb.ServerPrivateKey
+	var ok bool
+	d.G().LoginState().SecretSyncer(func(ss *libkb.SecretSyncer) {
+		pk, ok = ss.FindPrivateKey(selected.GetKid().String())
+	}, "Locksmith - deviceSignPGP - FindPrivateKey")
+	if ok {
 		skb, err := pk.ToSKB()
 		if err != nil {
 			return err
@@ -503,8 +512,17 @@ func (d *Locksmith) tspkey(ctx *Context) (libkb.PassphraseStream, error) {
 	return d.G().LoginState().GetPassphraseStream(ctx.SecretUI)
 }
 
+func (d *Locksmith) detKeySrvHalf() ([]byte, error) {
+	var half []byte
+	var err error
+	d.G().LoginState().SecretSyncer(func(ss *libkb.SecretSyncer) {
+		half, err = ss.FindDetKeySrvHalf(libkb.KEY_TYPE_KB_NACL_EDDSA_SERVER_HALF)
+	}, "Locksmith - detKeySrvHalf")
+	return half, err
+}
+
 func (d *Locksmith) hasDetKey() bool {
-	half, err := d.G().Account().SecretSyncer().FindDetKeySrvHalf(libkb.KEY_TYPE_KB_NACL_EDDSA_SERVER_HALF)
+	half, err := d.detKeySrvHalf()
 	if err != nil {
 		return false
 	}
@@ -516,7 +534,7 @@ func (d *Locksmith) hasDetKey() bool {
 
 func (d *Locksmith) detkey(ctx *Context) (libkb.GenericKey, error) {
 	// get server half of detkey via ss
-	half, err := d.G().Account().SecretSyncer().FindDetKeySrvHalf(libkb.KEY_TYPE_KB_NACL_EDDSA_SERVER_HALF)
+	half, err := d.detKeySrvHalf()
 	if err != nil {
 		return nil, err
 	}
@@ -543,4 +561,12 @@ func (d *Locksmith) deviceName(ctx *Context) (string, error) {
 		d.devName = name
 	}
 	return d.devName, nil
+}
+
+func (d *Locksmith) hasActiveDevice() bool {
+	var res bool
+	d.G().LoginState().SecretSyncer(func(ss *libkb.SecretSyncer) {
+		res = ss.HasActiveDevice()
+	}, "Locksmith - hasActiveDevice")
+	return res
 }

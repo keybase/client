@@ -182,7 +182,10 @@ func (s *SKB) unlockSecretKeyFromSecretRetriever(secretRetriever SecretRetriever
 // also the salt from the Account and computes a Triplesec and
 // a passphrase stream.  It's not verified through a Login.
 func (s *SKB) unverifiedPassphraseStream(passphrase string) (tsec *triplesec.Cipher, ret PassphraseStream, err error) {
-	salt, err := s.G().Account().LoginSession().Salt()
+	var salt []byte
+	s.G().LoginState().LoginSession(func(ls *LoginSession) {
+		salt, err = ls.Salt()
+	}, "skb - salt")
 	if err != nil {
 		return nil, nil, err
 	}
@@ -211,12 +214,14 @@ func (s *SKB) UnlockSecretKey(passphrase string, tsec *triplesec.Cipher, pps Pas
 		if pps == nil {
 			tsec, pps, err = s.unverifiedPassphraseStream(passphrase)
 			if err != nil {
-				return nil, err
+				return nil, fmt.Errorf("UnlockSecretKey: %s", err)
 			}
 		}
 		if unlocked, err = s.lksUnlock(pps, secretStorer); err == nil && pps_in == nil {
 			// the unverified tsec, pps has been verified, so cache it:
-			s.G().Account().CreateStreamCache(tsec, pps)
+			s.G().LoginState().Account(func(a *Account) {
+				a.CreateStreamCache(tsec, pps)
+			}, "skb - UnlockSecretKey - CreateStreamCache")
 		}
 	default:
 		err = BadKeyError{fmt.Sprintf("Can't unlock secret with protection type %d", int(s.Priv.Encryption))}
@@ -548,8 +553,12 @@ func (s *SKB) PromptAndUnlock(reason, which string, secretStore SecretStore, ui 
 		err = nil
 	}
 
-	tsec := s.G().Account().StreamCache().Triplesec()
-	pps := s.G().Account().StreamCache().PassphraseStream()
+	var tsec *triplesec.Cipher
+	var pps PassphraseStream
+	s.G().LoginState().StreamCache(func(sc *StreamCache) {
+		tsec = sc.Triplesec()
+		pps = sc.PassphraseStream()
+	}, "skb - PromptAndUnlock - tsec, pps")
 	if tsec != nil || pps != nil {
 		ret, err = s.UnlockSecretKey("", tsec, pps, nil)
 		if err == nil {

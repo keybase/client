@@ -45,12 +45,18 @@ func TestConcurrentLogin(t *testing.T) {
 					fmt.Printf("func caller %d done\n", index)
 					return
 				default:
-					tc.G.Account().LocalSession().APIArgs()
+					tc.G.LoginState().LocalSession(func(s *libkb.Session) {
+						s.APIArgs()
+					}, "APIArgs")
 					// tc.G.Account().UserInfo()
-					tc.G.Account().LocalSession().GetUID()
-					tc.G.Account().LocalSession().Load()
-					tc.G.Account().LoggedIn()
-					tc.G.Account().LoggedInLoad()
+					tc.G.LoginState().LocalSession(func(s *libkb.Session) {
+						s.GetUID()
+					}, "GetUID")
+					tc.G.LoginState().LocalSession(func(s *libkb.Session) {
+						s.Load()
+					}, "session Load")
+					tc.G.LoginState().LoggedIn()
+					tc.G.LoginState().LoggedInLoad()
 					// tc.G.LoginState.Shutdown()
 				}
 			}

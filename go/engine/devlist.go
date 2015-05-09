@@ -37,14 +37,18 @@ func (d *DevList) SubConsumers() []libkb.UIConsumer {
 
 // Run starts the engine.
 func (d *DevList) Run(ctx *Context) error {
-	if err := libkb.RunSyncer(d.G().Account().SecretSyncer(), nil); err != nil {
-		return err
-	}
-
-	devs, err := d.G().Account().SecretSyncer().ActiveDevices()
+	var err error
+	var devs libkb.DeviceKeyMap
+	d.G().LoginState().SecretSyncer(func(ss *libkb.SecretSyncer) {
+		if err = libkb.RunSyncer(ss, nil); err != nil {
+			return
+		}
+		devs, err = ss.ActiveDevices()
+	}, "DevList - ActiveDevices")
 	if err != nil {
 		return err
 	}
+
 	var pdevs []keybase1.Device
 	for k, v := range devs {
 		pdevs = append(pdevs, keybase1.Device{Type: v.Type, Name: v.Description, DeviceID: k})

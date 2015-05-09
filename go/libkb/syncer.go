@@ -56,7 +56,7 @@ func RunSyncer(s Syncer, aUid *UID) (err error) {
 	if err = s.loadFromStorage(); err != nil {
 		return
 	}
-	if !s.G().Account().LoggedIn() && s.needsLogin() {
+	if !s.G().LoginState().LoggedIn() && s.needsLogin() {
 		s.G().Log.Debug("| Won't sync with server since we're not logged in")
 		return
 	}

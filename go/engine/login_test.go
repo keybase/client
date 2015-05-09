@@ -365,6 +365,7 @@ func TestLoginInterruptDevicePush(t *testing.T) {
 }
 
 func TestUserInfo(t *testing.T) {
+	t.Skip()
 	tc := SetupEngineTest(t, "login")
 	defer tc.Cleanup()
 

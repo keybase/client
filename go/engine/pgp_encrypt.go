@@ -59,7 +59,7 @@ func (e *PGPEncrypt) SubConsumers() []libkb.UIConsumer {
 // Run starts the engine.
 func (e *PGPEncrypt) Run(ctx *Context) error {
 	// verify valid options based on logged in state:
-	ok, err := e.G().Account().LoggedInLoad()
+	ok, err := IsLoggedIn(e.G())
 	if err != nil {
 		return err
 	}

@@ -22,7 +22,7 @@ func TestLoginLogout(t *testing.T) {
 		t.Error("Unexpectedly logged in (Session)")
 	}
 
-	if tc.G.Account().LoggedIn() {
+	if LoggedIn(tc) {
 		t.Error("Unexpectedly logged in (LoginState)")
 	}
 
@@ -41,7 +41,7 @@ func TestLoginLogout(t *testing.T) {
 		t.Error("Unexpectedly logged in (Session)")
 	}
 
-	if tc.G.Account().LoggedIn() {
+	if LoggedIn(tc) {
 		t.Error("Unexpectedly logged in (LoginState)")
 	}
 
@@ -52,7 +52,7 @@ func TestLoginLogout(t *testing.T) {
 		t.Error("Unexpectedly logged in (Session)")
 	}
 
-	if tc.G.Account().LoggedIn() {
+	if LoggedIn(tc) {
 		t.Error("Unexpectedly logged in (LoginState)")
 	}
 
@@ -65,7 +65,7 @@ func TestLoginLogout(t *testing.T) {
 		t.Error("Unexpectedly logged out (Session)")
 	}
 
-	if !tc.G.Account().LoggedIn() {
+	if !LoggedIn(tc) {
 		t.Error("Unexpectedly logged out (LoginState)")
 	}
 }
@@ -510,7 +510,7 @@ func TestExternalFuncGoexit(t *testing.T) {
 	err := tc.G.LoginState().ExternalFunc(func() error {
 		runtime.Goexit()
 		return nil
-	})
+	}, "runtime.Goexit")
 
 	if err == nil {
 		t.Error("Error unexpectedly nil")

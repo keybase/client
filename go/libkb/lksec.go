@@ -155,15 +155,25 @@ func (s *LKSec) fsecret() (res [32]byte) {
 }
 
 func (s *LKSec) apiServerHalf(devid *DeviceID) error {
-	if err := s.G().Account().RunSecretSyncer(s.uid); err != nil {
-		return err
-	}
-	dev, err := s.G().Account().SecretSyncer().FindDevice(devid)
+	var err error
+	var dev DeviceKey
+	s.G().LoginState().SecretSyncer(func(ss *SecretSyncer) {
+		if err = RunSyncer(ss, s.uid); err != nil {
+			return
+		}
+		dev, err = ss.FindDevice(devid)
+	}, "LKSec apiServerHalf - find device")
 	if err != nil {
 		return err
 	}
-	s.serverHalf, err = hex.DecodeString(dev.LksServerHalf)
-	return err
+
+	sh, err := hex.DecodeString(dev.LksServerHalf)
+	if err != nil {
+		return err
+	}
+
+	s.serverHalf = sh
+	return nil
 }
 
 // GetLKSForEncrypt gets a verified passphrase stream, and returns

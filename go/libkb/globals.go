@@ -275,12 +275,17 @@ func (g *GlobalContext) GetGpgClient() *GpgCLI {
 	return g.GpgClient
 }
 
-func (g *GlobalContext) GetMyUID() (ret *UID) {
-	ret = g.Account().LocalSession().GetUID()
-	if ret == nil {
-		ret = g.Env.GetUID()
+func (g *GlobalContext) GetMyUID() *UID {
+	var uid *UID
+
+	g.LoginState().LocalSession(func(s *Session) {
+		uid = s.GetUID()
+	}, "G - GetMyUID - GetUID")
+	if uid != nil {
+		return uid
 	}
-	return ret
+
+	return g.Env.GetUID()
 }
 
 func (g *GlobalContext) ConfigureSocketInfo() (err error) {

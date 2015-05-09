@@ -124,33 +124,39 @@ func (k KID) Eq(k2 KID) bool {
 }
 
 func WriteLksSKBToKeyring(k GenericKey, lks *LKSec, lui LogUI) (*SKB, error) {
-	ring, err := G.Account().Keyring()
-	if err != nil {
-		return nil, fmt.Errorf("G.Account().Keyring() error: %s", err)
-	}
 	skb, err := k.ToLksSKB(lks)
 	if err != nil {
 		return nil, fmt.Errorf("k.ToLksSKB() error: %s", err)
 	}
-	if err = ring.PushAndSave(skb, lui); err != nil {
-		return nil, fmt.Errorf("ring.PushAndSave error: %s", err)
+	if err := skbPushAndSave(skb, lui); err != nil {
+		return nil, err
 	}
 	return skb, nil
 }
 
 func WriteTsecSKBToKeyring(k GenericKey, tsec *triplesec.Cipher, lui LogUI) (*SKB, error) {
-	ring, err := G.Account().Keyring()
-	if err != nil {
-		return nil, err
-	}
 	p3skb, err := k.ToSKB(tsec)
 	if err != nil {
 		return nil, err
 	}
-	if err = ring.PushAndSave(p3skb, lui); err != nil {
+	if err := skbPushAndSave(p3skb, lui); err != nil {
 		return nil, err
 	}
 	return p3skb, nil
+}
+
+func skbPushAndSave(skb *SKB, lui LogUI) error {
+	var err error
+	kerr := G.LoginState().Keyring(func(ring *SKBKeyringFile) {
+		err = ring.PushAndSave(skb, lui)
+	}, "PushAndSave")
+	if kerr != nil {
+		return kerr
+	}
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
 // FOKID is a "Fingerprint Or a KID" or both, or neither.
