@@ -147,7 +147,7 @@ func (s *SignupEngine) join(username, email, inviteCode string, skipMail bool) e
 	}
 
 	s.uid = *res.UID
-	user, err := libkb.LoadUser(libkb.LoadUserArg{Uid: res.UID, PublicKeyOptional: true})
+	user, err := libkb.LoadUser(libkb.LoadUserArg{Self: true, Uid: res.UID, PublicKeyOptional: true})
 	if err != nil {
 		return err
 	}
