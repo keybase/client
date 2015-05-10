@@ -11,7 +11,6 @@
 @interface KBHeaderLabelView ()
 @property KBLabel *headerLabel;
 @property NSMutableArray *labels;
-@property CGFloat headerWidth;
 @end
 
 @implementation KBHeaderLabelView
@@ -23,11 +22,11 @@
 
   _labels = [NSMutableArray array];
 
-  _headerWidth = 120;
+  _columnWidth = 120;
 
   YOSelf yself = self;
   self.viewLayout = [YOLayout layoutWithLayoutBlock:^(id<YOLayout> layout, CGSize size) {
-    CGFloat col = yself.headerWidth;
+    CGFloat col = yself.columnRatio > 0 ? ceilf(size.width * yself.columnRatio) : yself.columnWidth;
     CGFloat x = col;
     CGFloat y = 0;
 
@@ -49,9 +48,8 @@
   }];
 }
 
-+ (instancetype)headerLabelViewWithHeader:(NSString *)header headerOptions:(KBTextOptions)headerOptions headerWidth:(CGFloat)headerWidth text:(NSString *)text style:(KBTextStyle)style options:(KBTextOptions)options lineBreakMode:(NSLineBreakMode)lineBreakMode {
++ (instancetype)headerLabelViewWithHeader:(NSString *)header headerOptions:(KBTextOptions)headerOptions text:(NSString *)text style:(KBTextStyle)style options:(KBTextOptions)options lineBreakMode:(NSLineBreakMode)lineBreakMode {
   KBHeaderLabelView *view = [[KBHeaderLabelView alloc] init];
-  view.headerWidth = headerWidth;
   [view.headerLabel setText:header style:style options:headerOptions alignment:NSLeftTextAlignment lineBreakMode:NSLineBreakByClipping];
   [view addText:text style:style options:options lineBreakMode:lineBreakMode targetBlock:nil];
   return view;

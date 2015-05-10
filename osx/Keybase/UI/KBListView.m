@@ -109,8 +109,12 @@
     self.cellSetBlock(self.prototypeView, object, [NSIndexPath indexPathWithIndex:row], nil, self, NO);
     [self.prototypeView setNeedsLayout:NO];
 
-    //CGFloat verticalScrollWidth = [NSScroller scrollerWidthForControlSize:self.scrollView.verticalScroller.controlSize scrollerStyle:self.scrollView.verticalScroller.scrollerStyle];
-    CGFloat width = tableView.frame.size.width - 10;// - verticalScrollWidth;
+    CGFloat width = tableView.frame.size.width;
+
+    width -= tableView.intercellSpacing.width;
+    CGFloat verticalScrollWidth = [NSScroller scrollerWidthForControlSize:self.scrollView.verticalScroller.controlSize scrollerStyle:self.scrollView.verticalScroller.scrollerStyle];
+    width -= verticalScrollWidth;
+
     CGFloat height = [self.prototypeView sizeThatFits:CGSizeMake(width, CGFLOAT_MAX)].height;
     return height;
   }

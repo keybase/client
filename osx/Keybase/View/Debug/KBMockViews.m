@@ -220,7 +220,7 @@
   KBAppView *appView = [[KBAppView alloc] init];
   [appView openWindow];
   KBRMockClient *mockClient = [[KBRMockClient alloc] init];
-  [appView connect:mockClient];
+  [appView openWithEnvironment:[KBEnvironment env:KBEnvManual] client:mockClient];
 }
 
 - (void)showLogin {

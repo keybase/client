@@ -10,6 +10,6 @@
 
 #import "KBAppKit.h"
 
-@interface KBTestInstallView : YOView
+@interface KBFSStatusView : YOView
 
 @end

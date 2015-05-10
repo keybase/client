@@ -16,10 +16,6 @@
 
 @protocol KBAppViewDelegate
 - (void)appViewDidLaunch:(KBAppView *)appView;
-
-- (void)appView:(KBAppView *)appView didCheckInstalls:(NSArray *)installs;
-- (void)appView:(KBAppView *)appView didErrorOnInstall:(NSError *)error;
-
 - (void)appView:(KBAppView *)appView willConnectWithClient:(KBRPClient *)client;
 - (void)appView:(KBAppView *)appView didConnectWithClient:(KBRPClient *)client;
 - (void)appView:(KBAppView *)appView didCheckStatusWithConfig:(KBRConfig *)config status:(KBRGetCurrentStatusRes *)status;
@@ -40,7 +36,7 @@
 @property (readonly, nonatomic) KBRGetCurrentStatusRes *status;
 @property (readonly, nonatomic) KBRConfig *config;
 
-- (void)connect:(KBRPClient *)client;
+- (void)openWithEnvironment:(KBEnvironment *)environment client:(KBRPClient *)client;
 
 - (KBWindow *)openWindow;
 

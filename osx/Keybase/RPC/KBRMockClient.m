@@ -31,10 +31,6 @@
   });
 }
 
-- (void)checkInstall:(KBInstallCheck)completion {
-  completion(@[]);
-}
-
 - (void)sendRequestWithMethod:(NSString *)method params:(NSArray *)params sessionId:(NSInteger)sessionId completion:(MPRequestCompletion)completion {
   self.completion = completion;
   if (self.handler) {

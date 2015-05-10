@@ -8,11 +8,11 @@
 
 #import <Foundation/Foundation.h>
 
-#import "KBLaunchService.h"
+#import "KBInstallable.h"
 
-@interface KBLaunchServiceInstall : NSObject
+@interface KBInstallAction : NSObject
 
-@property KBLaunchService *service;
+@property id<KBInstallable> installable;
 @property NSError *error;
 @property BOOL installed;
 

@@ -6,15 +6,16 @@
 //  Copyright (c) 2015 Gabriel Handford. All rights reserved.
 //
 
-#import "KBTestInstallView.h"
+#import "KBFSStatusView.h"
 
 #import "AppDelegate.h"
+#import <MPMessagePack/MPXPCClient.h>
 
-@interface KBTestInstallView ()
-@property KBButton *installButton;
+@interface KBFSStatusView ()
+@property MPXPCClient *client;
 @end
 
-@implementation KBTestInstallView
+@implementation KBFSStatusView
 
 - (void)viewInit {
   [super viewInit];
@@ -23,13 +24,6 @@
   [self addSubview:contentView];
 
   GHWeakSelf gself = self;
-  YOHBox *buttons = [YOHBox box:@{@"spacing": @"10"}];
-  [contentView addSubview:buttons];
-
-  KBButton *installButton = [KBButton buttonWithText:@"Install Helper/KBFS" style:KBButtonStyleToolbar];
-  installButton.targetBlock = ^{ [gself install]; };
-  [buttons addSubview:installButton];
-
   YOHBox *buttons2 = [YOHBox box:@{@"spacing": @"10"}];
   [contentView addSubview:buttons2];
 
@@ -59,17 +53,9 @@
   self.viewLayout = [YOLayout fill:contentView];
 }
 
-- (void)install {
-  [KBInstaller installHelper:^(NSError *error, id value) {
-    if (error) KBConsoleError(error);
-    else KBConsoleLog(@"Installed");
-  }];
-}
-
 - (void)sendRequest:(NSString *)method {
-  NSAssert(AppDelegate.sharedDelegate.helper, @"No helper");
-
-  [AppDelegate.sharedDelegate.helper sendRequest:method params:nil completion:^(NSError *error, id value) {
+  if (!_client) _client = [[MPXPCClient alloc] initWithServiceName:@"keybase.Helper" priviledged:YES];
+  [_client sendRequest:method params:nil completion:^(NSError *error, id value) {
     if (error) KBConsoleError(error);
     else KBConsoleLog(@"%@: %@", method, value);
   }];

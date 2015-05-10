@@ -11,8 +11,9 @@
 #import <GHKit/GHKit.h>
 #import "KBDefines.h"
 #import "KBLaunchCtl.h"
+#import "KBInstallable.h"
 
-@interface KBLaunchService : NSObject
+@interface KBLaunchService : NSObject <KBInstallable>
 
 @property (readonly) NSString *label;
 @property (readonly) NSDictionary *plist;

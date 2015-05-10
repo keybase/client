@@ -70,7 +70,7 @@
       if ((attempt + 1) >= 4) {
         completion(KBMakeError(-1, @"launchctl wait timeout"), 0);
       } else {
-        KBLog(@"Watiting for %@ (%@)", load ? @"load" : @"unload", @(attempt));
+        KBLog(@"Waiting for %@ (%@)", load ? @"load" : @"unload", @(attempt));
         [self wait:label load:load attempt:attempt+1 completion:completion];
       }
     }

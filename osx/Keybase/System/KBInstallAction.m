@@ -6,8 +6,8 @@
 //  Copyright (c) 2015 Gabriel Handford. All rights reserved.
 //
 
-#import "KBLaunchServiceInstall.h"
+#import "KBInstallAction.h"
 
-@implementation KBLaunchServiceInstall
+@implementation KBInstallAction
 
 @end

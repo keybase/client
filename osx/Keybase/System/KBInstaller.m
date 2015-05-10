@@ -12,9 +12,11 @@
 #import "AppDelegate.h"
 //#include <launch.h>
 #import "KBLaunchService.h"
-#import <ServiceManagement/ServiceManagement.h>
 #import "KBRunOver.h"
-#import "KBLaunchServiceInstall.h"
+#import "KBInstallable.h"
+#import "KBInstallAction.h"
+#import "KBHelperInstall.h"
+#import "KBCLIInstall.h"
 
 @interface KBInstaller ()
 @property KBEnvironment *environment;
@@ -29,46 +31,57 @@
   return self;
 }
 
-- (void)checkInstall:(KBInstallCheck)completion {
-  KBLaunchService *service = [[KBLaunchService alloc] initWithLabel:_environment.launchdLabelService plist:_environment.launchdPlistDictionaryForService];
-  KBLaunchService *kbfs = [[KBLaunchService alloc] initWithLabel:_environment.launchdLabelKBFS plist:_environment.launchdPlistDictionaryForKBFS];
+- (void)installStatus:(KBInstallActions)completion {
+  if (!_environment.isInstallEnabled) {
+    completion(@[]);
+    return;
+  }
 
-  NSArray *services = @[service, kbfs];
+  NSMutableArray *installables = [NSMutableArray array];
+
+  if (_environment.launchdLabelService) {
+    [installables addObject:[[KBLaunchService alloc] initWithLabel:_environment.launchdLabelService plist:_environment.launchdPlistDictionaryForService]];
+  }
+
+  [installables addObject:[[KBHelperInstall alloc] init]];
+
+  if (_environment.launchdLabelKBFS) {
+    [installables addObject:[[KBLaunchService alloc] initWithLabel:_environment.launchdLabelKBFS plist:_environment.launchdPlistDictionaryForKBFS]];
+  }
+
+  [installables addObject:[[KBCLIInstall alloc] init]];
 
   KBRunOver *rover = [[KBRunOver alloc] init];
-  rover.objects = services;
-  rover.runBlock = ^(KBLaunchService *service, KBRunCompletion runCompletion) {
-    [service status:^(NSError *error, NSInteger pid) {
-      if (error) {
-        KBLaunchServiceInstall *install = [[KBLaunchServiceInstall alloc] init];
-        install.error = error;
-        install.service = service;
-        runCompletion(install);
-        return;
-      }
-      /*
-       if (pid == -1) {
-       [self install:completion];
-       } else {
-       [gself.launcher reload:^(NSError *error, NSInteger pid) {
-       completion(nil, NO, KBInstallTypeInstaller);
-       }];
-       }
-       */
-      [service install:^(NSError *error, BOOL installed) {
-        KBLaunchServiceInstall *install = [[KBLaunchServiceInstall alloc] init];
-        install.error = error;
-        install.service = service;
-        install.installed = installed;
-        runCompletion(install);
-      }];
+  rover.objects = installables;
+  rover.runBlock = ^(id<KBInstallable> installable, KBRunCompletion runCompletion) {
+    // Check if its installed
+    [installable installStatus:^(NSError *error, BOOL installed) {
+      KBInstallAction *install = [[KBInstallAction alloc] init];
+      install.installable = installable;
+      install.error = error;
+      install.installed = installed;
+      runCompletion(install);
     }];
-
   };
   rover.completion = completion;
   [rover run];
 }
 
+- (void)install:(NSArray *)installables completion:(KBInstallActions)completion {
+  KBRunOver *rover = [[KBRunOver alloc] init];
+  rover.objects = installables;
+  rover.runBlock = ^(id<KBInstallable> installable, KBRunCompletion runCompletion) {
+    [installable install:^(NSError *error, BOOL installed) {
+      KBInstallAction *install = [[KBInstallAction alloc] init];
+      install.installable = installable;
+      install.error = error;
+      install.installed = installed;
+      runCompletion(install);
+    }];
+  };
+  rover.completion = completion;
+  [rover run];
+}
 
 - (void)removeDirectory:(NSString *)directory error:(NSError **)error {
   NSArray *files = [NSFileManager.defaultManager contentsOfDirectoryAtPath:directory error:error];
@@ -76,44 +89,6 @@
     [NSFileManager.defaultManager removeItemAtPath:[directory stringByAppendingPathComponent:file] error:error];
   }
   [NSFileManager.defaultManager removeItemAtPath:directory error:error];
-}
-
-+ (void)installHelper:(KBOnCompletion)completion {
-  NSError *error = nil;
-  if ([self installServiceWithName:@"keybase.Helper" error:&error]) {
-    MPXPCClient *helper = [[MPXPCClient alloc] initWithServiceName:@"keybase.Helper" priviledged:YES];
-    [helper sendRequest:@"load_kbfs" params:nil completion:completion];
-  } else {
-    if (!error) error = KBMakeError(-1, @"Failed to install helper");
-    completion(error, nil);
-  }
-}
-
-+ (BOOL)installServiceWithName:(NSString *)name error:(NSError **)error {
-  AuthorizationRef authRef;
-  OSStatus status = AuthorizationCreate(NULL, NULL, 0, &authRef);
-  if (status != errAuthorizationSuccess) {
-    if (error) *error = MPMakeError(status, @"Error creating auth");
-    return NO;
-  }
-
-  AuthorizationItem authItem = {kSMRightBlessPrivilegedHelper, 0, NULL, 0};
-  AuthorizationRights authRights = {1, &authItem};
-  AuthorizationFlags flags =	kAuthorizationFlagDefaults | kAuthorizationFlagInteractionAllowed	| kAuthorizationFlagPreAuthorize | kAuthorizationFlagExtendRights;
-  status = AuthorizationCopyRights(authRef, &authRights, kAuthorizationEmptyEnvironment, flags, NULL);
-  if (status != errAuthorizationSuccess) {
-    if (error) *error = [NSError errorWithDomain:NSOSStatusErrorDomain code:status userInfo:nil];
-    return NO;
-  }
-
-  CFErrorRef cerror = NULL;
-  Boolean success = SMJobBless(kSMDomainSystemLaunchd, (__bridge CFStringRef)name, authRef, &cerror);
-  if (!success) {
-    if (error) *error = (NSError *)CFBridgingRelease(cerror);
-    return NO;
-  } else {
-    return YES;
-  }
 }
 
 - (void)installDebugMocks {

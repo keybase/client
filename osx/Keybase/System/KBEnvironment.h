@@ -28,6 +28,7 @@ typedef NS_ENUM (NSInteger, KBEnv) {
 @property (readonly) NSString *title;
 @property (readonly) NSString *info;
 @property (readonly) NSImage *image;
+@property (readonly, getter=isInstallEnabled) BOOL installEnabled; // Whether to attempt install
 
 - (instancetype)initWithEnv:(KBEnv)env;
 

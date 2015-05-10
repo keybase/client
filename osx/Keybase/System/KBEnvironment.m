@@ -24,6 +24,7 @@
 @property NSString *title;
 @property NSString *info;
 @property NSImage *image;
+@property (getter=isInstallEnabled) BOOL installEnabled;
 @end
 
 @implementation KBEnvironment
@@ -41,6 +42,7 @@
         self.info = @"This uses api.keybase.io.";
         self.image = [NSImage imageNamed:NSImageNameNetwork];
         self.launchdEnabled = YES;
+        self.installEnabled = YES;
         break;
       }
       case KBEnvLocalhost: {
@@ -53,6 +55,7 @@
         self.info = @"This uses the localhost web server.";
         self.image = [NSImage imageNamed:NSImageNameComputer];
         self.launchdEnabled = YES;
+        self.installEnabled = YES;
         break;
       }
       case KBEnvManual: {
@@ -64,6 +67,7 @@
         self.mountDir = KBDir(@"~/Keybase.dev", NO);
         self.image = [NSImage imageNamed:NSImageNameAdvanced];
         self.launchdEnabled = NO;
+        self.installEnabled = NO;
       }
     }
 

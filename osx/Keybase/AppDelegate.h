@@ -13,14 +13,11 @@
 #import "KBAppView.h"
 #import <GHKit/GHKit.h>
 #import "KBAppKit.h"
-#import <MPMessagePack/MPXPCClient.h>
 
 #define KBConsoleLog(fmt, ...) ([AppDelegate consoleLog:[NSString stringWithFormat:fmt, ##__VA_ARGS__]])
 #define KBConsoleError(err) ([AppDelegate consoleError:err])
 
 @interface AppDelegate : NSObject <NSApplicationDelegate>
-
-@property (readonly) MPXPCClient *helper;
 
 + (KBAppView *)appView;
 

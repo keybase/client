@@ -30,6 +30,20 @@
   [KBLaunchCtl status:_label completion:completion];
 }
 
+- (void)installStatus:(KBInstallStatus)completion {
+  [KBLaunchCtl status:_label completion:^(NSError *error, NSInteger pid) {
+    if (error) {
+      completion(error, NO);
+    } else {
+      completion(error, pid != -1);
+    }
+  }];
+}
+
+- (NSString *)info {
+  return NSStringWithFormat(@"%@ (launchd)", _label);
+}
+
 - (void)install:(void (^)(NSError *error, BOOL installed))completion {
   NSError *error = nil;
   [AppDelegate applicationSupport:nil create:YES error:&error]; // Create application support dir

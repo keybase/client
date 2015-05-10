@@ -20,11 +20,13 @@
 #import "KBAppToolbar.h"
 #import "KBPGPAppView.h"
 #import "KBSourceOutlineView.h"
-#import "KBLaunchServiceInstall.h"
+#import "KBInstallAction.h"
+#import "KBInstallerView.h"
 
 
 typedef NS_ENUM (NSInteger, KBAppViewMode) {
   KBAppViewModeInProgress = 1,
+  KBAppViewModeInstaller,
   KBAppViewModeLogin,
   KBAppViewModeSignup,
   KBAppViewModeMain
@@ -52,6 +54,7 @@ typedef NS_ENUM (NSInteger, KBAppViewMode) {
 @property KBAppViewMode mode;
 
 @property KBInstaller *installer;
+@property KBEnvironment *environment;
 @end
 
 #define TITLE_HEIGHT (32)
@@ -97,11 +100,24 @@ typedef NS_ENUM (NSInteger, KBAppViewMode) {
   [self showInProgress:@"Loading"];
 }
 
-- (void)connect:(KBRPClient *)client {
+- (void)openWithEnvironment:(KBEnvironment *)environment client:(KBRPClient *)client {
+  _environment = environment;
+  _installer = [[KBInstaller alloc] initWithEnvironment:environment];
   _client = client;
-  _client.delegate = self;
-
   for (id<KBAppViewDelegate> delegate in _delegates) [delegate appViewDidLaunch:self];
+
+  [self showInProgress:@"Loading"];
+  [_installer installStatus:^(NSArray *installActions) {
+    if ([installActions count] == 0) {
+      [self connect];
+    } else {
+      [self showInstaller:installActions];
+    }
+  }];
+}
+
+- (void)connect {
+  _client.delegate = self;
 
   GHWeakSelf gself = self;
   [_client registerMethod:@"keybase.1.secretUi.getSecret" sessionId:0 requestHandler:^(NSNumber *messageId, NSString *method, NSArray *params, MPRequestCompletion completion) {
@@ -138,23 +154,7 @@ typedef NS_ENUM (NSInteger, KBAppViewMode) {
     completion(nil, nil);
   }];
 
-
-  _installer = [[KBInstaller alloc] initWithEnvironment:_client.environment];
-  [_installer checkInstall:^(NSArray *installs) {
-
-    for (KBLaunchServiceInstall *install in installs) {
-      if (install.error) {
-        for (id<KBAppViewDelegate> delegate in gself.delegates) [delegate appView:self didErrorOnInstall:install.error];
-
-        [AppDelegate setError:install.error sender:self];
-        // TODO: We're continuing on in case it's recoverable. We should do something better though.
-      }
-    }
-
-    for (id<KBAppViewDelegate> delegate in gself.delegates) [delegate appView:self didCheckInstalls:installs];
-
-    [gself.client open];
-  }];
+  [_client open];
 }
 
 // If we errored while checking status
@@ -223,6 +223,18 @@ typedef NS_ENUM (NSInteger, KBAppViewMode) {
   [view enableProgressWithTitle:title];
   KBNavigationView *navigation = [[KBNavigationView alloc] initWithView:view title:_title];
   [self setContentView:navigation mode:KBAppViewModeInProgress];
+}
+
+- (void)showInstaller:(NSArray *)installActions {
+  KBInstallerView *view = [[KBInstallerView alloc] init];
+  [view setInstallActions:installActions];
+  view.completion = ^(NSError *error) {
+    [self showInProgress:@"Loading"];
+    // TODO Will the installer pass an error or should we change the block def
+    [self connect];
+  };
+  KBNavigationView *navigation = [[KBNavigationView alloc] initWithView:view title:_title];
+  [self setContentView:navigation mode:KBAppViewModeInstaller];
 }
 
 - (void)showLogin {

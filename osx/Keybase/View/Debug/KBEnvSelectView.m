@@ -71,7 +71,9 @@
   typedef NSView * (^KBCreateEnvInfoLabel)(NSString *key, NSString *value);
 
   KBCreateEnvInfoLabel createView = ^NSView *(NSString *key, NSString *value) {
-    return [KBHeaderLabelView headerLabelViewWithHeader:key headerOptions:KBTextOptionsMonospace headerWidth:80 text:value style:KBTextStyleDefault options:KBTextOptionsMonospace lineBreakMode:NSLineBreakByCharWrapping];
+    KBHeaderLabelView *view = [KBHeaderLabelView headerLabelViewWithHeader:key headerOptions:KBTextOptionsMonospace text:value style:KBTextStyleDefault options:KBTextOptionsMonospace lineBreakMode:NSLineBreakByCharWrapping];
+    view.columnWidth = 80;
+    return view;
   };
 
   [view addSubview:createView(@"Id", environment.identifier)];
@@ -82,8 +84,10 @@
   if (environment.isLaunchdEnabled) {
     [view addSubview:createView(@"Service", environment.launchdLabelService)];
     [view addSubview:createView(@"KBFS", environment.launchdLabelKBFS)];
-  } else {
-    [view addSubview:createView(@"", @"Launchd Disabled")];
+  }
+
+  if (environment.isInstallEnabled) {
+    [view addSubview:createView(@"Other", @"Installer Disabled")];
   }
 
   //[view addSubview:createView(@"Service", [environment commandLineForService:YES])];

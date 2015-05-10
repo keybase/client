@@ -37,8 +37,6 @@
 @property KBPreferences *preferences;
 @property BOOL alerting;
 
-@property MPXPCClient *helper;
-
 @property NSStatusItem *statusItem; // Menubar
 
 // Debug
@@ -131,10 +129,8 @@
   [window kb_addChildWindowForView:_consoleView rect:CGRectMake(0, 40, 400, 400) position:KBWindowPositionRight title:@"Console" fixed:NO makeKey:NO];
   [_appView.delegates addObject:_consoleView];
 
-  _helper = [[MPXPCClient alloc] initWithServiceName:@"keybase.Helper" priviledged:YES];
-
   KBRPClient *client = [[KBRPClient alloc] initWithEnvironment:environment];
-  [_appView connect:client];
+  [_appView openWithEnvironment:environment client:client];
 }
 
 - (void)applicationWillTerminate:(NSNotification *)notification {
@@ -361,8 +357,6 @@
 #pragma mark KBAppViewDelegate
 
 - (void)appViewDidLaunch:(KBAppView *)appView { }
-- (void)appView:(KBAppView *)appView didCheckInstalls:(NSArray *)installs { }
-- (void)appView:(KBAppView *)appView didErrorOnInstall:(NSError *)error { }
 - (void)appView:(KBAppView *)appView willConnectWithClient:(KBRPClient *)client{ }
 - (void)appView:(KBAppView *)appView didConnectWithClient:(KBRPClient *)client { }
 - (void)appView:(KBAppView *)appView didCheckStatusWithConfig:(KBRConfig *)config status:(KBRGetCurrentStatusRes *)status { }

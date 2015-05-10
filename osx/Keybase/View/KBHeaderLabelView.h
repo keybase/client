@@ -12,7 +12,10 @@
 
 @interface KBHeaderLabelView : YOView
 
-+ (instancetype)headerLabelViewWithHeader:(NSString *)header headerOptions:(KBTextOptions)headerOptions headerWidth:(CGFloat)headerWidth text:(NSString *)text style:(KBTextStyle)style options:(KBTextOptions)options lineBreakMode:(NSLineBreakMode)lineBreakMode;
+@property float columnRatio; // For header width based on ratio
+@property CGFloat columnWidth; // For fixed header width
+
++ (instancetype)headerLabelViewWithHeader:(NSString *)header headerOptions:(KBTextOptions)headerOptions text:(NSString *)text style:(KBTextStyle)style options:(KBTextOptions)options lineBreakMode:(NSLineBreakMode)lineBreakMode;
 
 - (void)setHeader:(NSString *)header;
 

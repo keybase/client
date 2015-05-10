@@ -11,17 +11,14 @@
 #import "KBDefines.h"
 #import "KBEnvironment.h"
 
-typedef void (^KBInstallCheck)(NSArray */*of KBLaunchServiceInstall*/installs);
+typedef void (^KBInstallActions)(NSArray */*of KBInstallAction*/installActions);
 
 @interface KBInstaller : NSObject
 
 - (instancetype)initWithEnvironment:(KBEnvironment *)environment;
 
-- (void)checkInstall:(KBInstallCheck)completion;
+- (void)installStatus:(KBInstallActions)completion;
 
-/*!
- Install helper and Fuse.
- */
-+ (void)installHelper:(KBOnCompletion)completion;
+- (void)install:(NSArray *)installables completion:(KBInstallActions)completion;
 
 @end

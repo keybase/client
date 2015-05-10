@@ -14,10 +14,10 @@
 
 #import "KBMockViews.h"
 #import "KBTestClientView.h"
-#import "KBTestInstallView.h"
+#import "KBFSStatusView.h"
 #import "KBAppView.h"
 #import "KBLaunchCtl.h"
-#import "KBLaunchServiceInstall.h"
+#import "KBInstallAction.h"
 
 @interface KBConsoleView () <KBAppViewDelegate>
 @property KBListView *logView;
@@ -55,9 +55,9 @@
   };
   [buttons addSubview:debugButton];
 
-  KBButton *helperButton = [KBButton buttonWithText:@"Installer" style:KBButtonStyleToolbar];
+  KBButton *helperButton = [KBButton buttonWithText:@"KBFS" style:KBButtonStyleToolbar];
   helperButton.targetBlock = ^{
-    KBTestInstallView *view = [[KBTestInstallView alloc] init];
+    KBFSStatusView *view = [[KBFSStatusView alloc] init];
     [self.window kb_addChildWindowForView:view rect:CGRectMake(0, 0, 400, 500) position:KBWindowPositionCenter title:@"Helper" fixed:NO makeKey:YES];
   };
   [buttons addSubview:helperButton];
@@ -107,16 +107,6 @@
 
   _client = appView.client;
   [self setNeedsLayout];
-}
-
-- (void)appView:(KBAppView *)appView didCheckInstalls:(NSArray *)installs {
-  for (KBLaunchServiceInstall *install in installs) {
-    KBConsoleLog(@"%@: %@", install.service.label, install.installed ? @"Installed" : @"Checked");
-  }
-}
-
-- (void)appView:(KBAppView *)appView didErrorOnInstall:(NSError *)error {
-  KBConsoleLog(@"Install error: %@", error);
 }
 
 - (void)appView:(KBAppView *)appView willConnectWithClient:(KBRPClient *)client {
