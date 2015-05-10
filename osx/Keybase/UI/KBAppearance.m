@@ -75,8 +75,8 @@ static id<KBAppearance> gCurrentAppearance = NULL;
       break;
   }
 
-  if ((options & KBTextOptionsMonospace) != 0) font = [NSFont fontWithName:@"Monaco" size:font.pointSize];
-
+  // TODO These options overwrite each other
+  if ((options & KBTextOptionsMonospace) != 0) font = [NSFont fontWithName:@"Monaco" size:font.pointSize-2];
   if ((options & KBTextOptionsStrong) != 0) font = [NSFont boldSystemFontOfSize:font.pointSize];
 
   return font;

@@ -12,7 +12,7 @@
 
 @interface KBHeaderLabelView : YOView
 
-+ (instancetype)headerLabelViewWithHeader:(NSString *)header headerOptions:(KBTextOptions)headerOptions headerWidth:(CGFloat)headerWidth text:(NSString *)text style:(KBTextStyle)style lineBreakMode:(NSLineBreakMode)lineBreakMode;
++ (instancetype)headerLabelViewWithHeader:(NSString *)header headerOptions:(KBTextOptions)headerOptions headerWidth:(CGFloat)headerWidth text:(NSString *)text style:(KBTextStyle)style options:(KBTextOptions)options lineBreakMode:(NSLineBreakMode)lineBreakMode;
 
 - (void)setHeader:(NSString *)header;
 

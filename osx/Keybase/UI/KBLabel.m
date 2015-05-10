@@ -16,6 +16,7 @@
 @interface KBLabel ()
 @property NSTextView *textView;
 @property KBTextStyle style;
+@property KBTextOptions options;
 @end
 
 @implementation KBLabel
@@ -154,6 +155,7 @@
 
 - (void)setText:(NSString *)text style:(KBTextStyle)style options:(KBTextOptions)options alignment:(NSTextAlignment)alignment lineBreakMode:(NSLineBreakMode)lineBreakMode {
   _style = style;
+  _options = options;
   id<KBAppearance> appearance = KBAppearance.currentAppearance;
   NSColor *color = [appearance colorForStyle:style options:options];
   NSFont *font = [appearance fontForStyle:style options:options];
@@ -224,9 +226,10 @@
   [self setAttributedText:str];
 }
 
-- (void)setStyle:(KBTextStyle)style appearance:(id<KBAppearance>)appearance {
+- (void)setStyle:(KBTextStyle)style options:(KBTextOptions)options appearance:(id<KBAppearance>)appearance {
   _style = style;
-  [self setFont:[appearance fontForStyle:_style options:0] color:[appearance colorForStyle:_style options:0]];
+  _options = options;
+  [self setFont:[appearance fontForStyle:_style options:options] color:[appearance colorForStyle:_style options:options]];
 }
 
 - (void)setAttributedText:(NSAttributedString *)attributedText {
@@ -242,7 +245,7 @@
   //NSAssert(_style != KBTextStyleNone, @"Background style only works if label.style is set");
   if (_style == KBTextStyleNone) return;
   id<KBAppearance> appearance = (backgroundStyle == NSBackgroundStyleDark ? KBAppearance.darkAppearance : KBAppearance.lightAppearance);
-  NSColor *color = [appearance colorForStyle:_style options:0];
+  NSColor *color = [appearance colorForStyle:_style options:_options];
   [self setFont:nil color:color];
   [self setNeedsLayout];
 }

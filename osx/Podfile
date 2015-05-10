@@ -7,9 +7,9 @@ target :Keybase do
   pod "Slash"
   pod "MASPreferences"
 
-  pod "MPMessagePack", :path => "~/Projects/MPMessagePack"
+  pod "MPMessagePack"#, :path => "~/Projects/MPMessagePack"
 
-  pod "YOLayout", :path => "~/Projects/YOLayout"
+  pod "YOLayout"#, :path => "~/Projects/YOLayout"
 
   pod "ZXCVBN"
   pod "AFNetworking"
@@ -19,5 +19,5 @@ target :Keybase do
 end
 
 target "keybase.Helper" do
-  pod "MPMessagePack", :path => "~/Projects/MPMessagePack"
+  pod "MPMessagePack"#, :path => "~/Projects/MPMessagePack"
 end

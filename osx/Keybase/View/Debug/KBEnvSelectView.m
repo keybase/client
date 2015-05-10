@@ -71,7 +71,7 @@
   typedef NSView * (^KBCreateEnvInfoLabel)(NSString *key, NSString *value);
 
   KBCreateEnvInfoLabel createView = ^NSView *(NSString *key, NSString *value) {
-    return [KBHeaderLabelView headerLabelViewWithHeader:key headerOptions:KBTextOptionsStrong headerWidth:80 text:value style:KBTextStyleDefault lineBreakMode:NSLineBreakByCharWrapping];
+    return [KBHeaderLabelView headerLabelViewWithHeader:key headerOptions:KBTextOptionsMonospace headerWidth:80 text:value style:KBTextStyleDefault options:KBTextOptionsMonospace lineBreakMode:NSLineBreakByCharWrapping];
   };
 
   [view addSubview:createView(@"Id", environment.identifier)];
@@ -79,8 +79,15 @@
   [view addSubview:createView(@"Host", environment.host)];
   [view addSubview:createView(@"Sock", [environment.sockFile stringByAbbreviatingWithTildeInPath])];
   [view addSubview:createView(@"Mount", [environment.mountDir stringByAbbreviatingWithTildeInPath])];
-  [view addSubview:createView(@"Service", environment.launchdLabelService)];
-  [view addSubview:createView(@"KBFS", environment.launchdLabelKBFS)];
+  if (environment.isLaunchdEnabled) {
+    [view addSubview:createView(@"Service", environment.launchdLabelService)];
+    [view addSubview:createView(@"KBFS", environment.launchdLabelKBFS)];
+  } else {
+    [view addSubview:createView(@"", @"Launchd Disabled")];
+  }
+
+  //[view addSubview:createView(@"Service", [environment commandLineForService:YES])];
+  //[view addSubview:createView(@"KBFS", [environment commandLineForKBFS:YES])];
 
   [view kb_setBackgroundColor:KBAppearance.currentAppearance.secondaryBackgroundColor];
   return view;

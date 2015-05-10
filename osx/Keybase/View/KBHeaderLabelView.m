@@ -49,11 +49,11 @@
   }];
 }
 
-+ (instancetype)headerLabelViewWithHeader:(NSString *)header headerOptions:(KBTextOptions)headerOptions headerWidth:(CGFloat)headerWidth text:(NSString *)text style:(KBTextStyle)style lineBreakMode:(NSLineBreakMode)lineBreakMode {
++ (instancetype)headerLabelViewWithHeader:(NSString *)header headerOptions:(KBTextOptions)headerOptions headerWidth:(CGFloat)headerWidth text:(NSString *)text style:(KBTextStyle)style options:(KBTextOptions)options lineBreakMode:(NSLineBreakMode)lineBreakMode {
   KBHeaderLabelView *view = [[KBHeaderLabelView alloc] init];
   view.headerWidth = headerWidth;
   [view.headerLabel setText:header style:style options:headerOptions alignment:NSLeftTextAlignment lineBreakMode:NSLineBreakByClipping];
-  [view addText:text style:style options:0 lineBreakMode:lineBreakMode targetBlock:nil];
+  [view addText:text style:style options:options lineBreakMode:lineBreakMode targetBlock:nil];
   return view;
 }
 
@@ -63,7 +63,7 @@
 
 - (void)addText:(NSString *)text style:(KBTextStyle)style options:(KBTextOptions)options lineBreakMode:(NSLineBreakMode)lineBreakMode targetBlock:(dispatch_block_t)targetBlock {
   KBLabel *label = [KBLabel labelWithText:text style:style options:options alignment:NSLeftTextAlignment lineBreakMode:lineBreakMode];
-  //label.verticalAlignment = KBVerticalAlignmentMiddle;
+  label.selectable = YES;
 
   if (targetBlock) {
     NSAssert(NO, @"Not implemented"); // TODO Wrap in KBButtonView if selectable

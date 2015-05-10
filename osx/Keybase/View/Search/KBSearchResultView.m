@@ -40,7 +40,7 @@
 - (void)setBackgroundStyle:(NSBackgroundStyle)backgroundStyle {
   id<KBAppearance> appearance = (backgroundStyle == NSBackgroundStyleDark ? KBAppearance.darkAppearance : KBAppearance.lightAppearance);
 
-  [self.titleLabel setStyle:KBTextStyleDefault appearance:appearance];
+  [self.titleLabel setStyle:KBTextStyleDefault options:0 appearance:appearance];
   [self.infoLabel setAttributedText:[self attributedStringForSearchResult:_searchResult appearance:appearance] alignment:NSLeftTextAlignment lineBreakMode:NSLineBreakByTruncatingTail];
 
   [self setNeedsLayout];

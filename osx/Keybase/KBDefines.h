@@ -54,3 +54,5 @@ typedef NS_ENUM (NSInteger, KBAppViewItem) {
 #define KBMap(ARRAY, PROPERTY) [ARRAY map:^(id obj) { return [obj PROPERTY]; }]
 
 #define KBLog DDLogDebug
+
+NSString *KBDir(NSString *dir, BOOL tilde);

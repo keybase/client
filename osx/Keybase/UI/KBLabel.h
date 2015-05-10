@@ -49,7 +49,7 @@
 
 - (void)setBorderEnabled:(BOOL)borderEnabled;
 
-- (void)setStyle:(KBTextStyle)style appearance:(id<KBAppearance>)appearance;
+- (void)setStyle:(KBTextStyle)style options:(KBTextOptions)options appearance:(id<KBAppearance>)appearance;
 
 - (BOOL)hasText;
 

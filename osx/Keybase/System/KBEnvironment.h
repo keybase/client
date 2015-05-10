@@ -22,12 +22,12 @@ typedef NS_ENUM (NSInteger, KBEnv) {
 @property (readonly) NSString *mountDir;
 @property (readonly) NSString *sockFile;
 @property (readonly) NSString *identifier;
+@property (readonly, getter=isLaunchdEnabled) BOOL launchdEnabled;
 @property (readonly) NSString *launchdLabelService;
 @property (readonly) NSString *launchdLabelKBFS;
 @property (readonly) NSString *title;
 @property (readonly) NSString *info;
 @property (readonly) NSImage *image;
-@property (readonly) BOOL canRunFromXCode;
 
 - (instancetype)initWithEnv:(KBEnv)env;
 
@@ -35,5 +35,8 @@ typedef NS_ENUM (NSInteger, KBEnv) {
 
 - (NSDictionary *)launchdPlistDictionaryForService;
 - (NSDictionary *)launchdPlistDictionaryForKBFS;
+
+- (NSString *)commandLineForService:(BOOL)tilde;
+- (NSString *)commandLineForKBFS:(BOOL)tilde;
 
 @end

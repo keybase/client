@@ -38,7 +38,7 @@ PODS:
   - Slash/arc (0.1.2)
   - Slash/no-arc (0.1.2)
   - Sparkle (1.9.0)
-  - YOLayout (0.1.14)
+  - YOLayout (0.1.15)
   - ZXCVBN (1.0.4)
 
 DEPENDENCIES:
@@ -47,18 +47,12 @@ DEPENDENCIES:
   - GHKit
   - Mantle
   - MASPreferences
-  - MPMessagePack (from `~/Projects/MPMessagePack`)
+  - MPMessagePack
   - ObjectiveSugar
   - Slash
   - Sparkle
-  - YOLayout (from `~/Projects/YOLayout`)
+  - YOLayout
   - ZXCVBN
-
-EXTERNAL SOURCES:
-  MPMessagePack:
-    :path: "~/Projects/MPMessagePack"
-  YOLayout:
-    :path: "~/Projects/YOLayout"
 
 SPEC CHECKSUMS:
   AFNetworking: e1d86c2a96bb5d2e7408da36149806706ee122fe
@@ -70,7 +64,7 @@ SPEC CHECKSUMS:
   ObjectiveSugar: a6a25f23d657c19df0a0b972466d5b5ca9f5295c
   Slash: c74317f5ccf1e31f1d486a17e0d4076029ed3fc8
   Sparkle: 75bbbc5ab2d666f7f77c241afe7fd28364a8f9f7
-  YOLayout: a421af5dc30585af31f1e4dfbb16861b7e409a74
+  YOLayout: 73f647239fcc2cc0a0f05d815506471017b409d1
   ZXCVBN: 6bf251a7274d6a91d00fd195939da9952f8dfc54
 
 COCOAPODS: 0.37.1
