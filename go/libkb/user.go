@@ -608,9 +608,10 @@ func LoadUser(arg LoadUserArg) (ret *User, err error) {
 		arg.Uid = &uid
 	}
 
-	if my_uid := G.GetMyUID(); my_uid != nil && arg.Uid != nil &&
-		my_uid.Eq(*arg.Uid) && !arg.Self {
-		arg.Self = true
+	if !arg.Self {
+		if my_uid := G.GetMyUID(); my_uid != nil && arg.Uid != nil && my_uid.Eq(*arg.Uid) {
+			arg.Self = true
+		}
 	}
 
 	uid_s := uid.String()
