@@ -125,6 +125,13 @@ func (s *LoginState) ExternalFunc(f func() error, name string) error {
 }
 
 func (s *LoginState) Shutdown() error {
+	var err error
+	s.Account(func(a *Account) {
+		err = a.Shutdown()
+	}, "LoginState - Shutdown")
+	if err != nil {
+		return err
+	}
 	close(s.loginReqs)
 	close(s.acctReqs)
 	return nil

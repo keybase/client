@@ -43,9 +43,8 @@ type GlobalContext struct {
 	UI              UI               // Interact with the UI
 	Service         bool             // whether we're in server mode
 	shutdown        bool             // whether we've shut down or not
-	loginStateMu    sync.RWMutex     // protects loginState, account pointers, which get destroyed on logout
+	loginStateMu    sync.RWMutex     // protects loginState pointer, which gets destroyed on logout
 	loginState      *LoginState      // What phase of login the user's in
-	account         *Account         // information about current user's account, login session
 }
 
 func NewGlobalContext() *GlobalContext {
@@ -74,7 +73,6 @@ func (g *GlobalContext) Init() {
 func (g *GlobalContext) createLoginState() {
 	g.loginStateMu.Lock()
 	g.loginState = NewLoginState(g)
-	g.account = NewAccount(g)
 	g.loginStateMu.Unlock()
 }
 
@@ -83,13 +81,6 @@ func (g *GlobalContext) LoginState() *LoginState {
 	defer g.loginStateMu.RUnlock()
 
 	return g.loginState
-}
-
-func (g *GlobalContext) Account() *Account {
-	g.loginStateMu.RLock()
-	defer g.loginStateMu.RUnlock()
-
-	return g.account
 }
 
 func (g *GlobalContext) Logout() error {
@@ -193,9 +184,6 @@ func (g *GlobalContext) Shutdown() error {
 	}
 	if g.LoginState() != nil {
 		epick.Push(g.LoginState().Shutdown())
-	}
-	if g.Account() != nil {
-		epick.Push(g.Account().Shutdown())
 	}
 
 	for _, hook := range g.ShutdownHooks {
