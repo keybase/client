@@ -535,7 +535,7 @@ func (s *SKB) UnlockWithStoredSecret(secretRetriever SecretRetriever) (ret Gener
 	return s.unlockSecretKeyFromSecretRetriever(secretRetriever)
 }
 
-func (s *SKB) PromptAndUnlock(reason, which string, secretStore SecretStore, ui SecretUI, scr StreamCacheReader, lksPreload *LKSec) (ret GenericKey, err error) {
+func (s *SKB) PromptAndUnlock(reason, which string, secretStore SecretStore, ui SecretUI, scr PassphraseStreamCacheReader, lksPreload *LKSec) (ret GenericKey, err error) {
 	s.G().Log.Debug("+ PromptAndUnlock(%s,%s)", reason, which)
 	defer func() {
 		s.G().Log.Debug("- PromptAndUnlock -> %s", ErrToOk(err))

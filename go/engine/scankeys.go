@@ -156,7 +156,7 @@ func (s *ScanKeys) Owner() *libkb.User {
 
 // extractKeys gets all the private pgp keys out of the ring and
 // the synced key.
-func (s *ScanKeys) extractKeys(ring *libkb.SKBKeyringFile, synced *libkb.SKB, ui libkb.SecretUI, scr libkb.StreamCacheReader, lks *libkb.LKSec) error {
+func (s *ScanKeys) extractKeys(ring *libkb.SKBKeyringFile, synced *libkb.SKB, ui libkb.SecretUI, scr libkb.PassphraseStreamCacheReader, lks *libkb.LKSec) error {
 	if err := s.extractKey(synced, ui, scr, lks); err != nil {
 		return fmt.Errorf("extracting synced key error: %s", err)
 	}
@@ -175,7 +175,7 @@ func (s *ScanKeys) extractKeys(ring *libkb.SKBKeyringFile, synced *libkb.SKB, ui
 
 // extractKey gets the private key out of skb.  If it's a pgp key,
 // it adds it to the keys stored in s.
-func (s *ScanKeys) extractKey(skb *libkb.SKB, ui libkb.SecretUI, scr libkb.StreamCacheReader, lks *libkb.LKSec) error {
+func (s *ScanKeys) extractKey(skb *libkb.SKB, ui libkb.SecretUI, scr libkb.PassphraseStreamCacheReader, lks *libkb.LKSec) error {
 	if skb == nil {
 		return nil
 	}

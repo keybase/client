@@ -104,7 +104,7 @@ func (a *Account) CreateStreamCache(tsec *triplesec.Cipher, pps PassphraseStream
 	if a.streamCache != nil {
 		a.G().Log.Warning("Account.CreateStreamCache overwriting exisitng StreamCache")
 	}
-	a.streamCache = NewStreamCache(tsec, pps)
+	a.streamCache = NewPassphraseStreamCache(tsec, pps)
 }
 
 func (a *Account) CreateStreamCacheViaStretch(passphrase string) error {
@@ -123,7 +123,7 @@ func (a *Account) CreateStreamCacheViaStretch(passphrase string) error {
 		return err
 	}
 
-	a.streamCache = NewStreamCache(tsec, pps)
+	a.streamCache = NewPassphraseStreamCache(tsec, pps)
 
 	return nil
 }
