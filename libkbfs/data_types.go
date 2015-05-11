@@ -971,6 +971,7 @@ func (md *RootMetadata) MetadataID(config Config) (MdID, error) {
 	if md.mdID != NullMdID {
 		return md.mdID, nil
 	}
+
 	buf, err := config.Codec().Encode(md)
 	if err != nil {
 		return NullMdID, err

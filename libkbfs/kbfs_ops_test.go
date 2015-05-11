@@ -273,7 +273,7 @@ func TestKBFSOpsGetRootPathCreateNewSuccess(t *testing.T) {
 	rootPtr, plainSize, readyBlockData := fillInNewMD(config, rmd)
 	// now cache and put everything
 	config.mockBops.EXPECT().Put(rmd, ptrMatcher{rootPtr}, readyBlockData).Return(nil)
-	config.mockMdops.EXPECT().Put(id, rmd).Return(nil)
+	config.mockMdops.EXPECT().Put(id, nil, NullMdID, rmd).Return(nil)
 	config.mockMdcache.EXPECT().Put(rmd.mdID, rmd).Return(nil)
 
 	if p, de, h, err := config.KBFSOps().GetRootPath(id); err != nil {
@@ -599,7 +599,8 @@ func expectSyncBlock(
 	}
 	if skipSync == 0 {
 		// sign the MD and put it
-		config.mockMdops.EXPECT().Put(id, gomock.Any()).Return(nil)
+		config.mockMdops.EXPECT().Put(id, nil, NullMdID, gomock.Any()).
+			Return(nil)
 		config.mockMdcache.EXPECT().Put(gomock.Any(), gomock.Any()).
 			Do(func(id MdID, rmd *RootMetadata) {
 			*newRmd = rmd

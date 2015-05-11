@@ -1011,14 +1011,48 @@ func (_mr *_MockMDOpsRecorder) GetAtID(arg0, arg1 interface{}) *gomock.Call {
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "GetAtID", arg0, arg1)
 }
 
-func (_m *MockMDOps) Put(id DirID, md *RootMetadata) error {
-	ret := _m.ctrl.Call(_m, "Put", id, md)
+func (_m *MockMDOps) Put(id DirID, deviceID libkb.KID, unmergedID MdID, md *RootMetadata) error {
+	ret := _m.ctrl.Call(_m, "Put", id, deviceID, unmergedID, md)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
-func (_mr *_MockMDOpsRecorder) Put(arg0, arg1 interface{}) *gomock.Call {
-	return _mr.mock.ctrl.RecordCall(_mr.mock, "Put", arg0, arg1)
+func (_mr *_MockMDOpsRecorder) Put(arg0, arg1, arg2, arg3 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "Put", arg0, arg1, arg2, arg3)
+}
+
+func (_m *MockMDOps) GetSince(id DirID, mdID MdID, max int) ([]*RootMetadata, bool, error) {
+	ret := _m.ctrl.Call(_m, "GetSince", id, mdID, max)
+	ret0, _ := ret[0].([]*RootMetadata)
+	ret1, _ := ret[1].(bool)
+	ret2, _ := ret[2].(error)
+	return ret0, ret1, ret2
+}
+
+func (_mr *_MockMDOpsRecorder) GetSince(arg0, arg1, arg2 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "GetSince", arg0, arg1, arg2)
+}
+
+func (_m *MockMDOps) PutUnmerged(id DirID, deviceID libkb.KID, rmd *RootMetadata) error {
+	ret := _m.ctrl.Call(_m, "PutUnmerged", id, deviceID, rmd)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+func (_mr *_MockMDOpsRecorder) PutUnmerged(arg0, arg1, arg2 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "PutUnmerged", arg0, arg1, arg2)
+}
+
+func (_m *MockMDOps) GetUnmergedSince(id DirID, deviceID libkb.KID, mdID MdID, max int) ([]*RootMetadata, bool, error) {
+	ret := _m.ctrl.Call(_m, "GetUnmergedSince", id, deviceID, mdID, max)
+	ret0, _ := ret[0].([]*RootMetadata)
+	ret1, _ := ret[1].(bool)
+	ret2, _ := ret[2].(error)
+	return ret0, ret1, ret2
+}
+
+func (_mr *_MockMDOpsRecorder) GetUnmergedSince(arg0, arg1, arg2, arg3 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "GetUnmergedSince", arg0, arg1, arg2, arg3)
 }
 
 func (_m *MockMDOps) GetFavorites() ([]DirID, error) {
@@ -1203,14 +1237,48 @@ func (_mr *_MockMDServerRecorder) GetAtID(arg0, arg1 interface{}) *gomock.Call {
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "GetAtID", arg0, arg1)
 }
 
-func (_m *MockMDServer) Put(id DirID, mdID MdID, md *RootMetadataSigned) error {
-	ret := _m.ctrl.Call(_m, "Put", id, mdID, md)
+func (_m *MockMDServer) GetSince(id DirID, mdID MdID, max int) ([]*RootMetadataSigned, bool, error) {
+	ret := _m.ctrl.Call(_m, "GetSince", id, mdID, max)
+	ret0, _ := ret[0].([]*RootMetadataSigned)
+	ret1, _ := ret[1].(bool)
+	ret2, _ := ret[2].(error)
+	return ret0, ret1, ret2
+}
+
+func (_mr *_MockMDServerRecorder) GetSince(arg0, arg1, arg2 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "GetSince", arg0, arg1, arg2)
+}
+
+func (_m *MockMDServer) Put(id DirID, deviceID libkb.KID, unmergedID MdID, mdID MdID, md *RootMetadataSigned) error {
+	ret := _m.ctrl.Call(_m, "Put", id, deviceID, unmergedID, mdID, md)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
-func (_mr *_MockMDServerRecorder) Put(arg0, arg1, arg2 interface{}) *gomock.Call {
-	return _mr.mock.ctrl.RecordCall(_mr.mock, "Put", arg0, arg1, arg2)
+func (_mr *_MockMDServerRecorder) Put(arg0, arg1, arg2, arg3, arg4 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "Put", arg0, arg1, arg2, arg3, arg4)
+}
+
+func (_m *MockMDServer) PutUnmerged(id DirID, deviceID libkb.KID, mdID MdID, rmds *RootMetadataSigned) error {
+	ret := _m.ctrl.Call(_m, "PutUnmerged", id, deviceID, mdID, rmds)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+func (_mr *_MockMDServerRecorder) PutUnmerged(arg0, arg1, arg2, arg3 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "PutUnmerged", arg0, arg1, arg2, arg3)
+}
+
+func (_m *MockMDServer) GetUnmergedSince(id DirID, deviceID libkb.KID, mdID MdID, max int) ([]*RootMetadataSigned, bool, error) {
+	ret := _m.ctrl.Call(_m, "GetUnmergedSince", id, deviceID, mdID, max)
+	ret0, _ := ret[0].([]*RootMetadataSigned)
+	ret1, _ := ret[1].(bool)
+	ret2, _ := ret[2].(error)
+	return ret0, ret1, ret2
+}
+
+func (_mr *_MockMDServerRecorder) GetUnmergedSince(arg0, arg1, arg2, arg3 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "GetUnmergedSince", arg0, arg1, arg2, arg3)
 }
 
 func (_m *MockMDServer) GetFavorites() ([]DirID, error) {

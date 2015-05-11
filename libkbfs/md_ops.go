@@ -3,6 +3,7 @@ package libkbfs
 import (
 	"fmt"
 
+	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/protocol/go"
 )
 
@@ -32,6 +33,7 @@ func (md *MDOpsStandard) processMetadata(
 			}
 
 			k, err := md.config.KeyManager().GetTLFCryptKeyForMDDecryption(&rmds.MD)
+
 			if err != nil {
 				return err
 			}
@@ -91,7 +93,8 @@ func (md *MDOpsStandard) processMetadata(
 			}
 		} else {
 			// For any home or public directory:
-			//   * Verify normally using the user's public key matching the verifying key KID.
+			//   * Verify normally using the user's public key matching
+			//     the verifying key KID.
 			// TODO: what do we do if the signature is from a revoked
 			// key?
 			err = kbpki.HasVerifyingKey(writer, rmds.SigInfo.VerifyingKey)
@@ -131,22 +134,30 @@ func (md *MDOpsStandard) GetAtHandle(handle *DirHandle) (*RootMetadata, error) {
 	}
 }
 
+func (md *MDOpsStandard) processMetadataWithID(
+	id DirID, rmds *RootMetadataSigned) error {
+	// Make sure the signed-over ID matches
+	if id != rmds.MD.ID {
+		return &MDMismatchError{
+			id.String(),
+			fmt.Sprintf("MD contained unexpected id %s",
+				rmds.MD.ID.String()),
+		}
+	}
+	return md.processMetadata(rmds.MD.GetDirHandle(), rmds)
+}
+
 // Get implements the MDOps interface for MDOpsStandard.
 func (md *MDOpsStandard) Get(id DirID) (*RootMetadata, error) {
-	mdserv := md.config.MDServer()
-	rmds, err := mdserv.Get(id)
+	rmds, err := md.config.MDServer().Get(id)
 	if err != nil {
 		return nil, err
 	}
-
-	// Make sure the signed-over ID matches
-	if id != rmds.MD.ID {
-		return nil, &MDMismatchError{
-			id.String(),
-			fmt.Sprintf("MD contained unexpected id %s",
-				rmds.MD.ID.String())}
+	err = md.processMetadataWithID(id, rmds)
+	if err != nil {
+		return nil, err
 	}
-	return &rmds.MD, md.processMetadata(rmds.MD.GetDirHandle(), rmds)
+	return &rmds.MD, nil
 }
 
 // GetAtID implements the MDOps interface for MDOpsStandard.
@@ -154,18 +165,73 @@ func (md *MDOpsStandard) GetAtID(id DirID, mdID MdID) (
 	*RootMetadata, error) {
 	// TODO: implement a cache for non-current MD
 	rmds, err := md.config.MDServer().GetAtID(id, mdID)
-	if err == nil {
-		// TODO: validate and process MD
-		return &rmds.MD, err
+	if err != nil {
+		return nil, err
 	}
-	return nil, err
+	err = md.processMetadataWithID(id, rmds)
+	if err != nil {
+		return nil, err
+	}
+	return &rmds.MD, nil
 }
 
-// Put implements the MDOps interface for MDOpsStandard.
-func (md *MDOpsStandard) Put(id DirID, rmd *RootMetadata) error {
+func (md *MDOpsStandard) processRange(id DirID, startRoot MdID,
+	sinceRmds []*RootMetadataSigned) ([]*RootMetadata, error) {
+	// verify each of the MD objects, and verify the PrevRoot pointers
+	// are correct
+	lastRoot := startRoot
+	sinceRmd := make([]*RootMetadata, 0, len(sinceRmds))
+	for _, rmds := range sinceRmds {
+		currRoot, err := rmds.MD.MetadataID(md.config)
+		if err != nil {
+			return nil, err
+		}
+
+		// make sure the chain is correct
+		if rmds.MD.PrevRoot != lastRoot && lastRoot != NullMdID {
+			return nil, &MDMismatchError{
+				rmds.MD.GetDirHandle().ToString(md.config),
+				fmt.Sprintf("MD (id=%v) points to an unexpected root (%v) "+
+					"instead of %v", currRoot, rmds.MD.PrevRoot, lastRoot),
+			}
+		}
+
+		err = md.processMetadataWithID(id, rmds)
+		if err != nil {
+			return nil, err
+		}
+		lastRoot = currRoot
+		sinceRmd = append(sinceRmd, &rmds.MD)
+	}
+
+	// TODO: in the case where startRoot == NullMdID, should we verify
+	// that the starting PrevRoot points back to something that's
+	// actually a valid part of this history?  If the MD signature is
+	// indeed valid, this probably isn't a huge deal, but it may let
+	// the server rollback or truncate unmerged history...
+
+	return sinceRmd, nil
+}
+
+// GetSince implements the MDOps interface for MDOpsStandard.
+func (md *MDOpsStandard) GetSince(id DirID, mdID MdID, max int) (
+	[]*RootMetadata, bool, error) {
+	sinceRmds, more, err := md.config.MDServer().GetSince(id, mdID, max)
+	if err != nil {
+		return nil, false, err
+	}
+	sinceRmd, err := md.processRange(id, mdID, sinceRmds)
+	if err != nil {
+		return nil, false, err
+	}
+	return sinceRmd, more, nil
+}
+
+func (md *MDOpsStandard) readyMD(id DirID, rmd *RootMetadata) (
+	MdID, *RootMetadataSigned, error) {
 	me, err := md.config.KBPKI().GetLoggedInUser()
 	if err != nil {
-		return err
+		return NullMdID, nil, err
 	}
 	rmd.data.LastWriter = me
 
@@ -175,23 +241,23 @@ func (md *MDOpsStandard) Put(id DirID, rmd *RootMetadata) error {
 	if id.IsPublic() {
 		encodedPrivateMetadata, err := codec.Encode(rmd.data)
 		if err != nil {
-			return err
+			return NullMdID, nil, err
 		}
 		rmd.SerializedPrivateMetadata = encodedPrivateMetadata
 	} else {
 		k, err := md.config.KeyManager().GetTLFCryptKeyForEncryption(rmd)
 		if err != nil {
-			return err
+			return NullMdID, nil, err
 		}
 
 		encryptedPrivateMetadata, err := crypto.EncryptPrivateMetadata(&rmd.data, k)
 		if err != nil {
-			return err
+			return NullMdID, nil, err
 		}
 
 		encodedEncryptedPrivateMetadata, err := codec.Encode(encryptedPrivateMetadata)
 		if err != nil {
-			return err
+			return NullMdID, nil, err
 		}
 		rmd.SerializedPrivateMetadata = encodedEncryptedPrivateMetadata
 	}
@@ -199,7 +265,7 @@ func (md *MDOpsStandard) Put(id DirID, rmd *RootMetadata) error {
 	// encode the metadata and sign it
 	buf, err := codec.Encode(rmd)
 	if err != nil {
-		return err
+		return NullMdID, nil, err
 	}
 
 	handle := rmd.GetDirHandle()
@@ -214,7 +280,8 @@ func (md *MDOpsStandard) Put(id DirID, rmd *RootMetadata) error {
 		rmds.Macs = make(map[keybase1.UID][]byte)
 		macFunc := func(user keybase1.UID) error {
 			// use the latest mac keys
-			if pubKey, err := md.config.KeyOps().GetMacPublicKey(user); err != nil {
+			if pubKey, err :=
+				md.config.KeyOps().GetMacPublicKey(user); err != nil {
 				return err
 			} else if mac, err := crypto.MAC(pubKey, buf); err != nil {
 				return err
@@ -226,12 +293,12 @@ func (md *MDOpsStandard) Put(id DirID, rmd *RootMetadata) error {
 
 		for _, w := range handle.Writers {
 			if err := macFunc(w); err != nil {
-				return err
+				return NullMdID, nil, err
 			}
 		}
 		for _, r := range handle.Readers {
 			if err := macFunc(r); err != nil {
-				return err
+				return NullMdID, nil, err
 			}
 		}
 	} else {
@@ -239,16 +306,51 @@ func (md *MDOpsStandard) Put(id DirID, rmd *RootMetadata) error {
 		//   * Sign normally using the local device private key
 		sigInfo, err := crypto.Sign(buf)
 		if err != nil {
-			return err
+			return NullMdID, nil, err
 		}
 		rmds.SigInfo = sigInfo
 	}
 
 	mdID, err := rmd.MetadataID(md.config)
 	if err != nil {
+		return NullMdID, nil, err
+	}
+	return mdID, rmds, nil
+}
+
+// Put implements the MDOps interface for MDOpsStandard.
+func (md *MDOpsStandard) Put(id DirID, deviceID libkb.KID, unmergedID MdID,
+	rmd *RootMetadata) error {
+	mdID, rmds, err := md.readyMD(id, rmd)
+	if err != nil {
 		return err
 	}
-	return md.config.MDServer().Put(id, mdID, rmds)
+	return md.config.MDServer().Put(id, deviceID, unmergedID, mdID, rmds)
+}
+
+// PutUnmerged implements the MDOps interface for MDOpsStandard.
+func (md *MDOpsStandard) PutUnmerged(id DirID, deviceID libkb.KID,
+	rmd *RootMetadata) error {
+	mdID, rmds, err := md.readyMD(id, rmd)
+	if err != nil {
+		return err
+	}
+	return md.config.MDServer().PutUnmerged(id, deviceID, mdID, rmds)
+}
+
+// GetUnmergedSince implements the MDOps interface for MDOpsStandard.
+func (md *MDOpsStandard) GetUnmergedSince(id DirID, deviceID libkb.KID,
+	mdID MdID, max int) ([]*RootMetadata, bool, error) {
+	sinceRmds, more, err :=
+		md.config.MDServer().GetUnmergedSince(id, deviceID, mdID, max)
+	if err != nil {
+		return nil, false, err
+	}
+	sinceRmd, err := md.processRange(id, mdID, sinceRmds)
+	if err != nil {
+		return nil, false, err
+	}
+	return sinceRmd, more, nil
 }
 
 // GetFavorites implements the MDOps interface for MDOpsStandard.

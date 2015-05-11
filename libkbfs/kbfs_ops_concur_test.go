@@ -1,7 +1,6 @@
 package libkbfs
 
 import (
-	"fmt"
 	"runtime"
 	"sync"
 	"testing"
@@ -37,49 +36,6 @@ func (rwc *RWChannelCounter) QueueWriteReq(wreq func()) {
 
 func (rwc *RWChannelCounter) Shutdown() chan struct{} {
 	return rwc.rwc.Shutdown()
-}
-
-type MDOpsConcurTest struct {
-	uid   keybase1.UID
-	enter chan struct{}
-	start chan struct{}
-}
-
-func NewMDOpsConcurTest(uid keybase1.UID) *MDOpsConcurTest {
-	return &MDOpsConcurTest{
-		uid:   uid,
-		enter: make(chan struct{}),
-		start: make(chan struct{}),
-	}
-}
-
-func (m *MDOpsConcurTest) GetAtHandle(handle *DirHandle) (
-	*RootMetadata, error) {
-	return nil, fmt.Errorf("Not supported")
-}
-
-func (m *MDOpsConcurTest) Get(id DirID) (*RootMetadata, error) {
-	_, ok := <-m.enter
-	if !ok {
-		// Only one caller should ever get here
-		return nil, fmt.Errorf("More than one caller to Get()!")
-	}
-	<-m.start
-	dh := NewDirHandle()
-	dh.Writers = append(dh.Writers, m.uid)
-	return NewRootMetadata(dh, id), nil
-}
-
-func (m *MDOpsConcurTest) GetAtID(id DirID, mdID MdID) (*RootMetadata, error) {
-	return nil, fmt.Errorf("Not supported")
-}
-
-func (m *MDOpsConcurTest) Put(id DirID, md *RootMetadata) error {
-	return nil
-}
-
-func (m *MDOpsConcurTest) GetFavorites() ([]DirID, error) {
-	return []DirID{}, nil
 }
 
 func kbfsOpsConcurInit(t *testing.T, users ...string) (Config, keybase1.UID) {

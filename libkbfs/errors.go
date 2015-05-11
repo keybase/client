@@ -241,6 +241,18 @@ func (e *BadMDError) Error() string {
 	return fmt.Sprintf("Wrong format for metadata for directory %v", e.ID)
 }
 
+// MDMissingDataError indicates that we are trying to take get the
+// metadata ID of a MD object with no serialized data field.
+type MDMissingDataError struct {
+	ID DirID
+}
+
+// Error implements the error interface for MDMissingDataError
+func (e *MDMissingDataError) Error() string {
+	return fmt.Sprintf("No serialized private data in the metadata "+
+		"for directory %v", e.ID)
+}
+
 // MDMismatchError indicates an inconsistent or unverifiable MD object
 // for the given top-level folder.
 type MDMismatchError struct {

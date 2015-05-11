@@ -114,7 +114,7 @@ func putMDForPublic(config *ConfigMock, rmds *RootMetadataSigned,
 	config.mockCrypto.EXPECT().Sign(gomock.Any()).Return(SignatureInfo{}, nil)
 
 	mdID := expectMdID(config)
-	config.mockMdserv.EXPECT().Put(id, mdID, gomock.Any()).Return(nil)
+	config.mockMdserv.EXPECT().Put(id, nil, NullMdID, mdID, gomock.Any()).Return(nil)
 }
 
 func putMDForPrivateShare(config *ConfigMock, rmds *RootMetadataSigned,
@@ -133,7 +133,7 @@ func putMDForPrivateShare(config *ConfigMock, rmds *RootMetadataSigned,
 		Times(2).Return(packedData, nil)
 
 	mdID := expectMdID(config)
-	config.mockMdserv.EXPECT().Put(id, mdID, gomock.Any()).Return(nil)
+	config.mockMdserv.EXPECT().Put(id, nil, NullMdID, mdID, gomock.Any()).Return(nil)
 }
 
 func TestMDOpsGetAtHandlePublicSuccess(t *testing.T) {
@@ -327,6 +327,7 @@ func TestMDOpsGetAtIDSuccess(t *testing.T) {
 	mdID := MdID{0}
 
 	config.mockMdserv.EXPECT().GetAtID(id, mdID).Return(rmds, nil)
+	verifyMDForPrivateShare(config, rmds, id)
 
 	if rmd2, err := config.MDOps().GetAtID(id, mdID); err != nil {
 		t.Errorf("Got error on getAtId: %v", err)
@@ -353,6 +354,116 @@ func TestMDOpsGetAtIDFail(t *testing.T) {
 	}
 }
 
+func testMDOpsGetSinceSuccess(t *testing.T, fromStart bool) {
+	mockCtrl, config := mdOpsInit(t)
+	defer mdOpsShutdown(mockCtrl, config)
+
+	// expect one call to fetch MD, and one to verify it
+	id, _, rmds1 := newDir(config, 1, true, false)
+	_, _, rmds2 := newDir(config, 1, true, false)
+	rmds2.MD.mdID = MdID{42}
+	rmds1.MD.PrevRoot = rmds2.MD.mdID
+	_, _, rmds3 := newDir(config, 1, true, false)
+	rmds3.MD.mdID = MdID{43}
+	rmds2.MD.PrevRoot = rmds3.MD.mdID
+	mdID4 := MdID{44}
+	rmds3.MD.PrevRoot = mdID4
+
+	start := mdID4
+	if fromStart {
+		start = NullMdID
+	}
+
+	allRMDSs := []*RootMetadataSigned{rmds3, rmds2, rmds1}
+
+	max := 10
+	config.mockMdserv.EXPECT().GetSince(id, start, max).
+		Return(allRMDSs, false, nil)
+	verifyMDForPrivateShare(config, rmds3, id)
+	verifyMDForPrivateShare(config, rmds2, id)
+	verifyMDForPrivateShare(config, rmds1, id)
+
+	allRMDs, more, err := config.MDOps().GetSince(id, start, max)
+	if err != nil {
+		t.Errorf("Got error on GetSince: %v", err)
+	} else if more {
+		t.Errorf("GetSince falsely reported more MDs")
+	} else if len(allRMDs) != 3 {
+		t.Errorf("Got back wrong number of RMDs: %d", len(allRMDs))
+	}
+}
+
+func TestMDOpsGetSinceSuccess(t *testing.T) {
+	testMDOpsGetSinceSuccess(t, false)
+}
+
+func TestMDOpsGetSinceFromStartSuccess(t *testing.T) {
+	testMDOpsGetSinceSuccess(t, true)
+}
+
+func TestMDOpsGetSinceFailBadPrevRoot(t *testing.T) {
+	mockCtrl, config := mdOpsInit(t)
+	defer mdOpsShutdown(mockCtrl, config)
+
+	// expect one call to fetch MD, and one to verify it
+	id, _, rmds1 := newDir(config, 1, true, false)
+	_, _, rmds2 := newDir(config, 1, true, false)
+	rmds2.MD.mdID = MdID{42}
+	rmds1.MD.PrevRoot = MdID{46} // points to some random ID
+	_, _, rmds3 := newDir(config, 1, true, false)
+	rmds3.MD.mdID = MdID{43}
+	rmds2.MD.PrevRoot = rmds3.MD.mdID
+	mdID4 := MdID{44}
+	rmds3.MD.PrevRoot = mdID4
+
+	allRMDSs := []*RootMetadataSigned{rmds3, rmds2, rmds1}
+
+	max := 10
+	config.mockMdserv.EXPECT().GetSince(id, mdID4, max).
+		Return(allRMDSs, false, nil)
+	verifyMDForPrivateShare(config, rmds3, id)
+	verifyMDForPrivateShare(config, rmds2, id)
+
+	_, _, err := config.MDOps().GetSince(id, mdID4, max)
+	if err == nil {
+		t.Errorf("Got no expected error on GetSince")
+	} else if _, ok := err.(*MDMismatchError); !ok {
+		t.Errorf("Got unexpected error on GetSince with bad PrevRoot chain: %v",
+			err)
+	}
+}
+
+func TestMDOpsGetSinceFailBadStart(t *testing.T) {
+	mockCtrl, config := mdOpsInit(t)
+	defer mdOpsShutdown(mockCtrl, config)
+
+	// expect one call to fetch MD, and one to verify it
+	id, _, rmds1 := newDir(config, 1, true, false)
+	_, _, rmds2 := newDir(config, 1, true, false)
+	rmds2.MD.mdID = MdID{42}
+	rmds1.MD.PrevRoot = rmds2.MD.mdID
+	_, _, rmds3 := newDir(config, 1, true, false)
+	rmds3.MD.mdID = MdID{43}
+	rmds2.MD.PrevRoot = rmds3.MD.mdID
+	mdID4 := MdID{44}
+	rmds3.MD.PrevRoot = mdID4
+	badStart := MdID{92}
+
+	allRMDSs := []*RootMetadataSigned{rmds3, rmds2, rmds1}
+
+	max := 10
+	config.mockMdserv.EXPECT().GetSince(id, badStart, max).
+		Return(allRMDSs, false, nil)
+
+	_, _, err := config.MDOps().GetSince(id, badStart, max)
+	if err == nil {
+		t.Errorf("Got no expected error on GetSince")
+	} else if _, ok := err.(*MDMismatchError); !ok {
+		t.Errorf("Got unexpected error on GetSince with bad PrevRoot chain: %v",
+			err)
+	}
+}
+
 func TestMDOpsPutPublicSuccess(t *testing.T) {
 	mockCtrl, config := mdOpsInit(t)
 	defer mdOpsShutdown(mockCtrl, config)
@@ -361,7 +472,7 @@ func TestMDOpsPutPublicSuccess(t *testing.T) {
 	id, _, rmds := newDir(config, 1, false, true)
 	putMDForPublic(config, rmds, id)
 
-	if err := config.MDOps().Put(id, &rmds.MD); err != nil {
+	if err := config.MDOps().Put(id, nil, NullMdID, &rmds.MD); err != nil {
 		t.Errorf("Got error on put: %v", err)
 	}
 }
@@ -374,7 +485,7 @@ func TestMDOpsPutPrivateSuccess(t *testing.T) {
 	id, _, rmds := newDir(config, 1, true, false)
 	putMDForPrivateShare(config, rmds, id)
 
-	if err := config.MDOps().Put(id, &rmds.MD); err != nil {
+	if err := config.MDOps().Put(id, nil, NullMdID, &rmds.MD); err != nil {
 		t.Errorf("Got error on put: %v", err)
 	}
 }
@@ -394,7 +505,7 @@ func TestMDOpsPutFailEncode(t *testing.T) {
 	err := errors.New("Fake fail")
 	config.mockCodec.EXPECT().Encode(gomock.Any()).Return(nil, err)
 
-	if err2 := config.MDOps().Put(id, rmd); err2 != err {
+	if err2 := config.MDOps().Put(id, nil, NullMdID, rmd); err2 != err {
 		t.Errorf("Got bad error on put: %v", err2)
 	}
 }

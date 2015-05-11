@@ -227,7 +227,7 @@ func (fs *KBFSOpsStandard) initMDInChannel(md *RootMetadata) error {
 
 	// finally, write out the new metadata
 	md.data.LastWriter = user
-	if err = fs.config.MDOps().Put(md.ID, md); err != nil {
+	if err = fs.config.MDOps().Put(md.ID, nil, NullMdID, md); err != nil {
 		return err
 	}
 	if mdID, err := md.MetadataID(fs.config); err != nil {
@@ -725,7 +725,8 @@ func (fs *KBFSOpsStandard) syncBlockInChannel(md *RootMetadata,
 	// early
 	if stopAt == zeroPtr {
 		md.data.LastWriter = user
-		if err = fs.config.MDOps().Put(dir.TopDir, md); err != nil {
+		if err = fs.config.MDOps().Put(
+			dir.TopDir, nil, NullMdID, md); err != nil {
 			return Path{}, DirEntry{}, err
 		}
 		err = fs.saveMdToCache(md)
