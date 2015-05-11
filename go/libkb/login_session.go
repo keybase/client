@@ -5,7 +5,6 @@ import (
 	"encoding/hex"
 	"errors"
 	"fmt"
-	"sync"
 )
 
 var ErrLoginSessionNotLoaded = errors.New("LoginSession not loaded")
@@ -19,7 +18,6 @@ type LoginSession struct {
 	loaded          bool   // load state
 	cleared         bool   // clear state
 	Contextified
-	sync.RWMutex // protects entire object
 }
 
 func NewLoginSession(emailOrUsername string, g *GlobalContext) *LoginSession {
@@ -42,8 +40,6 @@ func (s *LoginSession) Session() ([]byte, error) {
 	if s == nil {
 		return nil, ErrLoginSessionNotLoaded
 	}
-	s.RLock()
-	defer s.RUnlock()
 	if !s.loaded {
 		return nil, ErrLoginSessionNotLoaded
 	}
@@ -57,8 +53,6 @@ func (s *LoginSession) SessionEncoded() (string, error) {
 	if s == nil {
 		return "", ErrLoginSessionNotLoaded
 	}
-	s.RLock()
-	defer s.RUnlock()
 	if !s.loaded {
 		return "", ErrLoginSessionNotLoaded
 	}
@@ -72,8 +66,6 @@ func (s *LoginSession) ExistsFor(emailOrUsername string) bool {
 	if s == nil {
 		return false
 	}
-	s.RLock()
-	defer s.RUnlock()
 	if s.sessionFor != emailOrUsername {
 		return false
 	}
@@ -90,8 +82,6 @@ func (s *LoginSession) Clear() error {
 	if s == nil {
 		return nil
 	}
-	s.Lock()
-	defer s.Unlock()
 	if !s.loaded {
 		return ErrLoginSessionNotLoaded
 	}
@@ -105,8 +95,6 @@ func (s *LoginSession) Salt() ([]byte, error) {
 	if s == nil {
 		return nil, ErrLoginSessionNotLoaded
 	}
-	s.RLock()
-	defer s.RUnlock()
 	if !s.loaded {
 		return nil, ErrLoginSessionNotLoaded
 	}
@@ -114,9 +102,6 @@ func (s *LoginSession) Salt() ([]byte, error) {
 }
 
 func (s *LoginSession) Load() error {
-	s.Lock()
-	defer s.Unlock()
-
 	if s.loaded {
 		return fmt.Errorf("LoginSession already loaded for %s", s.sessionFor)
 	}

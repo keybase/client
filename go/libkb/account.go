@@ -2,20 +2,17 @@ package libkb
 
 import (
 	"fmt"
-	"sync"
 
 	triplesec "github.com/keybase/go-triplesec"
 )
 
 type Account struct {
 	Contextified
-	secretSyncerMu sync.RWMutex
-	secretSyncer   *SecretSyncer
-	sync.RWMutex   // protects the rest:
-	localSession   *Session
-	loginSession   *LoginSession
-	streamCache    *StreamCache
-	skbKeyring     *SKBKeyringFile
+	secretSyncer *SecretSyncer
+	localSession *Session
+	loginSession *LoginSession
+	streamCache  *StreamCache
+	skbKeyring   *SKBKeyringFile
 }
 
 func NewAccount(g *GlobalContext) *Account {
@@ -27,15 +24,11 @@ func NewAccount(g *GlobalContext) *Account {
 }
 
 func (a *Account) LocalSession() *Session {
-	a.RLock()
-	defer a.RUnlock()
 	return a.localSession
 }
 
 func (a *Account) UnloadLocalSession() {
-	a.Lock()
 	a.localSession = newSession(a.G())
-	a.Unlock()
 }
 
 // LoggedIn returns true if the user is logged in.  It does not
@@ -73,8 +66,6 @@ func (a *Account) CreateLoginSessionWithSalt(emailOrUsername string, salt []byte
 }
 
 func (a *Account) setLoginSession(ls *LoginSession) {
-	a.Lock()
-	defer a.Unlock()
 	if a.loginSession != nil {
 		// this usually happens in tests that don't call G.Logout() to logout.
 		// But it probably signifies an error.
@@ -89,38 +80,27 @@ func (a *Account) loginSessionExists() bool {
 }
 
 func (a *Account) LoginSession() *LoginSession {
-	a.RLock()
-	defer a.RUnlock()
 	return a.loginSession
 }
 
 func (a *Account) Logout() error {
 	a.ClearStreamCache()
 
-	a.RLock()
 	if err := a.localSession.Logout(); err != nil {
-		a.RUnlock()
 		return err
 	}
-	a.RUnlock()
 
 	a.UnloadLocalSession()
-	a.Lock()
 	a.loginSession = nil
 	a.skbKeyring = nil
-	a.Unlock()
 
-	a.secretSyncerMu.Lock()
 	a.secretSyncer.Clear()
 	a.secretSyncer = NewSecretSyncer(a.G())
-	a.secretSyncerMu.Unlock()
 
 	return nil
 }
 
 func (a *Account) CreateStreamCache(tsec *triplesec.Cipher, pps PassphraseStream) {
-	a.Lock()
-	defer a.Unlock()
 	if a.streamCache != nil {
 		a.G().Log.Warning("Account.CreateStreamCache overwriting exisitng StreamCache")
 	}
@@ -128,8 +108,6 @@ func (a *Account) CreateStreamCache(tsec *triplesec.Cipher, pps PassphraseStream
 }
 
 func (a *Account) CreateStreamCacheViaStretch(passphrase string) error {
-	a.Lock()
-	defer a.Unlock()
 
 	if a.streamCache.Valid() {
 		return nil
@@ -151,21 +129,15 @@ func (a *Account) CreateStreamCacheViaStretch(passphrase string) error {
 }
 
 func (a *Account) StreamCache() *StreamCache {
-	a.RLock()
-	defer a.RUnlock()
 	return a.streamCache
 }
 
 func (a *Account) ClearStreamCache() {
-	a.Lock()
-	defer a.Unlock()
 	a.streamCache.Clear()
 	a.streamCache = nil
 }
 
 func (a *Account) SecretSyncer() *SecretSyncer {
-	a.secretSyncerMu.RLock()
-	defer a.secretSyncerMu.RUnlock()
 	return a.secretSyncer
 }
 
@@ -181,15 +153,11 @@ func (a *Account) Keyring() (*SKBKeyringFile, error) {
 	if a.localSession == nil {
 		a.G().Log.Warning("local session after load is nil")
 	}
-	a.RLock()
 	kr := a.skbKeyring
-	a.RUnlock()
 	if kr != nil {
 		return kr, nil
 	}
 
-	a.Lock()
-	defer a.Unlock()
 	unp := a.localSession.GetUsername()
 	// not sure how this could happen, but just in case:
 	if unp == nil {
@@ -281,9 +249,6 @@ func (a *Account) UserInfo() (uid UID, username, token string, deviceSubkeyKid K
 		return
 	}
 
-	// lock everything to make sure the values refer to same user
-	a.RLock()
-	defer a.RUnlock()
 	deviceSubkeyKid, err = user.GetDeviceSubkeyKid(a.G())
 	if err != nil {
 		deviceSubkeyKid = KID{}
