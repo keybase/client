@@ -30,7 +30,7 @@ func NewFakeUser(prefix string) (fu *FakeUser, err error) {
 		return
 	}
 	username := fmt.Sprintf("%s_%s", prefix, hex.EncodeToString(buf))
-	email := fmt.Sprintf("%s@email.com", username)
+	email := fmt.Sprintf("%s@noemail.keybase.io", username)
 	buf = make([]byte, 12)
 	if _, err = rand.Read(buf); err != nil {
 		return
