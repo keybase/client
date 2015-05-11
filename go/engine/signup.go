@@ -126,8 +126,13 @@ func (s *SignupEngine) genTSPassKey(passphrase string) error {
 	s.pwsalt = salt
 	var tsec *triplesec.Cipher
 	tsec, s.tspkey, err = libkb.StretchPassphrase(passphrase, salt)
-	s.G().LoginState().SetSignupStreamCache(tsec, s.tspkey)
-	return err
+	if err != nil {
+		return err
+	}
+	s.G().LoginState().Account(func(a *libkb.Account) {
+		a.CreateStreamCache(tsec, s.tspkey)
+	}, "SignupEngine - CreateStreamCache")
+	return nil
 }
 
 func (s *SignupEngine) join(username, email, inviteCode string, skipMail bool) error {
