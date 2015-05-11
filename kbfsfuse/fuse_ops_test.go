@@ -251,6 +251,8 @@ func TestPartialLocalUpdate(t *testing.T) {
 
 	node1 := doLookupOrBust(t, root, "test_user")
 	node2 := doMkDirOrBust(t, node1, "dir1")
+	// lookup node2 again to ensure that BatchChanges has taken effect
+	node2 = doLookupOrBust(t, node1, "dir1")
 
 	// Somewhere else, someone writes test_user/dir1/dir2/dir3
 	newPath := libkbfs.Path{node1.Dir, []libkbfs.PathNode{
