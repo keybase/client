@@ -231,9 +231,6 @@ func (k *Keyrings) GetSecretKeyLocked(ska SecretKeyArg) (ret *SKB, which string,
 		}
 	}
 
-	// XXX guessing this is going to block as this probably called deep
-	// in login...
-	k.G().Log.Warning("calling LockedLocalSecretKey")
 	k.G().LoginState().Account(func(a *Account) {
 		ret = a.LockedLocalSecretKey(ska)
 	}, "LockedLocalSecretKey")

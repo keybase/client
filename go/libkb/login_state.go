@@ -594,13 +594,13 @@ func (s *LoginState) loginHandle(f func() error, name string) error {
 		res:  make(chan error),
 		name: name,
 	}
-	s.G().Log.Info("+ send login request %q", name)
+	s.G().Log.Debug("+ send login request %q", name)
 	s.loginReqs <- req
-	s.G().Log.Info("- send login request %q", name)
+	s.G().Log.Debug("- send login request %q", name)
 
-	s.G().Log.Info("+ wait login request %q", name)
+	s.G().Log.Debug("+ wait login request %q", name)
 	err := <-req.res
-	s.G().Log.Info("- wait login request %q", name)
+	s.G().Log.Debug("- wait login request %q", name)
 
 	return err
 }
@@ -611,31 +611,31 @@ func (s *LoginState) acctHandle(f acctHandler, name string) {
 		done: make(chan struct{}),
 		name: name,
 	}
-	s.G().Log.Info("+ send acct request %q", name)
+	s.G().Log.Debug("+ send acct request %q", name)
 	s.acctReqs <- req
-	s.G().Log.Info("- send acct request %q", name)
+	s.G().Log.Debug("- send acct request %q", name)
 
-	s.G().Log.Info("+ wait acct request %q", name)
+	s.G().Log.Debug("+ wait acct request %q", name)
 	<-req.done
-	s.G().Log.Info("- wait acct request %q", name)
+	s.G().Log.Debug("- wait acct request %q", name)
 
 	return
 }
 
 func (s *LoginState) loginRequests() {
 	for req := range s.loginReqs {
-		s.G().Log.Info("+ login request %s", req.name)
+		s.G().Log.Debug("+ login request %s", req.name)
 		req.res <- req.f()
-		s.G().Log.Info("- login request %s", req.name)
+		s.G().Log.Debug("- login request %s", req.name)
 	}
 }
 
 func (s *LoginState) acctRequests() {
 	for req := range s.acctReqs {
-		s.G().Log.Info("+ account request %s", req.name)
+		s.G().Log.Debug("+ account request %s", req.name)
 		req.f(s.account)
 		close(req.done)
-		s.G().Log.Info("- account request %s", req.name)
+		s.G().Log.Debug("- account request %s", req.name)
 	}
 }
 
@@ -694,9 +694,9 @@ func (s *LoginState) logout() error {
 }
 
 func (s *LoginState) Account(h acctHandler, name string) {
-	s.G().Log.Info("+ Account %q, putting in request chan", name)
+	s.G().Log.Debug("+ Account %q, putting in request chan", name)
 	s.acctHandle(h, name)
-	s.G().Log.Info("- Account %q, done", name)
+	s.G().Log.Debug("- Account %q, done", name)
 }
 
 func (s *LoginState) StreamCache(h func(*StreamCache), name string) {

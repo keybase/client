@@ -222,7 +222,7 @@ func (f *JsonConfigFile) SetDeviceID(did *DeviceID) (err error) {
 	f.userConfigWrapper.Lock()
 	defer f.userConfigWrapper.Unlock()
 
-	G.Log.Warning("| Setting DeviceID to %v\n", did)
+	G.Log.Debug("| Setting DeviceID to %v\n", did)
 	var u *UserConfig
 	if u, err = f.getUserConfigWithLock(); err != nil {
 	} else if u == nil {
