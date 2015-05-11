@@ -9,6 +9,10 @@ import (
 	jsonw "github.com/keybase/go-jsonw"
 )
 
+type SessionReader interface {
+	APIArgs() (token, csrf string)
+}
+
 type Session struct {
 	Contextified
 	file     *JsonFile
@@ -223,6 +227,7 @@ func (s *Session) Check() error {
 	s.RUnlock()
 
 	res, err := s.G().API.Get(ApiArg{
+		SessionR:    s,
 		Endpoint:    "sesscheck",
 		NeedSession: true,
 		AppStatus:   []string{"OK", "BAD_SESSION"},
@@ -282,6 +287,7 @@ func (s *Session) IsValid() bool {
 func (s *Session) postLogout() error {
 
 	_, err := s.G().API.Post(ApiArg{
+		SessionR:    s,
 		Endpoint:    "logout",
 		NeedSession: true,
 	})

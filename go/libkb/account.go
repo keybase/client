@@ -170,7 +170,7 @@ func (a *Account) SecretSyncer() *SecretSyncer {
 }
 
 func (a *Account) RunSecretSyncer(uid *UID) error {
-	return RunSyncer(a.SecretSyncer(), uid)
+	return RunSyncer(a.SecretSyncer(), uid, a.LoggedIn(), a.localSession)
 }
 
 func (a *Account) Keyring() (*SKBKeyringFile, error) {

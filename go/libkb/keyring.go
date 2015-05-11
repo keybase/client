@@ -335,7 +335,7 @@ func (k *Keyrings) GetSecretKeyWithPrompt(ska SecretKeyArg, secretUI SecretUI, r
 		skb.SetUID(ska.Me.GetUid().P())
 		secretStore = NewSecretStore(ska.Me.GetName())
 	}
-	if key, err = skb.PromptAndUnlock(reason, which, secretStore, secretUI); err != nil {
+	if key, err = skb.PromptAndUnlock(reason, which, secretStore, secretUI, nil, nil); err != nil {
 		key = nil
 		skb = nil
 		return
@@ -382,7 +382,7 @@ func (k *Keyrings) GetSecretKeyWithPassphrase(me *User, passphrase string, secre
 		tsec = sc.Triplesec()
 		pps = sc.PassphraseStream()
 	}, "StreamCache - tsec, pps")
-	return skb.UnlockSecretKey(passphrase, tsec, pps, secretStorer)
+	return skb.UnlockSecretKey(passphrase, tsec, pps, secretStorer, nil)
 }
 
 type EmptyKeyRing struct{}

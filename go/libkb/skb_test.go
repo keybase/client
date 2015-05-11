@@ -95,14 +95,15 @@ func makeTestSKB(t *testing.T, lks *LKSec) *SKB {
 	g.createLoginState()
 	g.LoginState().Account(func(a *Account) {
 		a.CreateLoginSessionWithSalt(email, salt)
-	})
+	}, "makeTestSKB")
 	skb.SetGlobalContext(g)
 
 	return skb
 }
 
 func testPromptAndUnlock(t *testing.T, skb *SKB, secretStore SecretStore) {
-	key, err := skb.PromptAndUnlock("test reason", "test which", secretStore, &TestSecretUI{Passphrase: "test passphrase", StoreSecret: true})
+	// XXX check nil, nil at end of this...
+	key, err := skb.PromptAndUnlock("test reason", "test which", secretStore, &TestSecretUI{Passphrase: "test passphrase", StoreSecret: true}, nil, nil)
 	if err != nil {
 		t.Fatalf(err.Error())
 	}
@@ -175,7 +176,7 @@ func TestUnusedSecretStore(t *testing.T) {
 	// as it's the right size.
 	tc.G.LoginState().Account(func(a *Account) {
 		a.CreateStreamCache(nil, make([]byte, extraLen))
-	})
+	}, "TestUnusedSecretStore")
 
 	testSecretStore := TestSecretStore{}
 	testPromptAndUnlock(t, skb, &testSecretStore)

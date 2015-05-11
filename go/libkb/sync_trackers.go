@@ -112,7 +112,7 @@ func (t *TrackerSyncer) getLoadedVersion() int {
 
 func (t *TrackerSyncer) needsLogin() bool { return false }
 
-func (t *TrackerSyncer) syncFromServer() (err error) {
+func (t *TrackerSyncer) syncFromServer(sr SessionReader) (err error) {
 
 	lv := t.getLoadedVersion()
 

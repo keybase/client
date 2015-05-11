@@ -58,12 +58,19 @@ func NewScanKeys(secui libkb.SecretUI, idui libkb.IdentifyUI, opts *TrackOptions
 		return nil, fmt.Errorf("getsyncedsecret err: %s", err)
 	}
 
-	kerr := sk.G().LoginState().Keyring(func(ring *libkb.SKBKeyringFile) {
-		err = sk.extractKeys(ring, synced, secui)
+	lks := libkb.NewLKSec(sk.G().LoginState().PassphraseStream().LksClientHalf(), sk.G())
+	lks.SetUID(sk.me.GetUid().P())
+	lks.Load()
+
+	sk.G().LoginState().Account(func(a *libkb.Account) {
+		sc := a.StreamCache()
+		var ring *libkb.SKBKeyringFile
+		ring, err = a.Keyring()
+		if err != nil {
+			return
+		}
+		err = sk.extractKeys(ring, synced, secui, sc, lks)
 	}, "NewScanKeys - extractKeys")
-	if kerr != nil {
-		return nil, kerr
-	}
 	if err != nil {
 		return nil, err
 	}
@@ -149,8 +156,8 @@ func (s *ScanKeys) Owner() *libkb.User {
 
 // extractKeys gets all the private pgp keys out of the ring and
 // the synced key.
-func (s *ScanKeys) extractKeys(ring *libkb.SKBKeyringFile, synced *libkb.SKB, ui libkb.SecretUI) error {
-	if err := s.extractKey(synced, ui); err != nil {
+func (s *ScanKeys) extractKeys(ring *libkb.SKBKeyringFile, synced *libkb.SKB, ui libkb.SecretUI, scr libkb.StreamCacheReader, lks *libkb.LKSec) error {
+	if err := s.extractKey(synced, ui, scr, lks); err != nil {
 		return fmt.Errorf("extracting synced key error: %s", err)
 	}
 
@@ -158,7 +165,7 @@ func (s *ScanKeys) extractKeys(ring *libkb.SKBKeyringFile, synced *libkb.SKB, ui
 		if !libkb.IsPgpAlgo(b.Type) {
 			continue
 		}
-		if err := s.extractKey(b, ui); err != nil {
+		if err := s.extractKey(b, ui, scr, lks); err != nil {
 			return fmt.Errorf("extracting ring block error: %s", err)
 		}
 	}
@@ -168,11 +175,11 @@ func (s *ScanKeys) extractKeys(ring *libkb.SKBKeyringFile, synced *libkb.SKB, ui
 
 // extractKey gets the private key out of skb.  If it's a pgp key,
 // it adds it to the keys stored in s.
-func (s *ScanKeys) extractKey(skb *libkb.SKB, ui libkb.SecretUI) error {
+func (s *ScanKeys) extractKey(skb *libkb.SKB, ui libkb.SecretUI, scr libkb.StreamCacheReader, lks *libkb.LKSec) error {
 	if skb == nil {
 		return nil
 	}
-	k, err := skb.PromptAndUnlock("pgp decrypt", "", nil, ui)
+	k, err := skb.PromptAndUnlock("pgp decrypt", "", nil, ui, scr, lks)
 	if err != nil {
 		return err
 	}

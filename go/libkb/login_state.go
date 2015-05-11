@@ -31,6 +31,7 @@ type LoginState struct {
 	account   *Account
 	loginReqs chan loginReq
 	acctReqs  chan acctReq
+	acctAv    chan *Account
 }
 
 type loginAPIResult struct {
@@ -252,7 +253,7 @@ func (s *LoginState) saveLoginState(res *loginAPIResult) error {
 
 	// Set up our SecretSyncer to work on the logged in user from here on
 	// out.
-	// (note: I really don't thinkn this matters since RunSyncer(SecretSyncer, uid)
+	// (note: I really don't think this matters since RunSyncer(SecretSyncer, uid)
 	// is always called with a uid... --PC)
 	s.account.SecretSyncer().SetUID(&res.uid)
 
@@ -597,7 +598,14 @@ func (s *LoginState) handleRequests() {
 		case req, ok := <-s.loginReqs:
 			if ok {
 				s.G().Log.Info("+ login request %s", req.name)
+				// make account available for use inside a login request
+				s.acctAv = make(chan *Account, 1)
+				s.acctAv <- s.account
 				req.res <- req.f()
+				// setting the channel to nil will make it unavailable
+				// to future account requests, so they will have to go
+				// through the request handler.
+				s.acctAv = nil
 				s.G().Log.Info("- login request %s", req.name)
 			} else {
 				s.loginReqs = nil
@@ -690,7 +698,22 @@ func (s *LoginState) logout() error {
 }
 
 func (s *LoginState) Account(h acctHandler, name string) {
-	s.acctHandle(h, name)
+	// check to see if the acct channel is not-nil and if so,
+	// wait for an account type from it.  This happens when
+	// Account is requested during a LoginState request.
+	// Otherwise, put this into the acctreq channel for handling.
+	if s.acctAv == nil {
+		s.acctHandle(h, name)
+		return
+	}
+
+	s.G().Log.Info("+ Account: %q getting from acctAv chan", name)
+	a := <-s.acctAv
+	s.G().Log.Info("+ Account: %q received from acctAv chan, calling handler", name)
+	h(a)
+	s.G().Log.Info("+ Account: %q handler done, putting account back on acctAv chan", name)
+	s.acctAv <- a
+	s.G().Log.Info("+ Account: %q all done", name)
 }
 
 func (s *LoginState) StreamCache(h func(*StreamCache), name string) {
@@ -713,6 +736,8 @@ func (s *LoginState) LoginSession(h func(*LoginSession), name string) {
 
 func (s *LoginState) SecretSyncer(h func(*SecretSyncer), name string) {
 	s.Account(func(a *Account) {
+		// SecretSyncer needs session loaded:
+		a.localSession.Load()
 		h(a.SecretSyncer())
 	}, name)
 }

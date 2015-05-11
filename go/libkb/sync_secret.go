@@ -101,16 +101,8 @@ func (ss *SecretSyncer) loadFromStorage() (err error) {
 }
 
 // Syncer locks before calling this.
-func (ss *SecretSyncer) syncFromServer() (err error) {
+func (ss *SecretSyncer) syncFromServer(sr SessionReader) (err error) {
 	hargs := HttpArgs{}
-
-	// Load the session for the following API request.
-	ss.G().LoginState().LocalSession(func(s *Session) {
-		err = s.Load()
-	}, "SecretSyncer - session load")
-	if err != nil {
-		return
-	}
 
 	if ss.keys != nil {
 		hargs.Add("version", I{ss.keys.Version})
@@ -120,6 +112,7 @@ func (ss *SecretSyncer) syncFromServer() (err error) {
 		Endpoint:    "key/fetch_private",
 		Args:        hargs,
 		NeedSession: true,
+		SessionR:    sr,
 	})
 	ss.G().Log.Debug("| syncFromServer -> %s", ErrToOk(err))
 	if err != nil {

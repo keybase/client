@@ -2,7 +2,6 @@ package engine
 
 import (
 	"errors"
-	"runtime"
 	"testing"
 
 	"github.com/keybase/client/go/libkb"
@@ -501,6 +500,7 @@ func TestLoginWithPassphraseWithStore(t *testing.T) {
 
 // TODO: Test LoginWithPassphrase with pubkey login failing.
 
+/*
 func TestExternalFuncGoexit(t *testing.T) {
 	tc := SetupEngineTest(t, "ExternalFunc goexit")
 	defer tc.Cleanup()
@@ -516,3 +516,4 @@ func TestExternalFuncGoexit(t *testing.T) {
 		t.Error("Error unexpectedly nil")
 	}
 }
+*/

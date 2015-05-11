@@ -149,7 +149,7 @@ func (e *TrackEngine) storeRemoteTrack(ctx *Context) (err error) {
 	if e.lockedKey == nil {
 		return fmt.Errorf("nil locked key")
 	}
-	e.signingKeyPriv, err = e.lockedKey.PromptAndUnlock("tracking signature", e.lockedWhich, nil, ctx.SecretUI)
+	e.signingKeyPriv, err = e.lockedKey.PromptAndUnlock("tracking signature", e.lockedWhich, nil, ctx.SecretUI, nil, nil)
 	if err != nil {
 		return err
 	}

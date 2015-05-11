@@ -39,11 +39,11 @@ func (d *DevList) SubConsumers() []libkb.UIConsumer {
 func (d *DevList) Run(ctx *Context) error {
 	var err error
 	var devs libkb.DeviceKeyMap
-	d.G().LoginState().SecretSyncer(func(ss *libkb.SecretSyncer) {
-		if err = libkb.RunSyncer(ss, nil); err != nil {
+	d.G().LoginState().Account(func(a *libkb.Account) {
+		if err = libkb.RunSyncer(a.SecretSyncer(), nil, a.LoggedIn(), a.LocalSession()); err != nil {
 			return
 		}
-		devs, err = ss.ActiveDevices()
+		devs, err = a.SecretSyncer().ActiveDevices()
 	}, "DevList - ActiveDevices")
 	if err != nil {
 		return err

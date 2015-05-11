@@ -12,6 +12,12 @@ type StreamCache struct {
 	sync.RWMutex
 }
 
+type StreamCacheReader interface {
+	Triplesec() *triplesec.Cipher
+	PassphraseStream() PassphraseStream
+	Valid() bool
+}
+
 func NewStreamCache(tsec *triplesec.Cipher, ps PassphraseStream) *StreamCache {
 	return &StreamCache{
 		tsec:             tsec,

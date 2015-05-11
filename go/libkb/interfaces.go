@@ -154,6 +154,7 @@ type ApiArg struct {
 	uArgs       url.Values
 	Args        HttpArgs
 	NeedSession bool
+	SessionR    SessionReader
 	HttpStatus  []int
 	AppStatus   []string
 	DecodeTo    interface{}

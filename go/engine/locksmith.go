@@ -396,7 +396,7 @@ func (d *Locksmith) deviceSignPGP(ctx *Context) error {
 			return err
 		}
 
-		pgpk, err := skb.PromptAndUnlock("pgp sign", "keybase", nil, ctx.SecretUI)
+		pgpk, err := skb.PromptAndUnlock("pgp sign", "keybase", nil, ctx.SecretUI, nil, nil)
 		if err != nil {
 			return err
 		}

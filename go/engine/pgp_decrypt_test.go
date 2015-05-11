@@ -204,7 +204,7 @@ func TestPGPDecryptSignedOther(t *testing.T) {
 func TestPGPDecryptLong(t *testing.T) {
 	tc := SetupEngineTest(t, "PGPDecrypt")
 	defer tc.Cleanup()
-	fu := createFakeUserWithPGPOnly(t, tc)
+	fu := createFakeUserWithPGPSibkey(tc)
 
 	// encrypt a message
 	msg := make([]byte, 1024*1024)

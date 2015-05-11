@@ -157,11 +157,11 @@ func (s *LKSec) fsecret() (res [32]byte) {
 func (s *LKSec) apiServerHalf(devid *DeviceID) error {
 	var err error
 	var dev DeviceKey
-	s.G().LoginState().SecretSyncer(func(ss *SecretSyncer) {
-		if err = RunSyncer(ss, s.uid); err != nil {
+	s.G().LoginState().Account(func(a *Account) {
+		if err = RunSyncer(a.SecretSyncer(), s.uid, a.LoggedIn(), a.LocalSession()); err != nil {
 			return
 		}
-		dev, err = ss.FindDevice(devid)
+		dev, err = a.SecretSyncer().FindDevice(devid)
 	}, "LKSec apiServerHalf - find device")
 	if err != nil {
 		return err
