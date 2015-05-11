@@ -12,13 +12,13 @@ import (
 
 type RWChannelCounter struct {
 	lock   sync.Mutex
-	rwc    util.RWChannel
+	rwc    util.RWScheduler
 	rcount int
 	wcount int
 }
 
 func NewRWChannelCounter(bufSize int) *RWChannelCounter {
-	return &RWChannelCounter{rwc: util.NewRWChannelImpl(bufSize)}
+	return &RWChannelCounter{rwc: util.NewRWChannel(bufSize)}
 }
 
 func (rwc *RWChannelCounter) QueueReadReq(rreq func()) {

@@ -21,7 +21,7 @@ const (
 // safe by using per-top-level-directory read-write locks
 type KBFSOpsStandard struct {
 	config          Config
-	dirRWChans      *DirRWChannels
+	dirRWChans      *DirRWSchedulers
 	globalStateLock sync.RWMutex   // protects heads and observers
 	heads           map[DirId]MDId // temporary until state machine is ready
 	observers       map[DirId][]Observer
@@ -30,7 +30,7 @@ type KBFSOpsStandard struct {
 func NewKBFSOpsStandard(config Config) *KBFSOpsStandard {
 	return &KBFSOpsStandard{
 		config:     config,
-		dirRWChans: NewDirRWChannels(config),
+		dirRWChans: NewDirRWSchedulers(config),
 		heads:      make(map[DirId]MDId),
 		observers:  make(map[DirId][]Observer),
 	}
@@ -210,7 +210,7 @@ func (fs *KBFSOpsStandard) initMDInChannel(md *RootMetadata) error {
 type errChan chan error
 
 func (fs *KBFSOpsStandard) getChans(id DirId) (
-	rwchan util.RWChannel, errchan errChan) {
+	rwchan util.RWScheduler, errchan errChan) {
 	rwchan = fs.dirRWChans.GetDirChan(id)
 	// Use this channel to receive the errors for each
 	// read/write request.  In the cases where other return values are

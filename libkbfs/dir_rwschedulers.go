@@ -6,24 +6,24 @@ import (
 	"github.com/keybase/kbfs/util"
 )
 
-type DirRWChannels struct {
+type DirRWSchedulers struct {
 	// TODO: Make this an LRU in case the number of directories is big
-	chans     map[DirId]util.RWChannel
+	chans     map[DirId]util.RWScheduler
 	chansLock sync.RWMutex
 	config    Config
-	factory   func(int) util.RWChannel
+	factory   func(int) util.RWScheduler
 }
 
-func NewDirRWChannels(config Config) *DirRWChannels {
-	return &DirRWChannels{
-		chans:   make(map[DirId]util.RWChannel),
+func NewDirRWSchedulers(config Config) *DirRWSchedulers {
+	return &DirRWSchedulers{
+		chans:   make(map[DirId]util.RWScheduler),
 		config:  config,
-		factory: util.NewRWChannelImpl,
+		factory: util.NewRWChannel,
 	}
 }
 
 // Safely get or create a read-write lock for the given directory
-func (d *DirRWChannels) GetDirChan(dir DirId) util.RWChannel {
+func (d *DirRWSchedulers) GetDirChan(dir DirId) util.RWScheduler {
 	d.chansLock.RLock()
 	if rwchan, ok := d.chans[dir]; ok {
 		d.chansLock.RUnlock()
@@ -43,8 +43,8 @@ func (d *DirRWChannels) GetDirChan(dir DirId) util.RWChannel {
 	}
 }
 
-// Shutdown closes all RWChannels.  This must be called at most once.
-func (d *DirRWChannels) Shutdown() {
+// Shutdown closes all RWSchedulers.  This must be called at most once.
+func (d *DirRWSchedulers) Shutdown() {
 	d.chansLock.Lock()
 	defer d.chansLock.Unlock()
 	chans := make([]chan struct{}, 0, len(d.chans))

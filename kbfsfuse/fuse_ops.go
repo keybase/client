@@ -27,7 +27,7 @@ type FuseOps struct {
 	topNodes     map[string]*FuseNode
 	topNodesById map[libkbfs.DirId]*FuseNode
 	topLock      sync.RWMutex
-	dirRWChans   *libkbfs.DirRWChannels
+	dirRWChans   *libkbfs.DirRWSchedulers
 }
 
 func NewFuseRoot(config libkbfs.Config) *FuseNode {
@@ -35,7 +35,7 @@ func NewFuseRoot(config libkbfs.Config) *FuseNode {
 		config:       config,
 		topNodes:     make(map[string]*FuseNode),
 		topNodesById: make(map[libkbfs.DirId]*FuseNode),
-		dirRWChans:   libkbfs.NewDirRWChannels(config),
+		dirRWChans:   libkbfs.NewDirRWSchedulers(config),
 	}
 	return &FuseNode{
 		Node: nodefs.NewDefaultNode(),
@@ -93,7 +93,7 @@ func (n *ErrorNode) Read(
 	return fuse.ReadResultData(dest[:size]), fuse.OK
 }
 
-func (n *FuseNode) GetChan() util.RWChannel {
+func (n *FuseNode) GetChan() util.RWScheduler {
 	if n.PrevNode == nil {
 		return n.Ops.dirRWChans.GetDirChan(n.Dir)
 	} else {
@@ -882,7 +882,7 @@ func (n *FuseNode) OnMount(conn *nodefs.FileSystemConnector) {
 	}
 }
 
-func (n *FuseNode) GetChans() (rwchan util.RWChannel, statchan StatusChan) {
+func (n *FuseNode) GetChans() (rwchan util.RWScheduler, statchan StatusChan) {
 	rwchan = n.GetChan()
 	// Use this channel to receive the status codes for each
 	// read/write request.  In the cases where other return values are

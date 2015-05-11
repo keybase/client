@@ -55,10 +55,10 @@ func kbfsOpsInit(t *testing.T) (mockCtrl *gomock.Controller,
 	blockops := &CheckBlockOps{config.mockBops, t}
 	config.SetBlockOps(blockops)
 	kbfsops := NewKBFSOpsStandard(config)
-	// use the simple RWChannel implementation, so that if mocks fail,
-	// it doesn't happen in a separate goroutine and thus will
+	// use the simple RWScheduler implementation, so that if mocks
+	// fail, it doesn't happen in a separate goroutine and thus will
 	// actually fail the test.
-	kbfsops.dirRWChans.factory = util.NewRWChannelInline
+	kbfsops.dirRWChans.factory = util.NewRWLockScheduler
 	config.SetKBFSOps(kbfsops)
 	config.SetNotifier(kbfsops)
 
