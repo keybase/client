@@ -8,14 +8,14 @@ import (
 )
 
 type Account struct {
-	localSession *Session
-	loginSession *LoginSession
-	streamCache  *StreamCache
-	skbKeyring   *SKBKeyringFile
 	Contextified
-	sync.RWMutex
 	secretSyncerMu sync.RWMutex
 	secretSyncer   *SecretSyncer
+	sync.RWMutex   // protects the rest:
+	localSession   *Session
+	loginSession   *LoginSession
+	streamCache    *StreamCache
+	skbKeyring     *SKBKeyringFile
 }
 
 func NewAccount(g *GlobalContext) *Account {

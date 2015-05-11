@@ -698,17 +698,14 @@ func (s *LoginState) logout() error {
 }
 
 func (s *LoginState) Account(h acctHandler, name string) {
-	// check to see if the acct channel is not-nil and if so,
-	// wait for an account type from it.  This happens when
-	// Account is requested during a LoginState request.
-	// Otherwise, put this into the acctreq channel for handling.
-	if s.acctAv == nil {
+	s.G().Log.Info("+ Account: %q getting from acctAv chan", name)
+	a, ok := <-s.acctAv
+	if !ok {
+		// the acctAv channel is closed
+		s.G().Log.Info("- Account: %q acctAv chan closed, putting in request chan", name)
 		s.acctHandle(h, name)
 		return
 	}
-
-	s.G().Log.Info("+ Account: %q getting from acctAv chan", name)
-	a := <-s.acctAv
 	s.G().Log.Info("+ Account: %q received from acctAv chan, calling handler", name)
 	h(a)
 	s.G().Log.Info("+ Account: %q handler done, putting account back on acctAv chan", name)

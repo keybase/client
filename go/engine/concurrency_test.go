@@ -1,6 +1,7 @@
 package engine
 
 import (
+	"flag"
 	"fmt"
 	"math/rand"
 	"sync"
@@ -9,12 +10,16 @@ import (
 	"github.com/keybase/client/go/libkb"
 )
 
+var runConc = flag.Bool("conc", false, "run (expensive) concurrency tests")
+
 // TestConcurrentLogin tries calling logout, login, and many of
 // the exposed methods in LoginState concurrently.  Use the
 // -race flag to test it.
 func TestConcurrentLogin(t *testing.T) {
 	// making it skip by default since it is slow...
-	t.Skip("Skipping ConcurrentLogin test")
+	if !*runConc {
+		t.Skip("Skipping ConcurrentLogin test")
+	}
 	tc := SetupEngineTest(t, "login")
 	defer tc.Cleanup()
 
