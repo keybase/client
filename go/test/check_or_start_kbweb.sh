@@ -11,7 +11,7 @@ KBWEB_IMAGE_NAME="kbweb"
 function check_server() {
     timeout=$1
     tries=$2
-    wget --timeout=$timeout --tries=$tries localhost:$KBWEB_PORT 2> /dev/null
+    wget -O - --timeout=$timeout --tries=$tries localhost:$KBWEB_PORT > /dev/null 2>&1
 }
 
 # If there's already a server listening on port 3000, just use it
