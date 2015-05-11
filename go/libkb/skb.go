@@ -562,7 +562,7 @@ func (s *SKB) PromptAndUnlock(reason, which string, secretStore SecretStore, ui 
 		tsec = scr.Triplesec()
 		pps = scr.PassphraseStream()
 	} else {
-		s.G().LoginState().StreamCache(func(sc *StreamCache) {
+		s.G().LoginState().PassphraseStreamCache(func(sc *PassphraseStreamCache) {
 			tsec = sc.Triplesec()
 			pps = sc.PassphraseStream()
 		}, "skb - PromptAndUnlock - tsec, pps")

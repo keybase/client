@@ -151,7 +151,7 @@ func (s *LoginState) GetPassphraseStream(ui SecretUI) (ret PassphraseStream, err
 // or generates a new one that's verified via Login.
 func (s *LoginState) GetVerifiedTriplesec(ui SecretUI) (ret *triplesec.Cipher, err error) {
 	s.Account(func(a *Account) {
-		ret = a.StreamCache().Triplesec()
+		ret = a.PassphraseStreamCache().Triplesec()
 	}, "LoginState - GetVerifiedTriplesec - first")
 	if ret != nil {
 		return
@@ -162,7 +162,7 @@ func (s *LoginState) GetVerifiedTriplesec(ui SecretUI) (ret *triplesec.Cipher, e
 	}
 
 	s.Account(func(a *Account) {
-		ret = a.StreamCache().Triplesec()
+		ret = a.PassphraseStreamCache().Triplesec()
 	}, "LoginState - GetVerifiedTriplesec - first")
 	if ret != nil {
 		return
@@ -182,7 +182,7 @@ func (s *LoginState) computeLoginPw() (macSum []byte, err error) {
 			err = fmt.Errorf("nil login session")
 			return
 		}
-		sec := a.StreamCache().PassphraseStream().PWHash()
+		sec := a.PassphraseStreamCache().PassphraseStream().PWHash()
 		mac := hmac.New(sha512.New, sec)
 		mac.Write(loginSession)
 		macSum = mac.Sum(nil)
@@ -519,7 +519,7 @@ func (s *LoginState) passphraseLogin(username, passphrase string, secretUI Secre
 
 func (s *LoginState) stretchPassphraseIfNecessary(un string, pp string, ui SecretUI, retry string) error {
 	var cached bool
-	s.StreamCache(func(sc *StreamCache) {
+	s.PassphraseStreamCache(func(sc *PassphraseStreamCache) {
 		if sc.Valid() {
 			// already have stretched passphrase cached
 			cached = true
@@ -699,9 +699,9 @@ func (s *LoginState) Account(h acctHandler, name string) {
 	s.G().Log.Debug("- Account %q, done", name)
 }
 
-func (s *LoginState) StreamCache(h func(*StreamCache), name string) {
+func (s *LoginState) PassphraseStreamCache(h func(*PassphraseStreamCache), name string) {
 	s.Account(func(a *Account) {
-		h(a.StreamCache())
+		h(a.PassphraseStreamCache())
 	}, name)
 }
 
@@ -763,7 +763,7 @@ func (s *LoginState) LoggedInLoad() (lin bool, err error) {
 
 func (s *LoginState) PassphraseStream() PassphraseStream {
 	var pps PassphraseStream
-	s.StreamCache(func(s *StreamCache) {
+	s.PassphraseStreamCache(func(s *PassphraseStreamCache) {
 		pps = s.PassphraseStream()
 	}, "PassphraseStream")
 	return pps

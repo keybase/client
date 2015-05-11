@@ -375,7 +375,7 @@ func (k *Keyrings) GetSecretKeyWithPassphrase(me *User, passphrase string, secre
 	skb.SetUID(me.GetUid().P())
 	var tsec *triplesec.Cipher
 	var pps PassphraseStream
-	k.G().LoginState().StreamCache(func(sc *StreamCache) {
+	k.G().LoginState().PassphraseStreamCache(func(sc *PassphraseStreamCache) {
 		tsec = sc.Triplesec()
 		pps = sc.PassphraseStream()
 	}, "StreamCache - tsec, pps")

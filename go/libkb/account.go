@@ -11,7 +11,7 @@ type Account struct {
 	secretSyncer *SecretSyncer
 	localSession *Session
 	loginSession *LoginSession
-	streamCache  *StreamCache
+	streamCache  *PassphraseStreamCache
 	skbKeyring   *SKBKeyringFile
 }
 
@@ -128,7 +128,7 @@ func (a *Account) CreateStreamCacheViaStretch(passphrase string) error {
 	return nil
 }
 
-func (a *Account) StreamCache() *StreamCache {
+func (a *Account) PassphraseStreamCache() *PassphraseStreamCache {
 	return a.streamCache
 }
 

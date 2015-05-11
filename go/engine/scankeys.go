@@ -63,7 +63,7 @@ func NewScanKeys(secui libkb.SecretUI, idui libkb.IdentifyUI, opts *TrackOptions
 	lks.Load()
 
 	sk.G().LoginState().Account(func(a *libkb.Account) {
-		sc := a.StreamCache()
+		sc := a.PassphraseStreamCache()
 		var ring *libkb.SKBKeyringFile
 		ring, err = a.Keyring()
 		if err != nil {
