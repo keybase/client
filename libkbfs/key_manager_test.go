@@ -10,11 +10,17 @@ import (
 
 func keyManagerInit(t *testing.T) (mockCtrl *gomock.Controller,
 	config *ConfigMock) {
-	mockCtrl = gomock.NewController(t)
-	config = NewConfigMock(mockCtrl)
+	ctr := NewSafeTestReporter(t)
+	mockCtrl = gomock.NewController(ctr)
+	config = NewConfigMock(mockCtrl, ctr)
 	keyman := &KeyManagerStandard{config}
 	config.SetKeyManager(keyman)
 	return
+}
+
+func keyManagerShutdown(mockCtrl *gomock.Controller, config *ConfigMock) {
+	config.ctr.CheckForFailures()
+	mockCtrl.Finish()
 }
 
 func expectCachedGetSecretKey(config *ConfigMock, rmd *RootMetadata) {
@@ -85,7 +91,7 @@ func pathFromRMD(config *ConfigMock, rmd *RootMetadata) Path {
 
 func TestKeyManagerCachedSecretKeySuccess(t *testing.T) {
 	mockCtrl, config := keyManagerInit(t)
-	defer mockCtrl.Finish()
+	defer keyManagerShutdown(mockCtrl, config)
 
 	_, id, h := makeId(config)
 	rmd := NewRootMetadata(h, id)
@@ -101,7 +107,7 @@ func TestKeyManagerCachedSecretKeySuccess(t *testing.T) {
 
 func TestKeyManagerUncachedSecretKeySuccess(t *testing.T) {
 	mockCtrl, config := keyManagerInit(t)
-	defer mockCtrl.Finish()
+	defer keyManagerShutdown(mockCtrl, config)
 
 	_, id, h := makeId(config)
 	rmd := NewRootMetadata(h, id)
@@ -117,7 +123,7 @@ func TestKeyManagerUncachedSecretKeySuccess(t *testing.T) {
 
 func TestKeyManagerUncachedSecretBlockKeySuccess(t *testing.T) {
 	mockCtrl, config := keyManagerInit(t)
-	defer mockCtrl.Finish()
+	defer keyManagerShutdown(mockCtrl, config)
 
 	_, id, h := makeId(config)
 	rmd := NewRootMetadata(h, id)
@@ -134,7 +140,7 @@ func TestKeyManagerUncachedSecretBlockKeySuccess(t *testing.T) {
 
 func TestKeyManagerGetUncachedBlockKeyFailNewKey(t *testing.T) {
 	mockCtrl, config := keyManagerInit(t)
-	defer mockCtrl.Finish()
+	defer keyManagerShutdown(mockCtrl, config)
 
 	u, id, h := makeId(config)
 	rmd := NewRootMetadata(h, id)
@@ -162,7 +168,7 @@ func TestKeyManagerGetUncachedBlockKeyFailNewKey(t *testing.T) {
 
 func TestKeyManagerRekeySuccess(t *testing.T) {
 	mockCtrl, config := keyManagerInit(t)
-	defer mockCtrl.Finish()
+	defer keyManagerShutdown(mockCtrl, config)
 
 	u, id, h := makeId(config)
 	rmd := NewRootMetadata(h, id)

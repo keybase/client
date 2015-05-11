@@ -8,7 +8,6 @@ import (
 
 	"code.google.com/p/gomock/gomock"
 	"github.com/keybase/client/go/libkb"
-	"github.com/keybase/kbfs/util"
 )
 
 type CheckBlockOps struct {
@@ -50,15 +49,12 @@ func (cbo *CheckBlockOps) Delete(id BlockId, context BlockContext) error {
 
 func kbfsOpsInit(t *testing.T) (mockCtrl *gomock.Controller,
 	config *ConfigMock) {
-	mockCtrl = gomock.NewController(t)
-	config = NewConfigMock(mockCtrl)
+	ctr := NewSafeTestReporter(t)
+	mockCtrl = gomock.NewController(ctr)
+	config = NewConfigMock(mockCtrl, ctr)
 	blockops := &CheckBlockOps{config.mockBops, t}
 	config.SetBlockOps(blockops)
 	kbfsops := NewKBFSOpsStandard(config)
-	// use the simple RWScheduler implementation, so that if mocks
-	// fail, it doesn't happen in a separate goroutine and thus will
-	// actually fail the test.
-	kbfsops.dirRWChans.factory = util.NewRWLockScheduler
 	config.SetKBFSOps(kbfsops)
 	config.SetNotifier(kbfsops)
 
@@ -72,6 +68,7 @@ func kbfsOpsInit(t *testing.T) (mockCtrl *gomock.Controller,
 }
 
 func kbfsTestShutdown(mockCtrl *gomock.Controller, config *ConfigMock) {
+	config.ctr.CheckForFailures()
 	config.KBFSOps().(*KBFSOpsStandard).Shutdown()
 	mockCtrl.Finish()
 }

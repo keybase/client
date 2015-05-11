@@ -10,11 +10,17 @@ import (
 
 func mdCacheInit(t *testing.T, cap int) (
 	mockCtrl *gomock.Controller, config *ConfigMock) {
-	mockCtrl = gomock.NewController(t)
-	config = NewConfigMock(mockCtrl)
+	ctr := NewSafeTestReporter(t)
+	mockCtrl = gomock.NewController(ctr)
+	config = NewConfigMock(mockCtrl, ctr)
 	mdcache := NewMDCacheStandard(cap)
 	config.SetMDCache(mdcache)
 	return
+}
+
+func mdCacheShutdown(mockCtrl *gomock.Controller, config *ConfigMock) {
+	config.ctr.CheckForFailures()
+	mockCtrl.Finish()
 }
 
 func expectUserCall(u libkb.UID, config *ConfigMock) {
@@ -54,7 +60,7 @@ func testMdcachePut(t *testing.T, id MDId, h *DirHandle, config *ConfigMock) {
 
 func TestMdcachePut(t *testing.T) {
 	mockCtrl, config := mdCacheInit(t, 100)
-	defer mockCtrl.Finish()
+	defer mdCacheShutdown(mockCtrl, config)
 
 	_, h, _ := newDir(config, 1, true, false)
 	h.Writers = append(h.Writers, libkb.UID{0})
@@ -64,7 +70,7 @@ func TestMdcachePut(t *testing.T) {
 
 func TestMdcachePutPastCapacity(t *testing.T) {
 	mockCtrl, config := mdCacheInit(t, 2)
-	defer mockCtrl.Finish()
+	defer mdCacheShutdown(mockCtrl, config)
 
 	_, h0, _ := newDir(config, 1, true, false)
 	id0 := MDId{0}

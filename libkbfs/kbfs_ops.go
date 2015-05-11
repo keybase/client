@@ -218,7 +218,7 @@ func (fs *KBFSOpsStandard) getChans(id DirId) (
 	// calling method directly.  By the time a receive on this channel
 	// returns, those writes are guaranteed to be visible.  See
 	// https://golang.org/ref/mem#tmp_7.
-	errchan = make(errChan, 1)
+	errchan = make(errChan)
 	return
 }
 

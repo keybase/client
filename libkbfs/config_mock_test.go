@@ -39,9 +39,10 @@ type ConfigMock struct {
 	mockBsplit   *MockBlockSplitter
 	mockNotifier *MockNotifier
 	observer     *FakeObserver
+	ctr          *SafeTestReporter
 }
 
-func NewConfigMock(c *gomock.Controller) *ConfigMock {
+func NewConfigMock(c *gomock.Controller, ctr *SafeTestReporter) *ConfigMock {
 	config := &ConfigMock{}
 	config.mockKbfs = NewMockKBFSOps(c)
 	config.SetKBFSOps(config.mockKbfs)
@@ -78,5 +79,6 @@ func NewConfigMock(c *gomock.Controller) *ConfigMock {
 	config.mockNotifier = NewMockNotifier(c)
 	config.SetNotifier(config.mockNotifier)
 	config.observer = &FakeObserver{}
+	config.ctr = ctr
 	return config
 }

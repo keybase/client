@@ -1405,8 +1405,8 @@ func (_m *MockNotifier) EXPECT() *_MockNotifierRecorder {
 	return _m.recorder
 }
 
-func (_m *MockNotifier) RegisterForChanges(dirs []DirId, n Observer) error {
-	ret := _m.ctrl.Call(_m, "RegisterForChanges", dirs, n)
+func (_m *MockNotifier) RegisterForChanges(dirs []DirId, obs Observer) error {
+	ret := _m.ctrl.Call(_m, "RegisterForChanges", dirs, obs)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
@@ -1415,8 +1415,8 @@ func (_mr *_MockNotifierRecorder) RegisterForChanges(arg0, arg1 interface{}) *go
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "RegisterForChanges", arg0, arg1)
 }
 
-func (_m *MockNotifier) UnregisterFromChanges(dirs []DirId, n Observer) error {
-	ret := _m.ctrl.Call(_m, "UnregisterFromChanges", dirs, n)
+func (_m *MockNotifier) UnregisterFromChanges(dirs []DirId, obs Observer) error {
+	ret := _m.ctrl.Call(_m, "UnregisterFromChanges", dirs, obs)
 	ret0, _ := ret[0].(error)
 	return ret0
 }

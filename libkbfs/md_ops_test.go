@@ -9,11 +9,18 @@ import (
 )
 
 func mdOpsInit(t *testing.T) (mockCtrl *gomock.Controller, config *ConfigMock) {
-	mockCtrl = gomock.NewController(t)
-	config = NewConfigMock(mockCtrl)
+	ctr := NewSafeTestReporter(t)
+	mockCtrl = gomock.NewController(ctr)
+	config = NewConfigMock(mockCtrl, ctr)
 	mdops := &MDOpsStandard{config}
 	config.SetMDOps(mdops)
 	return
+}
+
+func mdOpsShutdown(mockCtrl *gomock.Controller, config *ConfigMock) {
+	config.ctr.CheckForFailures()
+	mockCtrl.Finish()
+
 }
 
 func newDir(config *ConfigMock, x byte, share bool, public bool) (
@@ -99,7 +106,7 @@ func putMDForPrivateShare(config *ConfigMock, rmds *RootMetadataSigned,
 
 func TestMDOpsGetAtHandleSuccess(t *testing.T) {
 	mockCtrl, config := mdOpsInit(t)
-	defer mockCtrl.Finish()
+	defer mdOpsShutdown(mockCtrl, config)
 
 	// expect one call to fetch MD, and one to verify it
 	id, h, rmds := newDir(config, 1, true, false)
@@ -118,7 +125,7 @@ func TestMDOpsGetAtHandleSuccess(t *testing.T) {
 
 func TestMDOpsGetAtHandleFailGet(t *testing.T) {
 	mockCtrl, config := mdOpsInit(t)
-	defer mockCtrl.Finish()
+	defer mdOpsShutdown(mockCtrl, config)
 
 	// expect one call to fetch MD, and fail it
 	_, h, _ := newDir(config, 1, true, false)
@@ -134,7 +141,7 @@ func TestMDOpsGetAtHandleFailGet(t *testing.T) {
 
 func TestMDOpsGetAtHandleFailHandleCheck(t *testing.T) {
 	mockCtrl, config := mdOpsInit(t)
-	defer mockCtrl.Finish()
+	defer mdOpsShutdown(mockCtrl, config)
 
 	// expect one call to fetch MD, and one to verify it, and fail that one
 	id, h, rmds := newDir(config, 1, true, false)
@@ -156,7 +163,7 @@ func TestMDOpsGetAtHandleFailHandleCheck(t *testing.T) {
 
 func TestMDOpsGetSuccess(t *testing.T) {
 	mockCtrl, config := mdOpsInit(t)
-	defer mockCtrl.Finish()
+	defer mdOpsShutdown(mockCtrl, config)
 
 	// expect one call to fetch MD, and one to verify it
 	id, _, rmds := newDir(config, 1, true, false)
@@ -173,7 +180,7 @@ func TestMDOpsGetSuccess(t *testing.T) {
 
 func TestMDOpsGetBlankSigSuccess(t *testing.T) {
 	mockCtrl, config := mdOpsInit(t)
-	defer mockCtrl.Finish()
+	defer mdOpsShutdown(mockCtrl, config)
 
 	// expect one call to fetch MD, give back a blank sig that doesn't need
 	// verification
@@ -195,7 +202,7 @@ func TestMDOpsGetBlankSigSuccess(t *testing.T) {
 
 func TestMDOpsGetFailGet(t *testing.T) {
 	mockCtrl, config := mdOpsInit(t)
-	defer mockCtrl.Finish()
+	defer mdOpsShutdown(mockCtrl, config)
 
 	// expect one call to fetch MD, and fail it
 	id, _, _ := newDir(config, 1, true, false)
@@ -211,7 +218,7 @@ func TestMDOpsGetFailGet(t *testing.T) {
 
 func TestMDOpsGetFailIdCheck(t *testing.T) {
 	mockCtrl, config := mdOpsInit(t)
-	defer mockCtrl.Finish()
+	defer mdOpsShutdown(mockCtrl, config)
 
 	// expect one call to fetch MD, and one to verify it, and fail that one
 	_, _, rmds := newDir(config, 1, true, false)
@@ -228,7 +235,7 @@ func TestMDOpsGetFailIdCheck(t *testing.T) {
 
 func TestMDOpsGetAtIdSuccess(t *testing.T) {
 	mockCtrl, config := mdOpsInit(t)
-	defer mockCtrl.Finish()
+	defer mdOpsShutdown(mockCtrl, config)
 
 	// expect one call to fetch MD, and one to verify it
 	id, _, rmds := newDir(config, 1, true, false)
@@ -245,7 +252,7 @@ func TestMDOpsGetAtIdSuccess(t *testing.T) {
 
 func TestMDOpsGetAtIdFail(t *testing.T) {
 	mockCtrl, config := mdOpsInit(t)
-	defer mockCtrl.Finish()
+	defer mdOpsShutdown(mockCtrl, config)
 
 	// expect one call to fetch MD, and fail it
 	id, _, _ := newDir(config, 1, true, false)
@@ -263,7 +270,7 @@ func TestMDOpsGetAtIdFail(t *testing.T) {
 
 func TestMDOpsPutSuccess(t *testing.T) {
 	mockCtrl, config := mdOpsInit(t)
-	defer mockCtrl.Finish()
+	defer mdOpsShutdown(mockCtrl, config)
 
 	// expect one call to sign MD, and one to put it
 	id, _, rmds := newDir(config, 1, true, false)
@@ -276,7 +283,7 @@ func TestMDOpsPutSuccess(t *testing.T) {
 
 func TestMDOpsPutFailEncode(t *testing.T) {
 	mockCtrl, config := mdOpsInit(t)
-	defer mockCtrl.Finish()
+	defer mdOpsShutdown(mockCtrl, config)
 
 	// expect one call to sign MD, and fail it
 	id, h, _ := newDir(config, 1, true, false)
@@ -292,7 +299,7 @@ func TestMDOpsPutFailEncode(t *testing.T) {
 
 func TestMDOpsGetFavoritesSuccess(t *testing.T) {
 	mockCtrl, config := mdOpsInit(t)
-	defer mockCtrl.Finish()
+	defer mdOpsShutdown(mockCtrl, config)
 
 	// expect one call to fetch favorites
 	id1, _, _ := newDir(config, 1, true, false)
@@ -310,7 +317,7 @@ func TestMDOpsGetFavoritesSuccess(t *testing.T) {
 
 func TestMDOpsGetFavoritesFail(t *testing.T) {
 	mockCtrl, config := mdOpsInit(t)
-	defer mockCtrl.Finish()
+	defer mdOpsShutdown(mockCtrl, config)
 
 	err := errors.New("Fake fail")
 	// expect one call to favorites, and fail it

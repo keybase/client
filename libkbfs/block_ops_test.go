@@ -14,11 +14,17 @@ type TestBlock struct {
 
 func blockOpsInit(t *testing.T) (mockCtrl *gomock.Controller,
 	config *ConfigMock) {
-	mockCtrl = gomock.NewController(t)
-	config = NewConfigMock(mockCtrl)
+	ctr := NewSafeTestReporter(t)
+	mockCtrl = gomock.NewController(ctr)
+	config = NewConfigMock(mockCtrl, ctr)
 	bops := &BlockOpsStandard{config}
 	config.SetBlockOps(bops)
 	return
+}
+
+func blockOpsShutdown(mockCtrl *gomock.Controller, config *ConfigMock) {
+	config.ctr.CheckForFailures()
+	mockCtrl.Finish()
 }
 
 func expectBlockDecode(config *ConfigMock, packedData []byte,
@@ -36,7 +42,7 @@ func makeContext(encData []byte) BlockContext {
 
 func TestBlockOpsGetSuccess(t *testing.T) {
 	mockCtrl, config := blockOpsInit(t)
-	defer mockCtrl.Finish()
+	defer blockOpsShutdown(mockCtrl, config)
 
 	// expect one call to fetch a block, and one to decrypt it
 	id := BlockId{1}
@@ -60,7 +66,7 @@ func TestBlockOpsGetSuccess(t *testing.T) {
 
 func TestBlockOpsGetFailInconsistentByteCount(t *testing.T) {
 	mockCtrl, config := blockOpsInit(t)
-	defer mockCtrl.Finish()
+	defer blockOpsShutdown(mockCtrl, config)
 
 	// expect just one call to fetch a block
 	id := BlockId{1}
@@ -76,7 +82,7 @@ func TestBlockOpsGetFailInconsistentByteCount(t *testing.T) {
 
 func TestBlockOpsGetFailTooHighByteCount(t *testing.T) {
 	mockCtrl, config := blockOpsInit(t)
-	defer mockCtrl.Finish()
+	defer blockOpsShutdown(mockCtrl, config)
 
 	// expect one call to fetch a block, and one to decrypt it
 	id := BlockId{1}
@@ -95,7 +101,7 @@ func TestBlockOpsGetFailTooHighByteCount(t *testing.T) {
 
 func TestBlockOpsGetFailGet(t *testing.T) {
 	mockCtrl, config := blockOpsInit(t)
-	defer mockCtrl.Finish()
+	defer blockOpsShutdown(mockCtrl, config)
 
 	// fail the fetch call
 	id := BlockId{1}
@@ -112,7 +118,7 @@ func TestBlockOpsGetFailGet(t *testing.T) {
 
 func TestBlockOpsGetFailDecrypt(t *testing.T) {
 	mockCtrl, config := blockOpsInit(t)
-	defer mockCtrl.Finish()
+	defer blockOpsShutdown(mockCtrl, config)
 
 	// expect one call to fetch a block, then fail to decrypt i
 	id := BlockId{1}
@@ -132,7 +138,7 @@ func TestBlockOpsGetFailDecrypt(t *testing.T) {
 
 func TestBlockOpsGetFailDecode(t *testing.T) {
 	mockCtrl, config := blockOpsInit(t)
-	defer mockCtrl.Finish()
+	defer blockOpsShutdown(mockCtrl, config)
 
 	// expect one call to fetch a block, and one to decrypt it
 	id := BlockId{1}
@@ -155,7 +161,7 @@ func TestBlockOpsGetFailDecode(t *testing.T) {
 
 func TestBlockOpsReadySuccess(t *testing.T) {
 	mockCtrl, config := blockOpsInit(t)
-	defer mockCtrl.Finish()
+	defer blockOpsShutdown(mockCtrl, config)
 
 	// expect one call to encrypt a block, one to hash it
 	decData := TestBlock{42}
@@ -183,7 +189,7 @@ func TestBlockOpsReadySuccess(t *testing.T) {
 
 func TestBlockOpsReadyFailTooLowByteCount(t *testing.T) {
 	mockCtrl, config := blockOpsInit(t)
-	defer mockCtrl.Finish()
+	defer blockOpsShutdown(mockCtrl, config)
 
 	// expect just one call to encrypt a block
 	decData := TestBlock{42}
@@ -202,7 +208,7 @@ func TestBlockOpsReadyFailTooLowByteCount(t *testing.T) {
 
 func TestBlockOpsReadyFailEncode(t *testing.T) {
 	mockCtrl, config := blockOpsInit(t)
-	defer mockCtrl.Finish()
+	defer blockOpsShutdown(mockCtrl, config)
 
 	// expect one call to encrypt a block, one to hash it
 	decData := TestBlock{42}
@@ -218,7 +224,7 @@ func TestBlockOpsReadyFailEncode(t *testing.T) {
 
 func TestBlockOpsReadyFailEncrypt(t *testing.T) {
 	mockCtrl, config := blockOpsInit(t)
-	defer mockCtrl.Finish()
+	defer blockOpsShutdown(mockCtrl, config)
 
 	// expect one call to encrypt a block, one to hash it
 	decData := TestBlock{42}
@@ -236,7 +242,7 @@ func TestBlockOpsReadyFailEncrypt(t *testing.T) {
 
 func TestBlockOpsReadyFailHash(t *testing.T) {
 	mockCtrl, config := blockOpsInit(t)
-	defer mockCtrl.Finish()
+	defer blockOpsShutdown(mockCtrl, config)
 
 	// expect one call to encrypt a block, one to hash it
 	decData := TestBlock{42}
@@ -256,7 +262,7 @@ func TestBlockOpsReadyFailHash(t *testing.T) {
 
 func TestBlockOpsReadyFailCast(t *testing.T) {
 	mockCtrl, config := blockOpsInit(t)
-	defer mockCtrl.Finish()
+	defer blockOpsShutdown(mockCtrl, config)
 
 	// expect one call to encrypt a block, one to hash it
 	decData := TestBlock{42}
@@ -278,7 +284,7 @@ func TestBlockOpsReadyFailCast(t *testing.T) {
 
 func TestBlockOpsPutSuccess(t *testing.T) {
 	mockCtrl, config := blockOpsInit(t)
-	defer mockCtrl.Finish()
+	defer blockOpsShutdown(mockCtrl, config)
 
 	// expect one call to put a block
 	id := BlockId{1}
@@ -293,7 +299,7 @@ func TestBlockOpsPutSuccess(t *testing.T) {
 
 func TestBlockOpsPutFailInconsistentByteCountError(t *testing.T) {
 	mockCtrl, config := blockOpsInit(t)
-	defer mockCtrl.Finish()
+	defer blockOpsShutdown(mockCtrl, config)
 
 	// expect one call to put a block
 	id := BlockId{1}
@@ -307,7 +313,7 @@ func TestBlockOpsPutFailInconsistentByteCountError(t *testing.T) {
 
 func TestBlockOpsPutFail(t *testing.T) {
 	mockCtrl, config := blockOpsInit(t)
-	defer mockCtrl.Finish()
+	defer blockOpsShutdown(mockCtrl, config)
 
 	// fail the put call
 	id := BlockId{1}
@@ -323,7 +329,7 @@ func TestBlockOpsPutFail(t *testing.T) {
 
 func TestBlockOpsDeleteSuccess(t *testing.T) {
 	mockCtrl, config := blockOpsInit(t)
-	defer mockCtrl.Finish()
+	defer blockOpsShutdown(mockCtrl, config)
 
 	// expect one call to delete a block
 	id := BlockId{1}
@@ -337,7 +343,7 @@ func TestBlockOpsDeleteSuccess(t *testing.T) {
 
 func TestBlockOpsDeleteFail(t *testing.T) {
 	mockCtrl, config := blockOpsInit(t)
-	defer mockCtrl.Finish()
+	defer blockOpsShutdown(mockCtrl, config)
 
 	// fail the delete call
 	id := BlockId{1}
