@@ -6,6 +6,7 @@ import (
 	"encoding/hex"
 	"errors"
 	"fmt"
+	"sync"
 
 	keybase1 "github.com/keybase/client/protocol/go"
 	jsonw "github.com/keybase/go-jsonw"
@@ -32,6 +33,7 @@ type LoginState struct {
 	loginReqs chan loginReq
 	acctReqs  chan acctReq
 	acctAv    chan *Account
+	acctAvMu  sync.Mutex
 }
 
 type loginAPIResult struct {
@@ -47,7 +49,9 @@ func NewLoginState(g *GlobalContext) *LoginState {
 		account:      NewAccount(g),
 		loginReqs:    make(chan loginReq),
 		acctReqs:     make(chan acctReq),
+		acctAv:       make(chan *Account),
 	}
+	close(res.acctAv)
 	go res.handleRequests()
 	return res
 }
@@ -599,13 +603,26 @@ func (s *LoginState) handleRequests() {
 			if ok {
 				s.G().Log.Info("+ login request %s", req.name)
 				// make account available for use inside a login request
+				s.acctAvMu.Lock()
 				s.acctAv = make(chan *Account, 1)
+				s.acctAvMu.Unlock()
 				s.acctAv <- s.account
-				req.res <- req.f()
-				// setting the channel to nil will make it unavailable
-				// to future account requests, so they will have to go
-				// through the request handler.
-				s.acctAv = nil
+				// req.res <- req.f()
+				err := req.f()
+				/*
+					// setting the channel to nil will make it unavailable
+					// to future account requests, so they will have to go
+					// through the request handler.
+					s.acctAv = nil
+				*/
+				s.G().Log.Info("| login request %s - waiting for acct access done", req.name)
+				<-s.acctAv // take off account obj if it's there
+				s.G().Log.Info("| login request %s - closing acctAv chan", req.name)
+				s.acctAvMu.Lock()
+				close(s.acctAv)
+				s.acctAvMu.Unlock()
+
+				req.res <- err
 				s.G().Log.Info("- login request %s", req.name)
 			} else {
 				s.loginReqs = nil
@@ -698,6 +715,13 @@ func (s *LoginState) logout() error {
 }
 
 func (s *LoginState) Account(h acctHandler, name string) {
+	s.G().Log.Info("+ Account %q, putting in request chan", name)
+	s.acctHandle(h, name)
+	s.G().Log.Info("- Account %q, done", name)
+}
+
+/*
+func (s *LoginState) Account(h acctHandler, name string) {
 	s.G().Log.Info("+ Account: %q getting from acctAv chan", name)
 	a, ok := <-s.acctAv
 	if !ok {
@@ -712,6 +736,7 @@ func (s *LoginState) Account(h acctHandler, name string) {
 	s.acctAv <- a
 	s.G().Log.Info("+ Account: %q all done", name)
 }
+*/
 
 func (s *LoginState) StreamCache(h func(*StreamCache), name string) {
 	s.Account(func(a *Account) {

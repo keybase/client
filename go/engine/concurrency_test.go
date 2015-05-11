@@ -16,7 +16,6 @@ var runConc = flag.Bool("conc", false, "run (expensive) concurrency tests")
 // the exposed methods in LoginState concurrently.  Use the
 // -race flag to test it.
 func TestConcurrentLogin(t *testing.T) {
-	// making it skip by default since it is slow...
 	if !*runConc {
 		t.Skip("Skipping ConcurrentLogin test")
 	}
@@ -77,8 +76,9 @@ func TestConcurrentLogin(t *testing.T) {
 // and GetPassphraseStream to check for race conditions.
 // Use the -race flag to test it.
 func TestConcurrentGetPassphraseStream(t *testing.T) {
-	// making it skip by default since it is slow...
-	t.Skip("Skipping ConcurrentGetPassphraseStream test")
+	if !*runConc {
+		t.Skip("Skipping ConcurrentGetPassphraseStream test")
+	}
 	tc := SetupEngineTest(t, "login")
 	defer tc.Cleanup()
 
@@ -127,8 +127,9 @@ func TestConcurrentGetPassphraseStream(t *testing.T) {
 // the exposed methods in LoginState concurrently.  Use the
 // -race flag to test it.
 func TestConcurrentSignup(t *testing.T) {
-	// making it skip by default since it is slow...
-	t.Skip("Skipping ConcurrentSignup test")
+	if !*runConc {
+		t.Skip("Skipping ConcurrentSignup test")
+	}
 	tc := SetupEngineTest(t, "login")
 	defer tc.Cleanup()
 
@@ -168,7 +169,9 @@ func TestConcurrentSignup(t *testing.T) {
 // TestConcurrentGlobals tries to find race conditions in
 // everything in GlobalContext.
 func TestConcurrentGlobals(t *testing.T) {
-	t.Skip("Skipping ConcurrentGlobals")
+	if !*runConc {
+		t.Skip("Skipping ConcurrentGlobals")
+	}
 	tc := SetupEngineTest(t, "login")
 	defer tc.Cleanup()
 
