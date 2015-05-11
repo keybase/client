@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 
 KBWEB_PORT="3000"
+QUOTA_PORT="44003"
 # use different names for the container and image, so docker inspect
 # will be clear about when a container exists, rather than just the
 # image
@@ -61,7 +62,7 @@ image=`docker images $KBWEB_IMAGE_NAME 2> /dev/null`
 if [ $? -eq 0 ]; then
     set -e
     echo "Launching new container"
-    docker run -d -p $KBWEB_PORT:$KBWEB_PORT -d --name=$KBWEB_CONTAINER_NAME $KBWEB_IMAGE_NAME
+    docker run -d -p $KBWEB_PORT:$KBWEB_PORT -p $QUOTA_PORT:$QUOTA_PORT -d --name=$KBWEB_CONTAINER_NAME $KBWEB_IMAGE_NAME
     check_server 1 30
     exit 0
 fi
