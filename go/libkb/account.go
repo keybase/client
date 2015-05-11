@@ -233,6 +233,8 @@ func (a *Account) LockedLocalSecretKey(ska SecretKeyArg) *SKB {
 		a.G().Log.Debug("| Could not get device id")
 	} else if key, err := ckf.GetSibkeyForDevice(*did); err != nil {
 		a.G().Log.Debug("| No key for current device: %s", err.Error())
+	} else if key == nil {
+		a.G().Log.Debug("| Key for current device is nil")
 	} else {
 		kid := key.GetKid()
 		a.G().Log.Debug("| Found KID for current device: %s", kid)

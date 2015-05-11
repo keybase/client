@@ -84,7 +84,7 @@ func (s *LoginState) LoginWithPrompt(username string, loginUI LoginUI, secretUI 
 	s.G().Log.Debug("+ LoginWithPrompt(%s) called", username)
 	defer func() { s.G().Log.Debug("- LoginWithPrompt -> %s", ErrToOk(err)) }()
 
-	err = s.handle(func() error {
+	err = s.loginHandle(func() error {
 		return s.loginWithPromptHelper(username, loginUI, secretUI, false)
 	}, "loginWithPromptHelper")
 	return
@@ -94,7 +94,7 @@ func (s *LoginState) LoginWithStoredSecret(username string) (err error) {
 	s.G().Log.Debug("+ LoginWithStoredSecret(%s) called", username)
 	defer func() { s.G().Log.Debug("- LoginWithStoredSecret -> %s", ErrToOk(err)) }()
 
-	err = s.handle(func() error {
+	err = s.loginHandle(func() error {
 		return s.loginWithStoredSecret(username)
 	}, "loginWithStoredSecret")
 	return
@@ -104,14 +104,14 @@ func (s *LoginState) LoginWithPassphrase(username, passphrase string, storeSecre
 	s.G().Log.Debug("+ LoginWithPassphrase(%s) called", username)
 	defer func() { s.G().Log.Debug("- LoginWithPassphrase -> %s", ErrToOk(err)) }()
 
-	err = s.handle(func() error {
+	err = s.loginHandle(func() error {
 		return s.loginWithPassphrase(username, passphrase, storeSecret)
 	}, "loginWithPassphrase")
 	return
 }
 
 func (s *LoginState) Logout() error {
-	return s.handle(func() error {
+	return s.loginHandle(func() error {
 		return s.logout()
 	}, "logout")
 }
@@ -121,7 +121,7 @@ func (s *LoginState) Logout() error {
 // for signup, so that no logins/logouts happen while a signup is
 // happening.
 func (s *LoginState) ExternalFunc(f func() error, name string) error {
-	return s.handle(f, name)
+	return s.loginHandle(f, name)
 }
 
 func (s *LoginState) Shutdown() error {
@@ -134,18 +134,16 @@ func (s *LoginState) Shutdown() error {
 // (maybe from a previous login) or generates a new one via Login. It will
 // return the current Passphrase stream on success or an error on failure.
 func (s *LoginState) GetPassphraseStream(ui SecretUI) (ret PassphraseStream, err error) {
-	s.Account(func(a *Account) {
-		if ret = a.StreamCache().PassphraseStream(); ret != nil {
-			return
-		}
-		if err = s.verifyPassphraseInLock(ui); err != nil {
-			return
-		}
-		if ret = a.StreamCache().PassphraseStream(); ret != nil {
-			return
-		}
-		err = InternalError{"No cached keystream data after login attempt"}
-	}, "GetPassphraseStream")
+	if ret = s.PassphraseStream(); ret != nil {
+		return
+	}
+	if err = s.verifyPassphrase(ui); err != nil {
+		return
+	}
+	if ret = s.PassphraseStream(); ret != nil {
+		return
+	}
+	err = InternalError{"No cached keystream data after login attempt"}
 	return
 }
 
@@ -153,17 +151,23 @@ func (s *LoginState) GetPassphraseStream(ui SecretUI) (ret PassphraseStream, err
 // or generates a new one that's verified via Login.
 func (s *LoginState) GetVerifiedTriplesec(ui SecretUI) (ret *triplesec.Cipher, err error) {
 	s.Account(func(a *Account) {
-		if ret = a.StreamCache().Triplesec(); ret != nil {
-			return
-		}
-		if err = s.verifyPassphraseInLock(ui); err != nil {
-			return
-		}
-		if ret = a.StreamCache().Triplesec(); ret != nil {
-			return
-		}
-		err = InternalError{"No cached keystream data after login attempt"}
-	}, "GetVerifiedTriplesec")
+		ret = a.StreamCache().Triplesec()
+	}, "LoginState - GetVerifiedTriplesec - first")
+	if ret != nil {
+		return
+	}
+
+	if err = s.verifyPassphrase(ui); err != nil {
+		return
+	}
+
+	s.Account(func(a *Account) {
+		ret = a.StreamCache().Triplesec()
+	}, "LoginState - GetVerifiedTriplesec - first")
+	if ret != nil {
+		return
+	}
+	err = InternalError{"No cached keystream data after login attempt"}
 	return
 }
 
@@ -548,14 +552,10 @@ func (s *LoginState) stretchPassphraseIfNecessary(un string, pp string, ui Secre
 	return err
 }
 
-func (s *LoginState) verifyPassphrase(ui SecretUI) (err error) {
-	return s.handle(func() error {
-		return s.verifyPassphraseInLock(ui)
-	}, "verifyPassphraseInLock")
-}
-
-func (s *LoginState) verifyPassphraseInLock(ui SecretUI) error {
-	return s.loginWithPromptHelper(s.G().Env.GetUsername(), nil, ui, true)
+func (s *LoginState) verifyPassphrase(ui SecretUI) error {
+	return s.loginHandle(func() error {
+		return s.loginWithPromptHelper(s.G().Env.GetUsername(), nil, ui, true)
+	}, "LoginState - verifyPassphrase")
 }
 
 func (s *LoginState) loginWithPromptHelper(username string, loginUI LoginUI, secretUI SecretUI, force bool) (err error) {
@@ -588,7 +588,7 @@ func (s *LoginState) loginWithPromptHelper(username string, loginUI LoginUI, sec
 	return s.tryPassphrasePromptLogin(username, secretUI)
 }
 
-func (s *LoginState) handle(f func() error, name string) error {
+func (s *LoginState) loginHandle(f func() error, name string) error {
 	req := loginReq{
 		f:    f,
 		res:  make(chan error),
@@ -637,72 +637,6 @@ func (s *LoginState) acctRequests() {
 		close(req.done)
 		s.G().Log.Info("- account request %s", req.name)
 	}
-}
-
-// handleRequests runs in a goroutine and handles anything that
-// comes in on the loginReqs or acctReqs channels.  Once those
-// channels are closed, they are set to nil here (nil channels
-// block forever) and it stops when both channels are nil.
-/*
-func (s *LoginState) handleRequests() {
-	for {
-		select {
-		case req, ok := <-s.loginReqs:
-			if ok {
-				s.G().Log.Info("+ login request %s", req.name)
-				// make account available for use inside a login request
-				s.acctAvMu.Lock()
-				s.acctAv = make(chan *Account, 1)
-				s.acctAvMu.Unlock()
-				s.acctAv <- s.account
-				// req.res <- req.f()
-				err := req.f()
-				s.G().Log.Info("| login request %s - waiting for acct access done", req.name)
-				<-s.acctAv // take off account obj if it's there
-				s.G().Log.Info("| login request %s - closing acctAv chan", req.name)
-				s.acctAvMu.Lock()
-				close(s.acctAv)
-				s.acctAvMu.Unlock()
-
-				req.res <- err
-				s.G().Log.Info("- login request %s", req.name)
-			} else {
-				s.loginReqs = nil
-			}
-		case req, ok := <-s.acctReqs:
-			if ok {
-				s.G().Log.Info("+ account request %s", req.name)
-				req.f(s.account)
-				close(req.done)
-				s.G().Log.Info("- account request %s", req.name)
-			} else {
-				s.acctReqs = nil
-			}
-		}
-		if s.loginReqs == nil && s.acctReqs == nil {
-			break
-		}
-	}
-	s.G().Log.Debug("LoginState done handling requests")
-}
-*/
-
-func (s *LoginState) handleRequest(req *loginReq) {
-	requestFinished := false
-	var err error
-	// Defer this, so that it runs even when req.f() calls
-	// runtime.Goexit(); otherwise, this would deadlock. (One case
-	// where req.f() would call runtime.Goexit() is if it
-	// (erroneously) calls testing.T.FailNow().)
-	defer func() {
-		if !requestFinished {
-			err = fmt.Errorf("Request did not finish")
-		}
-		req.res <- err
-	}()
-
-	err = req.f()
-	requestFinished = true
 }
 
 func (s *LoginState) loginWithStoredSecret(username string) error {
@@ -764,24 +698,6 @@ func (s *LoginState) Account(h acctHandler, name string) {
 	s.acctHandle(h, name)
 	s.G().Log.Info("- Account %q, done", name)
 }
-
-/*
-func (s *LoginState) Account(h acctHandler, name string) {
-	s.G().Log.Info("+ Account: %q getting from acctAv chan", name)
-	a, ok := <-s.acctAv
-	if !ok {
-		// the acctAv channel is closed
-		s.G().Log.Info("- Account: %q acctAv chan closed, putting in request chan", name)
-		s.acctHandle(h, name)
-		return
-	}
-	s.G().Log.Info("+ Account: %q received from acctAv chan, calling handler", name)
-	h(a)
-	s.G().Log.Info("+ Account: %q handler done, putting account back on acctAv chan", name)
-	s.acctAv <- a
-	s.G().Log.Info("+ Account: %q all done", name)
-}
-*/
 
 func (s *LoginState) StreamCache(h func(*StreamCache), name string) {
 	s.Account(func(a *Account) {
