@@ -31,9 +31,29 @@ type LoginUI struct {
 	cli       *keybase1.LoginUiClient
 }
 
+func (u *LoginUI) GetEmailOrUsername(dummy int) (ret string, err error) {
+	return u.cli.GetEmailOrUsername(u.sessionId)
+}
+
 type SecretUI struct {
 	sessionId int
 	cli       *keybase1.SecretUiClient
+}
+
+// GetSecret gets a free-form secret from a pinentry
+func (l *SecretUI) GetSecret(pinentry keybase1.SecretEntryArg, terminal *keybase1.SecretEntryArg) (*keybase1.SecretEntryRes, error) {
+	res, err := l.cli.GetSecret(keybase1.GetSecretArg{SessionID: l.sessionId, Pinentry: pinentry, Terminal: terminal})
+	return &res, err
+}
+
+// GetNewPassphrase gets a new passphrase from pinentry
+func (l *SecretUI) GetNewPassphrase(arg keybase1.GetNewPassphraseArg) (string, error) {
+	return l.cli.GetNewPassphrase(arg)
+}
+
+// GetKeybasePassphrase gets the current keybase passphrase from pinentry.
+func (l *SecretUI) GetKeybasePassphrase(arg keybase1.GetKeybasePassphraseArg) (string, error) {
+	return l.cli.GetKeybasePassphrase(arg)
 }
 
 var sessionIDch chan int
