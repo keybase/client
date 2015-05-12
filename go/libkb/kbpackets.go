@@ -137,8 +137,13 @@ func DecodePackets(reader io.Reader) (ret KeybasePackets, err error) {
 
 func (ret *KeybasePacket) MyUnmarshalBinary(data []byte) (err error) {
 	ch := CodecHandle()
-	err = codec.NewDecoderBytes(data, ch).Decode(ret)
+	buf := bytes.NewBuffer(data)
+	err = codec.NewDecoder(buf, ch).Decode(ret)
 	if err != nil {
+		return
+	}
+	if buf.Len() > 0 {
+		err = fmt.Errorf("Did not consume entire buffer: %d byte(s) left", buf.Len())
 		return
 	}
 
