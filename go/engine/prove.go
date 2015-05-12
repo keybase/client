@@ -174,7 +174,7 @@ func (p *Prove) generateProof(ctx *Context) (err error) {
 	if p.proof, err = p.me.ServiceProof(p.signingKey, p.st, p.usernameNormalized); err != nil {
 		return
 	}
-	if seckey, err = locked.PromptAndUnlock("proof signature", which, nil, ctx.SecretUI); err != nil {
+	if seckey, err = locked.PromptAndUnlock(ctx.LoginContext, "proof signature", which, nil, ctx.SecretUI, nil); err != nil {
 		return
 	}
 	if p.sig, p.sigID, _, err = libkb.SignJson(p.proof, seckey); err != nil {
