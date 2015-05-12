@@ -37,6 +37,7 @@
     } else {
       if (status.isRunning) {
         completion(nil, KBInstallStatusInstalled, NSStringWithFormat(@"pid=%@", status.pid));
+        //completion(nil, KBInstallStatusNeedsUpgrade, NSStringWithFormat(@"pid=%@", status.pid));
       } else {
         completion(nil, KBInstallStatusInstalledNotRunning, NSStringWithFormat(@"exit=%@", status.exitStatus));
       }

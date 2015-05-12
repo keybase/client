@@ -68,6 +68,7 @@
         self.image = [NSImage imageNamed:NSImageNameAdvanced];
         self.launchdEnabled = NO;
         self.installEnabled = NO;
+        break;
       }
     }
 

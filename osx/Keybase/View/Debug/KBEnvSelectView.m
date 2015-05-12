@@ -88,7 +88,7 @@
     [view addSubview:createView(@"KBFS", environment.launchdLabelKBFS)];
   }
 
-  if (environment.isInstallEnabled) {
+  if (!environment.isInstallEnabled) {
     [view addSubview:createView(@"Other", @"Installer Disabled")];
   }
 

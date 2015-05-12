@@ -15,6 +15,8 @@
 
 @interface KBInstallerView ()
 @property YOView *installStatusView;
+@property YOHBox *buttons;
+@property YOHBox *skipButtons;
 @end
 
 @implementation KBInstallerView
@@ -34,47 +36,86 @@
   _installStatusView = [YOVBox box:@{@"spacing": @(10), @"insets": @"10,0,10,0"}];
   [contentView addSubview:_installStatusView];
 
-  YOHBox *buttons = [YOHBox box:@{@"horizontalAlignment": @"center", @"spacing": @(10)}];
-  [contentView addSubview:buttons];
+  _buttons = [YOHBox box:@{@"horizontalAlignment": @"center", @"spacing": @(10)}];
+  [contentView addSubview:_buttons];
   KBButton *closeButton = [KBButton buttonWithText:@"Quit" style:KBButtonStyleDefault];
   closeButton.targetBlock = ^{ [NSApp terminate:0]; };
-  [buttons addSubview:closeButton];
+  [_buttons addSubview:closeButton];
+  KBButton *skipButton = [KBButton buttonWithText:@"Skip" style:KBButtonStyleDefault];
+  skipButton.targetBlock = ^{ [gself skip]; };
+  [_buttons addSubview:skipButton];
   KBButton *nextButton = [KBButton buttonWithText:@"Continue" style:KBButtonStylePrimary];
-  nextButton.targetBlock = ^{ [gself next]; };
-  [buttons addSubview:nextButton];
-
-  //self.viewLayout = [YOBorderLayout layoutWithCenter:_installStatusView top:@[header] bottom:@[buttons] insets:UIEdgeInsetsMake(20, 40, 20, 40) spacing:20];
+  nextButton.targetBlock = ^{ [gself install]; };
+  [_buttons addSubview:nextButton];  
 
   self.viewLayout = [YOLayout layoutWithLayoutBlock:[KBLayouts center:contentView]];
 }
 
-- (void)next {
+- (void)install {
 
   // TODO Do we attempt re-install if install action has error?
-  NSArray *installables = [_installActions select:^BOOL(KBInstallAction *installAction) { return installAction.status != KBInstallStatusInstalled; }];
+  NSArray *installActions = [_installActions select:^BOOL(KBInstallAction *installAction) { return installAction.status != KBInstallStatusInstalled; }];
 
-  if ([installables count] == 0) {
+  if ([installActions count] == 0) {
     self.completion(nil);
     return;
   }
 
-  // TODO Show progress view
+  GHWeakSelf gself = self;
+  [KBActivity setProgressEnabled:YES sender:self];
   KBRunOver *rover = [[KBRunOver alloc] init];
-  rover.objects = installables;
-  rover.runBlock = ^(id<KBInstallable> installable, KBRunCompletion runCompletion) {
-    [installable install:^(NSError *error, KBInstallStatus status, NSString *info) {
-      KBInstallAction *install = [[KBInstallAction alloc] init];
-      install.installable = installable;
-      install.error = error;
-      install.status = status;
-      runCompletion(install);
+  rover.objects = installActions;
+  rover.runBlock = ^(KBInstallAction *installAction, KBRunCompletion runCompletion) {
+    [installAction.installable install:^(NSError *error, KBInstallStatus status, NSString *info) {
+      if (error) {
+        installAction.error = error;
+        installAction.status = status;
+        installAction.statusInfo = nil;
+      } else {
+        // Installed, lets refresh status
+        [installAction.installable installStatus:^(NSError *error, KBInstallStatus status, NSString *info) {
+          installAction.error = error;
+          installAction.status = status;
+          installAction.statusInfo = info;
+        }];
+      }
+
+      [self setNeedsLayout];
+      runCompletion(installAction);
     }];
   };
-  rover.completion = ^(NSArray *outputs) {
+  rover.completion = ^(NSArray *installActions) {
     // TODO Handle errors in output, don't call completion on error
-    self.completion(nil);
+    [KBActivity setProgressEnabled:NO sender:self];
+
+    //[self checkInstalls:installActions];
+    [self setInstallActions:gself.installActions];
   };
   [rover run];
+}
+
+- (void)checkInstalls:(NSArray *)installs {
+  for (KBInstallAction *install in installs) {
+    if (install.error) {
+      [self enableRetrySkip];
+      return;
+    }
+  }
+  self.completion(nil);
+}
+
+- (void)enableRetrySkip {
+  _buttons.hidden = YES;
+  _skipButtons.hidden = NO;
+  [self setNeedsLayout];
+}
+
+- (void)retry {
+  [self install];
+}
+
+- (void)skip {
+  self.completion(nil);
 }
 
 - (void)viewDidAppear:(BOOL)animated {
@@ -84,7 +125,8 @@
 - (void)setInstallActions:(NSArray *)installActions {
   _installActions = installActions;
 
-  for (NSView *subview in _installStatusView.subviews) [subview removeFromSuperview];
+  NSArray *installViews = [_installStatusView.subviews copy];
+  for (NSView *subview in installViews) [subview removeFromSuperview];
 
   for (KBInstallAction *installAction in installActions) {
     NSString *name = installAction.installable.info;

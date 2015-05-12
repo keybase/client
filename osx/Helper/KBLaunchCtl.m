@@ -104,7 +104,7 @@
   NSPipe *outpipe = [NSPipe pipe];
   [task setStandardOutput:outpipe];
   task.terminationHandler = ^(NSTask *t) {
-    KBLog(@"Task %@ exited with status: %@", t, @(t.terminationStatus));
+    KBLog(@"Task: \"%@ %@\" (%@)", command, [args componentsJoinedByString:@" "], @(t.terminationStatus));
     NSFileHandle *read = [outpipe fileHandleForReading];
     NSData *data = [read readDataToEndOfFile];
     NSString *output = [[NSString alloc] initWithData:data encoding:NSUTF8StringEncoding];
