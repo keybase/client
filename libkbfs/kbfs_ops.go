@@ -261,13 +261,17 @@ func (fs *KBFSOpsStandard) execReadInChannel(
 func (fs *KBFSOpsStandard) GetRootMD(dir DirId) (md *RootMetadata, err error) {
 	// don't check read permissions here -- anyone should be able to read
 	// the MD to determine whether there's a public subdir or not
+	var exists bool
 	fs.execReadInChannel(dir, func(rtype reqType) error {
 		md, err = fs.getMDInChannel(Path{TopDir: dir}, rtype)
+		// Type defaults to File, so if it was set to Dir then MD already exists
+		if err == nil && md.data.Dir.Type == Dir {
+			exists = true
+		}
 		return err
 	})
 
-	// Type defaults to File, so if it was set to Dir then MD already exists
-	if err != nil || md.data.Dir.Type == Dir {
+	if err != nil || exists {
 		return
 	}
 
