@@ -78,8 +78,6 @@ func NewConfigLocal() *ConfigLocal {
 	config.SetMDOps(&MDOpsStandard{config})
 	config.SetKeyOps(&KeyOpsNull{})
 	config.SetBlockOps(&BlockOpsStandard{config})
-	config.SetMDServer(NewMDServerLocal(
-		config, "kbfs_handles", "kbfs_dirs", "kbfs_md"))
 	//config.SetKeyServer
 	config.SetBlockServer(NewBlockServerLocal("kbfs_block"))
 	// 64K blocks by default, block changes embedded max == 8K

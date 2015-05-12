@@ -16,26 +16,27 @@ type MDServerLocal struct {
 }
 
 func NewMDServerLocal(config Config, handleDbfile string, idDbfile string,
-	mdDbfile string) *MDServerLocal {
+	mdDbfile string) (*MDServerLocal, error) {
 	handleDb, err := leveldb.OpenFile(handleDbfile, &opt.Options{
 		Compression: opt.NoCompression,
 	})
 	if err != nil {
-		return nil
+		return nil, err
 	}
 	idDb, err := leveldb.OpenFile(idDbfile, &opt.Options{
 		Compression: opt.NoCompression,
 	})
 	if err != nil {
-		return nil
+		return nil, err
 	}
 	mdDb, err := leveldb.OpenFile(mdDbfile, &opt.Options{
 		Compression: opt.NoCompression,
 	})
 	if err != nil {
-		return nil
+		return nil, err
 	}
-	return &MDServerLocal{config, handleDb, idDb, mdDb}
+	mdserv := &MDServerLocal{config, handleDb, idDb, mdDb}
+	return mdserv, nil
 }
 
 func (md *MDServerLocal) GetAtHandle(handle *DirHandle) (

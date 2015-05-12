@@ -62,6 +62,11 @@ func main() {
 	}()
 
 	config := libkbfs.NewConfigLocal()
+	mdserv, err := libkbfs.NewMDServerLocal(config, "kbfs_handles", "kbfs_dirs", "kbfs_md")
+	if err != nil {
+		log.Fatalf("cannot open MD database: %v", err)
+	}
+	config.SetMDServer(mdserv)
 
 	libkb.G.Init()
 	libkb.G.ConfigureConfig()
