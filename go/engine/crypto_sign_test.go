@@ -45,4 +45,19 @@ func TestCryptoSign(t *testing.T) {
 	if err != nil {
 		t.Error(err)
 	}
+
+	_, err = sibkey.VerifyBytes(append(cse.GetSignature(), []byte("corruption")...), message)
+	if err == nil {
+		t.Error("Verifying corrupt signature unexpectedly passed")
+	}
+
+	_, err = sibkey.VerifyBytes(cse.GetSignature(), append(message, []byte("corruption")...))
+	if err == nil {
+		t.Error("Verifying signature for corrupt message unexpectedly passed")
+	}
+
+	_, err = sibkey.VerifyString(string(cse.GetSignature()), message)
+	if err == nil {
+		t.Error("Verifying byte signature as string unexpectedly passed")
+	}
 }
