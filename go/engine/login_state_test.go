@@ -501,21 +501,3 @@ func TestLoginWithPassphraseWithStore(t *testing.T) {
 }
 
 // TODO: Test LoginWithPassphrase with pubkey login failing.
-
-/*
-func TestExternalFuncGoexit(t *testing.T) {
-	tc := SetupEngineTest(t, "ExternalFunc goexit")
-	defer tc.Cleanup()
-
-	// This should not cause a hang, and an error should be
-	// returned.
-	err := tc.G.LoginState().ExternalFunc(func() error {
-		runtime.Goexit()
-		return nil
-	}, "runtime.Goexit")
-
-	if err == nil {
-		t.Error("Error unexpectedly nil")
-	}
-}
-*/
