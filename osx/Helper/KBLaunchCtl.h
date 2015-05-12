@@ -8,8 +8,10 @@
 
 #import <Foundation/Foundation.h>
 
+#import "KBServiceStatus.h"
+
 typedef void (^KBLaunchExecution)(NSError *error, NSString *output);
-typedef void (^KBLaunchStatus)(NSError *error, NSInteger pid);
+typedef void (^KBLaunchStatus)(KBServiceStatus *serviceStatus);
 
 
 @interface KBLaunchCtl : NSObject
@@ -27,8 +29,5 @@ typedef void (^KBLaunchStatus)(NSError *error, NSInteger pid);
 + (void)reload:(NSString *)plist label:(NSString *)label completion:(KBLaunchStatus)completion;
 
 + (void)status:(NSString *)label completion:(KBLaunchStatus)completion;
-
-+ (void)wait:(NSString *)label load:(BOOL)load attempt:(NSInteger)attempt completion:(KBLaunchStatus)completion;
-
 
 @end

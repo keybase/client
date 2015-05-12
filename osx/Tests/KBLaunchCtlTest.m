@@ -10,7 +10,7 @@
 #import <XCTest/XCTest.h>
 
 #import "KBEnvironment.h"
-#import "KBLaunchService.h"
+#import "KBHelperDefines.h"
 
 @interface KBLaunchCtlTest : XCTestCase
 @end
@@ -20,8 +20,18 @@
 - (void)testPlist {
   KBEnvironment *environment = [KBEnvironment env:KBEnvKeybaseIO];
   NSDictionary *plist = [environment launchdPlistDictionaryForService];
-  DDLogDebug(@"Plist: %@", plist);
   XCTAssertNotNil(plist);
+}
+
+- (void)testNumberFromString {
+  XCTAssertNil(KBNumberFromString(@"-"));
+  XCTAssertNil(KBNumberFromString(@""));
+  XCTAssertNil(KBNumberFromString(@" "));
+
+  XCTAssertEqualObjects(KBNumberFromString(@"-1"), [NSNumber numberWithInteger:-1]);
+  XCTAssertEqualObjects(KBNumberFromString(@"0"), [NSNumber numberWithInteger:0]);
+  XCTAssertEqualObjects(KBNumberFromString(@"1"), [NSNumber numberWithInteger:1]);
+  XCTAssertEqualObjects(KBNumberFromString(@"\t 1 "), [NSNumber numberWithInteger:1]);
 }
 
 @end

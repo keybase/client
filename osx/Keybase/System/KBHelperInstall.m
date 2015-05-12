@@ -12,37 +12,58 @@
 #import <MPMessagePack/MPXPCClient.h>
 #import "KBLaunchCtl.h"
 
+@interface KBHelperInstall ()
+@property NSString *bundleVersion;
+@end
+
 @implementation KBHelperInstall
 
-- (NSString *)info {
-  return @"keybase.Helper (Fuse)";
+- (instancetype)init {
+  if ((self = [super init])) {
+    NSDictionary *info = [[NSBundle mainBundle] infoDictionary];
+    _bundleVersion = info[@"KBHelperVersion"];
+  }
+  return self;
 }
 
-- (void)installStatus:(KBInstallStatus)completion {
+- (NSString *)info {
+  return @"Helper Tool";
+}
+
+- (void)installStatus:(KBInstalledStatus)completion {
+  if (![NSFileManager.defaultManager fileExistsAtPath:@"/Library/LaunchDaemons/keybase.Helper.plist" isDirectory:nil] &&
+      ![NSFileManager.defaultManager fileExistsAtPath:@"/Library/PrivilegedHelperTools/keybase.Helper" isDirectory:nil]) {
+    completion(nil, KBInstallStatusNotInstalled, nil);
+    return;
+  }
+
+  NSString *bundleVersion = _bundleVersion;
   MPXPCClient *helper = [[MPXPCClient alloc] initWithServiceName:@"keybase.Helper" priviledged:YES];
   [helper sendRequest:@"version" params:nil completion:^(NSError *error, NSDictionary *versions) {
     if (error) {
-      completion(error, NO);
+      completion(nil, KBInstallStatusInstalledNotRunning, nil);
     } else {
-      completion(nil, YES);
+      NSString *runningVersion = versions[@"version"];
+      if ([runningVersion isEqualToString:bundleVersion]) {
+        completion(nil, KBInstallStatusInstalled, runningVersion);
+      } else {
+        completion(nil, KBInstallStatusNeedsUpgrade, NSStringWithFormat(@"%@ != %@", bundleVersion, runningVersion));
+      }
     }
   }];
 }
 
-- (void)install:(void (^)(NSError *error, BOOL installed))completion {
+- (void)install:(KBInstalled)completion {
   NSError *error = nil;
   if ([self installPrivilegedServiceWithName:@"keybase.Helper" error:&error]) {
-    MPXPCClient *helper = [[MPXPCClient alloc] initWithServiceName:@"keybase.Helper" priviledged:YES];
-    [helper sendRequest:@"load_kbfs" params:nil completion:^(NSError *error, id value) {
-      if (error) {
-        completion(error, NO);
-      } else {
-        completion(error, YES);
-      }
-    }];
+    if (error) {
+      completion(error, KBInstallStatusError, nil);
+    } else {
+      completion(nil, KBInstallStatusInstalled, nil);
+    }
   } else {
     if (!error) error = KBMakeError(-1, @"Failed to install privileged helper");
-    completion(error, NO);
+    completion(error, KBInstallStatusError, nil);
   }
 }
 

@@ -36,7 +36,7 @@
   };
   [self addSubview:listView];
 
-  _envView = [YOVBox box];
+  _envView = [YOVBox box:@{@"minSize":@"0,200"}];
   [self addSubview:_envView];
 
   YOHBox *buttons = [YOHBox box:@{@"horizontalAlignment": @"center", @"spacing": @(10)}];
@@ -58,7 +58,9 @@
 
 - (void)select:(KBEnvironment *)environment {
   for (NSView *view in _envView.subviews) [view removeFromSuperview];
-  [_envView addSubview:[self viewForEnvironment:environment]];
+  if (environment) {
+    [_envView addSubview:[self viewForEnvironment:environment]];
+  }
   [_envView setNeedsLayout];
 
   //DDLogDebug(@"Service plist: %@", environment.launchdPlistDictionaryForService);
@@ -77,10 +79,10 @@
   };
 
   [view addSubview:createView(@"Id", environment.identifier)];
-  [view addSubview:createView(@"Home", [environment.homeDir stringByAbbreviatingWithTildeInPath])];
+  [view addSubview:createView(@"Home", KBDir(environment.homeDir, YES))];
   [view addSubview:createView(@"Host", environment.host)];
-  [view addSubview:createView(@"Sock", [environment.sockFile stringByAbbreviatingWithTildeInPath])];
-  [view addSubview:createView(@"Mount", [environment.mountDir stringByAbbreviatingWithTildeInPath])];
+  //[view addSubview:createView(@"Sock", KBDir(environment.sockFile, YES))];
+  [view addSubview:createView(@"Mount", KBDir(environment.mountDir, YES))];
   if (environment.isLaunchdEnabled) {
     [view addSubview:createView(@"Service", environment.launchdLabelService)];
     [view addSubview:createView(@"KBFS", environment.launchdLabelKBFS)];

@@ -14,6 +14,7 @@
 
 @property id<KBInstallable> installable;
 @property NSError *error;
-@property BOOL installed;
+@property KBInstallStatus status;
+@property NSString *statusInfo;
 
 @end

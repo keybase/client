@@ -12,28 +12,25 @@
 
 @interface KBFS : NSObject
 
-- (instancetype)initWithPath:(NSString *)path;
+- (NSString *)bundleVersion;
+- (NSString *)installedVersion;
+- (NSString *)runningVersion;
 
-- (NSString *)sourceVersion;
-- (NSString *)destinationVersion;
 
 - (void)install:(KBOnCompletion)completion;
+
+/*!
+ Installs or updates.
+
+ If not present, installs and loads.
+ If present and older version then unload, update and re-load.
+*/
+- (void)installOrUpdate:(KBOnCompletion)completion;
 
 - (void)uninstall:(KBOnCompletion)completion;
 
 /*!
- Status: ok, needs_install or needs_update.
- */
-- (void)status:(KBOnCompletion)completion;
-
-/*!
- Installs, updates or loads KBFS.
- 
- If not present, installs and loads.
- If present and older version than unloads, updates and loads.
- If present and same version, does nothing.
- 
- Always loads the kext (no op is already loaded).
+ Always loads the kext (no op if it is already loaded).
  */
 - (void)load:(KBOnCompletion)completion;
 

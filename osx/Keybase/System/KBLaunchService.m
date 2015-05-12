@@ -12,52 +12,49 @@
 #import "AppDelegate.h"
 
 @interface KBLaunchService ()
+@property NSString *name;
 @property NSString *label;
+@property NSString *version;
 @property NSDictionary *plist;
 @end
 
 @implementation KBLaunchService
 
-- (instancetype)initWithLabel:(NSString *)label plist:(NSDictionary *)plist {
+- (instancetype)initWithName:(NSString *)name label:(NSString *)label version:(NSString *)version plist:(NSDictionary *)plist {
   if ((self = [super init])) {
+    _name = name;
     _label = label;
+    _version = version;
     _plist = plist;
   }
   return self;
 }
 
-- (void)status:(KBLaunchStatus)completion {
-  [KBLaunchCtl status:_label completion:completion];
-}
-
-- (void)installStatus:(KBInstallStatus)completion {
-  [KBLaunchCtl status:_label completion:^(NSError *error, NSInteger pid) {
-    if (error) {
-      completion(error, NO);
+- (void)installStatus:(KBInstalledStatus)completion {
+  [KBLaunchCtl status:_label completion:^(KBServiceStatus *status) {
+    if (status.error) {
+      completion(status.error, KBInstallStatusError, nil);
     } else {
-      completion(error, pid != -1);
+      if (status.isRunning) {
+        completion(nil, KBInstallStatusInstalled, NSStringWithFormat(@"pid=%@", status.pid));
+      } else {
+        completion(nil, KBInstallStatusInstalledNotRunning, NSStringWithFormat(@"exit=%@", status.exitStatus));
+      }
     }
   }];
 }
 
 - (NSString *)info {
-  return NSStringWithFormat(@"%@ (launchd)", _label);
+  return _name;
 }
 
-- (void)install:(void (^)(NSError *error, BOOL installed))completion {
-  NSError *error = nil;
-  [AppDelegate applicationSupport:nil create:YES error:&error]; // Create application support dir
-  if (error) {
-    completion(error, NO);
-    return;
-  }
-
+- (void)install:(KBInstalled)completion {
   [self installLaunchAgent:^(NSError *error) {
     if (error) {
-      completion(error, NO);
-      return;
+      completion(error, KBInstallStatusError, nil);
+    } else {
+      completion(nil, KBInstallStatusInstalled, nil);
     }
-    completion(error, YES);
   }];
 }
 
@@ -105,8 +102,8 @@
   // We installed the launch agent plist
   DDLogDebug(@"Installed launch agent plist");
 
-  [KBLaunchCtl reload:plistDest label:_label completion:^(NSError *error, NSInteger pid) {
-    completion(error);
+  [KBLaunchCtl reload:plistDest label:_label completion:^(KBServiceStatus *status) {
+    completion(status.error);
   }];
 }
 

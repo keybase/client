@@ -18,10 +18,6 @@
 @property (readonly) NSString *label;
 @property (readonly) NSDictionary *plist;
 
-- (instancetype)initWithLabel:(NSString *)label plist:(NSDictionary *)plist;
-
-- (void)status:(KBLaunchStatus)completion;
-
-- (void)install:(void (^)(NSError *error, BOOL installed))completion;
+- (instancetype)initWithName:(NSString *)name label:(NSString *)label version:(NSString *)version plist:(NSDictionary *)plist;
 
 @end

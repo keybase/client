@@ -30,3 +30,10 @@ void KBLog(NSString *msg, ...) {
   NSLog(@"%@", string);
   syslog(LOG_NOTICE, "%s", [string UTF8String]);
 }
+
+NSNumber *KBNumberFromString(NSString *s) {
+  NSInteger n = [s integerValue];
+  NSString *s2 = [NSString stringWithFormat:@"%@", @(n)];
+  if ([s2 isEqualToString:[s stringByTrimmingCharactersInSet:NSCharacterSet.whitespaceCharacterSet]]) return [NSNumber numberWithInteger:n];
+  return nil;
+}

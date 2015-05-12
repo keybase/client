@@ -37,8 +37,8 @@
   checkButton.dispatchBlock = ^(KBButton *button, KBButtonCompletion completion) {
     [AppDelegate.appView checkStatus:^(NSError *error) {
       if (gself.client.environment.launchdLabelService) {
-        [KBLaunchCtl status:gself.client.environment.launchdLabelService completion:^(NSError *error, NSInteger pid) {
-          KBConsoleLog(@"Keybase (launchctl) pid: %@", @(pid));
+        [KBLaunchCtl status:gself.client.environment.launchdLabelService completion:^(KBServiceStatus *status) {
+          KBConsoleLog(@"Keybase (launchctl): %@", status);
           completion(error);
         }];
       } else {
@@ -55,10 +55,10 @@
   };
   [buttons addSubview:debugButton];
 
-  KBButton *helperButton = [KBButton buttonWithText:@"KBFS" style:KBButtonStyleToolbar];
+  KBButton *helperButton = [KBButton buttonWithText:@"Helper" style:KBButtonStyleToolbar];
   helperButton.targetBlock = ^{
     KBFSStatusView *view = [[KBFSStatusView alloc] init];
-    [self.window kb_addChildWindowForView:view rect:CGRectMake(0, 0, 400, 500) position:KBWindowPositionCenter title:@"Helper" fixed:NO makeKey:YES];
+    [self.window kb_addChildWindowForView:view rect:CGRectMake(0, 0, 400, 300) position:KBWindowPositionCenter title:@"Helper" fixed:NO makeKey:YES];
   };
   [buttons addSubview:helperButton];
 
@@ -99,11 +99,7 @@
 
 - (void)appViewDidLaunch:(KBAppView *)appView {
   NSDictionary *info = [[NSBundle mainBundle] infoDictionary];
-  KBConsoleLog(@"Keybase.app Version: %@ (%@)", info[@"CFBundleVersion"], info[@"CFBundleShortVersionString"]);
-  KBConsoleLog(@"Service Version: %@", info[@"KBServiceVersion"]);
-  KBConsoleLog(@"Helper Version: %@", info[@"KBHelperVersion"]);
-  KBConsoleLog(@"KBFS Version: %@", info[@"KBFSVersion"]);
-  KBConsoleLog(@"Fuse Version: %@", info[@"KBFuseVersion"]);
+  KBConsoleLog(@"Keybase.app Version: %@ (%@)", info[@"CFBundleVersion"], info[@"CFBundleShortVersionString"]);  
 
   _client = appView.client;
   [self setNeedsLayout];

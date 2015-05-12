@@ -10,6 +10,9 @@
 
 #import "KBInstallable.h"
 
+#define LINK_SOURCE (@"/usr/local/bin/keybase")
+#define LINK_DESTINATION (@"/Applications/Keybase.app/Contents/SharedSupport/bin/keybase")
+
 @interface KBCLIInstall : NSObject <KBInstallable>
 
 @end

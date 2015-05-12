@@ -22,3 +22,5 @@ NSString *KBNSStringWithFormat(NSString *formatString, ...);
 typedef void (^KBOnCompletion)(NSError *error, id value);
 
 void KBLog(NSString *msg, ...);
+
+NSNumber *KBNumberFromString(NSString *s);

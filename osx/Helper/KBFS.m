@@ -18,10 +18,14 @@
 @property NSString *kext;
 @end
 
+#define KEXT_LABEL (@"com.github.osxfuse.filesystems.osxfusefs")
+#define KEXT_LABEL_CFSTR CFSTR("com.github.osxfuse.filesystems.osxfusefs")
+
 @implementation KBFS
 
-- (instancetype)initWithPath:(NSString *)path {
+- (instancetype)init {
   if ((self = [super init])) {
+    NSString *path = @"/Applications/Keybase.app/Contents/Resources/osxfusefs.fs.bundle";
     _source = path;
 
     if ([[path pathExtension] isEqualToString:@"bundle"]) {
@@ -34,34 +38,21 @@
   return self;
 }
 
-- (NSString *)sourceVersion {
+- (NSString *)bundleVersion {
   NSDictionary *plist = [NSDictionary dictionaryWithContentsOfFile:KBNSStringWithFormat(@"%@/Contents/Info.plist", _source)];
   if (!plist) return nil;
   return plist[@"CFBundleShortVersionString"];
 }
 
-- (NSString *)destinationVersion {
+- (NSString *)installedVersion {
   NSDictionary *plist = [NSDictionary dictionaryWithContentsOfFile:KBNSStringWithFormat(@"%@/Contents/Info.plist", _destination)];
   if (!plist) return nil;
   return plist[@"CFBundleShortVersionString"];
 }
 
-- (void)status:(KBOnCompletion)completion {
-  if ([self.sourceVersion isEqualTo:self.destinationVersion]) {
-    completion(nil, @"ok");
-  } else if (![NSFileManager.defaultManager fileExistsAtPath:_destination isDirectory:NULL]) {
-    completion(nil, @"needs_update");
-  } else {
-    completion(nil, @"needs_install");
-  }
-}
-
-- (void)load:(KBOnCompletion)completion {
-  if ([self.sourceVersion isEqualTo:self.destinationVersion]) {
-    [self loadKext:completion];
-  } else {
-    [self installOrUpdate:completion];
-  }
+- (NSString *)runningVersion {
+  NSDictionary *kexts = (__bridge NSDictionary *)KextManagerCopyLoadedKextInfo((__bridge CFArrayRef)@[KEXT_LABEL], NULL);
+  return kexts[KEXT_LABEL][@"CFBundleVersion"];
 }
 
 - (void)installOrUpdate:(KBOnCompletion)completion {
@@ -98,7 +89,7 @@
     }
   }
 
-  [self loadKext:completion];
+  [self load:completion];
 }
 
 - (void)update:(KBOnCompletion)completion {
@@ -108,9 +99,8 @@
   }];
 }
 
-- (void)loadKext:(KBOnCompletion)completion {
+- (void)load:(KBOnCompletion)completion {
   OSReturn status = KextManagerLoadKextWithURL((__bridge CFURLRef)([NSURL fileURLWithPath:_kext]), NULL);
-  //OSReturn status = KextManagerLoadKextWithIdentifier(CFSTR("com.github.osxfuse.filesystems.osxfusefs"), NULL);
   if (status != kOSReturnSuccess) {
     NSError *error = KBMakeError(KBHelperErrorKBFS, @"KextManager failed to load with status: %@", @(status));
     completion(error, @(0));
@@ -120,7 +110,7 @@
 }
 
 - (void)unload:(KBOnCompletion)completion {
-  OSReturn status = KextManagerUnloadKextWithIdentifier(CFSTR("com.github.osxfuse.filesystems.osxfusefs"));
+  OSReturn status = KextManagerUnloadKextWithIdentifier(KEXT_LABEL_CFSTR);
   if (status != kOSReturnSuccess) {
     NSError *error = KBMakeError(KBHelperErrorKBFS, @"KextManager failed to unload with status: %@", @(status));
     completion(error, @(0));
@@ -130,7 +120,7 @@
 }
 
 - (void)uninstall:(KBOnCompletion)completion {
-  KextManagerUnloadKextWithIdentifier(CFSTR("com.github.osxfuse.filesystems.osxfusefs"));
+  KextManagerUnloadKextWithIdentifier(KEXT_LABEL_CFSTR);
 
   NSError *error = nil;
   if ([NSFileManager.defaultManager fileExistsAtPath:_destination isDirectory:NULL] && ![NSFileManager.defaultManager removeItemAtPath:_destination error:&error]) {

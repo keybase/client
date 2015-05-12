@@ -13,10 +13,12 @@
 
 + (void)reload:(NSString *)plist label:(NSString *)label completion:(KBLaunchStatus)completion {
   [self unload:plist disable:NO completion:^(NSError *unloadError, NSString *unloadOutput) {
-    [self wait:label load:NO attempt:1 completion:^(NSError *error, NSInteger pid) {
+    [self waitForUnloadWithLabel:label attempt:1 completion:^(NSError *error) {
       [self load:plist force:YES completion:^(NSError *loadError, NSString *loadOutput) {
-        [self wait:label load:YES attempt:1 completion:^(NSError *error, NSInteger pid) {
-          completion(loadError, pid);
+        [self waitForLoadWithLabel:label attempt:1 completion:^(NSError *error) {
+          [self status:label completion:^(KBServiceStatus *serviceStatus) {
+            completion(serviceStatus);
+          }];
         }];
       }];
     }];
@@ -44,34 +46,52 @@
   NSParameterAssert(label);
   [self execute:@"/bin/launchctl" args:@[@"list"] completion:^(NSError *error, NSString *output) {
     if (error) {
-      completion(error, -1);
+      completion([KBServiceStatus error:error]);
       return;
     }
     for (NSString *line in [output componentsSeparatedByCharactersInSet:[NSCharacterSet newlineCharacterSet]]) {
-      // TODO better parsing
-      if ([line containsString:label]) {
-        NSInteger pid = [[[line componentsSeparatedByCharactersInSet:[NSCharacterSet newlineCharacterSet]] firstObject] integerValue];
-        completion(nil, pid);
+      NSArray *info = [line componentsSeparatedByCharactersInSet:NSCharacterSet.whitespaceCharacterSet];
+      if ([info count] != 3) continue;
+      if ([info[2] hasPrefix:label]) {
+        NSNumber *pid = KBNumberFromString(info[0]);
+        NSNumber *exitStatus = KBNumberFromString(info[1]);
+        completion([KBServiceStatus serviceStatusWithPid:pid exitStatus:exitStatus label:label]);
         return;
       }
     }
-    completion(nil, -1);
+    completion(nil); // Not found
   }];
 }
 
-+ (void)wait:(NSString *)label load:(BOOL)load attempt:(NSInteger)attempt completion:(KBLaunchStatus)completion {
-  [self status:label completion:^(NSError *error, NSInteger pid) {
-    if (load && pid != 0) {
-      KBLog(@"Pid: %@", @(pid));
-      completion(nil, pid);
-    } else if (!load && pid == 0) {
-      completion(nil, pid);
++ (void)waitForUnloadWithLabel:(NSString *)label attempt:(NSInteger)attempt completion:(void (^)(NSError *error))completion {
+  [self status:label completion:^(KBServiceStatus *status) {
+    if (!status || !status.isRunning) {
+      completion(nil);
     } else {
-      if ((attempt + 1) >= 4) {
-        completion(KBMakeError(-1, @"launchctl wait timeout"), 0);
+      if ((attempt + 1) >= 10) {
+        completion(KBMakeError(-1, @"Wait unload timeout (launchctl"));
       } else {
-        KBLog(@"Waiting for %@ (%@)", load ? @"load" : @"unload", @(attempt));
-        [self wait:label load:load attempt:attempt+1 completion:completion];
+        KBLog(@"Waiting for unload (#%@)", @(attempt));
+        dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.5 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
+          [self waitForUnloadWithLabel:label attempt:attempt+1 completion:completion];
+        });
+      }
+    }
+  }];
+}
+
++ (void)waitForLoadWithLabel:(NSString *)label attempt:(NSInteger)attempt completion:(void (^)(NSError *error))completion {
+  [self status:label completion:^(KBServiceStatus *status) {
+    if (status && status.isRunning) {
+      completion(nil);
+    } else {
+      if ((attempt + 1) >= 10) {
+        completion(KBMakeError(-1, @"Wait unload timeout (launchctl"));
+      } else {
+        KBLog(@"Waiting for unload (#%@)", @(attempt));
+        dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.5 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
+          [self waitForUnloadWithLabel:label attempt:attempt+1 completion:completion];
+        });
       }
     }
   }];

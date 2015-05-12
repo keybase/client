@@ -8,3 +8,12 @@
 
 #import "KBInstallable.h"
 
+NSString *NSStringFromKBInstallStatus(KBInstallStatus status) {
+  switch (status) {
+    case KBInstallStatusError: return @"Install Error";
+    case KBInstallStatusNotInstalled: return @"Not Installed";
+    case KBInstallStatusNeedsUpgrade: return @"Needs Upgrade";
+    case KBInstallStatusInstalledNotRunning: return @"Installed, Not Running";
+    case KBInstallStatusInstalled: return @"Installed";
+  }
+}

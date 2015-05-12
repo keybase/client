@@ -35,7 +35,7 @@
       case KBEnvKeybaseIO: {
         self.title = @"Keybase.io";
         self.identifier = @"keybase_io";
-        self.homeDir = KBDir(NSStringWithFormat(@"~/Library/Application Support/Keybase/%@", self.identifier), NO);
+        self.homeDir = KBDir(@"~", NO);
         self.host = @"https://api.keybase.io:443";
         self.mountDir = KBDir(@"~/Keybase", NO);
         self.debugEnabled = YES;
@@ -78,7 +78,7 @@
 
     // This is because there is a hard limit of 104 characters for the unix socket file length and if
     // we use the default there is a chance it will be too long (if username is long).
-    self.sockFile = [self.homeDir stringByAppendingPathComponent:@".config/kb.sock"];
+    self.sockFile = [self.homeDir stringByAppendingPathComponent:@".config/keybase/keybased.sock"];
     if ([self.sockFile length] > 103) {
       [NSException raise:NSInvalidArgumentException format:@"Sock path too long. It should be < 104 characters."];
     }

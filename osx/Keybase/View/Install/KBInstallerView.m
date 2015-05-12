@@ -24,15 +24,18 @@
   [self kb_setBackgroundColor:KBAppearance.currentAppearance.backgroundColor];
   GHWeakSelf gself = self;
 
+  YOVBox *contentView = [YOVBox box:@{@"spacing": @(20)}];
+  [self addSubview:contentView];
+
   KBLabel *header = [[KBLabel alloc] init];
   [header setText:@"Install Status" style:KBTextStyleHeaderLarge alignment:NSCenterTextAlignment lineBreakMode:NSLineBreakByTruncatingTail];
-  [self addSubview:header];
+  [contentView addSubview:header];
 
   _installStatusView = [YOVBox box:@{@"spacing": @(10), @"insets": @"10,0,10,0"}];
-  [self addSubview:_installStatusView];
+  [contentView addSubview:_installStatusView];
 
   YOHBox *buttons = [YOHBox box:@{@"horizontalAlignment": @"center", @"spacing": @(10)}];
-  [self addSubview:buttons];
+  [contentView addSubview:buttons];
   KBButton *closeButton = [KBButton buttonWithText:@"Quit" style:KBButtonStyleDefault];
   closeButton.targetBlock = ^{ [NSApp terminate:0]; };
   [buttons addSubview:closeButton];
@@ -40,13 +43,15 @@
   nextButton.targetBlock = ^{ [gself next]; };
   [buttons addSubview:nextButton];
 
-  self.viewLayout = [YOBorderLayout layoutWithCenter:_installStatusView top:@[header] bottom:@[buttons] insets:UIEdgeInsetsMake(20, 40, 20, 40) spacing:20];
+  //self.viewLayout = [YOBorderLayout layoutWithCenter:_installStatusView top:@[header] bottom:@[buttons] insets:UIEdgeInsetsMake(20, 40, 20, 40) spacing:20];
+
+  self.viewLayout = [YOLayout layoutWithLayoutBlock:[KBLayouts center:contentView]];
 }
 
 - (void)next {
 
-  // TODO Do we attempt re-install if install action has error
-  NSArray *installables = [_installActions map:^(KBInstallAction *installAction) { return !installAction.installed ? installAction.installable : nil; }];
+  // TODO Do we attempt re-install if install action has error?
+  NSArray *installables = [_installActions select:^BOOL(KBInstallAction *installAction) { return installAction.status != KBInstallStatusInstalled; }];
 
   if ([installables count] == 0) {
     self.completion(nil);
@@ -57,11 +62,11 @@
   KBRunOver *rover = [[KBRunOver alloc] init];
   rover.objects = installables;
   rover.runBlock = ^(id<KBInstallable> installable, KBRunCompletion runCompletion) {
-    [installable install:^(NSError *error, BOOL installed) {
+    [installable install:^(NSError *error, KBInstallStatus status, NSString *info) {
       KBInstallAction *install = [[KBInstallAction alloc] init];
       install.installable = installable;
       install.error = error;
-      install.installed = installed;
+      install.status = status;
       runCompletion(install);
     }];
   };
@@ -82,16 +87,14 @@
   for (NSView *subview in _installStatusView.subviews) [subview removeFromSuperview];
 
   for (KBInstallAction *installAction in installActions) {
+    NSString *name = installAction.installable.info;
 
-    NSString *info = installAction.installable.info;
-    NSString *actionDescription;
-    if (installAction.error) {
-      // TODO Handle error better here
-      actionDescription = NSStringWithFormat(@"Error: %@", installAction.error);
-    } else {
-      actionDescription = installAction.installed ? @"Installed" : @"Needs Install";
+    NSString *status = NSStringFromKBInstallStatus(installAction.status);
+    if (installAction.statusInfo) {
+      status = [status stringByAppendingString:NSStringWithFormat(@" (%@)", installAction.statusInfo)];
     }
-    KBHeaderLabelView *label = [KBHeaderLabelView headerLabelViewWithHeader:info headerOptions:0 text:actionDescription style:KBTextStyleDefault options:0 lineBreakMode:NSLineBreakByCharWrapping];
+
+    KBHeaderLabelView *label = [KBHeaderLabelView headerLabelViewWithHeader:name headerOptions:0 text:status style:KBTextStyleDefault options:0 lineBreakMode:NSLineBreakByCharWrapping];
     label.columnRatio = 0.5;
     [_installStatusView addSubview:label];
   }

@@ -8,30 +8,43 @@
 
 #import "KBCLIInstall.h"
 #import "KBDefines.h"
+#import <MPMessagePack/MPXPCClient.h>
 
 @implementation KBCLIInstall
 
 - (NSString *)info {
-  return @"CLI";
+  return @"Command Line";
 }
 
-- (void)installStatus:(KBInstallStatus)completion {
-  // This will follow the symlink (to check if symlink exists you'd have to look for attributesOfItemAtPath:)
-  if ([NSFileManager.defaultManager fileExistsAtPath:@"/usr/local/bin/keybase" isDirectory:nil]) {
-    completion(nil, YES);
-  } else {
-    completion(nil, NO);
-  }
-}
-
-- (void)install:(void (^)(NSError *error, BOOL installed))completion {
+- (void)installStatus:(KBInstalledStatus)completion {
   NSError *error = nil;
-  if (![NSFileManager.defaultManager createSymbolicLinkAtPath:@"/usr/local/bin/keybase" withDestinationPath:@"/Applications/Keybase.app/Contents/MacOS/Keybase" error:&error]) {
-    if (!error) error = KBMakeError(-1, @"Unable to create keybase symlink");
-    completion(error, NO);
-  } else {
-    completion(nil, YES);
+  NSString *destination = [NSFileManager.defaultManager destinationOfSymbolicLinkAtPath:LINK_SOURCE error:&error];
+  if (error) {
+    completion(error, KBInstallStatusError, nil);
+    return;
   }
+
+  // This will follow the symlink (to check if symlink exists you'd have to look for attributesOfItemAtPath:)
+  if ([NSFileManager.defaultManager fileExistsAtPath:LINK_SOURCE isDirectory:nil]) {
+    if ([destination isEqualToString:LINK_DESTINATION]) {
+      completion(nil, KBInstallStatusInstalled, nil);
+    } else {
+      completion(nil, KBInstallStatusNeedsUpgrade, nil);
+    }
+  } else {
+    completion(nil, KBInstallStatusNotInstalled, nil);
+  }
+}
+
+- (void)install:(KBInstalled)completion {
+  MPXPCClient *helper = [[MPXPCClient alloc] initWithServiceName:@"keybase.Helper" priviledged:YES];
+  [helper sendRequest:@"cli_install" params:nil completion:^(NSError *error, id value) {
+    if (error) {
+      completion(error, KBInstallStatusNotInstalled, nil);
+    } else {
+      completion(error, KBInstallStatusInstalled, nil);
+    }
+  }];
 }
 
 @end
