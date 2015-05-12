@@ -495,21 +495,13 @@ func (k PgpKeyBundle) VerifyString(armored string, expected []byte) (sigId *SigI
 	return sig_id, nil
 }
 
-func (key *PgpKeyBundle) SignToBytes(payload []byte) (out []byte, id *SigId, err error) {
+func (key *PgpKeyBundle) SignToBytes(payload []byte) (out []byte, err error) {
 	err = KeyCannotSignError{}
 	return
 }
 
-func (k PgpKeyBundle) VerifyBytesAndExtract(signature []byte) (msg []byte, sig_id *SigId,
-	err error) {
-	err = KeyCannotVerifyError{}
-	return
-}
-
-func (k PgpKeyBundle) VerifyBytes(signature, expected []byte) (sigId *SigId,
-	err error) {
-	err = KeyCannotVerifyError{}
-	return
+func (k PgpKeyBundle) VerifyBytes(signature, expected []byte) error {
+	return KeyCannotVerifyError{}
 }
 
 func ExportAsFOKID(fp *PgpFingerprint, kid KID) (ret keybase1.FOKID) {

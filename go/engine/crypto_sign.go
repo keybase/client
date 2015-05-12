@@ -51,7 +51,7 @@ func (cse *CryptoSignEngine) Run(ctx *Context) (cserr error) {
 		return err
 	}
 
-	signature, _, err := sigKey.SignToBytes(cse.msg)
+	signature, err := sigKey.SignToBytes(cse.msg)
 	if err != nil {
 		return err
 	}

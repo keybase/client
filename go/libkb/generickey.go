@@ -34,10 +34,10 @@ type GenericKey interface {
 	VerifyStringAndExtract(string) ([]byte, *SigId, error)
 
 	// Like the Sign/Verify functions above, but the signature
-	// is an arbitrary byte string.
-	SignToBytes([]byte) ([]byte, *SigId, error)
-	VerifyBytes([]byte, []byte) (*SigId, error)
-	VerifyBytesAndExtract([]byte) ([]byte, *SigId, error)
+	// is an arbitrary byte string, and it doesn't include
+	// the message.
+	SignToBytes([]byte) ([]byte, error)
+	VerifyBytes([]byte, []byte) error
 
 	ToSKB(ts *triplesec.Cipher) (*SKB, error)
 	ToLksSKB(lks *LKSec) (*SKB, error)
