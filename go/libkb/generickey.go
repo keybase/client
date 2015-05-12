@@ -134,18 +134,6 @@ func WriteLksSKBToKeyring(k GenericKey, lks *LKSec, lui LogUI, lctx LoginContext
 	return skb, nil
 }
 
-// XXX unused?
-func WriteTsecSKBToKeyring(k GenericKey, tsec *triplesec.Cipher, lui LogUI, lctx LoginContext) (*SKB, error) {
-	p3skb, err := k.ToSKB(tsec)
-	if err != nil {
-		return nil, err
-	}
-	if err := skbPushAndSave(p3skb, lui, lctx); err != nil {
-		return nil, err
-	}
-	return p3skb, nil
-}
-
 func skbPushAndSave(skb *SKB, lui LogUI, lctx LoginContext) error {
 	if lctx != nil {
 		kr, err := lctx.Keyring()
