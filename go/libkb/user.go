@@ -833,7 +833,7 @@ func (u *User) HasDeviceInCurrentInstall() bool {
 }
 
 func (u *User) SigningKeyPub() (GenericKey, error) {
-	// Get out key that we're going to sign with.
+	// Get our key that we're going to sign with.
 	arg := SecretKeyArg{
 		Me:      u,
 		KeyType: AllSecretKeyTypes,
