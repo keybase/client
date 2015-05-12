@@ -167,7 +167,7 @@
   "messages" : {
     "prove" : {
       "request" : [ {
-        "name" : "session",
+        "name" : "sessionID",
         "type" : "int"
       }, {
         "name" : "service",

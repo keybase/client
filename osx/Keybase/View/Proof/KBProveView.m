@@ -144,7 +144,7 @@
   }];
 
   [self.navigation setProgressEnabled:YES];
-  [prove proveWithService:service username:userName force:NO completion:^(NSError *error) {
+  [prove proveWithSessionID:prove.sessionId service:service username:userName force:NO completion:^(NSError *error) {
     [self.navigation setProgressEnabled:NO];
     if (error) {
       [AppDelegate setError:error sender:gself.inputView];

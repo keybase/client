@@ -4,5 +4,5 @@ protocol prove {
 
 	import idl "common.avdl";
 
-	void prove(int session, string service, string username, boolean force);
+	void prove(int sessionID, string service, string username, boolean force);
 }
