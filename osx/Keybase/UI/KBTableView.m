@@ -27,7 +27,7 @@
 @property KBTableScrollView *scrollView;
 @property KBNSTableView *view;
 @property KBCellDataSource *dataSource;
-//@property BOOL selecting;
+@property BOOL selecting;
 @property NSIndexPath *menuIndexPath;
 @end
 
@@ -167,7 +167,7 @@
 
 - (void)moveUp:(id)sender {
   NSInteger row = [self nextRowUp];
-  if (row != NSNotFound) [self setSelectedRow:row];
+  if (row != NSNotFound) [self setSelectedRow:row ignoreTableChange:YES];
 }
 
 - (NSInteger)nextRowDown {
@@ -188,7 +188,7 @@
 
 - (void)moveDown:(id)sender {
   NSInteger row = [self nextRowDown];
-  if (row != NSNotFound) [self setSelectedRow:row];
+  if (row != NSNotFound) [self setSelectedRow:row ignoreTableChange:YES];
 }
 
 - (NSInteger)selectedRow {
@@ -196,12 +196,15 @@
 }
 
 - (void)setSelectedRow:(NSInteger)selectedRow {
-  //NSAssert(!_selecting, @"In selection?");
-  //_selecting = YES;
+  [self setSelectedRow:selectedRow ignoreTableChange:NO];
+}
+
+- (void)setSelectedRow:(NSInteger)selectedRow ignoreTableChange:(BOOL)ignoreTableChange {
+  if (ignoreTableChange) _selecting = YES;
   if (_view.selectedRow >= 0 && _view.selectedRow == selectedRow) [_view deselectRow:selectedRow];
   [_view selectRowIndexes:[NSIndexSet indexSetWithIndex:selectedRow] byExtendingSelection:NO];
   [_view scrollRowToVisible:selectedRow];
-  //_selecting = NO;
+  if (ignoreTableChange) _selecting = NO;
 }
 
 - (void)scrollToBottom:(BOOL)animated {
@@ -240,7 +243,7 @@
 }
 
 - (void)tableViewSelectionDidChange:(NSNotification *)notification {
-  //if (_selecting) return; // If we are selecting programatically ignore the notification
+  if (_selecting) return; // If we are selecting programatically ignore the notification
   if (!self.onSelect) return;
   NSInteger selectedRow = [_view selectedRow];
   if (selectedRow < 0) {

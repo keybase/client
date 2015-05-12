@@ -321,11 +321,15 @@
 }
 
 - (void)searchControl:(KBSearchControl *)searchControl shouldDisplaySearchResults:(KBSearchResults *)searchResults {
-  NSSet *usernames = [NSSet setWithArray:[[_searchResultsView objectsWithoutHeaders] map:^(KBRUserSummary *us) { return us.username; }]];
-  NSArray *filtered = [searchResults.results reject:^BOOL(KBRUserSummary *us) { return [usernames containsObject:us.username]; }];
+  // Filter out usernames that have already been selected or are already in the search results list
+  NSMutableArray *usernamesToIgnore = [NSMutableArray array];
+  [usernamesToIgnore addObjectsFromArray:[[_searchResultsView objectsWithoutHeaders] map:^(KBRUserSummary *us) { return us.username; }]];
+  [usernamesToIgnore addObjectsFromArray:[self usernames]];
+  NSArray *filtered = [searchResults.results reject:^BOOL(KBRUserSummary *us) { return [usernamesToIgnore containsObject:us.username]; }];
   NSMutableArray *results = [filtered mutableCopy];
+
   if (searchResults.header && [results count] > 0) [results insertObject:[KBTableViewHeader tableViewHeaderWithTitle:searchResults.header] atIndex:0];
-  [_searchResultsView addObjects:results animation:NSTableViewAnimationSlideUp];
+  [_searchResultsView addObjects:results animation:NSTableViewAnimationEffectNone];
 
   if ([_searchResultsView rowCount] > 0) {
     [self showSearch];
