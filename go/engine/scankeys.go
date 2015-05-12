@@ -37,8 +37,6 @@ func NewScanKeys(secui libkb.SecretUI, idui libkb.IdentifyUI, opts *TrackOptions
 		opts:         opts,
 		Contextified: libkb.NewContextified(g),
 	}
-	g.Log.Warning("*** PC: fix call to IsLoggedIn here...need enginge, engine context, or logincontext ***")
-	// lin, err := IsLoggedIn(nil, nil)
 	lin, err := g.LoginState().LoggedInLoad()
 	if err != nil {
 		return nil, err
@@ -62,16 +60,15 @@ func NewScanKeys(secui libkb.SecretUI, idui libkb.IdentifyUI, opts *TrackOptions
 
 	lks := libkb.NewLKSec(sk.G().LoginState().PassphraseStream().LksClientHalf(), sk.G())
 	lks.SetUID(sk.me.GetUid().P())
-	lks.Load()
+	lks.Load(nil)
 
 	sk.G().LoginState().Account(func(a *libkb.Account) {
-		sc := a.PassphraseStreamCache()
 		var ring *libkb.SKBKeyringFile
 		ring, err = a.Keyring()
 		if err != nil {
 			return
 		}
-		err = sk.extractKeys(ring, synced, secui, sc, lks)
+		err = sk.extractKeys(a, ring, synced, secui, lks)
 	}, "NewScanKeys - extractKeys")
 	if err != nil {
 		return nil, err
@@ -158,8 +155,8 @@ func (s *ScanKeys) Owner() *libkb.User {
 
 // extractKeys gets all the private pgp keys out of the ring and
 // the synced key.
-func (s *ScanKeys) extractKeys(ring *libkb.SKBKeyringFile, synced *libkb.SKB, ui libkb.SecretUI, scr libkb.PassphraseStreamCacheReader, lks *libkb.LKSec) error {
-	if err := s.extractKey(synced, ui, scr, lks); err != nil {
+func (s *ScanKeys) extractKeys(lctx libkb.LoginContext, ring *libkb.SKBKeyringFile, synced *libkb.SKB, ui libkb.SecretUI, lks *libkb.LKSec) error {
+	if err := s.extractKey(lctx, synced, ui, lks); err != nil {
 		return fmt.Errorf("extracting synced key error: %s", err)
 	}
 
@@ -167,7 +164,7 @@ func (s *ScanKeys) extractKeys(ring *libkb.SKBKeyringFile, synced *libkb.SKB, ui
 		if !libkb.IsPgpAlgo(b.Type) {
 			continue
 		}
-		if err := s.extractKey(b, ui, scr, lks); err != nil {
+		if err := s.extractKey(lctx, b, ui, lks); err != nil {
 			return fmt.Errorf("extracting ring block error: %s", err)
 		}
 	}
@@ -177,11 +174,11 @@ func (s *ScanKeys) extractKeys(ring *libkb.SKBKeyringFile, synced *libkb.SKB, ui
 
 // extractKey gets the private key out of skb.  If it's a pgp key,
 // it adds it to the keys stored in s.
-func (s *ScanKeys) extractKey(skb *libkb.SKB, ui libkb.SecretUI, scr libkb.PassphraseStreamCacheReader, lks *libkb.LKSec) error {
+func (s *ScanKeys) extractKey(lctx libkb.LoginContext, skb *libkb.SKB, ui libkb.SecretUI, lks *libkb.LKSec) error {
 	if skb == nil {
 		return nil
 	}
-	k, err := skb.PromptAndUnlock("pgp decrypt", "", nil, ui, scr, lks)
+	k, err := skb.PromptAndUnlock(lctx, "pgp decrypt", "", nil, ui, lks)
 	if err != nil {
 		return err
 	}

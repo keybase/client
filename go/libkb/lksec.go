@@ -49,7 +49,7 @@ func (s *LKSec) GetServerHalf() []byte {
 	return s.serverHalf
 }
 
-func (s *LKSec) Load() error {
+func (s *LKSec) Load(lctx LoginContext) error {
 	s.G().Log.Debug("+ LKSec::Load()")
 	defer func() {
 		s.G().Log.Debug("- LKSec::Load()")
@@ -71,7 +71,7 @@ func (s *LKSec) Load() error {
 			return fmt.Errorf("no device id set")
 		}
 
-		if err := s.apiServerHalf(devid); err != nil {
+		if err := s.apiServerHalf(lctx, devid); err != nil {
 			return err
 		}
 		if len(s.serverHalf) == 0 {
@@ -99,7 +99,7 @@ func (s *LKSec) GetSecret() (secret []byte, err error) {
 		s.G().Log.Debug("- LKSec::GetSecret()")
 	}()
 
-	if err = s.Load(); err != nil {
+	if err = s.Load(nil); err != nil {
 		return
 	}
 
@@ -113,7 +113,7 @@ func (s *LKSec) Encrypt(src []byte) ([]byte, error) {
 		s.G().Log.Debug("- LKSec::Encrypt()")
 	}()
 
-	if err := s.Load(); err != nil {
+	if err := s.Load(nil); err != nil {
 		return nil, err
 	}
 	nonce, err := RandBytes(24)
@@ -128,13 +128,13 @@ func (s *LKSec) Encrypt(src []byte) ([]byte, error) {
 	return append(nonce, box...), nil
 }
 
-func (s *LKSec) Decrypt(src []byte) ([]byte, error) {
+func (s *LKSec) Decrypt(lctx LoginContext, src []byte) ([]byte, error) {
 	s.G().Log.Debug("+ LKsec:Decrypt()")
 	defer func() {
 		s.G().Log.Debug("- LKSec::Decrypt()")
 	}()
 
-	if err := s.Load(); err != nil {
+	if err := s.Load(lctx); err != nil {
 		return nil, fmt.Errorf("lksec decrypt Load err: %s", err)
 	}
 	var nonce [24]byte
@@ -154,15 +154,22 @@ func (s *LKSec) fsecret() (res [32]byte) {
 	return res
 }
 
-func (s *LKSec) apiServerHalf(devid *DeviceID) error {
+func (s *LKSec) apiServerHalf(lctx LoginContext, devid *DeviceID) error {
 	var err error
 	var dev DeviceKey
-	s.G().LoginState().Account(func(a *Account) {
-		if err = RunSyncer(a.SecretSyncer(), s.uid, a.LoggedIn(), a.LocalSession()); err != nil {
-			return
+	if lctx != nil {
+		if err := lctx.RunSecretSyncer(s.uid); err != nil {
+			return err
 		}
-		dev, err = a.SecretSyncer().FindDevice(devid)
-	}, "LKSec apiServerHalf - find device")
+		dev, err = lctx.SecretSyncer().FindDevice(devid)
+	} else {
+		s.G().LoginState().Account(func(a *Account) {
+			if err = RunSyncer(a.SecretSyncer(), s.uid, a.LoggedIn(), a.LocalSession()); err != nil {
+				return
+			}
+			dev, err = a.SecretSyncer().FindDevice(devid)
+		}, "LKSec apiServerHalf - find device")
+	}
 	if err != nil {
 		return err
 	}

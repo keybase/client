@@ -457,6 +457,31 @@ func (u *User) StoreTopLevel() error {
 	return err
 }
 
+func (u *User) SyncedSecretKey(lctx LoginContext) (ret *SKB, err error) {
+	if lctx != nil {
+		return u.GetSyncedSecretKeyLogin(lctx)
+	}
+	return u.GetSyncedSecretKey()
+}
+
+func (u *User) GetSyncedSecretKeyLogin(lctx LoginContext) (ret *SKB, err error) {
+	G.Log.Debug("+ User.GetSyncedSecretKeyLogin()")
+	defer func() {
+		G.Log.Debug("- User.GetSyncedSecretKeyLogin() -> %s", ErrToOk(err))
+	}()
+
+	if err = lctx.RunSecretSyncer(&u.id); err != nil {
+		return
+	}
+	ckf := u.GetComputedKeyFamily()
+	if ckf == nil {
+		G.Log.Debug("| short-circuit; no Computed key family")
+		return
+	}
+
+	return lctx.SecretSyncer().FindActiveKey(ckf)
+}
+
 func (u *User) GetSyncedSecretKey() (ret *SKB, err error) {
 	G.Log.Debug("+ User.GetSyncedSecretKey()")
 	defer func() {
