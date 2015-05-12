@@ -111,16 +111,20 @@
 - (void)openPopup:(id)sender {
   //NSAssert(self.popup, @"No configured as a popup");
   NSAssert(!self.window, @"Already in window");
+  [self removeFromSuperview];
   [[sender window] kb_addChildWindowForView:self rect:CGRectMake(0, 0, 400, 400) position:KBWindowPositionCenter title:@"Keybase" fixed:NO makeKey:NO];
 }
 
 - (void)registerClient:(KBRPClient *)client sessionId:(NSInteger)sessionId sender:(id)sender {
   GHWeakSelf gself = self;
+  self.client = client;
 
   [client registerMethod:@"keybase.1.identifyUi.start" sessionId:sessionId requestHandler:^(NSNumber *messageId, NSString *method, NSArray *params, MPRequestCompletion completion) {
+    [self clear];
 
     KBRStartRequestParams *requestParams = [[KBRStartRequestParams alloc] initWithParams:params];
     gself.username = requestParams.username;
+    gself.headerView.hidden = NO;
     [gself.headerView setUsername:requestParams.username];
     completion(nil, nil);
   }];
