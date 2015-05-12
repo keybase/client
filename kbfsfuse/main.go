@@ -23,6 +23,7 @@ var localUser = flag.String("localuser", "strib",
 	"fake local user (only valid when local=true)")
 var clientFlag = flag.Bool("client", false, "use keybase daemon")
 var debug = flag.Bool("debug", false, "Print FUSE debug messages")
+var newFUSE = flag.Bool("new-fuse", false, "use new FUSE implementation")
 
 func main() {
 	flag.Parse()
@@ -127,7 +128,13 @@ func main() {
 		log.Fatal("Usage:\n  kbfs [-client|-local] MOUNTPOINT")
 	}
 
-	if err := runHanwenFUSE(config, *debug, flag.Arg(0)); err != nil {
-		log.Fatalf("error serving filesystem: %v", err)
+	if *newFUSE {
+		if err := runNewFUSE(config, *debug, flag.Arg(0)); err != nil {
+			log.Fatalf("error serving filesystem: %v", err)
+		}
+	} else {
+		if err := runHanwenFUSE(config, *debug, flag.Arg(0)); err != nil {
+			log.Fatalf("error serving filesystem: %v", err)
+		}
 	}
 }
