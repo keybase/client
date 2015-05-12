@@ -5,7 +5,27 @@ import (
 	"testing"
 )
 
-func TestVerify(t *testing.T) {
+// Make sure that Verify accepts the output of SignToString.
+func TestVerifyStringAccept(t *testing.T) {
+	keyPair, err := GenerateNaclSigningKeyPair()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	msg := []byte("test message")
+	sig, _, err := keyPair.SignToString(msg)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	_, err = keyPair.VerifyString(sig, msg)
+	if err != nil {
+		t.Error(err)
+	}
+}
+
+// Make sure that Verify rejects various types of bad signatures.
+func TestVerifyStringReject(t *testing.T) {
 	keyPair, err := GenerateNaclSigningKeyPair()
 	if err != nil {
 		t.Fatal(err)
@@ -22,14 +42,29 @@ func TestVerify(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	_, err = keyPair.VerifyString(sig, msg)
-	if err != nil {
-		t.Error(err)
-	}
-
-	_, err = keyPair.Verify(base64.StdEncoding.EncodeToString(append(sigBytes, []byte("corruption")...)), msg)
+	_, err = keyPair.VerifyString(base64.StdEncoding.EncodeToString(append(sigBytes, []byte("corruption")...)), msg)
 	if err == nil {
 		t.Error("Corrupt signature unexpectedly passes")
+	}
+
+	_, err = keyPair.VerifyString(sig, append(msg, []byte("corruption")...))
+	if err == nil {
+		t.Error("Signature for corrupt message unexpectedly passes")
+	}
+
+	keyPair2, err := GenerateNaclSigningKeyPair()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	sig2, _, err := keyPair2.SignToString(msg)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	_, err = keyPair.VerifyString(sig2, msg)
+	if err == nil {
+		t.Error("Signature with different key unexpectedly passes")
 	}
 }
 
@@ -53,7 +88,7 @@ func TestVerifyBytesAccept(t *testing.T) {
 }
 
 // Test that VerifyBytes rejects various types of bad signatures.
-func TestVerifyReject(t *testing.T) {
+func TestVerifyBytesReject(t *testing.T) {
 	keyPair, err := GenerateNaclSigningKeyPair()
 	if err != nil {
 		t.Fatal(err)
