@@ -373,7 +373,7 @@ func (ui BaseIdentifyUI) ReportLastTrack(tl *keybase1.TrackSummary) {
 			locally = "locally "
 		}
 		msg := ColorString("bold", fmt.Sprintf("You last %stracked %s on %s",
-			locally, t.Username, libkb.FormatTime(t.GetCTime())))
+			locally, t.Username(), libkb.FormatTime(t.GetCTime())))
 		ui.ReportHook(msg)
 	}
 }

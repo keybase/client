@@ -24,21 +24,26 @@ type LoginState struct {
 
 type LoginContext interface {
 	LoggedInLoad() (bool, error)
+	Logout() error
+
 	CreateStreamCache(tsec *triplesec.Cipher, pps PassphraseStream)
 	CreateStreamCacheViaStretch(passphrase string) error
 	PassphraseStreamCache() *PassphraseStreamCache
 	ClearStreamCache()
+
 	CreateLoginSessionWithSalt(emailOrUsername string, salt []byte) error
 	LoadLoginSession(emailOrUsername string) error
 	LoginSession() *LoginSession
+
 	LocalSession() *Session
 	EnsureUsername(username string)
 	SaveState(sessionID, csrf, username string, uid UID) error
+
 	Keyring() (*SKBKeyringFile, error)
 	LockedLocalSecretKey(ska SecretKeyArg) *SKB
+
 	SecretSyncer() *SecretSyncer
 	RunSecretSyncer(uid *UID) error
-	Logout() error
 }
 
 type loginHandler func(LoginContext) error
@@ -70,8 +75,6 @@ func NewLoginState(g *GlobalContext) *LoginState {
 		loginReqs:    make(chan loginReq),
 		acctReqs:     make(chan acctReq),
 	}
-	// go res.loginRequests()
-	// go res.acctRequests()
 	go res.requests()
 	return res
 }
@@ -128,8 +131,10 @@ func (s *LoginState) Shutdown() error {
 	if err != nil {
 		return err
 	}
+
 	close(s.loginReqs)
 	close(s.acctReqs)
+
 	return nil
 }
 
@@ -166,7 +171,7 @@ func (s *LoginState) GetVerifiedTriplesec(ui SecretUI) (ret *triplesec.Cipher, e
 
 	s.Account(func(a *Account) {
 		ret = a.PassphraseStreamCache().Triplesec()
-	}, "LoginState - GetVerifiedTriplesec - first")
+	}, "LoginState - GetVerifiedTriplesec - second")
 	if ret != nil {
 		return
 	}
@@ -531,13 +536,11 @@ func (s *LoginState) loginHandle(f loginHandler, name string) error {
 		res:  make(chan error),
 		name: name,
 	}
-	s.G().Log.Debug("+ send login request %q", name)
+	s.G().Log.Debug("+ Login %q", name)
 	s.loginReqs <- req
-	s.G().Log.Debug("- send login request %q", name)
 
-	s.G().Log.Debug("+ wait login request %q", name)
 	err := <-req.res
-	s.G().Log.Debug("- wait login request %q", name)
+	s.G().Log.Debug("- Login %q", name)
 
 	return err
 }
@@ -548,7 +551,6 @@ func (s *LoginState) acctHandle(f acctHandler, name string) {
 		done: make(chan struct{}),
 		name: name,
 	}
-	s.G().Log.Debug("+ send acct request %q", name)
 	select {
 	case s.acctReqs <- req:
 		// this is just during debugging:
@@ -558,11 +560,7 @@ func (s *LoginState) acctHandle(f acctHandler, name string) {
 		os.Exit(1)
 	}
 
-	s.G().Log.Debug("- send acct request %q", name)
-
-	s.G().Log.Debug("+ wait acct request %q", name)
 	<-req.done
-	s.G().Log.Debug("- wait acct request %q", name)
 
 	return
 }
@@ -573,18 +571,14 @@ func (s *LoginState) requests() {
 		select {
 		case req, ok := <-s.loginReqs:
 			if ok {
-				s.G().Log.Debug("+ login request %s", req.name)
 				req.res <- req.f(s.account)
-				s.G().Log.Debug("- login request %s", req.name)
 			} else {
 				s.loginReqs = nil
 			}
 		case req, ok := <-s.acctReqs:
 			if ok {
-				s.G().Log.Debug("+ account request %s", req.name)
 				req.f(s.account)
 				close(req.done)
-				s.G().Log.Debug("- account request %s", req.name)
 			} else {
 				s.acctReqs = nil
 			}
@@ -594,23 +588,6 @@ func (s *LoginState) requests() {
 		}
 	}
 	s.G().Log.Debug("- LoginState: done processing requests")
-}
-
-func (s *LoginState) loginRequests() {
-	for req := range s.loginReqs {
-		s.G().Log.Debug("+ login request %s", req.name)
-		req.res <- req.f(s.account)
-		s.G().Log.Debug("- login request %s", req.name)
-	}
-}
-
-func (s *LoginState) acctRequests() {
-	for req := range s.acctReqs {
-		s.G().Log.Debug("+ account request %s", req.name)
-		req.f(s.account)
-		close(req.done)
-		s.G().Log.Debug("- account request %s", req.name)
-	}
 }
 
 func (s *LoginState) loginWithStoredSecret(lctx LoginContext, username string) error {
@@ -666,9 +643,9 @@ func (s *LoginState) logout(a LoginContext) error {
 }
 
 func (s *LoginState) Account(h acctHandler, name string) {
-	s.G().Log.Debug("+ Account %q, putting in request chan", name)
+	s.G().Log.Debug("+ Account %q", name)
 	s.acctHandle(h, name)
-	s.G().Log.Debug("- Account %q, done", name)
+	s.G().Log.Debug("- Account %q", name)
 }
 
 func (s *LoginState) PassphraseStreamCache(h func(*PassphraseStreamCache), name string) {
