@@ -147,6 +147,78 @@ func (k KeyringFile) Save() error {
 	return SafeWriteToFile(k)
 }
 
+type SecretKeyType int
+
+const (
+	// The current (Nacl) device key.
+	DeviceKeyType SecretKeyType = 1 << iota
+	// A PGP key (including the synced PGP key, if there is one).
+	PGPType
+	// A Nacl key (that is not the current device key).
+	NaclType
+	AnySecretKeyType = DeviceKeyType | PGPType | NaclType
+)
+
+func (t SecretKeyType) String() string {
+	if t == 0 {
+		return "<NoSecretKeyTypes>"
+	}
+	if t == AnySecretKeyType {
+		return "<AnySecretKeyType>"
+	}
+	var types []string
+
+	if (t & DeviceKeyType) != 0 {
+		types = append(types, "DeviceKeyType")
+	}
+
+	if (t & PGPType) != 0 {
+		types = append(types, "PGPType")
+	}
+
+	if (t & NaclType) != 0 {
+		types = append(types, "NaclType")
+	}
+
+	return strings.Join(types, "|")
+}
+
+func (t SecretKeyType) useDeviceKey() bool {
+	return (t & DeviceKeyType) != 0
+}
+
+func (t SecretKeyType) searchForKey() bool {
+	return (t & ^DeviceKeyType) != 0
+}
+
+func (t SecretKeyType) useSyncedPGPKey() bool {
+	return (t & PGPType) != 0
+}
+
+func (t SecretKeyType) nonDeviceKeyMatches(key GenericKey) bool {
+	if IsPGP(key) && (t&PGPType) != 0 {
+		return true
+	}
+
+	if !IsPGP(key) && (t&NaclType) != 0 {
+		return true
+	}
+
+	return false
+}
+
+type SecretKeyArg struct {
+	// Whose keys to use. Must be non-nil.
+	Me *User
+
+	// The allowed key types.
+	KeyType SecretKeyType
+
+	// For non-device keys, a string that the key has to match. If
+	// empty, any valid key is allowed.
+	KeyQuery string
+}
+
 // GetSecretKeyLocked gets a secret key for the current user by first
 // looking for keys synced from the server, and if that fails, tries
 // those in the local Keyring that are also active for the user.
@@ -160,12 +232,6 @@ func (k *Keyrings) GetSecretKeyLocked(ska SecretKeyArg) (ret *SKB, which string,
 
 	k.G().Log.Debug("| LoadMe w/ Secrets on")
 
-	if ska.Me == nil {
-		if ska.Me, err = LoadMe(LoadUserArg{}); err != nil {
-			return
-		}
-	}
-
 	if ret = k.GetLockedLocalSecretKey(ska); ret != nil {
 		k.G().Log.Debug("| Getting local secret key")
 		return
@@ -173,14 +239,14 @@ func (k *Keyrings) GetSecretKeyLocked(ska SecretKeyArg) (ret *SKB, which string,
 
 	var pub GenericKey
 
-	if !ska.UseSyncedPGPKey() {
-		k.G().Log.Debug("| Skipped Synced PGP key (via prefs)")
+	if !ska.KeyType.useSyncedPGPKey() {
+		k.G().Log.Debug("| Skipped Synced PGP key (via options)")
 	} else if ret, err = ska.Me.GetSyncedSecretKey(); err != nil {
 		k.G().Log.Warning("Error fetching synced PGP secret key: %s", err.Error())
 		return
 	} else if ret == nil {
 	} else if pub, err = ret.GetPubKey(); err != nil {
-	} else if len(ska.KeyQuery) > 0 && !KeyMatchesQuery(pub, ska.KeyQuery) {
+	} else if !KeyMatchesQuery(pub, ska.KeyQuery) {
 		k.G().Log.Debug("| Can't use Synced PGP key; doesn't match query %s", ska.KeyQuery)
 		ret = nil
 	} else {
@@ -204,12 +270,12 @@ func (k *Keyrings) GetLockedLocalSecretKey(ska SecretKeyArg) (ret *SKB) {
 
 	me := ska.Me
 
-	k.G().Log.Debug("+ GetLockedLocalSecretKey(%s)", me.name)
+	k.G().Log.Debug("+ GetLockedLocalSecretKey(%s)", me.GetName())
 	defer func() {
 		k.G().Log.Debug("- GetLockedLocalSecretKey -> found=%v", ret != nil)
 	}()
 
-	if keyring, err = k.LoadSKBKeyring(me.name); err != nil || keyring == nil {
+	if keyring, err = k.LoadSKBKeyring(me.GetName()); err != nil || keyring == nil {
 		var s string
 		if err != nil {
 			s = " (" + err.Error() + ")"
@@ -219,12 +285,12 @@ func (k *Keyrings) GetLockedLocalSecretKey(ska SecretKeyArg) (ret *SKB) {
 	}
 
 	if ckf = me.GetComputedKeyFamily(); ckf == nil {
-		k.G().Log.Warning("No ComputedKeyFamily found for %s", me.name)
+		k.G().Log.Warning("No ComputedKeyFamily found for %s", me.GetName())
 		return
 	}
 
-	if !ska.UseDeviceKey() {
-		k.G().Log.Debug("| not using device key; preferences have disabled it")
+	if !ska.KeyType.useDeviceKey() {
+		k.G().Log.Debug("| not using device key; options have disabled it")
 	} else if did := k.G().Env.GetDeviceID(); did == nil {
 		k.G().Log.Debug("| Could not get device id")
 	} else if key, err := ckf.GetSibkeyForDevice(*did); err != nil {
@@ -240,30 +306,12 @@ func (k *Keyrings) GetLockedLocalSecretKey(ska SecretKeyArg) (ret *SKB) {
 		}
 	}
 
-	if ret == nil && ska.SearchForKey() {
+	if ret == nil && ska.KeyType.searchForKey() {
 		k.G().Log.Debug("| Looking up secret key in local keychain")
 		ret = keyring.SearchWithComputedKeyFamily(ckf, ska)
 	}
 	return ret
 }
-
-type SecretKeyArg struct {
-
-	// Which keys to search for
-	All          bool // use all possible keys
-	DeviceKey    bool // use the device key (on by default)
-	SyncedPGPKey bool // use the sync'ed PGP key if there is one
-	SearchKey    bool // search for any key that's active in the local keyring
-	PGPOnly      bool // only PGP, but use the first valid PGP key we find
-
-	Me *User // Whose keys
-
-	KeyQuery string // a String to match the key prefix on
-}
-
-func (s SecretKeyArg) UseDeviceKey() bool    { return (s.All || s.DeviceKey) && !s.PGPOnly }
-func (s SecretKeyArg) SearchForKey() bool    { return s.All || s.SearchKey || s.PGPOnly }
-func (s SecretKeyArg) UseSyncedPGPKey() bool { return s.All || s.SyncedPGPKey }
 
 // TODO: Figure out whether and how to dep-inject the SecretStore.
 func (k *Keyrings) GetSecretKeyWithPrompt(ska SecretKeyArg, secretUI SecretUI, reason string) (key GenericKey, skb *SKB, err error) {
@@ -295,8 +343,8 @@ func (k *Keyrings) GetSecretKeyWithStoredSecret(me *User, secretRetriever Secret
 		k.G().Log.Debug("- GetSecretKeyWithStoredSecret() -> %s", ErrToOk(err))
 	}()
 	ska := SecretKeyArg{
-		All: true,
-		Me:  me,
+		Me:      me,
+		KeyType: AnySecretKeyType,
 	}
 	var skb *SKB
 	skb, _, err = k.GetSecretKeyLocked(ska)
@@ -313,8 +361,8 @@ func (k *Keyrings) GetSecretKeyWithPassphrase(me *User, passphrase string, secre
 		k.G().Log.Debug("- GetSecretKeyWithPassphrase() -> %s", ErrToOk(err))
 	}()
 	ska := SecretKeyArg{
-		All: true,
-		Me:  me,
+		Me:      me,
+		KeyType: AnySecretKeyType,
 	}
 	var skb *SKB
 	skb, _, err = k.GetSecretKeyLocked(ska)

@@ -64,10 +64,15 @@ func (p *PGPSignEngine) Run(ctx *Context) (err error) {
 		p.arg.Source.Close()
 	}()
 
+	me, err := libkb.LoadMe(libkb.LoadUserArg{})
+	if err != nil {
+		return err
+	}
+
 	ska := libkb.SecretKeyArg{
-		PGPOnly:      true,
-		SyncedPGPKey: true,
-		KeyQuery:     p.arg.Opts.KeyQuery,
+		Me:       me,
+		KeyType:  libkb.PGPType,
+		KeyQuery: p.arg.Opts.KeyQuery,
 	}
 
 	key, _, err = p.G().Keyrings.GetSecretKeyWithPrompt(ska, ctx.SecretUI, "command-line signature")

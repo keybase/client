@@ -170,7 +170,10 @@ func (e *UntrackEngine) storeRemoteUntrack(them *libkb.User, ctx *Context) (err 
 	e.G().Log.Debug("+ StoreRemoteUntrack")
 	defer e.G().Log.Debug("- StoreRemoteUntrack -> %s", libkb.ErrToOk(err))
 
-	arg := libkb.SecretKeyArg{Me: e.arg.Me, All: true}
+	arg := libkb.SecretKeyArg{
+		Me:      e.arg.Me,
+		KeyType: libkb.AnySecretKeyType,
+	}
 	var signingKeyPriv libkb.GenericKey
 	if signingKeyPriv, _, err = e.G().Keyrings.GetSecretKeyWithPrompt(arg, ctx.SecretUI, "untracking signature"); err != nil {
 		return

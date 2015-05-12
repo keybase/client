@@ -63,8 +63,8 @@ func (e *BTCEngine) Run(ctx *Context) error {
 	}
 
 	sigKey, _, err := e.G().Keyrings.GetSecretKeyWithPrompt(libkb.SecretKeyArg{
-		DeviceKey: true,
-		Me:        me,
+		Me:      me,
+		KeyType: libkb.DeviceKeyType,
 	}, ctx.SecretUI, "to register a cryptocurrency address")
 	if sigKey == nil {
 		return fmt.Errorf("Signing key is nil.")

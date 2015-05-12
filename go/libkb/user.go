@@ -833,8 +833,11 @@ func (u *User) HasDeviceInCurrentInstall() bool {
 }
 
 func (u *User) SigningKeyPub() (GenericKey, error) {
-	// Get out key that we're going to sign with.
-	arg := SecretKeyArg{Me: u, All: true}
+	// Get our key that we're going to sign with.
+	arg := SecretKeyArg{
+		Me:      u,
+		KeyType: AnySecretKeyType,
+	}
 	lockedKey, _, err := G.Keyrings.GetSecretKeyLocked(arg)
 	if err != nil {
 		return nil, err
