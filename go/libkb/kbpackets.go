@@ -137,10 +137,9 @@ func DecodePackets(reader io.Reader) (ret KeybasePackets, err error) {
 
 // Decode data into out, but make sure that all bytes in data are
 // used.
-func decodeAll(data []byte, out interface{}) error {
-	ch := CodecHandle()
+func MsgpackDecodeAll(data []byte, handle *codec.MsgpackHandle, out interface{}) error {
 	buf := bytes.NewBuffer(data)
-	err := codec.NewDecoder(buf, ch).Decode(out)
+	err := codec.NewDecoder(buf, handle).Decode(out)
 	if err != nil {
 		return err
 	}
@@ -151,7 +150,8 @@ func decodeAll(data []byte, out interface{}) error {
 }
 
 func (ret *KeybasePacket) MyUnmarshalBinary(data []byte) (err error) {
-	err = decodeAll(data, ret)
+	ch := CodecHandle()
+	err = MsgpackDecodeAll(data, ch, ret)
 	if err != nil {
 		return
 	}
@@ -167,13 +167,12 @@ func (ret *KeybasePacket) MyUnmarshalBinary(data []byte) (err error) {
 		err = fmt.Errorf("Unknown packet tag: %d", ret.Tag)
 		return
 	}
-	ch := CodecHandle()
 	var encoded []byte
 	err = codec.NewEncoderBytes(&encoded, ch).Encode(ret.Body)
 	if err != nil {
 		return
 	}
-	err = decodeAll(encoded, body)
+	err = MsgpackDecodeAll(encoded, ch, body)
 	if err != nil {
 		return
 	}

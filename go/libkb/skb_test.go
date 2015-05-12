@@ -23,7 +23,7 @@ func TestDecode0(t *testing.T) {
 		t.Errorf("error decoding: %s", err.Error())
 	}
 	var foo Foo
-	err = codec.NewDecoderBytes(bytes, &h).Decode(&foo)
+	err = MsgpackDecodeAll(bytes, &h, &foo)
 	if err != nil {
 		t.Errorf("Failed to decode packet: %s", err.Error())
 	}

@@ -136,7 +136,7 @@ func BodyDecode(data string) (*Body, error) {
 	}
 	var h codec.MsgpackHandle
 	var k Body
-	err = codec.NewDecoderBytes(bytes, &h).Decode(&k)
+	err = libkb.MsgpackDecodeAll(bytes, &h, &k)
 	if err != nil {
 		return nil, err
 	}
