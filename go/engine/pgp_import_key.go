@@ -89,7 +89,7 @@ func (e *PGPKeyImportEngine) saveLKS(ctx *Context) (err error) {
 			return err
 		}
 	}
-	_, err = libkb.WriteLksSKBToKeyring(e.bundle, lks, ctx.LogUI)
+	_, err = libkb.WriteLksSKBToKeyring(e.bundle, lks, ctx.LogUI, ctx.LoginContext)
 	return
 }
 
@@ -281,7 +281,7 @@ func (e *PGPKeyImportEngine) push(ctx *Context) (err error) {
 	e.G().Log.Debug("+ PGP::Push")
 	e.del.NewKey = e.bundle
 	e.del.EncodedPrivateKey = e.epk
-	if err = e.del.Run(); err != nil {
+	if err = e.del.Run(ctx.LoginContext); err != nil {
 		return err
 	}
 	e.G().Log.Debug("- PGP::Push -> %s", libkb.ErrToOk(err))

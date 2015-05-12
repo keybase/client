@@ -108,14 +108,14 @@ func (r SignupJoinEngineRunRes) Error() string {
 	return r.Err.Error()
 }
 
-func (s *SignupJoinEngine) Run(arg SignupJoinEngineRunArg) (res SignupJoinEngineRunRes) {
+func (s *SignupJoinEngine) Run(lctx libkb.LoginContext, arg SignupJoinEngineRunArg) (res SignupJoinEngineRunRes) {
 	res.PassphraseOk = true
 
 	if res.Err = s.Post(arg); res.Err != nil {
 		return
 	}
 	res.PostOk = true
-	if res.Err = s.WriteOut(arg.PWSalt); res.Err != nil {
+	if res.Err = s.WriteOut(lctx, arg.PWSalt); res.Err != nil {
 		return
 	}
 	res.WriteOk = true
@@ -123,8 +123,17 @@ func (s *SignupJoinEngine) Run(arg SignupJoinEngineRunArg) (res SignupJoinEngine
 	return
 }
 
-func (s *SignupJoinEngine) WriteOut(salt []byte) error {
-	return s.G().LoginState().SetSignupRes(s.session, s.csrf, s.username, s.uid, salt)
+func (s *SignupJoinEngine) WriteOut(lctx libkb.LoginContext, salt []byte) error {
+	if err := lctx.LocalSession().Load(); err != nil {
+		return err
+	}
+	if err := lctx.CreateLoginSessionWithSalt(s.username, salt); err != nil {
+		return err
+	}
+	if err := lctx.SaveState(s.session, s.csrf, s.username, s.uid); err != nil {
+		return err
+	}
+	return nil
 }
 
 func (s *SignupJoinEngine) PostInviteRequest(arg libkb.InviteRequestArg) error {

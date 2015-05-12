@@ -62,7 +62,7 @@ func (e *Doctor) login(ctx *Context) {
 		return
 	}
 
-	ok, err := IsLoggedIn(e.G())
+	ok, err := IsLoggedIn(e, ctx)
 	if err != nil {
 		e.runErr = err
 		return

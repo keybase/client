@@ -86,7 +86,7 @@ func (e *Identify) Run(ctx *Context) error {
 		return err
 	}
 
-	ok, err := IsLoggedIn(e.G())
+	ok, err := IsLoggedIn(e, ctx)
 	if err != nil {
 		return err
 	}

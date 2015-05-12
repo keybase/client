@@ -12,12 +12,19 @@ func createFakeUserWithNoKeys(tc libkb.TestContext) (username, passphrase string
 
 	s := NewSignupEngine(nil, tc.G)
 
-	// going to just run the join step of signup engine
-	if err := s.genTSPassKey(passphrase); err != nil {
-		tc.T.Fatal(err)
-	}
+	f := func(a libkb.LoginContext) error {
+		// going to just run the join step of signup engine
+		if err := s.genTSPassKey(a, passphrase); err != nil {
+			return err
+		}
 
-	if err := s.join(username, email, testInviteCode, true); err != nil {
+		if err := s.join(a, username, email, testInviteCode, true); err != nil {
+			return err
+		}
+
+		return nil
+	}
+	if err := s.G().LoginState().ExternalFunc(f, "createFakeUserWithNoKeys"); err != nil {
 		tc.T.Fatal(err)
 	}
 
@@ -30,11 +37,17 @@ func createFakeUserWithDetKey(tc libkb.TestContext) (username, passphrase string
 
 	s := NewSignupEngine(nil, tc.G)
 
-	if err := s.genTSPassKey(passphrase); err != nil {
-		tc.T.Fatal(err)
-	}
+	f := func(a libkb.LoginContext) error {
+		if err := s.genTSPassKey(a, passphrase); err != nil {
+			return err
+		}
 
-	if err := s.join(username, email, testInviteCode, true); err != nil {
+		if err := s.join(a, username, email, testInviteCode, true); err != nil {
+			return err
+		}
+		return nil
+	}
+	if err := s.G().LoginState().ExternalFunc(f, "createFakeUserWithDetKey"); err != nil {
 		tc.T.Fatal(err)
 	}
 
@@ -68,15 +81,22 @@ func createFakeUserWithPGPOnly(t *testing.T, tc libkb.TestContext) *FakeUser {
 	}
 	s := NewSignupEngine(nil, tc.G)
 
-	if err := s.genTSPassKey(fu.Passphrase); err != nil {
+	f := func(a libkb.LoginContext) error {
+		if err := s.genTSPassKey(a, fu.Passphrase); err != nil {
+			return err
+		}
+
+		if err := s.join(a, fu.Username, fu.Email, testInviteCode, true); err != nil {
+			return err
+		}
+
+		// XXX does this need to be in the ls func?
+		s.fakeLKS()
+		return nil
+	}
+	if err := s.G().LoginState().ExternalFunc(f, "createFakeUserWithPGPOnly"); err != nil {
 		tc.T.Fatal(err)
 	}
-
-	if err := s.join(fu.Username, fu.Email, testInviteCode, true); err != nil {
-		tc.T.Fatal(err)
-	}
-
-	s.fakeLKS()
 
 	// Generate a new test PGP key for the user, and specify the PushSecret
 	// flag so that their triplesec'ed key is pushed to the server.
@@ -121,17 +141,23 @@ func createFakeUserWithPGPPubOnly(t *testing.T, tc libkb.TestContext) *FakeUser 
 		LoginUI:  &libkb.TestLoginUI{Username: fu.Username},
 	}
 
-	if err := s.genTSPassKey(fu.Passphrase); err != nil {
-		t.Fatal(err)
+	f := func(a libkb.LoginContext) error {
+		if err := s.genTSPassKey(a, fu.Passphrase); err != nil {
+			return err
+		}
+
+		if err := s.join(a, fu.Username, fu.Email, testInviteCode, true); err != nil {
+			return err
+		}
+
+		s.fakeLKS()
+
+		if err := s.addGPG(a, ctx, false); err != nil {
+			return err
+		}
+		return nil
 	}
-
-	if err := s.join(fu.Username, fu.Email, testInviteCode, true); err != nil {
-		t.Fatal(err)
-	}
-
-	s.fakeLKS()
-
-	if err := s.addGPG(ctx, false); err != nil {
+	if err := s.G().LoginState().ExternalFunc(f, "createFakeUserWithPGPPubOnly"); err != nil {
 		t.Fatal(err)
 	}
 
@@ -154,29 +180,36 @@ func createFakeUserWithPGPMult(t *testing.T, tc libkb.TestContext) *FakeUser {
 		LoginUI:  &libkb.TestLoginUI{Username: fu.Username},
 	}
 
-	if err := s.genTSPassKey(fu.Passphrase); err != nil {
-		t.Fatal(err)
+	f := func(a libkb.LoginContext) error {
+		if err := s.genTSPassKey(a, fu.Passphrase); err != nil {
+			return err
+		}
+
+		if err := s.join(a, fu.Username, fu.Email, testInviteCode, true); err != nil {
+			t.Fatal(err)
+		}
+
+		fu.User = s.GetMe()
+
+		// fake the lks:
+		s.fakeLKS()
+
+		if err := s.addGPG(a, ctx, false); err != nil {
+			return err
+		}
+
+		// hack the gpg ui to select a different key:
+		ctx.GPGUI = &gpgtestui{index: 1}
+		if err := s.addGPG(a, ctx, true); err != nil {
+			return err
+		}
+
+		return nil
 	}
 
-	if err := s.join(fu.Username, fu.Email, testInviteCode, true); err != nil {
+	if err := s.G().LoginState().ExternalFunc(f, "createFakeUserWithPGPPubMult"); err != nil {
 		t.Fatal(err)
 	}
-
-	fu.User = s.GetMe()
-
-	// fake the lks:
-	s.fakeLKS()
-
-	if err := s.addGPG(ctx, false); err != nil {
-		t.Fatal(err)
-	}
-
-	// hack the gpg ui to select a different key:
-	ctx.GPGUI = &gpgtestui{index: 1}
-	if err := s.addGPG(ctx, true); err != nil {
-		t.Fatal(err)
-	}
-
 	// now it should have two pgp keys...
 
 	return fu

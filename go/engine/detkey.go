@@ -54,20 +54,20 @@ func (d *DetKeyEngine) Run(ctx *Context) error {
 
 	d.dev = libkb.NewWebDevice()
 
-	if err := d.eddsa(d.arg.Tsp); err != nil {
+	if err := d.eddsa(ctx, d.arg.Tsp); err != nil {
 		return fmt.Errorf("eddsa error: %s", err)
 	}
 
 	// turn off self proof
 	d.arg.SelfProof = false
 
-	if err := d.dh(d.arg.Tsp.DHSeed()); err != nil {
+	if err := d.dh(ctx, d.arg.Tsp.DHSeed()); err != nil {
 		return fmt.Errorf("dh error: %s", err)
 	}
 	return nil
 }
 
-func (d *DetKeyEngine) eddsa(tpk libkb.PassphraseStream) error {
+func (d *DetKeyEngine) eddsa(ctx *Context, tpk libkb.PassphraseStream) error {
 	serverHalf, err := libkb.RandBytes(len(tpk.EdDSASeed()))
 	if err != nil {
 		return err
@@ -84,7 +84,7 @@ func (d *DetKeyEngine) eddsa(tpk libkb.PassphraseStream) error {
 	}
 	d.newEddsaKey = key
 
-	return d.push(key, signingKey, serverHalf, libkb.NACL_EDDSA_EXPIRE_IN, true)
+	return d.push(ctx, key, signingKey, serverHalf, libkb.NACL_EDDSA_EXPIRE_IN, true)
 }
 
 func GenSigningDetKey(tpk libkb.PassphraseStream, serverHalf []byte) (gkey libkb.GenericKey, err error) {
@@ -105,7 +105,7 @@ func GenSigningDetKey(tpk libkb.PassphraseStream, serverHalf []byte) (gkey libkb
 	return key, nil
 }
 
-func (d *DetKeyEngine) dh(seed []byte) error {
+func (d *DetKeyEngine) dh(ctx *Context, seed []byte) error {
 	serverHalf, err := libkb.RandBytes(len(seed))
 	if err != nil {
 		return err
@@ -124,7 +124,7 @@ func (d *DetKeyEngine) dh(seed []byte) error {
 	key.Private = &libkb.NaclDHKeyPrivate{}
 	copy(key.Private[:], (*priv)[:])
 
-	return d.push(key, d.newEddsaKey, serverHalf, libkb.NACL_DH_EXPIRE_IN, false)
+	return d.push(ctx, key, d.newEddsaKey, serverHalf, libkb.NACL_DH_EXPIRE_IN, false)
 }
 
 func serverSeed(seed, serverHalf []byte) (newseed []byte, err error) {
@@ -133,7 +133,7 @@ func serverSeed(seed, serverHalf []byte) (newseed []byte, err error) {
 	return newseed, nil
 }
 
-func (d *DetKeyEngine) push(key libkb.GenericKey, signing libkb.GenericKey, serverHalf []byte, expire int, sibkey bool) error {
+func (d *DetKeyEngine) push(ctx *Context, key libkb.GenericKey, signing libkb.GenericKey, serverHalf []byte, expire int, sibkey bool) error {
 	if d.dev == nil {
 		return libkb.ErrCannotGenerateDevice
 	}
@@ -146,5 +146,5 @@ func (d *DetKeyEngine) push(key libkb.GenericKey, signing libkb.GenericKey, serv
 		Me:          d.arg.Me,
 		Device:      d.dev,
 	}
-	return g.Run()
+	return g.Run(ctx.LoginContext)
 }

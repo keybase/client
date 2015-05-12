@@ -207,9 +207,18 @@ type SecretKeyArg struct {
 	// The allowed key types.
 	KeyType SecretKeyType
 
+	// Which keys to search for
+	All          bool // use all possible keys
+	DeviceKey    bool // use the device key (on by default)
+	SyncedPGPKey bool // use the sync'ed PGP key if there is one
+	SearchKey    bool // search for any key that's active in the local keyring
+	PGPOnly      bool // only PGP, but use the first valid PGP key we find
+
 	// For non-device keys, a string that the key has to match. If
 	// empty, any valid key is allowed.
 	KeyQuery string
+
+	LoginContext LoginContext
 }
 
 // GetSecretKeyLocked gets a secret key for the current user by first
@@ -231,9 +240,13 @@ func (k *Keyrings) GetSecretKeyLocked(ska SecretKeyArg) (ret *SKB, which string,
 		}
 	}
 
-	k.G().LoginState().Account(func(a *Account) {
-		ret = a.LockedLocalSecretKey(ska)
-	}, "LockedLocalSecretKey")
+	if ska.LoginContext != nil {
+		ret = ska.LoginContext.LockedLocalSecretKey(ska)
+	} else {
+		k.G().LoginState().Account(func(a *Account) {
+			ret = a.LockedLocalSecretKey(ska)
+		}, "LockedLocalSecretKey")
+	}
 	if ret != nil {
 		k.G().Log.Debug("| Getting local secret key")
 		return
@@ -316,6 +329,28 @@ func (k *Keyrings) getLockedLocalSecretKey(ska SecretKeyArg) (ret *SKB) {
 }
 */
 
+/*
+type SecretKeyArg struct {
+
+	// Which keys to search for
+	All          bool // use all possible keys
+	DeviceKey    bool // use the device key (on by default)
+	SyncedPGPKey bool // use the sync'ed PGP key if there is one
+	SearchKey    bool // search for any key that's active in the local keyring
+	PGPOnly      bool // only PGP, but use the first valid PGP key we find
+
+	Me *User // Whose keys
+
+	KeyQuery string // a String to match the key prefix on
+
+	LoginContext LoginContext
+}
+*/
+
+func (s SecretKeyArg) UseDeviceKey() bool    { return (s.All || s.DeviceKey) && !s.PGPOnly }
+func (s SecretKeyArg) SearchForKey() bool    { return s.All || s.SearchKey || s.PGPOnly }
+func (s SecretKeyArg) UseSyncedPGPKey() bool { return s.All || s.SyncedPGPKey }
+
 // TODO: Figure out whether and how to dep-inject the SecretStore.
 func (k *Keyrings) GetSecretKeyWithPrompt(ska SecretKeyArg, secretUI SecretUI, reason string) (key GenericKey, skb *SKB, err error) {
 	k.G().Log.Debug("+ GetSecretKeyWithPrompt(%s)", reason)
@@ -332,7 +367,11 @@ func (k *Keyrings) GetSecretKeyWithPrompt(ska SecretKeyArg, secretUI SecretUI, r
 		skb.SetUID(ska.Me.GetUid().P())
 		secretStore = NewSecretStore(ska.Me.GetName())
 	}
-	if key, err = skb.PromptAndUnlock(reason, which, secretStore, secretUI, nil, nil); err != nil {
+	var preader PassphraseStreamCacheReader
+	if ska.LoginContext != nil {
+		preader = ska.LoginContext.PassphraseStreamCache()
+	}
+	if key, err = skb.PromptAndUnlock(reason, which, secretStore, secretUI, preader, nil); err != nil {
 		key = nil
 		skb = nil
 		return

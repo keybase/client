@@ -1,9 +1,8 @@
 package engine
 
-import (
-	"github.com/keybase/client/go/libkb"
-)
-
-func IsLoggedIn(g *libkb.GlobalContext) (bool, error) {
-	return g.LoginState().LoggedInLoad()
+func IsLoggedIn(e Engine, ctx *Context) (bool, error) {
+	if ctx.LoginContext != nil {
+		return ctx.LoginContext.LoggedInLoad()
+	}
+	return e.G().LoginState().LoggedInLoad()
 }

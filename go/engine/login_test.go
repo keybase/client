@@ -370,7 +370,11 @@ func TestUserInfo(t *testing.T) {
 	defer tc.Cleanup()
 
 	u := CreateAndSignupFakeUser(tc, "login")
-	_, username, _, _, err := tc.G.Account().UserInfo()
+	var username string
+	var err error
+	tc.G.LoginState().Account(func(a *libkb.Account) {
+		_, username, _, _, err = a.UserInfo()
+	}, "TestUserInfo")
 	if err != nil {
 		t.Fatal(err)
 	}

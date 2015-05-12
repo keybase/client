@@ -224,7 +224,7 @@ func (k *KexSib) handlePleaseSign(m *kex.Msg) error {
 		return err
 	}
 
-	if err = del.SignAndPost(jw); err != nil {
+	if err = del.SignAndPost(nil, jw); err != nil {
 		return err
 	}
 

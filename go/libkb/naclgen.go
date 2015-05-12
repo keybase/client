@@ -29,17 +29,18 @@ func (g *NaclKeyGen) Generate() (err error) {
 	return
 }
 
-func (g *NaclKeyGen) Save() (err error) {
-	_, err = WriteTsecSKBToKeyring(g.pair, nil, g.arg.LogUI)
+// XXX unused?
+func (g *NaclKeyGen) Save(lctx LoginContext) (err error) {
+	_, err = WriteTsecSKBToKeyring(g.pair, nil, g.arg.LogUI, lctx)
 	return
 }
 
-func (g *NaclKeyGen) SaveLKS(lks *LKSec) error {
-	_, err := WriteLksSKBToKeyring(g.pair, lks, g.arg.LogUI)
+func (g *NaclKeyGen) SaveLKS(lks *LKSec, lctx LoginContext) error {
+	_, err := WriteLksSKBToKeyring(g.pair, lks, g.arg.LogUI, lctx)
 	return err
 }
 
-func (g *NaclKeyGen) Push() (mt MerkleTriple, err error) {
+func (g *NaclKeyGen) Push(lctx LoginContext) (mt MerkleTriple, err error) {
 	d := Delegator{
 		NewKey:      g.pair,
 		RevSig:      g.arg.RevSig,
@@ -50,21 +51,22 @@ func (g *NaclKeyGen) Push() (mt MerkleTriple, err error) {
 		Me:          g.arg.Me,
 		EldestKID:   g.arg.EldestKeyID,
 	}
-	if err = d.Run(); err != nil {
+	if err = d.Run(lctx); err != nil {
 		return
 	}
 	return d.GetMerkleTriple(), err
 }
 
+// XXX unused?
 // RunLKS uses local key security to save the generated keys.
 func (g *NaclKeyGen) RunLKS(lks *LKSec) (err error) {
 	if err = g.Generate(); err != nil {
 		return
 	}
-	if err = g.SaveLKS(lks); err != nil {
+	if err = g.SaveLKS(lks, nil); err != nil {
 		return
 	}
-	if _, err = g.Push(); err != nil {
+	if _, err = g.Push(nil); err != nil {
 		G.Log.Info("push error: %s", err)
 		return
 	}

@@ -132,6 +132,10 @@ func (a *Account) PassphraseStreamCache() *PassphraseStreamCache {
 	return a.streamCache
 }
 
+func (a *Account) PassphraseStream() PassphraseStream {
+	return a.PassphraseStreamCache().PassphraseStream()
+}
+
 func (a *Account) ClearStreamCache() {
 	a.streamCache.Clear()
 	a.streamCache = nil
@@ -236,8 +240,6 @@ func (a *Account) EnsureUsername(username string) {
 
 }
 
-// XXX not sure this is the best place for this...
-// XXX put it through loginstate external func?
 func (a *Account) UserInfo() (uid UID, username, token string, deviceSubkeyKid KID, err error) {
 	if !a.LoggedIn() {
 		err = LoginRequiredError{}
@@ -259,4 +261,37 @@ func (a *Account) UserInfo() (uid UID, username, token string, deviceSubkeyKid K
 	username = user.GetName()
 	token = a.localSession.GetToken()
 	return
+}
+
+func (a *Account) SaveState(sessionID, csrf, username string, uid UID) error {
+	cw := a.G().Env.GetConfigWriter()
+	if cw == nil {
+		return NoConfigWriterError{}
+	}
+
+	if err := a.LoginSession().Clear(); err != nil {
+		return err
+	}
+	salt, err := a.LoginSession().Salt()
+	if err != nil {
+		return err
+	}
+	if err := cw.SetUserConfig(NewUserConfig(uid, username, salt, nil), false); err != nil {
+		return err
+	}
+	if err := cw.Write(); err != nil {
+		return err
+	}
+	a.LocalSession().SetLoggedIn(sessionID, csrf, username, uid)
+	if err := a.LocalSession().Write(); err != nil {
+		return err
+	}
+
+	// Set up our SecretSyncer to work on the logged in user from here on
+	// out.
+	// (note: I really don't think this matters since RunSyncer(SecretSyncer, uid)
+	// is always called with a uid... --PC)
+	a.SecretSyncer().SetUID(&uid)
+
+	return nil
 }

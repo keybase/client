@@ -37,7 +37,9 @@ func NewScanKeys(secui libkb.SecretUI, idui libkb.IdentifyUI, opts *TrackOptions
 		opts:         opts,
 		Contextified: libkb.NewContextified(g),
 	}
-	lin, err := IsLoggedIn(g)
+	g.Log.Warning("*** PC: fix call to IsLoggedIn here...need enginge, engine context, or logincontext ***")
+	// lin, err := IsLoggedIn(nil, nil)
+	lin, err := g.LoginState().LoggedInLoad()
 	if err != nil {
 		return nil, err
 	}

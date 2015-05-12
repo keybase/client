@@ -16,6 +16,8 @@ type Context struct {
 	IdentifyUI  libkb.IdentifyUI
 	ProveUI     libkb.ProveUI
 
+	LoginContext libkb.LoginContext
+
 	// For everything else global...
 	GlobalContext *libkb.GlobalContext
 }

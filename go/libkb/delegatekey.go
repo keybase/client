@@ -135,7 +135,7 @@ func (d *Delegator) LoadSigningKey(ui SecretUI) (err error) {
 
 // Run the Delegator, performing all necessary internal operations.  Return err
 // on failure and nil on success.
-func (d *Delegator) Run() (err error) {
+func (d *Delegator) Run(lctx LoginContext) (err error) {
 	var jw *jsonw.Wrapper
 
 	G.Log.Debug("+ Delegator.Run()")
@@ -170,10 +170,10 @@ func (d *Delegator) Run() (err error) {
 		return
 	}
 
-	return d.SignAndPost(jw)
+	return d.SignAndPost(lctx, jw)
 }
 
-func (d *Delegator) SignAndPost(jw *jsonw.Wrapper) (err error) {
+func (d *Delegator) SignAndPost(lctx LoginContext, jw *jsonw.Wrapper) (err error) {
 
 	var linkid LinkId
 
@@ -182,7 +182,7 @@ func (d *Delegator) SignAndPost(jw *jsonw.Wrapper) (err error) {
 		return err
 	}
 
-	if err = d.post(); err != nil {
+	if err = d.post(lctx); err != nil {
 		G.Log.Debug("| Failure in post()")
 		return
 	}
@@ -201,7 +201,7 @@ func (d *Delegator) updateLocalState(linkid LinkId) (err error) {
 	return d.Me.localDelegateKey(d.NewKey, d.sigId, d.getExistingKID(), d.IsSibkey(), d.isEldest)
 }
 
-func (d Delegator) post() (err error) {
+func (d Delegator) post(lctx LoginContext) (err error) {
 	var pub string
 	if pub, err = d.NewKey.Encode(); err != nil {
 		return
@@ -227,10 +227,14 @@ func (d Delegator) post() (err error) {
 	}
 
 	G.Log.Debug("Post NewKey: %v", hargs)
-	_, err = G.API.Post(ApiArg{
+	arg := ApiArg{
 		Endpoint:    "key/add",
 		NeedSession: true,
 		Args:        hargs,
-	})
+	}
+	if lctx != nil {
+		arg.SessionR = lctx.LocalSession()
+	}
+	_, err = G.API.Post(arg)
 	return err
 }

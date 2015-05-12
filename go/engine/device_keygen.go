@@ -86,7 +86,7 @@ func (e *DeviceKeygen) SubConsumers() []libkb.UIConsumer {
 func (e *DeviceKeygen) Run(ctx *Context) error {
 	e.setup(ctx)
 	e.generate()
-	e.localSave()
+	e.localSave(ctx)
 	return e.runErr
 }
 
@@ -111,21 +111,21 @@ func (e *DeviceKeygen) Push(ctx *Context, pargs *DeviceKeygenPushArgs) error {
 
 	// push the signing key
 	if pargs.IsEldest {
-		e.pushEldest(pargs)
+		e.pushEldest(ctx, pargs)
 		encSigner = e.naclSignGen.GetKeyPair()
 		eldestKID = encSigner.GetKid()
 	} else if !pargs.SkipSignerPush {
-		e.pushSibkey(pargs)
+		e.pushSibkey(ctx, pargs)
 		encSigner = e.naclSignGen.GetKeyPair()
 	} else {
 		encSigner = pargs.Signer
 	}
 
 	// push the encryption key
-	e.pushEncKey(encSigner, eldestKID, pargs.User)
+	e.pushEncKey(ctx, encSigner, eldestKID, pargs.User)
 
 	// push the LKS server half
-	e.pushLKS()
+	e.pushLKS(ctx)
 
 	return e.pushErr
 }
@@ -156,44 +156,44 @@ func (e *DeviceKeygen) generate() {
 	}
 }
 
-func (e *DeviceKeygen) localSave() {
+func (e *DeviceKeygen) localSave(ctx *Context) {
 	if e.runErr != nil {
 		return
 	}
 
-	if e.runErr = e.naclSignGen.SaveLKS(e.args.Lks); e.runErr != nil {
+	if e.runErr = e.naclSignGen.SaveLKS(e.args.Lks, ctx.LoginContext); e.runErr != nil {
 		return
 	}
-	if e.runErr = e.naclEncGen.SaveLKS(e.args.Lks); e.runErr != nil {
+	if e.runErr = e.naclEncGen.SaveLKS(e.args.Lks, ctx.LoginContext); e.runErr != nil {
 		return
 	}
 }
 
-func (e *DeviceKeygen) pushEldest(pargs *DeviceKeygenPushArgs) {
+func (e *DeviceKeygen) pushEldest(ctx *Context, pargs *DeviceKeygenPushArgs) {
 	if e.pushErr != nil {
 		return
 	}
-	_, e.pushErr = e.naclSignGen.Push()
+	_, e.pushErr = e.naclSignGen.Push(ctx.LoginContext)
 }
 
-func (e *DeviceKeygen) pushSibkey(pargs *DeviceKeygenPushArgs) {
+func (e *DeviceKeygen) pushSibkey(ctx *Context, pargs *DeviceKeygenPushArgs) {
 	if e.pushErr != nil {
 		return
 	}
 
 	e.naclSignGen.UpdateArg(pargs.Signer, pargs.EldestKID, true, pargs.User)
-	_, e.pushErr = e.naclSignGen.Push()
+	_, e.pushErr = e.naclSignGen.Push(ctx.LoginContext)
 }
 
-func (e *DeviceKeygen) pushEncKey(signer libkb.GenericKey, eldestKID libkb.KID, user *libkb.User) {
+func (e *DeviceKeygen) pushEncKey(ctx *Context, signer libkb.GenericKey, eldestKID libkb.KID, user *libkb.User) {
 	if e.pushErr != nil {
 		return
 	}
 	e.naclEncGen.UpdateArg(signer, eldestKID, false, user)
-	_, e.pushErr = e.naclEncGen.Push()
+	_, e.pushErr = e.naclEncGen.Push(ctx.LoginContext)
 }
 
-func (e *DeviceKeygen) pushLKS() {
+func (e *DeviceKeygen) pushLKS(ctx *Context) {
 	if e.pushErr != nil {
 		return
 	}
@@ -210,14 +210,18 @@ func (e *DeviceKeygen) pushLKS() {
 	}
 
 	// send it to api server
-	e.pushErr = libkb.PostDeviceLKS(e.args.DeviceID.String(), libkb.DEVICE_TYPE_DESKTOP, serverHalf)
+	e.pushErr = libkb.PostDeviceLKS(ctx.LoginContext, e.args.DeviceID.String(), libkb.DEVICE_TYPE_DESKTOP, serverHalf)
 	if e.pushErr != nil {
 		return
 	}
 
 	// Sync the LKS stuff back from the server, so that subsequent
 	// attempts to use public key login will work.
-	e.pushErr = e.G().LoginState().RunSecretSyncer(e.args.Me.GetUid().P())
+	if ctx.LoginContext != nil {
+		e.pushErr = ctx.LoginContext.RunSecretSyncer(e.args.Me.GetUid().P())
+	} else {
+		e.pushErr = e.G().LoginState().RunSecretSyncer(e.args.Me.GetUid().P())
+	}
 }
 
 func (e *DeviceKeygen) newNaclArg(ctx *Context, gen libkb.NaclGenerator, expire int) libkb.NaclKeyGenArg {

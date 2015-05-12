@@ -123,29 +123,37 @@ func (k KID) Eq(k2 KID) bool {
 	return SecureByteArrayEq([]byte(k), []byte(k2))
 }
 
-func WriteLksSKBToKeyring(k GenericKey, lks *LKSec, lui LogUI) (*SKB, error) {
+func WriteLksSKBToKeyring(k GenericKey, lks *LKSec, lui LogUI, lctx LoginContext) (*SKB, error) {
 	skb, err := k.ToLksSKB(lks)
 	if err != nil {
 		return nil, fmt.Errorf("k.ToLksSKB() error: %s", err)
 	}
-	if err := skbPushAndSave(skb, lui); err != nil {
+	if err := skbPushAndSave(skb, lui, lctx); err != nil {
 		return nil, err
 	}
 	return skb, nil
 }
 
-func WriteTsecSKBToKeyring(k GenericKey, tsec *triplesec.Cipher, lui LogUI) (*SKB, error) {
+// XXX unused?
+func WriteTsecSKBToKeyring(k GenericKey, tsec *triplesec.Cipher, lui LogUI, lctx LoginContext) (*SKB, error) {
 	p3skb, err := k.ToSKB(tsec)
 	if err != nil {
 		return nil, err
 	}
-	if err := skbPushAndSave(p3skb, lui); err != nil {
+	if err := skbPushAndSave(p3skb, lui, lctx); err != nil {
 		return nil, err
 	}
 	return p3skb, nil
 }
 
-func skbPushAndSave(skb *SKB, lui LogUI) error {
+func skbPushAndSave(skb *SKB, lui LogUI, lctx LoginContext) error {
+	if lctx != nil {
+		kr, err := lctx.Keyring()
+		if err != nil {
+			return err
+		}
+		return kr.PushAndSave(skb, lui)
+	}
 	var err error
 	kerr := G.LoginState().Keyring(func(ring *SKBKeyringFile) {
 		err = ring.PushAndSave(skb, lui)

@@ -62,13 +62,13 @@ func (s *SignupEngine) SetArg(arg *SignupEngineRunArg) {
 }
 
 func (s *SignupEngine) CheckRegistered() (err error) {
-	s.G().Log.Debug("+ libkb.SignupJoinEngine::CheckRegistered")
+	s.G().Log.Debug("+ SignupEngine::CheckRegistered")
 	if cr := s.G().Env.GetConfig(); cr == nil {
 		err = fmt.Errorf("No configuration file available")
 	} else if u := cr.GetUID(); u != nil {
 		err = libkb.AlreadyRegisteredError{Uid: *u}
 	}
-	s.G().Log.Debug("- libkb.SignupJoinEngine::CheckRegistered -> %s", libkb.ErrToOk(err))
+	s.G().Log.Debug("- SignupEngine::CheckRegistered -> %s", libkb.ErrToOk(err))
 	return err
 }
 
@@ -84,16 +84,16 @@ func (s *SignupEngine) Run(ctx *Context) error {
 	// make sure we're starting with a clear login state:
 	s.G().Logout()
 
-	f := func() error {
-		if err := s.genTSPassKey(s.arg.Passphrase); err != nil {
+	f := func(a libkb.LoginContext) error {
+		if err := s.genTSPassKey(a, s.arg.Passphrase); err != nil {
 			return err
 		}
 
-		if err := s.join(s.arg.Username, s.arg.Email, s.arg.InviteCode, s.arg.SkipMail); err != nil {
+		if err := s.join(a, s.arg.Username, s.arg.Email, s.arg.InviteCode, s.arg.SkipMail); err != nil {
 			return err
 		}
 
-		if err := s.registerDevice(ctx, s.arg.DeviceName); err != nil {
+		if err := s.registerDevice(a, ctx, s.arg.DeviceName); err != nil {
 			return err
 		}
 
@@ -108,7 +108,7 @@ func (s *SignupEngine) Run(ctx *Context) error {
 		if wantsGPG, err := s.checkGPG(ctx); err != nil {
 			return err
 		} else if wantsGPG {
-			if err := s.addGPG(ctx, true); err != nil {
+			if err := s.addGPG(a, ctx, true); err != nil {
 				return fmt.Errorf("addGPG error: %s", err)
 			}
 		}
@@ -118,7 +118,7 @@ func (s *SignupEngine) Run(ctx *Context) error {
 	return s.G().LoginState().ExternalFunc(f, "SignupEngine - Run")
 }
 
-func (s *SignupEngine) genTSPassKey(passphrase string) error {
+func (s *SignupEngine) genTSPassKey(a libkb.LoginContext, passphrase string) error {
 	salt, err := libkb.RandBytes(triplesec.SaltLen)
 	if err != nil {
 		return err
@@ -129,13 +129,11 @@ func (s *SignupEngine) genTSPassKey(passphrase string) error {
 	if err != nil {
 		return err
 	}
-	s.G().LoginState().Account(func(a *libkb.Account) {
-		a.CreateStreamCache(tsec, s.tspkey)
-	}, "SignupEngine - CreateStreamCache")
+	a.CreateStreamCache(tsec, s.tspkey)
 	return nil
 }
 
-func (s *SignupEngine) join(username, email, inviteCode string, skipMail bool) error {
+func (s *SignupEngine) join(a libkb.LoginContext, username, email, inviteCode string, skipMail bool) error {
 	joinEngine := NewSignupJoinEngine(s.G())
 
 	arg := SignupJoinEngineRunArg{
@@ -146,7 +144,7 @@ func (s *SignupEngine) join(username, email, inviteCode string, skipMail bool) e
 		PWSalt:     s.pwsalt,
 		SkipMail:   skipMail,
 	}
-	res := joinEngine.Run(arg)
+	res := joinEngine.Run(a, arg)
 	if res.Err != nil {
 		return res
 	}
@@ -160,7 +158,7 @@ func (s *SignupEngine) join(username, email, inviteCode string, skipMail bool) e
 	return nil
 }
 
-func (s *SignupEngine) registerDevice(ctx *Context, deviceName string) error {
+func (s *SignupEngine) registerDevice(a libkb.LoginContext, ctx *Context, deviceName string) error {
 	s.lks = libkb.NewLKSec(s.tspkey.LksClientHalf(), s.G())
 	args := &DeviceWrapArgs{
 		Me:         s.me,
@@ -169,6 +167,7 @@ func (s *SignupEngine) registerDevice(ctx *Context, deviceName string) error {
 		IsEldest:   true,
 	}
 	eng := NewDeviceWrap(args, s.G())
+	ctx.LoginContext = a
 	if err := RunEngine(eng, ctx); err != nil {
 		return err
 	}
@@ -193,10 +192,11 @@ func (s *SignupEngine) checkGPG(ctx *Context) (bool, error) {
 	return eng.WantsGPG(ctx)
 }
 
-func (s *SignupEngine) addGPG(ctx *Context, allowMulti bool) error {
+func (s *SignupEngine) addGPG(lctx libkb.LoginContext, ctx *Context, allowMulti bool) error {
 	s.G().Log.Debug("SignupEngine.addGPG.  signingKey: %v\n", s.signingKey)
 	arg := GPGImportKeyArg{Signer: s.signingKey, AllowMulti: allowMulti, Me: s.me, Lks: s.lks}
 	eng := NewGPGImportKeyEngine(&arg, s.G())
+	ctx.LoginContext = lctx
 	if err := RunEngine(eng, ctx); err != nil {
 		return err
 	}

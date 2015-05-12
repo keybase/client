@@ -18,12 +18,12 @@ type Engine interface {
 	G() *libkb.GlobalContext
 }
 
-func runPrereqs(e Engine) (err error) {
+func runPrereqs(e Engine, ctx *Context) (err error) {
 	prq := e.GetPrereqs()
 
 	if prq.Session {
 		var ok bool
-		ok, err = IsLoggedIn(e.G())
+		ok, err = IsLoggedIn(e, ctx)
 		if !ok {
 			urlError, isURLError := err.(*url.Error)
 			context := ""
@@ -45,7 +45,7 @@ func RunEngine(e Engine, ctx *Context) error {
 	if err := check(e, ctx); err != nil {
 		return err
 	}
-	if err := runPrereqs(e); err != nil {
+	if err := runPrereqs(e, ctx); err != nil {
 		return err
 	}
 	return e.Run(ctx)

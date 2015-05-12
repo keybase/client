@@ -139,11 +139,11 @@ func CheckPosted(proofId string) (found bool, status int, err error) {
 	return
 }
 
-func PostDeviceLKS(deviceID, deviceType string, serverHalf []byte) error {
+func PostDeviceLKS(lctx LoginContext, deviceID, deviceType string, serverHalf []byte) error {
 	if len(serverHalf) == 0 {
 		return fmt.Errorf("PostDeviceLKS: called with empty serverHalf")
 	}
-	_, err := G.API.Post(ApiArg{
+	arg := ApiArg{
 		Endpoint:    "device/update",
 		NeedSession: true,
 		Args: HttpArgs{
@@ -151,6 +151,10 @@ func PostDeviceLKS(deviceID, deviceType string, serverHalf []byte) error {
 			"type":            S{Val: deviceType},
 			"lks_server_half": S{Val: hex.EncodeToString(serverHalf)},
 		},
-	})
+	}
+	if lctx != nil {
+		arg.SessionR = lctx.LocalSession()
+	}
+	_, err := G.API.Post(arg)
 	return err
 }

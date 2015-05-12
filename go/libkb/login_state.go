@@ -6,34 +6,54 @@ import (
 	"encoding/hex"
 	"errors"
 	"fmt"
-	"sync"
+	"os"
+	"runtime/debug"
+	"time"
 
 	keybase1 "github.com/keybase/client/protocol/go"
 	jsonw "github.com/keybase/go-jsonw"
 	triplesec "github.com/keybase/go-triplesec"
 )
 
-type loginReq struct {
-	f    func() error
-	res  chan error
-	name string
-}
-
-type acctReq struct {
-	f    func(*Account)
-	done chan struct{}
-	name string
-}
-
-type acctHandler func(*Account)
-
 type LoginState struct {
 	Contextified
 	account   *Account
 	loginReqs chan loginReq
 	acctReqs  chan acctReq
-	acctAv    chan *Account
-	acctAvMu  sync.Mutex
+}
+
+type LoginContext interface {
+	LoggedInLoad() (bool, error)
+	CreateStreamCache(tsec *triplesec.Cipher, pps PassphraseStream)
+	CreateStreamCacheViaStretch(passphrase string) error
+	PassphraseStreamCache() *PassphraseStreamCache
+	ClearStreamCache()
+	CreateLoginSessionWithSalt(emailOrUsername string, salt []byte) error
+	LoadLoginSession(emailOrUsername string) error
+	LoginSession() *LoginSession
+	LocalSession() *Session
+	EnsureUsername(username string)
+	SaveState(sessionID, csrf, username string, uid UID) error
+	Keyring() (*SKBKeyringFile, error)
+	LockedLocalSecretKey(ska SecretKeyArg) *SKB
+	SecretSyncer() *SecretSyncer
+	RunSecretSyncer(uid *UID) error
+	Logout() error
+}
+
+type loginHandler func(LoginContext) error
+type acctHandler func(*Account)
+
+type loginReq struct {
+	f    loginHandler
+	res  chan error
+	name string
+}
+
+type acctReq struct {
+	f    acctHandler
+	done chan struct{}
+	name string
 }
 
 type loginAPIResult struct {
@@ -49,43 +69,19 @@ func NewLoginState(g *GlobalContext) *LoginState {
 		account:      NewAccount(g),
 		loginReqs:    make(chan loginReq),
 		acctReqs:     make(chan acctReq),
-		acctAv:       make(chan *Account),
 	}
-	close(res.acctAv)
-	go res.loginRequests()
-	go res.acctRequests()
+	// go res.loginRequests()
+	// go res.acctRequests()
+	go res.requests()
 	return res
-}
-
-// SetSignupRes should only be called by the signup engine, and
-// within an ExternalFunc handler.
-func (s *LoginState) SetSignupRes(sessionID, csrfToken, username string, uid UID, salt []byte) error {
-	var err error
-	s.Account(func(a *Account) {
-		err = a.LocalSession().Load()
-		if err != nil {
-			return
-		}
-		err = a.CreateLoginSessionWithSalt(username, salt)
-	}, "SetSignupRes - LocalSession Load, CreateLoginSession")
-	if err != nil {
-		return err
-	}
-
-	return s.saveLoginState(&loginAPIResult{
-		sessionID: sessionID,
-		csrfToken: csrfToken,
-		username:  username,
-		uid:       uid,
-	})
 }
 
 func (s *LoginState) LoginWithPrompt(username string, loginUI LoginUI, secretUI SecretUI) (err error) {
 	s.G().Log.Debug("+ LoginWithPrompt(%s) called", username)
 	defer func() { s.G().Log.Debug("- LoginWithPrompt -> %s", ErrToOk(err)) }()
 
-	err = s.loginHandle(func() error {
-		return s.loginWithPromptHelper(username, loginUI, secretUI, false)
+	err = s.loginHandle(func(lctx LoginContext) error {
+		return s.loginWithPromptHelper(lctx, username, loginUI, secretUI, false)
 	}, "loginWithPromptHelper")
 	return
 }
@@ -94,8 +90,8 @@ func (s *LoginState) LoginWithStoredSecret(username string) (err error) {
 	s.G().Log.Debug("+ LoginWithStoredSecret(%s) called", username)
 	defer func() { s.G().Log.Debug("- LoginWithStoredSecret -> %s", ErrToOk(err)) }()
 
-	err = s.loginHandle(func() error {
-		return s.loginWithStoredSecret(username)
+	err = s.loginHandle(func(lctx LoginContext) error {
+		return s.loginWithStoredSecret(lctx, username)
 	}, "loginWithStoredSecret")
 	return
 }
@@ -104,15 +100,15 @@ func (s *LoginState) LoginWithPassphrase(username, passphrase string, storeSecre
 	s.G().Log.Debug("+ LoginWithPassphrase(%s) called", username)
 	defer func() { s.G().Log.Debug("- LoginWithPassphrase -> %s", ErrToOk(err)) }()
 
-	err = s.loginHandle(func() error {
-		return s.loginWithPassphrase(username, passphrase, storeSecret)
+	err = s.loginHandle(func(lctx LoginContext) error {
+		return s.loginWithPassphrase(lctx, username, passphrase, storeSecret)
 	}, "loginWithPassphrase")
 	return
 }
 
 func (s *LoginState) Logout() error {
-	return s.loginHandle(func() error {
-		return s.logout()
+	return s.loginHandle(func(a LoginContext) error {
+		return s.logout(a)
 	}, "logout")
 }
 
@@ -120,7 +116,7 @@ func (s *LoginState) Logout() error {
 // function outside of LoginState.  The current use case is
 // for signup, so that no logins/logouts happen while a signup is
 // happening.
-func (s *LoginState) ExternalFunc(f func() error, name string) error {
+func (s *LoginState) ExternalFunc(f loginHandler, name string) error {
 	return s.loginHandle(f, name)
 }
 
@@ -178,31 +174,25 @@ func (s *LoginState) GetVerifiedTriplesec(ui SecretUI) (ret *triplesec.Cipher, e
 	return
 }
 
-func (s *LoginState) computeLoginPw() (macSum []byte, err error) {
-	s.Account(func(a *Account) {
-		loginSession, e := a.LoginSession().Session()
-		if e != nil {
-			err = e
-			return
-		}
-		if loginSession == nil {
-			err = fmt.Errorf("nil login session")
-			return
-		}
-		sec := a.PassphraseStreamCache().PassphraseStream().PWHash()
-		mac := hmac.New(sha512.New, sec)
-		mac.Write(loginSession)
-		macSum = mac.Sum(nil)
-	}, "LoginState - computeLoginPw")
+func (s *LoginState) computeLoginPw(lctx LoginContext) (macSum []byte, err error) {
+	loginSession, e := lctx.LoginSession().Session()
+	if e != nil {
+		err = e
+		return
+	}
+	if loginSession == nil {
+		err = fmt.Errorf("nil login session")
+		return
+	}
+	sec := lctx.PassphraseStreamCache().PassphraseStream().PWHash()
+	mac := hmac.New(sha512.New, sec)
+	mac.Write(loginSession)
+	macSum = mac.Sum(nil)
 	return
 }
 
-func (s *LoginState) postLoginToServer(eOu string, lgpw []byte) (*loginAPIResult, error) {
-	var loginSessionEncoded string
-	var err error
-	s.LoginSession(func(ls *LoginSession) {
-		loginSessionEncoded, err = ls.SessionEncoded()
-	}, "LoginState - postLoginToServer")
+func (s *LoginState) postLoginToServer(lctx LoginContext, eOu string, lgpw []byte) (*loginAPIResult, error) {
+	loginSessionEncoded, err := lctx.LoginSession().SessionEncoded()
 	if err != nil {
 		return nil, err
 	}
@@ -245,41 +235,8 @@ func (s *LoginState) postLoginToServer(eOu string, lgpw []byte) (*loginAPIResult
 	return &loginAPIResult{sessionId, csrfToken, *uid, uname}, nil
 }
 
-func (s *LoginState) saveLoginState(res *loginAPIResult) error {
-	cw := s.G().Env.GetConfigWriter()
-	if cw == nil {
-		return NoConfigWriterError{}
-	}
-
-	var err error
-	s.Account(func(a *Account) {
-		if err = a.LoginSession().Clear(); err != nil {
-			return
-		}
-		var salt []byte
-		salt, err = a.LoginSession().Salt()
-		if err != nil {
-			return
-		}
-		if err = cw.SetUserConfig(NewUserConfig(res.uid, res.username, salt, nil), false); err != nil {
-			return
-		}
-		if err = cw.Write(); err != nil {
-			return
-		}
-		a.LocalSession().SetLoggedIn(res.sessionID, res.csrfToken, res.username, res.uid)
-		if err = a.LocalSession().Write(); err != nil {
-			return
-		}
-
-		// Set up our SecretSyncer to work on the logged in user from here on
-		// out.
-		// (note: I really don't think this matters since RunSyncer(SecretSyncer, uid)
-		// is always called with a uid... --PC)
-		a.SecretSyncer().SetUID(&res.uid)
-	}, "LoginState - saveLoginState")
-
-	return err
+func (s *LoginState) saveLoginState(lctx LoginContext, res *loginAPIResult) error {
+	return lctx.SaveState(res.sessionID, res.csrfToken, res.username, res.uid)
 }
 
 func (r PostAuthProofRes) loginResult() (ret *loginAPIResult, err error) {
@@ -302,7 +259,7 @@ type getSecretKeyFn func(*Keyrings, *User) (GenericKey, error)
 
 // pubkeyLoginHelper looks for a locally available private key and
 // tries to establish a session via public key signature.
-func (s *LoginState) pubkeyLoginHelper(username string, getSecretKeyFn getSecretKeyFn) (err error) {
+func (s *LoginState) pubkeyLoginHelper(lctx LoginContext, username string, getSecretKeyFn getSecretKeyFn) (err error) {
 	var key GenericKey
 	var me *User
 	var proof *jsonw.Wrapper
@@ -312,9 +269,7 @@ func (s *LoginState) pubkeyLoginHelper(username string, getSecretKeyFn getSecret
 	s.G().Log.Debug("+ pubkeyLoginHelper()")
 	defer func() {
 		if err != nil {
-			s.SecretSyncer(func(ss *SecretSyncer) {
-				ss.Clear()
-			}, "pubkeyLoginHelper - SecretSyncer Clear")
+			lctx.SecretSyncer().Clear()
 		}
 		s.G().Log.Debug("- pubkeyLoginHelper() -> %s", ErrToOk(err))
 	}()
@@ -324,19 +279,15 @@ func (s *LoginState) pubkeyLoginHelper(username string, getSecretKeyFn getSecret
 		return
 	}
 
-	if me, err = LoadUser(LoadUserArg{Name: username}); err != nil {
+	if me, err = LoadUser(LoadUserArg{Name: username, LoginContext: lctx}); err != nil {
 		return
 	}
 
-	var loginSessionEncoded string
-	s.Account(func(a *Account) {
-		// Need the loginSession; the salt doesn't really matter here.
-		if err = a.LoadLoginSession(username); err != nil {
-			return
-		}
+	if err = lctx.LoadLoginSession(username); err != nil {
+		return
+	}
 
-		loginSessionEncoded, err = a.LoginSession().SessionEncoded()
-	}, "LoginState - pubkeyLoginHelper")
+	loginSessionEncoded, err := lctx.LoginSession().SessionEncoded()
 	if err != nil {
 		return err
 	}
@@ -367,23 +318,20 @@ func (s *LoginState) pubkeyLoginHelper(username string, getSecretKeyFn getSecret
 		return err
 	}
 
-	return s.saveLoginState(res)
+	return s.saveLoginState(lctx, res)
 }
 
-func (s *LoginState) checkLoggedIn(username string, force bool) (loggedIn bool, err error) {
+func (s *LoginState) checkLoggedIn(lctx LoginContext, username string, force bool) (loggedIn bool, err error) {
 	s.G().Log.Debug("+ checkedLoggedIn()")
 	defer func() { s.G().Log.Debug("- checkedLoggedIn() -> %t, %s", loggedIn, ErrToOk(err)) }()
 
 	var loggedInTmp bool
-	if loggedInTmp, err = s.LoggedInLoad(); err != nil {
+	if loggedInTmp, err = lctx.LoggedInLoad(); err != nil {
 		s.G().Log.Debug("| Session failed to load")
 		return
 	}
 
-	var un *string
-	s.LocalSession(func(ls *Session) {
-		un = ls.GetUsername()
-	}, "checkLoggedIn - GetUsername")
+	un := lctx.LocalSession().GetUsername()
 	if loggedInTmp && len(username) > 0 && un != nil && username != *un {
 		err = LoggedInError{}
 		return
@@ -396,7 +344,7 @@ func (s *LoginState) checkLoggedIn(username string, force bool) (loggedIn bool, 
 	return
 }
 
-func (s *LoginState) switchUser(username string) error {
+func (s *LoginState) switchUser(lctx LoginContext, username string) error {
 	if len(username) == 0 {
 		// this isn't an error
 		return nil
@@ -410,17 +358,15 @@ func (s *LoginState) switchUser(username string) error {
 		return nil
 	}
 
-	s.Account(func(a *Account) {
-		a.EnsureUsername(username)
-	}, "LoginState - switchUser")
+	lctx.EnsureUsername(username)
 
 	s.G().Log.Debug("| Successfully switched user to %s", username)
 	return nil
 }
 
 // Like pubkeyLoginHelper, but ignores most errors.
-func (s *LoginState) tryPubkeyLoginHelper(username string, getSecretKeyFn getSecretKeyFn) (loggedIn bool, err error) {
-	if err = s.pubkeyLoginHelper(username, getSecretKeyFn); err == nil {
+func (s *LoginState) tryPubkeyLoginHelper(lctx LoginContext, username string, getSecretKeyFn getSecretKeyFn) (loggedIn bool, err error) {
+	if err = s.pubkeyLoginHelper(lctx, username, getSecretKeyFn); err == nil {
 		s.G().Log.Debug("| Pubkey login succeeded")
 		loggedIn = true
 		return
@@ -436,11 +382,11 @@ func (s *LoginState) tryPubkeyLoginHelper(username string, getSecretKeyFn getSec
 	return
 }
 
-func (s *LoginState) tryPassphrasePromptLogin(username string, secretUI SecretUI) (err error) {
+func (s *LoginState) tryPassphrasePromptLogin(lctx LoginContext, username string, secretUI SecretUI) (err error) {
 	retryMsg := ""
 	retryCount := 3
 	for i := 0; i < retryCount; i++ {
-		err = s.passphraseLogin(username, "", secretUI, retryMsg)
+		err = s.passphraseLogin(lctx, username, "", secretUI, retryMsg)
 
 		if err == nil {
 			return
@@ -455,7 +401,7 @@ func (s *LoginState) tryPassphrasePromptLogin(username string, secretUI SecretUI
 	return
 }
 
-func (s *LoginState) getEmailOrUsername(username *string, loginUI LoginUI) (err error) {
+func (s *LoginState) getEmailOrUsername(lctx LoginContext, username *string, loginUI LoginUI) (err error) {
 	if len(*username) != 0 {
 		return
 	}
@@ -482,57 +428,44 @@ func (s *LoginState) getEmailOrUsername(username *string, loginUI LoginUI) (err 
 
 	// username set, so redo config
 	s.G().ConfigureConfig()
-	return s.switchUser(*username)
+	return s.switchUser(lctx, *username)
 }
 
-func (s *LoginState) passphraseLogin(username, passphrase string, secretUI SecretUI, retryMsg string) (err error) {
+func (s *LoginState) passphraseLogin(lctx LoginContext, username, passphrase string, secretUI SecretUI, retryMsg string) (err error) {
 	s.G().Log.Debug("+ LoginState.passphraseLogin (username=%s)", username)
 	defer func() {
 		s.G().Log.Debug("- LoginState.passphraseLogin -> %s", ErrToOk(err))
 	}()
 
-	s.Account(func(a *Account) {
-		if err = a.LoadLoginSession(username); err != nil {
-			return
-		}
-	}, "LoginState - passphraseLogin - LoadLoginSession")
+	if err = lctx.LoadLoginSession(username); err != nil {
+		return
+	}
+
+	if err = s.stretchPassphraseIfNecessary(lctx, username, passphrase, secretUI, retryMsg); err != nil {
+		return err
+	}
+
+	lgpw, err := s.computeLoginPw(lctx)
 	if err != nil {
 		return
 	}
 
-	if err = s.stretchPassphraseIfNecessary(username, passphrase, secretUI, retryMsg); err != nil {
+	res, err := s.postLoginToServer(lctx, username, lgpw)
+	if err != nil {
+		lctx.ClearStreamCache()
 		return err
 	}
 
-	lgpw, err := s.computeLoginPw()
-	if err != nil {
-		return
-	}
-
-	res, err := s.postLoginToServer(username, lgpw)
-	if err != nil {
-		s.Account(func(a *Account) {
-			a.ClearStreamCache()
-		}, "LoginState - passphraseLogin - clearstreamcache")
-		return err
-	}
-
-	if err := s.saveLoginState(res); err != nil {
+	if err := s.saveLoginState(lctx, res); err != nil {
 		return err
 	}
 
 	return nil
 }
 
-func (s *LoginState) stretchPassphraseIfNecessary(un string, pp string, ui SecretUI, retry string) error {
-	var cached bool
-	s.PassphraseStreamCache(func(sc *PassphraseStreamCache) {
-		if sc.Valid() {
-			// already have stretched passphrase cached
-			cached = true
-		}
-	}, "LoginState - stretchPassphraseIfNecessary")
-	if cached {
+func (s *LoginState) stretchPassphraseIfNecessary(lctx LoginContext, un string, pp string, ui SecretUI, retry string) error {
+	if lctx.PassphraseStreamCache().Valid() {
+		// already have stretched passphrase cached
 		return nil
 	}
 
@@ -552,50 +485,47 @@ func (s *LoginState) stretchPassphraseIfNecessary(un string, pp string, ui Secre
 		}
 	}
 
-	var err error
-	s.Account(func(a *Account) {
-		err = a.CreateStreamCacheViaStretch(pp)
-	}, "LoginState - stretchPPIfNec - CreateStreamCacheViaStretch")
-	return err
+	return lctx.CreateStreamCacheViaStretch(pp)
 }
 
 func (s *LoginState) verifyPassphrase(ui SecretUI) error {
-	return s.loginHandle(func() error {
-		return s.loginWithPromptHelper(s.G().Env.GetUsername(), nil, ui, true)
+	return s.loginHandle(func(lctx LoginContext) error {
+		return s.loginWithPromptHelper(lctx, s.G().Env.GetUsername(), nil, ui, true)
 	}, "LoginState - verifyPassphrase")
 }
 
-func (s *LoginState) loginWithPromptHelper(username string, loginUI LoginUI, secretUI SecretUI, force bool) (err error) {
+func (s *LoginState) loginWithPromptHelper(lctx LoginContext, username string, loginUI LoginUI, secretUI SecretUI, force bool) (err error) {
 	var loggedIn bool
-	if loggedIn, err = s.checkLoggedIn(username, force); err != nil || loggedIn {
+	if loggedIn, err = s.checkLoggedIn(lctx, username, force); err != nil || loggedIn {
 		return
 	}
 
-	if err = s.switchUser(username); err != nil {
+	if err = s.switchUser(lctx, username); err != nil {
 		return
 	}
 
-	if err = s.getEmailOrUsername(&username, loginUI); err != nil {
+	if err = s.getEmailOrUsername(lctx, &username, loginUI); err != nil {
 		return
 	}
 
 	getSecretKeyFn := func(keyrings *Keyrings, me *User) (GenericKey, error) {
 		ska := SecretKeyArg{
-			Me:      me,
-			KeyType: AnySecretKeyType,
+			Me:           me,
+			KeyType:      AnySecretKeyType,
+			LoginContext: lctx,
 		}
 		key, _, err := keyrings.GetSecretKeyWithPrompt(ska, secretUI, "Login")
 		return key, err
 	}
 
-	if loggedIn, err = s.tryPubkeyLoginHelper(username, getSecretKeyFn); err != nil || loggedIn {
+	if loggedIn, err = s.tryPubkeyLoginHelper(lctx, username, getSecretKeyFn); err != nil || loggedIn {
 		return
 	}
 
-	return s.tryPassphrasePromptLogin(username, secretUI)
+	return s.tryPassphrasePromptLogin(lctx, username, secretUI)
 }
 
-func (s *LoginState) loginHandle(f func() error, name string) error {
+func (s *LoginState) loginHandle(f loginHandler, name string) error {
 	req := loginReq{
 		f:    f,
 		res:  make(chan error),
@@ -619,7 +549,15 @@ func (s *LoginState) acctHandle(f acctHandler, name string) {
 		name: name,
 	}
 	s.G().Log.Debug("+ send acct request %q", name)
-	s.acctReqs <- req
+	select {
+	case s.acctReqs <- req:
+		// this is just during debugging:
+	case <-time.After(3 * time.Second):
+		s.G().Log.Warning("timed out sending acct request %q", name)
+		debug.PrintStack()
+		os.Exit(1)
+	}
+
 	s.G().Log.Debug("- send acct request %q", name)
 
 	s.G().Log.Debug("+ wait acct request %q", name)
@@ -629,10 +567,39 @@ func (s *LoginState) acctHandle(f acctHandler, name string) {
 	return
 }
 
+func (s *LoginState) requests() {
+	s.G().Log.Debug("- LoginState: start processing requests")
+	for {
+		select {
+		case req, ok := <-s.loginReqs:
+			if ok {
+				s.G().Log.Debug("+ login request %s", req.name)
+				req.res <- req.f(s.account)
+				s.G().Log.Debug("- login request %s", req.name)
+			} else {
+				s.loginReqs = nil
+			}
+		case req, ok := <-s.acctReqs:
+			if ok {
+				s.G().Log.Debug("+ account request %s", req.name)
+				req.f(s.account)
+				close(req.done)
+				s.G().Log.Debug("- account request %s", req.name)
+			} else {
+				s.acctReqs = nil
+			}
+		}
+		if s.loginReqs == nil && s.acctReqs == nil {
+			break
+		}
+	}
+	s.G().Log.Debug("- LoginState: done processing requests")
+}
+
 func (s *LoginState) loginRequests() {
 	for req := range s.loginReqs {
 		s.G().Log.Debug("+ login request %s", req.name)
-		req.res <- req.f()
+		req.res <- req.f(s.account)
 		s.G().Log.Debug("- login request %s", req.name)
 	}
 }
@@ -646,14 +613,14 @@ func (s *LoginState) acctRequests() {
 	}
 }
 
-func (s *LoginState) loginWithStoredSecret(username string) error {
-	if loggedIn, err := s.checkLoggedIn(username, false); err != nil {
+func (s *LoginState) loginWithStoredSecret(lctx LoginContext, username string) error {
+	if loggedIn, err := s.checkLoggedIn(lctx, username, false); err != nil {
 		return err
 	} else if loggedIn {
 		return nil
 	}
 
-	if err := s.switchUser(username); err != nil {
+	if err := s.switchUser(lctx, username); err != nil {
 		return err
 	}
 
@@ -661,17 +628,17 @@ func (s *LoginState) loginWithStoredSecret(username string) error {
 		secretRetriever := NewSecretStore(me.GetName())
 		return keyrings.GetSecretKeyWithStoredSecret(me, secretRetriever)
 	}
-	return s.pubkeyLoginHelper(username, getSecretKeyFn)
+	return s.pubkeyLoginHelper(lctx, username, getSecretKeyFn)
 }
 
-func (s *LoginState) loginWithPassphrase(username, passphrase string, storeSecret bool) error {
-	if loggedIn, err := s.checkLoggedIn(username, false); err != nil {
+func (s *LoginState) loginWithPassphrase(lctx LoginContext, username, passphrase string, storeSecret bool) error {
+	if loggedIn, err := s.checkLoggedIn(lctx, username, false); err != nil {
 		return err
 	} else if loggedIn {
 		return nil
 	}
 
-	if err := s.switchUser(username); err != nil {
+	if err := s.switchUser(lctx, username); err != nil {
 		return err
 	}
 
@@ -682,20 +649,18 @@ func (s *LoginState) loginWithPassphrase(username, passphrase string, storeSecre
 		}
 		return keyrings.GetSecretKeyWithPassphrase(me, passphrase, secretStorer)
 	}
-	if loggedIn, err := s.tryPubkeyLoginHelper(username, getSecretKeyFn); err != nil {
+	if loggedIn, err := s.tryPubkeyLoginHelper(lctx, username, getSecretKeyFn); err != nil {
 		return err
 	} else if loggedIn {
 		return nil
 	}
 
-	return s.passphraseLogin(username, passphrase, nil, "")
+	return s.passphraseLogin(lctx, username, passphrase, nil, "")
 }
 
-func (s *LoginState) logout() error {
+func (s *LoginState) logout(a LoginContext) error {
 	s.G().Log.Debug("+ Logout called")
-	s.Account(func(a *Account) {
-		a.Logout()
-	}, "LoginState - logout")
+	a.Logout()
 	s.G().Log.Debug("- Logout called")
 	return nil
 }

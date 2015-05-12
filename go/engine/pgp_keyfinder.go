@@ -55,7 +55,7 @@ func (e *PGPKeyfinder) SubConsumers() []libkb.UIConsumer {
 
 // Run starts the engine.
 func (e *PGPKeyfinder) Run(ctx *Context) error {
-	e.setup()
+	e.setup(ctx)
 	e.verifyUsers(ctx)
 	e.loadKeys(ctx)
 	return e.runerr
@@ -67,12 +67,12 @@ func (e *PGPKeyfinder) UsersPlusKeys() []*UserPlusKeys {
 	return e.uplus
 }
 
-func (e *PGPKeyfinder) setup() {
+func (e *PGPKeyfinder) setup(ctx *Context) {
 	if e.runerr != nil {
 		return
 	}
 
-	ok, err := IsLoggedIn(e.G())
+	ok, err := IsLoggedIn(e, ctx)
 	if err != nil {
 		e.runerr = err
 		return

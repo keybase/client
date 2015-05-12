@@ -140,6 +140,7 @@ type LoadUserArg struct {
 	Self              bool
 	ForceReload       bool
 	AllKeys           bool
+	LoginContext      LoginContext
 	Contextified
 }
 
@@ -560,6 +561,13 @@ func (u *User) VerifySelfSigByKey() (ret bool) {
 	return
 }
 
+func myUID(g *GlobalContext, lctx LoginContext) *UID {
+	if lctx != nil {
+		return lctx.LocalSession().GetUID()
+	}
+	return g.GetMyUID()
+}
+
 func LoadUser(arg LoadUserArg) (ret *User, err error) {
 
 	G.Log.Debug("LoadUser: %+v", arg)
@@ -581,7 +589,7 @@ func LoadUser(arg LoadUserArg) (ret *User, err error) {
 		err = fmt.Errorf("If loading self, can't provide a username")
 	} else if !arg.Self {
 		// noop
-	} else if arg.Uid = G.GetMyUID(); arg.Uid == nil {
+	} else if arg.Uid = myUID(G, arg.LoginContext); arg.Uid == nil {
 		arg.Name = G.Env.GetUsername()
 	}
 
@@ -610,7 +618,7 @@ func LoadUser(arg LoadUserArg) (ret *User, err error) {
 	}
 
 	if !arg.Self {
-		if my_uid := G.GetMyUID(); my_uid != nil && arg.Uid != nil && my_uid.Eq(*arg.Uid) {
+		if my_uid := myUID(G, arg.LoginContext); my_uid != nil && arg.Uid != nil && my_uid.Eq(*arg.Uid) {
 			arg.Self = true
 		}
 	}
