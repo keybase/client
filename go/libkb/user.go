@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"io"
 	"strings"
-	"sync"
 
 	keybase1 "github.com/keybase/client/protocol/go"
 	jsonw "github.com/keybase/go-jsonw"
@@ -110,7 +109,6 @@ type User struct {
 	pictures   *jsonw.Wrapper
 
 	// Processed fields
-	fieldMu     sync.RWMutex
 	id          UID
 	name        string
 	sigChainMem *SigChain
@@ -256,9 +254,7 @@ func (u *User) GetComputedKeyFamily() (ret *ComputedKeyFamily) {
 		if cki == nil {
 			return nil
 		}
-		u.fieldMu.RLock()
 		ret = &ComputedKeyFamily{cki: cki, kf: u.keyFamily, Contextified: u.Contextified}
-		u.fieldMu.RUnlock()
 	}
 	return
 }
@@ -399,9 +395,7 @@ func (u *User) StoreSigChain() error {
 
 func (u *User) LoadSigChains(allKeys bool, f *MerkleUserLeaf) (err error) {
 	sc := u.sigChain()
-	u.fieldMu.Lock()
 	u.sigChainMem, err = LoadSigChain(u, allKeys, f, PublicChain, sc, u.G())
-	u.fieldMu.Unlock()
 
 	// Eventually load the others, but for now, this one is good enough
 	return err
@@ -532,14 +526,10 @@ func (u *User) GetEldestFOKID() (ret *FOKID) {
 }
 
 func (u *User) IdTable() *IdentityTable {
-	u.fieldMu.RLock()
-	defer u.fieldMu.RUnlock()
 	return u.idTable
 }
 
 func (u *User) sigChain() *SigChain {
-	u.fieldMu.RLock()
-	defer u.fieldMu.RUnlock()
 	return u.sigChainMem
 }
 
@@ -548,9 +538,7 @@ func (u *User) MakeIdTable() (err error) {
 		err = NoKeyError{"Expected a key but didn't find one"}
 	} else {
 		idt := NewIdentityTable(*fokid, u.sigChain(), u.sigHints)
-		u.fieldMu.Lock()
 		u.idTable = idt
-		u.fieldMu.Unlock()
 	}
 	return
 }
@@ -600,9 +588,7 @@ func LoadUser(arg LoadUserArg) (ret *User, err error) {
 	// Whatever the reply is, pass along our desired global context
 	defer func() {
 		if ret != nil {
-			ret.fieldMu.Lock()
 			ret.SetGlobalContext(arg.G())
-			ret.fieldMu.Unlock()
 		}
 	}()
 
