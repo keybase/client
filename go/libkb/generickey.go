@@ -28,9 +28,17 @@ type GenericKey interface {
 	GetKid() KID
 	GetFingerprintP() *PgpFingerprint
 	GetAlgoType() AlgoType
+
 	SignToString([]byte) (string, *SigId, error)
 	VerifyString(string, []byte) (*SigId, error)
 	VerifyStringAndExtract(string) ([]byte, *SigId, error)
+
+	// Like the Sign/Verify functions above, but the signature
+	// is an arbitrary byte string.
+	SignToBytes([]byte) ([]byte, *SigId, error)
+	VerifyBytes([]byte, []byte) (*SigId, error)
+	VerifyBytesAndExtract([]byte) ([]byte, *SigId, error)
+
 	ToSKB(ts *triplesec.Cipher) (*SKB, error)
 	ToLksSKB(lks *LKSec) (*SKB, error)
 	VerboseDescription() string
