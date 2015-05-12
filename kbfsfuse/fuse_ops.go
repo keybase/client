@@ -1,8 +1,6 @@
 package main
 
 import (
-	"sort"
-	"strings"
 	"sync"
 	"syscall"
 	"time"
@@ -12,6 +10,7 @@ import (
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/kbfs/libkbfs"
 	"github.com/keybase/kbfs/util"
+	"golang.org/x/net/context"
 )
 
 type StatusChan chan fuse.Status
@@ -202,19 +201,6 @@ func (f *FuseOps) LookupInDir(dNode *FuseNode, name string) (
 	return node, fuse.OK
 }
 
-func (f *FuseOps) resolveName(input string) (libkb.UID, error) {
-	if user, err := f.config.KBPKI().ResolveAssertion(input); err != nil {
-		return libkb.UID{0}, err
-	} else {
-		return user.GetUID(), nil
-	}
-}
-
-type resolveAnswer struct {
-	uid libkb.UID
-	err error
-}
-
 // TODO: In the two functions below, we set NeedUpdate to true all the
 // way to the root because the BlockPointer and Size fields are
 // changed for the whole path. However, GetAttr() doesn't use
@@ -317,84 +303,6 @@ func (f *FuseOps) BatchChanges(dir libkbfs.DirId, paths []libkbfs.Path) {
 	})
 }
 
-func (f *FuseOps) resolve(name string, c chan *resolveAnswer) {
-	uid, err := f.resolveName(name)
-	answer := &resolveAnswer{uid, err}
-	c <- answer
-}
-
-func process(answer *resolveAnswer, users *libkbfs.UIDList,
-	usedNames *map[libkb.UID]bool) error {
-	if answer.err != nil {
-		return answer.err
-	}
-	if !(*usedNames)[answer.uid] {
-		*users = append(*users, answer.uid)
-		(*usedNames)[answer.uid] = true
-	}
-	return nil
-}
-
-func (f *FuseOps) resolveNames(name string) (*libkbfs.DirHandle, error) {
-	splitNames := strings.Split(name, libkbfs.ReaderSep)
-	if len(splitNames) > 2 {
-		return nil, &libkbfs.BadPathError{name}
-	}
-	writerNames := strings.Split(splitNames[0], ",")
-	var readerNames []string
-	if len(splitNames) > 1 {
-		readerNames = strings.Split(splitNames[1], ",")
-	} else {
-		readerNames = make([]string, 0, 0)
-	}
-	d := &libkbfs.DirHandle{
-		Writers: make(libkbfs.UIDList, 0, len(writerNames)),
-		Readers: make(libkbfs.UIDList, 0, len(readerNames)),
-	}
-
-	// parallelize the resolutions for each user
-	wc := make(chan *resolveAnswer, len(writerNames))
-	rc := make(chan *resolveAnswer, len(readerNames))
-	for _, user := range writerNames {
-		go f.resolve(user, wc)
-	}
-
-	for _, user := range readerNames {
-		go f.resolve(user, rc)
-	}
-
-	usedWNames := make(map[libkb.UID]bool)
-	usedRNames := make(map[libkb.UID]bool)
-	for i := 0; i < len(writerNames)+len(readerNames); i++ {
-		select {
-		case answer := <-wc:
-			if err := process(answer, &d.Writers, &usedWNames); err != nil {
-				return nil, err
-			}
-		case answer := <-rc:
-			if err := process(answer, &d.Readers, &usedRNames); err != nil {
-				return nil, err
-			}
-		}
-	}
-
-	if len(readerNames) > 0 {
-		// make sure no writers appear as readers, they are already
-		// implied readers
-		newReaders := make(libkbfs.UIDList, 0, len(readerNames))
-		for _, uid := range d.Readers {
-			if !usedWNames[uid] {
-				newReaders = append(newReaders, uid)
-			}
-		}
-		d.Readers = newReaders
-	}
-
-	sort.Sort(d.Writers)
-	sort.Sort(d.Readers)
-	return d, nil
-}
-
 func (f *FuseOps) addTopNodeLocked(
 	name string, id libkbfs.DirId, fNode *FuseNode) {
 	f.topNodes[name] = fNode
@@ -416,7 +324,8 @@ func (f *FuseOps) LookupInRootByName(rNode *FuseNode, name string) (
 		}
 
 		// try to resolve the user name; if it works create a node
-		dirHandle, err := f.resolveNames(name)
+		ctx := context.TODO()
+		dirHandle, err := libkbfs.ParseDirHandle(ctx, f.config, name)
 		if err != nil {
 			return nil, f.TranslateError(err)
 		} else if dirHandle.IsPublic() {

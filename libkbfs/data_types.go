@@ -11,6 +11,7 @@ import (
 
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/protocol/go"
+	"golang.org/x/net/context"
 )
 
 const (
@@ -99,27 +100,11 @@ func (p BlockPointer) IsInitialized() bool {
 	return p.Id != NullBlockId
 }
 
-type UIDList []libkb.UID
-
-func (u UIDList) Len() int {
-	return len(u)
-}
-
-func (u UIDList) Less(i, j int) bool {
-	return bytes.Compare(u[i][:], u[j][:]) < 0
-}
-
-func (u UIDList) Swap(i, j int) {
-	tmp := u[i]
-	u[i] = u[j]
-	u[j] = tmp
-}
-
 // DirHandle uniquely identifies top-level directories by readers and
 // writers.  It is go-routine-safe.
 type DirHandle struct {
-	Readers     UIDList `codec:"r,omitempty"`
-	Writers     UIDList `codec:"w,omitempty"`
+	Readers     []libkb.UID `codec:"r,omitempty"`
+	Writers     []libkb.UID `codec:"w,omitempty"`
 	cachedName  string
 	cachedBytes []byte
 	cacheMutex  sync.Mutex // control access to the "cached" values
@@ -127,9 +112,95 @@ type DirHandle struct {
 
 func NewDirHandle() *DirHandle {
 	return &DirHandle{
-		Readers: make(UIDList, 0, 1),
-		Writers: make(UIDList, 0, 1),
+		Readers: make([]libkb.UID, 0, 1),
+		Writers: make([]libkb.UID, 0, 1),
 	}
+}
+
+func resolveUser(ctx context.Context, config Config, name string, errCh chan<- error, results chan<- libkb.UID) {
+	// TODO ResolveAssertion should take ctx
+	user, err := config.KBPKI().ResolveAssertion(name)
+	if err != nil {
+		errCh <- err
+		return
+	}
+	uid := user.GetUID()
+	results <- uid
+}
+
+type uidList []libkb.UID
+
+func (u uidList) Len() int {
+	return len(u)
+}
+
+func (u uidList) Less(i, j int) bool {
+	return bytes.Compare(u[i][:], u[j][:]) < 0
+}
+
+func (u uidList) Swap(i, j int) {
+	tmp := u[i]
+	u[i] = u[j]
+	u[j] = tmp
+}
+
+func sortUIDS(m map[libkb.UID]struct{}) []libkb.UID {
+	var s []libkb.UID
+	for uid := range m {
+		s = append(s, uid)
+	}
+	sort.Sort(uidList(s))
+	return s
+}
+
+// ParseDirHandle parses a DirHandle from an encoded string. See
+// ToString for the opposite direction.
+func ParseDirHandle(ctx context.Context, config Config, name string) (*DirHandle, error) {
+	splitNames := strings.SplitN(name, ReaderSep, 3)
+	if len(splitNames) > 2 {
+		return nil, &BadPathError{name}
+	}
+	writerNames := strings.Split(splitNames[0], ",")
+	var readerNames []string
+	if len(splitNames) > 1 {
+		readerNames = strings.Split(splitNames[1], ",")
+	}
+
+	// parallelize the resolutions for each user
+	errCh := make(chan error, 1)
+	wc := make(chan libkb.UID, len(writerNames))
+	rc := make(chan libkb.UID, len(readerNames))
+	ctx, cancel := context.WithCancel(ctx)
+	defer cancel()
+	for _, user := range writerNames {
+		go resolveUser(ctx, config, user, errCh, wc)
+	}
+	for _, user := range readerNames {
+		go resolveUser(ctx, config, user, errCh, rc)
+	}
+
+	usedWNames := make(map[libkb.UID]struct{}, len(writerNames))
+	usedRNames := make(map[libkb.UID]struct{}, len(readerNames))
+	for i := 0; i < len(writerNames)+len(readerNames); i++ {
+		select {
+		case err := <-errCh:
+			return nil, err
+		case uid := <-wc:
+			usedWNames[uid] = struct{}{}
+		case uid := <-rc:
+			usedRNames[uid] = struct{}{}
+		}
+	}
+
+	for uid := range usedWNames {
+		delete(usedRNames, uid)
+	}
+
+	d := &DirHandle{
+		Writers: sortUIDS(usedWNames),
+		Readers: sortUIDS(usedRNames),
+	}
+	return d, nil
 }
 
 func (d *DirHandle) IsPublic() bool {
@@ -144,7 +215,7 @@ func (d *DirHandle) HasPublic() bool {
 	return len(d.Readers) == 0
 }
 
-func (d *DirHandle) findUserInList(user libkb.UID, users UIDList) bool {
+func (d *DirHandle) findUserInList(user libkb.UID, users []libkb.UID) bool {
 	// TODO: this could be more efficient with a cached map/set
 	for _, u := range users {
 		if u == user {
@@ -162,7 +233,7 @@ func (d *DirHandle) IsReader(user libkb.UID) bool {
 	return d.IsPublic() || d.findUserInList(user, d.Readers) || d.IsWriter(user)
 }
 
-func resolveUids(config Config, uids UIDList) string {
+func resolveUids(config Config, uids []libkb.UID) string {
 	names := make([]string, 0, len(uids))
 	// TODO: parallelize?
 	for _, uid := range uids {
@@ -460,8 +531,8 @@ func (md *RootMetadata) GetDirHandle() *DirHandle {
 			}
 		}
 	}
-	sort.Sort(h.Writers)
-	sort.Sort(h.Readers)
+	sort.Sort(uidList(h.Writers))
+	sort.Sort(uidList(h.Readers))
 	md.cachedDirHandle = h
 	return h
 }
