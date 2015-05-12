@@ -1074,3 +1074,18 @@ func (f *FuseFile) Flush() fuse.Status {
 	})
 	return <-statchan
 }
+
+func runHanwenFUSE(config *libkbfs.ConfigLocal, debug bool, mountpoint string) error {
+	root := NewFuseRoot(config)
+
+	server, _, err := nodefs.MountRoot(mountpoint, root, nil)
+	if err != nil {
+		return err
+	}
+
+	if debug {
+		server.SetDebug(true)
+	}
+	server.Serve()
+	return nil
+}

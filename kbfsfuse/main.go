@@ -10,7 +10,6 @@ import (
 	"os/signal"
 	"runtime/pprof"
 
-	"github.com/hanwen/go-fuse/fuse/nodefs"
 	"github.com/keybase/client/go/client"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/kbfs/libkbfs"
@@ -128,15 +127,7 @@ func main() {
 		log.Fatal("Usage:\n  kbfs [-client|-local] MOUNTPOINT")
 	}
 
-	root := NewFuseRoot(config)
-
-	server, _, err := nodefs.MountRoot(flag.Arg(0), root, nil)
-	if err != nil {
-		log.Fatalf("Mount fail: %v\n", err)
+	if err := runHanwenFUSE(config, *debug, flag.Arg(0)); err != nil {
+		log.Fatalf("error serving filesystem: %v", err)
 	}
-
-	if *debug {
-		server.SetDebug(true)
-	}
-	server.Serve()
 }
