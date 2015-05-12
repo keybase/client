@@ -336,17 +336,17 @@ func (s NaclSig) Verify() (err error) {
 	return
 }
 
-func (k NaclDHKeyPair) Verify(armored string, expected []byte) (sigId *SigId, err error) {
+func (k NaclDHKeyPair) VerifyString(armored string, expected []byte) (sigId *SigId, err error) {
 	err = KeyCannotSignError{}
 	return
 }
 
-func (k NaclDHKeyPair) VerifyAndExtract(armored string) (payload []byte, sigId *SigId, err error) {
+func (k NaclDHKeyPair) VerifyStringAndExtract(armored string) (payload []byte, sigId *SigId, err error) {
 	err = KeyCannotSignError{}
 	return
 }
 
-func (k NaclSigningKeyPair) VerifyAndExtract(armored string) (payload []byte, sigId *SigId, err error) {
+func (k NaclSigningKeyPair) VerifyStringAndExtract(armored string) (payload []byte, sigId *SigId, err error) {
 	var packet *KeybasePacket
 	var sig *NaclSig
 	var ok bool
@@ -376,9 +376,9 @@ func (k NaclSigningKeyPair) VerifyAndExtract(armored string) (payload []byte, si
 	return
 }
 
-func (k NaclSigningKeyPair) Verify(armored string, expected []byte) (sigId *SigId, err error) {
+func (k NaclSigningKeyPair) VerifyString(armored string, expected []byte) (sigId *SigId, err error) {
 	var received []byte
-	received, sigId, err = k.VerifyAndExtract(armored)
+	received, sigId, err = k.VerifyStringAndExtract(armored)
 	if !FastByteArrayEq(received, expected) {
 		err = BadSigError{"wrong payload"}
 		return

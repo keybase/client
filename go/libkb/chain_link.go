@@ -428,7 +428,7 @@ func (c *ChainLink) VerifySigWithKeyFamily(ckf ComputedKeyFamily) (cached bool, 
 		return
 	}
 
-	if sigId, err = key.Verify(c.unpacked.sig, []byte(c.unpacked.payloadJsonStr)); err != nil {
+	if sigId, err = key.VerifyString(c.unpacked.sig, []byte(c.unpacked.payloadJsonStr)); err != nil {
 		return
 	}
 	c.unpacked.sigId = *sigId
@@ -454,7 +454,7 @@ func (c *ChainLink) VerifySig(k PgpKeyBundle) (cached bool, err error) {
 		err = fmt.Errorf("Key fingerprint mismatch")
 		return
 	}
-	if sig_id, e2 := k.Verify(c.unpacked.sig,
+	if sig_id, e2 := k.VerifyString(c.unpacked.sig,
 		[]byte(c.unpacked.payloadJsonStr)); e2 != nil {
 		err = e2
 		return

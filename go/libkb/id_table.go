@@ -581,7 +581,7 @@ func (s *SibkeyChainLink) VerifyReverseSig(kf *KeyFamily) (err error) {
 	}
 
 	var p1, p2 []byte
-	if p1, _, err = key.VerifyAndExtract(s.reverseSig); err != nil {
+	if p1, _, err = key.VerifyStringAndExtract(s.reverseSig); err != nil {
 		err = ReverseSigError{fmt.Sprintf("Failed to verify/extract sig: %s", err.Error())}
 		return
 	}
