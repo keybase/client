@@ -566,7 +566,6 @@ func (s *LoginState) acctHandle(f acctHandler, name string) {
 }
 
 func (s *LoginState) requests() {
-	s.G().Log.Debug("- LoginState: start processing requests")
 	for {
 		select {
 		case req, ok := <-s.loginReqs:
@@ -587,7 +586,6 @@ func (s *LoginState) requests() {
 			break
 		}
 	}
-	s.G().Log.Debug("- LoginState: done processing requests")
 }
 
 func (s *LoginState) loginWithStoredSecret(lctx LoginContext, username string) error {

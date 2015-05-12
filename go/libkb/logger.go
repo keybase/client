@@ -18,10 +18,11 @@ var (
 
 type Logger struct {
 	logging.Logger
-	rotateMutex *sync.Mutex
+	rotateMutex    sync.Mutex
+	configureMutex sync.Mutex
 }
 
-func (log *Logger) InitLogging() {
+func (log *Logger) initLogging() {
 	logBackend := logging.NewLogBackend(os.Stderr, "", 0)
 	logging.SetBackend(logBackend)
 	logging.SetLevel(logging.INFO, "keybase")
@@ -36,17 +37,21 @@ func (log *Logger) Errorf(fmt string, arg ...interface{}) {
 }
 
 func (log *Logger) PlainLogging() {
+	log.configureMutex.Lock()
+	defer log.configureMutex.Unlock()
 	logging.SetFormatter(logging.MustStringFormatter(plain_format))
 }
 
 func NewDefaultLogger() *Logger {
 	log := logging.MustGetLogger("keybase")
-	ret := &Logger{*log, &sync.Mutex{}}
-	ret.InitLogging()
+	ret := &Logger{Logger: *log}
+	ret.initLogging()
 	return ret
 }
 
 func (l *Logger) Configure(e *Env) {
+	l.configureMutex.Lock()
+	defer l.configureMutex.Unlock()
 	var fmt string
 	if e.GetPlainLogging() {
 		fmt = plain_format
