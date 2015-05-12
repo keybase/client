@@ -92,9 +92,9 @@ func (fs *KBFSOpsStandard) getMDInChannel(dir Path, rtype reqType) (
 	return md, mdcache.Put(mdId, md)
 }
 
-func (fs *KBFSOpsStandard) getMDForReadInChannel(dir Path) (
+func (fs *KBFSOpsStandard) getMDForReadInChannel(dir Path, rtype reqType) (
 	*RootMetadata, error) {
-	md, err := fs.getMDInChannel(dir, read)
+	md, err := fs.getMDInChannel(dir, rtype)
 	if err != nil {
 		return nil, err
 	}
@@ -104,7 +104,7 @@ func (fs *KBFSOpsStandard) getMDForReadInChannel(dir Path) (
 		return nil, err
 	}
 	if !md.GetDirHandle().IsReader(user) {
-		return nil, readAccessError(fs.config, md, user)
+		return nil, NewReadAccessError(fs.config, md.GetDirHandle(), user)
 	}
 	return md, nil
 }
@@ -121,7 +121,7 @@ func (fs *KBFSOpsStandard) getMDForWriteInChannel(dir Path) (
 		return nil, err
 	}
 	if !md.GetDirHandle().IsWriter(user) {
-		return nil, writeAccessError(fs.config, md, user)
+		return nil, NewWriteAccessError(fs.config, md.GetDirHandle(), user)
 	}
 	return md, nil
 }
@@ -175,7 +175,7 @@ func (fs *KBFSOpsStandard) initMDInChannel(md *RootMetadata) error {
 
 	// make sure we're a writer before putting any blocks
 	if !md.GetDirHandle().IsWriter(user) {
-		return writeAccessError(fs.config, md, user)
+		return NewWriteAccessError(fs.config, md.GetDirHandle(), user)
 	}
 
 	if err = fs.config.BlockOps().Put(id, &md.data.Dir, buf); err != nil {
@@ -320,7 +320,7 @@ func (fs *KBFSOpsStandard) getBlockInChannel(
 
 func (fs *KBFSOpsStandard) getDirInChannel(dir Path, rtype reqType) (
 	*DirBlock, error) {
-	if _, err := fs.getMDForReadInChannel(dir); err != nil {
+	if _, err := fs.getMDForReadInChannel(dir, rtype); err != nil {
 		return nil, err
 	}
 
@@ -350,7 +350,7 @@ func (fs *KBFSOpsStandard) getDirInChannel(dir Path, rtype reqType) (
 
 func (fs *KBFSOpsStandard) getFileInChannel(dir Path, rtype reqType) (
 	*FileBlock, error) {
-	if _, err := fs.getMDForReadInChannel(dir); err != nil {
+	if _, err := fs.getMDForReadInChannel(dir, rtype); err != nil {
 		return nil, err
 	}
 

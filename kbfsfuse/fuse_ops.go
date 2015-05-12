@@ -154,6 +154,13 @@ func (f *FuseOps) LookupInDir(dNode *FuseNode, name string) (
 
 			node = dNode.Inode().NewChild(name, true, fNode)
 			return node, fuse.OK
+		} else if p.TopDir == libkbfs.NullDirId {
+			uid, err := f.config.KBPKI().GetLoggedInUser()
+			if err != nil {
+				return nil, f.TranslateError(err)
+			}
+			return nil, f.TranslateError(libkbfs.NewReadAccessError(
+				f.config, dNode.DirHandle, uid))
 		}
 
 		dBlock, err := f.config.KBFSOps().GetDir(p)
@@ -431,6 +438,7 @@ func (f *FuseOps) LookupInRootByName(rNode *FuseNode, name string) (
 				fNode = &FuseNode{
 					Node:      nodefs.NewDefaultNode(),
 					DirHandle: dirHandle,
+					Dir:       libkbfs.NullDirId,
 					PathNode: libkbfs.PathNode{
 						libkbfs.BlockPointer{}, dirString},
 					Entry: libkbfs.DirEntry{Type: libkbfs.Dir},

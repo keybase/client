@@ -53,6 +53,7 @@ var NullBlockId BlockId = BlockId{0}
 type MDId libkb.NodeHashShort
 
 var NullMDId MDId = MDId{0}
+var NullDirId DirId = DirId{0}
 
 func RandBlockId() BlockId {
 	var id BlockId

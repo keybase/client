@@ -105,6 +105,37 @@ func TestLookupOtherPublic(t *testing.T) {
 	root.Ops.Shutdown()
 }
 
+// Test that looking up someone else's private file doesn't work.
+func TestLookupOtherPrivateFile(t *testing.T) {
+	config := makeTestConfig([]string{"test_user1", "test_user2"})
+
+	// First, look up the test_user1/public as test_user1 to
+	// create it.
+
+	root := NewFuseRoot(config)
+	_ = nodefs.NewFileSystemConnector(root, nil)
+
+	node1 := doLookupOrBust(t, root, "test_user1")
+	doMknodOrBust(t, node1, "privfile")
+
+	// Now, simulate a remount as test_user2.
+
+	config.KBPKI().(*libkbfs.KBPKILocal).LoggedIn = libkb.UID{2}
+	config.SetMDCache(libkbfs.NewMDCacheStandard(5000))
+	root = NewFuseRoot(config)
+	_ = nodefs.NewFileSystemConnector(root, nil)
+
+	// Then, do the lookup again as test_user2.
+
+	node1 = doLookupOrBust(t, root, "test_user1")
+	var attr fuse.Attr
+	_, code := node1.Lookup(&attr, "privfile", nil)
+	if code != fuse.EACCES {
+		t.Fatalf("Private lookup didn't return permission denied: %s", code)
+	}
+	root.Ops.Shutdown()
+}
+
 func checkPathNeedsUpdate(
 	t *testing.T, nodes []*FuseNode, update bool, expectedPath string) {
 	path := make([]string, 0, len(nodes))

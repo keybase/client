@@ -49,7 +49,7 @@ func (km *KeyManagerStandard) GetSecretKey(dir Path, md *RootMetadata) (
 	}
 	var xKey Key // the xor'd secret key
 	if buf, ok := md.GetEncryptedSecretKey(keyVer, user, deviceSubkeyKid); !ok {
-		err = readAccessError(km.config, md, user)
+		err = NewReadAccessError(km.config, md.GetDirHandle(), user)
 		return
 	} else if xBuf, err2 :=
 		crypto.Unbox(md.GetPubKey(keyVer), buf); err2 != nil {

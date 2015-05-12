@@ -90,8 +90,8 @@ func (e *WriteAccessError) Error() string {
 		e.User, e.Dir)
 }
 
-func readAccessError(config Config, md *RootMetadata, uid libkb.UID) error {
-	dirname := md.GetDirHandle().ToString(config)
+func NewReadAccessError(config Config, dir *DirHandle, uid libkb.UID) error {
+	dirname := dir.ToString(config)
 	if u, err2 := config.KBPKI().GetUser(uid); err2 == nil {
 		return &ReadAccessError{u.GetName(), dirname}
 	} else {
@@ -99,8 +99,8 @@ func readAccessError(config Config, md *RootMetadata, uid libkb.UID) error {
 	}
 }
 
-func writeAccessError(config Config, md *RootMetadata, uid libkb.UID) error {
-	dirname := md.GetDirHandle().ToString(config)
+func NewWriteAccessError(config Config, dir *DirHandle, uid libkb.UID) error {
+	dirname := dir.ToString(config)
 	if u, err2 := config.KBPKI().GetUser(uid); err2 == nil {
 		return &WriteAccessError{u.GetName(), dirname}
 	} else {
