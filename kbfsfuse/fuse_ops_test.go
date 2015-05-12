@@ -1,12 +1,13 @@
 package main
 
 import (
+	"strings"
+	"testing"
+
 	"github.com/hanwen/go-fuse/fuse"
 	"github.com/hanwen/go-fuse/fuse/nodefs"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/kbfs/libkbfs"
-	"strings"
-	"testing"
 )
 
 // Given the list of users, create and return a config suitable for
