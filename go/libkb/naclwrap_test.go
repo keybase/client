@@ -1,6 +1,7 @@
 package libkb
 
 import (
+	"encoding/base64"
 	"testing"
 )
 
@@ -16,9 +17,19 @@ func TestVerify(t *testing.T) {
 		t.Fatal(err)
 	}
 
+	sigBytes, err := base64.StdEncoding.DecodeString(sig)
+	if err != nil {
+		t.Fatal(err)
+	}
+
 	_, err = keyPair.VerifyString(sig, msg)
 	if err != nil {
 		t.Error(err)
+	}
+
+	_, err = keyPair.Verify(base64.StdEncoding.EncodeToString(append(sigBytes, []byte("corruption")...)), msg)
+	if err == nil {
+		t.Error("Corrupt signature unexpectedly passes")
 	}
 }
 
