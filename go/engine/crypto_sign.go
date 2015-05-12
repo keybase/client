@@ -40,8 +40,8 @@ func (cse *CryptoSignEngine) Run(ctx *Context) (cserr error) {
 	}
 
 	sigKey, _, err := cse.G().Keyrings.GetSecretKeyWithPrompt(libkb.SecretKeyArg{
-		DeviceKey: true,
-		Me:        me,
+		Me:      me,
+		KeyType: libkb.DeviceKeyType,
 	}, ctx.SecretUI, cse.reason)
 	if err != nil {
 		return err
