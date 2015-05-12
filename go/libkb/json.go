@@ -3,9 +3,10 @@ package libkb
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/keybase/go-jsonw"
 	"io"
 	"os"
+
+	jsonw "github.com/keybase/go-jsonw"
 )
 
 type JsonFile struct {
@@ -135,7 +136,7 @@ func (f *JsonFile) Save(pretty bool, mode os.FileMode) (err error) {
 		return err
 	}
 
-	G.Log.Notice(fmt.Sprintf("Wrote %s file to %s", f.which, f.filename))
+	G.Log.Debug(fmt.Sprintf("Wrote %s file to %s", f.which, f.filename))
 	f.dirty = false
 
 	G.Log.Debug(fmt.Sprintf("- saved %s file %s", f.which, f.filename))

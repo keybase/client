@@ -53,7 +53,7 @@ func MakeParentDirs(filename string) error {
 			G.Log.Errorf("Can't make parent dir %s", dir)
 			return err
 		}
-		G.Log.Info("Created parent directory %s", dir)
+		G.Log.Debug("Created parent directory %s", dir)
 	}
 	return nil
 }

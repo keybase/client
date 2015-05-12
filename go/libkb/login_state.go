@@ -552,7 +552,7 @@ func (s *LoginState) acctHandle(f acctHandler, name string) {
 	select {
 	case s.acctReqs <- req:
 		// this is just during debugging:
-	case <-time.After(3 * time.Second):
+	case <-time.After(10 * time.Second):
 		s.G().Log.Warning("timed out sending acct request %q", name)
 		debug.PrintStack()
 		os.Exit(1)

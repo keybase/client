@@ -511,7 +511,7 @@ func (f *SKBKeyringFile) Save(lui LogUI) error {
 	err := SafeWriteToFile(*f)
 	if err == nil {
 		f.dirty = false
-		lui.Info("Updated keyring %s", f.filename)
+		lui.Debug("Updated keyring %s", f.filename)
 	}
 	return err
 }

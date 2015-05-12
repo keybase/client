@@ -11,7 +11,7 @@ import (
 type LevelDb struct {
 	db       *leveldb.DB
 	filename string
-	mutex    sync.Mutex
+	sync.Mutex
 }
 
 func NewLevelDb() *LevelDb {
@@ -22,8 +22,8 @@ func NewLevelDb() *LevelDb {
 func (l *LevelDb) Open() error { return nil }
 
 func (l *LevelDb) open() error {
-	l.mutex.Lock()
-	defer l.mutex.Unlock()
+	l.Lock()
+	defer l.Unlock()
 
 	var err error
 	if l.db == nil {
@@ -54,8 +54,8 @@ func (l *LevelDb) Close() error {
 
 func (l *LevelDb) close(doLock bool) error {
 	if doLock {
-		l.mutex.Lock()
-		defer l.mutex.Unlock()
+		l.Lock()
+		defer l.Unlock()
 	}
 
 	var err error
@@ -68,8 +68,8 @@ func (l *LevelDb) close(doLock bool) error {
 }
 
 func (l *LevelDb) Nuke() error {
-	l.mutex.Lock()
-	defer l.mutex.Unlock()
+	l.Lock()
+	defer l.Unlock()
 
 	err := l.close(false)
 	if err == nil {
