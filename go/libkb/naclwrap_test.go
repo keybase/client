@@ -4,6 +4,24 @@ import (
 	"testing"
 )
 
+func TestVerify(t *testing.T) {
+	keyPair, err := GenerateNaclSigningKeyPair()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	msg := []byte("test message")
+	sig, _, err := keyPair.SignToString(msg)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	_, err = keyPair.VerifyString(sig, msg)
+	if err != nil {
+		t.Error(err)
+	}
+}
+
 // Test that VerifyBytes accepts the output of SignToBytes.
 func TestVerifyBytesAccept(t *testing.T) {
 	keyPair, err := GenerateNaclSigningKeyPair()
