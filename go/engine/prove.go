@@ -164,7 +164,7 @@ func (p *Prove) generateProof(ctx *Context) (err error) {
 
 	if locked, which, err = p.G().Keyrings.GetSecretKeyLocked(libkb.SecretKeyArg{
 		Me:      p.me,
-		KeyType: libkb.AllSecretKeyTypes,
+		KeyType: libkb.AnySecretKeyType,
 	}); err != nil {
 		return
 	}

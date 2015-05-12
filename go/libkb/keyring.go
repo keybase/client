@@ -156,15 +156,15 @@ const (
 	PGPType
 	// A Nacl key (that is not the current device key).
 	NaclType
-	AllSecretKeyTypes = DeviceKeyType | PGPType | NaclType
+	AnySecretKeyType = DeviceKeyType | PGPType | NaclType
 )
 
 func (t SecretKeyType) String() string {
 	if t == 0 {
 		return "<NoSecretKeyTypes>"
 	}
-	if t == AllSecretKeyTypes {
-		return "<AllSecretKeyTypes>"
+	if t == AnySecretKeyType {
+		return "<AnySecretKeyType>"
 	}
 	var types []string
 
@@ -344,7 +344,7 @@ func (k *Keyrings) GetSecretKeyWithStoredSecret(me *User, secretRetriever Secret
 	}()
 	ska := SecretKeyArg{
 		Me:      me,
-		KeyType: AllSecretKeyTypes,
+		KeyType: AnySecretKeyType,
 	}
 	var skb *SKB
 	skb, _, err = k.GetSecretKeyLocked(ska)
@@ -362,7 +362,7 @@ func (k *Keyrings) GetSecretKeyWithPassphrase(me *User, passphrase string, secre
 	}()
 	ska := SecretKeyArg{
 		Me:      me,
-		KeyType: AllSecretKeyTypes,
+		KeyType: AnySecretKeyType,
 	}
 	var skb *SKB
 	skb, _, err = k.GetSecretKeyLocked(ska)
