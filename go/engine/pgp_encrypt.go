@@ -161,7 +161,7 @@ func (e *PGPEncrypt) loadSelfKey() (*libkb.PgpKeyBundle, error) {
 
 	keys := me.FilterActivePgpKeys(true, e.arg.KeyQuery)
 	if len(keys) == 0 {
-		return nil, nil
+		return nil, libkb.NoKeyError{Msg: "No PGP key found for encrypting for self"}
 	}
 	return keys[0], nil
 }

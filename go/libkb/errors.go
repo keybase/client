@@ -212,12 +212,12 @@ func (e NotFoundError) Error() string {
 //=============================================================================
 
 type NoKeyError struct {
-	msg string
+	Msg string
 }
 
 func (u NoKeyError) Error() string {
-	if len(u.msg) > 0 {
-		return u.msg
+	if len(u.Msg) > 0 {
+		return u.Msg
 	}
 	return "No public key found"
 }
