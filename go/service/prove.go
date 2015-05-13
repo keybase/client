@@ -1,6 +1,8 @@
 package service
 
 import (
+	"errors"
+
 	"github.com/keybase/client/go/engine"
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/protocol/go"
@@ -79,5 +81,5 @@ func (ph *ProveHandler) Cancel(sessionID int) error {
 }
 
 func (ph *ProveHandler) CheckForProof(arg keybase1.CheckForProofArg) error {
-	return nil
+	return errors.New("not yet implemented")
 }
