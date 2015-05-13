@@ -12,4 +12,7 @@
 
 @interface KBPGPDecryptFileView : KBContentView
 
+- (void)addFile:(KBFile *)file;
+- (void)removeFile:(id)sender;
+
 @end

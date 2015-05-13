@@ -20,8 +20,9 @@
 #import "KBFileWriter.h"
 #import "AppDelegate.h"
 #import "KBWork.h"
+#import "KBUserPickerView.h"
 
-@interface KBPGPEncryptView ()
+@interface KBPGPEncryptView () <KBUserPickerViewDelegate>
 @property KBUserPickerView *userPickerView;
 @property KBTextView *textView;
 @property YOBox *files;

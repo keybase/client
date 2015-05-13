@@ -232,11 +232,13 @@ typedef NS_ENUM (NSInteger, KBRTrackDiffType) {
 @end
 
 @interface KBRTrackSummary : KBRObject
+@property NSString *username;
 @property NSInteger time;
 @property BOOL isRemote;
 @end
 
 @interface KBRIdentifyOutcome : KBRObject
+@property NSString *username;
 @property KBRStatus *status;
 @property NSArray *warnings; /*of string*/
 @property KBRTrackSummary *trackUsed;

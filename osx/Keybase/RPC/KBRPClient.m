@@ -68,7 +68,10 @@
       KBRPCRegistration *registration = gself.registrations[sessionId];
       requestHandler = [registration requestHandlerForMethod:method];
     }
-    if (!requestHandler) requestHandler = [gself _requestHandlerForMethod:method]; // TODO: Remove when we have session id in all requests
+    if (!requestHandler) {
+      DDLogWarn(@"Received a callback with no sessionID; messageId=%@, method=%@", messageId, method);
+      requestHandler = [gself _requestHandlerForMethod:method]; // TODO: Remove when we have session id in all requests
+    }
     if (requestHandler) {
       requestHandler(messageId, method, params, completion);
     } else {
@@ -157,7 +160,7 @@
 
 - (void)_sendRequestWithMethod:(NSString *)method params:(NSArray *)params sessionId:(NSInteger)sessionId completion:(MPRequestCompletion)completion {
   if (_client.status != MPMessagePackClientStatusOpen) {
-    completion(KBMakeErrorWithRecovery(-400, @"We are unable to connect to keybased.", @"You should make sure keybased is running in launch services."), nil);
+    completion(KBMakeErrorWithRecovery(-400, @"We are unable to connect to keybase service.", @"You may need to update or re-install to fix this."), nil);
     return;
   }
 

@@ -17,16 +17,19 @@
 #import "KBAppearance.h"
 #import "KBInstaller.h"
 #import "KBConsoleView.h"
+#import "KBEnvSelectView.h"
+#import "KBLogFormatter.h"
+
+// For PGP menu
 #import "KBPGPEncryptView.h"
-#import "KBPGPEncryptFileView.h"
+#import "KBPGPEncryptFilesView.h"
 #import "KBPGPDecryptView.h"
 #import "KBPGPDecryptFileView.h"
 #import "KBPGPSignView.h"
 #import "KBPGPSignFileView.h"
+#import "KBPGPSignFilesView.h"
 #import "KBPGPVerifyView.h"
 #import "KBPGPVerifyFileView.h"
-#import "KBEnvSelectView.h"
-#import "KBLogFormatter.h"
 #import "KBPGPOutputView.h"
 
 #import <Sparkle/Sparkle.h>
@@ -252,7 +255,7 @@
 }
 
 - (IBAction)encryptFile:(id)sender {
-  KBPGPEncryptFileView *view = [[KBPGPEncryptFileView alloc] init];
+  KBPGPEncryptFilesView *view = [[KBPGPEncryptFilesView alloc] init];
   view.client = self.appView.client;
   [self.appView.window kb_addChildWindowForView:view rect:CGRectMake(0, 0, 510, 400) position:KBWindowPositionCenter title:@"Encrypt Files" fixed:NO makeKey:YES];
 }
@@ -279,6 +282,12 @@
   KBPGPSignFileView *view = [[KBPGPSignFileView alloc] init];
   view.client = self.appView.client;
   [self.appView.window kb_addChildWindowForView:view rect:CGRectMake(0, 0, 400, 400) position:KBWindowPositionCenter title:@"Sign File" fixed:NO makeKey:YES];
+}
+
+- (IBAction)signFiles:(id)sender {
+  KBPGPSignFilesView *view = [[KBPGPSignFilesView alloc] init];
+  view.client = self.appView.client;
+  [self.appView.window kb_addChildWindowForView:view rect:CGRectMake(0, 0, 400, 400) position:KBWindowPositionCenter title:@"Sign Files" fixed:NO makeKey:YES];
 }
 
 - (IBAction)verify:(id)sender {

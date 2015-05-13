@@ -39,6 +39,12 @@
   _textView = [[KBTextView alloc] init];
   _textView.view.editable = YES;
   _textView.view.textContainerInset = CGSizeMake(10, 10);
+  _textView.onPaste = ^BOOL(KBTextView *textView) {
+    NSPasteboard *pasteboard = [NSPasteboard generalPasteboard];
+    NSString *str = [pasteboard stringForType:NSPasteboardTypeString];
+    [textView setText:str style:KBTextStyleDefault options:KBTextOptionsMonospace alignment:NSLeftTextAlignment lineBreakMode:NSLineBreakByClipping];
+    return NO;
+  };
   [self addSubview:_textView];
 
   YOVBox *bottomView = [YOVBox box];

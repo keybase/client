@@ -25,7 +25,7 @@
 #import "KBDeviceAddView.h"
 #import "KBPGPEncryptView.h"
 #import "KBPGPOutputView.h"
-#import "KBPGPEncryptFileView.h"
+#import "KBPGPEncryptFilesView.h"
 #import "KBPGPOutputFileView.h"
 #import "KBPGPDecryptView.h"
 #import "KBPGPDecryptFileView.h"
@@ -34,6 +34,7 @@
 #import "KBPriviledgedTask.h"
 #import "KBLoginView.h"
 #import "KBSignupView.h"
+#import "KBFile.h"
 
 @interface KBMockViews ()
 @property KBRMockClient *mockClient;
@@ -290,7 +291,7 @@
 }
 
 - (void)showPGPEncryptFile {
-  KBPGPEncryptFileView *encryptView = [[KBPGPEncryptFileView alloc] init];
+  KBPGPEncryptFilesView *encryptView = [[KBPGPEncryptFilesView alloc] init];
   [encryptView addFile:[KBFile fileWithPath:@"/Users/gabe/Downloads/test4.mp4"]];
   [encryptView addFile:[KBFile fileWithPath:@"/Users/gabe/Downloads/test-a-really-long-file-name-what-happens?.txt"]];
   [self openInWindow:encryptView size:CGSizeMake(600, 400) title:@"Encrypt Files"];

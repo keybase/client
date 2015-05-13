@@ -10,13 +10,12 @@
 
 #import "KBAppKit.h"
 #import "KBContentView.h"
-#import "KBUserPickerView.h"
 
 @class KBPGPEncryptView;
 
 typedef void (^KBPGPOnEncrypt)(KBPGPEncryptView *view, NSData *encrypted);
 
-@interface KBPGPEncryptView : KBContentView <KBUserPickerViewDelegate>
+@interface KBPGPEncryptView : KBContentView
 
 @property (copy) KBPGPOnEncrypt onEncrypt;
 

@@ -1,5 +1,5 @@
 //
-//  KBPGPEncryptFileView.h
+//  KBPGPEncryptFilesView.h
 //  Keybase
 //
 //  Created by Gabriel on 3/23/15.
@@ -9,10 +9,9 @@
 #import <Foundation/Foundation.h>
 
 #import "KBContentView.h"
-#import "KBUserPickerView.h"
 #import "KBFile.h"
 
-@interface KBPGPEncryptFileView : KBContentView <KBUserPickerViewDelegate>
+@interface KBPGPEncryptFilesView : KBContentView
 
 - (void)addFile:(KBFile *)file;
 
