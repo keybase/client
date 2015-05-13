@@ -240,7 +240,7 @@ func (a *Account) EnsureUsername(username string) {
 
 }
 
-func (a *Account) UserInfo() (uid UID, username, token string, deviceSibkeyKid, deviceSubkeyKid KID, err error) {
+func (a *Account) UserInfo() (uid UID, username, token string, deviceSibkey, deviceSubkey GenericKey, err error) {
 	if !a.LoggedIn() {
 		err = LoginRequiredError{}
 		return
@@ -250,17 +250,14 @@ func (a *Account) UserInfo() (uid UID, username, token string, deviceSibkeyKid, 
 	if err != nil {
 		return
 	}
-	deviceSibkey, deviceSubkey, err := user.GetDeviceKeys()
+	deviceSibkey, deviceSubkey, err = user.GetDeviceKeys()
 	if err != nil {
-		deviceSubkeyKid = KID{}
 		return
 	}
 
 	uid = user.GetUid()
 	username = user.GetName()
 	token = a.localSession.GetToken()
-	deviceSibkeyKid = deviceSibkey.GetKid()
-	deviceSubkeyKid = deviceSubkey.GetKid()
 	return
 }
 
