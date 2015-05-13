@@ -39,7 +39,7 @@ func TestCryptoSign(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	err = sibkey.VerifyBytes(msg, cse.GetSignature())
+	err = sibkey.VerifyBytes(cse.GetSignature(), msg)
 	if err != nil {
 		t.Error(err)
 	}
