@@ -6,9 +6,10 @@ import (
 
 type CryptoSignEngine struct {
 	libkb.Contextified
-	msg    []byte
-	reason string
-	sig    []byte
+	msg          []byte
+	reason       string
+	sig          []byte
+	verifyingKey libkb.GenericKey
 }
 
 func NewCryptoSignEngine(ctx *libkb.GlobalContext, msg []byte, reason string) *CryptoSignEngine {
@@ -33,7 +34,7 @@ func (cse *CryptoSignEngine) SubConsumers() []libkb.UIConsumer {
 	return []libkb.UIConsumer{}
 }
 
-func (cse *CryptoSignEngine) Run(ctx *Context) (cserr error) {
+func (cse *CryptoSignEngine) Run(ctx *Context) (err error) {
 	me, err := libkb.LoadMe(libkb.LoadUserArg{})
 	if err != nil {
 		return err
@@ -56,10 +57,20 @@ func (cse *CryptoSignEngine) Run(ctx *Context) (cserr error) {
 		return err
 	}
 
+	verifyingKey, err := libkb.ImportKeypairFromKID(sigKey.GetKid(), cse.G())
+	if err != nil {
+		return err
+	}
+
 	cse.sig = sig
+	cse.verifyingKey = verifyingKey
 	return nil
 }
 
 func (cse *CryptoSignEngine) GetSignature() []byte {
 	return cse.sig
+}
+
+func (cse *CryptoSignEngine) GetVerifyingKey() libkb.GenericKey {
+	return cse.verifyingKey
 }

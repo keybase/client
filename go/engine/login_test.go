@@ -53,7 +53,7 @@ func TestLoginFakeUserNoKeys(t *testing.T) {
 	}
 }
 
-func testUserHasDeviceKeys(t *testing.T) {
+func testUserHasDeviceKey(t *testing.T) {
 	me, err := libkb.LoadMe(libkb.LoadUserArg{PublicKeyOptional: true})
 	if err != nil {
 		t.Fatal(err)
@@ -77,12 +77,12 @@ func testUserHasDeviceKeys(t *testing.T) {
 		t.Errorf("user has no active key")
 	}
 
-	sibkey, subkey, err := me.GetDeviceKeys()
+	subkey, err := me.GetDeviceSubkey()
 	if err != nil {
 		t.Fatal(err)
 	}
-	if sibkey == nil || subkey == nil {
-		t.Fatal("nil sibkey or subkey")
+	if subkey == nil {
+		t.Fatal("nil subkey")
 	}
 }
 
@@ -105,7 +105,7 @@ func TestLoginAddsKeys(t *testing.T) {
 	}
 
 	// since this user didn't have any keys, login should have fixed that:
-	testUserHasDeviceKeys(t)
+	testUserHasDeviceKey(t)
 }
 
 func TestLoginDetKeyOnly(t *testing.T) {
@@ -127,7 +127,7 @@ func TestLoginDetKeyOnly(t *testing.T) {
 	}
 
 	// since this user didn't have a device key, login should have fixed that:
-	testUserHasDeviceKeys(t)
+	testUserHasDeviceKey(t)
 }
 
 // TestLoginPGPSignNewDevice
@@ -169,7 +169,7 @@ func TestLoginPGPSignNewDevice(t *testing.T) {
 		t.Errorf("doc ui SelectSigner called %d times, expected 1", after-before)
 	}
 
-	testUserHasDeviceKeys(t)
+	testUserHasDeviceKey(t)
 }
 
 func TestLoginPGPPubOnlySignNewDevice(t *testing.T) {
@@ -211,7 +211,7 @@ func TestLoginPGPPubOnlySignNewDevice(t *testing.T) {
 		t.Errorf("doc ui SelectSigner called %d times, expected 1", after-before)
 	}
 
-	testUserHasDeviceKeys(t)
+	testUserHasDeviceKey(t)
 }
 
 func TestLoginPGPMultSignNewDevice(t *testing.T) {
@@ -252,7 +252,7 @@ func TestLoginPGPMultSignNewDevice(t *testing.T) {
 		t.Errorf("doc ui SelectSigner called %d times, expected 1", after-before)
 	}
 
-	testUserHasDeviceKeys(t)
+	testUserHasDeviceKey(t)
 }
 
 // TestLoginInterrupt* tries to simulate what would happen if the
@@ -302,7 +302,7 @@ func TestLoginInterruptDeviceRegister(t *testing.T) {
 	}
 
 	// since this user didn't have any keys, login should have fixed that:
-	testUserHasDeviceKeys(t)
+	testUserHasDeviceKey(t)
 }
 
 // TestLoginInterruptDevicePush interrupts before pushing device
@@ -361,7 +361,7 @@ func TestLoginInterruptDevicePush(t *testing.T) {
 	}
 
 	// since this user didn't have any keys, login should have fixed that:
-	testUserHasDeviceKeys(t)
+	testUserHasDeviceKey(t)
 }
 
 func TestUserInfo(t *testing.T) {
@@ -373,7 +373,7 @@ func TestUserInfo(t *testing.T) {
 	var username string
 	var err error
 	tc.G.LoginState().Account(func(a *libkb.Account) {
-		_, username, _, _, _, err = a.UserInfo()
+		_, username, _, _, err = a.UserInfo()
 	}, "TestUserInfo")
 	if err != nil {
 		t.Fatal(err)

@@ -1,7 +1,17 @@
 {
   "protocol" : "crypto",
   "namespace" : "keybase.1",
-  "types" : [ ],
+  "types" : [ {
+    "type" : "record",
+    "name" : "SignatureInfo",
+    "fields" : [ {
+      "name" : "sig",
+      "type" : "bytes"
+    }, {
+      "name" : "verifyingKeyKid",
+      "type" : "string"
+    } ]
+  } ],
   "messages" : {
     "sign" : {
       "request" : [ {
@@ -14,7 +24,7 @@
         "name" : "reason",
         "type" : "string"
       } ],
-      "response" : "bytes"
+      "response" : "SignatureInfo"
     }
   }
 }

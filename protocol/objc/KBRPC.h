@@ -144,8 +144,13 @@
 
 @end
 
+@interface KBRSignatureInfo : KBRObject
+@property NSData *sig;
+@property NSString *verifyingKeyKid;
+@end
+
 @interface KBRCryptoRequest : KBRRequest
-- (void)signWithSessionID:(NSInteger)sessionID msg:(NSData *)msg reason:(NSString *)reason completion:(void (^)(NSError *error, NSData *bytes))completion;
+- (void)signWithSessionID:(NSInteger)sessionID msg:(NSData *)msg reason:(NSString *)reason completion:(void (^)(NSError *error, KBRSignatureInfo *signatureInfo))completion;
 
 @end
 
@@ -610,7 +615,6 @@ typedef NS_ENUM (NSInteger, KBRPromptOverwriteType) {
 @property KBRUID *uid;
 @property NSString *username;
 @property NSString *token;
-@property NSString *deviceSibkeyKid;
 @property NSString *deviceSubkeyKid;
 @end
 

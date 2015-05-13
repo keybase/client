@@ -76,7 +76,7 @@ func TestLoginNewDeviceKex(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	testUserHasDeviceKeys(t)
+	testUserHasDeviceKey(t)
 	wg.Wait()
 }
 

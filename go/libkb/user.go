@@ -299,14 +299,7 @@ func (u *User) GetActivePgpFOKIDs(sibkey bool) (ret []FOKID) {
 	return
 }
 
-func (u *User) GetDeviceKeys() (sibkey, subkey GenericKey, err error) {
-	defer func() {
-		if err != nil {
-			sibkey = nil
-			subkey = nil
-			return
-		}
-	}()
+func (u *User) GetDeviceSubkey() (subkey GenericKey, err error) {
 	ckf := u.GetComputedKeyFamily()
 	if ckf == nil {
 		err = KeyFamilyError{"no key family available"}
@@ -317,15 +310,7 @@ func (u *User) GetDeviceKeys() (sibkey, subkey GenericKey, err error) {
 		err = NotProvisionedError{}
 		return
 	}
-	sibkey, err = ckf.GetSibkeyForDevice(*did)
-	if err != nil {
-		return
-	}
-	subkey, err = ckf.GetEncryptionSubkeyForDevice(*did)
-	if err != nil {
-		return
-	}
-	return
+	return ckf.GetEncryptionSubkeyForDevice(*did)
 }
 
 func LoadUserFromServer(arg LoadUserArg, body *jsonw.Wrapper) (u *User, err error) {
@@ -831,9 +816,22 @@ func (u *User) GetDevice(id string) (*Device, error) {
 	return device, nil
 }
 
+// Returns whether or not the current install has an active device
+// sibkey.
 func (u *User) HasDeviceInCurrentInstall() bool {
-	_, _, err := u.GetDeviceKeys()
-	return err == nil
+	ckf := u.GetComputedKeyFamily()
+	if ckf == nil {
+		return false
+	}
+	did := u.G().Env.GetDeviceID()
+	if did == nil {
+		return false
+	}
+	_, err := ckf.GetSibkeyForDevice(*did)
+	if err != nil {
+		return false
+	}
+	return true
 }
 
 func (u *User) SigningKeyPub() (GenericKey, error) {
