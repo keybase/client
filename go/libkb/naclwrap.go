@@ -28,9 +28,17 @@ func (k NaclSigningKeyPrivate) ToNaclLibrary() *[ed25519.PrivateKeySize]byte {
 	b := [ed25519.PrivateKeySize]byte(k)
 	return &b
 }
+
 func (k NaclSigningKeyPublic) ToNaclLibrary() *[ed25519.PublicKeySize]byte {
 	b := [ed25519.PublicKeySize]byte(k)
 	return &b
+}
+
+func (k NaclSigningKeyPublic) Verify(msg []byte, sig *[ed25519.SignatureSize]byte) error {
+	if !ed25519.Verify(k.ToNaclLibrary(), msg, sig) {
+		return VerificationError{}
+	}
+	return nil
 }
 
 func (k KID) ToNaclSigningKeyPublic() *NaclSigningKeyPublic {
@@ -340,13 +348,12 @@ func (p KeybasePacket) ToNaclSig() (*NaclSig, error) {
 	return ret, nil
 }
 
-func (s NaclSig) Verify() (err error) {
-	if key := s.Kid.ToNaclSigningKeyPublic(); key == nil {
-		err = BadKeyError{}
-	} else if !ed25519.Verify(key.ToNaclLibrary(), s.Payload, &s.Sig) {
-		err = VerificationError{}
+func (s NaclSig) Verify() error {
+	key := s.Kid.ToNaclSigningKeyPublic()
+	if key == nil {
+		return BadKeyError{}
 	}
-	return
+	return key.Verify(s.Payload, &s.Sig)
 }
 
 func (k NaclDHKeyPair) VerifyString(armored string, expected []byte) (sigId *SigId, err error) {
@@ -359,7 +366,7 @@ func (k NaclDHKeyPair) VerifyStringAndExtract(armored string) (payload []byte, s
 	return
 }
 
-func (k NaclDHKeyPair) VerifyBytes(sig, msg []byte) error {
+func (k NaclDHKeyPair) VerifyBytes(msg, sig []byte) error {
 	return KeyCannotVerifyError{}
 }
 
@@ -403,16 +410,13 @@ func (k NaclSigningKeyPair) VerifyString(armored string, expected []byte) (sigId
 	return
 }
 
-func (k NaclSigningKeyPair) VerifyBytes(sig, msg []byte) error {
-	if len(sig) != 64 {
+func (k NaclSigningKeyPair) VerifyBytes(msg, sig []byte) error {
+	var sigArr [ed25519.SignatureSize]byte
+	if len(sig) != len(sigArr) {
 		return VerificationError{}
 	}
-	var sigArr [64]byte
 	copy(sigArr[:], sig)
-	if !ed25519.Verify(k.Public.ToNaclLibrary(), msg, &sigArr) {
-		return VerificationError{}
-	}
-	return nil
+	return k.Public.Verify(msg, &sigArr)
 }
 
 func (s *NaclSig) ArmoredEncode() (ret string, err error) {

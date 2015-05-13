@@ -50,7 +50,7 @@ func TestCryptoSignAccept(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	err = sibkey.VerifyBytes(sig, msg)
+	err = sibkey.VerifyBytes(msg, sig)
 	if err != nil {
 		t.Error(err)
 	}
@@ -76,14 +76,14 @@ func TestCryptoSignReject(t *testing.T) {
 
 	// Corrupt signature.
 
-	err = sibkey.VerifyBytes(append(sig, []byte("corruption")...), msg)
+	err = sibkey.VerifyBytes(msg, append(sig, []byte("corruption")...))
 	if err == nil {
 		t.Error("Verifying corrupt signature unexpectedly passes")
 	}
 
 	// Corrupt msg.
 
-	err = sibkey.VerifyBytes(sig, append(msg, []byte("corruption")...))
+	err = sibkey.VerifyBytes(append(msg, []byte("corruption")...), msg)
 	if err == nil {
 		t.Error("Verifying signature for corrupt msg unexpectedly passes")
 	}
@@ -100,7 +100,7 @@ func TestCryptoSignReject(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	err = sibkey.VerifyBytes(sig2, msg)
+	err = sibkey.VerifyBytes(msg, sig2)
 	if err == nil {
 		t.Error("Signature with different key unexpectedly passes")
 	}

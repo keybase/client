@@ -495,12 +495,12 @@ func (k PgpKeyBundle) VerifyString(armored string, expected []byte) (sigId *SigI
 	return sig_id, nil
 }
 
-func (key *PgpKeyBundle) SignToBytes(payload []byte) (out []byte, err error) {
+func (key *PgpKeyBundle) SignToBytes(msg []byte) (sig []byte, err error) {
 	err = KeyCannotSignError{}
 	return
 }
 
-func (k PgpKeyBundle) VerifyBytes(signature, expected []byte) error {
+func (k PgpKeyBundle) VerifyBytes(msg, sig []byte) error {
 	return KeyCannotVerifyError{}
 }
 

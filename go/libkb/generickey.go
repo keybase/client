@@ -36,8 +36,8 @@ type GenericKey interface {
 	// Like the Sign/Verify functions above, but the signature
 	// is an arbitrary byte string, and it doesn't include
 	// the message.
-	SignToBytes([]byte) ([]byte, error)
-	VerifyBytes([]byte, []byte) error
+	SignToBytes(msg []byte) (sig []byte, err error)
+	VerifyBytes(msg, sig []byte) error
 
 	ToSKB(ts *triplesec.Cipher) (*SKB, error)
 	ToLksSKB(lks *LKSec) (*SKB, error)
