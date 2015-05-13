@@ -14,13 +14,17 @@ func NewCryptoHandler(xp *rpc2.Transport) *CryptoHandler {
 	return &CryptoHandler{BaseHandler: NewBaseHandler(xp)}
 }
 
-func (c *CryptoHandler) Sign(arg keybase1.SignArg) ([]byte, error) {
+func (c *CryptoHandler) Sign(arg keybase1.SignArg) (ret keybase1.SignatureInfo, err error) {
 	ctx := &engine.Context{
 		SecretUI: c.getSecretUI(arg.SessionID),
 	}
 	eng := engine.NewCryptoSignEngine(G, arg.Msg, arg.Reason)
-	if err := engine.RunEngine(eng, ctx); err != nil {
-		return nil, err
+	if err = engine.RunEngine(eng, ctx); err != nil {
+		return
 	}
-	return eng.GetSignature(), nil
+	ret = keybase1.SignatureInfo{
+		Sig:             eng.GetSignature(),
+		VerifyingKeyKid: eng.GetVerifyingKey().GetKid().String(),
+	}
+	return
 }

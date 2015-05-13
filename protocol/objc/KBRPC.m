@@ -170,12 +170,20 @@
 
 @end
 
+@implementation KBRSignatureInfo
+@end
+
 @implementation KBRCryptoRequest
 
-- (void)signWithSessionID:(NSInteger)sessionID msg:(NSData *)msg reason:(NSString *)reason completion:(void (^)(NSError *error, NSData *bytes))completion {
+- (void)signWithSessionID:(NSInteger)sessionID msg:(NSData *)msg reason:(NSString *)reason completion:(void (^)(NSError *error, KBRSignatureInfo *signatureInfo))completion {
   NSArray *params = @[@{@"sessionID": @(sessionID), @"msg": KBRValue(msg), @"reason": KBRValue(reason)}];
   [self.client sendRequestWithMethod:@"keybase.1.crypto.sign" params:params sessionId:self.sessionId completion:^(NSError *error, id retval) {
-    completion(error, 0);
+    if (error) {
+        completion(error, nil);
+        return;
+      }
+      KBRSignatureInfo *result = retval ? [MTLJSONAdapter modelOfClass:KBRSignatureInfo.class fromJSONDictionary:retval error:&error] : nil;
+      completion(error, result);
   }];
 }
 

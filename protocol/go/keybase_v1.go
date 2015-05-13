@@ -388,6 +388,11 @@ func (c ConfigClient) GetConfig() (res Config, err error) {
 	return
 }
 
+type SignatureInfo struct {
+	Sig             []byte `codec:"sig" json:"sig"`
+	VerifyingKeyKid string `codec:"verifyingKeyKid" json:"verifyingKeyKid"`
+}
+
 type SignArg struct {
 	SessionID int    `codec:"sessionID" json:"sessionID"`
 	Msg       []byte `codec:"msg" json:"msg"`
@@ -395,7 +400,7 @@ type SignArg struct {
 }
 
 type CryptoInterface interface {
-	Sign(SignArg) ([]byte, error)
+	Sign(SignArg) (SignatureInfo, error)
 }
 
 func CryptoProtocol(i CryptoInterface) rpc2.Protocol {
@@ -418,7 +423,7 @@ type CryptoClient struct {
 	Cli GenericClient
 }
 
-func (c CryptoClient) Sign(__arg SignArg) (res []byte, err error) {
+func (c CryptoClient) Sign(__arg SignArg) (res SignatureInfo, err error) {
 	err = c.Cli.Call("keybase.1.crypto.sign", []interface{}{__arg}, &res)
 	return
 }
