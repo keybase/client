@@ -5,7 +5,7 @@ import (
 	"testing"
 )
 
-// Make sure that Verify accepts the output of SignToString.
+// Test that VerifyString accepts the output of SignToString.
 func TestVerifyStringAccept(t *testing.T) {
 	keyPair, err := GenerateNaclSigningKeyPair()
 	if err != nil {
@@ -24,7 +24,7 @@ func TestVerifyStringAccept(t *testing.T) {
 	}
 }
 
-// Make sure that Verify rejects various types of bad signatures.
+// Test that VerifyString rejects various types of bad signatures.
 func TestVerifyStringReject(t *testing.T) {
 	keyPair, err := GenerateNaclSigningKeyPair()
 	if err != nil {
@@ -56,12 +56,12 @@ func TestVerifyStringReject(t *testing.T) {
 		t.Error("Signature for corrupt message unexpectedly passes")
 	}
 
+	// Signature with different key.
+
 	keyPair2, err := GenerateNaclSigningKeyPair()
 	if err != nil {
 		t.Fatal(err)
 	}
-
-	// Signature with different key.
 
 	sig2, _, err := keyPair2.SignToString(msg)
 	if err != nil {
