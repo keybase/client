@@ -39,7 +39,12 @@ func TestCryptoSign(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	err = sibkey.VerifyBytes(cse.GetSignature(), msg)
+	verifyingKey := cse.GetVerifyingKey()
+	if !sibkey.GetKid().Eq(verifyingKey.GetKid()) {
+		t.Error("sibkey has kid=%s, expected kid=%s", sibkey.GetKid(), verifyingKey.GetKid())
+	}
+
+	err = verifyingKey.VerifyBytes(cse.GetSignature(), msg)
 	if err != nil {
 		t.Error(err)
 	}
