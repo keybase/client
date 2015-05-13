@@ -24,18 +24,14 @@ const NACL_DH_KEYSIZE = 32
 type NaclSigningKeyPublic [ed25519.PublicKeySize]byte
 type NaclSigningKeyPrivate [ed25519.PrivateKeySize]byte
 
-func (k NaclSigningKeyPrivate) ToNaclLibrary() *[ed25519.PrivateKeySize]byte {
-	b := [ed25519.PrivateKeySize]byte(k)
-	return &b
-}
-
-func (k NaclSigningKeyPublic) ToNaclLibrary() *[ed25519.PublicKeySize]byte {
-	b := [ed25519.PublicKeySize]byte(k)
-	return &b
+func (k NaclSigningKeyPrivate) Sign(msg []byte) *[ed25519.SignatureSize]byte {
+	privateKey := [ed25519.PrivateKeySize]byte(k)
+	return ed25519.Sign(&privateKey, msg)
 }
 
 func (k NaclSigningKeyPublic) Verify(msg []byte, sig *[ed25519.SignatureSize]byte) error {
-	if !ed25519.Verify(k.ToNaclLibrary(), msg, sig) {
+	publicKey := [ed25519.PublicKeySize]byte(k)
+	if !ed25519.Verify(&publicKey, msg, sig) {
 		return VerificationError{}
 	}
 	return nil
@@ -317,7 +313,7 @@ func (k NaclSigningKeyPair) SignToBytes(msg []byte) (sig []byte, err error) {
 		err = NoSecretKeyError{}
 		return
 	}
-	sig = ed25519.Sign(k.Private.ToNaclLibrary(), msg)[:]
+	sig = k.Private.Sign(msg)[:]
 	return
 }
 
