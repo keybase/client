@@ -70,8 +70,10 @@ func (e *PGPEncrypt) Run(ctx *Context) error {
 			return libkb.LoginRequiredError{Context: "you must be logged in to sign"}
 		}
 
-		// turn this on automatically when not logged in
-		e.arg.NoSelf = true
+		// or trying to encrypt for self
+		if !e.arg.NoSelf {
+			return libkb.LoginRequiredError{Context: "you must be logged in to encrypt for yourself"}
+		}
 	}
 
 	var mykey *libkb.PgpKeyBundle

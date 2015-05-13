@@ -59,13 +59,13 @@ func NewScanKeys(secui libkb.SecretUI, idui libkb.IdentifyUI, opts *TrackOptions
 	}
 
 	var lks *libkb.LKSec
-	sk.G().LoginState().PassphraseStreamCache(func(c *libkb.PassphraseStreamCache) {
-		if !c.Valid() {
+	sk.G().LoginState().Account(func(a *libkb.Account) {
+		if !a.PassphraseStreamCache().Valid() {
 			return
 		}
-		lks = libkb.NewLKSec(sk.G().LoginState().PassphraseStream().LksClientHalf(), sk.G())
+		lks = libkb.NewLKSec(a.PassphraseStreamCache().PassphraseStream().LksClientHalf(), sk.G())
 		lks.SetUID(sk.me.GetUid().P())
-		lks.Load(nil)
+		lks.Load(a)
 	}, "NewScanKeys - lks preload")
 
 	sk.G().LoginState().Account(func(a *libkb.Account) {
