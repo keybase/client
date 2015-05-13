@@ -6,9 +6,9 @@ import (
 
 type CryptoSignEngine struct {
 	libkb.Contextified
-	msg       []byte
-	reason    string
-	signature []byte
+	msg    []byte
+	reason string
+	sig    []byte
 }
 
 func NewCryptoSignEngine(ctx *libkb.GlobalContext, msg []byte, reason string) *CryptoSignEngine {
@@ -51,15 +51,15 @@ func (cse *CryptoSignEngine) Run(ctx *Context) (cserr error) {
 		return err
 	}
 
-	signature, err := sigKey.SignToBytes(cse.msg)
+	sig, err := sigKey.SignToBytes(cse.msg)
 	if err != nil {
 		return err
 	}
 
-	cse.signature = signature
+	cse.sig = sig
 	return nil
 }
 
 func (cse *CryptoSignEngine) GetSignature() []byte {
-	return cse.signature
+	return cse.sig
 }
