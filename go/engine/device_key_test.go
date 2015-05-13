@@ -21,10 +21,10 @@ func TestDeviceKey(t *testing.T) {
 			t.Fatalf("Can't load current user")
 		}
 
-		if sibkey, subkey, err := u.GetDeviceKeys(); err != nil {
+		if subkey, err := u.GetDeviceSubkey(); err != nil {
 			t.Fatal(err)
-		} else if sibkey == nil || subkey == nil {
-			t.Fatalf("Failed to load device keys right after signup")
+		} else if subkey == nil {
+			t.Fatalf("Failed to load device subkey right after signup")
 		}
 	}
 	check()
