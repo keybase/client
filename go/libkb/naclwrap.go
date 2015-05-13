@@ -370,7 +370,7 @@ func (k NaclSigningKeyPair) SignToBytes(msg []byte) (sig []byte, err error) {
 	return
 }
 
-func (k NaclSigningKeyPair) VerifyBytes(sig, msg []byte) error {
+func (k NaclSigningKeyPair) VerifyBytes(sig, msg []byte) (err error) {
 	var sigArr [ed25519.SignatureSize]byte
 	if len(sig) != len(sigArr) {
 		return VerificationError{}
@@ -399,7 +399,7 @@ func (k NaclDHKeyPair) SignToBytes(msg []byte) (sig []byte, err error) {
 	return
 }
 
-func (k NaclDHKeyPair) VerifyBytes(sig, msg []byte) error {
+func (k NaclDHKeyPair) VerifyBytes(sig, msg []byte) (err error) {
 	return KeyCannotVerifyError{}
 }
 
