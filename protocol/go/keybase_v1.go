@@ -388,6 +388,41 @@ func (c ConfigClient) GetConfig() (res Config, err error) {
 	return
 }
 
+type SignArg struct {
+	SessionID int    `codec:"sessionID" json:"sessionID"`
+	Msg       []byte `codec:"msg" json:"msg"`
+	Reason    string `codec:"reason" json:"reason"`
+}
+
+type CryptoInterface interface {
+	Sign(SignArg) ([]byte, error)
+}
+
+func CryptoProtocol(i CryptoInterface) rpc2.Protocol {
+	return rpc2.Protocol{
+		Name: "keybase.1.crypto",
+		Methods: map[string]rpc2.ServeHook{
+			"sign": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
+				args := make([]SignArg, 1)
+				if err = nxt(&args); err == nil {
+					ret, err = i.Sign(args[0])
+				}
+				return
+			},
+		},
+	}
+
+}
+
+type CryptoClient struct {
+	Cli GenericClient
+}
+
+func (c CryptoClient) Sign(__arg SignArg) (res []byte, err error) {
+	err = c.Cli.Call("keybase.1.crypto.sign", []interface{}{__arg}, &res)
+	return
+}
+
 type StopArg struct {
 }
 
@@ -2156,7 +2191,8 @@ type Session struct {
 	Uid             UID    `codec:"uid" json:"uid"`
 	Username        string `codec:"username" json:"username"`
 	Token           string `codec:"token" json:"token"`
-	DeviceSubkeyKid []byte `codec:"deviceSubkeyKid" json:"deviceSubkeyKid"`
+	DeviceSibkeyKid string `codec:"deviceSibkeyKid" json:"deviceSibkeyKid"`
+	DeviceSubkeyKid string `codec:"deviceSubkeyKid" json:"deviceSubkeyKid"`
 }
 
 type CurrentSessionArg struct {

@@ -91,9 +91,6 @@ func (e *PGPEncrypt) Run(ctx *Context) error {
 		if err != nil {
 			return err
 		}
-		if key == nil {
-			return errors.New("No secret key available")
-		}
 
 		var ok bool
 		mykey, ok = key.(*libkb.PgpKeyBundle)

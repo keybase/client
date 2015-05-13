@@ -169,7 +169,7 @@ func (k *KexSib) handlePleaseSign(m *kex.Msg) error {
 	sig := m.Args().Sig
 
 	keypair := libkb.NaclSigningKeyPair{Public: eddsa}
-	sigPayload, _, err := keypair.VerifyAndExtract(sig)
+	sigPayload, _, err := keypair.VerifyStringAndExtract(sig)
 	if err != nil {
 		return err
 	}

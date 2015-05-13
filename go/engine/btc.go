@@ -66,8 +66,8 @@ func (e *BTCEngine) Run(ctx *Context) error {
 		Me:      me,
 		KeyType: libkb.DeviceKeyType,
 	}, ctx.SecretUI, "to register a cryptocurrency address")
-	if sigKey == nil {
-		return fmt.Errorf("Signing key is nil.")
+	if err != nil {
+		return err
 	}
 	if err = sigKey.CheckSecretKey(); err != nil {
 		return err

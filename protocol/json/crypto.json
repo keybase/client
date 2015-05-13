@@ -1,0 +1,20 @@
+{
+  "protocol" : "crypto",
+  "namespace" : "keybase.1",
+  "types" : [ ],
+  "messages" : {
+    "sign" : {
+      "request" : [ {
+        "name" : "sessionID",
+        "type" : "int"
+      }, {
+        "name" : "msg",
+        "type" : "bytes"
+      }, {
+        "name" : "reason",
+        "type" : "string"
+      } ],
+      "response" : "bytes"
+    }
+  }
+}

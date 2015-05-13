@@ -378,7 +378,7 @@ func (mc *MerkleClient) VerifyRoot(root *MerkleRoot) error {
 	}
 
 	// Actually run the PGP verification over the signature
-	_, err = key.Verify(root.sig, []byte(root.payloadJsonString))
+	_, err = key.VerifyString(root.sig, []byte(root.payloadJsonString))
 	if err != nil {
 		return err
 	}

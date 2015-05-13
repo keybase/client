@@ -170,6 +170,17 @@
 
 @end
 
+@implementation KBRCryptoRequest
+
+- (void)signWithSessionID:(NSInteger)sessionID msg:(NSData *)msg reason:(NSString *)reason completion:(void (^)(NSError *error, NSData *bytes))completion {
+  NSArray *params = @[@{@"sessionID": @(sessionID), @"msg": KBRValue(msg), @"reason": KBRValue(reason)}];
+  [self.client sendRequestWithMethod:@"keybase.1.crypto.sign" params:params sessionId:self.sessionId completion:^(NSError *error, id retval) {
+    completion(error, 0);
+  }];
+}
+
+@end
+
 @implementation KBRCtlRequest
 
 - (void)stop:(void (^)(NSError *error))completion {
@@ -1215,6 +1226,19 @@
     self.sessionID = [params[0][@"sessionID"] integerValue];
     self.address = params[0][@"address"];
     self.force = [params[0][@"force"] boolValue];
+  }
+  return self;
+}
+
+@end
+
+@implementation KBRSignRequestParams
+
+- (instancetype)initWithParams:(NSArray *)params {
+  if ((self = [super initWithParams:params])) {
+    self.sessionID = [params[0][@"sessionID"] integerValue];
+    self.msg = params[0][@"msg"];
+    self.reason = params[0][@"reason"];
   }
   return self;
 }

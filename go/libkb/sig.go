@@ -105,32 +105,6 @@ func (s SigId) ToShortId() string {
 	return depad(base64.URLEncoding.EncodeToString(s[0:SIG_SHORT_ID_BYTES]))
 }
 
-func (k PgpKeyBundle) VerifyAndExtract(armored string) (msg []byte, sig_id *SigId,
-	err error) {
-
-	var ps *ParsedSig
-	if ps, err = PgpOpenSig(armored); err != nil {
-		return
-	} else if err = ps.Verify(k); err != nil {
-		return
-	}
-	tmp := ps.ID()
-	return ps.LiteralData, &tmp, nil
-}
-
-func (k PgpKeyBundle) Verify(armored string, expected []byte) (sigId *SigId,
-	err error) {
-	res, sig_id, err := k.VerifyAndExtract(armored)
-	if err != nil {
-		return
-	}
-	if !FastByteArrayEq(res, expected) {
-		err = BadSigError{"wrong payload"}
-		return
-	}
-	return sig_id, nil
-}
-
 type ParsedSig struct {
 	Block       *armor.Block
 	SigBody     []byte

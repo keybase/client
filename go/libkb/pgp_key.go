@@ -465,8 +465,46 @@ func (p *PgpKeyBundle) CheckFingerprint(fp *PgpFingerprint) (err error) {
 	return
 }
 
-func (key *PgpKeyBundle) SignToString(payload []byte) (out string, id *SigId, err error) {
-	return SimpleSign(payload, *key)
+func (key *PgpKeyBundle) SignToString(msg []byte) (sig string, id *SigId, err error) {
+	return SimpleSign(msg, *key)
+}
+
+func (k PgpKeyBundle) VerifyStringAndExtract(sig string) (msg []byte, id *SigId,
+	err error) {
+	var ps *ParsedSig
+	if ps, err = PgpOpenSig(sig); err != nil {
+		return
+	} else if err = ps.Verify(k); err != nil {
+		return
+	}
+	msg = ps.LiteralData
+	psId := ps.ID()
+	id = &psId
+	return
+}
+
+func (k PgpKeyBundle) VerifyString(sig string, msg []byte) (id *SigId,
+	err error) {
+	extractedMsg, resId, err := k.VerifyStringAndExtract(sig)
+	if err != nil {
+		return
+	}
+	if !FastByteArrayEq(extractedMsg, msg) {
+		err = BadSigError{"wrong payload"}
+		return
+	}
+	id = resId
+	return
+}
+
+func (key *PgpKeyBundle) SignToBytes(msg []byte) (sig []byte, err error) {
+	err = KeyCannotSignError{}
+	return
+}
+
+func (k PgpKeyBundle) VerifyBytes(sig, msg []byte) (err error) {
+	err = KeyCannotVerifyError{}
+	return
 }
 
 func ExportAsFOKID(fp *PgpFingerprint, kid KID) (ret keybase1.FOKID) {

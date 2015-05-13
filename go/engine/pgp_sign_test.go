@@ -54,7 +54,7 @@ func TestPgpSign(t *testing.T) {
 
 	sig := sink.String()
 
-	_, err = key.Verify(sig, []byte(msg))
+	_, err = key.VerifyString(sig, []byte(msg))
 	if err != nil {
 		t.Fatal(err)
 	}

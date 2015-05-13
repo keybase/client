@@ -24,13 +24,17 @@ const NACL_DH_KEYSIZE = 32
 type NaclSigningKeyPublic [ed25519.PublicKeySize]byte
 type NaclSigningKeyPrivate [ed25519.PrivateKeySize]byte
 
-func (k NaclSigningKeyPrivate) ToNaclLibrary() *[ed25519.PrivateKeySize]byte {
-	b := [ed25519.PrivateKeySize]byte(k)
-	return &b
+func (k NaclSigningKeyPrivate) Sign(msg []byte) *[ed25519.SignatureSize]byte {
+	privateKey := [ed25519.PrivateKeySize]byte(k)
+	return ed25519.Sign(&privateKey, msg)
 }
-func (k NaclSigningKeyPublic) ToNaclLibrary() *[ed25519.PublicKeySize]byte {
-	b := [ed25519.PublicKeySize]byte(k)
-	return &b
+
+func (k NaclSigningKeyPublic) Verify(msg []byte, sig *[ed25519.SignatureSize]byte) error {
+	publicKey := [ed25519.PublicKeySize]byte(k)
+	if !ed25519.Verify(&publicKey, msg, sig) {
+		return VerificationError{}
+	}
+	return nil
 }
 
 func (k KID) ToNaclSigningKeyPublic() *NaclSigningKeyPublic {
@@ -278,36 +282,125 @@ func (k NaclSigningKeyPair) Sign(msg []byte) (ret *NaclSig, err error) {
 		err = NoSecretKeyError{}
 		return
 	}
-	sig := ed25519.Sign(k.Private.ToNaclLibrary(), msg)
 	ret = &NaclSig{
+		Kid:      k.GetKid(),
+		Payload:  msg,
+		Sig:      *k.Private.Sign(msg),
 		SigType:  SIG_KB_EDDSA,
 		HashType: HASH_PGP_SHA512,
-		Payload:  msg,
-		Kid:      k.GetKid(),
 		Detached: true,
 	}
-	copy(ret.Sig[:], (*sig)[:])
 	return
 }
 
-func (k NaclSigningKeyPair) SignToString(msg []byte) (sig string, idp *SigId, err error) {
-	if tmp, e2 := k.Sign(msg); e2 != nil {
-		err = e2
-	} else if packet, e2 := tmp.ToPacket(); e2 != nil {
-		err = e2
-	} else if body, e2 := packet.Encode(); e2 != nil {
-		err = e2
-	} else {
-		id := ComputeSigIdFromSigBody(body)
-		idp = &id
-		sig = base64.StdEncoding.EncodeToString(body)
+func (k NaclSigningKeyPair) SignToString(msg []byte) (sig string, id *SigId, err error) {
+	naclSig, err := k.Sign(msg)
+	if err != nil {
+		return
 	}
+
+	packet, err := naclSig.ToPacket()
+	if err != nil {
+		return
+	}
+
+	body, err := packet.Encode()
+	if err != nil {
+		return
+	}
+
+	sig = base64.StdEncoding.EncodeToString(body)
+	sigId := ComputeSigIdFromSigBody(body)
+	id = &sigId
 	return
 }
 
-func (k NaclDHKeyPair) SignToString(msg []byte) (sig string, idp *SigId, err error) {
+func (k NaclSigningKeyPair) VerifyStringAndExtract(sig string) (msg []byte, id *SigId, err error) {
+	body, err := base64.StdEncoding.DecodeString(sig)
+	if err != nil {
+		return
+	}
+
+	packet, err := DecodePacket(body)
+	if err != nil {
+		return
+	}
+
+	naclSig, ok := packet.Body.(*NaclSig)
+	if !ok {
+		err = UnmarshalError{"NACL signature"}
+		return
+	}
+
+	err = naclSig.Verify()
+	if err != nil {
+		return
+	}
+
+	if !naclSig.Kid.Eq(k.GetKid()) {
+		err = WrongKidError{naclSig.Kid, k.GetKid()}
+		return
+	}
+
+	msg = naclSig.Payload
+	sigId := ComputeSigIdFromSigBody(body)
+	id = &sigId
+	return
+}
+
+func (k NaclSigningKeyPair) VerifyString(sig string, msg []byte) (id *SigId, err error) {
+	extractedMsg, resId, err := k.VerifyStringAndExtract(sig)
+	if err != nil {
+		return
+	}
+	if !FastByteArrayEq(extractedMsg, msg) {
+		err = BadSigError{"wrong payload"}
+		return
+	}
+	id = resId
+	return
+}
+
+func (k NaclSigningKeyPair) SignToBytes(msg []byte) (sig []byte, err error) {
+	if k.Private == nil {
+		err = NoSecretKeyError{}
+		return
+	}
+	sig = k.Private.Sign(msg)[:]
+	return
+}
+
+func (k NaclSigningKeyPair) VerifyBytes(sig, msg []byte) (err error) {
+	var sigArr [ed25519.SignatureSize]byte
+	if len(sig) != len(sigArr) {
+		return VerificationError{}
+	}
+	copy(sigArr[:], sig)
+	return k.Public.Verify(msg, &sigArr)
+}
+
+func (k NaclDHKeyPair) SignToString(msg []byte) (sig string, id *SigId, err error) {
 	err = KeyCannotSignError{}
 	return
+}
+
+func (k NaclDHKeyPair) VerifyStringAndExtract(sig string) (msg []byte, id *SigId, err error) {
+	err = KeyCannotVerifyError{}
+	return
+}
+
+func (k NaclDHKeyPair) VerifyString(sig string, msg []byte) (id *SigId, err error) {
+	err = KeyCannotVerifyError{}
+	return
+}
+
+func (k NaclDHKeyPair) SignToBytes(msg []byte) (sig []byte, err error) {
+	err = KeyCannotSignError{}
+	return
+}
+
+func (k NaclDHKeyPair) VerifyBytes(sig, msg []byte) (err error) {
+	return KeyCannotVerifyError{}
 }
 
 func (s *NaclSig) ToPacket() (ret *KeybasePacket, err error) {
@@ -327,63 +420,12 @@ func (p KeybasePacket) ToNaclSig() (*NaclSig, error) {
 	return ret, nil
 }
 
-func (s NaclSig) Verify() (err error) {
-	if key := s.Kid.ToNaclSigningKeyPublic(); key == nil {
-		err = BadKeyError{}
-	} else if !ed25519.Verify(key.ToNaclLibrary(), s.Payload, &s.Sig) {
-		err = VerificationError{}
+func (s NaclSig) Verify() error {
+	key := s.Kid.ToNaclSigningKeyPublic()
+	if key == nil {
+		return BadKeyError{}
 	}
-	return
-}
-
-func (k NaclDHKeyPair) Verify(armored string, expected []byte) (sigId *SigId, err error) {
-	err = KeyCannotSignError{}
-	return
-}
-
-func (k NaclDHKeyPair) VerifyAndExtract(armored string) (payload []byte, sigId *SigId, err error) {
-	err = KeyCannotSignError{}
-	return
-}
-
-func (k NaclSigningKeyPair) VerifyAndExtract(armored string) (payload []byte, sigId *SigId, err error) {
-	var packet *KeybasePacket
-	var sig *NaclSig
-	var ok bool
-	var byt []byte
-
-	if byt, err = base64.StdEncoding.DecodeString(armored); err != nil {
-		return
-	}
-	if packet, err = DecodePacket(byt); err != nil {
-		return
-	}
-	if sig, ok = packet.Body.(*NaclSig); !ok {
-		err = UnmarshalError{"NACL signature"}
-		return
-	}
-	if err = sig.Verify(); err != nil {
-		return
-	}
-	if !sig.Kid.Eq(k.GetKid()) {
-		err = WrongKidError{sig.Kid, k.GetKid()}
-		return
-	}
-	payload = sig.Payload
-
-	id := ComputeSigIdFromSigBody(byt)
-	sigId = &id
-	return
-}
-
-func (k NaclSigningKeyPair) Verify(armored string, expected []byte) (sigId *SigId, err error) {
-	var received []byte
-	received, sigId, err = k.VerifyAndExtract(armored)
-	if !FastByteArrayEq(received, expected) {
-		err = BadSigError{"wrong payload"}
-		return
-	}
-	return
+	return key.Verify(s.Payload, &s.Sig)
 }
 
 func (s *NaclSig) ArmoredEncode() (ret string, err error) {

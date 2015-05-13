@@ -52,22 +52,6 @@ func (p *proveUI) DisplayRecheckWarning(arg keybase1.DisplayRecheckWarningArg) e
 	return p.cli.DisplayRecheckWarning(arg)
 }
 
-// GetSecret gets a free-form secret from a pinentry
-func (l *SecretUI) GetSecret(pinentry keybase1.SecretEntryArg, terminal *keybase1.SecretEntryArg) (*keybase1.SecretEntryRes, error) {
-	res, err := l.cli.GetSecret(keybase1.GetSecretArg{SessionID: l.sessionId, Pinentry: pinentry, Terminal: terminal})
-	return &res, err
-}
-
-// GetNewPassphrase gets a new passphrase from pinentry
-func (l *SecretUI) GetNewPassphrase(arg keybase1.GetNewPassphraseArg) (string, error) {
-	return l.cli.GetNewPassphrase(arg)
-}
-
-// GetKeybasePassphrase gets the current keybase passphrase from pinentry.
-func (l *SecretUI) GetKeybasePassphrase(arg keybase1.GetKeybasePassphraseArg) (string, error) {
-	return l.cli.GetKeybasePassphrase(arg)
-}
-
 func (ph *ProveHandler) getProveUI(sessionID int) libkb.ProveUI {
 	return &proveUI{sessionID, keybase1.ProveUiClient{Cli: ph.getRpcClient()}}
 }

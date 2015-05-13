@@ -1,0 +1,9 @@
+@namespace("keybase.1")
+
+protocol crypto {
+	// Sign the given message (which should be small) using the device's
+	// private key, and return the signature. The 'reason' parameter
+	// is used as part of the SecretEntryArg objects passed into
+	// secretUi.getSecret().
+	bytes sign(int sessionID, bytes msg, string reason);
+}

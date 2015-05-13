@@ -17,10 +17,6 @@ func NewLoginHandler(xp *rpc2.Transport) *LoginHandler {
 	return &LoginHandler{CancelHandler: NewCancelHandler(xp)}
 }
 
-func (u *LoginUI) GetEmailOrUsername(dummy int) (ret string, err error) {
-	return u.cli.GetEmailOrUsername(u.sessionId)
-}
-
 func (h *LoginHandler) GetConfiguredAccounts() ([]keybase1.ConfiguredAccount, error) {
 	return libkb.GetConfiguredAccounts()
 }

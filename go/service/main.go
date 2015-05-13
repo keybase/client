@@ -29,6 +29,7 @@ func NewService(d bool) *Service {
 func RegisterProtocols(srv *rpc2.Server, xp *rpc2.Transport) {
 	srv.Register(keybase1.BTCProtocol(NewBTCHandler(xp)))
 	srv.Register(keybase1.ConfigProtocol(ConfigHandler{xp}))
+	srv.Register(keybase1.CryptoProtocol(NewCryptoHandler(xp)))
 	srv.Register(keybase1.CtlProtocol(CtlHandler{}))
 	srv.Register(keybase1.DeviceProtocol(NewDeviceHandler(xp)))
 	srv.Register(keybase1.DoctorProtocol(NewDoctorHandler(xp)))
