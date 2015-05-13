@@ -2,8 +2,10 @@ package service
 
 import (
 	"fmt"
+	"io/ioutil"
 	"net"
 	"os"
+	"path"
 
 	"github.com/codegangsta/cli"
 	"github.com/keybase/client/go/libcmdline"
@@ -56,6 +58,11 @@ func (d *Service) RunClient() (err error) {
 func (d *Service) Run() (err error) {
 	G.Service = true
 
+	err = d.writeVersionFile()
+	if err != nil {
+		return
+	}
+
 	if len(d.chdirTo) != 0 {
 		e_tmp := os.Chdir(d.chdirTo)
 		if e_tmp != nil {
@@ -79,6 +86,13 @@ func (d *Service) Run() (err error) {
 		return
 	}
 	return
+}
+
+// If the daemon is already running, we need to be able to check what version
+// it is, in case the client has been updated.
+func (d *Service) writeVersionFile() error {
+	versionFilePath := path.Join(G.Env.GetCacheDir(), "service.version")
+	return ioutil.WriteFile(versionFilePath, []byte(libkb.CLIENT_VERSION), 0644)
 }
 
 func (d *Service) ReleaseLock() error {
