@@ -6,10 +6,10 @@ import (
 	"github.com/keybase/client/go/libkb"
 )
 
-// Test that CryptoSignEngine yields the expected signature for its
-// given message.
+// Test that CryptoSignEngine yields a signature that the device
+// subkey can verify.
 //
-// (For tests that valid signatures are accepted and invalid
+// (For general tests that valid signatures are accepted and invalid
 // signatures are rejected, see naclwrap_test.go.)
 func TestCryptoSign(t *testing.T) {
 	tc := SetupEngineTest(t, "crypto_sign")
@@ -19,38 +19,28 @@ func TestCryptoSign(t *testing.T) {
 
 	msg := []byte("test message")
 
-	me, err := libkb.LoadMe(libkb.LoadUserArg{})
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	secui := libkb.TestSecretUI{Passphrase: fu.Passphrase}
-
-	sigKey, _, err := tc.G.Keyrings.GetSecretKeyWithPrompt(libkb.SecretKeyArg{
-		Me:      me,
-		KeyType: libkb.DeviceKeyType,
-	}, secui, "test reason")
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	expectedSig, err := sigKey.SignToBytes(msg)
+	me, err := libkb.LoadUser(libkb.LoadUserArg{Name: fu.Username})
 	if err != nil {
 		t.Fatal(err)
 	}
 
 	cse := NewCryptoSignEngine(tc.G, msg, "test reason")
+	secui := libkb.TestSecretUI{Passphrase: fu.Passphrase}
 	ctx := &Context{
 		SecretUI: secui,
 	}
 	err = RunEngine(cse, ctx)
 	if err != nil {
-		t.Error(err)
+		t.Fatal(err)
 	}
 
-	sig := cse.GetSignature()
+	sibkey, _, err := me.GetDeviceKeys()
+	if err != nil {
+		t.Fatal(err)
+	}
 
-	if string(sig) != string(expectedSig) {
-		t.Errorf("Expected %v, got %v", expectedSig, sig)
+	err = sibkey.VerifyBytes(msg, cse.GetSignature())
+	if err != nil {
+		t.Error(err)
 	}
 }
