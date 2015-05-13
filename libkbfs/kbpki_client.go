@@ -165,5 +165,10 @@ func (k *KBPKIClient) session() (*libkb.Session, KID, error) {
 		return nil, KID{}, err
 	}
 
-	return libkb.NewSessionThin(libkb.UID(res.Uid), res.Username, res.Token), KID(res.DeviceSubkeyKid), nil
+	deviceSubkeyKid, err := libkb.ImportKID(res.DeviceSubkeyKid)
+	if err != nil {
+		return nil, KID{}, err
+	}
+
+	return libkb.NewSessionThin(libkb.UID(res.Uid), res.Username, res.Token), KID(deviceSubkeyKid), nil
 }

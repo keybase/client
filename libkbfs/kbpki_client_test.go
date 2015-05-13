@@ -39,13 +39,22 @@ func (fc FakeClient) Call(s string, args interface{}, res interface{}) error {
 		if err != nil {
 			return err
 		}
-		session := res.(*keybase1.Session)
-		session.Uid = keybase1.UID(user.GetUid())
-		session.Username = user.GetName()
-		session.DeviceSubkeyKid, err = fc.Local.GetDeviceSubkeyKid()
+
+		deviceSibkey, err := fc.Local.GetPublicSigningKey(user)
 		if err != nil {
 			return err
 		}
+
+		deviceSubkeyKid, err := fc.Local.GetDeviceSubkeyKid()
+		if err != nil {
+			return err
+		}
+
+		session := res.(*keybase1.Session)
+		session.Uid = keybase1.UID(user.GetUid())
+		session.Username = user.GetName()
+		session.DeviceSibkeyKid = deviceSibkey.GetKid().String()
+		session.DeviceSubkeyKid = libkb.KID(deviceSubkeyKid).String()
 
 	default:
 		return fmt.Errorf("Unknown call: %s %v %v", s, args, res)
@@ -138,6 +147,11 @@ func TestClientGetDeviceKeys(t *testing.T) {
 }
 
 func TestClientGetDeviceSubkeyKid(t *testing.T) {
+	signingKey, err := libkb.GenerateNaclSigningKeyPair()
+	if err != nil {
+		t.Fatal(err)
+	}
+
 	kid1 := KID("kid1 with at least 12 bytes")
 	kid2 := KID("kid2 with at least 12 bytes")
 	fc := NewFakeClient(libkb.UID{2}, []LocalUser{
@@ -149,6 +163,7 @@ func TestClientGetDeviceSubkeyKid(t *testing.T) {
 		LocalUser{
 			Name:            "test_name2",
 			Uid:             libkb.UID{2},
+			SigningKey:      signingKey,
 			DeviceSubkeyKid: kid2,
 		},
 	})

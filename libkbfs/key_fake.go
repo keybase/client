@@ -29,16 +29,26 @@ func (k KeyFake) GetAlgoType() libkb.AlgoType {
 	return KID_FAKE
 }
 
-func (k KeyFake) SignToString(buf []byte) (string, *libkb.SigId, error) {
-	return string(buf), nil, nil
+func (k KeyFake) SignToString(msg []byte) (sig string, id *libkb.SigId, err error) {
+	return string(msg), nil, nil
 }
 
-func (k KeyFake) Verify(s string, buf []byte) (*libkb.SigId, error) {
+func (k KeyFake) VerifyStringAndExtract(sig string) (msg []byte, id *libkb.SigId, err error) {
+	return []byte(sig), nil, nil
+}
+
+func (k KeyFake) VerifyString(sig string, msg []byte) (id *libkb.SigId, err error) {
 	return nil, nil
 }
 
-func (k KeyFake) VerifyAndExtract(s string) ([]byte, *libkb.SigId, error) {
-	return []byte(s), nil, nil
+func (k KeyFake) SignToBytes(msg []byte) (sig []byte, err error) {
+	sig = make([]byte, len(msg))
+	copy(sig[:], msg[:])
+	return
+}
+
+func (k KeyFake) VerifyBytes(sig, msg []byte) (err error) {
+	return
 }
 
 func (k KeyFake) ToSKB(ts *triplesec.Cipher) (*libkb.SKB, error) {
