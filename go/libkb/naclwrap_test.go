@@ -75,14 +75,14 @@ func TestVerifyStringReject(t *testing.T) {
 
 	// Append different signature.
 
-	_, err = keyPair.Verify(sig+sig2, msg)
+	_, err = keyPair.VerifyString(sig+sig2, msg)
 	if err == nil {
 		t.Error("Signature with appended different signature unexpectedly passes")
 	}
 
 	// Prepend invalid signature.
 
-	_, err = keyPair.Verify(sig2+sig, msg)
+	_, err = keyPair.VerifyString(sig2+sig, msg)
 	if err == nil {
 		t.Error("Signature with preprended invalid signature unexpectedly passes")
 	}
