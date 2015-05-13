@@ -278,18 +278,18 @@ func (k NaclSigningKeyPair) CanSign() bool { return k.Private != nil }
 func (k NaclDHKeyPair) CanSign() bool      { return false }
 
 func (k NaclSigningKeyPair) Sign(msg []byte) (ret *NaclSig, err error) {
-	sig, err := k.SignToBytes(msg)
-	if err != nil {
-		return nil, err
+	if k.Private == nil {
+		err = NoSecretKeyError{}
+		return
 	}
 	ret = &NaclSig{
+		Kid:      k.GetKid(),
+		Payload:  msg,
+		Sig:      *k.Private.Sign(msg),
 		SigType:  SIG_KB_EDDSA,
 		HashType: HASH_PGP_SHA512,
-		Payload:  msg,
-		Kid:      k.GetKid(),
 		Detached: true,
 	}
-	copy(ret.Sig[:], sig[:])
 	return
 }
 
