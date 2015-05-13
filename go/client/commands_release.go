@@ -22,7 +22,6 @@ func GetCommands(cl *libcmdline.CommandLine) []cli.Command {
 		NewCmdList(cl),
 		NewCmdLogin(cl),
 		NewCmdLogout(cl),
-		NewCmdMykey(cl),
 		NewCmdPGP(cl),
 		NewCmdPing(cl),
 		NewCmdProve(cl),
