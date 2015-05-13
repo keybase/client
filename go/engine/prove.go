@@ -21,6 +21,9 @@ type Prove struct {
 
 	username           string
 	usernameNormalized string
+
+	canceled chan struct{}
+
 	libkb.Contextified
 }
 
@@ -28,6 +31,7 @@ type Prove struct {
 func NewProve(arg *keybase1.ProveArg, g *libkb.GlobalContext) *Prove {
 	return &Prove{
 		arg:          arg,
+		canceled:     make(chan struct{}),
 		Contextified: libkb.NewContextified(g),
 	}
 }
@@ -57,11 +61,17 @@ func (p *Prove) SubConsumers() []libkb.UIConsumer {
 }
 
 func (p *Prove) loadMe() (err error) {
+	if err = p.checkCanceled(); err != nil {
+		return err
+	}
 	p.me, err = libkb.LoadMe(libkb.LoadUserArg{AllKeys: false, ForceReload: true})
 	return
 }
 
 func (p *Prove) checkExists1(ctx *Context) (err error) {
+	if err = p.checkCanceled(); err != nil {
+		return err
+	}
 	proofs := p.me.IdTable().GetActiveProofsFor(p.st)
 	if len(proofs) != 0 && !p.arg.Force && p.st.LastWriterWins() {
 		lst := proofs[len(proofs)-1]
@@ -81,6 +91,9 @@ func (p *Prove) checkExists1(ctx *Context) (err error) {
 }
 
 func (p *Prove) promptRemoteName(ctx *Context) (err error) {
+	if err = p.checkCanceled(); err != nil {
+		return err
+	}
 	p.username = p.arg.Username
 	if len(p.username) == 0 {
 		var prevErr error
@@ -104,6 +117,9 @@ func (p *Prove) promptRemoteName(ctx *Context) (err error) {
 }
 
 func (p *Prove) normalizeRemoteName() (err error) {
+	if err = p.checkCanceled(); err != nil {
+		return err
+	}
 	p.usernameNormalized, err = p.st.NormalizeUsername(p.username)
 	return
 }
@@ -111,6 +127,9 @@ func (p *Prove) normalizeRemoteName() (err error) {
 func (p *Prove) checkExists2(ctx *Context) (err error) {
 	p.G().Log.Debug("+ CheckExists2")
 	defer func() { p.G().Log.Debug("- CheckExists2 -> %s", libkb.ErrToOk(err)) }()
+	if err = p.checkCanceled(); err != nil {
+		return err
+	}
 	if !p.st.LastWriterWins() {
 		var found libkb.RemoteProofChainLink
 		for _, proof := range p.me.IdTable().GetActiveProofsFor(p.st) {
@@ -138,6 +157,9 @@ func (p *Prove) checkExists2(ctx *Context) (err error) {
 }
 
 func (p *Prove) doPrechecks(ctx *Context) (err error) {
+	if err = p.checkCanceled(); err != nil {
+		return err
+	}
 	var w *libkb.Markup
 	w, err = p.st.PreProofCheck(p.usernameNormalized)
 	if w != nil {
@@ -147,6 +169,9 @@ func (p *Prove) doPrechecks(ctx *Context) (err error) {
 }
 
 func (p *Prove) doWarnings(ctx *Context) (err error) {
+	if err = p.checkCanceled(); err != nil {
+		return err
+	}
 	if mu := p.st.PreProofWarning(p.usernameNormalized); mu != nil {
 		var ok bool
 		arg := keybase1.PreProofWarningArg{Text: mu.Export()}
@@ -158,6 +183,10 @@ func (p *Prove) doWarnings(ctx *Context) (err error) {
 }
 
 func (p *Prove) generateProof(ctx *Context) (err error) {
+	if err = p.checkCanceled(); err != nil {
+		return err
+	}
+
 	var locked *libkb.SKB
 	var which string
 	var seckey libkb.GenericKey
@@ -184,6 +213,10 @@ func (p *Prove) generateProof(ctx *Context) (err error) {
 }
 
 func (p *Prove) postProofToServer() (err error) {
+	if err = p.checkCanceled(); err != nil {
+		return err
+	}
+
 	arg := libkb.PostProofArg{
 		Sig:            p.sig,
 		ProofType:      p.st.GetProofType(),
@@ -198,6 +231,10 @@ func (p *Prove) postProofToServer() (err error) {
 }
 
 func (p *Prove) instructAction(ctx *Context) (err error) {
+	if err = p.checkCanceled(); err != nil {
+		return err
+	}
+
 	mkp := p.st.PostInstructions(p.usernameNormalized)
 	var txt string
 	if txt, err = p.st.FormatProofText(p.postRes); err != nil {
@@ -213,6 +250,9 @@ func (p *Prove) instructAction(ctx *Context) (err error) {
 func (p *Prove) promptPostedLoop(ctx *Context) (err error) {
 	found := false
 	for i := 0; ; i++ {
+		if err = p.checkCanceled(); err != nil {
+			return err
+		}
 		var retry bool
 		var status int
 		var warn *libkb.Markup
@@ -245,14 +285,34 @@ func (p *Prove) promptPostedLoop(ctx *Context) (err error) {
 }
 
 func (p *Prove) checkProofText() error {
+	if err := p.checkCanceled(); err != nil {
+		return err
+	}
 	return p.st.CheckProofText(p.postRes.Text, *p.sigID, p.sig)
 }
 
 func (p *Prove) getServiceType() (err error) {
+	if err = p.checkCanceled(); err != nil {
+		return err
+	}
 	if p.st = libkb.GetServiceType(p.arg.Service); p.st == nil {
 		err = libkb.BadServiceError{Service: p.arg.Service}
 	}
 	return
+}
+
+func (p *Prove) checkCanceled() error {
+	select {
+	case <-p.canceled:
+		return libkb.CanceledError{M: "prove canceled"}
+	default:
+		return nil
+	}
+}
+
+func (p *Prove) Cancel() error {
+	close(p.canceled)
+	return nil
 }
 
 // Run is runs the Prove engine, performing all steps of the proof process.

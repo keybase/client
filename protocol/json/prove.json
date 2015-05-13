@@ -180,6 +180,26 @@
         "type" : "boolean"
       } ],
       "response" : "null"
+    },
+    "cancel" : {
+      "request" : [ {
+        "name" : "sessionID",
+        "type" : "int"
+      } ],
+      "response" : "null"
+    },
+    "checkForProof" : {
+      "request" : [ {
+        "name" : "sessionID",
+        "type" : "int"
+      }, {
+        "name" : "service",
+        "type" : "string"
+      }, {
+        "name" : "username",
+        "type" : "string"
+      } ],
+      "response" : "null"
     }
   }
 }

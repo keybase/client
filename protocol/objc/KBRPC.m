@@ -729,6 +729,20 @@
   }];
 }
 
+- (void)cancelWithSessionID:(NSInteger)sessionID completion:(void (^)(NSError *error))completion {
+  NSArray *params = @[@{@"sessionID": @(sessionID)}];
+  [self.client sendRequestWithMethod:@"keybase.1.prove.cancel" params:params sessionId:self.sessionId completion:^(NSError *error, id retval) {
+    completion(error);
+  }];
+}
+
+- (void)checkForProofWithSessionID:(NSInteger)sessionID service:(NSString *)service username:(NSString *)username completion:(void (^)(NSError *error))completion {
+  NSArray *params = @[@{@"sessionID": @(sessionID), @"service": KBRValue(service), @"username": KBRValue(username)}];
+  [self.client sendRequestWithMethod:@"keybase.1.prove.checkForProof" params:params sessionId:self.sessionId completion:^(NSError *error, id retval) {
+    completion(error);
+  }];
+}
+
 @end
 
 @implementation KBRProveUiRequest
@@ -1798,6 +1812,30 @@
     self.service = params[0][@"service"];
     self.username = params[0][@"username"];
     self.force = [params[0][@"force"] boolValue];
+  }
+  return self;
+}
+
+@end
+
+@implementation KBRCancelRequestParams
+
+- (instancetype)initWithParams:(NSArray *)params {
+  if ((self = [super initWithParams:params])) {
+    self.sessionID = [params[0][@"sessionID"] integerValue];
+  }
+  return self;
+}
+
+@end
+
+@implementation KBRCheckForProofRequestParams
+
+- (instancetype)initWithParams:(NSArray *)params {
+  if ((self = [super initWithParams:params])) {
+    self.sessionID = [params[0][@"sessionID"] integerValue];
+    self.service = params[0][@"service"];
+    self.username = params[0][@"username"];
   }
   return self;
 }

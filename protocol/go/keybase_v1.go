@@ -1804,8 +1804,20 @@ type ProveArg struct {
 	Force     bool   `codec:"force" json:"force"`
 }
 
+type CancelArg struct {
+	SessionID int `codec:"sessionID" json:"sessionID"`
+}
+
+type CheckForProofArg struct {
+	SessionID int    `codec:"sessionID" json:"sessionID"`
+	Service   string `codec:"service" json:"service"`
+	Username  string `codec:"username" json:"username"`
+}
+
 type ProveInterface interface {
 	Prove(ProveArg) error
+	Cancel(int) error
+	CheckForProof(CheckForProofArg) error
 }
 
 func ProveProtocol(i ProveInterface) rpc2.Protocol {
@@ -1816,6 +1828,20 @@ func ProveProtocol(i ProveInterface) rpc2.Protocol {
 				args := make([]ProveArg, 1)
 				if err = nxt(&args); err == nil {
 					err = i.Prove(args[0])
+				}
+				return
+			},
+			"cancel": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
+				args := make([]CancelArg, 1)
+				if err = nxt(&args); err == nil {
+					err = i.Cancel(args[0].SessionID)
+				}
+				return
+			},
+			"checkForProof": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
+				args := make([]CheckForProofArg, 1)
+				if err = nxt(&args); err == nil {
+					err = i.CheckForProof(args[0])
 				}
 				return
 			},
@@ -1830,6 +1856,17 @@ type ProveClient struct {
 
 func (c ProveClient) Prove(__arg ProveArg) (err error) {
 	err = c.Cli.Call("keybase.1.prove.prove", []interface{}{__arg}, nil)
+	return
+}
+
+func (c ProveClient) Cancel(sessionID int) (err error) {
+	__arg := CancelArg{SessionID: sessionID}
+	err = c.Cli.Call("keybase.1.prove.cancel", []interface{}{__arg}, nil)
+	return
+}
+
+func (c ProveClient) CheckForProof(__arg CheckForProofArg) (err error) {
+	err = c.Cli.Call("keybase.1.prove.checkForProof", []interface{}{__arg}, nil)
 	return
 }
 

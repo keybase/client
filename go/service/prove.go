@@ -10,7 +10,7 @@ import (
 // ProveHandler is the service side of proving ownership of social media accounts
 // like Twitter and Github.
 type ProveHandler struct {
-	*BaseHandler
+	*CancelHandler
 }
 
 type proveUI struct {
@@ -20,7 +20,7 @@ type proveUI struct {
 
 // NewProveHandler makes a new ProveHandler object from an RPC transport.
 func NewProveHandler(xp *rpc2.Transport) *ProveHandler {
-	return &ProveHandler{BaseHandler: NewBaseHandler(xp)}
+	return &ProveHandler{CancelHandler: NewCancelHandler(xp)}
 }
 
 func (p *proveUI) PromptOverwrite(arg keybase1.PromptOverwriteArg) (b bool, err error) {
@@ -57,13 +57,27 @@ func (ph *ProveHandler) getProveUI(sessionID int) libkb.ProveUI {
 }
 
 // Prove handles the `keybase.1.prove` RPC.
-func (ph *ProveHandler) Prove(arg keybase1.ProveArg) (err error) {
+func (ph *ProveHandler) Prove(arg keybase1.ProveArg) error {
 	eng := engine.NewProve(&arg, G)
 	ctx := engine.Context{
 		ProveUI:  ph.getProveUI(arg.SessionID),
 		SecretUI: ph.getSecretUI(arg.SessionID),
 		LogUI:    ph.getLogUI(arg.SessionID),
 	}
-	err = engine.RunEngine(eng, &ctx)
-	return
+	ph.setCanceler(arg.SessionID, eng)
+	defer ph.removeCanceler(arg.SessionID)
+	return engine.RunEngine(eng, &ctx)
+}
+
+func (ph *ProveHandler) Cancel(sessionID int) error {
+	c := ph.canceler(sessionID)
+	if c == nil {
+		G.Log.Debug("Prove Cancel called and there's no prove engine for sessionID %d", sessionID)
+		return nil
+	}
+	return c.Cancel()
+}
+
+func (ph *ProveHandler) CheckForProof(arg keybase1.CheckForProofArg) error {
+	return nil
 }
