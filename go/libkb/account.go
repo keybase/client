@@ -250,6 +250,7 @@ func (a *Account) UserInfo() (uid UID, username, token string, deviceSibkey, dev
 	if err != nil {
 		return
 	}
+
 	deviceSibkey, deviceSubkey, err = user.GetDeviceKeys()
 	if err != nil {
 		return
