@@ -185,16 +185,20 @@ func (s *SKB) unverifiedPassphraseStream(lctx LoginContext, passphrase string) (
 	var salt []byte
 	username := s.G().Env.GetUsername()
 	if lctx != nil {
-		err = lctx.LoadLoginSession(username)
-		if err != nil {
-			return nil, nil, err
+		if len(username) > 0 {
+			err = lctx.LoadLoginSession(username)
+			if err != nil {
+				return nil, nil, err
+			}
 		}
 		salt, err = lctx.LoginSession().Salt()
 	} else {
 		s.G().LoginState().Account(func(a *Account) {
-			err = a.LoadLoginSession(username)
-			if err != nil {
-				return
+			if len(username) > 0 {
+				err = a.LoadLoginSession(username)
+				if err != nil {
+					return
+				}
 			}
 			salt, err = a.LoginSession().Salt()
 		}, "skb - salt")
