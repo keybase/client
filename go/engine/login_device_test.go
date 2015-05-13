@@ -80,6 +80,60 @@ func TestLoginNewDeviceKex(t *testing.T) {
 	wg.Wait()
 }
 
+// issue #408, cancel login before device provisioning finishes.
+// user should not be logged in.
+func TestLoginNewDeviceCancel(t *testing.T) {
+	kex.StartTimeout = 5 * time.Second
+	kex.IntraTimeout = 5 * time.Second
+	kex.PollDuration = 1 * time.Second
+
+	// test context for device X
+	tcX := SetupEngineTest(t, "loginX")
+	defer tcX.Cleanup()
+
+	// sign up with device X
+	u := CreateAndSignupFakeUser(tcX, "login")
+
+	docui := &lockuiCancel{lockui: &lockui{}}
+	secui := libkb.TestSecretUI{Passphrase: u.Passphrase}
+
+	// test that we can get the secret key:
+	/*
+		me, err := libkb.LoadMe(libkb.LoadUserArg{PublicKeyOptional: true})
+		if err != nil {
+			t.Fatal(err)
+		}
+		arg := libkb.SecretKeyArg{
+			Me:      me,
+			KeyType: libkb.DeviceKeyType,
+		}
+		_, _, err = tcX.G.Keyrings.GetSecretKeyWithPrompt(arg, secui, "new device install")
+		if err != nil {
+			t.Fatal(err)
+		}
+	*/
+
+	// test context for device Y
+	tcY := SetupEngineTest(t, "loginY")
+	defer tcY.Cleanup()
+
+	// log in with device Y
+	li := NewLoginWithPromptEngine(u.Username)
+	ctx := &Context{LogUI: tcY.G.UI.GetLogUI(), LocksmithUI: docui, GPGUI: &gpgtestui{}, SecretUI: secui, LoginUI: &libkb.TestLoginUI{}}
+	err := RunEngine(li, ctx)
+	if err == nil {
+		t.Fatal("expected cancel err, got nil err")
+	}
+
+	loggedIn, err := tcY.G.LoginState().LoggedInLoad()
+	if err != nil {
+		t.Fatal(err)
+	}
+	if loggedIn {
+		t.Errorf("user on device Y is logged in even though they canceled device provisioning")
+	}
+}
+
 type lockuiDevice struct {
 	*lockui
 	secret string
@@ -110,4 +164,13 @@ func (l *lockuiDevice) DisplaySecretWords(arg keybase1.DisplaySecretWordsArg) er
 	l.secret = arg.Secret
 	l.Unlock()
 	return nil
+}
+
+type lockuiCancel struct {
+	*lockui
+}
+
+func (l *lockuiCancel) SelectSigner(arg keybase1.SelectSignerArg) (res keybase1.SelectSignerRes, err error) {
+	res.Action = keybase1.SelectSignerAction_CANCEL
+	return
 }

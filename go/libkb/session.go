@@ -20,6 +20,7 @@ type Session struct {
 	inFile   bool
 	loaded   bool
 	checked  bool
+	deviceID string
 	valid    bool
 	uid      *UID
 	username *string
@@ -98,6 +99,15 @@ func (s *Session) SetCsrf(t string) {
 	s.SetDirty()
 }
 
+func (s *Session) SetDeviceProvisioned(devid string) {
+	s.deviceID = devid
+	if s.file == nil {
+		return
+	}
+	s.GetDictionary().SetKey("device_provisioned", jsonw.NewString(devid))
+	s.SetDirty()
+}
+
 func (s *Session) isConfigLoggedIn() bool {
 	reader := s.G().Env.GetConfig()
 	return reader.GetUsername() != "" && reader.GetDeviceID() != nil && reader.GetUID() != nil
@@ -139,7 +149,7 @@ func (s *Session) Load() error {
 
 	if s.file.Exists() {
 		var tmp error
-		var token, csrf string
+		var token, csrf, devid string
 		ok := true
 		s.file.jw.AtKey("session").GetStringVoid(&token, &tmp)
 		if tmp != nil {
@@ -153,11 +163,18 @@ func (s *Session) Load() error {
 				s.file.filename, tmp.Error())
 			ok = false
 		}
+		s.file.jw.AtKey("device_provisioned").GetStringVoid(&devid, &tmp)
+		if tmp != nil {
+			s.G().Log.Warning("Bad 'device_provisioned' value in session file %s: %s",
+				s.file.filename, tmp.Error())
+			ok = false
+		}
 		mtime, _ := s.file.jw.AtKey("mtime").GetInt64()
 		if ok {
 			s.token = token
 			s.csrf = csrf
 			s.inFile = true
+			s.deviceID = devid
 			s.mtime = mtime
 		}
 	}

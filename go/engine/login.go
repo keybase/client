@@ -95,7 +95,16 @@ func (e *LoginEngine) Run(ctx *Context) (err error) {
 	e.locksmithMu.Lock()
 	e.locksmith = NewLocksmith(larg, e.G())
 	e.locksmithMu.Unlock()
-	return e.locksmith.LoginCheckup(ctx, e.user)
+	err := e.locksmith.LoginCheckup(ctx, e.user)
+	if err != nil {
+		return err
+	}
+
+	e.G().LoginState().LocalSession(func(ls *Session) {
+		ls.SetDeviceProvisioned()
+	}, "LoginEngine - Run - Session.SetDeviceProvisioned")
+
+	return nil
 }
 
 func (e *LoginEngine) User() *libkb.User {
