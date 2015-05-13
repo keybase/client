@@ -294,3 +294,9 @@ func (a *Account) SaveState(sessionID, csrf, username string, uid UID) error {
 
 	return nil
 }
+
+func (a *Account) Dump() {
+	fmt.Printf("Account dump:\n")
+	a.loginSession.Dump()
+	a.streamCache.Dump()
+}

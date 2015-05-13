@@ -101,6 +101,19 @@ func (s *LoginSession) Salt() ([]byte, error) {
 	return s.salt, nil
 }
 
+func (s *LoginSession) Dump() {
+	if s == nil {
+		fmt.Printf("LoginSession Dump: nil\n")
+		return
+	}
+	fmt.Printf("sessionFor: %q\n", s.sessionFor)
+	fmt.Printf("loaded: %v\n", s.loaded)
+	fmt.Printf("cleared: %v\n", s.cleared)
+	fmt.Printf("salt: %x\n", s.salt)
+	fmt.Printf("loginSessionB64: %s\n", s.loginSessionB64)
+	fmt.Printf("\n")
+}
+
 func (s *LoginSession) Load() error {
 	if s.loaded {
 		return fmt.Errorf("LoginSession already loaded for %s", s.sessionFor)

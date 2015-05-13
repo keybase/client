@@ -1,6 +1,10 @@
 package libkb
 
-import triplesec "github.com/keybase/go-triplesec"
+import (
+	"fmt"
+
+	triplesec "github.com/keybase/go-triplesec"
+)
 
 type PassphraseStreamCache struct {
 	tsec             *triplesec.Cipher
@@ -48,4 +52,15 @@ func (s *PassphraseStreamCache) Clear() {
 	s.tsec.Scrub()
 	s.tsec = nil
 	s.passphraseStream = nil
+}
+
+func (s *PassphraseStreamCache) Dump() {
+	fmt.Printf("PassphraseStreamCache:\n")
+	if s == nil {
+		fmt.Printf("nil\n")
+		return
+	}
+	fmt.Printf("PassphraseStreamCache:\n")
+	fmt.Printf("Valid: %v\n", s.Valid())
+	fmt.Printf("\n")
 }

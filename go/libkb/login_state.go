@@ -710,8 +710,14 @@ func (s *LoginState) LoggedInLoad() (lin bool, err error) {
 
 func (s *LoginState) PassphraseStream() PassphraseStream {
 	var pps PassphraseStream
-	s.PassphraseStreamCache(func(s *PassphraseStreamCache) {
-		pps = s.PassphraseStream()
+	s.PassphraseStreamCache(func(c *PassphraseStreamCache) {
+		pps = c.PassphraseStream()
 	}, "PassphraseStream")
 	return pps
+}
+
+func (s *LoginState) AccountDump() {
+	s.Account(func(a *Account) {
+		a.Dump()
+	}, "LoginState - AccountDump")
 }
