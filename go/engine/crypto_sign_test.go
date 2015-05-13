@@ -6,102 +6,51 @@ import (
 	"github.com/keybase/client/go/libkb"
 )
 
-func doSign(tc libkb.TestContext, fu *FakeUser, msg []byte) ([]byte, error) {
+// Test that CryptoSignEngine yields the expected signature for its
+// given message.
+//
+// (For tests that valid signatures are accepted and invalid
+// signatures are rejected, see naclwrap_test.go.)
+func TestCryptoSign(t *testing.T) {
+	tc := SetupEngineTest(t, "crypto_sign")
+	defer tc.Cleanup()
+
+	fu := CreateAndSignupFakeUser(tc, "sign")
+
+	msg := []byte("test message")
+
+	me, err := libkb.LoadMe(libkb.LoadUserArg{})
+	if err != nil {
+		t.Fatal(err)
+	}
+
 	secui := libkb.TestSecretUI{Passphrase: fu.Passphrase}
-	ctx := &Context{
-		SecretUI: secui,
+
+	sigKey, _, err := tc.G.Keyrings.GetSecretKeyWithPrompt(libkb.SecretKeyArg{
+		Me:      me,
+		KeyType: libkb.DeviceKeyType,
+	}, secui, "test reason")
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	expectedSig, err := sigKey.SignToBytes(msg)
+	if err != nil {
+		t.Fatal(err)
 	}
 
 	cse := NewCryptoSignEngine(tc.G, msg, "test reason")
-	err := RunEngine(cse, ctx)
-	if err != nil {
-		return nil, err
+	ctx := &Context{
+		SecretUI: secui,
 	}
-
-	return cse.GetSignature(), nil
-}
-
-func getDeviceSibkey(tc libkb.TestContext, username string) (libkb.GenericKey, error) {
-	u, err := libkb.LoadUser(libkb.LoadUserArg{Name: username})
-	if err != nil {
-		return nil, err
-	}
-
-	sibkey, _, err := u.GetDeviceKeys()
-	return sibkey, err
-}
-
-// Test that CryptoSignEngine yields a valid signature for its given
-// message.
-func TestCryptoSignAccept(t *testing.T) {
-	tc := SetupEngineTest(t, "crypto_sign")
-	defer tc.Cleanup()
-
-	fu := CreateAndSignupFakeUser(tc, "sign")
-
-	msg := []byte("test message")
-	sig, err := doSign(tc, fu, msg)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	sibkey, err := getDeviceSibkey(tc, fu.Username)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	err = sibkey.VerifyBytes(msg, sig)
+	err = RunEngine(cse, ctx)
 	if err != nil {
 		t.Error(err)
 	}
-}
 
-// Test that VerifyBytes rejects various types of bad signatures.
-func TestCryptoSignReject(t *testing.T) {
-	tc := SetupEngineTest(t, "crypto_sign")
-	defer tc.Cleanup()
+	sig := cse.GetSignature()
 
-	fu := CreateAndSignupFakeUser(tc, "sign")
-
-	msg := []byte("test message")
-	sig, err := doSign(tc, fu, msg)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	sibkey, err := getDeviceSibkey(tc, fu.Username)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	// Corrupt signature.
-
-	err = sibkey.VerifyBytes(msg, append(sig, []byte("corruption")...))
-	if err == nil {
-		t.Error("Verifying corrupt signature unexpectedly passes")
-	}
-
-	// Corrupt msg.
-
-	err = sibkey.VerifyBytes(append(msg, []byte("corruption")...), msg)
-	if err == nil {
-		t.Error("Verifying signature for corrupt msg unexpectedly passes")
-	}
-
-	// Signature with different key.
-
-	keyPair, err := libkb.GenerateNaclSigningKeyPair()
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	sig2, err := keyPair.SignToBytes(msg)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	err = sibkey.VerifyBytes(msg, sig2)
-	if err == nil {
-		t.Error("Signature with different key unexpectedly passes")
+	if string(sig) != string(expectedSig) {
+		t.Errorf("Expected %v, got %v", expectedSig, sig)
 	}
 }
