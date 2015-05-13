@@ -67,6 +67,14 @@ func (e *PGPKeyImportEngine) loadMe() (err error) {
 	return err
 }
 
+func (e *PGPKeyImportEngine) loadLoginSession() error {
+	var err error
+	e.G().LoginState().Account(func(a *libkb.Account) {
+		err = a.LoadLoginSession(e.me.GetName())
+	}, "PGPKeyImportEngine - loadLoginSession")
+	return err
+}
+
 func (e *PGPKeyImportEngine) generateKey(ctx *Context) (err error) {
 	gen := e.arg.Gen
 	if err = gen.CreatePgpIDs(); err != nil {
@@ -154,6 +162,10 @@ func (e *PGPKeyImportEngine) Run(ctx *Context) error {
 	}
 
 	if err := e.loadMe(); err != nil {
+		return err
+	}
+
+	if err := e.loadLoginSession(); err != nil {
 		return err
 	}
 
