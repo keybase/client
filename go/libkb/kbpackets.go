@@ -135,9 +135,23 @@ func DecodePackets(reader io.Reader) (ret KeybasePackets, err error) {
 	return
 }
 
+// Decode data into out, but make sure that all bytes in data are
+// used.
+func MsgpackDecodeAll(data []byte, handle *codec.MsgpackHandle, out interface{}) error {
+	buf := bytes.NewBuffer(data)
+	err := codec.NewDecoder(buf, handle).Decode(out)
+	if err != nil {
+		return err
+	}
+	if buf.Len() > 0 {
+		return fmt.Errorf("Did not consume entire buffer: %d byte(s) left", buf.Len())
+	}
+	return nil
+}
+
 func (ret *KeybasePacket) MyUnmarshalBinary(data []byte) (err error) {
 	ch := CodecHandle()
-	err = codec.NewDecoderBytes(data, ch).Decode(ret)
+	err = MsgpackDecodeAll(data, ch, ret)
 	if err != nil {
 		return
 	}
@@ -158,7 +172,7 @@ func (ret *KeybasePacket) MyUnmarshalBinary(data []byte) (err error) {
 	if err != nil {
 		return
 	}
-	err = codec.NewDecoderBytes(encoded, ch).Decode(body)
+	err = MsgpackDecodeAll(encoded, ch, body)
 	if err != nil {
 		return
 	}
