@@ -52,7 +52,9 @@ func TestConcurrentLogin(t *testing.T) {
 					tc.G.LoginState().LocalSession(func(s *libkb.Session) {
 						s.APIArgs()
 					}, "APIArgs")
-					// tc.G.Account().UserInfo()
+					tc.G.LoginState().Account(func(a *libkb.Account) {
+						a.UserInfo()
+					}, "UserInfo")
 					tc.G.LoginState().LocalSession(func(s *libkb.Session) {
 						s.GetUID()
 					}, "GetUID")
