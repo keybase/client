@@ -498,7 +498,7 @@ typedef NS_ENUM (NSInteger, KBRSignMode) {
 @property NSData *signature;
 @end
 
-@interface KBRFingerprintAndKey : KBRObject
+@interface KBRKeyInfo : KBRObject
 @property NSString *fingerprint;
 @property NSString *key;
 @property NSString *desc;

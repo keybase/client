@@ -1547,7 +1547,7 @@ type PgpVerifyOptions struct {
 	Signature     []byte `codec:"signature" json:"signature"`
 }
 
-type FingerprintAndKey struct {
+type KeyInfo struct {
 	Fingerprint string `codec:"fingerprint" json:"fingerprint"`
 	Key         string `codec:"key" json:"key"`
 	Desc        string `codec:"desc" json:"desc"`
@@ -1636,7 +1636,7 @@ type PgpInterface interface {
 	PgpDecrypt(PgpDecryptArg) (PgpSigVerification, error)
 	PgpVerify(PgpVerifyArg) (PgpSigVerification, error)
 	PgpImport(PgpImportArg) error
-	PgpExport(PgpExportArg) ([]FingerprintAndKey, error)
+	PgpExport(PgpExportArg) ([]KeyInfo, error)
 	PgpKeyGen(PgpKeyGenArg) error
 	PgpKeyGenDefault(PgpCreateUids) error
 	PgpDeletePrimary() error
@@ -1771,7 +1771,7 @@ func (c PgpClient) PgpImport(__arg PgpImportArg) (err error) {
 	return
 }
 
-func (c PgpClient) PgpExport(__arg PgpExportArg) (res []FingerprintAndKey, err error) {
+func (c PgpClient) PgpExport(__arg PgpExportArg) (res []KeyInfo, err error) {
 	err = c.Cli.Call("keybase.1.pgp.pgpExport", []interface{}{__arg}, &res)
 	return
 }

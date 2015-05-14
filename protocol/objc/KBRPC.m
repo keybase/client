@@ -618,7 +618,7 @@
 @implementation KBRPgpVerifyOptions
 @end
 
-@implementation KBRFingerprintAndKey
+@implementation KBRKeyInfo
 @end
 
 @implementation KBRPgpCreateUids
@@ -686,7 +686,7 @@
         completion(error, nil);
         return;
       }
-      NSArray *results = retval ? [MTLJSONAdapter modelsOfClass:KBRFingerprintAndKey.class fromJSONArray:retval error:&error] : nil;
+      NSArray *results = retval ? [MTLJSONAdapter modelsOfClass:KBRKeyInfo.class fromJSONArray:retval error:&error] : nil;
       completion(error, results);
   }];
 }

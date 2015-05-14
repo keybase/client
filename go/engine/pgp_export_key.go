@@ -13,7 +13,7 @@ import (
 type PGPKeyExportEngine struct {
 	libkb.Contextified
 	arg keybase1.PgpExportArg
-	res []keybase1.FingerprintAndKey
+	res []keybase1.KeyInfo
 	me  *libkb.User
 }
 
@@ -37,7 +37,7 @@ func (e *PGPKeyExportEngine) SubConsumers() []libkb.UIConsumer {
 	return nil
 }
 
-func (e *PGPKeyExportEngine) Results() []keybase1.FingerprintAndKey {
+func (e *PGPKeyExportEngine) Results() []keybase1.KeyInfo {
 	return e.res
 }
 
@@ -49,7 +49,7 @@ func NewPGPKeyExportEngine(arg keybase1.PgpExportArg, g *libkb.GlobalContext) *P
 }
 
 func (e *PGPKeyExportEngine) pushRes(fp libkb.PgpFingerprint, key string, desc string) {
-	e.res = append(e.res, keybase1.FingerprintAndKey{
+	e.res = append(e.res, keybase1.KeyInfo{
 		Fingerprint: fp.String(),
 		Key:         key,
 		Desc:        desc,

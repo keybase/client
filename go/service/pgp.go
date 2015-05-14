@@ -147,7 +147,7 @@ func (h *PGPHandler) PgpImport(arg keybase1.PgpImportArg) error {
 	return err
 }
 
-func (h *PGPHandler) PgpExport(arg keybase1.PgpExportArg) (ret []keybase1.FingerprintAndKey, err error) {
+func (h *PGPHandler) PgpExport(arg keybase1.PgpExportArg) (ret []keybase1.KeyInfo, err error) {
 	ctx := &engine.Context{
 		SecretUI: h.getSecretUI(arg.SessionID),
 		LogUI:    h.getLogUI(arg.SessionID),

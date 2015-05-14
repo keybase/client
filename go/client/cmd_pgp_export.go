@@ -74,7 +74,7 @@ func (s *CmdPGPExport) RunClient() (err error) {
 	return err
 }
 
-func (s *CmdPGPExport) finish(res []keybase1.FingerprintAndKey, err error) error {
+func (s *CmdPGPExport) finish(res []keybase1.KeyInfo, err error) error {
 	if err != nil {
 		return err
 	}

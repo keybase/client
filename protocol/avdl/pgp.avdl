@@ -65,7 +65,7 @@ protocol pgp {
 
 	void pgpImport(int sessionID, bytes key, boolean pushSecret);
 
-	record FingerprintAndKey {
+	record KeyInfo {
 		string fingerprint;
 		string key;
 		string desc;
@@ -73,7 +73,7 @@ protocol pgp {
 
 	// Exports all active PGP keys, public. Only allows armored export.
 	// If you ask for private, you can get at most one key back.
-	array<FingerprintAndKey> pgpExport(int sessionID, boolean secret, string query);
+	array<KeyInfo> pgpExport(int sessionID, boolean secret, string query);
 	
 	record PgpCreateUids {
 		boolean useDefault;

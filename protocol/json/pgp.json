@@ -261,7 +261,7 @@
     } ]
   }, {
     "type" : "record",
-    "name" : "FingerprintAndKey",
+    "name" : "KeyInfo",
     "fields" : [ {
       "name" : "fingerprint",
       "type" : "string"
@@ -387,7 +387,7 @@
       } ],
       "response" : {
         "type" : "array",
-        "items" : "FingerprintAndKey"
+        "items" : "KeyInfo"
       }
     },
     "PgpKeyGen" : {
