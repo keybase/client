@@ -43,6 +43,24 @@ func (s *Session) IsLoggedIn() bool {
 	return s.valid
 }
 
+// true if user is logged in and has a device fully provisioned
+func (s *Session) IsLoggedInAndProvisioned() bool {
+	if !s.valid {
+		return false
+	}
+	if len(s.deviceID) == 0 {
+		return false
+	}
+	envid := s.G().Env.GetDeviceID()
+	if envid == nil {
+		return false
+	}
+	if s.deviceID != envid.String() {
+		return false
+	}
+	return true
+}
+
 func (s *Session) GetUsername() *string {
 	return s.username
 }
@@ -100,6 +118,7 @@ func (s *Session) SetCsrf(t string) {
 }
 
 func (s *Session) SetDeviceProvisioned(devid string) {
+	s.G().Log.Debug("Local Session:  setting provisioned device id: %s", devid)
 	s.deviceID = devid
 	if s.file == nil {
 		return
@@ -294,4 +313,15 @@ func (s *Session) loadAndCheck() (bool, error) {
 		err = s.Check()
 	}
 	return s.IsValid(), err
+}
+
+func (s *Session) loadAndCheckProvisioned() (bool, error) {
+	ok, err := s.loadAndCheck()
+	if err != nil {
+		return false, err
+	}
+	if !ok {
+		return false, nil
+	}
+	return s.IsLoggedInAndProvisioned(), nil
 }

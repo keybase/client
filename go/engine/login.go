@@ -74,7 +74,7 @@ func (e *LoginEngine) Run(ctx *Context) (err error) {
 		return
 	}
 
-	// We might need to ID ourselves, to load us in here
+	// We might need to ID ourselves, so load us in here
 	e.user, err = libkb.LoadMe(libkb.LoadUserArg{ForceReload: true})
 	if err != nil {
 		_, ok := err.(libkb.NoKeyError)
@@ -100,11 +100,9 @@ func (e *LoginEngine) Run(ctx *Context) (err error) {
 		return err
 	}
 
-	/*
-		e.G().LoginState().LocalSession(func(ls *Session) {
-			ls.SetDeviceProvisioned()
-		}, "LoginEngine - Run - Session.SetDeviceProvisioned")
-	*/
+	e.G().LoginState().LocalSession(func(ls *libkb.Session) {
+		ls.SetDeviceProvisioned(e.G().Env.GetDeviceID().String())
+	}, "LoginEngine - Run - Session.SetDeviceProvisioned")
 
 	return nil
 }

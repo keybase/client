@@ -83,11 +83,6 @@ func TestLoginNewDeviceKex(t *testing.T) {
 // issue #408, cancel login before device provisioning finishes.
 // user should not be logged in.
 func TestLoginNewDeviceCancel(t *testing.T) {
-	t.Skip() // need to fix bug for this to work
-	kex.StartTimeout = 5 * time.Second
-	kex.IntraTimeout = 5 * time.Second
-	kex.PollDuration = 1 * time.Second
-
 	// test context for device X
 	tcX := SetupEngineTest(t, "loginX")
 	defer tcX.Cleanup()
@@ -110,12 +105,22 @@ func TestLoginNewDeviceCancel(t *testing.T) {
 		t.Fatal("expected cancel err, got nil err")
 	}
 
-	loggedIn, err := tcY.G.LoginState().LoggedInLoad()
+	loggedIn, err := tcY.G.LoginState().LoggedInProvisionedLoad()
 	if err != nil {
 		t.Fatal(err)
 	}
 	if loggedIn {
 		t.Errorf("user on device Y is logged in even though they canceled device provisioning")
+	}
+
+	// issue #408 refers to GetCurrentStatus, so check that:
+	status, err := libkb.GetCurrentStatus()
+	if err != nil {
+		t.Fatal(err)
+	}
+	if status.LoggedIn {
+		t.Errorf("user on device Y is logged in according to GetCurrentStatus even though they canceled device provisioning")
+
 	}
 }
 

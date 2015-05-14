@@ -708,6 +708,13 @@ func (s *LoginState) LoggedInLoad() (lin bool, err error) {
 	return
 }
 
+func (s *LoginState) LoggedInProvisionedLoad() (lin bool, err error) {
+	s.Account(func(a *Account) {
+		lin, err = a.LoggedInProvisionedLoad()
+	}, "LoggedInProvisionedLoad")
+	return
+}
+
 func (s *LoginState) PassphraseStream() PassphraseStream {
 	var pps PassphraseStream
 	s.PassphraseStreamCache(func(c *PassphraseStreamCache) {
