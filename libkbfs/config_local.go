@@ -79,7 +79,6 @@ func NewConfigLocal() *ConfigLocal {
 	config.SetKeyOps(&KeyOpsNull{})
 	config.SetBlockOps(&BlockOpsStandard{config})
 	//config.SetKeyServer
-	config.SetBlockServer(NewBlockServerLocal("kbfs_block"))
 	// 64K blocks by default, block changes embedded max == 8K
 	config.SetBlockSplitter(&BlockSplitterSimple{64 * 1024, 8 * 1024})
 	config.SetNotifier(config.kbfs.(*KBFSOpsStandard))

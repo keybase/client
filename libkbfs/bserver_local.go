@@ -10,16 +10,17 @@ type BlockServerLocal struct {
 	db *leveldb.DB
 }
 
-func NewBlockServerLocal(dbfile string) *BlockServerLocal {
+func NewBlockServerLocal(dbfile string) (*BlockServerLocal, error) {
 	db, err := leveldb.OpenFile(
 		dbfile,
 		&opt.Options{
 			Compression: opt.NoCompression,
 		})
 	if err != nil {
-		return nil
+		return nil, err
 	}
-	return &BlockServerLocal{db}
+	bserv := &BlockServerLocal{db}
+	return bserv, nil
 }
 
 func (b *BlockServerLocal) Get(
