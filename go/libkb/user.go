@@ -93,7 +93,7 @@ func NewUserFromLocalStorage(o *jsonw.Wrapper) (*User, error) {
 func (u *User) GetName() string { return u.name }
 func (u *User) GetUID() UID     { return u.id }
 
-func (u *User) GetIdVersion() (int64, error) {
+func (u *User) GetIDVersion() (int64, error) {
 	return u.basics.AtKey("id_version").GetInt64()
 }
 
@@ -198,7 +198,7 @@ func (u *User) GetServerSeqno() (i int, err error) {
 
 func (u *User) CheckBasicsFreshness(server int64) (current bool, err error) {
 	var stored int64
-	if stored, err = u.GetIdVersion(); err == nil {
+	if stored, err = u.GetIDVersion(); err == nil {
 		current = (stored >= server)
 		if current {
 			G.Log.Debug("| Local basics version is up-to-date @ version %d", stored)
@@ -337,7 +337,7 @@ func (u *User) GetEldestFOKID() (ret *FOKID) {
 	return &FOKID{Kid: *u.leaf.eldest, Fp: fp}
 }
 
-func (u *User) IdTable() *IdentityTable {
+func (u *User) IDTable() *IdentityTable {
 	return u.idTable
 }
 
@@ -359,7 +359,7 @@ func (u *User) VerifySelfSig() error {
 
 	G.Log.Debug("+ VerifySelfSig for user %s", u.name)
 
-	if u.IdTable().VerifySelfSig(u.name, u.id) {
+	if u.IDTable().VerifySelfSig(u.name, u.id) {
 		G.Log.Debug("- VerifySelfSig via SigChain")
 		return nil
 	}
@@ -419,11 +419,11 @@ func (u *User) GetTrackingStatementFor(s string, i UID) (link *TrackChainLink, e
 }
 
 func (u *User) GetRemoteTrackingStatementFor(s string, i UID) (link *TrackChainLink, err error) {
-	if u.IdTable() == nil {
+	if u.IDTable() == nil {
 		return nil, nil
 	}
 
-	return u.IdTable().GetTrackingStatementFor(s, i)
+	return u.IDTable().GetTrackingStatementFor(s, i)
 }
 
 func (u *User) ToOkProofSet() *ProofSet {
@@ -434,8 +434,8 @@ func (u *User) ToOkProofSet() *ProofSet {
 	for _, fp := range u.GetActivePgpFingerprints(true) {
 		proofs = append(proofs, Proof{Key: "fingerprint", Value: fp.String()})
 	}
-	if u.IdTable() != nil {
-		proofs = u.IdTable().ToOkProofs(proofs)
+	if u.IDTable() != nil {
+		proofs = u.IDTable().ToOkProofs(proofs)
 	}
 
 	return NewProofSet(proofs)

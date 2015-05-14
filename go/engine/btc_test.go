@@ -13,7 +13,7 @@ func getCurrentBTCAddr(t *testing.T, username string) string {
 	if err != nil {
 		t.Fatal(err)
 	}
-	cryptoLink := u.IdTable().ActiveCryptocurrency()
+	cryptoLink := u.IDTable().ActiveCryptocurrency()
 	if cryptoLink == nil {
 		return ""
 	}
@@ -86,7 +86,7 @@ func TestBTC(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Failed to load user.")
 	}
-	revoked := loadedUser.IdTable().GetRevokedCryptocurrencyForTesting()
+	revoked := loadedUser.IDTable().GetRevokedCryptocurrencyForTesting()
 	if len(revoked) != 1 {
 		t.Fatal("Expected 1 revoked link.")
 	} else if revoked[0].ToDisplayString() != firstAddress {

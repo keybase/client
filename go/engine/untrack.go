@@ -104,7 +104,7 @@ func (e *UntrackEngine) loadMe() (me *libkb.User, err error) {
 
 func (e *UntrackEngine) loadThem() (them *libkb.User, remoteLink, localLink *libkb.TrackChainLink, err error) {
 	var rLink *libkb.TrackChainLink
-	trackMap := e.arg.Me.IdTable().GetTrackMap()
+	trackMap := e.arg.Me.IDTable().GetTrackMap()
 	if links, ok := trackMap[e.arg.TheirName]; ok && (len(links) > 0) {
 		rLink = links[len(links)-1]
 	}

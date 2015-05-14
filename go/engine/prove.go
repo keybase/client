@@ -72,7 +72,7 @@ func (p *Prove) checkExists1(ctx *Context) (err error) {
 	if err = p.checkCanceled(); err != nil {
 		return err
 	}
-	proofs := p.me.IdTable().GetActiveProofsFor(p.st)
+	proofs := p.me.IDTable().GetActiveProofsFor(p.st)
 	if len(proofs) != 0 && !p.arg.Force && p.st.LastWriterWins() {
 		lst := proofs[len(proofs)-1]
 		var redo bool
@@ -132,7 +132,7 @@ func (p *Prove) checkExists2(ctx *Context) (err error) {
 	}
 	if !p.st.LastWriterWins() {
 		var found libkb.RemoteProofChainLink
-		for _, proof := range p.me.IdTable().GetActiveProofsFor(p.st) {
+		for _, proof := range p.me.IDTable().GetActiveProofsFor(p.st) {
 			_, name := proof.ToKeyValuePair()
 			if libkb.Cicmp(name, p.usernameNormalized) {
 				found = proof

@@ -63,7 +63,7 @@ func (e *ListTrackingEngine) Run(ctx *Context) (err error) {
 	}
 
 	var trackList TrackList
-	trackList = user.IdTable().GetTrackList()
+	trackList = user.IDTable().GetTrackList()
 
 	trackList, err = filterRxx(trackList, e.arg.Filter)
 	if err != nil {

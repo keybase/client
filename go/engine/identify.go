@@ -175,7 +175,7 @@ func (e *Identify) run(ctx *Context) (*libkb.IdentifyOutcome, error) {
 	is.ComputeDeletedProofs()
 
 	ctx.IdentifyUI.LaunchNetworkChecks(res.ExportToUncheckedIdentity(), e.user.Export())
-	e.user.IdTable().Identify(is, ctx.IdentifyUI)
+	e.user.IDTable().Identify(is, ctx.IdentifyUI)
 
 	if !e.userExpr.MatchSet(*e.user.ToOkProofSet()) {
 		return nil, fmt.Errorf("User %s didn't match given assertion", e.user.GetName())

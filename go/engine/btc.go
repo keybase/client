@@ -52,7 +52,7 @@ func (e *BTCEngine) Run(ctx *Context) error {
 		return err
 	}
 
-	cryptocurrencyLink := me.IdTable().ActiveCryptocurrency()
+	cryptocurrencyLink := me.IDTable().ActiveCryptocurrency()
 	if cryptocurrencyLink != nil && !e.force {
 		return fmt.Errorf("User already has a cryptocurrency address. To overwrite, use --force.")
 	}

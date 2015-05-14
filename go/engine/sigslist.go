@@ -70,7 +70,7 @@ func (e *SigsList) Run(ctx *Context) error {
 		return err
 	}
 
-	e.sigs = e.user.IdTable().Order
+	e.sigs = e.user.IDTable().Order
 	return e.processSigs()
 }
 
