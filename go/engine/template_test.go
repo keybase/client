@@ -11,7 +11,7 @@ func TestTemplate(t *testing.T) {
 	defer tc.Cleanup()
 
 	ctx := &Context{}
-	eng := NewTemplate()
+	eng := NewTemplate(tc.G)
 	if err := RunEngine(eng, ctx); err != nil {
 		t.Fatal(err)
 	}

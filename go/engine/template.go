@@ -12,11 +12,15 @@ import (
 )
 
 // Template is an engine.
-type Template struct{}
+type Template struct {
+	libkb.Contextified
+}
 
 // NewTemplate creates a Template engine.
-func NewTemplate() *Template {
-	return &Template{}
+func NewTemplate(g *libkb.GlobalContext) *Template {
+	return &Template{
+		Contextified: libkb.NewContextified(g),
+	}
 }
 
 // Name is the unique engine name.
