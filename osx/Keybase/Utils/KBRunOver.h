@@ -8,7 +8,7 @@
 
 #import <Foundation/Foundation.h>
 
-#import "KBDefines.h"
+#import "KBAppDefines.h"
 
 typedef void (^KBRunCompletion)(id output);
 typedef void (^KBRunBlock)(id obj, KBRunCompletion completion);

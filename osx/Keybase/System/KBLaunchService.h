@@ -9,7 +9,7 @@
 #import <Foundation/Foundation.h>
 
 #import <GHKit/GHKit.h>
-#import "KBDefines.h"
+#import "KBAppDefines.h"
 #import "KBLaunchCtl.h"
 #import "KBInstallable.h"
 

@@ -8,7 +8,7 @@
 
 #import <Foundation/Foundation.h>
 
-#import "KBDefines.h"
+#import "KBAppDefines.h"
 
 typedef NS_ENUM (NSInteger, KBInstalledStatus) {
   KBInstalledStatusError = 1,

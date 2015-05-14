@@ -10,7 +10,7 @@
 #import <XCTest/XCTest.h>
 
 #import "KBHelper.h"
-#import "KBDefines.h"
+#import "KBAppDefines.h"
 
 @interface KBHelperTest : XCTestCase
 @end

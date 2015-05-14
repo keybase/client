@@ -8,7 +8,7 @@
 
 #import "KBPriviledgedTask.h"
 
-#import "KBDefines.h"
+#import "KBAppDefines.h"
 
 @implementation KBPriviledgedTask
 

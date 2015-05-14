@@ -10,7 +10,7 @@
 
 #import "KBAppKit.h"
 #import "KBUserStatusView.h"
-#import "KBDefines.h"
+#import "KBAppDefines.h"
 
 @class KBSourceOutlineView;
 

@@ -8,14 +8,12 @@
 
 #import <Foundation/Foundation.h>
 
-#import "KBSharedDefines.h"
+#import "KBDefines.h"
 
 typedef NS_ENUM(NSInteger, KBHelperError) {
   KBHelperErrorKBFS = -1000,
 };
 
-// Copied from ObjectiveSugar
-NSString *KBNSStringWithFormat(NSString *formatString, ...);
 
 void KBLog(NSString *msg, ...);
 

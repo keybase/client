@@ -9,7 +9,7 @@
 #import "KBKeyView.h"
 
 #import "KBHeaderLabelView.h"
-#import "KBDefines.h"
+#import "KBAppDefines.h"
 
 @interface KBKeyView ()
 @property YOVBox *labels;

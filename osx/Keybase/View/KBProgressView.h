@@ -9,7 +9,7 @@
 #import <Foundation/Foundation.h>
 
 #import "KBAppKit.h"
-#import "KBDefines.h"
+#import "KBAppDefines.h"
 
 typedef void (^KBWork)(KBCompletion completion);
 

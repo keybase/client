@@ -10,7 +10,7 @@
 
 #import "KBAppKit.h"
 #import "KBRPC.h"
-#import "KBDefines.h"
+#import "KBAppDefines.h"
 
 @class KBAppToolbar;
 

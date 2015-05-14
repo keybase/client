@@ -8,7 +8,7 @@
 
 #import "KBStrengthLabel.h"
 
-#import "KBDefines.h"
+#import "KBAppDefines.h"
 #import <ZXCVBN/BBPasswordStrength.h>
 #import "KBAppKit.h"
 

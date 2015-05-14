@@ -8,7 +8,7 @@
 
 #import "KBInstaller.h"
 
-#import "KBDefines.h"
+#import "KBAppDefines.h"
 #import "AppDelegate.h"
 //#include <launch.h>
 #import "KBRunOver.h"

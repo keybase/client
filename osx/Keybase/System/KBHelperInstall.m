@@ -7,7 +7,7 @@
 //
 
 #import "KBHelperInstall.h"
-#import "KBDefines.h"
+#import "KBAppDefines.h"
 #import <ServiceManagement/ServiceManagement.h>
 #import <MPMessagePack/MPXPCClient.h>
 #import "KBLaunchCtl.h"

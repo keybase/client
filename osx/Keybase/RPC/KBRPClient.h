@@ -8,7 +8,7 @@
 
 #import <Foundation/Foundation.h>
 
-#import "KBDefines.h"
+#import "KBAppDefines.h"
 #import <MPMessagePack/MPMessagePackClient.h>
 #import "KBInstaller.h"
 #import "KBEnvironment.h"

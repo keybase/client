@@ -8,7 +8,7 @@
 
 #import "KBFuseInstall.h"
 
-#import "KBDefines.h"
+#import "KBAppDefines.h"
 #import <MPMessagePack/MPXPCClient.h>
 
 @interface KBFuseInstall ()

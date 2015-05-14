@@ -7,7 +7,7 @@
 //
 
 #import "KBInstallStatus.h"
-#import "KBDefines.h"
+#import "KBAppDefines.h"
 
 @interface KBInstallStatus ()
 @property NSError *error;

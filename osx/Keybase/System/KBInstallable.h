@@ -9,7 +9,7 @@
 #import <Foundation/Foundation.h>
 
 #import "KBInstallStatus.h"
-#import "KBDefines.h"
+#import "KBAppDefines.h"
 
 typedef void (^KBInstallableStatus)(KBInstallStatus *installStatus);
 

@@ -1,53 +1,30 @@
 //
-//  KBDefines.h
+//  KBSharedDefines.h
 //  Keybase
 //
-//  Created by Gabriel on 12/16/14.
-//  Copyright (c) 2014 Gabriel Handford. All rights reserved.
+//  Created by Gabriel on 5/13/15.
+//  Copyright (c) 2015 Gabriel Handford. All rights reserved.
 //
 
-#import <GHKit/GHKit.h>
-#import <ObjectiveSugar/ObjectiveSugar.h>
-#import <YOLayout/YOLayout.h>
-#import <CocoaLumberjack/CocoaLumberjack.h>
-#import <GHODictionary/GHODictionary.h>
-#import "KBSharedDefines.h"
+#import <Foundation/Foundation.h>
 
-extern NSString *const KBTrackingListDidChangeNotification;
-extern NSString *const KBStatusDidChangeNotification;
+// Defines shared between app and Helper
 
-NSString *KBDisplayURLStringForUsername(NSString *username);
-NSString *KBURLStringForUsername(NSString *username);
+typedef void (^KBCompletion)(NSError *error);
+typedef void (^KBOnCompletion)(NSError *error, id value);
 
+#define KBMakeError(CODE, MSG, ...) [NSError errorWithDomain:@"Keybase" code:CODE userInfo:@{NSLocalizedDescriptionKey:[NSString stringWithFormat:MSG, ##__VA_ARGS__], NSLocalizedRecoveryOptionsErrorKey: @[@"OK"]}]
+
+#define KBMakeErrorWithRecovery(CODE, MSG, RECOVERY, ...) [NSError errorWithDomain:@"Keybase" code:CODE userInfo:@{NSLocalizedDescriptionKey: MSG, NSLocalizedRecoveryOptionsErrorKey: @[@"OK"], NSLocalizedRecoverySuggestionErrorKey:[NSString stringWithFormat:RECOVERY, ##__VA_ARGS__]}]
+
+
+#define KBOrNull(obj) (obj ? obj : NSNull.null)
+
+NSNumber *KBNumberFromString(NSString *s);
 NSString *KBHexString(NSData *data);
 NSData *KBHexData(NSString *s);
 
-NSString *KBDescription(id obj);
-NSString *KBDictionaryDescription(NSDictionary *d);
-NSString *KBArrayDescription(NSArray *a);
+NSString *KBNSStringWithFormat(NSString *formatString, ...);
 
-NSString *KBPGPKeyIdFromFingerprint(NSString *fingerprint);
-
-NSString *KBDescriptionForKID(NSData *kid);
-NSString *KBDescriptionForFingerprint(NSString *fingerprint, NSInteger indexForLineBreak);
-
-BOOL KBIsErrorName(NSError *error, NSString *name);
-
-typedef NS_ENUM (NSInteger, KBAppViewItem) {
-  KBAppViewItemNone,
-  KBAppViewItemProfile = 1,
-  KBAppViewItemUsers,
-  KBAppViewItemDevices,
-  KBAppViewItemFolders,
-  KBAppViewItemPGP,
-};
-
-
-#define KBErrorAlert(fmt, ...) [NSError errorWithDomain:@"Keybase" code:-1 userInfo:@{NSLocalizedDescriptionKey:[NSString stringWithFormat:fmt, ##__VA_ARGS__], NSLocalizedRecoveryOptionsErrorKey:@[@"OK"]}]
-
-
-#define KBMap(ARRAY, PROPERTY) [ARRAY map:^(id obj) { return [obj PROPERTY]; }]
-
-#define KBLog DDLogDebug
-
-NSString *KBDir(NSString *dir, BOOL tilde);
+#define LINK_SOURCE (@"/usr/local/bin/keybase")
+#define LINK_DESTINATION (@"/Applications/Keybase.app/Contents/SharedSupport/bin/keybase")

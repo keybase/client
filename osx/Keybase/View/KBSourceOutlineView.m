@@ -9,7 +9,7 @@
 #import "KBSourceOutlineView.h"
 #import "KBUserStatusView.h"
 #import "KBButtonView.h"
-#import "KBDefines.h"
+#import "KBAppDefines.h"
 
 @interface KBSourceOutlineView ()
 @property NSOutlineView *outlineView;

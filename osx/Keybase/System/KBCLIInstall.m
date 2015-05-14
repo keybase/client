@@ -7,7 +7,7 @@
 //
 
 #import "KBCLIInstall.h"
-#import "KBDefines.h"
+#import "KBAppDefines.h"
 #import <MPMessagePack/MPXPCClient.h>
 
 @implementation KBCLIInstall
