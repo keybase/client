@@ -83,10 +83,10 @@ func (e *ExportedStreams) GetReader(s keybase1.Stream) (ret io.ReadCloser, err e
 	return
 }
 
-func (e *ExportedStreams) Close(s keybase1.Stream) (err error) {
+func (e *ExportedStreams) Close(a keybase1.CloseArg) (err error) {
 	e.Lock()
 	defer e.Unlock()
-	if obj, found := e.m[s.Fd]; !found {
+	if obj, found := e.m[a.S.Fd]; !found {
 		err = StreamNotFoundError{}
 	} else {
 		if obj.w != nil {
@@ -98,7 +98,7 @@ func (e *ExportedStreams) Close(s keybase1.Stream) (err error) {
 				err = tmp
 			}
 		}
-		delete(e.m, s.Fd)
+		delete(e.m, a.S.Fd)
 	}
 	return err
 }
@@ -125,21 +125,22 @@ func (e *ExportedStreams) Write(a keybase1.WriteArg) (n int, err error) {
 }
 
 type RemoteStream struct {
-	Stream keybase1.Stream
-	Cli    *keybase1.StreamUiClient
+	Stream    keybase1.Stream
+	Cli       *keybase1.StreamUiClient
+	SessionID int
 }
 
 func (ewc RemoteStream) Write(buf []byte) (n int, err error) {
-	return ewc.Cli.Write(keybase1.WriteArg{S: ewc.Stream, Buf: buf})
+	return ewc.Cli.Write(keybase1.WriteArg{S: ewc.Stream, Buf: buf, SessionID: ewc.SessionID})
 }
 
 func (ewc RemoteStream) Close() (err error) {
-	return ewc.Cli.Close(ewc.Stream)
+	return ewc.Cli.Close(keybase1.CloseArg{S: ewc.Stream, SessionID: ewc.SessionID})
 }
 
 func (ewc RemoteStream) Read(buf []byte) (n int, err error) {
 	var tmp []byte
-	if tmp, err = ewc.Cli.Read(keybase1.ReadArg{S: ewc.Stream, Sz: len(buf)}); err == nil {
+	if tmp, err = ewc.Cli.Read(keybase1.ReadArg{S: ewc.Stream, Sz: len(buf), SessionID: ewc.SessionID}); err == nil {
 		n = len(tmp)
 		copy(buf, tmp)
 	}
@@ -152,9 +153,9 @@ type RemoteStreamBuffered struct {
 	w  *bufio.Writer
 }
 
-func NewRemoteStreamBuffered(s keybase1.Stream, c *keybase1.StreamUiClient) *RemoteStreamBuffered {
+func NewRemoteStreamBuffered(s keybase1.Stream, c *keybase1.StreamUiClient, sessionID int) *RemoteStreamBuffered {
 	x := &RemoteStreamBuffered{
-		rs: &RemoteStream{Stream: s, Cli: c},
+		rs: &RemoteStream{Stream: s, Cli: c, SessionID: sessionID},
 	}
 	x.r = bufio.NewReader(x.rs)
 	x.w = bufio.NewWriter(x.rs)

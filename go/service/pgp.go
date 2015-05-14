@@ -17,8 +17,8 @@ func NewPGPHandler(xp *rpc2.Transport) *PGPHandler {
 
 func (h *PGPHandler) PgpSign(arg keybase1.PgpSignArg) (err error) {
 	cli := h.getStreamUICli()
-	src := libkb.NewRemoteStreamBuffered(arg.Source, cli)
-	snk := libkb.NewRemoteStreamBuffered(arg.Sink, cli)
+	src := libkb.NewRemoteStreamBuffered(arg.Source, cli, arg.SessionID)
+	snk := libkb.NewRemoteStreamBuffered(arg.Sink, cli, arg.SessionID)
 	earg := engine.PGPSignArg{Sink: snk, Source: src, Opts: arg.Opts}
 	ctx := engine.Context{SecretUI: h.getSecretUI(arg.SessionID)}
 	eng := engine.NewPGPSignEngine(&earg, G)
@@ -38,8 +38,8 @@ func (h *PGPHandler) PgpPull(arg keybase1.PgpPullArg) error {
 
 func (h *PGPHandler) PgpEncrypt(arg keybase1.PgpEncryptArg) error {
 	cli := h.getStreamUICli()
-	src := libkb.NewRemoteStreamBuffered(arg.Source, cli)
-	snk := libkb.NewRemoteStreamBuffered(arg.Sink, cli)
+	src := libkb.NewRemoteStreamBuffered(arg.Source, cli, arg.SessionID)
+	snk := libkb.NewRemoteStreamBuffered(arg.Sink, cli, arg.SessionID)
 	earg := &engine.PGPEncryptArg{
 		Recips:       arg.Opts.Recipients,
 		Sink:         snk,
@@ -63,8 +63,8 @@ func (h *PGPHandler) PgpEncrypt(arg keybase1.PgpEncryptArg) error {
 
 func (h *PGPHandler) PgpDecrypt(arg keybase1.PgpDecryptArg) (keybase1.PgpSigVerification, error) {
 	cli := h.getStreamUICli()
-	src := libkb.NewRemoteStreamBuffered(arg.Source, cli)
-	snk := libkb.NewRemoteStreamBuffered(arg.Sink, cli)
+	src := libkb.NewRemoteStreamBuffered(arg.Source, cli, arg.SessionID)
+	snk := libkb.NewRemoteStreamBuffered(arg.Sink, cli, arg.SessionID)
 	earg := &engine.PGPDecryptArg{
 		Sink:         snk,
 		Source:       src,
@@ -91,7 +91,7 @@ func (h *PGPHandler) PgpDecrypt(arg keybase1.PgpDecryptArg) (keybase1.PgpSigVeri
 
 func (h *PGPHandler) PgpVerify(arg keybase1.PgpVerifyArg) (keybase1.PgpSigVerification, error) {
 	cli := h.getStreamUICli()
-	src := libkb.NewRemoteStreamBuffered(arg.Source, cli)
+	src := libkb.NewRemoteStreamBuffered(arg.Source, cli, arg.SessionID)
 	earg := &engine.PGPVerifyArg{
 		Source:    src,
 		Signature: arg.Opts.Signature,

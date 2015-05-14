@@ -167,6 +167,9 @@
   "messages" : {
     "close" : {
       "request" : [ {
+        "name" : "sessionID",
+        "type" : "int"
+      }, {
         "name" : "s",
         "type" : "Stream"
       } ],
@@ -174,6 +177,9 @@
     },
     "read" : {
       "request" : [ {
+        "name" : "sessionID",
+        "type" : "int"
+      }, {
         "name" : "s",
         "type" : "Stream"
       }, {
@@ -184,6 +190,9 @@
     },
     "write" : {
       "request" : [ {
+        "name" : "sessionID",
+        "type" : "int"
+      }, {
         "name" : "s",
         "type" : "Stream"
       }, {

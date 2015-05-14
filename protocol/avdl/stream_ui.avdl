@@ -3,7 +3,7 @@
 protocol streamUi {
 	import idl "common.avdl";
 
-	void close(Stream s);
-	bytes read(Stream s, int sz);
-	int write(Stream s, bytes buf);
+	void close(int sessionID, Stream s);
+	bytes read(int sessionID, Stream s, int sz);
+	int write(int sessionID, Stream s, bytes buf);
 }

@@ -674,11 +674,11 @@ typedef NS_ENUM (NSInteger, KBRPromptOverwriteType) {
 @end
 
 @interface KBRStreamUiRequest : KBRRequest
-- (void)closeWithS:(KBRStream *)s completion:(void (^)(NSError *error))completion;
+- (void)closeWithSessionID:(NSInteger)sessionID s:(KBRStream *)s completion:(void (^)(NSError *error))completion;
 
-- (void)readWithS:(KBRStream *)s sz:(NSInteger)sz completion:(void (^)(NSError *error, NSData *bytes))completion;
+- (void)readWithSessionID:(NSInteger)sessionID s:(KBRStream *)s sz:(NSInteger)sz completion:(void (^)(NSError *error, NSData *bytes))completion;
 
-- (void)writeWithS:(KBRStream *)s buf:(NSData *)buf completion:(void (^)(NSError *error, NSInteger n))completion;
+- (void)writeWithSessionID:(NSInteger)sessionID s:(KBRStream *)s buf:(NSData *)buf completion:(void (^)(NSError *error, NSInteger n))completion;
 
 @end
 
@@ -1083,13 +1083,16 @@ typedef NS_ENUM (NSInteger, KBRPromptOverwriteType) {
 @property KBRSigListArgs *arg;
 @end
 @interface KBRCloseRequestParams : KBRRequestParams
+@property NSInteger sessionID;
 @property KBRStream *s;
 @end
 @interface KBRReadRequestParams : KBRRequestParams
+@property NSInteger sessionID;
 @property KBRStream *s;
 @property NSInteger sz;
 @end
 @interface KBRWriteRequestParams : KBRRequestParams
+@property NSInteger sessionID;
 @property KBRStream *s;
 @property NSData *buf;
 @end

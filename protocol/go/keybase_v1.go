@@ -2429,21 +2429,24 @@ func (c SigsClient) SigListJSON(arg SigListArgs) (res string, err error) {
 }
 
 type CloseArg struct {
-	S Stream `codec:"s" json:"s"`
+	SessionID int    `codec:"sessionID" json:"sessionID"`
+	S         Stream `codec:"s" json:"s"`
 }
 
 type ReadArg struct {
-	S  Stream `codec:"s" json:"s"`
-	Sz int    `codec:"sz" json:"sz"`
+	SessionID int    `codec:"sessionID" json:"sessionID"`
+	S         Stream `codec:"s" json:"s"`
+	Sz        int    `codec:"sz" json:"sz"`
 }
 
 type WriteArg struct {
-	S   Stream `codec:"s" json:"s"`
-	Buf []byte `codec:"buf" json:"buf"`
+	SessionID int    `codec:"sessionID" json:"sessionID"`
+	S         Stream `codec:"s" json:"s"`
+	Buf       []byte `codec:"buf" json:"buf"`
 }
 
 type StreamUiInterface interface {
-	Close(Stream) error
+	Close(CloseArg) error
 	Read(ReadArg) ([]byte, error)
 	Write(WriteArg) (int, error)
 }
@@ -2455,7 +2458,7 @@ func StreamUiProtocol(i StreamUiInterface) rpc2.Protocol {
 			"close": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
 				args := make([]CloseArg, 1)
 				if err = nxt(&args); err == nil {
-					err = i.Close(args[0].S)
+					err = i.Close(args[0])
 				}
 				return
 			},
@@ -2482,8 +2485,7 @@ type StreamUiClient struct {
 	Cli GenericClient
 }
 
-func (c StreamUiClient) Close(s Stream) (err error) {
-	__arg := CloseArg{S: s}
+func (c StreamUiClient) Close(__arg CloseArg) (err error) {
 	err = c.Cli.Call("keybase.1.streamUi.close", []interface{}{__arg}, nil)
 	return
 }
