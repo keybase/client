@@ -130,18 +130,6 @@ type User struct {
 
 //==================================================================
 
-type LoadUserArg struct {
-	Uid               *UID
-	Name              string
-	PublicKeyOptional bool
-	NoCacheResult     bool // currently ignore
-	Self              bool
-	ForceReload       bool
-	AllKeys           bool
-	LoginContext      LoginContext
-	Contextified
-}
-
 //==================================================================
 
 func NewUserThin(name string, uid UID) *User {
@@ -213,37 +201,6 @@ func NewUserFromLocalStorage(o *jsonw.Wrapper) (*User, error) {
 	return u, err
 }
 
-func LoadUserFromLocalStorage(uid UID) (u *User, err error) {
-
-	uid_s := uid.String()
-	G.Log.Debug("+ LoadUserFromLocalStorage(%s)", uid_s)
-
-	jw, err := G.LocalDb.Get(DbKey{Typ: DB_USER, Key: uid_s})
-	if err != nil {
-		return nil, err
-	}
-
-	if jw == nil {
-		G.Log.Debug("- LoadUserFromLocalStorage(%s): Not found", uid_s)
-		return nil, nil
-	}
-
-	G.Log.Debug("| Loaded successfully")
-
-	if u, err = NewUserFromLocalStorage(jw); err != nil {
-		return nil, err
-	}
-
-	if !u.id.Eq(uid) {
-		err = fmt.Errorf("Bad lookup; uid mismatch: %s != %s", uid_s, u.id)
-	}
-
-	G.Log.Debug("| Loaded username %s (uid=%s)", u.name, uid_s)
-	G.Log.Debug("- LoadUserFromLocalStorage(%s,%s)", u.name, uid_s)
-
-	return
-}
-
 func (u *User) GetKeyFamily() *KeyFamily {
 	return u.keyFamily
 }
@@ -311,37 +268,6 @@ func (u *User) GetDeviceSubkey() (subkey GenericKey, err error) {
 		return
 	}
 	return ckf.GetEncryptionSubkeyForDevice(*did)
-}
-
-func LoadUserFromServer(arg LoadUserArg, body *jsonw.Wrapper) (u *User, err error) {
-
-	uid_s := arg.Uid.String()
-	G.Log.Debug("+ Load User from server: %s", uid_s)
-
-	// Res.body might already have been preloaded a a result of a Resolve call earlier.
-	if body == nil {
-		res, err := G.API.Get(ApiArg{
-			Endpoint:    "user/lookup",
-			NeedSession: false,
-			Args: HttpArgs{
-				"uid": S{uid_s},
-			},
-		})
-
-		if err != nil {
-			return nil, err
-		}
-		body = res.Body.AtKey("them")
-	} else {
-		G.Log.Debug("| Skipped load; got user object previously")
-	}
-
-	if u, err = NewUserFromServer(body); err != nil {
-		return
-	}
-	G.Log.Debug("- Load user from server: %s -> %s", uid_s, ErrToOk(err))
-
-	return
 }
 
 func (u *User) GetServerSeqno() (i int, err error) {
@@ -498,17 +424,6 @@ func (u *User) SyncSecrets() error {
 	return G.LoginState().RunSecretSyncer(&u.id)
 }
 
-func LookupMerkleLeaf(uid UID, local *User) (f *MerkleUserLeaf, err error) {
-	q := NewHttpArgs()
-	q.Add("uid", S{uid.String()})
-
-	f, err = G.MerkleClient.LookupUser(q)
-	if err == nil && f == nil && local != nil {
-		err = fmt.Errorf("User not found in server Merkle tree")
-	}
-	return
-}
-
 func (u *User) GetEldestFOKID() (ret *FOKID) {
 	if u.leaf.eldest == nil {
 		return nil
@@ -538,11 +453,6 @@ func (u *User) MakeIdTable() (err error) {
 	return
 }
 
-func LoadMe(arg LoadUserArg) (ret *User, err error) {
-	arg.Self = true
-	return LoadUser(arg)
-}
-
 func (u *User) VerifySelfSig() error {
 
 	G.Log.Debug("+ VerifySelfSig for user %s", u.name)
@@ -566,151 +476,6 @@ func (u *User) VerifySelfSigByKey() (ret bool) {
 	if ckf := u.GetComputedKeyFamily(); ckf != nil {
 		ret = ckf.FindKeybaseName(name)
 	}
-	return
-}
-
-func myUID(g *GlobalContext, lctx LoginContext) *UID {
-	if lctx != nil {
-		return lctx.LocalSession().GetUID()
-	}
-	return g.GetMyUID()
-}
-
-func LoadUser(arg LoadUserArg) (ret *User, err error) {
-
-	G.Log.Debug("LoadUser: %+v", arg)
-
-	// Whatever the reply is, pass along our desired global context
-	defer func() {
-		if ret != nil {
-			ret.SetGlobalContext(arg.G())
-		}
-	}()
-
-	if arg.Uid != nil {
-		// noop
-	} else if len(arg.Name) == 0 && !arg.Self {
-		err = fmt.Errorf("no username given to LoadUser")
-	} else if len(arg.Name) > 0 && arg.Self {
-		err = fmt.Errorf("If loading self, can't provide a username")
-	} else if !arg.Self {
-		// noop
-	} else if arg.Uid = myUID(G, arg.LoginContext); arg.Uid == nil {
-		arg.Name = G.Env.GetUsername()
-	}
-
-	if err != nil {
-		return
-	}
-
-	G.Log.Debug("+ LoadUser(uid=%v, name=%v)", arg.Uid, arg.Name)
-
-	var rres ResolveResult
-	var uid UID
-	if arg.Uid != nil {
-		uid = *arg.Uid
-	} else if len(arg.Name) == 0 {
-		err = LoadUserError{"we don't know the current user's UID or name"}
-		return
-	} else if rres = ResolveUid(arg.Name); rres.err != nil {
-		err = rres.err
-		return
-	} else if rres.uid == nil {
-		err = fmt.Errorf("No resolution for name=%s", arg.Name)
-		return
-	} else {
-		uid = *rres.uid
-		arg.Uid = &uid
-	}
-
-	if !arg.Self {
-		if my_uid := myUID(G, arg.LoginContext); my_uid != nil && arg.Uid != nil && my_uid.Eq(*arg.Uid) {
-			arg.Self = true
-		}
-	}
-
-	uid_s := uid.String()
-	G.Log.Debug("| resolved to %s", uid_s)
-
-	var local, remote *User
-
-	if local, err = LoadUserFromLocalStorage(uid); err != nil {
-		G.Log.Warning("Failed to load %s from storage: %s", uid_s, err.Error())
-	}
-
-	leaf, err := LookupMerkleLeaf(uid, local)
-	if err != nil {
-		return
-	}
-
-	var f1, load_remote bool
-
-	if local == nil {
-		G.Log.Debug("| No local user stored for %s", uid_s)
-		load_remote = true
-	} else if f1, err = local.CheckBasicsFreshness(leaf.idVersion); err != nil {
-		return
-	} else {
-		load_remote = !f1
-	}
-
-	G.Log.Debug("| Freshness: basics=%v; for %s", f1, uid_s)
-
-	if !load_remote && !arg.ForceReload {
-		ret = local
-	} else if remote, err = LoadUserFromServer(arg, rres.body); err != nil {
-		return
-	} else {
-		ret = remote
-	}
-
-	if ret == nil {
-		return
-	}
-
-	ret.leaf = *leaf
-
-	// If the user was looked-up via a keybase username, then
-	// we should go ahead and check that the username matches the UID
-	if len(rres.kbUsername) > 0 {
-		if err = leaf.MatchUser(ret, arg.Uid, rres.kbUsername); err != nil {
-			return
-		}
-	}
-
-	if err = ret.LoadSigChains(arg.AllKeys, leaf); err != nil {
-		return
-	}
-
-	if ret.sigHints, err = LoadAndRefreshSigHints(ret.id); err != nil {
-		return
-	}
-
-	// Proactively cache fetches from remote server to local storage
-	if e2 := ret.Store(); e2 != nil {
-		G.Log.Warning("Problem storing user %s: %s", ret.GetName(), e2.Error())
-	}
-
-	if ret.HasActiveKey() {
-		if err = ret.MakeIdTable(); err != nil {
-			return
-		}
-
-		// Check that the user has self-signed only after we
-		// consider revocations. See: https://github.com/keybase/go/issues/43
-		if err = ret.VerifySelfSig(); err != nil {
-			return
-		}
-
-	} else if !arg.PublicKeyOptional {
-
-		var emsg string
-		if arg.Self {
-			emsg = "You don't have a public key; try `keybase push` if you have a key; or `keybase gen` if you don't"
-		}
-		err = NoKeyError{emsg}
-	}
-
 	return
 }
 
