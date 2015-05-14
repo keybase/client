@@ -139,7 +139,7 @@ func LoadUser(arg LoadUserArg) (ret *User, err error) {
 	}
 
 	if ret.HasActiveKey() {
-		if err = ret.MakeIdTable(); err != nil {
+		if err = ret.MakeIDTable(); err != nil {
 			return
 		}
 

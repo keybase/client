@@ -77,13 +77,6 @@ func NewUser(o *jsonw.Wrapper) (*User, error) {
 	}, nil
 }
 
-func (u *User) GetName() string { return u.name }
-func (u *User) GetUid() UID     { return u.id }
-
-func (u *User) GetIdVersion() (int64, error) {
-	return u.basics.AtKey("id_version").GetInt64()
-}
-
 func NewUserFromServer(o *jsonw.Wrapper) (*User, error) {
 	u, e := NewUser(o)
 	if e == nil {
@@ -95,6 +88,13 @@ func NewUserFromServer(o *jsonw.Wrapper) (*User, error) {
 func NewUserFromLocalStorage(o *jsonw.Wrapper) (*User, error) {
 	u, err := NewUser(o)
 	return u, err
+}
+
+func (u *User) GetName() string { return u.name }
+func (u *User) GetUid() UID     { return u.id }
+
+func (u *User) GetIdVersion() (int64, error) {
+	return u.basics.AtKey("id_version").GetInt64()
 }
 
 func (u *User) GetSeqno() Seqno {
@@ -255,19 +255,18 @@ func (u *User) Store() error {
 }
 
 func (u *User) StoreTopLevel() error {
-
 	G.Log.Debug("+ StoreTopLevel")
 
-	uid_s := u.id.String()
+	suid := u.id.String()
 	jw := jsonw.NewDictionary()
-	jw.SetKey("id", jsonw.NewString(uid_s))
+	jw.SetKey("id", jsonw.NewString(suid))
 	jw.SetKey("basics", u.basics)
 	jw.SetKey("public_keys", u.publicKeys)
 	jw.SetKey("sigs", u.sigs)
 	jw.SetKey("pictures", u.pictures)
 
 	err := G.LocalDb.Put(
-		DbKey{Typ: DB_USER, Key: uid_s},
+		DbKey{Typ: DB_USER, Key: suid},
 		[]DbKey{{Typ: DB_LOOKUP_USERNAME, Key: u.name}},
 		jw,
 	)
@@ -346,7 +345,7 @@ func (u *User) sigChain() *SigChain {
 	return u.sigChainMem
 }
 
-func (u *User) MakeIdTable() (err error) {
+func (u *User) MakeIDTable() (err error) {
 	if fokid := u.GetEldestFOKID(); fokid == nil {
 		err = NoKeyError{"Expected a key but didn't find one"}
 	} else {
@@ -389,15 +388,13 @@ func (u *User) HasActiveKey() bool {
 	return false
 }
 
-func (u1 *User) Equal(u2 *User) bool {
-	return u1.id.Eq(u2.id)
+func (u *User) Equal(other *User) bool {
+	return u.id.Eq(other.id)
 }
 
 func (u *User) GetTrackingStatementFor(s string, i UID) (link *TrackChainLink, err error) {
-
-	uid_s := i.String()
-	G.Log.Debug("+ GetTrackingStatement for %s", uid_s)
-	defer G.Log.Debug("- GetTrackingStatement for %s -> %s", uid_s, ErrToOk(err))
+	G.Log.Debug("+ GetTrackingStatement for %s", i)
+	defer G.Log.Debug("- GetTrackingStatement for %s -> %s", i, ErrToOk(err))
 
 	remote, e1 := u.GetRemoteTrackingStatementFor(s, i)
 	local, e2 := GetLocalTrack(u.id, i)
@@ -447,7 +444,7 @@ func (u *User) ToOkProofSet() *ProofSet {
 // localDelegateKey takes the given GenericKey and provisions it locally so that
 // we can use the key without needing a refresh from the server.  The eventual
 // refresh we do get from the server will clobber our work here.
-func (u *User) localDelegateKey(key GenericKey, sigId *SigId, kid KID, isSibkey bool, isEldest bool) (err error) {
+func (u *User) localDelegateKey(key GenericKey, sigID *SigId, kid KID, isSibkey bool, isEldest bool) (err error) {
 	if err = u.keyFamily.LocalDelegate(key, isSibkey, kid == nil); err != nil {
 		return
 	}
@@ -455,7 +452,7 @@ func (u *User) localDelegateKey(key GenericKey, sigId *SigId, kid KID, isSibkey 
 		err = NoSigChainError{}
 		return
 	}
-	err = u.sigChain().LocalDelegate(u.keyFamily, key, sigId, kid, isSibkey)
+	err = u.sigChain().LocalDelegate(u.keyFamily, key, sigID, kid, isSibkey)
 	if isEldest {
 		eldestKID := key.GetKid()
 		u.leaf.eldest = &eldestKID
