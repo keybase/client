@@ -40,4 +40,6 @@ typedef NS_ENUM (NSInteger, KBEnv) {
 - (NSString *)commandLineForService:(BOOL)tilde;
 - (NSString *)commandLineForKBFS:(BOOL)tilde;
 
+- (NSString *)cachePath:(NSString *)filename;
+
 @end

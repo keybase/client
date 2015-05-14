@@ -33,13 +33,13 @@
 
     if (environment.isInstallEnabled) {
       if (environment.launchdLabelService) {
-        [installables addObject:[[KBLaunchService alloc] initWithName:@"Service" label:environment.launchdLabelService bundleVersion:info[@"KBServiceVersion"] plist:environment.launchdPlistDictionaryForService]];
+        [installables addObject:[[KBLaunchService alloc] initWithName:@"Service" label:environment.launchdLabelService bundleVersion:info[@"KBServiceVersion"] versionPath:[environment cachePath:@"service.version"] plist:environment.launchdPlistDictionaryForService]];
       }
 
       [installables addObject:[[KBHelperInstall alloc] init]];
 
       if (environment.launchdLabelKBFS) {
-        [installables addObject:[[KBLaunchService alloc] initWithName:@"KBFS" label:environment.launchdLabelKBFS bundleVersion:info[@"KBFSVersion"] plist:environment.launchdPlistDictionaryForKBFS]];
+        [installables addObject:[[KBLaunchService alloc] initWithName:@"KBFS" label:environment.launchdLabelKBFS bundleVersion:info[@"KBFSVersion"] versionPath:nil plist:environment.launchdPlistDictionaryForKBFS]];
       }
 
       [installables addObject:[[KBFuseInstall alloc] init]];

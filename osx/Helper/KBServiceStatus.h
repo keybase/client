@@ -12,11 +12,11 @@
 
 @property (readonly) NSString *label;
 @property (readonly) NSNumber *pid;
-@property (readonly) NSNumber *exitStatus;
+@property (readonly) NSNumber *lastExitStatus;
 @property (readonly) NSError *error;
 
 + (instancetype)error:(NSError *)error;
-+ (instancetype)serviceStatusWithPid:(NSNumber *)pid exitStatus:(NSNumber *)exitStatus label:(NSString *)label;
++ (instancetype)serviceStatusWithPid:(NSNumber *)pid lastExitStatus:(NSNumber *)lastExitStatus label:(NSString *)label;
 
 - (NSString *)info;
 

@@ -54,8 +54,8 @@
       if ([info count] != 3) continue;
       if ([info[2] hasPrefix:label]) {
         NSNumber *pid = KBNumberFromString(info[0]);
-        NSNumber *exitStatus = KBNumberFromString(info[1]);
-        completion([KBServiceStatus serviceStatusWithPid:pid exitStatus:exitStatus label:label]);
+        NSNumber *lastExitStatus = KBNumberFromString(info[1]);
+        completion([KBServiceStatus serviceStatusWithPid:pid lastExitStatus:lastExitStatus label:label]);
         return;
       }
     }

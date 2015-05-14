@@ -15,31 +15,43 @@
 @property NSString *name;
 @property NSString *label;
 @property NSString *bundleVersion;
+@property NSString *versionPath;
 @property NSDictionary *plist;
 @end
 
 @implementation KBLaunchService
 
-- (instancetype)initWithName:(NSString *)name label:(NSString *)label bundleVersion:(NSString *)bundleVersion plist:(NSDictionary *)plist {
+- (instancetype)initWithName:(NSString *)name label:(NSString *)label bundleVersion:(NSString *)bundleVersion versionPath:(NSString *)versionPath plist:(NSDictionary *)plist {
   if ((self = [super init])) {
     _name = name;
     _label = label;
     _bundleVersion = bundleVersion;
+    _versionPath = versionPath;
     _plist = plist;
   }
   return self;
 }
 
 - (void)installStatus:(KBInstallableStatus)completion {
+  NSString *bundleVersion = _bundleVersion;
+  NSString *runningVersion = _versionPath ? [NSString stringWithContentsOfFile:_versionPath encoding:NSUTF8StringEncoding error:nil] : nil;
+  GHODictionary *info = [GHODictionary dictionary];
+  if (runningVersion) info[@"Version"] = runningVersion;
   [KBLaunchCtl status:_label completion:^(KBServiceStatus *status) {
     if (status.error) {
       completion([KBInstallStatus installStatusWithError:status.error]);
     } else {
       if (status.isRunning) {
-        //KBInstallStatusNeedsUpgrade?
-        completion([KBInstallStatus installStatusWithStatus:KBInstalledStatusInstalled runtimeStatus:KBRuntimeStatusRunning info:[GHODictionary d:@{@"pid": status.pid}]]);
+        info[@"pid"] = status.pid;
+        if (![runningVersion isEqualToString:bundleVersion]) {
+          if (bundleVersion) info[@"New Version"] = bundleVersion;
+          completion([KBInstallStatus installStatusWithStatus:KBInstalledStatusNeedsUpgrade runtimeStatus:KBRuntimeStatusRunning info:info]);
+        } else {
+          completion([KBInstallStatus installStatusWithStatus:KBInstalledStatusInstalled runtimeStatus:KBRuntimeStatusRunning info:info]);
+        }
       } else {
-        completion([KBInstallStatus installStatusWithStatus:KBInstalledStatusInstalled runtimeStatus:KBRuntimeStatusNotRunning info:[GHODictionary d:@{@"exit": status.exitStatus}]]);
+        info[@"exit"] = status.lastExitStatus;
+        completion([KBInstallStatus installStatusWithStatus:KBInstalledStatusInstalled runtimeStatus:KBRuntimeStatusNotRunning info:info]);
       }
     }
   }];

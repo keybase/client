@@ -43,7 +43,7 @@
     if (error) {
       completion([KBInstallStatus installStatusWithStatus:KBInstalledStatusInstalled runtimeStatus:KBRuntimeStatusNotRunning info:nil]);
     } else {
-      NSString *runningVersion = versions[@"version"];
+      NSString *runningVersion = versions[@"Version"];
       if ([runningVersion isEqualToString:bundleVersion]) {
         completion([KBInstallStatus installStatusWithStatus:KBInstalledStatusInstalled runtimeStatus:KBRuntimeStatusRunning info:[GHODictionary d:@{@"version": runningVersion}]]);
       } else {

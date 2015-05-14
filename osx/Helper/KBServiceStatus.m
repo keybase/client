@@ -11,7 +11,7 @@
 @interface KBServiceStatus ()
 @property NSString *label;
 @property NSNumber *pid;
-@property NSNumber *exitStatus;
+@property NSNumber *lastExitStatus;
 @property NSError *error;
 @end
 
@@ -23,20 +23,20 @@
   return serviceStatus;
 }
 
-+ (instancetype)serviceStatusWithPid:(NSNumber *)pid exitStatus:(NSNumber *)exitStatus label:(NSString *)label {
++ (instancetype)serviceStatusWithPid:(NSNumber *)pid lastExitStatus:(NSNumber *)lastExitStatus label:(NSString *)label {
   KBServiceStatus *serviceStatus = [[KBServiceStatus alloc] init];
   serviceStatus.pid = pid;
-  serviceStatus.exitStatus = exitStatus;
+  serviceStatus.lastExitStatus = lastExitStatus;
   serviceStatus.label = label;
   return serviceStatus;
 }
 
 - (NSString *)info {
-  return [NSString stringWithFormat:@"pid=%@, exit=%@", _pid, _exitStatus];
+  return [NSString stringWithFormat:@"pid=%@, exit=%@", _pid, _lastExitStatus];
 }
 
 - (BOOL)isRunning {
-  return (_exitStatus && [_exitStatus integerValue] == 0);
+  return (!!_pid);
 }
 
 @end

@@ -40,6 +40,7 @@ echo "Copying keybase into Keybase.app..."
 chmod +x keybase
 mkdir -p Keybase.app/Contents/SharedSupport/bin
 cp keybase Keybase.app/Contents/SharedSupport/bin
+cp kbfsfuse Keybase.app/Contents/SharedSupport/bin
 
 # Verify
 #codesign --verify --verbose=4 Keybase.app

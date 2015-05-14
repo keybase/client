@@ -79,7 +79,7 @@
 
     // This is because there is a hard limit of 104 characters for the unix socket file length and if
     // we use the default there is a chance it will be too long (if username is long).
-    self.sockFile = [self.homeDir stringByAppendingPathComponent:@".config/keybase/keybased.sock"];
+    self.sockFile = NSStringWithFormat(@"%@/.config/keybase/keybased.sock", self.homeDir);
     if ([self.sockFile length] > 103) {
       [NSException raise:NSInvalidArgumentException format:@"Sock path too long. It should be < 104 characters."];
     }
@@ -91,6 +91,11 @@
 
 + (instancetype)env:(KBEnv)env {
   return [[self.class alloc] initWithEnv:env];
+}
+
+- (NSString *)cachePath:(NSString *)filename {
+  NSString *path = NSStringWithFormat(@"%@/.cache/keybase/%@", self.homeDir, filename);
+  return path;
 }
 
 - (NSArray *)programArgumentsForService:(BOOL)tilde {
