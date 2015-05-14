@@ -11,7 +11,6 @@ import (
 
 func SetupEngineTest(t *testing.T, name string) libkb.TestContext {
 	tc := libkb.SetupTest(t, name)
-	// G = libkb.G
 	return tc
 }
 
