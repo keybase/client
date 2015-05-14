@@ -192,8 +192,9 @@ func (p *Prove) generateProof(ctx *Context) (err error) {
 	var seckey libkb.GenericKey
 
 	if locked, which, err = p.G().Keyrings.GetSecretKeyLocked(libkb.SecretKeyArg{
-		Me:      p.me,
-		KeyType: libkb.AnySecretKeyType,
+		Me:           p.me,
+		KeyType:      libkb.AnySecretKeyType,
+		LoginContext: ctx.LoginContext,
 	}); err != nil {
 		return
 	}
