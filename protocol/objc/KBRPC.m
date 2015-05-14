@@ -329,6 +329,9 @@
 @implementation KBRIdentifyRes
 @end
 
+@implementation KBRRemoteProof
+@end
+
 @implementation KBRIdentifyRequest
 
 - (void)identifyWithSessionID:(NSInteger)sessionID userAssertion:(NSString *)userAssertion trackStatement:(BOOL)trackStatement completion:(void (^)(NSError *error, KBRIdentifyRes *identifyRes))completion {
@@ -358,9 +361,6 @@
 @end
 
 @implementation KBRProofStatus
-@end
-
-@implementation KBRRemoteProof
 @end
 
 @implementation KBRIdentifyRow
@@ -744,10 +744,15 @@
   }];
 }
 
-- (void)checkForProofWithSessionID:(NSInteger)sessionID service:(NSString *)service username:(NSString *)username completion:(void (^)(NSError *error))completion {
+- (void)checkForProofWithSessionID:(NSInteger)sessionID service:(NSString *)service username:(NSString *)username completion:(void (^)(NSError *error, KBRRemoteProof *remoteProof))completion {
   NSArray *params = @[@{@"sessionID": @(sessionID), @"service": KBRValue(service), @"username": KBRValue(username)}];
   [self.client sendRequestWithMethod:@"keybase.1.prove.checkForProof" params:params sessionId:self.sessionId completion:^(NSError *error, id retval) {
-    completion(error);
+    if (error) {
+        completion(error, nil);
+        return;
+      }
+      KBRRemoteProof *result = retval ? [MTLJSONAdapter modelOfClass:KBRRemoteProof.class fromJSONDictionary:retval error:&error] : nil;
+      completion(error, result);
   }];
 }
 

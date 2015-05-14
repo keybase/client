@@ -48,6 +48,8 @@ var SUBKEY_EXPIRE_IN = 24 * 60 * 60 * 365 * 4     // 4 years
 
 var TRACK_SESSION_TIMEOUT = time.Minute
 
+// Is there any canonical list of errnos that this matches up to?
+// When adding new ones, what should we do?
 const (
 	SC_OK                        = 0
 	SC_LOGIN_REQUIRED            = 201
@@ -67,6 +69,7 @@ const (
 	SC_STREAM_WRONG_KIND         = 1503
 	SC_STREAM_EOF                = 1504
 	SC_API_NETWORK_ERROR         = 1601
+	SC_PROOF_ERROR               = 1701
 )
 
 const (

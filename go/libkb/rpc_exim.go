@@ -688,3 +688,17 @@ func (e APINetError) ToStatus() (s keybase1.Status) {
 	s.Desc = e.Error()
 	return
 }
+
+func (e ProofNotFoundForServiceError) ToStatus() (s keybase1.Status) {
+	s.Code = SC_PROOF_ERROR
+	s.Name = "PROOF_ERROR"
+	s.Desc = e.Error()
+	return
+}
+
+func (e ProofNotFoundForUsernameError) ToStatus() (s keybase1.Status) {
+	s.Code = SC_PROOF_ERROR
+	s.Name = "PROOF_ERROR"
+	s.Desc = e.Error()
+	return
+}

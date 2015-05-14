@@ -163,6 +163,111 @@
     "type" : "fixed",
     "name" : "SIGID",
     "size" : 32
+  }, {
+    "type" : "enum",
+    "name" : "TrackDiffType",
+    "symbols" : [ "NONE", "ERROR", "CLASH", "DELETED", "UPGRADED", "NEW", "REMOTE_FAIL", "REMOTE_WORKING", "REMOTE_CHANGED" ]
+  }, {
+    "type" : "record",
+    "name" : "TrackDiff",
+    "fields" : [ {
+      "name" : "type",
+      "type" : "TrackDiffType"
+    }, {
+      "name" : "displayMarkup",
+      "type" : "string"
+    } ]
+  }, {
+    "type" : "record",
+    "name" : "TrackSummary",
+    "fields" : [ {
+      "name" : "username",
+      "type" : "string"
+    }, {
+      "name" : "time",
+      "type" : "int"
+    }, {
+      "name" : "isRemote",
+      "type" : "boolean"
+    } ]
+  }, {
+    "type" : "record",
+    "name" : "IdentifyOutcome",
+    "fields" : [ {
+      "name" : "username",
+      "type" : "string"
+    }, {
+      "name" : "status",
+      "type" : [ "null", "Status" ]
+    }, {
+      "name" : "warnings",
+      "type" : {
+        "type" : "array",
+        "items" : "string"
+      }
+    }, {
+      "name" : "trackUsed",
+      "type" : [ "null", "TrackSummary" ]
+    }, {
+      "name" : "numTrackFailures",
+      "type" : "int"
+    }, {
+      "name" : "numTrackChanges",
+      "type" : "int"
+    }, {
+      "name" : "numProofFailures",
+      "type" : "int"
+    }, {
+      "name" : "numDeleted",
+      "type" : "int"
+    }, {
+      "name" : "numProofSuccesses",
+      "type" : "int"
+    }, {
+      "name" : "deleted",
+      "type" : {
+        "type" : "array",
+        "items" : "TrackDiff"
+      }
+    }, {
+      "name" : "localOnly",
+      "type" : "boolean"
+    }, {
+      "name" : "approveRemote",
+      "type" : "boolean"
+    } ]
+  }, {
+    "type" : "record",
+    "name" : "IdentifyRes",
+    "fields" : [ {
+      "name" : "user",
+      "type" : [ "null", "User" ]
+    }, {
+      "name" : "outcome",
+      "type" : "IdentifyOutcome"
+    } ]
+  }, {
+    "type" : "record",
+    "name" : "RemoteProof",
+    "fields" : [ {
+      "name" : "proofType",
+      "type" : "int"
+    }, {
+      "name" : "key",
+      "type" : "string"
+    }, {
+      "name" : "value",
+      "type" : "string"
+    }, {
+      "name" : "displayMarkup",
+      "type" : "string"
+    }, {
+      "name" : "sigId",
+      "type" : "SIGID"
+    }, {
+      "name" : "mtime",
+      "type" : "int"
+    } ]
   } ],
   "messages" : {
     "prove" : {
@@ -199,7 +304,7 @@
         "name" : "username",
         "type" : "string"
       } ],
-      "response" : "null"
+      "response" : "RemoteProof"
     }
   }
 }

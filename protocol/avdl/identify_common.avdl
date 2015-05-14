@@ -45,4 +45,13 @@ protocol identifyCommon {
 		union { null, User } user;
 		IdentifyOutcome outcome;
 	}
+	
+	record RemoteProof {
+		int proofType;
+		string key;
+		string value;
+		string displayMarkup;
+		SIGID sigId;
+		int mtime;
+	}
 }

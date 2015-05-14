@@ -622,6 +622,23 @@ func (e ProofNotYetAvailableError) Error() string {
 	return "Proof wasn't available; we'll keep trying"
 }
 
+type ProofNotFoundForServiceError struct {
+	Service string
+}
+
+func (e ProofNotFoundForServiceError) Error() string {
+	return fmt.Sprintf("proof not found for service %q", e.Service)
+}
+
+type ProofNotFoundForUsernameError struct {
+	Service  string
+	Username string
+}
+
+func (e ProofNotFoundForUsernameError) Error() string {
+	return fmt.Sprintf("proof not found for %q on %q", e.Username, e.Service)
+}
+
 //=============================================================================
 
 type KeyGenError struct {

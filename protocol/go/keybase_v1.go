@@ -801,6 +801,15 @@ type IdentifyRes struct {
 	Outcome IdentifyOutcome `codec:"outcome" json:"outcome"`
 }
 
+type RemoteProof struct {
+	ProofType     int    `codec:"proofType" json:"proofType"`
+	Key           string `codec:"key" json:"key"`
+	Value         string `codec:"value" json:"value"`
+	DisplayMarkup string `codec:"displayMarkup" json:"displayMarkup"`
+	SigId         SIGID  `codec:"sigId" json:"sigId"`
+	Mtime         int    `codec:"mtime" json:"mtime"`
+}
+
 type IdentifyArg struct {
 	SessionID      int    `codec:"sessionID" json:"sessionID"`
 	UserAssertion  string `codec:"userAssertion" json:"userAssertion"`
@@ -858,15 +867,6 @@ type ProofStatus struct {
 	State  int    `codec:"state" json:"state"`
 	Status int    `codec:"status" json:"status"`
 	Desc   string `codec:"desc" json:"desc"`
-}
-
-type RemoteProof struct {
-	ProofType     int    `codec:"proofType" json:"proofType"`
-	Key           string `codec:"key" json:"key"`
-	Value         string `codec:"value" json:"value"`
-	DisplayMarkup string `codec:"displayMarkup" json:"displayMarkup"`
-	SigId         SIGID  `codec:"sigId" json:"sigId"`
-	Mtime         int    `codec:"mtime" json:"mtime"`
 }
 
 type IdentifyRow struct {
@@ -1822,7 +1822,7 @@ type CheckForProofArg struct {
 type ProveInterface interface {
 	Prove(ProveArg) error
 	Cancel(int) error
-	CheckForProof(CheckForProofArg) error
+	CheckForProof(CheckForProofArg) (RemoteProof, error)
 }
 
 func ProveProtocol(i ProveInterface) rpc2.Protocol {
@@ -1846,7 +1846,7 @@ func ProveProtocol(i ProveInterface) rpc2.Protocol {
 			"checkForProof": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
 				args := make([]CheckForProofArg, 1)
 				if err = nxt(&args); err == nil {
-					err = i.CheckForProof(args[0])
+					ret, err = i.CheckForProof(args[0])
 				}
 				return
 			},
@@ -1870,8 +1870,8 @@ func (c ProveClient) Cancel(sessionID int) (err error) {
 	return
 }
 
-func (c ProveClient) CheckForProof(__arg CheckForProofArg) (err error) {
-	err = c.Cli.Call("keybase.1.prove.checkForProof", []interface{}{__arg}, nil)
+func (c ProveClient) CheckForProof(__arg CheckForProofArg) (res RemoteProof, err error) {
+	err = c.Cli.Call("keybase.1.prove.checkForProof", []interface{}{__arg}, &res)
 	return
 }
 

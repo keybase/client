@@ -1,8 +1,6 @@
 package service
 
 import (
-	"errors"
-
 	"github.com/keybase/client/go/engine"
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/protocol/go"
@@ -80,6 +78,13 @@ func (ph *ProveHandler) Cancel(sessionID int) error {
 	return c.Cancel()
 }
 
-func (ph *ProveHandler) CheckForProof(arg keybase1.CheckForProofArg) error {
-	return errors.New("not yet implemented")
+func (ph *ProveHandler) CheckForProof(arg keybase1.CheckForProofArg) (res keybase1.RemoteProof, err error) {
+	eng := engine.NewProveCheck(G, &engine.ProveCheckArg{Service: arg.Service, Username: arg.Username})
+	ctx := &engine.Context{}
+	if err = engine.RunEngine(eng, ctx); err != nil {
+		return
+	}
+	res = libkb.ExportRemoteProof(eng.Proof())
+
+	return
 }

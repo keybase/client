@@ -246,6 +246,28 @@
       "name" : "outcome",
       "type" : "IdentifyOutcome"
     } ]
+  }, {
+    "type" : "record",
+    "name" : "RemoteProof",
+    "fields" : [ {
+      "name" : "proofType",
+      "type" : "int"
+    }, {
+      "name" : "key",
+      "type" : "string"
+    }, {
+      "name" : "value",
+      "type" : "string"
+    }, {
+      "name" : "displayMarkup",
+      "type" : "string"
+    }, {
+      "name" : "sigId",
+      "type" : "SIGID"
+    }, {
+      "name" : "mtime",
+      "type" : "int"
+    } ]
   } ],
   "messages" : {
     "identify" : {

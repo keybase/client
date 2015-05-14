@@ -1,10 +1,10 @@
 
 @namespace("keybase.1")
 protocol prove {
-
 	import idl "common.avdl";
+	import idl "identify_common.avdl";
 
 	void prove(int sessionID, string service, string username, boolean force);
 	void cancel(int sessionID);
-	void checkForProof(int sessionID, string service, string username);
+	RemoteProof checkForProof(int sessionID, string service, string username);
 }

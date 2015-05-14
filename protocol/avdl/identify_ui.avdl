@@ -10,15 +10,6 @@ protocol identifyUi {
 		string desc;
 	}
 
-	record RemoteProof {
-		int proofType;
-		string key;
-		string value;
-		string displayMarkup;
-		SIGID sigId;
-		int mtime;
-	}
-
 	record IdentifyRow {
 		int rowId;
 		RemoteProof proof;

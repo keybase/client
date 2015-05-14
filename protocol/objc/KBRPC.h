@@ -267,6 +267,15 @@ typedef NS_ENUM (NSInteger, KBRTrackDiffType) {
 @property KBRIdentifyOutcome *outcome;
 @end
 
+@interface KBRRemoteProof : KBRObject
+@property NSInteger proofType;
+@property NSString *key;
+@property NSString *value;
+@property NSString *displayMarkup;
+@property KBRSIGID *sigId;
+@property NSInteger mtime;
+@end
+
 @interface KBRIdentifyRequest : KBRRequest
 - (void)identifyWithSessionID:(NSInteger)sessionID userAssertion:(NSString *)userAssertion trackStatement:(BOOL)trackStatement completion:(void (^)(NSError *error, KBRIdentifyRes *identifyRes))completion;
 
@@ -278,15 +287,6 @@ typedef NS_ENUM (NSInteger, KBRTrackDiffType) {
 @property NSInteger state;
 @property NSInteger status;
 @property NSString *desc;
-@end
-
-@interface KBRRemoteProof : KBRObject
-@property NSInteger proofType;
-@property NSString *key;
-@property NSString *value;
-@property NSString *displayMarkup;
-@property KBRSIGID *sigId;
-@property NSInteger mtime;
 @end
 
 @interface KBRIdentifyRow : KBRObject
@@ -541,7 +541,7 @@ typedef NS_ENUM (NSInteger, KBRSignMode) {
 
 - (void)cancelWithSessionID:(NSInteger)sessionID completion:(void (^)(NSError *error))completion;
 
-- (void)checkForProofWithSessionID:(NSInteger)sessionID service:(NSString *)service username:(NSString *)username completion:(void (^)(NSError *error))completion;
+- (void)checkForProofWithSessionID:(NSInteger)sessionID service:(NSString *)service username:(NSString *)username completion:(void (^)(NSError *error, KBRRemoteProof *remoteProof))completion;
 
 @end
 
