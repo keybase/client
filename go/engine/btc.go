@@ -62,7 +62,7 @@ func (e *BTCEngine) Run(ctx *Context) error {
 		sigIDToRevoke = &id
 	}
 
-	sigKey, _, err := e.G().Keyrings.GetSecretKeyWithPrompt(libkb.SecretKeyArg{
+	sigKey, _, err := e.G().Keyrings.GetSecretKeyWithPrompt(ctx.LoginContext, libkb.SecretKeyArg{
 		Me:      me,
 		KeyType: libkb.DeviceKeyType,
 	}, ctx.SecretUI, "to register a cryptocurrency address")

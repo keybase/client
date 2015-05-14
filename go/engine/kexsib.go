@@ -86,7 +86,7 @@ func (k *KexSib) Run(ctx *Context) error {
 		Me:      k.user,
 		KeyType: libkb.DeviceKeyType,
 	}
-	k.sigKey, _, err = k.G().Keyrings.GetSecretKeyWithPrompt(arg, ctx.SecretUI, "new device install")
+	k.sigKey, _, err = k.G().Keyrings.GetSecretKeyWithPrompt(ctx.LoginContext, arg, ctx.SecretUI, "new device install")
 	if err != nil {
 		k.G().Log.Warning("KexSib.Run: GetSecretKey error: %s", err)
 		return err
@@ -183,7 +183,7 @@ func (k *KexSib) handlePleaseSign(m *kex.Msg) error {
 			Me:      k.user,
 			KeyType: libkb.DeviceKeyType,
 		}
-		k.sigKey, _, err = k.G().Keyrings.GetSecretKeyWithPrompt(arg, k.engctx.SecretUI, "new device install")
+		k.sigKey, _, err = k.G().Keyrings.GetSecretKeyWithPrompt(nil, arg, k.engctx.SecretUI, "new device install")
 		if err != nil {
 			return err
 		}

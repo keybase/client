@@ -75,7 +75,7 @@ func (p *PGPSignEngine) Run(ctx *Context) (err error) {
 		KeyQuery: p.arg.Opts.KeyQuery,
 	}
 
-	key, _, err = p.G().Keyrings.GetSecretKeyWithPrompt(ska, ctx.SecretUI, "command-line signature")
+	key, _, err = p.G().Keyrings.GetSecretKeyWithPrompt(ctx.LoginContext, ska, ctx.SecretUI, "command-line signature")
 
 	if err != nil {
 		return

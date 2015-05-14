@@ -98,7 +98,8 @@ func (d *Delegator) CheckArgs() (err error) {
 // the delegator. This will check the given key first, then a device Key if we have one,
 // and otherwise will leave the signing key unset so that we will set it
 // as the eldest key on upload.
-func (d *Delegator) LoadSigningKey(ui SecretUI) (err error) {
+// lctx can be nil.
+func (d *Delegator) LoadSigningKey(lctx LoginContext, ui SecretUI) (err error) {
 
 	G.Log.Debug("+ Delegator::LoadSigningKey")
 	defer func() {
@@ -125,7 +126,7 @@ func (d *Delegator) LoadSigningKey(ui SecretUI) (err error) {
 		return
 	}
 
-	d.ExistingKey, _, err = G.Keyrings.GetSecretKeyWithPrompt(SecretKeyArg{
+	d.ExistingKey, _, err = G.Keyrings.GetSecretKeyWithPrompt(lctx, SecretKeyArg{
 		Me:      d.Me,
 		KeyType: AnySecretKeyType,
 	}, ui, "sign new key")

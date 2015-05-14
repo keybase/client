@@ -503,7 +503,7 @@ func (u *User) SigningKeyPub() (GenericKey, error) {
 		Me:      u,
 		KeyType: AnySecretKeyType,
 	}
-	lockedKey, _, err := G.Keyrings.GetSecretKeyLocked(arg)
+	lockedKey, _, err := G.Keyrings.GetSecretKeyLocked(nil, arg)
 	if err != nil {
 		return nil, err
 	}

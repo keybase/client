@@ -248,7 +248,7 @@ func (e *PGPKeyImportEngine) loadDelegator(ctx *Context) (err error) {
 		Sibkey:      true,
 	}
 
-	return e.del.LoadSigningKey(ctx.SecretUI)
+	return e.del.LoadSigningKey(ctx.LoginContext, ctx.SecretUI)
 }
 
 func (e *PGPKeyImportEngine) generate(ctx *Context) (err error) {

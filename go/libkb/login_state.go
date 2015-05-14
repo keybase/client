@@ -515,11 +515,10 @@ func (s *LoginState) loginWithPromptHelper(lctx LoginContext, username string, l
 
 	getSecretKeyFn := func(keyrings *Keyrings, me *User) (GenericKey, error) {
 		ska := SecretKeyArg{
-			Me:           me,
-			KeyType:      AnySecretKeyType,
-			LoginContext: lctx,
+			Me:      me,
+			KeyType: AnySecretKeyType,
 		}
-		key, _, err := keyrings.GetSecretKeyWithPrompt(ska, secretUI, "Login")
+		key, _, err := keyrings.GetSecretKeyWithPrompt(lctx, ska, secretUI, "Login")
 		return key, err
 	}
 

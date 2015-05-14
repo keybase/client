@@ -83,7 +83,7 @@ func (e *PGPKeyExportEngine) exportSecret(ctx *Context) (err error) {
 	var ok bool
 	var ret string
 
-	key, skb, err = e.G().Keyrings.GetSecretKeyWithPrompt(ska, ctx.SecretUI, "key export")
+	key, skb, err = e.G().Keyrings.GetSecretKeyWithPrompt(ctx.LoginContext, ska, ctx.SecretUI, "key export")
 	if err != nil {
 		return
 	}

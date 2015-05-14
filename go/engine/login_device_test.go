@@ -40,7 +40,7 @@ func TestLoginNewDeviceKex(t *testing.T) {
 		Me:      me,
 		KeyType: libkb.DeviceKeyType,
 	}
-	_, _, err = tcX.G.Keyrings.GetSecretKeyWithPrompt(arg, secui, "new device install")
+	_, _, err = tcX.G.Keyrings.GetSecretKeyWithPrompt(nil, arg, secui, "new device install")
 	if err != nil {
 		t.Fatal(err)
 	}

@@ -86,7 +86,7 @@ func (e *TrackEngine) Run(ctx *Context) error {
 		Me:      e.arg.Me,
 		KeyType: libkb.AnySecretKeyType,
 	}
-	e.lockedKey, e.lockedWhich, err = e.G().Keyrings.GetSecretKeyLocked(ska)
+	e.lockedKey, e.lockedWhich, err = e.G().Keyrings.GetSecretKeyLocked(ctx.LoginContext, ska)
 	if err != nil {
 		e.G().Log.Info("secretkey err: %s", err)
 		return err
