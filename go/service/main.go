@@ -92,6 +92,7 @@ func (d *Service) Run() (err error) {
 // If the daemon is already running, we need to be able to check what version
 // it is, in case the client has been updated.
 func (d *Service) writeVersionFile() error {
+	os.MkdirAll(G.Env.GetCacheDir(), 0700) // 0700 as per the XDG standard
 	versionFilePath := path.Join(G.Env.GetCacheDir(), "service.version")
 	return ioutil.WriteFile(versionFilePath, []byte(libkb.CLIENT_VERSION), 0644)
 }
