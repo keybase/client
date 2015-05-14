@@ -294,6 +294,7 @@ func (p *SKB) lksUnlock(lctx LoginContext, pps PassphraseStream, secretStorer Se
 		p.G().Log.Debug("creating new lks")
 		lks = p.newLKSec(pps.LksClientHalf())
 		p.Lock()
+		p.G().Log.Debug("setting uid in lks to %s", p.uid)
 		lks.SetUID(p.uid)
 		p.Unlock()
 	}

@@ -228,6 +228,11 @@ func (a *Account) LockedLocalSecretKey(ska SecretKeyArg) *SKB {
 		a.G().Log.Debug("| Looking up secret key in local keychain")
 		ret = keyring.SearchWithComputedKeyFamily(ckf, ska)
 	}
+
+	if ret != nil {
+		ret.SetUID(me.GetUID().P())
+	}
+
 	return ret
 }
 
