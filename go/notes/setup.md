@@ -8,7 +8,7 @@
 1. git clone git@github.com:keybase/go-client
 1. git clone git@github.com:keybase/go-libkb
 1. cd go-client
-1. go get # gets all external dependency code, like the crypto library and `codegangsta/cli`
-1. go build # build everything
+1. go get -u # gets all external dependency code
+1. go build -a # build everything
 1 ./go-client --debug help
-1. ./go-client --debug version 
+1. ./go-client --debug version

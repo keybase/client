@@ -8,7 +8,7 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/codegangsta/cli"
+	"github.com/keybase/cli"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/service"
 )
@@ -81,7 +81,7 @@ func makeServerCommandLine(cl libkb.CommandLine) (arg0 string, args []string, er
 	// Fixme: This isn't ideal, it would be better to specify when the args
 	// are defined if they should be reexported to the server, and if so, then
 	// we should automate the reconstruction of the argument vector.  Let's do
-	// this when we yank out Codegangsta/cli
+	// this when we yank out keybase/cli
 	bools := []string{
 		"debug",
 		"api-dump",

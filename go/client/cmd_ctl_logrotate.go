@@ -3,7 +3,7 @@ package client
 import (
 	"fmt"
 
-	"github.com/codegangsta/cli"
+	"github.com/keybase/cli"
 	"github.com/keybase/client/go/libcmdline"
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/protocol/go"

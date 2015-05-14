@@ -7,7 +7,7 @@ import (
 	"text/tabwriter"
 	"text/template"
 
-	"github.com/codegangsta/cli"
+	"github.com/keybase/cli"
 	"github.com/keybase/client/go/libkb"
 )
 
@@ -182,7 +182,7 @@ type CmdGeneralHelp struct {
 
 func (c *CmdBaseHelp) RunClient() error { return c.Run() }
 
-// This is a hack to work around codegangsta/cli destroying the HelpPrinter
+// This is a hack to work around keybase/cli destroying the HelpPrinter
 // object.
 func (c *CmdBaseHelp) MakeHelpPrinter() {
 	if cli.HelpPrinter != nil {
