@@ -102,7 +102,7 @@ func (k *KBPKIClient) GetDeviceSubKeys(user *libkb.User) (
 
 func (k *KBPKIClient) getDeviceKeysHelper(user *libkb.User, isSibkey bool) (
 	keys []Key, err error) {
-	arg := &engine.IDEngineArg{UserAssertion: fmt.Sprintf("uid:%s", user.GetUid())}
+	arg := &engine.IDEngineArg{UserAssertion: fmt.Sprintf("uid:%s", user.GetUID())}
 	_, publicKeys, err := k.identify(arg)
 	if err != nil {
 		return nil, err

@@ -203,7 +203,7 @@ func (f *FuseOps) resolveName(input string) (libkb.UID, error) {
 	if user, err := f.config.KBPKI().ResolveAssertion(input); err != nil {
 		return libkb.UID{0}, err
 	} else {
-		return user.GetUid(), nil
+		return user.GetUID(), nil
 	}
 }
 

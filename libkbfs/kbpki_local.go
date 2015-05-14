@@ -85,7 +85,7 @@ func (k *KBPKILocal) GetLoggedInUser() (libkb.UID, error) {
 
 func (k *KBPKILocal) GetDeviceSibKeys(user *libkb.User) (
 	[]Key, error) {
-	u, err := k.getLocalUser(user.GetUid())
+	u, err := k.getLocalUser(user.GetUID())
 	if err != nil {
 		return nil, err
 	}
@@ -94,7 +94,7 @@ func (k *KBPKILocal) GetDeviceSibKeys(user *libkb.User) (
 
 func (k *KBPKILocal) GetDeviceSubKeys(user *libkb.User) (
 	keys []Key, err error) {
-	u, err := k.getLocalUser(user.GetUid())
+	u, err := k.getLocalUser(user.GetUID())
 	if err != nil {
 		return nil, err
 	}
@@ -102,7 +102,7 @@ func (k *KBPKILocal) GetDeviceSubKeys(user *libkb.User) (
 }
 
 func (k *KBPKILocal) GetPublicSigningKey(user *libkb.User) (Key, error) {
-	u, err := k.getLocalUser(user.GetUid())
+	u, err := k.getLocalUser(user.GetUID())
 	if err != nil {
 		return nil, err
 	}
