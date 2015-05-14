@@ -63,13 +63,18 @@ func (e *ProveCheck) Run(ctx *Context) error {
 	if len(proofs) == 0 {
 		return libkb.ProofNotFoundForServiceError{Service: e.arg.Service}
 	}
-	last := proofs[len(proofs)-1]
-	if last.GetRemoteUsername() != e.arg.Username {
-		return libkb.ProofNotFoundForUsernameError{Service: e.arg.Service, Username: e.arg.Username}
+	for i := len(proofs) - 1; i >= 0; i-- {
+		p := proofs[i]
+		if p.GetRemoteUsername() != e.arg.Username {
+			continue
+		}
+		if p.GetUID() != me.GetUID() {
+			continue
+		}
+		e.proof = p
+		return nil
 	}
-	e.proof = last
-
-	return nil
+	return libkb.ProofNotFoundForUsernameError{Service: e.arg.Service, Username: e.arg.Username}
 }
 
 func (e *ProveCheck) Proof() libkb.RemoteProofChainLink {
