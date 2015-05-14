@@ -15,6 +15,10 @@ import (
 	triplesec "github.com/keybase/go-triplesec"
 )
 
+// LoginState controls the state of the current user's login
+// session and associated variables.  It also serializes access to
+// the various Login functions and requests for the Account
+// object.
 type LoginState struct {
 	Contextified
 	account   *Account
@@ -22,6 +26,9 @@ type LoginState struct {
 	acctReqs  chan acctReq
 }
 
+// LoginContext is passed to all loginHandler functions.  It
+// allows them safe access to various parts of the LoginState during
+// the login process.
 type LoginContext interface {
 	LoggedInLoad() (bool, error)
 	Logout() error
@@ -68,6 +75,8 @@ type loginAPIResult struct {
 	username  string
 }
 
+// NewLoginState creates a LoginState and starts the request
+// handler goroutine.
 func NewLoginState(g *GlobalContext) *LoginState {
 	res := &LoginState{
 		Contextified: NewContextified(g),
@@ -529,6 +538,10 @@ func (s *LoginState) loginWithPromptHelper(lctx LoginContext, username string, l
 	return s.tryPassphrasePromptLogin(lctx, username, secretUI)
 }
 
+// loginHandle creates a loginReq from a loginHandler and puts it
+// in the loginReqs channel.  The requests goroutine will handle
+// it, calling f and putting the error on the request res channel.
+// Once the error is on the res channel, loginHandle returns it.
 func (s *LoginState) loginHandle(f loginHandler, name string) error {
 	req := loginReq{
 		f:    f,
@@ -544,6 +557,12 @@ func (s *LoginState) loginHandle(f loginHandler, name string) error {
 	return err
 }
 
+// acctHandle creates an acctReq from an acctHandler and puts it
+// in the acctReqs channel.  It waits for the request handler to
+// close the done channel in the acctReq before returning.
+// For debugging purposes, there is a 10s timeout to help find any
+// cases where an account or login request is attempted while
+// another account or login request is in process.
 func (s *LoginState) acctHandle(f acctHandler, name string) {
 	req := acctReq{
 		f:    f,
@@ -564,6 +583,9 @@ func (s *LoginState) acctHandle(f acctHandler, name string) {
 	return
 }
 
+// requests runs in a single goroutine.  It selects login or
+// account requests and handles them appropriately.  It runs until
+// the loginReqs and acctReqs channels are closed.
 func (s *LoginState) requests() {
 	for {
 		select {
@@ -639,6 +661,14 @@ func (s *LoginState) logout(a LoginContext) error {
 	return nil
 }
 
+// Account is a convenience function to allow access to
+// LoginState's Account object.
+// For example:
+//
+//     e.G().LoginState().Account(func (a *Account) {
+//         skb = a.LockedLocalSecretKey(ska)
+//     }, "LockedLocalSecretKey")
+//
 func (s *LoginState) Account(h acctHandler, name string) {
 	s.G().Log.Debug("+ Account %q", name)
 	s.acctHandle(h, name)
