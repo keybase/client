@@ -254,7 +254,7 @@ func (a *Account) UserInfo() (uid UID, username, token string, deviceSubkey Gene
 		return
 	}
 
-	user, err := LoadMe(LoadUserArg{})
+	user, err := LoadMe(LoadUserArg{LoginContext: a})
 	if err != nil {
 		return
 	}
