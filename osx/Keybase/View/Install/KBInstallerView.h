@@ -10,10 +10,11 @@
 
 #import "KBAppKit.h"
 #import "KBContentView.h"
+#import "KBInstaller.h"
 
 @interface KBInstallerView : KBContentView
 
-@property (nonatomic) NSArray *installActions;
-@property (copy) KBCompletion completion;
+@property (nonatomic) KBInstaller *installer;
+@property (copy) dispatch_block_t completion;
 
 @end

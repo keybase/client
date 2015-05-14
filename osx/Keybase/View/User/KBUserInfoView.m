@@ -103,7 +103,7 @@
 }
 
 - (void)addProofs:(NSArray *)proofs editable:(BOOL)editable targetBlock:(void (^)(KBProofLabel *proofLabel))targetBlock {
-  MPOrderedDictionary *results = [MPOrderedDictionary dictionary];
+  GHODictionary *results = [GHODictionary dictionary];
   for (KBRIdentifyRow *row in proofs) {
     [results addObject:[KBProofResult proofResultForProof:row.proof result:nil] forKey:@(KBProveTypeFromAPI(row.proof.proofType))];
   }

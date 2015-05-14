@@ -14,32 +14,32 @@
 @interface KBLaunchService ()
 @property NSString *name;
 @property NSString *label;
-@property NSString *version;
+@property NSString *bundleVersion;
 @property NSDictionary *plist;
 @end
 
 @implementation KBLaunchService
 
-- (instancetype)initWithName:(NSString *)name label:(NSString *)label version:(NSString *)version plist:(NSDictionary *)plist {
+- (instancetype)initWithName:(NSString *)name label:(NSString *)label bundleVersion:(NSString *)bundleVersion plist:(NSDictionary *)plist {
   if ((self = [super init])) {
     _name = name;
     _label = label;
-    _version = version;
+    _bundleVersion = bundleVersion;
     _plist = plist;
   }
   return self;
 }
 
-- (void)installStatus:(KBInstalledStatus)completion {
+- (void)installStatus:(KBInstallableStatus)completion {
   [KBLaunchCtl status:_label completion:^(KBServiceStatus *status) {
     if (status.error) {
-      completion(status.error, KBInstallStatusError, nil);
+      completion([KBInstallStatus installStatusWithError:status.error]);
     } else {
       if (status.isRunning) {
-        completion(nil, KBInstallStatusInstalled, NSStringWithFormat(@"pid=%@", status.pid));
-        //completion(nil, KBInstallStatusNeedsUpgrade, NSStringWithFormat(@"pid=%@", status.pid));
+        //KBInstallStatusNeedsUpgrade?
+        completion([KBInstallStatus installStatusWithStatus:KBInstalledStatusInstalled runtimeStatus:KBRuntimeStatusRunning info:[GHODictionary d:@{@"pid": status.pid}]]);
       } else {
-        completion(nil, KBInstallStatusInstalledNotRunning, NSStringWithFormat(@"exit=%@", status.exitStatus));
+        completion([KBInstallStatus installStatusWithStatus:KBInstalledStatusInstalled runtimeStatus:KBRuntimeStatusNotRunning info:[GHODictionary d:@{@"exit": status.exitStatus}]]);
       }
     }
   }];
@@ -49,16 +49,9 @@
   return _name;
 }
 
-- (void)install:(KBInstalled)completion {
-  [self installLaunchAgent:^(NSError *error) {
-    if (error) {
-      completion(error, KBInstallStatusError, nil);
-    } else {
-      completion(nil, KBInstallStatusInstalled, nil);
-    }
-  }];
+- (void)install:(KBCompletion)completion {
+  [self installLaunchAgent:completion];
 }
-
 
 - (void)installLaunchAgent:(KBCompletion)completion {
   NSString *launchAgentDir = [[NSSearchPathForDirectoriesInDomains(NSLibraryDirectory, NSUserDomainMask, YES) firstObject] stringByAppendingPathComponent:@"LaunchAgents"];

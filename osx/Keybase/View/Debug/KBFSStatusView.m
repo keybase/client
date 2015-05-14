@@ -70,9 +70,9 @@
 
 - (void)installHelper {
   KBHelperInstall *helperInstall = [[KBHelperInstall alloc] init];
-  [helperInstall install:^(NSError *error, KBInstallStatus installStatus, NSString *info) {
+  [helperInstall install:^(NSError *error) {
     if (error) KBConsoleError(error);
-    KBConsoleLog(@"%@: %@", NSStringFromKBInstallStatus(installStatus), info ? info : @"");
+    else KBConsoleLog(@"Installed");
   }];
 }
 

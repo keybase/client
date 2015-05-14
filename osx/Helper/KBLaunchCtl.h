@@ -10,8 +10,8 @@
 
 #import "KBServiceStatus.h"
 
-typedef void (^KBLaunchExecution)(NSError *error, NSString *output);
-typedef void (^KBLaunchStatus)(KBServiceStatus *serviceStatus);
+typedef void (^KBOnLaunchExecution)(NSError *error, NSString *output);
+typedef void (^KBOnLaunchStatus)(KBServiceStatus *serviceStatus);
 
 
 @interface KBLaunchCtl : NSObject
@@ -19,15 +19,15 @@ typedef void (^KBLaunchStatus)(KBServiceStatus *serviceStatus);
 /*!
  @param force Enables service even if it has been disabled (launchctl load -w)
  */
-+ (void)load:(NSString *)plist force:(BOOL)force completion:(KBLaunchExecution)completion;
++ (void)load:(NSString *)plist force:(BOOL)force completion:(KBOnLaunchExecution)completion;
 
 /*!
  @param disable Disables service so it won't restart (launchctl unload -w)
  */
-+ (void)unload:(NSString *)plist disable:(BOOL)disable completion:(KBLaunchExecution)completion;
++ (void)unload:(NSString *)plist disable:(BOOL)disable completion:(KBOnLaunchExecution)completion;
 
-+ (void)reload:(NSString *)plist label:(NSString *)label completion:(KBLaunchStatus)completion;
++ (void)reload:(NSString *)plist label:(NSString *)label completion:(KBOnLaunchStatus)completion;
 
-+ (void)status:(NSString *)label completion:(KBLaunchStatus)completion;
++ (void)status:(NSString *)label completion:(KBOnLaunchStatus)completion;
 
 @end

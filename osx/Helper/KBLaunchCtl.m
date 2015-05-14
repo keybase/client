@@ -11,7 +11,7 @@
 
 @implementation KBLaunchCtl
 
-+ (void)reload:(NSString *)plist label:(NSString *)label completion:(KBLaunchStatus)completion {
++ (void)reload:(NSString *)plist label:(NSString *)label completion:(KBOnLaunchStatus)completion {
   [self unload:plist disable:NO completion:^(NSError *unloadError, NSString *unloadOutput) {
     [self waitForUnloadWithLabel:label attempt:1 completion:^(NSError *error) {
       [self load:plist force:YES completion:^(NSError *loadError, NSString *loadOutput) {
@@ -25,7 +25,7 @@
   }];
 }
 
-+ (void)load:(NSString *)plist force:(BOOL)force completion:(KBLaunchExecution)completion {
++ (void)load:(NSString *)plist force:(BOOL)force completion:(KBOnLaunchExecution)completion {
   NSMutableArray *args = [NSMutableArray array];
   [args addObject:@"load"];
   if (force) [args addObject:@"-w"];
@@ -33,7 +33,7 @@
   [self execute:@"/bin/launchctl" args:args completion:completion];
 }
 
-+ (void)unload:(NSString *)plist disable:(BOOL)disable completion:(KBLaunchExecution)completion {
++ (void)unload:(NSString *)plist disable:(BOOL)disable completion:(KBOnLaunchExecution)completion {
   NSParameterAssert(plist);
   NSMutableArray *args = [NSMutableArray array];
   [args addObject:@"unload"];
@@ -42,7 +42,7 @@
   [self execute:@"/bin/launchctl" args:args completion:completion];
 }
 
-+ (void)status:(NSString *)label completion:(KBLaunchStatus)completion {
++ (void)status:(NSString *)label completion:(KBOnLaunchStatus)completion {
   NSParameterAssert(label);
   [self execute:@"/bin/launchctl" args:@[@"list"] completion:^(NSError *error, NSString *output) {
     if (error) {

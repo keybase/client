@@ -52,91 +52,39 @@
 }
 
 - (void)install {
-
-  // TODO Do we attempt re-install if install action has error?
-  NSArray *installActions = [_installActions select:^BOOL(KBInstallAction *installAction) { return installAction.status != KBInstallStatusInstalled; }];
-
-  if ([installActions count] == 0) {
-    self.completion(nil);
-    return;
-  }
-
-  GHWeakSelf gself = self;
   [KBActivity setProgressEnabled:YES sender:self];
-  KBRunOver *rover = [[KBRunOver alloc] init];
-  rover.objects = installActions;
-  rover.runBlock = ^(KBInstallAction *installAction, KBRunCompletion runCompletion) {
-    [installAction.installable install:^(NSError *error, KBInstallStatus status, NSString *info) {
-      if (error) {
-        installAction.error = error;
-        installAction.status = status;
-        installAction.statusInfo = nil;
-      } else {
-        // Installed, lets refresh status
-        [installAction.installable installStatus:^(NSError *error, KBInstallStatus status, NSString *info) {
-          installAction.error = error;
-          installAction.status = status;
-          installAction.statusInfo = info;
-        }];
-      }
-
-      [self setNeedsLayout];
-      runCompletion(installAction);
-    }];
-  };
-  rover.completion = ^(NSArray *installActions) {
-    // TODO Handle errors in output, don't call completion on error
+  GHWeakSelf gself = self;
+  [_installer install:^{
     [KBActivity setProgressEnabled:NO sender:self];
-
-    //[self checkInstalls:installActions];
-    [self setInstallActions:gself.installActions];
-  };
-  [rover run];
-}
-
-- (void)checkInstalls:(NSArray *)installs {
-  for (KBInstallAction *install in installs) {
-    if (install.error) {
-      [self enableRetrySkip];
-      return;
+    [self updateInstallActions:gself.installer.installActions];
+    if ([[gself.installer installActionsNeeded] count] == 0) {
+      self.completion();
     }
-  }
-  self.completion(nil);
-}
-
-- (void)enableRetrySkip {
-  _buttons.hidden = YES;
-  _skipButtons.hidden = NO;
-  [self setNeedsLayout];
-}
-
-- (void)retry {
-  [self install];
+  }];
 }
 
 - (void)skip {
-  self.completion(nil);
+  self.completion();
 }
 
 - (void)viewDidAppear:(BOOL)animated {
 
 }
 
-- (void)setInstallActions:(NSArray *)installActions {
-  _installActions = installActions;
+- (void)setInstaller:(KBInstaller *)installer {
+  _installer = installer;
+  [self updateInstallActions:_installer.installActions];
+}
 
+- (void)updateInstallActions:(NSArray *)installActions {
   NSArray *installViews = [_installStatusView.subviews copy];
   for (NSView *subview in installViews) [subview removeFromSuperview];
 
   for (KBInstallAction *installAction in installActions) {
-    NSString *name = installAction.installable.info;
+    NSString *name = installAction.name;
+    NSString *statusDescription = installAction.statusDescription;
 
-    NSString *status = NSStringFromKBInstallStatus(installAction.status);
-    if (installAction.statusInfo) {
-      status = [status stringByAppendingString:NSStringWithFormat(@" (%@)", installAction.statusInfo)];
-    }
-
-    KBHeaderLabelView *label = [KBHeaderLabelView headerLabelViewWithHeader:name headerOptions:0 text:status style:KBTextStyleDefault options:0 lineBreakMode:NSLineBreakByCharWrapping];
+    KBHeaderLabelView *label = [KBHeaderLabelView headerLabelViewWithHeader:name headerOptions:0 text:statusDescription style:KBTextStyleDefault options:0 lineBreakMode:NSLineBreakByCharWrapping];
     label.columnRatio = 0.5;
     [_installStatusView addSubview:label];
   }
@@ -144,6 +92,5 @@
   [_installStatusView setNeedsLayout];
   [self setNeedsLayout];
 }
-
 
 @end

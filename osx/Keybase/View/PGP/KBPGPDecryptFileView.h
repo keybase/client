@@ -9,6 +9,7 @@
 #import <Foundation/Foundation.h>
 
 #import "KBContentView.h"
+#import "KBFile.h"
 
 @interface KBPGPDecryptFileView : KBContentView
 

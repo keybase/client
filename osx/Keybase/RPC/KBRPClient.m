@@ -21,7 +21,7 @@
 @interface KBRPClient ()
 @property MPMessagePackClient *client;
 @property MPMessagePackServer *server;
-@property MPOrderedDictionary *registrations;
+@property GHODictionary *registrations;
 
 @property KBRPCRecord *recorder;
 
@@ -207,7 +207,7 @@
 }
 
 - (void)registerMethod:(NSString *)method sessionId:(NSInteger)sessionId requestHandler:(MPRequestHandler)requestHandler {
-  if (!self.registrations) self.registrations = [MPOrderedDictionary dictionary];
+  if (!self.registrations) self.registrations = [GHODictionary dictionary];
   KBRPCRegistration *registration = self.registrations[@(sessionId)];
   if (!registration) {
     registration = [[KBRPCRegistration alloc] init];

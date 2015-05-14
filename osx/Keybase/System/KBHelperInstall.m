@@ -26,14 +26,14 @@
   return self;
 }
 
-- (NSString *)info {
+- (NSString *)name {
   return @"Helper Tool";
 }
 
-- (void)installStatus:(KBInstalledStatus)completion {
+- (void)installStatus:(KBInstallableStatus)completion {
   if (![NSFileManager.defaultManager fileExistsAtPath:@"/Library/LaunchDaemons/keybase.Helper.plist" isDirectory:nil] &&
       ![NSFileManager.defaultManager fileExistsAtPath:@"/Library/PrivilegedHelperTools/keybase.Helper" isDirectory:nil]) {
-    completion(nil, KBInstallStatusNotInstalled, nil);
+    completion([KBInstallStatus installStatusWithStatus:KBInstalledStatusNotInstalled runtimeStatus:KBRuntimeStatusNone info:nil]);
     return;
   }
 
@@ -41,29 +41,25 @@
   MPXPCClient *helper = [[MPXPCClient alloc] initWithServiceName:@"keybase.Helper" priviledged:YES];
   [helper sendRequest:@"version" params:nil completion:^(NSError *error, NSDictionary *versions) {
     if (error) {
-      completion(nil, KBInstallStatusInstalledNotRunning, nil);
+      completion([KBInstallStatus installStatusWithStatus:KBInstalledStatusInstalled runtimeStatus:KBRuntimeStatusNotRunning info:nil]);
     } else {
       NSString *runningVersion = versions[@"version"];
       if ([runningVersion isEqualToString:bundleVersion]) {
-        completion(nil, KBInstallStatusInstalled, runningVersion);
+        completion([KBInstallStatus installStatusWithStatus:KBInstalledStatusInstalled runtimeStatus:KBRuntimeStatusRunning info:[GHODictionary d:@{@"version": runningVersion}]]);
       } else {
-        completion(nil, KBInstallStatusNeedsUpgrade, NSStringWithFormat(@"%@ != %@", bundleVersion, runningVersion));
+        completion([KBInstallStatus installStatusWithStatus:KBInstalledStatusNeedsUpgrade runtimeStatus:KBRuntimeStatusRunning info:[GHODictionary d:@{@"version": runningVersion, @"New version": bundleVersion}]]);
       }
     }
   }];
 }
 
-- (void)install:(KBInstalled)completion {
+- (void)install:(KBCompletion)completion {
   NSError *error = nil;
   if ([self installPrivilegedServiceWithName:@"keybase.Helper" error:&error]) {
-    if (error) {
-      completion(error, KBInstallStatusError, nil);
-    } else {
-      completion(nil, KBInstallStatusInstalled, nil);
-    }
+    completion(nil);
   } else {
     if (!error) error = KBMakeError(-1, @"Failed to install privileged helper");
-    completion(error, KBInstallStatusError, nil);
+    completion(error);
   }
 }
 

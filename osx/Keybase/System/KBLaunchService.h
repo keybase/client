@@ -18,6 +18,6 @@
 @property (readonly) NSString *label;
 @property (readonly) NSDictionary *plist;
 
-- (instancetype)initWithName:(NSString *)name label:(NSString *)label version:(NSString *)version plist:(NSDictionary *)plist;
+- (instancetype)initWithName:(NSString *)name label:(NSString *)label bundleVersion:(NSString *)bundleVersion plist:(NSDictionary *)plist;
 
 @end

@@ -8,26 +8,17 @@
 
 #import <Foundation/Foundation.h>
 
-typedef NS_ENUM (NSInteger, KBInstallStatus) {
-  KBInstallStatusError = 1,
-  KBInstallStatusNotInstalled,
-  KBInstallStatusInstalledNotRunning,
-  KBInstallStatusNeedsUpgrade,
-  KBInstallStatusInstalled,
-};
+#import "KBInstallStatus.h"
+#import "KBDefines.h"
 
-typedef void (^KBInstalledStatus)(NSError *error, KBInstallStatus installStatus, NSString *info);
-
-typedef void (^KBInstalled)(NSError *error, KBInstallStatus installStatus, NSString *info);
-
-NSString *NSStringFromKBInstallStatus(KBInstallStatus status);
+typedef void (^KBInstallableStatus)(KBInstallStatus *installStatus);
 
 @protocol KBInstallable <NSObject>
 
-- (NSString *)info;
+- (NSString *)name;
 
-- (void)installStatus:(KBInstalledStatus)completion;
+- (void)installStatus:(KBInstallableStatus)completion;
 
-- (void)install:(KBInstalled)completion;
+- (void)install:(KBCompletion)completion;
 
 @end

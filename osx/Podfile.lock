@@ -26,11 +26,13 @@ PODS:
   - CocoaLumberjack/Extensions (2.0.0):
     - CocoaLumberjack/Default
   - GHKit (1.0.21)
+  - GHODictionary (1.0.0)
   - Mantle (2.0):
     - Mantle/extobjc (= 2.0)
   - Mantle/extobjc (2.0)
   - MASPreferences (1.1.2)
-  - MPMessagePack (1.1.18)
+  - MPMessagePack (1.1.19):
+    - GHODictionary
   - ObjectiveSugar (1.1.0)
   - Slash (0.1.2):
     - Slash/arc (= 0.1.2)
@@ -45,6 +47,7 @@ DEPENDENCIES:
   - AFNetworking
   - CocoaLumberjack
   - GHKit
+  - GHODictionary
   - Mantle
   - MASPreferences
   - MPMessagePack
@@ -62,9 +65,10 @@ SPEC CHECKSUMS:
   AFNetworking: e1d86c2a96bb5d2e7408da36149806706ee122fe
   CocoaLumberjack: a6f77d987d65dc7ba86b0f84db7d0b9084f77bcb
   GHKit: 487b552e3c228236dc2a5c7c1c5f79b8c7412a6b
+  GHODictionary: 2eaca0a089ddf65769fe407f15e5f13238d15bce
   Mantle: d7c75b6fb789b20f7ae30cd0d09435fe545896ff
   MASPreferences: 32d8a2c5ef1d60b63240f5676b011ff72e194cb1
-  MPMessagePack: 55564a9fe77db06e8b363881f73dc7758ce67345
+  MPMessagePack: 99eb5950b11ea50415cbe15e8d8f79ed089b18d6
   ObjectiveSugar: a6a25f23d657c19df0a0b972466d5b5ca9f5295c
   Slash: c74317f5ccf1e31f1d486a17e0d4076029ed3fc8
   Sparkle: 75bbbc5ab2d666f7f77c241afe7fd28364a8f9f7

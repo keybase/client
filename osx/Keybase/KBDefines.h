@@ -10,13 +10,8 @@
 #import <ObjectiveSugar/ObjectiveSugar.h>
 #import <YOLayout/YOLayout.h>
 #import <CocoaLumberjack/CocoaLumberjack.h>
-
-typedef void (^KBCompletion)(NSError *error);
-typedef void (^KBOnCompletion)(NSError *error, id value);
-
-#define KBMakeError(CODE, MSG, ...) [NSError errorWithDomain:@"Keybase" code:CODE userInfo:@{NSLocalizedDescriptionKey:[NSString stringWithFormat:MSG, ##__VA_ARGS__], NSLocalizedRecoveryOptionsErrorKey: @[@"OK"]}]
-
-#define KBMakeErrorWithRecovery(CODE, MSG, RECOVERY, ...) [NSError errorWithDomain:@"Keybase" code:CODE userInfo:@{NSLocalizedDescriptionKey: MSG, NSLocalizedRecoveryOptionsErrorKey: @[@"OK"], NSLocalizedRecoverySuggestionErrorKey:[NSString stringWithFormat:RECOVERY, ##__VA_ARGS__]}]
+#import <GHODictionary/GHODictionary.h>
+#import "KBSharedDefines.h"
 
 extern NSString *const KBTrackingListDidChangeNotification;
 extern NSString *const KBStatusDidChangeNotification;

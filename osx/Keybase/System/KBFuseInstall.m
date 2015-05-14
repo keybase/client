@@ -25,35 +25,31 @@
   return self;
 }
 
-- (NSString *)info {
+- (NSString *)name {
   return @"OSXFuse";
 }
 
-- (void)installStatus:(KBInstalledStatus)completion {
+- (void)installStatus:(KBInstallableStatus)completion {
   NSString *bundleVersion = _bundleVersion;
   MPXPCClient *helper = [[MPXPCClient alloc] initWithServiceName:@"keybase.Helper" priviledged:YES];
   [helper sendRequest:@"version" params:nil completion:^(NSError *error, NSDictionary *versions) {
     if (error) {
-      completion(nil, KBInstallStatusInstalledNotRunning, nil);
+      completion([KBInstallStatus installStatusWithStatus:KBInstalledStatusInstalled runtimeStatus:KBRuntimeStatusNotRunning info:nil]);
     } else {
       NSString *runningVersion = versions[@"fuseRunningVersion"];
       if ([runningVersion isEqualToString:bundleVersion]) {
-        completion(nil, KBInstallStatusInstalled, bundleVersion);
+        completion([KBInstallStatus installStatusWithStatus:KBInstalledStatusInstalled runtimeStatus:KBRuntimeStatusRunning info:[GHODictionary d:@{@"version": runningVersion}]]);
       } else {
-        completion(nil, KBInstallStatusNeedsUpgrade, NSStringWithFormat(@"%@ != %@", runningVersion, bundleVersion));
+        completion([KBInstallStatus installStatusWithStatus:KBInstalledStatusNeedsUpgrade runtimeStatus:KBRuntimeStatusRunning info:[GHODictionary d:@{@"version": runningVersion, @"New version": bundleVersion}]]);
       }
     }
   }];
 }
 
-- (void)install:(KBInstalled)completion {
+- (void)install:(KBCompletion)completion {
   MPXPCClient *helper = [[MPXPCClient alloc] initWithServiceName:@"keybase.Helper" priviledged:YES];
   [helper sendRequest:@"kbfs_install" params:nil completion:^(NSError *error, id value) {
-    if (error) {
-      completion(error, KBInstallStatusNotInstalled, nil);
-    } else {
-      completion(error, KBInstallStatusInstalled, nil);
-    }
+    completion(error);
   }];
 }
 

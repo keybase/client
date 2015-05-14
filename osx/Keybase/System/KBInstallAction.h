@@ -9,12 +9,19 @@
 #import <Foundation/Foundation.h>
 
 #import "KBInstallable.h"
+#import "KBInstallStatus.h"
 
 @interface KBInstallAction : NSObject
 
-@property id<KBInstallable> installable;
-@property NSError *error;
-@property KBInstallStatus status;
-@property NSString *statusInfo;
+@property (readonly) id<KBInstallable> installable;
+
+@property KBInstallStatus *status;
+@property BOOL installAttempted;
+@property NSError *installError; // If there was
+
++ (instancetype)installActionWithInstallable:(id<KBInstallable>)installable;
+
+- (NSString *)name;
+- (NSString *)statusDescription;
 
 @end

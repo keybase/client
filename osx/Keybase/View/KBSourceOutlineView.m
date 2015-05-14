@@ -9,12 +9,11 @@
 #import "KBSourceOutlineView.h"
 #import "KBUserStatusView.h"
 #import "KBButtonView.h"
-
-#import <MPMessagePack/MPOrderedDictionary.h>
+#import "KBDefines.h"
 
 @interface KBSourceOutlineView ()
 @property NSOutlineView *outlineView;
-@property MPOrderedDictionary *data;
+@property GHODictionary *data;
 @property KBActivityIndicatorView *progressView;
 @property KBUserStatusView *statusView;
 @end
@@ -26,7 +25,7 @@
   _outlineView = [[NSOutlineView alloc] init];
   _outlineView.delegate = self;
   _outlineView.dataSource = self;
-  _data = [MPOrderedDictionary dictionary];
+  _data = [GHODictionary dictionary];
   //_outlineView.floatsGroupRows = NO;
   _outlineView.selectionHighlightStyle = NSTableViewSelectionHighlightStyleSourceList;
   //[self addSubview:_outlineView];

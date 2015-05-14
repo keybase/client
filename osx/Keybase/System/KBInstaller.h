@@ -11,14 +11,18 @@
 #import "KBDefines.h"
 #import "KBEnvironment.h"
 
-typedef void (^KBInstallActions)(NSArray */*of KBInstallAction*/installActions);
+typedef void (^KBOnInstallStatus)(BOOL );
 
 @interface KBInstaller : NSObject
 
+@property (readonly) NSArray *installActions;
+
 - (instancetype)initWithEnvironment:(KBEnvironment *)environment;
 
-- (void)installStatus:(KBInstallActions)completion;
+- (void)installStatus:(void (^)(BOOL needsInstall))completion;
 
-- (void)install:(NSArray *)installables completion:(KBInstallActions)completion;
+- (void)install:(dispatch_block_t)completion;
+
+- (NSArray *)installActionsNeeded;
 
 @end

@@ -12,38 +12,34 @@
 
 @implementation KBCLIInstall
 
-- (NSString *)info {
+- (NSString *)name {
   return @"Command Line";
 }
 
-- (void)installStatus:(KBInstalledStatus)completion {
+- (void)installStatus:(KBInstallableStatus)completion {
   NSError *error = nil;
   NSString *destination = [NSFileManager.defaultManager destinationOfSymbolicLinkAtPath:LINK_SOURCE error:&error];
   if (error) {
-    completion(error, KBInstallStatusError, nil);
+    completion([KBInstallStatus installStatusWithError:error]);
     return;
   }
 
   // This will follow the symlink (to check if symlink exists you'd have to look for attributesOfItemAtPath:)
   if ([NSFileManager.defaultManager fileExistsAtPath:LINK_SOURCE isDirectory:nil]) {
     if ([destination isEqualToString:LINK_DESTINATION]) {
-      completion(nil, KBInstallStatusInstalled, nil);
+      completion([KBInstallStatus installStatusWithStatus:KBInstalledStatusInstalled runtimeStatus:KBRuntimeStatusNone info:nil]);
     } else {
-      completion(nil, KBInstallStatusNeedsUpgrade, nil);
+      completion([KBInstallStatus installStatusWithStatus:KBInstalledStatusNeedsUpgrade runtimeStatus:KBRuntimeStatusNone info:nil]);
     }
   } else {
-    completion(nil, KBInstallStatusNotInstalled, nil);
+    completion([KBInstallStatus installStatusWithStatus:KBInstalledStatusNotInstalled runtimeStatus:KBRuntimeStatusNone info:nil]);
   }
 }
 
-- (void)install:(KBInstalled)completion {
+- (void)install:(KBCompletion)completion {
   MPXPCClient *helper = [[MPXPCClient alloc] initWithServiceName:@"keybase.Helper" priviledged:YES];
   [helper sendRequest:@"cli_install" params:nil completion:^(NSError *error, id value) {
-    if (error) {
-      completion(error, KBInstallStatusNotInstalled, nil);
-    } else {
-      completion(error, KBInstallStatusInstalled, nil);
-    }
+    completion(error);
   }];
 }
 

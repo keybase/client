@@ -53,7 +53,6 @@ typedef NS_ENUM (NSInteger, KBAppViewMode) {
 @property (nonatomic) KBRConfig *config;
 @property KBAppViewMode mode;
 
-@property KBInstaller *installer;
 @property KBEnvironment *environment;
 @end
 
@@ -102,16 +101,16 @@ typedef NS_ENUM (NSInteger, KBAppViewMode) {
 
 - (void)openWithEnvironment:(KBEnvironment *)environment client:(KBRPClient *)client {
   _environment = environment;
-  _installer = [[KBInstaller alloc] initWithEnvironment:environment];
   _client = client;
   for (id<KBAppViewDelegate> delegate in _delegates) [delegate appViewDidLaunch:self];
 
   [self showInProgress:@"Loading"];
-  [_installer installStatus:^(NSArray *installActions) {
-    if ([installActions count] == 0) {
-      [self connect];
+  KBInstaller *installer = [[KBInstaller alloc] initWithEnvironment:environment];
+  [installer installStatus:^(BOOL needsInstall) {
+    if (needsInstall) {
+      [self showInstaller:installer];
     } else {
-      [self showInstaller:installActions];
+      [self connect];
     }
   }];
 }
@@ -225,12 +224,11 @@ typedef NS_ENUM (NSInteger, KBAppViewMode) {
   [self setContentView:navigation mode:KBAppViewModeInProgress];
 }
 
-- (void)showInstaller:(NSArray *)installActions {
+- (void)showInstaller:(KBInstaller *)installer {
   KBInstallerView *view = [[KBInstallerView alloc] init];
-  [view setInstallActions:installActions];
-  view.completion = ^(NSError *error) {
+  [view setInstaller:installer];
+  view.completion = ^() {
     [self showInProgress:@"Loading"];
-    // TODO Will the installer pass an error or should we change the block def
     [self connect];
   };
   KBNavigationView *navigation = [[KBNavigationView alloc] initWithView:view title:_title];

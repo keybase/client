@@ -10,8 +10,8 @@
 
 #import "KBFS.h"
 #import "KBHelperDefines.h"
+#import "KBSharedDefines.h"
 #import "KBLaunchCtl.h"
-#import "KBCLIInstall.h"
 
 @implementation KBHelper
 
