@@ -108,7 +108,7 @@ func (u *User) ToUntrackingStatementBasics() *jsonw.Wrapper {
 func (u *User) ToUntrackingStatement(w *jsonw.Wrapper) (err error) {
 	untrack := jsonw.NewDictionary()
 	untrack.SetKey("basics", u.ToUntrackingStatementBasics())
-	untrack.SetKey("id", jsonw.NewString(u.GetUid().String()))
+	untrack.SetKey("id", jsonw.NewString(u.GetUID().String()))
 	w.SetKey("type", jsonw.NewString("untrack"))
 	w.SetKey("version", jsonw.NewInt(KEYBASE_SIGNATURE_V1))
 	w.SetKey("untrack", untrack)

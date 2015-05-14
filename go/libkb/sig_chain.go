@@ -508,7 +508,7 @@ type SigChainLoader struct {
 //========================================================================
 
 func (l *SigChainLoader) GetUidString() string {
-	return l.user.GetUid().String()
+	return l.user.GetUID().String()
 }
 
 func (l *SigChainLoader) LoadLastLinkIdFromStorage() (mt *MerkleTriple, err error) {
@@ -595,7 +595,7 @@ func (l *SigChainLoader) LoadLinksFromStorage() (err error) {
 
 func (l *SigChainLoader) MakeSigChain() error {
 	sc := &SigChain{
-		uid:          l.user.GetUid(),
+		uid:          l.user.GetUID(),
 		username:     l.user.GetName(),
 		chainLinks:   l.links,
 		allKeys:      l.allKeys,

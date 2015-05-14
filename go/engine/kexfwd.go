@@ -84,7 +84,7 @@ func (k *KexFwd) Run(ctx *Context) error {
 	k.serverMu.Unlock()
 
 	// create the kex meta data
-	m := kex.NewMeta(k.args.User.GetUid(), k.secret.StrongID(), k.deviceID, k.args.Dst, kex.DirectionXtoY)
+	m := kex.NewMeta(k.args.User.GetUID(), k.secret.StrongID(), k.deviceID, k.args.Dst, kex.DirectionXtoY)
 
 	// start message receive loop
 	k.poll(m, sec)
@@ -178,7 +178,7 @@ func (k *KexFwd) Run(ctx *Context) error {
 }
 
 func (k *KexFwd) Cancel() error {
-	m := kex.NewMeta(k.args.User.GetUid(), k.secret.StrongID(), k.deviceID, k.args.Dst, kex.DirectionXtoY)
+	m := kex.NewMeta(k.args.User.GetUID(), k.secret.StrongID(), k.deviceID, k.args.Dst, kex.DirectionXtoY)
 	return k.cancel(m)
 }
 

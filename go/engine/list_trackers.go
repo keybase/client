@@ -100,6 +100,6 @@ func (e *ListTrackersEngine) ensureUID() error {
 	if err != nil {
 		return err
 	}
-	e.uid = user.GetUid().P()
+	e.uid = user.GetUID().P()
 	return nil
 }

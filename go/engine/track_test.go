@@ -42,7 +42,7 @@ func assertTracked(t *testing.T, fu *FakeUser, theirName string) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	s, err := me.GetTrackingStatementFor(them.GetName(), them.GetUid())
+	s, err := me.GetTrackingStatementFor(them.GetName(), them.GetUID())
 	if err != nil {
 		t.Fatal(err)
 	}

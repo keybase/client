@@ -264,7 +264,7 @@ func (a *Account) UserInfo() (uid UID, username, token string, deviceSubkey Gene
 		return
 	}
 
-	uid = user.GetUid()
+	uid = user.GetUID()
 	username = user.GetName()
 	token = a.localSession.GetToken()
 	return

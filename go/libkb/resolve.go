@@ -16,7 +16,7 @@ type ResolveResult struct {
 	kbUsername string
 }
 
-func (res *ResolveResult) GetUid() *UID {
+func (res *ResolveResult) GetUID() *UID {
 	return res.uid
 }
 
@@ -109,7 +109,7 @@ func __resolveUsername(au AssertionUrl) (res ResolveResult) {
 		res.err = fmt.Errorf("Identity '%s' is ambiguous", au)
 	} else {
 		res.body = them.AtIndex(0)
-		res.uid, res.err = GetUid(res.body.AtKey("id"))
+		res.uid, res.err = GetUID(res.body.AtKey("id"))
 	}
 
 	return

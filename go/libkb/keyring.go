@@ -281,7 +281,7 @@ func (k *Keyrings) GetSecretKeyWithPrompt(ska SecretKeyArg, secretUI SecretUI, r
 	}
 	var secretStore SecretStore
 	if ska.Me != nil {
-		skb.SetUID(ska.Me.GetUid().P())
+		skb.SetUID(ska.Me.GetUID().P())
 		secretStore = NewSecretStore(ska.Me.GetName())
 	}
 	if key, err = skb.PromptAndUnlock(ska.LoginContext, reason, which, secretStore, secretUI, nil); err != nil {
@@ -307,7 +307,7 @@ func (k *Keyrings) GetSecretKeyWithStoredSecret(lctx LoginContext, me *User, sec
 	if err != nil {
 		return
 	}
-	skb.SetUID(me.GetUid().P())
+	skb.SetUID(me.GetUID().P())
 	return skb.UnlockWithStoredSecret(secretRetriever)
 }
 
@@ -326,7 +326,7 @@ func (k *Keyrings) GetSecretKeyWithPassphrase(lctx LoginContext, me *User, passp
 	if err != nil {
 		return
 	}
-	skb.SetUID(me.GetUid().P())
+	skb.SetUID(me.GetUID().P())
 	var tsec *triplesec.Cipher
 	var pps PassphraseStream
 	if lctx != nil {

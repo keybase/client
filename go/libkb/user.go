@@ -40,7 +40,7 @@ func NewUserThin(name string, uid UID) *User {
 }
 
 func NewUser(o *jsonw.Wrapper) (*User, error) {
-	uid, err := GetUid(o.AtKey("id"))
+	uid, err := GetUID(o.AtKey("id"))
 	if err != nil {
 		return nil, fmt.Errorf("user object lacks an ID: %s", err.Error())
 	}
@@ -91,7 +91,7 @@ func NewUserFromLocalStorage(o *jsonw.Wrapper) (*User, error) {
 }
 
 func (u *User) GetName() string { return u.name }
-func (u *User) GetUid() UID     { return u.id }
+func (u *User) GetUID() UID     { return u.id }
 
 func (u *User) GetIdVersion() (int64, error) {
 	return u.basics.AtKey("id_version").GetInt64()

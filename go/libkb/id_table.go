@@ -475,7 +475,7 @@ func (l *TrackChainLink) GetTrackedPGPFOKIDs() ([]FOKID, error) {
 }
 
 func (l *TrackChainLink) GetTrackedUid() (*UID, error) {
-	return GetUid(l.payloadJson.AtPath("body.track.id"))
+	return GetUID(l.payloadJson.AtPath("body.track.id"))
 }
 
 func (l *TrackChainLink) GetTrackedUsername() (string, error) {

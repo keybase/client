@@ -28,7 +28,7 @@ func (v *CmdResolve) Run() error {
 	res, err := libkb.LoadUser(libkb.LoadUserArg{Name: v.input})
 	if err == nil {
 		fmt.Println(res.GetName())
-		fmt.Println(res.GetUid())
+		fmt.Println(res.GetUID())
 	}
 	return err
 }

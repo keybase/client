@@ -51,7 +51,7 @@ func (u *UID) MarshalJSON() ([]byte, error) {
 	return p.MarshalJSON()
 }
 
-func GetUid(w *jsonw.Wrapper) (u *UID, err error) {
+func GetUID(w *jsonw.Wrapper) (u *UID, err error) {
 	s, err := w.GetString()
 	if err != nil {
 		return nil, err
@@ -65,7 +65,7 @@ func (u UID) Eq(u2 UID) bool {
 }
 
 func GetUidVoid(w *jsonw.Wrapper, u *UID, e *error) {
-	ret, err := GetUid(w)
+	ret, err := GetUID(w)
 	if err != nil {
 		*e = err
 	} else {

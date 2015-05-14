@@ -93,7 +93,7 @@ func (k *KexSib) Run(ctx *Context) error {
 	}
 
 	k.G().Log.Debug("KexSib: starting receive loop")
-	m := kex.NewMeta(k.user.GetUid(), k.sec.StrongID(), libkb.DeviceID{}, k.deviceID, kex.DirectionYtoX)
+	m := kex.NewMeta(k.user.GetUID(), k.sec.StrongID(), libkb.DeviceID{}, k.deviceID, kex.DirectionYtoX)
 	err = k.loopReceives(ctx, m, k.sec)
 	if err != nil {
 		k.G().Log.Warning("Error in KEX receive: %s", err)
@@ -102,7 +102,7 @@ func (k *KexSib) Run(ctx *Context) error {
 }
 
 func (k *KexSib) Cancel() error {
-	m := kex.NewMeta(k.user.GetUid(), k.sec.StrongID(), libkb.DeviceID{}, k.deviceID, kex.DirectionYtoX)
+	m := kex.NewMeta(k.user.GetUID(), k.sec.StrongID(), libkb.DeviceID{}, k.deviceID, kex.DirectionYtoX)
 	return k.cancel(m)
 }
 
@@ -156,7 +156,7 @@ func (k *KexSib) handleStart(m *kex.Msg) error {
 
 func (k *KexSib) verifyPleaseSign(jw *jsonw.Wrapper, newKID libkb.KID) (err error) {
 	jw.AssertEqAtPath("body.key.kid", k.sigKey.GetKid().ToJsonw(), &err)
-	jw.AssertEqAtPath("body.key.uid", k.user.GetUid().ToJsonw(), &err)
+	jw.AssertEqAtPath("body.key.uid", k.user.GetUID().ToJsonw(), &err)
 	jw.AssertEqAtPath("body.key.eldest_kid", k.user.GetEldestFOKID().Kid.ToJsonw(), &err)
 	jw.AssertEqAtPath("body.key.username", jsonw.NewString(k.user.GetName()), &err)
 	jw.AssertEqAtPath("body.device.kid", newKID.ToJsonw(), &err)

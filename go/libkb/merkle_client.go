@@ -287,7 +287,7 @@ func (mc *MerkleClient) LookupPath(q HttpArgs) (vp *VerificationPath, err error)
 		return
 	}
 
-	uid, err := GetUid(res.Body.AtKey("uid"))
+	uid, err := GetUID(res.Body.AtKey("uid"))
 	if err != nil {
 		return
 	}
@@ -692,8 +692,8 @@ func (mc *MerkleClient) LastRootToSigJson() (ret *jsonw.Wrapper, err error) {
 func (mul *MerkleUserLeaf) MatchUser(u *User, uid *UID, un string) (err error) {
 	if mul.username != u.GetName() {
 		err = MerkleClashError{fmt.Sprintf("vs loaded object: username %s != %s", mul.username, u.GetName())}
-	} else if !mul.uid.Eq(u.GetUid()) {
-		err = MerkleClientError{fmt.Sprintf("vs loaded object: UID %s != %s", mul.uid, u.GetUid())}
+	} else if !mul.uid.Eq(u.GetUID()) {
+		err = MerkleClientError{fmt.Sprintf("vs loaded object: UID %s != %s", mul.uid, u.GetUID())}
 	} else if len(un) > 0 && mul.username != un {
 		err = MerkleClashError{fmt.Sprintf("vs given arg: username %s != %s", mul.username, un)}
 	} else if uid != nil && !uid.Eq(mul.uid) {

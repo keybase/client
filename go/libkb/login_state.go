@@ -228,7 +228,7 @@ func (s *LoginState) postLoginToServer(lctx LoginContext, eOu string, lgpw []byt
 	if err != nil {
 		return nil, err
 	}
-	uid, err := GetUid(b.AtKey("uid"))
+	uid, err := GetUID(b.AtKey("uid"))
 	if err != nil {
 		return nil, err
 	}

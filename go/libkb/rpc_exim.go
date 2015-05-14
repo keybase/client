@@ -613,7 +613,7 @@ func (u *User) Export() *keybase1.User {
 		publicKeys = u.GetComputedKeyFamily().Export()
 	}
 	return &keybase1.User{
-		Uid:        keybase1.UID(u.GetUid()),
+		Uid:        keybase1.UID(u.GetUID()),
 		Username:   u.GetName(),
 		Image:      u.Image,
 		PublicKeys: publicKeys,
