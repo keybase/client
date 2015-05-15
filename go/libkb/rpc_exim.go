@@ -65,7 +65,7 @@ func ExportRemoteProof(p RemoteProofChainLink) keybase1.RemoteProof {
 		Key:           k,
 		Value:         v,
 		DisplayMarkup: v,
-		SigId:         keybase1.SIGID(p.GetSigId()),
+		SigID:         keybase1.SIGID(p.GetSigId()),
 		Mtime:         int(p.GetCTime().Unix()),
 	}
 }

@@ -272,7 +272,7 @@ typedef NS_ENUM (NSInteger, KBRTrackDiffType) {
 @property NSString *key;
 @property NSString *value;
 @property NSString *displayMarkup;
-@property KBRSIGID *sigId;
+@property KBRSIGID *sigID;
 @property NSInteger mtime;
 @end
 

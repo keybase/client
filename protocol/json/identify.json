@@ -262,7 +262,7 @@
       "name" : "displayMarkup",
       "type" : "string"
     }, {
-      "name" : "sigId",
+      "name" : "sigID",
       "type" : "SIGID"
     }, {
       "name" : "mtime",
