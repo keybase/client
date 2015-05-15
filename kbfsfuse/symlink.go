@@ -25,6 +25,6 @@ func (*Symlink) Attr(a *fuse.Attr) {
 
 var _ fs.NodeReadlinker = (*Symlink)(nil)
 
-func (a *Symlink) Readlink(ctx context.Context, req *fuse.ReadlinkRequest) (string, error) {
-	return a.de.SymPath, nil
+func (s *Symlink) Readlink(ctx context.Context, req *fuse.ReadlinkRequest) (string, error) {
+	return s.de.SymPath, nil
 }
