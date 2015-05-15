@@ -4,7 +4,7 @@ protocol prove {
 	import idl "common.avdl";
 	import idl "identify_common.avdl";
 
-	void prove(int sessionID, string service, string username, boolean force);
-	void cancel(int sessionID);
-	RemoteProof checkForProof(int sessionID, string service, string username);
+	void startProof(int sessionID, string service, string username, boolean force);
+	void cancelProof(int sessionID);
+	RemoteProof checkProof(int sessionID, SIGID sigID);
 }

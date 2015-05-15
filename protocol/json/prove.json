@@ -262,7 +262,7 @@
       "name" : "displayMarkup",
       "type" : "string"
     }, {
-      "name" : "sigId",
+      "name" : "sigID",
       "type" : "SIGID"
     }, {
       "name" : "mtime",
@@ -270,7 +270,7 @@
     } ]
   } ],
   "messages" : {
-    "prove" : {
+    "startProof" : {
       "request" : [ {
         "name" : "sessionID",
         "type" : "int"
@@ -286,23 +286,20 @@
       } ],
       "response" : "null"
     },
-    "cancel" : {
+    "cancelProof" : {
       "request" : [ {
         "name" : "sessionID",
         "type" : "int"
       } ],
       "response" : "null"
     },
-    "checkForProof" : {
+    "checkProof" : {
       "request" : [ {
         "name" : "sessionID",
         "type" : "int"
       }, {
-        "name" : "service",
-        "type" : "string"
-      }, {
-        "name" : "username",
-        "type" : "string"
+        "name" : "sigID",
+        "type" : "SIGID"
       } ],
       "response" : "RemoteProof"
     }

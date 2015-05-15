@@ -730,23 +730,23 @@
 
 @implementation KBRProveRequest
 
-- (void)proveWithSessionID:(NSInteger)sessionID service:(NSString *)service username:(NSString *)username force:(BOOL)force completion:(void (^)(NSError *error))completion {
+- (void)startProofWithSessionID:(NSInteger)sessionID service:(NSString *)service username:(NSString *)username force:(BOOL)force completion:(void (^)(NSError *error))completion {
   NSArray *params = @[@{@"sessionID": @(sessionID), @"service": KBRValue(service), @"username": KBRValue(username), @"force": @(force)}];
-  [self.client sendRequestWithMethod:@"keybase.1.prove.prove" params:params sessionId:self.sessionId completion:^(NSError *error, id retval) {
+  [self.client sendRequestWithMethod:@"keybase.1.prove.startProof" params:params sessionId:self.sessionId completion:^(NSError *error, id retval) {
     completion(error);
   }];
 }
 
-- (void)cancelWithSessionID:(NSInteger)sessionID completion:(void (^)(NSError *error))completion {
+- (void)cancelProofWithSessionID:(NSInteger)sessionID completion:(void (^)(NSError *error))completion {
   NSArray *params = @[@{@"sessionID": @(sessionID)}];
-  [self.client sendRequestWithMethod:@"keybase.1.prove.cancel" params:params sessionId:self.sessionId completion:^(NSError *error, id retval) {
+  [self.client sendRequestWithMethod:@"keybase.1.prove.cancelProof" params:params sessionId:self.sessionId completion:^(NSError *error, id retval) {
     completion(error);
   }];
 }
 
-- (void)checkForProofWithSessionID:(NSInteger)sessionID service:(NSString *)service username:(NSString *)username completion:(void (^)(NSError *error, KBRRemoteProof *remoteProof))completion {
-  NSArray *params = @[@{@"sessionID": @(sessionID), @"service": KBRValue(service), @"username": KBRValue(username)}];
-  [self.client sendRequestWithMethod:@"keybase.1.prove.checkForProof" params:params sessionId:self.sessionId completion:^(NSError *error, id retval) {
+- (void)checkProofWithSessionID:(NSInteger)sessionID sigID:(KBRSIGID *)sigID completion:(void (^)(NSError *error, KBRRemoteProof *remoteProof))completion {
+  NSArray *params = @[@{@"sessionID": @(sessionID), @"sigID": KBRValue(sigID)}];
+  [self.client sendRequestWithMethod:@"keybase.1.prove.checkProof" params:params sessionId:self.sessionId completion:^(NSError *error, id retval) {
     if (error) {
         completion(error, nil);
         return;
@@ -1817,7 +1817,7 @@
 
 @end
 
-@implementation KBRProveRequestParams
+@implementation KBRStartProofRequestParams
 
 - (instancetype)initWithParams:(NSArray *)params {
   if ((self = [super initWithParams:params])) {
@@ -1831,7 +1831,7 @@
 
 @end
 
-@implementation KBRCancelRequestParams
+@implementation KBRCancelProofRequestParams
 
 - (instancetype)initWithParams:(NSArray *)params {
   if ((self = [super initWithParams:params])) {
@@ -1842,13 +1842,12 @@
 
 @end
 
-@implementation KBRCheckForProofRequestParams
+@implementation KBRCheckProofRequestParams
 
 - (instancetype)initWithParams:(NSArray *)params {
   if ((self = [super initWithParams:params])) {
     self.sessionID = [params[0][@"sessionID"] integerValue];
-    self.service = params[0][@"service"];
-    self.username = params[0][@"username"];
+    self.sigID = [MTLJSONAdapter modelOfClass:KBRSIGID.class fromJSONDictionary:params[0][@"sigID"] error:nil];
   }
   return self;
 }

@@ -15,7 +15,7 @@ import (
 
 // CmdProve is the wrapper structure for the the `keybase prove` operation.
 type CmdProve struct {
-	arg    keybase1.ProveArg
+	arg    keybase1.StartProofArg
 	output string
 }
 
@@ -65,7 +65,7 @@ func (p *CmdProve) RunClient() (err error) {
 	if cli, err = GetProveClient(); err != nil {
 	} else if err = RegisterProtocols(protocols); err != nil {
 	} else {
-		err = cli.Prove(p.arg)
+		err = cli.StartProof(p.arg)
 	}
 	return
 }

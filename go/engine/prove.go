@@ -9,7 +9,7 @@ import (
 // Prove is an engine used for proving ownership of remote accounts,
 // like Twitter, GitHub, etc.
 type Prove struct {
-	arg        *keybase1.ProveArg
+	arg        *keybase1.StartProofArg
 	me         *libkb.User
 	st         libkb.ServiceType
 	supersede  bool
@@ -28,7 +28,7 @@ type Prove struct {
 }
 
 // NewProve makes a new Prove Engine given an RPC-friendly ProveArg.
-func NewProve(arg *keybase1.ProveArg, g *libkb.GlobalContext) *Prove {
+func NewProve(arg *keybase1.StartProofArg, g *libkb.GlobalContext) *Prove {
 	return &Prove{
 		arg:          arg,
 		canceled:     make(chan struct{}),

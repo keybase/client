@@ -1802,51 +1802,50 @@ func (c PgpClient) PgpUpdate(__arg PgpUpdateArg) (err error) {
 	return
 }
 
-type ProveArg struct {
+type StartProofArg struct {
 	SessionID int    `codec:"sessionID" json:"sessionID"`
 	Service   string `codec:"service" json:"service"`
 	Username  string `codec:"username" json:"username"`
 	Force     bool   `codec:"force" json:"force"`
 }
 
-type CancelArg struct {
+type CancelProofArg struct {
 	SessionID int `codec:"sessionID" json:"sessionID"`
 }
 
-type CheckForProofArg struct {
-	SessionID int    `codec:"sessionID" json:"sessionID"`
-	Service   string `codec:"service" json:"service"`
-	Username  string `codec:"username" json:"username"`
+type CheckProofArg struct {
+	SessionID int   `codec:"sessionID" json:"sessionID"`
+	SigID     SIGID `codec:"sigID" json:"sigID"`
 }
 
 type ProveInterface interface {
-	Prove(ProveArg) error
-	Cancel(int) error
-	CheckForProof(CheckForProofArg) (RemoteProof, error)
+	StartProof(StartProofArg) error
+	CancelProof(int) error
+	CheckProof(CheckProofArg) (RemoteProof, error)
 }
 
 func ProveProtocol(i ProveInterface) rpc2.Protocol {
 	return rpc2.Protocol{
 		Name: "keybase.1.prove",
 		Methods: map[string]rpc2.ServeHook{
-			"prove": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
-				args := make([]ProveArg, 1)
+			"startProof": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
+				args := make([]StartProofArg, 1)
 				if err = nxt(&args); err == nil {
-					err = i.Prove(args[0])
+					err = i.StartProof(args[0])
 				}
 				return
 			},
-			"cancel": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
-				args := make([]CancelArg, 1)
+			"cancelProof": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
+				args := make([]CancelProofArg, 1)
 				if err = nxt(&args); err == nil {
-					err = i.Cancel(args[0].SessionID)
+					err = i.CancelProof(args[0].SessionID)
 				}
 				return
 			},
-			"checkForProof": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
-				args := make([]CheckForProofArg, 1)
+			"checkProof": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
+				args := make([]CheckProofArg, 1)
 				if err = nxt(&args); err == nil {
-					ret, err = i.CheckForProof(args[0])
+					ret, err = i.CheckProof(args[0])
 				}
 				return
 			},
@@ -1859,19 +1858,19 @@ type ProveClient struct {
 	Cli GenericClient
 }
 
-func (c ProveClient) Prove(__arg ProveArg) (err error) {
-	err = c.Cli.Call("keybase.1.prove.prove", []interface{}{__arg}, nil)
+func (c ProveClient) StartProof(__arg StartProofArg) (err error) {
+	err = c.Cli.Call("keybase.1.prove.startProof", []interface{}{__arg}, nil)
 	return
 }
 
-func (c ProveClient) Cancel(sessionID int) (err error) {
-	__arg := CancelArg{SessionID: sessionID}
-	err = c.Cli.Call("keybase.1.prove.cancel", []interface{}{__arg}, nil)
+func (c ProveClient) CancelProof(sessionID int) (err error) {
+	__arg := CancelProofArg{SessionID: sessionID}
+	err = c.Cli.Call("keybase.1.prove.cancelProof", []interface{}{__arg}, nil)
 	return
 }
 
-func (c ProveClient) CheckForProof(__arg CheckForProofArg) (res RemoteProof, err error) {
-	err = c.Cli.Call("keybase.1.prove.checkForProof", []interface{}{__arg}, &res)
+func (c ProveClient) CheckProof(__arg CheckProofArg) (res RemoteProof, err error) {
+	err = c.Cli.Call("keybase.1.prove.checkProof", []interface{}{__arg}, &res)
 	return
 }
 

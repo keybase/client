@@ -7,23 +7,18 @@ import (
 	"github.com/keybase/client/go/libkb"
 )
 
-type ProveCheckArg struct {
-	Service  string // the remote service name
-	Username string // the user's username on Service
-}
-
 // ProveCheck is an engine.
 type ProveCheck struct {
 	libkb.Contextified
-	arg   *ProveCheckArg
+	sigID libkb.SigId
 	proof libkb.RemoteProofChainLink
 }
 
 // NewProveCheck creates a ProveCheck engine.
-func NewProveCheck(g *libkb.GlobalContext, arg *ProveCheckArg) *ProveCheck {
+func NewProveCheck(g *libkb.GlobalContext, sigID libkb.SigId) *ProveCheck {
 	return &ProveCheck{
 		Contextified: libkb.NewContextified(g),
-		arg:          arg,
+		sigID:        sigID,
 	}
 }
 
@@ -49,32 +44,35 @@ func (e *ProveCheck) SubConsumers() []libkb.UIConsumer {
 
 // Run starts the engine.
 func (e *ProveCheck) Run(ctx *Context) error {
-	st := libkb.GetServiceType(e.arg.Service)
-	if st == nil {
-		return libkb.BadServiceError{Service: e.arg.Service}
-	}
-
-	me, err := libkb.LoadMe(libkb.LoadUserArg{ForceReload: true})
-	if err != nil {
-		return err
-	}
-
-	proofs := me.IDTable().GetActiveProofsFor(st)
-	if len(proofs) == 0 {
-		return libkb.ProofNotFoundForServiceError{Service: e.arg.Service}
-	}
-	for i := len(proofs) - 1; i >= 0; i-- {
-		p := proofs[i]
-		if p.GetRemoteUsername() != e.arg.Username {
-			continue
+	/*
+		st := libkb.GetServiceType(e.arg.Service)
+		if st == nil {
+			return libkb.BadServiceError{Service: e.arg.Service}
 		}
-		if p.GetUID() != me.GetUID() {
-			continue
+
+		me, err := libkb.LoadMe(libkb.LoadUserArg{ForceReload: true})
+		if err != nil {
+			return err
 		}
-		e.proof = p
-		return nil
-	}
-	return libkb.ProofNotFoundForUsernameError{Service: e.arg.Service, Username: e.arg.Username}
+
+		proofs := me.IDTable().GetActiveProofsFor(st)
+		if len(proofs) == 0 {
+			return libkb.ProofNotFoundForServiceError{Service: e.arg.Service}
+		}
+		for i := len(proofs) - 1; i >= 0; i-- {
+			p := proofs[i]
+			if p.GetRemoteUsername() != e.arg.Username {
+				continue
+			}
+			if p.GetUID() != me.GetUID() {
+				continue
+			}
+			e.proof = p
+			return nil
+		}
+		return libkb.ProofNotFoundForUsernameError{Service: e.arg.Service, Username: e.arg.Username}
+	*/
+	return nil
 }
 
 func (e *ProveCheck) Proof() libkb.RemoteProofChainLink {

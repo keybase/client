@@ -56,8 +56,8 @@ func (ph *ProveHandler) getProveUI(sessionID int) libkb.ProveUI {
 	return &proveUI{sessionID, keybase1.ProveUiClient{Cli: ph.getRpcClient()}}
 }
 
-// Prove handles the `keybase.1.prove` RPC.
-func (ph *ProveHandler) Prove(arg keybase1.ProveArg) error {
+// Prove handles the `keybase.1.startProof` RPC.
+func (ph *ProveHandler) StartProof(arg keybase1.StartProofArg) error {
 	eng := engine.NewProve(&arg, G)
 	ctx := engine.Context{
 		ProveUI:  ph.getProveUI(arg.SessionID),
@@ -69,7 +69,7 @@ func (ph *ProveHandler) Prove(arg keybase1.ProveArg) error {
 	return engine.RunEngine(eng, &ctx)
 }
 
-func (ph *ProveHandler) Cancel(sessionID int) error {
+func (ph *ProveHandler) CancelProof(sessionID int) error {
 	c := ph.canceler(sessionID)
 	if c == nil {
 		G.Log.Debug("Prove Cancel called and there's no prove engine for sessionID %d", sessionID)
@@ -78,8 +78,8 @@ func (ph *ProveHandler) Cancel(sessionID int) error {
 	return c.Cancel()
 }
 
-func (ph *ProveHandler) CheckForProof(arg keybase1.CheckForProofArg) (res keybase1.RemoteProof, err error) {
-	eng := engine.NewProveCheck(G, &engine.ProveCheckArg{Service: arg.Service, Username: arg.Username})
+func (ph *ProveHandler) CheckProof(arg keybase1.CheckProofArg) (res keybase1.RemoteProof, err error) {
+	eng := engine.NewProveCheck(G, libkb.SigId(arg.SigID))
 	ctx := &engine.Context{}
 	if err = engine.RunEngine(eng, ctx); err != nil {
 		return
