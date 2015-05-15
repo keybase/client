@@ -13,7 +13,7 @@
 #import "KBHeaderLabelView.h"
 
 @interface KBEnvSelectView ()
-@property YOView *envView;
+@property KBSplitView *splitView;
 @end
 
 @implementation KBEnvSelectView
@@ -26,7 +26,13 @@
   [header setText:@"Choose an Environment" style:KBTextStyleHeaderLarge alignment:NSCenterTextAlignment lineBreakMode:NSLineBreakByTruncatingTail];
   [self addSubview:header];
 
-  KBListView *listView = [KBListView listViewWithPrototypeClass:KBImageTextCell.class rowHeight:56];
+  _splitView = [[KBSplitView alloc] init];
+  _splitView.dividerPosition = 300;
+  _splitView.divider.hidden = YES;
+  _splitView.rightInsets = UIEdgeInsetsMake(0, 20, 0, 0);
+  [self addSubview:_splitView];
+
+  KBListView *listView = [KBListView listViewWithPrototypeClass:KBImageTextCell.class rowHeight:0];
   listView.scrollView.borderType = NSBezelBorder;
   listView.cellSetBlock = ^(KBImageTextView *label, KBEnvironment *env, NSIndexPath *indexPath, NSTableColumn *tableColumn, KBListView *listView, BOOL dequeued) {
     [label setTitle:env.title info:env.info image:env.image];
@@ -34,10 +40,7 @@
   listView.onSelect = ^(KBTableView *tableView, NSIndexPath *indexPath, KBEnvironment *environment) {
     [self select:environment];
   };
-  [self addSubview:listView];
-
-  _envView = [YOVBox box:@{@"minSize":@"0,200"}];
-  [self addSubview:_envView];
+  [_splitView setLeftView:listView];
 
   YOHBox *buttons = [YOHBox box:@{@"horizontalAlignment": @"center", @"spacing": @(10)}];
   [self addSubview:buttons];
@@ -50,21 +53,14 @@
   };
   [buttons addSubview:nextButton];
 
-  self.viewLayout = [YOBorderLayout layoutWithCenter:listView top:@[header] bottom:@[_envView, buttons] insets:UIEdgeInsetsMake(20, 40, 20, 40) spacing:20];
+  self.viewLayout = [YOBorderLayout layoutWithCenter:_splitView top:@[header] bottom:@[buttons] insets:UIEdgeInsetsMake(20, 40, 20, 40) spacing:20];
 
   [listView setObjects:@[[KBEnvironment env:KBEnvKeybaseIO], [KBEnvironment env:KBEnvLocalhost], [KBEnvironment env:KBEnvManual]] animated:NO];
   [listView setSelectedRow:2];
 }
 
 - (void)select:(KBEnvironment *)environment {
-  for (NSView *view in _envView.subviews) [view removeFromSuperview];
-  if (environment) {
-    [_envView addSubview:[self viewForEnvironment:environment]];
-  }
-  [_envView setNeedsLayout];
-
-  //DDLogDebug(@"Service plist: %@", environment.launchdPlistDictionaryForService);
-  //DDLogDebug(@"KBFS plist: %@", environment.launchdPlistDictionaryForKBFS);
+  [_splitView setRightView:[self viewForEnvironment:environment]];
 }
 
 - (NSView *)viewForEnvironment:(KBEnvironment *)environment {

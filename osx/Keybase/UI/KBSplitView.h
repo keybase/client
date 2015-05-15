@@ -9,6 +9,7 @@
 #import <Foundation/Foundation.h>
 
 #import <YOLayout/YOLayout.h>
+#import "KBBox.h"
 
 @interface KBSplitView : YOView
 
@@ -16,6 +17,11 @@
 @property CGFloat dividerPosition;
 @property float dividerRatio;
 
-- (void)setLeftView:(NSView *)leftView rightView:(NSView *)rightView;
+@property KBBox *divider;
+
+@property UIEdgeInsets rightInsets;
+
+@property (nonatomic) NSView *leftView;
+@property (nonatomic) NSView *rightView;
 
 @end

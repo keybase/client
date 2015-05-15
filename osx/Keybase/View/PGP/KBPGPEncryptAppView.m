@@ -37,7 +37,8 @@
   _outputView.footerView.editButton.hidden = YES;
   _outputView.footerView.closeButton.hidden = YES;
 
-  [encryptView setLeftView:_encryptView rightView:_outputView];
+  [encryptView setLeftView:_encryptView];
+  [encryptView setRightView:_outputView];
 
   self.viewLayout = [YOLayout fill:encryptView];
 }

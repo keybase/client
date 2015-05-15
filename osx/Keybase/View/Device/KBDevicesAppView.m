@@ -64,7 +64,8 @@
   YOView *contentView = [[YOView alloc] init];
   [contentView kb_setBackgroundColor:NSColor.whiteColor];
 
-  [_splitView setLeftView:devicesView rightView:contentView];
+  [_splitView setLeftView:devicesView];
+  [_splitView setRightView:contentView];
 
   self.viewLayout = [YOLayout fill:_splitView];
 }

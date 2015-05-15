@@ -10,48 +10,59 @@
 
 #import "KBBox.h"
 
-@interface KBSplitView ()
-@property NSView *leftView;
-@property NSView *rightView;
-@end
-
 @implementation KBSplitView
 
 - (void)viewInit {
   [super viewInit];
 
+  _insets = UIEdgeInsetsZero;
+  _rightInsets = UIEdgeInsetsZero;
+  
   _dividerPosition = 240;
 
-  KBBox *borderMiddle = [KBBox line];
-  [self addSubview:borderMiddle];
+  _divider = [KBBox line];
+  [self addSubview:_divider];
 
   YOSelf yself = self;
   self.viewLayout = [YOLayout layoutWithLayoutBlock:^(id<YOLayout> layout, CGSize size) {
-    CGFloat col1 = 0;
+    CGFloat col = 0;
 
     if (yself.dividerPosition < 0) {
-      col1 = size.width + yself.dividerPosition;
+      col = size.width + yself.dividerPosition;
     } else {
-      col1 = yself.dividerPosition;
+      col = yself.dividerPosition;
     }
     if (yself.dividerRatio > 0) {
-      col1 = size.width * yself.dividerRatio;
+      col = ceilf(size.width * yself.dividerRatio);
     }
 
     CGFloat y = yself.insets.top;
-    [layout setFrame:CGRectMake(col1 - 1, y, 1, size.height) view:borderMiddle];
+    if (!yself.divider.hidden) {
+      [layout setFrame:CGRectMake(col - 1, y, 1, size.height) view:yself.divider];
+      col -= 1;
+    }
 
-    [layout setFrame:CGRectMake(0, y, col1 - 1, size.height - y - yself.insets.bottom) view:yself.leftView];
-    [layout setFrame:CGRectMake(col1, y, size.width - col1, size.height - y - yself.insets.bottom) view:yself.rightView];
+    [layout setFrame:CGRectMake(0, y, col, size.height - y - yself.insets.bottom) view:yself.leftView];
+    [layout setFrame:YOCGRectApplyInsets(CGRectMake(col, y, size.width - col, size.height - y - yself.insets.bottom), yself.rightInsets) view:yself.rightView];
     return size;
   }];
 }
 
-- (void)setLeftView:(NSView *)leftView rightView:(NSView *)rightView {
-  _leftView = leftView;
-  [self addSubview:_leftView];
-  _rightView = rightView;
-  [self addSubview:_rightView];
+- (void)setLeftView:(NSView *)leftView {
+  if (_leftView != leftView) {
+    [_leftView removeFromSuperview];
+    _leftView = leftView;
+    [self addSubview:_leftView];
+  }
+  [self setNeedsLayout];
+}
+
+- (void)setRightView:(NSView *)rightView {
+  if (_rightView != rightView) {
+    [_rightView removeFromSuperview];
+    _rightView = rightView;
+    [self addSubview:_rightView];
+  }
   [self setNeedsLayout];
 }
 

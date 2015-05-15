@@ -99,7 +99,7 @@
 
 - (void)appViewDidLaunch:(KBAppView *)appView {
   NSDictionary *info = [[NSBundle mainBundle] infoDictionary];
-  KBConsoleLog(@"Keybase.app Version: %@ (%@)", info[@"CFBundleVersion"], info[@"CFBundleShortVersionString"]);  
+  KBConsoleLog(@"Keybase.app Version: %@", info[@"CFBundleShortVersionString"]);
 
   _client = appView.client;
   [self setNeedsLayout];

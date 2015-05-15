@@ -34,7 +34,8 @@
   _outputView.footerView.editButton.hidden = YES;
   _outputView.footerView.closeButton.hidden = YES;
 
-  [view setLeftView:_verifyView rightView:_outputView];
+  [view setLeftView:_verifyView];
+  [view setRightView:_outputView];
 
   self.viewLayout = [YOLayout fill:view];
 }

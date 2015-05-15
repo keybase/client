@@ -65,7 +65,10 @@
   _userProfileButton.button.toggleEnabled = YES;
   _userProfileButton.button.tag = KBAppViewItemProfile;
   _userProfileButton.hidden = YES;
-  _userProfileButton.button.targetBlock = ^{ [self notifyItemSelected:KBAppViewItemProfile]; };
+  _userProfileButton.button.targetBlock = ^{
+    [gself.userProfileButton refresh];
+    [gself notifyItemSelected:KBAppViewItemProfile];
+  };
   [self addSubview:_userProfileButton];
 
   _buttons = @[usersButton, foldersButton, devicesButton, pgpButton, _userProfileButton.button];

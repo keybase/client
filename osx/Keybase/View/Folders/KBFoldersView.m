@@ -44,9 +44,7 @@
   NSImage *folderAddImage = [NSImage imageNamed:@"19-Interface-black-add-1-24"];
   folderAddImage.size = CGSizeMake(14, 14);
   _addButton = [KBButton buttonWithImage:folderAddImage style:KBButtonStyleToolbar];
-  _addButton.targetBlock = ^{
-    [gself addFolder];
-  };
+  _addButton.targetBlock = ^{ [gself addFolder]; };
   [self addSubview:_addButton];
 
 //  NSImage *trashImage = [NSImage imageNamed:@"1-Edition-black-bin-2-24"];
@@ -98,8 +96,8 @@
 }
 
 - (void)addFolder {
-  KBFolderUsersView *view = [[KBFolderUsersView alloc] init];
-  [self.window kb_addChildWindowForView:view rect:CGRectMake(0, 0, 500, 400) position:KBWindowPositionCenter title:@"Add Folder" fixed:NO makeKey:YES];
+  //KBFolderUsersView *view = [[KBFolderUsersView alloc] init];
+  //[self.window kb_addChildWindowForView:view rect:CGRectMake(0, 0, 500, 400) position:KBWindowPositionCenter title:@"Add Folder" fixed:NO makeKey:YES];
 }
 
 - (void)_segmentedChange:(id)sender {
