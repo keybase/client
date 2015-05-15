@@ -13,13 +13,13 @@ func TestProveCheck(t *testing.T) {
 	CreateAndSignupFakeUser(tc, "login")
 
 	ctx := &Context{}
-	arg := &ProveCheckArg{Service: "twitter", Username: "tacovontaco"}
-	eng := NewProveCheck(tc.G, arg)
+	var sigID libkb.SigId
+	eng := NewProveCheck(tc.G, sigID)
 	err := RunEngine(eng, ctx)
 	if err == nil {
 		t.Fatal("expected error, got nil")
 	}
-	if _, ok := err.(libkb.ProofNotFoundForServiceError); !ok {
-		t.Errorf("expected libkb.ProofNotFoundForServiceError, got %T (%s)", err, err)
+	if _, ok := err.(libkb.AppStatusError); !ok {
+		t.Errorf("expected libkb.AppStatusError, got %T (%s)", err, err)
 	}
 }
