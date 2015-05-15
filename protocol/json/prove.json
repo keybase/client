@@ -263,7 +263,7 @@
       "type" : "string"
     }, {
       "name" : "sigID",
-      "type" : "SIGID"
+      "type" : "string"
     }, {
       "name" : "mtime",
       "type" : "int"

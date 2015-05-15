@@ -806,7 +806,7 @@ type RemoteProof struct {
 	Key           string `codec:"key" json:"key"`
 	Value         string `codec:"value" json:"value"`
 	DisplayMarkup string `codec:"displayMarkup" json:"displayMarkup"`
-	SigID         SIGID  `codec:"sigID" json:"sigID"`
+	SigID         string `codec:"sigID" json:"sigID"`
 	Mtime         int    `codec:"mtime" json:"mtime"`
 }
 

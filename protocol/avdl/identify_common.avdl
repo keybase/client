@@ -51,7 +51,7 @@ protocol identifyCommon {
 		string key;
 		string value;
 		string displayMarkup;
-		SIGID sigID;
+		string sigID;
 		int mtime;
 	}
 }
