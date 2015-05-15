@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"sync"
+	"syscall"
 
 	"bazil.org/fuse"
 	"bazil.org/fuse/fs"
@@ -223,6 +224,38 @@ func (d *Dir) Symlink(ctx context.Context, req *fuse.SymlinkRequest) (fs.Node, e
 		},
 	}
 	return child, nil
+}
+
+var _ fs.NodeRenamer = (*Dir)(nil)
+
+func (d *Dir) Rename(ctx context.Context, req *fuse.RenameRequest, newDir fs.Node) error {
+	d.folder.mu.Lock()
+	defer d.folder.mu.Unlock()
+
+	newDir2, ok := newDir.(*Dir)
+	if !ok {
+		return fuse.Errno(syscall.EXDEV)
+	}
+	if d.folder != newDir2.folder {
+		// Check this explicitly, not just trusting KBFSOps.Rename to
+		// return an error, because we rely on it for locking
+		// correctness.
+		return fuse.Errno(syscall.EXDEV)
+	}
+
+	oldParent := d.getPathLocked()
+	newParent := newDir2.getPathLocked()
+
+	pOld, pNew, err := d.folder.fs.config.KBFSOps().Rename(oldParent, req.OldName, newParent, req.NewName)
+	if err != nil {
+		return err
+	}
+	// TODO why can't i trigger a test failure if these are missing
+	d.updatePathLocked(pOld)
+	newDir2.updatePathLocked(pNew)
+	// TODO update mtime, ctime, size?
+
+	return nil
 }
 
 var _ fs.Handle = (*Dir)(nil)

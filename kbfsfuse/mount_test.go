@@ -5,6 +5,7 @@ import (
 	"io/ioutil"
 	"os"
 	"path"
+	"syscall"
 	"testing"
 
 	"bazil.org/fuse/fs/fstestutil"
@@ -351,4 +352,206 @@ func TestSymlink(t *testing.T) {
 			t.Errorf("bad symlink target: %q != %q", g, e)
 		}
 	}()
+}
+
+func TestRename(t *testing.T) {
+	config := makeTestConfig("jdoe")
+	mnt := makeFS(t, config)
+	defer mnt.Close()
+
+	p1 := path.Join(mnt.Dir, "jdoe", "old")
+	p2 := path.Join(mnt.Dir, "jdoe", "new")
+	const input = "hello, world\n"
+	if err := ioutil.WriteFile(p1, []byte(input), 0644); err != nil {
+		t.Fatal(err)
+	}
+
+	if err := os.Rename(p1, p2); err != nil {
+		t.Fatal(err)
+	}
+
+	fis, err := ioutil.ReadDir(path.Join(mnt.Dir, "jdoe"))
+	if err != nil {
+		t.Fatalf("cannot read dir: %v", err)
+	}
+	if len(fis) != 1 {
+		t.Errorf("unexpected files: %v", fis)
+	}
+	if g, e := fis[0].Name(), "new"; g != e {
+		t.Errorf("unexpected file: %q != %q", g, e)
+	}
+
+	buf, err := ioutil.ReadFile(p2)
+	if err != nil {
+		t.Errorf("read error: %v", err)
+	}
+	if g, e := string(buf), input; g != e {
+		t.Errorf("bad file contents: %q != %q", g, e)
+	}
+
+	if _, err := ioutil.ReadFile(p1); !os.IsNotExist(err) {
+		t.Errorf("old name still exists: %v", err)
+	}
+}
+
+func TestRenameOverwrite(t *testing.T) {
+	config := makeTestConfig("jdoe")
+	mnt := makeFS(t, config)
+	defer mnt.Close()
+
+	p1 := path.Join(mnt.Dir, "jdoe", "old")
+	p2 := path.Join(mnt.Dir, "jdoe", "new")
+	const input = "hello, world\n"
+	if err := ioutil.WriteFile(p1, []byte(input), 0644); err != nil {
+		t.Fatal(err)
+	}
+	if err := ioutil.WriteFile(p2, []byte("loser\n"), 0644); err != nil {
+		t.Fatal(err)
+	}
+
+	if err := os.Rename(p1, p2); err != nil {
+		t.Fatal(err)
+	}
+
+	fis, err := ioutil.ReadDir(path.Join(mnt.Dir, "jdoe"))
+	if err != nil {
+		t.Fatalf("cannot read dir: %v", err)
+	}
+	if len(fis) != 1 {
+		t.Errorf("unexpected files: %v", fis)
+	}
+	if g, e := fis[0].Name(), "new"; g != e {
+		t.Errorf("unexpected file: %q != %q", g, e)
+	}
+
+	buf, err := ioutil.ReadFile(p2)
+	if err != nil {
+		t.Errorf("read error: %v", err)
+	}
+	if g, e := string(buf), input; g != e {
+		t.Errorf("bad file contents: %q != %q", g, e)
+	}
+
+	if _, err := ioutil.ReadFile(p1); !os.IsNotExist(err) {
+		t.Errorf("old name still exists: %v", err)
+	}
+}
+
+func TestRenameCrossDir(t *testing.T) {
+	config := makeTestConfig("jdoe")
+	mnt := makeFS(t, config)
+	defer mnt.Close()
+
+	if err := os.Mkdir(path.Join(mnt.Dir, "jdoe", "one"), 0755); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.Mkdir(path.Join(mnt.Dir, "jdoe", "two"), 0755); err != nil {
+		t.Fatal(err)
+	}
+	p1 := path.Join(mnt.Dir, "jdoe", "one", "old")
+	p2 := path.Join(mnt.Dir, "jdoe", "two", "new")
+	const input = "hello, world\n"
+	if err := ioutil.WriteFile(p1, []byte(input), 0644); err != nil {
+		t.Fatal(err)
+	}
+
+	if err := os.Rename(p1, p2); err != nil {
+		t.Fatal(err)
+	}
+
+	fis, err := ioutil.ReadDir(path.Join(mnt.Dir, "jdoe", "one"))
+	if err != nil {
+		t.Fatalf("cannot list directory: %v", err)
+	}
+	if len(fis) != 0 {
+		t.Errorf("unexpected files: %v", fis)
+	}
+
+	fis, err = ioutil.ReadDir(path.Join(mnt.Dir, "jdoe", "two"))
+	if err != nil {
+		t.Fatalf("cannot list directory: %v", err)
+	}
+	if len(fis) != 1 {
+		t.Errorf("unexpected files: %v", fis)
+	}
+	if g, e := fis[0].Name(), "new"; g != e {
+		t.Errorf("unexpected file: %q != %q", g, e)
+	}
+
+	buf, err := ioutil.ReadFile(p2)
+	if err != nil {
+		t.Errorf("read error: %v", err)
+	}
+	if g, e := string(buf), input; g != e {
+		t.Errorf("bad file contents: %q != %q", g, e)
+	}
+
+	if _, err := ioutil.ReadFile(p1); !os.IsNotExist(err) {
+		t.Errorf("old name still exists: %v", err)
+	}
+}
+
+func TestRenameCrossFolder(t *testing.T) {
+	config := makeTestConfig("jdoe", "wsmith")
+	mnt := makeFS(t, config)
+	defer mnt.Close()
+
+	p1 := path.Join(mnt.Dir, "jdoe", "old")
+	p2 := path.Join(mnt.Dir, "wsmith,jdoe", "new")
+	const input = "hello, world\n"
+	if err := ioutil.WriteFile(p1, []byte(input), 0644); err != nil {
+		t.Fatal(err)
+	}
+
+	err := os.Rename(p1, p2)
+	if err == nil {
+		t.Fatalf("expected an error from rename: %v", err)
+	}
+	lerr, ok := err.(*os.LinkError)
+	if !ok {
+		t.Fatalf("expected a LinkError from rename: %v", err)
+	}
+	if g, e := lerr.Op, "rename"; g != e {
+		t.Errorf("wrong LinkError.Op: %q != %q", g, e)
+	}
+	if g, e := lerr.Old, p1; g != e {
+		t.Errorf("wrong LinkError.Old: %q != %q", g, e)
+	}
+	if g, e := lerr.New, p2; g != e {
+		t.Errorf("wrong LinkError.New: %q != %q", g, e)
+	}
+	if g, e := lerr.Err, syscall.EXDEV; g != e {
+		t.Errorf("expected EXDEV: %T %v", lerr.Err, lerr.Err)
+	}
+
+	fis, err := ioutil.ReadDir(path.Join(mnt.Dir, "jdoe"))
+	if err != nil {
+		t.Fatalf("cannot list directory: %v", err)
+	}
+	if len(fis) != 1 {
+		t.Errorf("unexpected files: %v", fis)
+	}
+	if g, e := fis[0].Name(), "old"; g != e {
+		t.Errorf("unexpected file: %q != %q", g, e)
+	}
+
+	fis, err = ioutil.ReadDir(path.Join(mnt.Dir, "wsmith,jdoe"))
+	if err != nil {
+		t.Fatalf("cannot list directory: %v", err)
+	}
+	if len(fis) != 0 {
+		t.Errorf("unexpected files: %v", fis)
+	}
+
+	buf, err := ioutil.ReadFile(p1)
+	if err != nil {
+		t.Errorf("read error: %v", err)
+	}
+	if g, e := string(buf), input; g != e {
+		t.Errorf("bad file contents: %q != %q", g, e)
+	}
+
+	if _, err := ioutil.ReadFile(p2); !os.IsNotExist(err) {
+		t.Errorf("new name exists even on error: %v", err)
+	}
 }
