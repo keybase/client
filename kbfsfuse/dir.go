@@ -258,6 +258,44 @@ func (d *Dir) Rename(ctx context.Context, req *fuse.RenameRequest, newDir fs.Nod
 	return nil
 }
 
+var _ fs.NodeRemover = (*Dir)(nil)
+
+func (d *Dir) Remove(ctx context.Context, req *fuse.RemoveRequest) error {
+	d.folder.mu.Lock()
+	defer d.folder.mu.Unlock()
+
+	p := d.getPathLocked()
+	dirBlock, err := d.folder.fs.config.KBFSOps().GetDir(p)
+	if err != nil {
+		return err
+	}
+
+	de, ok := dirBlock.Children[req.Name]
+	if !ok {
+		return fuse.ENOENT
+	}
+
+	p.Path = append(p.Path, libkbfs.PathNode{
+		BlockPointer: de.BlockPointer,
+		Name:         req.Name,
+	})
+
+	switch {
+	case !req.Dir && de.Type == libkbfs.Dir:
+		return fuse.Errno(syscall.EISDIR)
+	case req.Dir && de.Type != libkbfs.Dir:
+		return fuse.Errno(syscall.ENOTDIR)
+	}
+
+	p2, err := d.folder.fs.config.KBFSOps().RemoveEntry(p)
+	if err != nil {
+		return err
+	}
+
+	d.updatePathLocked(p2)
+	return nil
+}
+
 var _ fs.Handle = (*Dir)(nil)
 
 var _ fs.HandleReadDirAller = (*Dir)(nil)

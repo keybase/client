@@ -555,3 +555,58 @@ func TestRenameCrossFolder(t *testing.T) {
 		t.Errorf("new name exists even on error: %v", err)
 	}
 }
+
+func TestRemoveFile(t *testing.T) {
+	config := makeTestConfig("jdoe")
+	mnt := makeFS(t, config)
+	defer mnt.Close()
+
+	p := path.Join(mnt.Dir, "jdoe", "myfile")
+	const input = "hello, world\n"
+	if err := ioutil.WriteFile(p, []byte(input), 0644); err != nil {
+		t.Fatal(err)
+	}
+
+	if err := os.Remove(p); err != nil {
+		t.Fatal(err)
+	}
+
+	fis, err := ioutil.ReadDir(path.Join(mnt.Dir, "jdoe"))
+	if err != nil {
+		t.Fatalf("cannot read dir: %v", err)
+	}
+	if len(fis) != 0 {
+		t.Errorf("unexpected files: %v", fis)
+	}
+
+	if _, err := ioutil.ReadFile(p); !os.IsNotExist(err) {
+		t.Errorf("file still exists: %v", err)
+	}
+}
+
+func TestRemoveDir(t *testing.T) {
+	config := makeTestConfig("jdoe")
+	mnt := makeFS(t, config)
+	defer mnt.Close()
+
+	p := path.Join(mnt.Dir, "jdoe", "mydir")
+	if err := os.Mkdir(p, 0755); err != nil {
+		t.Fatal(err)
+	}
+
+	if err := syscall.Rmdir(p); err != nil {
+		t.Fatal(err)
+	}
+
+	fis, err := ioutil.ReadDir(path.Join(mnt.Dir, "jdoe"))
+	if err != nil {
+		t.Fatalf("cannot read dir: %v", err)
+	}
+	if len(fis) != 0 {
+		t.Errorf("unexpected files: %v", fis)
+	}
+
+	if _, err := os.Stat(p); !os.IsNotExist(err) {
+		t.Errorf("file still exists: %v", err)
+	}
+}
