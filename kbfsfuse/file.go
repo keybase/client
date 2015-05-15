@@ -27,8 +27,8 @@ func (f *File) Attr(a *fuse.Attr) {
 	}
 }
 
-func (f *File) getPath() libkbfs.Path {
-	p := f.parent.getPath()
+func (f *File) getPathLocked() libkbfs.Path {
+	p := f.parent.getPathLocked()
 	p.Path = append(p.Path, f.pathNode)
 	return p
 }
@@ -36,14 +36,14 @@ func (f *File) getPath() libkbfs.Path {
 // Update the PathNode stored here, and in parents.
 //
 // Caller is responsible for locking.
-func (f *File) updatePath(p libkbfs.Path) {
+func (f *File) updatePathLocked(p libkbfs.Path) {
 	pNode := p.Path[len(p.Path)-1]
 	if f.pathNode.Name != pNode.Name {
 		return
 	}
 	f.pathNode = pNode
 	p.Path = p.Path[:len(p.Path)-1]
-	f.parent.updatePath(p)
+	f.parent.updatePathLocked(p)
 }
 
 var _ fs.Handle = (*File)(nil)
@@ -54,7 +54,7 @@ func (f *File) Read(ctx context.Context, req *fuse.ReadRequest, resp *fuse.ReadR
 	f.parent.folder.mu.RLock()
 	defer f.parent.folder.mu.RUnlock()
 
-	p := f.getPath()
+	p := f.getPathLocked()
 	n, err := f.parent.folder.fs.config.KBFSOps().Read(p, resp.Data[:cap(resp.Data)], req.Offset)
 	resp.Data = resp.Data[:n]
 	return err
@@ -66,7 +66,7 @@ func (f *File) Write(ctx context.Context, req *fuse.WriteRequest, resp *fuse.Wri
 	f.parent.folder.mu.Lock()
 	defer f.parent.folder.mu.Unlock()
 
-	p := f.getPath()
+	p := f.getPathLocked()
 	if err := f.parent.folder.fs.config.KBFSOps().Write(p, req.Data, req.Offset); err != nil {
 		return err
 	}
@@ -84,11 +84,11 @@ func (f *File) Flush(ctx context.Context, req *fuse.FlushRequest) error {
 	f.parent.folder.mu.Lock()
 	defer f.parent.folder.mu.Unlock()
 
-	p, err := f.parent.folder.fs.config.KBFSOps().Sync(f.getPath())
+	p, err := f.parent.folder.fs.config.KBFSOps().Sync(f.getPathLocked())
 	if err != nil {
 		return err
 	}
-	f.updatePath(p)
+	f.updatePathLocked(p)
 
 	// Update mtime and such to be what KBFS thinks they should be.
 	// bazil.org/fuse does not currently tolerate attribute fetch

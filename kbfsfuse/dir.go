@@ -41,7 +41,7 @@ func (d *Dir) Attr(a *fuse.Attr) {
 // getPath returns the Path for the current directory.
 //
 // Caller is responsible for locking.
-func (d *Dir) getPath() libkbfs.Path {
+func (d *Dir) getPathLocked() libkbfs.Path {
 	p := libkbfs.Path{
 		TopDir: d.folder.id,
 	}
@@ -59,7 +59,7 @@ func (d *Dir) getPath() libkbfs.Path {
 // Update the PathNode stored here, and in parents.
 //
 // Caller is responsible for locking.
-func (d *Dir) updatePath(p libkbfs.Path) {
+func (d *Dir) updatePathLocked(p libkbfs.Path) {
 	for dir, path := d, p.Path; dir != nil; dir, path = dir.parent, path[:len(path)-1] {
 		pNode := path[len(path)-1]
 		if dir.pathNode.Name != pNode.Name {
@@ -75,7 +75,7 @@ func (d *Dir) Lookup(ctx context.Context, req *fuse.LookupRequest, resp *fuse.Lo
 	d.folder.mu.RLock()
 	defer d.folder.mu.RUnlock()
 
-	p := d.getPath()
+	p := d.getPathLocked()
 
 	if req.Name == libkbfs.PublicName &&
 		p.HasPublic() &&
@@ -158,11 +158,11 @@ func (d *Dir) Create(ctx context.Context, req *fuse.CreateRequest, resp *fuse.Cr
 	defer d.folder.mu.Unlock()
 
 	isExec := (req.Mode.Perm() & 0100) != 0
-	p, de, err := d.folder.fs.config.KBFSOps().CreateFile(d.getPath(), req.Name, isExec)
+	p, de, err := d.folder.fs.config.KBFSOps().CreateFile(d.getPathLocked(), req.Name, isExec)
 	if err != nil {
 		return nil, nil, err
 	}
-	d.updatePath(p)
+	d.updatePathLocked(p)
 	// TODO update mtime, ctime, size?
 
 	child := &File{
@@ -183,11 +183,11 @@ func (d *Dir) Mkdir(ctx context.Context, req *fuse.MkdirRequest) (fs.Node, error
 	d.folder.mu.Lock()
 	defer d.folder.mu.Unlock()
 
-	p, de, err := d.folder.fs.config.KBFSOps().CreateDir(d.getPath(), req.Name)
+	p, de, err := d.folder.fs.config.KBFSOps().CreateDir(d.getPathLocked(), req.Name)
 	if err != nil {
 		return nil, err
 	}
-	d.updatePath(p)
+	d.updatePathLocked(p)
 	// TODO update mtime, ctime, size?
 
 	child := &Dir{
@@ -207,11 +207,11 @@ func (d *Dir) Symlink(ctx context.Context, req *fuse.SymlinkRequest) (fs.Node, e
 	d.folder.mu.Lock()
 	defer d.folder.mu.Unlock()
 
-	p, de, err := d.folder.fs.config.KBFSOps().CreateLink(d.getPath(), req.NewName, req.Target)
+	p, de, err := d.folder.fs.config.KBFSOps().CreateLink(d.getPathLocked(), req.NewName, req.Target)
 	if err != nil {
 		return nil, err
 	}
-	d.updatePath(p)
+	d.updatePathLocked(p)
 	// TODO update mtime, ctime, size?
 
 	child := &Symlink{
@@ -230,7 +230,7 @@ var _ fs.Handle = (*Dir)(nil)
 var _ fs.HandleReadDirAller = (*Dir)(nil)
 
 func (d *Dir) ReadDirAll(ctx context.Context) ([]fuse.Dirent, error) {
-	dirBlock, err := d.folder.fs.config.KBFSOps().GetDir(d.getPath())
+	dirBlock, err := d.folder.fs.config.KBFSOps().GetDir(d.getPathLocked())
 	if err != nil {
 		return nil, err
 	}
