@@ -97,7 +97,7 @@ func (md *MDOpsStandard) processMetadata(
 				return err
 			} else if key, err := kbpki.GetPublicSigningKey(user); err != nil {
 				return err
-			} else if crypto.Verify(rmds.Sig, buf, key); err != nil {
+			} else if err := crypto.Verify(rmds.Sig, buf, key); err != nil {
 				return err
 			}
 		}
