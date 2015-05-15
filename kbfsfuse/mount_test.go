@@ -610,3 +610,144 @@ func TestRemoveDir(t *testing.T) {
 		t.Errorf("file still exists: %v", err)
 	}
 }
+
+func TestRemoveFileWhileOpenWriting_Desired(t *testing.T) {
+	// when this works, rename function and remove
+	// TestRemoveFileWhileOpenWriting_Current
+	t.Skip("Not implemented yet. https://github.com/keybase/kbfs/issues/81")
+	config := makeTestConfig("jdoe")
+	mnt := makeFS(t, config)
+	defer mnt.Close()
+
+	p := path.Join(mnt.Dir, "jdoe", "myfile")
+	f, err := os.Create(p)
+	if err != nil {
+		t.Fatalf("cannot create file: %v", err)
+	}
+	defer f.Close()
+
+	if err := os.Remove(p); err != nil {
+		t.Fatalf("cannot delete file: %v", err)
+	}
+
+	// this must not resurrect a deleted file
+	const input = "hello, world\n"
+	if _, err := f.Write([]byte(input)); err != nil {
+		t.Fatalf("cannot write: %v", err)
+	}
+	if err := f.Close(); err != nil {
+		t.Fatal("error on close: %v", err)
+	}
+
+	fis, err := ioutil.ReadDir(path.Join(mnt.Dir, "jdoe"))
+	if err != nil {
+		t.Fatalf("cannot read dir: %v", err)
+	}
+	if len(fis) != 0 {
+		t.Errorf("unexpected files: %v", fis)
+	}
+
+	if _, err := ioutil.ReadFile(p); !os.IsNotExist(err) {
+		t.Errorf("file still exists: %v", err)
+	}
+}
+
+func TestRemoveFileWhileOpenWriting_Current(t *testing.T) {
+	config := makeTestConfig("jdoe")
+	mnt := makeFS(t, config)
+	defer mnt.Close()
+
+	p := path.Join(mnt.Dir, "jdoe", "myfile")
+	f, err := os.Create(p)
+	if err != nil {
+		t.Fatalf("cannot create file: %v", err)
+	}
+	defer f.Close()
+
+	if err := os.Remove(p); err != nil {
+		t.Fatalf("cannot delete file: %v", err)
+	}
+
+	// this must not resurrect a deleted file
+	const input = "hello, world\n"
+	_, err = f.Write([]byte(input))
+	if err == nil {
+		t.Fatalf("expected an error from write")
+	}
+	perr, ok := err.(*os.PathError)
+	if !ok {
+		t.Fatalf("expected a PathError from write: %v", err)
+	}
+	if g, e := perr.Op, "write"; g != e {
+		t.Errorf("wrong PathError.Op: %q != %q", g, e)
+	}
+	if g, e := perr.Path, p; g != e {
+		t.Errorf("wrong PathError.Path: %q != %q", g, e)
+	}
+	// TODO want ESTALE or ENOENT, maybe?
+	if g, e := perr.Err, syscall.EIO; g != e {
+		t.Errorf("expected EIO: %T %v", perr.Err, perr.Err)
+	}
+
+	if err := f.Close(); err != nil {
+		t.Fatal("error on close: %v", err)
+	}
+
+	fis, err := ioutil.ReadDir(path.Join(mnt.Dir, "jdoe"))
+	if err != nil {
+		t.Fatalf("cannot read dir: %v", err)
+	}
+	if len(fis) != 0 {
+		t.Errorf("unexpected files: %v", fis)
+	}
+
+	if _, err := ioutil.ReadFile(p); !os.IsNotExist(err) {
+		t.Errorf("file still exists: %v", err)
+	}
+}
+
+func TestRemoveFileWhileOpenReading(t *testing.T) {
+	config := makeTestConfig("jdoe")
+	mnt := makeFS(t, config)
+	defer mnt.Close()
+
+	p := path.Join(mnt.Dir, "jdoe", "myfile")
+	const input = "hello, world\n"
+	if err := ioutil.WriteFile(p, []byte(input), 0644); err != nil {
+		t.Fatal(err)
+	}
+
+	f, err := os.Open(p)
+	if err != nil {
+		t.Fatalf("cannot open file: %v", err)
+	}
+	defer f.Close()
+
+	if err := os.Remove(p); err != nil {
+		t.Fatalf("cannot delete file: %v", err)
+	}
+
+	buf, err := ioutil.ReadAll(f)
+	if err != nil {
+		t.Fatalf("cannot read unlinked file: %v", err)
+	}
+	if g, e := string(buf), input; g != e {
+		t.Errorf("read wrong content: %q != %q", g, e)
+	}
+
+	if err := f.Close(); err != nil {
+		t.Fatal("error on close: %v", err)
+	}
+
+	fis, err := ioutil.ReadDir(path.Join(mnt.Dir, "jdoe"))
+	if err != nil {
+		t.Fatalf("cannot read dir: %v", err)
+	}
+	if len(fis) != 0 {
+		t.Errorf("unexpected files: %v", fis)
+	}
+
+	if _, err := ioutil.ReadFile(p); !os.IsNotExist(err) {
+		t.Errorf("file still exists: %v", err)
+	}
+}
