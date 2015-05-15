@@ -9,7 +9,7 @@ target :Keybase do
 
   pod "MPMessagePack"
 
-  pod "YOLayout", :path => "~/Projects/YOLayout"
+  pod "YOLayout"#, :path => "~/Projects/YOLayout"
 
   pod "ZXCVBN"
   pod "AFNetworking"

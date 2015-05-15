@@ -1,22 +1,22 @@
 PODS:
-  - AFNetworking (2.5.3):
-    - AFNetworking/NSURLConnection (= 2.5.3)
-    - AFNetworking/NSURLSession (= 2.5.3)
-    - AFNetworking/Reachability (= 2.5.3)
-    - AFNetworking/Security (= 2.5.3)
-    - AFNetworking/Serialization (= 2.5.3)
-    - AFNetworking/UIKit (= 2.5.3)
-  - AFNetworking/NSURLConnection (2.5.3):
+  - AFNetworking (2.5.4):
+    - AFNetworking/NSURLConnection (= 2.5.4)
+    - AFNetworking/NSURLSession (= 2.5.4)
+    - AFNetworking/Reachability (= 2.5.4)
+    - AFNetworking/Security (= 2.5.4)
+    - AFNetworking/Serialization (= 2.5.4)
+    - AFNetworking/UIKit (= 2.5.4)
+  - AFNetworking/NSURLConnection (2.5.4):
     - AFNetworking/Reachability
     - AFNetworking/Security
     - AFNetworking/Serialization
-  - AFNetworking/NSURLSession (2.5.3):
+  - AFNetworking/NSURLSession (2.5.4):
     - AFNetworking/Reachability
     - AFNetworking/Security
     - AFNetworking/Serialization
-  - AFNetworking/Reachability (2.5.3)
-  - AFNetworking/Security (2.5.3)
-  - AFNetworking/Serialization (2.5.3)
+  - AFNetworking/Reachability (2.5.4)
+  - AFNetworking/Security (2.5.4)
+  - AFNetworking/Serialization (2.5.4)
   - CocoaLumberjack (2.0.0):
     - CocoaLumberjack/Default (= 2.0.0)
     - CocoaLumberjack/Extensions (= 2.0.0)
@@ -26,7 +26,7 @@ PODS:
   - CocoaLumberjack/Extensions (2.0.0):
     - CocoaLumberjack/Default
   - GHKit (1.0.21)
-  - GHODictionary (1.0.0)
+  - GHODictionary (1.0.1)
   - Mantle (2.0):
     - Mantle/extobjc (= 2.0)
   - Mantle/extobjc (2.0)
@@ -40,7 +40,7 @@ PODS:
   - Slash/arc (0.1.2)
   - Slash/no-arc (0.1.2)
   - Sparkle (1.9.0)
-  - YOLayout (0.1.15)
+  - YOLayout (0.1.16)
   - ZXCVBN (1.0.4)
 
 DEPENDENCIES:
@@ -54,25 +54,21 @@ DEPENDENCIES:
   - ObjectiveSugar
   - Slash
   - Sparkle
-  - YOLayout (from `~/Projects/YOLayout`)
+  - YOLayout
   - ZXCVBN
 
-EXTERNAL SOURCES:
-  YOLayout:
-    :path: "~/Projects/YOLayout"
-
 SPEC CHECKSUMS:
-  AFNetworking: e1d86c2a96bb5d2e7408da36149806706ee122fe
+  AFNetworking: 05edc0ac4c4c8cf57bcf4b84be5b0744b6d8e71e
   CocoaLumberjack: a6f77d987d65dc7ba86b0f84db7d0b9084f77bcb
   GHKit: 487b552e3c228236dc2a5c7c1c5f79b8c7412a6b
-  GHODictionary: 2eaca0a089ddf65769fe407f15e5f13238d15bce
+  GHODictionary: 8c13875fc50f783435494860385efd7d1b3dc93d
   Mantle: d7c75b6fb789b20f7ae30cd0d09435fe545896ff
   MASPreferences: 32d8a2c5ef1d60b63240f5676b011ff72e194cb1
   MPMessagePack: 99eb5950b11ea50415cbe15e8d8f79ed089b18d6
   ObjectiveSugar: a6a25f23d657c19df0a0b972466d5b5ca9f5295c
   Slash: c74317f5ccf1e31f1d486a17e0d4076029ed3fc8
   Sparkle: 75bbbc5ab2d666f7f77c241afe7fd28364a8f9f7
-  YOLayout: 73f647239fcc2cc0a0f05d815506471017b409d1
+  YOLayout: 1ef783c746dbd10dd620f223b1f37083dabee642
   ZXCVBN: 6bf251a7274d6a91d00fd195939da9952f8dfc54
 
 COCOAPODS: 0.37.1
