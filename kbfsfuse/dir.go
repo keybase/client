@@ -17,7 +17,7 @@ type Folder struct {
 	id libkbfs.DirId
 	dh *libkbfs.DirHandle
 
-	// Protects all Dir.PathNode and File.PathNode instances.
+	// Protects all Dir.pathNode and File.pathNode instances.
 	mu sync.RWMutex
 }
 
