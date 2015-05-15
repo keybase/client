@@ -144,6 +144,16 @@
 
 @end
 
+@interface KBRSignatureInfo : KBRObject
+@property NSData *sig;
+@property NSString *verifyingKeyKid;
+@end
+
+@interface KBRCryptoRequest : KBRRequest
+- (void)signWithSessionID:(NSInteger)sessionID msg:(NSData *)msg reason:(NSString *)reason completion:(void (^)(NSError *error, KBRSignatureInfo *signatureInfo))completion;
+
+@end
+
 @interface KBRCtlRequest : KBRRequest
 - (void)stop:(void (^)(NSError *error))completion;
 
@@ -257,6 +267,15 @@ typedef NS_ENUM (NSInteger, KBRTrackDiffType) {
 @property KBRIdentifyOutcome *outcome;
 @end
 
+@interface KBRRemoteProof : KBRObject
+@property NSInteger proofType;
+@property NSString *key;
+@property NSString *value;
+@property NSString *displayMarkup;
+@property NSString *sigID;
+@property NSInteger mtime;
+@end
+
 @interface KBRIdentifyRequest : KBRRequest
 - (void)identifyWithSessionID:(NSInteger)sessionID userAssertion:(NSString *)userAssertion trackStatement:(BOOL)trackStatement completion:(void (^)(NSError *error, KBRIdentifyRes *identifyRes))completion;
 
@@ -268,15 +287,6 @@ typedef NS_ENUM (NSInteger, KBRTrackDiffType) {
 @property NSInteger state;
 @property NSInteger status;
 @property NSString *desc;
-@end
-
-@interface KBRRemoteProof : KBRObject
-@property NSInteger proofType;
-@property NSString *key;
-@property NSString *value;
-@property NSString *displayMarkup;
-@property KBRSIGID *sigId;
-@property NSInteger mtime;
 @end
 
 @interface KBRIdentifyRow : KBRObject
@@ -488,7 +498,7 @@ typedef NS_ENUM (NSInteger, KBRSignMode) {
 @property NSData *signature;
 @end
 
-@interface KBRFingerprintAndKey : KBRObject
+@interface KBRKeyInfo : KBRObject
 @property NSString *fingerprint;
 @property NSString *key;
 @property NSString *desc;
@@ -526,8 +536,17 @@ typedef NS_ENUM (NSInteger, KBRSignMode) {
 
 @end
 
+@interface KBRCheckProofStatus : KBRObject
+@property BOOL found;
+@property NSInteger status;
+@end
+
 @interface KBRProveRequest : KBRRequest
-- (void)proveWithSessionID:(NSInteger)sessionID service:(NSString *)service username:(NSString *)username force:(BOOL)force completion:(void (^)(NSError *error))completion;
+- (void)startProofWithSessionID:(NSInteger)sessionID service:(NSString *)service username:(NSString *)username force:(BOOL)force completion:(void (^)(NSError *error))completion;
+
+- (void)cancelProofWithSessionID:(NSInteger)sessionID completion:(void (^)(NSError *error))completion;
+
+- (void)checkProofWithSessionID:(NSInteger)sessionID sigID:(KBRSIGID *)sigID completion:(void (^)(NSError *error, KBRCheckProofStatus *checkProofStatus))completion;
 
 @end
 
@@ -601,7 +620,7 @@ typedef NS_ENUM (NSInteger, KBRPromptOverwriteType) {
 @property KBRUID *uid;
 @property NSString *username;
 @property NSString *token;
-@property NSData *deviceSubkeyKid;
+@property NSString *deviceSubkeyKid;
 @end
 
 @interface KBRSessionRequest : KBRRequest
@@ -660,11 +679,11 @@ typedef NS_ENUM (NSInteger, KBRPromptOverwriteType) {
 @end
 
 @interface KBRStreamUiRequest : KBRRequest
-- (void)closeWithS:(KBRStream *)s completion:(void (^)(NSError *error))completion;
+- (void)closeWithSessionID:(NSInteger)sessionID s:(KBRStream *)s completion:(void (^)(NSError *error))completion;
 
-- (void)readWithS:(KBRStream *)s sz:(NSInteger)sz completion:(void (^)(NSError *error, NSData *bytes))completion;
+- (void)readWithSessionID:(NSInteger)sessionID s:(KBRStream *)s sz:(NSInteger)sz completion:(void (^)(NSError *error, NSData *bytes))completion;
 
-- (void)writeWithS:(KBRStream *)s buf:(NSData *)buf completion:(void (^)(NSError *error, NSInteger n))completion;
+- (void)writeWithSessionID:(NSInteger)sessionID s:(KBRStream *)s buf:(NSData *)buf completion:(void (^)(NSError *error, NSInteger n))completion;
 
 @end
 
@@ -770,6 +789,11 @@ typedef NS_ENUM (NSInteger, KBRPromptOverwriteType) {
 @property NSInteger sessionID;
 @property NSString *address;
 @property BOOL force;
+@end
+@interface KBRSignRequestParams : KBRRequestParams
+@property NSInteger sessionID;
+@property NSData *msg;
+@property NSString *reason;
 @end
 @interface KBRDeviceListRequestParams : KBRRequestParams
 @property NSInteger sessionID;
@@ -964,11 +988,18 @@ typedef NS_ENUM (NSInteger, KBRPromptOverwriteType) {
 @property BOOL all;
 @property NSArray *fingerprints;
 @end
-@interface KBRProveRequestParams : KBRRequestParams
+@interface KBRStartProofRequestParams : KBRRequestParams
 @property NSInteger sessionID;
 @property NSString *service;
 @property NSString *username;
 @property BOOL force;
+@end
+@interface KBRCancelProofRequestParams : KBRRequestParams
+@property NSInteger sessionID;
+@end
+@interface KBRCheckProofRequestParams : KBRRequestParams
+@property NSInteger sessionID;
+@property KBRSIGID *sigID;
 @end
 @interface KBRPromptOverwriteRequestParams : KBRRequestParams
 @property NSInteger sessionID;
@@ -1056,13 +1087,16 @@ typedef NS_ENUM (NSInteger, KBRPromptOverwriteType) {
 @property KBRSigListArgs *arg;
 @end
 @interface KBRCloseRequestParams : KBRRequestParams
+@property NSInteger sessionID;
 @property KBRStream *s;
 @end
 @interface KBRReadRequestParams : KBRRequestParams
+@property NSInteger sessionID;
 @property KBRStream *s;
 @property NSInteger sz;
 @end
 @interface KBRWriteRequestParams : KBRRequestParams
+@property NSInteger sessionID;
 @property KBRStream *s;
 @property NSData *buf;
 @end

@@ -34,9 +34,9 @@ NSString *KBDir(NSString *dir, BOOL tilde) {
   return tilde ? [dir stringByAbbreviatingWithTildeInPath] : [dir stringByExpandingTildeInPath];
 }
 
-NSString *KBHexString(NSData *data) {
-  if (!data) return @"";
-  if ([data length] == 0) return @"";
+NSString *KBHexString(NSData *data, NSString *defaultValue) {
+  if (!data) return defaultValue;
+  if ([data length] == 0) return defaultValue;
   NSMutableString *hexString = [NSMutableString stringWithCapacity:[data length] * 2];
   for (NSUInteger i = 0; i < [data length]; ++i) {
     [hexString appendFormat:@"%02X", *((uint8_t *)[data bytes] + i)];

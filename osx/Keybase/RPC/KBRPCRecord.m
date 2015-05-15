@@ -97,7 +97,7 @@
 void KBConvertArrayTo(NSMutableArray *array) {
   KBConvertArray(array, NSData.class, ^id(NSData *data) {
     if (!data) return nil;
-    return NSStringWithFormat(@"Binary-%@", KBHexString(data));
+    return NSStringWithFormat(@"Binary-%@", KBHexString(data, @""));
   });
 }
 
@@ -112,7 +112,7 @@ void KBConvertArrayFrom(NSMutableArray *array) {
 void KBConvertDictTo(NSMutableDictionary *dict) {
   KBConvertDict(dict, NSData.class, ^id(NSData *data) {
     if (!data) return nil;
-    return NSStringWithFormat(@"Binary-%@", KBHexString(data));
+    return NSStringWithFormat(@"Binary-%@", KBHexString(data, @""));
   });
 }
 

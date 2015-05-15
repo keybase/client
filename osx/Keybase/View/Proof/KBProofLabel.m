@@ -62,12 +62,17 @@
       }
     }
 
-    if (_proofResult.result.proofStatus.status != 1) {
-      message = NSStringWithFormat(@"%@ (%@)", _proofResult.result.proofStatus.desc, @(_proofResult.result.proofStatus.status));
-      if (_proofResult.result.proofStatus.status < 200) {
+    NSInteger proofStatus = _proofResult.result.proofStatus.status;
+    if (proofStatus != 1) {
+      if (proofStatus < 200) {
         color = KBAppearance.currentAppearance.warnColor;
+        message = NSStringWithFormat(@"%@ (%@)", _proofResult.result.proofStatus.desc, @(proofStatus));
+      } else if (proofStatus == 306) {
+        color = KBAppearance.currentAppearance.warnColor;
+        message = @"Proof not found";
       } else {
         color = KBAppearance.currentAppearance.errorColor;
+        message = NSStringWithFormat(@"%@ (%@)", _proofResult.result.proofStatus.desc, @(proofStatus));
         erroredHard = YES;
       }
     } else if (!_proofResult.result.hint.humanUrl) {
@@ -98,7 +103,8 @@
   }
 
   if (message) {
-    NSAttributedString *errorStr = [[NSAttributedString alloc] initWithString:NSStringWithFormat(@"\n(%@)", message) attributes:attributes];
+    NSDictionary *messageAttributes = @{NSForegroundColorAttributeName:KBAppearance.currentAppearance.secondaryTextColor, NSFontAttributeName:[KBAppearance.currentAppearance fontForStyle:KBTextStyleDefault options:0], NSParagraphStyleAttributeName:paragraphStyle};
+    NSAttributedString *errorStr = [[NSAttributedString alloc] initWithString:NSStringWithFormat(@" %@", message) attributes:messageAttributes];
     [result appendAttributedString:errorStr];
   }
 

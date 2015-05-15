@@ -14,18 +14,15 @@
 #import "KBProveInstructionsView.h"
 #import "KBProveType.h"
 #import "KBContentView.h"
+#import "KBProofResult.h"
 
-typedef void (^KBProveCompletion)(BOOL canceled);
+typedef void (^KBProveCompletion)(KBProofResult *proofResult);
 
 @interface KBProveView : KBContentView
-
-@property (nonatomic) KBProveType proveType;
-
-@property (copy) KBProveCompletion completion;
 
 @property KBProveInputView *inputView;
 @property KBProveInstructionsView *instructionsView;
 
-+ (void)connectWithProveType:(KBProveType)proveType client:(KBRPClient *)client sender:(NSView *)sender completion:(KBProveCompletion)completion;
++ (void)connectWithProveType:(KBProveType)proveType proofResult:(KBProofResult *)proofResult client:(KBRPClient *)client sender:(NSView *)sender completion:(KBProveCompletion)completion;
 
 @end

@@ -97,15 +97,12 @@
   [self setNeedsLayout];
 }
 
-- (void)connectWithProveType:(KBProveType)proveType {
-  KBDebugAlert(@"Waiting on prove RPC fixes", self.window);
-  // TODO Fix
-  /*
+- (void)connectWithProveType:(KBProveType)proveType proofResult:(KBProofResult *)proofResult {
   GHWeakSelf gself = self;
-  [KBProveView connectWithProveType:proveType client:self.client sender:self completion:^(BOOL canceled) {
-    if (!canceled) [gself reload];
+  [KBProveView connectWithProveType:proveType proofResult:proofResult client:self.client sender:self completion:^(KBProofResult *proofResult) {
+    //if (!canceled) [gself reload];
+    [gself reload]; // Always reload even if canceled
   }];
-   */
 }
 
 - (void)openPopup:(id)sender {
@@ -145,8 +142,8 @@
     BOOL isSelf = [AppDelegate.appView.user.username isEqual:self.username];
     [gself.userInfoView addProofs:requestParams.id.proofs editable:isSelf targetBlock:^(KBProofLabel *proofLabel) {
       if (proofLabel.proofResult.result.proofStatus.status != 1) {
-        // Fix it?
-        [self connectWithProveType:KBProveTypeFromAPI(proofLabel.proofResult.proof.proofType)];
+        KBProveType proveType = KBProveTypeFromAPI(proofLabel.proofResult.proof.proofType);
+        [self connectWithProveType:proveType proofResult:proofLabel.proofResult];
       } else if (proofLabel.proofResult.result.hint.humanUrl) {
         [AppDelegate.sharedDelegate openURLString:proofLabel.proofResult.result.hint.humanUrl sender:self];
       }
@@ -313,11 +310,11 @@
 
       switch (proveType) {
         case KBProveTypeDNS: {
-          [gself.userInfoView addHeader:@" " text:@"Add Domain" targetBlock:^{ [gself connectWithProveType:proveType]; }];
+          [gself.userInfoView addHeader:@" " text:@"Add Domain" targetBlock:^{ [gself connectWithProveType:proveType proofResult:nil]; }];
           break;
         }
         case KBProveTypeHTTPS: {
-          [gself.userInfoView addHeader:@" " text:@"Add Website" targetBlock:^{ [gself connectWithProveType:proveType]; }];
+          [gself.userInfoView addHeader:@" " text:@"Add Website" targetBlock:^{ [gself connectWithProveType:proveType proofResult:nil]; }];
           break;
         }
         case KBProveTypeTwitter:
@@ -325,7 +322,7 @@
         case KBProveTypeReddit:
         case KBProveTypeCoinbase:
         case KBProveTypeHackernews: {
-          [gself.userInfoView addHeader:@" " text:NSStringWithFormat(@"Connect to %@", KBNameForProveType(proveType)) targetBlock:^{ [gself connectWithProveType:proveType]; }];
+          [gself.userInfoView addHeader:@" " text:NSStringWithFormat(@"Connect to %@", KBNameForProveType(proveType)) targetBlock:^{ [gself connectWithProveType:proveType proofResult:nil]; }];
           break;
         }
         case KBProveTypeUnknown:

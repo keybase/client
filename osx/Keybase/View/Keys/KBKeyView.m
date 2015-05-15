@@ -55,16 +55,16 @@
 
   KBHeaderLabelView *keyLabel = [[KBHeaderLabelView alloc] init];
   [keyLabel setHeader:@"Key ID"];
-  if (_keyId.kid) [keyLabel addText:[KBHexString(_keyId.kid) uppercaseString] style:KBTextStyleDefault options:KBTextOptionsMonospace lineBreakMode:NSLineBreakByTruncatingMiddle targetBlock:nil];
+  if (_keyId.kid) [keyLabel addText:[KBHexString(_keyId.kid, @"") uppercaseString] style:KBTextStyleDefault options:KBTextOptionsMonospace lineBreakMode:NSLineBreakByTruncatingMiddle targetBlock:nil];
   [_labels addSubview:keyLabel];
 
   KBHeaderLabelView *pgpLabel = [[KBHeaderLabelView alloc] init];
   [pgpLabel setHeader:@"PGP Fingerprint"];
-  if (_keyId.pgpFingerprint) [pgpLabel addText:[KBHexString(_keyId.pgpFingerprint) uppercaseString] style:KBTextStyleDefault options:KBTextOptionsMonospace lineBreakMode:NSLineBreakByTruncatingMiddle targetBlock:nil];
+  if (_keyId.pgpFingerprint) [pgpLabel addText:[KBHexString(_keyId.pgpFingerprint, @"") uppercaseString] style:KBTextStyleDefault options:KBTextOptionsMonospace lineBreakMode:NSLineBreakByTruncatingMiddle targetBlock:nil];
   [_labels addSubview:pgpLabel];
 
-  NSString *query = KBHexString(_keyId.pgpFingerprint);
-  if (_keyId.kid) query = KBHexString(_keyId.kid);
+  NSString *query = KBHexString(_keyId.pgpFingerprint, @"");
+  if (_keyId.kid) query = KBHexString(_keyId.kid, @"");
 
   _textView.attributedText = nil;
   [self setNeedsLayout];
@@ -75,7 +75,7 @@
   [request pgpExportWithSessionID:request.sessionId secret:NO query:query completion:^(NSError *error, NSArray *keys) {
     [KBActivity setProgressEnabled:NO sender:self];
     // TODO This only works when we are the user being key exported
-    KBRFingerprintAndKey *keyInfo = [keys firstObject];
+    KBRKeyInfo *keyInfo = [keys firstObject];
     [gself.textView setText:keyInfo.key style:KBTextStyleDefault options:KBTextOptionsMonospace alignment:NSLeftTextAlignment lineBreakMode:NSLineBreakByClipping];
     [self setNeedsLayout];
   }];
@@ -83,7 +83,7 @@
 
 - (void)removePGPKey:(KBButtonCompletion)completion {
   if (_keyId.kid) {
-    [self removePGPKey:KBHexString(_keyId.kid) completion:completion];
+    [self removePGPKey:KBHexString(_keyId.kid, @"") completion:completion];
   } else {
     completion(KBMakeErrorWithRecovery(-1, @"Oops, can't delete this key.", @"It doesn't have a kid."));
   }

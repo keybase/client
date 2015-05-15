@@ -170,6 +170,25 @@
 
 @end
 
+@implementation KBRSignatureInfo
+@end
+
+@implementation KBRCryptoRequest
+
+- (void)signWithSessionID:(NSInteger)sessionID msg:(NSData *)msg reason:(NSString *)reason completion:(void (^)(NSError *error, KBRSignatureInfo *signatureInfo))completion {
+  NSArray *params = @[@{@"sessionID": @(sessionID), @"msg": KBRValue(msg), @"reason": KBRValue(reason)}];
+  [self.client sendRequestWithMethod:@"keybase.1.crypto.sign" params:params sessionId:self.sessionId completion:^(NSError *error, id retval) {
+    if (error) {
+        completion(error, nil);
+        return;
+      }
+      KBRSignatureInfo *result = retval ? [MTLJSONAdapter modelOfClass:KBRSignatureInfo.class fromJSONDictionary:retval error:&error] : nil;
+      completion(error, result);
+  }];
+}
+
+@end
+
 @implementation KBRCtlRequest
 
 - (void)stop:(void (^)(NSError *error))completion {
@@ -310,6 +329,9 @@
 @implementation KBRIdentifyRes
 @end
 
+@implementation KBRRemoteProof
+@end
+
 @implementation KBRIdentifyRequest
 
 - (void)identifyWithSessionID:(NSInteger)sessionID userAssertion:(NSString *)userAssertion trackStatement:(BOOL)trackStatement completion:(void (^)(NSError *error, KBRIdentifyRes *identifyRes))completion {
@@ -339,9 +361,6 @@
 @end
 
 @implementation KBRProofStatus
-@end
-
-@implementation KBRRemoteProof
 @end
 
 @implementation KBRIdentifyRow
@@ -599,7 +618,7 @@
 @implementation KBRPgpVerifyOptions
 @end
 
-@implementation KBRFingerprintAndKey
+@implementation KBRKeyInfo
 @end
 
 @implementation KBRPgpCreateUids
@@ -667,7 +686,7 @@
         completion(error, nil);
         return;
       }
-      NSArray *results = retval ? [MTLJSONAdapter modelsOfClass:KBRFingerprintAndKey.class fromJSONArray:retval error:&error] : nil;
+      NSArray *results = retval ? [MTLJSONAdapter modelsOfClass:KBRKeyInfo.class fromJSONArray:retval error:&error] : nil;
       completion(error, results);
   }];
 }
@@ -709,12 +728,34 @@
 
 @end
 
+@implementation KBRCheckProofStatus
+@end
+
 @implementation KBRProveRequest
 
-- (void)proveWithSessionID:(NSInteger)sessionID service:(NSString *)service username:(NSString *)username force:(BOOL)force completion:(void (^)(NSError *error))completion {
+- (void)startProofWithSessionID:(NSInteger)sessionID service:(NSString *)service username:(NSString *)username force:(BOOL)force completion:(void (^)(NSError *error))completion {
   NSArray *params = @[@{@"sessionID": @(sessionID), @"service": KBRValue(service), @"username": KBRValue(username), @"force": @(force)}];
-  [self.client sendRequestWithMethod:@"keybase.1.prove.prove" params:params sessionId:self.sessionId completion:^(NSError *error, id retval) {
+  [self.client sendRequestWithMethod:@"keybase.1.prove.startProof" params:params sessionId:self.sessionId completion:^(NSError *error, id retval) {
     completion(error);
+  }];
+}
+
+- (void)cancelProofWithSessionID:(NSInteger)sessionID completion:(void (^)(NSError *error))completion {
+  NSArray *params = @[@{@"sessionID": @(sessionID)}];
+  [self.client sendRequestWithMethod:@"keybase.1.prove.cancelProof" params:params sessionId:self.sessionId completion:^(NSError *error, id retval) {
+    completion(error);
+  }];
+}
+
+- (void)checkProofWithSessionID:(NSInteger)sessionID sigID:(KBRSIGID *)sigID completion:(void (^)(NSError *error, KBRCheckProofStatus *checkProofStatus))completion {
+  NSArray *params = @[@{@"sessionID": @(sessionID), @"sigID": KBRValue(sigID)}];
+  [self.client sendRequestWithMethod:@"keybase.1.prove.checkProof" params:params sessionId:self.sessionId completion:^(NSError *error, id retval) {
+    if (error) {
+        completion(error, nil);
+        return;
+      }
+      KBRCheckProofStatus *result = retval ? [MTLJSONAdapter modelOfClass:KBRCheckProofStatus.class fromJSONDictionary:retval error:&error] : nil;
+      completion(error, result);
   }];
 }
 
@@ -939,22 +980,22 @@
 
 @implementation KBRStreamUiRequest
 
-- (void)closeWithS:(KBRStream *)s completion:(void (^)(NSError *error))completion {
-  NSArray *params = @[@{@"s": KBRValue(s)}];
+- (void)closeWithSessionID:(NSInteger)sessionID s:(KBRStream *)s completion:(void (^)(NSError *error))completion {
+  NSArray *params = @[@{@"sessionID": @(sessionID), @"s": KBRValue(s)}];
   [self.client sendRequestWithMethod:@"keybase.1.streamUi.close" params:params sessionId:self.sessionId completion:^(NSError *error, id retval) {
     completion(error);
   }];
 }
 
-- (void)readWithS:(KBRStream *)s sz:(NSInteger)sz completion:(void (^)(NSError *error, NSData *bytes))completion {
-  NSArray *params = @[@{@"s": KBRValue(s), @"sz": @(sz)}];
+- (void)readWithSessionID:(NSInteger)sessionID s:(KBRStream *)s sz:(NSInteger)sz completion:(void (^)(NSError *error, NSData *bytes))completion {
+  NSArray *params = @[@{@"sessionID": @(sessionID), @"s": KBRValue(s), @"sz": @(sz)}];
   [self.client sendRequestWithMethod:@"keybase.1.streamUi.read" params:params sessionId:self.sessionId completion:^(NSError *error, id retval) {
     completion(error, 0);
   }];
 }
 
-- (void)writeWithS:(KBRStream *)s buf:(NSData *)buf completion:(void (^)(NSError *error, NSInteger n))completion {
-  NSArray *params = @[@{@"s": KBRValue(s), @"buf": KBRValue(buf)}];
+- (void)writeWithSessionID:(NSInteger)sessionID s:(KBRStream *)s buf:(NSData *)buf completion:(void (^)(NSError *error, NSInteger n))completion {
+  NSArray *params = @[@{@"sessionID": @(sessionID), @"s": KBRValue(s), @"buf": KBRValue(buf)}];
   [self.client sendRequestWithMethod:@"keybase.1.streamUi.write" params:params sessionId:self.sessionId completion:^(NSError *error, id retval) {
     completion(error, 0);
   }];
@@ -1215,6 +1256,19 @@
     self.sessionID = [params[0][@"sessionID"] integerValue];
     self.address = params[0][@"address"];
     self.force = [params[0][@"force"] boolValue];
+  }
+  return self;
+}
+
+@end
+
+@implementation KBRSignRequestParams
+
+- (instancetype)initWithParams:(NSArray *)params {
+  if ((self = [super initWithParams:params])) {
+    self.sessionID = [params[0][@"sessionID"] integerValue];
+    self.msg = params[0][@"msg"];
+    self.reason = params[0][@"reason"];
   }
   return self;
 }
@@ -1766,7 +1820,7 @@
 
 @end
 
-@implementation KBRProveRequestParams
+@implementation KBRStartProofRequestParams
 
 - (instancetype)initWithParams:(NSArray *)params {
   if ((self = [super initWithParams:params])) {
@@ -1774,6 +1828,29 @@
     self.service = params[0][@"service"];
     self.username = params[0][@"username"];
     self.force = [params[0][@"force"] boolValue];
+  }
+  return self;
+}
+
+@end
+
+@implementation KBRCancelProofRequestParams
+
+- (instancetype)initWithParams:(NSArray *)params {
+  if ((self = [super initWithParams:params])) {
+    self.sessionID = [params[0][@"sessionID"] integerValue];
+  }
+  return self;
+}
+
+@end
+
+@implementation KBRCheckProofRequestParams
+
+- (instancetype)initWithParams:(NSArray *)params {
+  if ((self = [super initWithParams:params])) {
+    self.sessionID = [params[0][@"sessionID"] integerValue];
+    self.sigID = [MTLJSONAdapter modelOfClass:KBRSIGID.class fromJSONDictionary:params[0][@"sigID"] error:nil];
   }
   return self;
 }
@@ -2021,6 +2098,7 @@
 
 - (instancetype)initWithParams:(NSArray *)params {
   if ((self = [super initWithParams:params])) {
+    self.sessionID = [params[0][@"sessionID"] integerValue];
     self.s = [MTLJSONAdapter modelOfClass:KBRStream.class fromJSONDictionary:params[0][@"s"] error:nil];
   }
   return self;
@@ -2032,6 +2110,7 @@
 
 - (instancetype)initWithParams:(NSArray *)params {
   if ((self = [super initWithParams:params])) {
+    self.sessionID = [params[0][@"sessionID"] integerValue];
     self.s = [MTLJSONAdapter modelOfClass:KBRStream.class fromJSONDictionary:params[0][@"s"] error:nil];
     self.sz = [params[0][@"sz"] integerValue];
   }
@@ -2044,6 +2123,7 @@
 
 - (instancetype)initWithParams:(NSArray *)params {
   if ((self = [super initWithParams:params])) {
+    self.sessionID = [params[0][@"sessionID"] integerValue];
     self.s = [MTLJSONAdapter modelOfClass:KBRStream.class fromJSONDictionary:params[0][@"s"] error:nil];
     self.buf = params[0][@"buf"];
   }

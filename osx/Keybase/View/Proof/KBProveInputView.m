@@ -55,23 +55,23 @@
   NSString *placeholder = @"";
   switch (proveType) {
     case KBProveTypeTwitter:
-      labelText = @"What is your Twitter username?";
+      labelText = @"What's your Twitter username?";
       placeholder = @"@username";
       break;
     case KBProveTypeGithub:
-      labelText = @"What is your Github username?";
+      labelText = @"What's your Github username?";
       placeholder = @"username";
       break;
     case KBProveTypeReddit:
-      labelText = @"What is your Reddit username?";
+      labelText = @"What's your Reddit username?";
       placeholder = @"username";
       break;
     case KBProveTypeCoinbase:
-      labelText = @"What is your Coinbase username?";
+      labelText = @"What's your Coinbase username?";
       placeholder = @"username";
       break;
     case KBProveTypeHackernews:
-      labelText = @"What is your HackerNews username?";
+      labelText = @"What's your HackerNews username?";
       placeholder = @"username";
       break;
     case KBProveTypeDNS:

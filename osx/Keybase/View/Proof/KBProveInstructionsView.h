@@ -16,9 +16,12 @@
 @interface KBProveInstructionsView : KBContentView
 @property KBLabel *instructionsLabel;
 @property KBTextView *proofView;
-@property KBButton *button;
 @property KBButton *clipboardCopyButton;
 @property NSString *proofText;
+
+@property KBButton *button;
+@property KBButton *cancelButton;
+@property KBButton *deleteButton;
 
 - (void)setInstructions:(KBRText *)instructions proofText:(NSString *)proofText proveType:(KBProveType)proveType;
 

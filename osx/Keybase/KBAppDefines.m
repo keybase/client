@@ -14,8 +14,8 @@ NSString *const KBStatusDidChangeNotification = @"KBStatusDidChangeNotification"
 
 NSString *KBDescriptionForKID(NSData *kid) {
   if (!kid) return nil;
-  if ([kid length] < 16) return [KBHexString(kid) uppercaseString];
-  return [KBHexString([kid subdataWithRange:NSMakeRange(kid.length-16, 16)]) uppercaseString];
+  if ([kid length] < 16) return [KBHexString(kid, @"") uppercaseString];
+  return [KBHexString([kid subdataWithRange:NSMakeRange(kid.length-16, 16)], @"") uppercaseString];
 }
 
 NSString *KBPGPKeyIdFromFingerprint(NSString *fingerprint) {
@@ -69,4 +69,12 @@ NSString *KBDisplayURLStringForUsername(NSString *username) {
 
 NSString *KBURLStringForUsername(NSString *username) {
   return NSStringWithFormat(@"https://keybase.io/%@", username);
+}
+
+NSString *KBNSStringByStrippingHTML(NSString *str) {
+  if (!str) return nil;
+  NSRange r;
+  while ((r = [str rangeOfString:@"<[^>]+>" options:NSRegularExpressionSearch]).location != NSNotFound)
+    str = [str stringByReplacingCharactersInRange:r withString:@""];
+    return str;
 }
