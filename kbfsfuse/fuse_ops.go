@@ -153,6 +153,9 @@ func (f *FuseOps) LookupInDir(dNode *FuseNode, name string) (
 			}
 
 			node = dNode.Inode().NewChild(name, true, fNode)
+			f.topLock.Lock()
+			defer f.topLock.Unlock()
+			f.addTopNodeLocked(dirHandle.ToString(f.config), md.Id, fNode)
 			return node, fuse.OK
 		} else if p.TopDir == libkbfs.NullDirId {
 			uid, err := f.config.KBPKI().GetLoggedInUser()
@@ -610,7 +613,11 @@ func (f *FuseOps) ListRoot() (stream []fuse.DirEntry, code fuse.Status) {
 	f.topLock.RLock()
 	defer f.topLock.RUnlock()
 	stream = make([]fuse.DirEntry, 0, len(f.topNodes))
-	for tn, _ := range f.topNodes {
+	for tn, fNode := range f.topNodes {
+		// don't list public directories
+		if fNode.Dir.IsPublic() {
+			continue
+		}
 		stream = append(stream, fuse.DirEntry{
 			Name: tn,
 			Mode: fuse.S_IFDIR | 0750,

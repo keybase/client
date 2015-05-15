@@ -327,15 +327,8 @@ func TestPartialBatchUpdate(t *testing.T) {
 	checkPathBlockPointers(t, nodes, newPath)
 }
 
-// Test that a full path batch update, on an existing file, sets
-// NeedsUpdate and the BlockPointer correctly on all nodes of the path.
-func TestCompleteBatchUpdate(t *testing.T) {
-	config := makeTestConfig([]string{"test_user"})
-
-	root := NewFuseRoot(config)
-	_ = nodefs.NewFileSystemConnector(root, nil)
-
-	node1 := doLookupOrBust(t, root, "test_user")
+func testCompleteBatchUpdate(t *testing.T, root *FuseNode, folderName string) {
+	node1 := doLookupOrBust(t, root, folderName)
 	node2 := doMknodOrBust(t, node1, "file1")
 	node2.Flush() // noop to force wait on update
 
@@ -355,6 +348,31 @@ func TestCompleteBatchUpdate(t *testing.T) {
 	root.Ops.Shutdown()
 
 	nodes := []*FuseNode{root, node1, node2}
-	checkPathNeedsUpdate(t, nodes, true, "test_user/file1")
+	checkPathNeedsUpdate(t, nodes, true,
+		node1.DirHandle.ToString(root.Ops.config)+"/file1")
 	checkPathBlockPointers(t, nodes, newPath)
+}
+
+// Test that a full path batch update, on an existing file in a
+// private directory, sets NeedsUpdate and the BlockPointer correctly
+// on all nodes of the path.
+func TestCompleteBatchUpdatePrivate(t *testing.T) {
+	config := makeTestConfig([]string{"test_user"})
+
+	root := NewFuseRoot(config)
+	_ = nodefs.NewFileSystemConnector(root, nil)
+	testCompleteBatchUpdate(t, root, "test_user")
+}
+
+// Test that a full path batch update, on an existing file in a public
+// directory, sets NeedsUpdate and the BlockPointer correctly on all
+// nodes of the path.
+func TestCompleteBatchUpdatePublic(t *testing.T) {
+	config := makeTestConfig([]string{"test_user"})
+
+	root := NewFuseRoot(config)
+	_ = nodefs.NewFileSystemConnector(root, nil)
+
+	userRoot := doLookupOrBust(t, root, "test_user")
+	testCompleteBatchUpdate(t, userRoot, "public")
 }
