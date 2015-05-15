@@ -96,9 +96,11 @@ func (s *CmdSignupState) ParseArgv(ctx *cli.Context) error {
 	}
 
 	if ctx.Bool("batch") {
-		if len(s.defaultUsername) == 0 {
-			return BadArgsError{"username required in batch mode"}
-		}
+		/*
+			if len(s.defaultUsername) == 0 {
+				return BadArgsError{"username required in batch mode"}
+			}
+		*/
 
 		s.fields = &PromptFields{
 			email:           &Field{Value: &s.defaultEmail},
@@ -517,5 +519,10 @@ func (s *CmdSignupState) HandlePostError(inerr error) (retry bool, err error) {
 			err = nil
 		}
 	}
+
+	if !s.doPrompt {
+		retry = false
+	}
+
 	return
 }
