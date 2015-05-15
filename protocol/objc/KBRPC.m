@@ -728,6 +728,9 @@
 
 @end
 
+@implementation KBRCheckProofStatus
+@end
+
 @implementation KBRProveRequest
 
 - (void)startProofWithSessionID:(NSInteger)sessionID service:(NSString *)service username:(NSString *)username force:(BOOL)force completion:(void (^)(NSError *error))completion {
@@ -744,14 +747,14 @@
   }];
 }
 
-- (void)checkProofWithSessionID:(NSInteger)sessionID sigID:(KBRSIGID *)sigID completion:(void (^)(NSError *error, KBRRemoteProof *remoteProof))completion {
+- (void)checkProofWithSessionID:(NSInteger)sessionID sigID:(KBRSIGID *)sigID completion:(void (^)(NSError *error, KBRCheckProofStatus *checkProofStatus))completion {
   NSArray *params = @[@{@"sessionID": @(sessionID), @"sigID": KBRValue(sigID)}];
   [self.client sendRequestWithMethod:@"keybase.1.prove.checkProof" params:params sessionId:self.sessionId completion:^(NSError *error, id retval) {
     if (error) {
         completion(error, nil);
         return;
       }
-      KBRRemoteProof *result = retval ? [MTLJSONAdapter modelOfClass:KBRRemoteProof.class fromJSONDictionary:retval error:&error] : nil;
+      KBRCheckProofStatus *result = retval ? [MTLJSONAdapter modelOfClass:KBRCheckProofStatus.class fromJSONDictionary:retval error:&error] : nil;
       completion(error, result);
   }];
 }

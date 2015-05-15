@@ -78,13 +78,14 @@ func (ph *ProveHandler) CancelProof(sessionID int) error {
 	return c.Cancel()
 }
 
-func (ph *ProveHandler) CheckProof(arg keybase1.CheckProofArg) (res keybase1.RemoteProof, err error) {
+func (ph *ProveHandler) CheckProof(arg keybase1.CheckProofArg) (res keybase1.CheckProofStatus, err error) {
 	eng := engine.NewProveCheck(G, libkb.SigId(arg.SigID))
 	ctx := &engine.Context{}
 	if err = engine.RunEngine(eng, ctx); err != nil {
 		return
 	}
-	res = libkb.ExportRemoteProof(eng.Proof())
+	found, status := eng.Results()
+	res = keybase1.CheckProofStatus{Found: found, Status: status}
 
 	return
 }

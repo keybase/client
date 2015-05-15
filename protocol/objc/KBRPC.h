@@ -536,12 +536,17 @@ typedef NS_ENUM (NSInteger, KBRSignMode) {
 
 @end
 
+@interface KBRCheckProofStatus : KBRObject
+@property BOOL found;
+@property NSInteger status;
+@end
+
 @interface KBRProveRequest : KBRRequest
 - (void)startProofWithSessionID:(NSInteger)sessionID service:(NSString *)service username:(NSString *)username force:(BOOL)force completion:(void (^)(NSError *error))completion;
 
 - (void)cancelProofWithSessionID:(NSInteger)sessionID completion:(void (^)(NSError *error))completion;
 
-- (void)checkProofWithSessionID:(NSInteger)sessionID sigID:(KBRSIGID *)sigID completion:(void (^)(NSError *error, KBRRemoteProof *remoteProof))completion;
+- (void)checkProofWithSessionID:(NSInteger)sessionID sigID:(KBRSIGID *)sigID completion:(void (^)(NSError *error, KBRCheckProofStatus *checkProofStatus))completion;
 
 @end
 

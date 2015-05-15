@@ -139,6 +139,23 @@ func CheckPosted(proofId string) (found bool, status int, err error) {
 	return
 }
 
+func CheckPostedViaSigID(sigID string) (found bool, status int, err error) {
+	res, e2 := G.API.Post(ApiArg{
+		Endpoint:    "sig/posted",
+		NeedSession: true,
+		Args: HttpArgs{
+			"sig_id": S{sigID},
+		},
+	})
+	if e2 != nil {
+		err = e2
+		return
+	}
+	res.Body.AtKey("proof_ok").GetBoolVoid(&found, &err)
+	res.Body.AtPath("proof_res.status").GetIntVoid(&status, &err)
+	return
+}
+
 func PostDeviceLKS(lctx LoginContext, deviceID, deviceType string, serverHalf []byte) error {
 	if len(serverHalf) == 0 {
 		return fmt.Errorf("PostDeviceLKS: called with empty serverHalf")

@@ -1802,6 +1802,11 @@ func (c PgpClient) PgpUpdate(__arg PgpUpdateArg) (err error) {
 	return
 }
 
+type CheckProofStatus struct {
+	Found  bool `codec:"found" json:"found"`
+	Status int  `codec:"status" json:"status"`
+}
+
 type StartProofArg struct {
 	SessionID int    `codec:"sessionID" json:"sessionID"`
 	Service   string `codec:"service" json:"service"`
@@ -1821,7 +1826,7 @@ type CheckProofArg struct {
 type ProveInterface interface {
 	StartProof(StartProofArg) error
 	CancelProof(int) error
-	CheckProof(CheckProofArg) (RemoteProof, error)
+	CheckProof(CheckProofArg) (CheckProofStatus, error)
 }
 
 func ProveProtocol(i ProveInterface) rpc2.Protocol {
@@ -1869,7 +1874,7 @@ func (c ProveClient) CancelProof(sessionID int) (err error) {
 	return
 }
 
-func (c ProveClient) CheckProof(__arg CheckProofArg) (res RemoteProof, err error) {
+func (c ProveClient) CheckProof(__arg CheckProofArg) (res CheckProofStatus, err error) {
 	err = c.Cli.Call("keybase.1.prove.checkProof", []interface{}{__arg}, &res)
 	return
 }

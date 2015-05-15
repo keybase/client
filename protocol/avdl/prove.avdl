@@ -4,7 +4,12 @@ protocol prove {
 	import idl "common.avdl";
 	import idl "identify_common.avdl";
 
+	record CheckProofStatus {
+		boolean found;
+		int status;
+	}
+
 	void startProof(int sessionID, string service, string username, boolean force);
 	void cancelProof(int sessionID);
-	RemoteProof checkProof(int sessionID, SIGID sigID);
+	CheckProofStatus checkProof(int sessionID, SIGID sigID);
 }
