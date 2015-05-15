@@ -40,20 +40,14 @@ func (fc FakeClient) Call(s string, args interface{}, res interface{}) error {
 			return err
 		}
 
-		deviceSibkey, err := fc.Local.GetPublicSigningKey(user)
-		if err != nil {
-			return err
-		}
-
 		deviceSubkeyKid, err := fc.Local.GetDeviceSubkeyKid()
 		if err != nil {
 			return err
 		}
 
 		session := res.(*keybase1.Session)
-		session.Uid = keybase1.UID(user.GetUid())
+		session.Uid = keybase1.UID(user.GetUID())
 		session.Username = user.GetName()
-		session.DeviceSibkeyKid = deviceSibkey.GetKid().String()
 		session.DeviceSubkeyKid = libkb.KID(deviceSubkeyKid).String()
 
 	default:
