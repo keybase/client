@@ -9,19 +9,19 @@
 #import "KBInstallAction.h"
 
 @interface KBInstallAction ()
-@property id<KBInstallable> installable;
+@property id<KBComponent> component;
 @end
 
 @implementation KBInstallAction
 
-+ (instancetype)installActionWithInstallable:(id<KBInstallable>)installable {
++ (instancetype)installActionWithComponent:(id<KBComponent>)component {
   KBInstallAction *installAction = [[KBInstallAction alloc] init];
-  installAction.installable = installable;
+  installAction.component = component;
   return installAction;
 }
 
 - (NSString *)name {
-  return _installable.name;
+  return _component.name;
 }
 
 - (NSString *)statusDescription {

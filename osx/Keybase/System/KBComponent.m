@@ -6,6 +6,6 @@
 //  Copyright (c) 2015 Gabriel Handford. All rights reserved.
 //
 
-#import "KBInstallable.h"
+#import "KBComponent.h"
 
 

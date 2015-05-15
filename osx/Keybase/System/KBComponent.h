@@ -1,5 +1,5 @@
 //
-//  KBInstallable.h
+//  KBComponent.h
 //  Keybase
 //
 //  Created by Gabriel on 5/10/15.
@@ -8,16 +8,16 @@
 
 #import <Foundation/Foundation.h>
 
-#import "KBInstallStatus.h"
+#import "KBComponentStatus.h"
 #import "KBAppDefines.h"
 
-typedef void (^KBInstallableStatus)(KBInstallStatus *installStatus);
+typedef void (^KBOnComponentStatus)(KBComponentStatus *installStatus);
 
-@protocol KBInstallable <NSObject>
+@protocol KBComponent <NSObject>
 
 - (NSString *)name;
 
-- (void)installStatus:(KBInstallableStatus)completion;
+- (void)status:(KBOnComponentStatus)completion;
 
 - (void)install:(KBCompletion)completion;
 

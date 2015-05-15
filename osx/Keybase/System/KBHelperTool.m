@@ -1,22 +1,22 @@
 //
-//  KBHelperInstall.m
+//  KBHelperTool.m
 //  Keybase
 //
 //  Created by Gabriel on 5/10/15.
 //  Copyright (c) 2015 Gabriel Handford. All rights reserved.
 //
 
-#import "KBHelperInstall.h"
+#import "KBHelperTool.h"
 #import "KBAppDefines.h"
 #import <ServiceManagement/ServiceManagement.h>
 #import <MPMessagePack/MPXPCClient.h>
 #import "KBLaunchCtl.h"
 
-@interface KBHelperInstall ()
+@interface KBHelperTool ()
 @property NSString *bundleVersion;
 @end
 
-@implementation KBHelperInstall
+@implementation KBHelperTool
 
 - (instancetype)init {
   if ((self = [super init])) {
@@ -30,24 +30,27 @@
   return @"Helper Tool";
 }
 
-- (void)installStatus:(KBInstallableStatus)completion {
+- (void)status:(KBOnComponentStatus)completion {
   if (![NSFileManager.defaultManager fileExistsAtPath:@"/Library/LaunchDaemons/keybase.Helper.plist" isDirectory:nil] &&
       ![NSFileManager.defaultManager fileExistsAtPath:@"/Library/PrivilegedHelperTools/keybase.Helper" isDirectory:nil]) {
-    completion([KBInstallStatus installStatusWithStatus:KBInstalledStatusNotInstalled runtimeStatus:KBRuntimeStatusNone info:nil]);
+    completion([KBComponentStatus componentStatusWithInstallStatus:KBInstallStatusNotInstalled runtimeStatus:KBRuntimeStatusNone info:nil]);
     return;
   }
 
   NSString *bundleVersion = _bundleVersion;
+  GHODictionary *info = [GHODictionary dictionary];
   MPXPCClient *helper = [[MPXPCClient alloc] initWithServiceName:@"keybase.Helper" priviledged:YES];
   [helper sendRequest:@"version" params:nil completion:^(NSError *error, NSDictionary *versions) {
     if (error) {
-      completion([KBInstallStatus installStatusWithStatus:KBInstalledStatusInstalled runtimeStatus:KBRuntimeStatusNotRunning info:nil]);
+      completion([KBComponentStatus componentStatusWithInstallStatus:KBInstallStatusInstalled runtimeStatus:KBRuntimeStatusNotRunning info:nil]);
     } else {
-      NSString *runningVersion = versions[@"Version"];
+      NSString *runningVersion = versions[@"version"];
+      if (runningVersion) info[@"Version"] = runningVersion;
       if ([runningVersion isEqualToString:bundleVersion]) {
-        completion([KBInstallStatus installStatusWithStatus:KBInstalledStatusInstalled runtimeStatus:KBRuntimeStatusRunning info:[GHODictionary d:@{@"version": runningVersion}]]);
+        completion([KBComponentStatus componentStatusWithInstallStatus:KBInstallStatusInstalled runtimeStatus:KBRuntimeStatusRunning info:info]);
       } else {
-        completion([KBInstallStatus installStatusWithStatus:KBInstalledStatusNeedsUpgrade runtimeStatus:KBRuntimeStatusRunning info:[GHODictionary d:@{@"version": runningVersion, @"New version": bundleVersion}]]);
+        if (bundleVersion) info[@"New version"] = bundleVersion;
+        completion([KBComponentStatus componentStatusWithInstallStatus:KBInstallStatusNeedsUpgrade runtimeStatus:KBRuntimeStatusRunning info:info]);
       }
     }
   }];
@@ -89,6 +92,5 @@
     return YES;
   }
 }
-
 
 @end

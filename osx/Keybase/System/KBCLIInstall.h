@@ -8,8 +8,8 @@
 
 #import <Foundation/Foundation.h>
 
-#import "KBInstallable.h"
+#import "KBComponent.h"
 
-@interface KBCLIInstall : NSObject <KBInstallable>
+@interface KBCLIInstall : NSObject <KBComponent>
 
 @end

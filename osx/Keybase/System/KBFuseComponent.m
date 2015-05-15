@@ -6,16 +6,16 @@
 //  Copyright (c) 2015 Gabriel Handford. All rights reserved.
 //
 
-#import "KBFuseInstall.h"
+#import "KBFuseComponent.h"
 
 #import "KBAppDefines.h"
 #import <MPMessagePack/MPXPCClient.h>
 
-@interface KBFuseInstall ()
+@interface KBFuseComponent ()
 @property NSString *bundleVersion;
 @end
 
-@implementation KBFuseInstall
+@implementation KBFuseComponent
 
 - (instancetype)init {
   if ((self = [super init])) {
@@ -29,18 +29,18 @@
   return @"OSXFuse";
 }
 
-- (void)installStatus:(KBInstallableStatus)completion {
+- (void)status:(KBOnComponentStatus)completion {
   NSString *bundleVersion = _bundleVersion;
   MPXPCClient *helper = [[MPXPCClient alloc] initWithServiceName:@"keybase.Helper" priviledged:YES];
   [helper sendRequest:@"version" params:nil completion:^(NSError *error, NSDictionary *versions) {
     if (error) {
-      completion([KBInstallStatus installStatusWithStatus:KBInstalledStatusInstalled runtimeStatus:KBRuntimeStatusNotRunning info:nil]);
+      completion([KBComponentStatus componentStatusWithInstallStatus:KBInstallStatusInstalled runtimeStatus:KBRuntimeStatusNotRunning info:nil]);
     } else {
       NSString *runningVersion = versions[@"fuseRunningVersion"];
       if ([runningVersion isEqualToString:bundleVersion]) {
-        completion([KBInstallStatus installStatusWithStatus:KBInstalledStatusInstalled runtimeStatus:KBRuntimeStatusRunning info:[GHODictionary d:@{@"Version": runningVersion}]]);
+        completion([KBComponentStatus componentStatusWithInstallStatus:KBInstallStatusInstalled runtimeStatus:KBRuntimeStatusRunning info:[GHODictionary d:@{@"Version": runningVersion}]]);
       } else {
-        completion([KBInstallStatus installStatusWithStatus:KBInstalledStatusNeedsUpgrade runtimeStatus:KBRuntimeStatusRunning info:[GHODictionary d:@{@"Version": runningVersion, @"New version": bundleVersion}]]);
+        completion([KBComponentStatus componentStatusWithInstallStatus:KBInstallStatusNeedsUpgrade runtimeStatus:KBRuntimeStatusRunning info:[GHODictionary d:@{@"Version": runningVersion, @"New version": bundleVersion}]]);
       }
     }
   }];

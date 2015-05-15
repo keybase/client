@@ -10,7 +10,7 @@
 
 #import "AppDelegate.h"
 #import <MPMessagePack/MPXPCClient.h>
-#import "KBHelperInstall.h"
+#import "KBHelperTool.h"
 
 @interface KBFSStatusView ()
 @property MPXPCClient *client;
@@ -69,7 +69,7 @@
 }
 
 - (void)installHelper {
-  KBHelperInstall *helperInstall = [[KBHelperInstall alloc] init];
+  KBHelperTool *helperInstall = [[KBHelperTool alloc] init];
   [helperInstall install:^(NSError *error) {
     if (error) KBConsoleError(error);
     else KBConsoleLog(@"Installed");

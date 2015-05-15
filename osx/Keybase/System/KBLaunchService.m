@@ -32,26 +32,26 @@
   return self;
 }
 
-- (void)installStatus:(KBInstallableStatus)completion {
+- (void)status:(KBOnComponentStatus)completion {
   NSString *bundleVersion = _bundleVersion;
   NSString *runningVersion = _versionPath ? [NSString stringWithContentsOfFile:_versionPath encoding:NSUTF8StringEncoding error:nil] : nil;
   GHODictionary *info = [GHODictionary dictionary];
   if (runningVersion) info[@"Version"] = runningVersion;
   [KBLaunchCtl status:_label completion:^(KBServiceStatus *status) {
     if (status.error) {
-      completion([KBInstallStatus installStatusWithError:status.error]);
+      completion([KBComponentStatus componentStatusWithError:status.error]);
     } else {
       if (status.isRunning) {
         info[@"pid"] = status.pid;
         if (![runningVersion isEqualToString:bundleVersion]) {
           if (bundleVersion) info[@"New Version"] = bundleVersion;
-          completion([KBInstallStatus installStatusWithStatus:KBInstalledStatusNeedsUpgrade runtimeStatus:KBRuntimeStatusRunning info:info]);
+          completion([KBComponentStatus componentStatusWithInstallStatus:KBInstallStatusNeedsUpgrade runtimeStatus:KBRuntimeStatusRunning info:info]);
         } else {
-          completion([KBInstallStatus installStatusWithStatus:KBInstalledStatusInstalled runtimeStatus:KBRuntimeStatusRunning info:info]);
+          completion([KBComponentStatus componentStatusWithInstallStatus:KBInstallStatusInstalled runtimeStatus:KBRuntimeStatusRunning info:info]);
         }
       } else {
         info[@"exit"] = status.lastExitStatus;
-        completion([KBInstallStatus installStatusWithStatus:KBInstalledStatusInstalled runtimeStatus:KBRuntimeStatusNotRunning info:info]);
+        completion([KBComponentStatus componentStatusWithInstallStatus:KBInstallStatusInstalled runtimeStatus:KBRuntimeStatusNotRunning info:info]);
       }
     }
   }];

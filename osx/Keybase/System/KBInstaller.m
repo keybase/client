@@ -12,12 +12,8 @@
 #import "AppDelegate.h"
 //#include <launch.h>
 #import "KBRunOver.h"
-#import "KBInstallable.h"
+#import "KBComponent.h"
 #import "KBInstallAction.h"
-#import "KBLaunchService.h"
-#import "KBHelperInstall.h"
-#import "KBFuseInstall.h"
-#import "KBCLIInstall.h"
 
 @interface KBInstaller ()
 @property NSArray *installActions;
@@ -25,29 +21,9 @@
 
 @implementation KBInstaller
 
-- (instancetype)initWithEnvironment:(KBEnvironment *)environment {
+- (instancetype)initWithEnvironment:(KBEnvironment *)environment components:(NSArray *)components {
   if ((self = [super init])) {
-
-    NSDictionary *info = [[NSBundle mainBundle] infoDictionary];
-    NSMutableArray *installables = [NSMutableArray array];
-
-    if (environment.isInstallEnabled) {
-      if (environment.launchdLabelService) {
-        [installables addObject:[[KBLaunchService alloc] initWithName:@"Service" label:environment.launchdLabelService bundleVersion:info[@"KBServiceVersion"] versionPath:[environment cachePath:@"service.version"] plist:environment.launchdPlistDictionaryForService]];
-      }
-
-      [installables addObject:[[KBHelperInstall alloc] init]];
-
-      if (environment.launchdLabelKBFS) {
-        [installables addObject:[[KBLaunchService alloc] initWithName:@"KBFS" label:environment.launchdLabelKBFS bundleVersion:info[@"KBFSVersion"] versionPath:nil plist:environment.launchdPlistDictionaryForKBFS]];
-      }
-
-      [installables addObject:[[KBFuseInstall alloc] init]];
-
-      [installables addObject:[[KBCLIInstall alloc] init]];
-    }
-
-    _installActions = [installables map:^(id<KBInstallable> installable) { return [KBInstallAction installActionWithInstallable:installable]; }];
+    _installActions = [components map:^(id<KBComponent> c) { return [KBInstallAction installActionWithComponent:c]; }];
   }
   return self;
 }
@@ -56,7 +32,7 @@
   KBRunOver *rover = [[KBRunOver alloc] init];
   rover.objects = _installActions;
   rover.runBlock = ^(KBInstallAction *installAction, KBRunCompletion runCompletion) {
-    [installAction.installable installStatus:^(KBInstallStatus *status) {
+    [installAction.component status:^(KBComponentStatus *status) {
       installAction.status = status;
       // Clear install outcome
       installAction.installAttempted = NO;
@@ -73,7 +49,7 @@
 
 - (NSArray *)installActionsNeeded {
   return [_installActions select:^BOOL(KBInstallAction *installAction) {
-    return (installAction.status.status != KBInstalledStatusInstalled ||
+    return (installAction.status.installStatus != KBInstallStatusInstalled ||
             installAction.status.runtimeStatus == KBRuntimeStatusNotRunning);
   }];
 }
@@ -87,14 +63,14 @@
   KBRunOver *rover = [[KBRunOver alloc] init];
   rover.objects = installActionsNeeded;
   rover.runBlock = ^(KBInstallAction *installAction, KBRunCompletion runCompletion) {
-    DDLogDebug(@"Install: %@", installAction.installable.name);
-    [installAction.installable install:^(NSError *error) {
+    DDLogDebug(@"Install: %@", installAction.name);
+    [installAction.component install:^(NSError *error) {
       // Set install outcome
       installAction.installAttempted = YES;
       installAction.installError = error;
 
       if (!error) {
-        [installAction.installable installStatus:^(KBInstallStatus *status) {
+        [installAction.component status:^(KBComponentStatus *status) {
           installAction.status = status;
           completion();
         }];

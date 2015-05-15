@@ -1,5 +1,5 @@
 //
-//  KBHelperInstall.h
+//  KBHelperTool.h
 //  Keybase
 //
 //  Created by Gabriel on 5/10/15.
@@ -8,8 +8,8 @@
 
 #import <Foundation/Foundation.h>
 
-#import "KBInstallable.h"
+#import "KBComponent.h"
 
-@interface KBHelperInstall : NSObject <KBInstallable>
+@interface KBHelperTool : NSObject <KBComponent>
 
 @end
