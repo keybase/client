@@ -85,7 +85,7 @@ func (s *CmdSignupState) ParseArgv(ctx *cli.Context) error {
 		s.defaultUsername = cl.GetUsername()
 	}
 
-	s.defaultPassphrase = ctx.String("passphase")
+	s.defaultPassphrase = ctx.String("passphrase")
 	if s.defaultPassphrase == "" {
 		s.defaultPassphrase = "home computer"
 	}
