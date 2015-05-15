@@ -46,7 +46,7 @@
     CGFloat minY = 0;
     if (yself.imageView.image || yself.imageSize.width > 0) {
       CGRect imageViewFrame = [layout setFrame:CGRectMake(x, y, MAX(40, yself.imageSize.width), MAX(40, yself.imageSize.height)) view:yself.imageView];
-      x += 50;
+      x += imageViewFrame.size.width + 8;
       minY = imageViewFrame.origin.y + imageViewFrame.size.height;
     }
 
@@ -62,14 +62,14 @@
 
 - (void)setTitle:(NSString *)title info:(NSString *)info image:(NSImage *)image {
   [self.titleLabel setText:title font:KBAppearance.currentAppearance.boldTextFont color:KBAppearance.currentAppearance.textColor alignment:NSLeftTextAlignment];
-  [self.infoLabel setText:info style:KBTextStyleSecondaryText];
+  [self.infoLabel setText:info style:KBTextStyleSecondaryText options:KBTextOptionsSmall alignment:NSLeftTextAlignment lineBreakMode:NSLineBreakByClipping];
   self.imageView.image = image;
   [self setNeedsLayout];
 }
 
 - (void)setTitle:(NSString *)title info:(NSString *)info imageURLString:(NSString *)imageURLString imageSize:(CGSize)imageSize {
   [self.titleLabel setText:title font:KBAppearance.currentAppearance.boldTextFont color:KBAppearance.currentAppearance.textColor alignment:NSLeftTextAlignment];
-  [self.infoLabel setText:info style:KBTextStyleSecondaryText];
+  [self.infoLabel setText:info style:KBTextStyleSecondaryText options:KBTextOptionsSmall alignment:NSLeftTextAlignment lineBreakMode:NSLineBreakByClipping];
   self.imageSize = imageSize;
   [self.imageView setImageWithURL:[NSURL URLWithString:imageURLString] placeholderImage:nil];
   self.image = nil;

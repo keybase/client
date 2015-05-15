@@ -39,13 +39,12 @@
   };
   [contentView addSubview:_deviceSignerView];
 
-  YOView *bottomView = [[YOView alloc] init];
+  YOHBox *bottomView = [YOHBox box:@{@"spacing": @(20), @"minSize": @"130,0", @"horizontalAlignment": @"center"}];
+  [contentView addSubview:bottomView];
   _cancelButton = [KBButton buttonWithText:@"Cancel" style:KBButtonStyleDefault];
   [bottomView addSubview:_cancelButton];
   _selectButton = [KBButton buttonWithText:@"Select" style:KBButtonStylePrimary];
   [bottomView addSubview:_selectButton];
-  [contentView addSubview:bottomView];
-  bottomView.viewLayout = [YOLayout layoutWithLayoutBlock:[KBLayouts layoutForButton:_selectButton cancelButton:_cancelButton horizontalAlignment:KBHorizontalAlignmentCenter]];
 
   contentView.viewLayout = [YOLayout layoutWithLayoutBlock:[KBLayouts borderLayoutWithCenterView:_deviceSignerView topView:topView bottomView:bottomView insets:UIEdgeInsetsZero spacing:20 maxSize:CGSizeMake(600, 450)]];
 

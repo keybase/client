@@ -36,12 +36,12 @@
   _secretWordsLabel.insets = UIEdgeInsetsMake(10, 20, 10, 20);
   [contentView addSubview:_secretWordsLabel];
 
-  YOView *footerView = [YOView view];
+  YOHBox *footerView = [YOHBox box:@{@"spacing": @(20), @"minSize": @"130,0", @"horizontalAlignment": @"center"}];
+  [footerView addSubview:_cancelButton];
   _button = [KBButton buttonWithText:@"OK" style:KBButtonStylePrimary];
   [footerView addSubview:_button];
   _cancelButton = [KBButton buttonWithText:@"Cancel" style:KBButtonStyleDefault];
-  [footerView addSubview:_cancelButton];
-  footerView.viewLayout = [YOLayout layoutWithLayoutBlock:[KBLayouts layoutForButton:_button cancelButton:_cancelButton horizontalAlignment:KBHorizontalAlignmentCenter]];
+
   [contentView addSubview:footerView];
 
   YOSelf yself = self;

@@ -15,4 +15,6 @@
 
 - (void)setUser:(KBRUser *)user;
 
+- (void)refresh;
+
 @end

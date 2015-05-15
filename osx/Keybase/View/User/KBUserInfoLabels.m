@@ -57,14 +57,14 @@
 }
 
 - (void)updateProofResult:(KBProofResult *)proofResult {
-  KBProofLabel *label = [self findLabelForSigId:proofResult.proof.sigId];
+  KBProofLabel *label = [self findLabelForSigId:proofResult.proof.sigID];
   label.proofResult = proofResult;
   [self setNeedsLayout];
 }
 
-- (KBProofLabel *)findLabelForSigId:(KBRSIGID *)sigId {
+- (KBProofLabel *)findLabelForSigId:(NSString *)sigId {
   for (KBProofLabel *label in _proofLabels) {
-    if ([[label proofResult].proof.sigId isEqual:sigId]) return label;
+    if ([[label proofResult].proof.sigID isEqual:sigId]) return label;
   }
   return nil;
 }
@@ -86,7 +86,7 @@
   if (key.kid) {
     keyDescription = KBDescriptionForKID(key.kid);
   } else if (key.pgpFingerprint) {
-    keyDescription = KBDescriptionForFingerprint(KBPGPKeyIdFromFingerprint(KBHexString(key.pgpFingerprint)), 0);
+    keyDescription = KBDescriptionForFingerprint(KBPGPKeyIdFromFingerprint(KBHexString(key.pgpFingerprint, @"")), 0);
   }
   KBButton *button = [KBButton buttonWithText:keyDescription style:KBButtonStyleLink alignment:NSLeftTextAlignment lineBreakMode:NSLineBreakByTruncatingTail];
   button.targetBlock = ^{ targetBlock(self, key); };

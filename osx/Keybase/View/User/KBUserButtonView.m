@@ -48,6 +48,10 @@
   [self setView:view];
 }
 
+- (void)refresh {
+  [self setUser:_user];
+}
+
 - (void)setUser:(KBRUser *)user {
   _user = user;
 

@@ -53,7 +53,7 @@
 - (BOOL)updateProofResult:(KBProofResult *)proofResult {
   BOOL updated = NO;
   for (KBUserInfoLabels *label in _labels) {
-    if ([label findLabelForSigId:proofResult.proof.sigId]) {
+    if ([label findLabelForSigId:proofResult.proof.sigID]) {
       [label updateProofResult:proofResult];
       updated = YES;
     }

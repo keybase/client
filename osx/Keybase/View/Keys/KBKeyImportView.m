@@ -46,16 +46,14 @@
   _chooseFileButton.targetBlock = ^{ [yself chooseFile]; };
   [self addSubview:_chooseFileButton];
 
-  YOView *footerView = [[YOView alloc] init];
+  YOHBox *footerView = [YOHBox box:@{@"spacing": @(20), @"minSize": @"130,0", @"horizontalAlignment": @"right"}];
+  [self addSubview:footerView];
   _cancelButton = [KBButton buttonWithText:@"Cancel" style:KBButtonStyleDefault];
   [footerView addSubview:_cancelButton];
 
   _importButton = [KBButton buttonWithText:@"Import" style:KBButtonStylePrimary];
   _importButton.targetBlock = ^{ [yself import]; };
   [footerView addSubview:_importButton];
-
-  footerView.viewLayout = [YOLayout layoutWithLayoutBlock:[KBLayouts layoutForButton:self.importButton cancelButton:self.cancelButton horizontalAlignment:KBHorizontalAlignmentRight]];
-  [self addSubview:footerView];
 
   //YOSelf yself = self;
   self.viewLayout = [YOLayout layoutWithLayoutBlock:^CGSize(id<YOLayout> layout, CGSize size) {
@@ -122,7 +120,7 @@
   } else {
     _armored = nil;
     NSData *displayData = [_data subdataWithRange:NSMakeRange(0, MIN(1000, _data.length))];
-    [self setDisplayText:KBHexString(displayData)];
+    [self setDisplayText:KBHexString(displayData, @"")];
     _chooseFileButton.hidden = YES;
   }
 }

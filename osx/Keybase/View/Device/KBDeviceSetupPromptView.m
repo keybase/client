@@ -36,13 +36,13 @@
   [contentView addSubview:_deviceNameField];
 
   GHWeakSelf gself = self;
-  YOView *footerView = [YOView view];
+  YOHBox *footerView = [YOHBox box:@{@"spacing": @(20), @"minSize": @"130,0", @"horizontalAlignment": @"center"}];
+  [footerView addSubview:_cancelButton];
   _button = [KBButton buttonWithText:@"Save" style:KBButtonStylePrimary];
   _button.targetBlock = ^{ [gself save]; };
   [footerView addSubview:_button];
   _cancelButton = [KBButton buttonWithText:@"Cancel" style:KBButtonStyleDefault];
-  [footerView addSubview:_cancelButton];
-  footerView.viewLayout = [YOLayout layoutWithLayoutBlock:[KBLayouts layoutForButton:_button cancelButton:_cancelButton horizontalAlignment:KBHorizontalAlignmentCenter]];
+
   [contentView addSubview:footerView];
 
   YOSelf yself = self;

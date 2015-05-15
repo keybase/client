@@ -26,7 +26,7 @@
 
 - (void)updateProofResult:(KBProofResult *)proofResult;
 
-- (KBProofLabel *)findLabelForSigId:(KBRSIGID *)sigId;
+- (KBProofLabel *)findLabelForSigId:(NSString *)sigId;
 
 - (void)addHeader:(NSString *)header text:(NSString *)text targetBlock:(dispatch_block_t)targetBlock;
 

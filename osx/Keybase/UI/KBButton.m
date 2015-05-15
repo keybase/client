@@ -90,6 +90,7 @@
 
     case KBButtonStyleDefault:
     case KBButtonStylePrimary:
+    case KBButtonStyleDanger:
       return CGSizeMake(24, 16);
   }
 }
@@ -209,6 +210,7 @@ static KBButtonErrorHandler gErrorHandler = nil;
   switch (style) {
     case KBButtonStyleDefault:
     case KBButtonStylePrimary:
+    case KBButtonStyleDanger:
       return [KBAppearance.currentAppearance buttonFont];
 
     case KBButtonStyleLink:
@@ -283,7 +285,7 @@ static KBButtonErrorHandler gErrorHandler = nil;
       CGSize controlSize = controlView.frame.size;
       controlSize.width += 1;
       controlSize.height += 1;
-      CGPoint imagePosition = CGPointMake(floorf(controlSize.width/2.0 - titleSize.width/2.0 - image.size.width/2.0), floorf(controlSize.height/2.0 - image.size.height/2.0));
+      CGPoint imagePosition = CGPointMake(floorf(controlSize.width/2.0 - image.size.width/2.0), floorf(controlSize.height/2.0 - image.size.height/2.0));
       imageFrame = CGRectMake(imagePosition.x, imagePosition.y, image.size.width, image.size.height);
     }
   }

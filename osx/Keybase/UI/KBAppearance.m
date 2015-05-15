@@ -78,6 +78,7 @@ static id<KBAppearance> gCurrentAppearance = NULL;
   // TODO These options overwrite each other
   if ((options & KBTextOptionsMonospace) != 0) font = [NSFont fontWithName:@"Monaco" size:font.pointSize-2];
   if ((options & KBTextOptionsStrong) != 0) font = [NSFont boldSystemFontOfSize:font.pointSize];
+  if ((options & KBTextOptionsSmall) != 0) font = [NSFont fontWithDescriptor:font.fontDescriptor size:font.pointSize-1];
 
   return font;
 }
@@ -187,6 +188,7 @@ static id<KBAppearance> gCurrentAppearance = NULL;
       return GHNSColorFromRGB(0x333333);
 
     case KBButtonStylePrimary:
+    case KBButtonStyleDanger:
       return GHNSColorFromRGB(0xFFFFFF);
 
     case KBButtonStyleLink:
@@ -207,6 +209,7 @@ static id<KBAppearance> gCurrentAppearance = NULL;
   switch (style) {
     case KBButtonStyleDefault:
     case KBButtonStylePrimary:
+    case KBButtonStyleDanger:
     case KBButtonStyleToolbar:
       return GHNSColorFromRGB(0xEFEFEF);
 
@@ -229,6 +232,9 @@ static id<KBAppearance> gCurrentAppearance = NULL;
     case KBButtonStylePrimary:
       return [NSColor colorWithRed:192.0/255.0 green:221.0/255.0 blue:250.0/255.0 alpha:1.0];
 
+    case KBButtonStyleDanger:
+      return [NSColor colorWithRed:189.0/255.0 green:26.0/255.0 blue:29.0/255.0 alpha:1.0];
+
     case KBButtonStyleCheckbox:
     case KBButtonStyleLink:
       return nil;
@@ -247,6 +253,9 @@ static id<KBAppearance> gCurrentAppearance = NULL;
     case KBButtonStylePrimary:
       return KBAppearance.currentAppearance.selectColor;
 
+    case KBButtonStyleDanger:
+      return [NSColor colorWithRed:208.0/255.0 green:59.0/255.0 blue:59.0/255.0 alpha:1.0];
+
     case KBButtonStyleEmpty:
     case KBButtonStyleLink:
     case KBButtonStyleText:
@@ -259,6 +268,7 @@ static id<KBAppearance> gCurrentAppearance = NULL;
   switch (style) {
     case KBButtonStyleDefault:
     case KBButtonStylePrimary:
+    case KBButtonStyleDanger:
       return GHNSColorFromRGB(0xCCCCCC);
 
     case KBButtonStyleLink:
@@ -278,6 +288,7 @@ static id<KBAppearance> gCurrentAppearance = NULL;
       return GHNSColorFromRGB(0xCCCCCC);
 
     case KBButtonStylePrimary:
+    case KBButtonStyleDanger:
       return nil;
 
     case KBButtonStyleLink:

@@ -20,11 +20,13 @@ typedef NS_ENUM (NSInteger, KBTextStyle) {
 typedef NS_OPTIONS (NSInteger, KBTextOptions) {
   KBTextOptionsStrong,
   KBTextOptionsMonospace,
+  KBTextOptionsSmall,
 };
 
 typedef NS_ENUM (NSInteger, KBButtonStyle) {
   KBButtonStyleDefault,
   KBButtonStylePrimary,
+  KBButtonStyleDanger,
   KBButtonStyleLink,
   KBButtonStyleCheckbox,
   KBButtonStyleText,

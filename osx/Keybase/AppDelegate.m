@@ -84,7 +84,7 @@
 
   KBEnvSelectView *envSelectView = [[KBEnvSelectView alloc] init];
   KBNavigationView *navigation = [[KBNavigationView alloc] initWithView:envSelectView title:@"Keybase"];
-  KBWindow *window = [KBWindow windowWithContentView:navigation size:CGSizeMake(700, 640) retain:YES];
+  KBWindow *window = [KBWindow windowWithContentView:navigation size:CGSizeMake(900, 600) retain:YES];
   envSelectView.onSelect = ^(KBEnvironment *environment) {
 //#ifdef DEBUG
 //    if (!environment.canRunFromXCode) {

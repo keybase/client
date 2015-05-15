@@ -38,16 +38,16 @@
   _inputField.view.font = [NSFont fontWithName:@"Monaco" size:20];
   [contentView addSubview:_inputField];
 
-  YOView *footerView = [[YOView alloc] init];
+  YOHBox *footerView = [YOHBox box:@{@"spacing": @(20), @"minSize": @"130,0", @"horizontalAlignment": @"center"}];
+  [contentView addSubview:footerView];
+  _cancelButton = [KBButton buttonWithText:@"Cancel" style:KBButtonStyleDefault];
+  _cancelButton.targetBlock = ^{ [gself cancelDeviceAdd]; };
+  [footerView addSubview:_cancelButton];
   KBButton *button = [KBButton buttonWithText:@"OK" style:KBButtonStylePrimary];
   button.targetBlock = ^{ [gself save]; };
   [button setKeyEquivalent:@"\r"];
   [footerView addSubview:button];
-  _cancelButton = [KBButton buttonWithText:@"Cancel" style:KBButtonStyleDefault];
-  _cancelButton.targetBlock = ^{ [gself cancelDeviceAdd]; };
-  [footerView addSubview:_cancelButton];
-  footerView.viewLayout = [YOLayout layoutWithLayoutBlock:[KBLayouts layoutForButton:button cancelButton:_cancelButton horizontalAlignment:KBHorizontalAlignmentCenter]];
-  [contentView addSubview:footerView];
+
 
   YOSelf yself = self;
   contentView.viewLayout = [YOLayout layoutWithLayoutBlock:^(id<YOLayout> layout, CGSize size) {

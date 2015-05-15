@@ -24,8 +24,6 @@
 
 + (YOLayoutBlock)center:(id)view;
 
-+ (YOLayoutBlock)layoutForButton:(KBButton *)button cancelButton:(KBButton *)cancelButton horizontalAlignment:(KBHorizontalAlignment)horizontalAlignment;
-
 + (YOLayoutBlock)vertical:(NSArray *)subviews;
 
 @end

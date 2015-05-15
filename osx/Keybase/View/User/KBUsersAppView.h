@@ -14,6 +14,6 @@
 
 @interface KBUsersAppView : YOView <KBSearchControlDelegate>
 
-@property KBRPClient * client;
+@property KBRPClient *client;
 
 @end

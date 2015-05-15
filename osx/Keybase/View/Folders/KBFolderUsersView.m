@@ -23,11 +23,10 @@
   _folderUsersListView = [[KBFolderUsersListView alloc] init];
   [self addSubview:_folderUsersListView];
 
-  YOView *footerView = [[YOView alloc] init];
+  YOHBox *footerView = [YOHBox box:@{@"spacing": @(20), @"minSize": @"130,0", @"horizontalAlignment": @"right"}];
   [self addSubview:footerView];
   KBButton *saveButton = [KBButton buttonWithText:@"Save" style:KBButtonStylePrimary];
   [footerView addSubview:saveButton];
-  footerView.viewLayout = [YOLayout layoutWithLayoutBlock:[KBLayouts layoutForButton:saveButton cancelButton:nil horizontalAlignment:KBHorizontalAlignmentRight]];
 
   self.viewLayout = [YOBorderLayout layoutWithCenter:_folderUsersListView top:nil bottom:@[footerView] insets:UIEdgeInsetsMake(20, 20, 20, 20)spacing:10];
 }

@@ -102,21 +102,6 @@
   };
 }
 
-+ (YOLayoutBlock)layoutForButton:(KBButton *)button cancelButton:(KBButton *)cancelButton horizontalAlignment:(KBHorizontalAlignment)horizontalAlignment {
-  return ^CGSize(id<YOLayout> layout, CGSize size) {
-    CGSize buttonSize = [button sizeThatFits:size];
-    if (horizontalAlignment == KBHorizontalAlignmentRight) {
-      if (cancelButton) [layout setFrame:CGRectMake(size.width - 280, 0, 130, buttonSize.height) view:cancelButton];
-      [layout setFrame:CGRectMake(size.width - 130, 0, 130, buttonSize.height) view:button];
-    } else if (horizontalAlignment == KBHorizontalAlignmentCenter) {
-      CGFloat x = size.width/2.0 - 270.0/2.0;
-      x += [layout setFrame:CGRectMake(x, 0, 130, buttonSize.height) view:cancelButton].size.width + 10;
-      x += [layout setFrame:CGRectMake(x, 0, 130, buttonSize.height) view:button].size.width;
-    }
-    return CGSizeMake(size.width, buttonSize.height);
-  };
-}
-
 + (YOLayoutBlock)vertical:(NSArray *)subviews {
   return ^CGSize(id<YOLayout> layout, CGSize size) {
     CGFloat y = 0;

@@ -34,7 +34,9 @@
 
   // This seems to be more accurate than usedRectForTextContainer:
   NSRect rect = [attributedString boundingRectWithSize:size options:NSStringDrawingUsesLineFragmentOrigin];
-  rect.size.width += 0.4; // TODO: in some cases it might be slightly cut off (aliasing?), this seems to help
+  if (rect.size.width > 0) {
+    rect.size.width += 0.4; // TODO: in some cases it might be slightly cut off (aliasing?), this seems to help
+  }
   return CGRectIntegral(rect).size;
 }
 

@@ -128,7 +128,7 @@
 }
 
 - (void)showProve:(KBProveType)type {
-  [KBProveView connectWithProveType:type client:self.mockClient sender:self completion:^(BOOL canceled) {
+  [KBProveView connectWithProveType:type proofResult:nil client:self.mockClient sender:self completion:^(KBProofResult *proofResult) {
 
   }];
 }
