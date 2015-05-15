@@ -42,6 +42,9 @@ var PublicName string = "public"
 type HMAC []byte
 
 type Key libkb.GenericKey
+
+// TODO: Just use libkb.KID everywhere, to avoid casting (and also to
+// be able to use methods defined for libkb.KID).
 type KID libkb.KID
 
 // type of hash key for each data block
@@ -265,6 +268,8 @@ type RootMetadataSigned struct {
 	// signature over the root metadata by the private signing key
 	// (for "home" folders and public folders)
 	Sig []byte `codec:",omitempty"`
+	// The KID of a key that can verify Sig.
+	VerifyingKeyKid KID `codec:",omitempty"`
 	// pairwise MAC of the last writer with all readers and writers
 	// (for private shares)
 	Macs map[libkb.UID][]byte `codec:",omitempty"`

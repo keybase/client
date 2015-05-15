@@ -3,11 +3,24 @@ package libkbfs
 import (
 	"fmt"
 
-	libkb "github.com/keybase/client/go/libkb"
+	"github.com/keybase/client/go/libkb"
 )
 
 type MDOpsStandard struct {
 	config Config
+}
+
+func findSibkeyWithKid(kbpki KBPKI, user *libkb.User, kid KID) (Key, error) {
+	deviceSibkeys, err := kbpki.GetDeviceSibkeys(user)
+	if err != nil {
+		return nil, err
+	}
+	for _, sibkey := range deviceSibkeys {
+		if sibkey.GetKid().Eq(libkb.KID(kid)) {
+			return sibkey, nil
+		}
+	}
+	return nil, KeyNotFoundError{kid}
 }
 
 func (md *MDOpsStandard) processMetadata(
@@ -90,14 +103,20 @@ func (md *MDOpsStandard) processMetadata(
 			}
 		} else {
 			// For any home or public directory:
-			//   * Verify normally using the user's public key
+			//   * Verify normally using the user's public key matching the verifying key KID.
 			// TODO: what do we do if the signature is from a revoked
 			// key?
-			if user, err := kbpki.GetUser(writer); err != nil {
+			user, err := kbpki.GetUser(writer)
+			if err != nil {
 				return err
-			} else if key, err := kbpki.GetPublicSigningKey(user); err != nil {
+			}
+
+			verifyingKey, err := findSibkeyWithKid(kbpki, user, rmds.VerifyingKeyKid)
+			if err != nil {
 				return err
-			} else if err := crypto.Verify(rmds.Sig, buf, key); err != nil {
+			}
+
+			if err = crypto.Verify(rmds.Sig, buf, verifyingKey); err != nil {
 				return err
 			}
 		}
@@ -240,11 +259,12 @@ func (md *MDOpsStandard) Put(id DirId, rmd *RootMetadata) error {
 	} else {
 		// For our home and public directory:
 		//   * Sign normally using the local device private key
-		sig, err := crypto.Sign(buf)
+		sig, verifyingKeyKid, err := crypto.Sign(buf)
 		if err != nil {
 			return err
 		}
 		rmds.Sig = sig
+		rmds.VerifyingKeyKid = verifyingKeyKid
 	}
 
 	mdId, err := rmd.MetadataId(md.config)

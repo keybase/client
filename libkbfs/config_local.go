@@ -1,5 +1,9 @@
 package libkbfs
 
+import (
+	"github.com/keybase/client/go/libkb"
+)
+
 type ConfigLocal struct {
 	kbfs     KBFSOps
 	kbpki    KBPKI
@@ -20,6 +24,48 @@ type ConfigLocal struct {
 	notifier Notifier
 }
 
+type LocalUser struct {
+	Name         string
+	Uid          libkb.UID
+	Asserts      []string
+	Sibkeys      []Key
+	Subkeys      []Key
+	DeviceSubkey Key
+}
+
+// Helper function to generate a signing key for a local user suitable
+// to use with CryptoLocal.
+func GetLocalUserSigningKey(name string) Key {
+	return NewFakeSigningKeyOrBust(name + " sibkey")
+}
+
+func GetLocalUserSibkey(name string) Key {
+	// Seed must match the one used in GetLocalUserSigningKey().
+	return NewFakeVerifyingKeyOrBust(name + " sibkey")
+}
+
+func GetLocalUserSubkey(name string) Key {
+	return NewFakeBoxPublicKeyOrBust(name + " subkey")
+}
+
+// Helper function to generate a list of LocalUsers suitable to use
+// with KBPKILocal.
+func MakeLocalUsers(users []string) []LocalUser {
+	localUsers := make([]LocalUser, len(users))
+	for i := 0; i < len(users); i++ {
+		sibkey := GetLocalUserSibkey(users[i])
+		subkey := GetLocalUserSubkey(users[i])
+		localUsers[i] = LocalUser{
+			Name:         users[i],
+			Uid:          libkb.UID{byte(i + 1)},
+			Sibkeys:      []Key{sibkey},
+			Subkeys:      []Key{subkey},
+			DeviceSubkey: subkey,
+		}
+	}
+	return localUsers
+}
+
 func NewConfigLocal() *ConfigLocal {
 	config := &ConfigLocal{}
 	config.SetKBFSOps(NewKBFSOpsStandard(config))
@@ -28,7 +74,6 @@ func NewConfigLocal() *ConfigLocal {
 	config.SetMDCache(NewMDCacheStandard(5000))
 	config.SetKeyCache(&KeyCacheNull{})
 	config.SetBlockCache(NewBlockCacheStandard(5000))
-	config.SetCrypto(&CryptoNull{})
 	config.SetCodec(NewCodecMsgpack())
 	config.SetMDOps(&MDOpsStandard{config})
 	config.SetKeyOps(&KeyOpsNull{})

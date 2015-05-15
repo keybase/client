@@ -3,7 +3,7 @@ package libkbfs
 import (
 	"fmt"
 
-	libkb "github.com/keybase/client/go/libkb"
+	"github.com/keybase/client/go/libkb"
 )
 
 var ErrorFile string = ".kbfs_error"
@@ -268,4 +268,12 @@ type WriteNeededInReadRequest struct {
 
 func (e *WriteNeededInReadRequest) Error() string {
 	return "This request needs exclusive access, but doesn't have it."
+}
+
+type KeyNotFoundError struct {
+	kid KID
+}
+
+func (e KeyNotFoundError) Error() string {
+	return fmt.Sprintf("Could not find key with kid=%s", libkb.KID(e.kid))
 }

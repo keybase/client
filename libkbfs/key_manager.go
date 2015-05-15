@@ -1,7 +1,7 @@
 package libkbfs
 
 import (
-	libkb "github.com/keybase/client/go/libkb"
+	"github.com/keybase/client/go/libkb"
 )
 
 type KeyManagerStandard struct {
@@ -43,10 +43,11 @@ func (km *KeyManagerStandard) GetSecretKey(dir Path, md *RootMetadata) (
 	if err != nil {
 		return nil, err
 	}
-	deviceSubkeyKid, err := kbpki.GetDeviceSubkeyKid()
+	deviceSubkey, err := kbpki.GetDeviceSubkey()
 	if err != nil {
 		return nil, err
 	}
+	deviceSubkeyKid := KID(deviceSubkey.GetKid())
 	var xKey Key // the xor'd secret key
 	if buf, ok := md.GetEncryptedSecretKey(keyVer, user, deviceSubkeyKid); !ok {
 		err = NewReadAccessError(km.config, md.GetDirHandle(), user)
@@ -123,7 +124,7 @@ func (km *KeyManagerStandard) secretKeysForUser(md *RootMetadata, uid libkb.UID,
 	if err != nil {
 		return uMap, err
 	}
-	subKeys, err := kbpki.GetDeviceSubKeys(user)
+	subKeys, err := kbpki.GetDeviceSubkeys(user)
 	if err != nil {
 		return uMap, err
 	}

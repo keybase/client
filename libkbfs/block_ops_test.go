@@ -5,7 +5,7 @@ import (
 	"testing"
 
 	"code.google.com/p/gomock/gomock"
-	libkb "github.com/keybase/client/go/libkb"
+	"github.com/keybase/client/go/libkb"
 )
 
 type TestBlock struct {

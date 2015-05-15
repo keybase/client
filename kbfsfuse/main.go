@@ -11,15 +11,10 @@ import (
 	"runtime/pprof"
 
 	"github.com/hanwen/go-fuse/fuse/nodefs"
+	"github.com/keybase/client/go/client"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/kbfs/libkbfs"
 )
-
-func GetUI() libkb.UI {
-	ui := &libkbfs.UI{}
-	ui.Configure()
-	return ui
-}
 
 var cpuprofile = flag.String("cpuprofile", "", "write cpu profile to file")
 var memprofile = flag.String("memprofile", "", "write memory profile to file")
@@ -27,7 +22,7 @@ var local = flag.Bool("local", false,
 	"use a fake local user DB instead of Keybase")
 var localUser = flag.String("localuser", "strib",
 	"fake local user (only valid when local=true)")
-var client = flag.Bool("client", false, "use keybase daemon")
+var clientFlag = flag.Bool("client", false, "use keybase daemon")
 var debug = flag.Bool("debug", false, "Print FUSE debug messages")
 
 func main() {
@@ -73,62 +68,52 @@ func main() {
 	libkb.G.ConfigureLogging()
 	libkb.G.ConfigureCaches()
 	libkb.G.ConfigureMerkleClient()
-	libkb.G.SetUI(GetUI())
+
+	client.InitUI()
+	libkb.G.UI.Configure()
 
 	if *local {
-		var localUid libkb.UID
-		switch {
-		case *localUser == "strib":
-			localUid = libkb.UID{1}
-		case *localUser == "max":
-			localUid = libkb.UID{2}
-		case *localUser == "chris":
-			localUid = libkb.UID{3}
-		case *localUser == "fred":
-			localUid = libkb.UID{4}
+		users := []string{"strib", "max", "chris", "fred"}
+		userIndex := -1
+		for i := range users {
+			if *localUser == users[i] {
+				userIndex = i
+				break
+			}
 		}
-		stribKid := libkbfs.KID("strib-kid")
-		maxKid := libkbfs.KID("max-kid")
-		chrisKid := libkbfs.KID("chris-kid")
-		fredKid := libkbfs.KID("fred-kid")
-		k := libkbfs.NewKBPKILocal(localUid, []libkbfs.LocalUser{
-			libkbfs.LocalUser{
-				Name:            "strib",
-				Uid:             libkb.UID{1},
-				Asserts:         []string{"github:strib"},
-				SubKeys:         []libkbfs.Key{libkbfs.NewKeyFake(stribKid)},
-				DeviceSubkeyKid: stribKid,
-			},
-			libkbfs.LocalUser{
-				Name:            "max",
-				Uid:             libkb.UID{2},
-				Asserts:         []string{"twitter:maxtaco"},
-				SubKeys:         []libkbfs.Key{libkbfs.NewKeyFake(maxKid)},
-				DeviceSubkeyKid: maxKid,
-			},
-			libkbfs.LocalUser{
-				Name:            "chris",
-				Uid:             libkb.UID{3},
-				Asserts:         []string{"twitter:malgorithms"},
-				SubKeys:         []libkbfs.Key{libkbfs.NewKeyFake(chrisKid)},
-				DeviceSubkeyKid: chrisKid,
-			},
-			libkbfs.LocalUser{
-				Name:            "fred",
-				Uid:             libkb.UID{4},
-				Asserts:         []string{"twitter:fakalin"},
-				SubKeys:         []libkbfs.Key{libkbfs.NewKeyFake(fredKid)},
-				DeviceSubkeyKid: fredKid,
-			},
-		})
+		if userIndex < 0 {
+			log.Fatalf("user %s not in list %v\n", *localUser, users)
+		}
+
+		localUsers := libkbfs.MakeLocalUsers(users)
+
+		// TODO: Auto-generate these, too?
+		localUsers[0].Asserts = []string{"github:strib"}
+		localUsers[1].Asserts = []string{"twitter:maxtaco"}
+		localUsers[2].Asserts = []string{"twitter:malgorithms"}
+		localUsers[3].Asserts = []string{"twitter:fakalin"}
+
+		var localUid libkb.UID
+		if userIndex >= 0 {
+			localUid = localUsers[userIndex].Uid
+		}
+
+		k := libkbfs.NewKBPKILocal(localUid, localUsers)
 		config.SetKBPKI(k)
-	} else if *client {
+		signingKey := libkbfs.GetLocalUserSigningKey(*localUser)
+		config.SetCrypto(libkbfs.NewCryptoLocal(signingKey))
+	} else if *clientFlag {
 		libkb.G.ConfigureSocketInfo()
 		k, err := libkbfs.NewKBPKIClient(libkb.G)
 		if err != nil {
 			log.Fatalf("Could not get KBPKI: %v\n", err)
 		}
 		config.SetKBPKI(k)
+		c, err := libkbfs.NewCryptoClient(libkb.G)
+		if err != nil {
+			log.Fatalf("Could not get Crypto: %v\n", err)
+		}
+		config.SetCrypto(c)
 	} else {
 		log.Fatal("Usage:\n  kbfs [-client|-local] MOUNTPOINT")
 	}

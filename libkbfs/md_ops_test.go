@@ -5,7 +5,7 @@ import (
 	"testing"
 
 	"code.google.com/p/gomock/gomock"
-	libkb "github.com/keybase/client/go/libkb"
+	"github.com/keybase/client/go/libkb"
 )
 
 func mdOpsInit(t *testing.T) (mockCtrl *gomock.Controller, config *ConfigMock) {
@@ -44,6 +44,8 @@ func newDir(config *ConfigMock, x byte, share bool, public bool) (
 	rmds := &RootMetadataSigned{}
 	if public || !share {
 		rmds.Sig = []byte{42}
+		key := NewFakeVerifyingKeyOrBust("fake key")
+		rmds.VerifyingKeyKid = KID(key.GetKid())
 	} else {
 		rmds.Macs = make(map[libkb.UID][]byte)
 		rmds.Macs[h.Writers[0]] = []byte{42}
@@ -72,6 +74,24 @@ func verifyMDForPrivateShare(config *ConfigMock, rmds *RootMetadataSigned,
 		Return(nil, nil)
 	config.mockCrypto.EXPECT().VerifyHMAC(
 		nil, packedData, gomock.Any()).Return(nil)
+}
+
+func verifyMDForPublicShare(config *ConfigMock, rmds *RootMetadataSigned,
+	id DirId, verifyKey Key, verifyErr error) {
+	packedData := []byte{4, 3, 2, 1}
+
+	expectGetSecretKey(config, &rmds.MD)
+	config.mockCrypto.EXPECT().Decrypt(
+		rmds.MD.SerializedPrivateMetadata, nil).Return(packedData, nil)
+	config.mockCodec.EXPECT().Decode(packedData, gomock.Any()).
+		Return(nil)
+	config.mockCodec.EXPECT().Encode(gomock.Any()).Return(packedData, nil)
+	if verifyKey != nil {
+		config.mockKbpki.EXPECT().GetDeviceSibkeys(gomock.Any()).AnyTimes().Return([]Key{verifyKey}, nil)
+		config.mockCrypto.EXPECT().Verify(rmds.Sig, packedData, verifyKey).Return(verifyErr)
+	} else {
+		config.mockKbpki.EXPECT().GetDeviceSibkeys(gomock.Any()).AnyTimes().Return([]Key{}, nil)
+	}
 }
 
 func putMDForPrivateShare(config *ConfigMock, rmds *RootMetadataSigned,
@@ -104,7 +124,7 @@ func putMDForPrivateShare(config *ConfigMock, rmds *RootMetadataSigned,
 	config.mockMdserv.EXPECT().Put(id, mdId, gomock.Any()).Return(nil)
 }
 
-func TestMDOpsGetAtHandleSuccess(t *testing.T) {
+func TestMDOpsGetAtHandlePrivateSuccess(t *testing.T) {
 	mockCtrl, config := mdOpsInit(t)
 	defer mdOpsShutdown(mockCtrl, config)
 
@@ -120,6 +140,61 @@ func TestMDOpsGetAtHandleSuccess(t *testing.T) {
 		t.Errorf("Got back wrong id on get: %v (expected %v)", rmd2.Id, id)
 	} else if rmd2 != &rmds.MD {
 		t.Errorf("Got back wrong data on get: %v (expected %v)", rmd2, &rmds.MD)
+	}
+}
+
+func TestMDOpsGetAtHandlePublicSuccess(t *testing.T) {
+	mockCtrl, config := mdOpsInit(t)
+	defer mdOpsShutdown(mockCtrl, config)
+
+	// expect one call to fetch MD, and one to verify it
+	id, h, rmds := newDir(config, 1, false, true)
+
+	config.mockMdserv.EXPECT().GetAtHandle(h).Return(rmds, nil)
+	key := NewFakeVerifyingKeyOrBust("fake key")
+	verifyMDForPublicShare(config, rmds, id, key, nil)
+
+	if rmd2, err := config.MDOps().GetAtHandle(h); err != nil {
+		t.Errorf("Got error on get: %v", err)
+	} else if rmd2.Id != id {
+		t.Errorf("Got back wrong id on get: %v (expected %v)", rmd2.Id, id)
+	} else if rmd2 != &rmds.MD {
+		t.Errorf("Got back wrong data on get: %v (expected %v)", rmd2, &rmds.MD)
+	}
+}
+
+func TestMDOpsGetAtHandlePublicFailFindKey(t *testing.T) {
+	mockCtrl, config := mdOpsInit(t)
+	defer mdOpsShutdown(mockCtrl, config)
+
+	// expect one call to fetch MD, and one to verify it
+	id, h, rmds := newDir(config, 1, false, true)
+
+	config.mockMdserv.EXPECT().GetAtHandle(h).Return(rmds, nil)
+
+	verifyMDForPublicShare(config, rmds, id, nil, nil)
+
+	_, err := config.MDOps().GetAtHandle(h)
+	if _, ok := err.(KeyNotFoundError); !ok {
+		t.Errorf("Got unexpected error on get: %v", err)
+	}
+}
+
+func TestMDOpsGetAtHandlePublicFailVerify(t *testing.T) {
+	mockCtrl, config := mdOpsInit(t)
+	defer mdOpsShutdown(mockCtrl, config)
+
+	// expect one call to fetch MD, and one to verify it
+	id, h, rmds := newDir(config, 1, false, true)
+
+	config.mockMdserv.EXPECT().GetAtHandle(h).Return(rmds, nil)
+
+	verifyErr := errors.New("Test verification error")
+	key := NewFakeVerifyingKeyOrBust("fake key")
+	verifyMDForPublicShare(config, rmds, id, key, verifyErr)
+
+	if _, err := config.MDOps().GetAtHandle(h); err != verifyErr {
+		t.Errorf("Got unexpected error on get: %v", err)
 	}
 }
 

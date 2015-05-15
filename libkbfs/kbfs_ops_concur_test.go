@@ -85,25 +85,22 @@ func (m *MDOpsConcurTest) GetFavorites() ([]DirId, error) {
 func kbfsOpsConcurInit(users []string) (Config, libkb.UID) {
 	config := NewConfigLocal()
 
-	localUsers := make([]LocalUser, len(users))
-	for i := 0; i < len(users); i++ {
-		kid := KID("test_sub_key_" + users[i])
-		localUsers[i] = LocalUser{
-			Name:            users[i],
-			Uid:             libkb.UID{byte(i + 1)},
-			SubKeys:         []Key{NewKeyFake(kid)},
-			DeviceSubkeyKid: kid,
-		}
-	}
-	loggedInUid := localUsers[0].Uid
+	localUsers := MakeLocalUsers(users)
+	loggedInUser := localUsers[0]
+
+	kbpki := NewKBPKILocal(loggedInUser.Uid, localUsers)
 
 	// TODO: Consider using fake BlockOps and MDOps instead.
-	k := NewKBPKILocal(loggedInUid, localUsers)
-	config.SetKBPKI(k)
+	config.SetKBPKI(kbpki)
+
+	signingKey := GetLocalUserSigningKey(loggedInUser.Name)
+	crypto := NewCryptoLocal(signingKey)
+	config.SetCrypto(crypto)
+
 	config.SetBlockServer(NewFakeBlockServer())
 	config.SetMDServer(NewFakeMDServer(config))
 
-	return config, loggedInUid
+	return config, loggedInUser.Uid
 }
 
 // Test that only one of two concurrent GetRootMD requests can end up

@@ -1,7 +1,7 @@
 package libkbfs
 
 import (
-	libkb "github.com/keybase/client/go/libkb"
+	"github.com/keybase/client/go/libkb"
 )
 
 type BlockOpsStandard struct {

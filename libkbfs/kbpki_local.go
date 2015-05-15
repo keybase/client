@@ -4,7 +4,7 @@ import (
 	"errors"
 	"fmt"
 
-	libkb "github.com/keybase/client/go/libkb"
+	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/protocol/go"
 )
 
@@ -13,16 +13,6 @@ type KBPKILocal struct {
 	Users    map[libkb.UID]LocalUser
 	Asserts  map[string]libkb.UID
 	LoggedIn libkb.UID
-}
-
-type LocalUser struct {
-	Name            string
-	Uid             libkb.UID
-	Asserts         []string
-	SibKeys         []Key
-	SubKeys         []Key
-	SigningKey      Key
-	DeviceSubkeyKid KID
 }
 
 func keysToPublicKeys(keys []Key, isSibkey bool) []keybase1.PublicKey {
@@ -37,9 +27,9 @@ func keysToPublicKeys(keys []Key, isSibkey bool) []keybase1.PublicKey {
 }
 
 func (lu *LocalUser) GetPublicKeys() []keybase1.PublicKey {
-	sibKeys := keysToPublicKeys(lu.SibKeys, true)
-	subKeys := keysToPublicKeys(lu.SubKeys, false)
-	return append(sibKeys, subKeys...)
+	sibkeys := keysToPublicKeys(lu.Sibkeys, true)
+	subkeys := keysToPublicKeys(lu.Subkeys, false)
+	return append(sibkeys, subkeys...)
 }
 
 func NewKBPKILocal(loggedIn libkb.UID, users []LocalUser) *KBPKILocal {
@@ -83,38 +73,30 @@ func (k *KBPKILocal) GetLoggedInUser() (libkb.UID, error) {
 	return k.LoggedIn, nil
 }
 
-func (k *KBPKILocal) GetDeviceSibKeys(user *libkb.User) (
+func (k *KBPKILocal) GetDeviceSibkeys(user *libkb.User) (
 	[]Key, error) {
 	u, err := k.getLocalUser(user.GetUID())
 	if err != nil {
 		return nil, err
 	}
-	return u.SibKeys, nil
+	return u.Sibkeys, nil
 }
 
-func (k *KBPKILocal) GetDeviceSubKeys(user *libkb.User) (
+func (k *KBPKILocal) GetDeviceSubkeys(user *libkb.User) (
 	keys []Key, err error) {
 	u, err := k.getLocalUser(user.GetUID())
 	if err != nil {
 		return nil, err
 	}
-	return u.SubKeys, nil
+	return u.Subkeys, nil
 }
 
-func (k *KBPKILocal) GetPublicSigningKey(user *libkb.User) (Key, error) {
-	u, err := k.getLocalUser(user.GetUID())
+func (k *KBPKILocal) GetDeviceSubkey() (Key, error) {
+	u, err := k.getLocalUser(k.LoggedIn)
 	if err != nil {
 		return nil, err
 	}
-	return u.SigningKey, nil
-}
-
-func (k *KBPKILocal) GetDeviceSubkeyKid() (KID, error) {
-	u, err := k.getLocalUser(k.LoggedIn)
-	if err != nil {
-		return KID{}, err
-	}
-	return u.DeviceSubkeyKid, nil
+	return u.DeviceSubkey, nil
 }
 
 func (k *KBPKILocal) getLocalUser(uid libkb.UID) (LocalUser, error) {

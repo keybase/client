@@ -6,7 +6,7 @@ import (
 	"sync"
 	"time"
 
-	libkb "github.com/keybase/client/go/libkb"
+	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/kbfs/util"
 )
 

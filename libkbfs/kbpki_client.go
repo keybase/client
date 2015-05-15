@@ -3,6 +3,7 @@ package libkbfs
 import (
 	"fmt"
 
+	"github.com/keybase/client/go/client"
 	"github.com/keybase/client/go/engine"
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/protocol/go"
@@ -11,6 +12,7 @@ import (
 
 // KBPKIClient uses rpc calls to daemon
 type KBPKIClient struct {
+	ctx    *libkb.GlobalContext
 	client keybase1.GenericClient
 }
 
@@ -24,8 +26,8 @@ func NewKBPKIClient(ctx *libkb.GlobalContext) (*KBPKIClient, error) {
 	srv := rpc2.NewServer(xp, libkb.WrapError)
 
 	protocols := []rpc2.Protocol{
-		newLogUIProtocol(),
-		newIdentifyUIProtocol(),
+		client.NewLogUIProtocol(),
+		client.NewIdentifyUIProtocol(),
 	}
 
 	for _, p := range protocols {
@@ -37,12 +39,12 @@ func NewKBPKIClient(ctx *libkb.GlobalContext) (*KBPKIClient, error) {
 	}
 
 	client := rpc2.NewClient(xp, libkb.UnwrapError)
-	return newKBPKIClientWithClient(client), nil
+	return newKBPKIClientWithClient(ctx, client), nil
 }
 
 // For testing.
-func newKBPKIClientWithClient(client keybase1.GenericClient) *KBPKIClient {
-	return &KBPKIClient{client}
+func newKBPKIClientWithClient(ctx *libkb.GlobalContext, client keybase1.GenericClient) *KBPKIClient {
+	return &KBPKIClient{ctx, client}
 }
 
 // ResolveAssertion finds a user via assertion.
@@ -90,12 +92,12 @@ func (k *KBPKIClient) GetLoggedInUser() (libkb.UID, error) {
 	return *uid, nil
 }
 
-func (k *KBPKIClient) GetDeviceSibKeys(user *libkb.User) (
+func (k *KBPKIClient) GetDeviceSibkeys(user *libkb.User) (
 	keys []Key, err error) {
 	return k.getDeviceKeysHelper(user, true /* isSibkey */)
 }
 
-func (k *KBPKIClient) GetDeviceSubKeys(user *libkb.User) (
+func (k *KBPKIClient) GetDeviceSubkeys(user *libkb.User) (
 	keys []Key, err error) {
 	return k.getDeviceKeysHelper(user, false /* isSibkey */)
 }
@@ -117,7 +119,7 @@ func (k *KBPKIClient) getDeviceKeysHelper(user *libkb.User, isSibkey bool) (
 		if err != nil {
 			return nil, err
 		}
-		key, err := libkb.ImportKeypairFromKID(kid, nil)
+		key, err := libkb.ImportKeypairFromKID(kid, k.ctx)
 		if err != nil {
 			return nil, err
 		}
@@ -134,17 +136,13 @@ func (k *KBPKIClient) getDeviceKeysHelper(user *libkb.User, isSibkey bool) (
 	return keys, nil
 }
 
-func (k *KBPKIClient) GetPublicSigningKey(user *libkb.User) (Key, error) {
-	return nil, nil
-}
-
-func (k *KBPKIClient) GetDeviceSubkeyKid() (KID, error) {
-	_, deviceSubkeyKid, err := k.session()
+func (k *KBPKIClient) GetDeviceSubkey() (Key, error) {
+	_, deviceSubkey, err := k.session()
 	if err != nil {
-		return KID{}, err
+		return nil, err
 	}
-	libkb.G.Log.Debug("got device kid %s", libkb.KID(deviceSubkeyKid).ToShortIdString())
-	return deviceSubkeyKid, nil
+	libkb.G.Log.Debug("got device subkey %s", libkb.KID(deviceSubkey.GetKid()).ToShortIdString())
+	return deviceSubkey, nil
 }
 
 func (k *KBPKIClient) identify(arg *engine.IDEngineArg) (*libkb.User, []keybase1.PublicKey, error) {
@@ -158,17 +156,23 @@ func (k *KBPKIClient) identify(arg *engine.IDEngineArg) (*libkb.User, []keybase1
 	return libkb.NewUserThin(res.User.Username, libkb.UID(res.User.Uid)), res.User.PublicKeys, nil
 }
 
-func (k *KBPKIClient) session() (*libkb.Session, KID, error) {
+func (k *KBPKIClient) session() (session *libkb.Session, deviceSubkey Key, err error) {
 	c := keybase1.SessionClient{k.client}
 	res, err := c.CurrentSession()
 	if err != nil {
-		return nil, KID{}, err
+		return
 	}
 
 	deviceSubkeyKid, err := libkb.ImportKID(res.DeviceSubkeyKid)
 	if err != nil {
-		return nil, KID{}, err
+		return
 	}
 
-	return libkb.NewSessionThin(libkb.UID(res.Uid), res.Username, res.Token), KID(deviceSubkeyKid), nil
+	deviceSubkey, err = libkb.ImportKeypairFromKID(deviceSubkeyKid, k.ctx)
+	if err != nil {
+		return
+	}
+
+	session = libkb.NewSessionThin(libkb.UID(res.Uid), res.Username, res.Token)
+	return
 }

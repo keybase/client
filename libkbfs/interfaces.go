@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"time"
 
-	libkb "github.com/keybase/client/go/libkb"
+	"github.com/keybase/client/go/libkb"
 )
 
 // Block just needs to be (de)serialized using msgpack
@@ -55,15 +55,11 @@ type KBPKI interface {
 	// Get the UID of the current logged-in user
 	GetLoggedInUser() (libkb.UID, error)
 	// Get all the public device sibkeys for a given user
-	GetDeviceSibKeys(user *libkb.User) ([]Key, error)
+	GetDeviceSibkeys(user *libkb.User) ([]Key, error)
 	// Get all the encryption device subkeys for a given user
-	GetDeviceSubKeys(user *libkb.User) ([]Key, error)
-	// Get the public key that corresponds to the user's private signing key
-	// TODO: Need to supply a KID here, in case the signature we're trying
-	// to verify is old?
-	GetPublicSigningKey(user *libkb.User) (Key, error)
-	// Get the KID of the subkey for the currently-active device.
-	GetDeviceSubkeyKid() (KID, error)
+	GetDeviceSubkeys(user *libkb.User) ([]Key, error)
+	// Get the subkey for the currently-active device.
+	GetDeviceSubkey() (Key, error)
 }
 
 type KeyManager interface {
@@ -125,11 +121,11 @@ type BlockCache interface {
 
 // Crypto signs, verifies, encrypts, and decrypts stuff.
 type Crypto interface {
-	// Signs buf with your current active device private key
-	Sign(buf []byte) ([]byte, error)
-	// Verifies that sig matches buf being signed with the private key
-	// that corresponds to key
-	Verify(sig []byte, buf []byte, key Key) error
+	// Signs msg with your current active device private key
+	Sign(msg []byte) (sig []byte, verifyingKeyKid KID, err error)
+	// Verifies that sig matches msg being signed with the private
+	// key that corresponds to verifyingKey.
+	Verify(sig []byte, msg []byte, verifyingKey Key) (err error)
 	// Encrypts buf using both a folder's ephemeral private key and a
 	// device pubkey
 	Box(privkey Key, pubkey Key, buf []byte) ([]byte, error)

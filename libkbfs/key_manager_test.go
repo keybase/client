@@ -5,7 +5,7 @@ import (
 	"testing"
 
 	"code.google.com/p/gomock/gomock"
-	libkb "github.com/keybase/client/go/libkb"
+	"github.com/keybase/client/go/libkb"
 )
 
 func keyManagerInit(t *testing.T) (mockCtrl *gomock.Controller,
@@ -31,15 +31,17 @@ func expectUncachedGetSecretKey(config *ConfigMock, rmd *RootMetadata) {
 	config.mockKcache.EXPECT().GetDirKey(rmd.Id, KeyVer(0)).
 		Return(nil, errors.New("NONE"))
 
+	subkey := NewFakeBoxPublicKeyOrBust("subkey")
+
 	// get the xor'd key out of the metadata
-	config.mockKbpki.EXPECT().GetDeviceSubkeyKid().Return(KID("KID"), nil)
+	config.mockKbpki.EXPECT().GetDeviceSubkey().Return(subkey, nil)
 	xbuf := []byte{42}
 	config.mockCrypto.EXPECT().Unbox(nil, gomock.Any()).Return(xbuf, nil)
 	config.mockCodec.EXPECT().Decode(xbuf, gomock.Any()).Return(nil)
 
 	// get the server-side half and retrieve the real secret key
 	config.mockKops.EXPECT().GetDirDeviceKey(
-		rmd.Id, rmd.LatestKeyVersion(), KID("KID")).Return(nil, nil)
+		rmd.Id, rmd.LatestKeyVersion(), KID(subkey.GetKid())).Return(nil, nil)
 	config.mockCrypto.EXPECT().XOR(gomock.Any(), nil).Return(nil, nil)
 
 	// now put the key into the cache
@@ -66,18 +68,17 @@ func expectRekey(config *ConfigMock, rmd *RootMetadata, userId libkb.UID) {
 	config.mockCrypto.EXPECT().GenRandomSecretKey().AnyTimes().Return(nil)
 	config.mockCrypto.EXPECT().GenCurveKeyPair().Return(nil, nil)
 
-	key := NewKeyFake(KID("KID"))
-	subkeys := []Key{key}
-	config.mockKbpki.EXPECT().GetDeviceSubKeys(gomock.Any()).
-		Return(subkeys, nil)
+	subkey := NewFakeBoxPublicKeyOrBust("subkey")
+	config.mockKbpki.EXPECT().GetDeviceSubkeys(gomock.Any()).
+		Return([]Key{subkey}, nil)
 
 	// make keys for the one device
 	config.mockCrypto.EXPECT().XOR(gomock.Any(), nil).Return(nil, nil)
 	xbuf := []byte{42}
 	config.mockCodec.EXPECT().Encode(nil).Return(xbuf, nil)
-	config.mockCrypto.EXPECT().Box(nil, key, xbuf).Return(xbuf, nil)
+	config.mockCrypto.EXPECT().Box(nil, subkey, xbuf).Return(xbuf, nil)
 	config.mockKops.EXPECT().PutDirDeviceKey(
-		rmd.Id, KeyVer(1), userId, KID("KID"), nil).Return(nil)
+		rmd.Id, KeyVer(1), userId, KID(subkey.GetKid()), nil).Return(nil)
 	// now put the key into the cache
 	config.mockKcache.EXPECT().PutDirKey(rmd.Id, KeyVer(1), nil).Return(nil)
 }

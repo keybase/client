@@ -14,21 +14,18 @@ import (
 func makeTestConfig(users []string) *libkbfs.ConfigLocal {
 	config := libkbfs.NewConfigLocal()
 
-	localUsers := make([]libkbfs.LocalUser, len(users))
-	for i := 0; i < len(users); i++ {
-		kid := libkbfs.KID("test_sub_key_" + users[i])
-		localUsers[i] = libkbfs.LocalUser{
-			Name:            users[i],
-			Uid:             libkb.UID{byte(i + 1)},
-			SubKeys:         []libkbfs.Key{libkbfs.NewKeyFake(kid)},
-			DeviceSubkeyKid: kid,
-		}
-	}
-	loggedInUid := localUsers[0].Uid
+	localUsers := libkbfs.MakeLocalUsers(users)
+	loggedInUser := localUsers[0]
+
+	kbpki := libkbfs.NewKBPKILocal(loggedInUser.Uid, localUsers)
 
 	// TODO: Consider using fake BlockOps and MDOps instead.
-	k := libkbfs.NewKBPKILocal(loggedInUid, localUsers)
-	config.SetKBPKI(k)
+	config.SetKBPKI(kbpki)
+
+	signingKey := libkbfs.GetLocalUserSigningKey(loggedInUser.Name)
+	crypto := libkbfs.NewCryptoLocal(signingKey)
+	config.SetCrypto(crypto)
+
 	config.SetBlockServer(libkbfs.NewFakeBlockServer())
 	config.SetMDServer(libkbfs.NewFakeMDServer(config))
 

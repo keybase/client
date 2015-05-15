@@ -6,7 +6,7 @@ package libkbfs
 import (
 	gomock "code.google.com/p/gomock/gomock"
 	fmt "fmt"
-	libkb "github.com/keybase/client/go/libkb"
+	"github.com/keybase/client/go/libkb"
 	time "time"
 )
 
@@ -356,48 +356,37 @@ func (_mr *_MockKBPKIRecorder) GetLoggedInUser() *gomock.Call {
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "GetLoggedInUser")
 }
 
-func (_m *MockKBPKI) GetDeviceSibKeys(user *libkb.User) ([]Key, error) {
-	ret := _m.ctrl.Call(_m, "GetDeviceSibKeys", user)
+func (_m *MockKBPKI) GetDeviceSibkeys(user *libkb.User) ([]Key, error) {
+	ret := _m.ctrl.Call(_m, "GetDeviceSibkeys", user)
 	ret0, _ := ret[0].([]Key)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-func (_mr *_MockKBPKIRecorder) GetDeviceSibKeys(arg0 interface{}) *gomock.Call {
-	return _mr.mock.ctrl.RecordCall(_mr.mock, "GetDeviceSibKeys", arg0)
+func (_mr *_MockKBPKIRecorder) GetDeviceSibkeys(arg0 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "GetDeviceSibkeys", arg0)
 }
 
-func (_m *MockKBPKI) GetDeviceSubKeys(user *libkb.User) ([]Key, error) {
-	ret := _m.ctrl.Call(_m, "GetDeviceSubKeys", user)
+func (_m *MockKBPKI) GetDeviceSubkeys(user *libkb.User) ([]Key, error) {
+	ret := _m.ctrl.Call(_m, "GetDeviceSubkeys", user)
 	ret0, _ := ret[0].([]Key)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-func (_mr *_MockKBPKIRecorder) GetDeviceSubKeys(arg0 interface{}) *gomock.Call {
-	return _mr.mock.ctrl.RecordCall(_mr.mock, "GetDeviceSubKeys", arg0)
+func (_mr *_MockKBPKIRecorder) GetDeviceSubkeys(arg0 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "GetDeviceSubkeys", arg0)
 }
 
-func (_m *MockKBPKI) GetPublicSigningKey(user *libkb.User) (Key, error) {
-	ret := _m.ctrl.Call(_m, "GetPublicSigningKey", user)
+func (_m *MockKBPKI) GetDeviceSubkey() (Key, error) {
+	ret := _m.ctrl.Call(_m, "GetDeviceSubkey")
 	ret0, _ := ret[0].(Key)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-func (_mr *_MockKBPKIRecorder) GetPublicSigningKey(arg0 interface{}) *gomock.Call {
-	return _mr.mock.ctrl.RecordCall(_mr.mock, "GetPublicSigningKey", arg0)
-}
-
-func (_m *MockKBPKI) GetDeviceSubkeyKid() (KID, error) {
-	ret := _m.ctrl.Call(_m, "GetDeviceSubkeyKid")
-	ret0, _ := ret[0].(KID)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-func (_mr *_MockKBPKIRecorder) GetDeviceSubkeyKid() *gomock.Call {
-	return _mr.mock.ctrl.RecordCall(_mr.mock, "GetDeviceSubkeyKid")
+func (_mr *_MockKBPKIRecorder) GetDeviceSubkey() *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "GetDeviceSubkey")
 }
 
 // Mock of KeyManager interface
@@ -691,19 +680,20 @@ func (_m *MockCrypto) EXPECT() *_MockCryptoRecorder {
 	return _m.recorder
 }
 
-func (_m *MockCrypto) Sign(buf []byte) ([]byte, error) {
-	ret := _m.ctrl.Call(_m, "Sign", buf)
+func (_m *MockCrypto) Sign(msg []byte) ([]byte, KID, error) {
+	ret := _m.ctrl.Call(_m, "Sign", msg)
 	ret0, _ := ret[0].([]byte)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
+	ret1, _ := ret[1].(KID)
+	ret2, _ := ret[2].(error)
+	return ret0, ret1, ret2
 }
 
 func (_mr *_MockCryptoRecorder) Sign(arg0 interface{}) *gomock.Call {
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "Sign", arg0)
 }
 
-func (_m *MockCrypto) Verify(sig []byte, buf []byte, key Key) error {
-	ret := _m.ctrl.Call(_m, "Verify", sig, buf, key)
+func (_m *MockCrypto) Verify(sig []byte, msg []byte, verifyingKey Key) error {
+	ret := _m.ctrl.Call(_m, "Verify", sig, msg, verifyingKey)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
