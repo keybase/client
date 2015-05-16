@@ -19,6 +19,7 @@
 #import "KBConsoleView.h"
 #import "KBEnvSelectView.h"
 #import "KBLogFormatter.h"
+#import "KBControlPanel.h"
 
 // For PGP menu
 #import "KBPGPEncryptView.h"
@@ -43,6 +44,7 @@
 @property NSStatusItem *statusItem; // Menubar
 
 // Debug
+@property KBControlPanel *controlPanel;
 @property KBConsoleView *consoleView;
 
 @property (copy) KBErrorHandler errorHandler;
@@ -86,12 +88,6 @@
   KBNavigationView *navigation = [[KBNavigationView alloc] initWithView:envSelectView title:@"Keybase"];
   KBWindow *window = [KBWindow windowWithContentView:navigation size:CGSizeMake(900, 600) retain:YES];
   envSelectView.onSelect = ^(KBEnvironment *environment) {
-//#ifdef DEBUG
-//    if (!environment.canRunFromXCode) {
-//      KBDebugAlertModal(@"Running in debug mode, you should select Manual.");
-//      return;
-//    }
-//#endif
     [window close];
     [self openWithEnvironment:environment];
   };
@@ -126,11 +122,12 @@
 
   _appView = [[KBAppView alloc] init];
   [_appView.delegates addObject:self];
-  KBWindow *window = [_appView openWindow];
+  [_appView openWindow];
 
   _consoleView = [[KBConsoleView alloc] init];
-  [window kb_addChildWindowForView:_consoleView rect:CGRectMake(0, 40, 400, 400) position:KBWindowPositionRight title:@"Console" fixed:NO makeKey:NO];
   [_appView.delegates addObject:_consoleView];
+
+  _controlPanel = [KBControlPanel openWithComponents:@[_consoleView] sender:_appView];
 
   KBRPClient *client = [[KBRPClient alloc] initWithEnvironment:environment];
   [_appView openWithEnvironment:environment client:client];

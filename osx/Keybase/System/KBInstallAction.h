@@ -15,7 +15,6 @@
 
 @property (readonly) id<KBComponent> component;
 
-@property KBComponentStatus *status;
 @property BOOL installAttempted;
 @property NSError *installError; // If there was
 

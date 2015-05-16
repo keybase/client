@@ -13,11 +13,14 @@
 #import "KBAppView.h"
 #import <GHKit/GHKit.h>
 #import "KBAppKit.h"
+#import "KBControlPanel.h"
 
 #define KBConsoleLog(fmt, ...) ([AppDelegate consoleLog:[NSString stringWithFormat:fmt, ##__VA_ARGS__]])
 #define KBConsoleError(err) ([AppDelegate consoleError:err])
 
 @interface AppDelegate : NSObject <NSApplicationDelegate>
+
+@property (readonly) KBControlPanel *controlPanel;
 
 + (KBAppView *)appView;
 

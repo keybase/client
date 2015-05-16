@@ -13,6 +13,7 @@
 
 @interface KBLaunchService ()
 @property NSString *name;
+@property NSString *info;
 @property NSString *label;
 @property NSString *bundleVersion;
 @property NSString *versionPath;
@@ -21,9 +22,12 @@
 
 @implementation KBLaunchService
 
-- (instancetype)initWithName:(NSString *)name label:(NSString *)label bundleVersion:(NSString *)bundleVersion versionPath:(NSString *)versionPath plist:(NSDictionary *)plist {
+@synthesize status;
+
+- (instancetype)initWithName:(NSString *)name info:(NSString *)info label:(NSString *)label bundleVersion:(NSString *)bundleVersion versionPath:(NSString *)versionPath plist:(NSDictionary *)plist {
   if ((self = [super init])) {
     _name = name;
+    _info = info;
     _label = label;
     _bundleVersion = bundleVersion;
     _versionPath = versionPath;
@@ -32,17 +36,28 @@
   return self;
 }
 
+- (NSImage *)image {
+  return [KBIcons imageForIcon:KBIconNetwork];
+}
+
+- (NSView *)contentView { return nil; }
+
 - (void)status:(KBOnComponentStatus)completion {
+  if (!_label) {
+    completion(nil);
+    return;
+  }
+
   NSString *bundleVersion = _bundleVersion;
   NSString *runningVersion = _versionPath ? [NSString stringWithContentsOfFile:_versionPath encoding:NSUTF8StringEncoding error:nil] : nil;
   GHODictionary *info = [GHODictionary dictionary];
   if (runningVersion) info[@"Version"] = runningVersion;
-  [KBLaunchCtl status:_label completion:^(KBServiceStatus *status) {
-    if (status.error) {
-      completion([KBComponentStatus componentStatusWithError:status.error]);
+  [KBLaunchCtl status:_label completion:^(KBServiceStatus *serviceStatus) {
+    if (serviceStatus.error) {
+      completion([KBComponentStatus componentStatusWithError:serviceStatus.error]);
     } else {
-      if (status.isRunning) {
-        info[@"pid"] = status.pid;
+      if (serviceStatus.isRunning) {
+        info[@"pid"] = serviceStatus.pid;
         if (![runningVersion isEqualToString:bundleVersion]) {
           if (bundleVersion) info[@"New Version"] = bundleVersion;
           completion([KBComponentStatus componentStatusWithInstallStatus:KBInstallStatusNeedsUpgrade runtimeStatus:KBRuntimeStatusRunning info:info]);
@@ -50,15 +65,11 @@
           completion([KBComponentStatus componentStatusWithInstallStatus:KBInstallStatusInstalled runtimeStatus:KBRuntimeStatusRunning info:info]);
         }
       } else {
-        info[@"exit"] = status.lastExitStatus;
+        info[@"exit"] = serviceStatus.lastExitStatus;
         completion([KBComponentStatus componentStatusWithInstallStatus:KBInstallStatusInstalled runtimeStatus:KBRuntimeStatusNotRunning info:info]);
       }
     }
   }];
-}
-
-- (NSString *)info {
-  return _name;
 }
 
 - (void)install:(KBCompletion)completion {
@@ -108,8 +119,8 @@
   // We installed the launch agent plist
   DDLogDebug(@"Installed launch agent plist");
 
-  [KBLaunchCtl reload:plistDest label:_label completion:^(KBServiceStatus *status) {
-    completion(status.error);
+  [KBLaunchCtl reload:plistDest label:_label completion:^(KBServiceStatus *serviceStatus) {
+    completion(serviceStatus.error);
   }];
 }
 

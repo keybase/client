@@ -19,54 +19,26 @@
 #import "KBLaunchCtl.h"
 #import "KBInstallAction.h"
 
-@interface KBConsoleView () <KBAppViewDelegate>
+@interface KBConsoleView () <KBAppViewDelegate, KBComponent>
 @property KBListView *logView;
 @property KBRPClient *client;
 @end
 
 @implementation KBConsoleView
 
+@synthesize status;
+
 - (void)viewInit {
   [super viewInit];
   [self kb_setBackgroundColor:NSColor.whiteColor];
 
-  YOHBox *buttons = [YOHBox box:@{@"spacing": @"10", @"insets": @"0,0,10,0"}];
-  [self addSubview:buttons];
-  GHWeakSelf gself = self;
-  KBButton *checkButton = [KBButton buttonWithText:@"Status" style:KBButtonStyleToolbar];
-  checkButton.dispatchBlock = ^(KBButton *button, KBButtonCompletion completion) {
-    [AppDelegate.appView checkStatus:^(NSError *error) {
-      if (gself.client.environment.launchdLabelService) {
-        [KBLaunchCtl status:gself.client.environment.launchdLabelService completion:^(KBServiceStatus *status) {
-          KBConsoleLog(@"Keybase (launchctl): %@", status);
-          completion(error);
-        }];
-      } else {
-        completion(error);
-      }
-    }];
-  };
-  [buttons addSubview:checkButton];
-
-  KBButton *debugButton = [KBButton buttonWithText:@"Views" style:KBButtonStyleToolbar];
-  debugButton.targetBlock = ^{
-    KBMockViews *mockViews = [[KBMockViews alloc] init];
-    [self.window kb_addChildWindowForView:mockViews rect:CGRectMake(0, 0, 400, 500) position:KBWindowPositionCenter title:@"Debug" fixed:NO makeKey:YES];
-  };
-  [buttons addSubview:debugButton];
-
-  KBButton *helperButton = [KBButton buttonWithText:@"Helper" style:KBButtonStyleToolbar];
-  helperButton.targetBlock = ^{
-    KBFSStatusView *view = [[KBFSStatusView alloc] init];
-    [self.window kb_addChildWindowForView:view rect:CGRectMake(0, 0, 400, 300) position:KBWindowPositionCenter title:@"Helper" fixed:NO makeKey:YES];
-  };
-  [buttons addSubview:helperButton];
-
+  /*
   KBButton *clearButton = [KBButton buttonWithText:@"Clear" style:KBButtonStyleToolbar];
   clearButton.targetBlock = ^{
     [gself.logView removeAllObjects];
   };
   [buttons addSubview:clearButton];
+   */
 
   // TODO logging grows forever
   _logView = [KBListView listViewWithPrototypeClass:KBLabel.class rowHeight:0];
@@ -77,15 +49,7 @@
   };
   [self addSubview:_logView];
 
-  YOSelf yself = self;
-  self.viewLayout = [YOLayout layoutWithLayoutBlock:^CGSize(id<YOLayout> layout, CGSize size) {
-    CGFloat x = 10;
-    CGFloat y = 10;
-    y += [layout sizeToFitVerticalInFrame:CGRectMake(x, y, size.width, 34) view:buttons].size.height;
-
-    y += [layout setFrame:CGRectMake(10, y, size.width - 20, size.height - y - 10) view:yself.logView].size.height + 10;
-    return size;
-  }];
+  self.viewLayout = [YOLayout fill:_logView];
 }
 
 - (void)log:(NSString *)message {
@@ -113,9 +77,9 @@
   KBConsoleLog(@"Connected.");
 }
 
-- (void)appView:(KBAppView *)appView didCheckStatusWithConfig:(KBRConfig *)config status:(KBRGetCurrentStatusRes *)status {
+- (void)appView:(KBAppView *)appView didCheckStatusWithConfig:(KBRConfig *)config status:(KBRGetCurrentStatusRes *)currentStatus {
   KBConsoleLog(@"Keybase config:%@", [config propertiesDescription:@"\n\t"]);
-  KBConsoleLog(@"Status:\n\tconfigured: %@\n\tregistered: %@\n\tloggedIn: %@\n\tusername: %@", @(status.configured), @(status.registered), @(status.loggedIn), status.user.username ? status.user.username : @"");
+  KBConsoleLog(@"Status:\n\tconfigured: %@\n\tregistered: %@\n\tloggedIn: %@\n\tusername: %@", @(currentStatus.configured), @(currentStatus.registered), @(currentStatus.loggedIn), currentStatus.user.username ? currentStatus.user.username : @"");
   [self setNeedsLayout];
 }
 
@@ -135,5 +99,17 @@
 - (void)appViewDidUpdateStatus:(KBAppView *)appView {
   //KBConsoleLog(@"Updated status.");
 }
+
+- (NSString *)name { return @"Console"; }
+- (NSString *)info { return @"Logging goes here"; }
+- (NSImage *)image { return [KBIcons imageForIcon:KBIconAlertNote]; };
+
+- (NSView *)contentView {
+  return self;
+}
+
+- (void)status:(KBOnComponentStatus)completion { completion(nil); }
+
+- (void)install:(KBCompletion)completion { completion(nil); }
 
 @end

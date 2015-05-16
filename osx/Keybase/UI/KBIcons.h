@@ -16,13 +16,20 @@ typedef NS_ENUM(NSInteger, KBIcon) {
   KBIconGroupFolder,
   KBIconHomeFolder,
   KBIconMacbook,
+  KBIconGenericApp,
+  KBIconNetwork,
+  KBIconExecutableBinary,
+  KBIconAlertNote,
 
   KBIconPGP,
+  KBIconFuse,
 };
 
 @interface KBIcons : NSObject
 
 + (instancetype)icons;
+
++ (NSImage *)imageForIcon:(KBIcon)icon;
 
 - (NSImage *)imageForIcon:(KBIcon)icon size:(CGSize)size;
 

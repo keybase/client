@@ -17,6 +17,8 @@
 
 @implementation KBFuseComponent
 
+@synthesize status;
+
 - (instancetype)init {
   if ((self = [super init])) {
     NSDictionary *info = [[NSBundle mainBundle] infoDictionary];
@@ -28,6 +30,16 @@
 - (NSString *)name {
   return @"OSXFuse";
 }
+
+- (NSString *)info {
+  return @"For the Keybase filesystem";
+}
+
+- (NSImage *)image {
+  return [NSImage imageNamed:@"Fuse.icns"];
+}
+
+- (NSView *)contentView { return nil; }
 
 - (void)status:(KBOnComponentStatus)completion {
   NSString *bundleVersion = _bundleVersion;

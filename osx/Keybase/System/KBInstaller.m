@@ -33,7 +33,7 @@
   rover.objects = _installActions;
   rover.runBlock = ^(KBInstallAction *installAction, KBRunCompletion runCompletion) {
     [installAction.component status:^(KBComponentStatus *status) {
-      installAction.status = status;
+      installAction.component.status = status;
       // Clear install outcome
       installAction.installAttempted = NO;
       installAction.installError = nil;
@@ -49,8 +49,8 @@
 
 - (NSArray *)installActionsNeeded {
   return [_installActions select:^BOOL(KBInstallAction *installAction) {
-    return (installAction.status.installStatus != KBInstallStatusInstalled ||
-            installAction.status.runtimeStatus == KBRuntimeStatusNotRunning);
+    return (installAction.component.status.installStatus != KBInstallStatusInstalled ||
+            installAction.component.status.runtimeStatus == KBRuntimeStatusNotRunning);
   }];
 }
 
@@ -71,7 +71,7 @@
 
       if (!error) {
         [installAction.component status:^(KBComponentStatus *status) {
-          installAction.status = status;
+          installAction.component.status = status;
           completion();
         }];
       } else {

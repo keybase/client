@@ -31,6 +31,9 @@
   return gIcons;
 }
 
++ (NSImage *)imageForIcon:(KBIcon)icon {
+  return [KBIcons.icons imageForIcon:icon];
+}
 
 - (NSImage *)imageForIcon:(KBIcon)icon {
   NSString *coreBundleName = nil;
@@ -41,8 +44,13 @@
     case KBIconGroupFolder: coreBundleName = @"GroupFolder.icns"; break; // Folder with heads
     case KBIconHomeFolder: coreBundleName = @"HomeFolderIcon.icns"; break; // House
     case KBIconMacbook: coreBundleName = @"com.apple.macbookpro-15-retina-display.icns"; break;
+    case KBIconGenericApp: coreBundleName = @"GenericApplicationIcon.icns"; break;
+    case KBIconNetwork: coreBundleName = @"GenericNetworkIcon.icns"; break;
+    case KBIconExecutableBinary: coreBundleName = @"ExecutableBinaryIcon.icns"; break;
+    case KBIconAlertNote: coreBundleName = @"AlertNoteIcon.icns"; break;
 
     case KBIconPGP: localBundleName = @"gpgtools.icns"; break;
+    case KBIconFuse: localBundleName = @"Fuse.icns"; break;
   }
 
   if (coreBundleName) {

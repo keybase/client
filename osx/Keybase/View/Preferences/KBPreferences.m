@@ -52,7 +52,7 @@
   gpgViewController.view = [[KBPrefGPGView alloc] initWithPreferences:self];
   gpgViewController.view.frame = CGRectMake(0, 0, 600, 400);
   gpgViewController.identifier = @"GPG";
-  gpgViewController.toolbarItemImage = [NSImage imageNamed:@"gpgtools.icns"];
+  gpgViewController.toolbarItemImage = [KBIcons imageForIcon:KBIconPGP];
   gpgViewController.toolbarItemLabel = @"GPG";    
 
   KBPreferencesViewController *advancedViewController = [[KBPreferencesViewController alloc] init];

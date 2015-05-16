@@ -8,13 +8,26 @@
 
 #import "KBCLIInstall.h"
 #import "KBAppDefines.h"
+#import "KBAppKit.h"
 #import <MPMessagePack/MPXPCClient.h>
 
 @implementation KBCLIInstall
 
+@synthesize status;
+
 - (NSString *)name {
   return @"Command Line";
 }
+
+- (NSString *)info {
+  return @"For power users, like you.";
+}
+
+- (NSImage *)image {
+  return [KBIcons imageForIcon:KBIconExecutableBinary];
+}
+
+- (NSView *)contentView { return nil; }
 
 - (void)status:(KBOnComponentStatus)completion {
   NSError *error = nil;

@@ -23,10 +23,12 @@
 #import "KBInstallAction.h"
 #import "KBInstallerView.h"
 
-#import "KBLaunchService.h"
+#import "KBService.h"
+#import "KBFSService.h"
 #import "KBHelperTool.h"
 #import "KBFuseComponent.h"
 #import "KBCLIInstall.h"
+#import "KBControlPanel.h"
 
 
 typedef NS_ENUM (NSInteger, KBAppViewMode) {
@@ -105,22 +107,16 @@ typedef NS_ENUM (NSInteger, KBAppViewMode) {
 }
 
 - (NSArray *)componentsForEnvironment:(KBEnvironment *)environment {
-  NSDictionary *info = [[NSBundle mainBundle] infoDictionary];
   NSMutableArray *components = [NSMutableArray array];
 
-  if (environment.launchdLabelService) {
-    [components addObject:[[KBLaunchService alloc] initWithName:@"Service" label:environment.launchdLabelService bundleVersion:info[@"KBServiceVersion"] versionPath:[environment cachePath:@"service.version"] plist:environment.launchdPlistDictionaryForService]];
-  }
+  [components addObject:[[KBService alloc] initWithEnvironment:environment]];
 
   [components addObject:[[KBHelperTool alloc] init]];
-
-  if (environment.launchdLabelKBFS) {
-    [components addObject:[[KBLaunchService alloc] initWithName:@"KBFS" label:environment.launchdLabelKBFS bundleVersion:info[@"KBFSVersion"] versionPath:nil plist:environment.launchdPlistDictionaryForKBFS]];
-  }
-
   [components addObject:[[KBFuseComponent alloc] init]];
+  [components addObject:[[KBFSService alloc] initWithEnvironment:environment]];
 
   [components addObject:[[KBCLIInstall alloc] init]];
+
   return components;
 }
 
@@ -133,11 +129,14 @@ typedef NS_ENUM (NSInteger, KBAppViewMode) {
 
   NSArray *components = [self componentsForEnvironment:environment];
 
+  [AppDelegate.sharedDelegate.controlPanel addComponents:components];
+
   KBInstaller *installer = [[KBInstaller alloc] initWithEnvironment:environment components:environment.isInstallEnabled ? components : nil];
   [installer installStatus:^(BOOL needsInstall) {
     if (needsInstall) {
       [self showInstaller:installer];
     } else {
+
       [self connect];
     }
   }];

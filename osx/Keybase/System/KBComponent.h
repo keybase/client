@@ -16,6 +16,12 @@ typedef void (^KBOnComponentStatus)(KBComponentStatus *installStatus);
 @protocol KBComponent <NSObject>
 
 - (NSString *)name;
+- (NSString *)info;
+- (NSImage *)image;
+
+- (NSView *)contentView;
+
+@property KBComponentStatus *status;
 
 - (void)status:(KBOnComponentStatus)completion;
 

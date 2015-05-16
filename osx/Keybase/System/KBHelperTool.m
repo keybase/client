@@ -11,12 +11,15 @@
 #import <ServiceManagement/ServiceManagement.h>
 #import <MPMessagePack/MPXPCClient.h>
 #import "KBLaunchCtl.h"
+#import "KBAppKit.h"
 
 @interface KBHelperTool ()
 @property NSString *bundleVersion;
 @end
 
 @implementation KBHelperTool
+
+@synthesize status;
 
 - (instancetype)init {
   if ((self = [super init])) {
@@ -27,8 +30,18 @@
 }
 
 - (NSString *)name {
-  return @"Helper Tool";
+  return @"Helper";
 }
+
+- (NSString *)info {
+  return @"Runs priviliged tasks";
+}
+
+- (NSImage *)image {
+  return [KBIcons imageForIcon:KBIconGenericApp];
+}
+
+- (NSView *)contentView { return nil; }
 
 - (void)status:(KBOnComponentStatus)completion {
   if (![NSFileManager.defaultManager fileExistsAtPath:@"/Library/LaunchDaemons/keybase.Helper.plist" isDirectory:nil] &&
@@ -68,18 +81,18 @@
 
 - (BOOL)installPrivilegedServiceWithName:(NSString *)name error:(NSError **)error {
   AuthorizationRef authRef;
-  OSStatus status = AuthorizationCreate(NULL, NULL, 0, &authRef);
-  if (status != errAuthorizationSuccess) {
-    if (error) *error = KBMakeError(status, @"Error creating auth");
+  OSStatus osstatus = AuthorizationCreate(NULL, NULL, 0, &authRef);
+  if (osstatus != errAuthorizationSuccess) {
+    if (error) *error = KBMakeError(osstatus, @"Error creating auth");
     return NO;
   }
 
   AuthorizationItem authItem = {kSMRightBlessPrivilegedHelper, 0, NULL, 0};
   AuthorizationRights authRights = {1, &authItem};
   AuthorizationFlags flags =	kAuthorizationFlagDefaults | kAuthorizationFlagInteractionAllowed	| kAuthorizationFlagPreAuthorize | kAuthorizationFlagExtendRights;
-  status = AuthorizationCopyRights(authRef, &authRights, kAuthorizationEmptyEnvironment, flags, NULL);
-  if (status != errAuthorizationSuccess) {
-    if (error) *error = [NSError errorWithDomain:NSOSStatusErrorDomain code:status userInfo:nil];
+  osstatus = AuthorizationCopyRights(authRef, &authRights, kAuthorizationEmptyEnvironment, flags, NULL);
+  if (osstatus != errAuthorizationSuccess) {
+    if (error) *error = [NSError errorWithDomain:NSOSStatusErrorDomain code:osstatus userInfo:nil];
     return NO;
   }
 

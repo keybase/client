@@ -25,12 +25,13 @@
 }
 
 - (NSString *)statusDescription {
-  if (_status.error) {
-    return NSStringWithFormat(@"Error: %@", _status.error.localizedDescription);
+  KBComponentStatus *status = _component.status;
+  if (status.error) {
+    return NSStringWithFormat(@"Error: %@", status.error.localizedDescription);
   } else if (_installError) {
     return NSStringWithFormat(@"Install Error: %@", _installError.localizedDescription);
   } else {
-    return _status.statusDescription;
+    return status.statusDescription;
   }
 }
 
