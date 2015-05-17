@@ -995,6 +995,49 @@ func TestRenameInDirSuccess(t *testing.T) {
 
 }
 
+func TestRenameInRootSuccess(t *testing.T) {
+	mockCtrl, config := kbfsOpsInit(t)
+	defer kbfsTestShutdown(mockCtrl, config)
+
+	userId, id, rmd := makeIdAndRMD(config)
+
+	rootId := BlockId{41}
+	aId := BlockId{42}
+	rootBlock := NewDirBlock().(*DirBlock)
+	rootBlock.Children["a"] = DirEntry{
+		BlockPointer: BlockPointer{Id: aId}, Type: File}
+	node := PathNode{BlockPointer{rootId, 0, 0, userId, 0}, ""}
+	p := Path{id, []PathNode{node}}
+
+	// renaming "a" to "b"
+	expectGetBlock(config, rootId, rootBlock)
+	// sync block
+	expectedPath, _ :=
+		expectSyncBlock(t, config, nil, userId, id, "", p, rmd, false,
+			0, 0, 0, nil)
+
+	var newP1 Path
+	var newP2 Path
+	var err error
+	newP1, newP2, err = config.KBFSOps().Rename(p, "a", p, "b")
+	if err != nil {
+		t.Errorf("Got error on rename: %v", err)
+	}
+	// append a fake block at the end for the renamed file
+	blocks := []*DirBlock{rootBlock, NewDirBlock().(*DirBlock)}
+	checkNewPath(t, config, newP1, expectedPath, rmd, blocks,
+		File, "b", true)
+	checkNewPath(t, config, newP2, expectedPath, rmd, blocks,
+		File, "b", true)
+	if _, ok := rootBlock.Children["a"]; ok {
+		t.Errorf("entry for b is still around after rename")
+	} else if len(config.observer.batchUpdatePaths) != 2 {
+		t.Errorf("Expected 2 batch notifications, got %d",
+			len(config.observer.batchUpdatePaths))
+	}
+
+}
+
 func TestRenameAcrossDirsSuccess(t *testing.T) {
 	mockCtrl, config := kbfsOpsInit(t)
 	defer kbfsTestShutdown(mockCtrl, config)
