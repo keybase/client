@@ -878,7 +878,8 @@ func (fs *KBFSOpsStandard) renameInChannel(
 	oldParent Path, oldName string, newParent Path, newName string) (
 	Path, Path, error) {
 	// verify we have permission to write
-	if _, err := fs.getMDForWriteInChannel(oldParent); err != nil {
+	md, err := fs.getMDForWriteInChannel(oldParent)
+	if err != nil {
 		return Path{}, Path{}, err
 	}
 
@@ -940,14 +941,21 @@ func (fs *KBFSOpsStandard) renameInChannel(
 			return Path{}, Path{}, err
 		}
 	} else {
-		// still need to update the old parent's times
-		if b, err := fs.getDirInChannel(
-			*oldParent.ParentPath(), write); err == nil {
+		// still need to update the old parent's times.
+		parentPath := *oldParent.ParentPath()
+		if len(parentPath.Path) > 0 {
+			b, err := fs.getDirInChannel(parentPath, write)
+			if err != nil {
+				return Path{}, Path{}, err
+			}
 			if de, ok := b.Children[oldParent.TailName()]; ok {
 				de.Ctime = time.Now().UnixNano()
 				de.Mtime = time.Now().UnixNano()
 				b.Children[oldParent.TailName()] = de
 			}
+		} else {
+			md.data.Dir.Ctime = time.Now().UnixNano()
+			md.data.Dir.Mtime = time.Now().UnixNano()
 		}
 	}
 
