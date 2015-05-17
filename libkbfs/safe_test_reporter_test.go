@@ -1,8 +1,7 @@
 package libkbfs
 
 import (
-	"runtime"
-	"sync"
+	"fmt"
 	"testing"
 )
 
@@ -10,9 +9,7 @@ import (
 // calls back to the main test goroutine, to avoid violating
 // testing.T's FailNow() semantics.
 type SafeTestReporter struct {
-	t     *testing.T
-	fatal bool
-	lock  sync.Mutex
+	t *testing.T
 }
 
 func NewSafeTestReporter(t *testing.T) *SafeTestReporter {
@@ -29,17 +26,12 @@ func (ctr *SafeTestReporter) Errorf(format string, args ...interface{}) {
 // something other than the main goroutine could be invoking Fatalf().
 func (ctr *SafeTestReporter) Fatalf(format string, args ...interface{}) {
 	ctr.Errorf(format, args...)
-	ctr.lock.Lock()
-	defer ctr.lock.Unlock()
-	ctr.fatal = true
-	runtime.Goexit()
+	// panic here, since a Goexit() might leave the main thread
+	// waiting for results.
+	panic(fmt.Errorf(format, args...))
 }
 
 func (ctr *SafeTestReporter) CheckForFailures() {
-	ctr.lock.Lock()
-	defer ctr.lock.Unlock()
-	if ctr.fatal {
-		// some fatal failure happened, mark the test as immediately failed.
-		ctr.t.FailNow()
-	}
+	// Empty for now, since any fatal failure will have panic'd the
+	// test.  In the future, we may have a better strategy.
 }
