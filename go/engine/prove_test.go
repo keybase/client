@@ -1,15 +1,15 @@
 package engine
 
-import ( 
-	"testing"
-	keybase1 "github.com/keybase/client/protocol/go"
-	libkb "github.com/keybase/client/go/libkb"
+import (
 	"fmt"
+	libkb "github.com/keybase/client/go/libkb"
+	keybase1 "github.com/keybase/client/protocol/go"
+	"testing"
 )
 
 type ProveUIMock struct {
 	username, recheck, overwrite, warning, checked bool
-	hook func(arg keybase1.OkToCheckArg) (bool, error)
+	hook                                           func(arg keybase1.OkToCheckArg) (bool, error)
 }
 
 func (p *ProveUIMock) PromptOverwrite(arg keybase1.PromptOverwriteArg) (bool, error) {
@@ -56,11 +56,11 @@ func TestProveRooter(t *testing.T) {
 
 	fu := CreateAndSignupFakeUser(tc, "prove")
 	arg := keybase1.StartProofArg{
-		Service : "rooter",
-		Username : fu.Username,
-		Force : false,
+		Service:  "rooter",
+		Username: fu.Username,
+		Force:    false,
 	}
-	
+
 	eng := NewProve(&arg, tc.G)
 
 	hook := func(arg keybase1.OkToCheckArg) (bool, error) {
@@ -68,29 +68,29 @@ func TestProveRooter(t *testing.T) {
 		if sigID == nil {
 			return false, fmt.Errorf("nil sigID; can't make a post!")
 		}
-		apiArg := libkb.ApiArg {
-			Endpoint : "rooter",
-			NeedSession : true,
-			Args : libkb.HttpArgs {
-				"post" : libkb.S{Val:sigID.ToMediumId()},
+		apiArg := libkb.ApiArg{
+			Endpoint:    "rooter",
+			NeedSession: true,
+			Args: libkb.HttpArgs{
+				"post": libkb.S{Val: sigID.ToMediumId()},
 			},
 		}
 		_, err := tc.G.API.Post(apiArg)
 		return (err == nil), err
 	}
 
-	proveUI := &ProveUIMock{ hook: hook }
+	proveUI := &ProveUIMock{hook: hook}
 
 	ctx := Context{
-		LogUI:      tc.G.UI.GetLogUI(),
-		SecretUI:   fu.NewSecretUI(),
-		ProveUI:    proveUI,
+		LogUI:    tc.G.UI.GetLogUI(),
+		SecretUI: fu.NewSecretUI(),
+		ProveUI:  proveUI,
 	}
 
 	err := RunEngine(eng, &ctx)
 	if err != nil {
 		t.Fatal(err)
-	}	
+	}
 	if proveUI.overwrite {
 		t.Fatal("unexpected prompt for overwrite in test")
 	}

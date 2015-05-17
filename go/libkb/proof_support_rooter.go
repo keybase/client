@@ -3,9 +3,9 @@
 package libkb
 
 import (
+	jsonw "github.com/keybase/go-jsonw"
 	"regexp"
 	"strings"
-	jsonw "github.com/keybase/go-jsonw"
 )
 
 //=============================================================================
