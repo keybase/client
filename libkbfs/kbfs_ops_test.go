@@ -138,28 +138,6 @@ func TestKBFSOpsGetRootMDCacheSuccess(t *testing.T) {
 	}
 }
 
-func TestKBFSOpsGetRootMDCacheSuccess2ndTry(t *testing.T) {
-	mockCtrl, config := kbfsOpsInit(t)
-	defer kbfsTestShutdown(mockCtrl, config)
-
-	_, id, h := makeId(config)
-	rmd := NewRootMetadata(h, id)
-	rmdGood := NewRootMetadata(h, id)
-	rmdGood.data.Dir.Type = Dir
-
-	// send back new, uncached MD on first try, but succeed after
-	// getting the lock
-	config.mockMdops.EXPECT().Get(id).Return(rmd, nil)
-	config.mockMdcache.EXPECT().Put(rmd.mdId, rmd).Return(nil)
-	config.mockMdcache.EXPECT().Get(rmd.mdId).Return(rmdGood, nil)
-
-	if rmd2, err := config.KBFSOps().GetRootMD(id); err != nil {
-		t.Errorf("Got error on root MD: %v", err)
-	} else if rmd2 != rmdGood {
-		t.Error("Got bad MD back: %v", rmd2)
-	}
-}
-
 func expectKeyDecode(
 	config *ConfigMock, packedData []byte, key Key, err error) {
 	config.mockCodec.EXPECT().Decode(packedData, gomock.Any()).
@@ -181,12 +159,6 @@ func expectBlock(config *ConfigMock, id BlockId, block Block,
 			*v = *block.(*DirBlock)
 		}
 	}).Return(err)
-}
-
-func createNewMD(config *ConfigMock, rmd *RootMetadata, id DirId) {
-	config.mockMdops.EXPECT().Get(id).Return(rmd, nil)
-	config.mockMdcache.EXPECT().Put(rmd.mdId, rmd).Return(nil)
-	config.mockMdcache.EXPECT().Get(rmd.mdId).Return(rmd, nil)
 }
 
 func expectGetSecretKey(config *ConfigMock, rmd *RootMetadata) {
@@ -220,7 +192,7 @@ func TestKBFSOpsGetRootMDCreateNewSuccess(t *testing.T) {
 	rmd := NewRootMetadata(h, id)
 
 	// create a new MD
-	createNewMD(config, rmd, id)
+	config.mockMdops.EXPECT().Get(id).Return(rmd, nil)
 	// now KBFS will fill it in:
 	rootId, plainSize, block := fillInNewMD(config, rmd)
 	// now cache and put everything
@@ -265,7 +237,7 @@ func TestKBFSOpsGetRootMDCreateNewFailNonWriter(t *testing.T) {
 	// in reality, createNewMD should fail early because the MD server
 	// will refuse to create the new MD for this user.  But for this test,
 	// we won't bother
-	createNewMD(config, rmd, id)
+	config.mockMdops.EXPECT().Get(id).Return(rmd, nil)
 	// try to get the MD for writing, but fail (no puts should happen)
 	config.mockKbpki.EXPECT().GetLoggedInUser().AnyTimes().Return(userId, nil)
 	expectedErr := &WriteAccessError{

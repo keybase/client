@@ -82,14 +82,21 @@ func (fs *KBFSOpsStandard) getMDInChannel(dir Path, rtype reqType) (
 		return nil, err
 	}
 
-	mdId, err := md.MetadataId(fs.config)
-	if err != nil {
-		return nil, err
+	if md.data.Dir.Type != Dir {
+		err = fs.initMDInChannel(md)
+	} else {
+		// if already initialized, store directly in cache
+		mdId, err := md.MetadataId(fs.config)
+		if err != nil {
+			return nil, err
+		}
+
+		fs.globalStateLock.Lock()
+		defer fs.globalStateLock.Unlock()
+		fs.heads[dir.TopDir] = mdId
+		err = mdcache.Put(mdId, md)
 	}
-	fs.globalStateLock.Lock()
-	defer fs.globalStateLock.Unlock()
-	fs.heads[dir.TopDir] = mdId
-	return md, mdcache.Put(mdId, md)
+	return md, err
 }
 
 func (fs *KBFSOpsStandard) getMDForReadInChannel(dir Path, rtype reqType) (
@@ -132,6 +139,11 @@ func (fs *KBFSOpsStandard) initMDInChannel(md *RootMetadata) error {
 	if err != nil {
 		return err
 	}
+
+	if !md.GetDirHandle().IsWriter(user) {
+		return NewWriteAccessError(fs.config, md.GetDirHandle(), user)
+	}
+
 	newDblock := &DirBlock{
 		CommonBlock: CommonBlock{
 			Seed: rand.Int63(),
@@ -261,31 +273,10 @@ func (fs *KBFSOpsStandard) execReadInChannel(
 func (fs *KBFSOpsStandard) GetRootMD(dir DirId) (md *RootMetadata, err error) {
 	// don't check read permissions here -- anyone should be able to read
 	// the MD to determine whether there's a public subdir or not
-	var exists bool
 	fs.execReadInChannel(dir, func(rtype reqType) error {
 		md, err = fs.getMDInChannel(Path{TopDir: dir}, rtype)
-		// Type defaults to File, so if it was set to Dir then MD already exists
-		if err == nil && md.data.Dir.Type == Dir {
-			exists = true
-		}
 		return err
 	})
-
-	if err != nil || exists {
-		return
-	}
-
-	rwchan, errchan := fs.getChans(dir)
-	rwchan.QueueWriteReq(func() {
-		// refetch just in case
-		md, err = fs.getMDForWriteInChannel(Path{TopDir: dir})
-		if err != nil || md.data.Dir.Type == Dir {
-			errchan <- err
-		} else {
-			errchan <- fs.initMDInChannel(md)
-		}
-	})
-	<-errchan
 	return
 }
 
