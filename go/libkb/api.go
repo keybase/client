@@ -34,6 +34,7 @@ type ExternalApiEngine struct {
 type Requester interface {
 	fixHeaders(arg ApiArg, req *http.Request)
 	getCli(needSession bool) *Client
+	isExternal() bool
 }
 
 // Make a new InternalApiEngine and a new ExternalApiEngine, which share the
@@ -137,7 +138,15 @@ func doRequestShared(api Requester, arg ApiArg, req *http.Request, wantJsonRes b
 	cli := api.getCli(arg.NeedSession)
 
 	// Actually send the request via Go's libraries
+	timerType := TimerAPI
+	if api.isExternal() {
+		timerType = TimerXAPI
+	}
+
+	timer := G.Timers.Start(timerType)
 	resp, err = cli.cli.Do(req)
+	timer.Report(req.Method + " " + arg.Endpoint)
+
 	if err != nil {
 		return nil, nil, APINetError{err: err}
 	}
@@ -219,6 +228,8 @@ func (a *InternalApiEngine) sessionArgs(sr SessionReader) (tok, csrf string) {
 	}, "sessionArgs")
 	return
 }
+
+func (i *InternalApiEngine) isExternal() bool { return false }
 
 func (a *InternalApiEngine) fixHeaders(arg ApiArg, req *http.Request) {
 	if arg.NeedSession {
@@ -375,6 +386,7 @@ const (
 func (a *ExternalApiEngine) fixHeaders(arg ApiArg, req *http.Request) {
 	// noop for now
 }
+func (e *ExternalApiEngine) isExternal() bool { return true }
 
 func (api *ExternalApiEngine) DoRequest(
 	arg ApiArg, req *http.Request, restype int) (

@@ -37,6 +37,7 @@ func (n NullConfiguration) GetPidFile() string                 { return "" }
 func (n NullConfiguration) GetDaemonPort() (int, bool)         { return 0, false }
 func (n NullConfiguration) GetStandalone() (bool, bool)        { return false, false }
 func (n NullConfiguration) GetLocalRpcDebug() string           { return "" }
+func (n NullConfiguration) GetTimers() string                  { return "" }
 func (n NullConfiguration) GetDeviceID() *DeviceID             { return nil }
 func (n NullConfiguration) GetProxyCACerts() ([]string, error) { return nil, nil }
 func (n NullConfiguration) GetAutoFork() (bool, bool)          { return false, false }
@@ -574,6 +575,14 @@ func (e *Env) GetLocalRpcDebug() string {
 		func() string { return e.cmd.GetLocalRpcDebug() },
 		func() string { return os.Getenv("KEYBASE_LOCAL_RPC_DEBUG") },
 		func() string { return e.config.GetLocalRpcDebug() },
+	)
+}
+
+func (e *Env) GetTimers() string {
+	return e.GetString(
+		func() string { return e.cmd.GetTimers() },
+		func() string { return os.Getenv("KEYBASE_TIMERS") },
+		func() string { return e.config.GetTimers() },
 	)
 }
 

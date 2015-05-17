@@ -46,6 +46,7 @@ type CommandLine interface {
 	GetAutoFork() (bool, bool)
 	GetNoAutoFork() (bool, bool)
 	GetLocalRpcDebug() string
+	GetTimers() string
 	GetSplitLogOutput() (bool, bool)
 	GetLogFile() string
 
@@ -108,6 +109,7 @@ type ConfigReader interface {
 	GetDaemonPort() (int, bool)
 	GetStandalone() (bool, bool)
 	GetLocalRpcDebug() string
+	GetTimers() string
 	GetDeviceID() *DeviceID
 	GetUsername() string
 	GetAllUsernames() (current string, others []string, err error)

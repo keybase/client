@@ -121,6 +121,7 @@ func (p CommandLine) GetGpgOptions() []string {
 func (p CommandLine) GetGpgDisabled() (bool, bool) {
 	return p.GetBool("gpg-disabled", true)
 }
+
 func (p CommandLine) GetMerkleKeyFingerprints() []string {
 	s := p.GetGString("merkle-key-fingerprints")
 	if len(s) != 0 {
@@ -155,6 +156,10 @@ func (p CommandLine) GetStandalone() (bool, bool) {
 
 func (p CommandLine) GetLocalRpcDebug() string {
 	return p.GetGString("local-rpc-debug")
+}
+
+func (p CommandLine) GetTimers() string {
+	return p.GetGSTring("timers")
 }
 
 func (p CommandLine) GetBool(s string, glbl bool) (bool, bool) {

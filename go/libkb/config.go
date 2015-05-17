@@ -324,6 +324,9 @@ func (f JsonConfigFile) GetGpg() string {
 func (f JsonConfigFile) GetLocalRpcDebug() string {
 	return f.GetTopLevelString("local_rpc_debug")
 }
+func (f JsonConfigFile) GetTimers() string {
+	return f.GetTopLevelString("timers")
+}
 func (f JsonConfigFile) GetGpgOptions() []string {
 	var ret []string
 	if f.jw == nil {

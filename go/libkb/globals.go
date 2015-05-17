@@ -40,6 +40,7 @@ type GlobalContext struct {
 	socketWrapperMu sync.RWMutex
 	SocketWrapper   *SocketWrapper   // only need one connection per
 	XStreams        *ExportedStreams // a table of streams we've exported to the daemon (or vice-versa)
+	Timers          *TimerSet        // Which timers are currently configured on
 	UI              UI               // Interact with the UI
 	Service         bool             // whether we're in server mode
 	shutdown        bool             // whether we've shut down or not
@@ -115,6 +116,11 @@ func (g *GlobalContext) ConfigureConfig() error {
 	g.PushShutdownHook(func() error {
 		return c.Write()
 	})
+	return nil
+}
+
+func (g *GlobalContext) ConfigureTimers() error {
+	g.Timers = NewTimerSet(g)
 	return nil
 }
 
