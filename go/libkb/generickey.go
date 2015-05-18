@@ -276,3 +276,16 @@ func IsPGP(key GenericKey) bool {
 	_, ok := key.(*PgpKeyBundle)
 	return ok
 }
+
+func ParseGenericKey(bundle string, gc *GlobalContext) (GenericKey, error) {
+	if isPgp(bundle) {
+		// PGP key
+		return ReadOneKeyFromString(bundle)
+	}
+	// NaCl key
+	kid, err := ImportKID(bundle)
+	if err != nil {
+		return nil, err
+	}
+	return ImportKeypairFromKID(kid, gc)
+}

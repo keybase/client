@@ -169,6 +169,8 @@ func (c *ChainLink) Pack() error {
 	p.SetKey("payload_json", jsonw.NewString(c.unpacked.payloadJsonStr))
 	p.SetKey("sig", jsonw.NewString(c.unpacked.sig))
 	p.SetKey("sig_id", jsonw.NewString(string(c.unpacked.sigID)))
+	p.SetKey("kid", jsonw.NewString(c.unpacked.kid.String()))
+	p.SetKey("ctime", jsonw.NewInt64(c.unpacked.ctime))
 	if c.unpacked.pgpFingerprint != nil {
 		p.SetKey("fingerprint", jsonw.NewString(c.unpacked.pgpFingerprint.String()))
 	}
@@ -328,6 +330,13 @@ func (c *ChainLink) Unpack(trusted bool, selfUID keybase1.UID) (err error) {
 		return err
 	}
 
+	if tmp.kid == nil {
+		tmp.kid, err = GetKID(c.packed.AtKey("kid"))
+		if err != nil {
+			return err
+		}
+	}
+
 	// only unpack the proof_text_full if owner of this link
 	if tmp.uid == selfUID {
 		ptf := c.packed.AtKey("proof_text_full")
@@ -358,10 +367,16 @@ func (c *ChainLink) Unpack(trusted bool, selfUID keybase1.UID) (err error) {
 
 func (c *ChainLink) CheckNameAndId(s string, i keybase1.UID) error {
 	if c.unpacked.uid != i {
-		return fmt.Errorf("UID mismatch %s != %s in Link %s", c.unpacked.uid, i, c.id)
+		return UidMismatchError{
+			fmt.Sprintf("UID mismatch %s != %s in Link %s",
+				c.unpacked.uid, i, c.id),
+		}
 	}
 	if !Cicmp(c.unpacked.username, s) {
-		return fmt.Errorf("Username mismatch %s != %s in Link %s", c.unpacked.username, s, c.id)
+		return BadUsernameError{
+			fmt.Sprintf("Username mismatch %s != %s in Link %s",
+				c.unpacked.username, s, c.id),
+		}
 	}
 	return nil
 
@@ -434,6 +449,11 @@ func (c *ChainLink) VerifySigWithKeyFamily(ckf ComputedKeyFamily) (cached bool, 
 	var key GenericKey
 	var sigID keybase1.SigID
 
+	err = c.checkServerSignatureMetadata(ckf.kf)
+	if err != nil {
+		return cached, err
+	}
+
 	if key, _, err = ckf.FindActiveSibkeyAtTime(c.ToFOKID(), c.GetCTime()); err != nil {
 		return
 	}
@@ -443,7 +463,7 @@ func (c *ChainLink) VerifySigWithKeyFamily(ckf ComputedKeyFamily) (cached bool, 
 	}
 
 	if sigID, err = key.VerifyString(c.unpacked.sig, []byte(c.unpacked.payloadJsonStr)); err != nil {
-		return
+		return cached, BadSigError{err.Error()}
 	}
 	c.unpacked.sigID = sigID
 
@@ -522,6 +542,53 @@ func (l *ChainLink) VerifyLink() error {
 	}
 	if err := l.VerifyPayload(); err != nil {
 		return err
+	}
+	return nil
+}
+
+func (c *ChainLink) checkServerSignatureMetadata(kf *KeyFamily) error {
+	// Check the payload KID, fingerprint, and ctime against the
+	// server-provided KID and ctime.
+	serverKID, err := GetKID(c.packed.AtKey("kid"))
+	if err != nil {
+		return err
+	}
+	serverKey, err := kf.FindKeyWithKIDUnsafe(serverKID)
+	if err != nil {
+		return err
+	}
+	// Check the KID.
+	if c.unpacked.kid != nil && !c.unpacked.kid.Eq(serverKID) {
+		return ChainLinkKIDMismatchError{
+			fmt.Sprintf("chain link KID (%s) doesn't match server KID (%s)",
+				c.unpacked.kid.String(), serverKID.String()),
+		}
+	}
+	// Check the fingerprint.
+	if c.unpacked.pgpFingerprint != nil {
+		payloadFingerprintStr := c.unpacked.pgpFingerprint.String()
+		serverFingerprintStr := ""
+		if serverKey.GetFingerprintP() != nil {
+			serverFingerprintStr = serverKey.GetFingerprintP().String()
+		}
+		if payloadFingerprintStr != serverFingerprintStr {
+			return ChainLinkFingerprintMismatchError{
+				fmt.Sprintf("Chain link fingerprint (%s) did not match server key (%s).",
+					payloadFingerprintStr, serverFingerprintStr),
+			}
+		}
+	}
+	// Check the ctime.
+	serverCtimeUnix, err := c.packed.AtKey("ctime").GetInt64()
+	if err != nil {
+		return err
+	}
+	serverCtime := time.Unix(serverCtimeUnix, 0)
+	if !serverCtime.Equal(c.GetCTime()) {
+		return CtimeMismatchError{
+			fmt.Sprintf("Server ctime (%d) doesn't match signed ctime (%d)",
+				serverCtimeUnix, c.GetCTime().Unix()),
+		}
 	}
 	return nil
 }

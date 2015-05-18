@@ -203,8 +203,14 @@ func (sc *SigChain) VerifyChain() (err error) {
 		if err = curr.VerifyLink(); err != nil {
 			return
 		}
-		if i > 0 && !sc.chainLinks[i-1].id.Eq(curr.GetPrev()) {
-			return fmt.Errorf("Chain mismatch at seqno=%d", curr.GetSeqno())
+		if i > 0 {
+			prev := sc.chainLinks[i-1]
+			if !prev.id.Eq(curr.GetPrev()) {
+				return ChainLinkPrevHashMismatchError{fmt.Errorf("Chain mismatch at seqno=%d", curr.GetSeqno())}
+			}
+			if prev.GetSeqno()+1 != curr.GetSeqno() {
+				return ChainLinkWrongSeqnoError{fmt.Errorf("Chain seqno mismatch at seqno=%d (previous=%d)", curr.GetSeqno(), prev.GetSeqno())}
+			}
 		}
 		if err = curr.CheckNameAndId(sc.username, sc.uid); err != nil {
 			return

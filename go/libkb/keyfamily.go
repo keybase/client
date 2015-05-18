@@ -621,10 +621,10 @@ func (kf *KeyFamily) LocalDelegate(key GenericKey, isSibkey bool, eldest bool) (
 	return
 }
 
-// GetKeyRole returns the KeyRole (sibkey/subkey/none), taking into account
-// whether the key has been cancelled.
-func (ckf ComputedKeyFamily) GetKeyRole(kid KID) (ret KeyRole) {
-	if info, err := ckf.getCkiIfActiveNow(kid.ToFOKID()); err != nil {
+// GetKeyRoleAtTime returns the KeyRole (sibkey/subkey/none), taking into
+// account whether the key has been cancelled at time t.
+func (ckf ComputedKeyFamily) GetKeyRoleAtTime(kid KID, t time.Time) (ret KeyRole) {
+	if info, err := ckf.getCkiIfActiveAtTime(kid.ToFOKID(), t); err != nil {
 		ret = DLG_NONE
 	} else if info.Sibkey {
 		ret = DLG_SIBKEY
@@ -634,14 +634,38 @@ func (ckf ComputedKeyFamily) GetKeyRole(kid KID) (ret KeyRole) {
 	return
 }
 
+// GetKeyRole returns the KeyRole (sibkey/subkey/none), taking into account
+// whether the key has been cancelled.
+func (ckf ComputedKeyFamily) GetKeyRole(kid KID) (ret KeyRole) {
+	return ckf.GetKeyRoleAtTime(kid, time.Now())
+}
+
 // GetAllActiveSibkeys gets all active Sibkeys from given ComputedKeyFamily.
-func (ckf ComputedKeyFamily) GetAllActiveSibkeys() (ret []GenericKey) {
+func (ckf ComputedKeyFamily) GetAllActiveSibkeysAtTime(t time.Time) (ret []GenericKey) {
 	for mapKey, skr := range ckf.kf.AllKeys {
 		kid, err := mapKey.ToKID()
 		if err != nil {
 			continue
 		}
-		if ckf.GetKeyRole(kid) == DLG_SIBKEY && skr.key != nil {
+		if ckf.GetKeyRoleAtTime(kid, t) == DLG_SIBKEY && skr.key != nil {
+			ret = append(ret, skr.key)
+		}
+	}
+	return
+}
+
+// GetAllActiveSibkeys gets all active Sibkeys from given ComputedKeyFamily.
+func (ckf ComputedKeyFamily) GetAllActiveSibkeys() (ret []GenericKey) {
+	return ckf.GetAllActiveSibkeysAtTime(time.Now())
+}
+
+func (ckf ComputedKeyFamily) GetAllActiveSubkeysAtTime(t time.Time) (ret []GenericKey) {
+	for mapKey, skr := range ckf.kf.AllKeys {
+		kid, err := mapKey.ToKID()
+		if err != nil {
+			continue
+		}
+		if ckf.GetKeyRoleAtTime(kid, t) == DLG_SUBKEY && skr.key != nil {
 			ret = append(ret, skr.key)
 		}
 	}
@@ -649,16 +673,7 @@ func (ckf ComputedKeyFamily) GetAllActiveSibkeys() (ret []GenericKey) {
 }
 
 func (ckf ComputedKeyFamily) GetAllActiveSubkeys() (ret []GenericKey) {
-	for mapKey, skr := range ckf.kf.AllKeys {
-		kid, err := mapKey.ToKID()
-		if err != nil {
-			continue
-		}
-		if ckf.GetKeyRole(kid) == DLG_SUBKEY && skr.key != nil {
-			ret = append(ret, skr.key)
-		}
-	}
-	return
+	return ckf.GetAllActiveSubkeysAtTime(time.Now())
 }
 
 func (ckf ComputedKeyFamily) GetAllActiveKeysForDevice(deviceID string) ([]KID, error) {

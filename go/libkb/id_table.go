@@ -591,8 +591,7 @@ func (s *SibkeyChainLink) VerifyReverseSig(kf *KeyFamily) (err error) {
 	}
 
 	if key, err = kf.FindKeyWithKIDUnsafe(s.GetDelegatedKid()); err != nil {
-		err = ReverseSigError{fmt.Sprintf("Can't find a key for %s", s.GetDelegatedKid().String())}
-		return
+		return err
 	}
 
 	var p1, p2 []byte

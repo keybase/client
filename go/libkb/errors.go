@@ -869,10 +869,62 @@ func (e APINetError) Error() string {
 	return fmt.Sprintf("API network error: %s", e.err)
 }
 
+//=============================================================================
+
 type PGPDecError struct {
 	Msg string
 }
 
 func (e PGPDecError) Error() string {
 	return fmt.Sprintf("pgp decrypt error: %s", e.Msg)
+}
+
+//=============================================================================
+
+type ChainLinkPrevHashMismatchError struct {
+	err error
+}
+
+func (e ChainLinkPrevHashMismatchError) Error() string {
+	return fmt.Sprintf("Chain link prev hash mismatch error: %s", e.err)
+}
+
+//=============================================================================
+
+type ChainLinkWrongSeqnoError struct {
+	err error
+}
+
+func (e ChainLinkWrongSeqnoError) Error() string {
+	return fmt.Sprintf("Chain link wrong seqno error: %s", e.err)
+}
+
+//=============================================================================
+
+type CtimeMismatchError struct {
+	Msg string
+}
+
+func (e CtimeMismatchError) Error() string {
+	return fmt.Sprintf("Ctime mismatch error: %s", e.Msg)
+}
+
+//=============================================================================
+
+type ChainLinkFingerprintMismatchError struct {
+	Msg string
+}
+
+func (e ChainLinkFingerprintMismatchError) Error() string {
+	return e.Msg
+}
+
+//=============================================================================
+
+type ChainLinkKIDMismatchError struct {
+	Msg string
+}
+
+func (e ChainLinkKIDMismatchError) Error() string {
+	return e.Msg
 }
