@@ -159,7 +159,7 @@ func (p CommandLine) GetLocalRpcDebug() string {
 }
 
 func (p CommandLine) GetTimers() string {
-	return p.GetGSTring("timers")
+	return p.GetGString("timers")
 }
 
 func (p CommandLine) GetBool(s string, glbl bool) (bool, bool) {
