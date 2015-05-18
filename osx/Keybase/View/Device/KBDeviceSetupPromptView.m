@@ -37,11 +37,11 @@
 
   GHWeakSelf gself = self;
   YOHBox *footerView = [YOHBox box:@{@"spacing": @(20), @"minSize": @"130,0", @"horizontalAlignment": @"center"}];
+  _cancelButton = [KBButton buttonWithText:@"Cancel" style:KBButtonStyleDefault];
   [footerView addSubview:_cancelButton];
   _button = [KBButton buttonWithText:@"Save" style:KBButtonStylePrimary];
   _button.targetBlock = ^{ [gself save]; };
   [footerView addSubview:_button];
-  _cancelButton = [KBButton buttonWithText:@"Cancel" style:KBButtonStyleDefault];
 
   [contentView addSubview:footerView];
 
