@@ -75,10 +75,9 @@
   };
 
   [view addSubview:createView(@"Id", environment.identifier)];
-  [view addSubview:createView(@"Home", KBDir(environment.homeDir, YES))];
-  [view addSubview:createView(@"Host", environment.host)];
-  //[view addSubview:createView(@"Sock", KBDir(environment.sockFile, YES))];
-  [view addSubview:createView(@"Mount", KBDir(environment.mountDir, YES))];
+  [view addSubview:createView(@"Home", KBPath(environment.homeDir, YES))];
+  if (environment.host) [view addSubview:createView(@"Host", environment.host)];
+  if (environment.mountDir) [view addSubview:createView(@"Mount", KBPath(environment.mountDir, YES))];
   if (environment.isLaunchdEnabled) {
     [view addSubview:createView(@"Service", environment.launchdLabelService)];
     [view addSubview:createView(@"KBFS", environment.launchdLabelKBFS)];

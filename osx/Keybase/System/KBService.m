@@ -13,6 +13,7 @@
 #import "KBInfoView.h"
 
 @interface KBService ()
+@property KBEnvironment *environment;
 @property KBRPClient *client;
 
 @property (nonatomic) KBRGetCurrentStatusRes *userStatus;
@@ -27,6 +28,7 @@
   NSDictionary *info = [[NSBundle mainBundle] infoDictionary];
   if ((self = [super initWithName:@"Keybase" info:@"The Keybase Service" label:environment.launchdLabelService bundleVersion:info[@"KBServiceVersion"] versionPath:[environment cachePath:@"service.version"] plist:environment.launchdPlistDictionaryForService])) {
 
+    _environment = environment;
     _client = client;
   }
   return self;
@@ -37,14 +39,12 @@
   return _infoView;
 }
 
-- (NSString *)version {
-  return _config.version;
-}
-
 - (void)componentDidUpdate {
   GHODictionary *info = [GHODictionary dictionary];
 
-  info[@"Socket"] = _config.socketFile;
+  info[@"Home"] = KBPath(_environment.homeDir, YES);
+  info[@"Socket"] = KBPath(_environment.sockFile, YES);
+
   info[@"API Server"] = _config.serverURI;
 
   info[@"Launchd"] = self.label ? self.label : @"N/A";
@@ -58,6 +58,8 @@
   info[@"Logged in"] = @(_userStatus.loggedIn);
   info[@"User"] = _userStatus.user.username;
   info[@"User Id"] = KBHexString(_userStatus.user.uid, @"");
+
+  info[@"Launchd Plist"] = KBPath([self plistDestination], YES);
 
   if (!_infoView) _infoView = [[KBInfoView alloc] init];
   [_infoView setProperties:info];

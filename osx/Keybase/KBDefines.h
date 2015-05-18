@@ -27,5 +27,7 @@ NSData *KBHexData(NSString *s);
 
 NSString *KBNSStringWithFormat(NSString *formatString, ...);
 
+NSString *KBPath(NSString *dir, BOOL tilde);
+
 #define LINK_SOURCE (@"/usr/local/bin/keybase")
 #define LINK_DESTINATION (@"/Applications/Keybase.app/Contents/SharedSupport/bin/keybase")

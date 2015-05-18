@@ -47,6 +47,4 @@ typedef NS_ENUM (NSInteger, KBAppViewItem) {
 
 #define KBLog DDLogDebug
 
-NSString *KBDir(NSString *dir, BOOL tilde);
-
 NSString *KBNSStringByStrippingHTML(NSString *str);

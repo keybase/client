@@ -47,10 +47,17 @@
 }
 
 - (NSArray *)installActionsNeeded {
-  return [_installActions select:^BOOL(KBInstallAction *installAction) {
+  NSArray *installActions = [_installActions select:^BOOL(KBInstallAction *installAction) {
     return (installAction.component.componentStatus.installStatus != KBInstallStatusInstalled ||
             installAction.component.componentStatus.runtimeStatus == KBRuntimeStatusNotRunning);
   }];
+
+  // Ignore KBFS since it's not ready yet
+  installActions = [installActions reject:^BOOL(KBInstallAction *installAction) {
+    return ![installAction isEqual:@"KBFS"];
+  }];
+
+  return installActions;
 }
 
 - (void)install:(dispatch_block_t)completion {

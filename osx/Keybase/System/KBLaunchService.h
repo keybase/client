@@ -21,4 +21,6 @@
 
 - (instancetype)initWithName:(NSString *)name info:(NSString *)info label:(NSString *)label bundleVersion:(NSString *)bundleVersion versionPath:(NSString *)versionPath plist:(NSDictionary *)plist;
 
+- (NSString *)plistDestination;
+
 @end

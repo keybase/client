@@ -35,9 +35,9 @@
       case KBEnvKeybaseIO: {
         self.title = @"Keybase.io";
         self.identifier = @"keybase_io";
-        self.homeDir = KBDir(@"~", NO);
+        self.homeDir = KBPath(@"~", NO);
         self.host = @"https://api.keybase.io:443";
-        self.mountDir = KBDir(@"~/Keybase", NO);
+        self.mountDir = KBPath(@"~/Keybase", NO);
         self.debugEnabled = YES;
         self.info = @"This uses api.keybase.io.";
         self.image = [NSImage imageNamed:NSImageNameNetwork];
@@ -48,9 +48,9 @@
       case KBEnvLocalhost: {
         self.title = @"Localhost";
         self.identifier = @"localhost";
-        self.homeDir = KBDir(NSStringWithFormat(@"~/Library/Application Support/Keybase/%@", self.identifier), NO);
+        self.homeDir = KBPath(NSStringWithFormat(@"~/Library/Application Support/Keybase/%@", self.identifier), NO);
         self.host = @"http://localhost:3000";
-        self.mountDir = KBDir(@"~/Keybase.localhost", NO);
+        self.mountDir = KBPath(@"~/Keybase.localhost", NO);
         self.debugEnabled = YES;
         self.info = @"This uses the localhost web server.";
         self.image = [NSImage imageNamed:NSImageNameComputer];
@@ -61,7 +61,7 @@
       case KBEnvManual: {
         self.identifier = @"manual";
         self.title = @"Manual";
-        self.homeDir = KBDir(@"~/Library/Application Support/Keybase/dev", NO);
+        self.homeDir = KBPath(@"~/Library/Application Support/Keybase/dev", NO);
         self.info = @"Choose this if running from xCode.";
         self.image = [NSImage imageNamed:NSImageNameAdvanced];
         self.launchdEnabled = NO;
@@ -99,7 +99,7 @@
 - (NSArray *)programArgumentsForService:(BOOL)tilde {
   NSMutableArray *args = [NSMutableArray array];
   [args addObject:@"/Applications/Keybase.app/Contents/SharedSupport/bin/keybase"];
-  [args addObjectsFromArray:@[@"-H", KBDir(_homeDir, tilde)]];
+  [args addObjectsFromArray:@[@"-H", KBPath(_homeDir, tilde)]];
 
   if (_host) {
     [args addObjectsFromArray:@[@"-s", _host]];
@@ -111,7 +111,7 @@
 
   // This is because there is a hard limit of 104 characters for the unix socket file length and if
   // we the default there is a chance it will be too long (if username is long).
-  [args addObject:NSStringWithFormat(@"--socket-file=%@", KBDir(_sockFile, tilde))];
+  [args addObject:NSStringWithFormat(@"--socket-file=%@", KBPath(_sockFile, tilde))];
 
   // Run service (this should be the last arg)
   [args addObject:@"service"];
@@ -125,7 +125,7 @@
   NSArray *args = [self programArgumentsForService:NO];
 
   // Logging
-  NSString *logDir = KBDir(@"~/Library/Logs/Keybase", NO);
+  NSString *logDir = KBPath(@"~/Library/Logs/Keybase", NO);
   // Need to create logging dir here because otherwise it might be created as root by launchctl.
   [NSFileManager.defaultManager createDirectoryAtPath:logDir withIntermediateDirectories:YES attributes:nil error:nil];
 
@@ -143,7 +143,7 @@
   [args addObject:@"/Applications/Keybase.app/Contents/SharedSupport/bin/kbfsfuse"];
 
   [args addObject:@"-client"];
-  [args addObject:KBDir(self.mountDir, tilde)];
+  [args addObject:KBPath(self.mountDir, tilde)];
 
   return args;
 }
@@ -154,8 +154,8 @@
 
 - (NSDictionary *)envsForKBS:(BOOL)tilde {
   NSMutableDictionary *envs = [NSMutableDictionary dictionary];
-  envs[@"KEYBASE_SOCKET_FILE"] = KBDir(self.sockFile, tilde);
-  envs[@"KEYBASE_CONFIG_FILE"] = KBDir(self.configFile, tilde);
+  envs[@"KEYBASE_SOCKET_FILE"] = KBPath(self.sockFile, tilde);
+  envs[@"KEYBASE_CONFIG_FILE"] = KBPath(self.configFile, tilde);
   return envs;
 }
 
@@ -166,7 +166,7 @@
   NSDictionary *envs = [self envsForKBS:NO];
 
   // Logging
-  NSString *logDir = KBDir(@"~/Library/Logs/Keybase", NO);
+  NSString *logDir = KBPath(@"~/Library/Logs/Keybase", NO);
   // Need to create logging dir here because otherwise it might be created as root by launchctl.
   [NSFileManager.defaultManager createDirectoryAtPath:logDir withIntermediateDirectories:YES attributes:nil error:nil];
 

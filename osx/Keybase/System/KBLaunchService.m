@@ -103,14 +103,19 @@
   }];
 }
 
+- (NSString *)plistDestination {
+  NSString *launchAgentDir = [[NSSearchPathForDirectoriesInDomains(NSLibraryDirectory, NSUserDomainMask, YES) firstObject] stringByAppendingPathComponent:@"LaunchAgents"];
+  NSString *plistDest = [launchAgentDir stringByAppendingPathComponent:NSStringWithFormat(@"%@.plist", _label)];
+  return plistDest;
+}
+
 - (void)install:(KBCompletion)completion {
   [self installLaunchAgent:completion];
 }
 
 - (void)installLaunchAgent:(KBCompletion)completion {
-  NSString *launchAgentDir = [[NSSearchPathForDirectoriesInDomains(NSLibraryDirectory, NSUserDomainMask, YES) firstObject] stringByAppendingPathComponent:@"LaunchAgents"];
-  NSString *plistDest = [launchAgentDir stringByAppendingPathComponent:NSStringWithFormat(@"%@.plist", _label)];
 
+  NSString *plistDest = [self plistDestination];
   if (!plistDest) {
     NSError *error = KBMakeErrorWithRecovery(-1, @"Install Error", @"No launch agent destination.", nil);
     completion(error);

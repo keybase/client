@@ -30,7 +30,7 @@ BOOL KBIsErrorName(NSError *error, NSString *name) {
   return [error.userInfo[@"MPErrorInfoKey"][@"name"] isEqualTo:name];
 }
 
-NSString *KBDir(NSString *dir, BOOL tilde) {
+NSString *KBPath(NSString *dir, BOOL tilde) {
   return tilde ? [dir stringByAbbreviatingWithTildeInPath] : [dir stringByExpandingTildeInPath];
 }
 
