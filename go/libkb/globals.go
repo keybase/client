@@ -250,6 +250,10 @@ func (g *GlobalContext) ConfigureAll(line CommandLine, cmd Command) error {
 		}
 	}
 
+	if err = g.ConfigureTimers(); err != nil {
+		return err
+	}
+
 	G.StartupMessage()
 	return nil
 }
