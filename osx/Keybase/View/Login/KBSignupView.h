@@ -15,7 +15,7 @@
 @class KBSignupView;
 
 @protocol KBSignupViewDelegate
-- (void)signupView:(KBSignupView *)signupView didSignupWithStatus:(KBRGetCurrentStatusRes *)status;
+- (void)signupViewDidSignup:(KBSignupView *)signupView;
 @end
 
 

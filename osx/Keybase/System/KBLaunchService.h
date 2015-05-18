@@ -13,10 +13,11 @@
 #import "KBLaunchCtl.h"
 #import "KBComponent.h"
 
-@interface KBLaunchService : NSObject <KBComponent>
+@interface KBLaunchService : KBComponent <KBComponent>
 
 @property (readonly) NSString *label;
 @property (readonly) NSDictionary *plist;
+@property (readonly) NSString *versionPath;
 
 - (instancetype)initWithName:(NSString *)name info:(NSString *)info label:(NSString *)label bundleVersion:(NSString *)bundleVersion versionPath:(NSString *)versionPath plist:(NSDictionary *)plist;
 

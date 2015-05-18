@@ -15,23 +15,24 @@
 @property NSString *name;
 @property NSString *info;
 @property NSString *label;
-@property NSString *bundleVersion;
 @property NSString *versionPath;
 @property NSDictionary *plist;
+
+@property NSNumber *pid;
+@property NSNumber *lastExitStatus;
 @end
 
 @implementation KBLaunchService
-
-@synthesize status;
 
 - (instancetype)initWithName:(NSString *)name info:(NSString *)info label:(NSString *)label bundleVersion:(NSString *)bundleVersion versionPath:(NSString *)versionPath plist:(NSDictionary *)plist {
   if ((self = [super init])) {
     _name = name;
     _info = info;
     _label = label;
-    _bundleVersion = bundleVersion;
     _versionPath = versionPath;
     _plist = plist;
+
+    self.bundleVersion = bundleVersion;
   }
   return self;
 }
@@ -40,33 +41,63 @@
   return [KBIcons imageForIcon:KBIconNetwork];
 }
 
-- (NSView *)contentView { return nil; }
+- (NSString *)version {
+  return _versionPath ? [NSString stringWithContentsOfFile:_versionPath encoding:NSUTF8StringEncoding error:nil] : nil;
+}
 
-- (void)status:(KBOnComponentStatus)completion {
+- (GHODictionary *)componentStatusInfo {
+  GHODictionary *info = [GHODictionary dictionary];
+
+  if (self.componentStatus) {
+    info[@"Status Error"] = self.componentStatus.error;
+    info[@"Install Status"] = NSStringFromKBInstallStatus(self.componentStatus.installStatus);
+    info[@"Runtime Status"] = NSStringFromKBRuntimeStatus(self.componentStatus.runtimeStatus);
+  } else {
+    info[@"Install Status"] = @"Install Disabled";
+    info[@"Runtime Status"] = @"N/A";
+  }
+
+  if (!_lastExitStatus) {
+    info[@"PID"] = KBOr(_pid, @"-");
+  } else {
+    info[@"PID"] = NSStringWithFormat(@"%@ (%@)", KBOr(_pid, @"-"), KBOr(_lastExitStatus, @"-"));
+  }
+  return info;
+}
+
+- (void)updateComponentStatus:(KBCompletion)completion {
   if (!_label) {
     completion(nil);
     return;
   }
 
-  NSString *bundleVersion = _bundleVersion;
-  NSString *runningVersion = _versionPath ? [NSString stringWithContentsOfFile:_versionPath encoding:NSUTF8StringEncoding error:nil] : nil;
+  NSString *bundleVersion = self.bundleVersion;
+  NSString *runningVersion = [self version];
+  self.pid = nil;
+  self.lastExitStatus = nil;
   GHODictionary *info = [GHODictionary dictionary];
   if (runningVersion) info[@"Version"] = runningVersion;
   [KBLaunchCtl status:_label completion:^(KBServiceStatus *serviceStatus) {
     if (serviceStatus.error) {
-      completion([KBComponentStatus componentStatusWithError:serviceStatus.error]);
+      self.componentStatus = [KBComponentStatus componentStatusWithError:serviceStatus.error];
+      completion(serviceStatus.error);
     } else {
       if (serviceStatus.isRunning) {
+        self.pid = serviceStatus.pid;
         info[@"pid"] = serviceStatus.pid;
         if (![runningVersion isEqualToString:bundleVersion]) {
           if (bundleVersion) info[@"New Version"] = bundleVersion;
-          completion([KBComponentStatus componentStatusWithInstallStatus:KBInstallStatusNeedsUpgrade runtimeStatus:KBRuntimeStatusRunning info:info]);
+          self.componentStatus = [KBComponentStatus componentStatusWithInstallStatus:KBInstallStatusNeedsUpgrade runtimeStatus:KBRuntimeStatusRunning info:info];
+          completion(nil);
         } else {
-          completion([KBComponentStatus componentStatusWithInstallStatus:KBInstallStatusInstalled runtimeStatus:KBRuntimeStatusRunning info:info]);
+          self.componentStatus = [KBComponentStatus componentStatusWithInstallStatus:KBInstallStatusInstalled runtimeStatus:KBRuntimeStatusRunning info:info];
+          completion(nil);
         }
       } else {
+        self.lastExitStatus = serviceStatus.lastExitStatus;
         info[@"exit"] = serviceStatus.lastExitStatus;
-        completion([KBComponentStatus componentStatusWithInstallStatus:KBInstallStatusInstalled runtimeStatus:KBRuntimeStatusNotRunning info:info]);
+        self.componentStatus = [KBComponentStatus componentStatusWithInstallStatus:KBInstallStatusInstalled runtimeStatus:KBRuntimeStatusNotRunning info:info];
+        completion(nil);
       }
     }
   }];

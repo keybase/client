@@ -21,10 +21,32 @@ typedef void (^KBOnComponentStatus)(KBComponentStatus *installStatus);
 
 - (NSView *)contentView;
 
-@property KBComponentStatus *status;
+- (KBComponentStatus *)componentStatus;
 
-- (void)status:(KBOnComponentStatus)completion;
+- (void)refresh:(KBCompletion)completion;
+
+- (void)updateComponentStatus:(KBCompletion)completion;
 
 - (void)install:(KBCompletion)completion;
+
+@end
+
+@interface KBComponent : NSObject
+
+@property NSString *bundleVersion;
+@property (nonatomic) KBComponentStatus *componentStatus;
+
+- (NSString *)version;
+
+// Called when component updated
+- (void)componentDidUpdate;
+
+- (void)updateComponentStatus:(KBCompletion)completion;
+
+- (GHODictionary *)componentStatusInfo;
+
+- (void)refresh:(KBCompletion)completion;
+
+- (NSView *)contentView;
 
 @end

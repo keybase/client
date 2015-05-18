@@ -11,11 +11,13 @@
 #import "KBButtonView.h"
 #import "KBEnvironment.h"
 #import "KBHeaderLabelView.h"
-
+#import "KBInfoView.h"
 
 @interface KBControlPanel ()
 @property KBListView *listView;
 @property KBSplitView *splitView;
+
+@property id<KBComponent> selectedComponent;
 @end
 
 @implementation KBControlPanel
@@ -45,7 +47,16 @@
 }
 
 - (void)select:(id<KBComponent>)component {
-  [_splitView setRightView:[self viewForComponent:component]];
+  [_splitView setRightView:nil];
+  GHWeakSelf gself = self;
+  [self viewForComponent:component completion:^(NSView *view) {
+    if (view && ![view isKindOfClass:KBScrollView.class]) {
+      KBScrollView *scrollView = [KBScrollView scrollViewWithDocumentView:view];
+      [gself.splitView setRightView:scrollView];
+    } else {
+      [gself.splitView setRightView:view];
+    }
+  }];
 }
 
 + (instancetype)openWithComponents:(NSArray */*of id<KBComponent>*/)components sender:(id)sender {
@@ -60,26 +71,16 @@
   if (!_listView.selectedObject) _listView.selectedRow = 0;
 }
 
-- (NSView *)viewForComponent:(id<KBComponent>)component {
-  NSView *contentView = [component contentView];
-  if (contentView) return contentView;
-
-  YOVBox *view = [YOVBox box:@{@"spacing": @(10), @"insets": @"10,0,10,0"}];
-
-  typedef NSView * (^KBCreateEnvInfoLabel)(NSString *key, NSString *value);
-
-  KBCreateEnvInfoLabel createView = ^NSView *(NSString *key, NSString *value) {
-    KBHeaderLabelView *view = [KBHeaderLabelView headerLabelViewWithHeader:key headerOptions:0 text:value style:KBTextStyleDefault options:0 lineBreakMode:NSLineBreakByCharWrapping];
-    view.columnWidth = 80;
-    return view;
-  };
-
-  [view addSubview:createView(@"Name", component.name)];
-
-  
-
-  [view kb_setBackgroundColor:KBAppearance.currentAppearance.secondaryBackgroundColor];
-  return view;
+- (void)viewForComponent:(id<KBComponent>)component completion:(void (^)(NSView *view))completion {
+  _selectedComponent = component;
+  GHWeakSelf gself = self;
+  [KBActivity setProgressEnabled:YES sender:self];
+  [component refresh:^(NSError *error) {
+    [KBActivity setProgressEnabled:NO sender:self];
+    if (gself.selectedComponent == component) {
+      completion([component contentView]);
+    }
+  }];
 }
 
 @end

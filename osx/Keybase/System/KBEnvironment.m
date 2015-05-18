@@ -62,9 +62,7 @@
         self.identifier = @"manual";
         self.title = @"Manual";
         self.homeDir = KBDir(@"~/Library/Application Support/Keybase/dev", NO);
-        self.host = @"http://localhost:3000";
         self.info = @"Choose this if running from xCode.";
-        self.mountDir = KBDir(@"~/Keybase.dev", NO);
         self.image = [NSImage imageNamed:NSImageNameAdvanced];
         self.launchdEnabled = NO;
         self.installEnabled = NO;

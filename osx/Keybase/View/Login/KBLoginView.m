@@ -204,16 +204,9 @@
     }];
   }
 
-  KBRConfigRequest *config = [[KBRConfigRequest alloc] initWithClient:self.client];
   [self.navigation.titleView setProgressEnabled:YES];
-  [config getCurrentStatus:^(NSError *error, KBRGetCurrentStatusRes *status) {
-    [self.navigation.titleView setProgressEnabled:NO];
-    if (error) {
-      [AppDelegate setError:error sender:self];
-      return;
-    }
-    [self.delegate loginView:self didLoginWithStatus:status];
-  }];
+
+  [self.delegate loginViewDidLogin:self];
 }
 
 - (void)textField:(KBTextField *)textField didChangeFocus:(BOOL)focused {
@@ -317,7 +310,7 @@
     completion(nil, response);
 
     // TODO Select signer is changing from callback to request, this is temporary
-    [AppDelegate.appView checkStatus:nil];
+    [AppDelegate.appView checkStatus];
   };
 
   deviceSetupView.cancelButton.targetBlock = ^{

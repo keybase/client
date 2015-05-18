@@ -17,6 +17,8 @@
 @property (readonly) NSScrollView *scrollView;
 @property (readonly) KBBorder *border;
 
++ (instancetype)scrollViewWithDocumentView:(NSView *)documentView;
+
 - (void)setDocumentView:(NSView *)documentView;
 
 - (void)setBorderEnabled:(BOOL)borderEnabled;

@@ -24,6 +24,7 @@ typedef NS_ENUM (NSInteger, KBRuntimeStatus) {
 };
 
 NSString *NSStringFromKBInstallStatus(KBInstallStatus status);
+NSString *NSStringFromKBRuntimeStatus(KBRuntimeStatus status);
 
 @interface KBComponentStatus : NSObject
 

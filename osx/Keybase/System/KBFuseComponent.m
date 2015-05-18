@@ -10,19 +10,19 @@
 
 #import "KBAppDefines.h"
 #import <MPMessagePack/MPXPCClient.h>
+#import "KBInfoView.h"
 
 @interface KBFuseComponent ()
-@property NSString *bundleVersion;
+@property KBInfoView *infoView;
+@property NSString *version;
 @end
 
 @implementation KBFuseComponent
 
-@synthesize status;
-
 - (instancetype)init {
   if ((self = [super init])) {
     NSDictionary *info = [[NSBundle mainBundle] infoDictionary];
-    _bundleVersion = info[@"KBFuseVersion"];
+    self.bundleVersion = info[@"KBFuseVersion"];
   }
   return self;
 }
@@ -39,20 +39,40 @@
   return [NSImage imageNamed:@"Fuse.icns"];
 }
 
-- (NSView *)contentView { return nil; }
+- (NSView *)contentView {
+  [self componentDidUpdate];
+  return _infoView;
+}
 
-- (void)status:(KBOnComponentStatus)completion {
-  NSString *bundleVersion = _bundleVersion;
+- (void)componentDidUpdate {
+  GHODictionary *info = [GHODictionary dictionary];
+
+  info[@"Version"] = [self version];
+  info[@"Bundle Version"] = self.bundleVersion;
+
+  GHODictionary *statusInfo = [self componentStatusInfo];
+  if (statusInfo) [info addEntriesFromOrderedDictionary:statusInfo];
+
+  if (!_infoView) _infoView = [[KBInfoView alloc] init];
+  [_infoView setProperties:info];
+}
+
+- (void)updateComponentStatus:(KBCompletion)completion {
+  NSString *bundleVersion = self.bundleVersion;
   MPXPCClient *helper = [[MPXPCClient alloc] initWithServiceName:@"keybase.Helper" priviledged:YES];
   [helper sendRequest:@"version" params:nil completion:^(NSError *error, NSDictionary *versions) {
     if (error) {
-      completion([KBComponentStatus componentStatusWithInstallStatus:KBInstallStatusInstalled runtimeStatus:KBRuntimeStatusNotRunning info:nil]);
+      self.componentStatus = [KBComponentStatus componentStatusWithInstallStatus:KBInstallStatusInstalled runtimeStatus:KBRuntimeStatusNotRunning info:nil];
+      completion(error);
     } else {
       NSString *runningVersion = versions[@"fuseRunningVersion"];
+      self.version = runningVersion;
       if ([runningVersion isEqualToString:bundleVersion]) {
-        completion([KBComponentStatus componentStatusWithInstallStatus:KBInstallStatusInstalled runtimeStatus:KBRuntimeStatusRunning info:[GHODictionary d:@{@"Version": runningVersion}]]);
+        self.componentStatus = [KBComponentStatus componentStatusWithInstallStatus:KBInstallStatusInstalled runtimeStatus:KBRuntimeStatusRunning info:[GHODictionary d:@{@"Version": runningVersion}]];
+        completion(nil);
       } else {
-        completion([KBComponentStatus componentStatusWithInstallStatus:KBInstallStatusNeedsUpgrade runtimeStatus:KBRuntimeStatusRunning info:[GHODictionary d:@{@"Version": runningVersion, @"New version": bundleVersion}]]);
+        self.componentStatus = [KBComponentStatus componentStatusWithInstallStatus:KBInstallStatusNeedsUpgrade runtimeStatus:KBRuntimeStatusRunning info:[GHODictionary d:@{@"Version": runningVersion, @"New version": bundleVersion}]];
+        completion(nil);
       }
     }
   }];

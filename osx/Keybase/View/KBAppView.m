@@ -56,8 +56,6 @@ typedef NS_ENUM (NSInteger, KBAppViewMode) {
 @property KBNavigationTitleView *titleView;
 
 @property NSString *title;
-@property (nonatomic) KBRGetCurrentStatusRes *status;
-@property (nonatomic) KBRConfig *config;
 @property KBAppViewMode mode;
 
 @property KBEnvironment *environment;
@@ -106,10 +104,12 @@ typedef NS_ENUM (NSInteger, KBAppViewMode) {
   [self showInProgress:@"Loading"];
 }
 
-- (NSArray *)componentsForEnvironment:(KBEnvironment *)environment {
+- (NSArray *)componentsForEnvironment:(KBEnvironment *)environment client:(KBRPClient *)client {
   NSMutableArray *components = [NSMutableArray array];
 
-  [components addObject:[[KBService alloc] initWithEnvironment:environment]];
+  _service = [[KBService alloc] initWithEnvironment:environment client:client];
+
+  [components addObject:_service];
 
   [components addObject:[[KBHelperTool alloc] init]];
   [components addObject:[[KBFuseComponent alloc] init]];
@@ -122,12 +122,11 @@ typedef NS_ENUM (NSInteger, KBAppViewMode) {
 
 - (void)openWithEnvironment:(KBEnvironment *)environment client:(KBRPClient *)client {
   _environment = environment;
-  _client = client;
   for (id<KBAppViewDelegate> delegate in _delegates) [delegate appViewDidLaunch:self];
 
   [self showInProgress:@"Loading"];
 
-  NSArray *components = [self componentsForEnvironment:environment];
+  NSArray *components = [self componentsForEnvironment:environment client:client];
 
   [AppDelegate.sharedDelegate.controlPanel addComponents:components];
 
@@ -143,10 +142,10 @@ typedef NS_ENUM (NSInteger, KBAppViewMode) {
 }
 
 - (void)connect {
-  _client.delegate = self;
+  _service.client.delegate = self;
 
   GHWeakSelf gself = self;
-  [_client registerMethod:@"keybase.1.secretUi.getSecret" sessionId:0 requestHandler:^(NSNumber *messageId, NSString *method, NSArray *params, MPRequestCompletion completion) {
+  [_service.client registerMethod:@"keybase.1.secretUi.getSecret" sessionId:0 requestHandler:^(NSNumber *messageId, NSString *method, NSArray *params, MPRequestCompletion completion) {
     DDLogDebug(@"Password prompt: %@", params);
     KBRGetSecretRequestParams *requestParams = [[KBRGetSecretRequestParams alloc] initWithParams:params];
     [KBAlert promptForInputWithTitle:requestParams.pinentry.prompt description:requestParams.pinentry.desc secure:YES style:NSCriticalAlertStyle buttonTitles:@[@"OK", @"Cancel"] view:self completion:^(NSModalResponse response, NSString *password) {
@@ -157,7 +156,7 @@ typedef NS_ENUM (NSInteger, KBAppViewMode) {
     }];
   }];
 
-  [_client registerMethod:@"keybase.1.secretUi.getNewPassphrase" sessionId:0 requestHandler:^(NSNumber *messageId, NSString *method, NSArray *params, MPRequestCompletion completion) {
+  [_service.client registerMethod:@"keybase.1.secretUi.getNewPassphrase" sessionId:0 requestHandler:^(NSNumber *messageId, NSString *method, NSArray *params, MPRequestCompletion completion) {
     KBRGetNewPassphraseRequestParams *requestParams = [[KBRGetNewPassphraseRequestParams alloc] initWithParams:params];
     [KBAlert promptForInputWithTitle:requestParams.pinentryPrompt description:requestParams.pinentryDesc secure:YES style:NSCriticalAlertStyle buttonTitles:@[@"OK", @"Cancel"] view:self completion:^(NSModalResponse response, NSString *password) {
       NSString *text = response == NSAlertFirstButtonReturn ? password : nil;
@@ -165,7 +164,7 @@ typedef NS_ENUM (NSInteger, KBAppViewMode) {
     }];
   }];
 
-  [_client registerMethod:@"keybase.1.secretUi.getKeybasePassphrase" sessionId:0 requestHandler:^(NSNumber *messageId, NSString *method, NSArray *params, MPRequestCompletion completion) {
+  [_service.client registerMethod:@"keybase.1.secretUi.getKeybasePassphrase" sessionId:0 requestHandler:^(NSNumber *messageId, NSString *method, NSArray *params, MPRequestCompletion completion) {
     DDLogDebug(@"Password prompt: %@", params);
     KBRGetKeybasePassphraseRequestParams *requestParams = [[KBRGetKeybasePassphraseRequestParams alloc] initWithParams:params];
     [KBAlert promptForInputWithTitle:@"Passphrase" description:NSStringWithFormat(@"What's your passphrase (for user %@)?", requestParams.username) secure:YES style:NSCriticalAlertStyle buttonTitles:@[@"OK", @"Cancel"] view:self completion:^(NSModalResponse response, NSString *password) {
@@ -174,13 +173,13 @@ typedef NS_ENUM (NSInteger, KBAppViewMode) {
     }];
   }];
 
-  [_client registerMethod:@"keybase.1.logUi.log" sessionId:0 requestHandler:^(NSNumber *messageId, NSString *method, NSArray *params, MPRequestCompletion completion) {
+  [_service.client registerMethod:@"keybase.1.logUi.log" sessionId:0 requestHandler:^(NSNumber *messageId, NSString *method, NSArray *params, MPRequestCompletion completion) {
     KBRLogRequestParams *requestParams = [[KBRLogRequestParams alloc] initWithParams:params];
     for (id<KBAppViewDelegate> delegate in gself.delegates) [delegate appView:self didLogMessage:requestParams.text.data];
     completion(nil, nil);
   }];
 
-  [_client open];
+  [_service.client open];
 }
 
 // If we errored while checking status
@@ -195,7 +194,7 @@ typedef NS_ENUM (NSInteger, KBAppViewMode) {
     [AppDelegate setError:error sender:self completion:^(NSModalResponse res) {
       // Option to retry or quit if we are trying to get status for the first time
       if (res == NSAlertFirstButtonReturn) {
-        [self checkStatus:nil];
+        [self checkStatus];
       } else {
         [AppDelegate.sharedDelegate quitWithPrompt:YES sender:self];
       }
@@ -227,7 +226,7 @@ typedef NS_ENUM (NSInteger, KBAppViewMode) {
 
   // TODO reset progress?
   //[_loginView.navigation setProgressEnabled:NO];
-  _loginView.client = _client;
+  _loginView.client = _service.client;
   return _loginView;
 }
 
@@ -240,7 +239,7 @@ typedef NS_ENUM (NSInteger, KBAppViewMode) {
       [gself showLogin];
     };
   }
-  _signupView.client = _client;
+  _signupView.client = _service.client;
   return _signupView;
 }
 
@@ -278,35 +277,35 @@ typedef NS_ENUM (NSInteger, KBAppViewMode) {
 
 - (void)showUsers {
   if (!_usersAppView) _usersAppView = [[KBUsersAppView alloc] init];
-  _usersAppView.client = _client;
+  _usersAppView.client = _service.client;
   [self setContentView:_usersAppView mode:KBAppViewModeMain];
 }
 
 - (void)showProfile {
   NSAssert(_user, @"No user");
   if (!_userProfileView) _userProfileView = [[KBUserProfileView alloc] init];
-  [_userProfileView setUsername:_user.username client:_client];
+  [_userProfileView setUsername:_user.username client:_service.client];
   [self setContentView:_userProfileView mode:KBAppViewModeMain];
   _toolbar.selectedItem = KBAppViewItemProfile;
 }
 
 - (void)showDevices {
   if (!_devicesAppView) _devicesAppView = [[KBDevicesAppView alloc] init];
-  _devicesAppView.client = _client;
+  _devicesAppView.client = _service.client;
   [_devicesAppView reload];
   [self setContentView:_devicesAppView mode:KBAppViewModeMain];
 }
 
 - (void)showFolders {
   if (!_foldersAppView) _foldersAppView = [[KBFoldersAppView alloc] init];
-  _foldersAppView.client = _client;
+  _foldersAppView.client = _service.client;
   [_foldersAppView reload];
   [self setContentView:_foldersAppView mode:KBAppViewModeMain];
 }
 
 - (void)showPGP {
   if (!_PGPAppView) _PGPAppView = [[KBPGPAppView alloc] init];
-  _PGPAppView.client = _client;
+  _PGPAppView.client = _service.client;
   [self setContentView:_PGPAppView mode:KBAppViewModeMain];
 }
 
@@ -314,12 +313,12 @@ typedef NS_ENUM (NSInteger, KBAppViewMode) {
   GHWeakSelf gself = self;
   dispatch_block_t logout = ^{
     [self showInProgress:@"Logging out"];
-    KBRLoginRequest *login = [[KBRLoginRequest alloc] initWithClient:gself.client];
+    KBRLoginRequest *login = [[KBRLoginRequest alloc] initWithClient:gself.service.client];
     [login logout:^(NSError *error) {
       if (error) {
         [AppDelegate setError:error sender:self];
       }
-      [self checkStatus:nil];
+      [self checkStatus];
     }];
   };
 
@@ -332,32 +331,18 @@ typedef NS_ENUM (NSInteger, KBAppViewMode) {
   }
 }
 
-- (void)checkStatus:(KBCompletion)completion {
-  if (!completion) completion = ^(NSError *error) {
-    if (error) [self setStatusError:error];
-  };
-
+- (void)checkStatus {
   GHWeakSelf gself = self;
-  KBRConfigRequest *config = [[KBRConfigRequest alloc] initWithClient:_client];
-  [config getCurrentStatus:^(NSError *error, KBRGetCurrentStatusRes *status) {
+  [_service checkStatus:^(NSError *error, KBRGetCurrentStatusRes *status, KBRConfig *config) {
     if (error) {
-      completion(error);
+      [self setStatusError:error];
       return;
     }
-    KBRConfigRequest *request = [[KBRConfigRequest alloc] initWithClient:self.client];
-    [request getConfig:^(NSError *error, KBRConfig *config) {
-      if (error) {
-        if (completion) completion(error);
-        return;
-      }
-      for (id<KBAppViewDelegate> delegate in gself.delegates) [delegate appView:self didCheckStatusWithConfig:config status:status];
+    for (id<KBAppViewDelegate> delegate in gself.delegates) [delegate appView:self didCheckStatusWithConfig:config status:status];
 
-      [self setConfig:config];
-      [self setStatus:status];
-      // TODO reload current view if coming back from disconnect?
-      if (completion) completion(nil);
-      [NSNotificationCenter.defaultCenter postNotificationName:KBStatusDidChangeNotification object:nil userInfo:@{@"config": config, @"status": status}];
-    }];
+    [self updateStatus:status];
+    // TODO reload current view if coming back from disconnect?
+    [NSNotificationCenter.defaultCenter postNotificationName:KBStatusDidChangeNotification object:nil userInfo:@{@"config": config, @"status": status}];
   }];
 }
 
@@ -372,19 +357,18 @@ typedef NS_ENUM (NSInteger, KBAppViewMode) {
  */
 
 - (NSString *)APIURLString:(NSString *)path {
-  NSString *host = _config.serverURI;
+  NSString *host = _service.config.serverURI;
   if ([host isEqualTo:@"https://api.keybase.io:443"]) host = @"https://keybase.io";
   return [NSString stringWithFormat:@"%@/%@", host, path];
 }
 
-- (void)setStatus:(KBRGetCurrentStatusRes *)status {
-  _status = status;
+- (void)updateStatus:(KBRGetCurrentStatusRes *)status {
   self.user = status.user;
 
   [self.sourceView.statusView setStatus:status];
   [self.toolbar setUser:status.user];
 
-  if (_status.loggedIn && _status.user) {
+  if (status.loggedIn && status.user) {
     // Show profile if logging in or we are already showing profile, refresh it
     if (_mode != KBAppViewModeMain || _toolbar.selectedItem == KBAppViewItemProfile) {
       [self showProfile];
@@ -401,25 +385,25 @@ typedef NS_ENUM (NSInteger, KBAppViewMode) {
   [self.loginView setUsername:user.username];
 }
 
-- (void)signupView:(KBSignupView *)signupView didSignupWithStatus:(KBRGetCurrentStatusRes *)status {
-  self.status = status;
+- (void)signupViewDidSignup:(KBSignupView *)signupView {
+  [self checkStatus];
 }
 
-- (void)loginView:(KBLoginView *)loginView didLoginWithStatus:(KBRGetCurrentStatusRes *)status {
-  self.status = status;
+- (void)loginViewDidLogin:(KBLoginView *)loginView {
+  [self checkStatus];
 }
 
 - (void)RPClientWillConnect:(KBRPClient *)RPClient {
-  for (id<KBAppViewDelegate> delegate in _delegates) [delegate appView:self willConnectWithClient:_client];
+  for (id<KBAppViewDelegate> delegate in _delegates) [delegate appView:self willConnectWithClient:_service.client];
 }
 
 - (void)RPClientDidConnect:(KBRPClient *)RPClient {
-  for (id<KBAppViewDelegate> delegate in _delegates) [delegate appView:self didConnectWithClient:_client];
-  [self checkStatus:nil];
+  for (id<KBAppViewDelegate> delegate in _delegates) [delegate appView:self didConnectWithClient:_service.client];
+  [self checkStatus];
 }
 
 - (void)RPClientDidDisconnect:(KBRPClient *)RPClient {
-  for (id<KBAppViewDelegate> delegate in _delegates) [delegate appView:self didDisconnectWithClient:_client];
+  for (id<KBAppViewDelegate> delegate in _delegates) [delegate appView:self didDisconnectWithClient:_service.client];
   [NSNotificationCenter.defaultCenter postNotificationName:KBStatusDidChangeNotification object:nil userInfo:@{}];
 }
 

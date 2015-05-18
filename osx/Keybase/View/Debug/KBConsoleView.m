@@ -26,8 +26,6 @@
 
 @implementation KBConsoleView
 
-@synthesize status;
-
 - (void)viewInit {
   [super viewInit];
   [self kb_setBackgroundColor:NSColor.whiteColor];
@@ -52,6 +50,8 @@
   self.viewLayout = [YOLayout fill:_logView];
 }
 
+- (KBComponentStatus *)componentStatus { return nil; }
+
 - (void)log:(NSString *)message {
   if (message) [_logView addObjects:@[message] animation:NSTableViewAnimationEffectNone];
   if ([_logView isAtBottom]) [_logView scrollToBottom:YES];
@@ -65,7 +65,7 @@
   NSDictionary *info = [[NSBundle mainBundle] infoDictionary];
   KBConsoleLog(@"Keybase.app Version: %@", info[@"CFBundleShortVersionString"]);
 
-  _client = appView.client;
+  _client = appView.service.client;
   [self setNeedsLayout];
 }
 
@@ -77,11 +77,7 @@
   KBConsoleLog(@"Connected.");
 }
 
-- (void)appView:(KBAppView *)appView didCheckStatusWithConfig:(KBRConfig *)config status:(KBRGetCurrentStatusRes *)currentStatus {
-  KBConsoleLog(@"Keybase config:%@", [config propertiesDescription:@"\n\t"]);
-  KBConsoleLog(@"Status:\n\tconfigured: %@\n\tregistered: %@\n\tloggedIn: %@\n\tusername: %@", @(currentStatus.configured), @(currentStatus.registered), @(currentStatus.loggedIn), currentStatus.user.username ? currentStatus.user.username : @"");
-  [self setNeedsLayout];
-}
+- (void)appView:(KBAppView *)appView didCheckStatusWithConfig:(KBRConfig *)config status:(KBRGetCurrentStatusRes *)currentStatus { }
 
 - (void)appView:(KBAppView *)appView didLogMessage:(NSString *)message {
   KBConsoleLog(@"%@", message);
@@ -93,7 +89,6 @@
 
 - (void)appView:(KBAppView *)appView didDisconnectWithClient:(KBRPClient *)client {
   KBConsoleLog(@"Disconnected.");
-  [self setNeedsLayout];
 }
 
 - (void)appViewDidUpdateStatus:(KBAppView *)appView {
@@ -108,7 +103,9 @@
   return self;
 }
 
-- (void)status:(KBOnComponentStatus)completion { completion(nil); }
+- (void)updateComponentStatus:(KBCompletion)completion { completion(nil); }
+
+- (void)refresh:(KBCompletion)completion { completion(nil); }
 
 - (void)install:(KBCompletion)completion { completion(nil); }
 

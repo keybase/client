@@ -26,7 +26,7 @@ PODS:
   - CocoaLumberjack/Extensions (2.0.0):
     - CocoaLumberjack/Default
   - GHKit (1.0.21)
-  - GHODictionary (1.0.1)
+  - GHODictionary (1.0.2)
   - Mantle (2.0):
     - Mantle/extobjc (= 2.0)
   - Mantle/extobjc (2.0)
@@ -61,7 +61,7 @@ SPEC CHECKSUMS:
   AFNetworking: 05edc0ac4c4c8cf57bcf4b84be5b0744b6d8e71e
   CocoaLumberjack: a6f77d987d65dc7ba86b0f84db7d0b9084f77bcb
   GHKit: 487b552e3c228236dc2a5c7c1c5f79b8c7412a6b
-  GHODictionary: 8c13875fc50f783435494860385efd7d1b3dc93d
+  GHODictionary: eedf2c5438df18da2410608b38ae8eb230089ff0
   Mantle: d7c75b6fb789b20f7ae30cd0d09435fe545896ff
   MASPreferences: 32d8a2c5ef1d60b63240f5676b011ff72e194cb1
   MPMessagePack: 99eb5950b11ea50415cbe15e8d8f79ed089b18d6

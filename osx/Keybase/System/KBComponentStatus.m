@@ -50,7 +50,7 @@
   NSMutableArray *str = [NSMutableArray array];
 
   if (_runtimeStatus == KBRuntimeStatusNotRunning) {
-    [str addObject:@"Not Running"];
+    [str addObject:NSStringFromKBRuntimeStatus(_runtimeStatus)];
   } else {
     [str addObject:NSStringFromKBInstallStatus(_installStatus)];
   }
@@ -72,5 +72,13 @@ NSString *NSStringFromKBInstallStatus(KBInstallStatus status) {
     case KBInstallStatusNotInstalled: return @"Not Installed";
     case KBInstallStatusNeedsUpgrade: return @"Needs Upgrade";
     case KBInstallStatusInstalled: return @"Installed";
+  }
+}
+
+NSString *NSStringFromKBRuntimeStatus(KBRuntimeStatus status) {
+  switch (status) {
+    case KBRuntimeStatusNone: return @"N/A";
+    case KBRuntimeStatusNotRunning: return @"Not Running";
+    case KBRuntimeStatusRunning: return @"Running";
   }
 }

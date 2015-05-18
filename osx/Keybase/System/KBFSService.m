@@ -7,6 +7,11 @@
 //
 
 #import "KBFSService.h"
+#import "KBInfoView.h"
+
+@interface KBFSService ()
+@property KBInfoView *infoView;
+@end
 
 @implementation KBFSService
 
@@ -16,8 +21,21 @@
 }
 
 - (NSView *)contentView {
-  //KBFSStatusView *view = [[KBFSStatusView alloc] init];
-  return nil;
+  [self componentDidUpdate];
+  return _infoView;
+}
+
+- (void)componentDidUpdate {
+  GHODictionary *info = [GHODictionary dictionary];
+
+  info[@"Launchd"] = self.label ? self.label : @"N/A";
+  info[@"Version"] = GHOrNull([self version]);
+  info[@"Bundle Version"] = self.bundleVersion;
+  GHODictionary *statusInfo = [self componentStatusInfo];
+  if (statusInfo) [info addEntriesFromOrderedDictionary:statusInfo];
+
+  if (!_infoView) _infoView = [[KBInfoView alloc] init];
+  [_infoView setProperties:info];
 }
 
 @end

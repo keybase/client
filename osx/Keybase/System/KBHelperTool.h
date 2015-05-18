@@ -10,6 +10,6 @@
 
 #import "KBComponent.h"
 
-@interface KBHelperTool : NSObject <KBComponent>
+@interface KBHelperTool : KBComponent <KBComponent>
 
 @end

@@ -46,7 +46,7 @@
 }
 
 - (void)open {
-  _client = [[KBRPClient alloc] initWithEnvironment:AppDelegate.appView.client.environment];
+  _client = [[KBRPClient alloc] initWithEnvironment:AppDelegate.appView.service.client.environment];
   _client.autoRetryDisabled = YES;
   _client.delegate = self;
   [_client open];

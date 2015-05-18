@@ -10,6 +10,7 @@
 
 #import "KBAppKit.h"
 #import "KBRPC.h"
+#import "KBService.h"
 
 
 @class KBAppView;
@@ -28,13 +29,11 @@
 
 @interface KBAppView : YOView
 
-@property KBRPClient *client;
-
 @property (readonly) NSHashTable *delegates;
 
 @property (nonatomic) KBRUser *user;
-@property (readonly, nonatomic) KBRGetCurrentStatusRes *status;
-@property (readonly, nonatomic) KBRConfig *config;
+
+@property KBService *service;
 
 - (void)openWithEnvironment:(KBEnvironment *)environment client:(KBRPClient *)client;
 
@@ -44,7 +43,7 @@
 - (void)logout:(BOOL)prompt;
 
 - (void)showInProgress:(NSString *)title;
-- (void)checkStatus:(KBCompletion)completion;
+- (void)checkStatus;
 
 - (NSString *)APIURLString:(NSString *)path;
 

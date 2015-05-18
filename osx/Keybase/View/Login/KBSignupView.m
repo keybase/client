@@ -294,14 +294,7 @@
     self.usernameStatusLabel.attributedText = nil;
     self.strengthLabel.attributedText = nil;
 
-    KBRConfigRequest *config = [[KBRConfigRequest alloc] initWithClient:self.client];
-    [config getCurrentStatus:^(NSError *error, KBRGetCurrentStatusRes *status) {
-      if (error) {
-        [AppDelegate setError:error sender:self];
-        return;
-      }
-      [self.delegate signupView:self didSignupWithStatus:status];
-    }];
+    [self.delegate signupViewDidSignup:self];
   }];
 }
 

@@ -12,19 +12,19 @@
 #import <MPMessagePack/MPXPCClient.h>
 #import "KBLaunchCtl.h"
 #import "KBAppKit.h"
+#import "KBInfoView.h"
 
 @interface KBHelperTool ()
-@property NSString *bundleVersion;
+@property KBInfoView *infoView;
+@property NSString *version;
 @end
 
 @implementation KBHelperTool
 
-@synthesize status;
-
 - (instancetype)init {
   if ((self = [super init])) {
     NSDictionary *info = [[NSBundle mainBundle] infoDictionary];
-    _bundleVersion = info[@"KBHelperVersion"];
+    self.bundleVersion = info[@"KBHelperVersion"];
   }
   return self;
 }
@@ -41,29 +41,50 @@
   return [KBIcons imageForIcon:KBIconGenericApp];
 }
 
-- (NSView *)contentView { return nil; }
+- (NSView *)contentView {
+  [self componentDidUpdate];
+  return _infoView;
+}
 
-- (void)status:(KBOnComponentStatus)completion {
+- (void)componentDidUpdate {
+  GHODictionary *info = [GHODictionary dictionary];
+  info[@"Version"] = GHOrNull(_version);
+  info[@"Bundle Version"] = GHOrNull(self.bundleVersion);
+
+  GHODictionary *statusInfo = [self componentStatusInfo];
+  if (statusInfo) [info addEntriesFromOrderedDictionary:statusInfo];
+
+  if (!_infoView) _infoView = [[KBInfoView alloc] init];
+  [_infoView setProperties:info];
+}
+
+- (void)updateComponentStatus:(KBCompletion)completion {
   if (![NSFileManager.defaultManager fileExistsAtPath:@"/Library/LaunchDaemons/keybase.Helper.plist" isDirectory:nil] &&
       ![NSFileManager.defaultManager fileExistsAtPath:@"/Library/PrivilegedHelperTools/keybase.Helper" isDirectory:nil]) {
-    completion([KBComponentStatus componentStatusWithInstallStatus:KBInstallStatusNotInstalled runtimeStatus:KBRuntimeStatusNone info:nil]);
+    self.componentStatus = [KBComponentStatus componentStatusWithInstallStatus:KBInstallStatusNotInstalled runtimeStatus:KBRuntimeStatusNone info:nil];
+    completion(nil);
     return;
   }
 
-  NSString *bundleVersion = _bundleVersion;
+  NSString *bundleVersion = self.bundleVersion;
   GHODictionary *info = [GHODictionary dictionary];
+  GHWeakSelf gself = self;
   MPXPCClient *helper = [[MPXPCClient alloc] initWithServiceName:@"keybase.Helper" priviledged:YES];
   [helper sendRequest:@"version" params:nil completion:^(NSError *error, NSDictionary *versions) {
     if (error) {
-      completion([KBComponentStatus componentStatusWithInstallStatus:KBInstallStatusInstalled runtimeStatus:KBRuntimeStatusNotRunning info:nil]);
+      self.componentStatus = [KBComponentStatus componentStatusWithInstallStatus:KBInstallStatusInstalled runtimeStatus:KBRuntimeStatusNotRunning info:nil];
+      completion(error);
     } else {
       NSString *runningVersion = versions[@"version"];
+      gself.version = runningVersion;
       if (runningVersion) info[@"Version"] = runningVersion;
       if ([runningVersion isEqualToString:bundleVersion]) {
-        completion([KBComponentStatus componentStatusWithInstallStatus:KBInstallStatusInstalled runtimeStatus:KBRuntimeStatusRunning info:info]);
+        self.componentStatus = [KBComponentStatus componentStatusWithInstallStatus:KBInstallStatusInstalled runtimeStatus:KBRuntimeStatusRunning info:info];
+        completion(nil);
       } else {
         if (bundleVersion) info[@"New version"] = bundleVersion;
-        completion([KBComponentStatus componentStatusWithInstallStatus:KBInstallStatusNeedsUpgrade runtimeStatus:KBRuntimeStatusRunning info:info]);
+        self.componentStatus = [KBComponentStatus componentStatusWithInstallStatus:KBInstallStatusNeedsUpgrade runtimeStatus:KBRuntimeStatusRunning info:info];
+        completion(nil);
       }
     }
   }];

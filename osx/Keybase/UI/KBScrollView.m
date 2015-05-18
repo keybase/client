@@ -32,12 +32,18 @@
     CGRect scrollRect = CGRectMake(insets.left, insets.top, size.width - insets.left - insets.right, size.height - insets.top - insets.bottom);
 
     if ([yself.scrollView.documentView isKindOfClass:YOView.class]) {
-      [layout sizeToFitVerticalInFrame:CGRectMake(0, 0, scrollRect.size.width, scrollRect.size.height) view:yself.scrollView.documentView];
+      [layout sizeToFitVerticalInFrame:CGRectMake(0, 0, scrollRect.size.width - 10, scrollRect.size.height) view:yself.scrollView.documentView];
     }
 
     [layout setFrame:CGRectMake(insets.left, insets.top, size.width - insets.left - insets.right, size.height - insets.top - insets.bottom) view:yself.scrollView];
     return size;
   }];
+}
+
++ (instancetype)scrollViewWithDocumentView:(NSView *)documentView {
+  KBScrollView *scrollView = [[KBScrollView alloc] init];
+  [scrollView setDocumentView:documentView];
+  return scrollView;
 }
 
 - (void)setDocumentView:(NSView *)documentView {

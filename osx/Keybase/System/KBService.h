@@ -10,9 +10,16 @@
 
 #import "KBLaunchService.h"
 #import "KBEnvironment.h"
+#import "KBRPC.h"
 
 @interface KBService : KBLaunchService
 
-- (instancetype)initWithEnvironment:(KBEnvironment *)environment;
+@property (readonly) KBRPClient *client;
+@property (readonly, nonatomic) KBRGetCurrentStatusRes *userStatus;
+@property (readonly, nonatomic) KBRConfig *config;
+
+- (instancetype)initWithEnvironment:(KBEnvironment *)environment client:(KBRPClient *)client;
+
+- (void)checkStatus:(void (^)(NSError *error, KBRGetCurrentStatusRes *currentStatus, KBRConfig *config))completion;
 
 @end

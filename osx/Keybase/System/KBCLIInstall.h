@@ -10,6 +10,6 @@
 
 #import "KBComponent.h"
 
-@interface KBCLIInstall : NSObject <KBComponent>
+@interface KBCLIInstall : KBComponent <KBComponent>
 
 @end

@@ -15,7 +15,7 @@
 @class KBLoginView;
 
 @protocol KBLoginViewDelegate
-- (void)loginView:(KBLoginView *)loginView didLoginWithStatus:(KBRGetCurrentStatusRes *)status;
+- (void)loginViewDidLogin:(KBLoginView *)loginView;
 @end
 
 @interface KBLoginView : KBContentView <NSTextFieldDelegate>
