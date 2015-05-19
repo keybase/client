@@ -39,7 +39,7 @@ func (h *LoginHandler) LoginWithPrompt(arg keybase1.LoginWithPromptArg) error {
 		LoginUI:     h.getLoginUI(arg.SessionID),
 		GPGUI:       NewRemoteGPGUI(arg.SessionID, h.getRpcClient()),
 	}
-	eng := engine.NewLoginWithPromptEngine(arg.Username)
+	eng := engine.NewLoginWithPromptEngine(arg.Username, G)
 
 	return h.loginWithEngine(eng, ctx, arg.SessionID)
 }
@@ -52,7 +52,7 @@ func (h *LoginHandler) LoginWithStoredSecret(arg keybase1.LoginWithStoredSecretA
 		LoginUI:     h.getLoginUI(arg.SessionID),
 		GPGUI:       NewRemoteGPGUI(arg.SessionID, h.getRpcClient()),
 	}
-	loginEngine := engine.NewLoginWithStoredSecretEngine(arg.Username)
+	loginEngine := engine.NewLoginWithStoredSecretEngine(arg.Username, G)
 	return h.loginWithEngine(loginEngine, ctx, arg.SessionID)
 }
 
@@ -65,7 +65,7 @@ func (h *LoginHandler) LoginWithPassphrase(arg keybase1.LoginWithPassphraseArg) 
 		GPGUI:       h.getGPGUI(arg.SessionID),
 	}
 
-	loginEngine := engine.NewLoginWithPassphraseEngine(arg.Username, arg.Passphrase, arg.StoreSecret)
+	loginEngine := engine.NewLoginWithPassphraseEngine(arg.Username, arg.Passphrase, arg.StoreSecret, G)
 	return h.loginWithEngine(loginEngine, ctx, arg.SessionID)
 }
 

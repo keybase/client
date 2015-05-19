@@ -94,7 +94,7 @@ func TestLoginAddsKeys(t *testing.T) {
 
 	tc.G.Logout()
 
-	li := NewLoginWithPromptEngine(username)
+	li := NewLoginWithPromptEngine(username, tc.G)
 	secui := libkb.TestSecretUI{Passphrase: passphrase}
 	ctx := &Context{LogUI: tc.G.UI.GetLogUI(), LocksmithUI: &lockui{}, GPGUI: &gpgtestui{}, SecretUI: secui, LoginUI: &libkb.TestLoginUI{}}
 	if err := RunEngine(li, ctx); err != nil {
@@ -116,7 +116,7 @@ func TestLoginDetKeyOnly(t *testing.T) {
 
 	tc.G.Logout()
 
-	li := NewLoginWithPromptEngine(username)
+	li := NewLoginWithPromptEngine(username, tc.G)
 	secui := libkb.TestSecretUI{Passphrase: passphrase}
 	ctx := &Context{LogUI: tc.G.UI.GetLogUI(), LocksmithUI: &lockui{}, SecretUI: secui, GPGUI: &gpgtestui{}, LoginUI: &libkb.TestLoginUI{}}
 	if err := RunEngine(li, ctx); err != nil {
@@ -151,7 +151,7 @@ func TestLoginPGPSignNewDevice(t *testing.T) {
 
 	before := docui.selectSignerCount
 
-	li := NewLoginWithPromptEngine(u1.Username)
+	li := NewLoginWithPromptEngine(u1.Username, tc2.G)
 	secui := libkb.TestSecretUI{Passphrase: u1.Passphrase}
 	ctx := &Context{
 		LogUI:       tc.G.UI.GetLogUI(),
@@ -193,10 +193,10 @@ func TestLoginPGPPubOnlySignNewDevice(t *testing.T) {
 
 	before := docui.selectSignerCount
 
-	li := NewLoginWithPromptEngine(u1.Username)
+	li := NewLoginWithPromptEngine(u1.Username, tc2.G)
 	secui := libkb.TestSecretUI{Passphrase: u1.Passphrase}
 	ctx := &Context{
-		LogUI:       tc.G.UI.GetLogUI(),
+		LogUI:       tc2.G.UI.GetLogUI(),
 		LocksmithUI: docui,
 		SecretUI:    secui,
 		GPGUI:       &gpgtestui{},
@@ -233,15 +233,14 @@ func TestLoginPGPMultSignNewDevice(t *testing.T) {
 
 	before := docui.selectSignerCount
 
-	li := NewLoginWithPromptEngine(u1.Username)
+	li := NewLoginWithPromptEngine(u1.Username, tc2.G)
 	secui := libkb.TestSecretUI{Passphrase: u1.Passphrase}
 	ctx := &Context{
-		LogUI:         tc2.G.UI.GetLogUI(),
-		LocksmithUI:   docui,
-		GPGUI:         &gpgtestui{1},
-		SecretUI:      secui,
-		LoginUI:       &libkb.TestLoginUI{Username: u1.Username},
-		GlobalContext: tc2.G,
+		LogUI:       tc2.G.UI.GetLogUI(),
+		LocksmithUI: docui,
+		GPGUI:       &gpgtestui{1},
+		SecretUI:    secui,
+		LoginUI:     &libkb.TestLoginUI{Username: u1.Username},
 	}
 	if err := RunEngine(li, ctx); err != nil {
 		t.Fatal(err)
@@ -293,7 +292,7 @@ func TestLoginInterruptDeviceRegister(t *testing.T) {
 	}
 
 	// now login and see if it correctly generates needed keys
-	li := NewLoginWithPassphraseEngine(username, passphrase, false)
+	li := NewLoginWithPassphraseEngine(username, passphrase, false, tc.G)
 	if err := RunEngine(li, ctx); err != nil {
 		t.Fatal(err)
 	}
@@ -352,7 +351,7 @@ func TestLoginInterruptDevicePush(t *testing.T) {
 	tc.G.Logout()
 
 	// now login and see if it correctly generates needed keys
-	li := NewLoginWithPassphraseEngine(username, passphrase, false)
+	li := NewLoginWithPassphraseEngine(username, passphrase, false, tc.G)
 	if err := RunEngine(li, ctx); err != nil {
 		t.Fatal(err)
 	}

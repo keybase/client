@@ -16,7 +16,7 @@ type LoginEngine struct {
 	locksmith     *Locksmith
 }
 
-func NewLoginWithPromptEngine(username string) *LoginEngine {
+func NewLoginWithPromptEngine(username string, gc *libkb.GlobalContext) *LoginEngine {
 	return &LoginEngine{
 		requiredUIs: []libkb.UIKind{
 			libkb.LoginUIKind,
@@ -26,28 +26,31 @@ func NewLoginWithPromptEngine(username string) *LoginEngine {
 		runFn: func(loginState *libkb.LoginState, ctx *Context) error {
 			return loginState.LoginWithPrompt(username, ctx.LoginUI, ctx.SecretUI)
 		},
+		Contextified: libkb.NewContextified(gc),
 	}
 }
 
-func NewLoginWithPromptEngineSkipLocksmith(username string) *LoginEngine {
-	eng := NewLoginWithPromptEngine(username)
+func NewLoginWithPromptEngineSkipLocksmith(username string, gc *libkb.GlobalContext) *LoginEngine {
+	eng := NewLoginWithPromptEngine(username, gc)
 	eng.SkipLocksmith = true
 	return eng
 }
 
-func NewLoginWithStoredSecretEngine(username string) *LoginEngine {
+func NewLoginWithStoredSecretEngine(username string, gc *libkb.GlobalContext) *LoginEngine {
 	return &LoginEngine{
 		runFn: func(loginState *libkb.LoginState, ctx *Context) error {
 			return loginState.LoginWithStoredSecret(username)
 		},
+		Contextified: libkb.NewContextified(gc),
 	}
 }
 
-func NewLoginWithPassphraseEngine(username, passphrase string, storeSecret bool) *LoginEngine {
+func NewLoginWithPassphraseEngine(username, passphrase string, storeSecret bool, gc *libkb.GlobalContext) *LoginEngine {
 	return &LoginEngine{
 		runFn: func(loginState *libkb.LoginState, ctx *Context) error {
 			return loginState.LoginWithPassphrase(username, passphrase, storeSecret)
 		},
+		Contextified: libkb.NewContextified(gc),
 	}
 }
 
@@ -68,8 +71,6 @@ func (e *LoginEngine) SubConsumers() []libkb.UIConsumer {
 }
 
 func (e *LoginEngine) Run(ctx *Context) (err error) {
-	e.SetGlobalContext(ctx.GlobalContext)
-
 	if err = e.runFn(e.G().LoginState(), ctx); err != nil {
 		return
 	}

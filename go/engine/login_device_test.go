@@ -69,8 +69,7 @@ func TestLoginNewDeviceKex(t *testing.T) {
 	defer tcY.Cleanup()
 
 	// log in with device Y
-	// G = tcY.G
-	li := NewLoginWithPromptEngine(u.Username)
+	li := NewLoginWithPromptEngine(u.Username, tcY.G)
 	ctx := &Context{LogUI: tcY.G.UI.GetLogUI(), LocksmithUI: docui, GPGUI: &gpgtestui{}, SecretUI: secui, LoginUI: &libkb.TestLoginUI{}}
 	if err := RunEngine(li, ctx); err != nil {
 		t.Fatal(err)
@@ -98,7 +97,7 @@ func TestLoginNewDeviceCancel(t *testing.T) {
 	defer tcY.Cleanup()
 
 	// log in with device Y
-	li := NewLoginWithPromptEngine(u.Username)
+	li := NewLoginWithPromptEngine(u.Username, tcY.G)
 	ctx := &Context{LogUI: tcY.G.UI.GetLogUI(), LocksmithUI: docui, GPGUI: &gpgtestui{}, SecretUI: secui, LoginUI: &libkb.TestLoginUI{}}
 	err := RunEngine(li, ctx)
 	if err == nil {

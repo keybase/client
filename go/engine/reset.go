@@ -31,8 +31,6 @@ func (e *ResetEngine) SubConsumers() []libkb.UIConsumer {
 }
 
 func (e *ResetEngine) Run(ctx *Context) (err error) {
-	e.SetGlobalContext(ctx.GlobalContext)
-
 	if err = e.G().Logout(); err != nil {
 		return
 	}

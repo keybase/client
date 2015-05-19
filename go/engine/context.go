@@ -17,9 +17,6 @@ type Context struct {
 	ProveUI     libkb.ProveUI
 
 	LoginContext libkb.LoginContext
-
-	// For everything else global...
-	GlobalContext *libkb.GlobalContext
 }
 
 func (c *Context) HasUI(kind libkb.UIKind) bool {

@@ -65,8 +65,6 @@ func (d *Locksmith) SubConsumers() []libkb.UIConsumer {
 }
 
 func (d *Locksmith) Run(ctx *Context) error {
-	// setup
-	d.SetGlobalContext(ctx.GlobalContext)
 	// This can fail, but we'll warn if it does.
 	d.syncSecrets()
 
@@ -116,7 +114,6 @@ func (d *Locksmith) fix(ctx *Context) error {
 
 func (d *Locksmith) LoginCheckup(ctx *Context, u *libkb.User) error {
 	d.user = u
-	d.SetGlobalContext(ctx.GlobalContext)
 
 	// This can fail, but we'll warn if it does.
 	d.syncSecrets()

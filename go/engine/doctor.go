@@ -108,7 +108,7 @@ func (e *Doctor) login(ctx *Context) {
 	}
 	e.G().Log.Debug("selected account %q for login", selected)
 
-	eng := NewLoginWithPromptEngineSkipLocksmith(selected)
+	eng := NewLoginWithPromptEngineSkipLocksmith(selected, e.G())
 	if err := RunEngine(eng, ctx); err != nil {
 		e.runErr = err
 		return

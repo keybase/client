@@ -91,7 +91,7 @@ func (fu *FakeUser) LoginWithSecretUI(secui libkb.SecretUI, g *libkb.GlobalConte
 		SecretUI:    secui,
 		LoginUI:     &libkb.TestLoginUI{},
 	}
-	li := NewLoginWithPromptEngine(fu.Username)
+	li := NewLoginWithPromptEngine(fu.Username, g)
 	return RunEngine(li, ctx)
 }
 

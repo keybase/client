@@ -44,14 +44,13 @@ func (v *CmdLogin) RunClient() (err error) {
 
 func (v *CmdLogin) Run() error {
 	ctx := &engine.Context{
-		LogUI:         G.UI.GetLogUI(),
-		LoginUI:       G.UI.GetLoginUI(),
-		LocksmithUI:   G.UI.GetLocksmithUI(),
-		GPGUI:         G.UI.GetGPGUI(),
-		SecretUI:      G.UI.GetSecretUI(),
-		GlobalContext: G,
+		LogUI:       G.UI.GetLogUI(),
+		LoginUI:     G.UI.GetLoginUI(),
+		LocksmithUI: G.UI.GetLocksmithUI(),
+		GPGUI:       G.UI.GetGPGUI(),
+		SecretUI:    G.UI.GetSecretUI(),
 	}
-	li := engine.NewLoginWithPromptEngine(v.Username)
+	li := engine.NewLoginWithPromptEngine(v.Username, G)
 	return engine.RunEngine(li, ctx)
 }
 
