@@ -36,6 +36,7 @@ typedef NS_ENUM (NSInteger, KBRPClientStatus) {
 @property (getter=isAutoRetryDisabled) BOOL autoRetryDisabled;
 
 @property (readonly) KBEnvironment *environment;
+@property (readonly) KBRPClientStatus status;
 
 - (instancetype)initWithEnvironment:(KBEnvironment *)environment;
 

@@ -53,7 +53,8 @@
 }
 
 - (BOOL)installCLI:(NSError **)error {
-  NSURL *URL = [NSURL fileURLWithPath:NSStringWithFormat(@"%@/%@", NSBundle.mainBundle.bundlePath, @"Contents/SharedSupport/bin/keybase")];
+  NSString *keybaseCmd = NSStringWithFormat(@"%@/bin/keybase", NSBundle.mainBundle.sharedSupportPath);
+  NSURL *URL = [NSURL fileURLWithPath:keybaseCmd];
   NSURL *symlinkURL = [NSURL fileURLWithPath:@"/usr/local/bin/keybase"];
 
   if ([NSFileManager.defaultManager fileExistsAtPath:symlinkURL.path]) {

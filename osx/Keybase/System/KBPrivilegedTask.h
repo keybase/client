@@ -1,5 +1,5 @@
 //
-//  KBPriviledgedTask.h
+//  KBPrivilegedTask.h
 //  Keybase
 //
 //  Created by Gabriel on 4/15/15.
@@ -8,8 +8,8 @@
 
 #import <Foundation/Foundation.h>
 
-// Use priviledged helper tool instead when it makes sense
-@interface KBPriviledgedTask : NSObject
+// Use privileged helper tool instead when it makes sense
+@interface KBPrivilegedTask : NSObject
 
 - (BOOL)execute:(NSString *)cmd args:(NSArray *)args error:(NSError **)error;
 

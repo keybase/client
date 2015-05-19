@@ -46,6 +46,19 @@
   return componentStatus;
 }
 
+- (BOOL)needsInstallOrUpgrade {
+  return _installStatus == KBInstallStatusNotInstalled || _installStatus == KBInstallStatusNeedsUpgrade;
+}
+
+- (NSString *)actionLabel {
+  switch (_installStatus) {
+    case KBInstallStatusNeedsUpgrade: return @"Upgrade";
+    case KBInstallStatusInstalled: return @"Uninstall";
+    case KBInstallStatusNotInstalled: return @"Install";
+    case KBInstallStatusError: return @"Error";
+  }
+}
+
 - (NSString *)statusDescription {
   NSMutableArray *str = [NSMutableArray array];
 

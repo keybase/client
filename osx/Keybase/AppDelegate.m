@@ -129,8 +129,7 @@
 
   _controlPanel = [KBControlPanel openWithComponents:@[_consoleView] sender:_appView];
 
-  KBRPClient *client = [[KBRPClient alloc] initWithEnvironment:environment];
-  [_appView openWithEnvironment:environment client:client];
+  [_appView openWithEnvironment:environment];
 }
 
 - (void)applicationWillTerminate:(NSNotification *)notification {

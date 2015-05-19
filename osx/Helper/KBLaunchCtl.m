@@ -12,34 +12,48 @@
 @implementation KBLaunchCtl
 
 + (void)reload:(NSString *)plist label:(NSString *)label completion:(KBOnLaunchStatus)completion {
-  [self unload:plist disable:NO completion:^(NSError *unloadError, NSString *unloadOutput) {
-    [self waitForUnloadWithLabel:label attempt:1 completion:^(NSError *error) {
-      [self load:plist force:YES completion:^(NSError *loadError, NSString *loadOutput) {
-        [self waitForLoadWithLabel:label attempt:1 completion:^(NSError *error) {
-          [self status:label completion:^(KBServiceStatus *serviceStatus) {
-            completion(serviceStatus);
-          }];
-        }];
+  [self unload:plist label:label disable:NO completion:^(NSError *unloadError, NSString *unloadOutput) {
+    [self load:plist label:label force:YES completion:^(NSError *loadError, NSString *loadOutput) {
+      [self status:label completion:^(KBServiceStatus *serviceStatus) {
+        completion(serviceStatus);
       }];
     }];
   }];
 }
 
-+ (void)load:(NSString *)plist force:(BOOL)force completion:(KBOnLaunchExecution)completion {
++ (void)load:(NSString *)plist label:(NSString *)label force:(BOOL)force completion:(KBOnLaunchExecution)completion {
   NSMutableArray *args = [NSMutableArray array];
   [args addObject:@"load"];
   if (force) [args addObject:@"-w"];
   [args addObject:plist];
-  [self execute:@"/bin/launchctl" args:args completion:completion];
+  [self execute:@"/bin/launchctl" args:args completion:^(NSError *error, NSString *output) {
+    KBLog(@"Output: %@", output);
+    if (error) {
+      completion(error, output);
+      return;
+    }
+    [self waitForLoadWithLabel:label attempt:1 completion:^(NSError *error) {
+      completion(error, output);
+    }];
+  }];
 }
 
-+ (void)unload:(NSString *)plist disable:(BOOL)disable completion:(KBOnLaunchExecution)completion {
++ (void)unload:(NSString *)plist label:(NSString *)label disable:(BOOL)disable completion:(KBOnLaunchExecution)completion {
   NSParameterAssert(plist);
   NSMutableArray *args = [NSMutableArray array];
   [args addObject:@"unload"];
   if (disable) [args addObject:@"-w"];
   [args addObject:plist];
-  [self execute:@"/bin/launchctl" args:args completion:completion];
+  [self execute:@"/bin/launchctl" args:args completion:^(NSError *error, NSString *output) {
+    KBLog(@"Output: %@", output);
+    if (error) {
+      completion(error, output);
+      return;
+    }
+    [self waitForUnloadWithLabel:label attempt:1 completion:^(NSError *error) {
+      completion(error, output);
+    }];
+  }];
 }
 
 + (void)status:(NSString *)label completion:(KBOnLaunchStatus)completion {
@@ -66,10 +80,11 @@
 + (void)waitForUnloadWithLabel:(NSString *)label attempt:(NSInteger)attempt completion:(void (^)(NSError *error))completion {
   [self status:label completion:^(KBServiceStatus *status) {
     if (!status || !status.isRunning) {
+      KBLog(@"%@ is not running (%@)", label, KBOr(status.info, @"-"));
       completion(nil);
     } else {
       if ((attempt + 1) >= 10) {
-        completion(KBMakeError(-1, @"Wait unload timeout (launchctl"));
+        completion(KBMakeError(-1, @"Wait unload timeout (launchctl)"));
       } else {
         KBLog(@"Waiting for unload (#%@)", @(attempt));
         dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.5 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
@@ -83,14 +98,15 @@
 + (void)waitForLoadWithLabel:(NSString *)label attempt:(NSInteger)attempt completion:(void (^)(NSError *error))completion {
   [self status:label completion:^(KBServiceStatus *status) {
     if (status && status.isRunning) {
+      KBLog(@"%@ is running: %@", status.label, status.pid);
       completion(nil);
     } else {
       if ((attempt + 1) >= 10) {
-        completion(KBMakeError(-1, @"Wait unload timeout (launchctl"));
+        completion(KBMakeError(-1, @"Wait load timeout (launchctl)"));
       } else {
-        KBLog(@"Waiting for unload (#%@)", @(attempt));
+        KBLog(@"Waiting for load (#%@)", @(attempt));
         dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.5 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
-          [self waitForUnloadWithLabel:label attempt:attempt+1 completion:completion];
+          [self waitForLoadWithLabel:label attempt:attempt+1 completion:completion];
         });
       }
     }
@@ -103,6 +119,7 @@
   task.arguments = args;
   NSPipe *outpipe = [NSPipe pipe];
   [task setStandardOutput:outpipe];
+  [task setStandardError:outpipe];
   task.terminationHandler = ^(NSTask *t) {
     KBLog(@"Task: \"%@ %@\" (%@)", command, [args componentsJoinedByString:@" "], @(t.terminationStatus));
     NSFileHandle *read = [outpipe fileHandleForReading];

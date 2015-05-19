@@ -11,12 +11,11 @@
 #import "KBButtonView.h"
 #import "KBEnvironment.h"
 #import "KBHeaderLabelView.h"
+#import "KBCustomEnvView.h"
 
 @interface KBEnvSelectView ()
 @property KBSplitView *splitView;
-
-@property KBTextField *homeDirField; // For custom envs
-@property KBTextField *socketFileField; // For custom envs
+@property KBCustomEnvView *customView;
 @end
 
 @implementation KBEnvSelectView
@@ -55,7 +54,15 @@
   nextButton.targetBlock = ^{
     KBEnvironment *env = listView.selectedObject;
     if ([env.identifier isEqualToString:@"custom"]) {
-      [self selectWithHomeDir:gself.homeDirField.text sockFile:gself.socketFileField.text];
+
+      KBEnvironment *environment = [gself.customView environment];
+      [gself.customView save];
+      NSError *error = nil;
+      if (![environment check:&error]) {
+        [KBActivity setError:error sender:self];
+        return;
+      }
+      self.onSelect(environment);
     } else {
       self.onSelect(env);
     }
@@ -70,31 +77,13 @@
   NSString *sockFile = [NSUserDefaults.standardUserDefaults stringForKey:@"SockFile"];
   if (!sockFile) sockFile = KBPath([KBEnvironment defaultSockFileForHomeDir:homeDir], NO);
 
-  KBEnvironment *custom = [[KBEnvironment alloc] initWithHomeDir:homeDir sockFile:sockFile];
+  NSString *mountDir = [NSUserDefaults.standardUserDefaults stringForKey:@"MountDir"];
+  if (!mountDir) mountDir = KBPath(@"~/Keybase.dev", NO);
+
+  KBEnvironment *custom = [[KBEnvironment alloc] initWithHomeDir:homeDir sockFile:sockFile mountDir:mountDir];
 
   [listView setObjects:@[[KBEnvironment env:KBEnvKeybaseIO], [KBEnvironment env:KBEnvLocalhost], custom] animated:NO];
   [listView setSelectedRow:2];
-}
-
-- (void)selectWithHomeDir:(NSString *)homeDir sockFile:(NSString *)sockFile {
-  homeDir = [homeDir gh_strip];
-  sockFile = [sockFile gh_strip];
-  [NSUserDefaults.standardUserDefaults setObject:homeDir forKey:@"HomeDir"];
-  [NSUserDefaults.standardUserDefaults synchronize];
-  [NSUserDefaults.standardUserDefaults setObject:sockFile forKey:@"SockFile"];
-  [NSUserDefaults.standardUserDefaults synchronize];
-
-  if (![NSFileManager.defaultManager fileExistsAtPath:KBPath(homeDir, NO) isDirectory:nil]) {
-    [KBActivity setError:KBMakeError(-1, @"%@ doesn't exist", homeDir) sender:self];
-    return;
-  }
-  if (![NSFileManager.defaultManager fileExistsAtPath:KBPath(sockFile, NO) isDirectory:nil]) {
-    [KBActivity setError:KBMakeError(-1, @"%@ doesn't exist", sockFile) sender:self];
-    return;
-  }
-
-  KBEnvironment *custom = [[KBEnvironment alloc] initWithHomeDir:homeDir sockFile:sockFile];
-  self.onSelect(custom);
 }
 
 - (void)select:(KBEnvironment *)environment {
@@ -102,42 +91,13 @@
 }
 
 - (NSView *)customView:(KBEnvironment *)environment {
-  YOView *view = [YOView view];
-  KBLabel *homeDirLabel = [KBLabel labelWithText:@"Home" style:KBTextStyleDefault];
-  [view addSubview:homeDirLabel];
-  _homeDirField = [[KBTextField alloc] init];
-  _homeDirField.textField.font = KBAppearance.currentAppearance.textFont;
-  _homeDirField.insets = UIEdgeInsetsMake(8, 8, 8, 0);
-  _homeDirField.textField.lineBreakMode = NSLineBreakByTruncatingHead;
-  _homeDirField.text = KBPath(environment.homeDir, YES);
-  [view addSubview:_homeDirField];
-  KBLabel *sockFileLabel = [KBLabel labelWithText:@"Socket File" style:KBTextStyleDefault];
-  [view addSubview:sockFileLabel];
-  _socketFileField = [[KBTextField alloc] init];
-  _socketFileField.textField.font = KBAppearance.currentAppearance.textFont;
-  _socketFileField.insets = UIEdgeInsetsMake(8, 8, 8, 0);
-  _socketFileField.textField.lineBreakMode = NSLineBreakByTruncatingHead;
-  _socketFileField.text = KBPath(environment.sockFile, YES);
-  [view addSubview:_socketFileField];
-  YOSelf yself = self;
-  view.viewLayout = [YOLayout layoutWithLayoutBlock:^CGSize(id<YOLayout> layout, CGSize size) {
-    CGFloat x = 0;
-    CGFloat y = 0;
-    CGFloat col = 80;
-    x += [layout sizeToFitVerticalInFrame:CGRectMake(x, 9, col, 0) view:sockFileLabel].size.width + 10;
-    y += [layout sizeToFitVerticalInFrame:CGRectMake(x, 0, size.width - x - 10, 0) view:yself.socketFileField].size.height + 10;
-    x = 0;
-    x += [layout sizeToFitVerticalInFrame:CGRectMake(x, y + 9, col, 0) view:homeDirLabel].size.width + 10;
-    y += [layout sizeToFitVerticalInFrame:CGRectMake(x, y, size.width - x - 10, 0) view:yself.homeDirField].size.height + 10;
-
-    return size;
-  }];
-  return view;
+  _customView = [[KBCustomEnvView alloc] init];
+  [_customView setEnvironment:environment];
+  return _customView;
 }
 
 - (NSView *)viewForEnvironment:(KBEnvironment *)environment {
-  _socketFileField = nil;
-  _homeDirField = nil;
+  _customView = nil;
   if ([environment.identifier isEqual:@"custom"]) return [self customView:environment];
 
   YOVBox *view = [YOVBox box:@{@"spacing": @(10), @"insets": @"10,0,10,0"}];
@@ -145,8 +105,8 @@
   typedef NSView * (^KBCreateEnvInfoLabel)(NSString *key, NSString *value);
 
   KBCreateEnvInfoLabel createView = ^NSView *(NSString *key, NSString *value) {
-    KBHeaderLabelView *view = [KBHeaderLabelView headerLabelViewWithHeader:key headerOptions:KBTextOptionsMonospace text:value style:KBTextStyleDefault options:KBTextOptionsMonospace lineBreakMode:NSLineBreakByCharWrapping];
-    view.columnWidth = 80;
+    KBHeaderLabelView *view = [KBHeaderLabelView headerLabelViewWithHeader:key headerOptions:0 text:value style:KBTextStyleDefault options:0 lineBreakMode:NSLineBreakByCharWrapping];
+    view.columnWidth = 120;
     return view;
   };
 
@@ -155,8 +115,8 @@
   if (environment.host) [view addSubview:createView(@"Host", environment.host)];
   if (environment.mountDir) [view addSubview:createView(@"Mount", KBPath(environment.mountDir, YES))];
   if (environment.isLaunchdEnabled) {
-    [view addSubview:createView(@"Service", environment.launchdLabelService)];
-    [view addSubview:createView(@"KBFS", environment.launchdLabelKBFS)];
+    [view addSubview:createView(@"Service ID", environment.launchdLabelService)];
+    [view addSubview:createView(@"KBFS ID", environment.launchdLabelKBFS)];
   }
 
   if (!environment.isInstallEnabled) {

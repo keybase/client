@@ -11,6 +11,7 @@
 #import "KBFS.h"
 #import "KBHelperDefines.h"
 #import "KBLaunchCtl.h"
+#import "KBTask.h"
 #import <MPMessagePack/MPXPCProtocol.h>
 
 @implementation KBHelper
@@ -33,7 +34,8 @@
     KBFS *kbfs = [[KBFS alloc] init];
     [kbfs uninstall:completion];
   } else if ([method isEqualToString:@"cli_install"]) {
-    [self installCLI:completion];
+    NSString *destination = params[0][@"path"];
+    [self installCLI:destination completion:completion];
   } else {
     completion(KBMakeError(MPXPCErrorCodeUnknownRequest, @"Unknown request method"), nil);
   }
@@ -51,28 +53,29 @@
   completion(nil, response);
 }
 
-- (void)installCLI:(void (^)(NSError *error, id value))completion {
+- (void)run:(NSString *)cmd args:(NSArray *)args completion:(void (^)(NSError *error, id value))completion {
+  [KBTask execute:cmd args:args completion:^(NSError *error, NSString *output) {
+    if (error) {
+      completion(error, @(0));
+      return;
+    }
+    completion(nil, @(1));
+  }];
+}
+
+- (void)installCLI:(NSString *)destination completion:(void (^)(NSError *error, id value))completion {
   NSError *error = nil;
 
-  [NSFileManager.defaultManager removeItemAtPath:LINK_SOURCE error:nil];
+  NSString *linkSource = @"/usr/local/bin";
 
-  if (![NSFileManager.defaultManager createSymbolicLinkAtPath:LINK_SOURCE withDestinationPath:LINK_DESTINATION error:&error]) {
+  [NSFileManager.defaultManager removeItemAtPath:linkSource error:nil];
+
+  if (![NSFileManager.defaultManager createSymbolicLinkAtPath:linkSource withDestinationPath:destination error:&error]) {
     if (!error) error = KBMakeError(-1, @"Unable to create keybase symlink");
     completion(error, @(0));
   } else {
     completion(nil, @(1));
   }
 }
-
-/*
-- (void)uninstall:(KBOnCompletion)completion {
-  NSString *plist = @"/Library/LaunchDaemons/keybase.Helper.plist";
-  [KBLaunchCtl unload:plist disable:NO completion:^(NSError *error, NSString *output) {
-    [NSFileManager.defaultManager removeItemAtPath:plist error:nil];
-    [NSFileManager.defaultManager removeItemAtPath:@"/Library/PrivilegedHelperTools/keybase.Helper" error:nil];
-    completion(nil, nil);
-  }];
-}
- */
 
 @end

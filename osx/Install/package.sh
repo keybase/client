@@ -38,9 +38,10 @@ echo "Fuse Version: $KB_FUSE_VERSION"
 
 echo "Copying keybase into Keybase.app..."
 chmod +x keybase
-mkdir -p Keybase.app/Contents/SharedSupport/bin
-cp keybase Keybase.app/Contents/SharedSupport/bin
-cp kbfsfuse Keybase.app/Contents/SharedSupport/bin
+SUPPORT_BIN="Keybase.app/Contents/SharedSupport/bin"
+mkdir -p $SUPPORT_BIN
+cp keybase $SUPPORT_BIN
+cp kbfsfuse $SUPPORT_BIN
 
 # Verify
 #codesign --verify --verbose=4 Keybase.app

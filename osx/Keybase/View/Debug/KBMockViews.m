@@ -31,7 +31,7 @@
 #import "KBPGPDecryptFileView.h"
 #import "KBPGPSignView.h"
 #import "KBPGPSignFileView.h"
-#import "KBPriviledgedTask.h"
+#import "KBPrivilegedTask.h"
 #import "KBLoginView.h"
 #import "KBSignupView.h"
 #import "KBFile.h"
@@ -220,8 +220,7 @@
 - (void)showAppView {
   KBAppView *appView = [[KBAppView alloc] init];
   [appView openWindow];
-  KBRMockClient *mockClient = [[KBRMockClient alloc] init];
-  [appView openWithEnvironment:[[KBEnvironment alloc] init] client:mockClient];
+  [appView openWithEnvironment:[[KBEnvironment alloc] init]];
 }
 
 - (void)showLogin {

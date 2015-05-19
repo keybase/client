@@ -8,7 +8,18 @@
 
 #import "KBInstallable.h"
 
+@interface KBInstallableComponent ()
+@property KBEnvironment *environment;
+@end
+
 @implementation KBInstallableComponent
+
+- (instancetype)initWithEnvironment:(KBEnvironment *)environment {
+  if ((self = [super init])) {
+    _environment = environment;
+  }
+  return self;
+}
 
 - (void)setComponentStatus:(KBComponentStatus *)componentStatus {
   _componentStatus = componentStatus;

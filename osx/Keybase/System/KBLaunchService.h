@@ -19,8 +19,9 @@
 @property (readonly) NSString *label;
 @property (readonly) NSDictionary *plist;
 @property (readonly) NSString *versionPath;
+@property (readonly) NSString *bundleVersion;
 
-- (instancetype)initWithName:(NSString *)name info:(NSString *)info label:(NSString *)label bundleVersion:(NSString *)bundleVersion versionPath:(NSString *)versionPath plist:(NSDictionary *)plist;
+- (void)setName:(NSString *)name info:(NSString *)info label:(NSString *)label bundleVersion:(NSString *)bundleVersion versionPath:(NSString *)versionPath plist:(NSDictionary *)plist;
 
 - (NSString *)plistDestination;
 

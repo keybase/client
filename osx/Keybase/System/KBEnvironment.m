@@ -88,12 +88,14 @@
   return [[self.class alloc] initWithEnv:env];
 }
 
-- (instancetype)initWithHomeDir:(NSString *)homeDir sockFile:(NSString *)sockFile {
+- (instancetype)initWithHomeDir:(NSString *)homeDir sockFile:(NSString *)sockFile mountDir:(NSString *)mountDir {
   if ((self = [super init])) {
     self.identifier = @"custom";
     self.title = @"Custom";
     self.homeDir = KBPath(homeDir, NO);
     self.sockFile = KBPath(sockFile, NO);
+    self.configFile = NSStringWithFormat(@"%@/.config/keybase/config.json", self.homeDir);
+    self.mountDir = mountDir;
     self.info = @"For development";
     self.image = [NSImage imageNamed:NSImageNameAdvanced];
     self.launchdEnabled = NO;
@@ -107,9 +109,13 @@
   return path;
 }
 
-- (NSArray *)programArgumentsForService:(BOOL)tilde {
+- (NSArray *)programArgumentsForService:(BOOL)useBundle tilde:(BOOL)tilde {
   NSMutableArray *args = [NSMutableArray array];
-  [args addObject:@"/Applications/Keybase.app/Contents/SharedSupport/bin/keybase"];
+  if (useBundle) {
+    [args addObject:NSStringWithFormat(@"%@/bin/keybase", self.bundle.sharedSupportPath)];
+  } else {
+    [args addObject:@"./keybase"];
+  }
   [args addObjectsFromArray:@[@"-H", KBPath(_homeDir, tilde)]];
 
   if (_host) {
@@ -133,7 +139,7 @@
 - (NSDictionary *)launchdPlistDictionaryForService {
   if (!self.launchdLabelService) return nil;
 
-  NSArray *args = [self programArgumentsForService:NO];
+  NSArray *args = [self programArgumentsForService:YES tilde:NO];
 
   // Logging
   NSString *logDir = KBPath(@"~/Library/Logs/Keybase", NO);
@@ -149,9 +155,18 @@
            };
 }
 
-- (NSArray *)programArgumentsForKBFS:(BOOL)tilde {
+- (NSBundle *)bundle {
+#ifdef DEBUG
+  return [NSBundle bundleWithPath:@"/Applications/Keybase.app"];
+#else
+  return NSBundle.mainBundle;
+#endif
+}
+
+- (NSArray *)programArgumentsForKBFS:(BOOL)useBundle tilde:(BOOL)tilde {
   NSMutableArray *args = [NSMutableArray array];
-  [args addObject:@"/Applications/Keybase.app/Contents/SharedSupport/bin/kbfsfuse"];
+  NSString *kbfsCmd = NSStringWithFormat(@"%@/bin/kbfsfuse", self.bundle.sharedSupportPath);
+  [args addObject:kbfsCmd];
 
   [args addObject:@"-client"];
   [args addObject:KBPath(self.mountDir, tilde)];
@@ -159,8 +174,8 @@
   return args;
 }
 
-- (NSString *)commandLineForService:(BOOL)tilde {
-  return [[self programArgumentsForService:tilde] join:@" "];
+- (NSString *)commandLineForService:(BOOL)useBundle tilde:(BOOL)tilde {
+  return [[self programArgumentsForService:useBundle tilde:tilde] join:@" "];
 }
 
 - (NSDictionary *)envsForKBS:(BOOL)tilde {
@@ -173,7 +188,7 @@
 - (NSDictionary *)launchdPlistDictionaryForKBFS {
   if (!self.launchdLabelKBFS) return nil;
 
-  NSArray *args = [self programArgumentsForKBFS:NO];
+  NSArray *args = [self programArgumentsForKBFS:YES tilde:NO];
   NSDictionary *envs = [self envsForKBS:NO];
 
   // Logging
@@ -191,10 +206,26 @@
            };
 }
 
-- (NSString *)commandLineForKBFS:(BOOL)tilde {
+- (NSString *)commandLineForKBFS:(BOOL)useBundle tilde:(BOOL)tilde {
   NSString *envs = [[[self envsForKBS:tilde] map:^(id key, id value) { return NSStringWithFormat(@"%@=%@", key, value); }] join:@" "];
-  NSString *args = [[self programArgumentsForKBFS:tilde] join:@" "];
+  NSString *args = [[self programArgumentsForKBFS:useBundle tilde:tilde] join:@" "];
   return NSStringWithFormat(@"%@ %@", envs, args);
+}
+
+- (BOOL)check:(NSError **)error {
+  if (![NSFileManager.defaultManager fileExistsAtPath:KBPath(_homeDir, NO) isDirectory:nil]) {
+    if (error) *error = KBMakeError(-1, @"%@ doesn't exist", _homeDir);
+    return NO;
+  }
+  if (![NSFileManager.defaultManager fileExistsAtPath:KBPath(_sockFile, NO) isDirectory:nil]) {
+    if (error) *error = KBMakeError(-1, @"%@ doesn't exist", _sockFile);
+    return NO;
+  }
+  if (![NSFileManager.defaultManager fileExistsAtPath:KBPath(_mountDir, NO) isDirectory:nil]) {
+    if (error) *error = KBMakeError(-1, @"%@ doesn't exist", _mountDir);
+    return NO;
+  }
+  return YES;
 }
 
 @end

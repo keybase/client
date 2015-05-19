@@ -45,7 +45,12 @@
 }
 
 - (void)open:(void (^)(NSError *error))completion {
-  NSAssert(self.status == KBRPClientStatusClosed, @"Not closed");
+  //NSAssert(self.status == KBRPClientStatusClosed, @"Not closed");
+  if (self.status != KBRPClientStatusClosed) {
+    // Already open
+    if (completion) completion(nil);
+    return;
+  }
 
   _status = KBRPClientStatusOpening;
 

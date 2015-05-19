@@ -23,6 +23,10 @@
 		001392801B0A56790082DEA8 /* KBInfoView.m in Sources */ = {isa = PBXBuildFile; fileRef = 0013927F1B0A56790082DEA8 /* KBInfoView.m */; };
 		001392831B0AACBA0082DEA8 /* KBInstallable.m in Sources */ = {isa = PBXBuildFile; fileRef = 001392821B0AACBA0082DEA8 /* KBInstallable.m */; };
 		001392861B0AB01E0082DEA8 /* KBTask.m in Sources */ = {isa = PBXBuildFile; fileRef = 001392851B0AB01E0082DEA8 /* KBTask.m */; };
+		001392871B0BD89B0082DEA8 /* KBTask.m in Sources */ = {isa = PBXBuildFile; fileRef = 001392851B0AB01E0082DEA8 /* KBTask.m */; };
+		0013928D1B0BE5DC0082DEA8 /* uninstall_helper in Resources */ = {isa = PBXBuildFile; fileRef = 0013928C1B0BE5DC0082DEA8 /* uninstall_helper */; };
+		0013928E1B0BE6170082DEA8 /* uninstall_helper in CopyFiles */ = {isa = PBXBuildFile; fileRef = 0013928C1B0BE5DC0082DEA8 /* uninstall_helper */; };
+		001392911B0BEBAA0082DEA8 /* KBCustomEnvView.m in Sources */ = {isa = PBXBuildFile; fileRef = 001392901B0BEBAA0082DEA8 /* KBCustomEnvView.m */; };
 		001712281A94100500C7AD58 /* KBGPGKeysView.m in Sources */ = {isa = PBXBuildFile; fileRef = 001712271A94100500C7AD58 /* KBGPGKeysView.m */; };
 		0017124E1A951A9C00C7AD58 /* KBUserView.m in Sources */ = {isa = PBXBuildFile; fileRef = 001712411A951A9C00C7AD58 /* KBUserView.m */; };
 		001712501A951A9C00C7AD58 /* KBUserProfileView.m in Sources */ = {isa = PBXBuildFile; fileRef = 001712421A951A9C00C7AD58 /* KBUserProfileView.m */; };
@@ -94,8 +98,8 @@
 		00566A411A97EA9F00CA236E /* KBSearchResultView.m in Sources */ = {isa = PBXBuildFile; fileRef = 00566A401A97EA9F00CA236E /* KBSearchResultView.m */; };
 		0057B0C51AE57A7A00BFB0E7 /* KBHelper.m in Sources */ = {isa = PBXBuildFile; fileRef = 0057B0C01AE57A7A00BFB0E7 /* KBHelper.m */; };
 		0057B0C61AE57A7A00BFB0E7 /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 0057B0C21AE57A7A00BFB0E7 /* main.m */; };
-		0057B0D61AE57B1900BFB0E7 /* KBPriviledgedTask.m in Sources */ = {isa = PBXBuildFile; fileRef = 0057B0CF1AE57B1900BFB0E7 /* KBPriviledgedTask.m */; };
-		0057B0DB1AE57B5900BFB0E7 /* keybase.Helper in CopyFiles */ = {isa = PBXBuildFile; fileRef = 0057B0B41AE57A4900BFB0E7 /* keybase.Helper */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
+		0057B0D61AE57B1900BFB0E7 /* KBPrivilegedTask.m in Sources */ = {isa = PBXBuildFile; fileRef = 0057B0CF1AE57B1900BFB0E7 /* KBPrivilegedTask.m */; };
+		0057B0DB1AE57B5900BFB0E7 /* keybase.Helper in Copy Files */ = {isa = PBXBuildFile; fileRef = 0057B0B41AE57A4900BFB0E7 /* keybase.Helper */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
 		006A32E11ACB30380054457B /* KBText.m in Sources */ = {isa = PBXBuildFile; fileRef = 006A32E01ACB30380054457B /* KBText.m */; };
 		006A32E51ACC5D940054457B /* KBUserListView.m in Sources */ = {isa = PBXBuildFile; fileRef = 006A32E41ACC5D940054457B /* KBUserListView.m */; };
 		006A32E91ACC636E0054457B /* KBSearchListView.m in Sources */ = {isa = PBXBuildFile; fileRef = 006A32E81ACC636E0054457B /* KBSearchListView.m */; };
@@ -229,6 +233,16 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXCopyFilesBuildPhase section */
+		001392891B0BDB8A0082DEA8 /* CopyFiles */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = bin;
+			dstSubfolderSpec = 12;
+			files = (
+				0013928E1B0BE6170082DEA8 /* uninstall_helper in CopyFiles */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		0057B0B21AE57A4900BFB0E7 /* CopyFiles */ = {
 			isa = PBXCopyFilesBuildPhase;
 			buildActionMask = 2147483647;
@@ -238,14 +252,15 @@
 			);
 			runOnlyForDeploymentPostprocessing = 1;
 		};
-		0057B0DA1AE57B4C00BFB0E7 /* CopyFiles */ = {
+		0057B0DA1AE57B4C00BFB0E7 /* Copy Files */ = {
 			isa = PBXCopyFilesBuildPhase;
 			buildActionMask = 2147483647;
 			dstPath = Contents/Library/LaunchServices;
 			dstSubfolderSpec = 1;
 			files = (
-				0057B0DB1AE57B5900BFB0E7 /* keybase.Helper in CopyFiles */,
+				0057B0DB1AE57B5900BFB0E7 /* keybase.Helper in Copy Files */,
 			);
+			name = "Copy Files";
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 		00ABEC6E1ACDE0F000DA66FC /* Embed App Extensions */ = {
@@ -289,6 +304,9 @@
 		001392821B0AACBA0082DEA8 /* KBInstallable.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBInstallable.m; sourceTree = "<group>"; };
 		001392841B0AB01E0082DEA8 /* KBTask.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBTask.h; sourceTree = "<group>"; };
 		001392851B0AB01E0082DEA8 /* KBTask.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBTask.m; sourceTree = "<group>"; };
+		0013928C1B0BE5DC0082DEA8 /* uninstall_helper */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = uninstall_helper; sourceTree = "<group>"; };
+		0013928F1B0BEBAA0082DEA8 /* KBCustomEnvView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBCustomEnvView.h; sourceTree = "<group>"; };
+		001392901B0BEBAA0082DEA8 /* KBCustomEnvView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBCustomEnvView.m; sourceTree = "<group>"; };
 		001712261A94100500C7AD58 /* KBGPGKeysView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBGPGKeysView.h; sourceTree = "<group>"; };
 		001712271A94100500C7AD58 /* KBGPGKeysView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBGPGKeysView.m; sourceTree = "<group>"; };
 		001712401A951A9C00C7AD58 /* KBUserView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBUserView.h; sourceTree = "<group>"; };
@@ -422,13 +440,12 @@
 		0057B0C01AE57A7A00BFB0E7 /* KBHelper.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBHelper.m; sourceTree = "<group>"; };
 		0057B0C11AE57A7A00BFB0E7 /* keybase.Helper.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = keybase.Helper.plist; sourceTree = "<group>"; };
 		0057B0C21AE57A7A00BFB0E7 /* main.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = main.m; sourceTree = "<group>"; };
-		0057B0C31AE57A7A00BFB0E7 /* uninstall.sh */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.script.sh; path = uninstall.sh; sourceTree = "<group>"; };
 		0057B0CA1AE57B1900BFB0E7 /* KBInstaller.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBInstaller.h; sourceTree = "<group>"; };
 		0057B0CB1AE57B1900BFB0E7 /* KBInstaller.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBInstaller.m; sourceTree = "<group>"; };
 		0057B0CC1AE57B1900BFB0E7 /* KBLaunchService.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBLaunchService.h; sourceTree = "<group>"; };
 		0057B0CD1AE57B1900BFB0E7 /* KBLaunchService.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBLaunchService.m; sourceTree = "<group>"; };
-		0057B0CE1AE57B1900BFB0E7 /* KBPriviledgedTask.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBPriviledgedTask.h; sourceTree = "<group>"; };
-		0057B0CF1AE57B1900BFB0E7 /* KBPriviledgedTask.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBPriviledgedTask.m; sourceTree = "<group>"; };
+		0057B0CE1AE57B1900BFB0E7 /* KBPrivilegedTask.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBPrivilegedTask.h; sourceTree = "<group>"; };
+		0057B0CF1AE57B1900BFB0E7 /* KBPrivilegedTask.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBPrivilegedTask.m; sourceTree = "<group>"; };
 		0065CA3B1A7C2E46006E1772 /* assets_sl.rb */ = {isa = PBXFileReference; lastKnownFileType = text.script.ruby; path = assets_sl.rb; sourceTree = "<group>"; };
 		0065CA3C1A7C2E46006E1772 /* assets_pl.rb */ = {isa = PBXFileReference; lastKnownFileType = text.script.ruby; path = assets_pl.rb; sourceTree = "<group>"; };
 		006A32DF1ACB30380054457B /* KBText.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBText.h; sourceTree = "<group>"; };
@@ -523,7 +540,6 @@
 		00ABED641AD5E03900DA66FC /* KBSearchResults.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBSearchResults.m; sourceTree = "<group>"; };
 		00B543EF1A8178E30044CC5B /* KBStrengthLabel.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBStrengthLabel.h; sourceTree = "<group>"; };
 		00B543F01A8178E30044CC5B /* KBStrengthLabel.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBStrengthLabel.m; sourceTree = "<group>"; };
-		00B543FC1A81CCF00044CC5B /* record.zip */ = {isa = PBXFileReference; lastKnownFileType = archive.zip; name = record.zip; path = ../record.zip; sourceTree = "<group>"; };
 		00B544011A82F8B40044CC5B /* KBAppView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBAppView.h; sourceTree = "<group>"; };
 		00B544021A82F8B40044CC5B /* KBAppView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBAppView.m; sourceTree = "<group>"; };
 		00B544091A842DE40044CC5B /* KBSourceOutlineView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBSourceOutlineView.h; sourceTree = "<group>"; };
@@ -863,13 +879,13 @@
 				002A2C3D1AFACB61006DFB51 /* KBLaunchCtl.m */,
 				0057B0C11AE57A7A00BFB0E7 /* keybase.Helper.plist */,
 				0057B0C21AE57A7A00BFB0E7 /* main.m */,
-				0057B0C31AE57A7A00BFB0E7 /* uninstall.sh */,
 				003C454B1AE6CECD00431829 /* KBFS.h */,
 				003C454C1AE6CECD00431829 /* KBFS.m */,
 				003C454E1AE6D1CA00431829 /* KBHelperDefines.h */,
 				003C454F1AE6D1CA00431829 /* KBHelperDefines.m */,
 				001787641B011D47009CCD10 /* KBServiceStatus.h */,
 				001787651B011D47009CCD10 /* KBServiceStatus.m */,
+				0013928C1B0BE5DC0082DEA8 /* uninstall_helper */,
 			);
 			path = Helper;
 			sourceTree = "<group>";
@@ -885,8 +901,8 @@
 				001392791B06BE120082DEA8 /* KBService.m */,
 				0013927B1B06BE8D0082DEA8 /* KBFSService.h */,
 				0013927C1B06BE8D0082DEA8 /* KBFSService.m */,
-				0057B0CE1AE57B1900BFB0E7 /* KBPriviledgedTask.h */,
-				0057B0CF1AE57B1900BFB0E7 /* KBPriviledgedTask.m */,
+				0057B0CE1AE57B1900BFB0E7 /* KBPrivilegedTask.h */,
+				0057B0CF1AE57B1900BFB0E7 /* KBPrivilegedTask.m */,
 				00E8AAF21AE83BA50075C4B3 /* KBEnvironment.h */,
 				00E8AAF31AE83BA50075C4B3 /* KBEnvironment.m */,
 				002A2C401AFBE2D9006DFB51 /* KBInstallAction.h */,
@@ -965,6 +981,8 @@
 				0013926D1B06A6470082DEA8 /* KBControlPanel.m */,
 				0013927E1B0A56790082DEA8 /* KBInfoView.h */,
 				0013927F1B0A56790082DEA8 /* KBInfoView.m */,
+				0013928F1B0BEBAA0082DEA8 /* KBCustomEnvView.h */,
+				001392901B0BEBAA0082DEA8 /* KBCustomEnvView.m */,
 			);
 			path = Debug;
 			sourceTree = "<group>";
@@ -1146,7 +1164,6 @@
 				00CC43531A3A9E6C006118A9 /* Images.xcassets */,
 				0065CA3B1A7C2E46006E1772 /* assets_sl.rb */,
 				0065CA3C1A7C2E46006E1772 /* assets_pl.rb */,
-				00B543FC1A81CCF00044CC5B /* record.zip */,
 				00CC43551A3A9E6C006118A9 /* MainMenu.xib */,
 				00CC434C1A3A9E6C006118A9 /* Supporting Files */,
 			);
@@ -1375,7 +1392,8 @@
 				00CC43451A3A9E6C006118A9 /* Sources */,
 				00CC43461A3A9E6C006118A9 /* Frameworks */,
 				00CC43471A3A9E6C006118A9 /* Resources */,
-				0057B0DA1AE57B4C00BFB0E7 /* CopyFiles */,
+				0057B0DA1AE57B4C00BFB0E7 /* Copy Files */,
+				001392891B0BDB8A0082DEA8 /* CopyFiles */,
 				1C743BBCEFE0CE0A888B01D0 /* Copy Pods Resources */,
 				007908121ABB402600FBBD89 /* Run Script */,
 				00ABEC6E1ACDE0F000DA66FC /* Embed App Extensions */,
@@ -1464,6 +1482,7 @@
 			files = (
 				001392741B06B18A0082DEA8 /* DmgBackground.pxm in Resources */,
 				001392751B06B18A0082DEA8 /* Fuse.icns in Resources */,
+				0013928D1B0BE5DC0082DEA8 /* uninstall_helper in Resources */,
 				00E8AAEE1AE8353C0075C4B3 /* osxfusefs.fs.bundle in Resources */,
 				00CC43541A3A9E6C006118A9 /* Images.xcassets in Resources */,
 				00CC43571A3A9E6C006118A9 /* MainMenu.xib in Resources */,
@@ -1566,6 +1585,7 @@
 				0057B0C51AE57A7A00BFB0E7 /* KBHelper.m in Sources */,
 				002A2C3F1AFACB61006DFB51 /* KBLaunchCtl.m in Sources */,
 				001391AB1B03F30C0082DEA8 /* KBDefines.m in Sources */,
+				001392871B0BD89B0082DEA8 /* KBTask.m in Sources */,
 				0057B0C61AE57A7A00BFB0E7 /* main.m in Sources */,
 				001787671B011D47009CCD10 /* KBServiceStatus.m in Sources */,
 				003C454D1AE6CECD00431829 /* KBFS.m in Sources */,
@@ -1694,7 +1714,7 @@
 				00566A0D1A97DA1800CA236E /* KBBox.m in Sources */,
 				00D306A71AB0E3BF00F69B18 /* KBSegmentedControl.m in Sources */,
 				00B544301A895AB80044CC5B /* KBProveInstructionsView.m in Sources */,
-				0057B0D61AE57B1900BFB0E7 /* KBPriviledgedTask.m in Sources */,
+				0057B0D61AE57B1900BFB0E7 /* KBPrivilegedTask.m in Sources */,
 				00FDC81B1AAA7D1800D6C571 /* KBCellDataSource.m in Sources */,
 				00FDC8171AAA605C00D6C571 /* KBUserImageView.m in Sources */,
 				009E2BEA1AC0AF0700EBB035 /* KBFileWriter.m in Sources */,
@@ -1718,6 +1738,7 @@
 				0004F0F11A8D859600CFCA23 /* KBRRequestParams.m in Sources */,
 				00F0CDF41AEAC37A005F738A /* KBRunOver.m in Sources */,
 				00ABEC7E1ACF3A3900DA66FC /* KBPrefGeneralView.m in Sources */,
+				001392911B0BEBAA0082DEA8 /* KBCustomEnvView.m in Sources */,
 				00ABEC921AD3163700DA66FC /* KBPrefCheckbox.m in Sources */,
 				00F0CDE71AE9B9BE005F738A /* KBSearchResult.m in Sources */,
 				001712561A951A9C00C7AD58 /* KBUserInfoLabels.m in Sources */,

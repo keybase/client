@@ -77,7 +77,7 @@
 }
 
 - (void)sendRequest:(NSString *)method {
-  if (!_client) _client = [[MPXPCClient alloc] initWithServiceName:@"keybase.Helper" priviledged:YES];
+  if (!_client) _client = [[MPXPCClient alloc] initWithServiceName:@"keybase.Helper" privileged:YES];
   [_client sendRequest:method params:nil completion:^(NSError *error, id value) {
     if (error) KBConsoleError(error);
     else KBConsoleLog(@"Helper; %@: %@", method, value);

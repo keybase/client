@@ -47,7 +47,7 @@
     if (![component conformsToProtocol:@protocol(KBInstallable)]) return nil;
 
     NSMenu *menu = [[NSMenu alloc] initWithTitle:@""];
-    [menu addItemWithTitle:@"Uninstall" action:@selector(uninstall:) keyEquivalent:@""];
+    [menu addItemWithTitle:@"Uninstall" action:@selector(uninstallSelected:) keyEquivalent:@""];
     return menu;
   };
   [_splitView setLeftView:_listView];
@@ -61,11 +61,37 @@
   [self viewForComponent:component completion:^(NSView *view) {
     if (view && ![view isKindOfClass:KBScrollView.class]) {
       KBScrollView *scrollView = [KBScrollView scrollViewWithDocumentView:view];
-      [gself.splitView setRightView:scrollView];
+      [gself setContentView:scrollView component:component];
     } else {
-      [gself.splitView setRightView:view];
+      [gself setContentView:view component:component];
     }
   }];
+}
+
+- (void)setContentView:(NSView *)contentView component:(id<KBComponent>)component {
+  YOView *view = [YOView view];
+  [view addSubview:contentView];
+
+  YOBorderLayout *borderLayout = [YOBorderLayout layout];
+  borderLayout.spacing = 10;
+  view.viewLayout = borderLayout;
+  [borderLayout setCenter:contentView];
+
+  if ([component conformsToProtocol:@protocol(KBInstallable)]) {
+    YOHBox *topView = [YOHBox box:@{@"spacing": @(10)}];
+    id<KBInstallable> installable = (id<KBInstallable>)component;
+    [topView addSubview:[KBButton buttonWithText:@"Refresh" style:KBButtonStyleToolbar targetBlock:^{ [self refresh]; }]];
+
+    if ([installable.componentStatus needsInstallOrUpgrade]) {
+      [topView addSubview:[KBButton buttonWithText:installable.componentStatus.actionLabel style:KBButtonStyleToolbar targetBlock:^{ [self install:installable]; }]];
+    } else if (installable.componentStatus.installStatus == KBInstallStatusInstalled) {
+      [topView addSubview:[KBButton buttonWithText:@"Uninstall" style:KBButtonStyleToolbar targetBlock:^{ [self uninstall:installable]; }]];
+    }
+    [view addSubview:topView];
+    [borderLayout addToTop:topView];
+  }
+
+  [_splitView setRightView:view];
 }
 
 + (instancetype)openWithComponents:(NSArray */*of id<KBComponent>*/)components sender:(id)sender {
@@ -92,17 +118,39 @@
   }];
 }
 
-- (void)uninstall:(id)sender {
-  NSIndexPath *indexPathToUninstall = _listView.menuIndexPath;
-  if (!indexPathToUninstall) return;
-
-  id<KBInstallable> component = [_listView.dataSource objectAtIndexPath:indexPathToUninstall];
-  if (!component) return;
-
+- (void)refresh {
+  if (!_selectedComponent) return;
   [KBActivity setProgressEnabled:YES sender:self];
-  [component uninstall:^(NSError *error) {
+  GHWeakSelf gself = self;
+  [_selectedComponent refresh:^(NSError *error) {
+    [KBActivity setProgressEnabled:NO sender:self];
+    [self select:gself.selectedComponent];
+  }];
+}
+
+- (void)install:(id<KBInstallable>)installable {
+  [KBActivity setProgressEnabled:YES sender:self];
+  [installable install:^(NSError *error) {
     [KBActivity setProgressEnabled:NO sender:self];
     if ([KBActivity setError:error sender:self]) return;
+    [self refresh];
+  }];
+}
+
+- (void)uninstallSelected:(id)sender {
+  NSIndexPath *indexPathToUninstall = _listView.menuIndexPath;
+  if (!indexPathToUninstall) return;
+  id<KBInstallable> component = [_listView.dataSource objectAtIndexPath:indexPathToUninstall];
+  if (!component) return;
+  [self uninstall:component];
+}
+
+- (void)uninstall:(id<KBInstallable>)installable {
+  [KBActivity setProgressEnabled:YES sender:self];
+  [installable uninstall:^(NSError *error) {
+    [KBActivity setProgressEnabled:NO sender:self];
+    if ([KBActivity setError:error sender:self]) return;
+    [self refresh];
   }];
 
 }

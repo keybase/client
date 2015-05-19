@@ -19,14 +19,6 @@
 
 @implementation KBFuseComponent
 
-- (instancetype)init {
-  if ((self = [super init])) {
-    NSDictionary *info = [[NSBundle mainBundle] infoDictionary];
-    self.bundleVersion = info[@"KBFuseVersion"];
-  }
-  return self;
-}
-
 - (NSString *)name {
   return @"OSXFuse";
 }
@@ -57,10 +49,14 @@
   [_infoView setProperties:info];
 }
 
+- (NSString *)bundleVersion {
+  return [[NSBundle mainBundle] infoDictionary][@"KBFuseVersion"];
+}
+
 - (void)updateComponentStatus:(KBCompletion)completion {
   GHODictionary *info = [GHODictionary dictionary];
   NSString *bundleVersion = self.bundleVersion;
-  MPXPCClient *helper = [[MPXPCClient alloc] initWithServiceName:@"keybase.Helper" priviledged:YES];
+  MPXPCClient *helper = [[MPXPCClient alloc] initWithServiceName:@"keybase.Helper" privileged:YES];
   [helper sendRequest:@"version" params:nil completion:^(NSError *error, NSDictionary *versions) {
     if (error) {
       self.componentStatus = [KBComponentStatus componentStatusWithInstallStatus:KBInstallStatusNotInstalled runtimeStatus:KBRuntimeStatusNotRunning info:nil];
@@ -85,14 +81,14 @@
 }
 
 - (void)install:(KBCompletion)completion {
-  MPXPCClient *helper = [[MPXPCClient alloc] initWithServiceName:@"keybase.Helper" priviledged:YES];
+  MPXPCClient *helper = [[MPXPCClient alloc] initWithServiceName:@"keybase.Helper" privileged:YES];
   [helper sendRequest:@"kbfs_install" params:nil completion:^(NSError *error, id value) {
     completion(error);
   }];
 }
 
 - (void)uninstall:(KBCompletion)completion {
-  MPXPCClient *helper = [[MPXPCClient alloc] initWithServiceName:@"keybase.Helper" priviledged:YES];
+  MPXPCClient *helper = [[MPXPCClient alloc] initWithServiceName:@"keybase.Helper" privileged:YES];
   [helper sendRequest:@"kbfs_uninstall" params:nil completion:^(NSError *error, id value) {
     completion(error);
   }];

@@ -19,23 +19,20 @@
 @property NSString *versionPath;
 @property NSDictionary *plist;
 
+@property NSString *bundleVersion;
 @property NSNumber *pid;
 @property NSNumber *lastExitStatus;
 @end
 
 @implementation KBLaunchService
 
-- (instancetype)initWithName:(NSString *)name info:(NSString *)info label:(NSString *)label bundleVersion:(NSString *)bundleVersion versionPath:(NSString *)versionPath plist:(NSDictionary *)plist {
-  if ((self = [super init])) {
-    _name = name;
-    _info = info;
-    _label = label;
-    _versionPath = versionPath;
-    _plist = plist;
-
-    self.bundleVersion = bundleVersion;
-  }
-  return self;
+- (void)setName:(NSString *)name info:(NSString *)info label:(NSString *)label bundleVersion:(NSString *)bundleVersion versionPath:(NSString *)versionPath plist:(NSDictionary *)plist {
+  _name = name;
+  _info = info;
+  _label = label;
+  _versionPath = versionPath;
+  _plist = plist;
+  _bundleVersion = bundleVersion;
 }
 
 - (NSImage *)image {
@@ -164,8 +161,8 @@
   // We installed the launch agent plist
   DDLogDebug(@"Installed launch agent plist");
 
-  [KBLaunchCtl reload:plistDest label:_label completion:^(KBServiceStatus *serviceStatus) {
-    completion(serviceStatus.error);
+  [KBLaunchCtl load:plistDest label:_label force:YES completion:^(NSError *error, NSString *output) {
+    completion(error);
   }];
 }
 
@@ -175,7 +172,8 @@
     completion(KBMakeError(-1, @"Nothing to uninstall"));
     return;
   }
-  [KBTask execute:@"/bin/launchctl" args:@[@"unload", plistDest] completion:^(NSError *error, NSString *output) {
+  NSString *label = _label;
+  [KBLaunchCtl unload:plistDest label:label disable:NO completion:^(NSError *error, NSString *output) {
     if (error) {
       completion(error);
       return;

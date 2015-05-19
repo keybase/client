@@ -19,12 +19,12 @@ typedef void (^KBOnLaunchStatus)(KBServiceStatus *serviceStatus);
 /*!
  @param force Enables service even if it has been disabled (launchctl load -w)
  */
-+ (void)load:(NSString *)plist force:(BOOL)force completion:(KBOnLaunchExecution)completion;
++ (void)load:(NSString *)plist label:(NSString *)label force:(BOOL)force completion:(KBOnLaunchExecution)completion;
 
 /*!
  @param disable Disables service so it won't restart (launchctl unload -w)
  */
-+ (void)unload:(NSString *)plist disable:(BOOL)disable completion:(KBOnLaunchExecution)completion;
++ (void)unload:(NSString *)plist label:(NSString *)label disable:(BOOL)disable completion:(KBOnLaunchExecution)completion;
 
 + (void)reload:(NSString *)plist label:(NSString *)label completion:(KBOnLaunchStatus)completion;
 

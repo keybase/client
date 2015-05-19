@@ -26,14 +26,18 @@
   [self kb_setBackgroundColor:KBAppearance.currentAppearance.backgroundColor];
   GHWeakSelf gself = self;
 
-  YOVBox *contentView = [YOVBox box:@{@"spacing": @(20), @"maxSize": @"500,0"}];
+  YOVBox *contentView = [YOVBox box:@{@"spacing": @(20)}];
   [self addSubview:contentView];
 
   KBLabel *header = [[KBLabel alloc] init];
-  [header setText:@"Updater" style:KBTextStyleHeaderLarge alignment:NSCenterTextAlignment lineBreakMode:NSLineBreakByTruncatingTail];
+  [header setText:@"Keybase Status" style:KBTextStyleHeaderLarge alignment:NSCenterTextAlignment lineBreakMode:NSLineBreakByTruncatingTail];
   [contentView addSubview:header];
 
-  _installStatusView = [YOVBox box:@{@"spacing": @(10), @"insets": @"10,0,10,0", @"maxSize": @"500,0"}];
+  KBLabel *infoLabel = [[KBLabel alloc] init];
+  [infoLabel setText:@"We need to install or update some components." style:KBTextStyleDefault alignment:NSCenterTextAlignment lineBreakMode:NSLineBreakByWordWrapping];
+  [contentView addSubview:infoLabel];
+
+  _installStatusView = [YOVBox box:@{@"spacing": @(10), @"insets": @"10,0,10,0"}];
   _installStatusView.identifier = @"InstallStatus";
   [contentView addSubview:_installStatusView];
 
@@ -86,7 +90,7 @@
     NSString *statusDescription = installAction.statusDescription;
 
     KBHeaderLabelView *label = [KBHeaderLabelView headerLabelViewWithHeader:name headerOptions:0 text:statusDescription style:KBTextStyleDefault options:0 lineBreakMode:NSLineBreakByWordWrapping];
-    label.columnWidth = 140;
+    label.columnRatio = 0.5;
     [_installStatusView addSubview:label];
   }
 

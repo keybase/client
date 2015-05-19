@@ -104,29 +104,29 @@ typedef NS_ENUM (NSInteger, KBAppViewMode) {
   [self showInProgress:@"Loading"];
 }
 
-- (NSArray *)componentsForEnvironment:(KBEnvironment *)environment client:(KBRPClient *)client {
+- (NSArray *)componentsForEnvironment:(KBEnvironment *)environment {
   NSMutableArray *components = [NSMutableArray array];
 
-  _service = [[KBService alloc] initWithEnvironment:environment client:client];
+  _service = [[KBService alloc] initWithEnvironment:environment];
 
   [components addObject:_service];
 
-  [components addObject:[[KBHelperTool alloc] init]];
-  [components addObject:[[KBFuseComponent alloc] init]];
+  [components addObject:[[KBHelperTool alloc] initWithEnvironment:environment]];
+  [components addObject:[[KBFuseComponent alloc] initWithEnvironment:environment]];
   [components addObject:[[KBFSService alloc] initWithEnvironment:environment]];
 
-  [components addObject:[[KBCLIInstall alloc] init]];
+  //[components addObject:[[KBCLIInstall alloc] initWithEnvironment:environment]];
 
   return components;
 }
 
-- (void)openWithEnvironment:(KBEnvironment *)environment client:(KBRPClient *)client {
+- (void)openWithEnvironment:(KBEnvironment *)environment {
   _environment = environment;
   for (id<KBAppViewDelegate> delegate in _delegates) [delegate appViewDidLaunch:self];
 
   [self showInProgress:@"Loading"];
 
-  NSArray *components = [self componentsForEnvironment:environment client:client];
+  NSArray *components = [self componentsForEnvironment:environment];
 
   [AppDelegate.sharedDelegate.controlPanel addComponents:components];
 
@@ -135,7 +135,6 @@ typedef NS_ENUM (NSInteger, KBAppViewMode) {
     if (needsInstall) {
       [self showInstaller:installer];
     } else {
-
       [self connect];
     }
   }];

@@ -19,12 +19,7 @@
 - (void)textField:(KBTextField *)textField didChangeFocus:(BOOL)focused;
 @end
 
-@protocol KBNSTextFieldFocusDelegate
-- (void)textField:(NSTextField *)textField didChangeFocus:(BOOL)focused;
-- (void)textField:(NSTextField *)textField didChangeEnabled:(BOOL)enabled;
-@end
-
-@interface KBTextField : YOView <KBNSTextFieldFocusDelegate>
+@interface KBTextField : YOView
 
 @property (nonatomic) NSString *text;
 @property (nonatomic) NSString *placeholder;
@@ -32,6 +27,8 @@
 
 @property (readonly) NSBox *focusView;
 @property UIEdgeInsets insets;
+
+@property (copy) dispatch_block_t onChange;
 
 @property (nonatomic) NSMutableDictionary *attributes;
 

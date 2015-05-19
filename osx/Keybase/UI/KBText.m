@@ -29,14 +29,14 @@
   [textStorage addLayoutManager:layoutManager];
 
   // Force layout
-  //(void)[layoutManager glyphRangeForTextContainer:textContainer];
-  //NSRect rect = [layoutManager usedRectForTextContainer:textContainer];
+  (void)[layoutManager glyphRangeForTextContainer:textContainer];
+  NSRect rect = [layoutManager usedRectForTextContainer:textContainer];
 
-  // This seems to be more accurate than usedRectForTextContainer:
-  NSRect rect = [attributedString boundingRectWithSize:size options:NSStringDrawingUsesLineFragmentOrigin];
-  if (rect.size.width > 0) {
-    rect.size.width += 0.4; // TODO: in some cases it might be slightly cut off (aliasing?), this seems to help
-  }
+  // NOPE! This seems to be more accurate than usedRectForTextContainer:
+//  NSRect rect = [attributedString boundingRectWithSize:size options:NSStringDrawingUsesLineFragmentOrigin];
+//  if (rect.size.width > 0) {
+//    rect.size.width += 0.4; // TODO: in some cases it might be slightly cut off (aliasing?), this seems to help
+//  }
   return CGRectIntegral(rect).size;
 }
 

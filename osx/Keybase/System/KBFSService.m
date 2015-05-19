@@ -16,8 +16,11 @@
 @implementation KBFSService
 
 - (instancetype)initWithEnvironment:(KBEnvironment *)environment {
-  NSDictionary *info = [[NSBundle mainBundle] infoDictionary];
-  return [super initWithName:@"KBFS" info:@"The filesystem" label:environment.launchdLabelKBFS bundleVersion:info[@"KBFSVersion"] versionPath:nil plist:environment.launchdPlistDictionaryForKBFS];
+  if ((self = [super initWithEnvironment:environment])) {
+    NSDictionary *info = [[NSBundle mainBundle] infoDictionary];
+    [self setName:@"KBFS" info:@"The filesystem" label:environment.launchdLabelKBFS bundleVersion:info[@"KBFSVersion"] versionPath:nil plist:environment.launchdPlistDictionaryForKBFS];
+  }
+  return self;
 }
 
 - (NSView *)contentView {
@@ -33,6 +36,11 @@
   info[@"Bundle Version"] = self.bundleVersion;
   GHODictionary *statusInfo = [self componentStatusInfo];
   if (statusInfo) [info addEntriesFromOrderedDictionary:statusInfo];
+
+  if (self.environment.installEnabled) {
+    info[@"Launchd Plist"] = KBPath([self plistDestination], YES);
+    info[@"Program"] = [self.environment commandLineForKBFS:NO tilde:YES];
+  }
 
   if (!_infoView) _infoView = [[KBInfoView alloc] init];
   [_infoView setProperties:info];

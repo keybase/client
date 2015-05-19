@@ -56,9 +56,12 @@
     return;
   }
 
+  NSString *linkSource = @"/usr/local/bin";
+  NSString *linkDestination = NSStringWithFormat(@"%@/bin/keybase", self.environment.bundle.sharedSupportPath);
+
   // This will follow the symlink (to check if symlink exists you'd have to look for attributesOfItemAtPath:)
-  if ([NSFileManager.defaultManager fileExistsAtPath:LINK_SOURCE isDirectory:nil]) {
-    if ([destination isEqualToString:LINK_DESTINATION]) {
+  if ([NSFileManager.defaultManager fileExistsAtPath:linkSource isDirectory:nil]) {
+    if ([destination isEqualToString:linkDestination]) {
       self.componentStatus = [KBComponentStatus componentStatusWithInstallStatus:KBInstallStatusInstalled runtimeStatus:KBRuntimeStatusNone info:nil];
       completion(nil);
     } else {
@@ -72,8 +75,10 @@
 }
 
 - (void)install:(KBCompletion)completion {
-  MPXPCClient *helper = [[MPXPCClient alloc] initWithServiceName:@"keybase.Helper" priviledged:YES];
-  [helper sendRequest:@"cli_install" params:nil completion:^(NSError *error, id value) {
+  NSString *linkDestination = NSStringWithFormat(@"%@/bin/keybase", self.environment.bundle.sharedSupportPath);
+
+  MPXPCClient *helper = [[MPXPCClient alloc] initWithServiceName:@"keybase.Helper" privileged:YES];
+  [helper sendRequest:@"cli_install" params:@[@{@"path": linkDestination}] completion:^(NSError *error, id value) {
     completion(error);
   }];
 }

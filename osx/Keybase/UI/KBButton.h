@@ -26,6 +26,7 @@ typedef void (^KBButtonDispatchBlock)(KBButton *button, KBButtonCompletion compl
 
 + (instancetype)button;
 + (instancetype)buttonWithText:(NSString *)text style:(KBButtonStyle)style;
++ (instancetype)buttonWithText:(NSString *)text style:(KBButtonStyle)style targetBlock:(dispatch_block_t)targetBlock;
 + (instancetype)buttonWithText:(NSString *)text style:(KBButtonStyle)style alignment:(NSTextAlignment)alignment lineBreakMode:(NSLineBreakMode)lineBreakMode;
 
 + (instancetype)buttonWithImage:(NSImage *)image;

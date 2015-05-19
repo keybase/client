@@ -13,15 +13,20 @@
 #import "KBText.h"
 #import "NSView+KBView.h"
 
+@protocol KBNSTextFieldDelegate
+- (void)textField:(NSTextField *)textField didChangeFocus:(BOOL)focused;
+- (void)textField:(NSTextField *)textField didChangeEnabled:(BOOL)enabled;
+@end
+
 @interface KBNSTextField : NSTextField
-@property (weak) id<KBNSTextFieldFocusDelegate> focusDelegate;
+@property (weak) id<KBNSTextFieldDelegate> textFieldDelegate;
 @end
 
 @interface KBNSSecureTextField : NSSecureTextField
-@property (weak) id<KBNSTextFieldFocusDelegate> focusDelegate;
+@property (weak) id<KBNSTextFieldDelegate> textFieldDelegate;
 @end
 
-@interface KBTextField ()
+@interface KBTextField () <KBNSTextFieldDelegate, NSTextFieldDelegate>
 @property NSTextField *textField;
 @property NSBox *focusView;
 @property BOOL focused;
@@ -46,17 +51,18 @@
 
   if (secure) {
     KBNSSecureTextField *textField = [[KBNSSecureTextField alloc] init];
-    textField.focusDelegate = self;
+    textField.textFieldDelegate = self;
     _textField = textField;
   } else {
     KBNSTextField *textField = [[KBNSTextField alloc] init];
-    textField.focusDelegate = self;
+    textField.textFieldDelegate = self;
     _textField = textField;
   }
   _textField.bordered = NO;
   _textField.focusRingType = NSFocusRingTypeNone;
   _textField.font = [NSFont systemFontOfSize:18];
   _textField.lineBreakMode = NSLineBreakByTruncatingHead;
+  _textField.delegate = self;
   [self addSubview:_textField];
 
   _insets = UIEdgeInsetsMake(12, 15, 10, 0);
@@ -125,6 +131,10 @@
   }
 }
 
+- (void)controlTextDidChange:(NSNotification *)notification {
+  if (self.onChange) self.onChange();
+}
+
 - (void)setText:(NSString *)text {
   _textField.stringValue = text ? text : @"";
 }
@@ -181,24 +191,24 @@
 
 - (BOOL)becomeFirstResponder {
   BOOL responder = [super becomeFirstResponder];
-  [self.focusDelegate textField:self didChangeFocus:[KBTextField isFocused:self]];
+  [self.textFieldDelegate textField:self didChangeFocus:[KBTextField isFocused:self]];
   return responder;
 }
 
 - (BOOL)resignFirstResponder {
   BOOL resigned = [super resignFirstResponder];
-  [self.focusDelegate textField:self didChangeFocus:[KBTextField isFocused:self]];
+  [self.textFieldDelegate textField:self didChangeFocus:[KBTextField isFocused:self]];
   return resigned;
 }
 
 - (void)setEnabled:(BOOL)enabled {
   [super setEnabled:enabled];
-  [self.focusDelegate textField:self didChangeEnabled:enabled];
+  [self.textFieldDelegate textField:self didChangeEnabled:enabled];
 }
 
 - (void)textDidEndEditing:(NSNotification *)notification {
   [super textDidEndEditing:notification];
-  [self.focusDelegate textField:self didChangeFocus:[KBTextField isFocused:self]];
+  [self.textFieldDelegate textField:self didChangeFocus:[KBTextField isFocused:self]];
 }
 
 @end
@@ -206,24 +216,24 @@
 @implementation KBNSSecureTextField
 
 - (BOOL)becomeFirstResponder {
-  [self.focusDelegate textField:self didChangeFocus:[KBTextField isFocused:self]];
+  [self.textFieldDelegate textField:self didChangeFocus:[KBTextField isFocused:self]];
   return [super becomeFirstResponder];
 }
 
 - (BOOL)resignFirstResponder {
   BOOL resigned = [super resignFirstResponder];
-  [self.focusDelegate textField:self didChangeFocus:[KBTextField isFocused:self]];
+  [self.textFieldDelegate textField:self didChangeFocus:[KBTextField isFocused:self]];
   return resigned;
 }
 
 - (void)setEnabled:(BOOL)enabled {
   [super setEnabled:enabled];
-  [self.focusDelegate textField:self didChangeEnabled:enabled];
+  [self.textFieldDelegate textField:self didChangeEnabled:enabled];
 }
 
 - (void)textDidEndEditing:(NSNotification *)notification {
   [super textDidEndEditing:notification];
-  [self.focusDelegate textField:self didChangeFocus:[KBTextField isFocused:self]];
+  [self.textFieldDelegate textField:self didChangeFocus:[KBTextField isFocused:self]];
 }
 
 @end

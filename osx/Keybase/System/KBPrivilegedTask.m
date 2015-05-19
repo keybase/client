@@ -1,23 +1,23 @@
 //
-//  KBPriviledgedTask.m
+//  KBPrivilegedTask.m
 //  Keybase
 //
 //  Created by Gabriel on 4/15/15.
 //  Copyright (c) 2015 Gabriel Handford. All rights reserved.
 //
 
-#import "KBPriviledgedTask.h"
+#import "KBPrivilegedTask.h"
 
 #import "KBAppDefines.h"
 
-@interface KBPriviledgedTask ()
+@interface KBPrivilegedTask ()
 @property AuthorizationRef authorizationRef;
 @end
 
-@implementation KBPriviledgedTask
+@implementation KBPrivilegedTask
 
 + (BOOL)execute:(NSString *)cmd args:(NSArray *)args error:(NSError **)error {
-  KBPriviledgedTask *task = [[KBPriviledgedTask alloc] init];
+  KBPrivilegedTask *task = [[KBPrivilegedTask alloc] init];
   return [task execute:cmd args:args error:error];
 }
 

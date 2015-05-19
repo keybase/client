@@ -1,0 +1,5 @@
+#!/bin/sh
+
+/bin/rm /Library/PrivilegedHelperTools/keybase.Helper
+/bin/launchctl unload /Library/LaunchDaemons/keybase.Helper.plist
+/bin/rm /Library/LaunchDaemons/keybase.Helper.plist

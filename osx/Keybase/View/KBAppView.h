@@ -35,7 +35,7 @@
 
 @property KBService *service;
 
-- (void)openWithEnvironment:(KBEnvironment *)environment client:(KBRPClient *)client;
+- (void)openWithEnvironment:(KBEnvironment *)environment;
 
 - (KBWindow *)openWindow;
 

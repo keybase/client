@@ -31,7 +31,7 @@ typedef NS_ENUM (NSInteger, KBEnv) {
 
 - (instancetype)initWithEnv:(KBEnv)env;
 
-- (instancetype)initWithHomeDir:(NSString *)homeDir sockFile:(NSString *)sockFile;
+- (instancetype)initWithHomeDir:(NSString *)homeDir sockFile:(NSString *)sockFile mountDir:(NSString *)mountDir;
 
 + (instancetype)env:(KBEnv)env;
 
@@ -40,9 +40,16 @@ typedef NS_ENUM (NSInteger, KBEnv) {
 - (NSDictionary *)launchdPlistDictionaryForService;
 - (NSDictionary *)launchdPlistDictionaryForKBFS;
 
-- (NSString *)commandLineForService:(BOOL)tilde;
-- (NSString *)commandLineForKBFS:(BOOL)tilde;
+- (NSArray *)programArgumentsForService:(BOOL)useBundle tilde:(BOOL)tilde;
+- (NSArray *)programArgumentsForKBFS:(BOOL)useBundle tilde:(BOOL)tilde;
+
+- (NSString *)commandLineForService:(BOOL)useBundle tilde:(BOOL)tilde;
+- (NSString *)commandLineForKBFS:(BOOL)useBundle tilde:(BOOL)tilde;
 
 - (NSString *)cachePath:(NSString *)filename;
+
+- (NSBundle *)bundle;
+
+- (BOOL)check:(NSError **)error;
 
 @end

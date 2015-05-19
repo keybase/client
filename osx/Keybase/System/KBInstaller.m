@@ -72,19 +72,15 @@
   rover.runBlock = ^(KBInstallAction *installAction, KBRunCompletion runCompletion) {
     DDLogDebug(@"Install: %@", installAction.name);
     [installAction.component install:^(NSError *error) {
-      // Set install outcome
       installAction.installAttempted = YES;
       installAction.installError = error;
 
       if (!error) {
-        // TODO hard coded delay here... how do we wait to see if new version loaded ok
-        dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(5 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
-          [installAction.component updateComponentStatus:^(NSError *error) {
-            completion();
-          }];
-        });
+        [installAction.component updateComponentStatus:^(NSError *error) {
+          runCompletion(installAction);
+        }];
       } else {
-        completion();
+        runCompletion(installAction);
       }
     }];
   };

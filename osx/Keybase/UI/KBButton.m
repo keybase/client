@@ -45,6 +45,12 @@
   return [self buttonWithText:text style:style alignment:NSCenterTextAlignment lineBreakMode:NSLineBreakByTruncatingTail];
 }
 
++ (instancetype)buttonWithText:(NSString *)text style:(KBButtonStyle)style targetBlock:(dispatch_block_t)targetBlock {
+  KBButton *button = [self buttonWithText:text style:style alignment:NSCenterTextAlignment lineBreakMode:NSLineBreakByTruncatingTail];
+  button.targetBlock = targetBlock;
+  return button;
+}
+
 + (instancetype)buttonWithText:(NSString *)text style:(KBButtonStyle)style alignment:(NSTextAlignment)alignment lineBreakMode:(NSLineBreakMode)lineBreakMode {
   KBButton *button = [[KBButton alloc] init];
   [button setText:text style:style alignment:alignment lineBreakMode:lineBreakMode];

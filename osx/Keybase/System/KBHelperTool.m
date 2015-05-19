@@ -13,7 +13,7 @@
 #import "KBLaunchCtl.h"
 #import "KBAppKit.h"
 #import "KBInfoView.h"
-#import "KBPriviledgedTask.h"
+#import "KBPrivilegedTask.h"
 
 @interface KBHelperTool ()
 @property KBInfoView *infoView;
@@ -21,14 +21,6 @@
 @end
 
 @implementation KBHelperTool
-
-- (instancetype)init {
-  if ((self = [super init])) {
-    NSDictionary *info = [[NSBundle mainBundle] infoDictionary];
-    self.bundleVersion = info[@"KBHelperVersion"];
-  }
-  return self;
-}
 
 - (NSString *)name {
   return @"Helper";
@@ -47,6 +39,10 @@
   return _infoView;
 }
 
+- (NSString *)bundleVersion {
+  return [[NSBundle mainBundle] infoDictionary][@"KBHelperVersion"];
+}
+
 - (void)componentDidUpdate {
   GHODictionary *info = [GHODictionary dictionary];
   info[@"Version"] = GHOrNull(_version);
@@ -60,6 +56,7 @@
 }
 
 - (void)updateComponentStatus:(KBCompletion)completion {
+  _version = nil;
   if (![NSFileManager.defaultManager fileExistsAtPath:@"/Library/LaunchDaemons/keybase.Helper.plist" isDirectory:nil] &&
       ![NSFileManager.defaultManager fileExistsAtPath:@"/Library/PrivilegedHelperTools/keybase.Helper" isDirectory:nil]) {
     self.componentStatus = [KBComponentStatus componentStatusWithInstallStatus:KBInstallStatusNotInstalled runtimeStatus:KBRuntimeStatusNone info:nil];
@@ -70,7 +67,7 @@
   NSString *bundleVersion = self.bundleVersion;
   GHODictionary *info = [GHODictionary dictionary];
   GHWeakSelf gself = self;
-  MPXPCClient *helper = [[MPXPCClient alloc] initWithServiceName:@"keybase.Helper" priviledged:YES];
+  MPXPCClient *helper = [[MPXPCClient alloc] initWithServiceName:@"keybase.Helper" privileged:YES];
   [helper sendRequest:@"version" params:nil completion:^(NSError *error, NSDictionary *versions) {
     if (error) {
       self.componentStatus = [KBComponentStatus componentStatusWithInstallStatus:KBInstallStatusInstalled runtimeStatus:KBRuntimeStatusNotRunning info:nil];
@@ -129,34 +126,34 @@
 }
 
 - (void)uninstall:(KBCompletion)completion {
-//  sudo launchctl unload /Library/LaunchDaemons/keybase.Helper.plist
-//  sudo rm /Library/LaunchDaemons/keybase.Helper.plist
-//  sudo rm /Library/PrivilegedHelperTools/keybase.Helper
-  NSError *error = nil;
-  KBPriviledgedTask *task = [[KBPriviledgedTask alloc] init];
-  [task execute:@"/bin/launchctl" args:@[@"unload", @"/Library/LaunchDaemons/keybase.Helper.plist"] error:&error];
-  if (error) {
-    completion(error);
-    return;
-  }
-  [task execute:@"/bin/launchctl" args:@[@"remove", @"keybase.Helper"] error:&error];
-  if (error) {
-    completion(error);
-    return;
-  }
-  [task execute:@"/bin/rm" args:@[@"/Library/LaunchDaemons/keybase.Helper.plist"] error:&error];
-  if (error) {
-    completion(error);
-    return;
-  }
-  [task execute:@"/bin/rm" args:@[@"/Library/PrivilegedHelperTools/keybase.Helper"] error:&error];
-  if (error) {
-    completion(error);
-    return;
-  }
-  
+  NSString *path = NSStringWithFormat(@"%@/bin/uninstall_helper", NSBundle.mainBundle.sharedSupportPath);
 
+  NSError *error = nil;
+  KBPrivilegedTask *task = [[KBPrivilegedTask alloc] init];
+  [task execute:@"/bin/sh" args:@[path] error:&error];
+  if (error) {
+    completion(error);
+    return;
+  }
   completion(nil);
+
+  /*
+  NSArray *commands = @[
+                        @{@"cmd": @"/bin/rm", @"args": @[@"/Library/PrivilegedHelperTools/keybase.Helper"]},
+                        @{@"cmd": @"/bin/launchctl", @"args": @[@"unload", @"/Library/LaunchDaemons/keybase.Helper.plist"]},
+                        @{@"cmd": @"/bin/rm", @"args": @[@"/Library/LaunchDaemons/keybase.Helper.plist"]},];
+
+  NSError *error = nil;
+  KBPrivilegedTask *task = [[KBPrivilegedTask alloc] init];
+  for (NSArray *command in commands) {
+    [task execute:command[@"cmd"] args:command[@"args"] error:&error];
+    if (error) {
+      completion(error);
+      return;
+    }
+  }
+  completion(nil);
+   */
 }
 
 @end

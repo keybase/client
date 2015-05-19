@@ -8,7 +8,7 @@
 
 #import "KBTask.h"
 
-#import "KBAppDefines.h"
+#import "KBHelperDefines.h"
 
 @implementation KBTask
 

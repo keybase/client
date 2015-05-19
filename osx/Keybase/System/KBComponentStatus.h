@@ -35,6 +35,9 @@ NSString *NSStringFromKBRuntimeStatus(KBRuntimeStatus status);
 + (instancetype)componentStatusWithError:(NSError *)error;
 + (instancetype)componentStatusWithInstallStatus:(KBInstallStatus)installStatus runtimeStatus:(KBRuntimeStatus)runtimeStatus info:(GHODictionary *)info;
 
+- (BOOL)needsInstallOrUpgrade;
+- (NSString *)actionLabel;
+
 - (NSString *)statusDescription;
 
 @end

@@ -10,6 +10,7 @@
 
 #import "KBComponent.h"
 #import "KBComponentStatus.h"
+#import "KBEnvironment.h"
 
 typedef void (^KBOnComponentStatus)(KBComponentStatus *installStatus);
 
@@ -27,8 +28,10 @@ typedef void (^KBOnComponentStatus)(KBComponentStatus *installStatus);
 
 @interface KBInstallableComponent : KBComponent
 
-@property NSString *bundleVersion;
 @property (nonatomic) KBComponentStatus *componentStatus;
+@property (readonly) KBEnvironment *environment;
+
+- (instancetype)initWithEnvironment:(KBEnvironment *)environment;
 
 - (NSString *)version;
 
