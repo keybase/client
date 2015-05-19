@@ -59,7 +59,7 @@
   for (id key in _info) {
     [infos addObject:NSStringWithFormat(@"%@: %@", key, _info[key])];
   }
-  if ([infos count] > 0) [str addObject:NSStringWithFormat(@"(%@)", [infos join:@", "])];
+  if ([infos count] > 0) [str addObject:NSStringWithFormat(@"\n%@", [infos join:@", "])];
 
   return [str join:@" "];
 }

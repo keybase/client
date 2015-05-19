@@ -16,7 +16,7 @@
 @class KBTableView;
 
 typedef void (^KBTableViewCellSelect)(KBTableView *tableView, NSIndexPath *indexPath, id object);
-typedef NSMenu *(^KBTableViewMenuSelect)(NSIndexPath *indexPath);
+typedef NSMenu *(^KBTableViewMenuSelect)(KBTableView *tableView, NSIndexPath *indexPath);
 typedef void (^KBTableViewUpdate)(KBTableView *tableView);
 
 @interface KBTableView : YOView <NSTableViewDelegate, NSTableViewDataSource>

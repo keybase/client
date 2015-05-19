@@ -10,14 +10,24 @@
 
 #import "KBAppDefines.h"
 
+@interface KBPriviledgedTask ()
+@property AuthorizationRef authorizationRef;
+@end
+
 @implementation KBPriviledgedTask
 
-- (BOOL)execute:(NSString *)cmd args:(NSArray *)args error:(NSError **)error {
-  AuthorizationRef authorizationRef;
++ (BOOL)execute:(NSString *)cmd args:(NSArray *)args error:(NSError **)error {
+  KBPriviledgedTask *task = [[KBPriviledgedTask alloc] init];
+  return [task execute:cmd args:args error:error];
+}
+
+- (BOOL)authorize:(NSString *)cmd error:(NSError **)error {
+  if (_authorizationRef) return YES;
   OSStatus status = noErr;
-  status = AuthorizationCreate(NULL, kAuthorizationEmptyEnvironment, kAuthorizationFlagDefaults, &authorizationRef);
+  status = AuthorizationCreate(NULL, kAuthorizationEmptyEnvironment, kAuthorizationFlagDefaults, &_authorizationRef);
   if (status != errAuthorizationSuccess) {
     if (error) *error = KBMakeError(status, @"Failed to create authorization");
+    _authorizationRef = nil;
     return NO;
   }
 
@@ -26,19 +36,29 @@
   AuthorizationRights authRights = {1, &authItem};
   AuthorizationFlags flags = kAuthorizationFlagDefaults | kAuthorizationFlagInteractionAllowed | kAuthorizationFlagPreAuthorize | kAuthorizationFlagExtendRights;
 
-  status = AuthorizationCopyRights(authorizationRef, &authRights, kAuthorizationEmptyEnvironment, flags, NULL);
+  status = AuthorizationCopyRights(_authorizationRef, &authRights, kAuthorizationEmptyEnvironment, flags, NULL);
   if (status != errAuthorizationSuccess) {
     if (error) *error = KBMakeError(status, @"Failed to copy rights");
+    _authorizationRef = nil;
     return NO;
   }
 
-  // Using the priviledged helper
-  //FILE *pipe = NULL;
-  //char *const *cargs = [self convertArray:args];
-  //status = AuthorizationExecuteWithPrivileges(authorizationRef, cmdPath, kAuthorizationFlagDefaults, cargs, &pipe);
-  status = errAuthorizationDenied;
+  return YES;
+}
+
+- (BOOL)execute:(NSString *)cmd args:(NSArray *)args error:(NSError **)error {
+  if (![self authorize:cmd error:error]) {
+    return NO;
+  }
+
+  OSStatus status = noErr;
+  const char *cmdPath = [cmd fileSystemRepresentation];
+
+  FILE *pipe = NULL;
+  char *const *cargs = [self convertArray:args];
+  status = AuthorizationExecuteWithPrivileges(_authorizationRef, cmdPath, kAuthorizationFlagDefaults, cargs, &pipe);
   if (status != errAuthorizationSuccess) {
-    if (error) *error = KBMakeError(status, @"Failed to run");
+    if (error) *error = KBMakeError(status, @"Failed to run: %@", @(status));
     return NO;
   }
 

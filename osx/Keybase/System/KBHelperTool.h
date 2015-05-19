@@ -9,7 +9,8 @@
 #import <Foundation/Foundation.h>
 
 #import "KBComponent.h"
+#import "KBInstallable.h"
 
-@interface KBHelperTool : KBComponent <KBComponent>
+@interface KBHelperTool : KBInstallableComponent <KBComponent, KBInstallable>
 
 @end

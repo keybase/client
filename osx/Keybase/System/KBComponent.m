@@ -10,35 +10,11 @@
 
 @implementation KBComponent
 
-- (void)setComponentStatus:(KBComponentStatus *)componentStatus {
-  _componentStatus = componentStatus;
-  [self componentDidUpdate];
-}
-
-- (void)componentDidUpdate { }
-
-- (NSString *)version { return nil; }
-
-- (GHODictionary *)componentStatusInfo {
-  if (!_componentStatus) return [GHODictionary dictionary];
-  GHODictionary *info = [GHODictionary dictionary];
-
-  info[@"Status Error"] = _componentStatus.error;
-  info[@"Install Status"] = NSStringFromKBInstallStatus(_componentStatus.installStatus);
-  info[@"Runtime Status"] = NSStringFromKBRuntimeStatus(_componentStatus.runtimeStatus);
-
-  return info;
-}
-
 - (NSView *)contentView { return nil; }
-
-- (void)updateComponentStatus:(KBCompletion)completion { completion(nil); }
 
 - (void)install:(KBCompletion)completion { completion(KBMakeError(-1, @"Nothing to install")); }
 
-- (void)refresh:(KBCompletion)completion {
-  [self updateComponentStatus:completion];
-}
+- (void)refresh:(KBCompletion)completion { completion(nil); }
 
 @end
 

@@ -12,6 +12,7 @@
 #import "KBEnvironment.h"
 #import "KBHeaderLabelView.h"
 #import "KBInfoView.h"
+#import "KBInstallable.h"
 
 @interface KBControlPanel ()
 @property KBListView *listView;
@@ -40,6 +41,14 @@
   };
   _listView.onSelect = ^(KBTableView *tableView, NSIndexPath *indexPath, id<KBComponent> component) {
     [gself select:component];
+  };
+  _listView.onMenuSelect = ^NSMenu *(KBTableView *tableView, NSIndexPath *indexPath) {
+    id<KBComponent> component = [tableView.dataSource objectAtIndexPath:indexPath];
+    if (![component conformsToProtocol:@protocol(KBInstallable)]) return nil;
+
+    NSMenu *menu = [[NSMenu alloc] initWithTitle:@""];
+    [menu addItemWithTitle:@"Uninstall" action:@selector(uninstall:) keyEquivalent:@""];
+    return menu;
   };
   [_splitView setLeftView:_listView];
 
@@ -81,6 +90,21 @@
       completion([component contentView]);
     }
   }];
+}
+
+- (void)uninstall:(id)sender {
+  NSIndexPath *indexPathToUninstall = _listView.menuIndexPath;
+  if (!indexPathToUninstall) return;
+
+  id<KBInstallable> component = [_listView.dataSource objectAtIndexPath:indexPathToUninstall];
+  if (!component) return;
+
+  [KBActivity setProgressEnabled:YES sender:self];
+  [component uninstall:^(NSError *error) {
+    [KBActivity setProgressEnabled:NO sender:self];
+    if ([KBActivity setError:error sender:self]) return;
+  }];
+
 }
 
 @end

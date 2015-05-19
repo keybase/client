@@ -47,7 +47,7 @@
 - (void)componentDidUpdate {
   GHODictionary *info = [GHODictionary dictionary];
 
-  info[@"Version"] = [self version];
+  info[@"Version"] = KBOr([self version], @"-");
   info[@"Bundle Version"] = self.bundleVersion;
 
   GHODictionary *statusInfo = [self componentStatusInfo];
@@ -58,20 +58,26 @@
 }
 
 - (void)updateComponentStatus:(KBCompletion)completion {
+  GHODictionary *info = [GHODictionary dictionary];
   NSString *bundleVersion = self.bundleVersion;
   MPXPCClient *helper = [[MPXPCClient alloc] initWithServiceName:@"keybase.Helper" priviledged:YES];
   [helper sendRequest:@"version" params:nil completion:^(NSError *error, NSDictionary *versions) {
     if (error) {
-      self.componentStatus = [KBComponentStatus componentStatusWithInstallStatus:KBInstallStatusInstalled runtimeStatus:KBRuntimeStatusNotRunning info:nil];
+      self.componentStatus = [KBComponentStatus componentStatusWithInstallStatus:KBInstallStatusNotInstalled runtimeStatus:KBRuntimeStatusNotRunning info:nil];
       completion(error);
     } else {
-      NSString *runningVersion = versions[@"fuseRunningVersion"];
+      NSString *runningVersion = KBIfNull(versions[@"fuseRunningVersion"], nil);
       self.version = runningVersion;
-      if ([runningVersion isEqualToString:bundleVersion]) {
-        self.componentStatus = [KBComponentStatus componentStatusWithInstallStatus:KBInstallStatusInstalled runtimeStatus:KBRuntimeStatusRunning info:[GHODictionary d:@{@"Version": runningVersion}]];
+      if (runningVersion) info[@"Version"] = runningVersion;
+      if (!runningVersion) {
+        self.componentStatus = [KBComponentStatus componentStatusWithInstallStatus:KBInstallStatusNotInstalled runtimeStatus:KBRuntimeStatusNotRunning info:nil];
+        completion(nil);
+      } else if ([runningVersion isEqualTo:bundleVersion]) {
+        self.componentStatus = [KBComponentStatus componentStatusWithInstallStatus:KBInstallStatusInstalled runtimeStatus:KBRuntimeStatusRunning info:info];
         completion(nil);
       } else {
-        self.componentStatus = [KBComponentStatus componentStatusWithInstallStatus:KBInstallStatusNeedsUpgrade runtimeStatus:KBRuntimeStatusRunning info:[GHODictionary d:@{@"Version": runningVersion, @"New version": bundleVersion}]];
+        if (bundleVersion) info[@"Bundle Version"] = bundleVersion;
+        self.componentStatus = [KBComponentStatus componentStatusWithInstallStatus:KBInstallStatusNeedsUpgrade runtimeStatus:KBRuntimeStatusRunning info:info];
         completion(nil);
       }
     }
@@ -81,6 +87,13 @@
 - (void)install:(KBCompletion)completion {
   MPXPCClient *helper = [[MPXPCClient alloc] initWithServiceName:@"keybase.Helper" priviledged:YES];
   [helper sendRequest:@"kbfs_install" params:nil completion:^(NSError *error, id value) {
+    completion(error);
+  }];
+}
+
+- (void)uninstall:(KBCompletion)completion {
+  MPXPCClient *helper = [[MPXPCClient alloc] initWithServiceName:@"keybase.Helper" priviledged:YES];
+  [helper sendRequest:@"kbfs_uninstall" params:nil completion:^(NSError *error, id value) {
     completion(error);
   }];
 }

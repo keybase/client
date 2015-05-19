@@ -50,8 +50,6 @@
   self.viewLayout = [YOLayout fill:_logView];
 }
 
-- (KBComponentStatus *)componentStatus { return nil; }
-
 - (void)log:(NSString *)message {
   if (message) [_logView addObjects:@[message] animation:NSTableViewAnimationEffectNone];
   if ([_logView isAtBottom]) [_logView scrollToBottom:YES];
@@ -103,10 +101,6 @@
   return self;
 }
 
-- (void)updateComponentStatus:(KBCompletion)completion { completion(nil); }
-
 - (void)refresh:(KBCompletion)completion { completion(nil); }
-
-- (void)install:(KBCompletion)completion { completion(nil); }
 
 @end

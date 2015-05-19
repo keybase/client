@@ -10,15 +10,16 @@
 
 #import "KBComponent.h"
 #import "KBComponentStatus.h"
+#import "KBInstallable.h"
 
 @interface KBInstallAction : NSObject
 
-@property (readonly) id<KBComponent> component;
+@property (readonly) id<KBInstallable> component;
 
 @property BOOL installAttempted;
 @property NSError *installError; // If there was
 
-+ (instancetype)installActionWithComponent:(id<KBComponent>)component;
++ (instancetype)installActionWithComponent:(id<KBInstallable>)component;
 
 - (NSString *)name;
 - (NSString *)statusDescription;

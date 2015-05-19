@@ -11,8 +11,6 @@
 #import "KBComponentStatus.h"
 #import "KBAppDefines.h"
 
-typedef void (^KBOnComponentStatus)(KBComponentStatus *installStatus);
-
 @protocol KBComponent <NSObject>
 
 - (NSString *)name;
@@ -21,29 +19,11 @@ typedef void (^KBOnComponentStatus)(KBComponentStatus *installStatus);
 
 - (NSView *)contentView;
 
-- (KBComponentStatus *)componentStatus;
-
 - (void)refresh:(KBCompletion)completion;
-
-- (void)updateComponentStatus:(KBCompletion)completion;
-
-- (void)install:(KBCompletion)completion;
 
 @end
 
 @interface KBComponent : NSObject
-
-@property NSString *bundleVersion;
-@property (nonatomic) KBComponentStatus *componentStatus;
-
-- (NSString *)version;
-
-// Called when component updated
-- (void)componentDidUpdate;
-
-- (void)updateComponentStatus:(KBCompletion)completion;
-
-- (GHODictionary *)componentStatusInfo;
 
 - (void)refresh:(KBCompletion)completion;
 

@@ -49,8 +49,10 @@
   NSError *error = nil;
   NSString *destination = [NSFileManager.defaultManager destinationOfSymbolicLinkAtPath:LINK_SOURCE error:&error];
   if (error) {
-    self.componentStatus = [KBComponentStatus componentStatusWithError:error];
-    completion(error);
+    self.componentStatus = [KBComponentStatus componentStatusWithInstallStatus:KBInstallStatusNotInstalled runtimeStatus:KBRuntimeStatusNone info:nil];
+    completion(nil);
+    //self.componentStatus = [KBComponentStatus componentStatusWithError:error];
+    //completion(error);
     return;
   }
 
@@ -74,6 +76,12 @@
   [helper sendRequest:@"cli_install" params:nil completion:^(NSError *error, id value) {
     completion(error);
   }];
+}
+
+- (void)uninstall:(KBCompletion)completion {
+  NSError *error = nil;
+  [NSFileManager.defaultManager removeItemAtPath:LINK_SOURCE error:&error];
+  completion(error);
 }
 
 @end

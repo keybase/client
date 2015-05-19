@@ -9,7 +9,6 @@
 #import <Foundation/Foundation.h>
 
 typedef NS_ENUM (NSInteger, KBEnv) {
-  KBEnvManual = 1,
   KBEnvLocalhost,
   KBEnvKeybaseIO,
 };
@@ -32,7 +31,11 @@ typedef NS_ENUM (NSInteger, KBEnv) {
 
 - (instancetype)initWithEnv:(KBEnv)env;
 
+- (instancetype)initWithHomeDir:(NSString *)homeDir sockFile:(NSString *)sockFile;
+
 + (instancetype)env:(KBEnv)env;
+
++ (NSString *)defaultSockFileForHomeDir:(NSString *)homeDir;
 
 - (NSDictionary *)launchdPlistDictionaryForService;
 - (NSDictionary *)launchdPlistDictionaryForKBFS;

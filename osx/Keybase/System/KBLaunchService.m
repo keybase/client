@@ -10,6 +10,7 @@
 #import "KBEnvironment.h"
 #import "KBLaunchCtl.h"
 #import "AppDelegate.h"
+#import "KBTask.h"
 
 @interface KBLaunchService ()
 @property NSString *name;
@@ -42,6 +43,7 @@
 }
 
 - (NSString *)version {
+  if (self.componentStatus.installStatus == KBInstallStatusNotInstalled) return nil;
   return _versionPath ? [NSString stringWithContentsOfFile:_versionPath encoding:NSUTF8StringEncoding error:nil] : nil;
 }
 
@@ -76,12 +78,18 @@
   self.pid = nil;
   self.lastExitStatus = nil;
   GHODictionary *info = [GHODictionary dictionary];
-  if (runningVersion) info[@"Version"] = runningVersion;
   [KBLaunchCtl status:_label completion:^(KBServiceStatus *serviceStatus) {
+    if (!serviceStatus) {
+      self.componentStatus = [KBComponentStatus componentStatusWithInstallStatus:KBInstallStatusNotInstalled runtimeStatus:KBRuntimeStatusNotRunning info:info];
+      completion(nil);
+      return;
+    }
+
     if (serviceStatus.error) {
       self.componentStatus = [KBComponentStatus componentStatusWithError:serviceStatus.error];
       completion(serviceStatus.error);
     } else {
+      if (runningVersion) info[@"Version"] = runningVersion;
       if (serviceStatus.isRunning) {
         self.pid = serviceStatus.pid;
         info[@"pid"] = serviceStatus.pid;
@@ -104,6 +112,7 @@
 }
 
 - (NSString *)plistDestination {
+  if (!_label) return nil;
   NSString *launchAgentDir = [[NSSearchPathForDirectoriesInDomains(NSLibraryDirectory, NSUserDomainMask, YES) firstObject] stringByAppendingPathComponent:@"LaunchAgents"];
   NSString *plistDest = [launchAgentDir stringByAppendingPathComponent:NSStringWithFormat(@"%@.plist", _label)];
   return plistDest;
@@ -160,6 +169,22 @@
   }];
 }
 
+- (void)uninstall:(KBCompletion)completion {
+  NSString *plistDest = [self plistDestination];
+  if (!plistDest || ![NSFileManager.defaultManager fileExistsAtPath:plistDest isDirectory:nil]) {
+    completion(KBMakeError(-1, @"Nothing to uninstall"));
+    return;
+  }
+  [KBTask execute:@"/bin/launchctl" args:@[@"unload", plistDest] completion:^(NSError *error, NSString *output) {
+    if (error) {
+      completion(error);
+      return;
+    }
+    [NSFileManager.defaultManager removeItemAtPath:plistDest error:&error];
+    completion(error);
+  }];
+}
+
 //- (void)checkLaunch:(void (^)(NSError *error))completion {
 //  launch_data_t config = launch_data_alloc(LAUNCH_DATA_DICTIONARY);
 //
@@ -187,9 +212,5 @@
 //    completion(nil);
 //  }
 //}
-
-- (void)uninstall {
-  NSAssert(NO, @"Not implemented");
-}
 
 @end

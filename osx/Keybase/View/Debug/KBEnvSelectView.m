@@ -14,6 +14,9 @@
 
 @interface KBEnvSelectView ()
 @property KBSplitView *splitView;
+
+@property KBTextField *homeDirField; // For custom envs
+@property KBTextField *socketFileField; // For custom envs
 @end
 
 @implementation KBEnvSelectView
@@ -42,6 +45,7 @@
   };
   [_splitView setLeftView:listView];
 
+  GHWeakSelf gself = self;
   YOHBox *buttons = [YOHBox box:@{@"horizontalAlignment": @"center", @"spacing": @(10)}];
   [self addSubview:buttons];
   KBButton *closeButton = [KBButton buttonWithText:@"Quit" style:KBButtonStyleDefault];
@@ -49,21 +53,93 @@
   [buttons addSubview:closeButton];
   KBButton *nextButton = [KBButton buttonWithText:@"Next" style:KBButtonStylePrimary];
   nextButton.targetBlock = ^{
-    self.onSelect(listView.selectedObject);
+    KBEnvironment *env = listView.selectedObject;
+    if ([env.identifier isEqualToString:@"custom"]) {
+      [self selectWithHomeDir:gself.homeDirField.text sockFile:gself.socketFileField.text];
+    } else {
+      self.onSelect(env);
+    }
   };
   [buttons addSubview:nextButton];
 
   self.viewLayout = [YOBorderLayout layoutWithCenter:_splitView top:@[header] bottom:@[buttons] insets:UIEdgeInsetsMake(20, 40, 20, 40) spacing:20];
 
-  [listView setObjects:@[[KBEnvironment env:KBEnvKeybaseIO], [KBEnvironment env:KBEnvLocalhost], [KBEnvironment env:KBEnvManual]] animated:NO];
+  NSString *homeDir = [NSUserDefaults.standardUserDefaults stringForKey:@"HomeDir"];
+  if (!homeDir) homeDir = KBPath(@"~/Projects/Keybase", NO);
+
+  NSString *sockFile = [NSUserDefaults.standardUserDefaults stringForKey:@"SockFile"];
+  if (!sockFile) sockFile = KBPath([KBEnvironment defaultSockFileForHomeDir:homeDir], NO);
+
+  KBEnvironment *custom = [[KBEnvironment alloc] initWithHomeDir:homeDir sockFile:sockFile];
+
+  [listView setObjects:@[[KBEnvironment env:KBEnvKeybaseIO], [KBEnvironment env:KBEnvLocalhost], custom] animated:NO];
   [listView setSelectedRow:2];
+}
+
+- (void)selectWithHomeDir:(NSString *)homeDir sockFile:(NSString *)sockFile {
+  homeDir = [homeDir gh_strip];
+  sockFile = [sockFile gh_strip];
+  [NSUserDefaults.standardUserDefaults setObject:homeDir forKey:@"HomeDir"];
+  [NSUserDefaults.standardUserDefaults synchronize];
+  [NSUserDefaults.standardUserDefaults setObject:sockFile forKey:@"SockFile"];
+  [NSUserDefaults.standardUserDefaults synchronize];
+
+  if (![NSFileManager.defaultManager fileExistsAtPath:KBPath(homeDir, NO) isDirectory:nil]) {
+    [KBActivity setError:KBMakeError(-1, @"%@ doesn't exist", homeDir) sender:self];
+    return;
+  }
+  if (![NSFileManager.defaultManager fileExistsAtPath:KBPath(sockFile, NO) isDirectory:nil]) {
+    [KBActivity setError:KBMakeError(-1, @"%@ doesn't exist", sockFile) sender:self];
+    return;
+  }
+
+  KBEnvironment *custom = [[KBEnvironment alloc] initWithHomeDir:homeDir sockFile:sockFile];
+  self.onSelect(custom);
 }
 
 - (void)select:(KBEnvironment *)environment {
   [_splitView setRightView:[self viewForEnvironment:environment]];
 }
 
+- (NSView *)customView:(KBEnvironment *)environment {
+  YOView *view = [YOView view];
+  KBLabel *homeDirLabel = [KBLabel labelWithText:@"Home" style:KBTextStyleDefault];
+  [view addSubview:homeDirLabel];
+  _homeDirField = [[KBTextField alloc] init];
+  _homeDirField.textField.font = KBAppearance.currentAppearance.textFont;
+  _homeDirField.insets = UIEdgeInsetsMake(8, 8, 8, 0);
+  _homeDirField.textField.lineBreakMode = NSLineBreakByTruncatingHead;
+  _homeDirField.text = KBPath(environment.homeDir, YES);
+  [view addSubview:_homeDirField];
+  KBLabel *sockFileLabel = [KBLabel labelWithText:@"Socket File" style:KBTextStyleDefault];
+  [view addSubview:sockFileLabel];
+  _socketFileField = [[KBTextField alloc] init];
+  _socketFileField.textField.font = KBAppearance.currentAppearance.textFont;
+  _socketFileField.insets = UIEdgeInsetsMake(8, 8, 8, 0);
+  _socketFileField.textField.lineBreakMode = NSLineBreakByTruncatingHead;
+  _socketFileField.text = KBPath(environment.sockFile, YES);
+  [view addSubview:_socketFileField];
+  YOSelf yself = self;
+  view.viewLayout = [YOLayout layoutWithLayoutBlock:^CGSize(id<YOLayout> layout, CGSize size) {
+    CGFloat x = 0;
+    CGFloat y = 0;
+    CGFloat col = 80;
+    x += [layout sizeToFitVerticalInFrame:CGRectMake(x, 9, col, 0) view:sockFileLabel].size.width + 10;
+    y += [layout sizeToFitVerticalInFrame:CGRectMake(x, 0, size.width - x - 10, 0) view:yself.socketFileField].size.height + 10;
+    x = 0;
+    x += [layout sizeToFitVerticalInFrame:CGRectMake(x, y + 9, col, 0) view:homeDirLabel].size.width + 10;
+    y += [layout sizeToFitVerticalInFrame:CGRectMake(x, y, size.width - x - 10, 0) view:yself.homeDirField].size.height + 10;
+
+    return size;
+  }];
+  return view;
+}
+
 - (NSView *)viewForEnvironment:(KBEnvironment *)environment {
+  _socketFileField = nil;
+  _homeDirField = nil;
+  if ([environment.identifier isEqual:@"custom"]) return [self customView:environment];
+
   YOVBox *view = [YOVBox box:@{@"spacing": @(10), @"insets": @"10,0,10,0"}];
 
   typedef NSView * (^KBCreateEnvInfoLabel)(NSString *key, NSString *value);

@@ -13,6 +13,7 @@
 #import "KBLaunchCtl.h"
 #import "KBAppKit.h"
 #import "KBInfoView.h"
+#import "KBPriviledgedTask.h"
 
 @interface KBHelperTool ()
 @property KBInfoView *infoView;
@@ -75,10 +76,10 @@
       self.componentStatus = [KBComponentStatus componentStatusWithInstallStatus:KBInstallStatusInstalled runtimeStatus:KBRuntimeStatusNotRunning info:nil];
       completion(error);
     } else {
-      NSString *runningVersion = versions[@"version"];
+      NSString *runningVersion = KBIfNull(versions[@"version"], nil);
       gself.version = runningVersion;
       if (runningVersion) info[@"Version"] = runningVersion;
-      if ([runningVersion isEqualToString:bundleVersion]) {
+      if ([runningVersion isEqualTo:bundleVersion]) {
         self.componentStatus = [KBComponentStatus componentStatusWithInstallStatus:KBInstallStatusInstalled runtimeStatus:KBRuntimeStatusRunning info:info];
         completion(nil);
       } else {
@@ -125,6 +126,37 @@
   } else {
     return YES;
   }
+}
+
+- (void)uninstall:(KBCompletion)completion {
+//  sudo launchctl unload /Library/LaunchDaemons/keybase.Helper.plist
+//  sudo rm /Library/LaunchDaemons/keybase.Helper.plist
+//  sudo rm /Library/PrivilegedHelperTools/keybase.Helper
+  NSError *error = nil;
+  KBPriviledgedTask *task = [[KBPriviledgedTask alloc] init];
+  [task execute:@"/bin/launchctl" args:@[@"unload", @"/Library/LaunchDaemons/keybase.Helper.plist"] error:&error];
+  if (error) {
+    completion(error);
+    return;
+  }
+  [task execute:@"/bin/launchctl" args:@[@"remove", @"keybase.Helper"] error:&error];
+  if (error) {
+    completion(error);
+    return;
+  }
+  [task execute:@"/bin/rm" args:@[@"/Library/LaunchDaemons/keybase.Helper.plist"] error:&error];
+  if (error) {
+    completion(error);
+    return;
+  }
+  [task execute:@"/bin/rm" args:@[@"/Library/PrivilegedHelperTools/keybase.Helper"] error:&error];
+  if (error) {
+    completion(error);
+    return;
+  }
+  
+
+  completion(nil);
 }
 
 @end

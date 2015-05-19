@@ -386,10 +386,12 @@ typedef NS_ENUM (NSInteger, KBAppViewMode) {
 }
 
 - (void)signupViewDidSignup:(KBSignupView *)signupView {
+  [self showInProgress:@"Loading"];
   [self checkStatus];
 }
 
 - (void)loginViewDidLogin:(KBLoginView *)loginView {
+  [self showInProgress:@"Loading"];
   [self checkStatus];
 }
 

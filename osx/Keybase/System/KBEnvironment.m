@@ -16,7 +16,6 @@
 @property (getter=isDebugEnabled) BOOL debugEnabled;
 @property NSString *mountDir;
 @property NSString *sockFile;
-@property NSString *configFile;
 @property NSString *identifier;
 @property (getter=isLaunchdEnabled) BOOL launchdEnabled;
 @property NSString *launchdLabelService;
@@ -25,6 +24,7 @@
 @property NSString *info;
 @property NSImage *image;
 @property (getter=isInstallEnabled) BOOL installEnabled;
+@property NSString *configFile; // Deprecated, will remove soon
 @end
 
 @implementation KBEnvironment
@@ -58,16 +58,6 @@
         self.installEnabled = YES;
         break;
       }
-      case KBEnvManual: {
-        self.identifier = @"manual";
-        self.title = @"Manual";
-        self.homeDir = KBPath(@"~/Library/Application Support/Keybase/dev", NO);
-        self.info = @"Choose this if running from xCode.";
-        self.image = [NSImage imageNamed:NSImageNameAdvanced];
-        self.launchdEnabled = NO;
-        self.installEnabled = NO;
-        break;
-      }
     }
 
     if (self.isLaunchdEnabled) {
@@ -77,18 +67,39 @@
 
     // This is because there is a hard limit of 104 characters for the unix socket file length and if
     // we use the default there is a chance it will be too long (if username is long).
-    self.sockFile = NSStringWithFormat(@"%@/.config/keybase/keybased.sock", self.homeDir);
-    if ([self.sockFile length] > 103) {
-      [NSException raise:NSInvalidArgumentException format:@"Sock path too long. It should be < 104 characters."];
+    if (!self.sockFile) {
+      self.sockFile = [KBEnvironment defaultSockFileForHomeDir:self.homeDir];
+      if ([self.sockFile length] > 103) {
+        [NSException raise:NSInvalidArgumentException format:@"Sock path too long. It should be < 104 characters."];
+      }
     }
 
+    // TODO Deprecated, will remove soon when KBFS doesn't need it set manually
     self.configFile = NSStringWithFormat(@"%@/.config/keybase/config.json", self.homeDir);
   }
   return self;
 }
 
++ (NSString *)defaultSockFileForHomeDir:(NSString *)homeDir {
+  return KBPath(NSStringWithFormat(@"%@/.config/keybase/keybased.sock", homeDir), NO);
+}
+
 + (instancetype)env:(KBEnv)env {
   return [[self.class alloc] initWithEnv:env];
+}
+
+- (instancetype)initWithHomeDir:(NSString *)homeDir sockFile:(NSString *)sockFile {
+  if ((self = [super init])) {
+    self.identifier = @"custom";
+    self.title = @"Custom";
+    self.homeDir = KBPath(homeDir, NO);
+    self.sockFile = KBPath(sockFile, NO);
+    self.info = @"For development";
+    self.image = [NSImage imageNamed:NSImageNameAdvanced];
+    self.launchdEnabled = NO;
+    self.installEnabled = NO;
+  }
+  return self;
 }
 
 - (NSString *)cachePath:(NSString *)filename {

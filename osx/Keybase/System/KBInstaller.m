@@ -12,7 +12,7 @@
 #import "AppDelegate.h"
 //#include <launch.h>
 #import "KBRunOver.h"
-#import "KBComponent.h"
+#import "KBInstallable.h"
 #import "KBInstallAction.h"
 
 @interface KBInstaller ()
@@ -23,7 +23,7 @@
 
 - (instancetype)initWithEnvironment:(KBEnvironment *)environment components:(NSArray *)components {
   if ((self = [super init])) {
-    _installActions = [components map:^(id<KBComponent> c) { return [KBInstallAction installActionWithComponent:c]; }];
+    _installActions = [components map:^(id<KBInstallable> c) { return [KBInstallAction installActionWithComponent:c]; }];
   }
   return self;
 }
@@ -32,6 +32,7 @@
   KBRunOver *rover = [[KBRunOver alloc] init];
   rover.objects = _installActions;
   rover.runBlock = ^(KBInstallAction *installAction, KBRunCompletion runCompletion) {
+    DDLogDebug(@"Checking %@", installAction.component.name);
     [installAction.component updateComponentStatus:^(NSError *error) {
       // Clear install outcome
       installAction.installAttempted = NO;
@@ -53,8 +54,8 @@
   }];
 
   // Ignore KBFS since it's not ready yet
-  installActions = [installActions reject:^BOOL(KBInstallAction *installAction) {
-    return ![installAction isEqual:@"KBFS"];
+  installActions = [installActions select:^BOOL(KBInstallAction *installAction) {
+    return ![installAction.name isEqual:@"KBFS"];
   }];
 
   return installActions;
@@ -76,9 +77,12 @@
       installAction.installError = error;
 
       if (!error) {
-        [installAction.component updateComponentStatus:^(NSError *error) {
-          completion();
-        }];
+        // TODO hard coded delay here... how do we wait to see if new version loaded ok
+        dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(5 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
+          [installAction.component updateComponentStatus:^(NSError *error) {
+            completion();
+          }];
+        });
       } else {
         completion();
       }

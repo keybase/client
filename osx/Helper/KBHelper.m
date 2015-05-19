@@ -11,6 +11,7 @@
 #import "KBFS.h"
 #import "KBHelperDefines.h"
 #import "KBLaunchCtl.h"
+#import <MPMessagePack/MPXPCProtocol.h>
 
 @implementation KBHelper
 

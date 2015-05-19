@@ -43,7 +43,7 @@
   _devicesView.onSelect = ^(id sender, NSIndexPath *indexPath, KBRUser *user) {
 
   };
-  _devicesView.onMenuSelect  = ^(NSIndexPath *indexPath) {
+  _devicesView.onMenuSelect = ^(KBTableView *tableView, NSIndexPath *indexPath) {
     NSMenu *menu = [[NSMenu alloc] initWithTitle:@""];
     [menu addItemWithTitle:@"Remove" action:@selector(removeDevice:) keyEquivalent:@""];
     return menu;

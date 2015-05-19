@@ -8,9 +8,11 @@
 
 #import <Foundation/Foundation.h>
 
-// Unused; Using priviledged helper tool
+// Use priviledged helper tool instead when it makes sense
 @interface KBPriviledgedTask : NSObject
 
 - (BOOL)execute:(NSString *)cmd args:(NSArray *)args error:(NSError **)error;
+
++ (BOOL)execute:(NSString *)cmd args:(NSArray *)args error:(NSError **)error;
 
 @end

@@ -9,12 +9,12 @@
 #import "KBInstallAction.h"
 
 @interface KBInstallAction ()
-@property id<KBComponent> component;
+@property id<KBInstallable> component;
 @end
 
 @implementation KBInstallAction
 
-+ (instancetype)installActionWithComponent:(id<KBComponent>)component {
++ (instancetype)installActionWithComponent:(id<KBInstallable>)component {
   KBInstallAction *installAction = [[KBInstallAction alloc] init];
   installAction.component = component;
   return installAction;

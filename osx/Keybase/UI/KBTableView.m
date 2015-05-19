@@ -272,7 +272,7 @@
 
 - (NSMenu *)menuForIndexPath:(NSIndexPath *)indexPath {
   _menuIndexPath = indexPath;
-  if (self.onMenuSelect) return self.onMenuSelect(_menuIndexPath);
+  if (self.onMenuSelect) return self.onMenuSelect(self, _menuIndexPath);
   return nil;
 }
 

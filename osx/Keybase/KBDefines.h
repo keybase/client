@@ -20,6 +20,7 @@ typedef void (^KBOnCompletion)(NSError *error, id value);
 
 #define KBOrNull(obj) (obj ? obj : NSNull.null)
 #define KBOr(obj, dv) (obj ? obj : dv)
+#define KBIfNull(obj, val) ([obj isEqual:NSNull.null] ? val : obj)
 
 NSNumber *KBNumberFromString(NSString *s);
 NSString *KBHexString(NSData *data, NSString *defaultValue);
