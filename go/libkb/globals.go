@@ -68,13 +68,14 @@ func (g *GlobalContext) SetUI(u UI) { g.UI = u }
 func (g *GlobalContext) Init() {
 	g.Env = NewEnv(nil, nil)
 	g.Service = false
+	g.loginStateMu.Lock()
 	g.createLoginState()
+	g.loginStateMu.Unlock()
 }
 
+// requires lock on loginStateMu before calling
 func (g *GlobalContext) createLoginState() {
-	g.loginStateMu.Lock()
 	g.loginState = NewLoginState(g)
-	g.loginStateMu.Unlock()
 }
 
 func (g *GlobalContext) LoginState() *LoginState {
@@ -85,7 +86,9 @@ func (g *GlobalContext) LoginState() *LoginState {
 }
 
 func (g *GlobalContext) Logout() error {
-	if err := g.LoginState().Logout(); err != nil {
+	g.loginStateMu.Lock()
+	defer g.loginStateMu.Unlock()
+	if err := g.loginState.Logout(); err != nil {
 		return err
 	}
 
