@@ -39,10 +39,11 @@
     CGFloat y = yself.insets.top;
     if (!yself.divider.hidden) {
       [layout setFrame:CGRectMake(col - 1, y, 1, size.height) view:yself.divider];
-      col -= 1;
+    } else {
+      col++;
     }
 
-    [layout setFrame:CGRectMake(0, y, col, size.height - y - yself.insets.bottom) view:yself.leftView];
+    [layout setFrame:CGRectMake(0, y, col - 1, size.height - y - yself.insets.bottom) view:yself.leftView];
     [layout setFrame:YOCGRectApplyInsets(CGRectMake(col, y, size.width - col, size.height - y - yself.insets.bottom), yself.rightInsets) view:yself.rightView];
     return size;
   }];

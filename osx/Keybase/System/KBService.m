@@ -27,7 +27,7 @@
 - (instancetype)initWithEnvironment:(KBEnvironment *)environment {
   NSDictionary *info = [[NSBundle mainBundle] infoDictionary];
   if ((self = [super initWithEnvironment:environment])) {
-    [self setName:@"Service" info:@"The Keybase Service" label:environment.launchdLabelService bundleVersion:info[@"KBServiceVersion"] versionPath:[environment cachePath:@"service.version"] plist:environment.launchdPlistDictionaryForService];
+    [self setName:@"Service" info:@"The Keybase service" label:environment.launchdLabelService bundleVersion:info[@"KBServiceVersion"] versionPath:[environment cachePath:@"service.version"] plist:environment.launchdPlistDictionaryForService];
   }
   return self;
 }

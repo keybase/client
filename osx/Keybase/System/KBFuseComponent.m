@@ -24,7 +24,7 @@
 }
 
 - (NSString *)info {
-  return @"For the Keybase filesystem";
+  return @"Extensions for KBFS";
 }
 
 - (NSImage *)image {
