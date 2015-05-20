@@ -48,8 +48,13 @@ func TestBasicMessage(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	s := kex.NewSender(kex.DirectionYtoX, sec.Secret())
-	r := kex.NewReceiver(kex.DirectionYtoX, sec)
+	var tok, csrf string
+	tc.G.LoginState().LocalSession(func(s *libkb.Session) {
+		tok, csrf = s.APIArgs()
+	}, "TestBasicMessage")
+
+	s := kex.NewSender(kex.DirectionYtoX, sec.Secret(), tok, csrf, tc.G)
+	r := kex.NewReceiver(kex.DirectionYtoX, sec, tok, csrf)
 
 	ctx := testKexMeta(t, fu.Username, sec)
 	if err := s.StartKexSession(ctx, ctx.StrongID); err != nil {
@@ -81,8 +86,13 @@ func TestBadMACMessage(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	s := kex.NewSender(kex.DirectionYtoX, sec.Secret())
-	r := kex.NewReceiver(kex.DirectionYtoX, sec)
+	var tok, csrf string
+	tc.G.LoginState().LocalSession(func(s *libkb.Session) {
+		tok, csrf = s.APIArgs()
+	}, "TestBadMACMessage")
+
+	s := kex.NewSender(kex.DirectionYtoX, sec.Secret(), tok, csrf, tc.G)
+	r := kex.NewReceiver(kex.DirectionYtoX, sec, tok, csrf)
 
 	ctx := testKexMeta(t, fu.Username, sec)
 	if err := s.CorruptStartKexSession(ctx, ctx.StrongID); err != nil {

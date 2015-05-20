@@ -52,7 +52,11 @@ func (k *KexSib) Run(ctx *Context) error {
 	k.engctx = ctx
 
 	var err error
-	k.user, err = libkb.LoadMe(libkb.LoadUserArg{PublicKeyOptional: true})
+	k.user, err = libkb.LoadMe(libkb.LoadUserArg{
+		PublicKeyOptional: true,
+		LoginContext:      ctx.LoginContext,
+		Contextified:      libkb.NewContextified(k.G()),
+	})
 	if err != nil {
 		return err
 	}
@@ -74,12 +78,14 @@ func (k *KexSib) Run(ctx *Context) error {
 		return err
 	}
 
+	token, csrf := k.sessionArgs(ctx)
+
 	k.sec, err = kex.SecretFromPhrase(k.user.GetName(), k.secretPhrase)
 	if err != nil {
 		return err
 	}
 	k.serverMu.Lock()
-	k.server = kex.NewSender(kex.DirectionXtoY, k.sec.Secret())
+	k.server = kex.NewSender(kex.DirectionXtoY, k.sec.Secret(), token, csrf, k.G())
 	k.serverMu.Unlock()
 
 	arg := libkb.SecretKeyArg{
@@ -108,11 +114,11 @@ func (k *KexSib) Cancel() error {
 
 func (k *KexSib) loopReceives(ctx *Context, m *kex.Meta, sec *kex.Secret) error {
 	// start receive loop
-	k.poll(m, sec)
+	k.poll(ctx, m, sec)
 
 	// wait for StartKex() from Y
 	k.kexStatus(ctx, "waiting for StartKex from Y", keybase1.KexStatusCode_START_WAIT)
-	if err := k.next(kex.StartKexMsg, kex.IntraTimeout, k.handleStart); err != nil {
+	if err := k.next(ctx, kex.StartKexMsg, kex.IntraTimeout, k.handleStart); err != nil {
 		return err
 	}
 	k.kexStatus(ctx, "received StartKex from Y", keybase1.KexStatusCode_START_RECEIVED)
@@ -130,7 +136,7 @@ func (k *KexSib) loopReceives(ctx *Context, m *kex.Meta, sec *kex.Secret) error 
 
 	// wait for PleaseSign() from Y
 	k.kexStatus(ctx, "waiting for PleaseSign from Y", keybase1.KexStatusCode_PLEASE_SIGN_WAIT)
-	if err := k.next(kex.PleaseSignMsg, kex.IntraTimeout, k.handlePleaseSign); err != nil {
+	if err := k.next(ctx, kex.PleaseSignMsg, kex.IntraTimeout, k.handlePleaseSign); err != nil {
 		return err
 	}
 	k.kexStatus(ctx, "received PleaseSign from Y", keybase1.KexStatusCode_PLEASE_SIGN_RECEIVED)
@@ -149,7 +155,7 @@ func (k *KexSib) loopReceives(ctx *Context, m *kex.Meta, sec *kex.Secret) error 
 	return nil
 }
 
-func (k *KexSib) handleStart(m *kex.Msg) error {
+func (k *KexSib) handleStart(ctx *Context, m *kex.Msg) error {
 	k.devidY = m.Sender
 	return nil
 }
@@ -164,7 +170,7 @@ func (k *KexSib) verifyPleaseSign(jw *jsonw.Wrapper, newKID libkb.KID) (err erro
 	return err
 }
 
-func (k *KexSib) handlePleaseSign(m *kex.Msg) error {
+func (k *KexSib) handlePleaseSign(ctx *Context, m *kex.Msg) error {
 	eddsa := m.Args().SigningKey
 	sig := m.Args().Sig
 
@@ -212,19 +218,20 @@ func (k *KexSib) handlePleaseSign(m *kex.Msg) error {
 	jw.SetValueAtPath("body.sibkey.reverse_sig", jsonw.NewString(sig))
 
 	del := libkb.Delegator{
-		NewKey:      newKey,
-		ExistingKey: k.sigKey,
-		Me:          k.user,
-		Expire:      libkb.NACL_EDDSA_EXPIRE_IN,
-		PushType:    libkb.SIBKEY_TYPE,
-		EldestKID:   k.user.GetEldestFOKID().Kid,
+		NewKey:       newKey,
+		ExistingKey:  k.sigKey,
+		Me:           k.user,
+		Expire:       libkb.NACL_EDDSA_EXPIRE_IN,
+		PushType:     libkb.SIBKEY_TYPE,
+		EldestKID:    k.user.GetEldestFOKID().Kid,
+		Contextified: libkb.NewContextified(k.G()),
 	}
 
 	if err = del.CheckArgs(); err != nil {
 		return err
 	}
 
-	if err = del.SignAndPost(nil, jw); err != nil {
+	if err = del.SignAndPost(ctx.LoginContext, jw); err != nil {
 		return err
 	}
 

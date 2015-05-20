@@ -24,6 +24,7 @@ type LoginState struct {
 	account   *Account
 	loginReqs chan loginReq
 	acctReqs  chan acctReq
+	activeReq string
 }
 
 // LoginContext is passed to all loginHandler functions.  It
@@ -57,9 +58,10 @@ type loginHandler func(LoginContext) error
 type acctHandler func(*Account)
 
 type loginReq struct {
-	f    loginHandler
-	res  chan error
-	name string
+	f     loginHandler
+	after afterFn
+	res   chan error
+	name  string
 }
 
 type acctReq struct {
@@ -75,6 +77,8 @@ type loginAPIResult struct {
 	username  string
 }
 
+type afterFn func(LoginContext) error
+
 // NewLoginState creates a LoginState and starts the request
 // handler goroutine.
 func NewLoginState(g *GlobalContext) *LoginState {
@@ -88,40 +92,40 @@ func NewLoginState(g *GlobalContext) *LoginState {
 	return res
 }
 
-func (s *LoginState) LoginWithPrompt(username string, loginUI LoginUI, secretUI SecretUI) (err error) {
+func (s *LoginState) LoginWithPrompt(username string, loginUI LoginUI, secretUI SecretUI, after afterFn) (err error) {
 	s.G().Log.Debug("+ LoginWithPrompt(%s) called", username)
 	defer func() { s.G().Log.Debug("- LoginWithPrompt -> %s", ErrToOk(err)) }()
 
 	err = s.loginHandle(func(lctx LoginContext) error {
 		return s.loginWithPromptHelper(lctx, username, loginUI, secretUI, false)
-	}, "loginWithPromptHelper")
+	}, after, "loginWithPromptHelper")
 	return
 }
 
-func (s *LoginState) LoginWithStoredSecret(username string) (err error) {
+func (s *LoginState) LoginWithStoredSecret(username string, after afterFn) (err error) {
 	s.G().Log.Debug("+ LoginWithStoredSecret(%s) called", username)
 	defer func() { s.G().Log.Debug("- LoginWithStoredSecret -> %s", ErrToOk(err)) }()
 
 	err = s.loginHandle(func(lctx LoginContext) error {
 		return s.loginWithStoredSecret(lctx, username)
-	}, "loginWithStoredSecret")
+	}, after, "loginWithStoredSecret")
 	return
 }
 
-func (s *LoginState) LoginWithPassphrase(username, passphrase string, storeSecret bool) (err error) {
+func (s *LoginState) LoginWithPassphrase(username, passphrase string, storeSecret bool, after afterFn) (err error) {
 	s.G().Log.Debug("+ LoginWithPassphrase(%s) called", username)
 	defer func() { s.G().Log.Debug("- LoginWithPassphrase -> %s", ErrToOk(err)) }()
 
 	err = s.loginHandle(func(lctx LoginContext) error {
 		return s.loginWithPassphrase(lctx, username, passphrase, storeSecret)
-	}, "loginWithPassphrase")
+	}, after, "loginWithPassphrase")
 	return
 }
 
 func (s *LoginState) Logout() error {
 	return s.loginHandle(func(a LoginContext) error {
 		return s.logout(a)
-	}, "logout")
+	}, nil, "logout")
 }
 
 // ExternalFunc is for having the LoginState handler call a
@@ -129,7 +133,7 @@ func (s *LoginState) Logout() error {
 // for signup, so that no logins/logouts happen while a signup is
 // happening.
 func (s *LoginState) ExternalFunc(f loginHandler, name string) error {
-	return s.loginHandle(f, name)
+	return s.loginHandle(f, nil, name)
 }
 
 func (s *LoginState) Shutdown() error {
@@ -505,7 +509,7 @@ func (s *LoginState) stretchPassphraseIfNecessary(lctx LoginContext, un string, 
 func (s *LoginState) verifyPassphrase(ui SecretUI) error {
 	return s.loginHandle(func(lctx LoginContext) error {
 		return s.loginWithPromptHelper(lctx, s.G().Env.GetUsername(), nil, ui, true)
-	}, "LoginState - verifyPassphrase")
+	}, nil, "LoginState - verifyPassphrase")
 }
 
 func (s *LoginState) loginWithPromptHelper(lctx LoginContext, username string, loginUI LoginUI, secretUI SecretUI, force bool) (err error) {
@@ -542,11 +546,12 @@ func (s *LoginState) loginWithPromptHelper(lctx LoginContext, username string, l
 // in the loginReqs channel.  The requests goroutine will handle
 // it, calling f and putting the error on the request res channel.
 // Once the error is on the res channel, loginHandle returns it.
-func (s *LoginState) loginHandle(f loginHandler, name string) error {
+func (s *LoginState) loginHandle(f loginHandler, after afterFn, name string) error {
 	req := loginReq{
-		f:    f,
-		res:  make(chan error),
-		name: name,
+		f:     f,
+		after: after,
+		res:   make(chan error),
+		name:  name,
 	}
 	s.G().Log.Debug("+ Login %q", name)
 	s.loginReqs <- req
@@ -572,8 +577,9 @@ func (s *LoginState) acctHandle(f acctHandler, name string) {
 	select {
 	case s.acctReqs <- req:
 		// this is just during debugging:
-	case <-time.After(10 * time.Second):
+	case <-time.After(5 * time.Second):
 		s.G().Log.Warning("timed out sending acct request %q", name)
+		s.G().Log.Warning("active request: %s", s.activeReq)
 		debug.PrintStack()
 		os.Exit(1)
 	}
@@ -591,12 +597,21 @@ func (s *LoginState) requests() {
 		select {
 		case req, ok := <-s.loginReqs:
 			if ok {
-				req.res <- req.f(s.account)
+				s.activeReq = fmt.Sprintf("Login Request: %q", req.name)
+				err := req.f(s.account)
+				if err == nil && req.after != nil {
+					// f ran without error, so call after function
+					req.res <- req.after(s.account)
+				} else {
+					// either f returned an error, or there's no after function
+					req.res <- err
+				}
 			} else {
 				s.loginReqs = nil
 			}
 		case req, ok := <-s.acctReqs:
 			if ok {
+				s.activeReq = fmt.Sprintf("Account Request: %q", req.name)
 				req.f(s.account)
 				close(req.done)
 			} else {

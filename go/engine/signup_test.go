@@ -60,7 +60,7 @@ func TestSignupEngine(t *testing.T) {
 	mockGetSecret := &GetSecretMock{
 		Passphrase: fu.Passphrase,
 	}
-	if err = tc.G.LoginState().LoginWithPrompt(fu.Username, nil, mockGetSecret); err != nil {
+	if err = tc.G.LoginState().LoginWithPrompt(fu.Username, nil, mockGetSecret, nil); err != nil {
 		t.Fatal(err)
 	}
 

@@ -24,7 +24,6 @@ func LoadMe(arg LoadUserArg) (ret *User, err error) {
 }
 
 func LoadUser(arg LoadUserArg) (ret *User, err error) {
-
 	G.Log.Debug("LoadUser: %+v", arg)
 
 	// Whatever the reply is, pass along our desired global context
@@ -42,8 +41,8 @@ func LoadUser(arg LoadUserArg) (ret *User, err error) {
 		err = fmt.Errorf("If loading self, can't provide a username")
 	} else if !arg.Self {
 		// noop
-	} else if arg.Uid = myUID(G, arg.LoginContext); arg.Uid == nil {
-		arg.Name = G.Env.GetUsername()
+	} else if arg.Uid = myUID(arg.G(), arg.LoginContext); arg.Uid == nil {
+		arg.Name = arg.G().Env.GetUsername()
 	}
 
 	if err != nil {

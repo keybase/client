@@ -17,17 +17,21 @@ type LoginEngine struct {
 }
 
 func NewLoginWithPromptEngine(username string, gc *libkb.GlobalContext) *LoginEngine {
-	return &LoginEngine{
+	eng := &LoginEngine{
 		requiredUIs: []libkb.UIKind{
 			libkb.LoginUIKind,
 			libkb.SecretUIKind,
 			libkb.LogUIKind,
 		},
-		runFn: func(loginState *libkb.LoginState, ctx *Context) error {
-			return loginState.LoginWithPrompt(username, ctx.LoginUI, ctx.SecretUI)
-		},
 		Contextified: libkb.NewContextified(gc),
 	}
+	eng.runFn = func(loginState *libkb.LoginState, ctx *Context) error {
+		after := func(lctx libkb.LoginContext) error {
+			return eng.postLogin(ctx, lctx)
+		}
+		return loginState.LoginWithPrompt(username, ctx.LoginUI, ctx.SecretUI, after)
+	}
+	return eng
 }
 
 func NewLoginWithPromptEngineSkipLocksmith(username string, gc *libkb.GlobalContext) *LoginEngine {
@@ -37,21 +41,27 @@ func NewLoginWithPromptEngineSkipLocksmith(username string, gc *libkb.GlobalCont
 }
 
 func NewLoginWithStoredSecretEngine(username string, gc *libkb.GlobalContext) *LoginEngine {
-	return &LoginEngine{
-		runFn: func(loginState *libkb.LoginState, ctx *Context) error {
-			return loginState.LoginWithStoredSecret(username)
-		},
-		Contextified: libkb.NewContextified(gc),
+	eng := &LoginEngine{Contextified: libkb.NewContextified(gc)}
+	eng.runFn = func(loginState *libkb.LoginState, ctx *Context) error {
+		after := func(lctx libkb.LoginContext) error {
+			return eng.postLogin(ctx, lctx)
+		}
+		return loginState.LoginWithStoredSecret(username, after)
 	}
+
+	return eng
 }
 
 func NewLoginWithPassphraseEngine(username, passphrase string, storeSecret bool, gc *libkb.GlobalContext) *LoginEngine {
-	return &LoginEngine{
-		runFn: func(loginState *libkb.LoginState, ctx *Context) error {
-			return loginState.LoginWithPassphrase(username, passphrase, storeSecret)
-		},
-		Contextified: libkb.NewContextified(gc),
+	eng := &LoginEngine{Contextified: libkb.NewContextified(gc)}
+	eng.runFn = func(loginState *libkb.LoginState, ctx *Context) error {
+		after := func(lctx libkb.LoginContext) error {
+			return eng.postLogin(ctx, lctx)
+		}
+		return loginState.LoginWithPassphrase(username, passphrase, storeSecret, after)
 	}
+
+	return eng
 }
 
 func (e *LoginEngine) Name() string {
@@ -70,13 +80,14 @@ func (e *LoginEngine) SubConsumers() []libkb.UIConsumer {
 	}
 }
 
-func (e *LoginEngine) Run(ctx *Context) (err error) {
-	if err = e.runFn(e.G().LoginState(), ctx); err != nil {
-		return
-	}
+func (e *LoginEngine) Run(ctx *Context) error {
+	return e.runFn(e.G().LoginState(), ctx)
+}
 
+func (e *LoginEngine) postLogin(ctx *Context, lctx libkb.LoginContext) error {
 	// We might need to ID ourselves, so load us in here
-	e.user, err = libkb.LoadMe(libkb.LoadUserArg{ForceReload: true})
+	var err error
+	e.user, err = libkb.LoadMe(libkb.LoadUserArg{ForceReload: true, LoginContext: lctx})
 	if err != nil {
 		_, ok := err.(libkb.NoKeyError)
 		if !ok {
@@ -90,22 +101,20 @@ func (e *LoginEngine) Run(ctx *Context) (err error) {
 	}
 
 	// create a locksmith engine to check the account
+	ctx.LoginContext = lctx
 	larg := &LocksmithArg{
 		User: e.user,
 	}
-	e.locksmithMu.Lock()
 	e.locksmith = NewLocksmith(larg, e.G())
-	e.locksmithMu.Unlock()
 	err = e.locksmith.LoginCheckup(ctx, e.user)
 	if err != nil {
 		return err
 	}
 
-	e.G().LoginState().LocalSession(func(ls *libkb.Session) {
-		ls.SetDeviceProvisioned(e.G().Env.GetDeviceID().String())
-	}, "LoginEngine - Run - Session.SetDeviceProvisioned")
+	lctx.LocalSession().SetDeviceProvisioned(e.G().Env.GetDeviceID().String())
 
 	return nil
+
 }
 
 func (e *LoginEngine) User() *libkb.User {

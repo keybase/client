@@ -219,11 +219,11 @@ func (a *InternalApiEngine) getUrl(arg ApiArg) url.URL {
 	return u
 }
 
-func (a *InternalApiEngine) sessionArgs(sr SessionReader) (tok, csrf string) {
-	if sr != nil {
-		return sr.APIArgs()
+func (a *InternalApiEngine) sessionArgs(arg ApiArg) (tok, csrf string) {
+	if arg.SessionR != nil {
+		return arg.SessionR.APIArgs()
 	}
-	G.LoginState().LocalSession(func(s *Session) {
+	arg.G().LoginState().LocalSession(func(s *Session) {
 		tok, csrf = s.APIArgs()
 	}, "sessionArgs")
 	return
@@ -233,7 +233,7 @@ func (i *InternalApiEngine) isExternal() bool { return false }
 
 func (a *InternalApiEngine) fixHeaders(arg ApiArg, req *http.Request) {
 	if arg.NeedSession {
-		tok, csrf := a.sessionArgs(arg.SessionR)
+		tok, csrf := a.sessionArgs(arg)
 		if len(tok) > 0 {
 			req.Header.Add("X-Keybase-Session", tok)
 		} else {

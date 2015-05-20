@@ -68,6 +68,10 @@ func TestLoginNewDeviceKex(t *testing.T) {
 	tcY := SetupEngineTest(t, "loginY")
 	defer tcY.Cleanup()
 
+	if tcY.G == tcX.G {
+		t.Fatalf("tcY.G == tcX.G")
+	}
+
 	// log in with device Y
 	li := NewLoginWithPromptEngine(u.Username, tcY.G)
 	ctx := &Context{LogUI: tcY.G.UI.GetLogUI(), LocksmithUI: docui, GPGUI: &gpgtestui{}, SecretUI: secui, LoginUI: &libkb.TestLoginUI{}}

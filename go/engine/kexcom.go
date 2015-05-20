@@ -43,9 +43,21 @@ func (k *KexCom) verifyRequest(m *kex.Meta) error {
 	return nil
 }
 
-func (k *KexCom) poll(m *kex.Meta, secret *kex.Secret) {
+func (k *KexCom) sessionArgs(ctx *Context) (token, csrf string) {
+	if ctx.LoginContext != nil {
+		token, csrf = ctx.LoginContext.LocalSession().APIArgs()
+	} else {
+		k.G().LoginState().LocalSession(func(s *libkb.Session) {
+			token, csrf = s.APIArgs()
+		}, "kexcom - APIArgs")
+	}
+	return
+}
+
+func (k *KexCom) poll(ctx *Context, m *kex.Meta, secret *kex.Secret) {
+	token, csrf := k.sessionArgs(ctx)
 	k.recMu.Lock()
-	k.rec = kex.NewReceiver(m.Direction, secret)
+	k.rec = kex.NewReceiver(m.Direction, secret, token, csrf)
 	k.recMu.Unlock()
 	k.wg.Add(1)
 	go func() {
@@ -54,7 +66,7 @@ func (k *KexCom) poll(m *kex.Meta, secret *kex.Secret) {
 	}()
 }
 
-func (k *KexCom) next(name kex.MsgName, timeout time.Duration, handler func(*kex.Msg) error) error {
+func (k *KexCom) next(ctx *Context, name kex.MsgName, timeout time.Duration, handler func(*Context, *kex.Msg) error) error {
 	k.G().Log.Debug("%s: waiting for %s (%s)", k.debugName, name, timeout)
 	msg, err := k.rec.Next(name, timeout)
 	k.G().Log.Debug("%s: got message %s", k.debugName, name)
@@ -67,7 +79,7 @@ func (k *KexCom) next(name kex.MsgName, timeout time.Duration, handler func(*kex
 		return err
 	}
 	k.G().Log.Debug("%s: dispatching message to handler: %s", k.debugName, name)
-	return handler(msg)
+	return handler(ctx, msg)
 }
 
 func (k *KexCom) kexStatus(ctx *Context, msg string, code keybase1.KexStatusCode) {

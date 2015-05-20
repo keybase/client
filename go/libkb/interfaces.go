@@ -160,6 +160,7 @@ type ApiArg struct {
 	HttpStatus  []int
 	AppStatus   []string
 	DecodeTo    interface{}
+	Contextified
 }
 
 type ApiRes struct {

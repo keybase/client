@@ -13,6 +13,7 @@ import (
 //
 
 type Delegator struct {
+	Contextified
 
 	// Set these fields
 	NewKey            GenericKey
@@ -126,7 +127,7 @@ func (d *Delegator) LoadSigningKey(lctx LoginContext, ui SecretUI) (err error) {
 		return
 	}
 
-	d.ExistingKey, _, err = G.Keyrings.GetSecretKeyWithPrompt(lctx, SecretKeyArg{
+	d.ExistingKey, _, err = d.G().Keyrings.GetSecretKeyWithPrompt(lctx, SecretKeyArg{
 		Me:      d.Me,
 		KeyType: AnySecretKeyType,
 	}, ui, "sign new key")
@@ -229,13 +230,14 @@ func (d Delegator) post(lctx LoginContext) (err error) {
 
 	G.Log.Debug("Post NewKey: %v", hargs)
 	arg := ApiArg{
-		Endpoint:    "key/add",
-		NeedSession: true,
-		Args:        hargs,
+		Endpoint:     "key/add",
+		NeedSession:  true,
+		Args:         hargs,
+		Contextified: NewContextified(d.G()),
 	}
 	if lctx != nil {
 		arg.SessionR = lctx.LocalSession()
 	}
-	_, err = G.API.Post(arg)
+	_, err = d.G().API.Post(arg)
 	return err
 }

@@ -12,11 +12,14 @@ type Sender struct {
 	seqno     int
 	direction Direction
 	secret    SecretKey
+	sessToken string // api session token
+	sessCsrf  string // api session csrf
+	libkb.Contextified
 }
 
 // NewSender creates a Sender for the given message direction.
-func NewSender(dir Direction, secret SecretKey) *Sender {
-	return &Sender{direction: dir, secret: secret}
+func NewSender(dir Direction, secret SecretKey, sessToken, sessCsrf string, gc *libkb.GlobalContext) *Sender {
+	return &Sender{direction: dir, secret: secret, sessToken: sessToken, sessCsrf: sessCsrf, Contextified: libkb.NewContextified(gc)}
 }
 
 // StartKexSession sends the StartKexSession message to the
@@ -97,9 +100,9 @@ func (s *Sender) post(msg *Msg) error {
 		return err
 	}
 
-	libkb.G.Log.Debug("posting message %s {dir: %d, seqno: %d, w: %x, uid: %x}", msg.Name(), msg.Direction, msg.Seqno, msg.WeakID, libkb.G.GetMyUID())
+	libkb.G.Log.Debug("posting message %s {dir: %d, seqno: %d, w: %x, uid: %x}", msg.Name(), msg.Direction, msg.Seqno, msg.WeakID, msg.UID)
 
-	_, err = libkb.G.API.Post(libkb.ApiArg{
+	_, err = s.G().API.Post(libkb.ApiArg{
 		Endpoint:    "kex/send",
 		NeedSession: true,
 		Args: libkb.HttpArgs{
@@ -111,6 +114,12 @@ func (s *Sender) post(msg *Msg) error {
 			"seqno":    libkb.I{Val: msg.Seqno},
 			"w":        libkb.S{Val: hex.EncodeToString(msg.WeakID[:])},
 		},
+		Contextified: libkb.NewContextified(s.G()),
+		SessionR:     s,
 	})
 	return err
+}
+
+func (s *Sender) APIArgs() (token, csrf string) {
+	return s.sessToken, s.sessCsrf
 }

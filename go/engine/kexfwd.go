@@ -71,6 +71,8 @@ func (k *KexFwd) Run(ctx *Context) error {
 	}
 	k.deviceID = devreg.DeviceID()
 
+	token, csrf := k.sessionArgs(ctx)
+
 	// make random secret S, session id I
 	sec, err := kex.NewSecret(k.user.GetName())
 	if err != nil {
@@ -78,14 +80,14 @@ func (k *KexFwd) Run(ctx *Context) error {
 	}
 	k.secret = sec
 	k.serverMu.Lock()
-	k.server = kex.NewSender(kex.DirectionYtoX, k.secret.Secret())
+	k.server = kex.NewSender(kex.DirectionYtoX, k.secret.Secret(), token, csrf, k.G())
 	k.serverMu.Unlock()
 
 	// create the kex meta data
 	m := kex.NewMeta(k.args.User.GetUID(), k.secret.StrongID(), k.deviceID, k.args.Dst, kex.DirectionXtoY)
 
 	// start message receive loop
-	k.poll(m, sec)
+	k.poll(ctx, m, sec)
 
 	done := make(chan bool)
 	defer close(done)
@@ -111,7 +113,7 @@ func (k *KexFwd) Run(ctx *Context) error {
 
 	// wait for Hello() from X
 	k.kexStatus(ctx, "waiting for Hello from X", keybase1.KexStatusCode_HELLO_WAIT)
-	if err := k.next(kex.HelloMsg, kex.StartTimeout, k.handleHello); err != nil {
+	if err := k.next(ctx, kex.HelloMsg, kex.StartTimeout, k.handleHello); err != nil {
 		return err
 	}
 	k.kexStatus(ctx, "received Hello from X", keybase1.KexStatusCode_HELLO_RECEIVED)
@@ -149,7 +151,7 @@ func (k *KexFwd) Run(ctx *Context) error {
 
 	// wait for Done() from X
 	k.kexStatus(ctx, "waiting for Done from X", keybase1.KexStatusCode_DONE_WAIT)
-	if err := k.next(kex.DoneMsg, kex.IntraTimeout, k.handleDone); err != nil {
+	if err := k.next(ctx, kex.DoneMsg, kex.IntraTimeout, k.handleDone); err != nil {
 		return err
 	}
 	k.kexStatus(ctx, "received Done from X", keybase1.KexStatusCode_DONE_RECEIVED)
@@ -180,15 +182,15 @@ func (k *KexFwd) Cancel() error {
 	return k.cancel(m)
 }
 
-func (k *KexFwd) handleHello(m *kex.Msg) error {
+func (k *KexFwd) handleHello(ctx *Context, m *kex.Msg) error {
 	k.xDevKeyID = m.Args().DevKeyID
 	return nil
 }
 
-func (k *KexFwd) handleDone(m *kex.Msg) error {
+func (k *KexFwd) handleDone(ctx *Context, m *kex.Msg) error {
 	// device X changed the sigchain, so reload the user to get the latest sigchain.
 	var err error
-	k.user, err = libkb.LoadMe(libkb.LoadUserArg{PublicKeyOptional: true})
+	k.user, err = libkb.LoadMe(libkb.LoadUserArg{PublicKeyOptional: true, LoginContext: ctx.LoginContext, Contextified: libkb.NewContextified(k.G())})
 	if err != nil {
 		return err
 	}

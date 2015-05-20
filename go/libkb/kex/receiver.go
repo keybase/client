@@ -29,15 +29,17 @@ type Receiver struct {
 	secret    *Secret
 	Msgs      chan *Msg
 	done      bool
+	sessToken string // api session token
+	sessCsrf  string // api session csrf
 }
 
 // NewReceiver creates a Receiver that will route messages to the
 // provided handler.  It will receive messages for the specified
 // direction.
-func NewReceiver(dir Direction, secret *Secret) *Receiver {
+func NewReceiver(dir Direction, secret *Secret, sessToken, sessCsrf string) *Receiver {
 	sm := make(map[string]bool)
 	ch := make(chan *Msg, 10)
-	return &Receiver{direction: dir, secret: secret, seen: sm, Msgs: ch}
+	return &Receiver{direction: dir, secret: secret, seen: sm, Msgs: ch, sessToken: sessToken, sessCsrf: sessCsrf}
 }
 
 // Poll calls Receive until it gets ErrProtocolEOF.
@@ -165,7 +167,7 @@ func (r *Receiver) check(msg *Msg) error {
 
 // get performs a Get request to long poll for a set of messages.
 func (r *Receiver) get() (MsgList, error) {
-	libkb.G.Log.Debug("get: {dir: %d, seqno: %d, w = %x, uid = %x}", r.direction, r.seqno, r.secret.WeakID(), libkb.G.GetMyUID())
+	libkb.G.Log.Debug("get: {dir: %d, seqno: %d, w = %x}", r.direction, r.seqno, r.secret.WeakID())
 
 	var j struct {
 		Msgs MsgList `json:"msgs"`
@@ -179,6 +181,7 @@ func (r *Receiver) get() (MsgList, error) {
 			"low":  libkb.I{Val: r.seqno + 1},
 			"poll": libkb.I{Val: int(PollDuration / time.Second)},
 		},
+		SessionR: r,
 	}
 	if err := libkb.G.API.GetDecode(args, &j); err != nil {
 		return nil, err
@@ -187,4 +190,8 @@ func (r *Receiver) get() (MsgList, error) {
 	sort.Sort(j.Msgs)
 
 	return j.Msgs, nil
+}
+
+func (r *Receiver) APIArgs() (token, csrf string) {
+	return r.sessToken, r.sessCsrf
 }
