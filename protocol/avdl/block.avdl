@@ -3,15 +3,17 @@
 protocol block {
 	import idl "backend_common.avdl";
 
-	record BlockCharge{
-		BlockIdCombo bid;
-		UID uid;	
+	record GetBlockRes {
+		BlockKey skey;
+		bytes buf;
 	}
 
-	void blockSession(string sid);
-	bytes getBlock(BlockIdCombo bid);
-	void putBlock(BlockIdCombo bid, bytes buf);
+	void establishSession(string sid);
 
-	//future RPC from bindex to bserver
-	//void delBlock(BlockIdCombo bid);
+	void putBlock(BlockIdCombo bid, string folder, BlockKey skey, bytes buf);
+	GetBlockRes getBlock(BlockIdCombo bid);
+
+	void incBlockReference(BlockIdCombo bid, string nonce, string folder, UID chargedTo);
+	void decBlockReference(BlockIdCombo bid, string nonce, string folder, UID chargedTo);
+	
 }

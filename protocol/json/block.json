@@ -167,44 +167,63 @@
     "type" : "record",
     "name" : "BlockIdCombo",
     "fields" : [ {
-      "name" : "blockId",
-      "type" : "bytes"
+      "name" : "blockHash",
+      "type" : "string"
     }, {
       "name" : "size",
       "type" : "int"
-    } ]
-  }, {
-    "type" : "record",
-    "name" : "BlockInfo",
-    "fields" : [ {
+    }, {
       "name" : "chargedTo",
       "type" : "UID"
-    }, {
-      "name" : "folder",
-      "type" : "bytes"
-    }, {
-      "name" : "sKey",
-      "type" : "bytes"
-    }, {
-      "name" : "nonce",
-      "type" : "bytes"
     } ]
   }, {
     "type" : "record",
-    "name" : "BlockCharge",
+    "name" : "BlockKey",
     "fields" : [ {
-      "name" : "bid",
-      "type" : "BlockIdCombo"
+      "name" : "epochID",
+      "type" : "int"
     }, {
-      "name" : "uid",
-      "type" : "UID"
+      "name" : "epochKey",
+      "type" : "string"
+    }, {
+      "name" : "randBlockId",
+      "type" : "string"
+    }, {
+      "name" : "blockKey",
+      "type" : "string"
+    } ]
+  }, {
+    "type" : "record",
+    "name" : "GetBlockRes",
+    "fields" : [ {
+      "name" : "skey",
+      "type" : "BlockKey"
+    }, {
+      "name" : "buf",
+      "type" : "bytes"
     } ]
   } ],
   "messages" : {
-    "blockSession" : {
+    "establishSession" : {
       "request" : [ {
         "name" : "sid",
         "type" : "string"
+      } ],
+      "response" : "null"
+    },
+    "putBlock" : {
+      "request" : [ {
+        "name" : "bid",
+        "type" : "BlockIdCombo"
+      }, {
+        "name" : "folder",
+        "type" : "string"
+      }, {
+        "name" : "skey",
+        "type" : "BlockKey"
+      }, {
+        "name" : "buf",
+        "type" : "bytes"
       } ],
       "response" : "null"
     },
@@ -213,15 +232,37 @@
         "name" : "bid",
         "type" : "BlockIdCombo"
       } ],
-      "response" : "bytes"
+      "response" : "GetBlockRes"
     },
-    "putBlock" : {
+    "incBlockReference" : {
       "request" : [ {
         "name" : "bid",
         "type" : "BlockIdCombo"
       }, {
-        "name" : "buf",
-        "type" : "bytes"
+        "name" : "nonce",
+        "type" : "string"
+      }, {
+        "name" : "folder",
+        "type" : "string"
+      }, {
+        "name" : "chargedTo",
+        "type" : "UID"
+      } ],
+      "response" : "null"
+    },
+    "decBlockReference" : {
+      "request" : [ {
+        "name" : "bid",
+        "type" : "BlockIdCombo"
+      }, {
+        "name" : "nonce",
+        "type" : "string"
+      }, {
+        "name" : "folder",
+        "type" : "string"
+      }, {
+        "name" : "chargedTo",
+        "type" : "UID"
       } ],
       "response" : "null"
     }
