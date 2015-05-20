@@ -3,6 +3,7 @@ package libkbfs
 import (
 	"crypto/tls"
 	"crypto/x509"
+	"encoding/hex"
 	"errors"
 	"fmt"
 	"github.com/keybase/client/go/libkb"
@@ -28,22 +29,12 @@ type Connectable struct {
 	connected  bool
 	last_tried time.Time
 	retry_mu   sync.Mutex
-	kbpki      KBPKI
-}
-
-type BlockClt struct {
-	clt keybase1.BlockClient
-	Connectable
-}
-
-type BIndexClt struct {
-	clt keybase1.BIndexClient
-	Connectable
 }
 
 type BlockServerRemote struct {
-	blockly  BlockClt
-	bindexly BIndexClt
+	clt   keybase1.BlockClient
+	kbpki KBPKI
+	Connectable
 }
 
 func TLSConnect(cert_file string, srv_addr string) (conn net.Conn, err error) {
@@ -72,7 +63,49 @@ func (c *Connectable) ConnectOnce() (err error) {
 	return
 }
 
-func (c *BlockClt) ConnectOnce() error {
+func (c *Connectable) WaitForReconnect() error {
+	timeout := time.Now().Add(TIMEOUT)
+
+	c.retry_mu.Lock()
+	defer c.retry_mu.Unlock()
+
+	for !c.connected {
+		c.retry_mu.Unlock()
+		if time.Now().After(timeout) {
+			return ErrBlockConnTimeout
+		}
+		time.Sleep(1 * time.Second)
+		c.retry_mu.Lock()
+	}
+	return nil
+}
+
+func (c *Connectable) Reconnect() {
+	c.retry_mu.Lock()
+	defer c.retry_mu.Unlock()
+
+	for c.ConnectOnce() != nil {
+		c.retry_mu.Unlock()
+		time.Sleep(1 * time.Second)
+		c.retry_mu.Lock()
+	}
+	return
+}
+
+func NewBlockServerRemote(blk_srvaddr string, bind_srvaddr string, kbpki KBPKI) *BlockServerRemote {
+	b := &BlockServerRemote{
+		kbpki: kbpki,
+	}
+	b.srv_addr = blk_srvaddr
+
+	if err := b.ConnectOnce(); err != nil {
+		go b.Reconnect()
+	}
+
+	return b
+}
+
+func (c *BlockServerRemote) ConnectOnce() error {
 	err := c.Connectable.ConnectOnce()
 	if err != nil {
 		return err
@@ -82,7 +115,7 @@ func (c *BlockClt) ConnectOnce() error {
 
 	session, err := c.kbpki.GetSession()
 	if err == nil {
-		err = c.clt.BlockSession(session.GetToken())
+		err = c.clt.EstablishSession(session.GetToken())
 		if err == nil {
 			c.connected = true
 			return nil
@@ -90,130 +123,48 @@ func (c *BlockClt) ConnectOnce() error {
 	}
 	c.conn.Close() //failed to announce session, close the whole thing
 	return err
-}
-
-func (c *BIndexClt) ConnectOnce() error {
-	err := c.Connectable.ConnectOnce()
-	if err != nil {
-		return err
-	}
-	c.clt = keybase1.BIndexClient{rpc2.NewClient(
-		rpc2.NewTransport(c.conn, libkb.NewRpcLogFactory(), libkb.WrapError), libkb.UnwrapError)}
-
-	session, err := c.kbpki.GetSession()
-	if err == nil {
-		err = c.clt.BIndexSession(session.GetToken())
-		if err == nil {
-			c.connected = true
-			return nil
-		}
-	}
-	c.conn.Close() //failed to announce session, close the whole thing
-	return err
-}
-
-func NewBlockServerRemote(blk_srvaddr string, bind_srvaddr string, kbpki KBPKI) *BlockServerRemote {
-	b := &BlockServerRemote{}
-
-	var err error
-	b.blockly.srv_addr = blk_srvaddr
-	b.blockly.kbpki = kbpki
-	if err = b.blockly.ConnectOnce(); err != nil {
-		go b.blockly.Reconnect()
-	}
-
-	b.bindexly.srv_addr = bind_srvaddr
-	b.bindexly.kbpki = kbpki
-	if err = b.bindexly.ConnectOnce(); err != nil {
-		go b.bindexly.Reconnect()
-	}
-
-	return b
-}
-
-func (b *Connectable) WaitForReconnect() error {
-	timeout := time.Now().Add(TIMEOUT)
-
-	b.retry_mu.Lock()
-	defer b.retry_mu.Unlock()
-
-	for !b.connected {
-		b.retry_mu.Unlock()
-		if time.Now().After(timeout) {
-			return ErrBlockConnTimeout
-		}
-		time.Sleep(1 * time.Second)
-		b.retry_mu.Lock()
-	}
-	return nil
-}
-
-func (b *BlockClt) Reconnect() {
-	b.retry_mu.Lock()
-	defer b.retry_mu.Unlock()
-
-	for b.ConnectOnce() != nil {
-		b.retry_mu.Unlock()
-		time.Sleep(1 * time.Second)
-		b.retry_mu.Lock()
-	}
-	return
-}
-
-func (b *BIndexClt) Reconnect() {
-	b.retry_mu.Lock()
-	defer b.retry_mu.Unlock()
-
-	for b.ConnectOnce() != nil {
-		b.retry_mu.Unlock()
-		time.Sleep(1 * time.Second)
-		b.retry_mu.Lock()
-	}
-	return
 }
 
 func (b *BlockServerRemote) Shutdown() {
-	b.blockly.conn.Close()
-	b.bindexly.conn.Close()
+	b.conn.Close()
 }
 
 func (b *BlockServerRemote) Get(id BlockId, context BlockContext) ([]byte, error) {
-	if !b.blockly.connected {
-		if err := b.blockly.WaitForReconnect(); err != nil {
+	if !b.connected {
+		if err := b.WaitForReconnect(); err != nil {
 			return nil, err
 		}
 	}
 	//XXX: if fails due to connection problem, should reconnect
 	bid := keybase1.BlockIdCombo{
-		BlockId: id[:],
-		Size:    0,
+		BlockHash: hex.EncodeToString(id[:]),
+		Size:      0,
 	}
 
-	if buf, err := b.blockly.clt.GetBlock(bid); err != nil {
+	if res, err := b.clt.GetBlock(bid); err != nil {
 		return nil, err
 	} else {
-		return buf, err
+		return res.Buf, err
 	}
 	//XXX: need to fetch the block key
 }
 
 func (b *BlockServerRemote) Put(id BlockId, context BlockContext, buf []byte) error {
-	if !b.blockly.connected {
-		if err := b.blockly.WaitForReconnect(); err != nil {
+	if !b.connected {
+		if err := b.WaitForReconnect(); err != nil {
 			return err
 		}
 	}
-	if !b.bindexly.connected {
-		if err := b.bindexly.WaitForReconnect(); err != nil {
-			return err
-		}
-	}
-
 	arg := keybase1.PutBlockArg{
-		Bid: keybase1.BlockIdCombo{BlockId: id[:], Size: len(buf)},
-		Buf: buf,
+		Bid: keybase1.BlockIdCombo{
+			ChargedTo: keybase1.UID(context.GetWriter()),
+			BlockHash: hex.EncodeToString(id[:]),
+			Size:      len(buf),
+		},
+		Folder: "",
+		Buf:    buf,
 	}
-	if err := b.blockly.clt.PutBlock(arg); err != nil {
+	if err := b.clt.PutBlock(arg); err != nil {
 		fmt.Printf("PUT err is %v\n", err)
 		return err
 	} else {
