@@ -293,6 +293,9 @@
       }, {
         "name" : "force",
         "type" : "boolean"
+      }, {
+        "name" : "promptPosted",
+        "type" : "boolean"
       } ],
       "response" : "null"
     },

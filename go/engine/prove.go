@@ -316,6 +316,12 @@ func (p *Prove) Run(ctx *Context) (err error) {
 	if err = p.instructAction(ctx); err != nil {
 		return
 	}
+
+	if !p.arg.PromptPosted {
+		p.G().Log.Debug("PromptPosted not set, prove run finished")
+		return
+	}
+
 	stage("PromptPostedLoop")
 	if err = p.promptPostedLoop(ctx); err != nil {
 		return

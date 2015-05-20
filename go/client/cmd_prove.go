@@ -49,7 +49,7 @@ func newProveUIProtocol(ui ProveUI) rpc2.Protocol {
 }
 
 // RunClient runs the `keybase prove` subcommand in client/server mode.
-func (p *CmdProve) RunClient() (err error) {
+func (p *CmdProve) RunClient() error {
 	var cli keybase1.ProveClient
 
 	proveUI := ProveUI{parent: G_UI}
@@ -62,12 +62,18 @@ func (p *CmdProve) RunClient() (err error) {
 		NewLogUIProtocol(),
 	}
 
-	if cli, err = GetProveClient(); err != nil {
-	} else if err = RegisterProtocols(protocols); err != nil {
-	} else {
-		err = cli.StartProof(p.arg)
+	cli, err := GetProveClient()
+	if err != nil {
+		return err
 	}
-	return
+	if err = RegisterProtocols(protocols); err != nil {
+		return err
+	}
+
+	// command line interface wants the PromptPosted ui loop
+	p.arg.PromptPosted = true
+
+	return cli.StartProof(p.arg)
 }
 
 func (p *CmdProve) installOutputHook(ui *ProveUI) {
@@ -82,6 +88,9 @@ func (p *CmdProve) installOutputHook(ui *ProveUI) {
 func (p *CmdProve) Run() (err error) {
 	ui := ProveUI{parent: G_UI}
 	p.installOutputHook(&ui)
+
+	// command line interface wants the PromptPosted ui loop
+	p.arg.PromptPosted = true
 
 	eng := engine.NewProve(&p.arg, G)
 	ctx := engine.Context{

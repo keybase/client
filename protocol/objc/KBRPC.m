@@ -733,8 +733,8 @@
 
 @implementation KBRProveRequest
 
-- (void)startProofWithSessionID:(NSInteger)sessionID service:(NSString *)service username:(NSString *)username force:(BOOL)force completion:(void (^)(NSError *error))completion {
-  NSArray *params = @[@{@"sessionID": @(sessionID), @"service": KBRValue(service), @"username": KBRValue(username), @"force": @(force)}];
+- (void)startProofWithSessionID:(NSInteger)sessionID service:(NSString *)service username:(NSString *)username force:(BOOL)force promptPosted:(BOOL)promptPosted completion:(void (^)(NSError *error))completion {
+  NSArray *params = @[@{@"sessionID": @(sessionID), @"service": KBRValue(service), @"username": KBRValue(username), @"force": @(force), @"promptPosted": @(promptPosted)}];
   [self.client sendRequestWithMethod:@"keybase.1.prove.startProof" params:params sessionId:self.sessionId completion:^(NSError *error, id retval) {
     completion(error);
   }];
@@ -1821,6 +1821,7 @@
     self.service = params[0][@"service"];
     self.username = params[0][@"username"];
     self.force = [params[0][@"force"] boolValue];
+    self.promptPosted = [params[0][@"promptPosted"] boolValue];
   }
   return self;
 }

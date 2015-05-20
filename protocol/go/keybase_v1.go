@@ -1808,10 +1808,11 @@ type CheckProofStatus struct {
 }
 
 type StartProofArg struct {
-	SessionID int    `codec:"sessionID" json:"sessionID"`
-	Service   string `codec:"service" json:"service"`
-	Username  string `codec:"username" json:"username"`
-	Force     bool   `codec:"force" json:"force"`
+	SessionID    int    `codec:"sessionID" json:"sessionID"`
+	Service      string `codec:"service" json:"service"`
+	Username     string `codec:"username" json:"username"`
+	Force        bool   `codec:"force" json:"force"`
+	PromptPosted bool   `codec:"promptPosted" json:"promptPosted"`
 }
 
 type CheckProofArg struct {

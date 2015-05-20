@@ -9,6 +9,7 @@ protocol prove {
 		int status;
 	}
 
-	void startProof(int sessionID, string service, string username, boolean force);
+	// set promptPosted to true to enable the okToCheck, displayRecheckWarning ui loop.  false to skip it.
+	void startProof(int sessionID, string service, string username, boolean force, boolean promptPosted);
 	CheckProofStatus checkProof(int sessionID, string sigID);
 }

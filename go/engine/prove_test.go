@@ -2,9 +2,10 @@ package engine
 
 import (
 	"fmt"
+	"testing"
+
 	libkb "github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/protocol/go"
-	"testing"
 )
 
 type ProveUIMock struct {
@@ -56,9 +57,10 @@ func TestProveRooter(t *testing.T) {
 
 	fu := CreateAndSignupFakeUser(tc, "prove")
 	arg := keybase1.StartProofArg{
-		Service:  "rooter",
-		Username: fu.Username,
-		Force:    false,
+		Service:      "rooter",
+		Username:     fu.Username,
+		Force:        false,
+		PromptPosted: true,
 	}
 
 	eng := NewProve(&arg, tc.G)
@@ -92,13 +94,15 @@ func TestProveRooter(t *testing.T) {
 		t.Fatal(err)
 	}
 	if proveUI.overwrite {
-		t.Fatal("unexpected prompt for overwrite in test")
+		t.Error("unexpected prompt for overwrite in test")
 	}
 	if proveUI.warning {
-		t.Fatal("got unexpected warning in test")
+		t.Error("got unexpected warning in test")
 	}
 	if proveUI.recheck {
-		t.Fatal("unexpected recheck")
+		t.Error("unexpected recheck")
 	}
-
+	if !proveUI.checked {
+		t.Error("OkToCheck never called")
+	}
 }
