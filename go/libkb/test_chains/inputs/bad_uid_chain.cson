@@ -1,0 +1,12 @@
+chain :
+  user : "max32"
+  ctime : "now"
+  expire_in : 10000000
+  links : [
+    {
+      type : "eldest"
+      label : "e"
+      key : gen : "eddsa"
+      uid : "deadbeef000000000000000000000000"
+    },
+  ]

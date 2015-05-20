@@ -1,0 +1,18 @@
+chain :
+  user : "max32"
+  ctime : "now"
+  expire_in : 10000000
+  links : [
+    {
+      type : "eldest"
+      label : "e"
+      key : gen : "pgp_ecc"
+    },
+    {
+      ctime : "+100"
+      label : "sib1"
+      type : "sibkey"
+      key : gen : "pgp_ecc"
+      signer : "e"
+    },
+  ]

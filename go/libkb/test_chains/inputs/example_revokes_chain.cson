@@ -1,0 +1,142 @@
+chain :
+  user : "max32"
+  ctime : "now"
+  expire_in : 10000000
+  links : [
+    {
+      type : "eldest"
+      label : "e"
+      key : gen : "eddsa"
+    },
+
+    # Generate 5 sibkeys
+    {
+      ctime : "+100"
+      label : "sib1"
+      type : "sibkey"
+      key : gen : "eddsa"
+      signer : "e"
+    },
+    {
+      ctime : "+100"
+      label : "sib2"
+      type : "sibkey"
+      key : gen : "eddsa"
+      signer : "sib1"
+    },
+    {
+      ctime : "+100"
+      label : "sib3"
+      type : "sibkey"
+      key : gen : "eddsa"
+      signer : "sib2"
+    },
+    {
+      ctime : "+100"
+      label : "sib4"
+      type : "sibkey"
+      key : gen : "eddsa"
+      signer : "sib3"
+    },
+    {
+      ctime : "+100"
+      label : "sib5"
+      type : "sibkey"
+      key : gen : "eddsa"
+      signer : "sib4"
+    },
+
+    # Generate 3 subkeys
+
+    {
+      ctime : "+100"
+      label : "sub1"
+      parent : "sib5"
+      type : "subkey"
+      key : gen : "dh"
+      signer : "e"
+    },
+    {
+      ctime : "+100"
+      label : "sub2"
+      parent : "sib5"
+      type : "subkey"
+      key : gen : "dh"
+      signer : "e"
+    },
+    {
+      ctime : "+100"
+      label : "sub3"
+      parent : "sib5"
+      type : "subkey"
+      key : gen : "dh"
+      signer : "e"
+    },
+
+    # Start testing revokes.
+
+    {
+      label : "revoke1"
+      ctime : "+100"
+      type : "revoke"
+      signer : "sib5"
+      revoke :
+        key : "sib1"
+    },
+    {
+      label : "duplicaterevoke1"
+      ctime : "+100"
+      type : "revoke"
+      signer : "sib5"
+      revoke :
+        key : "sib1"  # Revoking the same key twice should be ok.
+    },
+    {
+      label : "revoke2"
+      ctime : "+100"
+      type : "revoke"
+      signer : "sib5"
+      revoke :
+        keys : ["sib2"]
+    },
+    {
+      label : "revoke3"
+      ctime : "+100"
+      type : "revoke"
+      signer : "sib5"
+      revoke :
+        sig : "sib3"
+    },
+    {
+      label : "duplicaterevoke3"
+      ctime : "+100"
+      type : "revoke"
+      signer : "sib5"
+      revoke :
+        sig : "sib3"  # Revoking the same sig twice is fine too.
+    },
+    {
+      label : "revoke4"
+      ctime : "+100"
+      type : "revoke"
+      signer : "sib5"
+      revoke :
+        sigs : ["sib1", "sib4"]  # Fine, even though sib1's key is already revoked.
+    },
+    {
+      label : "subkeyrevoke1"
+      ctime : "+100"
+      type : "revoke"
+      signer : "e"
+      revoke :
+        key : "sub1"
+    },
+    {
+      label : "subkeyrevoke2"
+      ctime : "+100"
+      type : "revoke"
+      signer : "e"
+      revoke :
+        sig : "sub2"
+    },
+  ]

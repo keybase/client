@@ -1,0 +1,19 @@
+chain :
+  user : "max32"
+  ctime : "now"
+  expire_in : 10000000
+  links : [
+    {
+      type : "eldest"
+      label : "e"
+      key : gen : "eddsa"
+    },
+    {
+      ctime : "+100"
+      label : "sib1"
+      type : "sibkey"
+      key : gen : "eddsa"
+      signer : "e"
+      seqno : 3  # WRONG!!!
+    },
+  ]

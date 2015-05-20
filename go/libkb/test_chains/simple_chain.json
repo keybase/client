@@ -1,0 +1,19 @@
+{
+    "chain": [
+        {
+            "seqno": 1,
+            "prev": null,
+            "sig": "g6Rib2R5hqhkZXRhY2hlZMOpaGFzaF90eXBlCqNrZXnEIwEggg05gbQjjIO9nT6AnnoCfDEbP8W+/Qc9K/tIlLm+hrgKp3BheWxvYWTFASp7ImJvZHkiOnsia2V5Ijp7Imhvc3QiOiJrZXliYXNlLmlvIiwia2lkIjoiMDEyMDgyMGQzOTgxYjQyMzhjODNiZDlkM2U4MDllN2EwMjdjMzExYjNmYzViZWZkMDczZDJiZmI0ODk0YjliZTg2YjgwYSIsInVpZCI6Ijc0YzM4Y2Y3Y2ViOTQ3ZjU2MzIwNDVkOGNhNWQ0ODE5IiwidXNlcm5hbWUiOiJtYXgzMiJ9LCJ0eXBlIjoiZWxkZXN0IiwidmVyc2lvbiI6MX0sImN0aW1lIjoxNDMxOTc5MjE0LCJleHBpcmVfaW4iOjEwMDAwMDAwLCJwcmV2IjpudWxsLCJzZXFfdHlwZSI6MSwic2Vxbm8iOjEsInRhZyI6InNpZ25hdHVyZSJ9o3NpZ8RABjZFgXiUCNQR16g+RRL4xUtp+O2DI72+1gbMwoUJVlMxHGcXItlBFSFjfWGtOxU7//fYS0aVEH02q17IUCOXBqhzaWdfdHlwZSCjdGFnzQICp3ZlcnNpb24B",
+            "payload_hash": "223e25fd456ea18cc39b608bac8b5f35302d240d5f95e6e42e5a85b1136ac5e7",
+            "sig_id": "f0a633afc45db7d611a0e484e2db45800e87033f7c4bc1f62577bc1eba156f060f",
+            "payload_json": "{\"body\":{\"key\":{\"host\":\"keybase.io\",\"kid\":\"0120820d3981b4238c83bd9d3e809e7a027c311b3fc5befd073d2bfb4894b9be86b80a\",\"uid\":\"74c38cf7ceb947f5632045d8ca5d4819\",\"username\":\"max32\"},\"type\":\"eldest\",\"version\":1},\"ctime\":1431979214,\"expire_in\":10000000,\"prev\":null,\"seq_type\":1,\"seqno\":1,\"tag\":\"signature\"}",
+            "kid": "0120820d3981b4238c83bd9d3e809e7a027c311b3fc5befd073d2bfb4894b9be86b80a",
+            "ctime": 1431979214
+        }
+    ],
+    "keys": [
+        "0120820d3981b4238c83bd9d3e809e7a027c311b3fc5befd073d2bfb4894b9be86b80a"
+    ],
+    "uid": "74c38cf7ceb947f5632045d8ca5d4819",
+    "username": "max32"
+}

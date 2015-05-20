@@ -1,0 +1,37 @@
+{
+    "chain": [
+        {
+            "seqno": 1,
+            "prev": null,
+            "sig": "-----BEGIN PGP MESSAGE-----\nVersion: Keybase OpenPGP v2.0.10\nComment: https://keybase.io/crypto\n\nyMD3AnicbVG/SxxBGF01CjmIBI4UtgMhCJsws7O7M7uNiIUQCSGQNCF4zM58ew6e\nu+fu3qmIlWCVJuA/IEKaQIrYpMkPJAkRhSvENNpYaGGjpSBiZlfS5WPgm/e9N+8x\nfD/uDVi1er33aPfB2f7vvt3vPzvWK7U2sYyiVC2hcBnNQtVinTQha2c6KVCIVOzG\nipHYA0yxkswNvJgTRxDsE8kw9SXnhsXIRjNpXr4wNpHI4YlOzcyAhlZm+h/9bEVg\nQmiEAYQUWAQKRIyF9CNg4GHGmOIBMB74Jp3ziDhY+R6JCI+oIlx5rlTmYGHsOpUd\ncyXlMmYSosBlsedTB7ue4lJ4yuUkKIU5ZImYA6OeE4vUQSs2KpbaJYaWAvMJG3Uh\ny3WaoJAYUha6VBOXOiacUmwjWGzrDBq6VODbslE7gy4Kk06rZaMc5hu3pqQCSVrd\nCtE0MbluJqLoZIBWtqfvWPWaNTTYXy7Dqt29/29FWwt9Vu/l2/drf76NfhnfOnm9\n0Qpf1I9XNz+PPR7onY5fjUx+sm4mrw/ere5tXv768PThxZF4NrEz1X84vHO+3fv6\ncf3g+Zu/KrimzA==\n=9oxM\n-----END PGP MESSAGE-----\n",
+            "payload_hash": "a9e948e5353741bd48065c251c7b8224ff52d8de16f4f824b7548e074dd99d67",
+            "sig_id": "3d80007ad5e64c9367fe566b03c1918bff04d522537787d7385fdc4bed274a740f",
+            "payload_json": "{\"body\":{\"key\":{\"fingerprint\":\"df4fd71f5e030dc7495f812a1061c7036c881f50\",\"host\":\"keybase.io\",\"key_id\":\"1061c7036c881f50\",\"kid\":\"0113b0eeaca0a9deaf0ac6be7e50777d89e789603088b120d651b18b3d18d54cd4cd0a\",\"uid\":\"74c38cf7ceb947f5632045d8ca5d4819\",\"username\":\"max32\"},\"type\":\"eldest\",\"version\":1},\"ctime\":1432651330,\"expire_in\":10000000,\"prev\":null,\"seq_type\":1,\"seqno\":1,\"tag\":\"signature\"}",
+            "kid": "0113b0eeaca0a9deaf0ac6be7e50777d89e789603088b120d651b18b3d18d54cd4cd0a",
+            "ctime": 1432651330
+        },
+        {
+            "seqno": 2,
+            "prev": "a9e948e5353741bd48065c251c7b8224ff52d8de16f4f824b7548e074dd99d67",
+            "sig": "-----BEGIN PGP MESSAGE-----\nVersion: Keybase OpenPGP v2.0.10\nComment: https://keybase.io/crypto\n\nyMQmAnicrVXPq+NEHH+76oIrorAsiAd5xIOHPreZ/JxURZo27Ut/JOmP9LUl7CPJ\nzLRpm0mapH3teyze9iYK6lFBlD0J4tWjrigsugcP3vwDPHjXBTHtW9nLHh1Cwsx8\nvp/55Aufz9x/8ZmD6zduPHzjwc0/fv3pyoMfiqsDG92tXDBehLZM6YKZ4/0HLxBO\ns9N5gJgSwwLAeyzGru+yroKwS1jXlzwsY5GVZRlBBctQkViehdADHIskEXgAejwC\nEImCj/KHdZkjhgR0gpM4CWiW0yIiECQDIuK8EvmyoIgEAs4FrAR8meUlH8J8l80L\np1G6q8jFeW6KbwVRvpZPTvfynoL/n3Wv9nSy4PPQJ7KPPUWQiSjxHCuICPquiAQI\nlB0wxQl1Q5yjQ3fDc8ydIyYNvMdNfaKKk0SMZdHDPIKQ5xUZChwBvIgwkmRPFjgB\nQUJ4EctE4DzPZbEn5ScCUYKeh1x3ryrBa5yk+DQNJjntm7uhanXdOLTq1mFb6/XK\ndW2/6tBBDgwiWjpsXnbw0Iwx3cHW3C32FmAdWonCENOsdDjNsjgtFYtPel30k22c\nRQ516LZdOynTwE/GDcPddDb1NqJgMEa23gmkqs2PvJrY58aqRSZqECXDFl2I7YmM\n6ADQ8TxrOVRC9tquHWvetozVUSEYTOsw6BFVXwWxvpiBQQa3rBANZ4LbmZv9omUp\nZB6Sc65dn5s8mTv0DLPxat3nfJMshALpi81l0R9qBufVSJewICv3M1VrW4M+GG1n\n/FJnz/R0MyubumFIqaY51Gts2UhTJ/G4P2z2AtRLt2cgHnfkpj1ZhLOWZdSwb6LZ\n5swDdjtoVdtxI+wi0DfTahVIXYfqFbWOl0hoRnoI1HIaDMxRz0XAatsbaCwFN9AD\nWrUHtM0f+z24UgMeW8V+MRyu3Xhh+Q5tY67ih2o/iZqdWV1frY/HddwUG9xkkjTL\n6flkOcFhd1Bnh5E18CgiSq84qHWa5YqdtpsQOHQk0R4te5Vp2V8vBie+v1Sqo3LD\nFoyuO4HHTUkLNGCMpRFYLrXYnSZ1tSN26bKmWNN2Ixk4dCladWIUzqebuGYFYofC\nbnVQ8I36qm6QzWZTzVkaFWU6r/rNtYEkV9XPN9tOOB13E007O3PoZhQaCHZ7ZiUJ\nRiAzmh1FtZtQ0dR50V4Yq8Vouk1aM97tJmsNs8mqKo8621YWTYOZFXG2QxthOk1h\ny2Y3rU4htmoduPANMUQmUu2Roit41bBmvtiex1DY9mRiFq1I0SSl0IgLRUue5hrG\nWOZdrm8WfHlYgGuvJom+tOyThqz4J+uthIayIaf8mmOVoneiwH5ZNs6VIrG6qxEh\nFYcqq+35DBVWyGSrDn3HjwLRoXvnaEb1KW7auTrbxjuXPzb3EbO+dBhTAvmmnwW7\nDADCzuj5mz1i8CYOEnwa7BDs5Thi4tzCOYmrYEWAWORFXhaAl4cJm/8CJ+ap5kGO\nEwgROQQRBlKemJATPFnM4awsIKQoeWDkx6d4eXopCewnNGJKXK7SnexFTqibrRLM\n3Pnu9rMHN64fXHvu6i72D64///J/l8E988rBn5//mIHvP7390kc3H/7y4Tfv/nzR\ne+WD1y/mtX/+voY+1l+7cvD+l5y5uKff/eToEf7ts6+4L+4/0vDbb7337QtXfz/6\n6+tX/wU94wjD\n=mdjZ\n-----END PGP MESSAGE-----\n",
+            "payload_hash": "a6eb21956740c5d06a82248710b0243ed7f4a9d83a0ab0ad345971cb0532d3f6",
+            "sig_id": "03a631ece380553b7a422c0d53ff9492a0a036594580304fbbea14af928761c10f",
+            "payload_json": "{\"body\":{\"key\":{\"eldest_kid\":\"0113b0eeaca0a9deaf0ac6be7e50777d89e789603088b120d651b18b3d18d54cd4cd0a\",\"fingerprint\":\"df4fd71f5e030dc7495f812a1061c7036c881f50\",\"host\":\"keybase.io\",\"key_id\":\"1061c7036c881f50\",\"kid\":\"0113b0eeaca0a9deaf0ac6be7e50777d89e789603088b120d651b18b3d18d54cd4cd0a\",\"uid\":\"74c38cf7ceb947f5632045d8ca5d4819\",\"username\":\"max32\"},\"sibkey\":{\"kid\":\"0113265ee75be3d883397842f135ded67b7424d8ff35e7f42bba0eb67f51568bbdaa0a\",\"reverse_sig\":\"-----BEGIN PGP MESSAGE-----\\nVersion: Keybase OpenPGP v2.0.10\\nComment: https://keybase.io/crypto\\n\\nyMFWAnicrZJNaxQxGMdn1VZdUIQi6DU3YbF5T2ZBPfgBiorXLnl5Mg7dnV1nZktL\\n6dUvUFHEbyAeBY+iVhG8iSfBIuipIlj1Vt8y04oXj4aQkOT/PP9fkmfz2MGkO3fk\\nwe0puvT2cOfl4+fT5Kq/cXEN2bFfRf01tATtBEMPVT1Yyj3qI0wIsxjAOINN6sEE\\nbJy0oEBgpZTXKSidSsyw1pZQ7KUglmjLPNFecOdjxwb1UMiLDMpJmRd1TOsDD16R\\nICBGeqd4KoIm1BAsiVOYSad1PMUx8Nq4aiIinDUVnM3HcS8uBi3eP/T/mXvaplPc\\nMe2CcmBTroKQjGIuvHZGeK5J2ggrKAszgqgemRVG0XoPVbndf9S/VFQKACUsMK81\\nY6nSnAbChAcvlVWccq9DYAJU4NRag8HK6EiE1NZ6Y1qqEpahrGBQ5RnqF9PhMJrV\\nq5PGfN+zhxpFPi5Qn8RDV+cNGuGNfxxxD8HKJC9hkDcKvNd6aBIzxyQmhZRrEEww\\nxYmNd8RSOCriY1tNKQ9BUK89EBk/UlNulYhyrLj3aRrvEe0ruD7YQyLtohijPo2U\\nJmshs8LU0xLQ+pPFQ8lcN5mdOdBUY9I9euJPjc5Mkp84yS7fO/Po9E69+Jp+/P7h\\nxZe73a2TO+c7X+8vbF65c6qTfJ79cWvy6dX7N7s3v209/bW98TA7Nz9/fPRuYffC\\n9uyzjd+udO0D\\n=coi5\\n-----END PGP MESSAGE-----\\n\"},\"type\":\"sibkey\",\"version\":1},\"ctime\":1432651430,\"expire_in\":10000000,\"prev\":\"a9e948e5353741bd48065c251c7b8224ff52d8de16f4f824b7548e074dd99d67\",\"seq_type\":1,\"seqno\":2,\"tag\":\"signature\"}",
+            "kid": "0113b0eeaca0a9deaf0ac6be7e50777d89e789603088b120d651b18b3d18d54cd4cd0a",
+            "ctime": 1432651430
+        }
+    ],
+    "keys": [
+        "-----BEGIN PGP PUBLIC KEY BLOCK-----\nVersion: Keybase OpenPGP v2.0.10\nComment: https://keybase.io/crypto\n\nxm8EVWSGQxMFK4EEACIDAwTUgD4K0SSmhOHwgdWN2M8LT0NVQWSwgIYd0jeH1fM5\nJsE/Dsuem9GQwHLGwUILIINMzOPHbPscjOC7Rf3+8uAHiTDj00ejRgDoJpCKIXjH\nEM9MMxofqG0eDvEldTWKZibNBW1heDMywpIEExMKABoFAlVkhkMCGwEDCwkHAxUK\nCAIeAQIXgAIZAQAKCRB0waG+wsm+NVgWAYC5Q86W0VFs6IGqOgD2HIBAhShCo0Bp\nOivlkcK4iO7xFfYfbXusj74byp13ct8Qzk8Bf2VY8vJF6eha8dfcngiCZsEOAGVE\n3abIgE/YOERD/xm1sfzYs50QHNSj+LBU7pBqLs5WBFVkhkMSCCqGSM49AwEHAgME\naomMzHfI91CQZmMq3mYYh1szK9lBxoK8jYMHa0iVxCKd3mcTtvRxMBEak6XSo2U2\ni8i6iv25vyTO1yfJPcmBOwMBCgnChwQYEwoADwUCVWSGQwUJDwmcAAIbDAAKCRB0\nwaG+wsm+NXxRAYDlZo+z7gpcXFyILtxBbhBKz0qqueRVBfkCP8y4ANJJSjH6MnC2\nEcLwj6BNX8yq3TEBewf4GinIZHMXWj8hOH8KKtyidPLhR5WPCgPe3SYP0lZzFYgO\nb1YYrIVicghxSB6UTM5SBFVkhkMTCCqGSM49AwEHAgMEZ5qBf/Nw3XSK0OSz23Kz\nslf6ixA7xs+TNE72MwuzoVDGypTHTF5tz9Oz1/oDH8eCzZHLDHtF3gtgyyTv+864\nvMLAJwQYEwoADwUCVWSGQwUJDwmcAAIbIgBqCRB0waG+wsm+NV8gBBkTCgAGBQJV\nZIZDAAoJEAi0l3UiUd0H8R4BALO/bP6Ir0dBdzHMjsRitZ5cf1gNlTOsALhfTaRm\nCigeAQD2/vmEl6C7TA1hlSuvGgp7Z7UPgUgJizoYJGu2NpAwgqEQAYCtFBHE8FmQ\nKpbovcWv783nqAiwsVRQPgefcE7tZsneUgBa5pT3tFmsPBH0229y8IoBgPcPRToY\nLELCkzhNSfsxY6UI7Qlp57lFIjnxrDIrz5kYrVRmNeLIrbZK+56xv6x3rQ==\n=vv7t\n-----END PGP PUBLIC KEY BLOCK-----\n"
+    ],
+    "uid": "74c38cf7ceb947f5632045d8ca5d4819",
+    "username": "max32",
+    "label_kids": {
+        "e": "0113b0eeaca0a9deaf0ac6be7e50777d89e789603088b120d651b18b3d18d54cd4cd0a",
+        "sib1": "0113265ee75be3d883397842f135ded67b7424d8ff35e7f42bba0eb67f51568bbdaa0a"
+    },
+    "label_sigs": {
+        "e": "3d80007ad5e64c9367fe566b03c1918bff04d522537787d7385fdc4bed274a740f",
+        "sib1": "03a631ece380553b7a422c0d53ff9492a0a036594580304fbbea14af928761c10f"
+    }
+}
