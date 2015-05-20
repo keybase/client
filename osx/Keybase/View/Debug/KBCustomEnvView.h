@@ -13,12 +13,9 @@
 
 @interface KBCustomEnvView : YOView
 
-@property KBTextField *homeDirField;
-@property KBTextField *socketFileField;
-@property KBTextField *mountDirField;
-
 @property (nonatomic) KBEnvironment *environment;
 
-- (void)save;
+- (void)saveToDefaults;
+- (KBEnvironment *)loadFromDefaults;
 
 @end

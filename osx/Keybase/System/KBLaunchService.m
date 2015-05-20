@@ -53,7 +53,7 @@
     info[@"Runtime Status"] = NSStringFromKBRuntimeStatus(self.componentStatus.runtimeStatus);
   } else {
     info[@"Install Status"] = @"Install Disabled";
-    info[@"Runtime Status"] = @"N/A";
+    info[@"Runtime Status"] = @"-";
   }
 
   if (!_lastExitStatus) {
@@ -77,7 +77,10 @@
   GHODictionary *info = [GHODictionary dictionary];
   [KBLaunchCtl status:_label completion:^(KBServiceStatus *serviceStatus) {
     if (!serviceStatus) {
-      self.componentStatus = [KBComponentStatus componentStatusWithInstallStatus:KBInstallStatusNotInstalled runtimeStatus:KBRuntimeStatusNotRunning info:info];
+      NSString *plistDest = [self plistDestination];
+      KBInstallStatus installStatus = runningVersion && [NSFileManager.defaultManager fileExistsAtPath:plistDest] ? KBInstallStatusInstalled : KBInstallStatusNotInstalled;
+
+      self.componentStatus = [KBComponentStatus componentStatusWithInstallStatus:installStatus runtimeStatus:KBRuntimeStatusNotRunning info:info];
       completion(nil);
       return;
     }
@@ -161,8 +164,8 @@
   // We installed the launch agent plist
   DDLogDebug(@"Installed launch agent plist");
 
-  [KBLaunchCtl load:plistDest label:_label force:YES completion:^(NSError *error, NSString *output) {
-    completion(error);
+  [KBLaunchCtl reload:plistDest label:_label completion:^(KBServiceStatus *serviceStatus) {
+    completion(serviceStatus.error);
   }];
 }
 
@@ -179,6 +182,20 @@
       return;
     }
     [NSFileManager.defaultManager removeItemAtPath:plistDest error:&error];
+    completion(error);
+  }];
+}
+
+- (void)start:(KBCompletion)completion {
+  NSString *plistDest = [self plistDestination];
+  [KBLaunchCtl load:plistDest label:_label force:YES completion:^(NSError *error, NSString *output) {
+    completion(error);
+  }];
+}
+
+- (void)stop:(KBCompletion)completion {
+  NSString *plistDest = [self plistDestination];
+  [KBLaunchCtl unload:plistDest label:_label disable:NO completion:^(NSError *error, NSString *output) {
     completion(error);
   }];
 }

@@ -19,7 +19,7 @@ typedef NS_ENUM (NSInteger, KBEnv) {
 @property (readonly) NSString *host;
 @property (readonly, getter=isDebugEnabled) BOOL debugEnabled;
 @property (readonly) NSString *mountDir;
-@property (readonly) NSString *sockFile;
+@property (nonatomic, readonly) NSString *sockFile;
 @property (readonly) NSString *identifier;
 @property (readonly, getter=isLaunchdEnabled) BOOL launchdEnabled;
 @property (readonly) NSString *launchdLabelService;
@@ -35,21 +35,22 @@ typedef NS_ENUM (NSInteger, KBEnv) {
 
 + (instancetype)env:(KBEnv)env;
 
-+ (NSString *)defaultSockFileForHomeDir:(NSString *)homeDir;
-
 - (NSDictionary *)launchdPlistDictionaryForService;
 - (NSDictionary *)launchdPlistDictionaryForKBFS;
 
-- (NSArray *)programArgumentsForService:(BOOL)useBundle tilde:(BOOL)tilde;
-- (NSArray *)programArgumentsForKBFS:(BOOL)useBundle tilde:(BOOL)tilde;
+- (NSArray *)programArgumentsForService:(BOOL)useBundle escape:(BOOL)escape tilde:(BOOL)tilde;
+- (NSArray *)programArgumentsForKBFS:(BOOL)useBundle escape:(BOOL)escape tilde:(BOOL)tilde;
 
-- (NSString *)commandLineForService:(BOOL)useBundle tilde:(BOOL)tilde;
-- (NSString *)commandLineForKBFS:(BOOL)useBundle tilde:(BOOL)tilde;
+- (NSString *)commandLineForService:(BOOL)useBundle escape:(BOOL)escape tilde:(BOOL)tilde;
+- (NSString *)commandLineForKBFS:(BOOL)useBundle escape:(BOOL)escape tilde:(BOOL)tilde;
 
 - (NSString *)cachePath:(NSString *)filename;
 
 - (NSBundle *)bundle;
 
-- (BOOL)check:(NSError **)error;
+- (NSString *)sockFile:(BOOL)useDefault;
+- (NSString *)configFile:(BOOL)useDefault;
+
+- (BOOL)validate:(NSError **)error;
 
 @end

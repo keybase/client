@@ -17,11 +17,11 @@
 	<key>CFBundlePackageType</key>
 	<string>APPL</string>
 	<key>CFBundleShortVersionString</key>
-	<string>0.1.26</string>
+	<string>0.1.29</string>
 	<key>CFBundleSignature</key>
 	<string>????</string>
 	<key>CFBundleVersion</key>
-	<string>0.1.26</string>
+	<string>0.1.29</string>
 	<key>KBFSVersion</key>
 	<string>0.1.1</string>
 	<key>KBFuseVersion</key>
@@ -29,7 +29,7 @@
 	<key>KBHelperVersion</key>
 	<string>1.0.9</string>
 	<key>KBServiceVersion</key>
-	<string>0.1.26</string>
+	<string>0.1.29</string>
 	<key>LSApplicationCategoryType</key>
 	<string>public.app-category.utilities</string>
 	<key>LSMinimumSystemVersion</key>

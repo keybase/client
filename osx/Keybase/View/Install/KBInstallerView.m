@@ -34,7 +34,7 @@
   [contentView addSubview:header];
 
   KBLabel *infoLabel = [[KBLabel alloc] init];
-  [infoLabel setText:@"We need to install or update some components." style:KBTextStyleDefault alignment:NSCenterTextAlignment lineBreakMode:NSLineBreakByWordWrapping];
+  [infoLabel setText:@"We need to install, update or start some components." style:KBTextStyleDefault alignment:NSCenterTextAlignment lineBreakMode:NSLineBreakByWordWrapping];
   [contentView addSubview:infoLabel];
 
   _installStatusView = [YOVBox box:@{@"spacing": @(10), @"insets": @"10,0,10,0"}];

@@ -90,7 +90,7 @@ NSString *NSStringFromKBInstallStatus(KBInstallStatus status) {
 
 NSString *NSStringFromKBRuntimeStatus(KBRuntimeStatus status) {
   switch (status) {
-    case KBRuntimeStatusNone: return @"N/A";
+    case KBRuntimeStatusNone: return @"-";
     case KBRuntimeStatusNotRunning: return @"Not Running";
     case KBRuntimeStatusRunning: return @"Running";
   }

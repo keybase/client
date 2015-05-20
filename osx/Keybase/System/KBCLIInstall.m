@@ -89,4 +89,12 @@
   completion(error);
 }
 
+- (void)start:(KBCompletion)completion {
+  completion(KBMakeError(-1, @"Unsupported"));
+}
+
+- (void)stop:(KBCompletion)completion {
+  completion(KBMakeError(-1, @"Unsupported"));
+}
+
 @end

@@ -31,7 +31,7 @@
 - (void)componentDidUpdate {
   GHODictionary *info = [GHODictionary dictionary];
 
-  info[@"Launchd"] = self.label ? self.label : @"N/A";
+  info[@"Launchd"] = self.label ? self.label : @"-";
   info[@"Version"] = GHOrNull([self version]);
   info[@"Bundle Version"] = self.bundleVersion;
   GHODictionary *statusInfo = [self componentStatusInfo];
@@ -39,7 +39,7 @@
 
   if (self.environment.installEnabled) {
     info[@"Launchd Plist"] = KBPath([self plistDestination], YES);
-    info[@"Program"] = [self.environment commandLineForKBFS:NO tilde:YES];
+    info[@"Program"] = [self.environment commandLineForKBFS:NO escape:YES tilde:YES];
   }
 
   if (!_infoView) _infoView = [[KBInfoView alloc] init];

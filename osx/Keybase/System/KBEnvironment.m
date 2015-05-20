@@ -39,7 +39,7 @@
         self.host = @"https://api.keybase.io:443";
         self.mountDir = KBPath(@"~/Keybase", NO);
         self.debugEnabled = YES;
-        self.info = @"This uses api.keybase.io.";
+        self.info = @"Uses api.keybase.io.";
         self.image = [NSImage imageNamed:NSImageNameNetwork];
         self.launchdEnabled = YES;
         self.installEnabled = YES;
@@ -52,7 +52,7 @@
         self.host = @"http://localhost:3000";
         self.mountDir = KBPath(@"~/Keybase.localhost", NO);
         self.debugEnabled = YES;
-        self.info = @"This uses the localhost web server.";
+        self.info = @"Uses the localhost web server";
         self.image = [NSImage imageNamed:NSImageNameComputer];
         self.launchdEnabled = YES;
         self.installEnabled = YES;
@@ -64,24 +64,25 @@
       self.launchdLabelService = NSStringWithFormat(@"keybase.Service.%@", self.identifier);
       self.launchdLabelKBFS = NSStringWithFormat(@"keybase.KBFS.%@", self.identifier);
     }
-
-    // This is because there is a hard limit of 104 characters for the unix socket file length and if
-    // we use the default there is a chance it will be too long (if username is long).
-    if (!self.sockFile) {
-      self.sockFile = [KBEnvironment defaultSockFileForHomeDir:self.homeDir];
-      if ([self.sockFile length] > 103) {
-        [NSException raise:NSInvalidArgumentException format:@"Sock path too long. It should be < 104 characters."];
-      }
-    }
-
-    // TODO Deprecated, will remove soon when KBFS doesn't need it set manually
-    self.configFile = NSStringWithFormat(@"%@/.config/keybase/config.json", self.homeDir);
   }
   return self;
 }
 
-+ (NSString *)defaultSockFileForHomeDir:(NSString *)homeDir {
-  return KBPath(NSStringWithFormat(@"%@/.config/keybase/keybased.sock", homeDir), NO);
+- (NSString *)sockFile:(BOOL)useDefault {
+  NSString *sockFile;
+  if (_sockFile) sockFile = _sockFile;
+  else sockFile = KBPath(NSStringWithFormat(@"%@/.config/keybase/keybased.sock", _homeDir), NO);
+  if ([sockFile length] > 103) {
+    [NSException raise:NSInvalidArgumentException format:@"Sock path too long. It should be < 104 characters."];
+  }
+  return sockFile;
+}
+
+- (NSString *)configFile:(BOOL)useDefault {
+  NSString *configFile;
+  if (_configFile) configFile = _configFile;
+  else configFile = KBPath(NSStringWithFormat(@"%@/.config/keybase/config.json", _homeDir), NO);
+  return configFile;
 }
 
 + (instancetype)env:(KBEnv)env {
@@ -94,22 +95,21 @@
     self.title = @"Custom";
     self.homeDir = KBPath(homeDir, NO);
     self.sockFile = KBPath(sockFile, NO);
-    self.configFile = NSStringWithFormat(@"%@/.config/keybase/config.json", self.homeDir);
     self.mountDir = mountDir;
     self.info = @"For development";
     self.image = [NSImage imageNamed:NSImageNameAdvanced];
     self.launchdEnabled = NO;
     self.installEnabled = NO;
+    self.debugEnabled = YES;
   }
   return self;
 }
 
 - (NSString *)cachePath:(NSString *)filename {
-  NSString *path = NSStringWithFormat(@"%@/.cache/keybase/%@", self.homeDir, filename);
-  return path;
+  return NSStringWithFormat(@"%@/.cache/keybase/%@", self.homeDir, filename);
 }
 
-- (NSArray *)programArgumentsForService:(BOOL)useBundle tilde:(BOOL)tilde {
+- (NSArray *)programArgumentsForService:(BOOL)useBundle escape:(BOOL)escape tilde:(BOOL)tilde {
   NSMutableArray *args = [NSMutableArray array];
   if (useBundle) {
     [args addObject:NSStringWithFormat(@"%@/bin/keybase", self.bundle.sharedSupportPath)];
@@ -126,12 +126,15 @@
     [args addObject:@"-d"];
   }
 
-  // This is because there is a hard limit of 104 characters for the unix socket file length and if
-  // we the default there is a chance it will be too long (if username is long).
-  [args addObject:NSStringWithFormat(@"--socket-file=%@", KBPath(_sockFile, tilde))];
+  if (_sockFile) {
+    [args addObject:NSStringWithFormat(@"--socket-file=%@", KBPath(_sockFile, tilde))];
+  }
 
   // Run service (this should be the last arg)
   [args addObject:@"service"];
+
+  if (escape) return [args map:^(NSString *arg) { return [arg stringByReplacingOccurrencesOfString:@" " withString:@"\\ "];  }];
+  else return args;
 
   return args;
 }
@@ -139,7 +142,7 @@
 - (NSDictionary *)launchdPlistDictionaryForService {
   if (!self.launchdLabelService) return nil;
 
-  NSArray *args = [self programArgumentsForService:YES tilde:NO];
+  NSArray *args = [self programArgumentsForService:YES escape:NO tilde:NO];
 
   // Logging
   NSString *logDir = KBPath(@"~/Library/Logs/Keybase", NO);
@@ -163,32 +166,37 @@
 #endif
 }
 
-- (NSArray *)programArgumentsForKBFS:(BOOL)useBundle tilde:(BOOL)tilde {
+- (NSArray *)programArgumentsForKBFS:(BOOL)useBundle escape:(BOOL)escape tilde:(BOOL)tilde {
   NSMutableArray *args = [NSMutableArray array];
-  NSString *kbfsCmd = NSStringWithFormat(@"%@/bin/kbfsfuse", self.bundle.sharedSupportPath);
-  [args addObject:kbfsCmd];
+
+  if (useBundle) {
+    [args addObject:NSStringWithFormat(@"%@/bin/kbfsfuse", self.bundle.sharedSupportPath)];
+  } else {
+    [args addObject:@"./kbfsfuse"];
+  }
 
   [args addObject:@"-client"];
   [args addObject:KBPath(self.mountDir, tilde)];
 
-  return args;
+  if (escape) return [args map:^(NSString *arg) { return [arg stringByReplacingOccurrencesOfString:@" " withString:@"\\ "];  }];
+  else return args;
 }
 
-- (NSString *)commandLineForService:(BOOL)useBundle tilde:(BOOL)tilde {
-  return [[self programArgumentsForService:useBundle tilde:tilde] join:@" "];
+- (NSString *)commandLineForService:(BOOL)useBundle escape:(BOOL)escape tilde:(BOOL)tilde {
+  return [[self programArgumentsForService:useBundle escape:escape tilde:tilde] join:@" "];
 }
 
 - (NSDictionary *)envsForKBS:(BOOL)tilde {
   NSMutableDictionary *envs = [NSMutableDictionary dictionary];
-  envs[@"KEYBASE_SOCKET_FILE"] = KBPath(self.sockFile, tilde);
-  envs[@"KEYBASE_CONFIG_FILE"] = KBPath(self.configFile, tilde);
+  envs[@"KEYBASE_SOCKET_FILE"] = KBPath([self sockFile:YES], tilde);
+  envs[@"KEYBASE_CONFIG_FILE"] = KBPath([self configFile:YES], tilde);
   return envs;
 }
 
 - (NSDictionary *)launchdPlistDictionaryForKBFS {
   if (!self.launchdLabelKBFS) return nil;
 
-  NSArray *args = [self programArgumentsForKBFS:YES tilde:NO];
+  NSArray *args = [self programArgumentsForKBFS:YES escape:NO tilde:NO];
   NSDictionary *envs = [self envsForKBS:NO];
 
   // Logging
@@ -206,18 +214,18 @@
            };
 }
 
-- (NSString *)commandLineForKBFS:(BOOL)useBundle tilde:(BOOL)tilde {
+- (NSString *)commandLineForKBFS:(BOOL)useBundle escape:(BOOL)escape tilde:(BOOL)tilde {
   NSString *envs = [[[self envsForKBS:tilde] map:^(id key, id value) { return NSStringWithFormat(@"%@=%@", key, value); }] join:@" "];
-  NSString *args = [[self programArgumentsForKBFS:useBundle tilde:tilde] join:@" "];
+  NSString *args = [[self programArgumentsForKBFS:useBundle escape:escape tilde:tilde] join:@" "];
   return NSStringWithFormat(@"%@ %@", envs, args);
 }
 
-- (BOOL)check:(NSError **)error {
+- (BOOL)validate:(NSError **)error {
   if (![NSFileManager.defaultManager fileExistsAtPath:KBPath(_homeDir, NO) isDirectory:nil]) {
     if (error) *error = KBMakeError(-1, @"%@ doesn't exist", _homeDir);
     return NO;
   }
-  if (![NSFileManager.defaultManager fileExistsAtPath:KBPath(_sockFile, NO) isDirectory:nil]) {
+  if (_sockFile && ![NSFileManager.defaultManager fileExistsAtPath:KBPath(_sockFile, NO) isDirectory:nil]) {
     if (error) *error = KBMakeError(-1, @"%@ doesn't exist", _sockFile);
     return NO;
   }

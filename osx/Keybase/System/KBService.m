@@ -43,7 +43,7 @@
   info[@"Home"] = KBPath(self.environment.homeDir, YES);
   info[@"Socket"] = KBPath(self.environment.sockFile, YES);
 
-  info[@"Launchd"] = self.label ? self.label : @"N/A";
+  info[@"Launchd"] = self.label ? self.label : @"-";
   info[@"Version"] = GHOrNull([self version]);
   info[@"Bundle Version"] = self.bundleVersion;
   GHODictionary *statusInfo = [self componentStatusInfo];
@@ -60,7 +60,7 @@
 
   if (self.environment.installEnabled) {
     info[@"Launchd Plist"] = KBPath([self plistDestination], YES);
-    info[@"Program"] = [self.environment commandLineForService:NO tilde:YES];
+    info[@"Program"] = [self.environment commandLineForService:NO escape:NO tilde:YES];
   }
 
   if (!_infoView) _infoView = [[KBInfoView alloc] init];

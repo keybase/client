@@ -54,11 +54,10 @@
   nextButton.targetBlock = ^{
     KBEnvironment *env = listView.selectedObject;
     if ([env.identifier isEqualToString:@"custom"]) {
-
       KBEnvironment *environment = [gself.customView environment];
-      [gself.customView save];
+      [gself.customView saveToDefaults];
       NSError *error = nil;
-      if (![environment check:&error]) {
+      if (![environment validate:&error]) {
         [KBActivity setError:error sender:self];
         return;
       }
@@ -71,18 +70,10 @@
 
   self.viewLayout = [YOBorderLayout layoutWithCenter:_splitView top:@[header] bottom:@[buttons] insets:UIEdgeInsetsMake(20, 40, 20, 40) spacing:20];
 
-  NSString *homeDir = [NSUserDefaults.standardUserDefaults stringForKey:@"HomeDir"];
-  if (!homeDir) homeDir = KBPath(@"~/Projects/Keybase", NO);
+  _customView = [[KBCustomEnvView alloc] init];
+  KBEnvironment *customEnvironment = [_customView loadFromDefaults];
 
-  NSString *sockFile = [NSUserDefaults.standardUserDefaults stringForKey:@"SockFile"];
-  if (!sockFile) sockFile = KBPath([KBEnvironment defaultSockFileForHomeDir:homeDir], NO);
-
-  NSString *mountDir = [NSUserDefaults.standardUserDefaults stringForKey:@"MountDir"];
-  if (!mountDir) mountDir = KBPath(@"~/Keybase.dev", NO);
-
-  KBEnvironment *custom = [[KBEnvironment alloc] initWithHomeDir:homeDir sockFile:sockFile mountDir:mountDir];
-
-  [listView setObjects:@[[KBEnvironment env:KBEnvKeybaseIO], [KBEnvironment env:KBEnvLocalhost], custom] animated:NO];
+  [listView setObjects:@[[KBEnvironment env:KBEnvKeybaseIO], [KBEnvironment env:KBEnvLocalhost], customEnvironment] animated:NO];
   [listView setSelectedRow:2];
 }
 
@@ -90,15 +81,11 @@
   [_splitView setRightView:[self viewForEnvironment:environment]];
 }
 
-- (NSView *)customView:(KBEnvironment *)environment {
-  _customView = [[KBCustomEnvView alloc] init];
-  [_customView setEnvironment:environment];
-  return _customView;
-}
-
 - (NSView *)viewForEnvironment:(KBEnvironment *)environment {
-  _customView = nil;
-  if ([environment.identifier isEqual:@"custom"]) return [self customView:environment];
+  if ([environment.identifier isEqual:@"custom"]) {
+    [_customView setEnvironment:environment];
+    return _customView;
+  }
 
   YOVBox *view = [YOVBox box:@{@"spacing": @(10), @"insets": @"10,0,10,0"}];
 

@@ -63,10 +63,12 @@
       completion(error);
     } else {
       NSString *runningVersion = KBIfNull(versions[@"fuseRunningVersion"], nil);
+      NSString *installedVersion = KBIfNull(versions[@"fuseInstalledVersion"], nil);
       self.version = runningVersion;
       if (runningVersion) info[@"Version"] = runningVersion;
       if (!runningVersion) {
-        self.componentStatus = [KBComponentStatus componentStatusWithInstallStatus:KBInstallStatusNotInstalled runtimeStatus:KBRuntimeStatusNotRunning info:nil];
+        KBInstallStatus installStatus = installedVersion ? KBInstallStatusInstalled : KBInstallStatusNotInstalled;
+        self.componentStatus = [KBComponentStatus componentStatusWithInstallStatus:installStatus runtimeStatus:KBRuntimeStatusNotRunning info:nil];
         completion(nil);
       } else if ([runningVersion isEqualTo:bundleVersion]) {
         self.componentStatus = [KBComponentStatus componentStatusWithInstallStatus:KBInstallStatusInstalled runtimeStatus:KBRuntimeStatusRunning info:info];
@@ -90,6 +92,20 @@
 - (void)uninstall:(KBCompletion)completion {
   MPXPCClient *helper = [[MPXPCClient alloc] initWithServiceName:@"keybase.Helper" privileged:YES];
   [helper sendRequest:@"kbfs_uninstall" params:nil completion:^(NSError *error, id value) {
+    completion(error);
+  }];
+}
+
+- (void)start:(KBCompletion)completion {
+  MPXPCClient *helper = [[MPXPCClient alloc] initWithServiceName:@"keybase.Helper" privileged:YES];
+  [helper sendRequest:@"kbfs_load" params:nil completion:^(NSError *error, id value) {
+    completion(error);
+  }];
+}
+
+- (void)stop:(KBCompletion)completion {
+  MPXPCClient *helper = [[MPXPCClient alloc] initWithServiceName:@"keybase.Helper" privileged:YES];
+  [helper sendRequest:@"kbfs_unload" params:nil completion:^(NSError *error, id value) {
     completion(error);
   }];
 }

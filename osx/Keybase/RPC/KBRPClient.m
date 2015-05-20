@@ -90,7 +90,7 @@
   DDLogDebug(@"Connecting to keybase service (%@)...", self.environment.sockFile);
   _connectAttempt++;
   [self.delegate RPClientWillConnect:self];
-  [_client openWithSocket:self.environment.sockFile completion:^(NSError *error) {
+  [_client openWithSocket:[self.environment sockFile:YES] completion:^(NSError *error) {
     if (error) {
       gself.status = KBRPClientStatusClosed;
 
@@ -165,7 +165,7 @@
 
 - (void)_sendRequestWithMethod:(NSString *)method params:(NSArray *)params sessionId:(NSInteger)sessionId completion:(MPRequestCompletion)completion {
   if (_client.status != MPMessagePackClientStatusOpen) {
-    completion(KBMakeErrorWithRecovery(-400, @"We are unable to connect to keybase service.", @"You may need to update or re-install to fix this."), nil);
+    completion(KBMakeErrorWithRecovery(-400, @"We are unable to connect to the Keybase service.", @"You may need to update or re-install to fix this."), nil);
     return;
   }
 

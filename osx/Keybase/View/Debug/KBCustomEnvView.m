@@ -11,6 +11,9 @@
 #import "KBDefines.h"
 
 @interface KBCustomEnvView ()
+@property KBTextField *homeDirField;
+@property KBTextField *socketFileField;
+@property KBTextField *mountDirField;
 @property KBLabel *serviceCLI;
 @property KBLabel *kbfsCLI;
 @end
@@ -28,14 +31,14 @@
   _homeDirField.onChange = ^{ [gself update]; };
   [self addSubview:_homeDirField];
 
-  KBLabel *sockFileLabel = [KBLabel labelWithText:@"Socket File" style:KBTextStyleDefault];
-  [self addSubview:sockFileLabel];
-  _socketFileField = [[KBTextField alloc] init];
-  _socketFileField.textField.font = KBAppearance.currentAppearance.textFont;
-  _socketFileField.insets = UIEdgeInsetsMake(8, 8, 8, 0);
-  _socketFileField.textField.lineBreakMode = NSLineBreakByTruncatingHead;
-  _socketFileField.onChange = ^{ [gself update]; };
-  [self addSubview:_socketFileField];
+//  KBLabel *sockFileLabel = [KBLabel labelWithText:@"Socket File" style:KBTextStyleDefault];
+//  [self addSubview:sockFileLabel];
+//  _socketFileField = [[KBTextField alloc] init];
+//  _socketFileField.textField.font = KBAppearance.currentAppearance.textFont;
+//  _socketFileField.insets = UIEdgeInsetsMake(8, 8, 8, 0);
+//  _socketFileField.textField.lineBreakMode = NSLineBreakByTruncatingHead;
+//  _socketFileField.onChange = ^{ [gself update]; };
+//  [self addSubview:_socketFileField];
 
   KBLabel *mountDirLabel = [KBLabel labelWithText:@"Mount Dir" style:KBTextStyleDefault];
   [self addSubview:mountDirLabel];
@@ -63,9 +66,9 @@
     CGFloat x = 0;
     CGFloat y = 0;
     CGFloat col = 80;
-    x += [layout sizeToFitVerticalInFrame:CGRectMake(x, 9, col, 0) view:sockFileLabel].size.width + 10;
-    y += [layout sizeToFitVerticalInFrame:CGRectMake(x, 0, size.width - x - 10, 0) view:yself.socketFileField].size.height + 10;
-    x = 0;
+//    x += [layout sizeToFitVerticalInFrame:CGRectMake(x, 9, col, 0) view:sockFileLabel].size.width + 10;
+//    y += [layout sizeToFitVerticalInFrame:CGRectMake(x, 0, size.width - x - 10, 0) view:yself.socketFileField].size.height + 10;
+//    x = 0;
     x += [layout sizeToFitVerticalInFrame:CGRectMake(x, y + 9, col, 0) view:homeDirLabel].size.width + 10;
     y += [layout sizeToFitVerticalInFrame:CGRectMake(x, y, size.width - x - 10, 0) view:yself.homeDirField].size.height + 10;
     x = 0;
@@ -83,31 +86,48 @@
 }
 
 - (void)update {
-  [self setEnvironment:[self environment]];
+  [self updateCLI:[self environment]];
 }
 
-- (void)save {
-  [NSUserDefaults.standardUserDefaults setObject:self.environment.homeDir forKey:@"HomeDir"];
-  [NSUserDefaults.standardUserDefaults setObject:self.environment.sockFile forKey:@"SockFile"];
-  [NSUserDefaults.standardUserDefaults setObject:self.environment.mountDir forKey:@"MountDir"];
+- (void)saveToDefaults {
+  [NSUserDefaults.standardUserDefaults setObject:self.environment.homeDir forKey:@"CustomHomeDir"];
+  [NSUserDefaults.standardUserDefaults setObject:self.environment.sockFile forKey:@"CustomSockFile"];
+  [NSUserDefaults.standardUserDefaults setObject:self.environment.mountDir forKey:@"CustomMountDir"];
   [NSUserDefaults.standardUserDefaults synchronize];
+}
+
+- (KBEnvironment *)loadFromDefaults {
+  NSString *homeDir = [NSUserDefaults.standardUserDefaults stringForKey:@"CustomHomeDir"];
+  if (!homeDir) homeDir = KBPath(@"~/Projects/Keybase", NO);
+
+//  NSString *sockFile = [NSUserDefaults.standardUserDefaults stringForKey:@"CustomSockFile"];
+//  if (!sockFile) sockFile = KBPath([KBEnvironment defaultSockFileForHomeDir:homeDir], NO);
+
+  NSString *mountDir = [NSUserDefaults.standardUserDefaults stringForKey:@"CustomMountDir"];
+  if (!mountDir) mountDir = KBPath(@"~/Keybase.dev", NO);
+
+  return [[KBEnvironment alloc] initWithHomeDir:homeDir sockFile:nil mountDir:mountDir];
 }
 
 - (KBEnvironment *)environment {
   NSString *homeDir = [_homeDirField.text gh_strip];
-  NSString *sockFile = [_socketFileField.text gh_strip];
+//  NSString *sockFile = [_socketFileField.text gh_strip];
   NSString *mountDir = [_mountDirField.text gh_strip];
-  return [[KBEnvironment alloc] initWithHomeDir:homeDir sockFile:sockFile mountDir:mountDir];
+  return [[KBEnvironment alloc] initWithHomeDir:homeDir sockFile:nil mountDir:mountDir];
 }
 
 - (void)setEnvironment:(KBEnvironment *)environment {
   _homeDirField.text = KBPath(environment.homeDir, YES);
   _socketFileField.text = KBPath(environment.sockFile, YES);
   _mountDirField.text = KBPath(environment.mountDir, YES);
+  [self updateCLI:environment];
+  [self setNeedsLayout];
+}
 
-  [_serviceCLI setText:[environment commandLineForService:NO tilde:YES] style:KBTextStyleDefault options:KBTextOptionsMonospace alignment:NSLeftTextAlignment lineBreakMode:NSLineBreakByWordWrapping];
+- (void)updateCLI:(KBEnvironment *)environment {
+  [_serviceCLI setText:[environment commandLineForService:NO escape:YES tilde:YES] style:KBTextStyleDefault options:KBTextOptionsMonospace alignment:NSLeftTextAlignment lineBreakMode:NSLineBreakByWordWrapping];
 
-  [_kbfsCLI setText:[environment commandLineForKBFS:NO tilde:YES] style:KBTextStyleDefault options:KBTextOptionsMonospace alignment:NSLeftTextAlignment lineBreakMode:NSLineBreakByWordWrapping];
+  [_kbfsCLI setText:[environment commandLineForKBFS:NO escape:YES tilde:YES] style:KBTextStyleDefault options:KBTextOptionsMonospace alignment:NSLeftTextAlignment lineBreakMode:NSLineBreakByWordWrapping];
 
   [self setNeedsLayout];
 }

@@ -31,6 +31,7 @@ BOOL KBIsErrorName(NSError *error, NSString *name) {
 }
 
 NSString *KBPath(NSString *dir, BOOL tilde) {
+  if (!dir) return nil;
   return tilde ? [dir stringByAbbreviatingWithTildeInPath] : [dir stringByExpandingTildeInPath];
 }
 

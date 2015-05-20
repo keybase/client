@@ -87,6 +87,13 @@
     } else if (installable.componentStatus.installStatus == KBInstallStatusInstalled) {
       [topView addSubview:[KBButton buttonWithText:@"Uninstall" style:KBButtonStyleToolbar targetBlock:^{ [self uninstall:installable]; }]];
     }
+
+    if (installable.componentStatus.runtimeStatus == KBRuntimeStatusNotRunning) {
+      [topView addSubview:[KBButton buttonWithText:@"Start" style:KBButtonStyleToolbar targetBlock:^{ [self start:installable]; }]];
+    } else if (installable.componentStatus.runtimeStatus == KBRuntimeStatusRunning) {
+      [topView addSubview:[KBButton buttonWithText:@"Stop" style:KBButtonStyleToolbar targetBlock:^{ [self stop:installable]; }]];
+    }
+
     [view addSubview:topView];
     [borderLayout addToTop:topView];
   }
@@ -131,6 +138,24 @@
 - (void)install:(id<KBInstallable>)installable {
   [KBActivity setProgressEnabled:YES sender:self];
   [installable install:^(NSError *error) {
+    [KBActivity setProgressEnabled:NO sender:self];
+    if ([KBActivity setError:error sender:self]) return;
+    [self refresh];
+  }];
+}
+
+- (void)start:(id<KBInstallable>)installable {
+  [KBActivity setProgressEnabled:YES sender:self];
+  [installable start:^(NSError *error) {
+    [KBActivity setProgressEnabled:NO sender:self];
+    if ([KBActivity setError:error sender:self]) return;
+    [self refresh];
+  }];
+}
+
+- (void)stop:(id<KBInstallable>)installable {
+  [KBActivity setProgressEnabled:YES sender:self];
+  [installable stop:^(NSError *error) {
     [KBActivity setProgressEnabled:NO sender:self];
     if ([KBActivity setError:error sender:self]) return;
     [self refresh];
