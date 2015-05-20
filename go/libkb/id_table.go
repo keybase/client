@@ -108,18 +108,21 @@ type RemoteProofChainLink interface {
 	ToKeyValuePair() (string, string)
 	ComputeTrackDiff(tl *TrackLookup) TrackDiff
 	GetIntType() int
+	ProofText() string
 }
 
 type WebProofChainLink struct {
 	GenericChainLink
-	protocol string
-	hostname string
+	protocol  string
+	hostname  string
+	proofText string
 }
 
 type SocialProofChainLink struct {
 	GenericChainLink
-	service  string
-	username string
+	service   string
+	username  string
+	proofText string
 }
 
 func (w *WebProofChainLink) TableKey() string {
@@ -160,6 +163,7 @@ func (w *WebProofChainLink) LastWriterWins() bool      { return false }
 func (w *WebProofChainLink) GetRemoteUsername() string { return "" }
 func (w *WebProofChainLink) GetHostname() string       { return w.hostname }
 func (w *WebProofChainLink) GetProtocol() string       { return w.protocol }
+func (w *WebProofChainLink) ProofText() string         { return w.proofText }
 
 func (s *WebProofChainLink) CheckDataJson() *jsonw.Wrapper {
 	ret := jsonw.NewDictionary()
@@ -208,19 +212,20 @@ func (w *SocialProofChainLink) ToDisplayString() string {
 }
 func (s *SocialProofChainLink) LastWriterWins() bool      { return true }
 func (s *SocialProofChainLink) GetRemoteUsername() string { return s.username }
-func (w *SocialProofChainLink) GetHostname() string       { return "" }
-func (w *SocialProofChainLink) GetProtocol() string       { return "" }
+func (s *SocialProofChainLink) GetHostname() string       { return "" }
+func (s *SocialProofChainLink) GetProtocol() string       { return "" }
+func (s *SocialProofChainLink) ProofText() string         { return s.proofText }
 func (s *SocialProofChainLink) ToIdString() string        { return s.ToDisplayString() }
 func (s *SocialProofChainLink) ToKeyValuePair() (string, string) {
 	return s.service, s.username
 }
 func (s *SocialProofChainLink) GetService() string { return s.service }
 
-func NewWebProofChainLink(b GenericChainLink, p, h string) *WebProofChainLink {
-	return &WebProofChainLink{b, p, h}
+func NewWebProofChainLink(b GenericChainLink, p, h, proofText string) *WebProofChainLink {
+	return &WebProofChainLink{b, p, h, proofText}
 }
-func NewSocialProofChainLink(b GenericChainLink, s, u string) *SocialProofChainLink {
-	return &SocialProofChainLink{b, s, u}
+func NewSocialProofChainLink(b GenericChainLink, s, u, proofText string) *SocialProofChainLink {
+	return &SocialProofChainLink{b, s, u, proofText}
 }
 
 func (s *SocialProofChainLink) ComputeTrackDiff(tl *TrackLookup) TrackDiff {
@@ -324,18 +329,28 @@ func ParseServiceBlock(jw *jsonw.Wrapper) (sb *ServiceBlock, err error) {
 
 // To be used for signatures in a user's signature chain.
 func ParseWebServiceBinding(base GenericChainLink) (ret RemoteProofChainLink, e error) {
-
 	jw := base.payloadJson.AtKey("body").AtKey("service")
+
+	var sptf string
+	ptf := base.packed.AtKey("proof_text_full")
+	if !ptf.IsNil() {
+		var err error
+		sptf, err = ptf.GetString()
+		if err == nil {
+			G.Log.Debug("Found proof_text_full: %s", sptf)
+		}
+	}
 
 	if jw.IsNil() {
 		ret, e = ParseSelfSigChainLink(base)
 	} else if sb, err := ParseServiceBlock(jw); err != nil {
 		e = fmt.Errorf("%s @%s", err.Error(), base.ToDebugString())
 	} else if sb.social {
-		ret = NewSocialProofChainLink(base, sb.typ, sb.id)
+		ret = NewSocialProofChainLink(base, sb.typ, sb.id, sptf)
 	} else {
-		ret = NewWebProofChainLink(base, sb.typ, sb.id)
+		ret = NewWebProofChainLink(base, sb.typ, sb.id, sptf)
 	}
+
 	return
 }
 
@@ -824,6 +839,7 @@ func (w *SelfSigChainLink) LastWriterWins() bool      { return true }
 func (w *SelfSigChainLink) GetRemoteUsername() string { return w.GetUsername() }
 func (w *SelfSigChainLink) GetHostname() string       { return "" }
 func (w *SelfSigChainLink) GetProtocol() string       { return "" }
+func (w *SelfSigChainLink) ProofText() string         { return "" }
 
 func (s *SelfSigChainLink) DisplayCheck(ui IdentifyUI, lcr LinkCheckResult) {
 	return

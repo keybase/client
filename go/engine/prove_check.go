@@ -4,15 +4,18 @@
 package engine
 
 import (
+	"fmt"
+
 	"github.com/keybase/client/go/libkb"
 )
 
 // ProveCheck is an engine.
 type ProveCheck struct {
 	libkb.Contextified
-	sigID  libkb.SigId
-	found  bool
-	status int
+	sigID     libkb.SigId
+	found     bool
+	status    int
+	proofText string
 }
 
 // NewProveCheck creates a ProveCheck engine.
@@ -51,9 +54,29 @@ func (e *ProveCheck) Run(ctx *Context) error {
 	}
 	e.found = found
 	e.status = status
+
+	if !e.found {
+		return nil
+	}
+
+	e.G().Log.Debug("looking for ChainLink for %s", e.sigID.ToString(true))
+	me, err := libkb.LoadMe(libkb.LoadUserArg{PublicKeyOptional: true})
+	if err != nil {
+		return err
+	}
+	link := me.LinkFromSigID(e.sigID)
+	if link == nil {
+		return fmt.Errorf("no chain link found for %s", e.sigID.ToString(true))
+	}
+	e.G().Log.Debug("chain link found: (%T)", link.Typed())
+	if rlink, ok := link.Typed().(libkb.RemoteProofChainLink); ok {
+		e.proofText = rlink.ProofText()
+	} else {
+		e.G().Log.Warning("chain link had invalid type: %T", link.Typed())
+	}
 	return nil
 }
 
-func (e *ProveCheck) Results() (found bool, status int) {
-	return e.found, e.status
+func (e *ProveCheck) Results() (found bool, status int, proofText string) {
+	return e.found, e.status, e.proofText
 }

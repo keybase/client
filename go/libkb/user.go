@@ -567,6 +567,10 @@ func (u *User) IsSigIDActive(sigIDStr string) (bool, error) {
 	return true, nil
 }
 
+func (u *User) LinkFromSigID(sigID SigId) *ChainLink {
+	return u.sigChain().GetLinkFromSigId(sigID)
+}
+
 func (u *User) SigChainDump(w io.Writer) {
 	u.sigChain().Dump(w)
 }

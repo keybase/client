@@ -4,9 +4,10 @@ import (
 	"crypto/sha256"
 	"encoding/hex"
 	"fmt"
+	"time"
+
 	keybase1 "github.com/keybase/client/protocol/go"
 	jsonw "github.com/keybase/go-jsonw"
-	"time"
 )
 
 const (
@@ -89,6 +90,7 @@ type ChainLinkUnpacked struct {
 	uid            UID
 	username       string
 	typ            string
+	proofText      string
 }
 
 type ChainLink struct {
@@ -130,8 +132,13 @@ func (c *ChainLink) GetPrev() LinkId {
 func (c *ChainLink) GetCTime() time.Time {
 	return time.Unix(int64(c.unpacked.ctime), 0)
 }
+
 func (c *ChainLink) GetETime() time.Time {
 	return UnixToTimeMappingZero(c.unpacked.etime)
+}
+
+func (c *ChainLink) GetUID() UID {
+	return c.unpacked.uid
 }
 
 func (c *ChainLink) MarkChecked(err ProofError) {
@@ -166,6 +173,7 @@ func (c *ChainLink) Pack() error {
 		p.SetKey("fingerprint", jsonw.NewString(c.unpacked.pgpFingerprint.String()))
 	}
 	p.SetKey("sig_verified", jsonw.NewBool(c.sigVerified))
+	p.SetKey("proof_text_full", jsonw.NewString(c.unpacked.proofText))
 
 	if c.cki != nil {
 		p.SetKey("computed_key_infos", jsonw.NewWrapper(*c.cki))
@@ -316,6 +324,20 @@ func (c *ChainLink) Unpack(trusted bool) (err error) {
 	}
 
 	err = c.UnpackPayloadJson(&tmp)
+	if err != nil {
+		return err
+	}
+
+	// only unpack the proof_text_full if logged in and owner of this link
+	if G.LoginState().LoggedIn() {
+		myUID := G.GetMyUID()
+		if myUID != nil && tmp.uid.Eq(*myUID) {
+			ptf := c.packed.AtKey("proof_text_full")
+			if !ptf.IsNil() {
+				ptf.GetStringVoid(&tmp.proofText, &err)
+			}
+		}
+	}
 	if err != nil {
 		return err
 	}
@@ -609,3 +631,7 @@ func (c *ChainLink) IsInCurrentFamily(u *User) bool {
 }
 
 //=========================================================================
+
+func (c *ChainLink) Typed() TypedChainLink {
+	return c.typed
+}
