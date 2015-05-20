@@ -207,6 +207,8 @@
 		00F1D5241AF2C15200DE23F1 /* KBFolderUsersListView.m in Sources */ = {isa = PBXBuildFile; fileRef = 00F1D5231AF2C15200DE23F1 /* KBFolderUsersListView.m */; };
 		00F1D5271AF2C1BF00DE23F1 /* KBUserPermission.m in Sources */ = {isa = PBXBuildFile; fileRef = 00F1D5261AF2C1BF00DE23F1 /* KBUserPermission.m */; };
 		00F1D52A1AF2C23100DE23F1 /* KBImageLabel.m in Sources */ = {isa = PBXBuildFile; fileRef = 00F1D5291AF2C23100DE23F1 /* KBImageLabel.m */; };
+		00FB76BB1B0C5B300070DEED /* KBDefinesTest.m in Sources */ = {isa = PBXBuildFile; fileRef = 00FB76BA1B0C5B300070DEED /* KBDefinesTest.m */; };
+		00FB76BD1B0C5B5D0070DEED /* KBEnvironmentTest.m in Sources */ = {isa = PBXBuildFile; fileRef = 00FB76BC1B0C5B5D0070DEED /* KBEnvironmentTest.m */; };
 		00FBF6BD1AF149BC00CA7639 /* KBLaunchCtlTest.m in Sources */ = {isa = PBXBuildFile; fileRef = 0093A00E1AF1201800082859 /* KBLaunchCtlTest.m */; };
 		00FDC8171AAA605C00D6C571 /* KBUserImageView.m in Sources */ = {isa = PBXBuildFile; fileRef = 00FDC8161AAA605C00D6C571 /* KBUserImageView.m */; };
 		00FDC81B1AAA7D1800D6C571 /* KBCellDataSource.m in Sources */ = {isa = PBXBuildFile; fileRef = 00FDC81A1AAA7D1800D6C571 /* KBCellDataSource.m */; };
@@ -664,6 +666,8 @@
 		00F1D5281AF2C23100DE23F1 /* KBImageLabel.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBImageLabel.h; sourceTree = "<group>"; };
 		00F1D5291AF2C23100DE23F1 /* KBImageLabel.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBImageLabel.m; sourceTree = "<group>"; };
 		00F808061A4A5F600038BC63 /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
+		00FB76BA1B0C5B300070DEED /* KBDefinesTest.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBDefinesTest.m; sourceTree = "<group>"; };
+		00FB76BC1B0C5B5D0070DEED /* KBEnvironmentTest.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBEnvironmentTest.m; sourceTree = "<group>"; };
 		00FBF6B21AF1494300CA7639 /* Tests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = Tests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		00FDC8151AAA605C00D6C571 /* KBUserImageView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBUserImageView.h; sourceTree = "<group>"; };
 		00FDC8161AAA605C00D6C571 /* KBUserImageView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBUserImageView.m; sourceTree = "<group>"; };
@@ -1331,6 +1335,8 @@
 				00AB72171AF9724900646075 /* Info.plist */,
 				003C45521AE6DF4700431829 /* KBHelperTest.m */,
 				0093A00E1AF1201800082859 /* KBLaunchCtlTest.m */,
+				00FB76BA1B0C5B300070DEED /* KBDefinesTest.m */,
+				00FB76BC1B0C5B5D0070DEED /* KBEnvironmentTest.m */,
 			);
 			path = Tests;
 			sourceTree = "<group>";
@@ -1789,8 +1795,10 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				00FB76BD1B0C5B5D0070DEED /* KBEnvironmentTest.m in Sources */,
 				002A2BE31AF9792D006DFB51 /* KBHelperTest.m in Sources */,
 				00FBF6BD1AF149BC00CA7639 /* KBLaunchCtlTest.m in Sources */,
+				00FB76BB1B0C5B300070DEED /* KBDefinesTest.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

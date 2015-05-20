@@ -8,16 +8,10 @@
 
 ### Build
 
-```sh
-sh build.sh x.y.z   # Version
-```
-
-### Package
-
-Creates dmg and copies the app into /Applications.
+Call build.sh and specify the version.
 
 ```sh
-sh package.sh
+sh build.sh 0.1.29
 ```
 
 ### Updater package

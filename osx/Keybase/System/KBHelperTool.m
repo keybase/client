@@ -15,6 +15,9 @@
 #import "KBInfoView.h"
 #import "KBPrivilegedTask.h"
 
+#define PLIST_DEST (@"/Library/LaunchDaemons/keybase.Helper.plist")
+#define HELPER_LOCATION (@"/Library/PrivilegedHelperTools/keybase.Helper")
+
 @interface KBHelperTool ()
 @property KBInfoView *infoView;
 @property NSString *version;
@@ -51,14 +54,16 @@
   GHODictionary *statusInfo = [self componentStatusInfo];
   if (statusInfo) [info addEntriesFromOrderedDictionary:statusInfo];
 
+  info[@"Plist"] = PLIST_DEST;
+
   if (!_infoView) _infoView = [[KBInfoView alloc] init];
   [_infoView setProperties:info];
 }
 
 - (void)updateComponentStatus:(KBCompletion)completion {
   _version = nil;
-  if (![NSFileManager.defaultManager fileExistsAtPath:@"/Library/LaunchDaemons/keybase.Helper.plist" isDirectory:nil] &&
-      ![NSFileManager.defaultManager fileExistsAtPath:@"/Library/PrivilegedHelperTools/keybase.Helper" isDirectory:nil]) {
+  if (![NSFileManager.defaultManager fileExistsAtPath:PLIST_DEST isDirectory:nil] &&
+      ![NSFileManager.defaultManager fileExistsAtPath:HELPER_LOCATION isDirectory:nil]) {
     self.componentStatus = [KBComponentStatus componentStatusWithInstallStatus:KBInstallStatusNotInstalled runtimeStatus:KBRuntimeStatusNone info:nil];
     completion(nil);
     return;

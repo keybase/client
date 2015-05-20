@@ -2,7 +2,7 @@
 
 ## Installer
 
-To generate Keybase.app installer, see the [Installer](https://github.com/keybase/client/tree/master/osx/Install/README.md). For updater info see the [Updater](https://github.com/keybase/client/tree/master/osx/Install/Updater/README.md).
+To build Keybase.app and dmg package, see the [Installer](https://github.com/keybase/client/tree/master/osx/Install/README.md). For updater info see the [Updater](https://github.com/keybase/client/tree/master/osx/Install/Updater/README.md).
 
 ## Xcode
 
