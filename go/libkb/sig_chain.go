@@ -118,7 +118,7 @@ func (sc *SigChain) Bump(mt MerkleTriple) {
 	sc.localChainUpdateTime = time.Now()
 }
 
-func (sc *SigChain) LoadFromServer(t *MerkleTriple) (dirtyTail *MerkleTriple, err error) {
+func (sc *SigChain) LoadFromServer(t *MerkleTriple, selfUID *UID) (dirtyTail *MerkleTriple, err error) {
 
 	low := sc.GetLastLoadedSeqno()
 	uid_s := sc.uid.String()
@@ -154,7 +154,7 @@ func (sc *SigChain) LoadFromServer(t *MerkleTriple) (dirtyTail *MerkleTriple, er
 
 	for i := 0; i < lim; i++ {
 		var link *ChainLink
-		if link, err = ImportLinkFromServer(sc, v.AtIndex(i)); err != nil {
+		if link, err = ImportLinkFromServer(sc, v.AtIndex(i), selfUID); err != nil {
 			return
 		}
 		if link.GetSeqno() <= low {
@@ -490,6 +490,7 @@ var PublicChain = &ChainType{
 
 type SigChainLoader struct {
 	user      *User
+	self      bool
 	allKeys   bool
 	leaf      *MerkleUserLeaf
 	chain     *SigChain
@@ -563,9 +564,11 @@ func (l *SigChainLoader) LoadLinksFromStorage() (err error) {
 	curr = mt.LinkId
 	var link *ChainLink
 
+	suid := l.selfUID()
+
 	for curr != nil && good_key {
 		G.Log.Debug("| loading link; curr=%s", curr)
-		if link, err = ImportLinkFromStorage(curr); err != nil {
+		if link, err = ImportLinkFromStorage(curr, suid); err != nil {
 			return
 		}
 		fokid2 := link.ToEldestFOKID()
@@ -690,9 +693,18 @@ func (l *SigChainLoader) CheckFreshness() (current bool, err error) {
 
 //========================================================================
 
+func (l *SigChainLoader) selfUID() *UID {
+	if !l.self {
+		return nil
+	}
+	return l.user.GetUID().P()
+}
+
+//========================================================================
+
 func (l *SigChainLoader) LoadFromServer() (err error) {
 	srv := l.GetMerkleTriple()
-	l.dirtyTail, err = l.chain.LoadFromServer(srv)
+	l.dirtyTail, err = l.chain.LoadFromServer(srv, l.selfUID())
 	return
 }
 
@@ -817,8 +829,8 @@ func (l *SigChainLoader) Load() (ret *SigChain, err error) {
 
 //========================================================================
 
-func LoadSigChain(u *User, allKeys bool, f *MerkleUserLeaf, t *ChainType, preload *SigChain, gc *GlobalContext) (ret *SigChain, err error) {
-	loader := SigChainLoader{user: u, allKeys: allKeys, leaf: f, chainType: t, preload: preload, Contextified: NewContextified(gc)}
+func LoadSigChain(u *User, allKeys bool, f *MerkleUserLeaf, t *ChainType, preload *SigChain, self bool, gc *GlobalContext) (ret *SigChain, err error) {
+	loader := SigChainLoader{user: u, self: self, allKeys: allKeys, leaf: f, chainType: t, preload: preload, Contextified: NewContextified(gc)}
 	return loader.Load()
 }
 

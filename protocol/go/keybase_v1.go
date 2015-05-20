@@ -1803,8 +1803,9 @@ func (c PgpClient) PgpUpdate(__arg PgpUpdateArg) (err error) {
 }
 
 type CheckProofStatus struct {
-	Found  bool `codec:"found" json:"found"`
-	Status int  `codec:"status" json:"status"`
+	Found     bool   `codec:"found" json:"found"`
+	Status    int    `codec:"status" json:"status"`
+	ProofText string `codec:"proofText" json:"proofText"`
 }
 
 type StartProofArg struct {

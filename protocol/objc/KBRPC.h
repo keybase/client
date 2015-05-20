@@ -539,6 +539,7 @@ typedef NS_ENUM (NSInteger, KBRSignMode) {
 @interface KBRCheckProofStatus : KBRObject
 @property BOOL found;
 @property NSInteger status;
+@property NSString *proofText;
 @end
 
 @interface KBRProveRequest : KBRRequest

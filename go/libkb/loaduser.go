@@ -124,7 +124,7 @@ func LoadUser(arg LoadUserArg) (ret *User, err error) {
 		}
 	}
 
-	if err = ret.LoadSigChains(arg.AllKeys, leaf); err != nil {
+	if err = ret.LoadSigChains(arg.AllKeys, leaf, arg.Self); err != nil {
 		return
 	}
 

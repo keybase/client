@@ -277,6 +277,9 @@
     }, {
       "name" : "status",
       "type" : "int"
+    }, {
+      "name" : "proofText",
+      "type" : "string"
     } ]
   } ],
   "messages" : {

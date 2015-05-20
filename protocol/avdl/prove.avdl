@@ -7,6 +7,7 @@ protocol prove {
 	record CheckProofStatus {
 		boolean found;
 		int status;
+		string proofText;
 	}
 
 	// set promptPosted to true to enable the okToCheck, displayRecheckWarning ui loop.  false to skip it.

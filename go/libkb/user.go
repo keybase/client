@@ -217,9 +217,9 @@ func (u *User) StoreSigChain() error {
 	return err
 }
 
-func (u *User) LoadSigChains(allKeys bool, f *MerkleUserLeaf) (err error) {
+func (u *User) LoadSigChains(allKeys bool, f *MerkleUserLeaf, self bool) (err error) {
 	sc := u.sigChain()
-	u.sigChainMem, err = LoadSigChain(u, allKeys, f, PublicChain, sc, u.G())
+	u.sigChainMem, err = LoadSigChain(u, allKeys, f, PublicChain, sc, self, u.G())
 
 	// Eventually load the others, but for now, this one is good enough
 	return err

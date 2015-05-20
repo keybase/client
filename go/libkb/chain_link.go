@@ -307,7 +307,7 @@ func (c *ChainLink) UnpackComputedKeyInfos(jw *jsonw.Wrapper) (err error) {
 	return
 }
 
-func (c *ChainLink) Unpack(trusted bool) (err error) {
+func (c *ChainLink) Unpack(trusted bool, selfUID *UID) (err error) {
 	tmp := ChainLinkUnpacked{}
 
 	c.packed.AtKey("sig").GetStringVoid(&tmp.sig, &err)
@@ -328,18 +328,12 @@ func (c *ChainLink) Unpack(trusted bool) (err error) {
 		return err
 	}
 
-	// only unpack the proof_text_full if logged in and owner of this link
-	if G.LoginState().LoggedIn() {
-		myUID := G.GetMyUID()
-		if myUID != nil && tmp.uid.Eq(*myUID) {
-			ptf := c.packed.AtKey("proof_text_full")
-			if !ptf.IsNil() {
-				ptf.GetStringVoid(&tmp.proofText, &err)
-			}
+	// only unpack the proof_text_full if owner of this link
+	if selfUID != nil && tmp.uid.Eq(*selfUID) {
+		ptf := c.packed.AtKey("proof_text_full")
+		if !ptf.IsNil() {
+			ptf.GetStringVoid(&tmp.proofText, &err)
 		}
-	}
-	if err != nil {
-		return err
 	}
 
 	c.unpacked = &tmp
@@ -489,14 +483,14 @@ func (c *ChainLink) VerifySig(k PgpKeyBundle) (cached bool, err error) {
 	return
 }
 
-func ImportLinkFromServer(parent *SigChain, jw *jsonw.Wrapper) (ret *ChainLink, err error) {
+func ImportLinkFromServer(parent *SigChain, jw *jsonw.Wrapper, selfUID *UID) (ret *ChainLink, err error) {
 	var id LinkId
 	GetLinkIdVoid(jw.AtKey("payload_hash"), &id, &err)
 	if err != nil {
 		return
 	}
 	ret = NewChainLink(parent, id, jw)
-	if err = ret.Unpack(false); err != nil {
+	if err = ret.Unpack(false, selfUID); err != nil {
 		ret = nil
 	}
 	return
@@ -510,13 +504,13 @@ func NewChainLink(parent *SigChain, id LinkId, jw *jsonw.Wrapper) *ChainLink {
 	}
 }
 
-func ImportLinkFromStorage(id LinkId) (*ChainLink, error) {
+func ImportLinkFromStorage(id LinkId, selfUID *UID) (*ChainLink, error) {
 	jw, err := G.LocalDb.Get(DbKey{Typ: DB_LINK, Key: id.String()})
 	var ret *ChainLink
 	if err == nil {
 		// May as well recheck onload (maybe revisit this)
 		ret = NewChainLink(nil, id, jw)
-		if err = ret.Unpack(true); err != nil {
+		if err = ret.Unpack(true, selfUID); err != nil {
 			ret = nil
 		}
 		ret.storedLocally = true
