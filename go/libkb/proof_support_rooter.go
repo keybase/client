@@ -21,7 +21,7 @@ func NewRooterChecker(p RemoteProofChainLink) (*RooterChecker, ProofError) {
 }
 
 func (rc *RooterChecker) CheckHint(h SigHint) ProofError {
-	wanted_url := ("http://localhost:3000/rooter/" + strings.ToLower(rc.proof.GetRemoteUsername()) + "/")
+	wanted_url := G.Env.GetServerUri() + API_URI_PATH_PREFIX + "/rooter/" + strings.ToLower(rc.proof.GetRemoteUsername()) + "/"
 	wanted_med_id := rc.proof.GetSigId().ToMediumId()
 	if !strings.HasPrefix(strings.ToLower(h.apiUrl), wanted_url) {
 		return NewProofError(PROOF_BAD_API_URL,
