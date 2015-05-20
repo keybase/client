@@ -740,14 +740,7 @@
   }];
 }
 
-- (void)cancelProofWithSessionID:(NSInteger)sessionID completion:(void (^)(NSError *error))completion {
-  NSArray *params = @[@{@"sessionID": @(sessionID)}];
-  [self.client sendRequestWithMethod:@"keybase.1.prove.cancelProof" params:params sessionId:self.sessionId completion:^(NSError *error, id retval) {
-    completion(error);
-  }];
-}
-
-- (void)checkProofWithSessionID:(NSInteger)sessionID sigID:(KBRSIGID *)sigID completion:(void (^)(NSError *error, KBRCheckProofStatus *checkProofStatus))completion {
+- (void)checkProofWithSessionID:(NSInteger)sessionID sigID:(NSString *)sigID completion:(void (^)(NSError *error, KBRCheckProofStatus *checkProofStatus))completion {
   NSArray *params = @[@{@"sessionID": @(sessionID), @"sigID": KBRValue(sigID)}];
   [self.client sendRequestWithMethod:@"keybase.1.prove.checkProof" params:params sessionId:self.sessionId completion:^(NSError *error, id retval) {
     if (error) {
@@ -1834,23 +1827,12 @@
 
 @end
 
-@implementation KBRCancelProofRequestParams
-
-- (instancetype)initWithParams:(NSArray *)params {
-  if ((self = [super initWithParams:params])) {
-    self.sessionID = [params[0][@"sessionID"] integerValue];
-  }
-  return self;
-}
-
-@end
-
 @implementation KBRCheckProofRequestParams
 
 - (instancetype)initWithParams:(NSArray *)params {
   if ((self = [super initWithParams:params])) {
     self.sessionID = [params[0][@"sessionID"] integerValue];
-    self.sigID = [MTLJSONAdapter modelOfClass:KBRSIGID.class fromJSONDictionary:params[0][@"sigID"] error:nil];
+    self.sigID = params[0][@"sigID"];
   }
   return self;
 }

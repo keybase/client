@@ -10,7 +10,7 @@ import (
 // ProveHandler is the service side of proving ownership of social media accounts
 // like Twitter and Github.
 type ProveHandler struct {
-	*CancelHandler
+	*BaseHandler
 }
 
 type proveUI struct {
@@ -20,7 +20,7 @@ type proveUI struct {
 
 // NewProveHandler makes a new ProveHandler object from an RPC transport.
 func NewProveHandler(xp *rpc2.Transport) *ProveHandler {
-	return &ProveHandler{CancelHandler: NewCancelHandler(xp)}
+	return &ProveHandler{BaseHandler: NewBaseHandler(xp)}
 }
 
 func (p *proveUI) PromptOverwrite(arg keybase1.PromptOverwriteArg) (b bool, err error) {
@@ -64,22 +64,16 @@ func (ph *ProveHandler) StartProof(arg keybase1.StartProofArg) error {
 		SecretUI: ph.getSecretUI(arg.SessionID),
 		LogUI:    ph.getLogUI(arg.SessionID),
 	}
-	ph.setCanceler(arg.SessionID, eng)
-	defer ph.removeCanceler(arg.SessionID)
 	return engine.RunEngine(eng, &ctx)
 }
 
-func (ph *ProveHandler) CancelProof(sessionID int) error {
-	c := ph.canceler(sessionID)
-	if c == nil {
-		G.Log.Debug("Prove Cancel called and there's no prove engine for sessionID %d", sessionID)
-		return nil
-	}
-	return c.Cancel()
-}
-
 func (ph *ProveHandler) CheckProof(arg keybase1.CheckProofArg) (res keybase1.CheckProofStatus, err error) {
-	eng := engine.NewProveCheck(G, libkb.SigId(arg.SigID))
+	var sigid *libkb.SigId
+	sigid, err = libkb.SigIdFromHex(arg.SigID, true)
+	if err != nil {
+		return res, err
+	}
+	eng := engine.NewProveCheck(G, *sigid)
 	ctx := &engine.Context{}
 	if err = engine.RunEngine(eng, ctx); err != nil {
 		return

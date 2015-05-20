@@ -10,6 +10,5 @@ protocol prove {
 	}
 
 	void startProof(int sessionID, string service, string username, boolean force);
-	void cancelProof(int sessionID);
-	CheckProofStatus checkProof(int sessionID, SIGID sigID);
+	CheckProofStatus checkProof(int sessionID, string sigID);
 }

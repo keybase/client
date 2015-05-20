@@ -296,20 +296,13 @@
       } ],
       "response" : "null"
     },
-    "cancelProof" : {
-      "request" : [ {
-        "name" : "sessionID",
-        "type" : "int"
-      } ],
-      "response" : "null"
-    },
     "checkProof" : {
       "request" : [ {
         "name" : "sessionID",
         "type" : "int"
       }, {
         "name" : "sigID",
-        "type" : "SIGID"
+        "type" : "string"
       } ],
       "response" : "CheckProofStatus"
     }
