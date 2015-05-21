@@ -90,6 +90,7 @@ func (d *Dir) Lookup(ctx context.Context, req *fuse.LookupRequest, resp *fuse.Lo
 			return nil, err
 		}
 		pubFolder := &Folder{
+			fs: d.folder.fs,
 			id: md.Id,
 			dh: dhPub,
 		}

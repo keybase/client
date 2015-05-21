@@ -751,3 +751,33 @@ func TestRemoveFileWhileOpenReading(t *testing.T) {
 		t.Errorf("file still exists: %v", err)
 	}
 }
+
+func TestReaddirMyPublic(t *testing.T) {
+	config := makeTestConfig("jdoe")
+	mnt := makeFS(t, config)
+	defer mnt.Close()
+
+	files := map[string]struct{}{
+		"one": struct{}{},
+		"two": struct{}{},
+	}
+	for filename := range files {
+		if err := ioutil.WriteFile(path.Join(mnt.Dir, "jdoe", "public", filename), []byte("data for "+filename), 0644); err != nil {
+			t.Fatal(err)
+		}
+	}
+	fis, err := ioutil.ReadDir(path.Join(mnt.Dir, "jdoe", "public"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, fi := range fis {
+		if _, ok := files[fi.Name()]; ok {
+			delete(files, fi.Name())
+			continue
+		}
+		t.Errorf("unexpected direntry: %v", fi)
+	}
+	for filename := range files {
+		t.Errorf("never saw file: %v", filename)
+	}
+}
