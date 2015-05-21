@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"io"
 	"io/ioutil"
 	"os"
@@ -23,6 +24,46 @@ func makeFS(t testing.TB, config *libkbfs.ConfigLocal) *fstestutil.Mount {
 		t.Fatal(err)
 	}
 	return mnt
+}
+
+type fileInfoCheck func(fi os.FileInfo) error
+
+func mustBeDir(fi os.FileInfo) error {
+	if !fi.IsDir() {
+		return fmt.Errorf("not a directory: %v", fi)
+	}
+	return nil
+}
+
+func checkDir(t testing.TB, dir string, want map[string]fileInfoCheck) {
+	// make a copy of want, to be safe
+	{
+		tmp := make(map[string]fileInfoCheck, len(want))
+		for k, v := range want {
+			tmp[k] = v
+		}
+		want = tmp
+	}
+
+	fis, err := ioutil.ReadDir(dir)
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, fi := range fis {
+		if check, ok := want[fi.Name()]; ok {
+			delete(want, fi.Name())
+			if check != nil {
+				if err := check(fi); err != nil {
+					t.Errorf("check failed: %v: %v", fi.Name(), err)
+				}
+			}
+			continue
+		}
+		t.Errorf("unexpected direntry: %q size=%v mode=%v", fi.Name(), fi.Size(), fi.Mode())
+	}
+	for filename := range want {
+		t.Errorf("never saw file: %v", filename)
+	}
 }
 
 func TestStatRoot(t *testing.T) {
@@ -107,21 +148,9 @@ func TestReaddirRoot(t *testing.T) {
 		}
 	}
 
-	fis, err := ioutil.ReadDir(mnt.Dir)
-	if err != nil {
-		t.Fatal(err)
-	}
-	seenMyFolder := false
-	for _, fi := range fis {
-		if fi.Name() == "jdoe" {
-			seenMyFolder = true
-			continue
-		}
-		t.Errorf("unexpected direntry: %v", fi)
-	}
-	if !seenMyFolder {
-		t.Error("did not see my folder")
-	}
+	checkDir(t, mnt.Dir, map[string]fileInfoCheck{
+		"jdoe": mustBeDir,
+	})
 }
 
 func TestReaddirMyFolderEmpty(t *testing.T) {
@@ -129,13 +158,7 @@ func TestReaddirMyFolderEmpty(t *testing.T) {
 	mnt := makeFS(t, config)
 	defer mnt.Close()
 
-	fis, err := ioutil.ReadDir(path.Join(mnt.Dir, "jdoe"))
-	if err != nil {
-		t.Fatal(err)
-	}
-	for _, fi := range fis {
-		t.Errorf("unexpected direntry: %v", fi)
-	}
+	checkDir(t, path.Join(mnt.Dir, "jdoe"), map[string]fileInfoCheck{})
 }
 
 func TestReaddirMyFolderWithFiles(t *testing.T) {
@@ -143,29 +166,17 @@ func TestReaddirMyFolderWithFiles(t *testing.T) {
 	mnt := makeFS(t, config)
 	defer mnt.Close()
 
-	files := map[string]struct{}{
-		"one": struct{}{},
-		"two": struct{}{},
+	files := map[string]fileInfoCheck{
+		"one": nil,
+		"two": nil,
 	}
 	for filename := range files {
 		if err := ioutil.WriteFile(path.Join(mnt.Dir, "jdoe", filename), []byte("data for "+filename), 0644); err != nil {
 			t.Fatal(err)
 		}
 	}
-	fis, err := ioutil.ReadDir(path.Join(mnt.Dir, "jdoe"))
-	if err != nil {
-		t.Fatal(err)
-	}
-	for _, fi := range fis {
-		if _, ok := files[fi.Name()]; ok {
-			delete(files, fi.Name())
-			continue
-		}
-		t.Errorf("unexpected direntry: %v", fi)
-	}
-	for filename := range files {
-		t.Errorf("never saw file: %v", filename)
-	}
+
+	checkDir(t, path.Join(mnt.Dir, "jdoe"), files)
 }
 
 func TestCreateThenRead(t *testing.T) {
@@ -370,16 +381,9 @@ func TestRename(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	fis, err := ioutil.ReadDir(path.Join(mnt.Dir, "jdoe"))
-	if err != nil {
-		t.Fatalf("cannot read dir: %v", err)
-	}
-	if len(fis) != 1 {
-		t.Errorf("unexpected files: %v", fis)
-	}
-	if g, e := fis[0].Name(), "new"; g != e {
-		t.Errorf("unexpected file: %q != %q", g, e)
-	}
+	checkDir(t, path.Join(mnt.Dir, "jdoe"), map[string]fileInfoCheck{
+		"new": nil,
+	})
 
 	buf, err := ioutil.ReadFile(p2)
 	if err != nil {
@@ -413,16 +417,9 @@ func TestRenameOverwrite(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	fis, err := ioutil.ReadDir(path.Join(mnt.Dir, "jdoe"))
-	if err != nil {
-		t.Fatalf("cannot read dir: %v", err)
-	}
-	if len(fis) != 1 {
-		t.Errorf("unexpected files: %v", fis)
-	}
-	if g, e := fis[0].Name(), "new"; g != e {
-		t.Errorf("unexpected file: %q != %q", g, e)
-	}
+	checkDir(t, path.Join(mnt.Dir, "jdoe"), map[string]fileInfoCheck{
+		"new": nil,
+	})
 
 	buf, err := ioutil.ReadFile(p2)
 	if err != nil {
@@ -459,24 +456,10 @@ func TestRenameCrossDir(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	fis, err := ioutil.ReadDir(path.Join(mnt.Dir, "jdoe", "one"))
-	if err != nil {
-		t.Fatalf("cannot list directory: %v", err)
-	}
-	if len(fis) != 0 {
-		t.Errorf("unexpected files: %v", fis)
-	}
-
-	fis, err = ioutil.ReadDir(path.Join(mnt.Dir, "jdoe", "two"))
-	if err != nil {
-		t.Fatalf("cannot list directory: %v", err)
-	}
-	if len(fis) != 1 {
-		t.Errorf("unexpected files: %v", fis)
-	}
-	if g, e := fis[0].Name(), "new"; g != e {
-		t.Errorf("unexpected file: %q != %q", g, e)
-	}
+	checkDir(t, path.Join(mnt.Dir, "jdoe", "one"), map[string]fileInfoCheck{})
+	checkDir(t, path.Join(mnt.Dir, "jdoe", "two"), map[string]fileInfoCheck{
+		"new": nil,
+	})
 
 	buf, err := ioutil.ReadFile(p2)
 	if err != nil {
@@ -524,24 +507,10 @@ func TestRenameCrossFolder(t *testing.T) {
 		t.Errorf("expected EXDEV: %T %v", lerr.Err, lerr.Err)
 	}
 
-	fis, err := ioutil.ReadDir(path.Join(mnt.Dir, "jdoe"))
-	if err != nil {
-		t.Fatalf("cannot list directory: %v", err)
-	}
-	if len(fis) != 1 {
-		t.Errorf("unexpected files: %v", fis)
-	}
-	if g, e := fis[0].Name(), "old"; g != e {
-		t.Errorf("unexpected file: %q != %q", g, e)
-	}
-
-	fis, err = ioutil.ReadDir(path.Join(mnt.Dir, "wsmith,jdoe"))
-	if err != nil {
-		t.Fatalf("cannot list directory: %v", err)
-	}
-	if len(fis) != 0 {
-		t.Errorf("unexpected files: %v", fis)
-	}
+	checkDir(t, path.Join(mnt.Dir, "jdoe"), map[string]fileInfoCheck{
+		"old": nil,
+	})
+	checkDir(t, path.Join(mnt.Dir, "wsmith,jdoe"), map[string]fileInfoCheck{})
 
 	buf, err := ioutil.ReadFile(p1)
 	if err != nil {
@@ -571,13 +540,7 @@ func TestRemoveFile(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	fis, err := ioutil.ReadDir(path.Join(mnt.Dir, "jdoe"))
-	if err != nil {
-		t.Fatalf("cannot read dir: %v", err)
-	}
-	if len(fis) != 0 {
-		t.Errorf("unexpected files: %v", fis)
-	}
+	checkDir(t, path.Join(mnt.Dir, "jdoe"), map[string]fileInfoCheck{})
 
 	if _, err := ioutil.ReadFile(p); !os.IsNotExist(err) {
 		t.Errorf("file still exists: %v", err)
@@ -598,13 +561,7 @@ func TestRemoveDir(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	fis, err := ioutil.ReadDir(path.Join(mnt.Dir, "jdoe"))
-	if err != nil {
-		t.Fatalf("cannot read dir: %v", err)
-	}
-	if len(fis) != 0 {
-		t.Errorf("unexpected files: %v", fis)
-	}
+	checkDir(t, path.Join(mnt.Dir, "jdoe"), map[string]fileInfoCheck{})
 
 	if _, err := os.Stat(p); !os.IsNotExist(err) {
 		t.Errorf("file still exists: %v", err)
@@ -639,13 +596,7 @@ func TestRemoveFileWhileOpenWriting_Desired(t *testing.T) {
 		t.Fatal("error on close: %v", err)
 	}
 
-	fis, err := ioutil.ReadDir(path.Join(mnt.Dir, "jdoe"))
-	if err != nil {
-		t.Fatalf("cannot read dir: %v", err)
-	}
-	if len(fis) != 0 {
-		t.Errorf("unexpected files: %v", fis)
-	}
+	checkDir(t, path.Join(mnt.Dir, "jdoe"), map[string]fileInfoCheck{})
 
 	if _, err := ioutil.ReadFile(p); !os.IsNotExist(err) {
 		t.Errorf("file still exists: %v", err)
@@ -693,13 +644,7 @@ func TestRemoveFileWhileOpenWriting_Current(t *testing.T) {
 		t.Fatal("error on close: %v", err)
 	}
 
-	fis, err := ioutil.ReadDir(path.Join(mnt.Dir, "jdoe"))
-	if err != nil {
-		t.Fatalf("cannot read dir: %v", err)
-	}
-	if len(fis) != 0 {
-		t.Errorf("unexpected files: %v", fis)
-	}
+	checkDir(t, path.Join(mnt.Dir, "jdoe"), map[string]fileInfoCheck{})
 
 	if _, err := ioutil.ReadFile(p); !os.IsNotExist(err) {
 		t.Errorf("file still exists: %v", err)
@@ -739,13 +684,7 @@ func TestRemoveFileWhileOpenReading(t *testing.T) {
 		t.Fatal("error on close: %v", err)
 	}
 
-	fis, err := ioutil.ReadDir(path.Join(mnt.Dir, "jdoe"))
-	if err != nil {
-		t.Fatalf("cannot read dir: %v", err)
-	}
-	if len(fis) != 0 {
-		t.Errorf("unexpected files: %v", fis)
-	}
+	checkDir(t, path.Join(mnt.Dir, "jdoe"), map[string]fileInfoCheck{})
 
 	if _, err := ioutil.ReadFile(p); !os.IsNotExist(err) {
 		t.Errorf("file still exists: %v", err)
@@ -757,27 +696,15 @@ func TestReaddirMyPublic(t *testing.T) {
 	mnt := makeFS(t, config)
 	defer mnt.Close()
 
-	files := map[string]struct{}{
-		"one": struct{}{},
-		"two": struct{}{},
+	files := map[string]fileInfoCheck{
+		"one": nil,
+		"two": nil,
 	}
 	for filename := range files {
 		if err := ioutil.WriteFile(path.Join(mnt.Dir, "jdoe", "public", filename), []byte("data for "+filename), 0644); err != nil {
 			t.Fatal(err)
 		}
 	}
-	fis, err := ioutil.ReadDir(path.Join(mnt.Dir, "jdoe", "public"))
-	if err != nil {
-		t.Fatal(err)
-	}
-	for _, fi := range fis {
-		if _, ok := files[fi.Name()]; ok {
-			delete(files, fi.Name())
-			continue
-		}
-		t.Errorf("unexpected direntry: %v", fi)
-	}
-	for filename := range files {
-		t.Errorf("never saw file: %v", filename)
-	}
+
+	checkDir(t, path.Join(mnt.Dir, "jdoe", "public"), files)
 }
