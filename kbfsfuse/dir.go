@@ -319,19 +319,26 @@ func (d *Dir) ReadDirAll(ctx context.Context) ([]fuse.Dirent, error) {
 	d.folder.mu.RLock()
 	defer d.folder.mu.RUnlock()
 
-	p := d.getPathLocked()
-	dirBlock, err := d.folder.fs.config.KBFSOps().GetDir(p)
-	if err != nil {
-		return nil, err
-	}
-
 	var res []fuse.Dirent
-	if p.HasPublic() && d.folder.dh.HasPublic() {
+	p := d.getPathLocked()
+	hasPublic := p.HasPublic() && d.folder.dh.HasPublic()
+	if hasPublic {
 		res = append(res, fuse.Dirent{
 			Name: libkbfs.PublicName,
 			Type: fuse.DT_Dir,
 		})
 	}
+
+	if d.folder.id == libkbfs.NullDirId {
+		// It's a dummy folder for the purposes of exposing public.
+		return res, nil
+	}
+
+	dirBlock, err := d.folder.fs.config.KBFSOps().GetDir(p)
+	if err != nil {
+		return nil, err
+	}
+
 	for name, de := range dirBlock.Children {
 		fde := fuse.Dirent{
 			Name: name,

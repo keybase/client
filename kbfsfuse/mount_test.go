@@ -1044,3 +1044,24 @@ func TestReaddirOtherFolderPublicAsAnyone(t *testing.T) {
 		"myfile": nil,
 	})
 }
+
+func TestReaddirOtherFolderAsAnyone(t *testing.T) {
+	config := makeTestConfig("jdoe", "wsmith")
+	func() {
+		mnt := makeFS(t, config)
+		defer mnt.Close()
+
+		// cause the folder to exist
+		if err := ioutil.WriteFile(path.Join(mnt.Dir, "jdoe", "public", "myfile"), []byte("data for myfile"), 0644); err != nil {
+			t.Fatal(err)
+		}
+	}()
+
+	c2 := configAsUser(config, "wsmith")
+	mnt := makeFS(t, c2)
+	defer mnt.Close()
+
+	checkDir(t, path.Join(mnt.Dir, "jdoe"), map[string]fileInfoCheck{
+		"public": mustBeDir,
+	})
+}
