@@ -5,6 +5,7 @@ import (
 
 	"golang.org/x/crypto/openpgp"
 	"golang.org/x/crypto/openpgp/armor"
+	"golang.org/x/crypto/openpgp/errors"
 )
 
 type SignatureStatus struct {
@@ -42,6 +43,9 @@ func PGPDecrypt(source io.Reader, sink io.Writer, kr openpgp.KeyRing) (*Signatur
 
 	md, err := openpgp.ReadMessage(r, kr, nil, nil)
 	if err != nil {
+		if err == errors.ErrKeyIncorrect {
+			return nil, PGPDecError{Msg: "unable to find decryption key for this message"}
+		}
 		return nil, err
 	}
 

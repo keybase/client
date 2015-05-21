@@ -11,6 +11,7 @@ import (
 	keybase1 "github.com/keybase/client/protocol/go"
 	"github.com/maxtaco/go-framed-msgpack-rpc/rpc2"
 	"golang.org/x/crypto/openpgp"
+	"golang.org/x/crypto/openpgp/errors"
 )
 
 func (sh SigHint) Export() *keybase1.SigHint {
@@ -138,6 +139,14 @@ func ExportErrorAsStatus(e error) (ret *keybase1.Status) {
 		return &keybase1.Status{
 			Code: SC_STREAM_EOF,
 			Name: "STREAM_EOF",
+		}
+	}
+
+	if e == errors.ErrKeyIncorrect {
+		return &keybase1.Status{
+			Code: SC_KEY_NO_ACTIVE,
+			Name: "SC_KEY_NO_ACTIVE",
+			Desc: "No PGP key found",
 		}
 	}
 
@@ -700,5 +709,12 @@ func (e ProofNotFoundForUsernameError) ToStatus() (s keybase1.Status) {
 	s.Code = SC_PROOF_ERROR
 	s.Name = "PROOF_ERROR"
 	s.Desc = e.Error()
+	return
+}
+
+func (e PGPDecError) ToStatus() (s keybase1.Status) {
+	s.Code = SC_KEY_NOT_FOUND
+	s.Name = "KEY_NOT_FOUND"
+	s.Desc = e.Msg
 	return
 }

@@ -59,6 +59,7 @@ const (
 	SC_ALREADY_LOGGED_IN         = 235
 	SC_CANCELED                  = 237
 	SC_BAD_SIGNUP_USERNAME_TAKEN = 701
+	SC_KEY_NOT_FOUND             = 901
 	SC_KEY_IN_USE                = 907
 	SC_KEY_BAD_GEN               = 913
 	SC_KEY_NO_SECRET             = 914

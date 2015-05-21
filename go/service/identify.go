@@ -8,10 +8,11 @@ import (
 )
 
 type RemoteBaseIdentifyUI struct {
-	sessionId int
-	uicli     keybase1.IdentifyUiClient
-	logUI     libkb.LogUI
-	strict    bool
+	sessionId  int
+	uicli      keybase1.IdentifyUiClient
+	logUI      libkb.LogUI
+	strict     bool
+	skipPrompt bool
 }
 
 type RemoteSelfIdentifyUI struct {
@@ -78,6 +79,10 @@ func (u *RemoteBaseIdentifyUI) FinishSocialProofCheck(p keybase1.RemoteProof, lc
 }
 
 func (u *RemoteBaseIdentifyUI) FinishAndPrompt(io *keybase1.IdentifyOutcome) (keybase1.FinishAndPromptRes, error) {
+	if u.skipPrompt {
+		G.Log.Debug("skipping FinishAndPrompt for %q", io.Username)
+		return keybase1.FinishAndPromptRes{}, nil
+	}
 	return u.uicli.FinishAndPrompt(keybase1.FinishAndPromptArg{SessionID: u.sessionId, Outcome: *io})
 }
 

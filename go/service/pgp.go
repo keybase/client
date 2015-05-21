@@ -77,7 +77,7 @@ func (h *PGPHandler) PgpDecrypt(arg keybase1.PgpDecryptArg) (keybase1.PgpSigVeri
 	}
 	ctx := &engine.Context{
 		SecretUI:   h.getSecretUI(arg.SessionID),
-		IdentifyUI: h.NewRemoteIdentifyUI(arg.SessionID),
+		IdentifyUI: h.NewRemoteSkipPromptIdentifyUI(arg.SessionID),
 		LogUI:      h.getLogUI(arg.SessionID),
 	}
 	eng := engine.NewPGPDecrypt(earg, G)

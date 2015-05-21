@@ -131,3 +131,9 @@ func (h *BaseHandler) NewRemoteIdentifyUI(sessionId int) *RemoteIdentifyUI {
 		logUI:     h.getLogUI(sessionId),
 	}}
 }
+
+func (h *BaseHandler) NewRemoteSkipPromptIdentifyUI(sessionId int) *RemoteIdentifyUI {
+	c := h.NewRemoteIdentifyUI(sessionId)
+	c.skipPrompt = true
+	return c
+}

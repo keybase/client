@@ -867,3 +867,11 @@ type APINetError struct {
 func (e APINetError) Error() string {
 	return fmt.Sprintf("API network error: %s", e.err)
 }
+
+type PGPDecError struct {
+	Msg string
+}
+
+func (e PGPDecError) Error() string {
+	return fmt.Sprintf("pgp decrypt error: %s", e.Msg)
+}
