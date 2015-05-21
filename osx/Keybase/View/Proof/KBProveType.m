@@ -1,5 +1,5 @@
 //
-//  KBProveType.m
+//  KBRProveType.m
 //  Keybase
 //
 //  Created by Gabriel on 2/9/15.
@@ -9,74 +9,66 @@
 #import "KBProveType.h"
 
 
-KBProveType KBProveTypeForServiceName(NSString *serviceName) {
-  if ([serviceName isEqualTo:@"twitter"]) return KBProveTypeTwitter;
-  if ([serviceName isEqualTo:@"github"]) return KBProveTypeGithub;
-  if ([serviceName isEqualTo:@"reddit"]) return KBProveTypeReddit;
-  if ([serviceName isEqualTo:@"coinbase"]) return KBProveTypeCoinbase;
-  if ([serviceName isEqualTo:@"hackernews"]) return KBProveTypeHackernews;
-  if ([serviceName isEqualTo:@"dns"]) return KBProveTypeDNS;
-  if ([serviceName isEqualTo:@"https"]) return KBProveTypeHTTPS;
-  return KBProveTypeUnknown;
+KBRProofType KBRProofTypeForServiceName(NSString *serviceName) {
+  if ([serviceName isEqualTo:@"twitter"]) return KBRProofTypeTwitter;
+  if ([serviceName isEqualTo:@"github"]) return KBRProofTypeGithub;
+  if ([serviceName isEqualTo:@"reddit"]) return KBRProofTypeReddit;
+  if ([serviceName isEqualTo:@"coinbase"]) return KBRProofTypeCoinbase;
+  if ([serviceName isEqualTo:@"hackernews"]) return KBRProofTypeHackernews;
+  if ([serviceName isEqualTo:@"dns"]) return KBRProofTypeDns;
+  if ([serviceName isEqualTo:@"https"]) return KBRProofTypeGenericWebSite;
+  return KBRProofTypeNone;
 }
 
-NSString *KBServiceNameForProveType(KBProveType proveType) {
+NSString *KBServiceNameForProveType(KBRProofType proveType) {
   switch (proveType) {
-    case KBProveTypeUnknown: return nil;
-    case KBProveTypeTwitter: return @"twitter";
-    case KBProveTypeGithub: return @"github";
-    case KBProveTypeReddit: return @"reddit";
-    case KBProveTypeCoinbase: return @"coinbase";
-    case KBProveTypeHackernews: return @"hackernews";
-    case KBProveTypeDNS: return @"dns";
-    case KBProveTypeHTTPS: return @"https";
+    case KBRProofTypeNone: return nil;
+    case KBRProofTypeTwitter: return @"twitter";
+    case KBRProofTypeGithub: return @"github";
+    case KBRProofTypeReddit: return @"reddit";
+    case KBRProofTypeCoinbase: return @"coinbase";
+    case KBRProofTypeHackernews: return @"hackernews";
+    case KBRProofTypeDns: return @"dns";
+    case KBRProofTypeGenericWebSite: return @"https";
+    case KBRProofTypeKeybase: return @"keybase";
   }
 }
 
-NSString *KBImageNameForProveType(KBProveType proveType) {
+NSString *KBImageNameForProveType(KBRProofType proveType) {
   switch (proveType) {
-    case KBProveTypeTwitter: return @"Social networks-Outline-Twitter-25";
-    case KBProveTypeGithub: return @"Social networks-Outline-Github-25";
-    case KBProveTypeReddit: return @"Social networks-Outline-Reddit-25";
+    case KBRProofTypeTwitter: return @"Social networks-Outline-Twitter-25";
+    case KBRProofTypeGithub: return @"Social networks-Outline-Github-25";
+    case KBRProofTypeReddit: return @"Social networks-Outline-Reddit-25";
     default:
       return nil;
   }
 }
 
-NSString *KBShortNameForProveType(KBProveType proveType) {
+NSString *KBShortNameForProveType(KBRProofType proveType) {
   switch (proveType) {
-    case KBProveTypeUnknown: return nil;
-    case KBProveTypeTwitter: return @"Twitter";
-    case KBProveTypeGithub: return @"Github";
-    case KBProveTypeReddit: return @"Reddit";
-    case KBProveTypeCoinbase: return @"Coinbase";
-    case KBProveTypeHackernews: return @"HN";
-    case KBProveTypeDNS: return @"DNS";
-    case KBProveTypeHTTPS: return @"HTTPS";
+    case KBRProofTypeNone: return nil;
+    case KBRProofTypeTwitter: return @"Twitter";
+    case KBRProofTypeGithub: return @"Github";
+    case KBRProofTypeReddit: return @"Reddit";
+    case KBRProofTypeCoinbase: return @"Coinbase";
+    case KBRProofTypeHackernews: return @"HN";
+    case KBRProofTypeDns: return @"DNS";
+    case KBRProofTypeGenericWebSite: return @"HTTPS";
+    case KBRProofTypeKeybase: return @"Keybase";
   }
 }
 
-NSString *KBNameForProveType(KBProveType proveType) {
+NSString *KBNameForProveType(KBRProofType proveType) {
   switch (proveType) {
-    case KBProveTypeUnknown: return nil;
-    case KBProveTypeTwitter: return @"Twitter";
-    case KBProveTypeGithub: return @"Github";
-    case KBProveTypeReddit: return @"Reddit";
-    case KBProveTypeCoinbase: return @"Coinbase";
-    case KBProveTypeHackernews: return @"HackerNews";
-    case KBProveTypeDNS: return @"Domain";
-    case KBProveTypeHTTPS: return @"Website";
+    case KBRProofTypeNone: return nil;
+    case KBRProofTypeTwitter: return @"Twitter";
+    case KBRProofTypeGithub: return @"Github";
+    case KBRProofTypeReddit: return @"Reddit";
+    case KBRProofTypeCoinbase: return @"Coinbase";
+    case KBRProofTypeHackernews: return @"HackerNews";
+    case KBRProofTypeDns: return @"Domain";
+    case KBRProofTypeGenericWebSite: return @"Website";
+    case KBRProofTypeKeybase: return @"Keybase";
   }
-}
-
-KBProveType KBProveTypeFromAPI(NSInteger proofType) {
-  if (proofType == 2) return KBProveTypeTwitter;
-  else if (proofType == 3) return KBProveTypeGithub;
-  else if (proofType == 1000) return KBProveTypeHTTPS;
-  else if (proofType == 1001) return KBProveTypeDNS;
-  else if (proofType == 4) return KBProveTypeReddit;
-  else if (proofType == 5) return KBProveTypeCoinbase;
-  else if (proofType == 6) return KBProveTypeHackernews;
-  return KBProveTypeUnknown;
 }
 

@@ -75,43 +75,33 @@
 @end
 
 @interface KBRBlockIdCombo : KBRObject
-@property NSData *blockId;
+@property NSString *blockHash;
 @property NSInteger size;
-@end
-
-@interface KBRBlockInfo : KBRObject
 @property KBRUID *chargedTo;
-@property NSData *folder;
-@property NSData *sKey;
-@property NSData *nonce;
 @end
 
-@interface KBRBIndexRequest : KBRRequest
-- (void)bIndexSessionWithSid:(NSString *)sid completion:(void (^)(NSError *error))completion;
-
-- (void)getBIndexSKeyWithBid:(KBRBlockIdCombo *)bid completion:(void (^)(NSError *error, NSData *bytes))completion;
-
-- (void)putBIndexWithBid:(KBRBlockIdCombo *)bid info:(KBRBlockInfo *)info completion:(void (^)(NSError *error))completion;
-
-- (void)decBIndexReferenceWithBid:(KBRBlockIdCombo *)bid nonce:(NSData *)nonce chargedTo:(KBRUID *)chargedTo completion:(void (^)(NSError *error))completion;
-
-- (void)incBIndexReferenceWithBid:(KBRBlockIdCombo *)bid nonce:(NSData *)nonce chargedTo:(KBRUID *)chargedTo completion:(void (^)(NSError *error))completion;
-
-- (void)getBIndexAllWithBid:(KBRBlockIdCombo *)bid completion:(void (^)(NSError *error, NSArray *items))completion;
-
+@interface KBRBlockKey : KBRObject
+@property NSInteger epochID;
+@property NSString *epochKey;
+@property NSString *randBlockId;
+@property NSString *blockKey;
 @end
 
-@interface KBRBlockCharge : KBRObject
-@property KBRBlockIdCombo *bid;
-@property KBRUID *uid;
+@interface KBRGetBlockRes : KBRObject
+@property KBRBlockKey *skey;
+@property NSData *buf;
 @end
 
 @interface KBRBlockRequest : KBRRequest
-- (void)blockSessionWithSid:(NSString *)sid completion:(void (^)(NSError *error))completion;
+- (void)establishSessionWithSid:(NSString *)sid completion:(void (^)(NSError *error))completion;
 
-- (void)getBlockWithBid:(KBRBlockIdCombo *)bid completion:(void (^)(NSError *error, NSData *bytes))completion;
+- (void)putBlockWithBid:(KBRBlockIdCombo *)bid folder:(NSString *)folder skey:(KBRBlockKey *)skey buf:(NSData *)buf completion:(void (^)(NSError *error))completion;
 
-- (void)putBlockWithBid:(KBRBlockIdCombo *)bid buf:(NSData *)buf completion:(void (^)(NSError *error))completion;
+- (void)getBlockWithBid:(KBRBlockIdCombo *)bid completion:(void (^)(NSError *error, KBRGetBlockRes *getBlockRes))completion;
+
+- (void)incBlockReferenceWithBid:(KBRBlockIdCombo *)bid nonce:(NSString *)nonce folder:(NSString *)folder chargedTo:(KBRUID *)chargedTo completion:(void (^)(NSError *error))completion;
+
+- (void)decBlockReferenceWithBid:(KBRBlockIdCombo *)bid nonce:(NSString *)nonce folder:(NSString *)folder chargedTo:(KBRUID *)chargedTo completion:(void (^)(NSError *error))completion;
 
 @end
 
@@ -180,6 +170,7 @@ typedef NS_ENUM (NSInteger, KBRDoctorFixType) {
 	KBRDoctorFixTypeAddEldestDevice,
 	KBRDoctorFixTypeAddSiblingDevice,
 };
+
 @interface KBRDoctorSignerOpts : KBRObject
 @property BOOL otherDevice;
 @property BOOL pgp;
@@ -225,6 +216,66 @@ typedef NS_ENUM (NSInteger, KBRDoctorFixType) {
 
 @end
 
+typedef NS_ENUM (NSInteger, KBRProofState) {
+	KBRProofStateNone = 0,
+	KBRProofStateOk = 1,
+	KBRProofStateTempFailure = 2,
+	KBRProofStatePermFailure = 3,
+	KBRProofStateLooking = 4,
+	KBRProofStateSuperseded = 5,
+	KBRProofStatePosted = 6,
+	KBRProofStateRevoked = 7,
+};
+
+typedef NS_ENUM (NSInteger, KBRProofCheckStatus) {
+	KBRProofCheckStatusNone = 0,
+	KBRProofCheckStatusOk = 1,
+	KBRProofCheckStatusLocal = 2,
+	KBRProofCheckStatusFound = 3,
+	KBRProofCheckStatusHostUnreachable = 101,
+	KBRProofCheckStatusPermissionDenied = 103,
+	KBRProofCheckStatusFailedParse = 106,
+	KBRProofCheckStatusDnsError = 107,
+	KBRProofCheckStatusAuthFailed = 108,
+	KBRProofCheckStatusHttp500 = 150,
+	KBRProofCheckStatusTimeout = 160,
+	KBRProofCheckStatusInternalError = 170,
+	KBRProofCheckStatusNotFound = 201,
+	KBRProofCheckStatusContentFailure = 202,
+	KBRProofCheckStatusBadUsername = 203,
+	KBRProofCheckStatusBadRemoteId = 204,
+	KBRProofCheckStatusTextNotFound = 205,
+	KBRProofCheckStatusBadArgs = 206,
+	KBRProofCheckStatusContentMissing = 207,
+	KBRProofCheckStatusTitleNotFound = 208,
+	KBRProofCheckStatusServiceError = 209,
+	KBRProofCheckStatusTorSkipped = 210,
+	KBRProofCheckStatusTorIncompatible = 211,
+	KBRProofCheckStatusHttp300 = 230,
+	KBRProofCheckStatusHttp400 = 240,
+	KBRProofCheckStatusHttpOther = 260,
+	KBRProofCheckStatusEmptyJson = 270,
+	KBRProofCheckStatusDeleted = 301,
+	KBRProofCheckStatusServiceDead = 302,
+	KBRProofCheckStatusBadSignature = 303,
+	KBRProofCheckStatusBadApiUrl = 304,
+	KBRProofCheckStatusUnknownType = 305,
+	KBRProofCheckStatusNoHint = 306,
+	KBRProofCheckStatusBadHintText = 307,
+};
+
+typedef NS_ENUM (NSInteger, KBRProofType) {
+	KBRProofTypeNone = 0,
+	KBRProofTypeKeybase = 1,
+	KBRProofTypeTwitter = 2,
+	KBRProofTypeGithub = 3,
+	KBRProofTypeReddit = 4,
+	KBRProofTypeCoinbase = 5,
+	KBRProofTypeHackernews = 6,
+	KBRProofTypeGenericWebSite = 1000,
+	KBRProofTypeDns = 1001,
+};
+
 typedef NS_ENUM (NSInteger, KBRTrackDiffType) {
 	KBRTrackDiffTypeNone,
 	KBRTrackDiffTypeError,
@@ -236,6 +287,7 @@ typedef NS_ENUM (NSInteger, KBRTrackDiffType) {
 	KBRTrackDiffTypeRemoteWorking,
 	KBRTrackDiffTypeRemoteChanged,
 };
+
 @interface KBRTrackDiff : KBRObject
 @property KBRTrackDiffType type;
 @property NSString *displayMarkup;
@@ -268,7 +320,7 @@ typedef NS_ENUM (NSInteger, KBRTrackDiffType) {
 @end
 
 @interface KBRRemoteProof : KBRObject
-@property NSInteger proofType;
+@property KBRProofType proofType;
 @property NSString *key;
 @property NSString *value;
 @property NSString *displayMarkup;
@@ -370,11 +422,13 @@ typedef NS_ENUM (NSInteger, KBRDeviceSignerKind) {
 	KBRDeviceSignerKindDevice,
 	KBRDeviceSignerKindPgp,
 };
+
 typedef NS_ENUM (NSInteger, KBRSelectSignerAction) {
 	KBRSelectSignerActionSign,
 	KBRSelectSignerActionCancel,
 	KBRSelectSignerActionResetAccount,
 };
+
 @interface KBRDeviceSigner : KBRObject
 @property KBRDeviceSignerKind kind;
 @property NSString *deviceID;
@@ -401,6 +455,7 @@ typedef NS_ENUM (NSInteger, KBRKexStatusCode) {
 	KBRKexStatusCodeDoneSend,
 	KBRKexStatusCodeEnd,
 };
+
 @interface KBRLocksmithUiRequest : KBRRequest
 - (void)promptDeviceNameWithSessionID:(NSInteger)sessionID completion:(void (^)(NSError *error, NSString *str))completion;
 
@@ -421,6 +476,7 @@ typedef NS_ENUM (NSInteger, KBRLogLevel) {
 	KBRLogLevelError,
 	KBRLogLevelCritical,
 };
+
 @interface KBRLogUiRequest : KBRRequest
 - (void)logWithSessionID:(NSInteger)sessionID level:(KBRLogLevel)level text:(KBRText *)text completion:(void (^)(NSError *error))completion;
 
@@ -460,6 +516,7 @@ typedef NS_ENUM (NSInteger, KBRSignMode) {
 	KBRSignModeDetached,
 	KBRSignModeClear,
 };
+
 @interface KBRPgpSignOptions : KBRObject
 @property NSString *keyQuery;
 @property KBRSignMode mode;
@@ -538,15 +595,18 @@ typedef NS_ENUM (NSInteger, KBRSignMode) {
 
 @interface KBRCheckProofStatus : KBRObject
 @property BOOL found;
-@property NSInteger status;
+@property KBRProofCheckStatus status;
+@property NSString *proofText;
+@end
+
+@interface KBRStartProofResult : KBRObject
+@property NSString *sigID;
 @end
 
 @interface KBRProveRequest : KBRRequest
-- (void)startProofWithSessionID:(NSInteger)sessionID service:(NSString *)service username:(NSString *)username force:(BOOL)force completion:(void (^)(NSError *error))completion;
+- (void)startProofWithSessionID:(NSInteger)sessionID service:(NSString *)service username:(NSString *)username force:(BOOL)force promptPosted:(BOOL)promptPosted completion:(void (^)(NSError *error, KBRStartProofResult *startProofResult))completion;
 
-- (void)cancelProofWithSessionID:(NSInteger)sessionID completion:(void (^)(NSError *error))completion;
-
-- (void)checkProofWithSessionID:(NSInteger)sessionID sigID:(KBRSIGID *)sigID completion:(void (^)(NSError *error, KBRCheckProofStatus *checkProofStatus))completion;
+- (void)checkProofWithSessionID:(NSInteger)sessionID sigID:(NSString *)sigID completion:(void (^)(NSError *error, KBRCheckProofStatus *checkProofStatus))completion;
 
 @end
 
@@ -554,6 +614,7 @@ typedef NS_ENUM (NSInteger, KBRPromptOverwriteType) {
 	KBRPromptOverwriteTypeSocial,
 	KBRPromptOverwriteTypeSite,
 };
+
 @interface KBRProveUiRequest : KBRRequest
 - (void)promptOverwriteWithSessionID:(NSInteger)sessionID account:(NSString *)account typ:(KBRPromptOverwriteType)typ completion:(void (^)(NSError *error, BOOL b))completion;
 
@@ -752,38 +813,29 @@ typedef NS_ENUM (NSInteger, KBRPromptOverwriteType) {
 - (void)searchWithSessionID:(NSInteger)sessionID query:(NSString *)query completion:(void (^)(NSError *error, NSArray *items))completion;
 
 @end
-@interface KBRBIndexSessionRequestParams : KBRRequestParams
+@interface KBREstablishSessionRequestParams : KBRRequestParams
 @property NSString *sid;
 @end
-@interface KBRGetBIndexSKeyRequestParams : KBRRequestParams
+@interface KBRPutBlockRequestParams : KBRRequestParams
 @property KBRBlockIdCombo *bid;
-@end
-@interface KBRPutBIndexRequestParams : KBRRequestParams
-@property KBRBlockIdCombo *bid;
-@property KBRBlockInfo *info;
-@end
-@interface KBRDecBIndexReferenceRequestParams : KBRRequestParams
-@property KBRBlockIdCombo *bid;
-@property NSData *nonce;
-@property KBRUID *chargedTo;
-@end
-@interface KBRIncBIndexReferenceRequestParams : KBRRequestParams
-@property KBRBlockIdCombo *bid;
-@property NSData *nonce;
-@property KBRUID *chargedTo;
-@end
-@interface KBRGetBIndexAllRequestParams : KBRRequestParams
-@property KBRBlockIdCombo *bid;
-@end
-@interface KBRBlockSessionRequestParams : KBRRequestParams
-@property NSString *sid;
+@property NSString *folder;
+@property KBRBlockKey *skey;
+@property NSData *buf;
 @end
 @interface KBRGetBlockRequestParams : KBRRequestParams
 @property KBRBlockIdCombo *bid;
 @end
-@interface KBRPutBlockRequestParams : KBRRequestParams
+@interface KBRIncBlockReferenceRequestParams : KBRRequestParams
 @property KBRBlockIdCombo *bid;
-@property NSData *buf;
+@property NSString *nonce;
+@property NSString *folder;
+@property KBRUID *chargedTo;
+@end
+@interface KBRDecBlockReferenceRequestParams : KBRRequestParams
+@property KBRBlockIdCombo *bid;
+@property NSString *nonce;
+@property NSString *folder;
+@property KBRUID *chargedTo;
 @end
 @interface KBRRegisterBTCRequestParams : KBRRequestParams
 @property NSInteger sessionID;
@@ -993,13 +1045,11 @@ typedef NS_ENUM (NSInteger, KBRPromptOverwriteType) {
 @property NSString *service;
 @property NSString *username;
 @property BOOL force;
-@end
-@interface KBRCancelProofRequestParams : KBRRequestParams
-@property NSInteger sessionID;
+@property BOOL promptPosted;
 @end
 @interface KBRCheckProofRequestParams : KBRRequestParams
 @property NSInteger sessionID;
-@property KBRSIGID *sigID;
+@property NSString *sigID;
 @end
 @interface KBRPromptOverwriteRequestParams : KBRRequestParams
 @property NSInteger sessionID;

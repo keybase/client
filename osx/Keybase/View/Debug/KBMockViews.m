@@ -86,7 +86,7 @@
 
   [contentView addSubview:[KBBox lineWithInsets:UIEdgeInsetsMake(10, 10, 10, 10)]];
 
-  [contentView addSubview:[KBButton linkWithText:@"Prove" targetBlock:^{ [self showProve:KBProveTypeTwitter]; }]];
+  [contentView addSubview:[KBButton linkWithText:@"Prove" targetBlock:^{ [self showProve:KBRProofTypeTwitter]; }]];
   [contentView addSubview:[KBButton linkWithText:@"Prove Instructions" targetBlock:^{ [self showProveInstructions]; }]];
   [contentView addSubview:[KBButton linkWithText:@"Track" targetBlock:^{ [self showTrack]; }]];
 
@@ -127,8 +127,8 @@
   [progressView openAndDoIt:self];
 }
 
-- (void)showProve:(KBProveType)type {
-  [KBProveView connectWithProveType:type proofResult:nil client:self.mockClient sender:self completion:^(KBProofResult *proofResult) {
+- (void)showProve:(KBRProofType)type {
+  [KBProveView connectWithProveType:type proofResult:nil client:self.mockClient sender:self completion:^(BOOL success) {
 
   }];
 }
@@ -209,11 +209,8 @@
 
 - (void)showProveInstructions {
   KBProveInstructionsView *instructionsView = [[KBProveInstructionsView alloc] init];
-  KBRText *text = [[KBRText alloc] init];
-  text.data = @"<p>Please <strong>publicly</strong> post the following to the internets, and name it <strong>hello.md</strong></p>";
-  text.markup = 1;
   NSString *proofText = @"Seitan four dollar toast banh mi, ethical ugh umami artisan paleo brunch listicle synth try-hard pop-up. Next level mixtape selfies, freegan Schlitz bitters Echo Park semiotics. Gentrify sustainable farm-to-table, cliche crucifix biodiesel ennui taxidermy try-hard cold-pressed Brooklyn fixie narwhal Bushwick Pitchfork. Ugh Etsy chia 3 wolf moon, drinking vinegar street art yr stumptown cliche Thundercats Marfa umami beard shabby chic Portland. Skateboard Vice four dollar toast stumptown, salvia direct trade hoodie. Wes Anderson swag small batch vinyl, taxidermy biodiesel Shoreditch cray pickled kale chips typewriter deep v. Actually XOXO tousled, freegan Marfa squid trust fund cardigan irony.\n\nPaleo pork belly heirloom dreamcatcher gastropub tousled. Banjo bespoke try-hard, gentrify Pinterest pork belly Schlitz sartorial narwhal Odd Future biodiesel 8-bit before they sold out selvage. Brunch disrupt put a bird on it Neutra organic. Pickled dreamcatcher post-ironic sriracha, organic Austin Bushwick Odd Future Marfa. Narwhal heirloom Tumblr forage trust fund, roof party gentrify keffiyeh High Life synth kogi Banksy. Kitsch photo booth slow-carb pour-over Etsy, Intelligentsia raw denim lomo. Brooklyn PBR&B Kickstarter direct trade literally, jean shorts photo booth narwhal irony kogi.";
-  [instructionsView setInstructions:text proofText:proofText proveType:KBProveTypeTwitter];
+  [instructionsView setProofText:proofText proveType:KBRProofTypeTwitter];
   [self openInWindow:instructionsView size:CGSizeMake(360, 420) title:@"Keybase"];
 }
 

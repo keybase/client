@@ -10,7 +10,6 @@
 
 #import "KBAppKit.h"
 #import "KBRPC.h"
-#import "KBProveType.h"
 #import "KBContentView.h"
 
 @interface KBProveInstructionsView : KBContentView
@@ -21,9 +20,8 @@
 
 @property KBButton *button;
 @property KBButton *cancelButton;
-@property KBButton *deleteButton;
 
-- (void)setInstructions:(KBRText *)instructions proofText:(NSString *)proofText proveType:(KBProveType)proveType;
+- (void)setProofText:(NSString *)proofText proveType:(KBRProofType)proveType;
 
 @end
 

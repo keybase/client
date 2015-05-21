@@ -9,10 +9,10 @@
 #import <Foundation/Foundation.h>
 
 #import "KBAppKit.h"
-#import "KBProveType.h"
+#import "KBRPC.h"
 
 @interface KBProveInputView : YOView
-@property (nonatomic) KBProveType proveType;
+@property (nonatomic) KBRProofType proveType;
 
 @property KBLabel *header;
 @property KBLabel *label;

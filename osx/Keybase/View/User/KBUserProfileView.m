@@ -23,6 +23,7 @@
 #import "KBProgressView.h"
 #import "KBKeyView.h"
 #import "KBKeyImportView.h"
+#import "KBProveType.h"
 
 @interface KBUserProfileView ()
 @property KBScrollView *scrollView;
@@ -97,10 +98,9 @@
   [self setNeedsLayout];
 }
 
-- (void)connectWithProveType:(KBProveType)proveType proofResult:(KBProofResult *)proofResult {
+- (void)connectWithProveType:(KBRProofType)proveType proofResult:(KBProofResult *)proofResult {
   GHWeakSelf gself = self;
-  [KBProveView connectWithProveType:proveType proofResult:proofResult client:self.client sender:self completion:^(KBProofResult *proofResult) {
-    //if (!canceled) [gself reload];
+  [KBProveView connectWithProveType:proveType proofResult:proofResult client:self.client sender:self completion:^(BOOL success) {
     [gself reload]; // Always reload even if canceled
   }];
 }
@@ -142,7 +142,7 @@
     BOOL isSelf = [AppDelegate.appView.user.username isEqual:self.username];
     [gself.userInfoView addProofs:requestParams.id.proofs editable:isSelf targetBlock:^(KBProofLabel *proofLabel) {
       if (proofLabel.proofResult.result.proofStatus.status != 1) {
-        KBProveType proveType = KBProveTypeFromAPI(proofLabel.proofResult.proof.proofType);
+        KBRProofType proveType = proofLabel.proofResult.proof.proofType;
         [self connectWithProveType:proveType proofResult:proofLabel.proofResult];
       } else if (proofLabel.proofResult.result.hint.humanUrl) {
         [AppDelegate.sharedDelegate openURLString:proofLabel.proofResult.result.hint.humanUrl sender:self];
@@ -306,26 +306,27 @@
     }
 
     for (NSNumber *proveTypeNumber in [gself.userInfoView missingProveTypes]) {
-      KBProveType proveType = [proveTypeNumber integerValue];
+      KBRProofType proveType = [proveTypeNumber integerValue];
 
       switch (proveType) {
-        case KBProveTypeDNS: {
+        case KBRProofTypeDns: {
           [gself.userInfoView addHeader:@" " text:@"Add Domain" targetBlock:^{ [gself connectWithProveType:proveType proofResult:nil]; }];
           break;
         }
-        case KBProveTypeHTTPS: {
+        case KBRProofTypeGenericWebSite: {
           [gself.userInfoView addHeader:@" " text:@"Add Website" targetBlock:^{ [gself connectWithProveType:proveType proofResult:nil]; }];
           break;
         }
-        case KBProveTypeTwitter:
-        case KBProveTypeGithub:
-        case KBProveTypeReddit:
-        case KBProveTypeCoinbase:
-        case KBProveTypeHackernews: {
+        case KBRProofTypeKeybase:
+        case KBRProofTypeTwitter:
+        case KBRProofTypeGithub:
+        case KBRProofTypeReddit:
+        case KBRProofTypeCoinbase:
+        case KBRProofTypeHackernews: {
           [gself.userInfoView addHeader:@" " text:NSStringWithFormat(@"Connect to %@", KBNameForProveType(proveType)) targetBlock:^{ [gself connectWithProveType:proveType proofResult:nil]; }];
           break;
         }
-        case KBProveTypeUnknown:
+        case KBRProofTypeNone:
           break;
       }
     }

@@ -8,6 +8,8 @@
 
 #import "KBProveInputView.h"
 
+#import "KBProveType.h"
+
 @implementation KBProveInputView
 
 - (void)viewInit {
@@ -27,6 +29,14 @@
   _cancelButton = [KBButton buttonWithText:@"Cancel" style:KBButtonStyleLink];
   [self addSubview:_cancelButton];
 
+  YOHBox *bottomView = [YOHBox box:@{@"spacing": @(20), @"minSize": @"130,0", @"horizontalAlignment": @"center"}];
+  [self addSubview:bottomView];
+  _cancelButton = [KBButton buttonWithText:@"Cancel" style:KBButtonStyleDefault];
+  [bottomView addSubview:_cancelButton];
+  _button = [KBButton buttonWithText:@"Connect" style:KBButtonStylePrimary];
+  [bottomView addSubview:_button];
+
+
   YOSelf yself = self;
   self.viewLayout = [YOLayout layoutWithLayoutBlock:^(id<YOLayout> layout, CGSize size) {
     CGFloat y = 0;
@@ -37,15 +47,13 @@
 
     y += [layout centerWithSize:CGSizeMake(200, 0) frame:CGRectMake(0, y, size.width, 0) view:yself.inputField].size.height + 40;
 
-    y += [layout centerWithSize:CGSizeMake(200, 0) frame:CGRectMake(0, y, size.width, 0) view:yself.button].size.height + 20;
-    
-    y += [layout centerWithSize:CGSizeMake(200, 0) frame:CGRectMake(0, y, size.width, 0) view:yself.cancelButton].size.height;
+    y += [layout centerWithSize:CGSizeMake(300, 0) frame:CGRectMake(0, y, size.width, 0) view:bottomView].size.height + 20;
 
     return CGSizeMake(size.width, y);
   }];
 }
 
-- (void)setProveType:(KBProveType)proveType {
+- (void)setProveType:(KBRProofType)proveType {
   _proveType = proveType;
   _inputField.placeholder = nil;
   _label.attributedText = nil;
@@ -54,35 +62,39 @@
   NSString *labelText = @"";
   NSString *placeholder = @"";
   switch (proveType) {
-    case KBProveTypeTwitter:
+    case KBRProofTypeTwitter:
       labelText = @"What's your Twitter username?";
       placeholder = @"@username";
       break;
-    case KBProveTypeGithub:
+    case KBRProofTypeGithub:
       labelText = @"What's your Github username?";
       placeholder = @"username";
       break;
-    case KBProveTypeReddit:
+    case KBRProofTypeReddit:
       labelText = @"What's your Reddit username?";
       placeholder = @"username";
       break;
-    case KBProveTypeCoinbase:
+    case KBRProofTypeCoinbase:
       labelText = @"What's your Coinbase username?";
       placeholder = @"username";
       break;
-    case KBProveTypeHackernews:
+    case KBRProofTypeHackernews:
       labelText = @"What's your HackerNews username?";
       placeholder = @"username";
       break;
-    case KBProveTypeDNS:
+    case KBRProofTypeDns:
       labelText = @"What domain name do you want to add?";
       placeholder = @"yoursite.com";
       break;
-    case KBProveTypeHTTPS:
+    case KBRProofTypeGenericWebSite:
       labelText = @"What website do you want to add?";
       placeholder = @"yoursite.com";
       break;
-    case KBProveTypeUnknown:
+    case KBRProofTypeKeybase:
+      labelText = @"What's your Keybase username?";
+      placeholder = @"username";
+      break;
+    case KBRProofTypeNone:
       break;
   }
 

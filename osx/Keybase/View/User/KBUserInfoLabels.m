@@ -9,7 +9,7 @@
 #import "KBUserInfoLabels.h"
 
 #import "KBProofLabel.h"
-
+#import "KBProveType.h"
 
 @interface KBUserInfoLabels ()
 @property KBLabel *headerLabel;
@@ -105,7 +105,7 @@
   [self setNeedsLayout];
 }
 
-- (void)addProofResults:(NSArray *)proofResults proveType:(KBProveType)proveType editable:(BOOL)editable targetBlock:(void (^)(KBProofLabel *proofLabel))targetBlock {
+- (void)addProofResults:(NSArray *)proofResults proveType:(KBRProofType)proveType editable:(BOOL)editable targetBlock:(void (^)(KBProofLabel *proofLabel))targetBlock {
   _proofResults = proofResults;
   //NSImage *image = [NSImage imageNamed:KBImageNameForProveType(proveType)];
   //_imageView.image = image;

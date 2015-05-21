@@ -1,5 +1,5 @@
 //
-//  KBProveType.h
+//  KBRProveType.h
 //  Keybase
 //
 //  Created by Gabriel on 2/9/15.
@@ -8,21 +8,13 @@
 
 #import <Foundation/Foundation.h>
 
-typedef NS_ENUM (NSInteger, KBProveType) {
-  KBProveTypeUnknown,
-  KBProveTypeTwitter,
-  KBProveTypeGithub,
-  KBProveTypeReddit,
-  KBProveTypeCoinbase,
-  KBProveTypeHackernews,
-  KBProveTypeHTTPS,
-  KBProveTypeDNS,
-};
-NSString *KBServiceNameForProveType(KBProveType proveType);
-KBProveType KBProveTypeForServiceName(NSString *serviceName);
-KBProveType KBProveTypeFromAPI(NSInteger proofType);
+#import "KBRPC.h"
 
-NSString *KBImageNameForProveType(KBProveType proveType);
-NSString *KBShortNameForProveType(KBProveType proveType);
-NSString *KBNameForProveType(KBProveType proveType);
+NSString *KBServiceNameForProveType(KBRProofType proveType);
+KBRProofType KBRProofTypeForServiceName(NSString *serviceName);
+KBRProofType KBRProofTypeFromAPI(NSInteger proofType);
+
+NSString *KBImageNameForProveType(KBRProofType proveType);
+NSString *KBShortNameForProveType(KBRProofType proveType);
+NSString *KBNameForProveType(KBRProofType proveType);
 

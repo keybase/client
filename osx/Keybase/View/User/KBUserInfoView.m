@@ -65,16 +65,16 @@
 }
 
 - (NSArray *)missingProveTypes {
-  NSMutableArray *proveTypes = [@[@(KBProveTypeTwitter), @(KBProveTypeGithub), @(KBProveTypeReddit), @(KBProveTypeCoinbase), @(KBProveTypeHackernews),] mutableCopy];
+  NSMutableArray *proveTypes = [@[@(KBRProofTypeTwitter), @(KBRProofTypeGithub), @(KBRProofTypeReddit), @(KBRProofTypeCoinbase), @(KBRProofTypeHackernews),] mutableCopy];
 
   for (KBUserInfoLabels *label in _labels) {
     for (KBProofResult *proofResult in label.proofResults) {
-      [proveTypes removeObject:@(KBProveTypeFromAPI([[proofResult proof] proofType]))];
+      [proveTypes removeObject:@([[proofResult proof] proofType])];
     }
   }
 
   // We can always add more of these types
-  [proveTypes addObjectsFromArray:@[@(KBProveTypeHTTPS), @(KBProveTypeDNS)]];
+  [proveTypes addObjectsFromArray:@[@(KBRProofTypeGenericWebSite), @(KBRProofTypeDns)]];
 
   return proveTypes;
 }
@@ -105,7 +105,7 @@
 - (void)addProofs:(NSArray *)proofs editable:(BOOL)editable targetBlock:(void (^)(KBProofLabel *proofLabel))targetBlock {
   GHODictionary *results = [GHODictionary dictionary];
   for (KBRIdentifyRow *row in proofs) {
-    [results addObject:[KBProofResult proofResultForProof:row.proof result:nil] forKey:@(KBProveTypeFromAPI(row.proof.proofType))];
+    [results addObject:[KBProofResult proofResultForProof:row.proof result:nil] forKey:@(row.proof.proofType)];
   }
 
   for (id key in results) {

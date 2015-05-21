@@ -13,12 +13,12 @@
 #import <Slash/Slash.h>
 
 #import "AppDelegate.h"
+#import "KBProveType.h"
 
 @interface KBProveView ()
 @property NSString *serviceUsername;
-@property NSNumber *sessionId;
-@property (nonatomic) KBProveType proveType;
-@property KBProofResult *proofResult;
+@property (nonatomic) KBRProofType proveType;
+@property NSString *sigID;
 @property (copy) KBProveCompletion completion;
 @end
 
@@ -31,13 +31,12 @@
   GHWeakSelf gself = self;
 
   _inputView = [[KBProveInputView alloc] init];
-  _inputView.button.targetBlock = ^{ [gself prove]; };
+  _inputView.button.targetBlock = ^{ [gself startProof]; };
   [self addSubview:_inputView];
 
   _instructionsView = [[KBProveInstructionsView alloc] init];
   _instructionsView.button.targetBlock = ^{ [gself check]; };
   _instructionsView.cancelButton.targetBlock = ^{ [gself cancel]; };
-  _instructionsView.deleteButton.targetBlock = ^{ [gself delete]; };
   _instructionsView.hidden = YES;
   [self addSubview:_instructionsView];
 
@@ -49,35 +48,35 @@
   }];
 }
 
-+ (void)connectWithProveType:(KBProveType)proveType proofResult:(KBProofResult *)proofResult client:(KBRPClient *)client sender:(NSView *)sender completion:(KBProveCompletion)completion {
++ (void)connectWithProveType:(KBRProofType)proveType proofResult:(KBProofResult *)proofResult client:(KBRPClient *)client sender:(NSView *)sender completion:(KBProveCompletion)completion {
   KBProveView *proveView = [[KBProveView alloc] init];
   proveView.client = client;
   [proveView setProveType:proveType proofResult:proofResult];
 
   NSWindow *window = [sender.window kb_addChildWindowForView:proveView rect:CGRectMake(0, 0, 620, 420) position:KBWindowPositionCenter title:@"Keybase" fixed:YES makeKey:YES];
 
-  KBProveCompletion close = ^(KBProofResult *proofResult) {
+  KBProveCompletion close = ^(BOOL success) {
     [window close];
-    completion(proofResult);
+    completion(success);
   };
   proveView.completion = close;
-  proveView.inputView.cancelButton.targetBlock = ^{ close(nil); };
+  proveView.inputView.cancelButton.targetBlock = ^{ close(NO); };
 }
 
-- (void)setProveType:(KBProveType)proveType proofResult:(KBProofResult *)proofResult {
+- (void)setProveType:(KBRProofType)proveType proofResult:(KBProofResult *)proofResult {
   _proveType = proveType;
-  _proofResult = proofResult;
   [_inputView setProveType:proveType];
 
-  if (_proofResult) {
-    [self setInstructions:[[KBRText alloc] init] proofText:@""];
+  if (proofResult.proof.sigID) {
+    _sigID = proofResult.proof.sigID;
+    [self check];
   } else {
     [self.window makeFirstResponder:_inputView.inputField];
   }
 }
 
-- (void)setInstructions:(KBRText *)instructions proofText:(NSString *)proofText {
-  [_instructionsView setInstructions:instructions proofText:proofText proveType:_proveType];
+- (void)setProofText:(NSString *)proofText {
+  [_instructionsView setProofText:proofText proveType:_proveType];
   [_instructionsView layoutView];
 
   // TODO Animate change
@@ -85,7 +84,7 @@
   self.instructionsView.hidden = NO;
 }
 
-- (void)prove {
+- (void)startProof {
   NSString *serviceUsername = [_inputView.inputField.text gh_strip];
   _serviceUsername = serviceUsername;
 
@@ -101,34 +100,18 @@
   GHWeakSelf gself = self;
 
   KBRPClient *client = self.client;
-  KBRProveRequest *prove = [[KBRProveRequest alloc] initWithClient:client];
+  KBRProveRequest *request = [[KBRProveRequest alloc] initWithClient:client];
 
-  [client registerMethod:@"keybase.1.proveUi.promptUsername" sessionId:prove.sessionId requestHandler:^(NSNumber *messageId, NSString *method, NSArray *params, MPRequestCompletion completion) {
+  [client registerMethod:@"keybase.1.proveUi.promptUsername" sessionId:request.sessionId requestHandler:^(NSNumber *messageId, NSString *method, NSArray *params, MPRequestCompletion completion) {
     //NSString *prompt = params[0][@"prompt"];
     completion(nil, gself.inputView.inputField.text);
   }];
 
-  [client registerMethod:@"keybase.1.proveUi.preProofWarning" sessionId:prove.sessionId requestHandler:^(NSNumber *messageId, NSString *method, NSArray *params, MPRequestCompletion completion) {
+  [client registerMethod:@"keybase.1.proveUi.preProofWarning" sessionId:request.sessionId requestHandler:^(NSNumber *messageId, NSString *method, NSArray *params, MPRequestCompletion completion) {
     completion(nil, nil);
   }];
 
-  [client registerMethod:@"keybase.1.proveUi.okToCheck" sessionId:prove.sessionId requestHandler:^(NSNumber *messageId, NSString *method, NSArray *params, MPRequestCompletion completion) {
-    KBROkToCheckRequestParams *requestParams = [[KBROkToCheckRequestParams alloc] initWithParams:params];
-    NSInteger attempt = requestParams.attempt;
-
-    /*
-     NSString *name = requestParams.name;
-     NSString *prompt = NSStringWithFormat(@"Check %@%@?", name, attempt > 0 ? @" again" : @"");
-
-     [KBAlert promptWithTitle:name description:prompt style:NSInformationalAlertStyle buttonTitles:@[@"OK", @"Cancel"] view:self completion:^(NSModalResponse response) {
-     completion(nil, @(response == NSAlertFirstButtonReturn));
-     }];
-     */
-
-    completion(nil, @(attempt == 0));
-  }];
-
-  [client registerMethod:@"keybase.1.proveUi.promptOverwrite" sessionId:prove.sessionId requestHandler:^(NSNumber *messageId, NSString *method, NSArray *params, MPRequestCompletion completion) {
+  [client registerMethod:@"keybase.1.proveUi.promptOverwrite" sessionId:request.sessionId requestHandler:^(NSNumber *messageId, NSString *method, NSArray *params, MPRequestCompletion completion) {
     KBRPromptOverwriteRequestParams *requestParams = [[KBRPromptOverwriteRequestParams alloc] initWithParams:params];
     NSString *account = requestParams.account;
     KBRPromptOverwriteType type = requestParams.typ;
@@ -148,38 +131,29 @@
     }];
   }];
 
-  [client registerMethod:@"keybase.1.proveUi.outputInstructions" sessionId:prove.sessionId requestHandler:^(NSNumber *messageId, NSString *method, NSArray *params, MPRequestCompletion completion) {
+  [client registerMethod:@"keybase.1.proveUi.outputInstructions" sessionId:request.sessionId requestHandler:^(NSNumber *messageId, NSString *method, NSArray *params, MPRequestCompletion completion) {
     KBROutputInstructionsRequestParams *requestParams = [[KBROutputInstructionsRequestParams alloc] initWithParams:params];
-    KBRText *instructions = requestParams.instructions;
-    NSString *proof = requestParams.proof;
+    NSString *proofText = requestParams.proof;
 
     [KBActivity setProgressEnabled:NO sender:self];
-    [self setInstructions:instructions proofText:proof];
-    completion(nil, nil);
-  }];
-
-  [client registerMethod:@"keybase.1.proveUi.displayRecheckWarning" sessionId:prove.sessionId requestHandler:^(NSNumber *messageId, NSString *method, NSArray *params, MPRequestCompletion completion) {
-    KBRDisplayRecheckWarningRequestParams *requestParams = [[KBRDisplayRecheckWarningRequestParams alloc] initWithParams:params];
-
-    DDLogDebug(@"Recheck warning: %@", requestParams.text.data);
+    [self setProofText:proofText];
     completion(nil, nil);
   }];
 
   [KBActivity setProgressEnabled:YES sender:self];
-  _sessionId = @(prove.sessionId);
-  [prove startProofWithSessionID:prove.sessionId service:service username:_serviceUsername force:NO completion:^(NSError *error) {
+  [request startProofWithSessionID:request.sessionId service:service username:_serviceUsername force:NO promptPosted:NO completion:^(NSError *error, KBRStartProofResult *startProofResult) {
     [KBActivity setProgressEnabled:NO sender:self];
     if (error) {
-      [AppDelegate setError:error sender:gself.inputView];
-      // Retry?
+      [KBActivity setError:error sender:self];
       return;
     }
+    gself.sigID = startProofResult.sigID;
   }];
 }
 
-- (void)delete {
-  NSString *sigId = _proofResult.proof.sigID;
-  if (!sigId) {
+- (void)cancel {
+  NSString *sigID = _sigID;
+  if (!sigID) {
     [KBActivity setError:KBMakeError(-1, @"Nothing to remove") sender:self];
     return;
   }
@@ -187,44 +161,25 @@
   GHWeakSelf gself = self;
   [KBActivity setProgressEnabled:YES sender:self];
   KBRRevokeRequest *request = [[KBRRevokeRequest alloc] initWithClient:self.client];
-  [request revokeSigsWithSessionID:request.sessionId ids:@[sigId] seqnos:@[] completion:^(NSError *error) {
+  [request revokeSigsWithSessionID:request.sessionId ids:@[sigID] seqnos:nil completion:^(NSError *error) {
     [KBActivity setProgressEnabled:NO sender:self];
     if ([KBActivity setError:error sender:self]) return;
-    gself.sessionId = nil;
-    gself.completion(NO);
-  }];
-}
-
-- (void)cancel {
-  if (!_sessionId) {
-    self.completion(NO);
-    return;
-  }
-
-  GHWeakSelf gself = self;
-  [KBActivity setProgressEnabled:YES sender:self];
-  KBRProveRequest *request = [[KBRProveRequest alloc] initWithClient:self.client];
-  [request cancelProofWithSessionID:[_sessionId integerValue] completion:^(NSError *error) {
-    [KBActivity setProgressEnabled:NO sender:self];
-    if ([KBActivity setError:error sender:self]) return;
-    gself.sessionId = nil;
     gself.completion(NO);
   }];
 }
 
 - (void)check {
-  NSData *sigID = KBHexData(_proofResult.proof.sigID);
-  sigID = [sigID subdataWithRange:NSMakeRange(0, 32)];
-  KBProofResult *proofResult = _proofResult;
+  NSString *sigID = _sigID;
   KBRProveRequest *request = [[KBRProveRequest alloc] initWithClient:self.client];
   [KBActivity setProgressEnabled:YES sender:self];
-  [request checkProofWithSessionID:request.sessionId sigID:(KBRSIGID *)sigID completion:^(NSError *error, KBRCheckProofStatus *checkProofStatus) {
+  [request checkProofWithSessionID:request.sessionId sigID:sigID completion:^(NSError *error, KBRCheckProofStatus *checkProofStatus) {
     [KBActivity setProgressEnabled:NO sender:self];
+    if ([KBActivity setError:error sender:self]) return;
 
-    DDLogDebug(@"Remote proof: %@", checkProofStatus);
+    [self setProofText:checkProofStatus.proofText];
 
     if (checkProofStatus.found) {
-      self.completion(proofResult);
+      self.completion(NO);
     }
   }];
 }
