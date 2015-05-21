@@ -13,18 +13,16 @@ import (
 type ProveCheck struct {
 	libkb.Contextified
 	sigID     libkb.SigId
-	service   string
 	found     bool
 	status    int
 	proofText string
 }
 
 // NewProveCheck creates a ProveCheck engine.
-func NewProveCheck(g *libkb.GlobalContext, sigID libkb.SigId, service string) *ProveCheck {
+func NewProveCheck(g *libkb.GlobalContext, sigID libkb.SigId) *ProveCheck {
 	return &ProveCheck{
 		Contextified: libkb.NewContextified(g),
 		sigID:        sigID,
-		service:      service,
 	}
 }
 
@@ -57,12 +55,6 @@ func (e *ProveCheck) Run(ctx *Context) error {
 	e.found = found
 	e.status = status
 
-	if !found {
-		if err := e.recheck(); err != nil {
-			return err
-		}
-	}
-
 	e.G().Log.Debug("looking for ChainLink for %s", e.sigID.ToString(true))
 	me, err := libkb.LoadMe(libkb.LoadUserArg{PublicKeyOptional: true})
 	if err != nil {
@@ -84,20 +76,4 @@ func (e *ProveCheck) Run(ctx *Context) error {
 
 func (e *ProveCheck) Results() (found bool, status int, proofText string) {
 	return e.found, e.status, e.proofText
-}
-
-func (e *ProveCheck) recheck() error {
-	e.G().Log.Debug("ProveCheck: rechecking service %q", e.service)
-	st := libkb.GetServiceType(e.service)
-	if st == nil {
-		return libkb.BadServiceError{Service: e.service}
-	}
-	warn, err := st.RecheckProofPosting(e.status, 0)
-	if err != nil {
-		return err
-	}
-	if warn != nil {
-		e.G().Log.Warning("recheck warning: %s", warn.GetRaw())
-	}
-	return nil
 }

@@ -316,9 +316,6 @@
       }, {
         "name" : "sigID",
         "type" : "string"
-      }, {
-        "name" : "service",
-        "type" : "string"
       } ],
       "response" : "CheckProofStatus"
     }

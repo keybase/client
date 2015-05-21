@@ -78,7 +78,7 @@ func (ph *ProveHandler) CheckProof(arg keybase1.CheckProofArg) (res keybase1.Che
 	if err != nil {
 		return res, err
 	}
-	eng := engine.NewProveCheck(G, *sigid, arg.Service)
+	eng := engine.NewProveCheck(G, *sigid)
 	ctx := &engine.Context{}
 	if err = engine.RunEngine(eng, ctx); err != nil {
 		return

@@ -716,8 +716,8 @@
   }];
 }
 
-- (void)checkProofWithSessionID:(NSInteger)sessionID sigID:(NSString *)sigID service:(NSString *)service completion:(void (^)(NSError *error, KBRCheckProofStatus *checkProofStatus))completion {
-  NSArray *params = @[@{@"sessionID": @(sessionID), @"sigID": KBRValue(sigID), @"service": KBRValue(service)}];
+- (void)checkProofWithSessionID:(NSInteger)sessionID sigID:(NSString *)sigID completion:(void (^)(NSError *error, KBRCheckProofStatus *checkProofStatus))completion {
+  NSArray *params = @[@{@"sessionID": @(sessionID), @"sigID": KBRValue(sigID)}];
   [self.client sendRequestWithMethod:@"keybase.1.prove.checkProof" params:params sessionId:self.sessionId completion:^(NSError *error, id retval) {
     if (error) {
         completion(error, nil);
@@ -1769,7 +1769,6 @@
   if ((self = [super initWithParams:params])) {
     self.sessionID = [params[0][@"sessionID"] integerValue];
     self.sigID = params[0][@"sigID"];
-    self.service = params[0][@"service"];
   }
   return self;
 }

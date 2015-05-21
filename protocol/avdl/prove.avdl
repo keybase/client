@@ -16,5 +16,5 @@ protocol prove {
 
 	// set promptPosted to true to enable the okToCheck, displayRecheckWarning ui loop.  false to skip it.
 	StartProofResult startProof(int sessionID, string service, string username, boolean force, boolean promptPosted);
-	CheckProofStatus checkProof(int sessionID, string sigID, string service);
+	CheckProofStatus checkProof(int sessionID, string sigID);
 }

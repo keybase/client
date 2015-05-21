@@ -539,7 +539,7 @@ typedef NS_ENUM (NSInteger, KBRSignMode) {
 @interface KBRProveRequest : KBRRequest
 - (void)startProofWithSessionID:(NSInteger)sessionID service:(NSString *)service username:(NSString *)username force:(BOOL)force promptPosted:(BOOL)promptPosted completion:(void (^)(NSError *error, KBRStartProofResult *startProofResult))completion;
 
-- (void)checkProofWithSessionID:(NSInteger)sessionID sigID:(NSString *)sigID service:(NSString *)service completion:(void (^)(NSError *error, KBRCheckProofStatus *checkProofStatus))completion;
+- (void)checkProofWithSessionID:(NSInteger)sessionID sigID:(NSString *)sigID completion:(void (^)(NSError *error, KBRCheckProofStatus *checkProofStatus))completion;
 
 @end
 
@@ -982,7 +982,6 @@ typedef NS_ENUM (NSInteger, KBRPromptOverwriteType) {
 @interface KBRCheckProofRequestParams : KBRRequestParams
 @property NSInteger sessionID;
 @property NSString *sigID;
-@property NSString *service;
 @end
 @interface KBRPromptOverwriteRequestParams : KBRRequestParams
 @property NSInteger sessionID;

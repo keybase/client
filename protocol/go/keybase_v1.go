@@ -1740,7 +1740,6 @@ type StartProofArg struct {
 type CheckProofArg struct {
 	SessionID int    `codec:"sessionID" json:"sessionID"`
 	SigID     string `codec:"sigID" json:"sigID"`
-	Service   string `codec:"service" json:"service"`
 }
 
 type ProveInterface interface {
