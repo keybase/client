@@ -47,7 +47,25 @@ class GoEmitter
     else "ERROR"
     { type , optional }
 
+
+  #
+  # An example of an AVDL "typdef":
+  #
+  # record {
+  #    string __typedef__;
+  # }
+  #
+  emit_typedef : (json) ->
+    if json.fields.length is 1 and json.fields[0].name is "__typedef__"
+      @output "type #{json.name} #{@emit_field_type(json.fields[0].type).type}"
+      true
+    else
+      false
+
   emit_record : (json, {wrapper} ) ->
+    # Typdef's are disguised as records in our hacked-up AVDL
+    return if @emit_typedef json
+
     @output "type #{@go_export_case(json.name)} struct {"
     @tab()
     @emit_wrapper_record_first() if wrapper
@@ -63,7 +81,7 @@ class GoEmitter
     @output "}"
 
   emit_fixed : (t) ->
-    @output "type #{t.name  } [#{t.size}]byte"
+    @output "type #{t.name} [#{t.size}]byte"
 
   emit_types : (json) ->
     for t in json
