@@ -73,7 +73,8 @@ func (p *CmdProve) RunClient() error {
 	// command line interface wants the PromptPosted ui loop
 	p.arg.PromptPosted = true
 
-	return cli.StartProof(p.arg)
+	_, err = cli.StartProof(p.arg)
+	return err
 }
 
 func (p *CmdProve) installOutputHook(ui *ProveUI) {

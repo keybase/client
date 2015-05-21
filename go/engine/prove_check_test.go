@@ -51,7 +51,7 @@ func TestProveCheck(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	checkEng := NewProveCheck(tc.G, *eng.sigID)
+	checkEng := NewProveCheck(tc.G, *eng.sigID, "rooter")
 	err = RunEngine(checkEng, &ctx)
 	if err != nil {
 		t.Fatal(err)

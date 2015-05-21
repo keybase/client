@@ -57,14 +57,19 @@ func (ph *ProveHandler) getProveUI(sessionID int) libkb.ProveUI {
 }
 
 // Prove handles the `keybase.1.startProof` RPC.
-func (ph *ProveHandler) StartProof(arg keybase1.StartProofArg) error {
+func (ph *ProveHandler) StartProof(arg keybase1.StartProofArg) (res keybase1.StartProofResult, err error) {
 	eng := engine.NewProve(&arg, G)
 	ctx := engine.Context{
 		ProveUI:  ph.getProveUI(arg.SessionID),
 		SecretUI: ph.getSecretUI(arg.SessionID),
 		LogUI:    ph.getLogUI(arg.SessionID),
 	}
-	return engine.RunEngine(eng, &ctx)
+	err = engine.RunEngine(eng, &ctx)
+	if err != nil {
+		return res, err
+	}
+	res.SigID = eng.SigID().ToString(true)
+	return res, err
 }
 
 func (ph *ProveHandler) CheckProof(arg keybase1.CheckProofArg) (res keybase1.CheckProofStatus, err error) {
@@ -73,7 +78,7 @@ func (ph *ProveHandler) CheckProof(arg keybase1.CheckProofArg) (res keybase1.Che
 	if err != nil {
 		return res, err
 	}
-	eng := engine.NewProveCheck(G, *sigid)
+	eng := engine.NewProveCheck(G, *sigid, arg.Service)
 	ctx := &engine.Context{}
 	if err = engine.RunEngine(eng, ctx); err != nil {
 		return

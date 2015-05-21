@@ -256,9 +256,14 @@ func (p *Prove) getServiceType() (err error) {
 	return
 }
 
+// SigID returns the signature id of the proof posted to the
+// server.
+func (p *Prove) SigID() *libkb.SigId {
+	return p.sigID
+}
+
 // Run is runs the Prove engine, performing all steps of the proof process.
 func (p *Prove) Run(ctx *Context) (err error) {
-
 	p.G().Log.Debug("+ ProofEngine.Run")
 	defer func() {
 		p.G().Log.Debug("- ProofEngine.Run -> %s", libkb.ErrToOk(err))

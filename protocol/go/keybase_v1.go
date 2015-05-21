@@ -1725,6 +1725,10 @@ type CheckProofStatus struct {
 	ProofText string `codec:"proofText" json:"proofText"`
 }
 
+type StartProofResult struct {
+	SigID string `codec:"sigID" json:"sigID"`
+}
+
 type StartProofArg struct {
 	SessionID    int    `codec:"sessionID" json:"sessionID"`
 	Service      string `codec:"service" json:"service"`
@@ -1736,10 +1740,11 @@ type StartProofArg struct {
 type CheckProofArg struct {
 	SessionID int    `codec:"sessionID" json:"sessionID"`
 	SigID     string `codec:"sigID" json:"sigID"`
+	Service   string `codec:"service" json:"service"`
 }
 
 type ProveInterface interface {
-	StartProof(StartProofArg) error
+	StartProof(StartProofArg) (StartProofResult, error)
 	CheckProof(CheckProofArg) (CheckProofStatus, error)
 }
 
@@ -1750,7 +1755,7 @@ func ProveProtocol(i ProveInterface) rpc2.Protocol {
 			"startProof": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
 				args := make([]StartProofArg, 1)
 				if err = nxt(&args); err == nil {
-					err = i.StartProof(args[0])
+					ret, err = i.StartProof(args[0])
 				}
 				return
 			},
@@ -1770,8 +1775,8 @@ type ProveClient struct {
 	Cli GenericClient
 }
 
-func (c ProveClient) StartProof(__arg StartProofArg) (err error) {
-	err = c.Cli.Call("keybase.1.prove.startProof", []interface{}{__arg}, nil)
+func (c ProveClient) StartProof(__arg StartProofArg) (res StartProofResult, err error) {
+	err = c.Cli.Call("keybase.1.prove.startProof", []interface{}{__arg}, &res)
 	return
 }
 

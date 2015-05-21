@@ -281,6 +281,13 @@
       "name" : "proofText",
       "type" : "string"
     } ]
+  }, {
+    "type" : "record",
+    "name" : "StartProofResult",
+    "fields" : [ {
+      "name" : "sigID",
+      "type" : "string"
+    } ]
   } ],
   "messages" : {
     "startProof" : {
@@ -300,7 +307,7 @@
         "name" : "promptPosted",
         "type" : "boolean"
       } ],
-      "response" : "null"
+      "response" : "StartProofResult"
     },
     "checkProof" : {
       "request" : [ {
@@ -308,6 +315,9 @@
         "type" : "int"
       }, {
         "name" : "sigID",
+        "type" : "string"
+      }, {
+        "name" : "service",
         "type" : "string"
       } ],
       "response" : "CheckProofStatus"
