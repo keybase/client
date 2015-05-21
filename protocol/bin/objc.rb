@@ -137,15 +137,17 @@ paths.each do |path|
     #puts "Type: #{type["name"]}"
 
     if type["type"] == "enum"
-      defaults = type["defaults"]
       enum_name = type["name"]
       enums << enum_name
       enum_name_objc = "#{classname(enum_name)}"
       header << "typedef NS_ENUM (NSInteger, #{enum_name_objc}) {"
-      type["symbols"].each do |sym|
-        sym_details = defaults[sym] if defaults
-        suffix = sym_details ? " = #{sym_details}," : ","
-        header << "\t#{enum_name_objc}#{sym.capitalize.camelize}#{suffix}"
+      type["symbols"].each do |symbol|
+        sym, _, sym_val = symbol.rpartition('_')
+
+        raise "Enums must specify value: #{enum_name} #{symbol}" if sym.length == 0
+        raise "Enums must specify an integer value: #{enum_name} #{symbol}" if not /\A\d+\z/.match(sym_val)
+
+        header << "\t#{enum_name_objc}#{sym.capitalize.camelize} = #{sym_val},"
       end
       header << "};\n"
     elsif type["type"] == "fixed"

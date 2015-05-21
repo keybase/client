@@ -166,9 +166,9 @@
 @end
 
 typedef NS_ENUM (NSInteger, KBRDoctorFixType) {
-	KBRDoctorFixTypeNone,
-	KBRDoctorFixTypeAddEldestDevice,
-	KBRDoctorFixTypeAddSiblingDevice,
+	KBRDoctorFixTypeNone = 0,
+	KBRDoctorFixTypeAddEldestDevice = 1,
+	KBRDoctorFixTypeAddSiblingDevice = 2,
 };
 
 @interface KBRDoctorSignerOpts : KBRObject
@@ -277,15 +277,15 @@ typedef NS_ENUM (NSInteger, KBRProofType) {
 };
 
 typedef NS_ENUM (NSInteger, KBRTrackDiffType) {
-	KBRTrackDiffTypeNone,
-	KBRTrackDiffTypeError,
-	KBRTrackDiffTypeClash,
-	KBRTrackDiffTypeDeleted,
-	KBRTrackDiffTypeUpgraded,
-	KBRTrackDiffTypeNew,
-	KBRTrackDiffTypeRemoteFail,
-	KBRTrackDiffTypeRemoteWorking,
-	KBRTrackDiffTypeRemoteChanged,
+	KBRTrackDiffTypeNone = 0,
+	KBRTrackDiffTypeError = 1,
+	KBRTrackDiffTypeClash = 2,
+	KBRTrackDiffTypeDeleted = 3,
+	KBRTrackDiffTypeUpgraded = 4,
+	KBRTrackDiffTypeNew = 5,
+	KBRTrackDiffTypeRemoteFail = 6,
+	KBRTrackDiffTypeRemoteWorking = 7,
+	KBRTrackDiffTypeRemoteChanged = 8,
 };
 
 @interface KBRTrackDiff : KBRObject
@@ -419,14 +419,14 @@ typedef NS_ENUM (NSInteger, KBRTrackDiffType) {
 @end
 
 typedef NS_ENUM (NSInteger, KBRDeviceSignerKind) {
-	KBRDeviceSignerKindDevice,
-	KBRDeviceSignerKindPgp,
+	KBRDeviceSignerKindDevice = 0,
+	KBRDeviceSignerKindPgp = 1,
 };
 
 typedef NS_ENUM (NSInteger, KBRSelectSignerAction) {
-	KBRSelectSignerActionSign,
-	KBRSelectSignerActionCancel,
-	KBRSelectSignerActionResetAccount,
+	KBRSelectSignerActionSign = 0,
+	KBRSelectSignerActionCancel = 1,
+	KBRSelectSignerActionResetAccount = 2,
 };
 
 @interface KBRDeviceSigner : KBRObject
@@ -441,19 +441,19 @@ typedef NS_ENUM (NSInteger, KBRSelectSignerAction) {
 @end
 
 typedef NS_ENUM (NSInteger, KBRKexStatusCode) {
-	KBRKexStatusCodeStartSend,
-	KBRKexStatusCodeHelloWait,
-	KBRKexStatusCodeHelloReceived,
-	KBRKexStatusCodePleaseSignSend,
-	KBRKexStatusCodeDoneWait,
-	KBRKexStatusCodeDoneReceived,
-	KBRKexStatusCodeStartWait,
-	KBRKexStatusCodeStartReceived,
-	KBRKexStatusCodeHelloSend,
-	KBRKexStatusCodePleaseSignWait,
-	KBRKexStatusCodePleaseSignReceived,
-	KBRKexStatusCodeDoneSend,
-	KBRKexStatusCodeEnd,
+	KBRKexStatusCodeStartSend = 0,
+	KBRKexStatusCodeHelloWait = 1,
+	KBRKexStatusCodeHelloReceived = 2,
+	KBRKexStatusCodePleaseSignSend = 3,
+	KBRKexStatusCodeDoneWait = 4,
+	KBRKexStatusCodeDoneReceived = 5,
+	KBRKexStatusCodeStartWait = 6,
+	KBRKexStatusCodeStartReceived = 7,
+	KBRKexStatusCodeHelloSend = 8,
+	KBRKexStatusCodePleaseSignWait = 9,
+	KBRKexStatusCodePleaseSignReceived = 10,
+	KBRKexStatusCodeDoneSend = 11,
+	KBRKexStatusCodeEnd = 12,
 };
 
 @interface KBRLocksmithUiRequest : KBRRequest
@@ -468,13 +468,13 @@ typedef NS_ENUM (NSInteger, KBRKexStatusCode) {
 @end
 
 typedef NS_ENUM (NSInteger, KBRLogLevel) {
-	KBRLogLevelNone,
-	KBRLogLevelDebug,
-	KBRLogLevelInfo,
-	KBRLogLevelNotice,
-	KBRLogLevelWarn,
-	KBRLogLevelError,
-	KBRLogLevelCritical,
+	KBRLogLevelNone = 0,
+	KBRLogLevelDebug = 1,
+	KBRLogLevelInfo = 2,
+	KBRLogLevelNotice = 3,
+	KBRLogLevelWarn = 4,
+	KBRLogLevelError = 5,
+	KBRLogLevelCritical = 6,
 };
 
 @interface KBRLogUiRequest : KBRRequest
@@ -512,9 +512,9 @@ typedef NS_ENUM (NSInteger, KBRLogLevel) {
 @end
 
 typedef NS_ENUM (NSInteger, KBRSignMode) {
-	KBRSignModeAttached,
-	KBRSignModeDetached,
-	KBRSignModeClear,
+	KBRSignModeAttached = 0,
+	KBRSignModeDetached = 1,
+	KBRSignModeClear = 2,
 };
 
 @interface KBRPgpSignOptions : KBRObject
@@ -611,8 +611,8 @@ typedef NS_ENUM (NSInteger, KBRSignMode) {
 @end
 
 typedef NS_ENUM (NSInteger, KBRPromptOverwriteType) {
-	KBRPromptOverwriteTypeSocial,
-	KBRPromptOverwriteTypeSite,
+	KBRPromptOverwriteTypeSocial = 0,
+	KBRPromptOverwriteTypeSite = 1,
 };
 
 @interface KBRProveUiRequest : KBRRequest

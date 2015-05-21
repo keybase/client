@@ -166,77 +166,20 @@
   }, {
     "type" : "enum",
     "name" : "ProofState",
-    "symbols" : [ "NONE", "OK", "TEMP_FAILURE", "PERM_FAILURE", "LOOKING", "SUPERSEDED", "POSTED", "REVOKED" ],
-    "defaults" : {
-      "NONE" : 0,
-      "OK" : 1,
-      "TEMP_FAILURE" : 2,
-      "PERM_FAILURE" : 3,
-      "LOOKING" : 4,
-      "SUPERSEDED" : 5,
-      "POSTED" : 6,
-      "REVOKED" : 7
-    }
+    "symbols" : [ "NONE_0", "OK_1", "TEMP_FAILURE_2", "PERM_FAILURE_3", "LOOKING_4", "SUPERSEDED_5", "POSTED_6", "REVOKED_7" ]
   }, {
     "type" : "enum",
     "name" : "ProofCheckStatus",
     "doc" : "3: It's been found in the hunt, but not proven yet\n    1xx: Retryable soft errors\n    2xx: Will likely result in a hard error, if repeated enough\n    3xx: Hard final errors",
-    "symbols" : [ "NONE", "OK", "LOCAL", "FOUND", "HOST_UNREACHABLE", "PERMISSION_DENIED", "FAILED_PARSE", "DNS_ERROR", "AUTH_FAILED", "HTTP_500", "TIMEOUT", "INTERNAL_ERROR", "NOT_FOUND", "CONTENT_FAILURE", "BAD_USERNAME", "BAD_REMOTE_ID", "TEXT_NOT_FOUND", "BAD_ARGS", "CONTENT_MISSING", "TITLE_NOT_FOUND", "SERVICE_ERROR", "TOR_SKIPPED", "TOR_INCOMPATIBLE", "HTTP_300", "HTTP_400", "HTTP_OTHER", "EMPTY_JSON", "DELETED", "SERVICE_DEAD", "BAD_SIGNATURE", "BAD_API_URL", "UNKNOWN_TYPE", "NO_HINT", "BAD_HINT_TEXT" ],
-    "defaults" : {
-      "NONE" : 0,
-      "OK" : 1,
-      "LOCAL" : 2,
-      "FOUND" : 3,
-      "HOST_UNREACHABLE" : 101,
-      "PERMISSION_DENIED" : 103,
-      "FAILED_PARSE" : 106,
-      "DNS_ERROR" : 107,
-      "AUTH_FAILED" : 108,
-      "HTTP_500" : 150,
-      "TIMEOUT" : 160,
-      "INTERNAL_ERROR" : 170,
-      "NOT_FOUND" : 201,
-      "CONTENT_FAILURE" : 202,
-      "BAD_USERNAME" : 203,
-      "BAD_REMOTE_ID" : 204,
-      "TEXT_NOT_FOUND" : 205,
-      "BAD_ARGS" : 206,
-      "CONTENT_MISSING" : 207,
-      "TITLE_NOT_FOUND" : 208,
-      "SERVICE_ERROR" : 209,
-      "TOR_SKIPPED" : 210,
-      "TOR_INCOMPATIBLE" : 211,
-      "HTTP_300" : 230,
-      "HTTP_400" : 240,
-      "HTTP_OTHER" : 260,
-      "EMPTY_JSON" : 270,
-      "DELETED" : 301,
-      "SERVICE_DEAD" : 302,
-      "BAD_SIGNATURE" : 303,
-      "BAD_API_URL" : 304,
-      "UNKNOWN_TYPE" : 305,
-      "NO_HINT" : 306,
-      "BAD_HINT_TEXT" : 307
-    }
+    "symbols" : [ "NONE_0", "OK_1", "LOCAL_2", "FOUND_3", "HOST_UNREACHABLE_101", "PERMISSION_DENIED_103", "FAILED_PARSE_106", "DNS_ERROR_107", "AUTH_FAILED_108", "HTTP_500_150", "TIMEOUT_160", "INTERNAL_ERROR_170", "NOT_FOUND_201", "CONTENT_FAILURE_202", "BAD_USERNAME_203", "BAD_REMOTE_ID_204", "TEXT_NOT_FOUND_205", "BAD_ARGS_206", "CONTENT_MISSING_207", "TITLE_NOT_FOUND_208", "SERVICE_ERROR_209", "TOR_SKIPPED_210", "TOR_INCOMPATIBLE_211", "HTTP_300_230", "HTTP_400_240", "HTTP_OTHER_260", "EMPTY_JSON_270", "DELETED_301", "SERVICE_DEAD_302", "BAD_SIGNATURE_303", "BAD_API_URL_304", "UNKNOWN_TYPE_305", "NO_HINT_306", "BAD_HINT_TEXT_307" ]
   }, {
     "type" : "enum",
     "name" : "ProofType",
-    "symbols" : [ "NONE", "KEYBASE", "TWITTER", "GITHUB", "REDDIT", "COINBASE", "HACKERNEWS", "GENERIC_WEB_SITE", "DNS" ],
-    "defaults" : {
-      "NONE" : 0,
-      "KEYBASE" : 1,
-      "TWITTER" : 2,
-      "GITHUB" : 3,
-      "REDDIT" : 4,
-      "COINBASE" : 5,
-      "HACKERNEWS" : 6,
-      "GENERIC_WEB_SITE" : 1000,
-      "DNS" : 1001
-    }
+    "symbols" : [ "NONE_0", "KEYBASE_1", "TWITTER_2", "GITHUB_3", "REDDIT_4", "COINBASE_5", "HACKERNEWS_6", "GENERIC_WEB_SITE_1000", "DNS_1001" ]
   }, {
     "type" : "enum",
     "name" : "TrackDiffType",
-    "symbols" : [ "NONE", "ERROR", "CLASH", "DELETED", "UPGRADED", "NEW", "REMOTE_FAIL", "REMOTE_WORKING", "REMOTE_CHANGED" ]
+    "symbols" : [ "NONE_0", "ERROR_1", "CLASH_2", "DELETED_3", "UPGRADED_4", "NEW_5", "REMOTE_FAIL_6", "REMOTE_WORKING_7", "REMOTE_CHANGED_8" ]
   }, {
     "type" : "record",
     "name" : "TrackDiff",

@@ -166,7 +166,7 @@
   }, {
     "type" : "enum",
     "name" : "PromptOverwriteType",
-    "symbols" : [ "SOCIAL", "SITE" ]
+    "symbols" : [ "SOCIAL_0", "SITE_1" ]
   } ],
   "messages" : {
     "promptOverwrite" : {

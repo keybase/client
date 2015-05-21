@@ -4,13 +4,13 @@ protocol logUi {
 	import idl "common.avdl";
 
 	enum LogLevel {
-		NONE,
-		DEBUG,
-		INFO,
-		NOTICE,
-		WARN,
-		ERROR,
-		CRITICAL
+		NONE_0,
+		DEBUG_1,
+		INFO_2,
+		NOTICE_3,
+		WARN_4,
+		ERROR_5,
+		CRITICAL_6
 	}
 
 	void log(int sessionID, LogLevel level, Text text);
