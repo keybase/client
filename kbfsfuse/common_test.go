@@ -24,3 +24,31 @@ func makeTestConfig(users ...string) *libkbfs.ConfigLocal {
 
 	return config
 }
+
+// configAsUser clones a test configuration, setting another user as
+// the logged in user
+func configAsUser(config *libkbfs.ConfigLocal, loggedInUser string) *libkbfs.ConfigLocal {
+	c := libkbfs.NewConfigLocal()
+
+	pki := config.KBPKI().(*libkbfs.KBPKILocal)
+	loggedInUID, ok := pki.Asserts[loggedInUser]
+	if !ok {
+		panic("bad test: unknown user: " + loggedInUser)
+	}
+
+	var localUsers []libkbfs.LocalUser
+	for _, u := range pki.Users {
+		localUsers = append(localUsers, u)
+	}
+	newPKI := libkbfs.NewKBPKILocal(loggedInUID, localUsers)
+	c.SetKBPKI(newPKI)
+
+	signingKey := libkbfs.MakeLocalUserSigningKeyOrBust(loggedInUser)
+	crypto := libkbfs.NewCryptoLocal(config.Codec(), signingKey)
+	c.SetCrypto(crypto)
+
+	c.SetBlockServer(config.BlockServer())
+	c.SetMDServer(config.MDServer())
+
+	return c
+}
