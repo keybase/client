@@ -103,7 +103,9 @@ class GoEmitter
     @output "const ("
     @tab()
     for s, i in t.symbols
-      @output "#{t.name}_#{s} = #{i}"
+      i = s.split("_").pop(-1);
+      s = s.replace("_" + i, "");
+      @output "#{t.name}_#{s} #{t.name} = #{i}"
     @untab()
     @output ")"
 

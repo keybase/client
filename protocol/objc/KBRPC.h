@@ -166,10 +166,11 @@
 @end
 
 typedef NS_ENUM (NSInteger, KBRDoctorFixType) {
-	KBRDoctorFixTypeNone,
-	KBRDoctorFixTypeAddEldestDevice,
-	KBRDoctorFixTypeAddSiblingDevice,
+	KBRDoctorFixTypeNone = 0,
+	KBRDoctorFixTypeAddEldestDevice = 1,
+	KBRDoctorFixTypeAddSiblingDevice = 2,
 };
+
 @interface KBRDoctorSignerOpts : KBRObject
 @property BOOL otherDevice;
 @property BOOL pgp;
@@ -215,17 +216,78 @@ typedef NS_ENUM (NSInteger, KBRDoctorFixType) {
 
 @end
 
-typedef NS_ENUM (NSInteger, KBRTrackDiffType) {
-	KBRTrackDiffTypeNone,
-	KBRTrackDiffTypeError,
-	KBRTrackDiffTypeClash,
-	KBRTrackDiffTypeDeleted,
-	KBRTrackDiffTypeUpgraded,
-	KBRTrackDiffTypeNew,
-	KBRTrackDiffTypeRemoteFail,
-	KBRTrackDiffTypeRemoteWorking,
-	KBRTrackDiffTypeRemoteChanged,
+typedef NS_ENUM (NSInteger, KBRProofState) {
+	KBRProofStateNone = 0,
+	KBRProofStateOk = 1,
+	KBRProofStateTempFailure = 2,
+	KBRProofStatePermFailure = 3,
+	KBRProofStateLooking = 4,
+	KBRProofStateSuperseded = 5,
+	KBRProofStatePosted = 6,
+	KBRProofStateRevoked = 7,
 };
+
+typedef NS_ENUM (NSInteger, KBRProofCheckStatus) {
+	KBRProofCheckStatusNone = 0,
+	KBRProofCheckStatusOk = 1,
+	KBRProofCheckStatusLocal = 2,
+	KBRProofCheckStatusFound = 3,
+	KBRProofCheckStatusHostUnreachable = 101,
+	KBRProofCheckStatusPermissionDenied = 103,
+	KBRProofCheckStatusFailedParse = 106,
+	KBRProofCheckStatusDnsError = 107,
+	KBRProofCheckStatusAuthFailed = 108,
+	KBRProofCheckStatusHttp500 = 150,
+	KBRProofCheckStatusTimeout = 160,
+	KBRProofCheckStatusInternalError = 170,
+	KBRProofCheckStatusNotFound = 201,
+	KBRProofCheckStatusContentFailure = 202,
+	KBRProofCheckStatusBadUsername = 203,
+	KBRProofCheckStatusBadRemoteId = 204,
+	KBRProofCheckStatusTextNotFound = 205,
+	KBRProofCheckStatusBadArgs = 206,
+	KBRProofCheckStatusContentMissing = 207,
+	KBRProofCheckStatusTitleNotFound = 208,
+	KBRProofCheckStatusServiceError = 209,
+	KBRProofCheckStatusTorSkipped = 210,
+	KBRProofCheckStatusTorIncompatible = 211,
+	KBRProofCheckStatusHttp300 = 230,
+	KBRProofCheckStatusHttp400 = 240,
+	KBRProofCheckStatusHttpOther = 260,
+	KBRProofCheckStatusEmptyJson = 270,
+	KBRProofCheckStatusDeleted = 301,
+	KBRProofCheckStatusServiceDead = 302,
+	KBRProofCheckStatusBadSignature = 303,
+	KBRProofCheckStatusBadApiUrl = 304,
+	KBRProofCheckStatusUnknownType = 305,
+	KBRProofCheckStatusNoHint = 306,
+	KBRProofCheckStatusBadHintText = 307,
+};
+
+typedef NS_ENUM (NSInteger, KBRProofType) {
+	KBRProofTypeNone = 0,
+	KBRProofTypeKeybase = 1,
+	KBRProofTypeTwitter = 2,
+	KBRProofTypeGithub = 3,
+	KBRProofTypeReddit = 4,
+	KBRProofTypeCoinbase = 5,
+	KBRProofTypeHackernews = 6,
+	KBRProofTypeGenericWebSite = 1000,
+	KBRProofTypeDns = 1001,
+};
+
+typedef NS_ENUM (NSInteger, KBRTrackDiffType) {
+	KBRTrackDiffTypeNone = 0,
+	KBRTrackDiffTypeError = 1,
+	KBRTrackDiffTypeClash = 2,
+	KBRTrackDiffTypeDeleted = 3,
+	KBRTrackDiffTypeUpgraded = 4,
+	KBRTrackDiffTypeNew = 5,
+	KBRTrackDiffTypeRemoteFail = 6,
+	KBRTrackDiffTypeRemoteWorking = 7,
+	KBRTrackDiffTypeRemoteChanged = 8,
+};
+
 @interface KBRTrackDiff : KBRObject
 @property KBRTrackDiffType type;
 @property NSString *displayMarkup;
@@ -258,7 +320,7 @@ typedef NS_ENUM (NSInteger, KBRTrackDiffType) {
 @end
 
 @interface KBRRemoteProof : KBRObject
-@property NSInteger proofType;
+@property KBRProofType proofType;
 @property NSString *key;
 @property NSString *value;
 @property NSString *displayMarkup;
@@ -357,14 +419,16 @@ typedef NS_ENUM (NSInteger, KBRTrackDiffType) {
 @end
 
 typedef NS_ENUM (NSInteger, KBRDeviceSignerKind) {
-	KBRDeviceSignerKindDevice,
-	KBRDeviceSignerKindPgp,
+	KBRDeviceSignerKindDevice = 0,
+	KBRDeviceSignerKindPgp = 1,
 };
+
 typedef NS_ENUM (NSInteger, KBRSelectSignerAction) {
-	KBRSelectSignerActionSign,
-	KBRSelectSignerActionCancel,
-	KBRSelectSignerActionResetAccount,
+	KBRSelectSignerActionSign = 0,
+	KBRSelectSignerActionCancel = 1,
+	KBRSelectSignerActionResetAccount = 2,
 };
+
 @interface KBRDeviceSigner : KBRObject
 @property KBRDeviceSignerKind kind;
 @property NSString *deviceID;
@@ -377,20 +441,21 @@ typedef NS_ENUM (NSInteger, KBRSelectSignerAction) {
 @end
 
 typedef NS_ENUM (NSInteger, KBRKexStatusCode) {
-	KBRKexStatusCodeStartSend,
-	KBRKexStatusCodeHelloWait,
-	KBRKexStatusCodeHelloReceived,
-	KBRKexStatusCodePleaseSignSend,
-	KBRKexStatusCodeDoneWait,
-	KBRKexStatusCodeDoneReceived,
-	KBRKexStatusCodeStartWait,
-	KBRKexStatusCodeStartReceived,
-	KBRKexStatusCodeHelloSend,
-	KBRKexStatusCodePleaseSignWait,
-	KBRKexStatusCodePleaseSignReceived,
-	KBRKexStatusCodeDoneSend,
-	KBRKexStatusCodeEnd,
+	KBRKexStatusCodeStartSend = 0,
+	KBRKexStatusCodeHelloWait = 1,
+	KBRKexStatusCodeHelloReceived = 2,
+	KBRKexStatusCodePleaseSignSend = 3,
+	KBRKexStatusCodeDoneWait = 4,
+	KBRKexStatusCodeDoneReceived = 5,
+	KBRKexStatusCodeStartWait = 6,
+	KBRKexStatusCodeStartReceived = 7,
+	KBRKexStatusCodeHelloSend = 8,
+	KBRKexStatusCodePleaseSignWait = 9,
+	KBRKexStatusCodePleaseSignReceived = 10,
+	KBRKexStatusCodeDoneSend = 11,
+	KBRKexStatusCodeEnd = 12,
 };
+
 @interface KBRLocksmithUiRequest : KBRRequest
 - (void)promptDeviceNameWithSessionID:(NSInteger)sessionID completion:(void (^)(NSError *error, NSString *str))completion;
 
@@ -403,14 +468,15 @@ typedef NS_ENUM (NSInteger, KBRKexStatusCode) {
 @end
 
 typedef NS_ENUM (NSInteger, KBRLogLevel) {
-	KBRLogLevelNone,
-	KBRLogLevelDebug,
-	KBRLogLevelInfo,
-	KBRLogLevelNotice,
-	KBRLogLevelWarn,
-	KBRLogLevelError,
-	KBRLogLevelCritical,
+	KBRLogLevelNone = 0,
+	KBRLogLevelDebug = 1,
+	KBRLogLevelInfo = 2,
+	KBRLogLevelNotice = 3,
+	KBRLogLevelWarn = 4,
+	KBRLogLevelError = 5,
+	KBRLogLevelCritical = 6,
 };
+
 @interface KBRLogUiRequest : KBRRequest
 - (void)logWithSessionID:(NSInteger)sessionID level:(KBRLogLevel)level text:(KBRText *)text completion:(void (^)(NSError *error))completion;
 
@@ -446,10 +512,11 @@ typedef NS_ENUM (NSInteger, KBRLogLevel) {
 @end
 
 typedef NS_ENUM (NSInteger, KBRSignMode) {
-	KBRSignModeAttached,
-	KBRSignModeDetached,
-	KBRSignModeClear,
+	KBRSignModeAttached = 0,
+	KBRSignModeDetached = 1,
+	KBRSignModeClear = 2,
 };
+
 @interface KBRPgpSignOptions : KBRObject
 @property NSString *keyQuery;
 @property KBRSignMode mode;
@@ -528,7 +595,7 @@ typedef NS_ENUM (NSInteger, KBRSignMode) {
 
 @interface KBRCheckProofStatus : KBRObject
 @property BOOL found;
-@property NSInteger status;
+@property KBRProofCheckStatus status;
 @property NSString *proofText;
 @end
 
@@ -544,9 +611,10 @@ typedef NS_ENUM (NSInteger, KBRSignMode) {
 @end
 
 typedef NS_ENUM (NSInteger, KBRPromptOverwriteType) {
-	KBRPromptOverwriteTypeSocial,
-	KBRPromptOverwriteTypeSite,
+	KBRPromptOverwriteTypeSocial = 0,
+	KBRPromptOverwriteTypeSite = 1,
 };
+
 @interface KBRProveUiRequest : KBRRequest
 - (void)promptOverwriteWithSessionID:(NSInteger)sessionID account:(NSString *)account typ:(KBRPromptOverwriteType)typ completion:(void (^)(NSError *error, BOOL b))completion;
 

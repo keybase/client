@@ -11,9 +11,9 @@ protocol doctorUi {
 
 
 	enum DoctorFixType {
-		NONE,
-		ADD_ELDEST_DEVICE,
-		ADD_SIBLING_DEVICE
+		NONE_0,
+		ADD_ELDEST_DEVICE_1,
+		ADD_SIBLING_DEVICE_2
 	}
 
 	// any of these can be set

@@ -3,10 +3,11 @@
 protocol prove {
 	import idl "common.avdl";
 	import idl "identify_common.avdl";
+	import idl "prove_common.avdl";
 
 	record CheckProofStatus {
 		boolean found;
-		int status;
+		ProofCheckStatus status;
 		string proofText;
 	}
 
@@ -14,7 +15,9 @@ protocol prove {
 		string sigID;
 	}
 
-	// set promptPosted to true to enable the okToCheck, displayRecheckWarning ui loop.  false to skip it.
+	/*
+		@param promptPosted Set to true to enable the okToCheck, displayRecheckWarning ui loop
+	*/
 	StartProofResult startProof(int sessionID, string service, string username, boolean force, boolean promptPosted);
 	CheckProofStatus checkProof(int sessionID, string sigID);
 }

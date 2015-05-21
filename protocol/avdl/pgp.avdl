@@ -4,9 +4,9 @@ protocol pgp {
 	import idl "common.avdl";
 
 	enum SignMode {
-		ATTACHED,
-		DETACHED,
-		CLEAR
+		ATTACHED_0,
+		DETACHED_1,
+		CLEAR_2
 	}
 
 	record PgpSignOptions {
@@ -44,7 +44,7 @@ protocol pgp {
 		User signer; // who signed it
 		PublicKey signKey; // the pub key that signed it
 	}
-	
+
 	record PgpDecryptOptions {
 		boolean assertSigned;
 		string signedBy; // assert that signature made by this user
@@ -53,14 +53,14 @@ protocol pgp {
 	}
 
 	PgpSigVerification pgpDecrypt(int sessionID, Stream source, Stream sink, PgpDecryptOptions opts);
-	
+
 	record PgpVerifyOptions {
 		string signedBy; // assert that signature made by this user
 		boolean localOnly; // store track locally only
 		boolean approveRemote;  // approve remote track without prompt
 		bytes signature; // detached signature data (binary or armored), can be empty
 	}
-	
+
 	PgpSigVerification pgpVerify(int sessionID, Stream source, PgpVerifyOptions opts);
 
 	void pgpImport(int sessionID, bytes key, boolean pushSecret);
@@ -74,7 +74,7 @@ protocol pgp {
 	// Exports all active PGP keys, public. Only allows armored export.
 	// If you ask for private, you can get at most one key back.
 	array<KeyInfo> pgpExport(int sessionID, boolean secret, string query);
-	
+
 	record PgpCreateUids {
 		boolean useDefault;
 		array<PgpIdentity> ids;
@@ -89,7 +89,7 @@ protocol pgp {
 	);
 
 	void pgpKeyGenDefault(PgpCreateUids createUids);
-	
+
 	void pgpDeletePrimary();
 
 	// select an existing key and add to kb

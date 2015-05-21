@@ -166,7 +166,7 @@
   }, {
     "type" : "enum",
     "name" : "SignMode",
-    "symbols" : [ "ATTACHED", "DETACHED", "CLEAR" ]
+    "symbols" : [ "ATTACHED_0", "DETACHED_1", "CLEAR_2" ]
   }, {
     "type" : "record",
     "name" : "PgpSignOptions",

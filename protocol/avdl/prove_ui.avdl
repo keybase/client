@@ -4,8 +4,8 @@ protocol proveUi {
 	import idl "common.avdl";
 
 	enum PromptOverwriteType {
-		SOCIAL,
-		SITE
+		SOCIAL_0,
+		SITE_1
 	}
 
 	boolean promptOverwrite(int sessionID, string account, PromptOverwriteType typ);
