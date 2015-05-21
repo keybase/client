@@ -9,6 +9,7 @@ import (
 	"net/url"
 	"strings"
 	"sync"
+	"time"
 
 	"github.com/PuerkitoBio/goquery"
 	jsonw "github.com/keybase/go-jsonw"
@@ -34,6 +35,7 @@ type ExternalApiEngine struct {
 type Requester interface {
 	fixHeaders(arg ApiArg, req *http.Request)
 	getCli(needSession bool) *Client
+	consumeHeaders(resp *http.Response) error
 	isExternal() bool
 }
 
@@ -156,6 +158,11 @@ func doRequestShared(api Requester, arg ApiArg, req *http.Request, wantJsonRes b
 		return nil, nil, err
 	}
 
+	err = api.consumeHeaders(resp)
+	if err != nil {
+		return nil, nil, err
+	}
+
 	if wantJsonRes {
 
 		decoder := json.NewDecoder(resp.Body)
@@ -228,6 +235,24 @@ func (a *InternalApiEngine) sessionArgs(arg ApiArg) (tok, csrf string) {
 }
 
 func (i *InternalApiEngine) isExternal() bool { return false }
+
+var lastUpgradeWarningMu sync.Mutex
+var lastUpgradeWarning *time.Time
+
+func (a *InternalApiEngine) consumeHeaders(resp *http.Response) error {
+	u := resp.Header.Get("X-Keybase-Client-Upgrade-To")
+	if len(u) > 0 {
+		now := time.Now()
+		lastUpgradeWarningMu.Lock()
+		if lastUpgradeWarning == nil || now.Sub(*lastUpgradeWarning) > 3*time.Minute {
+			G.Log.Warning("Upgrade recommended to client version %s or above (you have v%s)",
+				u, CLIENT_VERSION)
+			lastUpgradeWarning = &now
+		}
+		lastUpgradeWarningMu.Unlock()
+	}
+	return nil
+}
 
 func (a *InternalApiEngine) fixHeaders(arg ApiArg, req *http.Request) {
 	if arg.NeedSession {
@@ -384,6 +409,11 @@ const (
 func (a *ExternalApiEngine) fixHeaders(arg ApiArg, req *http.Request) {
 	// noop for now
 }
+
+func (a *ExternalApiEngine) consumeHeaders(resp *http.Response) error {
+	return nil
+}
+
 func (e *ExternalApiEngine) isExternal() bool { return true }
 
 func (api *ExternalApiEngine) DoRequest(
