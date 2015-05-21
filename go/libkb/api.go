@@ -17,7 +17,7 @@ import (
 // Shared code across Internal and External APIs
 type BaseApiEngine struct {
 	config    *ClientConfig
-	clientsMu sync.RWMutex
+	clientsMu sync.Mutex
 	clients   map[int]*Client
 }
 
@@ -92,16 +92,14 @@ func (api *BaseApiEngine) getCli(cookied bool) (ret *Client) {
 	if cookied {
 		key |= 1
 	}
-	api.clientsMu.RLock()
+	api.clientsMu.Lock()
 	client, found := api.clients[key]
-	api.clientsMu.RUnlock()
 	if !found {
 		G.Log.Debug("| Cli wasn't found; remaking for cookied=%v", cookied)
 		client = NewClient(api.config, cookied)
-		api.clientsMu.Lock()
 		api.clients[key] = client
-		api.clientsMu.Unlock()
 	}
+	api.clientsMu.Unlock()
 	return client
 }
 
