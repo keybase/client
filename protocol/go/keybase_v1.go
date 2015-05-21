@@ -500,9 +500,9 @@ func (c DoctorClient) Doctor(sessionID int) (err error) {
 type DoctorFixType int
 
 const (
-	DoctorFixType_NONE               = 0
-	DoctorFixType_ADD_ELDEST_DEVICE  = 1
-	DoctorFixType_ADD_SIBLING_DEVICE = 2
+	DoctorFixType_NONE               DoctorFixType = 0
+	DoctorFixType_ADD_ELDEST_DEVICE  DoctorFixType = 1
+	DoctorFixType_ADD_SIBLING_DEVICE DoctorFixType = 2
 )
 
 type DoctorSignerOpts struct {
@@ -673,18 +673,84 @@ func (c GpgUiClient) SelectKey(__arg SelectKeyArg) (res string, err error) {
 	return
 }
 
+type ProofState int
+
+const (
+	ProofState_NONE         ProofState = 0
+	ProofState_OK           ProofState = 1
+	ProofState_TEMP_FAILURE ProofState = 2
+	ProofState_PERM_FAILURE ProofState = 3
+	ProofState_LOOKING      ProofState = 4
+	ProofState_SUPERSEDED   ProofState = 5
+	ProofState_POSTED       ProofState = 6
+	ProofState_REVOKED      ProofState = 7
+)
+
+type ProofCheckStatus int
+
+const (
+	ProofCheckStatus_NONE              ProofCheckStatus = 0
+	ProofCheckStatus_OK                ProofCheckStatus = 1
+	ProofCheckStatus_LOCAL             ProofCheckStatus = 2
+	ProofCheckStatus_FOUND             ProofCheckStatus = 3
+	ProofCheckStatus_HOST_UNREACHABLE  ProofCheckStatus = 4
+	ProofCheckStatus_PERMISSION_DENIED ProofCheckStatus = 5
+	ProofCheckStatus_FAILED_PARSE      ProofCheckStatus = 6
+	ProofCheckStatus_DNS_ERROR         ProofCheckStatus = 7
+	ProofCheckStatus_AUTH_FAILED       ProofCheckStatus = 8
+	ProofCheckStatus_HTTP_500          ProofCheckStatus = 9
+	ProofCheckStatus_TIMEOUT           ProofCheckStatus = 10
+	ProofCheckStatus_INTERNAL_ERROR    ProofCheckStatus = 11
+	ProofCheckStatus_NOT_FOUND         ProofCheckStatus = 12
+	ProofCheckStatus_CONTENT_FAILURE   ProofCheckStatus = 13
+	ProofCheckStatus_BAD_USERNAME      ProofCheckStatus = 14
+	ProofCheckStatus_BAD_REMOTE_ID     ProofCheckStatus = 15
+	ProofCheckStatus_TEXT_NOT_FOUND    ProofCheckStatus = 16
+	ProofCheckStatus_BAD_ARGS          ProofCheckStatus = 17
+	ProofCheckStatus_CONTENT_MISSING   ProofCheckStatus = 18
+	ProofCheckStatus_TITLE_NOT_FOUND   ProofCheckStatus = 19
+	ProofCheckStatus_SERVICE_ERROR     ProofCheckStatus = 20
+	ProofCheckStatus_TOR_SKIPPED       ProofCheckStatus = 21
+	ProofCheckStatus_TOR_INCOMPATIBLE  ProofCheckStatus = 22
+	ProofCheckStatus_HTTP_300          ProofCheckStatus = 23
+	ProofCheckStatus_HTTP_400          ProofCheckStatus = 24
+	ProofCheckStatus_HTTP_OTHER        ProofCheckStatus = 25
+	ProofCheckStatus_EMPTY_JSON        ProofCheckStatus = 26
+	ProofCheckStatus_DELETED           ProofCheckStatus = 27
+	ProofCheckStatus_SERVICE_DEAD      ProofCheckStatus = 28
+	ProofCheckStatus_BAD_SIGNATURE     ProofCheckStatus = 29
+	ProofCheckStatus_BAD_API_URL       ProofCheckStatus = 30
+	ProofCheckStatus_UNKNOWN_TYPE      ProofCheckStatus = 31
+	ProofCheckStatus_NO_HINT           ProofCheckStatus = 32
+	ProofCheckStatus_BAD_HINT_TEXT     ProofCheckStatus = 33
+)
+
+type ProofType int
+
+const (
+	ProofType_NONE             ProofType = 0
+	ProofType_KEYBASE          ProofType = 1
+	ProofType_TWITTER          ProofType = 2
+	ProofType_GITHUB           ProofType = 3
+	ProofType_REDDIT           ProofType = 4
+	ProofType_COINBASE         ProofType = 5
+	ProofType_HACKERNEWS       ProofType = 6
+	ProofType_GENERIC_WEB_SITE ProofType = 7
+	ProofType_DNS              ProofType = 8
+)
+
 type TrackDiffType int
 
 const (
-	TrackDiffType_NONE           = 0
-	TrackDiffType_ERROR          = 1
-	TrackDiffType_CLASH          = 2
-	TrackDiffType_DELETED        = 3
-	TrackDiffType_UPGRADED       = 4
-	TrackDiffType_NEW            = 5
-	TrackDiffType_REMOTE_FAIL    = 6
-	TrackDiffType_REMOTE_WORKING = 7
-	TrackDiffType_REMOTE_CHANGED = 8
+	TrackDiffType_NONE           TrackDiffType = 0
+	TrackDiffType_ERROR          TrackDiffType = 1
+	TrackDiffType_CLASH          TrackDiffType = 2
+	TrackDiffType_DELETED        TrackDiffType = 3
+	TrackDiffType_UPGRADED       TrackDiffType = 4
+	TrackDiffType_NEW            TrackDiffType = 5
+	TrackDiffType_REMOTE_FAIL    TrackDiffType = 6
+	TrackDiffType_REMOTE_WORKING TrackDiffType = 7
+	TrackDiffType_REMOTE_CHANGED TrackDiffType = 8
 )
 
 type TrackDiff struct {
@@ -719,12 +785,12 @@ type IdentifyRes struct {
 }
 
 type RemoteProof struct {
-	ProofType     int    `codec:"proofType" json:"proofType"`
-	Key           string `codec:"key" json:"key"`
-	Value         string `codec:"value" json:"value"`
-	DisplayMarkup string `codec:"displayMarkup" json:"displayMarkup"`
-	SigID         string `codec:"sigID" json:"sigID"`
-	Mtime         int    `codec:"mtime" json:"mtime"`
+	ProofType     ProofType `codec:"proofType" json:"proofType"`
+	Key           string    `codec:"key" json:"key"`
+	Value         string    `codec:"value" json:"value"`
+	DisplayMarkup string    `codec:"displayMarkup" json:"displayMarkup"`
+	SigID         string    `codec:"sigID" json:"sigID"`
+	Mtime         int       `codec:"mtime" json:"mtime"`
 }
 
 type IdentifyArg struct {
@@ -1043,16 +1109,16 @@ func (c IdentifyUiClient) Finish(sessionID int) (err error) {
 type DeviceSignerKind int
 
 const (
-	DeviceSignerKind_DEVICE = 0
-	DeviceSignerKind_PGP    = 1
+	DeviceSignerKind_DEVICE DeviceSignerKind = 0
+	DeviceSignerKind_PGP    DeviceSignerKind = 1
 )
 
 type SelectSignerAction int
 
 const (
-	SelectSignerAction_SIGN          = 0
-	SelectSignerAction_CANCEL        = 1
-	SelectSignerAction_RESET_ACCOUNT = 2
+	SelectSignerAction_SIGN          SelectSignerAction = 0
+	SelectSignerAction_CANCEL        SelectSignerAction = 1
+	SelectSignerAction_RESET_ACCOUNT SelectSignerAction = 2
 )
 
 type DeviceSigner struct {
@@ -1069,19 +1135,19 @@ type SelectSignerRes struct {
 type KexStatusCode int
 
 const (
-	KexStatusCode_START_SEND           = 0
-	KexStatusCode_HELLO_WAIT           = 1
-	KexStatusCode_HELLO_RECEIVED       = 2
-	KexStatusCode_PLEASE_SIGN_SEND     = 3
-	KexStatusCode_DONE_WAIT            = 4
-	KexStatusCode_DONE_RECEIVED        = 5
-	KexStatusCode_START_WAIT           = 6
-	KexStatusCode_START_RECEIVED       = 7
-	KexStatusCode_HELLO_SEND           = 8
-	KexStatusCode_PLEASE_SIGN_WAIT     = 9
-	KexStatusCode_PLEASE_SIGN_RECEIVED = 10
-	KexStatusCode_DONE_SEND            = 11
-	KexStatusCode_END                  = 12
+	KexStatusCode_START_SEND           KexStatusCode = 0
+	KexStatusCode_HELLO_WAIT           KexStatusCode = 1
+	KexStatusCode_HELLO_RECEIVED       KexStatusCode = 2
+	KexStatusCode_PLEASE_SIGN_SEND     KexStatusCode = 3
+	KexStatusCode_DONE_WAIT            KexStatusCode = 4
+	KexStatusCode_DONE_RECEIVED        KexStatusCode = 5
+	KexStatusCode_START_WAIT           KexStatusCode = 6
+	KexStatusCode_START_RECEIVED       KexStatusCode = 7
+	KexStatusCode_HELLO_SEND           KexStatusCode = 8
+	KexStatusCode_PLEASE_SIGN_WAIT     KexStatusCode = 9
+	KexStatusCode_PLEASE_SIGN_RECEIVED KexStatusCode = 10
+	KexStatusCode_DONE_SEND            KexStatusCode = 11
+	KexStatusCode_END                  KexStatusCode = 12
 )
 
 type PromptDeviceNameArg struct {
@@ -1179,13 +1245,13 @@ func (c LocksmithUiClient) KexStatus(__arg KexStatusArg) (err error) {
 type LogLevel int
 
 const (
-	LogLevel_NONE     = 0
-	LogLevel_DEBUG    = 1
-	LogLevel_INFO     = 2
-	LogLevel_NOTICE   = 3
-	LogLevel_WARN     = 4
-	LogLevel_ERROR    = 5
-	LogLevel_CRITICAL = 6
+	LogLevel_NONE     LogLevel = 0
+	LogLevel_DEBUG    LogLevel = 1
+	LogLevel_INFO     LogLevel = 2
+	LogLevel_NOTICE   LogLevel = 3
+	LogLevel_WARN     LogLevel = 4
+	LogLevel_ERROR    LogLevel = 5
+	LogLevel_CRITICAL LogLevel = 6
 )
 
 type LogArg struct {
@@ -1421,9 +1487,9 @@ func (c LoginUiClient) GetEmailOrUsername(sessionID int) (res string, err error)
 type SignMode int
 
 const (
-	SignMode_ATTACHED = 0
-	SignMode_DETACHED = 1
-	SignMode_CLEAR    = 2
+	SignMode_ATTACHED SignMode = 0
+	SignMode_DETACHED SignMode = 1
+	SignMode_CLEAR    SignMode = 2
 )
 
 type PgpSignOptions struct {
@@ -1720,9 +1786,9 @@ func (c PgpClient) PgpUpdate(__arg PgpUpdateArg) (err error) {
 }
 
 type CheckProofStatus struct {
-	Found     bool   `codec:"found" json:"found"`
-	Status    int    `codec:"status" json:"status"`
-	ProofText string `codec:"proofText" json:"proofText"`
+	Found     bool             `codec:"found" json:"found"`
+	Status    ProofCheckStatus `codec:"status" json:"status"`
+	ProofText string           `codec:"proofText" json:"proofText"`
 }
 
 type StartProofResult struct {
@@ -1787,8 +1853,8 @@ func (c ProveClient) CheckProof(__arg CheckProofArg) (res CheckProofStatus, err 
 type PromptOverwriteType int
 
 const (
-	PromptOverwriteType_SOCIAL = 0
-	PromptOverwriteType_SITE   = 1
+	PromptOverwriteType_SOCIAL PromptOverwriteType = 0
+	PromptOverwriteType_SITE   PromptOverwriteType = 1
 )
 
 type PromptOverwriteArg struct {

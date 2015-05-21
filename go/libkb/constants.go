@@ -4,6 +4,7 @@ import (
 	"os"
 	"runtime"
 	"time"
+	keybase1 "github.com/keybase/client/protocol/go"
 )
 
 var SERVER_URL = "http://localhost:3000"
@@ -144,16 +145,16 @@ var PgpArmorHeaders = map[string]string{
 	"Comment": DOWNLOAD_URL,
 }
 
-var REMOTE_SERVICE_TYPES = map[string]int{
-	"keybase":    PROOF_TYPE_KEYBASE,
-	"twitter":    PROOF_TYPE_TWITTER,
-	"github":     PROOF_TYPE_GITHUB,
-	"reddit":     PROOF_TYPE_REDDIT,
-	"coinbase":   PROOF_TYPE_COINBASE,
-	"hackernews": PROOF_TYPE_HACKERNEWS,
-	"https":      PROOF_TYPE_GENERIC_WEB_SITE,
-	"http":       PROOF_TYPE_GENERIC_WEB_SITE,
-	"dns":        PROOF_TYPE_DNS,
+var REMOTE_SERVICE_TYPES = map[string]keybase1.ProofType{
+	"keybase":    keybase1.ProofType_KEYBASE,
+	"twitter":    keybase1.ProofType_TWITTER,
+	"github":     keybase1.ProofType_GITHUB,
+	"reddit":     keybase1.ProofType_REDDIT,
+	"coinbase":   keybase1.ProofType_COINBASE,
+	"hackernews": keybase1.ProofType_HACKERNEWS,
+	"https":      keybase1.ProofType_GENERIC_WEB_SITE,
+	"http":       keybase1.ProofType_GENERIC_WEB_SITE,
+	"dns":        keybase1.ProofType_DNS,
 }
 
 var CANONICAL_HOST = "keybase.io"
@@ -189,18 +190,6 @@ var (
 	HASH_PGP_SHA384    = 9
 	HASH_PGP_SHA512    = 10
 	HASH_PGP_SHA224    = 11
-)
-
-var (
-	PROOF_TYPE_NONE             = 0
-	PROOF_TYPE_KEYBASE          = 1
-	PROOF_TYPE_TWITTER          = 2
-	PROOF_TYPE_GITHUB           = 3
-	PROOF_TYPE_REDDIT           = 4
-	PROOF_TYPE_COINBASE         = 5
-	PROOF_TYPE_HACKERNEWS       = 6
-	PROOF_TYPE_GENERIC_WEB_SITE = 1000
-	PROOF_TYPE_DNS              = 1001
 )
 
 var (

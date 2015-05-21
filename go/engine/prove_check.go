@@ -7,6 +7,7 @@ import (
 	"fmt"
 
 	"github.com/keybase/client/go/libkb"
+	keybase1 "github.com/keybase/client/protocol/go"
 )
 
 // ProveCheck is an engine.
@@ -14,7 +15,7 @@ type ProveCheck struct {
 	libkb.Contextified
 	sigID     libkb.SigId
 	found     bool
-	status    int
+	status    keybase1.ProofCheckStatus
 	proofText string
 }
 
@@ -53,7 +54,7 @@ func (e *ProveCheck) Run(ctx *Context) error {
 		return err
 	}
 	e.found = found
-	e.status = status
+	e.status = keybase1.ProofCheckStatus(status)
 
 	e.G().Log.Debug("looking for ChainLink for %s", e.sigID.ToString(true))
 	me, err := libkb.LoadMe(libkb.LoadUserArg{PublicKeyOptional: true})
@@ -74,6 +75,6 @@ func (e *ProveCheck) Run(ctx *Context) error {
 	return nil
 }
 
-func (e *ProveCheck) Results() (found bool, status int, proofText string) {
+func (e *ProveCheck) Results() (found bool, status keybase1.ProofCheckStatus, proofText string) {
 	return e.found, e.status, e.proofText
 }

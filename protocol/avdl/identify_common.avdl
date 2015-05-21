@@ -2,6 +2,7 @@
 
 protocol identifyCommon {
 	import idl "common.avdl";
+	import idl "prove_common.avdl";
 
 	enum TrackDiffType {
 		NONE,
@@ -45,9 +46,9 @@ protocol identifyCommon {
 		union { null, User } user;
 		IdentifyOutcome outcome;
 	}
-	
+
 	record RemoteProof {
-		int proofType;
+		ProofType proofType;
 		string key;
 		string value;
 		string displayMarkup;

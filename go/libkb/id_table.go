@@ -7,6 +7,7 @@ import (
 	"time"
 
 	jsonw "github.com/keybase/go-jsonw"
+	keybase1 "github.com/keybase/client/protocol/go"
 )
 
 type TypedChainLink interface {
@@ -107,7 +108,7 @@ type RemoteProofChainLink interface {
 	ToIdString() string
 	ToKeyValuePair() (string, string)
 	ComputeTrackDiff(tl *TrackLookup) TrackDiff
-	GetIntType() int
+	GetProofType() keybase1.ProofType
 	ProofText() string
 }
 
@@ -132,11 +133,11 @@ func (w *WebProofChainLink) TableKey() string {
 	return w.protocol
 }
 
-func (g *WebProofChainLink) GetIntType() int {
+func (g *WebProofChainLink) GetProofType() keybase1.ProofType {
 	if g.protocol == "dns" {
-		return PROOF_TYPE_DNS
+		return keybase1.ProofType_DNS
 	}
-	return PROOF_TYPE_GENERIC_WEB_SITE
+	return keybase1.ProofType_GENERIC_WEB_SITE
 }
 
 func (s *WebProofChainLink) ToTrackingStatement() (*jsonw.Wrapper, error) {
@@ -250,10 +251,10 @@ func (s *SocialProofChainLink) CheckDataJson() *jsonw.Wrapper {
 	return ret
 }
 
-func (g *SocialProofChainLink) GetIntType() int {
+func (g *SocialProofChainLink) GetProofType() keybase1.ProofType {
 	ret, found := REMOTE_SERVICE_TYPES[g.service]
 	if !found {
-		ret = PROOF_TYPE_NONE
+		ret = keybase1.ProofType_NONE
 	}
 	return ret
 }
@@ -858,7 +859,7 @@ func (s *SelfSigChainLink) ToKeyValuePair() (string, string) {
 
 func (s *SelfSigChainLink) ComputeTrackDiff(tl *TrackLookup) TrackDiff { return nil }
 
-func (s *SelfSigChainLink) GetIntType() int { return PROOF_TYPE_KEYBASE }
+func (s *SelfSigChainLink) GetProofType() keybase1.ProofType { return keybase1.ProofType_KEYBASE }
 
 func (s *SelfSigChainLink) ParseDevice() (err error) {
 	if jw := s.payloadJson.AtPath("body.device"); !jw.IsNil() {

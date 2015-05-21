@@ -137,13 +137,17 @@ paths.each do |path|
     #puts "Type: #{type["name"]}"
 
     if type["type"] == "enum"
-      enums << type["name"]
-      enum_name = "#{classname(type["name"])}"
-      header << "typedef NS_ENUM (NSInteger, #{enum_name}) {"
+      defaults = type["defaults"]
+      enum_name = type["name"]
+      enums << enum_name
+      enum_name_objc = "#{classname(enum_name)}"
+      header << "typedef NS_ENUM (NSInteger, #{enum_name_objc}) {"
       type["symbols"].each do |sym|
-        header << "\t#{enum_name}#{sym.capitalize.camelize},"
+        sym_details = defaults[sym] if defaults
+        suffix = sym_details ? " = #{sym_details}," : ","
+        header << "\t#{enum_name_objc}#{sym.capitalize.camelize}#{suffix}"
       end
-      header << "};"
+      header << "};\n"
     elsif type["type"] == "fixed"
       header << "@interface #{classname(type["name"])} : NSData"
       header << "@end\n"
