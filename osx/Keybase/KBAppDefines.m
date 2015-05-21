@@ -7,7 +7,6 @@
 //
 
 #import "KBAppDefines.h"
-#import <Mantle/Mantle.h>
 
 NSString *const KBTrackingListDidChangeNotification = @"KBTrackingListDidChangeNotification";
 NSString *const KBStatusDidChangeNotification = @"KBStatusDidChangeNotification";
@@ -37,32 +36,6 @@ NSString *KBDescriptionForFingerprint(NSString *fingerprint, NSInteger indexForL
   return [s uppercaseString];
 }
 
-NSString *KBDescription(id obj) {
-  if ([obj isKindOfClass:NSNull.class]) {
-    return @"null";
-  } else if ([obj isKindOfClass:NSArray.class]) {
-    return KBArrayDescription(obj);
-  } else if ([obj isKindOfClass:NSDictionary.class]) {
-    return KBDictionaryDescription(obj);
-  } else if ([obj conformsToProtocol:@protocol(MTLJSONSerializing)]) {
-    NSDictionary *properties = [MTLJSONAdapter JSONDictionaryFromModel:obj error:nil]; // TODO: Handle error
-    return properties ? KBDictionaryDescription(properties) : [obj description];
-  } else {
-    return [obj description];
-  }
-}
-
-NSString *KBArrayDescription(NSArray *a) {
-  if ([a count] == 0) return @"[]";
-  return NSStringWithFormat(@"[%@]", [[a map:^(id obj) { return KBDescription(obj); }] join:@", "]);
-}
-
-NSString *KBDictionaryDescription(NSDictionary *d) {
-  return NSStringWithFormat(@"{%@}", [[d map:^id(id key, id value) {
-    return NSStringWithFormat(@"%@: %@", key, KBDescription(value));
-  }] join:@", "]);
-}
-
 NSString *KBDisplayURLStringForUsername(NSString *username) {
   return NSStringWithFormat(@"keybase.io/%@", username);
 }
@@ -77,4 +50,68 @@ NSString *KBNSStringByStrippingHTML(NSString *str) {
   while ((r = [str rangeOfString:@"<[^>]+>" options:NSRegularExpressionSearch]).location != NSNotFound)
     str = [str stringByReplacingCharactersInRange:r withString:@""];
     return str;
+}
+
+NSString *KBConvertObjectToString(id obj) {
+  if (!obj) return nil;
+  return NSStringWithFormat(@"<Data:%@>", KBHexString(obj, @""));
+}
+
+id KBConvertStringToObject(NSString *str) {
+  if ([str gh_startsWith:@"<Data:"]) {
+    return KBHexData([str substringWithRange:NSMakeRange(7, str.length - 8)]);
+  }
+  return nil; // No conversion
+}
+
+void KBConvertArrayTo(NSMutableArray *array) {
+  KBConvertArray(array, NSData.class, ^id(NSData *data) { return KBConvertObjectToString(data); });
+}
+
+void KBConvertArrayFrom(NSMutableArray *array) {
+  KBConvertArray(array, NSString.class, ^id(NSString *str) { return KBConvertStringToObject(str); });
+}
+
+void KBConvertDictTo(NSMutableDictionary *dict) {
+  KBConvertDict(dict, NSData.class, ^id(NSData *data) { return KBConvertObjectToString(data); });
+}
+
+void KBConvertDictFrom(NSMutableDictionary *dict) {
+  KBConvertDict(dict, NSString.class, ^id(NSString *str) { return KBConvertStringToObject(str); });
+}
+
+typedef id (^KBCoverter)(id obj);
+
+void KBConvertArray(NSMutableArray *array, Class clazz, KBCoverter converter) {
+  for (NSInteger i = 0; i < array.count; i++) {
+    id item = array[i];
+    id converted = KBConvertObject(item, clazz, converter);
+    if (converted) array[i] = converted;
+  }
+}
+
+void KBConvertDict(NSMutableDictionary *dict, Class clazz, KBCoverter converter) {
+  for (NSString *key in [dict allKeys]) {
+    id item = dict[key];
+    id converted = KBConvertObject(item, clazz, converter);
+    if (converted) dict[key] = converted;
+  }
+}
+
+id KBConvertObject(id item, Class clazz, KBCoverter converter) {
+  if ([item isKindOfClass:NSMutableArray.class]) {
+    KBConvertArray(item, clazz, converter);
+  } else if ([item isKindOfClass:NSArray.class]) {
+    NSMutableArray *itemCopy = (NSMutableArray *)CFBridgingRelease(CFPropertyListCreateDeepCopy(kCFAllocatorDefault, (CFArrayRef)item, kCFPropertyListMutableContainers));
+    KBConvertArray(itemCopy, clazz, converter);
+  } else if ([item isKindOfClass:NSMutableDictionary.class]) {
+    KBConvertDict(item, clazz, converter);
+  } else if ([item isKindOfClass:NSDictionary.class]) {
+    //NSCAssert(NO, @"Not mutable dict");
+    NSMutableDictionary *itemCopy = (NSMutableDictionary *)CFBridgingRelease(CFPropertyListCreateDeepCopy(kCFAllocatorDefault, (CFDictionaryRef)item, kCFPropertyListMutableContainers));
+    KBConvertDict(itemCopy, clazz, converter);
+  } else if ([item isKindOfClass:clazz]) {
+    return converter(item);
+  }
+  return nil;
 }

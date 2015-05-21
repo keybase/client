@@ -87,7 +87,7 @@
 
   _client.coder = [[KBRPCCoder alloc] init];
 
-  DDLogDebug(@"Connecting to keybase service (%@)...", self.environment.sockFile);
+  DDLogDebug(@"Connecting to keybase service (%@)...", [self.environment sockFile:YES]);
   _connectAttempt++;
   [self.delegate RPClientWillConnect:self];
   [_client openWithSocket:[self.environment sockFile:YES] completion:^(NSError *error) {
@@ -198,7 +198,7 @@
   mparams[0] = KBScrubPassphrase(params[0]);
 
   //NSNumber *messageId = request[1];
-  DDLogDebug(@"Sent request: %@(%@)", method, KBDictionaryDescription(mparams[0]));
+  DDLogDebug(@"Sent request: %@(%@)", method, KBDescription(mparams[0]));
   if ([NSUserDefaults.standardUserDefaults boolForKey:@"Preferences.Advanced.Record"]) {
     [self.recorder recordRequest:method params:[_client encodeObject:params] sessionId:sessionId callback:NO];
   }

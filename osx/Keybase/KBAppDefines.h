@@ -12,13 +12,10 @@
 #import <CocoaLumberjack/CocoaLumberjack.h>
 #import <GHODictionary/GHODictionary.h>
 #import "KBDefines.h"
+#import "KBFormatter.h"
 
 extern NSString *const KBTrackingListDidChangeNotification;
 extern NSString *const KBStatusDidChangeNotification;
-
-NSString *KBDescription(id obj);
-NSString *KBDictionaryDescription(NSDictionary *d);
-NSString *KBArrayDescription(NSArray *a);
 
 NSString *KBDisplayURLStringForUsername(NSString *username);
 NSString *KBURLStringForUsername(NSString *username);
@@ -48,3 +45,15 @@ typedef NS_ENUM (NSInteger, KBAppViewItem) {
 #define KBLog DDLogDebug
 
 NSString *KBNSStringByStrippingHTML(NSString *str);
+
+
+void KBConvertArrayTo(NSMutableArray *array);
+void KBConvertArrayFrom(NSMutableArray *array);
+
+void KBConvertDictTo(NSMutableDictionary *dict);
+void KBConvertDictFrom(NSMutableDictionary *dict);
+
+typedef id (^KBCoverter)(id obj);
+void KBConvertArray(NSMutableArray *array, Class clazz, KBCoverter converter);
+void KBConvertDict(NSMutableDictionary *dict, Class clazz, KBCoverter converter);
+id KBConvertObject(id item, Class clazz, KBCoverter converter);

@@ -75,9 +75,11 @@
   return desc;
 }
 
-- (NSString *)description {
-  NSDictionary *properties = [MTLJSONAdapter JSONDictionaryFromModel:self error:nil]; // TODO: Handle error
-  return KBDictionaryDescription(properties);
+- (GHODictionary *)toDictionary {
+  NSDictionary *dict = [MTLJSONAdapter JSONDictionaryFromModel:self error:nil]; // TODO: Handle error
+  GHODictionary *odict = [GHODictionary dictionaryWithDictionary:dict];
+  [odict sortKeysUsingSelector:@selector(localizedCaseInsensitiveCompare:) deepSort:YES];
+  return odict;
 }
 
 @end
