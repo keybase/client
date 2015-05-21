@@ -55,10 +55,6 @@ func (e *ProveCheck) Run(ctx *Context) error {
 	e.found = found
 	e.status = status
 
-	if !e.found {
-		return nil
-	}
-
 	e.G().Log.Debug("looking for ChainLink for %s", e.sigID.ToString(true))
 	me, err := libkb.LoadMe(libkb.LoadUserArg{PublicKeyOptional: true})
 	if err != nil {
