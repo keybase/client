@@ -71,6 +71,23 @@ func (*Root) Attr(a *fuse.Attr) {
 
 var _ fs.NodeRequestLookuper = (*Root)(nil)
 
+// getMD is a wrapper over KBFSOps.GetRootMDForHandle that gives
+// useful results for home folders with public subdirectories.
+func (r *Root) getMD(dh *libkbfs.DirHandle) (libkbfs.DirId, libkbfs.BlockPointer, error) {
+	md, err := r.fs.config.KBFSOps().GetRootMDForHandle(dh)
+	if err != nil {
+		if _, ok := err.(*libkbfs.ReadAccessError); ok && dh.HasPublic() {
+			// This user cannot get the metadata for the folder, but
+			// we know it has a public subdirectory, so serve it
+			// anyway.
+			return libkbfs.NullDirId, libkbfs.BlockPointer{}, nil
+		}
+		return libkbfs.NullDirId, libkbfs.BlockPointer{}, err
+	}
+
+	return md.Id, md.Data().Dir.BlockPointer, nil
+}
+
 func (r *Root) Lookup(ctx context.Context, req *fuse.LookupRequest, resp *fuse.LookupResponse) (fs.Node, error) {
 	r.mu.Lock()
 	defer r.mu.Unlock()
@@ -95,7 +112,7 @@ func (r *Root) Lookup(ctx context.Context, req *fuse.LookupRequest, resp *fuse.L
 		return n, nil
 	}
 
-	md, err := r.fs.config.KBFSOps().GetRootMDForHandle(dh)
+	mdId, blockp, err := r.getMD(dh)
 	if err != nil {
 		// TODO make errors aware of fuse
 		return nil, err
@@ -103,13 +120,13 @@ func (r *Root) Lookup(ctx context.Context, req *fuse.LookupRequest, resp *fuse.L
 
 	folder := &Folder{
 		fs: r.fs,
-		id: md.Id,
+		id: mdId,
 		dh: dh,
 	}
 	child := &Dir{
 		folder: folder,
 		pathNode: libkbfs.PathNode{
-			BlockPointer: md.Data().Dir.BlockPointer,
+			BlockPointer: blockp,
 			Name:         req.Name,
 		},
 	}

@@ -943,3 +943,104 @@ func TestReaddirOtherFolderAsReader(t *testing.T) {
 		"myfile": nil,
 	})
 }
+
+func TestStatOtherFolder(t *testing.T) {
+	config := makeTestConfig("jdoe", "wsmith")
+	func() {
+		mnt := makeFS(t, config)
+		defer mnt.Close()
+
+		// cause the folder to exist
+		if err := ioutil.WriteFile(path.Join(mnt.Dir, "jdoe", "myfile"), []byte("data for myfile"), 0644); err != nil {
+			t.Fatal(err)
+		}
+	}()
+
+	c2 := configAsUser(config, "wsmith")
+	mnt := makeFS(t, c2)
+	defer mnt.Close()
+
+	fi, err := os.Lstat(path.Join(mnt.Dir, "jdoe"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	// TODO figure out right modes, note owner is the person running
+	// fuse, not the person owning the folder
+	if g, e := fi.Mode().String(), `drwx------`; g != e {
+		t.Errorf("wrong mode for folder: %q != %q", g, e)
+	}
+}
+
+func TestStatOtherFolderPublic(t *testing.T) {
+	config := makeTestConfig("jdoe", "wsmith")
+	func() {
+		mnt := makeFS(t, config)
+		defer mnt.Close()
+
+		// cause the folder to exist
+		if err := ioutil.WriteFile(path.Join(mnt.Dir, "jdoe", "public", "myfile"), []byte("data for myfile"), 0644); err != nil {
+			t.Fatal(err)
+		}
+	}()
+
+	c2 := configAsUser(config, "wsmith")
+	mnt := makeFS(t, c2)
+	defer mnt.Close()
+
+	fi, err := os.Lstat(path.Join(mnt.Dir, "jdoe", "public"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	// TODO figure out right modes, note owner is the person running
+	// fuse, not the person owning the folder
+	if g, e := fi.Mode().String(), `drwxr-xr-x`; g != e {
+		t.Errorf("wrong mode for folder: %q != %q", g, e)
+	}
+}
+
+func TestReadPublicFile(t *testing.T) {
+	config := makeTestConfig("jdoe", "wsmith")
+	const input = "hello, world\n"
+	func() {
+		mnt := makeFS(t, config)
+		defer mnt.Close()
+
+		// cause the folder to exist
+		if err := ioutil.WriteFile(path.Join(mnt.Dir, "jdoe", "public", "myfile"), []byte(input), 0644); err != nil {
+			t.Fatal(err)
+		}
+	}()
+
+	c2 := configAsUser(config, "wsmith")
+	mnt := makeFS(t, c2)
+	defer mnt.Close()
+
+	buf, err := ioutil.ReadFile(path.Join(mnt.Dir, "jdoe", "public", "myfile"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if g, e := string(buf), input; g != e {
+		t.Errorf("bad file contents: %q != %q", g, e)
+	}
+}
+
+func TestReaddirOtherFolderPublicAsAnyone(t *testing.T) {
+	config := makeTestConfig("jdoe", "wsmith")
+	func() {
+		mnt := makeFS(t, config)
+		defer mnt.Close()
+
+		// cause the folder to exist
+		if err := ioutil.WriteFile(path.Join(mnt.Dir, "jdoe", "public", "myfile"), []byte("data for myfile"), 0644); err != nil {
+			t.Fatal(err)
+		}
+	}()
+
+	c2 := configAsUser(config, "wsmith")
+	mnt := makeFS(t, c2)
+	defer mnt.Close()
+
+	checkDir(t, path.Join(mnt.Dir, "jdoe", "public"), map[string]fileInfoCheck{
+		"myfile": nil,
+	})
+}
