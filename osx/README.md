@@ -74,10 +74,6 @@ The launchd label is used as the identifier the default home directory and loggi
 
 Environments are setup so you can have multiple services set up and running at once, using different API servers and home directories. In development (or debug) mode, when the Keybase.app starts up it will ask which environment you want to connect to. A special "Custom" environment option is included if you are running the keybase services manually from source (not through launchd).
 
-### Building Keybase.app
-
-Build scripts for Keybase.app are located in the [osx/Install](osx/Install/README.md) directory.
-
 ### Helper Tool
 
 In order to install the KBFS OSXFuse kernel extension, we may ask to install a Keybase helper tool. This uses the ServiceManagement framework and is the most appropriate way to do privilege escalation is OS X.
