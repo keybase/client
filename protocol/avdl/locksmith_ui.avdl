@@ -4,14 +4,14 @@ protocol locksmithUi {
 	import idl "common.avdl";
 
 	enum DeviceSignerKind {
-		DEVICE,
-		PGP
+		DEVICE_0,
+		PGP_1
 	}
 
 	enum SelectSignerAction {
-		SIGN,
-		CANCEL,
-		RESET_ACCOUNT
+		SIGN_0,
+		CANCEL_1,
+		RESET_ACCOUNT_2
 	}
 
 	record DeviceSigner {
@@ -24,34 +24,34 @@ protocol locksmithUi {
 		SelectSignerAction action;
 		union { null, DeviceSigner } signer; // if action == SIGN, this will be used.
 	}
-	
+
 	string promptDeviceName(int sessionID);
 
 	// selectSigner is for when a user logs in with a new device
 	// and it needs to be signed by an existing device or pgp.
 	SelectSignerRes selectSigner(int sessionID, array<Device> devices, boolean hasPGP);
 
-	// displaySecretWords is for device provisioning when device Y (new device) gives 
+	// displaySecretWords is for device provisioning when device Y (new device) gives
 	// instructions containing the secret words to enter on device X (existing device).
 	void displaySecretWords(int sessionID, string secret, string deviceNameExisting, string deviceNameToAdd);
 
 	enum KexStatusCode {
 		// Device Y (new device) statuses:
-		START_SEND,
-		HELLO_WAIT,
-		HELLO_RECEIVED,
-		PLEASE_SIGN_SEND,
-		DONE_WAIT,
-		DONE_RECEIVED,
+		START_SEND_0,
+		HELLO_WAIT_1,
+		HELLO_RECEIVED_2,
+		PLEASE_SIGN_SEND_3,
+		DONE_WAIT_4,
+		DONE_RECEIVED_5,
 		// Device X (existing device) statuses:
-		START_WAIT,
-		START_RECEIVED,
-		HELLO_SEND,
-		PLEASE_SIGN_WAIT,
-		PLEASE_SIGN_RECEIVED,
-		DONE_SEND,
+		START_WAIT_6,
+		START_RECEIVED_7,
+		HELLO_SEND_8,
+		PLEASE_SIGN_WAIT_9,
+		PLEASE_SIGN_RECEIVED_10,
+		DONE_SEND_11,
 		// Common:
-		END
+		END_12
 	}
 
 	void kexStatus(int sessionID, string msg, KexStatusCode code);

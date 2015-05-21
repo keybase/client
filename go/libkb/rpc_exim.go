@@ -62,7 +62,7 @@ func (cr CheckResult) Export() *keybase1.CheckResult {
 func ExportRemoteProof(p RemoteProofChainLink) keybase1.RemoteProof {
 	k, v := p.ToKeyValuePair()
 	return keybase1.RemoteProof{
-		ProofType:     p.GetIntType(),
+		ProofType:     p.GetProofType(),
 		Key:           k,
 		Value:         v,
 		DisplayMarkup: v,

@@ -195,7 +195,7 @@ func remoteProofToTrackingStatement(s RemoteProofChainLink, base *jsonw.Wrapper)
 		return fmt.Errorf("No service type found for '%s' in proof %d",
 			typ_s, s.GetSeqno())
 	} else {
-		base.AtKey("remote_key_proof").SetKey("proof_type", jsonw.NewInt(i))
+		base.AtKey("remote_key_proof").SetKey("proof_type", jsonw.NewInt(int(i)))
 	}
 	base.AtKey("remote_key_proof").SetKey("check_data_json", s.CheckDataJson())
 	base.SetKey("sig_type", jsonw.NewInt(SIG_TYPE_REMOTE_PROOF))
