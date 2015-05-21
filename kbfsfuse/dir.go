@@ -302,12 +302,19 @@ var _ fs.Handle = (*Dir)(nil)
 var _ fs.HandleReadDirAller = (*Dir)(nil)
 
 func (d *Dir) ReadDirAll(ctx context.Context) ([]fuse.Dirent, error) {
-	dirBlock, err := d.folder.fs.config.KBFSOps().GetDir(d.getPathLocked())
+	p := d.getPathLocked()
+	dirBlock, err := d.folder.fs.config.KBFSOps().GetDir(p)
 	if err != nil {
 		return nil, err
 	}
 
 	var res []fuse.Dirent
+	if p.HasPublic() && d.folder.dh.HasPublic() {
+		res = append(res, fuse.Dirent{
+			Name: libkbfs.PublicName,
+			Type: fuse.DT_Dir,
+		})
+	}
 	for name, de := range dirBlock.Children {
 		fde := fuse.Dirent{
 			Name: name,

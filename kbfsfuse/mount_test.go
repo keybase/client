@@ -158,7 +158,9 @@ func TestReaddirMyFolderEmpty(t *testing.T) {
 	mnt := makeFS(t, config)
 	defer mnt.Close()
 
-	checkDir(t, path.Join(mnt.Dir, "jdoe"), map[string]fileInfoCheck{})
+	checkDir(t, path.Join(mnt.Dir, "jdoe"), map[string]fileInfoCheck{
+		"public": mustBeDir,
+	})
 }
 
 func TestReaddirMyFolderWithFiles(t *testing.T) {
@@ -167,10 +169,15 @@ func TestReaddirMyFolderWithFiles(t *testing.T) {
 	defer mnt.Close()
 
 	files := map[string]fileInfoCheck{
-		"one": nil,
-		"two": nil,
+		"public": mustBeDir,
+		"one":    nil,
+		"two":    nil,
 	}
-	for filename := range files {
+	for filename, check := range files {
+		if check != nil {
+			// only set up the files
+			continue
+		}
 		if err := ioutil.WriteFile(path.Join(mnt.Dir, "jdoe", filename), []byte("data for "+filename), 0644); err != nil {
 			t.Fatal(err)
 		}
@@ -382,7 +389,8 @@ func TestRename(t *testing.T) {
 	}
 
 	checkDir(t, path.Join(mnt.Dir, "jdoe"), map[string]fileInfoCheck{
-		"new": nil,
+		"public": nil,
+		"new":    nil,
 	})
 
 	buf, err := ioutil.ReadFile(p2)
@@ -418,7 +426,8 @@ func TestRenameOverwrite(t *testing.T) {
 	}
 
 	checkDir(t, path.Join(mnt.Dir, "jdoe"), map[string]fileInfoCheck{
-		"new": nil,
+		"public": nil,
+		"new":    nil,
 	})
 
 	buf, err := ioutil.ReadFile(p2)
@@ -508,9 +517,12 @@ func TestRenameCrossFolder(t *testing.T) {
 	}
 
 	checkDir(t, path.Join(mnt.Dir, "jdoe"), map[string]fileInfoCheck{
-		"old": nil,
+		"public": nil,
+		"old":    nil,
 	})
-	checkDir(t, path.Join(mnt.Dir, "wsmith,jdoe"), map[string]fileInfoCheck{})
+	checkDir(t, path.Join(mnt.Dir, "wsmith,jdoe"), map[string]fileInfoCheck{
+		"public": nil,
+	})
 
 	buf, err := ioutil.ReadFile(p1)
 	if err != nil {
@@ -540,7 +552,9 @@ func TestRemoveFile(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	checkDir(t, path.Join(mnt.Dir, "jdoe"), map[string]fileInfoCheck{})
+	checkDir(t, path.Join(mnt.Dir, "jdoe"), map[string]fileInfoCheck{
+		"public": nil,
+	})
 
 	if _, err := ioutil.ReadFile(p); !os.IsNotExist(err) {
 		t.Errorf("file still exists: %v", err)
@@ -561,7 +575,9 @@ func TestRemoveDir(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	checkDir(t, path.Join(mnt.Dir, "jdoe"), map[string]fileInfoCheck{})
+	checkDir(t, path.Join(mnt.Dir, "jdoe"), map[string]fileInfoCheck{
+		"public": nil,
+	})
 
 	if _, err := os.Stat(p); !os.IsNotExist(err) {
 		t.Errorf("file still exists: %v", err)
@@ -644,7 +660,9 @@ func TestRemoveFileWhileOpenWriting_Current(t *testing.T) {
 		t.Fatal("error on close: %v", err)
 	}
 
-	checkDir(t, path.Join(mnt.Dir, "jdoe"), map[string]fileInfoCheck{})
+	checkDir(t, path.Join(mnt.Dir, "jdoe"), map[string]fileInfoCheck{
+		"public": nil,
+	})
 
 	if _, err := ioutil.ReadFile(p); !os.IsNotExist(err) {
 		t.Errorf("file still exists: %v", err)
@@ -684,7 +702,9 @@ func TestRemoveFileWhileOpenReading(t *testing.T) {
 		t.Fatal("error on close: %v", err)
 	}
 
-	checkDir(t, path.Join(mnt.Dir, "jdoe"), map[string]fileInfoCheck{})
+	checkDir(t, path.Join(mnt.Dir, "jdoe"), map[string]fileInfoCheck{
+		"public": nil,
+	})
 
 	if _, err := ioutil.ReadFile(p); !os.IsNotExist(err) {
 		t.Errorf("file still exists: %v", err)
