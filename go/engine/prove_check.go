@@ -71,6 +71,7 @@ func (e *ProveCheck) Run(ctx *Context) error {
 	e.G().Log.Debug("chain link found: (%T)", link.Typed())
 	if rlink, ok := link.Typed().(libkb.RemoteProofChainLink); ok {
 		e.proofText = rlink.ProofText()
+		e.G().Log.Debug("chain link proof text: %q", e.proofText)
 	} else {
 		e.G().Log.Warning("chain link had invalid type: %T", link.Typed())
 	}
