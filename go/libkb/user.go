@@ -547,7 +547,7 @@ func (u *User) IsSigIDActive(sigID keybase1.SigID) (bool, error) {
 		return false, fmt.Errorf("User's sig chain is nil.")
 	}
 
-	link := u.sigChain().GetLinkFromSigId(sigID)
+	link := u.sigChain().GetLinkFromSigID(sigID)
 	if link == nil {
 		return false, fmt.Errorf("Signature with ID '%s' does not exist.", sigID)
 	}
@@ -558,7 +558,7 @@ func (u *User) IsSigIDActive(sigID keybase1.SigID) (bool, error) {
 }
 
 func (u *User) LinkFromSigID(sigID keybase1.SigID) *ChainLink {
-	return u.sigChain().GetLinkFromSigId(sigID)
+	return u.sigChain().GetLinkFromSigID(sigID)
 }
 
 func (u *User) SigChainDump(w io.Writer) {

@@ -34,7 +34,7 @@ func (sc SigChain) Len() int {
 	return len(sc.chainLinks)
 }
 
-func (sc *SigChain) LocalDelegate(kf *KeyFamily, key GenericKey, sigId keybase1.SigID, signingKid KID, isSibkey bool) (err error) {
+func (sc *SigChain) LocalDelegate(kf *KeyFamily, key GenericKey, sigID keybase1.SigID, signingKid KID, isSibkey bool) (err error) {
 
 	cki := sc.localCki
 	l := sc.GetLastLink()
@@ -51,9 +51,9 @@ func (sc *SigChain) LocalDelegate(kf *KeyFamily, key GenericKey, sigId keybase1.
 	// Update the current state
 	sc.localCki = cki
 
-	if len(sigId) > 0 {
+	if len(sigID) > 0 {
 		var zeroTime time.Time
-		err = cki.Delegate(key.GetKid(), key.GetFingerprintP(), NowAsKeybaseTime(0), sigId, signingKid, signingKid, isSibkey, time.Unix(0, 0), zeroTime)
+		err = cki.Delegate(key.GetKid(), key.GetFingerprintP(), NowAsKeybaseTime(0), sigID, signingKid, signingKid, isSibkey, time.Unix(0, 0), zeroTime)
 	}
 
 	return
@@ -461,7 +461,7 @@ func (sc *SigChain) GetLinkFromSeqno(seqno int) *ChainLink {
 	return nil
 }
 
-func (sc *SigChain) GetLinkFromSigId(id keybase1.SigID) *ChainLink {
+func (sc *SigChain) GetLinkFromSigID(id keybase1.SigID) *ChainLink {
 	for _, link := range sc.chainLinks {
 		if link.GetSigID() == id {
 			return link

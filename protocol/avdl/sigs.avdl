@@ -5,7 +5,7 @@ protocol sigs {
 	record Sig {
 		int seqno;
 		SigID sigID;
-		string sigIdDisplay;
+		string sigIDDisplay;
 		string type;
 		int ctime;
 		boolean revoked;

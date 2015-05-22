@@ -73,13 +73,6 @@ func (ph *ProveHandler) StartProof(arg keybase1.StartProofArg) (res keybase1.Sta
 }
 
 func (ph *ProveHandler) CheckProof(arg keybase1.CheckProofArg) (res keybase1.CheckProofStatus, err error) {
-	/*
-		var sigid keybase1.SigID
-		sigid, err = libkb.SigIdFromHex(string(arg.SigID), true)
-		if err != nil {
-			return res, err
-		}
-	*/
 	eng := engine.NewProveCheck(G, arg.SigID)
 	ctx := &engine.Context{}
 	if err = engine.RunEngine(eng, ctx); err != nil {

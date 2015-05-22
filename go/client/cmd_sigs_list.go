@@ -110,7 +110,7 @@ func (s *CmdSigsList) DisplayKTable(sigs []keybase1.Sig) (err error) {
 			link := sigs[i]
 			row = []string{
 				fmt.Sprintf("%d", link.Seqno),
-				link.SigIdDisplay,
+				link.SigIDDisplay,
 				link.Type,
 				libkb.FormatTime(time.Unix(int64(link.Ctime), 0)),
 			}

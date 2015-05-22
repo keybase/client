@@ -179,7 +179,7 @@
       "name" : "sigID",
       "type" : "SigID"
     }, {
-      "name" : "sigIdDisplay",
+      "name" : "sigIDDisplay",
       "type" : "string"
     }, {
       "name" : "type",

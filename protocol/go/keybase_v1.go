@@ -2329,7 +2329,7 @@ func (c SignupClient) InviteRequest(__arg InviteRequestArg) (err error) {
 type Sig struct {
 	Seqno        int    `codec:"seqno" json:"seqno"`
 	SigID        SigID  `codec:"sigID" json:"sigID"`
-	SigIdDisplay string `codec:"sigIdDisplay" json:"sigIdDisplay"`
+	SigIDDisplay string `codec:"sigIDDisplay" json:"sigIDDisplay"`
 	Type         string `codec:"type" json:"type"`
 	Ctime        int    `codec:"ctime" json:"ctime"`
 	Revoked      bool   `codec:"revoked" json:"revoked"`

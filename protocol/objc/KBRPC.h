@@ -712,7 +712,7 @@ typedef NS_ENUM (NSInteger, KBRPromptOverwriteType) {
 @interface KBRSig : KBRObject
 @property NSInteger seqno;
 @property KBRSigID *sigID;
-@property NSString *sigIdDisplay;
+@property NSString *sigIDDisplay;
 @property NSString *type;
 @property NSInteger ctime;
 @property BOOL revoked;

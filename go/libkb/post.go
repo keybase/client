@@ -145,12 +145,12 @@ func CheckPosted(proofId string) (found bool, status keybase1.ProofStatus, err e
 	return rfound, keybase1.ProofStatus(rstatus), rerr
 }
 
-func CheckPostedViaSigID(sigID string) (found bool, status keybase1.ProofStatus, err error) {
+func CheckPostedViaSigID(sigID keybase1.SigID) (found bool, status keybase1.ProofStatus, err error) {
 	res, e2 := G.API.Post(ApiArg{
 		Endpoint:    "sig/posted",
 		NeedSession: true,
 		Args: HttpArgs{
-			"sig_id": S{sigID},
+			"sig_id": S{sigID.ToString(true)},
 		},
 	})
 	if e2 != nil {
