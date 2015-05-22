@@ -4,8 +4,8 @@ import (
 	"encoding/hex"
 	"fmt"
 
-	jsonw "github.com/keybase/go-jsonw"
 	keybase1 "github.com/keybase/client/protocol/go"
+	jsonw "github.com/keybase/go-jsonw"
 )
 
 type PostProofRes struct {
@@ -16,7 +16,7 @@ type PostProofRes struct {
 
 type PostProofArg struct {
 	Sig            string
-	Id             SigId
+	Id             keybase1.SigID
 	RemoteUsername string
 	ProofType      string
 	Supersede      bool
@@ -136,9 +136,9 @@ func CheckPosted(proofId string) (found bool, status keybase1.ProofStatus, err e
 		return
 	}
 	var (
-		rfound bool
+		rfound  bool
 		rstatus int
-		rerr error
+		rerr    error
 	)
 	res.Body.AtKey("proof_ok").GetBoolVoid(&rfound, &rerr)
 	res.Body.AtPath("proof_res.status").GetIntVoid(&rstatus, &rerr)
@@ -159,9 +159,9 @@ func CheckPostedViaSigID(sigID string) (found bool, status keybase1.ProofStatus,
 	}
 
 	var (
-		rfound bool
+		rfound  bool
 		rstatus int
-		rerr error
+		rerr    error
 	)
 	res.Body.AtKey("proof_ok").GetBoolVoid(&rfound, &rerr)
 	res.Body.AtPath("proof_res.status").GetIntVoid(&rstatus, &rerr)

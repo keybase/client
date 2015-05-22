@@ -139,7 +139,7 @@ func (t DnsServiceType) RecheckProofPosting(tryNumber int, status keybase1.Proof
 }
 func (t DnsServiceType) GetProofType() string { return t.BaseGetProofType(t) }
 
-func (t DnsServiceType) CheckProofText(text string, id SigId, sig string) (err error) {
+func (t DnsServiceType) CheckProofText(text string, id keybase1.SigID, sig string) (err error) {
 	return t.BaseCheckProofTextShort(text, id, true)
 }
 

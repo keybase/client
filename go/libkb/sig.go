@@ -15,6 +15,7 @@ import (
 	"golang.org/x/crypto/openpgp/armor"
 )
 
+/*
 const (
 	SIG_ID_LEN    = 32
 	SIG_ID_SUFFIX = 0x0f
@@ -23,9 +24,10 @@ const (
 type SigId [SIG_ID_LEN]byte
 
 func (s SigId) P() *SigId { return &s }
+*/
 
-func ComputeSigIdFromSigBody(body []byte) SigId {
-	return SigId(sha256.Sum256(body))
+func ComputeSigIdFromSigBody(body []byte) keybase1.SigID {
+	return keybase1.SigID(sha256.Sum256(body))
 }
 
 func (s SigId) ToDisplayString(verbose bool) string {

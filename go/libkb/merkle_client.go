@@ -8,6 +8,7 @@ import (
 	"strings"
 	"sync"
 
+	keybase1 "github.com/keybase/client/protocol/go"
 	jsonw "github.com/keybase/go-jsonw"
 )
 
@@ -69,9 +70,9 @@ type MerkleRoot struct {
 }
 
 type MerkleTriple struct {
-	Seqno  Seqno  `json:"seqno"`
-	LinkId LinkId `json:"id"`
-	SigId  *SigId `json:"sigid,omitempty"`
+	Seqno  Seqno          `json:"seqno"`
+	LinkId LinkId         `json:"id"`
+	SigId  keybase1.SigID `json:"sigid,omitempty"`
 }
 
 type MerkleUserLeaf struct {

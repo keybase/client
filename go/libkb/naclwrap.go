@@ -6,6 +6,7 @@ import (
 	"fmt"
 
 	"github.com/agl/ed25519"
+	keybase1 "github.com/keybase/client/protocol/go"
 	triplesec "github.com/keybase/go-triplesec"
 	"golang.org/x/crypto/nacl/box"
 )
@@ -293,7 +294,7 @@ func (k NaclSigningKeyPair) Sign(msg []byte) (ret *NaclSig, err error) {
 	return
 }
 
-func (k NaclSigningKeyPair) SignToString(msg []byte) (sig string, id *SigId, err error) {
+func (k NaclSigningKeyPair) SignToString(msg []byte) (sig string, id keybase1.SigID, err error) {
 	naclSig, err := k.Sign(msg)
 	if err != nil {
 		return
@@ -315,7 +316,7 @@ func (k NaclSigningKeyPair) SignToString(msg []byte) (sig string, id *SigId, err
 	return
 }
 
-func (k NaclSigningKeyPair) VerifyStringAndExtract(sig string) (msg []byte, id *SigId, err error) {
+func (k NaclSigningKeyPair) VerifyStringAndExtract(sig string) (msg []byte, id keybase1.SigID, err error) {
 	body, err := base64.StdEncoding.DecodeString(sig)
 	if err != nil {
 		return
@@ -348,7 +349,7 @@ func (k NaclSigningKeyPair) VerifyStringAndExtract(sig string) (msg []byte, id *
 	return
 }
 
-func (k NaclSigningKeyPair) VerifyString(sig string, msg []byte) (id *SigId, err error) {
+func (k NaclSigningKeyPair) VerifyString(sig string, msg []byte) (id keybase1.SigID, err error) {
 	extractedMsg, resId, err := k.VerifyStringAndExtract(sig)
 	if err != nil {
 		return
@@ -379,17 +380,17 @@ func (k NaclSigningKeyPair) VerifyBytes(sig, msg []byte) (err error) {
 	return k.Public.Verify(msg, &sigArr)
 }
 
-func (k NaclDHKeyPair) SignToString(msg []byte) (sig string, id *SigId, err error) {
+func (k NaclDHKeyPair) SignToString(msg []byte) (sig string, id keybase1.SigID, err error) {
 	err = KeyCannotSignError{}
 	return
 }
 
-func (k NaclDHKeyPair) VerifyStringAndExtract(sig string) (msg []byte, id *SigId, err error) {
+func (k NaclDHKeyPair) VerifyStringAndExtract(sig string) (msg []byte, id keybase1.SigID, err error) {
 	err = KeyCannotVerifyError{}
 	return
 }
 
-func (k NaclDHKeyPair) VerifyString(sig string, msg []byte) (id *SigId, err error) {
+func (k NaclDHKeyPair) VerifyString(sig string, msg []byte) (id keybase1.SigID, err error) {
 	err = KeyCannotVerifyError{}
 	return
 }
@@ -511,7 +512,7 @@ func KbOpenSig(armored string) ([]byte, error) {
 	return base64.StdEncoding.DecodeString(armored)
 }
 
-func SigAssertKbPayload(armored string, expected []byte) (sigId *SigId, err error) {
+func SigAssertKbPayload(armored string, expected []byte) (sigId keybase1.SigID, err error) {
 	var byt []byte
 	var packet *KeybasePacket
 	var sig *NaclSig

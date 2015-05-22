@@ -465,12 +465,11 @@ func (p *PgpKeyBundle) CheckFingerprint(fp *PgpFingerprint) (err error) {
 	return
 }
 
-func (key *PgpKeyBundle) SignToString(msg []byte) (sig string, id *SigId, err error) {
+func (key *PgpKeyBundle) SignToString(msg []byte) (sig string, id keybase1.SigID, err error) {
 	return SimpleSign(msg, *key)
 }
 
-func (k PgpKeyBundle) VerifyStringAndExtract(sig string) (msg []byte, id *SigId,
-	err error) {
+func (k PgpKeyBundle) VerifyStringAndExtract(sig string) (msg []byte, id keybase1.SigID, err error) {
 	var ps *ParsedSig
 	if ps, err = PgpOpenSig(sig); err != nil {
 		return
@@ -483,8 +482,7 @@ func (k PgpKeyBundle) VerifyStringAndExtract(sig string) (msg []byte, id *SigId,
 	return
 }
 
-func (k PgpKeyBundle) VerifyString(sig string, msg []byte) (id *SigId,
-	err error) {
+func (k PgpKeyBundle) VerifyString(sig string, msg []byte) (id keybase1.SigID, err error) {
 	extractedMsg, resId, err := k.VerifyStringAndExtract(sig)
 	if err != nil {
 		return

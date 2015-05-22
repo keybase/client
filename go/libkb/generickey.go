@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"strings"
 
+	keybase1 "github.com/keybase/client/protocol/go"
 	jsonw "github.com/keybase/go-jsonw"
 	triplesec "github.com/keybase/go-triplesec"
 )
@@ -31,16 +32,16 @@ type GenericKey interface {
 
 	// Sign to an ASCII signature (which includes the message
 	// itself) and return it, along with a derived ID.
-	SignToString(msg []byte) (sig string, id *SigId, err error)
+	SignToString(msg []byte) (sig string, id keybase1.SigID, err error)
 
 	// Verify that the given signature is valid and extracts the
 	// embedded message from it. Also returns the signature ID.
-	VerifyStringAndExtract(sig string) (msg []byte, id *SigId, err error)
+	VerifyStringAndExtract(sig string) (msg []byte, id keybase1.SigID, err error)
 
 	// Verify that the given signature is valid and that its
 	// embedded message matches the given one. Also returns the
 	// signature ID.
-	VerifyString(sig string, msg []byte) (id *SigId, err error)
+	VerifyString(sig string, msg []byte) (id keybase1.SigID, err error)
 
 	// Sign to a binary signature (which doesn't include the
 	// message) and return it.

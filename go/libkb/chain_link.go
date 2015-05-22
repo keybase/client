@@ -86,7 +86,7 @@ type ChainLinkUnpacked struct {
 	kid            KID
 	eldestKid      KID
 	sig            string
-	sigId          SigId
+	sigId          keybase1.SigID
 	uid            UID
 	username       string
 	typ            string
@@ -192,8 +192,8 @@ func (c *ChainLink) GetMerkleSeqno() int {
 	return i
 }
 
-func (c *ChainLink) GetRevocations() []*SigId {
-	ret := make([]*SigId, 0, 0)
+func (c *ChainLink) GetRevocations() []keybase1.SigID {
+	var ret []keybase1.SigID
 	jw := c.payloadJson.AtKey("body").AtKey("revoke")
 	s, err := GetSigId(jw.AtKey("sig_id"), true)
 	if err == nil {
@@ -409,7 +409,7 @@ func (c *ChainLink) GetSeqno() Seqno {
 	return Seqno(-1)
 }
 
-func (c *ChainLink) GetSigId() *SigId {
+func (c *ChainLink) GetSigId() keybase1.SigID {
 	if c.unpacked != nil {
 		return &c.unpacked.sigId
 	}

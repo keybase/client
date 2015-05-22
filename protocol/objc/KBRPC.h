@@ -18,8 +18,7 @@
 @interface KBRUID : NSData
 @end
 
-@interface KBRUID2 : KBRObject
-@property NSString *__typedef__;
+@interface KBRUID2 : NSString
 @end
 
 @interface KBRFOKID : KBRObject
@@ -75,8 +74,7 @@
 @property NSInteger fd;
 @end
 
-@interface KBRSigID : KBRObject
-@property NSString *__typedef__;
+@interface KBRSigID : NSString
 @end
 
 @interface KBRBlockIdCombo : KBRObject

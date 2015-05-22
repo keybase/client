@@ -1,10 +1,11 @@
 package libkb
 
 import (
-	keybase1 "github.com/keybase/client/protocol/go"
-	"github.com/keybase/go-jsonw"
 	"regexp"
 	"strings"
+
+	keybase1 "github.com/keybase/client/protocol/go"
+	jsonw "github.com/keybase/go-jsonw"
 )
 
 //=============================================================================
@@ -103,7 +104,7 @@ func (t GithubServiceType) RecheckProofPosting(tryNumber int, status keybase1.Pr
 }
 func (t GithubServiceType) GetProofType() string { return t.BaseGetProofType(t) }
 
-func (t GithubServiceType) CheckProofText(text string, id SigId, sig string) (err error) {
+func (t GithubServiceType) CheckProofText(text string, id keybase1.SigID, sig string) (err error) {
 	return t.BaseCheckProofTextFull(text, id, sig)
 }
 

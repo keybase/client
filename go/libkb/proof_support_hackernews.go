@@ -1,10 +1,11 @@
 package libkb
 
 import (
-	keybase1 "github.com/keybase/client/protocol/go"
-	"github.com/keybase/go-jsonw"
 	"regexp"
 	"strings"
+
+	keybase1 "github.com/keybase/client/protocol/go"
+	jsonw "github.com/keybase/go-jsonw"
 )
 
 //=============================================================================
@@ -57,7 +58,7 @@ func (rc *HackerNewsChecker) CheckStatus(h SigHint) ProofError {
 		return XapiError(err, h.apiUrl)
 	}
 
-	var sigId *SigId
+	var sigId keybase1.SigID
 	_, sigId, err = OpenSig(rc.proof.GetArmoredSig())
 	var ret ProofError
 
@@ -138,7 +139,7 @@ func (t HackerNewsServiceType) RecheckProofPosting(tryNumber int, status keybase
 }
 func (t HackerNewsServiceType) GetProofType() string { return t.BaseGetProofType(t) }
 
-func (t HackerNewsServiceType) CheckProofText(text string, id SigId, sig string) (err error) {
+func (t HackerNewsServiceType) CheckProofText(text string, id keybase1.SigID, sig string) (err error) {
 	return t.BaseCheckProofForUrl(text, id)
 }
 

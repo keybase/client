@@ -11,10 +11,10 @@ import (
 )
 
 type TypedChainLink interface {
-	GetRevocations() []*SigId
+	GetRevocations() []keybase1.SigID
 	GetRevokeKids() []KID
 	insertIntoTable(tab *IdentityTable)
-	GetSigId() SigId
+	GetSigId() keybase1.SigID
 	GetArmoredSig() string
 	markRevoked(l TypedChainLink)
 	ToDebugString() string
@@ -49,7 +49,7 @@ type GenericChainLink struct {
 	*ChainLink
 }
 
-func (b *GenericChainLink) GetSigId() SigId {
+func (b *GenericChainLink) GetSigId() keybase1.SigID {
 	return b.unpacked.sigId
 }
 func (b *GenericChainLink) Type() string            { return "generic" }
@@ -887,8 +887,8 @@ func ParseSelfSigChainLink(base GenericChainLink) (ret *SelfSigChainLink, err er
 
 type IdentityTable struct {
 	sigChain       *SigChain
-	revocations    map[SigId]bool
-	links          map[SigId]TypedChainLink
+	revocations    map[keybase1.SigID]bool
+	links          map[keybase1.SigID]TypedChainLink
 	remoteProofs   map[string][]RemoteProofChainLink
 	tracks         map[string][]*TrackChainLink
 	Order          []TypedChainLink

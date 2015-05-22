@@ -1,11 +1,12 @@
 package libkb
 
 import (
-	"github.com/keybase/go-jsonw"
+	keybase1 "github.com/keybase/client/protocol/go"
+	jsonw "github.com/keybase/go-jsonw"
 )
 
 type SigHint struct {
-	sigId     *SigId
+	sigId     keybase1.SigID
 	remoteId  string
 	apiUrl    string
 	humanUrl  string
@@ -19,7 +20,7 @@ func (sh SigHint) GetCheckText() string { return sh.checkText }
 type SigHints struct {
 	uid     UID
 	version int
-	hints   map[SigId]*SigHint
+	hints   map[keybase1.SigID]*SigHint
 	dirty   bool
 }
 

@@ -21,10 +21,7 @@ type Status struct {
 }
 
 type UID [16]byte
-type UID2 struct {
-	__typedef__ string `codec:"__typedef__" json:"__typedef__"`
-}
-
+type UID2 string
 type FOKID struct {
 	PgpFingerprint *[]byte `codec:"pgpFingerprint,omitempty" json:"pgpFingerprint"`
 	Kid            *[]byte `codec:"kid,omitempty" json:"kid"`
@@ -78,10 +75,7 @@ type Stream struct {
 	Fd int `codec:"fd" json:"fd"`
 }
 
-type SigID struct {
-	__typedef__ string `codec:"__typedef__" json:"__typedef__"`
-}
-
+type SigID string
 type BlockIdCombo struct {
 	BlockHash string `codec:"blockHash" json:"blockHash"`
 	Size      int    `codec:"size" json:"size"`

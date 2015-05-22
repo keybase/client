@@ -4,6 +4,7 @@ import (
 	"encoding/hex"
 	"time"
 
+	keybase1 "github.com/keybase/client/protocol/go"
 	jsonw "github.com/keybase/go-jsonw"
 )
 
@@ -34,7 +35,7 @@ type Delegator struct {
 	isEldest     bool
 	signingKey   GenericKey
 	sig          string
-	sigId        *SigId
+	sigId        keybase1.SigID
 	merkleTriple MerkleTriple
 }
 

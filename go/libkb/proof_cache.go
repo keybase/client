@@ -1,11 +1,12 @@
 package libkb
 
 import (
-	"github.com/hashicorp/golang-lru"
-	keybase1 "github.com/keybase/client/protocol/go"
-	"github.com/keybase/go-jsonw"
 	"sync"
 	"time"
+
+	lru "github.com/hashicorp/golang-lru"
+	keybase1 "github.com/keybase/client/protocol/go"
+	jsonw "github.com/keybase/go-jsonw"
 )
 
 type CheckResult struct {
@@ -92,7 +93,7 @@ func NewProofCache(capac int) (*ProofCache, error) {
 	return ret, nil
 }
 
-func (pc *ProofCache) memGet(sid SigId) *CheckResult {
+func (pc *ProofCache) memGet(sid keybase1.SigID) *CheckResult {
 	var ret *CheckResult
 
 	if tmp, found := pc.lru.Get(sid); !found {
@@ -107,11 +108,11 @@ func (pc *ProofCache) memGet(sid SigId) *CheckResult {
 	return ret
 }
 
-func (pc *ProofCache) memPut(sid SigId, cr CheckResult) {
+func (pc *ProofCache) memPut(sid keybase1.SigID, cr CheckResult) {
 	pc.lru.Add(sid, cr)
 }
 
-func (pc *ProofCache) Get(sid SigId) *CheckResult {
+func (pc *ProofCache) Get(sid keybase1.SigID) *CheckResult {
 	pc.mutex.Lock()
 	defer pc.mutex.Unlock()
 
@@ -122,13 +123,13 @@ func (pc *ProofCache) Get(sid SigId) *CheckResult {
 	return cr
 }
 
-func (pc ProofCache) dbKey(sid SigId) (DbKey, string) {
+func (pc ProofCache) dbKey(sid keybase1.SigID) (DbKey, string) {
 	sidstr := sid.ToString(true)
 	key := DbKey{Typ: DB_PROOF_CHECK, Key: sidstr}
 	return key, sidstr
 }
 
-func (pc *ProofCache) dbGet(sid SigId) *CheckResult {
+func (pc *ProofCache) dbGet(sid keybase1.SigID) *CheckResult {
 	var ret *CheckResult
 
 	dbkey, sidstr := pc.dbKey(sid)
@@ -157,13 +158,13 @@ func (pc *ProofCache) dbGet(sid SigId) *CheckResult {
 	return ret
 }
 
-func (pc *ProofCache) dbPut(sid SigId, cr CheckResult) error {
+func (pc *ProofCache) dbPut(sid keybase1.SigID, cr CheckResult) error {
 	dbkey, _ := pc.dbKey(sid)
 	jw := cr.Pack()
 	return G.LocalDb.Put(dbkey, []DbKey{}, jw)
 }
 
-func (pc *ProofCache) Put(sid SigId, pe ProofError) error {
+func (pc *ProofCache) Put(sid keybase1.SigID, pe ProofError) error {
 	pc.mutex.Lock()
 	defer pc.mutex.Unlock()
 	cr := CheckResult{pe, time.Now()}

@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"time"
 
+	keybase1 "github.com/keybase/client/protocol/go"
 	jsonw "github.com/keybase/go-jsonw"
 )
 
@@ -496,7 +497,7 @@ func (ckf *ComputedKeyFamily) Delegate(tcl TypedChainLink) (err error) {
 
 // Delegate marks the given ComputedKeyInfos object that the given kid is now
 // delegated, as of time tm, in sigid, as signed by signingKid, etc.
-func (cki *ComputedKeyInfos) Delegate(kid KID, fingerprint *PgpFingerprint, tm *KeybaseTime, sigid SigId, signingKid KID, parentKid KID, isSibkey bool, ctime time.Time, etime time.Time) (err error) {
+func (cki *ComputedKeyInfos) Delegate(kid KID, fingerprint *PgpFingerprint, tm *KeybaseTime, sigid keybase1.SigID, signingKid KID, parentKid KID, isSibkey bool, ctime, etime time.Time) (err error) {
 	G.Log.Debug("ComputeKeyInfos::Delegate To %s with %s at sig %s", kid.String(), signingKid, sigid.ToDisplayString(true))
 	key := kid.ToFOKIDMapKey()
 	info, found := cki.Infos[key]
@@ -541,7 +542,7 @@ func (ckf *ComputedKeyFamily) Revoke(tcl TypedChainLink) (err error) {
 
 // revokeSigs operates on the per-signature revocations in the given
 // TypedChainLink and applies them accordingly.
-func (ckf *ComputedKeyFamily) revokeSigs(sigs []*SigId, tcl TypedChainLink) (err error) {
+func (ckf *ComputedKeyFamily) revokeSigs(sigs []keybase1.SigID, tcl TypedChainLink) (err error) {
 	for _, s := range sigs {
 		if s != nil {
 			if err = ckf.RevokeSig(*s, tcl); err != nil {
@@ -565,7 +566,7 @@ func (ckf *ComputedKeyFamily) revokeKids(kids []KID, tcl TypedChainLink) (err er
 	return
 }
 
-func (ckf *ComputedKeyFamily) RevokeSig(sig SigId, tcl TypedChainLink) (err error) {
+func (ckf *ComputedKeyFamily) RevokeSig(sig keybase1.SigID, tcl TypedChainLink) (err error) {
 	if info, found := ckf.cki.Sigs[sig.ToString(true)]; !found {
 	} else if _, found = info.Delegations[sig.ToString(true)]; !found {
 		err = BadRevocationError{fmt.Sprintf("Can't find sigId %s in delegation list",

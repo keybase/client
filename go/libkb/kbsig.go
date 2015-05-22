@@ -10,6 +10,7 @@ import (
 	"fmt"
 	"time"
 
+	keybase1 "github.com/keybase/client/protocol/go"
 	jsonw "github.com/keybase/go-jsonw"
 )
 
@@ -319,7 +320,7 @@ func (u *User) ServiceProof(signingKey GenericKey, typ ServiceType, remotename s
 }
 
 // SimpleSignJson marshals the given Json structure and then signs it.
-func SignJson(jw *jsonw.Wrapper, key GenericKey) (out string, id *SigId, lid LinkId, err error) {
+func SignJson(jw *jsonw.Wrapper, key GenericKey) (out string, id keybase1.SigID, lid LinkId, err error) {
 	var tmp []byte
 	if tmp, err = jw.Marshal(); err != nil {
 		return
@@ -436,7 +437,7 @@ func (u *User) RevokeSigsProof(key GenericKey, sigIDsToRevoke []string) (*jsonw.
 	return ret, nil
 }
 
-func (u *User) CryptocurrencySig(key GenericKey, address string, sigToRevoke *SigId) (*jsonw.Wrapper, error) {
+func (u *User) CryptocurrencySig(key GenericKey, address string, sigToRevoke keybase1.SigID) (*jsonw.Wrapper, error) {
 	ret, err := u.ProofMetadata(0 /* ei */, GenericKeyToFOKID(key), nil, 0)
 	if err != nil {
 		return nil, err

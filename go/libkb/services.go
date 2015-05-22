@@ -1,10 +1,11 @@
 package libkb
 
 import (
-	keybase1 "github.com/keybase/client/protocol/go"
-	"github.com/keybase/go-jsonw"
 	"regexp"
 	"strings"
+
+	keybase1 "github.com/keybase/client/protocol/go"
+	jsonw "github.com/keybase/go-jsonw"
 )
 
 type ServiceType interface {
@@ -23,7 +24,7 @@ type ServiceType interface {
 	RecheckProofPosting(tryNumber int, status keybase1.ProofStatus) (warning *Markup, err error)
 	GetProofType() string
 	GetTypeName() string
-	CheckProofText(text string, id SigId, sig string) error
+	CheckProofText(text string, id keybase1.SigID, sig string) error
 	FormatProofText(*PostProofRes) (string, error)
 	GetApiArgKey() string
 }

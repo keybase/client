@@ -37,10 +37,8 @@
   }, {
     "type" : "record",
     "name" : "UID2",
-    "fields" : [ {
-      "name" : "__typedef__",
-      "type" : "string"
-    } ]
+    "fields" : [ ],
+    "typedef" : "string"
   }, {
     "type" : "record",
     "name" : "FOKID",
@@ -169,10 +167,8 @@
   }, {
     "type" : "record",
     "name" : "SigID",
-    "fields" : [ {
-      "name" : "__typedef__",
-      "type" : "string"
-    } ]
+    "fields" : [ ],
+    "typedef" : "string"
   }, {
     "type" : "record",
     "name" : "Sig",
