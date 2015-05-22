@@ -37,7 +37,7 @@ protocol user {
 		string fullName;
 		string bio;
 		Proofs proofs;
-		string sigId;
+		string sigIDDisplay;
 		long trackTime;
 	}
 

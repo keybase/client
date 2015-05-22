@@ -66,7 +66,7 @@ func ExportRemoteProof(p RemoteProofChainLink) keybase1.RemoteProof {
 		Key:           k,
 		Value:         v,
 		DisplayMarkup: v,
-		SigID:         p.GetSigId().ToString(true),
+		SigID:         p.GetSigId().Export(),
 		Mtime:         int(p.GetCTime().Unix()),
 	}
 }
@@ -622,7 +622,7 @@ func (u *User) Export() *keybase1.User {
 		publicKeys = u.GetComputedKeyFamily().Export()
 	}
 	return &keybase1.User{
-		Uid:        keybase1.UID(u.GetUID()),
+		Uid:        u.GetUID().P().Export(),
 		Username:   u.GetName(),
 		Image:      u.Image,
 		PublicKeys: publicKeys,

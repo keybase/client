@@ -11,6 +11,9 @@
 @implementation KBRUID
 @end
 
+@implementation KBRUID2
+@end
+
 @implementation KBRFOKID
 @end
 
@@ -37,7 +40,7 @@
 @implementation KBRStream
 @end
 
-@implementation KBRSIGID
+@implementation KBRSigID
 @end
 
 @implementation KBRBlockIdCombo
@@ -716,7 +719,7 @@
   }];
 }
 
-- (void)checkProofWithSessionID:(NSInteger)sessionID sigID:(NSString *)sigID completion:(void (^)(NSError *error, KBRCheckProofStatus *checkProofStatus))completion {
+- (void)checkProofWithSessionID:(NSInteger)sessionID sigID:(KBRSigID *)sigID completion:(void (^)(NSError *error, KBRCheckProofStatus *checkProofStatus))completion {
   NSArray *params = @[@{@"sessionID": @(sessionID), @"sigID": KBRValue(sigID)}];
   [self.client sendRequestWithMethod:@"keybase.1.prove.checkProof" params:params sessionId:self.sessionId completion:^(NSError *error, id retval) {
     if (error) {
@@ -1768,7 +1771,7 @@
 - (instancetype)initWithParams:(NSArray *)params {
   if ((self = [super initWithParams:params])) {
     self.sessionID = [params[0][@"sessionID"] integerValue];
-    self.sigID = params[0][@"sigID"];
+    self.sigID = [MTLJSONAdapter modelOfClass:KBRSigID.class fromJSONDictionary:params[0][@"sigID"] error:nil];
   }
   return self;
 }

@@ -36,6 +36,13 @@
     "size" : 16
   }, {
     "type" : "record",
+    "name" : "UID2",
+    "fields" : [ {
+      "name" : "__typedef__",
+      "type" : "string"
+    } ]
+  }, {
+    "type" : "record",
     "name" : "FOKID",
     "fields" : [ {
       "name" : "pgpFingerprint",
@@ -160,9 +167,12 @@
       "type" : "int"
     } ]
   }, {
-    "type" : "fixed",
-    "name" : "SIGID",
-    "size" : 32
+    "type" : "record",
+    "name" : "SigID",
+    "fields" : [ {
+      "name" : "__typedef__",
+      "type" : "string"
+    } ]
   }, {
     "type" : "enum",
     "name" : "SignMode",

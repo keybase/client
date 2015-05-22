@@ -12,6 +12,11 @@ const (
 	UID_SUFFIX_2 = 0x19
 )
 
+const (
+	SIG_ID_LEN    = 32
+	SIG_ID_SUFFIX = 0x0f
+)
+
 func Unquote(data []byte) string {
 	return strings.Trim(string(data), "\"")
 }
@@ -56,4 +61,11 @@ func (u UID) String() string {
 
 func (u *UID) MarshalJSON() ([]byte, error) {
 	return Quote(u.String()), nil
+}
+
+func (s SigID) ToDisplayString(verbose bool) string {
+	if verbose {
+		return string(s)
+	}
+	return fmt.Sprintf("%s...", s[0:6])
 }

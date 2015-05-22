@@ -68,13 +68,13 @@ func (ph *ProveHandler) StartProof(arg keybase1.StartProofArg) (res keybase1.Sta
 	if err != nil {
 		return res, err
 	}
-	res.SigID = eng.SigID().ToString(true)
+	res.SigID = eng.SigID().Export()
 	return res, err
 }
 
 func (ph *ProveHandler) CheckProof(arg keybase1.CheckProofArg) (res keybase1.CheckProofStatus, err error) {
 	var sigid *libkb.SigId
-	sigid, err = libkb.SigIdFromHex(arg.SigID, true)
+	sigid, err = libkb.SigIdFromHex(string(arg.SigID), true)
 	if err != nil {
 		return res, err
 	}

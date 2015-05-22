@@ -165,10 +165,10 @@ func (e *ListTrackingEngine) runTable(trackList TrackList) (err error) {
 	for _, link := range trackList {
 		uid, _ := link.GetTrackedUid()
 		entry := keybase1.UserSummary{
-			Username:  link.ToDisplayString(),
-			SigId:     link.GetSigId().ToDisplayString(true),
-			TrackTime: link.GetCTime().Unix(),
-			Uid:       keybase1.UID(*uid),
+			Username:     link.ToDisplayString(),
+			SigIDDisplay: link.GetSigId().ToDisplayString(true),
+			TrackTime:    link.GetCTime().Unix(),
+			Uid:          keybase1.UID(*uid),
 		}
 		entry.Proofs.PublicKeys = e.linkPGPKeys(link)
 		entry.Proofs.Social = e.linkSocialProofs(link)

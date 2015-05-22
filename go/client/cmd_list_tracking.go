@@ -76,7 +76,7 @@ func DisplayTable(entries []keybase1.UserSummary, verbose bool, headers bool) (e
 
 		row := []string{
 			entry.Username,
-			entry.SigId,
+			entry.SigIDDisplay,
 			strings.Join(fps, ", "),
 			libkb.FormatTime(time.Unix(entry.TrackTime, 0)),
 		}

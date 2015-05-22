@@ -52,7 +52,7 @@ protocol identifyCommon {
 		string key;
 		string value;
 		string displayMarkup;
-		string sigID;
+		SigID sigID;
 		int mtime;
 	}
 }

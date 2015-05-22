@@ -19,6 +19,9 @@ protocol Common {
 	// Switch to
 	// @typedef("string")
 	// record UID {}
+	record UID2 {
+		string __typedef__;
+	}
 
 	record FOKID {
 		union { null, bytes } pgpFingerprint;
@@ -76,5 +79,7 @@ protocol Common {
 		int fd;
 	}
 
-	fixed SIGID(32);
+	record SigID {
+		string __typedef__;
+	}
 }

@@ -4,6 +4,7 @@ protocol sigs {
 
 	record Sig {
 		int seqno;
+		SigID sigID;
 		string sigIdDisplay;
 		string type;
 		int ctime;

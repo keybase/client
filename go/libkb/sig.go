@@ -9,6 +9,7 @@ import (
 	"io/ioutil"
 	"strings"
 
+	keybase1 "github.com/keybase/client/protocol/go"
 	jsonw "github.com/keybase/go-jsonw"
 	"golang.org/x/crypto/openpgp"
 	"golang.org/x/crypto/openpgp/armor"
@@ -36,7 +37,7 @@ func (s SigId) ToDisplayString(verbose bool) string {
 
 func SigIdFromSlice(s []byte) (*SigId, error) {
 	if len(s) != SIG_ID_LEN {
-		return nil, fmt.Errorf("Bad SidId; wanted %d byte; got %d",
+		return nil, fmt.Errorf("Bad SigId; wanted %d byte; got %d",
 			SIG_ID_LEN, len(s))
 	}
 	ret := SigId{}
@@ -95,6 +96,10 @@ func (s SigId) ToString(suffix bool) string {
 		ret = fmt.Sprintf("%s%02x", ret, SIG_ID_SUFFIX)
 	}
 	return ret
+}
+
+func (s SigId) Export() keybase1.SigID {
+	return keybase1.SigID(s.ToString(true))
 }
 
 func (s SigId) ToMediumId() string {

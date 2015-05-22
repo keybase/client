@@ -18,6 +18,10 @@
 @interface KBRUID : NSData
 @end
 
+@interface KBRUID2 : KBRObject
+@property NSString *__typedef__;
+@end
+
 @interface KBRFOKID : KBRObject
 @property NSData *pgpFingerprint;
 @property NSData *kid;
@@ -71,7 +75,8 @@
 @property NSInteger fd;
 @end
 
-@interface KBRSIGID : NSData
+@interface KBRSigID : KBRObject
+@property NSString *__typedef__;
 @end
 
 @interface KBRBlockIdCombo : KBRObject
@@ -326,7 +331,7 @@ typedef NS_ENUM (NSInteger, KBRTrackDiffType) {
 @property NSString *key;
 @property NSString *value;
 @property NSString *displayMarkup;
-@property NSString *sigID;
+@property KBRSigID *sigID;
 @property NSInteger mtime;
 @end
 
@@ -602,13 +607,13 @@ typedef NS_ENUM (NSInteger, KBRSignMode) {
 @end
 
 @interface KBRStartProofResult : KBRObject
-@property NSString *sigID;
+@property KBRSigID *sigID;
 @end
 
 @interface KBRProveRequest : KBRRequest
 - (void)startProofWithSessionID:(NSInteger)sessionID service:(NSString *)service username:(NSString *)username force:(BOOL)force promptPosted:(BOOL)promptPosted completion:(void (^)(NSError *error, KBRStartProofResult *startProofResult))completion;
 
-- (void)checkProofWithSessionID:(NSInteger)sessionID sigID:(NSString *)sigID completion:(void (^)(NSError *error, KBRCheckProofStatus *checkProofStatus))completion;
+- (void)checkProofWithSessionID:(NSInteger)sessionID sigID:(KBRSigID *)sigID completion:(void (^)(NSError *error, KBRCheckProofStatus *checkProofStatus))completion;
 
 @end
 
@@ -708,6 +713,7 @@ typedef NS_ENUM (NSInteger, KBRPromptOverwriteType) {
 
 @interface KBRSig : KBRObject
 @property NSInteger seqno;
+@property KBRSigID *sigID;
 @property NSString *sigIdDisplay;
 @property NSString *type;
 @property NSInteger ctime;
@@ -793,7 +799,7 @@ typedef NS_ENUM (NSInteger, KBRPromptOverwriteType) {
 @property NSString *fullName;
 @property NSString *bio;
 @property KBRProofs *proofs;
-@property NSString *sigId;
+@property NSString *sigIDDisplay;
 @property long trackTime;
 @end
 
@@ -1051,7 +1057,7 @@ typedef NS_ENUM (NSInteger, KBRPromptOverwriteType) {
 @end
 @interface KBRCheckProofRequestParams : KBRRequestParams
 @property NSInteger sessionID;
-@property NSString *sigID;
+@property KBRSigID *sigID;
 @end
 @interface KBRPromptOverwriteRequestParams : KBRRequestParams
 @property NSInteger sessionID;

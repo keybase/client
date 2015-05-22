@@ -21,6 +21,10 @@ type Status struct {
 }
 
 type UID [16]byte
+type UID2 struct {
+	__typedef__ string `codec:"__typedef__" json:"__typedef__"`
+}
+
 type FOKID struct {
 	PgpFingerprint *[]byte `codec:"pgpFingerprint,omitempty" json:"pgpFingerprint"`
 	Kid            *[]byte `codec:"kid,omitempty" json:"kid"`
@@ -74,7 +78,10 @@ type Stream struct {
 	Fd int `codec:"fd" json:"fd"`
 }
 
-type SIGID [32]byte
+type SigID struct {
+	__typedef__ string `codec:"__typedef__" json:"__typedef__"`
+}
+
 type BlockIdCombo struct {
 	BlockHash string `codec:"blockHash" json:"blockHash"`
 	Size      int    `codec:"size" json:"size"`
@@ -791,7 +798,7 @@ type RemoteProof struct {
 	Key           string    `codec:"key" json:"key"`
 	Value         string    `codec:"value" json:"value"`
 	DisplayMarkup string    `codec:"displayMarkup" json:"displayMarkup"`
-	SigID         string    `codec:"sigID" json:"sigID"`
+	SigID         SigID     `codec:"sigID" json:"sigID"`
 	Mtime         int       `codec:"mtime" json:"mtime"`
 }
 
@@ -1794,7 +1801,7 @@ type CheckProofStatus struct {
 }
 
 type StartProofResult struct {
-	SigID string `codec:"sigID" json:"sigID"`
+	SigID SigID `codec:"sigID" json:"sigID"`
 }
 
 type StartProofArg struct {
@@ -1806,8 +1813,8 @@ type StartProofArg struct {
 }
 
 type CheckProofArg struct {
-	SessionID int    `codec:"sessionID" json:"sessionID"`
-	SigID     string `codec:"sigID" json:"sigID"`
+	SessionID int   `codec:"sessionID" json:"sessionID"`
+	SigID     SigID `codec:"sigID" json:"sigID"`
 }
 
 type ProveInterface interface {
@@ -2327,6 +2334,7 @@ func (c SignupClient) InviteRequest(__arg InviteRequestArg) (err error) {
 
 type Sig struct {
 	Seqno        int    `codec:"seqno" json:"seqno"`
+	SigID        SigID  `codec:"sigID" json:"sigID"`
 	SigIdDisplay string `codec:"sigIdDisplay" json:"sigIdDisplay"`
 	Type         string `codec:"type" json:"type"`
 	Ctime        int    `codec:"ctime" json:"ctime"`
@@ -2590,15 +2598,15 @@ type Proofs struct {
 }
 
 type UserSummary struct {
-	Uid       UID    `codec:"uid" json:"uid"`
-	Thumbnail string `codec:"thumbnail" json:"thumbnail"`
-	Username  string `codec:"username" json:"username"`
-	IdVersion int    `codec:"idVersion" json:"idVersion"`
-	FullName  string `codec:"fullName" json:"fullName"`
-	Bio       string `codec:"bio" json:"bio"`
-	Proofs    Proofs `codec:"proofs" json:"proofs"`
-	SigId     string `codec:"sigId" json:"sigId"`
-	TrackTime int64  `codec:"trackTime" json:"trackTime"`
+	Uid          UID    `codec:"uid" json:"uid"`
+	Thumbnail    string `codec:"thumbnail" json:"thumbnail"`
+	Username     string `codec:"username" json:"username"`
+	IdVersion    int    `codec:"idVersion" json:"idVersion"`
+	FullName     string `codec:"fullName" json:"fullName"`
+	Bio          string `codec:"bio" json:"bio"`
+	Proofs       Proofs `codec:"proofs" json:"proofs"`
+	SigIDDisplay string `codec:"sigIDDisplay" json:"sigIDDisplay"`
+	TrackTime    int64  `codec:"trackTime" json:"trackTime"`
 }
 
 type ListTrackersArg struct {
