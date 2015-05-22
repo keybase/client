@@ -26,6 +26,7 @@ func (f *File) Attr(a *fuse.Attr) {
 
 	a.Size = f.de.Size
 	a.Mtime = time.Unix(f.de.Mtime, 0)
+	a.Ctime = time.Unix(f.de.Ctime, 0)
 	a.Mode = 0644
 	if f.de.Type == libkbfs.Exec {
 		a.Mode |= 0111
