@@ -2,6 +2,7 @@ package main
 
 import (
 	"log"
+	"time"
 
 	"bazil.org/fuse"
 	"bazil.org/fuse/fs"
@@ -21,6 +22,7 @@ var _ fs.Node = (*File)(nil)
 
 func (f *File) Attr(a *fuse.Attr) {
 	a.Size = f.de.Size
+	a.Mtime = time.Unix(f.de.Mtime, 0)
 	a.Mode = 0644
 	if f.de.Type == libkbfs.Exec {
 		a.Mode |= 0111
@@ -140,6 +142,21 @@ func (f *File) Setattr(ctx context.Context, req *fuse.SetattrRequest, resp *fuse
 		// TODO should we do GetDir instead?
 		valid &^= fuse.SetattrMode
 	}
+
+	if valid.Mtime() {
+		p, err := f.parent.folder.fs.config.KBFSOps().SetMtime(f.getPathLocked(), &req.Mtime)
+		if err != nil {
+			return err
+		}
+		f.updatePathLocked(p)
+		f.de.Mtime = req.Mtime.Unix()
+		// TODO should we bump up ctime, too?
+		// TODO should we do GetDir instead?
+		valid &^= fuse.SetattrMtime
+	}
+
+	// KBFS has no concept of persistent atime; explicitly don't handle it
+	valid &^= fuse.SetattrAtime
 
 	// things we don't need to explicitly handle
 	valid &^= fuse.SetattrLockOwner | fuse.SetattrHandle

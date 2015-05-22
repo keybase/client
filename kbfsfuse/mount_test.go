@@ -9,6 +9,7 @@ import (
 	"strings"
 	"syscall"
 	"testing"
+	"time"
 
 	"bazil.org/fuse/fs/fstestutil"
 
@@ -823,6 +824,35 @@ func TestChmodNonExec(t *testing.T) {
 	}
 	if g, e := fi.Mode().String(), `-rw-r--r--`; g != e {
 		t.Errorf("wrong mode: %q != %q", g, e)
+	}
+}
+
+func TestSetattrMtime(t *testing.T) {
+	config := makeTestConfig("jdoe")
+	mnt := makeFS(t, config)
+	defer mnt.Close()
+
+	p := path.Join(mnt.Dir, "jdoe", "myfile")
+	const input = "hello, world\n"
+	if err := ioutil.WriteFile(p, []byte(input), 0755); err != nil {
+		t.Fatal(err)
+	}
+
+	mtime := time.Date(2015, 1, 2, 3, 4, 5, 6, time.Local)
+	// KBFS does not respect atime (which is ok), but we need to give
+	// something to the syscall.
+	atime := time.Date(2015, 7, 8, 9, 10, 11, 12, time.Local)
+	if err := os.Chtimes(p, atime, mtime); err != nil {
+		t.Fatal(err)
+	}
+
+	fi, err := os.Lstat(p)
+	if err != nil {
+		t.Fatal(err)
+	}
+	// KBFS has 1-second resolution
+	if g, e := fi.ModTime(), mtime.Truncate(time.Second); g != e {
+		t.Errorf("wrong mtime: %v != %v", g, e)
 	}
 }
 
