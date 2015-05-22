@@ -33,6 +33,9 @@ type Dir struct {
 var _ fs.Node = (*Dir)(nil)
 
 func (d *Dir) Attr(a *fuse.Attr) {
+	d.folder.mu.RLock()
+	defer d.folder.mu.RUnlock()
+
 	a.Mode = os.ModeDir | 0700
 	if d.folder.id.IsPublic() || d.folder.dh.IsPublic() {
 		a.Mode |= 0055
@@ -313,6 +316,9 @@ var _ fs.Handle = (*Dir)(nil)
 var _ fs.HandleReadDirAller = (*Dir)(nil)
 
 func (d *Dir) ReadDirAll(ctx context.Context) ([]fuse.Dirent, error) {
+	d.folder.mu.RLock()
+	defer d.folder.mu.RUnlock()
+
 	p := d.getPathLocked()
 	dirBlock, err := d.folder.fs.config.KBFSOps().GetDir(p)
 	if err != nil {

@@ -21,6 +21,9 @@ type File struct {
 var _ fs.Node = (*File)(nil)
 
 func (f *File) Attr(a *fuse.Attr) {
+	f.parent.folder.mu.RLock()
+	defer f.parent.folder.mu.RUnlock()
+
 	a.Size = f.de.Size
 	a.Mtime = time.Unix(f.de.Mtime, 0)
 	a.Mode = 0644
