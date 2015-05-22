@@ -24,8 +24,8 @@ func TestProveCheck(t *testing.T) {
 
 	hook := func(arg keybase1.OkToCheckArg) (bool, error) {
 		sigID := eng.sigID
-		if sigID == nil {
-			return false, fmt.Errorf("nil sigID; can't make a post!")
+		if len(sigID) == 0 {
+			return false, fmt.Errorf("empty sigID; can't make a post!")
 		}
 		apiArg := libkb.ApiArg{
 			Endpoint:    "rooter",
@@ -51,7 +51,7 @@ func TestProveCheck(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	checkEng := NewProveCheck(tc.G, *eng.sigID)
+	checkEng := NewProveCheck(tc.G, eng.sigID)
 	err = RunEngine(checkEng, &ctx)
 	if err != nil {
 		t.Fatal(err)

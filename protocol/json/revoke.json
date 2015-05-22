@@ -199,7 +199,7 @@
         "name" : "ids",
         "type" : {
           "type" : "array",
-          "items" : "string"
+          "items" : "SigID"
         }
       }, {
         "name" : "seqnos",

@@ -1906,7 +1906,7 @@
 - (instancetype)initWithParams:(NSArray *)params {
   if ((self = [super initWithParams:params])) {
     self.sessionID = [params[0][@"sessionID"] integerValue];
-    self.ids = params[0][@"ids"];
+    self.ids = [MTLJSONAdapter modelsOfClass:KBRSigID.class fromJSONArray:params[0][@"ids"] error:nil];
     self.seqnos = params[0][@"seqnos"];
   }
   return self;

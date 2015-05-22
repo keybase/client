@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/keybase/client/go/libkb"
+	keybase1 "github.com/keybase/client/protocol/go"
 )
 
 type BTCEngine struct {
@@ -56,10 +57,9 @@ func (e *BTCEngine) Run(ctx *Context) error {
 	if cryptocurrencyLink != nil && !e.force {
 		return fmt.Errorf("User already has a cryptocurrency address. To overwrite, use --force.")
 	}
-	var sigIDToRevoke *libkb.SigId
+	var sigIDToRevoke keybase1.SigID
 	if cryptocurrencyLink != nil {
-		id := cryptocurrencyLink.GetSigId()
-		sigIDToRevoke = &id
+		sigIDToRevoke = cryptocurrencyLink.GetSigId()
 	}
 
 	sigKey, _, err := e.G().Keyrings.GetSecretKeyWithPrompt(ctx.LoginContext, libkb.SecretKeyArg{

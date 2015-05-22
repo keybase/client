@@ -14,112 +14,17 @@ import (
 	"golang.org/x/crypto/openpgp/armor"
 )
 
-/*
-const (
-	SIG_ID_LEN    = 32
-	SIG_ID_SUFFIX = 0x0f
-)
-
-type SigId [SIG_ID_LEN]byte
-
-func (s SigId) P() *SigId { return &s }
-*/
-
 func ComputeSigIdFromSigBody(body []byte) keybase1.SigID {
 	return keybase1.SigIDFromBytes(sha256.Sum256(body))
 }
 
-/*
-func SigIdFromSlice(s []byte) (keybase1.SigID, error) {
-	if len(s) != SIG_ID_LEN {
-		return nil, fmt.Errorf("Bad SigId; wanted %d byte; got %d",
-			SIG_ID_LEN, len(s))
-	}
-	ret := SigId{}
-	copy(ret[:], s)
-	return &ret, nil
-}
-*/
-
-/*
-func SigIdFromHex(s string, suffix bool) (keybase1.SigID, error) {
-	bv, err := hex.DecodeString(s)
-	if err != nil {
-		return nil, err
-	}
-	totlen := SIG_ID_LEN
-	if suffix {
-		totlen++
-	}
-	if len(bv) != totlen {
-		err = fmt.Errorf("Bad sigId wrong length: %d", len(bv))
-		return nil, err
-	}
-	if suffix && bv[SIG_ID_LEN] != SIG_ID_SUFFIX {
-		err = fmt.Errorf("Bad suffix byte: %02x", bv[SIG_ID_LEN])
-		return nil, err
-	}
-
-	var ret keybase1.SigID
-	if bv != nil {
-		tmp := SigId{}
-		copy(tmp[:], bv[0:SIG_ID_LEN])
-		ret = &tmp
-	}
-	return ret, err
-}
-*/
-
-// XXX remove suffix?
 func GetSigId(w *jsonw.Wrapper, suffix bool) (keybase1.SigID, error) {
 	s, err := w.GetString()
 	if err != nil {
 		return "", err
 	}
-	/*
-		ret, err := SigIdFromHex(s, suffix)
-		return ret, err
-	*/
-	// XXX validate it?
-	return keybase1.SigID(s), nil
+	return keybase1.SigIDFromString(s, suffix)
 }
-
-/*
-func GetSigIdVoid(jw *jsonw.Wrapper, suffix bool, p *keybase1.SigID, e *error) {
-	ret, err := GetSigId(jw, suffix)
-	if err != nil {
-		*e = err
-	} else {
-		*p = &ret
-	}
-}
-*/
-
-/*
-func (s SigId) ToString(suffix bool) string {
-	ret := hex.EncodeToString(s[:])
-	if suffix {
-		ret = fmt.Sprintf("%s%02x", ret, SIG_ID_SUFFIX)
-	}
-	return ret
-}
-*/
-
-/*
-func (s SigId) Export() keybase1.SigID {
-	return keybase1.SigID(s.ToString(true))
-}
-*/
-
-/*
-func (s SigId) ToMediumId() string {
-	return depad(base64.URLEncoding.EncodeToString(s[:]))
-}
-
-func (s SigId) ToShortId() string {
-	return depad(base64.URLEncoding.EncodeToString(s[0:SIG_SHORT_ID_BYTES]))
-}
-*/
 
 type ParsedSig struct {
 	Block       *armor.Block

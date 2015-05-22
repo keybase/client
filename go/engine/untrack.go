@@ -2,6 +2,7 @@ package engine
 
 import (
 	"github.com/keybase/client/go/libkb"
+	keybase1 "github.com/keybase/client/protocol/go"
 )
 
 type UntrackEngineArg struct {
@@ -180,7 +181,7 @@ func (e *UntrackEngine) storeRemoteUntrack(them *libkb.User, ctx *Context) (err 
 	}
 
 	var sig string
-	var sigid *libkb.SigId
+	var sigid keybase1.SigID
 	if sig, sigid, err = signingKeyPriv.SignToString(e.untrackStatementBytes); err != nil {
 		return
 	}

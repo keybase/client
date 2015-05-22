@@ -15,7 +15,7 @@ type Prove struct {
 	supersede  bool
 	proof      *jsonw.Wrapper
 	sig        string
-	sigID      *libkb.SigId
+	sigID      keybase1.SigID
 	postRes    *libkb.PostProofRes
 	signingKey libkb.GenericKey
 
@@ -188,7 +188,7 @@ func (p *Prove) postProofToServer() (err error) {
 	arg := libkb.PostProofArg{
 		Sig:            p.sig,
 		ProofType:      p.st.GetProofType(),
-		Id:             *p.sigID,
+		Id:             p.sigID,
 		Supersede:      p.supersede,
 		RemoteUsername: p.usernameNormalized,
 		RemoteKey:      p.st.GetApiArgKey(),
@@ -246,7 +246,9 @@ func (p *Prove) promptPostedLoop(ctx *Context) (err error) {
 }
 
 func (p *Prove) checkProofText() error {
-	return p.st.CheckProofText(p.postRes.Text, *p.sigID, p.sig)
+	p.G().Log.Debug("p.postRes.Text: %q", p.postRes.Text)
+	p.G().Log.Debug("p.sigID: %q", p.sigID)
+	return p.st.CheckProofText(p.postRes.Text, p.sigID, p.sig)
 }
 
 func (p *Prove) getServiceType() (err error) {
@@ -258,7 +260,7 @@ func (p *Prove) getServiceType() (err error) {
 
 // SigID returns the signature id of the proof posted to the
 // server.
-func (p *Prove) SigID() *libkb.SigId {
+func (p *Prove) SigID() keybase1.SigID {
 	return p.sigID
 }
 

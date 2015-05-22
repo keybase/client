@@ -419,7 +419,7 @@ func (u *User) RevokeKeysProof(key GenericKey, kidsToRevoke []KID, deviceToDisab
 	return ret, nil
 }
 
-func (u *User) RevokeSigsProof(key GenericKey, sigIDsToRevoke []string) (*jsonw.Wrapper, error) {
+func (u *User) RevokeSigsProof(key GenericKey, sigIDsToRevoke []keybase1.SigID) (*jsonw.Wrapper, error) {
 	ret, err := u.ProofMetadata(0 /* ei */, GenericKeyToFOKID(key), nil, 0)
 	if err != nil {
 		return nil, err
@@ -430,7 +430,8 @@ func (u *User) RevokeSigsProof(key GenericKey, sigIDsToRevoke []string) (*jsonw.
 	revokeSection := jsonw.NewDictionary()
 	idsArray := jsonw.NewArray(len(sigIDsToRevoke))
 	for i, id := range sigIDsToRevoke {
-		idsArray.SetIndex(i, jsonw.NewString(id))
+		// XXX is sigid suffix correct here?
+		idsArray.SetIndex(i, jsonw.NewString(id.ToString(true)))
 	}
 	revokeSection.SetKey("sig_ids", idsArray)
 	body.SetKey("revoke", revokeSection)

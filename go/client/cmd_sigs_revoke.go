@@ -13,7 +13,7 @@ import (
 )
 
 type CmdSigsRevoke struct {
-	sigIDs []string
+	sigIDs []keybase1.SigID
 	seqnos []int
 }
 
@@ -31,7 +31,7 @@ func (c *CmdSigsRevoke) ParseArgv(ctx *cli.Context) error {
 		}
 	} else {
 		for _, arg := range ctx.Args() {
-			c.sigIDs = append(c.sigIDs, arg)
+			c.sigIDs = append(c.sigIDs, keybase1.SigID(arg))
 		}
 
 	}

@@ -4,16 +4,16 @@ import (
 	"fmt"
 
 	"github.com/keybase/client/go/libkb"
-	// keybase_1 "github.com/keybase/client/protocol/go"
+	keybase1 "github.com/keybase/client/protocol/go"
 )
 
 type RevokeSigsEngine struct {
 	libkb.Contextified
-	sigIDs []string
+	sigIDs []keybase1.SigID
 	seqnos []int
 }
 
-func NewRevokeSigsEngine(sigIDs []string, seqnos []int, g *libkb.GlobalContext) *RevokeSigsEngine {
+func NewRevokeSigsEngine(sigIDs []keybase1.SigID, seqnos []int, g *libkb.GlobalContext) *RevokeSigsEngine {
 	return &RevokeSigsEngine{
 		sigIDs:       sigIDs,
 		seqnos:       seqnos,
@@ -42,15 +42,15 @@ func (e *RevokeSigsEngine) SubConsumers() []libkb.UIConsumer {
 	return []libkb.UIConsumer{}
 }
 
-func (e *RevokeSigsEngine) getSigIDsToRevoke(me *libkb.User) ([]string, error) {
-	ret := make([]string, len(e.sigIDs))
+func (e *RevokeSigsEngine) getSigIDsToRevoke(me *libkb.User) ([]keybase1.SigID, error) {
+	ret := make([]keybase1.SigID, len(e.sigIDs))
 	copy(ret, e.sigIDs)
 	for _, seqno := range e.seqnos {
 		sigID := me.GetSigIDFromSeqno(seqno)
-		if sigID == nil {
+		if len(sigID) == 0 {
 			return nil, fmt.Errorf("Sequence number %d did not correspond to any signature.", seqno)
 		}
-		ret = append(ret, *sigID)
+		ret = append(ret, sigID)
 	}
 	for _, sigID := range ret {
 		valid, err := me.IsSigIDActive(sigID)

@@ -82,6 +82,20 @@ func (s SigID) ToString(suffix bool) string {
 	return string(s[0 : len(s)-2])
 }
 
+func SigIDFromString(s string, suffix bool) (SigID, error) {
+	blen := SIG_ID_LEN
+	if suffix {
+		blen++
+	}
+	if len(s) != hex.EncodedLen(blen) {
+		return "", fmt.Errorf("Invalid SigID string length: %d, expected %d (suffix = %v)", len(s), hex.EncodedLen(blen), suffix)
+	}
+	if suffix {
+		return SigID(s), nil
+	}
+	return SigID(fmt.Sprintf("%s%02x", s, SIG_ID_SUFFIX)), nil
+}
+
 func SigIDFromBytes(b [SIG_ID_LEN]byte) SigID {
 	s := hex.EncodeToString(b[:])
 	return SigID(fmt.Sprintf("%s%02x", s, SIG_ID_SUFFIX))
@@ -101,7 +115,7 @@ func (s SigID) toBytes() []byte {
 	if err != nil {
 		return nil
 	}
-	return b
+	return b[0:SIG_ID_LEN]
 }
 
 func (s SigID) ToMediumID() string {

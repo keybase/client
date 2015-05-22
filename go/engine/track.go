@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/keybase/client/go/libkb"
+	keybase1 "github.com/keybase/client/protocol/go"
 	jsonw "github.com/keybase/go-jsonw"
 )
 
@@ -27,7 +28,7 @@ type TrackEngine struct {
 	trackStatementBytes []byte
 	trackStatement      *jsonw.Wrapper
 	sig                 string
-	sigid               *libkb.SigId
+	sigid               keybase1.SigID
 	lockedKey           *libkb.SKB
 	lockedWhich         string
 	libkb.Contextified

@@ -13,14 +13,14 @@ import (
 // ProveCheck is an engine.
 type ProveCheck struct {
 	libkb.Contextified
-	sigID     libkb.SigId
+	sigID     keybase1.SigID
 	found     bool
 	status    keybase1.ProofStatus
 	proofText string
 }
 
 // NewProveCheck creates a ProveCheck engine.
-func NewProveCheck(g *libkb.GlobalContext, sigID libkb.SigId) *ProveCheck {
+func NewProveCheck(g *libkb.GlobalContext, sigID keybase1.SigID) *ProveCheck {
 	return &ProveCheck{
 		Contextified: libkb.NewContextified(g),
 		sigID:        sigID,

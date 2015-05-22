@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	"github.com/keybase/client/go/libkb"
+	keybase1 "github.com/keybase/client/protocol/go"
 )
 
 func TestRevokeSig(t *testing.T) {
@@ -70,7 +71,7 @@ func TestRevokeSig(t *testing.T) {
 		t.Fatal(err)
 	}
 	sigID := realUser.GetSigIDFromSeqno(SECOND_PGP_SIG_SEQNO)
-	revokeEngine = NewRevokeSigsEngine([]string{*sigID}, nil, tc.G)
+	revokeEngine = NewRevokeSigsEngine([]keybase1.SigID{sigID}, nil, tc.G)
 	err = RunEngine(revokeEngine, ctx)
 	if err != nil {
 		t.Fatal(err)
