@@ -586,6 +586,30 @@ func TestRemoveDir(t *testing.T) {
 	}
 }
 
+func TestRemoveDirNotEmpty(t *testing.T) {
+	config := makeTestConfig("jdoe")
+	mnt := makeFS(t, config)
+	defer mnt.Close()
+
+	p := path.Join(mnt.Dir, "jdoe", "mydir")
+	if err := os.Mkdir(p, 0755); err != nil {
+		t.Fatal(err)
+	}
+	pFile := path.Join(p, "myfile")
+	if err := ioutil.WriteFile(pFile, []byte("i'm important"), 0644); err != nil {
+		t.Fatal(err)
+	}
+
+	err := syscall.Rmdir(p)
+	if g, e := err, syscall.ENOTEMPTY; g != e {
+		t.Fatalf("wrong error from rmdir: %v (%T) != %v (%T)", g, g, e, e)
+	}
+
+	if _, err := ioutil.ReadFile(pFile); err != nil {
+		t.Errorf("file was lost: %v", err)
+	}
+}
+
 func TestRemoveFileWhileOpenWriting_Desired(t *testing.T) {
 	// when this works, rename function and remove
 	// TestRemoveFileWhileOpenWriting_Current

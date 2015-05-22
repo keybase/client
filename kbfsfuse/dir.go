@@ -294,7 +294,12 @@ func (d *Dir) Remove(ctx context.Context, req *fuse.RemoveRequest) error {
 		return fuse.Errno(syscall.ENOTDIR)
 	}
 
-	p2, err := d.folder.fs.config.KBFSOps().RemoveEntry(p)
+	var p2 libkbfs.Path
+	if req.Dir {
+		p2, err = d.folder.fs.config.KBFSOps().RemoveDir(p)
+	} else {
+		p2, err = d.folder.fs.config.KBFSOps().RemoveEntry(p)
+	}
 	if err != nil {
 		return err
 	}

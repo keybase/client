@@ -2,6 +2,9 @@ package libkbfs
 
 import (
 	"fmt"
+	"syscall"
+
+	"bazil.org/fuse"
 
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/protocol/go"
@@ -47,6 +50,12 @@ type DirNotEmptyError struct {
 
 func (e *DirNotEmptyError) Error() string {
 	return fmt.Sprintf("Directory %s is not empty and can't be removed", e.Name)
+}
+
+var _ fuse.ErrorNumber = (*DirNotEmptyError)(nil)
+
+func (e *DirNotEmptyError) Errno() fuse.Errno {
+	return fuse.Errno(syscall.ENOTEMPTY)
 }
 
 type TopDirAccessError struct {
