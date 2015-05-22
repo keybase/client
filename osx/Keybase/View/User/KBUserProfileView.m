@@ -141,7 +141,7 @@
     KBRLaunchNetworkChecksRequestParams *requestParams = [[KBRLaunchNetworkChecksRequestParams alloc] initWithParams:params];
     BOOL isSelf = [AppDelegate.appView.user.username isEqual:self.username];
     [gself.userInfoView addProofs:requestParams.id.proofs editable:isSelf targetBlock:^(KBProofLabel *proofLabel) {
-      if (proofLabel.proofResult.result.proofStatus.status != 1) {
+      if (proofLabel.proofResult.result.proofResult.status != 1) {
         KBRProofType proveType = proofLabel.proofResult.proof.proofType;
         [self connectWithProveType:proveType proofResult:proofLabel.proofResult];
       } else if (proofLabel.proofResult.result.hint.humanUrl) {

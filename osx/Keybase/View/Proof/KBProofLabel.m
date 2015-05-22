@@ -62,17 +62,17 @@
       }
     }
 
-    NSInteger proofStatus = _proofResult.result.proofStatus.status;
+    NSInteger proofStatus = _proofResult.result.proofResult.status;
     if (proofStatus != 1) {
       if (proofStatus < 200) {
         color = KBAppearance.currentAppearance.warnColor;
-        message = NSStringWithFormat(@"%@ (%@)", _proofResult.result.proofStatus.desc, @(proofStatus));
+        message = NSStringWithFormat(@"%@ (%@)", _proofResult.result.proofResult.desc, @(proofStatus));
       } else if (proofStatus == 306) {
         color = KBAppearance.currentAppearance.warnColor;
         message = @"Proof not found";
       } else {
         color = KBAppearance.currentAppearance.errorColor;
-        message = NSStringWithFormat(@"%@ (%@)", _proofResult.result.proofStatus.desc, @(proofStatus));
+        message = NSStringWithFormat(@"%@ (%@)", _proofResult.result.proofResult.desc, @(proofStatus));
         erroredHard = YES;
       }
     } else if (!_proofResult.result.hint.humanUrl) {
