@@ -20,14 +20,14 @@ type SignupEngine struct {
 }
 
 type SignupEngineRunArg struct {
-	Username     string
-	Email        string
-	InviteCode   string
-	Passphrase   string
-	SecretStorer libkb.SecretStorer
-	DeviceName   string
-	SkipGPG      bool
-	SkipMail     bool
+	Username    string
+	Email       string
+	InviteCode  string
+	Passphrase  string
+	StoreSecret bool
+	DeviceName  string
+	SkipGPG     bool
+	SkipMail    bool
 }
 
 func NewSignupEngine(arg *SignupEngineRunArg, g *libkb.GlobalContext) *SignupEngine {
@@ -179,13 +179,14 @@ func (s *SignupEngine) registerDevice(a libkb.LoginContext, ctx *Context, device
 
 	ctx.LoginContext.LocalSession().SetDeviceProvisioned(s.G().Env.GetDeviceID().String())
 
-	if s.arg.SecretStorer != nil {
+	if s.arg.StoreSecret {
+		secretStore := libkb.NewSecretStore(s.me.GetName())
 		secret, err := s.lks.GetSecret()
 		if err != nil {
 			return err
 		}
 		// Ignore any errors storing the secret.
-		_ = s.arg.SecretStorer.StoreSecret(secret)
+		_ = secretStore.StoreSecret(secret)
 	}
 
 	return nil

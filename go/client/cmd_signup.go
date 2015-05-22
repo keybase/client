@@ -60,7 +60,7 @@ type CmdSignupState struct {
 	fullname          string
 	notes             string
 	passphrase        string
-	secretStorer      libkb.SecretStorer
+	storeSecret       bool
 	defaultEmail      string
 	defaultUsername   string
 	defaultPassphrase string
@@ -195,12 +195,11 @@ func (s *CmdSignupState) Prompt() (err error) {
 	if err = s.prompter.Run(); err != nil {
 		return
 	}
-	secretStore := libkb.NewSecretStore(*s.fields.username.Value)
 	arg := keybase1.GetNewPassphraseArg{
 		TerminalPrompt: "Pick a strong passphrase",
 		PinentryDesc:   "Pick a strong passphrase (12+ characters)",
 		PinentryPrompt: "Passphrase",
-		UseSecretStore: secretStore != nil,
+		UseSecretStore: libkb.HasSecretStore(),
 	}
 
 	f := s.fields.passphraseRetry
@@ -211,9 +210,7 @@ func (s *CmdSignupState) Prompt() (err error) {
 			return
 		}
 		s.passphrase = res.Passphrase
-		if res.StoreSecret {
-			s.secretStorer = secretStore
-		}
+		s.storeSecret = res.StoreSecret
 	}
 
 	return
@@ -237,12 +234,12 @@ func (s *CmdSignupState) runSignup() (err error) {
 
 func (s *CmdSignupState) runEngine() (retry bool, err error) {
 	arg := engine.SignupEngineRunArg{
-		Username:     s.fields.username.GetValue(),
-		Email:        s.fields.email.GetValue(),
-		InviteCode:   s.fields.code.GetValue(),
-		Passphrase:   s.passphrase,
-		SecretStorer: s.secretStorer,
-		DeviceName:   s.fields.deviceName.GetValue(),
+		Username:    s.fields.username.GetValue(),
+		Email:       s.fields.email.GetValue(),
+		InviteCode:  s.fields.code.GetValue(),
+		Passphrase:  s.passphrase,
+		StoreSecret: s.storeSecret,
+		DeviceName:  s.fields.deviceName.GetValue(),
 	}
 	s.engine.SetArg(&arg)
 	ctx := &engine.Context{
