@@ -233,6 +233,14 @@ func (d *Dir) Rename(ctx context.Context, req *fuse.RenameRequest, newDir fs.Nod
 
 	newDir2, ok := newDir.(*Dir)
 	if !ok {
+		// The destination is not a Dir instance, probably because
+		// it's Root (or some other node type added later). The kernel
+		// won't let a rename newDir point to a non-directory.
+		//
+		// We have no cheap atomic rename across folders, so we can't
+		// serve this. EXDEV makes `mv` do a copy+delete, and the
+		// Lookup on the destination path will decide whether the it's
+		// legal.
 		return fuse.Errno(syscall.EXDEV)
 	}
 	if d.folder != newDir2.folder {
