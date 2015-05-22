@@ -123,6 +123,24 @@ func (f *File) Setattr(ctx context.Context, req *fuse.SetattrRequest, resp *fuse
 		valid &^= fuse.SetattrSize
 	}
 
+	if valid.Mode() {
+		// Unix has 3 exec bits, KBFS has one; we follow the user-exec bit.
+		exec := req.Mode&0100 != 0
+		p, err := f.parent.folder.fs.config.KBFSOps().SetEx(f.getPathLocked(), exec)
+		if err != nil {
+			return err
+		}
+		f.updatePathLocked(p)
+		if exec {
+			f.de.Type = libkbfs.Exec
+		} else {
+			f.de.Type = libkbfs.File
+		}
+		// TODO should we bump up mtime and ctime, too?
+		// TODO should we do GetDir instead?
+		valid &^= fuse.SetattrMode
+	}
+
 	// things we don't need to explicitly handle
 	valid &^= fuse.SetattrLockOwner | fuse.SetattrHandle
 

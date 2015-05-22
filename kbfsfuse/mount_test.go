@@ -778,6 +778,54 @@ func TestTruncateShrink(t *testing.T) {
 	}
 }
 
+func TestChmodExec(t *testing.T) {
+	config := makeTestConfig("jdoe")
+	mnt := makeFS(t, config)
+	defer mnt.Close()
+
+	p := path.Join(mnt.Dir, "jdoe", "myfile")
+	const input = "hello, world\n"
+	if err := ioutil.WriteFile(p, []byte(input), 0644); err != nil {
+		t.Fatal(err)
+	}
+
+	if err := os.Chmod(p, 0744); err != nil {
+		t.Fatal(err)
+	}
+
+	fi, err := os.Lstat(p)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if g, e := fi.Mode().String(), `-rwxr-xr-x`; g != e {
+		t.Errorf("wrong mode: %q != %q", g, e)
+	}
+}
+
+func TestChmodNonExec(t *testing.T) {
+	config := makeTestConfig("jdoe")
+	mnt := makeFS(t, config)
+	defer mnt.Close()
+
+	p := path.Join(mnt.Dir, "jdoe", "myfile")
+	const input = "hello, world\n"
+	if err := ioutil.WriteFile(p, []byte(input), 0755); err != nil {
+		t.Fatal(err)
+	}
+
+	if err := os.Chmod(p, 0655); err != nil {
+		t.Fatal(err)
+	}
+
+	fi, err := os.Lstat(p)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if g, e := fi.Mode().String(), `-rw-r--r--`; g != e {
+		t.Errorf("wrong mode: %q != %q", g, e)
+	}
+}
+
 func TestReaddirMyPublic(t *testing.T) {
 	config := makeTestConfig("jdoe")
 	mnt := makeFS(t, config)
