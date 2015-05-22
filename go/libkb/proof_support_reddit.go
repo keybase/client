@@ -1,11 +1,12 @@
 package libkb
 
 import (
-	keybase1 "github.com/keybase/client/protocol/go"
-	"github.com/keybase/go-jsonw"
 	"net/url"
 	"regexp"
 	"strings"
+
+	keybase1 "github.com/keybase/client/protocol/go"
+	jsonw "github.com/keybase/go-jsonw"
 )
 
 //=============================================================================
@@ -87,7 +88,7 @@ func (rc *RedditChecker) CheckData(h SigHint, dat *jsonw.Wrapper) ProofError {
 	} else if wanted := rc.proof.GetRemoteUsername(); !rc.ScreenNameCompare(author, wanted) {
 		ret = NewProofError(keybase1.ProofStatus_BAD_USERNAME,
 			"Bad post author; wanted '%s' but got '%s'", wanted, author)
-	} else if psid := sigId.ToMediumId(); !strings.Contains(title, psid) {
+	} else if psid := sigId.ToMediumID(); !strings.Contains(title, psid) {
 		ret = NewProofError(keybase1.ProofStatus_TITLE_NOT_FOUND,
 			"Missing signature ID (%s) in post title ('%s')",
 			psid, title)
@@ -195,7 +196,7 @@ func (t RedditServiceType) RecheckProofPosting(tryNumber int, status keybase1.Pr
 
 func (t RedditServiceType) GetProofType() string { return t.BaseGetProofType(t) }
 
-func (t RedditServiceType) CheckProofText(text string, id SigId, sig string) (err error) {
+func (t RedditServiceType) CheckProofText(text string, id keybase1.SigID, sig string) (err error) {
 	return t.BaseCheckProofTextFull(text, id, sig)
 }
 

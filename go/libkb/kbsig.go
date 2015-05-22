@@ -449,7 +449,7 @@ func (u *User) CryptocurrencySig(key GenericKey, address string, sigToRevoke key
 	currencySection.SetKey("address", jsonw.NewString(address))
 	currencySection.SetKey("type", jsonw.NewString("bitcoin"))
 	body.SetKey("cryptocurrency", currencySection)
-	if sigToRevoke != nil {
+	if len(sigToRevoke) > 0 {
 		revokeSection := jsonw.NewDictionary()
 		revokeSection.SetKey("sig_id", jsonw.NewString(sigToRevoke.ToString(true /* suffix */)))
 		body.SetKey("revoke", revokeSection)

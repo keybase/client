@@ -3,7 +3,6 @@ package libkb
 import (
 	"bytes"
 	"crypto/sha256"
-	"encoding/base64"
 	"encoding/hex"
 	"fmt"
 	"io/ioutil"
@@ -27,17 +26,11 @@ func (s SigId) P() *SigId { return &s }
 */
 
 func ComputeSigIdFromSigBody(body []byte) keybase1.SigID {
-	return keybase1.SigID(sha256.Sum256(body))
+	return keybase1.SigIDFromBytes(sha256.Sum256(body))
 }
 
-func (s SigId) ToDisplayString(verbose bool) string {
-	if verbose {
-		return s.ToString(true)
-	}
-	return fmt.Sprintf("%s...", hex.EncodeToString(s[0:3]))
-}
-
-func SigIdFromSlice(s []byte) (*SigId, error) {
+/*
+func SigIdFromSlice(s []byte) (keybase1.SigID, error) {
 	if len(s) != SIG_ID_LEN {
 		return nil, fmt.Errorf("Bad SigId; wanted %d byte; got %d",
 			SIG_ID_LEN, len(s))
@@ -46,8 +39,10 @@ func SigIdFromSlice(s []byte) (*SigId, error) {
 	copy(ret[:], s)
 	return &ret, nil
 }
+*/
 
-func SigIdFromHex(s string, suffix bool) (*SigId, error) {
+/*
+func SigIdFromHex(s string, suffix bool) (keybase1.SigID, error) {
 	bv, err := hex.DecodeString(s)
 	if err != nil {
 		return nil, err
@@ -65,7 +60,7 @@ func SigIdFromHex(s string, suffix bool) (*SigId, error) {
 		return nil, err
 	}
 
-	var ret *SigId
+	var ret keybase1.SigID
 	if bv != nil {
 		tmp := SigId{}
 		copy(tmp[:], bv[0:SIG_ID_LEN])
@@ -73,25 +68,34 @@ func SigIdFromHex(s string, suffix bool) (*SigId, error) {
 	}
 	return ret, err
 }
+*/
 
-func GetSigId(w *jsonw.Wrapper, suffix bool) (*SigId, error) {
+// XXX remove suffix?
+func GetSigId(w *jsonw.Wrapper, suffix bool) (keybase1.SigID, error) {
 	s, err := w.GetString()
 	if err != nil {
-		return nil, err
+		return "", err
 	}
-	ret, err := SigIdFromHex(s, suffix)
-	return ret, err
+	/*
+		ret, err := SigIdFromHex(s, suffix)
+		return ret, err
+	*/
+	// XXX validate it?
+	return keybase1.SigID(s), nil
 }
 
-func GetSigIdVoid(jw *jsonw.Wrapper, suffix bool, p *SigId, e *error) {
+/*
+func GetSigIdVoid(jw *jsonw.Wrapper, suffix bool, p *keybase1.SigID, e *error) {
 	ret, err := GetSigId(jw, suffix)
 	if err != nil {
 		*e = err
 	} else {
-		*p = *ret
+		*p = &ret
 	}
 }
+*/
 
+/*
 func (s SigId) ToString(suffix bool) string {
 	ret := hex.EncodeToString(s[:])
 	if suffix {
@@ -99,11 +103,15 @@ func (s SigId) ToString(suffix bool) string {
 	}
 	return ret
 }
+*/
 
+/*
 func (s SigId) Export() keybase1.SigID {
 	return keybase1.SigID(s.ToString(true))
 }
+*/
 
+/*
 func (s SigId) ToMediumId() string {
 	return depad(base64.URLEncoding.EncodeToString(s[:]))
 }
@@ -111,6 +119,7 @@ func (s SigId) ToMediumId() string {
 func (s SigId) ToShortId() string {
 	return depad(base64.URLEncoding.EncodeToString(s[0:SIG_SHORT_ID_BYTES]))
 }
+*/
 
 type ParsedSig struct {
 	Block       *armor.Block
@@ -136,16 +145,16 @@ func PgpOpenSig(armored string) (ps *ParsedSig, err error) {
 // OpenSig takes an armored PGP or Keybase signature and opens
 // the armor.  It will return the body of the signature, the
 // sigId of the body, or an error if it didn't work out.
-func OpenSig(armored string) (ret []byte, id *SigId, err error) {
+func OpenSig(armored string) (ret []byte, id keybase1.SigID, err error) {
 	if isPgp(armored) {
 		var ps *ParsedSig
 		if ps, err = PgpOpenSig(armored); err == nil {
 			ret = ps.SigBody
-			id = ps.ID().P()
+			id = ps.ID()
 		}
 	} else {
 		if ret, err = KbOpenSig(armored); err == nil {
-			id = ComputeSigIdFromSigBody(ret).P()
+			id = ComputeSigIdFromSigBody(ret)
 		}
 	}
 	return
@@ -155,14 +164,14 @@ func isPgp(armored string) bool {
 	return strings.HasPrefix(armored, "-----BEGIN PGP")
 }
 
-func SigAssertPayload(armored string, expected []byte) (sigId *SigId, err error) {
+func SigAssertPayload(armored string, expected []byte) (sigId keybase1.SigID, err error) {
 	if isPgp(armored) {
 		return SigAssertPgpPayload(armored, expected)
 	}
 	return SigAssertKbPayload(armored, expected)
 }
 
-func SigAssertPgpPayload(armored string, expected []byte) (sigId *SigId, err error) {
+func SigAssertPgpPayload(armored string, expected []byte) (sigId keybase1.SigID, err error) {
 	var ps *ParsedSig
 	ps, err = PgpOpenSig(armored)
 	if err != nil {
@@ -172,8 +181,7 @@ func SigAssertPgpPayload(armored string, expected []byte) (sigId *SigId, err err
 		ps = nil
 		return
 	}
-	tmp := ps.ID()
-	sigId = &tmp
+	sigId = ps.ID()
 	return
 }
 
@@ -234,6 +242,6 @@ func (ps *ParsedSig) Verify(k PgpKeyBundle) (err error) {
 	return nil
 }
 
-func (ps *ParsedSig) ID() SigId {
-	return SigId(sha256.Sum256(ps.SigBody))
+func (ps *ParsedSig) ID() keybase1.SigID {
+	return ComputeSigIdFromSigBody(ps.SigBody)
 }

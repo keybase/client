@@ -212,7 +212,7 @@ func (d Delegator) post(lctx LoginContext) (err error) {
 
 	hargs := HttpArgs{
 		"sig_id_base":     S{Val: d.sigId.ToString(false)},
-		"sig_id_short":    S{Val: d.sigId.ToShortId()},
+		"sig_id_short":    S{Val: d.sigId.ToShortID()},
 		"sig":             S{Val: d.sig},
 		"type":            S{Val: d.PushType},
 		"is_remote_proof": B{Val: false},

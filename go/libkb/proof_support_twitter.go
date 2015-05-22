@@ -23,7 +23,7 @@ func NewTwitterChecker(p RemoteProofChainLink) (*TwitterChecker, ProofError) {
 
 func (rc *TwitterChecker) CheckHint(h SigHint) ProofError {
 	wanted_url := ("https://twitter.com/" + strings.ToLower(rc.proof.GetRemoteUsername()) + "/")
-	wanted_short_id := (" " + rc.proof.GetSigId().ToShortId() + " /")
+	wanted_short_id := (" " + rc.proof.GetSigId().ToShortID() + " /")
 	if !strings.HasPrefix(strings.ToLower(h.apiUrl), wanted_url) {
 		return NewProofError(keybase1.ProofStatus_BAD_API_URL,
 			"Bad hint from server; URL should start with '%s'", wanted_url)
@@ -153,7 +153,7 @@ func (t TwitterServiceType) RecheckProofPosting(tryNumber int, status keybase1.P
 }
 func (t TwitterServiceType) GetProofType() string { return t.BaseGetProofType(t) }
 
-func (t TwitterServiceType) CheckProofText(text string, id SigId, sig string) (err error) {
+func (t TwitterServiceType) CheckProofText(text string, id keybase1.SigID, sig string) (err error) {
 	return t.BaseCheckProofTextShort(text, id, false)
 }
 

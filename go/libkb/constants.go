@@ -4,6 +4,7 @@ import (
 	"os"
 	"runtime"
 	"time"
+
 	keybase1 "github.com/keybase/client/protocol/go"
 )
 

@@ -67,7 +67,7 @@ func (rc *HackerNewsChecker) CheckStatus(h SigHint) ProofError {
 			"Bad signature: %s", err.Error())
 	}
 
-	wanted := sigId.ToMediumId()
+	wanted := sigId.ToMediumID()
 	G.Log.Debug("| HackerNews profile: %s", res.Body)
 	G.Log.Debug("| Wanted signature hash: %s", wanted)
 	if !strings.Contains(res.Body, wanted) {

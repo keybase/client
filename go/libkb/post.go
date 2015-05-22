@@ -27,7 +27,7 @@ type PostProofArg struct {
 func PostProof(arg PostProofArg) (*PostProofRes, error) {
 	hargs := HttpArgs{
 		"sig_id_base":     S{arg.Id.ToString(false)},
-		"sig_id_short":    S{arg.Id.ToShortId()},
+		"sig_id_short":    S{arg.Id.ToShortID()},
 		"sig":             S{arg.Sig},
 		"is_remote_proof": B{true},
 		"supersede":       B{arg.Supersede},

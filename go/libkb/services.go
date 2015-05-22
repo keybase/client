@@ -45,13 +45,13 @@ func GetServiceType(s string) ServiceType {
 
 type BaseServiceType struct{}
 
-func (t BaseServiceType) BaseCheckProofTextShort(text string, id SigId, med bool) (err error) {
+func (t BaseServiceType) BaseCheckProofTextShort(text string, id keybase1.SigID, med bool) (err error) {
 	blocks := FindBase64Snippets(text)
 	var target string
 	if med {
-		target = id.ToMediumId()
+		target = id.ToMediumID()
 	} else {
-		target = id.ToShortId()
+		target = id.ToShortID()
 	}
 	for _, b := range blocks {
 		if len(b) < len(target) {
@@ -106,7 +106,7 @@ func (t BaseServiceType) FormatProofText(ppr *PostProofRes) (string, error) {
 	return ppr.Text, nil
 }
 
-func (t BaseServiceType) BaseCheckProofTextFull(text string, id SigId, sig string) (err error) {
+func (t BaseServiceType) BaseCheckProofTextFull(text string, id keybase1.SigID, sig string) (err error) {
 	blocks := FindBase64Blocks(text)
 	target := FindFirstBase64Block(sig)
 	if len(target) == 0 {
@@ -133,9 +133,9 @@ func (t BaseServiceType) NormalizeUsername(s string) (string, error) {
 	return strings.ToLower(s), nil
 }
 
-func (t BaseServiceType) BaseCheckProofForUrl(text string, id SigId) (err error) {
+func (t BaseServiceType) BaseCheckProofForUrl(text string, id keybase1.SigID) (err error) {
 	url_rxx := regexp.MustCompile(`https://(\S+)`)
-	target := id.ToMediumId()
+	target := id.ToMediumID()
 	urls := url_rxx.FindAllString(text, -1)
 	G.Log.Debug("Found urls %v", urls)
 	found := false

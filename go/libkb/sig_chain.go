@@ -1,10 +1,11 @@
 package libkb
 
 import (
-	"bytes"
 	"fmt"
 	"io"
 	"time"
+
+	keybase1 "github.com/keybase/client/protocol/go"
 )
 
 type SigChain struct {
@@ -33,7 +34,7 @@ func (sc SigChain) Len() int {
 	return len(sc.chainLinks)
 }
 
-func (sc *SigChain) LocalDelegate(kf *KeyFamily, key GenericKey, sigId *SigId, signingKid KID, isSibkey bool) (err error) {
+func (sc *SigChain) LocalDelegate(kf *KeyFamily, key GenericKey, sigId keybase1.SigID, signingKid KID, isSibkey bool) (err error) {
 
 	cki := sc.localCki
 	l := sc.GetLastLink()
@@ -50,9 +51,9 @@ func (sc *SigChain) LocalDelegate(kf *KeyFamily, key GenericKey, sigId *SigId, s
 	// Update the current state
 	sc.localCki = cki
 
-	if sigId != nil {
+	if len(sigId) > 0 {
 		var zeroTime time.Time
-		err = cki.Delegate(key.GetKid(), key.GetFingerprintP(), NowAsKeybaseTime(0), *sigId, signingKid, signingKid, isSibkey, time.Unix(0, 0), zeroTime)
+		err = cki.Delegate(key.GetKid(), key.GetFingerprintP(), NowAsKeybaseTime(0), sigId, signingKid, signingKid, isSibkey, time.Unix(0, 0), zeroTime)
 	}
 
 	return
@@ -460,10 +461,9 @@ func (sc *SigChain) GetLinkFromSeqno(seqno int) *ChainLink {
 	return nil
 }
 
-func (sc *SigChain) GetLinkFromSigId(id SigId) *ChainLink {
+func (sc *SigChain) GetLinkFromSigId(id keybase1.SigID) *ChainLink {
 	for _, link := range sc.chainLinks {
-		knownID := link.GetSigId()
-		if knownID != nil && bytes.Equal(knownID[:], id[:]) {
+		if link.GetSigId() == id {
 			return link
 		}
 	}

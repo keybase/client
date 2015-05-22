@@ -542,15 +542,16 @@ func (ckf *ComputedKeyFamily) Revoke(tcl TypedChainLink) (err error) {
 
 // revokeSigs operates on the per-signature revocations in the given
 // TypedChainLink and applies them accordingly.
-func (ckf *ComputedKeyFamily) revokeSigs(sigs []keybase1.SigID, tcl TypedChainLink) (err error) {
+func (ckf *ComputedKeyFamily) revokeSigs(sigs []keybase1.SigID, tcl TypedChainLink) error {
 	for _, s := range sigs {
-		if s != nil {
-			if err = ckf.RevokeSig(*s, tcl); err != nil {
-				return
-			}
+		if len(s) == 0 {
+			continue
+		}
+		if err := ckf.RevokeSig(s, tcl); err != nil {
+			return err
 		}
 	}
-	return
+	return nil
 }
 
 // revokeKids operates on the per-kid revocations in the given

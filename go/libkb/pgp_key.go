@@ -477,8 +477,7 @@ func (k PgpKeyBundle) VerifyStringAndExtract(sig string) (msg []byte, id keybase
 		return
 	}
 	msg = ps.LiteralData
-	psId := ps.ID()
-	id = &psId
+	id = ps.ID()
 	return
 }
 

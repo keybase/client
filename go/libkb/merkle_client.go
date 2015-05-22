@@ -396,7 +396,7 @@ func (mc *MerkleClient) VerifyRoot(root *MerkleRoot) error {
 func parseTriple(jw *jsonw.Wrapper) (t *MerkleTriple, err error) {
 	var seqno, l int
 	var li LinkId
-	var si *SigId
+	var si keybase1.SigID
 
 	if jw.IsNil() {
 		return nil, nil

@@ -74,7 +74,7 @@ func TestProveRooter(t *testing.T) {
 			Endpoint:    "rooter",
 			NeedSession: true,
 			Args: libkb.HttpArgs{
-				"post": libkb.S{Val: sigID.ToMediumId()},
+				"post": libkb.S{Val: sigID.ToMediumID()},
 			},
 		}
 		_, err := tc.G.API.Post(apiArg)

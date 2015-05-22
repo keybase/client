@@ -34,8 +34,8 @@ func NewSigHint(jw *jsonw.Wrapper) (sh *SigHint, err error) {
 	return
 }
 
-func (sh SigHints) Lookup(i SigId) *SigHint {
-	obj, _ := sh.hints[i]
+func (sh SigHints) Lookup(i keybase1.SigID) *SigHint {
+	obj := sh.hints[i]
 	return obj
 }
 
@@ -59,7 +59,7 @@ func (sh *SigHints) PopulateWith(jw *jsonw.Wrapper) (err error) {
 		return
 	}
 
-	sh.hints = make(map[SigId]*SigHint)
+	sh.hints = make(map[keybase1.SigID]*SigHint)
 	var n int
 	n, err = jw.AtKey("hints").Len()
 	if err != nil {
@@ -71,7 +71,7 @@ func (sh *SigHints) PopulateWith(jw *jsonw.Wrapper) (err error) {
 		if tmpe != nil {
 			G.Log.Warning("Bad SigHint Loaded: %s", tmpe.Error())
 		} else {
-			sh.hints[*hint.sigId] = hint
+			sh.hints[hint.sigId] = hint
 		}
 	}
 	return

@@ -190,7 +190,7 @@ func (e *UntrackEngine) storeRemoteUntrack(them *libkb.User, ctx *Context) (err 
 		NeedSession: true,
 		Args: libkb.HttpArgs{
 			"sig_id_base":  libkb.S{Val: sigid.ToString(false)},
-			"sig_id_short": libkb.S{Val: sigid.ToShortId()},
+			"sig_id_short": libkb.S{Val: sigid.ToShortID()},
 			"sig":          libkb.S{Val: sig},
 			"uid":          them.GetUID(),
 			"type":         libkb.S{Val: "untrack"},

@@ -921,8 +921,8 @@ func (tab *IdentityTable) insertLink(l TypedChainLink) {
 	tab.links[l.GetSigId()] = l
 	tab.Order = append(tab.Order, l)
 	for _, rev := range l.GetRevocations() {
-		tab.revocations[*rev] = true
-		if targ, found := tab.links[*rev]; !found {
+		tab.revocations[rev] = true
+		if targ, found := tab.links[rev]; !found {
 			G.Log.Warning("Can't revoke signature %s @%s",
 				rev.ToString(true), l.ToDebugString())
 		} else {
@@ -986,8 +986,8 @@ func NewTypedChainLink(cl *ChainLink) (ret TypedChainLink, w Warning) {
 func NewIdentityTable(eldest FOKID, sc *SigChain, h *SigHints) *IdentityTable {
 	ret := &IdentityTable{
 		sigChain:       sc,
-		revocations:    make(map[SigId]bool),
-		links:          make(map[SigId]TypedChainLink),
+		revocations:    make(map[keybase1.SigID]bool),
+		links:          make(map[keybase1.SigID]TypedChainLink),
 		remoteProofs:   make(map[string][]RemoteProofChainLink),
 		tracks:         make(map[string][]*TrackChainLink),
 		Order:          make([]TypedChainLink, 0, sc.Len()),

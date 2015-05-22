@@ -8,6 +8,7 @@ import (
 	"io"
 	"time"
 
+	keybase1 "github.com/keybase/client/protocol/go"
 	"golang.org/x/crypto/openpgp"
 	"golang.org/x/crypto/openpgp/armor"
 	"golang.org/x/crypto/openpgp/errors"
@@ -124,7 +125,7 @@ func getSigningKey(e *openpgp.Entity, now time.Time) (openpgp.Key, bool) {
 
 // 	SimpleSign signs the given data stream, outputs an armored string which is
 // the attached signature of the input data
-func SimpleSign(payload []byte, key PgpKeyBundle) (out string, id *SigId, err error) {
+func SimpleSign(payload []byte, key PgpKeyBundle) (out string, id keybase1.SigID, err error) {
 	var outb bytes.Buffer
 	var in io.WriteCloser
 	var h HashSummer
@@ -138,7 +139,7 @@ func SimpleSign(payload []byte, key PgpKeyBundle) (out string, id *SigId, err er
 		return
 	}
 	out = outb.String()
-	if id, err = SigIdFromSlice(h()); err != nil {
+	if id, err = keybase1.SigIDFromSlice(h()); err != nil {
 		return
 	}
 	return
@@ -232,8 +233,7 @@ func (h HashingWriteCloser) Close() error {
 
 type HashSummer func() []byte
 
-func ArmoredAttachedSign(out io.WriteCloser, signed openpgp.Entity, hints *openpgp.FileHints,
-	config *packet.Config) (in io.WriteCloser, err error, h HashSummer) {
+func ArmoredAttachedSign(out io.WriteCloser, signed openpgp.Entity, hints *openpgp.FileHints, config *packet.Config) (in io.WriteCloser, err error, h HashSummer) {
 
 	var aout io.WriteCloser
 

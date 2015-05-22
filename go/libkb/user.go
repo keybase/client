@@ -444,7 +444,7 @@ func (u *User) ToOkProofSet() *ProofSet {
 // localDelegateKey takes the given GenericKey and provisions it locally so that
 // we can use the key without needing a refresh from the server.  The eventual
 // refresh we do get from the server will clobber our work here.
-func (u *User) localDelegateKey(key GenericKey, sigID *SigId, kid KID, isSibkey bool, isEldest bool) (err error) {
+func (u *User) localDelegateKey(key GenericKey, sigID keybase1.SigID, kid KID, isSibkey bool, isEldest bool) (err error) {
 	if err = u.keyFamily.LocalDelegate(key, isSibkey, kid == nil); err != nil {
 		return
 	}
@@ -460,7 +460,7 @@ func (u *User) localDelegateKey(key GenericKey, sigID *SigId, kid KID, isSibkey 
 	return
 }
 
-func (u *User) SigChainBump(linkID LinkId, sigID *SigId) {
+func (u *User) SigChainBump(linkID LinkId, sigID keybase1.SigID) {
 	u.SigChainBumpMT(MerkleTriple{LinkId: linkID, SigId: sigID})
 }
 
@@ -531,43 +531,33 @@ func (u *User) TrackStatementJSON(them *User) (string, error) {
 	return string(json), nil
 }
 
-func (u *User) GetSigIDFromSeqno(seqno int) *string {
+func (u *User) GetSigIDFromSeqno(seqno int) keybase1.SigID {
 	if u.sigChain() == nil {
-		return nil
+		return ""
 	}
 	link := u.sigChain().GetLinkFromSeqno(seqno)
 	if link == nil {
-		return nil
+		return ""
 	}
-	sigID := link.GetSigId()
-	if sigID == nil {
-		return nil
-	}
-	sigIDStr := sigID.ToString(true /* suffix */)
-	return &sigIDStr
+	return link.GetSigId()
 }
 
-func (u *User) IsSigIDActive(sigIDStr string) (bool, error) {
+func (u *User) IsSigIDActive(sigID keybase1.SigID) (bool, error) {
 	if u.sigChain() == nil {
 		return false, fmt.Errorf("User's sig chain is nil.")
 	}
 
-	sigID, err := SigIdFromHex(sigIDStr, true /* suffix */)
-	if err != nil {
-		return false, err
-	}
-
-	link := u.sigChain().GetLinkFromSigId(*sigID)
+	link := u.sigChain().GetLinkFromSigId(sigID)
 	if link == nil {
-		return false, fmt.Errorf("Signature with ID '%s' does not exist.", sigIDStr)
+		return false, fmt.Errorf("Signature with ID '%s' does not exist.", sigID)
 	}
 	if link.revoked {
-		return false, fmt.Errorf("Signature ID '%s' is already revoked.", sigIDStr)
+		return false, fmt.Errorf("Signature ID '%s' is already revoked.", sigID)
 	}
 	return true, nil
 }
 
-func (u *User) LinkFromSigID(sigID SigId) *ChainLink {
+func (u *User) LinkFromSigID(sigID keybase1.SigID) *ChainLink {
 	return u.sigChain().GetLinkFromSigId(sigID)
 }
 

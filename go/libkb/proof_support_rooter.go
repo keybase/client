@@ -3,10 +3,11 @@
 package libkb
 
 import (
-	keybase1 "github.com/keybase/client/protocol/go"
-	jsonw "github.com/keybase/go-jsonw"
 	"regexp"
 	"strings"
+
+	keybase1 "github.com/keybase/client/protocol/go"
+	jsonw "github.com/keybase/go-jsonw"
 )
 
 //=============================================================================
@@ -23,7 +24,7 @@ func NewRooterChecker(p RemoteProofChainLink) (*RooterChecker, ProofError) {
 
 func (rc *RooterChecker) CheckHint(h SigHint) ProofError {
 	wanted_url := G.Env.GetServerUri() + API_URI_PATH_PREFIX + "/rooter/" + strings.ToLower(rc.proof.GetRemoteUsername()) + "/"
-	wanted_med_id := rc.proof.GetSigId().ToMediumId()
+	wanted_med_id := rc.proof.GetSigId().ToMediumID()
 	if !strings.HasPrefix(strings.ToLower(h.apiUrl), wanted_url) {
 		return NewProofError(keybase1.ProofStatus_BAD_API_URL,
 			"Bad hint from server; URL should start with '%s'", wanted_url)
@@ -44,10 +45,10 @@ func (rc *RooterChecker) CheckData(h SigHint, dat string) ProofError {
 	if err != nil {
 		return NewProofError(keybase1.ProofStatus_BAD_SIGNATURE,
 			"Bad signature: %s", err.Error())
-	} else if !strings.Contains(dat, sigId.ToMediumId()) {
+	} else if !strings.Contains(dat, sigId.ToMediumID()) {
 		return NewProofError(keybase1.ProofStatus_TEXT_NOT_FOUND,
 			"Missing signature ID (%s) in post title ('%s')",
-			sigId.ToMediumId(), dat)
+			sigId.ToMediumID(), dat)
 	}
 	return nil
 }
@@ -135,7 +136,7 @@ func (t RooterServiceType) RecheckProofPosting(tryNumber int, status keybase1.Pr
 }
 func (t RooterServiceType) GetProofType() string { return "test.web_service_binding.rooter" }
 
-func (t RooterServiceType) CheckProofText(text string, id SigId, sig string) (err error) {
+func (t RooterServiceType) CheckProofText(text string, id keybase1.SigID, sig string) (err error) {
 	return t.BaseCheckProofTextShort(text, id, true)
 }
 

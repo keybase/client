@@ -166,7 +166,7 @@ func (e *TrackEngine) storeRemoteTrack(ctx *Context) (err error) {
 		NeedSession: true,
 		Args: libkb.HttpArgs{
 			"sig_id_base":  libkb.S{Val: e.sigid.ToString(false)},
-			"sig_id_short": libkb.S{Val: e.sigid.ToShortId()},
+			"sig_id_short": libkb.S{Val: e.sigid.ToShortID()},
 			"sig":          libkb.S{Val: e.sig},
 			"uid":          e.them.GetUID(),
 			"type":         libkb.S{Val: "track"},
