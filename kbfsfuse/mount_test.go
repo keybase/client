@@ -6,6 +6,7 @@ import (
 	"io/ioutil"
 	"os"
 	"path"
+	"strings"
 	"syscall"
 	"testing"
 
@@ -708,6 +709,72 @@ func TestRemoveFileWhileOpenReading(t *testing.T) {
 
 	if _, err := ioutil.ReadFile(p); !os.IsNotExist(err) {
 		t.Errorf("file still exists: %v", err)
+	}
+}
+
+func TestTruncateGrow(t *testing.T) {
+	config := makeTestConfig("jdoe")
+	mnt := makeFS(t, config)
+	defer mnt.Close()
+
+	p := path.Join(mnt.Dir, "jdoe", "myfile")
+	const input = "hello, world\n"
+	if err := ioutil.WriteFile(p, []byte(input), 0644); err != nil {
+		t.Fatal(err)
+	}
+
+	const newSize = 100
+	if err := os.Truncate(p, newSize); err != nil {
+		t.Fatal(err)
+	}
+
+	fi, err := os.Lstat(p)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if g, e := fi.Size(), int64(newSize); g != e {
+		t.Errorf("wrong size: %v != %v", g, e)
+	}
+
+	buf, err := ioutil.ReadFile(p)
+	if err != nil {
+		t.Fatalf("cannot read unlinked file: %v", err)
+	}
+	if g, e := string(buf), input+strings.Repeat("\x00", newSize-len(input)); g != e {
+		t.Errorf("read wrong content: %q != %q", g, e)
+	}
+}
+
+func TestTruncateShrink(t *testing.T) {
+	config := makeTestConfig("jdoe")
+	mnt := makeFS(t, config)
+	defer mnt.Close()
+
+	p := path.Join(mnt.Dir, "jdoe", "myfile")
+	const input = "hello, world\n"
+	if err := ioutil.WriteFile(p, []byte(input), 0644); err != nil {
+		t.Fatal(err)
+	}
+
+	const newSize = 4
+	if err := os.Truncate(p, newSize); err != nil {
+		t.Fatal(err)
+	}
+
+	fi, err := os.Lstat(p)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if g, e := fi.Size(), int64(newSize); g != e {
+		t.Errorf("wrong size: %v != %v", g, e)
+	}
+
+	buf, err := ioutil.ReadFile(p)
+	if err != nil {
+		t.Fatalf("cannot read unlinked file: %v", err)
+	}
+	if g, e := string(buf), input[:newSize]; g != e {
+		t.Errorf("read wrong content: %q != %q", g, e)
 	}
 }
 

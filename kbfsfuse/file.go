@@ -1,6 +1,8 @@
 package main
 
 import (
+	"log"
+
 	"bazil.org/fuse"
 	"bazil.org/fuse/fs"
 	"github.com/keybase/kbfs/libkbfs"
@@ -103,5 +105,33 @@ func (f *File) Flush(ctx context.Context, req *fuse.FlushRequest) error {
 		f.de = de
 	}
 
+	return nil
+}
+
+var _ fs.NodeSetattrer = (*File)(nil)
+
+func (f *File) Setattr(ctx context.Context, req *fuse.SetattrRequest, resp *fuse.SetattrResponse) error {
+	f.parent.folder.mu.Lock()
+	defer f.parent.folder.mu.Unlock()
+
+	valid := req.Valid
+	if valid.Size() {
+		if err := f.parent.folder.fs.config.KBFSOps().Truncate(f.getPathLocked(), req.Size); err != nil {
+			return err
+		}
+		f.de.Size = req.Size
+		// TODO should we bump up mtime and ctime, too?
+		// TODO update f.pathNode?
+		valid &^= fuse.SetattrSize
+	}
+
+	// things we don't need to explicitly handle
+	valid &^= fuse.SetattrLockOwner | fuse.SetattrHandle
+
+	if valid != 0 {
+		// don't let an unhandled operation slip by without error
+		log.Printf("Setattr did not handle %v", valid)
+		return fuse.ENOSYS
+	}
 	return nil
 }
