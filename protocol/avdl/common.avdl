@@ -16,6 +16,10 @@ protocol Common {
 
 	fixed UID(16);
 
+	// Switch to
+	// @typedef("string")
+	// record UID {};
+
 	record FOKID {
 		union { null, bytes } pgpFingerprint;
 		union { null, bytes } kid;
