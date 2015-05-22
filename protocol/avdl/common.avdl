@@ -18,7 +18,7 @@ protocol Common {
 
 	// Switch to
 	// @typedef("string")
-	// record UID {};
+	// record UID {}
 
 	record FOKID {
 		union { null, bytes } pgpFingerprint;
