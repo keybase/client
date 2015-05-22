@@ -6,7 +6,7 @@ import (
 )
 
 type SigHint struct {
-	sigId     keybase1.SigID
+	sigID     keybase1.SigID
 	remoteId  string
 	apiUrl    string
 	humanUrl  string
@@ -26,7 +26,7 @@ type SigHints struct {
 
 func NewSigHint(jw *jsonw.Wrapper) (sh *SigHint, err error) {
 	sh = &SigHint{}
-	sh.sigId, err = GetSigID(jw.AtKey("sig_id"), true)
+	sh.sigID, err = GetSigID(jw.AtKey("sig_id"), true)
 	sh.remoteId, _ = jw.AtKey("remote_id").GetString()
 	sh.apiUrl, _ = jw.AtKey("api_url").GetString()
 	sh.humanUrl, _ = jw.AtKey("human_url").GetString()
@@ -71,7 +71,7 @@ func (sh *SigHints) PopulateWith(jw *jsonw.Wrapper) (err error) {
 		if tmpe != nil {
 			G.Log.Warning("Bad SigHint Loaded: %s", tmpe.Error())
 		} else {
-			sh.hints[hint.sigId] = hint
+			sh.hints[hint.sigID] = hint
 		}
 	}
 	return
@@ -79,7 +79,7 @@ func (sh *SigHints) PopulateWith(jw *jsonw.Wrapper) (err error) {
 
 func (sh SigHint) MarshalToJson() *jsonw.Wrapper {
 	ret := jsonw.NewDictionary()
-	ret.SetKey("sig_id", jsonw.NewString(sh.sigId.ToString(true)))
+	ret.SetKey("sig_id", jsonw.NewString(sh.sigID.ToString(true)))
 	ret.SetKey("remote_id", jsonw.NewString(sh.remoteId))
 	ret.SetKey("api_url", jsonw.NewString(sh.apiUrl))
 	ret.SetKey("human_url", jsonw.NewString(sh.humanUrl))

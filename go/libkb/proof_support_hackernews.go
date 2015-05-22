@@ -58,8 +58,8 @@ func (rc *HackerNewsChecker) CheckStatus(h SigHint) ProofError {
 		return XapiError(err, h.apiUrl)
 	}
 
-	var sigId keybase1.SigID
-	_, sigId, err = OpenSig(rc.proof.GetArmoredSig())
+	var sigID keybase1.SigID
+	_, sigID, err = OpenSig(rc.proof.GetArmoredSig())
 	var ret ProofError
 
 	if err != nil {
@@ -67,7 +67,7 @@ func (rc *HackerNewsChecker) CheckStatus(h SigHint) ProofError {
 			"Bad signature: %s", err.Error())
 	}
 
-	wanted := sigId.ToMediumID()
+	wanted := sigID.ToMediumID()
 	G.Log.Debug("| HackerNews profile: %s", res.Body)
 	G.Log.Debug("| Wanted signature hash: %s", wanted)
 	if !strings.Contains(res.Body, wanted) {

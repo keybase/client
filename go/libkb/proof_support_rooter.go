@@ -41,14 +41,14 @@ func (rc *RooterChecker) ScreenNameCompare(s1, s2 string) bool {
 }
 
 func (rc *RooterChecker) CheckData(h SigHint, dat string) ProofError {
-	_, sigId, err := OpenSig(rc.proof.GetArmoredSig())
+	_, sigID, err := OpenSig(rc.proof.GetArmoredSig())
 	if err != nil {
 		return NewProofError(keybase1.ProofStatus_BAD_SIGNATURE,
 			"Bad signature: %s", err.Error())
-	} else if !strings.Contains(dat, sigId.ToMediumID()) {
+	} else if !strings.Contains(dat, sigID.ToMediumID()) {
 		return NewProofError(keybase1.ProofStatus_TEXT_NOT_FOUND,
 			"Missing signature ID (%s) in post title ('%s')",
-			sigId.ToMediumID(), dat)
+			sigID.ToMediumID(), dat)
 	}
 	return nil
 }

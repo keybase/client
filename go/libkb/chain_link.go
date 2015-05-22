@@ -86,7 +86,7 @@ type ChainLinkUnpacked struct {
 	kid            KID
 	eldestKid      KID
 	sig            string
-	sigId          keybase1.SigID
+	sigID          keybase1.SigID
 	uid            UID
 	username       string
 	typ            string
@@ -168,7 +168,7 @@ func (c *ChainLink) Pack() error {
 	// Store the original JSON string so its order is preserved
 	p.SetKey("payload_json", jsonw.NewString(c.unpacked.payloadJsonStr))
 	p.SetKey("sig", jsonw.NewString(c.unpacked.sig))
-	p.SetKey("sig_id", jsonw.NewString(string(c.unpacked.sigId)))
+	p.SetKey("sig_id", jsonw.NewString(string(c.unpacked.sigID)))
 	if c.unpacked.pgpFingerprint != nil {
 		p.SetKey("fingerprint", jsonw.NewString(c.unpacked.pgpFingerprint.String()))
 	}
@@ -311,7 +311,7 @@ func (c *ChainLink) Unpack(trusted bool, selfUID *UID) (err error) {
 	tmp := ChainLinkUnpacked{}
 
 	c.packed.AtKey("sig").GetStringVoid(&tmp.sig, &err)
-	tmp.sigId, err = GetSigID(c.packed.AtKey("sig_id"), true)
+	tmp.sigID, err = GetSigID(c.packed.AtKey("sig_id"), true)
 	c.packed.AtKey("payload_json").GetStringVoid(&tmp.payloadJsonStr, &err)
 
 	if err != nil {
@@ -397,7 +397,7 @@ func (c *ChainLink) VerifyPayload() error {
 		return err
 	}
 
-	c.unpacked.sigId = sigid
+	c.unpacked.sigID = sigid
 	c.payloadVerified = true
 	return nil
 }
@@ -413,7 +413,7 @@ func (c *ChainLink) GetSigID() keybase1.SigID {
 	if c.unpacked == nil {
 		return ""
 	}
-	return c.unpacked.sigId
+	return c.unpacked.sigID
 }
 
 func (c *ChainLink) GetSigCheckCache() (cki *ComputedKeyInfos) {
@@ -434,7 +434,7 @@ func (c *ChainLink) PutSigCheckCache(cki *ComputedKeyInfos) {
 func (c *ChainLink) VerifySigWithKeyFamily(ckf ComputedKeyFamily) (cached bool, err error) {
 
 	var key GenericKey
-	var sigId keybase1.SigID
+	var sigID keybase1.SigID
 
 	if key, _, err = ckf.FindActiveSibkeyAtTime(c.ToFOKID(), c.GetCTime()); err != nil {
 		return
@@ -444,10 +444,10 @@ func (c *ChainLink) VerifySigWithKeyFamily(ckf ComputedKeyFamily) (cached bool, 
 		return
 	}
 
-	if sigId, err = key.VerifyString(c.unpacked.sig, []byte(c.unpacked.payloadJsonStr)); err != nil {
+	if sigID, err = key.VerifyString(c.unpacked.sig, []byte(c.unpacked.payloadJsonStr)); err != nil {
 		return
 	}
-	c.unpacked.sigId = sigId
+	c.unpacked.sigID = sigID
 
 	return
 }
@@ -475,7 +475,7 @@ func (c *ChainLink) VerifySig(k PgpKeyBundle) (cached bool, err error) {
 		err = e2
 		return
 	} else {
-		c.unpacked.sigId = sigID
+		c.unpacked.sigID = sigID
 	}
 
 	c.sigVerified = true

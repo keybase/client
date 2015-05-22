@@ -49,7 +49,7 @@ func PgpOpenSig(armored string) (ps *ParsedSig, err error) {
 
 // OpenSig takes an armored PGP or Keybase signature and opens
 // the armor.  It will return the body of the signature, the
-// sigId of the body, or an error if it didn't work out.
+// sigID of the body, or an error if it didn't work out.
 func OpenSig(armored string) (ret []byte, id keybase1.SigID, err error) {
 	if isPgp(armored) {
 		var ps *ParsedSig
@@ -69,14 +69,14 @@ func isPgp(armored string) bool {
 	return strings.HasPrefix(armored, "-----BEGIN PGP")
 }
 
-func SigAssertPayload(armored string, expected []byte) (sigId keybase1.SigID, err error) {
+func SigAssertPayload(armored string, expected []byte) (sigID keybase1.SigID, err error) {
 	if isPgp(armored) {
 		return SigAssertPgpPayload(armored, expected)
 	}
 	return SigAssertKbPayload(armored, expected)
 }
 
-func SigAssertPgpPayload(armored string, expected []byte) (sigId keybase1.SigID, err error) {
+func SigAssertPgpPayload(armored string, expected []byte) (sigID keybase1.SigID, err error) {
 	var ps *ParsedSig
 	ps, err = PgpOpenSig(armored)
 	if err != nil {
@@ -86,7 +86,7 @@ func SigAssertPgpPayload(armored string, expected []byte) (sigId keybase1.SigID,
 		ps = nil
 		return
 	}
-	sigId = ps.ID()
+	sigID = ps.ID()
 	return
 }
 

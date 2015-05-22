@@ -50,7 +50,7 @@ type GenericChainLink struct {
 }
 
 func (b *GenericChainLink) GetSigID() keybase1.SigID {
-	return b.unpacked.sigId
+	return b.unpacked.sigID
 }
 func (b *GenericChainLink) Type() string            { return "generic" }
 func (b *GenericChainLink) ToDisplayString() string { return "unknown" }

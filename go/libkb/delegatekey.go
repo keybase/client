@@ -35,7 +35,7 @@ type Delegator struct {
 	isEldest     bool
 	signingKey   GenericKey
 	sig          string
-	sigId        keybase1.SigID
+	sigID        keybase1.SigID
 	merkleTriple MerkleTriple
 }
 
@@ -180,7 +180,7 @@ func (d *Delegator) SignAndPost(lctx LoginContext, jw *jsonw.Wrapper) (err error
 
 	var linkid LinkId
 
-	if d.sig, d.sigId, linkid, err = SignJson(jw, d.signingKey); err != nil {
+	if d.sig, d.sigID, linkid, err = SignJson(jw, d.signingKey); err != nil {
 		G.Log.Debug("| Failure in SignJson()")
 		return err
 	}
@@ -198,10 +198,10 @@ func (d *Delegator) SignAndPost(lctx LoginContext, jw *jsonw.Wrapper) (err error
 }
 
 func (d *Delegator) updateLocalState(linkid LinkId) (err error) {
-	d.Me.SigChainBump(linkid, d.sigId)
-	d.merkleTriple = MerkleTriple{LinkId: linkid, SigID: d.sigId}
+	d.Me.SigChainBump(linkid, d.sigID)
+	d.merkleTriple = MerkleTriple{LinkId: linkid, SigID: d.sigID}
 
-	return d.Me.localDelegateKey(d.NewKey, d.sigId, d.getExistingKID(), d.IsSibkey(), d.isEldest)
+	return d.Me.localDelegateKey(d.NewKey, d.sigID, d.getExistingKID(), d.IsSibkey(), d.isEldest)
 }
 
 func (d Delegator) post(lctx LoginContext) (err error) {
@@ -211,8 +211,8 @@ func (d Delegator) post(lctx LoginContext) (err error) {
 	}
 
 	hargs := HttpArgs{
-		"sig_id_base":     S{Val: d.sigId.ToString(false)},
-		"sig_id_short":    S{Val: d.sigId.ToShortID()},
+		"sig_id_base":     S{Val: d.sigID.ToString(false)},
+		"sig_id_short":    S{Val: d.sigID.ToShortID()},
 		"sig":             S{Val: d.sig},
 		"type":            S{Val: d.PushType},
 		"is_remote_proof": B{Val: false},

@@ -66,7 +66,7 @@ func (rc *RedditChecker) ScreenNameCompare(s1, s2 string) bool {
 }
 
 func (rc *RedditChecker) CheckData(h SigHint, dat *jsonw.Wrapper) ProofError {
-	sigBody, sigId, err := OpenSig(rc.proof.GetArmoredSig())
+	sigBody, sigID, err := OpenSig(rc.proof.GetArmoredSig())
 	if err != nil {
 		return NewProofError(keybase1.ProofStatus_BAD_SIGNATURE,
 			"Bad signature: %s", err.Error())
@@ -88,7 +88,7 @@ func (rc *RedditChecker) CheckData(h SigHint, dat *jsonw.Wrapper) ProofError {
 	} else if wanted := rc.proof.GetRemoteUsername(); !rc.ScreenNameCompare(author, wanted) {
 		ret = NewProofError(keybase1.ProofStatus_BAD_USERNAME,
 			"Bad post author; wanted '%s' but got '%s'", wanted, author)
-	} else if psid := sigId.ToMediumID(); !strings.Contains(title, psid) {
+	} else if psid := sigID.ToMediumID(); !strings.Contains(title, psid) {
 		ret = NewProofError(keybase1.ProofStatus_TITLE_NOT_FOUND,
 			"Missing signature ID (%s) in post title ('%s')",
 			psid, title)
