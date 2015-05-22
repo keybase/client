@@ -125,7 +125,6 @@ func (d *Dir) Lookup(ctx context.Context, req *fuse.LookupRequest, resp *fuse.Lo
 				BlockPointer: de.BlockPointer,
 				Name:         req.Name,
 			},
-			exec: de.Type == libkbfs.Exec,
 		}
 		return child, nil
 
@@ -174,7 +173,6 @@ func (d *Dir) Create(ctx context.Context, req *fuse.CreateRequest, resp *fuse.Cr
 			BlockPointer: de.BlockPointer,
 			Name:         req.Name,
 		},
-		exec: isExec,
 	}
 	return child, child, nil
 }

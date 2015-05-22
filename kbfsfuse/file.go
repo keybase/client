@@ -15,8 +15,6 @@ type File struct {
 	parent   *Dir
 	de       libkbfs.DirEntry
 	pathNode libkbfs.PathNode
-
-	exec bool
 }
 
 var _ fs.Node = (*File)(nil)
@@ -24,7 +22,7 @@ var _ fs.Node = (*File)(nil)
 func (f *File) Attr(a *fuse.Attr) {
 	a.Size = f.de.Size
 	a.Mode = 0644
-	if f.exec {
+	if f.de.Type == libkbfs.Exec {
 		a.Mode |= 0111
 	}
 }
