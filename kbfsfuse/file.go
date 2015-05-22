@@ -48,6 +48,38 @@ func (f *File) updatePathLocked(p libkbfs.Path) {
 	f.parent.updatePathLocked(p)
 }
 
+var _ fs.NodeFsyncer = (*File)(nil)
+
+func (f *File) sync(ctx context.Context) error {
+	f.parent.folder.mu.Lock()
+	defer f.parent.folder.mu.Unlock()
+
+	p, err := f.parent.folder.fs.config.KBFSOps().Sync(f.getPathLocked())
+	if err != nil {
+		return err
+	}
+	f.updatePathLocked(p)
+
+	// Update mtime and such to be what KBFS thinks they should be.
+	// bazil.org/fuse does not currently tolerate attribute fetch
+	// failing very well, and the kernel would have to flag such nodes
+	// invalid, so we try to do failing operations in advance.
+	pp := *p.ParentPath()
+	dir, err := f.parent.folder.fs.config.KBFSOps().GetDir(pp)
+	if err != nil {
+		return err
+	}
+	if de, ok := dir.Children[f.pathNode.Name]; ok {
+		f.de = de
+	}
+
+	return nil
+}
+
+func (f *File) Fsync(ctx context.Context, req *fuse.FsyncRequest) error {
+	return f.sync(ctx)
+}
+
 var _ fs.Handle = (*File)(nil)
 
 var _ fs.HandleReader = (*File)(nil)
@@ -83,29 +115,9 @@ func (f *File) Write(ctx context.Context, req *fuse.WriteRequest, resp *fuse.Wri
 var _ fs.HandleFlusher = (*File)(nil)
 
 func (f *File) Flush(ctx context.Context, req *fuse.FlushRequest) error {
-	f.parent.folder.mu.Lock()
-	defer f.parent.folder.mu.Unlock()
-
-	p, err := f.parent.folder.fs.config.KBFSOps().Sync(f.getPathLocked())
-	if err != nil {
-		return err
-	}
-	f.updatePathLocked(p)
-
-	// Update mtime and such to be what KBFS thinks they should be.
-	// bazil.org/fuse does not currently tolerate attribute fetch
-	// failing very well, and the kernel would have to flag such nodes
-	// invalid, so we try to do failing operations in advance.
-	pp := *p.ParentPath()
-	dir, err := f.parent.folder.fs.config.KBFSOps().GetDir(pp)
-	if err != nil {
-		return err
-	}
-	if de, ok := dir.Children[f.pathNode.Name]; ok {
-		f.de = de
-	}
-
-	return nil
+	// I'm not sure about the guarantees from KBFSOps, so we don't
+	// differentiate between Flush and Fsync.
+	return f.sync(ctx)
 }
 
 var _ fs.NodeSetattrer = (*File)(nil)

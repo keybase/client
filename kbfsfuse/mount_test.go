@@ -856,6 +856,29 @@ func TestSetattrMtime(t *testing.T) {
 	}
 }
 
+func TestFsync(t *testing.T) {
+	config := makeTestConfig("jdoe")
+	mnt := makeFS(t, config)
+	defer mnt.Close()
+
+	p := path.Join(mnt.Dir, "jdoe", "myfile")
+	f, err := os.Create(p)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer f.Close()
+	const input = "hello, world\n"
+	if _, err := io.WriteString(f, input); err != nil {
+		t.Fatalf("write error: %v", err)
+	}
+	if err := f.Sync(); err != nil {
+		t.Fatalf("fsync error: %v", err)
+	}
+	if err := f.Close(); err != nil {
+		t.Fatalf("close error: %v", err)
+	}
+}
+
 func TestReaddirMyPublic(t *testing.T) {
 	config := makeTestConfig("jdoe")
 	mnt := makeFS(t, config)
