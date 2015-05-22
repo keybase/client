@@ -23,7 +23,7 @@ func (s *SecretUIServer) GetSecret(arg keybase1.GetSecretArg) (res keybase1.Secr
 	return
 }
 
-func (s *SecretUIServer) GetNewPassphrase(arg keybase1.GetNewPassphraseArg) (string, error) {
+func (s *SecretUIServer) GetNewPassphrase(arg keybase1.GetNewPassphraseArg) (keybase1.GetNewPassphraseRes, error) {
 	return s.eng.GetNewPassphrase(arg)
 }
 

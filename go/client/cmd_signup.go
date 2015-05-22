@@ -202,7 +202,12 @@ func (s *CmdSignupState) Prompt() (err error) {
 
 	f := s.fields.passphraseRetry
 	if f.Disabled || libkb.IsYes(f.GetValue()) {
-		s.passphrase, err = GlobUI.GetSecretUI().GetNewPassphrase(arg)
+		var res keybase1.GetNewPassphraseRes
+		res, err = GlobUI.GetSecretUI().GetNewPassphrase(arg)
+		if err != nil {
+			return
+		}
+		s.passphrase = res.Passphrase
 	}
 
 	return

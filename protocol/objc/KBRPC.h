@@ -673,10 +673,15 @@ typedef NS_ENUM (NSInteger, KBRPromptOverwriteType) {
 @property BOOL storeSecret;
 @end
 
+@interface KBRGetNewPassphraseRes : KBRObject
+@property NSString *passphrase;
+@property BOOL storeSecret;
+@end
+
 @interface KBRSecretUiRequest : KBRRequest
 - (void)getSecretWithSessionID:(NSInteger)sessionID pinentry:(KBRSecretEntryArg *)pinentry terminal:(KBRSecretEntryArg *)terminal completion:(void (^)(NSError *error, KBRSecretEntryRes *secretEntryRes))completion;
 
-- (void)getNewPassphraseWithSessionID:(NSInteger)sessionID terminalPrompt:(NSString *)terminalPrompt pinentryDesc:(NSString *)pinentryDesc pinentryPrompt:(NSString *)pinentryPrompt retryMessage:(NSString *)retryMessage completion:(void (^)(NSError *error, NSString *str))completion;
+- (void)getNewPassphraseWithSessionID:(NSInteger)sessionID terminalPrompt:(NSString *)terminalPrompt pinentryDesc:(NSString *)pinentryDesc pinentryPrompt:(NSString *)pinentryPrompt retryMessage:(NSString *)retryMessage useSecretStore:(BOOL)useSecretStore completion:(void (^)(NSError *error, KBRGetNewPassphraseRes *getNewPassphraseRes))completion;
 
 - (void)getKeybasePassphraseWithSessionID:(NSInteger)sessionID username:(NSString *)username retry:(NSString *)retry completion:(void (^)(NSError *error, NSString *str))completion;
 
@@ -1160,6 +1165,7 @@ typedef NS_ENUM (NSInteger, KBRPromptOverwriteType) {
 @property NSString *pinentryDesc;
 @property NSString *pinentryPrompt;
 @property NSString *retryMessage;
+@property BOOL useSecretStore;
 @end
 @interface KBRGetKeybasePassphraseRequestParams : KBRRequestParams
 @property NSInteger sessionID;

@@ -614,7 +614,7 @@ func (ui *UI) Shutdown() error {
 	return err
 }
 
-func (ui SecretUI) GetNewPassphrase(earg keybase1.GetNewPassphraseArg) (text string, err error) {
+func (ui SecretUI) GetNewPassphrase(earg keybase1.GetNewPassphraseArg) (eres keybase1.GetNewPassphraseRes, err error) {
 
 	arg := libkb.PromptArg{
 		TerminalPrompt: earg.TerminalPrompt,
@@ -626,6 +626,7 @@ func (ui SecretUI) GetNewPassphrase(earg keybase1.GetNewPassphraseArg) (text str
 
 	orig := arg
 	var rm string
+	var text string
 
 	for {
 		text = ""
@@ -654,6 +655,8 @@ func (ui SecretUI) GetNewPassphrase(earg keybase1.GetNewPassphraseArg) (text str
 			rm = "Password mismatch"
 		}
 	}
+
+	eres.Passphrase = text
 	return
 }
 

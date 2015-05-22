@@ -45,7 +45,7 @@ func (l *SecretUI) GetSecret(pinentry keybase1.SecretEntryArg, terminal *keybase
 }
 
 // GetNewPassphrase gets a new passphrase from pinentry
-func (l *SecretUI) GetNewPassphrase(arg keybase1.GetNewPassphraseArg) (string, error) {
+func (l *SecretUI) GetNewPassphrase(arg keybase1.GetNewPassphraseArg) (keybase1.GetNewPassphraseRes, error) {
 	return l.cli.GetNewPassphrase(arg)
 }
 

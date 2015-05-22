@@ -91,9 +91,9 @@ func (m *GetSecretMock) GetSecret(arg keybase1.SecretEntryArg, _ *keybase1.Secre
 	return &keybase1.SecretEntryRes{Text: m.Passphrase, StoreSecret: storeSecret}, nil
 }
 
-func (m *GetSecretMock) GetNewPassphrase(keybase1.GetNewPassphraseArg) (string, error) {
-	m.LastErr = errors.New("GetSecret unexpectedly called more than once")
-	return "invalid passphrase", m.LastErr
+func (m *GetSecretMock) GetNewPassphrase(keybase1.GetNewPassphraseArg) (keybase1.GetNewPassphraseRes, error) {
+	m.LastErr = errors.New("GetNewPassphrase unexpectedly called")
+	return keybase1.GetNewPassphraseRes{Passphrase: "invalid passphrase"}, m.LastErr
 }
 
 func (m *GetSecretMock) GetKeybasePassphrase(keybase1.GetKeybasePassphraseArg) (string, error) {
@@ -224,9 +224,9 @@ func (m *GetKeybasePassphraseMock) GetSecret(keybase1.SecretEntryArg, *keybase1.
 	return nil, errors.New("Fail pubkey login")
 }
 
-func (m *GetKeybasePassphraseMock) GetNewPassphrase(keybase1.GetNewPassphraseArg) (string, error) {
+func (m *GetKeybasePassphraseMock) GetNewPassphrase(keybase1.GetNewPassphraseArg) (keybase1.GetNewPassphraseRes, error) {
 	m.LastErr = errors.New("GetNewPassphrase unexpectedly called")
-	return "invalid passphrase", m.LastErr
+	return keybase1.GetNewPassphraseRes{Passphrase: "invalid passphrase"}, m.LastErr
 }
 
 func (m *GetKeybasePassphraseMock) GetKeybasePassphrase(keybase1.GetKeybasePassphraseArg) (string, error) {
