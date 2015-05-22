@@ -14,7 +14,7 @@ type TypedChainLink interface {
 	GetRevocations() []keybase1.SigID
 	GetRevokeKids() []KID
 	insertIntoTable(tab *IdentityTable)
-	GetSigId() keybase1.SigID
+	GetSigID() keybase1.SigID
 	GetArmoredSig() string
 	markRevoked(l TypedChainLink)
 	ToDebugString() string
@@ -49,7 +49,7 @@ type GenericChainLink struct {
 	*ChainLink
 }
 
-func (b *GenericChainLink) GetSigId() keybase1.SigID {
+func (b *GenericChainLink) GetSigID() keybase1.SigID {
 	return b.unpacked.sigId
 }
 func (b *GenericChainLink) Type() string            { return "generic" }
@@ -918,13 +918,12 @@ func (tab *IdentityTable) GetTrackMap() map[string][]*TrackChainLink {
 }
 
 func (tab *IdentityTable) insertLink(l TypedChainLink) {
-	tab.links[l.GetSigId()] = l
+	tab.links[l.GetSigID()] = l
 	tab.Order = append(tab.Order, l)
 	for _, rev := range l.GetRevocations() {
 		tab.revocations[rev] = true
 		if targ, found := tab.links[rev]; !found {
-			G.Log.Warning("Can't revoke signature %s @%s",
-				rev.ToString(true), l.ToDebugString())
+			G.Log.Warning("Can't revoke signature %s @%s", rev, l.ToDebugString())
 		} else {
 			targ.markRevoked(l)
 		}
@@ -1187,11 +1186,10 @@ func (idt *IdentityTable) ProofRemoteCheck(track *TrackLookup, res *LinkCheckRes
 		}
 	}()
 
-	sid := p.GetSigId()
+	sid := p.GetSigID()
 	res.hint = idt.sigHints.Lookup(sid)
 	if res.hint == nil {
-		res.err = NewProofError(keybase1.ProofStatus_NO_HINT,
-			"No server-given hint for sig=%s", sid.ToString(true))
+		res.err = NewProofError(keybase1.ProofStatus_NO_HINT, "No server-given hint for sig=%s", sid)
 		return
 	}
 

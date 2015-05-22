@@ -463,7 +463,7 @@ func (sc *SigChain) GetLinkFromSeqno(seqno int) *ChainLink {
 
 func (sc *SigChain) GetLinkFromSigId(id keybase1.SigID) *ChainLink {
 	for _, link := range sc.chainLinks {
-		if link.GetSigId() == id {
+		if link.GetSigID() == id {
 			return link
 		}
 	}

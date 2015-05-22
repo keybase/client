@@ -59,7 +59,7 @@ func (e *BTCEngine) Run(ctx *Context) error {
 	}
 	var sigIDToRevoke keybase1.SigID
 	if cryptocurrencyLink != nil {
-		sigIDToRevoke = cryptocurrencyLink.GetSigId()
+		sigIDToRevoke = cryptocurrencyLink.GetSigID()
 	}
 
 	sigKey, _, err := e.G().Keyrings.GetSecretKeyWithPrompt(ctx.LoginContext, libkb.SecretKeyArg{

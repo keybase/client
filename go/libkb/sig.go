@@ -14,11 +14,11 @@ import (
 	"golang.org/x/crypto/openpgp/armor"
 )
 
-func ComputeSigIdFromSigBody(body []byte) keybase1.SigID {
+func ComputeSigIDFromSigBody(body []byte) keybase1.SigID {
 	return keybase1.SigIDFromBytes(sha256.Sum256(body))
 }
 
-func GetSigId(w *jsonw.Wrapper, suffix bool) (keybase1.SigID, error) {
+func GetSigID(w *jsonw.Wrapper, suffix bool) (keybase1.SigID, error) {
 	s, err := w.GetString()
 	if err != nil {
 		return "", err
@@ -59,7 +59,7 @@ func OpenSig(armored string) (ret []byte, id keybase1.SigID, err error) {
 		}
 	} else {
 		if ret, err = KbOpenSig(armored); err == nil {
-			id = ComputeSigIdFromSigBody(ret)
+			id = ComputeSigIDFromSigBody(ret)
 		}
 	}
 	return
@@ -148,5 +148,5 @@ func (ps *ParsedSig) Verify(k PgpKeyBundle) (err error) {
 }
 
 func (ps *ParsedSig) ID() keybase1.SigID {
-	return ComputeSigIdFromSigBody(ps.SigBody)
+	return ComputeSigIDFromSigBody(ps.SigBody)
 }

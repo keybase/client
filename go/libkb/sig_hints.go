@@ -26,7 +26,7 @@ type SigHints struct {
 
 func NewSigHint(jw *jsonw.Wrapper) (sh *SigHint, err error) {
 	sh = &SigHint{}
-	sh.sigId, err = GetSigId(jw.AtKey("sig_id"), true)
+	sh.sigId, err = GetSigID(jw.AtKey("sig_id"), true)
 	sh.remoteId, _ = jw.AtKey("remote_id").GetString()
 	sh.apiUrl, _ = jw.AtKey("api_url").GetString()
 	sh.humanUrl, _ = jw.AtKey("human_url").GetString()

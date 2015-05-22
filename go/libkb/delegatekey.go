@@ -199,7 +199,7 @@ func (d *Delegator) SignAndPost(lctx LoginContext, jw *jsonw.Wrapper) (err error
 
 func (d *Delegator) updateLocalState(linkid LinkId) (err error) {
 	d.Me.SigChainBump(linkid, d.sigId)
-	d.merkleTriple = MerkleTriple{LinkId: linkid, SigId: d.sigId}
+	d.merkleTriple = MerkleTriple{LinkId: linkid, SigID: d.sigId}
 
 	return d.Me.localDelegateKey(d.NewKey, d.sigId, d.getExistingKID(), d.IsSibkey(), d.isEldest)
 }

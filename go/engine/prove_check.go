@@ -49,21 +49,21 @@ func (e *ProveCheck) SubConsumers() []libkb.UIConsumer {
 
 // Run starts the engine.
 func (e *ProveCheck) Run(ctx *Context) error {
-	found, status, err := libkb.CheckPostedViaSigID(e.sigID.ToString(true))
+	found, status, err := libkb.CheckPostedViaSigID(e.sigID)
 	if err != nil {
 		return err
 	}
 	e.found = found
 	e.status = keybase1.ProofStatus(status)
 
-	e.G().Log.Debug("looking for ChainLink for %s", e.sigID.ToString(true))
+	e.G().Log.Debug("looking for ChainLink for %s", e.sigID)
 	me, err := libkb.LoadMe(libkb.LoadUserArg{PublicKeyOptional: true})
 	if err != nil {
 		return err
 	}
 	link := me.LinkFromSigID(e.sigID)
 	if link == nil {
-		return fmt.Errorf("no chain link found for %s", e.sigID.ToString(true))
+		return fmt.Errorf("no chain link found for %s", e.sigID)
 	}
 	e.G().Log.Debug("chain link found: (%T)", link.Typed())
 	if rlink, ok := link.Typed().(libkb.RemoteProofChainLink); ok {

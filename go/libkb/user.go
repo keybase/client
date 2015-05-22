@@ -461,7 +461,7 @@ func (u *User) localDelegateKey(key GenericKey, sigID keybase1.SigID, kid KID, i
 }
 
 func (u *User) SigChainBump(linkID LinkId, sigID keybase1.SigID) {
-	u.SigChainBumpMT(MerkleTriple{LinkId: linkID, SigId: sigID})
+	u.SigChainBumpMT(MerkleTriple{LinkId: linkID, SigID: sigID})
 }
 
 func (u *User) SigChainBumpMT(mt MerkleTriple) {
@@ -539,7 +539,7 @@ func (u *User) GetSigIDFromSeqno(seqno int) keybase1.SigID {
 	if link == nil {
 		return ""
 	}
-	return link.GetSigId()
+	return link.GetSigID()
 }
 
 func (u *User) IsSigIDActive(sigID keybase1.SigID) (bool, error) {

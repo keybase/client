@@ -166,7 +166,7 @@ func (e *ListTrackingEngine) runTable(trackList TrackList) (err error) {
 		uid, _ := link.GetTrackedUid()
 		entry := keybase1.UserSummary{
 			Username:     link.ToDisplayString(),
-			SigIDDisplay: link.GetSigId().ToDisplayString(true),
+			SigIDDisplay: link.GetSigID().ToDisplayString(true),
 			TrackTime:    link.GetCTime().Unix(),
 			Uid:          keybase1.UID(*uid),
 		}

@@ -195,7 +195,7 @@ func (c *ChainLink) GetMerkleSeqno() int {
 func (c *ChainLink) GetRevocations() []keybase1.SigID {
 	var ret []keybase1.SigID
 	jw := c.payloadJson.AtKey("body").AtKey("revoke")
-	s, err := GetSigId(jw.AtKey("sig_id"), true)
+	s, err := GetSigID(jw.AtKey("sig_id"), true)
 	if err == nil {
 		ret = append(ret, s)
 	}
@@ -204,7 +204,7 @@ func (c *ChainLink) GetRevocations() []keybase1.SigID {
 	l, err = v.Len()
 	if err == nil && l > 0 {
 		for i := 0; i < l; i++ {
-			if s, err = GetSigId(v.AtIndex(i), true); err == nil {
+			if s, err = GetSigID(v.AtIndex(i), true); err == nil {
 				ret = append(ret, s)
 			}
 		}
@@ -311,7 +311,7 @@ func (c *ChainLink) Unpack(trusted bool, selfUID *UID) (err error) {
 	tmp := ChainLinkUnpacked{}
 
 	c.packed.AtKey("sig").GetStringVoid(&tmp.sig, &err)
-	tmp.sigId, err = GetSigId(c.packed.AtKey("sig_id"), true)
+	tmp.sigId, err = GetSigID(c.packed.AtKey("sig_id"), true)
 	c.packed.AtKey("payload_json").GetStringVoid(&tmp.payloadJsonStr, &err)
 
 	if err != nil {
@@ -409,7 +409,7 @@ func (c *ChainLink) GetSeqno() Seqno {
 	return Seqno(-1)
 }
 
-func (c *ChainLink) GetSigId() keybase1.SigID {
+func (c *ChainLink) GetSigID() keybase1.SigID {
 	if c.unpacked == nil {
 		return ""
 	}

@@ -85,7 +85,7 @@ func (e *SigsList) Sigs() []keybase1.Sig {
 		}
 		res[i] = keybase1.Sig{
 			Seqno:        int(s.GetSeqno()),
-			SigIdDisplay: s.GetSigId().ToDisplayString(e.Verbose),
+			SigIdDisplay: s.GetSigID().ToDisplayString(e.Verbose),
 			Type:         s.Type(),
 			Ctime:        int(s.GetCTime().Unix()),
 			Revoked:      s.IsRevoked(),
@@ -119,7 +119,7 @@ func (e *SigsList) JSON() (string, error) {
 		}
 		exp[i] = sigexp{
 			Seqno:   int64(s.GetSeqno()),
-			SigID:   s.GetSigId().ToDisplayString(e.Verbose),
+			SigID:   s.GetSigID().ToDisplayString(e.Verbose),
 			Type:    s.Type(),
 			CTime:   s.GetCTime().Unix(),
 			Revoked: s.IsRevoked(),

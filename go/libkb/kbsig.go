@@ -170,7 +170,7 @@ func (idt *IdentityTable) ToTrackingStatement() *jsonw.Wrapper {
 func (g *GenericChainLink) BaseToTrackingStatement() *jsonw.Wrapper {
 	ret := jsonw.NewDictionary()
 	ret.SetKey("curr", jsonw.NewString(g.id.String()))
-	ret.SetKey("sig_id", jsonw.NewString(g.GetSigId().ToString(true)))
+	ret.SetKey("sig_id", jsonw.NewString(g.GetSigID().ToString(true)))
 
 	rkp := jsonw.NewDictionary()
 	ret.SetKey("remote_key_proof", rkp)
@@ -430,7 +430,6 @@ func (u *User) RevokeSigsProof(key GenericKey, sigIDsToRevoke []keybase1.SigID) 
 	revokeSection := jsonw.NewDictionary()
 	idsArray := jsonw.NewArray(len(sigIDsToRevoke))
 	for i, id := range sigIDsToRevoke {
-		// XXX is sigid suffix correct here?
 		idsArray.SetIndex(i, jsonw.NewString(id.ToString(true)))
 	}
 	revokeSection.SetKey("sig_ids", idsArray)

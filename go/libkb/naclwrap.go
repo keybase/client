@@ -311,7 +311,7 @@ func (k NaclSigningKeyPair) SignToString(msg []byte) (sig string, id keybase1.Si
 	}
 
 	sig = base64.StdEncoding.EncodeToString(body)
-	id = ComputeSigIdFromSigBody(body)
+	id = ComputeSigIDFromSigBody(body)
 	return
 }
 
@@ -343,7 +343,7 @@ func (k NaclSigningKeyPair) VerifyStringAndExtract(sig string) (msg []byte, id k
 	}
 
 	msg = naclSig.Payload
-	id = ComputeSigIdFromSigBody(body)
+	id = ComputeSigIDFromSigBody(body)
 	return
 }
 
@@ -510,7 +510,7 @@ func KbOpenSig(armored string) ([]byte, error) {
 	return base64.StdEncoding.DecodeString(armored)
 }
 
-func SigAssertKbPayload(armored string, expected []byte) (sigId keybase1.SigID, err error) {
+func SigAssertKbPayload(armored string, expected []byte) (sigID keybase1.SigID, err error) {
 	var byt []byte
 	var packet *KeybasePacket
 	var sig *NaclSig
@@ -530,6 +530,6 @@ func SigAssertKbPayload(armored string, expected []byte) (sigId keybase1.SigID, 
 	if !FastByteArrayEq(expected, sig.Payload) {
 		err = BadSigError{"wrong payload"}
 	}
-	sigId = ComputeSigIdFromSigBody(byt)
+	sigID = ComputeSigIDFromSigBody(byt)
 	return
 }

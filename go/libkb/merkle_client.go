@@ -72,7 +72,7 @@ type MerkleRoot struct {
 type MerkleTriple struct {
 	Seqno  Seqno          `json:"seqno"`
 	LinkId LinkId         `json:"id"`
-	SigId  keybase1.SigID `json:"sigid,omitempty"`
+	SigID  keybase1.SigID `json:"sigid,omitempty"`
 }
 
 type MerkleUserLeaf struct {
@@ -418,7 +418,7 @@ func parseTriple(jw *jsonw.Wrapper) (t *MerkleTriple, err error) {
 	} else if l == 2 {
 		// noop
 	} else {
-		si, err = GetSigId(jw.AtIndex(2), false)
+		si, err = GetSigID(jw.AtIndex(2), false)
 	}
 	if err == nil {
 		t = &MerkleTriple{Seqno(seqno), li, si}

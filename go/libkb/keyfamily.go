@@ -40,8 +40,8 @@ type ComputedKeyInfo struct {
 	// For sibkeys, the KID of last-added subkey (if valid)
 	Subkey KID
 
-	// Map of SigId (as hex) -> KID
-	Delegations map[string]KID
+	// Map of SigID (as hex) -> KID
+	Delegations map[keybase1.SigID]KID
 	DelegatedAt *KeybaseTime
 	RevokedAt   *KeybaseTime
 
@@ -79,9 +79,9 @@ type ComputedKeyInfos struct {
 	// Map of FOKID to a computed info
 	Infos map[FOKIDMapKey]*ComputedKeyInfo
 
-	// Map of a SigId (in binary) to the ComputedKeyInfo describing when the key was
+	// Map of a SigID (in binary) to the ComputedKeyInfo describing when the key was
 	// delegated.
-	Sigs map[string]*ComputedKeyInfo
+	Sigs map[keybase1.SigID]*ComputedKeyInfo
 
 	// Map of DeviceID (in hex) to the most current device object
 	Devices map[string]*Device
@@ -143,7 +143,7 @@ func (cki ComputedKeyInfos) ShallowCopy() *ComputedKeyInfos {
 	ret := &ComputedKeyInfos{
 		dirty:         cki.dirty,
 		Infos:         make(map[FOKIDMapKey]*ComputedKeyInfo, len(cki.Infos)),
-		Sigs:          make(map[string]*ComputedKeyInfo, len(cki.Sigs)),
+		Sigs:          make(map[keybase1.SigID]*ComputedKeyInfo, len(cki.Sigs)),
 		Devices:       make(map[string]*Device, len(cki.Devices)),
 		KidToDeviceId: make(map[KIDMapKey]string, len(cki.KidToDeviceId)),
 	}
@@ -169,7 +169,7 @@ func (cki ComputedKeyInfos) ShallowCopy() *ComputedKeyInfos {
 func NewComputedKeyInfos() *ComputedKeyInfos {
 	return &ComputedKeyInfos{
 		Infos:         make(map[FOKIDMapKey]*ComputedKeyInfo),
-		Sigs:          make(map[string]*ComputedKeyInfo),
+		Sigs:          make(map[keybase1.SigID]*ComputedKeyInfo),
 		Devices:       make(map[string]*Device),
 		KidToDeviceId: make(map[KIDMapKey]string),
 	}
@@ -182,7 +182,7 @@ func NewComputedKeyInfo(eldest, sibkey bool, status KeyStatus, ctime, etime int6
 		Status:      status,
 		CTime:       ctime,
 		ETime:       etime,
-		Delegations: make(map[string]KID),
+		Delegations: make(map[keybase1.SigID]KID),
 	}
 }
 
@@ -487,7 +487,7 @@ func NowAsKeybaseTime(seqno int) *KeybaseTime {
 // This maybe be a sub- or sibkey delegation.
 func (ckf *ComputedKeyFamily) Delegate(tcl TypedChainLink) (err error) {
 	kid := tcl.GetDelegatedKid()
-	sigid := tcl.GetSigId()
+	sigid := tcl.GetSigID()
 	tm := TclToKeybaseTime(tcl)
 	fp := ckf.kf.kid2pgp[kid.ToMapKey()]
 
@@ -514,9 +514,9 @@ func (cki *ComputedKeyInfos) Delegate(kid KID, fingerprint *PgpFingerprint, tm *
 		info.CTime = ctime.Unix()
 		info.ETime = etime.Unix()
 	}
-	info.Delegations[sigid.ToString(true)] = signingKid
+	info.Delegations[sigid] = signingKid
 	info.Sibkey = isSibkey
-	cki.Sigs[sigid.ToString(true)] = info
+	cki.Sigs[sigid] = info
 
 	// If it's a subkey, make a pointer from it to its parent,
 	// and also from its parent to it.
@@ -568,10 +568,9 @@ func (ckf *ComputedKeyFamily) revokeKids(kids []KID, tcl TypedChainLink) (err er
 }
 
 func (ckf *ComputedKeyFamily) RevokeSig(sig keybase1.SigID, tcl TypedChainLink) (err error) {
-	if info, found := ckf.cki.Sigs[sig.ToString(true)]; !found {
-	} else if _, found = info.Delegations[sig.ToString(true)]; !found {
-		err = BadRevocationError{fmt.Sprintf("Can't find sigId %s in delegation list",
-			sig.ToString(true))}
+	if info, found := ckf.cki.Sigs[sig]; !found {
+	} else if _, found = info.Delegations[sig]; !found {
+		err = BadRevocationError{fmt.Sprintf("Can't find sigID %s in delegation list", sig)}
 	} else {
 		info.Status = KEY_REVOKED
 		info.RevokedAt = TclToKeybaseTime(tcl)
