@@ -4,18 +4,20 @@ import "errors"
 
 type KeyCacheNull struct{}
 
-func (k *KeyCacheNull) GetBlockKey(id BlockId) (Key, error) {
-	return nil, errors.New("NULL")
+var _ KeyCache = (*KeyCacheNull)(nil)
+
+func (k *KeyCacheNull) GetTLFCryptKey(DirId, KeyVer) (TLFCryptKey, error) {
+	return TLFCryptKey{}, errors.New("NULL")
 }
 
-func (k *KeyCacheNull) PutBlockKey(id BlockId, key Key) error {
+func (k *KeyCacheNull) PutTLFCryptKey(DirId, KeyVer, TLFCryptKey) error {
 	return nil
 }
 
-func (k *KeyCacheNull) GetDirKey(DirId, KeyVer) (Key, error) {
-	return nil, errors.New("NULL")
+func (k *KeyCacheNull) GetBlockCryptKey(id BlockId) (BlockCryptKey, error) {
+	return BlockCryptKey{}, errors.New("NULL")
 }
 
-func (k *KeyCacheNull) PutDirKey(DirId, KeyVer, Key) error {
+func (k *KeyCacheNull) PutBlockCryptKey(id BlockId, key BlockCryptKey) error {
 	return nil
 }

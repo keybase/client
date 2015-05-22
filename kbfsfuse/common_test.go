@@ -15,8 +15,8 @@ func makeTestConfig(users ...string) *libkbfs.ConfigLocal {
 	// TODO: Consider using fake BlockOps and MDOps instead.
 	config.SetKBPKI(kbpki)
 
-	signingKey := libkbfs.GetLocalUserSigningKey(loggedInUser.Name)
-	crypto := libkbfs.NewCryptoLocal(signingKey)
+	signingKey := libkbfs.MakeLocalUserSigningKeyOrBust(loggedInUser.Name)
+	crypto := libkbfs.NewCryptoLocal(config.Codec(), signingKey)
 	config.SetCrypto(crypto)
 
 	config.SetBlockServer(libkbfs.NewFakeBlockServer())

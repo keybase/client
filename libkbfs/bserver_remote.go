@@ -6,13 +6,14 @@ import (
 	"encoding/hex"
 	"errors"
 	"fmt"
-	"github.com/keybase/client/go/libkb"
-	"github.com/keybase/client/protocol/go"
-	"github.com/maxtaco/go-framed-msgpack-rpc/rpc2"
 	"io/ioutil"
 	"net"
 	"sync"
 	"time"
+
+	"github.com/keybase/client/go/libkb"
+	"github.com/keybase/client/protocol/go"
+	"github.com/maxtaco/go-framed-msgpack-rpc/rpc2"
 )
 
 var (

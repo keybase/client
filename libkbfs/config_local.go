@@ -2,6 +2,7 @@ package libkbfs
 
 import (
 	"github.com/keybase/client/go/libkb"
+	keybase1 "github.com/keybase/client/protocol/go"
 )
 
 type ConfigLocal struct {
@@ -18,34 +19,72 @@ type ConfigLocal struct {
 	kops     KeyOps
 	bops     BlockOps
 	mdserv   MDServer
-	kserv    KeyServer
 	bserv    BlockServer
 	bsplit   BlockSplitter
 	notifier Notifier
 }
 
 type LocalUser struct {
-	Name         string
-	Uid          libkb.UID
-	Asserts      []string
-	Sibkeys      []Key
-	Subkeys      []Key
-	DeviceSubkey Key
+	Name                  string
+	Uid                   libkb.UID
+	Asserts               []string
+	VerifyingKeys         []VerifyingKey
+	CryptPublicKeys       []CryptPublicKey
+	CurrentPublicKeyIndex int
 }
 
-// Helper function to generate a signing key for a local user suitable
-// to use with CryptoLocal.
-func GetLocalUserSigningKey(name string) Key {
-	return NewFakeSigningKeyOrBust(name + " sibkey")
+func (lu *LocalUser) GetCurrentCryptPublicKey() CryptPublicKey {
+	return lu.CryptPublicKeys[lu.CurrentPublicKeyIndex]
 }
 
-func GetLocalUserSibkey(name string) Key {
-	// Seed must match the one used in GetLocalUserSigningKey().
-	return NewFakeVerifyingKeyOrBust(name + " sibkey")
+func verifyingKeysToPublicKeys(keys []VerifyingKey) []keybase1.PublicKey {
+	publicKeys := make([]keybase1.PublicKey, len(keys))
+	for i, key := range keys {
+		publicKeys[i] = keybase1.PublicKey{
+			KID:      key.KID.String(),
+			IsSibkey: true,
+		}
+	}
+	return publicKeys
 }
 
-func GetLocalUserSubkey(name string) Key {
-	return NewFakeBoxPublicKeyOrBust(name + " subkey")
+func cryptPublicKeysToPublicKeys(keys []CryptPublicKey) []keybase1.PublicKey {
+	publicKeys := make([]keybase1.PublicKey, len(keys))
+	for i, key := range keys {
+		publicKeys[i] = keybase1.PublicKey{
+			KID:      key.KID.String(),
+			IsSibkey: false,
+		}
+	}
+	return publicKeys
+}
+
+func (lu *LocalUser) GetPublicKeys() []keybase1.PublicKey {
+	sibkeys := verifyingKeysToPublicKeys(lu.VerifyingKeys)
+	subkeys := cryptPublicKeysToPublicKeys(lu.CryptPublicKeys)
+	return append(sibkeys, subkeys...)
+}
+
+// Helper functions to get a various keys for a local user suitable
+// for use with CryptoLocal. Each function will return the same key
+// will always be returned for a given user.
+
+func MakeLocalUserSigningKeyOrBust(name string) SigningKey {
+	return MakeFakeSigningKeyOrBust(name + " signing key")
+}
+
+// Make a new verifying key corresponding to the signing key for the
+// same name.
+func MakeLocalUserVerifyingKeyOrBust(name string) VerifyingKey {
+	vk, err := MakeLocalUserSigningKeyOrBust(name).GetVerifyingKey()
+	if err != nil {
+		panic(err)
+	}
+	return vk
+}
+
+func MakeLocalUserCryptPublicKeyOrBust(name string) CryptPublicKey {
+	return MakeFakeCryptPublicKeyOrBust(name + " crypt public key")
 }
 
 // Helper function to generate a list of LocalUsers suitable to use
@@ -53,14 +92,14 @@ func GetLocalUserSubkey(name string) Key {
 func MakeLocalUsers(users []string) []LocalUser {
 	localUsers := make([]LocalUser, len(users))
 	for i := 0; i < len(users); i++ {
-		sibkey := GetLocalUserSibkey(users[i])
-		subkey := GetLocalUserSubkey(users[i])
+		verifyingKey := MakeLocalUserVerifyingKeyOrBust(users[i])
+		cryptPublicKey := MakeLocalUserCryptPublicKeyOrBust(users[i])
 		localUsers[i] = LocalUser{
-			Name:         users[i],
-			Uid:          libkb.UID{byte(i + 1)},
-			Sibkeys:      []Key{sibkey},
-			Subkeys:      []Key{subkey},
-			DeviceSubkey: subkey,
+			Name:                  users[i],
+			Uid:                   libkb.UID{byte(i + 1)},
+			VerifyingKeys:         []VerifyingKey{verifyingKey},
+			CryptPublicKeys:       []CryptPublicKey{cryptPublicKey},
+			CurrentPublicKeyIndex: 0,
 		}
 	}
 	return localUsers
@@ -78,7 +117,6 @@ func NewConfigLocal() *ConfigLocal {
 	config.SetMDOps(&MDOpsStandard{config})
 	config.SetKeyOps(&KeyOpsNull{})
 	config.SetBlockOps(&BlockOpsStandard{config})
-	//config.SetKeyServer
 	// 64K blocks by default, block changes embedded max == 8K
 	config.SetBlockSplitter(&BlockSplitterSimple{64 * 1024, 8 * 1024})
 	config.SetNotifier(config.kbfs.(*KBFSOpsStandard))
@@ -187,14 +225,6 @@ func (c *ConfigLocal) MDServer() MDServer {
 
 func (c *ConfigLocal) SetMDServer(m MDServer) {
 	c.mdserv = m
-}
-
-func (c *ConfigLocal) KeyServer() KeyServer {
-	return c.kserv
-}
-
-func (c *ConfigLocal) SetKeyServer(k KeyServer) {
-	c.kserv = k
 }
 
 func (c *ConfigLocal) BlockServer() BlockServer {

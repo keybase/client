@@ -6,7 +6,7 @@ package libkbfs
 import (
 	gomock "code.google.com/p/gomock/gomock"
 	fmt "fmt"
-	"github.com/keybase/client/go/libkb"
+	libkb "github.com/keybase/client/go/libkb"
 	time "time"
 )
 
@@ -356,37 +356,36 @@ func (_mr *_MockKBPKIRecorder) GetLoggedInUser() *gomock.Call {
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "GetLoggedInUser")
 }
 
-func (_m *MockKBPKI) GetDeviceSibkeys(user *libkb.User) ([]Key, error) {
-	ret := _m.ctrl.Call(_m, "GetDeviceSibkeys", user)
-	ret0, _ := ret[0].([]Key)
+func (_m *MockKBPKI) HasVerifyingKey(uid libkb.UID, verifyingKey VerifyingKey) error {
+	ret := _m.ctrl.Call(_m, "HasVerifyingKey", uid, verifyingKey)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+func (_mr *_MockKBPKIRecorder) HasVerifyingKey(arg0, arg1 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "HasVerifyingKey", arg0, arg1)
+}
+
+func (_m *MockKBPKI) GetCryptPublicKeys(uid libkb.UID) ([]CryptPublicKey, error) {
+	ret := _m.ctrl.Call(_m, "GetCryptPublicKeys", uid)
+	ret0, _ := ret[0].([]CryptPublicKey)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-func (_mr *_MockKBPKIRecorder) GetDeviceSibkeys(arg0 interface{}) *gomock.Call {
-	return _mr.mock.ctrl.RecordCall(_mr.mock, "GetDeviceSibkeys", arg0)
+func (_mr *_MockKBPKIRecorder) GetCryptPublicKeys(arg0 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "GetCryptPublicKeys", arg0)
 }
 
-func (_m *MockKBPKI) GetDeviceSubkeys(user *libkb.User) ([]Key, error) {
-	ret := _m.ctrl.Call(_m, "GetDeviceSubkeys", user)
-	ret0, _ := ret[0].([]Key)
+func (_m *MockKBPKI) GetCurrentCryptPublicKey() (CryptPublicKey, error) {
+	ret := _m.ctrl.Call(_m, "GetCurrentCryptPublicKey")
+	ret0, _ := ret[0].(CryptPublicKey)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-func (_mr *_MockKBPKIRecorder) GetDeviceSubkeys(arg0 interface{}) *gomock.Call {
-	return _mr.mock.ctrl.RecordCall(_mr.mock, "GetDeviceSubkeys", arg0)
-}
-
-func (_m *MockKBPKI) GetDeviceSubkey() (Key, error) {
-	ret := _m.ctrl.Call(_m, "GetDeviceSubkey")
-	ret0, _ := ret[0].(Key)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-func (_mr *_MockKBPKIRecorder) GetDeviceSubkey() *gomock.Call {
-	return _mr.mock.ctrl.RecordCall(_mr.mock, "GetDeviceSubkey")
+func (_mr *_MockKBPKIRecorder) GetCurrentCryptPublicKey() *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "GetCurrentCryptPublicKey")
 }
 
 // Mock of KeyManager interface
@@ -410,26 +409,26 @@ func (_m *MockKeyManager) EXPECT() *_MockKeyManagerRecorder {
 	return _m.recorder
 }
 
-func (_m *MockKeyManager) GetSecretKey(dir Path, md *RootMetadata) (Key, error) {
-	ret := _m.ctrl.Call(_m, "GetSecretKey", dir, md)
-	ret0, _ := ret[0].(Key)
+func (_m *MockKeyManager) GetTLFCryptKey(dir Path, md *RootMetadata) (TLFCryptKey, error) {
+	ret := _m.ctrl.Call(_m, "GetTLFCryptKey", dir, md)
+	ret0, _ := ret[0].(TLFCryptKey)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-func (_mr *_MockKeyManagerRecorder) GetSecretKey(arg0, arg1 interface{}) *gomock.Call {
-	return _mr.mock.ctrl.RecordCall(_mr.mock, "GetSecretKey", arg0, arg1)
+func (_mr *_MockKeyManagerRecorder) GetTLFCryptKey(arg0, arg1 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "GetTLFCryptKey", arg0, arg1)
 }
 
-func (_m *MockKeyManager) GetSecretBlockKey(dir Path, id BlockId, md *RootMetadata) (Key, error) {
-	ret := _m.ctrl.Call(_m, "GetSecretBlockKey", dir, id, md)
-	ret0, _ := ret[0].(Key)
+func (_m *MockKeyManager) GetBlockCryptKey(dir Path, id BlockId, md *RootMetadata) (BlockCryptKey, error) {
+	ret := _m.ctrl.Call(_m, "GetBlockCryptKey", dir, id, md)
+	ret0, _ := ret[0].(BlockCryptKey)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-func (_mr *_MockKeyManagerRecorder) GetSecretBlockKey(arg0, arg1, arg2 interface{}) *gomock.Call {
-	return _mr.mock.ctrl.RecordCall(_mr.mock, "GetSecretBlockKey", arg0, arg1, arg2)
+func (_mr *_MockKeyManagerRecorder) GetBlockCryptKey(arg0, arg1, arg2 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "GetBlockCryptKey", arg0, arg1, arg2)
 }
 
 func (_m *MockKeyManager) Rekey(md *RootMetadata) error {
@@ -545,46 +544,46 @@ func (_m *MockKeyCache) EXPECT() *_MockKeyCacheRecorder {
 	return _m.recorder
 }
 
-func (_m *MockKeyCache) GetBlockKey(id BlockId) (Key, error) {
-	ret := _m.ctrl.Call(_m, "GetBlockKey", id)
-	ret0, _ := ret[0].(Key)
+func (_m *MockKeyCache) GetTLFCryptKey(_param0 DirId, _param1 KeyVer) (TLFCryptKey, error) {
+	ret := _m.ctrl.Call(_m, "GetTLFCryptKey", _param0, _param1)
+	ret0, _ := ret[0].(TLFCryptKey)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-func (_mr *_MockKeyCacheRecorder) GetBlockKey(arg0 interface{}) *gomock.Call {
-	return _mr.mock.ctrl.RecordCall(_mr.mock, "GetBlockKey", arg0)
+func (_mr *_MockKeyCacheRecorder) GetTLFCryptKey(arg0, arg1 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "GetTLFCryptKey", arg0, arg1)
 }
 
-func (_m *MockKeyCache) PutBlockKey(id BlockId, key Key) error {
-	ret := _m.ctrl.Call(_m, "PutBlockKey", id, key)
+func (_m *MockKeyCache) PutTLFCryptKey(_param0 DirId, _param1 KeyVer, _param2 TLFCryptKey) error {
+	ret := _m.ctrl.Call(_m, "PutTLFCryptKey", _param0, _param1, _param2)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
-func (_mr *_MockKeyCacheRecorder) PutBlockKey(arg0, arg1 interface{}) *gomock.Call {
-	return _mr.mock.ctrl.RecordCall(_mr.mock, "PutBlockKey", arg0, arg1)
+func (_mr *_MockKeyCacheRecorder) PutTLFCryptKey(arg0, arg1, arg2 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "PutTLFCryptKey", arg0, arg1, arg2)
 }
 
-func (_m *MockKeyCache) GetDirKey(_param0 DirId, _param1 KeyVer) (Key, error) {
-	ret := _m.ctrl.Call(_m, "GetDirKey", _param0, _param1)
-	ret0, _ := ret[0].(Key)
+func (_m *MockKeyCache) GetBlockCryptKey(id BlockId) (BlockCryptKey, error) {
+	ret := _m.ctrl.Call(_m, "GetBlockCryptKey", id)
+	ret0, _ := ret[0].(BlockCryptKey)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-func (_mr *_MockKeyCacheRecorder) GetDirKey(arg0, arg1 interface{}) *gomock.Call {
-	return _mr.mock.ctrl.RecordCall(_mr.mock, "GetDirKey", arg0, arg1)
+func (_mr *_MockKeyCacheRecorder) GetBlockCryptKey(arg0 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "GetBlockCryptKey", arg0)
 }
 
-func (_m *MockKeyCache) PutDirKey(_param0 DirId, _param1 KeyVer, _param2 Key) error {
-	ret := _m.ctrl.Call(_m, "PutDirKey", _param0, _param1, _param2)
+func (_m *MockKeyCache) PutBlockCryptKey(id BlockId, key BlockCryptKey) error {
+	ret := _m.ctrl.Call(_m, "PutBlockCryptKey", id, key)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
-func (_mr *_MockKeyCacheRecorder) PutDirKey(arg0, arg1, arg2 interface{}) *gomock.Call {
-	return _mr.mock.ctrl.RecordCall(_mr.mock, "PutDirKey", arg0, arg1, arg2)
+func (_mr *_MockKeyCacheRecorder) PutBlockCryptKey(arg0, arg1 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "PutBlockCryptKey", arg0, arg1)
 }
 
 // Mock of BlockCache interface
@@ -680,10 +679,91 @@ func (_m *MockCrypto) EXPECT() *_MockCryptoRecorder {
 	return _m.recorder
 }
 
-func (_m *MockCrypto) Sign(msg []byte) ([]byte, KID, error) {
+func (_m *MockCrypto) MakeRandomBlockId() (BlockId, error) {
+	ret := _m.ctrl.Call(_m, "MakeRandomBlockId")
+	ret0, _ := ret[0].(BlockId)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+func (_mr *_MockCryptoRecorder) MakeRandomBlockId() *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "MakeRandomBlockId")
+}
+
+func (_m *MockCrypto) MakeRandomTLFKeys() (TLFPublicKey, TLFPrivateKey, TLFEphemeralPublicKey, TLFEphemeralPrivateKey, TLFCryptKey, error) {
+	ret := _m.ctrl.Call(_m, "MakeRandomTLFKeys")
+	ret0, _ := ret[0].(TLFPublicKey)
+	ret1, _ := ret[1].(TLFPrivateKey)
+	ret2, _ := ret[2].(TLFEphemeralPublicKey)
+	ret3, _ := ret[3].(TLFEphemeralPrivateKey)
+	ret4, _ := ret[4].(TLFCryptKey)
+	ret5, _ := ret[5].(error)
+	return ret0, ret1, ret2, ret3, ret4, ret5
+}
+
+func (_mr *_MockCryptoRecorder) MakeRandomTLFKeys() *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "MakeRandomTLFKeys")
+}
+
+func (_m *MockCrypto) MakeRandomTLFCryptKeyServerHalf() (TLFCryptKeyServerHalf, error) {
+	ret := _m.ctrl.Call(_m, "MakeRandomTLFCryptKeyServerHalf")
+	ret0, _ := ret[0].(TLFCryptKeyServerHalf)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+func (_mr *_MockCryptoRecorder) MakeRandomTLFCryptKeyServerHalf() *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "MakeRandomTLFCryptKeyServerHalf")
+}
+
+func (_m *MockCrypto) MakeRandomBlockCryptKeyServerHalf() (BlockCryptKeyServerHalf, error) {
+	ret := _m.ctrl.Call(_m, "MakeRandomBlockCryptKeyServerHalf")
+	ret0, _ := ret[0].(BlockCryptKeyServerHalf)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+func (_mr *_MockCryptoRecorder) MakeRandomBlockCryptKeyServerHalf() *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "MakeRandomBlockCryptKeyServerHalf")
+}
+
+func (_m *MockCrypto) MaskTLFCryptKey(serverHalf TLFCryptKeyServerHalf, key TLFCryptKey) (TLFCryptKeyClientHalf, error) {
+	ret := _m.ctrl.Call(_m, "MaskTLFCryptKey", serverHalf, key)
+	ret0, _ := ret[0].(TLFCryptKeyClientHalf)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+func (_mr *_MockCryptoRecorder) MaskTLFCryptKey(arg0, arg1 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "MaskTLFCryptKey", arg0, arg1)
+}
+
+func (_m *MockCrypto) UnmaskTLFCryptKey(serverHalf TLFCryptKeyServerHalf, clientHalf TLFCryptKeyClientHalf) (TLFCryptKey, error) {
+	ret := _m.ctrl.Call(_m, "UnmaskTLFCryptKey", serverHalf, clientHalf)
+	ret0, _ := ret[0].(TLFCryptKey)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+func (_mr *_MockCryptoRecorder) UnmaskTLFCryptKey(arg0, arg1 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "UnmaskTLFCryptKey", arg0, arg1)
+}
+
+func (_m *MockCrypto) UnmaskBlockCryptKey(serverHalf BlockCryptKeyServerHalf, tlfCryptKey TLFCryptKey) (BlockCryptKey, error) {
+	ret := _m.ctrl.Call(_m, "UnmaskBlockCryptKey", serverHalf, tlfCryptKey)
+	ret0, _ := ret[0].(BlockCryptKey)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+func (_mr *_MockCryptoRecorder) UnmaskBlockCryptKey(arg0, arg1 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "UnmaskBlockCryptKey", arg0, arg1)
+}
+
+func (_m *MockCrypto) Sign(msg []byte) ([]byte, VerifyingKey, error) {
 	ret := _m.ctrl.Call(_m, "Sign", msg)
 	ret0, _ := ret[0].([]byte)
-	ret1, _ := ret[1].(KID)
+	ret1, _ := ret[1].(VerifyingKey)
 	ret2, _ := ret[2].(error)
 	return ret0, ret1, ret2
 }
@@ -692,7 +772,7 @@ func (_mr *_MockCryptoRecorder) Sign(arg0 interface{}) *gomock.Call {
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "Sign", arg0)
 }
 
-func (_m *MockCrypto) Verify(sig []byte, msg []byte, verifyingKey Key) error {
+func (_m *MockCrypto) Verify(sig []byte, msg []byte, verifyingKey VerifyingKey) error {
 	ret := _m.ctrl.Call(_m, "Verify", sig, msg, verifyingKey)
 	ret0, _ := ret[0].(error)
 	return ret0
@@ -702,48 +782,91 @@ func (_mr *_MockCryptoRecorder) Verify(arg0, arg1, arg2 interface{}) *gomock.Cal
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "Verify", arg0, arg1, arg2)
 }
 
-func (_m *MockCrypto) Box(privkey Key, pubkey Key, buf []byte) ([]byte, error) {
-	ret := _m.ctrl.Call(_m, "Box", privkey, pubkey, buf)
+func (_m *MockCrypto) EncryptTLFCryptKeyClientHalf(privateKey TLFEphemeralPrivateKey, publicKey CryptPublicKey, clientHalf TLFCryptKeyClientHalf) ([]byte, error) {
+	ret := _m.ctrl.Call(_m, "EncryptTLFCryptKeyClientHalf", privateKey, publicKey, clientHalf)
 	ret0, _ := ret[0].([]byte)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-func (_mr *_MockCryptoRecorder) Box(arg0, arg1, arg2 interface{}) *gomock.Call {
-	return _mr.mock.ctrl.RecordCall(_mr.mock, "Box", arg0, arg1, arg2)
+func (_mr *_MockCryptoRecorder) EncryptTLFCryptKeyClientHalf(arg0, arg1, arg2 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "EncryptTLFCryptKeyClientHalf", arg0, arg1, arg2)
 }
 
-func (_m *MockCrypto) Unbox(pubkey Key, buf []byte) ([]byte, error) {
-	ret := _m.ctrl.Call(_m, "Unbox", pubkey, buf)
+func (_m *MockCrypto) DecryptTLFCryptKeyClientHalf(publicKey TLFEphemeralPublicKey, buf []byte) (TLFCryptKeyClientHalf, error) {
+	ret := _m.ctrl.Call(_m, "DecryptTLFCryptKeyClientHalf", publicKey, buf)
+	ret0, _ := ret[0].(TLFCryptKeyClientHalf)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+func (_mr *_MockCryptoRecorder) DecryptTLFCryptKeyClientHalf(arg0, arg1 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "DecryptTLFCryptKeyClientHalf", arg0, arg1)
+}
+
+func (_m *MockCrypto) EncryptPrivateMetadata(buf []byte, key TLFCryptKey) ([]byte, error) {
+	ret := _m.ctrl.Call(_m, "EncryptPrivateMetadata", buf, key)
 	ret0, _ := ret[0].([]byte)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-func (_mr *_MockCryptoRecorder) Unbox(arg0, arg1 interface{}) *gomock.Call {
-	return _mr.mock.ctrl.RecordCall(_mr.mock, "Unbox", arg0, arg1)
+func (_mr *_MockCryptoRecorder) EncryptPrivateMetadata(arg0, arg1 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "EncryptPrivateMetadata", arg0, arg1)
 }
 
-func (_m *MockCrypto) Encrypt(buf []byte, key Key) ([]byte, error) {
-	ret := _m.ctrl.Call(_m, "Encrypt", buf, key)
+func (_m *MockCrypto) DecryptPrivateMetadata(buf []byte, key TLFCryptKey) ([]byte, error) {
+	ret := _m.ctrl.Call(_m, "DecryptPrivateMetadata", buf, key)
 	ret0, _ := ret[0].([]byte)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-func (_mr *_MockCryptoRecorder) Encrypt(arg0, arg1 interface{}) *gomock.Call {
-	return _mr.mock.ctrl.RecordCall(_mr.mock, "Encrypt", arg0, arg1)
+func (_mr *_MockCryptoRecorder) DecryptPrivateMetadata(arg0, arg1 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "DecryptPrivateMetadata", arg0, arg1)
 }
 
-func (_m *MockCrypto) Decrypt(buf []byte, key Key) ([]byte, error) {
-	ret := _m.ctrl.Call(_m, "Decrypt", buf, key)
-	ret0, _ := ret[0].([]byte)
+func (_m *MockCrypto) EncryptBlock(block Block, key BlockCryptKey) (int, []byte, error) {
+	ret := _m.ctrl.Call(_m, "EncryptBlock", block, key)
+	ret0, _ := ret[0].(int)
+	ret1, _ := ret[1].([]byte)
+	ret2, _ := ret[2].(error)
+	return ret0, ret1, ret2
+}
+
+func (_mr *_MockCryptoRecorder) EncryptBlock(arg0, arg1 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "EncryptBlock", arg0, arg1)
+}
+
+func (_m *MockCrypto) DecryptBlock(encryptedBlock []byte, key BlockCryptKey, block Block) error {
+	ret := _m.ctrl.Call(_m, "DecryptBlock", encryptedBlock, key, block)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+func (_mr *_MockCryptoRecorder) DecryptBlock(arg0, arg1, arg2 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "DecryptBlock", arg0, arg1, arg2)
+}
+
+func (_m *MockCrypto) MAC(publicKey MacPublicKey, buf []byte) (MAC, error) {
+	ret := _m.ctrl.Call(_m, "MAC", publicKey, buf)
+	ret0, _ := ret[0].(MAC)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-func (_mr *_MockCryptoRecorder) Decrypt(arg0, arg1 interface{}) *gomock.Call {
-	return _mr.mock.ctrl.RecordCall(_mr.mock, "Decrypt", arg0, arg1)
+func (_mr *_MockCryptoRecorder) MAC(arg0, arg1 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "MAC", arg0, arg1)
+}
+
+func (_m *MockCrypto) VerifyMAC(publicKey MacPublicKey, buf []byte, mac MAC) error {
+	ret := _m.ctrl.Call(_m, "VerifyMAC", publicKey, buf, mac)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+func (_mr *_MockCryptoRecorder) VerifyMAC(arg0, arg1, arg2 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "VerifyMAC", arg0, arg1, arg2)
 }
 
 func (_m *MockCrypto) Hash(buf []byte) (libkb.NodeHash, error) {
@@ -765,70 +888,6 @@ func (_m *MockCrypto) VerifyHash(buf []byte, hash libkb.NodeHash) error {
 
 func (_mr *_MockCryptoRecorder) VerifyHash(arg0, arg1 interface{}) *gomock.Call {
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "VerifyHash", arg0, arg1)
-}
-
-func (_m *MockCrypto) SharedSecret(key1 Key, key2 Key) (Key, error) {
-	ret := _m.ctrl.Call(_m, "SharedSecret", key1, key2)
-	ret0, _ := ret[0].(Key)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-func (_mr *_MockCryptoRecorder) SharedSecret(arg0, arg1 interface{}) *gomock.Call {
-	return _mr.mock.ctrl.RecordCall(_mr.mock, "SharedSecret", arg0, arg1)
-}
-
-func (_m *MockCrypto) HMAC(secret Key, buf []byte) (HMAC, error) {
-	ret := _m.ctrl.Call(_m, "HMAC", secret, buf)
-	ret0, _ := ret[0].(HMAC)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-func (_mr *_MockCryptoRecorder) HMAC(arg0, arg1 interface{}) *gomock.Call {
-	return _mr.mock.ctrl.RecordCall(_mr.mock, "HMAC", arg0, arg1)
-}
-
-func (_m *MockCrypto) VerifyHMAC(secret Key, buf []byte, hmac HMAC) error {
-	ret := _m.ctrl.Call(_m, "VerifyHMAC", secret, buf, hmac)
-	ret0, _ := ret[0].(error)
-	return ret0
-}
-
-func (_mr *_MockCryptoRecorder) VerifyHMAC(arg0, arg1, arg2 interface{}) *gomock.Call {
-	return _mr.mock.ctrl.RecordCall(_mr.mock, "VerifyHMAC", arg0, arg1, arg2)
-}
-
-func (_m *MockCrypto) XOR(key1 Key, key2 Key) (Key, error) {
-	ret := _m.ctrl.Call(_m, "XOR", key1, key2)
-	ret0, _ := ret[0].(Key)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-func (_mr *_MockCryptoRecorder) XOR(arg0, arg1 interface{}) *gomock.Call {
-	return _mr.mock.ctrl.RecordCall(_mr.mock, "XOR", arg0, arg1)
-}
-
-func (_m *MockCrypto) GenRandomSecretKey() Key {
-	ret := _m.ctrl.Call(_m, "GenRandomSecretKey")
-	ret0, _ := ret[0].(Key)
-	return ret0
-}
-
-func (_mr *_MockCryptoRecorder) GenRandomSecretKey() *gomock.Call {
-	return _mr.mock.ctrl.RecordCall(_mr.mock, "GenRandomSecretKey")
-}
-
-func (_m *MockCrypto) GenCurveKeyPair() (Key, Key) {
-	ret := _m.ctrl.Call(_m, "GenCurveKeyPair")
-	ret0, _ := ret[0].(Key)
-	ret1, _ := ret[1].(Key)
-	return ret0, ret1
-}
-
-func (_mr *_MockCryptoRecorder) GenCurveKeyPair() *gomock.Call {
-	return _mr.mock.ctrl.RecordCall(_mr.mock, "GenCurveKeyPair")
 }
 
 // Mock of Codec interface
@@ -969,78 +1028,67 @@ func (_m *MockKeyOps) EXPECT() *_MockKeyOpsRecorder {
 	return _m.recorder
 }
 
-func (_m *MockKeyOps) GetBlockKey(id BlockId) (Key, error) {
-	ret := _m.ctrl.Call(_m, "GetBlockKey", id)
-	ret0, _ := ret[0].(Key)
+func (_m *MockKeyOps) GetBlockCryptKeyServerHalf(id BlockId) (BlockCryptKeyServerHalf, error) {
+	ret := _m.ctrl.Call(_m, "GetBlockCryptKeyServerHalf", id)
+	ret0, _ := ret[0].(BlockCryptKeyServerHalf)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-func (_mr *_MockKeyOpsRecorder) GetBlockKey(arg0 interface{}) *gomock.Call {
-	return _mr.mock.ctrl.RecordCall(_mr.mock, "GetBlockKey", arg0)
+func (_mr *_MockKeyOpsRecorder) GetBlockCryptKeyServerHalf(arg0 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "GetBlockCryptKeyServerHalf", arg0)
 }
 
-func (_m *MockKeyOps) PutBlockKey(id BlockId, key Key) error {
-	ret := _m.ctrl.Call(_m, "PutBlockKey", id, key)
+func (_m *MockKeyOps) PutBlockCryptKeyServerHalf(id BlockId, serverHalf BlockCryptKeyServerHalf) error {
+	ret := _m.ctrl.Call(_m, "PutBlockCryptKeyServerHalf", id, serverHalf)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
-func (_mr *_MockKeyOpsRecorder) PutBlockKey(arg0, arg1 interface{}) *gomock.Call {
-	return _mr.mock.ctrl.RecordCall(_mr.mock, "PutBlockKey", arg0, arg1)
+func (_mr *_MockKeyOpsRecorder) PutBlockCryptKeyServerHalf(arg0, arg1 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "PutBlockCryptKeyServerHalf", arg0, arg1)
 }
 
-func (_m *MockKeyOps) DeleteBlockKey(id BlockId) error {
-	ret := _m.ctrl.Call(_m, "DeleteBlockKey", id)
+func (_m *MockKeyOps) DeleteBlockCryptKeyServerHalf(id BlockId) error {
+	ret := _m.ctrl.Call(_m, "DeleteBlockCryptKeyServerHalf", id)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
-func (_mr *_MockKeyOpsRecorder) DeleteBlockKey(arg0 interface{}) *gomock.Call {
-	return _mr.mock.ctrl.RecordCall(_mr.mock, "DeleteBlockKey", arg0)
+func (_mr *_MockKeyOpsRecorder) DeleteBlockCryptKeyServerHalf(arg0 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "DeleteBlockCryptKeyServerHalf", arg0)
 }
 
-func (_m *MockKeyOps) GetDirDeviceKey(id DirId, keyVer KeyVer, device KID) (Key, error) {
-	ret := _m.ctrl.Call(_m, "GetDirDeviceKey", id, keyVer, device)
-	ret0, _ := ret[0].(Key)
+func (_m *MockKeyOps) GetTLFCryptKeyServerHalf(id DirId, keyVer KeyVer, cryptPublicKey CryptPublicKey) (TLFCryptKeyServerHalf, error) {
+	ret := _m.ctrl.Call(_m, "GetTLFCryptKeyServerHalf", id, keyVer, cryptPublicKey)
+	ret0, _ := ret[0].(TLFCryptKeyServerHalf)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-func (_mr *_MockKeyOpsRecorder) GetDirDeviceKey(arg0, arg1, arg2 interface{}) *gomock.Call {
-	return _mr.mock.ctrl.RecordCall(_mr.mock, "GetDirDeviceKey", arg0, arg1, arg2)
+func (_mr *_MockKeyOpsRecorder) GetTLFCryptKeyServerHalf(arg0, arg1, arg2 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "GetTLFCryptKeyServerHalf", arg0, arg1, arg2)
 }
 
-func (_m *MockKeyOps) PutDirDeviceKey(id DirId, keyVer KeyVer, user libkb.UID, device KID, key Key) error {
-	ret := _m.ctrl.Call(_m, "PutDirDeviceKey", id, keyVer, user, device, key)
+func (_m *MockKeyOps) PutTLFCryptKeyServerHalf(id DirId, keyVer KeyVer, user libkb.UID, cryptPublicKey CryptPublicKey, serverHalf TLFCryptKeyServerHalf) error {
+	ret := _m.ctrl.Call(_m, "PutTLFCryptKeyServerHalf", id, keyVer, user, cryptPublicKey, serverHalf)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
-func (_mr *_MockKeyOpsRecorder) PutDirDeviceKey(arg0, arg1, arg2, arg3, arg4 interface{}) *gomock.Call {
-	return _mr.mock.ctrl.RecordCall(_mr.mock, "PutDirDeviceKey", arg0, arg1, arg2, arg3, arg4)
+func (_mr *_MockKeyOpsRecorder) PutTLFCryptKeyServerHalf(arg0, arg1, arg2, arg3, arg4 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "PutTLFCryptKeyServerHalf", arg0, arg1, arg2, arg3, arg4)
 }
 
-func (_m *MockKeyOps) GetPublicMacKey(user libkb.UID, kid libkb.KID) (Key, error) {
-	ret := _m.ctrl.Call(_m, "GetPublicMacKey", user, kid)
-	ret0, _ := ret[0].(Key)
+func (_m *MockKeyOps) GetMacPublicKey(uid libkb.UID) (MacPublicKey, error) {
+	ret := _m.ctrl.Call(_m, "GetMacPublicKey", uid)
+	ret0, _ := ret[0].(MacPublicKey)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-func (_mr *_MockKeyOpsRecorder) GetPublicMacKey(arg0, arg1 interface{}) *gomock.Call {
-	return _mr.mock.ctrl.RecordCall(_mr.mock, "GetPublicMacKey", arg0, arg1)
-}
-
-func (_m *MockKeyOps) GetMyPrivateMacKey(kid libkb.KID) (Key, error) {
-	ret := _m.ctrl.Call(_m, "GetMyPrivateMacKey", kid)
-	ret0, _ := ret[0].(Key)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-func (_mr *_MockKeyOpsRecorder) GetMyPrivateMacKey(arg0 interface{}) *gomock.Call {
-	return _mr.mock.ctrl.RecordCall(_mr.mock, "GetMyPrivateMacKey", arg0)
+func (_mr *_MockKeyOpsRecorder) GetMacPublicKey(arg0 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "GetMacPublicKey", arg0)
 }
 
 // Mock of BlockOps interface
@@ -1064,8 +1112,8 @@ func (_m *MockBlockOps) EXPECT() *_MockBlockOpsRecorder {
 	return _m.recorder
 }
 
-func (_m *MockBlockOps) Get(id BlockId, context BlockContext, decryptKey Key, block Block) error {
-	ret := _m.ctrl.Call(_m, "Get", id, context, decryptKey, block)
+func (_m *MockBlockOps) Get(id BlockId, context BlockContext, cryptKey BlockCryptKey, block Block) error {
+	ret := _m.ctrl.Call(_m, "Get", id, context, cryptKey, block)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
@@ -1074,8 +1122,8 @@ func (_mr *_MockBlockOpsRecorder) Get(arg0, arg1, arg2, arg3 interface{}) *gomoc
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "Get", arg0, arg1, arg2, arg3)
 }
 
-func (_m *MockBlockOps) Ready(block Block, encryptKey Key) (BlockId, int, []byte, error) {
-	ret := _m.ctrl.Call(_m, "Ready", block, encryptKey)
+func (_m *MockBlockOps) Ready(block Block, cryptKey BlockCryptKey) (BlockId, int, []byte, error) {
+	ret := _m.ctrl.Call(_m, "Ready", block, cryptKey)
 	ret0, _ := ret[0].(BlockId)
 	ret1, _ := ret[1].(int)
 	ret2, _ := ret[2].([]byte)
@@ -1180,58 +1228,6 @@ func (_m *MockMDServer) GetFavorites() ([]DirId, error) {
 
 func (_mr *_MockMDServerRecorder) GetFavorites() *gomock.Call {
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "GetFavorites")
-}
-
-// Mock of KeyServer interface
-type MockKeyServer struct {
-	ctrl     *gomock.Controller
-	recorder *_MockKeyServerRecorder
-}
-
-// Recorder for MockKeyServer (not exported)
-type _MockKeyServerRecorder struct {
-	mock *MockKeyServer
-}
-
-func NewMockKeyServer(ctrl *gomock.Controller) *MockKeyServer {
-	mock := &MockKeyServer{ctrl: ctrl}
-	mock.recorder = &_MockKeyServerRecorder{mock}
-	return mock
-}
-
-func (_m *MockKeyServer) EXPECT() *_MockKeyServerRecorder {
-	return _m.recorder
-}
-
-func (_m *MockKeyServer) GetBlockKey(id BlockId) (Key, error) {
-	ret := _m.ctrl.Call(_m, "GetBlockKey", id)
-	ret0, _ := ret[0].(Key)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-func (_mr *_MockKeyServerRecorder) GetBlockKey(arg0 interface{}) *gomock.Call {
-	return _mr.mock.ctrl.RecordCall(_mr.mock, "GetBlockKey", arg0)
-}
-
-func (_m *MockKeyServer) PutBlockKey(id BlockId, key Key) error {
-	ret := _m.ctrl.Call(_m, "PutBlockKey", id, key)
-	ret0, _ := ret[0].(error)
-	return ret0
-}
-
-func (_mr *_MockKeyServerRecorder) PutBlockKey(arg0, arg1 interface{}) *gomock.Call {
-	return _mr.mock.ctrl.RecordCall(_mr.mock, "PutBlockKey", arg0, arg1)
-}
-
-func (_m *MockKeyServer) DeleteBlockKey(id BlockId) error {
-	ret := _m.ctrl.Call(_m, "DeleteBlockKey", id)
-	ret0, _ := ret[0].(error)
-	return ret0
-}
-
-func (_mr *_MockKeyServerRecorder) DeleteBlockKey(arg0 interface{}) *gomock.Call {
-	return _mr.mock.ctrl.RecordCall(_mr.mock, "DeleteBlockKey", arg0)
 }
 
 // Mock of BlockServer interface
@@ -1668,24 +1664,6 @@ func (_m *MockConfig) SetMDServer(_param0 MDServer) {
 
 func (_mr *_MockConfigRecorder) SetMDServer(arg0 interface{}) *gomock.Call {
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "SetMDServer", arg0)
-}
-
-func (_m *MockConfig) KeyServer() KeyServer {
-	ret := _m.ctrl.Call(_m, "KeyServer")
-	ret0, _ := ret[0].(KeyServer)
-	return ret0
-}
-
-func (_mr *_MockConfigRecorder) KeyServer() *gomock.Call {
-	return _mr.mock.ctrl.RecordCall(_mr.mock, "KeyServer")
-}
-
-func (_m *MockConfig) SetKeyServer(_param0 KeyServer) {
-	_m.ctrl.Call(_m, "SetKeyServer", _param0)
-}
-
-func (_mr *_MockConfigRecorder) SetKeyServer(arg0 interface{}) *gomock.Call {
-	return _mr.mock.ctrl.RecordCall(_mr.mock, "SetKeyServer", arg0)
 }
 
 func (_m *MockConfig) BlockServer() BlockServer {

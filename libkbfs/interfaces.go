@@ -54,19 +54,23 @@ type KBPKI interface {
 	GetSession() (*libkb.Session, error)
 	// Get the UID of the current logged-in user
 	GetLoggedInUser() (libkb.UID, error)
-	// Get all the public device sibkeys for a given user
-	GetDeviceSibkeys(user *libkb.User) ([]Key, error)
-	// Get all the encryption device subkeys for a given user
-	GetDeviceSubkeys(user *libkb.User) ([]Key, error)
-	// Get the subkey for the currently-active device.
-	GetDeviceSubkey() (Key, error)
+	// Returns nil if the given user has the given VerifyingKey,
+	// and an error otherwise.
+	//
+	// TODO: Add a timestamp argument (or similar) so that we can
+	// check for revocation.
+	HasVerifyingKey(uid libkb.UID, verifyingKey VerifyingKey) error
+	// Get all of a user's crypt public keys (one per device).
+	GetCryptPublicKeys(uid libkb.UID) ([]CryptPublicKey, error)
+	// Get the crypt public key for the currently-active device.
+	GetCurrentCryptPublicKey() (CryptPublicKey, error)
 }
 
 type KeyManager interface {
-	// Get the encryption key for the given directory
-	GetSecretKey(dir Path, md *RootMetadata) (Key, error)
-	// Get the encryption key for the given block
-	GetSecretBlockKey(dir Path, id BlockId, md *RootMetadata) (Key, error)
+	// Get the crypt key for the given TLF.
+	GetTLFCryptKey(dir Path, md *RootMetadata) (TLFCryptKey, error)
+	// Get the crypt key for the given block.
+	GetBlockCryptKey(dir Path, id BlockId, md *RootMetadata) (BlockCryptKey, error)
 	// Create a new epoch of keys for the given directory
 	Rekey(md *RootMetadata) error
 }
@@ -100,13 +104,12 @@ type MDCache interface {
 	Put(id MDId, md *RootMetadata) error
 }
 
-// KeyCache gets the full block keys from a cache, as well as
-// unencrypted per-directory keys
+// KeyCache handles caching for both TLFCryptKeys and BlockCryptKeys.
 type KeyCache interface {
-	GetBlockKey(id BlockId) (Key, error)
-	PutBlockKey(id BlockId, key Key) error
-	GetDirKey(DirId, KeyVer) (Key, error)
-	PutDirKey(DirId, KeyVer, Key) error
+	GetTLFCryptKey(DirId, KeyVer) (TLFCryptKey, error)
+	PutTLFCryptKey(DirId, KeyVer, TLFCryptKey) error
+	GetBlockCryptKey(id BlockId) (BlockCryptKey, error)
+	PutBlockCryptKey(id BlockId, key BlockCryptKey) error
 }
 
 // BlockCache gets and puts plaintext dir blocks and file blocks into
@@ -121,39 +124,56 @@ type BlockCache interface {
 
 // Crypto signs, verifies, encrypts, and decrypts stuff.
 type Crypto interface {
-	// Signs msg with your current active device private key
-	Sign(msg []byte) (sig []byte, verifyingKeyKid KID, err error)
-	// Verifies that sig matches msg being signed with the private
+	// Make objects of various types using a CSPRNG.
+	MakeRandomBlockId() (BlockId, error)
+	MakeRandomTLFKeys() (TLFPublicKey, TLFPrivateKey, TLFEphemeralPublicKey, TLFEphemeralPrivateKey, TLFCryptKey, error)
+	MakeRandomTLFCryptKeyServerHalf() (TLFCryptKeyServerHalf, error)
+	MakeRandomBlockCryptKeyServerHalf() (BlockCryptKeyServerHalf, error)
+
+	// Mask and unmask objects of various types.
+	MaskTLFCryptKey(serverHalf TLFCryptKeyServerHalf, key TLFCryptKey) (TLFCryptKeyClientHalf, error)
+	UnmaskTLFCryptKey(serverHalf TLFCryptKeyServerHalf, clientHalf TLFCryptKeyClientHalf) (TLFCryptKey, error)
+	UnmaskBlockCryptKey(serverHalf BlockCryptKeyServerHalf, tlfCryptKey TLFCryptKey) (BlockCryptKey, error)
+
+	// Sign msg with the current device's private key.
+	Sign(msg []byte) (sig []byte, verifyingKey VerifyingKey, err error)
+	// Verify that sig matches msg being signed with the private
 	// key that corresponds to verifyingKey.
-	Verify(sig []byte, msg []byte, verifyingKey Key) (err error)
-	// Encrypts buf using both a folder's ephemeral private key and a
-	// device pubkey
-	Box(privkey Key, pubkey Key, buf []byte) ([]byte, error)
-	// Decrypts buf using your current active device's private key and
-	// the folder's public key
-	Unbox(pubkey Key, buf []byte) ([]byte, error)
-	// Encrypts buf using the folder's secret key
-	Encrypt(buf []byte, key Key) ([]byte, error)
-	// Decrypts buf using the folder's secret key
-	Decrypt(buf []byte, key Key) ([]byte, error)
-	// Computes a deterministic hash of buf
+	Verify(sig []byte, msg []byte, verifyingKey VerifyingKey) (err error)
+
+	// Encrypt a TLFCryptKeyClientHalf using both a TLF's
+	// ephemeral private key and a device pubkey.
+	EncryptTLFCryptKeyClientHalf(privateKey TLFEphemeralPrivateKey, publicKey CryptPublicKey, clientHalf TLFCryptKeyClientHalf) ([]byte, error)
+	// Decrypt a TLFCryptKeyClientHalf using the current device's
+	// private key and the TLF's ephemeral public key.
+	DecryptTLFCryptKeyClientHalf(publicKey TLFEphemeralPublicKey, buf []byte) (TLFCryptKeyClientHalf, error)
+
+	// Encrypt/decrypt a serialized PrivateMetadata object.
+	EncryptPrivateMetadata(buf []byte, key TLFCryptKey) ([]byte, error)
+	DecryptPrivateMetadata(buf []byte, key TLFCryptKey) ([]byte, error)
+
+	// Encrypt a block. plainSize is the size of the encoded
+	// block; EncryptBlock() must guarantee that plainSize <=
+	// len(encryptedBlock).
+	EncryptBlock(block Block, key BlockCryptKey) (plainSize int, encryptedBlock []byte, err error)
+
+	// Decrypt a block. Similar to EncryptBlock(), DecryptBlock()
+	// must guarantee that (size of the decrypted block) <=
+	// len(encryptedBlock).
+	DecryptBlock(encryptedBlock []byte, key BlockCryptKey, block Block) error
+
+	// Computes a keyed MAC of buf using a shared secret derived
+	// from the given MacPublicKey and the current user's MAC
+	// private key.
+	MAC(publicKey MacPublicKey, buf []byte) (MAC, error)
+	// Verifies a given key and buf would hash to the given mac.  The
+	// mac should indicate its type.
+	VerifyMAC(publicKey MacPublicKey, buf []byte, mac MAC) error
+
+	// Computes a deterministic hash of buf.
 	Hash(buf []byte) (libkb.NodeHash, error)
-	// Verifies a given hash (the hash should include its type)
+	// Verifies a given hash (the hash should include its type).
 	VerifyHash(buf []byte, hash libkb.NodeHash) error
-	// Computes a shared secret between two given keys
-	SharedSecret(key1 Key, key2 Key) (Key, error)
-	// Computes a keyed Hash MAC of buf using a shared secret
-	HMAC(secret Key, buf []byte) (HMAC, error)
-	// Verifies a given key and buf would hash to the given hmac.  The
-	// hmac should indicate its type.
-	VerifyHMAC(secret Key, buf []byte, hmac HMAC) error
-	// XORs two keys together
-	XOR(key1 Key, key2 Key) (Key, error)
-	// Makes a random secret key, suitable for per-folder or per-block secrets
-	GenRandomSecretKey() Key
-	// Makes a random Curve25519 key pair, suitable for encrypting
-	// per-folder secrets
-	GenCurveKeyPair() (pubkey Key, privkey Key)
 }
 
 // Codec encodes and decodes arbitrary data
@@ -173,35 +193,36 @@ type MDOps interface {
 	GetFavorites() ([]DirId, error)
 }
 
-// KeyOps fetches server-side key halves from the key server
+// KeyOps fetches server-side key halves and MAC public keys from the
+// key server.
 type KeyOps interface {
-	// Get the server-side key half for a block
-	GetBlockKey(id BlockId) (Key, error)
-	// Put the server-side key half for a new block
-	PutBlockKey(id BlockId, key Key) error
-	// Delete the server-side key half for a block
-	DeleteBlockKey(id BlockId) error
-	// Get the server-side key half for a device for a given folder
-	GetDirDeviceKey(id DirId, keyVer KeyVer, device KID) (Key, error)
-	// Put the server-side key half for a device for a given folder
-	PutDirDeviceKey(
-		id DirId, keyVer KeyVer, user libkb.UID, device KID, key Key) error
-	// Get the public DH key for a given user.
-	// If "kid" is empty, fetch the current DH key.
-	GetPublicMacKey(user libkb.UID, kid libkb.KID) (Key, error)
-	// Get the private DH key for the logged-in user.
-	// If "kid" is empty, fetch the current DH key.
-	GetMyPrivateMacKey(kid libkb.KID) (Key, error)
+	// Get the server-side key half for a block.
+	GetBlockCryptKeyServerHalf(id BlockId) (BlockCryptKeyServerHalf, error)
+	// Put the server-side key half for a new block.
+	PutBlockCryptKeyServerHalf(id BlockId, serverHalf BlockCryptKeyServerHalf) error
+	// Delete the server-side key half for a block.
+	DeleteBlockCryptKeyServerHalf(id BlockId) error
+
+	// Get the server-side key half for a device (identified by
+	// its CryptPublicKey) for a given TLF.
+	GetTLFCryptKeyServerHalf(id DirId, keyVer KeyVer, cryptPublicKey CryptPublicKey) (TLFCryptKeyServerHalf, error)
+	// Put the server-side key half for a device (identified by
+	// its CryptPublicKey) for a given TLF.
+	PutTLFCryptKeyServerHalf(
+		id DirId, keyVer KeyVer, user libkb.UID, cryptPublicKey CryptPublicKey, serverHalf TLFCryptKeyServerHalf) error
+
+	// Get the public MAC key for a given user.
+	GetMacPublicKey(uid libkb.UID) (MacPublicKey, error)
 }
 
 // BlockOps gets and puts data blocks to a BlockServer. It performs
 // the necessary crypto operations on each block.
 type BlockOps interface {
-	Get(id BlockId, context BlockContext, decryptKey Key, block Block) error
+	Get(id BlockId, context BlockContext, cryptKey BlockCryptKey, block Block) error
 	// Ready blocks by calculating their IDs and contents, so that we
 	// can do a bunch of block puts in parallel for every write.
 	// Ready() must guarantee that plainSize <= len(buf).
-	Ready(block Block, encryptKey Key) (
+	Ready(block Block, cryptKey BlockCryptKey) (
 		id BlockId, plainSize int, buf []byte, err error)
 	Put(id BlockId, context BlockContext, buf []byte) error
 	Delete(id BlockId, context BlockContext) error
@@ -224,15 +245,6 @@ type MDServer interface {
 	GetAtId(id DirId, mdId MDId) (*RootMetadataSigned, error)
 	Put(id DirId, mdId MDId, md *RootMetadataSigned) error
 	GetFavorites() ([]DirId, error)
-}
-
-// KeyServer fetches server-side symmetric encryption key halves.  The
-// instantiation should be able to fetch session/user details via
-// KBPKI.
-type KeyServer interface {
-	GetBlockKey(id BlockId) (Key, error)
-	PutBlockKey(id BlockId, key Key) error
-	DeleteBlockKey(id BlockId) error
 }
 
 // BlockServer gets and puts opaque data blocks.  The instantiation
@@ -312,8 +324,6 @@ type Config interface {
 	SetBlockOps(BlockOps)
 	MDServer() MDServer
 	SetMDServer(MDServer)
-	KeyServer() KeyServer
-	SetKeyServer(KeyServer)
 	BlockServer() BlockServer
 	SetBlockServer(BlockServer)
 	BlockSplitter() BlockSplitter

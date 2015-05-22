@@ -1,80 +1,93 @@
 package libkbfs
 
 import (
-	"crypto/sha256"
+	"bytes"
+	"fmt"
+
+	"github.com/agl/ed25519"
 	"github.com/keybase/client/go/libkb"
 )
 
+// TODO: Some version of this should probably live in libkb.
+type Signer interface {
+	SignToBytes(msg []byte) (sig []byte, err error)
+	GetVerifyingKey() VerifyingKey
+}
+
+type naclSigningKeyPair struct {
+	libkb.NaclSigningKeyPair
+}
+
+func (kp *naclSigningKeyPair) GetVerifyingKey() VerifyingKey {
+	return VerifyingKey{kp.GetKid()}
+}
+
+// A signing key secret is just SigningKeySecretLength random bytes.
+//
+// TODO: Ideally, ed25519 would expose how many random bytes it needs.
+const SigningKeySecretLength = 32
+
+type SigningKey struct {
+	Secret [SigningKeySecretLength]byte
+}
+
+// Make a new Nacl signing key pair from the given secret.
+func newNaclSigningKeyPair(secret [SigningKeySecretLength]byte) (*naclSigningKeyPair, error) {
+	r := bytes.NewReader(secret[:])
+	pub, priv, err := ed25519.GenerateKey(r)
+	if err != nil {
+		return nil, err
+	}
+
+	if r.Len() > 0 {
+		return nil, fmt.Errorf("Did not use %d secret byte(s)", r.Len())
+	}
+
+	return &naclSigningKeyPair{
+		libkb.NaclSigningKeyPair{
+			Public:  *pub,
+			Private: (*libkb.NaclSigningKeyPrivate)(priv),
+		},
+	}, nil
+}
+
+func newSigner(k SigningKey) (Signer, error) {
+	return newNaclSigningKeyPair(k.Secret)
+}
+
+func (k SigningKey) GetVerifyingKey() (VerifyingKey, error) {
+	kp, err := newSigner(k)
+	if err != nil {
+		return VerifyingKey{}, err
+	}
+	return kp.GetVerifyingKey(), nil
+}
+
 type CryptoLocal struct {
-	signingKey Key
+	CryptoCommon
+	signingKey SigningKey
 }
 
-func NewCryptoLocal(signingKey Key) *CryptoLocal {
-	return &CryptoLocal{signingKey}
+var _ Crypto = (*CryptoLocal)(nil)
+
+func NewCryptoLocal(codec Codec, signingKey SigningKey) *CryptoLocal {
+	return &CryptoLocal{CryptoCommon{codec}, signingKey}
 }
 
-func (c *CryptoLocal) Sign(msg []byte) (sig []byte, kid KID, err error) {
-	sig, err = c.signingKey.SignToBytes(msg)
+func (c *CryptoLocal) Sign(msg []byte) (sig []byte, verifyingKey VerifyingKey, err error) {
+	signer, err := newSigner(c.signingKey)
+	sig, err = signer.SignToBytes(msg)
 	if err != nil {
 		sig = nil
 		return
 	}
-	return sig, KID(c.signingKey.GetKid()), nil
+	return sig, signer.GetVerifyingKey(), nil
 }
 
-func (c *CryptoLocal) Verify(sig []byte, msg []byte, verifyingKey Key) (err error) {
-	return verifyingKey.VerifyBytes(sig, msg)
-}
-
-func (c *CryptoLocal) Box(privkey Key, pubkey Key, buf []byte) ([]byte, error) {
-	return buf, nil
-}
-
-func (c *CryptoLocal) Unbox(pubkey Key, buf []byte) ([]byte, error) {
-	return buf, nil
-}
-
-func (c *CryptoLocal) Encrypt(buf []byte, key Key) ([]byte, error) {
-	return buf, nil
-}
-
-func (c *CryptoLocal) Decrypt(buf []byte, key Key) ([]byte, error) {
-	return buf, nil
-}
-
-func (c *CryptoLocal) Hash(buf []byte) (libkb.NodeHash, error) {
-	h := sha256.New()
-	h.Write(buf)
-	var tmp libkb.NodeHashShort
-	copy([]byte(tmp[:]), h.Sum(nil))
-	return tmp, nil
-}
-
-func (c *CryptoLocal) VerifyHash(buf []byte, hash libkb.NodeHash) error {
-	// TODO: for now just call Hash and throw an error if it doesn't match hash
-	return nil
-}
-
-func (c *CryptoLocal) SharedSecret(key1 Key, key2 Key) (Key, error) {
-	return nil, nil
-}
-
-func (c *CryptoLocal) HMAC(secret Key, buf []byte) (HMAC, error) {
-	return []byte{42}, nil
-}
-
-func (c *CryptoLocal) VerifyHMAC(secret Key, buf []byte, hmac HMAC) error {
-	return nil
-}
-
-func (c *CryptoLocal) XOR(key1 Key, key2 Key) (Key, error) {
-	return nil, nil
-}
-
-func (c *CryptoLocal) GenRandomSecretKey() Key {
-	return nil
-}
-
-func (c *CryptoLocal) GenCurveKeyPair() (pubkey Key, privkey Key) {
-	return nil, nil
+func (c *CryptoLocal) Verify(sig []byte, msg []byte, verifyingKey VerifyingKey) (err error) {
+	verifier, err := newVerifier(verifyingKey)
+	if err != nil {
+		return err
+	}
+	return verifier.VerifyBytes(sig, msg)
 }

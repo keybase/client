@@ -7,42 +7,30 @@ import (
 type KeyOpsNull struct {
 }
 
-// Get the server-side key half for a block
-func (ko *KeyOpsNull) GetBlockKey(id BlockId) (Key, error) {
-	return nil, nil
+var _ KeyOps = (*KeyOpsNull)(nil)
+
+func (ko *KeyOpsNull) GetBlockCryptKeyServerHalf(id BlockId) (BlockCryptKeyServerHalf, error) {
+	return BlockCryptKeyServerHalf{}, nil
 }
 
-// Put the server-side key half for a block
-func (ko *KeyOpsNull) PutBlockKey(id BlockId, key Key) error {
+func (ko *KeyOpsNull) PutBlockCryptKeyServerHalf(id BlockId, serverHalf BlockCryptKeyServerHalf) error {
 	return nil
 }
 
-// Delete the server-side key half for a block
-func (ko *KeyOpsNull) DeleteBlockKey(id BlockId) error {
+func (ko *KeyOpsNull) DeleteBlockCryptKeyServerHalf(id BlockId) error {
 	return nil
 }
 
-// Get the server-side key half for a device for a given folder
-func (ko *KeyOpsNull) GetDirDeviceKey(
-	id DirId, keyVer KeyVer, kid KID) (Key, error) {
-	return nil, nil
+func (ko *KeyOpsNull) GetTLFCryptKeyServerHalf(
+	id DirId, keyVer KeyVer, cryptPublicKey CryptPublicKey) (TLFCryptKeyServerHalf, error) {
+	return TLFCryptKeyServerHalf{}, nil
 }
 
-// Put the server-side key half for a device for a given folder
-func (ko *KeyOpsNull) PutDirDeviceKey(
-	id DirId, keyVer KeyVer, user libkb.UID, kid KID, key Key) error {
+func (ko *KeyOpsNull) PutTLFCryptKeyServerHalf(
+	id DirId, keyVer KeyVer, user libkb.UID, cryptPublicKey CryptPublicKey, serverHalf TLFCryptKeyServerHalf) error {
 	return nil
 }
 
-// Get the public DH key for a given user.
-// If "kid" is empty, fetch the current DH key.
-func (ko *KeyOpsNull) GetPublicMacKey(user libkb.UID, kid libkb.KID) (
-	Key, error) {
-	return nil, nil
-}
-
-// Get the private DH key for the logged-in user.
-// If "kid" is empty, fetch the current DH key.
-func (ko *KeyOpsNull) GetMyPrivateMacKey(kid libkb.KID) (Key, error) {
-	return nil, nil
+func (k *KeyOpsNull) GetMacPublicKey(uid libkb.UID) (MacPublicKey, error) {
+	return MacPublicKey{}, nil
 }

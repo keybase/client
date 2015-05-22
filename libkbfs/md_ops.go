@@ -10,19 +10,6 @@ type MDOpsStandard struct {
 	config Config
 }
 
-func findSibkeyWithKid(kbpki KBPKI, user *libkb.User, kid KID) (Key, error) {
-	deviceSibkeys, err := kbpki.GetDeviceSibkeys(user)
-	if err != nil {
-		return nil, err
-	}
-	for _, sibkey := range deviceSibkeys {
-		if sibkey.GetKid().Eq(libkb.KID(kid)) {
-			return sibkey, nil
-		}
-	}
-	return nil, KeyNotFoundError{kid}
-}
-
 func (md *MDOpsStandard) processMetadata(
 	handle *DirHandle, rmds *RootMetadataSigned) error {
 	crypto := md.config.Crypto()
@@ -33,11 +20,11 @@ func (md *MDOpsStandard) processMetadata(
 		// decrypt the root data for non-public directories
 		if !handle.IsPublic() {
 			path := Path{rmds.MD.Id, []PathNode{}}
-			k, err := md.config.KeyManager().GetSecretKey(path, &rmds.MD)
+			k, err := md.config.KeyManager().GetTLFCryptKey(path, &rmds.MD)
 			if err != nil {
 				return err
 			}
-			databuf, err := crypto.Decrypt(rmds.MD.SerializedPrivateMetadata, k)
+			databuf, err := crypto.DecryptPrivateMetadata(rmds.MD.SerializedPrivateMetadata, k)
 			if err != nil {
 				return err
 			}
@@ -61,7 +48,6 @@ func (md *MDOpsStandard) processMetadata(
 		// TODO:
 		// Both of these have to happen after decryption so
 		// we can see who the last writer was.
-		kops := md.config.KeyOps()
 		kbpki := md.config.KBPKI()
 		me, err := kbpki.GetLoggedInUser()
 		if err != nil {
@@ -78,27 +64,21 @@ func (md *MDOpsStandard) processMetadata(
 
 		if handle.IsPrivateShare() {
 			// For private shares:
-			//   * Get HMAC public key of last writer
-			//   * Get shared secret with our private HMAC key
-			//   * Verify using HMAC
-			if hmac, ok := rmds.Macs[me]; !ok {
+			//   * Get MAC public key of last writer
+			//   * Get shared secret with our private MAC key
+			//   * Verify using MAC
+			if mac, ok := rmds.Macs[me]; !ok {
 				return &MDMismatchError{
 					handle.ToString(md.config),
 					fmt.Sprintf("MD (id=%s) is a private share but doesn't "+
 						"contain a key for my logged in user (%s)",
 						rmds.MD.Id, me)}
 				// TODO: figure out the right kid for the writer, should
-				// be in the hmac somewhere
-			} else if pubKey, err := kops.GetPublicMacKey(
-				writer, nil); err != nil {
+				// be in the mac somewhere
+			} else if pubKey, err := md.config.KeyOps().GetMacPublicKey(
+				writer); err != nil {
 				return err
-				// TODO: again, figure out the right kid here
-			} else if privKey, err := kops.GetMyPrivateMacKey(nil); err != nil {
-				return err
-			} else if secret, err := crypto.SharedSecret(
-				privKey, pubKey); err != nil {
-				return err
-			} else if err := crypto.VerifyHMAC(secret, buf, hmac); err != nil {
+			} else if err := crypto.VerifyMAC(pubKey, buf, mac); err != nil {
 				return err
 			}
 		} else {
@@ -106,17 +86,12 @@ func (md *MDOpsStandard) processMetadata(
 			//   * Verify normally using the user's public key matching the verifying key KID.
 			// TODO: what do we do if the signature is from a revoked
 			// key?
-			user, err := kbpki.GetUser(writer)
+			err = kbpki.HasVerifyingKey(writer, rmds.VerifyingKey)
 			if err != nil {
 				return err
 			}
 
-			verifyingKey, err := findSibkeyWithKid(kbpki, user, rmds.VerifyingKeyKid)
-			if err != nil {
-				return err
-			}
-
-			if err = crypto.Verify(rmds.Sig, buf, verifyingKey); err != nil {
+			if err = crypto.Verify(rmds.Sig, buf, rmds.VerifyingKey); err != nil {
 				return err
 			}
 		}
@@ -194,14 +169,12 @@ func (md *MDOpsStandard) Put(id DirId, rmd *RootMetadata) error {
 	}
 	crypto := md.config.Crypto()
 	if !id.IsPublic() {
-		// TODO: do we need a server-side key half for the encrypted
-		// metadata?
 		path := Path{rmd.Id, []PathNode{}}
-		rk, err := md.config.KeyManager().GetSecretKey(path, rmd)
+		rk, err := md.config.KeyManager().GetTLFCryptKey(path, rmd)
 		if err != nil {
 			return err
 		}
-		rmd.SerializedPrivateMetadata, err = crypto.Encrypt(databuf, rk)
+		rmd.SerializedPrivateMetadata, err = crypto.EncryptPrivateMetadata(databuf, rk)
 		if err != nil {
 			return err
 		}
@@ -221,50 +194,41 @@ func (md *MDOpsStandard) Put(id DirId, rmd *RootMetadata) error {
 	if handle.IsPrivateShare() {
 		// For private shares:
 		//   * For each reader/writer:
-		//     - Get HMAC public key
-		//     - Get shared secret with our private HMAC key
-		//     - Sign using HMAC
-		kops := md.config.KeyOps()
-		privKey, err := kops.GetMyPrivateMacKey(nil)
-		if err != nil {
-			return err
-		}
-
+		//     - Get MAC public key
+		//     - Get shared secret with our private MAC key
+		//     - Sign using MAC
 		rmds.Macs = make(map[libkb.UID][]byte)
-		hmacFunc := func(user libkb.UID) error {
+		macFunc := func(user libkb.UID) error {
 			// use the latest mac keys
-			if pubKey, err := kops.GetPublicMacKey(user, nil); err != nil {
+			if pubKey, err := md.config.KeyOps().GetMacPublicKey(user); err != nil {
 				return err
-			} else if secret, err := crypto.SharedSecret(
-				privKey, pubKey); err != nil {
-				return err
-			} else if hmac, err := crypto.HMAC(secret, buf); err != nil {
+			} else if mac, err := crypto.MAC(pubKey, buf); err != nil {
 				return err
 			} else {
-				rmds.Macs[user] = hmac
+				rmds.Macs[user] = mac
 			}
 			return nil
 		}
 
 		for _, w := range handle.Writers {
-			if err := hmacFunc(w); err != nil {
+			if err := macFunc(w); err != nil {
 				return err
 			}
 		}
 		for _, r := range handle.Readers {
-			if err := hmacFunc(r); err != nil {
+			if err := macFunc(r); err != nil {
 				return err
 			}
 		}
 	} else {
 		// For our home and public directory:
 		//   * Sign normally using the local device private key
-		sig, verifyingKeyKid, err := crypto.Sign(buf)
+		sig, verifyingKey, err := crypto.Sign(buf)
 		if err != nil {
 			return err
 		}
 		rmds.Sig = sig
-		rmds.VerifyingKeyKid = verifyingKeyKid
+		rmds.VerifyingKey = verifyingKey
 	}
 
 	mdId, err := rmd.MetadataId(md.config)

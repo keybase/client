@@ -110,8 +110,8 @@ func main() {
 
 		k := libkbfs.NewKBPKILocal(localUid, localUsers)
 		config.SetKBPKI(k)
-		signingKey := libkbfs.GetLocalUserSigningKey(*localUser)
-		config.SetCrypto(libkbfs.NewCryptoLocal(signingKey))
+		signingKey := libkbfs.MakeLocalUserSigningKeyOrBust(*localUser)
+		config.SetCrypto(libkbfs.NewCryptoLocal(config.Codec(), signingKey))
 	} else if *clientFlag {
 		libkb.G.ConfigureSocketInfo()
 		k, err := libkbfs.NewKBPKIClient(libkb.G)
@@ -119,7 +119,7 @@ func main() {
 			log.Fatalf("Could not get KBPKI: %v\n", err)
 		}
 		config.SetKBPKI(k)
-		c, err := libkbfs.NewCryptoClient(libkb.G)
+		c, err := libkbfs.NewCryptoClient(config.Codec(), libkb.G)
 		if err != nil {
 			log.Fatalf("Could not get Crypto: %v\n", err)
 		}

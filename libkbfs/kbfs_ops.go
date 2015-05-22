@@ -160,11 +160,11 @@ func (fs *KBFSOpsStandard) initMDInChannel(md *RootMetadata) error {
 		BlockPointer{BlockId{}, 0, fs.config.DataVersion(), user, 0},
 		md.GetDirHandle().ToString(fs.config),
 	}}}
-	encryptKey, err := fs.config.KeyManager().GetSecretKey(path, md)
+	tlfCryptKey, err := fs.config.KeyManager().GetTLFCryptKey(path, md)
 	if err != nil {
 		return err
 	}
-	id, plainSize, buf, err := fs.config.BlockOps().Ready(newDblock, encryptKey)
+	id, plainSize, buf, err := fs.readyBlock(newDblock, tlfCryptKey)
 	if err != nil {
 		return err
 	}
@@ -293,23 +293,23 @@ func (fs *KBFSOpsStandard) getBlockInChannel(
 	bcache := fs.config.BlockCache()
 	if block, err := bcache.Get(id); err == nil {
 		return block, nil
+	}
+
+	// fetch the block, and add to cache
+	block := newBlock()
+	bops := fs.config.BlockOps()
+	if md, err := fs.getMDInChannel(dir, rtype); err != nil {
+		return nil, err
+	} else if k, err :=
+		fs.config.KeyManager().GetBlockCryptKey(dir, id, md); err != nil {
+		return nil, err
+	} else if err := bops.Get(id, dir.TailPointer(), k, block); err != nil {
+		return nil, err
+	} else if err := fs.config.BlockCache().Put(
+		id, block, false); err != nil {
+		return nil, err
 	} else {
-		// fetch the block, and add to cache
-		bops := fs.config.BlockOps()
-		block := newBlock()
-		if md, err := fs.getMDInChannel(dir, rtype); err != nil {
-			return nil, err
-		} else if k, err :=
-			fs.config.KeyManager().GetSecretBlockKey(dir, id, md); err != nil {
-			return nil, err
-		} else if err := bops.Get(id, dir.TailPointer(), k, block); err != nil {
-			return nil, err
-		} else if err := fs.config.BlockCache().Put(
-			id, block, false); err != nil {
-			return nil, err
-		} else {
-			return block, nil
-		}
+		return block, nil
 	}
 }
 
@@ -404,28 +404,40 @@ func (bps *blockPutState) addBlock(id BlockId, ptr BlockPointer,
 	bps.bufs = append(bps.bufs, buf)
 }
 
-func (fs *KBFSOpsStandard) readyBlock(currBlock Block, bps *blockPutState,
-	md *RootMetadata, encryptKey Key, user libkb.UID) (
-	plainSize int, blockPtr BlockPointer, err error) {
-	err = nil
-
+func (fs *KBFSOpsStandard) readyBlock(block Block, tlfCryptKey TLFCryptKey) (
+	id BlockId, plainSize int, buf []byte, err error) {
 	// new key for the block
 	crypto := fs.config.Crypto()
-	blockServKey := crypto.GenRandomSecretKey()
-	blockKey, err := crypto.XOR(blockServKey, encryptKey)
+	serverHalf, err := crypto.MakeRandomBlockCryptKeyServerHalf()
 	if err != nil {
 		return
 	}
 
-	id, plainSize, buf, err := fs.config.BlockOps().Ready(currBlock, blockKey)
+	blockKey, err := crypto.UnmaskBlockCryptKey(serverHalf, tlfCryptKey)
+	if err != nil {
+		return
+	}
+
+	id, plainSize, buf, err = fs.config.BlockOps().Ready(block, blockKey)
 	if err != nil {
 		return
 	}
 
 	// store the keys
-	if err = fs.config.KeyOps().PutBlockKey(id, blockServKey); err != nil {
+	if err = fs.config.KeyOps().PutBlockCryptKeyServerHalf(id, serverHalf); err != nil {
 		return
-	} else if err = fs.config.KeyCache().PutBlockKey(id, blockKey); err != nil {
+	} else if err = fs.config.KeyCache().PutBlockCryptKey(id, blockKey); err != nil {
+		return
+	}
+
+	return
+}
+
+func (fs *KBFSOpsStandard) readyBlockMultiple(currBlock Block, bps *blockPutState,
+	md *RootMetadata, tlfCryptKey TLFCryptKey, user libkb.UID) (
+	plainSize int, blockPtr BlockPointer, err error) {
+	id, plainSize, buf, err := fs.readyBlock(currBlock, tlfCryptKey)
+	if err != nil {
 		return
 	}
 
@@ -437,7 +449,7 @@ func (fs *KBFSOpsStandard) readyBlock(currBlock Block, bps *blockPutState,
 }
 
 func (fs *KBFSOpsStandard) unembedBlockChanges(bps *blockPutState,
-	md *RootMetadata, changes *BlockChanges, encryptKey Key,
+	md *RootMetadata, changes *BlockChanges, tlfCryptKey TLFCryptKey,
 	user libkb.UID) (err error) {
 	buf, err := fs.config.Codec().Encode(changes.Changes)
 	if err != nil {
@@ -446,7 +458,7 @@ func (fs *KBFSOpsStandard) unembedBlockChanges(bps *blockPutState,
 	block := NewFileBlock().(*FileBlock)
 	block.Contents = buf
 	var blockPtr BlockPointer
-	_, blockPtr, err = fs.readyBlock(block, bps, md, encryptKey, user)
+	_, blockPtr, err = fs.readyBlockMultiple(block, bps, md, tlfCryptKey, user)
 	if err != nil {
 		return
 	}
@@ -470,7 +482,7 @@ func (fs *KBFSOpsStandard) syncBlockInChannel(
 	if err != nil {
 		return Path{}, DirEntry{}, err
 	}
-	encryptKey, err := fs.config.KeyManager().GetSecretKey(dir, md)
+	tlfCryptKey, err := fs.config.KeyManager().GetTLFCryptKey(dir, md)
 	if err != nil {
 		return Path{}, DirEntry{}, err
 	}
@@ -485,7 +497,7 @@ func (fs *KBFSOpsStandard) syncBlockInChannel(
 	var newDe DirEntry
 	for len(newPath.Path) < len(dir.Path)+1 {
 		plainSize, blockPtr, err :=
-			fs.readyBlock(currBlock, bps, md, encryptKey, user)
+			fs.readyBlockMultiple(currBlock, bps, md, tlfCryptKey, user)
 		if err != nil {
 			return Path{}, DirEntry{}, err
 		}
@@ -587,14 +599,14 @@ func (fs *KBFSOpsStandard) syncBlockInChannel(
 	bsplit := fs.config.BlockSplitter()
 	if !bsplit.ShouldEmbedBlockChanges(&md.data.RefBlocks) {
 		err = fs.unembedBlockChanges(bps, md, &md.data.RefBlocks,
-			encryptKey, user)
+			tlfCryptKey, user)
 		if err != nil {
 			return Path{}, DirEntry{}, err
 		}
 	}
 	if !bsplit.ShouldEmbedBlockChanges(&md.data.UnrefBlocks) {
 		err = fs.unembedBlockChanges(bps, md, &md.data.UnrefBlocks,
-			encryptKey, user)
+			tlfCryptKey, user)
 		if err != nil {
 			return Path{}, DirEntry{}, err
 		}
@@ -1100,7 +1112,10 @@ func (fs *KBFSOpsStandard) getEntryInChannel(file Path) (
 
 func (fs *KBFSOpsStandard) newRightBlockInChannel(
 	id BlockId, pblock *FileBlock, off int64, md *RootMetadata) error {
-	newRId := RandBlockId()
+	newRId, err := fs.config.Crypto().MakeRandomBlockId()
+	if err != nil {
+		return err
+	}
 	user, err := fs.config.KBPKI().GetLoggedInUser()
 	if err != nil {
 		return err
@@ -1174,7 +1189,10 @@ func (fs *KBFSOpsStandard) writeDataInChannel(
 			if id == file.TailPointer().Id {
 				// pick a new id for this block, and use this block's ID for
 				// the parent
-				newId := RandBlockId()
+				newId, err := fs.config.Crypto().MakeRandomBlockId()
+				if err != nil {
+					return err
+				}
 				fblock = &FileBlock{
 					CommonBlock: CommonBlock{
 						IsInd: true,
@@ -1552,14 +1570,11 @@ func (fs *KBFSOpsStandard) syncInChannel(file Path) (Path, error) {
 			}
 		}
 
-		encryptKey, err := fs.config.KeyManager().GetSecretKey(file, md)
+		tlfCryptKey, err := fs.config.KeyManager().GetTLFCryptKey(file, md)
 		if err != nil {
 			return Path{}, err
 		}
 		bops := fs.config.BlockOps()
-		kops := fs.config.KeyOps()
-		crypto := fs.config.Crypto()
-		kcache := fs.config.KeyCache()
 		for i, ptr := range fblock.IPtrs {
 			// TODO: parallelize these?
 			isDirty := bcache.IsDirty(ptr.Id)
@@ -1573,30 +1588,17 @@ func (fs *KBFSOpsStandard) syncInChannel(file Path) (Path, error) {
 					return Path{}, err
 				}
 
-				// new key for the block
-				blockServKey := crypto.GenRandomSecretKey()
-				blockKey, err := crypto.XOR(blockServKey, encryptKey)
+				id, _, buf, err := fs.readyBlock(block, tlfCryptKey)
 				if err != nil {
 					return Path{}, err
 				}
 
-				// ready/finalize/put the block
-				id, _, buf, err := bops.Ready(block, blockKey)
-				if err != nil {
-					return Path{}, err
-				}
 				bcache.Finalize(ptr.Id, id)
 				fblock.IPtrs[i].QuotaSize = uint32(len(buf))
 				fblock.IPtrs[i].Id = id
 				fblock.IPtrs[i].Writer = user
 				md.AddRefBlock(file, fblock.IPtrs[i].BlockPointer)
 				if err := bops.Put(id, &fblock.IPtrs[i], buf); err != nil {
-					return Path{}, err
-				}
-
-				if err := kops.PutBlockKey(id, blockServKey); err != nil {
-					return Path{}, err
-				} else if err := kcache.PutBlockKey(id, blockKey); err != nil {
 					return Path{}, err
 				}
 			}

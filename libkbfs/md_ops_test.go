@@ -44,8 +44,8 @@ func newDir(config *ConfigMock, x byte, share bool, public bool) (
 	rmds := &RootMetadataSigned{}
 	if public || !share {
 		rmds.Sig = []byte{42}
-		key := NewFakeVerifyingKeyOrBust("fake key")
-		rmds.VerifyingKeyKid = KID(key.GetKid())
+		key := MakeFakeVerifyingKeyOrBust("fake key")
+		rmds.VerifyingKey = key
 	} else {
 		rmds.Macs = make(map[libkb.UID][]byte)
 		rmds.Macs[h.Writers[0]] = []byte{42}
@@ -61,36 +61,31 @@ func verifyMDForPrivateShare(config *ConfigMock, rmds *RootMetadataSigned,
 	id DirId) {
 	packedData := []byte{4, 3, 2, 1}
 
-	expectGetSecretKey(config, &rmds.MD)
-	config.mockCrypto.EXPECT().Decrypt(
-		rmds.MD.SerializedPrivateMetadata, nil).Return(packedData, nil)
+	expectGetTLFCryptKey(config, &rmds.MD)
+	config.mockCrypto.EXPECT().DecryptPrivateMetadata(
+		rmds.MD.SerializedPrivateMetadata, TLFCryptKey{}).Return(packedData, nil)
 	config.mockCodec.EXPECT().Decode(packedData, gomock.Any()).
 		Return(nil)
 	config.mockCodec.EXPECT().Encode(gomock.Any()).Return(packedData, nil)
-	config.mockKops.EXPECT().GetPublicMacKey(rmds.MD.data.LastWriter, nil).
-		Return(nil, nil)
-	config.mockKops.EXPECT().GetMyPrivateMacKey(nil).Return(nil, nil)
-	config.mockCrypto.EXPECT().SharedSecret(nil, nil).
-		Return(nil, nil)
-	config.mockCrypto.EXPECT().VerifyHMAC(
-		nil, packedData, gomock.Any()).Return(nil)
+	config.mockKops.EXPECT().GetMacPublicKey(rmds.MD.data.LastWriter).
+		Return(MacPublicKey{}, nil)
+	config.mockCrypto.EXPECT().VerifyMAC(
+		MacPublicKey{}, packedData, gomock.Any()).Return(nil)
 }
 
 func verifyMDForPublicShare(config *ConfigMock, rmds *RootMetadataSigned,
-	id DirId, verifyKey Key, verifyErr error) {
+	id DirId, hasVerifyingKeyErr error, verifyErr error) {
 	packedData := []byte{4, 3, 2, 1}
 
-	expectGetSecretKey(config, &rmds.MD)
-	config.mockCrypto.EXPECT().Decrypt(
-		rmds.MD.SerializedPrivateMetadata, nil).Return(packedData, nil)
+	expectGetTLFCryptKey(config, &rmds.MD)
+	config.mockCrypto.EXPECT().DecryptPrivateMetadata(
+		rmds.MD.SerializedPrivateMetadata, TLFCryptKey{}).Return(packedData, nil)
 	config.mockCodec.EXPECT().Decode(packedData, gomock.Any()).
 		Return(nil)
 	config.mockCodec.EXPECT().Encode(gomock.Any()).Return(packedData, nil)
-	if verifyKey != nil {
-		config.mockKbpki.EXPECT().GetDeviceSibkeys(gomock.Any()).AnyTimes().Return([]Key{verifyKey}, nil)
-		config.mockCrypto.EXPECT().Verify(rmds.Sig, packedData, verifyKey).Return(verifyErr)
-	} else {
-		config.mockKbpki.EXPECT().GetDeviceSibkeys(gomock.Any()).AnyTimes().Return([]Key{}, nil)
+	config.mockKbpki.EXPECT().HasVerifyingKey(gomock.Any(), gomock.Any()).AnyTimes().Return(hasVerifyingKeyErr)
+	if hasVerifyingKeyErr == nil {
+		config.mockCrypto.EXPECT().Verify(rmds.Sig, packedData, gomock.Any()).Return(verifyErr)
 	}
 }
 
@@ -101,17 +96,14 @@ func putMDForPrivateShare(config *ConfigMock, rmds *RootMetadataSigned,
 
 	config.mockCodec.EXPECT().Encode(gomock.Any()).Return(packedData, nil).
 		Times(2)
-	expectGetSecretKey(config, &rmds.MD)
-	config.mockCrypto.EXPECT().Encrypt(
-		packedData, nil).Return(packedData, nil)
-	config.mockKops.EXPECT().GetMyPrivateMacKey(nil).Return(nil, nil)
+	expectGetTLFCryptKey(config, &rmds.MD)
+	config.mockCrypto.EXPECT().EncryptPrivateMetadata(
+		packedData, TLFCryptKey{}).Return(packedData, nil)
 
 	// Make a MAC for each writer
-	config.mockKops.EXPECT().GetPublicMacKey(gomock.Any(), nil).
-		Times(2).Return(nil, nil)
-	config.mockCrypto.EXPECT().SharedSecret(nil, nil).
-		Times(2).Return(nil, nil)
-	config.mockCrypto.EXPECT().HMAC(nil, packedData).
+	config.mockKops.EXPECT().GetMacPublicKey(gomock.Any()).
+		Times(2).Return(MacPublicKey{}, nil)
+	config.mockCrypto.EXPECT().MAC(MacPublicKey{}, packedData).
 		Times(2).Return(packedData, nil)
 
 	// get the MD id, and test that it actually gets set in the metadata
@@ -151,8 +143,7 @@ func TestMDOpsGetAtHandlePublicSuccess(t *testing.T) {
 	id, h, rmds := newDir(config, 1, false, true)
 
 	config.mockMdserv.EXPECT().GetAtHandle(h).Return(rmds, nil)
-	key := NewFakeVerifyingKeyOrBust("fake key")
-	verifyMDForPublicShare(config, rmds, id, key, nil)
+	verifyMDForPublicShare(config, rmds, id, nil, nil)
 
 	if rmd2, err := config.MDOps().GetAtHandle(h); err != nil {
 		t.Errorf("Got error on get: %v", err)
@@ -172,7 +163,7 @@ func TestMDOpsGetAtHandlePublicFailFindKey(t *testing.T) {
 
 	config.mockMdserv.EXPECT().GetAtHandle(h).Return(rmds, nil)
 
-	verifyMDForPublicShare(config, rmds, id, nil, nil)
+	verifyMDForPublicShare(config, rmds, id, KeyNotFoundError{}, nil)
 
 	_, err := config.MDOps().GetAtHandle(h)
 	if _, ok := err.(KeyNotFoundError); !ok {
@@ -190,8 +181,7 @@ func TestMDOpsGetAtHandlePublicFailVerify(t *testing.T) {
 	config.mockMdserv.EXPECT().GetAtHandle(h).Return(rmds, nil)
 
 	verifyErr := errors.New("Test verification error")
-	key := NewFakeVerifyingKeyOrBust("fake key")
-	verifyMDForPublicShare(config, rmds, id, key, verifyErr)
+	verifyMDForPublicShare(config, rmds, id, nil, verifyErr)
 
 	if _, err := config.MDOps().GetAtHandle(h); err != verifyErr {
 		t.Errorf("Got unexpected error on get: %v", err)

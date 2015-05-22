@@ -16,6 +16,8 @@ type KBPKIClient struct {
 	client keybase1.GenericClient
 }
 
+var _ KBPKI = (*KBPKIClient)(nil)
+
 // NewKBPKIClient creates a KBPKIClient.
 func NewKBPKIClient(ctx *libkb.GlobalContext) (*KBPKIClient, error) {
 	_, xp, err := ctx.GetSocket()
@@ -58,8 +60,7 @@ func (k *KBPKIClient) ResolveAssertion(username string) (*libkb.User, error) {
 
 // GetUser finds a user via UID.
 func (k *KBPKIClient) GetUser(uid libkb.UID) (user *libkb.User, err error) {
-	arg := &engine.IDEngineArg{UserAssertion: fmt.Sprintf("uid:%s", uid)}
-	user, _, err = k.identify(arg)
+	user, _, err = k.identifyByUID(uid)
 	return user, err
 }
 
@@ -92,27 +93,39 @@ func (k *KBPKIClient) GetLoggedInUser() (libkb.UID, error) {
 	return *uid, nil
 }
 
-func (k *KBPKIClient) GetDeviceSibkeys(user *libkb.User) (
-	keys []Key, err error) {
-	return k.getDeviceKeysHelper(user, true /* isSibkey */)
+func (k *KBPKIClient) HasVerifyingKey(uid libkb.UID, verifyingKey VerifyingKey) error {
+	_, publicKeys, err := k.identifyByUID(uid)
+	if err != nil {
+		return err
+	}
+
+	for _, publicKey := range publicKeys {
+		if !publicKey.IsSibkey || len(publicKey.PGPFingerprint) > 0 {
+			continue
+		}
+		kid, err := libkb.ImportKID(publicKey.KID)
+		if err != nil {
+			return err
+		}
+		if verifyingKey.KID.Eq(kid) {
+			libkb.G.Log.Debug("found verifying key %s for user %s", verifyingKey.KID, uid)
+			return nil
+		}
+	}
+
+	return KeyNotFoundError{verifyingKey.KID}
 }
 
-func (k *KBPKIClient) GetDeviceSubkeys(user *libkb.User) (
-	keys []Key, err error) {
-	return k.getDeviceKeysHelper(user, false /* isSibkey */)
-}
-
-func (k *KBPKIClient) getDeviceKeysHelper(user *libkb.User, isSibkey bool) (
-	keys []Key, err error) {
-	arg := &engine.IDEngineArg{UserAssertion: fmt.Sprintf("uid:%s", user.GetUID())}
-	_, publicKeys, err := k.identify(arg)
+func (k *KBPKIClient) GetCryptPublicKeys(uid libkb.UID) (
+	keys []CryptPublicKey, err error) {
+	_, publicKeys, err := k.identifyByUID(uid)
 	if err != nil {
 		return nil, err
 	}
 
-	keys = make([]Key, 0, len(publicKeys))
+	keys = make([]CryptPublicKey, 0, len(publicKeys))
 	for _, publicKey := range publicKeys {
-		if (publicKey.IsSibkey != isSibkey) || len(publicKey.PGPFingerprint) > 0 {
+		if publicKey.IsSibkey || len(publicKey.PGPFingerprint) > 0 {
 			continue
 		}
 		kid, err := libkb.ImportKID(publicKey.KID)
@@ -123,26 +136,20 @@ func (k *KBPKIClient) getDeviceKeysHelper(user *libkb.User, isSibkey bool) (
 		if err != nil {
 			return nil, err
 		}
-		var keyType string
-		if isSibkey {
-			keyType = "sibkey"
-		} else {
-			keyType = "subkey"
-		}
-		libkb.G.Log.Debug("got %s %s for user %s", keyType, key.VerboseDescription(), user.GetName())
-		keys = append(keys, key)
+		libkb.G.Log.Debug("got crypt public key %s for user %s", key.VerboseDescription(), uid)
+		keys = append(keys, CryptPublicKey{key.GetKid()})
 	}
 
 	return keys, nil
 }
 
-func (k *KBPKIClient) GetDeviceSubkey() (Key, error) {
+func (k *KBPKIClient) GetCurrentCryptPublicKey() (CryptPublicKey, error) {
 	_, deviceSubkey, err := k.session()
 	if err != nil {
-		return nil, err
+		return CryptPublicKey{}, err
 	}
-	libkb.G.Log.Debug("got device subkey %s", libkb.KID(deviceSubkey.GetKid()).ToShortIdString())
-	return deviceSubkey, nil
+	libkb.G.Log.Debug("got device subkey %s", deviceSubkey.GetKid().ToShortIdString())
+	return CryptPublicKey{deviceSubkey.GetKid()}, nil
 }
 
 func (k *KBPKIClient) identify(arg *engine.IDEngineArg) (*libkb.User, []keybase1.PublicKey, error) {
@@ -156,7 +163,12 @@ func (k *KBPKIClient) identify(arg *engine.IDEngineArg) (*libkb.User, []keybase1
 	return libkb.NewUserThin(res.User.Username, libkb.UID(res.User.Uid)), res.User.PublicKeys, nil
 }
 
-func (k *KBPKIClient) session() (session *libkb.Session, deviceSubkey Key, err error) {
+func (k *KBPKIClient) identifyByUID(uid libkb.UID) (*libkb.User, []keybase1.PublicKey, error) {
+	arg := &engine.IDEngineArg{UserAssertion: fmt.Sprintf("uid:%s", uid)}
+	return k.identify(arg)
+}
+
+func (k *KBPKIClient) session() (session *libkb.Session, deviceSubkey libkb.GenericKey, err error) {
 	c := keybase1.SessionClient{k.client}
 	res, err := c.CurrentSession()
 	if err != nil {

@@ -8,69 +8,52 @@ type BlockOpsStandard struct {
 	config Config
 }
 
+var _ BlockOps = (*BlockOpsStandard)(nil)
+
 func (b *BlockOpsStandard) Get(
-	id BlockId, context BlockContext, decryptKey Key, block Block) (
-	err error) {
+	id BlockId, context BlockContext, cryptKey BlockCryptKey, block Block) error {
 	bserv := b.config.BlockServer()
-	// TODO: use server-side block key half along with directory
-	// secret key
-	var buf []byte
-	if buf, err = bserv.Get(id, context); err == nil {
-		if context.GetQuotaSize() != uint32(len(buf)) {
-			err = &InconsistentByteCountError{
-				ExpectedByteCount: int(context.GetQuotaSize()),
-				ByteCount:         len(buf),
-			}
-			return
-		}
-		// decrypt the block and unmarshal it
-		crypto := b.config.Crypto()
-		var debuf []byte
-		// TODO: use server-side block key half along with directory
-		// secret key
-		if debuf, err = crypto.Decrypt(buf, decryptKey); err == nil {
-			if len(debuf) > len(buf) {
-				err = &TooHighByteCountError{
-					ExpectedMaxByteCount: len(buf),
-					ByteCount:            len(debuf),
-				}
-				return
-			}
-			err = b.config.Codec().Decode(debuf, block)
-		}
+	buf, err := bserv.Get(id, context)
+	if err != nil {
+		return err
 	}
-	return
+	if context.GetQuotaSize() != uint32(len(buf)) {
+		err = &InconsistentByteCountError{
+			ExpectedByteCount: int(context.GetQuotaSize()),
+			ByteCount:         len(buf),
+		}
+		return err
+	}
+
+	// decrypt the block.
+	return b.config.Crypto().DecryptBlock(buf, cryptKey, block)
 }
 
 func (b *BlockOpsStandard) Ready(
-	block Block, encryptKey Key) (id BlockId, plainSize int, buf []byte, err error) {
-	// TODO: add padding
-	// first marshal the block
-	var plainbuf []byte
-	if plainbuf, err = b.config.Codec().Encode(block); err != nil {
-		return
-	}
-
-	// then encrypt it
+	block Block, cryptKey BlockCryptKey) (id BlockId, plainSize int, buf []byte, err error) {
+	defer func() {
+		if err != nil {
+			id = BlockId{}
+			plainSize = 0
+			buf = nil
+		}
+	}()
 	crypto := b.config.Crypto()
-	// TODO: use server-side block key half along with directory
-	// secret key
-	var enbuf []byte
-	if enbuf, err = crypto.Encrypt(plainbuf, encryptKey); err != nil {
+	if plainSize, buf, err = crypto.EncryptBlock(block, cryptKey); err != nil {
 		return
 	}
 
-	if len(enbuf) < len(plainbuf) {
+	if len(buf) < plainSize {
 		err = &TooLowByteCountError{
-			ExpectedMinByteCount: len(plainbuf),
-			ByteCount:            len(enbuf),
+			ExpectedMinByteCount: plainSize,
+			ByteCount:            len(buf),
 		}
 		return
 	}
 
 	// now get the block ID for the buffer
 	var h libkb.NodeHash
-	if h, err = crypto.Hash(enbuf); err != nil {
+	if h, err = crypto.Hash(buf); err != nil {
 		return
 	}
 
@@ -82,8 +65,6 @@ func (b *BlockOpsStandard) Ready(
 	}
 
 	id = BlockId(nhs)
-	plainSize = len(plainbuf)
-	buf = enbuf
 	return
 }
 

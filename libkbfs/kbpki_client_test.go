@@ -2,9 +2,10 @@ package libkbfs
 
 import (
 	"fmt"
+	"testing"
+
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/protocol/go"
-	"testing"
 )
 
 type FakeKBPKIClient struct {
@@ -40,7 +41,7 @@ func (fc FakeKBPKIClient) Call(s string, args interface{}, res interface{}) erro
 			return err
 		}
 
-		deviceSubkey, err := fc.Local.GetDeviceSubkey()
+		deviceSubkey, err := fc.Local.GetCurrentCryptPublicKey()
 		if err != nil {
 			return err
 		}
@@ -48,7 +49,7 @@ func (fc FakeKBPKIClient) Call(s string, args interface{}, res interface{}) erro
 		session := res.(*keybase1.Session)
 		session.Uid = keybase1.UID(user.GetUID())
 		session.Username = user.GetName()
-		session.DeviceSubkeyKid = deviceSubkey.GetKid().String()
+		session.DeviceSubkeyKid = deviceSubkey.KID.String()
 
 	default:
 		return fmt.Errorf("Unknown call: %s %v %v", s, args, res)
@@ -57,12 +58,9 @@ func (fc FakeKBPKIClient) Call(s string, args interface{}, res interface{}) erro
 }
 
 func TestKBPKIClientResolveAssertion(t *testing.T) {
-	fc := NewFakeKBPKIClient(libkb.UID{1}, []LocalUser{
-		LocalUser{
-			Name: "pc",
-			Uid:  libkb.UID{1},
-		},
-	})
+	users := []string{"pc"}
+	expectedUid := libkb.UID{1}
+	fc := NewFakeKBPKIClient(expectedUid, MakeLocalUsers(users))
 	c := newKBPKIClientWithClient(nil, fc)
 
 	u, err := c.ResolveAssertion("pc")
@@ -75,12 +73,8 @@ func TestKBPKIClientResolveAssertion(t *testing.T) {
 }
 
 func TestKBPKIClientGetUser(t *testing.T) {
-	fc := NewFakeKBPKIClient(libkb.UID{1}, []LocalUser{
-		LocalUser{
-			Name: "test_name",
-			Uid:  libkb.UID{1},
-		},
-	})
+	users := []string{"test_name"}
+	fc := NewFakeKBPKIClient(libkb.UID{1}, MakeLocalUsers(users))
 	c := newKBPKIClientWithClient(nil, fc)
 
 	u, err := c.GetUser(libkb.UID{1})
@@ -92,79 +86,59 @@ func TestKBPKIClientGetUser(t *testing.T) {
 	}
 }
 
-func TestKBPKIClientGetDeviceKeys(t *testing.T) {
-	sibkey, err := libkb.GenerateNaclSigningKeyPair()
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	subkey, err := libkb.GenerateNaclSigningKeyPair()
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	fc := NewFakeKBPKIClient(libkb.UID{1}, []LocalUser{
-		LocalUser{
-			Name:    "test_name",
-			Uid:     libkb.UID{1},
-			Sibkeys: []Key{sibkey},
-			Subkeys: []Key{subkey},
-		},
-	})
+func TestKBPKIClientHasVerifyingKey(t *testing.T) {
+	users := []string{"test_name"}
+	localUsers := MakeLocalUsers(users)
+	fc := NewFakeKBPKIClient(libkb.UID{1}, localUsers)
 	c := newKBPKIClientWithClient(nil, fc)
 
-	sibkeys, err := c.GetDeviceSibkeys(libkb.NewUserThin("unused_name", libkb.UID{1}))
+	err := c.HasVerifyingKey(libkb.UID{1}, localUsers[0].VerifyingKeys[0])
 	if err != nil {
-		t.Fatal(err)
+		t.Error(err)
 	}
 
-	if len(sibkeys) != 1 {
-		t.Fatalf("Expected 1 sibkey, got %d", len(sibkeys))
-	}
-
-	if !sibkeys[0].GetKid().Eq(sibkey.GetKid()) {
-		t.Errorf("Expected %s, got %s", sibkey.GetKid(), sibkeys[0].GetKid())
-	}
-
-	subkeys, err := c.GetDeviceSubkeys(libkb.NewUserThin("unused_name", libkb.UID{1}))
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	if len(subkeys) != 1 {
-		t.Fatalf("Expected 1 subkey, got %d", len(subkeys))
-	}
-
-	if !subkeys[0].GetKid().Eq(subkey.GetKid()) {
-		t.Errorf("Expected %s, got %s", subkey.GetKid(), subkeys[0].GetKid())
+	err = c.HasVerifyingKey(libkb.UID{1}, VerifyingKey{})
+	if err == nil {
+		t.Error("HasVerifyingKey unexpectedly succeeded")
 	}
 }
 
-func TestKBPKIClientGetDeviceSubkey(t *testing.T) {
-	subkey1 := NewFakeBoxPublicKeyOrBust("subkey1")
-	subkey2 := NewFakeBoxPublicKeyOrBust("subkey2")
-	fc := NewFakeKBPKIClient(libkb.UID{2}, []LocalUser{
-		LocalUser{
-			Name:         "test_name1",
-			Uid:          libkb.UID{1},
-			DeviceSubkey: subkey1,
-		},
-		LocalUser{
-			Name:         "test_name2",
-			Uid:          libkb.UID{2},
-			DeviceSubkey: subkey2,
-		},
-	})
+func TestKBPKIClientGetCryptPublicKeys(t *testing.T) {
+	users := []string{"test_name"}
+	localUsers := MakeLocalUsers(users)
+	fc := NewFakeKBPKIClient(libkb.UID{1}, localUsers)
 	c := newKBPKIClientWithClient(nil, fc)
 
-	deviceSubkey, err := c.GetDeviceSubkey()
+	cryptPublicKeys, err := c.GetCryptPublicKeys(libkb.UID{1})
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	expectedKid := libkb.KID(subkey2.GetKid())
-	kid := libkb.KID(deviceSubkey.GetKid())
-	if !kid.Eq(expectedKid) {
-		t.Errorf("Expected %s, got %s", expectedKid, kid)
+	if len(cryptPublicKeys) != 1 {
+		t.Fatalf("Expected 1 crypt public key, got %d", len(cryptPublicKeys))
+	}
+
+	kid := cryptPublicKeys[0].KID
+	expectedKID := localUsers[0].CryptPublicKeys[0].KID
+	if !kid.Eq(expectedKID) {
+		t.Errorf("Expected %s, got %s", expectedKID, kid)
+	}
+}
+
+func TestKBPKIClientGetCurrentCryptPublicKey(t *testing.T) {
+	users := []string{"test_name1", "test_name2"}
+	localUsers := MakeLocalUsers(users)
+	fc := NewFakeKBPKIClient(libkb.UID{2}, localUsers)
+	c := newKBPKIClientWithClient(nil, fc)
+
+	currPublicKey, err := c.GetCurrentCryptPublicKey()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	kid := currPublicKey.KID
+	expectedKID := localUsers[1].GetCurrentCryptPublicKey().KID
+	if !kid.Eq(expectedKID) {
+		t.Errorf("Expected %s, got %s", expectedKID, kid)
 	}
 }

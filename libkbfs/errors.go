@@ -114,7 +114,7 @@ type NotDirError struct {
 
 func (e *NotDirError) Error() string {
 	return fmt.Sprintf("%s is not a directory (in folder %s)",
-		e.Path, e.Path.TopDir)
+		&e.Path, e.Path.TopDir)
 }
 
 type NotFileError struct {
@@ -271,9 +271,9 @@ func (e *WriteNeededInReadRequest) Error() string {
 }
 
 type KeyNotFoundError struct {
-	kid KID
+	kid libkb.KID
 }
 
 func (e KeyNotFoundError) Error() string {
-	return fmt.Sprintf("Could not find key with kid=%s", libkb.KID(e.kid))
+	return fmt.Sprintf("Could not find key with kid=%s", e.kid)
 }

@@ -93,8 +93,8 @@ func kbfsOpsConcurInit(users []string) (Config, libkb.UID) {
 	// TODO: Consider using fake BlockOps and MDOps instead.
 	config.SetKBPKI(kbpki)
 
-	signingKey := GetLocalUserSigningKey(loggedInUser.Name)
-	crypto := NewCryptoLocal(signingKey)
+	signingKey := MakeLocalUserSigningKeyOrBust(loggedInUser.Name)
+	crypto := NewCryptoLocal(config.Codec(), signingKey)
 	config.SetCrypto(crypto)
 
 	config.SetBlockServer(NewFakeBlockServer())

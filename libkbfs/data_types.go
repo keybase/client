@@ -2,7 +2,6 @@ package libkbfs
 
 import (
 	"bytes"
-	"crypto/rand"
 	"encoding/hex"
 	"fmt"
 	"sort"
@@ -40,13 +39,80 @@ var ReaderSep string = "#"
 var PublicUid libkb.UID = GetPublicUid()
 var PublicName string = "public"
 
-type HMAC []byte
+// All section references below are to https://keybase.io/blog/crypto
+// (version 1.3).
 
-type Key libkb.GenericKey
+// A VerifyingKey is a public key that can be used to verify a
+// signature created by the corresponding private signing key. In
+// particular, VerifyingKeys are used to authenticate home and public
+// TLFs. (See 4.2, 4.3.)
+//
+// These are also sometimes known as sibkeys.
+type VerifyingKey struct {
+	KID libkb.KID
+}
 
-// TODO: Just use libkb.KID everywhere, to avoid casting (and also to
-// be able to use methods defined for libkb.KID).
-type KID libkb.KID
+// A TLFPrivateKey-TLFPublicKey pair (M_f, m_f) is the permanent
+// keypair associated with a TLF. It is included in the site-wide
+// private-data Merkle tree. (See 4.1.1, 5.3.)
+
+type TLFPrivateKey struct {
+}
+
+type TLFPublicKey struct {
+}
+
+// A TLFEphemeralPrivateKey (m_e) and a CryptPublicKey (M_u^i) are
+// both used to encrypt TLFCryptKeyClientHalf objects (t_u^{f,0,i})
+// for non-public directories. (See 4.1.1.)
+
+type TLFEphemeralPrivateKey struct {
+}
+
+// These are also sometimes known as subkeys.
+type CryptPublicKey struct {
+	KID libkb.KID
+}
+
+// A TLFEphemeralPublicKey (M_e) is used along with a crypt private
+// key to decrypt TLFCryptKeyClientHalf objects (t_u^{f,0,i}) for
+// non-public directories. (See 4.1.1.)
+
+type TLFEphemeralPublicKey struct {
+}
+
+// A TLFCryptKeyServerHalf (s_u^{f,0,i}) and a TLFCryptKeyClientHalf
+// (t_u^{f,0,i}) are both masked versions of a TLFCryptKey, which can
+// be recovered only with both halves. (See 4.1.1.)
+
+type TLFCryptKeyServerHalf struct {
+}
+
+type TLFCryptKeyClientHalf struct {
+}
+
+// A TLFCryptKey (s^{f,0}) is used to encrypt/decrypt the private
+// portion of TLF metadata. It is also used to mask
+// BlockCryptKeys. (See 4.1.1, 4.1.2.)
+type TLFCryptKey struct {
+}
+
+// A BlockCryptKeyServerHalf is a masked version of a BlockCryptKey,
+// which can be recovered only with the TLFCryptKey used to mask the
+// server half. (Note: this will be changed to match 4.1.2).
+type BlockCryptKeyServerHalf struct {
+}
+
+// A BlockCryptKey is used to encrypt/decrypt block data. (See 4.1.2.)
+type BlockCryptKey struct {
+}
+
+// A MacPublicKey (along with a private key) is used to compute and
+// verify MACs. (See 4.1.3.)
+type MacPublicKey struct {
+}
+
+type MAC []byte
 
 // type of hash key for each data block
 type BlockId libkb.NodeHashShort
@@ -58,13 +124,6 @@ type MDId libkb.NodeHashShort
 
 var NullMDId MDId = MDId{0}
 var NullDirId DirId = DirId{0}
-
-func RandBlockId() BlockId {
-	var id BlockId
-	// TODO: deal with errors?
-	rand.Read(id[:])
-	return id
-}
 
 type KeyVer int
 type Ver int
@@ -339,8 +398,8 @@ type RootMetadataSigned struct {
 	// signature over the root metadata by the private signing key
 	// (for "home" folders and public folders)
 	Sig []byte `codec:",omitempty"`
-	// The KID of a key that can verify Sig.
-	VerifyingKeyKid KID `codec:",omitempty"`
+	// The key that can verify Sig.
+	VerifyingKey VerifyingKey `codec:",omitempty"`
 	// pairwise MAC of the last writer with all readers and writers
 	// (for private shares)
 	Macs map[libkb.UID][]byte `codec:",omitempty"`
@@ -356,13 +415,23 @@ func (rmds *RootMetadataSigned) IsInitialized() bool {
 // DirKeyBundle is a bundle of all the keys for a directory
 type DirKeyBundle struct {
 	// Symmetric secret key, encrypted for each writer's device
-	// (identified by the KID of the corresponding device key).
+	// (identified by the KID of the corresponding device CryptPublicKey).
 	WKeys map[libkb.UID]map[libkb.KIDMapKey][]byte
 	// Symmetric secret key, encrypted for each reader's device
-	// (identified by the KID of the corresponding device key).
+	// (identified by the KID of the corresponding device CryptPublicKey).
 	RKeys map[libkb.UID]map[libkb.KIDMapKey][]byte
-	// public encryption key
-	PubKey Key
+
+	// M_f as described in 4.1.1 of https://keybase.io/blog/crypto
+	// .
+	TLFPublicKey TLFPublicKey `codec:"pubKey"`
+
+	// M_e as described in 4.1.1 of https://keybase.io/blog/crypto
+	// .
+	//
+	// TODO: Prepend M_e to all entries of WKeys and RKeys above
+	// instead, so that we have the freedom to pick different
+	// ephemeral keys.
+	TLFEphemeralPublicKey TLFEphemeralPublicKey `codec:"ePubKey"`
 }
 
 // RootMetadata is the MD that is signed by the writer
@@ -449,10 +518,10 @@ type PrivateMetadata struct {
 	Dir DirEntry
 	// the last KB user who wrote this metadata
 	LastWriter libkb.UID
-	// The private encryption key for the current key ID, in case a
-	// new device needs to be provisioned.  Once the folder is
-	// rekeyed, this can be overwritten.
-	PrivKey Key
+
+	// m_f as described in 4.1.1 of https://keybase.io/blog/crypto
+	// .
+	TLFPrivateKey TLFPrivateKey
 	// The blocks that were added during the update that created this MD
 	RefBlocks BlockChanges
 	// The blocks that were unref'd during the update that created this MD
@@ -483,25 +552,20 @@ func (md *RootMetadata) Data() *PrivateMetadata {
 	return &md.data
 }
 
-func (md *RootMetadata) GetEncryptedSecretKey(
-	keyVer KeyVer, user libkb.UID, deviceSubkeyKid KID) (
+func (md *RootMetadata) GetEncryptedTLFCryptKeyClientHalfData(
+	keyVer KeyVer, user libkb.UID, currentCryptPublicKey CryptPublicKey) (
 	buf []byte, ok bool) {
-	if len(md.Keys[keyVer].WKeys) == 0 {
-		// must be a public directory
-		ok = true
-	} else {
-		key := libkb.KID(deviceSubkeyKid).ToMapKey()
-		if u, ok1 := md.Keys[keyVer].WKeys[user]; ok1 {
-			buf, ok = u[key]
-		} else if u, ok1 = md.Keys[keyVer].RKeys[user]; ok1 {
-			buf, ok = u[key]
-		}
+	key := currentCryptPublicKey.KID.ToMapKey()
+	if u, ok1 := md.Keys[keyVer].WKeys[user]; ok1 {
+		buf, ok = u[key]
+	} else if u, ok1 = md.Keys[keyVer].RKeys[user]; ok1 {
+		buf, ok = u[key]
 	}
 	return
 }
 
-func (md *RootMetadata) GetPubKey(keyVer KeyVer) Key {
-	return md.Keys[keyVer].PubKey
+func (md *RootMetadata) GetTLFEphemeralPublicKey(keyVer KeyVer) TLFEphemeralPublicKey {
+	return md.Keys[keyVer].TLFEphemeralPublicKey
 }
 
 func (md *RootMetadata) LatestKeyVersion() KeyVer {
