@@ -152,13 +152,13 @@ func (c *ChainLink) GetPayloadJson() *jsonw.Wrapper {
 	return c.payloadJson
 }
 
-func (c *ChainLink) GetProofState0() int {
+func (c *ChainLink) GetProofState0() keybase1.ProofState {
 	if c.lastChecked == nil {
-		return PROOF_STATE_NONE
+		return keybase1.ProofState_NONE
 	} else if c.lastChecked.Status == nil {
-		return PROOF_STATE_OK
+		return keybase1.ProofState_OK
 	} else {
-		return PROOF_STATE_TEMP_FAILURE
+		return keybase1.ProofState_TEMP_FAILURE
 	}
 }
 

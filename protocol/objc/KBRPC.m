@@ -328,7 +328,7 @@
 
 @end
 
-@implementation KBRProofStatus
+@implementation KBRProofResult
 @end
 
 @implementation KBRIdentifyRow

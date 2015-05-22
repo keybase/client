@@ -205,7 +205,7 @@ func (w LinkCheckResultWrapper) GetDiff() *keybase1.TrackDiff {
 }
 
 func (w LinkCheckResultWrapper) GetError() error {
-	return libkb.ImportProofError(w.lcr.ProofStatus)
+	return libkb.ImportProofError(w.lcr.ProofResult)
 }
 
 type SigHintWrapper struct {

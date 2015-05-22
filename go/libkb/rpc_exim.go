@@ -34,7 +34,7 @@ func (l LinkCheckResult) ExportToIdentifyRow(i int) keybase1.IdentifyRow {
 func (l LinkCheckResult) Export() keybase1.LinkCheckResult {
 	ret := keybase1.LinkCheckResult{
 		ProofId:     l.position,
-		ProofStatus: ExportProofError(l.err),
+		ProofResult: ExportProofError(l.err),
 	}
 	if l.cached != nil {
 		ret.Cached = l.cached.Export()
@@ -53,7 +53,7 @@ func (l LinkCheckResult) Export() keybase1.LinkCheckResult {
 
 func (cr CheckResult) Export() *keybase1.CheckResult {
 	return &keybase1.CheckResult{
-		ProofStatus:   ExportProofError(cr.Status),
+		ProofResult:   ExportProofError(cr.Status),
 		Timestamp:     int(cr.Time.Unix()),
 		DisplayMarkup: cr.ToDisplayString(),
 	}
@@ -110,21 +110,21 @@ type ExportableError interface {
 	ToStatus() keybase1.Status
 }
 
-func ExportProofError(pe ProofError) (ret keybase1.ProofStatus) {
+func ExportProofError(pe ProofError) (ret keybase1.ProofResult) {
 	if pe == nil {
-		ret.State = PROOF_STATE_OK
-		ret.Status = PROOF_OK
+		ret.State = keybase1.ProofState_OK
+		ret.Status = keybase1.ProofStatus_OK
 	} else {
-		ret.Status = int(pe.GetStatus())
+		ret.Status = pe.GetProofStatus()
 		ret.State = ProofErrorToState(pe)
 		ret.Desc = pe.GetDesc()
 	}
 	return
 }
 
-func ImportProofError(e keybase1.ProofStatus) ProofError {
-	ps := ProofStatus(e.Status)
-	if ps == PROOF_STATE_OK {
+func ImportProofError(e keybase1.ProofResult) ProofError {
+	ps := keybase1.ProofStatus(e.Status)
+	if ps == keybase1.ProofStatus_OK {
 		return nil
 	}
 	return NewProofError(ps, e.Desc)

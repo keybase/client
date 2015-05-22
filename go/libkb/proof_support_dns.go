@@ -4,6 +4,7 @@ import (
 	"net"
 	"strings"
 
+	keybase1 "github.com/keybase/client/protocol/go"
 	jsonw "github.com/keybase/go-jsonw"
 )
 
@@ -23,14 +24,14 @@ func (rc *DnsChecker) CheckHint(h SigHint) ProofError {
 	_, sigId, err := OpenSig(rc.proof.GetArmoredSig())
 
 	if err != nil {
-		return NewProofError(PROOF_BAD_SIGNATURE,
+		return NewProofError(keybase1.ProofStatus_BAD_SIGNATURE,
 			"Bad signature: %s", err.Error())
 	}
 
 	wanted := sigId.ToMediumId()
 
 	if !strings.HasSuffix(h.checkText, wanted) {
-		return NewProofError(PROOF_BAD_HINT_TEXT,
+		return NewProofError(keybase1.ProofStatus_BAD_HINT_TEXT,
 			"Bad hint from server; wanted TXT value '%s' but got '%s'",
 			wanted, h.checkText)
 	}
@@ -40,7 +41,7 @@ func (rc *DnsChecker) CheckHint(h SigHint) ProofError {
 func (rc *DnsChecker) CheckDomain(sig string, domain string) ProofError {
 	txt, err := net.LookupTXT(domain)
 	if err != nil {
-		return NewProofError(PROOF_DNS_ERROR,
+		return NewProofError(keybase1.ProofStatus_DNS_ERROR,
 			"DNS failure for %s: %s", domain, err.Error())
 	}
 
@@ -50,7 +51,7 @@ func (rc *DnsChecker) CheckDomain(sig string, domain string) ProofError {
 			return nil
 		}
 	}
-	return NewProofError(PROOF_NOT_FOUND,
+	return NewProofError(keybase1.ProofStatus_NOT_FOUND,
 		"Checked %d TXT entries of %s, but didn't find signature %s",
 		len(txt), domain, sig)
 }
@@ -130,7 +131,7 @@ func (t DnsServiceType) PostInstructions(un string) *Markup {
 func (t DnsServiceType) DisplayName(un string) string { return "Dns" }
 func (t DnsServiceType) GetTypeName() string          { return "dns" }
 
-func (t DnsServiceType) RecheckProofPosting(tryNumber, status int) (warning *Markup, err error) {
+func (t DnsServiceType) RecheckProofPosting(tryNumber int, status keybase1.ProofStatus) (warning *Markup, err error) {
 	warning = FmtMarkup(`<p>We couldn't find a DNS proof for...<strong>yet</strong></p>
 <p>DNS propogation can be slow; we'll keep trying and email you the result</p>`)
 	err = WaitForItError{}

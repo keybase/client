@@ -13,7 +13,7 @@ import (
 type TrackIdComponent interface {
 	ToIdString() string
 	ToKeyValuePair() (string, string)
-	GetProofState() int
+	GetProofState() keybase1.ProofState
 	LastWriterWins() bool
 }
 
@@ -37,8 +37,8 @@ func (ts TrackSet) Add(t TrackIdComponent) {
 	}
 }
 
-func (ts TrackSet) GetProofState(tic TrackIdComponent) int {
-	ret := PROOF_STATE_NONE
+func (ts TrackSet) GetProofState(tic TrackIdComponent) keybase1.ProofState {
+	ret := keybase1.ProofState_NONE
 	if obj := ts.ids[tic.ToIdString()]; obj != nil {
 		ret = obj.GetProofState()
 	}
@@ -107,7 +107,7 @@ func (l TrackLookup) ToSummary() TrackSummary {
 	}
 }
 
-func (l TrackLookup) GetProofState(tic TrackIdComponent) int {
+func (l TrackLookup) GetProofState(tic TrackIdComponent) keybase1.ProofState {
 	return l.set.GetProofState(tic)
 }
 
@@ -262,7 +262,7 @@ func (t TrackDiffDeleted) GetTrackDiffType() keybase1.TrackDiffType {
 }
 
 type TrackDiffRemoteFail struct {
-	observed int
+	observed keybase1.ProofState
 }
 
 func (t TrackDiffRemoteFail) BreaksTracking() bool {
@@ -282,7 +282,7 @@ func (t TrackDiffRemoteFail) IsSameAsTracked() bool {
 }
 
 type TrackDiffRemoteWorking struct {
-	tracked int
+	tracked keybase1.ProofState
 }
 
 func (t TrackDiffRemoteWorking) BreaksTracking() bool {
@@ -302,7 +302,7 @@ func (t TrackDiffRemoteWorking) IsSameAsTracked() bool {
 }
 
 type TrackDiffRemoteChanged struct {
-	tracked, observed int
+	tracked, observed keybase1.ProofState
 }
 
 func (t TrackDiffRemoteChanged) BreaksTracking() bool {

@@ -15,7 +15,7 @@ type ProveCheck struct {
 	libkb.Contextified
 	sigID     libkb.SigId
 	found     bool
-	status    keybase1.ProofCheckStatus
+	status    keybase1.ProofStatus
 	proofText string
 }
 
@@ -54,7 +54,7 @@ func (e *ProveCheck) Run(ctx *Context) error {
 		return err
 	}
 	e.found = found
-	e.status = keybase1.ProofCheckStatus(status)
+	e.status = keybase1.ProofStatus(status)
 
 	e.G().Log.Debug("looking for ChainLink for %s", e.sigID.ToString(true))
 	me, err := libkb.LoadMe(libkb.LoadUserArg{PublicKeyOptional: true})
@@ -75,6 +75,6 @@ func (e *ProveCheck) Run(ctx *Context) error {
 	return nil
 }
 
-func (e *ProveCheck) Results() (found bool, status keybase1.ProofCheckStatus, proofText string) {
+func (e *ProveCheck) Results() (found bool, status keybase1.ProofStatus, proofText string) {
 	return e.found, e.status, e.proofText
 }

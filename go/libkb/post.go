@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	jsonw "github.com/keybase/go-jsonw"
+	keybase1 "github.com/keybase/client/protocol/go"
 )
 
 type PostProofRes struct {
@@ -122,7 +123,7 @@ func DeletePrimary() (err error) {
 	return
 }
 
-func CheckPosted(proofId string) (found bool, status int, err error) {
+func CheckPosted(proofId string) (found bool, status keybase1.ProofStatus, err error) {
 	res, e2 := G.API.Post(ApiArg{
 		Endpoint:    "sig/posted",
 		NeedSession: true,
@@ -134,12 +135,17 @@ func CheckPosted(proofId string) (found bool, status int, err error) {
 		err = e2
 		return
 	}
-	res.Body.AtKey("proof_ok").GetBoolVoid(&found, &err)
-	res.Body.AtPath("proof_res.status").GetIntVoid(&status, &err)
-	return
+	var (
+		rfound bool
+		rstatus int
+		rerr error
+	)
+	res.Body.AtKey("proof_ok").GetBoolVoid(&rfound, &rerr)
+	res.Body.AtPath("proof_res.status").GetIntVoid(&rstatus, &rerr)
+	return rfound, keybase1.ProofStatus(rstatus), rerr
 }
 
-func CheckPostedViaSigID(sigID string) (found bool, status int, err error) {
+func CheckPostedViaSigID(sigID string) (found bool, status keybase1.ProofStatus, err error) {
 	res, e2 := G.API.Post(ApiArg{
 		Endpoint:    "sig/posted",
 		NeedSession: true,
@@ -151,9 +157,15 @@ func CheckPostedViaSigID(sigID string) (found bool, status int, err error) {
 		err = e2
 		return
 	}
-	res.Body.AtKey("proof_ok").GetBoolVoid(&found, &err)
-	res.Body.AtPath("proof_res.status").GetIntVoid(&status, &err)
-	return
+
+	var (
+		rfound bool
+		rstatus int
+		rerr error
+	)
+	res.Body.AtKey("proof_ok").GetBoolVoid(&rfound, &rerr)
+	res.Body.AtPath("proof_res.status").GetIntVoid(&rstatus, &rerr)
+	return rfound, keybase1.ProofStatus(rstatus), rerr
 }
 
 func PostDeviceLKS(lctx LoginContext, deviceID, deviceType string, serverHalf []byte) error {

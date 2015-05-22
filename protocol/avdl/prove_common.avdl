@@ -18,12 +18,13 @@ protocol prove_common {
     2xx: Will likely result in a hard error, if repeated enough
     3xx: Hard final errors
    */
-  enum ProofCheckStatus {
+  enum ProofStatus {
     NONE_0,
     OK_1,
     LOCAL_2,
     FOUND_3,
 
+    BASE_ERROR_100,
     HOST_UNREACHABLE_101,
     PERMISSION_DENIED_103,
     FAILED_PARSE_106,
@@ -33,6 +34,7 @@ protocol prove_common {
     TIMEOUT_160,
     INTERNAL_ERROR_170,
 
+    BASE_HARD_ERROR_200,
     NOT_FOUND_201,
     CONTENT_FAILURE_202,
     BAD_USERNAME_203,

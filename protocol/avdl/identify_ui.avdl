@@ -4,9 +4,9 @@ protocol identifyUi {
 	import idl "common.avdl";
 	import idl "identify_common.avdl";
 
-	record ProofStatus {
-		int state;
-		int status;
+	record ProofResult {
+		ProofState state;
+		ProofStatus status;
 		string desc;
 	}
 
@@ -45,14 +45,14 @@ protocol identifyUi {
 	}
 
 	record CheckResult {
-		ProofStatus proofStatus;
+		ProofResult proofResult;
 		int timestamp;
 		string displayMarkup;
 	}
 
 	record LinkCheckResult {
 		int proofId;
-		ProofStatus proofStatus;
+		ProofResult proofResult;
 		union { null, CheckResult } cached;
 		union { null, TrackDiff } diff;
 		union { null, TrackDiff } remoteDiff;

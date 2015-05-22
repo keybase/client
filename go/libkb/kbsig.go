@@ -173,7 +173,7 @@ func (g *GenericChainLink) BaseToTrackingStatement() *jsonw.Wrapper {
 
 	rkp := jsonw.NewDictionary()
 	ret.SetKey("remote_key_proof", rkp)
-	rkp.SetKey("state", jsonw.NewInt(g.GetProofState()))
+	rkp.SetKey("state", jsonw.NewInt(int(g.GetProofState())))
 
 	prev := g.GetPrev()
 	var prev_val *jsonw.Wrapper

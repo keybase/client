@@ -215,7 +215,7 @@ func (p *Prove) promptPostedLoop(ctx *Context) (err error) {
 	found := false
 	for i := 0; ; i++ {
 		var retry bool
-		var status int
+		var status keybase1.ProofStatus
 		var warn *libkb.Markup
 		retry, err = ctx.ProveUI.OkToCheck(keybase1.OkToCheckArg{
 			Name:    p.st.DisplayName(p.usernameNormalized),
@@ -228,7 +228,7 @@ func (p *Prove) promptPostedLoop(ctx *Context) (err error) {
 		if found || err != nil {
 			break
 		}
-		warn, err = p.st.RecheckProofPosting(status, i)
+		warn, err = p.st.RecheckProofPosting(i, status)
 		if warn != nil {
 			ctx.ProveUI.DisplayRecheckWarning(keybase1.DisplayRecheckWarningArg{
 				Text: warn.Export(),

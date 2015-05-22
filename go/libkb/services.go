@@ -1,6 +1,7 @@
 package libkb
 
 import (
+	keybase1 "github.com/keybase/client/protocol/go"
 	"github.com/keybase/go-jsonw"
 	"regexp"
 	"strings"
@@ -19,7 +20,7 @@ type ServiceType interface {
 	ToServiceJson(remotename string) *jsonw.Wrapper
 	PostInstructions(remotename string) *Markup
 	DisplayName(username string) string
-	RecheckProofPosting(tryNumber int, status int) (warning *Markup, err error)
+	RecheckProofPosting(tryNumber int, status keybase1.ProofStatus) (warning *Markup, err error)
 	GetProofType() string
 	GetTypeName() string
 	CheckProofText(text string, id SigId, sig string) error
@@ -64,7 +65,7 @@ func (t BaseServiceType) BaseCheckProofTextShort(text string, id SigId, med bool
 	return
 }
 
-func (t BaseServiceType) BaseRecheckProofPosting(tryNumber, status int) (warning *Markup, err error) {
+func (t BaseServiceType) BaseRecheckProofPosting(tryNumber int, status keybase1.ProofStatus) (warning *Markup, err error) {
 	warning = FmtMarkup("Couldn't find posted proof.")
 	return
 }

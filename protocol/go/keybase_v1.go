@@ -686,43 +686,45 @@ const (
 	ProofState_REVOKED      ProofState = 7
 )
 
-type ProofCheckStatus int
+type ProofStatus int
 
 const (
-	ProofCheckStatus_NONE              ProofCheckStatus = 0
-	ProofCheckStatus_OK                ProofCheckStatus = 1
-	ProofCheckStatus_LOCAL             ProofCheckStatus = 2
-	ProofCheckStatus_FOUND             ProofCheckStatus = 3
-	ProofCheckStatus_HOST_UNREACHABLE  ProofCheckStatus = 101
-	ProofCheckStatus_PERMISSION_DENIED ProofCheckStatus = 103
-	ProofCheckStatus_FAILED_PARSE      ProofCheckStatus = 106
-	ProofCheckStatus_DNS_ERROR         ProofCheckStatus = 107
-	ProofCheckStatus_AUTH_FAILED       ProofCheckStatus = 108
-	ProofCheckStatus_HTTP_500          ProofCheckStatus = 150
-	ProofCheckStatus_TIMEOUT           ProofCheckStatus = 160
-	ProofCheckStatus_INTERNAL_ERROR    ProofCheckStatus = 170
-	ProofCheckStatus_NOT_FOUND         ProofCheckStatus = 201
-	ProofCheckStatus_CONTENT_FAILURE   ProofCheckStatus = 202
-	ProofCheckStatus_BAD_USERNAME      ProofCheckStatus = 203
-	ProofCheckStatus_BAD_REMOTE_ID     ProofCheckStatus = 204
-	ProofCheckStatus_TEXT_NOT_FOUND    ProofCheckStatus = 205
-	ProofCheckStatus_BAD_ARGS          ProofCheckStatus = 206
-	ProofCheckStatus_CONTENT_MISSING   ProofCheckStatus = 207
-	ProofCheckStatus_TITLE_NOT_FOUND   ProofCheckStatus = 208
-	ProofCheckStatus_SERVICE_ERROR     ProofCheckStatus = 209
-	ProofCheckStatus_TOR_SKIPPED       ProofCheckStatus = 210
-	ProofCheckStatus_TOR_INCOMPATIBLE  ProofCheckStatus = 211
-	ProofCheckStatus_HTTP_300          ProofCheckStatus = 230
-	ProofCheckStatus_HTTP_400          ProofCheckStatus = 240
-	ProofCheckStatus_HTTP_OTHER        ProofCheckStatus = 260
-	ProofCheckStatus_EMPTY_JSON        ProofCheckStatus = 270
-	ProofCheckStatus_DELETED           ProofCheckStatus = 301
-	ProofCheckStatus_SERVICE_DEAD      ProofCheckStatus = 302
-	ProofCheckStatus_BAD_SIGNATURE     ProofCheckStatus = 303
-	ProofCheckStatus_BAD_API_URL       ProofCheckStatus = 304
-	ProofCheckStatus_UNKNOWN_TYPE      ProofCheckStatus = 305
-	ProofCheckStatus_NO_HINT           ProofCheckStatus = 306
-	ProofCheckStatus_BAD_HINT_TEXT     ProofCheckStatus = 307
+	ProofStatus_NONE              ProofStatus = 0
+	ProofStatus_OK                ProofStatus = 1
+	ProofStatus_LOCAL             ProofStatus = 2
+	ProofStatus_FOUND             ProofStatus = 3
+	ProofStatus_BASE_ERROR        ProofStatus = 100
+	ProofStatus_HOST_UNREACHABLE  ProofStatus = 101
+	ProofStatus_PERMISSION_DENIED ProofStatus = 103
+	ProofStatus_FAILED_PARSE      ProofStatus = 106
+	ProofStatus_DNS_ERROR         ProofStatus = 107
+	ProofStatus_AUTH_FAILED       ProofStatus = 108
+	ProofStatus_HTTP_500          ProofStatus = 150
+	ProofStatus_TIMEOUT           ProofStatus = 160
+	ProofStatus_INTERNAL_ERROR    ProofStatus = 170
+	ProofStatus_BASE_HARD_ERROR   ProofStatus = 200
+	ProofStatus_NOT_FOUND         ProofStatus = 201
+	ProofStatus_CONTENT_FAILURE   ProofStatus = 202
+	ProofStatus_BAD_USERNAME      ProofStatus = 203
+	ProofStatus_BAD_REMOTE_ID     ProofStatus = 204
+	ProofStatus_TEXT_NOT_FOUND    ProofStatus = 205
+	ProofStatus_BAD_ARGS          ProofStatus = 206
+	ProofStatus_CONTENT_MISSING   ProofStatus = 207
+	ProofStatus_TITLE_NOT_FOUND   ProofStatus = 208
+	ProofStatus_SERVICE_ERROR     ProofStatus = 209
+	ProofStatus_TOR_SKIPPED       ProofStatus = 210
+	ProofStatus_TOR_INCOMPATIBLE  ProofStatus = 211
+	ProofStatus_HTTP_300          ProofStatus = 230
+	ProofStatus_HTTP_400          ProofStatus = 240
+	ProofStatus_HTTP_OTHER        ProofStatus = 260
+	ProofStatus_EMPTY_JSON        ProofStatus = 270
+	ProofStatus_DELETED           ProofStatus = 301
+	ProofStatus_SERVICE_DEAD      ProofStatus = 302
+	ProofStatus_BAD_SIGNATURE     ProofStatus = 303
+	ProofStatus_BAD_API_URL       ProofStatus = 304
+	ProofStatus_UNKNOWN_TYPE      ProofStatus = 305
+	ProofStatus_NO_HINT           ProofStatus = 306
+	ProofStatus_BAD_HINT_TEXT     ProofStatus = 307
 )
 
 type ProofType int
@@ -846,10 +848,10 @@ func (c IdentifyClient) IdentifyDefault(__arg IdentifyDefaultArg) (res IdentifyR
 	return
 }
 
-type ProofStatus struct {
-	State  int    `codec:"state" json:"state"`
-	Status int    `codec:"status" json:"status"`
-	Desc   string `codec:"desc" json:"desc"`
+type ProofResult struct {
+	State  ProofState  `codec:"state" json:"state"`
+	Status ProofStatus `codec:"status" json:"status"`
+	Desc   string      `codec:"desc" json:"desc"`
 }
 
 type IdentifyRow struct {
@@ -887,14 +889,14 @@ type SigHint struct {
 }
 
 type CheckResult struct {
-	ProofStatus   ProofStatus `codec:"proofStatus" json:"proofStatus"`
+	ProofResult   ProofResult `codec:"proofResult" json:"proofResult"`
 	Timestamp     int         `codec:"timestamp" json:"timestamp"`
 	DisplayMarkup string      `codec:"displayMarkup" json:"displayMarkup"`
 }
 
 type LinkCheckResult struct {
 	ProofId     int          `codec:"proofId" json:"proofId"`
-	ProofStatus ProofStatus  `codec:"proofStatus" json:"proofStatus"`
+	ProofResult ProofResult  `codec:"proofResult" json:"proofResult"`
 	Cached      *CheckResult `codec:"cached,omitempty" json:"cached"`
 	Diff        *TrackDiff   `codec:"diff,omitempty" json:"diff"`
 	RemoteDiff  *TrackDiff   `codec:"remoteDiff,omitempty" json:"remoteDiff"`
@@ -1786,9 +1788,9 @@ func (c PgpClient) PgpUpdate(__arg PgpUpdateArg) (err error) {
 }
 
 type CheckProofStatus struct {
-	Found     bool             `codec:"found" json:"found"`
-	Status    ProofCheckStatus `codec:"status" json:"status"`
-	ProofText string           `codec:"proofText" json:"proofText"`
+	Found     bool        `codec:"found" json:"found"`
+	Status    ProofStatus `codec:"status" json:"status"`
+	ProofText string      `codec:"proofText" json:"proofText"`
 }
 
 type StartProofResult struct {

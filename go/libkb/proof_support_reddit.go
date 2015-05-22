@@ -1,6 +1,7 @@
 package libkb
 
 import (
+	keybase1 "github.com/keybase/client/protocol/go"
 	"github.com/keybase/go-jsonw"
 	"net/url"
 	"regexp"
@@ -26,7 +27,7 @@ func (rc *RedditChecker) CheckHint(h SigHint) ProofError {
 	if strings.HasPrefix(strings.ToLower(h.apiUrl), REDDIT_SUB) {
 		return nil
 	} else {
-		return NewProofError(PROOF_BAD_API_URL,
+		return NewProofError(keybase1.ProofStatus_BAD_API_URL,
 			"Bad hint from server; URL should start with '%s'", REDDIT_SUB)
 	}
 }
@@ -41,8 +42,8 @@ func (rc *RedditChecker) UnpackData(inp *jsonw.Wrapper) (*jsonw.Wrapper, ProofEr
 	var ret *jsonw.Wrapper
 
 	var pe ProofError
-	var cf ProofStatus = PROOF_CONTENT_FAILURE
-	var cm ProofStatus = PROOF_CONTENT_MISSING
+	var cf keybase1.ProofStatus = keybase1.ProofStatus_CONTENT_FAILURE
+	var cm keybase1.ProofStatus = keybase1.ProofStatus_CONTENT_MISSING
 
 	if err != nil {
 		pe = NewProofError(cm, "Bad proof JSON: %s", err.Error())
@@ -66,7 +67,7 @@ func (rc *RedditChecker) ScreenNameCompare(s1, s2 string) bool {
 func (rc *RedditChecker) CheckData(h SigHint, dat *jsonw.Wrapper) ProofError {
 	sigBody, sigId, err := OpenSig(rc.proof.GetArmoredSig())
 	if err != nil {
-		return NewProofError(PROOF_BAD_SIGNATURE,
+		return NewProofError(keybase1.ProofStatus_BAD_SIGNATURE,
 			"Bad signature: %s", err.Error())
 	}
 
@@ -80,18 +81,18 @@ func (rc *RedditChecker) CheckData(h SigHint, dat *jsonw.Wrapper) ProofError {
 	var ret ProofError
 
 	if err != nil {
-		ret = NewProofError(PROOF_CONTENT_MISSING, "content missing: %s", err.Error())
+		ret = NewProofError(keybase1.ProofStatus_CONTENT_MISSING, "content missing: %s", err.Error())
 	} else if strings.ToLower(subreddit) != "keybaseproofs" {
-		ret = NewProofError(PROOF_SERVICE_ERROR, "the post must be to /r/KeybaseProofs")
+		ret = NewProofError(keybase1.ProofStatus_SERVICE_ERROR, "the post must be to /r/KeybaseProofs")
 	} else if wanted := rc.proof.GetRemoteUsername(); !rc.ScreenNameCompare(author, wanted) {
-		ret = NewProofError(PROOF_BAD_USERNAME,
+		ret = NewProofError(keybase1.ProofStatus_BAD_USERNAME,
 			"Bad post author; wanted '%s' but got '%s'", wanted, author)
 	} else if psid := sigId.ToMediumId(); !strings.Contains(title, psid) {
-		ret = NewProofError(PROOF_TITLE_NOT_FOUND,
+		ret = NewProofError(keybase1.ProofStatus_TITLE_NOT_FOUND,
 			"Missing signature ID (%s) in post title ('%s')",
 			psid, title)
 	} else if !FindBase64Block(selftext, sigBody, false) {
-		ret = NewProofError(PROOF_TEXT_NOT_FOUND, "signature not found in body")
+		ret = NewProofError(keybase1.ProofStatus_TEXT_NOT_FOUND, "signature not found in body")
 	}
 
 	return ret
@@ -187,7 +188,7 @@ func (t RedditServiceType) FormatProofText(ppr *PostProofRes) (res string, err e
 
 func (t RedditServiceType) DisplayName(un string) string { return "Reddit" }
 
-func (t RedditServiceType) RecheckProofPosting(tryNumber, status int) (warning *Markup, err error) {
+func (t RedditServiceType) RecheckProofPosting(tryNumber int, status keybase1.ProofStatus) (warning *Markup, err error) {
 	warning, err = t.BaseRecheckProofPosting(tryNumber, status)
 	return
 }

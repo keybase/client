@@ -89,18 +89,6 @@ const (
 	ELDEST_TYPE = "eldest"
 )
 
-// Taken from node-client/src/constants.iced
-const (
-	PROOF_STATE_NONE         = 0
-	PROOF_STATE_OK           = 1
-	PROOF_STATE_TEMP_FAILURE = 2
-	PROOF_STATE_PERM_FAILURE = 3
-	PROOF_STATE_LOOKING      = 4
-	PROOF_STATE_SUPERSEDED   = 5
-	PROOF_STATE_POSTED       = 6
-	PROOF_STATE_REVOKED      = 7
-)
-
 const (
 	SIG_TYPE_NONE           = 0
 	SIG_TYPE_SELF_SIG       = 1

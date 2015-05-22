@@ -7,7 +7,7 @@ protocol prove {
 
 	record CheckProofStatus {
 		boolean found;
-		ProofCheckStatus status;
+		ProofStatus status;
 		string proofText;
 	}
 

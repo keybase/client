@@ -28,7 +28,7 @@ func (s *IdentifyState) ComputeDeletedProofs() {
 	for _, e := range diff {
 		// If the proofs in the difference are for GOOD proofs,
 		// the we have a problem.  Mark the proof as "DELETED"
-		if e.GetProofState() == PROOF_STATE_OK {
+		if e.GetProofState() == keybase1.ProofState_OK {
 			s.res.Deleted = append(s.res.Deleted, TrackDiffDeleted{e})
 		}
 	}
@@ -42,7 +42,7 @@ func (s *IdentifyState) InitResultList() {
 	l := len(idt.activeProofs)
 	s.res.ProofChecks = make([]*LinkCheckResult, l)
 	for i, p := range idt.activeProofs {
-		s.res.ProofChecks[i] = &LinkCheckResult{link: p, trackedProofState: PROOF_STATE_NONE, position: i}
+		s.res.ProofChecks[i] = &LinkCheckResult{link: p, trackedProofState: keybase1.ProofState_NONE, position: i}
 	}
 }
 

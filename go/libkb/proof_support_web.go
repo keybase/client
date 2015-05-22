@@ -2,6 +2,7 @@ package libkb
 
 import (
 	"fmt"
+	keybase1 "github.com/keybase/client/protocol/go"
 	"github.com/keybase/go-jsonw"
 	"regexp"
 	"strings"
@@ -34,7 +35,7 @@ func (rc *WebChecker) CheckHint(h SigHint) ProofError {
 		}
 	}
 
-	return NewProofError(PROOF_BAD_API_URL,
+	return NewProofError(keybase1.ProofStatus_BAD_API_URL,
 		"Bad hint from server; didn't recognize API url: %s",
 		h.apiUrl)
 
@@ -55,12 +56,12 @@ func (rc *WebChecker) CheckStatus(h SigHint) ProofError {
 	var ret ProofError
 
 	if err != nil {
-		return NewProofError(PROOF_BAD_SIGNATURE,
+		return NewProofError(keybase1.ProofStatus_BAD_SIGNATURE,
 			"Bad signature: %s", err.Error())
 	}
 
 	if !FindBase64Block(res.Body, sigBody, false) {
-		ret = NewProofError(PROOF_TEXT_NOT_FOUND, "signature not found in body")
+		ret = NewProofError(keybase1.ProofStatus_TEXT_NOT_FOUND, "signature not found in body")
 	}
 
 	return ret
@@ -172,8 +173,8 @@ func (t WebServiceType) PostInstructions(un string) *Markup {
 func (t WebServiceType) DisplayName(un string) string { return "Web" }
 func (t WebServiceType) GetTypeName() string          { return "web" }
 
-func (t WebServiceType) RecheckProofPosting(tryNumber, status int) (warning *Markup, err error) {
-	if status == PROOF_PERMISSION_DENIED {
+func (t WebServiceType) RecheckProofPosting(tryNumber int, status keybase1.ProofStatus) (warning *Markup, err error) {
+	if status == keybase1.ProofStatus_PERMISSION_DENIED {
 		warning = FmtMarkup("Permission denied! Make sure your proof page is <strong>public</strong>.")
 	} else {
 		warning, err = t.BaseRecheckProofPosting(tryNumber, status)

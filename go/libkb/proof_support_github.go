@@ -1,6 +1,7 @@
 package libkb
 
 import (
+	keybase1 "github.com/keybase/client/protocol/go"
 	"github.com/keybase/go-jsonw"
 	"regexp"
 	"strings"
@@ -26,7 +27,7 @@ func (rc *GithubChecker) CheckHint(h SigHint) ProofError {
 	if strings.HasPrefix(given, ok1) || strings.HasPrefix(given, ok2) {
 		return nil
 	} else {
-		return NewProofError(PROOF_BAD_API_URL,
+		return NewProofError(keybase1.ProofStatus_BAD_API_URL,
 			"Bad hint from server; URL start with either '%s' OR '%s'", ok1, ok2)
 	}
 }
@@ -46,12 +47,12 @@ func (rc *GithubChecker) CheckStatus(h SigHint) ProofError {
 	var ret ProofError
 
 	if err != nil {
-		return NewProofError(PROOF_BAD_SIGNATURE,
+		return NewProofError(keybase1.ProofStatus_BAD_SIGNATURE,
 			"Bad signature: %s", err.Error())
 	}
 
 	if !FindBase64Block(res.Body, sigBody, false) {
-		ret = NewProofError(PROOF_TEXT_NOT_FOUND, "signature not found in body")
+		ret = NewProofError(keybase1.ProofStatus_TEXT_NOT_FOUND, "signature not found in body")
 	}
 
 	return ret
@@ -92,8 +93,8 @@ and name it <strong><color name="red">keybase.md</color></strong>`)
 func (t GithubServiceType) DisplayName(un string) string { return "Github" }
 func (t GithubServiceType) GetTypeName() string          { return "github" }
 
-func (t GithubServiceType) RecheckProofPosting(tryNumber, status int) (warning *Markup, err error) {
-	if status == PROOF_PERMISSION_DENIED {
+func (t GithubServiceType) RecheckProofPosting(tryNumber int, status keybase1.ProofStatus) (warning *Markup, err error) {
+	if status == keybase1.ProofStatus_PERMISSION_DENIED {
 		warning = FmtMarkup("Permission denied! Make sure your gist is <strong>public</strong>.")
 	} else {
 		warning, err = t.BaseRecheckProofPosting(tryNumber, status)

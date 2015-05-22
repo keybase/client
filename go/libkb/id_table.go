@@ -6,8 +6,8 @@ import (
 	"sync"
 	"time"
 
-	jsonw "github.com/keybase/go-jsonw"
 	keybase1 "github.com/keybase/client/protocol/go"
+	jsonw "github.com/keybase/go-jsonw"
 )
 
 type TypedChainLink interface {
@@ -32,7 +32,7 @@ type TypedChainLink interface {
 	IsInCurrentFamily(u *User) bool
 	GetUsername() string
 	MarkChecked(ProofError)
-	GetProofState() int
+	GetProofState() keybase1.ProofState
 	GetUID() UID
 	GetDelegatedKid() KID
 	GetParentKid() KID
@@ -85,7 +85,7 @@ func (g *GenericChainLink) GetUsername() string {
 func (g *GenericChainLink) GetUID() UID {
 	return g.unpacked.uid
 }
-func (g *GenericChainLink) GetProofState() int { return g.GetProofState0() }
+func (g *GenericChainLink) GetProofState() keybase1.ProofState { return g.GetProofState0() }
 
 func (g *GenericChainLink) GetDevice() *Device { return nil }
 
@@ -267,10 +267,10 @@ type ServiceBlock struct {
 	social     bool
 	typ        string
 	id         string
-	proofState int
+	proofState keybase1.ProofState
 }
 
-func (sb ServiceBlock) GetProofState() int { return sb.proofState }
+func (sb ServiceBlock) GetProofState() keybase1.ProofState { return sb.proofState }
 
 func (sb ServiceBlock) IsSocial() bool { return sb.social }
 
@@ -520,8 +520,8 @@ func (l *TrackChainLink) ToServiceBlocks() (ret []*ServiceBlock) {
 		} else if sb, e := ParseServiceBlock(proof.AtKey("check_data_json")); e != nil {
 			G.Log.Warning("Bad remote_key_proof.check_data_json: %s", e.Error())
 		} else {
-			sb.proofState = i
-			if i != PROOF_STATE_OK {
+			sb.proofState = keybase1.ProofState(i)
+			if sb.proofState != keybase1.ProofState_OK {
 				G.Log.Debug("Including broken proof at index = %d\n", i)
 			}
 			ret = append(ret, sb)
@@ -1153,7 +1153,7 @@ type LinkCheckResult struct {
 	diff              TrackDiff
 	remoteDiff        TrackDiff
 	link              RemoteProofChainLink
-	trackedProofState int
+	trackedProofState keybase1.ProofState
 	position          int
 }
 
@@ -1163,12 +1163,12 @@ func (l LinkCheckResult) GetHint() *SigHint       { return l.hint }
 func (l LinkCheckResult) GetCached() *CheckResult { return l.cached }
 func (l LinkCheckResult) GetPosition() int        { return l.position }
 
-func ComputeRemoteDiff(tracked, observed int) TrackDiff {
+func ComputeRemoteDiff(tracked, observed keybase1.ProofState) TrackDiff {
 	if observed == tracked {
 		return TrackDiffNone{}
-	} else if observed == PROOF_STATE_OK {
+	} else if observed == keybase1.ProofState_OK {
 		return TrackDiffRemoteFail{observed}
-	} else if tracked == PROOF_STATE_OK {
+	} else if tracked == keybase1.ProofState_OK {
 		return TrackDiffRemoteWorking{tracked}
 	}
 	return TrackDiffRemoteChanged{tracked, observed}
@@ -1190,7 +1190,7 @@ func (idt *IdentityTable) ProofRemoteCheck(track *TrackLookup, res *LinkCheckRes
 	sid := p.GetSigId()
 	res.hint = idt.sigHints.Lookup(sid)
 	if res.hint == nil {
-		res.err = NewProofError(PROOF_NO_HINT,
+		res.err = NewProofError(keybase1.ProofStatus_NO_HINT,
 			"No server-given hint for sig=%s", sid.ToString(true))
 		return
 	}
@@ -1227,7 +1227,7 @@ func (idt *IdentityTable) ProofRemoteCheck(track *TrackLookup, res *LinkCheckRes
 
 func (idt *IdentityTable) ToOkProofs(proofs []Proof) []Proof {
 	for _, ap := range idt.activeProofs {
-		if ap.GetProofState() == PROOF_STATE_OK {
+		if ap.GetProofState() == keybase1.ProofState_OK {
 			k, v := ap.ToKeyValuePair()
 			proofs = append(proofs, Proof{Key: k, Value: v})
 		}

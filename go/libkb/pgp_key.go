@@ -577,8 +577,8 @@ func (fp PgpFingerprint) ToKeyValuePair() (string, string) {
 	return "fingerprint", fp.ToIdString()
 }
 
-func (fp PgpFingerprint) GetProofState() int {
-	return PROOF_STATE_OK
+func (fp PgpFingerprint) GetProofState() keybase1.ProofState {
+	return keybase1.ProofState_OK
 }
 
 func (fp PgpFingerprint) LastWriterWins() bool {

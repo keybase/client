@@ -3,6 +3,7 @@
 package libkb
 
 import (
+	keybase1 "github.com/keybase/client/protocol/go"
 	jsonw "github.com/keybase/go-jsonw"
 	"regexp"
 	"strings"
@@ -24,10 +25,10 @@ func (rc *RooterChecker) CheckHint(h SigHint) ProofError {
 	wanted_url := G.Env.GetServerUri() + API_URI_PATH_PREFIX + "/rooter/" + strings.ToLower(rc.proof.GetRemoteUsername()) + "/"
 	wanted_med_id := rc.proof.GetSigId().ToMediumId()
 	if !strings.HasPrefix(strings.ToLower(h.apiUrl), wanted_url) {
-		return NewProofError(PROOF_BAD_API_URL,
+		return NewProofError(keybase1.ProofStatus_BAD_API_URL,
 			"Bad hint from server; URL should start with '%s'", wanted_url)
 	} else if !strings.Contains(h.checkText, wanted_med_id) {
-		return NewProofError(PROOF_BAD_SIGNATURE,
+		return NewProofError(keybase1.ProofStatus_BAD_SIGNATURE,
 			"Bad proof-check text from server; need '%s' as a substring", wanted_med_id)
 	} else {
 		return nil
@@ -41,10 +42,10 @@ func (rc *RooterChecker) ScreenNameCompare(s1, s2 string) bool {
 func (rc *RooterChecker) CheckData(h SigHint, dat string) ProofError {
 	_, sigId, err := OpenSig(rc.proof.GetArmoredSig())
 	if err != nil {
-		return NewProofError(PROOF_BAD_SIGNATURE,
+		return NewProofError(keybase1.ProofStatus_BAD_SIGNATURE,
 			"Bad signature: %s", err.Error())
 	} else if !strings.Contains(dat, sigId.ToMediumId()) {
-		return NewProofError(PROOF_TEXT_NOT_FOUND,
+		return NewProofError(keybase1.ProofStatus_TEXT_NOT_FOUND,
 			"Missing signature ID (%s) in post title ('%s')",
 			sigId.ToMediumId(), dat)
 	}
@@ -59,8 +60,8 @@ func (rc *RooterChecker) UnpackData(inp *jsonw.Wrapper) (string, ProofError) {
 	inp.AtPath("toot.post").GetStringVoid(&post, &err)
 
 	var pe ProofError
-	var cf ProofStatus = PROOF_CONTENT_FAILURE
-	var cm ProofStatus = PROOF_CONTENT_MISSING
+	var cf keybase1.ProofStatus = keybase1.ProofStatus_CONTENT_FAILURE
+	var cm keybase1.ProofStatus = keybase1.ProofStatus_CONTENT_MISSING
 
 	if err != nil {
 		pe = NewProofError(cm, "Bad proof JSON: %s", err.Error())
@@ -129,7 +130,7 @@ func (t RooterServiceType) PostInstructions(un string) *Markup {
 
 func (t RooterServiceType) DisplayName(un string) string { return "Rooter" }
 func (t RooterServiceType) GetTypeName() string          { return "rooter" }
-func (t RooterServiceType) RecheckProofPosting(tryNumber, status int) (warning *Markup, err error) {
+func (t RooterServiceType) RecheckProofPosting(tryNumber int, status keybase1.ProofStatus) (warning *Markup, err error) {
 	return t.BaseRecheckProofPosting(tryNumber, status)
 }
 func (t RooterServiceType) GetProofType() string { return "test.web_service_binding.rooter" }

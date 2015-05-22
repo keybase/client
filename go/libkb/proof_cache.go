@@ -2,6 +2,7 @@ package libkb
 
 import (
 	"github.com/hashicorp/golang-lru"
+	keybase1 "github.com/keybase/client/protocol/go"
 	"github.com/keybase/go-jsonw"
 	"sync"
 	"time"
@@ -16,7 +17,7 @@ func (cr CheckResult) Pack() *jsonw.Wrapper {
 	p := jsonw.NewDictionary()
 	if cr.Status != nil {
 		s := jsonw.NewDictionary()
-		s.SetKey("code", jsonw.NewInt(int(cr.Status.GetStatus())))
+		s.SetKey("code", jsonw.NewInt(int(cr.Status.GetProofStatus())))
 		s.SetKey("desc", jsonw.NewString(cr.Status.GetDesc()))
 		p.SetKey("status", s)
 	}
@@ -66,7 +67,7 @@ func NewCheckResult(jw *jsonw.Wrapper) (res *CheckResult, err error) {
 	if !status.IsNil() {
 		status.AtKey("desc").GetStringVoid(&desc, &err)
 		status.AtKey("code").GetIntVoid(&code, &err)
-		pe = NewProofError(ProofStatus(code), desc)
+		pe = NewProofError(keybase1.ProofStatus(code), desc)
 	}
 	if err == nil {
 		res = &CheckResult{

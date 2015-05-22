@@ -227,41 +227,43 @@ typedef NS_ENUM (NSInteger, KBRProofState) {
 	KBRProofStateRevoked = 7,
 };
 
-typedef NS_ENUM (NSInteger, KBRProofCheckStatus) {
-	KBRProofCheckStatusNone = 0,
-	KBRProofCheckStatusOk = 1,
-	KBRProofCheckStatusLocal = 2,
-	KBRProofCheckStatusFound = 3,
-	KBRProofCheckStatusHostUnreachable = 101,
-	KBRProofCheckStatusPermissionDenied = 103,
-	KBRProofCheckStatusFailedParse = 106,
-	KBRProofCheckStatusDnsError = 107,
-	KBRProofCheckStatusAuthFailed = 108,
-	KBRProofCheckStatusHttp500 = 150,
-	KBRProofCheckStatusTimeout = 160,
-	KBRProofCheckStatusInternalError = 170,
-	KBRProofCheckStatusNotFound = 201,
-	KBRProofCheckStatusContentFailure = 202,
-	KBRProofCheckStatusBadUsername = 203,
-	KBRProofCheckStatusBadRemoteId = 204,
-	KBRProofCheckStatusTextNotFound = 205,
-	KBRProofCheckStatusBadArgs = 206,
-	KBRProofCheckStatusContentMissing = 207,
-	KBRProofCheckStatusTitleNotFound = 208,
-	KBRProofCheckStatusServiceError = 209,
-	KBRProofCheckStatusTorSkipped = 210,
-	KBRProofCheckStatusTorIncompatible = 211,
-	KBRProofCheckStatusHttp300 = 230,
-	KBRProofCheckStatusHttp400 = 240,
-	KBRProofCheckStatusHttpOther = 260,
-	KBRProofCheckStatusEmptyJson = 270,
-	KBRProofCheckStatusDeleted = 301,
-	KBRProofCheckStatusServiceDead = 302,
-	KBRProofCheckStatusBadSignature = 303,
-	KBRProofCheckStatusBadApiUrl = 304,
-	KBRProofCheckStatusUnknownType = 305,
-	KBRProofCheckStatusNoHint = 306,
-	KBRProofCheckStatusBadHintText = 307,
+typedef NS_ENUM (NSInteger, KBRProofStatus) {
+	KBRProofStatusNone = 0,
+	KBRProofStatusOk = 1,
+	KBRProofStatusLocal = 2,
+	KBRProofStatusFound = 3,
+	KBRProofStatusBaseError = 100,
+	KBRProofStatusHostUnreachable = 101,
+	KBRProofStatusPermissionDenied = 103,
+	KBRProofStatusFailedParse = 106,
+	KBRProofStatusDnsError = 107,
+	KBRProofStatusAuthFailed = 108,
+	KBRProofStatusHttp500 = 150,
+	KBRProofStatusTimeout = 160,
+	KBRProofStatusInternalError = 170,
+	KBRProofStatusBaseHardError = 200,
+	KBRProofStatusNotFound = 201,
+	KBRProofStatusContentFailure = 202,
+	KBRProofStatusBadUsername = 203,
+	KBRProofStatusBadRemoteId = 204,
+	KBRProofStatusTextNotFound = 205,
+	KBRProofStatusBadArgs = 206,
+	KBRProofStatusContentMissing = 207,
+	KBRProofStatusTitleNotFound = 208,
+	KBRProofStatusServiceError = 209,
+	KBRProofStatusTorSkipped = 210,
+	KBRProofStatusTorIncompatible = 211,
+	KBRProofStatusHttp300 = 230,
+	KBRProofStatusHttp400 = 240,
+	KBRProofStatusHttpOther = 260,
+	KBRProofStatusEmptyJson = 270,
+	KBRProofStatusDeleted = 301,
+	KBRProofStatusServiceDead = 302,
+	KBRProofStatusBadSignature = 303,
+	KBRProofStatusBadApiUrl = 304,
+	KBRProofStatusUnknownType = 305,
+	KBRProofStatusNoHint = 306,
+	KBRProofStatusBadHintText = 307,
 };
 
 typedef NS_ENUM (NSInteger, KBRProofType) {
@@ -335,9 +337,9 @@ typedef NS_ENUM (NSInteger, KBRTrackDiffType) {
 
 @end
 
-@interface KBRProofStatus : KBRObject
-@property NSInteger state;
-@property NSInteger status;
+@interface KBRProofResult : KBRObject
+@property KBRProofState state;
+@property KBRProofStatus status;
 @property NSString *desc;
 @end
 
@@ -376,14 +378,14 @@ typedef NS_ENUM (NSInteger, KBRTrackDiffType) {
 @end
 
 @interface KBRCheckResult : KBRObject
-@property KBRProofStatus *proofStatus;
+@property KBRProofResult *proofResult;
 @property NSInteger timestamp;
 @property NSString *displayMarkup;
 @end
 
 @interface KBRLinkCheckResult : KBRObject
 @property NSInteger proofId;
-@property KBRProofStatus *proofStatus;
+@property KBRProofResult *proofResult;
 @property KBRCheckResult *cached;
 @property KBRTrackDiff *diff;
 @property KBRTrackDiff *remoteDiff;
@@ -595,7 +597,7 @@ typedef NS_ENUM (NSInteger, KBRSignMode) {
 
 @interface KBRCheckProofStatus : KBRObject
 @property BOOL found;
-@property KBRProofCheckStatus status;
+@property KBRProofStatus status;
 @property NSString *proofText;
 @end
 

@@ -1,6 +1,7 @@
 package libkb
 
 import (
+	keybase1 "github.com/keybase/client/protocol/go"
 	"github.com/keybase/go-jsonw"
 	"regexp"
 	"strings"
@@ -42,7 +43,7 @@ func (rc *HackerNewsChecker) CheckHint(h SigHint) ProofError {
 	if Cicmp(wanted, h.apiUrl) {
 		return nil
 	} else {
-		return NewProofError(PROOF_BAD_API_URL,
+		return NewProofError(keybase1.ProofStatus_BAD_API_URL,
 			"Bad hint from server; URL should start with '%s'", wanted)
 	}
 }
@@ -61,7 +62,7 @@ func (rc *HackerNewsChecker) CheckStatus(h SigHint) ProofError {
 	var ret ProofError
 
 	if err != nil {
-		return NewProofError(PROOF_BAD_SIGNATURE,
+		return NewProofError(keybase1.ProofStatus_BAD_SIGNATURE,
 			"Bad signature: %s", err.Error())
 	}
 
@@ -69,7 +70,7 @@ func (rc *HackerNewsChecker) CheckStatus(h SigHint) ProofError {
 	G.Log.Debug("| HackerNews profile: %s", res.Body)
 	G.Log.Debug("| Wanted signature hash: %s", wanted)
 	if !strings.Contains(res.Body, wanted) {
-		ret = NewProofError(PROOF_TEXT_NOT_FOUND,
+		ret = NewProofError(keybase1.ProofStatus_TEXT_NOT_FOUND,
 			"Posted text does not include signature '%s'", wanted)
 	}
 
@@ -125,7 +126,7 @@ following text. Click here: https://news.ycombinator.com/user?id=` + un)
 func (t HackerNewsServiceType) DisplayName(un string) string { return "HackerNews" }
 func (t HackerNewsServiceType) GetTypeName() string          { return "hackernews" }
 
-func (t HackerNewsServiceType) RecheckProofPosting(tryNumber, status int) (warning *Markup, err error) {
+func (t HackerNewsServiceType) RecheckProofPosting(tryNumber int, status keybase1.ProofStatus) (warning *Markup, err error) {
 	warning = FmtMarkup(`<p>We couldn't find a posted proof...<strong>yet</strong></p>`)
 	if tryNumber < 3 {
 		warning.Append(`<p>HackerNews's API is slow to update, so be patient...try again?</p>`)

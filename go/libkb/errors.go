@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"strings"
 
+	keybase1 "github.com/keybase/client/protocol/go"
 	jsonw "github.com/keybase/go-jsonw"
 )
 
@@ -13,31 +14,31 @@ import (
 
 type ProofError interface {
 	error
-	GetStatus() ProofStatus
+	GetProofStatus() keybase1.ProofStatus
 	GetDesc() string
 }
 
 func ProofErrorIsSoft(pe ProofError) bool {
-	s := int(pe.GetStatus())
-	return s >= PROOF_BASE_ERROR && s < PROOF_BASE_HARD_ERROR
+	s := pe.GetProofStatus()
+	return s >= keybase1.ProofStatus_BASE_ERROR && s < keybase1.ProofStatus_BASE_HARD_ERROR
 }
 
-func ProofErrorToState(pe ProofError) int {
+func ProofErrorToState(pe ProofError) keybase1.ProofState {
 	if pe == nil {
-		return PROOF_STATE_OK
-	} else if s := pe.GetStatus(); s == PROOF_NO_HINT || s == PROOF_UNKNOWN_TYPE {
-		return PROOF_STATE_NONE
+		return keybase1.ProofState_OK
+	} else if s := pe.GetProofStatus(); s == keybase1.ProofStatus_NO_HINT || s == keybase1.ProofStatus_UNKNOWN_TYPE {
+		return keybase1.ProofState_NONE
 	} else {
-		return PROOF_STATE_TEMP_FAILURE
+		return keybase1.ProofState_TEMP_FAILURE
 	}
 }
 
 type ProofErrorImpl struct {
-	Status ProofStatus
+	Status keybase1.ProofStatus
 	Desc   string
 }
 
-func NewProofError(s ProofStatus, d string, a ...interface{}) *ProofErrorImpl {
+func NewProofError(s keybase1.ProofStatus, d string, a ...interface{}) *ProofErrorImpl {
 	return &ProofErrorImpl{s, fmt.Sprintf(d, a...)}
 }
 
@@ -45,8 +46,8 @@ func (e *ProofErrorImpl) Error() string {
 	return fmt.Sprintf("%s (code=%d)", e.Desc, int(e.Status))
 }
 
-func (e *ProofErrorImpl) GetStatus() ProofStatus { return e.Status }
-func (e *ProofErrorImpl) GetDesc() string        { return e.Desc }
+func (e *ProofErrorImpl) GetProofStatus() keybase1.ProofStatus { return e.Status }
+func (e *ProofErrorImpl) GetDesc() string                      { return e.Desc }
 
 type ProofApiError struct {
 	ProofErrorImpl
@@ -58,7 +59,7 @@ type ProofApiError struct {
 //	return fmt.Sprintf("%s (url=%s; code=%d)", e.Desc, e.url, int(e.Status))
 //}
 
-func NewProofApiError(s ProofStatus, u string, d string, a ...interface{}) *ProofApiError {
+func NewProofApiError(s keybase1.ProofStatus, u string, d string, a ...interface{}) *ProofApiError {
 	base := NewProofError(s, d, a...)
 	return &ProofApiError{*base, u}
 }
@@ -67,20 +68,20 @@ func NewProofApiError(s ProofStatus, u string, d string, a ...interface{}) *Proo
 
 func XapiError(err error, u string) *ProofApiError {
 	if ae, ok := err.(*ApiError); ok {
-		var code ProofStatus = PROOF_NONE
+		var code keybase1.ProofStatus = keybase1.ProofStatus_NONE
 		switch ae.Code / 100 {
 		case 3:
-			code = PROOF_HTTP_300
+			code = keybase1.ProofStatus_HTTP_300
 		case 4:
-			code = PROOF_HTTP_400
+			code = keybase1.ProofStatus_HTTP_400
 		case 5:
-			code = PROOF_HTTP_500
+			code = keybase1.ProofStatus_HTTP_500
 		default:
-			code = PROOF_HTTP_OTHER
+			code = keybase1.ProofStatus_HTTP_OTHER
 		}
 		return NewProofApiError(code, u, ae.Msg)
 	}
-	return NewProofApiError(PROOF_INTERNAL_ERROR, u, err.Error())
+	return NewProofApiError(keybase1.ProofStatus_INTERNAL_ERROR, u, err.Error())
 }
 
 //=============================================================================
