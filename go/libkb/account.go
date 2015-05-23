@@ -208,20 +208,35 @@ func (a *Account) LockedLocalSecretKey(ska SecretKeyArg) *SKB {
 		return nil
 	}
 
-	if !ska.KeyType.useDeviceSigningKey() {
-		a.G().Log.Debug("| not using device signing key; preferences have disabled it")
-	} else if did := a.G().Env.GetDeviceID(); did == nil {
-		a.G().Log.Debug("| Could not get device id")
-	} else if key, err := ckf.GetSibkeyForDevice(*did); err != nil {
-		a.G().Log.Debug("| No key for current device: %s", err.Error())
-	} else if key == nil {
-		a.G().Log.Debug("| Key for current device is nil")
+	if !ska.KeyType.useDeviceKey() {
+		a.G().Log.Debug("| not using device key; preferences have disabled it")
 	} else {
-		kid := key.GetKid()
-		a.G().Log.Debug("| Found KID for current device: %s", kid)
-		ret = keyring.LookupByKid(kid)
-		if ret != nil {
-			a.G().Log.Debug("| Using device key: %s", kid)
+		did := a.G().Env.GetDeviceID()
+		if did == nil {
+			a.G().Log.Debug("| Could not get device id")
+		} else {
+			var key GenericKey
+			var err error
+			if (ska.KeyType & DeviceSigningKeyType) != 0 {
+				key, err = ckf.GetSibkeyForDevice(*did)
+			} else {
+				key, err = ckf.GetEncryptionSubkeyForDevice(*did)
+			}
+
+			if err != nil {
+				a.G().Log.Debug("| No key for current device: %s", err.Error())
+			}
+
+			if key == nil {
+				a.G().Log.Debug("| Key for current device is nil")
+			} else {
+				kid := key.GetKid()
+				a.G().Log.Debug("| Found KID for current device: %s", kid)
+				ret = keyring.LookupByKid(kid)
+				if ret != nil {
+					a.G().Log.Debug("| Using device key: %s", kid)
+				}
+			}
 		}
 	}
 
