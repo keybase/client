@@ -316,14 +316,26 @@ type ED25519SignatureInfo struct {
 	PublicKey ED25519PublicKey `codec:"publicKey" json:"publicKey"`
 }
 
+type Nonce [24]byte
+type PeersPublicKey [32]byte
+type TLFCryptKeyClientHalf [32]byte
 type SignED25519Arg struct {
 	SessionID int    `codec:"sessionID" json:"sessionID"`
 	Msg       []byte `codec:"msg" json:"msg"`
 	Reason    string `codec:"reason" json:"reason"`
 }
 
+type DecryptTLFCryptKeyClientHalfArg struct {
+	SessionID      int            `codec:"sessionID" json:"sessionID"`
+	EncryptedData  []byte         `codec:"encryptedData" json:"encryptedData"`
+	Nonce          Nonce          `codec:"nonce" json:"nonce"`
+	PeersPublicKey PeersPublicKey `codec:"peersPublicKey" json:"peersPublicKey"`
+	Reason         string         `codec:"reason" json:"reason"`
+}
+
 type CryptoInterface interface {
 	SignED25519(SignED25519Arg) (ED25519SignatureInfo, error)
+	DecryptTLFCryptKeyClientHalf(DecryptTLFCryptKeyClientHalfArg) (TLFCryptKeyClientHalf, error)
 }
 
 func CryptoProtocol(i CryptoInterface) rpc2.Protocol {
@@ -334,6 +346,13 @@ func CryptoProtocol(i CryptoInterface) rpc2.Protocol {
 				args := make([]SignED25519Arg, 1)
 				if err = nxt(&args); err == nil {
 					ret, err = i.SignED25519(args[0])
+				}
+				return
+			},
+			"decryptTLFCryptKeyClientHalf": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
+				args := make([]DecryptTLFCryptKeyClientHalfArg, 1)
+				if err = nxt(&args); err == nil {
+					ret, err = i.DecryptTLFCryptKeyClientHalf(args[0])
 				}
 				return
 			},
@@ -348,6 +367,11 @@ type CryptoClient struct {
 
 func (c CryptoClient) SignED25519(__arg SignED25519Arg) (res ED25519SignatureInfo, err error) {
 	err = c.Cli.Call("keybase.1.crypto.signED25519", []interface{}{__arg}, &res)
+	return
+}
+
+func (c CryptoClient) DecryptTLFCryptKeyClientHalf(__arg DecryptTLFCryptKeyClientHalfArg) (res TLFCryptKeyClientHalf, err error) {
+	err = c.Cli.Call("keybase.1.crypto.decryptTLFCryptKeyClientHalf", []interface{}{__arg}, &res)
 	return
 }
 

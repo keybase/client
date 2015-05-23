@@ -19,6 +19,18 @@
       "name" : "publicKey",
       "type" : "ED25519PublicKey"
     } ]
+  }, {
+    "type" : "fixed",
+    "name" : "Nonce",
+    "size" : 24
+  }, {
+    "type" : "fixed",
+    "name" : "PeersPublicKey",
+    "size" : 32
+  }, {
+    "type" : "fixed",
+    "name" : "TLFCryptKeyClientHalf",
+    "size" : 32
   } ],
   "messages" : {
     "signED25519" : {
@@ -33,6 +45,25 @@
         "type" : "string"
       } ],
       "response" : "ED25519SignatureInfo"
+    },
+    "decryptTLFCryptKeyClientHalf" : {
+      "request" : [ {
+        "name" : "sessionID",
+        "type" : "int"
+      }, {
+        "name" : "encryptedData",
+        "type" : "bytes"
+      }, {
+        "name" : "nonce",
+        "type" : "Nonce"
+      }, {
+        "name" : "peersPublicKey",
+        "type" : "PeersPublicKey"
+      }, {
+        "name" : "reason",
+        "type" : "string"
+      } ],
+      "response" : "TLFCryptKeyClientHalf"
     }
   }
 }

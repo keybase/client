@@ -57,3 +57,7 @@ func (c *CryptoHandler) SignED25519(arg keybase1.SignED25519Arg) (ret keybase1.E
 	}
 	return
 }
+
+func (c *CryptoHandler) DecryptTLFCryptKeyClientHalf(arg keybase1.DecryptTLFCryptKeyClientHalfArg) (tlfCryptKeyClientHalf keybase1.TLFCryptKeyClientHalf, err error) {
+	panic("Not implemented")
+}

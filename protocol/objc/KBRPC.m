@@ -149,6 +149,18 @@
   }];
 }
 
+- (void)decryptTLFCryptKeyClientHalfWithSessionID:(NSInteger)sessionID encryptedData:(NSData *)encryptedData nonce:(NSData *)nonce peersPublicKey:(NSData *)peersPublicKey reason:(NSString *)reason completion:(void (^)(NSError *error, NSData *tLFCryptKeyClientHalf))completion {
+  NSArray *params = @[@{@"sessionID": @(sessionID), @"encryptedData": KBRValue(encryptedData), @"nonce": KBRValue(nonce), @"peersPublicKey": KBRValue(peersPublicKey), @"reason": KBRValue(reason)}];
+  [self.client sendRequestWithMethod:@"keybase.1.crypto.decryptTLFCryptKeyClientHalf" params:params sessionId:self.sessionId completion:^(NSError *error, id retval) {
+    if (error) {
+        completion(error, nil);
+        return;
+      }
+      KBRTLFCryptKeyClientHalf *result = retval ? [MTLJSONAdapter modelOfClass:KBRTLFCryptKeyClientHalf.class fromJSONDictionary:retval error:&error] : nil;
+      completion(error, result);
+  }];
+}
+
 @end
 
 @implementation KBRCtlRequest
@@ -1219,6 +1231,21 @@
   if ((self = [super initWithParams:params])) {
     self.sessionID = [params[0][@"sessionID"] integerValue];
     self.msg = params[0][@"msg"];
+    self.reason = params[0][@"reason"];
+  }
+  return self;
+}
+
+@end
+
+@implementation KBRDecryptTLFCryptKeyClientHalfRequestParams
+
+- (instancetype)initWithParams:(NSArray *)params {
+  if ((self = [super initWithParams:params])) {
+    self.sessionID = [params[0][@"sessionID"] integerValue];
+    self.encryptedData = params[0][@"encryptedData"];
+    self.nonce = params[0][@"nonce"];
+    self.peersPublicKey = params[0][@"peersPublicKey"];
     self.reason = params[0][@"reason"];
   }
   return self;
