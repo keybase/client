@@ -1,6 +1,11 @@
 package engine
 
 import (
+	"errors"
+	"fmt"
+
+	"golang.org/x/crypto/nacl/box"
+
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/protocol/go"
 )
@@ -42,12 +47,42 @@ func (cse *CryptoDecryptTLFEngine) SubConsumers() []libkb.UIConsumer {
 }
 
 func (cse *CryptoDecryptTLFEngine) Run(ctx *Context) (err error) {
-	_, err = libkb.LoadMe(libkb.LoadUserArg{})
+	me, err := libkb.LoadMe(libkb.LoadUserArg{})
 	if err != nil {
 		return err
 	}
 
-	panic("Not implemented")
+	key, _, err := cse.G().Keyrings.GetSecretKeyWithPrompt(ctx.LoginContext, libkb.SecretKeyArg{
+		Me:      me,
+		KeyType: libkb.DeviceEncryptionKeyType,
+	}, ctx.SecretUI, cse.reason)
+	if err != nil {
+		return
+	}
+
+	keyPair, ok := key.(libkb.NaclDHKeyPair)
+	if !ok {
+		err = errors.New("Key not a DHKeyPair")
+		return
+	}
+
+	nonce := [24]byte(cse.nonce)
+	pubKey := [32]byte(cse.peersPublicKey)
+	privKey := [32]byte(*keyPair.Private)
+
+	decryptedData, ok := box.Open(nil, cse.encryptedData, &nonce, &pubKey, &privKey)
+	if !ok {
+		err = errors.New("Decryption error")
+		return
+	}
+
+	if len(decryptedData) != len(cse.tlfCryptKeyClientHalf) {
+		err = fmt.Errorf("Expected %d decrypted bytes, got %d", len(cse.tlfCryptKeyClientHalf), len(decryptedData))
+		return
+	}
+
+	copy(cse.tlfCryptKeyClientHalf[:], decryptedData)
+	return
 }
 
 func (cse *CryptoDecryptTLFEngine) GetTLFCryptKeyClientHalf() keybase1.TLFCryptKeyClientHalf {
