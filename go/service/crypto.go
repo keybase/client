@@ -59,5 +59,13 @@ func (c *CryptoHandler) SignED25519(arg keybase1.SignED25519Arg) (ret keybase1.E
 }
 
 func (c *CryptoHandler) DecryptTLFCryptKeyClientHalf(arg keybase1.DecryptTLFCryptKeyClientHalfArg) (tlfCryptKeyClientHalf keybase1.TLFCryptKeyClientHalf, err error) {
-	panic("Not implemented")
+	ctx := &engine.Context{
+		SecretUI: c.getSecretUI(arg.SessionID),
+	}
+	eng := engine.NewCryptoDecryptTLFEngine(G, arg.EncryptedData, arg.Nonce, arg.PeersPublicKey, arg.Reason)
+	if err = engine.RunEngine(eng, ctx); err != nil {
+		return
+	}
+	tlfCryptKeyClientHalf = eng.GetTLFCryptKeyClientHalf()
+	return
 }
