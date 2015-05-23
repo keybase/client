@@ -474,7 +474,8 @@ func expectSyncBlock(
 	t *testing.T, config *ConfigMock, lastCall *gomock.Call, userID keybase1.UID,
 	id DirID, name string, path Path, rmd *RootMetadata, newEntry bool,
 	skipSync int, refBytes uint64, unrefBytes uint64,
-	checkMD func(*RootMetadata), newRmd **RootMetadata) (Path, *gomock.Call) {
+	checkMD func(*RootMetadata), newRmd **RootMetadata, newBlocks []*DirBlock) (
+	Path, *gomock.Call) {
 	expectGetTLFCryptKey(config)
 
 	// construct new path
@@ -512,8 +513,40 @@ func expectSyncBlock(
 		}
 		lastCall = call
 		newPath.Path[i].ID = newID
+		index := i
 		config.mockBops.EXPECT().Put(newID, gomock.Any(), newBuf).Return(nil)
-		config.mockBcache.EXPECT().Put(newID, gomock.Any(), false).Return(nil)
+		// Hard to know whether the block will be finalized or just
+		// put into the cache.  Allow either one.  I don't think
+		// gomock lets us check that exactly one of them will happen.
+		config.mockBcache.EXPECT().Put(newID, gomock.Any(), false).
+			Do(func(id BlockID, block Block, dirty bool) {
+			if newBlocks != nil {
+				if dblock, ok := block.(*DirBlock); ok {
+					newBlocks[index] = dblock
+				} else if index == len(newBlocks)-1 {
+					// just pretend this is a dirblock.  shouldn't matter.
+					newBlocks[index] = NewDirBlock().(*DirBlock)
+				} else {
+					t.Errorf("Couldn't put new block %v as a dirblock "+
+						"(%d out of %d)", newID, index+1, len(newBlocks))
+				}
+			}
+		}).AnyTimes().Return(nil)
+		if index < len(path.Path) && path.Path[index].ID != zeroID {
+			config.mockBcache.EXPECT().Finalize(path.Path[index].ID, newID).
+				Do(func(oldId BlockID, newID BlockID) {
+				if newBlocks == nil {
+					return
+				}
+				// get the new block straight from the mock cache!
+				block, _ := config.BlockCache().Get(oldId)
+				// file blocks don't need saving
+				if dblock, ok := block.(*DirBlock); ok {
+					newBlocks[index] = dblock
+				}
+			}).AnyTimes().Return(nil)
+		}
+
 		config.mockKops.EXPECT().PutBlockCryptKeyServerHalf(newID, BlockCryptKeyServerHalf{}).Return(nil)
 		config.mockKcache.EXPECT().PutBlockCryptKey(newID, BlockCryptKey{}).Return(nil)
 	}
@@ -634,7 +667,7 @@ func checkNewPath(t *testing.T, config Config, newPath Path, expectedPath Path,
 		}
 
 		if (currDe.Type != File && currDe.Type != Exec) && currDe.Size == 0 {
-			t.Errorf("Type %s unexpectedly has 0 size", currDe.Type)
+			t.Errorf("Type %s unexpectedly has 0 size (%d)", currDe.Type, i)
 		}
 	}
 }
@@ -644,6 +677,16 @@ func expectGetBlock(config *ConfigMock, id BlockID, block Block) {
 	config.mockBcache.EXPECT().IsDirty(id).AnyTimes().Return(false)
 }
 
+func expectGetBlockWithPut(config *ConfigMock, id BlockID, block Block) {
+	config.mockBcache.EXPECT().Get(id).Return(block, nil)
+	config.mockBcache.EXPECT().IsDirty(id).Return(false)
+	config.mockBcache.EXPECT().Put(id, gomock.Any(), true).AnyTimes().
+		Do(func(id BlockID, block Block, dirty bool) {
+		config.mockBcache.EXPECT().IsDirty(id).AnyTimes().Return(true)
+		config.mockBcache.EXPECT().Get(id).AnyTimes().Return(block, nil)
+	}).Return(nil)
+}
+
 func testCreateEntrySuccess(t *testing.T, entryType EntryType) {
 	mockCtrl, config := kbfsOpsInit(t, true)
 	defer kbfsTestShutdown(mockCtrl, config)
@@ -651,6 +694,8 @@ func testCreateEntrySuccess(t *testing.T, entryType EntryType) {
 	userID, id, rmd := makeIDAndRMD(config)
 
 	rootID := BlockID{42}
+	rmd.data.Dir.ID = rootID
+	rmd.data.Dir.Type = Dir
 	aID := BlockID{43}
 	rootBlock := NewDirBlock().(*DirBlock)
 	rootBlock.Children["a"] = DirEntry{
@@ -667,9 +712,10 @@ func testCreateEntrySuccess(t *testing.T, entryType EntryType) {
 	expectGetBlock(config, rootID, rootBlock)
 	// sync block
 	var newRmd *RootMetadata
+	blocks := make([]*DirBlock, 3)
 	expectedPath, _ :=
 		expectSyncBlock(t, config, nil, userID, id, "b", p, rmd,
-			entryType != Sym, 0, 0, 0, nil, &newRmd)
+			entryType != Sym, 0, 0, 0, nil, &newRmd, blocks)
 
 	var newP Path
 	var err error
@@ -686,12 +732,10 @@ func testCreateEntrySuccess(t *testing.T, entryType EntryType) {
 	if err != nil {
 		t.Errorf("Got error on create: %v", err)
 	}
-	// Append a fake block representing the new entry.  It won't be examined
-	blocks := []*DirBlock{rootBlock, aBlock, NewDirBlock().(*DirBlock)}
 	checkNewPath(t, config, newP, expectedPath, newRmd, blocks,
 		entryType, "b", false)
 	if entryType == Sym {
-		de := aBlock.Children["b"]
+		de := blocks[1].Children["b"]
 		if de.Type != Sym {
 			t.Error("Entry is not a symbolic link")
 		}
@@ -699,7 +743,7 @@ func testCreateEntrySuccess(t *testing.T, entryType EntryType) {
 			t.Errorf("Symbolic path points to the wrong thing: %s", de.SymPath)
 		}
 	} else if entryType != Dir {
-		de := aBlock.Children["b"]
+		de := blocks[1].Children["b"]
 		if de.Size != 0 {
 			t.Errorf("New file has non-zero size: %d", de.Size)
 		}
@@ -796,8 +840,9 @@ func testRemoveEntrySuccess(t *testing.T, entryType EntryType) {
 	expectGetBlock(config, rootID, rootBlock)
 	// sync block
 	var newRmd *RootMetadata
+	blocks := make([]*DirBlock, 2)
 	expectedPath, _ := expectSyncBlock(t, config, nil, userID, id, "",
-		*p.ParentPath(), rmd, false, 0, 0, 0, nil, &newRmd)
+		*p.ParentPath(), rmd, false, 0, 0, 0, nil, &newRmd, blocks)
 
 	var newP Path
 	var err error
@@ -809,10 +854,9 @@ func testRemoveEntrySuccess(t *testing.T, entryType EntryType) {
 	if err != nil {
 		t.Errorf("Got error on removal: %v", err)
 	}
-	blocks := []*DirBlock{rootBlock, aBlock}
 	checkNewPath(t, config, newP, expectedPath, newRmd, blocks,
 		entryType, "", false)
-	if _, ok := aBlock.Children["b"]; ok {
+	if _, ok := blocks[1].Children["b"]; ok {
 		t.Errorf("entry for b is still around after removal")
 	}
 }
@@ -883,17 +927,17 @@ func TestKBFSOpRemoveMultiBlockFileSuccess(t *testing.T) {
 		checkBlockChange(t, md.data.UnrefBlocks.Changes, p, index, 0, id4)
 	}
 	var newRmd *RootMetadata
+	blocks := make([]*DirBlock, 1)
 	expectedPath, _ := expectSyncBlock(t, config, nil, userID, id, "",
-		*p.ParentPath(), rmd, false, 0, 0, unrefBytes, f, &newRmd)
+		*p.ParentPath(), rmd, false, 0, 0, unrefBytes, f, &newRmd, blocks)
 
 	newP, err := config.KBFSOps().RemoveEntry(p)
 	if err != nil {
 		t.Errorf("Got error on removal: %v", err)
 	}
-	blocks := []*DirBlock{rootBlock}
 	checkNewPath(t, config, newP, expectedPath, newRmd, blocks,
 		File, "", false)
-	if _, ok := rootBlock.Children["a"]; ok {
+	if _, ok := blocks[0].Children["a"]; ok {
 		t.Errorf("entry for a is still around after removal")
 	}
 }
@@ -984,9 +1028,10 @@ func TestRenameInDirSuccess(t *testing.T) {
 	expectGetBlock(config, rootID, rootBlock)
 	// sync block
 	var newRmd *RootMetadata
+	blocks := make([]*DirBlock, 3)
 	expectedPath, _ :=
 		expectSyncBlock(t, config, nil, userID, id, "", p, rmd, false,
-			0, 0, 0, nil, &newRmd)
+			0, 0, 0, nil, &newRmd, blocks)
 
 	var newP1 Path
 	var newP2 Path
@@ -995,13 +1040,11 @@ func TestRenameInDirSuccess(t *testing.T) {
 	if err != nil {
 		t.Errorf("Got error on rename: %v", err)
 	}
-	// append a fake block at the end for the renamed file
-	blocks := []*DirBlock{rootBlock, aBlock, NewDirBlock().(*DirBlock)}
 	checkNewPath(t, config, newP1, expectedPath, newRmd, blocks,
 		File, "c", true)
 	checkNewPath(t, config, newP2, expectedPath, newRmd, blocks,
 		File, "c", true)
-	if _, ok := aBlock.Children["b"]; ok {
+	if _, ok := blocks[1].Children["b"]; ok {
 		t.Errorf("entry for b is still around after rename")
 	} else if len(config.observer.batchUpdatePaths) != 2 {
 		t.Errorf("Expected 2 batch notifications, got %d",
@@ -1028,9 +1071,10 @@ func TestRenameInRootSuccess(t *testing.T) {
 	expectGetBlock(config, rootID, rootBlock)
 	// sync block
 	var newRmd *RootMetadata
+	blocks := make([]*DirBlock, 2)
 	expectedPath, _ :=
 		expectSyncBlock(t, config, nil, userID, id, "", p, rmd, false,
-			0, 0, 0, nil, &newRmd)
+			0, 0, 0, nil, &newRmd, blocks)
 
 	var newP1 Path
 	var newP2 Path
@@ -1039,14 +1083,12 @@ func TestRenameInRootSuccess(t *testing.T) {
 	if err != nil {
 		t.Errorf("Got error on rename: %v", err)
 	}
-	// append a fake block at the end for the renamed file
-	blocks := []*DirBlock{rootBlock, NewDirBlock().(*DirBlock)}
 	checkNewPath(t, config, newP1, expectedPath, newRmd, blocks,
 		File, "b", true)
 	checkNewPath(t, config, newP2, expectedPath, newRmd, blocks,
 		File, "b", true)
-	if _, ok := rootBlock.Children["a"]; ok {
-		t.Errorf("entry for b is still around after rename")
+	if _, ok := blocks[0].Children["a"]; ok {
+		t.Errorf("entry for a is still around after rename")
 	} else if len(config.observer.batchUpdatePaths) != 2 {
 		t.Errorf("Expected 2 batch notifications, got %d",
 			len(config.observer.batchUpdatePaths))
@@ -1063,6 +1105,7 @@ func TestRenameAcrossDirsSuccess(t *testing.T) {
 	rootID := BlockID{41}
 	aID := BlockID{42}
 	bID := BlockID{43}
+	rmd.data.Dir.ID = rootID
 	rootBlock := NewDirBlock().(*DirBlock)
 	rootBlock.Children["a"] = DirEntry{
 		BlockPointer: BlockPointer{ID: aID}, Type: Dir}
@@ -1082,15 +1125,19 @@ func TestRenameAcrossDirsSuccess(t *testing.T) {
 	// renaming "a/b" to "d/c"
 	expectGetBlock(config, aID, aBlock)
 	expectGetBlock(config, dID, dBlock)
-	expectGetBlock(config, rootID, rootBlock)
+	expectGetBlockWithPut(config, rootID, rootBlock)
+	config.mockBcache.EXPECT().IsDirty(rootID).Return(false)
+
 	// sync block
 	var newRmd *RootMetadata
+	blocks1 := make([]*DirBlock, 2)
 	expectedPath1, lastCall :=
 		expectSyncBlock(t, config, nil, userID, id, "", p1, rmd, false,
-			1, 0, 0, nil, &newRmd)
+			1, 0, 0, nil, nil, blocks1)
+	blocks2 := make([]*DirBlock, 3)
 	expectedPath2, _ :=
 		expectSyncBlock(t, config, lastCall, userID, id, "", p2, rmd, false, 0,
-			1, 0, nil, &newRmd)
+			1, 0, nil, &newRmd, blocks2)
 	// fix up old expected path's common ancestor
 	expectedPath1.Path[0].ID = expectedPath2.Path[0].ID
 
@@ -1098,14 +1145,15 @@ func TestRenameAcrossDirsSuccess(t *testing.T) {
 	if err != nil {
 		t.Errorf("Got error on rename: %v", err)
 	}
-	blocks := []*DirBlock{rootBlock, aBlock}
-	checkNewPath(t, config, newP1, expectedPath1, newRmd, blocks,
+
+	// fix up blocks1 -- the first partial sync stops at aBlock, and
+	// checkNewPath expects {rootBlock, aBlock}
+	blocks1 = []*DirBlock{blocks2[0], blocks1[0]}
+	checkNewPath(t, config, newP1, expectedPath1, newRmd, blocks1,
 		File, "", true)
-	// append a fake block at the end for the renamed file
-	blocks = []*DirBlock{rootBlock, dBlock, NewDirBlock().(*DirBlock)}
-	checkNewPath(t, config, newP2, expectedPath2, newRmd, blocks,
+	checkNewPath(t, config, newP2, expectedPath2, newRmd, blocks2,
 		File, "c", true)
-	if _, ok := aBlock.Children["b"]; ok {
+	if _, ok := blocks1[0].Children["b"]; ok {
 		t.Errorf("entry for b is still around after rename")
 	} else if len(config.observer.batchUpdatePaths) != 2 {
 		t.Errorf("Expected 2 batch notifications, got %d",
@@ -1137,14 +1185,19 @@ func TestRenameAcrossPrefixSuccess(t *testing.T) {
 	p2 := Path{id, []PathNode{node, aNode, dNode}}
 
 	// renaming "a/b" to "a/d/c"
-	expectGetBlock(config, aID, aBlock)
+	// the common ancestor and its parent will be changed once and then re-read
+	expectGetBlockWithPut(config, aID, aBlock)
 	expectGetBlock(config, dID, dBlock)
-	expectGetBlock(config, rootID, rootBlock)
+	expectGetBlockWithPut(config, rootID, rootBlock)
+	config.mockBcache.EXPECT().IsDirty(aID).Return(false)
+	config.mockBcache.EXPECT().IsDirty(rootID).Return(false)
+
 	// sync block
 	var newRmd *RootMetadata
+	blocks := make([]*DirBlock, 4)
 	expectedPath2, _ :=
 		expectSyncBlock(t, config, nil, userID, id, "", p2, rmd, false,
-			0, 0, 0, nil, &newRmd)
+			0, 0, 0, nil, &newRmd, blocks)
 
 	newP1, newP2, err := config.KBFSOps().Rename(p1, "b", p2, "c")
 	if err != nil {
@@ -1156,23 +1209,21 @@ func TestRenameAcrossPrefixSuccess(t *testing.T) {
 	if newP1.Path[1].ID != newP2.Path[1].ID {
 		t.Errorf("New old path not a prefix of new new path")
 	}
-	if rootBlock.Children["a"].Mtime == 0 {
+	if blocks[0].Children["a"].Mtime == 0 {
 		t.Errorf("a's mtime didn't change")
 	}
-	if rootBlock.Children["a"].Ctime == 0 {
+	if blocks[0].Children["a"].Ctime == 0 {
 		t.Errorf("a's ctime didn't change")
 	}
 	// now change the times back so checkNewPath below works without hacking
-	aDe := rootBlock.Children["a"]
+	aDe := blocks[0].Children["a"]
 	aDe.Mtime = 0
 	aDe.Ctime = 0
-	rootBlock.Children["a"] = aDe
+	blocks[0].Children["a"] = aDe
 
-	// append a fake block at the end for the renamed file
-	blocks := []*DirBlock{rootBlock, aBlock, dBlock, NewDirBlock().(*DirBlock)}
 	checkNewPath(t, config, newP2, expectedPath2, newRmd, blocks,
 		File, "c", true)
-	if _, ok := aBlock.Children["b"]; ok {
+	if _, ok := blocks[1].Children["b"]; ok {
 		t.Errorf("entry for b is still around after rename")
 	} else if len(config.observer.batchUpdatePaths) != 2 {
 		t.Errorf("Expected 2 batch notifications, got %d",
@@ -1204,17 +1255,21 @@ func TestRenameAcrossOtherPrefixSuccess(t *testing.T) {
 	p2 := Path{id, []PathNode{node, aNode}}
 
 	// renaming "a/d/b" to "a/c"
-	expectGetBlock(config, aID, aBlock)
+	expectGetBlockWithPut(config, aID, aBlock)
 	expectGetBlock(config, dID, dBlock)
 	expectGetBlock(config, rootID, rootBlock)
+	config.mockBcache.EXPECT().IsDirty(aID).Return(false)
+
 	// sync block
 	var newRmd *RootMetadata
+	blocks1 := make([]*DirBlock, 3)
 	expectedPath1, lastCall :=
 		expectSyncBlock(t, config, nil, userID, id, "", p1, rmd, false,
-			2, 0, 0, nil, &newRmd)
+			2, 0, 0, nil, &newRmd, blocks1)
+	blocks2 := make([]*DirBlock, 3)
 	expectedPath2, _ :=
 		expectSyncBlock(t, config, lastCall, userID, id, "", p2, rmd, false, 0,
-			1, 0, nil, &newRmd)
+			1, 0, nil, &newRmd, blocks2)
 	// the new path is a prefix of the old path
 	expectedPath1.Path[0].ID = expectedPath2.Path[0].ID
 	expectedPath1.Path[1].ID = expectedPath2.Path[1].ID
@@ -1229,17 +1284,22 @@ func TestRenameAcrossOtherPrefixSuccess(t *testing.T) {
 	if newP2.Path[1].ID != newP1.Path[1].ID {
 		t.Errorf("New old path not a prefix of new new path")
 	}
-	if aBlock.Children["d"].Mtime == 0 {
+	if blocks2[1].Children["d"].Mtime == 0 {
 		t.Errorf("d's mtime didn't change")
 	}
-	if aBlock.Children["d"].Ctime == 0 {
+	if blocks2[1].Children["d"].Ctime == 0 {
+		t.Errorf("d's ctime didn't change")
+	}
+	if blocks2[0].Children["a"].Mtime == 0 {
+		t.Errorf("d's mtime didn't change")
+	}
+	if blocks2[0].Children["a"].Ctime == 0 {
 		t.Errorf("d's ctime didn't change")
 	}
 
-	blocks := []*DirBlock{rootBlock, aBlock, dBlock}
-	checkNewPath(t, config, newP1, expectedPath1, newRmd, blocks,
+	checkNewPath(t, config, newP1, expectedPath1, newRmd, blocks2,
 		File, "c", true)
-	if _, ok := dBlock.Children["b"]; ok {
+	if _, ok := blocks1[2].Children["b"]; ok {
 		t.Errorf("entry for b is still around after rename")
 	} else if len(config.observer.batchUpdatePaths) != 2 {
 		t.Errorf("Expected 2 batch notifications, got %d",
@@ -1702,8 +1762,10 @@ func TestKBFSOpsWriteCauseSplit(t *testing.T) {
 	newData := []byte{1, 2, 3, 4, 5, 6, 7, 8, 9, 10}
 	expectedFullData := append([]byte{0}, newData...)
 
-	expectGetBlock(config, rootID, rootBlock)
-	expectGetBlock(config, fileID, fileBlock)
+	expectGetBlockWithPut(config, rootID, rootBlock)
+	expectGetBlockWithPut(config, fileID, fileBlock)
+	config.mockBcache.EXPECT().IsDirty(rootID).Return(false)
+
 	// only copy the first half first
 	config.mockBsplit.EXPECT().CopyUntilSplit(
 		gomock.Any(), gomock.Any(), newData, int64(1)).
@@ -1711,37 +1773,26 @@ func TestKBFSOpsWriteCauseSplit(t *testing.T) {
 		block.Contents = append([]byte{0}, data[0:5]...)
 	}).Return(int64(5))
 
-	var pblock *FileBlock
-	var id1 BlockID
-	var block1 *FileBlock
-	var id2 BlockID
-	var block2 *FileBlock
-	var newRootBlock *DirBlock
-	// new indirect parent block (will be put, once on creation, once on update)
-	config.mockCrypto.EXPECT().MakeRandomBlockID().Return(BlockID{}, nil)
-	c1 := config.mockBcache.EXPECT().Put(fileID, gomock.Any(), true).
-		Do(func(id BlockID, block Block, dirty bool) {
-		pblock = block.(*FileBlock)
-	}).Return(nil)
-	config.mockBcache.EXPECT().Put(fileID, gomock.Any(), true).
-		After(c1).AnyTimes().Return(nil)
+	id1 := BlockID{44}
+	id2 := BlockID{45}
+	// new left block
+	config.mockCrypto.EXPECT().MakeRandomBlockID().Return(id1, nil)
+	// the code doesn't distinguish puts for new left blocks, so it
+	// will check dirtiness once.
+	config.mockBcache.EXPECT().IsDirty(id1).Return(false)
 	// new right block
-	config.mockCrypto.EXPECT().MakeRandomBlockID().Return(BlockID{}, nil)
-	c2 := config.mockBcache.EXPECT().Put(gomock.Any(), gomock.Any(), true).
+	config.mockCrypto.EXPECT().MakeRandomBlockID().Return(id2, nil)
+
+	config.mockBcache.EXPECT().Put(id1, gomock.Any(), true).
 		Do(func(id BlockID, block Block, dirty bool) {
-		id2 = id
-		// copy the block so it will have the same pointer, and we can safely
-		// return it for the Get() later
-		block2 = block.(*FileBlock)
-		config.mockBcache.EXPECT().Get(id2).Return(block2, nil)
-		config.mockBcache.EXPECT().IsDirty(id2).AnyTimes().Return(true)
-	}).After(c1).Return(nil)
-	// updated copy of original block
-	c3 := config.mockBcache.EXPECT().Put(gomock.Any(), gomock.Any(), true).
+		config.mockBcache.EXPECT().Get(id).Return(block, nil)
+		config.mockBcache.EXPECT().IsDirty(id).AnyTimes().Return(true)
+	}).Return(nil)
+	config.mockBcache.EXPECT().Put(id2, gomock.Any(), true).
 		Do(func(id BlockID, block Block, dirty bool) {
-		id1 = id
-		block1 = block.(*FileBlock)
-	}).After(c2).Return(nil)
+		config.mockBcache.EXPECT().Get(id).AnyTimes().Return(block, nil)
+		config.mockBcache.EXPECT().IsDirty(id).AnyTimes().Return(true)
+	}).Return(nil)
 	// next we'll get the right block again
 	// then the second half
 	config.mockBsplit.EXPECT().CopyUntilSplit(
@@ -1749,21 +1800,22 @@ func TestKBFSOpsWriteCauseSplit(t *testing.T) {
 		Do(func(block *FileBlock, lb bool, data []byte, off int64) {
 		block.Contents = data
 	}).Return(int64(5))
-	// updated right block
-	config.mockBcache.EXPECT().Put(gomock.Any(), gomock.Any(), true).
-		After(c3).Return(nil)
-
-	// the directory entry will be updated a couple times
-	config.mockBcache.EXPECT().Put(rootID, gomock.Any(), true).
-		Do(func(id BlockID, block Block, dirty bool) {
-		newRootBlock = block.(*DirBlock)
-	}).AnyTimes().Return(nil)
 
 	setRmdAfterWrite(config, nil)
 
 	if err := config.KBFSOps().Write(p, newData, 1); err != nil {
 		t.Errorf("Got error on write: %v", err)
-	} else if len(config.observer.localUpdatePath.Path) != len(p.Path) {
+	}
+	b, _ := config.BlockCache().Get(rootID)
+	newRootBlock := b.(*DirBlock)
+	b, _ = config.BlockCache().Get(fileID)
+	pblock := b.(*FileBlock)
+	b, _ = config.BlockCache().Get(id1)
+	block1 := b.(*FileBlock)
+	b, _ = config.BlockCache().Get(id2)
+	block2 := b.(*FileBlock)
+
+	if len(config.observer.localUpdatePath.Path) != len(p.Path) {
 		t.Errorf("Missing or incorrect local update during write: %s",
 			config.observer.localUpdatePath)
 	} else if !bytesEqual(expectedFullData[0:6], block1.Contents) {
@@ -2130,10 +2182,12 @@ func testSetExSuccess(t *testing.T, entryType EntryType, ex bool) {
 
 	var expectedPath Path
 	var newRmd *RootMetadata
+	var blocks []*DirBlock
 	if entryType != Sym {
 		// sync block
+		blocks = make([]*DirBlock, 2)
 		expectedPath, _ = expectSyncBlock(t, config, nil, userID, id, "",
-			*p.ParentPath(), rmd, false, 0, 0, 0, nil, &newRmd)
+			*p.ParentPath(), rmd, false, 0, 0, 0, nil, &newRmd, blocks)
 		expectedPath.Path = append(expectedPath.Path, aNode)
 	}
 
@@ -2153,16 +2207,20 @@ func testSetExSuccess(t *testing.T, entryType EntryType, ex bool) {
 	} else if expectedChanges != len(config.observer.batchUpdatePaths) {
 		t.Errorf("got changed=%d, expected %d",
 			len(config.observer.batchUpdatePaths), expectedChanges)
-	} else if rootBlock.Children["a"].Type != expectedType {
-		t.Errorf("a has type %s, expected %s", rootBlock.Children["a"].Type, expectedType)
-	} else if entryType != Sym {
-		// SetEx() should always change the ctime of
-		// non-symlinks.  append a fake block so checkNewPath
-		// does the right thing
-		blocks := []*DirBlock{rootBlock, NewDirBlock().(*DirBlock)}
-		// pretend it's a rename so only ctime gets checked
-		checkNewPath(t, config, newP, expectedPath, newRmd, blocks,
-			expectedType, "", true)
+	} else {
+		if blocks != nil {
+			rootBlock = blocks[0]
+		}
+		if rootBlock.Children["a"].Type != expectedType {
+			t.Errorf("a has type %s, expected %s",
+				rootBlock.Children["a"].Type, expectedType)
+		} else if entryType != Sym {
+			// SetEx() should always change the ctime of
+			// non-symlinks.
+			// pretend it's a rename so only ctime gets checked
+			checkNewPath(t, config, newP, expectedPath, newRmd, blocks,
+				expectedType, "", true)
+		}
 	}
 }
 
@@ -2242,18 +2300,17 @@ func TestSetMtimeSuccess(t *testing.T) {
 	expectGetBlock(config, rootID, rootBlock)
 	// sync block
 	var newRmd *RootMetadata
+	blocks := make([]*DirBlock, 2)
 	expectedPath, _ := expectSyncBlock(t, config, nil, userID, id, "",
-		*p.ParentPath(), rmd, false, 0, 0, 0, nil, &newRmd)
+		*p.ParentPath(), rmd, false, 0, 0, 0, nil, &newRmd, blocks)
 	expectedPath.Path = append(expectedPath.Path, aNode)
 
 	newMtime := time.Now()
 	if newP, err := config.KBFSOps().SetMtime(p, &newMtime); err != nil {
 		t.Errorf("Got unexpected error on setmtime: %v", err)
-	} else if rootBlock.Children["a"].Mtime != newMtime.UnixNano() {
-		t.Errorf("a has wrong mtime: %v", newMtime)
+	} else if blocks[0].Children["a"].Mtime != newMtime.UnixNano() {
+		t.Errorf("a has wrong mtime: %v", blocks[0].Children["a"].Mtime)
 	} else {
-		// append a fake block so checkNewPath does the right thing
-		blocks := []*DirBlock{rootBlock, NewDirBlock().(*DirBlock)}
 		checkNewPath(t, config, newP, expectedPath, newRmd, blocks,
 			Exec, "", false)
 	}
@@ -2333,18 +2390,13 @@ func TestSyncDirtySuccess(t *testing.T) {
 
 	// sync block
 	var newRmd *RootMetadata
+	blocks := make([]*DirBlock, 2)
 	expectedPath, _ := expectSyncBlock(t, config, nil, userID, id, "", p,
-		rmd, false, 0, 0, 0, nil, &newRmd)
-	config.mockBcache.EXPECT().Finalize(
-		aID, expectedPath.Path[len(expectedPath.Path)-1].ID)
-	config.mockBcache.EXPECT().Finalize(
-		rootID, expectedPath.Path[len(expectedPath.Path)-2].ID)
+		rmd, false, 0, 0, 0, nil, &newRmd, blocks)
 
 	if newP, err := config.KBFSOps().Sync(p); err != nil {
 		t.Errorf("Got unexpected error on sync: %v", err)
 	} else {
-		// pretend that aBlock is a dirblock -- doesn't matter for this check
-		blocks := []*DirBlock{rootBlock, NewDirBlock().(*DirBlock)}
 		checkNewPath(t, config, newP, expectedPath, newRmd, blocks,
 			Exec, "", false)
 	}
@@ -2465,9 +2517,10 @@ func TestSyncDirtyMultiBlocksSuccess(t *testing.T) {
 			BlockID{id4[0] + 100})
 	}
 	var newRmd *RootMetadata
+	blocks := make([]*DirBlock, 2)
 	expectedPath, _ :=
 		expectSyncBlock(t, config, nil, userID, id, "", p, rmd, false, 0,
-			refBytes, unrefBytes, f, &newRmd)
+			refBytes, unrefBytes, f, &newRmd, blocks)
 	config.mockBcache.EXPECT().Finalize(
 		fileID, expectedPath.Path[len(expectedPath.Path)-1].ID)
 	config.mockBcache.EXPECT().Finalize(
@@ -2486,8 +2539,6 @@ func TestSyncDirtyMultiBlocksSuccess(t *testing.T) {
 	} else if fileBlock.IPtrs[3].QuotaSize != 13 {
 		t.Errorf("Indirect pointer quota size4 wrong: %d", fileBlock.IPtrs[3].QuotaSize)
 	} else {
-		// pretend that aBlock is a dirblock -- doesn't matter for this check
-		blocks := []*DirBlock{rootBlock, NewDirBlock().(*DirBlock)}
 		checkNewPath(t, config, newP, expectedPath, newRmd, blocks,
 			Exec, "", false)
 	}
@@ -2531,7 +2582,8 @@ func TestSyncDirtyMultiBlocksSplitInBlockSuccess(t *testing.T) {
 	// fsync a, only block 2 is dirty
 	config.mockBcache.EXPECT().IsDirty(fileID).AnyTimes().Return(true)
 	config.mockBcache.EXPECT().IsDirty(id1).AnyTimes().Return(false)
-	config.mockBcache.EXPECT().IsDirty(id3).Return(false)
+	config.mockBcache.EXPECT().IsDirty(id3).Times(2).Return(false)
+	config.mockBcache.EXPECT().IsDirty(id4).AnyTimes().Return(false)
 	config.mockBcache.EXPECT().IsDirty(rootID).AnyTimes().Return(true)
 	config.mockBcache.EXPECT().Get(rootID).AnyTimes().Return(rootBlock, nil)
 	config.mockBcache.EXPECT().Get(fileID).AnyTimes().Return(fileBlock, nil)
@@ -2550,6 +2602,7 @@ func TestSyncDirtyMultiBlocksSplitInBlockSuccess(t *testing.T) {
 		Do(func(id BlockID, block Block, dirty bool) {
 		newBlock3 = block.(*FileBlock)
 		// id3 syncs just fine
+		config.mockBcache.EXPECT().IsDirty(id).AnyTimes().Return(true)
 		expectSyncDirtyBlock(config, id3, newBlock3, int64(0), pad3)
 	}).Return(nil)
 
@@ -2559,15 +2612,15 @@ func TestSyncDirtyMultiBlocksSplitInBlockSuccess(t *testing.T) {
 	c4 := expectSyncDirtyBlock(config, id4, block4, int64(3), pad4)
 	var newID5 BlockID
 	var newBlock5 *FileBlock
-	config.mockCrypto.EXPECT().MakeRandomBlockID().Return(BlockID{}, nil)
-	config.mockBcache.EXPECT().Put(gomock.Any(), gomock.Any(), true).
+	id5 := BlockID{48}
+	config.mockCrypto.EXPECT().MakeRandomBlockID().Return(id5, nil)
+	config.mockBcache.EXPECT().Put(id5, gomock.Any(), true).
 		Do(func(id BlockID, block Block, dirty bool) {
 		newID5 = id
 		newBlock5 = block.(*FileBlock)
 		// id5 syncs just fine
 		expectSyncDirtyBlock(config, id, newBlock5, int64(0), pad5)
-		// it's put one more time
-		config.mockBcache.EXPECT().Put(id, gomock.Any(), true).Return(nil)
+		config.mockBcache.EXPECT().IsDirty(id).AnyTimes().Return(true)
 	}).Return(nil)
 
 	// The parent is dirtied too since the pointers changed
@@ -2591,13 +2644,10 @@ func TestSyncDirtyMultiBlocksSplitInBlockSuccess(t *testing.T) {
 			BlockID{newID5[0] + 100})
 	}
 	var newRmd *RootMetadata
+	blocks := make([]*DirBlock, 2)
 	expectedPath, _ :=
 		expectSyncBlock(t, config, c4, userID, id, "", p, rmd, false, 0,
-			refBytes, unrefBytes, f, &newRmd)
-	config.mockBcache.EXPECT().Finalize(
-		fileID, expectedPath.Path[len(expectedPath.Path)-1].ID)
-	config.mockBcache.EXPECT().Finalize(
-		rootID, expectedPath.Path[len(expectedPath.Path)-2].ID)
+			refBytes, unrefBytes, f, &newRmd, blocks)
 
 	newID2 := BlockID{id2[0] + 100}
 	newID3 := BlockID{id3[0] + 100}
@@ -2647,7 +2697,6 @@ func TestSyncDirtyMultiBlocksSplitInBlockSuccess(t *testing.T) {
 	} else if !bytesEqual([]byte{17, 16}, newBlock5.Contents) {
 		t.Errorf("Block 5 has the wrong data: %v", newBlock5.Contents)
 	} else {
-		blocks := []*DirBlock{rootBlock, NewDirBlock().(*DirBlock)}
 		checkNewPath(t, config, newP, expectedPath, newRmd, blocks,
 			Exec, "", false)
 	}
@@ -2696,7 +2745,7 @@ func TestSyncDirtyMultiBlocksCopyNextBlockSuccess(t *testing.T) {
 	config.mockBcache.EXPECT().Get(id2).Return(block2, nil)
 	config.mockBcache.EXPECT().IsDirty(id2).AnyTimes().Return(false)
 	config.mockBcache.EXPECT().Get(id4).Return(block4, nil)
-	config.mockBcache.EXPECT().IsDirty(id4).Return(false)
+	config.mockBcache.EXPECT().IsDirty(id4).Times(2).Return(false)
 	expectGetTLFCryptKey(config)
 
 	// the split is in the middle
@@ -2727,6 +2776,7 @@ func TestSyncDirtyMultiBlocksCopyNextBlockSuccess(t *testing.T) {
 		// now block 4 is dirty, but it's the end of the line,
 		// so nothing else to do
 		expectSyncDirtyBlock(config, id4, newBlock4, int64(-1), pad4)
+		config.mockBcache.EXPECT().IsDirty(id).AnyTimes().Return(false)
 	}).Return(nil)
 
 	// The parent is dirtied too since the pointers changed
@@ -2750,13 +2800,10 @@ func TestSyncDirtyMultiBlocksCopyNextBlockSuccess(t *testing.T) {
 		checkBlockChange(t, md.data.UnrefBlocks.Changes, p, index, 0, id4)
 	}
 	var newRmd *RootMetadata
+	blocks := make([]*DirBlock, 2)
 	expectedPath, _ :=
 		expectSyncBlock(t, config, nil, userID, id, "", p, rmd, false, 0,
-			refBytes, unrefBytes, f, &newRmd)
-	config.mockBcache.EXPECT().Finalize(
-		fileID, expectedPath.Path[len(expectedPath.Path)-1].ID)
-	config.mockBcache.EXPECT().Finalize(
-		rootID, expectedPath.Path[len(expectedPath.Path)-2].ID)
+			refBytes, unrefBytes, f, &newRmd, blocks)
 
 	newID1 := BlockID{id1[0] + 100}
 	newID3 := BlockID{id3[0] + 100}
@@ -2793,7 +2840,6 @@ func TestSyncDirtyMultiBlocksCopyNextBlockSuccess(t *testing.T) {
 	} else if !bytesEqual([]byte{17, 16}, newBlock4.Contents) {
 		t.Errorf("Block 4 has the wrong data: %v", newBlock4.Contents)
 	} else {
-		blocks := []*DirBlock{rootBlock, NewDirBlock().(*DirBlock)}
 		checkNewPath(t, config, newP, expectedPath, newRmd, blocks,
 			Exec, "", false)
 	}
@@ -2827,12 +2873,9 @@ func TestSyncDirtyWithBlockChangePointerSuccess(t *testing.T) {
 	// sync block
 	refBytes := uint64(1 + 1) // 2 ref/unref blocks of 1 byte each
 	var newRmd *RootMetadata
+	blocks := make([]*DirBlock, 2)
 	expectedPath, lastCall := expectSyncBlock(t, config, nil, userID, id, "", p,
-		rmd, false, 0, refBytes, 0, nil, &newRmd)
-	config.mockBcache.EXPECT().Finalize(
-		aID, expectedPath.Path[len(expectedPath.Path)-1].ID)
-	config.mockBcache.EXPECT().Finalize(
-		rootID, expectedPath.Path[len(expectedPath.Path)-2].ID)
+		rmd, false, 0, refBytes, 0, nil, &newRmd, blocks)
 
 	// expected calls for ref block changes blocks
 	refBlockID := BlockID{253}
@@ -2870,8 +2913,6 @@ func TestSyncDirtyWithBlockChangePointerSuccess(t *testing.T) {
 		t.Errorf("Got unexpected unrefBlocks pointer: %v vs %v",
 			newRmd.data.UnrefBlocks.Pointer.ID, unrefBlockID)
 	} else {
-		// pretend that aBlock is a dirblock -- doesn't matter for this check
-		blocks := []*DirBlock{rootBlock, NewDirBlock().(*DirBlock)}
 		checkNewPath(t, config, newP, expectedPath, newRmd, blocks,
 			Exec, "", false)
 	}
