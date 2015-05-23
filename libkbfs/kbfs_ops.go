@@ -96,6 +96,7 @@ func (fs *KBFSOpsStandard) getMDInChannel(dir Path, rtype reqType) (
 		fs.heads[dir.TopDir] = mdId
 		err = mdcache.Put(mdId, md)
 	}
+
 	return md, err
 }
 
@@ -130,7 +131,12 @@ func (fs *KBFSOpsStandard) getMDForWriteInChannel(dir Path) (
 	if !md.GetDirHandle().IsWriter(user) {
 		return nil, NewWriteAccessError(fs.config, md.GetDirHandle(), user)
 	}
-	return md, nil
+
+	// Make a copy of the MD for changing.  The caller must pass this
+	// into syncBlockInChannel or save it in the cache, or the changes
+	// will be lost.
+	newMd := md.DeepCopy()
+	return &newMd, nil
 }
 
 func (fs *KBFSOpsStandard) initMDInChannel(md *RootMetadata) error {
@@ -468,17 +474,35 @@ func (fs *KBFSOpsStandard) unembedBlockChanges(bps *blockPutState,
 	return
 }
 
+func (fs *KBFSOpsStandard) saveMdToCache(md *RootMetadata) error {
+	// TODO: If this is a temporary MD being saved by write/truncate,
+	// the next write/truncate operation will make another copy
+	// for writing, which isn't necessary.
+	mdId, err := md.MetadataId(fs.config)
+	if err != nil {
+		return err
+	}
+
+	fs.globalStateLock.Lock()
+	defer fs.globalStateLock.Unlock()
+	if oldMdId, ok := fs.heads[md.Id]; ok && oldMdId == mdId {
+		// only save this new MD if the MDId has changed
+		return nil
+	} else if err = fs.config.MDCache().Put(mdId, md); err != nil {
+		return err
+	} else {
+		fs.heads[md.Id] = mdId
+	}
+	return nil
+}
+
 // TODO: deal with multiple nodes for indirect blocks
 //
 // entryType must not by Sym.
-func (fs *KBFSOpsStandard) syncBlockInChannel(
+func (fs *KBFSOpsStandard) syncBlockInChannel(md *RootMetadata,
 	newBlock Block, dir Path, name string, entryType EntryType,
 	mtime bool, ctime bool, stopAt BlockId) (Path, DirEntry, error) {
 	user, err := fs.config.KBPKI().GetLoggedInUser()
-	if err != nil {
-		return Path{}, DirEntry{}, err
-	}
-	md, err := fs.getMDInChannel(dir, write)
 	if err != nil {
 		return Path{}, DirEntry{}, err
 	}
@@ -635,27 +659,19 @@ func (fs *KBFSOpsStandard) syncBlockInChannel(
 		if err = fs.config.MDOps().Put(dir.TopDir, md); err != nil {
 			return Path{}, DirEntry{}, err
 		}
-		if mdId, err := md.MetadataId(fs.config); err != nil {
+		err = fs.saveMdToCache(md)
+		if err != nil {
 			return Path{}, DirEntry{}, err
-		} else if err = fs.config.MDCache().Put(mdId, md); err != nil {
-			return Path{}, DirEntry{}, err
-		} else {
-			fs.globalStateLock.Lock()
-			fs.heads[md.Id] = mdId
-			fs.globalStateLock.Unlock()
-			// Clear the byte counters and blocks. TODO: use clean
-			// copies of the MD when the folder is next modified
-			md.ClearBlockChanges()
 		}
 	}
 
 	return newPath, newDe, nil
 }
 
-func (fs *KBFSOpsStandard) syncBlockAndNotifyInChannel(
+func (fs *KBFSOpsStandard) syncBlockAndNotifyInChannel(md *RootMetadata,
 	newBlock Block, dir Path, name string, entryType EntryType,
 	mtime bool, ctime bool, stopAt BlockId) (p Path, de DirEntry, err error) {
-	p, de, err = fs.syncBlockInChannel(newBlock, dir, name, entryType,
+	p, de, err = fs.syncBlockInChannel(md, newBlock, dir, name, entryType,
 		mtime, ctime, stopAt)
 	if err != nil {
 		return
@@ -718,7 +734,7 @@ func (fs *KBFSOpsStandard) createEntryInChannel(
 		md.data.Dir.Ctime = time.Now().UnixNano()
 	}
 
-	return fs.syncBlockAndNotifyInChannel(newBlock, dir, name, entryType,
+	return fs.syncBlockAndNotifyInChannel(md, newBlock, dir, name, entryType,
 		true, true, zeroId)
 }
 
@@ -753,7 +769,8 @@ func (fs *KBFSOpsStandard) CreateFile(dir Path, path string, isExec bool) (
 func (fs *KBFSOpsStandard) createLinkInChannel(
 	dir Path, fromPath string, toPath string) (Path, DirEntry, error) {
 	// verify we have permission to write
-	if _, err := fs.getMDForWriteInChannel(dir); err != nil {
+	md, err := fs.getMDForWriteInChannel(dir)
+	if err != nil {
 		return Path{}, DirEntry{}, err
 	}
 
@@ -779,7 +796,7 @@ func (fs *KBFSOpsStandard) createLinkInChannel(
 	}
 
 	newPath, _, err := fs.syncBlockAndNotifyInChannel(
-		dblock, *dir.ParentPath(), dir.TailName(), Dir,
+		md, dblock, *dir.ParentPath(), dir.TailName(), Dir,
 		true, true, zeroId)
 	return newPath, dblock.Children[fromPath], err
 }
@@ -841,7 +858,7 @@ func (fs *KBFSOpsStandard) removeEntryInChannel(path Path) (Path, error) {
 
 	// sync the parent directory
 	newPath, _, err := fs.syncBlockAndNotifyInChannel(
-		pblock, *parentPath.ParentPath(), parentPath.TailName(),
+		md, pblock, *parentPath.ParentPath(), parentPath.TailName(),
 		Dir, true, true, zeroId)
 	return newPath, err
 }
@@ -938,7 +955,7 @@ func (fs *KBFSOpsStandard) renameInChannel(
 	if commonAncestor != oldParent.TailPointer().Id {
 		// TODO: optimize by pushing blocks from both paths in parallel
 		newOldPath, _, err = fs.syncBlockInChannel(
-			oldPBlock, *oldParent.ParentPath(), oldParent.TailName(),
+			md, oldPBlock, *oldParent.ParentPath(), oldParent.TailName(),
 			Dir, true, true, commonAncestor)
 		if err != nil {
 			return Path{}, Path{}, err
@@ -963,7 +980,7 @@ func (fs *KBFSOpsStandard) renameInChannel(
 	}
 
 	newNewPath, _, err := fs.syncBlockInChannel(
-		newPBlock, *newParent.ParentPath(), newParent.TailName(),
+		md, newPBlock, *newParent.ParentPath(), newParent.TailName(),
 		Dir, true, true, zeroId)
 	if err != nil {
 		return Path{}, Path{}, err
@@ -1257,6 +1274,11 @@ func (fs *KBFSOpsStandard) writeDataInChannel(
 		}
 	}
 
+	err = fs.saveMdToCache(md)
+	if err != nil {
+		return err
+	}
+
 	fs.notifyLocal(file)
 	return nil
 }
@@ -1348,6 +1370,12 @@ func (fs *KBFSOpsStandard) truncateInChannel(file Path, size uint64) error {
 	if err != nil {
 		return err
 	}
+
+	err = fs.saveMdToCache(md)
+	if err != nil {
+		return err
+	}
+
 	fs.notifyLocal(file)
 	return nil
 }
@@ -1374,7 +1402,8 @@ func (fs *KBFSOpsStandard) setExInChannel(file Path, ex bool) (
 	}
 
 	// verify we have permission to write
-	if _, err = fs.getMDForWriteInChannel(file); err != nil {
+	md, err := fs.getMDForWriteInChannel(file)
+	if err != nil {
 		return
 	}
 
@@ -1389,7 +1418,7 @@ func (fs *KBFSOpsStandard) setExInChannel(file Path, ex bool) (
 	dblock.Children[file.TailName()] = de
 	parentPath := file.ParentPath()
 	newParentPath, _, err := fs.syncBlockInChannel(
-		dblock, *parentPath.ParentPath(), parentPath.TailName(),
+		md, dblock, *parentPath.ParentPath(), parentPath.TailName(),
 		Dir, false, false, zeroId)
 
 	newPath = Path{file.TopDir,
@@ -1411,7 +1440,8 @@ func (fs *KBFSOpsStandard) SetEx(file Path, ex bool) (newPath Path, err error) {
 func (fs *KBFSOpsStandard) setMtimeInChannel(file Path, mtime *time.Time) (
 	Path, error) {
 	// verify we have permission to write
-	if _, err := fs.getMDForWriteInChannel(file); err != nil {
+	md, err := fs.getMDForWriteInChannel(file)
+	if err != nil {
 		return Path{}, err
 	}
 
@@ -1426,7 +1456,7 @@ func (fs *KBFSOpsStandard) setMtimeInChannel(file Path, mtime *time.Time) (
 	dblock.Children[file.TailName()] = de
 	parentPath := file.ParentPath()
 	newParentPath, _, err := fs.syncBlockInChannel(
-		dblock, *parentPath.ParentPath(), parentPath.TailName(),
+		md, dblock, *parentPath.ParentPath(), parentPath.TailName(),
 		Dir, false, false, zeroId)
 	newPath := Path{file.TopDir,
 		append(newParentPath.Path, file.Path[len(file.Path)-1])}
@@ -1607,7 +1637,7 @@ func (fs *KBFSOpsStandard) syncInChannel(file Path) (Path, error) {
 
 	parentPath := file.ParentPath()
 	newPath, _, err :=
-		fs.syncBlockAndNotifyInChannel(fblock, *parentPath, file.TailName(),
+		fs.syncBlockAndNotifyInChannel(md, fblock, *parentPath, file.TailName(),
 			File, true, true, zeroId)
 	if err != nil {
 		return Path{}, err

@@ -61,7 +61,7 @@ func verifyMDForPrivateShare(config *ConfigMock, rmds *RootMetadataSigned,
 	id DirId) {
 	packedData := []byte{4, 3, 2, 1}
 
-	expectGetTLFCryptKey(config, &rmds.MD)
+	expectGetTLFCryptKey(config)
 	config.mockCrypto.EXPECT().DecryptPrivateMetadata(
 		rmds.MD.SerializedPrivateMetadata, TLFCryptKey{}).Return(packedData, nil)
 	config.mockCodec.EXPECT().Decode(packedData, gomock.Any()).
@@ -77,7 +77,7 @@ func verifyMDForPublicShare(config *ConfigMock, rmds *RootMetadataSigned,
 	id DirId, hasVerifyingKeyErr error, verifyErr error) {
 	packedData := []byte{4, 3, 2, 1}
 
-	expectGetTLFCryptKey(config, &rmds.MD)
+	expectGetTLFCryptKey(config)
 	config.mockCrypto.EXPECT().DecryptPrivateMetadata(
 		rmds.MD.SerializedPrivateMetadata, TLFCryptKey{}).Return(packedData, nil)
 	config.mockCodec.EXPECT().Decode(packedData, gomock.Any()).
@@ -96,7 +96,7 @@ func putMDForPrivateShare(config *ConfigMock, rmds *RootMetadataSigned,
 
 	config.mockCodec.EXPECT().Encode(gomock.Any()).Return(packedData, nil).
 		Times(2)
-	expectGetTLFCryptKey(config, &rmds.MD)
+	expectGetTLFCryptKey(config)
 	config.mockCrypto.EXPECT().EncryptPrivateMetadata(
 		packedData, TLFCryptKey{}).Return(packedData, nil)
 

@@ -50,7 +50,7 @@ func (cbo *CheckBlockOps) Delete(id BlockId, context BlockContext) error {
 	return cbo.delegate.Delete(id, context)
 }
 
-func kbfsOpsInit(t *testing.T) (mockCtrl *gomock.Controller,
+func kbfsOpsInit(t *testing.T, changeMd bool) (mockCtrl *gomock.Controller,
 	config *ConfigMock) {
 	ctr := NewSafeTestReporter(t)
 	mockCtrl = gomock.NewController(ctr)
@@ -65,8 +65,17 @@ func kbfsOpsInit(t *testing.T) (mockCtrl *gomock.Controller,
 	// in this test.
 	config.mockCodec.EXPECT().Encode(gomock.Any()).AnyTimes().
 		Return([]byte{0}, nil)
-	config.mockCrypto.EXPECT().Hash(gomock.Any()).AnyTimes().
-		Return(libkb.NodeHashShort{0}, nil)
+	if changeMd {
+		// Give different values for the MD Id so we can test that it
+		// is properly cached
+		config.mockCrypto.EXPECT().Hash(gomock.Any()).
+			Return(libkb.NodeHashShort{0}, nil)
+		config.mockCrypto.EXPECT().Hash(gomock.Any()).AnyTimes().
+			Return(libkb.NodeHashShort{1}, nil)
+	} else {
+		config.mockCrypto.EXPECT().Hash(gomock.Any()).AnyTimes().
+			Return(libkb.NodeHashShort{0}, nil)
+	}
 	return
 }
 
@@ -77,7 +86,7 @@ func kbfsTestShutdown(mockCtrl *gomock.Controller, config *ConfigMock) {
 }
 
 func TestKBFSOpsGetFavDirsSuccess(t *testing.T) {
-	mockCtrl, config := kbfsOpsInit(t)
+	mockCtrl, config := kbfsOpsInit(t, false)
 	defer kbfsTestShutdown(mockCtrl, config)
 
 	// expect one call to fetch favorites
@@ -95,7 +104,7 @@ func TestKBFSOpsGetFavDirsSuccess(t *testing.T) {
 }
 
 func TestKBFSOpsGetFavDirsFail(t *testing.T) {
-	mockCtrl, config := kbfsOpsInit(t)
+	mockCtrl, config := kbfsOpsInit(t, false)
 	defer kbfsTestShutdown(mockCtrl, config)
 
 	err := errors.New("Fake fail")
@@ -121,6 +130,7 @@ func makeIdAndRMD(config *ConfigMock) (
 	userId, id, h := makeId(config)
 	rmd := NewRootMetadata(h, id)
 	rmd.AddNewKeys(DirKeyBundle{})
+	rmd.mdId = MDId{id[0]}
 	config.KBFSOps().(*KBFSOpsStandard).heads[id] = rmd.mdId
 	config.mockMdcache.EXPECT().Get(rmd.mdId).AnyTimes().Return(rmd, nil)
 	config.Notifier().RegisterForChanges([]DirId{id}, config.observer)
@@ -128,7 +138,7 @@ func makeIdAndRMD(config *ConfigMock) (
 }
 
 func TestKBFSOpsGetRootMDCacheSuccess(t *testing.T) {
-	mockCtrl, config := kbfsOpsInit(t)
+	mockCtrl, config := kbfsOpsInit(t, false)
 	defer kbfsTestShutdown(mockCtrl, config)
 
 	_, id, rmd := makeIdAndRMD(config)
@@ -155,9 +165,9 @@ func expectBlock(config *ConfigMock, id BlockId, block Block,
 	}).Return(err)
 }
 
-func expectGetTLFCryptKey(config *ConfigMock, rmd *RootMetadata) {
+func expectGetTLFCryptKey(config *ConfigMock) {
 	config.mockKeyman.EXPECT().GetTLFCryptKey(
-		gomock.Any(), rmd).Return(TLFCryptKey{}, nil)
+		gomock.Any(), gomock.Any()).Return(TLFCryptKey{}, nil)
 }
 
 func expectGetBlockCryptKey(
@@ -169,7 +179,7 @@ func expectGetBlockCryptKey(
 func fillInNewMD(config *ConfigMock, rmd *RootMetadata) (
 	rootId BlockId, plainSize int, block []byte) {
 	config.mockKeyman.EXPECT().Rekey(rmd).Return(nil)
-	expectGetTLFCryptKey(config, rmd)
+	expectGetTLFCryptKey(config)
 	rootId = BlockId{42}
 	plainSize = 3
 	block = []byte{1, 2, 3, 4}
@@ -184,7 +194,7 @@ func fillInNewMD(config *ConfigMock, rmd *RootMetadata) (
 }
 
 func TestKBFSOpsGetRootMDCreateNewSuccess(t *testing.T) {
-	mockCtrl, config := kbfsOpsInit(t)
+	mockCtrl, config := kbfsOpsInit(t, true)
 	defer kbfsTestShutdown(mockCtrl, config)
 
 	_, id, h := makeId(config)
@@ -220,7 +230,7 @@ func TestKBFSOpsGetRootMDCreateNewSuccess(t *testing.T) {
 }
 
 func TestKBFSOpsGetRootMDCreateNewFailNonWriter(t *testing.T) {
-	mockCtrl, config := kbfsOpsInit(t)
+	mockCtrl, config := kbfsOpsInit(t, false)
 	defer kbfsTestShutdown(mockCtrl, config)
 
 	userId := libkb.UID{15}
@@ -250,7 +260,7 @@ func TestKBFSOpsGetRootMDCreateNewFailNonWriter(t *testing.T) {
 }
 
 func TestKBFSOpsGetRootMDForHandleExisting(t *testing.T) {
-	mockCtrl, config := kbfsOpsInit(t)
+	mockCtrl, config := kbfsOpsInit(t, false)
 	defer kbfsTestShutdown(mockCtrl, config)
 
 	_, id, h := makeId(config)
@@ -287,7 +297,7 @@ func TestKBFSOpsGetRootMDForHandleExisting(t *testing.T) {
 }
 
 func TestKBFSOpsGetBaseDirCacheSuccess(t *testing.T) {
-	mockCtrl, config := kbfsOpsInit(t)
+	mockCtrl, config := kbfsOpsInit(t, false)
 	defer kbfsTestShutdown(mockCtrl, config)
 
 	u, id, _ := makeIdAndRMD(config)
@@ -307,7 +317,7 @@ func TestKBFSOpsGetBaseDirCacheSuccess(t *testing.T) {
 }
 
 func TestKBFSOpsGetBaseDirUncachedSuccess(t *testing.T) {
-	mockCtrl, config := kbfsOpsInit(t)
+	mockCtrl, config := kbfsOpsInit(t, false)
 	defer kbfsTestShutdown(mockCtrl, config)
 
 	u, id, rmd := makeIdAndRMD(config)
@@ -331,7 +341,7 @@ func TestKBFSOpsGetBaseDirUncachedSuccess(t *testing.T) {
 }
 
 func TestKBFSOpsGetBaseDirUncachedFailNonReader(t *testing.T) {
-	mockCtrl, config := kbfsOpsInit(t)
+	mockCtrl, config := kbfsOpsInit(t, false)
 	defer kbfsTestShutdown(mockCtrl, config)
 
 	userId := libkb.UID{15}
@@ -364,7 +374,7 @@ func TestKBFSOpsGetBaseDirUncachedFailNonReader(t *testing.T) {
 }
 
 func TestKBFSOpsGetBaseDirUncachedFailMissingBlock(t *testing.T) {
-	mockCtrl, config := kbfsOpsInit(t)
+	mockCtrl, config := kbfsOpsInit(t, false)
 	defer kbfsTestShutdown(mockCtrl, config)
 
 	u, id, rmd := makeIdAndRMD(config)
@@ -389,7 +399,7 @@ func TestKBFSOpsGetBaseDirUncachedFailMissingBlock(t *testing.T) {
 }
 
 func TestKBFSOpsGetBaseDirUncachedFailNewVersion(t *testing.T) {
-	mockCtrl, config := kbfsOpsInit(t)
+	mockCtrl, config := kbfsOpsInit(t, false)
 	defer kbfsTestShutdown(mockCtrl, config)
 
 	userId := libkb.UID{15}
@@ -417,7 +427,7 @@ func TestKBFSOpsGetBaseDirUncachedFailNewVersion(t *testing.T) {
 }
 
 func TestKBFSOpsGetNestedDirCacheSuccess(t *testing.T) {
-	mockCtrl, config := kbfsOpsInit(t)
+	mockCtrl, config := kbfsOpsInit(t, false)
 	defer kbfsTestShutdown(mockCtrl, config)
 
 	u, id, h := makeId(config)
@@ -463,8 +473,8 @@ func expectSyncBlock(
 	t *testing.T, config *ConfigMock, lastCall *gomock.Call, userId libkb.UID,
 	id DirId, name string, path Path, rmd *RootMetadata, newEntry bool,
 	skipSync int, refBytes uint64, unrefBytes uint64,
-	checkMD func(*RootMetadata)) (Path, *gomock.Call) {
-	expectGetTLFCryptKey(config, rmd)
+	checkMD func(*RootMetadata), newRmd **RootMetadata) (Path, *gomock.Call) {
+	expectGetTLFCryptKey(config)
 
 	// construct new path
 	newPath := Path{
@@ -508,11 +518,12 @@ func expectSyncBlock(
 	}
 	if skipSync == 0 {
 		// sign the MD and put it
-		config.mockMdops.EXPECT().Put(id, rmd).Return(nil)
-		refBlocks := rmd.data.RefBlocks.Changes
-		unrefBlocks := rmd.data.UnrefBlocks.Changes
-		config.mockMdcache.EXPECT().Put(rmd.mdId, rmd).
+		config.mockMdops.EXPECT().Put(id, gomock.Any()).Return(nil)
+		config.mockMdcache.EXPECT().Put(gomock.Any(), gomock.Any()).
 			Do(func(id MDId, rmd *RootMetadata) {
+			*newRmd = rmd
+			refBlocks := rmd.data.RefBlocks.Changes
+			unrefBlocks := rmd.data.UnrefBlocks.Changes
 			// Check that the ref/unref bytes are correct.
 			// Should have
 			if rmd.RefBytes != refBytes {
@@ -526,12 +537,12 @@ func expectSyncBlock(
 			// check that the ref/unref block changes include the expected
 			// blocks
 			for i, node := range path.Path {
-				if node.QuotaSize > 0 {
+				if node.QuotaSize > 0 && unrefBlocks != nil {
 					checkBlockChange(t, unrefBlocks, path, i, 0, node.Id)
 				}
 			}
 			for i, node := range newPath.Path {
-				if i == len(newPath.Path)-1 {
+				if refBlocks == nil || i == len(newPath.Path)-1 {
 					break
 				}
 				checkBlockChange(t, refBlocks, newPath, i, 0, node.Id)
@@ -633,7 +644,7 @@ func expectGetBlock(config *ConfigMock, id BlockId, block Block) {
 }
 
 func testCreateEntrySuccess(t *testing.T, entryType EntryType) {
-	mockCtrl, config := kbfsOpsInit(t)
+	mockCtrl, config := kbfsOpsInit(t, true)
 	defer kbfsTestShutdown(mockCtrl, config)
 
 	userId, id, rmd := makeIdAndRMD(config)
@@ -654,9 +665,10 @@ func testCreateEntrySuccess(t *testing.T, entryType EntryType) {
 	expectGetBlock(config, aId, aBlock)
 	expectGetBlock(config, rootId, rootBlock)
 	// sync block
+	var newRmd *RootMetadata
 	expectedPath, _ :=
-		expectSyncBlock(t, config, nil, userId, id, "b", p, rmd, entryType != Sym, 0,
-			0, 0, nil)
+		expectSyncBlock(t, config, nil, userId, id, "b", p, rmd,
+			entryType != Sym, 0, 0, 0, nil, &newRmd)
 
 	var newP Path
 	var err error
@@ -675,7 +687,7 @@ func testCreateEntrySuccess(t *testing.T, entryType EntryType) {
 	}
 	// Append a fake block representing the new entry.  It won't be examined
 	blocks := []*DirBlock{rootBlock, aBlock, NewDirBlock().(*DirBlock)}
-	checkNewPath(t, config, newP, expectedPath, rmd, blocks,
+	checkNewPath(t, config, newP, expectedPath, newRmd, blocks,
 		entryType, "b", false)
 	if entryType == Sym {
 		de := aBlock.Children["b"]
@@ -710,7 +722,7 @@ func TestKBFSOpsCreateLinkSuccess(t *testing.T) {
 }
 
 func testCreateEntryFailDupName(t *testing.T, isDir bool) {
-	mockCtrl, config := kbfsOpsInit(t)
+	mockCtrl, config := kbfsOpsInit(t, false)
 	defer kbfsTestShutdown(mockCtrl, config)
 
 	u, id, _ := makeIdAndRMD(config)
@@ -752,7 +764,7 @@ func TestCreateLinkFailDupName(t *testing.T) {
 }
 
 func testRemoveEntrySuccess(t *testing.T, entryType EntryType) {
-	mockCtrl, config := kbfsOpsInit(t)
+	mockCtrl, config := kbfsOpsInit(t, true)
 	defer kbfsTestShutdown(mockCtrl, config)
 
 	userId, id, rmd := makeIdAndRMD(config)
@@ -782,8 +794,9 @@ func testRemoveEntrySuccess(t *testing.T, entryType EntryType) {
 	expectGetBlock(config, aId, aBlock)
 	expectGetBlock(config, rootId, rootBlock)
 	// sync block
+	var newRmd *RootMetadata
 	expectedPath, _ := expectSyncBlock(t, config, nil, userId, id, "",
-		*p.ParentPath(), rmd, false, 0, 0, 0, nil)
+		*p.ParentPath(), rmd, false, 0, 0, 0, nil, &newRmd)
 
 	var newP Path
 	var err error
@@ -796,7 +809,7 @@ func testRemoveEntrySuccess(t *testing.T, entryType EntryType) {
 		t.Errorf("Got error on removal: %v", err)
 	}
 	blocks := []*DirBlock{rootBlock, aBlock}
-	checkNewPath(t, config, newP, expectedPath, rmd, blocks,
+	checkNewPath(t, config, newP, expectedPath, newRmd, blocks,
 		entryType, "", false)
 	if _, ok := aBlock.Children["b"]; ok {
 		t.Errorf("entry for b is still around after removal")
@@ -816,7 +829,7 @@ func TestKBFSOpsRemoveSymlinkSuccess(t *testing.T) {
 }
 
 func TestKBFSOpRemoveMultiBlockFileSuccess(t *testing.T) {
-	mockCtrl, config := kbfsOpsInit(t)
+	mockCtrl, config := kbfsOpsInit(t, true)
 	defer kbfsTestShutdown(mockCtrl, config)
 
 	userId, id, rmd := makeIdAndRMD(config)
@@ -868,15 +881,16 @@ func TestKBFSOpRemoveMultiBlockFileSuccess(t *testing.T) {
 		checkBlockChange(t, md.data.UnrefBlocks.Changes, p, index, 0, id3)
 		checkBlockChange(t, md.data.UnrefBlocks.Changes, p, index, 0, id4)
 	}
+	var newRmd *RootMetadata
 	expectedPath, _ := expectSyncBlock(t, config, nil, userId, id, "",
-		*p.ParentPath(), rmd, false, 0, 0, unrefBytes, f)
+		*p.ParentPath(), rmd, false, 0, 0, unrefBytes, f, &newRmd)
 
 	newP, err := config.KBFSOps().RemoveEntry(p)
 	if err != nil {
 		t.Errorf("Got error on removal: %v", err)
 	}
 	blocks := []*DirBlock{rootBlock}
-	checkNewPath(t, config, newP, expectedPath, rmd, blocks,
+	checkNewPath(t, config, newP, expectedPath, newRmd, blocks,
 		File, "", false)
 	if _, ok := rootBlock.Children["a"]; ok {
 		t.Errorf("entry for a is still around after removal")
@@ -884,7 +898,7 @@ func TestKBFSOpRemoveMultiBlockFileSuccess(t *testing.T) {
 }
 
 func TestRemoveDirFailNonEmpty(t *testing.T) {
-	mockCtrl, config := kbfsOpsInit(t)
+	mockCtrl, config := kbfsOpsInit(t, false)
 	defer kbfsTestShutdown(mockCtrl, config)
 
 	u, id, _ := makeIdAndRMD(config)
@@ -917,7 +931,7 @@ func TestRemoveDirFailNonEmpty(t *testing.T) {
 }
 
 func TestRemoveDirFailNoSuchName(t *testing.T) {
-	mockCtrl, config := kbfsOpsInit(t)
+	mockCtrl, config := kbfsOpsInit(t, false)
 	defer kbfsTestShutdown(mockCtrl, config)
 
 	u, id, _ := makeIdAndRMD(config)
@@ -947,7 +961,7 @@ func TestRemoveDirFailNoSuchName(t *testing.T) {
 }
 
 func TestRenameInDirSuccess(t *testing.T) {
-	mockCtrl, config := kbfsOpsInit(t)
+	mockCtrl, config := kbfsOpsInit(t, true)
 	defer kbfsTestShutdown(mockCtrl, config)
 
 	userId, id, rmd := makeIdAndRMD(config)
@@ -968,9 +982,10 @@ func TestRenameInDirSuccess(t *testing.T) {
 	expectGetBlock(config, aId, aBlock)
 	expectGetBlock(config, rootId, rootBlock)
 	// sync block
+	var newRmd *RootMetadata
 	expectedPath, _ :=
 		expectSyncBlock(t, config, nil, userId, id, "", p, rmd, false,
-			0, 0, 0, nil)
+			0, 0, 0, nil, &newRmd)
 
 	var newP1 Path
 	var newP2 Path
@@ -981,9 +996,9 @@ func TestRenameInDirSuccess(t *testing.T) {
 	}
 	// append a fake block at the end for the renamed file
 	blocks := []*DirBlock{rootBlock, aBlock, NewDirBlock().(*DirBlock)}
-	checkNewPath(t, config, newP1, expectedPath, rmd, blocks,
+	checkNewPath(t, config, newP1, expectedPath, newRmd, blocks,
 		File, "c", true)
-	checkNewPath(t, config, newP2, expectedPath, rmd, blocks,
+	checkNewPath(t, config, newP2, expectedPath, newRmd, blocks,
 		File, "c", true)
 	if _, ok := aBlock.Children["b"]; ok {
 		t.Errorf("entry for b is still around after rename")
@@ -995,7 +1010,7 @@ func TestRenameInDirSuccess(t *testing.T) {
 }
 
 func TestRenameInRootSuccess(t *testing.T) {
-	mockCtrl, config := kbfsOpsInit(t)
+	mockCtrl, config := kbfsOpsInit(t, true)
 	defer kbfsTestShutdown(mockCtrl, config)
 
 	userId, id, rmd := makeIdAndRMD(config)
@@ -1011,9 +1026,10 @@ func TestRenameInRootSuccess(t *testing.T) {
 	// renaming "a" to "b"
 	expectGetBlock(config, rootId, rootBlock)
 	// sync block
+	var newRmd *RootMetadata
 	expectedPath, _ :=
 		expectSyncBlock(t, config, nil, userId, id, "", p, rmd, false,
-			0, 0, 0, nil)
+			0, 0, 0, nil, &newRmd)
 
 	var newP1 Path
 	var newP2 Path
@@ -1024,9 +1040,9 @@ func TestRenameInRootSuccess(t *testing.T) {
 	}
 	// append a fake block at the end for the renamed file
 	blocks := []*DirBlock{rootBlock, NewDirBlock().(*DirBlock)}
-	checkNewPath(t, config, newP1, expectedPath, rmd, blocks,
+	checkNewPath(t, config, newP1, expectedPath, newRmd, blocks,
 		File, "b", true)
-	checkNewPath(t, config, newP2, expectedPath, rmd, blocks,
+	checkNewPath(t, config, newP2, expectedPath, newRmd, blocks,
 		File, "b", true)
 	if _, ok := rootBlock.Children["a"]; ok {
 		t.Errorf("entry for b is still around after rename")
@@ -1038,7 +1054,7 @@ func TestRenameInRootSuccess(t *testing.T) {
 }
 
 func TestRenameAcrossDirsSuccess(t *testing.T) {
-	mockCtrl, config := kbfsOpsInit(t)
+	mockCtrl, config := kbfsOpsInit(t, true)
 	defer kbfsTestShutdown(mockCtrl, config)
 
 	userId, id, rmd := makeIdAndRMD(config)
@@ -1067,12 +1083,13 @@ func TestRenameAcrossDirsSuccess(t *testing.T) {
 	expectGetBlock(config, dId, dBlock)
 	expectGetBlock(config, rootId, rootBlock)
 	// sync block
+	var newRmd *RootMetadata
 	expectedPath1, lastCall :=
 		expectSyncBlock(t, config, nil, userId, id, "", p1, rmd, false,
-			1, 0, 0, nil)
+			1, 0, 0, nil, &newRmd)
 	expectedPath2, _ :=
 		expectSyncBlock(t, config, lastCall, userId, id, "", p2, rmd, false, 0,
-			1, 0, nil)
+			1, 0, nil, &newRmd)
 	// fix up old expected path's common ancestor
 	expectedPath1.Path[0].Id = expectedPath2.Path[0].Id
 
@@ -1081,11 +1098,11 @@ func TestRenameAcrossDirsSuccess(t *testing.T) {
 		t.Errorf("Got error on rename: %v", err)
 	}
 	blocks := []*DirBlock{rootBlock, aBlock}
-	checkNewPath(t, config, newP1, expectedPath1, rmd, blocks,
+	checkNewPath(t, config, newP1, expectedPath1, newRmd, blocks,
 		File, "", true)
 	// append a fake block at the end for the renamed file
 	blocks = []*DirBlock{rootBlock, dBlock, NewDirBlock().(*DirBlock)}
-	checkNewPath(t, config, newP2, expectedPath2, rmd, blocks,
+	checkNewPath(t, config, newP2, expectedPath2, newRmd, blocks,
 		File, "c", true)
 	if _, ok := aBlock.Children["b"]; ok {
 		t.Errorf("entry for b is still around after rename")
@@ -1096,7 +1113,7 @@ func TestRenameAcrossDirsSuccess(t *testing.T) {
 }
 
 func TestRenameAcrossPrefixSuccess(t *testing.T) {
-	mockCtrl, config := kbfsOpsInit(t)
+	mockCtrl, config := kbfsOpsInit(t, true)
 	defer kbfsTestShutdown(mockCtrl, config)
 
 	userId, id, rmd := makeIdAndRMD(config)
@@ -1123,9 +1140,10 @@ func TestRenameAcrossPrefixSuccess(t *testing.T) {
 	expectGetBlock(config, dId, dBlock)
 	expectGetBlock(config, rootId, rootBlock)
 	// sync block
+	var newRmd *RootMetadata
 	expectedPath2, _ :=
 		expectSyncBlock(t, config, nil, userId, id, "", p2, rmd, false,
-			0, 0, 0, nil)
+			0, 0, 0, nil, &newRmd)
 
 	newP1, newP2, err := config.KBFSOps().Rename(p1, "b", p2, "c")
 	if err != nil {
@@ -1151,7 +1169,7 @@ func TestRenameAcrossPrefixSuccess(t *testing.T) {
 
 	// append a fake block at the end for the renamed file
 	blocks := []*DirBlock{rootBlock, aBlock, dBlock, NewDirBlock().(*DirBlock)}
-	checkNewPath(t, config, newP2, expectedPath2, rmd, blocks,
+	checkNewPath(t, config, newP2, expectedPath2, newRmd, blocks,
 		File, "c", true)
 	if _, ok := aBlock.Children["b"]; ok {
 		t.Errorf("entry for b is still around after rename")
@@ -1162,7 +1180,7 @@ func TestRenameAcrossPrefixSuccess(t *testing.T) {
 }
 
 func TestRenameAcrossOtherPrefixSuccess(t *testing.T) {
-	mockCtrl, config := kbfsOpsInit(t)
+	mockCtrl, config := kbfsOpsInit(t, true)
 	defer kbfsTestShutdown(mockCtrl, config)
 
 	userId, id, rmd := makeIdAndRMD(config)
@@ -1189,12 +1207,13 @@ func TestRenameAcrossOtherPrefixSuccess(t *testing.T) {
 	expectGetBlock(config, dId, dBlock)
 	expectGetBlock(config, rootId, rootBlock)
 	// sync block
+	var newRmd *RootMetadata
 	expectedPath1, lastCall :=
 		expectSyncBlock(t, config, nil, userId, id, "", p1, rmd, false,
-			2, 0, 0, nil)
+			2, 0, 0, nil, &newRmd)
 	expectedPath2, _ :=
 		expectSyncBlock(t, config, lastCall, userId, id, "", p2, rmd, false, 0,
-			1, 0, nil)
+			1, 0, nil, &newRmd)
 	// the new path is a prefix of the old path
 	expectedPath1.Path[0].Id = expectedPath2.Path[0].Id
 	expectedPath1.Path[1].Id = expectedPath2.Path[1].Id
@@ -1217,7 +1236,7 @@ func TestRenameAcrossOtherPrefixSuccess(t *testing.T) {
 	}
 
 	blocks := []*DirBlock{rootBlock, aBlock, dBlock}
-	checkNewPath(t, config, newP1, expectedPath1, rmd, blocks,
+	checkNewPath(t, config, newP1, expectedPath1, newRmd, blocks,
 		File, "c", true)
 	if _, ok := dBlock.Children["b"]; ok {
 		t.Errorf("entry for b is still around after rename")
@@ -1228,7 +1247,7 @@ func TestRenameAcrossOtherPrefixSuccess(t *testing.T) {
 }
 
 func TestRenameFailAcrossTopDirs(t *testing.T) {
-	mockCtrl, config := kbfsOpsInit(t)
+	mockCtrl, config := kbfsOpsInit(t, false)
 	defer kbfsTestShutdown(mockCtrl, config)
 
 	userId1 := libkb.UID{15}
@@ -1276,7 +1295,7 @@ func bytesEqual(actual []byte, expected []byte) bool {
 }
 
 func TestKBFSOpsCacheReadFullSuccess(t *testing.T) {
-	mockCtrl, config := kbfsOpsInit(t)
+	mockCtrl, config := kbfsOpsInit(t, false)
 	defer kbfsTestShutdown(mockCtrl, config)
 
 	u, id, _ := makeIdAndRMD(config)
@@ -1303,7 +1322,7 @@ func TestKBFSOpsCacheReadFullSuccess(t *testing.T) {
 }
 
 func TestKBFSOpsCacheReadPartialSuccess(t *testing.T) {
-	mockCtrl, config := kbfsOpsInit(t)
+	mockCtrl, config := kbfsOpsInit(t, false)
 	defer kbfsTestShutdown(mockCtrl, config)
 
 	u, id, _ := makeIdAndRMD(config)
@@ -1329,7 +1348,7 @@ func TestKBFSOpsCacheReadPartialSuccess(t *testing.T) {
 }
 
 func TestKBFSOpsCacheReadFullMultiBlockSuccess(t *testing.T) {
-	mockCtrl, config := kbfsOpsInit(t)
+	mockCtrl, config := kbfsOpsInit(t, false)
 	defer kbfsTestShutdown(mockCtrl, config)
 
 	u, id, _ := makeIdAndRMD(config)
@@ -1381,7 +1400,7 @@ func TestKBFSOpsCacheReadFullMultiBlockSuccess(t *testing.T) {
 }
 
 func TestKBFSOpsCacheReadPartialMultiBlockSuccess(t *testing.T) {
-	mockCtrl, config := kbfsOpsInit(t)
+	mockCtrl, config := kbfsOpsInit(t, false)
 	defer kbfsTestShutdown(mockCtrl, config)
 
 	u, id, _ := makeIdAndRMD(config)
@@ -1431,7 +1450,7 @@ func TestKBFSOpsCacheReadPartialMultiBlockSuccess(t *testing.T) {
 }
 
 func TestKBFSOpsCacheReadFailPastEnd(t *testing.T) {
-	mockCtrl, config := kbfsOpsInit(t)
+	mockCtrl, config := kbfsOpsInit(t, false)
 	defer kbfsTestShutdown(mockCtrl, config)
 
 	u, id, _ := makeIdAndRMD(config)
@@ -1455,7 +1474,7 @@ func TestKBFSOpsCacheReadFailPastEnd(t *testing.T) {
 }
 
 func TestKBFSOpsServerReadFullSuccess(t *testing.T) {
-	mockCtrl, config := kbfsOpsInit(t)
+	mockCtrl, config := kbfsOpsInit(t, false)
 	defer kbfsTestShutdown(mockCtrl, config)
 
 	u, id, rmd := makeIdAndRMD(config)
@@ -1487,7 +1506,7 @@ func TestKBFSOpsServerReadFullSuccess(t *testing.T) {
 }
 
 func TestKBFSOpsServerReadFailNoSuchBlock(t *testing.T) {
-	mockCtrl, config := kbfsOpsInit(t)
+	mockCtrl, config := kbfsOpsInit(t, false)
 	defer kbfsTestShutdown(mockCtrl, config)
 
 	u, id, rmd := makeIdAndRMD(config)
@@ -1515,8 +1534,17 @@ func TestKBFSOpsServerReadFailNoSuchBlock(t *testing.T) {
 	}
 }
 
+func setRmdAfterWrite(config *ConfigMock, newRmd **RootMetadata) {
+	config.mockMdcache.EXPECT().Put(gomock.Any(), gomock.Any()).
+		Do(func(id MDId, rmd *RootMetadata) {
+		if newRmd != nil {
+			*newRmd = rmd
+		}
+	})
+}
+
 func TestKBFSOpsWriteNewBlockSuccess(t *testing.T) {
-	mockCtrl, config := kbfsOpsInit(t)
+	mockCtrl, config := kbfsOpsInit(t, true)
 	defer kbfsTestShutdown(mockCtrl, config)
 
 	userId, id, _ := makeIdAndRMD(config)
@@ -1524,10 +1552,11 @@ func TestKBFSOpsWriteNewBlockSuccess(t *testing.T) {
 	rootId := BlockId{42}
 	fileId := BlockId{43}
 	rootBlock := NewDirBlock().(*DirBlock)
-	rootBlock.Children["f"] = DirEntry{BlockPointer: BlockPointer{Id: fileId}}
+	rootBlock.Children["f"] = DirEntry{
+		BlockPointer: BlockPointer{Id: fileId, QuotaSize: 1}}
 	fileBlock := NewFileBlock().(*FileBlock)
 	node := PathNode{BlockPointer{rootId, 0, 0, userId, 0}, ""}
-	fileNode := PathNode{BlockPointer{fileId, 0, 0, userId, 0}, "f"}
+	fileNode := PathNode{BlockPointer{fileId, 0, 0, userId, 1}, "f"}
 	p := Path{id, []PathNode{node, fileNode}}
 	data := []byte{1, 2, 3, 4, 5, 6, 7, 8, 9, 10}
 
@@ -1548,6 +1577,7 @@ func TestKBFSOpsWriteNewBlockSuccess(t *testing.T) {
 		Do(func(id BlockId, block Block, dirty bool) {
 		newRootBlock = block.(*DirBlock)
 	}).Return(nil)
+	setRmdAfterWrite(config, nil)
 
 	if err := config.KBFSOps().Write(p, data, 0); err != nil {
 		t.Errorf("Got error on write: %v", err)
@@ -1565,7 +1595,7 @@ func TestKBFSOpsWriteNewBlockSuccess(t *testing.T) {
 }
 
 func TestKBFSOpsWriteExtendSuccess(t *testing.T) {
-	mockCtrl, config := kbfsOpsInit(t)
+	mockCtrl, config := kbfsOpsInit(t, true)
 	defer kbfsTestShutdown(mockCtrl, config)
 
 	userId, id, _ := makeIdAndRMD(config)
@@ -1573,7 +1603,8 @@ func TestKBFSOpsWriteExtendSuccess(t *testing.T) {
 	rootId := BlockId{42}
 	fileId := BlockId{43}
 	rootBlock := NewDirBlock().(*DirBlock)
-	rootBlock.Children["f"] = DirEntry{BlockPointer: BlockPointer{Id: fileId}}
+	rootBlock.Children["f"] = DirEntry{
+		BlockPointer: BlockPointer{Id: fileId, QuotaSize: 1}}
 	fileBlock := NewFileBlock().(*FileBlock)
 	fileBlock.Contents = []byte{1, 2, 3, 4, 5}
 	node := PathNode{BlockPointer{rootId, 0, 0, userId, 0}, ""}
@@ -1595,6 +1626,7 @@ func TestKBFSOpsWriteExtendSuccess(t *testing.T) {
 		newFileBlock = block.(*FileBlock)
 	}).Return(nil)
 	config.mockBcache.EXPECT().Put(rootId, gomock.Any(), true).Return(nil)
+	setRmdAfterWrite(config, nil)
 
 	if err := config.KBFSOps().Write(p, data, 5); err != nil {
 		t.Errorf("Got error on write: %v", err)
@@ -1607,7 +1639,7 @@ func TestKBFSOpsWriteExtendSuccess(t *testing.T) {
 }
 
 func TestKBFSOpsWritePastEndSuccess(t *testing.T) {
-	mockCtrl, config := kbfsOpsInit(t)
+	mockCtrl, config := kbfsOpsInit(t, true)
 	defer kbfsTestShutdown(mockCtrl, config)
 
 	userId, id, _ := makeIdAndRMD(config)
@@ -1615,7 +1647,8 @@ func TestKBFSOpsWritePastEndSuccess(t *testing.T) {
 	rootId := BlockId{42}
 	fileId := BlockId{43}
 	rootBlock := NewDirBlock().(*DirBlock)
-	rootBlock.Children["f"] = DirEntry{BlockPointer: BlockPointer{Id: fileId}}
+	rootBlock.Children["f"] = DirEntry{
+		BlockPointer: BlockPointer{Id: fileId, QuotaSize: 1}}
 	fileBlock := NewFileBlock().(*FileBlock)
 	fileBlock.Contents = []byte{1, 2, 3, 4, 5}
 	node := PathNode{BlockPointer{rootId, 0, 0, userId, 0}, ""}
@@ -1637,6 +1670,7 @@ func TestKBFSOpsWritePastEndSuccess(t *testing.T) {
 		newFileBlock = block.(*FileBlock)
 	}).Return(nil)
 	config.mockBcache.EXPECT().Put(rootId, gomock.Any(), true).Return(nil)
+	setRmdAfterWrite(config, nil)
 
 	if err := config.KBFSOps().Write(p, data, 7); err != nil {
 		t.Errorf("Got error on write: %v", err)
@@ -1649,7 +1683,7 @@ func TestKBFSOpsWritePastEndSuccess(t *testing.T) {
 }
 
 func TestKBFSOpsWriteCauseSplit(t *testing.T) {
-	mockCtrl, config := kbfsOpsInit(t)
+	mockCtrl, config := kbfsOpsInit(t, true)
 	defer kbfsTestShutdown(mockCtrl, config)
 
 	userId, id, _ := makeIdAndRMD(config)
@@ -1657,7 +1691,8 @@ func TestKBFSOpsWriteCauseSplit(t *testing.T) {
 	rootId := BlockId{42}
 	fileId := BlockId{43}
 	rootBlock := NewDirBlock().(*DirBlock)
-	rootBlock.Children["f"] = DirEntry{BlockPointer: BlockPointer{Id: fileId}}
+	rootBlock.Children["f"] = DirEntry{
+		BlockPointer: BlockPointer{Id: fileId, QuotaSize: 1}}
 	fileBlock := NewFileBlock().(*FileBlock)
 	fileBlock.Contents = []byte{}
 	node := PathNode{BlockPointer{rootId, 0, 0, userId, 0}, ""}
@@ -1723,6 +1758,8 @@ func TestKBFSOpsWriteCauseSplit(t *testing.T) {
 		newRootBlock = block.(*DirBlock)
 	}).AnyTimes().Return(nil)
 
+	setRmdAfterWrite(config, nil)
+
 	if err := config.KBFSOps().Write(p, newData, 1); err != nil {
 		t.Errorf("Got error on write: %v", err)
 	} else if len(config.observer.localUpdatePath.Path) != len(p.Path) {
@@ -1755,10 +1792,10 @@ func TestKBFSOpsWriteCauseSplit(t *testing.T) {
 }
 
 func TestKBFSOpsWriteOverMultipleBlocks(t *testing.T) {
-	mockCtrl, config := kbfsOpsInit(t)
+	mockCtrl, config := kbfsOpsInit(t, true)
 	defer kbfsTestShutdown(mockCtrl, config)
 
-	userId, id, rmd := makeIdAndRMD(config)
+	userId, id, _ := makeIdAndRMD(config)
 
 	rootId := BlockId{42}
 	fileId := BlockId{43}
@@ -1819,6 +1856,9 @@ func TestKBFSOpsWriteOverMultipleBlocks(t *testing.T) {
 		newBlock2 = block.(*FileBlock)
 	}).After(c1).Return(nil)
 
+	var newRmd *RootMetadata
+	setRmdAfterWrite(config, &newRmd)
+
 	if err := config.KBFSOps().Write(p, data, 2); err != nil {
 		t.Errorf("Got error on write: %v", err)
 	} else if len(config.observer.localUpdatePath.Path) != len(p.Path) {
@@ -1831,15 +1871,15 @@ func TestKBFSOpsWriteOverMultipleBlocks(t *testing.T) {
 	}
 
 	index := len(p.Path) - 1
-	checkBlockChange(t, rmd.data.UnrefBlocks.Changes, p, index, 0, id1)
-	checkBlockChange(t, rmd.data.UnrefBlocks.Changes, p, index, 0, id2)
+	checkBlockChange(t, newRmd.data.UnrefBlocks.Changes, p, index, 0, id1)
+	checkBlockChange(t, newRmd.data.UnrefBlocks.Changes, p, index, 0, id2)
 }
 
 // Read tests check the same error cases, so no need for similar write
 // error tests
 
 func TestKBFSOpsTruncateToZeroSuccess(t *testing.T) {
-	mockCtrl, config := kbfsOpsInit(t)
+	mockCtrl, config := kbfsOpsInit(t, true)
 	defer kbfsTestShutdown(mockCtrl, config)
 
 	userId, id, _ := makeIdAndRMD(config)
@@ -1847,7 +1887,8 @@ func TestKBFSOpsTruncateToZeroSuccess(t *testing.T) {
 	rootId := BlockId{42}
 	fileId := BlockId{43}
 	rootBlock := NewDirBlock().(*DirBlock)
-	rootBlock.Children["f"] = DirEntry{BlockPointer: BlockPointer{Id: fileId}}
+	rootBlock.Children["f"] = DirEntry{
+		BlockPointer: BlockPointer{Id: fileId, QuotaSize: 1}}
 	fileBlock := NewFileBlock().(*FileBlock)
 	fileBlock.Contents = []byte{1, 2, 3, 4, 5, 6, 7, 8, 9, 10}
 	node := PathNode{BlockPointer{rootId, 0, 0, userId, 0}, ""}
@@ -1867,6 +1908,8 @@ func TestKBFSOpsTruncateToZeroSuccess(t *testing.T) {
 		newRootBlock = block.(*DirBlock)
 	}).Return(nil)
 
+	setRmdAfterWrite(config, nil)
+
 	data := []byte{}
 	if err := config.KBFSOps().Truncate(p, 0); err != nil {
 		t.Errorf("Got error on truncate: %v", err)
@@ -1884,7 +1927,7 @@ func TestKBFSOpsTruncateToZeroSuccess(t *testing.T) {
 }
 
 func TestKBFSOpsTruncateSameSize(t *testing.T) {
-	mockCtrl, config := kbfsOpsInit(t)
+	mockCtrl, config := kbfsOpsInit(t, false)
 	defer kbfsTestShutdown(mockCtrl, config)
 
 	u, id, _ := makeIdAndRMD(config)
@@ -1914,7 +1957,7 @@ func TestKBFSOpsTruncateSameSize(t *testing.T) {
 }
 
 func TestKBFSOpsTruncateSmallerSuccess(t *testing.T) {
-	mockCtrl, config := kbfsOpsInit(t)
+	mockCtrl, config := kbfsOpsInit(t, true)
 	defer kbfsTestShutdown(mockCtrl, config)
 
 	userId, id, _ := makeIdAndRMD(config)
@@ -1922,7 +1965,8 @@ func TestKBFSOpsTruncateSmallerSuccess(t *testing.T) {
 	rootId := BlockId{42}
 	fileId := BlockId{43}
 	rootBlock := NewDirBlock().(*DirBlock)
-	rootBlock.Children["f"] = DirEntry{BlockPointer: BlockPointer{Id: fileId}}
+	rootBlock.Children["f"] = DirEntry{
+		BlockPointer: BlockPointer{Id: fileId, QuotaSize: 1}}
 	fileBlock := NewFileBlock().(*FileBlock)
 	fileBlock.Contents = []byte{1, 2, 3, 4, 5, 6, 7, 8, 9, 10}
 	node := PathNode{BlockPointer{rootId, 0, 0, userId, 0}, ""}
@@ -1938,6 +1982,8 @@ func TestKBFSOpsTruncateSmallerSuccess(t *testing.T) {
 	}).Return(nil)
 	config.mockBcache.EXPECT().Put(rootId, gomock.Any(), true).Return(nil)
 
+	setRmdAfterWrite(config, nil)
+
 	data := []byte{1, 2, 3, 4, 5}
 	if err := config.KBFSOps().Truncate(p, 5); err != nil {
 		t.Errorf("Got error on truncate: %v", err)
@@ -1950,7 +1996,7 @@ func TestKBFSOpsTruncateSmallerSuccess(t *testing.T) {
 }
 
 func TestKBFSOpsTruncateRemovesABlock(t *testing.T) {
-	mockCtrl, config := kbfsOpsInit(t)
+	mockCtrl, config := kbfsOpsInit(t, true)
 	defer kbfsTestShutdown(mockCtrl, config)
 
 	userId, id, rmd := makeIdAndRMD(config)
@@ -1991,6 +2037,9 @@ func TestKBFSOpsTruncateRemovesABlock(t *testing.T) {
 	}).After(c1).Return(nil)
 	config.mockBcache.EXPECT().Put(rootId, gomock.Any(), true).Return(nil)
 
+	var newRmd *RootMetadata
+	setRmdAfterWrite(config, &newRmd)
+
 	data := []byte{5, 4, 3, 2}
 	if err := config.KBFSOps().Truncate(p, 4); err != nil {
 		t.Errorf("Got error on truncate: %v", err)
@@ -2001,16 +2050,17 @@ func TestKBFSOpsTruncateRemovesABlock(t *testing.T) {
 		t.Errorf("Wrote bad contents: %v", newBlock1.Contents)
 	} else if len(newPBlock.IPtrs) != 1 {
 		t.Errorf("Wrong number of indirect pointers: %d", len(newPBlock.IPtrs))
-	} else if rmd.UnrefBytes != 0+5+6 {
+	} else if newRmd.UnrefBytes != 0+5+6 {
 		// The fileid and both blocks were all modified and marked dirty
 		t.Errorf("Truncated block not correctly unref'd, unrefBytes = %d",
 			rmd.UnrefBytes)
 	}
-	checkBlockChange(t, rmd.data.UnrefBlocks.Changes, p, len(p.Path)-1, 0, id2)
+	checkBlockChange(t, newRmd.data.UnrefBlocks.Changes, p,
+		len(p.Path)-1, 0, id2)
 }
 
 func TestKBFSOpsTruncateBiggerSuccess(t *testing.T) {
-	mockCtrl, config := kbfsOpsInit(t)
+	mockCtrl, config := kbfsOpsInit(t, true)
 	defer kbfsTestShutdown(mockCtrl, config)
 
 	userId, id, _ := makeIdAndRMD(config)
@@ -2018,7 +2068,8 @@ func TestKBFSOpsTruncateBiggerSuccess(t *testing.T) {
 	rootId := BlockId{42}
 	fileId := BlockId{43}
 	rootBlock := NewDirBlock().(*DirBlock)
-	rootBlock.Children["f"] = DirEntry{BlockPointer: BlockPointer{Id: fileId}}
+	rootBlock.Children["f"] = DirEntry{
+		BlockPointer: BlockPointer{Id: fileId, QuotaSize: 1}}
 	fileBlock := NewFileBlock().(*FileBlock)
 	fileBlock.Contents = []byte{1, 2, 3, 4, 5}
 	node := PathNode{BlockPointer{rootId, 0, 0, userId, 0}, ""}
@@ -2040,6 +2091,8 @@ func TestKBFSOpsTruncateBiggerSuccess(t *testing.T) {
 	}).Return(nil)
 	config.mockBcache.EXPECT().Put(rootId, gomock.Any(), true).Return(nil)
 
+	setRmdAfterWrite(config, nil)
+
 	data := []byte{1, 2, 3, 4, 5, 0, 0, 0, 0, 0}
 	if err := config.KBFSOps().Truncate(p, 10); err != nil {
 		t.Errorf("Got error on truncate: %v", err)
@@ -2052,7 +2105,7 @@ func TestKBFSOpsTruncateBiggerSuccess(t *testing.T) {
 }
 
 func testSetExSuccess(t *testing.T, entryType EntryType, ex bool) {
-	mockCtrl, config := kbfsOpsInit(t)
+	mockCtrl, config := kbfsOpsInit(t, entryType != Sym)
 	defer kbfsTestShutdown(mockCtrl, config)
 
 	userId, id, rmd := makeIdAndRMD(config)
@@ -2075,10 +2128,11 @@ func testSetExSuccess(t *testing.T, entryType EntryType, ex bool) {
 	}
 
 	var expectedPath Path
+	var newRmd *RootMetadata
 	if entryType != Sym {
 		// sync block
 		expectedPath, _ = expectSyncBlock(t, config, nil, userId, id, "",
-			*p.ParentPath(), rmd, false, 0, 0, 0, nil)
+			*p.ParentPath(), rmd, false, 0, 0, 0, nil, &newRmd)
 		expectedPath.Path = append(expectedPath.Path, aNode)
 	}
 
@@ -2106,7 +2160,7 @@ func testSetExSuccess(t *testing.T, entryType EntryType, ex bool) {
 		// does the right thing
 		blocks := []*DirBlock{rootBlock, NewDirBlock().(*DirBlock)}
 		// pretend it's a rename so only ctime gets checked
-		checkNewPath(t, config, newP, expectedPath, rmd, blocks,
+		checkNewPath(t, config, newP, expectedPath, newRmd, blocks,
 			expectedType, "", true)
 	}
 }
@@ -2144,7 +2198,7 @@ func TestSetNoExSymSuccess(t *testing.T) {
 }
 
 func TestSetExFailNoSuchName(t *testing.T) {
-	mockCtrl, config := kbfsOpsInit(t)
+	mockCtrl, config := kbfsOpsInit(t, false)
 	defer kbfsTestShutdown(mockCtrl, config)
 
 	u, id, _ := makeIdAndRMD(config)
@@ -2170,7 +2224,7 @@ func TestSetExFailNoSuchName(t *testing.T) {
 // Other SetEx failure cases are all the same as any other block sync
 
 func TestSetMtimeSuccess(t *testing.T) {
-	mockCtrl, config := kbfsOpsInit(t)
+	mockCtrl, config := kbfsOpsInit(t, true)
 	defer kbfsTestShutdown(mockCtrl, config)
 
 	userId, id, rmd := makeIdAndRMD(config)
@@ -2186,8 +2240,9 @@ func TestSetMtimeSuccess(t *testing.T) {
 
 	expectGetBlock(config, rootId, rootBlock)
 	// sync block
+	var newRmd *RootMetadata
 	expectedPath, _ := expectSyncBlock(t, config, nil, userId, id, "",
-		*p.ParentPath(), rmd, false, 0, 0, 0, nil)
+		*p.ParentPath(), rmd, false, 0, 0, 0, nil, &newRmd)
 	expectedPath.Path = append(expectedPath.Path, aNode)
 
 	newMtime := time.Now()
@@ -2198,13 +2253,13 @@ func TestSetMtimeSuccess(t *testing.T) {
 	} else {
 		// append a fake block so checkNewPath does the right thing
 		blocks := []*DirBlock{rootBlock, NewDirBlock().(*DirBlock)}
-		checkNewPath(t, config, newP, expectedPath, rmd, blocks,
+		checkNewPath(t, config, newP, expectedPath, newRmd, blocks,
 			Exec, "", false)
 	}
 }
 
 func TestSetMtimeNull(t *testing.T) {
-	mockCtrl, config := kbfsOpsInit(t)
+	mockCtrl, config := kbfsOpsInit(t, false)
 	defer kbfsTestShutdown(mockCtrl, config)
 
 	u, id, _ := makeIdAndRMD(config)
@@ -2229,7 +2284,7 @@ func TestSetMtimeNull(t *testing.T) {
 }
 
 func TestMtimeFailNoSuchName(t *testing.T) {
-	mockCtrl, config := kbfsOpsInit(t)
+	mockCtrl, config := kbfsOpsInit(t, false)
 	defer kbfsTestShutdown(mockCtrl, config)
 
 	u, id, _ := makeIdAndRMD(config)
@@ -2255,7 +2310,7 @@ func TestMtimeFailNoSuchName(t *testing.T) {
 // SetMtime failure cases are all the same as any other block sync
 
 func TestSyncDirtySuccess(t *testing.T) {
-	mockCtrl, config := kbfsOpsInit(t)
+	mockCtrl, config := kbfsOpsInit(t, true)
 	defer kbfsTestShutdown(mockCtrl, config)
 
 	userId, id, rmd := makeIdAndRMD(config)
@@ -2276,8 +2331,9 @@ func TestSyncDirtySuccess(t *testing.T) {
 	config.mockBcache.EXPECT().Get(aId).AnyTimes().Return(aBlock, nil)
 
 	// sync block
+	var newRmd *RootMetadata
 	expectedPath, _ := expectSyncBlock(t, config, nil, userId, id, "", p,
-		rmd, false, 0, 0, 0, nil)
+		rmd, false, 0, 0, 0, nil, &newRmd)
 	config.mockBcache.EXPECT().Finalize(
 		aId, expectedPath.Path[len(expectedPath.Path)-1].Id)
 	config.mockBcache.EXPECT().Finalize(
@@ -2288,13 +2344,13 @@ func TestSyncDirtySuccess(t *testing.T) {
 	} else {
 		// pretend that aBlock is a dirblock -- doesn't matter for this check
 		blocks := []*DirBlock{rootBlock, NewDirBlock().(*DirBlock)}
-		checkNewPath(t, config, newP, expectedPath, rmd, blocks,
+		checkNewPath(t, config, newP, expectedPath, newRmd, blocks,
 			Exec, "", false)
 	}
 }
 
 func TestSyncCleanSuccess(t *testing.T) {
-	mockCtrl, config := kbfsOpsInit(t)
+	mockCtrl, config := kbfsOpsInit(t, false)
 	defer kbfsTestShutdown(mockCtrl, config)
 
 	u, id, _ := makeIdAndRMD(config)
@@ -2345,7 +2401,7 @@ func expectSyncDirtyBlock(config *ConfigMock, id BlockId, block *FileBlock,
 }
 
 func TestSyncDirtyMultiBlocksSuccess(t *testing.T) {
-	mockCtrl, config := kbfsOpsInit(t)
+	mockCtrl, config := kbfsOpsInit(t, true)
 	defer kbfsTestShutdown(mockCtrl, config)
 
 	userId, id, rmd := makeIdAndRMD(config)
@@ -2388,7 +2444,7 @@ func TestSyncDirtyMultiBlocksSuccess(t *testing.T) {
 	config.mockBcache.EXPECT().Get(fileId).AnyTimes().Return(fileBlock, nil)
 
 	// the split is good
-	expectGetTLFCryptKey(config, rmd)
+	expectGetTLFCryptKey(config)
 	pad2 := 5
 	pad4 := 8
 	expectSyncDirtyBlock(config, id2, block2, int64(0), pad2)
@@ -2407,9 +2463,10 @@ func TestSyncDirtyMultiBlocksSuccess(t *testing.T) {
 		checkBlockChange(t, md.data.RefBlocks.Changes, p, index, 0,
 			BlockId{id4[0] + 100})
 	}
+	var newRmd *RootMetadata
 	expectedPath, _ :=
 		expectSyncBlock(t, config, nil, userId, id, "", p, rmd, false, 0,
-			refBytes, unrefBytes, f)
+			refBytes, unrefBytes, f, &newRmd)
 	config.mockBcache.EXPECT().Finalize(
 		fileId, expectedPath.Path[len(expectedPath.Path)-1].Id)
 	config.mockBcache.EXPECT().Finalize(
@@ -2430,13 +2487,13 @@ func TestSyncDirtyMultiBlocksSuccess(t *testing.T) {
 	} else {
 		// pretend that aBlock is a dirblock -- doesn't matter for this check
 		blocks := []*DirBlock{rootBlock, NewDirBlock().(*DirBlock)}
-		checkNewPath(t, config, newP, expectedPath, rmd, blocks,
+		checkNewPath(t, config, newP, expectedPath, newRmd, blocks,
 			Exec, "", false)
 	}
 }
 
 func TestSyncDirtyMultiBlocksSplitInBlockSuccess(t *testing.T) {
-	mockCtrl, config := kbfsOpsInit(t)
+	mockCtrl, config := kbfsOpsInit(t, true)
 	defer kbfsTestShutdown(mockCtrl, config)
 
 	userId, id, rmd := makeIdAndRMD(config)
@@ -2478,7 +2535,7 @@ func TestSyncDirtyMultiBlocksSplitInBlockSuccess(t *testing.T) {
 	config.mockBcache.EXPECT().Get(rootId).AnyTimes().Return(rootBlock, nil)
 	config.mockBcache.EXPECT().Get(fileId).AnyTimes().Return(fileBlock, nil)
 	config.mockBcache.EXPECT().Get(id3).Return(block3, nil)
-	expectGetTLFCryptKey(config, rmd)
+	expectGetTLFCryptKey(config)
 
 	// the split is in the middle
 	pad2 := 0
@@ -2532,9 +2589,10 @@ func TestSyncDirtyMultiBlocksSplitInBlockSuccess(t *testing.T) {
 		checkBlockChange(t, md.data.RefBlocks.Changes, p, index, 0,
 			BlockId{newId5[0] + 100})
 	}
+	var newRmd *RootMetadata
 	expectedPath, _ :=
 		expectSyncBlock(t, config, c4, userId, id, "", p, rmd, false, 0,
-			refBytes, unrefBytes, f)
+			refBytes, unrefBytes, f, &newRmd)
 	config.mockBcache.EXPECT().Finalize(
 		fileId, expectedPath.Path[len(expectedPath.Path)-1].Id)
 	config.mockBcache.EXPECT().Finalize(
@@ -2589,13 +2647,13 @@ func TestSyncDirtyMultiBlocksSplitInBlockSuccess(t *testing.T) {
 		t.Errorf("Block 5 has the wrong data: %v", newBlock5.Contents)
 	} else {
 		blocks := []*DirBlock{rootBlock, NewDirBlock().(*DirBlock)}
-		checkNewPath(t, config, newP, expectedPath, rmd, blocks,
+		checkNewPath(t, config, newP, expectedPath, newRmd, blocks,
 			Exec, "", false)
 	}
 }
 
 func TestSyncDirtyMultiBlocksCopyNextBlockSuccess(t *testing.T) {
-	mockCtrl, config := kbfsOpsInit(t)
+	mockCtrl, config := kbfsOpsInit(t, true)
 	defer kbfsTestShutdown(mockCtrl, config)
 
 	userId, id, rmd := makeIdAndRMD(config)
@@ -2638,7 +2696,7 @@ func TestSyncDirtyMultiBlocksCopyNextBlockSuccess(t *testing.T) {
 	config.mockBcache.EXPECT().IsDirty(id2).AnyTimes().Return(false)
 	config.mockBcache.EXPECT().Get(id4).Return(block4, nil)
 	config.mockBcache.EXPECT().IsDirty(id4).Return(false)
-	expectGetTLFCryptKey(config, rmd)
+	expectGetTLFCryptKey(config)
 
 	// the split is in the middle
 	pad1 := 14
@@ -2690,9 +2748,10 @@ func TestSyncDirtyMultiBlocksCopyNextBlockSuccess(t *testing.T) {
 		checkBlockChange(t, md.data.UnrefBlocks.Changes, p, index, 0, id2)
 		checkBlockChange(t, md.data.UnrefBlocks.Changes, p, index, 0, id4)
 	}
+	var newRmd *RootMetadata
 	expectedPath, _ :=
 		expectSyncBlock(t, config, nil, userId, id, "", p, rmd, false, 0,
-			refBytes, unrefBytes, f)
+			refBytes, unrefBytes, f, &newRmd)
 	config.mockBcache.EXPECT().Finalize(
 		fileId, expectedPath.Path[len(expectedPath.Path)-1].Id)
 	config.mockBcache.EXPECT().Finalize(
@@ -2734,13 +2793,13 @@ func TestSyncDirtyMultiBlocksCopyNextBlockSuccess(t *testing.T) {
 		t.Errorf("Block 4 has the wrong data: %v", newBlock4.Contents)
 	} else {
 		blocks := []*DirBlock{rootBlock, NewDirBlock().(*DirBlock)}
-		checkNewPath(t, config, newP, expectedPath, rmd, blocks,
+		checkNewPath(t, config, newP, expectedPath, newRmd, blocks,
 			Exec, "", false)
 	}
 }
 
 func TestSyncDirtyWithBlockChangePointerSuccess(t *testing.T) {
-	mockCtrl, config := kbfsOpsInit(t)
+	mockCtrl, config := kbfsOpsInit(t, true)
 	defer kbfsTestShutdown(mockCtrl, config)
 
 	userId, id, rmd := makeIdAndRMD(config)
@@ -2766,8 +2825,9 @@ func TestSyncDirtyWithBlockChangePointerSuccess(t *testing.T) {
 
 	// sync block
 	refBytes := uint64(1 + 1) // 2 ref/unref blocks of 1 byte each
+	var newRmd *RootMetadata
 	expectedPath, lastCall := expectSyncBlock(t, config, nil, userId, id, "", p,
-		rmd, false, 0, refBytes, 0, nil)
+		rmd, false, 0, refBytes, 0, nil, &newRmd)
 	config.mockBcache.EXPECT().Finalize(
 		aId, expectedPath.Path[len(expectedPath.Path)-1].Id)
 	config.mockBcache.EXPECT().Finalize(
@@ -2802,16 +2862,16 @@ func TestSyncDirtyWithBlockChangePointerSuccess(t *testing.T) {
 
 	if newP, err := config.KBFSOps().Sync(p); err != nil {
 		t.Errorf("Got unexpected error on sync: %v", err)
-	} else if rmd.data.RefBlocks.Pointer.Id != refBlockId {
+	} else if newRmd.data.RefBlocks.Pointer.Id != refBlockId {
 		t.Errorf("Got unexpected refBlocks pointer: %v vs %v",
-			rmd.data.RefBlocks.Pointer.Id, refBlockId)
-	} else if rmd.data.UnrefBlocks.Pointer.Id != unrefBlockId {
+			newRmd.data.RefBlocks.Pointer.Id, refBlockId)
+	} else if newRmd.data.UnrefBlocks.Pointer.Id != unrefBlockId {
 		t.Errorf("Got unexpected unrefBlocks pointer: %v vs %v",
-			rmd.data.UnrefBlocks.Pointer.Id, unrefBlockId)
+			newRmd.data.UnrefBlocks.Pointer.Id, unrefBlockId)
 	} else {
 		// pretend that aBlock is a dirblock -- doesn't matter for this check
 		blocks := []*DirBlock{rootBlock, NewDirBlock().(*DirBlock)}
-		checkNewPath(t, config, newP, expectedPath, rmd, blocks,
+		checkNewPath(t, config, newP, expectedPath, newRmd, blocks,
 			Exec, "", false)
 	}
 }

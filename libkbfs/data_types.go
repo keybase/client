@@ -59,7 +59,15 @@ type VerifyingKey struct {
 type TLFPrivateKey struct {
 }
 
+func (tpk TLFPrivateKey) DeepCopy() TLFPrivateKey {
+	return tpk
+}
+
 type TLFPublicKey struct {
+}
+
+func (tpk TLFPublicKey) DeepCopy() TLFPublicKey {
+	return tpk
 }
 
 // A TLFEphemeralPrivateKey (m_e) and a CryptPublicKey (M_u^i) are
@@ -79,6 +87,10 @@ type CryptPublicKey struct {
 // non-public directories. (See 4.1.1.)
 
 type TLFEphemeralPublicKey struct {
+}
+
+func (tepk TLFEphemeralPublicKey) DeepCopy() TLFEphemeralPublicKey {
+	return tepk
 }
 
 // A TLFCryptKeyServerHalf (s_u^{f,0,i}) and a TLFCryptKeyClientHalf
@@ -434,6 +446,27 @@ type DirKeyBundle struct {
 	TLFEphemeralPublicKey TLFEphemeralPublicKey `codec:"ePubKey"`
 }
 
+func (dkb DirKeyBundle) DeepCopy() DirKeyBundle {
+	newDkb := dkb
+	newDkb.WKeys = make(map[libkb.UID]map[libkb.KIDMapKey][]byte)
+	for u, m := range dkb.WKeys {
+		newDkb.WKeys[u] = make(map[libkb.KIDMapKey][]byte)
+		for k, b := range m {
+			newDkb.WKeys[u][k] = b
+		}
+	}
+	newDkb.RKeys = make(map[libkb.UID]map[libkb.KIDMapKey][]byte)
+	for u, m := range dkb.RKeys {
+		newDkb.RKeys[u] = make(map[libkb.KIDMapKey][]byte)
+		for k, b := range m {
+			newDkb.RKeys[u][k] = b
+		}
+	}
+	newDkb.TLFPublicKey = dkb.TLFPublicKey.DeepCopy()
+	newDkb.TLFEphemeralPublicKey = dkb.TLFEphemeralPublicKey.DeepCopy()
+	return newDkb
+}
+
 // RootMetadata is the MD that is signed by the writer
 type RootMetadata struct {
 	// Serialized, possibly encrypted, version of the PrivateMetadata
@@ -550,6 +583,21 @@ func NewRootMetadata(d *DirHandle, id DirId) *RootMetadata {
 
 func (md *RootMetadata) Data() *PrivateMetadata {
 	return &md.data
+}
+
+func (md RootMetadata) DeepCopy() RootMetadata {
+	newMd := md
+	// no need to copy the serialized metadata, if it exists
+	newMd.Keys = make([]DirKeyBundle, len(md.Keys))
+	for i, k := range md.Keys {
+		newMd.Keys[i] = k.DeepCopy()
+	}
+	newMd.ClearBlockChanges()
+	newMd.ClearMetadataId()
+	// no need to deep copy the full data since we just cleared the
+	// block changes.
+	newMd.data.TLFPrivateKey = md.data.TLFPrivateKey.DeepCopy()
+	return newMd
 }
 
 func (md *RootMetadata) GetEncryptedTLFCryptKeyClientHalfData(
