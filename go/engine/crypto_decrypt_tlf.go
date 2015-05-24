@@ -72,7 +72,7 @@ func (cse *CryptoDecryptTLFEngine) Run(ctx *Context) (err error) {
 
 	decryptedData, ok := box.Open(nil, cse.encryptedData, &nonce, &pubKey, &privKey)
 	if !ok {
-		err = errors.New("Decryption error")
+		err = errors.New("Decryption error (TLF crypt key client half)")
 		return
 	}
 
