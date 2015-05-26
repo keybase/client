@@ -162,14 +162,7 @@ func (e *UserSummary) get() (map[keybase1.UID]*Summary, error) {
 		return nil, err
 	}
 
-	/*
-		for k, v := range j.Users {
-			u, err := libkb.UidFromHex(k)
-			if err == nil {
-				v.UID = u
-			}
-		}
-	*/
+	// XXX necessary?
 	for k, v := range j.Users {
 		v.UID = k
 	}
