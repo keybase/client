@@ -208,8 +208,8 @@ func (a *Account) LockedLocalSecretKey(ska SecretKeyArg) *SKB {
 		return nil
 	}
 
-	if !ska.KeyType.useDeviceKey() {
-		a.G().Log.Debug("| not using device key; preferences have disabled it")
+	if !ska.KeyType.useDeviceSigningKey() {
+		a.G().Log.Debug("| not using device signing key; preferences have disabled it")
 	} else if did := a.G().Env.GetDeviceID(); did == nil {
 		a.G().Log.Debug("| Could not get device id")
 	} else if key, err := ckf.GetSibkeyForDevice(*did); err != nil {

@@ -143,7 +143,7 @@ func (k KeyringFile) Save() error {
 type SecretKeyType int
 
 const (
-	// The current (Nacl) device key.
+	// The current device signing key.
 	DeviceSigningKeyType SecretKeyType = 1 << iota
 	// A PGP key (including the synced PGP key, if there is one).
 	PGPKeyType
@@ -166,19 +166,19 @@ func (t SecretKeyType) String() string {
 	return strings.Join(types, "|")
 }
 
-func (t SecretKeyType) useDeviceKey() bool {
+func (t SecretKeyType) useDeviceSigningKey() bool {
 	return (t & DeviceSigningKeyType) != 0
 }
 
 func (t SecretKeyType) searchForKey() bool {
-	return (t & ^DeviceSigningKeyType) != 0
+	return (t &^ DeviceSigningKeyType) != 0
 }
 
 func (t SecretKeyType) useSyncedPGPKey() bool {
 	return (t & PGPKeyType) != 0
 }
 
-func (t SecretKeyType) nonDeviceKeyMatches(key GenericKey) bool {
+func (t SecretKeyType) nonDeviceSigningKeyMatches(key GenericKey) bool {
 	if IsPGP(key) && (t&PGPKeyType) != 0 {
 		return true
 	}
