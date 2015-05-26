@@ -13,24 +13,23 @@ paths = Dir["#{script_path}/../json/*.json"]
 
 defined_types = []
 enums = []
+aliases = {}
 
-def classname(n)
-  "KBR#{n}"
-end
-
-def objc_class_for_type(type)
+def classname(type)
   case type
+  when "int" then "NSNumber"
   when "string" then "NSString"
-  when "array" then "NSArray"
   when "bytes" then "NSData"
   else
-    "NSObject"
+    "KBR#{type}"
   end
 end
 
-def objc_for_type(type, enums, space)
+def objc_for_type(type, enums, aliases, space)
   type = type["type"] if type.kind_of?(Hash) # Subtype (for arrays)
   type = type.find { |t| t != "null" } if type.kind_of?(Array) # Union
+
+  type = aliases[type] if aliases[type]
 
   ptr = false
   name, ptr = case type
@@ -88,22 +87,25 @@ def default_name_for_type(type)
   end
 end
 
-def value_for_type(type, name, enums)
+def value_for_type(type, name, enums, aliases)
   type = type.find { |t| t != "null" } if type.kind_of?(Array) # Union
   varname = "params[0][@\"#{name}\"]"
 
   if type.kind_of?(Hash) # (for arrays)
-    array_class = type["items"]
-    if is_native_type(array_class)
-      return varname
+    type_for_array = type["items"]
+    type_for_array = aliases[type_for_array] if aliases[type_for_array]
+    if is_native_type(type_for_array)
+      return "KBRArray(#{varname}, #{classname(type_for_array)}.class)"
     else
-      return "[MTLJSONAdapter modelsOfClass:#{classname(array_class)}.class fromJSONArray:#{varname} error:nil]"
+      return "[MTLJSONAdapter modelsOfClass:#{classname(type_for_array)}.class fromJSONArray:#{varname} error:nil]"
     end
   end
 
   if enums.include?(type)
     return "[#{varname} integerValue]"
   end
+
+  type = aliases[type] if aliases[type]
 
   case type
   when "int" then "[#{varname} integerValue]"
@@ -115,10 +117,6 @@ def value_for_type(type, name, enums)
   else
     "[MTLJSONAdapter modelOfClass:#{classname(type)}.class fromJSONDictionary:#{varname} error:nil]"
   end
-end
-
-def generate_subclass(name, type)
-  ["@interface #{classname(name)} : #{objc_class_for_type(type)}\n@end\n", "@implementation #{classname(name)}\n@end\n"]
 end
 
 header = []
@@ -165,13 +163,9 @@ paths.each do |path|
       end
       header << "};\n"
     elsif type["type"] == "fixed"
-      ch, ci = generate_subclass(type["name"], "bytes")
-      header << ch
-      impl << ci
+      aliases[type["name"]] = "bytes"
     elsif type["type"] == "record" and type["typedef"]
-      ch, ci = generate_subclass(type["name"], "string")
-      header << ch
-      impl << ci
+      aliases[type["name"]] = type["typedef"]
     elsif type["type"] == "record"
       transformers = []
       header << "@interface #{classname(type["name"])} : KBRObject"
@@ -188,7 +182,7 @@ paths.each do |path|
             end
           end
         else
-          header << "@property #{objc_for_type(field["type"], enums, true)}#{field["name"]};"
+          header << "@property #{objc_for_type(field["type"], enums, aliases, true)}#{field["name"]};"
         end
       end
       header << "@end\n"
@@ -219,7 +213,7 @@ paths.each do |path|
     response_completion = if response_type == "null" then
       "void (^)(NSError *error)"
     else
-      "void (^)(NSError *error, #{objc_for_type(response_type, enums, true)}#{default_name_for_type(response_type)})"
+      "void (^)(NSError *error, #{objc_for_type(response_type, enums, aliases, true)}#{default_name_for_type(response_type)})"
     end
 
     request_params << {"name" => "completion", "type" => response_completion}
@@ -229,7 +223,7 @@ paths.each do |path|
       name = "With#{name.camelize}" if index == 0
       name = "" if request_params.length == 1
 
-      "#{name}:(#{objc_for_type(param["type"], enums, false)})#{alias_name(param["name"])}"
+      "#{name}:(#{objc_for_type(param["type"], enums, aliases, false)})#{alias_name(param["name"])}"
     end
 
     rpc_method = "#{namespace}.#{protocol}.#{method}"
@@ -275,7 +269,7 @@ paths.each do |path|
     if mparam["request"].length > 0
       header_handlers << "@interface KBR#{method.camelize}RequestParams : KBRRequestParams"
       mparam["request"].each do |param|
-        header_handlers << "@property #{objc_for_type(param["type"], enums, true)}#{param["name"]};"
+        header_handlers << "@property #{objc_for_type(param["type"], enums, aliases, true)}#{param["name"]};"
       end
       header_handlers << "@end"
 
@@ -284,7 +278,7 @@ paths.each do |path|
       impl_handlers << "- (instancetype)initWithParams:(NSArray *)params {"
       impl_handlers << "  if ((self = [super initWithParams:params])) {"
       mparam["request"].each do |param|
-        value = value_for_type(param["type"], param["name"], enums)
+        value = value_for_type(param["type"], param["name"], enums, aliases)
         impl_handlers << "    self.#{param["name"]} = #{value};"
       end
       impl_handlers << "  }"

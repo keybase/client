@@ -8,12 +8,6 @@
 + (NSValueTransformer *)fieldsJSONTransformer { return [MTLJSONAdapter arrayTransformerWithModelClass:KBRStringKVPair.class]; }
 @end
 
-@implementation KBRUID
-@end
-
-@implementation KBRUID2
-@end
-
 @implementation KBRFOKID
 @end
 
@@ -38,9 +32,6 @@
 @end
 
 @implementation KBRStream
-@end
-
-@implementation KBRSigID
 @end
 
 @implementation KBRBlockIdCombo
@@ -80,14 +71,14 @@
   }];
 }
 
-- (void)incBlockReferenceWithBid:(KBRBlockIdCombo *)bid nonce:(NSString *)nonce folder:(NSString *)folder chargedTo:(KBRUID *)chargedTo completion:(void (^)(NSError *error))completion {
+- (void)incBlockReferenceWithBid:(KBRBlockIdCombo *)bid nonce:(NSString *)nonce folder:(NSString *)folder chargedTo:(NSData *)chargedTo completion:(void (^)(NSError *error))completion {
   NSArray *params = @[@{@"bid": KBRValue(bid), @"nonce": KBRValue(nonce), @"folder": KBRValue(folder), @"chargedTo": KBRValue(chargedTo)}];
   [self.client sendRequestWithMethod:@"keybase.1.block.incBlockReference" params:params sessionId:self.sessionId completion:^(NSError *error, id retval) {
     completion(error);
   }];
 }
 
-- (void)decBlockReferenceWithBid:(KBRBlockIdCombo *)bid nonce:(NSString *)nonce folder:(NSString *)folder chargedTo:(KBRUID *)chargedTo completion:(void (^)(NSError *error))completion {
+- (void)decBlockReferenceWithBid:(KBRBlockIdCombo *)bid nonce:(NSString *)nonce folder:(NSString *)folder chargedTo:(NSData *)chargedTo completion:(void (^)(NSError *error))completion {
   NSArray *params = @[@{@"bid": KBRValue(bid), @"nonce": KBRValue(nonce), @"folder": KBRValue(folder), @"chargedTo": KBRValue(chargedTo)}];
   [self.client sendRequestWithMethod:@"keybase.1.block.decBlockReference" params:params sessionId:self.sessionId completion:^(NSError *error, id retval) {
     completion(error);
@@ -719,7 +710,7 @@
   }];
 }
 
-- (void)checkProofWithSessionID:(NSInteger)sessionID sigID:(KBRSigID *)sigID completion:(void (^)(NSError *error, KBRCheckProofStatus *checkProofStatus))completion {
+- (void)checkProofWithSessionID:(NSInteger)sessionID sigID:(NSString *)sigID completion:(void (^)(NSError *error, KBRCheckProofStatus *checkProofStatus))completion {
   NSArray *params = @[@{@"sessionID": @(sessionID), @"sigID": KBRValue(sigID)}];
   [self.client sendRequestWithMethod:@"keybase.1.prove.checkProof" params:params sessionId:self.sessionId completion:^(NSError *error, id retval) {
     if (error) {
@@ -1024,7 +1015,7 @@
 
 @implementation KBRUserRequest
 
-- (void)listTrackersWithSessionID:(NSInteger)sessionID uid:(KBRUID *)uid completion:(void (^)(NSError *error, NSArray *items))completion {
+- (void)listTrackersWithSessionID:(NSInteger)sessionID uid:(NSData *)uid completion:(void (^)(NSError *error, NSArray *items))completion {
   NSArray *params = @[@{@"sessionID": @(sessionID), @"uid": KBRValue(uid)}];
   [self.client sendRequestWithMethod:@"keybase.1.user.listTrackers" params:params sessionId:self.sessionId completion:^(NSError *error, id retval) {
     if (error) {
@@ -1072,7 +1063,7 @@
   }];
 }
 
-- (void)loadUserWithUid:(KBRUID *)uid username:(NSString *)username selfKb:(BOOL)selfKb completion:(void (^)(NSError *error, KBRUser *user))completion {
+- (void)loadUserWithUid:(NSData *)uid username:(NSString *)username selfKb:(BOOL)selfKb completion:(void (^)(NSError *error, KBRUser *user))completion {
   NSArray *params = @[@{@"uid": KBRValue(uid), @"username": KBRValue(username), @"self": @(selfKb)}];
   [self.client sendRequestWithMethod:@"keybase.1.user.loadUser" params:params sessionId:self.sessionId completion:^(NSError *error, id retval) {
     if (error) {
@@ -1159,7 +1150,7 @@
     self.bid = [MTLJSONAdapter modelOfClass:KBRBlockIdCombo.class fromJSONDictionary:params[0][@"bid"] error:nil];
     self.nonce = params[0][@"nonce"];
     self.folder = params[0][@"folder"];
-    self.chargedTo = [MTLJSONAdapter modelOfClass:KBRUID.class fromJSONDictionary:params[0][@"chargedTo"] error:nil];
+    self.chargedTo = params[0][@"chargedTo"];
   }
   return self;
 }
@@ -1173,7 +1164,7 @@
     self.bid = [MTLJSONAdapter modelOfClass:KBRBlockIdCombo.class fromJSONDictionary:params[0][@"bid"] error:nil];
     self.nonce = params[0][@"nonce"];
     self.folder = params[0][@"folder"];
-    self.chargedTo = [MTLJSONAdapter modelOfClass:KBRUID.class fromJSONDictionary:params[0][@"chargedTo"] error:nil];
+    self.chargedTo = params[0][@"chargedTo"];
   }
   return self;
 }
@@ -1257,7 +1248,7 @@
   if ((self = [super initWithParams:params])) {
     self.sessionID = [params[0][@"sessionID"] integerValue];
     self.currentUser = params[0][@"currentUser"];
-    self.otherUsers = params[0][@"otherUsers"];
+    self.otherUsers = KBRArray(params[0][@"otherUsers"], NSString.class);
   }
   return self;
 }
@@ -1625,7 +1616,7 @@
 - (instancetype)initWithParams:(NSArray *)params {
   if ((self = [super initWithParams:params])) {
     self.sessionID = [params[0][@"sessionID"] integerValue];
-    self.userAsserts = params[0][@"userAsserts"];
+    self.userAsserts = KBRArray(params[0][@"userAsserts"], NSString.class);
   }
   return self;
 }
@@ -1744,7 +1735,7 @@
   if ((self = [super initWithParams:params])) {
     self.sessionID = [params[0][@"sessionID"] integerValue];
     self.all = [params[0][@"all"] boolValue];
-    self.fingerprints = params[0][@"fingerprints"];
+    self.fingerprints = KBRArray(params[0][@"fingerprints"], NSString.class);
   }
   return self;
 }
@@ -1771,7 +1762,7 @@
 - (instancetype)initWithParams:(NSArray *)params {
   if ((self = [super initWithParams:params])) {
     self.sessionID = [params[0][@"sessionID"] integerValue];
-    self.sigID = [MTLJSONAdapter modelOfClass:KBRSigID.class fromJSONDictionary:params[0][@"sigID"] error:nil];
+    self.sigID = params[0][@"sigID"];
   }
   return self;
 }
@@ -1906,8 +1897,8 @@
 - (instancetype)initWithParams:(NSArray *)params {
   if ((self = [super initWithParams:params])) {
     self.sessionID = [params[0][@"sessionID"] integerValue];
-    self.ids = [MTLJSONAdapter modelsOfClass:KBRSigID.class fromJSONArray:params[0][@"ids"] error:nil];
-    self.seqnos = params[0][@"seqnos"];
+    self.ids = KBRArray(params[0][@"ids"], NSString.class);
+    self.seqnos = KBRArray(params[0][@"seqnos"], NSNumber.class);
   }
   return self;
 }
@@ -2097,7 +2088,7 @@
 - (instancetype)initWithParams:(NSArray *)params {
   if ((self = [super initWithParams:params])) {
     self.sessionID = [params[0][@"sessionID"] integerValue];
-    self.uid = [MTLJSONAdapter modelOfClass:KBRUID.class fromJSONDictionary:params[0][@"uid"] error:nil];
+    self.uid = params[0][@"uid"];
   }
   return self;
 }
@@ -2131,7 +2122,7 @@
 
 - (instancetype)initWithParams:(NSArray *)params {
   if ((self = [super initWithParams:params])) {
-    self.uids = [MTLJSONAdapter modelsOfClass:KBRUID.class fromJSONArray:params[0][@"uids"] error:nil];
+    self.uids = KBRArray(params[0][@"uids"], NSData.class);
   }
   return self;
 }
@@ -2142,7 +2133,7 @@
 
 - (instancetype)initWithParams:(NSArray *)params {
   if ((self = [super initWithParams:params])) {
-    self.uid = [MTLJSONAdapter modelOfClass:KBRUID.class fromJSONDictionary:params[0][@"uid"] error:nil];
+    self.uid = params[0][@"uid"];
     self.username = params[0][@"username"];
     self.self = [params[0][@"self"] boolValue];
   }

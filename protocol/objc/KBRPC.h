@@ -15,12 +15,6 @@
 @property NSArray *fields; /*of KBRStringKVPair*/
 @end
 
-@interface KBRUID : NSData
-@end
-
-@interface KBRUID2 : NSString
-@end
-
 @interface KBRFOKID : KBRObject
 @property NSData *pgpFingerprint;
 @property NSData *kid;
@@ -58,7 +52,7 @@
 @end
 
 @interface KBRUser : KBRObject
-@property KBRUID *uid;
+@property NSData *uid;
 @property NSString *username;
 @property KBRImage *image;
 @property NSArray *publicKeys; /*of KBRPublicKey*/
@@ -74,13 +68,10 @@
 @property NSInteger fd;
 @end
 
-@interface KBRSigID : NSString
-@end
-
 @interface KBRBlockIdCombo : KBRObject
 @property NSString *blockHash;
 @property NSInteger size;
-@property KBRUID *chargedTo;
+@property NSData *chargedTo;
 @end
 
 @interface KBRBlockKey : KBRObject
@@ -102,9 +93,9 @@
 
 - (void)getBlockWithBid:(KBRBlockIdCombo *)bid completion:(void (^)(NSError *error, KBRGetBlockRes *getBlockRes))completion;
 
-- (void)incBlockReferenceWithBid:(KBRBlockIdCombo *)bid nonce:(NSString *)nonce folder:(NSString *)folder chargedTo:(KBRUID *)chargedTo completion:(void (^)(NSError *error))completion;
+- (void)incBlockReferenceWithBid:(KBRBlockIdCombo *)bid nonce:(NSString *)nonce folder:(NSString *)folder chargedTo:(NSData *)chargedTo completion:(void (^)(NSError *error))completion;
 
-- (void)decBlockReferenceWithBid:(KBRBlockIdCombo *)bid nonce:(NSString *)nonce folder:(NSString *)folder chargedTo:(KBRUID *)chargedTo completion:(void (^)(NSError *error))completion;
+- (void)decBlockReferenceWithBid:(KBRBlockIdCombo *)bid nonce:(NSString *)nonce folder:(NSString *)folder chargedTo:(NSData *)chargedTo completion:(void (^)(NSError *error))completion;
 
 @end
 
@@ -329,7 +320,7 @@ typedef NS_ENUM (NSInteger, KBRTrackDiffType) {
 @property NSString *key;
 @property NSString *value;
 @property NSString *displayMarkup;
-@property KBRSigID *sigID;
+@property NSString *sigID;
 @property NSInteger mtime;
 @end
 
@@ -605,13 +596,13 @@ typedef NS_ENUM (NSInteger, KBRSignMode) {
 @end
 
 @interface KBRStartProofResult : KBRObject
-@property KBRSigID *sigID;
+@property NSString *sigID;
 @end
 
 @interface KBRProveRequest : KBRRequest
 - (void)startProofWithSessionID:(NSInteger)sessionID service:(NSString *)service username:(NSString *)username force:(BOOL)force promptPosted:(BOOL)promptPosted completion:(void (^)(NSError *error, KBRStartProofResult *startProofResult))completion;
 
-- (void)checkProofWithSessionID:(NSInteger)sessionID sigID:(KBRSigID *)sigID completion:(void (^)(NSError *error, KBRCheckProofStatus *checkProofStatus))completion;
+- (void)checkProofWithSessionID:(NSInteger)sessionID sigID:(NSString *)sigID completion:(void (^)(NSError *error, KBRCheckProofStatus *checkProofStatus))completion;
 
 @end
 
@@ -638,7 +629,7 @@ typedef NS_ENUM (NSInteger, KBRPromptOverwriteType) {
 @end
 
 @interface KBRSessionToken : KBRObject
-@property KBRUID *uid;
+@property NSData *uid;
 @property NSString *sid;
 @property NSInteger generated;
 @property NSInteger lifetime;
@@ -683,7 +674,7 @@ typedef NS_ENUM (NSInteger, KBRPromptOverwriteType) {
 @end
 
 @interface KBRSession : KBRObject
-@property KBRUID *uid;
+@property NSData *uid;
 @property NSString *username;
 @property NSString *token;
 @property NSString *deviceSubkeyKid;
@@ -711,7 +702,7 @@ typedef NS_ENUM (NSInteger, KBRPromptOverwriteType) {
 
 @interface KBRSig : KBRObject
 @property NSInteger seqno;
-@property KBRSigID *sigID;
+@property NSString *sigID;
 @property NSString *sigIDDisplay;
 @property NSString *type;
 @property NSInteger ctime;
@@ -767,7 +758,7 @@ typedef NS_ENUM (NSInteger, KBRPromptOverwriteType) {
 @end
 
 @interface KBRTracker : KBRObject
-@property KBRUID *tracker;
+@property NSData *tracker;
 @property NSInteger status;
 @property NSInteger mtime;
 @end
@@ -790,7 +781,7 @@ typedef NS_ENUM (NSInteger, KBRPromptOverwriteType) {
 @end
 
 @interface KBRUserSummary : KBRObject
-@property KBRUID *uid;
+@property NSData *uid;
 @property NSString *thumbnail;
 @property NSString *username;
 @property NSInteger idVersion;
@@ -802,7 +793,7 @@ typedef NS_ENUM (NSInteger, KBRPromptOverwriteType) {
 @end
 
 @interface KBRUserRequest : KBRRequest
-- (void)listTrackersWithSessionID:(NSInteger)sessionID uid:(KBRUID *)uid completion:(void (^)(NSError *error, NSArray *items))completion;
+- (void)listTrackersWithSessionID:(NSInteger)sessionID uid:(NSData *)uid completion:(void (^)(NSError *error, NSArray *items))completion;
 
 - (void)listTrackersByNameWithSessionID:(NSInteger)sessionID username:(NSString *)username completion:(void (^)(NSError *error, NSArray *items))completion;
 
@@ -810,7 +801,7 @@ typedef NS_ENUM (NSInteger, KBRPromptOverwriteType) {
 
 - (void)loadUncheckedUserSummariesWithUids:(NSArray *)uids completion:(void (^)(NSError *error, NSArray *items))completion;
 
-- (void)loadUserWithUid:(KBRUID *)uid username:(NSString *)username selfKb:(BOOL)selfKb completion:(void (^)(NSError *error, KBRUser *user))completion;
+- (void)loadUserWithUid:(NSData *)uid username:(NSString *)username selfKb:(BOOL)selfKb completion:(void (^)(NSError *error, KBRUser *user))completion;
 
 - (void)listTrackingWithFilter:(NSString *)filter completion:(void (^)(NSError *error, NSArray *items))completion;
 
@@ -835,13 +826,13 @@ typedef NS_ENUM (NSInteger, KBRPromptOverwriteType) {
 @property KBRBlockIdCombo *bid;
 @property NSString *nonce;
 @property NSString *folder;
-@property KBRUID *chargedTo;
+@property NSData *chargedTo;
 @end
 @interface KBRDecBlockReferenceRequestParams : KBRRequestParams
 @property KBRBlockIdCombo *bid;
 @property NSString *nonce;
 @property NSString *folder;
-@property KBRUID *chargedTo;
+@property NSData *chargedTo;
 @end
 @interface KBRRegisterBTCRequestParams : KBRRequestParams
 @property NSInteger sessionID;
@@ -1055,7 +1046,7 @@ typedef NS_ENUM (NSInteger, KBRPromptOverwriteType) {
 @end
 @interface KBRCheckProofRequestParams : KBRRequestParams
 @property NSInteger sessionID;
-@property KBRSigID *sigID;
+@property NSString *sigID;
 @end
 @interface KBRPromptOverwriteRequestParams : KBRRequestParams
 @property NSInteger sessionID;
@@ -1173,7 +1164,7 @@ typedef NS_ENUM (NSInteger, KBRPromptOverwriteType) {
 @end
 @interface KBRListTrackersRequestParams : KBRRequestParams
 @property NSInteger sessionID;
-@property KBRUID *uid;
+@property NSData *uid;
 @end
 @interface KBRListTrackersByNameRequestParams : KBRRequestParams
 @property NSInteger sessionID;
@@ -1186,7 +1177,7 @@ typedef NS_ENUM (NSInteger, KBRPromptOverwriteType) {
 @property NSArray *uids;
 @end
 @interface KBRLoadUserRequestParams : KBRRequestParams
-@property KBRUID *uid;
+@property NSData *uid;
 @property NSString *username;
 @property BOOL self;
 @end
