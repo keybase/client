@@ -208,9 +208,7 @@ func (a *Account) LockedLocalSecretKey(ska SecretKeyArg) *SKB {
 		return nil
 	}
 
-	if !ska.KeyType.useDeviceKey() {
-		a.G().Log.Debug("| not using device key; preferences have disabled it")
-	} else {
+	if (ska.KeyType & (DeviceSigningKeyType | DeviceEncryptionKeyType)) != 0 {
 		did := a.G().Env.GetDeviceID()
 		if did == nil {
 			a.G().Log.Debug("| Could not get device id")
@@ -238,9 +236,7 @@ func (a *Account) LockedLocalSecretKey(ska SecretKeyArg) *SKB {
 				}
 			}
 		}
-	}
-
-	if ret == nil && ska.KeyType.searchForKey() {
+	} else {
 		a.G().Log.Debug("| Looking up secret key in local keychain")
 		ret = keyring.SearchWithComputedKeyFamily(ckf, ska)
 	}

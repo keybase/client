@@ -168,19 +168,7 @@ func (t SecretKeyType) String() string {
 	return strings.Join(types, "|")
 }
 
-func (t SecretKeyType) useDeviceKey() bool {
-	return (t & (DeviceSigningKeyType | DeviceEncryptionKeyType)) != 0
-}
-
-func (t SecretKeyType) searchForKey() bool {
-	return (t &^ (DeviceSigningKeyType | DeviceEncryptionKeyType)) != 0
-}
-
-func (t SecretKeyType) useSyncedPGPKey() bool {
-	return (t & PGPKeyType) != 0
-}
-
-func (t SecretKeyType) nonDeviceSigningKeyMatches(key GenericKey) bool {
+func (t SecretKeyType) nonDeviceKeyMatches(key GenericKey) bool {
 	if IsPGP(key) && (t&PGPKeyType) != 0 {
 		return true
 	}
@@ -233,7 +221,7 @@ func (k *Keyrings) GetSecretKeyLocked(lctx LoginContext, ska SecretKeyArg) (ret 
 
 	var pub GenericKey
 
-	if !ska.KeyType.useSyncedPGPKey() {
+	if (ska.KeyType &^ PGPKeyType) != 0 {
 		k.G().Log.Debug("| Skipped Synced PGP key (via options)")
 	} else if ret, err = ska.Me.SyncedSecretKey(lctx); err != nil {
 		k.G().Log.Warning("Error fetching synced PGP secret key: %s", err.Error())
