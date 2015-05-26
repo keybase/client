@@ -18,7 +18,7 @@ func (sh SigHint) GetApiUrl() string    { return sh.apiUrl }
 func (sh SigHint) GetCheckText() string { return sh.checkText }
 
 type SigHints struct {
-	uid     UID
+	uid     keybase1.UID
 	version int
 	hints   map[keybase1.SigID]*SigHint
 	dirty   bool
@@ -39,7 +39,7 @@ func (sh SigHints) Lookup(i keybase1.SigID) *SigHint {
 	return obj
 }
 
-func NewSigHints(jw *jsonw.Wrapper, uid UID, dirty bool) (sh *SigHints, err error) {
+func NewSigHints(jw *jsonw.Wrapper, uid keybase1.UID, dirty bool) (sh *SigHints, err error) {
 	sh = &SigHints{uid: uid, dirty: dirty, version: 0}
 	err = sh.PopulateWith(jw)
 	if err != nil {
@@ -111,7 +111,7 @@ func (sh *SigHints) Store() (err error) {
 	return err
 }
 
-func LoadSigHints(uid UID) (sh *SigHints, err error) {
+func LoadSigHints(uid keybase1.UID) (sh *SigHints, err error) {
 	G.Log.Debug("+ LoadSigHints(%s)", uid)
 	var jw *jsonw.Wrapper
 	jw, err = G.LocalDb.Get(DbKeyUID(DB_SIG_HINTS, uid))
@@ -155,7 +155,7 @@ func (sh *SigHints) Refresh() error {
 	return nil
 }
 
-func LoadAndRefreshSigHints(uid UID) (sh *SigHints, err error) {
+func LoadAndRefreshSigHints(uid keybase1.UID) (sh *SigHints, err error) {
 	sh, err = LoadSigHints(uid)
 	if err == nil {
 		err = sh.Refresh()

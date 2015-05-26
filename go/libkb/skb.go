@@ -16,6 +16,7 @@ import (
 	"os"
 	"sync"
 
+	keybase1 "github.com/keybase/client/protocol/go"
 	triplesec "github.com/keybase/go-triplesec"
 	"golang.org/x/crypto/openpgp"
 )
@@ -29,7 +30,7 @@ type SKB struct {
 	decryptedSecret GenericKey
 	decryptedRaw    []byte // in case we need to reexport it
 
-	uid UID // UID that the key is for
+	uid keybase1.UID // UID that the key is for
 	Contextified
 
 	// TODO(akalin): Remove this in favor of making LKSec
@@ -326,7 +327,7 @@ func (s *SKB) lksUnlockWithSecretRetriever(secretRetriever SecretRetriever) (unl
 	return lks.Decrypt(nil, s.Priv.Data)
 }
 
-func (p *SKB) SetUID(uid UID) {
+func (p *SKB) SetUID(uid keybase1.UID) {
 	G.Log.Debug("| Setting UID on SKB to %s", uid)
 	p.Lock()
 	p.uid = uid

@@ -87,7 +87,7 @@ type ChainLinkUnpacked struct {
 	eldestKid      KID
 	sig            string
 	sigID          keybase1.SigID
-	uid            UID
+	uid            keybase1.UID
 	username       string
 	typ            string
 	proofText      string
@@ -137,7 +137,7 @@ func (c *ChainLink) GetETime() time.Time {
 	return UnixToTimeMappingZero(c.unpacked.etime)
 }
 
-func (c *ChainLink) GetUID() UID {
+func (c *ChainLink) GetUID() keybase1.UID {
 	return c.unpacked.uid
 }
 
@@ -307,7 +307,7 @@ func (c *ChainLink) UnpackComputedKeyInfos(jw *jsonw.Wrapper) (err error) {
 	return
 }
 
-func (c *ChainLink) Unpack(trusted bool, selfUID UID) (err error) {
+func (c *ChainLink) Unpack(trusted bool, selfUID keybase1.UID) (err error) {
 	tmp := ChainLinkUnpacked{}
 
 	c.packed.AtKey("sig").GetStringVoid(&tmp.sig, &err)
@@ -356,7 +356,7 @@ func (c *ChainLink) Unpack(trusted bool, selfUID UID) (err error) {
 	return err
 }
 
-func (c *ChainLink) CheckNameAndId(s string, i UID) error {
+func (c *ChainLink) CheckNameAndId(s string, i keybase1.UID) error {
 	if c.unpacked.uid != i {
 		return fmt.Errorf("UID mismatch %s != %s in Link %s", c.unpacked.uid, i, c.id)
 	}
@@ -481,7 +481,7 @@ func (c *ChainLink) VerifySig(k PgpKeyBundle) (cached bool, err error) {
 	return
 }
 
-func ImportLinkFromServer(parent *SigChain, jw *jsonw.Wrapper, selfUID UID) (ret *ChainLink, err error) {
+func ImportLinkFromServer(parent *SigChain, jw *jsonw.Wrapper, selfUID keybase1.UID) (ret *ChainLink, err error) {
 	var id LinkId
 	GetLinkIdVoid(jw.AtKey("payload_hash"), &id, &err)
 	if err != nil {
@@ -502,7 +502,7 @@ func NewChainLink(parent *SigChain, id LinkId, jw *jsonw.Wrapper) *ChainLink {
 	}
 }
 
-func ImportLinkFromStorage(id LinkId, selfUID UID) (*ChainLink, error) {
+func ImportLinkFromStorage(id LinkId, selfUID keybase1.UID) (*ChainLink, error) {
 	jw, err := G.LocalDb.Get(DbKey{Typ: DB_LINK, Key: id.String()})
 	var ret *ChainLink
 	if err == nil {
@@ -598,7 +598,7 @@ func (c *ChainLink) MatchFingerprint(fp PgpFingerprint) bool {
 	return c.unpacked.pgpFingerprint != nil && fp.Eq(*c.unpacked.pgpFingerprint)
 }
 
-func (c *ChainLink) MatchUidAndUsername(uid UID, username string) bool {
+func (c *ChainLink) MatchUidAndUsername(uid keybase1.UID, username string) bool {
 	return uid == c.unpacked.uid && username == c.unpacked.username
 }
 

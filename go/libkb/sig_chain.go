@@ -9,7 +9,7 @@ import (
 )
 
 type SigChain struct {
-	uid        UID
+	uid        keybase1.UID
 	username   string
 	chainLinks []*ChainLink
 	idVerified bool
@@ -119,7 +119,7 @@ func (sc *SigChain) Bump(mt MerkleTriple) {
 	sc.localChainUpdateTime = time.Now()
 }
 
-func (sc *SigChain) LoadFromServer(t *MerkleTriple, selfUID UID) (dirtyTail *MerkleTriple, err error) {
+func (sc *SigChain) LoadFromServer(t *MerkleTriple, selfUID keybase1.UID) (dirtyTail *MerkleTriple, err error) {
 	low := sc.GetLastLoadedSeqno()
 
 	G.Log.Debug("+ Load SigChain from server (uid=%s, low=%d)", sc.uid, low)
@@ -691,7 +691,7 @@ func (l *SigChainLoader) CheckFreshness() (current bool, err error) {
 
 //========================================================================
 
-func (l *SigChainLoader) selfUID() UID {
+func (l *SigChainLoader) selfUID() keybase1.UID {
 	if !l.self {
 		return ""
 	}

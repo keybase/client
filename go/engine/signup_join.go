@@ -5,13 +5,14 @@ import (
 	"fmt"
 
 	"github.com/keybase/client/go/libkb"
+	keybase1 "github.com/keybase/client/protocol/go"
 	triplesec "github.com/keybase/go-triplesec"
 )
 
 type SignupJoinEngine struct {
 	signupState *SignupState
 
-	uid            libkb.UID
+	uid            keybase1.UID
 	session        string
 	csrf           string
 	lastPassphrase string
@@ -99,7 +100,7 @@ type SignupJoinEngineRunRes struct {
 	PassphraseOk bool
 	PostOk       bool
 	WriteOk      bool
-	UID          libkb.UID
+	UID          keybase1.UID
 	User         *libkb.User
 	Err          error
 }

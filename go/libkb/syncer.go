@@ -3,6 +3,8 @@ package libkb
 import (
 	"fmt"
 	"sync"
+
+	keybase1 "github.com/keybase/client/protocol/go"
 )
 
 type Syncer interface {
@@ -11,16 +13,16 @@ type Syncer interface {
 	loadFromStorage() error
 	syncFromServer(SessionReader) error
 	store() error
-	getUID() UID
-	setUID(u UID)
+	getUID() keybase1.UID
+	setUID(u keybase1.UID)
 	needsLogin() bool
 }
 
-func RunSyncer(s Syncer, aUid UID, loggedIn bool, sr SessionReader) (err error) {
+func RunSyncer(s Syncer, aUid keybase1.UID, loggedIn bool, sr SessionReader) (err error) {
 	s.Lock()
 	defer s.Unlock()
 
-	var uid UID
+	var uid keybase1.UID
 
 	sUid := s.getUID()
 

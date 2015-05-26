@@ -5,6 +5,7 @@ import (
 	"strings"
 	"sync"
 
+	keybase1 "github.com/keybase/client/protocol/go"
 	jsonw "github.com/keybase/go-jsonw"
 )
 
@@ -363,7 +364,7 @@ func (f JsonConfigFile) GetSalt() (ret []byte) {
 	}
 	return ret
 }
-func (f JsonConfigFile) GetUID() (ret UID) {
+func (f JsonConfigFile) GetUID() (ret keybase1.UID) {
 	if uc, _ := f.GetUserConfig(); uc != nil {
 		ret = uc.GetUID()
 	}

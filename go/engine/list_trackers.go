@@ -8,14 +8,14 @@ import (
 // TrackerList is an engine to get a list of user's trackers
 // (other users tracking this user).
 type ListTrackersEngine struct {
-	uid      libkb.UID
+	uid      keybase1.UID
 	username string
 	trackers *libkb.Trackers
 	libkb.Contextified
 }
 
 // NewListTrackers creates a TrackerList engine for uid.
-func NewListTrackers(uid libkb.UID, g *libkb.GlobalContext) *ListTrackersEngine {
+func NewListTrackers(uid keybase1.UID, g *libkb.GlobalContext) *ListTrackersEngine {
 	return &ListTrackersEngine{
 		uid:          uid,
 		Contextified: libkb.NewContextified(g),

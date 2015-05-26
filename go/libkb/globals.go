@@ -19,6 +19,8 @@ import (
 	"os"
 	"runtime"
 	"sync"
+
+	keybase1 "github.com/keybase/client/protocol/go"
 )
 
 type ShutdownHook func() error
@@ -276,8 +278,8 @@ func (g *GlobalContext) GetGpgClient() *GpgCLI {
 	return g.GpgClient
 }
 
-func (g *GlobalContext) GetMyUID() UID {
-	var uid UID
+func (g *GlobalContext) GetMyUID() keybase1.UID {
+	var uid keybase1.UID
 
 	g.LoginState().LocalSession(func(s *Session) {
 		uid = s.GetUID()

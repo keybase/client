@@ -5,6 +5,8 @@ import (
 	"math/rand"
 	"sync"
 	"testing"
+
+	keybase1 "github.com/keybase/client/protocol/go"
 )
 
 func TestConcurrentUserCache(t *testing.T) {
@@ -35,7 +37,7 @@ func TestConcurrentUserCache(t *testing.T) {
 				if err != nil {
 					t.Fatal(err)
 				}
-				u := UID(hex.EncodeToString(x))
+				u := keybase1.UID(hex.EncodeToString(x))
 				// nlock doesn't really matter, but code using
 				// usercache holds it during Get(), so putting it here too.
 				nlock := uc.LockUID(string(u))

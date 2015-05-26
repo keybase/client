@@ -6,6 +6,8 @@ import (
 	"encoding/hex"
 	"fmt"
 	"sync"
+
+	keybase1 "github.com/keybase/client/protocol/go"
 )
 
 type ServerPrivateKey struct {
@@ -42,7 +44,7 @@ type ServerPrivateKeys struct {
 type SecretSyncer struct {
 	sync.Mutex
 	Contextified
-	Uid   UID
+	Uid   keybase1.UID
 	dirty bool
 	keys  *ServerPrivateKeys
 }
@@ -62,16 +64,16 @@ func (ss *SecretSyncer) Clear() error {
 }
 
 // SetUID sets the UID.
-func (ss *SecretSyncer) SetUID(u UID) {
+func (ss *SecretSyncer) SetUID(u keybase1.UID) {
 	ss.setUID(u)
 }
 
-func (ss *SecretSyncer) setUID(u UID) {
+func (ss *SecretSyncer) setUID(u keybase1.UID) {
 	ss.Uid = u
 }
 
 // lock required before calling this.
-func (ss *SecretSyncer) getUID() UID {
+func (ss *SecretSyncer) getUID() keybase1.UID {
 	return ss.Uid
 }
 

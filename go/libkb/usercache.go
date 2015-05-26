@@ -4,6 +4,7 @@ import (
 	"sync"
 
 	lru "github.com/hashicorp/golang-lru"
+	keybase1 "github.com/keybase/client/protocol/go"
 	jsonw "github.com/keybase/go-jsonw"
 )
 
@@ -39,7 +40,7 @@ func (c *UserCache) Put(u *User) {
 	c.lru.Add(u.id, u)
 }
 
-func (c *UserCache) Get(id UID) *User {
+func (c *UserCache) Get(id keybase1.UID) *User {
 	tmp, ok := c.lru.Get(id)
 	if !ok {
 		return nil

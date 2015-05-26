@@ -4,19 +4,20 @@ import (
 	"fmt"
 	"sync"
 
+	keybase1 "github.com/keybase/client/protocol/go"
 	jsonw "github.com/keybase/go-jsonw"
 )
 
 //==================================================================
 
 type ResolveResult struct {
-	uid        UID
+	uid        keybase1.UID
 	body       *jsonw.Wrapper
 	err        error
 	kbUsername string
 }
 
-func (res *ResolveResult) GetUID() UID {
+func (res *ResolveResult) GetUID() keybase1.UID {
 	return res.uid
 }
 

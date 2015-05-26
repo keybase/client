@@ -33,7 +33,7 @@ type TypedChainLink interface {
 	GetUsername() string
 	MarkChecked(ProofError)
 	GetProofState() keybase1.ProofState
-	GetUID() UID
+	GetUID() keybase1.UID
 	GetDelegatedKid() KID
 	GetParentKid() KID
 	VerifyReverseSig(kf *KeyFamily) error
@@ -81,7 +81,7 @@ func (g *GenericChainLink) GetArmoredSig() string {
 func (g *GenericChainLink) GetUsername() string {
 	return g.unpacked.username
 }
-func (g *GenericChainLink) GetUID() UID {
+func (g *GenericChainLink) GetUID() keybase1.UID {
 	return g.unpacked.uid
 }
 func (g *GenericChainLink) GetProofState() keybase1.ProofState { return g.GetProofState0() }
@@ -489,7 +489,7 @@ func (l *TrackChainLink) GetTrackedPGPFOKIDs() ([]FOKID, error) {
 	return res, nil
 }
 
-func (l *TrackChainLink) GetTrackedUid() (UID, error) {
+func (l *TrackChainLink) GetTrackedUid() (keybase1.UID, error) {
 	return GetUID(l.payloadJson.AtPath("body.track.id"))
 }
 
@@ -1011,7 +1011,7 @@ func (idt *IdentityTable) Populate() {
 	G.Log.Debug("- Populate ID Table")
 }
 
-func (idt *IdentityTable) VerifySelfSig(s string, uid UID) bool {
+func (idt *IdentityTable) VerifySelfSig(s string, uid keybase1.UID) bool {
 	list := idt.Order
 	ln := len(list)
 	for i := ln - 1; i >= 0; i-- {
@@ -1042,7 +1042,7 @@ func (idt *IdentityTable) GetTrackList() (ret []*TrackChainLink) {
 	return
 }
 
-func (idt *IdentityTable) GetTrackingStatementFor(s string, uid UID) (
+func (idt *IdentityTable) GetTrackingStatementFor(s string, uid keybase1.UID) (
 	ret *TrackChainLink, err error) {
 	if list, found := idt.tracks[s]; found {
 		l := len(list)

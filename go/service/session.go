@@ -25,7 +25,7 @@ func NewSessionHandler(xp *rpc2.Transport) *SessionHandler {
 func (h *SessionHandler) CurrentSession() (keybase1.Session, error) {
 	var s keybase1.Session
 	var username, token string
-	var uid libkb.UID
+	var uid keybase1.UID
 	var deviceSubkey libkb.GenericKey
 	var err error
 
@@ -39,7 +39,7 @@ func (h *SessionHandler) CurrentSession() (keybase1.Session, error) {
 		return s, err
 	}
 
-	s.Uid = uid.Export()
+	s.Uid = uid
 	s.Username = username
 	s.Token = token
 	s.DeviceSubkeyKid = deviceSubkey.GetKid().String()

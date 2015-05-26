@@ -3,11 +3,12 @@ package libkb
 import (
 	"fmt"
 
+	keybase1 "github.com/keybase/client/protocol/go"
 	jsonw "github.com/keybase/go-jsonw"
 )
 
 type LoadUserArg struct {
-	Uid               UID
+	Uid               keybase1.UID
 	Name              string
 	PublicKeyOptional bool
 	NoCacheResult     bool // currently ignore
@@ -52,7 +53,7 @@ func LoadUser(arg LoadUserArg) (ret *User, err error) {
 	G.Log.Debug("+ LoadUser(uid=%v, name=%v)", arg.Uid, arg.Name)
 
 	var rres ResolveResult
-	var uid UID
+	var uid keybase1.UID
 	if len(arg.Uid) > 0 {
 		uid = arg.Uid
 	} else if len(arg.Name) == 0 {
@@ -159,7 +160,7 @@ func LoadUser(arg LoadUserArg) (ret *User, err error) {
 	return
 }
 
-func LoadUserFromLocalStorage(uid UID) (u *User, err error) {
+func LoadUserFromLocalStorage(uid keybase1.UID) (u *User, err error) {
 	G.Log.Debug("+ LoadUserFromLocalStorage(%s)", uid)
 	jw, err := G.LocalDb.Get(DbKeyUID(DB_USER, uid))
 	if err != nil {
@@ -216,14 +217,14 @@ func LoadUserFromServer(arg LoadUserArg, body *jsonw.Wrapper) (u *User, err erro
 	return
 }
 
-func myUID(g *GlobalContext, lctx LoginContext) UID {
+func myUID(g *GlobalContext, lctx LoginContext) keybase1.UID {
 	if lctx != nil {
 		return lctx.LocalSession().GetUID()
 	}
 	return g.GetMyUID()
 }
 
-func LookupMerkleLeaf(uid UID, local *User) (f *MerkleUserLeaf, err error) {
+func LookupMerkleLeaf(uid keybase1.UID, local *User) (f *MerkleUserLeaf, err error) {
 	if len(uid) == 0 {
 		err = fmt.Errorf("uid parameter for LookupMerkleLeaf empty")
 		return

@@ -16,7 +16,7 @@ type User struct {
 	pictures   *jsonw.Wrapper
 
 	// Processed fields
-	id          UID
+	id          keybase1.UID
 	name        string
 	sigChainMem *SigChain
 	idTable     *IdentityTable
@@ -35,7 +35,7 @@ type User struct {
 	Contextified
 }
 
-func NewUserThin(name string, uid UID) *User {
+func NewUserThin(name string, uid keybase1.UID) *User {
 	return &User{name: name, id: uid}
 }
 
@@ -90,8 +90,8 @@ func NewUserFromLocalStorage(o *jsonw.Wrapper) (*User, error) {
 	return u, err
 }
 
-func (u *User) GetName() string { return u.name }
-func (u *User) GetUID() UID     { return u.id }
+func (u *User) GetName() string      { return u.name }
+func (u *User) GetUID() keybase1.UID { return u.id }
 
 func (u *User) GetIDVersion() (int64, error) {
 	return u.basics.AtKey("id_version").GetInt64()
@@ -391,7 +391,7 @@ func (u *User) Equal(other *User) bool {
 	return u.id == other.id
 }
 
-func (u *User) GetTrackingStatementFor(s string, i UID) (link *TrackChainLink, err error) {
+func (u *User) GetTrackingStatementFor(s string, i keybase1.UID) (link *TrackChainLink, err error) {
 	G.Log.Debug("+ GetTrackingStatement for %s", i)
 	defer G.Log.Debug("- GetTrackingStatement for %s -> %s", i, ErrToOk(err))
 
@@ -417,7 +417,7 @@ func (u *User) GetTrackingStatementFor(s string, i UID) (link *TrackChainLink, e
 	return
 }
 
-func (u *User) GetRemoteTrackingStatementFor(s string, i UID) (link *TrackChainLink, err error) {
+func (u *User) GetRemoteTrackingStatementFor(s string, i keybase1.UID) (link *TrackChainLink, err error) {
 	if u.IDTable() == nil {
 		return nil, nil
 	}

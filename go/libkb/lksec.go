@@ -4,6 +4,7 @@ import (
 	"encoding/hex"
 	"fmt"
 
+	keybase1 "github.com/keybase/client/protocol/go"
 	"golang.org/x/crypto/nacl/secretbox"
 )
 
@@ -13,7 +14,7 @@ type LKSec struct {
 	serverHalf []byte
 	clientHalf []byte
 	secret     []byte
-	uid        UID
+	uid        keybase1.UID
 	Contextified
 }
 
@@ -25,7 +26,7 @@ func NewLKSecWithFullSecret(secret []byte, gc *GlobalContext) *LKSec {
 	return &LKSec{secret: secret, Contextified: NewContextified(gc)}
 }
 
-func (l *LKSec) SetUID(u UID) {
+func (l *LKSec) SetUID(u keybase1.UID) {
 	l.uid = u
 }
 

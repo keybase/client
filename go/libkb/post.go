@@ -58,7 +58,7 @@ func PostProof(arg PostProofArg) (*PostProofRes, error) {
 }
 
 type PostAuthProofArg struct {
-	uid UID
+	uid keybase1.UID
 	sig string
 	key GenericKey
 }

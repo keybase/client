@@ -7,6 +7,8 @@ import (
 	"strconv"
 	"strings"
 	"sync"
+
+	keybase1 "github.com/keybase/client/protocol/go"
 )
 
 type NullConfiguration struct{}
@@ -25,7 +27,7 @@ func (n NullConfiguration) GetUserCacheSize() (int, bool)      { return 0, false
 func (n NullConfiguration) GetProofCacheSize() (int, bool)     { return 0, false }
 func (n NullConfiguration) GetMerkleKeyFingerprints() []string { return nil }
 func (n NullConfiguration) GetPinentry() string                { return "" }
-func (n NullConfiguration) GetUID() UID                        { return "" }
+func (n NullConfiguration) GetUID() keybase1.UID               { return "" }
 func (n NullConfiguration) GetGpg() string                     { return "" }
 func (n NullConfiguration) GetGpgOptions() []string            { return nil }
 func (n NullConfiguration) GetGpgDisabled() (bool, bool)       { return false, false }
@@ -493,7 +495,7 @@ func (e *Env) GetTestMode() bool {
 	return false
 }
 
-func (e *Env) GetUID() UID { return e.config.GetUID() }
+func (e *Env) GetUID() keybase1.UID { return e.config.GetUID() }
 
 func (e *Env) GetStringList(list ...(func() []string)) []string {
 	for _, f := range list {

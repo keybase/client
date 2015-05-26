@@ -19,8 +19,7 @@ func NewUserHandler(xp *rpc2.Transport) *UserHandler {
 
 // ListTrackers gets the list of trackers for a user by uid.
 func (h *UserHandler) ListTrackers(arg keybase1.ListTrackersArg) ([]keybase1.Tracker, error) {
-	uid := libkb.ImportUID(arg.Uid)
-	eng := engine.NewListTrackers(uid, G)
+	eng := engine.NewListTrackers(arg.Uid, G)
 	return h.listTrackers(eng)
 }
 
@@ -48,11 +47,7 @@ func (h *UserHandler) listTrackers(eng *engine.ListTrackersEngine) ([]keybase1.T
 	return res, nil
 }
 
-func (h *UserHandler) LoadUncheckedUserSummaries(kuids []keybase1.UID) ([]keybase1.UserSummary, error) {
-	uids := make([]libkb.UID, len(kuids))
-	for i, k := range kuids {
-		uids[i] = libkb.ImportUID(k)
-	}
+func (h *UserHandler) LoadUncheckedUserSummaries(uids []keybase1.UID) ([]keybase1.UserSummary, error) {
 	ctx := &engine.Context{}
 	eng := engine.NewUserSummary(uids, G)
 	if err := engine.RunEngine(eng, ctx); err != nil {
@@ -85,9 +80,9 @@ func (h *UserHandler) ListTrackingJson(arg keybase1.ListTrackingJsonArg) (res st
 }
 
 func (h *UserHandler) LoadUser(arg keybase1.LoadUserArg) (user keybase1.User, err error) {
-	var uid libkb.UID
+	var uid keybase1.UID
 	if arg.Uid != nil {
-		uid = libkb.ImportUID(*arg.Uid)
+		uid = *arg.Uid
 	}
 	userObj, err := libkb.LoadUser(libkb.LoadUserArg{
 		Uid:  uid,

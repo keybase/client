@@ -4,13 +4,14 @@ import (
 	"fmt"
 
 	"github.com/keybase/client/go/libkb"
+	keybase1 "github.com/keybase/client/protocol/go"
 	triplesec "github.com/keybase/go-triplesec"
 )
 
 type SignupEngine struct {
 	pwsalt     []byte
 	tspkey     libkb.PassphraseStream
-	uid        libkb.UID
+	uid        keybase1.UID
 	me         *libkb.User
 	signingKey libkb.GenericKey
 	arg        *SignupEngineRunArg

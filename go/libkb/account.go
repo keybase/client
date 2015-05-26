@@ -3,6 +3,7 @@ package libkb
 import (
 	"fmt"
 
+	keybase1 "github.com/keybase/client/protocol/go"
 	triplesec "github.com/keybase/go-triplesec"
 )
 
@@ -153,7 +154,7 @@ func (a *Account) SecretSyncer() *SecretSyncer {
 	return a.secretSyncer
 }
 
-func (a *Account) RunSecretSyncer(uid UID) error {
+func (a *Account) RunSecretSyncer(uid keybase1.UID) error {
 	return RunSyncer(a.SecretSyncer(), uid, a.LoggedIn(), a.localSession)
 }
 
@@ -253,7 +254,7 @@ func (a *Account) EnsureUsername(username string) {
 
 }
 
-func (a *Account) UserInfo() (uid UID, username, token string, deviceSubkey GenericKey, err error) {
+func (a *Account) UserInfo() (uid keybase1.UID, username, token string, deviceSubkey GenericKey, err error) {
 	if !a.LoggedIn() {
 		err = LoginRequiredError{}
 		return
@@ -275,7 +276,7 @@ func (a *Account) UserInfo() (uid UID, username, token string, deviceSubkey Gene
 	return
 }
 
-func (a *Account) SaveState(sessionID, csrf, username string, uid UID) error {
+func (a *Account) SaveState(sessionID, csrf, username string, uid keybase1.UID) error {
 	cw := a.G().Env.GetConfigWriter()
 	if cw == nil {
 		return NoConfigWriterError{}

@@ -164,7 +164,7 @@ func (e UnexpectedKeyError) Error() string {
 //=============================================================================
 
 type UserNotFoundError struct {
-	uid UID
+	uid keybase1.UID
 	msg string
 }
 
@@ -175,7 +175,7 @@ func (u UserNotFoundError) Error() string {
 //=============================================================================
 
 type AlreadyRegisteredError struct {
-	Uid UID
+	Uid keybase1.UID
 }
 
 func (u AlreadyRegisteredError) Error() string {

@@ -80,14 +80,14 @@ type MerkleUserLeaf struct {
 	private   *MerkleTriple
 	idVersion int64
 	username  string
-	uid       UID
+	uid       keybase1.UID
 	eldest    *KID
 }
 
 type PathSteps []*PathStep
 
 type VerificationPath struct {
-	uid       UID
+	uid       keybase1.UID
 	root      *MerkleRoot
 	path      PathSteps
 	uidPath   PathSteps
@@ -690,7 +690,7 @@ func (mc *MerkleClient) LastRootToSigJson() (ret *jsonw.Wrapper, err error) {
 	return
 }
 
-func (mul *MerkleUserLeaf) MatchUser(u *User, uid UID, un string) (err error) {
+func (mul *MerkleUserLeaf) MatchUser(u *User, uid keybase1.UID, un string) (err error) {
 	if mul.username != u.GetName() {
 		err = MerkleClashError{fmt.Sprintf("vs loaded object: username %s != %s", mul.username, u.GetName())}
 	} else if mul.uid != u.GetUID() {

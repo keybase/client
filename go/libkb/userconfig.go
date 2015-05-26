@@ -3,6 +3,7 @@ package libkb
 import (
 	"encoding/hex"
 
+	keybase1 "github.com/keybase/client/protocol/go"
 	jsonw "github.com/keybase/go-jsonw"
 )
 
@@ -14,21 +15,21 @@ type UserConfig struct {
 	Salt   string  `json:"salt"`
 	Device *string `json:"device"`
 
-	importedId       UID
+	importedId       keybase1.UID
 	importedSalt     []byte
 	importedDeviceId *DeviceID
 }
 
 //==================================================================
 
-func (u UserConfig) GetUID() UID                  { return u.importedId }
+func (u UserConfig) GetUID() keybase1.UID         { return u.importedId }
 func (u UserConfig) GetUsername() string          { return u.Name }
 func (u UserConfig) GetSalt() []byte              { return u.importedSalt }
 func (u UserConfig) GetDeviceID() (ret *DeviceID) { return u.importedDeviceId }
 
 //==================================================================
 
-func NewUserConfig(id UID, name string, salt []byte, dev *DeviceID) *UserConfig {
+func NewUserConfig(id keybase1.UID, name string, salt []byte, dev *DeviceID) *UserConfig {
 	ret := &UserConfig{
 		Id:               string(id),
 		Name:             name,
@@ -48,7 +49,7 @@ func NewUserConfig(id UID, name string, salt []byte, dev *DeviceID) *UserConfig 
 //==================================================================
 
 func (u *UserConfig) Import() (err error) {
-	var tmp UID
+	var tmp keybase1.UID
 	if tmp, err = UidFromHex(u.Id); err != nil {
 		return
 	}

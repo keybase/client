@@ -8,12 +8,12 @@ import (
 )
 
 type UserSummary struct {
-	uids      []libkb.UID
-	summaries map[libkb.UID]*Summary
+	uids      []keybase1.UID
+	summaries map[keybase1.UID]*Summary
 	libkb.Contextified
 }
 
-func NewUserSummary(uids []libkb.UID, g *libkb.GlobalContext) *UserSummary {
+func NewUserSummary(uids []keybase1.UID, g *libkb.GlobalContext) *UserSummary {
 	return &UserSummary{
 		uids:         uids,
 		Contextified: libkb.NewContextified(g),
@@ -126,18 +126,18 @@ func (p *Proofs) Export() keybase1.Proofs {
 }
 
 type Summary struct {
-	UID       libkb.UID `json:"-"`
-	Thumbnail string    `json:"thumbnail"`
-	Username  string    `json:"username"`
-	IDVersion int       `json:"id_version"`
-	FullName  string    `json:"full_name"`
-	Bio       string    `json:"bio"`
-	Proofs    *Proofs   `json:"remote_proofs,omitempty"`
+	UID       keybase1.UID `json:"-"`
+	Thumbnail string       `json:"thumbnail"`
+	Username  string       `json:"username"`
+	IDVersion int          `json:"id_version"`
+	FullName  string       `json:"full_name"`
+	Bio       string       `json:"bio"`
+	Proofs    *Proofs      `json:"remote_proofs,omitempty"`
 }
 
 func (s Summary) Export() keybase1.UserSummary {
 	return keybase1.UserSummary{
-		Uid:       s.UID.Export(),
+		Uid:       s.UID,
 		Thumbnail: s.Thumbnail,
 		Username:  s.Username,
 		IdVersion: s.IDVersion,
@@ -147,9 +147,9 @@ func (s Summary) Export() keybase1.UserSummary {
 	}
 }
 
-func (e *UserSummary) get() (map[libkb.UID]*Summary, error) {
+func (e *UserSummary) get() (map[keybase1.UID]*Summary, error) {
 	var j struct {
-		Users map[libkb.UID]*Summary `json:"display"`
+		Users map[keybase1.UID]*Summary `json:"display"`
 	}
 	args := libkb.ApiArg{
 		Endpoint: "user/display_info",
@@ -188,7 +188,7 @@ func (e *UserSummary) uidlist() string {
 	return strings.Join(s, ",")
 }
 
-func (e *UserSummary) Summaries() map[libkb.UID]*Summary {
+func (e *UserSummary) Summaries() map[keybase1.UID]*Summary {
 	return e.summaries
 }
 

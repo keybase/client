@@ -5,6 +5,7 @@ import (
 	"os"
 	"time"
 
+	keybase1 "github.com/keybase/client/protocol/go"
 	jsonw "github.com/keybase/go-jsonw"
 )
 
@@ -22,7 +23,7 @@ type Session struct {
 	checked  bool
 	deviceID string
 	valid    bool
-	uid      UID
+	uid      keybase1.UID
 	username *string
 	mtime    int64
 }
@@ -33,7 +34,7 @@ func newSession(g *GlobalContext) *Session {
 
 // NewSessionThin creates a minimal (thin) session of just the uid and username.
 // Clients of the daemon that use the session protocol need this.
-func NewSessionThin(uid UID, username string, token string) *Session {
+func NewSessionThin(uid keybase1.UID, username string, token string) *Session {
 	// XXX should this set valid to true?  daemon won't return a
 	// session unless valid is true, so...
 	return &Session{uid: uid, username: &username, token: token, valid: true}
@@ -65,7 +66,7 @@ func (s *Session) GetUsername() *string {
 	return s.username
 }
 
-func (s *Session) GetUID() UID {
+func (s *Session) GetUID() keybase1.UID {
 	return s.uid
 }
 
@@ -85,7 +86,7 @@ func (s *Session) SetUsername(username string) {
 	s.username = &username
 }
 
-func (s *Session) SetLoggedIn(sessionID, csrfToken, username string, uid UID) {
+func (s *Session) SetLoggedIn(sessionID, csrfToken, username string, uid keybase1.UID) {
 	s.valid = true
 	s.uid = uid
 	s.username = &username
@@ -240,7 +241,7 @@ func (s *Session) Check() error {
 	if res.AppStatus == "OK" {
 		s.G().Log.Debug("| Stored session checked out")
 		var err error
-		var uid UID
+		var uid keybase1.UID
 		var username, csrf string
 		GetUidVoid(res.Body.AtKey("logged_in_uid"), &uid, &err)
 		res.Body.AtKey("username").GetStringVoid(&username, &err)

@@ -1,7 +1,11 @@
 package libkb
 
+import (
+	keybase1 "github.com/keybase/client/protocol/go"
+)
+
 type UserInfo struct {
-	Uid      UID
+	Uid      keybase1.UID
 	Username string
 }
 

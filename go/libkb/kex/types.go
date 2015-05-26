@@ -5,6 +5,7 @@ import (
 	"errors"
 
 	"github.com/keybase/client/go/libkb"
+	keybase1 "github.com/keybase/client/protocol/go"
 )
 
 // Direction of the message.  From device X to device Y, or from
@@ -59,7 +60,7 @@ type SecretKey [32]byte
 
 // Meta is the metadata that is sent with every kex message.
 type Meta struct {
-	UID       libkb.UID
+	UID       keybase1.UID
 	WeakID    WeakID   `json:"w"` // `w` in doc
 	StrongID  StrongID `json:"I"` // `I` in doc
 	Sender    libkb.DeviceID
@@ -70,7 +71,7 @@ type Meta struct {
 
 // NewMeta creates a new Meta object.  Its main utility is
 // creating the WeakID based off of the StrongID.
-func NewMeta(uid libkb.UID, strong StrongID, sender, receiver libkb.DeviceID, dir Direction) *Meta {
+func NewMeta(uid keybase1.UID, strong StrongID, sender, receiver libkb.DeviceID, dir Direction) *Meta {
 	m := &Meta{
 		UID:       uid,
 		StrongID:  strong,

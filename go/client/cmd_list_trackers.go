@@ -17,7 +17,7 @@ import (
 // CmdListTrackers is the 'list-trackers' command.  It displays
 // all the trackers for a user.
 type CmdListTrackers struct {
-	uid      libkb.UID
+	uid      keybase1.UID
 	username string
 }
 
@@ -59,7 +59,7 @@ func (c *CmdListTrackers) Run() error {
 	trs := eng.ExportedList()
 
 	summarize := func(uids []keybase1.UID) (res []keybase1.UserSummary, err error) {
-		sumeng := engine.NewUserSummary(libkb.ImportUIDs(uids), G)
+		sumeng := engine.NewUserSummary(uids, G)
 		if err = engine.RunEngine(sumeng, ctx); err != nil {
 			return
 		}
@@ -107,7 +107,7 @@ func (c *CmdListTrackers) RunClient() error {
 
 	var trs []keybase1.Tracker
 	if len(c.uid) > 0 {
-		trs, err = cli.ListTrackers(keybase1.ListTrackersArg{Uid: c.uid.Export()})
+		trs, err = cli.ListTrackers(keybase1.ListTrackersArg{Uid: c.uid})
 	} else if len(c.username) > 0 {
 		trs, err = cli.ListTrackersByName(keybase1.ListTrackersByNameArg{Username: c.username})
 	} else {

@@ -7,6 +7,7 @@ import (
 	"strconv"
 	"strings"
 
+	keybase1 "github.com/keybase/client/protocol/go"
 	jsonw "github.com/keybase/go-jsonw"
 )
 
@@ -109,6 +110,6 @@ const (
 	DB_LOOKUP_MERKLE_ROOT = 0x01
 )
 
-func DbKeyUID(t ObjType, uid UID) DbKey {
+func DbKeyUID(t ObjType, uid keybase1.UID) DbKey {
 	return DbKey{Typ: t, Key: string(uid)}
 }

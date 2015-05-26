@@ -110,7 +110,7 @@ func (e *UntrackEngine) loadThem() (them *libkb.User, remoteLink, localLink *lib
 		rLink = links[len(links)-1]
 	}
 
-	var uid libkb.UID
+	var uid keybase1.UID
 	uidTrusted := false
 	if rLink != nil {
 		if uid, err = rLink.GetTrackedUid(); err != nil {

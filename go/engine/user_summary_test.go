@@ -4,13 +4,14 @@ import (
 	"testing"
 
 	"github.com/keybase/client/go/libkb"
+	keybase1 "github.com/keybase/client/protocol/go"
 )
 
 func TestUserSummary(t *testing.T) {
 	tc := SetupEngineTest(t, "usersummary")
 	defer tc.Cleanup()
 
-	uids := []libkb.UID{
+	uids := []keybase1.UID{
 		libkb.UsernameToUID("t_alice"),
 		libkb.UsernameToUID("t_bob"),
 		libkb.UsernameToUID("t_charlie"),

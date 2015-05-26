@@ -45,13 +45,13 @@ type LoginContext interface {
 
 	LocalSession() *Session
 	EnsureUsername(username string)
-	SaveState(sessionID, csrf, username string, uid UID) error
+	SaveState(sessionID, csrf, username string, uid keybase1.UID) error
 
 	Keyring() (*SKBKeyringFile, error)
 	LockedLocalSecretKey(ska SecretKeyArg) *SKB
 
 	SecretSyncer() *SecretSyncer
-	RunSecretSyncer(uid UID) error
+	RunSecretSyncer(uid keybase1.UID) error
 }
 
 type loginHandler func(LoginContext) error
@@ -73,7 +73,7 @@ type acctReq struct {
 type loginAPIResult struct {
 	sessionID string
 	csrfToken string
-	uid       UID
+	uid       keybase1.UID
 	username  string
 }
 
@@ -716,7 +716,7 @@ func (s *LoginState) SecretSyncer(h func(*SecretSyncer), name string) {
 	}, name)
 }
 
-func (s *LoginState) RunSecretSyncer(uid UID) error {
+func (s *LoginState) RunSecretSyncer(uid keybase1.UID) error {
 	var err error
 	s.Account(func(a *Account) {
 		err = a.RunSecretSyncer(uid)

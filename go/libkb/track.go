@@ -344,13 +344,13 @@ func (l *TrackLookup) GetCTime() time.Time {
 
 //=====================================================================
 
-func LocalTrackDBKey(tracker, trackee UID) DbKey {
+func LocalTrackDBKey(tracker, trackee keybase1.UID) DbKey {
 	return DbKey{Typ: DB_LOCAL_TRACK, Key: fmt.Sprintf("%s-%s", tracker, trackee)}
 }
 
 //=====================================================================
 
-func GetLocalTrack(tracker, trackee UID) (ret *TrackChainLink, err error) {
+func GetLocalTrack(tracker, trackee keybase1.UID) (ret *TrackChainLink, err error) {
 	G.Log.Debug("+ GetLocalTrack(%s,%s)", tracker, trackee)
 	defer G.Log.Debug("- GetLocalTrack(%s,%s) -> (%v, %s)", tracker, trackee, ret, ErrToOk(err))
 
@@ -379,12 +379,12 @@ func GetLocalTrack(tracker, trackee UID) (ret *TrackChainLink, err error) {
 	return
 }
 
-func StoreLocalTrack(tracker UID, trackee UID, statement *jsonw.Wrapper) error {
+func StoreLocalTrack(tracker keybase1.UID, trackee keybase1.UID, statement *jsonw.Wrapper) error {
 	G.Log.Debug("| StoreLocalTrack")
 	return G.LocalDb.Put(LocalTrackDBKey(tracker, trackee), nil, statement)
 }
 
-func RemoveLocalTrack(tracker UID, trackee UID) error {
+func RemoveLocalTrack(tracker keybase1.UID, trackee keybase1.UID) error {
 	G.Log.Debug("| RemoveLocalTrack")
 	return G.LocalDb.Delete(LocalTrackDBKey(tracker, trackee))
 }

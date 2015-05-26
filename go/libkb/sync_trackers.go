@@ -14,7 +14,7 @@ const (
 
 type Tracker keybase1.Tracker
 
-func (t Tracker) GetUID() UID { return UID(t.Tracker) }
+func (t Tracker) GetUID() keybase1.UID { return keybase1.UID(t.Tracker) }
 
 func (t Tracker) Eq(t2 Tracker) bool {
 	return t.GetUID() == t2.GetUID() && t.Status == t2.Status && t.Mtime == t2.Mtime
@@ -30,7 +30,7 @@ type TrackerSyncer struct {
 	sync.RWMutex
 	Contextified
 
-	uid   UID
+	uid   keybase1.UID
 	dirty bool
 
 	trackers *Trackers
@@ -38,7 +38,7 @@ type TrackerSyncer struct {
 
 // Remove duplicates and "untrack" statements in the list
 func (t Trackers) compact() (ret Trackers) {
-	index := make(map[UID]int)
+	index := make(map[keybase1.UID]int)
 
 	ret.Version = t.Version
 	ret.Trackers = make([]Tracker, 0, len(t.Trackers))
@@ -54,10 +54,10 @@ func (t Trackers) compact() (ret Trackers) {
 	return ret
 }
 
-func (t *TrackerSyncer) getUID() UID  { return t.uid }
-func (t *TrackerSyncer) setUID(u UID) { t.uid = u }
+func (t *TrackerSyncer) getUID() keybase1.UID  { return t.uid }
+func (t *TrackerSyncer) setUID(u keybase1.UID) { t.uid = u }
 
-func NewTrackerSyncer(uid UID, g *GlobalContext) *TrackerSyncer {
+func NewTrackerSyncer(uid keybase1.UID, g *GlobalContext) *TrackerSyncer {
 	return &TrackerSyncer{
 		Contextified: Contextified{g},
 		uid:          uid,
