@@ -20,7 +20,7 @@ func NewUserHandler(xp *rpc2.Transport) *UserHandler {
 // ListTrackers gets the list of trackers for a user by uid.
 func (h *UserHandler) ListTrackers(arg keybase1.ListTrackersArg) ([]keybase1.Tracker, error) {
 	uid := libkb.ImportUID(arg.Uid)
-	eng := engine.NewListTrackers(&uid, G)
+	eng := engine.NewListTrackers(uid, G)
 	return h.listTrackers(eng)
 }
 
@@ -85,10 +85,9 @@ func (h *UserHandler) ListTrackingJson(arg keybase1.ListTrackingJsonArg) (res st
 }
 
 func (h *UserHandler) LoadUser(arg keybase1.LoadUserArg) (user keybase1.User, err error) {
-	var uid *libkb.UID
+	var uid libkb.UID
 	if arg.Uid != nil {
-		uidVal := libkb.ImportUID(*arg.Uid)
-		uid = &uidVal
+		uid = libkb.ImportUID(*arg.Uid)
 	}
 	userObj, err := libkb.LoadUser(libkb.LoadUserArg{
 		Uid:  uid,

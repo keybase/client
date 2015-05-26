@@ -92,7 +92,7 @@ func (e *TrackEngine) Run(ctx *Context) error {
 		e.G().Log.Info("secretkey err: %s", err)
 		return err
 	}
-	e.lockedKey.SetUID(e.arg.Me.GetUID().P())
+	e.lockedKey.SetUID(e.arg.Me.GetUID())
 	e.signingKeyPub, err = e.lockedKey.GetPubKey()
 	if err != nil {
 		e.G().Log.Info("getpubkey err: %s", err)
@@ -169,7 +169,7 @@ func (e *TrackEngine) storeRemoteTrack(ctx *Context) (err error) {
 			"sig_id_base":  libkb.S{Val: e.sigid.ToString(false)},
 			"sig_id_short": libkb.S{Val: e.sigid.ToShortID()},
 			"sig":          libkb.S{Val: e.sig},
-			"uid":          e.them.GetUID(),
+			"uid":          libkb.S{Val: string(e.them.GetUID())},
 			"type":         libkb.S{Val: "track"},
 			"signing_kid":  e.signingKeyPub.GetKid(),
 		},

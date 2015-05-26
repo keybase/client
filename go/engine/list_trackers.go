@@ -8,14 +8,14 @@ import (
 // TrackerList is an engine to get a list of user's trackers
 // (other users tracking this user).
 type ListTrackersEngine struct {
-	uid      *libkb.UID
+	uid      libkb.UID
 	username string
 	trackers *libkb.Trackers
 	libkb.Contextified
 }
 
 // NewListTrackers creates a TrackerList engine for uid.
-func NewListTrackers(uid *libkb.UID, g *libkb.GlobalContext) *ListTrackersEngine {
+func NewListTrackers(uid libkb.UID, g *libkb.GlobalContext) *ListTrackersEngine {
 	return &ListTrackersEngine{
 		uid:          uid,
 		Contextified: libkb.NewContextified(g),
@@ -40,7 +40,7 @@ func (e *ListTrackersEngine) Name() string {
 // GetPrereqs returns the engine prereqs (none).
 func (e *ListTrackersEngine) GetPrereqs() EnginePrereqs {
 	session := false
-	if e.uid == nil && len(e.username) == 0 {
+	if len(e.uid) == 0 && len(e.username) == 0 {
 		session = true
 	}
 	return EnginePrereqs{Session: session}
@@ -61,7 +61,7 @@ func (e *ListTrackersEngine) Run(ctx *Context) error {
 	if err := e.ensureUID(); err != nil {
 		return err
 	}
-	ts := libkb.NewTrackerSyncer(*e.uid, e.G())
+	ts := libkb.NewTrackerSyncer(e.uid, e.G())
 	var err error
 	e.G().LoginState().Account(func(a *libkb.Account) {
 		err = libkb.RunSyncer(ts, e.uid, a.LoggedIn(), a.LocalSession())
@@ -89,7 +89,7 @@ func (e *ListTrackersEngine) ExportedList() (ret []keybase1.Tracker) {
 }
 
 func (e *ListTrackersEngine) ensureUID() error {
-	if e.uid != nil {
+	if len(e.uid) > 0 {
 		return nil
 	}
 	if len(e.username) == 0 {
@@ -100,6 +100,6 @@ func (e *ListTrackersEngine) ensureUID() error {
 	if err != nil {
 		return err
 	}
-	e.uid = user.GetUID().P()
+	e.uid = user.GetUID()
 	return nil
 }

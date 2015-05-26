@@ -218,9 +218,9 @@ func (e *DeviceKeygen) pushLKS(ctx *Context) {
 	// Sync the LKS stuff back from the server, so that subsequent
 	// attempts to use public key login will work.
 	if ctx.LoginContext != nil {
-		e.pushErr = ctx.LoginContext.RunSecretSyncer(e.args.Me.GetUID().P())
+		e.pushErr = ctx.LoginContext.RunSecretSyncer(e.args.Me.GetUID())
 	} else {
-		e.pushErr = e.G().LoginState().RunSecretSyncer(e.args.Me.GetUID().P())
+		e.pushErr = e.G().LoginState().RunSecretSyncer(e.args.Me.GetUID())
 	}
 }
 

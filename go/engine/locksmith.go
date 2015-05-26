@@ -136,12 +136,12 @@ func (d *Locksmith) Cancel() error {
 
 func (d *Locksmith) syncSecrets(ctx *Context) (err error) {
 	if ctx.LoginContext != nil {
-		if err = ctx.LoginContext.RunSecretSyncer(d.arg.User.GetUID().P()); err != nil {
+		if err = ctx.LoginContext.RunSecretSyncer(d.arg.User.GetUID()); err != nil {
 			d.G().Log.Warning("Problem syncing secrets from server: %s", err)
 		}
 
 	} else {
-		if err = d.G().LoginState().RunSecretSyncer(d.arg.User.GetUID().P()); err != nil {
+		if err = d.G().LoginState().RunSecretSyncer(d.arg.User.GetUID()); err != nil {
 			d.G().Log.Warning("Problem syncing secrets from server: %s", err)
 		}
 	}

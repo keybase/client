@@ -65,8 +65,8 @@ func (s *SignupEngine) CheckRegistered() (err error) {
 	s.G().Log.Debug("+ SignupEngine::CheckRegistered")
 	if cr := s.G().Env.GetConfig(); cr == nil {
 		err = fmt.Errorf("No configuration file available")
-	} else if u := cr.GetUID(); u != nil {
-		err = libkb.AlreadyRegisteredError{Uid: *u}
+	} else if u := cr.GetUID(); len(u) > 0 {
+		err = libkb.AlreadyRegisteredError{Uid: u}
 	}
 	s.G().Log.Debug("- SignupEngine::CheckRegistered -> %s", libkb.ErrToOk(err))
 	return err
@@ -149,7 +149,7 @@ func (s *SignupEngine) join(a libkb.LoginContext, username, email, inviteCode st
 		return res
 	}
 
-	s.uid = *res.UID
+	s.uid = res.UID
 	user, err := libkb.LoadUser(libkb.LoadUserArg{Self: true, Uid: res.UID, PublicKeyOptional: true})
 	if err != nil {
 		return err

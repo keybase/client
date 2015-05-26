@@ -110,7 +110,7 @@ func (e *UntrackEngine) loadThem() (them *libkb.User, remoteLink, localLink *lib
 		rLink = links[len(links)-1]
 	}
 
-	var uid *libkb.UID
+	var uid libkb.UID
 	uidTrusted := false
 	if rLink != nil {
 		if uid, err = rLink.GetTrackedUid(); err != nil {
@@ -119,20 +119,20 @@ func (e *UntrackEngine) loadThem() (them *libkb.User, remoteLink, localLink *lib
 		uidTrusted = true
 	}
 
-	if uid == nil {
+	if len(uid) == 0 {
 		res := libkb.ResolveUid(e.arg.TheirName)
 		if err = res.GetError(); err != nil {
 			return
 		}
 
 		// This is an untrusted uid.
-		if uid = res.GetUID(); uid == nil {
+		if uid = res.GetUID(); len(uid) == 0 {
 			err = libkb.NewUntrackError("Could not resolve uid for @%s", e.arg.TheirName)
 			return
 		}
 	}
 
-	lLink, err := libkb.GetLocalTrack(e.arg.Me.GetUID(), *uid)
+	lLink, err := libkb.GetLocalTrack(e.arg.Me.GetUID(), uid)
 	if err != nil {
 		return
 	}
@@ -157,7 +157,7 @@ func (e *UntrackEngine) loadThem() (them *libkb.User, remoteLink, localLink *lib
 		uidTrusted = true
 	}
 
-	them = libkb.NewUserThin(e.arg.TheirName, *uid)
+	them = libkb.NewUserThin(e.arg.TheirName, uid)
 	remoteLink = rLink
 	localLink = lLink
 	return
@@ -193,7 +193,7 @@ func (e *UntrackEngine) storeRemoteUntrack(them *libkb.User, ctx *Context) (err 
 			"sig_id_base":  libkb.S{Val: sigid.ToString(false)},
 			"sig_id_short": libkb.S{Val: sigid.ToShortID()},
 			"sig":          libkb.S{Val: sig},
-			"uid":          them.GetUID(),
+			"uid":          libkb.S{Val: string(them.GetUID())},
 			"type":         libkb.S{Val: "untrack"},
 			"signing_kid":  e.signingKeyPub.GetKid(),
 		},

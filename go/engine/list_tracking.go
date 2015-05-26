@@ -168,7 +168,7 @@ func (e *ListTrackingEngine) runTable(trackList TrackList) (err error) {
 			Username:     link.ToDisplayString(),
 			SigIDDisplay: link.GetSigID().ToDisplayString(true),
 			TrackTime:    link.GetCTime().Unix(),
-			Uid:          keybase1.UID(*uid),
+			Uid:          keybase1.UID(uid),
 		}
 		entry.Proofs.PublicKeys = e.linkPGPKeys(link)
 		entry.Proofs.Social = e.linkSocialProofs(link)
@@ -225,7 +225,7 @@ func condenseRecord(l *libkb.TrackChainLink) (*jsonw.Wrapper, error) {
 	rp := l.RemoteKeyProofs()
 
 	out := jsonw.NewDictionary()
-	out.SetKey("uid", jsonw.NewString(uid.String()))
+	out.SetKey("uid", jsonw.NewString(string(uid)))
 	out.SetKey("keys", jsonw.NewString(strings.Join(fpsDisplay, ", ")))
 	out.SetKey("ctime", jsonw.NewInt64(l.GetCTime().Unix()))
 	out.SetKey("username", jsonw.NewString(un))

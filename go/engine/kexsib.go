@@ -162,7 +162,7 @@ func (k *KexSib) handleStart(ctx *Context, m *kex.Msg) error {
 
 func (k *KexSib) verifyPleaseSign(jw *jsonw.Wrapper, newKID libkb.KID) (err error) {
 	jw.AssertEqAtPath("body.key.kid", k.sigKey.GetKid().ToJsonw(), &err)
-	jw.AssertEqAtPath("body.key.uid", k.user.GetUID().ToJsonw(), &err)
+	jw.AssertEqAtPath("body.key.uid", jsonw.NewString(string(k.user.GetUID())), &err)
 	jw.AssertEqAtPath("body.key.eldest_kid", k.user.GetEldestFOKID().Kid.ToJsonw(), &err)
 	jw.AssertEqAtPath("body.key.username", jsonw.NewString(k.user.GetName()), &err)
 	jw.AssertEqAtPath("body.device.kid", newKID.ToJsonw(), &err)

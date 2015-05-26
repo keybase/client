@@ -516,15 +516,13 @@ func ImportUID(u keybase1.UID) UID {
 	return UID(u)
 }
 
-/*
-func ImportUIDs(v []keybase1.UID) UIDs {
-	ret := make(UIDs, len(v))
+func ImportUIDs(v []keybase1.UID) []UID {
+	ret := make([]UID, len(v))
 	for i, el := range v {
 		ret[i] = ImportUID(el)
 	}
 	return ret
 }
-*/
 
 // Interface for sorting a list of PublicKeys
 

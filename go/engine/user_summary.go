@@ -9,7 +9,7 @@ import (
 
 type UserSummary struct {
 	uids      []libkb.UID
-	summaries map[string]*Summary
+	summaries map[libkb.UID]*Summary
 	libkb.Contextified
 }
 
@@ -147,9 +147,9 @@ func (s Summary) Export() keybase1.UserSummary {
 	}
 }
 
-func (e *UserSummary) get() (map[string]*Summary, error) {
+func (e *UserSummary) get() (map[libkb.UID]*Summary, error) {
 	var j struct {
-		Users map[string]*Summary `json:"display"`
+		Users map[libkb.UID]*Summary `json:"display"`
 	}
 	args := libkb.ApiArg{
 		Endpoint: "user/display_info",
@@ -162,11 +162,16 @@ func (e *UserSummary) get() (map[string]*Summary, error) {
 		return nil, err
 	}
 
-	for k, v := range j.Users {
-		u, err := libkb.UidFromHex(k)
-		if err == nil {
-			v.UID = *u
+	/*
+		for k, v := range j.Users {
+			u, err := libkb.UidFromHex(k)
+			if err == nil {
+				v.UID = u
+			}
 		}
+	*/
+	for k, v := range j.Users {
+		v.UID = k
 	}
 
 	return j.Users, nil
@@ -178,12 +183,12 @@ func (e *UserSummary) uidlist() string {
 	}
 	s := make([]string, len(e.uids))
 	for i, u := range e.uids {
-		s[i] = u.String()
+		s[i] = string(u)
 	}
 	return strings.Join(s, ",")
 }
 
-func (e *UserSummary) Summaries() map[string]*Summary {
+func (e *UserSummary) Summaries() map[libkb.UID]*Summary {
 	return e.summaries
 }
 
@@ -193,7 +198,7 @@ func (e *UserSummary) SummariesList() []*Summary {
 
 	// but will still keep them ordered correctly
 	for _, u := range e.uids {
-		s, ok := e.summaries[u.String()]
+		s, ok := e.summaries[u]
 		if ok {
 			res = append(res, s)
 		}

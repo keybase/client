@@ -54,8 +54,8 @@ func (s *SignupJoinEngine) CheckRegistered() (err error) {
 	s.G().Log.Debug("+ libkb.SignupJoinEngine::CheckRegistered")
 	if cr := s.G().Env.GetConfig(); cr == nil {
 		err = fmt.Errorf("No configuration file available")
-	} else if u := cr.GetUID(); u != nil {
-		err = libkb.AlreadyRegisteredError{Uid: *u}
+	} else if u := cr.GetUID(); len(u) > 0 {
+		err = libkb.AlreadyRegisteredError{Uid: u}
 	}
 	s.G().Log.Debug("- libkb.SignupJoinEngine::CheckRegistered -> %s", libkb.ErrToOk(err))
 	return err
@@ -99,7 +99,7 @@ type SignupJoinEngineRunRes struct {
 	PassphraseOk bool
 	PostOk       bool
 	WriteOk      bool
-	UID          *libkb.UID
+	UID          libkb.UID
 	User         *libkb.User
 	Err          error
 }
@@ -119,7 +119,7 @@ func (s *SignupJoinEngine) Run(lctx libkb.LoginContext, arg SignupJoinEngineRunA
 		return
 	}
 	res.WriteOk = true
-	res.UID = &s.uid
+	res.UID = s.uid
 	return
 }
 
