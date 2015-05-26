@@ -19,9 +19,7 @@ protocol crypto {
 	ED25519SignatureInfo signED25519(int sessionID, bytes msg, string reason);
 
 	fixed Nonce(24);
-
 	fixed PeersPublicKey(32);
-
 	fixed TLFCryptKeyClientHalf(32);
 
 	// Decrypt the client half of an encrypted TLF crypt key using the
