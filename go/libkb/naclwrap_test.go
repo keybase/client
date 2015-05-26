@@ -96,7 +96,7 @@ func TestVerifyBytesAccept(t *testing.T) {
 	}
 
 	msg := []byte("test message")
-	sig, err := keyPair.SignToBytes(msg)
+	sig, _, err := keyPair.SignToBytes(msg)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -115,7 +115,7 @@ func TestVerifyBytesReject(t *testing.T) {
 	}
 
 	msg := []byte("test message")
-	sig, err := keyPair.SignToBytes(msg)
+	sig, _, err := keyPair.SignToBytes(msg)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -141,7 +141,7 @@ func TestVerifyBytesReject(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	sig2, err := keyPair2.SignToBytes(msg)
+	sig2, _, err := keyPair2.SignToBytes(msg)
 	if err != nil {
 		t.Fatal(err)
 	}

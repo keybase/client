@@ -357,12 +357,13 @@ func (k NaclSigningKeyPair) VerifyString(sig string, msg []byte) (id keybase1.Si
 	return
 }
 
-func (k NaclSigningKeyPair) SignToBytes(msg []byte) (sig []byte, err error) {
+func (k NaclSigningKeyPair) SignToBytes(msg []byte) (sig []byte, verifier Verifier, err error) {
 	if k.Private == nil {
 		err = NoSecretKeyError{}
 		return
 	}
 	sig = k.Private.Sign(msg)[:]
+	verifier = k
 	return
 }
 
@@ -390,7 +391,7 @@ func (k NaclDHKeyPair) VerifyString(sig string, msg []byte) (id keybase1.SigID, 
 	return
 }
 
-func (k NaclDHKeyPair) SignToBytes(msg []byte) (sig []byte, err error) {
+func (k NaclDHKeyPair) SignToBytes(msg []byte) (sig []byte, verifier Verifier, err error) {
 	err = KeyCannotSignError{}
 	return
 }
@@ -430,6 +431,8 @@ func (s *NaclSig) ArmoredEncode() (ret string, err error) {
 
 type NaclKeyPair interface {
 	GenericKey
+	Signer
+	Verifier
 }
 
 func (k NaclSigningKeyPair) ToSKB(t *triplesec.Cipher) (*SKB, error) {

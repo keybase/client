@@ -29,8 +29,8 @@ func TestCryptoSign(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	verifyingKey := cse.GetVerifyingKey()
-	err = verifyingKey.VerifyBytes(cse.GetSignature(), msg)
+	verifier := cse.GetVerifier()
+	err = verifier.VerifyBytes(cse.GetSignature(), msg)
 	if err != nil {
 		t.Error(err)
 	}
