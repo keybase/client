@@ -27,7 +27,7 @@ func TestUserSummary(t *testing.T) {
 	}
 
 	for _, uid := range uids {
-		if _, ok := sums[uid.String()]; !ok {
+		if _, ok := sums[uid]; !ok {
 			t.Errorf("no summary for %s in result", uid)
 		}
 	}

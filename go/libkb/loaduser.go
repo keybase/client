@@ -66,6 +66,7 @@ func LoadUser(arg LoadUserArg) (ret *User, err error) {
 		return
 	} else {
 		arg.Uid = rres.uid
+		uid = arg.Uid
 	}
 
 	if !arg.Self {
@@ -223,6 +224,10 @@ func myUID(g *GlobalContext, lctx LoginContext) UID {
 }
 
 func LookupMerkleLeaf(uid UID, local *User) (f *MerkleUserLeaf, err error) {
+	if len(uid) == 0 {
+		err = fmt.Errorf("uid parameter for LookupMerkleLeaf empty")
+		return
+	}
 	q := NewHttpArgs()
 	q.Add("uid", S{string(uid)})
 

@@ -1,9 +1,6 @@
 package libkb
 
-import (
-	"encoding/hex"
-	"testing"
-)
+import "testing"
 
 func TestExportUser(t *testing.T) {
 	tc := SetupTest(t, "export_user")
@@ -15,7 +12,7 @@ func TestExportUser(t *testing.T) {
 
 	exportedAlice := alice.Export()
 
-	if hex.EncodeToString(exportedAlice.Uid[:]) != "295a7eea607af32040647123732bc819" {
+	if exportedAlice.Uid != "295a7eea607af32040647123732bc819" {
 		t.Fatal("wrong UID", exportedAlice.Uid)
 	}
 

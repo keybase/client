@@ -1,6 +1,7 @@
 package libkb
 
 import (
+	"encoding/hex"
 	"math/rand"
 	"sync"
 	"testing"
@@ -21,7 +22,7 @@ func TestConcurrentUserCache(t *testing.T) {
 				// nlock doesn't really matter in this situation, but
 				// code using usercache holds it during Put(), so
 				// putting it here too.
-				nlock := uc.LockUID(uid.String())
+				nlock := uc.LockUID(string(uid))
 				uc.Put(u)
 				nlock.Unlock()
 			}
@@ -31,14 +32,13 @@ func TestConcurrentUserCache(t *testing.T) {
 		go func() {
 			for j := 0; j < 100; j++ {
 				x, err := RandBytes(UID_LEN)
-				var u UID
-				copy(u[:], x)
 				if err != nil {
 					t.Fatal(err)
 				}
+				u := UID(hex.EncodeToString(x))
 				// nlock doesn't really matter, but code using
 				// usercache holds it during Get(), so putting it here too.
-				nlock := uc.LockUID(u.String())
+				nlock := uc.LockUID(string(u))
 				uc.Get(u)
 				nlock.Unlock()
 			}

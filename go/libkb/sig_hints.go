@@ -114,7 +114,7 @@ func (sh *SigHints) Store() (err error) {
 func LoadSigHints(uid UID) (sh *SigHints, err error) {
 	G.Log.Debug("+ LoadSigHints(%s)", uid)
 	var jw *jsonw.Wrapper
-	jw, err = G.LocalDb.Get(DbKeyUID(DB_SIG_HINTS, sh.uid))
+	jw, err = G.LocalDb.Get(DbKeyUID(DB_SIG_HINTS, uid))
 	if err != nil {
 		return
 	}
