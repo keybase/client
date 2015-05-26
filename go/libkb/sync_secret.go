@@ -42,7 +42,7 @@ type ServerPrivateKeys struct {
 type SecretSyncer struct {
 	sync.Mutex
 	Contextified
-	Uid   *UID
+	Uid   UID
 	dirty bool
 	keys  *ServerPrivateKeys
 }
@@ -55,25 +55,23 @@ func NewSecretSyncer(g *GlobalContext) *SecretSyncer {
 
 func (ss *SecretSyncer) Clear() error {
 	err := ss.store()
-	ss.Uid = nil
+	ss.Uid = ""
 	ss.keys = nil
 
 	return err
 }
 
-// SetUID sets the UID and acquires the lock.  It should be called
-// by everything outside Syncer, SecretSyncer.
-func (ss *SecretSyncer) SetUID(u *UID) {
+// SetUID sets the UID.
+func (ss *SecretSyncer) SetUID(u UID) {
 	ss.setUID(u)
 }
 
-// lock required before calling this.
-func (ss *SecretSyncer) setUID(u *UID) {
+func (ss *SecretSyncer) setUID(u UID) {
 	ss.Uid = u
 }
 
 // lock required before calling this.
-func (ss *SecretSyncer) getUID() *UID {
+func (ss *SecretSyncer) getUID() UID {
 	return ss.Uid
 }
 
@@ -129,7 +127,7 @@ func (ss *SecretSyncer) syncFromServer(sr SessionReader) (err error) {
 
 // lock required before calling this.
 func (ss *SecretSyncer) dbKey() DbKey {
-	return DbKey{Typ: DB_USER_SECRET_KEYS, Key: ss.Uid.String()}
+	return DbKeyUID(DB_USER_SECRET_KEYS, ss.Uid)
 }
 
 // Syncer locks before calling this.

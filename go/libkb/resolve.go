@@ -10,13 +10,13 @@ import (
 //==================================================================
 
 type ResolveResult struct {
-	uid        *UID
+	uid        UID
 	body       *jsonw.Wrapper
 	err        error
 	kbUsername string
 }
 
-func (res *ResolveResult) GetUID() *UID {
+func (res *ResolveResult) GetUID() UID {
 	return res.uid
 }
 
@@ -48,7 +48,7 @@ func ResolveUidValuePair(key, value string) (res ResolveResult) {
 
 func _resolveUid(au AssertionUrl) ResolveResult {
 	// A standard keybase UID, so it's already resolved
-	if tmp := au.ToUid(); tmp != nil {
+	if tmp := au.ToUid(); len(tmp) > 0 {
 		return ResolveResult{uid: tmp}
 	}
 

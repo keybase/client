@@ -316,7 +316,7 @@ func (mc *MerkleClient) LookupPath(q HttpArgs) (vp *VerificationPath, err error)
 		return
 	}
 
-	vp = &VerificationPath{*uid, root, path_out, uid_path_out, idv, username}
+	vp = &VerificationPath{uid, root, path_out, uid_path_out, idv, username}
 	return
 }
 
@@ -535,7 +535,7 @@ func (vp *VerificationPath) VerifyUsername() (username string, err error) {
 	var uid2 string
 	if uid2, err = leaf.GetString(); err != nil {
 		return
-	} else if uid1 := vp.uid.String(); uid2 != uid1 {
+	} else if uid1 := vp.uid; uid2 != string(uid1) {
 		err = UidMismatchError{fmt.Sprintf("UID %s != %s via merkle tree", uid2, uid1)}
 	} else {
 		G.Log.Debug("| Username %s mapped to %s via Merkle lookup", vp.username, vp.uid)
@@ -548,7 +548,7 @@ func (vp *VerificationPath) VerifyUsername() (username string, err error) {
 func (vp *VerificationPath) VerifyUser() (user *MerkleUserLeaf, err error) {
 
 	curr := vp.root.rootHash
-	uid_s := vp.uid.String()
+	uid_s := string(vp.uid)
 
 	var leaf *jsonw.Wrapper
 	leaf, err = vp.path.VerifyPath(curr, uid_s)
@@ -690,15 +690,15 @@ func (mc *MerkleClient) LastRootToSigJson() (ret *jsonw.Wrapper, err error) {
 	return
 }
 
-func (mul *MerkleUserLeaf) MatchUser(u *User, uid *UID, un string) (err error) {
+func (mul *MerkleUserLeaf) MatchUser(u *User, uid UID, un string) (err error) {
 	if mul.username != u.GetName() {
 		err = MerkleClashError{fmt.Sprintf("vs loaded object: username %s != %s", mul.username, u.GetName())}
-	} else if !mul.uid.Eq(u.GetUID()) {
+	} else if mul.uid != u.GetUID() {
 		err = MerkleClientError{fmt.Sprintf("vs loaded object: UID %s != %s", mul.uid, u.GetUID())}
 	} else if len(un) > 0 && mul.username != un {
 		err = MerkleClashError{fmt.Sprintf("vs given arg: username %s != %s", mul.username, un)}
-	} else if uid != nil && !uid.Eq(mul.uid) {
-		err = MerkleClashError{fmt.Sprintf("vs given arg: UID %s != %s", *uid, mul.uid)}
+	} else if uid != mul.uid {
+		err = MerkleClashError{fmt.Sprintf("vs given arg: UID %s != %s", uid, mul.uid)}
 	}
 	return
 }

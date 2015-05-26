@@ -14,14 +14,8 @@ protocol Common {
 		array<StringKVPair> fields;
 	}
 
-	fixed UID(16);
-
-	// Switch to
-	// @typedef("string")
-	// record UID {}
-
 	@typedef("string")
-	record UID2 {}
+	record UID {}
 
 	record FOKID {
 		union { null, bytes } pgpFingerprint;

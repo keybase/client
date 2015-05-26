@@ -8,9 +8,11 @@ import (
 )
 
 const (
-	UID_LEN      = 16
-	UID_SUFFIX   = 0x00
-	UID_SUFFIX_2 = 0x19
+	UID_LEN          = 16
+	UID_SUFFIX       = 0x00
+	UID_SUFFIX_2     = 0x19
+	UID_SUFFIX_HEX   = "00"
+	UID_SUFFIX_2_HEX = "19"
 )
 
 const (
@@ -27,6 +29,18 @@ func Quote(s string) []byte {
 	return []byte("\"" + s + "\"")
 }
 
+func UIDFromString(s string) (UID, error) {
+	if len(s) != hex.EncodedLen(UID_LEN) {
+		return "", fmt.Errorf("Bad UID '%s'; must be %d bytes long", s, UID_LEN)
+	}
+	suffix := s[len(s)-2:]
+	if suffix != UID_SUFFIX_HEX && suffix != UID_SUFFIX_2_HEX {
+		return "", fmt.Errorf("Bad UID '%s': must end in 0x%x or 0x%x", s, UID_SUFFIX, UID_SUFFIX_2)
+	}
+	return UID(s), nil
+}
+
+/*
 func UidFromHex(s string) (u *UID, err error) {
 	var bv []byte
 	bv, err = hex.DecodeString(s)
@@ -64,6 +78,7 @@ func (u UID) String() string {
 func (u *UID) MarshalJSON() ([]byte, error) {
 	return Quote(u.String()), nil
 }
+*/
 
 func (s SigID) ToDisplayString(verbose bool) string {
 	if verbose {

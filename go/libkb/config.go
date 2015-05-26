@@ -178,7 +178,7 @@ func (f *JsonConfigFile) SwitchUser(un string) (err error) {
 		f.userConfigWrapper.userConfig = nil
 		f.dirty = true
 	} else {
-		err = UserNotFoundError{UID{}, un}
+		err = UserNotFoundError{msg: un}
 	}
 	return err
 }
@@ -363,10 +363,9 @@ func (f JsonConfigFile) GetSalt() (ret []byte) {
 	}
 	return ret
 }
-func (f JsonConfigFile) GetUID() (ret *UID) {
+func (f JsonConfigFile) GetUID() (ret UID) {
 	if uc, _ := f.GetUserConfig(); uc != nil {
-		tmp := uc.GetUID()
-		ret = &tmp
+		ret = uc.GetUID()
 	}
 	return ret
 }

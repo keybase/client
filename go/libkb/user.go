@@ -70,7 +70,7 @@ func NewUser(o *jsonw.Wrapper) (*User, error) {
 		sigs:       o.AtKey("sigs"),
 		pictures:   o.AtKey("pictures"),
 		keyFamily:  kf,
-		id:         *uid,
+		id:         uid,
 		name:       name,
 		dirty:      false,
 		Image:      imagePtr,
@@ -257,16 +257,15 @@ func (u *User) Store() error {
 func (u *User) StoreTopLevel() error {
 	G.Log.Debug("+ StoreTopLevel")
 
-	suid := u.id.String()
 	jw := jsonw.NewDictionary()
-	jw.SetKey("id", jsonw.NewString(suid))
+	jw.SetKey("id", jsonw.NewString(string(u.id)))
 	jw.SetKey("basics", u.basics)
 	jw.SetKey("public_keys", u.publicKeys)
 	jw.SetKey("sigs", u.sigs)
 	jw.SetKey("pictures", u.pictures)
 
 	err := G.LocalDb.Put(
-		DbKey{Typ: DB_USER, Key: suid},
+		DbKeyUID(DB_USER, u.id),
 		[]DbKey{{Typ: DB_LOOKUP_USERNAME, Key: u.name}},
 		jw,
 	)
@@ -287,7 +286,7 @@ func (u *User) GetSyncedSecretKeyLogin(lctx LoginContext) (ret *SKB, err error) 
 		G.Log.Debug("- User.GetSyncedSecretKeyLogin() -> %s", ErrToOk(err))
 	}()
 
-	if err = lctx.RunSecretSyncer(&u.id); err != nil {
+	if err = lctx.RunSecretSyncer(u.id); err != nil {
 		return
 	}
 	ckf := u.GetComputedKeyFamily()
@@ -323,7 +322,7 @@ func (u *User) GetSyncedSecretKey() (ret *SKB, err error) {
 }
 
 func (u *User) SyncSecrets() error {
-	return G.LoginState().RunSecretSyncer(&u.id)
+	return G.LoginState().RunSecretSyncer(u.id)
 }
 
 func (u *User) GetEldestFOKID() (ret *FOKID) {
@@ -389,7 +388,7 @@ func (u *User) HasActiveKey() bool {
 }
 
 func (u *User) Equal(other *User) bool {
-	return u.id.Eq(other.id)
+	return u.id == other.id
 }
 
 func (u *User) GetTrackingStatementFor(s string, i UID) (link *TrackChainLink, err error) {
@@ -429,7 +428,7 @@ func (u *User) GetRemoteTrackingStatementFor(s string, i UID) (link *TrackChainL
 func (u *User) ToOkProofSet() *ProofSet {
 	proofs := []Proof{
 		{Key: "keybase", Value: u.name},
-		{Key: "uid", Value: u.id.String()},
+		{Key: "uid", Value: string(u.id)},
 	}
 	for _, fp := range u.GetActivePgpFingerprints(true) {
 		proofs = append(proofs, Proof{Key: "fingerprint", Value: fp.String()})

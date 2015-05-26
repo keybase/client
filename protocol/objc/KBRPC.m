@@ -71,14 +71,14 @@
   }];
 }
 
-- (void)incBlockReferenceWithBid:(KBRBlockIdCombo *)bid nonce:(NSString *)nonce folder:(NSString *)folder chargedTo:(NSData *)chargedTo completion:(void (^)(NSError *error))completion {
+- (void)incBlockReferenceWithBid:(KBRBlockIdCombo *)bid nonce:(NSString *)nonce folder:(NSString *)folder chargedTo:(NSString *)chargedTo completion:(void (^)(NSError *error))completion {
   NSArray *params = @[@{@"bid": KBRValue(bid), @"nonce": KBRValue(nonce), @"folder": KBRValue(folder), @"chargedTo": KBRValue(chargedTo)}];
   [self.client sendRequestWithMethod:@"keybase.1.block.incBlockReference" params:params sessionId:self.sessionId completion:^(NSError *error, id retval) {
     completion(error);
   }];
 }
 
-- (void)decBlockReferenceWithBid:(KBRBlockIdCombo *)bid nonce:(NSString *)nonce folder:(NSString *)folder chargedTo:(NSData *)chargedTo completion:(void (^)(NSError *error))completion {
+- (void)decBlockReferenceWithBid:(KBRBlockIdCombo *)bid nonce:(NSString *)nonce folder:(NSString *)folder chargedTo:(NSString *)chargedTo completion:(void (^)(NSError *error))completion {
   NSArray *params = @[@{@"bid": KBRValue(bid), @"nonce": KBRValue(nonce), @"folder": KBRValue(folder), @"chargedTo": KBRValue(chargedTo)}];
   [self.client sendRequestWithMethod:@"keybase.1.block.decBlockReference" params:params sessionId:self.sessionId completion:^(NSError *error, id retval) {
     completion(error);
@@ -1015,7 +1015,7 @@
 
 @implementation KBRUserRequest
 
-- (void)listTrackersWithSessionID:(NSInteger)sessionID uid:(NSData *)uid completion:(void (^)(NSError *error, NSArray *items))completion {
+- (void)listTrackersWithSessionID:(NSInteger)sessionID uid:(NSString *)uid completion:(void (^)(NSError *error, NSArray *items))completion {
   NSArray *params = @[@{@"sessionID": @(sessionID), @"uid": KBRValue(uid)}];
   [self.client sendRequestWithMethod:@"keybase.1.user.listTrackers" params:params sessionId:self.sessionId completion:^(NSError *error, id retval) {
     if (error) {
@@ -1063,7 +1063,7 @@
   }];
 }
 
-- (void)loadUserWithUid:(NSData *)uid username:(NSString *)username selfKb:(BOOL)selfKb completion:(void (^)(NSError *error, KBRUser *user))completion {
+- (void)loadUserWithUid:(NSString *)uid username:(NSString *)username selfKb:(BOOL)selfKb completion:(void (^)(NSError *error, KBRUser *user))completion {
   NSArray *params = @[@{@"uid": KBRValue(uid), @"username": KBRValue(username), @"self": @(selfKb)}];
   [self.client sendRequestWithMethod:@"keybase.1.user.loadUser" params:params sessionId:self.sessionId completion:^(NSError *error, id retval) {
     if (error) {
@@ -2122,7 +2122,7 @@
 
 - (instancetype)initWithParams:(NSArray *)params {
   if ((self = [super initWithParams:params])) {
-    self.uids = KBRArray(params[0][@"uids"], NSData.class);
+    self.uids = KBRArray(params[0][@"uids"], NSString.class);
   }
   return self;
 }

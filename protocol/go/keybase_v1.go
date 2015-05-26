@@ -20,8 +20,7 @@ type Status struct {
 	Fields []StringKVPair `codec:"fields" json:"fields"`
 }
 
-type UID [16]byte
-type UID2 string
+type UID string
 type FOKID struct {
 	PgpFingerprint *[]byte `codec:"pgpFingerprint,omitempty" json:"pgpFingerprint"`
 	Kid            *[]byte `codec:"kid,omitempty" json:"kid"`

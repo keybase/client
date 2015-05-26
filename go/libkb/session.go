@@ -22,7 +22,7 @@ type Session struct {
 	checked  bool
 	deviceID string
 	valid    bool
-	uid      *UID
+	uid      UID
 	username *string
 	mtime    int64
 }
@@ -36,7 +36,7 @@ func newSession(g *GlobalContext) *Session {
 func NewSessionThin(uid UID, username string, token string) *Session {
 	// XXX should this set valid to true?  daemon won't return a
 	// session unless valid is true, so...
-	return &Session{uid: &uid, username: &username, token: token, valid: true}
+	return &Session{uid: uid, username: &username, token: token, valid: true}
 }
 
 func (s *Session) IsLoggedIn() bool {
@@ -65,7 +65,7 @@ func (s *Session) GetUsername() *string {
 	return s.username
 }
 
-func (s *Session) GetUID() *UID {
+func (s *Session) GetUID() UID {
 	return s.uid
 }
 
@@ -87,7 +87,7 @@ func (s *Session) SetUsername(username string) {
 
 func (s *Session) SetLoggedIn(sessionID, csrfToken, username string, uid UID) {
 	s.valid = true
-	s.uid = &uid
+	s.uid = uid
 	s.username = &username
 	s.token = sessionID
 	if s.file == nil {
@@ -129,7 +129,7 @@ func (s *Session) SetDeviceProvisioned(devid string) {
 
 func (s *Session) isConfigLoggedIn() bool {
 	reader := s.G().Env.GetConfig()
-	return reader.GetUsername() != "" && reader.GetDeviceID() != nil && reader.GetUID() != nil
+	return reader.GetUsername() != "" && reader.GetDeviceID() != nil && len(reader.GetUID()) > 0
 }
 
 // The session file can be out of sync with the config file, particularly when
@@ -250,7 +250,7 @@ func (s *Session) Check() error {
 			return err
 		}
 		s.valid = true
-		s.uid = &uid
+		s.uid = uid
 		s.username = &username
 		if !s.IsRecent() {
 			s.SetCsrf(csrf)

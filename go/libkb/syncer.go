@@ -11,12 +11,12 @@ type Syncer interface {
 	loadFromStorage() error
 	syncFromServer(SessionReader) error
 	store() error
-	getUID() *UID
-	setUID(u *UID)
+	getUID() UID
+	setUID(u UID)
 	needsLogin() bool
 }
 
-func RunSyncer(s Syncer, aUid *UID, loggedIn bool, sr SessionReader) (err error) {
+func RunSyncer(s Syncer, aUid UID, loggedIn bool, sr SessionReader) (err error) {
 	s.Lock()
 	defer s.Unlock()
 
@@ -27,8 +27,8 @@ func RunSyncer(s Syncer, aUid *UID, loggedIn bool, sr SessionReader) (err error)
 	// If no UID was passed, and if no UID is local to the syncer, we still
 	// can pull one from the environment (assuming my UID).  If that fails,
 	// we have nothing to do.
-	if sUid == nil && aUid == nil {
-		if aUid = s.G().GetMyUID(); aUid == nil {
+	if len(sUid) == 0 && len(aUid) == 0 {
+		if aUid = s.G().GetMyUID(); len(aUid) == 0 {
 			err = NotFoundError{"No UID given to syncer"}
 			return
 		}
@@ -36,21 +36,19 @@ func RunSyncer(s Syncer, aUid *UID, loggedIn bool, sr SessionReader) (err error)
 		return
 	}
 
-	if sUid != nil && aUid != nil && !sUid.Eq(*aUid) {
-		err = UidMismatchError{fmt.Sprintf("UID clash in Syncer: %s != %s", *sUid, *aUid)}
+	if len(sUid) > 0 && len(aUid) > 0 && sUid != aUid {
+		err = UidMismatchError{fmt.Sprintf("UID clash in Syncer: %s != %s", sUid, aUid)}
 		return
-	} else if aUid != nil {
-		uid = *aUid
+	} else if len(aUid) > 0 {
+		uid = aUid
 		s.setUID(aUid)
 	} else {
-		uid = *sUid
+		uid = sUid
 	}
 
-	uid_s := uid.String()
-
-	s.G().Log.Debug("+ Syncer.Load(%s)", uid_s)
+	s.G().Log.Debug("+ Syncer.Load(%s)", uid)
 	defer func() {
-		s.G().Log.Debug("- Syncer.Load(%s) -> %s", uid_s, ErrToOk(err))
+		s.G().Log.Debug("- Syncer.Load(%s) -> %s", uid, ErrToOk(err))
 	}()
 
 	if err = s.loadFromStorage(); err != nil {

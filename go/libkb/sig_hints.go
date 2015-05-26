@@ -100,27 +100,21 @@ func (sh SigHints) MarshalToJson() *jsonw.Wrapper {
 }
 
 func (sh *SigHints) Store() (err error) {
-	uid_s := sh.uid.String()
-	G.Log.Debug("+ SigHints.Store() for uid=%s", uid_s)
+	G.Log.Debug("+ SigHints.Store() for uid=%s", sh.uid)
 	if sh.dirty {
-		err = G.LocalDb.Put(
-			DbKey{Typ: DB_SIG_HINTS, Key: uid_s},
-			[]DbKey{},
-			sh.MarshalToJson(),
-		)
+		err = G.LocalDb.Put(DbKeyUID(DB_SIG_HINTS, sh.uid), []DbKey{}, sh.MarshalToJson())
 		sh.dirty = false
 	} else {
 		G.Log.Debug("| SigHints.Store() skipped; wasn't dirty")
 	}
-	G.Log.Debug("- SigHints.Store() for uid=%s -> %v", uid_s, ErrToOk(err))
+	G.Log.Debug("- SigHints.Store() for uid=%s -> %v", sh.uid, ErrToOk(err))
 	return err
 }
 
 func LoadSigHints(uid UID) (sh *SigHints, err error) {
-	uid_s := uid.String()
-	G.Log.Debug("+ LoadSigHints(%s)", uid_s)
+	G.Log.Debug("+ LoadSigHints(%s)", uid)
 	var jw *jsonw.Wrapper
-	jw, err = G.LocalDb.Get(DbKey{Typ: DB_SIG_HINTS, Key: uid_s})
+	jw, err = G.LocalDb.Get(DbKeyUID(DB_SIG_HINTS, sh.uid))
 	if err != nil {
 		return
 	}
@@ -128,18 +122,17 @@ func LoadSigHints(uid UID) (sh *SigHints, err error) {
 	if err == nil {
 		G.Log.Debug("| SigHints loaded @v%d", sh.version)
 	}
-	G.Log.Debug("- LoadSigHints(%s)", uid_s)
+	G.Log.Debug("- LoadSigHints(%s)", uid)
 	return
 }
 
 func (sh *SigHints) Refresh() error {
-	uid_s := sh.uid.String()
-	G.Log.Debug("+ Refresh SigHints() for uid=%s", uid_s)
+	G.Log.Debug("+ Refresh SigHints() for uid=%s", sh.uid)
 	res, err := G.API.Get(ApiArg{
 		Endpoint:    "sig/hints",
 		NeedSession: false,
 		Args: HttpArgs{
-			"uid": S{uid_s},
+			"uid": S{string(sh.uid)},
 			"low": I{sh.version},
 		},
 	})
@@ -158,7 +151,7 @@ func (sh *SigHints) Refresh() error {
 	} else {
 		sh.dirty = true
 	}
-	G.Log.Debug("- Refresh SigHints() for uid=%s", uid_s)
+	G.Log.Debug("- Refresh SigHints() for uid=%s", sh.uid)
 	return nil
 }
 

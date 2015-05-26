@@ -276,13 +276,13 @@ func (g *GlobalContext) GetGpgClient() *GpgCLI {
 	return g.GpgClient
 }
 
-func (g *GlobalContext) GetMyUID() *UID {
-	var uid *UID
+func (g *GlobalContext) GetMyUID() UID {
+	var uid UID
 
 	g.LoginState().LocalSession(func(s *Session) {
 		uid = s.GetUID()
 	}, "G - GetMyUID - GetUID")
-	if uid != nil {
+	if len(uid) > 0 {
 		return uid
 	}
 

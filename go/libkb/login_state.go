@@ -51,7 +51,7 @@ type LoginContext interface {
 	LockedLocalSecretKey(ska SecretKeyArg) *SKB
 
 	SecretSyncer() *SecretSyncer
-	RunSecretSyncer(uid *UID) error
+	RunSecretSyncer(uid UID) error
 }
 
 type loginHandler func(LoginContext) error
@@ -250,25 +250,25 @@ func (s *LoginState) postLoginToServer(lctx LoginContext, eOu string, lgpw []byt
 		return nil, err
 	}
 
-	return &loginAPIResult{sessionId, csrfToken, *uid, uname}, nil
+	return &loginAPIResult{sessionId, csrfToken, uid, uname}, nil
 }
 
 func (s *LoginState) saveLoginState(lctx LoginContext, res *loginAPIResult) error {
 	return lctx.SaveState(res.sessionID, res.csrfToken, res.username, res.uid)
 }
 
-func (r PostAuthProofRes) loginResult() (ret *loginAPIResult, err error) {
-	var uid *UID
-	if uid, err = UidFromHex(r.UidHex); err != nil {
-		return
+func (r PostAuthProofRes) loginResult() (*loginAPIResult, error) {
+	uid, err := UidFromHex(r.UidHex)
+	if err != nil {
+		return nil, err
 	}
-	ret = &loginAPIResult{
+	ret := &loginAPIResult{
 		sessionID: r.SessionId,
 		csrfToken: r.CsrfToken,
-		uid:       *uid,
+		uid:       uid,
 		username:  r.Username,
 	}
-	return
+	return ret, nil
 }
 
 // A function that takes a Keyrings object, a user, and returns a
@@ -716,7 +716,7 @@ func (s *LoginState) SecretSyncer(h func(*SecretSyncer), name string) {
 	}, name)
 }
 
-func (s *LoginState) RunSecretSyncer(uid *UID) error {
+func (s *LoginState) RunSecretSyncer(uid UID) error {
 	var err error
 	s.Account(func(a *Account) {
 		err = a.RunSecretSyncer(uid)

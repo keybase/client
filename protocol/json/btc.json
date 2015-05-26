@@ -31,12 +31,8 @@
       }
     } ]
   }, {
-    "type" : "fixed",
-    "name" : "UID",
-    "size" : 16
-  }, {
     "type" : "record",
-    "name" : "UID2",
+    "name" : "UID",
     "fields" : [ ],
     "typedef" : "string"
   }, {

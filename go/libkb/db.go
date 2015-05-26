@@ -108,3 +108,7 @@ const (
 	DB_LOOKUP_USERNAME    = 0x00
 	DB_LOOKUP_MERKLE_ROOT = 0x01
 )
+
+func DbKeyUID(t ObjType, uid UID) DbKey {
+	return DbKey{Typ: t, Key: string(uid)}
+}

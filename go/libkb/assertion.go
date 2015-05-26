@@ -86,7 +86,7 @@ type AssertionUrl interface {
 	Check() error
 	IsKeybase() bool
 	IsUid() bool
-	ToUid() *UID
+	ToUid() UID
 	IsSocial() bool
 	IsFingerprint() bool
 	MatchProof(p Proof) bool
@@ -143,7 +143,7 @@ func (a AssertionUrlBase) IsKeybase() bool     { return false }
 func (a AssertionUrlBase) IsSocial() bool      { return false }
 func (a AssertionUrlBase) IsFingerprint() bool { return false }
 func (a AssertionUrlBase) IsUid() bool         { return false }
-func (a AssertionUrlBase) ToUid() *UID         { return nil }
+func (a AssertionUrlBase) ToUid() UID          { return "" }
 func (a AssertionUrlBase) MatchProof(proof Proof) bool {
 	return (strings.ToLower(proof.Value) == a.Value)
 }
@@ -174,7 +174,7 @@ type AssertionWeb struct{ AssertionUrlBase }
 type AssertionKeybase struct{ AssertionUrlBase }
 type AssertionUid struct {
 	AssertionUrlBase
-	uid *UID
+	uid UID
 }
 type AssertionHttp struct{ AssertionUrlBase }
 type AssertionHttps struct{ AssertionUrlBase }
@@ -267,8 +267,8 @@ func (k AssertionSocial) IsSocial() bool           { return true }
 func (k AssertionFingerprint) IsFingerprint() bool { return true }
 func (k AssertionUid) IsUid() bool                 { return true }
 
-func (u AssertionUid) ToUid() *UID {
-	if u.uid == nil {
+func (u AssertionUid) ToUid() UID {
+	if len(u.uid) == 0 {
 		if tmp, err := UidFromHex(u.Value); err != nil {
 			u.uid = tmp
 		}
@@ -324,7 +324,7 @@ func ParseAssertionUrlKeyValue(key, val string,
 	case "keybase":
 		ret = AssertionKeybase{base}
 	case "uid":
-		ret = AssertionUid{base, nil}
+		ret = AssertionUid{AssertionUrlBase: base}
 	case "web":
 		ret = AssertionWeb{base}
 	case "http":

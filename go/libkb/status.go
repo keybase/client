@@ -16,9 +16,9 @@ func GetCurrentStatus() (res CurrentStatus, err error) {
 	if cr := G.Env.GetConfig(); cr == nil {
 	} else {
 		res.Configured = true
-		if u := cr.GetUID(); u != nil {
+		if u := cr.GetUID(); len(u) > 0 {
 			res.Registered = true
-			res.User = NewUserThin(cr.GetUsername(), *u)
+			res.User = NewUserThin(cr.GetUsername(), u)
 		}
 		res.LoggedIn, err = G.LoginState().LoggedInProvisionedLoad()
 	}

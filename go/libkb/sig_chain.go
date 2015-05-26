@@ -119,19 +119,17 @@ func (sc *SigChain) Bump(mt MerkleTriple) {
 	sc.localChainUpdateTime = time.Now()
 }
 
-func (sc *SigChain) LoadFromServer(t *MerkleTriple, selfUID *UID) (dirtyTail *MerkleTriple, err error) {
-
+func (sc *SigChain) LoadFromServer(t *MerkleTriple, selfUID UID) (dirtyTail *MerkleTriple, err error) {
 	low := sc.GetLastLoadedSeqno()
-	uid_s := sc.uid.String()
 
-	G.Log.Debug("+ Load SigChain from server (uid=%s, low=%d)", uid_s, low)
+	G.Log.Debug("+ Load SigChain from server (uid=%s, low=%d)", sc.uid, low)
 	defer func() { G.Log.Debug("- Loaded SigChain -> %s", ErrToOk(err)) }()
 
 	res, err := G.API.Get(ApiArg{
 		Endpoint:    "sig/get",
 		NeedSession: false,
 		Args: HttpArgs{
-			"uid": S{uid_s},
+			"uid": S{string(sc.uid)},
 			"low": I{int(low)},
 		},
 	})
@@ -414,10 +412,9 @@ func (sc *SigChain) verifySubchain(kf KeyFamily, links []*ChainLink) (cached boo
 func (sc *SigChain) VerifySigsAndComputeKeys(eldest *KID, ckf *ComputedKeyFamily) (cached bool, err error) {
 
 	cached = false
-	uid_s := sc.uid.String()
-	G.Log.Debug("+ VerifySigsAndComputeKeys for user %s", uid_s)
+	G.Log.Debug("+ VerifySigsAndComputeKeys for user %s", sc.uid)
 	defer func() {
-		G.Log.Debug("- VerifySigsAndComputeKeys for user %s -> %s", uid_s, ErrToOk(err))
+		G.Log.Debug("- VerifySigsAndComputeKeys for user %s -> %s", sc.uid, ErrToOk(err))
 	}()
 
 	if err = sc.VerifyChain(); err != nil {
@@ -508,8 +505,9 @@ type SigChainLoader struct {
 
 //========================================================================
 
+// XXX better name?
 func (l *SigChainLoader) GetUidString() string {
-	return l.user.GetUID().String()
+	return string(l.user.GetUID())
 }
 
 func (l *SigChainLoader) LoadLastLinkIdFromStorage() (mt *MerkleTriple, err error) {
@@ -693,11 +691,11 @@ func (l *SigChainLoader) CheckFreshness() (current bool, err error) {
 
 //========================================================================
 
-func (l *SigChainLoader) selfUID() *UID {
+func (l *SigChainLoader) selfUID() UID {
 	if !l.self {
-		return nil
+		return ""
 	}
-	return l.user.GetUID().P()
+	return l.user.GetUID()
 }
 
 //========================================================================

@@ -61,8 +61,7 @@ func (b *GenericChainLink) markRevoked(r TypedChainLink) {
 	b.revoked = true
 }
 func (b *GenericChainLink) ToDebugString() string {
-	return fmt.Sprintf("uid=%s, seq=%d, link=%s",
-		string(b.Parent().uid.String()), b.unpacked.seqno, b.id.String())
+	return fmt.Sprintf("uid=%s, seq=%d, link=%s", b.Parent().uid, b.unpacked.seqno, b.id)
 }
 
 func (g *GenericChainLink) GetDelegatedKid() KID                 { return nil }
@@ -490,7 +489,7 @@ func (l *TrackChainLink) GetTrackedPGPFOKIDs() ([]FOKID, error) {
 	return res, nil
 }
 
-func (l *TrackChainLink) GetTrackedUid() (*UID, error) {
+func (l *TrackChainLink) GetTrackedUid() (UID, error) {
 	return GetUID(l.payloadJson.AtPath("body.track.id"))
 }
 
@@ -1053,9 +1052,8 @@ func (idt *IdentityTable) GetTrackingStatementFor(s string, uid UID) (
 				// noop; continue on!
 			} else if uid2, e2 := link.GetTrackedUid(); e2 != nil {
 				err = fmt.Errorf("Bad tracking statement for %s: %s", s, e2.Error())
-			} else if !uid.Eq(*uid2) {
-				err = fmt.Errorf("Bad UID in tracking statement for %s: %s != %s",
-					s, uid.String(), uid2.String())
+			} else if uid != uid2 {
+				err = fmt.Errorf("Bad UID in tracking statement for %s: %s != %s", s, uid, uid2)
 			} else {
 				ret = link
 			}

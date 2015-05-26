@@ -29,7 +29,7 @@ type SKB struct {
 	decryptedSecret GenericKey
 	decryptedRaw    []byte // in case we need to reexport it
 
-	uid *UID // UID that the key is for
+	uid UID // UID that the key is for
 	Contextified
 
 	// TODO(akalin): Remove this in favor of making LKSec
@@ -326,7 +326,7 @@ func (s *SKB) lksUnlockWithSecretRetriever(secretRetriever SecretRetriever) (unl
 	return lks.Decrypt(nil, s.Priv.Data)
 }
 
-func (p *SKB) SetUID(uid *UID) {
+func (p *SKB) SetUID(uid UID) {
 	G.Log.Debug("| Setting UID on SKB to %s", uid)
 	p.Lock()
 	p.uid = uid

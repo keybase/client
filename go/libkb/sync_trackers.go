@@ -17,7 +17,7 @@ type Tracker keybase1.Tracker
 func (t Tracker) GetUID() UID { return UID(t.Tracker) }
 
 func (t Tracker) Eq(t2 Tracker) bool {
-	return t.GetUID().Eq(t2.GetUID()) && t.Status == t2.Status && t.Mtime == t2.Mtime
+	return t.GetUID() == t2.GetUID() && t.Status == t2.Status && t.Mtime == t2.Mtime
 }
 
 type Trackers struct {
@@ -30,7 +30,7 @@ type TrackerSyncer struct {
 	sync.RWMutex
 	Contextified
 
-	uid   *UID
+	uid   UID
 	dirty bool
 
 	trackers *Trackers
@@ -54,13 +54,13 @@ func (t Trackers) compact() (ret Trackers) {
 	return ret
 }
 
-func (t *TrackerSyncer) getUID() *UID  { return t.uid }
-func (t *TrackerSyncer) setUID(u *UID) { t.uid = u }
+func (t *TrackerSyncer) getUID() UID  { return t.uid }
+func (t *TrackerSyncer) setUID(u UID) { t.uid = u }
 
 func NewTrackerSyncer(uid UID, g *GlobalContext) *TrackerSyncer {
 	return &TrackerSyncer{
 		Contextified: Contextified{g},
-		uid:          &uid,
+		uid:          uid,
 		dirty:        false,
 	}
 }
@@ -70,7 +70,7 @@ func (t *TrackerSyncer) Trackers() *Trackers {
 }
 
 func (t *TrackerSyncer) dbKey() DbKey {
-	return DbKey{Typ: DB_TRACKERS, Key: t.uid.String()}
+	return DbKeyUID(DB_TRACKERS, t.uid)
 }
 
 func (t *TrackerSyncer) loadFromStorage() (err error) {
@@ -117,7 +117,7 @@ func (t *TrackerSyncer) syncFromServer(sr SessionReader) (err error) {
 	lv := t.getLoadedVersion()
 
 	hargs := HttpArgs{
-		"uid":   S{t.uid.String()},
+		"uid":   S{string(t.uid)},
 		"limit": I{5000},
 	}
 

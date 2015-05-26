@@ -13,7 +13,7 @@ type LKSec struct {
 	serverHalf []byte
 	clientHalf []byte
 	secret     []byte
-	uid        *UID
+	uid        UID
 	Contextified
 }
 
@@ -25,7 +25,7 @@ func NewLKSecWithFullSecret(secret []byte, gc *GlobalContext) *LKSec {
 	return &LKSec{secret: secret, Contextified: NewContextified(gc)}
 }
 
-func (l *LKSec) SetUID(u *UID) {
+func (l *LKSec) SetUID(u UID) {
 	l.uid = u
 }
 

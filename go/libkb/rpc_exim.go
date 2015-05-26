@@ -498,10 +498,11 @@ func ImportPgpIdentity(arg keybase1.PgpIdentity) (ret Identity) {
 
 //=============================================================================
 
-func (u *UID) Export() keybase1.UID {
-	return keybase1.UID(*u)
+func (u UID) Export() keybase1.UID {
+	return keybase1.UID(u)
 }
 
+/*
 func (v UIDs) Export() []keybase1.UID {
 	ret := make([]keybase1.UID, len(v))
 	for i, el := range v {
@@ -509,11 +510,13 @@ func (v UIDs) Export() []keybase1.UID {
 	}
 	return ret
 }
+*/
 
 func ImportUID(u keybase1.UID) UID {
 	return UID(u)
 }
 
+/*
 func ImportUIDs(v []keybase1.UID) UIDs {
 	ret := make(UIDs, len(v))
 	for i, el := range v {
@@ -521,6 +524,7 @@ func ImportUIDs(v []keybase1.UID) UIDs {
 	}
 	return ret
 }
+*/
 
 // Interface for sorting a list of PublicKeys
 
@@ -622,7 +626,7 @@ func (u *User) Export() *keybase1.User {
 		publicKeys = u.GetComputedKeyFamily().Export()
 	}
 	return &keybase1.User{
-		Uid:        u.GetUID().P().Export(),
+		Uid:        u.GetUID().Export(),
 		Username:   u.GetName(),
 		Image:      u.Image,
 		PublicKeys: publicKeys,

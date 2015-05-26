@@ -2,7 +2,8 @@ package libkb
 
 import (
 	"encoding/hex"
-	"github.com/keybase/go-jsonw"
+
+	jsonw "github.com/keybase/go-jsonw"
 )
 
 //==================================================================
@@ -29,7 +30,7 @@ func (u UserConfig) GetDeviceID() (ret *DeviceID) { return u.importedDeviceId }
 
 func NewUserConfig(id UID, name string, salt []byte, dev *DeviceID) *UserConfig {
 	ret := &UserConfig{
-		Id:               id.String(),
+		Id:               string(id),
 		Name:             name,
 		Salt:             hex.EncodeToString(salt),
 		Device:           nil,
@@ -47,11 +48,11 @@ func NewUserConfig(id UID, name string, salt []byte, dev *DeviceID) *UserConfig 
 //==================================================================
 
 func (u *UserConfig) Import() (err error) {
-	var tmp *UID
+	var tmp UID
 	if tmp, err = UidFromHex(u.Id); err != nil {
 		return
 	}
-	u.importedId = *tmp
+	u.importedId = tmp
 	if u.importedSalt, err = hex.DecodeString(u.Salt); err != nil {
 		return
 	}

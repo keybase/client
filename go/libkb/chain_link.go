@@ -307,7 +307,7 @@ func (c *ChainLink) UnpackComputedKeyInfos(jw *jsonw.Wrapper) (err error) {
 	return
 }
 
-func (c *ChainLink) Unpack(trusted bool, selfUID *UID) (err error) {
+func (c *ChainLink) Unpack(trusted bool, selfUID UID) (err error) {
 	tmp := ChainLinkUnpacked{}
 
 	c.packed.AtKey("sig").GetStringVoid(&tmp.sig, &err)
@@ -329,7 +329,7 @@ func (c *ChainLink) Unpack(trusted bool, selfUID *UID) (err error) {
 	}
 
 	// only unpack the proof_text_full if owner of this link
-	if selfUID != nil && tmp.uid.Eq(*selfUID) {
+	if tmp.uid == selfUID {
 		ptf := c.packed.AtKey("proof_text_full")
 		if !ptf.IsNil() {
 			ptf.GetStringVoid(&tmp.proofText, &err)
@@ -357,13 +357,11 @@ func (c *ChainLink) Unpack(trusted bool, selfUID *UID) (err error) {
 }
 
 func (c *ChainLink) CheckNameAndId(s string, i UID) error {
-	if !c.unpacked.uid.Eq(i) {
-		return fmt.Errorf("UID mismatch %s != %s in Link %s",
-			c.unpacked.uid.String(), i.String(), c.id.String())
+	if c.unpacked.uid != i {
+		return fmt.Errorf("UID mismatch %s != %s in Link %s", c.unpacked.uid, i, c.id)
 	}
 	if !Cicmp(c.unpacked.username, s) {
-		return fmt.Errorf("Username mismatch %s != %s in Link %s",
-			c.unpacked.username, s, c.id.String())
+		return fmt.Errorf("Username mismatch %s != %s in Link %s", c.unpacked.username, s, c.id)
 	}
 	return nil
 
@@ -483,7 +481,7 @@ func (c *ChainLink) VerifySig(k PgpKeyBundle) (cached bool, err error) {
 	return
 }
 
-func ImportLinkFromServer(parent *SigChain, jw *jsonw.Wrapper, selfUID *UID) (ret *ChainLink, err error) {
+func ImportLinkFromServer(parent *SigChain, jw *jsonw.Wrapper, selfUID UID) (ret *ChainLink, err error) {
 	var id LinkId
 	GetLinkIdVoid(jw.AtKey("payload_hash"), &id, &err)
 	if err != nil {
@@ -504,7 +502,7 @@ func NewChainLink(parent *SigChain, id LinkId, jw *jsonw.Wrapper) *ChainLink {
 	}
 }
 
-func ImportLinkFromStorage(id LinkId, selfUID *UID) (*ChainLink, error) {
+func ImportLinkFromStorage(id LinkId, selfUID UID) (*ChainLink, error) {
 	jw, err := G.LocalDb.Get(DbKey{Typ: DB_LINK, Key: id.String()})
 	var ret *ChainLink
 	if err == nil {

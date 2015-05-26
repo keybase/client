@@ -113,7 +113,7 @@ type ConfigReader interface {
 	GetDeviceID() *DeviceID
 	GetUsername() string
 	GetAllUsernames() (current string, others []string, err error)
-	GetUID() *UID
+	GetUID() UID
 	GetProxyCACerts() ([]string, error)
 	GetSplitLogOutput() (bool, bool)
 	GetLogFile() string
