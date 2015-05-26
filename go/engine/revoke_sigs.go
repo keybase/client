@@ -77,7 +77,7 @@ func (e *RevokeSigsEngine) Run(ctx *Context) error {
 
 	sigKey, _, err := e.G().Keyrings.GetSecretKeyWithPrompt(ctx.LoginContext, libkb.SecretKeyArg{
 		Me:      me,
-		KeyType: libkb.DeviceKeyType,
+		KeyType: libkb.DeviceSigningKeyType,
 	}, ctx.SecretUI, "to revoke a signature")
 	if sigKey == nil {
 		return fmt.Errorf("Revocation signing key is nil.")

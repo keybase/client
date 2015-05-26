@@ -75,7 +75,7 @@ func (e *PGPKeyExportEngine) exportPublic() (err error) {
 func (e *PGPKeyExportEngine) exportSecret(ctx *Context) (err error) {
 	ska := libkb.SecretKeyArg{
 		Me:       e.me,
-		KeyType:  libkb.PGPType,
+		KeyType:  libkb.PGPKeyType,
 		KeyQuery: e.arg.Query,
 	}
 	var key libkb.GenericKey

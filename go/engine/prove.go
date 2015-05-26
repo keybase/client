@@ -165,7 +165,7 @@ func (p *Prove) generateProof(ctx *Context) (err error) {
 
 	if locked, which, err = p.G().Keyrings.GetSecretKeyLocked(ctx.LoginContext, libkb.SecretKeyArg{
 		Me:      p.me,
-		KeyType: libkb.AnySecretKeyType,
+		KeyType: libkb.DeviceSigningKeyType,
 	}); err != nil {
 		return
 	}
