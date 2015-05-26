@@ -8,7 +8,6 @@
 
 #import "KBRPClient.h"
 #import "KBRPC.h"
-#import "KBRUtils.h"
 #import "KBAlert.h"
 #import "AppDelegate.h"
 #import "KBRPCRegistration.h"

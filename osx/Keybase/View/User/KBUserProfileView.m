@@ -11,7 +11,6 @@
 #import "KBUserHeaderView.h"
 #import "KBUserInfoView.h"
 #import "AppDelegate.h"
-#import "KBRUtils.h"
 #import "KBProofResult.h"
 #import "KBFatalErrorView.h"
 #import "KBTrackView.h"

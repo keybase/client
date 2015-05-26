@@ -10,7 +10,6 @@
 
 #import "KBSearchResultView.h"
 #import "AppDelegate.h"
-#import "KBRUtils.h"
 #import "KBRunOver.h"
 #import "KBSearcher.h"
 #import "KBUserView.h"

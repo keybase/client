@@ -10,7 +10,6 @@
 
 #import "KBRPC.h"
 #import "AppDelegate.h"
-#import "KBRUtils.h"
 #import "KBSearchResults.h"
 
 @interface KBSearcher : NSObject

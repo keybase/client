@@ -83,3 +83,12 @@
 }
 
 @end
+
+
+NSArray *KBRArray(id array, Class clazz) {
+  if (![array isKindOfClass:NSArray.class]) return nil;
+  for (id obj in array) {
+    if (![obj isKindOfClass:clazz]) return nil;
+  }
+  return array;
+}
