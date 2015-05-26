@@ -43,14 +43,6 @@ type GenericKey interface {
 	// signature ID.
 	VerifyString(sig string, msg []byte) (id keybase1.SigID, err error)
 
-	// Sign to a binary signature (which doesn't include the
-	// message) and return it.
-	SignToBytes(msg []byte) (sig []byte, err error)
-
-	// Verify that the given signature is valid and is for the
-	// given message.
-	VerifyBytes(sig, msg []byte) (err error)
-
 	ToSKB(ts *triplesec.Cipher) (*SKB, error)
 	ToLksSKB(lks *LKSec) (*SKB, error)
 	VerboseDescription() string
@@ -58,6 +50,18 @@ type GenericKey interface {
 	CanSign() bool
 	HasSecretKey() bool
 	Encode() (string, error) // encode public key to string
+}
+
+type Signer interface {
+	// Sign to a binary signature (which doesn't include the
+	// message) and return it.
+	SignToBytes(msg []byte) (sig []byte, verifier Verifier, err error)
+}
+
+type Verifier interface {
+	// Verify that the given signature is valid and is for the
+	// given message.
+	VerifyBytes(sig, msg []byte) (err error)
 }
 
 func (k KID) ToFOKID() FOKID {

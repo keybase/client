@@ -2,6 +2,7 @@ package service
 
 import (
 	"github.com/keybase/client/go/engine"
+	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/protocol/go"
 	"github.com/maxtaco/go-framed-msgpack-rpc/rpc2"
 )
@@ -24,7 +25,7 @@ func (c *CryptoHandler) Sign(arg keybase1.SignArg) (ret keybase1.SignatureInfo, 
 	}
 	ret = keybase1.SignatureInfo{
 		Sig:             eng.GetSignature(),
-		VerifyingKeyKid: eng.GetVerifyingKey().GetKid().String(),
+		VerifyingKeyKid: eng.GetVerifier().(libkb.GenericKey).GetKid().String(),
 	}
 	return
 }
