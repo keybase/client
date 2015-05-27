@@ -29,8 +29,11 @@ func TestCryptoSign(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	verifier := cse.GetVerifier()
-	err = verifier.VerifyBytes(cse.GetSignature(), msg)
+	verifier, err := libkb.ImportKeypairFromKID(cse.GetVerifyingKeyKid())
+	if err != nil {
+		t.Fatal(err)
+	}
+	err = verifier.(libkb.NaclSigningKeyPair).VerifyBytes(cse.GetSignature(), msg)
 	if err != nil {
 		t.Error(err)
 	}
