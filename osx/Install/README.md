@@ -17,3 +17,5 @@ sh build.sh 0.1.29
 ### Updater package
 
 See the [Updater](https://github.com/keybase/client/tree/master/osx/Install/Updater/README.md).
+
+

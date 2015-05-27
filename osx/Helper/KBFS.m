@@ -18,21 +18,12 @@
 @property NSString *kext;
 @end
 
-#define KEXT_LABEL (@"com.github.osxfuse.filesystems.osxfusefs")
-#define KEXT_LABEL_CFSTR CFSTR("com.github.osxfuse.filesystems.osxfusefs")
-
 @implementation KBFS
 
 - (instancetype)init {
   if ((self = [super init])) {
-    NSString *path = @"/Applications/Keybase.app/Contents/Resources/osxfusefs.fs.bundle";
-    _source = path;
-
-    if ([[path pathExtension] isEqualToString:@"bundle"]) {
-      path = [path stringByDeletingPathExtension]; // Remove .bundle (which was for packaging only)
-    }
-    _destination = KBNSStringWithFormat(@"/Library/Filesystems/%@", [path lastPathComponent]);
-
+    _source = @"/Applications/Keybase.app/Contents/Resources/kbfuse.bundle";
+    _destination = KBFUSE_BUNDLE;
     _kext = KBNSStringWithFormat(@"%@/Support/osxfusefs.kext", _destination);
   }
   return self;

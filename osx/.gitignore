@@ -22,4 +22,5 @@ Pods
 
 Install/build/*
 Install/Updater/site/*.html
+Install/osxfuse
 copyui.sh

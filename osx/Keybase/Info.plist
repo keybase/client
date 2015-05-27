@@ -17,19 +17,19 @@
 	<key>CFBundlePackageType</key>
 	<string>APPL</string>
 	<key>CFBundleShortVersionString</key>
-	<string>0.1.30</string>
+	<string>0.1.31</string>
 	<key>CFBundleSignature</key>
 	<string>????</string>
 	<key>CFBundleVersion</key>
-	<string>0.1.29</string>
+	<string>0.1.31</string>
 	<key>KBFSVersion</key>
 	<string>0.1.1</string>
 	<key>KBFuseVersion</key>
 	<string>2.7.6</string>
 	<key>KBHelperVersion</key>
-	<string>1.0.9</string>
+	<string>1.0.10</string>
 	<key>KBServiceVersion</key>
-	<string>0.1.29</string>
+	<string>0.1.31</string>
 	<key>LSApplicationCategoryType</key>
 	<string>public.app-category.utilities</string>
 	<key>LSMinimumSystemVersion</key>
@@ -43,7 +43,7 @@
 	<key>SMPrivilegedExecutables</key>
 	<dict>
 		<key>keybase.Helper</key>
-		<string>anchor apple generic and identifier &quot;keybase.Helper&quot; and (certificate leaf[field.1.2.840.113635.100.6.1.9] /* exists */ or certificate 1[field.1.2.840.113635.100.6.2.6] /* exists */ and certificate leaf[field.1.2.840.113635.100.6.1.13] /* exists */ and certificate leaf[subject.OU] = &quot;99229SGT5K&quot;)</string>
+		<string>anchor apple generic and identifier "keybase.Helper" and (certificate leaf[field.1.2.840.113635.100.6.1.9] /* exists */ or certificate 1[field.1.2.840.113635.100.6.2.6] /* exists */ and certificate leaf[field.1.2.840.113635.100.6.1.13] /* exists */ and certificate leaf[subject.OU] = "99229SGT5K")</string>
 	</dict>
 	<key>SUEnableAutomaticChecks</key>
 	<true/>

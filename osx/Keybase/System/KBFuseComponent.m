@@ -11,6 +11,7 @@
 #import "KBAppDefines.h"
 #import <MPMessagePack/MPXPCClient.h>
 #import "KBInfoView.h"
+#import "KBFS.h"
 
 @interface KBFuseComponent ()
 @property KBInfoView *infoView;
@@ -44,6 +45,8 @@
 
   GHODictionary *statusInfo = [self componentStatusInfo];
   if (statusInfo) [info addEntriesFromOrderedDictionary:statusInfo];
+
+  info[@"Location"] = KBFUSE_BUNDLE;
 
   if (!_infoView) _infoView = [[KBInfoView alloc] init];
   [_infoView setProperties:info];

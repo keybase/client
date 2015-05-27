@@ -61,7 +61,7 @@ KB_SERVICE_VERSION=$VERSION # Use until we can better parse from command line
 
 PLIST=$DIR/../Keybase/Info.plist
 HELPER_PLIST=$DIR/../Helper/Info.plist
-FUSE_PLIST=$DIR/Fuse/osxfusefs.fs.bundle/Contents/Info.plist
+FUSE_PLIST=$DIR/Fuse/kbfuse.bundle/Contents/Info.plist
 KB_HELPER_VERSION=`/usr/libexec/PlistBuddy -c "Print :CFBundleShortVersionString" $HELPER_PLIST`
 KB_FUSE_VERSION=`/usr/libexec/PlistBuddy -c "Print :CFBundleShortVersionString" $FUSE_PLIST`
 KBFS_VERSION="0.1.1" # Doesn't report version yet

@@ -8,7 +8,13 @@
 
 #import <Foundation/Foundation.h>
 
-#import "KBHelperDefines.h"
+#import "KBDefines.h"
+
+#define KBFUSE_BUNDLE (@"/Library/Filesystems/kbfuse.fs")
+
+#define KEXT_LABEL (@"keybase.osxfuse.filesystems.osxfusefs")
+#define KEXT_LABEL_CFSTR CFSTR("keybase.osxfuse.filesystems.osxfusefs")
+
 
 @interface KBFS : NSObject
 
