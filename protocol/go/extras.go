@@ -17,6 +17,7 @@ const (
 	PUBLIC_UID       = "ffffffffffffffffffffffffffffff00"
 )
 
+// UID for the special "public" user.
 var PublicUID = UID(PUBLIC_UID)
 
 const (
@@ -44,6 +45,7 @@ func UIDFromString(s string) (UID, error) {
 	return UID(s), nil
 }
 
+// Used by unit tests.
 func MakeTestUID(n uint32) UID {
 	b := make([]byte, 8)
 	binary.LittleEndian.PutUint32(b, n)
@@ -81,13 +83,15 @@ func (u UID) Less(v UID) bool {
 	return u < v
 }
 
-func (u UID) GetBucket(bucketCount int) (int, error) {
+// Returns a number in [0, shardCount) which can be treated as roughly
+// uniformly distributed. Used for things that need to shard by user.
+func (u UID) GetShard(shardCount int) (int, error) {
 	bytes, err := hex.DecodeString(string(u))
 	if err != nil {
 		return 0, err
 	}
 	n := binary.LittleEndian.Uint32(bytes)
-	return int(n) % bucketCount, nil
+	return int(n) % shardCount, nil
 }
 
 func (s SigID) IsNil() bool {
