@@ -269,7 +269,7 @@ func IsPGP(key GenericKey) bool {
 	return ok
 }
 
-func ParseGenericKey(bundle string, gc *GlobalContext) (GenericKey, error) {
+func ParseGenericKey(bundle string) (GenericKey, error) {
 	if isPgpBundle(bundle) {
 		// PGP key
 		return ReadOneKeyFromString(bundle)
@@ -279,7 +279,7 @@ func ParseGenericKey(bundle string, gc *GlobalContext) (GenericKey, error) {
 	if err != nil {
 		return nil, err
 	}
-	return ImportKeypairFromKID(kid, gc)
+	return ImportKeypairFromKID(kid)
 }
 
 func isPgpBundle(armored string) bool {
