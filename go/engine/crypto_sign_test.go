@@ -33,7 +33,7 @@ func TestCryptoSign(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	err = kp.VerifyBytes(cse.GetSignature(), msg)
+	err = kp.Public.VerifySlice(msg, cse.GetSignature())
 	if err != nil {
 		t.Error(err)
 	}
