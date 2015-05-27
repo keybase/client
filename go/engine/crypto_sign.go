@@ -7,7 +7,7 @@ type CryptoSignEngine struct {
 	msg      []byte
 	reason   string
 	sig      []byte
-	verifier libkb.Verifier
+	verifier libkb.BytesVerifier
 }
 
 func NewCryptoSignEngine(ctx *libkb.GlobalContext, msg []byte, reason string) *CryptoSignEngine {
@@ -46,7 +46,7 @@ func (cse *CryptoSignEngine) Run(ctx *Context) (err error) {
 		return err
 	}
 
-	signer, ok := sigKey.(libkb.Signer)
+	signer, ok := sigKey.(libkb.BytesSigner)
 	if !ok {
 		return libkb.KeyCannotSignError{}
 	}
@@ -65,6 +65,6 @@ func (cse *CryptoSignEngine) GetSignature() []byte {
 	return cse.sig
 }
 
-func (cse *CryptoSignEngine) GetVerifier() libkb.Verifier {
+func (cse *CryptoSignEngine) GetVerifier() libkb.BytesVerifier {
 	return cse.verifier
 }

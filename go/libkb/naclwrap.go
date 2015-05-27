@@ -357,7 +357,7 @@ func (k NaclSigningKeyPair) VerifyString(sig string, msg []byte) (id keybase1.Si
 	return
 }
 
-func (k NaclSigningKeyPair) SignToBytes(msg []byte) (sig []byte, verifier Verifier, err error) {
+func (k NaclSigningKeyPair) SignToBytes(msg []byte) (sig []byte, verifier BytesVerifier, err error) {
 	if k.Private == nil {
 		err = NoSecretKeyError{}
 		return
@@ -376,6 +376,10 @@ func (k NaclSigningKeyPair) VerifyBytes(sig, msg []byte) (err error) {
 	return k.Public.Verify(msg, &sigArr)
 }
 
+func (k NaclSigningKeyPair) GetVerifyingKid() KID {
+	return k.GetKid()
+}
+
 func (k NaclDHKeyPair) SignToString(msg []byte) (sig string, id keybase1.SigID, err error) {
 	err = KeyCannotSignError{}
 	return
@@ -391,13 +395,17 @@ func (k NaclDHKeyPair) VerifyString(sig string, msg []byte) (id keybase1.SigID, 
 	return
 }
 
-func (k NaclDHKeyPair) SignToBytes(msg []byte) (sig []byte, verifier Verifier, err error) {
+func (k NaclDHKeyPair) SignToBytes(msg []byte) (sig []byte, verifier BytesVerifier, err error) {
 	err = KeyCannotSignError{}
 	return
 }
 
 func (k NaclDHKeyPair) VerifyBytes(sig, msg []byte) (err error) {
 	return KeyCannotVerifyError{}
+}
+
+func (k NaclDHKeyPair) GetVerifyingKid() KID {
+	return nil
 }
 
 func (s *NaclSig) ToPacket() (ret *KeybasePacket, err error) {
@@ -431,8 +439,8 @@ func (s *NaclSig) ArmoredEncode() (ret string, err error) {
 
 type NaclKeyPair interface {
 	GenericKey
-	Signer
-	Verifier
+	BytesSigner
+	BytesVerifier
 }
 
 func (k NaclSigningKeyPair) ToSKB(t *triplesec.Cipher) (*SKB, error) {
