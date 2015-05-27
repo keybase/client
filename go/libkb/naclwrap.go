@@ -155,10 +155,6 @@ func ImportNaclSigningKeyPairFromHex(s string) (ret NaclSigningKeyPair, err erro
 	return
 }
 
-func ImportNaclSigningKeyPairFromKid(k KID) (ret NaclSigningKeyPair, err error) {
-	return ImportNaclSigningKeyPairFromBytes([]byte(k), nil)
-}
-
 func ImportNaclDHKeyPairFromBytes(pub []byte, priv []byte) (ret NaclDHKeyPair, err error) {
 	var body []byte
 	if body, err = importNaclKid(KID(pub), byte(KID_NACL_DH), NACL_DH_KEYSIZE); err != nil {
