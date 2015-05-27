@@ -270,8 +270,8 @@ func (k AssertionFingerprint) IsFingerprint() bool { return true }
 func (k AssertionUid) IsUid() bool                 { return true }
 
 func (u AssertionUid) ToUid() keybase1.UID {
-	if len(u.uid) == 0 {
-		if tmp, err := UidFromHex(u.Value); err != nil {
+	if u.uid.IsNil() {
+		if tmp, err := UidFromHex(u.Value); err == nil {
 			u.uid = tmp
 		}
 	}

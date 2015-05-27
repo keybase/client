@@ -36,11 +36,11 @@ func GetUidVoid(w *jsonw.Wrapper, u *keybase1.UID, e *error) {
 }
 
 func UIDWrapper(uid keybase1.UID) *jsonw.Wrapper {
-	return jsonw.NewString(string(uid))
+	return jsonw.NewString(uid.String())
 }
 
 func UIDArg(uid keybase1.UID) HttpValue {
-	return S{Val: string(uid)}
+	return S{Val: uid.String()}
 }
 
 const (

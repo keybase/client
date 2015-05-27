@@ -34,7 +34,7 @@ func LoadUser(arg LoadUserArg) (ret *User, err error) {
 		}
 	}()
 
-	if len(arg.Uid) > 0 {
+	if arg.Uid.Exists() {
 		// noop
 	} else if len(arg.Name) == 0 && !arg.Self {
 		err = fmt.Errorf("no username given to LoadUser")
@@ -42,7 +42,7 @@ func LoadUser(arg LoadUserArg) (ret *User, err error) {
 		err = fmt.Errorf("If loading self, can't provide a username")
 	} else if !arg.Self {
 		// noop
-	} else if arg.Uid = myUID(arg.G(), arg.LoginContext); len(arg.Uid) == 0 {
+	} else if arg.Uid = myUID(arg.G(), arg.LoginContext); arg.Uid.IsNil() {
 		arg.Name = arg.G().Env.GetUsername()
 	}
 
@@ -54,7 +54,7 @@ func LoadUser(arg LoadUserArg) (ret *User, err error) {
 
 	var rres ResolveResult
 	var uid keybase1.UID
-	if len(arg.Uid) > 0 {
+	if arg.Uid.Exists() {
 		uid = arg.Uid
 	} else if len(arg.Name) == 0 {
 		err = LoadUserError{"we don't know the current user's UID or name"}
@@ -62,7 +62,7 @@ func LoadUser(arg LoadUserArg) (ret *User, err error) {
 	} else if rres = ResolveUid(arg.Name); rres.err != nil {
 		err = rres.err
 		return
-	} else if len(rres.uid) == 0 {
+	} else if rres.uid.IsNil() {
 		err = fmt.Errorf("No resolution for name=%s", arg.Name)
 		return
 	} else {
@@ -71,7 +71,7 @@ func LoadUser(arg LoadUserArg) (ret *User, err error) {
 	}
 
 	if !arg.Self {
-		if myuid := myUID(G, arg.LoginContext); len(myuid) > 0 && len(arg.Uid) > 0 && myuid == arg.Uid {
+		if myuid := myUID(G, arg.LoginContext); myuid.Exists() && arg.Uid.Exists() && myuid == arg.Uid {
 			arg.Self = true
 		}
 	}
@@ -225,7 +225,7 @@ func myUID(g *GlobalContext, lctx LoginContext) keybase1.UID {
 }
 
 func LookupMerkleLeaf(uid keybase1.UID, local *User) (f *MerkleUserLeaf, err error) {
-	if len(uid) == 0 {
+	if uid.IsNil() {
 		err = fmt.Errorf("uid parameter for LookupMerkleLeaf empty")
 		return
 	}

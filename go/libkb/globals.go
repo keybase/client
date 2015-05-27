@@ -284,7 +284,7 @@ func (g *GlobalContext) GetMyUID() keybase1.UID {
 	g.LoginState().LocalSession(func(s *Session) {
 		uid = s.GetUID()
 	}, "G - GetMyUID - GetUID")
-	if len(uid) > 0 {
+	if uid.Exists() {
 		return uid
 	}
 

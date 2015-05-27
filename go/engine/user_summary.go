@@ -176,7 +176,7 @@ func (e *UserSummary) uidlist() string {
 	}
 	s := make([]string, len(e.uids))
 	for i, u := range e.uids {
-		s[i] = string(u)
+		s[i] = u.String()
 	}
 	return strings.Join(s, ",")
 }

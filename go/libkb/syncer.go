@@ -29,8 +29,8 @@ func RunSyncer(s Syncer, aUid keybase1.UID, loggedIn bool, sr SessionReader) (er
 	// If no UID was passed, and if no UID is local to the syncer, we still
 	// can pull one from the environment (assuming my UID).  If that fails,
 	// we have nothing to do.
-	if len(sUid) == 0 && len(aUid) == 0 {
-		if aUid = s.G().GetMyUID(); len(aUid) == 0 {
+	if sUid.IsNil() && aUid.IsNil() {
+		if aUid = s.G().GetMyUID(); aUid.IsNil() {
 			err = NotFoundError{"No UID given to syncer"}
 			return
 		}
@@ -38,10 +38,10 @@ func RunSyncer(s Syncer, aUid keybase1.UID, loggedIn bool, sr SessionReader) (er
 		return
 	}
 
-	if len(sUid) > 0 && len(aUid) > 0 && sUid != aUid {
+	if sUid.Exists() && aUid.Exists() && sUid != aUid {
 		err = UidMismatchError{fmt.Sprintf("UID clash in Syncer: %s != %s", sUid, aUid)}
 		return
-	} else if len(aUid) > 0 {
+	} else if aUid.Exists() {
 		uid = aUid
 		s.setUID(aUid)
 	} else {

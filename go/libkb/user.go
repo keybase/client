@@ -428,7 +428,7 @@ func (u *User) GetRemoteTrackingStatementFor(s string, i keybase1.UID) (link *Tr
 func (u *User) ToOkProofSet() *ProofSet {
 	proofs := []Proof{
 		{Key: "keybase", Value: u.name},
-		{Key: "uid", Value: string(u.id)},
+		{Key: "uid", Value: u.id.String()},
 	}
 	for _, fp := range u.GetActivePgpFingerprints(true) {
 		proofs = append(proofs, Proof{Key: "fingerprint", Value: fp.String()})

@@ -24,7 +24,7 @@ func TestConcurrentUserCache(t *testing.T) {
 				// nlock doesn't really matter in this situation, but
 				// code using usercache holds it during Put(), so
 				// putting it here too.
-				nlock := uc.LockUID(string(uid))
+				nlock := uc.LockUID(uid.String())
 				uc.Put(u)
 				nlock.Unlock()
 			}
@@ -40,7 +40,7 @@ func TestConcurrentUserCache(t *testing.T) {
 				u := keybase1.UID(hex.EncodeToString(x))
 				// nlock doesn't really matter, but code using
 				// usercache holds it during Get(), so putting it here too.
-				nlock := uc.LockUID(string(u))
+				nlock := uc.LockUID(u.String())
 				uc.Get(u)
 				nlock.Unlock()
 			}

@@ -31,7 +31,7 @@ func (u UserConfig) GetDeviceID() (ret *DeviceID) { return u.importedDeviceId }
 
 func NewUserConfig(id keybase1.UID, name string, salt []byte, dev *DeviceID) *UserConfig {
 	ret := &UserConfig{
-		Id:               string(id),
+		Id:               id.String(),
 		Name:             name,
 		Salt:             hex.EncodeToString(salt),
 		Device:           nil,

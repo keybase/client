@@ -40,7 +40,7 @@ func (e *ListTrackersEngine) Name() string {
 // GetPrereqs returns the engine prereqs (none).
 func (e *ListTrackersEngine) GetPrereqs() EnginePrereqs {
 	session := false
-	if len(e.uid) == 0 && len(e.username) == 0 {
+	if e.uid.IsNil() && len(e.username) == 0 {
 		session = true
 	}
 	return EnginePrereqs{Session: session}
@@ -89,7 +89,7 @@ func (e *ListTrackersEngine) ExportedList() (ret []keybase1.Tracker) {
 }
 
 func (e *ListTrackersEngine) ensureUID() error {
-	if len(e.uid) > 0 {
+	if e.uid.Exists() {
 		return nil
 	}
 	if len(e.username) == 0 {

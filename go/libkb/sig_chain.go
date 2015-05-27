@@ -511,15 +511,10 @@ type SigChainLoader struct {
 
 //========================================================================
 
-// XXX better name?
-func (l *SigChainLoader) GetUidString() string {
-	return string(l.user.GetUID())
-}
-
 func (l *SigChainLoader) LoadLastLinkIdFromStorage() (mt *MerkleTriple, err error) {
 	var tmp MerkleTriple
 	var found bool
-	found, err = G.LocalDb.GetInto(&tmp, DbKey{Typ: l.chainType.DbType, Key: l.GetUidString()})
+	found, err = G.LocalDb.GetInto(&tmp, l.dbKey())
 	if err != nil {
 		G.Log.Debug("| Error loading last link: %s", err)
 	} else if !found {
@@ -549,10 +544,10 @@ func (l *SigChainLoader) LoadLinksFromStorage() (err error) {
 	var mt *MerkleTriple
 	good_key := true
 
-	uid_s := l.GetUidString()
+	uid := l.user.GetUID()
 
-	G.Log.Debug("+ SigChainLoader.LoadFromStorage(%s)", uid_s)
-	defer func() { G.Log.Debug("- SigChainLoader.LoadFromStorage(%s) -> %s", uid_s, ErrToOk(err)) }()
+	G.Log.Debug("+ SigChainLoader.LoadFromStorage(%s)", uid)
+	defer func() { G.Log.Debug("- SigChainLoader.LoadFromStorage(%s) -> %s", uid, ErrToOk(err)) }()
 
 	if mt, err = l.LoadLastLinkIdFromStorage(); err != nil || mt == nil {
 		G.Log.Debug("| Failed to load last link ID")
@@ -697,9 +692,9 @@ func (l *SigChainLoader) CheckFreshness() (current bool, err error) {
 
 //========================================================================
 
-func (l *SigChainLoader) selfUID() keybase1.UID {
+func (l *SigChainLoader) selfUID() (uid keybase1.UID) {
 	if !l.self {
-		return ""
+		return
 	}
 	return l.user.GetUID()
 }
@@ -724,15 +719,15 @@ func (l *SigChainLoader) VerifySigsAndComputeKeys() (err error) {
 
 //========================================================================
 
+func (l *SigChainLoader) dbKey() DbKey {
+	return DbKeyUID(l.chainType.DbType, l.user.GetUID())
+}
+
 func (l *SigChainLoader) StoreTail() (err error) {
 	if l.dirtyTail == nil {
 		return
 	}
-	err = G.LocalDb.PutObj(
-		DbKey{Typ: l.chainType.DbType, Key: l.GetUidString()},
-		nil,
-		l.dirtyTail,
-	)
+	err = G.LocalDb.PutObj(l.dbKey(), nil, l.dirtyTail)
 	G.Log.Debug("| Storing dirtyTail @ %d (%v)", l.dirtyTail.Seqno, l.dirtyTail)
 	if err == nil {
 		l.dirtyTail = nil
@@ -756,15 +751,15 @@ func (l *SigChainLoader) Load() (ret *SigChain, err error) {
 	var current bool
 	var preload bool
 
-	uid_s := l.GetUidString()
+	uid := l.user.GetUID()
 
-	G.Log.Debug("+ SigChainLoader.Load(%s)", uid_s)
+	G.Log.Debug("+ SigChainLoader.Load(%s)", uid)
 	defer func() {
-		G.Log.Debug("- SigChainLoader.Load(%s) -> (%v, %s)", uid_s, (ret != nil), ErrToOk(err))
+		G.Log.Debug("- SigChainLoader.Load(%s) -> (%v, %s)", uid, (ret != nil), ErrToOk(err))
 	}()
 
 	stage := func(s string) {
-		G.Log.Debug("| SigChainLoader.Load(%s) %s", uid_s, s)
+		G.Log.Debug("| SigChainLoader.Load(%s) %s", uid, s)
 	}
 
 	stage("GetFingerprint")

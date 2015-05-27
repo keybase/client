@@ -532,6 +532,7 @@ func (vp *VerificationPath) VerifyUsername() (username string, err error) {
 		return
 	}
 
+	// XXX fix this: leaf.GetString() -> uid, then compare uids.
 	var uid2 string
 	if uid2, err = leaf.GetString(); err != nil {
 		return

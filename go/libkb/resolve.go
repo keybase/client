@@ -31,7 +31,7 @@ func ResolveUid(input string) (res ResolveResult) {
 	if au, res.err = ParseAssertionUrl(input, false); res.err != nil {
 		return
 	}
-	res = _resolveUid(au)
+	res = resolveUid(au)
 	return
 }
 
@@ -40,16 +40,16 @@ func ResolveUidValuePair(key, value string) (res ResolveResult) {
 
 	var au AssertionUrl
 	if au, res.err = ParseAssertionUrlKeyValue(key, value, false); res.err != nil {
-		res = _resolveUid(au)
+		res = resolveUid(au)
 	}
 
 	G.Log.Debug("- Resolve username (%s,%s) -> %v", key, value, res.uid)
 	return
 }
 
-func _resolveUid(au AssertionUrl) ResolveResult {
+func resolveUid(au AssertionUrl) ResolveResult {
 	// A standard keybase UID, so it's already resolved
-	if tmp := au.ToUid(); len(tmp) > 0 {
+	if tmp := au.ToUid(); tmp.Exists() {
 		return ResolveResult{uid: tmp}
 	}
 
@@ -63,13 +63,13 @@ func _resolveUid(au AssertionUrl) ResolveResult {
 		return *p
 	}
 
-	r := __resolveUsername(au)
+	r := resolveUsername(au)
 	G.ResolveCache.Put(ck, r)
 
 	return r
 }
 
-func __resolveUsername(au AssertionUrl) (res ResolveResult) {
+func resolveUsername(au AssertionUrl) (res ResolveResult) {
 
 	var key, val string
 	var ares *ApiRes

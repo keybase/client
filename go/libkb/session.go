@@ -130,7 +130,7 @@ func (s *Session) SetDeviceProvisioned(devid string) {
 
 func (s *Session) isConfigLoggedIn() bool {
 	reader := s.G().Env.GetConfig()
-	return reader.GetUsername() != "" && reader.GetDeviceID() != nil && len(reader.GetUID()) > 0
+	return reader.GetUsername() != "" && reader.GetDeviceID() != nil && reader.GetUID().Exists()
 }
 
 // The session file can be out of sync with the config file, particularly when

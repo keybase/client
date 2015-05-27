@@ -119,14 +119,15 @@ func (e *UntrackEngine) loadThem() (them *libkb.User, remoteLink, localLink *lib
 		uidTrusted = true
 	}
 
-	if len(uid) == 0 {
+	if uid.IsNil() {
 		res := libkb.ResolveUid(e.arg.TheirName)
 		if err = res.GetError(); err != nil {
 			return
 		}
 
 		// This is an untrusted uid.
-		if uid = res.GetUID(); len(uid) == 0 {
+		uid = res.GetUID()
+		if uid.IsNil() {
 			err = libkb.NewUntrackError("Could not resolve uid for @%s", e.arg.TheirName)
 			return
 		}

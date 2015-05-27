@@ -40,45 +40,25 @@ func UIDFromString(s string) (UID, error) {
 	return UID(s), nil
 }
 
-/*
-func UidFromHex(s string) (u *UID, err error) {
-	var bv []byte
-	bv, err = hex.DecodeString(s)
-	if err != nil {
-		return
-	}
-	if len(bv) != UID_LEN {
-		err = fmt.Errorf("Bad UID '%s'; must be %d bytes long", s, UID_LEN)
-		return
-	}
-	if bv[len(bv)-1] != UID_SUFFIX && bv[len(bv)-1] != UID_SUFFIX_2 {
-		err = fmt.Errorf("Bad UID '%s': must end in 0x%x or 0x%x", s, UID_SUFFIX, UID_SUFFIX_2)
-		return
-	}
-	out := UID{}
-	copy(out[:], bv[0:UID_LEN])
-	u = &out
-	return
-}
-
-// UnmarshalJSON implements the json.Unmarshaler interface.
-func (u *UID) UnmarshalJSON(b []byte) error {
-	v, err := UidFromHex(Unquote(b))
-	if err != nil {
-		return err
-	}
-	*u = *v
-	return nil
-}
-
 func (u UID) String() string {
-	return hex.EncodeToString(u[:])
+	return string(u)
 }
 
-func (u *UID) MarshalJSON() ([]byte, error) {
-	return Quote(u.String()), nil
+func (u UID) IsNil() bool {
+	return len(u) == 0
 }
-*/
+
+func (u UID) Exists() bool {
+	return !u.IsNil()
+}
+
+func (s SigID) IsNil() bool {
+	return len(s) == 0
+}
+
+func (s SigID) Exists() bool {
+	return !s.IsNil()
+}
 
 func (s SigID) ToDisplayString(verbose bool) string {
 	if verbose {
