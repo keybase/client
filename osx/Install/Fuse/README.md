@@ -8,7 +8,7 @@ Checkout the OSXFuse (osxfuse-2.7.6) version:
 
 In `build.sh` replace `M_KEXT_ID` with `keybase.osxfuse.filesystems.osxfusefs`.
 
-In kext/common/fuse_version.h replace `OSXFUSE_IDENTIFIER_LITERAL` with `keybase.osxfuse`.
+In `kext/common/fuse_version.h` replace `OSXFUSE_IDENTIFIER_LITERAL` with `keybase.osxfuse`.
 
 Clean and build the small dist:
 
@@ -39,7 +39,7 @@ Make sure the entire bundle is included in the main Keybase target.
 
 ### Manual Install
 
-The app will install it but if you want to install it manually:
+If you want to install it manually:
 
     sudo ditto kbfuse.bundle /Library/Filesystems/kbfuse.fs
     sudo chown -R 0:0 /Library/Filesystems/kbfuse.fs
