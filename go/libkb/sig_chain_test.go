@@ -200,23 +200,15 @@ func doChainTest(t *testing.T, testCase TestCase) {
 	// Success!
 }
 
-// This is just for compatibility. Right now ParseKeyFamily wants an all-keys
-// map, even though it doesn't trust the keys in that map. This constructs the
-// map from the list of bundles. Eventually we will make KeyFamily take the
-// list of bundles directly.
 func createKeyFamily(bundles []string) (*KeyFamily, error) {
-	allKeys := jsonw.NewDictionary()
-	for _, bundle := range bundles {
-		key, err := ParseGenericKey(bundle, G)
+	allKeys := jsonw.NewArray(len(bundles))
+	for i, bundle := range bundles {
+		err := allKeys.SetIndex(i, jsonw.NewString(bundle))
 		if err != nil {
 			return nil, err
 		}
-		keyObj := jsonw.NewDictionary()
-		keyObj.SetKey("bundle", jsonw.NewString(bundle))
-		keyObj.SetKey("key_algo", jsonw.NewInt(int(key.GetAlgoType())))
-		allKeys.SetKey(key.GetKid().String(), keyObj)
 	}
 	publicKeys := jsonw.NewDictionary()
-	publicKeys.SetKey("all", allKeys)
+	publicKeys.SetKey("all_bundles", allKeys)
 	return ParseKeyFamily(publicKeys)
 }

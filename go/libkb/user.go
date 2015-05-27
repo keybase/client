@@ -444,7 +444,7 @@ func (u *User) ToOkProofSet() *ProofSet {
 // we can use the key without needing a refresh from the server.  The eventual
 // refresh we do get from the server will clobber our work here.
 func (u *User) localDelegateKey(key GenericKey, sigID keybase1.SigID, kid KID, isSibkey bool, isEldest bool) (err error) {
-	if err = u.keyFamily.LocalDelegate(key, isSibkey, kid == nil); err != nil {
+	if err = u.keyFamily.LocalDelegate(key); err != nil {
 		return
 	}
 	if u.sigChain() == nil {

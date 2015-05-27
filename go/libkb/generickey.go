@@ -278,7 +278,7 @@ func IsPGP(key GenericKey) bool {
 }
 
 func ParseGenericKey(bundle string, gc *GlobalContext) (GenericKey, error) {
-	if isPgp(bundle) {
+	if isPgpBundle(bundle) {
 		// PGP key
 		return ReadOneKeyFromString(bundle)
 	}
@@ -288,4 +288,8 @@ func ParseGenericKey(bundle string, gc *GlobalContext) (GenericKey, error) {
 		return nil, err
 	}
 	return ImportKeypairFromKID(kid, gc)
+}
+
+func isPgpBundle(armored string) bool {
+	return strings.HasPrefix(armored, "-----BEGIN PGP")
 }

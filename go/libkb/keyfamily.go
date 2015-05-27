@@ -56,20 +56,6 @@ func (cki ComputedKeyInfo) GetETime() time.Time {
 	return UnixToTimeMappingZero(cki.ETime)
 }
 
-// As returned by user/lookup.json; these records are not to be trusted,
-// we need to Verify this data against the sigchain as we play the sigchain
-// forward.
-type ServerKeyRecord struct {
-	Bundle  string   `json:"bundle"`
-	KeyAlgo AlgoType `json:"key_algo"`
-	// There are many more fields in the server's response, but we ignore them
-	// to avoid trusting the server, and instead compute them ourselves.
-
-	key GenericKey // not exported, so no json field tag necessary
-
-	Contextified
-}
-
 // When we play a sigchain forward, it yields ComputedKeyInfos (CKIs). We're going to
 // store CKIs separately from the keys, since the server can clobber the
 // former.  We should rewrite CKIs every time we (re)check a user's SigChain
@@ -93,13 +79,9 @@ type ComputedKeyInfos struct {
 	WebDeviceID string
 }
 
-// As returned by user/lookup.json; these records are not to be trusted,
-// we need to Verify this data against the sigchain as we play the sigchain
-// forward.
+// As returned by user/lookup.json
 type RawKeyFamily struct {
-	// There are many more fields in the server's response, but we ignore them
-	// to avoid trusting the server, and instead compute them ourselves.
-	AllKeys map[KIDMapKey]*ServerKeyRecord `json:"all"`
+	AllBundles []string `json:"all_bundles"`
 }
 
 // Once the client downloads a RawKeyFamily, it converts it into a KeyFamily,
@@ -111,7 +93,7 @@ type KeyFamily struct {
 	pgp2kid map[PgpFingerprintMapKey]KID
 	kid2pgp map[KIDMapKey]PgpFingerprint
 
-	AllKeys map[KIDMapKey]*ServerKeyRecord
+	AllKeys map[KIDMapKey]GenericKey
 
 	Contextified
 }
@@ -298,36 +280,22 @@ func ParseKeyFamily(jw *jsonw.Wrapper) (ret *KeyFamily, err error) {
 		return
 	}
 
-	kf.AllKeys = rkf.AllKeys
-
-	// Take all ServerKeyRecords in this KeyMap and import the key
-	// bundle into a GenericKey object that can perform crypto
-	// ops. Also collects all PgpKeyBundles along the way.
-	for k, v := range kf.AllKeys {
-		var pgp *PgpKeyBundle
-		if pgp, err = v.Import(); err != nil {
-			return
+	// Parse the keys, and collect the PGP keys to map their fingerprints.
+	kf.AllKeys = make(map[KIDMapKey]GenericKey)
+	for _, bundle := range rkf.AllBundles {
+		key, err := ParseGenericKey(bundle, G)
+		if err != nil {
+			return nil, err
 		}
-
-		var server_given_kid KID
-		if server_given_kid, err = k.ToKID(); err != nil {
-			return
-		}
-
-		computed_kid := v.key.GetKid()
-		if !server_given_kid.Eq(computed_kid) {
-			err = WrongKidError{server_given_kid, computed_kid}
-			return
-		}
-
-		if pgp != nil {
+		kf.AllKeys[key.GetKid().ToMapKey()] = key
+		// Collect the PGP keys.
+		pgp, isPGP := key.(*PgpKeyBundle)
+		if isPGP {
 			kf.pgps = append(kf.pgps, pgp)
 		}
 	}
 
-	// Index all Sibkeys and Subkeys both by KID and by
-	// PgpFingerprint, if available.
-
+	// Map the PGP fingerprints.
 	for _, p := range kf.pgps {
 		fp := p.GetFingerprint()
 		kid := p.GetKid()
@@ -336,25 +304,6 @@ func ParseKeyFamily(jw *jsonw.Wrapper) (ret *KeyFamily, err error) {
 	}
 
 	ret = &kf
-	return
-}
-
-func (skr *ServerKeyRecord) Import() (pgp *PgpKeyBundle, err error) {
-	switch {
-	case IsPgpAlgo(skr.KeyAlgo):
-		if pgp, err = ReadOneKeyFromString(skr.Bundle); err == nil {
-			skr.key = pgp
-		}
-	case skr.KeyAlgo == KID_NACL_EDDSA:
-		skr.key, err = ImportNaclSigningKeyPairFromHex(skr.Bundle, skr.G())
-	case skr.KeyAlgo == KID_NACL_DH:
-		skr.key, err = ImportNaclDHKeyPairFromHex(skr.Bundle, skr.G())
-	default:
-		err = BadKeyError{fmt.Sprintf("algo=%d is unknown", skr.KeyAlgo)}
-	}
-	if err == nil {
-		G.Log.Debug("| Imported Key %s", skr.key.GetKid())
-	}
 	return
 }
 
@@ -389,12 +338,10 @@ func (kf KeyFamily) KIDToFOKID(k KID) FOKID {
 // could be expired or revoked. Most callers should prefer the FindActive*
 // methods on the ComputedKeyFamily.
 func (kf KeyFamily) FindKeyWithKIDUnsafe(kid KID) (GenericKey, error) {
-	if skr, ok := kf.AllKeys[kid.ToMapKey()]; !ok {
-		return nil, KeyFamilyError{fmt.Sprintf("No server key record found for %s", kid.String())}
-	} else if skr.key == nil {
+	if key, ok := kf.AllKeys[kid.ToMapKey()]; !ok {
 		return nil, KeyFamilyError{fmt.Sprintf("No key found for %s", kid.String())}
 	} else {
-		return skr.key, nil
+		return key, nil
 	}
 }
 
@@ -608,16 +555,12 @@ func (ckf ComputedKeyFamily) FindKeybaseName(s string) bool {
 
 // LocalDelegate performs a local key delegation, without the server's permissions.
 // We'll need to do this when a key is locally generated.
-func (kf *KeyFamily) LocalDelegate(key GenericKey, isSibkey bool, eldest bool) (err error) {
+func (kf *KeyFamily) LocalDelegate(key GenericKey) (err error) {
 	if pgp, ok := key.(*PgpKeyBundle); ok {
 		kf.pgp2kid[pgp.GetFingerprint().ToMapKey()] = pgp.GetKid()
 		kf.pgps = append(kf.pgps, pgp)
 	}
-	skr := &ServerKeyRecord{key: key}
-	skr.SetGlobalContext(kf.G())
-
-	kf.AllKeys[key.GetKid().ToMapKey()] = skr
-
+	kf.AllKeys[key.GetKid().ToMapKey()] = key
 	return
 }
 
@@ -642,13 +585,13 @@ func (ckf ComputedKeyFamily) GetKeyRole(kid KID) (ret KeyRole) {
 
 // GetAllActiveSibkeys gets all active Sibkeys from given ComputedKeyFamily.
 func (ckf ComputedKeyFamily) GetAllActiveSibkeysAtTime(t time.Time) (ret []GenericKey) {
-	for mapKey, skr := range ckf.kf.AllKeys {
+	for mapKey, key := range ckf.kf.AllKeys {
 		kid, err := mapKey.ToKID()
 		if err != nil {
 			continue
 		}
-		if ckf.GetKeyRoleAtTime(kid, t) == DLG_SIBKEY && skr.key != nil {
-			ret = append(ret, skr.key)
+		if ckf.GetKeyRoleAtTime(kid, t) == DLG_SIBKEY && key != nil {
+			ret = append(ret, key)
 		}
 	}
 	return
@@ -660,13 +603,13 @@ func (ckf ComputedKeyFamily) GetAllActiveSibkeys() (ret []GenericKey) {
 }
 
 func (ckf ComputedKeyFamily) GetAllActiveSubkeysAtTime(t time.Time) (ret []GenericKey) {
-	for mapKey, skr := range ckf.kf.AllKeys {
+	for mapKey, key := range ckf.kf.AllKeys {
 		kid, err := mapKey.ToKID()
 		if err != nil {
 			continue
 		}
-		if ckf.GetKeyRoleAtTime(kid, t) == DLG_SUBKEY && skr.key != nil {
-			ret = append(ret, skr.key)
+		if ckf.GetKeyRoleAtTime(kid, t) == DLG_SUBKEY && key != nil {
+			ret = append(ret, key)
 		}
 	}
 	return
