@@ -4,8 +4,6 @@ import (
 	"errors"
 	"fmt"
 
-	"golang.org/x/crypto/nacl/box"
-
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/protocol/go"
 )
@@ -60,17 +58,13 @@ func (cse *CryptoDecryptTLFEngine) Run(ctx *Context) (err error) {
 		return
 	}
 
-	keyPair, ok := key.(libkb.NaclDHKeyPair)
+	unboxer, ok := key.(libkb.Unboxer)
 	if !ok {
 		err = errors.New("Key not a DHKeyPair")
 		return
 	}
 
-	nonce := [24]byte(cse.nonce)
-	pubKey := [32]byte(cse.peersPublicKey)
-	privKey := [32]byte(*keyPair.Private)
-
-	decryptedData, ok := box.Open(nil, cse.encryptedData, &nonce, &pubKey, &privKey)
+	decryptedData, ok := unboxer.Unbox(cse.encryptedData, [24]byte(cse.nonce), [32]byte(cse.peersPublicKey))
 	if !ok {
 		err = errors.New("Decryption error (TLF crypt key client half)")
 		return

@@ -367,6 +367,10 @@ func (k NaclDHKeyPair) VerifyString(sig string, msg []byte) (id keybase1.SigID, 
 	return
 }
 
+func (k NaclDHKeyPair) Unbox(boxedData []byte, nonce [24]byte, peersPublicKey [32]byte) ([]byte, bool) {
+	return box.Open(nil, boxedData, &nonce, &peersPublicKey, (*[32]byte)(k.Private))
+}
+
 func (s *NaclSigInfo) ToPacket() (ret *KeybasePacket, err error) {
 	ret = &KeybasePacket{
 		Version: KEYBASE_PACKET_V1,
