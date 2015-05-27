@@ -38,6 +38,15 @@ func (k NaclSigningKeyPublic) Verify(msg []byte, sig *[ed25519.SignatureSize]byt
 	return nil
 }
 
+func (k NaclSigningKeyPublic) VerifySlice(msg, sig []byte) error {
+	var sigArr [ed25519.SignatureSize]byte
+	if len(sig) != len(sigArr) {
+		return VerificationError{}
+	}
+	copy(sigArr[:], sig)
+	return k.Verify(msg, &sigArr)
+}
+
 func (k KID) ToNaclSigningKeyPublic() *NaclSigningKeyPublic {
 	if len(k) != 3+ed25519.PublicKeySize {
 		return nil
@@ -349,15 +358,6 @@ func (k NaclSigningKeyPair) VerifyString(sig string, msg []byte) (id keybase1.Si
 	}
 	id = resId
 	return
-}
-
-func (k NaclSigningKeyPair) VerifyBytes(sig, msg []byte) (err error) {
-	var sigArr [ed25519.SignatureSize]byte
-	if len(sig) != len(sigArr) {
-		return VerificationError{}
-	}
-	copy(sigArr[:], sig)
-	return k.Public.Verify(msg, &sigArr)
 }
 
 func (k NaclSigningKeyPair) GetVerifyingKid() KID {
