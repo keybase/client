@@ -48,7 +48,7 @@ func MakeTestUID(n uint32) UID {
 	b := make([]byte, 8)
 	binary.LittleEndian.PutUint32(b, n)
 	s := hex.EncodeToString(b)
-	c := UID_LEN - len(UID_SUFFIX_HEX) - len(s)
+	c := 2*UID_LEN - len(UID_SUFFIX_HEX) - len(s)
 	s += strings.Repeat("0", c) + UID_SUFFIX_HEX
 	uid, err := UIDFromString(s)
 	if err != nil {
