@@ -78,6 +78,15 @@ func (u UID) Less(v UID) bool {
 	return u < v
 }
 
+func (u UID) GetBucket(bucketCount int) (int, error) {
+	bytes, err := hex.DecodeString(string(u[:UID_LEN-len(UID_SUFFIX_HEX)]))
+	if err != nil {
+		return 0, err
+	}
+	n := binary.LittleEndian.Uint32(bytes)
+	return int(n) % bucketCount, nil
+}
+
 func (s SigID) IsNil() bool {
 	return len(s) == 0
 }
