@@ -29,11 +29,11 @@ func TestCryptoSign(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	kp, err := libkb.ImportNaclSigningKeyPairFromKid(cse.GetVerifyingKeyKid())
-	if err != nil {
-		t.Fatal(err)
+	public := cse.GetVerifyingKeyKid().ToNaclSigningKeyPublic()
+	if public == nil {
+		t.Fatal("nil key")
 	}
-	err = kp.Public.VerifySlice(msg, cse.GetSignature())
+	err = public.VerifySlice(msg, cse.GetSignature())
 	if err != nil {
 		t.Error(err)
 	}
