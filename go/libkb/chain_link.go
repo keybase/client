@@ -338,7 +338,7 @@ func (c *ChainLink) Unpack(trusted bool, selfUID keybase1.UID) (err error) {
 	}
 
 	// only unpack the proof_text_full if owner of this link
-	if tmp.uid == selfUID {
+	if tmp.uid.Equal(selfUID) {
 		ptf := c.packed.AtKey("proof_text_full")
 		if !ptf.IsNil() {
 			ptf.GetStringVoid(&tmp.proofText, &err)
@@ -366,10 +366,9 @@ func (c *ChainLink) Unpack(trusted bool, selfUID keybase1.UID) (err error) {
 }
 
 func (c *ChainLink) CheckNameAndId(s string, i keybase1.UID) error {
-	if c.unpacked.uid != i {
+	if c.unpacked.uid.NotEqual(i) {
 		return UidMismatchError{
-			fmt.Sprintf("UID mismatch %s != %s in Link %s",
-				c.unpacked.uid, i, c.id),
+			fmt.Sprintf("UID mismatch %s != %s in Link %s", c.unpacked.uid, i, c.id),
 		}
 	}
 	if !Cicmp(c.unpacked.username, s) {
@@ -666,7 +665,7 @@ func (c *ChainLink) MatchFingerprint(fp PgpFingerprint) bool {
 }
 
 func (c *ChainLink) MatchUidAndUsername(uid keybase1.UID, username string) bool {
-	return uid == c.unpacked.uid && username == c.unpacked.username
+	return uid.Equal(c.unpacked.uid) && username == c.unpacked.username
 }
 
 // ToLinkSummary converts a ChainLink into a MerkleTriple object.

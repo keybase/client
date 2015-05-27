@@ -17,7 +17,7 @@ type Tracker keybase1.Tracker
 func (t Tracker) GetUID() keybase1.UID { return keybase1.UID(t.Tracker) }
 
 func (t Tracker) Eq(t2 Tracker) bool {
-	return t.GetUID() == t2.GetUID() && t.Status == t2.Status && t.Mtime == t2.Mtime
+	return t.GetUID().Equal(t2.GetUID()) && t.Status == t2.Status && t.Mtime == t2.Mtime
 }
 
 type Trackers struct {

@@ -71,7 +71,7 @@ func LoadUser(arg LoadUserArg) (ret *User, err error) {
 	}
 
 	if !arg.Self {
-		if myuid := myUID(G, arg.LoginContext); myuid.Exists() && arg.Uid.Exists() && myuid == arg.Uid {
+		if myuid := myUID(G, arg.LoginContext); myuid.Exists() && arg.Uid.Exists() && myuid.Equal(arg.Uid) {
 			arg.Self = true
 		}
 	}
@@ -178,7 +178,7 @@ func LoadUserFromLocalStorage(uid keybase1.UID) (u *User, err error) {
 		return nil, err
 	}
 
-	if u.id != uid {
+	if u.id.NotEqual(uid) {
 		err = fmt.Errorf("Bad lookup; uid mismatch: %s != %s", uid, u.id)
 	}
 

@@ -536,7 +536,7 @@ func (vp *VerificationPath) VerifyUsername() (username string, err error) {
 	if uid2, err = GetUID(leaf); err != nil {
 		return
 	}
-	if vp.uid != uid2 {
+	if vp.uid.NotEqual(uid2) {
 		err = UidMismatchError{fmt.Sprintf("UID %s != %s via merkle tree", uid2, vp.uid)}
 		return
 	}
@@ -692,11 +692,11 @@ func (mc *MerkleClient) LastRootToSigJson() (ret *jsonw.Wrapper, err error) {
 func (mul *MerkleUserLeaf) MatchUser(u *User, uid keybase1.UID, un string) (err error) {
 	if mul.username != u.GetName() {
 		err = MerkleClashError{fmt.Sprintf("vs loaded object: username %s != %s", mul.username, u.GetName())}
-	} else if mul.uid != u.GetUID() {
+	} else if mul.uid.NotEqual(u.GetUID()) {
 		err = MerkleClientError{fmt.Sprintf("vs loaded object: UID %s != %s", mul.uid, u.GetUID())}
 	} else if len(un) > 0 && mul.username != un {
 		err = MerkleClashError{fmt.Sprintf("vs given arg: username %s != %s", mul.username, un)}
-	} else if uid != mul.uid {
+	} else if uid.NotEqual(mul.uid) {
 		err = MerkleClashError{fmt.Sprintf("vs given arg: UID %s != %s", uid, mul.uid)}
 	}
 	return

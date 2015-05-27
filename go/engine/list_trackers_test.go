@@ -32,7 +32,7 @@ func TestListTrackers(t *testing.T) {
 
 	found := false
 	for _, x := range trackers {
-		if x.GetUID() == buid {
+		if x.GetUID().Equal(buid) {
 			found = true
 			break
 		}

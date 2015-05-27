@@ -1019,7 +1019,7 @@ func (idt *IdentityTable) VerifySelfSig(s string, uid keybase1.UID) bool {
 		if link.IsRevoked() {
 			continue
 		}
-		if link.GetUsername() == s && link.GetUID() == uid {
+		if link.GetUsername() == s && link.GetUID().Equal(uid) {
 			G.Log.Debug("| Found self-signature for %s @%s", s,
 				link.ToDebugString())
 			return true
@@ -1051,7 +1051,7 @@ func (idt *IdentityTable) GetTrackingStatementFor(s string, uid keybase1.UID) (
 				// noop; continue on!
 			} else if uid2, e2 := link.GetTrackedUid(); e2 != nil {
 				err = fmt.Errorf("Bad tracking statement for %s: %s", s, e2.Error())
-			} else if uid != uid2 {
+			} else if uid.NotEqual(uid2) {
 				err = fmt.Errorf("Bad UID in tracking statement for %s: %s != %s", s, uid, uid2)
 			} else {
 				ret = link

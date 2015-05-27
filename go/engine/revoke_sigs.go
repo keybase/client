@@ -47,7 +47,7 @@ func (e *RevokeSigsEngine) getSigIDsToRevoke(me *libkb.User) ([]keybase1.SigID, 
 	copy(ret, e.sigIDs)
 	for _, seqno := range e.seqnos {
 		sigID := me.GetSigIDFromSeqno(seqno)
-		if len(sigID) == 0 {
+		if sigID.IsNil() {
 			return nil, fmt.Errorf("Sequence number %d did not correspond to any signature.", seqno)
 		}
 		ret = append(ret, sigID)

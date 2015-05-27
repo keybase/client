@@ -60,7 +60,7 @@ func UsernameToUID(s string) keybase1.UID {
 
 func CheckUIDAgainstUsername(uid keybase1.UID, username string) (err error) {
 	u2 := UsernameToUID(username)
-	if uid != u2 {
+	if uid.NotEqual(u2) {
 		err = UidMismatchError{fmt.Sprintf("%s != %s (via %s)", uid, u2, username)}
 	}
 	return

@@ -38,7 +38,7 @@ func RunSyncer(s Syncer, aUid keybase1.UID, loggedIn bool, sr SessionReader) (er
 		return
 	}
 
-	if sUid.Exists() && aUid.Exists() && sUid != aUid {
+	if sUid.Exists() && aUid.Exists() && sUid.NotEqual(aUid) {
 		err = UidMismatchError{fmt.Sprintf("UID clash in Syncer: %s != %s", sUid, aUid)}
 		return
 	} else if aUid.Exists() {

@@ -24,7 +24,7 @@ func TestProveCheck(t *testing.T) {
 
 	hook := func(arg keybase1.OkToCheckArg) (bool, error) {
 		sigID := eng.sigID
-		if len(sigID) == 0 {
+		if sigID.IsNil() {
 			return false, fmt.Errorf("empty sigID; can't make a post!")
 		}
 		apiArg := libkb.ApiArg{

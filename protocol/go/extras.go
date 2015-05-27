@@ -52,12 +52,28 @@ func (u UID) Exists() bool {
 	return !u.IsNil()
 }
 
+func (u UID) Equal(v UID) bool {
+	return u == v
+}
+
+func (u UID) NotEqual(v UID) bool {
+	return u != v
+}
+
 func (s SigID) IsNil() bool {
 	return len(s) == 0
 }
 
 func (s SigID) Exists() bool {
 	return !s.IsNil()
+}
+
+func (s SigID) Equal(t SigID) bool {
+	return s == t
+}
+
+func (s SigID) NotEqual(t SigID) bool {
+	return s != t
 }
 
 func (s SigID) ToDisplayString(verbose bool) string {

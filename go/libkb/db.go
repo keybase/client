@@ -111,5 +111,5 @@ const (
 )
 
 func DbKeyUID(t ObjType, uid keybase1.UID) DbKey {
-	return DbKey{Typ: t, Key: string(uid)}
+	return DbKey{Typ: t, Key: uid.String()}
 }
