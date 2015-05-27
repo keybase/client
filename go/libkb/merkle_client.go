@@ -532,33 +532,31 @@ func (vp *VerificationPath) VerifyUsername() (username string, err error) {
 		return
 	}
 
-	// XXX fix this: leaf.GetString() -> uid, then compare uids.
-	var uid2 string
-	if uid2, err = leaf.GetString(); err != nil {
+	var uid2 keybase1.UID
+	if uid2, err = GetUID(leaf); err != nil {
 		return
-	} else if uid1 := vp.uid; uid2 != string(uid1) {
-		err = UidMismatchError{fmt.Sprintf("UID %s != %s via merkle tree", uid2, uid1)}
-	} else {
-		G.Log.Debug("| Username %s mapped to %s via Merkle lookup", vp.username, vp.uid)
-		username = vp.username
 	}
+	if vp.uid != uid2 {
+		err = UidMismatchError{fmt.Sprintf("UID %s != %s via merkle tree", uid2, vp.uid)}
+		return
+	}
+
+	G.Log.Debug("| Username %s mapped to %s via Merkle lookup", vp.username, vp.uid)
+	username = vp.username
 
 	return
 }
 
 func (vp *VerificationPath) VerifyUser() (user *MerkleUserLeaf, err error) {
-
 	curr := vp.root.rootHash
-	uid_s := string(vp.uid)
 
 	var leaf *jsonw.Wrapper
-	leaf, err = vp.path.VerifyPath(curr, uid_s)
+	leaf, err = vp.path.VerifyPath(curr, vp.uid.String())
 
 	if leaf != nil && err == nil {
 		if leaf, err = leaf.ToArray(); err != nil {
-			msg := fmt.Sprintf("Didn't find a leaf for user in tree: %s",
-				err.Error())
-			err = MerkleNotFoundError{uid_s, msg}
+			msg := fmt.Sprintf("Didn't find a leaf for user in tree: %s", err.Error())
+			err = MerkleNotFoundError{vp.uid.String(), msg}
 		}
 	}
 
