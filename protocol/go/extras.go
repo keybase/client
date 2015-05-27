@@ -82,7 +82,7 @@ func (u UID) Less(v UID) bool {
 }
 
 func (u UID) GetBucket(bucketCount int) (int, error) {
-	bytes, err := hex.DecodeString(string(u[:UID_LEN-len(UID_SUFFIX_HEX)]))
+	bytes, err := hex.DecodeString(string(u))
 	if err != nil {
 		return 0, err
 	}
