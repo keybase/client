@@ -488,7 +488,6 @@
 }
 
 - (void)setUsername:(NSString *)username client:(KBRPClient *)client {
-  KBConsoleLog(@"Setting username: %@", username);
   if (!username) {
     [_view removeFromSuperview];
     _view = nil;

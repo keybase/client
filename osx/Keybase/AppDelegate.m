@@ -36,7 +36,7 @@
 #import <Sparkle/Sparkle.h>
 #import <AFNetworking/AFNetworking.h>
 
-@interface AppDelegate () <KBAppViewDelegate>
+@interface AppDelegate ()
 @property KBAppView *appView;
 @property KBPreferences *preferences;
 @property BOOL alerting;
@@ -62,7 +62,15 @@
     }];
 
   _preferences = [[KBPreferences alloc] init];
-  [self configureConsoleLog];
+
+  _consoleView = [[KBConsoleView alloc] init];
+
+  _controlPanel = [[KBControlPanel alloc] init];
+  [_controlPanel addComponents:@[_consoleView]];
+
+  DDLogLevel logLevel = [[_preferences valueForIdentifier:@"Preferences.Log.Level"] unsignedIntegerValue];
+  [DDLog addLogger:DDASLLogger.sharedInstance withLevel:logLevel];
+  [DDLog addLogger:_consoleView withLevel:DDLogLevelVerbose];
 
   [KBAppearance setCurrentAppearance:KBAppearance.lightAppearance];
 
@@ -74,13 +82,10 @@
     [AppDelegate setError:error sender:sender];
   };
 
-  GHWeakSelf gself = self;
-
   // Network reachability is a diagnostic tool that can be used to understand why a request might have failed.
   // It should not be used to determine whether or not to make a request.
   [AFNetworkReachabilityManager.sharedManager setReachabilityStatusChangeBlock:^(AFNetworkReachabilityStatus status) {
-    DDLogDebug(@"Reachability: %@", AFStringFromNetworkReachabilityStatus(status));
-    [gself.consoleView log:NSStringWithFormat(@"Reachability: %@", AFStringFromNetworkReachabilityStatus(status))];
+    DDLogInfo(@"Reachability: %@", AFStringFromNetworkReachabilityStatus(status));
   }];
   [AFNetworkReachabilityManager.sharedManager startMonitoring];
 
@@ -102,11 +107,6 @@
 //#endif
 }
 
-- (void)configureConsoleLog {
-  [DDLog removeLogger:DDASLLogger.sharedInstance];
-  [DDLog addLogger:DDASLLogger.sharedInstance withLevel:[[_preferences valueForIdentifier:@"Preferences.Log.Level"] unsignedIntegerValue]]; // Console log
-}
-
 - (void)openWithEnvironment:(KBEnvironment *)environment {
   [self updateMenu];
 
@@ -121,13 +121,9 @@
   _statusItem.highlightMode = YES; // Blue background when selected
 
   _appView = [[KBAppView alloc] init];
-  [_appView.delegates addObject:self];
   [_appView openWindow];
 
-  _consoleView = [[KBConsoleView alloc] init];
-  [_appView.delegates addObject:_consoleView];
-
-  _controlPanel = [KBControlPanel openWithComponents:@[_consoleView] sender:_appView];
+  [_controlPanel open:_appView];
 
   [_appView openWithEnvironment:environment];
 }
@@ -164,6 +160,10 @@
 
 + (KBAppView *)appView {
   return ((AppDelegate *)[NSApp delegate]).appView;
+}
+
++ (KBConsoleView *)consoleView {
+  return ((AppDelegate *)[NSApp delegate]).consoleView;
 }
 
 + (AppDelegate *)sharedDelegate {
@@ -228,14 +228,6 @@
 - (void)closeAllWindows {
   [_appView.window close];
   [_preferences close];
-}
-
-+ (void)consoleLog:(NSString *)message {
-  [AppDelegate.sharedDelegate.consoleView log:message];
-}
-
-+ (void)consoleError:(NSError *)error {
-  [AppDelegate.sharedDelegate.consoleView log:NSStringWithFormat(@"%@", error)];
 }
 
 - (void)openURLString:(NSString *)URLString sender:(NSView *)sender {

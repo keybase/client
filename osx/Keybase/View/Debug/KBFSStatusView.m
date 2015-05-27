@@ -71,16 +71,16 @@
 - (void)installHelper {
   KBHelperTool *helperInstall = [[KBHelperTool alloc] init];
   [helperInstall install:^(NSError *error) {
-    if (error) KBConsoleError(error);
-    else KBConsoleLog(@"Installed");
+    if (error) DDLogError(@"Install error: %@", error);
+    else DDLogInfo(@"Installed");
   }];
 }
 
 - (void)sendRequest:(NSString *)method {
   if (!_client) _client = [[MPXPCClient alloc] initWithServiceName:@"keybase.Helper" privileged:YES];
   [_client sendRequest:method params:nil completion:^(NSError *error, id value) {
-    if (error) KBConsoleError(error);
-    else KBConsoleLog(@"Helper; %@: %@", method, value);
+    if (error) DDLogError(@"Install error: %@", error);
+    else DDLogInfo(@"Helper; %@: %@", method, value);
   }];
 }
 

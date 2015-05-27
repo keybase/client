@@ -70,17 +70,10 @@ typedef NS_ENUM (NSInteger, KBAppViewMode) {
 
   _title = @"Keybase";
 
-  _delegates = [NSHashTable weakObjectsHashTable];
-
   _toolbar = [[KBAppToolbar alloc] init];
   _toolbar.hidden = YES;
   _toolbar.delegate = self;
   [self addSubview:_toolbar];
-
-  _sourceView = [[KBSourceOutlineView alloc] init];
-  _sourceView.hidden = YES;
-  //_sourceView.delegate = self;
-  //[self addSubview:_sourceView];
 
   YOSelf yself = self;
   self.viewLayout = [YOLayout layoutWithLayoutBlock:^(id<YOLayout> layout, CGSize size) {
@@ -89,11 +82,6 @@ typedef NS_ENUM (NSInteger, KBAppViewMode) {
 
     if (!yself.toolbar.hidden) {
       y += [layout sizeToFitVerticalInFrame:CGRectMake(0, y, size.width, 0) view:yself.toolbar].size.height;
-    }
-
-    if (!yself.sourceView.hidden && yself.sourceView.superview) {
-      [layout setFrame:CGRectMake(x, y, 160 - 1, size.height - y) view:yself.sourceView]; // NSOutlineView has trouble initializing to a bad size
-      x += 160;
     }
 
     [layout setFrame:CGRectMake(x, y, size.width - x, size.height - y) view:yself.contentView];
@@ -122,7 +110,9 @@ typedef NS_ENUM (NSInteger, KBAppViewMode) {
 
 - (void)openWithEnvironment:(KBEnvironment *)environment {
   _environment = environment;
-  for (id<KBAppViewDelegate> delegate in _delegates) [delegate appViewDidLaunch:self];
+
+  NSDictionary *info = [[NSBundle mainBundle] infoDictionary];
+  DDLogInfo(@"Keybase.app Version: %@", info[@"CFBundleShortVersionString"]);
 
   [self showInProgress:@"Loading"];
 
@@ -143,7 +133,6 @@ typedef NS_ENUM (NSInteger, KBAppViewMode) {
 - (void)connect {
   _service.client.delegate = self;
 
-  GHWeakSelf gself = self;
   [_service.client registerMethod:@"keybase.1.secretUi.getSecret" sessionId:0 requestHandler:^(NSNumber *messageId, NSString *method, NSArray *params, MPRequestCompletion completion) {
     DDLogDebug(@"Password prompt: %@", params);
     KBRGetSecretRequestParams *requestParams = [[KBRGetSecretRequestParams alloc] initWithParams:params];
@@ -174,7 +163,9 @@ typedef NS_ENUM (NSInteger, KBAppViewMode) {
 
   [_service.client registerMethod:@"keybase.1.logUi.log" sessionId:0 requestHandler:^(NSNumber *messageId, NSString *method, NSArray *params, MPRequestCompletion completion) {
     KBRLogRequestParams *requestParams = [[KBRLogRequestParams alloc] initWithParams:params];
-    for (id<KBAppViewDelegate> delegate in gself.delegates) [delegate appView:self didLogMessage:requestParams.text.data];
+
+    DDLogInfo(requestParams.text.data);
+
     completion(nil, nil);
   }];
 
@@ -331,14 +322,11 @@ typedef NS_ENUM (NSInteger, KBAppViewMode) {
 }
 
 - (void)checkStatus {
-  GHWeakSelf gself = self;
   [_service checkStatus:^(NSError *error, KBRGetCurrentStatusRes *status, KBRConfig *config) {
     if (error) {
       [self setStatusError:error];
       return;
     }
-    for (id<KBAppViewDelegate> delegate in gself.delegates) [delegate appView:self didCheckStatusWithConfig:config status:status];
-
     [self updateStatus:status];
     // TODO reload current view if coming back from disconnect?
     [NSNotificationCenter.defaultCenter postNotificationName:KBStatusDidChangeNotification object:nil userInfo:@{@"config": config, @"status": status}];
@@ -375,8 +363,6 @@ typedef NS_ENUM (NSInteger, KBAppViewMode) {
   } else {
     [self showLogin];
   }
-
-  for (id<KBAppViewDelegate> delegate in _delegates) [delegate appViewDidUpdateStatus:self];
 }
 
 - (void)setUser:(KBRUser *)user {
@@ -394,24 +380,21 @@ typedef NS_ENUM (NSInteger, KBAppViewMode) {
   [self checkStatus];
 }
 
-- (void)RPClientWillConnect:(KBRPClient *)RPClient {
-  for (id<KBAppViewDelegate> delegate in _delegates) [delegate appView:self willConnectWithClient:_service.client];
-}
+- (void)RPClientWillConnect:(KBRPClient *)RPClient { }
 
 - (void)RPClientDidConnect:(KBRPClient *)RPClient {
-  for (id<KBAppViewDelegate> delegate in _delegates) [delegate appView:self didConnectWithClient:_service.client];
   [self checkStatus];
 }
 
 - (void)RPClientDidDisconnect:(KBRPClient *)RPClient {
-  for (id<KBAppViewDelegate> delegate in _delegates) [delegate appView:self didDisconnectWithClient:_service.client];
+  //DDLogInfo(@"Disconnected from Keybase service.");
   [NSNotificationCenter.defaultCenter postNotificationName:KBStatusDidChangeNotification object:nil userInfo:@{}];
 }
 
 - (void)RPClient:(KBRPClient *)RPClient didErrorOnConnect:(NSError *)error connectAttempt:(NSInteger)connectAttempt {
   //if (connectAttempt == 1) [AppDelegate.sharedDelegate setFatalError:error]; // Show error on first error attempt
-  for (id<KBAppViewDelegate> delegate in _delegates) [delegate appView:self didErrorOnConnect:error connectAttempt:connectAttempt];
-  [NSNotificationCenter.defaultCenter postNotificationName:KBStatusDidChangeNotification object:nil userInfo:@{}];
+  //DDLogInfo(@"Failed to connect (%@): %@", @(connectAttempt), [error localizedDescription]);
+  //[NSNotificationCenter.defaultCenter postNotificationName:KBStatusDidChangeNotification object:nil userInfo:@{}];
 }
 
 - (void)appToolbar:(KBAppToolbar *)appToolbar didSelectItem:(KBAppViewItem)item {

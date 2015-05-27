@@ -86,14 +86,14 @@
 
   _client.coder = [[KBRPCCoder alloc] init];
 
-  DDLogDebug(@"Connecting to keybase service (%@)...", [self.environment sockFile:YES]);
+  DDLogDebug(@"Connecting: %@", [self.environment sockFile:YES]);
   _connectAttempt++;
   [self.delegate RPClientWillConnect:self];
   [_client openWithSocket:[self.environment sockFile:YES] completion:^(NSError *error) {
     if (error) {
       gself.status = KBRPClientStatusClosed;
 
-      DDLogDebug(@"Error connecting to keybased: %@", error);
+      DDLogDebug(@"Error connecting: %@", error);
       if (!gself.autoRetryDisabled) {
         // Retry
         [self openAfterDelay:2];
@@ -104,7 +104,7 @@
       return;
     }
 
-    DDLogDebug(@"Connected");
+    DDLogDebug(@"Connected.");
     gself.connectAttempt = 1;
     gself.status = KBRPClientStatusOpen;
     [self.delegate RPClientDidConnect:self];
@@ -189,7 +189,7 @@
     if ([NSUserDefaults.standardUserDefaults boolForKey:@"Preferences.Advanced.Record"]) {
       if (result) [self.recorder recordResponse:method response:result sessionId:sessionId];
     }
-    DDLogDebug(@"Result: %@", KBDescription(result));
+    DDLogDebug(@"Reply (%@): %@", method, KBDescription(result));
     completion(error, result);
   }];
 
@@ -197,7 +197,7 @@
   mparams[0] = KBScrubPassphrase(params[0]);
 
   //NSNumber *messageId = request[1];
-  DDLogDebug(@"Sent request: %@(%@)", method, KBDescription(mparams[0]));
+  DDLogDebug(@"Request: %@(%@)", method, [mparams[0] count] > 0 ? KBDescription(mparams[0]) : @"");
   if ([NSUserDefaults.standardUserDefaults boolForKey:@"Preferences.Advanced.Record"]) {
     [self.recorder recordRequest:method params:[_client encodeObject:params] sessionId:sessionId callback:NO];
   }

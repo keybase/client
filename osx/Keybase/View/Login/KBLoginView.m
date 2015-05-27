@@ -218,7 +218,6 @@
   GHWeakSelf gself = self;
   [request getConfiguredAccounts:^(NSError *error, NSArray *accounts) {
     gself.accounts = accounts;
-    DDLogDebug(@"Accounts: %@", KBDescription(accounts));
     [self updateForAccounts];
   }];
 }

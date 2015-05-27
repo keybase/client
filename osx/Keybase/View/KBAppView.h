@@ -13,23 +13,7 @@
 #import "KBService.h"
 
 
-@class KBAppView;
-
-@protocol KBAppViewDelegate
-- (void)appViewDidLaunch:(KBAppView *)appView;
-- (void)appView:(KBAppView *)appView willConnectWithClient:(KBRPClient *)client;
-- (void)appView:(KBAppView *)appView didConnectWithClient:(KBRPClient *)client;
-- (void)appView:(KBAppView *)appView didCheckStatusWithConfig:(KBRConfig *)config status:(KBRGetCurrentStatusRes *)status;
-- (void)appView:(KBAppView *)appView didDisconnectWithClient:(KBRPClient *)client;
-- (void)appView:(KBAppView *)appView didErrorOnConnect:(NSError *)error connectAttempt:(NSInteger)connectAttempt;
-- (void)appView:(KBAppView *)appView didLogMessage:(NSString *)message;
-
-- (void)appViewDidUpdateStatus:(KBAppView *)appView;
-@end
-
 @interface KBAppView : YOView
-
-@property (readonly) NSHashTable *delegates;
 
 @property (nonatomic) KBRUser *user;
 

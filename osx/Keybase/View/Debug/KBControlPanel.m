@@ -101,11 +101,8 @@
   [_splitView setRightView:view];
 }
 
-+ (instancetype)openWithComponents:(NSArray */*of id<KBComponent>*/)components sender:(id)sender {
-  KBControlPanel *view = [[KBControlPanel alloc] init];
-  [view addComponents:components];
-  [[sender window] kb_addChildWindowForView:view rect:CGRectMake(0, 40, 800, 400) position:KBWindowPositionRight title:@"Control Panel" fixed:NO makeKey:NO];
-  return view;
+- (void)open:(id)sender {
+  [[sender window] kb_addChildWindowForView:self rect:CGRectMake(0, 40, 800, 400) position:KBWindowPositionRight title:@"Control Panel" fixed:NO makeKey:NO];
 }
 
 - (void)addComponents:(NSArray */*of id<KBComponent>*/)components {

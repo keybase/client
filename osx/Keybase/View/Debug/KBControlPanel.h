@@ -13,7 +13,7 @@
 
 @interface KBControlPanel : KBContentView
 
-+ (instancetype)openWithComponents:(NSArray */*of id<KBComponent>*/)components sender:(id)sender;
+- (void)open:(id)sender;
 
 - (void)addComponents:(NSArray */*of id<KBComponent>*/)components;
 

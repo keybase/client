@@ -227,7 +227,6 @@ KBRUser *KBRUserFromSearchResult(KBSearchResult *searchResult) {
 #pragma mark Search
 
 - (void)showSearch {
-  KBConsoleLog(@"Show search");
   if (![_searchView superview]) {
     [self addSubview:_searchView positioned:NSWindowAbove relativeTo:_views];
   }
@@ -237,7 +236,6 @@ KBRUser *KBRUserFromSearchResult(KBSearchResult *searchResult) {
 }
 
 - (void)hideSearch {
-  KBConsoleLog(@"Hide search");
   [_searchView removeFromSuperview];
   [_searchUserView removeFromSuperview];
 }
@@ -245,7 +243,6 @@ KBRUser *KBRUserFromSearchResult(KBSearchResult *searchResult) {
 - (void)searchControlShouldOpen:(KBSearchControl *)searchControl {
   [self showSearch];
   if (!_searchView.listView.selectedObject) {
-    KBConsoleLog(@"Clearing search view");
     [_searchUserView clear];
   }
 }

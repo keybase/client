@@ -56,6 +56,7 @@
 
 - (NSString *)formatDictionary:(id)dict level:(NSInteger)level {
   if (!dict) return @"";
+  if ([dict count] == 0) return @"{}";
   NSString *prefix = [@"" stringByPaddingToLength:(level+1)*2 withString:@" " startingAtIndex:0];
   NSString *endPrefix = [@"" stringByPaddingToLength:level*2 withString:@" " startingAtIndex:0];
   NSString *str = NSStringWithFormat(@"{\n%@%@\n%@}", prefix, [[dict map:^id(id key, id value) {

@@ -14,9 +14,7 @@
 #import <GHKit/GHKit.h>
 #import "KBAppKit.h"
 #import "KBControlPanel.h"
-
-#define KBConsoleLog(fmt, ...) ([AppDelegate consoleLog:[NSString stringWithFormat:fmt, ##__VA_ARGS__]])
-#define KBConsoleError(err) ([AppDelegate consoleError:err])
+#import "KBConsoleView.h"
 
 @interface AppDelegate : NSObject <NSApplicationDelegate>
 
@@ -42,8 +40,5 @@
 - (void)openURLString:(NSString *)URLString sender:(NSView *)sender;
 
 + (dispatch_block_t)openSheetWithView:(NSView *)view size:(CGSize)size sender:(NSView *)sender closeButton:(KBButton *)closeButton;
-
-+ (void)consoleLog:(NSString *)message;
-+ (void)consoleError:(NSError *)error;
 
 @end

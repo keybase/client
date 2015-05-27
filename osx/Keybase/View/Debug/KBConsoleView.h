@@ -9,9 +9,17 @@
 #import <Foundation/Foundation.h>
 
 #import "KBAppKit.h"
+#import <CocoaLumberjack/CocoaLumberjack.h>
 
-@interface KBConsoleView : YOView
+typedef NS_ENUM (NSInteger, KBConsoleType) {
+  KBConsoleTypeApp,
+  KBConsoleTypeService
+};
 
-- (void)log:(NSString *)message;
+@interface KBConsoleView : YOView <DDLogger>
+
+@property (nonatomic) id<DDLogFormatter> logFormatter;
+
+- (void)logMessage:(DDLogMessage *)logMessage;
 
 @end
