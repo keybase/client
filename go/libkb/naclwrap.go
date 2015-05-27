@@ -351,16 +351,6 @@ func (k NaclSigningKeyPair) VerifyString(sig string, msg []byte) (id keybase1.Si
 	return
 }
 
-func (k NaclSigningKeyPair) SignToBytes(msg []byte) (sig []byte, verifier BytesVerifier, err error) {
-	if k.Private == nil {
-		err = NoSecretKeyError{}
-		return
-	}
-	sig = k.Private.Sign(msg)[:]
-	verifier = k
-	return
-}
-
 func (k NaclSigningKeyPair) VerifyBytes(sig, msg []byte) (err error) {
 	var sigArr [ed25519.SignatureSize]byte
 	if len(sig) != len(sigArr) {
