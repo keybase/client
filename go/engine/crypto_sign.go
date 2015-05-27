@@ -4,10 +4,10 @@ import "github.com/keybase/client/go/libkb"
 
 type CryptoSignEngine struct {
 	libkb.Contextified
-	msg      []byte
-	reason   string
-	sig      []byte
-	verifier libkb.BytesVerifier
+	msg             []byte
+	reason          string
+	sig             []byte
+	verifyingKeyKid libkb.KID
 }
 
 func NewCryptoSignEngine(ctx *libkb.GlobalContext, msg []byte, reason string) *CryptoSignEngine {
@@ -52,7 +52,7 @@ func (cse *CryptoSignEngine) Run(ctx *Context) (err error) {
 	}
 
 	cse.sig = kp.Private.Sign(cse.msg)[:]
-	cse.verifier = kp
+	cse.verifyingKeyKid = kp.Public.GetKid()
 	return nil
 }
 
@@ -60,6 +60,6 @@ func (cse *CryptoSignEngine) GetSignature() []byte {
 	return cse.sig
 }
 
-func (cse *CryptoSignEngine) GetVerifier() libkb.BytesVerifier {
-	return cse.verifier
+func (cse *CryptoSignEngine) GetVerifyingKeyKid() libkb.KID {
+	return cse.verifyingKeyKid
 }
