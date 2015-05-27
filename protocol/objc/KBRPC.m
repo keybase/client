@@ -459,6 +459,13 @@
   }];
 }
 
+- (void)deviceSignAttemptErrWithSessionID:(NSInteger)sessionID msg:(NSString *)msg attempt:(NSInteger)attempt total:(NSInteger)total completion:(void (^)(NSError *error))completion {
+  NSArray *params = @[@{@"sessionID": @(sessionID), @"msg": KBRValue(msg), @"attempt": @(attempt), @"total": @(total)}];
+  [self.client sendRequestWithMethod:@"keybase.1.locksmithUi.deviceSignAttemptErr" params:params sessionId:self.sessionId completion:^(NSError *error, id retval) {
+    completion(error);
+  }];
+}
+
 - (void)displaySecretWordsWithSessionID:(NSInteger)sessionID secret:(NSString *)secret deviceNameExisting:(NSString *)deviceNameExisting deviceNameToAdd:(NSString *)deviceNameToAdd completion:(void (^)(NSError *error))completion {
   NSArray *params = @[@{@"sessionID": @(sessionID), @"secret": KBRValue(secret), @"deviceNameExisting": KBRValue(deviceNameExisting), @"deviceNameToAdd": KBRValue(deviceNameToAdd)}];
   [self.client sendRequestWithMethod:@"keybase.1.locksmithUi.displaySecretWords" params:params sessionId:self.sessionId completion:^(NSError *error, id retval) {
@@ -1480,6 +1487,20 @@
     self.sessionID = [params[0][@"sessionID"] integerValue];
     self.devices = [MTLJSONAdapter modelsOfClass:KBRDevice.class fromJSONArray:params[0][@"devices"] error:nil];
     self.hasPGP = [params[0][@"hasPGP"] boolValue];
+  }
+  return self;
+}
+
+@end
+
+@implementation KBRDeviceSignAttemptErrRequestParams
+
+- (instancetype)initWithParams:(NSArray *)params {
+  if ((self = [super initWithParams:params])) {
+    self.sessionID = [params[0][@"sessionID"] integerValue];
+    self.msg = params[0][@"msg"];
+    self.attempt = [params[0][@"attempt"] integerValue];
+    self.total = [params[0][@"total"] integerValue];
   }
   return self;
 }

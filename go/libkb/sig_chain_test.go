@@ -3,13 +3,14 @@ package libkb
 import (
 	// "fmt"
 	"encoding/json"
-	jsonw "github.com/keybase/go-jsonw"
 	"io/ioutil"
 	"path"
 	"reflect"
 	"sort"
 	"testing"
 	"time"
+
+	jsonw "github.com/keybase/go-jsonw"
 )
 
 // TODO: For now the tests have all been given strict error types. In the
@@ -127,7 +128,7 @@ func doChainTest(t *testing.T, testCase TestCase) {
 	} else {
 		eldestKIDStr, found := input.LabelKids[testCase.Eldest]
 		if !found {
-			t.Fatal("No KID found for label %s", testCase.Eldest)
+			t.Fatalf("No KID found for label %s", testCase.Eldest)
 		}
 		eldestKID, err = ImportKID(eldestKIDStr)
 		if err != nil {

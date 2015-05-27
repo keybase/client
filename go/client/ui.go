@@ -567,6 +567,10 @@ func (d LocksmithUI) SelectSigner(arg keybase1.SelectSignerArg) (res keybase1.Se
 	return res, nil
 }
 
+func (d LocksmithUI) DeviceSignAttemptErr(arg keybase1.DeviceSignAttemptErrArg) error {
+	return nil
+}
+
 func (d LocksmithUI) DisplaySecretWords(arg keybase1.DisplaySecretWordsArg) error {
 	d.parent.Printf("On your %q computer, a window should have appeared. Type this in it:\n\n", arg.DeviceNameExisting)
 	d.parent.Printf("\t%s\n\n", arg.Secret)

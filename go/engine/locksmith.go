@@ -336,41 +336,69 @@ func (d *Locksmith) deviceSign(ctx *Context, withPGPOption bool) error {
 	}
 	arg.HasPGP = withPGPOption
 
-	res, err := ctx.LocksmithUI.SelectSigner(arg)
-	if err != nil {
-		return err
-	}
-
-	if res.Action == keybase1.SelectSignerAction_CANCEL {
-		// XXX another way to bail besides returning an error?
-		return fmt.Errorf("cancel requested by user")
-	}
-	if res.Action == keybase1.SelectSignerAction_RESET_ACCOUNT {
-		ctx.LogUI.Info("reset account action not yet implemented")
-		return ErrNotYetImplemented
-	}
-
-	if res.Action != keybase1.SelectSignerAction_SIGN {
-		return fmt.Errorf("unknown action value: %d", res.Action)
-	}
-
-	// sign action:
-
-	if res.Signer.Kind == keybase1.DeviceSignerKind_PGP {
-		return d.deviceSignPGP(ctx)
-	}
-
-	if res.Signer.Kind == keybase1.DeviceSignerKind_DEVICE {
-		if res.Signer.DeviceID == nil {
-			return fmt.Errorf("selected device for signing, but DeviceID is nil")
+	totalTries := 10
+	for i := 0; i < totalTries; i++ {
+		if i > 0 {
+			ctx.LogUI.Debug("retrying device sign process")
 		}
-		if res.Signer.DeviceName == nil {
-			return fmt.Errorf("selected device for signing, but DeviceName is nil")
+		res, err := ctx.LocksmithUI.SelectSigner(arg)
+		if err != nil {
+			return err
 		}
-		return d.deviceSignExistingDevice(ctx, *res.Signer.DeviceID, *res.Signer.DeviceName, newDeviceName, libkb.DEVICE_TYPE_DESKTOP)
+
+		if res.Action == keybase1.SelectSignerAction_CANCEL {
+			// XXX another way to bail besides returning an error?
+			return fmt.Errorf("cancel requested by user")
+		}
+		if res.Action == keybase1.SelectSignerAction_RESET_ACCOUNT {
+			ctx.LogUI.Info("reset account action not yet implemented")
+			return ErrNotYetImplemented
+		}
+
+		if res.Action != keybase1.SelectSignerAction_SIGN {
+			return fmt.Errorf("unknown action value: %d", res.Action)
+		}
+
+		// sign action:
+
+		if res.Signer.Kind == keybase1.DeviceSignerKind_PGP {
+			err := d.deviceSignPGP(ctx)
+			if err == nil {
+				ctx.LogUI.Debug("device sign w/ pgp success")
+				return nil
+			}
+			ctx.LogUI.Info("deviceSignPGP error: %s", err)
+			uiarg := keybase1.DeviceSignAttemptErrArg{
+				Msg:     err.Error(),
+				Attempt: i + 1,
+				Total:   totalTries,
+			}
+			ctx.LocksmithUI.DeviceSignAttemptErr(uiarg)
+		} else if res.Signer.Kind == keybase1.DeviceSignerKind_DEVICE {
+			if res.Signer.DeviceID == nil {
+				return fmt.Errorf("selected device for signing, but DeviceID is nil")
+			}
+			if res.Signer.DeviceName == nil {
+				return fmt.Errorf("selected device for signing, but DeviceName is nil")
+			}
+			err := d.deviceSignExistingDevice(ctx, *res.Signer.DeviceID, *res.Signer.DeviceName, newDeviceName, libkb.DEVICE_TYPE_DESKTOP)
+			if err == nil {
+				ctx.LogUI.Debug("device sign w/ existing device succes")
+				return nil
+			}
+			ctx.LogUI.Info("deviceSignExistingDevice error: %s", err)
+			uiarg := keybase1.DeviceSignAttemptErrArg{
+				Msg:     err.Error(),
+				Attempt: i + 1,
+				Total:   totalTries,
+			}
+			ctx.LocksmithUI.DeviceSignAttemptErr(uiarg)
+		} else {
+			return fmt.Errorf("unknown signer kind: %d", res.Signer.Kind)
+		}
 	}
 
-	return fmt.Errorf("unknown signer kind: %d", res.Signer.Kind)
+	return fmt.Errorf("device sign process retry attempts exhausted")
 }
 
 func (d *Locksmith) deviceSignPGP(ctx *Context) error {

@@ -109,6 +109,11 @@ func (r *RemoteLocksmithUI) SelectSigner(arg keybase1.SelectSignerArg) (keybase1
 	return r.uicli.SelectSigner(arg)
 }
 
+func (r *RemoteLocksmithUI) DeviceSignAttemptErr(arg keybase1.DeviceSignAttemptErrArg) error {
+	arg.SessionID = r.sessionId
+	return r.uicli.DeviceSignAttemptErr(arg)
+}
+
 func (r *RemoteLocksmithUI) DisplaySecretWords(arg keybase1.DisplaySecretWordsArg) error {
 	arg.SessionID = r.sessionId
 	return r.uicli.DisplaySecretWords(arg)

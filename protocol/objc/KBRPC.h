@@ -457,6 +457,8 @@ typedef NS_ENUM (NSInteger, KBRKexStatusCode) {
 
 - (void)selectSignerWithSessionID:(NSInteger)sessionID devices:(NSArray *)devices hasPGP:(BOOL)hasPGP completion:(void (^)(NSError *error, KBRSelectSignerRes *selectSignerRes))completion;
 
+- (void)deviceSignAttemptErrWithSessionID:(NSInteger)sessionID msg:(NSString *)msg attempt:(NSInteger)attempt total:(NSInteger)total completion:(void (^)(NSError *error))completion;
+
 - (void)displaySecretWordsWithSessionID:(NSInteger)sessionID secret:(NSString *)secret deviceNameExisting:(NSString *)deviceNameExisting deviceNameToAdd:(NSString *)deviceNameToAdd completion:(void (^)(NSError *error))completion;
 
 - (void)kexStatusWithSessionID:(NSInteger)sessionID msg:(NSString *)msg code:(KBRKexStatusCode)code completion:(void (^)(NSError *error))completion;
@@ -940,6 +942,12 @@ typedef NS_ENUM (NSInteger, KBRPromptOverwriteType) {
 @property NSInteger sessionID;
 @property NSArray *devices;
 @property BOOL hasPGP;
+@end
+@interface KBRDeviceSignAttemptErrRequestParams : KBRRequestParams
+@property NSInteger sessionID;
+@property NSString *msg;
+@property NSInteger attempt;
+@property NSInteger total;
 @end
 @interface KBRDisplaySecretWordsRequestParams : KBRRequestParams
 @property NSInteger sessionID;

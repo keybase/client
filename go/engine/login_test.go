@@ -402,6 +402,10 @@ func (l *lockui) SelectSigner(arg keybase1.SelectSignerArg) (res keybase1.Select
 	return
 }
 
+func (l *lockui) DeviceSignAttemptErr(arg keybase1.DeviceSignAttemptErrArg) error {
+	return nil
+}
+
 func (l *lockui) DisplaySecretWords(arg keybase1.DisplaySecretWordsArg) error {
 	return nil
 }

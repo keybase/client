@@ -1162,6 +1162,13 @@ type SelectSignerArg struct {
 	HasPGP    bool     `codec:"hasPGP" json:"hasPGP"`
 }
 
+type DeviceSignAttemptErrArg struct {
+	SessionID int    `codec:"sessionID" json:"sessionID"`
+	Msg       string `codec:"msg" json:"msg"`
+	Attempt   int    `codec:"attempt" json:"attempt"`
+	Total     int    `codec:"total" json:"total"`
+}
+
 type DisplaySecretWordsArg struct {
 	SessionID          int    `codec:"sessionID" json:"sessionID"`
 	Secret             string `codec:"secret" json:"secret"`
@@ -1178,6 +1185,7 @@ type KexStatusArg struct {
 type LocksmithUiInterface interface {
 	PromptDeviceName(int) (string, error)
 	SelectSigner(SelectSignerArg) (SelectSignerRes, error)
+	DeviceSignAttemptErr(DeviceSignAttemptErrArg) error
 	DisplaySecretWords(DisplaySecretWordsArg) error
 	KexStatus(KexStatusArg) error
 }
@@ -1197,6 +1205,13 @@ func LocksmithUiProtocol(i LocksmithUiInterface) rpc2.Protocol {
 				args := make([]SelectSignerArg, 1)
 				if err = nxt(&args); err == nil {
 					ret, err = i.SelectSigner(args[0])
+				}
+				return
+			},
+			"deviceSignAttemptErr": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
+				args := make([]DeviceSignAttemptErrArg, 1)
+				if err = nxt(&args); err == nil {
+					err = i.DeviceSignAttemptErr(args[0])
 				}
 				return
 			},
@@ -1231,6 +1246,11 @@ func (c LocksmithUiClient) PromptDeviceName(sessionID int) (res string, err erro
 
 func (c LocksmithUiClient) SelectSigner(__arg SelectSignerArg) (res SelectSignerRes, err error) {
 	err = c.Cli.Call("keybase.1.locksmithUi.selectSigner", []interface{}{__arg}, &res)
+	return
+}
+
+func (c LocksmithUiClient) DeviceSignAttemptErr(__arg DeviceSignAttemptErrArg) (err error) {
+	err = c.Cli.Call("keybase.1.locksmithUi.deviceSignAttemptErr", []interface{}{__arg}, nil)
 	return
 }
 
