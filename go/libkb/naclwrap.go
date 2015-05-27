@@ -54,7 +54,6 @@ func (k KID) ToNaclSigningKeyPublic() *NaclSigningKeyPublic {
 type NaclSigningKeyPair struct {
 	Public  NaclSigningKeyPublic
 	Private *NaclSigningKeyPrivate
-	Contextified
 }
 
 type NaclDHKeyPublic [NACL_DH_KEYSIZE]byte
@@ -63,7 +62,6 @@ type NaclDHKeyPrivate [NACL_DH_KEYSIZE]byte
 type NaclDHKeyPair struct {
 	Public  NaclDHKeyPublic
 	Private *NaclDHKeyPrivate
-	Contextified
 }
 
 func importNaclHex(s string, typ byte, bodyLen int) (ret []byte, err error) {
@@ -89,7 +87,7 @@ func importNaclKid(kid KID, typ byte, bodyLen int) (ret []byte, err error) {
 	return
 }
 
-func ImportNaclSigningKeyPairFromBytes(pub []byte, priv []byte, gc *GlobalContext) (ret NaclSigningKeyPair, err error) {
+func ImportNaclSigningKeyPairFromBytes(pub []byte, priv []byte) (ret NaclSigningKeyPair, err error) {
 	var body []byte
 	if body, err = importNaclKid(KID(pub), byte(KID_NACL_EDDSA), ed25519.PublicKeySize); err != nil {
 		return
@@ -102,11 +100,10 @@ func ImportNaclSigningKeyPairFromBytes(pub []byte, priv []byte, gc *GlobalContex
 		ret.Private = &NaclSigningKeyPrivate{}
 		copy(ret.Private[:], priv)
 	}
-	ret.SetGlobalContext(gc)
 	return
 }
 
-func ImportKeypairFromKID(kid KID, gc *GlobalContext) (key GenericKey, err error) {
+func ImportKeypairFromKID(kid KID) (key GenericKey, err error) {
 	l := len(kid)
 	if l < 3 {
 		err = BadKeyError{"KID was way too short"}
@@ -122,7 +119,7 @@ func ImportKeypairFromKID(kid KID, gc *GlobalContext) (key GenericKey, err error
 		if len(raw) != ed25519.PublicKeySize {
 			err = BadKeyError{"Bad EdDSA key size"}
 		} else {
-			tmp := NaclSigningKeyPair{Contextified: NewContextified(gc)}
+			tmp := NaclSigningKeyPair{}
 			copy(tmp.Public[:], raw)
 			key = tmp
 		}
@@ -130,7 +127,7 @@ func ImportKeypairFromKID(kid KID, gc *GlobalContext) (key GenericKey, err error
 		if len(raw) != NACL_DH_KEYSIZE {
 			err = BadKeyError{"Bad DH key size"}
 		} else {
-			tmp := NaclDHKeyPair{Contextified: NewContextified(gc)}
+			tmp := NaclDHKeyPair{}
 			copy(tmp.Public[:], raw)
 			key = tmp
 		}
@@ -140,21 +137,20 @@ func ImportKeypairFromKID(kid KID, gc *GlobalContext) (key GenericKey, err error
 	return
 }
 
-func ImportNaclSigningKeyPairFromHex(s string, gc *GlobalContext) (ret NaclSigningKeyPair, err error) {
+func ImportNaclSigningKeyPairFromHex(s string) (ret NaclSigningKeyPair, err error) {
 	var body []byte
 	if body, err = importNaclHex(s, byte(KID_NACL_EDDSA), ed25519.PublicKeySize); err != nil {
 		return
 	}
 	copy(ret.Public[:], body)
-	ret.SetGlobalContext(gc)
 	return
 }
 
-func ImportNaclSigningKeyPairFromKid(k KID, gc *GlobalContext) (ret NaclSigningKeyPair, err error) {
-	return ImportNaclSigningKeyPairFromBytes([]byte(k), nil, gc)
+func ImportNaclSigningKeyPairFromKid(k KID) (ret NaclSigningKeyPair, err error) {
+	return ImportNaclSigningKeyPairFromBytes([]byte(k), nil)
 }
 
-func ImportNaclDHKeyPairFromBytes(pub []byte, priv []byte, gc *GlobalContext) (ret NaclDHKeyPair, err error) {
+func ImportNaclDHKeyPairFromBytes(pub []byte, priv []byte) (ret NaclDHKeyPair, err error) {
 	var body []byte
 	if body, err = importNaclKid(KID(pub), byte(KID_NACL_DH), NACL_DH_KEYSIZE); err != nil {
 		return
@@ -167,17 +163,15 @@ func ImportNaclDHKeyPairFromBytes(pub []byte, priv []byte, gc *GlobalContext) (r
 		ret.Private = &NaclDHKeyPrivate{}
 		copy(ret.Private[:], priv)
 	}
-	ret.SetGlobalContext(gc)
 	return
 }
 
-func ImportNaclDHKeyPairFromHex(s string, gc *GlobalContext) (ret NaclDHKeyPair, err error) {
+func ImportNaclDHKeyPairFromHex(s string) (ret NaclDHKeyPair, err error) {
 	var body []byte
 	if body, err = importNaclHex(s, byte(KID_NACL_DH), NACL_DH_KEYSIZE); err != nil {
 		return
 	}
 	copy(ret.Public[:], body)
-	ret.SetGlobalContext(gc)
 	return
 }
 
@@ -424,8 +418,9 @@ func (s *NaclSig) ArmoredEncode() (ret string, err error) {
 	return PacketArmoredEncode(s)
 }
 
-func (k NaclSigningKeyPair) ToSKB(t *triplesec.Cipher) (*SKB, error) {
-	ret := &SKB{Contextified: k.Contextified}
+func (k NaclSigningKeyPair) ToSKB(t *triplesec.Cipher, gc *GlobalContext) (*SKB, error) {
+	ret := &SKB{}
+	ret.SetGlobalContext(gc)
 	ret.Pub = k.GetKid()
 	ret.Type = KID_NACL_EDDSA
 	ret.Priv.Encryption = 0
@@ -433,8 +428,9 @@ func (k NaclSigningKeyPair) ToSKB(t *triplesec.Cipher) (*SKB, error) {
 	return ret, nil
 }
 
-func (k NaclDHKeyPair) ToSKB(t *triplesec.Cipher) (*SKB, error) {
-	ret := &SKB{Contextified: k.Contextified}
+func (k NaclDHKeyPair) ToSKB(t *triplesec.Cipher, gc *GlobalContext) (*SKB, error) {
+	ret := &SKB{}
+	ret.SetGlobalContext(gc)
 	ret.Pub = k.GetKid()
 	ret.Type = KID_NACL_DH
 	ret.Priv.Encryption = 0

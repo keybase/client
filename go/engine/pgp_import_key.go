@@ -286,7 +286,7 @@ func (e *PGPKeyImportEngine) prepareSecretPush(ctx *Context) (err error) {
 	var tsec *triplesec.Cipher
 	var skb *libkb.SKB
 	if tsec, err = e.G().LoginState().GetVerifiedTriplesec(ctx.SecretUI); err != nil {
-	} else if skb, err = e.bundle.ToSKB(tsec); err != nil {
+	} else if skb, err = e.bundle.ToSKB(tsec, e.G()); err != nil {
 	} else {
 		e.epk, err = skb.ArmoredEncode()
 	}

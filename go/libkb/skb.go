@@ -46,9 +46,10 @@ type SKBPriv struct {
 	Encryption int    `codec:"encryption"`
 }
 
-func (key *PgpKeyBundle) ToSKB(tsec *triplesec.Cipher) (ret *SKB, err error) {
+func (key *PgpKeyBundle) ToSKB(gc *GlobalContext, tsec *triplesec.Cipher) (ret *SKB, err error) {
 
 	ret = &SKB{}
+	ret.SetGlobalContext(gc)
 
 	var pk, sk bytes.Buffer
 
@@ -128,9 +129,9 @@ func (s *SKB) ReadKey() (g GenericKey, err error) {
 	case IsPgpAlgo(s.Type) || s.Type == 0:
 		g, err = ReadOneKeyFromBytes(s.Pub)
 	case s.Type == KID_NACL_EDDSA:
-		g, err = ImportNaclSigningKeyPairFromBytes(s.Pub, nil, s.G())
+		g, err = ImportNaclSigningKeyPairFromBytes(s.Pub, nil)
 	case s.Type == KID_NACL_DH:
-		g, err = ImportNaclDHKeyPairFromBytes(s.Pub, nil, s.G())
+		g, err = ImportNaclDHKeyPairFromBytes(s.Pub, nil)
 	default:
 		err = UnknownKeyTypeError{s.Type}
 	}
@@ -260,9 +261,9 @@ func (s *SKB) parseUnlocked(unlocked []byte) (key GenericKey, err error) {
 	case IsPgpAlgo(s.Type) || s.Type == 0:
 		key, err = ReadOneKeyFromBytes(unlocked)
 	case s.Type == KID_NACL_EDDSA:
-		key, err = ImportNaclSigningKeyPairFromBytes(s.Pub, unlocked, s.G())
+		key, err = ImportNaclSigningKeyPairFromBytes(s.Pub, unlocked)
 	case s.Type == KID_NACL_DH:
-		key, err = ImportNaclDHKeyPairFromBytes(s.Pub, unlocked, s.G())
+		key, err = ImportNaclDHKeyPairFromBytes(s.Pub, unlocked)
 	}
 
 	if key == nil {
