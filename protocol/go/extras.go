@@ -14,7 +14,7 @@ const (
 	UID_SUFFIX_2     = 0x19
 	UID_SUFFIX_HEX   = "00"
 	UID_SUFFIX_2_HEX = "19"
-	PUBLIC_UID       = "0000000000000017"
+	PUBLIC_UID       = "ffffffffffffffffffffffffffffff00"
 )
 
 var PublicUID = UID(PUBLIC_UID)
@@ -36,9 +36,6 @@ func Quote(s string) []byte {
 func UIDFromString(s string) (UID, error) {
 	if len(s) != hex.EncodedLen(UID_LEN) {
 		return "", fmt.Errorf("Bad UID '%s'; must be %d bytes long", s, UID_LEN)
-	}
-	if s == PUBLIC_UID {
-		return PublicUID, nil
 	}
 	suffix := s[len(s)-2:]
 	if suffix != UID_SUFFIX_HEX && suffix != UID_SUFFIX_2_HEX {
