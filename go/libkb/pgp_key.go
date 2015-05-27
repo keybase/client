@@ -493,14 +493,6 @@ func (k PgpKeyBundle) VerifyString(sig string, msg []byte) (id keybase1.SigID, e
 	return
 }
 
-func (k *PgpKeyBundle) SignToBytes(msg []byte) ([]byte, error) {
-	return nil, KeyCannotSignError{}
-}
-
-func (k PgpKeyBundle) VerifyBytes(sig, msg []byte) error {
-	return KeyCannotVerifyError{}
-}
-
 func ExportAsFOKID(fp *PgpFingerprint, kid KID) (ret keybase1.FOKID) {
 	if fp != nil {
 		b := (*fp)[:]

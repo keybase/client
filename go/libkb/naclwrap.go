@@ -395,19 +395,6 @@ func (k NaclDHKeyPair) VerifyString(sig string, msg []byte) (id keybase1.SigID, 
 	return
 }
 
-func (k NaclDHKeyPair) SignToBytes(msg []byte) (sig []byte, verifier BytesVerifier, err error) {
-	err = KeyCannotSignError{}
-	return
-}
-
-func (k NaclDHKeyPair) VerifyBytes(sig, msg []byte) (err error) {
-	return KeyCannotVerifyError{}
-}
-
-func (k NaclDHKeyPair) GetVerifyingKid() KID {
-	return nil
-}
-
 func (s *NaclSig) ToPacket() (ret *KeybasePacket, err error) {
 	ret = &KeybasePacket{
 		Version: KEYBASE_PACKET_V1,
