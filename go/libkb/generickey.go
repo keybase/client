@@ -52,18 +52,6 @@ type GenericKey interface {
 	Encode() (string, error) // encode public key to string
 }
 
-type Signer interface {
-	// Sign to a binary signature (which doesn't include the
-	// message) and return it.
-	SignToBytes(msg []byte) (sig []byte, verifier Verifier, err error)
-}
-
-type Verifier interface {
-	// Verify that the given signature is valid and is for the
-	// given message.
-	VerifyBytes(sig, msg []byte) (err error)
-}
-
 func (k KID) ToFOKID() FOKID {
 	return FOKID{Kid: k}
 }
