@@ -2,6 +2,7 @@ package keybase1
 
 import (
 	"encoding/base64"
+	"encoding/binary"
 	"encoding/hex"
 	"fmt"
 	"strings"
@@ -13,7 +14,11 @@ const (
 	UID_SUFFIX_2     = 0x19
 	UID_SUFFIX_HEX   = "00"
 	UID_SUFFIX_2_HEX = "19"
+	PUBLIC_UID       = "ffffffffffffffffffffffffffffff00"
 )
+
+// UID for the special "public" user.
+var PublicUID = UID(PUBLIC_UID)
 
 const (
 	SIG_ID_LEN         = 32
@@ -40,6 +45,20 @@ func UIDFromString(s string) (UID, error) {
 	return UID(s), nil
 }
 
+// Used by unit tests.
+func MakeTestUID(n uint32) UID {
+	b := make([]byte, 8)
+	binary.LittleEndian.PutUint32(b, n)
+	s := hex.EncodeToString(b)
+	c := 2*UID_LEN - len(UID_SUFFIX_HEX) - len(s)
+	s += strings.Repeat("0", c) + UID_SUFFIX_HEX
+	uid, err := UIDFromString(s)
+	if err != nil {
+		panic(err)
+	}
+	return uid
+}
+
 func (u UID) String() string {
 	return string(u)
 }
@@ -58,6 +77,21 @@ func (u UID) Equal(v UID) bool {
 
 func (u UID) NotEqual(v UID) bool {
 	return u != v
+}
+
+func (u UID) Less(v UID) bool {
+	return u < v
+}
+
+// Returns a number in [0, shardCount) which can be treated as roughly
+// uniformly distributed. Used for things that need to shard by user.
+func (u UID) GetShard(shardCount int) (int, error) {
+	bytes, err := hex.DecodeString(string(u))
+	if err != nil {
+		return 0, err
+	}
+	n := binary.LittleEndian.Uint32(bytes)
+	return int(n) % shardCount, nil
 }
 
 func (s SigID) IsNil() bool {
