@@ -258,7 +258,7 @@ func (u *User) StoreTopLevel() error {
 	G.Log.Debug("+ StoreTopLevel")
 
 	jw := jsonw.NewDictionary()
-	jw.SetKey("id", jsonw.NewString(string(u.id)))
+	jw.SetKey("id", UIDWrapper(u.id))
 	jw.SetKey("basics", u.basics)
 	jw.SetKey("public_keys", u.publicKeys)
 	jw.SetKey("sigs", u.sigs)

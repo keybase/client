@@ -169,7 +169,7 @@ func (e *TrackEngine) storeRemoteTrack(ctx *Context) (err error) {
 			"sig_id_base":  libkb.S{Val: e.sigid.ToString(false)},
 			"sig_id_short": libkb.S{Val: e.sigid.ToShortID()},
 			"sig":          libkb.S{Val: e.sig},
-			"uid":          libkb.S{Val: string(e.them.GetUID())},
+			"uid":          libkb.UIDArg(e.them.GetUID()),
 			"type":         libkb.S{Val: "track"},
 			"signing_kid":  e.signingKeyPub.GetKid(),
 		},

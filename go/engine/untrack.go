@@ -193,7 +193,7 @@ func (e *UntrackEngine) storeRemoteUntrack(them *libkb.User, ctx *Context) (err 
 			"sig_id_base":  libkb.S{Val: sigid.ToString(false)},
 			"sig_id_short": libkb.S{Val: sigid.ToShortID()},
 			"sig":          libkb.S{Val: sig},
-			"uid":          libkb.S{Val: string(them.GetUID())},
+			"uid":          libkb.UIDArg(them.GetUID()),
 			"type":         libkb.S{Val: "untrack"},
 			"signing_kid":  e.signingKeyPub.GetKid(),
 		},

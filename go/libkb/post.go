@@ -73,7 +73,7 @@ type PostAuthProofRes struct {
 
 func PostAuthProof(arg PostAuthProofArg) (*PostAuthProofRes, error) {
 	hargs := HttpArgs{
-		"uid":         S{string(arg.uid)},
+		"uid":         UIDArg(arg.uid),
 		"sig":         S{arg.sig},
 		"signing_kid": S{arg.key.GetKid().String()},
 	}

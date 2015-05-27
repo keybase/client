@@ -117,7 +117,7 @@ func (t *TrackerSyncer) syncFromServer(sr SessionReader) (err error) {
 	lv := t.getLoadedVersion()
 
 	hargs := HttpArgs{
-		"uid":   S{string(t.uid)},
+		"uid":   UIDArg(t.uid),
 		"limit": I{5000},
 	}
 

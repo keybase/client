@@ -132,7 +132,7 @@ func (sh *SigHints) Refresh() error {
 		Endpoint:    "sig/hints",
 		NeedSession: false,
 		Args: HttpArgs{
-			"uid": S{string(sh.uid)},
+			"uid": UIDArg(sh.uid),
 			"low": I{sh.version},
 		},
 	})

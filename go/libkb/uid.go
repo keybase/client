@@ -35,6 +35,14 @@ func GetUidVoid(w *jsonw.Wrapper, u *keybase1.UID, e *error) {
 	}
 }
 
+func UIDWrapper(uid keybase1.UID) *jsonw.Wrapper {
+	return jsonw.NewString(string(uid))
+}
+
+func UIDArg(uid keybase1.UID) HttpValue {
+	return S{Val: string(uid)}
+}
+
 const (
 	UID_LEN      = keybase1.UID_LEN
 	UID_SUFFIX   = keybase1.UID_SUFFIX

@@ -129,7 +129,7 @@ func (sc *SigChain) LoadFromServer(t *MerkleTriple, selfUID keybase1.UID) (dirty
 		Endpoint:    "sig/get",
 		NeedSession: false,
 		Args: HttpArgs{
-			"uid": S{string(sc.uid)},
+			"uid": UIDArg(sc.uid),
 			"low": I{int(low)},
 		},
 	})

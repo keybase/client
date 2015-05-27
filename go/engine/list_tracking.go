@@ -225,7 +225,7 @@ func condenseRecord(l *libkb.TrackChainLink) (*jsonw.Wrapper, error) {
 	rp := l.RemoteKeyProofs()
 
 	out := jsonw.NewDictionary()
-	out.SetKey("uid", jsonw.NewString(string(uid)))
+	out.SetKey("uid", libkb.UIDWrapper(uid))
 	out.SetKey("keys", jsonw.NewString(strings.Join(fpsDisplay, ", ")))
 	out.SetKey("ctime", jsonw.NewInt64(l.GetCTime().Unix()))
 	out.SetKey("username", jsonw.NewString(un))

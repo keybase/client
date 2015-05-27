@@ -87,7 +87,7 @@ func (u *User) ToTrackingStatement(w *jsonw.Wrapper) (err error) {
 	}
 	track.SetKey("seq_tail", u.ToTrackingStatementSeqTail())
 	track.SetKey("basics", u.ToTrackingStatementBasics(&err))
-	track.SetKey("id", jsonw.NewString(string(u.id)))
+	track.SetKey("id", UIDWrapper(u.id))
 	track.SetKey("remote_proofs", u.IDTable().ToTrackingStatement())
 
 	if err != nil {
@@ -109,7 +109,7 @@ func (u *User) ToUntrackingStatementBasics() *jsonw.Wrapper {
 func (u *User) ToUntrackingStatement(w *jsonw.Wrapper) (err error) {
 	untrack := jsonw.NewDictionary()
 	untrack.SetKey("basics", u.ToUntrackingStatementBasics())
-	untrack.SetKey("id", jsonw.NewString(string(u.GetUID())))
+	untrack.SetKey("id", UIDWrapper(u.GetUID()))
 	w.SetKey("type", jsonw.NewString("untrack"))
 	w.SetKey("version", jsonw.NewInt(KEYBASE_SIGNATURE_V1))
 	w.SetKey("untrack", untrack)
@@ -118,7 +118,7 @@ func (u *User) ToUntrackingStatement(w *jsonw.Wrapper) (err error) {
 
 func (u *User) ToKeyStanza(signing FOKID, eldest *FOKID) (ret *jsonw.Wrapper, err error) {
 	ret = jsonw.NewDictionary()
-	ret.SetKey("uid", jsonw.NewString(string(u.id)))
+	ret.SetKey("uid", UIDWrapper(u.id))
 	ret.SetKey("username", jsonw.NewString(u.name))
 	ret.SetKey("host", jsonw.NewString(CANONICAL_HOST))
 

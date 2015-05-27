@@ -197,7 +197,7 @@ func LoadUserFromServer(arg LoadUserArg, body *jsonw.Wrapper) (u *User, err erro
 			Endpoint:    "user/lookup",
 			NeedSession: false,
 			Args: HttpArgs{
-				"uid": S{string(arg.Uid)},
+				"uid": UIDArg(arg.Uid),
 			},
 		})
 
@@ -230,7 +230,7 @@ func LookupMerkleLeaf(uid keybase1.UID, local *User) (f *MerkleUserLeaf, err err
 		return
 	}
 	q := NewHttpArgs()
-	q.Add("uid", S{string(uid)})
+	q.Add("uid", UIDArg(uid))
 
 	f, err = G.MerkleClient.LookupUser(q)
 	if err == nil && f == nil && local != nil {
