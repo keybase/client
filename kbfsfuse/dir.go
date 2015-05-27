@@ -158,11 +158,11 @@ func (d *Dir) Create(ctx context.Context, req *fuse.CreateRequest, resp *fuse.Cr
 	defer d.folder.mu.Unlock()
 
 	isExec := (req.Mode.Perm() & 0100) != 0
-	p, de, err := d.folder.fs.config.KBFSOps().CreateFile(d.getPathLocked(), req.Name, isExec)
+	pChild, de, err := d.folder.fs.config.KBFSOps().CreateFile(d.getPathLocked(), req.Name, isExec)
 	if err != nil {
 		return nil, nil, err
 	}
-	d.updatePathLocked(p)
+	d.updatePathLocked(*pChild.ParentPath())
 	// TODO update mtime, ctime, size?
 
 	child := &File{
@@ -183,11 +183,11 @@ func (d *Dir) Mkdir(ctx context.Context, req *fuse.MkdirRequest) (fs.Node, error
 	d.folder.mu.Lock()
 	defer d.folder.mu.Unlock()
 
-	p, de, err := d.folder.fs.config.KBFSOps().CreateDir(d.getPathLocked(), req.Name)
+	pChild, de, err := d.folder.fs.config.KBFSOps().CreateDir(d.getPathLocked(), req.Name)
 	if err != nil {
 		return nil, err
 	}
-	d.updatePathLocked(p)
+	d.updatePathLocked(*pChild.ParentPath())
 	// TODO update mtime, ctime, size?
 
 	child := &Dir{
