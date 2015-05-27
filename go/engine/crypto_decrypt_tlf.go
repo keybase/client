@@ -1,9 +1,6 @@
 package engine
 
 import (
-	"errors"
-	"fmt"
-
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/protocol/go"
 )
@@ -60,18 +57,18 @@ func (cse *CryptoDecryptTLFEngine) Run(ctx *Context) (err error) {
 
 	unboxer, ok := key.(libkb.Unboxer)
 	if !ok {
-		err = errors.New("Key not a DHKeyPair")
+		err = libkb.KeyCannotUnboxError{}
 		return
 	}
 
 	decryptedData, ok := unboxer.Unbox(cse.encryptedData, [24]byte(cse.nonce), [32]byte(cse.peersPublicKey))
 	if !ok {
-		err = errors.New("Decryption error (TLF crypt key client half)")
+		err = libkb.DecryptionError{}
 		return
 	}
 
 	if len(decryptedData) != len(cse.tlfCryptKeyClientHalf) {
-		err = fmt.Errorf("Expected %d decrypted bytes, got %d", len(cse.tlfCryptKeyClientHalf), len(decryptedData))
+		err = libkb.DecryptionError{}
 		return
 	}
 

@@ -881,6 +881,14 @@ func (e PGPDecError) Error() string {
 
 //=============================================================================
 
+type DecryptionError struct{}
+
+func (e DecryptionError) Error() string {
+	return "Decryption error"
+}
+
+//=============================================================================
+
 type ChainLinkPrevHashMismatchError struct {
 	err error
 }
