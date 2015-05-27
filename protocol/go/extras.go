@@ -2,6 +2,7 @@ package keybase1
 
 import (
 	"encoding/base64"
+	"encoding/binary"
 	"encoding/hex"
 	"fmt"
 	"strings"
@@ -38,6 +39,19 @@ func UIDFromString(s string) (UID, error) {
 		return "", fmt.Errorf("Bad UID '%s': must end in 0x%x or 0x%x", s, UID_SUFFIX, UID_SUFFIX_2)
 	}
 	return UID(s), nil
+}
+
+func MakeTestUID(n uint32) UID {
+	b := make([]byte, 8)
+	binary.LittleEndian.PutUint32(b, n)
+	s := hex.EncodeToString(b)
+	c := UID_LEN - len(UID_SUFFIX_HEX) - len(s)
+	s += strings.Repeat("0", c) + UID_SUFFIX_HEX
+	uid, err := UIDFromString(s)
+	if err != nil {
+		panic(err)
+	}
+	return uid
 }
 
 func (u UID) String() string {
