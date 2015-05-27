@@ -96,10 +96,7 @@ func TestVerifyBytesAccept(t *testing.T) {
 	}
 
 	msg := []byte("test message")
-	sig, _, err := keyPair.SignToBytes(msg)
-	if err != nil {
-		t.Fatal(err)
-	}
+	sig := keyPair.Private.Sign(msg)[:]
 
 	err = keyPair.VerifyBytes(sig, msg)
 	if err != nil {
@@ -115,10 +112,7 @@ func TestVerifyBytesReject(t *testing.T) {
 	}
 
 	msg := []byte("test message")
-	sig, _, err := keyPair.SignToBytes(msg)
-	if err != nil {
-		t.Fatal(err)
-	}
+	sig := keyPair.Private.Sign(msg)[:]
 
 	// Corrupt signature.
 
@@ -141,10 +135,7 @@ func TestVerifyBytesReject(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	sig2, _, err := keyPair2.SignToBytes(msg)
-	if err != nil {
-		t.Fatal(err)
-	}
+	sig2 := keyPair2.Private.Sign(msg)[:]
 
 	err = keyPair.VerifyBytes(sig2, msg)
 	if err == nil {
