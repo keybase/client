@@ -1,5 +1,9 @@
 package libkb
 
+type NaclKeyPair interface {
+	GenericKey
+}
+
 type NaclGenerator func() (NaclKeyPair, error)
 
 type NaclKeyGenArg struct {

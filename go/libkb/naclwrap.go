@@ -437,12 +437,6 @@ func (s *NaclSig) ArmoredEncode() (ret string, err error) {
 	return PacketArmoredEncode(s)
 }
 
-type NaclKeyPair interface {
-	GenericKey
-	BytesSigner
-	BytesVerifier
-}
-
 func (k NaclSigningKeyPair) ToSKB(t *triplesec.Cipher) (*SKB, error) {
 	ret := &SKB{Contextified: k.Contextified}
 	ret.Pub = k.GetKid()
@@ -487,10 +481,10 @@ func (k NaclDHKeyPair) ToLksSKB(lks *LKSec) (*SKB, error) {
 	return ret, nil
 }
 
-func GenerateNaclSigningKeyPair() (NaclKeyPair, error) {
+func GenerateNaclSigningKeyPair() (NaclSigningKeyPair, error) {
 	pub, priv, err := ed25519.GenerateKey(rand.Reader)
 	if err != nil {
-		return nil, err
+		return NaclSigningKeyPair{}, err
 	}
 	var ret NaclSigningKeyPair
 	var npriv NaclSigningKeyPrivate
@@ -501,10 +495,10 @@ func GenerateNaclSigningKeyPair() (NaclKeyPair, error) {
 	return ret, nil
 }
 
-func GenerateNaclDHKeyPair() (NaclKeyPair, error) {
+func GenerateNaclDHKeyPair() (NaclDHKeyPair, error) {
 	pub, priv, err := box.GenerateKey(rand.Reader)
 	if err != nil {
-		return nil, err
+		return NaclDHKeyPair{}, err
 	}
 	var ret NaclDHKeyPair
 	var npriv NaclDHKeyPrivate
