@@ -62,7 +62,7 @@ func TestProveCheck(t *testing.T) {
 		t.Errorf("proof not found, expected to be found")
 	}
 	if status != 1 {
-		t.Errorf("proof status: %d, expected 1", status)
+		t.Errorf("proof status: %d, expected 1", int(status))
 	}
 	if len(text) == 0 {
 		t.Errorf("empty proof text, expected non-empty")

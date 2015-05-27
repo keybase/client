@@ -12,7 +12,7 @@ func TestExportUser(t *testing.T) {
 
 	exportedAlice := alice.Export()
 
-	if exportedAlice.Uid != "295a7eea607af32040647123732bc819" {
+	if exportedAlice.Uid.String() != "295a7eea607af32040647123732bc819" {
 		t.Fatal("wrong UID", exportedAlice.Uid)
 	}
 

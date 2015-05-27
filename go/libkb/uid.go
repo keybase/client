@@ -13,15 +13,17 @@ import (
 func UidFromHex(s string) (keybase1.UID, error) {
 	u, err := keybase1.UIDFromString(s)
 	if err != nil {
-		return "", err
+		var nilUID keybase1.UID
+		return nilUID, err
 	}
 	return u, nil
 }
 
 func GetUID(w *jsonw.Wrapper) (keybase1.UID, error) {
 	s, err := w.GetString()
+	var nilUID keybase1.UID
 	if err != nil {
-		return "", err
+		return nilUID, err
 	}
 	return UidFromHex(s)
 }
@@ -55,7 +57,8 @@ func UsernameToUID(s string) keybase1.UID {
 	var uid [keybase1.UID_LEN]byte
 	copy(uid[:], h[0:UID_LEN-1])
 	uid[UID_LEN-1] = UID_SUFFIX_2
-	return keybase1.UID(hex.EncodeToString(uid[:]))
+	ret, _ := keybase1.UIDFromString(hex.EncodeToString(uid[:]))
+	return ret
 }
 
 func CheckUIDAgainstUsername(uid keybase1.UID, username string) (err error) {

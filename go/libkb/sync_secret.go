@@ -57,7 +57,8 @@ func NewSecretSyncer(g *GlobalContext) *SecretSyncer {
 
 func (ss *SecretSyncer) Clear() error {
 	err := ss.store()
-	ss.Uid = ""
+	var emptyUID keybase1.UID
+	ss.Uid = emptyUID
 	ss.keys = nil
 
 	return err

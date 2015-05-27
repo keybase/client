@@ -40,8 +40,8 @@ func (d *DevList) Run(ctx *Context) error {
 	var err error
 	var devs libkb.DeviceKeyMap
 	d.G().LoginState().Account(func(a *libkb.Account) {
-		// XXX no uid parameter?
-		if err = libkb.RunSyncer(a.SecretSyncer(), "", a.LoggedIn(), a.LocalSession()); err != nil {
+		var nilUID keybase1.UID
+		if err = libkb.RunSyncer(a.SecretSyncer(), nilUID, a.LoggedIn(), a.LocalSession()); err != nil {
 			return
 		}
 		devs, err = a.SecretSyncer().ActiveDevices()

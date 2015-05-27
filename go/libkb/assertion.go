@@ -139,13 +139,13 @@ func (a AssertionFingerprint) MatchSet(ps ProofSet) bool {
 func (a AssertionWeb) Keys() []string {
 	return []string{"dns", "http", "https"}
 }
-func (a AssertionHttp) Keys() []string         { return []string{"http", "https"} }
-func (a AssertionUrlBase) Keys() []string      { return []string{a.Key} }
-func (a AssertionUrlBase) IsKeybase() bool     { return false }
-func (a AssertionUrlBase) IsSocial() bool      { return false }
-func (a AssertionUrlBase) IsFingerprint() bool { return false }
-func (a AssertionUrlBase) IsUid() bool         { return false }
-func (a AssertionUrlBase) ToUid() keybase1.UID { return "" }
+func (a AssertionHttp) Keys() []string               { return []string{"http", "https"} }
+func (a AssertionUrlBase) Keys() []string            { return []string{a.Key} }
+func (a AssertionUrlBase) IsKeybase() bool           { return false }
+func (a AssertionUrlBase) IsSocial() bool            { return false }
+func (a AssertionUrlBase) IsFingerprint() bool       { return false }
+func (a AssertionUrlBase) IsUid() bool               { return false }
+func (a AssertionUrlBase) ToUid() (ret keybase1.UID) { return ret }
 func (a AssertionUrlBase) MatchProof(proof Proof) bool {
 	return (strings.ToLower(proof.Value) == a.Value)
 }
