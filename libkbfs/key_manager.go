@@ -2,6 +2,7 @@ package libkbfs
 
 import (
 	"github.com/keybase/client/go/libkb"
+	keybase1 "github.com/keybase/client/protocol/go"
 )
 
 type KeyManagerStandard struct {
@@ -126,7 +127,7 @@ func (km *KeyManagerStandard) GetBlockCryptKey(
 	return
 }
 
-func (km *KeyManagerStandard) secretKeysForUser(md *RootMetadata, uid libkb.UID,
+func (km *KeyManagerStandard) secretKeysForUser(md *RootMetadata, uid keybase1.UID,
 	tlfCryptKey TLFCryptKey, ePrivKey TLFEphemeralPrivateKey) (uMap map[libkb.KIDMapKey][]byte, err error) {
 	defer func() {
 		if err != nil {
@@ -204,8 +205,8 @@ func (km *KeyManagerStandard) Rekey(md *RootMetadata) error {
 
 	handle := md.GetDirHandle()
 	newKeys := DirKeyBundle{
-		WKeys:                 make(map[libkb.UID]map[libkb.KIDMapKey][]byte),
-		RKeys:                 make(map[libkb.UID]map[libkb.KIDMapKey][]byte),
+		WKeys:                 make(map[keybase1.UID]map[libkb.KIDMapKey][]byte),
+		RKeys:                 make(map[keybase1.UID]map[libkb.KIDMapKey][]byte),
 		TLFPublicKey:          pubKey,
 		TLFEphemeralPublicKey: ePubKey,
 	}

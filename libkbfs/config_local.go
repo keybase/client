@@ -1,9 +1,6 @@
 package libkbfs
 
-import (
-	"github.com/keybase/client/go/libkb"
-	keybase1 "github.com/keybase/client/protocol/go"
-)
+import keybase1 "github.com/keybase/client/protocol/go"
 
 type ConfigLocal struct {
 	kbfs     KBFSOps
@@ -26,7 +23,7 @@ type ConfigLocal struct {
 
 type LocalUser struct {
 	Name                  string
-	Uid                   libkb.UID
+	Uid                   keybase1.UID
 	Asserts               []string
 	VerifyingKeys         []VerifyingKey
 	CryptPublicKeys       []CryptPublicKey
@@ -96,7 +93,7 @@ func MakeLocalUsers(users []string) []LocalUser {
 		cryptPublicKey := MakeLocalUserCryptPublicKeyOrBust(users[i])
 		localUsers[i] = LocalUser{
 			Name:                  users[i],
-			Uid:                   libkb.UID{byte(i + 1)},
+			Uid:                   keybase1.MakeTestUID(uint32(i + 1)),
 			VerifyingKeys:         []VerifyingKey{verifyingKey},
 			CryptPublicKeys:       []CryptPublicKey{cryptPublicKey},
 			CurrentPublicKeyIndex: 0,

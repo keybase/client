@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/keybase/client/go/libkb"
+	keybase1 "github.com/keybase/client/protocol/go"
 )
 
 // Block just needs to be (de)serialized using msgpack
@@ -14,7 +15,7 @@ type Block interface{}
 type BlockContext interface {
 	GetKeyVer() KeyVer
 	GetVer() Ver
-	GetWriter() libkb.UID
+	GetWriter() keybase1.UID
 	GetQuotaSize() uint32
 }
 
@@ -49,19 +50,19 @@ type KBPKI interface {
 	// Loads a user by assertion (could also be a username)
 	ResolveAssertion(input string) (*libkb.User, error)
 	// Loads user by UID and checks assumptions via identify
-	GetUser(uid libkb.UID) (*libkb.User, error)
+	GetUser(uid keybase1.UID) (*libkb.User, error)
 	// Get the current keybase session
 	GetSession() (*libkb.Session, error)
 	// Get the UID of the current logged-in user
-	GetLoggedInUser() (libkb.UID, error)
+	GetLoggedInUser() (keybase1.UID, error)
 	// Returns nil if the given user has the given VerifyingKey,
 	// and an error otherwise.
 	//
 	// TODO: Add a timestamp argument (or similar) so that we can
 	// check for revocation.
-	HasVerifyingKey(uid libkb.UID, verifyingKey VerifyingKey) error
+	HasVerifyingKey(uid keybase1.UID, verifyingKey VerifyingKey) error
 	// Get all of a user's crypt public keys (one per device).
-	GetCryptPublicKeys(uid libkb.UID) ([]CryptPublicKey, error)
+	GetCryptPublicKeys(uid keybase1.UID) ([]CryptPublicKey, error)
 	// Get the crypt public key for the currently-active device.
 	GetCurrentCryptPublicKey() (CryptPublicKey, error)
 }
@@ -209,10 +210,10 @@ type KeyOps interface {
 	// Put the server-side key half for a device (identified by
 	// its CryptPublicKey) for a given TLF.
 	PutTLFCryptKeyServerHalf(
-		id DirId, keyVer KeyVer, user libkb.UID, cryptPublicKey CryptPublicKey, serverHalf TLFCryptKeyServerHalf) error
+		id DirId, keyVer KeyVer, user keybase1.UID, cryptPublicKey CryptPublicKey, serverHalf TLFCryptKeyServerHalf) error
 
 	// Get the public MAC key for a given user.
-	GetMacPublicKey(uid libkb.UID) (MacPublicKey, error)
+	GetMacPublicKey(uid keybase1.UID) (MacPublicKey, error)
 }
 
 // BlockOps gets and puts data blocks to a BlockServer. It performs

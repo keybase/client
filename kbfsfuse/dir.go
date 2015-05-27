@@ -7,7 +7,7 @@ import (
 
 	"bazil.org/fuse"
 	"bazil.org/fuse/fs"
-	"github.com/keybase/client/go/libkb"
+	keybase1 "github.com/keybase/client/protocol/go"
 	"github.com/keybase/kbfs/libkbfs"
 	"golang.org/x/net/context"
 )
@@ -82,7 +82,7 @@ func (d *Dir) Lookup(ctx context.Context, req *fuse.LookupRequest, resp *fuse.Lo
 		d.folder.dh.HasPublic() {
 		dhPub := &libkbfs.DirHandle{
 			Writers: d.folder.dh.Writers,
-			Readers: []libkb.UID{libkbfs.PublicUid},
+			Readers: []keybase1.UID{keybase1.PublicUID},
 		}
 		md, err := d.folder.fs.config.KBFSOps().GetRootMDForHandle(dhPub)
 		if err != nil {

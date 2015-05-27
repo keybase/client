@@ -3,7 +3,7 @@ package libkbfs
 import (
 	"fmt"
 
-	"github.com/keybase/client/go/libkb"
+	keybase1 "github.com/keybase/client/protocol/go"
 )
 
 type MDOpsStandard struct {
@@ -191,8 +191,8 @@ func (md *MDOpsStandard) Put(id DirId, rmd *RootMetadata) error {
 		//     - Get MAC public key
 		//     - Get shared secret with our private MAC key
 		//     - Sign using MAC
-		rmds.Macs = make(map[libkb.UID][]byte)
-		macFunc := func(user libkb.UID) error {
+		rmds.Macs = make(map[keybase1.UID][]byte)
+		macFunc := func(user keybase1.UID) error {
 			// use the latest mac keys
 			if pubKey, err := md.config.KeyOps().GetMacPublicKey(user); err != nil {
 				return err

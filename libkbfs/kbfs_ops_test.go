@@ -8,6 +8,7 @@ import (
 
 	"code.google.com/p/gomock/gomock"
 	"github.com/keybase/client/go/libkb"
+	keybase1 "github.com/keybase/client/protocol/go"
 )
 
 type CheckBlockOps struct {
@@ -116,17 +117,17 @@ func TestKBFSOpsGetFavDirsFail(t *testing.T) {
 	}
 }
 
-func makeId(config *ConfigMock) (libkb.UID, DirId, *DirHandle) {
-	userId := libkb.UID{15}
+func makeId(config *ConfigMock) (keybase1.UID, DirId, *DirHandle) {
+	userId := keybase1.MakeTestUID(15)
 	id, h, _ := newDir(config, 1, true, false)
-	h.Writers = []libkb.UID{userId}
+	h.Writers = []keybase1.UID{userId}
 	expectUserCalls(h, config)
 	config.mockKbpki.EXPECT().GetLoggedInUser().AnyTimes().Return(userId, nil)
 	return userId, id, h
 }
 
 func makeIdAndRMD(config *ConfigMock) (
-	libkb.UID, DirId, *RootMetadata) {
+	keybase1.UID, DirId, *RootMetadata) {
 	userId, id, h := makeId(config)
 	rmd := NewRootMetadata(h, id)
 	rmd.AddNewKeys(DirKeyBundle{})
@@ -233,11 +234,11 @@ func TestKBFSOpsGetRootMDCreateNewFailNonWriter(t *testing.T) {
 	mockCtrl, config := kbfsOpsInit(t, false)
 	defer kbfsTestShutdown(mockCtrl, config)
 
-	userId := libkb.UID{15}
-	ownerId := libkb.UID{20}
+	userId := keybase1.MakeTestUID(15)
+	ownerId := keybase1.MakeTestUID(20)
 	id, h, _ := newDir(config, 1, true, false)
-	h.Readers = []libkb.UID{userId}
-	h.Writers = []libkb.UID{ownerId}
+	h.Readers = []keybase1.UID{userId}
+	h.Writers = []keybase1.UID{ownerId}
 
 	rmd := NewRootMetadata(h, id)
 
@@ -344,10 +345,10 @@ func TestKBFSOpsGetBaseDirUncachedFailNonReader(t *testing.T) {
 	mockCtrl, config := kbfsOpsInit(t, false)
 	defer kbfsTestShutdown(mockCtrl, config)
 
-	userId := libkb.UID{15}
-	ownerId := libkb.UID{20}
+	userId := keybase1.MakeTestUID(15)
+	ownerId := keybase1.MakeTestUID(20)
 	id, h, _ := newDir(config, 1, true, false)
-	h.Writers = []libkb.UID{ownerId}
+	h.Writers = []keybase1.UID{ownerId}
 	expectUserCalls(h, config)
 
 	rmd := NewRootMetadata(h, id)
@@ -402,7 +403,7 @@ func TestKBFSOpsGetBaseDirUncachedFailNewVersion(t *testing.T) {
 	mockCtrl, config := kbfsOpsInit(t, false)
 	defer kbfsTestShutdown(mockCtrl, config)
 
-	userId := libkb.UID{15}
+	userId := keybase1.MakeTestUID(15)
 	id, h, _ := newDir(config, 1, true, false)
 	h.Writers = append(h.Writers, userId)
 	expectUserCalls(h, config)
@@ -470,7 +471,7 @@ func checkBlockChange(t *testing.T, bcn *BlockChangeNode, path Path,
 }
 
 func expectSyncBlock(
-	t *testing.T, config *ConfigMock, lastCall *gomock.Call, userId libkb.UID,
+	t *testing.T, config *ConfigMock, lastCall *gomock.Call, userId keybase1.UID,
 	id DirId, name string, path Path, rmd *RootMetadata, newEntry bool,
 	skipSync int, refBytes uint64, unrefBytes uint64,
 	checkMD func(*RootMetadata), newRmd **RootMetadata) (Path, *gomock.Call) {
@@ -1250,12 +1251,12 @@ func TestRenameFailAcrossTopDirs(t *testing.T) {
 	mockCtrl, config := kbfsOpsInit(t, false)
 	defer kbfsTestShutdown(mockCtrl, config)
 
-	userId1 := libkb.UID{15}
+	userId1 := keybase1.MakeTestUID(15)
 	id1, h1, _ := newDir(config, 1, true, false)
 	h1.Writers = append(h1.Writers, userId1)
 	expectUserCalls(h1, config)
 
-	userId2 := libkb.UID{20}
+	userId2 := keybase1.MakeTestUID(20)
 	id2, h2, _ := newDir(config, 2, true, false)
 	h2.Writers = append(h2.Writers, userId2)
 	expectUserCalls(h2, config)
@@ -2419,7 +2420,7 @@ func TestSyncDirtyMultiBlocksSuccess(t *testing.T) {
 	fileBlock.IsInd = true
 	fileBlock.IPtrs = []IndirectFilePtr{
 		IndirectFilePtr{BlockPointer{id1, 0, 0, userId, 5}, 0},
-		IndirectFilePtr{BlockPointer{id2, 0, 0, libkb.UID{0}, 0}, 5},
+		IndirectFilePtr{BlockPointer{id2, 0, 0, keybase1.MakeTestUID(0), 0}, 5},
 		IndirectFilePtr{BlockPointer{id3, 0, 0, userId, 7}, 10},
 		IndirectFilePtr{BlockPointer{id4, 0, 0, userId, 0}, 15},
 	}

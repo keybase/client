@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/keybase/client/go/libkb"
+	keybase1 "github.com/keybase/client/protocol/go"
 )
 
 var ErrorFile string = ".kbfs_error"
@@ -90,7 +91,7 @@ func (e *WriteAccessError) Error() string {
 		e.User, e.Dir)
 }
 
-func NewReadAccessError(config Config, dir *DirHandle, uid libkb.UID) error {
+func NewReadAccessError(config Config, dir *DirHandle, uid keybase1.UID) error {
 	dirname := dir.ToString(config)
 	if u, err2 := config.KBPKI().GetUser(uid); err2 == nil {
 		return &ReadAccessError{u.GetName(), dirname}
@@ -99,7 +100,7 @@ func NewReadAccessError(config Config, dir *DirHandle, uid libkb.UID) error {
 	}
 }
 
-func NewWriteAccessError(config Config, dir *DirHandle, uid libkb.UID) error {
+func NewWriteAccessError(config Config, dir *DirHandle, uid keybase1.UID) error {
 	dirname := dir.ToString(config)
 	if u, err2 := config.KBPKI().GetUser(uid); err2 == nil {
 		return &WriteAccessError{u.GetName(), dirname}

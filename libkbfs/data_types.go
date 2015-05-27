@@ -1,7 +1,6 @@
 package libkbfs
 
 import (
-	"bytes"
 	"encoding/hex"
 	"fmt"
 	"sort"
@@ -25,18 +24,11 @@ func (d DirId) String() string {
 	return hex.EncodeToString(d[:])
 }
 
-func GetPublicUid() libkb.UID {
-	out := libkb.UID{0}
-	out[libkb.UID_LEN-1] = PUBDIRID_SUFFIX
-	return out
-}
-
 func (d DirId) IsPublic() bool {
 	return d[DIRID_LEN-1] == PUBDIRID_SUFFIX
 }
 
 var ReaderSep string = "#"
-var PublicUid libkb.UID = GetPublicUid()
 var PublicName string = "public"
 
 // All section references below are to https://keybase.io/blog/crypto
@@ -144,7 +136,7 @@ type BlockPointer struct {
 	Id     BlockId
 	KeyVer KeyVer // which version of the DirKeyBundle to use
 	Ver    Ver    // which version of the KBFS data structures is pointed to
-	Writer libkb.UID
+	Writer keybase1.UID
 	// When non-zero, the size of the (possibly encrypted) data
 	// contained in the block. When non-zero, always at least the
 	// size of the plaintext data contained in the block.
@@ -159,7 +151,7 @@ func (p BlockPointer) GetVer() Ver {
 	return p.Ver
 }
 
-func (p BlockPointer) GetWriter() libkb.UID {
+func (p BlockPointer) GetWriter() keybase1.UID {
 	return p.Writer
 }
 
@@ -174,8 +166,8 @@ func (p BlockPointer) IsInitialized() bool {
 // DirHandle uniquely identifies top-level directories by readers and
 // writers.  It is go-routine-safe.
 type DirHandle struct {
-	Readers     []libkb.UID `codec:"r,omitempty"`
-	Writers     []libkb.UID `codec:"w,omitempty"`
+	Readers     []keybase1.UID `codec:"r,omitempty"`
+	Writers     []keybase1.UID `codec:"w,omitempty"`
 	cachedName  string
 	cachedBytes []byte
 	cacheMutex  sync.Mutex // control access to the "cached" values
@@ -183,12 +175,12 @@ type DirHandle struct {
 
 func NewDirHandle() *DirHandle {
 	return &DirHandle{
-		Readers: make([]libkb.UID, 0, 1),
-		Writers: make([]libkb.UID, 0, 1),
+		Readers: make([]keybase1.UID, 0, 1),
+		Writers: make([]keybase1.UID, 0, 1),
 	}
 }
 
-func resolveUser(ctx context.Context, config Config, name string, errCh chan<- error, results chan<- libkb.UID) {
+func resolveUser(ctx context.Context, config Config, name string, errCh chan<- error, results chan<- keybase1.UID) {
 	// TODO ResolveAssertion should take ctx
 	user, err := config.KBPKI().ResolveAssertion(name)
 	if err != nil {
@@ -199,14 +191,14 @@ func resolveUser(ctx context.Context, config Config, name string, errCh chan<- e
 	results <- uid
 }
 
-type uidList []libkb.UID
+type uidList []keybase1.UID
 
 func (u uidList) Len() int {
 	return len(u)
 }
 
 func (u uidList) Less(i, j int) bool {
-	return bytes.Compare(u[i][:], u[j][:]) < 0
+	return u[i].Less(u[j])
 }
 
 func (u uidList) Swap(i, j int) {
@@ -215,8 +207,8 @@ func (u uidList) Swap(i, j int) {
 	u[j] = tmp
 }
 
-func sortUIDS(m map[libkb.UID]struct{}) []libkb.UID {
-	var s []libkb.UID
+func sortUIDS(m map[keybase1.UID]struct{}) []keybase1.UID {
+	var s []keybase1.UID
 	for uid := range m {
 		s = append(s, uid)
 	}
@@ -239,8 +231,8 @@ func ParseDirHandle(ctx context.Context, config Config, name string) (*DirHandle
 
 	// parallelize the resolutions for each user
 	errCh := make(chan error, 1)
-	wc := make(chan libkb.UID, len(writerNames))
-	rc := make(chan libkb.UID, len(readerNames))
+	wc := make(chan keybase1.UID, len(writerNames))
+	rc := make(chan keybase1.UID, len(readerNames))
 	ctx, cancel := context.WithCancel(ctx)
 	defer cancel()
 	for _, user := range writerNames {
@@ -250,8 +242,8 @@ func ParseDirHandle(ctx context.Context, config Config, name string) (*DirHandle
 		go resolveUser(ctx, config, user, errCh, rc)
 	}
 
-	usedWNames := make(map[libkb.UID]struct{}, len(writerNames))
-	usedRNames := make(map[libkb.UID]struct{}, len(readerNames))
+	usedWNames := make(map[keybase1.UID]struct{}, len(writerNames))
+	usedRNames := make(map[keybase1.UID]struct{}, len(readerNames))
 	for i := 0; i < len(writerNames)+len(readerNames); i++ {
 		select {
 		case err := <-errCh:
@@ -275,7 +267,7 @@ func ParseDirHandle(ctx context.Context, config Config, name string) (*DirHandle
 }
 
 func (d *DirHandle) IsPublic() bool {
-	return len(d.Readers) == 1 && d.Readers[0] == PublicUid
+	return len(d.Readers) == 1 && d.Readers[0].Equal(keybase1.PublicUID)
 }
 
 func (d *DirHandle) IsPrivateShare() bool {
@@ -286,7 +278,7 @@ func (d *DirHandle) HasPublic() bool {
 	return len(d.Readers) == 0
 }
 
-func (d *DirHandle) findUserInList(user libkb.UID, users []libkb.UID) bool {
+func (d *DirHandle) findUserInList(user keybase1.UID, users []keybase1.UID) bool {
 	// TODO: this could be more efficient with a cached map/set
 	for _, u := range users {
 		if u == user {
@@ -296,19 +288,19 @@ func (d *DirHandle) findUserInList(user libkb.UID, users []libkb.UID) bool {
 	return false
 }
 
-func (d *DirHandle) IsWriter(user libkb.UID) bool {
+func (d *DirHandle) IsWriter(user keybase1.UID) bool {
 	return d.findUserInList(user, d.Writers)
 }
 
-func (d *DirHandle) IsReader(user libkb.UID) bool {
+func (d *DirHandle) IsReader(user keybase1.UID) bool {
 	return d.IsPublic() || d.findUserInList(user, d.Readers) || d.IsWriter(user)
 }
 
-func resolveUids(config Config, uids []libkb.UID) string {
+func resolveUids(config Config, uids []keybase1.UID) string {
 	names := make([]string, 0, len(uids))
 	// TODO: parallelize?
 	for _, uid := range uids {
-		if uid == PublicUid {
+		if uid.Equal(keybase1.PublicUID) {
 			names = append(names, PublicName)
 		} else if user, err := config.KBPKI().GetUser(uid); err == nil {
 			names = append(names, user.GetName())
@@ -414,7 +406,7 @@ type RootMetadataSigned struct {
 	VerifyingKey VerifyingKey `codec:",omitempty"`
 	// pairwise MAC of the last writer with all readers and writers
 	// (for private shares)
-	Macs map[libkb.UID][]byte `codec:",omitempty"`
+	Macs map[keybase1.UID][]byte `codec:",omitempty"`
 	// all the metadata
 	MD RootMetadata
 }
@@ -428,10 +420,10 @@ func (rmds *RootMetadataSigned) IsInitialized() bool {
 type DirKeyBundle struct {
 	// Symmetric secret key, encrypted for each writer's device
 	// (identified by the KID of the corresponding device CryptPublicKey).
-	WKeys map[libkb.UID]map[libkb.KIDMapKey][]byte
+	WKeys map[keybase1.UID]map[libkb.KIDMapKey][]byte
 	// Symmetric secret key, encrypted for each reader's device
 	// (identified by the KID of the corresponding device CryptPublicKey).
-	RKeys map[libkb.UID]map[libkb.KIDMapKey][]byte
+	RKeys map[keybase1.UID]map[libkb.KIDMapKey][]byte
 
 	// M_f as described in 4.1.1 of https://keybase.io/blog/crypto
 	// .
@@ -448,14 +440,14 @@ type DirKeyBundle struct {
 
 func (dkb DirKeyBundle) DeepCopy() DirKeyBundle {
 	newDkb := dkb
-	newDkb.WKeys = make(map[libkb.UID]map[libkb.KIDMapKey][]byte)
+	newDkb.WKeys = make(map[keybase1.UID]map[libkb.KIDMapKey][]byte)
 	for u, m := range dkb.WKeys {
 		newDkb.WKeys[u] = make(map[libkb.KIDMapKey][]byte)
 		for k, b := range m {
 			newDkb.WKeys[u][k] = b
 		}
 	}
-	newDkb.RKeys = make(map[libkb.UID]map[libkb.KIDMapKey][]byte)
+	newDkb.RKeys = make(map[keybase1.UID]map[libkb.KIDMapKey][]byte)
 	for u, m := range dkb.RKeys {
 		newDkb.RKeys[u] = make(map[libkb.KIDMapKey][]byte)
 		for k, b := range m {
@@ -502,7 +494,7 @@ type BlockChangeNode struct {
 
 func NewBlockChangeNode() *BlockChangeNode {
 	return &BlockChangeNode{
-		make([]BlockPointer, 0, 0),
+		nil,
 		make(map[string]*BlockChangeNode),
 	}
 }
@@ -550,7 +542,7 @@ type PrivateMetadata struct {
 	// directory entry for the root directory block
 	Dir DirEntry
 	// the last KB user who wrote this metadata
-	LastWriter libkb.UID
+	LastWriter keybase1.UID
 
 	// m_f as described in 4.1.1 of https://keybase.io/blog/crypto
 	// .
@@ -601,7 +593,7 @@ func (md RootMetadata) DeepCopy() RootMetadata {
 }
 
 func (md *RootMetadata) GetEncryptedTLFCryptKeyClientHalfData(
-	keyVer KeyVer, user libkb.UID, currentCryptPublicKey CryptPublicKey) (
+	keyVer KeyVer, user keybase1.UID, currentCryptPublicKey CryptPublicKey) (
 	buf []byte, ok bool) {
 	key := currentCryptPublicKey.KID.ToMapKey()
 	if u, ok1 := md.Keys[keyVer].WKeys[user]; ok1 {
@@ -635,10 +627,10 @@ func (md *RootMetadata) GetDirHandle() *DirHandle {
 		h.Writers = append(h.Writers, w)
 	}
 	if md.Id.IsPublic() {
-		h.Readers = append(h.Readers, PublicUid)
+		h.Readers = append(h.Readers, keybase1.PublicUID)
 	} else {
 		for r, _ := range md.Keys[keyId].RKeys {
-			if _, ok := md.Keys[keyId].WKeys[r]; !ok && r != PublicUid {
+			if _, ok := md.Keys[keyId].WKeys[r]; !ok && r != keybase1.PublicUID {
 				h.Readers = append(h.Readers, r)
 			}
 		}

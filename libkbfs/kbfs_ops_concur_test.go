@@ -6,7 +6,7 @@ import (
 	"sync"
 	"testing"
 
-	"github.com/keybase/client/go/libkb"
+	keybase1 "github.com/keybase/client/protocol/go"
 	"github.com/keybase/kbfs/util"
 )
 
@@ -40,12 +40,12 @@ func (rwc *RWChannelCounter) Shutdown() chan struct{} {
 }
 
 type MDOpsConcurTest struct {
-	uid   libkb.UID
+	uid   keybase1.UID
 	enter chan struct{}
 	start chan struct{}
 }
 
-func NewMDOpsConcurTest(uid libkb.UID) *MDOpsConcurTest {
+func NewMDOpsConcurTest(uid keybase1.UID) *MDOpsConcurTest {
 	return &MDOpsConcurTest{
 		uid:   uid,
 		enter: make(chan struct{}),
@@ -82,7 +82,7 @@ func (m *MDOpsConcurTest) GetFavorites() ([]DirId, error) {
 	return []DirId{}, nil
 }
 
-func kbfsOpsConcurInit(users []string) (Config, libkb.UID) {
+func kbfsOpsConcurInit(users []string) (Config, keybase1.UID) {
 	config := NewConfigLocal()
 
 	localUsers := MakeLocalUsers(users)

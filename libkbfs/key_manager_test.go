@@ -6,6 +6,7 @@ import (
 
 	"code.google.com/p/gomock/gomock"
 	"github.com/keybase/client/go/libkb"
+	keybase1 "github.com/keybase/client/protocol/go"
 )
 
 func keyManagerInit(t *testing.T) (mockCtrl *gomock.Controller,
@@ -27,7 +28,7 @@ func expectCachedGetTLFCryptKey(config *ConfigMock, rmd *RootMetadata) {
 	config.mockKcache.EXPECT().GetTLFCryptKey(rmd.Id, KeyVer(0)).Return(TLFCryptKey{}, nil)
 }
 
-func expectUncachedGetTLFCryptKey(config *ConfigMock, rmd *RootMetadata, uid libkb.UID, subkey CryptPublicKey) {
+func expectUncachedGetTLFCryptKey(config *ConfigMock, rmd *RootMetadata, uid keybase1.UID, subkey CryptPublicKey) {
 	config.mockKcache.EXPECT().GetTLFCryptKey(rmd.Id, KeyVer(0)).
 		Return(TLFCryptKey{}, errors.New("NONE"))
 
@@ -59,7 +60,7 @@ func expectUncachedGetBlockCryptKey(
 	config.mockKcache.EXPECT().PutBlockCryptKey(id, BlockCryptKey{}).Return(nil)
 }
 
-func expectRekey(config *ConfigMock, rmd *RootMetadata, userId libkb.UID) {
+func expectRekey(config *ConfigMock, rmd *RootMetadata, userId keybase1.UID) {
 	// generate new keys
 	config.mockCrypto.EXPECT().MakeRandomTLFKeys().Return(TLFPublicKey{}, TLFPrivateKey{}, TLFEphemeralPublicKey{}, TLFEphemeralPrivateKey{}, TLFCryptKey{}, nil)
 	config.mockCrypto.EXPECT().MakeRandomTLFCryptKeyServerHalf().Return(TLFCryptKeyServerHalf{}, nil)
@@ -80,7 +81,7 @@ func expectRekey(config *ConfigMock, rmd *RootMetadata, userId libkb.UID) {
 
 func pathFromRMD(config *ConfigMock, rmd *RootMetadata) Path {
 	return Path{rmd.Id, []PathNode{PathNode{
-		BlockPointer{BlockId{}, rmd.data.Dir.KeyVer, 0, libkb.UID{0}, 0},
+		BlockPointer{BlockId{}, rmd.data.Dir.KeyVer, 0, keybase1.MakeTestUID(0), 0},
 		rmd.GetDirHandle().ToString(config),
 	}}}
 }
@@ -110,7 +111,7 @@ func TestKeyManagerUncachedSecretKeySuccess(t *testing.T) {
 
 	subkey := MakeFakeCryptPublicKeyOrBust("crypt public key")
 	dirKeyBundle := DirKeyBundle{
-		RKeys: map[libkb.UID]map[libkb.KIDMapKey][]byte{
+		RKeys: map[keybase1.UID]map[libkb.KIDMapKey][]byte{
 			uid: map[libkb.KIDMapKey][]byte{
 				subkey.KID.ToMapKey(): []byte{},
 			},

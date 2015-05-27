@@ -6,7 +6,7 @@ import (
 
 	"github.com/hanwen/go-fuse/fuse"
 	"github.com/hanwen/go-fuse/fuse/nodefs"
-	"github.com/keybase/client/go/libkb"
+	keybase1 "github.com/keybase/client/protocol/go"
 	"github.com/keybase/kbfs/libkbfs"
 )
 
@@ -68,7 +68,7 @@ func TestLookupOtherPublic(t *testing.T) {
 
 	// Now, simulate a remount as test_user2.
 
-	config.KBPKI().(*libkbfs.KBPKILocal).LoggedIn = libkb.UID{2}
+	config.KBPKI().(*libkbfs.KBPKILocal).LoggedIn = keybase1.MakeTestUID(2)
 	config.SetMDCache(libkbfs.NewMDCacheStandard(5000))
 	root = NewFuseRoot(config)
 	_ = nodefs.NewFileSystemConnector(root, nil)
@@ -95,7 +95,7 @@ func TestLookupOtherPrivateFile(t *testing.T) {
 
 	// Now, simulate a remount as test_user2.
 
-	config.KBPKI().(*libkbfs.KBPKILocal).LoggedIn = libkb.UID{2}
+	config.KBPKI().(*libkbfs.KBPKILocal).LoggedIn = keybase1.MakeTestUID(2)
 	config.SetMDCache(libkbfs.NewMDCacheStandard(5000))
 	root = NewFuseRoot(config)
 	_ = nodefs.NewFileSystemConnector(root, nil)
@@ -265,9 +265,9 @@ func TestPartialLocalUpdate(t *testing.T) {
 		node1.PathNode,
 		node2.PathNode,
 		libkbfs.PathNode{libkbfs.BlockPointer{
-			libkbfs.BlockId{104}, 0, 0, libkb.UID{0}, 0}, "dir2"},
+			libkbfs.BlockId{104}, 0, 0, keybase1.MakeTestUID(0), 0}, "dir2"},
 		libkbfs.PathNode{libkbfs.BlockPointer{
-			libkbfs.BlockId{105}, 0, 0, libkb.UID{0}, 0}, "dir3"},
+			libkbfs.BlockId{105}, 0, 0, keybase1.MakeTestUID(0), 0}, "dir3"},
 	}}
 	root.Ops.LocalChange(newPath)
 	root.Ops.Shutdown()
@@ -293,9 +293,9 @@ func TestPartialBatchUpdate(t *testing.T) {
 		node1.PathNode,
 		node2.PathNode,
 		libkbfs.PathNode{libkbfs.BlockPointer{
-			libkbfs.BlockId{104}, 0, 0, libkb.UID{0}, 0}, "dir2"},
+			libkbfs.BlockId{104}, 0, 0, keybase1.MakeTestUID(0), 0}, "dir2"},
 		libkbfs.PathNode{libkbfs.BlockPointer{
-			libkbfs.BlockId{105}, 0, 0, libkb.UID{0}, 0}, "dir3"},
+			libkbfs.BlockId{105}, 0, 0, keybase1.MakeTestUID(0), 0}, "dir3"},
 	}}
 	root.Ops.BatchChanges(node1.Dir, []libkbfs.Path{newPath})
 	root.Ops.Shutdown()

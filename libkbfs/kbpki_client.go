@@ -59,7 +59,7 @@ func (k *KBPKIClient) ResolveAssertion(username string) (*libkb.User, error) {
 }
 
 // GetUser finds a user via UID.
-func (k *KBPKIClient) GetUser(uid libkb.UID) (user *libkb.User, err error) {
+func (k *KBPKIClient) GetUser(uid keybase1.UID) (user *libkb.User, err error) {
 	user, _, err = k.identifyByUID(uid)
 	return user, err
 }
@@ -76,24 +76,19 @@ func (k *KBPKIClient) GetSession() (*libkb.Session, error) {
 }
 
 // GetLoggedInUser returns the current logged in user.
-func (k *KBPKIClient) GetLoggedInUser() (libkb.UID, error) {
+func (k *KBPKIClient) GetLoggedInUser() (uid keybase1.UID, error error) {
 	s, _, err := k.session()
 	if err != nil {
 		// TODO: something more intelligent; maybe just shut down
 		// unless we want anonymous browsing of public data
-		return libkb.UID{0}, err
+		return
 	}
-	uid := s.GetUID()
-	if uid == nil {
-		// TODO: something more intelligent; maybe just shut down
-		// unless we want anonymous browsing of public data
-		return libkb.UID{0}, &LoggedInUserError{}
-	}
-	libkb.G.Log.Info("logged in user uid = %s", *uid)
-	return *uid, nil
+	uid = s.GetUID()
+	libkb.G.Log.Info("logged in user uid = %s", uid)
+	return
 }
 
-func (k *KBPKIClient) HasVerifyingKey(uid libkb.UID, verifyingKey VerifyingKey) error {
+func (k *KBPKIClient) HasVerifyingKey(uid keybase1.UID, verifyingKey VerifyingKey) error {
 	_, publicKeys, err := k.identifyByUID(uid)
 	if err != nil {
 		return err
@@ -116,7 +111,7 @@ func (k *KBPKIClient) HasVerifyingKey(uid libkb.UID, verifyingKey VerifyingKey) 
 	return KeyNotFoundError{verifyingKey.KID}
 }
 
-func (k *KBPKIClient) GetCryptPublicKeys(uid libkb.UID) (
+func (k *KBPKIClient) GetCryptPublicKeys(uid keybase1.UID) (
 	keys []CryptPublicKey, err error) {
 	_, publicKeys, err := k.identifyByUID(uid)
 	if err != nil {
@@ -160,10 +155,10 @@ func (k *KBPKIClient) identify(arg *engine.IDEngineArg) (*libkb.User, []keybase1
 		return nil, nil, err
 	}
 
-	return libkb.NewUserThin(res.User.Username, libkb.UID(res.User.Uid)), res.User.PublicKeys, nil
+	return libkb.NewUserThin(res.User.Username, keybase1.UID(res.User.Uid)), res.User.PublicKeys, nil
 }
 
-func (k *KBPKIClient) identifyByUID(uid libkb.UID) (*libkb.User, []keybase1.PublicKey, error) {
+func (k *KBPKIClient) identifyByUID(uid keybase1.UID) (*libkb.User, []keybase1.PublicKey, error) {
 	arg := &engine.IDEngineArg{UserAssertion: fmt.Sprintf("uid:%s", uid)}
 	return k.identify(arg)
 }
@@ -185,6 +180,6 @@ func (k *KBPKIClient) session() (session *libkb.Session, deviceSubkey libkb.Gene
 		return
 	}
 
-	session = libkb.NewSessionThin(libkb.UID(res.Uid), res.Username, res.Token)
+	session = libkb.NewSessionThin(keybase1.UID(res.Uid), res.Username, res.Token)
 	return
 }

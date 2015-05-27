@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/protocol/go"
 )
 
@@ -12,7 +11,7 @@ type FakeKBPKIClient struct {
 	Local *KBPKILocal
 }
 
-func NewFakeKBPKIClient(loggedIn libkb.UID, users []LocalUser) *FakeKBPKIClient {
+func NewFakeKBPKIClient(loggedIn keybase1.UID, users []LocalUser) *FakeKBPKIClient {
 	return &FakeKBPKIClient{
 		Local: NewKBPKILocal(loggedIn, users),
 	}
@@ -29,7 +28,7 @@ func (fc FakeKBPKIClient) Call(s string, args interface{}, res interface{}) erro
 		user := fc.Local.Users[uid]
 		identifyRes := res.(*keybase1.IdentifyRes)
 		identifyRes.User = &keybase1.User{
-			Uid:        keybase1.UID(uid),
+			Uid:        uid,
 			Username:   user.Name,
 			PublicKeys: user.GetPublicKeys(),
 		}
@@ -59,7 +58,7 @@ func (fc FakeKBPKIClient) Call(s string, args interface{}, res interface{}) erro
 
 func TestKBPKIClientResolveAssertion(t *testing.T) {
 	users := []string{"pc"}
-	expectedUid := libkb.UID{1}
+	expectedUid := keybase1.MakeTestUID(1)
 	fc := NewFakeKBPKIClient(expectedUid, MakeLocalUsers(users))
 	c := newKBPKIClientWithClient(nil, fc)
 
@@ -74,10 +73,10 @@ func TestKBPKIClientResolveAssertion(t *testing.T) {
 
 func TestKBPKIClientGetUser(t *testing.T) {
 	users := []string{"test_name"}
-	fc := NewFakeKBPKIClient(libkb.UID{1}, MakeLocalUsers(users))
+	fc := NewFakeKBPKIClient(keybase1.MakeTestUID(1), MakeLocalUsers(users))
 	c := newKBPKIClientWithClient(nil, fc)
 
-	u, err := c.GetUser(libkb.UID{1})
+	u, err := c.GetUser(keybase1.MakeTestUID(1))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -89,15 +88,15 @@ func TestKBPKIClientGetUser(t *testing.T) {
 func TestKBPKIClientHasVerifyingKey(t *testing.T) {
 	users := []string{"test_name"}
 	localUsers := MakeLocalUsers(users)
-	fc := NewFakeKBPKIClient(libkb.UID{1}, localUsers)
+	fc := NewFakeKBPKIClient(keybase1.MakeTestUID(1), localUsers)
 	c := newKBPKIClientWithClient(nil, fc)
 
-	err := c.HasVerifyingKey(libkb.UID{1}, localUsers[0].VerifyingKeys[0])
+	err := c.HasVerifyingKey(keybase1.MakeTestUID(1), localUsers[0].VerifyingKeys[0])
 	if err != nil {
 		t.Error(err)
 	}
 
-	err = c.HasVerifyingKey(libkb.UID{1}, VerifyingKey{})
+	err = c.HasVerifyingKey(keybase1.MakeTestUID(1), VerifyingKey{})
 	if err == nil {
 		t.Error("HasVerifyingKey unexpectedly succeeded")
 	}
@@ -106,10 +105,10 @@ func TestKBPKIClientHasVerifyingKey(t *testing.T) {
 func TestKBPKIClientGetCryptPublicKeys(t *testing.T) {
 	users := []string{"test_name"}
 	localUsers := MakeLocalUsers(users)
-	fc := NewFakeKBPKIClient(libkb.UID{1}, localUsers)
+	fc := NewFakeKBPKIClient(keybase1.MakeTestUID(1), localUsers)
 	c := newKBPKIClientWithClient(nil, fc)
 
-	cryptPublicKeys, err := c.GetCryptPublicKeys(libkb.UID{1})
+	cryptPublicKeys, err := c.GetCryptPublicKeys(keybase1.MakeTestUID(1))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -128,7 +127,7 @@ func TestKBPKIClientGetCryptPublicKeys(t *testing.T) {
 func TestKBPKIClientGetCurrentCryptPublicKey(t *testing.T) {
 	users := []string{"test_name1", "test_name2"}
 	localUsers := MakeLocalUsers(users)
-	fc := NewFakeKBPKIClient(libkb.UID{2}, localUsers)
+	fc := NewFakeKBPKIClient(keybase1.MakeTestUID(2), localUsers)
 	c := newKBPKIClientWithClient(nil, fc)
 
 	currPublicKey, err := c.GetCurrentCryptPublicKey()

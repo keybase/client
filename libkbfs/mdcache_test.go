@@ -6,6 +6,7 @@ import (
 
 	"code.google.com/p/gomock/gomock"
 	"github.com/keybase/client/go/libkb"
+	keybase1 "github.com/keybase/client/protocol/go"
 )
 
 func mdCacheInit(t *testing.T, cap int) (
@@ -23,7 +24,7 @@ func mdCacheShutdown(mockCtrl *gomock.Controller, config *ConfigMock) {
 	mockCtrl.Finish()
 }
 
-func expectUserCall(u libkb.UID, config *ConfigMock) {
+func expectUserCall(u keybase1.UID, config *ConfigMock) {
 	user := libkb.NewUserThin(fmt.Sprintf("user_%s", u), u)
 	config.mockKbpki.EXPECT().GetUser(u).AnyTimes().Return(user, nil)
 }
@@ -63,7 +64,7 @@ func TestMdcachePut(t *testing.T) {
 	defer mdCacheShutdown(mockCtrl, config)
 
 	_, h, _ := newDir(config, 1, true, false)
-	h.Writers = append(h.Writers, libkb.UID{0})
+	h.Writers = append(h.Writers, keybase1.MakeTestUID(0))
 
 	testMdcachePut(t, MDId{1}, h, config)
 }
@@ -74,15 +75,15 @@ func TestMdcachePutPastCapacity(t *testing.T) {
 
 	_, h0, _ := newDir(config, 1, true, false)
 	id0 := MDId{0}
-	h0.Writers = append(h0.Writers, libkb.UID{0})
+	h0.Writers = append(h0.Writers, keybase1.MakeTestUID(0))
 
 	_, h1, _ := newDir(config, 2, true, false)
 	id1 := MDId{1}
-	h1.Writers = append(h1.Writers, libkb.UID{1})
+	h1.Writers = append(h1.Writers, keybase1.MakeTestUID(1))
 
 	_, h2, _ := newDir(config, 3, true, false)
 	id2 := MDId{2}
-	h2.Writers = append(h2.Writers, libkb.UID{2})
+	h2.Writers = append(h2.Writers, keybase1.MakeTestUID(2))
 
 	testMdcachePut(t, id0, h0, config)
 	testMdcachePut(t, id1, h1, config)

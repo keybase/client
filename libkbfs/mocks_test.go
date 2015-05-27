@@ -7,6 +7,7 @@ import (
 	gomock "code.google.com/p/gomock/gomock"
 	fmt "fmt"
 	libkb "github.com/keybase/client/go/libkb"
+	go0 "github.com/keybase/client/protocol/go"
 	time "time"
 )
 
@@ -72,9 +73,9 @@ func (_mr *_MockBlockContextRecorder) GetVer() *gomock.Call {
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "GetVer")
 }
 
-func (_m *MockBlockContext) GetWriter() libkb.UID {
+func (_m *MockBlockContext) GetWriter() go0.UID {
 	ret := _m.ctrl.Call(_m, "GetWriter")
-	ret0, _ := ret[0].(libkb.UID)
+	ret0, _ := ret[0].(go0.UID)
 	return ret0
 }
 
@@ -323,7 +324,7 @@ func (_mr *_MockKBPKIRecorder) ResolveAssertion(arg0 interface{}) *gomock.Call {
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "ResolveAssertion", arg0)
 }
 
-func (_m *MockKBPKI) GetUser(uid libkb.UID) (*libkb.User, error) {
+func (_m *MockKBPKI) GetUser(uid go0.UID) (*libkb.User, error) {
 	ret := _m.ctrl.Call(_m, "GetUser", uid)
 	ret0, _ := ret[0].(*libkb.User)
 	ret1, _ := ret[1].(error)
@@ -345,9 +346,9 @@ func (_mr *_MockKBPKIRecorder) GetSession() *gomock.Call {
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "GetSession")
 }
 
-func (_m *MockKBPKI) GetLoggedInUser() (libkb.UID, error) {
+func (_m *MockKBPKI) GetLoggedInUser() (go0.UID, error) {
 	ret := _m.ctrl.Call(_m, "GetLoggedInUser")
-	ret0, _ := ret[0].(libkb.UID)
+	ret0, _ := ret[0].(go0.UID)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -356,7 +357,7 @@ func (_mr *_MockKBPKIRecorder) GetLoggedInUser() *gomock.Call {
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "GetLoggedInUser")
 }
 
-func (_m *MockKBPKI) HasVerifyingKey(uid libkb.UID, verifyingKey VerifyingKey) error {
+func (_m *MockKBPKI) HasVerifyingKey(uid go0.UID, verifyingKey VerifyingKey) error {
 	ret := _m.ctrl.Call(_m, "HasVerifyingKey", uid, verifyingKey)
 	ret0, _ := ret[0].(error)
 	return ret0
@@ -366,7 +367,7 @@ func (_mr *_MockKBPKIRecorder) HasVerifyingKey(arg0, arg1 interface{}) *gomock.C
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "HasVerifyingKey", arg0, arg1)
 }
 
-func (_m *MockKBPKI) GetCryptPublicKeys(uid libkb.UID) ([]CryptPublicKey, error) {
+func (_m *MockKBPKI) GetCryptPublicKeys(uid go0.UID) ([]CryptPublicKey, error) {
 	ret := _m.ctrl.Call(_m, "GetCryptPublicKeys", uid)
 	ret0, _ := ret[0].([]CryptPublicKey)
 	ret1, _ := ret[1].(error)
@@ -1070,7 +1071,7 @@ func (_mr *_MockKeyOpsRecorder) GetTLFCryptKeyServerHalf(arg0, arg1, arg2 interf
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "GetTLFCryptKeyServerHalf", arg0, arg1, arg2)
 }
 
-func (_m *MockKeyOps) PutTLFCryptKeyServerHalf(id DirId, keyVer KeyVer, user libkb.UID, cryptPublicKey CryptPublicKey, serverHalf TLFCryptKeyServerHalf) error {
+func (_m *MockKeyOps) PutTLFCryptKeyServerHalf(id DirId, keyVer KeyVer, user go0.UID, cryptPublicKey CryptPublicKey, serverHalf TLFCryptKeyServerHalf) error {
 	ret := _m.ctrl.Call(_m, "PutTLFCryptKeyServerHalf", id, keyVer, user, cryptPublicKey, serverHalf)
 	ret0, _ := ret[0].(error)
 	return ret0
@@ -1080,7 +1081,7 @@ func (_mr *_MockKeyOpsRecorder) PutTLFCryptKeyServerHalf(arg0, arg1, arg2, arg3,
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "PutTLFCryptKeyServerHalf", arg0, arg1, arg2, arg3, arg4)
 }
 
-func (_m *MockKeyOps) GetMacPublicKey(uid libkb.UID) (MacPublicKey, error) {
+func (_m *MockKeyOps) GetMacPublicKey(uid go0.UID) (MacPublicKey, error) {
 	ret := _m.ctrl.Call(_m, "GetMacPublicKey", uid)
 	ret0, _ := ret[0].(MacPublicKey)
 	ret1, _ := ret[1].(error)

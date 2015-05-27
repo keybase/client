@@ -1,7 +1,7 @@
 package libkbfs
 
 import (
-	"github.com/keybase/client/go/libkb"
+	keybase1 "github.com/keybase/client/protocol/go"
 )
 
 type KeyOpsNull struct {
@@ -27,10 +27,10 @@ func (ko *KeyOpsNull) GetTLFCryptKeyServerHalf(
 }
 
 func (ko *KeyOpsNull) PutTLFCryptKeyServerHalf(
-	id DirId, keyVer KeyVer, user libkb.UID, cryptPublicKey CryptPublicKey, serverHalf TLFCryptKeyServerHalf) error {
+	id DirId, keyVer KeyVer, user keybase1.UID, cryptPublicKey CryptPublicKey, serverHalf TLFCryptKeyServerHalf) error {
 	return nil
 }
 
-func (k *KeyOpsNull) GetMacPublicKey(uid libkb.UID) (MacPublicKey, error) {
+func (k *KeyOpsNull) GetMacPublicKey(uid keybase1.UID) (MacPublicKey, error) {
 	return MacPublicKey{}, nil
 }

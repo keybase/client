@@ -6,7 +6,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/keybase/client/go/libkb"
+	keybase1 "github.com/keybase/client/protocol/go"
 	"github.com/keybase/kbfs/util"
 )
 
@@ -440,7 +440,7 @@ func (fs *KBFSOpsStandard) readyBlock(block Block, tlfCryptKey TLFCryptKey) (
 }
 
 func (fs *KBFSOpsStandard) readyBlockMultiple(currBlock Block, bps *blockPutState,
-	md *RootMetadata, tlfCryptKey TLFCryptKey, user libkb.UID) (
+	md *RootMetadata, tlfCryptKey TLFCryptKey, user keybase1.UID) (
 	plainSize int, blockPtr BlockPointer, err error) {
 	id, plainSize, buf, err := fs.readyBlock(currBlock, tlfCryptKey)
 	if err != nil {
@@ -456,7 +456,7 @@ func (fs *KBFSOpsStandard) readyBlockMultiple(currBlock Block, bps *blockPutStat
 
 func (fs *KBFSOpsStandard) unembedBlockChanges(bps *blockPutState,
 	md *RootMetadata, changes *BlockChanges, tlfCryptKey TLFCryptKey,
-	user libkb.UID) (err error) {
+	user keybase1.UID) (err error) {
 	buf, err := fs.config.Codec().Encode(changes.Changes)
 	if err != nil {
 		return

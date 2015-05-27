@@ -12,6 +12,7 @@ import (
 
 	"github.com/keybase/client/go/client"
 	"github.com/keybase/client/go/libkb"
+	keybase1 "github.com/keybase/client/protocol/go"
 	"github.com/keybase/kbfs/libkbfs"
 )
 
@@ -103,7 +104,7 @@ func main() {
 		localUsers[2].Asserts = []string{"twitter:malgorithms"}
 		localUsers[3].Asserts = []string{"twitter:fakalin"}
 
-		var localUid libkb.UID
+		var localUid keybase1.UID
 		if userIndex >= 0 {
 			localUid = localUsers[userIndex].Uid
 		}

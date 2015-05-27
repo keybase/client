@@ -5,21 +5,22 @@ import (
 	"fmt"
 
 	"github.com/keybase/client/go/libkb"
+	keybase1 "github.com/keybase/client/protocol/go"
 )
 
 // KBPKILocal just serves users from a static map in memory
 type KBPKILocal struct {
-	Users    map[libkb.UID]LocalUser
-	Asserts  map[string]libkb.UID
-	LoggedIn libkb.UID
+	Users    map[keybase1.UID]LocalUser
+	Asserts  map[string]keybase1.UID
+	LoggedIn keybase1.UID
 }
 
 var _ KBPKI = (*KBPKILocal)(nil)
 
-func NewKBPKILocal(loggedIn libkb.UID, users []LocalUser) *KBPKILocal {
+func NewKBPKILocal(loggedIn keybase1.UID, users []LocalUser) *KBPKILocal {
 	k := &KBPKILocal{
-		Users:    make(map[libkb.UID]LocalUser),
-		Asserts:  make(map[string]libkb.UID),
+		Users:    make(map[keybase1.UID]LocalUser),
+		Asserts:  make(map[string]keybase1.UID),
 		LoggedIn: loggedIn,
 	}
 	for _, u := range users {
@@ -41,7 +42,7 @@ func (k *KBPKILocal) ResolveAssertion(input string) (*libkb.User, error) {
 	return k.GetUser(uid)
 }
 
-func (k *KBPKILocal) GetUser(uid libkb.UID) (*libkb.User, error) {
+func (k *KBPKILocal) GetUser(uid keybase1.UID) (*libkb.User, error) {
 	u, err := k.getLocalUser(uid)
 	if err != nil {
 		return nil, err
@@ -53,11 +54,11 @@ func (k *KBPKILocal) GetSession() (*libkb.Session, error) {
 	return nil, nil
 }
 
-func (k *KBPKILocal) GetLoggedInUser() (libkb.UID, error) {
+func (k *KBPKILocal) GetLoggedInUser() (keybase1.UID, error) {
 	return k.LoggedIn, nil
 }
 
-func (k *KBPKILocal) HasVerifyingKey(uid libkb.UID, verifyingKey VerifyingKey) error {
+func (k *KBPKILocal) HasVerifyingKey(uid keybase1.UID, verifyingKey VerifyingKey) error {
 	u, err := k.getLocalUser(uid)
 	if err != nil {
 		return err
@@ -70,7 +71,7 @@ func (k *KBPKILocal) HasVerifyingKey(uid libkb.UID, verifyingKey VerifyingKey) e
 	return KeyNotFoundError{verifyingKey.KID}
 }
 
-func (k *KBPKILocal) GetCryptPublicKeys(uid libkb.UID) (
+func (k *KBPKILocal) GetCryptPublicKeys(uid keybase1.UID) (
 	keys []CryptPublicKey, err error) {
 	u, err := k.getLocalUser(uid)
 	if err != nil {
@@ -87,7 +88,7 @@ func (k *KBPKILocal) GetCurrentCryptPublicKey() (CryptPublicKey, error) {
 	return u.GetCurrentCryptPublicKey(), nil
 }
 
-func (k *KBPKILocal) getLocalUser(uid libkb.UID) (LocalUser, error) {
+func (k *KBPKILocal) getLocalUser(uid keybase1.UID) (LocalUser, error) {
 	user, ok := k.Users[uid]
 	if !ok {
 		return LocalUser{}, fmt.Errorf("No such user matching %s", uid)

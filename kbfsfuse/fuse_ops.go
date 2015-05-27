@@ -7,7 +7,7 @@ import (
 
 	"github.com/hanwen/go-fuse/fuse"
 	"github.com/hanwen/go-fuse/fuse/nodefs"
-	"github.com/keybase/client/go/libkb"
+	keybase1 "github.com/keybase/client/protocol/go"
 	"github.com/keybase/kbfs/libkbfs"
 	"github.com/keybase/kbfs/util"
 	"golang.org/x/net/context"
@@ -133,7 +133,7 @@ func (f *FuseOps) LookupInDir(dNode *FuseNode, name string) (
 			dNode.DirHandle.HasPublic() {
 			dirHandle := &libkbfs.DirHandle{
 				Writers: dNode.DirHandle.Writers,
-				Readers: []libkb.UID{libkbfs.PublicUid},
+				Readers: []keybase1.UID{keybase1.PublicUID},
 			}
 			md, err := f.config.KBFSOps().GetRootMDForHandle(dirHandle)
 			if err != nil {

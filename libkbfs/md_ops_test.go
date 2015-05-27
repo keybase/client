@@ -6,6 +6,7 @@ import (
 
 	"code.google.com/p/gomock/gomock"
 	"github.com/keybase/client/go/libkb"
+	keybase1 "github.com/keybase/client/protocol/go"
 )
 
 func mdOpsInit(t *testing.T) (mockCtrl *gomock.Controller, config *ConfigMock) {
@@ -29,9 +30,9 @@ func newDir(config *ConfigMock, x byte, share bool, public bool) (
 	id[0] = x
 	id[DIRID_LEN-1] = DIRID_SUFFIX
 	h := NewDirHandle()
-	h.Writers = append(h.Writers, libkb.UID{15})
+	h.Writers = append(h.Writers, keybase1.MakeTestUID(15))
 	if share {
-		h.Writers = append(h.Writers, libkb.UID{16})
+		h.Writers = append(h.Writers, keybase1.MakeTestUID(16))
 	}
 	expectUserCalls(h, config)
 	config.mockKbpki.EXPECT().GetLoggedInUser().AnyTimes().
@@ -47,7 +48,7 @@ func newDir(config *ConfigMock, x byte, share bool, public bool) (
 		key := MakeFakeVerifyingKeyOrBust("fake key")
 		rmds.VerifyingKey = key
 	} else {
-		rmds.Macs = make(map[libkb.UID][]byte)
+		rmds.Macs = make(map[keybase1.UID][]byte)
 		rmds.Macs[h.Writers[0]] = []byte{42}
 		if share {
 			rmds.Macs[h.Writers[1]] = []byte{43}
@@ -213,7 +214,7 @@ func TestMDOpsGetAtHandleFailHandleCheck(t *testing.T) {
 	rmds.MD.cachedDirHandle = NewDirHandle()
 
 	// add a new writer after the MD was made, to force a failure
-	newWriter := libkb.UID{100}
+	newWriter := keybase1.MakeTestUID(100)
 	h.Writers = append(h.Writers, newWriter)
 	expectUserCall(newWriter, config)
 	config.mockMdserv.EXPECT().GetAtHandle(h).Return(rmds, nil)
