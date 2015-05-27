@@ -418,7 +418,7 @@ func (s *NaclSig) ArmoredEncode() (ret string, err error) {
 	return PacketArmoredEncode(s)
 }
 
-func (k NaclSigningKeyPair) ToSKB(t *triplesec.Cipher, gc *GlobalContext) (*SKB, error) {
+func (k NaclSigningKeyPair) ToSKB(gc *GlobalContext, t *triplesec.Cipher) (*SKB, error) {
 	ret := &SKB{}
 	ret.SetGlobalContext(gc)
 	ret.Pub = k.GetKid()
@@ -428,7 +428,7 @@ func (k NaclSigningKeyPair) ToSKB(t *triplesec.Cipher, gc *GlobalContext) (*SKB,
 	return ret, nil
 }
 
-func (k NaclDHKeyPair) ToSKB(t *triplesec.Cipher, gc *GlobalContext) (*SKB, error) {
+func (k NaclDHKeyPair) ToSKB(gc *GlobalContext, t *triplesec.Cipher) (*SKB, error) {
 	ret := &SKB{}
 	ret.SetGlobalContext(gc)
 	ret.Pub = k.GetKid()
@@ -443,7 +443,7 @@ func (k NaclSigningKeyPair) ToLksSKB(lks *LKSec) (*SKB, error) {
 	if err != nil {
 		return nil, err
 	}
-	ret := &SKB{}
+	ret := &SKB{Contextified: lks.Contextified}
 	ret.Pub = k.GetKid()
 	ret.Type = KID_NACL_EDDSA
 	ret.Priv.Encryption = LKSecVersion
@@ -456,7 +456,7 @@ func (k NaclDHKeyPair) ToLksSKB(lks *LKSec) (*SKB, error) {
 	if err != nil {
 		return nil, err
 	}
-	ret := &SKB{}
+	ret := &SKB{Contextified: lks.Contextified}
 	ret.Pub = k.GetKid()
 	ret.Type = KID_NACL_DH
 	ret.Priv.Encryption = LKSecVersion

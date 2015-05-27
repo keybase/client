@@ -62,8 +62,8 @@ func TestDecodeSKBSequence(t *testing.T) {
 	}
 }
 
-func makeTestLKSec(t *testing.T) *LKSec {
-	lks := NewLKSec([]byte("client half"), nil)
+func makeTestLKSec(t *testing.T, gc *GlobalContext) *LKSec {
+	lks := NewLKSec([]byte("client half"), gc)
 	if err := lks.GenerateServerHalf(); err != nil {
 		t.Fatalf(err.Error())
 	}
@@ -96,7 +96,6 @@ func makeTestSKB(t *testing.T, lks *LKSec) *SKB {
 	g.LoginState().Account(func(a *Account) {
 		a.CreateLoginSessionWithSalt(email, salt)
 	}, "makeTestSKB")
-	skb.SetGlobalContext(g)
 
 	return skb
 }
@@ -117,7 +116,7 @@ func TestBasicSecretStore(t *testing.T) {
 	tc := SetupTest(t, "skb_basic_secret_store")
 	defer tc.Cleanup()
 
-	lks := makeTestLKSec(t)
+	lks := makeTestLKSec(t, G)
 	expectedSecret, err := lks.GetSecret()
 	if err != nil {
 		t.Fatalf(err.Error())
@@ -146,7 +145,7 @@ func TestCorruptSecretStore(t *testing.T) {
 	tc := SetupTest(t, "skb_corrupt_secret_store")
 	defer tc.Cleanup()
 
-	lks := makeTestLKSec(t)
+	lks := makeTestLKSec(t, G)
 	expectedSecret, err := lks.GetSecret()
 	if err != nil {
 		t.Fatalf(err.Error())
@@ -169,7 +168,7 @@ func TestUnusedSecretStore(t *testing.T) {
 	tc := SetupTest(t, "skb_unused_secret_store")
 	defer tc.Cleanup()
 
-	lks := makeTestLKSec(t)
+	lks := makeTestLKSec(t, G)
 
 	skb := makeTestSKB(t, lks)
 	// It doesn't matter what passphraseStream contains, as long

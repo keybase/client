@@ -43,7 +43,7 @@ type GenericKey interface {
 	// signature ID.
 	VerifyString(sig string, msg []byte) (id keybase1.SigID, err error)
 
-	ToSKB(ts *triplesec.Cipher, gc *GlobalContext) (*SKB, error)
+	ToSKB(gc *GlobalContext, ts *triplesec.Cipher) (*SKB, error)
 	ToLksSKB(lks *LKSec) (*SKB, error)
 	VerboseDescription() string
 	CheckSecretKey() error
