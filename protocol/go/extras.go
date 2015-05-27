@@ -60,6 +60,10 @@ func (u UID) NotEqual(v UID) bool {
 	return u != v
 }
 
+func (u UID) Less(v UID) bool {
+	return u < v
+}
+
 func (s SigID) IsNil() bool {
 	return len(s) == 0
 }
