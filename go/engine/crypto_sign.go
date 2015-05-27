@@ -46,18 +46,13 @@ func (cse *CryptoSignEngine) Run(ctx *Context) (err error) {
 		return err
 	}
 
-	signer, ok := sigKey.(libkb.BytesSigner)
-	if !ok {
+	kp, ok := sigKey.(libkb.NaclSigningKeyPair)
+	if !ok || kp.Private == nil {
 		return libkb.KeyCannotSignError{}
 	}
 
-	sig, verifier, err := signer.SignToBytes(cse.msg)
-	if err != nil {
-		return err
-	}
-
-	cse.sig = sig
-	cse.verifier = verifier
+	cse.sig = kp.Private.Sign(cse.msg)[:]
+	cse.verifier = kp
 	return nil
 }
 
