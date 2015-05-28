@@ -8,9 +8,9 @@ import (
 	"github.com/keybase/client/protocol/go"
 )
 
-// Test that CryptoSignED25519 signs the given message with the device
-// signing key, and that the signature is verifiable by the returned
-// public key.
+// Test that CryptoHandler.SignED25519() signs the given message with
+// the device signing key, and that the signature is verifiable by the
+// returned public key.
 //
 // (For general tests that valid signatures are accepted and invalid
 // signatures are rejected, see naclwrap_test.go.)
@@ -44,8 +44,8 @@ func TestCryptoSignED25519(t *testing.T) {
 	}
 }
 
-// Test that CryptoSignED25519 propagates any error encountered when
-// getting the device signing key.
+// Test that CryptoHandler.SignED25519() propagates any error
+// encountered when getting the device signing key.
 func TestCryptoSignED25519NoSigningKey(t *testing.T) {
 	h := NewCryptoHandler(nil)
 
