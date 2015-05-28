@@ -68,7 +68,7 @@ func NewProofApiError(s keybase1.ProofStatus, u string, d string, a ...interface
 
 func XapiError(err error, u string) *ProofApiError {
 	if ae, ok := err.(*ApiError); ok {
-		var code keybase1.ProofStatus = keybase1.ProofStatus_NONE
+		code := keybase1.ProofStatus_NONE
 		switch ae.Code / 100 {
 		case 3:
 			code = keybase1.ProofStatus_HTTP_300

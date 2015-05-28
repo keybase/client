@@ -61,8 +61,8 @@ func (rc *RooterChecker) UnpackData(inp *jsonw.Wrapper) (string, ProofError) {
 	inp.AtPath("toot.post").GetStringVoid(&post, &err)
 
 	var pe ProofError
-	var cf keybase1.ProofStatus = keybase1.ProofStatus_CONTENT_FAILURE
-	var cm keybase1.ProofStatus = keybase1.ProofStatus_CONTENT_MISSING
+	cf := keybase1.ProofStatus_CONTENT_FAILURE
+	cm := keybase1.ProofStatus_CONTENT_MISSING
 
 	if err != nil {
 		pe = NewProofError(cm, "Bad proof JSON: %s", err.Error())
