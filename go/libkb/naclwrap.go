@@ -446,13 +446,10 @@ func GenerateNaclSigningKeyPair() (NaclSigningKeyPair, error) {
 	if err != nil {
 		return NaclSigningKeyPair{}, err
 	}
-	var ret NaclSigningKeyPair
-	var npriv NaclSigningKeyPrivate
-	copy(ret.Public[:], pub[:])
-	copy(npriv[:], priv[:])
-	ret.Private = &npriv
-
-	return ret, nil
+	return NaclSigningKeyPair{
+		Public:  *pub,
+		Private: (*NaclSigningKeyPrivate)(priv),
+	}, nil
 }
 
 func GenerateNaclDHKeyPair() (NaclDHKeyPair, error) {
@@ -460,12 +457,10 @@ func GenerateNaclDHKeyPair() (NaclDHKeyPair, error) {
 	if err != nil {
 		return NaclDHKeyPair{}, err
 	}
-	var ret NaclDHKeyPair
-	var npriv NaclDHKeyPrivate
-	copy(ret.Public[:], pub[:])
-	copy(npriv[:], priv[:])
-	ret.Private = &npriv
-	return ret, nil
+	return NaclDHKeyPair{
+		Public:  *pub,
+		Private: (*NaclDHKeyPrivate)(priv),
+	}, nil
 }
 
 func KbOpenSig(armored string) ([]byte, error) {
