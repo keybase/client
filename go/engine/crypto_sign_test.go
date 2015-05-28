@@ -31,8 +31,7 @@ func TestCryptoSign(t *testing.T) {
 
 	signature := cse.GetSignature()
 	verifyingKey := cse.GetVerifyingKey()
-	err = verifyingKey.Verify(msg, &signature)
-	if err != nil {
-		t.Error(err)
+	if !verifyingKey.Verify(msg, &signature) {
+		t.Error(libkb.VerificationError{})
 	}
 }
