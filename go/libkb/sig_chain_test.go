@@ -3,14 +3,14 @@ package libkb
 import (
 	// "fmt"
 	"encoding/json"
-	"io/ioutil"
-	"path"
 	"reflect"
 	"sort"
 	"testing"
 	"time"
 
 	jsonw "github.com/keybase/go-jsonw"
+
+	testvectors "github.com/keybase/keybase-test-vectors/go"
 )
 
 // TODO: For now the tests have all been given strict error types. In the
@@ -65,9 +65,8 @@ func TestAllChains(t *testing.T) {
 	tc := SetupTest(t, "test_all_chains")
 	defer tc.Cleanup()
 
-	testChainsJson, _ := ioutil.ReadFile("test_chains.json")
 	var testList TestList
-	json.Unmarshal([]byte(testChainsJson), &testList)
+	json.Unmarshal([]byte(testvectors.ChainTests), &testList)
 	// Always do the tests in alphabetical order.
 	testNames := []string{}
 	for name := range testList.Tests {
@@ -82,14 +81,14 @@ func TestAllChains(t *testing.T) {
 }
 
 func doChainTest(t *testing.T, testCase TestCase) {
-	inputJSON, err := ioutil.ReadFile(path.Join("test_chains", testCase.Input))
-	if err != nil {
-		t.Fatal(err)
+	inputJSON, exists := testvectors.ChainTestInputs[testCase.Input]
+	if !exists {
+		t.Fatal("missing test input: " + testCase.Input)
 	}
 	// Unmarshal test input in two ways: once for the structured data and once
 	// for the chain link blobs.
 	var input TestInput
-	err = json.Unmarshal([]byte(inputJSON), &input)
+	err := json.Unmarshal([]byte(inputJSON), &input)
 	if err != nil {
 		t.Fatal(err)
 	}
