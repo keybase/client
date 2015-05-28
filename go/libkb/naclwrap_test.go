@@ -97,9 +97,8 @@ func TestVerifyBytesAccept(t *testing.T) {
 
 	msg := []byte("test message")
 	sig := keyPair.Private.Sign(msg)
-	err = keyPair.Public.Verify(msg, sig)
-	if err != nil {
-		t.Error(err)
+	if !keyPair.Public.Verify(msg, sig) {
+		t.Error(VerificationError{})
 	}
 }
 
@@ -116,15 +115,13 @@ func TestVerifyBytesReject(t *testing.T) {
 	// Corrupt signature.
 
 	sig[0] = ^sig[0]
-	err = keyPair.Public.Verify(msg, sig)
-	if err == nil {
+	if keyPair.Public.Verify(msg, sig) {
 		t.Error("Corrupt signature unexpectedly passes")
 	}
 
 	// Corrupt message.
 
-	err = keyPair.Public.Verify(append(msg, []byte("corruption")...), sig)
-	if err == nil {
+	if keyPair.Public.Verify(append(msg, []byte("corruption")...), sig) {
 		t.Error("Signature for corrupt message unexpectedly passes")
 	}
 
@@ -136,8 +133,7 @@ func TestVerifyBytesReject(t *testing.T) {
 	}
 
 	sig2 := keyPair2.Private.Sign(msg)
-	err = keyPair.Public.Verify(msg, sig2)
-	if err == nil {
+	if keyPair.Public.Verify(msg, sig2) {
 		t.Error("Signature with different key unexpectedly passes")
 	}
 }

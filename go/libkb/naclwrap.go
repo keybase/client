@@ -33,12 +33,9 @@ func (k NaclSigningKeyPrivate) Sign(msg []byte) *NaclSignature {
 	return (*NaclSignature)(ed25519.Sign(&privateKey, msg))
 }
 
-func (k NaclSigningKeyPublic) Verify(msg []byte, sig *NaclSignature) error {
+func (k NaclSigningKeyPublic) Verify(msg []byte, sig *NaclSignature) bool {
 	publicKey := [ed25519.PublicKeySize]byte(k)
-	if !ed25519.Verify(&publicKey, msg, (*[ed25519.SignatureSize]byte)(sig)) {
-		return VerificationError{}
-	}
-	return nil
+	return ed25519.Verify(&publicKey, msg, (*[ed25519.SignatureSize]byte)(sig))
 }
 
 func (k KID) ToNaclSigningKeyPublic() *NaclSigningKeyPublic {
@@ -391,7 +388,10 @@ func (s NaclSig) Verify() error {
 	if key == nil {
 		return BadKeyError{}
 	}
-	return key.Verify(s.Payload, &s.Sig)
+	if !key.Verify(s.Payload, &s.Sig) {
+		return VerificationError{}
+	}
+	return nil
 }
 
 func (s *NaclSig) ArmoredEncode() (ret string, err error) {
