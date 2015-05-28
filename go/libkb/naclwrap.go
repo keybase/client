@@ -352,10 +352,6 @@ func (k NaclSigningKeyPair) VerifyString(sig string, msg []byte) (id keybase1.Si
 	return
 }
 
-func (k NaclSigningKeyPair) GetVerifyingKid() KID {
-	return k.GetKid()
-}
-
 func (k NaclDHKeyPair) SignToString(msg []byte) (sig string, id keybase1.SigID, err error) {
 	err = KeyCannotSignError{}
 	return
