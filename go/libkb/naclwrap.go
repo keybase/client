@@ -61,9 +61,6 @@ type NaclSigningKeyPair struct {
 	Private *NaclSigningKeyPrivate
 }
 
-var _ BytesSigner = NaclSigningKeyPair{}
-var _ BytesVerifier = NaclSigningKeyPair{}
-
 type NaclDHKeyPublic [NACL_DH_KEYSIZE]byte
 type NaclDHKeyPrivate [NACL_DH_KEYSIZE]byte
 

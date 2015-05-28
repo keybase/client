@@ -21,11 +21,11 @@
     } ]
   }, {
     "type" : "fixed",
-    "name" : "Nonce",
+    "name" : "BoxNonce",
     "size" : 24
   }, {
     "type" : "fixed",
-    "name" : "PeersPublicKey",
+    "name" : "BoxPublicKey",
     "size" : 32
   }, {
     "type" : "fixed",
@@ -46,7 +46,7 @@
       } ],
       "response" : "ED25519SignatureInfo"
     },
-    "decryptTLFCryptKeyClientHalf" : {
+    "unboxTLFCryptKeyClientHalf" : {
       "request" : [ {
         "name" : "sessionID",
         "type" : "int"
@@ -55,10 +55,10 @@
         "type" : "bytes"
       }, {
         "name" : "nonce",
-        "type" : "Nonce"
+        "type" : "BoxNonce"
       }, {
         "name" : "peersPublicKey",
-        "type" : "PeersPublicKey"
+        "type" : "BoxPublicKey"
       }, {
         "name" : "reason",
         "type" : "string"

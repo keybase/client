@@ -1,6 +1,7 @@
 package service
 
 import (
+	"github.com/keybase/client/go/engine"
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/protocol/go"
 	"github.com/maxtaco/go-framed-msgpack-rpc/rpc2"
@@ -58,7 +59,7 @@ func (c *CryptoHandler) SignED25519(arg keybase1.SignED25519Arg) (ret keybase1.E
 	return
 }
 
-func (c *CryptoHandler) DecryptTLFCryptKeyClientHalf(arg keybase1.DecryptTLFCryptKeyClientHalfArg) (tlfCryptKeyClientHalf keybase1.TLFCryptKeyClientHalf, err error) {
+func (c *CryptoHandler) UnboxTLFCryptKeyClientHalf(arg keybase1.UnboxTLFCryptKeyClientHalfArg) (tlfCryptKeyClientHalf keybase1.TLFCryptKeyClientHalf, err error) {
 	ctx := &engine.Context{
 		SecretUI: c.getSecretUI(arg.SessionID),
 	}
