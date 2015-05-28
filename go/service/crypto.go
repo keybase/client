@@ -4,6 +4,7 @@ import (
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/protocol/go"
 	"github.com/maxtaco/go-framed-msgpack-rpc/rpc2"
+	"golang.org/x/crypto/nacl/box"
 )
 
 type CryptoHandler struct {
@@ -70,7 +71,7 @@ func (c *CryptoHandler) UnboxTLFCryptKeyClientHalf(arg keybase1.UnboxTLFCryptKey
 		return
 	}
 
-	decryptedData, ok := kp.Unbox(arg.EncryptedData, [24]byte(arg.Nonce), [32]byte(arg.PeersPublicKey))
+	decryptedData, ok := box.Open(nil, arg.EncryptedData, (*[24]byte)(&arg.Nonce), (*[32]byte)(&arg.PeersPublicKey), (*[32]byte)(kp.Private))
 	if !ok {
 		err = libkb.DecryptionError{}
 		return
