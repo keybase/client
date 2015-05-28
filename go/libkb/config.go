@@ -313,7 +313,7 @@ func (f *JsonConfigFile) Write() error {
 func (f JsonConfigFile) GetHome() (ret string) {
 	return f.GetTopLevelString("home")
 }
-func (f JsonConfigFile) GetServerUri() (ret string) {
+func (f JsonConfigFile) GetServerURI() (ret string) {
 	return f.GetTopLevelString("server")
 }
 func (f JsonConfigFile) GetConfigFilename() (ret string) {
@@ -336,7 +336,7 @@ func (f JsonConfigFile) GetGpg() string {
 	res, _ := f.GetStringAtPath("gpg.command")
 	return res
 }
-func (f JsonConfigFile) GetLocalRpcDebug() string {
+func (f JsonConfigFile) GetLocalRPCDebug() string {
 	return f.GetTopLevelString("local_rpc_debug")
 }
 func (f JsonConfigFile) GetTimers() string {

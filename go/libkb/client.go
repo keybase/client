@@ -70,7 +70,7 @@ func ShortCA(raw string) string {
 // and build a Client config that will be used in all API server
 // requests
 func (e *Env) GenClientConfig() (*ClientConfig, error) {
-	u := e.GetServerUri()
+	u := e.GetServerURI()
 	if len(u) == 0 {
 		err := fmt.Errorf("Cannot find a server URL")
 		return nil, err

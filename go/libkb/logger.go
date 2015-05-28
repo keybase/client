@@ -77,7 +77,7 @@ type RpcLogOptions struct {
 }
 
 func (r *RpcLogOptions) Reload() {
-	s := G.Env.GetLocalRpcDebug()
+	s := G.Env.GetLocalRPCDebug()
 	r.clientTrace = false
 	r.serverTrace = false
 	r.profile = false

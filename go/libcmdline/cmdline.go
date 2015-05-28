@@ -36,10 +36,10 @@ type CommandLine struct {
 	defaultCmd string
 }
 
-func (cl CommandLine) IsService() bool       { return cl.service }
-func (cl *CommandLine) SetService()          { cl.service = true }
-func (cl CommandLine) GetForkCmd() ForkCmd   { return cl.fork }
-func (cl *CommandLine) SetForkCmd(v ForkCmd) { cl.fork = v }
+func (p CommandLine) IsService() bool       { return p.service }
+func (p *CommandLine) SetService()          { p.service = true }
+func (p CommandLine) GetForkCmd() ForkCmd   { return p.fork }
+func (p *CommandLine) SetForkCmd(v ForkCmd) { p.fork = v }
 
 func (p CommandLine) GetSplitLogOutput() (bool, bool) {
 	return p.GetBool("split-log-output", true)
@@ -56,7 +56,7 @@ func (p CommandLine) GetAutoFork() (bool, bool) {
 func (p CommandLine) GetHome() string {
 	return p.GetGString("home")
 }
-func (p CommandLine) GetServerUri() string {
+func (p CommandLine) GetServerURI() string {
 	return p.GetGString("server")
 }
 func (p CommandLine) GetConfigFilename() string {
@@ -86,7 +86,7 @@ func (p CommandLine) GetPlainLogging() (bool, bool) {
 func (p CommandLine) GetGpgHome() string {
 	return p.GetGString("gpg-home")
 }
-func (p CommandLine) GetApiDump() (bool, bool) {
+func (p CommandLine) GetAPIDump() (bool, bool) {
 	return p.GetBool("api-dump", true)
 }
 func (p CommandLine) GetPinentry() string {
@@ -154,7 +154,7 @@ func (p CommandLine) GetStandalone() (bool, bool) {
 	return p.GetBool("standalone", true)
 }
 
-func (p CommandLine) GetLocalRpcDebug() string {
+func (p CommandLine) GetLocalRPCDebug() string {
 	return p.GetGString("local-rpc-debug")
 }
 
@@ -231,8 +231,8 @@ func NewCommandLine(addHelp bool, extraFlags []cli.Flag) *CommandLine {
 	return ret
 }
 
-func (cl *CommandLine) PopulateApp(addHelp bool, extraFlags []cli.Flag) {
-	app := cl.app
+func (p *CommandLine) PopulateApp(addHelp bool, extraFlags []cli.Flag) {
+	app := p.app
 	app.Name = "keybase"
 	app.Version = libkb.CLIENT_VERSION
 	app.Usage = "control keybase either with 1-off commands, " +
@@ -360,24 +360,24 @@ func (cl *CommandLine) PopulateApp(addHelp bool, extraFlags []cli.Flag) {
 	// Finally, add help if we asked for it
 	if addHelp {
 		app.Action = func(c *cli.Context) {
-			cl.cmd = &CmdGeneralHelp{CmdBaseHelp{c}}
-			cl.ctx = c
-			cl.name = "help"
+			p.cmd = &CmdGeneralHelp{CmdBaseHelp{c}}
+			p.ctx = c
+			p.name = "help"
 		}
 	}
 	app.Commands = []cli.Command{}
 }
 
-func (cl *CommandLine) AddCommands(cmds []cli.Command) {
-	cl.app.Commands = append(cl.app.Commands, cmds...)
+func (p *CommandLine) AddCommands(cmds []cli.Command) {
+	p.app.Commands = append(p.app.Commands, cmds...)
 }
 
-func (cl *CommandLine) SetDefaultCommand(name string, cmd Command) {
-	cl.defaultCmd = name
-	cl.app.Action = func(c *cli.Context) {
-		cl.cmd = cmd
-		cl.ctx = c
-		cl.name = name
+func (p *CommandLine) SetDefaultCommand(name string, cmd Command) {
+	p.defaultCmd = name
+	p.app.Action = func(c *cli.Context) {
+		p.cmd = cmd
+		p.ctx = c
+		p.name = name
 	}
 }
 

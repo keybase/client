@@ -1,11 +1,12 @@
 package service
 
 import (
+	"os"
+	"path/filepath"
+
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/protocol/go"
 	"github.com/maxtaco/go-framed-msgpack-rpc/rpc2"
-	"os"
-	"path/filepath"
 )
 
 type ConfigHandler struct {
@@ -23,7 +24,7 @@ func (h ConfigHandler) GetCurrentStatus() (res keybase1.GetCurrentStatusRes, err
 func (h ConfigHandler) GetConfig() (keybase1.Config, error) {
 	var c keybase1.Config
 
-	c.ServerURI = G.Env.GetServerUri()
+	c.ServerURI = G.Env.GetServerURI()
 	var err error
 	c.SocketFile, err = G.Env.GetSocketFile()
 	if err != nil {

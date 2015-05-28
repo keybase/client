@@ -28,7 +28,7 @@ func (v *CmdPing) Run() error {
 	if err != nil {
 		return err
 	}
-	G.Log.Info(fmt.Sprintf("API Server at %s is up", G.Env.GetServerUri()))
+	G.Log.Info(fmt.Sprintf("API Server at %s is up", G.Env.GetServerURI()))
 	return nil
 }
 

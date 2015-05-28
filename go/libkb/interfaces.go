@@ -22,7 +22,7 @@ import (
 type CommandLine interface {
 	GetHome() string
 	GetUsername() string
-	GetServerUri() string
+	GetServerURI() string
 	GetConfigFilename() string
 	GetSessionFilename() string
 	GetDbFilename() string
@@ -30,7 +30,7 @@ type CommandLine interface {
 	GetProxy() string
 	GetPlainLogging() (bool, bool)
 	GetGpgHome() string
-	GetApiDump() (bool, bool)
+	GetAPIDump() (bool, bool)
 	GetUserCacheSize() (int, bool)
 	GetProofCacheSize() (int, bool)
 	GetMerkleKeyFingerprints() []string
@@ -46,7 +46,7 @@ type CommandLine interface {
 	GetStandalone() (bool, bool)
 	GetAutoFork() (bool, bool)
 	GetNoAutoFork() (bool, bool)
-	GetLocalRpcDebug() string
+	GetLocalRPCDebug() string
 	GetTimers() string
 	GetSplitLogOutput() (bool, bool)
 	GetLogFile() string
@@ -79,7 +79,7 @@ type LocalDb interface {
 
 type ConfigReader interface {
 	GetHome() string
-	GetServerUri() string
+	GetServerURI() string
 	GetConfigFilename() string
 	GetSessionFilename() string
 	GetDbFilename() string
@@ -112,7 +112,7 @@ type ConfigReader interface {
 	GetPidFile() string
 	GetDaemonPort() (int, bool)
 	GetStandalone() (bool, bool)
-	GetLocalRpcDebug() string
+	GetLocalRPCDebug() string
 	GetTimers() string
 	GetDeviceID() *DeviceID
 	GetUsername() string

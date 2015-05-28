@@ -176,7 +176,7 @@ func doRequestShared(api Requester, arg ApiArg, req *http.Request, wantJsonRes b
 		}
 
 		jw = jsonw.NewWrapper(obj)
-		if G.Env.GetApiDump() {
+		if G.Env.GetAPIDump() {
 			G.Log.Debug(fmt.Sprintf("| full reply: %v", obj))
 		}
 	}

@@ -15,7 +15,7 @@ import (
 type NullConfiguration struct{}
 
 func (n NullConfiguration) GetHome() string                               { return "" }
-func (n NullConfiguration) GetServerUri() string                          { return "" }
+func (n NullConfiguration) GetServerURI() string                          { return "" }
 func (n NullConfiguration) GetConfigFilename() string                     { return "" }
 func (n NullConfiguration) GetSessionFilename() string                    { return "" }
 func (n NullConfiguration) GetDbFilename() string                         { return "" }
@@ -42,7 +42,7 @@ func (n NullConfiguration) GetSocketFile() string                         { retu
 func (n NullConfiguration) GetPidFile() string                            { return "" }
 func (n NullConfiguration) GetDaemonPort() (int, bool)                    { return 0, false }
 func (n NullConfiguration) GetStandalone() (bool, bool)                   { return false, false }
-func (n NullConfiguration) GetLocalRpcDebug() string                      { return "" }
+func (n NullConfiguration) GetLocalRPCDebug() string                      { return "" }
 func (n NullConfiguration) GetTimers() string                             { return "" }
 func (n NullConfiguration) GetDeviceID() *DeviceID                        { return nil }
 func (n NullConfiguration) GetProxyCACerts() ([]string, error)            { return nil, nil }
@@ -66,7 +66,7 @@ func (n NullConfiguration) GetDebug() (bool, bool) {
 func (n NullConfiguration) GetPlainLogging() (bool, bool) {
 	return false, false
 }
-func (n NullConfiguration) GetApiDump() (bool, bool) {
+func (n NullConfiguration) GetAPIDump() (bool, bool) {
 	return false, false
 }
 func (n NullConfiguration) GetNoPinentry() (bool, bool) {
@@ -280,12 +280,12 @@ func (e *Env) GetDuration(def time.Duration, flist ...func() (time.Duration, boo
 	return def
 }
 
-func (e *Env) GetServerUri() string {
+func (e *Env) GetServerURI() string {
 	return e.GetString(
 		func() string { return e.Test.ServerUri },
-		func() string { return e.cmd.GetServerUri() },
+		func() string { return e.cmd.GetServerURI() },
 		func() string { return os.Getenv("KEYBASE_SERVER_URI") },
-		func() string { return e.config.GetServerUri() },
+		func() string { return e.config.GetServerURI() },
 		func() string { return SERVER_URL },
 	)
 }
@@ -372,9 +372,9 @@ func (e *Env) GetPlainLogging() bool {
 	)
 }
 
-func (e *Env) GetApiDump() bool {
+func (e *Env) GetAPIDump() bool {
 	return e.GetBool(false,
-		func() (bool, bool) { return e.cmd.GetApiDump() },
+		func() (bool, bool) { return e.cmd.GetAPIDump() },
 		func() (bool, bool) { return e.getEnvBool("KEYBASE_API_DUMP") },
 	)
 }
@@ -614,11 +614,11 @@ func (e *Env) GetSalt() []byte {
 	return e.config.GetSalt()
 }
 
-func (e *Env) GetLocalRpcDebug() string {
+func (e *Env) GetLocalRPCDebug() string {
 	return e.GetString(
-		func() string { return e.cmd.GetLocalRpcDebug() },
+		func() string { return e.cmd.GetLocalRPCDebug() },
 		func() string { return os.Getenv("KEYBASE_LOCAL_RPC_DEBUG") },
-		func() string { return e.config.GetLocalRpcDebug() },
+		func() string { return e.config.GetLocalRPCDebug() },
 	)
 }
 
