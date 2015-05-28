@@ -13,8 +13,7 @@ import (
 
 type NaclSignature [ed25519.SignatureSize]byte
 
-// TODO: Rename to NaclSigInfo or something.
-type NaclSig struct {
+type NaclSigInfo struct {
 	Kid      KID           `codec:"key"`
 	Payload  []byte        `codec:"payload,omitempty"`
 	Sig      NaclSignature `codec:"sig"`
@@ -265,12 +264,12 @@ func (k NaclDHKeyPair) HasSecretKey() bool {
 func (k NaclSigningKeyPair) CanSign() bool { return k.Private != nil }
 func (k NaclDHKeyPair) CanSign() bool      { return false }
 
-func (k NaclSigningKeyPair) Sign(msg []byte) (ret *NaclSig, err error) {
+func (k NaclSigningKeyPair) Sign(msg []byte) (ret *NaclSigInfo, err error) {
 	if k.Private == nil {
 		err = NoSecretKeyError{}
 		return
 	}
-	ret = &NaclSig{
+	ret = &NaclSigInfo{
 		Kid:      k.GetKid(),
 		Payload:  msg,
 		Sig:      *k.Private.Sign(msg),
@@ -313,7 +312,7 @@ func (k NaclSigningKeyPair) VerifyStringAndExtract(sig string) (msg []byte, id k
 		return
 	}
 
-	naclSig, ok := packet.Body.(*NaclSig)
+	naclSig, ok := packet.Body.(*NaclSigInfo)
 	if !ok {
 		err = UnmarshalError{"NACL signature"}
 		return
@@ -366,7 +365,7 @@ func (k NaclDHKeyPair) VerifyString(sig string, msg []byte) (id keybase1.SigID, 
 	return
 }
 
-func (s *NaclSig) ToPacket() (ret *KeybasePacket, err error) {
+func (s *NaclSigInfo) ToPacket() (ret *KeybasePacket, err error) {
 	ret = &KeybasePacket{
 		Version: KEYBASE_PACKET_V1,
 		Tag:     TAG_SIGNATURE,
@@ -375,15 +374,15 @@ func (s *NaclSig) ToPacket() (ret *KeybasePacket, err error) {
 	return
 }
 
-func (p KeybasePacket) ToNaclSig() (*NaclSig, error) {
-	ret, ok := p.Body.(*NaclSig)
+func (p KeybasePacket) ToNaclSigInfo() (*NaclSigInfo, error) {
+	ret, ok := p.Body.(*NaclSigInfo)
 	if !ok {
 		return nil, UnmarshalError{"Signature"}
 	}
 	return ret, nil
 }
 
-func (s NaclSig) Verify() error {
+func (s NaclSigInfo) Verify() error {
 	key := s.Kid.ToNaclSigningKeyPublic()
 	if key == nil {
 		return BadKeyError{}
@@ -394,7 +393,7 @@ func (s NaclSig) Verify() error {
 	return nil
 }
 
-func (s *NaclSig) ArmoredEncode() (ret string, err error) {
+func (s *NaclSigInfo) ArmoredEncode() (ret string, err error) {
 	return PacketArmoredEncode(s)
 }
 
@@ -478,7 +477,7 @@ func KbOpenSig(armored string) ([]byte, error) {
 func SigAssertKbPayload(armored string, expected []byte) (sigID keybase1.SigID, err error) {
 	var byt []byte
 	var packet *KeybasePacket
-	var sig *NaclSig
+	var sig *NaclSigInfo
 	var ok bool
 
 	if byt, err = KbOpenSig(armored); err != nil {
@@ -488,7 +487,7 @@ func SigAssertKbPayload(armored string, expected []byte) (sigID keybase1.SigID, 
 	if packet, err = DecodePacket(byt); err != nil {
 		return
 	}
-	if sig, ok = packet.Body.(*NaclSig); !ok {
+	if sig, ok = packet.Body.(*NaclSigInfo); !ok {
 		err = UnmarshalError{"NaCl Signature"}
 		return
 	}
