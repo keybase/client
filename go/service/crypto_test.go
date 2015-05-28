@@ -4,6 +4,8 @@ import (
 	"errors"
 	"testing"
 
+	"golang.org/x/crypto/nacl/box"
+
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/protocol/go"
 )
@@ -107,10 +109,11 @@ func TestCryptoUnboxTLFCryptKeyClientHalf(t *testing.T) {
 	}
 
 	expectedData := keybase1.TLFCryptKeyClientHalf{0, 1, 2, 3, 4, 5}
-
-	encryptedData := []byte{}
-	nonce := keybase1.BoxNonce{}
+	nonce := [24]byte{6, 7, 8, 9, 10}
 	peersPublicKey := keybase1.BoxPublicKey(peerKp.Public)
+
+	encryptedData := box.Seal(nil, expectedData[:], &nonce, (*[32]byte)(&kp.Public), (*[32]byte)(peerKp.Private))
+
 	data, err := h.UnboxTLFCryptKeyClientHalf(keybase1.UnboxTLFCryptKeyClientHalfArg{
 		EncryptedData:  encryptedData,
 		Nonce:          nonce,
