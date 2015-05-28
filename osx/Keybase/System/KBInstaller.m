@@ -16,56 +16,23 @@
 #import "KBInstallAction.h"
 
 @interface KBInstaller ()
-@property NSArray *installActions;
+@property KBEnvironment *environment;
 @end
 
 @implementation KBInstaller
 
-- (instancetype)initWithEnvironment:(KBEnvironment *)environment components:(NSArray *)components {
+- (instancetype)initWithEnvironment:(KBEnvironment *)environment {
   if ((self = [super init])) {
-    _installActions = [components map:^(id<KBInstallable> c) { return [KBInstallAction installActionWithComponent:c]; }];
+    _environment = environment;
   }
   return self;
-}
-
-- (void)installStatus:(void (^)(BOOL needsInstall))completion {
-  KBRunOver *rover = [[KBRunOver alloc] init];
-  rover.objects = _installActions;
-  rover.runBlock = ^(KBInstallAction *installAction, KBRunCompletion runCompletion) {
-    DDLogDebug(@"Checking %@", installAction.component.name);
-    [installAction.component updateComponentStatus:^(NSError *error) {
-      // Clear install outcome
-      installAction.installAttempted = NO;
-      installAction.installError = error;
-      runCompletion(installAction);
-    }];
-  };
-  rover.completion = ^(NSArray *installActions) {
-    NSArray *installActionsNeeded = [self installActionsNeeded];
-    completion([installActionsNeeded count] > 0);
-  };
-  [rover run];
-}
-
-- (NSArray *)installActionsNeeded {
-  NSArray *installActions = [_installActions select:^BOOL(KBInstallAction *installAction) {
-    return (installAction.component.componentStatus.installStatus != KBInstallStatusInstalled ||
-            installAction.component.componentStatus.runtimeStatus == KBRuntimeStatusNotRunning);
-  }];
-
-  // Ignore KBFS since it's not ready yet
-  installActions = [installActions select:^BOOL(KBInstallAction *installAction) {
-    return ![installAction.name isEqual:@"KBFS"];
-  }];
-
-  return installActions;
 }
 
 - (void)install:(dispatch_block_t)completion {
   // Ensure application support dir is available
   [AppDelegate applicationSupport:nil create:YES error:nil]; // TODO Handle error
 
-  NSArray *installActionsNeeded = [self installActionsNeeded];
+  NSArray *installActionsNeeded = [_environment installActionsNeeded];
 
   KBRunOver *rover = [[KBRunOver alloc] init];
   rover.objects = installActionsNeeded;
@@ -90,6 +57,7 @@
   [rover run];
 }
 
+/*
 - (void)removeDirectory:(NSString *)directory error:(NSError **)error {
   NSArray *files = [NSFileManager.defaultManager contentsOfDirectoryAtPath:directory error:error];
   for (NSString *file in files) {
@@ -115,5 +83,6 @@
   };
   [task launch];
 }
+ */
 
 @end

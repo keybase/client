@@ -13,9 +13,9 @@
 
 @interface KBCustomEnvView : YOView
 
-@property (nonatomic) KBEnvironment *environment;
+@property (nonatomic) KBEnvConfig *config;
 
 - (void)saveToDefaults;
-- (KBEnvironment *)loadFromDefaults;
+- (KBEnvConfig *)loadFromDefaults;
 
 @end

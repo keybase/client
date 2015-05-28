@@ -86,17 +86,17 @@
 }
 
 - (void)update {
-  [self updateCLI:[self environment]];
+  [self updateCLI:[self config]];
 }
 
 - (void)saveToDefaults {
-  [NSUserDefaults.standardUserDefaults setObject:self.environment.homeDir forKey:@"CustomHomeDir"];
-  [NSUserDefaults.standardUserDefaults setObject:self.environment.sockFile forKey:@"CustomSockFile"];
-  [NSUserDefaults.standardUserDefaults setObject:self.environment.mountDir forKey:@"CustomMountDir"];
+  [NSUserDefaults.standardUserDefaults setObject:self.config.homeDir forKey:@"CustomHomeDir"];
+  [NSUserDefaults.standardUserDefaults setObject:self.config.sockFile forKey:@"CustomSockFile"];
+  [NSUserDefaults.standardUserDefaults setObject:self.config.mountDir forKey:@"CustomMountDir"];
   [NSUserDefaults.standardUserDefaults synchronize];
 }
 
-- (KBEnvironment *)loadFromDefaults {
+- (KBEnvConfig *)loadFromDefaults {
   NSString *homeDir = [NSUserDefaults.standardUserDefaults stringForKey:@"CustomHomeDir"];
   if (!homeDir) homeDir = KBPath(@"~/Projects/Keybase", NO);
 
@@ -106,28 +106,28 @@
   NSString *mountDir = [NSUserDefaults.standardUserDefaults stringForKey:@"CustomMountDir"];
   if (!mountDir) mountDir = KBPath(@"~/Keybase.dev", NO);
 
-  return [[KBEnvironment alloc] initWithHomeDir:homeDir sockFile:nil mountDir:mountDir];
+  return [[KBEnvConfig alloc] initWithHomeDir:homeDir sockFile:nil mountDir:mountDir];
 }
 
-- (KBEnvironment *)environment {
+- (KBEnvConfig *)config {
   NSString *homeDir = [_homeDirField.text gh_strip];
 //  NSString *sockFile = [_socketFileField.text gh_strip];
   NSString *mountDir = [_mountDirField.text gh_strip];
-  return [[KBEnvironment alloc] initWithHomeDir:homeDir sockFile:nil mountDir:mountDir];
+  return [[KBEnvConfig alloc] initWithHomeDir:homeDir sockFile:nil mountDir:mountDir];
 }
 
-- (void)setEnvironment:(KBEnvironment *)environment {
-  _homeDirField.text = KBPath(environment.homeDir, YES);
-  _socketFileField.text = KBPath(environment.sockFile, YES);
-  _mountDirField.text = KBPath(environment.mountDir, YES);
-  [self updateCLI:environment];
+- (void)setConfig:(KBEnvConfig *)config {
+  _homeDirField.text = KBPath(config.homeDir, YES);
+  _socketFileField.text = KBPath(config.sockFile, YES);
+  _mountDirField.text = KBPath(config.mountDir, YES);
+  [self updateCLI:config];
   [self setNeedsLayout];
 }
 
-- (void)updateCLI:(KBEnvironment *)environment {
-  [_serviceCLI setText:[environment commandLineForService:NO escape:YES tilde:YES] style:KBTextStyleDefault options:KBTextOptionsMonospace alignment:NSLeftTextAlignment lineBreakMode:NSLineBreakByWordWrapping];
+- (void)updateCLI:(KBEnvConfig *)config {
+  [_serviceCLI setText:[config commandLineForService:NO escape:YES tilde:YES] style:KBTextStyleDefault options:KBTextOptionsMonospace alignment:NSLeftTextAlignment lineBreakMode:NSLineBreakByWordWrapping];
 
-  [_kbfsCLI setText:[environment commandLineForKBFS:NO escape:YES tilde:YES] style:KBTextStyleDefault options:KBTextOptionsMonospace alignment:NSLeftTextAlignment lineBreakMode:NSLineBreakByWordWrapping];
+  [_kbfsCLI setText:[config commandLineForKBFS:NO escape:YES tilde:YES] style:KBTextStyleDefault options:KBTextOptionsMonospace alignment:NSLeftTextAlignment lineBreakMode:NSLineBreakByWordWrapping];
 
   [self setNeedsLayout];
 }

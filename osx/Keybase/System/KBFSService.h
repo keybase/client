@@ -13,6 +13,4 @@
 
 @interface KBFSService : KBLaunchService
 
-- (instancetype)initWithEnvironment:(KBEnvironment *)environment;
-
 @end

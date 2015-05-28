@@ -9,9 +9,6 @@
 #import <Foundation/Foundation.h>
 #import <XCTest/XCTest.h>
 
-#import "KBEnvironment.h"
-#import "KBHelperDefines.h"
-
 @interface KBLaunchCtlTest : XCTestCase
 @end
 

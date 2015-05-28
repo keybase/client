@@ -31,6 +31,7 @@ NSString *NSStringFromKBRuntimeStatus(KBRuntimeStatus status);
 @property (readonly) NSError *error;
 @property (readonly) KBInstallStatus installStatus;
 @property (readonly) KBRuntimeStatus runtimeStatus;
+@property (readonly) GHODictionary *info;
 
 + (instancetype)componentStatusWithError:(NSError *)error;
 + (instancetype)componentStatusWithInstallStatus:(KBInstallStatus)installStatus runtimeStatus:(KBRuntimeStatus)runtimeStatus info:(GHODictionary *)info;

@@ -16,7 +16,7 @@
 @property KBRPClient *client;
 
 @property (nonatomic) KBRGetCurrentStatusRes *userStatus;
-@property (nonatomic) KBRConfig *config;
+@property (nonatomic) KBRConfig *userConfig;
 @property NSError *statusError;
 
 @property KBInfoView *infoView;
@@ -24,10 +24,10 @@
 
 @implementation KBService
 
-- (instancetype)initWithEnvironment:(KBEnvironment *)environment {
+- (instancetype)initWithConfig:(KBEnvConfig *)config {
   NSDictionary *info = [[NSBundle mainBundle] infoDictionary];
-  if ((self = [super initWithEnvironment:environment])) {
-    [self setName:@"Service" info:@"The Keybase service" label:environment.launchdLabelService bundleVersion:info[@"KBServiceVersion"] versionPath:[environment cachePath:@"service.version"] plist:environment.launchdPlistDictionaryForService];
+  if ((self = [super initWithConfig:config])) {
+    [self setName:@"Service" info:@"The Keybase service" label:config.launchdLabelService bundleVersion:info[@"KBServiceVersion"] versionPath:[config cachePath:@"service.version"] plist:config.launchdPlistDictionaryForService];
   }
   return self;
 }
@@ -40,27 +40,25 @@
 - (void)componentDidUpdate {
   GHODictionary *info = [GHODictionary dictionary];
 
-  info[@"Home"] = KBPath(self.environment.homeDir, YES);
-  info[@"Socket"] = KBPath(self.environment.sockFile, YES);
+  info[@"Home"] = KBPath(self.config.homeDir, YES);
+  info[@"Socket"] = KBPath(self.config.sockFile, YES);
 
   info[@"Launchd"] = self.label ? self.label : @"-";
-  info[@"Version"] = GHOrNull([self version]);
-  info[@"Bundle Version"] = self.bundleVersion;
   GHODictionary *statusInfo = [self componentStatusInfo];
   if (statusInfo) [info addEntriesFromOrderedDictionary:statusInfo];
 
-  if (_statusError) info[@"Status Error"] = _statusError;
+  if (_statusError) info[@"Status Error"] = _statusError.localizedDescription;
 
-  info[@"API Server"] = _config ? _config.serverURI : @"-";
+  info[@"API Server"] = _userConfig ? _userConfig.serverURI : @"-";
   info[@"Configured"] = _userStatus ? @(_userStatus.configured) : @"-";
   info[@"Registered"] = _userStatus ? @(_userStatus.registered) : @"-";
   info[@"Logged in"] = _userStatus ? @(_userStatus.loggedIn) : @"-";
   info[@"User"] = _userStatus ? _userStatus.user.username : @"-";
-  info[@"User Id"] = _userStatus ? KBHexString(_userStatus.user.uid, @"") : @"-";
+  info[@"User Id"] = _userStatus ? _userStatus.user.uid : @"-";
 
-  if (self.environment.installEnabled) {
+  if (self.config.installEnabled) {
     info[@"Launchd Plist"] = KBPath([self plistDestination], YES);
-    info[@"Program"] = [self.environment commandLineForService:NO escape:NO tilde:YES];
+    info[@"Program"] = [self.config commandLineForService:NO escape:NO tilde:YES];
   }
 
   if (!_infoView) _infoView = [[KBInfoView alloc] init];
@@ -79,10 +77,10 @@
 
 - (void)checkServiceStatus:(KBCompletion)completion {
   GHWeakSelf gself = self;
-  [self checkStatus:^(NSError *error, KBRGetCurrentStatusRes *currentStatus, KBRConfig *config) {
+  [self checkStatus:^(NSError *error, KBRGetCurrentStatusRes *userStatus, KBRConfig *userConfig) {
     gself.statusError = error;
-    gself.userStatus = currentStatus;
-    gself.config = config;
+    gself.userStatus = userStatus;
+    gself.userConfig = userConfig;
 
     if (gself.label) {
       [KBLaunchCtl status:gself.label completion:^(KBServiceStatus *serviceStatus) {
@@ -98,7 +96,7 @@
 
 - (KBRPClient *)client {
   if (!_client) {
-    _client = [[KBRPClient alloc] initWithEnvironment:self.environment];
+    _client = [[KBRPClient alloc] initWithConfig:self.config];
   }
   if (_client.status == KBRPClientStatusClosed) [_client open];
   return _client;
@@ -107,18 +105,18 @@
 - (void)checkStatus:(void (^)(NSError *error, KBRGetCurrentStatusRes *currentStatus, KBRConfig *config))completion {
   GHWeakSelf gself = self;
   KBRConfigRequest *config = [[KBRConfigRequest alloc] initWithClient:self.client];
-  [config getCurrentStatus:^(NSError *error, KBRGetCurrentStatusRes *status) {
-    gself.userStatus = status;
+  [config getCurrentStatus:^(NSError *error, KBRGetCurrentStatusRes *userStatus) {
+    gself.userStatus = userStatus;
     [self componentDidUpdate];
     if (error) {
-      completion(error, status, nil);
+      completion(error, userStatus, nil);
       return;
     }
     KBRConfigRequest *request = [[KBRConfigRequest alloc] initWithClient:self.client];
-    [request getConfig:^(NSError *error, KBRConfig *config) {
-      gself.config = config;
+    [request getConfig:^(NSError *error, KBRConfig *userConfig) {
+      gself.userConfig = userConfig;
       [self componentDidUpdate];
-      completion(error, status, config);
+      completion(error, userStatus, userConfig);
     }];
   }];
 }

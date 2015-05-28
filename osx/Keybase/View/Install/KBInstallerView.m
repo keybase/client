@@ -61,8 +61,8 @@
   GHWeakSelf gself = self;
   [_installer install:^{
     [KBActivity setProgressEnabled:NO sender:self];
-    [self updateInstallActions:gself.installer.installActions];
-    if ([[gself.installer installActionsNeeded] count] == 0) {
+    [self updateInstallActions:[gself.installer.environment installActions]];
+    if ([[gself.installer.environment installActionsNeeded] count] == 0) {
       self.completion();
     }
   }];
@@ -78,7 +78,7 @@
 
 - (void)setInstaller:(KBInstaller *)installer {
   _installer = installer;
-  [self updateInstallActions:_installer.installActions];
+  [self updateInstallActions:[_installer.environment installActions]];
 }
 
 - (void)updateInstallActions:(NSArray *)installActions {

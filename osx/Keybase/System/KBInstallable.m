@@ -9,14 +9,14 @@
 #import "KBInstallable.h"
 
 @interface KBInstallableComponent ()
-@property KBEnvironment *environment;
+@property KBEnvConfig *config;
 @end
 
 @implementation KBInstallableComponent
 
-- (instancetype)initWithEnvironment:(KBEnvironment *)environment {
+- (instancetype)initWithConfig:(KBEnvConfig *)config {
   if ((self = [super init])) {
-    _environment = environment;
+    _config = config;
   }
   return self;
 }
@@ -34,7 +34,7 @@
   if (!_componentStatus) return [GHODictionary dictionary];
   GHODictionary *info = [GHODictionary dictionary];
 
-  info[@"Status Error"] = _componentStatus.error;
+  info[@"Status Error"] = _componentStatus.error.localizedDescription;
   info[@"Install Status"] = NSStringFromKBInstallStatus(_componentStatus.installStatus);
   info[@"Runtime Status"] = NSStringFromKBRuntimeStatus(_componentStatus.runtimeStatus);
 

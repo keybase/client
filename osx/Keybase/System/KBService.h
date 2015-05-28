@@ -9,15 +9,15 @@
 #import <Foundation/Foundation.h>
 
 #import "KBLaunchService.h"
-#import "KBEnvironment.h"
 #import "KBRPC.h"
+#import "KBRPClient.h"
 
 @interface KBService : KBLaunchService
 
 @property (readonly, nonatomic) KBRPClient *client;
 @property (readonly, nonatomic) KBRGetCurrentStatusRes *userStatus;
-@property (readonly, nonatomic) KBRConfig *config;
+@property (readonly, nonatomic) KBRConfig *userConfig;
 
-- (void)checkStatus:(void (^)(NSError *error, KBRGetCurrentStatusRes *currentStatus, KBRConfig *config))completion;
+- (void)checkStatus:(void (^)(NSError *error, KBRGetCurrentStatusRes *userStatus, KBRConfig *userConfig))completion;
 
 @end

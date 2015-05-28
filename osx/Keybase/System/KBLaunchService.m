@@ -11,6 +11,7 @@
 #import "KBLaunchCtl.h"
 #import "AppDelegate.h"
 #import "KBTask.h"
+#import "KBWaitFor.h"
 
 @interface KBLaunchService ()
 @property NSString *name;
@@ -20,6 +21,7 @@
 @property NSDictionary *plist;
 
 @property NSString *bundleVersion;
+@property NSString *runningVersion;
 @property NSNumber *pid;
 @property NSNumber *lastExitStatus;
 @end
@@ -39,16 +41,11 @@
   return [KBIcons imageForIcon:KBIconNetwork];
 }
 
-- (NSString *)version {
-  if (self.componentStatus.installStatus == KBInstallStatusNotInstalled) return nil;
-  return _versionPath ? [NSString stringWithContentsOfFile:_versionPath encoding:NSUTF8StringEncoding error:nil] : nil;
-}
-
 - (GHODictionary *)componentStatusInfo {
   GHODictionary *info = [GHODictionary dictionary];
 
   if (self.componentStatus) {
-    info[@"Status Error"] = self.componentStatus.error;
+    info[@"Status Error"] = self.componentStatus.error.localizedDescription;
     info[@"Install Status"] = NSStringFromKBInstallStatus(self.componentStatus.installStatus);
     info[@"Runtime Status"] = NSStringFromKBRuntimeStatus(self.componentStatus.runtimeStatus);
   } else {
@@ -56,31 +53,47 @@
     info[@"Runtime Status"] = @"-";
   }
 
+  info[@"Version"] = KBOr(self.runningVersion, @"-");
+  info[@"Bundle Version"] = KBOr(self.bundleVersion, @"-");
+
   if (!_lastExitStatus) {
     info[@"PID"] = KBOr(_pid, @"-");
   } else {
     info[@"PID"] = NSStringWithFormat(@"%@ (%@)", KBOr(_pid, @"-"), KBOr(_lastExitStatus, @"-"));
   }
+
   return info;
 }
 
+- (void)waitForVersionFile:(void (^)(NSString *runningVersion))completion {
+  NSString *versionPath = _versionPath;
+  KBWaitForBlock block = ^(KBWaitForCheck completion) {
+    if (!versionPath) {
+      completion(YES, nil);
+    } else {
+      NSString *version = [NSString stringWithContentsOfFile:versionPath encoding:NSUTF8StringEncoding error:nil];
+      if (version) DDLogDebug(@"Version file: %@", version);
+      completion(NO, version);
+    }
+  };
+  [KBWaitFor waitFor:block delay:0.5 timeout:10 label:_label completion:completion];
+}
+
 - (void)updateComponentStatus:(KBCompletion)completion {
+  self.pid = nil;
+  self.lastExitStatus = nil;
+  self.runningVersion = nil;
+
   if (!_label) {
     completion(nil);
     return;
   }
-
-  NSString *bundleVersion = self.bundleVersion;
-  NSString *runningVersion = [self version];
-  self.pid = nil;
-  self.lastExitStatus = nil;
-  GHODictionary *info = [GHODictionary dictionary];
   [KBLaunchCtl status:_label completion:^(KBServiceStatus *serviceStatus) {
     if (!serviceStatus) {
       NSString *plistDest = [self plistDestination];
-      KBInstallStatus installStatus = runningVersion && [NSFileManager.defaultManager fileExistsAtPath:plistDest] ? KBInstallStatusInstalled : KBInstallStatusNotInstalled;
+      KBInstallStatus installStatus = [NSFileManager.defaultManager fileExistsAtPath:plistDest] ? KBInstallStatusInstalled : KBInstallStatusNotInstalled;
 
-      self.componentStatus = [KBComponentStatus componentStatusWithInstallStatus:installStatus runtimeStatus:KBRuntimeStatusNotRunning info:info];
+      self.componentStatus = [KBComponentStatus componentStatusWithInstallStatus:installStatus runtimeStatus:KBRuntimeStatusNotRunning info:nil];
       completion(nil);
       return;
     }
@@ -89,24 +102,23 @@
       self.componentStatus = [KBComponentStatus componentStatusWithError:serviceStatus.error];
       completion(serviceStatus.error);
     } else {
-      if (runningVersion) info[@"Version"] = runningVersion;
-      if (serviceStatus.isRunning) {
-        self.pid = serviceStatus.pid;
-        info[@"pid"] = serviceStatus.pid;
-        if (![runningVersion isEqualToString:bundleVersion]) {
-          if (bundleVersion) info[@"New Version"] = bundleVersion;
-          self.componentStatus = [KBComponentStatus componentStatusWithInstallStatus:KBInstallStatusNeedsUpgrade runtimeStatus:KBRuntimeStatusRunning info:info];
-          completion(nil);
+      [self waitForVersionFile:^(NSString *runningVersion) {
+        if (serviceStatus.isRunning) {
+          self.runningVersion = runningVersion;
+          self.pid = serviceStatus.pid;
+          if (![runningVersion isEqualToString:self.bundleVersion]) {
+            self.componentStatus = [KBComponentStatus componentStatusWithInstallStatus:KBInstallStatusNeedsUpgrade runtimeStatus:KBRuntimeStatusRunning info:nil];
+            completion(nil);
+          } else {
+            self.componentStatus = [KBComponentStatus componentStatusWithInstallStatus:KBInstallStatusInstalled runtimeStatus:KBRuntimeStatusRunning info:nil];
+            completion(nil);
+          }
         } else {
-          self.componentStatus = [KBComponentStatus componentStatusWithInstallStatus:KBInstallStatusInstalled runtimeStatus:KBRuntimeStatusRunning info:info];
+          self.lastExitStatus = serviceStatus.lastExitStatus;
+          self.componentStatus = [KBComponentStatus componentStatusWithInstallStatus:KBInstallStatusInstalled runtimeStatus:KBRuntimeStatusNotRunning info:nil];
           completion(nil);
         }
-      } else {
-        self.lastExitStatus = serviceStatus.lastExitStatus;
-        info[@"exit"] = serviceStatus.lastExitStatus;
-        self.componentStatus = [KBComponentStatus componentStatusWithInstallStatus:KBInstallStatusInstalled runtimeStatus:KBRuntimeStatusNotRunning info:info];
-        completion(nil);
-      }
+      }];
     }
   }];
 }
@@ -172,7 +184,7 @@
 - (void)uninstall:(KBCompletion)completion {
   NSString *plistDest = [self plistDestination];
   if (!plistDest || ![NSFileManager.defaultManager fileExistsAtPath:plistDest isDirectory:nil]) {
-    completion(KBMakeError(-1, @"Nothing to uninstall"));
+    completion(nil);
     return;
   }
   NSString *label = _label;

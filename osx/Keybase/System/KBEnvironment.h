@@ -8,49 +8,25 @@
 
 #import <Foundation/Foundation.h>
 
-typedef NS_ENUM (NSInteger, KBEnv) {
-  KBEnvLocalhost,
-  KBEnvKeybaseIO,
-};
+#import "KBEnvConfig.h"
+#import "KBService.h"
+#import "KBInstallAction.h"
 
 @interface KBEnvironment : NSObject
 
-@property (readonly) NSString *homeDir;
-@property (readonly) NSString *host;
-@property (readonly, getter=isDebugEnabled) BOOL debugEnabled;
-@property (readonly) NSString *mountDir;
-@property (nonatomic, readonly) NSString *sockFile;
-@property (readonly) NSString *identifier;
-@property (readonly, getter=isLaunchdEnabled) BOOL launchdEnabled;
-@property (readonly) NSString *launchdLabelService;
-@property (readonly) NSString *launchdLabelKBFS;
-@property (readonly) NSString *title;
-@property (readonly) NSString *info;
-@property (readonly) NSImage *image;
-@property (readonly, getter=isInstallEnabled) BOOL installEnabled; // Whether to attempt install
+@property (readonly) KBEnvConfig *config;
+@property (readonly) KBService *service;
+@property (readonly) NSArray */*of id<KBComponent>*/components;
+@property (readonly) NSArray */*of id<KBInstallable>*/installables;
+@property (readonly) NSArray */*of KBInstallAction*/installActions;
 
-- (instancetype)initWithEnv:(KBEnv)env;
 
-- (instancetype)initWithHomeDir:(NSString *)homeDir sockFile:(NSString *)sockFile mountDir:(NSString *)mountDir;
+- (instancetype)initWithConfig:(KBEnvConfig *)config;
 
-+ (instancetype)env:(KBEnv)env;
+- (void)installStatus:(void (^)(BOOL needsInstall))completion;
 
-- (NSDictionary *)launchdPlistDictionaryForService;
-- (NSDictionary *)launchdPlistDictionaryForKBFS;
+- (NSArray *)installActionsNeeded;
 
-- (NSArray *)programArgumentsForService:(BOOL)useBundle escape:(BOOL)escape tilde:(BOOL)tilde;
-- (NSArray *)programArgumentsForKBFS:(BOOL)useBundle escape:(BOOL)escape tilde:(BOOL)tilde;
-
-- (NSString *)commandLineForService:(BOOL)useBundle escape:(BOOL)escape tilde:(BOOL)tilde;
-- (NSString *)commandLineForKBFS:(BOOL)useBundle escape:(BOOL)escape tilde:(BOOL)tilde;
-
-- (NSString *)cachePath:(NSString *)filename;
-
-- (NSBundle *)bundle;
-
-- (NSString *)sockFile:(BOOL)useDefault;
-- (NSString *)configFile:(BOOL)useDefault;
-
-- (BOOL)validate:(NSError **)error;
+- (void)uninstallServices:(KBCompletion)completion;
 
 @end

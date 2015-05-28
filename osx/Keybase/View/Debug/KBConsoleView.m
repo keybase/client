@@ -12,8 +12,6 @@
 #import "KBLaunchService.h"
 #import "KBAppKit.h"
 
-#import "KBMockViews.h"
-#import "KBTestClientView.h"
 #import "KBFSStatusView.h"
 #import "KBAppView.h"
 #import "KBLaunchCtl.h"

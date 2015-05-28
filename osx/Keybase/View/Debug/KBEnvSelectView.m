@@ -15,6 +15,7 @@
 
 @interface KBEnvSelectView ()
 @property KBSplitView *splitView;
+@property KBListView *listView;
 @property KBCustomEnvView *customView;
 @end
 
@@ -34,60 +35,80 @@
   _splitView.rightInsets = UIEdgeInsetsMake(0, 20, 0, 0);
   [self addSubview:_splitView];
 
-  KBListView *listView = [KBListView listViewWithPrototypeClass:KBImageTextCell.class rowHeight:0];
-  listView.scrollView.borderType = NSBezelBorder;
-  listView.cellSetBlock = ^(KBImageTextView *label, KBEnvironment *env, NSIndexPath *indexPath, NSTableColumn *tableColumn, KBListView *listView, BOOL dequeued) {
-    [label setTitle:env.title info:env.info image:env.image];
-  };
-  listView.onSelect = ^(KBTableView *tableView, NSIndexPath *indexPath, KBEnvironment *environment) {
-    [self select:environment];
-  };
-  [_splitView setLeftView:listView];
-
   GHWeakSelf gself = self;
+  _listView = [KBListView listViewWithPrototypeClass:KBImageTextCell.class rowHeight:0];
+  _listView.scrollView.borderType = NSBezelBorder;
+  _listView.cellSetBlock = ^(KBImageTextView *label, KBEnvironment *env, NSIndexPath *indexPath, NSTableColumn *tableColumn, KBListView *listView, BOOL dequeued) {
+    [label setTitle:env.config.title info:env.config.info image:env.config.image];
+  };
+  _listView.onSelect = ^(KBTableView *tableView, NSIndexPath *indexPath, KBEnvironment *environment) {
+    [gself select:environment];
+  };
+  [_splitView setLeftView:_listView];
+
   YOHBox *buttons = [YOHBox box:@{@"horizontalAlignment": @"center", @"spacing": @(10)}];
   [self addSubview:buttons];
   KBButton *closeButton = [KBButton buttonWithText:@"Quit" style:KBButtonStyleDefault];
   closeButton.targetBlock = ^{ [NSApp terminate:0]; };
   [buttons addSubview:closeButton];
   KBButton *nextButton = [KBButton buttonWithText:@"Next" style:KBButtonStylePrimary];
-  nextButton.targetBlock = ^{
-    KBEnvironment *env = listView.selectedObject;
-    if ([env.identifier isEqualToString:@"custom"]) {
-      KBEnvironment *environment = [gself.customView environment];
-      [gself.customView saveToDefaults];
-      NSError *error = nil;
-      if (![environment validate:&error]) {
-        [KBActivity setError:error sender:self];
-        return;
-      }
-      self.onSelect(environment);
-    } else {
-      self.onSelect(env);
-    }
-  };
+  nextButton.targetBlock = ^{ [gself next]; };
   [buttons addSubview:nextButton];
 
   self.viewLayout = [YOBorderLayout layoutWithCenter:_splitView top:@[header] bottom:@[buttons] insets:UIEdgeInsetsMake(20, 40, 20, 40) spacing:20];
 
   _customView = [[KBCustomEnvView alloc] init];
-  KBEnvironment *customEnvironment = [_customView loadFromDefaults];
+  KBEnvConfig *custom = [_customView loadFromDefaults];
 
-  [listView setObjects:@[[KBEnvironment env:KBEnvKeybaseIO], [KBEnvironment env:KBEnvLocalhost], customEnvironment] animated:NO];
-  [listView setSelectedRow:2];
+  [_listView setObjects:@[
+                          [[KBEnvironment alloc] initWithConfig:[KBEnvConfig env:KBEnvKeybaseIO]],
+                          [[KBEnvironment alloc] initWithConfig:[KBEnvConfig env:KBEnvLocalhost]],
+                          [[KBEnvironment alloc] initWithConfig:[KBEnvConfig env:KBEnvLocalhost2]],
+                          [[KBEnvironment alloc] initWithConfig:custom],
+                         ] animated:NO];
+  [_listView setSelectedRow:[_listView.dataSource countForSection:0] - 1];
 }
 
 - (void)select:(KBEnvironment *)environment {
   [_splitView setRightView:[self viewForEnvironment:environment]];
 }
 
+- (void)next {
+  KBEnvironment *env = _listView.selectedObject;
+  if ([env.config.identifier isEqualToString:@"custom"]) {
+    KBEnvConfig *config = [_customView config];
+    [_customView saveToDefaults];
+    NSError *error = nil;
+    if (![config validate:&error]) {
+      [KBActivity setError:error sender:self];
+      return;
+    }
+    self.onSelect([[KBEnvironment alloc] initWithConfig:config]);
+  } else {
+    self.onSelect(env);
+  }
+}
+
+- (void)clearEnv {
+  KBEnvironment *env = _listView.selectedObject;
+  [KBAlert yesNoWithTitle:@"Clear Environment" description:NSStringWithFormat(@"Are you sure you want to clear %@?", env.config.title) yes:@"Clear" view:self completion:^(BOOL yes) {
+    [env uninstallServices:^(NSError *error) {
+      if (error) DDLogError(@"Error: %@", error);
+    }];
+  }];
+}
+
 - (NSView *)viewForEnvironment:(KBEnvironment *)environment {
-  if ([environment.identifier isEqual:@"custom"]) {
-    [_customView setEnvironment:environment];
+  if ([environment.config.identifier isEqual:@"custom"]) {
+    [_customView setConfig:environment.config];
     return _customView;
   }
 
-  YOVBox *view = [YOVBox box:@{@"spacing": @(10), @"insets": @"10,0,10,0"}];
+  YOVBox *view = [YOVBox box:@{@"spacing": @(10), @"insets": @(10)}];
+  [view kb_setBackgroundColor:KBAppearance.currentAppearance.secondaryBackgroundColor];
+
+  YOVBox *labels = [YOVBox box:@{@"spacing": @(10), @"insets": @"10,0,10,0"}];
+  [view addSubview:labels];
 
   typedef NSView * (^KBCreateEnvInfoLabel)(NSString *key, NSString *value);
 
@@ -97,23 +118,28 @@
     return view;
   };
 
-  [view addSubview:createView(@"Id", environment.identifier)];
-  [view addSubview:createView(@"Home", KBPath(environment.homeDir, YES))];
-  if (environment.host) [view addSubview:createView(@"Host", environment.host)];
-  if (environment.mountDir) [view addSubview:createView(@"Mount", KBPath(environment.mountDir, YES))];
-  if (environment.isLaunchdEnabled) {
-    [view addSubview:createView(@"Service ID", environment.launchdLabelService)];
-    [view addSubview:createView(@"KBFS ID", environment.launchdLabelKBFS)];
+  KBEnvConfig *config = environment.config;
+  [labels addSubview:createView(@"Id", config.identifier)];
+  [labels addSubview:createView(@"Home", KBPath(config.homeDir, YES))];
+  if (config.host) [labels addSubview:createView(@"Host", config.host)];
+  if (config.mountDir) [labels addSubview:createView(@"Mount", KBPath(config.mountDir, YES))];
+  if (config.isLaunchdEnabled) {
+    [labels addSubview:createView(@"Service ID", config.launchdLabelService)];
+    [labels addSubview:createView(@"KBFS ID", config.launchdLabelKBFS)];
   }
 
-  if (!environment.isInstallEnabled) {
-    [view addSubview:createView(@"Other", @"Installer Disabled")];
+  if (!config.isInstallEnabled) {
+    [labels addSubview:createView(@"Other", @"Installer Disabled")];
   }
 
   //[view addSubview:createView(@"Service", [environment commandLineForService:YES])];
   //[view addSubview:createView(@"KBFS", [environment commandLineForKBFS:YES])];
 
-  [view kb_setBackgroundColor:KBAppearance.currentAppearance.secondaryBackgroundColor];
+  GHWeakSelf gself = self;
+  YOHBox *buttons = [YOHBox box];
+  [view addSubview:buttons];
+  [buttons addSubview:[KBButton buttonWithText:@"Clear" style:KBButtonStyleToolbar targetBlock:^{ [gself clearEnv]; }]];
+
   return view;
 }
 

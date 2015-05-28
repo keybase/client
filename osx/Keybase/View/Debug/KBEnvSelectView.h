@@ -11,6 +11,7 @@
 #import "KBAppKit.h"
 #import "KBRPC.h"
 #import "KBContentView.h"
+#import "KBEnvironment.h"
 
 typedef void (^KBEnvSelect)(KBEnvironment *environment);
 

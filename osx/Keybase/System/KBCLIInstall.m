@@ -57,7 +57,7 @@
   }
 
   NSString *linkSource = @"/usr/local/bin";
-  NSString *linkDestination = NSStringWithFormat(@"%@/bin/keybase", self.environment.bundle.sharedSupportPath);
+  NSString *linkDestination = NSStringWithFormat(@"%@/bin/keybase", self.config.bundle.sharedSupportPath);
 
   // This will follow the symlink (to check if symlink exists you'd have to look for attributesOfItemAtPath:)
   if ([NSFileManager.defaultManager fileExistsAtPath:linkSource isDirectory:nil]) {
@@ -75,7 +75,7 @@
 }
 
 - (void)install:(KBCompletion)completion {
-  NSString *linkDestination = NSStringWithFormat(@"%@/bin/keybase", self.environment.bundle.sharedSupportPath);
+  NSString *linkDestination = NSStringWithFormat(@"%@/bin/keybase", self.config.bundle.sharedSupportPath);
 
   MPXPCClient *helper = [[MPXPCClient alloc] initWithServiceName:@"keybase.Helper" privileged:YES];
   [helper sendRequest:@"cli_install" params:@[@{@"path": linkDestination}] completion:^(NSError *error, id value) {

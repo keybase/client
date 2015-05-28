@@ -14,14 +14,10 @@
 
 @interface KBInstaller : NSObject
 
-@property (readonly) NSArray *installActions;
+@property (readonly) KBEnvironment *environment;
 
-- (instancetype)initWithEnvironment:(KBEnvironment *)environment components:(NSArray *)components;
-
-- (void)installStatus:(void (^)(BOOL needsInstall))completion;
+- (instancetype)initWithEnvironment:(KBEnvironment *)environment;
 
 - (void)install:(dispatch_block_t)completion;
-
-- (NSArray *)installActionsNeeded;
 
 @end
