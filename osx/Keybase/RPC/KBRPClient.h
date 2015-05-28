@@ -10,8 +10,7 @@
 
 #import "KBAppDefines.h"
 #import <MPMessagePack/MPMessagePackClient.h>
-#import "KBInstaller.h"
-#import "KBEnvironment.h"
+#import "KBEnvConfig.h"
 
 @protocol KBRPClient;
 
@@ -21,6 +20,9 @@ typedef NS_ENUM (NSInteger, KBRPClientStatus) {
   KBRPClientStatusOpen
 };
 
+typedef void (^KBRPClientOnPassphrase)(NSString *passphrase);
+typedef void (^KBRPClientOnSecret)(NSString *secret);
+
 @class KBRPClient;
 
 @protocol KBRPClientDelegate
@@ -28,6 +30,11 @@ typedef NS_ENUM (NSInteger, KBRPClientStatus) {
 - (void)RPClientDidConnect:(KBRPClient *)RPClient;
 - (void)RPClientDidDisconnect:(KBRPClient *)RPClient;
 - (void)RPClient:(KBRPClient *)RPClient didErrorOnConnect:(NSError *)error connectAttempt:(NSInteger)connectAttempt;
+
+- (void)RPClient:(KBRPClient *)RPClient didLog:(NSString *)message;
+
+- (void)RPClient:(KBRPClient *)RPClient didRequestSecretForPrompt:(NSString *)prompt description:(NSString *)description secret:(KBRPClientOnSecret)secret;
+- (void)RPClient:(KBRPClient *)RPClient didRequestKeybasePassphraseForUsername:(NSString *)username passphrase:(KBRPClientOnPassphrase)passphrase;
 @end
 
 @interface KBRPClient : NSObject <MPMessagePackClientDelegate>
@@ -35,10 +42,10 @@ typedef NS_ENUM (NSInteger, KBRPClientStatus) {
 @property (weak) id<KBRPClientDelegate> delegate;
 @property (getter=isAutoRetryDisabled) BOOL autoRetryDisabled;
 
-@property (readonly) KBEnvironment *environment;
+@property (readonly) KBEnvConfig *config;
 @property (readonly) KBRPClientStatus status;
 
-- (instancetype)initWithEnvironment:(KBEnvironment *)environment;
+- (instancetype)initWithConfig:(KBEnvConfig *)config;
 
 - (void)sendRequestWithMethod:(NSString *)method params:(id)params sessionId:(NSInteger)sessionId completion:(MPRequestCompletion)completion;
 - (void)registerMethod:(NSString *)method sessionId:(NSInteger)sessionId requestHandler:(MPRequestHandler)requestHandler;

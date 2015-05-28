@@ -32,9 +32,9 @@
 
 @implementation KBRPClient
 
-- (instancetype)initWithEnvironment:(KBEnvironment *)environment {
+- (instancetype)initWithConfig:(KBEnvConfig *)config {
   if ((self = [super init])) {
-    _environment = environment;
+    _config = config;
   }
   return self;
 }
@@ -62,11 +62,34 @@
   _client.requestHandler = ^(NSNumber *messageId, NSString *method, NSArray *params, MPRequestCompletion completion) {
     //DDLogDebug(@"Received request: %@(%@)", method, [params join:@", "]);
 
-    id sessionId = [[params lastObject] objectForKey:@"sessionID"];
+//    if ([NSUserDefaults.standardUserDefaults boolForKey:@"Preferences.Advanced.Record"]) {
+//      [gself.recorder recordRequest:method params:params sessionId:[sessionId integerValue] callback:YES];
+//    }
 
-    if ([NSUserDefaults.standardUserDefaults boolForKey:@"Preferences.Advanced.Record"]) {
-      [gself.recorder recordRequest:method params:params sessionId:[sessionId integerValue] callback:YES];
+    if ([method isEqualToString:@"keybase.1.logUi.log"]) {
+      KBRLogRequestParams *requestParams = [[KBRLogRequestParams alloc] initWithParams:params];
+      [gself.delegate RPClient:gself didLog:requestParams.text.data];
+      return;
+    } else if ([method isEqualToString:@"keybase.1.secretUi.getSecret"]) {
+      DDLogDebug(@"Password prompt: %@", params);
+      KBRGetSecretRequestParams *requestParams = [[KBRGetSecretRequestParams alloc] initWithParams:params];
+      [gself.delegate RPClient:gself didRequestSecretForPrompt:requestParams.pinentry.prompt description:requestParams.pinentry.description secret:^(NSString *secret) {
+        KBRSecretEntryRes *entry = [[KBRSecretEntryRes alloc] init];
+        entry.text = secret;
+        entry.canceled = !secret;
+        completion(nil, entry);
+      }];
+      return;
+    } else if ([method isEqualToString:@"keybase.1.secretUi.getKeybasePassphrase"]) {
+      DDLogDebug(@"Password prompt: %@", params);
+      KBRGetKeybasePassphraseRequestParams *requestParams = [[KBRGetKeybasePassphraseRequestParams alloc] initWithParams:params];
+      [gself.delegate RPClient:gself didRequestKeybasePassphraseForUsername:requestParams.username passphrase:^(NSString *passphrase) {
+        completion(nil, passphrase);
+      }];
+      return;
     }
+
+    id sessionId = [[params lastObject] objectForKey:@"sessionID"];
     MPRequestHandler requestHandler;
     if (sessionId) {
       KBRPCRegistration *registration = gself.registrations[sessionId];
@@ -86,10 +109,10 @@
 
   _client.coder = [[KBRPCCoder alloc] init];
 
-  DDLogDebug(@"Connecting: %@", [self.environment sockFile:YES]);
+  DDLogDebug(@"Connecting: %@", [self.config sockFile:YES]);
   _connectAttempt++;
   [self.delegate RPClientWillConnect:self];
-  [_client openWithSocket:[self.environment sockFile:YES] completion:^(NSError *error) {
+  [_client openWithSocket:[self.config sockFile:YES] completion:^(NSError *error) {
     if (error) {
       gself.status = KBRPClientStatusClosed;
 
