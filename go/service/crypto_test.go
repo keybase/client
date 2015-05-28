@@ -44,6 +44,30 @@ func TestCryptoSignED25519(t *testing.T) {
 	}
 }
 
+// Test that CryptoHandler.SignED25519() returns an error if the wrong
+// type of key is returned as the signing key.
+func TestCryptoSignED25519WrongSigningKey(t *testing.T) {
+	h := NewCryptoHandler(nil)
+
+	kp, err := libkb.GenerateNaclDHKeyPair()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	h.getSecretKeyFn = func(_ libkb.SecretKeyType, _ int, _ string) (libkb.GenericKey, error) {
+		return kp, nil
+	}
+
+	_, err = h.SignED25519(keybase1.SignED25519Arg{
+		Msg: []byte("test message"),
+	})
+
+	expectedErr := libkb.KeyCannotSignError{}
+	if err != expectedErr {
+		t.Errorf("expected %v, got %v", expectedErr, err)
+	}
+}
+
 // Test that CryptoHandler.SignED25519() propagates any error
 // encountered when getting the device signing key.
 func TestCryptoSignED25519NoSigningKey(t *testing.T) {
@@ -57,6 +81,7 @@ func TestCryptoSignED25519NoSigningKey(t *testing.T) {
 	_, err := h.SignED25519(keybase1.SignED25519Arg{
 		Msg: []byte("test message"),
 	})
+
 	if err != expectedErr {
 		t.Errorf("expected %v, got %v", expectedErr, err)
 	}
