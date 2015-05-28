@@ -69,9 +69,6 @@ type NaclDHKeyPair struct {
 	Private *NaclDHKeyPrivate
 }
 
-var _ Boxer = NaclDHKeyPair{}
-var _ Unboxer = NaclDHKeyPair{}
-
 func importNaclHex(s string, typ byte, bodyLen int) (ret []byte, err error) {
 	var kid KID
 	if kid, err = ImportKID(s); err != nil {
@@ -368,14 +365,6 @@ func (k NaclDHKeyPair) VerifyStringAndExtract(sig string) (msg []byte, id keybas
 func (k NaclDHKeyPair) VerifyString(sig string, msg []byte) (id keybase1.SigID, err error) {
 	err = KeyCannotVerifyError{}
 	return
-}
-
-func (k NaclDHKeyPair) Box(data []byte, nonce [24]byte, peersPublicKey [32]byte) []byte {
-	return box.Seal(nil, data, &nonce, &peersPublicKey, (*[32]byte)(k.Private))
-}
-
-func (k NaclDHKeyPair) Unbox(boxedData []byte, nonce [24]byte, peersPublicKey [32]byte) ([]byte, bool) {
-	return box.Open(nil, boxedData, &nonce, &peersPublicKey, (*[32]byte)(k.Private))
 }
 
 func (s *NaclSigInfo) ToPacket() (ret *KeybasePacket, err error) {
