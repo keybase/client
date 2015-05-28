@@ -15,7 +15,7 @@ type Base64Finder struct {
 
 func NewBase64Finder(i string) *Base64Finder {
 	rxx := regexp.MustCompile(`^\s*(([a-zA-Z0-9/+_-]+)(={0,3}))\s*$`)
-	return &Base64Finder{i, rxx, nil, make([]string, 0, 0)}
+	return &Base64Finder{input: i, rxx: rxx}
 }
 
 func (s *Base64Finder) split() {

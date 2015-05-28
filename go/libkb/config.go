@@ -433,23 +433,31 @@ func (f JsonConfigFile) GetProofCacheShortDur() (time.Duration, bool) {
 func (f JsonConfigFile) GetMerkleKeyFingerprints() []string {
 	if f.jw == nil {
 		return nil
-	} else if v, err := f.jw.AtKey("keys").AtKey("merkle").ToArray(); err != nil || v == nil {
-		return nil
-	} else if l, err := v.Len(); err != nil {
-		return nil
-	} else if l == 0 {
-		return make([]string, 0, 0)
-	} else {
-		ret := make([]string, 0, l)
-		for i := 0; i < l; i++ {
-			if s, err := v.AtIndex(i).GetString(); err != nil {
-				return nil
-			} else {
-				ret = append(ret, s)
-			}
-		}
-		return ret
 	}
+
+	v, err := f.jw.AtKey("keys").AtKey("merkle").ToArray()
+	if err != nil || v == nil {
+		return nil
+	}
+
+	l, err := v.Len()
+	if err != nil {
+		return nil
+	}
+
+	if l == 0 {
+		return nil
+	}
+
+	ret := make([]string, l)
+	for i := 0; i < l; i++ {
+		s, err := v.AtIndex(i).GetString()
+		if err != nil {
+			return nil
+		}
+		ret[i] = s
+	}
+	return ret
 }
 
 func (f JsonConfigFile) GetGpgHome() (ret string) {

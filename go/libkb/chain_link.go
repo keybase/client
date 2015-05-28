@@ -215,7 +215,7 @@ func (c *ChainLink) GetRevocations() []keybase1.SigID {
 }
 
 func (c *ChainLink) GetRevokeKids() []KID {
-	ret := make([]KID, 0, 0)
+	var ret []KID
 	jw := c.payloadJson.AtKey("body").AtKey("revoke")
 	if jw.IsNil() {
 		return nil
@@ -225,14 +225,16 @@ func (c *ChainLink) GetRevokeKids() []KID {
 		ret = append(ret, s)
 	}
 	v := jw.AtKey("kids")
-	var l int
-	l, err = v.Len()
-	if err == nil && l > 0 {
-		for i := 0; i < l; i++ {
-			if s, err = GetKID(v.AtIndex(i)); err == nil {
-				ret = append(ret, s)
-			}
+	l, err := v.Len()
+	if err != nil {
+		return ret
+	}
+	for i := 0; i < l; i++ {
+		s, err = GetKID(v.AtIndex(i))
+		if err != nil {
+			continue
 		}
+		ret = append(ret, s)
 	}
 	return ret
 }

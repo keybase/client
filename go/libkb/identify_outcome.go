@@ -88,7 +88,7 @@ func (i IdentifyOutcome) GetErrorAndWarnings(strict bool) (err error, warnings W
 		return
 	}
 
-	probs := make([]string, 0, 0)
+	var probs []string
 
 	softErr := func(s string) {
 		if strict {
@@ -131,8 +131,6 @@ func (i IdentifyOutcome) GetErrorLax() (error, Warnings) {
 
 func NewIdentifyOutcome(m bool) *IdentifyOutcome {
 	return &IdentifyOutcome{
-		MeSet:       m,
-		Warnings:    make([]Warning, 0, 0),
-		ProofChecks: make([]*LinkCheckResult, 0, 1),
+		MeSet: m,
 	}
 }

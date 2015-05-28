@@ -982,16 +982,15 @@ func NewTypedChainLink(cl *ChainLink) (ret TypedChainLink, w Warning) {
 
 func NewIdentityTable(eldest FOKID, sc *SigChain, h *SigHints) *IdentityTable {
 	ret := &IdentityTable{
-		sigChain:       sc,
-		revocations:    make(map[keybase1.SigID]bool),
-		links:          make(map[keybase1.SigID]TypedChainLink),
-		remoteProofs:   make(map[string][]RemoteProofChainLink),
-		tracks:         make(map[string][]*TrackChainLink),
-		Order:          make([]TypedChainLink, 0, sc.Len()),
-		sigHints:       h,
-		activeProofs:   make([]RemoteProofChainLink, 0, sc.Len()),
-		cryptocurrency: make([]*CryptocurrencyChainLink, 0, 0),
-		eldest:         eldest,
+		sigChain:     sc,
+		revocations:  make(map[keybase1.SigID]bool),
+		links:        make(map[keybase1.SigID]TypedChainLink),
+		remoteProofs: make(map[string][]RemoteProofChainLink),
+		tracks:       make(map[string][]*TrackChainLink),
+		Order:        make([]TypedChainLink, 0, sc.Len()),
+		sigHints:     h,
+		activeProofs: make([]RemoteProofChainLink, 0, sc.Len()),
+		eldest:       eldest,
 	}
 	ret.Populate()
 	ret.CollectAndDedupeActiveProofs()

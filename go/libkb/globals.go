@@ -52,8 +52,7 @@ type GlobalContext struct {
 
 func NewGlobalContext() *GlobalContext {
 	return &GlobalContext{
-		Log:           NewDefaultLogger(),
-		ShutdownHooks: make([]ShutdownHook, 0, 0),
+		Log: NewDefaultLogger(),
 	}
 }
 
