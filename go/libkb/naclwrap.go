@@ -478,7 +478,7 @@ func GenerateNaclSigningKeyPair() (NaclSigningKeyPair, error) {
 }
 
 func makeNaclDHKeyPair(reader io.Reader) (NaclDHKeyPair, error) {
-	pub, priv, err := box.GenerateKey(rand.Reader)
+	pub, priv, err := box.GenerateKey(reader)
 	if err != nil {
 		return NaclDHKeyPair{}, err
 	}
