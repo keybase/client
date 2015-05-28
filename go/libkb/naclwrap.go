@@ -29,6 +29,9 @@ const NACL_DH_KEYSIZE = 32
 // TODO: Ideally, ed25519 would expose how many random bytes it needs.
 const NaclSigningKeySecretSize = 32
 
+// TODO: Ideally, box would expose how many random bytes it needs.
+const NaclDHKeySecretSize = 32
+
 type NaclSigningKeyPublic [ed25519.PublicKeySize]byte
 type NaclSigningKeyPrivate [ed25519.PrivateKeySize]byte
 
@@ -478,7 +481,7 @@ func GenerateNaclSigningKeyPair() (NaclSigningKeyPair, error) {
 	return makeNaclSigningKeyPair(rand.Reader)
 }
 
-func GenerateNaclDHKeyPair() (NaclDHKeyPair, error) {
+func makeNaclDHKeyPair(reader io.Reader) (NaclDHKeyPair, error) {
 	pub, priv, err := box.GenerateKey(rand.Reader)
 	if err != nil {
 		return NaclDHKeyPair{}, err
@@ -487,6 +490,27 @@ func GenerateNaclDHKeyPair() (NaclDHKeyPair, error) {
 		Public:  *pub,
 		Private: (*NaclDHKeyPrivate)(priv),
 	}, nil
+}
+
+// Make a DH key pair given a secret. Of course, the security of
+// depends entirely on the randomness of the bytes in the secret.
+func MakeNaclDHKeyPairFromSecret(secret [NaclDHKeySecretSize]byte) (NaclDHKeyPair, error) {
+	r := bytes.NewReader(secret[:])
+
+	kp, err := makeNaclDHKeyPair(r)
+	if err != nil {
+		return NaclDHKeyPair{}, err
+	}
+
+	if r.Len() > 0 {
+		return NaclDHKeyPair{}, fmt.Errorf("Did not use %d secret byte(s)", r.Len())
+	}
+
+	return kp, err
+}
+
+func GenerateNaclDHKeyPair() (NaclDHKeyPair, error) {
+	return makeNaclDHKeyPair(rand.Reader)
 }
 
 func KbOpenSig(armored string) ([]byte, error) {
