@@ -28,13 +28,11 @@ type NaclSigningKeyPublic [ed25519.PublicKeySize]byte
 type NaclSigningKeyPrivate [ed25519.PrivateKeySize]byte
 
 func (k NaclSigningKeyPrivate) Sign(msg []byte) *NaclSignature {
-	privateKey := [ed25519.PrivateKeySize]byte(k)
-	return (*NaclSignature)(ed25519.Sign(&privateKey, msg))
+	return (*NaclSignature)(ed25519.Sign((*[ed25519.PrivateKeySize]byte)(&k), msg))
 }
 
 func (k NaclSigningKeyPublic) Verify(msg []byte, sig *NaclSignature) bool {
-	publicKey := [ed25519.PublicKeySize]byte(k)
-	return ed25519.Verify(&publicKey, msg, (*[ed25519.SignatureSize]byte)(sig))
+	return ed25519.Verify((*[ed25519.PublicKeySize]byte)(&k), msg, (*[ed25519.SignatureSize]byte)(sig))
 }
 
 func (k KID) ToNaclSigningKeyPublic() *NaclSigningKeyPublic {
