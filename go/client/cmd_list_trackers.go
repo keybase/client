@@ -19,6 +19,7 @@ import (
 type CmdListTrackers struct {
 	uid      keybase1.UID
 	username string
+	verbose  bool
 }
 
 // NewCmdListTrackers creates a new cli.Command.
@@ -31,6 +32,10 @@ func NewCmdListTrackers(cl *libcmdline.CommandLine) cli.Command {
 			cli.BoolFlag{
 				Name:  "i, uid",
 				Usage: "Load user by UID",
+			},
+			cli.BoolFlag{
+				Name:  "v, verbose",
+				Usage: "a full dump, with more gory detail",
 			},
 		},
 		Action: func(c *cli.Context) {
@@ -125,8 +130,7 @@ func (c *CmdListTrackers) RunClient() error {
 }
 
 func (c *CmdListTrackers) headout(count int) *tabwriter.Writer {
-	if count == 0 {
-		fmt.Printf("no trackers\n")
+	if !c.verbose {
 		return nil
 	}
 
@@ -149,15 +153,26 @@ func (c *CmdListTrackers) output(trs []keybase1.Tracker, summarizer batchfn) (er
 		return err
 	}
 
-	w := c.headout(len(sums))
-	if w == nil {
+	if len(sums) == 0 {
+		fmt.Printf("no trackers\n")
 		return nil
 	}
-	for _, v := range sums {
-		p := c.proofSummary(v.Proofs)
-		fmt.Fprintf(w, "%s\t%s\t%s\n", v.Username, v.FullName, p)
+
+	if c.verbose {
+		w := c.headout(len(sums))
+		if w == nil {
+			return nil
+		}
+		for _, v := range sums {
+			p := c.proofSummary(v.Proofs)
+			fmt.Fprintf(w, "%s\t%s\t%s\n", v.Username, v.FullName, p)
+		}
+		w.Flush()
+	} else {
+		for _, v := range sums {
+			fmt.Println(v.Username)
+		}
 	}
-	w.Flush()
 
 	return nil
 }
@@ -188,6 +203,8 @@ func (c *CmdListTrackers) ParseArgv(ctx *cli.Context) error {
 			c.username = ctx.Args()[0]
 		}
 	}
+
+	c.verbose = ctx.Bool("verbose")
 
 	return nil
 }
