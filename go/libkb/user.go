@@ -500,7 +500,7 @@ func (u *User) SigningKeyPub() (GenericKey, error) {
 	// Get our key that we're going to sign with.
 	arg := SecretKeyArg{
 		Me:      u,
-		KeyType: AnySecretKeyType,
+		KeyType: DeviceSigningKeyType,
 	}
 	lockedKey, _, err := G.Keyrings.GetSecretKeyLocked(nil, arg)
 	if err != nil {

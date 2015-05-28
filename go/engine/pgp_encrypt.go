@@ -86,7 +86,7 @@ func (e *PGPEncrypt) Run(ctx *Context) error {
 
 		ska := libkb.SecretKeyArg{
 			Me:       me,
-			KeyType:  libkb.PGPType,
+			KeyType:  libkb.PGPKeyType,
 			KeyQuery: e.arg.KeyQuery,
 		}
 		key, _, err := e.G().Keyrings.GetSecretKeyWithPrompt(ctx.LoginContext, ska, ctx.SecretUI, "command-line signature")

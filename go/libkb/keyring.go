@@ -143,57 +143,43 @@ func (k KeyringFile) Save() error {
 type SecretKeyType int
 
 const (
-	// The current (Nacl) device key.
-	DeviceKeyType SecretKeyType = 1 << iota
+	// The current device signing key.
+	DeviceSigningKeyType SecretKeyType = 1 << iota
 	// A PGP key (including the synced PGP key, if there is one).
-	PGPType
-	// A Nacl key (that is not the current device key).
-	NaclType
-	AnySecretKeyType = DeviceKeyType | PGPType | NaclType
+	PGPKeyType
 )
 
 func (t SecretKeyType) String() string {
 	if t == 0 {
 		return "<NoSecretKeyTypes>"
 	}
-	if t == AnySecretKeyType {
-		return "<AnySecretKeyType>"
-	}
 	var types []string
 
-	if (t & DeviceKeyType) != 0 {
-		types = append(types, "DeviceKeyType")
+	if (t & DeviceSigningKeyType) != 0 {
+		types = append(types, "DeviceSigningKeyType")
 	}
 
-	if (t & PGPType) != 0 {
-		types = append(types, "PGPType")
-	}
-
-	if (t & NaclType) != 0 {
-		types = append(types, "NaclType")
+	if (t & PGPKeyType) != 0 {
+		types = append(types, "PGPKeyType")
 	}
 
 	return strings.Join(types, "|")
 }
 
-func (t SecretKeyType) useDeviceKey() bool {
-	return (t & DeviceKeyType) != 0
+func (t SecretKeyType) useDeviceSigningKey() bool {
+	return (t & DeviceSigningKeyType) != 0
 }
 
 func (t SecretKeyType) searchForKey() bool {
-	return (t & ^DeviceKeyType) != 0
+	return (t &^ DeviceSigningKeyType) != 0
 }
 
 func (t SecretKeyType) useSyncedPGPKey() bool {
-	return (t & PGPType) != 0
+	return (t & PGPKeyType) != 0
 }
 
-func (t SecretKeyType) nonDeviceKeyMatches(key GenericKey) bool {
-	if IsPGP(key) && (t&PGPType) != 0 {
-		return true
-	}
-
-	if !IsPGP(key) && (t&NaclType) != 0 {
+func (t SecretKeyType) nonDeviceSigningKeyMatches(key GenericKey) bool {
+	if IsPGP(key) && (t&PGPKeyType) != 0 {
 		return true
 	}
 
@@ -297,7 +283,7 @@ func (k *Keyrings) GetSecretKeyWithStoredSecret(lctx LoginContext, me *User, sec
 	}()
 	ska := SecretKeyArg{
 		Me:      me,
-		KeyType: AnySecretKeyType,
+		KeyType: DeviceSigningKeyType,
 	}
 	var skb *SKB
 	skb, _, err = k.GetSecretKeyLocked(lctx, ska)
@@ -315,7 +301,7 @@ func (k *Keyrings) GetSecretKeyWithPassphrase(lctx LoginContext, me *User, passp
 	}()
 	ska := SecretKeyArg{
 		Me:      me,
-		KeyType: AnySecretKeyType,
+		KeyType: DeviceSigningKeyType,
 	}
 	var skb *SKB
 	skb, _, err = k.GetSecretKeyLocked(lctx, ska)

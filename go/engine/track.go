@@ -85,7 +85,7 @@ func (e *TrackEngine) Run(ctx *Context) error {
 	var err error
 	ska := libkb.SecretKeyArg{
 		Me:      e.arg.Me,
-		KeyType: libkb.AnySecretKeyType,
+		KeyType: libkb.DeviceSigningKeyType,
 	}
 	e.lockedKey, e.lockedWhich, err = e.G().Keyrings.GetSecretKeyLocked(ctx.LoginContext, ska)
 	if err != nil {
