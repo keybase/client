@@ -144,7 +144,7 @@ type SecretKeyType int
 
 const (
 	// The current device signing key.
-	DeviceSigningKeyType SecretKeyType = 1 << iota
+	DeviceSigningKeyType SecretKeyType = iota
 	// The current device encryption key.
 	DeviceEncryptionKeyType
 	// A PGP key (including the synced PGP key, if there is one).
@@ -152,24 +152,20 @@ const (
 )
 
 func (t SecretKeyType) String() string {
-	if t == 0 {
-		return "<NoSecretKeyTypes>"
+	switch t {
+	case DeviceSigningKeyType:
+		return "DeviceSigningKeyType"
+	case DeviceEncryptionKeyType:
+		return "DeviceEncryptionKeyType"
+	case PGPKeyType:
+		return "PGPKeyType"
+	default:
+		return "<Unknown secret key type>"
 	}
-	var types []string
-
-	if (t & DeviceSigningKeyType) != 0 {
-		types = append(types, "DeviceSigningKeyType")
-	}
-
-	if (t & PGPKeyType) != 0 {
-		types = append(types, "PGPKeyType")
-	}
-
-	return strings.Join(types, "|")
 }
 
 func (t SecretKeyType) nonDeviceKeyMatches(key GenericKey) bool {
-	if IsPGP(key) && (t&PGPKeyType) != 0 {
+	if IsPGP(key) && (t == PGPKeyType) {
 		return true
 	}
 
@@ -221,7 +217,7 @@ func (k *Keyrings) GetSecretKeyLocked(lctx LoginContext, ska SecretKeyArg) (ret 
 
 	var pub GenericKey
 
-	if (ska.KeyType &^ PGPKeyType) != 0 {
+	if ska.KeyType != PGPKeyType {
 		k.G().Log.Debug("| Skipped Synced PGP key (via options)")
 	} else if ret, err = ska.Me.SyncedSecretKey(lctx); err != nil {
 		k.G().Log.Warning("Error fetching synced PGP secret key: %s", err.Error())
