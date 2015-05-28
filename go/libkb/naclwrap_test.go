@@ -114,15 +114,17 @@ func TestVerifyBytesReject(t *testing.T) {
 
 	// Corrupt signature.
 
-	sig[0] = ^sig[0]
-	if keyPair.Public.Verify(msg, sig) {
+	var corruptSig NaclSignature
+	copy(corruptSig[:], sig[:])
+	corruptSig[0] = ^sig[0]
+	if keyPair.Public.Verify(msg, &corruptSig) {
 		t.Error("Corrupt signature unexpectedly passes")
 	}
 
 	// Corrupt message.
 
-	sig = keyPair.Private.Sign(msg)
-	if keyPair.Public.Verify(append(msg, []byte("corruption")...), sig) {
+	corruptMsg := append(msg, []byte("corruption")...)
+	if keyPair.Public.Verify(corruptMsg, sig) {
 		t.Error("Signature for corrupt message unexpectedly passes")
 	}
 
