@@ -1,9 +1,11 @@
 package libkb
 
 import (
+	"bytes"
 	"crypto/rand"
 	"encoding/base64"
 	"fmt"
+	"io"
 
 	"github.com/agl/ed25519"
 	keybase1 "github.com/keybase/client/protocol/go"
@@ -23,6 +25,9 @@ type NaclSigInfo struct {
 }
 
 const NACL_DH_KEYSIZE = 32
+
+// TODO: Ideally, ed25519 would expose how many random bytes it needs.
+const NaclSigningKeySecretLength = 32
 
 type NaclSigningKeyPublic [ed25519.PublicKeySize]byte
 type NaclSigningKeyPrivate [ed25519.PrivateKeySize]byte
@@ -441,8 +446,8 @@ func (k NaclDHKeyPair) ToLksSKB(lks *LKSec) (*SKB, error) {
 	return ret, nil
 }
 
-func GenerateNaclSigningKeyPair() (NaclSigningKeyPair, error) {
-	pub, priv, err := ed25519.GenerateKey(rand.Reader)
+func makeNaclSigningKeyPair(reader io.Reader) (NaclSigningKeyPair, error) {
+	pub, priv, err := ed25519.GenerateKey(reader)
 	if err != nil {
 		return NaclSigningKeyPair{}, err
 	}
@@ -450,6 +455,27 @@ func GenerateNaclSigningKeyPair() (NaclSigningKeyPair, error) {
 		Public:  *pub,
 		Private: (*NaclSigningKeyPrivate)(priv),
 	}, nil
+}
+
+// Make a signing key pair given a secret. Of course, the security of
+// depends entirely on the randomness of the bytes in the secret.
+func MakeNaclSigningKeyPairFromSecret(secret [NaclSigningKeySecretLength]byte) (NaclSigningKeyPair, error) {
+	r := bytes.NewReader(secret[:])
+
+	kp, err := makeNaclSigningKeyPair(r)
+	if err != nil {
+		return NaclSigningKeyPair{}, err
+	}
+
+	if r.Len() > 0 {
+		return NaclSigningKeyPair{}, fmt.Errorf("Did not use %d secret byte(s)", r.Len())
+	}
+
+	return kp, err
+}
+
+func GenerateNaclSigningKeyPair() (NaclSigningKeyPair, error) {
+	return makeNaclSigningKeyPair(rand.Reader)
 }
 
 func GenerateNaclDHKeyPair() (NaclDHKeyPair, error) {
