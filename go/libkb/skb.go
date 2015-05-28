@@ -531,18 +531,16 @@ func (k *SKBKeyringFile) Save(lui LogUI) error {
 	return nil
 }
 
-func (p KeybasePackets) ToListOfSKBs() (ret []*SKB, err error) {
-	ret = make([]*SKB, len(p))
+func (p KeybasePackets) ToListOfSKBs() ([]*SKB, error) {
+	ret := make([]*SKB, len(p))
 	for i, e := range p {
-		if k, ok := e.Body.(*SKB); ok {
-			ret[i] = k
-		} else {
-			err = fmt.Errorf("Bad SKB sequence; got packet of wrong type")
-			ret = nil
-			break
+		k, ok := e.Body.(*SKB)
+		if !ok {
+			return nil, fmt.Errorf("Bad SKB sequence; got packet of wrong type %T", e.Body)
 		}
+		ret[i] = k
 	}
-	return
+	return ret, nil
 }
 
 func (s *SKB) UnlockWithStoredSecret(secretRetriever SecretRetriever) (ret GenericKey, err error) {

@@ -39,27 +39,26 @@ func NewHackerNewsChecker(p RemoteProofChainLink) (*HackerNewsChecker, ProofErro
 	return &HackerNewsChecker{p}, nil
 }
 
-func (rc *HackerNewsChecker) CheckHint(h SigHint) ProofError {
-	wanted := rc.ApiUrl()
-	if Cicmp(wanted, h.apiUrl) {
+func (h *HackerNewsChecker) CheckHint(hint SigHint) ProofError {
+	wanted := h.ApiUrl()
+	if Cicmp(wanted, hint.apiUrl) {
 		return nil
-	} else {
-		return NewProofError(keybase1.ProofStatus_BAD_API_URL,
-			"Bad hint from server; URL should start with '%s'", wanted)
 	}
+
+	return NewProofError(keybase1.ProofStatus_BAD_API_URL, "Bad hint from server; URL should start with '%s'", wanted)
 }
 
-func (rc *HackerNewsChecker) CheckStatus(h SigHint) ProofError {
+func (h *HackerNewsChecker) CheckStatus(hint SigHint) ProofError {
 	res, err := G.XAPI.GetText(ApiArg{
-		Endpoint:    h.apiUrl,
+		Endpoint:    hint.apiUrl,
 		NeedSession: false,
 	})
 	if err != nil {
-		return XapiError(err, h.apiUrl)
+		return XapiError(err, hint.apiUrl)
 	}
 
 	var sigID keybase1.SigID
-	_, sigID, err = OpenSig(rc.proof.GetArmoredSig())
+	_, sigID, err = OpenSig(h.proof.GetArmoredSig())
 	var ret ProofError
 
 	if err != nil {

@@ -106,21 +106,18 @@ func (p PgpFingerprint) LoadFromLocalDb() (*PgpKeyBundle, error) {
 	return GetOneKey(dbobj)
 }
 
-func (p *PgpKeyBundle) StoreToLocalDb() error {
-	s, err := p.Encode()
+func (k *PgpKeyBundle) StoreToLocalDb() error {
+	s, err := k.Encode()
 	if err != nil {
 		return err
 	}
 	val := jsonw.NewString(s)
-	G.Log.Debug("| Storing Key (fp=%s) to Local DB", p.GetFingerprint())
-	return G.LocalDb.Put(DbKey{
-		Typ: DB_PGP_KEY,
-		Key: p.GetFingerprint().String(),
-	}, []DbKey{}, val)
+	G.Log.Debug("| Storing Key (fp=%s) to Local DB", k.GetFingerprint())
+	return G.LocalDb.Put(DbKey{Typ: DB_PGP_KEY, Key: k.GetFingerprint().String()}, []DbKey{}, val)
 }
 
-func (p1 PgpFingerprint) Eq(p2 PgpFingerprint) bool {
-	return FastByteArrayEq(p1[:], p2[:])
+func (p PgpFingerprint) Eq(p2 PgpFingerprint) bool {
+	return FastByteArrayEq(p[:], p2[:])
 }
 
 func GetPgpFingerprint(w *jsonw.Wrapper) (*PgpFingerprint, error) {
@@ -417,23 +414,23 @@ func (k PgpKeyBundle) KeyInfo() (algorithm, kid, creation string) {
 	return
 }
 
-func (p *PgpKeyBundle) Unlock(reason string, secretUI SecretUI) error {
-	if !p.PrivateKey.Encrypted {
+func (k *PgpKeyBundle) Unlock(reason string, secretUI SecretUI) error {
+	if !k.PrivateKey.Encrypted {
 		return nil
 	}
 
 	unlocker := func(pw string, _ bool) (ret GenericKey, err error) {
 
-		if err = p.PrivateKey.Decrypt([]byte(pw)); err == nil {
+		if err = k.PrivateKey.Decrypt([]byte(pw)); err == nil {
 
 			// Also decrypt all subkeys (with the same password)
-			for _, subkey := range p.Subkeys {
+			for _, subkey := range k.Subkeys {
 				if priv := subkey.PrivateKey; priv == nil {
 				} else if err = priv.Decrypt([]byte(pw)); err != nil {
 					break
 				}
 			}
-			ret = p
+			ret = k
 
 			// XXX this is gross, the openpgp library should return a better
 			// error if the PW was incorrectly specified
@@ -446,27 +443,29 @@ func (p *PgpKeyBundle) Unlock(reason string, secretUI SecretUI) error {
 	_, err := KeyUnlocker{
 		Tries:    5,
 		Reason:   reason,
-		KeyDesc:  p.VerboseDescription(),
+		KeyDesc:  k.VerboseDescription(),
 		Unlocker: unlocker,
 		Ui:       secretUI,
 	}.Run()
 	return err
 }
 
-func (p *PgpKeyBundle) CheckFingerprint(fp *PgpFingerprint) (err error) {
-	if (fp == nil) != (p == nil) {
-		err = UnexpectedKeyError{}
-	} else if p != nil {
-		fp2 := p.GetFingerprint()
-		if !fp2.Eq(*fp) {
-			err = BadFingerprintError{fp2, *fp}
-		}
+func (k *PgpKeyBundle) CheckFingerprint(fp *PgpFingerprint) error {
+	if k == nil {
+		return UnexpectedKeyError{}
 	}
-	return
+	if fp == nil {
+		return UnexpectedKeyError{}
+	}
+	fp2 := k.GetFingerprint()
+	if !fp2.Eq(*fp) {
+		return BadFingerprintError{fp2, *fp}
+	}
+	return nil
 }
 
-func (key *PgpKeyBundle) SignToString(msg []byte) (sig string, id keybase1.SigID, err error) {
-	return SimpleSign(msg, *key)
+func (k *PgpKeyBundle) SignToString(msg []byte) (sig string, id keybase1.SigID, err error) {
+	return SimpleSign(msg, *k)
 }
 
 func (k PgpKeyBundle) VerifyStringAndExtract(sig string) (msg []byte, id keybase1.SigID, err error) {
@@ -494,14 +493,12 @@ func (k PgpKeyBundle) VerifyString(sig string, msg []byte) (id keybase1.SigID, e
 	return
 }
 
-func (key *PgpKeyBundle) SignToBytes(msg []byte) (sig []byte, err error) {
-	err = KeyCannotSignError{}
-	return
+func (k *PgpKeyBundle) SignToBytes(msg []byte) ([]byte, error) {
+	return nil, KeyCannotSignError{}
 }
 
-func (k PgpKeyBundle) VerifyBytes(sig, msg []byte) (err error) {
-	err = KeyCannotVerifyError{}
-	return
+func (k PgpKeyBundle) VerifyBytes(sig, msg []byte) error {
+	return KeyCannotVerifyError{}
 }
 
 func ExportAsFOKID(fp *PgpFingerprint, kid KID) (ret keybase1.FOKID) {
@@ -525,8 +522,8 @@ func IsPgpAlgo(algo AlgoType) bool {
 	return false
 }
 
-func (pgp *PgpKeyBundle) FindEmail(em string) bool {
-	for _, ident := range pgp.Identities {
+func (k *PgpKeyBundle) FindEmail(em string) bool {
+	for _, ident := range k.Identities {
 		if i, e := ParseIdentity(ident.Name); e == nil && i.Email == em {
 			return true
 		}
@@ -534,17 +531,17 @@ func (pgp *PgpKeyBundle) FindEmail(em string) bool {
 	return false
 }
 
-func (pgp *PgpKeyBundle) IdentityNames() []string {
+func (k *PgpKeyBundle) IdentityNames() []string {
 	var names []string
-	for _, ident := range pgp.Identities {
+	for _, ident := range k.Identities {
 		names = append(names, ident.Name)
 	}
 	return names
 }
 
-func (pgp *PgpKeyBundle) CheckIdentity(kbid Identity) (match bool, ctime int64, etime int64) {
+func (k *PgpKeyBundle) CheckIdentity(kbid Identity) (match bool, ctime int64, etime int64) {
 	ctime, etime = -1, -1
-	for _, pgpIdentity := range pgp.Identities {
+	for _, pgpIdentity := range k.Identities {
 		if Cicmp(pgpIdentity.UserId.Email, kbid.Email) {
 			match = true
 			ctime = pgpIdentity.SelfSignature.CreationTime.Unix()
@@ -566,19 +563,19 @@ func (pgp *PgpKeyBundle) CheckIdentity(kbid Identity) (match bool, ctime int64, 
 
 // Fulfill the TrackIdComponent interface
 
-func (fp PgpFingerprint) ToIdString() string {
-	return fp.String()
+func (p PgpFingerprint) ToIdString() string {
+	return p.String()
 }
 
-func (fp PgpFingerprint) ToKeyValuePair() (string, string) {
-	return "fingerprint", fp.ToIdString()
+func (p PgpFingerprint) ToKeyValuePair() (string, string) {
+	return "fingerprint", p.ToIdString()
 }
 
-func (fp PgpFingerprint) GetProofState() keybase1.ProofState {
+func (p PgpFingerprint) GetProofState() keybase1.ProofState {
 	return keybase1.ProofState_OK
 }
 
-func (fp PgpFingerprint) LastWriterWins() bool {
+func (p PgpFingerprint) LastWriterWins() bool {
 	return false
 }
 
