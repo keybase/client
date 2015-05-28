@@ -14,23 +14,27 @@ func NewCryptoHandler(xp *rpc2.Transport) *CryptoHandler {
 	return &CryptoHandler{BaseHandler: NewBaseHandler(xp)}
 }
 
-func (c *CryptoHandler) SignED25519(arg keybase1.SignED25519Arg) (ret keybase1.ED25519SignatureInfo, err error) {
+func (c *CryptoHandler) getDeviceSigningKey(sessionID int, reason string) (libkb.GenericKey, error) {
 	me, err := libkb.LoadMe(libkb.LoadUserArg{})
 	if err != nil {
-		return
+		return nil, err
 	}
 
-	secretUI := c.getSecretUI(arg.SessionID)
-
-	sigKey, _, err := G.Keyrings.GetSecretKeyWithPrompt(nil, libkb.SecretKeyArg{
+	secretUI := c.getSecretUI(sessionID)
+	signingKey, _, err := G.Keyrings.GetSecretKeyWithPrompt(nil, libkb.SecretKeyArg{
 		Me:      me,
 		KeyType: libkb.DeviceSigningKeyType,
-	}, secretUI, arg.Reason)
+	}, secretUI, reason)
+	return signingKey, err
+}
+
+func (c *CryptoHandler) SignED25519(arg keybase1.SignED25519Arg) (ret keybase1.ED25519SignatureInfo, err error) {
+	signingKey, err := c.getDeviceSigningKey(arg.SessionID, arg.Reason)
 	if err != nil {
 		return
 	}
 
-	kp, ok := sigKey.(libkb.NaclSigningKeyPair)
+	kp, ok := signingKey.(libkb.NaclSigningKeyPair)
 	if !ok || kp.Private == nil {
 		err = libkb.KeyCannotSignError{}
 		return
