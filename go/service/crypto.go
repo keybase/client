@@ -8,10 +8,9 @@ import (
 
 type CryptoHandler struct {
 	*BaseHandler
-}
-
-func NewCryptoHandler(xp *rpc2.Transport) *CryptoHandler {
-	return &CryptoHandler{BaseHandler: NewBaseHandler(xp)}
+	// Defaults to CryptoHandler.getDeviceSigningKey(), but
+	// overrideable for testing.
+	getDeviceSigningKeyFn func(sessionID int, reason string) (libkb.GenericKey, error)
 }
 
 func (c *CryptoHandler) getDeviceSigningKey(sessionID int, reason string) (libkb.GenericKey, error) {
@@ -26,6 +25,16 @@ func (c *CryptoHandler) getDeviceSigningKey(sessionID int, reason string) (libkb
 		KeyType: libkb.DeviceSigningKeyType,
 	}, secretUI, reason)
 	return signingKey, err
+}
+
+func NewCryptoHandler(xp *rpc2.Transport) *CryptoHandler {
+	c := &CryptoHandler{BaseHandler: NewBaseHandler(xp)}
+
+	c.getDeviceSigningKeyFn = func(sessionID int, reason string) (libkb.GenericKey, error) {
+		return c.getDeviceSigningKey(sessionID, reason)
+	}
+
+	return c
 }
 
 func (c *CryptoHandler) SignED25519(arg keybase1.SignED25519Arg) (ret keybase1.ED25519SignatureInfo, err error) {
