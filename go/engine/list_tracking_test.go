@@ -79,3 +79,49 @@ func TestListTrackingJSON(t *testing.T) {
 		t.Errorf("num pgp_keys: %d, expected 1", n)
 	}
 }
+
+func TestListTrackingLocal(t *testing.T) {
+	tc := SetupEngineTest(t, "track")
+	defer tc.Cleanup()
+	fu := CreateAndSignupFakeUser(tc, "track")
+
+	trackAlice(tc, fu)
+	defer untrackAlice(tc, fu)
+
+	trackBobWithOptions(tc, fu, TrackOptions{TrackLocalOnly: true})
+	defer untrackBob(tc, fu)
+
+	arg := ListTrackingEngineArg{}
+	eng := NewListTrackingEngine(&arg, tc.G)
+	ctx := Context{}
+	err := RunEngine(eng, &ctx)
+	if err != nil {
+		t.Fatal("Error in ListTrackingEngine:", err)
+	}
+
+	entries := eng.TableResult()
+	if len(entries) != 2 {
+		t.Errorf("Num tracks: %d, exected 2", len(entries))
+	}
+
+	// they are sorted so can use indices.
+	for _, entry := range entries {
+		if entry.Username == "t_alice" {
+			if len(entry.Proofs.Social) != 2 {
+				t.Errorf("Num social proofs: %d, expected 2", len(entry.Proofs.Social))
+			}
+			if len(entry.Proofs.Web) != 0 {
+				t.Errorf("Num web proofs: %d, expected 0", len(entry.Proofs.Web))
+			}
+			if len(entry.Proofs.PublicKeys) != 1 {
+				t.Fatalf("Num pub keys: %d, expected 1", len(entry.Proofs.PublicKeys))
+			}
+
+			expectedFp := "2373fd089f28f328916b88f99c7927c0bdfdadf9"
+			foundFp := entry.Proofs.PublicKeys[0].PGPFingerprint
+			if foundFp != expectedFp {
+				t.Errorf("fp: %q, expected %q", foundFp, expectedFp)
+			}
+		}
+	}
+}
