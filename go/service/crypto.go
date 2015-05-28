@@ -14,7 +14,7 @@ func NewCryptoHandler(xp *rpc2.Transport) *CryptoHandler {
 	return &CryptoHandler{BaseHandler: NewBaseHandler(xp)}
 }
 
-func (c *CryptoHandler) Sign(arg keybase1.SignArg) (ret keybase1.SignatureInfo, err error) {
+func (c *CryptoHandler) SignED25519(arg keybase1.SignED25519Arg) (ret keybase1.ED25519SignatureInfo, err error) {
 	ctx := &engine.Context{
 		SecretUI: c.getSecretUI(arg.SessionID),
 	}
@@ -22,9 +22,9 @@ func (c *CryptoHandler) Sign(arg keybase1.SignArg) (ret keybase1.SignatureInfo, 
 	if err = engine.RunEngine(eng, ctx); err != nil {
 		return
 	}
-	ret = keybase1.SignatureInfo{
-		Sig:          keybase1.ED25519Signature(eng.GetSignature()),
-		VerifyingKey: keybase1.ED25519PublicKey(eng.GetVerifyingKey()),
+	ret = keybase1.ED25519SignatureInfo{
+		Sig:       keybase1.ED25519Signature(eng.GetSignature()),
+		PublicKey: keybase1.ED25519PublicKey(eng.GetPublicKey()),
 	}
 	return
 }

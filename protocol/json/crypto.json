@@ -11,17 +11,17 @@
     "size" : 64
   }, {
     "type" : "record",
-    "name" : "SignatureInfo",
+    "name" : "ED25519SignatureInfo",
     "fields" : [ {
       "name" : "sig",
       "type" : "ED25519Signature"
     }, {
-      "name" : "verifyingKey",
+      "name" : "publicKey",
       "type" : "ED25519PublicKey"
     } ]
   } ],
   "messages" : {
-    "sign" : {
+    "signED25519" : {
       "request" : [ {
         "name" : "sessionID",
         "type" : "int"
@@ -32,7 +32,7 @@
         "name" : "reason",
         "type" : "string"
       } ],
-      "response" : "SignatureInfo"
+      "response" : "ED25519SignatureInfo"
     }
   }
 }

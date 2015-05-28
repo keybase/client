@@ -132,19 +132,19 @@
 
 @end
 
-@implementation KBRSignatureInfo
+@implementation KBRED25519SignatureInfo
 @end
 
 @implementation KBRCryptoRequest
 
-- (void)signWithSessionID:(NSInteger)sessionID msg:(NSData *)msg reason:(NSString *)reason completion:(void (^)(NSError *error, KBRSignatureInfo *signatureInfo))completion {
+- (void)signED25519WithSessionID:(NSInteger)sessionID msg:(NSData *)msg reason:(NSString *)reason completion:(void (^)(NSError *error, KBRED25519SignatureInfo *eD25519SignatureInfo))completion {
   NSArray *params = @[@{@"sessionID": @(sessionID), @"msg": KBRValue(msg), @"reason": KBRValue(reason)}];
-  [self.client sendRequestWithMethod:@"keybase.1.crypto.sign" params:params sessionId:self.sessionId completion:^(NSError *error, id retval) {
+  [self.client sendRequestWithMethod:@"keybase.1.crypto.signED25519" params:params sessionId:self.sessionId completion:^(NSError *error, id retval) {
     if (error) {
         completion(error, nil);
         return;
       }
-      KBRSignatureInfo *result = retval ? [MTLJSONAdapter modelOfClass:KBRSignatureInfo.class fromJSONDictionary:retval error:&error] : nil;
+      KBRED25519SignatureInfo *result = retval ? [MTLJSONAdapter modelOfClass:KBRED25519SignatureInfo.class fromJSONDictionary:retval error:&error] : nil;
       completion(error, result);
   }];
 }
@@ -1191,7 +1191,7 @@
 
 @end
 
-@implementation KBRSignRequestParams
+@implementation KBRSignED25519RequestParams
 
 - (instancetype)initWithParams:(NSArray *)params {
   if ((self = [super initWithParams:params])) {
