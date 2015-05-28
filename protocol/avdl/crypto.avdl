@@ -25,7 +25,7 @@ protocol crypto {
 	// Decrypt the client half of an encrypted TLF crypt key using the
 	// given nonce, the given peer's public key, and the device's
 	// private encryption key, and return the decrypted TLF crypt key.
-	// The 'reason' parameter is used as part of the SecretEntryArg objects
+	// The 'reason' parameter is used as part of the SecretEntryArg object
 	// passed into secretUi.getSecret().
 	TLFCryptKeyClientHalf decryptTLFCryptKeyClientHalf(int sessionID, bytes encryptedData, BoxNonce nonce, BoxPublicKey peersPublicKey, string reason);
 }
