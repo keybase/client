@@ -38,7 +38,7 @@ func NewCryptoHandler(xp *rpc2.Transport) *CryptoHandler {
 }
 
 func (c *CryptoHandler) SignED25519(arg keybase1.SignED25519Arg) (ret keybase1.ED25519SignatureInfo, err error) {
-	signingKey, err := c.getDeviceSigningKey(arg.SessionID, arg.Reason)
+	signingKey, err := c.getDeviceSigningKeyFn(arg.SessionID, arg.Reason)
 	if err != nil {
 		return
 	}
