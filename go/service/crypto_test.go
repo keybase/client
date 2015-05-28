@@ -24,10 +24,16 @@ func TestCryptoSignED25519(t *testing.T) {
 		return kp, nil
 	}
 
-	_, err = h.SignED25519(keybase1.SignED25519Arg{
-		Msg: []byte("test message"),
+	msg := []byte("test message")
+	ret, err := h.SignED25519(keybase1.SignED25519Arg{
+		Msg: msg,
 	})
 	if err != nil {
 		t.Fatal(err)
+	}
+
+	publicKey := libkb.NaclSigningKeyPublic(ret.PublicKey)
+	if !publicKey.Verify(msg, (*libkb.NaclSignature)(&ret.Sig)) {
+		t.Error(libkb.VerificationError{})
 	}
 }
