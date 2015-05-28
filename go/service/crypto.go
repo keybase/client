@@ -23,8 +23,8 @@ func (c *CryptoHandler) Sign(arg keybase1.SignArg) (ret keybase1.SignatureInfo, 
 		return
 	}
 	ret = keybase1.SignatureInfo{
-		Sig:             eng.GetSignature(),
-		VerifyingKeyKid: eng.GetVerifyingKeyKid().String(),
+		Sig:          keybase1.ED25519Signature(eng.GetSignature()),
+		VerifyingKey: keybase1.ED25519PublicKey(eng.GetVerifyingKey()),
 	}
 	return
 }

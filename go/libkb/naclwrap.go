@@ -11,13 +11,16 @@ import (
 	"golang.org/x/crypto/nacl/box"
 )
 
+type NaclSignature [ed25519.SignatureSize]byte
+
+// TODO: Rename to NaclSigInfo or something.
 type NaclSig struct {
-	Kid      KID                         `codec:"key"`
-	Payload  []byte                      `codec:"payload,omitempty"`
-	Sig      [ed25519.SignatureSize]byte `codec:"sig"`
-	SigType  int                         `codec:"sig_type"`
-	HashType int                         `codec:"hash_type"`
-	Detached bool                        `codec:"detached"`
+	Kid      KID           `codec:"key"`
+	Payload  []byte        `codec:"payload,omitempty"`
+	Sig      NaclSignature `codec:"sig"`
+	SigType  int           `codec:"sig_type"`
+	HashType int           `codec:"hash_type"`
+	Detached bool          `codec:"detached"`
 }
 
 const NACL_DH_KEYSIZE = 32
@@ -25,26 +28,17 @@ const NACL_DH_KEYSIZE = 32
 type NaclSigningKeyPublic [ed25519.PublicKeySize]byte
 type NaclSigningKeyPrivate [ed25519.PrivateKeySize]byte
 
-func (k NaclSigningKeyPrivate) Sign(msg []byte) *[ed25519.SignatureSize]byte {
+func (k NaclSigningKeyPrivate) Sign(msg []byte) *NaclSignature {
 	privateKey := [ed25519.PrivateKeySize]byte(k)
-	return ed25519.Sign(&privateKey, msg)
+	return (*NaclSignature)(ed25519.Sign(&privateKey, msg))
 }
 
-func (k NaclSigningKeyPublic) Verify(msg []byte, sig *[ed25519.SignatureSize]byte) error {
+func (k NaclSigningKeyPublic) Verify(msg []byte, sig *NaclSignature) error {
 	publicKey := [ed25519.PublicKeySize]byte(k)
-	if !ed25519.Verify(&publicKey, msg, sig) {
+	if !ed25519.Verify(&publicKey, msg, (*[ed25519.SignatureSize]byte)(sig)) {
 		return VerificationError{}
 	}
 	return nil
-}
-
-func (k NaclSigningKeyPublic) VerifySlice(msg, sig []byte) error {
-	var sigArr [ed25519.SignatureSize]byte
-	if len(sig) != len(sigArr) {
-		return VerificationError{}
-	}
-	copy(sigArr[:], sig)
-	return k.Verify(msg, &sigArr)
 }
 
 func (k KID) ToNaclSigningKeyPublic() *NaclSigningKeyPublic {

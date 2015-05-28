@@ -2,14 +2,22 @@
   "protocol" : "crypto",
   "namespace" : "keybase.1",
   "types" : [ {
+    "type" : "fixed",
+    "name" : "ED25519PublicKey",
+    "size" : 32
+  }, {
+    "type" : "fixed",
+    "name" : "ED25519Signature",
+    "size" : 64
+  }, {
     "type" : "record",
     "name" : "SignatureInfo",
     "fields" : [ {
       "name" : "sig",
-      "type" : "bytes"
+      "type" : "ED25519Signature"
     }, {
-      "name" : "verifyingKeyKid",
-      "type" : "string"
+      "name" : "verifyingKey",
+      "type" : "ED25519PublicKey"
     } ]
   } ],
   "messages" : {

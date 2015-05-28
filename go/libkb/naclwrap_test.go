@@ -96,9 +96,8 @@ func TestVerifyBytesAccept(t *testing.T) {
 	}
 
 	msg := []byte("test message")
-	sig := keyPair.Private.Sign(msg)[:]
-
-	err = keyPair.Public.VerifySlice(sig, sig)
+	sig := keyPair.Private.Sign(msg)
+	err = keyPair.Public.Verify(msg, sig)
 	if err != nil {
 		t.Error(err)
 	}
@@ -112,18 +111,19 @@ func TestVerifyBytesReject(t *testing.T) {
 	}
 
 	msg := []byte("test message")
-	sig := keyPair.Private.Sign(msg)[:]
+	sig := keyPair.Private.Sign(msg)
 
 	// Corrupt signature.
 
-	err = keyPair.Public.VerifySlice(msg, append(sig, []byte("corruption")...))
+	sig[0] = ^sig[0]
+	err = keyPair.Public.Verify(msg, sig)
 	if err == nil {
 		t.Error("Corrupt signature unexpectedly passes")
 	}
 
 	// Corrupt message.
 
-	err = keyPair.Public.VerifySlice(append(msg, []byte("corruption")...), sig)
+	err = keyPair.Public.Verify(append(msg, []byte("corruption")...), sig)
 	if err == nil {
 		t.Error("Signature for corrupt message unexpectedly passes")
 	}
@@ -135,23 +135,9 @@ func TestVerifyBytesReject(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	sig2 := keyPair2.Private.Sign(msg)[:]
-	err = keyPair.Public.VerifySlice(msg, sig2)
+	sig2 := keyPair2.Private.Sign(msg)
+	err = keyPair.Public.Verify(msg, sig2)
 	if err == nil {
 		t.Error("Signature with different key unexpectedly passes")
-	}
-
-	// Append different signature.
-
-	err = keyPair.Public.VerifySlice(msg, append(sig, sig2...))
-	if err == nil {
-		t.Error("Signature with appended different signature unexpectedly passes")
-	}
-
-	// Prepend invalid signature.
-
-	err = keyPair.Public.VerifySlice(msg, append(sig2, sig...))
-	if err == nil {
-		t.Error("Signature with preprended invalid signature unexpectedly passes")
 	}
 }
