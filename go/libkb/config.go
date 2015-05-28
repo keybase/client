@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"strings"
 	"sync"
+	"time"
 
 	keybase1 "github.com/keybase/client/protocol/go"
 	jsonw "github.com/keybase/go-jsonw"
@@ -81,6 +82,19 @@ func (f JsonConfigFile) GetNullAtPath(p string) (is_set bool) {
 	w := f.jw.AtPath(p)
 	is_set = w.IsNil() && w.Error() == nil
 	return
+}
+
+func (f JsonConfigFile) GetDurationAtPath(p string) (time.Duration, bool) {
+	s, ok := f.GetStringAtPath(p)
+	if !ok {
+		return 0, false
+	}
+	d, err := time.ParseDuration(s)
+	if err != nil {
+		G.Log.Warning("invalid time duration in config file: %s => %s", p, s)
+		return 0, false
+	}
+	return d, true
 }
 
 func (f JsonConfigFile) GetTopLevelString(s string) (ret string) {
@@ -393,16 +407,27 @@ func (f JsonConfigFile) GetStandalone() (bool, bool) {
 	return f.GetTopLevelBool("standalone")
 }
 
-func (f JsonConfigFile) GetCacheSize(w string) (ret int, ok bool) {
-	ret, ok = f.jw.AtPathGetInt(w)
-	return
+func (f JsonConfigFile) getCacheSize(w string) (int, bool) {
+	return f.jw.AtPathGetInt(w)
 }
 
-func (f JsonConfigFile) GetUserCacheSize() (ret int, ok bool) {
-	return f.GetCacheSize("cache.limits.users")
+func (f JsonConfigFile) GetUserCacheSize() (int, bool) {
+	return f.getCacheSize("cache.limits.users")
 }
-func (f JsonConfigFile) GetProofCacheSize() (ret int, ok bool) {
-	return f.GetCacheSize("cache.limits.proofs")
+func (f JsonConfigFile) GetProofCacheSize() (int, bool) {
+	return f.getCacheSize("cache.limits.proofs")
+}
+
+func (f JsonConfigFile) GetProofCacheLongDur() (time.Duration, bool) {
+	return f.GetDurationAtPath("cache.long_duration.proofs")
+}
+
+func (f JsonConfigFile) GetProofCacheMediumDur() (time.Duration, bool) {
+	return f.GetDurationAtPath("cache.medium_duration.proofs")
+}
+
+func (f JsonConfigFile) GetProofCacheShortDur() (time.Duration, bool) {
+	return f.GetDurationAtPath("cache.short_duration.proofs")
 }
 
 func (f JsonConfigFile) GetMerkleKeyFingerprints() []string {

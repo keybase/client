@@ -12,6 +12,7 @@ package libkb
 import (
 	"net/http"
 	"net/url"
+	"time"
 
 	"github.com/PuerkitoBio/goquery"
 	keybase1 "github.com/keybase/client/protocol/go"
@@ -96,6 +97,9 @@ type ConfigReader interface {
 	GetNullAtPath(string) bool
 	GetUserCacheSize() (int, bool)
 	GetProofCacheSize() (int, bool)
+	GetProofCacheLongDur() (time.Duration, bool)
+	GetProofCacheMediumDur() (time.Duration, bool)
+	GetProofCacheShortDur() (time.Duration, bool)
 	GetMerkleKeyFingerprints() []string
 	GetPinentry() string
 	GetNoPinentry() (bool, bool)

@@ -31,25 +31,17 @@ func (cr CheckResult) ToDisplayString() string {
 }
 
 func (cr CheckResult) IsFresh() bool {
-
-	// XXX hardcode in for now, but let's get these in a configuration
-	// file of the like.  Might also want two separate timeouts for
-	// no error and hard failures
-	long := time.Hour * 6
-	med := time.Minute * 30
-	short := time.Minute * 1
-	diff := time.Now().Sub(cr.Time)
+	// XXX  Might also want two separate timeouts for no error and hard failures.
 
 	var interval time.Duration
-
 	if cr.Status == nil {
-		interval = long
+		interval = G.Env.GetProofCacheLongDur()
 	} else if ProofErrorIsSoft(cr.Status) {
-		interval = short
+		interval = G.Env.GetProofCacheShortDur()
 	} else {
-		interval = med
+		interval = G.Env.GetProofCacheMediumDur()
 	}
-	return (diff < interval)
+	return (time.Since(cr.Time) < interval)
 }
 
 func NewNowCheckResult(pe ProofError) *CheckResult {

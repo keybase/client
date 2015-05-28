@@ -7,45 +7,49 @@ import (
 	"strconv"
 	"strings"
 	"sync"
+	"time"
 
 	keybase1 "github.com/keybase/client/protocol/go"
 )
 
 type NullConfiguration struct{}
 
-func (n NullConfiguration) GetHome() string                    { return "" }
-func (n NullConfiguration) GetServerUri() string               { return "" }
-func (n NullConfiguration) GetConfigFilename() string          { return "" }
-func (n NullConfiguration) GetSessionFilename() string         { return "" }
-func (n NullConfiguration) GetDbFilename() string              { return "" }
-func (n NullConfiguration) GetUsername() string                { return "" }
-func (n NullConfiguration) GetEmail() string                   { return "" }
-func (n NullConfiguration) GetProxy() string                   { return "" }
-func (n NullConfiguration) GetGpgHome() string                 { return "" }
-func (n NullConfiguration) GetBundledCA(h string) string       { return "" }
-func (n NullConfiguration) GetUserCacheSize() (int, bool)      { return 0, false }
-func (n NullConfiguration) GetProofCacheSize() (int, bool)     { return 0, false }
-func (n NullConfiguration) GetMerkleKeyFingerprints() []string { return nil }
-func (n NullConfiguration) GetPinentry() string                { return "" }
-func (n NullConfiguration) GetUID() (ret keybase1.UID)         { return }
-func (n NullConfiguration) GetGpg() string                     { return "" }
-func (n NullConfiguration) GetGpgOptions() []string            { return nil }
-func (n NullConfiguration) GetGpgDisabled() (bool, bool)       { return false, false }
-func (n NullConfiguration) GetPgpFingerprint() *PgpFingerprint { return nil }
-func (n NullConfiguration) GetSecretKeyringTemplate() string   { return "" }
-func (n NullConfiguration) GetSalt() []byte                    { return nil }
-func (n NullConfiguration) GetSocketFile() string              { return "" }
-func (n NullConfiguration) GetPidFile() string                 { return "" }
-func (n NullConfiguration) GetDaemonPort() (int, bool)         { return 0, false }
-func (n NullConfiguration) GetStandalone() (bool, bool)        { return false, false }
-func (n NullConfiguration) GetLocalRpcDebug() string           { return "" }
-func (n NullConfiguration) GetTimers() string                  { return "" }
-func (n NullConfiguration) GetDeviceID() *DeviceID             { return nil }
-func (n NullConfiguration) GetProxyCACerts() ([]string, error) { return nil, nil }
-func (n NullConfiguration) GetAutoFork() (bool, bool)          { return false, false }
-func (n NullConfiguration) GetNoAutoFork() (bool, bool)        { return false, false }
-func (n NullConfiguration) GetSplitLogOutput() (bool, bool)    { return false, false }
-func (n NullConfiguration) GetLogFile() string                 { return "" }
+func (n NullConfiguration) GetHome() string                               { return "" }
+func (n NullConfiguration) GetServerUri() string                          { return "" }
+func (n NullConfiguration) GetConfigFilename() string                     { return "" }
+func (n NullConfiguration) GetSessionFilename() string                    { return "" }
+func (n NullConfiguration) GetDbFilename() string                         { return "" }
+func (n NullConfiguration) GetUsername() string                           { return "" }
+func (n NullConfiguration) GetEmail() string                              { return "" }
+func (n NullConfiguration) GetProxy() string                              { return "" }
+func (n NullConfiguration) GetGpgHome() string                            { return "" }
+func (n NullConfiguration) GetBundledCA(h string) string                  { return "" }
+func (n NullConfiguration) GetUserCacheSize() (int, bool)                 { return 0, false }
+func (n NullConfiguration) GetProofCacheSize() (int, bool)                { return 0, false }
+func (n NullConfiguration) GetProofCacheLongDur() (time.Duration, bool)   { return 0, false }
+func (n NullConfiguration) GetProofCacheMediumDur() (time.Duration, bool) { return 0, false }
+func (n NullConfiguration) GetProofCacheShortDur() (time.Duration, bool)  { return 0, false }
+func (n NullConfiguration) GetMerkleKeyFingerprints() []string            { return nil }
+func (n NullConfiguration) GetPinentry() string                           { return "" }
+func (n NullConfiguration) GetUID() (ret keybase1.UID)                    { return }
+func (n NullConfiguration) GetGpg() string                                { return "" }
+func (n NullConfiguration) GetGpgOptions() []string                       { return nil }
+func (n NullConfiguration) GetGpgDisabled() (bool, bool)                  { return false, false }
+func (n NullConfiguration) GetPgpFingerprint() *PgpFingerprint            { return nil }
+func (n NullConfiguration) GetSecretKeyringTemplate() string              { return "" }
+func (n NullConfiguration) GetSalt() []byte                               { return nil }
+func (n NullConfiguration) GetSocketFile() string                         { return "" }
+func (n NullConfiguration) GetPidFile() string                            { return "" }
+func (n NullConfiguration) GetDaemonPort() (int, bool)                    { return 0, false }
+func (n NullConfiguration) GetStandalone() (bool, bool)                   { return false, false }
+func (n NullConfiguration) GetLocalRpcDebug() string                      { return "" }
+func (n NullConfiguration) GetTimers() string                             { return "" }
+func (n NullConfiguration) GetDeviceID() *DeviceID                        { return nil }
+func (n NullConfiguration) GetProxyCACerts() ([]string, error)            { return nil, nil }
+func (n NullConfiguration) GetAutoFork() (bool, bool)                     { return false, false }
+func (n NullConfiguration) GetNoAutoFork() (bool, bool)                   { return false, false }
+func (n NullConfiguration) GetSplitLogOutput() (bool, bool)               { return false, false }
+func (n NullConfiguration) GetLogFile() string                            { return "" }
 
 func (n NullConfiguration) GetUserConfig() (*UserConfig, error)                    { return nil, nil }
 func (n NullConfiguration) GetUserConfigForUsername(s string) (*UserConfig, error) { return nil, nil }
@@ -205,6 +209,14 @@ func (e *Env) getEnvBool(s string) (bool, bool) {
 	return true, true
 }
 
+func (e *Env) getEnvDuration(s string) (time.Duration, bool) {
+	d, err := time.ParseDuration(os.Getenv(s))
+	if err != nil {
+		return 0, false
+	}
+	return d, true
+}
+
 func (e *Env) GetString(flist ...(func() string)) string {
 	var ret string
 	for _, f := range flist {
@@ -253,6 +265,15 @@ func (e *Env) GetNegBool(def bool, flist []NegBoolFunc) bool {
 func (e *Env) GetInt(def int, flist ...func() (int, bool)) int {
 	for _, f := range flist {
 		if val, is_set := f(); is_set {
+			return val
+		}
+	}
+	return def
+}
+
+func (e *Env) GetDuration(def time.Duration, flist ...func() (time.Duration, bool)) time.Duration {
+	for _, f := range flist {
+		if val, isSet := f(); isSet {
 			return val
 		}
 	}
@@ -475,9 +496,30 @@ func (e *Env) GetUserCacheSize() int {
 
 func (e *Env) GetProofCacheSize() int {
 	return e.GetInt(PROOF_CACHE_SIZE,
-		func() (int, bool) { return e.cmd.GetProofCacheSize() },
+		e.cmd.GetProofCacheSize,
 		func() (int, bool) { return e.getEnvInt("KEYBASE_PROOF_CACHE_SIZE") },
-		func() (int, bool) { return e.config.GetProofCacheSize() },
+		e.config.GetProofCacheSize,
+	)
+}
+
+func (e *Env) GetProofCacheLongDur() time.Duration {
+	return e.GetDuration(PROOF_CACHE_LONG_DUR,
+		func() (time.Duration, bool) { return e.getEnvDuration("KEYBASE_PROOF_CACHE_LONG_DUR") },
+		e.config.GetProofCacheLongDur,
+	)
+}
+
+func (e *Env) GetProofCacheMediumDur() time.Duration {
+	return e.GetDuration(PROOF_CACHE_MEDIUM_DUR,
+		func() (time.Duration, bool) { return e.getEnvDuration("KEYBASE_PROOF_CACHE_MEDIUM_DUR") },
+		e.config.GetProofCacheMediumDur,
+	)
+}
+
+func (e *Env) GetProofCacheShortDur() time.Duration {
+	return e.GetDuration(PROOF_CACHE_SHORT_DUR,
+		func() (time.Duration, bool) { return e.getEnvDuration("KEYBASE_PROOF_CACHE_SHORT_DUR") },
+		e.config.GetProofCacheShortDur,
 	)
 }
 
