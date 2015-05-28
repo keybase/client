@@ -121,6 +121,7 @@ func TestVerifyBytesReject(t *testing.T) {
 
 	// Corrupt message.
 
+	sig = keyPair.Private.Sign(msg)
 	if keyPair.Public.Verify(append(msg, []byte("corruption")...), sig) {
 		t.Error("Signature for corrupt message unexpectedly passes")
 	}
