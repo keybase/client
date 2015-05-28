@@ -63,17 +63,17 @@ func LinkIdFromHex(s string) (LinkId, error) {
 	return ret, err
 }
 
-func (p LinkId) String() string {
-	return hex.EncodeToString(p)
+func (l LinkId) String() string {
+	return hex.EncodeToString(l)
 }
 
-func (i1 LinkId) Eq(i2 LinkId) bool {
-	if i1 == nil && i2 == nil {
+func (l LinkId) Eq(i2 LinkId) bool {
+	if l == nil && i2 == nil {
 		return true
-	} else if i1 == nil || i2 == nil {
+	} else if l == nil || i2 == nil {
 		return false
 	} else {
-		return FastByteArrayEq(i1[:], i2[:])
+		return FastByteArrayEq(l[:], i2[:])
 	}
 }
 
@@ -537,11 +537,11 @@ func ImportLinkFromStorage(id LinkId, selfUID keybase1.UID) (*ChainLink, error) 
 	return ret, err
 }
 
-func (l *ChainLink) VerifyLink() error {
-	if err := l.VerifyHash(); err != nil {
+func (c *ChainLink) VerifyLink() error {
+	if err := c.VerifyHash(); err != nil {
 		return err
 	}
-	if err := l.VerifyPayload(); err != nil {
+	if err := c.VerifyPayload(); err != nil {
 		return err
 	}
 	return nil
@@ -594,36 +594,36 @@ func (c *ChainLink) checkServerSignatureMetadata(kf *KeyFamily) error {
 	return nil
 }
 
-func (l *ChainLink) Store() (didStore bool, err error) {
+func (c *ChainLink) Store() (didStore bool, err error) {
 
-	if l.storedLocally && !l.dirty {
+	if c.storedLocally && !c.dirty {
 		didStore = false
 		return
 	}
 
-	if err = l.VerifyLink(); err != nil {
+	if err = c.VerifyLink(); err != nil {
 		return
 	}
 
-	if !l.hashVerified || !l.payloadVerified {
+	if !c.hashVerified || !c.payloadVerified {
 		err = fmt.Errorf("Internal error; should have been verified in Store()")
 		return
 	}
 
-	if err = l.Pack(); err != nil {
+	if err = c.Pack(); err != nil {
 		return
 	}
 
-	key := DbKey{Typ: DB_LINK, Key: l.id.String()}
+	key := DbKey{Typ: DB_LINK, Key: c.id.String()}
 
 	// Don't write with any aliases
-	if err = G.LocalDb.Put(key, []DbKey{}, l.packed); err != nil {
+	if err = G.LocalDb.Put(key, []DbKey{}, c.packed); err != nil {
 		return
 	}
-	G.Log.Debug("| Store Link %s", l.id)
+	G.Log.Debug("| Store Link %s", c.id)
 
-	l.storedLocally = true
-	l.dirty = false
+	c.storedLocally = true
+	c.dirty = false
 	didStore = true
 	return
 }
@@ -671,10 +671,10 @@ func (c *ChainLink) MatchUidAndUsername(uid keybase1.UID, username string) bool 
 }
 
 // ToLinkSummary converts a ChainLink into a MerkleTriple object.
-func (l ChainLink) ToMerkleTriple() *MerkleTriple {
+func (c ChainLink) ToMerkleTriple() *MerkleTriple {
 	return &MerkleTriple{
-		Seqno:  l.GetSeqno(),
-		LinkId: l.id,
+		Seqno:  c.GetSeqno(),
+		LinkId: c.id,
 	}
 }
 

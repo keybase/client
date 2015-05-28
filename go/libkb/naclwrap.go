@@ -215,60 +215,57 @@ func (k NaclSigningKeyPublic) GetKid() KID {
 	return KID(out)
 }
 
-func (p NaclSigningKeyPair) GetKid() (ret KID) {
-	return p.Public.GetKid()
+func (k NaclSigningKeyPair) GetKid() (ret KID) {
+	return k.Public.GetKid()
 }
 
-func (p NaclSigningKeyPair) ToShortIdString() string {
-	return p.Public.GetKid().ToShortIdString()
+func (k NaclSigningKeyPair) ToShortIdString() string {
+	return k.Public.GetKid().ToShortIdString()
 }
 
-func (p NaclDHKeyPair) ToShortIdString() string {
-	return p.Public.GetKid().ToShortIdString()
+func (k NaclDHKeyPair) ToShortIdString() string {
+	return k.Public.GetKid().ToShortIdString()
 }
 
-func (p NaclSigningKeyPair) VerboseDescription() string {
-	return fmt.Sprintf("255-bit EdDSA signing key (%s)", p.ToShortIdString())
+func (k NaclSigningKeyPair) VerboseDescription() string {
+	return fmt.Sprintf("255-bit EdDSA signing key (%s)", k.ToShortIdString())
 }
-func (p NaclDHKeyPair) VerboseDescription() string {
-	return fmt.Sprintf("255-bit Curve25519 DH key (%s)", p.ToShortIdString())
+func (k NaclDHKeyPair) VerboseDescription() string {
+	return fmt.Sprintf("255-bit Curve25519 DH key (%s)", k.ToShortIdString())
 }
 
-func (p NaclSigningKeyPair) GetFingerprintP() *PgpFingerprint {
+func (k NaclSigningKeyPair) GetFingerprintP() *PgpFingerprint {
 	return nil
 }
 
-func (p NaclDHKeyPair) GetKid() (ret KID) {
-	ret = p.Public.GetKid()
-	return
+func (k NaclDHKeyPair) GetKid() KID {
+	return k.Public.GetKid()
 }
 
-func (k NaclSigningKeyPair) CheckSecretKey() (err error) {
+func (k NaclSigningKeyPair) CheckSecretKey() error {
 	if k.Private == nil {
-		err = NoSecretKeyError{}
+		return NoSecretKeyError{}
 	}
-	return
+	return nil
 }
 
 func (k NaclSigningKeyPair) HasSecretKey() bool {
 	return k.Private != nil
 }
 
-func (k NaclSigningKeyPair) Encode() (s string, err error) {
-	s = k.GetKid().String()
-	return
+func (k NaclSigningKeyPair) Encode() (string, error) {
+	return k.GetKid().String(), nil
 }
 
-func (k NaclDHKeyPair) Encode() (s string, err error) {
-	s = k.GetKid().String()
-	return
+func (k NaclDHKeyPair) Encode() (string, error) {
+	return k.GetKid().String(), nil
 }
 
-func (k NaclDHKeyPair) CheckSecretKey() (err error) {
+func (k NaclDHKeyPair) CheckSecretKey() error {
 	if k.Private == nil {
-		err = NoSecretKeyError{}
+		return NoSecretKeyError{}
 	}
-	return
+	return nil
 }
 
 func (k NaclDHKeyPair) HasSecretKey() bool {

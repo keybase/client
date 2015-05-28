@@ -149,54 +149,47 @@ func MsgpackDecodeAll(data []byte, handle *codec.MsgpackHandle, out interface{})
 	return nil
 }
 
-func (ret *KeybasePacket) MyUnmarshalBinary(data []byte) (err error) {
+func (p *KeybasePacket) MyUnmarshalBinary(data []byte) error {
 	ch := CodecHandle()
-	err = MsgpackDecodeAll(data, ch, ret)
-	if err != nil {
-		return
+	if err := MsgpackDecodeAll(data, ch, p); err != nil {
+		return err
 	}
 
 	var body interface{}
 
-	switch ret.Tag {
+	switch p.Tag {
 	case TAG_P3SKB:
 		body = &SKB{}
 	case TAG_SIGNATURE:
 		body = &NaclSig{}
 	default:
-		err = fmt.Errorf("Unknown packet tag: %d", ret.Tag)
-		return
+		return fmt.Errorf("Unknown packet tag: %d", p.Tag)
 	}
 	var encoded []byte
-	err = codec.NewEncoderBytes(&encoded, ch).Encode(ret.Body)
-	if err != nil {
-		return
+	if err := codec.NewEncoderBytes(&encoded, ch).Encode(p.Body); err != nil {
+		return err
 	}
-	err = MsgpackDecodeAll(encoded, ch, body)
-	if err != nil {
-		return
+	if err := MsgpackDecodeAll(encoded, ch, body); err != nil {
+		return err
 	}
-	ret.Body = body
-	if err = ret.CheckHash(); err != nil {
-		return
-	}
-	return
+	p.Body = body
+	return p.CheckHash()
 }
 
-func GetPacket(jsonw *jsonw.Wrapper) (ret *KeybasePacket, err error) {
-	var s string
-	if s, err = jsonw.GetString(); err == nil {
-		ret, err = DecodeArmoredPacket(s)
+func GetPacket(jsonw *jsonw.Wrapper) (*KeybasePacket, error) {
+	s, err := jsonw.GetString()
+	if err != nil {
+		return nil, err
 	}
-	return
+	return DecodeArmoredPacket(s)
 }
 
-func DecodeArmoredPacket(s string) (ret *KeybasePacket, err error) {
-	var byt []byte
-	if byt, err = base64.StdEncoding.DecodeString(s); err == nil {
-		ret, err = DecodePacket(byt)
+func DecodeArmoredPacket(s string) (*KeybasePacket, error) {
+	b, err := base64.StdEncoding.DecodeString(s)
+	if err != nil {
+		return nil, err
 	}
-	return
+	return DecodePacket(b)
 }
 
 func DecodePacket(data []byte) (ret *KeybasePacket, err error) {

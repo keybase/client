@@ -26,8 +26,8 @@ func NewLKSecWithFullSecret(secret []byte, gc *GlobalContext) *LKSec {
 	return &LKSec{secret: secret, Contextified: NewContextified(gc)}
 }
 
-func (l *LKSec) SetUID(u keybase1.UID) {
-	l.uid = u
+func (s *LKSec) SetUID(u keybase1.UID) {
+	s.uid = u
 }
 
 func (s *LKSec) SetClientHalf(b []byte) {

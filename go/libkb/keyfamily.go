@@ -168,16 +168,16 @@ func NewComputedKeyInfo(eldest, sibkey bool, status KeyStatus, ctime, etime int6
 	}
 }
 
-func (ckis ComputedKeyInfos) InsertLocalEldestKey(fokid FOKID) {
+func (cki ComputedKeyInfos) InsertLocalEldestKey(fokid FOKID) {
 	// CTime and ETime are both initialized to zero, meaning that (until we get
 	// updates from the server) this key never expires.
 	eldestCki := NewComputedKeyInfo(true, true, KEY_UNCANCELLED, 0, 0)
-	ckis.Insert(&fokid, &eldestCki)
+	cki.Insert(&fokid, &eldestCki)
 }
 
 // For use when there are no chain links at all, so all we can do is trust the
 // eldest key that the server reported.
-func (ckis ComputedKeyInfos) InsertServerEldestKey(eldestKey GenericKey, un string) error {
+func (cki ComputedKeyInfos) InsertServerEldestKey(eldestKey GenericKey, un string) error {
 	kbid := KeybaseIdentity(un)
 	if pgp, ok := eldestKey.(*PgpKeyBundle); ok {
 		match, ctime, etime := pgp.CheckIdentity(kbid)
@@ -186,7 +186,7 @@ func (ckis ComputedKeyInfos) InsertServerEldestKey(eldestKey GenericKey, un stri
 			// If fokid is just a PGP fingerprint, expand it to include a proper KID.
 			// TODO: This is duplicated logic from InsertEldestKey. Clean them up somehow.
 			fokidWithKid := GenericKeyToFOKID(eldestKey)
-			ckis.Insert(&fokidWithKid, &eldestCki)
+			cki.Insert(&fokidWithKid, &eldestCki)
 			return nil
 		}
 		return KeyFamilyError{"InsertServerEldestKey found a non-matching eldest key."}

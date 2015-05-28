@@ -252,16 +252,16 @@ func (u *User) ProofMetadata(ei int, signingKey FOKID, eldest *FOKID, ctime int6
 	return
 }
 
-func (u1 *User) TrackingProofFor(signingKey GenericKey, u2 *User) (ret *jsonw.Wrapper, err error) {
-	ret, err = u1.ProofMetadata(0, GenericKeyToFOKID(signingKey), nil, 0)
+func (u *User) TrackingProofFor(signingKey GenericKey, u2 *User) (ret *jsonw.Wrapper, err error) {
+	ret, err = u.ProofMetadata(0, GenericKeyToFOKID(signingKey), nil, 0)
 	if err == nil {
 		err = u2.ToTrackingStatement(ret.AtKey("body"))
 	}
 	return
 }
 
-func (u1 *User) UntrackingProofFor(signingKey GenericKey, u2 *User) (ret *jsonw.Wrapper, err error) {
-	ret, err = u1.ProofMetadata(0, GenericKeyToFOKID(signingKey), nil, 0)
+func (u *User) UntrackingProofFor(signingKey GenericKey, u2 *User) (ret *jsonw.Wrapper, err error) {
+	ret, err = u.ProofMetadata(0, GenericKeyToFOKID(signingKey), nil, 0)
 	if err == nil {
 		err = u2.ToUntrackingStatement(ret.AtKey("body"))
 	}

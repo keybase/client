@@ -49,19 +49,19 @@ type GenericChainLink struct {
 	*ChainLink
 }
 
-func (b *GenericChainLink) GetSigID() keybase1.SigID {
-	return b.unpacked.sigID
+func (g *GenericChainLink) GetSigID() keybase1.SigID {
+	return g.unpacked.sigID
 }
-func (b *GenericChainLink) Type() string            { return "generic" }
-func (b *GenericChainLink) ToDisplayString() string { return "unknown" }
-func (b *GenericChainLink) insertIntoTable(tab *IdentityTable) {
-	tab.insertLink(b)
+func (g *GenericChainLink) Type() string            { return "generic" }
+func (g *GenericChainLink) ToDisplayString() string { return "unknown" }
+func (g *GenericChainLink) insertIntoTable(tab *IdentityTable) {
+	tab.insertLink(g)
 }
-func (b *GenericChainLink) markRevoked(r TypedChainLink) {
-	b.revoked = true
+func (g *GenericChainLink) markRevoked(r TypedChainLink) {
+	g.revoked = true
 }
-func (b *GenericChainLink) ToDebugString() string {
-	return fmt.Sprintf("uid=%s, seq=%d, link=%s", b.Parent().uid, b.unpacked.seqno, b.id)
+func (g *GenericChainLink) ToDebugString() string {
+	return fmt.Sprintf("uid=%s, seq=%d, link=%s", g.Parent().uid, g.unpacked.seqno, g.id)
 }
 
 func (g *GenericChainLink) GetDelegatedKid() KID                 { return nil }
@@ -132,24 +132,24 @@ func (w *WebProofChainLink) TableKey() string {
 	return w.protocol
 }
 
-func (g *WebProofChainLink) GetProofType() keybase1.ProofType {
-	if g.protocol == "dns" {
+func (w *WebProofChainLink) GetProofType() keybase1.ProofType {
+	if w.protocol == "dns" {
 		return keybase1.ProofType_DNS
 	}
 	return keybase1.ProofType_GENERIC_WEB_SITE
 }
 
-func (s *WebProofChainLink) ToTrackingStatement() (*jsonw.Wrapper, error) {
-	ret := s.BaseToTrackingStatement()
-	err := remoteProofToTrackingStatement(s, ret)
+func (w *WebProofChainLink) ToTrackingStatement() (*jsonw.Wrapper, error) {
+	ret := w.BaseToTrackingStatement()
+	err := remoteProofToTrackingStatement(w, ret)
 	if err != nil {
 		ret = nil
 	}
 	return ret, err
 }
 
-func (s *WebProofChainLink) DisplayCheck(ui IdentifyUI, lcr LinkCheckResult) {
-	ui.FinishWebProofCheck(ExportRemoteProof(s), lcr.Export())
+func (w *WebProofChainLink) DisplayCheck(ui IdentifyUI, lcr LinkCheckResult) {
+	ui.FinishWebProofCheck(ExportRemoteProof(w), lcr.Export())
 }
 
 func (w *WebProofChainLink) Type() string { return "proof" }
@@ -165,36 +165,36 @@ func (w *WebProofChainLink) GetHostname() string       { return w.hostname }
 func (w *WebProofChainLink) GetProtocol() string       { return w.protocol }
 func (w *WebProofChainLink) ProofText() string         { return w.proofText }
 
-func (s *WebProofChainLink) CheckDataJson() *jsonw.Wrapper {
+func (w *WebProofChainLink) CheckDataJson() *jsonw.Wrapper {
 	ret := jsonw.NewDictionary()
-	if s.protocol == "dns" {
-		ret.SetKey("protocol", jsonw.NewString(s.protocol))
-		ret.SetKey("domain", jsonw.NewString(s.hostname))
+	if w.protocol == "dns" {
+		ret.SetKey("protocol", jsonw.NewString(w.protocol))
+		ret.SetKey("domain", jsonw.NewString(w.hostname))
 
 	} else {
-		ret.SetKey("protocol", jsonw.NewString(s.protocol+":"))
-		ret.SetKey("hostname", jsonw.NewString(s.hostname))
+		ret.SetKey("protocol", jsonw.NewString(w.protocol+":"))
+		ret.SetKey("hostname", jsonw.NewString(w.hostname))
 	}
 	return ret
 }
-func (s *WebProofChainLink) ToIdString() string { return s.ToDisplayString() }
-func (s *WebProofChainLink) ToKeyValuePair() (string, string) {
-	return s.GetProtocol(), s.GetHostname()
+func (w *WebProofChainLink) ToIdString() string { return w.ToDisplayString() }
+func (w *WebProofChainLink) ToKeyValuePair() (string, string) {
+	return w.GetProtocol(), w.GetHostname()
 }
 
-func (s *WebProofChainLink) ComputeTrackDiff(tl *TrackLookup) (res TrackDiff) {
+func (w *WebProofChainLink) ComputeTrackDiff(tl *TrackLookup) (res TrackDiff) {
 
 	find := func(list []string) bool {
 		for _, e := range list {
-			if Cicmp(e, s.hostname) {
+			if Cicmp(e, w.hostname) {
 				return true
 			}
 		}
 		return false
 	}
-	if find(tl.ids[s.protocol]) {
+	if find(tl.ids[w.protocol]) {
 		res = TrackDiffNone{}
-	} else if s.protocol == "https" && find(tl.ids["http"]) {
+	} else if w.protocol == "https" && find(tl.ids["http"]) {
 		res = TrackDiffUpgraded{"http", "https"}
 	} else {
 		res = TrackDiffNew{}
@@ -207,8 +207,8 @@ func (s *SocialProofChainLink) Type() string     { return "proof" }
 func (s *SocialProofChainLink) insertIntoTable(tab *IdentityTable) {
 	remoteProofInsertIntoTable(s, tab)
 }
-func (w *SocialProofChainLink) ToDisplayString() string {
-	return w.username + "@" + w.service
+func (s *SocialProofChainLink) ToDisplayString() string {
+	return s.username + "@" + s.service
 }
 func (s *SocialProofChainLink) LastWriterWins() bool      { return true }
 func (s *SocialProofChainLink) GetRemoteUsername() string { return s.username }
@@ -250,8 +250,8 @@ func (s *SocialProofChainLink) CheckDataJson() *jsonw.Wrapper {
 	return ret
 }
 
-func (g *SocialProofChainLink) GetProofType() keybase1.ProofType {
-	ret, found := REMOTE_SERVICE_TYPES[g.service]
+func (s *SocialProofChainLink) GetProofType() keybase1.ProofType {
+	ret, found := REMOTE_SERVICE_TYPES[s.service]
 	if !found {
 		ret = keybase1.ProofType_NONE
 	}
@@ -379,8 +379,8 @@ type TrackChainLink struct {
 	local   bool
 }
 
-func (tcl TrackChainLink) IsRemote() bool {
-	return !tcl.local
+func (l TrackChainLink) IsRemote() bool {
+	return !l.local
 }
 
 func ParseTrackChainLink(b GenericChainLink) (ret *TrackChainLink, err error) {
@@ -394,10 +394,10 @@ func ParseTrackChainLink(b GenericChainLink) (ret *TrackChainLink, err error) {
 	return
 }
 
-func (t *TrackChainLink) Type() string { return "track" }
+func (l *TrackChainLink) Type() string { return "track" }
 
-func (b *TrackChainLink) ToDisplayString() string {
-	return b.whom
+func (l *TrackChainLink) ToDisplayString() string {
+	return l.whom
 }
 
 func (l *TrackChainLink) insertIntoTable(tab *IdentityTable) {
@@ -572,7 +572,7 @@ func ParseSibkeyChainLink(b GenericChainLink) (ret *SibkeyChainLink, err error) 
 func (s *SibkeyChainLink) GetDelegatedKid() KID    { return s.kid }
 func (s *SibkeyChainLink) GetRole() KeyRole        { return DLG_SIBKEY }
 func (s *SibkeyChainLink) Type() string            { return SIBKEY_TYPE }
-func (r *SibkeyChainLink) ToDisplayString() string { return r.kid.String() }
+func (s *SibkeyChainLink) ToDisplayString() string { return s.kid.String() }
 func (s *SibkeyChainLink) GetDevice() *Device      { return s.device }
 func (s *SibkeyChainLink) insertIntoTable(tab *IdentityTable) {
 	tab.insertLink(s)
@@ -709,13 +709,13 @@ func (u *UntrackChainLink) insertIntoTable(tab *IdentityTable) {
 	}
 }
 
-func (b *UntrackChainLink) ToDisplayString() string {
-	return b.whom
+func (u *UntrackChainLink) ToDisplayString() string {
+	return u.whom
 }
 
-func (r *UntrackChainLink) Type() string { return "untrack" }
+func (u *UntrackChainLink) Type() string { return "untrack" }
 
-func (r *UntrackChainLink) IsRevocationIsh() bool { return true }
+func (u *UntrackChainLink) IsRevocationIsh() bool { return true }
 
 //
 //=========================================================================
@@ -761,17 +761,17 @@ func ParseCryptocurrencyChainLink(b GenericChainLink) (
 	return
 }
 
-func (r *CryptocurrencyChainLink) Type() string { return "cryptocurrency" }
+func (c *CryptocurrencyChainLink) Type() string { return "cryptocurrency" }
 
-func (r *CryptocurrencyChainLink) ToDisplayString() string { return r.address }
+func (c *CryptocurrencyChainLink) ToDisplayString() string { return c.address }
 
-func (l *CryptocurrencyChainLink) insertIntoTable(tab *IdentityTable) {
-	tab.insertLink(l)
-	tab.cryptocurrency = append(tab.cryptocurrency, l)
+func (c *CryptocurrencyChainLink) insertIntoTable(tab *IdentityTable) {
+	tab.insertLink(c)
+	tab.cryptocurrency = append(tab.cryptocurrency, c)
 }
 
-func (l CryptocurrencyChainLink) Display(ui IdentifyUI) {
-	ui.DisplayCryptocurrency(l.Export())
+func (c CryptocurrencyChainLink) Display(ui IdentifyUI) {
+	ui.DisplayCryptocurrency(c.Export())
 }
 
 //
@@ -826,23 +826,21 @@ type SelfSigChainLink struct {
 	device *Device
 }
 
-func (r *SelfSigChainLink) Type() string { return "self" }
+func (s *SelfSigChainLink) Type() string { return "self" }
 
 func (s *SelfSigChainLink) ToDisplayString() string { return s.unpacked.username }
 
-func (l *SelfSigChainLink) insertIntoTable(tab *IdentityTable) {
-	tab.insertLink(l)
+func (s *SelfSigChainLink) insertIntoTable(tab *IdentityTable) {
+	tab.insertLink(s)
 }
-func (w *SelfSigChainLink) TableKey() string          { return "keybase" }
-func (w *SelfSigChainLink) LastWriterWins() bool      { return true }
-func (w *SelfSigChainLink) GetRemoteUsername() string { return w.GetUsername() }
-func (w *SelfSigChainLink) GetHostname() string       { return "" }
-func (w *SelfSigChainLink) GetProtocol() string       { return "" }
-func (w *SelfSigChainLink) ProofText() string         { return "" }
+func (s *SelfSigChainLink) TableKey() string          { return "keybase" }
+func (s *SelfSigChainLink) LastWriterWins() bool      { return true }
+func (s *SelfSigChainLink) GetRemoteUsername() string { return s.GetUsername() }
+func (s *SelfSigChainLink) GetHostname() string       { return "" }
+func (s *SelfSigChainLink) GetProtocol() string       { return "" }
+func (s *SelfSigChainLink) ProofText() string         { return "" }
 
-func (s *SelfSigChainLink) DisplayCheck(ui IdentifyUI, lcr LinkCheckResult) {
-	return
-}
+func (s *SelfSigChainLink) DisplayCheck(ui IdentifyUI, lcr LinkCheckResult) {}
 
 func (s *SelfSigChainLink) CheckDataJson() *jsonw.Wrapper { return nil }
 
@@ -897,9 +895,9 @@ type IdentityTable struct {
 	eldest         FOKID
 }
 
-func (tab *IdentityTable) GetActiveProofsFor(st ServiceType) (ret []RemoteProofChainLink) {
+func (idt *IdentityTable) GetActiveProofsFor(st ServiceType) (ret []RemoteProofChainLink) {
 	for _, k := range st.AllStringKeys() {
-		for _, l := range tab.remoteProofs[k] {
+		for _, l := range idt.remoteProofs[k] {
 			if !l.IsRevoked() {
 				ret = append(ret, l)
 				if l.LastWriterWins() {
@@ -911,16 +909,16 @@ func (tab *IdentityTable) GetActiveProofsFor(st ServiceType) (ret []RemoteProofC
 	return
 }
 
-func (tab *IdentityTable) GetTrackMap() map[string][]*TrackChainLink {
-	return tab.tracks
+func (idt *IdentityTable) GetTrackMap() map[string][]*TrackChainLink {
+	return idt.tracks
 }
 
-func (tab *IdentityTable) insertLink(l TypedChainLink) {
-	tab.links[l.GetSigID()] = l
-	tab.Order = append(tab.Order, l)
+func (idt *IdentityTable) insertLink(l TypedChainLink) {
+	idt.links[l.GetSigID()] = l
+	idt.Order = append(idt.Order, l)
 	for _, rev := range l.GetRevocations() {
-		tab.revocations[rev] = true
-		if targ, found := tab.links[rev]; !found {
+		idt.revocations[rev] = true
+		if targ, found := idt.links[rev]; !found {
 			G.Log.Warning("Can't revoke signature %s @%s", rev, l.ToDebugString())
 		} else {
 			targ.markRevoked(l)
@@ -928,8 +926,8 @@ func (tab *IdentityTable) insertLink(l TypedChainLink) {
 	}
 }
 
-func (tab *IdentityTable) MarkCheckResult(err ProofError) {
-	tab.checkResult = NewNowCheckResult(err)
+func (idt *IdentityTable) MarkCheckResult(err ProofError) {
+	idt.checkResult = NewNowCheckResult(err)
 }
 
 func NewTypedChainLink(cl *ChainLink) (ret TypedChainLink, w Warning) {

@@ -49,9 +49,9 @@ func NewDefaultLogger() *Logger {
 	return ret
 }
 
-func (l *Logger) Configure(e *Env) {
-	l.configureMutex.Lock()
-	defer l.configureMutex.Unlock()
+func (log *Logger) Configure(e *Env) {
+	log.configureMutex.Lock()
+	defer log.configureMutex.Unlock()
 	var fmt string
 	if e.GetPlainLogging() {
 		fmt = plain_format
@@ -135,9 +135,9 @@ func (r *RpcLogFactory) NewLog(a net.Addr) rpc2.LogInterface {
 	return ret
 }
 
-func (r *Logger) RotateLogFile() error {
-	r.rotateMutex.Lock()
-	defer r.rotateMutex.Unlock()
+func (log *Logger) RotateLogFile() error {
+	log.rotateMutex.Lock()
+	defer log.rotateMutex.Unlock()
 	G.Log.Info("Rotating log file; closing down old file")
 	_, file, err := OpenLogFile()
 	if err != nil {

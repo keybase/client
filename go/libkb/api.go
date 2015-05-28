@@ -105,14 +105,14 @@ func (api *BaseApiEngine) getCli(cookied bool) (ret *Client) {
 	return client
 }
 
-func (base *BaseApiEngine) PrepareGet(url url.URL, arg ApiArg) (*http.Request, error) {
+func (api *BaseApiEngine) PrepareGet(url url.URL, arg ApiArg) (*http.Request, error) {
 	url.RawQuery = arg.getHttpArgs().Encode()
 	ruri := url.String()
 	G.Log.Debug(fmt.Sprintf("+ API GET request to %s", ruri))
 	return http.NewRequest("GET", ruri, nil)
 }
 
-func (base *BaseApiEngine) PreparePost(url url.URL, arg ApiArg) (*http.Request, error) {
+func (api *BaseApiEngine) PreparePost(url url.URL, arg ApiArg) (*http.Request, error) {
 	ruri := url.String()
 	G.Log.Debug(fmt.Sprintf("+ API Post request to %s", ruri))
 	body := ioutil.NopCloser(strings.NewReader(arg.getHttpArgs().Encode()))
@@ -234,7 +234,7 @@ func (a *InternalApiEngine) sessionArgs(arg ApiArg) (tok, csrf string) {
 	return
 }
 
-func (i *InternalApiEngine) isExternal() bool { return false }
+func (a *InternalApiEngine) isExternal() bool { return false }
 
 var lastUpgradeWarningMu sync.Mutex
 var lastUpgradeWarning *time.Time
@@ -294,24 +294,24 @@ func checkAppStatus(arg ApiArg, jw *jsonw.Wrapper) (string, error) {
 	return "", NewAppStatusError(jw)
 }
 
-func (api *InternalApiEngine) Get(arg ApiArg) (*ApiRes, error) {
-	url := api.getUrl(arg)
-	req, err := api.PrepareGet(url, arg)
+func (a *InternalApiEngine) Get(arg ApiArg) (*ApiRes, error) {
+	url := a.getUrl(arg)
+	req, err := a.PrepareGet(url, arg)
 	if err != nil {
 		return nil, err
 	}
-	return api.DoRequest(arg, req)
+	return a.DoRequest(arg, req)
 }
 
 // GetResp performs a GET request and returns the http response.
-func (api *InternalApiEngine) GetResp(arg ApiArg) (*http.Response, error) {
-	url := api.getUrl(arg)
-	req, err := api.PrepareGet(url, arg)
+func (a *InternalApiEngine) GetResp(arg ApiArg) (*http.Response, error) {
+	url := a.getUrl(arg)
+	req, err := a.PrepareGet(url, arg)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, _, err := doRequestShared(api, arg, req, false)
+	resp, _, err := doRequestShared(a, arg, req, false)
 	if err != nil {
 		return nil, err
 	}
@@ -321,8 +321,8 @@ func (api *InternalApiEngine) GetResp(arg ApiArg) (*http.Response, error) {
 
 // GetDecode performs a GET request and decodes the response via
 // JSON into the value pointed to by v.
-func (api *InternalApiEngine) GetDecode(arg ApiArg, v interface{}) error {
-	resp, err := api.GetResp(arg)
+func (a *InternalApiEngine) GetDecode(arg ApiArg, v interface{}) error {
+	resp, err := a.GetResp(arg)
 	if err != nil {
 		return err
 	}
@@ -331,24 +331,24 @@ func (api *InternalApiEngine) GetDecode(arg ApiArg, v interface{}) error {
 	return dec.Decode(&v)
 }
 
-func (api *InternalApiEngine) Post(arg ApiArg) (*ApiRes, error) {
-	url := api.getUrl(arg)
-	req, err := api.PreparePost(url, arg)
+func (a *InternalApiEngine) Post(arg ApiArg) (*ApiRes, error) {
+	url := a.getUrl(arg)
+	req, err := a.PreparePost(url, arg)
 	if err != nil {
 		return nil, err
 	}
-	return api.DoRequest(arg, req)
+	return a.DoRequest(arg, req)
 }
 
 // PostResp performs a POST request and returns the http response.
-func (api *InternalApiEngine) PostResp(arg ApiArg) (*http.Response, error) {
-	url := api.getUrl(arg)
-	req, err := api.PreparePost(url, arg)
+func (a *InternalApiEngine) PostResp(arg ApiArg) (*http.Response, error) {
+	url := a.getUrl(arg)
+	req, err := a.PreparePost(url, arg)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, _, err := doRequestShared(api, arg, req, false)
+	resp, _, err := doRequestShared(a, arg, req, false)
 	if err != nil {
 		return nil, err
 	}
@@ -356,8 +356,8 @@ func (api *InternalApiEngine) PostResp(arg ApiArg) (*http.Response, error) {
 	return resp, nil
 }
 
-func (api *InternalApiEngine) PostDecode(arg ApiArg, v interface{}) error {
-	resp, err := api.PostResp(arg)
+func (a *InternalApiEngine) PostDecode(arg ApiArg, v interface{}) error {
+	resp, err := a.PostResp(arg)
 	if err != nil {
 		return err
 	}
@@ -366,10 +366,8 @@ func (api *InternalApiEngine) PostDecode(arg ApiArg, v interface{}) error {
 	return dec.Decode(&v)
 }
 
-func (api *InternalApiEngine) DoRequest(
-	arg ApiArg, req *http.Request) (*ApiRes, error) {
-
-	resp, jw, err := doRequestShared(api, arg, req, true)
+func (a *InternalApiEngine) DoRequest(arg ApiArg, req *http.Request) (*ApiRes, error) {
+	resp, jw, err := doRequestShared(a, arg, req, true)
 	if err != nil {
 		return nil, err
 	}
@@ -404,15 +402,15 @@ const (
 	XAPI_RES_TEXT = iota
 )
 
-func (a *ExternalApiEngine) fixHeaders(arg ApiArg, req *http.Request) {
+func (api *ExternalApiEngine) fixHeaders(arg ApiArg, req *http.Request) {
 	// noop for now
 }
 
-func (a *ExternalApiEngine) consumeHeaders(resp *http.Response) error {
+func (api *ExternalApiEngine) consumeHeaders(resp *http.Response) error {
 	return nil
 }
 
-func (e *ExternalApiEngine) isExternal() bool { return true }
+func (api *ExternalApiEngine) isExternal() bool { return true }
 
 func (api *ExternalApiEngine) DoRequest(
 	arg ApiArg, req *http.Request, restype int) (

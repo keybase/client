@@ -249,30 +249,30 @@ func (k *GpgPrimaryKey) GetAllId64s() []string {
 	return ret
 }
 
-func (g *GpgPrimaryKey) AddSubkey(l *GpgIndexLine) (err error) {
+func (k *GpgPrimaryKey) AddSubkey(l *GpgIndexLine) (err error) {
 	var sk *GpgSubKey
 	if sk, err = ParseGpgSubKey(l); err == nil {
-		g.subkeys = append(g.subkeys, sk)
-		g.top = sk
+		k.subkeys = append(k.subkeys, sk)
+		k.top = sk
 	}
 	return
 }
 
-func (g *GpgPrimaryKey) ToKey() *GpgPrimaryKey { return g }
+func (k *GpgPrimaryKey) ToKey() *GpgPrimaryKey { return k }
 
-func (p *GpgPrimaryKey) AddLine(l *GpgIndexLine) (err error) {
+func (k *GpgPrimaryKey) AddLine(l *GpgIndexLine) (err error) {
 	if l.Len() < 2 {
 		err = GpgIndexError{l.lineno, "too few fields"}
 	} else {
 		f := l.At(0)
 		switch f {
 		case "fpr":
-			err = p.AddFingerprint(l)
+			err = k.AddFingerprint(l)
 		case "uid":
-			err = p.AddUid(l)
+			err = k.AddUid(l)
 		case "uat":
 		case "sub", "ssb":
-			err = p.AddSubkey(l)
+			err = k.AddSubkey(l)
 		default:
 			err = GpgIndexError{l.lineno, fmt.Sprintf("Unknown subfield: %s", f)}
 		}
@@ -326,13 +326,13 @@ func (ki *GpgKeyIndex) Less(i, j int) bool {
 	return false
 }
 
-func (p *GpgKeyIndex) GetRowFunc() func() []string {
+func (ki *GpgKeyIndex) GetRowFunc() func() []string {
 	i := 0
 	return func() []string {
-		if i >= len(p.Keys) {
+		if i >= len(ki.Keys) {
 			return nil
 		}
-		ret := p.Keys[i].ToRow(i + 1)
+		ret := ki.Keys[i].ToRow(i + 1)
 		i++
 		return ret
 	}
@@ -364,10 +364,10 @@ func (ki *GpgKeyIndex) IndexKey(k *GpgPrimaryKey) {
 	}
 }
 
-func (k *GpgKeyIndex) PushElement(e GpgIndexElement) {
+func (ki *GpgKeyIndex) PushElement(e GpgIndexElement) {
 	if key := e.ToKey(); key == nil {
 	} else if key.IsValid() {
-		k.IndexKey(key)
+		ki.IndexKey(key)
 	}
 }
 
@@ -402,8 +402,8 @@ func ParseLine(s string, i int) (ret *GpgIndexLine, err error) {
 	return
 }
 
-func (l GpgIndexLine) IsNewKey() bool {
-	return len(l.v) > 0 && (l.v[0] == "sec" || l.v[0] == "pub")
+func (g GpgIndexLine) IsNewKey() bool {
+	return len(g.v) > 0 && (g.v[0] == "sec" || g.v[0] == "pub")
 }
 
 //=============================================================================
