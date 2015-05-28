@@ -1,6 +1,7 @@
 package service
 
 import (
+	"errors"
 	"testing"
 
 	"github.com/keybase/client/go/libkb"
@@ -40,5 +41,23 @@ func TestCryptoSignED25519(t *testing.T) {
 
 	if !publicKey.Verify(msg, (*libkb.NaclSignature)(&ret.Sig)) {
 		t.Error(libkb.VerificationError{})
+	}
+}
+
+// Test that CryptoSignED25519 propagates any error encountered when
+// getting the device signing key.
+func TestCryptoSignED25519NoSigningKey(t *testing.T) {
+	h := NewCryptoHandler(nil)
+
+	expectedErr := errors.New("Test error")
+	h.getDeviceSigningKeyFn = func(_ int, _ string) (libkb.GenericKey, error) {
+		return nil, expectedErr
+	}
+
+	_, err := h.SignED25519(keybase1.SignED25519Arg{
+		Msg: []byte("test message"),
+	})
+	if err != expectedErr {
+		t.Errorf("expected %v, got %v", expectedErr, err)
 	}
 }
