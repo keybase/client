@@ -32,7 +32,7 @@ type Dir struct {
 
 var _ fs.Node = (*Dir)(nil)
 
-func (d *Dir) Attr(a *fuse.Attr) {
+func (d *Dir) Attr(ctx context.Context, a *fuse.Attr) error {
 	d.folder.mu.RLock()
 	defer d.folder.mu.RUnlock()
 
@@ -40,6 +40,7 @@ func (d *Dir) Attr(a *fuse.Attr) {
 	if d.folder.id.IsPublic() || d.folder.dh.IsPublic() {
 		a.Mode |= 0055
 	}
+	return nil
 }
 
 // getPath returns the Path for the current directory.

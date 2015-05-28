@@ -65,8 +65,9 @@ type Root struct {
 
 var _ fs.Node = (*Root)(nil)
 
-func (*Root) Attr(a *fuse.Attr) {
+func (*Root) Attr(ctx context.Context, a *fuse.Attr) error {
 	a.Mode = os.ModeDir | 0755
+	return nil
 }
 
 var _ fs.NodeRequestLookuper = (*Root)(nil)

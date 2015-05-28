@@ -19,8 +19,9 @@ type Symlink struct {
 
 var _ fs.Node = (*Symlink)(nil)
 
-func (*Symlink) Attr(a *fuse.Attr) {
+func (*Symlink) Attr(ctx context.Context, a *fuse.Attr) error {
 	a.Mode = os.ModeSymlink | 0777
+	return nil
 }
 
 var _ fs.NodeReadlinker = (*Symlink)(nil)

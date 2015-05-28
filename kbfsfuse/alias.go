@@ -16,8 +16,9 @@ type Alias struct {
 
 var _ fs.Node = (*Alias)(nil)
 
-func (*Alias) Attr(a *fuse.Attr) {
+func (*Alias) Attr(ctx context.Context, a *fuse.Attr) error {
 	a.Mode = os.ModeSymlink | 0777
+	return nil
 }
 
 var _ fs.NodeReadlinker = (*Alias)(nil)

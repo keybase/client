@@ -20,7 +20,7 @@ type File struct {
 
 var _ fs.Node = (*File)(nil)
 
-func (f *File) Attr(a *fuse.Attr) {
+func (f *File) Attr(ctx context.Context, a *fuse.Attr) error {
 	f.parent.folder.mu.RLock()
 	defer f.parent.folder.mu.RUnlock()
 
@@ -31,6 +31,7 @@ func (f *File) Attr(a *fuse.Attr) {
 	if f.de.Type == libkbfs.Exec {
 		a.Mode |= 0111
 	}
+	return nil
 }
 
 func (f *File) getPathLocked() libkbfs.Path {
