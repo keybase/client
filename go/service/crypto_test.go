@@ -7,8 +7,9 @@ import (
 	"github.com/keybase/client/protocol/go"
 )
 
-// Test that CryptoSignED25519 yields a signature that the
-// corresponding key can verify.
+// Test that CryptoSignED25519 signs the given message with the device
+// signing key, and that the signature is verifiable by the returned
+// public key.
 //
 // (For general tests that valid signatures are accepted and invalid
 // signatures are rejected, see naclwrap_test.go.)
@@ -33,6 +34,10 @@ func TestCryptoSignED25519(t *testing.T) {
 	}
 
 	publicKey := libkb.NaclSigningKeyPublic(ret.PublicKey)
+	if publicKey != kp.Public {
+		t.Error("unexpected value of publicKey")
+	}
+
 	if !publicKey.Verify(msg, (*libkb.NaclSignature)(&ret.Sig)) {
 		t.Error(libkb.VerificationError{})
 	}
