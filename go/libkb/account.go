@@ -191,11 +191,12 @@ func (a *Account) getDeviceKey(ckf *ComputedKeyFamily, secretKeyType SecretKeyTy
 		return nil, errors.New("Could not get device id")
 	}
 
-	if (secretKeyType & DeviceSigningKeyType) != 0 {
+	switch secretKeyType {
+	case DeviceSigningKeyType:
 		return ckf.GetSibkeyForDevice(*did)
-	} else if (secretKeyType & DeviceEncryptionKeyType) != 0 {
+	case DeviceEncryptionKeyType:
 		return ckf.GetEncryptionSubkeyForDevice(*did)
-	} else {
+	default:
 		return nil, fmt.Errorf("Invalid type %v", secretKeyType)
 	}
 }
@@ -224,7 +225,7 @@ func (a *Account) LockedLocalSecretKey(ska SecretKeyArg) *SKB {
 		return nil
 	}
 
-	if (ska.KeyType & (DeviceSigningKeyType | DeviceEncryptionKeyType)) != 0 {
+	if (ska.KeyType == DeviceSigningKeyType) || (ska.KeyType == DeviceEncryptionKeyType) {
 		key, err := a.getDeviceKey(ckf, ska.KeyType)
 		if err != nil {
 			a.G().Log.Debug("| No key for current device: %s", err.Error())
