@@ -130,7 +130,7 @@
 
 @interface KBRSignatureInfo : KBRObject
 @property NSData *sig;
-@property NSString *verifyingKeyKid;
+@property NSData *verifyingKey;
 @end
 
 @interface KBRCryptoRequest : KBRRequest

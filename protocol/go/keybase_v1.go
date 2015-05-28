@@ -309,9 +309,11 @@ func (c ConfigClient) GetConfig(sessionID int) (res Config, err error) {
 	return
 }
 
+type ED25519PublicKey [32]byte
+type ED25519Signature [64]byte
 type SignatureInfo struct {
-	Sig             []byte `codec:"sig" json:"sig"`
-	VerifyingKeyKid string `codec:"verifyingKeyKid" json:"verifyingKeyKid"`
+	Sig          ED25519Signature `codec:"sig" json:"sig"`
+	VerifyingKey ED25519PublicKey `codec:"verifyingKey" json:"verifyingKey"`
 }
 
 type SignArg struct {

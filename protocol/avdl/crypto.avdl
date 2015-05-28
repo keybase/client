@@ -1,11 +1,14 @@
 @namespace("keybase.1")
 
 protocol crypto {
+	fixed ED25519PublicKey(32);
+	fixed ED25519Signature(64);
+
 	record SignatureInfo {
 	       // The actual signature.
-	       bytes sig;
-	       // The KID of a key that can verify the signature.
-	       string verifyingKeyKid;
+	       ED25519Signature sig;
+	       // The public key that can verify the signature.
+	       ED25519PublicKey verifyingKey;
 	}
 
 	// Sign the given message (which should be small) using the device's

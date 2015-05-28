@@ -29,11 +29,9 @@ func TestCryptoSign(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	public := cse.GetVerifyingKeyKid().ToNaclSigningKeyPublic()
-	if public == nil {
-		t.Fatal("Cannot convert KID to nacl public signing key")
-	}
-	err = public.VerifySlice(msg, cse.GetSignature())
+	signature := cse.GetSignature()
+	verifyingKey := cse.GetVerifyingKey()
+	err = verifyingKey.Verify(msg, &signature)
 	if err != nil {
 		t.Error(err)
 	}
