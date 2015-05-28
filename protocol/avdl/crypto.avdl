@@ -15,6 +15,6 @@ protocol crypto {
 	// private signing ED25519 key, and return the signature as well as
 	// the corresponding public key that can be used to verify the
 	// signature. The 'reason' parameter is used as part of the
-	// SecretEntryArg objects passed into secretUi.getSecret().
+	// SecretEntryArg object passed into secretUi.getSecret().
 	ED25519SignatureInfo signED25519(int sessionID, bytes msg, string reason);
 }
