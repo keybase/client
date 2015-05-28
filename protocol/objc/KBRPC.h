@@ -128,13 +128,13 @@
 
 @end
 
-@interface KBRSignatureInfo : KBRObject
+@interface KBRED25519SignatureInfo : KBRObject
 @property NSData *sig;
-@property NSData *verifyingKey;
+@property NSData *publicKey;
 @end
 
 @interface KBRCryptoRequest : KBRRequest
-- (void)signWithSessionID:(NSInteger)sessionID msg:(NSData *)msg reason:(NSString *)reason completion:(void (^)(NSError *error, KBRSignatureInfo *signatureInfo))completion;
+- (void)signED25519WithSessionID:(NSInteger)sessionID msg:(NSData *)msg reason:(NSString *)reason completion:(void (^)(NSError *error, KBRED25519SignatureInfo *eD25519SignatureInfo))completion;
 
 @end
 
@@ -847,7 +847,7 @@ typedef NS_ENUM (NSInteger, KBRPromptOverwriteType) {
 @interface KBRGetConfigRequestParams : KBRRequestParams
 @property NSInteger sessionID;
 @end
-@interface KBRSignRequestParams : KBRRequestParams
+@interface KBRSignED25519RequestParams : KBRRequestParams
 @property NSInteger sessionID;
 @property NSData *msg;
 @property NSString *reason;

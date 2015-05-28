@@ -4,11 +4,11 @@ protocol crypto {
 	fixed ED25519PublicKey(32);
 	fixed ED25519Signature(64);
 
-	record SignatureInfo {
+	record ED25519SignatureInfo {
 	       // The actual signature.
 	       ED25519Signature sig;
 	       // The public key that can verify the signature.
-	       ED25519PublicKey verifyingKey;
+	       ED25519PublicKey publicKey;
 	}
 
 	// Sign the given message (which should be small) using the device's
@@ -16,5 +16,5 @@ protocol crypto {
 	// that can verify the signature. The 'reason' parameter
 	// is used as part of the SecretEntryArg objects passed into
 	// secretUi.getSecret().
-	SignatureInfo sign(int sessionID, bytes msg, string reason);
+	ED25519SignatureInfo signED25519(int sessionID, bytes msg, string reason);
 }

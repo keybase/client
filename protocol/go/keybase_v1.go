@@ -311,29 +311,29 @@ func (c ConfigClient) GetConfig(sessionID int) (res Config, err error) {
 
 type ED25519PublicKey [32]byte
 type ED25519Signature [64]byte
-type SignatureInfo struct {
-	Sig          ED25519Signature `codec:"sig" json:"sig"`
-	VerifyingKey ED25519PublicKey `codec:"verifyingKey" json:"verifyingKey"`
+type ED25519SignatureInfo struct {
+	Sig       ED25519Signature `codec:"sig" json:"sig"`
+	PublicKey ED25519PublicKey `codec:"publicKey" json:"publicKey"`
 }
 
-type SignArg struct {
+type SignED25519Arg struct {
 	SessionID int    `codec:"sessionID" json:"sessionID"`
 	Msg       []byte `codec:"msg" json:"msg"`
 	Reason    string `codec:"reason" json:"reason"`
 }
 
 type CryptoInterface interface {
-	Sign(SignArg) (SignatureInfo, error)
+	SignED25519(SignED25519Arg) (ED25519SignatureInfo, error)
 }
 
 func CryptoProtocol(i CryptoInterface) rpc2.Protocol {
 	return rpc2.Protocol{
 		Name: "keybase.1.crypto",
 		Methods: map[string]rpc2.ServeHook{
-			"sign": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
-				args := make([]SignArg, 1)
+			"signED25519": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
+				args := make([]SignED25519Arg, 1)
 				if err = nxt(&args); err == nil {
-					ret, err = i.Sign(args[0])
+					ret, err = i.SignED25519(args[0])
 				}
 				return
 			},
@@ -346,8 +346,8 @@ type CryptoClient struct {
 	Cli GenericClient
 }
 
-func (c CryptoClient) Sign(__arg SignArg) (res SignatureInfo, err error) {
-	err = c.Cli.Call("keybase.1.crypto.sign", []interface{}{__arg}, &res)
+func (c CryptoClient) SignED25519(__arg SignED25519Arg) (res ED25519SignatureInfo, err error) {
+	err = c.Cli.Call("keybase.1.crypto.signED25519", []interface{}{__arg}, &res)
 	return
 }
 
