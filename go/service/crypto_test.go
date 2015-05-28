@@ -86,3 +86,40 @@ func TestCryptoSignED25519NoSigningKey(t *testing.T) {
 		t.Errorf("expected %v, got %v", expectedErr, err)
 	}
 }
+
+func TestCryptoUnboxTLFCryptKeyClientHalf(t *testing.T) {
+	h := NewCryptoHandler(nil)
+
+	kp, err := libkb.GenerateNaclDHKeyPair()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	peerKp, err := libkb.GenerateNaclDHKeyPair()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	h.getSecretKeyFn = func(_ libkb.SecretKeyType, _ int, _ string) (libkb.GenericKey, error) {
+		return kp, nil
+	}
+
+	expectedData := keybase1.TLFCryptKeyClientHalf{0, 1, 2, 3, 4, 5}
+
+	encryptedData := []byte{}
+	nonce := keybase1.BoxNonce{}
+	peersPublicKey := keybase1.BoxPublicKey(peerKp.Public)
+	data, err := h.UnboxTLFCryptKeyClientHalf(keybase1.UnboxTLFCryptKeyClientHalfArg{
+		EncryptedData:  encryptedData,
+		Nonce:          nonce,
+		PeersPublicKey: peersPublicKey,
+	})
+
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if data != expectedData {
+		t.Errorf("expected %s, got %s", expectedData, data)
+	}
+}
