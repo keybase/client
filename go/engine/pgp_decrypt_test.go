@@ -151,7 +151,7 @@ func TestPGPDecryptSignedOther(t *testing.T) {
 
 	tcSigner := SetupEngineTest(t, "PGPDecrypt - Signer")
 	defer tcSigner.Cleanup()
-	signer := createFakeUserWithPGPOnly(t, tcSigner)
+	signer := createFakeUserWithPGPSibkey(tcSigner)
 
 	// encrypt a message
 	msg := "We pride ourselves on being meticulous; no issue is too small."
