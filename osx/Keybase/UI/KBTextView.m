@@ -29,6 +29,13 @@
   return self;
 }
 
+- (instancetype)initWithCoder:(NSCoder *)coder {
+  if ((self = [super initWithCoder:coder])) {
+    [self viewInit];
+  }
+  return self;
+}
+
 - (void)viewInit {
   self.identifier = self.className;
   KBNSTextView *view = [[KBNSTextView alloc] init];

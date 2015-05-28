@@ -12,4 +12,6 @@
 
 @interface KBMockViews : KBScrollView
 
+- (void)open:(id)sender;
+
 @end

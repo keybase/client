@@ -125,6 +125,9 @@
       //        p.x += window.frame.size.width + 10;
       //      }
       break;
+    case KBWindowPositionLeft:
+      p.x -= (window.frame.size.width + 10);
+      break;
   }
   [window setFrameOrigin:p];
   [window setContentSize:rect.size];

@@ -8,9 +8,10 @@
 
 #import "KBKeyImportView.h"
 #import "AppDelegate.h"
+#import "KBPGPTextView.h"
 
 @interface KBKeyImportView ()
-@property KBLabel *textView;
+@property KBPGPTextView *textView;
 
 @property KBButton *importButton;
 
@@ -24,58 +25,30 @@
 
 - (void)viewInit {
   [super viewInit];
-  [self kb_setBackgroundColor:NSColor.whiteColor];
 
-  KBBorder *pasteView = [[KBBorder alloc] init];
-  pasteView.width = 2.0;
-  pasteView.color = [NSColor colorWithWhite:0.5 alpha:1.0];
-  pasteView.shapeLayer.backgroundColor = [NSColor colorWithWhite:0.94 alpha:1.0].CGColor;
-  [pasteView.shapeLayer setLineDashPattern:@[@(8), @(8)]];
-  pasteView.cornerRadius = 10;
-  [self addSubview:pasteView];
+  GHWeakSelf gself = self;
 
-  YOView *displayTextView = [[YOView alloc] init];
-  _textView = [[KBLabel alloc] initWithFrame:CGRectMake(20, 20, 2000, 2000)];
-  [displayTextView addSubview:_textView];
-  [self addSubview:displayTextView];
+  _textView = [[KBPGPTextView alloc] init];
+  [self addSubview:_textView];
 
-  YOSelf yself = self;
+  KBBox *line = [KBBox horizontalLine];
+  [self addSubview:line];
 
-  _chooseFileButton = [KBButton button];
-  [_chooseFileButton setMarkup:@"Drag or paste your key here,\nor <a>select a file</a>." style:KBButtonStyleText font:[NSFont systemFontOfSize:20] alignment:NSCenterTextAlignment];
-  _chooseFileButton.targetBlock = ^{ [yself chooseFile]; };
-  [self addSubview:_chooseFileButton];
-
-  YOHBox *footerView = [YOHBox box:@{@"spacing": @(20), @"minSize": @"130,0", @"horizontalAlignment": @"right"}];
+  YOHBox *footerView = [YOHBox box:@{@"spacing": @(20), @"minSize": @"130,0", @"horizontalAlignment": @"right", @"insets": @(20)}];
   [self addSubview:footerView];
+
+  _chooseFileButton = [KBButton buttonWithText:@"Import File" style:KBButtonStyleDefault];
+  _chooseFileButton.targetBlock = ^{ [gself chooseFile]; };
+  [footerView addSubview:_chooseFileButton];
+
   _cancelButton = [KBButton buttonWithText:@"Cancel" style:KBButtonStyleDefault];
   [footerView addSubview:_cancelButton];
 
   _importButton = [KBButton buttonWithText:@"Import" style:KBButtonStylePrimary];
-  _importButton.targetBlock = ^{ [yself import]; };
+  _importButton.targetBlock = ^{ [gself import]; };
   [footerView addSubview:_importButton];
 
-  //YOSelf yself = self;
-  self.viewLayout = [YOLayout layoutWithLayoutBlock:^CGSize(id<YOLayout> layout, CGSize size) {
-
-    CGSize footerSize = [footerView sizeThatFits:size];
-
-    CGFloat y = 40;
-    CGRect pasteRect = CGRectMake(40, y, size.width - 80, size.height - y - 40 - footerSize.height);
-
-    [layout setFrame:pasteRect view:pasteView];
-    [layout setFrame:pasteRect view:displayTextView];
-
-    if (yself.armored) {
-      [layout setFrame:CGRectMake(20, 20, 2000, 2000) view:yself.textView];
-    } else {
-      [layout setFrame:CGRectMake(20, 20, pasteRect.size.width - 40, 2000) view:yself.textView];
-    }
-
-    [layout centerWithSize:CGSizeZero frame:pasteRect view:yself.chooseFileButton];
-    [layout setFrame:CGRectMake(0, size.height - footerSize.height - 20, size.width - 40, footerSize.height) view:footerView];
-    return size;
-  }];
+  self.viewLayout = [YOBorderLayout layoutWithCenter:_textView top:nil bottom:@[line, footerView] insets:UIEdgeInsetsZero spacing:0];
 }
 
 - (void)chooseFile {
@@ -87,11 +60,6 @@
     NSURL *URL = [[openPanel URLs] firstObject];
     [self addURL:URL];
   }
-}
-
-- (void)setDisplayText:(NSString *)displayText {
-  [_textView setText:displayText font:[NSFont systemFontOfSize:10] color:[NSColor colorWithWhite:0.5 alpha:1.0] alignment:NSLeftTextAlignment lineBreakMode:NSLineBreakByCharWrapping];
-  [self setNeedsLayout];
 }
 
 - (void)addURL:(NSURL *)URL {
@@ -115,13 +83,10 @@
     [self scanWithBeginString:@"-----BEGIN PGP PRIVATE KEY BLOCK-----" endString:@"-----END PGP PRIVATE KEY BLOCK-----" text:str scanned:scanned skipped:nil];
     _armored = [scanned firstObject];
     //[_armored replaceOccurrencesOfString:@"\n" withString:@"\r\n" options:0 range:NSMakeRange(0, _armored.length)];
-    [self setDisplayText:_armored];
-    _chooseFileButton.hidden = YES;
+    [_textView setArmoredText:_armored];
   } else {
     _armored = nil;
-    NSData *displayData = [_data subdataWithRange:NSMakeRange(0, MIN(1000, _data.length))];
-    [self setDisplayText:KBHexString(displayData, @"")];
-    _chooseFileButton.hidden = YES;
+    [_textView setData:_data];
   }
 }
 
@@ -143,16 +108,12 @@
 }
 
 - (void)import {
-  KBCompletion completion = ^(NSError *error) {
-    [self.navigation.titleView setProgressEnabled:NO];
-    if (error) {
-      [AppDelegate setError:error sender:self];
-      return;
-    }
-  };
-
+  [KBActivity setProgressEnabled:YES sender:self];
   KBRPgpRequest *request = [[KBRPgpRequest alloc] initWithClient:self.client];
-  [request pgpImportWithSessionID:request.sessionId key:_data pushSecret:NO completion:completion];
+  [request pgpImportWithSessionID:request.sessionId key:_data pushSecret:NO completion:^(NSError *error) {
+    [KBActivity setProgressEnabled:NO sender:self];
+    if ([KBActivity setError:error sender:self]) return;
+  }];
 }
 
 @end

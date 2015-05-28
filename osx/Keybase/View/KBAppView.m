@@ -24,10 +24,6 @@
 #import "KBInstallerView.h"
 
 #import "KBService.h"
-#import "KBFSService.h"
-#import "KBHelperTool.h"
-#import "KBFuseComponent.h"
-#import "KBCLIInstall.h"
 #import "KBControlPanel.h"
 
 
@@ -92,22 +88,6 @@ typedef NS_ENUM (NSInteger, KBAppViewMode) {
   [self showInProgress:@"Loading"];
 }
 
-- (NSArray *)componentsForEnvironment:(KBEnvironment *)environment {
-  NSMutableArray *components = [NSMutableArray array];
-
-  _service = [[KBService alloc] initWithEnvironment:environment];
-
-  [components addObject:_service];
-
-  [components addObject:[[KBHelperTool alloc] initWithEnvironment:environment]];
-  [components addObject:[[KBFuseComponent alloc] initWithEnvironment:environment]];
-  [components addObject:[[KBFSService alloc] initWithEnvironment:environment]];
-
-  //[components addObject:[[KBCLIInstall alloc] initWithEnvironment:environment]];
-
-  return components;
-}
-
 - (void)openWithEnvironment:(KBEnvironment *)environment {
   _environment = environment;
 
@@ -116,13 +96,12 @@ typedef NS_ENUM (NSInteger, KBAppViewMode) {
 
   [self showInProgress:@"Loading"];
 
-  NSArray *components = [self componentsForEnvironment:environment];
+  [AppDelegate.sharedDelegate.controlPanel addComponents:_environment.components];
 
-  [AppDelegate.sharedDelegate.controlPanel addComponents:components];
-
-  KBInstaller *installer = [[KBInstaller alloc] initWithEnvironment:environment components:environment.isInstallEnabled ? components : nil];
-  [installer installStatus:^(BOOL needsInstall) {
+  GHWeakSelf gself = self;
+  [_environment installStatus:^(BOOL needsInstall) {
     if (needsInstall) {
+      KBInstaller *installer = [[KBInstaller alloc] initWithEnvironment:gself.environment];
       [self showInstaller:installer];
     } else {
       [self connect];
@@ -131,45 +110,9 @@ typedef NS_ENUM (NSInteger, KBAppViewMode) {
 }
 
 - (void)connect {
-  _service.client.delegate = self;
-
-  [_service.client registerMethod:@"keybase.1.secretUi.getSecret" sessionId:0 requestHandler:^(NSNumber *messageId, NSString *method, NSArray *params, MPRequestCompletion completion) {
-    DDLogDebug(@"Password prompt: %@", params);
-    KBRGetSecretRequestParams *requestParams = [[KBRGetSecretRequestParams alloc] initWithParams:params];
-    [KBAlert promptForInputWithTitle:requestParams.pinentry.prompt description:requestParams.pinentry.desc secure:YES style:NSCriticalAlertStyle buttonTitles:@[@"OK", @"Cancel"] view:self completion:^(NSModalResponse response, NSString *password) {
-      KBRSecretEntryRes *entry = [[KBRSecretEntryRes alloc] init];
-      entry.text = response == NSAlertFirstButtonReturn ? password : nil;
-      entry.canceled = response == NSAlertSecondButtonReturn;
-      completion(nil, entry);
-    }];
-  }];
-
-  [_service.client registerMethod:@"keybase.1.secretUi.getNewPassphrase" sessionId:0 requestHandler:^(NSNumber *messageId, NSString *method, NSArray *params, MPRequestCompletion completion) {
-    KBRGetNewPassphraseRequestParams *requestParams = [[KBRGetNewPassphraseRequestParams alloc] initWithParams:params];
-    [KBAlert promptForInputWithTitle:requestParams.pinentryPrompt description:requestParams.pinentryDesc secure:YES style:NSCriticalAlertStyle buttonTitles:@[@"OK", @"Cancel"] view:self completion:^(NSModalResponse response, NSString *password) {
-      NSString *text = response == NSAlertFirstButtonReturn ? password : nil;
-      completion(nil, text);
-    }];
-  }];
-
-  [_service.client registerMethod:@"keybase.1.secretUi.getKeybasePassphrase" sessionId:0 requestHandler:^(NSNumber *messageId, NSString *method, NSArray *params, MPRequestCompletion completion) {
-    DDLogDebug(@"Password prompt: %@", params);
-    KBRGetKeybasePassphraseRequestParams *requestParams = [[KBRGetKeybasePassphraseRequestParams alloc] initWithParams:params];
-    [KBAlert promptForInputWithTitle:@"Passphrase" description:NSStringWithFormat(@"What's your passphrase (for user %@)?", requestParams.username) secure:YES style:NSCriticalAlertStyle buttonTitles:@[@"OK", @"Cancel"] view:self completion:^(NSModalResponse response, NSString *password) {
-      NSString *text = response == NSAlertFirstButtonReturn ? password : nil;
-      completion(nil, text);
-    }];
-  }];
-
-  [_service.client registerMethod:@"keybase.1.logUi.log" sessionId:0 requestHandler:^(NSNumber *messageId, NSString *method, NSArray *params, MPRequestCompletion completion) {
-    KBRLogRequestParams *requestParams = [[KBRLogRequestParams alloc] initWithParams:params];
-
-    DDLogInfo(requestParams.text.data);
-
-    completion(nil, nil);
-  }];
-
-  [_service.client open];
+  KBRPClient *client = _environment.service.client;
+  client.delegate = self;
+  [client open];
 }
 
 // If we errored while checking status
@@ -216,7 +159,7 @@ typedef NS_ENUM (NSInteger, KBAppViewMode) {
 
   // TODO reset progress?
   //[_loginView.navigation setProgressEnabled:NO];
-  _loginView.client = _service.client;
+  _loginView.client = _environment.service.client;
   return _loginView;
 }
 
@@ -229,7 +172,7 @@ typedef NS_ENUM (NSInteger, KBAppViewMode) {
       [gself showLogin];
     };
   }
-  _signupView.client = _service.client;
+  _signupView.client = _environment.service.client;
   return _signupView;
 }
 
@@ -267,35 +210,35 @@ typedef NS_ENUM (NSInteger, KBAppViewMode) {
 
 - (void)showUsers {
   if (!_usersAppView) _usersAppView = [[KBUsersAppView alloc] init];
-  _usersAppView.client = _service.client;
+  _usersAppView.client = _environment.service.client;
   [self setContentView:_usersAppView mode:KBAppViewModeMain];
 }
 
 - (void)showProfile {
   NSAssert(_user, @"No user");
   if (!_userProfileView) _userProfileView = [[KBUserProfileView alloc] init];
-  [_userProfileView setUsername:_user.username client:_service.client];
+  [_userProfileView setUsername:_user.username client:_environment.service.client];
   [self setContentView:_userProfileView mode:KBAppViewModeMain];
   _toolbar.selectedItem = KBAppViewItemProfile;
 }
 
 - (void)showDevices {
   if (!_devicesAppView) _devicesAppView = [[KBDevicesAppView alloc] init];
-  _devicesAppView.client = _service.client;
+  _devicesAppView.client = _environment.service.client;
   [_devicesAppView reload];
   [self setContentView:_devicesAppView mode:KBAppViewModeMain];
 }
 
 - (void)showFolders {
   if (!_foldersAppView) _foldersAppView = [[KBFoldersAppView alloc] init];
-  _foldersAppView.client = _service.client;
+  _foldersAppView.client = _environment.service.client;
   [_foldersAppView reload];
   [self setContentView:_foldersAppView mode:KBAppViewModeMain];
 }
 
 - (void)showPGP {
   if (!_PGPAppView) _PGPAppView = [[KBPGPAppView alloc] init];
-  _PGPAppView.client = _service.client;
+  _PGPAppView.client = _environment.service.client;
   [self setContentView:_PGPAppView mode:KBAppViewModeMain];
 }
 
@@ -303,7 +246,7 @@ typedef NS_ENUM (NSInteger, KBAppViewMode) {
   GHWeakSelf gself = self;
   dispatch_block_t logout = ^{
     [self showInProgress:@"Logging out"];
-    KBRLoginRequest *login = [[KBRLoginRequest alloc] initWithClient:gself.service.client];
+    KBRLoginRequest *login = [[KBRLoginRequest alloc] initWithClient:gself.environment.service.client];
     [login logout:^(NSError *error) {
       if (error) {
         [AppDelegate setError:error sender:self];
@@ -322,7 +265,7 @@ typedef NS_ENUM (NSInteger, KBAppViewMode) {
 }
 
 - (void)checkStatus {
-  [_service checkStatus:^(NSError *error, KBRGetCurrentStatusRes *status, KBRConfig *config) {
+  [_environment.service checkStatus:^(NSError *error, KBRGetCurrentStatusRes *status, KBRConfig *config) {
     if (error) {
       [self setStatusError:error];
       return;
@@ -344,7 +287,7 @@ typedef NS_ENUM (NSInteger, KBAppViewMode) {
  */
 
 - (NSString *)APIURLString:(NSString *)path {
-  NSString *host = _service.config.serverURI;
+  NSString *host = _environment.service.userConfig.serverURI;
   if ([host isEqualTo:@"https://api.keybase.io:443"]) host = @"https://keybase.io";
   return [NSString stringWithFormat:@"%@/%@", host, path];
 }
@@ -395,6 +338,23 @@ typedef NS_ENUM (NSInteger, KBAppViewMode) {
   //if (connectAttempt == 1) [AppDelegate.sharedDelegate setFatalError:error]; // Show error on first error attempt
   //DDLogInfo(@"Failed to connect (%@): %@", @(connectAttempt), [error localizedDescription]);
   //[NSNotificationCenter.defaultCenter postNotificationName:KBStatusDidChangeNotification object:nil userInfo:@{}];
+}
+
+- (void)RPClient:(KBRPClient *)RPClient didLog:(NSString *)message {
+  DDLogInfo(message);
+}
+
+- (void)RPClient:(KBRPClient *)RPClient didRequestSecretForPrompt:(NSString *)prompt description:(NSString *)description secret:(KBRPClientOnSecret)secret {
+  [KBAlert promptForInputWithTitle:prompt description:description secure:YES style:NSCriticalAlertStyle buttonTitles:@[@"OK", @"Cancel"] view:self completion:^(NSModalResponse response, NSString *password) {
+    secret(password);
+  }];
+}
+
+- (void)RPClient:(KBRPClient *)RPClient didRequestKeybasePassphraseForUsername:(NSString *)username passphrase:(KBRPClientOnPassphrase)passphrase {
+  [KBAlert promptForInputWithTitle:@"Passphrase" description:NSStringWithFormat(@"What's your passphrase (for user %@)?", username) secure:YES style:NSCriticalAlertStyle buttonTitles:@[@"OK", @"Cancel"] view:self completion:^(NSModalResponse response, NSString *password) {
+    NSString *text = response == NSAlertFirstButtonReturn ? password : nil;
+    passphrase(text);
+  }];
 }
 
 - (void)appToolbar:(KBAppToolbar *)appToolbar didSelectItem:(KBAppViewItem)item {

@@ -23,6 +23,8 @@ typedef BOOL (^KBTextViewPaste)(KBTextView *textView);
 
 @property (copy) KBTextViewPaste onPaste;
 
+- (void)viewInit;
+
 - (void)setText:(NSString *)text font:(NSFont *)font color:(NSColor *)color;
 - (void)setText:(NSString *)text font:(NSFont *)font color:(NSColor *)color alignment:(NSTextAlignment)alignment lineBreakMode:(NSLineBreakMode)lineBreakMode;
 

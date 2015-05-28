@@ -217,13 +217,6 @@
   [_trackersView setUserSummaries:userSummaries update:update];
 }
 
-KBRUser *KBRUserFromSearchResult(KBSearchResult *searchResult) {
-  KBRUser *user = [[KBRUser alloc] init];
-  user.uid = KBHexData(searchResult.userId);
-  user.username = searchResult.userName;
-  return user;
-}
-
 #pragma mark Search
 
 - (void)showSearch {

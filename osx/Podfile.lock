@@ -25,11 +25,11 @@ PODS:
     - CocoaLumberjack/Core
   - CocoaLumberjack/Extensions (2.0.0):
     - CocoaLumberjack/Default
-  - GHKit (1.0.21)
-  - GHODictionary (1.0.2)
-  - Mantle (2.0):
-    - Mantle/extobjc (= 2.0)
-  - Mantle/extobjc (2.0)
+  - GHKit (2.0.0)
+  - GHODictionary (1.0.7)
+  - Mantle (2.0.2):
+    - Mantle/extobjc (= 2.0.2)
+  - Mantle/extobjc (2.0.2)
   - MASPreferences (1.1.2)
   - MPMessagePack (1.1.21):
     - GHODictionary
@@ -54,15 +54,19 @@ DEPENDENCIES:
   - ObjectiveSugar
   - Slash
   - Sparkle
-  - YOLayout
+  - YOLayout (from `~/Projects/YOLayout`)
   - ZXCVBN
+
+EXTERNAL SOURCES:
+  YOLayout:
+    :path: "~/Projects/YOLayout"
 
 SPEC CHECKSUMS:
   AFNetworking: 05edc0ac4c4c8cf57bcf4b84be5b0744b6d8e71e
   CocoaLumberjack: a6f77d987d65dc7ba86b0f84db7d0b9084f77bcb
-  GHKit: 487b552e3c228236dc2a5c7c1c5f79b8c7412a6b
-  GHODictionary: eedf2c5438df18da2410608b38ae8eb230089ff0
-  Mantle: d7c75b6fb789b20f7ae30cd0d09435fe545896ff
+  GHKit: 29e5361c9d8a33343ae5ed4698057d1533ee590b
+  GHODictionary: 993689351856664fea250da963bfd63fc624ca48
+  Mantle: 967fd31ea0220890b2e76589198996b534bb3fb1
   MASPreferences: 32d8a2c5ef1d60b63240f5676b011ff72e194cb1
   MPMessagePack: 5cafc8ed00fc405ad1d4255116666f6b1e6ae026
   ObjectiveSugar: a6a25f23d657c19df0a0b972466d5b5ca9f5295c
@@ -71,4 +75,4 @@ SPEC CHECKSUMS:
   YOLayout: 71d403f99c77c24345803ad90a2f7ea735585bfd
   ZXCVBN: 6bf251a7274d6a91d00fd195939da9952f8dfc54
 
-COCOAPODS: 0.37.1
+COCOAPODS: 0.37.2

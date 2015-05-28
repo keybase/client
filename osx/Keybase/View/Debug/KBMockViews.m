@@ -13,7 +13,6 @@
 #import "KBPGPKeyGenView.h"
 #import "KBProveView.h"
 #import "KBStyleGuideView.h"
-#import "KBTestClientView.h"
 #import "KBKeySelectView.h"
 #import "KBDeviceSetupChooseView.h"
 #import "KBRMockClient.h"
@@ -114,6 +113,10 @@
   [contentView addSubview:[KBLabel labelWithText:@"Testing " style:KBTextStyleHeader]];
 
   [self setDocumentView:contentView];
+}
+
+- (void)open:(id)sender {
+  [[sender window] kb_addChildWindowForView:self rect:CGRectMake(0, 40, 400, 600) position:KBWindowPositionLeft title:@"Mocks" fixed:NO makeKey:NO];
 }
 
 - (void)showProgressView:(NSTimeInterval)delay error:(BOOL)error {

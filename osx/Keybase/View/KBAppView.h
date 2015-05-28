@@ -10,14 +10,12 @@
 
 #import "KBAppKit.h"
 #import "KBRPC.h"
-#import "KBService.h"
-
+#import "KBEnvironment.h"
 
 @interface KBAppView : YOView
 
 @property (nonatomic) KBRUser *user;
-
-@property KBService *service;
+@property (readonly) KBEnvironment *environment;
 
 - (void)openWithEnvironment:(KBEnvironment *)environment;
 

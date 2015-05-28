@@ -15,9 +15,10 @@
 #import "KBPGPVerify.h"
 #import "KBPGPVerifyFooterView.h"
 #import "KBFileSelectView.h"
+#import "KBPGPTextView.h"
 
 @interface KBPGPVerifyView ()
-@property KBTextView *textView;
+@property KBPGPTextView *textView;
 @property KBFileSelectView *fileSelectView;
 @property KBPGPVerifyFooterView *footerView;
 @property KBPGPVerify *verifier;
@@ -36,15 +37,7 @@
   [topView addSubview:labelView];
   [topView addSubview:[KBBox horizontalLine]];
 
-  _textView = [[KBTextView alloc] init];
-  _textView.view.editable = YES;
-  _textView.view.textContainerInset = CGSizeMake(10, 10);
-  _textView.onPaste = ^BOOL(KBTextView *textView) {
-    NSPasteboard *pasteboard = [NSPasteboard generalPasteboard];
-    NSString *str = [pasteboard stringForType:NSPasteboardTypeString];
-    [textView setText:str style:KBTextStyleDefault options:KBTextOptionsMonospace alignment:NSLeftTextAlignment lineBreakMode:NSLineBreakByClipping];
-    return NO;
-  };
+  _textView = [[KBPGPTextView alloc] init];
   [self addSubview:_textView];
 
   YOVBox *bottomView = [YOVBox box];
@@ -63,7 +56,7 @@
 }
 
 - (void)setASCIIData:(NSData *)data {
-  [_textView setText:[[NSString alloc] initWithData:data encoding:NSASCIIStringEncoding] style:KBTextStyleDefault options:KBTextOptionsMonospace alignment:NSLeftTextAlignment lineBreakMode:NSLineBreakByClipping];
+  [_textView setData:data];
 }
 
 - (void)setupResponders {

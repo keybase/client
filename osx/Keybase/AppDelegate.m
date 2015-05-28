@@ -123,6 +123,11 @@
   _appView = [[KBAppView alloc] init];
   [_appView openWindow];
 
+#ifdef DEBUG
+  KBMockViews *mockViews = [[KBMockViews alloc] init];
+  [mockViews open:_appView];
+#endif
+
   [_controlPanel open:_appView];
 
   [_appView openWithEnvironment:environment];
@@ -141,7 +146,7 @@
 
   [menu addItemWithTitle:@"Preferences" action:@selector(preferences:) keyEquivalent:@""];
 
-  KBRGetCurrentStatusRes *status = _appView.service.userStatus;
+  KBRGetCurrentStatusRes *status = _appView.environment.service.userStatus;
   if (status) {
     if (status.loggedIn && status.user) {
       [menu addItemWithTitle:NSStringWithFormat(@"Log Out (%@)", status.user.username) action:@selector(logout:) keyEquivalent:@""];
@@ -171,7 +176,7 @@
 }
 
 - (IBAction)preferences:(id)sender {
-  [_preferences open:_appView.service.config.configPath sender:_appView];
+  [_preferences open:_appView.environment.service.userConfig.configPath sender:_appView];
 }
 
 - (IBAction)login:(id)sender {
@@ -238,55 +243,55 @@
 
 - (IBAction)encrypt:(id)sender {
   KBPGPEncryptView *view = [[KBPGPEncryptView alloc] init];
-  view.client = self.appView.service.client;
+  view.client = self.appView.environment.service.client;
   [self.appView.window kb_addChildWindowForView:view rect:CGRectMake(0, 0, 510, 400) position:KBWindowPositionCenter title:@"Encrypt" fixed:NO makeKey:YES];
 }
 
 - (IBAction)encryptFile:(id)sender {
   KBPGPEncryptFilesView *view = [[KBPGPEncryptFilesView alloc] init];
-  view.client = self.appView.service.client;
+  view.client = self.appView.environment.service.client;
   [self.appView.window kb_addChildWindowForView:view rect:CGRectMake(0, 0, 510, 400) position:KBWindowPositionCenter title:@"Encrypt Files" fixed:NO makeKey:YES];
 }
 
 - (IBAction)decrypt:(id)sender {
   KBPGPDecryptView *view = [[KBPGPDecryptView alloc] init];
-  view.client = self.appView.service.client;
+  view.client = self.appView.environment.service.client;
   [self.appView.window kb_addChildWindowForView:view rect:CGRectMake(0, 0, 510, 400) position:KBWindowPositionCenter title:@"Decrypt" fixed:NO makeKey:YES];
 }
 
 - (IBAction)decryptFile:(id)sender {
   KBPGPDecryptFileView *view = [[KBPGPDecryptFileView alloc] init];
-  view.client = self.appView.service.client;
+  view.client = self.appView.environment.service.client;
   [self.appView.window kb_addChildWindowForView:view rect:CGRectMake(0, 0, 510, 400) position:KBWindowPositionCenter title:@"Decrypt Files" fixed:NO makeKey:YES];
 }
 
 - (IBAction)sign:(id)sender {
   KBPGPSignView *view = [[KBPGPSignView alloc] init];
-  view.client = self.appView.service.client;
+  view.client = self.appView.environment.service.client;
   [self.appView.window kb_addChildWindowForView:view rect:CGRectMake(0, 0, 510, 400) position:KBWindowPositionCenter title:@"Sign" fixed:NO makeKey:YES];
 }
 
 - (IBAction)signFile:(id)sender {
   KBPGPSignFileView *view = [[KBPGPSignFileView alloc] init];
-  view.client = self.appView.service.client;
+  view.client = self.appView.environment.service.client;
   [self.appView.window kb_addChildWindowForView:view rect:CGRectMake(0, 0, 400, 400) position:KBWindowPositionCenter title:@"Sign File" fixed:NO makeKey:YES];
 }
 
 - (IBAction)signFiles:(id)sender {
   KBPGPSignFilesView *view = [[KBPGPSignFilesView alloc] init];
-  view.client = self.appView.service.client;
+  view.client = self.appView.environment.service.client;
   [self.appView.window kb_addChildWindowForView:view rect:CGRectMake(0, 0, 400, 400) position:KBWindowPositionCenter title:@"Sign Files" fixed:NO makeKey:YES];
 }
 
 - (IBAction)verify:(id)sender {
   KBPGPVerifyView *view = [[KBPGPVerifyView alloc] init];
-  view.client = self.appView.service.client;
+  view.client = self.appView.environment.service.client;
   [self.appView.window kb_addChildWindowForView:view rect:CGRectMake(0, 0, 400, 400) position:KBWindowPositionCenter title:@"Verify" fixed:NO makeKey:YES];
 }
 
 - (IBAction)verifyFile:(id)sender {
   KBPGPVerifyFileView *view = [[KBPGPVerifyFileView alloc] init];
-  view.client = self.appView.service.client;
+  view.client = self.appView.environment.service.client;
   [self.appView.window kb_addChildWindowForView:view rect:CGRectMake(0, 0, 400, 400) position:KBWindowPositionCenter title:@"Verify File" fixed:NO makeKey:YES];
 }
 

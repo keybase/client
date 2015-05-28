@@ -15,6 +15,7 @@
 typedef NS_ENUM (NSInteger, KBWindowPosition) {
   KBWindowPositionCenter,
   KBWindowPositionRight,
+  KBWindowPositionLeft,
 };
 
 
