@@ -102,7 +102,7 @@ func (s *CmdListTracking) RunClient() error {
 	}
 
 	if s.json {
-		jsonStr, err := cli.ListTrackingJson(keybase1.ListTrackingJsonArg{
+		jsonStr, err := cli.ListTrackingJSON(keybase1.ListTrackingJSONArg{
 			Filter:  s.filter,
 			Verbose: s.verbose,
 		})

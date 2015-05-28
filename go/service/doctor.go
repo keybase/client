@@ -29,7 +29,7 @@ func (h *DoctorHandler) Doctor(sessionID int) error {
 }
 
 func (h *DoctorHandler) ui(sessionID int) *RemoteDoctorUI {
-	c := h.getRpcClient()
+	c := h.rpcClient()
 	return &RemoteDoctorUI{
 		sessionID: sessionID,
 		uicli:     keybase1.DoctorUiClient{Cli: c},

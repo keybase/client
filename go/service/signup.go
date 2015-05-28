@@ -23,7 +23,7 @@ func (h *SignupHandler) Signup(arg keybase1.SignupArg) (res keybase1.SignupRes, 
 	sessionID := nextSessionID()
 	ctx := &engine.Context{
 		LogUI:    h.getLogUI(sessionID),
-		GPGUI:    NewRemoteGPGUI(sessionID, h.getRpcClient()),
+		GPGUI:    NewRemoteGPGUI(sessionID, h.rpcClient()),
 		SecretUI: h.getSecretUI(sessionID),
 		LoginUI:  h.getLoginUI(sessionID),
 	}

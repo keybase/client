@@ -8,7 +8,7 @@ import (
 )
 
 type RemoteBaseIdentifyUI struct {
-	sessionId  int
+	sessionID  int
 	uicli      keybase1.IdentifyUiClient
 	logUI      libkb.LogUI
 	strict     bool
@@ -45,14 +45,14 @@ func (h *IdentifyHandler) IdentifyDefault(arg keybase1.IdentifyDefaultArg) (keyb
 	return *(res.Export()), nil
 }
 
-func (h *IdentifyHandler) identify(sessionId int, iarg engine.IDEngineArg, doInteractive bool) (res *engine.IDRes, err error) {
-	logui := h.getLogUI(sessionId)
+func (h *IdentifyHandler) identify(sessionID int, iarg engine.IDEngineArg, doInteractive bool) (res *engine.IDRes, err error) {
+	logui := h.getLogUI(sessionID)
 	if iarg.TrackStatement {
 		logui = libkb.NewNullLogger()
 	}
 	ctx := engine.Context{
 		LogUI:      logui,
-		IdentifyUI: h.NewRemoteIdentifyUI(sessionId),
+		IdentifyUI: h.NewRemoteIdentifyUI(sessionID),
 	}
 	eng := engine.NewIDEngine(&iarg, G)
 	err = engine.RunEngine(eng, &ctx)
@@ -62,7 +62,7 @@ func (h *IdentifyHandler) identify(sessionId int, iarg engine.IDEngineArg, doInt
 
 func (u *RemoteBaseIdentifyUI) FinishWebProofCheck(p keybase1.RemoteProof, lcr keybase1.LinkCheckResult) {
 	u.uicli.FinishWebProofCheck(keybase1.FinishWebProofCheckArg{
-		SessionID: u.sessionId,
+		SessionID: u.sessionID,
 		Rp:        p,
 		Lcr:       lcr,
 	})
@@ -71,7 +71,7 @@ func (u *RemoteBaseIdentifyUI) FinishWebProofCheck(p keybase1.RemoteProof, lcr k
 
 func (u *RemoteBaseIdentifyUI) FinishSocialProofCheck(p keybase1.RemoteProof, lcr keybase1.LinkCheckResult) {
 	u.uicli.FinishSocialProofCheck(keybase1.FinishSocialProofCheckArg{
-		SessionID: u.sessionId,
+		SessionID: u.sessionID,
 		Rp:        p,
 		Lcr:       lcr,
 	})
@@ -83,32 +83,32 @@ func (u *RemoteBaseIdentifyUI) FinishAndPrompt(io *keybase1.IdentifyOutcome) (ke
 		G.Log.Debug("skipping FinishAndPrompt for %q", io.Username)
 		return keybase1.FinishAndPromptRes{}, nil
 	}
-	return u.uicli.FinishAndPrompt(keybase1.FinishAndPromptArg{SessionID: u.sessionId, Outcome: *io})
+	return u.uicli.FinishAndPrompt(keybase1.FinishAndPromptArg{SessionID: u.sessionID, Outcome: *io})
 }
 
 func (u *RemoteBaseIdentifyUI) DisplayCryptocurrency(c keybase1.Cryptocurrency) {
-	u.uicli.DisplayCryptocurrency(keybase1.DisplayCryptocurrencyArg{SessionID: u.sessionId, C: c})
+	u.uicli.DisplayCryptocurrency(keybase1.DisplayCryptocurrencyArg{SessionID: u.sessionID, C: c})
 	return
 }
 
 func (u *RemoteBaseIdentifyUI) DisplayKey(k keybase1.FOKID, d *keybase1.TrackDiff) {
-	u.uicli.DisplayKey(keybase1.DisplayKeyArg{SessionID: u.sessionId, Fokid: k, Diff: d})
+	u.uicli.DisplayKey(keybase1.DisplayKeyArg{SessionID: u.sessionID, Fokid: k, Diff: d})
 	return
 }
 
 func (u *RemoteBaseIdentifyUI) ReportLastTrack(t *keybase1.TrackSummary) {
-	u.uicli.ReportLastTrack(keybase1.ReportLastTrackArg{SessionID: u.sessionId, Track: t})
+	u.uicli.ReportLastTrack(keybase1.ReportLastTrackArg{SessionID: u.sessionID, Track: t})
 	return
 }
 
 func (u *RemoteBaseIdentifyUI) DisplayTrackStatement(s string) error {
-	return u.uicli.DisplayTrackStatement(keybase1.DisplayTrackStatementArg{Stmt: s, SessionID: u.sessionId})
+	return u.uicli.DisplayTrackStatement(keybase1.DisplayTrackStatementArg{Stmt: s, SessionID: u.sessionID})
 	// return
 }
 
 func (u *RemoteBaseIdentifyUI) LaunchNetworkChecks(id *keybase1.Identity, user *keybase1.User) {
 	u.uicli.LaunchNetworkChecks(keybase1.LaunchNetworkChecksArg{
-		SessionID: u.sessionId,
+		SessionID: u.sessionID,
 		Id:        *id,
 		User:      *user,
 	})
@@ -116,11 +116,11 @@ func (u *RemoteBaseIdentifyUI) LaunchNetworkChecks(id *keybase1.Identity, user *
 }
 
 func (u *RemoteBaseIdentifyUI) Start(username string) {
-	u.uicli.Start(keybase1.StartArg{SessionID: u.sessionId, Username: username})
+	u.uicli.Start(keybase1.StartArg{SessionID: u.sessionID, Username: username})
 }
 
 func (u *RemoteBaseIdentifyUI) Finish() {
-	u.uicli.Finish(u.sessionId)
+	u.uicli.Finish(u.sessionID)
 }
 
 func (u *RemoteBaseIdentifyUI) SetStrict(b bool) {

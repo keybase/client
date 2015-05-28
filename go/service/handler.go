@@ -27,22 +27,22 @@ func NewBaseHandler(xp *rpc2.Transport) *BaseHandler {
 }
 
 type LoginUI struct {
-	sessionId int
+	sessionID int
 	cli       *keybase1.LoginUiClient
 }
 
 func (u *LoginUI) GetEmailOrUsername(dummy int) (ret string, err error) {
-	return u.cli.GetEmailOrUsername(u.sessionId)
+	return u.cli.GetEmailOrUsername(u.sessionID)
 }
 
 type SecretUI struct {
-	sessionId int
+	sessionID int
 	cli       *keybase1.SecretUiClient
 }
 
 // GetSecret gets a free-form secret from a pinentry
 func (l *SecretUI) GetSecret(pinentry keybase1.SecretEntryArg, terminal *keybase1.SecretEntryArg) (*keybase1.SecretEntryRes, error) {
-	res, err := l.cli.GetSecret(keybase1.GetSecretArg{SessionID: l.sessionId, Pinentry: pinentry, Terminal: terminal})
+	res, err := l.cli.GetSecret(keybase1.GetSecretArg{SessionID: l.sessionID, Pinentry: pinentry, Terminal: terminal})
 	return &res, err
 }
 
@@ -74,7 +74,7 @@ func nextSessionID() int {
 	return <-sessionIDch
 }
 
-func (h *BaseHandler) getRpcClient() *rpc2.Client {
+func (h *BaseHandler) rpcClient() *rpc2.Client {
 	return h.cli
 }
 
@@ -87,53 +87,53 @@ func (h *BaseHandler) getLoginUI(sessionID int) libkb.LoginUI {
 }
 
 func (h *BaseHandler) getLocksmithUI(sessionID int) libkb.LocksmithUI {
-	return NewRemoteLocksmithUI(sessionID, h.getRpcClient())
+	return NewRemoteLocksmithUI(sessionID, h.rpcClient())
 }
 
 func (h *BaseHandler) getGPGUI(sessionID int) libkb.GPGUI {
-	return NewRemoteGPGUI(sessionID, h.getRpcClient())
+	return NewRemoteGPGUI(sessionID, h.rpcClient())
 }
 
 func (h *BaseHandler) getSecretUICli() *keybase1.SecretUiClient {
 	return h.secretCli
 }
 
-func (h *BaseHandler) getSecretUI(sessionId int) libkb.SecretUI {
-	return &SecretUI{sessionId, h.getSecretUICli()}
+func (h *BaseHandler) getSecretUI(sessionID int) libkb.SecretUI {
+	return &SecretUI{sessionID, h.getSecretUICli()}
 }
 
 func (h *BaseHandler) getLogUICli() *keybase1.LogUiClient {
 	return h.logCli
 }
 
-func (h *BaseHandler) getLogUI(sessionId int) libkb.LogUI {
-	return &LogUI{sessionId, h.getLogUICli()}
+func (h *BaseHandler) getLogUI(sessionID int) libkb.LogUI {
+	return &LogUI{sessionID, h.getLogUICli()}
 }
 
 func (h *BaseHandler) getStreamUICli() *keybase1.StreamUiClient {
-	return &keybase1.StreamUiClient{Cli: h.getRpcClient()}
+	return &keybase1.StreamUiClient{Cli: h.rpcClient()}
 }
 
-func (h *BaseHandler) NewRemoteSelfIdentifyUI(sessionId int) *RemoteSelfIdentifyUI {
-	c := h.getRpcClient()
+func (h *BaseHandler) NewRemoteSelfIdentifyUI(sessionID int) *RemoteSelfIdentifyUI {
+	c := h.rpcClient()
 	return &RemoteSelfIdentifyUI{RemoteBaseIdentifyUI{
-		sessionId: sessionId,
+		sessionID: sessionID,
 		uicli:     keybase1.IdentifyUiClient{Cli: c},
-		logUI:     h.getLogUI(sessionId),
+		logUI:     h.getLogUI(sessionID),
 	}}
 }
 
-func (h *BaseHandler) NewRemoteIdentifyUI(sessionId int) *RemoteIdentifyUI {
-	c := h.getRpcClient()
+func (h *BaseHandler) NewRemoteIdentifyUI(sessionID int) *RemoteIdentifyUI {
+	c := h.rpcClient()
 	return &RemoteIdentifyUI{RemoteBaseIdentifyUI{
-		sessionId: sessionId,
+		sessionID: sessionID,
 		uicli:     keybase1.IdentifyUiClient{Cli: c},
-		logUI:     h.getLogUI(sessionId),
+		logUI:     h.getLogUI(sessionID),
 	}}
 }
 
-func (h *BaseHandler) NewRemoteSkipPromptIdentifyUI(sessionId int) *RemoteIdentifyUI {
-	c := h.NewRemoteIdentifyUI(sessionId)
+func (h *BaseHandler) NewRemoteSkipPromptIdentifyUI(sessionID int) *RemoteIdentifyUI {
+	c := h.NewRemoteIdentifyUI(sessionID)
 	c.skipPrompt = true
 	return c
 }

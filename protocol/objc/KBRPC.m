@@ -1094,9 +1094,9 @@
   }];
 }
 
-- (void)listTrackingJsonWithFilter:(NSString *)filter verbose:(BOOL)verbose completion:(void (^)(NSError *error, NSString *str))completion {
+- (void)listTrackingJSONWithFilter:(NSString *)filter verbose:(BOOL)verbose completion:(void (^)(NSError *error, NSString *str))completion {
   NSArray *params = @[@{@"filter": KBRValue(filter), @"verbose": @(verbose)}];
-  [self.client sendRequestWithMethod:@"keybase.1.user.listTrackingJson" params:params sessionId:self.sessionId completion:^(NSError *error, id retval) {
+  [self.client sendRequestWithMethod:@"keybase.1.user.listTrackingJSON" params:params sessionId:self.sessionId completion:^(NSError *error, id retval) {
     completion(error, 0);
   }];
 }
@@ -2174,7 +2174,7 @@
 
 @end
 
-@implementation KBRListTrackingJsonRequestParams
+@implementation KBRListTrackingJSONRequestParams
 
 - (instancetype)initWithParams:(NSArray *)params {
   if ((self = [super initWithParams:params])) {

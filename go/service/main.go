@@ -65,10 +65,9 @@ func (d *Service) Run() (err error) {
 	}
 
 	if len(d.chdirTo) != 0 {
-		e_tmp := os.Chdir(d.chdirTo)
-		if e_tmp != nil {
-			G.Log.Warning("Could not change directory to %s: %s",
-				d.chdirTo, e_tmp.Error())
+		etmp := os.Chdir(d.chdirTo)
+		if etmp != nil {
+			G.Log.Warning("Could not change directory to %s: %s", d.chdirTo, etmp.Error())
 		} else {
 			G.Log.Info("Changing runtime dir to %s", d.chdirTo)
 		}
@@ -80,7 +79,7 @@ func (d *Service) Run() (err error) {
 	if err = d.OpenSocket(); err != nil {
 		return
 	}
-	if err = d.ConfigRpcServer(); err != nil {
+	if err = d.ConfigRPCServer(); err != nil {
 		return
 	}
 	if err = d.ListenLoop(); err != nil {
@@ -145,7 +144,7 @@ func (d *Service) lockPIDFile() (err error) {
 	return nil
 }
 
-func (d *Service) ConfigRpcServer() (err error) {
+func (d *Service) ConfigRPCServer() (err error) {
 	return nil
 }
 

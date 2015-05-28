@@ -6,27 +6,27 @@ import (
 )
 
 type RemoteGPGUI struct {
-	sessionId int
+	sessionID int
 	uicli     keybase1.GpgUiClient
 }
 
-func NewRemoteGPGUI(sessionId int, c *rpc2.Client) *RemoteGPGUI {
+func NewRemoteGPGUI(sessionID int, c *rpc2.Client) *RemoteGPGUI {
 	return &RemoteGPGUI{
-		sessionId: sessionId,
+		sessionID: sessionID,
 		uicli:     keybase1.GpgUiClient{Cli: c},
 	}
 }
 
 func (r *RemoteGPGUI) SelectKey(arg keybase1.SelectKeyArg) (string, error) {
-	arg.SessionID = r.sessionId
+	arg.SessionID = r.sessionID
 	return r.uicli.SelectKey(arg)
 }
 
 func (r *RemoteGPGUI) SelectKeyAndPushOption(arg keybase1.SelectKeyAndPushOptionArg) (keybase1.SelectKeyRes, error) {
-	arg.SessionID = r.sessionId
+	arg.SessionID = r.sessionID
 	return r.uicli.SelectKeyAndPushOption(arg)
 }
 
 func (r *RemoteGPGUI) WantToAddGPGKey(int) (bool, error) {
-	return r.uicli.WantToAddGPGKey(r.sessionId)
+	return r.uicli.WantToAddGPGKey(r.sessionID)
 }

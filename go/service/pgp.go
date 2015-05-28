@@ -190,7 +190,7 @@ func (h *PGPHandler) PgpDeletePrimary() (err error) {
 
 func (h *PGPHandler) PgpSelect(sarg keybase1.PgpSelectArg) error {
 	sessionID := nextSessionID()
-	gpgui := NewRemoteGPGUI(sessionID, h.getRpcClient())
+	gpgui := NewRemoteGPGUI(sessionID, h.rpcClient())
 	secretui := h.getSecretUI(sessionID)
 	arg := engine.GPGImportKeyArg{Query: sarg.Query, AllowMulti: sarg.AllowMulti, SkipImport: sarg.SkipImport}
 	gpg := engine.NewGPGImportKeyEngine(&arg, G)

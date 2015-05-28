@@ -9,7 +9,7 @@ import (
 
 type LoginHandler struct {
 	*CancelHandler
-	identifyUi  libkb.IdentifyUI
+	identifyUI  libkb.IdentifyUI
 	locksmithUI libkb.LocksmithUI
 }
 
@@ -37,7 +37,7 @@ func (h *LoginHandler) LoginWithPrompt(arg keybase1.LoginWithPromptArg) error {
 		LocksmithUI: h.getLocksmithUI(arg.SessionID),
 		SecretUI:    h.getSecretUI(arg.SessionID),
 		LoginUI:     h.getLoginUI(arg.SessionID),
-		GPGUI:       NewRemoteGPGUI(arg.SessionID, h.getRpcClient()),
+		GPGUI:       NewRemoteGPGUI(arg.SessionID, h.rpcClient()),
 	}
 	eng := engine.NewLoginWithPromptEngine(arg.Username, G)
 
@@ -50,7 +50,7 @@ func (h *LoginHandler) LoginWithStoredSecret(arg keybase1.LoginWithStoredSecretA
 		LocksmithUI: h.getLocksmithUI(arg.SessionID),
 		SecretUI:    h.getSecretUI(arg.SessionID),
 		LoginUI:     h.getLoginUI(arg.SessionID),
-		GPGUI:       NewRemoteGPGUI(arg.SessionID, h.getRpcClient()),
+		GPGUI:       NewRemoteGPGUI(arg.SessionID, h.rpcClient()),
 	}
 	loginEngine := engine.NewLoginWithStoredSecretEngine(arg.Username, G)
 	return h.loginWithEngine(loginEngine, ctx, arg.SessionID)
@@ -89,37 +89,37 @@ func (h *LoginHandler) CancelLogin(sessionID int) error {
 }
 
 type RemoteLocksmithUI struct {
-	sessionId int
+	sessionID int
 	uicli     keybase1.LocksmithUiClient
 }
 
-func NewRemoteLocksmithUI(sessionId int, c *rpc2.Client) *RemoteLocksmithUI {
+func NewRemoteLocksmithUI(sessionID int, c *rpc2.Client) *RemoteLocksmithUI {
 	return &RemoteLocksmithUI{
-		sessionId: sessionId,
+		sessionID: sessionID,
 		uicli:     keybase1.LocksmithUiClient{Cli: c},
 	}
 }
 
 func (r *RemoteLocksmithUI) PromptDeviceName(dummy int) (string, error) {
-	return r.uicli.PromptDeviceName(r.sessionId)
+	return r.uicli.PromptDeviceName(r.sessionID)
 }
 
 func (r *RemoteLocksmithUI) SelectSigner(arg keybase1.SelectSignerArg) (keybase1.SelectSignerRes, error) {
-	arg.SessionID = r.sessionId
+	arg.SessionID = r.sessionID
 	return r.uicli.SelectSigner(arg)
 }
 
 func (r *RemoteLocksmithUI) DeviceSignAttemptErr(arg keybase1.DeviceSignAttemptErrArg) error {
-	arg.SessionID = r.sessionId
+	arg.SessionID = r.sessionID
 	return r.uicli.DeviceSignAttemptErr(arg)
 }
 
 func (r *RemoteLocksmithUI) DisplaySecretWords(arg keybase1.DisplaySecretWordsArg) error {
-	arg.SessionID = r.sessionId
+	arg.SessionID = r.sessionID
 	return r.uicli.DisplaySecretWords(arg)
 }
 
 func (r *RemoteLocksmithUI) KexStatus(arg keybase1.KexStatusArg) error {
-	arg.SessionID = r.sessionId
+	arg.SessionID = r.sessionID
 	return r.uicli.KexStatus(arg)
 }

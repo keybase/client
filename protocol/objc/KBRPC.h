@@ -807,7 +807,7 @@ typedef NS_ENUM (NSInteger, KBRPromptOverwriteType) {
 
 - (void)listTrackingWithFilter:(NSString *)filter completion:(void (^)(NSError *error, NSArray *items))completion;
 
-- (void)listTrackingJsonWithFilter:(NSString *)filter verbose:(BOOL)verbose completion:(void (^)(NSError *error, NSString *str))completion;
+- (void)listTrackingJSONWithFilter:(NSString *)filter verbose:(BOOL)verbose completion:(void (^)(NSError *error, NSString *str))completion;
 
 - (void)searchWithSessionID:(NSInteger)sessionID query:(NSString *)query completion:(void (^)(NSError *error, NSArray *items))completion;
 
@@ -1192,7 +1192,7 @@ typedef NS_ENUM (NSInteger, KBRPromptOverwriteType) {
 @interface KBRListTrackingRequestParams : KBRRequestParams
 @property NSString *filter;
 @end
-@interface KBRListTrackingJsonRequestParams : KBRRequestParams
+@interface KBRListTrackingJSONRequestParams : KBRRequestParams
 @property NSString *filter;
 @property BOOL verbose;
 @end

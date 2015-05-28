@@ -7,14 +7,14 @@ import (
 )
 
 type LogUI struct {
-	sessionId int
+	sessionID int
 	cli       *keybase1.LogUiClient
 }
 
 func (l *LogUI) log(level keybase1.LogLevel, format string, args []interface{}) {
 	msg := fmt.Sprintf(format, args...)
 	l.cli.Log(keybase1.LogArg{
-		SessionID: l.sessionId,
+		SessionID: l.sessionID,
 		Level:     keybase1.LogLevel(level),
 		Text: keybase1.Text{
 			Markup: false,

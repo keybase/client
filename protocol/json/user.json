@@ -331,7 +331,7 @@
         "items" : "UserSummary"
       }
     },
-    "listTrackingJson" : {
+    "listTrackingJSON" : {
       "request" : [ {
         "name" : "filter",
         "type" : "string"

@@ -68,7 +68,7 @@ func (h *UserHandler) ListTracking(filter string) (res []keybase1.UserSummary, e
 	return
 }
 
-func (h *UserHandler) ListTrackingJson(arg keybase1.ListTrackingJsonArg) (res string, err error) {
+func (h *UserHandler) ListTrackingJSON(arg keybase1.ListTrackingJSONArg) (res string, err error) {
 	eng := engine.NewListTrackingEngine(&engine.ListTrackingEngineArg{
 		Json:    true,
 		Filter:  arg.Filter,

@@ -53,7 +53,7 @@ func (p *proveUI) DisplayRecheckWarning(arg keybase1.DisplayRecheckWarningArg) e
 }
 
 func (ph *ProveHandler) getProveUI(sessionID int) libkb.ProveUI {
-	return &proveUI{sessionID, keybase1.ProveUiClient{Cli: ph.getRpcClient()}}
+	return &proveUI{sessionID, keybase1.ProveUiClient{Cli: ph.rpcClient()}}
 }
 
 // Prove handles the `keybase.1.startProof` RPC.
