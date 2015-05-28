@@ -79,10 +79,10 @@ func (tc *TestContext) Cleanup() {
 	}
 }
 
-func (src TestContext) MoveGpgKeyringTo(dst TestContext) error {
+func (tc TestContext) MoveGpgKeyringTo(dst TestContext) error {
 
 	mv := func(f string) (err error) {
-		return os.Rename(path.Join(src.Tp.GPGHome, f), path.Join(dst.Tp.GPGHome, f))
+		return os.Rename(path.Join(tc.Tp.GPGHome, f), path.Join(dst.Tp.GPGHome, f))
 	}
 
 	if err := mv("secring.gpg"); err != nil {

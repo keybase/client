@@ -113,49 +113,49 @@ func (s *SKB) newLKSec(clientHalf []byte) *LKSec {
 	return NewLKSec(clientHalf, s.G())
 }
 
-func (p *SKB) ToPacket() (ret *KeybasePacket, err error) {
+func (s *SKB) ToPacket() (ret *KeybasePacket, err error) {
 	ret = &KeybasePacket{
 		Version: KEYBASE_PACKET_V1,
 		Tag:     TAG_P3SKB, // Keybase tags starts at 513 (OpenPGP are 0-30)
 	}
-	ret.Body = p
+	ret.Body = s
 	err = ret.HashMe()
 	return
 }
 
-func (p *SKB) ReadKey() (g GenericKey, err error) {
+func (s *SKB) ReadKey() (g GenericKey, err error) {
 	switch {
-	case IsPgpAlgo(p.Type) || p.Type == 0:
-		g, err = ReadOneKeyFromBytes(p.Pub)
-	case p.Type == KID_NACL_EDDSA:
-		g, err = ImportNaclSigningKeyPairFromBytes(p.Pub, nil, p.G())
-	case p.Type == KID_NACL_DH:
-		g, err = ImportNaclDHKeyPairFromBytes(p.Pub, nil, p.G())
+	case IsPgpAlgo(s.Type) || s.Type == 0:
+		g, err = ReadOneKeyFromBytes(s.Pub)
+	case s.Type == KID_NACL_EDDSA:
+		g, err = ImportNaclSigningKeyPairFromBytes(s.Pub, nil, s.G())
+	case s.Type == KID_NACL_DH:
+		g, err = ImportNaclDHKeyPairFromBytes(s.Pub, nil, s.G())
 	default:
-		err = UnknownKeyTypeError{p.Type}
+		err = UnknownKeyTypeError{s.Type}
 	}
 	return
 }
 
-func (p *SKB) GetPubKey() (key GenericKey, err error) {
-	if key = p.decodedPub; key == nil {
-		key, err = p.ReadKey()
-		p.decodedPub = key
+func (s *SKB) GetPubKey() (key GenericKey, err error) {
+	if key = s.decodedPub; key == nil {
+		key, err = s.ReadKey()
+		s.decodedPub = key
 	}
 	return
 }
 
-func (p *SKB) VerboseDescription() (ret string, err error) {
+func (s *SKB) VerboseDescription() (ret string, err error) {
 	var key GenericKey
-	key, err = p.GetPubKey()
+	key, err = s.GetPubKey()
 	if err == nil && key != nil {
 		ret = key.VerboseDescription()
 	}
 	return
 }
 
-func (p *SKB) RawUnlockedKey() []byte {
-	return p.decryptedRaw
+func (s *SKB) RawUnlockedKey() []byte {
+	return s.decryptedRaw
 }
 
 func (s *SKB) unlockSecretKeyFromSecretRetriever(secretRetriever SecretRetriever) (key GenericKey, err error) {
@@ -279,8 +279,8 @@ func (s *SKB) parseUnlocked(unlocked []byte) (key GenericKey, err error) {
 	return
 }
 
-func (p *SKB) tsecUnlock(tsec *triplesec.Cipher) ([]byte, error) {
-	unlocked, err := tsec.Decrypt(p.Priv.Data)
+func (s *SKB) tsecUnlock(tsec *triplesec.Cipher) ([]byte, error) {
+	unlocked, err := tsec.Decrypt(s.Priv.Data)
 	if err != nil {
 		if _, ok := err.(triplesec.BadPassphraseError); ok {
 			err = PassphraseError{}
@@ -290,16 +290,16 @@ func (p *SKB) tsecUnlock(tsec *triplesec.Cipher) ([]byte, error) {
 	return unlocked, nil
 }
 
-func (p *SKB) lksUnlock(lctx LoginContext, pps PassphraseStream, secretStorer SecretStorer, lks *LKSec) (unlocked []byte, err error) {
+func (s *SKB) lksUnlock(lctx LoginContext, pps PassphraseStream, secretStorer SecretStorer, lks *LKSec) (unlocked []byte, err error) {
 	if lks == nil {
-		p.G().Log.Debug("creating new lks")
-		lks = p.newLKSec(pps.LksClientHalf())
-		p.Lock()
-		p.G().Log.Debug("setting uid in lks to %s", p.uid)
-		lks.SetUID(p.uid)
-		p.Unlock()
+		s.G().Log.Debug("creating new lks")
+		lks = s.newLKSec(pps.LksClientHalf())
+		s.Lock()
+		s.G().Log.Debug("setting uid in lks to %s", s.uid)
+		lks.SetUID(s.uid)
+		s.Unlock()
 	}
-	unlocked, err = lks.Decrypt(lctx, p.Priv.Data)
+	unlocked, err = lks.Decrypt(lctx, s.Priv.Data)
 	if err != nil {
 		return
 	}
@@ -327,11 +327,11 @@ func (s *SKB) lksUnlockWithSecretRetriever(secretRetriever SecretRetriever) (unl
 	return lks.Decrypt(nil, s.Priv.Data)
 }
 
-func (p *SKB) SetUID(uid keybase1.UID) {
+func (s *SKB) SetUID(uid keybase1.UID) {
 	G.Log.Debug("| Setting UID on SKB to %s", uid)
-	p.Lock()
-	p.uid = uid
-	p.Unlock()
+	s.Lock()
+	s.uid = uid
+	s.Unlock()
 }
 
 type SKBKeyringFile struct {
@@ -450,17 +450,17 @@ func (k SKBKeyringFile) LookupByFingerprint(fp PgpFingerprint) *SKB {
 
 // FindSecretKey will, given a list of KIDs, find the first one in the
 // list that has a corresponding secret key in the keyring file.
-func (f SKBKeyringFile) FindSecretKey(kids []KID) (ret *SKB) {
+func (k SKBKeyringFile) FindSecretKey(kids []KID) (ret *SKB) {
 	for _, kid := range kids {
-		if ret = f.LookupByKid(kid); ret != nil {
+		if ret = k.LookupByKid(kid); ret != nil {
 			return
 		}
 	}
 	return
 }
 
-func (f SKBKeyringFile) LookupByKid(k KID) *SKB {
-	ret, ok := f.kidIndex[k.ToMapKey()]
+func (k SKBKeyringFile) LookupByKid(kid KID) *SKB {
+	ret, ok := k.kidIndex[kid.ToMapKey()]
 	if !ok {
 		ret = nil
 	}
@@ -487,24 +487,24 @@ func (s *SKB) ArmoredEncode() (ret string, err error) {
 	return PacketArmoredEncode(s)
 }
 
-func (f *SKBKeyringFile) Push(skb *SKB) error {
-	k, err := skb.GetPubKey()
+func (k *SKBKeyringFile) Push(skb *SKB) error {
+	key, err := skb.GetPubKey()
 	if err != nil {
-		return fmt.Errorf("Failed to get pubkey: %s", err.Error())
+		return fmt.Errorf("Failed to get pubkey: %s", err)
 	}
-	f.dirty = true
-	f.Blocks = append(f.Blocks, skb)
-	f.addToIndex(k, skb)
+	k.dirty = true
+	k.Blocks = append(k.Blocks, skb)
+	k.addToIndex(key, skb)
 	return nil
 }
 
-func (f SKBKeyringFile) GetFilename() string { return f.filename }
+func (k SKBKeyringFile) GetFilename() string { return k.filename }
 
-func (f SKBKeyringFile) WriteTo(w io.Writer) (int64, error) {
+func (k SKBKeyringFile) WriteTo(w io.Writer) (int64, error) {
 	G.Log.Debug("+ WriteTo")
-	packets := make(KeybasePackets, len(f.Blocks))
+	packets := make(KeybasePackets, len(k.Blocks))
 	var err error
-	for i, b := range f.Blocks {
+	for i, b := range k.Blocks {
 		if packets[i], err = b.ToPacket(); err != nil {
 			return 0, err
 		}
@@ -519,16 +519,16 @@ func (f SKBKeyringFile) WriteTo(w io.Writer) (int64, error) {
 	return 0, nil
 }
 
-func (f *SKBKeyringFile) Save(lui LogUI) error {
-	if !f.dirty {
+func (k *SKBKeyringFile) Save(lui LogUI) error {
+	if !k.dirty {
 		return nil
 	}
-	err := SafeWriteToFile(*f)
-	if err == nil {
-		f.dirty = false
-		lui.Debug("Updated keyring %s", f.filename)
+	if err := SafeWriteToFile(*k); err != nil {
+		return err
 	}
-	return err
+	k.dirty = false
+	lui.Debug("Updated keyring %s", k.filename)
+	return nil
 }
 
 func (p KeybasePackets) ToListOfSKBs() (ret []*SKB, err error) {
@@ -628,9 +628,9 @@ func (s *SKB) PromptAndUnlock(lctx LoginContext, reason, which string, secretSto
 	}.Run()
 }
 
-func (p *SKBKeyringFile) PushAndSave(skb *SKB, lui LogUI) (err error) {
-	if err = p.Push(skb); err == nil {
-		err = p.Save(lui)
+func (k *SKBKeyringFile) PushAndSave(skb *SKB, lui LogUI) error {
+	if err := k.Push(skb); err != nil {
+		return err
 	}
-	return
+	return k.Save(lui)
 }

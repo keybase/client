@@ -53,14 +53,14 @@ func (s *ExportedStreams) alloc() (ret *ExportedStream) {
 	return ret
 }
 
-func (e *ExportedStream) Export() keybase1.Stream {
-	return keybase1.Stream{Fd: e.i}
+func (s *ExportedStream) Export() keybase1.Stream {
+	return keybase1.Stream{Fd: s.i}
 }
 
-func (e *ExportedStreams) GetWriter(s keybase1.Stream) (ret io.WriteCloser, err error) {
-	e.Lock()
-	defer e.Unlock()
-	if obj, found := e.m[s.Fd]; !found {
+func (s *ExportedStreams) GetWriter(st keybase1.Stream) (ret io.WriteCloser, err error) {
+	s.Lock()
+	defer s.Unlock()
+	if obj, found := s.m[st.Fd]; !found {
 		err = StreamNotFoundError{}
 	} else if obj.w == nil {
 		err = StreamWrongKindError{}
@@ -70,10 +70,10 @@ func (e *ExportedStreams) GetWriter(s keybase1.Stream) (ret io.WriteCloser, err 
 	return
 }
 
-func (e *ExportedStreams) GetReader(s keybase1.Stream) (ret io.ReadCloser, err error) {
-	e.Lock()
-	defer e.Unlock()
-	if obj, found := e.m[s.Fd]; !found {
+func (s *ExportedStreams) GetReader(st keybase1.Stream) (ret io.ReadCloser, err error) {
+	s.Lock()
+	defer s.Unlock()
+	if obj, found := s.m[st.Fd]; !found {
 		err = StreamNotFoundError{}
 	} else if obj.r == nil {
 		err = StreamWrongKindError{}
@@ -83,10 +83,10 @@ func (e *ExportedStreams) GetReader(s keybase1.Stream) (ret io.ReadCloser, err e
 	return
 }
 
-func (e *ExportedStreams) Close(a keybase1.CloseArg) (err error) {
-	e.Lock()
-	defer e.Unlock()
-	if obj, found := e.m[a.S.Fd]; !found {
+func (s *ExportedStreams) Close(a keybase1.CloseArg) (err error) {
+	s.Lock()
+	defer s.Unlock()
+	if obj, found := s.m[a.S.Fd]; !found {
 		err = StreamNotFoundError{}
 	} else {
 		if obj.w != nil {
@@ -98,14 +98,14 @@ func (e *ExportedStreams) Close(a keybase1.CloseArg) (err error) {
 				err = tmp
 			}
 		}
-		delete(e.m, a.S.Fd)
+		delete(s.m, a.S.Fd)
 	}
 	return err
 }
 
-func (e *ExportedStreams) Read(a keybase1.ReadArg) (buf []byte, err error) {
+func (s *ExportedStreams) Read(a keybase1.ReadArg) (buf []byte, err error) {
 	var r io.ReadCloser
-	if r, err = e.GetReader(a.S); err != nil {
+	if r, err = s.GetReader(a.S); err != nil {
 		return
 	}
 	var n int
@@ -115,9 +115,9 @@ func (e *ExportedStreams) Read(a keybase1.ReadArg) (buf []byte, err error) {
 	return
 }
 
-func (e *ExportedStreams) Write(a keybase1.WriteArg) (n int, err error) {
+func (s *ExportedStreams) Write(a keybase1.WriteArg) (n int, err error) {
 	var w io.WriteCloser
-	if w, err = e.GetWriter(a.S); err != nil {
+	if w, err = s.GetWriter(a.S); err != nil {
 		return
 	}
 	n, err = w.Write(a.Buf)
