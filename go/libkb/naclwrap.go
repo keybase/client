@@ -27,7 +27,7 @@ type NaclSigInfo struct {
 const NACL_DH_KEYSIZE = 32
 
 // TODO: Ideally, ed25519 would expose how many random bytes it needs.
-const NaclSigningKeySecretLength = 32
+const NaclSigningKeySecretSize = 32
 
 type NaclSigningKeyPublic [ed25519.PublicKeySize]byte
 type NaclSigningKeyPrivate [ed25519.PrivateKeySize]byte
@@ -459,7 +459,7 @@ func makeNaclSigningKeyPair(reader io.Reader) (NaclSigningKeyPair, error) {
 
 // Make a signing key pair given a secret. Of course, the security of
 // depends entirely on the randomness of the bytes in the secret.
-func MakeNaclSigningKeyPairFromSecret(secret [NaclSigningKeySecretLength]byte) (NaclSigningKeyPair, error) {
+func MakeNaclSigningKeyPairFromSecret(secret [NaclSigningKeySecretSize]byte) (NaclSigningKeyPair, error) {
 	r := bytes.NewReader(secret[:])
 
 	kp, err := makeNaclSigningKeyPair(r)
