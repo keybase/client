@@ -149,9 +149,9 @@
   }];
 }
 
-- (void)decryptTLFCryptKeyClientHalfWithSessionID:(NSInteger)sessionID encryptedData:(NSData *)encryptedData nonce:(NSData *)nonce peersPublicKey:(NSData *)peersPublicKey reason:(NSString *)reason completion:(void (^)(NSError *error, NSData *tLFCryptKeyClientHalf))completion {
+- (void)unboxTLFCryptKeyClientHalfWithSessionID:(NSInteger)sessionID encryptedData:(NSData *)encryptedData nonce:(NSData *)nonce peersPublicKey:(NSData *)peersPublicKey reason:(NSString *)reason completion:(void (^)(NSError *error, NSData *tLFCryptKeyClientHalf))completion {
   NSArray *params = @[@{@"sessionID": @(sessionID), @"encryptedData": KBRValue(encryptedData), @"nonce": KBRValue(nonce), @"peersPublicKey": KBRValue(peersPublicKey), @"reason": KBRValue(reason)}];
-  [self.client sendRequestWithMethod:@"keybase.1.crypto.decryptTLFCryptKeyClientHalf" params:params sessionId:self.sessionId completion:^(NSError *error, id retval) {
+  [self.client sendRequestWithMethod:@"keybase.1.crypto.unboxTLFCryptKeyClientHalf" params:params sessionId:self.sessionId completion:^(NSError *error, id retval) {
     if (error) {
         completion(error, nil);
         return;
@@ -1216,7 +1216,7 @@
 
 @end
 
-@implementation KBRDecryptTLFCryptKeyClientHalfRequestParams
+@implementation KBRUnboxTLFCryptKeyClientHalfRequestParams
 
 - (instancetype)initWithParams:(NSArray *)params {
   if ((self = [super initWithParams:params])) {

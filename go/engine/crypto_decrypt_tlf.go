@@ -8,13 +8,13 @@ import (
 type CryptoDecryptTLFEngine struct {
 	libkb.Contextified
 	encryptedData         []byte
-	nonce                 keybase1.Nonce
-	peersPublicKey        keybase1.PeersPublicKey
+	nonce                 keybase1.BoxNonce
+	peersPublicKey        keybase1.BoxPublicKey
 	reason                string
 	tlfCryptKeyClientHalf keybase1.TLFCryptKeyClientHalf
 }
 
-func NewCryptoDecryptTLFEngine(ctx *libkb.GlobalContext, encryptedData []byte, nonce keybase1.Nonce, peersPublicKey keybase1.PeersPublicKey, reason string) *CryptoDecryptTLFEngine {
+func NewCryptoDecryptTLFEngine(ctx *libkb.GlobalContext, encryptedData []byte, nonce keybase1.BoxNonce, peersPublicKey keybase1.BoxPublicKey, reason string) *CryptoDecryptTLFEngine {
 	cse := &CryptoDecryptTLFEngine{
 		encryptedData:  encryptedData,
 		nonce:          nonce,
@@ -57,7 +57,7 @@ func (cse *CryptoDecryptTLFEngine) Run(ctx *Context) (err error) {
 
 	unboxer, ok := key.(libkb.Unboxer)
 	if !ok {
-		err = libkb.KeyCannotUnboxError{}
+		err = libkb.DecryptionError{}
 		return
 	}
 
