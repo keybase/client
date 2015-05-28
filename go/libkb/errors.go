@@ -555,6 +555,12 @@ func (k KeyCannotVerifyError) Error() string {
 	return "Key cannot verify signatures"
 }
 
+type KeyCannotUnboxError struct{}
+
+func (k KeyCannotUnboxError) Error() string {
+	return "Key cannot unbox data"
+}
+
 //=============================================================================
 
 type NoConfigFile struct{}

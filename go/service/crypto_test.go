@@ -22,7 +22,7 @@ func TestCryptoSignED25519(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	h.getDeviceSigningKeyFn = func(_ int, _ string) (libkb.GenericKey, error) {
+	h.getSecretKeyFn = func(_ libkb.SecretKeyType, _ int, _ string) (libkb.GenericKey, error) {
 		return kp, nil
 	}
 
@@ -50,7 +50,7 @@ func TestCryptoSignED25519NoSigningKey(t *testing.T) {
 	h := NewCryptoHandler(nil)
 
 	expectedErr := errors.New("Test error")
-	h.getDeviceSigningKeyFn = func(_ int, _ string) (libkb.GenericKey, error) {
+	h.getSecretKeyFn = func(_ libkb.SecretKeyType, _ int, _ string) (libkb.GenericKey, error) {
 		return nil, expectedErr
 	}
 
