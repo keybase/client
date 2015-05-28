@@ -81,6 +81,7 @@ func TestListTrackingJSON(t *testing.T) {
 }
 
 func TestListTrackingLocal(t *testing.T) {
+	t.Skip("Skipping test for local tracks in list tracking (milestone 2)")
 	tc := SetupEngineTest(t, "track")
 	defer tc.Cleanup()
 	fu := CreateAndSignupFakeUser(tc, "track")
