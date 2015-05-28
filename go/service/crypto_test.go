@@ -87,6 +87,8 @@ func TestCryptoSignED25519NoSigningKey(t *testing.T) {
 	}
 }
 
+// Test that CryptoHandler.UnboxTLFCryptKeyClientHalf() decrypts a
+// boxed TLFCryptKeyClientHalf correctly.
 func TestCryptoUnboxTLFCryptKeyClientHalf(t *testing.T) {
 	h := NewCryptoHandler(nil)
 
