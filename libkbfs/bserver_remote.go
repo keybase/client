@@ -111,7 +111,7 @@ func (c *BlockServerRemote) ConnectOnce() error {
 	if err != nil {
 		return err
 	}
-	c.clt = keybase1.BlockClient{rpc2.NewClient(
+	c.clt = keybase1.BlockClient{Cli: rpc2.NewClient(
 		rpc2.NewTransport(c.conn, libkb.NewRpcLogFactory(), libkb.WrapError), libkb.UnwrapError)}
 
 	session, err := c.kbpki.GetSession()
@@ -171,8 +171,6 @@ func (b *BlockServerRemote) Put(id BlockId, context BlockContext, buf []byte) er
 	} else {
 		return err
 	}
-	return nil
-
 }
 
 func (b *BlockServerRemote) Delete(id BlockId, context BlockContext) error {

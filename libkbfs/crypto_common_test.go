@@ -15,7 +15,7 @@ func TestCryptoCommonEncryptDecryptBlock(t *testing.T) {
 	}
 
 	if plainSize > len(encryptedBlock) {
-		t.Error("plainSize=%d > encryptedSize=%d", plainSize, len(encryptedBlock))
+		t.Errorf("plainSize=%d > encryptedSize=%d", plainSize, len(encryptedBlock))
 	}
 
 	var decryptedBlock TestBlock

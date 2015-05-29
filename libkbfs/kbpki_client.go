@@ -148,7 +148,7 @@ func (k *KBPKIClient) GetCurrentCryptPublicKey() (CryptPublicKey, error) {
 }
 
 func (k *KBPKIClient) identify(arg *engine.IDEngineArg) (*libkb.User, []keybase1.PublicKey, error) {
-	c := keybase1.IdentifyClient{k.client}
+	c := keybase1.IdentifyClient{Cli: k.client}
 
 	res, err := c.Identify(arg.Export())
 	if err != nil {
@@ -164,7 +164,7 @@ func (k *KBPKIClient) identifyByUID(uid keybase1.UID) (*libkb.User, []keybase1.P
 }
 
 func (k *KBPKIClient) session() (session *libkb.Session, deviceSubkey libkb.GenericKey, err error) {
-	c := keybase1.SessionClient{k.client}
+	c := keybase1.SessionClient{Cli: k.client}
 	res, err := c.CurrentSession()
 	if err != nil {
 		return

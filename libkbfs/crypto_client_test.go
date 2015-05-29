@@ -35,7 +35,6 @@ func (fc FakeCryptoClient) Call(s string, args interface{}, res interface{}) err
 	default:
 		return fmt.Errorf("Unknown call: %s %v %v", s, args, res)
 	}
-	return nil
 }
 
 // Test that signing a message and verifying it works.

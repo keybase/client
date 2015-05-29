@@ -100,7 +100,7 @@ func TestKBFSOpsGetFavDirsSuccess(t *testing.T) {
 	if ids2, err := config.KBFSOps().GetFavDirs(); err != nil {
 		t.Errorf("Got error on favorites: %v", err)
 	} else if len(ids2) != len(ids) {
-		t.Error("Got bad ids back: %v", ids2)
+		t.Errorf("Got bad ids back: %v", ids2)
 	}
 }
 
@@ -148,7 +148,7 @@ func TestKBFSOpsGetRootMDCacheSuccess(t *testing.T) {
 	if rmd2, err := config.KBFSOps().GetRootMD(id); err != nil {
 		t.Errorf("Got error on root MD: %v", err)
 	} else if rmd2 != rmd {
-		t.Error("Got bad MD back: %v", rmd2)
+		t.Errorf("Got bad MD back: %v", rmd2)
 	}
 }
 
@@ -214,15 +214,15 @@ func TestKBFSOpsGetRootMDCreateNewSuccess(t *testing.T) {
 	if rmd2, err := config.KBFSOps().GetRootMD(id); err != nil {
 		t.Errorf("Got error on root MD: %v", err)
 	} else if rmd2 != rmd {
-		t.Error("Got bad MD back: %v", rmd2)
+		t.Errorf("Got bad MD back: %v", rmd2)
 	} else if rmd2.data.Dir.Id != rootId {
-		t.Error("Got bad MD rootId back: %v", rmd2.data.Dir.Id)
+		t.Errorf("Got bad MD rootId back: %v", rmd2.data.Dir.Id)
 	} else if rmd2.data.Dir.Type != Dir {
 		t.Error("Got bad MD non-dir rootId back")
 	} else if rmd2.data.Dir.QuotaSize != uint32(len(block)) {
-		t.Error("Got bad MD QuotaSize back: %d", rmd2.data.Dir.QuotaSize)
+		t.Errorf("Got bad MD QuotaSize back: %d", rmd2.data.Dir.QuotaSize)
 	} else if rmd2.data.Dir.Size != uint64(plainSize) {
-		t.Error("Got bad MD Size back: %d", rmd2.data.Dir.Size)
+		t.Errorf("Got bad MD Size back: %d", rmd2.data.Dir.Size)
 	} else if rmd2.data.Dir.Mtime == 0 {
 		t.Error("Got zero MD MTime back")
 	} else if rmd2.data.Dir.Ctime == 0 {
@@ -281,19 +281,19 @@ func TestKBFSOpsGetRootMDForHandleExisting(t *testing.T) {
 	if rmd2, err := config.KBFSOps().GetRootMDForHandle(h); err != nil {
 		t.Errorf("Got error on root MD for handle: %v", err)
 	} else if rmd2 != rmd {
-		t.Error("Got bad MD back: %v", rmd2)
+		t.Errorf("Got bad MD back: %v", rmd2)
 	} else if rmd2.Id != id {
-		t.Error("Got bad dir id back: %v", rmd2.Id)
+		t.Errorf("Got bad dir id back: %v", rmd2.Id)
 	} else if rmd2.data.Dir.QuotaSize != 15 {
-		t.Error("Got bad MD QuotaSize back: %d", rmd2.data.Dir.QuotaSize)
+		t.Errorf("Got bad MD QuotaSize back: %d", rmd2.data.Dir.QuotaSize)
 	} else if rmd2.data.Dir.Type != Dir {
 		t.Error("Got bad MD non-dir rootId back")
 	} else if rmd2.data.Dir.Size != 10 {
-		t.Error("Got bad MD Size back: %d", rmd2.data.Dir.Size)
+		t.Errorf("Got bad MD Size back: %d", rmd2.data.Dir.Size)
 	} else if rmd2.data.Dir.Mtime != 1 {
-		t.Error("Got bad MD MTime back: %d", rmd2.data.Dir.Mtime)
+		t.Errorf("Got bad MD MTime back: %d", rmd2.data.Dir.Mtime)
 	} else if rmd2.data.Dir.Ctime != 2 {
-		t.Error("Got bad MD CTime back: %d", rmd2.data.Dir.Ctime)
+		t.Errorf("Got bad MD CTime back: %d", rmd2.data.Dir.Ctime)
 	}
 }
 
@@ -2151,7 +2151,7 @@ func testSetExSuccess(t *testing.T, entryType EntryType, ex bool) {
 	if newP, err := config.KBFSOps().SetEx(p, ex); err != nil {
 		t.Errorf("Got unexpected error on setex: %v", err)
 	} else if expectedChanges != len(config.observer.batchUpdatePaths) {
-		t.Errorf("got changed=%t, expected %t",
+		t.Errorf("got changed=%d, expected %d",
 			len(config.observer.batchUpdatePaths), expectedChanges)
 	} else if rootBlock.Children["a"].Type != expectedType {
 		t.Errorf("a has type %s, expected %s", rootBlock.Children["a"].Type, expectedType)
@@ -2373,7 +2373,7 @@ func TestSyncCleanSuccess(t *testing.T) {
 	} else {
 		for i, n := range newP.Path {
 			if n != p.Path[i] {
-				t.Errorf("Node %i differed: %v", n)
+				t.Errorf("Node %d differed: %v", i, n)
 			}
 		}
 	}

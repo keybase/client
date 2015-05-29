@@ -48,7 +48,7 @@ func (c *CryptoClient) Sign(msg []byte) (sig []byte, verifyingKey VerifyingKey, 
 	defer func() {
 		libkb.G.Log.Debug("Signing %d-byte message with %d-byte signature and verifying key %s: err=%v", len(msg), len(sig), verifyingKey.KID, err)
 	}()
-	cc := keybase1.CryptoClient{c.client}
+	cc := keybase1.CryptoClient{Cli: c.client}
 	sigInfo, err := cc.Sign(keybase1.SignArg{
 		SessionID: 0,
 		Msg:       msg,

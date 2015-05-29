@@ -369,7 +369,7 @@ func (p *Path) TailPointer() BlockPointer {
 	return p.Path[len(p.Path)-1].BlockPointer
 }
 
-func (p *Path) String() string {
+func (p Path) String() string {
 	names := make([]string, 0, len(p.Path))
 	for _, node := range p.Path {
 		names = append(names, node.Name)

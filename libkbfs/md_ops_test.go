@@ -377,7 +377,7 @@ func TestMDOpsGetFavoritesSuccess(t *testing.T) {
 	if ids2, err := config.MDOps().GetFavorites(); err != nil {
 		t.Errorf("Got error on favorites: %v", err)
 	} else if len(ids2) != len(ids) {
-		t.Error("Got bad ids back: %v", ids2)
+		t.Errorf("Got bad ids back: %v", ids2)
 	}
 }
 

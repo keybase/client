@@ -132,7 +132,7 @@ type NotFileError struct {
 }
 
 func (e *NotFileError) Error() string {
-	return fmt.Sprintf("%s is not a file (folder %s", e.Path, e.Path.TopDir)
+	return fmt.Sprintf("%s is not a file (folder %s)", e.Path, e.Path.TopDir)
 }
 
 type BadDataError struct {
