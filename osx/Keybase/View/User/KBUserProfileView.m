@@ -32,7 +32,6 @@
 
 @property NSString *username;
 @property NSMutableArray *fokids;
-@property BOOL changed;
 
 @property (getter=isLoading) BOOL loading;
 @end
@@ -82,14 +81,10 @@
   }
 }
 
-- (void)setError:(NSError *)error {
-  [AppDelegate setError:error sender:self];
-}
 
 - (void)clear {
   _username = nil;
   _fokids = nil;
-  _changed = NO;
   _headerView.hidden = YES;
   [_userInfoView clear];
   [_trackView clear];
@@ -112,6 +107,10 @@
 }
 
 - (void)registerClient:(KBRPClient *)client sessionId:(NSInteger)sessionId sender:(id)sender {
+  [self registerClient:client sessionId:sessionId approve:NO sender:sender];
+}
+
+- (void)registerClient:(KBRPClient *)client sessionId:(NSInteger)sessionId approve:(BOOL)approve sender:(id)sender {
   GHWeakSelf gself = self;
   self.client = client;
 
@@ -184,48 +183,17 @@
   }];
 
   [client registerMethod:@"keybase.1.identifyUi.finishAndPrompt" sessionId:sessionId requestHandler:^(NSNumber *messageId, NSString *method, NSArray *params, MPRequestCompletion completion) {
-    //[yself.navigation.titleView setProgressEnabled:NO];
-    [gself.headerView setProgressEnabled:NO];
 
-    BOOL isSelf = [AppDelegate.appView.user.username isEqual:self.username];
-    if (isSelf) {
-      DDLogDebug(@"Viewing self (identify only)");
-      completion(nil, nil);
-      return;
-    }
-
-    KBRFinishAndPromptRequestParams *requestParams = [[KBRFinishAndPromptRequestParams alloc] initWithParams:params];
-    gself.trackView.hidden = NO;
-    BOOL trackPrompt = [gself.trackView setUsername:gself.username popup:gself.popup identifyOutcome:requestParams.outcome trackResponse:^(KBRFinishAndPromptRes *response) {
-      [KBActivity setProgressEnabled:NO subviews:gself.trackView.subviews];
-
-      if (response) gself.changed = YES;
-
-      if (!response) response = [[KBRFinishAndPromptRes alloc] init];
-
+    if (approve) {
+      KBRFinishAndPromptRes *response = [[KBRFinishAndPromptRes alloc] init];
+      response.trackRemote = YES;
       completion(nil, response);
-      if (self.popup) {
-        [[self window] close];
-      }
-    }];
-    [gself setNeedsLayout];
-
-    if (self.popup && trackPrompt && !self.window) {
-      [self openPopup:sender];
-    }
-
-    if (!trackPrompt) {
-      DDLogDebug(@"No track prompt required");
+    } else {
       completion(nil, nil);
     }
   }];
 
   [client registerMethod:@"keybase.1.identifyUi.finish" sessionId:sessionId requestHandler:^(NSNumber *messageId, NSString *method, NSArray *params, MPRequestCompletion completion) {
-    if (gself.changed) {
-      dispatch_async(dispatch_get_main_queue(), ^{
-        [NSNotificationCenter.defaultCenter postNotificationName:KBTrackingListDidChangeNotification object:nil userInfo:@{@"username": gself.username}];
-      });
-    }
     completion(nil, nil);
   }];
 
@@ -243,6 +211,46 @@
   return [_username isEqualToString:username] && _loading;
 }
 
+- (void)showTrack:(KBRIdentifyRes *)identify {
+  self.trackView.hidden = NO;
+  GHWeakSelf gself = self;
+  BOOL trackPrompt = [self.trackView setUsername:identify.user.username popup:self.popup identifyOutcome:identify.outcome trackResponse:^(NSString *username) {
+    [gself track:identify.user.username];
+  }];
+  [self setNeedsLayout];
+
+  if (self.popup && trackPrompt && !self.window) {
+    [self openPopup:self];
+  }
+
+  if (!trackPrompt) {
+    DDLogDebug(@"No track prompt required");
+  }
+}
+
+- (void)track:(NSString *)username {
+  KBRTrackRequest *request = [[KBRTrackRequest alloc] initWithClient:self.client];
+  GHWeakSelf gself = self;
+  [KBActivity setProgressEnabled:YES sender:self];
+  [self registerClient:self.client sessionId:request.sessionId approve:YES sender:self];
+  [request trackWithSessionID:request.sessionId theirName:username localOnly:NO approveRemote:YES completion:^(NSError *error) {
+    [KBActivity setProgressEnabled:NO sender:self];
+    [gself showTrackResult:username error:error];
+  }];
+}
+
+- (void)showTrackResult:(NSString *)username error:(NSError *)error {
+  [self.trackView setTrackCompleted:error];
+
+  dispatch_async(dispatch_get_main_queue(), ^{
+    [NSNotificationCenter.defaultCenter postNotificationName:KBTrackingListDidChangeNotification object:nil userInfo:@{@"username": username}];
+  });
+
+  if (self.popup) {
+    [[self window] close];
+  }
+}
+
 - (void)identify {
   [self.headerView setProgressEnabled:YES];
   _loading = YES;
@@ -256,29 +264,16 @@
       [AppDelegate setError:error sender:self];
       return;
     }
-  }];
-}
 
-- (void)track {
-  [self.headerView setProgressEnabled:YES];
-  _loading = YES;
-  GHWeakSelf gself = self;
-  KBRTrackRequest *trackRequest = [[KBRTrackRequest alloc] initWithClient:self.client];
-  [self registerClient:self.client sessionId:trackRequest.sessionId sender:self];
-  [trackRequest trackWithSessionID:trackRequest.sessionId theirName:_username localOnly:NO approveRemote:NO completion:^(NSError *error) {
-    gself.loading = NO;
-    [gself.headerView setProgressEnabled:NO];
+    NSAssert([identifyRes.user.username isEqualTo:gself.username], @"Mismatched users");
 
-    if (KBIsErrorName(error, @"KEY_NO_ACTIVE")) {
-      [self identify];
+    BOOL isSelf = [AppDelegate.appView.user.username isEqual:identifyRes.user.username];
+    if (isSelf) {
+      DDLogDebug(@"Viewing self");
       return;
     }
 
-    [KBActivity setProgressEnabled:NO subviews:gself.trackView.subviews];
-    if (![gself.trackView setTrackCompleted:error]) {
-      if (error) [self setError:error];
-    }
-    [self setNeedsLayout];
+    [self showTrack:identifyRes];
   }];
 }
 
@@ -347,7 +342,6 @@
   self.client = client;
   _username = username;
   _fokids = nil;
-  _changed = NO;
 
   if (!_username) return;
 
@@ -357,7 +351,7 @@
   _headerView.hidden = NO;
 
   if (!isSelf) {
-    [self track];
+    [self identify];
   } else {
     [self identifySelf];
   }
@@ -372,7 +366,7 @@
   [request untrackWithSessionID:request.sessionId theirName:_username completion:^(NSError *error) {
     [self.headerView setProgressEnabled:NO];
     if (error) {
-      [self setError:error];
+      [AppDelegate setError:error sender:self];
       return;
     }
 
@@ -440,7 +434,7 @@
     [self selectPGPKey:requestParams completion:completion];
   }];
   [request pgpSelectWithQuery:nil allowMulti:NO skipImport:NO completion:^(NSError *error) {
-    if (error) [self setError:error];
+    [AppDelegate setError:error sender:self];
     [self reload];
   }];
 }

@@ -32,9 +32,7 @@
   GHWeakSelf gself = self;
   _trackButton = [KBButton buttonWithText:@"Track" style:KBButtonStylePrimary];
   _trackButton.targetBlock = ^{
-    gself.trackOptions = [[KBRFinishAndPromptRes alloc] init];
-    gself.trackOptions.trackRemote = YES;
-    gself.trackResponse(gself.trackOptions);
+    gself.trackResponse(gself.username);
   };
   [self addSubview:_trackButton];
   _trackButton.hidden = YES;
@@ -148,7 +146,7 @@
   } else {
     [_label setMarkup:NSStringWithFormat(@"Success! You are now tracking %@.", _username) font:[NSFont systemFontOfSize:14] color:[KBAppearance.currentAppearance okColor] alignment:NSCenterTextAlignment lineBreakMode:NSLineBreakByWordWrapping];
   }
-  _trackButton.hidden = YES;
+  //_trackButton.hidden = YES;
   [self setNeedsLayout];
   return YES;
 }

@@ -11,7 +11,7 @@
 #import "KBAppKit.h"
 #import "KBRPC.h"
 
-typedef void (^KBTrackResponseBlock)(KBRFinishAndPromptRes *response); // Response nil on cancel
+typedef void (^KBTrackResponseBlock)(NSString *username);
 
 @interface KBTrackView : YOView
 
