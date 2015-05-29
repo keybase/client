@@ -217,6 +217,11 @@
   return [objects objectAtIndex:indexPath.item];
 }
 
+- (id)objectAtIndex:(NSInteger)index {
+  NSArray *objects = [self objectsForSection:0];
+  return [objects objectAtIndex:index];
+}
+
 - (id)lastObjectInSection:(NSInteger)section {
   NSInteger count = [self countForSection:section];
   if (count == 0) return nil;

@@ -39,8 +39,8 @@
   _listView.cellSetBlock = ^(KBImageTextView *label, id<KBComponent> component, NSIndexPath *indexPath, NSTableColumn *tableColumn, KBListView *listView, BOOL dequeued) {
     [label setTitle:component.name info:component.info image:component.image];
   };
-  _listView.onSelect = ^(KBTableView *tableView, NSIndexPath *indexPath, id<KBComponent> component) {
-    [gself select:component];
+  _listView.onSelect = ^(KBTableView *tableView, KBTableSelection *selection) {
+    [gself select:selection.object];
   };
   _listView.onMenuSelect = ^NSMenu *(KBTableView *tableView, NSIndexPath *indexPath) {
     id<KBComponent> component = [tableView.dataSource objectAtIndexPath:indexPath];

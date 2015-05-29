@@ -41,8 +41,8 @@
   } else if ([obj respondsToSelector:@selector(toDictionary)]) {
     id dict = [obj toDictionary];
     return [self formatDictionary:dict level:level+1];
-  } else if ([obj isKindOfClass:NSData.class]) {
-    return KBHexString(obj, @"");
+  //} else if ([obj isKindOfClass:NSData.class]) {
+  //  return KBHexString(obj, @"");
   } else {
     return [obj description];
   }

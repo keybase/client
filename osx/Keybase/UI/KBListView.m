@@ -72,7 +72,7 @@
     view = cellView.view;
   }
 
-  self.cellSetBlock(view, object, [NSIndexPath indexPathWithIndex:row], tableColumn, self, dequeued);
+  self.cellSetBlock(view, object, [NSIndexPath indexPathForItem:row], tableColumn, self, dequeued);
   if ([view respondsToSelector:@selector(setNeedsLayout)]) [view setNeedsLayout];
   return cellView;
    */
@@ -84,7 +84,7 @@
     view = [[_prototypeClass alloc] init];
     view.identifier = NSStringFromClass(_prototypeClass);
   }
-  self.cellSetBlock(view, object, [NSIndexPath indexPathWithIndex:row], tableColumn, self, dequeued);
+  self.cellSetBlock(view, object, [NSIndexPath indexPathForItem:row inSection:0], tableColumn, self, dequeued);
   if ([view respondsToSelector:@selector(setNeedsLayout)]) [(id)view setNeedsLayout];
   return view;
 }
@@ -106,7 +106,7 @@
     if (!self.prototypeView) self.prototypeView = [[self.prototypeClass alloc] init];
     id object = [self.dataSource objectAtIndexPath:[NSIndexPath indexPathForItem:row inSection:0]];
 
-    self.cellSetBlock(self.prototypeView, object, [NSIndexPath indexPathWithIndex:row], nil, self, NO);
+    self.cellSetBlock(self.prototypeView, object, [NSIndexPath indexPathForItem:row inSection:0], nil, self, NO);
     [self.prototypeView setNeedsLayout:NO];
 
     CGFloat width = tableView.frame.size.width;

@@ -51,8 +51,8 @@
   _logView.cellSetBlock = ^(KBLabel *label, NSString *text, NSIndexPath *indexPath, NSTableColumn *tableColumn, KBListView *listView, BOOL dequeued) {
     [label setText:text style:KBTextStyleDefault options:KBTextOptionsMonospace|KBTextOptionsSmall alignment:NSLeftTextAlignment lineBreakMode:NSLineBreakByClipping];
   };
-  _logView.onSelect = ^(KBTableView *tableView, NSIndexPath *indexPath, NSString *text) {
-    [gself.textView setText:text style:KBTextStyleDefault options:KBTextOptionsMonospace|KBTextOptionsSmall alignment:NSLeftTextAlignment lineBreakMode:NSLineBreakByCharWrapping];
+  _logView.onSelect = ^(KBTableView *tableView, KBTableSelection *selection) {
+    [gself.textView setText:[selection.objects join:@"\n\n"] style:KBTextStyleDefault options:KBTextOptionsMonospace|KBTextOptionsSmall alignment:NSLeftTextAlignment lineBreakMode:NSLineBreakByCharWrapping];
   };
   [self addSubview:_logView];
 

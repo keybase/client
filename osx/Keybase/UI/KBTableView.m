@@ -247,14 +247,28 @@
   if (!self.onSelect) return;
   NSInteger selectedRow = [_view selectedRow];
   if (selectedRow < 0) {
-    self.onSelect(self, nil, nil);
+    self.onSelect(self, nil);
   } else {
     id object = [self selectedObject];
     if (object) {
       if ([object isKindOfClass:KBTableViewHeader.class]) {
         // Selected header?
       } else {
-        self.onSelect(self, [NSIndexPath indexPathWithIndex:selectedRow], object);
+        KBTableSelection *selection = [[KBTableSelection alloc] init];
+        selection.indexPath = [NSIndexPath indexPathForItem:selectedRow inSection:0];
+        selection.object = object;
+
+        NSMutableArray *indexPaths = [NSMutableArray array];
+        NSMutableArray *objects = [NSMutableArray array];
+        GHWeakSelf gself = self;
+        [_view.selectedRowIndexes enumerateIndexesUsingBlock:^(NSUInteger index, BOOL *stop) {
+          [indexPaths addObject:[NSIndexPath indexPathForItem:index inSection:0]];
+          [objects addObject:[gself.dataSource objectAtIndex:index]];
+        }];
+        selection.indexPaths = indexPaths;
+        selection.objects = objects;
+
+        self.onSelect(self, selection);
       }
     }
   }

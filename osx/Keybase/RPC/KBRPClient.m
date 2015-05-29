@@ -60,7 +60,7 @@
   
   GHWeakSelf gself = self;
   _client.requestHandler = ^(NSNumber *messageId, NSString *method, NSArray *params, MPRequestCompletion completion) {
-    DDLogDebug(@"Received: %@(%@)", method, KBDescription(params));
+    DDLogDebug(@"Service requested: %@(%@)", method, KBDescription(params));
 
 //    if ([NSUserDefaults.standardUserDefaults boolForKey:@"Preferences.Advanced.Record"]) {
 //      [gself.recorder recordRequest:method params:params sessionId:[sessionId integerValue] callback:YES];
@@ -213,7 +213,7 @@
     if ([NSUserDefaults.standardUserDefaults boolForKey:@"Preferences.Advanced.Record"]) {
       if (result) [self.recorder recordResponse:method response:result sessionId:sessionId];
     }
-    DDLogDebug(@"Service reply %@: %@", method, result ? KBDescription(result) : @"");
+    DDLogDebug(@"Service reply: %@: %@", method, result ? KBDescription(result) : @"");
     completion(error, result);
   }];
 

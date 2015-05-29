@@ -44,6 +44,8 @@
 - (id)objectAtIndexPath:(NSIndexPath *)indexPath;
 - (id)lastObjectInSection:(NSInteger)section;
 
+- (id)objectAtIndex:(NSInteger)index;
+
 - (NSUInteger)indexOfObject:(id)object section:(NSInteger)section;
 - (NSIndexPath *)indexPathOfObject:(id)object section:(NSInteger)section;
 - (NSArray *)indexPathsOfObjects:(NSArray *)objects section:(NSInteger)section;

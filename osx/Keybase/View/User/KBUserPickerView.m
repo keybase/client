@@ -82,7 +82,8 @@
   _searchResultsView.cellSetBlock = ^(KBUserView *view, KBRUserSummary *userSummary, NSIndexPath *indexPath, NSTableColumn *tableColumn, KBListView *listView, BOOL dequeued) {
     [view setUserSummary:userSummary];
   };
-  _searchResultsView.onSelect = ^(KBTableView *tableView, NSIndexPath *indexPath, KBRUserSummary *userSummary) {
+  _searchResultsView.onSelect = ^(KBTableView *tableView, KBTableSelection *selection) {
+    KBRUserSummary *userSummary = selection.object;
     if (!userSummary) return;
     [gself commitToken:[KBUserToken userTokenWithUsername:userSummary.username]];
     [gself.searchControl textDidChange:@""];

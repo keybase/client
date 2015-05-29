@@ -41,8 +41,8 @@
   _listView.cellSetBlock = ^(KBImageTextView *label, KBEnvironment *env, NSIndexPath *indexPath, NSTableColumn *tableColumn, KBListView *listView, BOOL dequeued) {
     [label setTitle:env.config.title info:env.config.info image:env.config.image];
   };
-  _listView.onSelect = ^(KBTableView *tableView, NSIndexPath *indexPath, KBEnvironment *environment) {
-    [gself select:environment];
+  _listView.onSelect = ^(KBTableView *tableView, KBTableSelection *selection) {
+    [gself select:selection.object];
   };
   [_splitView setLeftView:_listView];
 

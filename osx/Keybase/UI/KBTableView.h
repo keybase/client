@@ -12,10 +12,11 @@
 #import "KBCellDataSource.h"
 #import "KBScrollView.h"
 #import "KBBorder.h"
+#import "KBTableSelection.h"
 
 @class KBTableView;
 
-typedef void (^KBTableViewCellSelect)(KBTableView *tableView, NSIndexPath *indexPath, id object);
+typedef void (^KBTableViewCellSelect)(KBTableView *tableView, KBTableSelection *selection);
 typedef NSMenu *(^KBTableViewMenuSelect)(KBTableView *tableView, NSIndexPath *indexPath);
 typedef void (^KBTableViewUpdate)(KBTableView *tableView);
 

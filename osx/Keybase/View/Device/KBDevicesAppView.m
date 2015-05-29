@@ -40,7 +40,7 @@
   _devicesView.cellSetBlock = ^(KBDeviceView *view, KBRDevice *device, NSIndexPath *indexPath, NSTableColumn *tableColumn, KBListView *listView, BOOL dequeued) {
     [view setDevice:device];
   };
-  _devicesView.onSelect = ^(id sender, NSIndexPath *indexPath, KBRUser *user) {
+  _devicesView.onSelect = ^(id sender, KBTableSelection *selection) {
 
   };
   _devicesView.onMenuSelect = ^(KBTableView *tableView, NSIndexPath *indexPath) {
