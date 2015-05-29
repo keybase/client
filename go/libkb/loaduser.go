@@ -116,12 +116,11 @@ func LoadUser(arg LoadUserArg) (ret *User, err error) {
 
 	ret.leaf = *leaf
 
-	// If the user was looked-up via a keybase username, then
-	// we should go ahead and check that the username matches the UID
-	if len(rres.kbUsername) > 0 {
-		if err = leaf.MatchUser(ret, arg.Uid, rres.kbUsername); err != nil {
-			return
-		}
+	// Match the returned User object to the Merkle tree. Also make sure
+	// that the username queried for matches the User returned (if it
+	// was indeed queried for)
+	if err = leaf.MatchUser(ret, arg.Uid, rres.kbUsername); err != nil {
+		return
 	}
 
 	if err = ret.LoadSigChains(arg.AllKeys, leaf, arg.Self); err != nil {
