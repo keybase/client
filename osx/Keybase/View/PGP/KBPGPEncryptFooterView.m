@@ -30,7 +30,7 @@
 
 //  NSImage *attachmentImage = [NSImage imageNamed:@"1-Edition-black-clip-1-24"];
 //  attachmentImage.size = CGSizeMake(16, 16);
-//  _attachmentButton = [KBButton buttonWithImage:attachmentImage style:KBButtonStyleToolbar];
+//  _attachmentButton = [KBButton buttonWithImage:attachmentImage style:KBButtonStyleDefault options:KBButtonOptionsToolbar];
 //  [buttonsView addSubview:_attachmentButton];
 
   YOSelf yself = self;

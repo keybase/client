@@ -32,7 +32,7 @@
   [self addSubview:_textField];
 
   GHWeakSelf gself = self;
-  _browseButton = [KBButton buttonWithText:@"Browse" style:KBButtonStyleToolbar];
+  _browseButton = [KBButton buttonWithText:@"Browse" style:KBButtonStyleDefault options:KBButtonOptionsToolbar];
   _browseButton.targetBlock = ^{ [gself chooseInput]; };
   [self addSubview:_browseButton];
 

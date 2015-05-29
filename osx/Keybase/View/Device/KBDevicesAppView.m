@@ -30,7 +30,7 @@
   YOView *devicesView = [[YOView alloc] init];
   NSImage *deviceAddImage = [NSImage imageNamed:@"19-Interface-black-add-1-24"];
   deviceAddImage.size = CGSizeMake(16, 16);
-  KBButton *addButton = [KBButton buttonWithImage:deviceAddImage style:KBButtonStyleToolbar];
+  KBButton *addButton = [KBButton buttonWithImage:deviceAddImage style:KBButtonStyleDefault options:KBButtonOptionsToolbar];
   addButton.targetBlock = ^{
     [yself addDevice];
   };

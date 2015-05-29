@@ -25,7 +25,7 @@
   _nameLabel = [[KBLabel alloc] init];
   [self addSubview:_nameLabel];
 
-  _openButton = [KBButton buttonWithText:@"Open in Finder" style:KBButtonStyleToolbar];
+  _openButton = [KBButton buttonWithText:@"Open in Finder" style:KBButtonStyleDefault options:KBButtonOptionsToolbar];
   [self addSubview:_openButton];
 
   YOSelf yself = self;

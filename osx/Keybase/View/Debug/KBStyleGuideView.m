@@ -58,7 +58,7 @@
 
   NSImage *image = [NSImage imageNamed:@"46-Arrows-black-arrow-67-24"];
   image.size = CGSizeMake(16, 16);
-  KBButton *buttonImageText = [KBButton buttonWithText:@"Back" image:image style:KBButtonStyleDefault];
+  KBButton *buttonImageText = [KBButton buttonWithText:@"Back" image:image style:KBButtonStyleDefault options:0];
   [buttonView addSubview:buttonImageText];
 
   buttonView.viewLayout = [YOLayout layoutWithLayoutBlock:[KBLayouts gridLayoutForViews:buttonView.subviews viewSize:CGSizeMake(200, 42) padding:10]];

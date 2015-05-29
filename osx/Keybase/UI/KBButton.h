@@ -26,17 +26,21 @@ typedef void (^KBButtonDispatchBlock)(KBButton *button, KBButtonCompletion compl
 
 + (instancetype)button;
 + (instancetype)buttonWithText:(NSString *)text style:(KBButtonStyle)style;
-+ (instancetype)buttonWithText:(NSString *)text style:(KBButtonStyle)style targetBlock:(dispatch_block_t)targetBlock;
++ (instancetype)buttonWithText:(NSString *)text style:(KBButtonStyle)style options:(KBButtonOptions)options;
++ (instancetype)buttonWithText:(NSString *)text style:(KBButtonStyle)style options:(KBButtonOptions)options targetBlock:(dispatch_block_t)targetBlock;
 + (instancetype)buttonWithText:(NSString *)text style:(KBButtonStyle)style alignment:(NSTextAlignment)alignment lineBreakMode:(NSLineBreakMode)lineBreakMode;
 
 + (instancetype)buttonWithImage:(NSImage *)image;
 + (instancetype)buttonWithImage:(NSImage *)image style:(KBButtonStyle)style;
++ (instancetype)buttonWithImage:(NSImage *)image style:(KBButtonStyle)style options:(KBButtonOptions)options;
 
-+ (instancetype)buttonWithText:(NSString *)text image:(NSImage *)image style:(KBButtonStyle)style;
++ (instancetype)buttonWithText:(NSString *)text image:(NSImage *)image style:(KBButtonStyle)style options:(KBButtonOptions)options;
 
 + (instancetype)linkWithText:(NSString *)text targetBlock:(dispatch_block_t)targetBlock;
 
 - (void)setText:(NSString *)text style:(KBButtonStyle)style alignment:(NSTextAlignment)alignment lineBreakMode:(NSLineBreakMode)lineBreakMode;
+
+- (void)setText:(NSString *)text style:(KBButtonStyle)style options:(KBButtonOptions)options alignment:(NSTextAlignment)alignment lineBreakMode:(NSLineBreakMode)lineBreakMode;
 
 - (void)setText:(NSString *)text font:(NSFont *)font color:(NSColor *)color alignment:(NSTextAlignment)alignment lineBreakMode:(NSLineBreakMode)lineBreakMode;
 
@@ -53,6 +57,7 @@ typedef void (^KBButtonDispatchBlock)(KBButton *button, KBButtonCompletion compl
 @interface KBButtonCell : NSButtonCell
 
 @property KBButtonStyle style;
+@property KBButtonOptions options;
 
 - (void)setText:(NSString *)text alignment:(NSTextAlignment)alignment lineBreakMode:(NSLineBreakMode)lineBreakMode;
 

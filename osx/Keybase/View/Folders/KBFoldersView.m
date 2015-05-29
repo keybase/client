@@ -43,13 +43,13 @@
   GHWeakSelf gself = self;
   NSImage *folderAddImage = [NSImage imageNamed:@"19-Interface-black-add-1-24"];
   folderAddImage.size = CGSizeMake(14, 14);
-  _addButton = [KBButton buttonWithImage:folderAddImage style:KBButtonStyleToolbar];
+  _addButton = [KBButton buttonWithImage:folderAddImage style:KBButtonStyleDefault options:KBButtonOptionsToolbar];
   _addButton.targetBlock = ^{ [gself addFolder]; };
   [self addSubview:_addButton];
 
 //  NSImage *trashImage = [NSImage imageNamed:@"1-Edition-black-bin-2-24"];
 //  trashImage.size = CGSizeMake(16, 16);
-//  _trashButton = [KBButton buttonWithImage:trashImage style:KBButtonStyleToolbar];
+//  _trashButton = [KBButton buttonWithImage:trashImage style:KBButtonStyleDefault options:KBButtonOptionsToolbar];
 //  [self addSubview:_trashButton];
 
   _searchField = [[KBSearchField alloc] init];

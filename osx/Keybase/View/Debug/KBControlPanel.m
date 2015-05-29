@@ -80,18 +80,18 @@
   if ([component conformsToProtocol:@protocol(KBInstallable)]) {
     YOHBox *topView = [YOHBox box:@{@"spacing": @(10)}];
     id<KBInstallable> installable = (id<KBInstallable>)component;
-    [topView addSubview:[KBButton buttonWithText:@"Refresh" style:KBButtonStyleToolbar targetBlock:^{ [self refresh]; }]];
+    [topView addSubview:[KBButton buttonWithText:@"Refresh" style:KBButtonStyleDefault options:KBButtonOptionsToolbar targetBlock:^{ [self refresh]; }]];
 
     if ([installable.componentStatus needsInstallOrUpgrade]) {
-      [topView addSubview:[KBButton buttonWithText:installable.componentStatus.actionLabel style:KBButtonStyleToolbar targetBlock:^{ [self install:installable]; }]];
+      [topView addSubview:[KBButton buttonWithText:installable.componentStatus.actionLabel style:KBButtonStyleDefault options:KBButtonOptionsToolbar targetBlock:^{ [self install:installable]; }]];
     } else if (installable.componentStatus.installStatus == KBInstallStatusInstalled) {
-      [topView addSubview:[KBButton buttonWithText:@"Uninstall" style:KBButtonStyleToolbar targetBlock:^{ [self uninstall:installable]; }]];
+      [topView addSubview:[KBButton buttonWithText:@"Uninstall" style:KBButtonStyleDefault options:KBButtonOptionsToolbar targetBlock:^{ [self uninstall:installable]; }]];
     }
 
     if (installable.componentStatus.runtimeStatus == KBRuntimeStatusNotRunning) {
-      [topView addSubview:[KBButton buttonWithText:@"Start" style:KBButtonStyleToolbar targetBlock:^{ [self start:installable]; }]];
+      [topView addSubview:[KBButton buttonWithText:@"Start" style:KBButtonStyleDefault options:KBButtonOptionsToolbar targetBlock:^{ [self start:installable]; }]];
     } else if (installable.componentStatus.runtimeStatus == KBRuntimeStatusRunning) {
-      [topView addSubview:[KBButton buttonWithText:@"Stop" style:KBButtonStyleToolbar targetBlock:^{ [self stop:installable]; }]];
+      [topView addSubview:[KBButton buttonWithText:@"Stop" style:KBButtonStyleDefault options:KBButtonOptionsToolbar targetBlock:^{ [self stop:installable]; }]];
     }
 
     [view addSubview:topView];
@@ -102,7 +102,7 @@
 }
 
 - (void)open:(id)sender {
-  [[sender window] kb_addChildWindowForView:self rect:CGRectMake(0, 40, 800, 400) position:KBWindowPositionRight title:@"Control Panel" fixed:NO makeKey:NO];
+  [[sender window] kb_addChildWindowForView:self rect:CGRectMake(0, 40, 800, 600) position:KBWindowPositionRight title:@"Control Panel" fixed:NO makeKey:NO];
 }
 
 - (void)addComponents:(NSArray */*of id<KBComponent>*/)components {

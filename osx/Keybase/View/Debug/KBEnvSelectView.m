@@ -138,7 +138,7 @@
   GHWeakSelf gself = self;
   YOHBox *buttons = [YOHBox box];
   [view addSubview:buttons];
-  [buttons addSubview:[KBButton buttonWithText:@"Clear" style:KBButtonStyleToolbar targetBlock:^{ [gself clearEnv]; }]];
+  [buttons addSubview:[KBButton buttonWithText:@"Clear" style:KBButtonStyleDefault options:KBButtonOptionsToolbar targetBlock:^{ [gself clearEnv]; }]];
 
   return view;
 }

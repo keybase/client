@@ -42,7 +42,7 @@
 }
 
 - (void)setButtonText:(NSString *)buttonText targetBlock:(dispatch_block_t)targetBlock {
-  [_button setText:buttonText style:KBButtonStyleToolbar alignment:NSCenterTextAlignment lineBreakMode:NSLineBreakByClipping];
+  [_button setText:buttonText style:KBButtonStyleDefault options:KBButtonOptionsToolbar alignment:NSCenterTextAlignment lineBreakMode:NSLineBreakByClipping];
   _button.targetBlock = targetBlock;
   [self setNeedsLayout];
 }

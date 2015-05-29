@@ -43,8 +43,8 @@
   [self setNeedsLayout];
 }
 
-- (void)setButtonStyle:(KBButtonStyle)buttonStyle {
-  [_button setText:nil style:buttonStyle alignment:NSLeftTextAlignment lineBreakMode:NSLineBreakByCharWrapping];
+- (void)setButtonStyle:(KBButtonStyle)style options:(KBButtonOptions)options {
+  [_button setText:nil style:style options:options alignment:NSLeftTextAlignment lineBreakMode:NSLineBreakByCharWrapping];
 }
 
 @end

@@ -58,14 +58,8 @@ static id<KBAppearance> gCurrentAppearance = NULL;
 }
 
 - (NSFont *)fontForStyle:(KBTextStyle)style options:(KBTextOptions)options {
-  NSFont *font = nil;
+  NSFont *font = self.textFont;
   switch (style) {
-    case KBTextStyleNone:
-    case KBTextStyleDefault:
-    case KBTextStyleSecondaryText:
-      font = self.textFont;
-      break;
-
     case KBTextStyleHeader:
       font = self.headerTextFont;
       break;
@@ -73,12 +67,21 @@ static id<KBAppearance> gCurrentAppearance = NULL;
     case KBTextStyleHeaderLarge:
       font = self.headerLargeTextFont;
       break;
+
+    default:
+      break;
   }
 
   // TODO These options overwrite each other
-  if ((options & KBTextOptionsMonospace) != 0) font = [NSFont fontWithName:@"Monaco" size:font.pointSize-2];
-  if ((options & KBTextOptionsStrong) != 0) font = [NSFont boldSystemFontOfSize:font.pointSize];
-  if ((options & KBTextOptionsSmall) != 0) font = [NSFont fontWithDescriptor:font.fontDescriptor size:font.pointSize-1];
+  if (options & KBTextOptionsMonospace) {
+    font = [NSFont fontWithName:@"Monaco" size:font.pointSize-2];
+  }
+  if (options & KBTextOptionsStrong) {
+    font = [NSFont boldSystemFontOfSize:font.pointSize];
+  }
+  if (options & KBTextOptionsSmall) {
+    font = [NSFont fontWithDescriptor:font.fontDescriptor size:font.pointSize-1];
+  }
 
   return font;
 }
@@ -180,11 +183,10 @@ static id<KBAppearance> gCurrentAppearance = NULL;
   return [NSColor colorWithWhite:0.966 alpha:1.0];
 }
 
-- (NSColor *)buttonTextColorForStyle:(KBButtonStyle)style enabled:(BOOL)enabled highlighted:(BOOL)highlighted {
+- (NSColor *)buttonTextColorForStyle:(KBButtonStyle)style options:(KBButtonOptions)options enabled:(BOOL)enabled highlighted:(BOOL)highlighted {
   if (!enabled) return GHNSColorFromRGB(0x666666);
   switch (style) {
     case KBButtonStyleDefault:
-    case KBButtonStyleToolbar:
       return GHNSColorFromRGB(0x333333);
 
     case KBButtonStylePrimary:
@@ -205,12 +207,11 @@ static id<KBAppearance> gCurrentAppearance = NULL;
   }
 }
 
-- (NSColor *)buttonDisabledFillColorForStyle:(KBButtonStyle)style {
+- (NSColor *)buttonDisabledFillColorForStyle:(KBButtonStyle)style options:(KBButtonOptions)options {
   switch (style) {
     case KBButtonStyleDefault:
     case KBButtonStylePrimary:
     case KBButtonStyleDanger:
-    case KBButtonStyleToolbar:
       return GHNSColorFromRGB(0xEFEFEF);
 
     case KBButtonStyleLink:
@@ -221,11 +222,10 @@ static id<KBAppearance> gCurrentAppearance = NULL;
   }
 }
 
-- (NSColor *)buttonHighlightedFillColorForStyle:(KBButtonStyle)style {
+- (NSColor *)buttonHighlightedFillColorForStyle:(KBButtonStyle)style options:(KBButtonOptions)options {
   switch (style) {
     case KBButtonStyleEmpty:
     case KBButtonStyleDefault:
-    case KBButtonStyleToolbar:
     case KBButtonStyleText:
       return GHNSColorFromRGB(0xDEDEDE);
 
@@ -241,13 +241,12 @@ static id<KBAppearance> gCurrentAppearance = NULL;
   }
 }
 
-- (NSColor *)buttonFillColorForStyle:(KBButtonStyle)style enabled:(BOOL)enabled highlighted:(BOOL)highlighted toggled:(BOOL)toggled {
-  if (toggled) return [self buttonHighlightedFillColorForStyle:style];
-  if (!enabled) return [self buttonDisabledFillColorForStyle:style];
-  if (highlighted) return [self buttonHighlightedFillColorForStyle:style];
+- (NSColor *)buttonFillColorForStyle:(KBButtonStyle)style options:(KBButtonOptions)options enabled:(BOOL)enabled highlighted:(BOOL)highlighted toggled:(BOOL)toggled {
+  if (toggled) return [self buttonHighlightedFillColorForStyle:style options:options];
+  if (!enabled) return [self buttonDisabledFillColorForStyle:style options:options];
+  if (highlighted) return [self buttonHighlightedFillColorForStyle:style options:options];
   switch (style) {
     case KBButtonStyleDefault:
-    case KBButtonStyleToolbar:
       return [NSColor colorWithWhite:0.99 alpha:1.0];
 
     case KBButtonStylePrimary:
@@ -264,7 +263,7 @@ static id<KBAppearance> gCurrentAppearance = NULL;
   }
 }
 
-- (NSColor *)buttonDisabledStrokeColorForStyle:(KBButtonStyle)style {
+- (NSColor *)buttonDisabledStrokeColorForStyle:(KBButtonStyle)style options:(KBButtonOptions)options {
   switch (style) {
     case KBButtonStyleDefault:
     case KBButtonStylePrimary:
@@ -275,16 +274,14 @@ static id<KBAppearance> gCurrentAppearance = NULL;
     case KBButtonStyleText:
     case KBButtonStyleCheckbox:
     case KBButtonStyleEmpty:
-    case KBButtonStyleToolbar:
       return nil;
   }
 }
 
-- (NSColor *)buttonStrokeColorForStyle:(KBButtonStyle)style enabled:(BOOL)enabled highlighted:(BOOL)highlighted {
-  if (!enabled) return [self buttonDisabledStrokeColorForStyle:style];
+- (NSColor *)buttonStrokeColorForStyle:(KBButtonStyle)style options:(KBButtonOptions)options enabled:(BOOL)enabled highlighted:(BOOL)highlighted {
+  if (!enabled) return [self buttonDisabledStrokeColorForStyle:style options:options];
   switch (style) {
     case KBButtonStyleDefault:
-    case KBButtonStyleToolbar:
       return GHNSColorFromRGB(0xCCCCCC);
 
     case KBButtonStylePrimary:

@@ -20,6 +20,6 @@
 
 - (void)setView:(YOView *)view;
 
-- (void)setButtonStyle:(KBButtonStyle)buttonStyle;
+- (void)setButtonStyle:(KBButtonStyle)style options:(KBButtonOptions)options;
 
 @end

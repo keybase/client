@@ -18,9 +18,9 @@ typedef NS_ENUM (NSInteger, KBTextStyle) {
 };
 
 typedef NS_OPTIONS (NSInteger, KBTextOptions) {
-  KBTextOptionsStrong,
-  KBTextOptionsMonospace,
-  KBTextOptionsSmall,
+  KBTextOptionsStrong = 1 << 1,
+  KBTextOptionsMonospace = 1 << 2,
+  KBTextOptionsSmall = 1 << 3,
 };
 
 typedef NS_ENUM (NSInteger, KBButtonStyle) {
@@ -31,7 +31,10 @@ typedef NS_ENUM (NSInteger, KBButtonStyle) {
   KBButtonStyleCheckbox,
   KBButtonStyleText,
   KBButtonStyleEmpty,
-  KBButtonStyleToolbar,
+};
+
+typedef NS_OPTIONS (NSInteger, KBButtonOptions) {
+  KBButtonOptionsToolbar = 1 << 1,
 };
 
 @protocol KBAppearance
@@ -72,9 +75,9 @@ typedef NS_ENUM (NSInteger, KBButtonStyle) {
 
 - (NSFont *)fontForStyle:(KBTextStyle)style options:(KBTextOptions)options;
 
-- (NSColor *)buttonTextColorForStyle:(KBButtonStyle)style enabled:(BOOL)enabled highlighted:(BOOL)highlighted;
-- (NSColor *)buttonFillColorForStyle:(KBButtonStyle)style enabled:(BOOL)enabled highlighted:(BOOL)highlighted toggled:(BOOL)toggled;
-- (NSColor *)buttonStrokeColorForStyle:(KBButtonStyle)style enabled:(BOOL)enabled highlighted:(BOOL)highlighted;
+- (NSColor *)buttonTextColorForStyle:(KBButtonStyle)style options:(KBButtonOptions)options enabled:(BOOL)enabled highlighted:(BOOL)highlighted;
+- (NSColor *)buttonFillColorForStyle:(KBButtonStyle)style options:(KBButtonOptions)options enabled:(BOOL)enabled highlighted:(BOOL)highlighted toggled:(BOOL)toggled;
+- (NSColor *)buttonStrokeColorForStyle:(KBButtonStyle)style options:(KBButtonOptions)options enabled:(BOOL)enabled highlighted:(BOOL)highlighted;
 
 @end
 

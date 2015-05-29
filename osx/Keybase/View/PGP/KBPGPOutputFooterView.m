@@ -16,7 +16,7 @@
   YOView *footerView = [YOView view];
   NSImage *backImage = [NSImage imageNamed:@"46-Arrows-black-arrow-67-24"];
   backImage.size = CGSizeMake(12, 12);
-  _editButton = [KBButton buttonWithText:@"Edit" image:backImage style:KBButtonStyleDefault];
+  _editButton = [KBButton buttonWithText:@"Edit" image:backImage style:KBButtonStyleDefault options:0];
   [footerView addSubview:_editButton];
   _shareButton = [KBButton buttonWithText:@"Share" style:KBButtonStyleDefault];
   [footerView addSubview:_shareButton];

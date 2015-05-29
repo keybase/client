@@ -13,6 +13,7 @@
 
 @interface KBButton ()
 @property KBButtonStyle style;
+@property KBButtonOptions options;
 @end
 
 @interface KBButtonCell ()
@@ -45,15 +46,23 @@
   return [self buttonWithText:text style:style alignment:NSCenterTextAlignment lineBreakMode:NSLineBreakByTruncatingTail];
 }
 
-+ (instancetype)buttonWithText:(NSString *)text style:(KBButtonStyle)style targetBlock:(dispatch_block_t)targetBlock {
-  KBButton *button = [self buttonWithText:text style:style alignment:NSCenterTextAlignment lineBreakMode:NSLineBreakByTruncatingTail];
++ (instancetype)buttonWithText:(NSString *)text style:(KBButtonStyle)style options:(KBButtonOptions)options {
+  return [self buttonWithText:text style:style options:options alignment:NSCenterTextAlignment lineBreakMode:NSLineBreakByTruncatingTail];
+}
+
++ (instancetype)buttonWithText:(NSString *)text style:(KBButtonStyle)style options:(KBButtonOptions)options targetBlock:(dispatch_block_t)targetBlock {
+  KBButton *button = [self buttonWithText:text style:style options:options alignment:NSCenterTextAlignment lineBreakMode:NSLineBreakByTruncatingTail];
   button.targetBlock = targetBlock;
   return button;
 }
 
 + (instancetype)buttonWithText:(NSString *)text style:(KBButtonStyle)style alignment:(NSTextAlignment)alignment lineBreakMode:(NSLineBreakMode)lineBreakMode {
+  return [self buttonWithText:text style:style options:0 alignment:alignment lineBreakMode:lineBreakMode];
+}
+
++ (instancetype)buttonWithText:(NSString *)text style:(KBButtonStyle)style options:(KBButtonOptions)options alignment:(NSTextAlignment)alignment lineBreakMode:(NSLineBreakMode)lineBreakMode {
   KBButton *button = [[KBButton alloc] init];
-  [button setText:text style:style alignment:alignment lineBreakMode:lineBreakMode];
+  [button setText:text style:style options:options alignment:alignment lineBreakMode:lineBreakMode];
   return button;
 }
 
@@ -69,30 +78,35 @@
 }
 
 + (instancetype)buttonWithImage:(NSImage *)image style:(KBButtonStyle)style {
+  return [self buttonWithImage:image style:style options:0];
+}
+
++ (instancetype)buttonWithImage:(NSImage *)image style:(KBButtonStyle)style options:(KBButtonOptions)options {
   KBButton *button = [[KBButton alloc] init];
-  KBButtonCell *cell = [button _setCellForStyle:style];
+  KBButtonCell *cell = [button _setCellForStyle:style options:options];
   cell.image = image;
   return button;
 }
 
-+ (instancetype)buttonWithText:(NSString *)text image:(NSImage *)image style:(KBButtonStyle)style {
++ (instancetype)buttonWithText:(NSString *)text image:(NSImage *)image style:(KBButtonStyle)style options:(KBButtonOptions)options {
   KBButton *button = [[KBButton alloc] init];
-  KBButtonCell *cell = [button _setCellForStyle:style];
+  KBButtonCell *cell = [button _setCellForStyle:style options:options];
   cell.image = image;
   [cell setText:text alignment:NSCenterTextAlignment lineBreakMode:NSLineBreakByTruncatingTail];
   return button;
 }
 
-- (CGSize)paddingForStyle:(KBButtonStyle)style {
+- (CGSize)paddingForStyle:(KBButtonStyle)style options:(KBButtonOptions)options {
+
+  if ((options & KBButtonOptionsToolbar) != 0)
+    return CGSizeMake(16, 0);
+
   switch (self.style) {
     case KBButtonStyleCheckbox:
     case KBButtonStyleText:
     case KBButtonStyleLink:
     case KBButtonStyleEmpty:
       return CGSizeMake(2, 0);
-
-    case KBButtonStyleToolbar:
-      return CGSizeMake(16, 0);//CGSizeMake(20, 8);
 
     case KBButtonStyleDefault:
     case KBButtonStylePrimary:
@@ -117,15 +131,15 @@
       sizeThatFits.height = MAX(titleSize.height, sizeThatFits.height);
     }
   }
-  CGSize padding = [self paddingForStyle:self.style];
+  CGSize padding = [self paddingForStyle:self.style options:self.options];
   sizeThatFits.width += padding.width;
   sizeThatFits.height += padding.height;
 
   // Min size for default buttons
-  if (self.style == KBButtonStyleDefault || self.style == KBButtonStylePrimary) {
-    sizeThatFits.width = MAX(sizeThatFits.width, 120);
-  } else if (self.style == KBButtonStyleToolbar) {
+  if ((self.options & KBButtonOptionsToolbar) != 0) {
     sizeThatFits.height = MAX(sizeThatFits.height, 26);
+  } else if (self.style == KBButtonStyleDefault || self.style == KBButtonStylePrimary) {
+    sizeThatFits.width = MAX(sizeThatFits.width, 120);
   }
 
   //NSAssert(!isnan(sizeThatFits.width), @"Width is NaN");
@@ -155,21 +169,27 @@
 }
 
 - (void)setText:(NSString *)text style:(KBButtonStyle)style font:(NSFont *)font alignment:(NSTextAlignment)alignment lineBreakMode:(NSLineBreakMode)lineBreakMode {
+  [self setText:text style:style options:0 font:font alignment:alignment lineBreakMode:lineBreakMode];
+}
+
+- (void)setText:(NSString *)text style:(KBButtonStyle)style options:(KBButtonOptions)options font:(NSFont *)font alignment:(NSTextAlignment)alignment lineBreakMode:(NSLineBreakMode)lineBreakMode {
   [self setAttributedTitle:[KBButton attributedText:text font:font color:nil alignment:alignment lineBreakMode:lineBreakMode] style:style];
 }
 
-+ (KBButtonCell *)buttonCellWithStyle:(KBButtonStyle)style button:(KBButton *)button {
++ (KBButtonCell *)buttonCellWithStyle:(KBButtonStyle)style options:(KBButtonOptions)options button:(KBButton *)button {
   KBButtonCell *cell = [[KBButtonCell alloc] init];
   cell.style = style;
+  cell.options = options;
   cell.parent = button;
   cell.target = button;
   cell.action = @selector(_performTargetBlock);
   return cell;
 }
 
-- (KBButtonCell *)_setCellForStyle:(KBButtonStyle)style {
+- (KBButtonCell *)_setCellForStyle:(KBButtonStyle)style options:(KBButtonOptions)options {
   _style = style;
-  KBButtonCell *cell = [KBButton buttonCellWithStyle:style button:self];
+  _options = options;
+  KBButtonCell *cell = [KBButton buttonCellWithStyle:style options:options button:self];
   self.cell = cell;
   if (style == KBButtonStyleCheckbox) {
     [self setButtonType:NSSwitchButton];
@@ -178,19 +198,23 @@
 }
 
 - (void)setText:(NSString *)text style:(KBButtonStyle)style alignment:(NSTextAlignment)alignment lineBreakMode:(NSLineBreakMode)lineBreakMode {
-  KBButtonCell *cell = [self _setCellForStyle:style];
+  [self setText:text style:style options:0 alignment:alignment lineBreakMode:lineBreakMode];
+}
+
+- (void)setText:(NSString *)text style:(KBButtonStyle)style options:(KBButtonOptions)options alignment:(NSTextAlignment)alignment lineBreakMode:(NSLineBreakMode)lineBreakMode {
+  KBButtonCell *cell = [self _setCellForStyle:style options:options];
   [cell setText:text alignment:alignment lineBreakMode:lineBreakMode];
   [self setNeedsDisplay];
 }
 
 - (void)setAttributedTitle:(NSAttributedString *)attributedTitle style:(KBButtonStyle)style {
-  KBButtonCell *cell = [self _setCellForStyle:style];
+  KBButtonCell *cell = [self _setCellForStyle:style options:0];
   [cell setAttributedTitle:attributedTitle];
   [self setNeedsDisplay];
 }
 
 - (void)setMarkup:(NSString *)markup style:(KBButtonStyle)style font:(NSFont *)font alignment:(NSTextAlignment)alignment {
-  KBButtonCell *cell = [self _setCellForStyle:style];
+  KBButtonCell *cell = [self _setCellForStyle:style options:0];
   [cell setMarkup:markup style:style font:font alignment:alignment];
   [self setNeedsDisplay];
 }
@@ -212,7 +236,8 @@ static KBButtonErrorHandler gErrorHandler = nil;
   gErrorHandler = errorHandler;
 }
 
-+ (NSFont *)fontForStyle:(KBButtonStyle)style {
++ (NSFont *)fontForStyle:(KBButtonStyle)style options:(KBButtonOptions)options {
+  if ((options & KBButtonOptionsToolbar) != 0) return [KBAppearance.currentAppearance textFont];
   switch (style) {
     case KBButtonStyleDefault:
     case KBButtonStylePrimary:
@@ -222,7 +247,6 @@ static KBButtonErrorHandler gErrorHandler = nil;
     case KBButtonStyleLink:
     case KBButtonStyleText:
     case KBButtonStyleCheckbox:
-    case KBButtonStyleToolbar:
       return [KBAppearance.currentAppearance textFont];
 
     case KBButtonStyleEmpty:
@@ -244,11 +268,11 @@ static KBButtonErrorHandler gErrorHandler = nil;
 }
 
 - (void)setText:(NSString *)text alignment:(NSTextAlignment)alignment lineBreakMode:(NSLineBreakMode)lineBreakMode {
-  [self setAttributedTitle:[KBButton attributedText:text font:[KBButton fontForStyle:self.style] color:[KBAppearance.currentAppearance textColor] alignment:alignment lineBreakMode:lineBreakMode]];
+  [self setAttributedTitle:[KBButton attributedText:text font:[KBButton fontForStyle:self.style options:self.options] color:[KBAppearance.currentAppearance textColor] alignment:alignment lineBreakMode:lineBreakMode]];
 }
 
 - (void)setMarkup:(NSString *)markup style:(KBButtonStyle)style font:(NSFont *)font alignment:(NSTextAlignment)alignment {
-  NSAttributedString *str = [KBText parseMarkup:markup font:font ? font : [KBButton fontForStyle:style] color:nil alignment:alignment lineBreakMode:NSLineBreakByWordWrapping];
+  NSAttributedString *str = [KBText parseMarkup:markup font:font ? font : [KBButton fontForStyle:style options:self.options] color:nil alignment:alignment lineBreakMode:NSLineBreakByWordWrapping];
   [self setAttributedTitle:str];
 }
 
@@ -256,7 +280,7 @@ static KBButtonErrorHandler gErrorHandler = nil;
   if (self.style != KBButtonStyleText) {
     // Cache this?
     NSMutableAttributedString *titleCopy = [title mutableCopy];
-    NSColor *color = [KBAppearance.currentAppearance buttonTextColorForStyle:self.style enabled:self.enabled highlighted:self.highlighted];
+    NSColor *color = [KBAppearance.currentAppearance buttonTextColorForStyle:self.style options:self.options enabled:self.enabled highlighted:self.highlighted];
     if (color) {
       [titleCopy addAttribute:NSForegroundColorAttributeName value:color range:NSMakeRange(0, titleCopy.length)];
       title = titleCopy;
@@ -267,7 +291,7 @@ static KBButtonErrorHandler gErrorHandler = nil;
     frame.origin.x += self.image.size.width/2.0;
   }
 
-  if (self.style == KBButtonStyleToolbar) {
+  if ((self.options & KBButtonOptionsToolbar) != 0) {
     frame.origin.y -= 1;
   }
 
@@ -300,8 +324,8 @@ static KBButtonErrorHandler gErrorHandler = nil;
 }
 
 - (void)drawBezelWithFrame:(NSRect)frame inView:(NSView *)controlView {
-  NSColor *strokeColor = [KBAppearance.currentAppearance buttonStrokeColorForStyle:self.style enabled:self.enabled highlighted:self.highlighted];
-  NSColor *fillColor = [KBAppearance.currentAppearance buttonFillColorForStyle:self.style enabled:self.enabled highlighted:self.highlighted toggled:(self.parent.toggleEnabled ? self.state : NSOffState)];
+  NSColor *strokeColor = [KBAppearance.currentAppearance buttonStrokeColorForStyle:self.style options:self.options enabled:self.enabled highlighted:self.highlighted];
+  NSColor *fillColor = [KBAppearance.currentAppearance buttonFillColorForStyle:self.style options:self.options enabled:self.enabled highlighted:self.highlighted toggled:(self.parent.toggleEnabled ? self.state : NSOffState)];
 
   NSBezierPath *path;
   if (strokeColor) {
