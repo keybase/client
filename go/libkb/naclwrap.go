@@ -456,8 +456,9 @@ func makeNaclSigningKeyPair(reader io.Reader) (NaclSigningKeyPair, error) {
 	}, nil
 }
 
-// Make a signing key pair given a secret. Of course, the security of
-// depends entirely on the randomness of the bytes in the secret.
+// MakeNaclSigningKeyPairFromSecret makes a signing key pair given a
+// secret. Of course, the security of depends entirely on the
+// randomness of the bytes in the secret.
 func MakeNaclSigningKeyPairFromSecret(secret [NaclSigningKeySecretSize]byte) (NaclSigningKeyPair, error) {
 	r := bytes.NewReader(secret[:])
 
@@ -488,8 +489,9 @@ func makeNaclDHKeyPair(reader io.Reader) (NaclDHKeyPair, error) {
 	}, nil
 }
 
-// Make a DH key pair given a secret. Of course, the security of
-// depends entirely on the randomness of the bytes in the secret.
+// MakeNaclDHKeyPairFromSecret makes a DH key pair given a secret. Of
+// course, the security of depends entirely on the randomness of the
+// bytes in the secret.
 func MakeNaclDHKeyPairFromSecret(secret [NaclDHKeySecretSize]byte) (NaclDHKeyPair, error) {
 	r := bytes.NewReader(secret[:])
 
