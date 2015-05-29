@@ -9,11 +9,14 @@ To run the KBFS FUSE client:
 * Check out https://github.com/keybase/keybase, and follow its
   README.md to install and run a local copy of the Keybase webserver
   on port 3000.
+
 * Check out https://github.com/keybase/client, and do:
 
         go get -u ./...
         cd daemon && go build && cd ..
         cd client && go build && cd ..
+        ln -s $GOPATH/src/github.com/keybase/client/git-hooks/pre-commit $GOPATH/src/github.com/keybase/kbfs/.git/hooks/
+
 * Run the daemon
 
         rm -rf ~/kbtest
