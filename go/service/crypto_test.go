@@ -5,7 +5,7 @@ import (
 	"testing"
 
 	"github.com/keybase/client/go/libkb"
-	"github.com/keybase/client/protocol/go"
+	keybase1 "github.com/keybase/client/protocol/go"
 )
 
 // Test that CryptoHandler.SignED25519() signs the given message with
