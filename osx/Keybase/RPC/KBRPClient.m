@@ -60,7 +60,7 @@
   
   GHWeakSelf gself = self;
   _client.requestHandler = ^(NSNumber *messageId, NSString *method, NSArray *params, MPRequestCompletion completion) {
-    //DDLogDebug(@"Received request: %@(%@)", method, [params join:@", "]);
+    DDLogDebug(@"Received: %@(%@)", method, KBDescription(params));
 
 //    if ([NSUserDefaults.standardUserDefaults boolForKey:@"Preferences.Advanced.Record"]) {
 //      [gself.recorder recordRequest:method params:params sessionId:[sessionId integerValue] callback:YES];
@@ -69,11 +69,12 @@
     if ([method isEqualToString:@"keybase.1.logUi.log"]) {
       KBRLogRequestParams *requestParams = [[KBRLogRequestParams alloc] initWithParams:params];
       [gself.delegate RPClient:gself didLog:requestParams.text.data];
+      completion(nil, nil);
       return;
     } else if ([method isEqualToString:@"keybase.1.secretUi.getSecret"]) {
-      DDLogDebug(@"Password prompt: %@", params);
+      DDLogDebug(@"Password prompt: %@", KBDescription(params));
       KBRGetSecretRequestParams *requestParams = [[KBRGetSecretRequestParams alloc] initWithParams:params];
-      [gself.delegate RPClient:gself didRequestSecretForPrompt:requestParams.pinentry.prompt description:requestParams.pinentry.description secret:^(NSString *secret) {
+      [gself.delegate RPClient:gself didRequestSecretForPrompt:requestParams.pinentry.prompt description:requestParams.pinentry.desc secret:^(NSString *secret) {
         KBRSecretEntryRes *entry = [[KBRSecretEntryRes alloc] init];
         entry.text = secret;
         entry.canceled = !secret;
@@ -81,7 +82,7 @@
       }];
       return;
     } else if ([method isEqualToString:@"keybase.1.secretUi.getKeybasePassphrase"]) {
-      DDLogDebug(@"Password prompt: %@", params);
+      DDLogDebug(@"Password prompt: %@", KBDescription(params));
       KBRGetKeybasePassphraseRequestParams *requestParams = [[KBRGetKeybasePassphraseRequestParams alloc] initWithParams:params];
       [gself.delegate RPClient:gself didRequestKeybasePassphraseForUsername:requestParams.username passphrase:^(NSString *passphrase) {
         completion(nil, passphrase);
@@ -212,7 +213,7 @@
     if ([NSUserDefaults.standardUserDefaults boolForKey:@"Preferences.Advanced.Record"]) {
       if (result) [self.recorder recordResponse:method response:result sessionId:sessionId];
     }
-    DDLogDebug(@"Reply (%@): %@", method, KBDescription(result));
+    DDLogDebug(@"Service reply %@: %@", method, result ? KBDescription(result) : @"");
     completion(error, result);
   }];
 
@@ -269,7 +270,7 @@ NSDictionary *KBScrubPassphrase(NSDictionary *dict) {
 #pragma mark -
 
 - (void)client:(MPMessagePackClient *)client didError:(NSError *)error fatal:(BOOL)fatal {
-  DDLogDebug(@"Error (fatal=%d): %@", fatal, error);
+  DDLogError(@"Error (fatal=%d): %@", fatal, error);
 }
 
 - (void)client:(MPMessagePackClient *)client didChangeStatus:(MPMessagePackClientStatus)status {
@@ -283,7 +284,7 @@ NSDictionary *KBScrubPassphrase(NSDictionary *dict) {
 }
 
 - (void)client:(MPMessagePackClient *)client didReceiveNotificationWithMethod:(NSString *)method params:(id)params {
-  DDLogDebug(@"Notification: %@(%@)", method, [params join:@","]);
+  DDLogDebug(@"Notification: %@(%@)", method, KBDescription(params));
 }
 
 @end
