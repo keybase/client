@@ -32,6 +32,7 @@
 @property KBUserProfileViewer *trackersUserView;
 @property KBUserProfileViewer *searchUserView;
 @property KBViews *userViews;
+@property KBActivityIndicatorView *listProgressView;
 
 @property KBActivityIndicatorView *searchProgressView;
 @property NSString *searchText;
@@ -94,6 +95,10 @@
   _searchProgressView.lineWidth = 1.0;
   [self addSubview:_searchProgressView];
 
+  _listProgressView = [[KBActivityIndicatorView alloc] init];
+  _listProgressView.lineWidth = 1.0;
+  [self addSubview:_listProgressView];
+
   _searchView = [[KBUserListView alloc] init];
   _searchView.listView.onSelect = ^(KBTableView *tableView, KBTableSelection *selection) {
     KBRUserSummary *userSummary = selection.object;
@@ -119,7 +124,8 @@
 
     [layout setFrame:CGRectMake(0, y, col, size.height) view:yself.searchView];
 
-    y += [layout setFrame:CGRectMake(9, y, col - 21, 23) view:yself.menuButton].size.height + 4;
+    [layout setFrame:CGRectMake(7, y + 5, 14, 14) view:yself.listProgressView];
+    y += [layout setFrame:CGRectMake(13, y, col - 21, 23) view:yself.menuButton].size.height + 4;
 
     [layout setFrame:CGRectMake(0, y, col - 1, size.height - y) view:yself.views];
 
@@ -166,10 +172,10 @@
 - (void)reload:(BOOL)update {
   GHWeakSelf gself = self;
 
+  _listProgressView.animating = YES;
   KBRUserRequest *trackingRequest = [[KBRUserRequest alloc] initWithClient:self.client];
-  _trackingView.listView.progressView.animating = YES;
   [trackingRequest listTrackingWithFilter:nil completion:^(NSError *error, NSArray *userSummaries) {
-    gself.trackingView.listView.progressView.animating = NO;
+    gself.listProgressView.animating = NO;
     if (error) {
       [AppDelegate setError:error sender:self];
       [gself.trackingView.listView removeAllObjects];
@@ -179,7 +185,7 @@
   }];
 
   [self trackersUsers:^(NSError *error, NSArray *userSummaries) {
-    gself.trackersView.listView.progressView.animating = NO;
+    gself.listProgressView.animating = NO;
     if (error) {
       [AppDelegate setError:error sender:self];
       [gself.trackersView.listView removeAllObjects];
