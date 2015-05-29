@@ -16,7 +16,7 @@ typedef NS_ENUM (NSInteger, KBConsoleType) {
   KBConsoleTypeService
 };
 
-@interface KBConsoleView : YOView <DDLogger>
+@interface KBConsoleView : YOVBox <DDLogger>
 
 @property (nonatomic) id<DDLogFormatter> logFormatter;
 
