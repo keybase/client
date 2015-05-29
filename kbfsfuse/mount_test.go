@@ -635,7 +635,7 @@ func TestRemoveFileWhileOpenWriting_Desired(t *testing.T) {
 		t.Fatalf("cannot write: %v", err)
 	}
 	if err := f.Close(); err != nil {
-		t.Fatal("error on close: %v", err)
+		t.Fatalf("error on close: %v", err)
 	}
 
 	checkDir(t, path.Join(mnt.Dir, "jdoe"), map[string]fileInfoCheck{})
@@ -683,7 +683,7 @@ func TestRemoveFileWhileOpenWriting_Current(t *testing.T) {
 	}
 
 	if err := f.Close(); err != nil {
-		t.Fatal("error on close: %v", err)
+		t.Fatalf("error on close: %v", err)
 	}
 
 	checkDir(t, path.Join(mnt.Dir, "jdoe"), map[string]fileInfoCheck{
@@ -725,7 +725,7 @@ func TestRemoveFileWhileOpenReading(t *testing.T) {
 	}
 
 	if err := f.Close(); err != nil {
-		t.Fatal("error on close: %v", err)
+		t.Fatalf("error on close: %v", err)
 	}
 
 	checkDir(t, path.Join(mnt.Dir, "jdoe"), map[string]fileInfoCheck{

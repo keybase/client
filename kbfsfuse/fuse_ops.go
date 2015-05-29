@@ -103,7 +103,10 @@ func (n *FuseNode) GetChan() util.RWScheduler {
 func (n *FuseNode) GetPath(depth int) libkbfs.Path {
 	var p libkbfs.Path
 	if n.PrevNode == nil {
-		p = libkbfs.Path{n.Dir, make([]libkbfs.PathNode, 0, depth)}
+		p = libkbfs.Path{
+			TopDir: n.Dir,
+			Path:   make([]libkbfs.PathNode, 0, depth),
+		}
 	} else {
 		p = n.PrevNode.GetPath(depth + 1)
 	}
@@ -145,8 +148,8 @@ func (f *FuseOps) LookupInDir(dNode *FuseNode, name string) (
 				DirHandle: dirHandle,
 				Entry:     md.Data().Dir,
 				PathNode: libkbfs.PathNode{
-					md.Data().Dir.BlockPointer,
-					dirHandle.ToString(f.config),
+					BlockPointer: md.Data().Dir.BlockPointer,
+					Name:         dirHandle.ToString(f.config),
 				},
 				Ops: f,
 			}
@@ -172,7 +175,7 @@ func (f *FuseOps) LookupInDir(dNode *FuseNode, name string) (
 
 		de, ok := dBlock.Children[name]
 		if !ok {
-			return nil, f.TranslateError(&libkbfs.NoSuchNameError{name})
+			return nil, f.TranslateError(&libkbfs.NoSuchNameError{Name: name})
 		}
 
 		var pathNode libkbfs.PathNode
@@ -180,7 +183,10 @@ func (f *FuseOps) LookupInDir(dNode *FuseNode, name string) (
 			// use a null block pointer for symlinks
 			pathNode = libkbfs.PathNode{Name: name}
 		} else {
-			pathNode = libkbfs.PathNode{de.BlockPointer, name}
+			pathNode = libkbfs.PathNode{
+				BlockPointer: de.BlockPointer,
+				Name:         name,
+			}
 		}
 		fNode := &FuseNode{
 			Node:     nodefs.NewDefaultNode(),
@@ -352,7 +358,9 @@ func (f *FuseOps) LookupInRootByName(rNode *FuseNode, name string) (
 					DirHandle: dirHandle,
 					Dir:       libkbfs.NullDirId,
 					PathNode: libkbfs.PathNode{
-						libkbfs.BlockPointer{}, dirString},
+						BlockPointer: libkbfs.BlockPointer{},
+						Name:         dirString,
+					},
 					Entry: libkbfs.DirEntry{Type: libkbfs.Dir},
 					Ops:   f,
 				}
@@ -367,8 +375,8 @@ func (f *FuseOps) LookupInRootByName(rNode *FuseNode, name string) (
 					DirHandle: dirHandle,
 					Entry:     md.Data().Dir,
 					PathNode: libkbfs.PathNode{
-						md.Data().Dir.BlockPointer,
-						dirString,
+						BlockPointer: md.Data().Dir.BlockPointer,
+						Name:         dirString,
 					},
 					Ops: f,
 				}
@@ -407,8 +415,8 @@ func (f *FuseOps) LookupInRootById(rNode *FuseNode, id libkbfs.DirId) (
 				DirHandle: dirHandle,
 				Entry:     md.Data().Dir,
 				PathNode: libkbfs.PathNode{
-					md.Data().Dir.BlockPointer,
-					name,
+					BlockPointer: md.Data().Dir.BlockPointer,
+					Name:         name,
 				},
 				Ops: f,
 			}
@@ -436,7 +444,8 @@ func (f *FuseOps) GetAttr(n *FuseNode, out *fuse.Attr) fuse.Status {
 				var ok bool
 				de, ok = dBlock.Children[name]
 				if !ok {
-					return f.TranslateError(&libkbfs.NoSuchNameError{name})
+					return f.TranslateError(
+						&libkbfs.NoSuchNameError{Name: name})
 				}
 			} else {
 				md, err := f.config.KBFSOps().GetRootMDForHandle(n.DirHandle)
@@ -691,7 +700,7 @@ func (f *FuseOps) RmEntry(n *FuseNode, name string, isDir bool) (
 	// Can't remove public directories
 	if name == libkbfs.PublicName {
 		if parentPath := n.GetPath(1); parentPath.HasPublic() {
-			return f.TranslateError(&libkbfs.TopDirAccessError{p})
+			return f.TranslateError(&libkbfs.TopDirAccessError{Name: p})
 		}
 	}
 
@@ -752,7 +761,7 @@ func (f *FuseOps) Flush(n *FuseNode) fuse.Status {
 }
 
 func (f *FuseOps) TranslateError(err error) fuse.Status {
-	f.config.Reporter().Report(libkbfs.RptE, &libkbfs.WrapError{err})
+	f.config.Reporter().Report(libkbfs.RptE, &libkbfs.WrapError{Err: err})
 	switch err.(type) {
 	case *libkbfs.NameExistsError:
 		return fuse.Status(syscall.EEXIST)

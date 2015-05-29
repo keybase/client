@@ -261,14 +261,31 @@ func TestPartialLocalUpdate(t *testing.T) {
 	node2 = doLookupOrBust(t, node1, "dir1")
 
 	// Somewhere else, someone writes test_user/dir1/dir2/dir3
-	newPath := libkbfs.Path{node1.Dir, []libkbfs.PathNode{
-		node1.PathNode,
-		node2.PathNode,
-		libkbfs.PathNode{libkbfs.BlockPointer{
-			libkbfs.BlockId{104}, 0, 0, keybase1.MakeTestUID(0), 0}, "dir2"},
-		libkbfs.PathNode{libkbfs.BlockPointer{
-			libkbfs.BlockId{105}, 0, 0, keybase1.MakeTestUID(0), 0}, "dir3"},
-	}}
+	newPath := libkbfs.Path{
+		TopDir: node1.Dir,
+		Path: []libkbfs.PathNode{
+			node1.PathNode,
+			node2.PathNode,
+			libkbfs.PathNode{
+				BlockPointer: libkbfs.BlockPointer{
+					Id:        libkbfs.BlockId{104},
+					KeyVer:    0,
+					Ver:       0,
+					Writer:    keybase1.MakeTestUID(0),
+					QuotaSize: 0,
+				},
+				Name: "dir2"},
+			libkbfs.PathNode{
+				BlockPointer: libkbfs.BlockPointer{
+					Id:        libkbfs.BlockId{105},
+					KeyVer:    0,
+					Ver:       0,
+					Writer:    keybase1.MakeTestUID(0),
+					QuotaSize: 0,
+				},
+				Name: "dir3"},
+		},
+	}
 	root.Ops.LocalChange(newPath)
 	root.Ops.Shutdown()
 
@@ -289,14 +306,31 @@ func TestPartialBatchUpdate(t *testing.T) {
 	node2 := doMkDirOrBust(t, node1, "dir1")
 
 	// Somewhere else, someone creates test_user/dir1/dir2/dir3
-	newPath := libkbfs.Path{node1.Dir, []libkbfs.PathNode{
-		node1.PathNode,
-		node2.PathNode,
-		libkbfs.PathNode{libkbfs.BlockPointer{
-			libkbfs.BlockId{104}, 0, 0, keybase1.MakeTestUID(0), 0}, "dir2"},
-		libkbfs.PathNode{libkbfs.BlockPointer{
-			libkbfs.BlockId{105}, 0, 0, keybase1.MakeTestUID(0), 0}, "dir3"},
-	}}
+	newPath := libkbfs.Path{
+		TopDir: node1.Dir,
+		Path: []libkbfs.PathNode{
+			node1.PathNode,
+			node2.PathNode,
+			libkbfs.PathNode{
+				BlockPointer: libkbfs.BlockPointer{
+					Id:        libkbfs.BlockId{104},
+					KeyVer:    0,
+					Ver:       0,
+					Writer:    keybase1.MakeTestUID(0),
+					QuotaSize: 0},
+				Name: "dir2",
+			},
+			libkbfs.PathNode{
+				BlockPointer: libkbfs.BlockPointer{
+					Id:        libkbfs.BlockId{105},
+					KeyVer:    0,
+					Ver:       0,
+					Writer:    keybase1.MakeTestUID(0),
+					QuotaSize: 0,
+				},
+				Name: "dir3",
+			},
+		}}
 	root.Ops.BatchChanges(node1.Dir, []libkbfs.Path{newPath})
 	root.Ops.Shutdown()
 
@@ -311,10 +345,13 @@ func testCompleteBatchUpdate(t *testing.T, root *FuseNode, folderName string) {
 	node2.Flush() // noop to force wait on update
 
 	// Construct an updated path using the current node IDs
-	newPath := libkbfs.Path{node1.Dir, []libkbfs.PathNode{
-		node1.PathNode,
-		node2.PathNode,
-	}}
+	newPath := libkbfs.Path{
+		TopDir: node1.Dir,
+		Name: []libkbfs.PathNode{
+			node1.PathNode,
+			node2.PathNode,
+		},
+	}
 
 	// now write/flush to change IDs
 	node2.Write(nil, []byte{0, 1, 2}, 0, nil)
