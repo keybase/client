@@ -18,9 +18,23 @@ func NewSpecialKeyRing(v []PgpFingerprint) *SpecialKeyRing {
 	}
 }
 
+func (sk *SpecialKeyRing) assertValid(fp PgpFingerprint) error {
+	for _, vfp := range sk.validFingerprints {
+		if vfp.Eq(fp) {
+			return nil
+		}
+	}
+	return WrongKeyError{&sk.validFingerprints[0], &fp}
+}
+
 func (sk *SpecialKeyRing) Load(fp PgpFingerprint) (*PgpKeyBundle, error) {
 
 	G.Log.Debug("+ SpecialKeyRing.Load(%s)", fp)
+
+	if err := sk.assertValid(fp); err != nil {
+		return nil, err
+	}
+
 	key, found := sk.keys[fp]
 	if found {
 		G.Log.Debug("- SpecialKeyRing.Load(%s) -> hit inmem cache", fp)

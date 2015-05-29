@@ -554,10 +554,7 @@ func (e *Env) GetMerkleKeyFingerprints() []PgpFingerprint {
 		func() []string { return e.getEnvPath("KEYBASE_MERKLE_KEY_FINGERPRINTS") },
 		func() []string { return e.config.GetMerkleKeyFingerprints() },
 		func() []string {
-			if e.GetTestMode() {
-				return []string{MERKLE_TEST_KEY}
-			}
-			return []string{MERKLE_PROD_KEY}
+			return []string{MERKLE_TEST_KEY, MERKLE_PROD_KEY}
 		},
 	)
 
