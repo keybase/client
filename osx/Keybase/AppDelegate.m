@@ -36,7 +36,7 @@
 #import <Sparkle/Sparkle.h>
 #import <AFNetworking/AFNetworking.h>
 
-@interface AppDelegate ()
+@interface AppDelegate () <KBAppViewDelegate>
 @property KBAppView *appView;
 @property KBPreferences *preferences;
 @property BOOL alerting;
@@ -108,8 +108,6 @@
 }
 
 - (void)openWithEnvironment:(KBEnvironment *)environment {
-  [self updateMenu];
-
   _statusItem = [[NSStatusBar systemStatusBar] statusItemWithLength:NSVariableStatusItemLength];
   //_statusItem.title = @"Keybase";
 #ifdef DEBUG
@@ -119,8 +117,10 @@
 #endif
   //_statusItem.alternateImage = [NSImage imageNamed:@""]; // Highlighted
   _statusItem.highlightMode = YES; // Blue background when selected
+  [self updateMenu];
 
   _appView = [[KBAppView alloc] init];
+  _appView.delegate = self;
   [_appView openWindow];
 
 #ifdef DEBUG
@@ -357,14 +357,6 @@
 }
 
 #pragma mark KBAppViewDelegate
-
-- (void)appViewDidLaunch:(KBAppView *)appView { }
-- (void)appView:(KBAppView *)appView willConnectWithClient:(KBRPClient *)client{ }
-- (void)appView:(KBAppView *)appView didConnectWithClient:(KBRPClient *)client { }
-- (void)appView:(KBAppView *)appView didCheckStatusWithConfig:(KBRConfig *)config status:(KBRGetCurrentStatusRes *)status { }
-- (void)appView:(KBAppView *)appView didDisconnectWithClient:(KBRPClient *)client { }
-- (void)appView:(KBAppView *)appView didErrorOnConnect:(NSError *)error connectAttempt:(NSInteger)connectAttempt { }
-- (void)appView:(KBAppView *)appView didLogMessage:(NSString *)message { }
 
 - (void)appViewDidUpdateStatus:(KBAppView *)appView {
   [self updateMenu];

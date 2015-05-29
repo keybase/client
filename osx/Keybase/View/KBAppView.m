@@ -271,6 +271,7 @@ typedef NS_ENUM (NSInteger, KBAppViewMode) {
       return;
     }
     [self updateStatus:status];
+    [self.delegate appViewDidUpdateStatus:self];
     // TODO reload current view if coming back from disconnect?
     [NSNotificationCenter.defaultCenter postNotificationName:KBStatusDidChangeNotification object:nil userInfo:@{@"config": config, @"status": status}];
   }];
