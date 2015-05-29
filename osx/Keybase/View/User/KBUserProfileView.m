@@ -333,6 +333,10 @@
   }];
 }
 
+- (void)refresh {
+  [self setUsername:_username client:self.client];
+}
+
 - (void)setUsername:(NSString *)username client:(KBRPClient *)client {
   NSParameterAssert(client);
   if ([self isLoadingUsername:username]) return;
@@ -405,7 +409,10 @@
 
 - (void)openKeyWithKeyId:(KBRFOKID *)keyId {
   KBKeyView *keyView = [[KBKeyView alloc] init];
-  [self.window kb_addChildWindowForView:keyView rect:CGRectMake(0, 0, 500, 400) position:KBWindowPositionCenter title:@"Key" fixed:NO makeKey:YES];
+  NSWindow *window = [self.window kb_addChildWindowForView:keyView rect:CGRectMake(0, 0, 500, 400) position:KBWindowPositionCenter title:@"Key" fixed:NO makeKey:YES];
+  keyView.cancelButton.targetBlock = ^{
+    [window close];
+  };
   keyView.client = self.client;
   BOOL isSelf = [AppDelegate.appView.user.username isEqual:self.username];
   [keyView setKeyId:keyId editable:isSelf];

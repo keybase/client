@@ -23,6 +23,8 @@
 
 - (void)setUsername:(NSString *)username client:(KBRPClient *)client;
 
+- (void)refresh;
+
 - (void)clear;
 
 - (void)registerClient:(KBRPClient *)client sessionId:(NSInteger)sessionId sender:(id)sender;

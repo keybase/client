@@ -14,3 +14,5 @@
 @end
 
 NSString *KBDescription(id obj);
+NSString *KBHexString(NSData *data, NSString *defaultValue);
+NSData *KBHexData(NSString *s);

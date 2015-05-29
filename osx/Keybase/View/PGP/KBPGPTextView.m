@@ -8,6 +8,7 @@
 
 #import "KBPGPTextView.h"
 #import "KBDefines.h"
+#import "KBFormatter.h"
 
 @implementation KBPGPTextView
 

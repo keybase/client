@@ -9,6 +9,7 @@
 #import "KBAppDefines.h"
 
 NSString *const KBTrackingListDidChangeNotification = @"KBTrackingListDidChangeNotification";
+NSString *const KBUserDidChangeNotification = @"KBUserDidChangeNotification";
 NSString *const KBStatusDidChangeNotification = @"KBStatusDidChangeNotification";
 
 NSString *KBDescriptionForKID(NSData *kid) {

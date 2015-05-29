@@ -85,7 +85,13 @@ typedef NS_ENUM (NSInteger, KBAppViewMode) {
     return size;
   }];
 
+  [NSNotificationCenter.defaultCenter addObserver:self selector:@selector(userDidChange:) name:KBUserDidChangeNotification object:nil];
+
   [self showInProgress:@"Loading"];
+}
+
+- (void)dealloc {
+  [NSNotificationCenter.defaultCenter removeObserver:self];
 }
 
 - (void)openWithEnvironment:(KBEnvironment *)environment {
@@ -242,6 +248,10 @@ typedef NS_ENUM (NSInteger, KBAppViewMode) {
   [self setContentView:_PGPAppView mode:KBAppViewModeMain];
 }
 
+- (void)userDidChange:(NSNotification *)notification {
+  [_userProfileView refresh];
+}
+
 - (void)logout:(BOOL)prompt {
   GHWeakSelf gself = self;
   dispatch_block_t logout = ^{
@@ -347,14 +357,15 @@ typedef NS_ENUM (NSInteger, KBAppViewMode) {
 
 - (void)RPClient:(KBRPClient *)RPClient didRequestSecretForPrompt:(NSString *)prompt description:(NSString *)description secret:(KBRPClientOnSecret)secret {
   [KBAlert promptForInputWithTitle:prompt description:description secure:YES style:NSCriticalAlertStyle buttonTitles:@[@"OK", @"Cancel"] view:self completion:^(NSModalResponse response, NSString *password) {
+    password = response == NSAlertFirstButtonReturn ? password : nil;
     secret(password);
   }];
 }
 
 - (void)RPClient:(KBRPClient *)RPClient didRequestKeybasePassphraseForUsername:(NSString *)username passphrase:(KBRPClientOnPassphrase)passphrase {
   [KBAlert promptForInputWithTitle:@"Passphrase" description:NSStringWithFormat(@"What's your passphrase (for user %@)?", username) secure:YES style:NSCriticalAlertStyle buttonTitles:@[@"OK", @"Cancel"] view:self completion:^(NSModalResponse response, NSString *password) {
-    NSString *text = response == NSAlertFirstButtonReturn ? password : nil;
-    passphrase(text);
+    password = response == NSAlertFirstButtonReturn ? password : nil;
+    passphrase(password);
   }];
 }
 

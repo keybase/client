@@ -15,6 +15,7 @@
 #import "KBFormatter.h"
 
 extern NSString *const KBTrackingListDidChangeNotification;
+extern NSString *const KBUserDidChangeNotification;
 extern NSString *const KBStatusDidChangeNotification;
 
 NSString *KBDisplayURLStringForUsername(NSString *username);
