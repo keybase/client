@@ -221,7 +221,7 @@
   mparams[0] = KBScrubPassphrase(params[0]);
 
   //NSNumber *messageId = request[1];
-  DDLogDebug(@"Request: %@(%@)", method, [mparams[0] count] > 0 ? KBDescription(mparams[0]) : @"");
+  DDLogDebug(@"Service request: %@(%@)", method, [mparams[0] count] > 0 ? KBDescription(mparams[0]) : @"");
   if ([NSUserDefaults.standardUserDefaults boolForKey:@"Preferences.Advanced.Record"]) {
     [self.recorder recordRequest:method params:[_client encodeObject:params] sessionId:sessionId callback:NO];
   }

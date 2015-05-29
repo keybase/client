@@ -14,6 +14,8 @@
 
 @interface KBKeyView : KBContentView
 
+@property KBButton *cancelButton;
+
 - (void)setKeyId:(KBRFOKID *)keyId editable:(BOOL)editable;
 
 @end

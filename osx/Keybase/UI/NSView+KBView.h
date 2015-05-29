@@ -16,4 +16,6 @@
 
 - (void)kb_setBorderWithColor:(NSColor *)color width:(CGFloat)width;
 
+- (void)kb_removeAllSubviews;
+
 @end

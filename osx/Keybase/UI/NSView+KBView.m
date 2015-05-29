@@ -22,4 +22,10 @@
   self.layer.borderWidth = width;
 }
 
+- (void)kb_removeAllSubviews {
+  for (NSView *subview in self.subviews) {
+    [subview removeFromSuperview];
+  }
+}
+
 @end
