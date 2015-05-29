@@ -268,7 +268,7 @@ func TestPartialLocalUpdate(t *testing.T) {
 			node2.PathNode,
 			libkbfs.PathNode{
 				BlockPointer: libkbfs.BlockPointer{
-					Id:        libkbfs.BlockId{104},
+					ID:        libkbfs.BlockID{104},
 					KeyVer:    0,
 					Ver:       0,
 					Writer:    keybase1.MakeTestUID(0),
@@ -277,7 +277,7 @@ func TestPartialLocalUpdate(t *testing.T) {
 				Name: "dir2"},
 			libkbfs.PathNode{
 				BlockPointer: libkbfs.BlockPointer{
-					Id:        libkbfs.BlockId{105},
+					ID:        libkbfs.BlockID{105},
 					KeyVer:    0,
 					Ver:       0,
 					Writer:    keybase1.MakeTestUID(0),
@@ -313,7 +313,7 @@ func TestPartialBatchUpdate(t *testing.T) {
 			node2.PathNode,
 			libkbfs.PathNode{
 				BlockPointer: libkbfs.BlockPointer{
-					Id:        libkbfs.BlockId{104},
+					ID:        libkbfs.BlockID{104},
 					KeyVer:    0,
 					Ver:       0,
 					Writer:    keybase1.MakeTestUID(0),
@@ -322,7 +322,7 @@ func TestPartialBatchUpdate(t *testing.T) {
 			},
 			libkbfs.PathNode{
 				BlockPointer: libkbfs.BlockPointer{
-					Id:        libkbfs.BlockId{105},
+					ID:        libkbfs.BlockID{105},
 					KeyVer:    0,
 					Ver:       0,
 					Writer:    keybase1.MakeTestUID(0),

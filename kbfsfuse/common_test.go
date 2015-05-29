@@ -10,7 +10,7 @@ func makeTestConfig(users ...string) *libkbfs.ConfigLocal {
 	localUsers := libkbfs.MakeLocalUsers(users)
 	loggedInUser := localUsers[0]
 
-	kbpki := libkbfs.NewKBPKILocal(loggedInUser.Uid, localUsers)
+	kbpki := libkbfs.NewKBPKILocal(loggedInUser.UID, localUsers)
 
 	// TODO: Consider using fake BlockOps and MDOps instead.
 	config.SetKBPKI(kbpki)

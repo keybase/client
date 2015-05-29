@@ -24,7 +24,7 @@ type ErrorNode struct {
 type FuseOps struct {
 	config       libkbfs.Config
 	topNodes     map[string]*FuseNode
-	topNodesById map[libkbfs.DirId]*FuseNode
+	topNodesById map[libkbfs.DirID]*FuseNode
 	topLock      sync.RWMutex
 	dirRWChans   *libkbfs.DirRWSchedulers
 }
@@ -33,7 +33,7 @@ func NewFuseRoot(config libkbfs.Config) *FuseNode {
 	f := &FuseOps{
 		config:       config,
 		topNodes:     make(map[string]*FuseNode),
-		topNodesById: make(map[libkbfs.DirId]*FuseNode),
+		topNodesById: make(map[libkbfs.DirID]*FuseNode),
 		dirRWChans:   libkbfs.NewDirRWSchedulers(config),
 	}
 	return &FuseNode{
@@ -55,7 +55,7 @@ type FuseNode struct {
 	PrevNode   *FuseNode
 	Entry      libkbfs.DirEntry
 	NeedUpdate bool               // Whether Entry needs to be updated.
-	Dir        libkbfs.DirId      // only set if this is a root node
+	Dir        libkbfs.DirID      // only set if this is a root node
 	DirHandle  *libkbfs.DirHandle // only set if this is a root node
 	File       *FuseFile
 	Ops        *FuseOps
@@ -144,7 +144,7 @@ func (f *FuseOps) LookupInDir(dNode *FuseNode, name string) (
 			}
 			fNode := &FuseNode{
 				Node:      nodefs.NewDefaultNode(),
-				Dir:       md.Id,
+				Dir:       md.ID,
 				DirHandle: dirHandle,
 				Entry:     md.Data().Dir,
 				PathNode: libkbfs.PathNode{
@@ -157,9 +157,9 @@ func (f *FuseOps) LookupInDir(dNode *FuseNode, name string) (
 			node = dNode.Inode().NewChild(name, true, fNode)
 			f.topLock.Lock()
 			defer f.topLock.Unlock()
-			f.addTopNodeLocked(dirHandle.ToString(f.config), md.Id, fNode)
+			f.addTopNodeLocked(dirHandle.ToString(f.config), md.ID, fNode)
 			return node, fuse.OK
-		} else if p.TopDir == libkbfs.NullDirId {
+		} else if p.TopDir == libkbfs.NullDirID {
 			uid, err := f.config.KBPKI().GetLoggedInUser()
 			if err != nil {
 				return nil, f.TranslateError(err)
@@ -263,7 +263,7 @@ func (f *FuseOps) updatePaths(n *FuseNode, newPath []libkbfs.PathNode) {
 // BatchChanges sets NeedUpdate for all nodes that we know about on
 // the path, and updates the PathNode (including the new
 // BlockPointer).
-func (f *FuseOps) BatchChanges(dir libkbfs.DirId, paths []libkbfs.Path) {
+func (f *FuseOps) BatchChanges(dir libkbfs.DirID, paths []libkbfs.Path) {
 	if len(paths) == 0 {
 		return
 	}
@@ -310,10 +310,10 @@ func (f *FuseOps) BatchChanges(dir libkbfs.DirId, paths []libkbfs.Path) {
 }
 
 func (f *FuseOps) addTopNodeLocked(
-	name string, id libkbfs.DirId, fNode *FuseNode) {
+	name string, id libkbfs.DirID, fNode *FuseNode) {
 	f.topNodes[name] = fNode
 	if _, ok := f.topNodesById[id]; !ok {
-		f.config.Notifier().RegisterForChanges([]libkbfs.DirId{id}, f)
+		f.config.Notifier().RegisterForChanges([]libkbfs.DirID{id}, f)
 		f.topNodesById[id] = fNode
 	}
 }
@@ -356,7 +356,7 @@ func (f *FuseOps) LookupInRootByName(rNode *FuseNode, name string) (
 				fNode = &FuseNode{
 					Node:      nodefs.NewDefaultNode(),
 					DirHandle: dirHandle,
-					Dir:       libkbfs.NullDirId,
+					Dir:       libkbfs.NullDirID,
 					PathNode: libkbfs.PathNode{
 						BlockPointer: libkbfs.BlockPointer{},
 						Name:         dirString,
@@ -371,7 +371,7 @@ func (f *FuseOps) LookupInRootByName(rNode *FuseNode, name string) (
 			} else {
 				fNode = &FuseNode{
 					Node:      nodefs.NewDefaultNode(),
-					Dir:       md.Id,
+					Dir:       md.ID,
 					DirHandle: dirHandle,
 					Entry:     md.Data().Dir,
 					PathNode: libkbfs.PathNode{
@@ -384,15 +384,15 @@ func (f *FuseOps) LookupInRootByName(rNode *FuseNode, name string) (
 
 			node = rNode.Inode().NewChild(name, true, fNode)
 			if md != nil {
-				f.addTopNodeLocked(name, md.Id, fNode)
-				f.addTopNodeLocked(dirString, md.Id, fNode)
+				f.addTopNodeLocked(name, md.ID, fNode)
+				f.addTopNodeLocked(dirString, md.ID, fNode)
 			}
 		}
 	}
 	return node, fuse.OK
 }
 
-func (f *FuseOps) LookupInRootById(rNode *FuseNode, id libkbfs.DirId) (
+func (f *FuseOps) LookupInRootById(rNode *FuseNode, id libkbfs.DirID) (
 	node *nodefs.Inode, code fuse.Status) {
 	md, err := f.config.KBFSOps().GetRootMD(id)
 	if err != nil {
@@ -472,7 +472,7 @@ func (f *FuseOps) GetAttr(n *FuseNode, out *fuse.Attr) fuse.Status {
 	return fuse.OK
 }
 
-func fuseModeFromEntry(dir libkbfs.DirId, de libkbfs.DirEntry) uint32 {
+func fuseModeFromEntry(dir libkbfs.DirID, de libkbfs.DirEntry) uint32 {
 	var pubModeFile, pubModeExec, pubModeDir, pubModeSym uint32
 	if dir.IsPublic() {
 		pubModeFile = 0044
@@ -805,7 +805,7 @@ func (n *FuseNode) OnMount(conn *nodefs.FileSystemConnector) {
 	// at once?
 	c := make(chan int, len(favs))
 	for _, name := range favs {
-		go func(fav libkbfs.DirId) {
+		go func(fav libkbfs.DirID) {
 			n.Ops.LookupInRootById(n, fav)
 			c <- 1
 		}(name)

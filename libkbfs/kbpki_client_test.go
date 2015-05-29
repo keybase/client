@@ -58,8 +58,8 @@ func (fc FakeKBPKIClient) Call(s string, args interface{}, res interface{}) erro
 
 func TestKBPKIClientResolveAssertion(t *testing.T) {
 	users := []string{"pc"}
-	expectedUid := keybase1.MakeTestUID(1)
-	fc := NewFakeKBPKIClient(expectedUid, MakeLocalUsers(users))
+	expectedUID := keybase1.MakeTestUID(1)
+	fc := NewFakeKBPKIClient(expectedUID, MakeLocalUsers(users))
 	c := newKBPKIClientWithClient(nil, fc)
 
 	u, err := c.ResolveAssertion("pc")

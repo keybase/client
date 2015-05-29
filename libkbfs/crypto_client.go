@@ -7,6 +7,9 @@ import (
 	"github.com/maxtaco/go-framed-msgpack-rpc/rpc2"
 )
 
+// CryptoClient implements the Crypto interface by sending RPCs to the
+// keybase daemon to perform signatures using the device's current
+// signing key.
 type CryptoClient struct {
 	CryptoCommon
 	ctx    *libkb.GlobalContext
@@ -15,6 +18,7 @@ type CryptoClient struct {
 
 var _ Crypto = (*CryptoClient)(nil)
 
+// NewCryptoClient constructs a new CryptoClient.
 func NewCryptoClient(codec Codec, ctx *libkb.GlobalContext) (*CryptoClient, error) {
 	_, xp, err := ctx.GetSocket()
 	if err != nil {
@@ -39,11 +43,12 @@ func NewCryptoClient(codec Codec, ctx *libkb.GlobalContext) (*CryptoClient, erro
 	return newCryptoClientWithClient(codec, ctx, client), nil
 }
 
-// For testing.
+// newCryptoClientWithClient should only be used for testing.
 func newCryptoClientWithClient(codec Codec, ctx *libkb.GlobalContext, client keybase1.GenericClient) *CryptoClient {
 	return &CryptoClient{CryptoCommon{codec}, ctx, client}
 }
 
+// Sign implements the Crypto interface for CryptoClient.
 func (c *CryptoClient) Sign(msg []byte) (sigInfo SignatureInfo, err error) {
 	defer func() {
 		libkb.G.Log.Debug("Signed %d-byte message with %s: err=%v", len(msg), sigInfo, err)

@@ -6,25 +6,27 @@ import (
 )
 
 type idPair struct {
-	id   DirId
-	mdId MDId
+	id   DirID
+	mdID MdID
 }
 
 // FakeMDServer just stores blocks in maps.
 type FakeMDServer struct {
 	config Config
-	dirIds map[string]DirId // dir handle -> dirId
-	mdIds  map[DirId]MDId
+	dirIds map[string]DirID // dir handle -> dirId
+	mdIDs  map[DirID]MdID
 	rmdss  map[idPair]*RootMetadataSigned
 }
 
+// NewFakeMDServer constructs a new FakeMDServer.
 func NewFakeMDServer(config Config) *FakeMDServer {
-	dirIds := make(map[string]DirId)
-	mdIds := make(map[DirId]MDId)
+	dirIds := make(map[string]DirID)
+	mdIDs := make(map[DirID]MdID)
 	rmdss := make(map[idPair]*RootMetadataSigned)
-	return &FakeMDServer{config, dirIds, mdIds, rmdss}
+	return &FakeMDServer{config, dirIds, mdIDs, rmdss}
 }
 
+// GetAtHandle implements the MDServer interface for FakeMDServer.
 func (md *FakeMDServer) GetAtHandle(handle *DirHandle) (
 	*RootMetadataSigned, error) {
 	handleStr := string(handle.ToBytes(md.config))
@@ -34,13 +36,13 @@ func (md *FakeMDServer) GetAtHandle(handle *DirHandle) (
 	}
 
 	// Make a new one.
-	if _, err := rand.Read(id[0 : DIRID_LEN-1]); err != nil {
+	if _, err := rand.Read(id[0 : DirIDLen-1]); err != nil {
 		return nil, err
 	}
 	if handle.IsPublic() {
-		id[DIRID_LEN-1] = PUBDIRID_SUFFIX
+		id[DirIDLen-1] = PubDirIDSuffix
 	} else {
-		id[DIRID_LEN-1] = DIRID_SUFFIX
+		id[DirIDLen-1] = DirIDSuffix
 	}
 	rmd := NewRootMetadata(handle, id)
 
@@ -53,44 +55,47 @@ func (md *FakeMDServer) GetAtHandle(handle *DirHandle) (
 		dirstring := handle.ToString(md.config)
 		if u, err2 := md.config.KBPKI().GetUser(user); err2 == nil {
 			return nil, &WriteAccessError{u.GetName(), dirstring}
-		} else {
-			return nil, &WriteAccessError{user.String(), dirstring}
 		}
+		return nil, &WriteAccessError{user.String(), dirstring}
 	}
 
 	return &RootMetadataSigned{MD: *rmd}, nil
 }
 
-func (md *FakeMDServer) Get(id DirId) (*RootMetadataSigned, error) {
-	mdId, ok := md.mdIds[id]
+// Get implements the MDServer interface for FakeMDServer.
+func (md *FakeMDServer) Get(id DirID) (*RootMetadataSigned, error) {
+	mdID, ok := md.mdIDs[id]
 	if ok {
-		return md.GetAtId(id, mdId)
+		return md.GetAtID(id, mdID)
 	}
 	return nil, fmt.Errorf("Could not get metadata for %s", id)
 }
 
-func (md *FakeMDServer) GetAtId(id DirId, mdId MDId) (
+// GetAtID implements the MDServer interface for FakeMDServer.
+func (md *FakeMDServer) GetAtID(id DirID, mdID MdID) (
 	*RootMetadataSigned, error) {
-	rmd, ok := md.rmdss[idPair{id, mdId}]
+	rmd, ok := md.rmdss[idPair{id, mdID}]
 	if ok {
 		return rmd, nil
 	}
-	return nil, fmt.Errorf("Could not get metadata for %s/%s", id, mdId)
+	return nil, fmt.Errorf("Could not get metadata for %s/%s", id, mdID)
 }
 
-func (md *FakeMDServer) Put(id DirId, mdId MDId,
+// Put implements the MDServer interface for FakeMDServer.
+func (md *FakeMDServer) Put(id DirID, mdID MdID,
 	rmds *RootMetadataSigned) error {
-	md.rmdss[idPair{id, mdId}] = rmds
-	md.mdIds[id] = mdId
+	md.rmdss[idPair{id, mdID}] = rmds
+	md.mdIDs[id] = mdID
 	handle := rmds.MD.GetDirHandle()
 	handleStr := string(handle.ToBytes(md.config))
 	md.dirIds[handleStr] = id
 	return nil
 }
 
-func (md *FakeMDServer) GetFavorites() ([]DirId, error) {
-	output := make([]DirId, 0, len(md.dirIds))
-	for id, _ := range md.mdIds {
+// GetFavorites implements the MDServer interface for FakeMDServer.
+func (md *FakeMDServer) GetFavorites() ([]DirID, error) {
+	output := make([]DirID, 0, len(md.dirIds))
+	for id := range md.mdIDs {
 		if !id.IsPublic() {
 			output = append(output, id)
 		}

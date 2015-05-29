@@ -17,8 +17,8 @@ func makeFakeRandomBytes(seed string, byteCount int) []byte {
 	return []byte(seed[:byteCount])
 }
 
-// Make a new signing key from fake randomness made from the given
-// seed.
+// MakeFakeSigningKeyOrBust makes a new signing key from fake
+// randomness made from the given seed.
 func MakeFakeSigningKeyOrBust(seed string) SigningKey {
 	fakeRandomBytes := makeFakeRandomBytes(seed, SigningKeySecretSize)
 	var fakeSecret SigningKeySecret
@@ -30,13 +30,15 @@ func MakeFakeSigningKeyOrBust(seed string) SigningKey {
 	return signingKey
 }
 
-// Make a new key suitable for verifying signatures made from the fake
-// signing key made with the same seed.
+// MakeFakeVerifyingKeyOrBust makes a new key suitable for verifying
+// signatures made from the fake signing key made with the same seed.
 func MakeFakeVerifyingKeyOrBust(seed string) VerifyingKey {
 	sk := MakeFakeSigningKeyOrBust(seed)
 	return sk.GetVerifyingKey()
 }
 
+// MakeFakeCryptPublicKeyOrBust creates a random crypt publc key,
+// starting with the given seed.
 func MakeFakeCryptPublicKeyOrBust(seed string) CryptPublicKey {
 	fakeRandomBytes := makeFakeRandomBytes(seed, libkb.NaclDHKeySecretSize)
 	var fakeSecret [libkb.NaclDHKeySecretSize]byte

@@ -18,7 +18,7 @@ type CheckBlockOps struct {
 
 var _ BlockOps = (*CheckBlockOps)(nil)
 
-func (cbo *CheckBlockOps) Get(id BlockId, context BlockContext, cryptKey BlockCryptKey, block Block) error {
+func (cbo *CheckBlockOps) Get(id BlockID, context BlockContext, cryptKey BlockCryptKey, block Block) error {
 	err := cbo.delegate.Get(id, context, cryptKey, block)
 	if err != nil {
 		return err
@@ -29,7 +29,7 @@ func (cbo *CheckBlockOps) Get(id BlockId, context BlockContext, cryptKey BlockCr
 	return err
 }
 
-func (cbo *CheckBlockOps) Ready(block Block, cryptKey BlockCryptKey) (id BlockId, plainSize int, buf []byte, err error) {
+func (cbo *CheckBlockOps) Ready(block Block, cryptKey BlockCryptKey) (id BlockID, plainSize int, buf []byte, err error) {
 	id, plainSize, buf, err = cbo.delegate.Ready(block, cryptKey)
 	if plainSize > len(buf) {
 		cbo.tr.Errorf("expected plainSize <= len(buf), got plainSize = %d, len(buf) = %d", plainSize, len(buf))
@@ -37,7 +37,7 @@ func (cbo *CheckBlockOps) Ready(block Block, cryptKey BlockCryptKey) (id BlockId
 	return
 }
 
-func (cbo *CheckBlockOps) Put(id BlockId, context BlockContext, buf []byte) error {
+func (cbo *CheckBlockOps) Put(id BlockID, context BlockContext, buf []byte) error {
 	if err := cbo.delegate.Put(id, context, buf); err != nil {
 		return err
 	}
@@ -47,7 +47,7 @@ func (cbo *CheckBlockOps) Put(id BlockId, context BlockContext, buf []byte) erro
 	return nil
 }
 
-func (cbo *CheckBlockOps) Delete(id BlockId, context BlockContext) error {
+func (cbo *CheckBlockOps) Delete(id BlockID, context BlockContext) error {
 	return cbo.delegate.Delete(id, context)
 }
 
@@ -93,7 +93,7 @@ func TestKBFSOpsGetFavDirsSuccess(t *testing.T) {
 	// expect one call to fetch favorites
 	id1, _, _ := newDir(config, 1, true, false)
 	id2, _, _ := newDir(config, 2, true, false)
-	ids := []DirId{id1, id2}
+	ids := []DirID{id1, id2}
 
 	config.mockMdops.EXPECT().GetFavorites().Return(ids, nil)
 
@@ -117,32 +117,32 @@ func TestKBFSOpsGetFavDirsFail(t *testing.T) {
 	}
 }
 
-func makeId(config *ConfigMock) (keybase1.UID, DirId, *DirHandle) {
-	userId := keybase1.MakeTestUID(15)
+func makeID(config *ConfigMock) (keybase1.UID, DirID, *DirHandle) {
+	userID := keybase1.MakeTestUID(15)
 	id, h, _ := newDir(config, 1, true, false)
-	h.Writers = []keybase1.UID{userId}
+	h.Writers = []keybase1.UID{userID}
 	expectUserCalls(h, config)
-	config.mockKbpki.EXPECT().GetLoggedInUser().AnyTimes().Return(userId, nil)
-	return userId, id, h
+	config.mockKbpki.EXPECT().GetLoggedInUser().AnyTimes().Return(userID, nil)
+	return userID, id, h
 }
 
-func makeIdAndRMD(config *ConfigMock) (
-	keybase1.UID, DirId, *RootMetadata) {
-	userId, id, h := makeId(config)
+func makeIDAndRMD(config *ConfigMock) (
+	keybase1.UID, DirID, *RootMetadata) {
+	userID, id, h := makeID(config)
 	rmd := NewRootMetadata(h, id)
 	rmd.AddNewKeys(DirKeyBundle{})
-	rmd.mdId = MDId{id[0]}
-	config.KBFSOps().(*KBFSOpsStandard).heads[id] = rmd.mdId
-	config.mockMdcache.EXPECT().Get(rmd.mdId).AnyTimes().Return(rmd, nil)
-	config.Notifier().RegisterForChanges([]DirId{id}, config.observer)
-	return userId, id, rmd
+	rmd.mdID = MdID{id[0]}
+	config.KBFSOps().(*KBFSOpsStandard).heads[id] = rmd.mdID
+	config.mockMdcache.EXPECT().Get(rmd.mdID).AnyTimes().Return(rmd, nil)
+	config.Notifier().RegisterForChanges([]DirID{id}, config.observer)
+	return userID, id, rmd
 }
 
 func TestKBFSOpsGetRootMDCacheSuccess(t *testing.T) {
 	mockCtrl, config := kbfsOpsInit(t, false)
 	defer kbfsTestShutdown(mockCtrl, config)
 
-	_, id, rmd := makeIdAndRMD(config)
+	_, id, rmd := makeIDAndRMD(config)
 	rmd.data.Dir.Type = Dir
 
 	if rmd2, err := config.KBFSOps().GetRootMD(id); err != nil {
@@ -152,10 +152,10 @@ func TestKBFSOpsGetRootMDCacheSuccess(t *testing.T) {
 	}
 }
 
-func expectBlock(config *ConfigMock, id BlockId, block Block,
+func expectBlock(config *ConfigMock, id BlockID, block Block,
 	err error) {
 	config.mockBops.EXPECT().Get(id, gomock.Any(), BlockCryptKey{}, gomock.Any()).
-		Do(func(id BlockId, context BlockContext, k BlockCryptKey, getBlock Block) {
+		Do(func(id BlockID, context BlockContext, k BlockCryptKey, getBlock Block) {
 		switch v := getBlock.(type) {
 		case *FileBlock:
 			*v = *block.(*FileBlock)
@@ -172,25 +172,25 @@ func expectGetTLFCryptKey(config *ConfigMock) {
 }
 
 func expectGetBlockCryptKey(
-	config *ConfigMock, id BlockId, rmd *RootMetadata) {
+	config *ConfigMock, id BlockID, rmd *RootMetadata) {
 	config.mockKeyman.EXPECT().GetBlockCryptKey(
 		gomock.Any(), id, rmd).Return(BlockCryptKey{}, nil)
 }
 
 func fillInNewMD(config *ConfigMock, rmd *RootMetadata) (
-	rootId BlockId, plainSize int, block []byte) {
+	rootID BlockID, plainSize int, block []byte) {
 	config.mockKeyman.EXPECT().Rekey(rmd).Return(nil)
 	expectGetTLFCryptKey(config)
-	rootId = BlockId{42}
+	rootID = BlockID{42}
 	plainSize = 3
 	block = []byte{1, 2, 3, 4}
 
 	config.mockCrypto.EXPECT().MakeRandomBlockCryptKeyServerHalf().Return(BlockCryptKeyServerHalf{}, nil)
 	config.mockCrypto.EXPECT().UnmaskBlockCryptKey(BlockCryptKeyServerHalf{}, TLFCryptKey{}).Return(BlockCryptKey{}, nil)
 	config.mockBops.EXPECT().Ready(gomock.Any(), BlockCryptKey{}).Return(
-		rootId, plainSize, block, nil)
-	config.mockKops.EXPECT().PutBlockCryptKeyServerHalf(rootId, BlockCryptKeyServerHalf{}).Return(nil)
-	config.mockKcache.EXPECT().PutBlockCryptKey(rootId, BlockCryptKey{}).Return(nil)
+		rootID, plainSize, block, nil)
+	config.mockKops.EXPECT().PutBlockCryptKeyServerHalf(rootID, BlockCryptKeyServerHalf{}).Return(nil)
+	config.mockKcache.EXPECT().PutBlockCryptKey(rootID, BlockCryptKey{}).Return(nil)
 	return
 }
 
@@ -198,27 +198,27 @@ func TestKBFSOpsGetRootMDCreateNewSuccess(t *testing.T) {
 	mockCtrl, config := kbfsOpsInit(t, true)
 	defer kbfsTestShutdown(mockCtrl, config)
 
-	_, id, h := makeId(config)
+	_, id, h := makeID(config)
 	rmd := NewRootMetadata(h, id)
 
 	// create a new MD
 	config.mockMdops.EXPECT().Get(id).Return(rmd, nil)
 	// now KBFS will fill it in:
-	rootId, plainSize, block := fillInNewMD(config, rmd)
+	rootID, plainSize, block := fillInNewMD(config, rmd)
 	// now cache and put everything
-	config.mockBops.EXPECT().Put(rootId, gomock.Any(), block).Return(nil)
-	config.mockBcache.EXPECT().Put(rootId, gomock.Any(), false).Return(nil)
+	config.mockBops.EXPECT().Put(rootID, gomock.Any(), block).Return(nil)
+	config.mockBcache.EXPECT().Put(rootID, gomock.Any(), false).Return(nil)
 	config.mockMdops.EXPECT().Put(id, rmd).Return(nil)
-	config.mockMdcache.EXPECT().Put(rmd.mdId, rmd).Return(nil)
+	config.mockMdcache.EXPECT().Put(rmd.mdID, rmd).Return(nil)
 
 	if rmd2, err := config.KBFSOps().GetRootMD(id); err != nil {
 		t.Errorf("Got error on root MD: %v", err)
 	} else if rmd2 != rmd {
 		t.Errorf("Got bad MD back: %v", rmd2)
-	} else if rmd2.data.Dir.Id != rootId {
-		t.Errorf("Got bad MD rootId back: %v", rmd2.data.Dir.Id)
+	} else if rmd2.data.Dir.ID != rootID {
+		t.Errorf("Got bad MD rootID back: %v", rmd2.data.Dir.ID)
 	} else if rmd2.data.Dir.Type != Dir {
-		t.Error("Got bad MD non-dir rootId back")
+		t.Error("Got bad MD non-dir rootID back")
 	} else if rmd2.data.Dir.QuotaSize != uint32(len(block)) {
 		t.Errorf("Got bad MD QuotaSize back: %d", rmd2.data.Dir.QuotaSize)
 	} else if rmd2.data.Dir.Size != uint64(plainSize) {
@@ -234,11 +234,11 @@ func TestKBFSOpsGetRootMDCreateNewFailNonWriter(t *testing.T) {
 	mockCtrl, config := kbfsOpsInit(t, false)
 	defer kbfsTestShutdown(mockCtrl, config)
 
-	userId := keybase1.MakeTestUID(15)
-	ownerId := keybase1.MakeTestUID(20)
+	userID := keybase1.MakeTestUID(15)
+	ownerID := keybase1.MakeTestUID(20)
 	id, h, _ := newDir(config, 1, true, false)
-	h.Readers = []keybase1.UID{userId}
-	h.Writers = []keybase1.UID{ownerId}
+	h.Readers = []keybase1.UID{userID}
+	h.Writers = []keybase1.UID{ownerID}
 
 	rmd := NewRootMetadata(h, id)
 
@@ -249,9 +249,9 @@ func TestKBFSOpsGetRootMDCreateNewFailNonWriter(t *testing.T) {
 	// we won't bother
 	config.mockMdops.EXPECT().Get(id).Return(rmd, nil)
 	// try to get the MD for writing, but fail (no puts should happen)
-	config.mockKbpki.EXPECT().GetLoggedInUser().AnyTimes().Return(userId, nil)
+	config.mockKbpki.EXPECT().GetLoggedInUser().AnyTimes().Return(userID, nil)
 	expectedErr := &WriteAccessError{
-		fmt.Sprintf("user_%s", userId), h.ToString(config)}
+		fmt.Sprintf("user_%s", userID), h.ToString(config)}
 
 	if _, err := config.KBFSOps().GetRootMD(id); err == nil {
 		t.Errorf("Got no expected error on root MD")
@@ -264,7 +264,7 @@ func TestKBFSOpsGetRootMDForHandleExisting(t *testing.T) {
 	mockCtrl, config := kbfsOpsInit(t, false)
 	defer kbfsTestShutdown(mockCtrl, config)
 
-	_, id, h := makeId(config)
+	_, id, h := makeID(config)
 	rmd := NewRootMetadata(h, id)
 	rmd.data.Dir = DirEntry{
 		BlockPointer: BlockPointer{
@@ -282,12 +282,12 @@ func TestKBFSOpsGetRootMDForHandleExisting(t *testing.T) {
 		t.Errorf("Got error on root MD for handle: %v", err)
 	} else if rmd2 != rmd {
 		t.Errorf("Got bad MD back: %v", rmd2)
-	} else if rmd2.Id != id {
-		t.Errorf("Got bad dir id back: %v", rmd2.Id)
+	} else if rmd2.ID != id {
+		t.Errorf("Got bad dir id back: %v", rmd2.ID)
 	} else if rmd2.data.Dir.QuotaSize != 15 {
 		t.Errorf("Got bad MD QuotaSize back: %d", rmd2.data.Dir.QuotaSize)
 	} else if rmd2.data.Dir.Type != Dir {
-		t.Error("Got bad MD non-dir rootId back")
+		t.Error("Got bad MD non-dir rootID back")
 	} else if rmd2.data.Dir.Size != 10 {
 		t.Errorf("Got bad MD Size back: %d", rmd2.data.Dir.Size)
 	} else if rmd2.data.Dir.Mtime != 1 {
@@ -301,14 +301,14 @@ func TestKBFSOpsGetBaseDirCacheSuccess(t *testing.T) {
 	mockCtrl, config := kbfsOpsInit(t, false)
 	defer kbfsTestShutdown(mockCtrl, config)
 
-	u, id, _ := makeIdAndRMD(config)
+	u, id, _ := makeIDAndRMD(config)
 
-	rootId := BlockId{42}
+	rootID := BlockID{42}
 	dirBlock := NewDirBlock()
-	node := PathNode{BlockPointer{rootId, 0, 0, u, 0}, ""}
+	node := PathNode{BlockPointer{rootID, 0, 0, u, 0}, ""}
 	p := Path{id, []PathNode{node}}
 
-	config.mockBcache.EXPECT().Get(rootId).Return(dirBlock, nil)
+	config.mockBcache.EXPECT().Get(rootID).Return(dirBlock, nil)
 
 	if block, err := config.KBFSOps().GetDir(p); err != nil {
 		t.Errorf("Got error on getdir: %v", err)
@@ -321,20 +321,20 @@ func TestKBFSOpsGetBaseDirUncachedSuccess(t *testing.T) {
 	mockCtrl, config := kbfsOpsInit(t, false)
 	defer kbfsTestShutdown(mockCtrl, config)
 
-	u, id, rmd := makeIdAndRMD(config)
+	u, id, rmd := makeIDAndRMD(config)
 
-	rootId := BlockId{42}
+	rootID := BlockID{42}
 	dirBlock := NewDirBlock().(*DirBlock)
-	node := PathNode{BlockPointer{rootId, 0, 0, u, 0}, ""}
+	node := PathNode{BlockPointer{rootID, 0, 0, u, 0}, ""}
 	p := Path{id, []PathNode{node}}
 
 	// cache miss means fetching metadata and getting read key
-	err := &NoSuchBlockError{rootId}
-	config.mockBcache.EXPECT().Get(rootId).Return(nil, err)
+	err := &NoSuchBlockError{rootID}
+	config.mockBcache.EXPECT().Get(rootID).Return(nil, err)
 
-	expectGetBlockCryptKey(config, rootId, rmd)
-	expectBlock(config, rootId, dirBlock, nil)
-	config.mockBcache.EXPECT().Put(rootId, gomock.Any(), false).Return(nil)
+	expectGetBlockCryptKey(config, rootID, rmd)
+	expectBlock(config, rootID, dirBlock, nil)
+	config.mockBcache.EXPECT().Put(rootID, gomock.Any(), false).Return(nil)
 
 	if _, err := config.KBFSOps().GetDir(p); err != nil {
 		t.Errorf("Got error on getdir: %v", err)
@@ -345,27 +345,27 @@ func TestKBFSOpsGetBaseDirUncachedFailNonReader(t *testing.T) {
 	mockCtrl, config := kbfsOpsInit(t, false)
 	defer kbfsTestShutdown(mockCtrl, config)
 
-	userId := keybase1.MakeTestUID(15)
-	ownerId := keybase1.MakeTestUID(20)
+	userID := keybase1.MakeTestUID(15)
+	ownerID := keybase1.MakeTestUID(20)
 	id, h, _ := newDir(config, 1, true, false)
-	h.Writers = []keybase1.UID{ownerId}
+	h.Writers = []keybase1.UID{ownerID}
 	expectUserCalls(h, config)
 
 	rmd := NewRootMetadata(h, id)
 	rmdGood := NewRootMetadata(h, id)
 	rmdGood.data.Dir.Type = Dir
 
-	rootId := BlockId{42}
-	node := PathNode{BlockPointer{rootId, 0, 0, userId, 0}, ""}
+	rootID := BlockID{42}
+	node := PathNode{BlockPointer{rootID, 0, 0, userID, 0}, ""}
 	p := Path{id, []PathNode{node}}
 
 	// won't even try getting the block if the user isn't a reader
-	config.KBFSOps().(*KBFSOpsStandard).heads[id] = rmd.mdId
-	config.mockMdcache.EXPECT().Get(rmd.mdId).Return(rmd, nil)
-	config.mockKbpki.EXPECT().GetLoggedInUser().AnyTimes().Return(userId, nil)
-	expectUserCall(userId, config)
+	config.KBFSOps().(*KBFSOpsStandard).heads[id] = rmd.mdID
+	config.mockMdcache.EXPECT().Get(rmd.mdID).Return(rmd, nil)
+	config.mockKbpki.EXPECT().GetLoggedInUser().AnyTimes().Return(userID, nil)
+	expectUserCall(userID, config)
 	expectedErr := &ReadAccessError{
-		fmt.Sprintf("user_%s", userId), h.ToString(config)}
+		fmt.Sprintf("user_%s", userID), h.ToString(config)}
 
 	if _, err := config.KBFSOps().GetDir(p); err == nil {
 		t.Errorf("Got no expected error on getdir")
@@ -378,19 +378,19 @@ func TestKBFSOpsGetBaseDirUncachedFailMissingBlock(t *testing.T) {
 	mockCtrl, config := kbfsOpsInit(t, false)
 	defer kbfsTestShutdown(mockCtrl, config)
 
-	u, id, rmd := makeIdAndRMD(config)
+	u, id, rmd := makeIDAndRMD(config)
 
-	rootId := BlockId{42}
+	rootID := BlockID{42}
 	dirBlock := NewDirBlock().(*DirBlock)
-	node := PathNode{BlockPointer{rootId, 0, 0, u, 0}, ""}
+	node := PathNode{BlockPointer{rootID, 0, 0, u, 0}, ""}
 	p := Path{id, []PathNode{node}}
 
 	// cache miss means fetching metadata and getting read key, then
 	// fail block fetch
-	err := &NoSuchBlockError{rootId}
-	config.mockBcache.EXPECT().Get(rootId).Return(nil, err)
-	expectGetBlockCryptKey(config, rootId, rmd)
-	expectBlock(config, rootId, dirBlock, err)
+	err := &NoSuchBlockError{rootID}
+	config.mockBcache.EXPECT().Get(rootID).Return(nil, err)
+	expectGetBlockCryptKey(config, rootID, rmd)
+	expectBlock(config, rootID, dirBlock, err)
 
 	if _, err2 := config.KBFSOps().GetDir(p); err2 == nil {
 		t.Errorf("Got no expected error on getdir")
@@ -403,9 +403,9 @@ func TestKBFSOpsGetBaseDirUncachedFailNewVersion(t *testing.T) {
 	mockCtrl, config := kbfsOpsInit(t, false)
 	defer kbfsTestShutdown(mockCtrl, config)
 
-	userId := keybase1.MakeTestUID(15)
+	userID := keybase1.MakeTestUID(15)
 	id, h, _ := newDir(config, 1, true, false)
-	h.Writers = append(h.Writers, userId)
+	h.Writers = append(h.Writers, userID)
 	expectUserCalls(h, config)
 
 	rmd := NewRootMetadata(h, id)
@@ -413,8 +413,8 @@ func TestKBFSOpsGetBaseDirUncachedFailNewVersion(t *testing.T) {
 	// Set the version in the future.
 	rmd.data.Dir.Ver = 1
 
-	rootId := BlockId{42}
-	node := PathNode{BlockPointer{rootId, 0, 1, userId, 0}, ""}
+	rootID := BlockID{42}
+	node := PathNode{BlockPointer{rootID, 0, 1, userID, 0}, ""}
 	p := Path{id, []PathNode{node}}
 
 	// we won't even need to check the cache before failing
@@ -431,21 +431,21 @@ func TestKBFSOpsGetNestedDirCacheSuccess(t *testing.T) {
 	mockCtrl, config := kbfsOpsInit(t, false)
 	defer kbfsTestShutdown(mockCtrl, config)
 
-	u, id, h := makeId(config)
+	u, id, h := makeID(config)
 	rmd := NewRootMetadata(h, id)
-	config.KBFSOps().(*KBFSOpsStandard).heads[id] = rmd.mdId
-	config.mockMdcache.EXPECT().Get(rmd.mdId).AnyTimes().Return(rmd, nil)
+	config.KBFSOps().(*KBFSOpsStandard).heads[id] = rmd.mdID
+	config.mockMdcache.EXPECT().Get(rmd.mdID).AnyTimes().Return(rmd, nil)
 
-	rootId := BlockId{42}
-	aId := BlockId{43}
-	bId := BlockId{44}
+	rootID := BlockID{42}
+	aID := BlockID{43}
+	bID := BlockID{44}
 	dirBlock := NewDirBlock()
-	node := PathNode{BlockPointer{rootId, 0, 0, u, 0}, ""}
-	aNode := PathNode{BlockPointer{aId, 0, 0, u, 0}, "a"}
-	bNode := PathNode{BlockPointer{bId, 0, 0, u, 0}, "b"}
+	node := PathNode{BlockPointer{rootID, 0, 0, u, 0}, ""}
+	aNode := PathNode{BlockPointer{aID, 0, 0, u, 0}, "a"}
+	bNode := PathNode{BlockPointer{bID, 0, 0, u, 0}, "b"}
 	p := Path{id, []PathNode{node, aNode, bNode}}
 
-	config.mockBcache.EXPECT().Get(bId).Return(dirBlock, nil)
+	config.mockBcache.EXPECT().Get(bID).Return(dirBlock, nil)
 
 	if block, err := config.KBFSOps().GetDir(p); err != nil {
 		t.Errorf("Got error on getdir: %v", err)
@@ -455,10 +455,10 @@ func TestKBFSOpsGetNestedDirCacheSuccess(t *testing.T) {
 }
 
 func checkBlockChange(t *testing.T, bcn *BlockChangeNode, path Path,
-	index int, depth int, id BlockId) {
+	index int, depth int, id BlockID) {
 	if depth == index {
 		for _, ptr := range bcn.Blocks {
-			if ptr.Id == id {
+			if ptr.ID == id {
 				return
 			}
 		}
@@ -471,8 +471,8 @@ func checkBlockChange(t *testing.T, bcn *BlockChangeNode, path Path,
 }
 
 func expectSyncBlock(
-	t *testing.T, config *ConfigMock, lastCall *gomock.Call, userId keybase1.UID,
-	id DirId, name string, path Path, rmd *RootMetadata, newEntry bool,
+	t *testing.T, config *ConfigMock, lastCall *gomock.Call, userID keybase1.UID,
+	id DirID, name string, path Path, rmd *RootMetadata, newEntry bool,
 	skipSync int, refBytes uint64, unrefBytes uint64,
 	checkMD func(*RootMetadata), newRmd **RootMetadata) (Path, *gomock.Call) {
 	expectGetTLFCryptKey(config)
@@ -494,34 +494,34 @@ func expectSyncBlock(
 	config.mockBsplit.EXPECT().ShouldEmbedBlockChanges(gomock.Any()).
 		AnyTimes().Return(true)
 
-	lastId := byte(path.TailPointer().Id[0] * 2)
+	lastID := byte(path.TailPointer().ID[0] * 2)
 	for i := len(newPath.Path) - 1; i >= skipSync; i-- {
-		newId := BlockId{lastId}
-		newBuf := []byte{lastId}
+		newID := BlockID{lastID}
+		newBuf := []byte{lastID}
 		refBytes += uint64(len(newBuf))
 		if i < len(path.Path) {
 			unrefBytes += uint64(path.Path[i].QuotaSize)
 		}
-		lastId++
+		lastID++
 		config.mockCrypto.EXPECT().MakeRandomBlockCryptKeyServerHalf().Return(BlockCryptKeyServerHalf{}, nil)
 		config.mockCrypto.EXPECT().UnmaskBlockCryptKey(BlockCryptKeyServerHalf{}, TLFCryptKey{}).Return(BlockCryptKey{}, nil)
 		call := config.mockBops.EXPECT().Ready(gomock.Any(), BlockCryptKey{}).Return(
-			newId, len(newBuf), newBuf, nil)
+			newID, len(newBuf), newBuf, nil)
 		if lastCall != nil {
 			call = call.After(lastCall)
 		}
 		lastCall = call
-		newPath.Path[i].Id = newId
-		config.mockBops.EXPECT().Put(newId, gomock.Any(), newBuf).Return(nil)
-		config.mockBcache.EXPECT().Put(newId, gomock.Any(), false).Return(nil)
-		config.mockKops.EXPECT().PutBlockCryptKeyServerHalf(newId, BlockCryptKeyServerHalf{}).Return(nil)
-		config.mockKcache.EXPECT().PutBlockCryptKey(newId, BlockCryptKey{}).Return(nil)
+		newPath.Path[i].ID = newID
+		config.mockBops.EXPECT().Put(newID, gomock.Any(), newBuf).Return(nil)
+		config.mockBcache.EXPECT().Put(newID, gomock.Any(), false).Return(nil)
+		config.mockKops.EXPECT().PutBlockCryptKeyServerHalf(newID, BlockCryptKeyServerHalf{}).Return(nil)
+		config.mockKcache.EXPECT().PutBlockCryptKey(newID, BlockCryptKey{}).Return(nil)
 	}
 	if skipSync == 0 {
 		// sign the MD and put it
 		config.mockMdops.EXPECT().Put(id, gomock.Any()).Return(nil)
 		config.mockMdcache.EXPECT().Put(gomock.Any(), gomock.Any()).
-			Do(func(id MDId, rmd *RootMetadata) {
+			Do(func(id MdID, rmd *RootMetadata) {
 			*newRmd = rmd
 			refBlocks := rmd.data.RefBlocks.Changes
 			unrefBlocks := rmd.data.UnrefBlocks.Changes
@@ -539,14 +539,14 @@ func expectSyncBlock(
 			// blocks
 			for i, node := range path.Path {
 				if node.QuotaSize > 0 && unrefBlocks != nil {
-					checkBlockChange(t, unrefBlocks, path, i, 0, node.Id)
+					checkBlockChange(t, unrefBlocks, path, i, 0, node.ID)
 				}
 			}
 			for i, node := range newPath.Path {
 				if refBlocks == nil || i == len(newPath.Path)-1 {
 					break
 				}
-				checkBlockChange(t, refBlocks, newPath, i, 0, node.Id)
+				checkBlockChange(t, refBlocks, newPath, i, 0, node.ID)
 			}
 			if checkMD != nil {
 				checkMD(rmd)
@@ -578,7 +578,7 @@ func checkNewPath(t *testing.T, config Config, newPath Path, expectedPath Path,
 	// check all names and IDs
 	for i, node := range newPath.Path {
 		eNode := expectedPath.Path[i]
-		if node.Id != eNode.Id {
+		if node.ID != eNode.ID {
 			t.Errorf("Wrong id on new path[%d]: %v vs. %v", i, node, eNode)
 		}
 		if node.Name != eNode.Name {
@@ -606,10 +606,10 @@ func checkNewPath(t *testing.T, config Config, newPath Path, expectedPath Path,
 		}
 
 		if i < len(expectedPath.Path) {
-			eId := expectedPath.Path[i].Id
-			if currDe.Id != eId {
+			eID := expectedPath.Path[i].ID
+			if currDe.ID != eID {
 				t.Errorf("Entry does not point to %v, but to %v",
-					eId, currDe.Id)
+					eID, currDe.ID)
 			}
 		}
 
@@ -639,7 +639,7 @@ func checkNewPath(t *testing.T, config Config, newPath Path, expectedPath Path,
 	}
 }
 
-func expectGetBlock(config *ConfigMock, id BlockId, block Block) {
+func expectGetBlock(config *ConfigMock, id BlockID, block Block) {
 	config.mockBcache.EXPECT().Get(id).AnyTimes().Return(block, nil)
 	config.mockBcache.EXPECT().IsDirty(id).AnyTimes().Return(false)
 }
@@ -648,27 +648,27 @@ func testCreateEntrySuccess(t *testing.T, entryType EntryType) {
 	mockCtrl, config := kbfsOpsInit(t, true)
 	defer kbfsTestShutdown(mockCtrl, config)
 
-	userId, id, rmd := makeIdAndRMD(config)
+	userID, id, rmd := makeIDAndRMD(config)
 
-	rootId := BlockId{42}
-	aId := BlockId{43}
+	rootID := BlockID{42}
+	aID := BlockID{43}
 	rootBlock := NewDirBlock().(*DirBlock)
 	rootBlock.Children["a"] = DirEntry{
-		BlockPointer: BlockPointer{Id: aId},
+		BlockPointer: BlockPointer{ID: aID},
 		Type:         Dir,
 	}
 	aBlock := NewDirBlock().(*DirBlock)
-	node := PathNode{BlockPointer{rootId, 0, 0, userId, 0}, ""}
-	aNode := PathNode{BlockPointer{aId, 0, 0, userId, 0}, "a"}
+	node := PathNode{BlockPointer{rootID, 0, 0, userID, 0}, ""}
+	aNode := PathNode{BlockPointer{aID, 0, 0, userID, 0}, "a"}
 	p := Path{id, []PathNode{node, aNode}}
 
 	// creating "a/b"
-	expectGetBlock(config, aId, aBlock)
-	expectGetBlock(config, rootId, rootBlock)
+	expectGetBlock(config, aID, aBlock)
+	expectGetBlock(config, rootID, rootBlock)
 	// sync block
 	var newRmd *RootMetadata
 	expectedPath, _ :=
-		expectSyncBlock(t, config, nil, userId, id, "b", p, rmd,
+		expectSyncBlock(t, config, nil, userID, id, "b", p, rmd,
 			entryType != Sym, 0, 0, 0, nil, &newRmd)
 
 	var newP Path
@@ -726,20 +726,20 @@ func testCreateEntryFailDupName(t *testing.T, isDir bool) {
 	mockCtrl, config := kbfsOpsInit(t, false)
 	defer kbfsTestShutdown(mockCtrl, config)
 
-	u, id, _ := makeIdAndRMD(config)
+	u, id, _ := makeIDAndRMD(config)
 
-	rootId := BlockId{42}
-	aId := BlockId{43}
+	rootID := BlockID{42}
+	aID := BlockID{43}
 	rootBlock := NewDirBlock().(*DirBlock)
 	rootBlock.Children["a"] = DirEntry{
-		BlockPointer: BlockPointer{Id: aId},
+		BlockPointer: BlockPointer{ID: aID},
 		Type:         Dir,
 	}
-	node := PathNode{BlockPointer{rootId, 0, 0, u, 0}, ""}
+	node := PathNode{BlockPointer{rootID, 0, 0, u, 0}, ""}
 	p := Path{id, []PathNode{node}}
 
 	// creating "a", which already exists in the root block
-	expectGetBlock(config, rootId, rootBlock)
+	expectGetBlock(config, rootID, rootBlock)
 	expectedErr := &NameExistsError{"a"}
 
 	var err error
@@ -768,35 +768,35 @@ func testRemoveEntrySuccess(t *testing.T, entryType EntryType) {
 	mockCtrl, config := kbfsOpsInit(t, true)
 	defer kbfsTestShutdown(mockCtrl, config)
 
-	userId, id, rmd := makeIdAndRMD(config)
+	userID, id, rmd := makeIDAndRMD(config)
 
-	rootId := BlockId{41}
-	aId := BlockId{42}
-	bId := BlockId{43}
+	rootID := BlockID{41}
+	aID := BlockID{42}
+	bID := BlockID{43}
 	rootBlock := NewDirBlock().(*DirBlock)
 	rootBlock.Children["a"] = DirEntry{
-		BlockPointer: BlockPointer{Id: aId}, Type: Dir}
+		BlockPointer: BlockPointer{ID: aID}, Type: Dir}
 	aBlock := NewDirBlock().(*DirBlock)
 	aBlock.Children["b"] = DirEntry{
-		BlockPointer: BlockPointer{Id: bId}, Type: entryType}
+		BlockPointer: BlockPointer{ID: bID}, Type: entryType}
 	bBlock := NewFileBlock()
 	if entryType == Dir {
 		bBlock = NewDirBlock()
 	}
-	node := PathNode{BlockPointer{rootId, 0, 0, userId, 0}, ""}
-	aNode := PathNode{BlockPointer{aId, 0, 0, userId, 0}, "a"}
-	bNode := PathNode{BlockPointer{bId, 0, 0, userId, 0}, "b"}
+	node := PathNode{BlockPointer{rootID, 0, 0, userID, 0}, ""}
+	aNode := PathNode{BlockPointer{aID, 0, 0, userID, 0}, "a"}
+	bNode := PathNode{BlockPointer{bID, 0, 0, userID, 0}, "b"}
 	p := Path{id, []PathNode{node, aNode, bNode}}
 
 	// deleting "a/b"
 	if entryType != Sym {
-		expectGetBlock(config, bId, bBlock)
+		expectGetBlock(config, bID, bBlock)
 	}
-	expectGetBlock(config, aId, aBlock)
-	expectGetBlock(config, rootId, rootBlock)
+	expectGetBlock(config, aID, aBlock)
+	expectGetBlock(config, rootID, rootBlock)
 	// sync block
 	var newRmd *RootMetadata
-	expectedPath, _ := expectSyncBlock(t, config, nil, userId, id, "",
+	expectedPath, _ := expectSyncBlock(t, config, nil, userID, id, "",
 		*p.ParentPath(), rmd, false, 0, 0, 0, nil, &newRmd)
 
 	var newP Path
@@ -833,25 +833,25 @@ func TestKBFSOpRemoveMultiBlockFileSuccess(t *testing.T) {
 	mockCtrl, config := kbfsOpsInit(t, true)
 	defer kbfsTestShutdown(mockCtrl, config)
 
-	userId, id, rmd := makeIdAndRMD(config)
+	userID, id, rmd := makeIDAndRMD(config)
 
-	rootId := BlockId{42}
-	fileId := BlockId{43}
-	id1 := BlockId{44}
-	id2 := BlockId{45}
-	id3 := BlockId{46}
-	id4 := BlockId{47}
+	rootID := BlockID{42}
+	fileID := BlockID{43}
+	id1 := BlockID{44}
+	id2 := BlockID{45}
+	id3 := BlockID{46}
+	id4 := BlockID{47}
 	rootBlock := NewDirBlock().(*DirBlock)
 	// TODO(akalin): Figure out actual Size value.
 	rootBlock.Children["a"] = DirEntry{
-		BlockPointer: BlockPointer{Id: fileId, QuotaSize: 10}, Size: 20}
+		BlockPointer: BlockPointer{ID: fileID, QuotaSize: 10}, Size: 20}
 	fileBlock := NewFileBlock().(*FileBlock)
 	fileBlock.IsInd = true
 	fileBlock.IPtrs = []IndirectFilePtr{
-		IndirectFilePtr{BlockPointer{id1, 0, 0, userId, 5}, 0},
-		IndirectFilePtr{BlockPointer{id2, 0, 0, userId, 5}, 5},
-		IndirectFilePtr{BlockPointer{id3, 0, 0, userId, 5}, 10},
-		IndirectFilePtr{BlockPointer{id4, 0, 0, userId, 5}, 15},
+		IndirectFilePtr{BlockPointer{id1, 0, 0, userID, 5}, 0},
+		IndirectFilePtr{BlockPointer{id2, 0, 0, userID, 5}, 5},
+		IndirectFilePtr{BlockPointer{id3, 0, 0, userID, 5}, 10},
+		IndirectFilePtr{BlockPointer{id4, 0, 0, userID, 5}, 15},
 	}
 	block1 := NewFileBlock().(*FileBlock)
 	block1.Contents = []byte{5, 4, 3, 2, 1}
@@ -861,12 +861,12 @@ func TestKBFSOpRemoveMultiBlockFileSuccess(t *testing.T) {
 	block3.Contents = []byte{15, 14, 13, 12, 11}
 	block4 := NewFileBlock().(*FileBlock)
 	block4.Contents = []byte{20, 19, 18, 17, 16}
-	node := PathNode{BlockPointer{rootId, 0, 0, userId, 0}, ""}
-	fileNode := PathNode{BlockPointer{fileId, 0, 0, userId, 0}, "a"}
+	node := PathNode{BlockPointer{rootID, 0, 0, userID, 0}, ""}
+	fileNode := PathNode{BlockPointer{fileID, 0, 0, userID, 0}, "a"}
 	p := Path{id, []PathNode{node, fileNode}}
 
-	expectGetBlock(config, rootId, rootBlock)
-	expectGetBlock(config, fileId, fileBlock)
+	expectGetBlock(config, rootID, rootBlock)
+	expectGetBlock(config, fileID, fileBlock)
 	expectGetBlock(config, id1, block1)
 	expectGetBlock(config, id2, block2)
 	expectGetBlock(config, id3, block3)
@@ -876,14 +876,14 @@ func TestKBFSOpRemoveMultiBlockFileSuccess(t *testing.T) {
 	unrefBytes := uint64(10 + 4*5) // fileBlock + 4 indirect blocks
 	f := func(md *RootMetadata) {
 		index := len(p.Path) - 1
-		checkBlockChange(t, md.data.UnrefBlocks.Changes, p, index, 0, fileId)
+		checkBlockChange(t, md.data.UnrefBlocks.Changes, p, index, 0, fileID)
 		checkBlockChange(t, md.data.UnrefBlocks.Changes, p, index, 0, id1)
 		checkBlockChange(t, md.data.UnrefBlocks.Changes, p, index, 0, id2)
 		checkBlockChange(t, md.data.UnrefBlocks.Changes, p, index, 0, id3)
 		checkBlockChange(t, md.data.UnrefBlocks.Changes, p, index, 0, id4)
 	}
 	var newRmd *RootMetadata
-	expectedPath, _ := expectSyncBlock(t, config, nil, userId, id, "",
+	expectedPath, _ := expectSyncBlock(t, config, nil, userID, id, "",
 		*p.ParentPath(), rmd, false, 0, 0, unrefBytes, f, &newRmd)
 
 	newP, err := config.KBFSOps().RemoveEntry(p)
@@ -902,26 +902,26 @@ func TestRemoveDirFailNonEmpty(t *testing.T) {
 	mockCtrl, config := kbfsOpsInit(t, false)
 	defer kbfsTestShutdown(mockCtrl, config)
 
-	u, id, _ := makeIdAndRMD(config)
+	u, id, _ := makeIDAndRMD(config)
 
-	rootId := BlockId{41}
-	aId := BlockId{42}
-	bId := BlockId{43}
+	rootID := BlockID{41}
+	aID := BlockID{42}
+	bID := BlockID{43}
 	rootBlock := NewDirBlock().(*DirBlock)
 	rootBlock.Children["a"] = DirEntry{
-		BlockPointer: BlockPointer{Id: aId}, Type: Dir}
+		BlockPointer: BlockPointer{ID: aID}, Type: Dir}
 	aBlock := NewDirBlock().(*DirBlock)
 	aBlock.Children["b"] = DirEntry{
-		BlockPointer: BlockPointer{Id: aId}, Type: Dir}
+		BlockPointer: BlockPointer{ID: aID}, Type: Dir}
 	bBlock := NewDirBlock().(*DirBlock)
 	bBlock.Children["c"] = DirEntry{
-		BlockPointer: BlockPointer{Id: bId}, Type: File}
-	node := PathNode{BlockPointer{rootId, 0, 0, u, 0}, ""}
-	aNode := PathNode{BlockPointer{aId, 0, 0, u, 0}, "a"}
-	bNode := PathNode{BlockPointer{bId, 0, 0, u, 0}, "b"}
+		BlockPointer: BlockPointer{ID: bID}, Type: File}
+	node := PathNode{BlockPointer{rootID, 0, 0, u, 0}, ""}
+	aNode := PathNode{BlockPointer{aID, 0, 0, u, 0}, "a"}
+	bNode := PathNode{BlockPointer{bID, 0, 0, u, 0}, "b"}
 	p := Path{id, []PathNode{node, aNode, bNode}}
 
-	expectGetBlock(config, bId, bBlock)
+	expectGetBlock(config, bID, bBlock)
 	expectedErr := &DirNotEmptyError{p.TailName()}
 
 	if _, err := config.KBFSOps().RemoveDir(p); err == nil {
@@ -935,23 +935,23 @@ func TestRemoveDirFailNoSuchName(t *testing.T) {
 	mockCtrl, config := kbfsOpsInit(t, false)
 	defer kbfsTestShutdown(mockCtrl, config)
 
-	u, id, _ := makeIdAndRMD(config)
+	u, id, _ := makeIDAndRMD(config)
 
-	rootId := BlockId{41}
-	aId := BlockId{42}
-	bId := BlockId{43}
+	rootID := BlockID{41}
+	aID := BlockID{42}
+	bID := BlockID{43}
 	rootBlock := NewDirBlock().(*DirBlock)
 	rootBlock.Children["a"] = DirEntry{
-		BlockPointer: BlockPointer{Id: aId}, Type: Dir}
+		BlockPointer: BlockPointer{ID: aID}, Type: Dir}
 	aBlock := NewDirBlock().(*DirBlock)
 	bBlock := NewDirBlock().(*DirBlock)
-	node := PathNode{BlockPointer{rootId, 0, 0, u, 0}, ""}
-	aNode := PathNode{BlockPointer{aId, 0, 0, u, 0}, "a"}
-	bNode := PathNode{BlockPointer{bId, 0, 0, u, 0}, "b"}
+	node := PathNode{BlockPointer{rootID, 0, 0, u, 0}, ""}
+	aNode := PathNode{BlockPointer{aID, 0, 0, u, 0}, "a"}
+	bNode := PathNode{BlockPointer{bID, 0, 0, u, 0}, "b"}
 	p := Path{id, []PathNode{node, aNode, bNode}}
 
-	expectGetBlock(config, bId, bBlock)
-	expectGetBlock(config, aId, aBlock)
+	expectGetBlock(config, bID, bBlock)
+	expectGetBlock(config, aID, aBlock)
 	expectedErr := &NoSuchNameError{p.TailName()}
 
 	if _, err := config.KBFSOps().RemoveDir(p); err == nil {
@@ -965,27 +965,27 @@ func TestRenameInDirSuccess(t *testing.T) {
 	mockCtrl, config := kbfsOpsInit(t, true)
 	defer kbfsTestShutdown(mockCtrl, config)
 
-	userId, id, rmd := makeIdAndRMD(config)
+	userID, id, rmd := makeIDAndRMD(config)
 
-	rootId := BlockId{41}
-	aId := BlockId{42}
-	bId := BlockId{43}
+	rootID := BlockID{41}
+	aID := BlockID{42}
+	bID := BlockID{43}
 	rootBlock := NewDirBlock().(*DirBlock)
 	rootBlock.Children["a"] = DirEntry{
-		BlockPointer: BlockPointer{Id: aId}, Type: Dir}
+		BlockPointer: BlockPointer{ID: aID}, Type: Dir}
 	aBlock := NewDirBlock().(*DirBlock)
-	aBlock.Children["b"] = DirEntry{BlockPointer: BlockPointer{Id: bId}}
-	node := PathNode{BlockPointer{rootId, 0, 0, userId, 0}, ""}
-	aNode := PathNode{BlockPointer{aId, 0, 0, userId, 0}, "a"}
+	aBlock.Children["b"] = DirEntry{BlockPointer: BlockPointer{ID: bID}}
+	node := PathNode{BlockPointer{rootID, 0, 0, userID, 0}, ""}
+	aNode := PathNode{BlockPointer{aID, 0, 0, userID, 0}, "a"}
 	p := Path{id, []PathNode{node, aNode}}
 
 	// renaming "a/b" to "a/c"
-	expectGetBlock(config, aId, aBlock)
-	expectGetBlock(config, rootId, rootBlock)
+	expectGetBlock(config, aID, aBlock)
+	expectGetBlock(config, rootID, rootBlock)
 	// sync block
 	var newRmd *RootMetadata
 	expectedPath, _ :=
-		expectSyncBlock(t, config, nil, userId, id, "", p, rmd, false,
+		expectSyncBlock(t, config, nil, userID, id, "", p, rmd, false,
 			0, 0, 0, nil, &newRmd)
 
 	var newP1 Path
@@ -1014,22 +1014,22 @@ func TestRenameInRootSuccess(t *testing.T) {
 	mockCtrl, config := kbfsOpsInit(t, true)
 	defer kbfsTestShutdown(mockCtrl, config)
 
-	userId, id, rmd := makeIdAndRMD(config)
+	userID, id, rmd := makeIDAndRMD(config)
 
-	rootId := BlockId{41}
-	aId := BlockId{42}
+	rootID := BlockID{41}
+	aID := BlockID{42}
 	rootBlock := NewDirBlock().(*DirBlock)
 	rootBlock.Children["a"] = DirEntry{
-		BlockPointer: BlockPointer{Id: aId}, Type: File}
-	node := PathNode{BlockPointer{rootId, 0, 0, userId, 0}, ""}
+		BlockPointer: BlockPointer{ID: aID}, Type: File}
+	node := PathNode{BlockPointer{rootID, 0, 0, userID, 0}, ""}
 	p := Path{id, []PathNode{node}}
 
 	// renaming "a" to "b"
-	expectGetBlock(config, rootId, rootBlock)
+	expectGetBlock(config, rootID, rootBlock)
 	// sync block
 	var newRmd *RootMetadata
 	expectedPath, _ :=
-		expectSyncBlock(t, config, nil, userId, id, "", p, rmd, false,
+		expectSyncBlock(t, config, nil, userID, id, "", p, rmd, false,
 			0, 0, 0, nil, &newRmd)
 
 	var newP1 Path
@@ -1058,41 +1058,41 @@ func TestRenameAcrossDirsSuccess(t *testing.T) {
 	mockCtrl, config := kbfsOpsInit(t, true)
 	defer kbfsTestShutdown(mockCtrl, config)
 
-	userId, id, rmd := makeIdAndRMD(config)
+	userID, id, rmd := makeIDAndRMD(config)
 
-	rootId := BlockId{41}
-	aId := BlockId{42}
-	bId := BlockId{43}
+	rootID := BlockID{41}
+	aID := BlockID{42}
+	bID := BlockID{43}
 	rootBlock := NewDirBlock().(*DirBlock)
 	rootBlock.Children["a"] = DirEntry{
-		BlockPointer: BlockPointer{Id: aId}, Type: Dir}
+		BlockPointer: BlockPointer{ID: aID}, Type: Dir}
 	aBlock := NewDirBlock().(*DirBlock)
-	aBlock.Children["b"] = DirEntry{BlockPointer: BlockPointer{Id: bId}}
-	node := PathNode{BlockPointer{rootId, 0, 0, userId, 0}, ""}
-	aNode := PathNode{BlockPointer{aId, 0, 0, userId, 0}, "a"}
+	aBlock.Children["b"] = DirEntry{BlockPointer: BlockPointer{ID: bID}}
+	node := PathNode{BlockPointer{rootID, 0, 0, userID, 0}, ""}
+	aNode := PathNode{BlockPointer{aID, 0, 0, userID, 0}, "a"}
 	p1 := Path{id, []PathNode{node, aNode}}
 
-	dId := BlockId{40}
+	dID := BlockID{40}
 	rootBlock.Children["d"] = DirEntry{
-		BlockPointer: BlockPointer{Id: dId}, Type: Dir}
+		BlockPointer: BlockPointer{ID: dID}, Type: Dir}
 	dBlock := NewDirBlock().(*DirBlock)
-	dNode := PathNode{BlockPointer{dId, 0, 0, userId, 0}, "d"}
+	dNode := PathNode{BlockPointer{dID, 0, 0, userID, 0}, "d"}
 	p2 := Path{id, []PathNode{node, dNode}}
 
 	// renaming "a/b" to "d/c"
-	expectGetBlock(config, aId, aBlock)
-	expectGetBlock(config, dId, dBlock)
-	expectGetBlock(config, rootId, rootBlock)
+	expectGetBlock(config, aID, aBlock)
+	expectGetBlock(config, dID, dBlock)
+	expectGetBlock(config, rootID, rootBlock)
 	// sync block
 	var newRmd *RootMetadata
 	expectedPath1, lastCall :=
-		expectSyncBlock(t, config, nil, userId, id, "", p1, rmd, false,
+		expectSyncBlock(t, config, nil, userID, id, "", p1, rmd, false,
 			1, 0, 0, nil, &newRmd)
 	expectedPath2, _ :=
-		expectSyncBlock(t, config, lastCall, userId, id, "", p2, rmd, false, 0,
+		expectSyncBlock(t, config, lastCall, userID, id, "", p2, rmd, false, 0,
 			1, 0, nil, &newRmd)
 	// fix up old expected path's common ancestor
-	expectedPath1.Path[0].Id = expectedPath2.Path[0].Id
+	expectedPath1.Path[0].ID = expectedPath2.Path[0].ID
 
 	newP1, newP2, err := config.KBFSOps().Rename(p1, "b", p2, "c")
 	if err != nil {
@@ -1117,43 +1117,43 @@ func TestRenameAcrossPrefixSuccess(t *testing.T) {
 	mockCtrl, config := kbfsOpsInit(t, true)
 	defer kbfsTestShutdown(mockCtrl, config)
 
-	userId, id, rmd := makeIdAndRMD(config)
+	userID, id, rmd := makeIDAndRMD(config)
 
-	rootId := BlockId{41}
-	aId := BlockId{42}
-	bId := BlockId{43}
-	dId := BlockId{40}
+	rootID := BlockID{41}
+	aID := BlockID{42}
+	bID := BlockID{43}
+	dID := BlockID{40}
 	rootBlock := NewDirBlock().(*DirBlock)
 	rootBlock.Children["a"] = DirEntry{
-		BlockPointer: BlockPointer{Id: aId}, Type: Dir}
+		BlockPointer: BlockPointer{ID: aID}, Type: Dir}
 	aBlock := NewDirBlock().(*DirBlock)
-	aBlock.Children["b"] = DirEntry{BlockPointer: BlockPointer{Id: bId}}
-	aBlock.Children["d"] = DirEntry{BlockPointer: BlockPointer{Id: dId}}
+	aBlock.Children["b"] = DirEntry{BlockPointer: BlockPointer{ID: bID}}
+	aBlock.Children["d"] = DirEntry{BlockPointer: BlockPointer{ID: dID}}
 	dBlock := NewDirBlock().(*DirBlock)
-	node := PathNode{BlockPointer{rootId, 0, 0, userId, 0}, ""}
-	aNode := PathNode{BlockPointer{aId, 0, 0, userId, 0}, "a"}
-	dNode := PathNode{BlockPointer{dId, 0, 0, userId, 0}, "d"}
+	node := PathNode{BlockPointer{rootID, 0, 0, userID, 0}, ""}
+	aNode := PathNode{BlockPointer{aID, 0, 0, userID, 0}, "a"}
+	dNode := PathNode{BlockPointer{dID, 0, 0, userID, 0}, "d"}
 	p1 := Path{id, []PathNode{node, aNode}}
 	p2 := Path{id, []PathNode{node, aNode, dNode}}
 
 	// renaming "a/b" to "a/d/c"
-	expectGetBlock(config, aId, aBlock)
-	expectGetBlock(config, dId, dBlock)
-	expectGetBlock(config, rootId, rootBlock)
+	expectGetBlock(config, aID, aBlock)
+	expectGetBlock(config, dID, dBlock)
+	expectGetBlock(config, rootID, rootBlock)
 	// sync block
 	var newRmd *RootMetadata
 	expectedPath2, _ :=
-		expectSyncBlock(t, config, nil, userId, id, "", p2, rmd, false,
+		expectSyncBlock(t, config, nil, userID, id, "", p2, rmd, false,
 			0, 0, 0, nil, &newRmd)
 
 	newP1, newP2, err := config.KBFSOps().Rename(p1, "b", p2, "c")
 	if err != nil {
 		t.Errorf("Got error on rename: %v", err)
 	}
-	if newP1.Path[0].Id != newP2.Path[0].Id {
+	if newP1.Path[0].ID != newP2.Path[0].ID {
 		t.Errorf("New old path not a prefix of new new path")
 	}
-	if newP1.Path[1].Id != newP2.Path[1].Id {
+	if newP1.Path[1].ID != newP2.Path[1].ID {
 		t.Errorf("New old path not a prefix of new new path")
 	}
 	if rootBlock.Children["a"].Mtime == 0 {
@@ -1184,49 +1184,49 @@ func TestRenameAcrossOtherPrefixSuccess(t *testing.T) {
 	mockCtrl, config := kbfsOpsInit(t, true)
 	defer kbfsTestShutdown(mockCtrl, config)
 
-	userId, id, rmd := makeIdAndRMD(config)
+	userID, id, rmd := makeIDAndRMD(config)
 
-	rootId := BlockId{41}
-	aId := BlockId{42}
-	bId := BlockId{43}
-	dId := BlockId{40}
+	rootID := BlockID{41}
+	aID := BlockID{42}
+	bID := BlockID{43}
+	dID := BlockID{40}
 	rootBlock := NewDirBlock().(*DirBlock)
 	rootBlock.Children["a"] = DirEntry{
-		BlockPointer: BlockPointer{Id: aId}, Type: Dir}
+		BlockPointer: BlockPointer{ID: aID}, Type: Dir}
 	aBlock := NewDirBlock().(*DirBlock)
-	aBlock.Children["d"] = DirEntry{BlockPointer: BlockPointer{Id: dId}}
+	aBlock.Children["d"] = DirEntry{BlockPointer: BlockPointer{ID: dID}}
 	dBlock := NewDirBlock().(*DirBlock)
-	dBlock.Children["b"] = DirEntry{BlockPointer: BlockPointer{Id: bId}}
-	node := PathNode{BlockPointer{rootId, 0, 0, userId, 0}, ""}
-	aNode := PathNode{BlockPointer{aId, 0, 0, userId, 0}, "a"}
-	dNode := PathNode{BlockPointer{dId, 0, 0, userId, 0}, "d"}
+	dBlock.Children["b"] = DirEntry{BlockPointer: BlockPointer{ID: bID}}
+	node := PathNode{BlockPointer{rootID, 0, 0, userID, 0}, ""}
+	aNode := PathNode{BlockPointer{aID, 0, 0, userID, 0}, "a"}
+	dNode := PathNode{BlockPointer{dID, 0, 0, userID, 0}, "d"}
 	p1 := Path{id, []PathNode{node, aNode, dNode}}
 	p2 := Path{id, []PathNode{node, aNode}}
 
 	// renaming "a/d/b" to "a/c"
-	expectGetBlock(config, aId, aBlock)
-	expectGetBlock(config, dId, dBlock)
-	expectGetBlock(config, rootId, rootBlock)
+	expectGetBlock(config, aID, aBlock)
+	expectGetBlock(config, dID, dBlock)
+	expectGetBlock(config, rootID, rootBlock)
 	// sync block
 	var newRmd *RootMetadata
 	expectedPath1, lastCall :=
-		expectSyncBlock(t, config, nil, userId, id, "", p1, rmd, false,
+		expectSyncBlock(t, config, nil, userID, id, "", p1, rmd, false,
 			2, 0, 0, nil, &newRmd)
 	expectedPath2, _ :=
-		expectSyncBlock(t, config, lastCall, userId, id, "", p2, rmd, false, 0,
+		expectSyncBlock(t, config, lastCall, userID, id, "", p2, rmd, false, 0,
 			1, 0, nil, &newRmd)
 	// the new path is a prefix of the old path
-	expectedPath1.Path[0].Id = expectedPath2.Path[0].Id
-	expectedPath1.Path[1].Id = expectedPath2.Path[1].Id
+	expectedPath1.Path[0].ID = expectedPath2.Path[0].ID
+	expectedPath1.Path[1].ID = expectedPath2.Path[1].ID
 
 	newP1, newP2, err := config.KBFSOps().Rename(p1, "b", p2, "c")
 	if err != nil {
 		t.Errorf("Got error on removal: %v", err)
 	}
-	if newP2.Path[0].Id != newP1.Path[0].Id {
+	if newP2.Path[0].ID != newP1.Path[0].ID {
 		t.Errorf("New old path not a prefix of new new path")
 	}
-	if newP2.Path[1].Id != newP1.Path[1].Id {
+	if newP2.Path[1].ID != newP1.Path[1].ID {
 		t.Errorf("New old path not a prefix of new new path")
 	}
 	if aBlock.Children["d"].Mtime == 0 {
@@ -1251,26 +1251,26 @@ func TestRenameFailAcrossTopDirs(t *testing.T) {
 	mockCtrl, config := kbfsOpsInit(t, false)
 	defer kbfsTestShutdown(mockCtrl, config)
 
-	userId1 := keybase1.MakeTestUID(15)
+	userID1 := keybase1.MakeTestUID(15)
 	id1, h1, _ := newDir(config, 1, true, false)
-	h1.Writers = append(h1.Writers, userId1)
+	h1.Writers = append(h1.Writers, userID1)
 	expectUserCalls(h1, config)
 
-	userId2 := keybase1.MakeTestUID(20)
+	userID2 := keybase1.MakeTestUID(20)
 	id2, h2, _ := newDir(config, 2, true, false)
-	h2.Writers = append(h2.Writers, userId2)
+	h2.Writers = append(h2.Writers, userID2)
 	expectUserCalls(h2, config)
 
-	rootId1 := BlockId{41}
-	aId1 := BlockId{42}
-	node1 := PathNode{BlockPointer{rootId1, 0, 0, userId1, 0}, ""}
-	aNode1 := PathNode{BlockPointer{aId1, 0, 0, userId1, 0}, "a"}
+	rootID1 := BlockID{41}
+	aID1 := BlockID{42}
+	node1 := PathNode{BlockPointer{rootID1, 0, 0, userID1, 0}, ""}
+	aNode1 := PathNode{BlockPointer{aID1, 0, 0, userID1, 0}, "a"}
 	p1 := Path{id1, []PathNode{node1, aNode1}}
 
-	rootId2 := BlockId{38}
-	aId2 := BlockId{39}
-	node2 := PathNode{BlockPointer{rootId2, 0, 0, userId2, 0}, ""}
-	aNode2 := PathNode{BlockPointer{aId2, 0, 0, userId2, 0}, "a"}
+	rootID2 := BlockID{38}
+	aID2 := BlockID{39}
+	node2 := PathNode{BlockPointer{rootID2, 0, 0, userID2, 0}, ""}
+	aNode2 := PathNode{BlockPointer{aID2, 0, 0, userID2, 0}, "a"}
 	p2 := Path{id2, []PathNode{node2, aNode2}}
 
 	expectedErr := &RenameAcrossDirsError{}
@@ -1299,17 +1299,17 @@ func TestKBFSOpsCacheReadFullSuccess(t *testing.T) {
 	mockCtrl, config := kbfsOpsInit(t, false)
 	defer kbfsTestShutdown(mockCtrl, config)
 
-	u, id, _ := makeIdAndRMD(config)
+	u, id, _ := makeIDAndRMD(config)
 
-	rootId := BlockId{42}
-	fileId := BlockId{43}
+	rootID := BlockID{42}
+	fileID := BlockID{43}
 	fileBlock := NewFileBlock().(*FileBlock)
 	fileBlock.Contents = []byte{1, 2, 3, 4, 5, 6, 7, 8, 9, 10}
-	node := PathNode{BlockPointer{rootId, 0, 0, u, 0}, ""}
-	fileNode := PathNode{BlockPointer{fileId, 0, 0, u, 0}, "f"}
+	node := PathNode{BlockPointer{rootID, 0, 0, u, 0}, ""}
+	fileNode := PathNode{BlockPointer{fileID, 0, 0, u, 0}, "f"}
 	p := Path{id, []PathNode{node, fileNode}}
 
-	expectGetBlock(config, fileId, fileBlock)
+	expectGetBlock(config, fileID, fileBlock)
 
 	n := len(fileBlock.Contents)
 	dest := make([]byte, n, n)
@@ -1326,17 +1326,17 @@ func TestKBFSOpsCacheReadPartialSuccess(t *testing.T) {
 	mockCtrl, config := kbfsOpsInit(t, false)
 	defer kbfsTestShutdown(mockCtrl, config)
 
-	u, id, _ := makeIdAndRMD(config)
+	u, id, _ := makeIDAndRMD(config)
 
-	rootId := BlockId{42}
-	fileId := BlockId{43}
+	rootID := BlockID{42}
+	fileID := BlockID{43}
 	fileBlock := NewFileBlock().(*FileBlock)
 	fileBlock.Contents = []byte{1, 2, 3, 4, 5, 6, 7, 8, 9, 10}
-	node := PathNode{BlockPointer{rootId, 0, 0, u, 0}, ""}
-	fileNode := PathNode{BlockPointer{fileId, 0, 0, u, 0}, "f"}
+	node := PathNode{BlockPointer{rootID, 0, 0, u, 0}, ""}
+	fileNode := PathNode{BlockPointer{fileID, 0, 0, u, 0}, "f"}
 	p := Path{id, []PathNode{node, fileNode}}
 
-	expectGetBlock(config, fileId, fileBlock)
+	expectGetBlock(config, fileID, fileBlock)
 
 	dest := make([]byte, 4, 4)
 	if n, err := config.KBFSOps().Read(p, dest, 2); err != nil {
@@ -1352,14 +1352,14 @@ func TestKBFSOpsCacheReadFullMultiBlockSuccess(t *testing.T) {
 	mockCtrl, config := kbfsOpsInit(t, false)
 	defer kbfsTestShutdown(mockCtrl, config)
 
-	u, id, _ := makeIdAndRMD(config)
+	u, id, _ := makeIDAndRMD(config)
 
-	rootId := BlockId{42}
-	fileId := BlockId{43}
-	id1 := BlockId{44}
-	id2 := BlockId{45}
-	id3 := BlockId{46}
-	id4 := BlockId{47}
+	rootID := BlockID{42}
+	fileID := BlockID{43}
+	id1 := BlockID{44}
+	id2 := BlockID{45}
+	id3 := BlockID{46}
+	id4 := BlockID{47}
 	fileBlock := NewFileBlock().(*FileBlock)
 	fileBlock.IsInd = true
 	fileBlock.IPtrs = []IndirectFilePtr{
@@ -1376,11 +1376,11 @@ func TestKBFSOpsCacheReadFullMultiBlockSuccess(t *testing.T) {
 	block3.Contents = []byte{15, 14, 13, 12, 11}
 	block4 := NewFileBlock().(*FileBlock)
 	block4.Contents = []byte{20, 19, 18, 17, 16}
-	node := PathNode{BlockPointer{rootId, 0, 0, u, 0}, ""}
-	fileNode := PathNode{BlockPointer{fileId, 0, 0, u, 0}, "a"}
+	node := PathNode{BlockPointer{rootID, 0, 0, u, 0}, ""}
+	fileNode := PathNode{BlockPointer{fileID, 0, 0, u, 0}, "a"}
 	p := Path{id, []PathNode{node, fileNode}}
 
-	expectGetBlock(config, fileId, fileBlock)
+	expectGetBlock(config, fileID, fileBlock)
 	expectGetBlock(config, id1, block1)
 	expectGetBlock(config, id2, block2)
 	expectGetBlock(config, id3, block3)
@@ -1404,14 +1404,14 @@ func TestKBFSOpsCacheReadPartialMultiBlockSuccess(t *testing.T) {
 	mockCtrl, config := kbfsOpsInit(t, false)
 	defer kbfsTestShutdown(mockCtrl, config)
 
-	u, id, _ := makeIdAndRMD(config)
+	u, id, _ := makeIDAndRMD(config)
 
-	rootId := BlockId{42}
-	fileId := BlockId{43}
-	id1 := BlockId{44}
-	id2 := BlockId{45}
-	id3 := BlockId{46}
-	id4 := BlockId{47}
+	rootID := BlockID{42}
+	fileID := BlockID{43}
+	id1 := BlockID{44}
+	id2 := BlockID{45}
+	id3 := BlockID{46}
+	id4 := BlockID{47}
 	fileBlock := NewFileBlock().(*FileBlock)
 	fileBlock.IsInd = true
 	fileBlock.IPtrs = []IndirectFilePtr{
@@ -1428,11 +1428,11 @@ func TestKBFSOpsCacheReadPartialMultiBlockSuccess(t *testing.T) {
 	block3.Contents = []byte{15, 14, 13, 12, 11}
 	block4 := NewFileBlock().(*FileBlock)
 	block4.Contents = []byte{20, 19, 18, 17, 16}
-	node := PathNode{BlockPointer{rootId, 0, 0, u, 0}, ""}
-	fileNode := PathNode{BlockPointer{fileId, 0, 0, u, 0}, "a"}
+	node := PathNode{BlockPointer{rootID, 0, 0, u, 0}, ""}
+	fileNode := PathNode{BlockPointer{fileID, 0, 0, u, 0}, "a"}
 	p := Path{id, []PathNode{node, fileNode}}
 
-	expectGetBlock(config, fileId, fileBlock)
+	expectGetBlock(config, fileID, fileBlock)
 	expectGetBlock(config, id1, block1)
 	expectGetBlock(config, id2, block2)
 	expectGetBlock(config, id3, block3)
@@ -1454,17 +1454,17 @@ func TestKBFSOpsCacheReadFailPastEnd(t *testing.T) {
 	mockCtrl, config := kbfsOpsInit(t, false)
 	defer kbfsTestShutdown(mockCtrl, config)
 
-	u, id, _ := makeIdAndRMD(config)
+	u, id, _ := makeIDAndRMD(config)
 
-	rootId := BlockId{42}
-	fileId := BlockId{43}
+	rootID := BlockID{42}
+	fileID := BlockID{43}
 	fileBlock := NewFileBlock().(*FileBlock)
 	fileBlock.Contents = []byte{1, 2, 3, 4, 5, 6, 7, 8, 9, 10}
-	node := PathNode{BlockPointer{rootId, 0, 0, u, 0}, ""}
-	fileNode := PathNode{BlockPointer{fileId, 0, 0, u, 0}, "f"}
+	node := PathNode{BlockPointer{rootID, 0, 0, u, 0}, ""}
+	fileNode := PathNode{BlockPointer{fileID, 0, 0, u, 0}, "f"}
 	p := Path{id, []PathNode{node, fileNode}}
 
-	expectGetBlock(config, fileId, fileBlock)
+	expectGetBlock(config, fileID, fileBlock)
 
 	dest := make([]byte, 4, 4)
 	if n, err := config.KBFSOps().Read(p, dest, 10); err != nil {
@@ -1478,22 +1478,22 @@ func TestKBFSOpsServerReadFullSuccess(t *testing.T) {
 	mockCtrl, config := kbfsOpsInit(t, false)
 	defer kbfsTestShutdown(mockCtrl, config)
 
-	u, id, rmd := makeIdAndRMD(config)
+	u, id, rmd := makeIDAndRMD(config)
 
-	rootId := BlockId{42}
-	fileId := BlockId{43}
+	rootID := BlockID{42}
+	fileID := BlockID{43}
 	fileBlock := NewFileBlock().(*FileBlock)
 	fileBlock.Contents = []byte{1, 2, 3, 4, 5, 6, 7, 8, 9, 10}
-	node := PathNode{BlockPointer{rootId, 0, 0, u, 0}, ""}
-	fileNode := PathNode{BlockPointer{fileId, 0, 0, u, 15}, "f"}
+	node := PathNode{BlockPointer{rootID, 0, 0, u, 0}, ""}
+	fileNode := PathNode{BlockPointer{fileID, 0, 0, u, 15}, "f"}
 	p := Path{id, []PathNode{node, fileNode}}
 
 	// cache miss means fetching metadata and getting read key
-	err := &NoSuchBlockError{rootId}
-	config.mockBcache.EXPECT().Get(fileId).Return(nil, err)
-	expectGetBlockCryptKey(config, fileId, rmd)
-	expectBlock(config, fileId, fileBlock, nil)
-	config.mockBcache.EXPECT().Put(fileId, gomock.Any(), false).Return(nil)
+	err := &NoSuchBlockError{rootID}
+	config.mockBcache.EXPECT().Get(fileID).Return(nil, err)
+	expectGetBlockCryptKey(config, fileID, rmd)
+	expectBlock(config, fileID, fileBlock, nil)
+	config.mockBcache.EXPECT().Put(fileID, gomock.Any(), false).Return(nil)
 
 	n := len(fileBlock.Contents)
 	dest := make([]byte, n, n)
@@ -1510,21 +1510,21 @@ func TestKBFSOpsServerReadFailNoSuchBlock(t *testing.T) {
 	mockCtrl, config := kbfsOpsInit(t, false)
 	defer kbfsTestShutdown(mockCtrl, config)
 
-	u, id, rmd := makeIdAndRMD(config)
+	u, id, rmd := makeIDAndRMD(config)
 
-	rootId := BlockId{42}
-	fileId := BlockId{43}
+	rootID := BlockID{42}
+	fileID := BlockID{43}
 	fileBlock := NewFileBlock().(*FileBlock)
 	fileBlock.Contents = []byte{1, 2, 3, 4, 5, 6, 7, 8, 9, 10}
-	node := PathNode{BlockPointer{rootId, 0, 0, u, 0}, ""}
-	fileNode := PathNode{BlockPointer{fileId, 0, 0, u, 0}, "f"}
+	node := PathNode{BlockPointer{rootID, 0, 0, u, 0}, ""}
+	fileNode := PathNode{BlockPointer{fileID, 0, 0, u, 0}, "f"}
 	p := Path{id, []PathNode{node, fileNode}}
 
 	// cache miss means fetching metadata and getting read key
-	err := &NoSuchBlockError{rootId}
-	config.mockBcache.EXPECT().Get(fileId).Return(nil, err)
-	expectGetBlockCryptKey(config, fileId, rmd)
-	expectBlock(config, fileId, fileBlock, err)
+	err := &NoSuchBlockError{rootID}
+	config.mockBcache.EXPECT().Get(fileID).Return(nil, err)
+	expectGetBlockCryptKey(config, fileID, rmd)
+	expectBlock(config, fileID, fileBlock, err)
 
 	n := len(fileBlock.Contents)
 	dest := make([]byte, n, n)
@@ -1537,7 +1537,7 @@ func TestKBFSOpsServerReadFailNoSuchBlock(t *testing.T) {
 
 func setRmdAfterWrite(config *ConfigMock, newRmd **RootMetadata) {
 	config.mockMdcache.EXPECT().Put(gomock.Any(), gomock.Any()).
-		Do(func(id MDId, rmd *RootMetadata) {
+		Do(func(id MdID, rmd *RootMetadata) {
 		if newRmd != nil {
 			*newRmd = rmd
 		}
@@ -1548,34 +1548,34 @@ func TestKBFSOpsWriteNewBlockSuccess(t *testing.T) {
 	mockCtrl, config := kbfsOpsInit(t, true)
 	defer kbfsTestShutdown(mockCtrl, config)
 
-	userId, id, _ := makeIdAndRMD(config)
+	userID, id, _ := makeIDAndRMD(config)
 
-	rootId := BlockId{42}
-	fileId := BlockId{43}
+	rootID := BlockID{42}
+	fileID := BlockID{43}
 	rootBlock := NewDirBlock().(*DirBlock)
 	rootBlock.Children["f"] = DirEntry{
-		BlockPointer: BlockPointer{Id: fileId, QuotaSize: 1}}
+		BlockPointer: BlockPointer{ID: fileID, QuotaSize: 1}}
 	fileBlock := NewFileBlock().(*FileBlock)
-	node := PathNode{BlockPointer{rootId, 0, 0, userId, 0}, ""}
-	fileNode := PathNode{BlockPointer{fileId, 0, 0, userId, 1}, "f"}
+	node := PathNode{BlockPointer{rootID, 0, 0, userID, 0}, ""}
+	fileNode := PathNode{BlockPointer{fileID, 0, 0, userID, 1}, "f"}
 	p := Path{id, []PathNode{node, fileNode}}
 	data := []byte{1, 2, 3, 4, 5, 6, 7, 8, 9, 10}
 
-	expectGetBlock(config, rootId, rootBlock)
-	expectGetBlock(config, fileId, fileBlock)
+	expectGetBlock(config, rootID, rootBlock)
+	expectGetBlock(config, fileID, fileBlock)
 	config.mockBsplit.EXPECT().CopyUntilSplit(
 		gomock.Any(), gomock.Any(), data, int64(0)).
 		Do(func(block *FileBlock, lb bool, data []byte, off int64) {
 		block.Contents = data
 	}).Return(int64(len(data)))
 	var newFileBlock *FileBlock
-	config.mockBcache.EXPECT().Put(fileId, gomock.Any(), true).
-		Do(func(id BlockId, block Block, dirty bool) {
+	config.mockBcache.EXPECT().Put(fileID, gomock.Any(), true).
+		Do(func(id BlockID, block Block, dirty bool) {
 		newFileBlock = block.(*FileBlock)
 	}).Return(nil)
 	var newRootBlock *DirBlock
-	config.mockBcache.EXPECT().Put(rootId, gomock.Any(), true).
-		Do(func(id BlockId, block Block, dirty bool) {
+	config.mockBcache.EXPECT().Put(rootID, gomock.Any(), true).
+		Do(func(id BlockID, block Block, dirty bool) {
 		newRootBlock = block.(*DirBlock)
 	}).Return(nil)
 	setRmdAfterWrite(config, nil)
@@ -1587,7 +1587,7 @@ func TestKBFSOpsWriteNewBlockSuccess(t *testing.T) {
 			config.observer.localUpdatePath)
 	} else if !bytesEqual(data, newFileBlock.Contents) {
 		t.Errorf("Wrote bad contents: %v", data)
-	} else if newRootBlock.Children["f"].Writer != userId {
+	} else if newRootBlock.Children["f"].Writer != userID {
 		t.Errorf("Wrong last writer: %v", newRootBlock.Children["f"].Writer)
 	} else if newRootBlock.Children["f"].Size != uint64(len(data)) {
 		t.Errorf("Wrong size for written file: %d",
@@ -1599,34 +1599,34 @@ func TestKBFSOpsWriteExtendSuccess(t *testing.T) {
 	mockCtrl, config := kbfsOpsInit(t, true)
 	defer kbfsTestShutdown(mockCtrl, config)
 
-	userId, id, _ := makeIdAndRMD(config)
+	userID, id, _ := makeIDAndRMD(config)
 
-	rootId := BlockId{42}
-	fileId := BlockId{43}
+	rootID := BlockID{42}
+	fileID := BlockID{43}
 	rootBlock := NewDirBlock().(*DirBlock)
 	rootBlock.Children["f"] = DirEntry{
-		BlockPointer: BlockPointer{Id: fileId, QuotaSize: 1}}
+		BlockPointer: BlockPointer{ID: fileID, QuotaSize: 1}}
 	fileBlock := NewFileBlock().(*FileBlock)
 	fileBlock.Contents = []byte{1, 2, 3, 4, 5}
-	node := PathNode{BlockPointer{rootId, 0, 0, userId, 0}, ""}
-	fileNode := PathNode{BlockPointer{fileId, 0, 0, userId, 0}, "f"}
+	node := PathNode{BlockPointer{rootID, 0, 0, userID, 0}, ""}
+	fileNode := PathNode{BlockPointer{fileID, 0, 0, userID, 0}, "f"}
 	p := Path{id, []PathNode{node, fileNode}}
 	data := []byte{6, 7, 8, 9, 10}
 	expectedFullData := []byte{1, 2, 3, 4, 5, 6, 7, 8, 9, 10}
 
-	expectGetBlock(config, rootId, rootBlock)
-	expectGetBlock(config, fileId, fileBlock)
+	expectGetBlock(config, rootID, rootBlock)
+	expectGetBlock(config, fileID, fileBlock)
 	config.mockBsplit.EXPECT().CopyUntilSplit(
 		gomock.Any(), gomock.Any(), data, int64(5)).
 		Do(func(block *FileBlock, lb bool, data []byte, off int64) {
 		block.Contents = expectedFullData
 	}).Return(int64(len(data)))
 	var newFileBlock *FileBlock
-	config.mockBcache.EXPECT().Put(fileId, gomock.Any(), true).
-		Do(func(id BlockId, block Block, dirty bool) {
+	config.mockBcache.EXPECT().Put(fileID, gomock.Any(), true).
+		Do(func(id BlockID, block Block, dirty bool) {
 		newFileBlock = block.(*FileBlock)
 	}).Return(nil)
-	config.mockBcache.EXPECT().Put(rootId, gomock.Any(), true).Return(nil)
+	config.mockBcache.EXPECT().Put(rootID, gomock.Any(), true).Return(nil)
 	setRmdAfterWrite(config, nil)
 
 	if err := config.KBFSOps().Write(p, data, 5); err != nil {
@@ -1643,34 +1643,34 @@ func TestKBFSOpsWritePastEndSuccess(t *testing.T) {
 	mockCtrl, config := kbfsOpsInit(t, true)
 	defer kbfsTestShutdown(mockCtrl, config)
 
-	userId, id, _ := makeIdAndRMD(config)
+	userID, id, _ := makeIDAndRMD(config)
 
-	rootId := BlockId{42}
-	fileId := BlockId{43}
+	rootID := BlockID{42}
+	fileID := BlockID{43}
 	rootBlock := NewDirBlock().(*DirBlock)
 	rootBlock.Children["f"] = DirEntry{
-		BlockPointer: BlockPointer{Id: fileId, QuotaSize: 1}}
+		BlockPointer: BlockPointer{ID: fileID, QuotaSize: 1}}
 	fileBlock := NewFileBlock().(*FileBlock)
 	fileBlock.Contents = []byte{1, 2, 3, 4, 5}
-	node := PathNode{BlockPointer{rootId, 0, 0, userId, 0}, ""}
-	fileNode := PathNode{BlockPointer{fileId, 0, 0, userId, 0}, "f"}
+	node := PathNode{BlockPointer{rootID, 0, 0, userID, 0}, ""}
+	fileNode := PathNode{BlockPointer{fileID, 0, 0, userID, 0}, "f"}
 	p := Path{id, []PathNode{node, fileNode}}
 	data := []byte{6, 7, 8, 9, 10}
 	expectedFullData := []byte{1, 2, 3, 4, 5, 0, 0, 6, 7, 8, 9, 10}
 
-	expectGetBlock(config, rootId, rootBlock)
-	expectGetBlock(config, fileId, fileBlock)
+	expectGetBlock(config, rootID, rootBlock)
+	expectGetBlock(config, fileID, fileBlock)
 	config.mockBsplit.EXPECT().CopyUntilSplit(
 		gomock.Any(), gomock.Any(), data, int64(7)).
 		Do(func(block *FileBlock, lb bool, data []byte, off int64) {
 		block.Contents = expectedFullData
 	}).Return(int64(len(data)))
 	var newFileBlock *FileBlock
-	config.mockBcache.EXPECT().Put(fileId, gomock.Any(), true).
-		Do(func(id BlockId, block Block, dirty bool) {
+	config.mockBcache.EXPECT().Put(fileID, gomock.Any(), true).
+		Do(func(id BlockID, block Block, dirty bool) {
 		newFileBlock = block.(*FileBlock)
 	}).Return(nil)
-	config.mockBcache.EXPECT().Put(rootId, gomock.Any(), true).Return(nil)
+	config.mockBcache.EXPECT().Put(rootID, gomock.Any(), true).Return(nil)
 	setRmdAfterWrite(config, nil)
 
 	if err := config.KBFSOps().Write(p, data, 7); err != nil {
@@ -1687,23 +1687,23 @@ func TestKBFSOpsWriteCauseSplit(t *testing.T) {
 	mockCtrl, config := kbfsOpsInit(t, true)
 	defer kbfsTestShutdown(mockCtrl, config)
 
-	userId, id, _ := makeIdAndRMD(config)
+	userID, id, _ := makeIDAndRMD(config)
 
-	rootId := BlockId{42}
-	fileId := BlockId{43}
+	rootID := BlockID{42}
+	fileID := BlockID{43}
 	rootBlock := NewDirBlock().(*DirBlock)
 	rootBlock.Children["f"] = DirEntry{
-		BlockPointer: BlockPointer{Id: fileId, QuotaSize: 1}}
+		BlockPointer: BlockPointer{ID: fileID, QuotaSize: 1}}
 	fileBlock := NewFileBlock().(*FileBlock)
 	fileBlock.Contents = []byte{}
-	node := PathNode{BlockPointer{rootId, 0, 0, userId, 0}, ""}
-	fileNode := PathNode{BlockPointer{fileId, 0, 0, userId, 0}, "f"}
+	node := PathNode{BlockPointer{rootID, 0, 0, userID, 0}, ""}
+	fileNode := PathNode{BlockPointer{fileID, 0, 0, userID, 0}, "f"}
 	p := Path{id, []PathNode{node, fileNode}}
 	newData := []byte{1, 2, 3, 4, 5, 6, 7, 8, 9, 10}
 	expectedFullData := append([]byte{0}, newData...)
 
-	expectGetBlock(config, rootId, rootBlock)
-	expectGetBlock(config, fileId, fileBlock)
+	expectGetBlock(config, rootID, rootBlock)
+	expectGetBlock(config, fileID, fileBlock)
 	// only copy the first half first
 	config.mockBsplit.EXPECT().CopyUntilSplit(
 		gomock.Any(), gomock.Any(), newData, int64(1)).
@@ -1712,23 +1712,23 @@ func TestKBFSOpsWriteCauseSplit(t *testing.T) {
 	}).Return(int64(5))
 
 	var pblock *FileBlock
-	var id1 BlockId
+	var id1 BlockID
 	var block1 *FileBlock
-	var id2 BlockId
+	var id2 BlockID
 	var block2 *FileBlock
 	var newRootBlock *DirBlock
 	// new indirect parent block (will be put, once on creation, once on update)
-	config.mockCrypto.EXPECT().MakeRandomBlockId().Return(BlockId{}, nil)
-	c1 := config.mockBcache.EXPECT().Put(fileId, gomock.Any(), true).
-		Do(func(id BlockId, block Block, dirty bool) {
+	config.mockCrypto.EXPECT().MakeRandomBlockID().Return(BlockID{}, nil)
+	c1 := config.mockBcache.EXPECT().Put(fileID, gomock.Any(), true).
+		Do(func(id BlockID, block Block, dirty bool) {
 		pblock = block.(*FileBlock)
 	}).Return(nil)
-	config.mockBcache.EXPECT().Put(fileId, gomock.Any(), true).
+	config.mockBcache.EXPECT().Put(fileID, gomock.Any(), true).
 		After(c1).AnyTimes().Return(nil)
 	// new right block
-	config.mockCrypto.EXPECT().MakeRandomBlockId().Return(BlockId{}, nil)
+	config.mockCrypto.EXPECT().MakeRandomBlockID().Return(BlockID{}, nil)
 	c2 := config.mockBcache.EXPECT().Put(gomock.Any(), gomock.Any(), true).
-		Do(func(id BlockId, block Block, dirty bool) {
+		Do(func(id BlockID, block Block, dirty bool) {
 		id2 = id
 		// copy the block so it will have the same pointer, and we can safely
 		// return it for the Get() later
@@ -1738,7 +1738,7 @@ func TestKBFSOpsWriteCauseSplit(t *testing.T) {
 	}).After(c1).Return(nil)
 	// updated copy of original block
 	c3 := config.mockBcache.EXPECT().Put(gomock.Any(), gomock.Any(), true).
-		Do(func(id BlockId, block Block, dirty bool) {
+		Do(func(id BlockID, block Block, dirty bool) {
 		id1 = id
 		block1 = block.(*FileBlock)
 	}).After(c2).Return(nil)
@@ -1754,8 +1754,8 @@ func TestKBFSOpsWriteCauseSplit(t *testing.T) {
 		After(c3).Return(nil)
 
 	// the directory entry will be updated a couple times
-	config.mockBcache.EXPECT().Put(rootId, gomock.Any(), true).
-		Do(func(id BlockId, block Block, dirty bool) {
+	config.mockBcache.EXPECT().Put(rootID, gomock.Any(), true).
+		Do(func(id BlockID, block Block, dirty bool) {
 		newRootBlock = block.(*DirBlock)
 	}).AnyTimes().Return(nil)
 
@@ -1774,12 +1774,12 @@ func TestKBFSOpsWriteCauseSplit(t *testing.T) {
 		t.Errorf("Parent block is not indirect!")
 	} else if len(pblock.IPtrs) != 2 {
 		t.Errorf("Wrong number of pointers in pblock: %v", pblock.IPtrs)
-	} else if pblock.IPtrs[0].Id != id1 {
+	} else if pblock.IPtrs[0].ID != id1 {
 		t.Errorf("Parent block has wrong id for block 1: %v (vs. %v)",
-			pblock.IPtrs[0].Id, id1)
-	} else if pblock.IPtrs[1].Id != id2 {
+			pblock.IPtrs[0].ID, id1)
+	} else if pblock.IPtrs[1].ID != id2 {
 		t.Errorf("Parent block has wrong id for block 2: %v",
-			pblock.IPtrs[1].Id)
+			pblock.IPtrs[1].ID)
 	} else if pblock.IPtrs[0].Off != 0 {
 		t.Errorf("Parent block has wrong offset for block 1: %d",
 			pblock.IPtrs[0].Off)
@@ -1796,33 +1796,33 @@ func TestKBFSOpsWriteOverMultipleBlocks(t *testing.T) {
 	mockCtrl, config := kbfsOpsInit(t, true)
 	defer kbfsTestShutdown(mockCtrl, config)
 
-	userId, id, _ := makeIdAndRMD(config)
+	userID, id, _ := makeIDAndRMD(config)
 
-	rootId := BlockId{42}
-	fileId := BlockId{43}
-	id1 := BlockId{44}
-	id2 := BlockId{45}
+	rootID := BlockID{42}
+	fileID := BlockID{43}
+	id1 := BlockID{44}
+	id2 := BlockID{45}
 	rootBlock := NewDirBlock().(*DirBlock)
 	rootBlock.Children["f"] = DirEntry{
-		BlockPointer: BlockPointer{Id: fileId, Writer: userId}, Size: 10}
+		BlockPointer: BlockPointer{ID: fileID, Writer: userID}, Size: 10}
 	fileBlock := NewFileBlock().(*FileBlock)
 	fileBlock.IsInd = true
 	fileBlock.IPtrs = []IndirectFilePtr{
-		IndirectFilePtr{BlockPointer{id1, 0, 0, userId, 5}, 0},
-		IndirectFilePtr{BlockPointer{id2, 0, 0, userId, 6}, 5},
+		IndirectFilePtr{BlockPointer{id1, 0, 0, userID, 5}, 0},
+		IndirectFilePtr{BlockPointer{id2, 0, 0, userID, 6}, 5},
 	}
 	block1 := NewFileBlock().(*FileBlock)
 	block1.Contents = []byte{5, 4, 3, 2, 1}
 	block2 := NewFileBlock().(*FileBlock)
 	block2.Contents = []byte{10, 9, 8, 7, 6}
-	node := PathNode{BlockPointer{rootId, 0, 0, userId, 0}, ""}
-	fileNode := PathNode{BlockPointer{fileId, 0, 0, userId, 0}, "f"}
+	node := PathNode{BlockPointer{rootID, 0, 0, userID, 0}, ""}
+	fileNode := PathNode{BlockPointer{fileID, 0, 0, userID, 0}, "f"}
 	p := Path{id, []PathNode{node, fileNode}}
 	data := []byte{1, 2, 3, 4, 5}
 	expectedFullData := []byte{5, 4, 1, 2, 3, 4, 5, 8, 7, 6}
 
-	expectGetBlock(config, rootId, rootBlock)
-	expectGetBlock(config, fileId, fileBlock)
+	expectGetBlock(config, rootID, rootBlock)
+	expectGetBlock(config, fileID, fileBlock)
 	expectGetBlock(config, id1, block1)
 	expectGetBlock(config, id2, block2)
 	// only copy the first half first
@@ -1833,14 +1833,14 @@ func TestKBFSOpsWriteOverMultipleBlocks(t *testing.T) {
 	}).Return(int64(3))
 
 	// The parent is always dirtied so that we can sync properly later
-	config.mockBcache.EXPECT().Put(fileId, gomock.Any(), true).
+	config.mockBcache.EXPECT().Put(fileID, gomock.Any(), true).
 		AnyTimes().Return(nil)
 
 	var newBlock1 *FileBlock
 	var newBlock2 *FileBlock
 	// updated copy of block1
 	c1 := config.mockBcache.EXPECT().Put(gomock.Any(), gomock.Any(), true).
-		Do(func(id BlockId, block Block, dirty bool) {
+		Do(func(id BlockID, block Block, dirty bool) {
 		newBlock1 = block.(*FileBlock)
 	}).Return(nil)
 
@@ -1853,7 +1853,7 @@ func TestKBFSOpsWriteOverMultipleBlocks(t *testing.T) {
 
 	// updated copy of block2
 	config.mockBcache.EXPECT().Put(gomock.Any(), gomock.Any(), true).
-		Do(func(id BlockId, block Block, dirty bool) {
+		Do(func(id BlockID, block Block, dirty bool) {
 		newBlock2 = block.(*FileBlock)
 	}).After(c1).Return(nil)
 
@@ -1883,29 +1883,29 @@ func TestKBFSOpsTruncateToZeroSuccess(t *testing.T) {
 	mockCtrl, config := kbfsOpsInit(t, true)
 	defer kbfsTestShutdown(mockCtrl, config)
 
-	userId, id, _ := makeIdAndRMD(config)
+	userID, id, _ := makeIDAndRMD(config)
 
-	rootId := BlockId{42}
-	fileId := BlockId{43}
+	rootID := BlockID{42}
+	fileID := BlockID{43}
 	rootBlock := NewDirBlock().(*DirBlock)
 	rootBlock.Children["f"] = DirEntry{
-		BlockPointer: BlockPointer{Id: fileId, QuotaSize: 1}}
+		BlockPointer: BlockPointer{ID: fileID, QuotaSize: 1}}
 	fileBlock := NewFileBlock().(*FileBlock)
 	fileBlock.Contents = []byte{1, 2, 3, 4, 5, 6, 7, 8, 9, 10}
-	node := PathNode{BlockPointer{rootId, 0, 0, userId, 0}, ""}
-	fileNode := PathNode{BlockPointer{fileId, 0, 0, userId, 0}, "f"}
+	node := PathNode{BlockPointer{rootID, 0, 0, userID, 0}, ""}
+	fileNode := PathNode{BlockPointer{fileID, 0, 0, userID, 0}, "f"}
 	p := Path{id, []PathNode{node, fileNode}}
 
-	expectGetBlock(config, rootId, rootBlock)
-	expectGetBlock(config, fileId, fileBlock)
+	expectGetBlock(config, rootID, rootBlock)
+	expectGetBlock(config, fileID, fileBlock)
 	var newFileBlock *FileBlock
-	config.mockBcache.EXPECT().Put(fileId, gomock.Any(), true).
-		Do(func(id BlockId, block Block, dirty bool) {
+	config.mockBcache.EXPECT().Put(fileID, gomock.Any(), true).
+		Do(func(id BlockID, block Block, dirty bool) {
 		newFileBlock = block.(*FileBlock)
 	}).Return(nil)
 	var newRootBlock *DirBlock
-	config.mockBcache.EXPECT().Put(rootId, gomock.Any(), true).
-		Do(func(id BlockId, block Block, dirty bool) {
+	config.mockBcache.EXPECT().Put(rootID, gomock.Any(), true).
+		Do(func(id BlockID, block Block, dirty bool) {
 		newRootBlock = block.(*DirBlock)
 	}).Return(nil)
 
@@ -1919,7 +1919,7 @@ func TestKBFSOpsTruncateToZeroSuccess(t *testing.T) {
 			config.observer.localUpdatePath)
 	} else if !bytesEqual(data, newFileBlock.Contents) {
 		t.Errorf("Wrote bad contents: %v", newFileBlock.Contents)
-	} else if newRootBlock.Children["f"].Writer != userId {
+	} else if newRootBlock.Children["f"].Writer != userID {
 		t.Errorf("Wrong last writer: %v", newRootBlock.Children["f"].Writer)
 	} else if newRootBlock.Children["f"].Size != 0 {
 		t.Errorf("Wrong size for written file: %d",
@@ -1931,20 +1931,20 @@ func TestKBFSOpsTruncateSameSize(t *testing.T) {
 	mockCtrl, config := kbfsOpsInit(t, false)
 	defer kbfsTestShutdown(mockCtrl, config)
 
-	u, id, _ := makeIdAndRMD(config)
+	u, id, _ := makeIDAndRMD(config)
 
-	rootId := BlockId{42}
-	fileId := BlockId{43}
+	rootID := BlockID{42}
+	fileID := BlockID{43}
 	rootBlock := NewDirBlock().(*DirBlock)
-	rootBlock.Children["f"] = DirEntry{BlockPointer: BlockPointer{Id: fileId}}
+	rootBlock.Children["f"] = DirEntry{BlockPointer: BlockPointer{ID: fileID}}
 	fileBlock := NewFileBlock().(*FileBlock)
 	fileBlock.Contents = []byte{1, 2, 3, 4, 5, 6, 7, 8, 9, 10}
-	node := PathNode{BlockPointer{rootId, 0, 0, u, 0}, ""}
-	fileNode := PathNode{BlockPointer{fileId, 0, 0, u, 0}, "f"}
+	node := PathNode{BlockPointer{rootID, 0, 0, u, 0}, ""}
+	fileNode := PathNode{BlockPointer{fileID, 0, 0, u, 0}, "f"}
 	p := Path{id, []PathNode{node, fileNode}}
 
-	expectGetBlock(config, rootId, rootBlock)
-	expectGetBlock(config, fileId, fileBlock)
+	expectGetBlock(config, rootID, rootBlock)
+	expectGetBlock(config, fileID, fileBlock)
 
 	data := fileBlock.Contents
 	if err := config.KBFSOps().Truncate(p, 10); err != nil {
@@ -1961,27 +1961,27 @@ func TestKBFSOpsTruncateSmallerSuccess(t *testing.T) {
 	mockCtrl, config := kbfsOpsInit(t, true)
 	defer kbfsTestShutdown(mockCtrl, config)
 
-	userId, id, _ := makeIdAndRMD(config)
+	userID, id, _ := makeIDAndRMD(config)
 
-	rootId := BlockId{42}
-	fileId := BlockId{43}
+	rootID := BlockID{42}
+	fileID := BlockID{43}
 	rootBlock := NewDirBlock().(*DirBlock)
 	rootBlock.Children["f"] = DirEntry{
-		BlockPointer: BlockPointer{Id: fileId, QuotaSize: 1}}
+		BlockPointer: BlockPointer{ID: fileID, QuotaSize: 1}}
 	fileBlock := NewFileBlock().(*FileBlock)
 	fileBlock.Contents = []byte{1, 2, 3, 4, 5, 6, 7, 8, 9, 10}
-	node := PathNode{BlockPointer{rootId, 0, 0, userId, 0}, ""}
-	fileNode := PathNode{BlockPointer{fileId, 0, 0, userId, 0}, "f"}
+	node := PathNode{BlockPointer{rootID, 0, 0, userID, 0}, ""}
+	fileNode := PathNode{BlockPointer{fileID, 0, 0, userID, 0}, "f"}
 	p := Path{id, []PathNode{node, fileNode}}
 
-	expectGetBlock(config, rootId, rootBlock)
-	expectGetBlock(config, fileId, fileBlock)
+	expectGetBlock(config, rootID, rootBlock)
+	expectGetBlock(config, fileID, fileBlock)
 	var newFileBlock *FileBlock
-	config.mockBcache.EXPECT().Put(fileId, gomock.Any(), true).
-		Do(func(id BlockId, block Block, dirty bool) {
+	config.mockBcache.EXPECT().Put(fileID, gomock.Any(), true).
+		Do(func(id BlockID, block Block, dirty bool) {
 		newFileBlock = block.(*FileBlock)
 	}).Return(nil)
-	config.mockBcache.EXPECT().Put(rootId, gomock.Any(), true).Return(nil)
+	config.mockBcache.EXPECT().Put(rootID, gomock.Any(), true).Return(nil)
 
 	setRmdAfterWrite(config, nil)
 
@@ -2000,43 +2000,43 @@ func TestKBFSOpsTruncateRemovesABlock(t *testing.T) {
 	mockCtrl, config := kbfsOpsInit(t, true)
 	defer kbfsTestShutdown(mockCtrl, config)
 
-	userId, id, rmd := makeIdAndRMD(config)
+	userID, id, rmd := makeIDAndRMD(config)
 
-	rootId := BlockId{42}
-	fileId := BlockId{43}
-	id1 := BlockId{44}
-	id2 := BlockId{45}
+	rootID := BlockID{42}
+	fileID := BlockID{43}
+	id1 := BlockID{44}
+	id2 := BlockID{45}
 	rootBlock := NewDirBlock().(*DirBlock)
 	rootBlock.Children["f"] = DirEntry{
-		BlockPointer: BlockPointer{Id: fileId}, Size: 10}
+		BlockPointer: BlockPointer{ID: fileID}, Size: 10}
 	fileBlock := NewFileBlock().(*FileBlock)
 	fileBlock.IsInd = true
 	fileBlock.IPtrs = []IndirectFilePtr{
-		IndirectFilePtr{BlockPointer{id1, 0, 0, userId, 5}, 0},
-		IndirectFilePtr{BlockPointer{id2, 0, 0, userId, 6}, 5},
+		IndirectFilePtr{BlockPointer{id1, 0, 0, userID, 5}, 0},
+		IndirectFilePtr{BlockPointer{id2, 0, 0, userID, 6}, 5},
 	}
 	block1 := NewFileBlock().(*FileBlock)
 	block1.Contents = []byte{5, 4, 3, 2, 1}
 	block2 := NewFileBlock().(*FileBlock)
 	block2.Contents = []byte{10, 9, 8, 7, 6}
-	node := PathNode{BlockPointer{rootId, 0, 0, userId, 0}, ""}
-	fileNode := PathNode{BlockPointer{fileId, 0, 0, userId, 0}, "f"}
+	node := PathNode{BlockPointer{rootID, 0, 0, userID, 0}, ""}
+	fileNode := PathNode{BlockPointer{fileID, 0, 0, userID, 0}, "f"}
 	p := Path{id, []PathNode{node, fileNode}}
 
-	expectGetBlock(config, rootId, rootBlock)
-	expectGetBlock(config, fileId, fileBlock)
+	expectGetBlock(config, rootID, rootBlock)
+	expectGetBlock(config, fileID, fileBlock)
 	expectGetBlock(config, id1, block1)
 	var newPBlock *FileBlock
 	var newBlock1 *FileBlock
-	c1 := config.mockBcache.EXPECT().Put(fileId, gomock.Any(), true).
-		Do(func(id BlockId, block Block, dirty bool) {
+	c1 := config.mockBcache.EXPECT().Put(fileID, gomock.Any(), true).
+		Do(func(id BlockID, block Block, dirty bool) {
 		newPBlock = block.(*FileBlock)
 	}).Return(nil)
 	config.mockBcache.EXPECT().Put(id1, gomock.Any(), true).
-		Do(func(id BlockId, block Block, dirty bool) {
+		Do(func(id BlockID, block Block, dirty bool) {
 		newBlock1 = block.(*FileBlock)
 	}).After(c1).Return(nil)
-	config.mockBcache.EXPECT().Put(rootId, gomock.Any(), true).Return(nil)
+	config.mockBcache.EXPECT().Put(rootID, gomock.Any(), true).Return(nil)
 
 	var newRmd *RootMetadata
 	setRmdAfterWrite(config, &newRmd)
@@ -2064,21 +2064,21 @@ func TestKBFSOpsTruncateBiggerSuccess(t *testing.T) {
 	mockCtrl, config := kbfsOpsInit(t, true)
 	defer kbfsTestShutdown(mockCtrl, config)
 
-	userId, id, _ := makeIdAndRMD(config)
+	userID, id, _ := makeIDAndRMD(config)
 
-	rootId := BlockId{42}
-	fileId := BlockId{43}
+	rootID := BlockID{42}
+	fileID := BlockID{43}
 	rootBlock := NewDirBlock().(*DirBlock)
 	rootBlock.Children["f"] = DirEntry{
-		BlockPointer: BlockPointer{Id: fileId, QuotaSize: 1}}
+		BlockPointer: BlockPointer{ID: fileID, QuotaSize: 1}}
 	fileBlock := NewFileBlock().(*FileBlock)
 	fileBlock.Contents = []byte{1, 2, 3, 4, 5}
-	node := PathNode{BlockPointer{rootId, 0, 0, userId, 0}, ""}
-	fileNode := PathNode{BlockPointer{fileId, 0, 0, userId, 0}, "f"}
+	node := PathNode{BlockPointer{rootID, 0, 0, userID, 0}, ""}
+	fileNode := PathNode{BlockPointer{fileID, 0, 0, userID, 0}, "f"}
 	p := Path{id, []PathNode{node, fileNode}}
 
-	expectGetBlock(config, rootId, rootBlock)
-	expectGetBlock(config, fileId, fileBlock)
+	expectGetBlock(config, rootID, rootBlock)
+	expectGetBlock(config, fileID, fileBlock)
 	config.mockBsplit.EXPECT().CopyUntilSplit(
 		gomock.Any(), gomock.Any(), []byte{0, 0, 0, 0, 0}, int64(5)).
 		Do(func(block *FileBlock, lb bool, data []byte, off int64) {
@@ -2086,11 +2086,11 @@ func TestKBFSOpsTruncateBiggerSuccess(t *testing.T) {
 	}).Return(int64(5))
 
 	var newFileBlock *FileBlock
-	config.mockBcache.EXPECT().Put(fileId, gomock.Any(), true).
-		Do(func(id BlockId, block Block, dirty bool) {
+	config.mockBcache.EXPECT().Put(fileID, gomock.Any(), true).
+		Do(func(id BlockID, block Block, dirty bool) {
 		newFileBlock = block.(*FileBlock)
 	}).Return(nil)
-	config.mockBcache.EXPECT().Put(rootId, gomock.Any(), true).Return(nil)
+	config.mockBcache.EXPECT().Put(rootID, gomock.Any(), true).Return(nil)
 
 	setRmdAfterWrite(config, nil)
 
@@ -2109,18 +2109,18 @@ func testSetExSuccess(t *testing.T, entryType EntryType, ex bool) {
 	mockCtrl, config := kbfsOpsInit(t, entryType != Sym)
 	defer kbfsTestShutdown(mockCtrl, config)
 
-	userId, id, rmd := makeIdAndRMD(config)
+	userID, id, rmd := makeIDAndRMD(config)
 
-	rootId := BlockId{42}
-	aId := BlockId{43}
+	rootID := BlockID{42}
+	aID := BlockID{43}
 	rootBlock := NewDirBlock().(*DirBlock)
 	rootBlock.Children["a"] = DirEntry{
-		BlockPointer: BlockPointer{Id: aId}, Size: 1, Type: entryType}
-	node := PathNode{BlockPointer{rootId, 0, 0, userId, 0}, ""}
-	aNode := PathNode{BlockPointer{aId, 0, 0, userId, 0}, "a"}
+		BlockPointer: BlockPointer{ID: aID}, Size: 1, Type: entryType}
+	node := PathNode{BlockPointer{rootID, 0, 0, userID, 0}, ""}
+	aNode := PathNode{BlockPointer{aID, 0, 0, userID, 0}, "a"}
 	p := Path{id, []PathNode{node, aNode}}
 
-	expectGetBlock(config, rootId, rootBlock)
+	expectGetBlock(config, rootID, rootBlock)
 
 	expectedChanges := 1
 	// SetEx() should do nothing for symlinks.
@@ -2132,7 +2132,7 @@ func testSetExSuccess(t *testing.T, entryType EntryType, ex bool) {
 	var newRmd *RootMetadata
 	if entryType != Sym {
 		// sync block
-		expectedPath, _ = expectSyncBlock(t, config, nil, userId, id, "",
+		expectedPath, _ = expectSyncBlock(t, config, nil, userID, id, "",
 			*p.ParentPath(), rmd, false, 0, 0, 0, nil, &newRmd)
 		expectedPath.Path = append(expectedPath.Path, aNode)
 	}
@@ -2202,16 +2202,16 @@ func TestSetExFailNoSuchName(t *testing.T) {
 	mockCtrl, config := kbfsOpsInit(t, false)
 	defer kbfsTestShutdown(mockCtrl, config)
 
-	u, id, _ := makeIdAndRMD(config)
+	u, id, _ := makeIDAndRMD(config)
 
-	rootId := BlockId{42}
-	aId := BlockId{43}
+	rootID := BlockID{42}
+	aID := BlockID{43}
 	rootBlock := NewDirBlock().(*DirBlock)
-	node := PathNode{BlockPointer{rootId, 0, 0, u, 0}, ""}
-	aNode := PathNode{BlockPointer{aId, 0, 0, u, 0}, "a"}
+	node := PathNode{BlockPointer{rootID, 0, 0, u, 0}, ""}
+	aNode := PathNode{BlockPointer{aID, 0, 0, u, 0}, "a"}
 	p := Path{id, []PathNode{node, aNode}}
 
-	expectGetBlock(config, rootId, rootBlock)
+	expectGetBlock(config, rootID, rootBlock)
 	expectedErr := &NoSuchNameError{p.TailName()}
 
 	// chmod a+x a
@@ -2228,21 +2228,21 @@ func TestSetMtimeSuccess(t *testing.T) {
 	mockCtrl, config := kbfsOpsInit(t, true)
 	defer kbfsTestShutdown(mockCtrl, config)
 
-	userId, id, rmd := makeIdAndRMD(config)
+	userID, id, rmd := makeIDAndRMD(config)
 
-	rootId := BlockId{42}
-	aId := BlockId{43}
+	rootID := BlockID{42}
+	aID := BlockID{43}
 	rootBlock := NewDirBlock().(*DirBlock)
 	rootBlock.Children["a"] = DirEntry{
-		BlockPointer: BlockPointer{Id: aId}, Type: File}
-	node := PathNode{BlockPointer{rootId, 0, 0, userId, 0}, ""}
-	aNode := PathNode{BlockPointer{aId, 0, 0, userId, 0}, "a"}
+		BlockPointer: BlockPointer{ID: aID}, Type: File}
+	node := PathNode{BlockPointer{rootID, 0, 0, userID, 0}, ""}
+	aNode := PathNode{BlockPointer{aID, 0, 0, userID, 0}, "a"}
 	p := Path{id, []PathNode{node, aNode}}
 
-	expectGetBlock(config, rootId, rootBlock)
+	expectGetBlock(config, rootID, rootBlock)
 	// sync block
 	var newRmd *RootMetadata
-	expectedPath, _ := expectSyncBlock(t, config, nil, userId, id, "",
+	expectedPath, _ := expectSyncBlock(t, config, nil, userID, id, "",
 		*p.ParentPath(), rmd, false, 0, 0, 0, nil, &newRmd)
 	expectedPath.Path = append(expectedPath.Path, aNode)
 
@@ -2263,23 +2263,23 @@ func TestSetMtimeNull(t *testing.T) {
 	mockCtrl, config := kbfsOpsInit(t, false)
 	defer kbfsTestShutdown(mockCtrl, config)
 
-	u, id, _ := makeIdAndRMD(config)
+	u, id, _ := makeIDAndRMD(config)
 
-	rootId := BlockId{42}
-	aId := BlockId{43}
+	rootID := BlockID{42}
+	aID := BlockID{43}
 	rootBlock := NewDirBlock().(*DirBlock)
 	oldMtime := time.Now().UnixNano()
 	rootBlock.Children["a"] = DirEntry{
-		BlockPointer: BlockPointer{Id: aId}, Type: File, Mtime: oldMtime}
-	node := PathNode{BlockPointer{rootId, 0, 0, u, 0}, ""}
-	aNode := PathNode{BlockPointer{aId, 0, 0, u, 0}, "a"}
+		BlockPointer: BlockPointer{ID: aID}, Type: File, Mtime: oldMtime}
+	node := PathNode{BlockPointer{rootID, 0, 0, u, 0}, ""}
+	aNode := PathNode{BlockPointer{aID, 0, 0, u, 0}, "a"}
 	p := Path{id, []PathNode{node, aNode}}
 
 	if newP, err := config.KBFSOps().SetMtime(p, nil); err != nil {
 		t.Errorf("Got unexpected error on null setmtime: %v", err)
 	} else if rootBlock.Children["a"].Mtime != oldMtime {
 		t.Errorf("a has wrong mtime: %v", rootBlock.Children["a"].Mtime)
-	} else if newP.Path[0].Id != p.Path[0].Id {
+	} else if newP.Path[0].ID != p.Path[0].ID {
 		t.Errorf("Got back a changed path for null setmtime test: %v", newP)
 	}
 }
@@ -2288,16 +2288,16 @@ func TestMtimeFailNoSuchName(t *testing.T) {
 	mockCtrl, config := kbfsOpsInit(t, false)
 	defer kbfsTestShutdown(mockCtrl, config)
 
-	u, id, _ := makeIdAndRMD(config)
+	u, id, _ := makeIDAndRMD(config)
 
-	rootId := BlockId{42}
-	aId := BlockId{43}
+	rootID := BlockID{42}
+	aID := BlockID{43}
 	rootBlock := NewDirBlock().(*DirBlock)
-	node := PathNode{BlockPointer{rootId, 0, 0, u, 0}, ""}
-	aNode := PathNode{BlockPointer{aId, 0, 0, u, 0}, "a"}
+	node := PathNode{BlockPointer{rootID, 0, 0, u, 0}, ""}
+	aNode := PathNode{BlockPointer{aID, 0, 0, u, 0}, "a"}
 	p := Path{id, []PathNode{node, aNode}}
 
-	expectGetBlock(config, rootId, rootBlock)
+	expectGetBlock(config, rootID, rootBlock)
 	expectedErr := &NoSuchNameError{p.TailName()}
 
 	newMtime := time.Now()
@@ -2314,31 +2314,31 @@ func TestSyncDirtySuccess(t *testing.T) {
 	mockCtrl, config := kbfsOpsInit(t, true)
 	defer kbfsTestShutdown(mockCtrl, config)
 
-	userId, id, rmd := makeIdAndRMD(config)
+	userID, id, rmd := makeIDAndRMD(config)
 
-	rootId := BlockId{42}
-	aId := BlockId{43}
+	rootID := BlockID{42}
+	aID := BlockID{43}
 	rootBlock := NewDirBlock().(*DirBlock)
-	rootBlock.Children["a"] = DirEntry{BlockPointer: BlockPointer{Id: aId}}
+	rootBlock.Children["a"] = DirEntry{BlockPointer: BlockPointer{ID: aID}}
 	aBlock := NewFileBlock().(*FileBlock)
-	node := PathNode{BlockPointer{rootId, 0, 0, userId, 0}, ""}
-	aNode := PathNode{BlockPointer{aId, 0, 0, userId, 0}, "a"}
+	node := PathNode{BlockPointer{rootID, 0, 0, userID, 0}, ""}
+	aNode := PathNode{BlockPointer{aID, 0, 0, userID, 0}, "a"}
 	p := Path{id, []PathNode{node, aNode}}
 
 	// fsync a
-	config.mockBcache.EXPECT().IsDirty(aId).AnyTimes().Return(true)
-	config.mockBcache.EXPECT().IsDirty(rootId).AnyTimes().Return(true)
-	config.mockBcache.EXPECT().Get(rootId).AnyTimes().Return(rootBlock, nil)
-	config.mockBcache.EXPECT().Get(aId).AnyTimes().Return(aBlock, nil)
+	config.mockBcache.EXPECT().IsDirty(aID).AnyTimes().Return(true)
+	config.mockBcache.EXPECT().IsDirty(rootID).AnyTimes().Return(true)
+	config.mockBcache.EXPECT().Get(rootID).AnyTimes().Return(rootBlock, nil)
+	config.mockBcache.EXPECT().Get(aID).AnyTimes().Return(aBlock, nil)
 
 	// sync block
 	var newRmd *RootMetadata
-	expectedPath, _ := expectSyncBlock(t, config, nil, userId, id, "", p,
+	expectedPath, _ := expectSyncBlock(t, config, nil, userID, id, "", p,
 		rmd, false, 0, 0, 0, nil, &newRmd)
 	config.mockBcache.EXPECT().Finalize(
-		aId, expectedPath.Path[len(expectedPath.Path)-1].Id)
+		aID, expectedPath.Path[len(expectedPath.Path)-1].ID)
 	config.mockBcache.EXPECT().Finalize(
-		rootId, expectedPath.Path[len(expectedPath.Path)-2].Id)
+		rootID, expectedPath.Path[len(expectedPath.Path)-2].ID)
 
 	if newP, err := config.KBFSOps().Sync(p); err != nil {
 		t.Errorf("Got unexpected error on sync: %v", err)
@@ -2354,16 +2354,16 @@ func TestSyncCleanSuccess(t *testing.T) {
 	mockCtrl, config := kbfsOpsInit(t, false)
 	defer kbfsTestShutdown(mockCtrl, config)
 
-	u, id, _ := makeIdAndRMD(config)
+	u, id, _ := makeIDAndRMD(config)
 
-	rootId := BlockId{42}
-	aId := BlockId{43}
-	node := PathNode{BlockPointer{rootId, 0, 0, u, 0}, ""}
-	aNode := PathNode{BlockPointer{aId, 0, 0, u, 0}, "a"}
+	rootID := BlockID{42}
+	aID := BlockID{43}
+	node := PathNode{BlockPointer{rootID, 0, 0, u, 0}, ""}
+	aNode := PathNode{BlockPointer{aID, 0, 0, u, 0}, "a"}
 	p := Path{id, []PathNode{node, aNode}}
 
 	// fsync a
-	config.mockBcache.EXPECT().IsDirty(aId).Return(false)
+	config.mockBcache.EXPECT().IsDirty(aID).Return(false)
 
 	if newP, err := config.KBFSOps().Sync(p); err != nil {
 		t.Errorf("Got unexpected error on sync: %v", err)
@@ -2379,13 +2379,13 @@ func TestSyncCleanSuccess(t *testing.T) {
 	}
 }
 
-func expectSyncDirtyBlock(config *ConfigMock, id BlockId, block *FileBlock,
+func expectSyncDirtyBlock(config *ConfigMock, id BlockID, block *FileBlock,
 	splitAt int64, padSize int) *gomock.Call {
 	config.mockBcache.EXPECT().IsDirty(id).AnyTimes().Return(true)
 	config.mockBcache.EXPECT().Get(id).AnyTimes().Return(block, nil)
 	c1 := config.mockBsplit.EXPECT().CheckSplit(block).Return(splitAt)
 
-	newId := BlockId{id[0] + 100}
+	newID := BlockID{id[0] + 100}
 	// Ideally, we'd use the size of block.Contents at the time
 	// that Ready() is called, but GoMock isn't expressive enough
 	// for that.
@@ -2393,11 +2393,11 @@ func expectSyncDirtyBlock(config *ConfigMock, id BlockId, block *FileBlock,
 	config.mockCrypto.EXPECT().MakeRandomBlockCryptKeyServerHalf().Return(BlockCryptKeyServerHalf{}, nil)
 	config.mockCrypto.EXPECT().UnmaskBlockCryptKey(BlockCryptKeyServerHalf{}, TLFCryptKey{}).Return(BlockCryptKey{}, nil)
 	c2 := config.mockBops.EXPECT().Ready(block, BlockCryptKey{}).
-		After(c1).Return(newId, len(block.Contents), newEncBuf, nil)
-	config.mockBcache.EXPECT().Finalize(id, newId).After(c2).Return(nil)
-	config.mockBops.EXPECT().Put(newId, gomock.Any(), newEncBuf).Return(nil)
-	config.mockKops.EXPECT().PutBlockCryptKeyServerHalf(newId, BlockCryptKeyServerHalf{}).Return(nil)
-	config.mockKcache.EXPECT().PutBlockCryptKey(newId, BlockCryptKey{}).Return(nil)
+		After(c1).Return(newID, len(block.Contents), newEncBuf, nil)
+	config.mockBcache.EXPECT().Finalize(id, newID).After(c2).Return(nil)
+	config.mockBops.EXPECT().Put(newID, gomock.Any(), newEncBuf).Return(nil)
+	config.mockKops.EXPECT().PutBlockCryptKeyServerHalf(newID, BlockCryptKeyServerHalf{}).Return(nil)
+	config.mockKcache.EXPECT().PutBlockCryptKey(newID, BlockCryptKey{}).Return(nil)
 	return c2
 }
 
@@ -2405,24 +2405,24 @@ func TestSyncDirtyMultiBlocksSuccess(t *testing.T) {
 	mockCtrl, config := kbfsOpsInit(t, true)
 	defer kbfsTestShutdown(mockCtrl, config)
 
-	userId, id, rmd := makeIdAndRMD(config)
+	userID, id, rmd := makeIDAndRMD(config)
 
-	rootId := BlockId{42}
-	fileId := BlockId{43}
-	id1 := BlockId{44}
-	id2 := BlockId{45}
-	id3 := BlockId{46}
-	id4 := BlockId{47}
+	rootID := BlockID{42}
+	fileID := BlockID{43}
+	id1 := BlockID{44}
+	id2 := BlockID{45}
+	id3 := BlockID{46}
+	id4 := BlockID{47}
 	rootBlock := NewDirBlock().(*DirBlock)
 	rootBlock.Children["a"] = DirEntry{
-		BlockPointer: BlockPointer{Id: fileId}, Size: 20}
+		BlockPointer: BlockPointer{ID: fileID}, Size: 20}
 	fileBlock := NewFileBlock().(*FileBlock)
 	fileBlock.IsInd = true
 	fileBlock.IPtrs = []IndirectFilePtr{
-		IndirectFilePtr{BlockPointer{id1, 0, 0, userId, 5}, 0},
+		IndirectFilePtr{BlockPointer{id1, 0, 0, userID, 5}, 0},
 		IndirectFilePtr{BlockPointer{id2, 0, 0, keybase1.MakeTestUID(0), 0}, 5},
-		IndirectFilePtr{BlockPointer{id3, 0, 0, userId, 7}, 10},
-		IndirectFilePtr{BlockPointer{id4, 0, 0, userId, 0}, 15},
+		IndirectFilePtr{BlockPointer{id3, 0, 0, userID, 7}, 10},
+		IndirectFilePtr{BlockPointer{id4, 0, 0, userID, 0}, 15},
 	}
 	block1 := NewFileBlock().(*FileBlock)
 	block1.Contents = []byte{5, 4, 3, 2, 1}
@@ -2432,17 +2432,17 @@ func TestSyncDirtyMultiBlocksSuccess(t *testing.T) {
 	block3.Contents = []byte{10, 9, 8, 7, 6}
 	block4 := NewFileBlock().(*FileBlock)
 	block4.Contents = []byte{10, 9, 8, 7, 6}
-	node := PathNode{BlockPointer{rootId, 0, 0, userId, 0}, ""}
-	fileNode := PathNode{BlockPointer{fileId, 0, 0, userId, 0}, "a"}
+	node := PathNode{BlockPointer{rootID, 0, 0, userID, 0}, ""}
+	fileNode := PathNode{BlockPointer{fileID, 0, 0, userID, 0}, "a"}
 	p := Path{id, []PathNode{node, fileNode}}
 
 	// fsync a, only block 2 is dirty
-	config.mockBcache.EXPECT().IsDirty(fileId).AnyTimes().Return(true)
+	config.mockBcache.EXPECT().IsDirty(fileID).AnyTimes().Return(true)
 	config.mockBcache.EXPECT().IsDirty(id1).AnyTimes().Return(false)
 	config.mockBcache.EXPECT().IsDirty(id3).AnyTimes().Return(false)
-	config.mockBcache.EXPECT().IsDirty(rootId).AnyTimes().Return(true)
-	config.mockBcache.EXPECT().Get(rootId).AnyTimes().Return(rootBlock, nil)
-	config.mockBcache.EXPECT().Get(fileId).AnyTimes().Return(fileBlock, nil)
+	config.mockBcache.EXPECT().IsDirty(rootID).AnyTimes().Return(true)
+	config.mockBcache.EXPECT().Get(rootID).AnyTimes().Return(rootBlock, nil)
+	config.mockBcache.EXPECT().Get(fileID).AnyTimes().Return(fileBlock, nil)
 
 	// the split is good
 	expectGetTLFCryptKey(config)
@@ -2460,24 +2460,24 @@ func TestSyncDirtyMultiBlocksSuccess(t *testing.T) {
 	f := func(md *RootMetadata) {
 		index := len(p.Path) - 1
 		checkBlockChange(t, md.data.RefBlocks.Changes, p, index, 0,
-			BlockId{id2[0] + 100})
+			BlockID{id2[0] + 100})
 		checkBlockChange(t, md.data.RefBlocks.Changes, p, index, 0,
-			BlockId{id4[0] + 100})
+			BlockID{id4[0] + 100})
 	}
 	var newRmd *RootMetadata
 	expectedPath, _ :=
-		expectSyncBlock(t, config, nil, userId, id, "", p, rmd, false, 0,
+		expectSyncBlock(t, config, nil, userID, id, "", p, rmd, false, 0,
 			refBytes, unrefBytes, f, &newRmd)
 	config.mockBcache.EXPECT().Finalize(
-		fileId, expectedPath.Path[len(expectedPath.Path)-1].Id)
+		fileID, expectedPath.Path[len(expectedPath.Path)-1].ID)
 	config.mockBcache.EXPECT().Finalize(
-		rootId, expectedPath.Path[len(expectedPath.Path)-2].Id)
+		rootID, expectedPath.Path[len(expectedPath.Path)-2].ID)
 
 	if newP, err := config.KBFSOps().Sync(p); err != nil {
 		t.Errorf("Got unexpected error on sync: %v", err)
 	} else if fileBlock.IPtrs[0].QuotaSize != 5 {
 		t.Errorf("Indirect pointer quota size1 wrong: %d", fileBlock.IPtrs[0].QuotaSize)
-	} else if fileBlock.IPtrs[1].Writer != userId {
+	} else if fileBlock.IPtrs[1].Writer != userID {
 		t.Errorf("Got unexpected writer: %s", fileBlock.IPtrs[1].Writer)
 	} else if fileBlock.IPtrs[1].QuotaSize != 10 {
 		t.Errorf("Indirect pointer quota size2 wrong: %d", fileBlock.IPtrs[1].QuotaSize)
@@ -2497,24 +2497,24 @@ func TestSyncDirtyMultiBlocksSplitInBlockSuccess(t *testing.T) {
 	mockCtrl, config := kbfsOpsInit(t, true)
 	defer kbfsTestShutdown(mockCtrl, config)
 
-	userId, id, rmd := makeIdAndRMD(config)
+	userID, id, rmd := makeIDAndRMD(config)
 
-	rootId := BlockId{42}
-	fileId := BlockId{43}
-	id1 := BlockId{44}
-	id2 := BlockId{45}
-	id3 := BlockId{46}
-	id4 := BlockId{47}
+	rootID := BlockID{42}
+	fileID := BlockID{43}
+	id1 := BlockID{44}
+	id2 := BlockID{45}
+	id3 := BlockID{46}
+	id4 := BlockID{47}
 	rootBlock := NewDirBlock().(*DirBlock)
 	rootBlock.Children["a"] = DirEntry{
-		BlockPointer: BlockPointer{Id: fileId}, Size: 20}
+		BlockPointer: BlockPointer{ID: fileID}, Size: 20}
 	fileBlock := NewFileBlock().(*FileBlock)
 	fileBlock.IsInd = true
 	fileBlock.IPtrs = []IndirectFilePtr{
-		IndirectFilePtr{BlockPointer{id1, 0, 0, userId, 10}, 0},
-		IndirectFilePtr{BlockPointer{id2, 0, 0, userId, 0}, 5},
-		IndirectFilePtr{BlockPointer{id3, 0, 0, userId, 0}, 10},
-		IndirectFilePtr{BlockPointer{id4, 0, 0, userId, 0}, 15},
+		IndirectFilePtr{BlockPointer{id1, 0, 0, userID, 10}, 0},
+		IndirectFilePtr{BlockPointer{id2, 0, 0, userID, 0}, 5},
+		IndirectFilePtr{BlockPointer{id3, 0, 0, userID, 0}, 10},
+		IndirectFilePtr{BlockPointer{id4, 0, 0, userID, 0}, 15},
 	}
 	block1 := NewFileBlock().(*FileBlock)
 	block1.Contents = []byte{5, 4, 3, 2, 1}
@@ -2524,17 +2524,17 @@ func TestSyncDirtyMultiBlocksSplitInBlockSuccess(t *testing.T) {
 	block3.Contents = []byte{15, 14, 13, 12, 11}
 	block4 := NewFileBlock().(*FileBlock)
 	block4.Contents = []byte{20, 19, 18, 17, 16}
-	node := PathNode{BlockPointer{rootId, 0, 0, userId, 0}, ""}
-	fileNode := PathNode{BlockPointer{fileId, 0, 0, userId, 0}, "a"}
+	node := PathNode{BlockPointer{rootID, 0, 0, userID, 0}, ""}
+	fileNode := PathNode{BlockPointer{fileID, 0, 0, userID, 0}, "a"}
 	p := Path{id, []PathNode{node, fileNode}}
 
 	// fsync a, only block 2 is dirty
-	config.mockBcache.EXPECT().IsDirty(fileId).AnyTimes().Return(true)
+	config.mockBcache.EXPECT().IsDirty(fileID).AnyTimes().Return(true)
 	config.mockBcache.EXPECT().IsDirty(id1).AnyTimes().Return(false)
 	config.mockBcache.EXPECT().IsDirty(id3).Return(false)
-	config.mockBcache.EXPECT().IsDirty(rootId).AnyTimes().Return(true)
-	config.mockBcache.EXPECT().Get(rootId).AnyTimes().Return(rootBlock, nil)
-	config.mockBcache.EXPECT().Get(fileId).AnyTimes().Return(fileBlock, nil)
+	config.mockBcache.EXPECT().IsDirty(rootID).AnyTimes().Return(true)
+	config.mockBcache.EXPECT().Get(rootID).AnyTimes().Return(rootBlock, nil)
+	config.mockBcache.EXPECT().Get(fileID).AnyTimes().Return(fileBlock, nil)
 	config.mockBcache.EXPECT().Get(id3).Return(block3, nil)
 	expectGetTLFCryptKey(config)
 
@@ -2547,7 +2547,7 @@ func TestSyncDirtyMultiBlocksSplitInBlockSuccess(t *testing.T) {
 	// this causes block 3 to be updated
 	var newBlock3 *FileBlock
 	config.mockBcache.EXPECT().Put(id3, gomock.Any(), true).
-		Do(func(id BlockId, block Block, dirty bool) {
+		Do(func(id BlockID, block Block, dirty bool) {
 		newBlock3 = block.(*FileBlock)
 		// id3 syncs just fine
 		expectSyncDirtyBlock(config, id3, newBlock3, int64(0), pad3)
@@ -2557,12 +2557,12 @@ func TestSyncDirtyMultiBlocksSplitInBlockSuccess(t *testing.T) {
 	pad4 := 9
 	pad5 := 1
 	c4 := expectSyncDirtyBlock(config, id4, block4, int64(3), pad4)
-	var newId5 BlockId
+	var newID5 BlockID
 	var newBlock5 *FileBlock
-	config.mockCrypto.EXPECT().MakeRandomBlockId().Return(BlockId{}, nil)
+	config.mockCrypto.EXPECT().MakeRandomBlockID().Return(BlockID{}, nil)
 	config.mockBcache.EXPECT().Put(gomock.Any(), gomock.Any(), true).
-		Do(func(id BlockId, block Block, dirty bool) {
-		newId5 = id
+		Do(func(id BlockID, block Block, dirty bool) {
+		newID5 = id
 		newBlock5 = block.(*FileBlock)
 		// id5 syncs just fine
 		expectSyncDirtyBlock(config, id, newBlock5, int64(0), pad5)
@@ -2571,7 +2571,7 @@ func TestSyncDirtyMultiBlocksSplitInBlockSuccess(t *testing.T) {
 	}).Return(nil)
 
 	// The parent is dirtied too since the pointers changed
-	config.mockBcache.EXPECT().Put(fileId, gomock.Any(), true).
+	config.mockBcache.EXPECT().Put(fileID, gomock.Any(), true).
 		AnyTimes().Return(nil)
 
 	// sync block contents and their padding sizes
@@ -2582,57 +2582,57 @@ func TestSyncDirtyMultiBlocksSplitInBlockSuccess(t *testing.T) {
 	f := func(md *RootMetadata) {
 		index := len(p.Path) - 1
 		checkBlockChange(t, md.data.RefBlocks.Changes, p, index, 0,
-			BlockId{id2[0] + 100})
+			BlockID{id2[0] + 100})
 		checkBlockChange(t, md.data.RefBlocks.Changes, p, index, 0,
-			BlockId{id3[0] + 100})
+			BlockID{id3[0] + 100})
 		checkBlockChange(t, md.data.RefBlocks.Changes, p, index, 0,
-			BlockId{id4[0] + 100})
+			BlockID{id4[0] + 100})
 		checkBlockChange(t, md.data.RefBlocks.Changes, p, index, 0,
-			BlockId{newId5[0] + 100})
+			BlockID{newID5[0] + 100})
 	}
 	var newRmd *RootMetadata
 	expectedPath, _ :=
-		expectSyncBlock(t, config, c4, userId, id, "", p, rmd, false, 0,
+		expectSyncBlock(t, config, c4, userID, id, "", p, rmd, false, 0,
 			refBytes, unrefBytes, f, &newRmd)
 	config.mockBcache.EXPECT().Finalize(
-		fileId, expectedPath.Path[len(expectedPath.Path)-1].Id)
+		fileID, expectedPath.Path[len(expectedPath.Path)-1].ID)
 	config.mockBcache.EXPECT().Finalize(
-		rootId, expectedPath.Path[len(expectedPath.Path)-2].Id)
+		rootID, expectedPath.Path[len(expectedPath.Path)-2].ID)
 
-	newId2 := BlockId{id2[0] + 100}
-	newId3 := BlockId{id3[0] + 100}
-	newId4 := BlockId{id4[0] + 100}
+	newID2 := BlockID{id2[0] + 100}
+	newID3 := BlockID{id3[0] + 100}
+	newID4 := BlockID{id4[0] + 100}
 
 	if newP, err := config.KBFSOps().Sync(p); err != nil {
 		t.Errorf("Got unexpected error on sync: %v", err)
 	} else if len(fileBlock.IPtrs) != 5 {
 		t.Errorf("Wrong number of indirect pointers: %d", len(fileBlock.IPtrs))
-	} else if fileBlock.IPtrs[0].Id != id1 {
-		t.Errorf("Indirect pointer id1 wrong: %v", fileBlock.IPtrs[0].Id)
+	} else if fileBlock.IPtrs[0].ID != id1 {
+		t.Errorf("Indirect pointer id1 wrong: %v", fileBlock.IPtrs[0].ID)
 	} else if fileBlock.IPtrs[0].QuotaSize != 10 {
 		t.Errorf("Indirect pointer quota size1 wrong: %d", fileBlock.IPtrs[0].QuotaSize)
 	} else if fileBlock.IPtrs[0].Off != 0 {
 		t.Errorf("Indirect pointer off1 wrong: %d", fileBlock.IPtrs[0].Off)
-	} else if fileBlock.IPtrs[1].Id != newId2 {
-		t.Errorf("Indirect pointer id2 wrong: %v", fileBlock.IPtrs[1].Id)
+	} else if fileBlock.IPtrs[1].ID != newID2 {
+		t.Errorf("Indirect pointer id2 wrong: %v", fileBlock.IPtrs[1].ID)
 	} else if fileBlock.IPtrs[1].QuotaSize != 5 {
 		t.Errorf("Indirect pointer quota size2 wrong: %d", fileBlock.IPtrs[1].QuotaSize)
 	} else if fileBlock.IPtrs[1].Off != 5 {
 		t.Errorf("Indirect pointer off2 wrong: %d", fileBlock.IPtrs[1].Off)
-	} else if fileBlock.IPtrs[2].Id != newId3 {
-		t.Errorf("Indirect pointer id3 wrong: %v", fileBlock.IPtrs[2].Id)
+	} else if fileBlock.IPtrs[2].ID != newID3 {
+		t.Errorf("Indirect pointer id3 wrong: %v", fileBlock.IPtrs[2].ID)
 	} else if fileBlock.IPtrs[2].QuotaSize != 21 {
 		t.Errorf("Indirect pointer quota size3 wrong: %d", fileBlock.IPtrs[2].QuotaSize)
 	} else if fileBlock.IPtrs[2].Off != 8 {
 		t.Errorf("Indirect pointer off3 wrong: %d", fileBlock.IPtrs[2].Off)
-	} else if fileBlock.IPtrs[3].Id != newId4 {
-		t.Errorf("Indirect pointer id4 wrong: %v", fileBlock.IPtrs[3].Id)
+	} else if fileBlock.IPtrs[3].ID != newID4 {
+		t.Errorf("Indirect pointer id4 wrong: %v", fileBlock.IPtrs[3].ID)
 	} else if fileBlock.IPtrs[3].QuotaSize != 14 {
 		t.Errorf("Indirect pointer quota size4 wrong: %d", fileBlock.IPtrs[3].QuotaSize)
 	} else if fileBlock.IPtrs[3].Off != 15 {
 		t.Errorf("Indirect pointer off4 wrong: %d", fileBlock.IPtrs[3].Off)
-	} else if fileBlock.IPtrs[4].Id != (BlockId{newId5[0] + 100}) {
-		t.Errorf("Indirect pointer id5 wrong: %v", fileBlock.IPtrs[4].Id)
+	} else if fileBlock.IPtrs[4].ID != (BlockID{newID5[0] + 100}) {
+		t.Errorf("Indirect pointer id5 wrong: %v", fileBlock.IPtrs[4].ID)
 	} else if fileBlock.IPtrs[4].QuotaSize != 1 {
 		t.Errorf("Indirect pointer quota size5 wrong: %d", fileBlock.IPtrs[4].QuotaSize)
 	} else if fileBlock.IPtrs[4].Off != 18 {
@@ -2657,24 +2657,24 @@ func TestSyncDirtyMultiBlocksCopyNextBlockSuccess(t *testing.T) {
 	mockCtrl, config := kbfsOpsInit(t, true)
 	defer kbfsTestShutdown(mockCtrl, config)
 
-	userId, id, rmd := makeIdAndRMD(config)
+	userID, id, rmd := makeIDAndRMD(config)
 
-	rootId := BlockId{42}
-	fileId := BlockId{43}
-	id1 := BlockId{44}
-	id2 := BlockId{45}
-	id3 := BlockId{46}
-	id4 := BlockId{47}
+	rootID := BlockID{42}
+	fileID := BlockID{43}
+	id1 := BlockID{44}
+	id2 := BlockID{45}
+	id3 := BlockID{46}
+	id4 := BlockID{47}
 	rootBlock := NewDirBlock().(*DirBlock)
 	rootBlock.Children["a"] = DirEntry{
-		BlockPointer: BlockPointer{Id: fileId}, Size: 20}
+		BlockPointer: BlockPointer{ID: fileID}, Size: 20}
 	fileBlock := NewFileBlock().(*FileBlock)
 	fileBlock.IsInd = true
 	fileBlock.IPtrs = []IndirectFilePtr{
-		IndirectFilePtr{BlockPointer{id1, 0, 0, userId, 0}, 0},
-		IndirectFilePtr{BlockPointer{id2, 0, 0, userId, 10}, 5},
-		IndirectFilePtr{BlockPointer{id3, 0, 0, userId, 0}, 10},
-		IndirectFilePtr{BlockPointer{id4, 0, 0, userId, 15}, 15},
+		IndirectFilePtr{BlockPointer{id1, 0, 0, userID, 0}, 0},
+		IndirectFilePtr{BlockPointer{id2, 0, 0, userID, 10}, 5},
+		IndirectFilePtr{BlockPointer{id3, 0, 0, userID, 0}, 10},
+		IndirectFilePtr{BlockPointer{id4, 0, 0, userID, 15}, 15},
 	}
 	block1 := NewFileBlock().(*FileBlock)
 	block1.Contents = []byte{5, 4, 3, 2, 1}
@@ -2684,15 +2684,15 @@ func TestSyncDirtyMultiBlocksCopyNextBlockSuccess(t *testing.T) {
 	block3.Contents = []byte{15, 14, 13, 12, 11}
 	block4 := NewFileBlock().(*FileBlock)
 	block4.Contents = []byte{20, 19, 18, 17, 16}
-	node := PathNode{BlockPointer{rootId, 0, 0, userId, 0}, ""}
-	fileNode := PathNode{BlockPointer{fileId, 0, 0, userId, 0}, "a"}
+	node := PathNode{BlockPointer{rootID, 0, 0, userID, 0}, ""}
+	fileNode := PathNode{BlockPointer{fileID, 0, 0, userID, 0}, "a"}
 	p := Path{id, []PathNode{node, fileNode}}
 
 	// fsync a, only block 2 is dirty
-	config.mockBcache.EXPECT().IsDirty(fileId).AnyTimes().Return(true)
-	config.mockBcache.EXPECT().IsDirty(rootId).AnyTimes().Return(true)
-	config.mockBcache.EXPECT().Get(rootId).AnyTimes().Return(rootBlock, nil)
-	config.mockBcache.EXPECT().Get(fileId).AnyTimes().Return(fileBlock, nil)
+	config.mockBcache.EXPECT().IsDirty(fileID).AnyTimes().Return(true)
+	config.mockBcache.EXPECT().IsDirty(rootID).AnyTimes().Return(true)
+	config.mockBcache.EXPECT().Get(rootID).AnyTimes().Return(rootBlock, nil)
+	config.mockBcache.EXPECT().Get(fileID).AnyTimes().Return(fileBlock, nil)
 	config.mockBcache.EXPECT().Get(id2).Return(block2, nil)
 	config.mockBcache.EXPECT().IsDirty(id2).AnyTimes().Return(false)
 	config.mockBcache.EXPECT().Get(id4).Return(block4, nil)
@@ -2722,7 +2722,7 @@ func TestSyncDirtyMultiBlocksCopyNextBlockSuccess(t *testing.T) {
 	}).Return(split4At)
 	var newBlock4 *FileBlock
 	config.mockBcache.EXPECT().Put(id4, gomock.Any(), true).
-		Do(func(id BlockId, block Block, dirty bool) {
+		Do(func(id BlockID, block Block, dirty bool) {
 		newBlock4 = block.(*FileBlock)
 		// now block 4 is dirty, but it's the end of the line,
 		// so nothing else to do
@@ -2730,7 +2730,7 @@ func TestSyncDirtyMultiBlocksCopyNextBlockSuccess(t *testing.T) {
 	}).Return(nil)
 
 	// The parent is dirtied too since the pointers changed
-	config.mockBcache.EXPECT().Put(fileId, gomock.Any(), true).
+	config.mockBcache.EXPECT().Put(fileID, gomock.Any(), true).
 		AnyTimes().Return(nil)
 
 	// sync block
@@ -2741,45 +2741,45 @@ func TestSyncDirtyMultiBlocksCopyNextBlockSuccess(t *testing.T) {
 	f := func(md *RootMetadata) {
 		index := len(p.Path) - 1
 		checkBlockChange(t, md.data.RefBlocks.Changes, p, index, 0,
-			BlockId{id1[0] + 100})
+			BlockID{id1[0] + 100})
 		checkBlockChange(t, md.data.RefBlocks.Changes, p, index, 0,
-			BlockId{id3[0] + 100})
+			BlockID{id3[0] + 100})
 		checkBlockChange(t, md.data.RefBlocks.Changes, p, index, 0,
-			BlockId{id4[0] + 100})
+			BlockID{id4[0] + 100})
 		checkBlockChange(t, md.data.UnrefBlocks.Changes, p, index, 0, id2)
 		checkBlockChange(t, md.data.UnrefBlocks.Changes, p, index, 0, id4)
 	}
 	var newRmd *RootMetadata
 	expectedPath, _ :=
-		expectSyncBlock(t, config, nil, userId, id, "", p, rmd, false, 0,
+		expectSyncBlock(t, config, nil, userID, id, "", p, rmd, false, 0,
 			refBytes, unrefBytes, f, &newRmd)
 	config.mockBcache.EXPECT().Finalize(
-		fileId, expectedPath.Path[len(expectedPath.Path)-1].Id)
+		fileID, expectedPath.Path[len(expectedPath.Path)-1].ID)
 	config.mockBcache.EXPECT().Finalize(
-		rootId, expectedPath.Path[len(expectedPath.Path)-2].Id)
+		rootID, expectedPath.Path[len(expectedPath.Path)-2].ID)
 
-	newId1 := BlockId{id1[0] + 100}
-	newId3 := BlockId{id3[0] + 100}
-	newId4 := BlockId{id4[0] + 100}
+	newID1 := BlockID{id1[0] + 100}
+	newID3 := BlockID{id3[0] + 100}
+	newID4 := BlockID{id4[0] + 100}
 
 	if newP, err := config.KBFSOps().Sync(p); err != nil {
 		t.Errorf("Got unexpected error on sync: %v", err)
 	} else if len(fileBlock.IPtrs) != 3 {
 		t.Errorf("Wrong number of indirect pointers: %d", len(fileBlock.IPtrs))
-	} else if fileBlock.IPtrs[0].Id != newId1 {
-		t.Errorf("Indirect pointer id1 wrong: %v", fileBlock.IPtrs[0].Id)
+	} else if fileBlock.IPtrs[0].ID != newID1 {
+		t.Errorf("Indirect pointer id1 wrong: %v", fileBlock.IPtrs[0].ID)
 	} else if fileBlock.IPtrs[0].QuotaSize != 19 {
 		t.Errorf("Indirect pointer quota size1 wrong: %d", fileBlock.IPtrs[0].QuotaSize)
 	} else if fileBlock.IPtrs[0].Off != 0 {
 		t.Errorf("Indirect pointer off1 wrong: %d", fileBlock.IPtrs[0].Off)
-	} else if fileBlock.IPtrs[1].Id != newId3 {
-		t.Errorf("Indirect pointer id3 wrong: %v", fileBlock.IPtrs[1].Id)
+	} else if fileBlock.IPtrs[1].ID != newID3 {
+		t.Errorf("Indirect pointer id3 wrong: %v", fileBlock.IPtrs[1].ID)
 	} else if fileBlock.IPtrs[1].QuotaSize != 15 {
 		t.Errorf("Indirect pointer quota size3 wrong: %d", fileBlock.IPtrs[1].QuotaSize)
 	} else if fileBlock.IPtrs[1].Off != 10 {
 		t.Errorf("Indirect pointer off3 wrong: %d", fileBlock.IPtrs[1].Off)
-	} else if fileBlock.IPtrs[2].Id != newId4 {
-		t.Errorf("Indirect pointer id4 wrong: %v", fileBlock.IPtrs[2].Id)
+	} else if fileBlock.IPtrs[2].ID != newID4 {
+		t.Errorf("Indirect pointer id4 wrong: %v", fileBlock.IPtrs[2].ID)
 	} else if fileBlock.IPtrs[2].QuotaSize != 17 {
 		t.Errorf("Indirect pointer quota size4 wrong: %d", fileBlock.IPtrs[2].QuotaSize)
 	} else if fileBlock.IPtrs[2].Off != 18 {
@@ -2803,22 +2803,22 @@ func TestSyncDirtyWithBlockChangePointerSuccess(t *testing.T) {
 	mockCtrl, config := kbfsOpsInit(t, true)
 	defer kbfsTestShutdown(mockCtrl, config)
 
-	userId, id, rmd := makeIdAndRMD(config)
+	userID, id, rmd := makeIDAndRMD(config)
 
-	rootId := BlockId{42}
-	aId := BlockId{43}
+	rootID := BlockID{42}
+	aID := BlockID{43}
 	rootBlock := NewDirBlock().(*DirBlock)
-	rootBlock.Children["a"] = DirEntry{BlockPointer: BlockPointer{Id: aId}}
+	rootBlock.Children["a"] = DirEntry{BlockPointer: BlockPointer{ID: aID}}
 	aBlock := NewFileBlock().(*FileBlock)
-	node := PathNode{BlockPointer{rootId, 0, 0, userId, 0}, ""}
-	aNode := PathNode{BlockPointer{aId, 0, 0, userId, 0}, "a"}
+	node := PathNode{BlockPointer{rootID, 0, 0, userID, 0}, ""}
+	aNode := PathNode{BlockPointer{aID, 0, 0, userID, 0}, "a"}
 	p := Path{id, []PathNode{node, aNode}}
 
 	// fsync a
-	config.mockBcache.EXPECT().IsDirty(aId).AnyTimes().Return(true)
-	config.mockBcache.EXPECT().IsDirty(rootId).AnyTimes().Return(true)
-	config.mockBcache.EXPECT().Get(rootId).AnyTimes().Return(rootBlock, nil)
-	config.mockBcache.EXPECT().Get(aId).AnyTimes().Return(aBlock, nil)
+	config.mockBcache.EXPECT().IsDirty(aID).AnyTimes().Return(true)
+	config.mockBcache.EXPECT().IsDirty(rootID).AnyTimes().Return(true)
+	config.mockBcache.EXPECT().Get(rootID).AnyTimes().Return(rootBlock, nil)
+	config.mockBcache.EXPECT().Get(aID).AnyTimes().Return(aBlock, nil)
 
 	// override the AnyTimes expect call done by default in expectSyncBlock()
 	config.mockBsplit.EXPECT().ShouldEmbedBlockChanges(gomock.Any()).
@@ -2827,48 +2827,48 @@ func TestSyncDirtyWithBlockChangePointerSuccess(t *testing.T) {
 	// sync block
 	refBytes := uint64(1 + 1) // 2 ref/unref blocks of 1 byte each
 	var newRmd *RootMetadata
-	expectedPath, lastCall := expectSyncBlock(t, config, nil, userId, id, "", p,
+	expectedPath, lastCall := expectSyncBlock(t, config, nil, userID, id, "", p,
 		rmd, false, 0, refBytes, 0, nil, &newRmd)
 	config.mockBcache.EXPECT().Finalize(
-		aId, expectedPath.Path[len(expectedPath.Path)-1].Id)
+		aID, expectedPath.Path[len(expectedPath.Path)-1].ID)
 	config.mockBcache.EXPECT().Finalize(
-		rootId, expectedPath.Path[len(expectedPath.Path)-2].Id)
+		rootID, expectedPath.Path[len(expectedPath.Path)-2].ID)
 
 	// expected calls for ref block changes blocks
-	refBlockId := BlockId{253}
+	refBlockID := BlockID{253}
 	refPlainSize := 1
 	refBuf := []byte{253}
 	config.mockCrypto.EXPECT().MakeRandomBlockCryptKeyServerHalf().Return(BlockCryptKeyServerHalf{}, nil)
 	config.mockCrypto.EXPECT().UnmaskBlockCryptKey(BlockCryptKeyServerHalf{}, TLFCryptKey{}).Return(BlockCryptKey{}, nil)
 	lastCall = config.mockBops.EXPECT().Ready(gomock.Any(), BlockCryptKey{}).Return(
-		refBlockId, refPlainSize, refBuf, nil).After(lastCall)
-	config.mockBops.EXPECT().Put(refBlockId, gomock.Any(), refBuf).Return(nil)
-	config.mockBcache.EXPECT().Put(refBlockId, gomock.Any(), false).Return(nil)
-	config.mockKops.EXPECT().PutBlockCryptKeyServerHalf(refBlockId, BlockCryptKeyServerHalf{}).Return(nil)
-	config.mockKcache.EXPECT().PutBlockCryptKey(refBlockId, BlockCryptKey{}).Return(nil)
+		refBlockID, refPlainSize, refBuf, nil).After(lastCall)
+	config.mockBops.EXPECT().Put(refBlockID, gomock.Any(), refBuf).Return(nil)
+	config.mockBcache.EXPECT().Put(refBlockID, gomock.Any(), false).Return(nil)
+	config.mockKops.EXPECT().PutBlockCryptKeyServerHalf(refBlockID, BlockCryptKeyServerHalf{}).Return(nil)
+	config.mockKcache.EXPECT().PutBlockCryptKey(refBlockID, BlockCryptKey{}).Return(nil)
 
-	unrefBlockId := BlockId{254}
+	unrefBlockID := BlockID{254}
 	unrefPlainSize := 0
 	unrefBuf := []byte{254}
 	config.mockCrypto.EXPECT().MakeRandomBlockCryptKeyServerHalf().Return(BlockCryptKeyServerHalf{}, nil)
 	config.mockCrypto.EXPECT().UnmaskBlockCryptKey(BlockCryptKeyServerHalf{}, TLFCryptKey{}).Return(BlockCryptKey{}, nil)
 	lastCall = config.mockBops.EXPECT().Ready(gomock.Any(), BlockCryptKey{}).Return(
-		unrefBlockId, unrefPlainSize, unrefBuf, nil).After(lastCall)
-	config.mockBops.EXPECT().Put(unrefBlockId, gomock.Any(), unrefBuf).
+		unrefBlockID, unrefPlainSize, unrefBuf, nil).After(lastCall)
+	config.mockBops.EXPECT().Put(unrefBlockID, gomock.Any(), unrefBuf).
 		Return(nil)
-	config.mockBcache.EXPECT().Put(unrefBlockId, gomock.Any(), false).
+	config.mockBcache.EXPECT().Put(unrefBlockID, gomock.Any(), false).
 		Return(nil)
-	config.mockKops.EXPECT().PutBlockCryptKeyServerHalf(unrefBlockId, BlockCryptKeyServerHalf{}).Return(nil)
-	config.mockKcache.EXPECT().PutBlockCryptKey(unrefBlockId, BlockCryptKey{}).Return(nil)
+	config.mockKops.EXPECT().PutBlockCryptKeyServerHalf(unrefBlockID, BlockCryptKeyServerHalf{}).Return(nil)
+	config.mockKcache.EXPECT().PutBlockCryptKey(unrefBlockID, BlockCryptKey{}).Return(nil)
 
 	if newP, err := config.KBFSOps().Sync(p); err != nil {
 		t.Errorf("Got unexpected error on sync: %v", err)
-	} else if newRmd.data.RefBlocks.Pointer.Id != refBlockId {
+	} else if newRmd.data.RefBlocks.Pointer.ID != refBlockID {
 		t.Errorf("Got unexpected refBlocks pointer: %v vs %v",
-			newRmd.data.RefBlocks.Pointer.Id, refBlockId)
-	} else if newRmd.data.UnrefBlocks.Pointer.Id != unrefBlockId {
+			newRmd.data.RefBlocks.Pointer.ID, refBlockID)
+	} else if newRmd.data.UnrefBlocks.Pointer.ID != unrefBlockID {
 		t.Errorf("Got unexpected unrefBlocks pointer: %v vs %v",
-			newRmd.data.UnrefBlocks.Pointer.Id, unrefBlockId)
+			newRmd.data.UnrefBlocks.Pointer.ID, unrefBlockID)
 	} else {
 		// pretend that aBlock is a dirblock -- doesn't matter for this check
 		blocks := []*DirBlock{rootBlock, NewDirBlock().(*DirBlock)}

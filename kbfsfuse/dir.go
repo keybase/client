@@ -15,7 +15,7 @@ import (
 
 type Folder struct {
 	fs *FS
-	id libkbfs.DirId
+	id libkbfs.DirID
 	dh *libkbfs.DirHandle
 
 	// Protects all Dir.pathNode and File.pathNode instances.
@@ -95,7 +95,7 @@ func (d *Dir) Lookup(ctx context.Context, req *fuse.LookupRequest, resp *fuse.Lo
 		}
 		pubFolder := &Folder{
 			fs: d.folder.fs,
-			id: md.Id,
+			id: md.ID,
 			dh: dhPub,
 		}
 		child := &Dir{
@@ -330,7 +330,7 @@ func (d *Dir) ReadDirAll(ctx context.Context) ([]fuse.Dirent, error) {
 		})
 	}
 
-	if d.folder.id == libkbfs.NullDirId {
+	if d.folder.id == libkbfs.NullDirID {
 		// It's a dummy folder for the purposes of exposing public.
 		return res, nil
 	}

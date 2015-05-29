@@ -58,7 +58,7 @@ func (m *MDOpsConcurTest) GetAtHandle(handle *DirHandle) (
 	return nil, fmt.Errorf("Not supported")
 }
 
-func (m *MDOpsConcurTest) Get(id DirId) (*RootMetadata, error) {
+func (m *MDOpsConcurTest) Get(id DirID) (*RootMetadata, error) {
 	_, ok := <-m.enter
 	if !ok {
 		// Only one caller should ever get here
@@ -70,16 +70,16 @@ func (m *MDOpsConcurTest) Get(id DirId) (*RootMetadata, error) {
 	return NewRootMetadata(dh, id), nil
 }
 
-func (m *MDOpsConcurTest) GetAtId(id DirId, mdId MDId) (*RootMetadata, error) {
+func (m *MDOpsConcurTest) GetAtID(id DirID, mdID MdID) (*RootMetadata, error) {
 	return nil, fmt.Errorf("Not supported")
 }
 
-func (m *MDOpsConcurTest) Put(id DirId, md *RootMetadata) error {
+func (m *MDOpsConcurTest) Put(id DirID, md *RootMetadata) error {
 	return nil
 }
 
-func (m *MDOpsConcurTest) GetFavorites() ([]DirId, error) {
-	return []DirId{}, nil
+func (m *MDOpsConcurTest) GetFavorites() ([]DirID, error) {
+	return []DirID{}, nil
 }
 
 func kbfsOpsConcurInit(users []string) (Config, keybase1.UID) {
@@ -88,7 +88,7 @@ func kbfsOpsConcurInit(users []string) (Config, keybase1.UID) {
 	localUsers := MakeLocalUsers(users)
 	loggedInUser := localUsers[0]
 
-	kbpki := NewKBPKILocal(loggedInUser.Uid, localUsers)
+	kbpki := NewKBPKILocal(loggedInUser.UID, localUsers)
 
 	// TODO: Consider using fake BlockOps and MDOps instead.
 	config.SetKBPKI(kbpki)
@@ -100,7 +100,7 @@ func kbfsOpsConcurInit(users []string) (Config, keybase1.UID) {
 	config.SetBlockServer(NewFakeBlockServer())
 	config.SetMDServer(NewFakeMDServer(config))
 
-	return config, loggedInUser.Uid
+	return config, loggedInUser.UID
 }
 
 // Test that only one of two concurrent GetRootMD requests can end up
@@ -114,7 +114,7 @@ func TestKBFSOpsConcurDoubleMDGet(t *testing.T) {
 
 	n := 10
 	c := make(chan error, n)
-	dir := DirId{0}
+	dir := DirID{0}
 	rwc := NewRWChannelCounter(n)
 	config.KBFSOps().(*KBFSOpsStandard).dirRWChans.chans[dir] = rwc
 	for i := 0; i < n; i++ {

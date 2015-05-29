@@ -4,14 +4,17 @@ import (
 	"github.com/keybase/client/go/libkb"
 )
 
+// BlockOpsStandard implements the BlockOps interface by relaying
+// requests to the block server.
 type BlockOpsStandard struct {
 	config Config
 }
 
 var _ BlockOps = (*BlockOpsStandard)(nil)
 
-func (b *BlockOpsStandard) Get(
-	id BlockId, context BlockContext, cryptKey BlockCryptKey, block Block) error {
+// Get implements the BlockOps interface for BlockOpsStandard.
+func (b *BlockOpsStandard) Get(id BlockID, context BlockContext,
+	cryptKey BlockCryptKey, block Block) error {
 	bserv := b.config.BlockServer()
 	buf, err := bserv.Get(id, context)
 	if err != nil {
@@ -29,11 +32,12 @@ func (b *BlockOpsStandard) Get(
 	return b.config.Crypto().DecryptBlock(buf, cryptKey, block)
 }
 
+// Ready implements the BlockOps interface for BlockOpsStandard.
 func (b *BlockOpsStandard) Ready(
-	block Block, cryptKey BlockCryptKey) (id BlockId, plainSize int, buf []byte, err error) {
+	block Block, cryptKey BlockCryptKey) (id BlockID, plainSize int, buf []byte, err error) {
 	defer func() {
 		if err != nil {
-			id = BlockId{}
+			id = BlockID{}
 			plainSize = 0
 			buf = nil
 		}
@@ -64,12 +68,13 @@ func (b *BlockOpsStandard) Ready(
 		return
 	}
 
-	id = BlockId(nhs)
+	id = BlockID(nhs)
 	return
 }
 
+// Put implements the BlockOps interface for BlockOpsStandard.
 func (b *BlockOpsStandard) Put(
-	id BlockId, context BlockContext, buf []byte) (err error) {
+	id BlockID, context BlockContext, buf []byte) (err error) {
 	if context.GetQuotaSize() != uint32(len(buf)) {
 		err = &InconsistentByteCountError{
 			ExpectedByteCount: int(context.GetQuotaSize()),
@@ -82,7 +87,8 @@ func (b *BlockOpsStandard) Put(
 	return
 }
 
-func (b *BlockOpsStandard) Delete(id BlockId, context BlockContext) error {
+// Delete implements the BlockOps interface for BlockOpsStandard.
+func (b *BlockOpsStandard) Delete(id BlockID, context BlockContext) error {
 	bserv := b.config.BlockServer()
 	err := bserv.Delete(id, context)
 	return err

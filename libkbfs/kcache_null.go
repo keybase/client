@@ -2,22 +2,27 @@ package libkbfs
 
 import "errors"
 
+// KeyCacheNull is a placeholder, noop implementation of the KeyCache interface.
 type KeyCacheNull struct{}
 
 var _ KeyCache = (*KeyCacheNull)(nil)
 
-func (k *KeyCacheNull) GetTLFCryptKey(DirId, KeyVer) (TLFCryptKey, error) {
+// GetTLFCryptKey implements the KeyCache interface for KeyCacheNull.
+func (k *KeyCacheNull) GetTLFCryptKey(DirID, KeyVer) (TLFCryptKey, error) {
 	return TLFCryptKey{}, errors.New("NULL")
 }
 
-func (k *KeyCacheNull) PutTLFCryptKey(DirId, KeyVer, TLFCryptKey) error {
+// PutTLFCryptKey implements the KeyCache interface for KeyCacheNull.
+func (k *KeyCacheNull) PutTLFCryptKey(DirID, KeyVer, TLFCryptKey) error {
 	return nil
 }
 
-func (k *KeyCacheNull) GetBlockCryptKey(id BlockId) (BlockCryptKey, error) {
+// GetBlockCryptKey implements the KeyCache interface for KeyCacheNull.
+func (k *KeyCacheNull) GetBlockCryptKey(id BlockID) (BlockCryptKey, error) {
 	return BlockCryptKey{}, errors.New("NULL")
 }
 
-func (k *KeyCacheNull) PutBlockCryptKey(id BlockId, key BlockCryptKey) error {
+// PutBlockCryptKey implements the KeyCache interface for KeyCacheNull.
+func (k *KeyCacheNull) PutBlockCryptKey(id BlockID, key BlockCryptKey) error {
 	return nil
 }

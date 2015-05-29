@@ -13,7 +13,7 @@ func (fn *FakeObserver) LocalChange(path Path) {
 	fn.localUpdatePath = path
 }
 
-func (fn *FakeObserver) BatchChanges(dir DirId, paths []Path) {
+func (fn *FakeObserver) BatchChanges(dir DirID, paths []Path) {
 	fn.batchUpdatePaths = paths
 }
 

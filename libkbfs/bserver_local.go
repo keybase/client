@@ -5,11 +5,14 @@ import (
 	"github.com/syndtr/goleveldb/leveldb/opt"
 )
 
-// BlockServerLocal just stores blocks in a local leveldb instance
+// BlockServerLocal implements the BlockServer interface by just
+// storing blocks in a local leveldb instance
 type BlockServerLocal struct {
 	db *leveldb.DB
 }
 
+// NewBlockServerLocal constructs a new BlockServerLocal that stores
+// its data in the given leveldb directory.
 func NewBlockServerLocal(dbfile string) (*BlockServerLocal, error) {
 	db, err := leveldb.OpenFile(
 		dbfile,
@@ -23,16 +26,19 @@ func NewBlockServerLocal(dbfile string) (*BlockServerLocal, error) {
 	return bserv, nil
 }
 
+// Get implements the BlockServer interface for BlockServerLocal
 func (b *BlockServerLocal) Get(
-	id BlockId, context BlockContext) ([]byte, error) {
+	id BlockID, context BlockContext) ([]byte, error) {
 	return b.db.Get(id[:], nil)
 }
 
+// Put implements the BlockServer interface for BlockServerLocal
 func (b *BlockServerLocal) Put(
-	id BlockId, context BlockContext, buf []byte) error {
+	id BlockID, context BlockContext, buf []byte) error {
 	return b.db.Put(id[:], buf, nil)
 }
 
-func (b *BlockServerLocal) Delete(id BlockId, context BlockContext) error {
+// Delete implements the BlockServer interface for BlockServerLocal
+func (b *BlockServerLocal) Delete(id BlockID, context BlockContext) error {
 	return b.db.Delete(id[:], nil)
 }

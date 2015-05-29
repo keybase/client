@@ -25,11 +25,11 @@ func keyManagerShutdown(mockCtrl *gomock.Controller, config *ConfigMock) {
 }
 
 func expectCachedGetTLFCryptKey(config *ConfigMock, rmd *RootMetadata) {
-	config.mockKcache.EXPECT().GetTLFCryptKey(rmd.Id, KeyVer(0)).Return(TLFCryptKey{}, nil)
+	config.mockKcache.EXPECT().GetTLFCryptKey(rmd.ID, KeyVer(0)).Return(TLFCryptKey{}, nil)
 }
 
 func expectUncachedGetTLFCryptKey(config *ConfigMock, rmd *RootMetadata, uid keybase1.UID, subkey CryptPublicKey) {
-	config.mockKcache.EXPECT().GetTLFCryptKey(rmd.Id, KeyVer(0)).
+	config.mockKcache.EXPECT().GetTLFCryptKey(rmd.ID, KeyVer(0)).
 		Return(TLFCryptKey{}, errors.New("NONE"))
 
 	// get the xor'd key out of the metadata
@@ -38,16 +38,16 @@ func expectUncachedGetTLFCryptKey(config *ConfigMock, rmd *RootMetadata, uid key
 
 	// get the server-side half and retrieve the real secret key
 	config.mockKops.EXPECT().GetTLFCryptKeyServerHalf(
-		rmd.Id, rmd.LatestKeyVersion(), subkey).Return(TLFCryptKeyServerHalf{}, nil)
+		rmd.ID, rmd.LatestKeyVersion(), subkey).Return(TLFCryptKeyServerHalf{}, nil)
 	config.mockCrypto.EXPECT().UnmaskTLFCryptKey(TLFCryptKeyServerHalf{}, TLFCryptKeyClientHalf{}).Return(TLFCryptKey{}, nil)
 
 	// now put the key into the cache
-	config.mockKcache.EXPECT().PutTLFCryptKey(rmd.Id, rmd.LatestKeyVersion(), TLFCryptKey{}).
+	config.mockKcache.EXPECT().PutTLFCryptKey(rmd.ID, rmd.LatestKeyVersion(), TLFCryptKey{}).
 		Return(nil)
 }
 
 func expectUncachedGetBlockCryptKey(
-	config *ConfigMock, id BlockId, rmd *RootMetadata) {
+	config *ConfigMock, id BlockID, rmd *RootMetadata) {
 	config.mockKcache.EXPECT().GetBlockCryptKey(id).
 		Return(BlockCryptKey{}, errors.New("NONE"))
 
@@ -60,7 +60,7 @@ func expectUncachedGetBlockCryptKey(
 	config.mockKcache.EXPECT().PutBlockCryptKey(id, BlockCryptKey{}).Return(nil)
 }
 
-func expectRekey(config *ConfigMock, rmd *RootMetadata, userId keybase1.UID) {
+func expectRekey(config *ConfigMock, rmd *RootMetadata, userID keybase1.UID) {
 	// generate new keys
 	config.mockCrypto.EXPECT().MakeRandomTLFKeys().Return(TLFPublicKey{}, TLFPrivateKey{}, TLFEphemeralPublicKey{}, TLFEphemeralPrivateKey{}, TLFCryptKey{}, nil)
 	config.mockCrypto.EXPECT().MakeRandomTLFCryptKeyServerHalf().Return(TLFCryptKeyServerHalf{}, nil)
@@ -74,14 +74,14 @@ func expectRekey(config *ConfigMock, rmd *RootMetadata, userId keybase1.UID) {
 	xbuf := []byte{42}
 	config.mockCrypto.EXPECT().EncryptTLFCryptKeyClientHalf(TLFEphemeralPrivateKey{}, subkey, TLFCryptKeyClientHalf{}).Return(xbuf, nil)
 	config.mockKops.EXPECT().PutTLFCryptKeyServerHalf(
-		rmd.Id, KeyVer(1), userId, subkey, TLFCryptKeyServerHalf{}).Return(nil)
+		rmd.ID, KeyVer(1), userID, subkey, TLFCryptKeyServerHalf{}).Return(nil)
 	// now put the key into the cache
-	config.mockKcache.EXPECT().PutTLFCryptKey(rmd.Id, KeyVer(1), TLFCryptKey{}).Return(nil)
+	config.mockKcache.EXPECT().PutTLFCryptKey(rmd.ID, KeyVer(1), TLFCryptKey{}).Return(nil)
 }
 
 func pathFromRMD(config *ConfigMock, rmd *RootMetadata) Path {
-	return Path{rmd.Id, []PathNode{PathNode{
-		BlockPointer{BlockId{}, rmd.data.Dir.KeyVer, 0, keybase1.MakeTestUID(0), 0},
+	return Path{rmd.ID, []PathNode{PathNode{
+		BlockPointer{BlockID{}, rmd.data.Dir.KeyVer, 0, keybase1.MakeTestUID(0), 0},
 		rmd.GetDirHandle().ToString(config),
 	}}}
 }
@@ -90,7 +90,7 @@ func TestKeyManagerCachedSecretKeySuccess(t *testing.T) {
 	mockCtrl, config := keyManagerInit(t)
 	defer keyManagerShutdown(mockCtrl, config)
 
-	_, id, h := makeId(config)
+	_, id, h := makeID(config)
 	rmd := NewRootMetadata(h, id)
 	rmd.AddNewKeys(DirKeyBundle{})
 
@@ -106,7 +106,7 @@ func TestKeyManagerUncachedSecretKeySuccess(t *testing.T) {
 	mockCtrl, config := keyManagerInit(t)
 	defer keyManagerShutdown(mockCtrl, config)
 
-	uid, id, h := makeId(config)
+	uid, id, h := makeID(config)
 	rmd := NewRootMetadata(h, id)
 
 	subkey := MakeFakeCryptPublicKeyOrBust("crypt public key")
@@ -131,15 +131,15 @@ func TestKeyManagerUncachedSecretBlockKeySuccess(t *testing.T) {
 	mockCtrl, config := keyManagerInit(t)
 	defer keyManagerShutdown(mockCtrl, config)
 
-	_, id, h := makeId(config)
+	_, id, h := makeID(config)
 	rmd := NewRootMetadata(h, id)
 	rmd.AddNewKeys(DirKeyBundle{})
-	rootId := BlockId{42}
+	rootID := BlockID{42}
 
-	expectUncachedGetBlockCryptKey(config, rootId, rmd)
+	expectUncachedGetBlockCryptKey(config, rootID, rmd)
 
 	if _, err := config.KeyManager().GetBlockCryptKey(
-		pathFromRMD(config, rmd), rootId, rmd); err != nil {
+		pathFromRMD(config, rmd), rootID, rmd); err != nil {
 		t.Errorf("Got error on getBlockCryptKey: %v", err)
 	}
 }
@@ -148,24 +148,24 @@ func TestKeyManagerGetUncachedBlockKeyFailNewKey(t *testing.T) {
 	mockCtrl, config := keyManagerInit(t)
 	defer keyManagerShutdown(mockCtrl, config)
 
-	u, id, h := makeId(config)
+	u, id, h := makeID(config)
 	rmd := NewRootMetadata(h, id)
 
 	rmd.data.Dir.Type = Dir
 	// Set the key id in the future.
 	rmd.data.Dir.KeyVer = 1
 
-	rootId := BlockId{42}
-	node := PathNode{BlockPointer{rootId, 1, 0, u, 0}, ""}
+	rootID := BlockID{42}
+	node := PathNode{BlockPointer{rootID, 1, 0, u, 0}, ""}
 	p := Path{id, []PathNode{node}}
 
 	// we'll check the cache, but then fail before getting the read key
 	expectedErr := &NewKeyVersionError{rmd.GetDirHandle().ToString(config), 1}
-	config.mockKcache.EXPECT().GetBlockCryptKey(rootId).Return(
+	config.mockKcache.EXPECT().GetBlockCryptKey(rootID).Return(
 		BlockCryptKey{}, errors.New("NOPE"))
 
 	if _, err := config.KeyManager().GetBlockCryptKey(
-		p, rootId, rmd); err == nil {
+		p, rootID, rmd); err == nil {
 		t.Errorf("Got no expected error on GetBlockCryptKey")
 	} else if err.Error() != expectedErr.Error() {
 		t.Errorf("Got unexpected error on GetBlockCryptKey: %v", err)
@@ -176,7 +176,7 @@ func TestKeyManagerRekeySuccess(t *testing.T) {
 	mockCtrl, config := keyManagerInit(t)
 	defer keyManagerShutdown(mockCtrl, config)
 
-	u, id, h := makeId(config)
+	u, id, h := makeID(config)
 	rmd := NewRootMetadata(h, id)
 	rmd.AddNewKeys(DirKeyBundle{})
 

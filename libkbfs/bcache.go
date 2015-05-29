@@ -6,21 +6,26 @@ import (
 	lru "github.com/hashicorp/golang-lru"
 )
 
+// BlockCacheStandard implements the BlockCache interface by storing
+// blocks in an in-memomry LRU cache.
 type BlockCacheStandard struct {
 	lru       *lru.Cache
-	dirty     map[BlockId]Block
+	dirty     map[BlockID]Block
 	dirtyLock sync.RWMutex
 }
 
+// NewBlockCacheStandard constructs a new BlockCacheStandard instance
+// with the given cache capacity.
 func NewBlockCacheStandard(capacity int) *BlockCacheStandard {
 	tmp, err := lru.New(capacity)
 	if err != nil {
 		return nil
 	}
-	return &BlockCacheStandard{tmp, make(map[BlockId]Block), sync.RWMutex{}}
+	return &BlockCacheStandard{tmp, make(map[BlockID]Block), sync.RWMutex{}}
 }
 
-func (b *BlockCacheStandard) Get(id BlockId) (Block, error) {
+// Get implements the BlockCache interface for BlockCacheStandard.
+func (b *BlockCacheStandard) Get(id BlockID) (Block, error) {
 	b.dirtyLock.RLock()
 	defer b.dirtyLock.RUnlock()
 
@@ -28,16 +33,17 @@ func (b *BlockCacheStandard) Get(id BlockId) (Block, error) {
 		return block, nil
 	}
 	if tmp, ok := b.lru.Get(id); ok {
-		if block, ok := tmp.(Block); ok {
-			return block, nil
-		} else {
+		block, ok := tmp.(Block)
+		if !ok {
 			return nil, &BadDataError{id}
 		}
+		return block, nil
 	}
 	return nil, &NoSuchBlockError{id}
 }
 
-func (b *BlockCacheStandard) Put(id BlockId, block Block, dirty bool) error {
+// Put implements the BlockCache interface for BlockCacheStandard.
+func (b *BlockCacheStandard) Put(id BlockID, block Block, dirty bool) error {
 	if dirty {
 		b.dirtyLock.Lock()
 		defer b.dirtyLock.Unlock()
@@ -48,31 +54,34 @@ func (b *BlockCacheStandard) Put(id BlockId, block Block, dirty bool) error {
 	return nil
 }
 
-func (b *BlockCacheStandard) deleteLocked(id BlockId) error {
+func (b *BlockCacheStandard) deleteLocked(id BlockID) error {
 	delete(b.dirty, id)
 	b.lru.Remove(id)
 	return nil
 }
 
-func (b *BlockCacheStandard) Delete(id BlockId) error {
+// Delete implements the BlockCache interface for BlockCacheStandard.
+func (b *BlockCacheStandard) Delete(id BlockID) error {
 	b.dirtyLock.Lock()
 	defer b.dirtyLock.Unlock()
 	return b.deleteLocked(id)
 }
 
-func (b *BlockCacheStandard) Finalize(oldId BlockId, newId BlockId) error {
+// Finalize implements the BlockCache interface for BlockCacheStandard.
+func (b *BlockCacheStandard) Finalize(oldID BlockID, newID BlockID) error {
 	b.dirtyLock.Lock()
 	defer b.dirtyLock.Unlock()
 
-	if block, ok := b.dirty[oldId]; ok {
-		b.deleteLocked(oldId)
-		b.Put(newId, block, false)
+	if block, ok := b.dirty[oldID]; ok {
+		b.deleteLocked(oldID)
+		b.Put(newID, block, false)
 		return nil
 	}
-	return &FinalizeError{oldId}
+	return &FinalizeError{oldID}
 }
 
-func (b *BlockCacheStandard) IsDirty(id BlockId) (isDirty bool) {
+// IsDirty implements the BlockCache interface for BlockCacheStandard.
+func (b *BlockCacheStandard) IsDirty(id BlockID) (isDirty bool) {
 	b.dirtyLock.RLock()
 	defer b.dirtyLock.RUnlock()
 

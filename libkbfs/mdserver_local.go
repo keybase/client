@@ -7,7 +7,7 @@ import (
 	"github.com/syndtr/goleveldb/leveldb/opt"
 )
 
-// MDServerLocal just stores blocks in a local leveldb instance
+// MDServerLocal just stores blocks in local leveldb instances.
 type MDServerLocal struct {
 	config   Config
 	handleDb *leveldb.DB // dir handle -> dirId
@@ -15,6 +15,8 @@ type MDServerLocal struct {
 	mdDb     *leveldb.DB // MD ID -> root metadata (signed)
 }
 
+// NewMDServerLocal constructs a new MDServerLocal object that stores
+// data in the directories specified as parameters to this function.
 func NewMDServerLocal(config Config, handleDbfile string, idDbfile string,
 	mdDbfile string) (*MDServerLocal, error) {
 	handleDb, err := leveldb.OpenFile(handleDbfile, &opt.Options{
@@ -39,59 +41,59 @@ func NewMDServerLocal(config Config, handleDbfile string, idDbfile string,
 	return mdserv, nil
 }
 
+// GetAtHandle implements the MDServer interface for MDServerLocal.
 func (md *MDServerLocal) GetAtHandle(handle *DirHandle) (
 	*RootMetadataSigned, error) {
 	buf, err := md.handleDb.Get(handle.ToBytes(md.config), nil)
-	var id DirId
+	var id DirID
 	if err != leveldb.ErrNotFound {
 		copy(id[:], buf[:len(id)])
 		rmds, err := md.Get(id)
 		return rmds, err
-	} else {
-		// make a new one
-		var id DirId
-		if _, err := rand.Read(id[0 : DIRID_LEN-1]); err != nil {
-			return nil, err
-		}
-		if handle.IsPublic() {
-			id[DIRID_LEN-1] = PUBDIRID_SUFFIX
-		} else {
-			id[DIRID_LEN-1] = DIRID_SUFFIX
-		}
-		rmd := NewRootMetadata(handle, id)
-
-		// only users with write permissions should be creating a new one
-		user, err := md.config.KBPKI().GetLoggedInUser()
-		if err != nil {
-			return nil, err
-		}
-		if !handle.IsWriter(user) {
-			dirstring := handle.ToString(md.config)
-			if u, err2 := md.config.KBPKI().GetUser(user); err2 == nil {
-				return nil, &WriteAccessError{u.GetName(), dirstring}
-			} else {
-				return nil, &WriteAccessError{user.String(), dirstring}
-			}
-		}
-
-		return &RootMetadataSigned{MD: *rmd}, nil
 	}
-}
 
-func (md *MDServerLocal) Get(id DirId) (*RootMetadataSigned, error) {
-	buf, err := md.idDb.Get(id[:], nil)
-	var mdId MDId
-	if err != leveldb.ErrNotFound {
-		copy(mdId[:], buf[:len(mdId)])
-		return md.GetAtId(id, mdId)
-	} else {
+	// make a new one
+	if _, err := rand.Read(id[0 : DirIDLen-1]); err != nil {
 		return nil, err
 	}
+	if handle.IsPublic() {
+		id[DirIDLen-1] = PubDirIDSuffix
+	} else {
+		id[DirIDLen-1] = DirIDSuffix
+	}
+	rmd := NewRootMetadata(handle, id)
+
+	// only users with write permissions should be creating a new one
+	user, err := md.config.KBPKI().GetLoggedInUser()
+	if err != nil {
+		return nil, err
+	}
+	if !handle.IsWriter(user) {
+		dirstring := handle.ToString(md.config)
+		if u, err2 := md.config.KBPKI().GetUser(user); err2 == nil {
+			return nil, &WriteAccessError{u.GetName(), dirstring}
+		}
+		return nil, &WriteAccessError{user.String(), dirstring}
+	}
+
+	return &RootMetadataSigned{MD: *rmd}, nil
 }
 
-func (md *MDServerLocal) GetAtId(id DirId, mdId MDId) (
+// Get implements the MDServer interface for MDServerLocal.
+func (md *MDServerLocal) Get(id DirID) (*RootMetadataSigned, error) {
+	buf, err := md.idDb.Get(id[:], nil)
+	var mdID MdID
+	if err != leveldb.ErrNotFound {
+		copy(mdID[:], buf[:len(mdID)])
+		return md.GetAtID(id, mdID)
+	}
+	return nil, err
+}
+
+// GetAtID implements the MDServer interface for MDServerLocal.
+func (md *MDServerLocal) GetAtID(id DirID, mdID MdID) (
 	*RootMetadataSigned, error) {
-	buf, err := md.mdDb.Get(append(mdId[:], id[:]...), nil)
+	buf, err := md.mdDb.Get(append(mdID[:], id[:]...), nil)
 	if err != nil {
 		return nil, err
 	}
@@ -100,34 +102,37 @@ func (md *MDServerLocal) GetAtId(id DirId, mdId MDId) (
 	return &rmds, err
 }
 
-func (md *MDServerLocal) Put(id DirId, mdId MDId,
+// Put implements the MDServer interface for MDServerLocal.
+func (md *MDServerLocal) Put(id DirID, mdID MdID,
 	rmds *RootMetadataSigned) error {
-	if buf, err := md.config.Codec().Encode(rmds); err == nil {
-		// The dir ID points to the current MD block ID, and the
-		// dir ID + MD ID points to the buffer
-		mdIdBytes := mdId[:]
-		dirIdBytes := id[:]
-		handleBytes := rmds.MD.GetDirHandle().ToBytes(md.config)
-		err = md.mdDb.Put(append(mdIdBytes, dirIdBytes...), buf, nil)
-		if err != nil {
-			return err
-		}
-		err = md.idDb.Put(dirIdBytes, mdIdBytes, nil)
-		if err != nil {
-			return err
-		}
-		return md.handleDb.Put(handleBytes, dirIdBytes, nil)
-	} else {
+	buf, err := md.config.Codec().Encode(rmds)
+	if err != nil {
 		return err
 	}
+
+	// The dir ID points to the current MD block ID, and the
+	// dir ID + MD ID points to the buffer
+	mdIDBytes := mdID[:]
+	dirIDBytes := id[:]
+	handleBytes := rmds.MD.GetDirHandle().ToBytes(md.config)
+	err = md.mdDb.Put(append(mdIDBytes, dirIDBytes...), buf, nil)
+	if err != nil {
+		return err
+	}
+	err = md.idDb.Put(dirIDBytes, mdIDBytes, nil)
+	if err != nil {
+		return err
+	}
+	return md.handleDb.Put(handleBytes, dirIDBytes, nil)
 }
 
-func (md *MDServerLocal) GetFavorites() ([]DirId, error) {
+// GetFavorites implements the MDServer interface for MDServerLocal.
+func (md *MDServerLocal) GetFavorites() ([]DirID, error) {
 	iter := md.idDb.NewIterator(nil, nil)
-	output := make([]DirId, 0, 1)
+	output := make([]DirID, 0, 1)
 	for i := 0; iter.Next(); i++ {
 		key := iter.Key()
-		var id DirId
+		var id DirID
 		copy(id[:], key[:len(id)])
 		if !id.IsPublic() {
 			output = append(output, id)

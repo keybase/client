@@ -114,9 +114,9 @@ func (_m *MockKBFSOps) EXPECT() *_MockKBFSOpsRecorder {
 	return _m.recorder
 }
 
-func (_m *MockKBFSOps) GetFavDirs() ([]DirId, error) {
+func (_m *MockKBFSOps) GetFavDirs() ([]DirID, error) {
 	ret := _m.ctrl.Call(_m, "GetFavDirs")
-	ret0, _ := ret[0].([]DirId)
+	ret0, _ := ret[0].([]DirID)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -136,8 +136,8 @@ func (_mr *_MockKBFSOpsRecorder) GetRootMDForHandle(arg0 interface{}) *gomock.Ca
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "GetRootMDForHandle", arg0)
 }
 
-func (_m *MockKBFSOps) GetRootMD(dirId DirId) (*RootMetadata, error) {
-	ret := _m.ctrl.Call(_m, "GetRootMD", dirId)
+func (_m *MockKBFSOps) GetRootMD(dirID DirID) (*RootMetadata, error) {
+	ret := _m.ctrl.Call(_m, "GetRootMD", dirID)
 	ret0, _ := ret[0].(*RootMetadata)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
@@ -421,7 +421,7 @@ func (_mr *_MockKeyManagerRecorder) GetTLFCryptKey(arg0, arg1 interface{}) *gomo
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "GetTLFCryptKey", arg0, arg1)
 }
 
-func (_m *MockKeyManager) GetBlockCryptKey(dir Path, id BlockId, md *RootMetadata) (BlockCryptKey, error) {
+func (_m *MockKeyManager) GetBlockCryptKey(dir Path, id BlockID, md *RootMetadata) (BlockCryptKey, error) {
 	ret := _m.ctrl.Call(_m, "GetBlockCryptKey", dir, id, md)
 	ret0, _ := ret[0].(BlockCryptKey)
 	ret1, _ := ret[1].(error)
@@ -503,7 +503,7 @@ func (_m *MockMDCache) EXPECT() *_MockMDCacheRecorder {
 	return _m.recorder
 }
 
-func (_m *MockMDCache) Get(id MDId) (*RootMetadata, error) {
+func (_m *MockMDCache) Get(id MdID) (*RootMetadata, error) {
 	ret := _m.ctrl.Call(_m, "Get", id)
 	ret0, _ := ret[0].(*RootMetadata)
 	ret1, _ := ret[1].(error)
@@ -514,7 +514,7 @@ func (_mr *_MockMDCacheRecorder) Get(arg0 interface{}) *gomock.Call {
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "Get", arg0)
 }
 
-func (_m *MockMDCache) Put(id MDId, md *RootMetadata) error {
+func (_m *MockMDCache) Put(id MdID, md *RootMetadata) error {
 	ret := _m.ctrl.Call(_m, "Put", id, md)
 	ret0, _ := ret[0].(error)
 	return ret0
@@ -545,7 +545,7 @@ func (_m *MockKeyCache) EXPECT() *_MockKeyCacheRecorder {
 	return _m.recorder
 }
 
-func (_m *MockKeyCache) GetTLFCryptKey(_param0 DirId, _param1 KeyVer) (TLFCryptKey, error) {
+func (_m *MockKeyCache) GetTLFCryptKey(_param0 DirID, _param1 KeyVer) (TLFCryptKey, error) {
 	ret := _m.ctrl.Call(_m, "GetTLFCryptKey", _param0, _param1)
 	ret0, _ := ret[0].(TLFCryptKey)
 	ret1, _ := ret[1].(error)
@@ -556,7 +556,7 @@ func (_mr *_MockKeyCacheRecorder) GetTLFCryptKey(arg0, arg1 interface{}) *gomock
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "GetTLFCryptKey", arg0, arg1)
 }
 
-func (_m *MockKeyCache) PutTLFCryptKey(_param0 DirId, _param1 KeyVer, _param2 TLFCryptKey) error {
+func (_m *MockKeyCache) PutTLFCryptKey(_param0 DirID, _param1 KeyVer, _param2 TLFCryptKey) error {
 	ret := _m.ctrl.Call(_m, "PutTLFCryptKey", _param0, _param1, _param2)
 	ret0, _ := ret[0].(error)
 	return ret0
@@ -566,7 +566,7 @@ func (_mr *_MockKeyCacheRecorder) PutTLFCryptKey(arg0, arg1, arg2 interface{}) *
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "PutTLFCryptKey", arg0, arg1, arg2)
 }
 
-func (_m *MockKeyCache) GetBlockCryptKey(id BlockId) (BlockCryptKey, error) {
+func (_m *MockKeyCache) GetBlockCryptKey(id BlockID) (BlockCryptKey, error) {
 	ret := _m.ctrl.Call(_m, "GetBlockCryptKey", id)
 	ret0, _ := ret[0].(BlockCryptKey)
 	ret1, _ := ret[1].(error)
@@ -577,7 +577,7 @@ func (_mr *_MockKeyCacheRecorder) GetBlockCryptKey(arg0 interface{}) *gomock.Cal
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "GetBlockCryptKey", arg0)
 }
 
-func (_m *MockKeyCache) PutBlockCryptKey(id BlockId, key BlockCryptKey) error {
+func (_m *MockKeyCache) PutBlockCryptKey(id BlockID, key BlockCryptKey) error {
 	ret := _m.ctrl.Call(_m, "PutBlockCryptKey", id, key)
 	ret0, _ := ret[0].(error)
 	return ret0
@@ -608,7 +608,7 @@ func (_m *MockBlockCache) EXPECT() *_MockBlockCacheRecorder {
 	return _m.recorder
 }
 
-func (_m *MockBlockCache) Get(id BlockId) (Block, error) {
+func (_m *MockBlockCache) Get(id BlockID) (Block, error) {
 	ret := _m.ctrl.Call(_m, "Get", id)
 	ret0, _ := ret[0].(Block)
 	ret1, _ := ret[1].(error)
@@ -619,7 +619,7 @@ func (_mr *_MockBlockCacheRecorder) Get(arg0 interface{}) *gomock.Call {
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "Get", arg0)
 }
 
-func (_m *MockBlockCache) Put(id BlockId, block Block, dirty bool) error {
+func (_m *MockBlockCache) Put(id BlockID, block Block, dirty bool) error {
 	ret := _m.ctrl.Call(_m, "Put", id, block, dirty)
 	ret0, _ := ret[0].(error)
 	return ret0
@@ -629,7 +629,7 @@ func (_mr *_MockBlockCacheRecorder) Put(arg0, arg1, arg2 interface{}) *gomock.Ca
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "Put", arg0, arg1, arg2)
 }
 
-func (_m *MockBlockCache) Delete(id BlockId) error {
+func (_m *MockBlockCache) Delete(id BlockID) error {
 	ret := _m.ctrl.Call(_m, "Delete", id)
 	ret0, _ := ret[0].(error)
 	return ret0
@@ -639,8 +639,8 @@ func (_mr *_MockBlockCacheRecorder) Delete(arg0 interface{}) *gomock.Call {
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "Delete", arg0)
 }
 
-func (_m *MockBlockCache) Finalize(oldId BlockId, newId BlockId) error {
-	ret := _m.ctrl.Call(_m, "Finalize", oldId, newId)
+func (_m *MockBlockCache) Finalize(oldID BlockID, newID BlockID) error {
+	ret := _m.ctrl.Call(_m, "Finalize", oldID, newID)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
@@ -649,7 +649,7 @@ func (_mr *_MockBlockCacheRecorder) Finalize(arg0, arg1 interface{}) *gomock.Cal
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "Finalize", arg0, arg1)
 }
 
-func (_m *MockBlockCache) IsDirty(id BlockId) bool {
+func (_m *MockBlockCache) IsDirty(id BlockID) bool {
 	ret := _m.ctrl.Call(_m, "IsDirty", id)
 	ret0, _ := ret[0].(bool)
 	return ret0
@@ -680,15 +680,15 @@ func (_m *MockCrypto) EXPECT() *_MockCryptoRecorder {
 	return _m.recorder
 }
 
-func (_m *MockCrypto) MakeRandomBlockId() (BlockId, error) {
-	ret := _m.ctrl.Call(_m, "MakeRandomBlockId")
-	ret0, _ := ret[0].(BlockId)
+func (_m *MockCrypto) MakeRandomBlockID() (BlockID, error) {
+	ret := _m.ctrl.Call(_m, "MakeRandomBlockID")
+	ret0, _ := ret[0].(BlockID)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-func (_mr *_MockCryptoRecorder) MakeRandomBlockId() *gomock.Call {
-	return _mr.mock.ctrl.RecordCall(_mr.mock, "MakeRandomBlockId")
+func (_mr *_MockCryptoRecorder) MakeRandomBlockID() *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "MakeRandomBlockID")
 }
 
 func (_m *MockCrypto) MakeRandomTLFKeys() (TLFPublicKey, TLFPrivateKey, TLFEphemeralPublicKey, TLFEphemeralPrivateKey, TLFCryptKey, error) {
@@ -964,7 +964,7 @@ func (_mr *_MockMDOpsRecorder) GetAtHandle(arg0 interface{}) *gomock.Call {
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "GetAtHandle", arg0)
 }
 
-func (_m *MockMDOps) Get(id DirId) (*RootMetadata, error) {
+func (_m *MockMDOps) Get(id DirID) (*RootMetadata, error) {
 	ret := _m.ctrl.Call(_m, "Get", id)
 	ret0, _ := ret[0].(*RootMetadata)
 	ret1, _ := ret[1].(error)
@@ -975,18 +975,18 @@ func (_mr *_MockMDOpsRecorder) Get(arg0 interface{}) *gomock.Call {
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "Get", arg0)
 }
 
-func (_m *MockMDOps) GetAtId(id DirId, mdId MDId) (*RootMetadata, error) {
-	ret := _m.ctrl.Call(_m, "GetAtId", id, mdId)
+func (_m *MockMDOps) GetAtID(id DirID, mdID MdID) (*RootMetadata, error) {
+	ret := _m.ctrl.Call(_m, "GetAtID", id, mdID)
 	ret0, _ := ret[0].(*RootMetadata)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-func (_mr *_MockMDOpsRecorder) GetAtId(arg0, arg1 interface{}) *gomock.Call {
-	return _mr.mock.ctrl.RecordCall(_mr.mock, "GetAtId", arg0, arg1)
+func (_mr *_MockMDOpsRecorder) GetAtID(arg0, arg1 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "GetAtID", arg0, arg1)
 }
 
-func (_m *MockMDOps) Put(id DirId, md *RootMetadata) error {
+func (_m *MockMDOps) Put(id DirID, md *RootMetadata) error {
 	ret := _m.ctrl.Call(_m, "Put", id, md)
 	ret0, _ := ret[0].(error)
 	return ret0
@@ -996,9 +996,9 @@ func (_mr *_MockMDOpsRecorder) Put(arg0, arg1 interface{}) *gomock.Call {
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "Put", arg0, arg1)
 }
 
-func (_m *MockMDOps) GetFavorites() ([]DirId, error) {
+func (_m *MockMDOps) GetFavorites() ([]DirID, error) {
 	ret := _m.ctrl.Call(_m, "GetFavorites")
-	ret0, _ := ret[0].([]DirId)
+	ret0, _ := ret[0].([]DirID)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -1028,7 +1028,7 @@ func (_m *MockKeyOps) EXPECT() *_MockKeyOpsRecorder {
 	return _m.recorder
 }
 
-func (_m *MockKeyOps) GetBlockCryptKeyServerHalf(id BlockId) (BlockCryptKeyServerHalf, error) {
+func (_m *MockKeyOps) GetBlockCryptKeyServerHalf(id BlockID) (BlockCryptKeyServerHalf, error) {
 	ret := _m.ctrl.Call(_m, "GetBlockCryptKeyServerHalf", id)
 	ret0, _ := ret[0].(BlockCryptKeyServerHalf)
 	ret1, _ := ret[1].(error)
@@ -1039,7 +1039,7 @@ func (_mr *_MockKeyOpsRecorder) GetBlockCryptKeyServerHalf(arg0 interface{}) *go
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "GetBlockCryptKeyServerHalf", arg0)
 }
 
-func (_m *MockKeyOps) PutBlockCryptKeyServerHalf(id BlockId, serverHalf BlockCryptKeyServerHalf) error {
+func (_m *MockKeyOps) PutBlockCryptKeyServerHalf(id BlockID, serverHalf BlockCryptKeyServerHalf) error {
 	ret := _m.ctrl.Call(_m, "PutBlockCryptKeyServerHalf", id, serverHalf)
 	ret0, _ := ret[0].(error)
 	return ret0
@@ -1049,7 +1049,7 @@ func (_mr *_MockKeyOpsRecorder) PutBlockCryptKeyServerHalf(arg0, arg1 interface{
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "PutBlockCryptKeyServerHalf", arg0, arg1)
 }
 
-func (_m *MockKeyOps) DeleteBlockCryptKeyServerHalf(id BlockId) error {
+func (_m *MockKeyOps) DeleteBlockCryptKeyServerHalf(id BlockID) error {
 	ret := _m.ctrl.Call(_m, "DeleteBlockCryptKeyServerHalf", id)
 	ret0, _ := ret[0].(error)
 	return ret0
@@ -1059,7 +1059,7 @@ func (_mr *_MockKeyOpsRecorder) DeleteBlockCryptKeyServerHalf(arg0 interface{}) 
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "DeleteBlockCryptKeyServerHalf", arg0)
 }
 
-func (_m *MockKeyOps) GetTLFCryptKeyServerHalf(id DirId, keyVer KeyVer, cryptPublicKey CryptPublicKey) (TLFCryptKeyServerHalf, error) {
+func (_m *MockKeyOps) GetTLFCryptKeyServerHalf(id DirID, keyVer KeyVer, cryptPublicKey CryptPublicKey) (TLFCryptKeyServerHalf, error) {
 	ret := _m.ctrl.Call(_m, "GetTLFCryptKeyServerHalf", id, keyVer, cryptPublicKey)
 	ret0, _ := ret[0].(TLFCryptKeyServerHalf)
 	ret1, _ := ret[1].(error)
@@ -1070,7 +1070,7 @@ func (_mr *_MockKeyOpsRecorder) GetTLFCryptKeyServerHalf(arg0, arg1, arg2 interf
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "GetTLFCryptKeyServerHalf", arg0, arg1, arg2)
 }
 
-func (_m *MockKeyOps) PutTLFCryptKeyServerHalf(id DirId, keyVer KeyVer, user go0.UID, cryptPublicKey CryptPublicKey, serverHalf TLFCryptKeyServerHalf) error {
+func (_m *MockKeyOps) PutTLFCryptKeyServerHalf(id DirID, keyVer KeyVer, user go0.UID, cryptPublicKey CryptPublicKey, serverHalf TLFCryptKeyServerHalf) error {
 	ret := _m.ctrl.Call(_m, "PutTLFCryptKeyServerHalf", id, keyVer, user, cryptPublicKey, serverHalf)
 	ret0, _ := ret[0].(error)
 	return ret0
@@ -1112,7 +1112,7 @@ func (_m *MockBlockOps) EXPECT() *_MockBlockOpsRecorder {
 	return _m.recorder
 }
 
-func (_m *MockBlockOps) Get(id BlockId, context BlockContext, cryptKey BlockCryptKey, block Block) error {
+func (_m *MockBlockOps) Get(id BlockID, context BlockContext, cryptKey BlockCryptKey, block Block) error {
 	ret := _m.ctrl.Call(_m, "Get", id, context, cryptKey, block)
 	ret0, _ := ret[0].(error)
 	return ret0
@@ -1122,9 +1122,9 @@ func (_mr *_MockBlockOpsRecorder) Get(arg0, arg1, arg2, arg3 interface{}) *gomoc
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "Get", arg0, arg1, arg2, arg3)
 }
 
-func (_m *MockBlockOps) Ready(block Block, cryptKey BlockCryptKey) (BlockId, int, []byte, error) {
+func (_m *MockBlockOps) Ready(block Block, cryptKey BlockCryptKey) (BlockID, int, []byte, error) {
 	ret := _m.ctrl.Call(_m, "Ready", block, cryptKey)
-	ret0, _ := ret[0].(BlockId)
+	ret0, _ := ret[0].(BlockID)
 	ret1, _ := ret[1].(int)
 	ret2, _ := ret[2].([]byte)
 	ret3, _ := ret[3].(error)
@@ -1135,7 +1135,7 @@ func (_mr *_MockBlockOpsRecorder) Ready(arg0, arg1 interface{}) *gomock.Call {
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "Ready", arg0, arg1)
 }
 
-func (_m *MockBlockOps) Put(id BlockId, context BlockContext, buf []byte) error {
+func (_m *MockBlockOps) Put(id BlockID, context BlockContext, buf []byte) error {
 	ret := _m.ctrl.Call(_m, "Put", id, context, buf)
 	ret0, _ := ret[0].(error)
 	return ret0
@@ -1145,7 +1145,7 @@ func (_mr *_MockBlockOpsRecorder) Put(arg0, arg1, arg2 interface{}) *gomock.Call
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "Put", arg0, arg1, arg2)
 }
 
-func (_m *MockBlockOps) Delete(id BlockId, context BlockContext) error {
+func (_m *MockBlockOps) Delete(id BlockID, context BlockContext) error {
 	ret := _m.ctrl.Call(_m, "Delete", id, context)
 	ret0, _ := ret[0].(error)
 	return ret0
@@ -1187,7 +1187,7 @@ func (_mr *_MockMDServerRecorder) GetAtHandle(arg0 interface{}) *gomock.Call {
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "GetAtHandle", arg0)
 }
 
-func (_m *MockMDServer) Get(id DirId) (*RootMetadataSigned, error) {
+func (_m *MockMDServer) Get(id DirID) (*RootMetadataSigned, error) {
 	ret := _m.ctrl.Call(_m, "Get", id)
 	ret0, _ := ret[0].(*RootMetadataSigned)
 	ret1, _ := ret[1].(error)
@@ -1198,19 +1198,19 @@ func (_mr *_MockMDServerRecorder) Get(arg0 interface{}) *gomock.Call {
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "Get", arg0)
 }
 
-func (_m *MockMDServer) GetAtId(id DirId, mdId MDId) (*RootMetadataSigned, error) {
-	ret := _m.ctrl.Call(_m, "GetAtId", id, mdId)
+func (_m *MockMDServer) GetAtID(id DirID, mdID MdID) (*RootMetadataSigned, error) {
+	ret := _m.ctrl.Call(_m, "GetAtID", id, mdID)
 	ret0, _ := ret[0].(*RootMetadataSigned)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-func (_mr *_MockMDServerRecorder) GetAtId(arg0, arg1 interface{}) *gomock.Call {
-	return _mr.mock.ctrl.RecordCall(_mr.mock, "GetAtId", arg0, arg1)
+func (_mr *_MockMDServerRecorder) GetAtID(arg0, arg1 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "GetAtID", arg0, arg1)
 }
 
-func (_m *MockMDServer) Put(id DirId, mdId MDId, md *RootMetadataSigned) error {
-	ret := _m.ctrl.Call(_m, "Put", id, mdId, md)
+func (_m *MockMDServer) Put(id DirID, mdID MdID, md *RootMetadataSigned) error {
+	ret := _m.ctrl.Call(_m, "Put", id, mdID, md)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
@@ -1219,9 +1219,9 @@ func (_mr *_MockMDServerRecorder) Put(arg0, arg1, arg2 interface{}) *gomock.Call
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "Put", arg0, arg1, arg2)
 }
 
-func (_m *MockMDServer) GetFavorites() ([]DirId, error) {
+func (_m *MockMDServer) GetFavorites() ([]DirID, error) {
 	ret := _m.ctrl.Call(_m, "GetFavorites")
-	ret0, _ := ret[0].([]DirId)
+	ret0, _ := ret[0].([]DirID)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -1251,7 +1251,7 @@ func (_m *MockBlockServer) EXPECT() *_MockBlockServerRecorder {
 	return _m.recorder
 }
 
-func (_m *MockBlockServer) Get(id BlockId, context BlockContext) ([]byte, error) {
+func (_m *MockBlockServer) Get(id BlockID, context BlockContext) ([]byte, error) {
 	ret := _m.ctrl.Call(_m, "Get", id, context)
 	ret0, _ := ret[0].([]byte)
 	ret1, _ := ret[1].(error)
@@ -1262,7 +1262,7 @@ func (_mr *_MockBlockServerRecorder) Get(arg0, arg1 interface{}) *gomock.Call {
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "Get", arg0, arg1)
 }
 
-func (_m *MockBlockServer) Put(id BlockId, context BlockContext, buf []byte) error {
+func (_m *MockBlockServer) Put(id BlockID, context BlockContext, buf []byte) error {
 	ret := _m.ctrl.Call(_m, "Put", id, context, buf)
 	ret0, _ := ret[0].(error)
 	return ret0
@@ -1272,7 +1272,7 @@ func (_mr *_MockBlockServerRecorder) Put(arg0, arg1, arg2 interface{}) *gomock.C
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "Put", arg0, arg1, arg2)
 }
 
-func (_m *MockBlockServer) Delete(id BlockId, context BlockContext) error {
+func (_m *MockBlockServer) Delete(id BlockID, context BlockContext) error {
 	ret := _m.ctrl.Call(_m, "Delete", id, context)
 	ret0, _ := ret[0].(error)
 	return ret0
@@ -1362,7 +1362,7 @@ func (_mr *_MockObserverRecorder) LocalChange(arg0 interface{}) *gomock.Call {
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "LocalChange", arg0)
 }
 
-func (_m *MockObserver) BatchChanges(dir DirId, paths []Path) {
+func (_m *MockObserver) BatchChanges(dir DirID, paths []Path) {
 	_m.ctrl.Call(_m, "BatchChanges", dir, paths)
 }
 
@@ -1391,7 +1391,7 @@ func (_m *MockNotifier) EXPECT() *_MockNotifierRecorder {
 	return _m.recorder
 }
 
-func (_m *MockNotifier) RegisterForChanges(dirs []DirId, obs Observer) error {
+func (_m *MockNotifier) RegisterForChanges(dirs []DirID, obs Observer) error {
 	ret := _m.ctrl.Call(_m, "RegisterForChanges", dirs, obs)
 	ret0, _ := ret[0].(error)
 	return ret0
@@ -1401,7 +1401,7 @@ func (_mr *_MockNotifierRecorder) RegisterForChanges(arg0, arg1 interface{}) *go
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "RegisterForChanges", arg0, arg1)
 }
 
-func (_m *MockNotifier) UnregisterFromChanges(dirs []DirId, obs Observer) error {
+func (_m *MockNotifier) UnregisterFromChanges(dirs []DirID, obs Observer) error {
 	ret := _m.ctrl.Call(_m, "UnregisterFromChanges", dirs, obs)
 	ret0, _ := ret[0].(error)
 	return ret0

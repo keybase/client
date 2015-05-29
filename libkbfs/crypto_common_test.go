@@ -52,7 +52,7 @@ func TestCryptoClientVerifyFailures(t *testing.T) {
 	// Wrong version.
 
 	sigInfoWrongVersion := sigInfo.DeepCopy()
-	sigInfoWrongVersion.Version += 1
+	sigInfoWrongVersion.Version++
 	expectedErr = UnknownSigVer{sigInfoWrongVersion.Version}
 	err = c.Verify(msg, sigInfoWrongVersion)
 	if err != expectedErr {

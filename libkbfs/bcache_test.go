@@ -4,7 +4,7 @@ import (
 	"testing"
 )
 
-func testBcachePut(t *testing.T, id BlockId, bcache BlockCache, dirty bool) {
+func testBcachePut(t *testing.T, id BlockID, bcache BlockCache, dirty bool) {
 	block := NewFileBlock()
 
 	// put the block
@@ -25,7 +25,7 @@ func testBcachePut(t *testing.T, id BlockId, bcache BlockCache, dirty bool) {
 	}
 }
 
-func testExpectedMissing(t *testing.T, id BlockId, bcache BlockCache) {
+func testExpectedMissing(t *testing.T, id BlockID, bcache BlockCache) {
 	expectedErr := NoSuchBlockError{id}
 	if _, err := bcache.Get(id); err == nil {
 		t.Errorf("No expected error on 1st get: %v", err)
@@ -35,20 +35,20 @@ func testExpectedMissing(t *testing.T, id BlockId, bcache BlockCache) {
 }
 
 func TestBcachePut(t *testing.T) {
-	testBcachePut(t, BlockId{1}, NewBlockCacheStandard(100), false)
+	testBcachePut(t, BlockID{1}, NewBlockCacheStandard(100), false)
 }
 
 func TestBcachePutDirty(t *testing.T) {
-	testBcachePut(t, BlockId{1}, NewBlockCacheStandard(100), true)
+	testBcachePut(t, BlockID{1}, NewBlockCacheStandard(100), true)
 }
 
 func TestBcachePutPastCapacity(t *testing.T) {
 	bcache := NewBlockCacheStandard(2)
-	id1 := BlockId{1}
+	id1 := BlockID{1}
 	testBcachePut(t, id1, bcache, false)
-	id2 := BlockId{2}
+	id2 := BlockID{2}
 	testBcachePut(t, id2, bcache, false)
-	testBcachePut(t, BlockId{3}, bcache, false)
+	testBcachePut(t, BlockID{3}, bcache, false)
 
 	// now block 1 should have been kicked out
 	testExpectedMissing(t, id1, bcache)
@@ -59,10 +59,10 @@ func TestBcachePutPastCapacity(t *testing.T) {
 	}
 
 	// dirty blocks don't count
-	testBcachePut(t, BlockId{4}, bcache, true)
-	testBcachePut(t, BlockId{5}, bcache, true)
-	testBcachePut(t, BlockId{6}, bcache, true)
-	testBcachePut(t, BlockId{7}, bcache, true)
+	testBcachePut(t, BlockID{4}, bcache, true)
+	testBcachePut(t, BlockID{5}, bcache, true)
+	testBcachePut(t, BlockID{6}, bcache, true)
+	testBcachePut(t, BlockID{7}, bcache, true)
 
 	// 2 should still be there
 	if _, err := bcache.Get(id2); err != nil {
@@ -73,9 +73,9 @@ func TestBcachePutPastCapacity(t *testing.T) {
 func TestBcacheDelete(t *testing.T) {
 	bcache := NewBlockCacheStandard(100)
 
-	id1 := BlockId{1}
+	id1 := BlockID{1}
 	testBcachePut(t, id1, bcache, false)
-	id2 := BlockId{2}
+	id2 := BlockID{2}
 	testBcachePut(t, id2, bcache, false)
 
 	bcache.Delete(id1)
@@ -90,9 +90,9 @@ func TestBcacheDelete(t *testing.T) {
 func TestBcacheDeleteDirty(t *testing.T) {
 	bcache := NewBlockCacheStandard(100)
 
-	id1 := BlockId{1}
+	id1 := BlockID{1}
 	testBcachePut(t, id1, bcache, true)
-	id2 := BlockId{2}
+	id2 := BlockID{2}
 	testBcachePut(t, id2, bcache, false)
 
 	bcache.Delete(id1)
@@ -107,8 +107,8 @@ func TestBcacheDeleteDirty(t *testing.T) {
 func TestBcacheFinalize(t *testing.T) {
 	bcache := NewBlockCacheStandard(100)
 
-	id1 := BlockId{1}
-	id2 := BlockId{2}
+	id1 := BlockID{1}
+	id2 := BlockID{2}
 	testBcachePut(t, id1, bcache, true)
 
 	if err := bcache.Finalize(id1, id2); err != nil {

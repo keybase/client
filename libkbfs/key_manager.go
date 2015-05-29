@@ -5,13 +5,17 @@ import (
 	keybase1 "github.com/keybase/client/protocol/go"
 )
 
+// KeyManagerStandard implements the KeyManager interface by fetching
+// keys from KeyOps and KBPKI, and computing the complete keys
+// necessary to run KBFS.
 type KeyManagerStandard struct {
 	config Config
 }
 
+// GetTLFCryptKey implements the KeyManager interface for KeyManagerStandard.
 func (km *KeyManagerStandard) GetTLFCryptKey(dir Path, md *RootMetadata) (
 	tlfCryptKey TLFCryptKey, err error) {
-	if md.Id.IsPublic() {
+	if md.ID.IsPublic() {
 		// no key is needed, return an empty key
 		// TODO: This should be handled at a higher level,
 		// i.e. all the encryption/decryption code should be
@@ -36,7 +40,7 @@ func (km *KeyManagerStandard) GetTLFCryptKey(dir Path, md *RootMetadata) (
 
 	// look in the cache first
 	kcache := km.config.KeyCache()
-	if tlfCryptKey, err = kcache.GetTLFCryptKey(md.Id, keyVer); err == nil {
+	if tlfCryptKey, err = kcache.GetTLFCryptKey(md.ID, keyVer); err == nil {
 		return
 	}
 
@@ -69,7 +73,7 @@ func (km *KeyManagerStandard) GetTLFCryptKey(dir Path, md *RootMetadata) (
 	// now get the server-side key-half, do the unmasking, cache the result, return
 	// TODO: can parallelize the get() with decryption
 	kops := km.config.KeyOps()
-	serverHalf, err := kops.GetTLFCryptKeyServerHalf(md.Id, keyVer, currentCryptPublicKey)
+	serverHalf, err := kops.GetTLFCryptKeyServerHalf(md.ID, keyVer, currentCryptPublicKey)
 	if err != nil {
 		return
 	}
@@ -78,7 +82,7 @@ func (km *KeyManagerStandard) GetTLFCryptKey(dir Path, md *RootMetadata) (
 		return
 	}
 
-	if err = kcache.PutTLFCryptKey(md.Id, keyVer, tlfCryptKey); err != nil {
+	if err = kcache.PutTLFCryptKey(md.ID, keyVer, tlfCryptKey); err != nil {
 		tlfCryptKey = TLFCryptKey{}
 		return
 	}
@@ -86,9 +90,10 @@ func (km *KeyManagerStandard) GetTLFCryptKey(dir Path, md *RootMetadata) (
 	return
 }
 
+// GetBlockCryptKey implements the KeyManager interface for KeyManagerStandard.
 func (km *KeyManagerStandard) GetBlockCryptKey(
-	dir Path, id BlockId, md *RootMetadata) (blockCryptKey BlockCryptKey, err error) {
-	if md.Id.IsPublic() {
+	dir Path, id BlockID, md *RootMetadata) (blockCryptKey BlockCryptKey, err error) {
+	if md.ID.IsPublic() {
 		// no key is needed, return an empty key
 		// TODO: This should be handled at a higher level,
 		// i.e. all the encryption/decryption code should be
@@ -137,7 +142,7 @@ func (km *KeyManagerStandard) secretKeysForUser(md *RootMetadata, uid keybase1.U
 
 	uMap = make(map[libkb.KIDMapKey][]byte)
 
-	if md.Id.IsPublic() {
+	if md.ID.IsPublic() {
 		// no per-device keys for public directories
 		// TODO: Handle this at a higher level.
 		return
@@ -180,7 +185,7 @@ func (km *KeyManagerStandard) secretKeysForUser(md *RootMetadata, uid keybase1.U
 		}
 
 		if err = kops.PutTLFCryptKeyServerHalf(
-			md.Id, keyVer, uid, k, serverHalf); err != nil {
+			md.ID, keyVer, uid, k, serverHalf); err != nil {
 			return
 		}
 
@@ -190,8 +195,9 @@ func (km *KeyManagerStandard) secretKeysForUser(md *RootMetadata, uid keybase1.U
 	return
 }
 
+// Rekey implements the KeyManager interface for KeyManagerStandard.
 func (km *KeyManagerStandard) Rekey(md *RootMetadata) error {
-	if md.Id.IsPublic() && md.IsInitialized() {
+	if md.ID.IsPublic() && md.IsInitialized() {
 		// no rekey is needed for public directories
 		// TODO: Handle this at a higher level.
 		return nil
@@ -212,20 +218,18 @@ func (km *KeyManagerStandard) Rekey(md *RootMetadata) error {
 	}
 	// TODO: parallelize
 	for _, w := range handle.Writers {
-		if uMap, err := km.secretKeysForUser(
-			md, w, tlfCryptKey, ePrivKey); err != nil {
+		uMap, err := km.secretKeysForUser(md, w, tlfCryptKey, ePrivKey)
+		if err != nil {
 			return err
-		} else {
-			newKeys.WKeys[w] = uMap
 		}
+		newKeys.WKeys[w] = uMap
 	}
 	for _, r := range handle.Readers {
-		if uMap, err := km.secretKeysForUser(
-			md, r, tlfCryptKey, ePrivKey); err != nil {
+		uMap, err := km.secretKeysForUser(md, r, tlfCryptKey, ePrivKey)
+		if err != nil {
 			return err
-		} else {
-			newKeys.RKeys[r] = uMap
 		}
+		newKeys.RKeys[r] = uMap
 	}
 	md.AddNewKeys(newKeys)
 
@@ -234,5 +238,5 @@ func (km *KeyManagerStandard) Rekey(md *RootMetadata) error {
 	md.data.TLFPrivateKey = privKey
 
 	// Might as well cache the TLFCryptKey while we're at it.
-	return km.config.KeyCache().PutTLFCryptKey(md.Id, md.LatestKeyVersion(), tlfCryptKey)
+	return km.config.KeyCache().PutTLFCryptKey(md.ID, md.LatestKeyVersion(), tlfCryptKey)
 }

@@ -38,7 +38,7 @@ func expectUserCalls(handle *DirHandle, config *ConfigMock) {
 	}
 }
 
-func testMdcachePut(t *testing.T, id MDId, h *DirHandle, config *ConfigMock) {
+func testMdcachePut(t *testing.T, id MdID, h *DirHandle, config *ConfigMock) {
 	rmd := &RootMetadata{
 		Keys: make([]DirKeyBundle, 1, 1),
 	}
@@ -66,7 +66,7 @@ func TestMdcachePut(t *testing.T) {
 	_, h, _ := newDir(config, 1, true, false)
 	h.Writers = append(h.Writers, keybase1.MakeTestUID(0))
 
-	testMdcachePut(t, MDId{1}, h, config)
+	testMdcachePut(t, MdID{1}, h, config)
 }
 
 func TestMdcachePutPastCapacity(t *testing.T) {
@@ -74,15 +74,15 @@ func TestMdcachePutPastCapacity(t *testing.T) {
 	defer mdCacheShutdown(mockCtrl, config)
 
 	_, h0, _ := newDir(config, 1, true, false)
-	id0 := MDId{0}
+	id0 := MdID{0}
 	h0.Writers = append(h0.Writers, keybase1.MakeTestUID(0))
 
 	_, h1, _ := newDir(config, 2, true, false)
-	id1 := MDId{1}
+	id1 := MdID{1}
 	h1.Writers = append(h1.Writers, keybase1.MakeTestUID(1))
 
 	_, h2, _ := newDir(config, 3, true, false)
-	id2 := MDId{2}
+	id2 := MdID{2}
 	h2.Writers = append(h2.Writers, keybase1.MakeTestUID(2))
 
 	testMdcachePut(t, id0, h0, config)

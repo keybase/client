@@ -13,23 +13,33 @@ import (
 )
 
 const (
-	DIRID_LEN       = 16
-	DIRID_SUFFIX    = 0x16
-	PUBDIRID_SUFFIX = 0x17
+	// DirIDLen is the number of bytes in a top-level folder ID
+	DirIDLen = 16
+	// DirIDSuffix is the last byte of a private top-level folder ID
+	DirIDSuffix = 0x16
+	// PubDirIDSuffix is the last byte of a public top-level folder ID
+	PubDirIDSuffix = 0x17
 )
 
-type DirId [DIRID_LEN]byte
+// DirID is a top-level folder ID
+type DirID [DirIDLen]byte
 
-func (d DirId) String() string {
+// String implements the fmt.Stringer interface for DirID
+func (d DirID) String() string {
 	return hex.EncodeToString(d[:])
 }
 
-func (d DirId) IsPublic() bool {
-	return d[DIRID_LEN-1] == PUBDIRID_SUFFIX
+// IsPublic returns true if this DirID is for a public top-level folder
+func (d DirID) IsPublic() bool {
+	return d[DirIDLen-1] == PubDirIDSuffix
 }
 
-var ReaderSep string = "#"
-var PublicName string = "public"
+// ReaderSep is the string that separates readers from writers in a
+// DirHandle string representation.
+var ReaderSep = "#"
+
+// PublicName is the reserved name of a public top-level folder.
+var PublicName = "public"
 
 // All section references below are to https://keybase.io/blog/crypto
 // (version 1.3).
@@ -50,24 +60,30 @@ type VerifyingKey struct {
 	KID libkb.KID
 }
 
+// IsNil returns true if the VerifyingKey is nil.
 func (k VerifyingKey) IsNil() bool {
 	return len(k.KID) == 0
 }
 
+// DeepCopy makes a copy of the VerifyingKey.
 func (k VerifyingKey) DeepCopy() VerifyingKey {
 	return VerifyingKey{k.KID[:]}
 }
 
+// String imlpements the fmt.Stringer interface for VerifyingKey.
 func (k VerifyingKey) String() string {
 	return k.KID.String()
 }
 
+// SigVer denotes a signature version.
 type SigVer int
 
 const (
+	// SigED25519 is the signature type for ED25519
 	SigED25519 SigVer = 1
 )
 
+// IsNil returns true if this SigVer is nil.
 func (v SigVer) IsNil() bool {
 	return int(v) == 0
 }
@@ -80,110 +96,131 @@ type SignatureInfo struct {
 	VerifyingKey VerifyingKey
 }
 
+// IsNil returns true if this SignatureInfo is nil.
 func (s SignatureInfo) IsNil() bool {
 	return s.Version.IsNil() && len(s.Signature) == 0 && s.VerifyingKey.IsNil()
 }
 
+// DeepCopy makes a comlete copy of this SignatureInfo.
 func (s SignatureInfo) DeepCopy() SignatureInfo {
 	signature := make([]byte, len(s.Signature))
 	copy(signature[:], s.Signature[:])
 	return SignatureInfo{s.Version, signature, s.VerifyingKey.DeepCopy()}
 }
 
+// String implements the fmt.Stringer interface for SignatureInfo.
 func (s SignatureInfo) String() string {
-	return fmt.Sprintf("SignatureInfo{Version: %d, Signature: %s, VerifyingKey: %s}", s.Version, hex.EncodeToString(s.Signature[:]), &s.VerifyingKey)
+	return fmt.Sprintf("SignatureInfo{Version: %d, Signature: %s, "+
+		"VerifyingKey: %s}", s.Version, hex.EncodeToString(s.Signature[:]),
+		&s.VerifyingKey)
 }
 
-// A TLFPrivateKey-TLFPublicKey pair (M_f, m_f) is the permanent
-// keypair associated with a TLF. It is included in the site-wide
-// private-data Merkle tree. (See 4.1.1, 5.3.)
-
+// A TLFPrivateKey (m_f) is the private half of the permanent
+// keypair associated with a TLF. (See 4.1.1, 5.3.)
 type TLFPrivateKey struct {
 }
 
+// DeepCopy makes a complete copy of the TLFPrivateKey
 func (tpk TLFPrivateKey) DeepCopy() TLFPrivateKey {
 	return tpk
 }
 
+// A TLFPublicKey (M_f) is the public half of the permanent keypair
+// associated with a TLF. It is included in the site-wide private-data
+// Merkle tree. (See 4.1.1, 5.3.)
 type TLFPublicKey struct {
 }
 
+// DeepCopy makes a complete copy of the TLFPublicKey
 func (tpk TLFPublicKey) DeepCopy() TLFPublicKey {
 	return tpk
 }
 
-// A TLFEphemeralPrivateKey (m_e) and a CryptPublicKey (M_u^i) are
-// both used to encrypt TLFCryptKeyClientHalf objects (t_u^{f,0,i})
-// for non-public directories. (See 4.1.1.)
-
+// TLFEphemeralPrivateKey (m_e) is used (with a CryptPublicKey) to
+// encrypt TLFCryptKeyClientHalf objects (t_u^{f,0,i}) for non-public
+// directories. (See 4.1.1.)
 type TLFEphemeralPrivateKey struct {
 }
 
-// These are also sometimes known as subkeys.
+// CryptPublicKey (M_u^i) is used (with a TLFEphemeralPrivateKey) to
+// encrypt TLFCryptKeyClientHalf objects (t_u^{f,0,i}) for non-public
+// directories. (See 4.1.1.)  These are also sometimes known as
+// subkeys.
 type CryptPublicKey struct {
 	KID libkb.KID
 }
 
-// A TLFEphemeralPublicKey (M_e) is used along with a crypt private
-// key to decrypt TLFCryptKeyClientHalf objects (t_u^{f,0,i}) for
+// TLFEphemeralPublicKey (M_e) is used along with a crypt private key
+// to decrypt TLFCryptKeyClientHalf objects (t_u^{f,0,i}) for
 // non-public directories. (See 4.1.1.)
-
 type TLFEphemeralPublicKey struct {
 }
 
+// DeepCopy makes a complete copy of a TLFEphemeralPublicKey.
 func (tepk TLFEphemeralPublicKey) DeepCopy() TLFEphemeralPublicKey {
 	return tepk
 }
 
-// A TLFCryptKeyServerHalf (s_u^{f,0,i}) and a TLFCryptKeyClientHalf
-// (t_u^{f,0,i}) are both masked versions of a TLFCryptKey, which can
-// be recovered only with both halves. (See 4.1.1.)
-
+// TLFCryptKeyServerHalf (s_u^{f,0,i}) is the masked, server-side half
+// of a TLFCryptKey, which can be recovered only with both
+// halves. (See 4.1.1.)
 type TLFCryptKeyServerHalf struct {
 }
 
+// TLFCryptKeyClientHalf (t_u^{f,0,i}) is the masked, client-side half
+// of a TLFCryptKey, which can be recovered only with both
+// halves. (See 4.1.1.)
 type TLFCryptKeyClientHalf struct {
 }
 
-// A TLFCryptKey (s^{f,0}) is used to encrypt/decrypt the private
+// TLFCryptKey (s^{f,0}) is used to encrypt/decrypt the private
 // portion of TLF metadata. It is also used to mask
 // BlockCryptKeys. (See 4.1.1, 4.1.2.)
 type TLFCryptKey struct {
 }
 
-// A BlockCryptKeyServerHalf is a masked version of a BlockCryptKey,
+// BlockCryptKeyServerHalf is a masked version of a BlockCryptKey,
 // which can be recovered only with the TLFCryptKey used to mask the
 // server half. (Note: this will be changed to match 4.1.2).
 type BlockCryptKeyServerHalf struct {
 }
 
-// A BlockCryptKey is used to encrypt/decrypt block data. (See 4.1.2.)
+// BlockCryptKey is used to encrypt/decrypt block data. (See 4.1.2.)
 type BlockCryptKey struct {
 }
 
-// A MacPublicKey (along with a private key) is used to compute and
+// MacPublicKey (along with a private key) is used to compute and
 // verify MACs. (See 4.1.3.)
 type MacPublicKey struct {
 }
 
+// MAC is a buffer representing the MAC of some data.
 type MAC []byte
 
-// type of hash key for each data block
-type BlockId libkb.NodeHashShort
+// BlockID is the type of hash key for each data block
+type BlockID libkb.NodeHashShort
 
-var NullBlockId BlockId = BlockId{0}
+// NullBlockID is an empty block ID.
+var NullBlockID = BlockID{0}
 
-// type of hash key for each metadata block
-type MDId libkb.NodeHashShort
+// MdID is the type of hash key for each metadata block
+type MdID libkb.NodeHashShort
 
-var NullMDId MDId = MDId{0}
-var NullDirId DirId = DirId{0}
+// NullMdID is an empty MdID
+var NullMdID = MdID{0}
 
+// NullDirID is an empty DirID
+var NullDirID = DirID{0}
+
+// KeyVer is the type of a key version for a top-level folder.
 type KeyVer int
+
+// Ver is the type of a data version marshalled by KBFS.
 type Ver int
 
+// BlockPointer is the ID and BlockContext representing a block in KBFS.
 type BlockPointer struct {
-	Id     BlockId
+	ID     BlockID
 	KeyVer KeyVer // which version of the DirKeyBundle to use
 	Ver    Ver    // which version of the KBFS data structures is pointed to
 	Writer keybase1.UID
@@ -193,24 +230,29 @@ type BlockPointer struct {
 	QuotaSize uint32
 }
 
+// GetKeyVer implements the BlockContext interface for BlockPointer.
 func (p BlockPointer) GetKeyVer() KeyVer {
 	return p.KeyVer
 }
 
+// GetVer implements the BlockContext interface for BlockPointer.
 func (p BlockPointer) GetVer() Ver {
 	return p.Ver
 }
 
+// GetWriter implements the BlockContext interface for BlockPointer.
 func (p BlockPointer) GetWriter() keybase1.UID {
 	return p.Writer
 }
 
+// GetQuotaSize implements the BlockContext interface for BlockPointer.
 func (p BlockPointer) GetQuotaSize() uint32 {
 	return p.QuotaSize
 }
 
+// IsInitialized returns whether or not this BlockPointer has non-nil data.
 func (p BlockPointer) IsInitialized() bool {
-	return p.Id != NullBlockId
+	return p.ID != NullBlockID
 }
 
 // DirHandle uniquely identifies top-level directories by readers and
@@ -223,6 +265,7 @@ type DirHandle struct {
 	cacheMutex  sync.Mutex // control access to the "cached" values
 }
 
+// NewDirHandle constructs a new, blank DirHandle.
 func NewDirHandle() *DirHandle {
 	return &DirHandle{
 		Readers: make([]keybase1.UID, 0, 1),
@@ -230,7 +273,8 @@ func NewDirHandle() *DirHandle {
 	}
 }
 
-func resolveUser(ctx context.Context, config Config, name string, errCh chan<- error, results chan<- keybase1.UID) {
+func resolveUser(ctx context.Context, config Config, name string,
+	errCh chan<- error, results chan<- keybase1.UID) {
 	// TODO ResolveAssertion should take ctx
 	user, err := config.KBPKI().ResolveAssertion(name)
 	if err != nil {
@@ -268,7 +312,8 @@ func sortUIDS(m map[keybase1.UID]struct{}) []keybase1.UID {
 
 // ParseDirHandle parses a DirHandle from an encoded string. See
 // ToString for the opposite direction.
-func ParseDirHandle(ctx context.Context, config Config, name string) (*DirHandle, error) {
+func ParseDirHandle(ctx context.Context, config Config, name string) (
+	*DirHandle, error) {
 	splitNames := strings.SplitN(name, ReaderSep, 3)
 	if len(splitNames) > 2 {
 		return nil, &BadPathError{name}
@@ -316,19 +361,26 @@ func ParseDirHandle(ctx context.Context, config Config, name string) (*DirHandle
 	return d, nil
 }
 
+// IsPublic returns whether or not this DirHandle represents a public
+// top-level folder.
 func (d *DirHandle) IsPublic() bool {
 	return len(d.Readers) == 1 && d.Readers[0].Equal(keybase1.PublicUID)
 }
 
+// IsPrivateShare returns whether or not this DirHandle represents a
+// private share (some non-public directory with more than one writer).
 func (d *DirHandle) IsPrivateShare() bool {
 	return !d.IsPublic() && len(d.Writers) > 1
 }
 
+// HasPublic represents whether this top-level folder should have a
+// corresponding public top-level folder.
 func (d *DirHandle) HasPublic() bool {
 	return len(d.Readers) == 0
 }
 
-func (d *DirHandle) findUserInList(user keybase1.UID, users []keybase1.UID) bool {
+func (d *DirHandle) findUserInList(user keybase1.UID,
+	users []keybase1.UID) bool {
 	// TODO: this could be more efficient with a cached map/set
 	for _, u := range users {
 		if u == user {
@@ -338,10 +390,14 @@ func (d *DirHandle) findUserInList(user keybase1.UID, users []keybase1.UID) bool
 	return false
 }
 
+// IsWriter returns whether or not the given user is a writer for the
+// top-level folder represented by this DirHandle.
 func (d *DirHandle) IsWriter(user keybase1.UID) bool {
 	return d.findUserInList(user, d.Writers)
 }
 
+// IsReader returns whether or not the given user is a reader for the
+// top-level folder represented by this DirHandle.
 func (d *DirHandle) IsReader(user keybase1.UID) bool {
 	return d.IsPublic() || d.findUserInList(user, d.Readers) || d.IsWriter(user)
 }
@@ -364,6 +420,7 @@ func resolveUids(config Config, uids []keybase1.UID) string {
 	return strings.Join(names, ",")
 }
 
+// ToString returns a string representation of this DirHandle
 func (d *DirHandle) ToString(config Config) string {
 	d.cacheMutex.Lock()
 	defer d.cacheMutex.Unlock()
@@ -384,6 +441,7 @@ func (d *DirHandle) ToString(config Config) string {
 	return d.cachedName
 }
 
+// ToBytes marshals this DirHandle.
 func (d *DirHandle) ToBytes(config Config) (out []byte) {
 	d.cacheMutex.Lock()
 	defer d.cacheMutex.Unlock()
@@ -398,27 +456,31 @@ func (d *DirHandle) ToBytes(config Config) (out []byte) {
 	return
 }
 
-// PathNode is a single node along an FS path
+// PathNode is a single node along an KBFS path, pointing to the top
+// block for that node of the path.
 type PathNode struct {
 	BlockPointer
 	Name string
 }
 
-// Path shows the FS path to a particular location, so that a flush
-// can traverse backwards and fix up ids along the way
+// Path represents the full KBFS path to a particular location, so
+// that a flush can traverse backwards and fix up ids along the way.
 type Path struct {
-	TopDir DirId
+	TopDir DirID
 	Path   []PathNode
 }
 
-func (p *Path) TailName() string {
+// TailName returns the name of the final node in the Path.
+func (p Path) TailName() string {
 	return p.Path[len(p.Path)-1].Name
 }
 
-func (p *Path) TailPointer() BlockPointer {
+// TailPointer returns the BlockPointer of the final node in the Path.
+func (p Path) TailPointer() BlockPointer {
 	return p.Path[len(p.Path)-1].BlockPointer
 }
 
+// String implements the fmt.Stringer interface for Path.
 func (p Path) String() string {
 	names := make([]string, 0, len(p.Path))
 	for _, node := range p.Path {
@@ -427,18 +489,27 @@ func (p Path) String() string {
 	return strings.Join(names, "/")
 }
 
-func (p *Path) ParentPath() *Path {
+// ParentPath returns a new Path representing the parent subdirectory
+// of this Path.  Should not be called with a path of length 1.
+func (p Path) ParentPath() *Path {
 	return &Path{TopDir: p.TopDir, Path: p.Path[:len(p.Path)-1]}
 }
 
-func (p *Path) ChildPathNoPtr(name string) *Path {
-	child := &Path{p.TopDir, make([]PathNode, len(p.Path), len(p.Path)+1)}
+// ChildPathNoPtr returns a new Path with the addition of a new entry
+// with the given name.  That final PathNode will have no BlockPointer.
+func (p Path) ChildPathNoPtr(name string) *Path {
+	child := &Path{
+		TopDir: p.TopDir,
+		Path:   make([]PathNode, len(p.Path), len(p.Path)+1),
+	}
 	copy(child.Path, p.Path)
 	child.Path = append(child.Path, PathNode{Name: name})
 	return child
 }
 
-func (p *Path) HasPublic() bool {
+// HasPublic returns whether or not this is a top-level folder that
+// should have a "public" subdirectory.
+func (p Path) HasPublic() bool {
 	// This directory has a corresponding public subdirectory if the
 	// path has only one node and the top-level directory is not
 	// already public TODO: Ideally, we'd also check if there are no
@@ -459,6 +530,8 @@ type RootMetadataSigned struct {
 	MD RootMetadata
 }
 
+// IsInitialized returns whether or not this RootMetadataSigned object
+// has been finalized by some writer.
 func (rmds *RootMetadataSigned) IsInitialized() bool {
 	// The data is only if there is some sort of signature
 	return !rmds.SigInfo.IsNil() || len(rmds.Macs) > 0
@@ -486,6 +559,7 @@ type DirKeyBundle struct {
 	TLFEphemeralPublicKey TLFEphemeralPublicKey `codec:"ePubKey"`
 }
 
+// DeepCopy returns a complete copy of this DirKeyBundle.
 func (dkb DirKeyBundle) DeepCopy() DirKeyBundle {
 	newDkb := dkb
 	newDkb.WKeys = make(map[keybase1.UID]map[libkb.KIDMapKey][]byte)
@@ -507,7 +581,7 @@ func (dkb DirKeyBundle) DeepCopy() DirKeyBundle {
 	return newDkb
 }
 
-// RootMetadata is the MD that is signed by the writer
+// RootMetadata is the MD that is signed by the writer.
 type RootMetadata struct {
 	// Serialized, possibly encrypted, version of the PrivateMetadata
 	SerializedPrivateMetadata []byte `codec:"data"`
@@ -515,9 +589,9 @@ type RootMetadata struct {
 	// the array.
 	Keys []DirKeyBundle
 	// Pointer to the previous root block ID
-	PrevRoot MDId
+	PrevRoot MdID
 	// The directory ID, signed over to make verification easier
-	Id DirId
+	ID DirID
 
 	// The total number of bytes in new blocks
 	RefBytes uint64
@@ -529,7 +603,7 @@ type RootMetadata struct {
 	// A cached copy of the directory handle calculated for this MD.
 	cachedDirHandle *DirHandle
 	// The cached ID for this MD structure (hash)
-	mdId MDId
+	mdID MdID
 }
 
 // BlockChangeNode tracks the blocks that have changed at a particular
@@ -540,6 +614,7 @@ type BlockChangeNode struct {
 	Children map[string]*BlockChangeNode `codec:"c,omitempty"`
 }
 
+// NewBlockChangeNode constructs a new, empty BlockChangeNode.
 func NewBlockChangeNode() *BlockChangeNode {
 	return &BlockChangeNode{
 		nil,
@@ -547,6 +622,8 @@ func NewBlockChangeNode() *BlockChangeNode {
 	}
 }
 
+// AddBlock recursively adds the specified block to this
+// BlockChangeNode, under the right path.
 func (bcn *BlockChangeNode) AddBlock(path Path, index int, ptr BlockPointer) {
 	if index == len(path.Path)-1 {
 		bcn.Blocks = append(bcn.Blocks, ptr)
@@ -575,6 +652,8 @@ type BlockChanges struct {
 	sizeEstimate uint64
 }
 
+// AddBlock adds the specified block to this BlockChanges and updates
+// the size estimate.
 func (bc *BlockChanges) AddBlock(path Path, ptr BlockPointer) {
 	bc.Changes.AddBlock(path, 0, ptr)
 	// estimate size of BlockPointer as 2 UIDs and 3 64-bit ints
@@ -601,10 +680,12 @@ type PrivateMetadata struct {
 	UnrefBlocks BlockChanges
 }
 
-func NewRootMetadata(d *DirHandle, id DirId) *RootMetadata {
+// NewRootMetadata constructs a new RootMetadata object with the given
+// handle and ID.
+func NewRootMetadata(d *DirHandle, id DirID) *RootMetadata {
 	md := RootMetadata{
 		Keys: make([]DirKeyBundle, 0, 1),
-		Id:   id,
+		ID:   id,
 		data: PrivateMetadata{
 			RefBlocks: BlockChanges{
 				Changes: NewBlockChangeNode(),
@@ -621,10 +702,13 @@ func NewRootMetadata(d *DirHandle, id DirId) *RootMetadata {
 	return &md
 }
 
-func (md *RootMetadata) Data() *PrivateMetadata {
+// Data returns the private metadata of this RootMetadata.
+func (md RootMetadata) Data() *PrivateMetadata {
 	return &md.data
 }
 
+// DeepCopy returns a complete copy of this RootMetadata (but with
+// cleared block change lists and cleared serialized metadata).
 func (md RootMetadata) DeepCopy() RootMetadata {
 	newMd := md
 	// no need to copy the serialized metadata, if it exists
@@ -633,14 +717,16 @@ func (md RootMetadata) DeepCopy() RootMetadata {
 		newMd.Keys[i] = k.DeepCopy()
 	}
 	newMd.ClearBlockChanges()
-	newMd.ClearMetadataId()
+	newMd.ClearMetadataID()
 	// no need to deep copy the full data since we just cleared the
 	// block changes.
 	newMd.data.TLFPrivateKey = md.data.TLFPrivateKey.DeepCopy()
 	return newMd
 }
 
-func (md *RootMetadata) GetEncryptedTLFCryptKeyClientHalfData(
+// GetEncryptedTLFCryptKeyClientHalfData returns the encrypted buffer
+// of the given user's client key half for this top-level folder.
+func (md RootMetadata) GetEncryptedTLFCryptKeyClientHalfData(
 	keyVer KeyVer, user keybase1.UID, currentCryptPublicKey CryptPublicKey) (
 	buf []byte, ok bool) {
 	key := currentCryptPublicKey.KID.ToMapKey()
@@ -652,33 +738,42 @@ func (md *RootMetadata) GetEncryptedTLFCryptKeyClientHalfData(
 	return
 }
 
-func (md *RootMetadata) GetTLFEphemeralPublicKey(keyVer KeyVer) TLFEphemeralPublicKey {
+// GetTLFEphemeralPublicKey returns the ephemeral public key for this
+// top-level folder.
+func (md RootMetadata) GetTLFEphemeralPublicKey(
+	keyVer KeyVer) TLFEphemeralPublicKey {
 	return md.Keys[keyVer].TLFEphemeralPublicKey
 }
 
-func (md *RootMetadata) LatestKeyVersion() KeyVer {
+// LatestKeyVersion returns the newest key version for this RootMetadata.
+func (md RootMetadata) LatestKeyVersion() KeyVer {
 	return KeyVer(len(md.Keys) - 1)
 }
 
+// AddNewKeys makes a new key version for this RootMetadata using the
+// given DirKeyBundle.
 func (md *RootMetadata) AddNewKeys(keys DirKeyBundle) {
 	md.Keys = append(md.Keys, keys)
 }
 
+// GetDirHandle computes and returns the DirHandle for this
+// RootMetadata, caching it in the process.
 func (md *RootMetadata) GetDirHandle() *DirHandle {
 	if md.cachedDirHandle != nil {
 		return md.cachedDirHandle
 	}
 
 	h := &DirHandle{}
-	keyId := md.LatestKeyVersion()
-	for w, _ := range md.Keys[keyId].WKeys {
+	keyID := md.LatestKeyVersion()
+	for w := range md.Keys[keyID].WKeys {
 		h.Writers = append(h.Writers, w)
 	}
-	if md.Id.IsPublic() {
+	if md.ID.IsPublic() {
 		h.Readers = append(h.Readers, keybase1.PublicUID)
 	} else {
-		for r, _ := range md.Keys[keyId].RKeys {
-			if _, ok := md.Keys[keyId].WKeys[r]; !ok && r != keybase1.PublicUID {
+		for r := range md.Keys[keyID].RKeys {
+			if _, ok := md.Keys[keyID].WKeys[r]; !ok &&
+				r != keybase1.PublicUID {
 				h.Readers = append(h.Readers, r)
 			}
 		}
@@ -689,36 +784,46 @@ func (md *RootMetadata) GetDirHandle() *DirHandle {
 	return h
 }
 
-func (md *RootMetadata) IsInitialized() bool {
+// IsInitialized returns whether or not this RootMetadata has been initialized
+func (md RootMetadata) IsInitialized() bool {
 	// The data is only initialized once we have at least one set of keys
 	return md.LatestKeyVersion() >= 0
 }
 
-func (md *RootMetadata) MetadataId(config Config) (MDId, error) {
-	if md.mdId != NullMDId {
-		return md.mdId, nil
+// MetadataID computes and caches the MdID for this RootMetadata
+func (md *RootMetadata) MetadataID(config Config) (MdID, error) {
+	if md.mdID != NullMdID {
+		return md.mdID, nil
 	}
-	if buf, err := config.Codec().Encode(md); err != nil {
-		return NullMDId, err
-	} else if h, err := config.Crypto().Hash(buf); err != nil {
-		return NullMDId, err
-	} else if nhs, ok := h.(libkb.NodeHashShort); !ok {
-		return NullMDId, &BadCryptoMDError{md.Id}
-	} else {
-		md.mdId = MDId(nhs)
-		return md.mdId, nil
+	buf, err := config.Codec().Encode(md)
+	if err != nil {
+		return NullMdID, err
 	}
+	h, err := config.Crypto().Hash(buf)
+	if err != nil {
+		return NullMdID, err
+	}
+	nhs, ok := h.(libkb.NodeHashShort)
+	if !ok {
+		return NullMdID, &BadCryptoMDError{md.ID}
+	}
+	md.mdID = MdID(nhs)
+	return md.mdID, nil
 }
 
-func (md *RootMetadata) ClearMetadataId() {
-	md.mdId = NullMDId
+// ClearMetadataID forgets the cached version of the RootMetadata's MdID
+func (md *RootMetadata) ClearMetadataID() {
+	md.mdID = NullMdID
 }
 
+// AddRefBlock adds the specified block to the add block change list.
 func (md *RootMetadata) AddRefBlock(path Path, ptr BlockPointer) {
 	md.RefBytes += uint64(ptr.QuotaSize)
 	md.data.RefBlocks.AddBlock(path, ptr)
 }
 
+// AddUnrefBlock adds the specified block to the add block change list
+// (if it is a block of non-zero size).
 func (md *RootMetadata) AddUnrefBlock(path Path, ptr BlockPointer) {
 	if ptr.QuotaSize > 0 {
 		md.UnrefBytes += uint64(ptr.QuotaSize)
@@ -726,6 +831,8 @@ func (md *RootMetadata) AddUnrefBlock(path Path, ptr BlockPointer) {
 	}
 }
 
+// ClearBlockChanges resets the block change lists to empty for this
+// RootMetadata.
 func (md *RootMetadata) ClearBlockChanges() {
 	md.RefBytes = 0
 	md.UnrefBytes = 0
@@ -735,15 +842,21 @@ func (md *RootMetadata) ClearBlockChanges() {
 	md.data.UnrefBlocks.Changes = NewBlockChangeNode()
 }
 
+// EntryType is the type of a directory entry.
 type EntryType int
 
 const (
-	File EntryType = iota // A regular file.
-	Exec           = iota // An executable file.
-	Dir            = iota // A directory.
-	Sym            = iota // A symbolic link.
+	// File is a regular file.
+	File EntryType = iota
+	// Exec is an executable file.
+	Exec = iota
+	// Dir is a directory.
+	Dir = iota
+	// Sym is a symbolic link.
+	Sym = iota
 )
 
+// String implements the fmt.Stringer interface for EntryType
 func (et EntryType) String() string {
 	switch et {
 	case File:
@@ -768,6 +881,7 @@ type DirEntry struct {
 	Ctime   int64
 }
 
+// IsInitialized returns true if this DirEntry has been initialized.
 func (de *DirEntry) IsInitialized() bool {
 	return de.BlockPointer.IsInitialized()
 }
@@ -775,7 +889,8 @@ func (de *DirEntry) IsInitialized() bool {
 // IndirectDirPtr pairs an indirect dir block with the start of that
 // block's range of directory entries (inclusive)
 type IndirectDirPtr struct {
-	// TODO: Make sure that the block is not dirty when the QuotaSize field is non-zero.
+	// TODO: Make sure that the block is not dirty when the QuotaSize
+	// field is non-zero.
 	BlockPointer
 	Off string
 }
@@ -788,6 +903,8 @@ type IndirectFilePtr struct {
 	Off int64
 }
 
+// CommonBlock holds block data that is common for both subdirectories
+// and files.
 type CommonBlock struct {
 	// is this block so big it requires indirect pointers?
 	IsInd bool
@@ -808,6 +925,7 @@ type DirBlock struct {
 	Padding []byte
 }
 
+// NewDirBlock creates a new, empty DirBlock.
 func NewDirBlock() Block {
 	return &DirBlock{
 		Children: make(map[string]DirEntry),
@@ -824,6 +942,7 @@ type FileBlock struct {
 	Padding []byte
 }
 
+// NewFileBlock creates a new, empty FileBlock.
 func NewFileBlock() Block {
 	return &FileBlock{
 		Contents: make([]byte, 0, 0),

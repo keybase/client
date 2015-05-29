@@ -1,10 +1,14 @@
 package libkbfs
 
+// BlockSplitterSimple implements the BlockSplitter interface by using
+// a simple max-size algorithm to determine when to split blocks.
 type BlockSplitterSimple struct {
 	maxSize                 int64
 	blockChangeEmbedMaxSize uint64
 }
 
+// CopyUntilSplit implements the BlockSplitter interface for
+// BlockSplitterSimple.
 func (b *BlockSplitterSimple) CopyUntilSplit(
 	block *FileBlock, lastBlock bool, data []byte, off int64) int64 {
 	n := int64(len(data))
@@ -39,11 +43,15 @@ func (b *BlockSplitterSimple) CopyUntilSplit(
 	return toCopy
 }
 
+// CheckSplit implements the BlockSplitter interface for
+// BlockSplitterSimple.
 func (b *BlockSplitterSimple) CheckSplit(block *FileBlock) int64 {
 	// The split will always be right
 	return 0
 }
 
+// ShouldEmbedBlockChanges implements the BlockSplitter interface for
+// BlockSplitterSimple.
 func (b *BlockSplitterSimple) ShouldEmbedBlockChanges(
 	bc *BlockChanges) bool {
 	return bc.sizeEstimate <= b.blockChangeEmbedMaxSize

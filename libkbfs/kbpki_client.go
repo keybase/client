@@ -49,7 +49,7 @@ func newKBPKIClientWithClient(ctx *libkb.GlobalContext, client keybase1.GenericC
 	return &KBPKIClient{ctx, client}
 }
 
-// ResolveAssertion finds a user via assertion.
+// ResolveAssertion implements the KBPKI interface for KBPKIClient.
 func (k *KBPKIClient) ResolveAssertion(username string) (*libkb.User, error) {
 	arg := &engine.IDEngineArg{UserAssertion: username}
 	// TODO: Consider caching the returned public key info from
@@ -58,13 +58,13 @@ func (k *KBPKIClient) ResolveAssertion(username string) (*libkb.User, error) {
 	return user, err
 }
 
-// GetUser finds a user via UID.
+// GetUser implements the KBPKI interface for KBPKIClient.
 func (k *KBPKIClient) GetUser(uid keybase1.UID) (user *libkb.User, err error) {
 	user, _, err = k.identifyByUID(uid)
 	return user, err
 }
 
-// GetSession returns the current session.
+// GetSession implements the KBPKI interface for KBPKIClient.
 func (k *KBPKIClient) GetSession() (*libkb.Session, error) {
 	s, _, err := k.session()
 	if err != nil {
@@ -75,7 +75,7 @@ func (k *KBPKIClient) GetSession() (*libkb.Session, error) {
 	return s, nil
 }
 
-// GetLoggedInUser returns the current logged in user.
+// GetLoggedInUser implements the KBPKI interface for KBPKIClient.
 func (k *KBPKIClient) GetLoggedInUser() (uid keybase1.UID, error error) {
 	s, _, err := k.session()
 	if err != nil {
@@ -88,6 +88,7 @@ func (k *KBPKIClient) GetLoggedInUser() (uid keybase1.UID, error error) {
 	return
 }
 
+// HasVerifyingKey implements the KBPKI interface for KBPKIClient.
 func (k *KBPKIClient) HasVerifyingKey(uid keybase1.UID, verifyingKey VerifyingKey) error {
 	_, publicKeys, err := k.identifyByUID(uid)
 	if err != nil {
@@ -111,6 +112,7 @@ func (k *KBPKIClient) HasVerifyingKey(uid keybase1.UID, verifyingKey VerifyingKe
 	return KeyNotFoundError{verifyingKey.KID}
 }
 
+// GetCryptPublicKeys implements the KBPKI interface for KBPKIClient.
 func (k *KBPKIClient) GetCryptPublicKeys(uid keybase1.UID) (
 	keys []CryptPublicKey, err error) {
 	_, publicKeys, err := k.identifyByUID(uid)
@@ -138,6 +140,7 @@ func (k *KBPKIClient) GetCryptPublicKeys(uid keybase1.UID) (
 	return keys, nil
 }
 
+// GetCurrentCryptPublicKey implements the KBPKI interface for KBPKIClient.
 func (k *KBPKIClient) GetCurrentCryptPublicKey() (CryptPublicKey, error) {
 	_, deviceSubkey, err := k.session()
 	if err != nil {

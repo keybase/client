@@ -6,6 +6,9 @@ import (
 	keybase1 "github.com/keybase/client/protocol/go"
 )
 
+// MDOpsStandard provides plaintext RootMetadata objects to upper
+// layers, and processes RootMetadataSigned objects (encrypted and
+// signed) suitable for passing to/from the MDServer backend.
 type MDOpsStandard struct {
 	config Config
 }
@@ -19,7 +22,7 @@ func (md *MDOpsStandard) processMetadata(
 	if rmds.IsInitialized() {
 		// decrypt the root data for non-public directories
 		if !handle.IsPublic() {
-			path := Path{rmds.MD.Id, []PathNode{}}
+			path := Path{rmds.MD.ID, []PathNode{}}
 			k, err := md.config.KeyManager().GetTLFCryptKey(path, &rmds.MD)
 			if err != nil {
 				return err
@@ -42,7 +45,7 @@ func (md *MDOpsStandard) processMetadata(
 			return &MDMismatchError{
 				handle.ToString(md.config),
 				fmt.Sprintf("MD (id=%s) was written by a non-writer %s",
-					rmds.MD.Id, writer)}
+					rmds.MD.ID, writer)}
 		}
 
 		// TODO:
@@ -72,7 +75,7 @@ func (md *MDOpsStandard) processMetadata(
 					handle.ToString(md.config),
 					fmt.Sprintf("MD (id=%s) is a private share but doesn't "+
 						"contain a key for my logged in user (%s)",
-						rmds.MD.Id, me)}
+						rmds.MD.ID, me)}
 				// TODO: figure out the right kid for the writer, should
 				// be in the mac somewhere
 			} else if pubKey, err := md.config.KeyOps().GetMacPublicKey(
@@ -100,6 +103,7 @@ func (md *MDOpsStandard) processMetadata(
 	return nil
 }
 
+// GetAtHandle implements the MDOps interface for MDOpsStandard.
 func (md *MDOpsStandard) GetAtHandle(handle *DirHandle) (*RootMetadata, error) {
 	mdserv := md.config.MDServer()
 	if rmds, err := mdserv.GetAtHandle(handle); err != nil {
@@ -115,41 +119,45 @@ func (md *MDOpsStandard) GetAtHandle(handle *DirHandle) (*RootMetadata, error) {
 				return nil, &MDMismatchError{
 					handleString,
 					fmt.Sprintf("MD (id=%s) contained unexpected handle %s",
-						rmds.MD.Id, fetchedHandleString)}
+						rmds.MD.ID, fetchedHandleString)}
 			}
 		}
 		return &rmds.MD, nil
 	}
 }
 
-func (md *MDOpsStandard) Get(id DirId) (*RootMetadata, error) {
+// Get implements the MDOps interface for MDOpsStandard.
+func (md *MDOpsStandard) Get(id DirID) (*RootMetadata, error) {
 	mdserv := md.config.MDServer()
-	if rmds, err := mdserv.Get(id); err != nil {
+	rmds, err := mdserv.Get(id)
+	if err != nil {
 		return nil, err
-	} else {
-		// Make sure the signed-over ID matches
-		if id != rmds.MD.Id {
-			return nil, &MDMismatchError{
-				id.String(),
-				fmt.Sprintf("MD contained unexpected id %s",
-					rmds.MD.Id.String())}
-		}
-		return &rmds.MD, md.processMetadata(rmds.MD.GetDirHandle(), rmds)
 	}
+
+	// Make sure the signed-over ID matches
+	if id != rmds.MD.ID {
+		return nil, &MDMismatchError{
+			id.String(),
+			fmt.Sprintf("MD contained unexpected id %s",
+				rmds.MD.ID.String())}
+	}
+	return &rmds.MD, md.processMetadata(rmds.MD.GetDirHandle(), rmds)
 }
 
-func (md *MDOpsStandard) GetAtId(id DirId, mdId MDId) (
+// GetAtID implements the MDOps interface for MDOpsStandard.
+func (md *MDOpsStandard) GetAtID(id DirID, mdID MdID) (
 	*RootMetadata, error) {
 	// TODO: implement a cache for non-current MD
-	if rmds, err := md.config.MDServer().GetAtId(id, mdId); err == nil {
+	rmds, err := md.config.MDServer().GetAtID(id, mdID)
+	if err == nil {
 		// TODO: validate and process MD
 		return &rmds.MD, err
-	} else {
-		return nil, err
 	}
+	return nil, err
 }
 
-func (md *MDOpsStandard) Put(id DirId, rmd *RootMetadata) error {
+// Put implements the MDOps interface for MDOpsStandard.
+func (md *MDOpsStandard) Put(id DirID, rmd *RootMetadata) error {
 	me, err := md.config.KBPKI().GetLoggedInUser()
 	if err != nil {
 		return err
@@ -164,7 +172,7 @@ func (md *MDOpsStandard) Put(id DirId, rmd *RootMetadata) error {
 	}
 	crypto := md.config.Crypto()
 	if !id.IsPublic() {
-		path := Path{rmd.Id, []PathNode{}}
+		path := Path{rmd.ID, []PathNode{}}
 		rk, err := md.config.KeyManager().GetTLFCryptKey(path, rmd)
 		if err != nil {
 			return err
@@ -225,14 +233,15 @@ func (md *MDOpsStandard) Put(id DirId, rmd *RootMetadata) error {
 		rmds.SigInfo = sigInfo
 	}
 
-	mdId, err := rmd.MetadataId(md.config)
+	mdID, err := rmd.MetadataID(md.config)
 	if err != nil {
 		return err
 	}
-	return md.config.MDServer().Put(id, mdId, rmds)
+	return md.config.MDServer().Put(id, mdID, rmds)
 }
 
-func (md *MDOpsStandard) GetFavorites() ([]DirId, error) {
+// GetFavorites implements the MDOps interface for MDOpsStandard.
+func (md *MDOpsStandard) GetFavorites() ([]DirID, error) {
 	mdserv := md.config.MDServer()
 	return mdserv.GetFavorites()
 }

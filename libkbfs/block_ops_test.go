@@ -47,7 +47,7 @@ func TestBlockOpsGetSuccess(t *testing.T) {
 	defer blockOpsShutdown(mockCtrl, config)
 
 	// expect one call to fetch a block, and one to decrypt it
-	id := BlockId{1}
+	id := BlockID{1}
 	encData := []byte{1, 2, 3, 4}
 	ctxt := makeContext(encData)
 	config.mockBserv.EXPECT().Get(id, ctxt).Return(encData, nil)
@@ -71,7 +71,7 @@ func TestBlockOpsGetFailInconsistentByteCount(t *testing.T) {
 	defer blockOpsShutdown(mockCtrl, config)
 
 	// expect just one call to fetch a block
-	id := BlockId{1}
+	id := BlockID{1}
 	encData := []byte{1, 2, 3, 4}
 	ctxt := makeContext(encData[:3])
 	config.mockBserv.EXPECT().Get(id, ctxt).Return(encData, nil)
@@ -87,7 +87,7 @@ func TestBlockOpsGetFailGet(t *testing.T) {
 	defer blockOpsShutdown(mockCtrl, config)
 
 	// fail the fetch call
-	id := BlockId{1}
+	id := BlockID{1}
 	err := errors.New("Fake fail")
 	ctxt := makeContext(nil)
 	config.mockBserv.EXPECT().Get(id, ctxt).Return(nil, err)
@@ -103,7 +103,7 @@ func TestBlockOpsGetFailDecryptBlockData(t *testing.T) {
 	defer blockOpsShutdown(mockCtrl, config)
 
 	// expect one call to fetch a block, then fail to decrypt i
-	id := BlockId{1}
+	id := BlockID{1}
 	encData := []byte{1, 2, 3, 4}
 	ctxt := makeContext(encData)
 	config.mockBserv.EXPECT().Get(id, ctxt).Return(encData, nil)
@@ -125,7 +125,7 @@ func TestBlockOpsReadySuccess(t *testing.T) {
 	decData := TestBlock{42}
 	encData := []byte{1, 2, 3, 4}
 	var key BlockCryptKey
-	id := BlockId{1}
+	id := BlockID{1}
 
 	expectedPlainSize := 4
 	config.mockCrypto.EXPECT().EncryptBlock(decData, key).Return(expectedPlainSize, encData, nil)
@@ -203,12 +203,12 @@ func TestBlockOpsReadyFailCast(t *testing.T) {
 	decData := TestBlock{42}
 	encData := []byte{1, 2, 3, 4}
 	var key BlockCryptKey
-	badId := libkb.NodeHashLong{0}
+	badID := libkb.NodeHashLong{0}
 
 	config.mockCrypto.EXPECT().EncryptBlock(decData, key).Return(4, encData, nil)
-	config.mockCrypto.EXPECT().Hash(encData).Return(badId, nil)
+	config.mockCrypto.EXPECT().Hash(encData).Return(badID, nil)
 
-	err := &BadCryptoError{BlockId{0}}
+	err := &BadCryptoError{BlockID{0}}
 	if _, _, _, err2 :=
 		config.BlockOps().Ready(decData, key); err2.Error() != err.Error() {
 		t.Errorf("Got bad error on ready: %v (expected %v)", err2, err)
@@ -220,7 +220,7 @@ func TestBlockOpsPutSuccess(t *testing.T) {
 	defer blockOpsShutdown(mockCtrl, config)
 
 	// expect one call to put a block
-	id := BlockId{1}
+	id := BlockID{1}
 	encData := []byte{1, 2, 3, 4}
 	ctxt := makeContext(encData)
 	config.mockBserv.EXPECT().Put(id, ctxt, encData).Return(nil)
@@ -235,7 +235,7 @@ func TestBlockOpsPutFailInconsistentByteCountError(t *testing.T) {
 	defer blockOpsShutdown(mockCtrl, config)
 
 	// expect one call to put a block
-	id := BlockId{1}
+	id := BlockID{1}
 	encData := []byte{1, 2, 3, 4}
 	ctxt := makeContext(encData[:3])
 	err := config.BlockOps().Put(id, ctxt, encData)
@@ -249,7 +249,7 @@ func TestBlockOpsPutFail(t *testing.T) {
 	defer blockOpsShutdown(mockCtrl, config)
 
 	// fail the put call
-	id := BlockId{1}
+	id := BlockID{1}
 	encData := []byte{1, 2, 3, 4}
 	ctxt := makeContext(encData)
 	err := errors.New("Fake fail")
@@ -265,7 +265,7 @@ func TestBlockOpsDeleteSuccess(t *testing.T) {
 	defer blockOpsShutdown(mockCtrl, config)
 
 	// expect one call to delete a block
-	id := BlockId{1}
+	id := BlockID{1}
 	ctxt := makeContext(nil)
 	config.mockBserv.EXPECT().Delete(id, ctxt).Return(nil)
 
@@ -279,7 +279,7 @@ func TestBlockOpsDeleteFail(t *testing.T) {
 	defer blockOpsShutdown(mockCtrl, config)
 
 	// fail the delete call
-	id := BlockId{1}
+	id := BlockID{1}
 	err := errors.New("Fake fail")
 	ctxt := makeContext(nil)
 	config.mockBserv.EXPECT().Delete(id, ctxt).Return(err)

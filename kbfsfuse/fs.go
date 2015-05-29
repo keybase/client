@@ -74,19 +74,19 @@ var _ fs.NodeRequestLookuper = (*Root)(nil)
 
 // getMD is a wrapper over KBFSOps.GetRootMDForHandle that gives
 // useful results for home folders with public subdirectories.
-func (r *Root) getMD(dh *libkbfs.DirHandle) (libkbfs.DirId, libkbfs.BlockPointer, error) {
+func (r *Root) getMD(dh *libkbfs.DirHandle) (libkbfs.DirID, libkbfs.BlockPointer, error) {
 	md, err := r.fs.config.KBFSOps().GetRootMDForHandle(dh)
 	if err != nil {
 		if _, ok := err.(*libkbfs.ReadAccessError); ok && dh.HasPublic() {
 			// This user cannot get the metadata for the folder, but
 			// we know it has a public subdirectory, so serve it
 			// anyway.
-			return libkbfs.NullDirId, libkbfs.BlockPointer{}, nil
+			return libkbfs.NullDirID, libkbfs.BlockPointer{}, nil
 		}
-		return libkbfs.NullDirId, libkbfs.BlockPointer{}, err
+		return libkbfs.NullDirID, libkbfs.BlockPointer{}, err
 	}
 
-	return md.Id, md.Data().Dir.BlockPointer, nil
+	return md.ID, md.Data().Dir.BlockPointer, nil
 }
 
 func (r *Root) Lookup(ctx context.Context, req *fuse.LookupRequest, resp *fuse.LookupResponse) (fs.Node, error) {
@@ -113,7 +113,7 @@ func (r *Root) Lookup(ctx context.Context, req *fuse.LookupRequest, resp *fuse.L
 		return n, nil
 	}
 
-	mdId, blockp, err := r.getMD(dh)
+	mdID, blockp, err := r.getMD(dh)
 	if err != nil {
 		// TODO make errors aware of fuse
 		return nil, err
@@ -121,7 +121,7 @@ func (r *Root) Lookup(ctx context.Context, req *fuse.LookupRequest, resp *fuse.L
 
 	folder := &Folder{
 		fs: r.fs,
-		id: mdId,
+		id: mdID,
 		dh: dh,
 	}
 	child := &Dir{
@@ -139,7 +139,7 @@ var _ fs.Handle = (*Root)(nil)
 
 var _ fs.HandleReadDirAller = (*Root)(nil)
 
-func (r *Root) getDirent(ctx context.Context, work <-chan libkbfs.DirId, results chan<- fuse.Dirent) error {
+func (r *Root) getDirent(ctx context.Context, work <-chan libkbfs.DirID, results chan<- fuse.Dirent) error {
 	for {
 		select {
 		case dirID, ok := <-work:
@@ -167,7 +167,7 @@ func (r *Root) ReadDirAll(ctx context.Context) ([]fuse.Dirent, error) {
 	if err != nil {
 		return nil, err
 	}
-	work := make(chan libkbfs.DirId)
+	work := make(chan libkbfs.DirID)
 	results := make(chan fuse.Dirent)
 	errCh := make(chan error, 1)
 	const workers = 10

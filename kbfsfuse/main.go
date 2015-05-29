@@ -106,7 +106,7 @@ func main() {
 
 		var localUid keybase1.UID
 		if userIndex >= 0 {
-			localUid = localUsers[userIndex].Uid
+			localUid = localUsers[userIndex].UID
 		}
 
 		k := libkbfs.NewKBPKILocal(localUid, localUsers)

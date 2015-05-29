@@ -6,24 +6,28 @@ import (
 	"github.com/keybase/kbfs/util"
 )
 
+// DirRWSchedulers tracks RWScheduler objects on a
+// per-top-level-folder basis, in a goroutine-safe way.
 type DirRWSchedulers struct {
 	// TODO: Make this an LRU in case the number of directories is big
-	chans     map[DirId]util.RWScheduler
+	chans     map[DirID]util.RWScheduler
 	chansLock sync.RWMutex
 	config    Config
 	factory   func(int) util.RWScheduler
 }
 
+// NewDirRWSchedulers constructs a new DirRWSchedulers object.
 func NewDirRWSchedulers(config Config) *DirRWSchedulers {
 	return &DirRWSchedulers{
-		chans:   make(map[DirId]util.RWScheduler),
+		chans:   make(map[DirID]util.RWScheduler),
 		config:  config,
 		factory: util.NewRWChannel,
 	}
 }
 
-// Safely get or create a read-write lock for the given directory
-func (d *DirRWSchedulers) GetDirChan(dir DirId) util.RWScheduler {
+// GetDirChan safely gets or creates a read-write lock for the given
+// top-level folder.
+func (d *DirRWSchedulers) GetDirChan(dir DirID) util.RWScheduler {
 	d.chansLock.RLock()
 	if rwchan, ok := d.chans[dir]; ok {
 		d.chansLock.RUnlock()
@@ -34,13 +38,12 @@ func (d *DirRWSchedulers) GetDirChan(dir DirId) util.RWScheduler {
 	d.chansLock.RUnlock()
 	d.chansLock.Lock()
 	defer d.chansLock.Unlock()
-	if rwchan, ok := d.chans[dir]; ok {
-		return rwchan
-	} else {
-		rwchan := d.factory(d.config.ReqsBufSize())
+	rwchan, ok := d.chans[dir]
+	if !ok {
+		rwchan = d.factory(d.config.ReqsBufSize())
 		d.chans[dir] = rwchan
-		return rwchan
 	}
+	return rwchan
 }
 
 // Shutdown closes all RWSchedulers.  This must be called at most once.
