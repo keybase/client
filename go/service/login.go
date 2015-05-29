@@ -17,15 +17,15 @@ func NewLoginHandler(xp *rpc2.Transport) *LoginHandler {
 	return &LoginHandler{CancelHandler: NewCancelHandler(xp)}
 }
 
-func (h *LoginHandler) GetConfiguredAccounts() ([]keybase1.ConfiguredAccount, error) {
+func (h *LoginHandler) GetConfiguredAccounts(sessionID int) ([]keybase1.ConfiguredAccount, error) {
 	return libkb.GetConfiguredAccounts()
 }
 
-func (h *LoginHandler) Logout() error {
+func (h *LoginHandler) Logout(sessionID int) error {
 	return G.Logout()
 }
 
-func (h *LoginHandler) Reset() error {
+func (h *LoginHandler) Reset(sessionID int) error {
 	eng := engine.NewResetEngine(G)
 	ctx := engine.Context{}
 	return engine.RunEngine(eng, &ctx)
@@ -37,7 +37,7 @@ func (h *LoginHandler) LoginWithPrompt(arg keybase1.LoginWithPromptArg) error {
 		LocksmithUI: h.getLocksmithUI(arg.SessionID),
 		SecretUI:    h.getSecretUI(arg.SessionID),
 		LoginUI:     h.getLoginUI(arg.SessionID),
-		GPGUI:       NewRemoteGPGUI(arg.SessionID, h.rpcClient()),
+		GPGUI:       h.getGPGUI(arg.SessionID),
 	}
 	eng := engine.NewLoginWithPromptEngine(arg.Username, G)
 
@@ -50,7 +50,7 @@ func (h *LoginHandler) LoginWithStoredSecret(arg keybase1.LoginWithStoredSecretA
 		LocksmithUI: h.getLocksmithUI(arg.SessionID),
 		SecretUI:    h.getSecretUI(arg.SessionID),
 		LoginUI:     h.getLoginUI(arg.SessionID),
-		GPGUI:       NewRemoteGPGUI(arg.SessionID, h.rpcClient()),
+		GPGUI:       h.getGPGUI(arg.SessionID),
 	}
 	loginEngine := engine.NewLoginWithStoredSecretEngine(arg.Username, G)
 	return h.loginWithEngine(loginEngine, ctx, arg.SessionID)
@@ -69,8 +69,8 @@ func (h *LoginHandler) LoginWithPassphrase(arg keybase1.LoginWithPassphraseArg) 
 	return h.loginWithEngine(loginEngine, ctx, arg.SessionID)
 }
 
-func (h *LoginHandler) ClearStoredSecret(username string) error {
-	return libkb.ClearStoredSecret(username)
+func (h *LoginHandler) ClearStoredSecret(arg keybase1.ClearStoredSecretArg) error {
+	return libkb.ClearStoredSecret(arg.Username)
 }
 
 func (h *LoginHandler) loginWithEngine(eng *engine.LoginEngine, ctx *engine.Context, sessionID int) error {

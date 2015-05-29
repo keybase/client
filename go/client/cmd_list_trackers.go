@@ -123,7 +123,7 @@ func (c *CmdListTrackers) RunClient() error {
 	}
 
 	summarize := func(uids []keybase1.UID) (res []keybase1.UserSummary, err error) {
-		return cli.LoadUncheckedUserSummaries(uids)
+		return cli.LoadUncheckedUserSummaries(keybase1.LoadUncheckedUserSummariesArg{Uids: uids})
 	}
 
 	return c.output(trs, summarize)

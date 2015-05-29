@@ -162,11 +162,10 @@ func (h *PGPHandler) PgpExport(arg keybase1.PgpExportArg) (ret []keybase1.KeyInf
 
 func (h *PGPHandler) PgpKeyGen(arg keybase1.PgpKeyGenArg) (err error) {
 	earg := engine.ImportPGPKeyImportEngineArg(arg)
-	return h.keygen(earg, true)
+	return h.keygen(arg.SessionID, earg, true)
 }
 
-func (h *PGPHandler) keygen(earg engine.PGPKeyImportEngineArg, doInteractive bool) (err error) {
-	sessionID := nextSessionID()
+func (h *PGPHandler) keygen(sessionID int, earg engine.PGPKeyImportEngineArg, doInteractive bool) (err error) {
 	ctx := &engine.Context{LogUI: h.getLogUI(sessionID), SecretUI: h.getSecretUI(sessionID)}
 	earg.Gen.AddDefaultUid()
 	eng := engine.NewPGPKeyImportEngine(earg)
@@ -174,31 +173,28 @@ func (h *PGPHandler) keygen(earg engine.PGPKeyImportEngineArg, doInteractive boo
 	return err
 }
 
-func (h *PGPHandler) PgpKeyGenDefault(arg keybase1.PgpCreateUids) (err error) {
+func (h *PGPHandler) PgpKeyGenDefault(arg keybase1.PgpKeyGenDefaultArg) (err error) {
 	earg := engine.PGPKeyImportEngineArg{
 		Gen: &libkb.PGPGenArg{
-			Ids:         libkb.ImportPgpIdentities(arg.Ids),
-			NoDefPGPUid: !arg.UseDefault,
+			Ids:         libkb.ImportPgpIdentities(arg.CreateUids.Ids),
+			NoDefPGPUid: !arg.CreateUids.UseDefault,
 		},
 	}
-	return h.keygen(earg, false)
+	return h.keygen(arg.SessionID, earg, false)
 }
 
-func (h *PGPHandler) PgpDeletePrimary() (err error) {
+func (h *PGPHandler) PgpDeletePrimary(sessionID int) (err error) {
 	return libkb.DeletePrimary()
 }
 
 func (h *PGPHandler) PgpSelect(sarg keybase1.PgpSelectArg) error {
-	sessionID := nextSessionID()
-	gpgui := NewRemoteGPGUI(sessionID, h.rpcClient())
-	secretui := h.getSecretUI(sessionID)
 	arg := engine.GPGImportKeyArg{Query: sarg.Query, AllowMulti: sarg.AllowMulti, SkipImport: sarg.SkipImport}
 	gpg := engine.NewGPGImportKeyEngine(&arg, G)
 	ctx := &engine.Context{
-		GPGUI:    gpgui,
-		SecretUI: secretui,
-		LogUI:    h.getLogUI(sessionID),
-		LoginUI:  h.getLoginUI(sessionID),
+		GPGUI:    h.getGPGUI(sarg.SessionID),
+		SecretUI: h.getSecretUI(sarg.SessionID),
+		LogUI:    h.getLogUI(sarg.SessionID),
+		LoginUI:  h.getLoginUI(sarg.SessionID),
 	}
 	return engine.RunEngine(gpg, ctx)
 }

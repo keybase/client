@@ -209,11 +209,17 @@
   } ],
   "messages" : {
     "getCurrentStatus" : {
-      "request" : [ ],
+      "request" : [ {
+        "name" : "sessionID",
+        "type" : "int"
+      } ],
       "response" : "GetCurrentStatusRes"
     },
     "getConfig" : {
-      "request" : [ ],
+      "request" : [ {
+        "name" : "sessionID",
+        "type" : "int"
+      } ],
       "response" : "Config"
     }
   }

@@ -29,7 +29,7 @@ func (v *CmdStatus) RunClient() (err error) {
 		return err
 	}
 
-	currentStatus, err := configCli.GetCurrentStatus()
+	currentStatus, err := configCli.GetCurrentStatus(0)
 	if err != nil {
 		return err
 	}

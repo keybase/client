@@ -22,7 +22,7 @@ func NewSessionHandler(xp *rpc2.Transport) *SessionHandler {
 
 // CurrentSession uses the global session to find the session.  If
 // the user isn't logged in, it returns ErrNoSession.
-func (h *SessionHandler) CurrentSession() (keybase1.Session, error) {
+func (h *SessionHandler) CurrentSession(sessionID int) (keybase1.Session, error) {
 	var s keybase1.Session
 	var username, token string
 	var uid keybase1.UID

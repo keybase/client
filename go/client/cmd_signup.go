@@ -410,7 +410,7 @@ func (e *ClientModeSignupEngine) GetPrereqs() (ret engine.EnginePrereqs) { retur
 func (e *ClientModeSignupEngine) CheckRegistered() (err error) {
 	G.Log.Debug("+ ClientModeSignupEngine::CheckRegistered")
 	var rres keybase1.GetCurrentStatusRes
-	if rres, err = e.ccli.GetCurrentStatus(); err != nil {
+	if rres, err = e.ccli.GetCurrentStatus(0); err != nil {
 	} else if rres.Registered {
 		err = libkb.AlreadyRegisteredError{}
 	}

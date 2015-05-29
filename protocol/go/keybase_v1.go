@@ -258,14 +258,16 @@ type Config struct {
 }
 
 type GetCurrentStatusArg struct {
+	SessionID int `codec:"sessionID" json:"sessionID"`
 }
 
 type GetConfigArg struct {
+	SessionID int `codec:"sessionID" json:"sessionID"`
 }
 
 type ConfigInterface interface {
-	GetCurrentStatus() (GetCurrentStatusRes, error)
-	GetConfig() (Config, error)
+	GetCurrentStatus(int) (GetCurrentStatusRes, error)
+	GetConfig(int) (Config, error)
 }
 
 func ConfigProtocol(i ConfigInterface) rpc2.Protocol {
@@ -275,14 +277,14 @@ func ConfigProtocol(i ConfigInterface) rpc2.Protocol {
 			"getCurrentStatus": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
 				args := make([]GetCurrentStatusArg, 1)
 				if err = nxt(&args); err == nil {
-					ret, err = i.GetCurrentStatus()
+					ret, err = i.GetCurrentStatus(args[0].SessionID)
 				}
 				return
 			},
 			"getConfig": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
 				args := make([]GetConfigArg, 1)
 				if err = nxt(&args); err == nil {
-					ret, err = i.GetConfig()
+					ret, err = i.GetConfig(args[0].SessionID)
 				}
 				return
 			},
@@ -295,13 +297,15 @@ type ConfigClient struct {
 	Cli GenericClient
 }
 
-func (c ConfigClient) GetCurrentStatus() (res GetCurrentStatusRes, err error) {
-	err = c.Cli.Call("keybase.1.config.getCurrentStatus", []interface{}{GetCurrentStatusArg{}}, &res)
+func (c ConfigClient) GetCurrentStatus(sessionID int) (res GetCurrentStatusRes, err error) {
+	__arg := GetCurrentStatusArg{SessionID: sessionID}
+	err = c.Cli.Call("keybase.1.config.getCurrentStatus", []interface{}{__arg}, &res)
 	return
 }
 
-func (c ConfigClient) GetConfig() (res Config, err error) {
-	err = c.Cli.Call("keybase.1.config.getConfig", []interface{}{GetConfigArg{}}, &res)
+func (c ConfigClient) GetConfig(sessionID int) (res Config, err error) {
+	__arg := GetConfigArg{SessionID: sessionID}
+	err = c.Cli.Call("keybase.1.config.getConfig", []interface{}{__arg}, &res)
 	return
 }
 
@@ -1317,6 +1321,7 @@ type ConfiguredAccount struct {
 }
 
 type GetConfiguredAccountsArg struct {
+	SessionID int `codec:"sessionID" json:"sessionID"`
 }
 
 type LoginWithPromptArg struct {
@@ -1337,7 +1342,8 @@ type LoginWithPassphraseArg struct {
 }
 
 type ClearStoredSecretArg struct {
-	Username string `codec:"username" json:"username"`
+	SessionID int    `codec:"sessionID" json:"sessionID"`
+	Username  string `codec:"username" json:"username"`
 }
 
 type CancelLoginArg struct {
@@ -1345,20 +1351,22 @@ type CancelLoginArg struct {
 }
 
 type LogoutArg struct {
+	SessionID int `codec:"sessionID" json:"sessionID"`
 }
 
 type ResetArg struct {
+	SessionID int `codec:"sessionID" json:"sessionID"`
 }
 
 type LoginInterface interface {
-	GetConfiguredAccounts() ([]ConfiguredAccount, error)
+	GetConfiguredAccounts(int) ([]ConfiguredAccount, error)
 	LoginWithPrompt(LoginWithPromptArg) error
 	LoginWithStoredSecret(LoginWithStoredSecretArg) error
 	LoginWithPassphrase(LoginWithPassphraseArg) error
-	ClearStoredSecret(string) error
+	ClearStoredSecret(ClearStoredSecretArg) error
 	CancelLogin(int) error
-	Logout() error
-	Reset() error
+	Logout(int) error
+	Reset(int) error
 }
 
 func LoginProtocol(i LoginInterface) rpc2.Protocol {
@@ -1368,7 +1376,7 @@ func LoginProtocol(i LoginInterface) rpc2.Protocol {
 			"getConfiguredAccounts": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
 				args := make([]GetConfiguredAccountsArg, 1)
 				if err = nxt(&args); err == nil {
-					ret, err = i.GetConfiguredAccounts()
+					ret, err = i.GetConfiguredAccounts(args[0].SessionID)
 				}
 				return
 			},
@@ -1396,7 +1404,7 @@ func LoginProtocol(i LoginInterface) rpc2.Protocol {
 			"clearStoredSecret": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
 				args := make([]ClearStoredSecretArg, 1)
 				if err = nxt(&args); err == nil {
-					err = i.ClearStoredSecret(args[0].Username)
+					err = i.ClearStoredSecret(args[0])
 				}
 				return
 			},
@@ -1410,14 +1418,14 @@ func LoginProtocol(i LoginInterface) rpc2.Protocol {
 			"logout": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
 				args := make([]LogoutArg, 1)
 				if err = nxt(&args); err == nil {
-					err = i.Logout()
+					err = i.Logout(args[0].SessionID)
 				}
 				return
 			},
 			"reset": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
 				args := make([]ResetArg, 1)
 				if err = nxt(&args); err == nil {
-					err = i.Reset()
+					err = i.Reset(args[0].SessionID)
 				}
 				return
 			},
@@ -1430,8 +1438,9 @@ type LoginClient struct {
 	Cli GenericClient
 }
 
-func (c LoginClient) GetConfiguredAccounts() (res []ConfiguredAccount, err error) {
-	err = c.Cli.Call("keybase.1.login.getConfiguredAccounts", []interface{}{GetConfiguredAccountsArg{}}, &res)
+func (c LoginClient) GetConfiguredAccounts(sessionID int) (res []ConfiguredAccount, err error) {
+	__arg := GetConfiguredAccountsArg{SessionID: sessionID}
+	err = c.Cli.Call("keybase.1.login.getConfiguredAccounts", []interface{}{__arg}, &res)
 	return
 }
 
@@ -1450,8 +1459,7 @@ func (c LoginClient) LoginWithPassphrase(__arg LoginWithPassphraseArg) (err erro
 	return
 }
 
-func (c LoginClient) ClearStoredSecret(username string) (err error) {
-	__arg := ClearStoredSecretArg{Username: username}
+func (c LoginClient) ClearStoredSecret(__arg ClearStoredSecretArg) (err error) {
 	err = c.Cli.Call("keybase.1.login.clearStoredSecret", []interface{}{__arg}, nil)
 	return
 }
@@ -1462,13 +1470,15 @@ func (c LoginClient) CancelLogin(sessionID int) (err error) {
 	return
 }
 
-func (c LoginClient) Logout() (err error) {
-	err = c.Cli.Call("keybase.1.login.logout", []interface{}{LogoutArg{}}, nil)
+func (c LoginClient) Logout(sessionID int) (err error) {
+	__arg := LogoutArg{SessionID: sessionID}
+	err = c.Cli.Call("keybase.1.login.logout", []interface{}{__arg}, nil)
 	return
 }
 
-func (c LoginClient) Reset() (err error) {
-	err = c.Cli.Call("keybase.1.login.reset", []interface{}{ResetArg{}}, nil)
+func (c LoginClient) Reset(sessionID int) (err error) {
+	__arg := ResetArg{SessionID: sessionID}
+	err = c.Cli.Call("keybase.1.login.reset", []interface{}{__arg}, nil)
 	return
 }
 
@@ -1608,6 +1618,7 @@ type PgpExportArg struct {
 }
 
 type PgpKeyGenArg struct {
+	SessionID   int           `codec:"sessionID" json:"sessionID"`
 	PrimaryBits int           `codec:"primaryBits" json:"primaryBits"`
 	SubkeyBits  int           `codec:"subkeyBits" json:"subkeyBits"`
 	CreateUids  PgpCreateUids `codec:"createUids" json:"createUids"`
@@ -1616,13 +1627,16 @@ type PgpKeyGenArg struct {
 }
 
 type PgpKeyGenDefaultArg struct {
+	SessionID  int           `codec:"sessionID" json:"sessionID"`
 	CreateUids PgpCreateUids `codec:"createUids" json:"createUids"`
 }
 
 type PgpDeletePrimaryArg struct {
+	SessionID int `codec:"sessionID" json:"sessionID"`
 }
 
 type PgpSelectArg struct {
+	SessionID  int    `codec:"sessionID" json:"sessionID"`
 	Query      string `codec:"query" json:"query"`
 	AllowMulti bool   `codec:"allowMulti" json:"allowMulti"`
 	SkipImport bool   `codec:"skipImport" json:"skipImport"`
@@ -1643,8 +1657,8 @@ type PgpInterface interface {
 	PgpImport(PgpImportArg) error
 	PgpExport(PgpExportArg) ([]KeyInfo, error)
 	PgpKeyGen(PgpKeyGenArg) error
-	PgpKeyGenDefault(PgpCreateUids) error
-	PgpDeletePrimary() error
+	PgpKeyGenDefault(PgpKeyGenDefaultArg) error
+	PgpDeletePrimary(int) error
 	PgpSelect(PgpSelectArg) error
 	PgpUpdate(PgpUpdateArg) error
 }
@@ -1702,7 +1716,7 @@ func PgpProtocol(i PgpInterface) rpc2.Protocol {
 				}
 				return
 			},
-			"PgpKeyGen": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
+			"pgpKeyGen": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
 				args := make([]PgpKeyGenArg, 1)
 				if err = nxt(&args); err == nil {
 					err = i.PgpKeyGen(args[0])
@@ -1712,14 +1726,14 @@ func PgpProtocol(i PgpInterface) rpc2.Protocol {
 			"pgpKeyGenDefault": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
 				args := make([]PgpKeyGenDefaultArg, 1)
 				if err = nxt(&args); err == nil {
-					err = i.PgpKeyGenDefault(args[0].CreateUids)
+					err = i.PgpKeyGenDefault(args[0])
 				}
 				return
 			},
 			"pgpDeletePrimary": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
 				args := make([]PgpDeletePrimaryArg, 1)
 				if err = nxt(&args); err == nil {
-					err = i.PgpDeletePrimary()
+					err = i.PgpDeletePrimary(args[0].SessionID)
 				}
 				return
 			},
@@ -1782,18 +1796,18 @@ func (c PgpClient) PgpExport(__arg PgpExportArg) (res []KeyInfo, err error) {
 }
 
 func (c PgpClient) PgpKeyGen(__arg PgpKeyGenArg) (err error) {
-	err = c.Cli.Call("keybase.1.pgp.PgpKeyGen", []interface{}{__arg}, nil)
+	err = c.Cli.Call("keybase.1.pgp.pgpKeyGen", []interface{}{__arg}, nil)
 	return
 }
 
-func (c PgpClient) PgpKeyGenDefault(createUids PgpCreateUids) (err error) {
-	__arg := PgpKeyGenDefaultArg{CreateUids: createUids}
+func (c PgpClient) PgpKeyGenDefault(__arg PgpKeyGenDefaultArg) (err error) {
 	err = c.Cli.Call("keybase.1.pgp.pgpKeyGenDefault", []interface{}{__arg}, nil)
 	return
 }
 
-func (c PgpClient) PgpDeletePrimary() (err error) {
-	err = c.Cli.Call("keybase.1.pgp.pgpDeletePrimary", []interface{}{PgpDeletePrimaryArg{}}, nil)
+func (c PgpClient) PgpDeletePrimary(sessionID int) (err error) {
+	__arg := PgpDeletePrimaryArg{SessionID: sessionID}
+	err = c.Cli.Call("keybase.1.pgp.pgpDeletePrimary", []interface{}{__arg}, nil)
 	return
 }
 
@@ -2159,6 +2173,7 @@ type GetSecretArg struct {
 }
 
 type GetNewPassphraseArg struct {
+	SessionID      int    `codec:"sessionID" json:"sessionID"`
 	TerminalPrompt string `codec:"terminalPrompt" json:"terminalPrompt"`
 	PinentryDesc   string `codec:"pinentryDesc" json:"pinentryDesc"`
 	PinentryPrompt string `codec:"pinentryPrompt" json:"pinentryPrompt"`
@@ -2234,10 +2249,11 @@ type Session struct {
 }
 
 type CurrentSessionArg struct {
+	SessionID int `codec:"sessionID" json:"sessionID"`
 }
 
 type SessionInterface interface {
-	CurrentSession() (Session, error)
+	CurrentSession(int) (Session, error)
 }
 
 func SessionProtocol(i SessionInterface) rpc2.Protocol {
@@ -2247,7 +2263,7 @@ func SessionProtocol(i SessionInterface) rpc2.Protocol {
 			"currentSession": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
 				args := make([]CurrentSessionArg, 1)
 				if err = nxt(&args); err == nil {
-					ret, err = i.CurrentSession()
+					ret, err = i.CurrentSession(args[0].SessionID)
 				}
 				return
 			},
@@ -2260,8 +2276,9 @@ type SessionClient struct {
 	Cli GenericClient
 }
 
-func (c SessionClient) CurrentSession() (res Session, err error) {
-	err = c.Cli.Call("keybase.1.session.currentSession", []interface{}{CurrentSessionArg{}}, &res)
+func (c SessionClient) CurrentSession(sessionID int) (res Session, err error) {
+	__arg := CurrentSessionArg{SessionID: sessionID}
+	err = c.Cli.Call("keybase.1.session.currentSession", []interface{}{__arg}, &res)
 	return
 }
 
@@ -2272,10 +2289,12 @@ type SignupRes struct {
 }
 
 type CheckUsernameAvailableArg struct {
-	Username string `codec:"username" json:"username"`
+	SessionID int    `codec:"sessionID" json:"sessionID"`
+	Username  string `codec:"username" json:"username"`
 }
 
 type SignupArg struct {
+	SessionID  int    `codec:"sessionID" json:"sessionID"`
 	Email      string `codec:"email" json:"email"`
 	InviteCode string `codec:"inviteCode" json:"inviteCode"`
 	Passphrase string `codec:"passphrase" json:"passphrase"`
@@ -2284,13 +2303,14 @@ type SignupArg struct {
 }
 
 type InviteRequestArg struct {
-	Email    string `codec:"email" json:"email"`
-	Fullname string `codec:"fullname" json:"fullname"`
-	Notes    string `codec:"notes" json:"notes"`
+	SessionID int    `codec:"sessionID" json:"sessionID"`
+	Email     string `codec:"email" json:"email"`
+	Fullname  string `codec:"fullname" json:"fullname"`
+	Notes     string `codec:"notes" json:"notes"`
 }
 
 type SignupInterface interface {
-	CheckUsernameAvailable(string) error
+	CheckUsernameAvailable(CheckUsernameAvailableArg) error
 	Signup(SignupArg) (SignupRes, error)
 	InviteRequest(InviteRequestArg) error
 }
@@ -2302,7 +2322,7 @@ func SignupProtocol(i SignupInterface) rpc2.Protocol {
 			"checkUsernameAvailable": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
 				args := make([]CheckUsernameAvailableArg, 1)
 				if err = nxt(&args); err == nil {
-					err = i.CheckUsernameAvailable(args[0].Username)
+					err = i.CheckUsernameAvailable(args[0])
 				}
 				return
 			},
@@ -2329,8 +2349,7 @@ type SignupClient struct {
 	Cli GenericClient
 }
 
-func (c SignupClient) CheckUsernameAvailable(username string) (err error) {
-	__arg := CheckUsernameAvailableArg{Username: username}
+func (c SignupClient) CheckUsernameAvailable(__arg CheckUsernameAvailableArg) (err error) {
 	err = c.Cli.Call("keybase.1.signup.checkUsernameAvailable", []interface{}{__arg}, nil)
 	return
 }
@@ -2375,16 +2394,18 @@ type SigListArgs struct {
 }
 
 type SigListArg struct {
-	Arg SigListArgs `codec:"arg" json:"arg"`
+	SessionID int         `codec:"sessionID" json:"sessionID"`
+	Arg       SigListArgs `codec:"arg" json:"arg"`
 }
 
 type SigListJSONArg struct {
-	Arg SigListArgs `codec:"arg" json:"arg"`
+	SessionID int         `codec:"sessionID" json:"sessionID"`
+	Arg       SigListArgs `codec:"arg" json:"arg"`
 }
 
 type SigsInterface interface {
-	SigList(SigListArgs) ([]Sig, error)
-	SigListJSON(SigListArgs) (string, error)
+	SigList(SigListArg) ([]Sig, error)
+	SigListJSON(SigListJSONArg) (string, error)
 }
 
 func SigsProtocol(i SigsInterface) rpc2.Protocol {
@@ -2394,14 +2415,14 @@ func SigsProtocol(i SigsInterface) rpc2.Protocol {
 			"sigList": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
 				args := make([]SigListArg, 1)
 				if err = nxt(&args); err == nil {
-					ret, err = i.SigList(args[0].Arg)
+					ret, err = i.SigList(args[0])
 				}
 				return
 			},
 			"sigListJSON": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
 				args := make([]SigListJSONArg, 1)
 				if err = nxt(&args); err == nil {
-					ret, err = i.SigListJSON(args[0].Arg)
+					ret, err = i.SigListJSON(args[0])
 				}
 				return
 			},
@@ -2414,14 +2435,12 @@ type SigsClient struct {
 	Cli GenericClient
 }
 
-func (c SigsClient) SigList(arg SigListArgs) (res []Sig, err error) {
-	__arg := SigListArg{Arg: arg}
+func (c SigsClient) SigList(__arg SigListArg) (res []Sig, err error) {
 	err = c.Cli.Call("keybase.1.sigs.sigList", []interface{}{__arg}, &res)
 	return
 }
 
-func (c SigsClient) SigListJSON(arg SigListArgs) (res string, err error) {
-	__arg := SigListJSONArg{Arg: arg}
+func (c SigsClient) SigListJSON(__arg SigListJSONArg) (res string, err error) {
 	err = c.Cli.Call("keybase.1.sigs.sigListJSON", []interface{}{__arg}, &res)
 	return
 }
@@ -2637,22 +2656,26 @@ type ListTrackersSelfArg struct {
 }
 
 type LoadUncheckedUserSummariesArg struct {
-	Uids []UID `codec:"uids" json:"uids"`
+	SessionID int   `codec:"sessionID" json:"sessionID"`
+	Uids      []UID `codec:"uids" json:"uids"`
 }
 
 type LoadUserArg struct {
-	Uid      *UID   `codec:"uid,omitempty" json:"uid"`
-	Username string `codec:"username" json:"username"`
-	Self     bool   `codec:"self" json:"self"`
+	SessionID int    `codec:"sessionID" json:"sessionID"`
+	Uid       *UID   `codec:"uid,omitempty" json:"uid"`
+	Username  string `codec:"username" json:"username"`
+	Self      bool   `codec:"self" json:"self"`
 }
 
 type ListTrackingArg struct {
-	Filter string `codec:"filter" json:"filter"`
+	SessionID int    `codec:"sessionID" json:"sessionID"`
+	Filter    string `codec:"filter" json:"filter"`
 }
 
 type ListTrackingJSONArg struct {
-	Filter  string `codec:"filter" json:"filter"`
-	Verbose bool   `codec:"verbose" json:"verbose"`
+	SessionID int    `codec:"sessionID" json:"sessionID"`
+	Filter    string `codec:"filter" json:"filter"`
+	Verbose   bool   `codec:"verbose" json:"verbose"`
 }
 
 type SearchArg struct {
@@ -2664,9 +2687,9 @@ type UserInterface interface {
 	ListTrackers(ListTrackersArg) ([]Tracker, error)
 	ListTrackersByName(ListTrackersByNameArg) ([]Tracker, error)
 	ListTrackersSelf(int) ([]Tracker, error)
-	LoadUncheckedUserSummaries([]UID) ([]UserSummary, error)
+	LoadUncheckedUserSummaries(LoadUncheckedUserSummariesArg) ([]UserSummary, error)
 	LoadUser(LoadUserArg) (User, error)
-	ListTracking(string) ([]UserSummary, error)
+	ListTracking(ListTrackingArg) ([]UserSummary, error)
 	ListTrackingJSON(ListTrackingJSONArg) (string, error)
 	Search(SearchArg) ([]UserSummary, error)
 }
@@ -2699,7 +2722,7 @@ func UserProtocol(i UserInterface) rpc2.Protocol {
 			"loadUncheckedUserSummaries": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
 				args := make([]LoadUncheckedUserSummariesArg, 1)
 				if err = nxt(&args); err == nil {
-					ret, err = i.LoadUncheckedUserSummaries(args[0].Uids)
+					ret, err = i.LoadUncheckedUserSummaries(args[0])
 				}
 				return
 			},
@@ -2713,7 +2736,7 @@ func UserProtocol(i UserInterface) rpc2.Protocol {
 			"listTracking": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
 				args := make([]ListTrackingArg, 1)
 				if err = nxt(&args); err == nil {
-					ret, err = i.ListTracking(args[0].Filter)
+					ret, err = i.ListTracking(args[0])
 				}
 				return
 			},
@@ -2756,8 +2779,7 @@ func (c UserClient) ListTrackersSelf(sessionID int) (res []Tracker, err error) {
 	return
 }
 
-func (c UserClient) LoadUncheckedUserSummaries(uids []UID) (res []UserSummary, err error) {
-	__arg := LoadUncheckedUserSummariesArg{Uids: uids}
+func (c UserClient) LoadUncheckedUserSummaries(__arg LoadUncheckedUserSummariesArg) (res []UserSummary, err error) {
 	err = c.Cli.Call("keybase.1.user.loadUncheckedUserSummaries", []interface{}{__arg}, &res)
 	return
 }
@@ -2767,8 +2789,7 @@ func (c UserClient) LoadUser(__arg LoadUserArg) (res User, err error) {
 	return
 }
 
-func (c UserClient) ListTracking(filter string) (res []UserSummary, err error) {
-	__arg := ListTrackingArg{Filter: filter}
+func (c UserClient) ListTracking(__arg ListTrackingArg) (res []UserSummary, err error) {
 	err = c.Cli.Call("keybase.1.user.listTracking", []interface{}{__arg}, &res)
 	return
 }

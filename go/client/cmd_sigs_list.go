@@ -166,7 +166,7 @@ func (s *CmdSigsList) RunClient() error {
 	}
 
 	if s.json {
-		json, err := cli.SigListJSON(args)
+		json, err := cli.SigListJSON(keybase1.SigListJSONArg{Arg: args})
 		if err != nil {
 			return err
 		}
@@ -174,7 +174,7 @@ func (s *CmdSigsList) RunClient() error {
 		return nil
 	}
 
-	sigs, err := cli.SigList(args)
+	sigs, err := cli.SigList(keybase1.SigListArg{Arg: args})
 	if err != nil {
 		return err
 	}

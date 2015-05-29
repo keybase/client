@@ -13,7 +13,7 @@ protocol login {
 	// on the local machine. Currently configured accounts are
 	// defined as those that have stored secrets, but this definition
 	// may be expanded in the future.
-	array<ConfiguredAccount> getConfiguredAccounts();
+	array<ConfiguredAccount> getConfiguredAccounts(int sessionID);
 
 	// username may be empty. Tries to log in, prompting for username
 	// and passphrase if necessary.
@@ -32,10 +32,10 @@ protocol login {
 	// Removes any existing stored secret for the given username;
 	// i.e., loginWithStoredSecret(_, username) will fail after
 	// this is called.
-	void clearStoredSecret(string username);
+	void clearStoredSecret(int sessionID, string username);
 
 	void cancelLogin(int sessionID);
 
-	void logout();
-	void reset();
+	void logout(int sessionID);
+	void reset(int sessionID);
 }

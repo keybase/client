@@ -112,7 +112,7 @@ func (s *CmdListTracking) RunClient() error {
 		return DisplayJSON(jsonStr)
 	}
 
-	table, err := cli.ListTracking(s.filter)
+	table, err := cli.ListTracking(keybase1.ListTrackingArg{Filter: s.filter})
 	if err != nil {
 		return err
 	}

@@ -31,6 +31,6 @@ protocol sigs {
 		boolean revoked;
 	}
 
-	array<Sig> sigList(SigListArgs arg);
-	string sigListJSON(SigListArgs arg);
+	array<Sig> sigList(int sessionID, SigListArgs arg);
+	string sigListJSON(int sessionID, SigListArgs arg);
 }

@@ -1,8 +1,6 @@
 package service
 
 import (
-	"math"
-
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/protocol/go"
 	"github.com/maxtaco/go-framed-msgpack-rpc/rpc2"
@@ -54,24 +52,6 @@ func (l *SecretUI) GetNewPassphrase(arg keybase1.GetNewPassphraseArg) (string, e
 // GetKeybasePassphrase gets the current keybase passphrase from pinentry.
 func (l *SecretUI) GetKeybasePassphrase(arg keybase1.GetKeybasePassphraseArg) (string, error) {
 	return l.cli.GetKeybasePassphrase(arg)
-}
-
-var sessionIDch chan int
-
-func init() {
-	sessionIDch = make(chan int)
-	go func() {
-		for {
-			// wrap after MaxInt32 to be safe
-			for i := 0; i < math.MaxInt32; i++ {
-				sessionIDch <- i
-			}
-		}
-	}()
-}
-
-func nextSessionID() int {
-	return <-sessionIDch
 }
 
 func (h *BaseHandler) rpcClient() *rpc2.Client {

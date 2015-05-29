@@ -13,7 +13,7 @@ func (v *CmdLogout) RunClient() (err error) {
 	var cli keybase1.LoginClient
 	if cli, err = GetLoginClient(); err != nil {
 	} else {
-		err = cli.Logout()
+		err = cli.Logout(0)
 	}
 	return
 }

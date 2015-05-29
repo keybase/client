@@ -11,7 +11,7 @@ protocol config {
 		union { null, User } user;
 	}
 
-	GetCurrentStatusRes getCurrentStatus();
+	GetCurrentStatusRes getCurrentStatus(int sessionID);
 
 	record Config {
 		string serverURI;
@@ -23,5 +23,5 @@ protocol config {
 		string configPath;
 	}
 
-	Config getConfig();
+	Config getConfig(int sessionID);
 }

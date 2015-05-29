@@ -20,25 +20,24 @@ func NewUserHandler(xp *rpc2.Transport) *UserHandler {
 // ListTrackers gets the list of trackers for a user by uid.
 func (h *UserHandler) ListTrackers(arg keybase1.ListTrackersArg) ([]keybase1.Tracker, error) {
 	eng := engine.NewListTrackers(arg.Uid, G)
-	return h.listTrackers(eng)
+	return h.listTrackers(arg.SessionID, eng)
 }
 
 // ListTrackersByName gets the list of trackers for a user by
 // username.
 func (h *UserHandler) ListTrackersByName(arg keybase1.ListTrackersByNameArg) ([]keybase1.Tracker, error) {
 	eng := engine.NewListTrackersByName(arg.Username)
-	return h.listTrackers(eng)
+	return h.listTrackers(arg.SessionID, eng)
 }
 
 // ListTrackersSelf gets the list of trackers for the logged in
 // user.
 func (h *UserHandler) ListTrackersSelf(sessionID int) ([]keybase1.Tracker, error) {
 	eng := engine.NewListTrackersSelf()
-	return h.listTrackers(eng)
+	return h.listTrackers(sessionID, eng)
 }
 
-func (h *UserHandler) listTrackers(eng *engine.ListTrackersEngine) ([]keybase1.Tracker, error) {
-	sessionID := nextSessionID()
+func (h *UserHandler) listTrackers(sessionID int, eng *engine.ListTrackersEngine) ([]keybase1.Tracker, error) {
 	ctx := &engine.Context{LogUI: h.getLogUI(sessionID)}
 	if err := engine.RunEngine(eng, ctx); err != nil {
 		return nil, err
@@ -47,9 +46,9 @@ func (h *UserHandler) listTrackers(eng *engine.ListTrackersEngine) ([]keybase1.T
 	return res, nil
 }
 
-func (h *UserHandler) LoadUncheckedUserSummaries(uids []keybase1.UID) ([]keybase1.UserSummary, error) {
+func (h *UserHandler) LoadUncheckedUserSummaries(arg keybase1.LoadUncheckedUserSummariesArg) ([]keybase1.UserSummary, error) {
 	ctx := &engine.Context{}
-	eng := engine.NewUserSummary(uids, G)
+	eng := engine.NewUserSummary(arg.Uids, G)
 	if err := engine.RunEngine(eng, ctx); err != nil {
 		return nil, err
 	}
@@ -57,9 +56,9 @@ func (h *UserHandler) LoadUncheckedUserSummaries(uids []keybase1.UID) ([]keybase
 	return res, nil
 }
 
-func (h *UserHandler) ListTracking(filter string) (res []keybase1.UserSummary, err error) {
+func (h *UserHandler) ListTracking(arg keybase1.ListTrackingArg) (res []keybase1.UserSummary, err error) {
 	eng := engine.NewListTrackingEngine(&engine.ListTrackingEngineArg{
-		Filter: filter,
+		Filter: arg.Filter,
 		// Verbose has no effect on this call. At the engine level, it only
 		// affects JSON output.
 	}, G)

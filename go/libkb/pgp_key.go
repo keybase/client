@@ -279,7 +279,7 @@ func (k PgpKeyBundle) VerboseDescription() string {
 func (k PgpKeyBundle) UsersDescription() []string {
 	id := k.GetPrimaryUID()
 	if len(id) == 0 {
-		return []string{}
+		return nil
 	}
 	return []string{"user: " + id}
 }

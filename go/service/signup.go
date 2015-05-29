@@ -15,17 +15,16 @@ func NewSignupHandler(xp *rpc2.Transport) *SignupHandler {
 	return &SignupHandler{BaseHandler: NewBaseHandler(xp)}
 }
 
-func (h *SignupHandler) CheckUsernameAvailable(username string) error {
-	return engine.CheckUsernameAvailable(G, username)
+func (h *SignupHandler) CheckUsernameAvailable(arg keybase1.CheckUsernameAvailableArg) error {
+	return engine.CheckUsernameAvailable(G, arg.Username)
 }
 
 func (h *SignupHandler) Signup(arg keybase1.SignupArg) (res keybase1.SignupRes, err error) {
-	sessionID := nextSessionID()
 	ctx := &engine.Context{
-		LogUI:    h.getLogUI(sessionID),
-		GPGUI:    NewRemoteGPGUI(sessionID, h.rpcClient()),
-		SecretUI: h.getSecretUI(sessionID),
-		LoginUI:  h.getLoginUI(sessionID),
+		LogUI:    h.getLogUI(arg.SessionID),
+		GPGUI:    h.getGPGUI(arg.SessionID),
+		SecretUI: h.getSecretUI(arg.SessionID),
+		LoginUI:  h.getLoginUI(arg.SessionID),
 	}
 	runarg := engine.SignupEngineRunArg{
 		Username:   arg.Username,

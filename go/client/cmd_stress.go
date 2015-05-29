@@ -232,7 +232,7 @@ func (c *CmdStress) listTracking() {
 		return
 	}
 	ucli := keybase1.UserClient{Cli: cli}
-	_, err = ucli.ListTracking("")
+	_, err = ucli.ListTracking(keybase1.ListTrackingArg{})
 	if err != nil {
 		G.Log.Warning("list tracking error: %s", err)
 	}
@@ -301,7 +301,7 @@ func (c *CmdStress) status() {
 		return
 	}
 	ccli := keybase1.ConfigClient{Cli: cli}
-	currentStatus, err := ccli.GetCurrentStatus()
+	currentStatus, err := ccli.GetCurrentStatus(0)
 	if err != nil {
 		G.Log.Warning("status error: %s", err)
 		return
@@ -325,7 +325,7 @@ func (c *CmdStress) logout() {
 		G.Log.Warning("GetLoginClient error: %s", err)
 		return
 	}
-	err = cli.Logout()
+	err = cli.Logout(0)
 	if err != nil {
 		G.Log.Warning("Logout error: %s", err)
 		return

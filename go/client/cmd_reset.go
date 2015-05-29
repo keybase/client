@@ -31,7 +31,7 @@ func (v *CmdReset) RunClient() (err error) {
 		return err
 	}
 
-	return cli.Reset()
+	return cli.Reset(0)
 }
 
 func (v *CmdReset) Run() (err error) {

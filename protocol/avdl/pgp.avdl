@@ -80,20 +80,14 @@ protocol pgp {
 		array<PgpIdentity> ids;
 	}
 
-	void PgpKeyGen(
-		int primaryBits,
-		int subkeyBits,
-		PgpCreateUids createUids,
-		boolean allowMulti,
-		boolean doExport
-	);
+	void pgpKeyGen(int sessionID, int primaryBits, int subkeyBits, PgpCreateUids createUids, boolean allowMulti, boolean doExport);
 
-	void pgpKeyGenDefault(PgpCreateUids createUids);
+	void pgpKeyGenDefault(int sessionID, PgpCreateUids createUids);
 
-	void pgpDeletePrimary();
+	void pgpDeletePrimary(int sessionID);
 
 	// select an existing key and add to kb
-	void pgpSelect(string query, boolean allowMulti, boolean skipImport);
+	void pgpSelect(int sessionID, string query, boolean allowMulti, boolean skipImport);
 
 	// push updated key(s) to the server
 	void pgpUpdate(int sessionID, boolean all, array<string> fingerprints);

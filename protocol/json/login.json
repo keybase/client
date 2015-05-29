@@ -178,7 +178,10 @@
   } ],
   "messages" : {
     "getConfiguredAccounts" : {
-      "request" : [ ],
+      "request" : [ {
+        "name" : "sessionID",
+        "type" : "int"
+      } ],
       "response" : {
         "type" : "array",
         "items" : "ConfiguredAccount"
@@ -222,6 +225,9 @@
     },
     "clearStoredSecret" : {
       "request" : [ {
+        "name" : "sessionID",
+        "type" : "int"
+      }, {
         "name" : "username",
         "type" : "string"
       } ],
@@ -235,11 +241,17 @@
       "response" : "null"
     },
     "logout" : {
-      "request" : [ ],
+      "request" : [ {
+        "name" : "sessionID",
+        "type" : "int"
+      } ],
       "response" : "null"
     },
     "reset" : {
-      "request" : [ ],
+      "request" : [ {
+        "name" : "sessionID",
+        "type" : "int"
+      } ],
       "response" : "null"
     }
   }

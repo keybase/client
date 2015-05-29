@@ -184,7 +184,10 @@
   } ],
   "messages" : {
     "currentSession" : {
-      "request" : [ ],
+      "request" : [ {
+        "name" : "sessionID",
+        "type" : "int"
+      } ],
       "response" : "Session"
     }
   }

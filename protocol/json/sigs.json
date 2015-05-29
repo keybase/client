@@ -241,6 +241,9 @@
   "messages" : {
     "sigList" : {
       "request" : [ {
+        "name" : "sessionID",
+        "type" : "int"
+      }, {
         "name" : "arg",
         "type" : "SigListArgs"
       } ],
@@ -251,6 +254,9 @@
     },
     "sigListJSON" : {
       "request" : [ {
+        "name" : "sessionID",
+        "type" : "int"
+      }, {
         "name" : "arg",
         "type" : "SigListArgs"
       } ],

@@ -297,6 +297,9 @@
     },
     "loadUncheckedUserSummaries" : {
       "request" : [ {
+        "name" : "sessionID",
+        "type" : "int"
+      }, {
         "name" : "uids",
         "type" : {
           "type" : "array",
@@ -310,6 +313,9 @@
     },
     "loadUser" : {
       "request" : [ {
+        "name" : "sessionID",
+        "type" : "int"
+      }, {
         "name" : "uid",
         "type" : [ "null", "UID" ]
       }, {
@@ -323,6 +329,9 @@
     },
     "listTracking" : {
       "request" : [ {
+        "name" : "sessionID",
+        "type" : "int"
+      }, {
         "name" : "filter",
         "type" : "string"
       } ],
@@ -333,6 +342,9 @@
     },
     "listTrackingJSON" : {
       "request" : [ {
+        "name" : "sessionID",
+        "type" : "int"
+      }, {
         "name" : "filter",
         "type" : "string"
       }, {

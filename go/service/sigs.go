@@ -16,16 +16,16 @@ func NewSigsHandler(xp *rpc2.Transport) *SigsHandler {
 	return &SigsHandler{BaseHandler: NewBaseHandler(xp)}
 }
 
-func (h *SigsHandler) SigList(args keybase1.SigListArgs) ([]keybase1.Sig, error) {
-	eng, err := h.run(args)
+func (h *SigsHandler) SigList(arg keybase1.SigListArg) ([]keybase1.Sig, error) {
+	eng, err := h.run(arg.Arg)
 	if err != nil {
 		return nil, err
 	}
 	return eng.Sigs(), nil
 }
 
-func (h *SigsHandler) SigListJSON(args keybase1.SigListArgs) (string, error) {
-	eng, err := h.run(args)
+func (h *SigsHandler) SigListJSON(arg keybase1.SigListJSONArg) (string, error) {
+	eng, err := h.run(arg.Arg)
 	if err != nil {
 		return "", err
 	}

@@ -13,7 +13,7 @@ type ConfigHandler struct {
 	xp *rpc2.Transport
 }
 
-func (h ConfigHandler) GetCurrentStatus() (res keybase1.GetCurrentStatusRes, err error) {
+func (h ConfigHandler) GetCurrentStatus(sessionID int) (res keybase1.GetCurrentStatusRes, err error) {
 	var cs libkb.CurrentStatus
 	if cs, err = libkb.GetCurrentStatus(); err == nil {
 		res = cs.Export()
@@ -21,7 +21,7 @@ func (h ConfigHandler) GetCurrentStatus() (res keybase1.GetCurrentStatusRes, err
 	return
 }
 
-func (h ConfigHandler) GetConfig() (keybase1.Config, error) {
+func (h ConfigHandler) GetConfig(sessionID int) (keybase1.Config, error) {
 	var c keybase1.Config
 
 	c.ServerURI = G.Env.GetServerURI()

@@ -10,5 +10,5 @@ protocol session {
 		string deviceSubkeyKid;
 	}
 
-	Session currentSession();
+	Session currentSession(int sessionID);
 }

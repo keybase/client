@@ -392,8 +392,11 @@
         "items" : "KeyInfo"
       }
     },
-    "PgpKeyGen" : {
+    "pgpKeyGen" : {
       "request" : [ {
+        "name" : "sessionID",
+        "type" : "int"
+      }, {
         "name" : "primaryBits",
         "type" : "int"
       }, {
@@ -413,17 +416,26 @@
     },
     "pgpKeyGenDefault" : {
       "request" : [ {
+        "name" : "sessionID",
+        "type" : "int"
+      }, {
         "name" : "createUids",
         "type" : "PgpCreateUids"
       } ],
       "response" : "null"
     },
     "pgpDeletePrimary" : {
-      "request" : [ ],
+      "request" : [ {
+        "name" : "sessionID",
+        "type" : "int"
+      } ],
       "response" : "null"
     },
     "pgpSelect" : {
       "request" : [ {
+        "name" : "sessionID",
+        "type" : "int"
+      }, {
         "name" : "query",
         "type" : "string"
       }, {

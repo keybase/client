@@ -182,6 +182,9 @@
   "messages" : {
     "checkUsernameAvailable" : {
       "request" : [ {
+        "name" : "sessionID",
+        "type" : "int"
+      }, {
         "name" : "username",
         "type" : "string"
       } ],
@@ -189,6 +192,9 @@
     },
     "signup" : {
       "request" : [ {
+        "name" : "sessionID",
+        "type" : "int"
+      }, {
         "name" : "email",
         "type" : "string"
       }, {
@@ -208,6 +214,9 @@
     },
     "inviteRequest" : {
       "request" : [ {
+        "name" : "sessionID",
+        "type" : "int"
+      }, {
         "name" : "email",
         "type" : "string"
       }, {
