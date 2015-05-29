@@ -136,6 +136,8 @@
 @interface KBRCryptoRequest : KBRRequest
 - (void)signED25519WithSessionID:(NSInteger)sessionID msg:(NSData *)msg reason:(NSString *)reason completion:(void (^)(NSError *error, KBRED25519SignatureInfo *eD25519SignatureInfo))completion;
 
+- (void)unboxTLFCryptKeyClientHalfWithSessionID:(NSInteger)sessionID encryptedData:(NSData *)encryptedData nonce:(NSData *)nonce peersPublicKey:(NSData *)peersPublicKey reason:(NSString *)reason completion:(void (^)(NSError *error, NSData *tLFCryptKeyClientHalf))completion;
+
 @end
 
 @interface KBRCtlRequest : KBRRequest
@@ -844,6 +846,13 @@ typedef NS_ENUM (NSInteger, KBRPromptOverwriteType) {
 @interface KBRSignED25519RequestParams : KBRRequestParams
 @property NSInteger sessionID;
 @property NSData *msg;
+@property NSString *reason;
+@end
+@interface KBRUnboxTLFCryptKeyClientHalfRequestParams : KBRRequestParams
+@property NSInteger sessionID;
+@property NSData *encryptedData;
+@property NSData *nonce;
+@property NSData *peersPublicKey;
 @property NSString *reason;
 @end
 @interface KBRDeviceListRequestParams : KBRRequestParams

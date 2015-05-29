@@ -555,6 +555,12 @@ func (k KeyCannotVerifyError) Error() string {
 	return "Key cannot verify signatures"
 }
 
+type KeyCannotUnboxError struct{}
+
+func (k KeyCannotUnboxError) Error() string {
+	return "Key cannot unbox data"
+}
+
 //=============================================================================
 
 type NoConfigFile struct{}
@@ -877,6 +883,14 @@ type PGPDecError struct {
 
 func (e PGPDecError) Error() string {
 	return fmt.Sprintf("pgp decrypt error: %s", e.Msg)
+}
+
+//=============================================================================
+
+type DecryptionError struct{}
+
+func (e DecryptionError) Error() string {
+	return "Decryption error"
 }
 
 //=============================================================================

@@ -1,6 +1,7 @@
 package libkb
 
 import (
+	"errors"
 	"fmt"
 
 	keybase1 "github.com/keybase/client/protocol/go"
@@ -184,6 +185,22 @@ func (a *Account) Keyring() (*SKBKeyringFile, error) {
 	return a.skbKeyring, nil
 }
 
+func (a *Account) getDeviceKey(ckf *ComputedKeyFamily, secretKeyType SecretKeyType) (GenericKey, error) {
+	did := a.G().Env.GetDeviceID()
+	if did == nil {
+		return nil, errors.New("Could not get device id")
+	}
+
+	switch secretKeyType {
+	case DeviceSigningKeyType:
+		return ckf.GetSibkeyForDevice(*did)
+	case DeviceEncryptionKeyType:
+		return ckf.GetEncryptionSubkeyForDevice(*did)
+	default:
+		return nil, fmt.Errorf("Invalid type %v", secretKeyType)
+	}
+}
+
 // LockedLocalSecretKey looks in the local keyring to find a key
 // for the given user.  Returns non-nil if one was found, and nil
 // otherwise.
@@ -208,24 +225,23 @@ func (a *Account) LockedLocalSecretKey(ska SecretKeyArg) *SKB {
 		return nil
 	}
 
-	if !ska.KeyType.useDeviceSigningKey() {
-		a.G().Log.Debug("| not using device signing key; preferences have disabled it")
-	} else if did := a.G().Env.GetDeviceID(); did == nil {
-		a.G().Log.Debug("| Could not get device id")
-	} else if key, err := ckf.GetSibkeyForDevice(*did); err != nil {
-		a.G().Log.Debug("| No key for current device: %s", err.Error())
-	} else if key == nil {
-		a.G().Log.Debug("| Key for current device is nil")
-	} else {
-		kid := key.GetKid()
-		a.G().Log.Debug("| Found KID for current device: %s", kid)
-		ret = keyring.LookupByKid(kid)
-		if ret != nil {
-			a.G().Log.Debug("| Using device key: %s", kid)
+	if (ska.KeyType == DeviceSigningKeyType) || (ska.KeyType == DeviceEncryptionKeyType) {
+		key, err := a.getDeviceKey(ckf, ska.KeyType)
+		if err != nil {
+			a.G().Log.Debug("| No key for current device: %s", err.Error())
 		}
-	}
 
-	if ret == nil && ska.KeyType.searchForKey() {
+		if key == nil {
+			a.G().Log.Debug("| Key for current device is nil")
+		} else {
+			kid := key.GetKid()
+			a.G().Log.Debug("| Found KID for current device: %s", kid)
+			ret = keyring.LookupByKid(kid)
+			if ret != nil {
+				a.G().Log.Debug("| Using device key: %s", kid)
+			}
+		}
+	} else {
 		a.G().Log.Debug("| Looking up secret key in local keychain")
 		ret = keyring.SearchWithComputedKeyFamily(ckf, ska)
 	}

@@ -4,6 +4,8 @@ import (
 	"errors"
 	"testing"
 
+	"golang.org/x/crypto/nacl/box"
+
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/protocol/go"
 )
@@ -22,7 +24,7 @@ func TestCryptoSignED25519(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	h.getDeviceSigningKeyFn = func(_ int, _ string) (libkb.GenericKey, error) {
+	h.getSecretKeyFn = func(_ libkb.SecretKeyType, _ int, _ string) (libkb.GenericKey, error) {
 		return kp, nil
 	}
 
@@ -44,19 +46,148 @@ func TestCryptoSignED25519(t *testing.T) {
 	}
 }
 
+// Test that CryptoHandler.SignED25519() returns an error if the wrong
+// type of key is returned as the signing key.
+func TestCryptoSignED25519WrongSigningKey(t *testing.T) {
+	h := NewCryptoHandler(nil)
+
+	kp, err := libkb.GenerateNaclDHKeyPair()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	h.getSecretKeyFn = func(_ libkb.SecretKeyType, _ int, _ string) (libkb.GenericKey, error) {
+		return kp, nil
+	}
+
+	_, err = h.SignED25519(keybase1.SignED25519Arg{
+		Msg: []byte("test message"),
+	})
+
+	expectedErr := libkb.KeyCannotSignError{}
+	if err != expectedErr {
+		t.Errorf("expected %v, got %v", expectedErr, err)
+	}
+}
+
 // Test that CryptoHandler.SignED25519() propagates any error
 // encountered when getting the device signing key.
 func TestCryptoSignED25519NoSigningKey(t *testing.T) {
 	h := NewCryptoHandler(nil)
 
 	expectedErr := errors.New("Test error")
-	h.getDeviceSigningKeyFn = func(_ int, _ string) (libkb.GenericKey, error) {
+	h.getSecretKeyFn = func(_ libkb.SecretKeyType, _ int, _ string) (libkb.GenericKey, error) {
 		return nil, expectedErr
 	}
 
 	_, err := h.SignED25519(keybase1.SignED25519Arg{
 		Msg: []byte("test message"),
 	})
+
+	if err != expectedErr {
+		t.Errorf("expected %v, got %v", expectedErr, err)
+	}
+}
+
+// Test that CryptoHandler.UnboxTLFCryptKeyClientHalf() decrypts a
+// boxed TLFCryptKeyClientHalf correctly.
+func TestCryptoUnboxTLFCryptKeyClientHalf(t *testing.T) {
+	h := NewCryptoHandler(nil)
+
+	kp, err := libkb.GenerateNaclDHKeyPair()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	peerKp, err := libkb.GenerateNaclDHKeyPair()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	h.getSecretKeyFn = func(_ libkb.SecretKeyType, _ int, _ string) (libkb.GenericKey, error) {
+		return kp, nil
+	}
+
+	expectedData := keybase1.TLFCryptKeyClientHalf{0, 1, 2, 3, 4, 5}
+	nonce := [24]byte{6, 7, 8, 9, 10}
+	peersPublicKey := keybase1.BoxPublicKey(peerKp.Public)
+
+	encryptedData := box.Seal(nil, expectedData[:], &nonce, (*[32]byte)(&kp.Public), (*[32]byte)(peerKp.Private))
+
+	data, err := h.UnboxTLFCryptKeyClientHalf(keybase1.UnboxTLFCryptKeyClientHalfArg{
+		EncryptedData:  encryptedData,
+		Nonce:          nonce,
+		PeersPublicKey: peersPublicKey,
+	})
+
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if data != expectedData {
+		t.Errorf("expected %s, got %s", expectedData, data)
+	}
+}
+
+// Test that CryptoHandler.UnboxTLFCryptKeyClientHalf() propagates any
+// decryption errors correctly.
+//
+// For now, we're assuming that nacl/box works correctly (i.e., we're
+// not testing the ways in which decryption can fail).
+func TestCryptoUnboxTLFCryptKeyClientHalfDecryptionError(t *testing.T) {
+	h := NewCryptoHandler(nil)
+
+	kp, err := libkb.GenerateNaclDHKeyPair()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	h.getSecretKeyFn = func(_ libkb.SecretKeyType, _ int, _ string) (libkb.GenericKey, error) {
+		return kp, nil
+	}
+
+	_, err = h.UnboxTLFCryptKeyClientHalf(keybase1.UnboxTLFCryptKeyClientHalfArg{})
+
+	expectedErr := libkb.DecryptionError{}
+	if err != expectedErr {
+		t.Errorf("expected %v, got %v", expectedErr, err)
+	}
+}
+
+// Test that CryptoHandler.UnboxTLFCryptKeyClientHalf() returns an
+// error if the wrong type of key is returned as the encryption key.
+func TestCryptoUnboxTLFCryptKeyClientHalfWrongEncryptionKey(t *testing.T) {
+	h := NewCryptoHandler(nil)
+
+	kp, err := libkb.GenerateNaclSigningKeyPair()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	h.getSecretKeyFn = func(_ libkb.SecretKeyType, _ int, _ string) (libkb.GenericKey, error) {
+		return kp, nil
+	}
+
+	_, err = h.UnboxTLFCryptKeyClientHalf(keybase1.UnboxTLFCryptKeyClientHalfArg{})
+
+	expectedErr := libkb.KeyCannotUnboxError{}
+	if err != expectedErr {
+		t.Errorf("expected %v, got %v", expectedErr, err)
+	}
+}
+
+// Test that CryptoHandler.UnboxTLFCryptKeyClientHalf() propagates any
+// error encountered when getting the device encryption key.
+func TestCryptoUnboxTLFCryptKeyClientHalfNoEncryptionKey(t *testing.T) {
+	h := NewCryptoHandler(nil)
+
+	expectedErr := errors.New("Test error")
+	h.getSecretKeyFn = func(_ libkb.SecretKeyType, _ int, _ string) (libkb.GenericKey, error) {
+		return nil, expectedErr
+	}
+
+	_, err := h.UnboxTLFCryptKeyClientHalf(keybase1.UnboxTLFCryptKeyClientHalfArg{})
+
 	if err != expectedErr {
 		t.Errorf("expected %v, got %v", expectedErr, err)
 	}

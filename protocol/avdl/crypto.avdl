@@ -17,4 +17,15 @@ protocol crypto {
 	// signature. The 'reason' parameter is used as part of the
 	// SecretEntryArg object passed into secretUi.getSecret().
 	ED25519SignatureInfo signED25519(int sessionID, bytes msg, string reason);
+
+	fixed BoxNonce(24);
+	fixed BoxPublicKey(32);
+	fixed TLFCryptKeyClientHalf(32);
+
+	// Decrypt the client half of an encrypted TLF crypt key using
+	// nacl/box with the given nonce, the given peer's public key, and
+	// the device's private encryption key, and return the decrypted TLF
+	// crypt key. The 'reason' parameter is used as part of the
+	// SecretEntryArg object passed into secretUi.getSecret().
+	TLFCryptKeyClientHalf unboxTLFCryptKeyClientHalf(int sessionID, bytes encryptedData, BoxNonce nonce, BoxPublicKey peersPublicKey, string reason);
 }
