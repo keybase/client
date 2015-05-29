@@ -147,10 +147,11 @@
   // Run service (this should be the last arg)
   [args addObject:@"service"];
 
-  if (escape) return [args map:^(NSString *arg) { return [arg stringByReplacingOccurrencesOfString:@" " withString:@"\\ "];  }];
-  else return args;
-
-  return args;
+  if (escape) {
+    return [args map:^(NSString *arg) { return [arg stringByReplacingOccurrencesOfString:@" " withString:@"\\ "]; }];
+  } else {
+    return args;
+  }
 }
 
 - (NSDictionary *)launchdPlistDictionaryForService {
@@ -192,8 +193,11 @@
   [args addObject:@"-client"];
   [args addObject:KBPath(self.mountDir, tilde)];
 
-  if (escape) return [args map:^(NSString *arg) { return [arg stringByReplacingOccurrencesOfString:@" " withString:@"\\ "];  }];
-  else return args;
+  if (escape) {
+    return [args map:^(NSString *arg) { return [arg stringByReplacingOccurrencesOfString:@" " withString:@"\\ "]; }];
+  } else {
+    return args;
+  }
 }
 
 - (NSString *)commandLineForService:(BOOL)useBundle escape:(BOOL)escape tilde:(BOOL)tilde {
