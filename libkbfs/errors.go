@@ -280,6 +280,14 @@ func (e *WriteNeededInReadRequest) Error() string {
 	return "This request needs exclusive access, but doesn't have it."
 }
 
+type UnknownSigVer struct {
+	sigVer SigVer
+}
+
+func (e UnknownSigVer) Error() string {
+	return fmt.Sprintf("Unknown signature version %d", int(e.sigVer))
+}
+
 type KeyNotFoundError struct {
 	kid libkb.KID
 }

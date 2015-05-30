@@ -86,12 +86,13 @@ func (md *MDOpsStandard) processMetadata(
 			//   * Verify normally using the user's public key matching the verifying key KID.
 			// TODO: what do we do if the signature is from a revoked
 			// key?
-			err = kbpki.HasVerifyingKey(writer, rmds.VerifyingKey)
+			err = kbpki.HasVerifyingKey(writer, rmds.SigInfo.VerifyingKey)
 			if err != nil {
 				return err
 			}
 
-			if err = crypto.Verify(rmds.Sig, buf, rmds.VerifyingKey); err != nil {
+			err = crypto.Verify(buf, rmds.SigInfo)
+			if err != nil {
 				return err
 			}
 		}
@@ -217,12 +218,11 @@ func (md *MDOpsStandard) Put(id DirId, rmd *RootMetadata) error {
 	} else {
 		// For our home and public directory:
 		//   * Sign normally using the local device private key
-		sig, verifyingKey, err := crypto.Sign(buf)
+		sigInfo, err := crypto.Sign(buf)
 		if err != nil {
 			return err
 		}
-		rmds.Sig = sig
-		rmds.VerifyingKey = verifyingKey
+		rmds.SigInfo = sigInfo
 	}
 
 	mdId, err := rmd.MetadataId(md.config)

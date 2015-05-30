@@ -127,7 +127,7 @@ func (k *KBPKIClient) GetCryptPublicKeys(uid keybase1.UID) (
 		if err != nil {
 			return nil, err
 		}
-		key, err := libkb.ImportKeypairFromKID(kid, k.ctx)
+		key, err := libkb.ImportKeypairFromKID(kid)
 		if err != nil {
 			return nil, err
 		}
@@ -176,7 +176,7 @@ func (k *KBPKIClient) session() (session *libkb.Session, deviceSubkey libkb.Gene
 		return
 	}
 
-	deviceSubkey, err = libkb.ImportKeypairFromKID(deviceSubkeyKid, k.ctx)
+	deviceSubkey, err = libkb.ImportKeypairFromKID(deviceSubkeyKid)
 	if err != nil {
 		return
 	}

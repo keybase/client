@@ -1,12 +1,9 @@
 package libkbfs
 
 import (
-	"bytes"
-	"fmt"
 	"strings"
 
 	"github.com/keybase/client/go/libkb"
-	"golang.org/x/crypto/nacl/box"
 )
 
 // The functions below must be used only in tests or local
@@ -23,50 +20,30 @@ func makeFakeRandomBytes(seed string, byteCount int) []byte {
 // Make a new signing key from fake randomness made from the given
 // seed.
 func MakeFakeSigningKeyOrBust(seed string) SigningKey {
-	var sk SigningKey
-	copy(sk.Secret[:], makeFakeRandomBytes(seed, SigningKeySecretLength))
-	return sk
+	fakeRandomBytes := makeFakeRandomBytes(seed, SigningKeySecretSize)
+	var fakeSecret SigningKeySecret
+	copy(fakeSecret.secret[:], fakeRandomBytes)
+	signingKey, err := makeSigningKey(fakeSecret)
+	if err != nil {
+		panic(err)
+	}
+	return signingKey
 }
 
 // Make a new key suitable for verifying signatures made from the fake
 // signing key made with the same seed.
 func MakeFakeVerifyingKeyOrBust(seed string) VerifyingKey {
 	sk := MakeFakeSigningKeyOrBust(seed)
-	vk, err := sk.GetVerifyingKey()
-	if err != nil {
-		panic(err)
-	}
-	return vk
-}
-
-// A crypt key secret is just CryptKeySecretLength random bytes.
-//
-// TODO: Ideally, box would expose how many random bytes it needs.
-const CryptKeySecretLength = 32
-
-func makeNaclDHKeyPair(secret [CryptKeySecretLength]byte) (*libkb.NaclDHKeyPair, error) {
-	r := bytes.NewReader(secret[:])
-	pub, priv, err := box.GenerateKey(r)
-	if err != nil {
-		return nil, err
-	}
-
-	if r.Len() > 0 {
-		return nil, fmt.Errorf("Did not use %d secret byte(s)", r.Len())
-	}
-
-	return &libkb.NaclDHKeyPair{
-		Public:  *pub,
-		Private: (*libkb.NaclDHKeyPrivate)(priv),
-	}, nil
+	return sk.GetVerifyingKey()
 }
 
 func MakeFakeCryptPublicKeyOrBust(seed string) CryptPublicKey {
-	var secret [CryptKeySecretLength]byte
-	copy(secret[:], makeFakeRandomBytes(seed, CryptKeySecretLength))
-	bk, err := makeNaclDHKeyPair(secret)
+	fakeRandomBytes := makeFakeRandomBytes(seed, libkb.NaclDHKeySecretSize)
+	var fakeSecret [libkb.NaclDHKeySecretSize]byte
+	copy(fakeSecret[:], fakeRandomBytes)
+	kp, err := libkb.MakeNaclDHKeyPairFromSecret(fakeSecret)
 	if err != nil {
 		panic(err)
 	}
-	return CryptPublicKey{bk.GetKid()}
+	return CryptPublicKey{kp.GetKid()}
 }

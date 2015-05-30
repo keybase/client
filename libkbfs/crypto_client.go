@@ -44,12 +44,12 @@ func newCryptoClientWithClient(codec Codec, ctx *libkb.GlobalContext, client key
 	return &CryptoClient{CryptoCommon{codec}, ctx, client}
 }
 
-func (c *CryptoClient) Sign(msg []byte) (sig []byte, verifyingKey VerifyingKey, err error) {
+func (c *CryptoClient) Sign(msg []byte) (sigInfo SignatureInfo, err error) {
 	defer func() {
-		libkb.G.Log.Debug("Signing %d-byte message with %d-byte signature and verifying key %s: err=%v", len(msg), len(sig), verifyingKey.KID, err)
+		libkb.G.Log.Debug("Signed %d-byte message with %s: err=%v", len(msg), sigInfo, err)
 	}()
 	cc := keybase1.CryptoClient{Cli: c.client}
-	sigInfo, err := cc.Sign(keybase1.SignArg{
+	ed25519SigInfo, err := cc.SignED25519(keybase1.SignED25519Arg{
 		SessionID: 0,
 		Msg:       msg,
 		Reason:    "to use kbfs",
@@ -58,23 +58,10 @@ func (c *CryptoClient) Sign(msg []byte) (sig []byte, verifyingKey VerifyingKey, 
 		return
 	}
 
-	kid, err := libkb.ImportKID(sigInfo.VerifyingKeyKid)
-	if err != nil {
-		return
+	sigInfo = SignatureInfo{
+		Version:      SigED25519,
+		Signature:    ed25519SigInfo.Sig[:],
+		VerifyingKey: VerifyingKey{libkb.NaclSigningKeyPublic(ed25519SigInfo.PublicKey).GetKid()},
 	}
-
-	verifyingKey = VerifyingKey{kid}
-	sig = sigInfo.Sig
 	return
-}
-
-func (c *CryptoClient) Verify(sig []byte, msg []byte, verifyingKey VerifyingKey) (err error) {
-	defer func() {
-		libkb.G.Log.Debug("Verifying %d-byte message with %d-byte signature: err=%v", len(msg), len(sig), err)
-	}()
-	verifier, err := newVerifier(verifyingKey)
-	if err != nil {
-		return err
-	}
-	return verifier.VerifyBytes(sig, msg)
 }

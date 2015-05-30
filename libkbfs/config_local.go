@@ -73,11 +73,7 @@ func MakeLocalUserSigningKeyOrBust(name string) SigningKey {
 // Make a new verifying key corresponding to the signing key for the
 // same name.
 func MakeLocalUserVerifyingKeyOrBust(name string) VerifyingKey {
-	vk, err := MakeLocalUserSigningKeyOrBust(name).GetVerifyingKey()
-	if err != nil {
-		panic(err)
-	}
-	return vk
+	return MakeLocalUserSigningKeyOrBust(name).GetVerifyingKey()
 }
 
 func MakeLocalUserCryptPublicKeyOrBust(name string) CryptPublicKey {

@@ -41,7 +41,57 @@ var PublicName string = "public"
 //
 // These are also sometimes known as sibkeys.
 type VerifyingKey struct {
+	// Exported only for serialization purposes. Should only be
+	// used by implementations of Crypto and KBPKI.
+	//
+	// Even though we currently use NaclSignatures, we use a KID
+	// here (which encodes the key type) as we may end up storing
+	// other kinds of signatures.
 	KID libkb.KID
+}
+
+func (k VerifyingKey) IsNil() bool {
+	return len(k.KID) == 0
+}
+
+func (k VerifyingKey) DeepCopy() VerifyingKey {
+	return VerifyingKey{k.KID[:]}
+}
+
+func (k VerifyingKey) String() string {
+	return k.KID.String()
+}
+
+type SigVer int
+
+const (
+	SigED25519 SigVer = 1
+)
+
+func (v SigVer) IsNil() bool {
+	return int(v) == 0
+}
+
+// SignatureInfo contains all the info needed to verify a signature
+// for a message.
+type SignatureInfo struct {
+	Version      SigVer
+	Signature    []byte
+	VerifyingKey VerifyingKey
+}
+
+func (s SignatureInfo) IsNil() bool {
+	return s.Version.IsNil() && len(s.Signature) == 0 && s.VerifyingKey.IsNil()
+}
+
+func (s SignatureInfo) DeepCopy() SignatureInfo {
+	signature := make([]byte, len(s.Signature))
+	copy(signature[:], s.Signature[:])
+	return SignatureInfo{s.Version, signature, s.VerifyingKey.DeepCopy()}
+}
+
+func (s SignatureInfo) String() string {
+	return fmt.Sprintf("SignatureInfo{Version: %d, Signature: %s, VerifyingKey: %s}", s.Version, hex.EncodeToString(s.Signature[:]), &s.VerifyingKey)
 }
 
 // A TLFPrivateKey-TLFPublicKey pair (M_f, m_f) is the permanent
@@ -401,9 +451,7 @@ func (p *Path) HasPublic() bool {
 type RootMetadataSigned struct {
 	// signature over the root metadata by the private signing key
 	// (for "home" folders and public folders)
-	Sig []byte `codec:",omitempty"`
-	// The key that can verify Sig.
-	VerifyingKey VerifyingKey `codec:",omitempty"`
+	SigInfo SignatureInfo `codec:",omitempty"`
 	// pairwise MAC of the last writer with all readers and writers
 	// (for private shares)
 	Macs map[keybase1.UID][]byte `codec:",omitempty"`
@@ -413,7 +461,7 @@ type RootMetadataSigned struct {
 
 func (rmds *RootMetadataSigned) IsInitialized() bool {
 	// The data is only if there is some sort of signature
-	return rmds.Sig != nil || len(rmds.Macs) > 0
+	return !rmds.SigInfo.IsNil() || len(rmds.Macs) > 0
 }
 
 // DirKeyBundle is a bundle of all the keys for a directory

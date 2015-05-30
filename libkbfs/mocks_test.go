@@ -761,26 +761,25 @@ func (_mr *_MockCryptoRecorder) UnmaskBlockCryptKey(arg0, arg1 interface{}) *gom
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "UnmaskBlockCryptKey", arg0, arg1)
 }
 
-func (_m *MockCrypto) Sign(msg []byte) ([]byte, VerifyingKey, error) {
+func (_m *MockCrypto) Sign(msg []byte) (SignatureInfo, error) {
 	ret := _m.ctrl.Call(_m, "Sign", msg)
-	ret0, _ := ret[0].([]byte)
-	ret1, _ := ret[1].(VerifyingKey)
-	ret2, _ := ret[2].(error)
-	return ret0, ret1, ret2
+	ret0, _ := ret[0].(SignatureInfo)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
 }
 
 func (_mr *_MockCryptoRecorder) Sign(arg0 interface{}) *gomock.Call {
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "Sign", arg0)
 }
 
-func (_m *MockCrypto) Verify(sig []byte, msg []byte, verifyingKey VerifyingKey) error {
-	ret := _m.ctrl.Call(_m, "Verify", sig, msg, verifyingKey)
+func (_m *MockCrypto) Verify(msg []byte, sigInfo SignatureInfo) error {
+	ret := _m.ctrl.Call(_m, "Verify", msg, sigInfo)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
-func (_mr *_MockCryptoRecorder) Verify(arg0, arg1, arg2 interface{}) *gomock.Call {
-	return _mr.mock.ctrl.RecordCall(_mr.mock, "Verify", arg0, arg1, arg2)
+func (_mr *_MockCryptoRecorder) Verify(arg0, arg1 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "Verify", arg0, arg1)
 }
 
 func (_m *MockCrypto) EncryptTLFCryptKeyClientHalf(privateKey TLFEphemeralPrivateKey, publicKey CryptPublicKey, clientHalf TLFCryptKeyClientHalf) ([]byte, error) {

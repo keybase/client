@@ -137,10 +137,9 @@ type Crypto interface {
 	UnmaskBlockCryptKey(serverHalf BlockCryptKeyServerHalf, tlfCryptKey TLFCryptKey) (BlockCryptKey, error)
 
 	// Sign msg with the current device's private key.
-	Sign(msg []byte) (sig []byte, verifyingKey VerifyingKey, err error)
-	// Verify that sig matches msg being signed with the private
-	// key that corresponds to verifyingKey.
-	Verify(sig []byte, msg []byte, verifyingKey VerifyingKey) (err error)
+	Sign(msg []byte) (sigInfo SignatureInfo, err error)
+	// Verify the given signature for the given message.
+	Verify(msg []byte, sigInfo SignatureInfo) error
 
 	// Encrypt a TLFCryptKeyClientHalf using both a TLF's
 	// ephemeral private key and a device pubkey.

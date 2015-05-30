@@ -44,9 +44,11 @@ func newDir(config *ConfigMock, x byte, share bool, public bool) (
 
 	rmds := &RootMetadataSigned{}
 	if public || !share {
-		rmds.Sig = []byte{42}
-		key := MakeFakeVerifyingKeyOrBust("fake key")
-		rmds.VerifyingKey = key
+		rmds.SigInfo = SignatureInfo{
+			Version:      SigED25519,
+			Signature:    []byte{42},
+			VerifyingKey: MakeFakeVerifyingKeyOrBust("fake key"),
+		}
 	} else {
 		rmds.Macs = make(map[keybase1.UID][]byte)
 		rmds.Macs[h.Writers[0]] = []byte{42}
@@ -86,7 +88,7 @@ func verifyMDForPublicShare(config *ConfigMock, rmds *RootMetadataSigned,
 	config.mockCodec.EXPECT().Encode(gomock.Any()).Return(packedData, nil)
 	config.mockKbpki.EXPECT().HasVerifyingKey(gomock.Any(), gomock.Any()).AnyTimes().Return(hasVerifyingKeyErr)
 	if hasVerifyingKeyErr == nil {
-		config.mockCrypto.EXPECT().Verify(rmds.Sig, packedData, gomock.Any()).Return(verifyErr)
+		config.mockCrypto.EXPECT().Verify(packedData, rmds.SigInfo).Return(verifyErr)
 	}
 }
 
@@ -181,10 +183,10 @@ func TestMDOpsGetAtHandlePublicFailVerify(t *testing.T) {
 
 	config.mockMdserv.EXPECT().GetAtHandle(h).Return(rmds, nil)
 
-	verifyErr := errors.New("Test verification error")
-	verifyMDForPublicShare(config, rmds, id, nil, verifyErr)
+	expectedErr := libkb.VerificationError{}
+	verifyMDForPublicShare(config, rmds, id, nil, expectedErr)
 
-	if _, err := config.MDOps().GetAtHandle(h); err != verifyErr {
+	if _, err := config.MDOps().GetAtHandle(h); err != expectedErr {
 		t.Errorf("Got unexpected error on get: %v", err)
 	}
 }

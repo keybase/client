@@ -7,15 +7,6 @@ import (
 	"github.com/keybase/client/go/libkb"
 )
 
-// TODO: This should probably live in libkb.
-type Verifier interface {
-	VerifyBytes(sig, msg []byte) (err error)
-}
-
-func newVerifier(k VerifyingKey) (Verifier, error) {
-	return libkb.ImportKeypairFromKID(k.KID, nil)
-}
-
 type CryptoCommon struct {
 	codec Codec
 }
@@ -51,6 +42,37 @@ func (c *CryptoCommon) UnmaskTLFCryptKey(serverHalf TLFCryptKeyServerHalf, clien
 
 func (c *CryptoCommon) UnmaskBlockCryptKey(serverHalf BlockCryptKeyServerHalf, tlfCryptKey TLFCryptKey) (BlockCryptKey, error) {
 	return BlockCryptKey{}, nil
+}
+
+func (c *CryptoCommon) Verify(msg []byte, sigInfo SignatureInfo) (err error) {
+	defer func() {
+		libkb.G.Log.Debug("Verify result for %d-byte message with %s: %v", len(msg), sigInfo, err)
+	}()
+
+	if sigInfo.Version != SigED25519 {
+		err = UnknownSigVer{sigInfo.Version}
+		return
+	}
+
+	publicKey := sigInfo.VerifyingKey.KID.ToNaclSigningKeyPublic()
+	if publicKey == nil {
+		err = libkb.KeyCannotVerifyError{}
+		return
+	}
+
+	var naclSignature libkb.NaclSignature
+	if len(sigInfo.Signature) != len(naclSignature) {
+		err = libkb.VerificationError{}
+		return
+	}
+	copy(naclSignature[:], sigInfo.Signature)
+
+	if !publicKey.Verify(msg, &naclSignature) {
+		err = libkb.VerificationError{}
+		return
+	}
+
+	return
 }
 
 func (c *CryptoCommon) EncryptTLFCryptKeyClientHalf(privateKey TLFEphemeralPrivateKey, publicKey CryptPublicKey, clientHalf TLFCryptKeyClientHalf) ([]byte, error) {
