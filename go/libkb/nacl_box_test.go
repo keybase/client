@@ -72,7 +72,7 @@ func TestSealOpen(t *testing.T) {
 
 // Test that opening a message with the wrong key combinations won't
 // work.
-func TestOpenWrongKeys(t *testing.T) {
+func TestOpenWrongKeyCombos(t *testing.T) {
 	kp1, kp2 := makeKeyPairsOrBust(t)
 
 	expectedData := []byte{0, 1, 2, 3, 4}
@@ -151,6 +151,64 @@ func TestOpenWrongKeys(t *testing.T) {
 	}
 
 	data, err = boxOpen(encryptedData, nonce, (NaclDHKeyPublic)(*kp2.Private), kp2.Private)
+	if err == nil {
+		t.Errorf("Open unexpectedly worked: %v", data)
+	}
+}
+
+// Test that opening a message with the wrong keys won't work.
+func TestOpenWrongKeys(t *testing.T) {
+	kp1, kp2 := makeKeyPairsOrBust(t)
+
+	expectedData := []byte{0, 1, 2, 3, 4}
+	nonce := [24]byte{5, 6, 7, 8}
+
+	encryptedData := boxSeal(expectedData, nonce, kp1.Public, kp2.Private)
+
+	kp3, kp4 := makeKeyPairsOrBust(t)
+
+	// Run through all possible invalid combinations (not covered
+	// by TestOpenWrongKeyCombos).
+
+	var data []byte
+	var err error
+
+	data, err = boxOpen(encryptedData, nonce, kp1.Public, kp3.Private)
+	if err == nil {
+		t.Errorf("Open unexpectedly worked: %v", data)
+	}
+
+	data, err = boxOpen(encryptedData, nonce, kp1.Public, kp4.Private)
+	if err == nil {
+		t.Errorf("Open unexpectedly worked: %v", data)
+	}
+
+	data, err = boxOpen(encryptedData, nonce, kp2.Public, kp3.Private)
+	if err == nil {
+		t.Errorf("Open unexpectedly worked: %v", data)
+	}
+
+	data, err = boxOpen(encryptedData, nonce, kp2.Public, kp4.Private)
+	if err == nil {
+		t.Errorf("Open unexpectedly worked: %v", data)
+	}
+
+	data, err = boxOpen(encryptedData, nonce, kp3.Public, kp1.Private)
+	if err == nil {
+		t.Errorf("Open unexpectedly worked: %v", data)
+	}
+
+	data, err = boxOpen(encryptedData, nonce, kp3.Public, kp2.Private)
+	if err == nil {
+		t.Errorf("Open unexpectedly worked: %v", data)
+	}
+
+	data, err = boxOpen(encryptedData, nonce, kp4.Public, kp1.Private)
+	if err == nil {
+		t.Errorf("Open unexpectedly worked: %v", data)
+	}
+
+	data, err = boxOpen(encryptedData, nonce, kp4.Public, kp2.Private)
 	if err == nil {
 		t.Errorf("Open unexpectedly worked: %v", data)
 	}
