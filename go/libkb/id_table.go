@@ -1135,7 +1135,7 @@ func (idt *IdentityTable) Identify(is IdentifyState, ui IdentifyUI) {
 //=========================================================================
 
 func (idt *IdentityTable) IdentifyActiveProof(lcr *LinkCheckResult, is IdentifyState, ui IdentifyUI) {
-	idt.ProofRemoteCheck(is.Track, lcr)
+	idt.proofRemoteCheck((is.Track != nil), lcr)
 	lcr.link.DisplayCheck(ui, *lcr)
 }
 
@@ -1167,17 +1167,17 @@ func ComputeRemoteDiff(tracked, observed keybase1.ProofState) TrackDiff {
 	return TrackDiffRemoteChanged{tracked, observed}
 }
 
-func (idt *IdentityTable) ProofRemoteCheck(track *TrackLookup, res *LinkCheckResult) {
+func (idt *IdentityTable) proofRemoteCheck(hasPreviousTrack bool, res *LinkCheckResult) {
 
 	p := res.link
 
 	G.Log.Debug("+ RemoteCheckProof %s", p.ToDebugString())
 	defer func() {
-		G.Log.Debug("- RemoteCheckProof %s", p.ToDebugString())
-		observedProofState := ProofErrorToState(res.err)
-		if track != nil {
+		if hasPreviousTrack {
+			observedProofState := ProofErrorToState(res.err)
 			res.remoteDiff = ComputeRemoteDiff(res.trackedProofState, observedProofState)
 		}
+		G.Log.Debug("- RemoteCheckProof %s", p.ToDebugString())
 	}()
 
 	sid := p.GetSigID()
