@@ -8,7 +8,7 @@
 
 #import "KBService.h"
 
-#import "KBAppKit.h"
+#import "KBAppDefines.h"
 #import "AppDelegate.h"
 #import "KBInfoView.h"
 

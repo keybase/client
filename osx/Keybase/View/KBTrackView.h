@@ -8,7 +8,7 @@
 
 #import <Foundation/Foundation.h>
 
-#import "KBAppKit.h"
+#import "KBAppDefines.h"
 #import "KBRPC.h"
 
 typedef void (^KBTrackResponseBlock)(NSString *username);

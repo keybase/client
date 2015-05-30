@@ -12,7 +12,7 @@
 #import "KBRPC.h"
 #import "KBAppView.h"
 #import <GHKit/GHKit.h>
-#import "KBAppKit.h"
+#import "KBAppDefines.h"
 #import "KBControlPanel.h"
 #import "KBConsoleView.h"
 

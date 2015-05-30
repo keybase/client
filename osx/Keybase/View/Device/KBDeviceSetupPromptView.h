@@ -7,7 +7,7 @@
 //
 
 #import <Foundation/Foundation.h>
-#import "KBAppKit.h"
+#import "KBAppDefines.h"
 #import "KBContentView.h"
 
 typedef void (^KBDevicePromptCompletion)(id sender, NSError *error, NSString *deviceName);

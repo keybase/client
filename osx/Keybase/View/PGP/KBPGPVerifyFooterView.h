@@ -8,7 +8,7 @@
 
 #import <Foundation/Foundation.h>
 
-#import "KBAppKit.h"
+#import "KBAppDefines.h"
 
 @interface KBPGPVerifyFooterView : YOVBox
 

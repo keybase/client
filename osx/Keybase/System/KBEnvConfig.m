@@ -9,7 +9,7 @@
 #import "KBEnvConfig.h"
 
 #import "KBDefines.h"
-#import "KBAppKit.h"
+#import "KBAppDefines.h"
 
 @interface KBEnvConfig ()
 @property NSString *homeDir;

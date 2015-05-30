@@ -8,7 +8,7 @@
 
 #import "KBPGPKeyGenView.h"
 #import "AppDelegate.h"
-#import "KBAppKit.h"
+#import "KBAppDefines.h"
 #import "KBRPC.h"
 
 @interface KBPGPKeyGenView ()

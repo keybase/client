@@ -8,7 +8,7 @@
 
 #import <Foundation/Foundation.h>
 
-#import "KBAppKit.h"
+#import "KBAppDefines.h"
 #import "KBImageLabel.h"
 #import "KBRPC.h"
 #import "KBFile.h"

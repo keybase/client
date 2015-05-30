@@ -437,7 +437,6 @@
 		00566A041A97DA1800CA236E /* KBWebView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBWebView.m; sourceTree = "<group>"; };
 		00566A051A97DA1800CA236E /* KBWindow.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBWindow.h; sourceTree = "<group>"; };
 		00566A061A97DA1800CA236E /* KBWindow.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBWindow.m; sourceTree = "<group>"; };
-		00566A351A97DA5900CA236E /* KBAppKit.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBAppKit.h; sourceTree = "<group>"; };
 		00566A3F1A97EA9F00CA236E /* KBSearchResultView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBSearchResultView.h; sourceTree = "<group>"; };
 		00566A401A97EA9F00CA236E /* KBSearchResultView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBSearchResultView.m; sourceTree = "<group>"; };
 		00566A581A9BAD4800CA236E /* build.sh */ = {isa = PBXFileReference; lastKnownFileType = text.script.sh; path = build.sh; sourceTree = "<group>"; };
@@ -1200,7 +1199,6 @@
 		00E3E3CA1A64BA9F00CCB8F4 /* UI */ = {
 			isa = PBXGroup;
 			children = (
-				00566A351A97DA5900CA236E /* KBAppKit.h */,
 				009E2BBD1ABCD9C700EBB035 /* KBAppKitDefines.h */,
 				009E2BBE1ABCD9C700EBB035 /* KBAppKitDefines.m */,
 				005669D91A97DA1800CA236E /* KBActivityIndicatorView.h */,

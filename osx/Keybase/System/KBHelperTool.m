@@ -11,7 +11,7 @@
 #import <ServiceManagement/ServiceManagement.h>
 #import <MPMessagePack/MPXPCClient.h>
 #import "KBLaunchCtl.h"
-#import "KBAppKit.h"
+#import "KBAppDefines.h"
 #import "KBInfoView.h"
 #import "KBPrivilegedTask.h"
 

@@ -7,7 +7,7 @@
 //
 
 #import "KBFatalErrorView.h"
-#import "KBAppKit.h"
+#import "KBAppDefines.h"
 #import <YOLayout/YOCGUtils.h>
 
 @interface KBFatalErrorView ()

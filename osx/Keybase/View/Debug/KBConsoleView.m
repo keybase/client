@@ -10,7 +10,7 @@
 
 #import "AppDelegate.h"
 #import "KBLaunchService.h"
-#import "KBAppKit.h"
+#import "KBAppDefines.h"
 
 #import "KBFSStatusView.h"
 #import "KBAppView.h"

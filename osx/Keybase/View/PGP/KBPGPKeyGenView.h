@@ -8,7 +8,7 @@
 
 #import <Foundation/Foundation.h>
 
-#import "KBAppKit.h"
+#import "KBAppDefines.h"
 #import "KBContentView.h"
 
 @interface KBPGPKeyGenView : KBContentView

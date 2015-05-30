@@ -8,7 +8,7 @@
 
 #import "KBCLIInstall.h"
 #import "KBAppDefines.h"
-#import "KBAppKit.h"
+#import "KBAppDefines.h"
 #import <MPMessagePack/MPXPCClient.h>
 #import "KBInfoView.h"
 

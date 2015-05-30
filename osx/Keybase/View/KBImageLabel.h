@@ -8,7 +8,7 @@
 
 #import <Foundation/Foundation.h>
 
-#import "KBAppKit.h"
+#import "KBAppDefines.h"
 
 typedef NS_ENUM (NSInteger, KBImageLabelStyle) {
   KBImageLabelStyleDefault,

@@ -16,7 +16,7 @@
 #import "KBKeySelectView.h"
 #import "KBDeviceSetupChooseView.h"
 #import "KBRMockClient.h"
-#import "KBAppKit.h"
+#import "KBAppDefines.h"
 #import "KBDeviceSetupPromptView.h"
 #import "KBProgressView.h"
 #import "KBKeyImportView.h"

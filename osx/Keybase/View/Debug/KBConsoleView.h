@@ -8,7 +8,7 @@
 
 #import <Foundation/Foundation.h>
 
-#import "KBAppKit.h"
+#import "KBAppDefines.h"
 #import <CocoaLumberjack/CocoaLumberjack.h>
 
 typedef NS_ENUM (NSInteger, KBConsoleType) {
