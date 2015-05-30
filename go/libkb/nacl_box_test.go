@@ -226,19 +226,26 @@ func TestOpenCorruptMessage(t *testing.T) {
 	var data []byte
 	var err error
 
-	data, err = boxOpen(encryptedData[:len(encryptedData)-1], nonce, kp1.Public, (*NaclDHKeyPrivate)(&kp1.Public))
+	data, err = boxOpen(encryptedData[:len(encryptedData)-1], nonce, kp2.Public, kp1.Private)
 	if err == nil {
 		t.Errorf("Open unexpectedly worked: %v", data)
 	}
 
-	data, err = boxOpen(append(encryptedData, 0), nonce, kp1.Public, (*NaclDHKeyPrivate)(&kp1.Public))
+	data, err = boxOpen(append(encryptedData, 0), nonce, kp2.Public, kp1.Private)
+	if err == nil {
+		t.Errorf("Open unexpectedly worked: %v", data)
+	}
+
+	encryptedData[0] = ^encryptedData[0]
+
+	data, err = boxOpen(encryptedData, nonce, kp2.Public, kp1.Private)
 	if err == nil {
 		t.Errorf("Open unexpectedly worked: %v", data)
 	}
 
 	encryptedData[box.Overhead] = ^encryptedData[box.Overhead]
 
-	data, err = boxOpen(encryptedData, nonce, kp1.Public, (*NaclDHKeyPrivate)(&kp1.Public))
+	data, err = boxOpen(encryptedData, nonce, kp2.Public, kp1.Private)
 	if err == nil {
 		t.Errorf("Open unexpectedly worked: %v", data)
 	}
