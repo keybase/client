@@ -17,4 +17,17 @@ protocol crypto {
 	// signature. The 'reason' parameter is used as part of the
 	// SecretEntryArg object passed into secretUi.getSecret().
 	ED25519SignatureInfo signED25519(int sessionID, bytes msg, string reason);
+
+	fixed Bytes32(32);
+	// 32 + fixed-size nacl/box overhead.
+	fixed EncryptedBytes32(48);
+	fixed BoxNonce(24);
+	fixed BoxPublicKey(32);
+
+	// Decrypt exactly 32 bytes using nacl/box with the given nonce,
+	// the given peer's public key, and the device's private encryption
+	// key, and return the decrypted data.. The 'reason' parameter is
+	// used as part of the SecretEntryArg object passed into
+	// secretUi.getSecret().
+	Bytes32 unboxBytes32(int sessionID, EncryptedBytes32 encryptedBytes32, BoxNonce nonce, BoxPublicKey peersPublicKey, string reason);
 }

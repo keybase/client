@@ -424,7 +424,7 @@ func (k SKBKeyringFile) SearchWithComputedKeyFamily(ckf *ComputedKeyFamily, ska 
 			kid = key.GetKid()
 			active := ckf.GetKeyRole(kid)
 			G.Log.Debug("| Checking KID: %s -> %d", kid, int(active))
-			if !ska.KeyType.nonDeviceSigningKeyMatches(key) {
+			if !ska.KeyType.nonDeviceKeyMatches(key) {
 				G.Log.Debug("| Skipped, doesn't match type=%s", ska.KeyType)
 			} else if !KeyMatchesQuery(key, ska.KeyQuery) {
 				G.Log.Debug("| Skipped, doesn't match query=%s", ska.KeyQuery)
