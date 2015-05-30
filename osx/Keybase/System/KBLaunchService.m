@@ -103,14 +103,17 @@
       completion(serviceStatus.error);
     } else {
       [self waitForVersionFile:^(NSString *runningVersion) {
-        if (serviceStatus.isRunning) {
+        GHODictionary *info = [GHODictionary dictionary];
+        if (serviceStatus.isRunning && runningVersion) {
           self.runningVersion = runningVersion;
           self.pid = serviceStatus.pid;
+          info[@"Version"] = runningVersion;
           if (![runningVersion isEqualToString:self.bundleVersion]) {
-            self.componentStatus = [KBComponentStatus componentStatusWithInstallStatus:KBInstallStatusNeedsUpgrade runtimeStatus:KBRuntimeStatusRunning info:nil];
+            info[@"New Version"] = self.bundleVersion;
+            self.componentStatus = [KBComponentStatus componentStatusWithInstallStatus:KBInstallStatusNeedsUpgrade runtimeStatus:KBRuntimeStatusRunning info:info];
             completion(nil);
           } else {
-            self.componentStatus = [KBComponentStatus componentStatusWithInstallStatus:KBInstallStatusInstalled runtimeStatus:KBRuntimeStatusRunning info:nil];
+            self.componentStatus = [KBComponentStatus componentStatusWithInstallStatus:KBInstallStatusInstalled runtimeStatus:KBRuntimeStatusRunning info:info];
             completion(nil);
           }
         } else {
@@ -150,10 +153,19 @@
   //if (![NSFileManager.defaultManager fileExistsAtPath:launchAgentPlistDest]) {
   NSError *error = nil;
 
-  // Remove if exists
+  // Remove plist file if exists
   if ([NSFileManager.defaultManager fileExistsAtPath:plistDest]) {
     if (![NSFileManager.defaultManager removeItemAtPath:plistDest error:&error]) {
-      if (!error) error = KBMakeErrorWithRecovery(-1, @"Install Error", @"Unable to remove existing luanch agent plist for upgrade.", nil);
+      if (!error) error = KBMakeErrorWithRecovery(-1, @"Install Error", @"Unable to remove existing launch agent plist for upgrade.", nil);
+      completion(error);
+      return;
+    }
+  }
+
+  // Remove version file if exists
+  if ([NSFileManager.defaultManager fileExistsAtPath:_versionPath]) {
+    if (![NSFileManager.defaultManager removeItemAtPath:_versionPath error:&error]) {
+      if (!error) error = KBMakeErrorWithRecovery(-1, @"Install Error", @"Unable to remove existing version file.", nil);
       completion(error);
       return;
     }

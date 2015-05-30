@@ -18,35 +18,39 @@ CODE_SIGN_IDENTITY="Developer ID Application: Keybase, Inc. (99229SGT5K)"
 
 
 if [ -d "$BUILD_DEST" ]; then
+  echo " "
   echo "Build directory already exists: $BUILD_DEST"
   echo " "
-  echo "You probably want to remove it and try this again."
-  exit 1
+  echo "If you want a fresh build you should remove it and try this again."
+  echo " "
+  echo " "
+  #exit 1
 fi
 
 #
 # Keybase (go)
 #
 
-echo "Building Keybase (go)..."
-echo "  Using source: $KB_GO_SRC"
-echo "  Generating version.go ($VERSION)"
-echo "package libkb\n\nvar CLIENT_VERSION = \"$VERSION\"\n" > $KB_GO_SRC/libkb/version.go
-mkdir -p $BUILD_DEST
-echo "  Compiling..."
-cd $KB_GO_SRC/keybase/
-go build -a
-cp $KB_GO_SRC/keybase/keybase $BUILD_DEST/keybase
-chmod +x $BUILD_DEST/keybase
+if [ ! -f "$BUILD_DEST/keybase" ]; then
+  echo "  Using source: $KB_GO_SRC"
+  echo "  Generating version.go ($VERSION)"
+  echo "package libkb\n\nvar CLIENT_VERSION = \"$VERSION\"\n" > $KB_GO_SRC/libkb/version.go
+  mkdir -p $BUILD_DEST
+  echo "  Compiling keybase (go)..."
+  cd $KB_GO_SRC/keybase/
+  go build -a
+  cp $KB_GO_SRC/keybase/keybase $BUILD_DEST/keybase
+  chmod +x $BUILD_DEST/keybase
+fi
 
-echo "  Using KBFS source: $KBFS_GO_SRC"
-echo "  Compiling..."
-cd $KBFS_GO_SRC/kbfsfuse/
-go build -a
-cp $KBFS_GO_SRC/kbfsfuse/kbfsfuse $BUILD_DEST/kbfsfuse
-chmod +x $BUILD_DEST/kbfsfuse
-echo "  Done"
-echo "  "
+if [ ! -f "$BUILD_DEST/kbfsfuse" ]; then
+  echo "  Using KBFS source: $KBFS_GO_SRC"
+  echo "  Compiling..."
+  cd $KBFS_GO_SRC/kbfsfuse/
+  go build -a
+  cp $KBFS_GO_SRC/kbfsfuse/kbfsfuse $BUILD_DEST/kbfsfuse
+  chmod +x $BUILD_DEST/kbfsfuse
+fi
 
 #
 # Keybase.app
@@ -72,7 +76,7 @@ echo "  Helper Version: $KB_HELPER_VERSION"
 echo "  KBFS Version: $KBFS_VERSION"
 echo "  Fuse Version: $KB_FUSE_VERSION"
 
-echo "  Updating $PLIST..."
+echo "  Updating $PLIST"
 /usr/libexec/PlistBuddy -c "Set :CFBundleVersion '${VERSION}'" $PLIST
 /usr/libexec/PlistBuddy -c "Set :CFBundleShortVersionString '${VERSION}'" $PLIST
 /usr/libexec/PlistBuddy -c "Set :KBServiceVersion '${KB_SERVICE_VERSION}'" $PLIST
@@ -94,6 +98,10 @@ ARCHIVE_POSTFIX=$(date +"%-m-%-e-%y, %-l.%M %p") #1-31-15, 1.47 PM
 ARCHIVE_PATH="$BUILD_DEST/Keybase.xcarchive"
 ARCHIVE_HOLD_PATH="/Users/gabe/Library/Developer/Xcode/Archives/$ARCHIVE_DIR_DAY/Keybase $ARCHIVE_POSTFIX.xcarchive"
 
+APP_PATH="$BUILD_DEST/Keybase.app"
+
+rm -rf $ARCHIVE_PATH
+
 echo "  Archiving..."
 set -o pipefail && xcodebuild archive -scheme Keybase -workspace $DIR/../Keybase.xcworkspace -configuration Release -archivePath $ARCHIVE_PATH | xcpretty -c
 
@@ -104,8 +112,10 @@ ditto "$ARCHIVE_PATH" "$ARCHIVE_HOLD_PATH"
 # Export
 #
 
+rm -rf $APP_PATH
+
 echo "  Exporting..."
-set -o pipefail && xcodebuild -exportArchive -archivePath /Users/gabe/Projects/go/src/github.com/keybase/client/osx/Install/build/Keybase.xcarchive -exportFormat app -exportPath /Users/gabe/Projects/go/src/github.com/keybase/client/osx/Install/build/Keybase.app | xcpretty -c
+set -o pipefail && xcodebuild -exportArchive -archivePath $ARCHIVE_PATH -exportFormat app -exportPath $APP_PATH | xcpretty -c
 
 echo "  Done"
 echo "  "
