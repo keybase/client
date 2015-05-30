@@ -10,9 +10,9 @@ import (
 // Tests to make sure that the nacl/box functions behave as we expect
 // them to.
 
-// Test that sealing a message and then opening it works and returns
-// the original message.
-func TestSealOpen(t *testing.T) {
+// Convenience functions for testing.
+
+func makeKeyPairsOrBust(t *testing.T) (NaclDHKeyPair, NaclDHKeyPair) {
 	kp1, err := GenerateNaclDHKeyPair()
 	if err != nil {
 		t.Fatal(err)
@@ -23,17 +23,135 @@ func TestSealOpen(t *testing.T) {
 		t.Fatal(err)
 	}
 
+	return kp1, kp2
+}
+
+func boxSeal(msg []byte, nonce [24]byte, peersPublicKey NaclDHKeyPublic, privateKey *NaclDHKeyPrivate) []byte {
+	return box.Seal(nil, msg, &nonce, (*[32]byte)(&peersPublicKey), (*[32]byte)(privateKey))
+}
+
+func boxOpen(encryptedData []byte, nonce [24]byte, peersPublicKey NaclDHKeyPublic, privateKey *NaclDHKeyPrivate) ([]byte, error) {
+	data, ok := box.Open(nil, encryptedData, &nonce, (*[32]byte)(&peersPublicKey), (*[32]byte)(privateKey))
+	if ok {
+		return data, nil
+	} else {
+		return data, DecryptionError{}
+	}
+}
+
+// Test that sealing a message and then opening it works and returns
+// the original message.
+func TestSealOpen(t *testing.T) {
+	kp1, kp2 := makeKeyPairsOrBust(t)
+
 	expectedData := []byte{0, 1, 2, 3, 4}
 	nonce := [24]byte{5, 6, 7, 8}
 
-	encryptedData := box.Seal(nil, expectedData, &nonce, (*[32]byte)(&kp1.Public), (*[32]byte)(kp2.Private))
+	encryptedData := boxSeal(expectedData, nonce, kp1.Public, kp2.Private)
 
-	data, ok := box.Open(nil, encryptedData, &nonce, (*[32]byte)(&kp2.Public), (*[32]byte)(kp1.Private))
-	if !ok {
-		t.Fatal(DecryptionError{})
+	data, err := boxOpen(encryptedData, nonce, kp2.Public, kp1.Private)
+	if err != nil {
+		t.Fatal(err)
 	}
 
 	if !bytes.Equal(data, expectedData) {
-		t.Fatalf("Expected %v, got %v", expectedData, data)
+		t.Errorf("Expected %v, got %v", expectedData, data)
+	}
+
+	// Apparently, you can open a message you yourself have sealed.
+
+	data, err = boxOpen(encryptedData, nonce, kp1.Public, kp2.Private)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if !bytes.Equal(data, expectedData) {
+		t.Errorf("Expected %v, got %v", expectedData, data)
+	}
+}
+
+// Test that opening a message with the wrong key combinations won't
+// work.
+func TestOpenWrongKeys(t *testing.T) {
+	kp1, kp2 := makeKeyPairsOrBust(t)
+
+	expectedData := []byte{0, 1, 2, 3, 4}
+	nonce := [24]byte{5, 6, 7, 8}
+
+	encryptedData := boxSeal(expectedData, nonce, kp1.Public, kp2.Private)
+
+	// Run through all possible invalid combinations.
+
+	var data []byte
+	var err error
+
+	data, err = boxOpen(encryptedData, nonce, kp1.Public, (*NaclDHKeyPrivate)(&kp1.Public))
+	if err == nil {
+		t.Errorf("Open unexpectedly worked: %v", data)
+	}
+
+	data, err = boxOpen(encryptedData, nonce, kp1.Public, kp1.Private)
+	if err == nil {
+		t.Errorf("Open unexpectedly worked: %v", data)
+	}
+
+	data, err = boxOpen(encryptedData, nonce, kp1.Public, (*NaclDHKeyPrivate)(&kp2.Public))
+	if err == nil {
+		t.Errorf("Open unexpectedly worked: %v", data)
+	}
+
+	data, err = boxOpen(encryptedData, nonce, (NaclDHKeyPublic)(*kp1.Private), (*NaclDHKeyPrivate)(&kp1.Public))
+	if err == nil {
+		t.Errorf("Open unexpectedly worked: %v", data)
+	}
+
+	data, err = boxOpen(encryptedData, nonce, (NaclDHKeyPublic)(*kp1.Private), kp1.Private)
+	if err == nil {
+		t.Errorf("Open unexpectedly worked: %v", data)
+	}
+
+	data, err = boxOpen(encryptedData, nonce, (NaclDHKeyPublic)(*kp1.Private), (*NaclDHKeyPrivate)(&kp2.Public))
+	if err == nil {
+		t.Errorf("Open unexpectedly worked: %v", data)
+	}
+
+	data, err = boxOpen(encryptedData, nonce, (NaclDHKeyPublic)(*kp1.Private), kp2.Private)
+	if err == nil {
+		t.Errorf("Open unexpectedly worked: %v", data)
+	}
+
+	data, err = boxOpen(encryptedData, nonce, kp2.Public, (*NaclDHKeyPrivate)(&kp1.Public))
+	if err == nil {
+		t.Errorf("Open unexpectedly worked: %v", data)
+	}
+
+	data, err = boxOpen(encryptedData, nonce, kp2.Public, (*NaclDHKeyPrivate)(&kp2.Public))
+	if err == nil {
+		t.Errorf("Open unexpectedly worked: %v", data)
+	}
+
+	data, err = boxOpen(encryptedData, nonce, kp2.Public, kp2.Private)
+	if err == nil {
+		t.Errorf("Open unexpectedly worked: %v", data)
+	}
+
+	data, err = boxOpen(encryptedData, nonce, (NaclDHKeyPublic)(*kp2.Private), (*NaclDHKeyPrivate)(&kp1.Public))
+	if err == nil {
+		t.Errorf("Open unexpectedly worked: %v", data)
+	}
+
+	data, err = boxOpen(encryptedData, nonce, (NaclDHKeyPublic)(*kp2.Private), kp1.Private)
+	if err == nil {
+		t.Errorf("Open unexpectedly worked: %v", data)
+	}
+
+	data, err = boxOpen(encryptedData, nonce, (NaclDHKeyPublic)(*kp2.Private), (*NaclDHKeyPrivate)(&kp2.Public))
+	if err == nil {
+		t.Errorf("Open unexpectedly worked: %v", data)
+	}
+
+	data, err = boxOpen(encryptedData, nonce, (NaclDHKeyPublic)(*kp2.Private), kp2.Private)
+	if err == nil {
+		t.Errorf("Open unexpectedly worked: %v", data)
 	}
 }
