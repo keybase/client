@@ -2,18 +2,26 @@
   "protocol" : "crypto",
   "namespace" : "keybase.1",
   "types" : [ {
+    "type" : "fixed",
+    "name" : "ED25519PublicKey",
+    "size" : 32
+  }, {
+    "type" : "fixed",
+    "name" : "ED25519Signature",
+    "size" : 64
+  }, {
     "type" : "record",
-    "name" : "SignatureInfo",
+    "name" : "ED25519SignatureInfo",
     "fields" : [ {
       "name" : "sig",
-      "type" : "bytes"
+      "type" : "ED25519Signature"
     }, {
-      "name" : "verifyingKeyKid",
-      "type" : "string"
+      "name" : "publicKey",
+      "type" : "ED25519PublicKey"
     } ]
   } ],
   "messages" : {
-    "sign" : {
+    "signED25519" : {
       "request" : [ {
         "name" : "sessionID",
         "type" : "int"
@@ -24,7 +32,7 @@
         "name" : "reason",
         "type" : "string"
       } ],
-      "response" : "SignatureInfo"
+      "response" : "ED25519SignatureInfo"
     }
   }
 }

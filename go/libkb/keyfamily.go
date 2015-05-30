@@ -283,7 +283,7 @@ func ParseKeyFamily(jw *jsonw.Wrapper) (ret *KeyFamily, err error) {
 	// Parse the keys, and collect the PGP keys to map their fingerprints.
 	kf.AllKeys = make(map[KIDMapKey]GenericKey)
 	for _, bundle := range rkf.AllBundles {
-		key, err := ParseGenericKey(bundle, G)
+		key, err := ParseGenericKey(bundle)
 		if err != nil {
 			return nil, err
 		}

@@ -43,15 +43,7 @@ type GenericKey interface {
 	// signature ID.
 	VerifyString(sig string, msg []byte) (id keybase1.SigID, err error)
 
-	// Sign to a binary signature (which doesn't include the
-	// message) and return it.
-	SignToBytes(msg []byte) (sig []byte, err error)
-
-	// Verify that the given signature is valid and is for the
-	// given message.
-	VerifyBytes(sig, msg []byte) (err error)
-
-	ToSKB(ts *triplesec.Cipher) (*SKB, error)
+	ToSKB(gc *GlobalContext, ts *triplesec.Cipher) (*SKB, error)
 	ToLksSKB(lks *LKSec) (*SKB, error)
 	VerboseDescription() string
 	CheckSecretKey() error
@@ -277,7 +269,7 @@ func IsPGP(key GenericKey) bool {
 	return ok
 }
 
-func ParseGenericKey(bundle string, gc *GlobalContext) (GenericKey, error) {
+func ParseGenericKey(bundle string) (GenericKey, error) {
 	if isPgpBundle(bundle) {
 		// PGP key
 		return ReadOneKeyFromString(bundle)
@@ -287,7 +279,7 @@ func ParseGenericKey(bundle string, gc *GlobalContext) (GenericKey, error) {
 	if err != nil {
 		return nil, err
 	}
-	return ImportKeypairFromKID(kid, gc)
+	return ImportKeypairFromKID(kid)
 }
 
 func isPgpBundle(armored string) bool {

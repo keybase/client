@@ -135,10 +135,22 @@ func (e *DeviceKeygen) setup(ctx *Context) {
 		return
 	}
 
-	signArg := e.newNaclArg(ctx, libkb.GenerateNaclSigningKeyPair, libkb.NACL_EDDSA_EXPIRE_IN)
+	signArg := e.newNaclArg(ctx, func() (libkb.NaclKeyPair, error) {
+		kp, err := libkb.GenerateNaclSigningKeyPair()
+		if err != nil {
+			return nil, err
+		}
+		return kp, nil
+	}, libkb.NACL_EDDSA_EXPIRE_IN)
 	e.naclSignGen = libkb.NewNaclKeyGen(signArg)
 
-	encArg := e.newNaclArg(ctx, libkb.GenerateNaclDHKeyPair, libkb.NACL_DH_EXPIRE_IN)
+	encArg := e.newNaclArg(ctx, func() (libkb.NaclKeyPair, error) {
+		kp, err := libkb.GenerateNaclDHKeyPair()
+		if err != nil {
+			return nil, err
+		}
+		return kp, nil
+	}, libkb.NACL_DH_EXPIRE_IN)
 	e.naclEncGen = libkb.NewNaclKeyGen(encArg)
 }
 

@@ -1,17 +1,20 @@
 @namespace("keybase.1")
 
 protocol crypto {
-	record SignatureInfo {
+	fixed ED25519PublicKey(32);
+	fixed ED25519Signature(64);
+
+	record ED25519SignatureInfo {
 	       // The actual signature.
-	       bytes sig;
-	       // The KID of a key that can verify the signature.
-	       string verifyingKeyKid;
+	       ED25519Signature sig;
+	       // The public key that can verify the signature.
+	       ED25519PublicKey publicKey;
 	}
 
 	// Sign the given message (which should be small) using the device's
-	// private key, and return the signature as well as the KID of a key
-	// that can verify the signature. The 'reason' parameter
-	// is used as part of the SecretEntryArg objects passed into
-	// secretUi.getSecret().
-	SignatureInfo sign(int sessionID, bytes msg, string reason);
+	// private signing ED25519 key, and return the signature as well as
+	// the corresponding public key that can be used to verify the
+	// signature. The 'reason' parameter is used as part of the
+	// SecretEntryArg object passed into secretUi.getSecret().
+	ED25519SignatureInfo signED25519(int sessionID, bytes msg, string reason);
 }

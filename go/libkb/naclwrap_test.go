@@ -96,14 +96,9 @@ func TestVerifyBytesAccept(t *testing.T) {
 	}
 
 	msg := []byte("test message")
-	sig, err := keyPair.SignToBytes(msg)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	err = keyPair.VerifyBytes(sig, msg)
-	if err != nil {
-		t.Error(err)
+	sig := keyPair.Private.Sign(msg)
+	if !keyPair.Public.Verify(msg, sig) {
+		t.Error(VerificationError{})
 	}
 }
 
@@ -115,22 +110,21 @@ func TestVerifyBytesReject(t *testing.T) {
 	}
 
 	msg := []byte("test message")
-	sig, err := keyPair.SignToBytes(msg)
-	if err != nil {
-		t.Fatal(err)
-	}
+	sig := keyPair.Private.Sign(msg)
 
 	// Corrupt signature.
 
-	err = keyPair.VerifyBytes(append(sig, []byte("corruption")...), msg)
-	if err == nil {
+	var corruptSig NaclSignature
+	copy(corruptSig[:], sig[:])
+	corruptSig[0] = ^sig[0]
+	if keyPair.Public.Verify(msg, &corruptSig) {
 		t.Error("Corrupt signature unexpectedly passes")
 	}
 
 	// Corrupt message.
 
-	err = keyPair.VerifyBytes(sig, append(msg, []byte("corruption")...))
-	if err == nil {
+	corruptMsg := append(msg, []byte("corruption")...)
+	if keyPair.Public.Verify(corruptMsg, sig) {
 		t.Error("Signature for corrupt message unexpectedly passes")
 	}
 
@@ -141,27 +135,8 @@ func TestVerifyBytesReject(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	sig2, err := keyPair2.SignToBytes(msg)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	err = keyPair.VerifyBytes(sig2, msg)
-	if err == nil {
+	sig2 := keyPair2.Private.Sign(msg)
+	if keyPair.Public.Verify(msg, sig2) {
 		t.Error("Signature with different key unexpectedly passes")
-	}
-
-	// Append different signature.
-
-	err = keyPair.VerifyBytes(append(sig, sig2...), msg)
-	if err == nil {
-		t.Error("Signature with appended different signature unexpectedly passes")
-	}
-
-	// Prepend invalid signature.
-
-	err = keyPair.VerifyBytes(append(sig2, sig...), msg)
-	if err == nil {
-		t.Error("Signature with preprended invalid signature unexpectedly passes")
 	}
 }
