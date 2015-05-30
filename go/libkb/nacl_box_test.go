@@ -250,3 +250,23 @@ func TestOpenCorruptMessage(t *testing.T) {
 		t.Errorf("Open unexpectedly worked: %v", data)
 	}
 }
+
+// Test that opening a message with a modified nonce doesn't work.
+func TestOpenCorruptNonce(t *testing.T) {
+	kp1, kp2 := makeKeyPairsOrBust(t)
+
+	expectedData := []byte{0, 1, 2, 3, 4}
+	nonce := [24]byte{5, 6, 7, 8}
+
+	encryptedData := boxSeal(expectedData, nonce, kp1.Public, kp2.Private)
+
+	var data []byte
+	var err error
+
+	nonce[0] = ^nonce[0]
+
+	data, err = boxOpen(encryptedData, nonce, kp2.Public, kp1.Private)
+	if err == nil {
+		t.Errorf("Open unexpectedly worked: %v", data)
+	}
+}
