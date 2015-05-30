@@ -73,9 +73,10 @@
 - (void)reload {
   KBRDeviceRequest *request = [[KBRDeviceRequest alloc] initWithClient:_client];
   GHWeakSelf gself = self;
-  _devicesView.progressView.animating = YES;
+  // TODO animating?
+  //_devicesView.progressView.animating = YES;
   [request deviceListWithSessionID:request.sessionId completion:^(NSError *error, NSArray *items) {
-    gself.devicesView.progressView.animating = NO;
+    //gself.devicesView.progressView.animating = NO;
     if (error) {
       [gself.devicesView removeAllObjects];
       [AppDelegate setError:error sender:self];

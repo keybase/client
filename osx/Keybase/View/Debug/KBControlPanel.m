@@ -102,7 +102,7 @@
 }
 
 - (void)open:(id)sender {
-  [[sender window] kb_addChildWindowForView:self rect:CGRectMake(0, 40, 800, 600) position:KBWindowPositionRight title:@"Control Panel" fixed:NO makeKey:NO];
+  [[sender window] kb_addChildWindowForView:self rect:CGRectMake(0, 40, 800, 500) position:KBWindowPositionRight title:@"Control Panel" fixed:NO makeKey:NO];
 }
 
 - (void)addComponents:(NSArray */*of id<KBComponent>*/)components {

@@ -123,10 +123,8 @@
   _appView.delegate = self;
   [_appView openWindow];
 
-#ifdef DEBUG
-  KBMockViews *mockViews = [[KBMockViews alloc] init];
-  [mockViews open:_appView];
-#endif
+  //KBMockViews *mockViews = [[KBMockViews alloc] init];
+  //[mockViews open:_appView];
 
   [_controlPanel open:_appView];
 
