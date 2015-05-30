@@ -21,15 +21,19 @@
     } ]
   }, {
     "type" : "fixed",
+    "name" : "TLFCryptKeyClientHalf",
+    "size" : 32
+  }, {
+    "type" : "fixed",
+    "name" : "EncryptedTLFCryptKeyClientHalf",
+    "size" : 48
+  }, {
+    "type" : "fixed",
     "name" : "BoxNonce",
     "size" : 24
   }, {
     "type" : "fixed",
     "name" : "BoxPublicKey",
-    "size" : 32
-  }, {
-    "type" : "fixed",
-    "name" : "TLFCryptKeyClientHalf",
     "size" : 32
   } ],
   "messages" : {
@@ -51,8 +55,8 @@
         "name" : "sessionID",
         "type" : "int"
       }, {
-        "name" : "encryptedData",
-        "type" : "bytes"
+        "name" : "encryptedClientHalf",
+        "type" : "EncryptedTLFCryptKeyClientHalf"
       }, {
         "name" : "nonce",
         "type" : "BoxNonce"

@@ -114,10 +114,17 @@ func TestCryptoUnboxTLFCryptKeyClientHalf(t *testing.T) {
 
 	encryptedData := box.Seal(nil, expectedData[:], &nonce, (*[32]byte)(&kp.Public), (*[32]byte)(peerKp.Private))
 
+	var encryptedClientHalf keybase1.EncryptedTLFCryptKeyClientHalf
+	if len(encryptedData) != len(encryptedClientHalf) {
+		t.Fatalf("Expected %d bytes, got %d", len(encryptedClientHalf), len(encryptedData))
+	}
+
+	copy(encryptedClientHalf[:], encryptedData)
+
 	data, err := h.UnboxTLFCryptKeyClientHalf(keybase1.UnboxTLFCryptKeyClientHalfArg{
-		EncryptedData:  encryptedData,
-		Nonce:          nonce,
-		PeersPublicKey: peersPublicKey,
+		EncryptedClientHalf: encryptedClientHalf,
+		Nonce:               nonce,
+		PeersPublicKey:      peersPublicKey,
 	})
 
 	if err != nil {

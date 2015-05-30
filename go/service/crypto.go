@@ -71,7 +71,7 @@ func (c *CryptoHandler) UnboxTLFCryptKeyClientHalf(arg keybase1.UnboxTLFCryptKey
 		return
 	}
 
-	decryptedData, ok := box.Open(nil, arg.EncryptedData, (*[24]byte)(&arg.Nonce), (*[32]byte)(&arg.PeersPublicKey), (*[32]byte)(kp.Private))
+	decryptedData, ok := box.Open(nil, arg.EncryptedClientHalf[:], (*[24]byte)(&arg.Nonce), (*[32]byte)(&arg.PeersPublicKey), (*[32]byte)(kp.Private))
 	if !ok {
 		err = libkb.DecryptionError{}
 		return

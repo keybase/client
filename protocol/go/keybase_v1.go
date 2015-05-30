@@ -316,9 +316,10 @@ type ED25519SignatureInfo struct {
 	PublicKey ED25519PublicKey `codec:"publicKey" json:"publicKey"`
 }
 
+type TLFCryptKeyClientHalf [32]byte
+type EncryptedTLFCryptKeyClientHalf [48]byte
 type BoxNonce [24]byte
 type BoxPublicKey [32]byte
-type TLFCryptKeyClientHalf [32]byte
 type SignED25519Arg struct {
 	SessionID int    `codec:"sessionID" json:"sessionID"`
 	Msg       []byte `codec:"msg" json:"msg"`
@@ -326,11 +327,11 @@ type SignED25519Arg struct {
 }
 
 type UnboxTLFCryptKeyClientHalfArg struct {
-	SessionID      int          `codec:"sessionID" json:"sessionID"`
-	EncryptedData  []byte       `codec:"encryptedData" json:"encryptedData"`
-	Nonce          BoxNonce     `codec:"nonce" json:"nonce"`
-	PeersPublicKey BoxPublicKey `codec:"peersPublicKey" json:"peersPublicKey"`
-	Reason         string       `codec:"reason" json:"reason"`
+	SessionID           int                            `codec:"sessionID" json:"sessionID"`
+	EncryptedClientHalf EncryptedTLFCryptKeyClientHalf `codec:"encryptedClientHalf" json:"encryptedClientHalf"`
+	Nonce               BoxNonce                       `codec:"nonce" json:"nonce"`
+	PeersPublicKey      BoxPublicKey                   `codec:"peersPublicKey" json:"peersPublicKey"`
+	Reason              string                         `codec:"reason" json:"reason"`
 }
 
 type CryptoInterface interface {
