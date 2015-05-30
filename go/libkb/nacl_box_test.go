@@ -155,3 +155,33 @@ func TestOpenWrongKeys(t *testing.T) {
 		t.Errorf("Open unexpectedly worked: %v", data)
 	}
 }
+
+// Test that opening a modified message doesn't work.
+func TestOpenCorruptMessage(t *testing.T) {
+	kp1, kp2 := makeKeyPairsOrBust(t)
+
+	expectedData := []byte{0, 1, 2, 3, 4}
+	nonce := [24]byte{5, 6, 7, 8}
+
+	encryptedData := boxSeal(expectedData, nonce, kp1.Public, kp2.Private)
+
+	var data []byte
+	var err error
+
+	data, err = boxOpen(encryptedData[:len(encryptedData)-1], nonce, kp1.Public, (*NaclDHKeyPrivate)(&kp1.Public))
+	if err == nil {
+		t.Errorf("Open unexpectedly worked: %v", data)
+	}
+
+	data, err = boxOpen(append(encryptedData, 0), nonce, kp1.Public, (*NaclDHKeyPrivate)(&kp1.Public))
+	if err == nil {
+		t.Errorf("Open unexpectedly worked: %v", data)
+	}
+
+	encryptedData[box.Overhead] = ^encryptedData[box.Overhead]
+
+	data, err = boxOpen(encryptedData, nonce, kp1.Public, (*NaclDHKeyPrivate)(&kp1.Public))
+	if err == nil {
+		t.Errorf("Open unexpectedly worked: %v", data)
+	}
+}
