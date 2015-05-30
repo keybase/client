@@ -165,7 +165,8 @@ func (k *KBPKIClient) identifyByUID(uid keybase1.UID) (*libkb.User, []keybase1.P
 
 func (k *KBPKIClient) session() (session *libkb.Session, deviceSubkey libkb.GenericKey, err error) {
 	c := keybase1.SessionClient{Cli: k.client}
-	res, err := c.CurrentSession()
+	const sessionID = 0
+	res, err := c.CurrentSession(sessionID)
 	if err != nil {
 		return
 	}

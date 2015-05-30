@@ -347,7 +347,7 @@ func testCompleteBatchUpdate(t *testing.T, root *FuseNode, folderName string) {
 	// Construct an updated path using the current node IDs
 	newPath := libkbfs.Path{
 		TopDir: node1.Dir,
-		Name: []libkbfs.PathNode{
+		Path: []libkbfs.PathNode{
 			node1.PathNode,
 			node2.PathNode,
 		},
