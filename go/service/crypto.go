@@ -59,7 +59,7 @@ func (c *CryptoHandler) SignED25519(arg keybase1.SignED25519Arg) (ret keybase1.E
 	return
 }
 
-func (c *CryptoHandler) UnboxTLFCryptKeyClientHalf(arg keybase1.UnboxTLFCryptKeyClientHalfArg) (tlfCryptKeyClientHalf keybase1.TLFCryptKeyClientHalf, err error) {
+func (c *CryptoHandler) UnboxBytes32(arg keybase1.UnboxBytes32Arg) (bytes32 keybase1.Bytes32, err error) {
 	encryptionKey, err := c.getSecretKeyFn(libkb.DeviceEncryptionKeyType, arg.SessionID, arg.Reason)
 	if err != nil {
 		return
@@ -71,17 +71,17 @@ func (c *CryptoHandler) UnboxTLFCryptKeyClientHalf(arg keybase1.UnboxTLFCryptKey
 		return
 	}
 
-	decryptedData, ok := box.Open(nil, arg.EncryptedClientHalf[:], (*[24]byte)(&arg.Nonce), (*[32]byte)(&arg.PeersPublicKey), (*[32]byte)(kp.Private))
+	decryptedData, ok := box.Open(nil, arg.EncryptedBytes32[:], (*[24]byte)(&arg.Nonce), (*[32]byte)(&arg.PeersPublicKey), (*[32]byte)(kp.Private))
 	if !ok {
 		err = libkb.DecryptionError{}
 		return
 	}
 
-	if len(decryptedData) != len(tlfCryptKeyClientHalf) {
+	if len(decryptedData) != len(bytes32) {
 		err = libkb.DecryptionError{}
 		return
 	}
 
-	copy(tlfCryptKeyClientHalf[:], decryptedData)
+	copy(bytes32[:], decryptedData)
 	return
 }

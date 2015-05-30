@@ -149,14 +149,14 @@
   }];
 }
 
-- (void)unboxTLFCryptKeyClientHalfWithSessionID:(NSInteger)sessionID encryptedClientHalf:(NSData *)encryptedClientHalf nonce:(NSData *)nonce peersPublicKey:(NSData *)peersPublicKey reason:(NSString *)reason completion:(void (^)(NSError *error, NSData *tLFCryptKeyClientHalf))completion {
-  NSArray *params = @[@{@"sessionID": @(sessionID), @"encryptedClientHalf": KBRValue(encryptedClientHalf), @"nonce": KBRValue(nonce), @"peersPublicKey": KBRValue(peersPublicKey), @"reason": KBRValue(reason)}];
-  [self.client sendRequestWithMethod:@"keybase.1.crypto.unboxTLFCryptKeyClientHalf" params:params sessionId:self.sessionId completion:^(NSError *error, id retval) {
+- (void)unboxBytes32WithSessionID:(NSInteger)sessionID encryptedBytes32:(NSData *)encryptedBytes32 nonce:(NSData *)nonce peersPublicKey:(NSData *)peersPublicKey reason:(NSString *)reason completion:(void (^)(NSError *error, NSData *bytes32))completion {
+  NSArray *params = @[@{@"sessionID": @(sessionID), @"encryptedBytes32": KBRValue(encryptedBytes32), @"nonce": KBRValue(nonce), @"peersPublicKey": KBRValue(peersPublicKey), @"reason": KBRValue(reason)}];
+  [self.client sendRequestWithMethod:@"keybase.1.crypto.unboxBytes32" params:params sessionId:self.sessionId completion:^(NSError *error, id retval) {
     if (error) {
         completion(error, nil);
         return;
       }
-      KBRTLFCryptKeyClientHalf *result = retval ? [MTLJSONAdapter modelOfClass:KBRTLFCryptKeyClientHalf.class fromJSONDictionary:retval error:&error] : nil;
+      KBRBytes32 *result = retval ? [MTLJSONAdapter modelOfClass:KBRBytes32.class fromJSONDictionary:retval error:&error] : nil;
       completion(error, result);
   }];
 }
@@ -1238,12 +1238,12 @@
 
 @end
 
-@implementation KBRUnboxTLFCryptKeyClientHalfRequestParams
+@implementation KBRUnboxBytes32RequestParams
 
 - (instancetype)initWithParams:(NSArray *)params {
   if ((self = [super initWithParams:params])) {
     self.sessionID = [params[0][@"sessionID"] integerValue];
-    self.encryptedClientHalf = params[0][@"encryptedClientHalf"];
+    self.encryptedBytes32 = params[0][@"encryptedBytes32"];
     self.nonce = params[0][@"nonce"];
     self.peersPublicKey = params[0][@"peersPublicKey"];
     self.reason = params[0][@"reason"];

@@ -89,9 +89,9 @@ func TestCryptoSignED25519NoSigningKey(t *testing.T) {
 	}
 }
 
-// Test that CryptoHandler.UnboxTLFCryptKeyClientHalf() decrypts a
-// boxed TLFCryptKeyClientHalf correctly.
-func TestCryptoUnboxTLFCryptKeyClientHalf(t *testing.T) {
+// Test that CryptoHandler.UnboxBytes32() decrypts a boxed 32-byte
+// array correctly.
+func TestCryptoUnboxBytes32(t *testing.T) {
 	h := NewCryptoHandler(nil)
 
 	kp, err := libkb.GenerateNaclDHKeyPair()
@@ -108,40 +108,40 @@ func TestCryptoUnboxTLFCryptKeyClientHalf(t *testing.T) {
 		return kp, nil
 	}
 
-	expectedData := keybase1.TLFCryptKeyClientHalf{0, 1, 2, 3, 4, 5}
+	expectedBytes32 := keybase1.Bytes32{0, 1, 2, 3, 4, 5}
 	nonce := [24]byte{6, 7, 8, 9, 10}
 	peersPublicKey := keybase1.BoxPublicKey(peerKp.Public)
 
-	encryptedData := box.Seal(nil, expectedData[:], &nonce, (*[32]byte)(&kp.Public), (*[32]byte)(peerKp.Private))
+	encryptedData := box.Seal(nil, expectedBytes32[:], &nonce, (*[32]byte)(&kp.Public), (*[32]byte)(peerKp.Private))
 
-	var encryptedClientHalf keybase1.EncryptedTLFCryptKeyClientHalf
-	if len(encryptedData) != len(encryptedClientHalf) {
-		t.Fatalf("Expected %d bytes, got %d", len(encryptedClientHalf), len(encryptedData))
+	var encryptedBytes32 keybase1.EncryptedBytes32
+	if len(encryptedBytes32) != len(encryptedData) {
+		t.Fatalf("Expected %d bytes, got %d", len(encryptedBytes32), len(encryptedData))
 	}
 
-	copy(encryptedClientHalf[:], encryptedData)
+	copy(encryptedBytes32[:], encryptedData)
 
-	data, err := h.UnboxTLFCryptKeyClientHalf(keybase1.UnboxTLFCryptKeyClientHalfArg{
-		EncryptedClientHalf: encryptedClientHalf,
-		Nonce:               nonce,
-		PeersPublicKey:      peersPublicKey,
+	bytes32, err := h.UnboxBytes32(keybase1.UnboxBytes32Arg{
+		EncryptedBytes32: encryptedBytes32,
+		Nonce:            nonce,
+		PeersPublicKey:   peersPublicKey,
 	})
 
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	if data != expectedData {
-		t.Errorf("expected %s, got %s", expectedData, data)
+	if bytes32 != expectedBytes32 {
+		t.Errorf("expected %s, got %s", expectedBytes32, bytes32)
 	}
 }
 
-// Test that CryptoHandler.UnboxTLFCryptKeyClientHalf() propagates any
-// decryption errors correctly.
+// Test that CryptoHandler.UnboxBytes32() propagates any decryption
+// errors correctly.
 //
 // For now, we're assuming that nacl/box works correctly (i.e., we're
 // not testing the ways in which decryption can fail).
-func TestCryptoUnboxTLFCryptKeyClientHalfDecryptionError(t *testing.T) {
+func TestCryptoUnboxBytes32DecryptionError(t *testing.T) {
 	h := NewCryptoHandler(nil)
 
 	kp, err := libkb.GenerateNaclDHKeyPair()
@@ -153,7 +153,7 @@ func TestCryptoUnboxTLFCryptKeyClientHalfDecryptionError(t *testing.T) {
 		return kp, nil
 	}
 
-	_, err = h.UnboxTLFCryptKeyClientHalf(keybase1.UnboxTLFCryptKeyClientHalfArg{})
+	_, err = h.UnboxBytes32(keybase1.UnboxBytes32Arg{})
 
 	expectedErr := libkb.DecryptionError{}
 	if err != expectedErr {
@@ -161,9 +161,9 @@ func TestCryptoUnboxTLFCryptKeyClientHalfDecryptionError(t *testing.T) {
 	}
 }
 
-// Test that CryptoHandler.UnboxTLFCryptKeyClientHalf() returns an
-// error if the wrong type of key is returned as the encryption key.
-func TestCryptoUnboxTLFCryptKeyClientHalfWrongEncryptionKey(t *testing.T) {
+// Test that CryptoHandler.UnboxBytes32() returns an error if the
+// wrong type of key is returned as the encryption key.
+func TestCryptoUnboxBytes32WrongEncryptionKey(t *testing.T) {
 	h := NewCryptoHandler(nil)
 
 	kp, err := libkb.GenerateNaclSigningKeyPair()
@@ -175,7 +175,7 @@ func TestCryptoUnboxTLFCryptKeyClientHalfWrongEncryptionKey(t *testing.T) {
 		return kp, nil
 	}
 
-	_, err = h.UnboxTLFCryptKeyClientHalf(keybase1.UnboxTLFCryptKeyClientHalfArg{})
+	_, err = h.UnboxBytes32(keybase1.UnboxBytes32Arg{})
 
 	expectedErr := libkb.KeyCannotUnboxError{}
 	if err != expectedErr {
@@ -183,9 +183,9 @@ func TestCryptoUnboxTLFCryptKeyClientHalfWrongEncryptionKey(t *testing.T) {
 	}
 }
 
-// Test that CryptoHandler.UnboxTLFCryptKeyClientHalf() propagates any
-// error encountered when getting the device encryption key.
-func TestCryptoUnboxTLFCryptKeyClientHalfNoEncryptionKey(t *testing.T) {
+// Test that CryptoHandler.UnboxBytes32() propagates any error
+// encountered when getting the device encryption key.
+func TestCryptoUnboxBytes32NoEncryptionKey(t *testing.T) {
 	h := NewCryptoHandler(nil)
 
 	expectedErr := errors.New("Test error")
@@ -193,7 +193,7 @@ func TestCryptoUnboxTLFCryptKeyClientHalfNoEncryptionKey(t *testing.T) {
 		return nil, expectedErr
 	}
 
-	_, err := h.UnboxTLFCryptKeyClientHalf(keybase1.UnboxTLFCryptKeyClientHalfArg{})
+	_, err := h.UnboxBytes32(keybase1.UnboxBytes32Arg{})
 
 	if err != expectedErr {
 		t.Errorf("expected %v, got %v", expectedErr, err)

@@ -21,11 +21,11 @@
     } ]
   }, {
     "type" : "fixed",
-    "name" : "TLFCryptKeyClientHalf",
+    "name" : "Bytes32",
     "size" : 32
   }, {
     "type" : "fixed",
-    "name" : "EncryptedTLFCryptKeyClientHalf",
+    "name" : "EncryptedBytes32",
     "size" : 48
   }, {
     "type" : "fixed",
@@ -50,13 +50,13 @@
       } ],
       "response" : "ED25519SignatureInfo"
     },
-    "unboxTLFCryptKeyClientHalf" : {
+    "unboxBytes32" : {
       "request" : [ {
         "name" : "sessionID",
         "type" : "int"
       }, {
-        "name" : "encryptedClientHalf",
-        "type" : "EncryptedTLFCryptKeyClientHalf"
+        "name" : "encryptedBytes32",
+        "type" : "EncryptedBytes32"
       }, {
         "name" : "nonce",
         "type" : "BoxNonce"
@@ -67,7 +67,7 @@
         "name" : "reason",
         "type" : "string"
       } ],
-      "response" : "TLFCryptKeyClientHalf"
+      "response" : "Bytes32"
     }
   }
 }
