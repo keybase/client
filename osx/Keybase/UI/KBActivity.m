@@ -20,6 +20,10 @@
 @implementation KBActivity
 
 + (void)setProgressEnabled:(BOOL)progressEnabled sender:(id)sender {
+  [self setProgressEnabled:progressEnabled sender:sender except:nil];
+}
+
++ (void)setProgressEnabled:(BOOL)progressEnabled sender:(id)sender except:(NSArray *)except {
   if ([sender respondsToSelector:@selector(navigation)] && [sender navigation]) {
     [[sender navigation] setProgressEnabled:progressEnabled];
   } else if ([sender respondsToSelector:@selector(window)]) {
@@ -29,15 +33,19 @@
     }
   }
 
-  [self setProgressEnabled:progressEnabled subviews:[sender subviews]];
+  [self setProgressEnabled:progressEnabled subviews:[sender subviews] except:except];
 }
 
 + (void)setProgressEnabled:(BOOL)progressEnabled subviews:(NSArray *)subviews {
+  [self setProgressEnabled:progressEnabled subviews:subviews except:nil];
+}
+
++ (void)setProgressEnabled:(BOOL)progressEnabled subviews:(NSArray *)subviews except:(NSArray *)except {
   for (NSView *view in subviews) {
-    if ([view isKindOfClass:NSControl.class]) {
+    if ([view isKindOfClass:NSControl.class] && ![except containsObject:view]) {
       ((NSControl *)view).enabled = !progressEnabled;
     } else {
-      [self setProgressEnabled:progressEnabled subviews:view.subviews];
+      [self setProgressEnabled:progressEnabled subviews:view.subviews except:except];
     }
   }
 }

@@ -108,8 +108,8 @@
 }
 
 - (void)setText:(NSString *)text font:(NSFont *)font color:(NSColor *)color alignment:(NSTextAlignment)alignment lineBreakMode:(NSLineBreakMode)lineBreakMode {
-  NSParameterAssert(font);
-  NSParameterAssert(color);
+  if (!font) font = KBAppearance.currentAppearance.textFont;
+  if (!color) color = KBAppearance.currentAppearance.textColor;
   if (!text) {
     self.attributedText = nil;
     return;

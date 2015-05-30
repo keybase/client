@@ -13,6 +13,7 @@
 @interface KBActivity : NSObject
 
 + (void)setProgressEnabled:(BOOL)progressEnabled sender:(id)sender;
++ (void)setProgressEnabled:(BOOL)progressEnabled sender:(id)sender except:(NSArray *)except;
 
 + (void)setProgressEnabled:(BOOL)progressEnabled subviews:(NSArray *)subviews;
 

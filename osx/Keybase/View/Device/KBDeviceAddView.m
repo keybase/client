@@ -11,7 +11,10 @@
 
 @interface KBDeviceAddView ()
 @property KBTextView *inputField;
-@property KBRDeviceRequest *request;
+@property NSNumber *sessionId;
+
+@property KBButton *addButton;
+@property KBButton *cancelButton;
 @end
 
 @implementation KBDeviceAddView
@@ -35,7 +38,14 @@
 
   _inputField = [[KBTextView alloc] init];
   _inputField.borderType = NSBezelBorder;
-  _inputField.view.font = [NSFont fontWithName:@"Monaco" size:20];
+  NSFont *inputFont = [NSFont fontWithName:@"Monaco" size:20];
+  _inputField.view.font = inputFont;
+  _inputField.onPaste = ^BOOL(KBTextView *textView) {
+    NSPasteboard *pasteboard = [NSPasteboard generalPasteboard];
+    NSString *str = [pasteboard stringForType:NSPasteboardTypeString];
+    [textView setText:str font:inputFont color:nil];
+    return NO;
+  };
   [contentView addSubview:_inputField];
 
   YOHBox *footerView = [YOHBox box:@{@"spacing": @(20), @"minSize": @"130,0", @"horizontalAlignment": @"center"}];
@@ -43,11 +53,10 @@
   _cancelButton = [KBButton buttonWithText:@"Cancel" style:KBButtonStyleDefault];
   _cancelButton.targetBlock = ^{ [gself cancelDeviceAdd]; };
   [footerView addSubview:_cancelButton];
-  KBButton *button = [KBButton buttonWithText:@"OK" style:KBButtonStylePrimary];
-  button.targetBlock = ^{ [gself save]; };
-  [button setKeyEquivalent:@"\r"];
-  [footerView addSubview:button];
-
+  _addButton = [KBButton buttonWithText:@"OK" style:KBButtonStylePrimary];
+  _addButton.targetBlock = ^{ [gself save]; };
+  [_addButton setKeyEquivalent:@"\r"];
+  [footerView addSubview:_addButton];
 
   YOSelf yself = self;
   contentView.viewLayout = [YOLayout layoutWithLayoutBlock:^(id<YOLayout> layout, CGSize size) {
@@ -72,13 +81,17 @@
 }
 
 - (void)cancelDeviceAdd {
-  if (!_request) {
+  if (!_sessionId) {
     self.completion(NO);
     return;
   }
-  KBRDeviceRequest *request = [[KBRDeviceRequest alloc] init];
-  [request deviceAddCancelWithSessionID:_request.sessionId completion:^(NSError *error) {
-    if (error) [AppDelegate setError:error sender:self];
+  GHWeakSelf gself = self;
+  [KBActivity setProgressEnabled:YES sender:self];
+  KBRDeviceRequest *request = [[KBRDeviceRequest alloc] initWithClient:self.client];
+  [request deviceAddCancelWithSessionID:[_sessionId integerValue] completion:^(NSError *error) {
+    [KBActivity setProgressEnabled:NO sender:self];
+    if (error) [KBActivity setError:error sender:self];
+    gself.sessionId = nil;
     self.completion(NO);
   }];
 }
@@ -91,17 +104,19 @@
     return;
   }
 
-  _request = [[KBRDeviceRequest alloc] initWithClient:self.client];
+  KBRDeviceRequest *request = [[KBRDeviceRequest alloc] initWithClient:self.client];
 
-  [self.client registerMethod:@"keybase.1.locksmithUi.kexStatus" sessionId:_request.sessionId requestHandler:^(NSNumber *messageId, NSString *method, NSArray *params, MPRequestCompletion completion) {
+  [self.client registerMethod:@"keybase.1.locksmithUi.kexStatus" sessionId:request.sessionId requestHandler:^(NSNumber *messageId, NSString *method, NSArray *params, MPRequestCompletion completion) {
     KBRKexStatusRequestParams *requestParams = [[KBRKexStatusRequestParams alloc] initWithParams:params];
     DDLogDebug(@"Kex status: %@", requestParams.msg);
     completion(nil, nil);
   }];
 
-  [KBActivity setProgressEnabled:YES sender:self];
-  [_request deviceAddWithSessionID:_request.sessionId secretPhrase:secretWords completion:^(NSError *error) {
-    [KBActivity setProgressEnabled:NO sender:self];
+  GHWeakSelf gself = self;
+  [KBActivity setProgressEnabled:YES sender:self except:@[_cancelButton]];
+  _sessionId = @(request.sessionId);
+  [request deviceAddWithSessionID:request.sessionId secretPhrase:secretWords completion:^(NSError *error) {
+    [KBActivity setProgressEnabled:NO sender:self except:@[gself.cancelButton]];
     if (error) {
       [KBActivity setError:error sender:self];
       return;

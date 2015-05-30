@@ -16,6 +16,5 @@ typedef void (^KBDeviceAddCompletion)(BOOL ok);
 
 @property (readonly) KBTextView *inputField;
 @property (copy) KBDeviceAddCompletion completion;
-@property KBButton *cancelButton;
 
 @end

@@ -109,10 +109,8 @@
 - (void)addDevice {
   KBDeviceAddView *view = [[KBDeviceAddView alloc] init];
   view.client = self.client;
-  dispatch_block_t close = [AppDelegate openSheetWithView:view size:CGSizeMake(500, 400) sender:self closeButton:view.cancelButton];
-  view.completion = ^(BOOL ok) {
-    close();
-  };
+  dispatch_block_t close = [AppDelegate openSheetWithView:view size:CGSizeMake(500, 400) sender:self closeButton:nil];
+  view.completion = ^(BOOL ok) { close(); };
 }
 
 @end
