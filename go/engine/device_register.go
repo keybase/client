@@ -56,7 +56,7 @@ func (d *DeviceRegister) Run(ctx *Context) error {
 	}
 
 	d.G().Log.Debug("Device name:   %s", d.args.Name)
-	d.G().Log.Debug("Device ID:     %x", d.deviceID)
+	d.G().Log.Debug("Device ID:     %s", d.deviceID)
 
 	if wr := d.G().Env.GetConfigWriter(); wr != nil {
 		if err := wr.SetDeviceID(&d.deviceID); err != nil {
