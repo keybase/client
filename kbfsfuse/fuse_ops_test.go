@@ -37,7 +37,7 @@ func doMknodOrBust(t *testing.T, parent *FuseNode, name string) *FuseNode {
 
 func waitForUpdates(node *FuseNode) {
 	c := make(chan struct{})
-	node.GetChan().QueueWriteReq(func() { c <- struct{}{} })
+	node.getChan().QueueWriteReq(func() { c <- struct{}{} })
 	<-c
 }
 
@@ -123,7 +123,7 @@ func checkPathNeedsUpdate(
 	for _, n := range nodes[1:] {
 		path = append(path, n.PathNode.Name)
 		if n.NeedUpdate != update {
-			p := n.GetPath(1)
+			p := n.getPath(1)
 			needs := "needs"
 			if update {
 				needs = "does not need"
@@ -261,6 +261,8 @@ func TestPartialLocalUpdate(t *testing.T) {
 	node2 = doLookupOrBust(t, node1, "dir1")
 
 	// Somewhere else, someone writes test_user/dir1/dir2/dir3
+	id2 := libkbfs.BlockID{104}
+	id3 := libkbfs.BlockID{105}
 	newPath := libkbfs.Path{
 		TopDir: node1.Dir,
 		Path: []libkbfs.PathNode{
@@ -268,7 +270,7 @@ func TestPartialLocalUpdate(t *testing.T) {
 			node2.PathNode,
 			libkbfs.PathNode{
 				BlockPointer: libkbfs.BlockPointer{
-					ID:        libkbfs.BlockID{104},
+					ID:        id2,
 					KeyVer:    0,
 					Ver:       0,
 					Writer:    keybase1.MakeTestUID(0),
@@ -277,7 +279,7 @@ func TestPartialLocalUpdate(t *testing.T) {
 				Name: "dir2"},
 			libkbfs.PathNode{
 				BlockPointer: libkbfs.BlockPointer{
-					ID:        libkbfs.BlockID{105},
+					ID:        id3,
 					KeyVer:    0,
 					Ver:       0,
 					Writer:    keybase1.MakeTestUID(0),
@@ -306,6 +308,8 @@ func TestPartialBatchUpdate(t *testing.T) {
 	node2 := doMkDirOrBust(t, node1, "dir1")
 
 	// Somewhere else, someone creates test_user/dir1/dir2/dir3
+	id2 := libkbfs.BlockID{104}
+	id3 := libkbfs.BlockID{105}
 	newPath := libkbfs.Path{
 		TopDir: node1.Dir,
 		Path: []libkbfs.PathNode{
@@ -313,7 +317,7 @@ func TestPartialBatchUpdate(t *testing.T) {
 			node2.PathNode,
 			libkbfs.PathNode{
 				BlockPointer: libkbfs.BlockPointer{
-					ID:        libkbfs.BlockID{104},
+					ID:        id2,
 					KeyVer:    0,
 					Ver:       0,
 					Writer:    keybase1.MakeTestUID(0),
@@ -322,7 +326,7 @@ func TestPartialBatchUpdate(t *testing.T) {
 			},
 			libkbfs.PathNode{
 				BlockPointer: libkbfs.BlockPointer{
-					ID:        libkbfs.BlockID{105},
+					ID:        id3,
 					KeyVer:    0,
 					Ver:       0,
 					Writer:    keybase1.MakeTestUID(0),

@@ -8,7 +8,7 @@ import (
 	"golang.org/x/net/context"
 )
 
-// Alias is a folder accessed through its non-canonical name.
+// Alias is a top-level folder accessed through its non-canonical name.
 type Alias struct {
 	// canonical name for this folder
 	canon string
@@ -16,6 +16,7 @@ type Alias struct {
 
 var _ fs.Node = (*Alias)(nil)
 
+// Attr implements the fs.Node interface for Alias.
 func (*Alias) Attr(ctx context.Context, a *fuse.Attr) error {
 	a.Mode = os.ModeSymlink | 0777
 	return nil
@@ -23,6 +24,7 @@ func (*Alias) Attr(ctx context.Context, a *fuse.Attr) error {
 
 var _ fs.NodeReadlinker = (*Alias)(nil)
 
+// Readlink implements the fs.NodeReadlinker interface for Alias.
 func (a *Alias) Readlink(ctx context.Context, req *fuse.ReadlinkRequest) (string, error) {
 	return a.canon, nil
 }

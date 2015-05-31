@@ -42,12 +42,14 @@ func runNewFUSE(config *libkbfs.ConfigLocal, debug bool, mountpoint string) erro
 	return nil
 }
 
+// FS implements the newfuse FS interface for KBFS.
 type FS struct {
 	config *libkbfs.ConfigLocal
 }
 
 var _ fs.FS = (*FS)(nil)
 
+// Root implements the fs.FS interface for FS.
 func (f *FS) Root() (fs.Node, error) {
 	n := &Root{
 		fs:      f,
@@ -56,6 +58,7 @@ func (f *FS) Root() (fs.Node, error) {
 	return n, nil
 }
 
+// Root represents the root of the KBFS file system.
 type Root struct {
 	fs *FS
 
@@ -65,6 +68,7 @@ type Root struct {
 
 var _ fs.Node = (*Root)(nil)
 
+// Attr implements the fs.Root interface for Root.
 func (*Root) Attr(ctx context.Context, a *fuse.Attr) error {
 	a.Mode = os.ModeDir | 0755
 	return nil
@@ -89,6 +93,7 @@ func (r *Root) getMD(dh *libkbfs.DirHandle) (libkbfs.DirID, libkbfs.BlockPointer
 	return md.ID, md.Data().Dir.BlockPointer, nil
 }
 
+// Lookup implements the fs.NodeRequestLookuper interface for Root.
 func (r *Root) Lookup(ctx context.Context, req *fuse.LookupRequest, resp *fuse.LookupResponse) (fs.Node, error) {
 	r.mu.Lock()
 	defer r.mu.Unlock()
@@ -162,6 +167,7 @@ func (r *Root) getDirent(ctx context.Context, work <-chan libkbfs.DirID, results
 	}
 }
 
+// ReadDirAll implements the ReadDirAll interface for Root.
 func (r *Root) ReadDirAll(ctx context.Context) ([]fuse.Dirent, error) {
 	favs, err := r.fs.config.KBFSOps().GetFavDirs()
 	if err != nil {

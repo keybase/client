@@ -13,6 +13,7 @@ import (
 	"golang.org/x/net/context"
 )
 
+// Folder represents KBFS top-level folders
 type Folder struct {
 	fs *FS
 	id libkbfs.DirID
@@ -22,6 +23,7 @@ type Folder struct {
 	mu sync.RWMutex
 }
 
+// Dir represents KBFS subdirectories.
 type Dir struct {
 	fs.NodeRef
 
@@ -32,6 +34,7 @@ type Dir struct {
 
 var _ fs.Node = (*Dir)(nil)
 
+// Attr implements the fs.Node interface for Dir.
 func (d *Dir) Attr(ctx context.Context, a *fuse.Attr) error {
 	d.folder.mu.RLock()
 	defer d.folder.mu.RUnlock()
@@ -76,6 +79,7 @@ func (d *Dir) updatePathLocked(p libkbfs.Path) {
 
 var _ fs.NodeRequestLookuper = (*Dir)(nil)
 
+// Lookup implements the fs.NodeRequestLookuper interface for Dir.
 func (d *Dir) Lookup(ctx context.Context, req *fuse.LookupRequest, resp *fuse.LookupResponse) (fs.Node, error) {
 	d.folder.mu.RLock()
 	defer d.folder.mu.RUnlock()
@@ -158,6 +162,7 @@ func (d *Dir) Lookup(ctx context.Context, req *fuse.LookupRequest, resp *fuse.Lo
 
 var _ fs.NodeCreater = (*Dir)(nil)
 
+// Create implements the fs.NodeCreater interface for Dir.
 func (d *Dir) Create(ctx context.Context, req *fuse.CreateRequest, resp *fuse.CreateResponse) (fs.Node, fs.Handle, error) {
 	d.folder.mu.Lock()
 	defer d.folder.mu.Unlock()
@@ -183,6 +188,7 @@ func (d *Dir) Create(ctx context.Context, req *fuse.CreateRequest, resp *fuse.Cr
 
 var _ fs.NodeMkdirer = (*Dir)(nil)
 
+// Mkdir implements the fs.NodeMkdirer interface for Dir.
 func (d *Dir) Mkdir(ctx context.Context, req *fuse.MkdirRequest) (fs.Node, error) {
 	d.folder.mu.Lock()
 	defer d.folder.mu.Unlock()
@@ -207,6 +213,7 @@ func (d *Dir) Mkdir(ctx context.Context, req *fuse.MkdirRequest) (fs.Node, error
 
 var _ fs.NodeSymlinker = (*Dir)(nil)
 
+// Symlink implements the fs.NodeSymlinker interface for Dir.
 func (d *Dir) Symlink(ctx context.Context, req *fuse.SymlinkRequest) (fs.Node, error) {
 	d.folder.mu.Lock()
 	defer d.folder.mu.Unlock()
@@ -231,6 +238,7 @@ func (d *Dir) Symlink(ctx context.Context, req *fuse.SymlinkRequest) (fs.Node, e
 
 var _ fs.NodeRenamer = (*Dir)(nil)
 
+// Rename implements the fs.NodeRenamer interface for Dir.
 func (d *Dir) Rename(ctx context.Context, req *fuse.RenameRequest, newDir fs.Node) error {
 	d.folder.mu.Lock()
 	defer d.folder.mu.Unlock()
@@ -271,6 +279,7 @@ func (d *Dir) Rename(ctx context.Context, req *fuse.RenameRequest, newDir fs.Nod
 
 var _ fs.NodeRemover = (*Dir)(nil)
 
+// Remove implements the fs.NodeRemover interface for Dir.
 func (d *Dir) Remove(ctx context.Context, req *fuse.RemoveRequest) error {
 	d.folder.mu.Lock()
 	defer d.folder.mu.Unlock()
@@ -316,6 +325,7 @@ var _ fs.Handle = (*Dir)(nil)
 
 var _ fs.HandleReadDirAller = (*Dir)(nil)
 
+// ReadDirAll implements the fs.NodeReadDirAller interface for Dir.
 func (d *Dir) ReadDirAll(ctx context.Context) ([]fuse.Dirent, error) {
 	d.folder.mu.RLock()
 	defer d.folder.mu.RUnlock()

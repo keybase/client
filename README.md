@@ -16,6 +16,8 @@ To run the KBFS FUSE client:
         cd daemon && go build && cd ..
         cd client && go build && cd ..
         ln -s $GOPATH/src/github.com/keybase/client/git-hooks/pre-commit $GOPATH/src/github.com/keybase/kbfs/.git/hooks/
+        go get -u github.com/golang/lint/golint
+        go get golang.org/x/tools/cmd/vet
 
 * Run the daemon
 

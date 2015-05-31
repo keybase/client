@@ -104,12 +104,12 @@ func main() {
 		localUsers[2].Asserts = []string{"twitter:malgorithms"}
 		localUsers[3].Asserts = []string{"twitter:fakalin"}
 
-		var localUid keybase1.UID
+		var localUID keybase1.UID
 		if userIndex >= 0 {
-			localUid = localUsers[userIndex].UID
+			localUID = localUsers[userIndex].UID
 		}
 
-		k := libkbfs.NewKBPKILocal(localUid, localUsers)
+		k := libkbfs.NewKBPKILocal(localUID, localUsers)
 		config.SetKBPKI(k)
 		signingKey := libkbfs.MakeLocalUserSigningKeyOrBust(*localUser)
 		config.SetCrypto(libkbfs.NewCryptoLocal(config.Codec(), signingKey))

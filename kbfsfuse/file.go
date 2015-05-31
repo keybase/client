@@ -10,6 +10,7 @@ import (
 	"golang.org/x/net/context"
 )
 
+// File represents KBFS files.
 type File struct {
 	fs.NodeRef
 
@@ -20,6 +21,7 @@ type File struct {
 
 var _ fs.Node = (*File)(nil)
 
+// Attr implements the fs.Node interface for File.
 func (f *File) Attr(ctx context.Context, a *fuse.Attr) error {
 	f.parent.folder.mu.RLock()
 	defer f.parent.folder.mu.RUnlock()
@@ -81,6 +83,7 @@ func (f *File) sync(ctx context.Context) error {
 	return nil
 }
 
+// Fsync implements the fs.NodeFsyncer interface for File.
 func (f *File) Fsync(ctx context.Context, req *fuse.FsyncRequest) error {
 	return f.sync(ctx)
 }
@@ -89,6 +92,7 @@ var _ fs.Handle = (*File)(nil)
 
 var _ fs.HandleReader = (*File)(nil)
 
+// Read implements the fs.HandleReader interface for File.
 func (f *File) Read(ctx context.Context, req *fuse.ReadRequest, resp *fuse.ReadResponse) error {
 	f.parent.folder.mu.RLock()
 	defer f.parent.folder.mu.RUnlock()
@@ -101,6 +105,7 @@ func (f *File) Read(ctx context.Context, req *fuse.ReadRequest, resp *fuse.ReadR
 
 var _ fs.HandleWriter = (*File)(nil)
 
+// Write implements the fs.HandleWriter interface for File.
 func (f *File) Write(ctx context.Context, req *fuse.WriteRequest, resp *fuse.WriteResponse) error {
 	f.parent.folder.mu.Lock()
 	defer f.parent.folder.mu.Unlock()
@@ -119,6 +124,7 @@ func (f *File) Write(ctx context.Context, req *fuse.WriteRequest, resp *fuse.Wri
 
 var _ fs.HandleFlusher = (*File)(nil)
 
+// Flush implements the fs.HandleFlusher interface for File.
 func (f *File) Flush(ctx context.Context, req *fuse.FlushRequest) error {
 	// I'm not sure about the guarantees from KBFSOps, so we don't
 	// differentiate between Flush and Fsync.
@@ -127,6 +133,7 @@ func (f *File) Flush(ctx context.Context, req *fuse.FlushRequest) error {
 
 var _ fs.NodeSetattrer = (*File)(nil)
 
+// Setattr implements the fs.NodeSetattrer interface for File.
 func (f *File) Setattr(ctx context.Context, req *fuse.SetattrRequest, resp *fuse.SetattrResponse) error {
 	f.parent.folder.mu.Lock()
 	defer f.parent.folder.mu.Unlock()
