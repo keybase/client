@@ -58,6 +58,16 @@ If you want to reset your file system state, and you're in kbfs/kbfsfuse, do:
     fusermount -u /tmp/kbfs
     rm -rf kbfs_*/
 
+# Code style
+
+The precommit hooks (you created the symlink earlier, right?) takes
+care of running gofmt and govet on all your code before every commit.
+Though it doesn't happen automatically, we also expect your code to be
+as "lint-free" as possible.  Running golint is easy from the top-level
+kbfs directory:
+
+    make golint
+
 # Testing
 
 From kbfs/:
