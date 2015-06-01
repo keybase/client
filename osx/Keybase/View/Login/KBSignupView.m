@@ -209,16 +209,16 @@
 }
 
 - (void)checkUsername {
-  NSString *userName = [_usernameField.text gh_strip];
+  NSString *username = [_usernameField.text gh_strip];
 
-  if (![userName gh_present]) {
+  if (![username gh_present]) {
     self.usernameStatusLabel.attributedText = nil;
     return;
   }
 
   GHWeakSelf gself = self;
   KBRSignupRequest *request = [[KBRSignupRequest alloc] initWithClient:self.client];
-  [request checkUsernameAvailableWithUsername:userName completion:^(NSError *error) {
+  [request checkUsernameAvailableWithSessionID:request.sessionId username:username completion:^(NSError *error) {
     if (error.code == 701) {
       [gself.usernameStatusLabel setText:@"Already taken" font:[NSFont systemFontOfSize:12] color:[KBAppearance.currentAppearance errorColor] alignment:NSRightTextAlignment];
     } else if (error) {
@@ -270,15 +270,15 @@
     return;
   }
 
-  KBRSignupRequest *signup = [[KBRSignupRequest alloc] initWithClient:self.client];
+  KBRSignupRequest *request = [[KBRSignupRequest alloc] initWithClient:self.client];
 
   // We'll add PGP key later
-  [self.client registerMethod:@"keybase.1.gpgUi.wantToAddGPGKey" sessionId:signup.sessionId requestHandler:^(NSNumber *messageId, NSString *method, NSArray *params, MPRequestCompletion completion) {
+  [self.client registerMethod:@"keybase.1.gpgUi.wantToAddGPGKey" sessionId:request.sessionId requestHandler:^(NSNumber *messageId, NSString *method, NSArray *params, MPRequestCompletion completion) {
     completion(nil, @(NO));
   }];
 
   [self.navigation setProgressEnabled:YES];
-  [signup signupWithEmail:email inviteCode:self.inviteField.text passphrase:passphrase username:username deviceName:deviceName completion:^(NSError *error, KBRSignupRes *res) {
+  [request signupWithSessionID:request.sessionId email:email inviteCode:self.inviteField.text passphrase:passphrase username:username deviceName:deviceName completion:^(NSError *error, KBRSignupRes *res) {
     [self.navigation setProgressEnabled:NO];
     if (error) {
       [AppDelegate setError:error sender:self];

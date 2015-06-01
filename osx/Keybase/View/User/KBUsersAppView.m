@@ -174,7 +174,7 @@
 
   _listProgressView.animating = YES;
   KBRUserRequest *trackingRequest = [[KBRUserRequest alloc] initWithClient:self.client];
-  [trackingRequest listTrackingWithFilter:nil completion:^(NSError *error, NSArray *userSummaries) {
+  [trackingRequest listTrackingWithSessionID:trackingRequest.sessionId filter:nil completion:^(NSError *error, NSArray *userSummaries) {
     gself.listProgressView.animating = NO;
     if (error) {
       [AppDelegate setError:error sender:self];
@@ -204,7 +204,7 @@
     }
     NSArray *uids = [trackers map:^id(KBRTracker *t) { return t.tracker; }];
     KBRUserRequest *trackersRequest = [[KBRUserRequest alloc] initWithClient:self.client];
-    [trackersRequest loadUncheckedUserSummariesWithUids:uids completion:^(NSError *error, NSArray *userSummaries) {
+    [trackersRequest loadUncheckedUserSummariesWithSessionID:trackersRequest.sessionId uids:uids completion:^(NSError *error, NSArray *userSummaries) {
       if (error) {
         completion(error, nil);
         return;

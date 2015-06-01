@@ -1,5 +1,5 @@
 //
-//  KBProofLabel.m
+//  KBProofResult.m
 //  Keybase
 //
 //  Created by Gabriel on 1/22/15.

@@ -216,7 +216,7 @@
 - (void)loadAccounts {
   KBRLoginRequest *request = [[KBRLoginRequest alloc] initWithClient:self.client];
   GHWeakSelf gself = self;
-  [request getConfiguredAccounts:^(NSError *error, NSArray *accounts) {
+  [request getConfiguredAccountsWithSessionID:request.sessionId completion:^(NSError *error, NSArray *accounts) {
     gself.accounts = accounts;
     [self updateForAccounts];
   }];
@@ -249,7 +249,7 @@
 - (void)clearKeychain:(NSString *)username completion:(MPCompletion)completion {
   DDLogDebug(@"Clearing cached secret for %@", username);
   KBRLoginRequest *request = [[KBRLoginRequest alloc] initWithClient:self.client];
-  [request clearStoredSecretWithUsername:username completion:completion];
+  [request clearStoredSecretWithSessionID:request.sessionId username:username completion:completion];
 }
 
 - (void)handleError:(NSError *)error {

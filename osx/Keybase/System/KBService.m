@@ -58,7 +58,7 @@
 
   if (self.config.installEnabled) {
     info[@"Launchd Plist"] = KBPath([self plistDestination], YES);
-    info[@"Program"] = [self.config commandLineForService:NO escape:YES tilde:YES];
+    info[@"Program"] = [self.config commandLineForService:NO escape:YES tilde:NO];
   }
 
   if (!_infoView) _infoView = [[KBInfoView alloc] init];
@@ -104,16 +104,16 @@
 
 - (void)checkStatus:(void (^)(NSError *error, KBRGetCurrentStatusRes *currentStatus, KBRConfig *config))completion {
   GHWeakSelf gself = self;
-  KBRConfigRequest *config = [[KBRConfigRequest alloc] initWithClient:self.client];
-  [config getCurrentStatus:^(NSError *error, KBRGetCurrentStatusRes *userStatus) {
+  KBRConfigRequest *statusRequest = [[KBRConfigRequest alloc] initWithClient:self.client];
+  [statusRequest getCurrentStatusWithSessionID:statusRequest.sessionId completion:^(NSError *error, KBRGetCurrentStatusRes *userStatus) {
     gself.userStatus = userStatus;
     [self componentDidUpdate];
     if (error) {
       completion(error, userStatus, nil);
       return;
     }
-    KBRConfigRequest *request = [[KBRConfigRequest alloc] initWithClient:self.client];
-    [request getConfig:^(NSError *error, KBRConfig *userConfig) {
+    KBRConfigRequest *configRequest = [[KBRConfigRequest alloc] initWithClient:self.client];
+    [configRequest getConfigWithSessionID:configRequest.sessionId completion:^(NSError *error, KBRConfig *userConfig) {
       gself.userConfig = userConfig;
       [self componentDidUpdate];
       completion(error, userStatus, userConfig);

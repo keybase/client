@@ -228,8 +228,8 @@
 }
 
 - (void)check:(void (^)(NSError *error, NSString *version))completion {
-  KBRConfigRequest *config = [[KBRConfigRequest alloc] initWithClient:self];
-  [config getConfig:^(NSError *error, KBRConfig *config) {
+  KBRConfigRequest *request = [[KBRConfigRequest alloc] initWithClient:self];
+  [request getConfigWithSessionID:request.sessionId completion:^(NSError *error, KBRConfig *config) {
     completion(error, config.version);
   }];
 }

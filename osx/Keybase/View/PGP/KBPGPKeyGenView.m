@@ -89,7 +89,7 @@
   [self.navigation setProgressEnabled:YES];
   KBRPgpRequest *request = [[KBRPgpRequest alloc] initWithClient:self.client];
   //BOOL pushSecret = _pushPrivateCheckbox.state == NSOnState;
-  [request pgpKeyGenDefaultWithCreateUids:uids completion:^(NSError *error) {
+  [request pgpKeyGenDefaultWithSessionID:request.sessionId createUids:uids completion:^(NSError *error) {
     [self.navigation setProgressEnabled:NO];
     if (error) {
       [AppDelegate setError:error sender:self];

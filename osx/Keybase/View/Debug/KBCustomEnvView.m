@@ -125,9 +125,9 @@
 }
 
 - (void)updateCLI:(KBEnvConfig *)config {
-  [_serviceCLI setText:[config commandLineForService:NO escape:YES tilde:YES] style:KBTextStyleDefault options:KBTextOptionsMonospace alignment:NSLeftTextAlignment lineBreakMode:NSLineBreakByWordWrapping];
+  [_serviceCLI setText:[config commandLineForService:NO escape:YES tilde:NO] style:KBTextStyleDefault options:KBTextOptionsMonospace alignment:NSLeftTextAlignment lineBreakMode:NSLineBreakByWordWrapping];
 
-  [_kbfsCLI setText:[config commandLineForKBFS:NO escape:YES tilde:YES] style:KBTextStyleDefault options:KBTextOptionsMonospace alignment:NSLeftTextAlignment lineBreakMode:NSLineBreakByWordWrapping];
+  [_kbfsCLI setText:[config commandLineForKBFS:NO escape:YES tilde:NO] style:KBTextStyleDefault options:KBTextOptionsMonospace alignment:NSLeftTextAlignment lineBreakMode:NSLineBreakByWordWrapping];
 
   [self setNeedsLayout];
 }

@@ -256,8 +256,8 @@ typedef NS_ENUM (NSInteger, KBAppViewMode) {
   GHWeakSelf gself = self;
   dispatch_block_t logout = ^{
     [self showInProgress:@"Logging out"];
-    KBRLoginRequest *login = [[KBRLoginRequest alloc] initWithClient:gself.environment.service.client];
-    [login logout:^(NSError *error) {
+    KBRLoginRequest *request = [[KBRLoginRequest alloc] initWithClient:gself.environment.service.client];
+    [request logoutWithSessionID:request.sessionId completion:^(NSError *error) {
       if (error) {
         [AppDelegate setError:error sender:self];
       }

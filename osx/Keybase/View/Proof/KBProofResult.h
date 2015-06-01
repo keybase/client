@@ -1,5 +1,5 @@
 //
-//  KBProofLabel.h
+//  KBProofResult.h
 //  Keybase
 //
 //  Created by Gabriel on 1/22/15.

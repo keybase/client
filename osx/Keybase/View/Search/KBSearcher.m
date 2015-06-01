@@ -22,7 +22,7 @@
     }];
   } else {
     KBRUserRequest *request = [[KBRUserRequest alloc] initWithClient:client];
-    [request listTrackingWithFilter:query completion:^(NSError *error, NSArray *userSummaries) {
+    [request listTrackingWithSessionID:request.sessionId filter:query completion:^(NSError *error, NSArray *userSummaries) {
       KBSearchResults *searchResults = [[KBSearchResults alloc] init];
       searchResults.results = userSummaries;
       searchResults.header = @"Tracking";
