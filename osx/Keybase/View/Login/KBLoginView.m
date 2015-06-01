@@ -253,7 +253,10 @@
 }
 
 - (void)handleError:(NSError *)error {
-  if ([error.userInfo[@"MPErrorInfoKey"][@"name"] isEqualToString:@"BAD_LOGIN_PASSWORD"]) {
+  if (KBIsErrorName(error, @"BAD_LOGIN_USER_NOT_FOUND")) {
+    [self.window makeFirstResponder:self.usernameField];
+    error = KBMakeErrorWithRecovery(error.code, @"Wrong Username", @"The username you entered doesn't exist.");
+  } else if (KBIsErrorName(error, @"BAD_LOGIN_PASSWORD")) {
     [self.window makeFirstResponder:self.passwordField];
     error = KBMakeErrorWithRecovery(error.code, @"Bad Password", @"The username and password you entered was invalid.");
 
