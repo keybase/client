@@ -29,9 +29,12 @@ func (h *SessionHandler) CurrentSession(sessionID int) (keybase1.Session, error)
 	var deviceSubkey libkb.GenericKey
 	var err error
 
-	G.LoginState().Account(func(a *libkb.Account) {
+	aerr := G.LoginState().Account(func(a *libkb.Account) {
 		uid, username, token, deviceSubkey, err = a.UserInfo()
 	}, "Service - SessionHandler - UserInfo")
+	if aerr != nil {
+		return s, aerr
+	}
 	if err != nil {
 		if _, ok := err.(libkb.LoginRequiredError); ok {
 			return s, ErrNoSession

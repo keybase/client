@@ -6,7 +6,6 @@ import (
 	"encoding/hex"
 	"errors"
 	"fmt"
-	"os"
 	"runtime/debug"
 	"time"
 
@@ -138,9 +137,12 @@ func (s *LoginState) ExternalFunc(f loginHandler, name string) error {
 
 func (s *LoginState) Shutdown() error {
 	var err error
-	s.Account(func(a *Account) {
+	aerr := s.Account(func(a *Account) {
 		err = a.Shutdown()
 	}, "LoginState - Shutdown")
+	if aerr != nil {
+		return aerr
+	}
 	if err != nil {
 		return err
 	}
@@ -155,13 +157,21 @@ func (s *LoginState) Shutdown() error {
 // (maybe from a previous login) or generates a new one via Login. It will
 // return the current Passphrase stream on success or an error on failure.
 func (s *LoginState) GetPassphraseStream(ui SecretUI) (ret PassphraseStream, err error) {
-	if ret = s.PassphraseStream(); ret != nil {
+	ret, err = s.PassphraseStream()
+	if err != nil {
+		return
+	}
+	if ret != nil {
 		return
 	}
 	if err = s.verifyPassphrase(ui); err != nil {
 		return
 	}
-	if ret = s.PassphraseStream(); ret != nil {
+	ret, err = s.PassphraseStream()
+	if err != nil {
+		return
+	}
+	if ret != nil {
 		return
 	}
 	err = InternalError{"No cached keystream data after login attempt"}
@@ -171,10 +181,10 @@ func (s *LoginState) GetPassphraseStream(ui SecretUI) (ret PassphraseStream, err
 // GetVerifiedTripleSec either returns a cached, verified Triplesec
 // or generates a new one that's verified via Login.
 func (s *LoginState) GetVerifiedTriplesec(ui SecretUI) (ret *triplesec.Cipher, err error) {
-	s.Account(func(a *Account) {
+	err = s.Account(func(a *Account) {
 		ret = a.PassphraseStreamCache().Triplesec()
 	}, "LoginState - GetVerifiedTriplesec - first")
-	if ret != nil {
+	if err != nil || ret != nil {
 		return
 	}
 
@@ -182,10 +192,10 @@ func (s *LoginState) GetVerifiedTriplesec(ui SecretUI) (ret *triplesec.Cipher, e
 		return
 	}
 
-	s.Account(func(a *Account) {
+	err = s.Account(func(a *Account) {
 		ret = a.PassphraseStreamCache().Triplesec()
 	}, "LoginState - GetVerifiedTriplesec - second")
-	if ret != nil {
+	if err != nil || ret != nil {
 		return
 	}
 	err = InternalError{"No cached keystream data after login attempt"}
@@ -568,7 +578,7 @@ func (s *LoginState) loginHandle(f loginHandler, after afterFn, name string) err
 // For debugging purposes, there is a 10s timeout to help find any
 // cases where an account or login request is attempted while
 // another account or login request is in process.
-func (s *LoginState) acctHandle(f acctHandler, name string) {
+func (s *LoginState) acctHandle(f acctHandler, name string) error {
 	req := acctReq{
 		f:    f,
 		done: make(chan struct{}),
@@ -581,12 +591,13 @@ func (s *LoginState) acctHandle(f acctHandler, name string) {
 		s.G().Log.Warning("timed out sending acct request %q", name)
 		s.G().Log.Warning("active request: %s", s.activeReq)
 		debug.PrintStack()
-		os.Exit(1)
+		return ErrTimeout
 	}
 
+	// wait for request to finish
 	<-req.done
 
-	return
+	return nil
 }
 
 // requests runs in a single goroutine.  It selects login or
@@ -684,32 +695,32 @@ func (s *LoginState) logout(a LoginContext) error {
 //         skb = a.LockedLocalSecretKey(ska)
 //     }, "LockedLocalSecretKey")
 //
-func (s *LoginState) Account(h acctHandler, name string) {
+func (s *LoginState) Account(h acctHandler, name string) error {
 	s.G().Log.Debug("+ Account %q", name)
-	s.acctHandle(h, name)
-	s.G().Log.Debug("- Account %q", name)
+	defer s.G().Log.Debug("- Account %q", name)
+	return s.acctHandle(h, name)
 }
 
-func (s *LoginState) PassphraseStreamCache(h func(*PassphraseStreamCache), name string) {
-	s.Account(func(a *Account) {
+func (s *LoginState) PassphraseStreamCache(h func(*PassphraseStreamCache), name string) error {
+	return s.Account(func(a *Account) {
 		h(a.PassphraseStreamCache())
 	}, name)
 }
 
-func (s *LoginState) LocalSession(h func(*Session), name string) {
-	s.Account(func(a *Account) {
+func (s *LoginState) LocalSession(h func(*Session), name string) error {
+	return s.Account(func(a *Account) {
 		h(a.LocalSession())
 	}, name)
 }
 
-func (s *LoginState) LoginSession(h func(*LoginSession), name string) {
-	s.Account(func(a *Account) {
+func (s *LoginState) LoginSession(h func(*LoginSession), name string) error {
+	return s.Account(func(a *Account) {
 		h(a.LoginSession())
 	}, name)
 }
 
-func (s *LoginState) SecretSyncer(h func(*SecretSyncer), name string) {
-	s.Account(func(a *Account) {
+func (s *LoginState) SecretSyncer(h func(*SecretSyncer), name string) error {
+	return s.Account(func(a *Account) {
 		// SecretSyncer needs session loaded:
 		a.localSession.Load()
 		h(a.SecretSyncer())
@@ -718,15 +729,18 @@ func (s *LoginState) SecretSyncer(h func(*SecretSyncer), name string) {
 
 func (s *LoginState) RunSecretSyncer(uid keybase1.UID) error {
 	var err error
-	s.Account(func(a *Account) {
+	aerr := s.Account(func(a *Account) {
 		err = a.RunSecretSyncer(uid)
 	}, "RunSecretSyncer")
+	if aerr != nil {
+		return aerr
+	}
 	return err
 }
 
 func (s *LoginState) Keyring(h func(*SKBKeyringFile), name string) error {
 	var err error
-	s.Account(func(a *Account) {
+	aerr := s.Account(func(a *Account) {
 		var kr *SKBKeyringFile
 		kr, err = a.Keyring()
 		if err != nil {
@@ -734,41 +748,57 @@ func (s *LoginState) Keyring(h func(*SKBKeyringFile), name string) error {
 		}
 		h(kr)
 	}, name)
+	if aerr != nil {
+		return aerr
+	}
 	return err
 }
 
 func (s *LoginState) LoggedIn() bool {
 	var res bool
-	s.Account(func(a *Account) {
+	err := s.Account(func(a *Account) {
 		res = a.LoggedIn()
 	}, "LoggedIn")
+	if err != nil {
+		s.G().Log.Warning("error getting Account: %s", err)
+		return false
+	}
 	return res
 }
 
 func (s *LoginState) LoggedInLoad() (lin bool, err error) {
-	s.Account(func(a *Account) {
+	aerr := s.Account(func(a *Account) {
 		lin, err = a.LoggedInLoad()
 	}, "LoggedInLoad")
+	if aerr != nil {
+		return false, aerr
+	}
 	return
 }
 
 func (s *LoginState) LoggedInProvisionedLoad() (lin bool, err error) {
-	s.Account(func(a *Account) {
+	aerr := s.Account(func(a *Account) {
 		lin, err = a.LoggedInProvisionedLoad()
 	}, "LoggedInProvisionedLoad")
+	if aerr != nil {
+		return false, aerr
+	}
 	return
 }
 
-func (s *LoginState) PassphraseStream() PassphraseStream {
+func (s *LoginState) PassphraseStream() (PassphraseStream, error) {
 	var pps PassphraseStream
-	s.PassphraseStreamCache(func(c *PassphraseStreamCache) {
+	err := s.PassphraseStreamCache(func(c *PassphraseStreamCache) {
 		pps = c.PassphraseStream()
 	}, "PassphraseStream")
-	return pps
+	return pps, err
 }
 
 func (s *LoginState) AccountDump() {
-	s.Account(func(a *Account) {
+	err := s.Account(func(a *Account) {
 		a.Dump()
 	}, "LoginState - AccountDump")
+	if err != nil {
+		s.G().Log.Warning("error getting account for AccountDump: %s", err)
+	}
 }

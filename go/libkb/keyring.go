@@ -206,9 +206,12 @@ func (k *Keyrings) GetSecretKeyLocked(lctx LoginContext, ska SecretKeyArg) (ret 
 	if lctx != nil {
 		ret = lctx.LockedLocalSecretKey(ska)
 	} else {
-		k.G().LoginState().Account(func(a *Account) {
+		err = k.G().LoginState().Account(func(a *Account) {
 			ret = a.LockedLocalSecretKey(ska)
 		}, "LockedLocalSecretKey")
+		if err != nil {
+			return
+		}
 	}
 	if ret != nil {
 		k.G().Log.Debug("| Getting local secret key")

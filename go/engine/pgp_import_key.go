@@ -72,9 +72,12 @@ func (e *PGPKeyImportEngine) loadLoginSession(ctx *Context) error {
 	if ctx.LoginContext != nil {
 		err = ctx.LoginContext.LoadLoginSession(e.me.GetName())
 	} else {
-		e.G().LoginState().Account(func(a *libkb.Account) {
+		aerr := e.G().LoginState().Account(func(a *libkb.Account) {
 			err = a.LoadLoginSession(e.me.GetName())
 		}, "PGPKeyImportEngine - loadLoginSession")
+		if aerr != nil {
+			return aerr
+		}
 	}
 	return err
 }

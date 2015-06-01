@@ -371,9 +371,12 @@ func TestUserInfo(t *testing.T) {
 	u := CreateAndSignupFakeUser(tc, "login")
 	var username string
 	var err error
-	tc.G.LoginState().Account(func(a *libkb.Account) {
+	aerr := tc.G.LoginState().Account(func(a *libkb.Account) {
 		_, username, _, _, err = a.UserInfo()
 	}, "TestUserInfo")
+	if aerr != nil {
+		t.Fatal(err)
+	}
 	if err != nil {
 		t.Fatal(err)
 	}

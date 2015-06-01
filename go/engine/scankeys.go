@@ -58,16 +58,13 @@ func NewScanKeys(secui libkb.SecretUI, idui libkb.IdentifyUI, opts *TrackOptions
 		return nil, fmt.Errorf("getsyncedsecret err: %s", err)
 	}
 
-	var lks *libkb.LKSec
-	sk.G().LoginState().Account(func(a *libkb.Account) {
+	aerr := sk.G().LoginState().Account(func(a *libkb.Account) {
 		if !a.PassphraseStreamCache().Valid() {
 			return
 		}
-		lks = libkb.NewLKSec(a.PassphraseStreamCache().PassphraseStream().LksClientHalf(), sk.me.GetUID(), sk.G())
+		lks := libkb.NewLKSec(a.PassphraseStreamCache().PassphraseStream().LksClientHalf(), sk.me.GetUID(), sk.G())
 		lks.Load(a)
-	}, "NewScanKeys - lks preload")
 
-	sk.G().LoginState().Account(func(a *libkb.Account) {
 		var ring *libkb.SKBKeyringFile
 		ring, err = a.Keyring()
 		if err != nil {
@@ -75,6 +72,9 @@ func NewScanKeys(secui libkb.SecretUI, idui libkb.IdentifyUI, opts *TrackOptions
 		}
 		err = sk.extractKeys(a, ring, synced, secui, lks)
 	}, "NewScanKeys - extractKeys")
+	if aerr != nil {
+		return nil, err
+	}
 	if err != nil {
 		return nil, err
 	}

@@ -198,7 +198,7 @@ func (s *SKB) unverifiedPassphraseStream(lctx LoginContext, passphrase string) (
 		}
 		salt, err = lctx.LoginSession().Salt()
 	} else {
-		s.G().LoginState().Account(func(a *Account) {
+		aerr := s.G().LoginState().Account(func(a *Account) {
 			if len(username) > 0 {
 				err = a.LoadLoginSession(username)
 				if err != nil {
@@ -207,6 +207,9 @@ func (s *SKB) unverifiedPassphraseStream(lctx LoginContext, passphrase string) (
 			}
 			salt, err = a.LoginSession().Salt()
 		}, "skb - salt")
+		if aerr != nil {
+			return nil, nil, err
+		}
 	}
 	if err != nil {
 		return nil, nil, err
@@ -244,9 +247,12 @@ func (s *SKB) UnlockSecretKey(lctx LoginContext, passphrase string, tsec *triple
 			if lctx != nil {
 				lctx.CreateStreamCache(tsec, pps)
 			} else {
-				s.G().LoginState().Account(func(a *Account) {
+				aerr := s.G().LoginState().Account(func(a *Account) {
 					a.CreateStreamCache(tsec, pps)
 				}, "skb - UnlockSecretKey - CreateStreamCache")
+				if aerr != nil {
+					return nil, aerr
+				}
 			}
 		}
 	default:

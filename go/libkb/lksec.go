@@ -172,12 +172,15 @@ func (s *LKSec) apiServerHalf(lctx LoginContext, devid *DeviceID) error {
 		}
 		dev, err = lctx.SecretSyncer().FindDevice(devid)
 	} else {
-		s.G().LoginState().Account(func(a *Account) {
+		aerr := s.G().LoginState().Account(func(a *Account) {
 			if err = RunSyncer(a.SecretSyncer(), s.uid, a.LoggedIn(), a.LocalSession()); err != nil {
 				return
 			}
 			dev, err = a.SecretSyncer().FindDevice(devid)
 		}, "LKSec apiServerHalf - find device")
+		if aerr != nil {
+			return aerr
+		}
 	}
 	if err != nil {
 		return err

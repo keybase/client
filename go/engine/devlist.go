@@ -40,12 +40,15 @@ func (d *DevList) Run(ctx *Context) error {
 	uid := d.G().GetMyUID()
 	var err error
 	var devs libkb.DeviceKeyMap
-	d.G().LoginState().Account(func(a *libkb.Account) {
+	aerr := d.G().LoginState().Account(func(a *libkb.Account) {
 		if err = libkb.RunSyncer(a.SecretSyncer(), uid, a.LoggedIn(), a.LocalSession()); err != nil {
 			return
 		}
 		devs, err = a.SecretSyncer().ActiveDevices()
 	}, "DevList - ActiveDevices")
+	if aerr != nil {
+		return aerr
+	}
 	if err != nil {
 		return err
 	}
