@@ -1,5 +1,5 @@
 //
-//  KBRProveType.m
+//  KBProveType.m
 //  Keybase
 //
 //  Created by Gabriel on 2/9/15.
@@ -17,11 +17,12 @@ KBRProofType KBRProofTypeForServiceName(NSString *serviceName) {
   if ([serviceName isEqualTo:@"hackernews"]) return KBRProofTypeHackernews;
   if ([serviceName isEqualTo:@"dns"]) return KBRProofTypeDns;
   if ([serviceName isEqualTo:@"https"]) return KBRProofTypeGenericWebSite;
+  if ([serviceName isEqualTo:@"rooter"]) return KBRProofTypeRooter;
   return KBRProofTypeNone;
 }
 
-NSString *KBServiceNameForProveType(KBRProofType proveType) {
-  switch (proveType) {
+NSString *KBServiceNameForProofType(KBRProofType proofType) {
+  switch (proofType) {
     case KBRProofTypeNone: return nil;
     case KBRProofTypeTwitter: return @"twitter";
     case KBRProofTypeGithub: return @"github";
@@ -31,11 +32,12 @@ NSString *KBServiceNameForProveType(KBRProofType proveType) {
     case KBRProofTypeDns: return @"dns";
     case KBRProofTypeGenericWebSite: return @"https";
     case KBRProofTypeKeybase: return @"keybase";
+    case KBRProofTypeRooter: return @"rooter";
   }
 }
 
-NSString *KBImageNameForProveType(KBRProofType proveType) {
-  switch (proveType) {
+NSString *KBImageNameForProofType(KBRProofType proofType) {
+  switch (proofType) {
     case KBRProofTypeTwitter: return @"Social networks-Outline-Twitter-25";
     case KBRProofTypeGithub: return @"Social networks-Outline-Github-25";
     case KBRProofTypeReddit: return @"Social networks-Outline-Reddit-25";
@@ -44,22 +46,18 @@ NSString *KBImageNameForProveType(KBRProofType proveType) {
   }
 }
 
-NSString *KBShortNameForProveType(KBRProofType proveType) {
-  switch (proveType) {
-    case KBRProofTypeNone: return nil;
-    case KBRProofTypeTwitter: return @"Twitter";
-    case KBRProofTypeGithub: return @"Github";
-    case KBRProofTypeReddit: return @"Reddit";
-    case KBRProofTypeCoinbase: return @"Coinbase";
+NSString *KBShortNameForProofType(KBRProofType proofType) {
+  switch (proofType) {
     case KBRProofTypeHackernews: return @"HN";
     case KBRProofTypeDns: return @"DNS";
     case KBRProofTypeGenericWebSite: return @"HTTPS";
-    case KBRProofTypeKeybase: return @"Keybase";
+    default:
+      return KBNameForProofType(proofType);
   }
 }
 
-NSString *KBNameForProveType(KBRProofType proveType) {
-  switch (proveType) {
+NSString *KBNameForProofType(KBRProofType proofType) {
+  switch (proofType) {
     case KBRProofTypeNone: return nil;
     case KBRProofTypeTwitter: return @"Twitter";
     case KBRProofTypeGithub: return @"Github";
@@ -69,6 +67,7 @@ NSString *KBNameForProveType(KBRProofType proveType) {
     case KBRProofTypeDns: return @"Domain";
     case KBRProofTypeGenericWebSite: return @"Website";
     case KBRProofTypeKeybase: return @"Keybase";
+    case KBRProofTypeRooter: return @"Rooter";
   }
 }
 

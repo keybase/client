@@ -11,7 +11,16 @@
 #import "AppDelegate.h"
 #import "KBProveType.h"
 
+@interface KBProveInstructionsView ()
+@property KBLabel *instructionsLabel;
+@property KBTextView *proofView;
+@property KBButton *clipboardCopyButton;
+@property NSString *proofText;
+@end
+
 @implementation KBProveInstructionsView
+
+@synthesize cancelButton=_cancelButton, button=_button;
 
 - (void)viewInit {
   [super viewInit];
@@ -50,13 +59,13 @@
   self.viewLayout = [YOBorderLayout layoutWithCenter:_proofView top:@[_instructionsLabel] bottom:@[bottomView] insets:UIEdgeInsetsMake(20, 40, 20, 40) spacing:20];
 }
 
-- (NSString *)instructionsForProveType:(KBRProofType)proveType {
-  NSString *name = KBNameForProveType(proveType);
+- (NSString *)instructionsForProofType:(KBRProofType)proofType {
+  NSString *name = KBNameForProofType(proofType);
   return name ? NSStringWithFormat(@"Post the following to %@:", name) : @"Post the following:";
 }
 
-- (void)setProofText:(NSString *)proofText proveType:(KBRProofType)proveType {
-  [self.instructionsLabel setText:[self instructionsForProveType:proveType] style:KBTextStyleDefault];
+- (void)setProofText:(NSString *)proofText proofType:(KBRProofType)proofType {
+  [self.instructionsLabel setText:[self instructionsForProofType:proofType] style:KBTextStyleDefault];
 
   _proofText = proofText;
   [self.proofView setText:proofText style:KBTextStyleDefault options:KBTextOptionsMonospace alignment:NSLeftTextAlignment lineBreakMode:NSLineBreakByCharWrapping];

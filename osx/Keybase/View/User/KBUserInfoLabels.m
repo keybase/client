@@ -105,13 +105,13 @@
   [self setNeedsLayout];
 }
 
-- (void)addProofResults:(NSArray *)proofResults proveType:(KBRProofType)proveType editable:(BOOL)editable targetBlock:(void (^)(KBProofLabel *proofLabel))targetBlock {
+- (void)addProofResults:(NSArray *)proofResults proofType:(KBRProofType)proofType editable:(BOOL)editable targetBlock:(void (^)(KBProofLabel *proofLabel))targetBlock {
   _proofResults = proofResults;
-  //NSImage *image = [NSImage imageNamed:KBImageNameForProveType(proveType)];
+  //NSImage *image = [NSImage imageNamed:KBImageNameForProofType(proofType)];
   //_imageView.image = image;
 
   //if (!_imageView.image) {
-  [_headerLabel setText:KBShortNameForProveType(proveType) font:KBAppearance.currentAppearance.textFont color:KBAppearance.currentAppearance.textColor alignment:NSLeftTextAlignment];
+  [_headerLabel setText:KBShortNameForProofType(proofType) font:KBAppearance.currentAppearance.textFont color:KBAppearance.currentAppearance.textColor alignment:NSLeftTextAlignment];
   //} else {
   //  _headerLabel.attributedText = nil;
   //}

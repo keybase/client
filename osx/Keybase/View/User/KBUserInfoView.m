@@ -64,19 +64,19 @@
   return updated;
 }
 
-- (NSArray *)missingProveTypes {
-  NSMutableArray *proveTypes = [@[@(KBRProofTypeTwitter), @(KBRProofTypeGithub), @(KBRProofTypeReddit), @(KBRProofTypeCoinbase), @(KBRProofTypeHackernews),] mutableCopy];
+- (NSArray *)missingProofTypes {
+  NSMutableArray *proofTypes = [@[@(KBRProofTypeTwitter), @(KBRProofTypeGithub), @(KBRProofTypeReddit), @(KBRProofTypeCoinbase), @(KBRProofTypeHackernews), @(KBRProofTypeRooter)] mutableCopy];
 
   for (KBUserInfoLabels *label in _labels) {
     for (KBProofResult *proofResult in label.proofResults) {
-      [proveTypes removeObject:@([[proofResult proof] proofType])];
+      [proofTypes removeObject:@([[proofResult proof] proofType])];
     }
   }
 
   // We can always add more of these types
-  [proveTypes addObjectsFromArray:@[@(KBRProofTypeGenericWebSite), @(KBRProofTypeDns)]];
+  [proofTypes addObjectsFromArray:@[@(KBRProofTypeGenericWebSite), @(KBRProofTypeDns)]];
 
-  return proveTypes;
+  return proofTypes;
 }
 
 - (void)addHeader:(NSString *)header text:(NSString *)text targetBlock:(dispatch_block_t)targetBlock {
@@ -111,7 +111,7 @@
   for (id key in results) {
     NSArray *proofResults = results[key];
     KBUserInfoLabels *label = [[KBUserInfoLabels alloc] init];
-    [label addProofResults:proofResults proveType:[key integerValue] editable:editable targetBlock:targetBlock];
+    [label addProofResults:proofResults proofType:[key integerValue] editable:editable targetBlock:targetBlock];
     [self addLabels:@[label]];
   }
 

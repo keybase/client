@@ -92,9 +92,9 @@
   [self setNeedsLayout];
 }
 
-- (void)connectWithProveType:(KBRProofType)proveType proofResult:(KBProofResult *)proofResult {
+- (void)connectWithProofType:(KBRProofType)proofType proofResult:(KBProofResult *)proofResult {
   GHWeakSelf gself = self;
-  [KBProveView connectWithProveType:proveType proofResult:proofResult client:self.client sender:self completion:^(BOOL success) {
+  [KBProveView connectWithProofType:proofType proofResult:proofResult client:self.client sender:self completion:^(BOOL success) {
     [gself reload]; // Always reload even if canceled
   }];
 }
@@ -140,8 +140,10 @@
     BOOL isSelf = [AppDelegate.appView.user.username isEqual:self.username];
     [gself.userInfoView addProofs:requestParams.id.proofs editable:isSelf targetBlock:^(KBProofLabel *proofLabel) {
       if (proofLabel.proofResult.result.proofResult.status != 1) {
-        KBRProofType proveType = proofLabel.proofResult.proof.proofType;
-        [self connectWithProveType:proveType proofResult:proofLabel.proofResult];
+        KBRProofType proofType = proofLabel.proofResult.proof.proofType;
+        // TODO Remove when we fix #463
+        if (proofType == KBRProofTypeNone) proofType = KBRProofTypeForServiceName(proofLabel.proofResult.proof.key);
+        [self connectWithProofType:proofType proofResult:proofLabel.proofResult];
       } else if (proofLabel.proofResult.result.hint.humanUrl) {
         [AppDelegate.sharedDelegate openURLString:proofLabel.proofResult.result.hint.humanUrl sender:self];
       }
@@ -299,16 +301,16 @@
       }];
     }
 
-    for (NSNumber *proveTypeNumber in [gself.userInfoView missingProveTypes]) {
-      KBRProofType proveType = [proveTypeNumber integerValue];
+    for (NSNumber *proofTypeNumber in [gself.userInfoView missingProofTypes]) {
+      KBRProofType proofType = [proofTypeNumber integerValue];
 
-      switch (proveType) {
+      switch (proofType) {
         case KBRProofTypeDns: {
-          [gself.userInfoView addHeader:@" " text:@"Add Domain" targetBlock:^{ [gself connectWithProveType:proveType proofResult:nil]; }];
+          [gself.userInfoView addHeader:@" " text:@"Add Domain" targetBlock:^{ [gself connectWithProofType:proofType proofResult:nil]; }];
           break;
         }
         case KBRProofTypeGenericWebSite: {
-          [gself.userInfoView addHeader:@" " text:@"Add Website" targetBlock:^{ [gself connectWithProveType:proveType proofResult:nil]; }];
+          [gself.userInfoView addHeader:@" " text:@"Add Website" targetBlock:^{ [gself connectWithProofType:proofType proofResult:nil]; }];
           break;
         }
         case KBRProofTypeKeybase:
@@ -316,8 +318,13 @@
         case KBRProofTypeGithub:
         case KBRProofTypeReddit:
         case KBRProofTypeCoinbase:
-        case KBRProofTypeHackernews: {
-          [gself.userInfoView addHeader:@" " text:NSStringWithFormat(@"Connect to %@", KBNameForProveType(proveType)) targetBlock:^{ [gself connectWithProveType:proveType proofResult:nil]; }];
+        case KBRProofTypeHackernews:
+        {
+          [gself.userInfoView addHeader:@" " text:NSStringWithFormat(@"Connect to %@", KBNameForProofType(proofType)) targetBlock:^{ [gself connectWithProofType:proofType proofResult:nil]; }];
+          break;
+        }
+        case KBRProofTypeRooter: {
+          [gself.userInfoView addHeader:@" " text:NSStringWithFormat(@"Connect to %@", KBNameForProofType(proofType)) targetBlock:^{ [gself connectWithProofType:proofType proofResult:nil]; }];
           break;
         }
         case KBRProofTypeNone:
@@ -380,7 +387,7 @@
 
 - (void)addPGPKey {
   KBRConfigRequest *request = [[KBRConfigRequest alloc] initWithClient:self.client];
-  [request getConfig:^(NSError *error, KBRConfig *config) {
+  [request getConfigWithSessionID:request.sessionId completion:^(NSError *error, KBRConfig *config) {
     KBAlert *alert = [[KBAlert alloc] init];
     [alert addButtonWithTitle:@"Import Manually" tag:1];
     if (config.gpgExists) [alert addButtonWithTitle:@"Import from GPG" tag:2];
@@ -419,7 +426,7 @@
     KBRPgpCreateUids *uids = [[KBRPgpCreateUids alloc] init];
     uids.useDefault = YES;
     KBRPgpRequest *request = [[KBRPgpRequest alloc] initWithClient:self.client];
-    [request pgpKeyGenDefaultWithCreateUids:uids completion:^(NSError *error) {
+    [request pgpKeyGenDefaultWithSessionID:request.sessionId createUids:uids completion:^(NSError *error) {
       completion(error);
       [self reload];
     }];
@@ -433,7 +440,7 @@
     KBRSelectKeyAndPushOptionRequestParams *requestParams = [[KBRSelectKeyAndPushOptionRequestParams alloc] initWithParams:params];
     [self selectPGPKey:requestParams completion:completion];
   }];
-  [request pgpSelectWithQuery:nil allowMulti:NO skipImport:NO completion:^(NSError *error) {
+  [request pgpSelectWithSessionID:request.sessionId query:nil allowMulti:NO skipImport:NO completion:^(NSError *error) {
     [AppDelegate setError:error sender:self];
     [self reload];
   }];

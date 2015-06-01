@@ -12,10 +12,7 @@
 #import "KBRPC.h"
 
 @interface KBProveInputView : YOView
-@property (nonatomic) KBRProofType proveType;
-
-@property KBLabel *header;
-@property KBLabel *label;
+@property (nonatomic) KBRProofType proofType;
 @property KBTextField *inputField;
 @property KBButton *button;
 @property KBButton *cancelButton;

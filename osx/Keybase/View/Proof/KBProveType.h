@@ -1,5 +1,5 @@
 //
-//  KBRProveType.h
+//  KBProveType.h
 //  Keybase
 //
 //  Created by Gabriel on 2/9/15.
@@ -10,11 +10,10 @@
 
 #import "KBRPC.h"
 
-NSString *KBServiceNameForProveType(KBRProofType proveType);
+NSString *KBServiceNameForProofType(KBRProofType proofType);
 KBRProofType KBRProofTypeForServiceName(NSString *serviceName);
-KBRProofType KBRProofTypeFromAPI(NSInteger proofType);
 
-NSString *KBImageNameForProveType(KBRProofType proveType);
-NSString *KBShortNameForProveType(KBRProofType proveType);
-NSString *KBNameForProveType(KBRProofType proveType);
+NSString *KBImageNameForProofType(KBRProofType proofType);
+NSString *KBShortNameForProofType(KBRProofType proofType);
+NSString *KBNameForProofType(KBRProofType proofType);
 

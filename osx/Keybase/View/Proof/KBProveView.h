@@ -19,9 +19,6 @@ typedef void (^KBProveCompletion)(BOOL success);
 
 @interface KBProveView : KBContentView
 
-@property KBProveInputView *inputView;
-@property KBProveInstructionsView *instructionsView;
-
-+ (void)connectWithProveType:(KBRProofType)proveType proofResult:(KBProofResult *)proofResult client:(KBRPClient *)client sender:(NSView *)sender completion:(KBProveCompletion)completion;
++ (void)connectWithProofType:(KBRProofType)proofType proofResult:(KBProofResult *)proofResult client:(KBRPClient *)client sender:(NSView *)sender completion:(KBProveCompletion)completion;
 
 @end

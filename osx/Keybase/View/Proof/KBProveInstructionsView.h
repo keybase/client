@@ -12,16 +12,13 @@
 #import "KBRPC.h"
 #import "KBContentView.h"
 
-@interface KBProveInstructionsView : KBContentView
-@property KBLabel *instructionsLabel;
-@property KBTextView *proofView;
-@property KBButton *clipboardCopyButton;
-@property NSString *proofText;
-
+@protocol KBProveInstructionsView
 @property KBButton *button;
 @property KBButton *cancelButton;
+- (void)setProofText:(NSString *)proofText proofType:(KBRProofType)proofType;
+@end
 
-- (void)setProofText:(NSString *)proofText proveType:(KBRProofType)proveType;
+@interface KBProveInstructionsView : KBContentView <KBProveInstructionsView>
 
 @end
 

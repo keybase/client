@@ -177,6 +177,7 @@
 		00CC436E1A3A9EC7006118A9 /* KBRPC.m in Sources */ = {isa = PBXBuildFile; fileRef = 00CC436D1A3A9EC7006118A9 /* KBRPC.m */; };
 		00CC43711A3A9EDF006118A9 /* KBRObject.m in Sources */ = {isa = PBXBuildFile; fileRef = 00CC43701A3A9EDF006118A9 /* KBRObject.m */; };
 		00CCC6DA1B192214007090AD /* KBTableSelection.m in Sources */ = {isa = PBXBuildFile; fileRef = 00CCC6D91B192214007090AD /* KBTableSelection.m */; };
+		00CCC6E31B1D0A5E007090AD /* KBProveRooterInstructions.m in Sources */ = {isa = PBXBuildFile; fileRef = 00CCC6E21B1D0A5E007090AD /* KBProveRooterInstructions.m */; };
 		00D2E7CA1A41476E00319401 /* KBRRequest.m in Sources */ = {isa = PBXBuildFile; fileRef = 00D2E7C91A41476E00319401 /* KBRRequest.m */; };
 		00D3069F1AB0C2B600F69B18 /* KBFilePreviewView.m in Sources */ = {isa = PBXBuildFile; fileRef = 00D3069E1AB0C2B600F69B18 /* KBFilePreviewView.m */; };
 		00D306A31AB0DD8300F69B18 /* KBFoldersView.m in Sources */ = {isa = PBXBuildFile; fileRef = 00D306A21AB0DD8300F69B18 /* KBFoldersView.m */; };
@@ -608,6 +609,8 @@
 		00CC43701A3A9EDF006118A9 /* KBRObject.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBRObject.m; sourceTree = "<group>"; };
 		00CCC6D81B192214007090AD /* KBTableSelection.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBTableSelection.h; sourceTree = "<group>"; };
 		00CCC6D91B192214007090AD /* KBTableSelection.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBTableSelection.m; sourceTree = "<group>"; };
+		00CCC6E11B1D0A5E007090AD /* KBProveRooterInstructions.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBProveRooterInstructions.h; sourceTree = "<group>"; };
+		00CCC6E21B1D0A5E007090AD /* KBProveRooterInstructions.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBProveRooterInstructions.m; sourceTree = "<group>"; };
 		00D2E7C41A4106A200319401 /* KBAppDefines.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBAppDefines.h; sourceTree = "<group>"; };
 		00D2E7C81A41476E00319401 /* KBRRequest.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBRRequest.h; sourceTree = "<group>"; };
 		00D2E7C91A41476E00319401 /* KBRRequest.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBRRequest.m; sourceTree = "<group>"; };
@@ -1044,6 +1047,8 @@
 				00B5442F1A895AB80044CC5B /* KBProveInstructionsView.m */,
 				00B544361A8960D30044CC5B /* KBProveType.h */,
 				00B544371A8960D30044CC5B /* KBProveType.m */,
+				00CCC6E11B1D0A5E007090AD /* KBProveRooterInstructions.h */,
+				00CCC6E21B1D0A5E007090AD /* KBProveRooterInstructions.m */,
 			);
 			path = Proof;
 			sourceTree = "<group>";
@@ -1785,6 +1790,7 @@
 				00DD24701AAA4C0300371CDA /* KBErrorView.m in Sources */,
 				00E2BC741AC9F38C0061F0B2 /* KBPGPVerifyFileView.m in Sources */,
 				0013927D1B06BE8D0082DEA8 /* KBFSService.m in Sources */,
+				00CCC6E31B1D0A5E007090AD /* KBProveRooterInstructions.m in Sources */,
 				00DD38371AEE7B7300691648 /* KBPGPSignAppView.m in Sources */,
 				001712281A94100500C7AD58 /* KBGPGKeysView.m in Sources */,
 				00B544381A8960D30044CC5B /* KBProveType.m in Sources */,

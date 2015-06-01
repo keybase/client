@@ -10,6 +10,11 @@
 
 #import "KBProveType.h"
 
+@interface KBProveInputView ()
+@property KBLabel *header;
+@property KBLabel *label;
+@end
+
 @implementation KBProveInputView
 
 - (void)viewInit {
@@ -53,15 +58,15 @@
   }];
 }
 
-- (void)setProveType:(KBRProofType)proveType {
-  _proveType = proveType;
+- (void)setProofType:(KBRProofType)proofType {
+  _proofType = proofType;
   _inputField.placeholder = nil;
   _label.attributedText = nil;
 
-  NSString *headerText = KBNameForProveType(proveType);
+  NSString *headerText = KBNameForProofType(proofType);
   NSString *labelText = @"";
   NSString *placeholder = @"";
-  switch (proveType) {
+  switch (proofType) {
     case KBRProofTypeTwitter:
       labelText = @"What's your Twitter username?";
       placeholder = @"@username";
@@ -92,6 +97,10 @@
       break;
     case KBRProofTypeKeybase:
       labelText = @"What's your Keybase username?";
+      placeholder = @"username";
+      break;
+    case KBRProofTypeRooter:
+      labelText = @"What's your Rooter username?";
       placeholder = @"username";
       break;
     case KBRProofTypeNone:
