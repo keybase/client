@@ -149,7 +149,6 @@ func (d *Dir) Lookup(ctx context.Context, req *fuse.LookupRequest, resp *fuse.Lo
 	case libkbfs.Sym:
 		child := &Symlink{
 			parent: d,
-			de:     de,
 			pathNode: libkbfs.PathNode{
 				// use a null block pointer for symlinks
 				Name: req.Name,
@@ -216,7 +215,7 @@ func (d *Dir) Symlink(ctx context.Context, req *fuse.SymlinkRequest) (fs.Node, e
 	d.folder.mu.Lock()
 	defer d.folder.mu.Unlock()
 
-	p, de, err := d.folder.fs.config.KBFSOps().CreateLink(d.getPathLocked(), req.NewName, req.Target)
+	p, _, err := d.folder.fs.config.KBFSOps().CreateLink(d.getPathLocked(), req.NewName, req.Target)
 	if err != nil {
 		return nil, err
 	}
@@ -225,7 +224,6 @@ func (d *Dir) Symlink(ctx context.Context, req *fuse.SymlinkRequest) (fs.Node, e
 
 	child := &Symlink{
 		parent: d,
-		de:     de,
 		pathNode: libkbfs.PathNode{
 			// use a null block pointer for symlinks
 			Name: req.NewName,
