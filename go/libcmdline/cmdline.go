@@ -89,6 +89,9 @@ func (p CommandLine) GetGpgHome() string {
 func (p CommandLine) GetAPIDump() (bool, bool) {
 	return p.GetBool("api-dump", true)
 }
+func (p CommandLine) GetDevelMode() (bool, bool) {
+	return p.GetBool("devel", true)
+}
 func (p CommandLine) GetPinentry() string {
 	return p.GetGString("pinentry")
 }
@@ -245,7 +248,7 @@ func (p *CommandLine) PopulateApp(addHelp bool, extraFlags []cli.Flag) {
 		},
 		cli.StringFlag{
 			Name:  "server, s",
-			Usage: fmt.Sprintf("specify server API (default: %s)", libkb.SERVER_URL),
+			Usage: fmt.Sprintf("specify server API (default: %s)", libkb.ServerURI),
 		},
 		cli.StringFlag{
 			Name:  "config, c",

@@ -47,6 +47,7 @@ func (n NullConfiguration) GetTimers() string                             { retu
 func (n NullConfiguration) GetDeviceID() *DeviceID                        { return nil }
 func (n NullConfiguration) GetProxyCACerts() ([]string, error)            { return nil, nil }
 func (n NullConfiguration) GetAutoFork() (bool, bool)                     { return false, false }
+func (n NullConfiguration) GetDevelMode() (bool, bool)                    { return false, false }
 func (n NullConfiguration) GetNoAutoFork() (bool, bool)                   { return false, false }
 func (n NullConfiguration) GetSplitLogOutput() (bool, bool)               { return false, false }
 func (n NullConfiguration) GetLogFile() string                            { return "" }
@@ -96,6 +97,7 @@ type TestParameters struct {
 	GPGHome        string
 	GPGOptions     []string
 	Debug          bool
+	Devel          bool // Whether we are in Devel Mode
 }
 
 func (tp TestParameters) GetDebug() (bool, bool) {
@@ -286,7 +288,7 @@ func (e *Env) GetServerURI() string {
 		func() string { return e.cmd.GetServerURI() },
 		func() string { return os.Getenv("KEYBASE_SERVER_URI") },
 		func() string { return e.config.GetServerURI() },
-		func() string { return SERVER_URL },
+		func() string { return ServerURI },
 	)
 }
 
@@ -533,8 +535,19 @@ func (e *Env) GetEmailOrUsername() string {
 }
 
 // XXX implement me
-func (e *Env) GetTestMode() bool {
-	return false
+func (e *Env) GetDevelMode() bool {
+	return e.GetBool(false,
+		func() (bool, bool) { return e.cmd.GetDevelMode() },
+		func() (bool, bool) { return e.getEnvBool("KEYBASE_DEVEL_MODE") },
+		func() (bool, bool) { return e.config.GetDevelMode() },
+		func() (bool, bool) {
+			if e.Test.Devel || e.GetServerURI() == DevelServerURI {
+				return true, true
+			} else {
+				return false, false
+			}
+		},
+	)
 }
 
 func (e *Env) GetUID() keybase1.UID { return e.config.GetUID() }
@@ -554,7 +567,11 @@ func (e *Env) GetMerkleKIDs() []KID {
 		func() []string { return e.getEnvPath("KEYBASE_MERKLE_KIDS") },
 		func() []string { return e.config.GetMerkleKIDs() },
 		func() []string {
-			return append(MerkleProdKIDs, MerkleTestKIDs...)
+			ret := MerkleProdKIDs
+			if e.GetDevelMode() {
+				ret = append(ret, MerkleTestKIDs...)
+			}
+			return ret
 		},
 	)
 

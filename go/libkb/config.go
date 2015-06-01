@@ -360,6 +360,9 @@ func (f JsonConfigFile) GetGpgOptions() []string {
 	}
 	return ret
 }
+func (f JsonConfigFile) GetDevelMode() (bool, bool) {
+	return f.GetTopLevelBool("devel")
+}
 func (f JsonConfigFile) GetGpgDisabled() (bool, bool) {
 	return f.GetTopLevelBool("gpg.disabled")
 }

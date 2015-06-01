@@ -8,7 +8,10 @@ import (
 	keybase1 "github.com/keybase/client/protocol/go"
 )
 
-var SERVER_URL = "http://localhost:3000"
+var DevelServerURI = "http://localhost:3000"
+var ProductionServerURI = "https://keybase.io"
+var ServerURI = DevelServerURI
+
 var CONFIG_FILE = "config.json"
 var SESSION_FILE = "session.json"
 var SECRET_KEYRING_TEMPLATE = "secretkeys.%u.mpack"

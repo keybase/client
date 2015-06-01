@@ -152,8 +152,9 @@ func setupTestContext(nm string) (tc TestContext, err error) {
 	tc.Tp.GPGHome = tc.Tp.Home
 	tc.Tp.GPGOptions = []string{"--homedir=" + tc.Tp.GPGHome}
 
-	tc.Tp.ServerUri = "http://localhost:3000"
+	tc.Tp.ServerUri = DevelServerURI
 	tc.Tp.Debug = false
+	tc.Tp.Devel = true
 	g.Env.Test = tc.Tp
 
 	g.ConfigureLogging()

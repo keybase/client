@@ -56,4 +56,8 @@ var extraSignupFlags = []cli.Flag{
 		Name:  "b, batch",
 		Usage: "Batch mode (don't prompt, use all defaults)",
 	},
+	cli.BoolFlag{
+		Name:  "devel",
+		Usage: "run the client in development mode",
+	},
 }
