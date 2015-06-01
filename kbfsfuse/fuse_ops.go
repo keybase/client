@@ -304,18 +304,7 @@ func (f *FuseOps) BatchChanges(dir libkbfs.DirID, paths []libkbfs.Path) {
 					currNode = nextNode.Node().(*FuseNode)
 				}
 			}
-			// if currNode already matches the last element of the
-			// path, this is likely the result of a mkdir/mknod that
-			// we did, and so we can skip updating currNode
-			lastPathNode := path.Path[len(path.Path)-1]
-			if currNode.PathNode.BlockPointer == lastPathNode.BlockPointer {
-				if len(path.Path) > 1 {
-					f.updatePaths(currNode.PrevNode,
-						path.Path[:len(path.Path)-1])
-				}
-			} else {
-				f.updatePaths(currNode, path.Path[:i])
-			}
+			f.updatePaths(currNode, path.Path[:i])
 		}
 	})
 }

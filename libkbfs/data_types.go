@@ -877,8 +877,10 @@ type DirEntry struct {
 	Type    EntryType
 	Size    uint64
 	SymPath string `codec:",omitempty"` // must be within the same root dir
-	Mtime   int64
-	Ctime   int64
+	// Mtime is in unix nanoseconds
+	Mtime int64
+	// Ctime is in unix nanoseconds
+	Ctime int64
 }
 
 // IsInitialized returns true if this DirEntry has been initialized.

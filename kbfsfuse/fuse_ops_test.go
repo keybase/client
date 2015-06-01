@@ -3,6 +3,7 @@ package main
 import (
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/hanwen/go-fuse/fuse"
 	"github.com/hanwen/go-fuse/fuse/nodefs"
@@ -30,7 +31,7 @@ func doMkDirOrBust(t *testing.T, parent *FuseNode, name string) *FuseNode {
 func doMknodOrBust(t *testing.T, parent *FuseNode, name string) *FuseNode {
 	inode, code := parent.Mknod(name, 0, 0, nil)
 	if code != fuse.OK {
-		t.Fatalf("Mknode failure: %s", code)
+		t.Fatalf("Mknod failure: %s", code)
 	}
 	return inode.Node().(*FuseNode)
 }
@@ -179,10 +180,8 @@ func TestNeedUpdateBasic(t *testing.T) {
 	node2 := doMkDirOrBust(t, node1, "dir")
 	waitForUpdates(node1)
 
-	checkPathNeedsUpdate(t, []*FuseNode{root, node1}, true, "test_user")
-	if node2.NeedUpdate {
-		t.Error("/test_user/dir unexpectedly needs update")
-	}
+	checkPathNeedsUpdate(t, []*FuseNode{root, node1, node2}, true,
+		"test_user/dir")
 
 	// Look up /test_user again.
 	node1 = doLookupOrBust(t, root, "test_user")
@@ -218,12 +217,8 @@ func TestNeedUpdateAll(t *testing.T) {
 	root.Ops.Shutdown()
 
 	checkPathNeedsUpdate(t,
-		[]*FuseNode{root, node1, node2, node3, node4}, true,
-		"test_user/dir1/dir2/dir3")
-
-	if node5.NeedUpdate {
-		t.Error("/test_user/dir4 unexpectedly needs update")
-	}
+		[]*FuseNode{root, node1, node2, node3, node4, node5}, true,
+		"test_user/dir1/dir2/dir3/dir4")
 }
 
 // Test that writing a file causes its whole path to need an update
@@ -394,4 +389,40 @@ func TestCompleteBatchUpdatePublic(t *testing.T) {
 
 	userRoot := doLookupOrBust(t, root, "test_user")
 	testCompleteBatchUpdate(t, userRoot, "public")
+}
+
+// Test that setting the mtime works
+func TestSetMtime(t *testing.T) {
+	config := makeTestConfig("test_user")
+
+	root := NewFuseRoot(config)
+	_ = nodefs.NewFileSystemConnector(root, nil)
+
+	node1 := doLookupOrBust(t, root, "test_user")
+	node2 := doMknodOrBust(t, node1, "file1")
+
+	var attr fuse.Attr
+	_, code := node1.Lookup(&attr, "file1", nil)
+	if code != fuse.OK {
+		t.Fatalf("Initial lookup failure: %s", code)
+	}
+
+	loc, _ := time.LoadLocation("Local")
+	new_mtime := time.Date(1980, time.April, 4, 10, 52, 00, 00, loc)
+	code = node2.Utimens(nil, nil, &new_mtime, nil)
+	if code != fuse.OK {
+		t.Fatalf("Utimens failure: %s", code)
+	}
+
+	// Do another lookup and make sure we get this same time
+	_, code = node1.Lookup(&attr, "file1", nil)
+	if code != fuse.OK {
+		t.Fatalf("Initial lookup failure: %s", code)
+	}
+
+	if attr.ModTime().UnixNano() != new_mtime.UnixNano() {
+		t.Errorf("Wrong mtime; expected %s, got %s", new_mtime, attr.ModTime())
+	}
+
+	root.Ops.Shutdown()
 }
