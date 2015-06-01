@@ -63,8 +63,7 @@ func NewScanKeys(secui libkb.SecretUI, idui libkb.IdentifyUI, opts *TrackOptions
 		if !a.PassphraseStreamCache().Valid() {
 			return
 		}
-		lks = libkb.NewLKSec(a.PassphraseStreamCache().PassphraseStream().LksClientHalf(), sk.G())
-		lks.SetUID(sk.me.GetUID())
+		lks = libkb.NewLKSec(a.PassphraseStreamCache().PassphraseStream().LksClientHalf(), sk.me.GetUID(), sk.G())
 		lks.Load(a)
 	}, "NewScanKeys - lks preload")
 

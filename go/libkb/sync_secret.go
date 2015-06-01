@@ -44,7 +44,6 @@ type ServerPrivateKeys struct {
 type SecretSyncer struct {
 	sync.Mutex
 	Contextified
-	Uid   keybase1.UID
 	dirty bool
 	keys  *ServerPrivateKeys
 }
@@ -56,33 +55,16 @@ func NewSecretSyncer(g *GlobalContext) *SecretSyncer {
 }
 
 func (ss *SecretSyncer) Clear() error {
-	err := ss.store()
-	var emptyUID keybase1.UID
-	ss.Uid = emptyUID
 	ss.keys = nil
 
-	return err
-}
-
-// SetUID sets the UID.
-func (ss *SecretSyncer) SetUID(u keybase1.UID) {
-	ss.setUID(u)
-}
-
-func (ss *SecretSyncer) setUID(u keybase1.UID) {
-	ss.Uid = u
-}
-
-// lock required before calling this.
-func (ss *SecretSyncer) getUID() keybase1.UID {
-	return ss.Uid
+	return nil
 }
 
 // Syncer locks before calling this.
-func (ss *SecretSyncer) loadFromStorage() (err error) {
+func (ss *SecretSyncer) loadFromStorage(uid keybase1.UID) (err error) {
 	var tmp ServerPrivateKeys
 	var found bool
-	found, err = ss.G().LocalDb.GetInto(&tmp, ss.dbKey())
+	found, err = ss.G().LocalDb.GetInto(&tmp, ss.dbKey(uid))
 	ss.G().Log.Debug("| loadFromStorage -> found=%v, err=%s", found, ErrToOk(err))
 	if found {
 		ss.G().Log.Debug("| Loaded version %d", tmp.Version)
@@ -96,7 +78,7 @@ func (ss *SecretSyncer) loadFromStorage() (err error) {
 }
 
 // Syncer locks before calling this.
-func (ss *SecretSyncer) syncFromServer(sr SessionReader) (err error) {
+func (ss *SecretSyncer) syncFromServer(uid keybase1.UID, sr SessionReader) (err error) {
 	hargs := HttpArgs{}
 
 	if ss.keys != nil {
@@ -129,16 +111,16 @@ func (ss *SecretSyncer) syncFromServer(sr SessionReader) (err error) {
 }
 
 // lock required before calling this.
-func (ss *SecretSyncer) dbKey() DbKey {
-	return DbKeyUID(DB_USER_SECRET_KEYS, ss.Uid)
+func (ss *SecretSyncer) dbKey(uid keybase1.UID) DbKey {
+	return DbKeyUID(DB_USER_SECRET_KEYS, uid)
 }
 
 // Syncer locks before calling this.
-func (ss *SecretSyncer) store() (err error) {
+func (ss *SecretSyncer) store(uid keybase1.UID) (err error) {
 	if !ss.dirty {
 		return
 	}
-	if err = ss.G().LocalDb.PutObj(ss.dbKey(), nil, ss.keys); err != nil {
+	if err = ss.G().LocalDb.PutObj(ss.dbKey(uid), nil, ss.keys); err != nil {
 		return
 	}
 	ss.dirty = false

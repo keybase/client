@@ -96,7 +96,7 @@ func (e *PGPKeyImportEngine) saveLKS(ctx *Context) (err error) {
 
 	lks := e.arg.Lks
 	if lks == nil {
-		lks, err = libkb.NewLKSForEncrypt(ctx.SecretUI, e.G())
+		lks, err = libkb.NewLKSForEncrypt(ctx.SecretUI, e.me.GetUID(), e.G())
 		if err != nil {
 			return err
 		}

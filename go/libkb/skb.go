@@ -111,7 +111,10 @@ func (s *SKB) newLKSec(clientHalf []byte) *LKSec {
 	if s.newLKSecForTest != nil {
 		return s.newLKSecForTest(clientHalf)
 	}
-	return NewLKSec(clientHalf, s.G())
+	if s.uid.IsNil() {
+		panic("no uid set in skb")
+	}
+	return NewLKSec(clientHalf, s.uid, s.G())
 }
 
 func (s *SKB) ToPacket() (ret *KeybasePacket, err error) {
@@ -324,7 +327,10 @@ func (s *SKB) lksUnlockWithSecretRetriever(secretRetriever SecretRetriever) (unl
 	if err != nil {
 		return
 	}
-	lks := NewLKSecWithFullSecret(secret, s.G())
+	if s.uid.IsNil() {
+		panic("no uid set in skb")
+	}
+	lks := NewLKSecWithFullSecret(secret, s.uid, s.G())
 	return lks.Decrypt(nil, s.Priv.Data)
 }
 

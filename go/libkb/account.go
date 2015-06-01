@@ -316,12 +316,6 @@ func (a *Account) SaveState(sessionID, csrf, username string, uid keybase1.UID) 
 		return err
 	}
 
-	// Set up our SecretSyncer to work on the logged in user from here on
-	// out.
-	// (note: I really don't think this matters since RunSyncer(SecretSyncer, uid)
-	// is always called with a uid... --PC)
-	a.SecretSyncer().SetUID(uid)
-
 	return nil
 }
 

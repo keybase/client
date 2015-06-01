@@ -240,6 +240,6 @@ func createFakeUserWithPGPSibkey(tc libkb.TestContext) *FakeUser {
 // fakeLKS is used to create a lks that has the server half when
 // creating a fake user that doesn't have a device.
 func (s *SignupEngine) fakeLKS() {
-	s.lks = libkb.NewLKSec(s.tspkey.LksClientHalf(), s.G())
+	s.lks = libkb.NewLKSec(s.tspkey.LksClientHalf(), s.uid, s.G())
 	s.lks.GenerateServerHalf()
 }

@@ -37,11 +37,11 @@ func (d *DevList) SubConsumers() []libkb.UIConsumer {
 
 // Run starts the engine.
 func (d *DevList) Run(ctx *Context) error {
+	uid := d.G().GetMyUID()
 	var err error
 	var devs libkb.DeviceKeyMap
 	d.G().LoginState().Account(func(a *libkb.Account) {
-		var nilUID keybase1.UID
-		if err = libkb.RunSyncer(a.SecretSyncer(), nilUID, a.LoggedIn(), a.LocalSession()); err != nil {
+		if err = libkb.RunSyncer(a.SecretSyncer(), uid, a.LoggedIn(), a.LocalSession()); err != nil {
 			return
 		}
 		devs, err = a.SecretSyncer().ActiveDevices()

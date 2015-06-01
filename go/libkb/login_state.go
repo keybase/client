@@ -395,7 +395,7 @@ func (s *LoginState) tryPubkeyLoginHelper(lctx LoginContext, username string, ge
 		return
 	}
 
-	s.G().Log.Debug("| Public key login failed, falling back: %s", err.Error())
+	s.G().Log.Debug("| Public key login failed, falling back: %s", err)
 	err = nil
 	return
 }

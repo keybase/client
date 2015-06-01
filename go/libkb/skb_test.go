@@ -63,7 +63,7 @@ func TestDecodeSKBSequence(t *testing.T) {
 }
 
 func makeTestLKSec(t *testing.T, gc *GlobalContext) *LKSec {
-	lks := NewLKSec([]byte("client half"), gc)
+	lks := NewLKSec([]byte("client half"), "1111111111111111111111111111111111111111111111111111111111111119", gc)
 	if err := lks.GenerateServerHalf(); err != nil {
 		t.Fatalf(err.Error())
 	}
@@ -82,6 +82,7 @@ func makeTestSKB(t *testing.T, lks *LKSec) *SKB {
 	if err != nil {
 		t.Fatalf(err.Error())
 	}
+	skb.uid = lks.uid
 
 	skb.newLKSecForTest = func(_ []byte) *LKSec {
 		return lks

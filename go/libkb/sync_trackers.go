@@ -26,11 +26,10 @@ type Trackers struct {
 }
 
 type TrackerSyncer struct {
-	// Locks the wole object
+	// Locks the whole object
 	sync.RWMutex
 	Contextified
 
-	uid   keybase1.UID
 	dirty bool
 
 	trackers *Trackers
@@ -54,13 +53,9 @@ func (t Trackers) compact() (ret Trackers) {
 	return ret
 }
 
-func (t *TrackerSyncer) getUID() keybase1.UID  { return t.uid }
-func (t *TrackerSyncer) setUID(u keybase1.UID) { t.uid = u }
-
 func NewTrackerSyncer(uid keybase1.UID, g *GlobalContext) *TrackerSyncer {
 	return &TrackerSyncer{
 		Contextified: Contextified{g},
-		uid:          uid,
 		dirty:        false,
 	}
 }
@@ -69,14 +64,14 @@ func (t *TrackerSyncer) Trackers() *Trackers {
 	return t.trackers
 }
 
-func (t *TrackerSyncer) dbKey() DbKey {
-	return DbKeyUID(DB_TRACKERS, t.uid)
+func (t *TrackerSyncer) dbKey(uid keybase1.UID) DbKey {
+	return DbKeyUID(DB_TRACKERS, uid)
 }
 
-func (t *TrackerSyncer) loadFromStorage() (err error) {
+func (t *TrackerSyncer) loadFromStorage(uid keybase1.UID) (err error) {
 	var found bool
 	var tmp Trackers
-	found, err = t.G().LocalDb.GetInto(&tmp, t.dbKey())
+	found, err = t.G().LocalDb.GetInto(&tmp, t.dbKey(uid))
 
 	t.G().Log.Debug("| loadFromStorage -> found=%v, err=%s", found, ErrToOk(err))
 	if found {
@@ -89,12 +84,12 @@ func (t *TrackerSyncer) loadFromStorage() (err error) {
 	return err
 }
 
-func (t *TrackerSyncer) store() (err error) {
+func (t *TrackerSyncer) store(uid keybase1.UID) (err error) {
 	if !t.dirty {
 		return
 	}
 
-	if err = t.G().LocalDb.PutObj(t.dbKey(), nil, t.trackers); err != nil {
+	if err = t.G().LocalDb.PutObj(t.dbKey(uid), nil, t.trackers); err != nil {
 		return
 	}
 
@@ -112,12 +107,12 @@ func (t *TrackerSyncer) getLoadedVersion() int {
 
 func (t *TrackerSyncer) needsLogin() bool { return false }
 
-func (t *TrackerSyncer) syncFromServer(sr SessionReader) (err error) {
+func (t *TrackerSyncer) syncFromServer(uid keybase1.UID, sr SessionReader) (err error) {
 
 	lv := t.getLoadedVersion()
 
 	hargs := HttpArgs{
-		"uid":   UIDArg(t.uid),
+		"uid":   UIDArg(uid),
 		"limit": I{5000},
 	}
 

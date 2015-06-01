@@ -32,7 +32,7 @@ func NewKexFwd(lksClientHalf []byte, args *KexFwdArgs, gc *libkb.GlobalContext) 
 	kf := &KexFwd{KexCom: *kc, args: args}
 	kf.debugName = "KexFwd"
 	if lksClientHalf != nil {
-		kf.lks = libkb.NewLKSec(lksClientHalf, gc)
+		kf.lks = libkb.NewLKSec(lksClientHalf, kf.args.User.GetUID(), gc)
 	}
 	return kf
 }

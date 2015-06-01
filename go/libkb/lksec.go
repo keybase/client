@@ -18,12 +18,20 @@ type LKSec struct {
 	Contextified
 }
 
-func NewLKSec(clientHalf []byte, gc *GlobalContext) *LKSec {
-	return &LKSec{clientHalf: clientHalf, Contextified: NewContextified(gc)}
+func NewLKSec(clientHalf []byte, uid keybase1.UID, gc *GlobalContext) *LKSec {
+	return &LKSec{
+		clientHalf:   clientHalf,
+		uid:          uid,
+		Contextified: NewContextified(gc),
+	}
 }
 
-func NewLKSecWithFullSecret(secret []byte, gc *GlobalContext) *LKSec {
-	return &LKSec{secret: secret, Contextified: NewContextified(gc)}
+func NewLKSecWithFullSecret(secret []byte, uid keybase1.UID, gc *GlobalContext) *LKSec {
+	return &LKSec{
+		secret:       secret,
+		uid:          uid,
+		Contextified: NewContextified(gc),
+	}
 }
 
 func (s *LKSec) SetUID(u keybase1.UID) {
@@ -159,11 +167,13 @@ func (s *LKSec) apiServerHalf(lctx LoginContext, devid *DeviceID) error {
 	var err error
 	var dev DeviceKey
 	if lctx != nil {
+		s.G().Log.Debug("apiServerHalf:  have LoginContext")
 		if err := lctx.RunSecretSyncer(s.uid); err != nil {
 			return err
 		}
 		dev, err = lctx.SecretSyncer().FindDevice(devid)
 	} else {
+		s.G().Log.Debug("apiServerHalf:  no LoginContext, using loginstate")
 		s.G().LoginState().Account(func(a *Account) {
 			if err = RunSyncer(a.SecretSyncer(), s.uid, a.LoggedIn(), a.LocalSession()); err != nil {
 				return
@@ -186,11 +196,11 @@ func (s *LKSec) apiServerHalf(lctx LoginContext, devid *DeviceID) error {
 
 // GetLKSForEncrypt gets a verified passphrase stream, and returns
 // an LKS that works for encryption.
-func NewLKSForEncrypt(ui SecretUI, gc *GlobalContext) (ret *LKSec, err error) {
+func NewLKSForEncrypt(ui SecretUI, uid keybase1.UID, gc *GlobalContext) (ret *LKSec, err error) {
 	var pps PassphraseStream
 	if pps, err = gc.LoginState().GetPassphraseStream(ui); err != nil {
 		return
 	}
-	ret = NewLKSec(pps.LksClientHalf(), gc)
+	ret = NewLKSec(pps.LksClientHalf(), uid, gc)
 	return
 }
