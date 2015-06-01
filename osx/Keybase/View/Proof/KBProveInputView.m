@@ -58,53 +58,52 @@
   }];
 }
 
-- (void)setProofType:(KBRProofType)proofType {
-  _proofType = proofType;
+- (void)setServiceName:(NSString *)serviceName {
   _inputField.placeholder = nil;
   _label.attributedText = nil;
 
-  NSString *headerText = KBNameForProofType(proofType);
-  NSString *labelText = @"";
-  NSString *placeholder = @"";
-  switch (proofType) {
-    case KBRProofTypeTwitter:
-      labelText = @"What's your Twitter username?";
-      placeholder = @"@username";
-      break;
-    case KBRProofTypeGithub:
-      labelText = @"What's your Github username?";
-      placeholder = @"username";
-      break;
-    case KBRProofTypeReddit:
-      labelText = @"What's your Reddit username?";
-      placeholder = @"username";
-      break;
-    case KBRProofTypeCoinbase:
-      labelText = @"What's your Coinbase username?";
-      placeholder = @"username";
-      break;
-    case KBRProofTypeHackernews:
-      labelText = @"What's your HackerNews username?";
-      placeholder = @"username";
-      break;
-    case KBRProofTypeDns:
-      labelText = @"What domain name do you want to add?";
-      placeholder = @"yoursite.com";
-      break;
-    case KBRProofTypeGenericWebSite:
-      labelText = @"What website do you want to add?";
-      placeholder = @"yoursite.com";
-      break;
-    case KBRProofTypeKeybase:
-      labelText = @"What's your Keybase username?";
-      placeholder = @"username";
-      break;
-    case KBRProofTypeRooter:
-      labelText = @"What's your Rooter username?";
-      placeholder = @"username";
-      break;
-    case KBRProofTypeNone:
-      break;
+  NSString *headerText = KBNameForServiceName(serviceName);
+  NSString *labelText = @"What's your username?";
+  NSString *placeholder = @"@username";
+
+  if ([serviceName isEqualTo:@"twitter"]) {
+    labelText = @"What's your Twitter username?";
+    placeholder = @"@username";
+  } else if ([serviceName isEqualTo:@"github"]) {
+    labelText = @"What's your Github username?";
+    placeholder = @"username";
+
+  } else if ([serviceName isEqualTo:@"reddit"]) {
+    labelText = @"What's your Reddit username?";
+    placeholder = @"username";
+
+  } else if ([serviceName isEqualTo:@"coinbase"]) {
+    labelText = @"What's your Coinbase username?";
+    placeholder = @"username";
+
+  } else if ([serviceName isEqualTo:@"hackernews"]) {
+    labelText = @"What's your HackerNews username?";
+    placeholder = @"username";
+
+  } else if ([serviceName isEqualTo:@"dns"]) {
+    labelText = @"What domain name do you want to add?";
+    placeholder = @"yoursite.com";
+
+
+  } else if ([serviceName isEqualTo:@"http"]) {
+    labelText = @"What website name do you want to add?";
+    placeholder = @"yoursite.com";
+
+  } else if ([serviceName isEqualTo:@"https"]) {
+    labelText = @"What website name do you want to add?";
+    placeholder = @"yoursite.com";
+  } else if ([serviceName isEqualTo:@"keybase"]) {
+    labelText = @"What's your Keybase username?";
+    placeholder = @"username";
+
+  } else if ([serviceName isEqualTo:@"rooter"]) {
+    labelText = @"What's your Rooter username?";
+    placeholder = @"username";
   }
 
   [_header setText:headerText style:KBTextStyleHeaderLarge alignment:NSCenterTextAlignment lineBreakMode:NSLineBreakByTruncatingTail];

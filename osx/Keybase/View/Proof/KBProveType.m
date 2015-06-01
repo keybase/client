@@ -8,66 +8,31 @@
 
 #import "KBProveType.h"
 
-
-KBRProofType KBRProofTypeForServiceName(NSString *serviceName) {
-  if ([serviceName isEqualTo:@"twitter"]) return KBRProofTypeTwitter;
-  if ([serviceName isEqualTo:@"github"]) return KBRProofTypeGithub;
-  if ([serviceName isEqualTo:@"reddit"]) return KBRProofTypeReddit;
-  if ([serviceName isEqualTo:@"coinbase"]) return KBRProofTypeCoinbase;
-  if ([serviceName isEqualTo:@"hackernews"]) return KBRProofTypeHackernews;
-  if ([serviceName isEqualTo:@"dns"]) return KBRProofTypeDns;
-  if ([serviceName isEqualTo:@"https"]) return KBRProofTypeGenericWebSite;
-  if ([serviceName isEqualTo:@"rooter"]) return KBRProofTypeRooter;
-  return KBRProofTypeNone;
+NSString *KBImageNameForServiceName(NSString *serviceName) {
+  if ([serviceName isEqualTo:@"twitter"]) return @"Social networks-Outline-Twitter-25";
+  else if ([serviceName isEqualTo:@"github"]) return @"Social networks-Outline-Github-25";
+  else if ([serviceName isEqualTo:@"reddit"]) return @"Social networks-Outline-Reddit-25";
+  else return nil;
 }
 
-NSString *KBServiceNameForProofType(KBRProofType proofType) {
-  switch (proofType) {
-    case KBRProofTypeNone: return nil;
-    case KBRProofTypeTwitter: return @"twitter";
-    case KBRProofTypeGithub: return @"github";
-    case KBRProofTypeReddit: return @"reddit";
-    case KBRProofTypeCoinbase: return @"coinbase";
-    case KBRProofTypeHackernews: return @"hackernews";
-    case KBRProofTypeDns: return @"dns";
-    case KBRProofTypeGenericWebSite: return @"https";
-    case KBRProofTypeKeybase: return @"keybase";
-    case KBRProofTypeRooter: return @"rooter";
-  }
+NSString *KBShortNameForServiceName(NSString *serviceName) {
+  if ([serviceName isEqualTo:@"hackernews"]) return @"HN";
+  else if ([serviceName isEqualTo:@"dns"]) return @"DNS";
+  else if ([serviceName isEqualTo:@"https"]) return @"HTTPS";
+  else if ([serviceName isEqualTo:@"http"]) return @"HTTP";
+  else return KBNameForServiceName(serviceName);
 }
 
-NSString *KBImageNameForProofType(KBRProofType proofType) {
-  switch (proofType) {
-    case KBRProofTypeTwitter: return @"Social networks-Outline-Twitter-25";
-    case KBRProofTypeGithub: return @"Social networks-Outline-Github-25";
-    case KBRProofTypeReddit: return @"Social networks-Outline-Reddit-25";
-    default:
-      return nil;
-  }
+NSString *KBNameForServiceName(NSString *serviceName) {
+  if ([serviceName isEqualTo:@""]) return @"Twitter";
+  else if ([serviceName isEqualTo:@"github"]) return @"Github";
+  else if ([serviceName isEqualTo:@"reddit"]) return @"Reddit";
+  else if ([serviceName isEqualTo:@"coinbase"]) return @"Coinbase";
+  else if ([serviceName isEqualTo:@"hackernews"]) return @"HackerNews";
+  else if ([serviceName isEqualTo:@"dns"]) return @"Domain";
+  else if ([serviceName isEqualTo:@"http"]) return @"Website";
+  else if ([serviceName isEqualTo:@"https"]) return @"Website";
+  else if ([serviceName isEqualTo:@"keybase"]) return @"Keybase";
+  else if ([serviceName isEqualTo:@"rooter"]) return @"Rooter";
+  else return @"";
 }
-
-NSString *KBShortNameForProofType(KBRProofType proofType) {
-  switch (proofType) {
-    case KBRProofTypeHackernews: return @"HN";
-    case KBRProofTypeDns: return @"DNS";
-    case KBRProofTypeGenericWebSite: return @"HTTPS";
-    default:
-      return KBNameForProofType(proofType);
-  }
-}
-
-NSString *KBNameForProofType(KBRProofType proofType) {
-  switch (proofType) {
-    case KBRProofTypeNone: return nil;
-    case KBRProofTypeTwitter: return @"Twitter";
-    case KBRProofTypeGithub: return @"Github";
-    case KBRProofTypeReddit: return @"Reddit";
-    case KBRProofTypeCoinbase: return @"Coinbase";
-    case KBRProofTypeHackernews: return @"HackerNews";
-    case KBRProofTypeDns: return @"Domain";
-    case KBRProofTypeGenericWebSite: return @"Website";
-    case KBRProofTypeKeybase: return @"Keybase";
-    case KBRProofTypeRooter: return @"Rooter";
-  }
-}
-

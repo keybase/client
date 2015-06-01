@@ -10,10 +10,8 @@
 
 #import "KBRPC.h"
 
-NSString *KBServiceNameForProofType(KBRProofType proofType);
-KBRProofType KBRProofTypeForServiceName(NSString *serviceName);
+NSString *KBImageNameForServiceName(NSString *serviceName);
 
-NSString *KBImageNameForProofType(KBRProofType proofType);
-NSString *KBShortNameForProofType(KBRProofType proofType);
-NSString *KBNameForProofType(KBRProofType proofType);
+NSString *KBShortNameForServiceName(NSString *serviceName);
 
+NSString *KBNameForServiceName(NSString *serviceName);

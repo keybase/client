@@ -59,13 +59,13 @@
   self.viewLayout = [YOBorderLayout layoutWithCenter:_proofView top:@[_instructionsLabel] bottom:@[bottomView] insets:UIEdgeInsetsMake(20, 40, 20, 40) spacing:20];
 }
 
-- (NSString *)instructionsForProofType:(KBRProofType)proofType {
-  NSString *name = KBNameForProofType(proofType);
+- (NSString *)instructionsForServiceName:(NSString *)serviceName {
+  NSString *name = KBNameForServiceName(serviceName);
   return name ? NSStringWithFormat(@"Post the following to %@:", name) : @"Post the following:";
 }
 
-- (void)setProofText:(NSString *)proofText proofType:(KBRProofType)proofType {
-  [self.instructionsLabel setText:[self instructionsForProofType:proofType] style:KBTextStyleDefault];
+- (void)setProofText:(NSString *)proofText serviceName:(NSString *)serviceName {
+  [self.instructionsLabel setText:[self instructionsForServiceName:serviceName] style:KBTextStyleDefault];
 
   _proofText = proofText;
   [self.proofView setText:proofText style:KBTextStyleDefault options:KBTextOptionsMonospace alignment:NSLeftTextAlignment lineBreakMode:NSLineBreakByCharWrapping];

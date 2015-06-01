@@ -19,6 +19,6 @@ typedef void (^KBProveCompletion)(BOOL success);
 
 @interface KBProveView : KBContentView
 
-+ (void)connectWithProofType:(KBRProofType)proofType proofResult:(KBProofResult *)proofResult client:(KBRPClient *)client sender:(NSView *)sender completion:(KBProveCompletion)completion;
++ (void)connectWithServiceName:(NSString *)serviceName proofResult:(KBProofResult *)proofResult client:(KBRPClient *)client sender:(NSView *)sender completion:(KBProveCompletion)completion;
 
 @end

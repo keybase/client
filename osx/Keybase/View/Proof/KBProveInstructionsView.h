@@ -15,7 +15,7 @@
 @protocol KBProveInstructionsView
 @property KBButton *button;
 @property KBButton *cancelButton;
-- (void)setProofText:(NSString *)proofText proofType:(KBRProofType)proofType;
+- (void)setProofText:(NSString *)proofText serviceName:(NSString *)serviceName;
 @end
 
 @interface KBProveInstructionsView : KBContentView <KBProveInstructionsView>

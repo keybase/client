@@ -15,15 +15,14 @@
 #import "KBProveRooterInstructions.h"
 
 @interface KBProveView ()
-@property NSString *serviceUsername;
-@property (nonatomic) KBRProofType proofType;
+@property (nonatomic) NSString *serviceName;
 @property (copy) KBProveCompletion completion;
 
 @property KBProveInputView *inputView;
 @property YOView<KBProveInstructionsView> *instructionsView;
 
+@property NSString *serviceUsername;
 @property NSString *sigId;
-@property NSString *username;
 @end
 
 @implementation KBProveView
@@ -46,10 +45,10 @@
   }];
 }
 
-+ (void)connectWithProofType:(KBRProofType)proofType proofResult:(KBProofResult *)proofResult client:(KBRPClient *)client sender:(NSView *)sender completion:(KBProveCompletion)completion {
++ (void)connectWithServiceName:(NSString *)serviceName proofResult:(KBProofResult *)proofResult client:(KBRPClient *)client sender:(NSView *)sender completion:(KBProveCompletion)completion {
   KBProveView *proveView = [[KBProveView alloc] init];
   proveView.client = client;
-  [proveView setProofType:proofType proofResult:proofResult];
+  [proveView setServiceName:serviceName proofResult:proofResult];
 
   NSWindow *window = [sender.window kb_addChildWindowForView:proveView rect:CGRectMake(0, 0, 620, 420) position:KBWindowPositionCenter title:@"Keybase" fixed:YES makeKey:YES];
 
@@ -61,24 +60,23 @@
   proveView.inputView.cancelButton.targetBlock = ^{ close(NO); };
 }
 
-- (YOView<KBProveInstructionsView> *)instructionsViewForProofType:(KBRProofType)proofType {
-  switch (proofType) {
-    case KBRProofTypeRooter:
-      return [[KBProveRooterInstructions alloc] init];
-    default:
-      return [[KBProveInstructionsView alloc] init];
+- (YOView<KBProveInstructionsView> *)instructionsViewForServiceName:(NSString *)serviceName {
+  if ([serviceName isEqualTo:@"rooter"]) {
+    return [[KBProveRooterInstructions alloc] init];
+  } else {
+    return [[KBProveInstructionsView alloc] init];
   }
 }
 
-- (void)setProofType:(KBRProofType)proofType proofResult:(KBProofResult *)proofResult {
-  _proofType = proofType;
-  _username = proofResult.proof.value;
+- (void)setServiceName:(NSString *)serviceName proofResult:(KBProofResult *)proofResult {
+  _serviceName = serviceName;
+  _serviceUsername = proofResult.proof.value;
   _sigId = proofResult.proof.sigID;
 
-  [_inputView setProofType:proofType];
+  [_inputView setServiceName:serviceName];
 
-  if (proofResult.proof.value) {
-    _inputView.inputField.text = proofResult.proof.value;
+  if (_serviceUsername) {
+    _inputView.inputField.text = _serviceUsername;
   }
 
   [self setNeedsLayout];
@@ -92,9 +90,9 @@
 
 - (void)openInstructionsWithProofText:(NSString *)proofText {
   [_instructionsView removeFromSuperview];
-  _instructionsView = [self instructionsViewForProofType:_proofType];
+  _instructionsView = [self instructionsViewForServiceName:_serviceName];
   GHWeakSelf gself = self;
-  [_instructionsView setProofText:proofText proofType:_proofType];
+  [_instructionsView setProofText:proofText serviceName:_serviceName];
   _instructionsView.button.targetBlock = ^{ [gself continueProof]; };
   _instructionsView.cancelButton.targetBlock = ^{ [gself cancel]; };
   [self addSubview:_instructionsView];
@@ -108,21 +106,18 @@
 
 - (void)startProof {
   NSString *serviceUsername = [_inputView.inputField.text gh_strip];
-  _serviceUsername = serviceUsername;
 
-  if ([NSString gh_isBlank:_serviceUsername]) {
+  if ([NSString gh_isBlank:serviceUsername]) {
     // TODO Become first responder
     [AppDelegate setError:KBErrorAlert(@"You need to choose a username.") sender:_inputView];
     return;
   }
 
-  if (_username && [_serviceUsername isEqualTo:_username]) {
+  if (_serviceUsername && [_serviceUsername isEqualTo:serviceUsername]) {
     [self continueProof];
     return;
   }
-
-  NSString *service = KBServiceNameForProofType(self.proofType);
-  NSAssert(service, @"No service");
+  _serviceUsername = serviceUsername;
 
   GHWeakSelf gself = self;
 
@@ -168,7 +163,7 @@
   }];
 
   [KBActivity setProgressEnabled:YES sender:self];
-  [request startProofWithSessionID:request.sessionId service:service username:_serviceUsername force:NO promptPosted:NO completion:^(NSError *error, KBRStartProofResult *startProofResult) {
+  [request startProofWithSessionID:request.sessionId service:_serviceName username:_serviceUsername force:NO promptPosted:NO completion:^(NSError *error, KBRStartProofResult *startProofResult) {
     [KBActivity setProgressEnabled:NO sender:self];
     if (error) {
       [KBActivity setError:error sender:self];

@@ -92,9 +92,9 @@
   [self setNeedsLayout];
 }
 
-- (void)connectWithProofType:(KBRProofType)proofType proofResult:(KBProofResult *)proofResult {
+- (void)connectWithServiceName:(NSString *)serviceName proofResult:(KBProofResult *)proofResult {
   GHWeakSelf gself = self;
-  [KBProveView connectWithProofType:proofType proofResult:proofResult client:self.client sender:self completion:^(BOOL success) {
+  [KBProveView connectWithServiceName:serviceName proofResult:proofResult client:self.client sender:self completion:^(BOOL success) {
     [gself reload]; // Always reload even if canceled
   }];
 }
@@ -140,10 +140,8 @@
     BOOL isSelf = [AppDelegate.appView.user.username isEqual:self.username];
     [gself.userInfoView addProofs:requestParams.id.proofs editable:isSelf targetBlock:^(KBProofLabel *proofLabel) {
       if (proofLabel.proofResult.result.proofResult.status != 1) {
-        KBRProofType proofType = proofLabel.proofResult.proof.proofType;
-        // TODO Remove when we fix #463
-        if (proofType == KBRProofTypeNone) proofType = KBRProofTypeForServiceName(proofLabel.proofResult.proof.key);
-        [self connectWithProofType:proofType proofResult:proofLabel.proofResult];
+        NSString *serviceName = proofLabel.proofResult.proof.key;
+        [self connectWithServiceName:serviceName proofResult:proofLabel.proofResult];
       } else if (proofLabel.proofResult.result.hint.humanUrl) {
         [AppDelegate.sharedDelegate openURLString:proofLabel.proofResult.result.hint.humanUrl sender:self];
       }
@@ -301,34 +299,13 @@
       }];
     }
 
-    for (NSNumber *proofTypeNumber in [gself.userInfoView missingProofTypes]) {
-      KBRProofType proofType = [proofTypeNumber integerValue];
-
-      switch (proofType) {
-        case KBRProofTypeDns: {
-          [gself.userInfoView addHeader:@" " text:@"Add Domain" targetBlock:^{ [gself connectWithProofType:proofType proofResult:nil]; }];
-          break;
-        }
-        case KBRProofTypeGenericWebSite: {
-          [gself.userInfoView addHeader:@" " text:@"Add Website" targetBlock:^{ [gself connectWithProofType:proofType proofResult:nil]; }];
-          break;
-        }
-        case KBRProofTypeKeybase:
-        case KBRProofTypeTwitter:
-        case KBRProofTypeGithub:
-        case KBRProofTypeReddit:
-        case KBRProofTypeCoinbase:
-        case KBRProofTypeHackernews:
-        {
-          [gself.userInfoView addHeader:@" " text:NSStringWithFormat(@"Connect to %@", KBNameForProofType(proofType)) targetBlock:^{ [gself connectWithProofType:proofType proofResult:nil]; }];
-          break;
-        }
-        case KBRProofTypeRooter: {
-          [gself.userInfoView addHeader:@" " text:NSStringWithFormat(@"Connect to %@", KBNameForProofType(proofType)) targetBlock:^{ [gself connectWithProofType:proofType proofResult:nil]; }];
-          break;
-        }
-        case KBRProofTypeNone:
-          break;
+    for (NSString *serviceName in [gself.userInfoView missingServices]) {
+      if ([serviceName isEqualTo:@"dns"]) {
+        [gself.userInfoView addHeader:@" " text:@"Add Domain" targetBlock:^{ [gself connectWithServiceName:serviceName proofResult:nil]; }];
+      } else if ([serviceName isEqualTo:@"http"]) {
+        [gself.userInfoView addHeader:@" " text:@"Add Website" targetBlock:^{ [gself connectWithServiceName:serviceName proofResult:nil]; }];
+      } else {
+        [gself.userInfoView addHeader:@" " text:NSStringWithFormat(@"Connect to %@", KBNameForServiceName(serviceName)) targetBlock:^{ [gself connectWithServiceName:serviceName proofResult:nil]; }];
       }
     }
     [self setNeedsLayout];

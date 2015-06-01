@@ -43,8 +43,8 @@
   self.viewLayout = [YOBorderLayout layoutWithCenter:_proofView top:@[_instructionsLabel] bottom:@[buttonsView] insets:UIEdgeInsetsMake(20, 40, 20, 40) spacing:20];
 }
 
-- (void)setProofText:(NSString *)proofText proofType:(KBRProofType)proofType {
-  NSAssert(proofType == KBRProofTypeRooter, @"Wrong proofType");
+- (void)setProofText:(NSString *)proofText serviceName:(NSString *)serviceName {
+  NSAssert([serviceName isEqualTo:@"rooter"], @"Wrong service");
 
   [self.instructionsLabel setText:@"Open the link" style:KBTextStyleDefault];
 

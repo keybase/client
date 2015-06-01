@@ -12,7 +12,7 @@
 #import "KBRPC.h"
 
 @interface KBProveInputView : YOView
-@property (nonatomic) KBRProofType proofType;
+@property (nonatomic) NSString *serviceName;
 @property KBTextField *inputField;
 @property KBButton *button;
 @property KBButton *cancelButton;

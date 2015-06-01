@@ -64,19 +64,19 @@
   return updated;
 }
 
-- (NSArray *)missingProofTypes {
-  NSMutableArray *proofTypes = [@[@(KBRProofTypeTwitter), @(KBRProofTypeGithub), @(KBRProofTypeReddit), @(KBRProofTypeCoinbase), @(KBRProofTypeHackernews), @(KBRProofTypeRooter)] mutableCopy];
+- (NSArray *)missingServices {
+  NSMutableArray *services = [NSMutableArray arrayWithObjects:@"twitter", @"github", @"reddit", @"coinbase", @"hackernews", @"rooter", nil];
 
   for (KBUserInfoLabels *label in _labels) {
     for (KBProofResult *proofResult in label.proofResults) {
-      [proofTypes removeObject:@([[proofResult proof] proofType])];
+      [services removeObject:proofResult.proof.key];
     }
   }
 
   // We can always add more of these types
-  [proofTypes addObjectsFromArray:@[@(KBRProofTypeGenericWebSite), @(KBRProofTypeDns)]];
+  [services addObjectsFromArray:@[@"https", @"dns"]];
 
-  return proofTypes;
+  return services;
 }
 
 - (void)addHeader:(NSString *)header text:(NSString *)text targetBlock:(dispatch_block_t)targetBlock {
@@ -105,13 +105,13 @@
 - (void)addProofs:(NSArray *)proofs editable:(BOOL)editable targetBlock:(void (^)(KBProofLabel *proofLabel))targetBlock {
   GHODictionary *results = [GHODictionary dictionary];
   for (KBRIdentifyRow *row in proofs) {
-    [results addObject:[KBProofResult proofResultForProof:row.proof result:nil] forKey:@(row.proof.proofType)];
+    [results addObject:[KBProofResult proofResultForProof:row.proof result:nil] forKey:row.proof.key];
   }
 
   for (id key in results) {
     NSArray *proofResults = results[key];
     KBUserInfoLabels *label = [[KBUserInfoLabels alloc] init];
-    [label addProofResults:proofResults proofType:[key integerValue] editable:editable targetBlock:targetBlock];
+    [label addProofResults:proofResults serviceName:key editable:editable targetBlock:targetBlock];
     [self addLabels:@[label]];
   }
 

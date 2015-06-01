@@ -26,6 +26,6 @@
 
 - (void)addHeader:(NSString *)header text:(NSString *)text targetBlock:(dispatch_block_t)targetBlock;
 
-- (NSArray *)missingProofTypes;
+- (NSArray */*of NSString*/)missingServices;
 
 @end
