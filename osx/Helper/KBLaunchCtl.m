@@ -66,7 +66,7 @@
     for (NSString *line in [output componentsSeparatedByCharactersInSet:[NSCharacterSet newlineCharacterSet]]) {
       NSArray *info = [line componentsSeparatedByCharactersInSet:NSCharacterSet.whitespaceCharacterSet];
       if ([info count] != 3) continue;
-      if ([info[2] hasPrefix:label]) {
+      if ([info[2] isEqualTo:label]) {
         NSNumber *pid = KBNumberFromString(info[0]);
         NSNumber *lastExitStatus = KBNumberFromString(info[1]);
         completion([KBServiceStatus serviceStatusWithPid:pid lastExitStatus:lastExitStatus label:label]);
