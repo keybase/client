@@ -33,7 +33,7 @@ type CommandLine interface {
 	GetAPIDump() (bool, bool)
 	GetUserCacheSize() (int, bool)
 	GetProofCacheSize() (int, bool)
-	GetMerkleKeyFingerprints() []string
+	GetMerkleKIDs() []string
 	GetPinentry() string
 	GetGpg() string
 	GetGpgOptions() []string
@@ -100,7 +100,7 @@ type ConfigReader interface {
 	GetProofCacheLongDur() (time.Duration, bool)
 	GetProofCacheMediumDur() (time.Duration, bool)
 	GetProofCacheShortDur() (time.Duration, bool)
-	GetMerkleKeyFingerprints() []string
+	GetMerkleKIDs() []string
 	GetPinentry() string
 	GetNoPinentry() (bool, bool)
 	GetGpg() string

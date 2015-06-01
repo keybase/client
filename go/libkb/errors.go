@@ -942,3 +942,13 @@ type ChainLinkKIDMismatchError struct {
 func (e ChainLinkKIDMismatchError) Error() string {
 	return e.Msg
 }
+
+//=============================================================================
+
+type UnknownSpecialKIDError struct {
+	k KID
+}
+
+func (u UnknownSpecialKIDError) Error() string {
+	return fmt.Sprintf("Unknown special KID: %s", u.k)
+}

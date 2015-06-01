@@ -92,10 +92,10 @@ func (p PgpFingerprint) ToDisplayString(verbose bool) string {
 	return p.ToKeyId()
 }
 
-func (p PgpFingerprint) LoadFromLocalDb() (*PgpKeyBundle, error) {
+func (k KID) LoadPGPKeyFromLocalDB() (*PgpKeyBundle, error) {
 	dbobj, err := G.LocalDb.Get(DbKey{
 		Typ: DB_PGP_KEY,
-		Key: p.String(),
+		Key: k.String(),
 	})
 	if err != nil {
 		return nil, err
@@ -112,7 +112,7 @@ func (k *PgpKeyBundle) StoreToLocalDb() error {
 		return err
 	}
 	val := jsonw.NewString(s)
-	G.Log.Debug("| Storing Key (fp=%s) to Local DB", k.GetFingerprint())
+	G.Log.Debug("| Storing Key (fp=%s, kid=%s) to Local DB", k.GetFingerprint(), k.GetKid())
 	return G.LocalDb.Put(DbKey{Typ: DB_PGP_KEY, Key: k.GetFingerprint().String()}, []DbKey{}, val)
 }
 

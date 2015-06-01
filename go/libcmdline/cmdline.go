@@ -122,8 +122,8 @@ func (p CommandLine) GetGpgDisabled() (bool, bool) {
 	return p.GetBool("gpg-disabled", true)
 }
 
-func (p CommandLine) GetMerkleKeyFingerprints() []string {
-	s := p.GetGString("merkle-key-fingerprints")
+func (p CommandLine) GetMerkleKIDs() []string {
+	s := p.GetGString("merkle-kids")
 	if len(s) != 0 {
 		return strings.Split(s, ":")
 	}

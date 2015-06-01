@@ -430,7 +430,7 @@ func (f JsonConfigFile) GetProofCacheShortDur() (time.Duration, bool) {
 	return f.GetDurationAtPath("cache.short_duration.proofs")
 }
 
-func (f JsonConfigFile) GetMerkleKeyFingerprints() []string {
+func (f JsonConfigFile) GetMerkleKIDs() []string {
 	if f.jw == nil {
 		return nil
 	}

@@ -2,56 +2,71 @@ package libkb
 
 import ()
 
+// SpecialKeyRing holds blessed keys, like the one Keybase uses to sign
+// its Merkle Root.
 type SpecialKeyRing struct {
 
 	// Cache of keys that are used in verifying the root
-	keys map[PgpFingerprint](*PgpKeyBundle)
+	keys map[KIDMapKey]GenericKey
 
 	// The only ones allowed for this purpose
-	validFingerprints []PgpFingerprint
+	validKIDs map[KIDMapKey]bool
 }
 
-func NewSpecialKeyRing(v []PgpFingerprint) *SpecialKeyRing {
-	return &SpecialKeyRing{
-		keys:              make(map[PgpFingerprint](*PgpKeyBundle)),
-		validFingerprints: v,
+// NewSpecialKeyRing allocates a new SpecialKeyRing with the given
+// vector of KIDs. For NaCl keys, it will actually import those
+// keys into the Keyring.
+func NewSpecialKeyRing(v []KID) *SpecialKeyRing {
+	ret := &SpecialKeyRing{
+		keys:      make(map[KIDMapKey]GenericKey),
+		validKIDs: make(map[KIDMapKey]bool),
 	}
-}
-
-func (sk *SpecialKeyRing) assertValid(fp PgpFingerprint) error {
-	for _, vfp := range sk.validFingerprints {
-		if vfp.Eq(fp) {
-			return nil
+	for _, kid := range v {
+		mapKey := kid.ToMapKey()
+		if key, _ := ImportKeypairFromKID(kid); key != nil {
+			ret.keys[mapKey] = key
 		}
+		ret.validKIDs[mapKey] = true
 	}
-	return WrongKeyError{&sk.validFingerprints[0], &fp}
+	return ret
+
 }
 
-func (sk *SpecialKeyRing) Load(fp PgpFingerprint) (*PgpKeyBundle, error) {
+// IsValidKID returns if this KID is valid (blessed) according to this Keyring
+func (sk *SpecialKeyRing) IsValidKID(kid KID) bool {
+	val, found := sk.validKIDs[kid.ToMapKey()]
+	return val && found
+}
 
-	G.Log.Debug("+ SpecialKeyRing.Load(%s)", fp)
+// Load takes a blessed KID and returns, if possible, the GenericKey
+// associated with that KID, for signature verification. If the key isn't
+// found in memory or on disk (in the case of PGP), then it will attempt
+// to fetch the key from the keybase server.
+func (sk *SpecialKeyRing) Load(kid KID) (GenericKey, error) {
 
-	if err := sk.assertValid(fp); err != nil {
+	G.Log.Debug("+ SpecialKeyRing.Load(%s)", kid)
+
+	if !sk.IsValidKID(kid) {
+		err := UnknownSpecialKIDError{kid}
 		return nil, err
 	}
 
-	key, found := sk.keys[fp]
-	if found {
-		G.Log.Debug("- SpecialKeyRing.Load(%s) -> hit inmem cache", fp)
+	if key, found := sk.keys[kid.ToMapKey()]; found {
+		G.Log.Debug("- SpecialKeyRing.Load(%s) -> hit inmem cache", kid)
 		return key, nil
 	}
 
-	key, err := fp.LoadFromLocalDb()
+	key, err := kid.LoadPGPKeyFromLocalDB()
 
 	if err != nil || key == nil {
 
-		G.Log.Debug("| Load(%s) going to network", fp)
+		G.Log.Debug("| Load(%s) going to network", kid)
 		var res *ApiRes
 		res, err = G.API.Get(ApiArg{
 			Endpoint:    "key/special",
 			NeedSession: false,
 			Args: HttpArgs{
-				"fingerprint": S{fp.String()},
+				"kid": S{kid.String()},
 			},
 		})
 
@@ -64,14 +79,14 @@ func (sk *SpecialKeyRing) Load(fp PgpFingerprint) (*PgpKeyBundle, error) {
 			}
 		}
 	} else {
-		G.Log.Debug("| Load(%s) hit DB-backed cache", fp)
+		G.Log.Debug("| Load(%s) hit DB-backed cache", kid)
 	}
 
 	if err == nil && key != nil {
-		sk.keys[fp] = key
+		sk.keys[kid.ToMapKey()] = key
 	}
 
-	G.Log.Debug("- SpecialKeyRing.Load(%s)", fp)
+	G.Log.Debug("- SpecialKeyRing.Load(%s)", kid)
 
 	return key, err
 }

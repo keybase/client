@@ -61,7 +61,7 @@ type MerkleClient struct {
 type MerkleRoot struct {
 	seqno             Seqno
 	pgpFingerprint    PgpFingerprint
-	sig               string
+	sigs              *jsonw.Wrapper
 	payloadJsonString string
 	payloadJson       *jsonw.Wrapper
 	rootHash          NodeHash
@@ -140,7 +140,7 @@ func GetNodeHashVoid(w *jsonw.Wrapper, nhp *NodeHash, errp *error) {
 
 func NewMerkleClient(g *GlobalContext) *MerkleClient {
 	return &MerkleClient{
-		keyring:  NewSpecialKeyRing(g.Env.GetMerkleKeyFingerprints()),
+		keyring:  NewSpecialKeyRing(g.Env.GetMerkleKIDs()),
 		verified: make(map[Seqno]bool),
 		lastRoot: nil,
 	}
@@ -191,29 +191,29 @@ func (mr *MerkleRoot) Store() error {
 
 func (mr *MerkleRoot) ToJson() (jw *jsonw.Wrapper) {
 	ret := jsonw.NewDictionary()
-	ret.SetKey("sig", jsonw.NewString(mr.sig))
+	ret.SetKey("sigs", mr.sigs)
 	ret.SetKey("payload_json", jsonw.NewString(mr.payloadJsonString))
 	return ret
 }
 
 func NewMerkleRootFromJson(jw *jsonw.Wrapper) (ret *MerkleRoot, err error) {
 	var seqno int64
-	var sig string
-	var payload_json_str string
+	var sigs *jsonw.Wrapper
+	var payloadJsonString string
 	var pj *jsonw.Wrapper
 	var fp PgpFingerprint
 	var rh, lurh NodeHash
 	var ctime int64
 
-	jw.AtKey("sig").GetStringVoid(&sig, &err)
-	jw.AtKey("payload_json").GetStringVoid(&payload_json_str, &err)
-
-	if err != nil {
+	if sigs, err = jw.AtKey("sigs").ToDictionary(); err != nil {
 		return
 	}
 
-	pj, err = jsonw.Unmarshal([]byte(payload_json_str))
-	if err != nil {
+	if payloadJsonString, err = jw.AtKey("payload_json").GetString(); err != nil {
+		return
+	}
+
+	if pj, err = jsonw.Unmarshal([]byte(payloadJsonString)); err != nil {
 		return
 	}
 
@@ -230,8 +230,8 @@ func NewMerkleRootFromJson(jw *jsonw.Wrapper) (ret *MerkleRoot, err error) {
 	ret = &MerkleRoot{
 		seqno:             Seqno(seqno),
 		pgpFingerprint:    fp,
-		sig:               sig,
-		payloadJsonString: payload_json_str,
+		sigs:              sigs,
+		payloadJsonString: payloadJsonString,
 		payloadJson:       pj,
 		rootHash:          rh,
 		legacyUidRootHash: lurh,
@@ -348,6 +348,21 @@ func (mc *MerkleClient) LastSeqno() Seqno {
 	return -1
 }
 
+func (mc *MerkleClient) findValidKIDAndSig(root *MerkleRoot) (KID, string, error) {
+	if v, err := root.sigs.Keys(); err == nil {
+		for _, s := range v {
+			if kid, err := ImportKID(s); err != nil {
+				continue
+			} else if !mc.keyring.IsValidKID(kid) {
+				continue
+			} else if sig, err := root.sigs.AtKey(s).AtKey("sig").GetString(); err == nil {
+				return kid, sig, nil
+			}
+		}
+	}
+	return nil, "", MerkleClientError{"no known verifying key"}
+}
+
 func (mc *MerkleClient) VerifyRoot(root *MerkleRoot) error {
 
 	// First make sure it's not a rollback
@@ -368,18 +383,25 @@ func (mc *MerkleClient) VerifyRoot(root *MerkleRoot) error {
 		return nil
 	}
 
-	key, err := mc.keyring.Load(root.pgpFingerprint)
+	kid, sig, err := mc.findValidKIDAndSig(root)
+	if err != nil {
+		return err
+	}
+	G.Log.Debug("+ Merkle: using KID=%s for verifying server sig", kid)
+
+	key, err := mc.keyring.Load(kid)
 	if err != nil {
 		return err
 	}
 
+	G.Log.Debug("- Merkle: server sig verified")
+
 	if key == nil {
-		return fmt.Errorf("Failed to find a Merkle signing key for %s",
-			root.pgpFingerprint.String())
+		return MerkleClientError{"no known verifying key"}
 	}
 
 	// Actually run the PGP verification over the signature
-	_, err = key.VerifyString(root.sig, []byte(root.payloadJsonString))
+	_, err = key.VerifyString(sig, []byte(root.payloadJsonString))
 	if err != nil {
 		return err
 	}

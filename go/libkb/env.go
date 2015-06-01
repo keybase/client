@@ -29,7 +29,7 @@ func (n NullConfiguration) GetProofCacheSize() (int, bool)                { retu
 func (n NullConfiguration) GetProofCacheLongDur() (time.Duration, bool)   { return 0, false }
 func (n NullConfiguration) GetProofCacheMediumDur() (time.Duration, bool) { return 0, false }
 func (n NullConfiguration) GetProofCacheShortDur() (time.Duration, bool)  { return 0, false }
-func (n NullConfiguration) GetMerkleKeyFingerprints() []string            { return nil }
+func (n NullConfiguration) GetMerkleKIDs() []string                       { return nil }
 func (n NullConfiguration) GetPinentry() string                           { return "" }
 func (n NullConfiguration) GetUID() (ret keybase1.UID)                    { return }
 func (n NullConfiguration) GetGpg() string                                { return "" }
@@ -548,26 +548,26 @@ func (e *Env) GetStringList(list ...(func() []string)) []string {
 	return []string{}
 }
 
-func (e *Env) GetMerkleKeyFingerprints() []PgpFingerprint {
+func (e *Env) GetMerkleKIDs() []KID {
 	slist := e.GetStringList(
-		func() []string { return e.cmd.GetMerkleKeyFingerprints() },
-		func() []string { return e.getEnvPath("KEYBASE_MERKLE_KEY_FINGERPRINTS") },
-		func() []string { return e.config.GetMerkleKeyFingerprints() },
+		func() []string { return e.cmd.GetMerkleKIDs() },
+		func() []string { return e.getEnvPath("KEYBASE_MERKLE_KIDS") },
+		func() []string { return e.config.GetMerkleKIDs() },
 		func() []string {
-			return []string{MERKLE_TEST_KEY, MERKLE_PROD_KEY}
+			return append(MerkleProdKIDs, MerkleTestKIDs...)
 		},
 	)
 
 	if slist == nil {
 		return nil
 	}
-	ret := make([]PgpFingerprint, 0, len(slist))
+	ret := make([]KID, 0, len(slist))
 	for _, s := range slist {
-		fp, err := PgpFingerprintFromHex(s)
+		kid, err := ImportKID(s)
 		if err != nil {
-			G.Log.Warning("Skipping bad Merkle fingerprint: %s", s)
+			G.Log.Warning("Skipping bad Merkle KID: %s", s)
 		} else {
-			ret = append(ret, *fp)
+			ret = append(ret, kid)
 		}
 	}
 
