@@ -15,7 +15,9 @@ defined_types = []
 enums = []
 aliases = {}
 
-def classname(type)
+def classname(type, aliases)
+  type = aliases[type] if aliases[type]
+
   case type
   when "int" then "NSNumber"
   when "string" then "NSString"
@@ -44,9 +46,9 @@ def objc_for_type(type, enums, aliases, space)
     if type.start_with?("void")
       [type, false]
     elsif enums.include?(type)
-      [classname(type), false]
+      [classname(type, {}), false]
     else
-      [classname("#{type} *"), true]
+      [classname("#{type} *", {}), true]
     end
   end
 
@@ -95,9 +97,9 @@ def value_for_type(type, name, enums, aliases)
     type_for_array = type["items"]
     type_for_array = aliases[type_for_array] if aliases[type_for_array]
     if is_native_type(type_for_array)
-      return "KBRArray(#{varname}, #{classname(type_for_array)}.class)"
+      return "KBRArray(#{varname}, #{classname(type_for_array, aliases)}.class)"
     else
-      return "[MTLJSONAdapter modelsOfClass:#{classname(type_for_array)}.class fromJSONArray:#{varname} error:nil]"
+      return "[MTLJSONAdapter modelsOfClass:#{classname(type_for_array, aliases)}.class fromJSONArray:#{varname} error:nil]"
     end
   end
 
@@ -115,7 +117,7 @@ def value_for_type(type, name, enums, aliases)
   when "array" then varname
   when "bytes" then varname
   else
-    "[MTLJSONAdapter modelOfClass:#{classname(type)}.class fromJSONDictionary:#{varname} error:nil]"
+    "[MTLJSONAdapter modelOfClass:#{classname(type, aliases)}.class fromJSONDictionary:#{varname} error:nil]"
   end
 end
 
@@ -151,7 +153,7 @@ paths.each do |path|
     if type["type"] == "enum"
       enum_name = type["name"]
       enums << enum_name
-      enum_name_objc = "#{classname(enum_name)}"
+      enum_name_objc = "#{classname(enum_name, aliases)}"
       header << "typedef NS_ENUM (NSInteger, #{enum_name_objc}) {"
       type["symbols"].each do |symbol|
         sym, _, sym_val = symbol.rpartition('_')
@@ -168,7 +170,7 @@ paths.each do |path|
       aliases[type["name"]] = type["typedef"]
     elsif type["type"] == "record"
       transformers = []
-      header << "@interface #{classname(type["name"])} : KBRObject"
+      header << "@interface #{classname(type["name"], aliases)} : KBRObject"
       type["fields"].each do |field|
         if field["type"].kind_of?(Hash)
           subtype = field["type"]
@@ -177,8 +179,8 @@ paths.each do |path|
             if is_native_type(subtype["items"])
               header << "@property NSArray *#{field["name"]}; /*of #{subtype["items"]}*/"
             else
-              header << "@property NSArray *#{field["name"]}; /*of #{classname(subtype["items"])}*/"
-              transformers << "+ (NSValueTransformer *)#{field["name"]}JSONTransformer { return [MTLJSONAdapter arrayTransformerWithModelClass:#{classname(subtype["items"])}.class]; }"
+              header << "@property NSArray *#{field["name"]}; /*of #{classname(subtype["items"], aliases)}*/"
+              transformers << "+ (NSValueTransformer *)#{field["name"]}JSONTransformer { return [MTLJSONAdapter arrayTransformerWithModelClass:#{classname(subtype["items"], aliases)}.class]; }"
             end
           end
         else
@@ -186,7 +188,7 @@ paths.each do |path|
         end
       end
       header << "@end\n"
-      impl << "@implementation #{classname(type["name"])}"
+      impl << "@implementation #{classname(type["name"], aliases)}"
       impl += transformers if transformers
       impl << "@end\n"
     else
@@ -195,8 +197,8 @@ paths.each do |path|
   end
 
 
-  header << "@interface #{classname(protocol.camelize)}Request : KBRRequest"
-  impl << "@implementation #{classname(protocol.camelize)}Request\n"
+  header << "@interface #{classname(protocol.camelize, aliases)}Request : KBRRequest"
+  impl << "@implementation #{classname(protocol.camelize, aliases)}Request\n"
 
   h["messages"].each do |method, mparam|
     request_params = mparam["request"].dup
@@ -236,11 +238,11 @@ paths.each do |path|
 
     callback = if response_type == "null" then # No result
       "completion(error);"
-    elsif is_native_type(response_type) # Native type result
+    elsif is_primitive_type(response_type) # Primitive type result
       "completion(error, 0);" # TODO
     elsif response_type.kind_of?(Hash) # Array result
       item_type = response_type["items"]
-      item_clsname = classname(item_type)
+      item_clsname = classname(item_type, aliases)
       "if (error) {
         completion(error, nil);
         return;
@@ -248,7 +250,7 @@ paths.each do |path|
       NSArray *results = retval ? [MTLJSONAdapter modelsOfClass:#{item_clsname}.class fromJSONArray:retval error:&error] : nil;
       completion(error, results);"
     else # Dictionary result
-      clsname = classname(response_type)
+      clsname = classname(response_type, aliases)
       "if (error) {
         completion(error, nil);
         return;

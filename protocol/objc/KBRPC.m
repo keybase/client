@@ -156,7 +156,7 @@
         completion(error, nil);
         return;
       }
-      KBRBytes32 *result = retval ? [MTLJSONAdapter modelOfClass:KBRBytes32.class fromJSONDictionary:retval error:&error] : nil;
+      NSData *result = retval ? [MTLJSONAdapter modelOfClass:NSData.class fromJSONDictionary:retval error:&error] : nil;
       completion(error, result);
   }];
 }
@@ -234,7 +234,12 @@
 - (void)loginSelectWithSessionID:(NSInteger)sessionID currentUser:(NSString *)currentUser otherUsers:(NSArray *)otherUsers completion:(void (^)(NSError *error, NSString *str))completion {
   NSArray *params = @[@{@"sessionID": @(sessionID), @"currentUser": KBRValue(currentUser), @"otherUsers": KBRValue(otherUsers)}];
   [self.client sendRequestWithMethod:@"keybase.1.doctorUi.loginSelect" params:params sessionId:self.sessionId completion:^(NSError *error, id retval) {
-    completion(error, 0);
+    if (error) {
+        completion(error, nil);
+        return;
+      }
+      NSString *result = retval ? [MTLJSONAdapter modelOfClass:NSString.class fromJSONDictionary:retval error:&error] : nil;
+      completion(error, result);
   }];
 }
 
@@ -284,7 +289,12 @@
 - (void)selectKeyWithSessionID:(NSInteger)sessionID keys:(NSArray *)keys completion:(void (^)(NSError *error, NSString *str))completion {
   NSArray *params = @[@{@"sessionID": @(sessionID), @"keys": KBRValue(keys)}];
   [self.client sendRequestWithMethod:@"keybase.1.gpgUi.selectKey" params:params sessionId:self.sessionId completion:^(NSError *error, id retval) {
-    completion(error, 0);
+    if (error) {
+        completion(error, nil);
+        return;
+      }
+      NSString *result = retval ? [MTLJSONAdapter modelOfClass:NSString.class fromJSONDictionary:retval error:&error] : nil;
+      completion(error, result);
   }];
 }
 
@@ -455,7 +465,12 @@
 - (void)promptDeviceNameWithSessionID:(NSInteger)sessionID completion:(void (^)(NSError *error, NSString *str))completion {
   NSArray *params = @[@{@"sessionID": @(sessionID)}];
   [self.client sendRequestWithMethod:@"keybase.1.locksmithUi.promptDeviceName" params:params sessionId:self.sessionId completion:^(NSError *error, id retval) {
-    completion(error, 0);
+    if (error) {
+        completion(error, nil);
+        return;
+      }
+      NSString *result = retval ? [MTLJSONAdapter modelOfClass:NSString.class fromJSONDictionary:retval error:&error] : nil;
+      completion(error, result);
   }];
 }
 
@@ -578,7 +593,12 @@
 - (void)getEmailOrUsernameWithSessionID:(NSInteger)sessionID completion:(void (^)(NSError *error, NSString *str))completion {
   NSArray *params = @[@{@"sessionID": @(sessionID)}];
   [self.client sendRequestWithMethod:@"keybase.1.loginUi.getEmailOrUsername" params:params sessionId:self.sessionId completion:^(NSError *error, id retval) {
-    completion(error, 0);
+    if (error) {
+        completion(error, nil);
+        return;
+      }
+      NSString *result = retval ? [MTLJSONAdapter modelOfClass:NSString.class fromJSONDictionary:retval error:&error] : nil;
+      completion(error, result);
   }];
 }
 
@@ -755,7 +775,12 @@
 - (void)promptUsernameWithSessionID:(NSInteger)sessionID prompt:(NSString *)prompt prevError:(KBRStatus *)prevError completion:(void (^)(NSError *error, NSString *str))completion {
   NSArray *params = @[@{@"sessionID": @(sessionID), @"prompt": KBRValue(prompt), @"prevError": KBRValue(prevError)}];
   [self.client sendRequestWithMethod:@"keybase.1.proveUi.promptUsername" params:params sessionId:self.sessionId completion:^(NSError *error, id retval) {
-    completion(error, 0);
+    if (error) {
+        completion(error, nil);
+        return;
+      }
+      NSString *result = retval ? [MTLJSONAdapter modelOfClass:NSString.class fromJSONDictionary:retval error:&error] : nil;
+      completion(error, result);
   }];
 }
 
@@ -863,14 +888,24 @@
 - (void)getNewPassphraseWithSessionID:(NSInteger)sessionID terminalPrompt:(NSString *)terminalPrompt pinentryDesc:(NSString *)pinentryDesc pinentryPrompt:(NSString *)pinentryPrompt retryMessage:(NSString *)retryMessage completion:(void (^)(NSError *error, NSString *str))completion {
   NSArray *params = @[@{@"sessionID": @(sessionID), @"terminalPrompt": KBRValue(terminalPrompt), @"pinentryDesc": KBRValue(pinentryDesc), @"pinentryPrompt": KBRValue(pinentryPrompt), @"retryMessage": KBRValue(retryMessage)}];
   [self.client sendRequestWithMethod:@"keybase.1.secretUi.getNewPassphrase" params:params sessionId:self.sessionId completion:^(NSError *error, id retval) {
-    completion(error, 0);
+    if (error) {
+        completion(error, nil);
+        return;
+      }
+      NSString *result = retval ? [MTLJSONAdapter modelOfClass:NSString.class fromJSONDictionary:retval error:&error] : nil;
+      completion(error, result);
   }];
 }
 
 - (void)getKeybasePassphraseWithSessionID:(NSInteger)sessionID username:(NSString *)username retry:(NSString *)retry completion:(void (^)(NSError *error, NSString *str))completion {
   NSArray *params = @[@{@"sessionID": @(sessionID), @"username": KBRValue(username), @"retry": KBRValue(retry)}];
   [self.client sendRequestWithMethod:@"keybase.1.secretUi.getKeybasePassphrase" params:params sessionId:self.sessionId completion:^(NSError *error, id retval) {
-    completion(error, 0);
+    if (error) {
+        completion(error, nil);
+        return;
+      }
+      NSString *result = retval ? [MTLJSONAdapter modelOfClass:NSString.class fromJSONDictionary:retval error:&error] : nil;
+      completion(error, result);
   }];
 }
 
@@ -954,7 +989,12 @@
 - (void)sigListJSONWithSessionID:(NSInteger)sessionID arg:(KBRSigListArgs *)arg completion:(void (^)(NSError *error, NSString *str))completion {
   NSArray *params = @[@{@"sessionID": @(sessionID), @"arg": KBRValue(arg)}];
   [self.client sendRequestWithMethod:@"keybase.1.sigs.sigListJSON" params:params sessionId:self.sessionId completion:^(NSError *error, id retval) {
-    completion(error, 0);
+    if (error) {
+        completion(error, nil);
+        return;
+      }
+      NSString *result = retval ? [MTLJSONAdapter modelOfClass:NSString.class fromJSONDictionary:retval error:&error] : nil;
+      completion(error, result);
   }];
 }
 
@@ -972,7 +1012,12 @@
 - (void)readWithSessionID:(NSInteger)sessionID s:(KBRStream *)s sz:(NSInteger)sz completion:(void (^)(NSError *error, NSData *bytes))completion {
   NSArray *params = @[@{@"sessionID": @(sessionID), @"s": KBRValue(s), @"sz": @(sz)}];
   [self.client sendRequestWithMethod:@"keybase.1.streamUi.read" params:params sessionId:self.sessionId completion:^(NSError *error, id retval) {
-    completion(error, 0);
+    if (error) {
+        completion(error, nil);
+        return;
+      }
+      NSData *result = retval ? [MTLJSONAdapter modelOfClass:NSData.class fromJSONDictionary:retval error:&error] : nil;
+      completion(error, result);
   }];
 }
 
@@ -1109,7 +1154,12 @@
 - (void)listTrackingJSONWithSessionID:(NSInteger)sessionID filter:(NSString *)filter verbose:(BOOL)verbose completion:(void (^)(NSError *error, NSString *str))completion {
   NSArray *params = @[@{@"sessionID": @(sessionID), @"filter": KBRValue(filter), @"verbose": @(verbose)}];
   [self.client sendRequestWithMethod:@"keybase.1.user.listTrackingJSON" params:params sessionId:self.sessionId completion:^(NSError *error, id retval) {
-    completion(error, 0);
+    if (error) {
+        completion(error, nil);
+        return;
+      }
+      NSString *result = retval ? [MTLJSONAdapter modelOfClass:NSString.class fromJSONDictionary:retval error:&error] : nil;
+      completion(error, result);
   }];
 }
 
