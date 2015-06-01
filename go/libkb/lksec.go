@@ -167,13 +167,11 @@ func (s *LKSec) apiServerHalf(lctx LoginContext, devid *DeviceID) error {
 	var err error
 	var dev DeviceKey
 	if lctx != nil {
-		s.G().Log.Debug("apiServerHalf:  have LoginContext")
 		if err := lctx.RunSecretSyncer(s.uid); err != nil {
 			return err
 		}
 		dev, err = lctx.SecretSyncer().FindDevice(devid)
 	} else {
-		s.G().Log.Debug("apiServerHalf:  no LoginContext, using loginstate")
 		s.G().LoginState().Account(func(a *Account) {
 			if err = RunSyncer(a.SecretSyncer(), s.uid, a.LoggedIn(), a.LocalSession()); err != nil {
 				return

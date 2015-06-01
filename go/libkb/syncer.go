@@ -20,6 +20,7 @@ func RunSyncer(s Syncer, uid keybase1.UID, loggedIn bool, sr SessionReader) (err
 		return NotFoundError{"No UID given to syncer"}
 	}
 
+	// unnecessary for secret syncer, but possibly useful for tracker syncer.
 	s.Lock()
 	defer s.Unlock()
 

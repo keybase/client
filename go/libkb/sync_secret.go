@@ -60,7 +60,6 @@ func (ss *SecretSyncer) Clear() error {
 	return nil
 }
 
-// Syncer locks before calling this.
 func (ss *SecretSyncer) loadFromStorage(uid keybase1.UID) (err error) {
 	var tmp ServerPrivateKeys
 	var found bool
@@ -77,7 +76,6 @@ func (ss *SecretSyncer) loadFromStorage(uid keybase1.UID) (err error) {
 	return
 }
 
-// Syncer locks before calling this.
 func (ss *SecretSyncer) syncFromServer(uid keybase1.UID, sr SessionReader) (err error) {
 	hargs := HttpArgs{}
 
@@ -110,12 +108,10 @@ func (ss *SecretSyncer) syncFromServer(uid keybase1.UID, sr SessionReader) (err 
 	return
 }
 
-// lock required before calling this.
 func (ss *SecretSyncer) dbKey(uid keybase1.UID) DbKey {
 	return DbKeyUID(DB_USER_SECRET_KEYS, uid)
 }
 
-// Syncer locks before calling this.
 func (ss *SecretSyncer) store(uid keybase1.UID) (err error) {
 	if !ss.dirty {
 		return
