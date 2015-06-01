@@ -534,7 +534,6 @@ func (e *Env) GetEmailOrUsername() string {
 	return em
 }
 
-// XXX implement me
 func (e *Env) GetDevelMode() bool {
 	return e.GetBool(false,
 		func() (bool, bool) { return e.cmd.GetDevelMode() },
