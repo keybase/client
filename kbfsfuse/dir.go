@@ -39,6 +39,29 @@ func (d *Dir) Attr(ctx context.Context, a *fuse.Attr) error {
 	d.folder.mu.RLock()
 	defer d.folder.mu.RUnlock()
 
+	switch {
+	case d.folder.id == libkbfs.NullDirID:
+		// It's a made-up folder, e.g. to show u/public when caller
+		// has no access to u; no DirEntry.
+
+	case d.parent == nil:
+		// Top-level folder
+		md, err := d.folder.fs.config.KBFSOps().GetRootMDForHandle(d.folder.dh)
+		if err != nil {
+			return err
+		}
+		de := &md.Data().Dir
+		fillAttr(de, a)
+
+	default:
+		// Not a top-level folder => GetDir is safe.
+		de, err := statPath(d.folder.fs.config.KBFSOps(), d.getPathLocked())
+		if err != nil {
+			return err
+		}
+		fillAttr(de, a)
+	}
+
 	a.Mode = os.ModeDir | 0700
 	if d.folder.id.IsPublic() || d.folder.dh.IsPublic() {
 		a.Mode |= 0055
@@ -171,7 +194,6 @@ func (d *Dir) Create(ctx context.Context, req *fuse.CreateRequest, resp *fuse.Cr
 		return nil, nil, err
 	}
 	d.updatePathLocked(*pChild.ParentPath())
-	// TODO update mtime, ctime, size?
 
 	child := &File{
 		parent: d,
@@ -195,7 +217,6 @@ func (d *Dir) Mkdir(ctx context.Context, req *fuse.MkdirRequest) (fs.Node, error
 		return nil, err
 	}
 	d.updatePathLocked(*pChild.ParentPath())
-	// TODO update mtime, ctime, size?
 
 	child := &Dir{
 		folder: d.folder,
@@ -220,7 +241,6 @@ func (d *Dir) Symlink(ctx context.Context, req *fuse.SymlinkRequest) (fs.Node, e
 		return nil, err
 	}
 	d.updatePathLocked(p)
-	// TODO update mtime, ctime, size?
 
 	child := &Symlink{
 		parent: d,
@@ -268,7 +288,6 @@ func (d *Dir) Rename(ctx context.Context, req *fuse.RenameRequest, newDir fs.Nod
 	// TODO why can't i trigger a test failure if these are missing
 	d.updatePathLocked(pOld)
 	newDir2.updatePathLocked(pNew)
-	// TODO update mtime, ctime, size?
 
 	return nil
 }
