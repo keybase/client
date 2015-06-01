@@ -874,8 +874,7 @@ func TestSetattrMtime(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	// KBFS has 1-second resolution
-	if g, e := fi.ModTime(), mtime.Truncate(time.Second); g != e {
+	if g, e := fi.ModTime(), mtime; g != e {
 		t.Errorf("wrong mtime: %v != %v", g, e)
 	}
 }

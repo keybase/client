@@ -27,8 +27,8 @@ func (f *File) Attr(ctx context.Context, a *fuse.Attr) error {
 	defer f.parent.folder.mu.RUnlock()
 
 	a.Size = f.de.Size
-	a.Mtime = time.Unix(f.de.Mtime, 0)
-	a.Ctime = time.Unix(f.de.Ctime, 0)
+	a.Mtime = time.Unix(0, f.de.Mtime)
+	a.Ctime = time.Unix(0, f.de.Ctime)
 	a.Mode = 0644
 	if f.de.Type == libkbfs.Exec {
 		a.Mode |= 0111
@@ -173,7 +173,7 @@ func (f *File) Setattr(ctx context.Context, req *fuse.SetattrRequest, resp *fuse
 			return err
 		}
 		f.updatePathLocked(p)
-		f.de.Mtime = req.Mtime.Unix()
+		f.de.Mtime = req.Mtime.UnixNano()
 		// TODO should we bump up ctime, too?
 		// TODO should we do GetDir instead?
 		valid &^= fuse.SetattrMtime
