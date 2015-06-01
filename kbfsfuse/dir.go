@@ -128,7 +128,6 @@ func (d *Dir) Lookup(ctx context.Context, req *fuse.LookupRequest, resp *fuse.Lo
 	case libkbfs.File, libkbfs.Exec:
 		child := &File{
 			parent: d,
-			de:     de,
 			pathNode: libkbfs.PathNode{
 				BlockPointer: de.BlockPointer,
 				Name:         req.Name,
@@ -177,7 +176,6 @@ func (d *Dir) Create(ctx context.Context, req *fuse.CreateRequest, resp *fuse.Cr
 
 	child := &File{
 		parent: d,
-		de:     de,
 		pathNode: libkbfs.PathNode{
 			BlockPointer: de.BlockPointer,
 			Name:         req.Name,

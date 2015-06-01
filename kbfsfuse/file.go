@@ -2,7 +2,6 @@ package main
 
 import (
 	"log"
-	"time"
 
 	"bazil.org/fuse"
 	"bazil.org/fuse/fs"
@@ -15,7 +14,6 @@ type File struct {
 	fs.NodeRef
 
 	parent   *Dir
-	de       libkbfs.DirEntry
 	pathNode libkbfs.PathNode
 }
 
@@ -26,11 +24,15 @@ func (f *File) Attr(ctx context.Context, a *fuse.Attr) error {
 	f.parent.folder.mu.RLock()
 	defer f.parent.folder.mu.RUnlock()
 
-	a.Size = f.de.Size
-	a.Mtime = time.Unix(0, f.de.Mtime)
-	a.Ctime = time.Unix(0, f.de.Ctime)
+	p := f.getPathLocked()
+	de, err := statPath(f.parent.folder.fs.config.KBFSOps(), p)
+	if err != nil {
+		return err
+	}
+
+	fillAttr(de, a)
 	a.Mode = 0644
-	if f.de.Type == libkbfs.Exec {
+	if de.Type == libkbfs.Exec {
 		a.Mode |= 0111
 	}
 	return nil
@@ -67,19 +69,6 @@ func (f *File) sync(ctx context.Context) error {
 	}
 	f.updatePathLocked(p)
 
-	// Update mtime and such to be what KBFS thinks they should be.
-	// bazil.org/fuse does not currently tolerate attribute fetch
-	// failing very well, and the kernel would have to flag such nodes
-	// invalid, so we try to do failing operations in advance.
-	pp := *p.ParentPath()
-	dir, err := f.parent.folder.fs.config.KBFSOps().GetDir(pp)
-	if err != nil {
-		return err
-	}
-	if de, ok := dir.Children[f.pathNode.Name]; ok {
-		f.de = de
-	}
-
 	return nil
 }
 
@@ -115,10 +104,6 @@ func (f *File) Write(ctx context.Context, req *fuse.WriteRequest, resp *fuse.Wri
 		return err
 	}
 	resp.Size = len(req.Data)
-	if size := uint64(resp.Size); f.de.Size < size {
-		f.de.Size = size
-	}
-	// TODO should we bump up mtime and ctime, too?
 	return nil
 }
 
@@ -143,9 +128,6 @@ func (f *File) Setattr(ctx context.Context, req *fuse.SetattrRequest, resp *fuse
 		if err := f.parent.folder.fs.config.KBFSOps().Truncate(f.getPathLocked(), req.Size); err != nil {
 			return err
 		}
-		f.de.Size = req.Size
-		// TODO should we bump up mtime and ctime, too?
-		// TODO update f.pathNode?
 		valid &^= fuse.SetattrSize
 	}
 
@@ -157,13 +139,6 @@ func (f *File) Setattr(ctx context.Context, req *fuse.SetattrRequest, resp *fuse
 			return err
 		}
 		f.updatePathLocked(p)
-		if exec {
-			f.de.Type = libkbfs.Exec
-		} else {
-			f.de.Type = libkbfs.File
-		}
-		// TODO should we bump up mtime and ctime, too?
-		// TODO should we do GetDir instead?
 		valid &^= fuse.SetattrMode
 	}
 
@@ -173,9 +148,6 @@ func (f *File) Setattr(ctx context.Context, req *fuse.SetattrRequest, resp *fuse
 			return err
 		}
 		f.updatePathLocked(p)
-		f.de.Mtime = req.Mtime.UnixNano()
-		// TODO should we bump up ctime, too?
-		// TODO should we do GetDir instead?
 		valid &^= fuse.SetattrMtime
 	}
 
