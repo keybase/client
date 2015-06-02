@@ -177,7 +177,7 @@
   }, {
     "type" : "enum",
     "name" : "ProofType",
-    "symbols" : [ "NONE_0", "KEYBASE_1", "TWITTER_2", "GITHUB_3", "REDDIT_4", "COINBASE_5", "HACKERNEWS_6", "GENERIC_WEB_SITE_1000", "DNS_1001" ]
+    "symbols" : [ "NONE_0", "KEYBASE_1", "TWITTER_2", "GITHUB_3", "REDDIT_4", "COINBASE_5", "HACKERNEWS_6", "GENERIC_WEB_SITE_1000", "DNS_1001", "ROOTER_100001" ]
   }, {
     "type" : "enum",
     "name" : "TrackDiffType",

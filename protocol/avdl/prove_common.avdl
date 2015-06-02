@@ -69,6 +69,7 @@ protocol prove_common {
     COINBASE_5,
     HACKERNEWS_6,
     GENERIC_WEB_SITE_1000,
-    DNS_1001
+    DNS_1001,
+    ROOTER_100001
   }
 }
