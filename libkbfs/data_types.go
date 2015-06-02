@@ -934,6 +934,21 @@ func NewDirBlock() Block {
 	}
 }
 
+// DeepCopy makes a complete copy of a DirBlock
+func (db DirBlock) DeepCopy() *DirBlock {
+	// copy the block if it's for writing
+	dblockCopy := NewDirBlock().(*DirBlock)
+	*dblockCopy = db
+	// deep copy of children
+	dblockCopy.Children = make(map[string]DirEntry)
+	for k, v := range db.Children {
+		dblockCopy.Children[k] = v
+	}
+	// TODO: deep copy of IPtrs once we have indirect dir blocks
+	// TODO: copy padding once we support it.
+	return dblockCopy
+}
+
 // FileBlock is the contents of a file
 type FileBlock struct {
 	CommonBlock
@@ -949,4 +964,17 @@ func NewFileBlock() Block {
 	return &FileBlock{
 		Contents: make([]byte, 0, 0),
 	}
+}
+
+// DeepCopy makes a complete copy of a FileBlock
+func (fb FileBlock) DeepCopy() *FileBlock {
+	fblockCopy := NewFileBlock().(*FileBlock)
+	*fblockCopy = fb
+	// deep copy of contents and iptrs
+	fblockCopy.Contents = make([]byte, len(fb.Contents))
+	copy(fblockCopy.Contents, fb.Contents)
+	fblockCopy.IPtrs = make([]IndirectFilePtr, len(fb.IPtrs))
+	copy(fblockCopy.IPtrs, fb.IPtrs)
+	// TODO: copy padding once we support it.
+	return fblockCopy
 }

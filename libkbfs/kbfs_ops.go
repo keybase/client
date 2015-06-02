@@ -326,6 +326,12 @@ func (fs *KBFSOpsStandard) getBlockInChannel(
 	}
 }
 
+// getDirInChannel returns the directory block at the given path.
+// When rType == write and the cached version of the block is
+// currently clean, this method makes a copy of the directory block
+// and returns it.  If this method might be called again for the same
+// block within a single operation, it is the caller's responsibility
+// to write that block copy back to the cache as dirty.
 func (fs *KBFSOpsStandard) getDirInChannel(dir Path, rtype reqType) (
 	*DirBlock, error) {
 	if _, err := fs.getMDForReadInChannel(dir, rtype); err != nil {
@@ -338,24 +344,23 @@ func (fs *KBFSOpsStandard) getDirInChannel(dir Path, rtype reqType) (
 	if err != nil {
 		return nil, err
 	}
-
 	dblock, ok := block.(*DirBlock)
 	if !ok {
 		return nil, &NotDirError{dir}
 	}
 	if rtype == write && !fs.config.BlockCache().IsDirty(id) {
 		// copy the block if it's for writing
-		//
-		// TODO: We should make a deep copy,
-		// i.e. copy the Children and IPtr
-		// slices.
-		dblockCopy := NewDirBlock().(*DirBlock)
-		*dblockCopy = *dblock
-		dblock = dblockCopy
+		dblock = dblock.DeepCopy()
 	}
 	return dblock, nil
 }
 
+// getFileInChannel returns the file block at the given path.  When
+// rType == write and the cached version of the block is currently
+// clean, this method makes a copy of the file block and returns it.
+// If this method might be called again for the same block within a
+// single operation, it is the caller's responsibility to write that
+// block back to the cache as dirty.
 func (fs *KBFSOpsStandard) getFileInChannel(dir Path, rtype reqType) (
 	*FileBlock, error) {
 	if _, err := fs.getMDForReadInChannel(dir, rtype); err != nil {
@@ -368,16 +373,13 @@ func (fs *KBFSOpsStandard) getFileInChannel(dir Path, rtype reqType) (
 	if err != nil {
 		return nil, err
 	}
-
 	fblock, ok := block.(*FileBlock)
 	if !ok {
 		return nil, &NotFileError{dir}
 	}
 	if rtype == write && !fs.config.BlockCache().IsDirty(id) {
 		// copy the block if it's for writing
-		fblockCopy := NewFileBlock().(*FileBlock)
-		*fblockCopy = *fblock
-		fblock = fblockCopy
+		fblock = fblock.DeepCopy()
 	}
 	return fblock, nil
 }
@@ -396,6 +398,7 @@ var zeroID BlockID
 // blockPutState is an internal structure to track data when putting blocks
 type blockPutState struct {
 	ids      []BlockID
+	oldIDs   map[BlockID]BlockID
 	blocks   []Block
 	contexts []BlockContext
 	bufs     [][]byte
@@ -404,13 +407,14 @@ type blockPutState struct {
 func newBlockPutState(length int) *blockPutState {
 	bps := &blockPutState{}
 	bps.ids = make([]BlockID, 0, length)
+	bps.oldIDs = make(map[BlockID]BlockID)
 	bps.blocks = make([]Block, 0, length)
 	bps.contexts = make([]BlockContext, 0, length)
 	bps.bufs = make([][]byte, 0, length)
 	return bps
 }
 
-func (bps *blockPutState) addBlock(id BlockID, ptr BlockPointer,
+func (bps *blockPutState) addNewBlock(id BlockID, ptr BlockPointer,
 	block Block, buf []byte) {
 	bps.ids = append(bps.ids, id)
 	bps.contexts = append(bps.contexts, ptr)
@@ -457,7 +461,7 @@ func (fs *KBFSOpsStandard) readyBlockMultiple(currBlock Block, bps *blockPutStat
 
 	blockPtr = BlockPointer{id, md.LatestKeyVersion(), fs.config.DataVersion(),
 		user, uint32(len(buf))}
-	bps.addBlock(id, blockPtr, currBlock, buf)
+	bps.addNewBlock(id, blockPtr, currBlock, buf)
 
 	return
 }
@@ -494,7 +498,7 @@ func (fs *KBFSOpsStandard) saveMdToCache(md *RootMetadata) error {
 	fs.globalStateLock.Lock()
 	defer fs.globalStateLock.Unlock()
 	if oldMdID, ok := fs.heads[md.ID]; ok && oldMdID == mdID {
-		// only save this new MD if the MDId has changed
+		// only save this new MD if the MDID has changed
 		return nil
 	} else if err = fs.config.MDCache().Put(mdID, md); err != nil {
 		return err
@@ -503,9 +507,21 @@ func (fs *KBFSOpsStandard) saveMdToCache(md *RootMetadata) error {
 	return nil
 }
 
+// cacheBlockIfNotYetDirty puts a block into the cache, but only does
+// so if the block isn't already marked as dirty in the cache.  This
+// is useful when operating on a dirty copy of a block that may
+// already be in the cache.
+func (fs *KBFSOpsStandard) cacheBlockIfNotYetDirty(
+	id BlockID, block Block) error {
+	if !fs.config.BlockCache().IsDirty(id) {
+		return fs.config.BlockCache().Put(id, block, true)
+	}
+	return nil
+}
+
 // TODO: deal with multiple nodes for indirect blocks
 //
-// entryType must not by Sym.
+// entryType must not be Sym.
 func (fs *KBFSOpsStandard) syncBlockInChannel(md *RootMetadata,
 	newBlock Block, dir Path, name string, entryType EntryType,
 	mtime bool, ctime bool, stopAt BlockID) (Path, DirEntry, error) {
@@ -526,12 +542,15 @@ func (fs *KBFSOpsStandard) syncBlockInChannel(md *RootMetadata,
 	bps := newBlockPutState(len(dir.Path))
 	refPath := *dir.ChildPathNoPtr(name)
 	var newDe DirEntry
+	doSetTime := true
+	now := time.Now().UnixNano()
 	for len(newPath.Path) < len(dir.Path)+1 {
 		plainSize, blockPtr, err :=
 			fs.readyBlockMultiple(currBlock, bps, md, tlfCryptKey, user)
 		if err != nil {
 			return Path{}, DirEntry{}, err
 		}
+
 		// prepend to path and setup next one
 		newPath.Path = append([]PathNode{PathNode{blockPtr, currName}},
 			newPath.Path...)
@@ -541,6 +560,7 @@ func (fs *KBFSOpsStandard) syncBlockInChannel(md *RootMetadata,
 		var prevDblock *DirBlock
 		var de DirEntry
 		var nextName string
+		nextDoSetTime := false
 		if prevIdx < 0 {
 			// root dir, update the MD instead
 			de = md.data.Dir
@@ -568,16 +588,18 @@ func (fs *KBFSOpsStandard) syncBlockInChannel(md *RootMetadata,
 					return Path{}, DirEntry{}, &NoSuchNameError{currName}
 				}
 
-				// If this is a file, the size should
-				// be 0. (TODO: Ensure this.) If this
-				// is a directory, the size will be
-				// filled in below.
+				// If this is a file, the size should be 0. (TODO:
+				// Ensure this.) If this is a directory, the size will
+				// be filled in below.  The times will be filled in
+				// below as well, since we should only be creating a
+				// new directory entry when doSetTime is true.
 				de = DirEntry{
-					Type:  entryType,
-					Mtime: time.Now().UnixNano(),
-					Ctime: time.Now().UnixNano(),
-					Size:  0,
+					Type: entryType,
+					Size: 0,
 				}
+				// If we're creating a new directory entry, the
+				// parent's times must be set as well.
+				nextDoSetTime = true
 			}
 
 			currBlock = prevDblock
@@ -597,20 +619,27 @@ func (fs *KBFSOpsStandard) syncBlockInChannel(md *RootMetadata,
 			md.AddUnrefBlock(refPath,
 				prevDblock.Children[currName].BlockPointer)
 		}
+		if de.ID != zeroID && de.Type == Dir {
+			// if syncBlocks is being called multiple times, some directory
+			// blocks may be written as dirty to the cache.  For those blocks,
+			// save the old ID
+			bps.oldIDs[blockPtr.ID] = de.ID
+		}
 		md.AddRefBlock(refPath, blockPtr)
 		if len(refPath.Path) > 1 {
 			refPath = *refPath.ParentPath()
 		}
 		de.BlockPointer = blockPtr
 
-		if !newDe.IsInitialized() {
-			now := time.Now().UnixNano()
+		if doSetTime {
 			if mtime {
 				de.Mtime = now
 			}
 			if ctime {
 				de.Ctime = now
 			}
+		}
+		if !newDe.IsInitialized() {
 			newDe = de
 		}
 
@@ -621,9 +650,17 @@ func (fs *KBFSOpsStandard) syncBlockInChannel(md *RootMetadata,
 		}
 		currName = nextName
 
+		// Stop before we get to the common ancestor; it will be taken care of
+		// on the next sync call
 		if prevIdx >= 0 && dir.Path[prevIdx].ID == stopAt {
+			// Put this back into the cache as dirty -- the next
+			// syncBlock call will ready it.
+			if err = fs.cacheBlockIfNotYetDirty(stopAt, currBlock); err != nil {
+				return Path{}, DirEntry{}, nil
+			}
 			break
 		}
+		doSetTime = nextDoSetTime
 	}
 
 	// do the block changes need their own blocks?
@@ -653,9 +690,18 @@ func (fs *KBFSOpsStandard) syncBlockInChannel(md *RootMetadata,
 		if err = bops.Put(id, ctxt, buf); err != nil {
 			return Path{}, DirEntry{}, err
 		}
-		block := bps.blocks[i]
-		if err = bcache.Put(id, block, false); err != nil {
-			return Path{}, DirEntry{}, err
+		if oldID, ok := bps.oldIDs[id]; ok && bcache.IsDirty(oldID) {
+			// During a rename, there may still be dirty blocks in the
+			// cache that are under their old ID.  Move them to their
+			// new ID.
+			if err = bcache.Finalize(oldID, id); err != nil {
+				return Path{}, DirEntry{}, err
+			}
+		} else {
+			block := bps.blocks[i]
+			if err = bcache.Put(id, block, false); err != nil {
+				return Path{}, DirEntry{}, err
+			}
 		}
 	}
 
@@ -723,22 +769,6 @@ func (fs *KBFSOpsStandard) createEntryInChannel(
 				Seed: rand.Int63(),
 			},
 		}
-	}
-
-	// the parent's mtime/ctime also need to be updated
-	if len(dir.Path) > 1 {
-		if pblock, err := fs.getDirInChannel(*dir.ParentPath(), write); err == nil {
-			parentDe := pblock.Children[dir.TailName()]
-			parentDe.Mtime = time.Now().UnixNano()
-			parentDe.Ctime = time.Now().UnixNano()
-			pblock.Children[dir.TailName()] = parentDe
-		} else {
-			return Path{}, DirEntry{},
-				&NoSuchBlockError{dir.ParentPath().TailPointer().ID}
-		}
-	} else {
-		md.data.Dir.Mtime = time.Now().UnixNano()
-		md.data.Dir.Ctime = time.Now().UnixNano()
 	}
 
 	return fs.syncBlockAndNotifyInChannel(md, newBlock, dir, name, entryType,
@@ -926,9 +956,43 @@ func (fs *KBFSOpsStandard) renameInChannel(
 	}
 
 	// look up in the old path
-	newPBlock, err := fs.getDirInChannel(newParent, write)
-	if err != nil {
-		return Path{}, Path{}, err
+	var newPBlock *DirBlock
+	// TODO: Write a SameBlock() function that can deal properly with
+	// dedup'd blocks that share an ID but can be updated separately.
+	if oldParent.TailPointer().ID == newParent.TailPointer().ID {
+		newPBlock = oldPBlock
+	} else {
+		newPBlock, err = fs.getDirInChannel(newParent, write)
+		if err != nil {
+			return Path{}, Path{}, err
+		}
+		now := time.Now().UnixNano()
+
+		oldGrandparent := *oldParent.ParentPath()
+		if len(oldGrandparent.Path) > 0 {
+			// Update the old parent's mtime/ctime, unless the
+			// oldGrandparent is the same as newParent (in which case, the
+			// syncBlockInChannel call will take care of it).
+			if oldGrandparent.TailPointer().ID != newParent.TailPointer().ID {
+				b, err := fs.getDirInChannel(oldGrandparent, write)
+				if err != nil {
+					return Path{}, Path{}, err
+				}
+				if de, ok := b.Children[oldParent.TailName()]; ok {
+					de.Ctime = now
+					de.Mtime = now
+					b.Children[oldParent.TailName()] = de
+					// Put this block back into the cache as dirty
+					if err = fs.cacheBlockIfNotYetDirty(
+						oldGrandparent.TailPointer().ID, b); err != nil {
+						return Path{}, Path{}, err
+					}
+				}
+			}
+		} else {
+			md.data.Dir.Ctime = now
+			md.data.Dir.Mtime = now
+		}
 	}
 	// does name exist?
 	if _, ok := newPBlock.Children[newName]; ok {
@@ -962,32 +1026,40 @@ func (fs *KBFSOpsStandard) renameInChannel(
 		}
 	}
 	commonAncestor := oldParent.Path[i].ID
+	oldIsCommon := oldParent.TailPointer().ID == commonAncestor
+	newIsCommon := newParent.TailPointer().ID == commonAncestor
 
 	newOldPath := Path{TopDir: oldParent.TopDir}
-	if commonAncestor != oldParent.TailPointer().ID {
+	if oldIsCommon {
+		if newIsCommon {
+			// if old and new are both the common ancestor, there is
+			// nothing to do (syncBlock will take care of everything)
+		} else {
+			// If the old one is common and the new one is not, then
+			// the last syncBlockInChannel call will need to access
+			// the old one.
+			if err = fs.cacheBlockIfNotYetDirty(
+				oldParent.TailPointer().ID, oldPBlock); err != nil {
+				return Path{}, Path{}, err
+			}
+		}
+	} else {
+		if newIsCommon {
+			// If the new one is common, then the first
+			// syncBlockInChannel call will need to access it.
+			if err = fs.cacheBlockIfNotYetDirty(
+				newParent.TailPointer().ID, newPBlock); err != nil {
+				return Path{}, Path{}, err
+			}
+		}
+
+		// The old one is not the common ancestor, so we need to sync it.
 		// TODO: optimize by pushing blocks from both paths in parallel
 		newOldPath, _, err = fs.syncBlockInChannel(
 			md, oldPBlock, *oldParent.ParentPath(), oldParent.TailName(),
 			Dir, true, true, commonAncestor)
 		if err != nil {
 			return Path{}, Path{}, err
-		}
-	} else {
-		// still need to update the old parent's times.
-		parentPath := *oldParent.ParentPath()
-		if len(parentPath.Path) > 0 {
-			b, err := fs.getDirInChannel(parentPath, write)
-			if err != nil {
-				return Path{}, Path{}, err
-			}
-			if de, ok := b.Children[oldParent.TailName()]; ok {
-				de.Ctime = time.Now().UnixNano()
-				de.Mtime = time.Now().UnixNano()
-				b.Children[oldParent.TailName()] = de
-			}
-		} else {
-			md.data.Dir.Ctime = time.Now().UnixNano()
-			md.data.Dir.Mtime = time.Now().UnixNano()
 		}
 	}
 
@@ -1143,7 +1215,7 @@ func (fs *KBFSOpsStandard) getEntryInChannel(file Path) (
 
 func (fs *KBFSOpsStandard) newRightBlockInChannel(
 	id BlockID, pblock *FileBlock, off int64, md *RootMetadata) error {
-	newRId, err := fs.config.Crypto().MakeRandomBlockID()
+	newRID, err := fs.config.Crypto().MakeRandomBlockID()
 	if err != nil {
 		return err
 	}
@@ -1157,14 +1229,15 @@ func (fs *KBFSOpsStandard) newRightBlockInChannel(
 		},
 	}
 	if err :=
-		fs.config.BlockCache().Put(newRId, rblock, true); err != nil {
+		fs.config.BlockCache().Put(newRID, rblock, true); err != nil {
 		return err
 	}
 
 	pblock.IPtrs = append(pblock.IPtrs, IndirectFilePtr{
-		BlockPointer{newRId, md.LatestKeyVersion(), fs.config.DataVersion(), user, 0},
+		BlockPointer{newRID, md.LatestKeyVersion(), fs.config.DataVersion(),
+			user, 0},
 		off})
-	if err := fs.config.BlockCache().Put(id, pblock, true); err != nil {
+	if err = fs.cacheBlockIfNotYetDirty(id, pblock); err != nil {
 		return err
 	}
 	return nil
@@ -1188,6 +1261,11 @@ func (fs *KBFSOpsStandard) writeDataInChannel(
 	n := int64(len(data))
 	nCopied := int64(0)
 	user, err := fs.config.KBPKI().GetLoggedInUser()
+	if err != nil {
+		return err
+	}
+
+	dblock, de, err := fs.getEntryInChannel(file)
 	if err != nil {
 		return err
 	}
@@ -1250,21 +1328,19 @@ func (fs *KBFSOpsStandard) writeDataInChannel(
 			}
 		}
 
-		if dblock, de, err := fs.getEntryInChannel(file); err == nil {
-			if oldLen != len(block.Contents) || de.Writer != user {
-				// remember how many bytes it was
-				md.AddUnrefBlock(file, de.BlockPointer)
-				de.QuotaSize = 0
-				// update the file info
-				de.Size += uint64(len(block.Contents) - oldLen)
-				de.Writer = user
-				dblock.Children[file.TailName()] = de
-				// the copy will be dirty, so put it in the cache
-				bcache.Put(
-					file.ParentPath().TailPointer().ID, dblock, true)
+		if oldLen != len(block.Contents) || de.Writer != user {
+			// remember how many bytes it was
+			md.AddUnrefBlock(file, de.BlockPointer)
+			de.QuotaSize = 0
+			// update the file info
+			de.Size += uint64(len(block.Contents) - oldLen)
+			de.Writer = user
+			dblock.Children[file.TailName()] = de
+			// the copy will be dirty, so put it in the cache
+			if err = fs.cacheBlockIfNotYetDirty(
+				file.ParentPath().TailPointer().ID, dblock); err != nil {
+				return err
 			}
-		} else {
-			return err
 		}
 
 		if parentBlock != nil {
@@ -1274,16 +1350,16 @@ func (fs *KBFSOpsStandard) writeDataInChannel(
 			parentBlock.IPtrs[indexInParent].QuotaSize = 0
 		}
 		// keep the old block ID while it's dirty
-		if err := bcache.Put(id, block, true); err != nil {
+		if err = fs.cacheBlockIfNotYetDirty(id, block); err != nil {
 			return err
 		}
 	}
 
-	if fblock.IsInd && !bcache.IsDirty(file.TailPointer().ID) {
+	if fblock.IsInd {
 		// always make the parent block dirty, so we will sync its
 		// indirect blocks
-		if err := bcache.Put(
-			file.TailPointer().ID, fblock, true); err != nil {
+		if err = fs.cacheBlockIfNotYetDirty(
+			file.TailPointer().ID, fblock); err != nil {
 			return err
 		}
 	}
@@ -1352,8 +1428,8 @@ func (fs *KBFSOpsStandard) truncateInChannel(file Path, size uint64) error {
 		// TODO: When we implement more than one level of indirection,
 		// make sure that the pointer to parentBlock in the grandparent block
 		// has QuotaSize 0.
-		if err := fs.config.BlockCache().Put(
-			file.TailPointer().ID, parentBlock, true); err != nil {
+		if err = fs.cacheBlockIfNotYetDirty(
+			file.TailPointer().ID, parentBlock); err != nil {
 			return err
 		}
 	}
@@ -1377,12 +1453,13 @@ func (fs *KBFSOpsStandard) truncateInChannel(file Path, size uint64) error {
 	// the copy will be dirty, so put it in the cache
 	// TODO: Once we implement indirect dir blocks, make sure that
 	// the pointer to dblock in its parent block has QuotaSize 0.
-	fs.config.BlockCache().Put(
-		file.ParentPath().TailPointer().ID, dblock, true)
+	if err = fs.cacheBlockIfNotYetDirty(
+		file.ParentPath().TailPointer().ID, dblock); err != nil {
+		return err
+	}
 
 	// keep the old block ID while it's dirty
-	err = fs.config.BlockCache().Put(id, block, true)
-	if err != nil {
+	if err = fs.cacheBlockIfNotYetDirty(id, block); err != nil {
 		return err
 	}
 
@@ -1572,8 +1649,8 @@ func (fs *KBFSOpsStandard) syncInChannel(file Path) (Path, error) {
 						return Path{}, err
 					}
 					rblock.Contents = append(extraBytes, rblock.Contents...)
-					if err := fs.config.BlockCache().Put(
-						rID, rblock, true); err != nil {
+					if err = fs.cacheBlockIfNotYetDirty(
+						rID, rblock); err != nil {
 						return Path{}, err
 					}
 					fblock.IPtrs[i+1].Off = ptr.Off + int64(len(block.Contents))
@@ -1596,8 +1673,8 @@ func (fs *KBFSOpsStandard) syncInChannel(file Path) (Path, error) {
 						rblock.Contents, int64(len(block.Contents)))
 					rblock.Contents = rblock.Contents[nCopied:]
 					if len(rblock.Contents) > 0 {
-						if err := fs.config.BlockCache().Put(
-							rID, rblock, true); err != nil {
+						if err = fs.cacheBlockIfNotYetDirty(
+							rID, rblock); err != nil {
 							return Path{}, err
 						}
 						fblock.IPtrs[i+1].Off =
