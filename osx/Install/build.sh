@@ -11,6 +11,8 @@ if [ "$1" = "" ]; then
   exit 1
 fi
 
+ACTION=$2
+
 KB_GO_SRC="$GOPATH/src/github.com/keybase/client/go"
 KBFS_GO_SRC="$GOPATH/src/github.com/keybase/kbfs"
 VERSION="$1"
@@ -163,15 +165,23 @@ cp ../appdmg/* .
 
 appdmg appdmg.json Keybase-$VERSION.dmg
 
-echo "
-To install into Applications:
+if [ "$ACTION" = "install" ]; then
 
-  ditto build/Keybase.app /Applications/Keybase.app
+  ditto $BUILD_DEST/Keybase.app /Applications/Keybase.app
 
-To open the DMG:
+else
+  echo "
+  To install into Applications:
 
-  open build/Keybase-$VERSION.dmg
-"
+    ditto build/Keybase.app /Applications/Keybase.app
+
+  To open the DMG:
+
+    open build/Keybase-$VERSION.dmg
+  "
+fi
+
+
 
 # echo "What do you want to do?"
 # select o in "Install" "Open" "Exit"; do
