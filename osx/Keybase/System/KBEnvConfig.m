@@ -123,7 +123,7 @@
   return NSStringWithFormat(@"%@/.cache/keybase/%@", self.homeDir, filename);
 }
 
-- (NSArray *)programArgumentsForService:(BOOL)useBundle escape:(BOOL)escape tilde:(BOOL)tilde {
+- (NSArray *)programArgumentsForKeybase:(BOOL)useBundle escape:(BOOL)escape tilde:(BOOL)tilde service:(BOOL)service {
   NSMutableArray *args = [NSMutableArray array];
   if (useBundle) {
     [args addObject:NSStringWithFormat(@"%@/bin/keybase", self.bundle.sharedSupportPath)];
@@ -144,8 +144,10 @@
     [args addObject:NSStringWithFormat(@"--socket-file=%@", KBPath(_sockFile, tilde))];
   }
 
-  // Run service (this should be the last arg)
-  [args addObject:@"service"];
+  if (service) {
+    // Run service (this should be the last arg)
+    [args addObject:@"service"];
+  }
 
   if (escape) {
     return [args map:^(NSString *arg) { return [arg stringByReplacingOccurrencesOfString:@" " withString:@"\\ "]; }];
@@ -157,7 +159,7 @@
 - (NSDictionary *)launchdPlistDictionaryForService {
   if (!self.launchdLabelService) return nil;
 
-  NSArray *args = [self programArgumentsForService:YES escape:NO tilde:NO];
+  NSArray *args = [self programArgumentsForKeybase:YES escape:NO tilde:NO service:YES];
 
   // Logging
   NSString *logDir = KBPath(@"~/Library/Logs/Keybase", NO);
@@ -201,7 +203,7 @@
 }
 
 - (NSString *)commandLineForService:(BOOL)useBundle escape:(BOOL)escape tilde:(BOOL)tilde {
-  return [[self programArgumentsForService:useBundle escape:escape tilde:tilde] join:@" "];
+  return [[self programArgumentsForKeybase:useBundle escape:escape tilde:tilde service:YES] join:@" "];
 }
 
 - (NSDictionary *)envsForKBS:(BOOL)tilde {

@@ -39,7 +39,7 @@ typedef NS_ENUM (NSInteger, KBEnv) {
 - (NSDictionary *)launchdPlistDictionaryForService;
 - (NSDictionary *)launchdPlistDictionaryForKBFS;
 
-- (NSArray *)programArgumentsForService:(BOOL)useBundle escape:(BOOL)escape tilde:(BOOL)tilde;
+- (NSArray *)programArgumentsForKeybase:(BOOL)useBundle escape:(BOOL)escape tilde:(BOOL)tilde service:(BOOL)service;
 - (NSArray *)programArgumentsForKBFS:(BOOL)useBundle escape:(BOOL)escape tilde:(BOOL)tilde;
 
 - (NSString *)commandLineForService:(BOOL)useBundle escape:(BOOL)escape tilde:(BOOL)tilde;

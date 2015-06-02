@@ -58,8 +58,9 @@
 
   if (self.config.installEnabled) {
     info[@"Launchd Plist"] = KBPath([self plistDestination], YES);
-    info[@"Program"] = [self.config commandLineForService:NO escape:YES tilde:NO];
   }
+
+  info[@"Program"] = [self.config commandLineForService:NO escape:YES tilde:NO];
 
   if (!_infoView) _infoView = [[KBInfoView alloc] init];
   [_infoView setProperties:info];
