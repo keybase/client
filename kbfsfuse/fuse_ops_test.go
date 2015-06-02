@@ -408,8 +408,8 @@ func TestSetMtime(t *testing.T) {
 	}
 
 	loc, _ := time.LoadLocation("Local")
-	new_mtime := time.Date(1980, time.April, 4, 10, 52, 00, 00, loc)
-	code = node2.Utimens(nil, nil, &new_mtime, nil)
+	newMtime := time.Date(1980, time.April, 4, 10, 52, 00, 00, loc)
+	code = node2.Utimens(nil, nil, &newMtime, nil)
 	if code != fuse.OK {
 		t.Fatalf("Utimens failure: %s", code)
 	}
@@ -420,8 +420,8 @@ func TestSetMtime(t *testing.T) {
 		t.Fatalf("Initial lookup failure: %s", code)
 	}
 
-	if attr.ModTime().UnixNano() != new_mtime.UnixNano() {
-		t.Errorf("Wrong mtime; expected %s, got %s", new_mtime, attr.ModTime())
+	if attr.ModTime().UnixNano() != newMtime.UnixNano() {
+		t.Errorf("Wrong mtime; expected %s, got %s", newMtime, attr.ModTime())
 	}
 
 	root.Ops.Shutdown()
