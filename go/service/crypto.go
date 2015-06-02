@@ -67,7 +67,7 @@ func (c *CryptoHandler) UnboxBytes32(arg keybase1.UnboxBytes32Arg) (bytes32 keyb
 
 	kp, ok := encryptionKey.(libkb.NaclDHKeyPair)
 	if !ok || kp.Private == nil {
-		err = libkb.KeyCannotUnboxError{}
+		err = libkb.KeyCannotDecryptError{}
 		return
 	}
 

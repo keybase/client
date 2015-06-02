@@ -177,7 +177,7 @@ func TestCryptoUnboxBytes32WrongEncryptionKey(t *testing.T) {
 
 	_, err = h.UnboxBytes32(keybase1.UnboxBytes32Arg{})
 
-	expectedErr := libkb.KeyCannotUnboxError{}
+	expectedErr := libkb.KeyCannotDecryptError{}
 	if err != expectedErr {
 		t.Errorf("expected %v, got %v", expectedErr, err)
 	}
