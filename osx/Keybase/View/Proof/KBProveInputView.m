@@ -52,7 +52,7 @@
 
     y += [layout centerWithSize:CGSizeMake(200, 0) frame:CGRectMake(0, y, size.width, 0) view:yself.inputField].size.height + 40;
 
-    y += [layout centerWithSize:CGSizeMake(300, 0) frame:CGRectMake(0, y, size.width, 0) view:bottomView].size.height + 20;
+    y += [layout centerWithSize:CGSizeMake(300, 0) frame:CGRectMake(0, y, size.width, 0) view:bottomView].size.height;
 
     return CGSizeMake(size.width, y);
   }];

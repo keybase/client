@@ -70,7 +70,7 @@
 
   _preferencesWindowController = [[MASPreferencesWindowController alloc] initWithViewControllers:controllers title:@"Preferences"];
 
-  [[sender window] kb_addChildWindow:_preferencesWindowController.window rect:CGRectMake(0, 0, 600, 400) position:KBWindowPositionCenter fixed:NO];
+  [[sender window] kb_addChildWindow:_preferencesWindowController.window rect:CGRectMake(0, 0, 600, 400) position:KBWindowPositionCenter];
   [_preferencesWindowController.window makeKeyAndOrderFront:nil];
 }
 

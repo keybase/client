@@ -37,10 +37,10 @@
   [contentView addSubview:_secretWordsLabel];
 
   YOHBox *footerView = [YOHBox box:@{@"spacing": @(20), @"minSize": @"130,0", @"horizontalAlignment": @"center"}];
+  _cancelButton = [KBButton buttonWithText:@"Cancel" style:KBButtonStyleDefault];
   [footerView addSubview:_cancelButton];
   _button = [KBButton buttonWithText:@"OK" style:KBButtonStylePrimary];
   [footerView addSubview:_button];
-  _cancelButton = [KBButton buttonWithText:@"Cancel" style:KBButtonStyleDefault];
 
   [contentView addSubview:footerView];
 

@@ -8,6 +8,8 @@
 
 #import <Foundation/Foundation.h>
 
-@interface KBAppDebug : NSObject
+#import "KBAppDefines.h"
+
+@interface KBAppDebug : YOVBox
 
 @end

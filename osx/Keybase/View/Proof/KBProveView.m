@@ -45,15 +45,15 @@
   }];
 }
 
-+ (void)connectWithServiceName:(NSString *)serviceName proofResult:(KBProofResult *)proofResult client:(KBRPClient *)client sender:(NSView *)sender completion:(KBProveCompletion)completion {
++ (void)connectWithServiceName:(NSString *)serviceName proofResult:(KBProofResult *)proofResult client:(KBRPClient *)client window:(KBWindow *)window completion:(KBProveCompletion)completion {
   KBProveView *proveView = [[KBProveView alloc] init];
   proveView.client = client;
   [proveView setServiceName:serviceName proofResult:proofResult];
 
-  NSWindow *window = [sender.window kb_addChildWindowForView:proveView rect:CGRectMake(0, 0, 620, 420) position:KBWindowPositionCenter title:@"Keybase" fixed:YES makeKey:YES];
+  NSWindow *proveWindow = [window addModalWindowForView:proveView rect:CGRectMake(0, 0, 620, 420)];
 
   KBProveCompletion close = ^(BOOL success) {
-    [window close];
+    [proveWindow close];
     completion(success);
   };
   proveView.completion = close;

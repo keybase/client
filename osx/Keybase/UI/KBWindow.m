@@ -16,6 +16,8 @@
 @end
 
 @interface KBWindow () <NSWindowDelegate>
+@property BOOL modal;
+@property BOOL modalShowing;
 @end
 
 @implementation KBWindow
@@ -26,6 +28,10 @@
 
 - (BOOL)canBecomeMainWindow {
   return YES;
+}
+
+- (void)sendEvent:(NSEvent *)event {
+  if (!_modalShowing) [super sendEvent:event];
 }
 
 /*!
@@ -69,9 +75,36 @@
   return window;
 }
 
+- (KBWindow *)addModalWindowForView:(YOView *)view rect:(CGRect)rect {
+  CGSize size = [view sizeThatFits:rect.size];
+  KBWindow *window = [KBWindow windowWithContentView:view size:size retain:YES];
+  [window setMovable:NO];
+
+  window.styleMask = NSFullSizeContentViewWindowMask | NSTitledWindowMask;
+
+  [self kb_addChildWindow:window rect:CGRectMake(0, 0, size.width, size.height) position:KBWindowPositionCenter];
+
+  if ([view respondsToSelector:@selector(setupResponders)]) [view setupResponders];
+
+  window.modal = YES;
+  self.modalShowing = YES;
+  [window makeKeyAndOrderFront:nil];
+  return window;
+}
+
+#pragma mark NSWindowDelegate
+
 - (NSRect)window:(NSWindow *)window willPositionSheet:(NSWindow *)sheet usingRect:(NSRect)rect {
   rect.origin.y += -_sheetPosition;
   return rect;
+}
+
+- (void)windowWillClose:(NSNotification *)notification {
+  if (self.modal) {
+    NSAssert([self.parentWindow isKindOfClass:KBWindow.class], @"Modal parent should be KBWindow");
+    KBWindow *parentWindow = (KBWindow *)self.parentWindow;
+    parentWindow.modalShowing = NO;
+  }
 }
 
 @end
@@ -95,7 +128,7 @@
     window.styleMask = window.styleMask | NSResizableWindowMask;
   }
 
-  [self kb_addChildWindow:window rect:CGRectMake(0, 0, size.width, size.height) position:position fixed:fixed];
+  [self kb_addChildWindow:window rect:CGRectMake(0, 0, size.width, size.height) position:position];
 
   if ([view respondsToSelector:@selector(setupResponders)]) [view setupResponders];
 
@@ -105,19 +138,15 @@
   return window;
 }
 
-- (void)kb_addChildWindow:(NSWindow *)window rect:(CGRect)rect position:(KBWindowPosition)position fixed:(BOOL)fixed {
-  if (fixed) {
-    [window setMovable:NO];
-  } else {
-    window.styleMask = window.styleMask | NSResizableWindowMask;
-  }
+- (void)kb_addChildWindow:(NSWindow *)window rect:(CGRect)rect position:(KBWindowPosition)position {
 
   CGPoint p = CGPointMake(self.frame.origin.x + rect.origin.x, self.frame.origin.y + rect.origin.y);
 
   switch (position) {
     case KBWindowPositionCenter:
       p.x += YOCGPointToCenterX(window.frame.size, self.frame.size).x;
-      p.y = self.frame.origin.y + self.frame.size.height - window.frame.size.height;
+      //p.y = self.frame.origin.y + self.frame.size.height - window.frame.size.height;
+      p.y = self.frame.origin.y + ceilf(self.frame.size.height/2.0 - window.frame.size.height/2.0);
       break;
     case KBWindowPositionRight:
       p.x += self.frame.size.width + 10;

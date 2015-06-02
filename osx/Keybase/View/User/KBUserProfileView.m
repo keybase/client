@@ -94,7 +94,7 @@
 
 - (void)connectWithServiceName:(NSString *)serviceName proofResult:(KBProofResult *)proofResult {
   GHWeakSelf gself = self;
-  [KBProveView connectWithServiceName:serviceName proofResult:proofResult client:self.client sender:self completion:^(BOOL success) {
+  [KBProveView connectWithServiceName:serviceName proofResult:proofResult client:self.client window:(KBWindow *)self.window completion:^(BOOL success) {
     [gself reload]; // Always reload even if canceled
   }];
 }
