@@ -3,11 +3,12 @@ package libkb
 import (
 	"bufio"
 	"fmt"
-	"github.com/keybase/client/protocol/go"
 	"io"
 	"os"
 	"os/exec"
 	"strings"
+
+	keybase1 "github.com/keybase/client/protocol/go"
 )
 
 //
@@ -174,6 +175,11 @@ func descEncode(s string) string {
 	return s
 }
 
+func resDecode(s string) string {
+	s = strings.Replace(s, "%25", "%", -1)
+	return s
+}
+
 func (pi *pinentryInstance) Run(arg keybase1.SecretEntryArg) (res *keybase1.SecretEntryRes, err error) {
 
 	pi.Set("SETPROMPT", arg.Prompt, &err)
@@ -199,13 +205,13 @@ func (pi *pinentryInstance) Run(arg keybase1.SecretEntryArg) (res *keybase1.Secr
 	}
 	line := string(lineb)
 	if strings.HasPrefix(line, "D ") {
-		res = &keybase1.SecretEntryRes{Text: line[2:]}
+		res = &keybase1.SecretEntryRes{Text: resDecode(line[2:])}
 	} else if strings.HasPrefix(line, "ERR 83886179 canceled") {
 		res = &keybase1.SecretEntryRes{Canceled: true}
 	} else if line == "OK" {
 		res = &keybase1.SecretEntryRes{}
 	} else {
-		err = fmt.Errorf("GETPIN response didn't start with D; got %q", line)
+		return nil, fmt.Errorf("GETPIN response didn't start with D; got %q", line)
 	}
 
 	res.StoreSecret = pi.shouldStoreSecret()
