@@ -6,22 +6,27 @@ import (
 	"testing"
 )
 
-var index *GpgKeyIndex
-
-func TestParseMyKeyring(t *testing.T) {
+func parse(t *testing.T) *GpgKeyIndex {
 	buf := bytes.NewBufferString(my_keyring)
 	i, e, w := ParseGpgIndexStream(buf)
 	if e != nil {
-		t.Errorf("failure in parse: %s", e.Error())
-	} else if !w.IsEmpty() {
-		w.Warn()
-		t.Errorf("Warnings in parsing")
-	} else {
-		index = i
+		t.Fatalf("failure in parse: %s", e)
 	}
+
+	if !w.IsEmpty() {
+		t.Errorf("Warnings in parsing:")
+		w.Warn()
+		return nil
+	}
+	return i
+}
+
+func TestParseMyKeyring(t *testing.T) {
+	parse(t)
 }
 
 func TestFindMax(t *testing.T) {
+	index := parse(t)
 	keylist := index.Emails.Get("themax@gmail.com")
 	if keylist == nil {
 		t.Errorf("nil keylist was not expected")
