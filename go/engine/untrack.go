@@ -138,6 +138,11 @@ func (e *UntrackEngine) loadThem() (them *libkb.User, remoteLink, localLink *lib
 		return
 	}
 
+	if rLink == nil && lLink == nil {
+		err = libkb.NewUntrackError("You are not tracking %s", e.arg.TheirName)
+		return
+	}
+
 	if !uidTrusted {
 		if lLink == nil {
 			err = libkb.NewUntrackError("Could not verify resolved uid for @%s", e.arg.TheirName)
