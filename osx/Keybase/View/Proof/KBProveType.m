@@ -24,7 +24,7 @@ NSString *KBShortNameForServiceName(NSString *serviceName) {
 }
 
 NSString *KBNameForServiceName(NSString *serviceName) {
-  if ([serviceName isEqualTo:@""]) return @"Twitter";
+  if ([serviceName isEqualTo:@"twitter"]) return @"Twitter";
   else if ([serviceName isEqualTo:@"github"]) return @"Github";
   else if ([serviceName isEqualTo:@"reddit"]) return @"Reddit";
   else if ([serviceName isEqualTo:@"coinbase"]) return @"Coinbase";

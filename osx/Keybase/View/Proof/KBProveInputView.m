@@ -72,35 +72,27 @@
   } else if ([serviceName isEqualTo:@"github"]) {
     labelText = @"What's your Github username?";
     placeholder = @"username";
-
   } else if ([serviceName isEqualTo:@"reddit"]) {
     labelText = @"What's your Reddit username?";
     placeholder = @"username";
-
   } else if ([serviceName isEqualTo:@"coinbase"]) {
     labelText = @"What's your Coinbase username?";
     placeholder = @"username";
-
   } else if ([serviceName isEqualTo:@"hackernews"]) {
     labelText = @"What's your HackerNews username?";
     placeholder = @"username";
-
   } else if ([serviceName isEqualTo:@"dns"]) {
     labelText = @"What domain name do you want to add?";
     placeholder = @"yoursite.com";
-
-
   } else if ([serviceName isEqualTo:@"http"]) {
     labelText = @"What website name do you want to add?";
     placeholder = @"yoursite.com";
-
   } else if ([serviceName isEqualTo:@"https"]) {
     labelText = @"What website name do you want to add?";
     placeholder = @"yoursite.com";
   } else if ([serviceName isEqualTo:@"keybase"]) {
     labelText = @"What's your Keybase username?";
     placeholder = @"username";
-
   } else if ([serviceName isEqualTo:@"rooter"]) {
     labelText = @"What's your Rooter username?";
     placeholder = @"username";
