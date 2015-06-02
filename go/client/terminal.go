@@ -1,37 +1,42 @@
 package client
 
 import (
-	"github.com/keybase/client/protocol/go"
 	"io"
+
+	"github.com/keybase/client/go/minterm"
+	keybase1 "github.com/keybase/client/protocol/go"
 )
 
 type Terminal struct {
-	engine *TerminalEngine
+	engine *minterm.MinTerm
 }
 
-func NewTerminal() *Terminal {
-	return &Terminal{NewTerminalEngine()}
+func NewTerminal() (*Terminal, error) {
+	eng, err := minterm.New()
+	if err != nil {
+		return nil, err
+	}
+	return &Terminal{engine: eng}, nil
 }
-func (t Terminal) Startup() error {
-	return t.engine.Startup()
-}
-func (t Terminal) Init() error {
-	return t.engine.Init()
-}
+
 func (t Terminal) Shutdown() error {
 	return t.engine.Shutdown()
 }
+
 func (t Terminal) PromptPassword(s string) (string, error) {
 	return t.engine.PromptPassword(s)
 }
+
 func (t Terminal) Write(s string) error {
 	return t.engine.Write(s)
 }
+
 func (t Terminal) Prompt(s string) (string, error) {
 	return t.engine.Prompt(s)
 }
+
 func (t Terminal) GetSize() (int, int) {
-	return t.engine.GetSize()
+	return t.engine.Size()
 }
 
 func (t Terminal) GetSecret(arg *keybase1.SecretEntryArg) (res *keybase1.SecretEntryRes, err error) {

@@ -604,7 +604,11 @@ func (ui SecretUI) GetSecret(pinentry keybase1.SecretEntryArg, term *keybase1.Se
 }
 
 func (ui *UI) Configure() error {
-	ui.Terminal = NewTerminal()
+	t, err := NewTerminal()
+	if err != nil {
+		return err
+	}
+	ui.Terminal = t
 	ui.SecretEntry = NewSecretEntry(ui.Terminal)
 	return nil
 }
