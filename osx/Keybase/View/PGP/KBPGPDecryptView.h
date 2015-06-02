@@ -20,6 +20,6 @@ typedef void (^KBPGPOnDecrypt)(KBPGPDecryptView *view, KBPGPDecrypted *decrypted
 
 @property (copy) KBPGPOnDecrypt onDecrypt;
 
-- (void)setASCIIData:(NSData *)data;
+- (void)setData:(NSData *)data armored:(BOOL)armored;
 
 @end

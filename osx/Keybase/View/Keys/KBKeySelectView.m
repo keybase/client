@@ -13,6 +13,9 @@
 #import "AppDelegate.h"
 
 @interface KBKeySelectView ()
+@property KBGPGKeysView *keysView;
+@property KBButton *selectButton;
+@property KBButton *cancelButton;
 @end
 
 @implementation KBKeySelectView
@@ -31,12 +34,13 @@
   [footerView addSubview:_selectButton];
   [self addSubview:footerView];
 
-  self.viewLayout = [YOLayout layoutWithLayoutBlock:[KBLayouts borderLayoutWithCenterView:_keysView topView:nil bottomView:footerView insets:UIEdgeInsetsMake(20, 20, 20, 20) spacing:20 maxSize:CGSizeMake(800, 400)]];
-}
-
-- (void)setGPGKeys:(NSArray *)GPGKeys completion:(MPRequestCompletion)completion {
-  [_keysView setGPGKeys:GPGKeys];
   GHWeakSelf gself = self;
+  self.cancelButton.targetBlock = ^{
+    // No selection
+    KBRSelectKeyRes *response = [[KBRSelectKeyRes alloc] init];
+    gself.completion(nil, response);
+  };
+
   _selectButton.targetBlock = ^{
     NSString *keyID = [[gself.keysView selectedGPGKey] keyID];
     if (!keyID) {
@@ -48,14 +52,14 @@
     KBRSelectKeyRes *response = [[KBRSelectKeyRes alloc] init];
     response.keyID = keyID;
     //response.doSecretPush = pushSecret;
-    completion(nil, response);
+    gself.completion(nil, response);
   };
 
-  self.cancelButton.targetBlock = ^{
-    // No selection
-    KBRSelectKeyRes *response = [[KBRSelectKeyRes alloc] init];
-    completion(nil, response);
-  };
+  self.viewLayout = [YOLayout layoutWithLayoutBlock:[KBLayouts borderLayoutWithCenterView:_keysView topView:nil bottomView:footerView insets:UIEdgeInsetsMake(20, 20, 20, 20) spacing:20 maxSize:CGSizeMake(800, 400)]];
+}
+
+- (void)setGPGKeys:(NSArray *)GPGKeys {
+  [_keysView setGPGKeys:GPGKeys];
 }
 
 @end

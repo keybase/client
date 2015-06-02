@@ -55,8 +55,8 @@
   self.viewLayout = [YOLayout layoutWithLayoutBlock:[KBLayouts borderLayoutWithCenterView:_textView topView:topView bottomView:bottomView insets:UIEdgeInsetsZero spacing:0 maxSize:CGSizeMake(800, 400)]];
 }
 
-- (void)setASCIIData:(NSData *)data {
-  [_textView setData:data];
+- (void)setData:(NSData *)data armored:(BOOL)armored {
+  [_textView setData:data armored:armored];
 }
 
 - (void)setupResponders {

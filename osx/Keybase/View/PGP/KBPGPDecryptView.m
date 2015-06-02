@@ -39,8 +39,8 @@
   self.viewLayout = [YOBorderLayout layoutWithCenter:_textView top:nil bottom:@[footerView] insets:UIEdgeInsetsZero spacing:0];
 }
 
-- (void)setASCIIData:(NSData *)data {
-  [_textView setData:data];
+- (void)setData:(NSData *)data armored:(BOOL)armored {
+  [_textView setData:data armored:armored];
 }
 
 - (void)decrypt {

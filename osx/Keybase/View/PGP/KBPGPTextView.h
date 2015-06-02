@@ -12,8 +12,10 @@
 
 @interface KBPGPTextView : KBTextView
 
-@property (nonatomic) NSString *armoredText;
-@property (nonatomic) NSData *data;
+@property (readonly) NSData *data;
 @property (nonatomic, getter=isEditable) BOOL editable;
+@property (readonly, getter=isArmored) BOOL armored;
+
+- (void)setData:(NSData *)data armored:(BOOL)armored;
 
 @end

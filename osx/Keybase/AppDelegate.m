@@ -293,12 +293,11 @@
   [self.appView.window kb_addChildWindowForView:view rect:CGRectMake(0, 0, 400, 400) position:KBWindowPositionCenter title:@"Verify File" fixed:NO makeKey:YES];
 }
 
-+ (dispatch_block_t)openSheetWithView:(NSView *)view size:(CGSize)size sender:(NSView *)sender closeButton:(KBButton *)closeButton {
++ (dispatch_block_t)openSheetWithView:(NSView *)view size:(CGSize)size sender:(NSView *)sender {
   NSWindow *window = [KBWindow windowWithContentView:view size:size retain:NO];
   dispatch_block_t close = ^{
     [[sender window] endSheet:window];
   };
-  closeButton.targetBlock = close;
   [[sender window] beginSheet:window completionHandler:^(NSModalResponse returnCode) {}];
   return close;
 }

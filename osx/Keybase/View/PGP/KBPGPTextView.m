@@ -7,7 +7,7 @@
 //
 
 #import "KBPGPTextView.h"
-#import "KBDefines.h"
+#import "KBAppDefines.h"
 #import "KBFormatter.h"
 
 @implementation KBPGPTextView
@@ -19,10 +19,11 @@
   self.view.textContainerInset = CGSizeMake(10, 10);
   self.view.textColor = KBAppearance.currentAppearance.textColor;
   self.view.font = [KBAppearance.currentAppearance fontForStyle:KBTextStyleDefault options:KBTextOptionsMonospace];
+  GHWeakSelf gself = self;
   self.onPaste = ^BOOL(KBTextView *textView) {
     NSPasteboard *pasteboard = [NSPasteboard generalPasteboard];
     NSString *str = [pasteboard stringForType:NSPasteboardTypeString];
-    [textView setText:str style:KBTextStyleDefault options:KBTextOptionsMonospace alignment:NSLeftTextAlignment lineBreakMode:NSLineBreakByClipping];
+    [gself setData:[str dataUsingEncoding:NSASCIIStringEncoding] armored:YES];
     return NO;
   };
 }
@@ -35,15 +36,14 @@
   return self.view.editable;
 }
 
-- (void)setArmoredText:(NSString *)armoredText {
-  _armoredText = armoredText;
-  _data = nil;
-  [self setText:armoredText style:KBTextStyleDefault options:KBTextOptionsMonospace alignment:NSLeftTextAlignment lineBreakMode:NSLineBreakByClipping];
-}
-
-- (void)setData:(NSData *)data {
+- (void)setData:(NSData *)data armored:(BOOL)armored {
   _data = data;
-  [self setText:KBHexString(_data, @"") style:KBTextStyleDefault options:KBTextOptionsMonospace alignment:NSLeftTextAlignment lineBreakMode:NSLineBreakByClipping];
+  _armored = armored;
+  if (armored) {
+    [self setText:[[NSString alloc] initWithData:_data encoding:NSASCIIStringEncoding] style:KBTextStyleDefault options:KBTextOptionsMonospace alignment:NSLeftTextAlignment lineBreakMode:NSLineBreakByClipping];
+  } else {
+    [self setText:KBHexString(_data, @"") style:KBTextStyleDefault options:KBTextOptionsMonospace alignment:NSLeftTextAlignment lineBreakMode:NSLineBreakByClipping];
+  }
 }
 
 @end

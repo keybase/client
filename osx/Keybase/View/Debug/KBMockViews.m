@@ -176,18 +176,12 @@
   KBRSelectKeyAndPushOptionRequestParams *requestParams = [[KBRSelectKeyAndPushOptionRequestParams alloc] initWithParams:params];
 
   KBKeySelectView *selectView = [[KBKeySelectView alloc] init];
-  [selectView.keysView setGPGKeys:requestParams.keys];
-  __weak KBKeySelectView *gselectView = selectView;
-  selectView.selectButton.targetBlock = ^{
-    DDLogDebug(@"Selected key: %@", gselectView.keysView.selectedGPGKey.keyID);
-  };
-  selectView.cancelButton.dispatchBlock = ^(KBButton *button, KBButtonCompletion completion) { [[button window] close]; };
+  [selectView setGPGKeys:requestParams.keys];
   [self openInWindow:selectView size:CGSizeMake(600, 400) title:nil];
 }
 
 - (void)showImportKey {
   KBKeyImportView *keyImportView = [[KBKeyImportView alloc] init];
-  keyImportView.cancelButton.dispatchBlock = ^(KBButton *button, KBButtonCompletion completion) { [[button window] close]; };
   [self openInWindow:keyImportView size:CGSizeMake(600, 400) title:nil];
 }
 
@@ -305,7 +299,7 @@
 - (void)showPGPDecrypt {
   KBPGPDecryptView *decryptView = [[KBPGPDecryptView alloc] init];
   NSData *data = [NSData dataWithContentsOfFile:[NSBundle.mainBundle pathForResource:@"test" ofType:@"asc"]];
-  [decryptView setASCIIData:data];
+  [decryptView setData:data armored:YES];
   [self openInWindow:decryptView size:CGSizeMake(600, 400) title:@"Decrypt"];
 }
 

@@ -426,17 +426,22 @@
 - (void)selectPGPKey:(KBRSelectKeyAndPushOptionRequestParams *)handler completion:(MPRequestCompletion)completion {
   KBKeySelectView *selectView = [[KBKeySelectView alloc] init];
   selectView.client = self.client;
-  dispatch_block_t close = [AppDelegate openSheetWithView:selectView size:CGSizeMake(600, 400) sender:self closeButton:selectView.cancelButton];
-  [selectView setGPGKeys:handler.keys completion:^(NSError *error, id result) {
+  dispatch_block_t close = [AppDelegate openSheetWithView:selectView size:CGSizeMake(600, 400) sender:self];
+  [selectView setGPGKeys:handler.keys];
+  selectView.completion = ^(NSError *error, id result) {
     close();
     completion(error, result);
-  }];
+  };
 }
 
 - (void)importKey {
   KBKeyImportView *importView = [[KBKeyImportView alloc] init];
   importView.client = self.client;
-  [AppDelegate openSheetWithView:importView size:CGSizeMake(600, 400) sender:self closeButton:importView.cancelButton];
+  dispatch_block_t close = [AppDelegate openSheetWithView:importView size:CGSizeMake(600, 400) sender:self];
+  importView.completion = ^(BOOL imported) {
+    if (imported) [self refresh];
+    close();
+  };
 }
 
 @end

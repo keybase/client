@@ -12,13 +12,9 @@
 
 @interface KBKeyImportView ()
 @property KBPGPTextView *textView;
-
 @property KBButton *importButton;
-
+@property KBButton *cancelButton;
 @property KBButton *chooseFileButton;
-
-@property NSData *data;
-@property NSString *armored;
 @end
 
 @implementation KBKeyImportView
@@ -42,6 +38,7 @@
   [footerView addSubview:_chooseFileButton];
 
   _cancelButton = [KBButton buttonWithText:@"Cancel" style:KBButtonStyleDefault];
+  _cancelButton.targetBlock = ^{ gself.completion(NO); };
   [footerView addSubview:_cancelButton];
 
   _importButton = [KBButton buttonWithText:@"Import" style:KBButtonStylePrimary];
@@ -73,20 +70,21 @@
 
   NSData *data = [NSFileManager.defaultManager contentsAtPath:path];
   if (data.length < 10) return;
-  _data = data;
 
   NSString *prefix = @"-----BEGIN";
-  NSString *asciiPrefix = [[NSString alloc] initWithData:[_data subdataWithRange:NSMakeRange(0, MIN(10, _data.length))] encoding:NSASCIIStringEncoding];
+  NSString *asciiPrefix = [[NSString alloc] initWithData:[data subdataWithRange:NSMakeRange(0, MIN(10, data.length))] encoding:NSASCIIStringEncoding];
   if ([asciiPrefix isEqualTo:prefix]) {
     NSMutableArray *scanned = [NSMutableArray array];
-    NSString *str = [[NSString alloc] initWithData:_data encoding:NSASCIIStringEncoding];
+    NSString *str = [[NSString alloc] initWithData:data encoding:NSASCIIStringEncoding];
     [self scanWithBeginString:@"-----BEGIN PGP PRIVATE KEY BLOCK-----" endString:@"-----END PGP PRIVATE KEY BLOCK-----" text:str scanned:scanned skipped:nil];
-    _armored = [scanned firstObject];
-    //[_armored replaceOccurrencesOfString:@"\n" withString:@"\r\n" options:0 range:NSMakeRange(0, _armored.length)];
-    [_textView setArmoredText:_armored];
+    NSString *armored = [scanned firstObject];
+    //[armored replaceOccurrencesOfString:@"\n" withString:@"\r\n" options:0 range:NSMakeRange(0, _armored.length)];
+    [_textView setData:[armored dataUsingEncoding:NSASCIIStringEncoding] armored:YES];
+
+    // When we support importing gpg exported keys
+    //[_textView setData:data armored:YES];
   } else {
-    _armored = nil;
-    [_textView setData:_data];
+    [_textView setData:data armored:NO];
   }
 }
 
@@ -110,9 +108,11 @@
 - (void)import {
   [KBActivity setProgressEnabled:YES sender:self];
   KBRPgpRequest *request = [[KBRPgpRequest alloc] initWithClient:self.client];
-  [request pgpImportWithSessionID:request.sessionId key:_data pushSecret:NO completion:^(NSError *error) {
+  [request pgpImportWithSessionID:request.sessionId key:_textView.data pushSecret:NO completion:^(NSError *error) {
     [KBActivity setProgressEnabled:NO sender:self];
     if ([KBActivity setError:error sender:self]) return;
+
+    self.completion(YES);
   }];
 }
 

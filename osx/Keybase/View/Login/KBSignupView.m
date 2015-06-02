@@ -9,7 +9,6 @@
 #import "KBSignupView.h"
 #import "AppDelegate.h"
 #import "KBStrengthLabel.h"
-#import "KBKeySelectView.h"
 
 @interface KBSignupView ()
 @property KBTextField *inviteField;

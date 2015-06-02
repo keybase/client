@@ -10,8 +10,10 @@
 
 #import "KBContentView.h"
 
+typedef void (^KBKeyImportCompletion)(BOOL imported);
+
 @interface KBKeyImportView : KBContentView
 
-@property KBButton *cancelButton;
+@property (copy) KBKeyImportCompletion completion;
 
 @end
