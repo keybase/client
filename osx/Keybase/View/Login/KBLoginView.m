@@ -310,9 +310,6 @@
     response.signer = signer;
     [self.navigation setProgressEnabled:YES];
     completion(nil, response);
-
-    // TODO Select signer is changing from callback to request, this is temporary
-    [AppDelegate.appView checkStatus];
   };
 
   deviceSetupView.cancelButton.targetBlock = ^{
