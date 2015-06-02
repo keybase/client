@@ -555,10 +555,16 @@ func (k KeyCannotVerifyError) Error() string {
 	return "Key cannot verify signatures"
 }
 
-type KeyCannotUnboxError struct{}
+type KeyCannotEncryptError struct{}
 
-func (k KeyCannotUnboxError) Error() string {
-	return "Key cannot unbox data"
+func (k KeyCannotEncryptError) Error() string {
+	return "Key cannot encrypt data"
+}
+
+type KeyCannotDecryptError struct{}
+
+func (k KeyCannotDecryptError) Error() string {
+	return "Key cannot decrypt data"
 }
 
 //=============================================================================
