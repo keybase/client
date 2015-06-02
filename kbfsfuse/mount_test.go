@@ -755,6 +755,9 @@ func TestRemoveFileWhileOpenReading_Desired(t *testing.T) {
 }
 
 func TestRemoveFileWhileOpenReading_Current(t *testing.T) {
+	if runtime.GOOS == "darwin" {
+		t.Skip("on OS X, the relevant reads seems to be served from page cache, so we can't get this to trigger")
+	}
 	config := makeTestConfig("jdoe")
 	mnt := makeFS(t, config)
 	defer mnt.Close()
