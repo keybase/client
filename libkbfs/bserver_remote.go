@@ -27,10 +27,6 @@ var (
 	BServerTimeout = 60 * time.Second
 )
 
-// Connectable represents a remote KBFS server
-type TLSConnectable struct {
-}
-
 // BlockServerRemote implements the BlockServer interface and
 // represents a remote KBFS block server.
 type BlockServerRemote struct {
@@ -84,25 +80,27 @@ func TLSConnect(cFile string, Addr string) (conn net.Conn, err error) {
 
 // ConnectOnce tries once to connect to the remote block server.
 func (b *BlockServerRemote) ConnectOnce() error {
-	if c, err := TLSConnect(b.certFile, b.srvAddr); err != nil {
+	var err error
+	if b.conn, err = TLSConnect(b.certFile, b.srvAddr); err != nil {
 		return err
-	} else {
-		b.conn = c
 	}
 
 	b.clt = keybase1.BlockClient{Cli: rpc2.NewClient(
 		rpc2.NewTransport(b.conn, libkb.NewRpcLogFactory(), libkb.WrapError), libkb.UnwrapError)}
 
-	session, err := b.kbpki.GetSession()
-	if err == nil {
-		err = b.clt.EstablishSession(session.GetToken())
-		if err == nil {
-			b.connected = true
-			return nil
-		}
+	var session *libkb.Session
+	if session, err = b.kbpki.GetSession(); err != nil {
+		b.conn.Close()
+		return err
 	}
-	b.conn.Close() //failed to announce session, close the whole thing
-	return err
+
+	if err = b.clt.EstablishSession(session.GetToken()); err != nil {
+		b.conn.Close()
+		return err
+	}
+
+	b.connected = true
+	return nil
 }
 
 // WaitForReconnect waits for the timeout period to reconnect to the
