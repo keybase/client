@@ -6,6 +6,7 @@ import (
 	"io/ioutil"
 	"os"
 	"path"
+	"runtime"
 	"strings"
 	"syscall"
 	"testing"
@@ -66,6 +67,19 @@ func checkDir(t testing.TB, dir string, want map[string]fileInfoCheck) {
 	for filename := range want {
 		t.Errorf("never saw file: %v", filename)
 	}
+}
+
+// fsTimeEqual compares two filesystem-related timestamps.
+//
+// On platforms that don't use nanosecond-accurate timestamps in their
+// filesystem APIs, it truncates the timestamps to make them
+// comparable.
+func fsTimeEqual(a, b time.Time) bool {
+	if runtime.GOOS == "darwin" {
+		a = a.Truncate(1 * time.Second)
+		b = b.Truncate(1 * time.Second)
+	}
+	return a == b
 }
 
 func TestStatRoot(t *testing.T) {
@@ -929,8 +943,8 @@ func TestSetattrMtime(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if g, e := fi.ModTime(), mtime; g != e {
-		t.Errorf("wrong mtime: %v != %v", g, e)
+	if g, e := fi.ModTime(), mtime; !fsTimeEqual(g, e) {
+		t.Errorf("wrong mtime: %v !~= %v", g, e)
 	}
 }
 
