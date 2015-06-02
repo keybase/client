@@ -1,3 +1,3 @@
 package libkb
 
-var CLIENT_VERSION = "0.1.29"
+var CLIENT_VERSION = "0.1.37"

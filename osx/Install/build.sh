@@ -36,7 +36,7 @@ fi
 if [ ! -f "$BUILD_DEST/keybase" ]; then
   echo "  Using source: $KB_GO_SRC"
   echo "  Generating version.go ($VERSION)"
-  echo "package libkb\n\nvar CLIENT_VERSION = \"$VERSION\"\n" > $KB_GO_SRC/libkb/version.go
+  echo "package libkb\n\nvar CLIENT_VERSION = \"$VERSION\"\n" | gofmt > $KB_GO_SRC/libkb/version.go
   mkdir -p $BUILD_DEST
   echo "  Compiling keybase (go)..."
   cd $KB_GO_SRC/keybase/
