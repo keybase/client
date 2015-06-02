@@ -272,6 +272,7 @@ typedef NS_ENUM (NSInteger, KBRProofType) {
 	KBRProofTypeHackernews = 6,
 	KBRProofTypeGenericWebSite = 1000,
 	KBRProofTypeDns = 1001,
+	KBRProofTypeRooter = 100001,
 };
 
 typedef NS_ENUM (NSInteger, KBRTrackDiffType) {

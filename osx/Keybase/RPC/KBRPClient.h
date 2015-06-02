@@ -47,7 +47,7 @@ typedef void (^KBRPClientOnSecret)(NSString *secret);
 
 - (instancetype)initWithConfig:(KBEnvConfig *)config;
 
-- (void)sendRequestWithMethod:(NSString *)method params:(id)params sessionId:(NSInteger)sessionId completion:(MPRequestCompletion)completion;
+- (void)sendRequestWithMethod:(NSString *)method params:(NSDictionary *)params sessionId:(NSInteger)sessionId completion:(MPRequestCompletion)completion;
 - (void)registerMethod:(NSString *)method sessionId:(NSInteger)sessionId requestHandler:(MPRequestHandler)requestHandler;
 - (void)unregister:(NSInteger)sessionId;
 - (NSInteger)nextSessionId;

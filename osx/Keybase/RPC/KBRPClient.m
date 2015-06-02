@@ -172,10 +172,10 @@
   });
 }
 
-- (void)sendRequestWithMethod:(NSString *)method params:(NSArray *)params sessionId:(NSInteger)sessionId completion:(MPRequestCompletion)completion {
+- (void)sendRequestWithMethod:(NSString *)method params:(NSDictionary *)params sessionId:(NSInteger)sessionId completion:(MPRequestCompletion)completion {
   NSTimeInterval delay = 0;
 #ifdef DEBUG
-  delay = 0.5;
+  //delay = 0.5;
 #endif
   if (delay > 0) {
     dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(delay * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
@@ -186,7 +186,7 @@
   }
 }
 
-- (void)_sendRequestWithMethod:(NSString *)method params:(NSArray *)params sessionId:(NSInteger)sessionId completion:(MPRequestCompletion)completion {
+- (void)_sendRequestWithMethod:(NSString *)method params:(NSDictionary *)params sessionId:(NSInteger)sessionId completion:(MPRequestCompletion)completion {
   if (_client.status != MPMessagePackClientStatusOpen) {
     completion(KBMakeErrorWithRecovery(-400, @"We are unable to connect to the Keybase service.", @"You may need to update or re-install to fix this."), nil);
     return;
@@ -194,7 +194,10 @@
 
   NSAssert(sessionId > 0, @"Bad session id");
 
-  [_client sendRequestWithMethod:method params:params messageId:sessionId completion:^(NSError *error, id result) {
+  NSMutableDictionary *mparams = [params mutableCopy];
+  [mparams gh_mutableCompact];
+
+  [_client sendRequestWithMethod:method params:@[mparams] messageId:sessionId completion:^(NSError *error, id result) {
     [self unregister:sessionId];
     if (error) {
       DDLogError(@"%@", error);
@@ -217,11 +220,10 @@
     completion(error, result);
   }];
 
-  NSMutableArray *mparams = [params mutableCopy];
-  mparams[0] = KBScrubPassphrase(params[0]);
+  KBScrubSensitive(mparams);
 
   //NSNumber *messageId = request[1];
-  DDLogDebug(@"Service request: %@(%@)", method, [mparams[0] count] > 0 ? KBDescription(mparams[0]) : @"");
+  DDLogDebug(@"Service request: %@(%@)", method, [mparams count] > 0 ? KBDescription(mparams) : @"");
   if ([NSUserDefaults.standardUserDefaults boolForKey:@"Preferences.Advanced.Record"]) {
     [self.recorder recordRequest:method params:[_client encodeObject:params] sessionId:sessionId callback:NO];
   }
@@ -258,13 +260,11 @@
   }];
 }
 
-NSDictionary *KBScrubPassphrase(NSDictionary *dict) {
-  NSMutableDictionary *mdict = [dict mutableCopy];
-  if (mdict[@"passphrase"]) mdict[@"passphrase"] = @"[FILTERED PASSPHRASE]";
-  if (mdict[@"password"]) mdict[@"password"] = @"[FILTERED PASSWORD]";
-  if (mdict[@"inviteCode"]) mdict[@"inviteCode"] = @"[FILTERED INVITE CODE]";
-  if (mdict[@"email"]) mdict[@"email"] = @"[FILTERED EMAIL]";
-  return mdict;
+void KBScrubSensitive(NSMutableDictionary *dict) {
+  if (dict[@"passphrase"]) dict[@"passphrase"] = @"[FILTERED PASSPHRASE]";
+  if (dict[@"password"]) dict[@"password"] = @"[FILTERED PASSWORD]";
+  if (dict[@"inviteCode"]) dict[@"inviteCode"] = @"[FILTERED INVITE CODE]";
+  if (dict[@"email"]) dict[@"email"] = @"[FILTERED EMAIL]";
 }
 
 #pragma mark -

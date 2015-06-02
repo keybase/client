@@ -259,7 +259,7 @@ paths.each do |path|
       completion(error, result);"
     end
 
-    impl << "  NSArray *params = @[@{#{request_params_items.join(", ")}}];
+    impl << "  NSDictionary *params = @{#{request_params_items.join(", ")}};
   [self.client sendRequestWithMethod:@\"#{rpc_method}\" params:params sessionId:self.sessionId completion:^(NSError *error, id retval) {
     #{callback}
   }];"
