@@ -38,12 +38,12 @@
   rover.objects = installActionsNeeded;
   rover.runBlock = ^(KBInstallAction *installAction, KBRunCompletion runCompletion) {
     DDLogDebug(@"Install: %@", installAction.name);
-    [installAction.component install:^(NSError *error) {
+    [installAction.installable install:^(NSError *error) {
       installAction.installAttempted = YES;
       installAction.installError = error;
 
       if (!error) {
-        [installAction.component updateComponentStatus:^(NSError *error) {
+        [installAction.installable updateComponentStatus:^(NSError *error) {
           runCompletion(installAction);
         }];
       } else {

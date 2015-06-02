@@ -20,6 +20,7 @@ typedef NS_ENUM(NSInteger, KBIcon) {
   KBIconNetwork,
   KBIconExecutableBinary,
   KBIconAlertNote,
+  KBIconExtension,
 
   KBIconPGP,
   KBIconFuse,

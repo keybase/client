@@ -17,16 +17,16 @@
 - (NSString *)info;
 - (NSImage *)image;
 
-- (NSView *)contentView;
+- (NSView *)componentView;
 
-- (void)refresh:(KBCompletion)completion;
+- (void)refreshComponent:(KBCompletion)completion;
 
 @end
 
 @interface KBComponent : NSObject
 
-- (void)refresh:(KBCompletion)completion;
+- (void)refreshComponent:(KBCompletion)completion;
 
-- (NSView *)contentView;
+- (NSView *)componentView;
 
 @end

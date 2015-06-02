@@ -35,39 +35,15 @@
 #import "KBSignupView.h"
 #import "KBFile.h"
 
-@interface KBMockViews ()
-@property KBRMockClient *mockClient;
-@property NSMutableArray *items;
-@end
-
 @implementation KBMockViews
 
 - (void)viewInit {
   [super viewInit];
-  self.wantsLayer = YES;
-  self.layer.backgroundColor = NSColor.whiteColor.CGColor;
-
-  _mockClient = [[KBRMockClient alloc] init];
+  [self kb_setBackgroundColor:NSColor.whiteColor];
 
   YOVBox *contentView = [YOVBox box:@{@"spacing": @"4", @"insets": @"20"}];
-  [contentView addSubview:[KBLabel labelWithText:@"Style Guides" style:KBTextStyleHeader]];
-  [contentView addSubview:[KBButton linkWithText:@"Style Guide" targetBlock:^{ [self showStyleGuide]; }]];
-  [contentView addSubview:[KBBox lineWithInsets:UIEdgeInsetsMake(10, 10, 10, 10)]];
-
   [contentView addSubview:[KBLabel labelWithText:@"Mocks" style:KBTextStyleHeader]];
   [contentView addSubview:[KBLabel labelWithText:@"These views use mock data!" style:KBTextStyleDefault]];
-
-  [contentView addSubview:[KBButton linkWithText:@"PGP Encrypt (Text)" targetBlock:^{ [self showPGPEncrypt]; }]];
-  [contentView addSubview:[KBButton linkWithText:@"PGP Encrypt (Files)" targetBlock:^{ [self showPGPEncryptFile]; }]];
-  [contentView addSubview:[KBButton linkWithText:@"PGP Output" targetBlock:^{ [self showPGPOutput]; }]];
-  [contentView addSubview:[KBButton linkWithText:@"PGP Output (Files)" targetBlock:^{ [self showPGPFileOutput]; }]];
-  [contentView addSubview:[KBButton linkWithText:@"PGP Decrypt (Text)" targetBlock:^{ [self showPGPDecrypt]; }]];
-  [contentView addSubview:[KBButton linkWithText:@"PGP Decrypt (Files)" targetBlock:^{ [self showPGPDecryptFile]; }]];
-  
-  [contentView addSubview:[KBButton linkWithText:@"PGP Sign" targetBlock:^{ [self showPGPSign]; }]];
-  [contentView addSubview:[KBButton linkWithText:@"PGP Sign (File)" targetBlock:^{ [self showPGPSignFile]; }]];
-
-  [contentView addSubview:[KBBox lineWithInsets:UIEdgeInsetsMake(10, 10, 10, 10)]];
 
   [contentView addSubview:[KBButton linkWithText:@"Login" targetBlock:^{ [self showLogin]; }]];
   [contentView addSubview:[KBButton linkWithText:@"Signup" targetBlock:^{ [self showSignup]; }]];
@@ -102,14 +78,15 @@
 
   [contentView addSubview:[KBBox lineWithInsets:UIEdgeInsetsMake(10, 10, 10, 10)]];
 
-  [contentView addSubview:[KBLabel labelWithText:@"Logging" style:KBTextStyleHeader]];
+  [contentView addSubview:[KBButton linkWithText:@"PGP Encrypt (Text)" targetBlock:^{ [self showPGPEncrypt]; }]];
+  [contentView addSubview:[KBButton linkWithText:@"PGP Encrypt (Files)" targetBlock:^{ [self showPGPEncryptFile]; }]];
+  [contentView addSubview:[KBButton linkWithText:@"PGP Output" targetBlock:^{ [self showPGPOutput]; }]];
+  [contentView addSubview:[KBButton linkWithText:@"PGP Output (Files)" targetBlock:^{ [self showPGPFileOutput]; }]];
+  [contentView addSubview:[KBButton linkWithText:@"PGP Decrypt (Text)" targetBlock:^{ [self showPGPDecrypt]; }]];
+  [contentView addSubview:[KBButton linkWithText:@"PGP Decrypt (Files)" targetBlock:^{ [self showPGPDecryptFile]; }]];
 
-  [contentView addSubview:[KBButton linkWithText:@"Error" targetBlock:^{ DDLogError(@"Error!"); }]];
-  [contentView addSubview:[KBButton linkWithText:@"Debug" targetBlock:^{ DDLogDebug(@"Debug!"); }]];
-
-  [contentView addSubview:[KBBox lineWithInsets:UIEdgeInsetsMake(10, 10, 10, 10)]];
-
-  [contentView addSubview:[KBLabel labelWithText:@"Testing " style:KBTextStyleHeader]];
+  [contentView addSubview:[KBButton linkWithText:@"PGP Sign" targetBlock:^{ [self showPGPSign]; }]];
+  [contentView addSubview:[KBButton linkWithText:@"PGP Sign (File)" targetBlock:^{ [self showPGPSignFile]; }]];
 
   [self setDocumentView:contentView];
 }
@@ -130,7 +107,8 @@
 }
 
 - (void)showProve:(NSString *)serviceName {
-  [KBProveView connectWithServiceName:serviceName proofResult:nil client:self.mockClient sender:self completion:^(BOOL success) {
+  KBRMockClient *mockClient = [[KBRMockClient alloc] init];
+  [KBProveView connectWithServiceName:serviceName proofResult:nil client:mockClient window:(KBWindow *)self.window completion:^(BOOL success) {
 
   }];
 }
@@ -141,7 +119,7 @@
 }
 
 - (NSWindow *)openInWindow:(KBContentView *)view size:(CGSize)size title:(NSString *)title {
-  view.client = self.mockClient;
+  view.client = [[KBRMockClient alloc] init];
   return [self.window kb_addChildWindowForView:view rect:CGRectMake(0, 0, size.width, size.height) position:KBWindowPositionCenter title:title fixed:NO makeKey:YES];
 }
 
@@ -198,16 +176,11 @@
   [self openInWindow:view size:CGSizeMake(600, 400) title:nil];
 }
 
-- (void)showStyleGuide {
-  KBStyleGuideView *testView = [[KBStyleGuideView alloc] init];
-  [self openInWindow:testView size:CGSizeMake(300, 400) title:nil];
-}
-
 - (void)showProveInstructions {
   KBProveInstructionsView *instructionsView = [[KBProveInstructionsView alloc] init];
   NSString *proofText = @"Seitan four dollar toast banh mi, ethical ugh umami artisan paleo brunch listicle synth try-hard pop-up. Next level mixtape selfies, freegan Schlitz bitters Echo Park semiotics. Gentrify sustainable farm-to-table, cliche crucifix biodiesel ennui taxidermy try-hard cold-pressed Brooklyn fixie narwhal Bushwick Pitchfork. Ugh Etsy chia 3 wolf moon, drinking vinegar street art yr stumptown cliche Thundercats Marfa umami beard shabby chic Portland. Skateboard Vice four dollar toast stumptown, salvia direct trade hoodie. Wes Anderson swag small batch vinyl, taxidermy biodiesel Shoreditch cray pickled kale chips typewriter deep v. Actually XOXO tousled, freegan Marfa squid trust fund cardigan irony.\n\nPaleo pork belly heirloom dreamcatcher gastropub tousled. Banjo bespoke try-hard, gentrify Pinterest pork belly Schlitz sartorial narwhal Odd Future biodiesel 8-bit before they sold out selvage. Brunch disrupt put a bird on it Neutra organic. Pickled dreamcatcher post-ironic sriracha, organic Austin Bushwick Odd Future Marfa. Narwhal heirloom Tumblr forage trust fund, roof party gentrify keffiyeh High Life synth kogi Banksy. Kitsch photo booth slow-carb pour-over Etsy, Intelligentsia raw denim lomo. Brooklyn PBR&B Kickstarter direct trade literally, jean shorts photo booth narwhal irony kogi.";
   [instructionsView setProofText:proofText serviceName:@"twitter"];
-  [self openInWindow:instructionsView size:CGSizeMake(360, 420) title:@"Keybase"];
+  [self openInWindow:instructionsView size:CGSizeMake(560, 420) title:@"Keybase"];
 }
 
 - (void)showLogin {

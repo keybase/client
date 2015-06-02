@@ -32,7 +32,7 @@
   return self;
 }
 
-- (NSView *)contentView {
+- (NSView *)componentView {
   [self componentDidUpdate];
   return _infoView;
 }
@@ -66,7 +66,7 @@
   [_infoView setProperties:info];
 }
 
-- (void)refresh:(KBCompletion)completion {
+- (void)refreshComponent:(KBCompletion)completion {
   [self updateComponentStatus:^(NSError *error) {
     if (error) {
       completion(error);

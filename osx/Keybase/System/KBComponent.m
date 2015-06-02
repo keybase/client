@@ -10,11 +10,11 @@
 
 @implementation KBComponent
 
-- (NSView *)contentView { return nil; }
+- (NSView *)componentView { return nil; }
 
 - (void)install:(KBCompletion)completion { completion(KBMakeError(-1, @"Nothing to install")); }
 
-- (void)refresh:(KBCompletion)completion { completion(nil); }
+- (void)refreshComponent:(KBCompletion)completion { completion(nil); }
 
 @end
 

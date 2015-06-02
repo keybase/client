@@ -32,7 +32,7 @@
   return [NSImage imageNamed:@"Fuse.icns"];
 }
 
-- (NSView *)contentView {
+- (NSView *)componentView {
   [self componentDidUpdate];
   return _infoView;
 }

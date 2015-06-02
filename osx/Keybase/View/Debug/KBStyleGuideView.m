@@ -112,6 +112,10 @@
   self.viewLayout = [YOLayout fill:scrollView];
 }
 
+- (void)open:(id)sender {
+  [[sender window] kb_addChildWindowForView:self rect:CGRectMake(0, 40, 400, 600) position:KBWindowPositionLeft title:@"Style Guide" fixed:NO makeKey:NO];
+}
+
 - (void)toggleActivity {
   _progressView.animating = !_progressView.isAnimating;
 }

@@ -85,10 +85,10 @@
 - (NSString *)info { return @"Logging goes here"; }
 - (NSImage *)image { return [KBIcons imageForIcon:KBIconAlertNote]; };
 
-- (NSView *)contentView {
+- (NSView *)componentView {
   return self;
 }
 
-- (void)refresh:(KBCompletion)completion { completion(nil); }
+- (void)refreshComponent:(KBCompletion)completion { completion(nil); }
 
 @end

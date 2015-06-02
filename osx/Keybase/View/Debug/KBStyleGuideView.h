@@ -13,4 +13,6 @@
 
 @interface KBStyleGuideView : KBContentView
 
+- (void)open:(id)sender;
+
 @end

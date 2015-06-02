@@ -55,6 +55,7 @@
 		002A2C481B000777006DFB51 /* KBHelperTool.m in Sources */ = {isa = PBXBuildFile; fileRef = 002A2C471B000777006DFB51 /* KBHelperTool.m */; };
 		002A2C4F1B0010D0006DFB51 /* KBInstallerView.m in Sources */ = {isa = PBXBuildFile; fileRef = 002A2C4E1B0010D0006DFB51 /* KBInstallerView.m */; };
 		0032AFA01AEB363600AF4532 /* KBPGPAppView.m in Sources */ = {isa = PBXBuildFile; fileRef = 0032AF9F1AEB363600AF4532 /* KBPGPAppView.m */; };
+		00390FC31B1E5F72001ED3EA /* KBAppDebug.m in Sources */ = {isa = PBXBuildFile; fileRef = 00390FC21B1E5F72001ED3EA /* KBAppDebug.m */; };
 		003C454A1AE5890900431829 /* KBFSStatusView.m in Sources */ = {isa = PBXBuildFile; fileRef = 003C45491AE5890900431829 /* KBFSStatusView.m */; };
 		003C454D1AE6CECD00431829 /* KBFS.m in Sources */ = {isa = PBXBuildFile; fileRef = 003C454C1AE6CECD00431829 /* KBFS.m */; };
 		003C45501AE6D1CA00431829 /* KBHelperDefines.m in Sources */ = {isa = PBXBuildFile; fileRef = 003C454F1AE6D1CA00431829 /* KBHelperDefines.m */; };
@@ -358,6 +359,8 @@
 		002A2C4E1B0010D0006DFB51 /* KBInstallerView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBInstallerView.m; sourceTree = "<group>"; };
 		0032AF9E1AEB363600AF4532 /* KBPGPAppView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBPGPAppView.h; sourceTree = "<group>"; };
 		0032AF9F1AEB363600AF4532 /* KBPGPAppView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBPGPAppView.m; sourceTree = "<group>"; };
+		00390FC11B1E5F72001ED3EA /* KBAppDebug.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBAppDebug.h; sourceTree = "<group>"; };
+		00390FC21B1E5F72001ED3EA /* KBAppDebug.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBAppDebug.m; sourceTree = "<group>"; };
 		003C45481AE5890900431829 /* KBFSStatusView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBFSStatusView.h; sourceTree = "<group>"; };
 		003C45491AE5890900431829 /* KBFSStatusView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBFSStatusView.m; sourceTree = "<group>"; };
 		003C454B1AE6CECD00431829 /* KBFS.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBFS.h; sourceTree = "<group>"; };
@@ -1001,6 +1004,8 @@
 				0013927F1B0A56790082DEA8 /* KBInfoView.m */,
 				0013928F1B0BEBAA0082DEA8 /* KBCustomEnvView.h */,
 				001392901B0BEBAA0082DEA8 /* KBCustomEnvView.m */,
+				00390FC11B1E5F72001ED3EA /* KBAppDebug.h */,
+				00390FC21B1E5F72001ED3EA /* KBAppDebug.m */,
 			);
 			path = Debug;
 			sourceTree = "<group>";
@@ -1698,6 +1703,7 @@
 				00DD245C1AA8DAE300371CDA /* NSView+KBView.m in Sources */,
 				00F0CDD11AE9695D005F738A /* KBIcons.m in Sources */,
 				0053B6E71AC61894001AE392 /* KBPGPDecrypt.m in Sources */,
+				00390FC31B1E5F72001ED3EA /* KBAppDebug.m in Sources */,
 				00B544411A896BA80044CC5B /* KBLoginView.m in Sources */,
 				00FB76C01B0D3A4D0070DEED /* KBFormatter.m in Sources */,
 				00CC436E1A3A9EC7006118A9 /* KBRPC.m in Sources */,

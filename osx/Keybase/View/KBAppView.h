@@ -18,7 +18,7 @@
 - (void)appViewDidUpdateStatus:(KBAppView *)appView;
 @end
 
-@interface KBAppView : YOView
+@interface KBAppView : YOView <KBComponent>
 
 @property (nonatomic) KBRUser *user;
 @property (readonly) KBEnvironment *environment;

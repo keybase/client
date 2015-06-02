@@ -48,6 +48,7 @@
     case KBIconNetwork: coreBundleName = @"GenericNetworkIcon.icns"; break;
     case KBIconExecutableBinary: coreBundleName = @"ExecutableBinaryIcon.icns"; break;
     case KBIconAlertNote: coreBundleName = @"AlertNoteIcon.icns"; break;
+    case KBIconExtension: coreBundleName = @"KEXT.icns"; break;
 
     case KBIconPGP: localBundleName = @"gpgtools.icns"; break;
     case KBIconFuse: localBundleName = @"Fuse.icns"; break;

@@ -25,6 +25,7 @@
 
 #import "KBService.h"
 #import "KBControlPanel.h"
+#import "KBAppDebug.h"
 
 
 typedef NS_ENUM (NSInteger, KBAppViewMode) {
@@ -102,9 +103,12 @@ typedef NS_ENUM (NSInteger, KBAppViewMode) {
 
   [self showInProgress:@"Loading"];
 
-  [AppDelegate.sharedDelegate.controlPanel addComponents:_environment.components];
+  NSMutableArray *componentsForControlPanel = [_environment.componentsForControlPanel mutableCopy];
+  [componentsForControlPanel addObject:self];
 
-  GHWeakSelf gself = self;
+  [AppDelegate.sharedDelegate.controlPanel addComponents:componentsForControlPanel];
+
+  GHWeakSelf gself = self;  
   [_environment installStatus:^(BOOL needsInstall) {
     if (needsInstall) {
       KBInstaller *installer = [[KBInstaller alloc] initWithEnvironment:gself.environment];
@@ -440,5 +444,27 @@ typedef NS_ENUM (NSInteger, KBAppViewMode) {
 //  NSWindow *window = [appView createWindow];
 //  completionHandler(window, nil);
 //}
+
+#pragma mark KBComponent
+
+- (NSString *)name {
+  return @"App";
+}
+
+- (NSString *)info {
+  return @"The Keybase application";
+}
+
+- (NSImage *)image {
+  return [KBIcons imageForIcon:KBIconGenericApp];
+}
+
+- (NSView *)componentView {
+  return [[KBAppDebug alloc] init];
+}
+
+- (void)refreshComponent:(KBCompletion)completion {
+  completion(nil);
+}
 
 @end

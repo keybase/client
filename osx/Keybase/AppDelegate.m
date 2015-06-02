@@ -123,9 +123,6 @@
   _appView.delegate = self;
   [_appView openWindow];
 
-  //KBMockViews *mockViews = [[KBMockViews alloc] init];
-  //[mockViews open:_appView];
-
   [_controlPanel open:_appView];
 
   [_appView openWithEnvironment:environment];

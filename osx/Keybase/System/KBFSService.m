@@ -23,7 +23,7 @@
   return self;
 }
 
-- (NSView *)contentView {
+- (NSView *)componentView {
   [self componentDidUpdate];
   return _infoView;
 }

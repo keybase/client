@@ -30,7 +30,7 @@
   return [KBIcons imageForIcon:KBIconExecutableBinary];
 }
 
-- (NSView *)contentView {
+- (NSView *)componentView {
   [self componentDidUpdate];
   return _infoView;
 }

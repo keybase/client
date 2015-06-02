@@ -19,7 +19,7 @@
 @interface KBEnvironment ()
 @property KBEnvConfig *config;
 @property KBService *service;
-@property NSArray */*of id<KBComponent>*/components;
+@property NSMutableArray */*of id<KBComponent>*/components;
 @property NSArray */*of id<KBInstallable>*/installables;
 @property NSArray */*of KBInstallAction*/installActions;
 
@@ -39,19 +39,23 @@
     // [[KBCLIInstall alloc] initWithConfig:config];
 
     _installables = [NSArray arrayWithObjects:_service, helperTool, fuse, kbfs, nil];
-    _components = [NSArray arrayWithObjects:_service, kbfs, helperTool, fuse, nil];
     _services = [NSArray arrayWithObjects:_service, kbfs, nil];
+    _components = [NSMutableArray arrayWithObjects:_service, kbfs, helperTool, fuse, nil];
 
-    NSArray *components = _config.isInstallEnabled ? _components : nil;
-    _installActions = [components map:^(id<KBInstallable> c) { return [KBInstallAction installActionWithComponent:c]; }];
+    NSArray *installables = _config.isInstallEnabled ? _installables : nil;
+    _installActions = [installables map:^(id<KBInstallable> i) { return [KBInstallAction installActionWithInstallable:i]; }];
   }
   return self;
 }
 
+- (NSArray *)componentsForControlPanel {
+  return _components;
+}
+
 - (NSArray *)installActionsNeeded {
   NSArray *installActions = [_installActions select:^BOOL(KBInstallAction *installAction) {
-    return (installAction.component.componentStatus.installStatus != KBInstallStatusInstalled ||
-            installAction.component.componentStatus.runtimeStatus == KBRuntimeStatusNotRunning);
+    return (installAction.installable.componentStatus.installStatus != KBInstallStatusInstalled ||
+            installAction.installable.componentStatus.runtimeStatus == KBRuntimeStatusNotRunning);
   }];
 
   // Ignore KBFS since it's not ready yet
@@ -66,8 +70,8 @@
   KBRunOver *rover = [[KBRunOver alloc] init];
   rover.objects = _installActions;
   rover.runBlock = ^(KBInstallAction *installAction, KBRunCompletion runCompletion) {
-    DDLogDebug(@"Checking %@", installAction.component.name);
-    [installAction.component updateComponentStatus:^(NSError *error) {
+    DDLogDebug(@"Checking %@", installAction.installable.name);
+    [installAction.installable updateComponentStatus:^(NSError *error) {
       // Clear install outcome
       installAction.installAttempted = NO;
       installAction.installError = error;

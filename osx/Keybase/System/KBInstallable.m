@@ -43,7 +43,7 @@
 
 - (void)updateComponentStatus:(KBCompletion)completion { completion(nil); }
 
-- (void)refresh:(KBCompletion)completion {
+- (void)refreshComponent:(KBCompletion)completion {
   [self updateComponentStatus:completion];
 }
 

@@ -16,10 +16,7 @@
 
 @property (readonly) KBEnvConfig *config;
 @property (readonly) KBService *service;
-@property (readonly) NSArray */*of id<KBComponent>*/components;
-@property (readonly) NSArray */*of id<KBInstallable>*/installables;
 @property (readonly) NSArray */*of KBInstallAction*/installActions;
-
 
 - (instancetype)initWithConfig:(KBEnvConfig *)config;
 
@@ -28,5 +25,7 @@
 - (NSArray *)installActionsNeeded;
 
 - (void)uninstallServices:(KBCompletion)completion;
+
+- (NSArray *)componentsForControlPanel;
 
 @end

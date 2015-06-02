@@ -14,12 +14,12 @@
 
 @interface KBInstallAction : NSObject
 
-@property (readonly) id<KBInstallable> component;
+@property (readonly) id<KBInstallable> installable;
 
 @property BOOL installAttempted;
 @property NSError *installError; // If there was
 
-+ (instancetype)installActionWithComponent:(id<KBInstallable>)component;
++ (instancetype)installActionWithInstallable:(id<KBInstallable>)installable;
 
 - (NSString *)name;
 - (NSString *)statusDescription;

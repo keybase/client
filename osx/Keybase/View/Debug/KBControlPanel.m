@@ -114,10 +114,10 @@
   _selectedComponent = component;
   GHWeakSelf gself = self;
   [KBActivity setProgressEnabled:YES sender:self];
-  [component refresh:^(NSError *error) {
+  [component refreshComponent:^(NSError *error) {
     [KBActivity setProgressEnabled:NO sender:self];
     if (gself.selectedComponent == component) {
-      completion([component contentView]);
+      completion([component componentView]);
     }
   }];
 }
@@ -126,7 +126,7 @@
   if (!_selectedComponent) return;
   [KBActivity setProgressEnabled:YES sender:self];
   GHWeakSelf gself = self;
-  [_selectedComponent refresh:^(NSError *error) {
+  [_selectedComponent refreshComponent:^(NSError *error) {
     [KBActivity setProgressEnabled:NO sender:self];
     [self select:gself.selectedComponent];
   }];

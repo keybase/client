@@ -26,7 +26,7 @@
 @implementation KBHelperTool
 
 - (NSString *)name {
-  return @"Helper";
+  return @"Privileged Helper";
 }
 
 - (NSString *)info {
@@ -34,10 +34,10 @@
 }
 
 - (NSImage *)image {
-  return [KBIcons imageForIcon:KBIconGenericApp];
+  return [KBIcons imageForIcon:KBIconExtension];
 }
 
-- (NSView *)contentView {
+- (NSView *)componentView {
   [self componentDidUpdate];
   return _infoView;
 }

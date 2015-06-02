@@ -9,23 +9,23 @@
 #import "KBInstallAction.h"
 
 @interface KBInstallAction ()
-@property id<KBInstallable> component;
+@property id<KBInstallable> installable;
 @end
 
 @implementation KBInstallAction
 
-+ (instancetype)installActionWithComponent:(id<KBInstallable>)component {
++ (instancetype)installActionWithInstallable:(id<KBInstallable>)installable {
   KBInstallAction *installAction = [[KBInstallAction alloc] init];
-  installAction.component = component;
+  installAction.installable = installable;
   return installAction;
 }
 
 - (NSString *)name {
-  return _component.name;
+  return _installable.name;
 }
 
 - (NSString *)statusDescription {
-  KBComponentStatus *status = _component.componentStatus;
+  KBComponentStatus *status = _installable.componentStatus;
   if (status.error) {
     return NSStringWithFormat(@"Error: %@", status.error.localizedDescription);
   } else if (_installError) {
