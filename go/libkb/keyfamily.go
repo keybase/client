@@ -722,20 +722,23 @@ func (ckf *ComputedKeyFamily) UpdateDevices(tcl TypedChainLink) (err error) {
 	return
 }
 
-func (ckf *ComputedKeyFamily) getSibkeyKidForDevice(did DeviceID) (kid KID, err error) {
+func (ckf *ComputedKeyFamily) getSibkeyKidForDevice(did DeviceID) (KID, error) {
 	G.Log.Debug("+ getSibkeyKidForDevice(%v)", did)
 	G.Log.Debug("| Devices map: %+v", ckf.cki.Devices)
 
-	if device, found := ckf.cki.Devices[did.String()]; !found {
+	var kid KID
+	device, found := ckf.cki.Devices[did.String()]
+	if !found {
 		G.Log.Debug("device %s not found in cki.Devices", did)
-	} else if !device.Kid.IsValid() {
-		G.Log.Debug("device found, but Kid invalid")
-	} else {
-		G.Log.Debug("device found, kid: %s", device.Kid.String())
-		kid = device.Kid
+		return kid, ErrNoDevice
 	}
-	G.Log.Debug("- Result -> (%v,%s)", kid, ErrToOk(err))
-	return
+	if !device.Kid.IsValid() {
+		G.Log.Debug("device found, but Kid invalid")
+		return kid, fmt.Errorf("invalid kid for device %s", did)
+	}
+
+	G.Log.Debug("device found, kid: %s", device.Kid.String())
+	return device.Kid, nil
 }
 
 // GetSibkeyForDevice gets the current per-device key for the given Device. Will
