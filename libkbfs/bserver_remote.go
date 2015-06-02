@@ -17,108 +17,44 @@ import (
 )
 
 var (
-	// ErrNoActiveBlockConn is an error returned when this component
+	// ErrNoActiveConn is an error returned when this component
 	// is not yet connected to the block server.
-	ErrNoActiveBlockConn = errors.New("Not connected to block server")
-	// ErrBlockConnTimeout is an error returned timed out (repeatedly)
+	ErrNoActiveConn = errors.New("Not connected to block server")
+	// ErrConnTimeout is an error returned timed out (repeatedly)
 	// while trying to connect to the block server.
-	ErrBlockConnTimeout = errors.New("Repeatedly failed to connect to block server")
-	// ErrNoActiveBIndexConn is an error returned when this component
-	// is not yet connected to the block index server.
-	ErrNoActiveBIndexConn = errors.New("Not connected to bindex server")
-	// ErrBIndexConnTimeout is an error returned timed out
-	// (repeatedly) while trying to connect to the block index server.
-	ErrBIndexConnTimeout = errors.New("Repeatedly failed to connect to bindex server")
+	ErrConnTimeout = errors.New("Repeatedly failed to connect to block server")
 	// BServerTimeout is the timeout for communications with block server.
 	BServerTimeout = 60 * time.Second
 )
 
 // Connectable represents a remote KBFS server
-type Connectable struct {
-	srvAddr   string
-	conn      net.Conn
-	connected bool
-	lastTried time.Time
-	retryMu   sync.Mutex
+type TLSConnectable struct {
 }
 
 // BlockServerRemote implements the BlockServer interface and
 // represents a remote KBFS block server.
 type BlockServerRemote struct {
-	clt   keybase1.BlockClient
 	kbpki KBPKI
-	Connectable
-}
 
-// TLSConnect connects over TLS to the given server, expecting the
-// connection to be authenticated with the given certificate.
-func TLSConnect(certFile string, srvAddr string) (conn net.Conn, err error) {
-	CAPool := x509.NewCertPool()
-	var cacert []byte
-	cacert, err = ioutil.ReadFile(certFile)
-	if err != nil {
-		return
-	}
-	CAPool.AppendCertsFromPEM(cacert)
+	srvAddr  string
+	certFile string
 
-	config := tls.Config{RootCAs: CAPool}
-	conn, err = tls.Dial("tcp", srvAddr, &config)
-	if err != nil {
-		return
-	}
-	return
-}
+	conn      net.Conn
+	clt       keybase1.BlockClient
+	connected bool
 
-// TCPConnect connects to the given server over plaintext TCP.
-func TCPConnect(srvaddr string) (net.Conn, error) {
-	return net.Dial("tcp", srvaddr)
-}
-
-// ConnectOnce tries one time to connect to the server over TLS.
-func (c *Connectable) ConnectOnce() (err error) {
-	c.conn, err = TLSConnect(c.srvAddr, "./cacert.pem")
-	return
-}
-
-// WaitForReconnect waits for the timeout period to reconnect to the
-// server.
-func (c *Connectable) WaitForReconnect() error {
-	timeout := time.Now().Add(BServerTimeout)
-
-	c.retryMu.Lock()
-	defer c.retryMu.Unlock()
-
-	for !c.connected {
-		c.retryMu.Unlock()
-		if time.Now().After(timeout) {
-			return ErrBlockConnTimeout
-		}
-		time.Sleep(1 * time.Second)
-		c.retryMu.Lock()
-	}
-	return nil
-}
-
-// Reconnect reconnects to the server.
-func (c *Connectable) Reconnect() {
-	c.retryMu.Lock()
-	defer c.retryMu.Unlock()
-
-	for c.ConnectOnce() != nil {
-		c.retryMu.Unlock()
-		time.Sleep(1 * time.Second)
-		c.retryMu.Lock()
-	}
-	return
+	lastTried time.Time
+	retryMu   sync.Mutex
 }
 
 // NewBlockServerRemote constructs a new BlockServerRemote for the
 // given address.
-func NewBlockServerRemote(blkSrvAddr string, bindSrvAddr string, kbpki KBPKI) *BlockServerRemote {
+func NewBlockServerRemote(blkSrvAddr string, kbpki KBPKI) *BlockServerRemote {
 	b := &BlockServerRemote{
-		kbpki: kbpki,
+		kbpki:    kbpki,
+		srvAddr:  blkSrvAddr,
+		certFile: "./cacert.pem",
 	}
-	b.srvAddr = blkSrvAddr
 
 	if err := b.ConnectOnce(); err != nil {
 		go b.Reconnect()
@@ -127,12 +63,33 @@ func NewBlockServerRemote(blkSrvAddr string, bindSrvAddr string, kbpki KBPKI) *B
 	return b
 }
 
+// TLSConnect connects over TLS to the given server, expecting the
+// connection to be authenticated with the given certificate.
+func TLSConnect(cFile string, Addr string) (conn net.Conn, err error) {
+	CAPool := x509.NewCertPool()
+	var cacert []byte
+	cacert, err = ioutil.ReadFile(cFile)
+	if err != nil {
+		return
+	}
+	CAPool.AppendCertsFromPEM(cacert)
+
+	config := tls.Config{RootCAs: CAPool}
+	conn, err = tls.Dial("tcp", Addr, &config)
+	if err != nil {
+		return
+	}
+	return
+}
+
 // ConnectOnce tries once to connect to the remote block server.
 func (b *BlockServerRemote) ConnectOnce() error {
-	err := b.Connectable.ConnectOnce()
-	if err != nil {
+	if c, err := TLSConnect(b.certFile, b.srvAddr); err != nil {
 		return err
+	} else {
+		b.conn = c
 	}
+
 	b.clt = keybase1.BlockClient{Cli: rpc2.NewClient(
 		rpc2.NewTransport(b.conn, libkb.NewRpcLogFactory(), libkb.WrapError), libkb.UnwrapError)}
 
@@ -146,6 +103,38 @@ func (b *BlockServerRemote) ConnectOnce() error {
 	}
 	b.conn.Close() //failed to announce session, close the whole thing
 	return err
+}
+
+// WaitForReconnect waits for the timeout period to reconnect to the
+// server.
+func (b *BlockServerRemote) WaitForReconnect() error {
+	timeout := time.Now().Add(BServerTimeout)
+
+	b.retryMu.Lock()
+	defer b.retryMu.Unlock()
+
+	for !b.connected {
+		b.retryMu.Unlock()
+		if time.Now().After(timeout) {
+			return ErrConnTimeout
+		}
+		time.Sleep(1 * time.Second)
+		b.retryMu.Lock()
+	}
+	return nil
+}
+
+// Reconnect reconnects to block server.
+func (b *BlockServerRemote) Reconnect() {
+	b.retryMu.Lock()
+	defer b.retryMu.Unlock()
+
+	for b.ConnectOnce() != nil {
+		b.retryMu.Unlock()
+		time.Sleep(1 * time.Second)
+		b.retryMu.Lock()
+	}
+	return
 }
 
 // Shutdown closes the connection to this remote block server.
@@ -163,7 +152,8 @@ func (b *BlockServerRemote) Get(id BlockID, context BlockContext) ([]byte, error
 	//XXX: if fails due to connection problem, should reconnect
 	bid := keybase1.BlockIdCombo{
 		BlockHash: hex.EncodeToString(id[:]),
-		Size:      0,
+		Size:      int(context.GetQuotaSize()),
+		ChargedTo: context.GetWriter(),
 	}
 
 	res, err := b.clt.GetBlock(bid)
@@ -171,7 +161,6 @@ func (b *BlockServerRemote) Get(id BlockID, context BlockContext) ([]byte, error
 		return nil, err
 	}
 	return res.Buf, err
-	//XXX: need to fetch the block key
 }
 
 // Put implements the BlockServer interface for BlockServerRemote.
@@ -183,11 +172,17 @@ func (b *BlockServerRemote) Put(id BlockID, context BlockContext, buf []byte) er
 	}
 	arg := keybase1.PutBlockArg{
 		Bid: keybase1.BlockIdCombo{
-			ChargedTo: keybase1.UID(context.GetWriter()),
+			ChargedTo: context.GetWriter(),
 			BlockHash: hex.EncodeToString(id[:]),
-			Size:      len(buf),
+			Size:      int(context.GetQuotaSize()),
 		},
-		Folder: "",
+		Skey: keybase1.BlockKey{
+			EpochID:     0,
+			EpochKey:    "DEADBEEF",
+			RandBlockId: "DEADBEEF",
+			BlockKey:    "DEADBEEF",
+		},
+		Folder: "", //XXX: strib needs to tell me what folder this block belongs
 		Buf:    buf,
 	}
 	if err := b.clt.PutBlock(arg); err != nil {
