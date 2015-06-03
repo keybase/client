@@ -9,8 +9,8 @@ import (
 	"strings"
 	"time"
 
-	"golang.org/x/crypto/openpgp/packet"
 	keybase1 "github.com/keybase/client/protocol/go"
+	"golang.org/x/crypto/openpgp/packet"
 )
 
 //=============================================================================
@@ -229,9 +229,9 @@ func (k *GpgPrimaryKey) GetFingerprint() *PgpFingerprint {
 }
 
 func (k *GpgPrimaryKey) GetPgpIdentities() []keybase1.PgpIdentity {
-	ret := make([]keybase1.PgpIdentity, 0, len(k.identities))
-	for _, i := range k.identities {
-		ret = append(ret, i.Export())
+	ret := make([]keybase1.PgpIdentity, len(k.identities))
+	for i, ident := range k.identities {
+		ret[i] = ident.Export()
 	}
 	return ret
 }

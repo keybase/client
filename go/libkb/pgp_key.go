@@ -584,9 +584,9 @@ func (k *PgpKeyBundle) IdentityNames() []string {
 }
 
 func (k *PgpKeyBundle) GetPgpIdentities() []keybase1.PgpIdentity {
-	ret := make([]keybase1.PgpIdentity, 0, len(k.Identities))
-	for _, i := range k.Identities {
-		ret = append(ret, keybase1.PgpIdentity{Username: i.UserId.Name, Email: i.UserId.Email, Comment: i.UserId.Comment})
+	ret := make([]keybase1.PgpIdentity, len(k.Identities))
+	for _, pgpIdentity := range k.Identities {
+		ret = append(ret, ExportPgpIdentity(pgpIdentity))
 	}
 	return ret
 }
