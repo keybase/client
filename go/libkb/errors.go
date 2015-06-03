@@ -277,7 +277,7 @@ type KeyExistsError struct {
 func (k KeyExistsError) Error() string {
 	ret := "Key already exists for user"
 	if k.Key != nil {
-		fmt.Sprintf("%s (%s)", ret, k.Key)
+		ret = fmt.Sprintf("%s (%s)", ret, k.Key)
 	}
 	return ret
 }
