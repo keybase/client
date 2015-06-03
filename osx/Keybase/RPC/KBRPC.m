@@ -260,6 +260,7 @@
 @end
 
 @implementation KBRGPGKey
++ (NSValueTransformer *)identitiesJSONTransformer { return [MTLJSONAdapter arrayTransformerWithModelClass:KBRPgpIdentity.class]; }
 @end
 
 @implementation KBRSelectKeyRes

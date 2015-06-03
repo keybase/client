@@ -106,7 +106,7 @@ func (e *GPGImportKeyEngine) Run(ctx *Context) (err error) {
 			Algorithm:  fmt.Sprintf("%d%s", key.Bits, key.AlgoString()),
 			KeyID:      key.GetFingerprint().ToKeyId(),
 			Expiration: key.ExpirationString(),
-			Identities: key.GetEmails(),
+			Identities: key.GetPgpIdentities(),
 		}
 		gks = append(gks, gk)
 	}

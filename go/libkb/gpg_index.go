@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"golang.org/x/crypto/openpgp/packet"
+	keybase1 "github.com/keybase/client/protocol/go"
 )
 
 //=============================================================================
@@ -225,6 +226,14 @@ func (k *GpgPrimaryKey) AddFingerprint(l *GpgIndexLine) (err error) {
 
 func (k *GpgPrimaryKey) GetFingerprint() *PgpFingerprint {
 	return k.fingerprint
+}
+
+func (k *GpgPrimaryKey) GetPgpIdentities() []keybase1.PgpIdentity {
+	ret := make([]keybase1.PgpIdentity, 0, len(k.identities))
+	for _, i := range k.identities {
+		ret = append(ret, i.Export())
+	}
+	return ret
 }
 
 func (k *GpgPrimaryKey) GetEmails() []string {

@@ -36,7 +36,7 @@
   column3.title = @"Expiration";
   [self.view addTableColumn:column3];
   NSTableColumn *column4 = [[NSTableColumn alloc] initWithIdentifier:@"identities"];
-  column4.title = @"Email";
+  column4.title = @"UserId";
   [self.view addTableColumn:column4];
 }
 
@@ -57,7 +57,7 @@
   } else if ([tableColumn.identifier isEqualTo:@"expiration"]) {
     return [key expiration];
   } else if ([tableColumn.identifier isEqualTo:@"identities"]) {
-    return [[key identities] join:@", "];
+    return [[[key identities] map:^(KBRPgpIdentity *i) { return NSStringWithFormat(@"%@ <%@>", i.username, i.email); }] join:@", "];
   }
   return nil;
 }

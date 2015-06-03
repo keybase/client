@@ -2,9 +2,9 @@ package client
 
 import (
 	"fmt"
+	"strings"
 	keybase1 "github.com/keybase/client/protocol/go"
 	"github.com/maxtaco/go-framed-msgpack-rpc/rpc2"
-	"strings"
 	"text/tabwriter"
 )
 
@@ -21,10 +21,14 @@ func (g GPGUI) SelectKeyAndPushOption(arg keybase1.SelectKeyAndPushOptionArg) (r
 	w := new(tabwriter.Writer)
 	w.Init(g.parent.OutputWriter(), 5, 0, 3, ' ', 0)
 
-	fmt.Fprintf(w, "#\tAlgo\tKey Id\tExpires\tEmail\n")
+	fmt.Fprintf(w, "#\tAlgo\tKey Id\tExpires\tUserId\n")
 	fmt.Fprintf(w, "=\t====\t======\t=======\t=====\n")
 	for i, k := range arg.Keys {
-		(fmt.Fprintf(w, "%d\t%s\t%s\t%s\t%s\n", i+1, k.Algorithm, k.KeyID, k.Expiration, strings.Join(k.Identities, ", ")))
+		userIds := make([]string, 0, len(k.Identities))
+		for _, userId := range k.Identities {
+			userIds = append(userIds, fmt.Sprintf("%s <%s>", userId.Username, userId.Email))
+		}
+		(fmt.Fprintf(w, "%d\t%s\t%s\t%s\t%s\n", i+1, k.Algorithm, k.KeyID, k.Expiration, strings.Join(userIds, ", ")))
 	}
 	w.Flush()
 
@@ -44,10 +48,14 @@ func (g GPGUI) SelectKey(arg keybase1.SelectKeyArg) (string, error) {
 	w := new(tabwriter.Writer)
 	w.Init(g.parent.OutputWriter(), 5, 0, 3, ' ', 0)
 
-	fmt.Fprintf(w, "#\tAlgo\tKey Id\tCreated\tEmail\n")
+	fmt.Fprintf(w, "#\tAlgo\tKey Id\tCreated\tUserId\n")
 	fmt.Fprintf(w, "=\t====\t======\t=======\t=====\n")
 	for i, k := range arg.Keys {
-		(fmt.Fprintf(w, "%d\t%s\t%s\t%s\t%s\n", i+1, k.Algorithm, k.KeyID, k.Creation, strings.Join(k.Identities, ", ")))
+		userIds := make([]string, 0, len(k.Identities))
+		for _, userId := range k.Identities {
+			userIds = append(userIds, fmt.Sprintf("%s <%s>", userId.Username, userId.Email))
+		}
+		(fmt.Fprintf(w, "%d\t%s\t%s\t%s\t%s\n", i+1, k.Algorithm, k.KeyID, k.Creation, strings.Join(userIds, ", ")))
 	}
 	w.Flush()
 

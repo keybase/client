@@ -184,7 +184,7 @@
       "name" : "identities",
       "type" : {
         "type" : "array",
-        "items" : "string"
+        "items" : "PgpIdentity"
       }
     } ]
   }, {

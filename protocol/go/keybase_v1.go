@@ -622,11 +622,11 @@ func (c DoctorUiClient) DisplayResult(__arg DisplayResultArg) (err error) {
 }
 
 type GPGKey struct {
-	Algorithm  string   `codec:"algorithm" json:"algorithm"`
-	KeyID      string   `codec:"keyID" json:"keyID"`
-	Creation   string   `codec:"creation" json:"creation"`
-	Expiration string   `codec:"expiration" json:"expiration"`
-	Identities []string `codec:"identities" json:"identities"`
+	Algorithm  string        `codec:"algorithm" json:"algorithm"`
+	KeyID      string        `codec:"keyID" json:"keyID"`
+	Creation   string        `codec:"creation" json:"creation"`
+	Expiration string        `codec:"expiration" json:"expiration"`
+	Identities []PgpIdentity `codec:"identities" json:"identities"`
 }
 
 type SelectKeyRes struct {

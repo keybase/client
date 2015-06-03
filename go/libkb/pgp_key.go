@@ -531,6 +531,14 @@ func (k *PgpKeyBundle) IdentityNames() []string {
 	return names
 }
 
+func (k *PgpKeyBundle) GetPgpIdentities() []keybase1.PgpIdentity {
+	ret := make([]keybase1.PgpIdentity, 0, len(k.Identities))
+	for _, i := range k.Identities {
+		ret = append(ret, keybase1.PgpIdentity{Username: i.UserId.Name, Email: i.UserId.Email, Comment:i.UserId.Comment})
+	}
+	return ret
+}
+
 func (k *PgpKeyBundle) CheckIdentity(kbid Identity) (match bool, ctime int64, etime int64) {
 	ctime, etime = -1, -1
 	for _, pgpIdentity := range k.Identities {

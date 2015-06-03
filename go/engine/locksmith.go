@@ -526,7 +526,7 @@ func (d *Locksmith) selectPGPKey(ctx *Context, keys []*libkb.PgpKeyBundle) (*lib
 			Algorithm:  algo,
 			KeyID:      kid,
 			Creation:   creation,
-			Identities: key.IdentityNames(),
+			Identities: key.GetPgpIdentities(),
 		}
 		gks = append(gks, gk)
 	}

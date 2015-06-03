@@ -8,7 +8,7 @@ protocol gpgUi {
 		string keyID;
 		string creation;
 		string expiration;
-		array<string> identities;
+		array<PgpIdentity> identities;
 	}
 
 	record SelectKeyRes {

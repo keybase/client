@@ -195,7 +195,7 @@ typedef NS_ENUM (NSInteger, KBRDoctorFixType) {
 @property NSString *keyID;
 @property NSString *creation;
 @property NSString *expiration;
-@property NSArray *identities; /*of string*/
+@property NSArray *identities; /*of KBRPgpIdentity*/
 @end
 
 @interface KBRSelectKeyRes : KBRObject
