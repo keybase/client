@@ -1,6 +1,7 @@
 package client
 
 import (
+	"encoding/json"
 	"fmt"
 	"os"
 	"strings"
@@ -20,6 +21,8 @@ type CmdListTrackers struct {
 	uid      keybase1.UID
 	username string
 	verbose  bool
+	json     bool
+	headers  bool
 }
 
 // NewCmdListTrackers creates a new cli.Command.
@@ -36,6 +39,14 @@ func NewCmdListTrackers(cl *libcmdline.CommandLine) cli.Command {
 			cli.BoolFlag{
 				Name:  "v, verbose",
 				Usage: "a full dump, with more gory detail",
+			},
+			cli.BoolFlag{
+				Name:  "j, json",
+				Usage: "output in json format; default is text",
+			},
+			cli.BoolFlag{
+				Name:  "H, headers",
+				Usage: "show column headers",
 			},
 		},
 		Action: func(c *cli.Context) {
@@ -142,8 +153,10 @@ func (c *CmdListTrackers) headout(count int) *tabwriter.Writer {
 
 	w := new(tabwriter.Writer)
 	w.Init(os.Stdout, 5, 0, 3, ' ', 0)
-	fmt.Fprintf(w, "Username\tFull name\tProofs\n")
-	fmt.Fprintf(w, "==========\t==========\t==========\n")
+	if c.headers {
+		fmt.Fprintf(w, "Username\tFull name\tProofs\n")
+		fmt.Fprintf(w, "==========\t==========\t==========\n")
+	}
 	return w
 }
 
@@ -156,6 +169,10 @@ func (c *CmdListTrackers) output(trs []keybase1.Tracker, summarizer batchfn) (er
 	if len(sums) == 0 {
 		fmt.Printf("no trackers\n")
 		return nil
+	}
+
+	if c.json {
+		return c.outputJSON(sums)
 	}
 
 	if c.verbose {
@@ -174,6 +191,40 @@ func (c *CmdListTrackers) output(trs []keybase1.Tracker, summarizer batchfn) (er
 		}
 	}
 
+	return nil
+}
+
+func (c *CmdListTrackers) outputJSON(sums []keybase1.UserSummary) error {
+	type smallProofs struct {
+		Social     []keybase1.TrackProof `json:"social,omitempty"`
+		Web        []keybase1.WebProof   `json:"web,omitempty"`
+		PublicKeys []keybase1.PublicKey  `json:"public_keys,omitempty"`
+	}
+	type smallSum struct {
+		Uid      keybase1.UID `json:"uid"`
+		Username string       `json:"username"`
+		FullName string       `json:"full_name,omitempty"`
+		Proofs   smallProofs  `json:"proofs,omitempty"`
+	}
+	small := make([]smallSum, len(sums))
+	for i, s := range sums {
+		small[i] = smallSum{
+			Uid:      s.Uid,
+			Username: s.Username,
+			FullName: s.FullName,
+			Proofs: smallProofs{
+				Social:     s.Proofs.Social,
+				Web:        s.Proofs.Web,
+				PublicKeys: s.Proofs.PublicKeys,
+			},
+		}
+	}
+
+	j, err := json.MarshalIndent(small, "", "\t")
+	if err != nil {
+		return err
+	}
+	fmt.Println(string(j))
 	return nil
 }
 
@@ -205,6 +256,8 @@ func (c *CmdListTrackers) ParseArgv(ctx *cli.Context) error {
 	}
 
 	c.verbose = ctx.Bool("verbose")
+	c.json = ctx.Bool("json")
+	c.headers = ctx.Bool("headers")
 
 	return nil
 }

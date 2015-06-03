@@ -38,7 +38,15 @@ func (s *CmdListTracking) ParseArgv(ctx *cli.Context) error {
 	return err
 }
 
-func DisplayTable(entries []keybase1.UserSummary, verbose bool, headers bool) (err error) {
+func displayTable(entries []keybase1.UserSummary, verbose bool, headers bool) (err error) {
+	if verbose {
+		noun := "users"
+		if len(entries) == 1 {
+			noun = "user"
+		}
+		fmt.Printf("Tracking %d %s:\n\n", len(entries), noun)
+	}
+
 	var cols []string
 
 	if headers {
@@ -116,7 +124,7 @@ func (s *CmdListTracking) RunClient() error {
 	if err != nil {
 		return err
 	}
-	return DisplayTable(table, s.verbose, s.headers)
+	return displayTable(table, s.verbose, s.headers)
 }
 
 func (s *CmdListTracking) Run() (err error) {
@@ -135,7 +143,7 @@ func (s *CmdListTracking) Run() (err error) {
 	if s.json {
 		err = DisplayJSON(eng.JSONResult())
 	} else {
-		err = DisplayTable(eng.TableResult(), s.verbose, s.headers)
+		err = displayTable(eng.TableResult(), s.verbose, s.headers)
 	}
 	return
 }
