@@ -10,7 +10,7 @@
 
 #import "KBContentView.h"
 
-typedef void (^KBKeyImportCompletion)(BOOL imported);
+typedef void (^KBKeyImportCompletion)(id sender, BOOL imported);
 
 @interface KBKeyImportView : KBContentView
 

@@ -29,18 +29,12 @@
   _inputField = [[KBTextField alloc] init];
   [self addSubview:_inputField];
 
-  _button = [KBButton buttonWithText:@"Connect" style:KBButtonStylePrimary];
-  [self addSubview:_button];
-  _cancelButton = [KBButton buttonWithText:@"Cancel" style:KBButtonStyleLink];
-  [self addSubview:_cancelButton];
-
   YOHBox *bottomView = [YOHBox box:@{@"spacing": @(20), @"minSize": @"130,0", @"horizontalAlignment": @"center"}];
   [self addSubview:bottomView];
   _cancelButton = [KBButton buttonWithText:@"Cancel" style:KBButtonStyleDefault];
   [bottomView addSubview:_cancelButton];
   _button = [KBButton buttonWithText:@"Connect" style:KBButtonStylePrimary];
   [bottomView addSubview:_button];
-
 
   YOSelf yself = self;
   self.viewLayout = [YOLayout layoutWithLayoutBlock:^(id<YOLayout> layout, CGSize size) {

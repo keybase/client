@@ -23,6 +23,7 @@
 #import "KBKeyView.h"
 #import "KBKeyImportView.h"
 #import "KBProveType.h"
+#import "KBAlertView.h"
 
 @interface KBUserProfileView ()
 @property KBScrollView *scrollView;
@@ -365,20 +366,20 @@
 - (void)addPGPKey {
   KBRConfigRequest *request = [[KBRConfigRequest alloc] initWithClient:self.client];
   [request getConfigWithSessionID:request.sessionId completion:^(NSError *error, KBRConfig *config) {
-    KBAlert *alert = [[KBAlert alloc] init];
+    KBAlertView *alert = [[KBAlertView alloc] init];
     [alert addButtonWithTitle:@"Import Manually" tag:1];
     if (config.gpgExists) [alert addButtonWithTitle:@"Import from GPG" tag:2];
     [alert addButtonWithTitle:@"Generate New Key" tag:3];
     [alert addButtonWithTitle:@"Cancel" tag:5];
+
     [alert setMessageText:@"Already have a PGP key?"];
     [alert setInformativeText:@"Would you like to import a key, or generate a new one?"];
-    [alert setAlertStyle:NSInformationalAlertStyle];
-    [alert showInView:self completion:^(NSModalResponse response) {
-      if (response == 2) {
+    [alert showInView:self completion:^(NSInteger tag) {
+      if (tag == 2) {
         [self selectGPGKey];
-      } else if (response == 1) {
+      } else if (tag == 1) {
         [self importKey];
-      } else if (response == 3) {
+      } else if (tag == 3) {
         [self generatePGPKey];
       }
     }];
@@ -426,21 +427,23 @@
 - (void)selectPGPKey:(KBRSelectKeyAndPushOptionRequestParams *)handler completion:(MPRequestCompletion)completion {
   KBKeySelectView *selectView = [[KBKeySelectView alloc] init];
   selectView.client = self.client;
-  dispatch_block_t close = [AppDelegate openSheetWithView:selectView size:CGSizeMake(600, 400) sender:self];
+
+  [(KBWindow *)self.window addModalWindowForView:selectView rect:CGRectMake(0, 0, 620, 420)];
+
   [selectView setGPGKeys:handler.keys];
-  selectView.completion = ^(NSError *error, id result) {
-    close();
-    completion(error, result);
+  selectView.completion = ^(id sender, id result) {
+    [[sender window] close];
+    completion(nil, result);
   };
 }
 
 - (void)importKey {
   KBKeyImportView *importView = [[KBKeyImportView alloc] init];
   importView.client = self.client;
-  dispatch_block_t close = [AppDelegate openSheetWithView:importView size:CGSizeMake(600, 400) sender:self];
-  importView.completion = ^(BOOL imported) {
+  [(KBWindow *)self.window addModalWindowForView:importView rect:CGRectMake(0, 0, 620, 420)];
+  importView.completion = ^(id sender, BOOL imported) {
     if (imported) [self refresh];
-    close();
+    [[sender window] close];
   };
 }
 

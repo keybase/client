@@ -28,7 +28,7 @@
   self.viewLayout = [YOLayout layoutWithLayoutBlock:^(id<YOLayout> layout, CGSize size) {
     CGFloat x = 6;
 
-    CGFloat iconWidth = size.height - roundf(size.height / 5.0);
+    CGFloat iconWidth = size.height - ceilf(size.height / 5.0);
     x += [layout centerWithSize:CGSizeMake(iconWidth, iconWidth) frame:CGRectMake(x, 0, 16, size.height) view:yself.imageView].size.width + 7;
     [layout centerWithSize:CGSizeMake(size.width - x, 0) frame:CGRectMake(x, 0, 0, size.height) view:yself.nameLabel];
 

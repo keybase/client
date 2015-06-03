@@ -86,7 +86,7 @@
                               NSCursorAttributeName: NSCursor.pointingHandCursor
                               },
                           @"ok": @{NSForegroundColorAttributeName: KBAppearance.currentAppearance.okColor},
-                          @"error": @{NSForegroundColorAttributeName: KBAppearance.currentAppearance.errorColor},
+                          @"error": @{NSForegroundColorAttributeName: KBAppearance.currentAppearance.dangerColor},
                           @"thin": @{NSFontAttributeName: [NSFont fontWithName:@"Helvetica Neue Thin" size:font.pointSize]},
                           @"color": @{},
                           };

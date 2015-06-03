@@ -26,6 +26,8 @@
 #import "KBService.h"
 #import "KBControlPanel.h"
 #import "KBAppDebug.h"
+#import "KBSecretPromptView.h"
+#import "KBMockViews.h"
 
 
 typedef NS_ENUM (NSInteger, KBAppViewMode) {
@@ -97,6 +99,11 @@ typedef NS_ENUM (NSInteger, KBAppViewMode) {
 
 - (void)openWithEnvironment:(KBEnvironment *)environment {
   _environment = environment;
+
+#ifdef DEBUG
+  KBMockViews *mockViews = [[KBMockViews alloc] init];
+  [mockViews open:self];
+#endif
 
   NSDictionary *info = [[NSBundle mainBundle] infoDictionary];
   DDLogInfo(@"Keybase.app Version: %@", info[@"CFBundleShortVersionString"]);
@@ -359,17 +366,17 @@ typedef NS_ENUM (NSInteger, KBAppViewMode) {
   DDLogInfo(message);
 }
 
-- (void)RPClient:(KBRPClient *)RPClient didRequestSecretForPrompt:(NSString *)prompt description:(NSString *)description secret:(KBRPClientOnSecret)secret {
-  [KBAlert promptForInputWithTitle:prompt description:description secure:YES style:NSCriticalAlertStyle buttonTitles:@[@"OK", @"Cancel"] view:self completion:^(NSModalResponse response, NSString *password) {
-    password = response == NSAlertFirstButtonReturn ? password : nil;
-    secret(password);
-  }];
+- (void)RPClient:(KBRPClient *)RPClient didRequestSecretForPrompt:(NSString *)prompt info:(NSString *)info details:(NSString *)details previousError:(NSString *)previousError completion:(KBRPClientOnSecret)completion {
+  KBSecretPromptView *secretPrompt = [[KBSecretPromptView alloc] init];
+  [secretPrompt setHeader:prompt info:info details:details previousError:previousError];
+  secretPrompt.completion = completion;
+  [secretPrompt openInWindow:(KBWindow *)self.window];
 }
 
-- (void)RPClient:(KBRPClient *)RPClient didRequestKeybasePassphraseForUsername:(NSString *)username passphrase:(KBRPClientOnPassphrase)passphrase {
+- (void)RPClient:(KBRPClient *)RPClient didRequestKeybasePassphraseForUsername:(NSString *)username completion:(KBRPClientOnPassphrase)completion {
   [KBAlert promptForInputWithTitle:@"Passphrase" description:NSStringWithFormat(@"What's your passphrase (for user %@)?", username) secure:YES style:NSCriticalAlertStyle buttonTitles:@[@"OK", @"Cancel"] view:self completion:^(NSModalResponse response, NSString *password) {
     password = response == NSAlertFirstButtonReturn ? password : nil;
-    passphrase(password);
+    completion(password);
   }];
 }
 

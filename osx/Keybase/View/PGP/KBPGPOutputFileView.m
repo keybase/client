@@ -37,7 +37,7 @@
   };
   footerView.closeButton.targetBlock = ^{ [[self window] close]; };
 
-  self.viewLayout = [YOLayout layoutWithLayoutBlock:[KBLayouts borderLayoutWithCenterView:_fileListView topView:nil bottomView:footerView insets:UIEdgeInsetsZero spacing:0 maxSize:CGSizeMake(600, 450)]];
+  self.viewLayout = [YOBorderLayout layoutWithCenter:_fileListView top:nil bottom:@[footerView] insets:UIEdgeInsetsZero spacing:0];
 }
 
 - (void)setFiles:(NSArray *)files {

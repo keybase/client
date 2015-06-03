@@ -61,7 +61,7 @@
   _footerView.signButton.targetBlock = ^{ [gself sign]; };
   [self addSubview:_footerView];
 
-  self.viewLayout = [YOLayout layoutWithLayoutBlock:[KBLayouts borderLayoutWithCenterView:contentView topView:nil bottomView:_footerView insets:UIEdgeInsetsZero spacing:0 maxSize:CGSizeMake(800, 400)]];
+  self.viewLayout = [YOBorderLayout layoutWithCenter:contentView top:nil bottom:@[_footerView] insets:UIEdgeInsetsZero spacing:0];
 }
 
 - (void)sign {

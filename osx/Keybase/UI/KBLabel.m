@@ -243,7 +243,6 @@
 
 - (void)setBackgroundStyle:(NSBackgroundStyle)backgroundStyle {
   //NSAssert(_style != KBTextStyleNone, @"Background style only works if label.style is set");
-  if (_style == KBTextStyleNone) return;
   id<KBAppearance> appearance = (backgroundStyle == NSBackgroundStyleDark ? KBAppearance.darkAppearance : KBAppearance.lightAppearance);
   NSColor *color = [appearance colorForStyle:_style options:_options];
   [self setFont:nil color:color];

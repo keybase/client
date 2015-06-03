@@ -11,8 +11,8 @@
 #import <YOLayout/YOCGUtils.h>
 
 @interface NSView (KBView)
-- (void)setupResponders;
 - (void)setNavigation:(KBNavigationView *)navigation;
+- (void)viewDidAppear:(BOOL)animated;
 @end
 
 @interface KBWindow () <NSWindowDelegate>
@@ -84,11 +84,11 @@
 
   [self kb_addChildWindow:window rect:CGRectMake(0, 0, size.width, size.height) position:KBWindowPositionCenter];
 
-  if ([view respondsToSelector:@selector(setupResponders)]) [view setupResponders];
-
   window.modal = YES;
   self.modalShowing = YES;
   [window makeKeyAndOrderFront:nil];
+
+  if ([view respondsToSelector:@selector(viewDidAppear:)]) [view viewDidAppear:NO];
   return window;
 }
 
@@ -130,11 +130,10 @@
 
   [self kb_addChildWindow:window rect:CGRectMake(0, 0, size.width, size.height) position:position];
 
-  if ([view respondsToSelector:@selector(setupResponders)]) [view setupResponders];
-
   if (makeKey) {
     [window makeKeyAndOrderFront:nil];
   }
+  if ([view respondsToSelector:@selector(viewDidAppear:)]) [view viewDidAppear:NO];
   return window;
 }
 
@@ -144,15 +143,11 @@
 
   switch (position) {
     case KBWindowPositionCenter:
-      p.x += YOCGPointToCenterX(window.frame.size, self.frame.size).x;
-      //p.y = self.frame.origin.y + self.frame.size.height - window.frame.size.height;
-      p.y = self.frame.origin.y + ceilf(self.frame.size.height/2.0 - window.frame.size.height/2.0);
+      p.x +=  ceilf((self.frame.size.width - window.frame.size.width)/2.0f);
+      p.y += ceilf(self.frame.size.height/2.0 - window.frame.size.height/2.0);
       break;
     case KBWindowPositionRight:
       p.x += self.frame.size.width + 10;
-      //      for (NSWindow *window in self.childWindows) {
-      //        p.x += window.frame.size.width + 10;
-      //      }
       break;
     case KBWindowPositionLeft:
       p.x -= (window.frame.size.width + 10);

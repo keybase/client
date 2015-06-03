@@ -13,9 +13,11 @@
 #import "KBGPGKeysView.h"
 #import "KBContentView.h"
 
+typedef void (^KBKeySelectViewCompletion)(id sender, id response);
+
 @interface KBKeySelectView : KBContentView
 
-@property (copy) MPRequestCompletion completion;
+@property (copy) KBKeySelectViewCompletion completion;
 
 - (void)setGPGKeys:(NSArray *)GPGKeys;
 

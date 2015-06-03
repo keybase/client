@@ -38,7 +38,7 @@
   [footerView addSubview:_chooseFileButton];
 
   _cancelButton = [KBButton buttonWithText:@"Cancel" style:KBButtonStyleDefault];
-  _cancelButton.targetBlock = ^{ gself.completion(NO); };
+  _cancelButton.targetBlock = ^{ gself.completion(gself, NO); };
   [footerView addSubview:_cancelButton];
 
   _importButton = [KBButton buttonWithText:@"Import" style:KBButtonStylePrimary];
@@ -112,7 +112,7 @@
     [KBActivity setProgressEnabled:NO sender:self];
     if ([KBActivity setError:error sender:self]) return;
 
-    self.completion(YES);
+    self.completion(self, YES);
   }];
 }
 

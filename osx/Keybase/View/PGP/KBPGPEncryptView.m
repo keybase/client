@@ -60,7 +60,7 @@
   _footerView.includeSelfButton.state = NSOnState;
   [bottomView addSubview:_footerView];
 
-  self.viewLayout = [YOLayout layoutWithLayoutBlock:[KBLayouts borderLayoutWithCenterView:_textView topView:topView bottomView:bottomView insets:UIEdgeInsetsZero spacing:0 maxSize:CGSizeMake(600, 450)]];
+  self.viewLayout = [YOBorderLayout layoutWithCenter:_textView top:@[topView] bottom:@[bottomView] insets:UIEdgeInsetsZero spacing:0];
 }
 
 - (void)setClient:(KBRPClient *)client {

@@ -40,7 +40,7 @@
 - (void)setFrame:(NSRect)frame {
   [super setFrame:frame];
   if (_roundedRatio > 0) {
-    [self setRounded:roundf(frame.size.width/2.0)];
+    [self setRounded:ceilf(frame.size.width/2.0)];
   }
 }
 

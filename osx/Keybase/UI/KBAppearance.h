@@ -10,7 +10,6 @@
 #import <AppKit/AppKit.h>
 
 typedef NS_ENUM (NSInteger, KBTextStyle) {
-  KBTextStyleNone,
   KBTextStyleDefault,
   KBTextStyleSecondaryText,
   KBTextStyleHeader,
@@ -21,6 +20,7 @@ typedef NS_OPTIONS (NSInteger, KBTextOptions) {
   KBTextOptionsStrong = 1 << 1,
   KBTextOptionsMonospace = 1 << 2,
   KBTextOptionsSmall = 1 << 3,
+  KBTextOptionsDanger = 1 << 4
 };
 
 typedef NS_ENUM (NSInteger, KBButtonStyle) {
@@ -47,7 +47,7 @@ typedef NS_OPTIONS (NSInteger, KBButtonOptions) {
 
 - (NSColor *)okColor;
 - (NSColor *)warnColor;
-- (NSColor *)errorColor;
+- (NSColor *)dangerColor;
 
 - (NSColor *)greenColor;
 

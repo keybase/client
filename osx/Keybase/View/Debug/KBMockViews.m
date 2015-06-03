@@ -34,6 +34,7 @@
 #import "KBLoginView.h"
 #import "KBSignupView.h"
 #import "KBFile.h"
+#import "KBSecretPromptView.h"
 
 @implementation KBMockViews
 
@@ -72,7 +73,8 @@
 
   [contentView addSubview:[KBBox lineWithInsets:UIEdgeInsetsMake(10, 10, 10, 10)]];
 
-  [contentView addSubview:[KBButton linkWithText:@"Password (Input)" targetBlock:^{ [self prompt:@"password"]; }]];
+  [contentView addSubview:[KBButton linkWithText:@"Secret (Password)" targetBlock:^{ [self prompt:@"password"]; }]];
+  [contentView addSubview:[KBButton linkWithText:@"Secret (PGP Unlock)" targetBlock:^{ [self prompt:@"pgp_unlock"]; }]];
   [contentView addSubview:[KBButton linkWithText:@"Input" targetBlock:^{ [self prompt:@"input"]; }]];
   [contentView addSubview:[KBButton linkWithText:@"Yes/No" targetBlock:^{ [self prompt:@"yes_no"]; }]];
 
@@ -125,9 +127,16 @@
 
 - (void)prompt:(NSString *)type {
   if ([type isEqualTo:@"password"]) {
-    [KBAlert promptForInputWithTitle:@"Your secret password" description:@"Williamsburg heirloom Carles. Meggings sriracha High Life keytar photo booth craft beer. Artisan keytar cliche, Pinterest mumblecore 8-bit hella kale chips" secure:YES style:NSCriticalAlertStyle buttonTitles:@[@"OK", @"Cancel"] view:nil completion:^(NSModalResponse response, NSString *password) {
 
-    }];
+  } else if ([type isEqualTo:@"pgp_unlock"]) {
+    KBSecretPromptView *secretPrompt = [[KBSecretPromptView alloc] init];
+    [secretPrompt setHeader:@"Your key passphrase" info:@"Please enter the passphrase to unlock this key." details:@"Please enter the passphrase to unlock the secret key for:\nuser: TestIt <gabrielh+test@gmail.com>\n4096-bit RSA key, ID 96D952D8C35E39CC, created 2015-05-29\n\nReason: Import of key into keybase keyring" previousError:@"Failed to unlock key; bad passphrase"];
+
+    [secretPrompt openInWindow:(KBWindow *)self.window];
+    secretPrompt.completion = ^(NSString *password) {
+      DDLogDebug(@"Password length: %@", @(password.length));
+    };
+
   } else if ([type isEqualTo:@"yes_no"]) {
     [KBAlert yesNoWithTitle:@"Are you a hipster?" description:@"Flexitarian biodiesel locavore fingerstache. Craft beer brunch fashion axe bicycle rights, plaid messenger bag?" yes:@"Beer Me" view:self completion:^(BOOL yes) {
       // Yes

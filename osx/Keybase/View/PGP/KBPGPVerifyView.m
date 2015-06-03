@@ -52,14 +52,14 @@
   _footerView.verifyButton.targetBlock = ^{ [gself verify]; };
   [bottomView addSubview:_footerView];
 
-  self.viewLayout = [YOLayout layoutWithLayoutBlock:[KBLayouts borderLayoutWithCenterView:_textView topView:topView bottomView:bottomView insets:UIEdgeInsetsZero spacing:0 maxSize:CGSizeMake(800, 400)]];
+  self.viewLayout = [YOBorderLayout layoutWithCenter:_textView top:@[topView] bottom:@[bottomView] insets:UIEdgeInsetsZero spacing:0];
 }
 
 - (void)setData:(NSData *)data armored:(BOOL)armored {
   [_textView setData:data armored:armored];
 }
 
-- (void)setupResponders {
+- (void)viewDidAppear:(BOOL)animated {
   [self.window makeFirstResponder:_textView.view];
 }
 

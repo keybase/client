@@ -59,7 +59,7 @@
     return CGSizeMake(MIN(580, size.width), y);
   }];
 
-  self.viewLayout = [YOLayout layoutWithLayoutBlock:[KBLayouts center:contentView]];
+  self.viewLayout = [YOLayout center:contentView];
 }
 
 - (void)viewDidAppear:(BOOL)animated {

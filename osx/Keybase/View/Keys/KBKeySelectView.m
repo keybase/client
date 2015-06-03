@@ -38,24 +38,24 @@
   self.cancelButton.targetBlock = ^{
     // No selection
     KBRSelectKeyRes *response = [[KBRSelectKeyRes alloc] init];
-    gself.completion(nil, response);
+    gself.completion(gself, response);
   };
 
   _selectButton.targetBlock = ^{
-    NSString *keyID = [[gself.keysView selectedGPGKey] keyID];
-    if (!keyID) {
-      [AppDelegate setError:KBMakeError(-1, @"You need to select a key.") sender:gself];
+    NSString *keyId = [[gself.keysView selectedGPGKey] keyID];
+    if (!keyId) {
+      [AppDelegate setError:KBMakeError(-1, @"You need to select a key or cancel.") sender:gself];
       return;
     }
     //BOOL pushSecret = gself.pushCheckbox.state == NSOnState;
 
     KBRSelectKeyRes *response = [[KBRSelectKeyRes alloc] init];
-    response.keyID = keyID;
+    response.keyID = keyId;
     //response.doSecretPush = pushSecret;
-    gself.completion(nil, response);
+    gself.completion(gself, response);
   };
 
-  self.viewLayout = [YOLayout layoutWithLayoutBlock:[KBLayouts borderLayoutWithCenterView:_keysView topView:nil bottomView:footerView insets:UIEdgeInsetsMake(20, 20, 20, 20) spacing:20 maxSize:CGSizeMake(800, 400)]];
+  self.viewLayout = [YOBorderLayout layoutWithCenter:_keysView top:nil bottom:@[footerView] insets:UIEdgeInsetsMake(20, 20, 20, 20) spacing:20];
 }
 
 - (void)setGPGKeys:(NSArray *)GPGKeys {

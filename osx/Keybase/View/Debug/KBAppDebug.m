@@ -26,7 +26,6 @@
   [topView addSubview:[KBButton buttonWithText:@"Mocks" style:KBButtonStyleDefault options:KBButtonOptionsToolbar targetBlock:^{
     KBMockViews *mockViews = [[KBMockViews alloc] init];
     [mockViews open:self];
-
   }]];
 }
 

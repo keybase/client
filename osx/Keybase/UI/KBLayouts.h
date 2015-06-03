@@ -16,13 +16,9 @@
 
 @interface KBLayouts : NSObject
 
-+ (YOLayoutBlock)borderLayoutWithCenterView:(id)centerView topView:(id)topView bottomView:(id)bottomView insets:(UIEdgeInsets)insets spacing:(CGFloat)spacing maxSize:(CGSize)maxSize;
-
 + (YOLayoutBlock)borderLayoutWithCenterView:(id)centerView leftView:(id)leftView rightView:(id)rightView insets:(UIEdgeInsets)insets spacing:(CGFloat)spacing;
 
 + (YOLayoutBlock)gridLayoutForViews:(NSArray *)views viewSize:(CGSize)viewSize padding:(CGFloat)padding;
-
-+ (YOLayoutBlock)center:(id)view;
 
 + (YOLayoutBlock)vertical:(NSArray *)subviews;
 

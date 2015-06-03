@@ -40,7 +40,7 @@
         case KBRTrackDiffTypeClash:
         case KBRTrackDiffTypeDeleted:
           label = diff.displayMarkup;
-          color = [KBAppearance.currentAppearance errorColor];
+          color = KBAppearance.currentAppearance.dangerColor;
           erroredTrack = YES;
           break;
 
@@ -71,7 +71,7 @@
         color = KBAppearance.currentAppearance.warnColor;
         message = @"Proof not found";
       } else {
-        color = KBAppearance.currentAppearance.errorColor;
+        color = KBAppearance.currentAppearance.dangerColor;
         message = NSStringWithFormat(@"%@ (%@)", _proofResult.result.proofResult.desc, @(proofStatus));
         erroredHard = YES;
       }

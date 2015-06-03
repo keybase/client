@@ -53,7 +53,7 @@
   nextButton.targetBlock = ^{ [gself install]; };
   [_buttons addSubview:nextButton];  
 
-  self.viewLayout = [YOLayout layoutWithLayoutBlock:[KBLayouts center:contentView]];
+  self.viewLayout = [YOLayout center:contentView];
 }
 
 - (void)install {

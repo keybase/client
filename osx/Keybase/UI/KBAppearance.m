@@ -45,8 +45,11 @@ static id<KBAppearance> gCurrentAppearance = NULL;
 @implementation KBAppearanceLight
 
 - (NSColor *)colorForStyle:(KBTextStyle)style options:(KBTextOptions)options {
+  if (options & KBTextOptionsDanger) {
+    return self.dangerColor;
+  }
+
   switch (style) {
-    case KBTextStyleNone:
     case KBTextStyleDefault:
     case KBTextStyleHeader:
     case KBTextStyleHeaderLarge:
@@ -123,7 +126,7 @@ static id<KBAppearance> gCurrentAppearance = NULL;
   return [NSColor colorWithRed:1.0f green:0.58f blue:0.19f alpha:1.0f];
 }
 
-- (NSColor *)errorColor {
+- (NSColor *)dangerColor {
   return [NSColor colorWithRed:1.0f green:0.22f blue:0.22f alpha:1.0f];
 }
 

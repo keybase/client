@@ -46,9 +46,9 @@
   _selectButton = [KBButton buttonWithText:@"Select" style:KBButtonStylePrimary];
   [bottomView addSubview:_selectButton];
 
-  contentView.viewLayout = [YOLayout layoutWithLayoutBlock:[KBLayouts borderLayoutWithCenterView:_deviceSignerView topView:topView bottomView:bottomView insets:UIEdgeInsetsZero spacing:20 maxSize:CGSizeMake(600, 450)]];
+  contentView.viewLayout = [YOBorderLayout layoutWithCenter:_deviceSignerView top:@[topView] bottom:@[bottomView] insets:UIEdgeInsetsZero spacing:20];
 
-  self.viewLayout = [YOLayout layoutWithLayoutBlock:[KBLayouts center:contentView]];
+  self.viewLayout = [YOLayout center:contentView];
 }
 
 - (void)setDevices:(NSArray *)devices hasPGP:(BOOL)hasPGP {

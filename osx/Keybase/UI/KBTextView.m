@@ -74,7 +74,7 @@
 }
 
 - (void)setText:(NSString *)text {
-  _view.string = text;
+  _view.string = text ? text : @"";
 }
 
 - (void)setAttributedText:(NSAttributedString *)attributedText {

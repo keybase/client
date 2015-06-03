@@ -151,7 +151,7 @@
     return CGSizeMake(MIN(380, size.width), y);
   }];
 
-  self.viewLayout = [YOLayout layoutWithLayoutBlock:[KBLayouts center:contentView]];
+  self.viewLayout = [YOLayout center:contentView];
 }
 
 - (void)viewDidAppear:(BOOL)animated {
@@ -197,7 +197,7 @@
 
 - (BOOL)passwordConfirmed {
   if ([_passwordField.text gh_present] && [_passwordConfirmField.text gh_present] && ![_passwordConfirmField.text isEqualTo:_passwordField.text]) {
-    [_passwordConfirmLabel setText:@"Mismatch" font:[NSFont systemFontOfSize:12] color:[KBAppearance.currentAppearance errorColor] alignment:NSRightTextAlignment];
+    [_passwordConfirmLabel setText:@"Mismatch" font:[NSFont systemFontOfSize:12] color:KBAppearance.currentAppearance.dangerColor alignment:NSRightTextAlignment];
     [self setNeedsLayout];
     return NO;
   } else {
@@ -219,7 +219,7 @@
   KBRSignupRequest *request = [[KBRSignupRequest alloc] initWithClient:self.client];
   [request checkUsernameAvailableWithSessionID:request.sessionId username:username completion:^(NSError *error) {
     if (error.code == 701) {
-      [gself.usernameStatusLabel setText:@"Already taken" font:[NSFont systemFontOfSize:12] color:[KBAppearance.currentAppearance errorColor] alignment:NSRightTextAlignment];
+      [gself.usernameStatusLabel setText:@"Already taken" font:[NSFont systemFontOfSize:12] color:KBAppearance.currentAppearance.dangerColor alignment:NSRightTextAlignment];
     } else if (error) {
       DDLogError(@"Error checking username: %@", error);
       gself.usernameStatusLabel.attributedText = nil;
