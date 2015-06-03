@@ -12,7 +12,9 @@ type CodecMsgpack struct {
 
 // NewCodecMsgpack constructs a new CodecMsgpack.
 func NewCodecMsgpack() *CodecMsgpack {
-	return &CodecMsgpack{&codec.MsgpackHandle{}}
+	handle := &codec.MsgpackHandle{}
+	handle.Canonical = true
+	return &CodecMsgpack{handle}
 }
 
 // Decode implements the Codec interface for CodecMsgpack
