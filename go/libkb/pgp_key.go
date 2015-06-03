@@ -1,9 +1,11 @@
 package libkb
 
 import (
+	"bufio"
 	"bytes"
 	"crypto/sha256"
 	"encoding/hex"
+	"errors"
 	"fmt"
 	"io"
 	"regexp"
@@ -223,10 +225,60 @@ func (k *PgpKeyBundle) EncodeToStream(wc io.WriteCloser) (err error) {
 	return
 }
 
+// note:  openpgp.ReadArmoredKeyRing only returns the first block.
+// It will never return multiple entities.
 func ReadOneKeyFromString(s string) (*PgpKeyBundle, error) {
 	reader := strings.NewReader(s)
 	el, err := openpgp.ReadArmoredKeyRing(reader)
 	return finishReadOne(el, err)
+}
+
+// firstPrivateKey scans s for a private key block.
+func firstPrivateKey(s string) (string, error) {
+	scanner := bufio.NewScanner(strings.NewReader(s))
+	var lines []string
+	looking := true
+	complete := false
+	for scanner.Scan() {
+		line := scanner.Text()
+		if looking && strings.HasPrefix(line, "-----BEGIN PGP PRIVATE KEY BLOCK-----") {
+			looking = false
+
+		}
+		if looking {
+			continue
+		}
+		lines = append(lines, line)
+		if strings.HasPrefix(line, "-----END PGP PRIVATE KEY BLOCK-----") {
+			complete = true
+			break
+		}
+	}
+	if err := scanner.Err(); err != nil {
+		return "", err
+	}
+	if looking {
+		// never found a private key block
+		return "", NoSecretKeyError{}
+	}
+	if !complete {
+		// string ended without the end tag
+		return "", errors.New("never found end block line")
+	}
+	return strings.Join(lines, "\n"), nil
+}
+
+// ReadPrivateKeyFromString finds the first private key block in s
+// and decodes it into a PgpKeyBundle.  It is useful in the case
+// where s contains multiple key blocks and you want the private
+// key block.  For example, the result of gpg export.
+func ReadPrivateKeyFromString(s string) (*PgpKeyBundle, error) {
+	priv, err := firstPrivateKey(s)
+	if err != nil {
+		G.Log.Warning("invalid key string:\n%s\n", s)
+		return nil, err
+	}
+	return ReadOneKeyFromString(priv)
 }
 
 func finishReadOne(el []*openpgp.Entity, err error) (*PgpKeyBundle, error) {
@@ -534,7 +586,7 @@ func (k *PgpKeyBundle) IdentityNames() []string {
 func (k *PgpKeyBundle) GetPgpIdentities() []keybase1.PgpIdentity {
 	ret := make([]keybase1.PgpIdentity, 0, len(k.Identities))
 	for _, i := range k.Identities {
-		ret = append(ret, keybase1.PgpIdentity{Username: i.UserId.Name, Email: i.UserId.Email, Comment:i.UserId.Comment})
+		ret = append(ret, keybase1.PgpIdentity{Username: i.UserId.Name, Email: i.UserId.Email, Comment: i.UserId.Comment})
 	}
 	return ret
 }

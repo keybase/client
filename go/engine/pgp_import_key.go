@@ -40,7 +40,7 @@ type PGPKeyImportEngineArg struct {
 func NewPGPKeyImportEngineFromBytes(key []byte, pushPrivate bool, gc *libkb.GlobalContext) (eng *PGPKeyImportEngine, err error) {
 	var bundle *libkb.PgpKeyBundle
 	if libkb.IsArmored(key) {
-		bundle, err = libkb.ReadOneKeyFromString(string(key))
+		bundle, err = libkb.ReadPrivateKeyFromString(string(key))
 	} else {
 		bundle, err = libkb.ReadOneKeyFromBytes(key)
 	}

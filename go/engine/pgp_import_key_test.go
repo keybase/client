@@ -85,14 +85,7 @@ func TestPGPImportPublicKey(t *testing.T) {
 	tc := SetupEngineTest(t, "pgpsave")
 	defer tc.Cleanup()
 
-	u := CreateAndSignupFakeUser(tc, "login")
-	secui := libkb.TestSecretUI{Passphrase: u.Passphrase}
-	ctx := &Context{LogUI: tc.G.UI.GetLogUI(), SecretUI: secui}
-	eng, err := NewPGPKeyImportEngineFromBytes([]byte(pubkeyIssue325), false, tc.G)
-	if err != nil {
-		t.Fatal(err)
-	}
-	err = RunEngine(eng, ctx)
+	_, err := NewPGPKeyImportEngineFromBytes([]byte(pubkeyIssue325), false, tc.G)
 	if err == nil {
 		t.Fatal("import of public key didn't generate error")
 	}
