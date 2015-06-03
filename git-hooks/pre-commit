@@ -134,4 +134,4 @@ fi
 
 # checkLineLength
 check_go_fmt
-check_go_vet
+#check_go_vet

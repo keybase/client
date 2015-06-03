@@ -22,8 +22,8 @@ type Status struct {
 
 type UID string
 type FOKID struct {
-	PgpFingerprint *[]byte `codec:"pgpFingerprint,omitempty" json:"pgpFingerprint"`
-	Kid            *[]byte `codec:"kid,omitempty" json:"kid"`
+	PgpFingerprint *[]byte `codec:"pgpFingerprint,omitempty" json:"pgpFingerprint,omitempty"`
+	Kid            *[]byte `codec:"kid,omitempty" json:"kid,omitempty"`
 }
 
 type Text struct {
@@ -60,7 +60,7 @@ type PublicKey struct {
 type User struct {
 	Uid        UID         `codec:"uid" json:"uid"`
 	Username   string      `codec:"username" json:"username"`
-	Image      *Image      `codec:"image,omitempty" json:"image"`
+	Image      *Image      `codec:"image,omitempty" json:"image,omitempty"`
 	PublicKeys []PublicKey `codec:"publicKeys" json:"publicKeys"`
 }
 
@@ -244,7 +244,7 @@ type GetCurrentStatusRes struct {
 	Configured bool  `codec:"configured" json:"configured"`
 	Registered bool  `codec:"registered" json:"registered"`
 	LoggedIn   bool  `codec:"loggedIn" json:"loggedIn"`
-	User       *User `codec:"user,omitempty" json:"user"`
+	User       *User `codec:"user,omitempty" json:"user,omitempty"`
 }
 
 type Config struct {
@@ -546,8 +546,8 @@ type DoctorStatus struct {
 	Fix           DoctorFixType    `codec:"fix" json:"fix"`
 	SignerOpts    DoctorSignerOpts `codec:"signerOpts" json:"signerOpts"`
 	Devices       []Device         `codec:"devices" json:"devices"`
-	WebDevice     *Device          `codec:"webDevice,omitempty" json:"webDevice"`
-	CurrentDevice *Device          `codec:"currentDevice,omitempty" json:"currentDevice"`
+	WebDevice     *Device          `codec:"webDevice,omitempty" json:"webDevice,omitempty"`
+	CurrentDevice *Device          `codec:"currentDevice,omitempty" json:"currentDevice,omitempty"`
 }
 
 type LoginSelectArg struct {
@@ -800,9 +800,9 @@ type TrackSummary struct {
 
 type IdentifyOutcome struct {
 	Username          string        `codec:"username" json:"username"`
-	Status            *Status       `codec:"status,omitempty" json:"status"`
+	Status            *Status       `codec:"status,omitempty" json:"status,omitempty"`
 	Warnings          []string      `codec:"warnings" json:"warnings"`
-	TrackUsed         *TrackSummary `codec:"trackUsed,omitempty" json:"trackUsed"`
+	TrackUsed         *TrackSummary `codec:"trackUsed,omitempty" json:"trackUsed,omitempty"`
 	NumTrackFailures  int           `codec:"numTrackFailures" json:"numTrackFailures"`
 	NumTrackChanges   int           `codec:"numTrackChanges" json:"numTrackChanges"`
 	NumProofFailures  int           `codec:"numProofFailures" json:"numProofFailures"`
@@ -814,7 +814,7 @@ type IdentifyOutcome struct {
 }
 
 type IdentifyRes struct {
-	User    *User           `codec:"user,omitempty" json:"user"`
+	User    *User           `codec:"user,omitempty" json:"user,omitempty"`
 	Outcome IdentifyOutcome `codec:"outcome" json:"outcome"`
 }
 
@@ -889,13 +889,13 @@ type ProofResult struct {
 type IdentifyRow struct {
 	RowId     int         `codec:"rowId" json:"rowId"`
 	Proof     RemoteProof `codec:"proof" json:"proof"`
-	TrackDiff *TrackDiff  `codec:"trackDiff,omitempty" json:"trackDiff"`
+	TrackDiff *TrackDiff  `codec:"trackDiff,omitempty" json:"trackDiff,omitempty"`
 }
 
 type IdentifyKey struct {
 	PgpFingerprint []byte     `codec:"pgpFingerprint" json:"pgpFingerprint"`
 	KID            []byte     `codec:"KID" json:"KID"`
-	TrackDiff      *TrackDiff `codec:"trackDiff,omitempty" json:"trackDiff"`
+	TrackDiff      *TrackDiff `codec:"trackDiff,omitempty" json:"trackDiff,omitempty"`
 }
 
 type Cryptocurrency struct {
@@ -905,7 +905,7 @@ type Cryptocurrency struct {
 }
 
 type Identity struct {
-	Status          *Status          `codec:"status,omitempty" json:"status"`
+	Status          *Status          `codec:"status,omitempty" json:"status,omitempty"`
 	WhenLastTracked int              `codec:"whenLastTracked" json:"whenLastTracked"`
 	Keys            []IdentifyKey    `codec:"keys" json:"keys"`
 	Proofs          []IdentifyRow    `codec:"proofs" json:"proofs"`
@@ -929,10 +929,10 @@ type CheckResult struct {
 type LinkCheckResult struct {
 	ProofId     int          `codec:"proofId" json:"proofId"`
 	ProofResult ProofResult  `codec:"proofResult" json:"proofResult"`
-	Cached      *CheckResult `codec:"cached,omitempty" json:"cached"`
-	Diff        *TrackDiff   `codec:"diff,omitempty" json:"diff"`
-	RemoteDiff  *TrackDiff   `codec:"remoteDiff,omitempty" json:"remoteDiff"`
-	Hint        *SigHint     `codec:"hint,omitempty" json:"hint"`
+	Cached      *CheckResult `codec:"cached,omitempty" json:"cached,omitempty"`
+	Diff        *TrackDiff   `codec:"diff,omitempty" json:"diff,omitempty"`
+	RemoteDiff  *TrackDiff   `codec:"remoteDiff,omitempty" json:"remoteDiff,omitempty"`
+	Hint        *SigHint     `codec:"hint,omitempty" json:"hint,omitempty"`
 }
 
 type FinishAndPromptRes struct {
@@ -965,12 +965,12 @@ type DisplayCryptocurrencyArg struct {
 type DisplayKeyArg struct {
 	SessionID int        `codec:"sessionID" json:"sessionID"`
 	Fokid     FOKID      `codec:"fokid" json:"fokid"`
-	Diff      *TrackDiff `codec:"diff,omitempty" json:"diff"`
+	Diff      *TrackDiff `codec:"diff,omitempty" json:"diff,omitempty"`
 }
 
 type ReportLastTrackArg struct {
 	SessionID int           `codec:"sessionID" json:"sessionID"`
-	Track     *TrackSummary `codec:"track,omitempty" json:"track"`
+	Track     *TrackSummary `codec:"track,omitempty" json:"track,omitempty"`
 }
 
 type LaunchNetworkChecksArg struct {
@@ -1157,13 +1157,13 @@ const (
 
 type DeviceSigner struct {
 	Kind       DeviceSignerKind `codec:"kind" json:"kind"`
-	DeviceID   *string          `codec:"deviceID,omitempty" json:"deviceID"`
-	DeviceName *string          `codec:"deviceName,omitempty" json:"deviceName"`
+	DeviceID   *string          `codec:"deviceID,omitempty" json:"deviceID,omitempty"`
+	DeviceName *string          `codec:"deviceName,omitempty" json:"deviceName,omitempty"`
 }
 
 type SelectSignerRes struct {
 	Action SelectSignerAction `codec:"action" json:"action"`
-	Signer *DeviceSigner      `codec:"signer,omitempty" json:"signer"`
+	Signer *DeviceSigner      `codec:"signer,omitempty" json:"signer,omitempty"`
 }
 
 type KexStatusCode int
@@ -1930,7 +1930,7 @@ type PromptOverwriteArg struct {
 type PromptUsernameArg struct {
 	SessionID int     `codec:"sessionID" json:"sessionID"`
 	Prompt    string  `codec:"prompt" json:"prompt"`
-	PrevError *Status `codec:"prevError,omitempty" json:"prevError"`
+	PrevError *Status `codec:"prevError,omitempty" json:"prevError,omitempty"`
 }
 
 type OutputPrechecksArg struct {
@@ -2197,7 +2197,7 @@ type SecretEntryRes struct {
 type GetSecretArg struct {
 	SessionID int             `codec:"sessionID" json:"sessionID"`
 	Pinentry  SecretEntryArg  `codec:"pinentry" json:"pinentry"`
-	Terminal  *SecretEntryArg `codec:"terminal,omitempty" json:"terminal"`
+	Terminal  *SecretEntryArg `codec:"terminal,omitempty" json:"terminal,omitempty"`
 }
 
 type GetNewPassphraseArg struct {
@@ -2415,7 +2415,7 @@ type SigListArgs struct {
 	SessionID int       `codec:"sessionID" json:"sessionID"`
 	Username  string    `codec:"username" json:"username"`
 	AllKeys   bool      `codec:"allKeys" json:"allKeys"`
-	Types     *SigTypes `codec:"types,omitempty" json:"types"`
+	Types     *SigTypes `codec:"types,omitempty" json:"types,omitempty"`
 	Filterx   string    `codec:"filterx" json:"filterx"`
 	Verbose   bool      `codec:"verbose" json:"verbose"`
 	Revoked   bool      `codec:"revoked" json:"revoked"`
@@ -2602,7 +2602,7 @@ func (c TrackClient) Untrack(__arg UntrackArg) (err error) {
 type PromptYesNoArg struct {
 	SessionID int   `codec:"sessionID" json:"sessionID"`
 	Text      Text  `codec:"text" json:"text"`
-	Def       *bool `codec:"def,omitempty" json:"def"`
+	Def       *bool `codec:"def,omitempty" json:"def,omitempty"`
 }
 
 type UiInterface interface {
@@ -2690,7 +2690,7 @@ type LoadUncheckedUserSummariesArg struct {
 
 type LoadUserArg struct {
 	SessionID int    `codec:"sessionID" json:"sessionID"`
-	Uid       *UID   `codec:"uid,omitempty" json:"uid"`
+	Uid       *UID   `codec:"uid,omitempty" json:"uid,omitempty"`
 	Username  string `codec:"username" json:"username"`
 	Self      bool   `codec:"self" json:"self"`
 }
