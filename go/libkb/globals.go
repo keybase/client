@@ -43,6 +43,7 @@ type GlobalContext struct {
 	SocketWrapper   *SocketWrapper   // only need one connection per
 	XStreams        *ExportedStreams // a table of streams we've exported to the daemon (or vice-versa)
 	Timers          *TimerSet        // Which timers are currently configured on
+	IdentifyCache   *IdentifyCache   // cache of IdentifyOutcomes
 	UI              UI               // Interact with the UI
 	Service         bool             // whether we're in server mode
 	shutdown        bool             // whether we've shut down or not
@@ -92,6 +93,8 @@ func (g *GlobalContext) Logout() error {
 	if err := g.loginState.Logout(); err != nil {
 		return err
 	}
+
+	g.IdentifyCache = NewIdentifyCache()
 
 	// get a clean LoginState:
 	g.createLoginState()
@@ -155,6 +158,7 @@ func (g *GlobalContext) ConfigureAPI() error {
 
 func (g *GlobalContext) ConfigureCaches() error {
 	g.ResolveCache = NewResolveCache()
+	g.IdentifyCache = NewIdentifyCache()
 
 	var err error
 	g.ProofCache, err = NewProofCache(g.Env.GetProofCacheSize())
