@@ -8,10 +8,8 @@
 
 ### Build
 
-Call build.sh and specify the version.
-
 ```sh
-sh build.sh 0.1.29
+sh build.sh
 ```
 
 ### Updater package

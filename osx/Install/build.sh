@@ -6,53 +6,44 @@ cd $DIR
 
 BUILD_DEST=$DIR/build
 
-if [ "$1" = "" ]; then
-  echo "Specify a version."
-  exit 1
-fi
-
-ACTION=$2
+ACTION=$1
 
 KB_GO_SRC="$GOPATH/src/github.com/keybase/client/go"
 KBFS_GO_SRC="$GOPATH/src/github.com/keybase/kbfs"
-VERSION="$1"
 CODE_SIGN_IDENTITY="Developer ID Application: Keybase, Inc. (99229SGT5K)"
 
+rm -rf $BUILD_DEST
+mkdir -p $BUILD_DEST
 
-if [ -d "$BUILD_DEST" ]; then
-  echo " "
-  echo "Build directory already exists: $BUILD_DEST"
-  echo " "
-  echo "If you want a fresh build you should remove it and try this again."
-  echo " "
-  echo " "
-  #exit 1
+VERSION=`head -1 "$KB_GO_SRC/libkb/version.go" | cut -f2 -d ' ' | tr -d ' '`
+#echo "// $VERSION\npackage libkb\n\nvar CLIENT_VERSION = \"$VERSION\"\n" | gofmt > $KB_GO_SRC/libkb/version.go
+
+if [ "$VERSION" = "" ]; then
+  echo "Unable to parse version"
+  exit 1
 fi
 
 #
 # Keybase (go)
 #
 
-if [ ! -f "$BUILD_DEST/keybase" ]; then
+if [ ! -f "$KB_GO_SRC/keybase/keybase" ]; then
   echo "  Using source: $KB_GO_SRC"
-  echo "  Generating version.go ($VERSION)"
-  echo "package libkb\n\nvar CLIENT_VERSION = \"$VERSION\"\n" | gofmt > $KB_GO_SRC/libkb/version.go
-  mkdir -p $BUILD_DEST
   echo "  Compiling keybase (go)..."
   cd $KB_GO_SRC/keybase/
   go build -a
-  cp $KB_GO_SRC/keybase/keybase $BUILD_DEST/keybase
-  chmod +x $BUILD_DEST/keybase
 fi
+cp $KB_GO_SRC/keybase/keybase $BUILD_DEST/keybase
+chmod +x $BUILD_DEST/keybase
 
-if [ ! -f "$BUILD_DEST/kbfsfuse" ]; then
+if [ ! -f "$KB_GO_SRC/keybase/keybase" ]; then
   echo "  Using KBFS source: $KBFS_GO_SRC"
-  echo "  Compiling..."
+  echo "  Compiling kbfs..."
   cd $KBFS_GO_SRC/kbfsfuse/
   go build -a
-  cp $KBFS_GO_SRC/kbfsfuse/kbfsfuse $BUILD_DEST/kbfsfuse
-  chmod +x $BUILD_DEST/kbfsfuse
 fi
+cp $KBFS_GO_SRC/kbfsfuse/kbfsfuse $BUILD_DEST/kbfsfuse
+chmod +x $BUILD_DEST/kbfsfuse
 
 #
 # Keybase.app
@@ -60,17 +51,13 @@ fi
 
 echo "Keybase.app"
 
-#KB_SERVICE_VERSION=`$BUILD_DEST/keybase version 2>/dev/null | head -1 | rev | cut -f1 -d ' ' | rev | tail -c +2`
-#echo "  Checking version: $KB_SERVICE_VERSION"
-
-KB_SERVICE_VERSION=$VERSION # Use until we can better parse from command line
-
 PLIST=$DIR/../Keybase/Info.plist
 HELPER_PLIST=$DIR/../Helper/Info.plist
 FUSE_PLIST=$DIR/Fuse/kbfuse.bundle/Contents/Info.plist
+KB_SERVICE_VERSION=$VERSION
 KB_HELPER_VERSION=`/usr/libexec/PlistBuddy -c "Print :CFBundleShortVersionString" $HELPER_PLIST`
 KB_FUSE_VERSION=`/usr/libexec/PlistBuddy -c "Print :CFBundleShortVersionString" $FUSE_PLIST`
-KBFS_VERSION="0.1.1" # Doesn't report version yet
+KBFS_VERSION=$VERSION
 
 echo "  Keybase.app Version: $VERSION"
 echo "  Service Version: $KB_SERVICE_VERSION"
@@ -128,24 +115,6 @@ echo "  "
 
 cd $BUILD_DEST
 
-VERSION=`/usr/libexec/PlistBuddy -c "Print :CFBundleVersion" Keybase.app/Contents/Info.plist`
-echo "Keybase.app Version: $VERSION"
-
-KB_SERVICE_VERSION=`/usr/libexec/PlistBuddy -c "Print :KBServiceVersion" Keybase.app/Contents/Info.plist`
-echo "Service Version: $KB_SERVICE_VERSION"
-
-KB_HELPER_VERSION=`/usr/libexec/PlistBuddy -c "Print :KBHelperVersion" Keybase.app/Contents/Info.plist`
-echo "Helper Version: $KB_HELPER_VERSION"
-
-KBFS_VERSION=`/usr/libexec/PlistBuddy -c "Print :KBFSVersion" Keybase.app/Contents/Info.plist`
-echo "KBFS Version: $KBFS_VERSION"
-
-KB_FUSE_VERSION=`/usr/libexec/PlistBuddy -c "Print :KBFuseVersion" Keybase.app/Contents/Info.plist`
-echo "Fuse Version: $KB_FUSE_VERSION"
-
-#KB_HELPER_VERSION=`otool -s __TEXT __info_plist Keybase.app/Contents/Library/LaunchServices/keybase.Helper`
-#echo "Keybased Helper Version : $KB_HELPER_VERSION"
-
 echo "Copying keybase into Keybase.app..."
 chmod +x keybase
 SUPPORT_BIN="Keybase.app/Contents/SharedSupport/bin"
@@ -166,9 +135,8 @@ cp ../appdmg/* .
 appdmg appdmg.json Keybase-$VERSION.dmg
 
 if [ "$ACTION" = "install" ]; then
-
   ditto $BUILD_DEST/Keybase.app /Applications/Keybase.app
-
+  echo "Installed to Applications"
 else
   echo "
   To install into Applications:
