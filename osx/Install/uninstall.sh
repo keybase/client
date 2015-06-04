@@ -2,6 +2,9 @@
 
 set -e # Fail on error
 
+DIR=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
+cd $DIR
+
 cd ~/Library/LaunchAgents/
 
 shopt -s nullglob
@@ -12,3 +15,5 @@ do
   rm $f
 done
 
+echo "Removing state"
+rm -rf ~/Library/Application\ Support/Keybase
