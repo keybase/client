@@ -58,7 +58,7 @@ func (t Terminal) GetSecret(arg *keybase1.SecretEntryArg) (res *keybase1.SecretE
 	txt, err = t.PromptPassword(prompt)
 
 	if err != nil {
-		if err == io.EOF {
+		if err == io.EOF || err == minterm.ErrPromptInterrupted {
 			err = nil
 			res = &keybase1.SecretEntryRes{Canceled: true}
 		}

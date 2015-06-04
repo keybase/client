@@ -5,10 +5,12 @@ package minterm
 
 import (
 	"bufio"
+	"errors"
 	"fmt"
 	"os"
 	"strings"
 
+	"github.com/keybase/gopass"
 	"golang.org/x/crypto/ssh/terminal"
 )
 
@@ -18,6 +20,8 @@ type MinTerm struct {
 	width  int
 	height int
 }
+
+var ErrPromptInterrupted = errors.New("prompt interrupted")
 
 // New creates a new MinTerm and opens the terminal file.  Any
 // errors that happen while opening or getting the terminal size
@@ -87,10 +91,12 @@ func (m *MinTerm) PromptPassword(prompt string) (string, error) {
 	if !strings.HasSuffix(prompt, ": ") {
 		m.Write(": ")
 	}
-	b, err := terminal.ReadPassword(int(m.tty.Fd()))
+	b, err := gopass.GetPasswd()
 	if err != nil {
+		if err == gopass.ErrInterrupted {
+			err = ErrPromptInterrupted
+		}
 		return "", err
 	}
-	m.Write("\n")
 	return string(b), nil
 }
