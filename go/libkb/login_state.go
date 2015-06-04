@@ -147,8 +147,12 @@ func (s *LoginState) Shutdown() error {
 		return err
 	}
 
-	close(s.loginReqs)
-	close(s.acctReqs)
+	if s.loginReqs != nil {
+		close(s.loginReqs)
+	}
+	if s.acctReqs != nil {
+		close(s.acctReqs)
+	}
 
 	return nil
 }
