@@ -11,7 +11,6 @@
 #import "KBPGPKeyGenView.h"
 #import "KBRPC.h"
 #import "KBUserProfileView.h"
-#import "KBMockViews.h"
 #import "KBPreferences.h"
 #import "KBFatalErrorView.h"
 #import "KBAppearance.h"
