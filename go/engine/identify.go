@@ -115,6 +115,13 @@ func (e *Identify) Run(ctx *Context) error {
 	e.outcome.LocalOnly = e.arg.TrackOptions.TrackLocalOnly
 	e.outcome.ApproveRemote = e.arg.TrackOptions.TrackApprove
 
+	e.G().Log.Debug("inserting identify outcome for %q in IdentifyCache", e.user.GetName())
+	key, err := e.G().IdentifyCache.Insert(e.outcome)
+	if err != nil {
+		return err
+	}
+	e.G().Log.Debug("IdentifyCache key: %q", key)
+
 	tmp, err := ctx.IdentifyUI.FinishAndPrompt(e.outcome.Export())
 	if err != nil {
 		return err

@@ -1,6 +1,7 @@
 package libkb
 
 import (
+	"encoding/hex"
 	"fmt"
 	"time"
 
@@ -32,13 +33,18 @@ func (c *IdentifyCache) Get(key string) (*IdentifyOutcome, error) {
 	return outcome, nil
 }
 
-func (c *IdentifyCache) Set(key string, outcome *IdentifyOutcome) error {
-	return c.cache.Set(key, outcome)
+func (c *IdentifyCache) Insert(outcome *IdentifyOutcome) (string, error) {
+	rb, err := RandBytes(16)
+	if err != nil {
+		return "", err
+	}
+	key := hex.EncodeToString(rb)
+	if err := c.cache.Set(key, outcome); err != nil {
+		return "", err
+	}
+	return key, nil
 }
 
 func (c *IdentifyCache) Delete(key string) error {
 	return c.cache.Delete(key)
-}
-
-func (c *IdentifyCache) Clear() {
 }
