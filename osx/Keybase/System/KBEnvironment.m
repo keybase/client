@@ -101,17 +101,24 @@
 }
 
 - (void)clearHome:(KBCompletion)completion {
-  BOOL isDirectory = NO;
-  if ([NSFileManager.defaultManager fileExistsAtPath:_config.homeDir isDirectory:&isDirectory]) {
-    if (!isDirectory) {
-      completion(KBMakeError(-1, @"Home directory is not a directory"));
-      return;
+
+  NSString *homeDir = _config.homeDir;
+  NSArray *dirs = @[@".cache/keybase", @".config/keybase", @".local/keybase"];
+
+  KBRunOver *rover = [[KBRunOver alloc] init];
+  rover.objects = dirs;
+  rover.runBlock = ^(NSString *dir, KBRunCompletion runCompletion) {
+    NSString *kbDir = NSStringWithFormat(@"%@/%@", homeDir, dir);
+    if ([NSFileManager.defaultManager fileExistsAtPath:kbDir isDirectory:nil]) {
+      DDLogDebug(@"Removing: %@", kbDir);
+      [NSFileManager.defaultManager removeItemAtPath:kbDir error:nil];
     }
-    NSError *error = nil;
-    if (![NSFileManager.defaultManager removeItemAtPath:_config.homeDir error:&error]) {
-      completion(error);
-    }
-  }
+    runCompletion(kbDir);
+  };
+  rover.completion = ^(NSArray *outputs) {
+    completion(nil);
+  };
+  [rover run];
 }
 
 @end
