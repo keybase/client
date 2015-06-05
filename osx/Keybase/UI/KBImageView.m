@@ -13,6 +13,7 @@
 
 @interface KBImageView ()
 @property NSString *source;
+@property NSImage *originalImage;
 @end
 
 @implementation KBImageView
@@ -54,7 +55,7 @@
 
 - (NSImage *)imageTintedWithColor:(NSColor *)tint {
   NSParameterAssert(tint);
-  return [self.image copy];
+  return [self.originalImage copy];
 
   // TODO Tint image with valid graphics context
   /*
@@ -68,6 +69,19 @@
   [image unlockFocus];
   return image;
    */
+}
+
+- (void)setImage:(NSImage *)image {
+  self.originalImage = image;
+  [super setImage:image];
+}
+
+- (void)tint:(NSColor *)color {
+  self.image = [self imageTintedWithColor:color];
+}
+
+- (void)revert {
+  [super setImage:self.originalImage];
 }
 
 - (void)setImageNamed:(NSString *)imageNamed {

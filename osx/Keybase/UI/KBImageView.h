@@ -20,4 +20,8 @@
 
 - (void)setImageNamed:(NSString *)imageNamed;
 
+- (void)tint:(NSColor *)color;
+
+- (void)revert;
+
 @end

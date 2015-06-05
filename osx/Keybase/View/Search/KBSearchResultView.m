@@ -19,7 +19,7 @@
   _searchResult = searchResult;
   [self.titleLabel setText:searchResult.userName style:KBTextStyleDefault alignment:NSLeftTextAlignment lineBreakMode:NSLineBreakByTruncatingTail];
   [self.infoLabel setAttributedText:[self attributedStringForSearchResult:searchResult appearance:KBAppearance.currentAppearance] alignment:NSLeftTextAlignment lineBreakMode:NSLineBreakByTruncatingTail];
-  [(KBUserImageView *)self.imageView setUsername:searchResult.userName];
+  [self.imageView kb_setUsername:searchResult.userName];
   self.imageSize = CGSizeMake(40, 40);
   [self setNeedsLayout];
 }

@@ -14,9 +14,6 @@
 @property KBLabel *titleLabel;
 @property KBLabel *infoLabel;
 @property KBBox *border;
-
-@property NSImage *image;
-@property NSImage *imageTinted;
 @end
 
 @implementation KBImageTextView
@@ -72,8 +69,6 @@
   [self.infoLabel setText:info style:KBTextStyleSecondaryText options:KBTextOptionsSmall alignment:NSLeftTextAlignment lineBreakMode:NSLineBreakByClipping];
   self.imageSize = imageSize;
   [self.imageView setImageWithURL:[NSURL URLWithString:imageURLString] placeholderImage:nil];
-  self.image = nil;
-  self.imageTinted = nil;
   [self setNeedsLayout];
 }
 
@@ -83,14 +78,10 @@
   [self.infoLabel setStyle:KBTextStyleSecondaryText options:0 appearance:appearance];
 
   if (self.tintImageForStyle) {
-    if (!self.image) {
-      self.image = self.imageView.image;
-      self.imageTinted = [self.imageView imageTintedWithColor:NSColor.whiteColor];
-    }
     if (backgroundStyle == NSBackgroundStyleDark) {
-      self.imageView.image = self.imageTinted;
-    } else if (self.image) {
-      self.imageView.image = self.image;
+      [self.imageView tint:NSColor.whiteColor];
+    } else {
+      [self.imageView revert];
     }
   }
   [self setNeedsLayout];
