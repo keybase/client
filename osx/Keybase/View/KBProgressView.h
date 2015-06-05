@@ -19,12 +19,10 @@ typedef void (^KBWork)(KBCompletion completion);
 
 - (void)setProgressTitle:(NSString *)progressTitle;
 
-- (void)open:(id)sender;
+- (void)openInWindow:(KBWindow *)window;
 
 - (void)doIt:(dispatch_block_t)close;
 
-- (void)openAndDoIt:(id)sender;
-
-//- (void)close:(id)sender;
+- (void)openAndDoIt:(KBWindow *)window;
 
 @end

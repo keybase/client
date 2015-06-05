@@ -17,4 +17,6 @@ typedef void (^KBDeviceAddCompletion)(BOOL ok);
 @property (readonly) KBTextView *inputField;
 @property (copy) KBDeviceAddCompletion completion;
 
+- (void)openInWindow:(KBWindow *)window;
+
 @end

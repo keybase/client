@@ -39,6 +39,4 @@
 
 - (void)openURLString:(NSString *)URLString sender:(NSView *)sender;
 
-+ (dispatch_block_t)openSheetWithView:(NSView *)view size:(CGSize)size sender:(NSView *)sender;
-
 @end

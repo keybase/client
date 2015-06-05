@@ -72,8 +72,8 @@
   });
 }
 
-- (void)openAndDoIt:(id)sender {
-  [self open:sender];
+- (void)openAndDoIt:(KBWindow *)window {
+  [self openInWindow:window];
   [self doIt:^{}];
 }
 
@@ -81,16 +81,18 @@
   _progressView.title = progressTitle;
 }
 
-- (void)open:(id)sender {
-  self.sender = sender;
-  //KBNavigationView *navigationView = [[KBNavigationView alloc] initWithView:self title:_title];
-  self.close = [AppDelegate openSheetWithView:self size:CGSizeMake(200, 200) sender:sender];
+- (void)openInWindow:(KBWindow *)window {
+  self.sender = window;
+  [window addModalWindowForView:self rect:CGRectMake(0, 0, 200, 200)];
+  GHWeakSelf gself = self;
+  self.close = ^{
+    [[gself window] close];
+  };
 }
 
 - (void)close:(id)sender close:(dispatch_block_t)close {
   self.close();
   if (close) dispatch_async(dispatch_get_main_queue(), close);
-  //dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(2 * NSEC_PER_SEC)), dispatch_get_main_queue(), close);
 }
 
 @end

@@ -82,7 +82,7 @@
 
 - (void)cancelDeviceAdd {
   if (!_sessionId) {
-    self.completion(NO);
+    [self close:NO];
     return;
   }
   GHWeakSelf gself = self;
@@ -92,7 +92,7 @@
     [KBActivity setProgressEnabled:NO sender:self];
     if (error) [KBActivity setError:error sender:self];
     gself.sessionId = nil;
-    self.completion(NO);
+    [self close:NO];
   }];
 }
 
@@ -122,8 +122,17 @@
       return;
     }
 
-    self.completion(YES);
+    [self close:YES];
   }];
+}
+
+- (void)close:(BOOL)added {
+  self.completion(YES);
+  [self.window close];
+}
+
+- (void)openInWindow:(KBWindow *)window {
+  [window addModalWindowForView:self rect:CGRectMake(0, 0, 620, 420)];
 }
 
 @end

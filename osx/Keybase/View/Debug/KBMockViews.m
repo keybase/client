@@ -105,7 +105,7 @@
       completion(error ? KBMakeErrorWithRecovery(-1, @"Some error happened", @"Intelligentsia ennui squid put a bird on it mixtape next level. Paleo Neutra banh mi fingerstache, small batch stumptown skateboard mustache asymmetrical vegan. Quinoa mustache mixtape literally occupy mlkshk..") : nil);
     });
   };
-  [progressView openAndDoIt:self];
+  [progressView openAndDoIt:(KBWindow *)self.window];
 }
 
 - (void)showProve:(NSString *)serviceName {

@@ -18,8 +18,8 @@
   backImage.size = CGSizeMake(12, 12);
   _editButton = [KBButton buttonWithText:@"Edit" image:backImage style:KBButtonStyleDefault options:0];
   [footerView addSubview:_editButton];
-  _shareButton = [KBButton buttonWithText:@"Share" style:KBButtonStyleDefault];
-  [footerView addSubview:_shareButton];
+  //_shareButton = [KBButton buttonWithText:@"Share" style:KBButtonStyleDefault];
+  //[footerView addSubview:_shareButton];
 
   _closeButton = [KBButton buttonWithText:@"Done" style:KBButtonStyleDefault];
   [footerView addSubview:_closeButton];

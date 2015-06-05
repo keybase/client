@@ -30,9 +30,9 @@
   return YES;
 }
 
-- (void)sendEvent:(NSEvent *)event {
-  if (!_modalShowing) [super sendEvent:event];
-}
+//- (void)sendEvent:(NSEvent *)event {
+//  if (!_modalShowing) [super sendEvent:event];
+//}
 
 /*!
  Otherwise the window will disappear when its released.

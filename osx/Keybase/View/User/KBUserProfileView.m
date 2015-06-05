@@ -409,7 +409,7 @@
       [self reload];
     }];
   };
-  [progressView openAndDoIt:self];
+  [progressView openAndDoIt:(KBWindow *)self.window];
 }
 
 - (void)selectGPGKey {

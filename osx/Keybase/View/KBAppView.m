@@ -101,8 +101,8 @@ typedef NS_ENUM (NSInteger, KBAppViewMode) {
   _environment = environment;
 
 #ifdef DEBUG
-  KBMockViews *mockViews = [[KBMockViews alloc] init];
-  [mockViews open:self];
+  //KBMockViews *mockViews = [[KBMockViews alloc] init];
+  //[mockViews open:self];
 #endif
 
   NSDictionary *info = [[NSBundle mainBundle] infoDictionary];
@@ -242,7 +242,7 @@ typedef NS_ENUM (NSInteger, KBAppViewMode) {
 - (void)showDevices {
   if (!_devicesAppView) _devicesAppView = [[KBDevicesAppView alloc] init];
   _devicesAppView.client = _environment.service.client;
-  [_devicesAppView reload];
+  [_devicesAppView refresh];
   [self setContentView:_devicesAppView mode:KBAppViewModeMain];
 }
 

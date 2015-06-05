@@ -70,7 +70,7 @@
   self.viewLayout = [YOLayout fill:_splitView];
 }
 
-- (void)reload {
+- (void)refresh {
   KBRDeviceRequest *request = [[KBRDeviceRequest alloc] initWithClient:_client];
   GHWeakSelf gself = self;
   // TODO animating?
@@ -109,8 +109,10 @@
 - (void)addDevice {
   KBDeviceAddView *view = [[KBDeviceAddView alloc] init];
   view.client = self.client;
-  dispatch_block_t close = [AppDelegate openSheetWithView:view size:CGSizeMake(500, 400) sender:self];
-  view.completion = ^(BOOL ok) { close(); };
+  view.completion = ^(BOOL added) {
+    [self refresh];
+  };
+  [view openInWindow:(KBWindow *)self.window];
 }
 
 @end

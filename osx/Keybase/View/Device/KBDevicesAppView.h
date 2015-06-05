@@ -15,6 +15,6 @@
 
 @property KBRPClient * client;
 
-- (void)reload;
+- (void)refresh;
 
 @end
