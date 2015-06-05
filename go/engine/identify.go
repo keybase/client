@@ -8,12 +8,13 @@ import (
 
 // Identify is an engine to identify a user.
 type Identify struct {
-	arg       *IdentifyArg
-	user      *libkb.User
-	me        *libkb.User
-	userExpr  libkb.AssertionExpression
-	outcome   *libkb.IdentifyOutcome
-	trackInst *libkb.TrackInstructions
+	arg        *IdentifyArg
+	user       *libkb.User
+	me         *libkb.User
+	userExpr   libkb.AssertionExpression
+	outcome    *libkb.IdentifyOutcome
+	trackInst  *libkb.TrackInstructions
+	trackToken string
 	libkb.Contextified
 }
 
@@ -121,13 +122,17 @@ func (e *Identify) Run(ctx *Context) error {
 		return err
 	}
 	e.G().Log.Debug("IdentifyCache key: %q", key)
+	e.trackToken = key
 
-	tmp, err := ctx.IdentifyUI.FinishAndPrompt(e.outcome.Export())
-	if err != nil {
-		return err
-	}
-	fpr := libkb.ImportFinishAndPromptRes(tmp)
-	e.trackInst = &fpr
+	// XXX move this to track
+	/*
+		tmp, err := ctx.IdentifyUI.FinishAndPrompt(e.outcome.Export())
+		if err != nil {
+			return err
+		}
+		fpr := libkb.ImportFinishAndPromptRes(tmp)
+		e.trackInst = &fpr
+	*/
 
 	return nil
 }
@@ -138,6 +143,10 @@ func (e *Identify) User() *libkb.User {
 
 func (e *Identify) Outcome() *libkb.IdentifyOutcome {
 	return e.outcome
+}
+
+func (e *Identify) TrackToken() string {
+	return e.trackToken
 }
 
 func (e *Identify) TrackInstructions() *libkb.TrackInstructions {

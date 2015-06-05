@@ -814,8 +814,9 @@ type IdentifyOutcome struct {
 }
 
 type IdentifyRes struct {
-	User    *User           `codec:"user,omitempty" json:"user,omitempty"`
-	Outcome IdentifyOutcome `codec:"outcome" json:"outcome"`
+	User       *User           `codec:"user,omitempty" json:"user,omitempty"`
+	Outcome    IdentifyOutcome `codec:"outcome" json:"outcome"`
+	TrackToken string          `codec:"trackToken" json:"trackToken"`
 }
 
 type RemoteProof struct {
@@ -2552,6 +2553,13 @@ type TrackArg struct {
 	ApproveRemote bool   `codec:"approveRemote" json:"approveRemote"`
 }
 
+type TrackWithTokenArg struct {
+	SessionID     int    `codec:"sessionID" json:"sessionID"`
+	TrackToken    string `codec:"trackToken" json:"trackToken"`
+	LocalOnly     bool   `codec:"localOnly" json:"localOnly"`
+	ApproveRemote bool   `codec:"approveRemote" json:"approveRemote"`
+}
+
 type UntrackArg struct {
 	SessionID int    `codec:"sessionID" json:"sessionID"`
 	TheirName string `codec:"theirName" json:"theirName"`
@@ -2559,6 +2567,7 @@ type UntrackArg struct {
 
 type TrackInterface interface {
 	Track(TrackArg) error
+	TrackWithToken(TrackWithTokenArg) error
 	Untrack(UntrackArg) error
 }
 
@@ -2570,6 +2579,13 @@ func TrackProtocol(i TrackInterface) rpc2.Protocol {
 				args := make([]TrackArg, 1)
 				if err = nxt(&args); err == nil {
 					err = i.Track(args[0])
+				}
+				return
+			},
+			"trackWithToken": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
+				args := make([]TrackWithTokenArg, 1)
+				if err = nxt(&args); err == nil {
+					err = i.TrackWithToken(args[0])
 				}
 				return
 			},
@@ -2591,6 +2607,11 @@ type TrackClient struct {
 
 func (c TrackClient) Track(__arg TrackArg) (err error) {
 	err = c.Cli.Call("keybase.1.track.track", []interface{}{__arg}, nil)
+	return
+}
+
+func (c TrackClient) TrackWithToken(__arg TrackWithTokenArg) (err error) {
+	err = c.Cli.Call("keybase.1.track.trackWithToken", []interface{}{__arg}, nil)
 	return
 }
 

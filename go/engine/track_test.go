@@ -7,29 +7,31 @@ import (
 	keybase1 "github.com/keybase/client/protocol/go"
 )
 
-func runTrack(tc libkb.TestContext, fu *FakeUser, username string) (idUI *FakeIdentifyUI, res *IDRes, err error) {
+func runTrack(tc libkb.TestContext, fu *FakeUser, username string) (idUI *FakeIdentifyUI, them *libkb.User, err error) {
 	return runTrackWithOptions(tc, fu, username, TrackOptions{})
 }
 
-func runTrackWithOptions(tc libkb.TestContext, fu *FakeUser, username string, options TrackOptions) (idUI *FakeIdentifyUI, res *IDRes, err error) {
+func runTrackWithOptions(tc libkb.TestContext, fu *FakeUser, username string, options TrackOptions) (idUI *FakeIdentifyUI, them *libkb.User, err error) {
 	idUI = &FakeIdentifyUI{
 		Fapr: keybase1.FinishAndPromptRes{
 			TrackLocal:  options.TrackLocalOnly,
 			TrackRemote: !options.TrackLocalOnly,
 		},
 	}
-	arg := TrackEngineArg{
+
+	arg := &TrackEngineArg{
 		TheirName: username,
 		Options:   options,
 	}
-	ctx := Context{
+	ctx := &Context{
 		LogUI:      tc.G.UI.GetLogUI(),
 		IdentifyUI: idUI,
 		SecretUI:   fu.NewSecretUI(),
 	}
-	eng := NewTrackEngine(&arg, tc.G)
-	err = RunEngine(eng, &ctx)
-	res = eng.res
+
+	eng := NewTrackEngine(arg, tc.G)
+	err = RunEngine(eng, ctx)
+	them = eng.User()
 	return
 }
 

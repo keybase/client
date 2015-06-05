@@ -18,32 +18,44 @@ func NewTrackHandler(xp *rpc2.Transport) *TrackHandler {
 
 // Track creates a TrackEngine and runs it.
 func (h *TrackHandler) Track(arg keybase1.TrackArg) error {
-	sessionID := arg.SessionID
-	theirName := arg.TheirName
 	earg := engine.TrackEngineArg{
-		TheirName: theirName,
+		TheirName: arg.TheirName,
 		Options: engine.TrackOptions{
 			TrackLocalOnly: arg.LocalOnly,
 			TrackApprove:   arg.ApproveRemote,
 		},
 	}
 	ctx := engine.Context{
-		IdentifyUI: h.NewRemoteIdentifyUI(sessionID),
-		SecretUI:   h.getSecretUI(sessionID),
+		IdentifyUI: h.NewRemoteIdentifyUI(arg.SessionID),
+		SecretUI:   h.getSecretUI(arg.SessionID),
 	}
 	eng := engine.NewTrackEngine(&earg, G)
 	return engine.RunEngine(eng, &ctx)
 }
 
-// Untrack creates an UntrackEngine and runs it.
-func (h *TrackHandler) Untrack(arg keybase1.UntrackArg) error {
-	sessionID := arg.SessionID
-	theirName := arg.TheirName
-	earg := engine.UntrackEngineArg{
-		TheirName: theirName,
+func (h *TrackHandler) TrackWithToken(arg keybase1.TrackWithTokenArg) error {
+	earg := engine.TrackTokenArg{
+		Token: arg.TrackToken,
+		Options: engine.TrackOptions{
+			TrackLocalOnly: arg.LocalOnly,
+			TrackApprove:   arg.ApproveRemote,
+		},
 	}
 	ctx := engine.Context{
-		SecretUI: h.getSecretUI(sessionID),
+		IdentifyUI: h.NewRemoteIdentifyUI(arg.SessionID),
+		SecretUI:   h.getSecretUI(arg.SessionID),
+	}
+	eng := engine.NewTrackToken(&earg, G)
+	return engine.RunEngine(eng, &ctx)
+}
+
+// Untrack creates an UntrackEngine and runs it.
+func (h *TrackHandler) Untrack(arg keybase1.UntrackArg) error {
+	earg := engine.UntrackEngineArg{
+		TheirName: arg.TheirName,
+	}
+	ctx := engine.Context{
+		SecretUI: h.getSecretUI(arg.SessionID),
 	}
 	eng := engine.NewUntrackEngine(&earg, G)
 	return engine.RunEngine(eng, &ctx)

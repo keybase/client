@@ -4,14 +4,6 @@ protocol identify {
 	import idl "common.avdl";
 	import idl "identify_common.avdl";
 
-	IdentifyRes identify(
-		int sessionID,
-		string userAssertion,
-		boolean trackStatement
-	);
-
-	IdentifyRes identifyDefault(
-		int sessionID,
-		string userAssertion
-	);
+	IdentifyRes identify(int sessionID, string userAssertion, boolean trackStatement);
+	IdentifyRes identifyDefault(int sessionID, string userAssertion);
 }

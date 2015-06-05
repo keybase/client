@@ -45,6 +45,7 @@ protocol identifyCommon {
 	record IdentifyRes {
 		union { null, User } user;
 		IdentifyOutcome outcome;
+		string trackToken;
 	}
 
 	record RemoteProof {

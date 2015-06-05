@@ -23,40 +23,40 @@ func runIdentify(tc *libkb.TestContext, username string) (idUI *FakeIdentifyUI, 
 	return
 }
 
-func checkAliceProofs(t *testing.T, idUI *FakeIdentifyUI, res *IDRes) {
-	checkKeyedProfile(t, idUI, res, "alice", true, map[string]string{
+func checkAliceProofs(t *testing.T, idUI *FakeIdentifyUI, user *libkb.User) {
+	checkKeyedProfile(t, idUI, user, "alice", true, map[string]string{
 		"github":  "kbtester2",
 		"twitter": "tacovontaco",
 	})
 }
 
-func checkBobProofs(t *testing.T, idUI *FakeIdentifyUI, res *IDRes) {
-	checkKeyedProfile(t, idUI, res, "bob", true, map[string]string{
+func checkBobProofs(t *testing.T, idUI *FakeIdentifyUI, user *libkb.User) {
+	checkKeyedProfile(t, idUI, user, "bob", true, map[string]string{
 		"github":  "kbtester1",
 		"twitter": "kbtester1",
 	})
 }
 
-func checkCharlieProofs(t *testing.T, idUI *FakeIdentifyUI, res *IDRes) {
-	checkKeyedProfile(t, idUI, res, "charlie", true, map[string]string{
+func checkCharlieProofs(t *testing.T, idUI *FakeIdentifyUI, user *libkb.User) {
+	checkKeyedProfile(t, idUI, user, "charlie", true, map[string]string{
 		"github":  "tacoplusplus",
 		"twitter": "tacovontaco",
 	})
 }
 
-func checkDougProofs(t *testing.T, idUI *FakeIdentifyUI, res *IDRes) {
-	checkKeyedProfile(t, idUI, res, "doug", false, nil)
+func checkDougProofs(t *testing.T, idUI *FakeIdentifyUI, user *libkb.User) {
+	checkKeyedProfile(t, idUI, user, "doug", false, nil)
 }
 
-func checkKeyedProfile(t *testing.T, idUI *FakeIdentifyUI, result *IDRes, name string, hasImg bool, expectedProofs map[string]string) {
-	if exported := result.User.Export(); !reflect.DeepEqual(idUI.User, exported) {
+func checkKeyedProfile(t *testing.T, idUI *FakeIdentifyUI, them *libkb.User, name string, hasImg bool, expectedProofs map[string]string) {
+	if exported := them.Export(); !reflect.DeepEqual(idUI.User, exported) {
 		t.Fatal("LaunchNetworkChecks User not equal to result user.", idUI.User, exported)
 	}
 
-	if hasImg && result.User.Image == nil {
-		t.Logf("result user: %+v", result.User)
+	if hasImg && them.Image == nil {
+		t.Logf("result user: %+v", them)
 		t.Fatalf("%s: Missing user image.", name)
-	} else if !hasImg && result.User.Image != nil {
+	} else if !hasImg && them.Image != nil {
 		t.Fatalf("%s: User has an image but shouldn't", name)
 	}
 
@@ -91,7 +91,7 @@ func TestIdAlice(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	checkAliceProofs(t, idUI, result)
+	checkAliceProofs(t, idUI, result.User)
 	checkDisplayKeys(t, idUI, 1, 1)
 }
 
@@ -102,7 +102,7 @@ func TestIdBob(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	checkBobProofs(t, idUI, result)
+	checkBobProofs(t, idUI, result.User)
 	checkDisplayKeys(t, idUI, 1, 1)
 }
 
@@ -113,7 +113,7 @@ func TestIdCharlie(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	checkCharlieProofs(t, idUI, result)
+	checkCharlieProofs(t, idUI, result.User)
 	checkDisplayKeys(t, idUI, 1, 1)
 }
 
@@ -124,7 +124,7 @@ func TestIdDoug(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	checkDougProofs(t, idUI, result)
+	checkDougProofs(t, idUI, result.User)
 	checkDisplayKeys(t, idUI, 1, 1)
 }
 

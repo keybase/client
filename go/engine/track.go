@@ -1,12 +1,6 @@
 package engine
 
-import (
-	"fmt"
-
-	"github.com/keybase/client/go/libkb"
-	keybase1 "github.com/keybase/client/protocol/go"
-	jsonw "github.com/keybase/go-jsonw"
-)
+import "github.com/keybase/client/go/libkb"
 
 type TrackOptions struct {
 	TrackLocalOnly bool // true: only track locally, false: track locally and remotely
@@ -20,17 +14,9 @@ type TrackEngineArg struct {
 }
 
 type TrackEngine struct {
-	arg                 *TrackEngineArg
-	res                 *IDRes
-	them                *libkb.User
-	signingKeyPub       libkb.GenericKey
-	signingKeyPriv      libkb.GenericKey
-	trackStatementBytes []byte
-	trackStatement      *jsonw.Wrapper
-	sig                 string
-	sigid               keybase1.SigID
-	lockedKey           *libkb.SKB
-	lockedWhich         string
+	arg  *TrackEngineArg
+	res  *IDRes
+	them *libkb.User
 	libkb.Contextified
 }
 
@@ -66,122 +52,40 @@ func (e *TrackEngine) SubConsumers() []libkb.UIConsumer {
 }
 
 func (e *TrackEngine) Run(ctx *Context) error {
-	if err := e.loadMe(); err != nil {
-		e.G().Log.Info("loadme err: %s", err)
-		return err
-	}
-
 	iarg := NewIdentifyTrackArg(e.arg.TheirName, true, e.arg.Options)
 	ieng := NewIdentify(iarg, e.G())
 	if err := RunEngine(ieng, ctx); err != nil {
 		e.G().Log.Info("identify run err: %s", err)
 		return err
 	}
-	ti := ieng.TrackInstructions()
+
+	token := ieng.TrackToken()
 	e.them = ieng.User()
 
-	e.res = &IDRes{Outcome: ieng.Outcome(), User: e.them}
+	// XXX only used for tests?
+	// e.res = &IDRes{Outcome: ieng.Outcome(), User: e.them}
+	e.res = &IDRes{User: e.them}
 
-	var err error
-	ska := libkb.SecretKeyArg{
+	// prompt if the identify is correct
+	tmp, err := ctx.IdentifyUI.FinishAndPrompt(ieng.Outcome().Export())
+	if err != nil {
+		return err
+	}
+	ti := libkb.ImportFinishAndPromptRes(tmp)
+
+	// now proceed to track with the token and the result of user interaction:
+	if !ti.Remote {
+		e.arg.Options.TrackLocalOnly = true
+	}
+	targ := &TrackTokenArg{
+		Token:   token,
 		Me:      e.arg.Me,
-		KeyType: libkb.DeviceSigningKeyType,
+		Options: e.arg.Options,
 	}
-	e.lockedKey, e.lockedWhich, err = e.G().Keyrings.GetSecretKeyLocked(ctx.LoginContext, ska)
-	if err != nil {
-		e.G().Log.Info("secretkey err: %s", err)
-		return err
-	}
-	e.lockedKey.SetUID(e.arg.Me.GetUID())
-	e.signingKeyPub, err = e.lockedKey.GetPubKey()
-	if err != nil {
-		e.G().Log.Info("getpubkey err: %s", err)
-		return err
-	}
-
-	if e.trackStatement, err = e.arg.Me.TrackingProofFor(e.signingKeyPub, e.them); err != nil {
-		e.G().Log.Info("tracking proof err: %s", err)
-		return err
-	}
-
-	if e.trackStatementBytes, err = e.trackStatement.Marshal(); err != nil {
-		return err
-	}
-
-	e.G().Log.Debug("| Tracking statement: %s", string(e.trackStatementBytes))
-
-	if ti.Remote {
-		err = e.storeRemoteTrack(ctx)
-	} else if ti.Local {
-		err = e.storeLocalTrack()
-	}
-
-	ctx.IdentifyUI.Finish()
-
-	return err
+	teng := NewTrackToken(targ, e.G())
+	return RunEngine(teng, ctx)
 }
 
 func (e *TrackEngine) User() *libkb.User {
 	return e.them
-}
-
-func (e *TrackEngine) loadMe() error {
-	if e.arg.Me != nil {
-		return nil
-	}
-
-	me, err := libkb.LoadMe(libkb.LoadUserArg{})
-	if err != nil {
-		return err
-	}
-	e.arg.Me = me
-	return nil
-}
-
-func (e *TrackEngine) storeLocalTrack() error {
-	return libkb.StoreLocalTrack(e.arg.Me.GetUID(), e.them.GetUID(), e.trackStatement)
-}
-
-func (e *TrackEngine) storeRemoteTrack(ctx *Context) (err error) {
-	e.G().Log.Debug("+ StoreRemoteTrack")
-	defer e.G().Log.Debug("- StoreRemoteTrack -> %s", libkb.ErrToOk(err))
-
-	// need to unlock private key
-	if e.lockedKey == nil {
-		return fmt.Errorf("nil locked key")
-	}
-	e.signingKeyPriv, err = e.lockedKey.PromptAndUnlock(ctx.LoginContext, "tracking signature", e.lockedWhich, nil, ctx.SecretUI, nil)
-	if err != nil {
-		return err
-	}
-	if e.signingKeyPriv == nil {
-		return libkb.NoSecretKeyError{}
-	}
-
-	if e.sig, e.sigid, err = e.signingKeyPriv.SignToString(e.trackStatementBytes); err != nil {
-		return err
-	}
-
-	_, err = e.G().API.Post(libkb.ApiArg{
-		Endpoint:    "follow",
-		NeedSession: true,
-		Args: libkb.HttpArgs{
-			"sig_id_base":  libkb.S{Val: e.sigid.ToString(false)},
-			"sig_id_short": libkb.S{Val: e.sigid.ToShortID()},
-			"sig":          libkb.S{Val: e.sig},
-			"uid":          libkb.UIDArg(e.them.GetUID()),
-			"type":         libkb.S{Val: "track"},
-			"signing_kid":  e.signingKeyPub.GetKid(),
-		},
-	})
-
-	if err != nil {
-		e.G().Log.Info("api error: %s", err)
-		return err
-	}
-
-	linkid := libkb.ComputeLinkId(e.trackStatementBytes)
-	e.arg.Me.SigChainBump(linkid, e.sigid)
-
-	return err
 }
