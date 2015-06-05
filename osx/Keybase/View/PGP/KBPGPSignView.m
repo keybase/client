@@ -52,7 +52,16 @@
   options.binaryIn = NO;
   options.binaryOut = NO;
 
-  NSData *data = [_textView.text dataUsingEncoding:NSASCIIStringEncoding];
+  if (_textView.text.length == 0) {
+    [KBActivity setError:KBMakeError(-1, @"Nothing to sign") sender:self];
+    return;
+  }
+
+  NSData *data = [_textView.text dataUsingEncoding:NSUTF8StringEncoding];
+  if (!data) {
+    [KBActivity setError:KBMakeError(-1, @"We had a problem trying to encode the text into data") sender:self];
+    return;
+  }
   KBReader *reader = [KBReader readerWithData:data];
   KBWriter *writer = [KBWriter writer];
   KBStream *stream = [KBStream streamWithReader:reader writer:writer label:arc4random()];
