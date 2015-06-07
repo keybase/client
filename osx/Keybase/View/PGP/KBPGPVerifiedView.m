@@ -12,6 +12,7 @@
 #import "KBUserView.h"
 
 @interface KBPGPVerifiedView ()
+@property KBLabel *label;
 @property KBUserView *userView;
 @end
 
@@ -20,38 +21,45 @@
 - (void)viewInit {
   [super viewInit];
 
-  KBBox *line = [KBBox horizontalLine];
-  [self addSubview:line];
+  [self addSubview:[KBBox horizontalLine]];
+
+  YOVBox *contentView = [YOVBox box:@{@"insets": @"8,10,8,10", @"spacing": @(8)}];
+  contentView.ignoreLayoutForHidden = YES;
+  [self addSubview:contentView];
+
+  _label = [[KBLabel alloc] init];
+  [contentView addSubview:_label];
 
   _userView = [[KBUserView alloc] init];
-  _userView.border.position = KBBoxPositionTop;
-  [self addSubview:_userView];
+  _userView.insets = UIEdgeInsetsZero;
+  [contentView addSubview:_userView];
 
   YOSelf yself = self;
-  self.viewLayout = [YOLayout layoutWithLayoutBlock:^(id<YOLayout> layout, CGSize size) {
+  self.viewLayout = [YOLayout layoutWithLayoutBlock:^CGSize(id<YOLayout> layout, CGSize size) {
     if (!yself.pgpSigVerification) return CGSizeMake(size.width, 0);
-
-    [layout setFrame:CGRectMake(0, 0, size.width, 1) view:line];
-    CGFloat x = 0;
-    CGFloat y = 0;
-    y += [layout sizeToFitVerticalInFrame:CGRectMake(x, y, size.width - x, 0) view:yself.userView].size.height;
-
-    return CGSizeMake(size.width, y);
+    return YOLayoutVertical(self, layout, size);
   }];
 }
 
 - (void)setPgpSigVerification:(KBRPgpSigVerification *)pgpSigVerification {
   _pgpSigVerification = pgpSigVerification;
+  [_userView setUser:nil];
+  _userView.hidden = YES;
+  _label.attributedText = nil;
 
-  KBRUser *signer = _pgpSigVerification.signer;
-
-  if (signer) {
-    [self kb_setBackgroundColor:[NSColor colorWithRed:230.0/255.0 green:1.0 blue:190.0/255.0 alpha:1.0]];
-
-    [_userView setUser:signer];
+  if (_pgpSigVerification.isSigned) {
+    if (_pgpSigVerification.verified) {
+      [self kb_setBackgroundColor:KBAppearance.currentAppearance.successBackgroundColor];
+      [_label setText:@"Signed and verified." style:KBTextStyleDefault];
+      [_userView setUser:_pgpSigVerification.signer];
+      _userView.hidden = NO;
+    } else {
+      [self kb_setBackgroundColor:KBAppearance.currentAppearance.backgroundColor];
+      [_label setText:@"Signed but not verified." style:KBTextStyleDefault];
+    }
   } else {
-    [self kb_setBackgroundColor:NSColor.whiteColor];
-    [_userView setUser:nil];
+    [self kb_setBackgroundColor:KBAppearance.currentAppearance.warnBackgroundColor];
+    [_label setText:@"Not signed." style:KBTextStyleDefault];
   }
 
   [self setNeedsLayout];

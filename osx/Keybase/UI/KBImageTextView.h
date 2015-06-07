@@ -21,6 +21,7 @@
 @property (readonly) KBLabel *infoLabel;
 @property (readonly) KBBox *border;
 
+@property UIEdgeInsets insets;
 @property CGSize imageSize;
 @property BOOL tintImageForStyle;
 

@@ -11,7 +11,7 @@
 #import "KBAppDefines.h"
 #import "KBRPC.h"
 
-@interface KBPGPVerifiedView : YOView
+@interface KBPGPVerifiedView : YOVBox
 
 @property (nonatomic) KBRPgpSigVerification *pgpSigVerification;
 

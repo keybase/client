@@ -21,10 +21,11 @@
 #import "AppDelegate.h"
 #import "KBWork.h"
 #import "KBUserPickerView.h"
+#import "KBPGPTextView.h"
 
 @interface KBPGPEncryptView () <KBUserPickerViewDelegate>
 @property KBUserPickerView *userPickerView;
-@property KBTextView *textView;
+@property KBPGPTextView *textView;
 @property YOBox *files;
 @property KBPGPEncryptFooterView *footerView;
 
@@ -45,8 +46,12 @@
   [topView addSubview:_userPickerView];
   [topView addSubview:[KBBox horizontalLine]];
 
-  _textView = [[KBTextView alloc] init];
+  _textView = [[KBPGPTextView alloc] init];
   _textView.view.textContainerInset = CGSizeMake(10, 10);
+  _textView.view.editable = YES;
+  _textView.onChange = ^(KBTextView *textView) {
+    if (gself.onEncrypt) gself.onEncrypt(gself, nil);
+  };
   [self addSubview:_textView];
 
   _userPickerView.nextKeyView = _textView.view;
@@ -109,7 +114,7 @@
 
 - (void)_encrypt:(NSData *)data {
   KBPGPOutputView *outputView = [[KBPGPOutputView alloc] init];
-  [outputView setASCIIData:data];
+  [outputView setData:data armored:YES];
   [self.navigation pushView:outputView animated:YES];
 }
 

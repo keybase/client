@@ -74,15 +74,16 @@
   NSString *prefix = @"-----BEGIN";
   NSString *asciiPrefix = [[NSString alloc] initWithData:[data subdataWithRange:NSMakeRange(0, MIN(10, data.length))] encoding:NSASCIIStringEncoding];
   if ([asciiPrefix isEqualTo:prefix]) {
+    /*
     NSMutableArray *scanned = [NSMutableArray array];
     NSString *str = [[NSString alloc] initWithData:data encoding:NSASCIIStringEncoding];
     [self scanWithBeginString:@"-----BEGIN PGP PRIVATE KEY BLOCK-----" endString:@"-----END PGP PRIVATE KEY BLOCK-----" text:str scanned:scanned skipped:nil];
     NSString *armored = [scanned firstObject];
     //[armored replaceOccurrencesOfString:@"\n" withString:@"\r\n" options:0 range:NSMakeRange(0, _armored.length)];
     [_textView setData:[armored dataUsingEncoding:NSASCIIStringEncoding] armored:YES];
+     */
 
-    // When we support importing gpg exported keys
-    //[_textView setData:data armored:YES];
+    [_textView setData:data armored:YES];
   } else {
     [_textView setData:data armored:NO];
   }

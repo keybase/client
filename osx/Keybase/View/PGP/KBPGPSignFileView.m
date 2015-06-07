@@ -135,7 +135,7 @@
   if ([writer data]) {
     KBPGPOutputView *outputView = [[KBPGPOutputView alloc] init];
     NSString *text = [[NSString alloc] initWithData:[writer data] encoding:NSUTF8StringEncoding];
-    [outputView setText:text];
+    [outputView setText:text wrap:NO];
     [self.navigation pushView:outputView animated:YES];
   } else if ([writer path]) {
     KBPGPOutputFileView *outputView = [[KBPGPOutputFileView alloc] init];

@@ -21,26 +21,33 @@
 - (void)viewInit {
   [super viewInit];
 
-  KBSplitView *view = [[KBSplitView alloc] init];
-  view.dividerRatio = .50;
-  [self addSubview:view];
+//  KBSplitView *view = [[KBSplitView alloc] init];
+//  view.dividerRatio = .50;
+//  [self addSubview:view];
 
   GHWeakSelf gself = self;
   _decryptView = [[KBPGPDecryptView alloc] init];
   _decryptView.onDecrypt = ^(KBPGPDecryptView *view, KBPGPDecrypted *decrypted) {
-    NSString *text = [[NSString alloc] initWithData:decrypted.stream.writer.data encoding:NSUTF8StringEncoding];
-    [gself.outputView setText:text];
-    [gself.outputView setPgpSigVerification:decrypted.pgpSigVerification];
+    if (decrypted) {
+      NSString *text = [[NSString alloc] initWithData:decrypted.stream.writer.data encoding:NSUTF8StringEncoding];
+      [gself.outputView setText:text wrap:NO];
+      [gself.outputView setPgpSigVerification:decrypted.pgpSigVerification];
+      [gself.navigation pushView:gself.outputView animated:YES];
+    } else {
+      [gself.outputView clear];
+    }
   };
+  [self addSubview:_decryptView];
 
   _outputView = [[KBPGPOutputView alloc] init];
-  _outputView.footerView.editButton.hidden = YES;
   _outputView.footerView.closeButton.hidden = YES;
 
-  [view setLeftView:_decryptView];
-  [view setRightView:_outputView];
+//  [view setLeftView:_decryptView];
+//  [view setRightView:_outputView];
+//
+//  self.viewLayout = [YOLayout fill:view];
 
-  self.viewLayout = [YOLayout fill:view];
+  self.viewLayout = [YOLayout fill:_decryptView];
 }
 
 - (void)setClient:(KBRPClient *)client {

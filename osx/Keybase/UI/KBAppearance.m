@@ -114,20 +114,32 @@ static id<KBAppearance> gCurrentAppearance = NULL;
   return NSColor.whiteColor;
 }
 
-- (NSColor *)greenColor {
+- (NSColor *)successColor {
   return [NSColor colorWithRed:9.0/255.0 green:179.0/255.0 blue:18.0/255.0 alpha:1.0f];
 }
 
-- (NSColor *)okColor {
-  return [self greenColor];
+- (NSColor *)successBackgroundColor {
+  return [NSColor colorWithRed:230.0/255.0 green:1.0 blue:190.0/255.0 alpha:1.0];
 }
 
 - (NSColor *)warnColor {
   return [NSColor colorWithRed:1.0f green:0.58f blue:0.19f alpha:1.0f];
 }
 
+- (NSColor *)warnBackgroundColor {
+  return [NSColor colorWithRed:251.0/255.0 green:247.0/255.0 blue:219.0/255.0 alpha:1.0f];
+}
+
 - (NSColor *)dangerColor {
   return [NSColor colorWithRed:1.0f green:0.22f blue:0.22f alpha:1.0f];
+}
+
+- (NSColor *)dangerBackgroundColor {
+  return [NSColor colorWithRed:247.0/255.0 green:238.0/255.0 blue:241.0/255.0 alpha:1.0f];
+}
+
+- (NSColor *)infoBackgroundColor {
+  return [NSColor colorWithRed:208.0/255.0 green:232.0/255.0 blue:246.0/255.0 alpha:1.0f];
 }
 
 - (NSColor *)lineColor {

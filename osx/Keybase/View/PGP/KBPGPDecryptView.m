@@ -27,9 +27,13 @@
 - (void)viewInit {
   [super viewInit];
 
+  GHWeakSelf gself = self;
   YOView *contentView = [YOView view];
   [self addSubview:contentView];
   _textView = [[KBPGPTextView alloc] init];
+  _textView.onChange = ^(KBTextView *textView) {
+    if (gself.onDecrypt) gself.onDecrypt(gself, nil);
+  };
   [self addSubview:_textView];
 
   KBPGPDecryptFooterView *footerView = [[KBPGPDecryptFooterView alloc] init];
@@ -47,7 +51,7 @@
   _decrypter = [[KBPGPDecrypt alloc] init];
   KBRPgpDecryptOptions *options = [[KBRPgpDecryptOptions alloc] init];
 
-  NSData *data = [_textView.text dataUsingEncoding:NSASCIIStringEncoding];
+  NSData *data = [_textView.text dataUsingEncoding:NSUTF8StringEncoding];
   KBReader *reader = [KBReader readerWithData:data];
   KBWriter *writer = [KBWriter writer];
   KBStream *stream = [KBStream streamWithReader:reader writer:writer label:arc4random()];
@@ -71,7 +75,7 @@
 - (void)_decrypted:(KBPGPDecrypted *)decrypted {
   KBPGPOutputView *outputView = [[KBPGPOutputView alloc] init];
   NSString *text = [[NSString alloc] initWithData:decrypted.stream.writer.data encoding:NSUTF8StringEncoding];
-  [outputView setText:text];
+  [outputView setText:text wrap:NO];
   [outputView setPgpSigVerification:decrypted.pgpSigVerification];
   [self.navigation pushView:outputView animated:YES];
   [self setNeedsLayout];

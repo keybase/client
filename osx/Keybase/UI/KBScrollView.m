@@ -29,13 +29,13 @@
     UIEdgeInsets insets = yself.border.insets;
     [layout setSize:size view:yself.border options:0];
 
-    CGRect scrollRect = CGRectMake(insets.left, insets.top, size.width - insets.left - insets.right, size.height - insets.top - insets.bottom);
+    CGRect scrollRect = YOCGRectApplyInsets(CGRectMake(0, 0, size.width, size.height), insets);
 
     if ([yself.scrollView.documentView isKindOfClass:YOView.class]) {
       [layout sizeToFitVerticalInFrame:CGRectMake(0, 0, scrollRect.size.width - 10, scrollRect.size.height) view:yself.scrollView.documentView];
     }
 
-    [layout setFrame:CGRectMake(insets.left, insets.top, size.width - insets.left - insets.right, size.height - insets.top - insets.bottom) view:yself.scrollView];
+    [layout setFrame:scrollRect view:yself.scrollView];
     return size;
   }];
 }
@@ -54,7 +54,7 @@
 - (void)setBorderEnabled:(BOOL)borderEnabled {
   if (borderEnabled) {
     _border = [[KBBorder alloc] init];
-    [self addSubview:_border];
+    [self addSubview:_border positioned:NSWindowAbove relativeTo:_scrollView];
   } else {
     [_border removeFromSuperview];
     _border = nil;

@@ -8,12 +8,13 @@
 
 #import "KBPGPOutputView.h"
 #import "KBFileIcon.h"
+#import "KBPGPTextView.h"
 #import "KBPGPVerifiedView.h"
 #import "KBPGPOutputFooterView.h"
 #import <YOLayout/YOBorderLayout.h>
 
 @interface KBPGPOutputView ()
-@property KBTextView *textView;
+@property KBPGPTextView *textView;
 @property KBPGPVerifiedView *verifiedView;
 @property KBPGPOutputFooterView *footerView;
 
@@ -26,7 +27,7 @@
 - (void)viewInit {
   [super viewInit];
 
-  _textView = [[KBTextView alloc] init];
+  _textView = [[KBPGPTextView alloc] init];
   _textView.view.editable = NO;
   _textView.view.textContainerInset = CGSizeMake(10, 10);
   [self addSubview:_textView];
@@ -42,23 +43,22 @@
   _footerView.closeButton.targetBlock = ^{ [[gself window] close]; };
   [self addSubview:_footerView];
 
-  self.viewLayout = [YOBorderLayout layoutWithCenter:_textView top:nil bottom:@[_verifiedView, _footerView] insets:UIEdgeInsetsZero spacing:0];
+  self.viewLayout = [YOBorderLayout layoutWithCenter:_textView top:nil bottom:@[_verifiedView, _footerView]];
 }
 
-- (void)setText:(NSString *)text {
-  [_textView setText:text style:KBTextStyleDefault options:KBTextOptionsMonospace alignment:NSLeftTextAlignment lineBreakMode:NSLineBreakByClipping];
+- (void)setText:(NSString *)text wrap:(BOOL)wrap {
+  [_textView setText:text style:KBTextStyleDefault options:KBTextOptionsMonospace alignment:NSLeftTextAlignment lineBreakMode:(wrap ? NSLineBreakByWordWrapping : NSLineBreakByClipping)];
   [self setNeedsLayout];
 }
 
-- (void)setASCIIData:(NSData *)data {
-  NSParameterAssert(data);
-  NSString *armored = [[NSString alloc] initWithData:data encoding:NSASCIIStringEncoding];
+- (void)setData:(NSData *)data armored:(BOOL)armored {
+  [_textView setData:data armored:armored];
+}
 
-  if (!armored) {
-    armored = [[NSString alloc] initWithBytes:data.bytes length:data.length encoding:NSStringEncodingConversionAllowLossy];
-  }
-
-  [self setText:armored];
+- (void)clear {
+  _textView.attributedText = nil;
+  _verifiedView.pgpSigVerification = nil;
+  [self setNeedsLayout];
 }
 
 //- (void)share {

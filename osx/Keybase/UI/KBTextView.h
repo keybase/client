@@ -13,15 +13,18 @@
 
 @class KBTextView;
 
-typedef BOOL (^KBTextViewPaste)(KBTextView *textView);
+typedef BOOL (^KBTextViewOnPaste)(KBTextView *textView);
+typedef void (^KBTextViewOnChange)(KBTextView *textView);
 
 @interface KBTextView : NSScrollView <NSTextViewDelegate>
 
 @property (readonly) NSTextView *view;
 @property (nonatomic) NSAttributedString *attributedText;
 @property (nonatomic) NSString *text;
+@property (nonatomic, getter=isEditable) BOOL editable;
 
-@property (copy) KBTextViewPaste onPaste;
+@property (copy) KBTextViewOnChange onChange;
+@property (copy) KBTextViewOnPaste onPaste;
 
 - (void)viewInit;
 

@@ -12,7 +12,7 @@
 
 @class KBPGPVerifyView;
 
-typedef void (^KBPGPOnVerify)(KBPGPVerifyView *view);
+typedef void (^KBPGPOnVerify)(KBPGPVerifyView *view, KBRPgpSigVerification *verification);
 
 @interface KBPGPVerifyView : KBContentView
 

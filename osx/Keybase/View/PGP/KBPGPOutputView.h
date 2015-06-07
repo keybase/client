@@ -16,10 +16,12 @@
 
 @property (readonly) KBPGPOutputFooterView *footerView;
 
-- (void)setASCIIData:(NSData *)data;
+- (void)setText:(NSString *)text wrap:(BOOL)wrap;
 
-- (void)setText:(NSString *)text;
+- (void)setData:(NSData *)data armored:(BOOL)armored;
 
 - (void)setPgpSigVerification:(KBRPgpSigVerification *)pgpSigVerification;
+
+- (void)clear;
 
 @end

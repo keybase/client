@@ -14,9 +14,10 @@
 #import "KBPGPSigner.h"
 #import "KBPGPSignFooterView.h"
 #import "KBWork.h"
+#import "KBPGPTextView.h"
 
 @interface KBPGPSignView ()
-@property KBTextView *textView;
+@property KBPGPTextView *textView;
 @property KBPGPSignFooterView *footerView;
 @property KBPGPSigner *signer;
 @end
@@ -26,12 +27,15 @@
 - (void)viewInit {
   [super viewInit];
 
-  _textView = [[KBTextView alloc] init];
+  GHWeakSelf gself = self;
+  _textView = [[KBPGPTextView alloc] init];
   _textView.view.editable = YES;
   _textView.view.textContainerInset = CGSizeMake(10, 10);
+  _textView.onChange = ^(KBTextView *textView) {
+    if (gself.onSign) gself.onSign(gself, nil, KBRSignModeClear);
+  };
   [self addSubview:_textView];
 
-  GHWeakSelf gself = self;
   _footerView = [[KBPGPSignFooterView alloc] init];
   _footerView.detached.hidden = YES;
   _footerView.clearSign.state = NSOnState;
@@ -41,8 +45,8 @@
   self.viewLayout = [YOBorderLayout layoutWithCenter:_textView top:nil bottom:@[_footerView] insets:UIEdgeInsetsZero spacing:0];
 }
 
-- (void)setASCIIData:(NSData *)data {
-  [_textView setText:[[NSString alloc] initWithData:data encoding:NSASCIIStringEncoding] style:KBTextStyleDefault options:KBTextOptionsMonospace alignment:NSLeftTextAlignment lineBreakMode:NSLineBreakByClipping];
+- (void)setData:(NSData *)data {
+  [_textView setText:[[NSString alloc] initWithData:data encoding:NSUTF8StringEncoding] style:KBTextStyleDefault options:KBTextOptionsMonospace alignment:NSLeftTextAlignment lineBreakMode:NSLineBreakByClipping];
 }
 
 - (void)sign {
@@ -52,12 +56,14 @@
   options.binaryIn = NO;
   options.binaryOut = NO;
 
-  if (_textView.text.length == 0) {
+  NSString *str = _textView.text;
+
+  if (str.length == 0) {
     [KBActivity setError:KBMakeError(-1, @"Nothing to sign") sender:self];
     return;
   }
 
-  NSData *data = [_textView.text dataUsingEncoding:NSUTF8StringEncoding];
+  NSData *data = [str dataUsingEncoding:NSUTF8StringEncoding];
   if (!data) {
     [KBActivity setError:KBMakeError(-1, @"We had a problem trying to encode the text into data") sender:self];
     return;
@@ -87,7 +93,7 @@
 - (void)_sign:(NSData *)data {
   KBPGPOutputView *outputView = [[KBPGPOutputView alloc] init];
   NSString *text = [[NSString alloc] initWithData:data encoding:NSUTF8StringEncoding];
-  [outputView setText:text];
+  [outputView setText:text wrap:NO];
   [self.navigation pushView:outputView animated:YES];
 }
 

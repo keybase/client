@@ -121,7 +121,7 @@
   } else if (tracked && identifyOutcome.numTrackChanges == 0) {
     // Your tracking statement is up-to-date
     //NSDate *trackDate =  [NSDate gh_parseTimeSinceEpoch:@(identifyOutcome.trackUsed.time) withDefault:nil];
-    [_label setMarkup:NSStringWithFormat(@"Your tracking statement of %@ is up to date.", _username) font:[NSFont systemFontOfSize:14] color:[KBAppearance.currentAppearance okColor] alignment:NSLeftTextAlignment lineBreakMode:NSLineBreakByWordWrapping];
+    [_label setMarkup:NSStringWithFormat(@"Your tracking statement of %@ is up to date.", _username) font:[NSFont systemFontOfSize:14] color:[KBAppearance.currentAppearance successColor] alignment:NSLeftTextAlignment lineBreakMode:NSLineBreakByWordWrapping];
     _untrackButton.hidden = NO;
   } else if (identifyOutcome.numProofFailures > 0) {
     // Some proofs failed
@@ -142,9 +142,9 @@
     DDLogError(@"Error tracking: %@", error);
     [_label setMarkup:NSStringWithFormat(@"There was an error tracking %@. (%@)", _username, error.localizedDescription) font:[NSFont systemFontOfSize:14] color:KBAppearance.currentAppearance.dangerColor alignment:NSCenterTextAlignment lineBreakMode:NSLineBreakByWordWrapping];
   } else if (!_trackOptions) {
-    [_label setMarkup:NSStringWithFormat(@"Ok, we skipped tracking %@.", _username) font:[NSFont systemFontOfSize:14] color:[KBAppearance.currentAppearance okColor] alignment:NSCenterTextAlignment lineBreakMode:NSLineBreakByWordWrapping];
+    [_label setMarkup:NSStringWithFormat(@"Ok, we skipped tracking %@.", _username) font:[NSFont systemFontOfSize:14] color:[KBAppearance.currentAppearance successColor] alignment:NSCenterTextAlignment lineBreakMode:NSLineBreakByWordWrapping];
   } else {
-    [_label setMarkup:NSStringWithFormat(@"Success! You are now tracking %@.", _username) font:[NSFont systemFontOfSize:14] color:[KBAppearance.currentAppearance okColor] alignment:NSCenterTextAlignment lineBreakMode:NSLineBreakByWordWrapping];
+    [_label setMarkup:NSStringWithFormat(@"Success! You are now tracking %@.", _username) font:[NSFont systemFontOfSize:14] color:[KBAppearance.currentAppearance successColor] alignment:NSCenterTextAlignment lineBreakMode:NSLineBreakByWordWrapping];
   }
   //_trackButton.hidden = YES;
   [self setNeedsLayout];

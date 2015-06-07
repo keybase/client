@@ -16,7 +16,7 @@
 @property (weak) KBTextView *parent;
 @end
 
-@interface KBTextView ()
+@interface KBTextView () <NSTextViewDelegate>
 @property KBNSTextView *view;
 @end
 
@@ -46,6 +46,7 @@
   _view.font = KBAppearance.currentAppearance.textFont;
   _view.textColor = KBAppearance.currentAppearance.textColor;
   _view.editable = YES;
+  _view.delegate = self;
 
   [self setDocumentView:_view];
   self.hasVerticalScroller = YES;
@@ -78,7 +79,7 @@
 }
 
 - (void)setAttributedText:(NSAttributedString *)attributedText {
-  if (!attributedText) attributedText = [[NSAttributedString alloc] init];
+  if (!attributedText) attributedText = [[NSAttributedString alloc] initWithString:@""];
   NSAssert(_view.textStorage, @"No text storage");
   [_view.textStorage setAttributedString:attributedText];
   _view.needsDisplay = YES;
@@ -126,17 +127,39 @@
   self.attributedText = str;
 }
 
+- (BOOL)isEditable {
+  return _view.isEditable;
+}
+
+- (void)setEditable:(BOOL)editable {
+  [_view setEditable:editable];
+}
+
+// Returns YES if you should call super paste (use the default paste impl)
+- (BOOL)onPasted {
+  BOOL paste = YES;
+  if (self.onPaste) paste = self.onPaste(self);
+  [self didChange];
+  return paste;
+}
+
+- (void)didChange {
+  if (self.onChange) self.onChange(self);
+}
+
+#pragma mark NSTextViewDelegate
+
+- (void)textDidChange:(NSNotification *)notification {
+  [self didChange];
+}
+
 @end
 
 
 @implementation KBNSTextView
 
 - (void)paste:(id)sender {
-  if (self.parent.onPaste) {
-    if (self.parent.onPaste(self.parent)) [super paste:sender];
-  } else {
-    [super paste:sender];
-  }
+  if ([self.parent onPasted]) [super paste:sender];
 }
 
 @end

@@ -23,7 +23,7 @@
   self.onPaste = ^BOOL(KBTextView *textView) {
     NSPasteboard *pasteboard = [NSPasteboard generalPasteboard];
     NSString *str = [pasteboard stringForType:NSPasteboardTypeString];
-    [gself setData:[str dataUsingEncoding:NSASCIIStringEncoding] armored:YES];
+    [gself setData:[str dataUsingEncoding:NSUTF8StringEncoding] armored:YES];
     return NO;
   };
 }
@@ -40,7 +40,7 @@
   _data = data;
   _armored = armored;
   if (armored) {
-    [self setText:[[NSString alloc] initWithData:_data encoding:NSASCIIStringEncoding] style:KBTextStyleDefault options:KBTextOptionsMonospace alignment:NSLeftTextAlignment lineBreakMode:NSLineBreakByClipping];
+    [self setText:[[NSString alloc] initWithData:_data encoding:NSUTF8StringEncoding] style:KBTextStyleDefault options:KBTextOptionsMonospace alignment:NSLeftTextAlignment lineBreakMode:NSLineBreakByClipping];
   } else {
     [self setText:KBHexString(_data, @"") style:KBTextStyleDefault options:KBTextOptionsMonospace alignment:NSLeftTextAlignment lineBreakMode:NSLineBreakByClipping];
   }

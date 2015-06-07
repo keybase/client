@@ -45,11 +45,13 @@ typedef NS_OPTIONS (NSInteger, KBButtonOptions) {
 - (NSColor *)disabledTextColor;
 - (NSColor *)selectedTextColor;
 
-- (NSColor *)okColor;
+- (NSColor *)successColor;
+- (NSColor *)successBackgroundColor;
 - (NSColor *)warnColor;
+- (NSColor *)warnBackgroundColor;
 - (NSColor *)dangerColor;
-
-- (NSColor *)greenColor;
+- (NSColor *)dangerBackgroundColor;
+- (NSColor *)infoBackgroundColor;
 
 - (NSColor *)lineColor;
 - (NSColor *)secondaryLineColor;

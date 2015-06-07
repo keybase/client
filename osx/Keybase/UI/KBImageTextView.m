@@ -35,10 +35,12 @@
   _border.position = KBBoxPositionNone;
   [self addSubview:_border];
 
+  _insets = UIEdgeInsetsMake(8, 10, 8, 0);
+
   YOSelf yself = self;
   self.viewLayout = [YOLayout layoutWithLayoutBlock:^(id<YOLayout> layout, CGSize size) {
-    CGFloat x = 10;
-    CGFloat y = 8;
+    CGFloat x = yself.insets.left;
+    CGFloat y = yself.insets.top;
 
     CGFloat minY = 0;
     if (yself.imageView.image || yself.imageSize.width > 0) {
@@ -47,10 +49,10 @@
       minY = imageViewFrame.origin.y + imageViewFrame.size.height;
     }
 
-    y += [layout sizeToFitVerticalInFrame:CGRectMake(x, y, size.width - x, 0) view:yself.titleLabel].size.height + 2;
-    y += [layout sizeToFitVerticalInFrame:CGRectMake(x, y, size.width - x, 0) view:yself.infoLabel].size.height;
+    y += [layout sizeToFitVerticalInFrame:CGRectMake(x, y, size.width - x - yself.insets.right, 0) view:yself.titleLabel].size.height + 2;
+    y += [layout sizeToFitVerticalInFrame:CGRectMake(x, y, size.width - x - yself.insets.right, 0) view:yself.infoLabel].size.height;
 
-    y = MAX(y, minY) + 8;
+    y = MAX(y, minY) + yself.insets.bottom;
 
     [yself.border layoutForPositionWithLayout:layout size:size];
     return CGSizeMake(size.width, y);

@@ -34,6 +34,14 @@
   return self;
 }
 
+- (NSView *)hitTest:(NSPoint)p {
+  for (NSView *subView in [self subviews]) {
+    if ([subView hitTest:p])
+      return subView;
+  }
+  return nil;
+}
+
 - (BOOL)isFlipped { return YES; }
 
 - (void)updatePath {

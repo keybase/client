@@ -13,10 +13,12 @@
 #import <GHKit/GHKit.h>
 #import "KBWindow.h"
 #import "KBActivity.h"
+#import "KBBorder.h"
 
 @interface KBNavigationView ()
 @property NSMutableArray *views;
 @property YOView *contentView;
+@property KBBorder *border;
 @end
 
 @interface NSView (KBViews)
@@ -30,7 +32,6 @@
 - (void)viewInit {
   [super viewInit];
   self.wantsLayer = YES;
-  //self.layer.backgroundColor = NSColor.whiteColor.CGColor;
 
   _views = [NSMutableArray array];
 
@@ -44,22 +45,36 @@
       y += [layout sizeToFitVerticalInFrame:CGRectMake(0, 0, size.width, 0) view:yself.titleView].size.height;
     }
 
-    CGRect contentRect = [layout setFrame:CGRectMake(0, y, size.width, size.height - y) view:yself.contentView];
+    CGSize contentSize = [layout setFrame:CGRectMake(0, y, size.width, size.height - y) view:yself.contentView].size;
+
     for (NSView *view in yself.views) {
-//      CGSize sizeThatFits = [(id)view sizeThatFits:contentRect.size];      
-//      [layout centerWithSize:sizeThatFits frame:CGRectMake(0, 0, contentRect.size.width, contentRect.size.height - y) view:view];
-      [layout setFrame:CGRectMake(0, 0, contentRect.size.width, contentRect.size.height) view:view];
+      [layout setFrame:CGRectMake(0, 0, contentSize.width, contentSize.height) view:view];
     }
+    [layout setFrame:CGRectMake(0, y, size.width, size.height - y) view:yself.border];
     return size;
   }];
 }
 
+- (instancetype)initWithView:(NSView *)view {
+  return [self initWithView:view title:nil];
+}
+
 - (instancetype)initWithView:(NSView *)view title:(NSString *)title {
   if ((self = [super initWithFrame:CGRectZero])) {
-    self.titleView = [KBNavigationTitleView titleViewWithTitle:title navigation:self];
+    self.titleView = title ? [KBNavigationTitleView titleViewWithTitle:title navigation:self] : nil;
     [self setView:view transitionType:KBNavigationTransitionTypeNone];
   }
   return self;
+}
+
+- (void)setBorderEnabled:(BOOL)borderEnabled {
+  if (borderEnabled) {
+    _border = [[KBBorder alloc] init];
+    [self addSubview:_border positioned:NSWindowAbove relativeTo:_contentView];
+  } else {
+    [_border removeFromSuperview];
+    _border = nil;
+  }
 }
 
 - (BOOL)mouseDownCanMoveWindow {

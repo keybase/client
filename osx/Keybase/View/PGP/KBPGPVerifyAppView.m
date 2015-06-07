@@ -21,23 +21,34 @@
 - (void)viewInit {
   [super viewInit];
 
-  KBSplitView *view = [[KBSplitView alloc] init];
-  view.dividerRatio = .50;
-  [self addSubview:view];
+//  KBSplitView *view = [[KBSplitView alloc] init];
+//  view.dividerRatio = .50;
+//  [self addSubview:view];
 
-  //GHWeakSelf gself = self;
+  GHWeakSelf gself = self;
   _verifyView = [[KBPGPVerifyView alloc] init];
-  _verifyView.onVerify = ^(KBPGPVerifyView *view) {
+  _verifyView.onVerify = ^(KBPGPVerifyView *view, KBRPgpSigVerification *verification) {
+    if (verification) {
+      // TODO: Need output from verifier
+      NSString *text = [[NSString alloc] initWithData:[NSData data] encoding:NSUTF8StringEncoding];
+      [gself.outputView setText:text wrap:YES];
+      [gself.outputView setPgpSigVerification:verification];
+      [gself.navigation pushView:gself.outputView animated:YES];
+    } else {
+      DDLogDebug(@"Clearing");
+      [gself.outputView clear];
+    }
   };
+  [self addSubview:_verifyView];
 
   _outputView = [[KBPGPOutputView alloc] init];
-  _outputView.footerView.editButton.hidden = YES;
   _outputView.footerView.closeButton.hidden = YES;
 
-  [view setLeftView:_verifyView];
-  [view setRightView:_outputView];
-
-  self.viewLayout = [YOLayout fill:view];
+//  [view setLeftView:_verifyView];
+//  [view setRightView:_outputView];
+//
+//  self.viewLayout = [YOLayout fill:view];
+  self.viewLayout = [YOLayout fill:_verifyView];
 }
 
 - (void)setClient:(KBRPClient *)client {

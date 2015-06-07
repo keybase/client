@@ -20,6 +20,8 @@
 @property KBPGPDecryptAppView *decryptView;
 @property KBPGPSignAppView *signView;
 @property KBPGPVerifyAppView *verifyView;
+
+//@property NSPopUpButton *signOptions;
 @end
 
 @implementation KBPGPAppView
@@ -41,16 +43,25 @@
   [self addSubview:picker];
 
   _encryptView = [[KBPGPEncryptAppView alloc] init];
-  _encryptView.identifier = @"Encrypt";
+  KBNavigationView *encryptView = [[KBNavigationView alloc] initWithView:_encryptView];
+  encryptView.identifier = @"Encrypt";
+  [encryptView setBorderEnabled:YES];
 
   _decryptView = [[KBPGPDecryptAppView alloc] init];
-  _decryptView.identifier = @"Decrypt";
+  KBNavigationView *decryptView = [[KBNavigationView alloc] initWithView:_decryptView];
+  decryptView.identifier = @"Decrypt";
+  [decryptView setBorderEnabled:YES];
 
   _signView = [[KBPGPSignAppView alloc] init];
-  _signView.identifier = @"Sign";
+  KBNavigationView *signView = [[KBNavigationView alloc] initWithView:_signView];
+  signView.identifier = @"Sign";
+  [signView setBorderEnabled:YES];
 
   _verifyView = [[KBPGPVerifyAppView alloc] init];
-  _verifyView.identifier = @"Verify";
+  KBNavigationView *verifyView = [[KBNavigationView alloc] initWithView:_verifyView];
+  verifyView.identifier = @"Verify";
+  [verifyView setBorderEnabled:YES];
+
 
   KBBox *line = [KBBox horizontalLine];
   [self addSubview:line];
@@ -58,7 +69,7 @@
   _views = [[KBViews alloc] init];
   [self addSubview:_views];
 
-  [_views setViews:@[_encryptView, _decryptView, _signView, _verifyView]];
+  [_views setViews:@[encryptView, decryptView, signView, verifyView]];
 
   picker.selectedSegment = 0;
   [self pickerSelected:picker];
@@ -71,7 +82,8 @@
 
     [layout setFrame:CGRectMake(0, y, size.width, 1) view:line];
 
-    [layout setFrame:CGRectMake(0, y + 1, size.width, size.height - y - 1) view:yself.views];
+    //[layout setFrame:CGRectMake(0, y, MIN(size.width, 500), size.height - y + 1) view:yself.views];
+    [layout centerWithSize:CGSizeMake(MIN(size.width, 500), size.height - y + 1) frame:CGRectMake(0, y, size.width, size.height - y + 1) view:yself.views];
 
     return size;
   }];

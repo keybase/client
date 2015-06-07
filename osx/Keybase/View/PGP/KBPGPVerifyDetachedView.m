@@ -1,12 +1,12 @@
 //
-//  KBPGPVerifyView.m
+//  KBPGPVerifyDetachedView.m
 //  Keybase
 //
-//  Created by Gabriel on 3/27/15.
+//  Created by Gabriel on 6/5/15.
 //  Copyright (c) 2015 Gabriel Handford. All rights reserved.
 //
 
-#import "KBPGPVerifyView.h"
+#import "KBPGPVerifyDetachedView.h"
 
 #import "KBRPC.h"
 #import "KBStream.h"
@@ -17,29 +17,37 @@
 #import "KBFileSelectView.h"
 #import "KBPGPTextView.h"
 
-@interface KBPGPVerifyView ()
+@interface KBPGPVerifyDetachedView ()
 @property KBPGPTextView *textView;
+@property KBFileSelectView *fileSelectView;
 @property KBPGPVerifyFooterView *footerView;
 @property KBPGPVerify *verifier;
 @end
 
-@implementation KBPGPVerifyView
+@implementation KBPGPVerifyDetachedView
 
 - (void)viewInit {
   [super viewInit];
 
-  GHWeakSelf gself = self;
+  YOVBox *topView = [YOVBox box];
+  [self addSubview:topView];
+
   _textView = [[KBPGPTextView alloc] init];
-  _textView.onChange = ^(KBTextView *textView) {
-    gself.onVerify(gself, nil);
-  };
   [self addSubview:_textView];
 
+  YOVBox *bottomView = [YOVBox box];
+  [self addSubview:bottomView];
+  [bottomView addSubview:[KBBox horizontalLine]];
+  _fileSelectView = [[KBFileSelectView alloc] init];
+  [_fileSelectView setLabelText:@"File:"];
+  [bottomView addSubview:_fileSelectView];
+
+  GHWeakSelf gself = self;
   _footerView = [[KBPGPVerifyFooterView alloc] init];
   _footerView.verifyButton.targetBlock = ^{ [gself verify]; };
-  [self addSubview:_footerView];
+  [bottomView addSubview:_footerView];
 
-  self.viewLayout = [YOBorderLayout layoutWithCenter:_textView top:nil bottom:@[_footerView] insets:UIEdgeInsetsZero spacing:0];
+  self.viewLayout = [YOBorderLayout layoutWithCenter:_textView top:nil bottom:@[bottomView]];
 }
 
 - (void)setData:(NSData *)data armored:(BOOL)armored {
@@ -55,15 +63,23 @@
   KBRPgpVerifyOptions *options = [[KBRPgpVerifyOptions alloc] init];
 
   NSData *signatureData = [_textView.text dataUsingEncoding:NSUTF8StringEncoding];
+  NSString *filePath = [_fileSelectView path];
 
-  if (signatureData.length == 0) {
-    [KBActivity setError:KBErrorAlert(@"Nothing to verify.") sender:_textView];
+  if (!filePath && signatureData.length == 0) {
+    [self.navigation setError:KBErrorAlert(@"Nothing to verify.") sender:_textView];
     return;
   }
 
   KBStream *stream = nil;
-  KBReader *reader = [KBReader readerWithData:signatureData];
-  stream = [KBStream streamWithReader:reader writer:nil label:arc4random()];
+  if (filePath) {
+    KBFileReader *fileReader = [KBFileReader fileReaderWithPath:filePath];
+    stream = [KBStream streamWithReader:fileReader writer:nil label:arc4random()];
+    options.signature = signatureData;
+  } else {
+    KBReader *reader = [KBReader readerWithData:signatureData];
+    stream = [KBStream streamWithReader:reader writer:nil label:arc4random()];
+    //options.signature = signatureData;
+  }
 
   [KBActivity setProgressEnabled:YES sender:self];
   [_verifier verifyWithOptions:options stream:stream client:self.client sender:self completion:^(NSError *error, KBStream *stream, KBRPgpSigVerification *pgpSigVerification) {
@@ -84,8 +100,9 @@
     NSString *description = NSStringWithFormat(@"Verified from %@ with PGP key fingerprint %@", pgpSigVerification.signer.username, pgpSigVerification.signKey.PGPFingerprint);
     [KBAlert promptWithTitle:title description:description style:NSInformationalAlertStyle buttonTitles:@[@"OK"] view:self completion:^(NSModalResponse returnCode) { }];
   } else {
-    [KBActivity setError:KBMakeError(-1, @"Unable to verify") sender:self];
+    [self.navigation setError:KBMakeError(-1, @"Unable to verify") sender:self];
   }
 }
 
 @end
+

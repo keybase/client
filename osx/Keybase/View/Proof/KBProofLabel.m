@@ -46,14 +46,14 @@
 
         case KBRTrackDiffTypeUpgraded:
         case KBRTrackDiffTypeNew:
-          color = [KBAppearance.currentAppearance greenColor];
+          color = KBAppearance.currentAppearance.successColor;
           label = diff.displayMarkup;
           break;
 
         case KBRTrackDiffTypeRemoteFail:
         case KBRTrackDiffTypeRemoteChanged:
           label = diff.displayMarkup;
-          color = [KBAppearance.currentAppearance warnColor];
+          color = KBAppearance.currentAppearance.warnColor;
           break;
 
         case KBRTrackDiffTypeRemoteWorking:

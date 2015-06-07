@@ -197,6 +197,8 @@
   NSMutableDictionary *mparams = [params mutableCopy];
   [mparams gh_mutableCompact];
 
+  DDLogDebug(@"Requesting: %@(%@)", method, KBDescription(KBScrubSensitive(mparams)));
+
   [_client sendRequestWithMethod:method params:@[mparams] messageId:sessionId completion:^(NSError *error, id result) {
     [self unregister:sessionId];
     if (error) {
@@ -216,17 +218,13 @@
     if ([NSUserDefaults.standardUserDefaults boolForKey:@"Preferences.Advanced.Record"]) {
       if (result) [self.recorder recordResponse:method response:result sessionId:sessionId];
     }
-    DDLogDebug(@"Service reply: %@: %@", method, result ? KBDescription(result) : @"");
+    DDLogDebug(@"Replied: %@: %@", method, result ? KBDescription(result) : @"");
     completion(error, result);
   }];
-
-  KBScrubSensitive(mparams);
-
-  //NSNumber *messageId = request[1];
-  DDLogDebug(@"Service request: %@(%@)", method, [mparams count] > 0 ? KBDescription(mparams) : @"");
-  if ([NSUserDefaults.standardUserDefaults boolForKey:@"Preferences.Advanced.Record"]) {
-    [self.recorder recordRequest:method params:[_client encodeObject:params] sessionId:sessionId callback:NO];
-  }
+  
+//  if ([NSUserDefaults.standardUserDefaults boolForKey:@"Preferences.Advanced.Record"]) {
+//    [self.recorder recordRequest:method params:[_client encodeObject:params] sessionId:sessionId callback:NO];
+//  }
 }
 
 - (void)check:(void (^)(NSError *error, NSString *version))completion {
@@ -260,11 +258,13 @@
   }];
 }
 
-void KBScrubSensitive(NSMutableDictionary *dict) {
-  if (dict[@"passphrase"]) dict[@"passphrase"] = @"[FILTERED PASSPHRASE]";
-  if (dict[@"password"]) dict[@"password"] = @"[FILTERED PASSWORD]";
-  if (dict[@"inviteCode"]) dict[@"inviteCode"] = @"[FILTERED INVITE CODE]";
-  if (dict[@"email"]) dict[@"email"] = @"[FILTERED EMAIL]";
+NSDictionary *KBScrubSensitive(NSDictionary *dict) {
+  NSMutableDictionary *mdict = [dict mutableCopy];
+  if (dict[@"passphrase"]) mdict[@"passphrase"] = @"[FILTERED PASSPHRASE]";
+  if (dict[@"password"]) mdict[@"password"] = @"[FILTERED PASSWORD]";
+  if (dict[@"inviteCode"]) mdict[@"inviteCode"] = @"[FILTERED INVITE CODE]";
+  if (dict[@"email"]) mdict[@"email"] = @"[FILTERED EMAIL]";
+  return mdict;
 }
 
 #pragma mark -

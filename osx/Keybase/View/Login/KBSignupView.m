@@ -226,7 +226,7 @@
       [self setNeedsLayout];
       return;
     } else {
-      [gself.usernameStatusLabel setText:@"OK" font:[NSFont systemFontOfSize:12] color:[KBAppearance.currentAppearance okColor] alignment:NSRightTextAlignment];
+      [gself.usernameStatusLabel setText:@"OK" font:[NSFont systemFontOfSize:12] color:KBAppearance.currentAppearance.successColor alignment:NSRightTextAlignment];
     }
     [self setNeedsLayout];
   }];

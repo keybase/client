@@ -29,7 +29,7 @@
   } else if (obj == (void*)kCFBooleanFalse) {
     return @"false";
   } else if ([obj isKindOfClass:NSNull.class]) {
-    return @"NSNull";
+    return @"null";
   } else if ([obj isKindOfClass:NSString.class]) {
     return NSStringWithFormat(@"\"%@\"", obj);
   } else if ([obj isKindOfClass:NSArray.class]) {
@@ -73,7 +73,6 @@ NSString *KBDescription(id obj) {
   KBFormatter *formatter = [[KBFormatter alloc] init];
   return [formatter format:obj];
 }
-
 
 NSString *KBHexString(NSData *data, NSString *defaultValue) {
   if (!data) return defaultValue;
