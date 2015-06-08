@@ -184,9 +184,6 @@ type KBPKI interface {
 type KeyManager interface {
 	// GetTLFCryptKey gets the crypt key for the given TLF.
 	GetTLFCryptKey(dir Path, md *RootMetadata) (TLFCryptKey, error)
-	// GetBlockCryptKey gets the crypt key for the given block.
-	GetBlockCryptKey(dir Path, id BlockID, md *RootMetadata) (
-		BlockCryptKey, error)
 	// Rekey creates a new epoch of keys for the given directory
 	Rekey(md *RootMetadata) error
 }
@@ -236,10 +233,6 @@ type KeyCache interface {
 	GetTLFCryptKey(DirID, KeyVer) (TLFCryptKey, error)
 	// PutTLFCryptKey stores the crypt key for the given TLF.
 	PutTLFCryptKey(DirID, KeyVer, TLFCryptKey) error
-	// GetBlockCryptKey gets the crypt key for the given block.
-	GetBlockCryptKey(id BlockID) (BlockCryptKey, error)
-	// PutBlockCryptKey stores the crypt key for the given block.
-	PutBlockCryptKey(id BlockID, key BlockCryptKey) error
 }
 
 // BlockCache gets and puts plaintext dir blocks and file blocks into
@@ -379,15 +372,6 @@ type MDOps interface {
 // KeyOps fetches server-side key halves and MAC public keys from the
 // key server.
 type KeyOps interface {
-	// GetBlockCryptKeyServerHalf gets the server-side key half for a block.
-	GetBlockCryptKeyServerHalf(id BlockID) (BlockCryptKeyServerHalf, error)
-	// PutBlockCryptKeyServerHalf puts the server-side key half for a new block.
-	PutBlockCryptKeyServerHalf(id BlockID,
-		serverHalf BlockCryptKeyServerHalf) error
-	// DeleteBlockCryptKeyServerHalf deletes the server-side key half
-	// for a block.
-	DeleteBlockCryptKeyServerHalf(id BlockID) error
-
 	// GetTLFCryptKeyServerHalf gets the server-side key half for a
 	// device (identified by its CryptPublicKey) for a given TLF.
 	GetTLFCryptKeyServerHalf(id DirID, keyVer KeyVer,
@@ -405,10 +389,11 @@ type KeyOps interface {
 // the necessary crypto operations on each block.
 type BlockOps interface {
 	// Get gets the block associated with the given block ID and
-	// context, uses the provided block key to decrypt the block, and
+	// context, uses the block key generated from the given TLF key
+	// and the fetched server-side block key-half to decrypt, and
 	// fills in the provided block object with its contents, if the
 	// logged-in user has read permission for that block.
-	Get(id BlockID, context BlockContext, cryptKey BlockCryptKey,
+	Get(id BlockID, context BlockContext, tlfCryptKey TLFCryptKey,
 		block Block) error
 	// Ready turns plaintext blocks into encrypted buffers using the
 	// provided key, and calculates their IDs and sizes, so that we
@@ -417,8 +402,9 @@ type BlockOps interface {
 	Ready(block Block, cryptKey BlockCryptKey) (
 		id BlockID, plainSize int, buf []byte, err error)
 	// Put stores the (encrypted) block data under the given ID and
-	// context on the server.
-	Put(id BlockID, context BlockContext, buf []byte) error
+	// context on the server, along with the server half of the block key.
+	Put(id BlockID, context BlockContext, buf []byte,
+		serverHalf BlockCryptKeyServerHalf) error
 	// Delete instructs the server to delete the block data associated
 	// with the given ID and context.
 	Delete(id BlockID, context BlockContext) error
@@ -470,10 +456,13 @@ type BlockServer interface {
 	// the block, and fills in the provided block object with its
 	// contents, if the logged-in user has read permission for that
 	// block.
-	Get(id BlockID, context BlockContext) ([]byte, error)
+	Get(id BlockID, context BlockContext) (
+		[]byte, BlockCryptKeyServerHalf, error)
 	// Put stores the (encrypted) block data under the given ID and
-	// context on the server.
-	Put(id BlockID, context BlockContext, buf []byte) error
+	// context on the server, along with the server half of the block
+	// key.
+	Put(id BlockID, context BlockContext, buf []byte,
+		serverHalf BlockCryptKeyServerHalf) error
 	// Delete instructs the server to delete the block data
 	// associated with the given ID. No error is returned if no
 	// data exists for the given ID.

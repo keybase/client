@@ -68,7 +68,7 @@ func main() {
 		log.Fatalf("cannot open MD database: %v", err)
 	}
 	config.SetMDServer(mdserv)
-	bserv, err := libkbfs.NewBlockServerLocal("kbfs_block")
+	bserv, err := libkbfs.NewBlockServerLocal(config, "kbfs_block")
 	if err != nil {
 		log.Fatalf("cannot open block database: %v", err)
 	}

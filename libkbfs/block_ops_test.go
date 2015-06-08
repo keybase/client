@@ -29,6 +29,8 @@ func blockOpsShutdown(mockCtrl *gomock.Controller, config *ConfigMock) {
 
 func expectBlockDecrypt(config *ConfigMock, encData []byte, key BlockCryptKey,
 	block TestBlock, err error) {
+	config.mockCrypto.EXPECT().UnmaskBlockCryptKey(gomock.Any(), gomock.Any()).
+		Return(BlockCryptKey{}, nil)
 	config.mockCrypto.EXPECT().DecryptBlock(encData, key, gomock.Any()).
 		Do(func(buf []byte, key BlockCryptKey, b Block) {
 		if b != nil {
@@ -50,13 +52,14 @@ func TestBlockOpsGetSuccess(t *testing.T) {
 	id := BlockID{1}
 	encData := []byte{1, 2, 3, 4}
 	ctxt := makeContext(encData)
-	config.mockBserv.EXPECT().Get(id, ctxt).Return(encData, nil)
+	config.mockBserv.EXPECT().Get(id, ctxt).Return(
+		encData, BlockCryptKeyServerHalf{}, nil)
 	decData := TestBlock{42}
 	var key BlockCryptKey
 	expectBlockDecrypt(config, encData, key, decData, nil)
 
 	var gotBlock TestBlock
-	err := config.BlockOps().Get(id, ctxt, BlockCryptKey{}, &gotBlock)
+	err := config.BlockOps().Get(id, ctxt, TLFCryptKey{}, &gotBlock)
 	if err != nil {
 		t.Fatalf("Got error on get: %v", err)
 	}
@@ -74,11 +77,13 @@ func TestBlockOpsGetFailInconsistentByteCount(t *testing.T) {
 	id := BlockID{1}
 	encData := []byte{1, 2, 3, 4}
 	ctxt := makeContext(encData[:3])
-	config.mockBserv.EXPECT().Get(id, ctxt).Return(encData, nil)
+	config.mockBserv.EXPECT().Get(id, ctxt).Return(
+		encData, BlockCryptKeyServerHalf{}, nil)
 
-	err := config.BlockOps().Get(id, ctxt, BlockCryptKey{}, nil)
+	err := config.BlockOps().Get(id, ctxt, TLFCryptKey{}, nil)
 	if _, ok := err.(*InconsistentByteCountError); !ok {
-		t.Errorf("Unexpectedly did not get InconsistentByteCountError; instead got %v", err)
+		t.Errorf("Unexpectedly did not get InconsistentByteCountError; "+
+			"instead got %v", err)
 	}
 }
 
@@ -90,10 +95,11 @@ func TestBlockOpsGetFailGet(t *testing.T) {
 	id := BlockID{1}
 	err := errors.New("Fake fail")
 	ctxt := makeContext(nil)
-	config.mockBserv.EXPECT().Get(id, ctxt).Return(nil, err)
+	config.mockBserv.EXPECT().Get(id, ctxt).Return(
+		nil, BlockCryptKeyServerHalf{}, err)
 
 	if err2 := config.BlockOps().Get(
-		id, ctxt, BlockCryptKey{}, nil); err2 != err {
+		id, ctxt, TLFCryptKey{}, nil); err2 != err {
 		t.Errorf("Got bad error: %v", err2)
 	}
 }
@@ -106,13 +112,14 @@ func TestBlockOpsGetFailDecryptBlockData(t *testing.T) {
 	id := BlockID{1}
 	encData := []byte{1, 2, 3, 4}
 	ctxt := makeContext(encData)
-	config.mockBserv.EXPECT().Get(id, ctxt).Return(encData, nil)
+	config.mockBserv.EXPECT().Get(id, ctxt).Return(
+		encData, BlockCryptKeyServerHalf{}, nil)
 	err := errors.New("Fake fail")
 	var key BlockCryptKey
 	expectBlockDecrypt(config, encData, key, TestBlock{}, err)
 
 	if err2 := config.BlockOps().Get(
-		id, ctxt, BlockCryptKey{}, nil); err2 != err {
+		id, ctxt, TLFCryptKey{}, nil); err2 != err {
 		t.Errorf("Got bad error: %v", err2)
 	}
 }
@@ -128,7 +135,8 @@ func TestBlockOpsReadySuccess(t *testing.T) {
 	id := BlockID{1}
 
 	expectedPlainSize := 4
-	config.mockCrypto.EXPECT().EncryptBlock(decData, key).Return(expectedPlainSize, encData, nil)
+	config.mockCrypto.EXPECT().EncryptBlock(decData, key).
+		Return(expectedPlainSize, encData, nil)
 	config.mockCrypto.EXPECT().Hash(encData).Return(
 		libkb.NodeHashShort(id), nil)
 
@@ -153,11 +161,13 @@ func TestBlockOpsReadyFailTooLowByteCount(t *testing.T) {
 	encData := []byte{1, 2, 3}
 	var key BlockCryptKey
 
-	config.mockCrypto.EXPECT().EncryptBlock(decData, key).Return(4, encData, nil)
+	config.mockCrypto.EXPECT().EncryptBlock(decData, key).
+		Return(4, encData, nil)
 
 	_, _, _, err := config.BlockOps().Ready(decData, key)
 	if _, ok := err.(*TooLowByteCountError); !ok {
-		t.Errorf("Unexpectedly did not get TooLowByteCountError; instead got %v", err)
+		t.Errorf("Unexpectedly did not get TooLowByteCountError; "+
+			"instead got %v", err)
 	}
 }
 
@@ -187,7 +197,8 @@ func TestBlockOpsReadyFailHash(t *testing.T) {
 	var key BlockCryptKey
 	err := errors.New("Fake fail")
 
-	config.mockCrypto.EXPECT().EncryptBlock(decData, key).Return(4, encData, nil)
+	config.mockCrypto.EXPECT().EncryptBlock(decData, key).
+		Return(4, encData, nil)
 	config.mockCrypto.EXPECT().Hash(encData).Return(nil, err)
 
 	if _, _, _, err2 := config.BlockOps().Ready(decData, key); err2 != err {
@@ -205,7 +216,8 @@ func TestBlockOpsReadyFailCast(t *testing.T) {
 	var key BlockCryptKey
 	badID := libkb.NodeHashLong{0}
 
-	config.mockCrypto.EXPECT().EncryptBlock(decData, key).Return(4, encData, nil)
+	config.mockCrypto.EXPECT().EncryptBlock(decData, key).
+		Return(4, encData, nil)
 	config.mockCrypto.EXPECT().Hash(encData).Return(badID, nil)
 
 	err := &BadCryptoError{BlockID{0}}
@@ -223,9 +235,10 @@ func TestBlockOpsPutSuccess(t *testing.T) {
 	id := BlockID{1}
 	encData := []byte{1, 2, 3, 4}
 	ctxt := makeContext(encData)
-	config.mockBserv.EXPECT().Put(id, ctxt, encData).Return(nil)
+	k := BlockCryptKeyServerHalf{}
+	config.mockBserv.EXPECT().Put(id, ctxt, encData, k).Return(nil)
 
-	if err := config.BlockOps().Put(id, ctxt, encData); err != nil {
+	if err := config.BlockOps().Put(id, ctxt, encData, k); err != nil {
 		t.Errorf("Got error on put: %v", err)
 	}
 }
@@ -238,9 +251,11 @@ func TestBlockOpsPutFailInconsistentByteCountError(t *testing.T) {
 	id := BlockID{1}
 	encData := []byte{1, 2, 3, 4}
 	ctxt := makeContext(encData[:3])
-	err := config.BlockOps().Put(id, ctxt, encData)
+	k := BlockCryptKeyServerHalf{}
+	err := config.BlockOps().Put(id, ctxt, encData, k)
 	if _, ok := err.(*InconsistentByteCountError); !ok {
-		t.Errorf("Unexpectedly did not get InconsistentByteCountError; instead got %v", err)
+		t.Errorf("Unexpectedly did not get InconsistentByteCountError;"+
+			" instead got %v", err)
 	}
 }
 
@@ -253,9 +268,10 @@ func TestBlockOpsPutFail(t *testing.T) {
 	encData := []byte{1, 2, 3, 4}
 	ctxt := makeContext(encData)
 	err := errors.New("Fake fail")
-	config.mockBserv.EXPECT().Put(id, ctxt, encData).Return(err)
+	k := BlockCryptKeyServerHalf{}
+	config.mockBserv.EXPECT().Put(id, ctxt, encData, k).Return(err)
 
-	if err2 := config.BlockOps().Put(id, ctxt, encData); err2 != err {
+	if err2 := config.BlockOps().Put(id, ctxt, encData, k); err2 != err {
 		t.Errorf("Got bad error on put: %v", err2)
 	}
 }

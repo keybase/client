@@ -90,48 +90,6 @@ func (km *KeyManagerStandard) GetTLFCryptKey(dir Path, md *RootMetadata) (
 	return
 }
 
-// GetBlockCryptKey implements the KeyManager interface for KeyManagerStandard.
-func (km *KeyManagerStandard) GetBlockCryptKey(
-	dir Path, id BlockID, md *RootMetadata) (blockCryptKey BlockCryptKey, err error) {
-	if md.ID.IsPublic() {
-		// no key is needed, return an empty key
-		// TODO: This should be handled at a higher level,
-		// i.e. all the encryption/decryption code should be
-		// bypassed for blocks in public directories.
-		return
-	}
-
-	// look in the cache first
-	kcache := km.config.KeyCache()
-	if blockCryptKey, err = kcache.GetBlockCryptKey(id); err == nil {
-		return
-	}
-
-	// otherwise, get the secret key, then the server side block key
-	dirKey, err := km.GetTLFCryptKey(dir, md)
-	if err != nil {
-		return
-	}
-
-	serverHalf, err := km.config.KeyOps().GetBlockCryptKeyServerHalf(id)
-	if err != nil {
-		return
-	}
-
-	blockCryptKey, err = km.config.Crypto().UnmaskBlockCryptKey(serverHalf, dirKey)
-	if err != nil {
-		return
-	}
-
-	err = kcache.PutBlockCryptKey(id, blockCryptKey)
-	if err != nil {
-		blockCryptKey = BlockCryptKey{}
-		return
-	}
-
-	return
-}
-
 func (km *KeyManagerStandard) secretKeysForUser(md *RootMetadata, uid keybase1.UID,
 	tlfCryptKey TLFCryptKey, ePrivKey TLFEphemeralPrivateKey) (uMap map[libkb.KIDMapKey]EncryptedTLFCryptKeyClientHalf, err error) {
 	defer func() {

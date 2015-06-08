@@ -18,31 +18,37 @@ type CheckBlockOps struct {
 
 var _ BlockOps = (*CheckBlockOps)(nil)
 
-func (cbo *CheckBlockOps) Get(id BlockID, context BlockContext, cryptKey BlockCryptKey, block Block) error {
-	err := cbo.delegate.Get(id, context, cryptKey, block)
+func (cbo *CheckBlockOps) Get(id BlockID, context BlockContext,
+	tlfCryptKey TLFCryptKey, block Block) error {
+	err := cbo.delegate.Get(id, context, tlfCryptKey, block)
 	if err != nil {
 		return err
 	}
 	if fBlock, ok := block.(*FileBlock); ok && !fBlock.IsInd && context.GetQuotaSize() < uint32(len(fBlock.Contents)) {
-		cbo.tr.Errorf("expected at most %d bytes, got %d bytes", context.GetQuotaSize(), len(fBlock.Contents))
+		cbo.tr.Errorf("expected at most %d bytes, got %d bytes",
+			context.GetQuotaSize(), len(fBlock.Contents))
 	}
 	return err
 }
 
-func (cbo *CheckBlockOps) Ready(block Block, cryptKey BlockCryptKey) (id BlockID, plainSize int, buf []byte, err error) {
+func (cbo *CheckBlockOps) Ready(block Block, cryptKey BlockCryptKey) (
+	id BlockID, plainSize int, buf []byte, err error) {
 	id, plainSize, buf, err = cbo.delegate.Ready(block, cryptKey)
 	if plainSize > len(buf) {
-		cbo.tr.Errorf("expected plainSize <= len(buf), got plainSize = %d, len(buf) = %d", plainSize, len(buf))
+		cbo.tr.Errorf("expected plainSize <= len(buf), got plainSize = %d, "+
+			"len(buf) = %d", plainSize, len(buf))
 	}
 	return
 }
 
-func (cbo *CheckBlockOps) Put(id BlockID, context BlockContext, buf []byte) error {
-	if err := cbo.delegate.Put(id, context, buf); err != nil {
+func (cbo *CheckBlockOps) Put(id BlockID, context BlockContext, buf []byte,
+	serverHalf BlockCryptKeyServerHalf) error {
+	if err := cbo.delegate.Put(id, context, buf, serverHalf); err != nil {
 		return err
 	}
 	if context.GetQuotaSize() != uint32(len(buf)) {
-		cbo.tr.Errorf("expected %d bytes, got %d bytes", context.GetQuotaSize(), len(buf))
+		cbo.tr.Errorf("expected %d bytes, got %d bytes",
+			context.GetQuotaSize(), len(buf))
 	}
 	return nil
 }
@@ -154,8 +160,10 @@ func TestKBFSOpsGetRootMDCacheSuccess(t *testing.T) {
 
 func expectBlock(config *ConfigMock, id BlockID, block Block,
 	err error) {
-	config.mockBops.EXPECT().Get(id, gomock.Any(), BlockCryptKey{}, gomock.Any()).
-		Do(func(id BlockID, context BlockContext, k BlockCryptKey, getBlock Block) {
+	config.mockBops.EXPECT().Get(id, gomock.Any(), TLFCryptKey{}, gomock.Any()).
+		Do(func(id BlockID, context BlockContext,
+		k TLFCryptKey, getBlock Block) {
+
 		switch v := getBlock.(type) {
 		case *FileBlock:
 			*v = *block.(*FileBlock)
@@ -171,12 +179,6 @@ func expectGetTLFCryptKey(config *ConfigMock) {
 		gomock.Any(), gomock.Any()).Return(TLFCryptKey{}, nil)
 }
 
-func expectGetBlockCryptKey(
-	config *ConfigMock, id BlockID, rmd *RootMetadata) {
-	config.mockKeyman.EXPECT().GetBlockCryptKey(
-		gomock.Any(), id, rmd).Return(BlockCryptKey{}, nil)
-}
-
 func fillInNewMD(config *ConfigMock, rmd *RootMetadata) (
 	rootID BlockID, plainSize int, block []byte) {
 	config.mockKeyman.EXPECT().Rekey(rmd).Return(nil)
@@ -185,12 +187,12 @@ func fillInNewMD(config *ConfigMock, rmd *RootMetadata) (
 	plainSize = 3
 	block = []byte{1, 2, 3, 4}
 
-	config.mockCrypto.EXPECT().MakeRandomBlockCryptKeyServerHalf().Return(BlockCryptKeyServerHalf{}, nil)
-	config.mockCrypto.EXPECT().UnmaskBlockCryptKey(BlockCryptKeyServerHalf{}, TLFCryptKey{}).Return(BlockCryptKey{}, nil)
+	config.mockCrypto.EXPECT().MakeRandomBlockCryptKeyServerHalf().
+		Return(BlockCryptKeyServerHalf{}, nil)
+	config.mockCrypto.EXPECT().UnmaskBlockCryptKey(
+		BlockCryptKeyServerHalf{}, TLFCryptKey{}).Return(BlockCryptKey{}, nil)
 	config.mockBops.EXPECT().Ready(gomock.Any(), BlockCryptKey{}).Return(
 		rootID, plainSize, block, nil)
-	config.mockKops.EXPECT().PutBlockCryptKeyServerHalf(rootID, BlockCryptKeyServerHalf{}).Return(nil)
-	config.mockKcache.EXPECT().PutBlockCryptKey(rootID, BlockCryptKey{}).Return(nil)
 	return
 }
 
@@ -206,7 +208,8 @@ func TestKBFSOpsGetRootMDCreateNewSuccess(t *testing.T) {
 	// now KBFS will fill it in:
 	rootID, plainSize, block := fillInNewMD(config, rmd)
 	// now cache and put everything
-	config.mockBops.EXPECT().Put(rootID, gomock.Any(), block).Return(nil)
+	config.mockBops.EXPECT().Put(rootID, gomock.Any(), block, gomock.Any()).
+		Return(nil)
 	config.mockBcache.EXPECT().Put(rootID, gomock.Any(), false).Return(nil)
 	config.mockMdops.EXPECT().Put(id, rmd).Return(nil)
 	config.mockMdcache.EXPECT().Put(rmd.mdID, rmd).Return(nil)
@@ -321,7 +324,7 @@ func TestKBFSOpsGetBaseDirUncachedSuccess(t *testing.T) {
 	mockCtrl, config := kbfsOpsInit(t, false)
 	defer kbfsTestShutdown(mockCtrl, config)
 
-	u, id, rmd := makeIDAndRMD(config)
+	u, id, _ := makeIDAndRMD(config)
 
 	rootID := BlockID{42}
 	dirBlock := NewDirBlock().(*DirBlock)
@@ -332,7 +335,7 @@ func TestKBFSOpsGetBaseDirUncachedSuccess(t *testing.T) {
 	err := &NoSuchBlockError{rootID}
 	config.mockBcache.EXPECT().Get(rootID).Return(nil, err)
 
-	expectGetBlockCryptKey(config, rootID, rmd)
+	expectGetTLFCryptKey(config)
 	expectBlock(config, rootID, dirBlock, nil)
 	config.mockBcache.EXPECT().Put(rootID, gomock.Any(), false).Return(nil)
 
@@ -378,7 +381,7 @@ func TestKBFSOpsGetBaseDirUncachedFailMissingBlock(t *testing.T) {
 	mockCtrl, config := kbfsOpsInit(t, false)
 	defer kbfsTestShutdown(mockCtrl, config)
 
-	u, id, rmd := makeIDAndRMD(config)
+	u, id, _ := makeIDAndRMD(config)
 
 	rootID := BlockID{42}
 	dirBlock := NewDirBlock().(*DirBlock)
@@ -389,7 +392,7 @@ func TestKBFSOpsGetBaseDirUncachedFailMissingBlock(t *testing.T) {
 	// fail block fetch
 	err := &NoSuchBlockError{rootID}
 	config.mockBcache.EXPECT().Get(rootID).Return(nil, err)
-	expectGetBlockCryptKey(config, rootID, rmd)
+	expectGetTLFCryptKey(config)
 	expectBlock(config, rootID, dirBlock, err)
 
 	if _, err2 := config.KBFSOps().GetDir(p); err2 == nil {
@@ -514,7 +517,8 @@ func expectSyncBlock(
 		lastCall = call
 		newPath.Path[i].ID = newID
 		index := i
-		config.mockBops.EXPECT().Put(newID, gomock.Any(), newBuf).Return(nil)
+		config.mockBops.EXPECT().Put(newID, gomock.Any(), newBuf, gomock.Any()).
+			Return(nil)
 		// Hard to know whether the block will be finalized or just
 		// put into the cache.  Allow either one.  I don't think
 		// gomock lets us check that exactly one of them will happen.
@@ -546,9 +550,6 @@ func expectSyncBlock(
 				}
 			}).AnyTimes().Return(nil)
 		}
-
-		config.mockKops.EXPECT().PutBlockCryptKeyServerHalf(newID, BlockCryptKeyServerHalf{}).Return(nil)
-		config.mockKcache.EXPECT().PutBlockCryptKey(newID, BlockCryptKey{}).Return(nil)
 	}
 	if skipSync == 0 {
 		// sign the MD and put it
@@ -1538,7 +1539,7 @@ func TestKBFSOpsServerReadFullSuccess(t *testing.T) {
 	mockCtrl, config := kbfsOpsInit(t, false)
 	defer kbfsTestShutdown(mockCtrl, config)
 
-	u, id, rmd := makeIDAndRMD(config)
+	u, id, _ := makeIDAndRMD(config)
 
 	rootID := BlockID{42}
 	fileID := BlockID{43}
@@ -1551,7 +1552,7 @@ func TestKBFSOpsServerReadFullSuccess(t *testing.T) {
 	// cache miss means fetching metadata and getting read key
 	err := &NoSuchBlockError{rootID}
 	config.mockBcache.EXPECT().Get(fileID).Return(nil, err)
-	expectGetBlockCryptKey(config, fileID, rmd)
+	expectGetTLFCryptKey(config)
 	expectBlock(config, fileID, fileBlock, nil)
 	config.mockBcache.EXPECT().Put(fileID, gomock.Any(), false).Return(nil)
 
@@ -1570,7 +1571,7 @@ func TestKBFSOpsServerReadFailNoSuchBlock(t *testing.T) {
 	mockCtrl, config := kbfsOpsInit(t, false)
 	defer kbfsTestShutdown(mockCtrl, config)
 
-	u, id, rmd := makeIDAndRMD(config)
+	u, id, _ := makeIDAndRMD(config)
 
 	rootID := BlockID{42}
 	fileID := BlockID{43}
@@ -1583,7 +1584,7 @@ func TestKBFSOpsServerReadFailNoSuchBlock(t *testing.T) {
 	// cache miss means fetching metadata and getting read key
 	err := &NoSuchBlockError{rootID}
 	config.mockBcache.EXPECT().Get(fileID).Return(nil, err)
-	expectGetBlockCryptKey(config, fileID, rmd)
+	expectGetTLFCryptKey(config)
 	expectBlock(config, fileID, fileBlock, err)
 
 	n := len(fileBlock.Contents)
@@ -2447,9 +2448,8 @@ func expectSyncDirtyBlock(config *ConfigMock, id BlockID, block *FileBlock,
 	c2 := config.mockBops.EXPECT().Ready(block, BlockCryptKey{}).
 		After(c1).Return(newID, len(block.Contents), newEncBuf, nil)
 	config.mockBcache.EXPECT().Finalize(id, newID).After(c2).Return(nil)
-	config.mockBops.EXPECT().Put(newID, gomock.Any(), newEncBuf).Return(nil)
-	config.mockKops.EXPECT().PutBlockCryptKeyServerHalf(newID, BlockCryptKeyServerHalf{}).Return(nil)
-	config.mockKcache.EXPECT().PutBlockCryptKey(newID, BlockCryptKey{}).Return(nil)
+	config.mockBops.EXPECT().Put(newID, gomock.Any(), newEncBuf, gomock.Any()).
+		Return(nil)
 	return c2
 }
 
@@ -2885,10 +2885,9 @@ func TestSyncDirtyWithBlockChangePointerSuccess(t *testing.T) {
 	config.mockCrypto.EXPECT().UnmaskBlockCryptKey(BlockCryptKeyServerHalf{}, TLFCryptKey{}).Return(BlockCryptKey{}, nil)
 	lastCall = config.mockBops.EXPECT().Ready(gomock.Any(), BlockCryptKey{}).Return(
 		refBlockID, refPlainSize, refBuf, nil).After(lastCall)
-	config.mockBops.EXPECT().Put(refBlockID, gomock.Any(), refBuf).Return(nil)
+	config.mockBops.EXPECT().Put(refBlockID, gomock.Any(), refBuf,
+		gomock.Any()).Return(nil)
 	config.mockBcache.EXPECT().Put(refBlockID, gomock.Any(), false).Return(nil)
-	config.mockKops.EXPECT().PutBlockCryptKeyServerHalf(refBlockID, BlockCryptKeyServerHalf{}).Return(nil)
-	config.mockKcache.EXPECT().PutBlockCryptKey(refBlockID, BlockCryptKey{}).Return(nil)
 
 	unrefBlockID := BlockID{254}
 	unrefPlainSize := 0
@@ -2897,12 +2896,10 @@ func TestSyncDirtyWithBlockChangePointerSuccess(t *testing.T) {
 	config.mockCrypto.EXPECT().UnmaskBlockCryptKey(BlockCryptKeyServerHalf{}, TLFCryptKey{}).Return(BlockCryptKey{}, nil)
 	lastCall = config.mockBops.EXPECT().Ready(gomock.Any(), BlockCryptKey{}).Return(
 		unrefBlockID, unrefPlainSize, unrefBuf, nil).After(lastCall)
-	config.mockBops.EXPECT().Put(unrefBlockID, gomock.Any(), unrefBuf).
-		Return(nil)
+	config.mockBops.EXPECT().Put(unrefBlockID, gomock.Any(), unrefBuf,
+		gomock.Any()).Return(nil)
 	config.mockBcache.EXPECT().Put(unrefBlockID, gomock.Any(), false).
 		Return(nil)
-	config.mockKops.EXPECT().PutBlockCryptKeyServerHalf(unrefBlockID, BlockCryptKeyServerHalf{}).Return(nil)
-	config.mockKcache.EXPECT().PutBlockCryptKey(unrefBlockID, BlockCryptKey{}).Return(nil)
 
 	if newP, err := config.KBFSOps().Sync(p); err != nil {
 		t.Errorf("Got unexpected error on sync: %v", err)

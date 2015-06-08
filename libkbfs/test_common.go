@@ -20,7 +20,7 @@ func MakeTestConfigOrBust(t *testing.T, users ...string) *ConfigLocal {
 	crypto := NewCryptoLocal(config.Codec(), signingKey, cryptPrivateKey)
 	config.SetCrypto(crypto)
 
-	blockServer, err := NewBlockServerMemory()
+	blockServer, err := NewBlockServerMemory(config)
 	if err != nil {
 		t.Fatal(err)
 	}

@@ -174,7 +174,7 @@ func (fs *KBFSOpsStandard) initMDInChannel(md *RootMetadata) error {
 	if err != nil {
 		return err
 	}
-	id, plainSize, buf, err := fs.readyBlock(newDblock, tlfCryptKey)
+	id, plainSize, buf, key, err := fs.readyBlock(newDblock, tlfCryptKey)
 	if err != nil {
 		return err
 	}
@@ -200,7 +200,7 @@ func (fs *KBFSOpsStandard) initMDInChannel(md *RootMetadata) error {
 		return NewWriteAccessError(fs.config, md.GetDirHandle(), user)
 	}
 
-	if err = fs.config.BlockOps().Put(id, &md.data.Dir, buf); err != nil {
+	if err = fs.config.BlockOps().Put(id, &md.data.Dir, buf, key); err != nil {
 		return err
 	}
 	if err = fs.config.BlockCache().Put(id, newDblock, false); err != nil {
@@ -314,7 +314,7 @@ func (fs *KBFSOpsStandard) getBlockInChannel(
 	if md, err := fs.getMDInChannel(dir, rtype); err != nil {
 		return nil, err
 	} else if k, err :=
-		fs.config.KeyManager().GetBlockCryptKey(dir, id, md); err != nil {
+		fs.config.KeyManager().GetTLFCryptKey(dir, md); err != nil {
 		return nil, err
 	} else if err := bops.Get(id, dir.TailPointer(), k, block); err != nil {
 		return nil, err
@@ -402,6 +402,7 @@ type blockPutState struct {
 	blocks   []Block
 	contexts []BlockContext
 	bufs     [][]byte
+	keys     []BlockCryptKeyServerHalf
 }
 
 func newBlockPutState(length int) *blockPutState {
@@ -411,22 +412,25 @@ func newBlockPutState(length int) *blockPutState {
 	bps.blocks = make([]Block, 0, length)
 	bps.contexts = make([]BlockContext, 0, length)
 	bps.bufs = make([][]byte, 0, length)
+	bps.keys = make([]BlockCryptKeyServerHalf, 0, length)
 	return bps
 }
 
 func (bps *blockPutState) addNewBlock(id BlockID, ptr BlockPointer,
-	block Block, buf []byte) {
+	block Block, buf []byte, key BlockCryptKeyServerHalf) {
 	bps.ids = append(bps.ids, id)
 	bps.contexts = append(bps.contexts, ptr)
 	bps.blocks = append(bps.blocks, block)
 	bps.bufs = append(bps.bufs, buf)
+	bps.keys = append(bps.keys, key)
 }
 
 func (fs *KBFSOpsStandard) readyBlock(block Block, tlfCryptKey TLFCryptKey) (
-	id BlockID, plainSize int, buf []byte, err error) {
+	id BlockID, plainSize int, buf []byte, serverHalf BlockCryptKeyServerHalf,
+	err error) {
 	// new key for the block
 	crypto := fs.config.Crypto()
-	serverHalf, err := crypto.MakeRandomBlockCryptKeyServerHalf()
+	serverHalf, err = crypto.MakeRandomBlockCryptKeyServerHalf()
 	if err != nil {
 		return
 	}
@@ -441,27 +445,20 @@ func (fs *KBFSOpsStandard) readyBlock(block Block, tlfCryptKey TLFCryptKey) (
 		return
 	}
 
-	// store the keys
-	if err = fs.config.KeyOps().PutBlockCryptKeyServerHalf(id, serverHalf); err != nil {
-		return
-	} else if err = fs.config.KeyCache().PutBlockCryptKey(id, blockKey); err != nil {
-		return
-	}
-
 	return
 }
 
-func (fs *KBFSOpsStandard) readyBlockMultiple(currBlock Block, bps *blockPutState,
-	md *RootMetadata, tlfCryptKey TLFCryptKey, user keybase1.UID) (
-	plainSize int, blockPtr BlockPointer, err error) {
-	id, plainSize, buf, err := fs.readyBlock(currBlock, tlfCryptKey)
+func (fs *KBFSOpsStandard) readyBlockMultiple(currBlock Block,
+	bps *blockPutState, md *RootMetadata, tlfCryptKey TLFCryptKey,
+	user keybase1.UID) (plainSize int, blockPtr BlockPointer, err error) {
+	id, plainSize, buf, key, err := fs.readyBlock(currBlock, tlfCryptKey)
 	if err != nil {
 		return
 	}
 
 	blockPtr = BlockPointer{id, md.LatestKeyVersion(), fs.config.DataVersion(),
 		user, uint32(len(buf))}
-	bps.addNewBlock(id, blockPtr, currBlock, buf)
+	bps.addNewBlock(id, blockPtr, currBlock, buf, key)
 
 	return
 }
@@ -687,7 +684,8 @@ func (fs *KBFSOpsStandard) syncBlockInChannel(md *RootMetadata,
 	for i, id := range bps.ids {
 		buf := bps.bufs[i]
 		ctxt := bps.contexts[i]
-		if err = bops.Put(id, ctxt, buf); err != nil {
+		key := bps.keys[i]
+		if err = bops.Put(id, ctxt, buf, key); err != nil {
 			return Path{}, DirEntry{}, err
 		}
 		if oldID, ok := bps.oldIDs[id]; ok && bcache.IsDirty(oldID) {
@@ -1713,7 +1711,7 @@ func (fs *KBFSOpsStandard) syncInChannel(file Path) (Path, error) {
 					return Path{}, err
 				}
 
-				id, _, buf, err := fs.readyBlock(block, tlfCryptKey)
+				id, _, buf, key, err := fs.readyBlock(block, tlfCryptKey)
 				if err != nil {
 					return Path{}, err
 				}
@@ -1723,7 +1721,7 @@ func (fs *KBFSOpsStandard) syncInChannel(file Path) (Path, error) {
 				fblock.IPtrs[i].ID = id
 				fblock.IPtrs[i].Writer = user
 				md.AddRefBlock(file, fblock.IPtrs[i].BlockPointer)
-				if err := bops.Put(id, &fblock.IPtrs[i], buf); err != nil {
+				if err := bops.Put(id, &fblock.IPtrs[i], buf, key); err != nil {
 					return Path{}, err
 				}
 			}

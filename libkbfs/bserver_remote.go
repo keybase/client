@@ -141,10 +141,11 @@ func (b *BlockServerRemote) Shutdown() {
 }
 
 // Get implements the BlockServer interface for BlockServerRemote.
-func (b *BlockServerRemote) Get(id BlockID, context BlockContext) ([]byte, error) {
+func (b *BlockServerRemote) Get(id BlockID, context BlockContext) (
+	[]byte, BlockCryptKeyServerHalf, error) {
 	if !b.connected {
 		if err := b.WaitForReconnect(); err != nil {
-			return nil, err
+			return nil, BlockCryptKeyServerHalf{}, err
 		}
 	}
 	//XXX: if fails due to connection problem, should reconnect
@@ -156,13 +157,16 @@ func (b *BlockServerRemote) Get(id BlockID, context BlockContext) ([]byte, error
 
 	res, err := b.clt.GetBlock(bid)
 	if err != nil {
-		return nil, err
+		return nil, BlockCryptKeyServerHalf{}, err
 	}
-	return res.Buf, err
+	// TODO: return the server-half of the block key
+	return res.Buf, BlockCryptKeyServerHalf{}, err
 }
 
 // Put implements the BlockServer interface for BlockServerRemote.
-func (b *BlockServerRemote) Put(id BlockID, context BlockContext, buf []byte) error {
+// TODO: store the server-half of the block key
+func (b *BlockServerRemote) Put(id BlockID, context BlockContext,
+	buf []byte, serverHalf BlockCryptKeyServerHalf) error {
 	if !b.connected {
 		if err := b.WaitForReconnect(); err != nil {
 			return err

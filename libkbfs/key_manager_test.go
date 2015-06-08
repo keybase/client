@@ -46,20 +46,6 @@ func expectUncachedGetTLFCryptKey(config *ConfigMock, rmd *RootMetadata, uid key
 		Return(nil)
 }
 
-func expectUncachedGetBlockCryptKey(
-	config *ConfigMock, id BlockID, rmd *RootMetadata) {
-	config.mockKcache.EXPECT().GetBlockCryptKey(id).
-		Return(BlockCryptKey{}, errors.New("NONE"))
-
-	expectCachedGetTLFCryptKey(config, rmd)
-
-	config.mockKops.EXPECT().GetBlockCryptKeyServerHalf(id).Return(BlockCryptKeyServerHalf{}, nil)
-	config.mockCrypto.EXPECT().UnmaskBlockCryptKey(BlockCryptKeyServerHalf{}, TLFCryptKey{}).Return(BlockCryptKey{}, nil)
-
-	// now put the key into the cache
-	config.mockKcache.EXPECT().PutBlockCryptKey(id, BlockCryptKey{}).Return(nil)
-}
-
 func expectRekey(config *ConfigMock, rmd *RootMetadata) {
 	// generate new keys
 	config.mockCrypto.EXPECT().MakeRandomTLFKeys().Return(TLFPublicKey{}, TLFPrivateKey{}, TLFEphemeralPublicKey{}, TLFEphemeralPrivateKey{}, TLFCryptKey{}, nil)
@@ -123,51 +109,6 @@ func TestKeyManagerUncachedSecretKeySuccess(t *testing.T) {
 	if _, err := config.KeyManager().GetTLFCryptKey(
 		pathFromRMD(config, rmd), rmd); err != nil {
 		t.Errorf("Got error on GetTLFCryptKey: %v", err)
-	}
-}
-
-func TestKeyManagerUncachedSecretBlockKeySuccess(t *testing.T) {
-	mockCtrl, config := keyManagerInit(t)
-	defer keyManagerShutdown(mockCtrl, config)
-
-	_, id, h := makeID(config)
-	rmd := NewRootMetadata(h, id)
-	rmd.AddNewKeys(DirKeyBundle{})
-	rootID := BlockID{42}
-
-	expectUncachedGetBlockCryptKey(config, rootID, rmd)
-
-	if _, err := config.KeyManager().GetBlockCryptKey(
-		pathFromRMD(config, rmd), rootID, rmd); err != nil {
-		t.Errorf("Got error on getBlockCryptKey: %v", err)
-	}
-}
-
-func TestKeyManagerGetUncachedBlockKeyFailNewKey(t *testing.T) {
-	mockCtrl, config := keyManagerInit(t)
-	defer keyManagerShutdown(mockCtrl, config)
-
-	u, id, h := makeID(config)
-	rmd := NewRootMetadata(h, id)
-
-	rmd.data.Dir.Type = Dir
-	// Set the key id in the future.
-	rmd.data.Dir.KeyVer = 1
-
-	rootID := BlockID{42}
-	node := PathNode{BlockPointer{rootID, 1, 0, u, 0}, ""}
-	p := Path{id, []PathNode{node}}
-
-	// we'll check the cache, but then fail before getting the read key
-	expectedErr := &NewKeyVersionError{rmd.GetDirHandle().ToString(config), 1}
-	config.mockKcache.EXPECT().GetBlockCryptKey(rootID).Return(
-		BlockCryptKey{}, errors.New("NOPE"))
-
-	if _, err := config.KeyManager().GetBlockCryptKey(
-		p, rootID, rmd); err == nil {
-		t.Errorf("Got no expected error on GetBlockCryptKey")
-	} else if err.Error() != expectedErr.Error() {
-		t.Errorf("Got unexpected error on GetBlockCryptKey: %v", err)
 	}
 }
 
