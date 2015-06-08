@@ -316,6 +316,7 @@ typedef NS_ENUM (NSInteger, KBRTrackDiffType) {
 @interface KBRIdentifyRes : KBRObject
 @property KBRUser *user;
 @property KBRIdentifyOutcome *outcome;
+@property NSString *trackToken;
 @end
 
 @interface KBRRemoteProof : KBRObject
@@ -752,6 +753,8 @@ typedef NS_ENUM (NSInteger, KBRPromptOverwriteType) {
 
 @interface KBRTrackRequest : KBRRequest
 - (void)trackWithSessionID:(NSInteger)sessionID theirName:(NSString *)theirName localOnly:(BOOL)localOnly approveRemote:(BOOL)approveRemote completion:(void (^)(NSError *error))completion;
+
+- (void)trackWithTokenWithSessionID:(NSInteger)sessionID trackToken:(NSString *)trackToken localOnly:(BOOL)localOnly approveRemote:(BOOL)approveRemote completion:(void (^)(NSError *error))completion;
 
 - (void)untrackWithSessionID:(NSInteger)sessionID theirName:(NSString *)theirName completion:(void (^)(NSError *error))completion;
 
@@ -1199,6 +1202,12 @@ typedef NS_ENUM (NSInteger, KBRPromptOverwriteType) {
 @interface KBRTrackRequestParams : KBRRequestParams
 @property NSInteger sessionID;
 @property NSString *theirName;
+@property BOOL localOnly;
+@property BOOL approveRemote;
+@end
+@interface KBRTrackWithTokenRequestParams : KBRRequestParams
+@property NSInteger sessionID;
+@property NSString *trackToken;
 @property BOOL localOnly;
 @property BOOL approveRemote;
 @end

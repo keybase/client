@@ -33,6 +33,7 @@
 
 @property NSString *username;
 @property NSMutableArray *fokids;
+@property NSString *trackToken;
 
 @property (getter=isLoading) BOOL loading;
 @end
@@ -108,10 +109,6 @@
 }
 
 - (void)registerClient:(KBRPClient *)client sessionId:(NSInteger)sessionId sender:(id)sender {
-  [self registerClient:client sessionId:sessionId approve:NO sender:sender];
-}
-
-- (void)registerClient:(KBRPClient *)client sessionId:(NSInteger)sessionId approve:(BOOL)approve sender:(id)sender {
   GHWeakSelf gself = self;
   self.client = client;
 
@@ -183,23 +180,12 @@
     completion(nil, nil);
   }];
 
-  [client registerMethod:@"keybase.1.identifyUi.finishAndPrompt" sessionId:sessionId requestHandler:^(NSNumber *messageId, NSString *method, NSArray *params, MPRequestCompletion completion) {
-
-    if (approve) {
-      KBRFinishAndPromptRes *response = [[KBRFinishAndPromptRes alloc] init];
-      response.trackRemote = YES;
-      completion(nil, response);
-    } else {
-      completion(nil, nil);
-    }
-  }];
-
-  [client registerMethod:@"keybase.1.identifyUi.finish" sessionId:sessionId requestHandler:^(NSNumber *messageId, NSString *method, NSArray *params, MPRequestCompletion completion) {
+  [client registerMethod:@"keybase.1.identifyUi.reportLastTrack" sessionId:sessionId requestHandler:^(NSNumber *messageId, NSString *method, NSArray *params, MPRequestCompletion completion) {
+    // TODO Show this?
     completion(nil, nil);
   }];
 
-  [client registerMethod:@"keybase.1.identifyUi.reportLastTrack" sessionId:sessionId requestHandler:^(NSNumber *messageId, NSString *method, NSArray *params, MPRequestCompletion completion) {
-    // TODO Show this?
+  [client registerMethod:@"keybase.1.identifyUi.finish" sessionId:sessionId requestHandler:^(NSNumber *messageId, NSString *method, NSArray *params, MPRequestCompletion completion) {
     completion(nil, nil);
   }];
 }
@@ -213,10 +199,14 @@
 }
 
 - (void)showTrack:(KBRIdentifyRes *)identify {
+  NSAssert([identify.user.username isEqualTo:_username], @"Mismatched users");
+  self.trackToken = identify.trackToken;
+
   self.trackView.hidden = NO;
   GHWeakSelf gself = self;
-  BOOL trackPrompt = [self.trackView setUsername:identify.user.username popup:self.popup identifyOutcome:identify.outcome trackResponse:^(NSString *username) {
-    [gself track:identify.user.username];
+  NSString *username = _username;
+  BOOL trackPrompt = [self.trackView setUsername:username popup:self.popup identifyOutcome:identify.outcome trackResponse:^(NSString *username) {
+    [gself track:username];
   }];
   [self setNeedsLayout];
 
@@ -233,8 +223,8 @@
   KBRTrackRequest *request = [[KBRTrackRequest alloc] initWithClient:self.client];
   GHWeakSelf gself = self;
   [KBActivity setProgressEnabled:YES sender:self];
-  [self registerClient:self.client sessionId:request.sessionId approve:YES sender:self];
-  [request trackWithSessionID:request.sessionId theirName:username localOnly:NO approveRemote:YES completion:^(NSError *error) {
+  [self registerClient:self.client sessionId:request.sessionId sender:self];
+  [request trackWithTokenWithSessionID:request.sessionId trackToken:self.trackToken localOnly:NO approveRemote:YES completion:^(NSError *error) {
     [KBActivity setProgressEnabled:NO sender:self];
     [gself showTrackResult:username error:error];
   }];
@@ -265,15 +255,6 @@
       [AppDelegate setError:error sender:self];
       return;
     }
-
-    NSAssert([identifyRes.user.username isEqualTo:gself.username], @"Mismatched users");
-
-    BOOL isSelf = [AppDelegate.appView.user.username isEqual:identifyRes.user.username];
-    if (isSelf) {
-      DDLogDebug(@"Viewing self");
-      return;
-    }
-
     [self showTrack:identifyRes];
   }];
 }
