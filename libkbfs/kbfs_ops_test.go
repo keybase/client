@@ -80,13 +80,11 @@ func kbfsOpsInit(t *testing.T, changeMd bool) (mockCtrl *gomock.Controller,
 	if changeMd {
 		// Give different values for the MD Id so we can test that it
 		// is properly cached
-		config.mockCrypto.EXPECT().Hash(gomock.Any()).
-			Return(libkb.NodeHashShort{0}, nil)
 		config.mockCrypto.EXPECT().Hash(gomock.Any()).AnyTimes().
-			Return(libkb.NodeHashShort{1}, nil)
+			Return(libkb.NodeHashShort{2}, nil)
 	} else {
 		config.mockCrypto.EXPECT().Hash(gomock.Any()).AnyTimes().
-			Return(libkb.NodeHashShort{0}, nil)
+			Return(libkb.NodeHashShort{1}, nil)
 	}
 	// don't generate refnonces for now
 	config.mockCrypto.EXPECT().MakeBlockRefNonce().AnyTimes().
@@ -177,10 +175,10 @@ func makeID(config *ConfigMock) (keybase1.UID, DirID, *DirHandle) {
 func makeIDAndRMD(config *ConfigMock) (
 	keybase1.UID, DirID, *RootMetadata) {
 	userID, id, h := makeID(config)
-	rmd := NewRootMetadata(h, id)
+	rmd := newRootMetadataForTest(h, id)
 	rmd.AddNewKeys(DirKeyBundle{})
-	rmd.mdID = MdID{id[0]}
 	config.KBFSOps().(*KBFSOpsStandard).heads[id] = rmd.mdID
+	rmd.SerializedPrivateMetadata = make([]byte, 1)
 	config.mockMdcache.EXPECT().Get(rmd.mdID).AnyTimes().Return(rmd, nil)
 	config.Notifier().RegisterForChanges([]DirID{id}, config.observer)
 	return userID, id, rmd
@@ -600,7 +598,11 @@ func expectSyncBlock(
 	if skipSync == 0 {
 		// sign the MD and put it
 		config.mockMdops.EXPECT().Put(id, nil, NullMdID, gomock.Any()).
-			Return(nil)
+			Do(func(id DirID, deviceID libkb.KID,
+			unmergedID MdID, rmd *RootMetadata) {
+			// add some serialized metadata to satisfy the check
+			rmd.SerializedPrivateMetadata = make([]byte, 1)
+		}).Return(nil)
 		config.mockMdcache.EXPECT().Put(gomock.Any(), gomock.Any()).
 			Do(func(id MdID, rmd *RootMetadata) {
 			*newRmd = rmd

@@ -248,7 +248,7 @@ type MDMissingDataError struct {
 }
 
 // Error implements the error interface for MDMissingDataError
-func (e *MDMissingDataError) Error() string {
+func (e MDMissingDataError) Error() string {
 	return fmt.Sprintf("No serialized private data in the metadata "+
 		"for directory %v", e.ID)
 }

@@ -972,6 +972,12 @@ func (md *RootMetadata) MetadataID(config Config) (MdID, error) {
 		return md.mdID, nil
 	}
 
+	// Make sure that the serialized metadata is set, otherwise we
+	// won't get the right MdID
+	if md.SerializedPrivateMetadata == nil {
+		return NullMdID, MDMissingDataError{md.ID}
+	}
+
 	buf, err := config.Codec().Encode(md)
 	if err != nil {
 		return NullMdID, err

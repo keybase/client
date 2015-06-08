@@ -172,6 +172,18 @@ func (md *MDOpsStandard) GetAtID(id DirID, mdID MdID) (
 	if err != nil {
 		return nil, err
 	}
+	// verify that mdID matches the returned MD
+	realMdID, err := rmds.MD.MetadataID(md.config)
+	if err != nil {
+		return nil, err
+	}
+	if mdID != realMdID {
+		return nil, &MDMismatchError{
+			rmds.MD.GetDirHandle().ToString(md.config),
+			fmt.Sprintf("MD returned for MdID %v really has an ID of %v",
+				mdID, realMdID),
+		}
+	}
 	return &rmds.MD, nil
 }
 

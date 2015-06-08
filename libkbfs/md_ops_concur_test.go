@@ -49,6 +49,7 @@ func (m *MDOpsConcurTest) GetSince(id DirID, mdID MdID, max int) (
 
 func (m *MDOpsConcurTest) Put(id DirID, deviceID libkb.KID,
 	unmergedID MdID, md *RootMetadata) error {
+	md.SerializedPrivateMetadata = make([]byte, 1, 1)
 	return nil
 }
 

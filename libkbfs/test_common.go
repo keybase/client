@@ -11,6 +11,8 @@ func newRootMetadataForTest(d *DirHandle, id DirID) *RootMetadata {
 	// TODO: Set this to 0 for public directories.
 	rmd.data.Dir.KeyGen = 1
 	rmd.data.Dir.DataVer = 1
+	// make up the MD ID
+	rmd.mdID = MdID{id[0]}
 	return rmd
 }
 

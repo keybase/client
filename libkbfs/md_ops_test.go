@@ -21,7 +21,6 @@ func mdOpsInit(t *testing.T) (mockCtrl *gomock.Controller, config *ConfigMock) {
 func mdOpsShutdown(mockCtrl *gomock.Controller, config *ConfigMock) {
 	config.ctr.CheckForFailures()
 	mockCtrl.Finish()
-
 }
 
 func newDir(config *ConfigMock, x byte, share bool, public bool) (
@@ -45,7 +44,7 @@ func newDir(config *ConfigMock, x byte, share bool, public bool) (
 	config.mockKbpki.EXPECT().GetLoggedInUser().AnyTimes().
 		Return(h.Writers[0], nil)
 
-	rmd := NewRootMetadata(h, id)
+	rmd := newRootMetadataForTest(h, id)
 	rmd.data.LastWriter = h.Writers[0]
 	rmd.AddNewKeys(DirKeyBundle{})
 
@@ -132,6 +131,7 @@ func putMDForPrivateShare(config *ConfigMock, rmds *RootMetadataSigned,
 	config.mockCrypto.EXPECT().MAC(MacPublicKey{}, packedData).
 		Times(2).Return(packedData, nil)
 
+	rmds.MD.mdID = NullMdID
 	mdID := expectMdID(config)
 	config.mockMdserv.EXPECT().Put(id, nil, NullMdID, mdID, gomock.Any()).Return(nil)
 }
@@ -270,7 +270,7 @@ func TestMDOpsGetBlankSigSuccess(t *testing.T) {
 	// expect one call to fetch MD, give back a blank sig that doesn't need
 	// verification
 	id, h, _ := newDir(config, 1, true, false)
-	rmd := NewRootMetadata(h, id)
+	rmd := newRootMetadataForTest(h, id)
 	rmds := &RootMetadataSigned{
 		MD: *rmd,
 	}
@@ -324,13 +324,13 @@ func TestMDOpsGetAtIDSuccess(t *testing.T) {
 
 	// expect one call to fetch MD, and one to verify it
 	id, _, rmds := newDir(config, 1, true, false)
-	mdID := MdID{0}
 
+	mdID := rmds.MD.mdID
 	config.mockMdserv.EXPECT().GetAtID(id, mdID).Return(rmds, nil)
 	verifyMDForPrivateShare(config, rmds, id)
 
 	if rmd2, err := config.MDOps().GetAtID(id, mdID); err != nil {
-		t.Errorf("Got error on getAtId: %v", err)
+		t.Errorf("Got error on getAtID: %v", err)
 	} else if rmd2 != &rmds.MD {
 		t.Errorf("Got back wrong data on get: %v (expected %v)", rmd2, &rmds.MD)
 	}
@@ -351,6 +351,22 @@ func TestMDOpsGetAtIDFail(t *testing.T) {
 
 	if _, err2 := config.MDOps().GetAtID(id, mdID); err2 != err {
 		t.Errorf("Got bad error on get: %v", err2)
+	}
+}
+
+func TestMDOpsGetAtIDWrongMdID(t *testing.T) {
+	mockCtrl, config := mdOpsInit(t)
+	defer mdOpsShutdown(mockCtrl, config)
+
+	// expect one call to fetch MD, and fail it
+	id, _, rmds := newDir(config, 1, true, false)
+	mdID := MdID{42}
+	config.mockMdserv.EXPECT().GetAtID(id, mdID).Return(rmds, nil)
+	verifyMDForPrivateShare(config, rmds, id)
+
+	_, err := config.MDOps().GetAtID(id, mdID)
+	if _, ok := err.(*MDMismatchError); !ok {
+		t.Errorf("Got unexpected error on get with mismatched md IDs: %v", err)
 	}
 }
 
@@ -496,7 +512,7 @@ func TestMDOpsPutFailEncode(t *testing.T) {
 
 	// expect one call to sign MD, and fail it
 	id, h, _ := newDir(config, 1, true, false)
-	rmd := NewRootMetadata(h, id)
+	rmd := newRootMetadataForTest(h, id)
 
 	expectGetTLFCryptKeyForEncryption(config, rmd)
 	config.mockCrypto.EXPECT().EncryptPrivateMetadata(
