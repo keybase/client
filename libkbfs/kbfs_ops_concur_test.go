@@ -82,32 +82,22 @@ func (m *MDOpsConcurTest) GetFavorites() ([]DirID, error) {
 	return []DirID{}, nil
 }
 
-func kbfsOpsConcurInit(users []string) (Config, keybase1.UID) {
-	config := NewConfigLocal()
+func kbfsOpsConcurInit(t *testing.T, users ...string) (Config, keybase1.UID) {
+	config := MakeTestConfigOrBust(t, users...)
 
-	localUsers := MakeLocalUsers(users)
-	loggedInUser := localUsers[0]
+	loggedInUser, err := config.KBPKI().GetLoggedInUser()
+	if err != nil {
+		t.Fatal(err)
+	}
 
-	kbpki := NewKBPKILocal(loggedInUser.UID, localUsers)
-
-	// TODO: Consider using fake BlockOps and MDOps instead.
-	config.SetKBPKI(kbpki)
-
-	signingKey := MakeLocalUserSigningKeyOrBust(loggedInUser.Name)
-	crypto := NewCryptoLocal(config.Codec(), signingKey)
-	config.SetCrypto(crypto)
-
-	config.SetBlockServer(NewFakeBlockServer())
-	config.SetMDServer(NewFakeMDServer(config))
-
-	return config, loggedInUser.UID
+	return config, loggedInUser
 }
 
 // Test that only one of two concurrent GetRootMD requests can end up
 // fetching the MD from the server.  The second one should wait, and
 // then get it from the MD cache.
 func TestKBFSOpsConcurDoubleMDGet(t *testing.T) {
-	config, uid := kbfsOpsConcurInit([]string{"test_user"})
+	config, uid := kbfsOpsConcurInit(t, "test_user")
 	defer config.KBFSOps().(*KBFSOpsStandard).Shutdown()
 	m := NewMDOpsConcurTest(uid)
 	config.SetMDOps(m)

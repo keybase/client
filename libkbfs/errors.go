@@ -381,7 +381,28 @@ type KeyNotFoundError struct {
 	kid libkb.KID
 }
 
-// Error implements the error interface for KeyNotFoundError
+// Error implements the error interface for KeyNotFoundError.
 func (e KeyNotFoundError) Error() string {
 	return fmt.Sprintf("Could not find key with kid=%s", e.kid)
+}
+
+// UnexpectedShortCryptoRandRead indicates that fewer bytes were read
+// from crypto.rand.Read() than expected.
+type UnexpectedShortCryptoRandRead struct {
+}
+
+// Error implements the error interface for UnexpectedShortRandRead.
+func (e UnexpectedShortCryptoRandRead) Error() string {
+	return "Unexpected short read from crypto.rand.Read()"
+}
+
+// UnknownTLFEncryptionVer indicates that we can't decrypt a
+// TLFCryptKeyClientHalf because it has an unknown version.
+type UnknownTLFEncryptionVer struct {
+	ver TLFEncryptionVer
+}
+
+// Error implements the error interface for UnknownSigVer.
+func (e UnknownTLFEncryptionVer) Error() string {
+	return fmt.Sprintf("Unknown TLF encryption version %d", int(e.ver))
 }

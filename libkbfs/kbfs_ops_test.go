@@ -1776,12 +1776,12 @@ func TestKBFSOpsWriteCauseSplit(t *testing.T) {
 	id1 := BlockID{44}
 	id2 := BlockID{45}
 	// new left block
-	config.mockCrypto.EXPECT().MakeRandomBlockID().Return(id1, nil)
+	config.mockCrypto.EXPECT().MakeTemporaryBlockID().Return(id1, nil)
 	// the code doesn't distinguish puts for new left blocks, so it
 	// will check dirtiness once.
 	config.mockBcache.EXPECT().IsDirty(id1).Return(false)
 	// new right block
-	config.mockCrypto.EXPECT().MakeRandomBlockID().Return(id2, nil)
+	config.mockCrypto.EXPECT().MakeTemporaryBlockID().Return(id2, nil)
 
 	config.mockBcache.EXPECT().Put(id1, gomock.Any(), true).
 		Do(func(id BlockID, block Block, dirty bool) {
@@ -2613,7 +2613,7 @@ func TestSyncDirtyMultiBlocksSplitInBlockSuccess(t *testing.T) {
 	var newID5 BlockID
 	var newBlock5 *FileBlock
 	id5 := BlockID{48}
-	config.mockCrypto.EXPECT().MakeRandomBlockID().Return(id5, nil)
+	config.mockCrypto.EXPECT().MakeTemporaryBlockID().Return(id5, nil)
 	config.mockBcache.EXPECT().Put(id5, gomock.Any(), true).
 		Do(func(id BlockID, block Block, dirty bool) {
 		newID5 = id

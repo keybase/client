@@ -118,28 +118,37 @@ func (s SignatureInfo) String() string {
 // A TLFPrivateKey (m_f) is the private half of the permanent
 // keypair associated with a TLF. (See 4.1.1, 5.3.)
 type TLFPrivateKey struct {
+	// Exported only for serialization purposes. Should only be
+	// used by implementations of Crypto.
+	PrivateKey [32]byte
 }
 
 // DeepCopy makes a complete copy of the TLFPrivateKey
-func (tpk TLFPrivateKey) DeepCopy() TLFPrivateKey {
-	return tpk
+func (k TLFPrivateKey) DeepCopy() TLFPrivateKey {
+	return k
 }
 
 // A TLFPublicKey (M_f) is the public half of the permanent keypair
 // associated with a TLF. It is included in the site-wide private-data
 // Merkle tree. (See 4.1.1, 5.3.)
 type TLFPublicKey struct {
+	// Exported only for serialization purposes. Should only be
+	// used by implementations of Crypto.
+	PublicKey [32]byte
 }
 
 // DeepCopy makes a complete copy of the TLFPublicKey
-func (tpk TLFPublicKey) DeepCopy() TLFPublicKey {
-	return tpk
+func (k TLFPublicKey) DeepCopy() TLFPublicKey {
+	return k
 }
 
 // TLFEphemeralPrivateKey (m_e) is used (with a CryptPublicKey) to
 // encrypt TLFCryptKeyClientHalf objects (t_u^{f,0,i}) for non-public
 // directories. (See 4.1.1.)
 type TLFEphemeralPrivateKey struct {
+	// Exported only for serialization purposes. Should only be
+	// used by implementations of Crypto.
+	PrivateKey libkb.NaclDHKeyPrivate
 }
 
 // CryptPublicKey (M_u^i) is used (with a TLFEphemeralPrivateKey) to
@@ -147,46 +156,107 @@ type TLFEphemeralPrivateKey struct {
 // directories. (See 4.1.1.)  These are also sometimes known as
 // subkeys.
 type CryptPublicKey struct {
+	// Exported only for serialization purposes. Should only be
+	// used by implementations of Crypto.
+	//
+	// Even though we currently use nacl/box, we use a KID here
+	// (which encodes the key type) as we may end up storing other
+	// kinds of keys.
 	KID libkb.KID
+}
+
+func (k CryptPublicKey) String() string {
+	return k.KID.String()
 }
 
 // TLFEphemeralPublicKey (M_e) is used along with a crypt private key
 // to decrypt TLFCryptKeyClientHalf objects (t_u^{f,0,i}) for
 // non-public directories. (See 4.1.1.)
 type TLFEphemeralPublicKey struct {
+	// Exported only for serialization purposes. Should only be
+	// used by implementations of Crypto.
+	PublicKey libkb.NaclDHKeyPublic
 }
 
 // DeepCopy makes a complete copy of a TLFEphemeralPublicKey.
-func (tepk TLFEphemeralPublicKey) DeepCopy() TLFEphemeralPublicKey {
-	return tepk
+func (k TLFEphemeralPublicKey) DeepCopy() TLFEphemeralPublicKey {
+	return k
+}
+
+func (k TLFEphemeralPublicKey) String() string {
+	return hex.EncodeToString(k.PublicKey[:])
 }
 
 // TLFCryptKeyServerHalf (s_u^{f,0,i}) is the masked, server-side half
 // of a TLFCryptKey, which can be recovered only with both
 // halves. (See 4.1.1.)
 type TLFCryptKeyServerHalf struct {
+	// Exported only for serialization purposes. Should only be
+	// used by implementations of Crypto.
+	ServerHalf [32]byte
 }
 
 // TLFCryptKeyClientHalf (t_u^{f,0,i}) is the masked, client-side half
 // of a TLFCryptKey, which can be recovered only with both
 // halves. (See 4.1.1.)
 type TLFCryptKeyClientHalf struct {
+	// Exported only for serialization purposes. Should
+	// only be used by implementations of Crypto.
+	ClientHalf [32]byte
+}
+
+// TLFEncryptionVer denotes a version for the encryption method.
+type TLFEncryptionVer int
+
+const (
+	// TLFEncryptionBox is the encryption version that uses
+	// nacl/box.
+	TLFEncryptionBox TLFEncryptionVer = 1
+)
+
+// EncryptedTLFCryptKeyClientHalf is an encrypted
+// TLFCryptKeyCLientHalf.
+type EncryptedTLFCryptKeyClientHalf struct {
+	// Exported only for serialization purposes. Should only be
+	// used by implementations of Crypto.
+	Version       TLFEncryptionVer
+	EncryptedData []byte
+	Nonce         []byte
+}
+
+// DeepCopy returns a complete copy of this EncryptedTLFCryptKeyClientHalf.
+func (ech EncryptedTLFCryptKeyClientHalf) DeepCopy() (echCopy EncryptedTLFCryptKeyClientHalf) {
+	echCopy.Version = ech.Version
+	echCopy.EncryptedData = make([]byte, len(ech.EncryptedData))
+	copy(echCopy.EncryptedData, ech.EncryptedData)
+	echCopy.Nonce = make([]byte, len(ech.Nonce))
+	copy(echCopy.Nonce, ech.Nonce)
+	return
 }
 
 // TLFCryptKey (s^{f,0}) is used to encrypt/decrypt the private
 // portion of TLF metadata. It is also used to mask
 // BlockCryptKeys. (See 4.1.1, 4.1.2.)
 type TLFCryptKey struct {
+	// Exported only for serialization purposes. Should only be
+	// used by implementations of Crypto.
+	Key [32]byte
 }
 
 // BlockCryptKeyServerHalf is a masked version of a BlockCryptKey,
 // which can be recovered only with the TLFCryptKey used to mask the
-// server half. (Note: this will be changed to match 4.1.2).
+// server half.
 type BlockCryptKeyServerHalf struct {
+	// Exported only for serialization purposes. Should only be
+	// used by implementations of Crypto.
+	ServerHalf [32]byte
 }
 
 // BlockCryptKey is used to encrypt/decrypt block data. (See 4.1.2.)
 type BlockCryptKey struct {
+	// Exported only for serialization purposes. Should only be
+	// used by implementations of Crypto.
+	Key [32]byte
 }
 
 // MacPublicKey (along with a private key) is used to compute and
@@ -541,10 +611,10 @@ func (rmds *RootMetadataSigned) IsInitialized() bool {
 type DirKeyBundle struct {
 	// Symmetric secret key, encrypted for each writer's device
 	// (identified by the KID of the corresponding device CryptPublicKey).
-	WKeys map[keybase1.UID]map[libkb.KIDMapKey][]byte
+	WKeys map[keybase1.UID]map[libkb.KIDMapKey]EncryptedTLFCryptKeyClientHalf
 	// Symmetric secret key, encrypted for each reader's device
 	// (identified by the KID of the corresponding device CryptPublicKey).
-	RKeys map[keybase1.UID]map[libkb.KIDMapKey][]byte
+	RKeys map[keybase1.UID]map[libkb.KIDMapKey]EncryptedTLFCryptKeyClientHalf
 
 	// M_f as described in 4.1.1 of https://keybase.io/blog/crypto
 	// .
@@ -562,18 +632,18 @@ type DirKeyBundle struct {
 // DeepCopy returns a complete copy of this DirKeyBundle.
 func (dkb DirKeyBundle) DeepCopy() DirKeyBundle {
 	newDkb := dkb
-	newDkb.WKeys = make(map[keybase1.UID]map[libkb.KIDMapKey][]byte)
+	newDkb.WKeys = make(map[keybase1.UID]map[libkb.KIDMapKey]EncryptedTLFCryptKeyClientHalf)
 	for u, m := range dkb.WKeys {
-		newDkb.WKeys[u] = make(map[libkb.KIDMapKey][]byte)
+		newDkb.WKeys[u] = make(map[libkb.KIDMapKey]EncryptedTLFCryptKeyClientHalf)
 		for k, b := range m {
-			newDkb.WKeys[u][k] = b
+			newDkb.WKeys[u][k] = b.DeepCopy()
 		}
 	}
-	newDkb.RKeys = make(map[keybase1.UID]map[libkb.KIDMapKey][]byte)
+	newDkb.RKeys = make(map[keybase1.UID]map[libkb.KIDMapKey]EncryptedTLFCryptKeyClientHalf)
 	for u, m := range dkb.RKeys {
-		newDkb.RKeys[u] = make(map[libkb.KIDMapKey][]byte)
+		newDkb.RKeys[u] = make(map[libkb.KIDMapKey]EncryptedTLFCryptKeyClientHalf)
 		for k, b := range m {
-			newDkb.RKeys[u][k] = b
+			newDkb.RKeys[u][k] = b.DeepCopy()
 		}
 	}
 	newDkb.TLFPublicKey = dkb.TLFPublicKey.DeepCopy()
@@ -728,12 +798,12 @@ func (md RootMetadata) DeepCopy() RootMetadata {
 // of the given user's client key half for this top-level folder.
 func (md RootMetadata) GetEncryptedTLFCryptKeyClientHalfData(
 	keyVer KeyVer, user keybase1.UID, currentCryptPublicKey CryptPublicKey) (
-	buf []byte, ok bool) {
+	encryptedClientHalf EncryptedTLFCryptKeyClientHalf, ok bool) {
 	key := currentCryptPublicKey.KID.ToMapKey()
 	if u, ok1 := md.Keys[keyVer].WKeys[user]; ok1 {
-		buf, ok = u[key]
+		encryptedClientHalf, ok = u[key]
 	} else if u, ok1 = md.Keys[keyVer].RKeys[user]; ok1 {
-		buf, ok = u[key]
+		encryptedClientHalf, ok = u[key]
 	}
 	return
 }

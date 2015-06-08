@@ -133,14 +133,14 @@ func (km *KeyManagerStandard) GetBlockCryptKey(
 }
 
 func (km *KeyManagerStandard) secretKeysForUser(md *RootMetadata, uid keybase1.UID,
-	tlfCryptKey TLFCryptKey, ePrivKey TLFEphemeralPrivateKey) (uMap map[libkb.KIDMapKey][]byte, err error) {
+	tlfCryptKey TLFCryptKey, ePrivKey TLFEphemeralPrivateKey) (uMap map[libkb.KIDMapKey]EncryptedTLFCryptKeyClientHalf, err error) {
 	defer func() {
 		if err != nil {
 			uMap = nil
 		}
 	}()
 
-	uMap = make(map[libkb.KIDMapKey][]byte)
+	uMap = make(map[libkb.KIDMapKey]EncryptedTLFCryptKeyClientHalf)
 
 	if md.ID.IsPublic() {
 		// no per-device keys for public directories
@@ -178,14 +178,14 @@ func (km *KeyManagerStandard) secretKeysForUser(md *RootMetadata, uid keybase1.U
 			return
 		}
 
-		var encryptedClientHalf []byte
+		var encryptedClientHalf EncryptedTLFCryptKeyClientHalf
 		encryptedClientHalf, err = crypto.EncryptTLFCryptKeyClientHalf(ePrivKey, k, clientHalf)
 		if err != nil {
 			return
 		}
 
 		if err = kops.PutTLFCryptKeyServerHalf(
-			md.ID, keyVer, uid, k, serverHalf); err != nil {
+			md.ID, keyVer, k, serverHalf); err != nil {
 			return
 		}
 
@@ -211,8 +211,8 @@ func (km *KeyManagerStandard) Rekey(md *RootMetadata) error {
 
 	handle := md.GetDirHandle()
 	newKeys := DirKeyBundle{
-		WKeys:                 make(map[keybase1.UID]map[libkb.KIDMapKey][]byte),
-		RKeys:                 make(map[keybase1.UID]map[libkb.KIDMapKey][]byte),
+		WKeys:                 make(map[keybase1.UID]map[libkb.KIDMapKey]EncryptedTLFCryptKeyClientHalf),
+		RKeys:                 make(map[keybase1.UID]map[libkb.KIDMapKey]EncryptedTLFCryptKeyClientHalf),
 		TLFPublicKey:          pubKey,
 		TLFEphemeralPublicKey: ePubKey,
 	}

@@ -1,9 +1,6 @@
 package libkbfs
 
-import (
-	"crypto/rand"
-	"fmt"
-)
+import "fmt"
 
 type idPair struct {
 	id   DirID
@@ -36,7 +33,7 @@ func (md *FakeMDServer) GetAtHandle(handle *DirHandle) (
 	}
 
 	// Make a new one.
-	if _, err := rand.Read(id[0 : DirIDLen-1]); err != nil {
+	if err := cryptoRandRead(id[0 : DirIDLen-1]); err != nil {
 		return nil, err
 	}
 	if handle.IsPublic() {

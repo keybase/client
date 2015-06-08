@@ -60,7 +60,7 @@ func expectUncachedGetBlockCryptKey(
 	config.mockKcache.EXPECT().PutBlockCryptKey(id, BlockCryptKey{}).Return(nil)
 }
 
-func expectRekey(config *ConfigMock, rmd *RootMetadata, userID keybase1.UID) {
+func expectRekey(config *ConfigMock, rmd *RootMetadata) {
 	// generate new keys
 	config.mockCrypto.EXPECT().MakeRandomTLFKeys().Return(TLFPublicKey{}, TLFPrivateKey{}, TLFEphemeralPublicKey{}, TLFEphemeralPrivateKey{}, TLFCryptKey{}, nil)
 	config.mockCrypto.EXPECT().MakeRandomTLFCryptKeyServerHalf().Return(TLFCryptKeyServerHalf{}, nil)
@@ -71,10 +71,9 @@ func expectRekey(config *ConfigMock, rmd *RootMetadata, userID keybase1.UID) {
 
 	// make keys for the one device
 	config.mockCrypto.EXPECT().MaskTLFCryptKey(TLFCryptKeyServerHalf{}, TLFCryptKey{}).Return(TLFCryptKeyClientHalf{}, nil)
-	xbuf := []byte{42}
-	config.mockCrypto.EXPECT().EncryptTLFCryptKeyClientHalf(TLFEphemeralPrivateKey{}, subkey, TLFCryptKeyClientHalf{}).Return(xbuf, nil)
+	config.mockCrypto.EXPECT().EncryptTLFCryptKeyClientHalf(TLFEphemeralPrivateKey{}, subkey, TLFCryptKeyClientHalf{}).Return(EncryptedTLFCryptKeyClientHalf{}, nil)
 	config.mockKops.EXPECT().PutTLFCryptKeyServerHalf(
-		rmd.ID, KeyVer(1), userID, subkey, TLFCryptKeyServerHalf{}).Return(nil)
+		rmd.ID, KeyVer(1), subkey, TLFCryptKeyServerHalf{}).Return(nil)
 	// now put the key into the cache
 	config.mockKcache.EXPECT().PutTLFCryptKey(rmd.ID, KeyVer(1), TLFCryptKey{}).Return(nil)
 }
@@ -111,9 +110,9 @@ func TestKeyManagerUncachedSecretKeySuccess(t *testing.T) {
 
 	subkey := MakeFakeCryptPublicKeyOrBust("crypt public key")
 	dirKeyBundle := DirKeyBundle{
-		RKeys: map[keybase1.UID]map[libkb.KIDMapKey][]byte{
-			uid: map[libkb.KIDMapKey][]byte{
-				subkey.KID.ToMapKey(): []byte{},
+		RKeys: map[keybase1.UID]map[libkb.KIDMapKey]EncryptedTLFCryptKeyClientHalf{
+			uid: map[libkb.KIDMapKey]EncryptedTLFCryptKeyClientHalf{
+				subkey.KID.ToMapKey(): EncryptedTLFCryptKeyClientHalf{},
 			},
 		},
 	}
@@ -176,11 +175,11 @@ func TestKeyManagerRekeySuccess(t *testing.T) {
 	mockCtrl, config := keyManagerInit(t)
 	defer keyManagerShutdown(mockCtrl, config)
 
-	u, id, h := makeID(config)
+	_, id, h := makeID(config)
 	rmd := NewRootMetadata(h, id)
 	rmd.AddNewKeys(DirKeyBundle{})
 
-	expectRekey(config, rmd, u)
+	expectRekey(config, rmd)
 
 	if err := config.KeyManager().Rekey(rmd); err != nil {
 		t.Errorf("Got error on rekey: %v", err)

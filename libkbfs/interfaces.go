@@ -253,7 +253,8 @@ type BlockCache interface {
 	// "official" version of the block with that ID.
 	Put(id BlockID, block Block, dirty bool) error
 	// Delete removes the block associated with the given block ID
-	// from the cache.
+	// from the cache.  No error is returned if no block exists
+	// for the given ID.
 	Delete(id BlockID) error
 	// Finalize transitions a dirty block, stored under the block's
 	// old block ID, to a new block with the new ID.
@@ -265,8 +266,11 @@ type BlockCache interface {
 
 // Crypto signs, verifies, encrypts, and decrypts stuff.
 type Crypto interface {
-	// MakeRandomBlockId generates a block ID using a CSPRNG.
-	MakeRandomBlockID() (BlockID, error)
+	// MakeTemporaryBlockID generates a temporary block ID using a
+	// CSPRNG. This is used for indirect blocks before they're
+	// committed to the server.
+	MakeTemporaryBlockID() (BlockID, error)
+
 	// MakeRandomTLFKeys generates top-level folder keys using a CSPRNG.
 	MakeRandomTLFKeys() (TLFPublicKey, TLFPrivateKey, TLFEphemeralPublicKey,
 		TLFEphemeralPrivateKey, TLFCryptKey, error)
@@ -297,12 +301,12 @@ type Crypto interface {
 	// using both a TLF's ephemeral private key and a device pubkey.
 	EncryptTLFCryptKeyClientHalf(privateKey TLFEphemeralPrivateKey,
 		publicKey CryptPublicKey, clientHalf TLFCryptKeyClientHalf) (
-		[]byte, error)
+		EncryptedTLFCryptKeyClientHalf, error)
+
 	// DecryptTLFCryptKeyClientHalf decrypts a TLFCryptKeyClientHalf
 	// using the current device's private key and the TLF's ephemeral
 	// public key.
-	DecryptTLFCryptKeyClientHalf(publicKey TLFEphemeralPublicKey, buf []byte) (
-		TLFCryptKeyClientHalf, error)
+	DecryptTLFCryptKeyClientHalf(publicKey TLFEphemeralPublicKey, encryptedClientHalf EncryptedTLFCryptKeyClientHalf) (TLFCryptKeyClientHalf, error)
 
 	// EncryptPrivateMetadata encrypts a serialized PrivateMetadata object.
 	EncryptPrivateMetadata(buf []byte, key TLFCryptKey) ([]byte, error)
@@ -388,7 +392,7 @@ type KeyOps interface {
 		cryptPublicKey CryptPublicKey) (TLFCryptKeyServerHalf, error)
 	// PutTLFCryptKeyServerHalf puts the server-side key half for a
 	// device (identified by its CryptPublicKey) for a given TLF.
-	PutTLFCryptKeyServerHalf(id DirID, keyVer KeyVer, user keybase1.UID,
+	PutTLFCryptKeyServerHalf(id DirID, keyVer KeyVer,
 		cryptPublicKey CryptPublicKey, serverHalf TLFCryptKeyServerHalf) error
 
 	// GetMacPublicKey gets the public MAC key for a given user.
@@ -468,8 +472,9 @@ type BlockServer interface {
 	// Put stores the (encrypted) block data under the given ID and
 	// context on the server.
 	Put(id BlockID, context BlockContext, buf []byte) error
-	// Delete instructs the server to delete the block data associated
-	// with the given ID and context.
+	// Delete instructs the server to delete the block data
+	// associated with the given ID. No error is returned if no
+	// data exists for the given ID.
 	Delete(id BlockID, context BlockContext) error
 }
 

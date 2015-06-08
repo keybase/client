@@ -73,6 +73,11 @@ func main() {
 		log.Fatalf("cannot open block database: %v", err)
 	}
 	config.SetBlockServer(bserv)
+	kops, err := libkbfs.NewKeyServerLocal(config.Codec(), "kbfs_keys")
+	if err != nil {
+		log.Fatalf("cannot open key database: %v", err)
+	}
+	config.SetKeyOps(kops)
 
 	libkb.G.Init()
 	libkb.G.ConfigureConfig()
@@ -112,7 +117,8 @@ func main() {
 		k := libkbfs.NewKBPKILocal(localUID, localUsers)
 		config.SetKBPKI(k)
 		signingKey := libkbfs.MakeLocalUserSigningKeyOrBust(*localUser)
-		config.SetCrypto(libkbfs.NewCryptoLocal(config.Codec(), signingKey))
+		cryptPrivateKey := libkbfs.MakeLocalUserCryptPrivateKeyOrBust(*localUser)
+		config.SetCrypto(libkbfs.NewCryptoLocal(config.Codec(), signingKey, cryptPrivateKey))
 	} else if *clientFlag {
 		libkb.G.ConfigureSocketInfo()
 		k, err := libkbfs.NewKBPKIClient(libkb.G)

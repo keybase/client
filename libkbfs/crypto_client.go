@@ -70,3 +70,41 @@ func (c *CryptoClient) Sign(msg []byte) (sigInfo SignatureInfo, err error) {
 	}
 	return
 }
+
+// DecryptTLFCryptKeyClientHalf implements the Crypto interface for
+// CryptoClient.
+func (c *CryptoClient) DecryptTLFCryptKeyClientHalf(publicKey TLFEphemeralPublicKey, encryptedClientHalf EncryptedTLFCryptKeyClientHalf) (clientHalf TLFCryptKeyClientHalf, err error) {
+	if encryptedClientHalf.Version != TLFEncryptionBox {
+		err = UnknownTLFEncryptionVer{encryptedClientHalf.Version}
+		return
+	}
+
+	var encryptedData keybase1.EncryptedBytes32
+	if len(encryptedClientHalf.EncryptedData) != len(encryptedData) {
+		err = libkb.DecryptionError{}
+		return
+	}
+	copy(encryptedData[:], encryptedClientHalf.EncryptedData)
+
+	var nonce keybase1.BoxNonce
+	if len(encryptedClientHalf.Nonce) != len(nonce) {
+		err = libkb.DecryptionError{}
+		return
+	}
+	copy(nonce[:], encryptedClientHalf.Nonce)
+
+	cc := keybase1.CryptoClient{Cli: c.client}
+	decryptedClientHalf, err := cc.UnboxBytes32(keybase1.UnboxBytes32Arg{
+		SessionID:        0,
+		EncryptedBytes32: encryptedData,
+		Nonce:            nonce,
+		PeersPublicKey:   keybase1.BoxPublicKey(publicKey.PublicKey),
+		Reason:           "to use kbfs",
+	})
+	if err != nil {
+		return
+	}
+
+	clientHalf = TLFCryptKeyClientHalf{decryptedClientHalf}
+	return
+}

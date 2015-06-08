@@ -1215,7 +1215,7 @@ func (fs *KBFSOpsStandard) getEntryInChannel(file Path) (
 
 func (fs *KBFSOpsStandard) newRightBlockInChannel(
 	id BlockID, pblock *FileBlock, off int64, md *RootMetadata) error {
-	newRID, err := fs.config.Crypto().MakeRandomBlockID()
+	newRID, err := fs.config.Crypto().MakeTemporaryBlockID()
 	if err != nil {
 		return err
 	}
@@ -1298,7 +1298,7 @@ func (fs *KBFSOpsStandard) writeDataInChannel(
 			if id == file.TailPointer().ID {
 				// pick a new id for this block, and use this block's ID for
 				// the parent
-				newID, err := fs.config.Crypto().MakeRandomBlockID()
+				newID, err := fs.config.Crypto().MakeTemporaryBlockID()
 				if err != nil {
 					return err
 				}

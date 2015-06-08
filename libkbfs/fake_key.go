@@ -34,18 +34,25 @@ func MakeFakeSigningKeyOrBust(seed string) SigningKey {
 // signatures made from the fake signing key made with the same seed.
 func MakeFakeVerifyingKeyOrBust(seed string) VerifyingKey {
 	sk := MakeFakeSigningKeyOrBust(seed)
-	return sk.GetVerifyingKey()
+	return sk.getVerifyingKey()
 }
 
-// MakeFakeCryptPublicKeyOrBust creates a random crypt publc key,
-// starting with the given seed.
-func MakeFakeCryptPublicKeyOrBust(seed string) CryptPublicKey {
+// MakeFakeCryptPrivateKeyOrBust makes a new crypt private key from
+// fake randomness made from the given seed.
+func MakeFakeCryptPrivateKeyOrBust(seed string) CryptPrivateKey {
 	fakeRandomBytes := makeFakeRandomBytes(seed, libkb.NaclDHKeySecretSize)
-	var fakeSecret [libkb.NaclDHKeySecretSize]byte
-	copy(fakeSecret[:], fakeRandomBytes)
-	kp, err := libkb.MakeNaclDHKeyPairFromSecret(fakeSecret)
+	var fakeSecret CryptPrivateKeySecret
+	copy(fakeSecret.secret[:], fakeRandomBytes)
+	privateKey, err := makeCryptPrivateKey(fakeSecret)
 	if err != nil {
 		panic(err)
 	}
-	return CryptPublicKey{kp.GetKid()}
+	return privateKey
+}
+
+// MakeFakeCryptPublicKeyOrBust makes the public key corresponding to
+// the crypt private key made with the same seed.
+func MakeFakeCryptPublicKeyOrBust(seed string) CryptPublicKey {
+	k := MakeFakeCryptPrivateKeyOrBust(seed)
+	return k.getPublicKey()
 }

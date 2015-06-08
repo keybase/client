@@ -79,13 +79,19 @@ func MakeLocalUserSigningKeyOrBust(name string) SigningKey {
 // MakeLocalUserVerifyingKeyOrBust makes a new verifying key
 // corresponding to the signing key for this user.
 func MakeLocalUserVerifyingKeyOrBust(name string) VerifyingKey {
-	return MakeLocalUserSigningKeyOrBust(name).GetVerifyingKey()
+	return MakeLocalUserSigningKeyOrBust(name).getVerifyingKey()
 }
 
-// MakeLocalUserCryptPublicKeyOrBust returns a unique public
+// MakeLocalUserCryptPrivateKeyOrBust returns a unique private
 // encryption key for this user.
+func MakeLocalUserCryptPrivateKeyOrBust(name string) CryptPrivateKey {
+	return MakeFakeCryptPrivateKeyOrBust(name + " crypt key")
+}
+
+// MakeLocalUserCryptPublicKeyOrBust returns the public key
+// corresponding to the crypt private key for this user.
 func MakeLocalUserCryptPublicKeyOrBust(name string) CryptPublicKey {
-	return MakeFakeCryptPublicKeyOrBust(name + " crypt public key")
+	return MakeLocalUserCryptPrivateKeyOrBust(name).getPublicKey()
 }
 
 // MakeLocalUsers is a helper function to generate a list of
@@ -117,7 +123,6 @@ func NewConfigLocal() *ConfigLocal {
 	config.SetBlockCache(NewBlockCacheStandard(5000))
 	config.SetCodec(NewCodecMsgpack())
 	config.SetMDOps(&MDOpsStandard{config})
-	config.SetKeyOps(&KeyOpsNull{})
 	config.SetBlockOps(&BlockOpsStandard{config})
 	// 64K blocks by default, block changes embedded max == 8K
 	config.SetBlockSplitter(&BlockSplitterSimple{64 * 1024, 8 * 1024})

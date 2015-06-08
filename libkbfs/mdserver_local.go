@@ -1,8 +1,6 @@
 package libkbfs
 
 import (
-	"crypto/rand"
-
 	"github.com/syndtr/goleveldb/leveldb"
 	"github.com/syndtr/goleveldb/leveldb/opt"
 )
@@ -53,7 +51,7 @@ func (md *MDServerLocal) GetAtHandle(handle *DirHandle) (
 	}
 
 	// make a new one
-	if _, err := rand.Read(id[0 : DirIDLen-1]); err != nil {
+	if err := cryptoRandRead(id[0 : DirIDLen-1]); err != nil {
 		return nil, err
 	}
 	if handle.IsPublic() {
