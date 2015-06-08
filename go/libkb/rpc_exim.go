@@ -71,20 +71,6 @@ func ExportRemoteProof(p RemoteProofChainLink) keybase1.RemoteProof {
 	}
 }
 
-type ByMtime []keybase1.IdentifyRow
-
-func (x ByMtime) Len() int {
-	return len(x)
-}
-
-func (x ByMtime) Less(a, b int) bool {
-	return x[a].Proof.Mtime < x[b].Proof.Mtime
-}
-
-func (x ByMtime) Swap(a, b int) {
-	x[a], x[b] = x[b], x[a]
-}
-
 func (ir IdentifyOutcome) ExportToUncheckedIdentity() *keybase1.Identity {
 	tmp := keybase1.Identity{
 		Status: ExportErrorAsStatus(ir.Error),
@@ -92,11 +78,13 @@ func (ir IdentifyOutcome) ExportToUncheckedIdentity() *keybase1.Identity {
 	if ir.TrackUsed != nil {
 		tmp.WhenLastTracked = int(ir.TrackUsed.GetCTime().Unix())
 	}
-	tmp.Proofs = make([]keybase1.IdentifyRow, len(ir.ProofChecks))
-	for j, p := range ir.ProofChecks {
+
+	pc := ir.ProofChecksSorted()
+	tmp.Proofs = make([]keybase1.IdentifyRow, len(pc))
+	for j, p := range pc {
 		tmp.Proofs[j] = p.ExportToIdentifyRow(j)
 	}
-	sort.Sort(ByMtime(tmp.Proofs))
+
 	tmp.Deleted = make([]keybase1.TrackDiff, len(ir.Deleted))
 	for j, d := range ir.Deleted {
 		// Should have all non-nil elements...

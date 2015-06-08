@@ -157,6 +157,16 @@ var REMOTE_SERVICE_TYPES = map[string]keybase1.ProofType{
 	"dns":        keybase1.ProofType_DNS,
 }
 
+var RemoteServiceOrder = []keybase1.ProofType{
+	keybase1.ProofType_KEYBASE,
+	keybase1.ProofType_TWITTER,
+	keybase1.ProofType_GITHUB,
+	keybase1.ProofType_REDDIT,
+	keybase1.ProofType_COINBASE,
+	keybase1.ProofType_HACKERNEWS,
+	keybase1.ProofType_GENERIC_WEB_SITE,
+}
+
 var CANONICAL_HOST = "keybase.io"
 
 const (

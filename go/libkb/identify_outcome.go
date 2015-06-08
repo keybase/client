@@ -2,7 +2,10 @@ package libkb
 
 import (
 	"fmt"
+	"sort"
 	"strings"
+
+	keybase1 "github.com/keybase/client/protocol/go"
 )
 
 type IdentifyOutcome struct {
@@ -32,6 +35,25 @@ func (i *IdentifyOutcome) SetActiveProofs(proofs RemoteProofList) {
 
 func (i *IdentifyOutcome) ActiveProofs() RemoteProofList {
 	return i.activeProofs
+}
+
+func (i *IdentifyOutcome) ProofChecksSorted() []*LinkCheckResult {
+	m := make(map[keybase1.ProofType][]*LinkCheckResult)
+	for _, p := range i.ProofChecks {
+		pt := p.link.GetProofType()
+		m[pt] = append(m[pt], p)
+	}
+
+	var res []*LinkCheckResult
+	for _, pt := range RemoteServiceOrder {
+		pc, ok := m[pt]
+		if !ok {
+			continue
+		}
+		sort.Sort(byDisplayString(pc))
+		res = append(res, pc...)
+	}
+	return res
 }
 
 func (i IdentifyOutcome) NumDeleted() int {
@@ -142,4 +164,12 @@ func (i IdentifyOutcome) GetError() error {
 
 func (i IdentifyOutcome) GetErrorLax() (error, Warnings) {
 	return i.GetErrorAndWarnings(true)
+}
+
+type byDisplayString []*LinkCheckResult
+
+func (a byDisplayString) Len() int      { return len(a) }
+func (a byDisplayString) Swap(i, j int) { a[i], a[j] = a[j], a[i] }
+func (a byDisplayString) Less(i, j int) bool {
+	return a[i].link.ToDisplayString() < a[j].link.ToDisplayString()
 }
