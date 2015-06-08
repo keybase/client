@@ -13,7 +13,7 @@ import (
 // instance.
 //
 // Per-block key server halves are keyed by block ID, and per-TLF key
-// server halves are keyed by (dir id, key version, device encryption
+// server halves are keyed by (dir id, key generation, device encryption
 // public key) tuples.
 type KeyServerLocal struct {
 	codec Codec
@@ -80,15 +80,15 @@ func (ks *KeyServerLocal) DeleteBlockCryptKeyServerHalf(id BlockID) error {
 
 type serverHalfID struct {
 	ID             DirID
-	KeyVer         KeyVer
+	KeyGen         KeyGen
 	CryptPublicKey CryptPublicKey
 }
 
 // GetTLFCryptKeyServerHalf implements the KeyOps interface for
 // KeyServerLocal.
 func (ks *KeyServerLocal) GetTLFCryptKeyServerHalf(
-	id DirID, keyVer KeyVer, cryptPublicKey CryptPublicKey) (serverHalf TLFCryptKeyServerHalf, err error) {
-	idData, err := ks.codec.Encode(serverHalfID{id, keyVer, cryptPublicKey})
+	id DirID, keyGen KeyGen, cryptPublicKey CryptPublicKey) (serverHalf TLFCryptKeyServerHalf, err error) {
+	idData, err := ks.codec.Encode(serverHalfID{id, keyGen, cryptPublicKey})
 	if err != nil {
 		return
 	}
@@ -108,8 +108,8 @@ func (ks *KeyServerLocal) GetTLFCryptKeyServerHalf(
 // PutTLFCryptKeyServerHalf implements the KeyOps interface for
 // KeyServerLocal.
 func (ks *KeyServerLocal) PutTLFCryptKeyServerHalf(
-	id DirID, keyVer KeyVer, cryptPublicKey CryptPublicKey, serverHalf TLFCryptKeyServerHalf) error {
-	idData, err := ks.codec.Encode(serverHalfID{id, keyVer, cryptPublicKey})
+	id DirID, keyGen KeyGen, cryptPublicKey CryptPublicKey, serverHalf TLFCryptKeyServerHalf) error {
+	idData, err := ks.codec.Encode(serverHalfID{id, keyGen, cryptPublicKey})
 	if err != nil {
 		return err
 	}

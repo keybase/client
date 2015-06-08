@@ -256,31 +256,14 @@ func TestPartialLocalUpdate(t *testing.T) {
 	node2 = doLookupOrBust(t, node1, "dir1")
 
 	// Somewhere else, someone writes test_user/dir1/dir2/dir3
-	id2 := libkbfs.BlockID{104}
-	id3 := libkbfs.BlockID{105}
 	newPath := libkbfs.Path{
 		TopDir: node1.Dir,
+		// Only the Name fields are used.
 		Path: []libkbfs.PathNode{
 			node1.PathNode,
 			node2.PathNode,
-			libkbfs.PathNode{
-				BlockPointer: libkbfs.BlockPointer{
-					ID:        id2,
-					KeyVer:    0,
-					Ver:       0,
-					Writer:    keybase1.MakeTestUID(0),
-					QuotaSize: 0,
-				},
-				Name: "dir2"},
-			libkbfs.PathNode{
-				BlockPointer: libkbfs.BlockPointer{
-					ID:        id3,
-					KeyVer:    0,
-					Ver:       0,
-					Writer:    keybase1.MakeTestUID(0),
-					QuotaSize: 0,
-				},
-				Name: "dir3"},
+			libkbfs.PathNode{Name: "dir2"},
+			libkbfs.PathNode{Name: "dir3"},
 		},
 	}
 	root.Ops.LocalChange(newPath)
@@ -303,32 +286,14 @@ func TestPartialBatchUpdate(t *testing.T) {
 	node2 := doMkDirOrBust(t, node1, "dir1")
 
 	// Somewhere else, someone creates test_user/dir1/dir2/dir3
-	id2 := libkbfs.BlockID{104}
-	id3 := libkbfs.BlockID{105}
 	newPath := libkbfs.Path{
 		TopDir: node1.Dir,
+		// Only the Name fields are used.
 		Path: []libkbfs.PathNode{
 			node1.PathNode,
 			node2.PathNode,
-			libkbfs.PathNode{
-				BlockPointer: libkbfs.BlockPointer{
-					ID:        id2,
-					KeyVer:    0,
-					Ver:       0,
-					Writer:    keybase1.MakeTestUID(0),
-					QuotaSize: 0},
-				Name: "dir2",
-			},
-			libkbfs.PathNode{
-				BlockPointer: libkbfs.BlockPointer{
-					ID:        id3,
-					KeyVer:    0,
-					Ver:       0,
-					Writer:    keybase1.MakeTestUID(0),
-					QuotaSize: 0,
-				},
-				Name: "dir3",
-			},
+			libkbfs.PathNode{Name: "dir2"},
+			libkbfs.PathNode{Name: "dir3"},
 		}}
 	root.Ops.BatchChanges(node1.Dir, []libkbfs.Path{newPath})
 	root.Ops.Shutdown()

@@ -807,7 +807,7 @@ func (f *FuseOps) translateError(err error) fuse.Status {
 		return fuse.Status(syscall.EISDIR)
 	case *libkbfs.NoSuchMDError:
 		return fuse.ENOENT
-	case *libkbfs.NewVersionError:
+	case *libkbfs.NewDataVersionError:
 		return fuse.Status(syscall.ENOTSUP)
 	default:
 		return fuse.EIO

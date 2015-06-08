@@ -26,21 +26,25 @@ func (km *KeyManagerStandard) GetTLFCryptKey(dir Path, md *RootMetadata) (
 	// Figure out what version of the key we need.  The md will always
 	// need the latest key to encrypt, but old blocks may require
 	// older keys.
-	keyVer := md.LatestKeyVersion()
+	keyGen := md.LatestKeyGeneration()
 	if len(dir.Path) > 0 {
-		keyVer = dir.TailPointer().GetKeyVer()
+		keyGen = dir.TailPointer().GetKeyGen()
+	}
+	if keyGen < FirstValidKeyGen {
+		err = InvalidKeyGenerationError{*md.GetDirHandle(), keyGen}
+		return
 	}
 	// Is this some key we don't know yet?  Shouldn't really ever happen,
 	// since we must have seen the MD that led us to this block, which
 	// should include all the latest keys.  Consider this a failsafe.
-	if keyVer > md.LatestKeyVersion() {
-		err = &NewKeyVersionError{md.GetDirHandle().ToString(km.config), keyVer}
+	if keyGen > md.LatestKeyGeneration() {
+		err = NewKeyGenerationError{*md.GetDirHandle(), keyGen}
 		return
 	}
 
 	// look in the cache first
 	kcache := km.config.KeyCache()
-	if tlfCryptKey, err = kcache.GetTLFCryptKey(md.ID, keyVer); err == nil {
+	if tlfCryptKey, err = kcache.GetTLFCryptKey(md.ID, keyGen); err == nil {
 		return
 	}
 
@@ -56,16 +60,23 @@ func (km *KeyManagerStandard) GetTLFCryptKey(dir Path, md *RootMetadata) (
 		return
 	}
 
-	clientHalfData, ok := md.GetEncryptedTLFCryptKeyClientHalfData(keyVer, user, currentCryptPublicKey)
+	clientHalfData, ok, err := md.GetEncryptedTLFCryptKeyClientHalfData(keyGen, user, currentCryptPublicKey)
+	if err != nil {
+		return
+	}
 	if !ok {
 		err = NewReadAccessError(km.config, md.GetDirHandle(), user)
 		return
 	}
 
-	crypto := km.config.Crypto()
+	ePublicKey, err := md.GetTLFEphemeralPublicKey(keyGen)
+	if err != nil {
+		return
+	}
 
+	crypto := km.config.Crypto()
 	clientHalf, err :=
-		crypto.DecryptTLFCryptKeyClientHalf(md.GetTLFEphemeralPublicKey(keyVer), clientHalfData)
+		crypto.DecryptTLFCryptKeyClientHalf(ePublicKey, clientHalfData)
 	if err != nil {
 		return
 	}
@@ -73,7 +84,7 @@ func (km *KeyManagerStandard) GetTLFCryptKey(dir Path, md *RootMetadata) (
 	// now get the server-side key-half, do the unmasking, cache the result, return
 	// TODO: can parallelize the get() with decryption
 	kops := km.config.KeyOps()
-	serverHalf, err := kops.GetTLFCryptKeyServerHalf(md.ID, keyVer, currentCryptPublicKey)
+	serverHalf, err := kops.GetTLFCryptKeyServerHalf(md.ID, keyGen, currentCryptPublicKey)
 	if err != nil {
 		return
 	}
@@ -82,7 +93,7 @@ func (km *KeyManagerStandard) GetTLFCryptKey(dir Path, md *RootMetadata) (
 		return
 	}
 
-	if err = kcache.PutTLFCryptKey(md.ID, keyVer, tlfCryptKey); err != nil {
+	if err = kcache.PutTLFCryptKey(md.ID, keyGen, tlfCryptKey); err != nil {
 		tlfCryptKey = TLFCryptKey{}
 		return
 	}
@@ -109,7 +120,7 @@ func (km *KeyManagerStandard) secretKeysForUser(md *RootMetadata, uid keybase1.U
 	kbpki := km.config.KBPKI()
 	crypto := km.config.Crypto()
 	kops := km.config.KeyOps()
-	keyVer := md.LatestKeyVersion() + 1
+	newKeyGen := md.LatestKeyGeneration() + 1
 
 	publicKeys, err := kbpki.GetCryptPublicKeys(uid)
 	if err != nil {
@@ -143,7 +154,7 @@ func (km *KeyManagerStandard) secretKeysForUser(md *RootMetadata, uid keybase1.U
 		}
 
 		if err = kops.PutTLFCryptKeyServerHalf(
-			md.ID, keyVer, k, serverHalf); err != nil {
+			md.ID, newKeyGen, k, serverHalf); err != nil {
 			return
 		}
 
@@ -155,11 +166,7 @@ func (km *KeyManagerStandard) secretKeysForUser(md *RootMetadata, uid keybase1.U
 
 // Rekey implements the KeyManager interface for KeyManagerStandard.
 func (km *KeyManagerStandard) Rekey(md *RootMetadata) error {
-	if md.ID.IsPublic() && md.IsInitialized() {
-		// no rekey is needed for public directories
-		// TODO: Handle this at a higher level.
-		return nil
-	}
+	// TODO: Don't rekey public directories.
 
 	crypto := km.config.Crypto()
 	pubKey, privKey, ePubKey, ePrivKey, tlfCryptKey, err := crypto.MakeRandomTLFKeys()
@@ -196,5 +203,5 @@ func (km *KeyManagerStandard) Rekey(md *RootMetadata) error {
 	md.data.TLFPrivateKey = privKey
 
 	// Might as well cache the TLFCryptKey while we're at it.
-	return km.config.KeyCache().PutTLFCryptKey(md.ID, md.LatestKeyVersion(), tlfCryptKey)
+	return km.config.KeyCache().PutTLFCryptKey(md.ID, md.LatestKeyGeneration(), tlfCryptKey)
 }

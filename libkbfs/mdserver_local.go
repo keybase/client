@@ -72,18 +72,13 @@ func (md *MDServerLocal) GetAtHandle(handle *DirHandle) (
 	var id DirID
 	if err != leveldb.ErrNotFound {
 		copy(id[:], buf[:len(id)])
-		rmds, err := md.Get(id)
-		return rmds, err
+		return md.Get(id)
 	}
 
-	// make a new one
-	if err := cryptoRandRead(id[0 : DirIDLen-1]); err != nil {
+	// Make a new one.
+	id, err = md.config.Crypto().MakeRandomDirID(handle.IsPublic())
+	if err != nil {
 		return nil, err
-	}
-	if handle.IsPublic() {
-		id[DirIDLen-1] = PubDirIDSuffix
-	} else {
-		id[DirIDLen-1] = DirIDSuffix
 	}
 	rmd := NewRootMetadata(handle, id)
 

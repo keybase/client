@@ -2,6 +2,15 @@ package libkbfs
 
 import "testing"
 
+// Return a new initialized RootMetadata object for testing.
+func newRootMetadataForTest(d *DirHandle, id DirID) *RootMetadata {
+	rmd := NewRootMetadata(d, id)
+	// TODO: Set this to 0 for public directories.
+	rmd.data.Dir.KeyGen = 1
+	rmd.data.Dir.DataVer = 1
+	return rmd
+}
+
 // MakeTestConfigOrBust creates and returns a config suitable for
 // unit-testing with the given list of users.
 func MakeTestConfigOrBust(t *testing.T, users ...string) *ConfigLocal {

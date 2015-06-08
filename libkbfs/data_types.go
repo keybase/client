@@ -282,32 +282,50 @@ var NullMdID = MdID{0}
 // NullDirID is an empty DirID
 var NullDirID = DirID{0}
 
-// KeyVer is the type of a key version for a top-level folder.
-type KeyVer int
+// KeyGen is the type of a key generation for a top-level folder.
+type KeyGen int
 
-// Ver is the type of a data version marshalled by KBFS.
-type Ver int
+const (
+	// PublicKeyGen is the value used for public TLFs. Note that
+	// it is not considered a valid key generation.
+	PublicKeyGen KeyGen = -1
+	// FirstValidKeyGen is the first value that is considered a
+	// valid key generation. Note that the nil value is not
+	// considered valid.
+	FirstValidKeyGen = 1
+)
+
+// DataVer is the type of a version for marshalled KBFS data
+// structures.
+type DataVer int
+
+const (
+	// FirstValidDataVer is the first value that is considered a
+	// valid data version. Note that the nil value is not
+	// considered valid.
+	FirstValidDataVer = 1
+)
 
 // BlockPointer is the ID and BlockContext representing a block in KBFS.
 type BlockPointer struct {
-	ID     BlockID
-	KeyVer KeyVer // which version of the DirKeyBundle to use
-	Ver    Ver    // which version of the KBFS data structures is pointed to
-	Writer keybase1.UID
+	ID      BlockID
+	KeyGen  KeyGen  // if valid, which generation of the DirKeyBundle to use.
+	DataVer DataVer // if valid, which version of the KBFS data structures is pointed to
+	Writer  keybase1.UID
 	// When non-zero, the size of the (possibly encrypted) data
 	// contained in the block. When non-zero, always at least the
 	// size of the plaintext data contained in the block.
 	QuotaSize uint32
 }
 
-// GetKeyVer implements the BlockContext interface for BlockPointer.
-func (p BlockPointer) GetKeyVer() KeyVer {
-	return p.KeyVer
+// GetKeyGen implements the BlockContext interface for BlockPointer.
+func (p BlockPointer) GetKeyGen() KeyGen {
+	return p.KeyGen
 }
 
-// GetVer implements the BlockContext interface for BlockPointer.
-func (p BlockPointer) GetVer() Ver {
-	return p.Ver
+// GetDataVer implements the BlockContext interface for BlockPointer.
+func (p BlockPointer) GetDataVer() DataVer {
+	return p.DataVer
 }
 
 // GetWriter implements the BlockContext interface for BlockPointer.
@@ -651,11 +669,13 @@ func (dkb DirKeyBundle) DeepCopy() DirKeyBundle {
 	return newDkb
 }
 
+// TODO: Move RootMetadata and related types into their own file.
+
 // RootMetadata is the MD that is signed by the writer.
 type RootMetadata struct {
 	// Serialized, possibly encrypted, version of the PrivateMetadata
 	SerializedPrivateMetadata []byte `codec:"data"`
-	// Key versions for this metadata.  The most recent one is last in
+	// key generations for this metadata.  The most recent one is last in
 	// the array.
 	Keys []DirKeyBundle
 	// Pointer to the previous root block ID
@@ -794,15 +814,31 @@ func (md RootMetadata) DeepCopy() RootMetadata {
 	return newMd
 }
 
+func (md RootMetadata) getDirKeyBundle(keyGen KeyGen) (*DirKeyBundle, error) {
+	if keyGen < FirstValidKeyGen {
+		return nil, InvalidKeyGenerationError{*md.GetDirHandle(), keyGen}
+	}
+	i := int(keyGen - FirstValidKeyGen)
+	if i >= len(md.Keys) {
+		return nil, NewKeyGenerationError{*md.GetDirHandle(), keyGen}
+	}
+	return &md.Keys[i], nil
+}
+
 // GetEncryptedTLFCryptKeyClientHalfData returns the encrypted buffer
 // of the given user's client key half for this top-level folder.
 func (md RootMetadata) GetEncryptedTLFCryptKeyClientHalfData(
-	keyVer KeyVer, user keybase1.UID, currentCryptPublicKey CryptPublicKey) (
-	encryptedClientHalf EncryptedTLFCryptKeyClientHalf, ok bool) {
+	keyGen KeyGen, user keybase1.UID, currentCryptPublicKey CryptPublicKey) (
+	encryptedClientHalf EncryptedTLFCryptKeyClientHalf, ok bool, err error) {
+	dkb, err := md.getDirKeyBundle(keyGen)
+	if err != nil {
+		return
+	}
+
 	key := currentCryptPublicKey.KID.ToMapKey()
-	if u, ok1 := md.Keys[keyVer].WKeys[user]; ok1 {
+	if u, ok1 := dkb.WKeys[user]; ok1 {
 		encryptedClientHalf, ok = u[key]
-	} else if u, ok1 = md.Keys[keyVer].RKeys[user]; ok1 {
+	} else if u, ok1 = dkb.RKeys[user]; ok1 {
 		encryptedClientHalf, ok = u[key]
 	}
 	return
@@ -811,16 +847,27 @@ func (md RootMetadata) GetEncryptedTLFCryptKeyClientHalfData(
 // GetTLFEphemeralPublicKey returns the ephemeral public key for this
 // top-level folder.
 func (md RootMetadata) GetTLFEphemeralPublicKey(
-	keyVer KeyVer) TLFEphemeralPublicKey {
-	return md.Keys[keyVer].TLFEphemeralPublicKey
+	keyGen KeyGen) (TLFEphemeralPublicKey, error) {
+	dkb, err := md.getDirKeyBundle(keyGen)
+	if err != nil {
+		return TLFEphemeralPublicKey{}, err
+	}
+	return dkb.TLFEphemeralPublicKey, nil
 }
 
-// LatestKeyVersion returns the newest key version for this RootMetadata.
-func (md RootMetadata) LatestKeyVersion() KeyVer {
-	return KeyVer(len(md.Keys) - 1)
+// LatestKeyGeneration returns the newest key generation for this RootMetadata.
+func (md RootMetadata) LatestKeyGeneration() KeyGen {
+	if md.ID.IsPublic() {
+		return PublicKeyGen
+	}
+	if len(md.Keys) == 0 {
+		// Return an invalid value.
+		return KeyGen(0)
+	}
+	return FirstValidKeyGen + KeyGen(len(md.Keys)-1)
 }
 
-// AddNewKeys makes a new key version for this RootMetadata using the
+// AddNewKeys makes a new key generation for this RootMetadata using the
 // given DirKeyBundle.
 func (md *RootMetadata) AddNewKeys(keys DirKeyBundle) {
 	md.Keys = append(md.Keys, keys)
@@ -834,15 +881,17 @@ func (md *RootMetadata) GetDirHandle() *DirHandle {
 	}
 
 	h := &DirHandle{}
-	keyID := md.LatestKeyVersion()
-	for w := range md.Keys[keyID].WKeys {
+	// TODO: Handle public directories (which will have no keys at
+	// all).
+	dkb := &md.Keys[len(md.Keys)-1]
+	for w := range dkb.WKeys {
 		h.Writers = append(h.Writers, w)
 	}
 	if md.ID.IsPublic() {
 		h.Readers = append(h.Readers, keybase1.PublicUID)
 	} else {
-		for r := range md.Keys[keyID].RKeys {
-			if _, ok := md.Keys[keyID].WKeys[r]; !ok &&
+		for r := range dkb.RKeys {
+			if _, ok := dkb.WKeys[r]; !ok &&
 				r != keybase1.PublicUID {
 				h.Readers = append(h.Readers, r)
 			}
@@ -856,8 +905,12 @@ func (md *RootMetadata) GetDirHandle() *DirHandle {
 
 // IsInitialized returns whether or not this RootMetadata has been initialized
 func (md RootMetadata) IsInitialized() bool {
+	keyGen := md.LatestKeyGeneration()
+	if md.ID.IsPublic() {
+		return keyGen == PublicKeyGen
+	}
 	// The data is only initialized once we have at least one set of keys
-	return md.LatestKeyVersion() >= 0
+	return keyGen >= FirstValidKeyGen
 }
 
 // MetadataID computes and caches the MdID for this RootMetadata

@@ -53,26 +53,6 @@ func (_m *MockBlockContext) EXPECT() *_MockBlockContextRecorder {
 	return _m.recorder
 }
 
-func (_m *MockBlockContext) GetKeyVer() KeyVer {
-	ret := _m.ctrl.Call(_m, "GetKeyVer")
-	ret0, _ := ret[0].(KeyVer)
-	return ret0
-}
-
-func (_mr *_MockBlockContextRecorder) GetKeyVer() *gomock.Call {
-	return _mr.mock.ctrl.RecordCall(_mr.mock, "GetKeyVer")
-}
-
-func (_m *MockBlockContext) GetVer() Ver {
-	ret := _m.ctrl.Call(_m, "GetVer")
-	ret0, _ := ret[0].(Ver)
-	return ret0
-}
-
-func (_mr *_MockBlockContextRecorder) GetVer() *gomock.Call {
-	return _mr.mock.ctrl.RecordCall(_mr.mock, "GetVer")
-}
-
 func (_m *MockBlockContext) GetWriter() go0.UID {
 	ret := _m.ctrl.Call(_m, "GetWriter")
 	ret0, _ := ret[0].(go0.UID)
@@ -534,7 +514,7 @@ func (_m *MockKeyCache) EXPECT() *_MockKeyCacheRecorder {
 	return _m.recorder
 }
 
-func (_m *MockKeyCache) GetTLFCryptKey(_param0 DirID, _param1 KeyVer) (TLFCryptKey, error) {
+func (_m *MockKeyCache) GetTLFCryptKey(_param0 DirID, _param1 KeyGen) (TLFCryptKey, error) {
 	ret := _m.ctrl.Call(_m, "GetTLFCryptKey", _param0, _param1)
 	ret0, _ := ret[0].(TLFCryptKey)
 	ret1, _ := ret[1].(error)
@@ -545,7 +525,7 @@ func (_mr *_MockKeyCacheRecorder) GetTLFCryptKey(arg0, arg1 interface{}) *gomock
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "GetTLFCryptKey", arg0, arg1)
 }
 
-func (_m *MockKeyCache) PutTLFCryptKey(_param0 DirID, _param1 KeyVer, _param2 TLFCryptKey) error {
+func (_m *MockKeyCache) PutTLFCryptKey(_param0 DirID, _param1 KeyGen, _param2 TLFCryptKey) error {
 	ret := _m.ctrl.Call(_m, "PutTLFCryptKey", _param0, _param1, _param2)
 	ret0, _ := ret[0].(error)
 	return ret0
@@ -646,6 +626,17 @@ func NewMockCrypto(ctrl *gomock.Controller) *MockCrypto {
 
 func (_m *MockCrypto) EXPECT() *_MockCryptoRecorder {
 	return _m.recorder
+}
+
+func (_m *MockCrypto) MakeRandomDirID(isPublic bool) (DirID, error) {
+	ret := _m.ctrl.Call(_m, "MakeRandomDirID", isPublic)
+	ret0, _ := ret[0].(DirID)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+func (_mr *_MockCryptoRecorder) MakeRandomDirID(arg0 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "MakeRandomDirID", arg0)
 }
 
 func (_m *MockCrypto) MakeTemporaryBlockID() (BlockID, error) {
@@ -996,8 +987,8 @@ func (_m *MockKeyOps) EXPECT() *_MockKeyOpsRecorder {
 	return _m.recorder
 }
 
-func (_m *MockKeyOps) GetTLFCryptKeyServerHalf(id DirID, keyVer KeyVer, cryptPublicKey CryptPublicKey) (TLFCryptKeyServerHalf, error) {
-	ret := _m.ctrl.Call(_m, "GetTLFCryptKeyServerHalf", id, keyVer, cryptPublicKey)
+func (_m *MockKeyOps) GetTLFCryptKeyServerHalf(id DirID, keyGen KeyGen, cryptPublicKey CryptPublicKey) (TLFCryptKeyServerHalf, error) {
+	ret := _m.ctrl.Call(_m, "GetTLFCryptKeyServerHalf", id, keyGen, cryptPublicKey)
 	ret0, _ := ret[0].(TLFCryptKeyServerHalf)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
@@ -1007,8 +998,8 @@ func (_mr *_MockKeyOpsRecorder) GetTLFCryptKeyServerHalf(arg0, arg1, arg2 interf
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "GetTLFCryptKeyServerHalf", arg0, arg1, arg2)
 }
 
-func (_m *MockKeyOps) PutTLFCryptKeyServerHalf(id DirID, keyVer KeyVer, cryptPublicKey CryptPublicKey, serverHalf TLFCryptKeyServerHalf) error {
-	ret := _m.ctrl.Call(_m, "PutTLFCryptKeyServerHalf", id, keyVer, cryptPublicKey, serverHalf)
+func (_m *MockKeyOps) PutTLFCryptKeyServerHalf(id DirID, keyGen KeyGen, cryptPublicKey CryptPublicKey, serverHalf TLFCryptKeyServerHalf) error {
+	ret := _m.ctrl.Call(_m, "PutTLFCryptKeyServerHalf", id, keyGen, cryptPublicKey, serverHalf)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
@@ -1658,9 +1649,9 @@ func (_mr *_MockConfigRecorder) SetNotifier(arg0 interface{}) *gomock.Call {
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "SetNotifier", arg0)
 }
 
-func (_m *MockConfig) DataVersion() Ver {
+func (_m *MockConfig) DataVersion() DataVer {
 	ret := _m.ctrl.Call(_m, "DataVersion")
-	ret0, _ := ret[0].(Ver)
+	ret0, _ := ret[0].(DataVer)
 	return ret0
 }
 

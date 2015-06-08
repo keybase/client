@@ -13,10 +13,6 @@ type Block interface{}
 
 // BlockContext is used by the server to help identify blocks
 type BlockContext interface {
-	// GetKeyVer returns the key version used for the corresponding block
-	GetKeyVer() KeyVer
-	// GetVer returns the data version used for the corresponding block
-	GetVer() Ver
 	// GetWriter returns the UID of the writer for the corresponding block
 	GetWriter() keybase1.UID
 	// GetQuotaSize returns the encrypted size of the corresponding
@@ -230,9 +226,9 @@ type MDCache interface {
 // KeyCache handles caching for both TLFCryptKeys and BlockCryptKeys.
 type KeyCache interface {
 	// GetTLFCryptKey gets the crypt key for the given TLF.
-	GetTLFCryptKey(DirID, KeyVer) (TLFCryptKey, error)
+	GetTLFCryptKey(DirID, KeyGen) (TLFCryptKey, error)
 	// PutTLFCryptKey stores the crypt key for the given TLF.
-	PutTLFCryptKey(DirID, KeyVer, TLFCryptKey) error
+	PutTLFCryptKey(DirID, KeyGen, TLFCryptKey) error
 }
 
 // BlockCache gets and puts plaintext dir blocks and file blocks into
@@ -259,6 +255,9 @@ type BlockCache interface {
 
 // Crypto signs, verifies, encrypts, and decrypts stuff.
 type Crypto interface {
+	// MakeRandomDirID generates a dir ID using a CSPRNG.
+	MakeRandomDirID(isPublic bool) (DirID, error)
+
 	// MakeTemporaryBlockID generates a temporary block ID using a
 	// CSPRNG. This is used for indirect blocks before they're
 	// committed to the server.
@@ -374,11 +373,11 @@ type MDOps interface {
 type KeyOps interface {
 	// GetTLFCryptKeyServerHalf gets the server-side key half for a
 	// device (identified by its CryptPublicKey) for a given TLF.
-	GetTLFCryptKeyServerHalf(id DirID, keyVer KeyVer,
+	GetTLFCryptKeyServerHalf(id DirID, keyGen KeyGen,
 		cryptPublicKey CryptPublicKey) (TLFCryptKeyServerHalf, error)
 	// PutTLFCryptKeyServerHalf puts the server-side key half for a
 	// device (identified by its CryptPublicKey) for a given TLF.
-	PutTLFCryptKeyServerHalf(id DirID, keyVer KeyVer,
+	PutTLFCryptKeyServerHalf(id DirID, keyGen KeyGen,
 		cryptPublicKey CryptPublicKey, serverHalf TLFCryptKeyServerHalf) error
 
 	// GetMacPublicKey gets the public MAC key for a given user.
@@ -552,7 +551,7 @@ type Config interface {
 	SetBlockSplitter(BlockSplitter)
 	Notifier() Notifier
 	SetNotifier(Notifier)
-	DataVersion() Ver
+	DataVersion() DataVer
 	// ReqsBufSize indicates the number of read or write operations
 	// that can be buffered per folder
 	ReqsBufSize() int

@@ -25,11 +25,11 @@ func keyManagerShutdown(mockCtrl *gomock.Controller, config *ConfigMock) {
 }
 
 func expectCachedGetTLFCryptKey(config *ConfigMock, rmd *RootMetadata) {
-	config.mockKcache.EXPECT().GetTLFCryptKey(rmd.ID, KeyVer(0)).Return(TLFCryptKey{}, nil)
+	config.mockKcache.EXPECT().GetTLFCryptKey(rmd.ID, rmd.LatestKeyGeneration()).Return(TLFCryptKey{}, nil)
 }
 
 func expectUncachedGetTLFCryptKey(config *ConfigMock, rmd *RootMetadata, uid keybase1.UID, subkey CryptPublicKey) {
-	config.mockKcache.EXPECT().GetTLFCryptKey(rmd.ID, KeyVer(0)).
+	config.mockKcache.EXPECT().GetTLFCryptKey(rmd.ID, rmd.LatestKeyGeneration()).
 		Return(TLFCryptKey{}, errors.New("NONE"))
 
 	// get the xor'd key out of the metadata
@@ -38,11 +38,11 @@ func expectUncachedGetTLFCryptKey(config *ConfigMock, rmd *RootMetadata, uid key
 
 	// get the server-side half and retrieve the real secret key
 	config.mockKops.EXPECT().GetTLFCryptKeyServerHalf(
-		rmd.ID, rmd.LatestKeyVersion(), subkey).Return(TLFCryptKeyServerHalf{}, nil)
+		rmd.ID, rmd.LatestKeyGeneration(), subkey).Return(TLFCryptKeyServerHalf{}, nil)
 	config.mockCrypto.EXPECT().UnmaskTLFCryptKey(TLFCryptKeyServerHalf{}, TLFCryptKeyClientHalf{}).Return(TLFCryptKey{}, nil)
 
 	// now put the key into the cache
-	config.mockKcache.EXPECT().PutTLFCryptKey(rmd.ID, rmd.LatestKeyVersion(), TLFCryptKey{}).
+	config.mockKcache.EXPECT().PutTLFCryptKey(rmd.ID, rmd.LatestKeyGeneration(), TLFCryptKey{}).
 		Return(nil)
 }
 
@@ -58,15 +58,16 @@ func expectRekey(config *ConfigMock, rmd *RootMetadata) {
 	// make keys for the one device
 	config.mockCrypto.EXPECT().MaskTLFCryptKey(TLFCryptKeyServerHalf{}, TLFCryptKey{}).Return(TLFCryptKeyClientHalf{}, nil)
 	config.mockCrypto.EXPECT().EncryptTLFCryptKeyClientHalf(TLFEphemeralPrivateKey{}, subkey, TLFCryptKeyClientHalf{}).Return(EncryptedTLFCryptKeyClientHalf{}, nil)
+	newKeyGen := rmd.LatestKeyGeneration() + 1
 	config.mockKops.EXPECT().PutTLFCryptKeyServerHalf(
-		rmd.ID, KeyVer(1), subkey, TLFCryptKeyServerHalf{}).Return(nil)
+		rmd.ID, newKeyGen, subkey, TLFCryptKeyServerHalf{}).Return(nil)
 	// now put the key into the cache
-	config.mockKcache.EXPECT().PutTLFCryptKey(rmd.ID, KeyVer(1), TLFCryptKey{}).Return(nil)
+	config.mockKcache.EXPECT().PutTLFCryptKey(rmd.ID, newKeyGen, TLFCryptKey{}).Return(nil)
 }
 
 func pathFromRMD(config *ConfigMock, rmd *RootMetadata) Path {
 	return Path{rmd.ID, []PathNode{PathNode{
-		BlockPointer{BlockID{}, rmd.data.Dir.KeyVer, 0, keybase1.MakeTestUID(0), 0},
+		BlockPointer{BlockID{}, rmd.Data().Dir.GetKeyGen(), 0, keybase1.MakeTestUID(0), 0},
 		rmd.GetDirHandle().ToString(config),
 	}}}
 }
@@ -76,7 +77,7 @@ func TestKeyManagerCachedSecretKeySuccess(t *testing.T) {
 	defer keyManagerShutdown(mockCtrl, config)
 
 	_, id, h := makeID(config)
-	rmd := NewRootMetadata(h, id)
+	rmd := newRootMetadataForTest(h, id)
 	rmd.AddNewKeys(DirKeyBundle{})
 
 	expectCachedGetTLFCryptKey(config, rmd)
@@ -92,7 +93,7 @@ func TestKeyManagerUncachedSecretKeySuccess(t *testing.T) {
 	defer keyManagerShutdown(mockCtrl, config)
 
 	uid, id, h := makeID(config)
-	rmd := NewRootMetadata(h, id)
+	rmd := newRootMetadataForTest(h, id)
 
 	subkey := MakeFakeCryptPublicKeyOrBust("crypt public key")
 	dirKeyBundle := DirKeyBundle{
@@ -117,14 +118,14 @@ func TestKeyManagerRekeySuccess(t *testing.T) {
 	defer keyManagerShutdown(mockCtrl, config)
 
 	_, id, h := makeID(config)
-	rmd := NewRootMetadata(h, id)
-	rmd.AddNewKeys(DirKeyBundle{})
+	rmd := newRootMetadataForTest(h, id)
+	oldKeyGen := rmd.LatestKeyGeneration()
 
 	expectRekey(config, rmd)
 
 	if err := config.KeyManager().Rekey(rmd); err != nil {
 		t.Errorf("Got error on rekey: %v", err)
-	} else if rmd.LatestKeyVersion() != 1 {
-		t.Errorf("Bad key version after rekey: %d", rmd.LatestKeyVersion())
+	} else if rmd.LatestKeyGeneration() != oldKeyGen+1 {
+		t.Errorf("Bad key generation after rekey: %d", rmd.LatestKeyGeneration())
 	}
 }

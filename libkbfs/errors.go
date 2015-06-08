@@ -264,33 +264,57 @@ func (e *NoSuchMDError) Error() string {
 	return fmt.Sprintf("Couldn't get metadata for %v", e.ID)
 }
 
-// NewVersionError indicates that the data at the given path has been
-// written using a new data version that our client doesn't understand.
-type NewVersionError struct {
-	Path Path
-	Ver  Ver
+// InvalidDataVersionError indicates that an invalid data version was
+// used.
+type InvalidDataVersionError struct {
+	DataVer DataVer
 }
 
-// Error implements the error interface for NewVersionError
-func (e *NewVersionError) Error() string {
+// Error implements the error interface for InvalidDataVersionError.
+func (e InvalidDataVersionError) Error() string {
+	return fmt.Sprintf("Invalid data version %d", int(e.DataVer))
+}
+
+// NewDataVersionError indicates that the data at the given path has
+// been written using a new data version that our client doesn't
+// understand.
+type NewDataVersionError struct {
+	Path    Path
+	DataVer DataVer
+}
+
+// Error implements the error interface for NewDataVersionError.
+func (e NewDataVersionError) Error() string {
 	return fmt.Sprintf(
 		"The data at path %s is of a version (%d) that we can't read "+
 			"(in folder %s)",
-		e.Path, e.Ver, e.Path.TopDir)
+		e.Path, e.DataVer, e.Path.TopDir)
 }
 
-// NewKeyVersionError indicates that the data at the given path has
+// InvalidKeyGenerationError indicates that an invalid key generation
+// was used.
+type InvalidKeyGenerationError struct {
+	DirHandle DirHandle
+	KeyGen    KeyGen
+}
+
+// Error implements the error interface for InvalidKeyGenerationError.
+func (e InvalidKeyGenerationError) Error() string {
+	return fmt.Sprintf("Invalid key generation %d for %v", int(e.KeyGen), e.DirHandle)
+}
+
+// NewKeyGenerationError indicates that the data at the given path has
 // been written using keys that our client doesn't have.
-type NewKeyVersionError struct {
-	Path   string
-	KeyVer KeyVer
+type NewKeyGenerationError struct {
+	DirHandle DirHandle
+	KeyGen    KeyGen
 }
 
-// Error implements the error interface for NewKeyVersionError
-func (e *NewKeyVersionError) Error() string {
+// Error implements the error interface for NewKeyGenerationError.
+func (e NewKeyGenerationError) Error() string {
 	return fmt.Sprintf(
-		"The data at path %s is keyed with a key version (%d) that "+
-			"we don't know", e.Path, e.KeyVer)
+		"The data for %v is keyed with a key generation (%d) that "+
+			"we don't know", e.DirHandle, e.KeyGen)
 }
 
 // BadSplitError indicates that the BlockSplitter has an error.

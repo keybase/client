@@ -291,8 +291,8 @@ func (c *ConfigLocal) SetNotifier(n Notifier) {
 }
 
 // DataVersion implements the Config interface for ConfigLocal.
-func (c *ConfigLocal) DataVersion() Ver {
-	return 0
+func (c *ConfigLocal) DataVersion() DataVer {
+	return 1
 }
 
 // ReqsBufSize implements the Config interface for ConfigLocal.

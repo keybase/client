@@ -49,14 +49,25 @@ func (fs *KBFSOpsStandard) GetFavDirs() ([]DirID, error) {
 	return mdops.GetFavorites()
 }
 
+func (fs *KBFSOpsStandard) checkDataVersion(dir Path) error {
+	dataVer := fs.config.DataVersion()
+	if len(dir.Path) > 0 {
+		dataVer = dir.TailPointer().GetDataVer()
+	}
+	if dataVer < FirstValidDataVer {
+		return InvalidDataVersionError{dataVer}
+	}
+	if dataVer > fs.config.DataVersion() {
+		return NewDataVersionError{dir, dataVer}
+	}
+	return nil
+}
+
 func (fs *KBFSOpsStandard) getMDInChannel(dir Path, rtype reqType) (
 	*RootMetadata, error) {
-	ver := fs.config.DataVersion()
-	if len(dir.Path) > 0 {
-		ver = dir.TailPointer().GetVer()
-	}
-	if ver > fs.config.DataVersion() {
-		return nil, &NewVersionError{dir, ver}
+	err := fs.checkDataVersion(dir)
+	if err != nil {
+		return nil, err
 	}
 
 	mdcache := fs.config.MDCache()
@@ -166,8 +177,18 @@ func (fs *KBFSOpsStandard) initMDInChannel(md *RootMetadata) error {
 		return err
 	}
 
+	keyGen := md.LatestKeyGeneration()
+	var expectedKeyGen KeyGen
+	if md.ID.IsPublic() {
+		expectedKeyGen = PublicKeyGen
+	} else {
+		expectedKeyGen = FirstValidKeyGen
+	}
+	if keyGen != expectedKeyGen {
+		return InvalidKeyGenerationError{*md.GetDirHandle(), keyGen}
+	}
 	path := Path{md.ID, []PathNode{PathNode{
-		BlockPointer{BlockID{}, 0, fs.config.DataVersion(), user, 0},
+		BlockPointer{BlockID{}, keyGen, fs.config.DataVersion(), user, 0},
 		md.GetDirHandle().ToString(fs.config),
 	}}}
 	tlfCryptKey, err := fs.config.KeyManager().GetTLFCryptKey(path, md)
@@ -182,8 +203,8 @@ func (fs *KBFSOpsStandard) initMDInChannel(md *RootMetadata) error {
 	md.data.Dir = DirEntry{
 		BlockPointer: BlockPointer{
 			ID:        id,
-			KeyVer:    0,
-			Ver:       fs.config.DataVersion(),
+			KeyGen:    keyGen,
+			DataVer:   fs.config.DataVersion(),
 			Writer:    user,
 			QuotaSize: uint32(len(buf)),
 		},
@@ -298,9 +319,9 @@ type makeNewBlock func() Block
 func (fs *KBFSOpsStandard) getBlockInChannel(
 	dir Path, id BlockID, newBlock makeNewBlock, rtype reqType) (
 	Block, error) {
-	ver := dir.TailPointer().GetVer()
-	if ver > fs.config.DataVersion() {
-		return nil, &NewVersionError{dir, ver}
+	err := fs.checkDataVersion(dir)
+	if err != nil {
+		return nil, err
 	}
 
 	bcache := fs.config.BlockCache()
@@ -456,7 +477,7 @@ func (fs *KBFSOpsStandard) readyBlockMultiple(currBlock Block,
 		return
 	}
 
-	blockPtr = BlockPointer{id, md.LatestKeyVersion(), fs.config.DataVersion(),
+	blockPtr = BlockPointer{id, md.LatestKeyGeneration(), fs.config.DataVersion(),
 		user, uint32(len(buf))}
 	bps.addNewBlock(id, blockPtr, currBlock, buf, key)
 
@@ -1232,7 +1253,7 @@ func (fs *KBFSOpsStandard) newRightBlockInChannel(
 	}
 
 	pblock.IPtrs = append(pblock.IPtrs, IndirectFilePtr{
-		BlockPointer{newRID, md.LatestKeyVersion(), fs.config.DataVersion(),
+		BlockPointer{newRID, md.LatestKeyGeneration(), fs.config.DataVersion(),
 			user, 0},
 		off})
 	if err = fs.cacheBlockIfNotYetDirty(id, pblock); err != nil {
@@ -1307,7 +1328,7 @@ func (fs *KBFSOpsStandard) writeDataInChannel(
 					},
 					IPtrs: []IndirectFilePtr{
 						IndirectFilePtr{
-							BlockPointer{newID, md.LatestKeyVersion(),
+							BlockPointer{newID, md.LatestKeyGeneration(),
 								fs.config.DataVersion(), user, 0}, 0},
 					},
 				}

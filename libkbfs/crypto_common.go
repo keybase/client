@@ -28,6 +28,21 @@ type CryptoCommon struct {
 	codec Codec
 }
 
+// MakeRandomDirID implements the Crypto interface for CryptoCommon.
+func (c *CryptoCommon) MakeRandomDirID(isPublic bool) (DirID, error) {
+	var id DirID
+	err := cryptoRandRead(id[:])
+	if err != nil {
+		return DirID{}, err
+	}
+	if isPublic {
+		id[len(id)-1] = PubDirIDSuffix
+	} else {
+		id[len(id)-1] = DirIDSuffix
+	}
+	return id, nil
+}
+
 // MakeTemporaryBlockID implements the Crypto interface for CryptoCommon.
 func (c *CryptoCommon) MakeTemporaryBlockID() (BlockID, error) {
 	var id BlockID
