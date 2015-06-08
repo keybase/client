@@ -306,7 +306,9 @@ type Crypto interface {
 	// DecryptTLFCryptKeyClientHalf decrypts a TLFCryptKeyClientHalf
 	// using the current device's private key and the TLF's ephemeral
 	// public key.
-	DecryptTLFCryptKeyClientHalf(publicKey TLFEphemeralPublicKey, encryptedClientHalf EncryptedTLFCryptKeyClientHalf) (TLFCryptKeyClientHalf, error)
+	DecryptTLFCryptKeyClientHalf(publicKey TLFEphemeralPublicKey,
+		encryptedClientHalf EncryptedTLFCryptKeyClientHalf) (
+		TLFCryptKeyClientHalf, error)
 
 	// EncryptPrivateMetadata encrypts a serialized PrivateMetadata object.
 	EncryptPrivateMetadata(buf []byte, key TLFCryptKey) ([]byte, error)
