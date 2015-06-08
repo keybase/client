@@ -68,6 +68,8 @@ type Device struct {
 	Type     string `codec:"type" json:"type"`
 	Name     string `codec:"name" json:"name"`
 	DeviceID string `codec:"deviceID" json:"deviceID"`
+	CTime    int64  `codec:"cTime" json:"cTime"`
+	MTime    int64  `codec:"mTime" json:"mTime"`
 }
 
 type Stream struct {

@@ -67,6 +67,8 @@ protocol Common {
 		string type;
 		string name;
 		string deviceID;
+		long cTime;
+		long mTime;
 	}
 
 	record Stream {

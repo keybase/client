@@ -152,6 +152,12 @@
     }, {
       "name" : "deviceID",
       "type" : "string"
+    }, {
+      "name" : "cTime",
+      "type" : "long"
+    }, {
+      "name" : "mTime",
+      "type" : "long"
     } ]
   }, {
     "type" : "record",

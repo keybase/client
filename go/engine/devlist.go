@@ -1,6 +1,8 @@
 package engine
 
 import (
+	"sort"
+
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/protocol/go"
 )
@@ -55,8 +57,15 @@ func (d *DevList) Run(ctx *Context) error {
 
 	var pdevs []keybase1.Device
 	for k, v := range devs {
-		pdevs = append(pdevs, keybase1.Device{Type: v.Type, Name: v.Description, DeviceID: k})
+		pdevs = append(pdevs, keybase1.Device{
+			Type:     v.Type,
+			Name:     v.Description,
+			DeviceID: k,
+			CTime:    v.CTime,
+			MTime:    v.MTime,
+		})
 	}
+	sort.Sort(dname(pdevs))
 	d.devices = pdevs
 
 	return nil
@@ -65,3 +74,9 @@ func (d *DevList) Run(ctx *Context) error {
 func (d *DevList) List() []keybase1.Device {
 	return d.devices
 }
+
+type dname []keybase1.Device
+
+func (d dname) Len() int           { return len(d) }
+func (d dname) Swap(i, j int)      { d[i], d[j] = d[j], d[i] }
+func (d dname) Less(i, j int) bool { return d[i].Name < d[j].Name }
