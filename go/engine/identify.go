@@ -124,16 +124,6 @@ func (e *Identify) Run(ctx *Context) error {
 	e.G().Log.Debug("IdentifyCache key: %q", key)
 	e.trackToken = key
 
-	// XXX move this to track
-	/*
-		tmp, err := ctx.IdentifyUI.FinishAndPrompt(e.outcome.Export())
-		if err != nil {
-			return err
-		}
-		fpr := libkb.ImportFinishAndPromptRes(tmp)
-		e.trackInst = &fpr
-	*/
-
 	return nil
 }
 
@@ -196,6 +186,9 @@ func (e *Identify) run(ctx *Context) (*libkb.IdentifyOutcome, error) {
 	if !e.userExpr.MatchSet(*e.user.ToOkProofSet()) {
 		return nil, fmt.Errorf("User %s didn't match given assertion", e.user.GetName())
 	}
+
+	// copy activeProofs into outcome:
+	res.SetActiveProofs(e.user.IDTable().AllActiveProofs())
 
 	e.G().Log.Debug("- Identify(%s)", e.user.GetName())
 

@@ -78,7 +78,7 @@ func (u *User) ToTrackingStatementSeqTail() *jsonw.Wrapper {
 	return u.sigs.AtKey("last")
 }
 
-func (u *User) ToTrackingStatement(w *jsonw.Wrapper) (err error) {
+func (u *User) ToTrackingStatement(w *jsonw.Wrapper, outcome *IdentifyOutcome) (err error) {
 
 	track := jsonw.NewDictionary()
 	track.SetKey("key", u.ToTrackingStatementKey(&err))
@@ -88,7 +88,7 @@ func (u *User) ToTrackingStatement(w *jsonw.Wrapper) (err error) {
 	track.SetKey("seq_tail", u.ToTrackingStatementSeqTail())
 	track.SetKey("basics", u.ToTrackingStatementBasics(&err))
 	track.SetKey("id", UIDWrapper(u.id))
-	track.SetKey("remote_proofs", u.IDTable().ToTrackingStatement())
+	track.SetKey("remote_proofs", outcome.ActiveProofs().ToTrackingStatement())
 
 	if err != nil {
 		return
@@ -150,21 +150,21 @@ func (s *SocialProofChainLink) ToTrackingStatement() (*jsonw.Wrapper, error) {
 	return ret, err
 }
 
-func (idt *IdentityTable) ToTrackingStatement() *jsonw.Wrapper {
-	v := idt.activeProofs
-	tmp := make([]*jsonw.Wrapper, 0, len(v))
-	for _, proof := range v {
+func (pl RemoteProofList) ToTrackingStatement() *jsonw.Wrapper {
+	var proofs []*jsonw.Wrapper
+	for _, proof := range pl {
 		if d, err := proof.ToTrackingStatement(); err != nil {
 			G.Log.Warning("Problem with a proof: %s", err.Error())
 		} else if d != nil {
-			tmp = append(tmp, d)
+			proofs = append(proofs, d)
 		}
 	}
-	ret := jsonw.NewArray(len(tmp))
-	for i, d := range tmp {
-		ret.SetIndex(i, d)
+
+	res := jsonw.NewArray(len(proofs))
+	for i, proof := range proofs {
+		res.SetIndex(i, proof)
 	}
-	return ret
+	return res
 }
 
 func (g *GenericChainLink) BaseToTrackingStatement() *jsonw.Wrapper {
@@ -252,10 +252,10 @@ func (u *User) ProofMetadata(ei int, signingKey FOKID, eldest *FOKID, ctime int6
 	return
 }
 
-func (u *User) TrackingProofFor(signingKey GenericKey, u2 *User) (ret *jsonw.Wrapper, err error) {
+func (u *User) TrackingProofFor(signingKey GenericKey, u2 *User, outcome *IdentifyOutcome) (ret *jsonw.Wrapper, err error) {
 	ret, err = u.ProofMetadata(0, GenericKeyToFOKID(signingKey), nil, 0)
 	if err == nil {
-		err = u2.ToTrackingStatement(ret.AtKey("body"))
+		err = u2.ToTrackingStatement(ret.AtKey("body"), outcome)
 	}
 	return
 }

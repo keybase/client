@@ -88,7 +88,7 @@ func (e *IDEngine) run(ctx *Context) (*IDRes, error) {
 		return res, nil
 	}
 
-	stmt, err := me.TrackStatementJSON(user)
+	stmt, err := me.TrackStatementJSON(user, ieng.Outcome())
 	if err != nil {
 		e.G().Log.Warning("error getting track statement: %s", err)
 		return nil, err

@@ -111,6 +111,8 @@ type RemoteProofChainLink interface {
 	ProofText() string
 }
 
+type RemoteProofList []RemoteProofChainLink
+
 type WebProofChainLink struct {
 	GenericChainLink
 	protocol  string
@@ -893,6 +895,10 @@ type IdentityTable struct {
 	cryptocurrency []*CryptocurrencyChainLink
 	checkResult    *CheckResult
 	eldest         FOKID
+}
+
+func (idt *IdentityTable) AllActiveProofs() []RemoteProofChainLink {
+	return idt.activeProofs
 }
 
 func (idt *IdentityTable) GetActiveProofsFor(st ServiceType) (ret []RemoteProofChainLink) {

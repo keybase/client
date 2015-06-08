@@ -15,7 +15,6 @@ type TrackEngineArg struct {
 
 type TrackEngine struct {
 	arg  *TrackEngineArg
-	res  *IDRes
 	them *libkb.User
 	libkb.Contextified
 }
@@ -61,10 +60,6 @@ func (e *TrackEngine) Run(ctx *Context) error {
 
 	token := ieng.TrackToken()
 	e.them = ieng.User()
-
-	// XXX only used for tests?
-	// e.res = &IDRes{Outcome: ieng.Outcome(), User: e.them}
-	e.res = &IDRes{User: e.them}
 
 	// prompt if the identify is correct
 	tmp, err := ctx.IdentifyUI.FinishAndPrompt(ieng.Outcome().Export())

@@ -513,13 +513,13 @@ func (u *User) SigningKeyPub() (GenericKey, error) {
 	return pubKey, nil
 }
 
-func (u *User) TrackStatementJSON(them *User) (string, error) {
+func (u *User) TrackStatementJSON(them *User, outcome *IdentifyOutcome) (string, error) {
 	key, err := u.SigningKeyPub()
 	if err != nil {
 		return "", err
 	}
 
-	stmt, err := u.TrackingProofFor(key, them)
+	stmt, err := u.TrackingProofFor(key, them, outcome)
 	if err != nil {
 		return "", err
 	}

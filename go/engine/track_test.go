@@ -122,3 +122,14 @@ func TestTrackNoPubKey(t *testing.T) {
 		t.Fatalf("error tracking user w/ no pgp key: %s", err)
 	}
 }
+
+func TestTrackMultiple(t *testing.T) {
+	tc := SetupEngineTest(t, "track")
+	defer tc.Cleanup()
+	fu := CreateAndSignupFakeUser(tc, "track")
+
+	trackAlice(tc, fu)
+	defer untrackAlice(tc, fu)
+
+	trackAlice(tc, fu)
+}

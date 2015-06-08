@@ -17,6 +17,21 @@ type IdentifyOutcome struct {
 	MeSet         bool // whether me was set at the time
 	LocalOnly     bool
 	ApproveRemote bool
+	activeProofs  RemoteProofList
+}
+
+func NewIdentifyOutcome(m bool) *IdentifyOutcome {
+	return &IdentifyOutcome{
+		MeSet: m,
+	}
+}
+
+func (i *IdentifyOutcome) SetActiveProofs(proofs RemoteProofList) {
+	i.activeProofs = proofs
+}
+
+func (i *IdentifyOutcome) ActiveProofs() RemoteProofList {
+	return i.activeProofs
 }
 
 func (i IdentifyOutcome) NumDeleted() int {
@@ -127,10 +142,4 @@ func (i IdentifyOutcome) GetError() error {
 
 func (i IdentifyOutcome) GetErrorLax() (error, Warnings) {
 	return i.GetErrorAndWarnings(true)
-}
-
-func NewIdentifyOutcome(m bool) *IdentifyOutcome {
-	return &IdentifyOutcome{
-		MeSet: m,
-	}
 }

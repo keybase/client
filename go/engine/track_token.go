@@ -91,7 +91,7 @@ func (e *TrackToken) Run(ctx *Context) error {
 		return err
 	}
 
-	if e.trackStatement, err = e.arg.Me.TrackingProofFor(e.signingKeyPub, e.them); err != nil {
+	if e.trackStatement, err = e.arg.Me.TrackingProofFor(e.signingKeyPub, e.them, outcome); err != nil {
 		e.G().Log.Info("tracking proof err: %s", err)
 		return err
 	}
