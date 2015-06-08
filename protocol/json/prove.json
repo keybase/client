@@ -260,6 +260,9 @@
     }, {
       "name" : "outcome",
       "type" : "IdentifyOutcome"
+    }, {
+      "name" : "trackToken",
+      "type" : "string"
     } ]
   }, {
     "type" : "record",

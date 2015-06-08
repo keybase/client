@@ -1040,6 +1040,13 @@
   }];
 }
 
+- (void)trackWithTokenWithSessionID:(NSInteger)sessionID trackToken:(NSString *)trackToken localOnly:(BOOL)localOnly approveRemote:(BOOL)approveRemote completion:(void (^)(NSError *error))completion {
+  NSDictionary *params = @{@"sessionID": @(sessionID), @"trackToken": KBRValue(trackToken), @"localOnly": @(localOnly), @"approveRemote": @(approveRemote)};
+  [self.client sendRequestWithMethod:@"keybase.1.track.trackWithToken" params:params sessionId:self.sessionId completion:^(NSError *error, id retval) {
+    completion(error);
+  }];
+}
+
 - (void)untrackWithSessionID:(NSInteger)sessionID theirName:(NSString *)theirName completion:(void (^)(NSError *error))completion {
   NSDictionary *params = @{@"sessionID": @(sessionID), @"theirName": KBRValue(theirName)};
   [self.client sendRequestWithMethod:@"keybase.1.track.untrack" params:params sessionId:self.sessionId completion:^(NSError *error, id retval) {
@@ -2236,6 +2243,20 @@
   if ((self = [super initWithParams:params])) {
     self.sessionID = [params[0][@"sessionID"] integerValue];
     self.theirName = params[0][@"theirName"];
+    self.localOnly = [params[0][@"localOnly"] boolValue];
+    self.approveRemote = [params[0][@"approveRemote"] boolValue];
+  }
+  return self;
+}
+
+@end
+
+@implementation KBRTrackWithTokenRequestParams
+
+- (instancetype)initWithParams:(NSArray *)params {
+  if ((self = [super initWithParams:params])) {
+    self.sessionID = [params[0][@"sessionID"] integerValue];
+    self.trackToken = params[0][@"trackToken"];
     self.localOnly = [params[0][@"localOnly"] boolValue];
     self.approveRemote = [params[0][@"approveRemote"] boolValue];
   }
