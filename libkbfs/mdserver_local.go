@@ -3,6 +3,7 @@ package libkbfs
 import (
 	"github.com/syndtr/goleveldb/leveldb"
 	"github.com/syndtr/goleveldb/leveldb/opt"
+	"github.com/syndtr/goleveldb/leveldb/storage"
 )
 
 // MDServerLocal just stores blocks in local leveldb instances.
@@ -13,23 +14,20 @@ type MDServerLocal struct {
 	mdDb     *leveldb.DB // MD ID -> root metadata (signed)
 }
 
-// NewMDServerLocal constructs a new MDServerLocal object that stores
-// data in the directories specified as parameters to this function.
-func NewMDServerLocal(config Config, handleDbfile string, idDbfile string,
-	mdDbfile string) (*MDServerLocal, error) {
-	handleDb, err := leveldb.OpenFile(handleDbfile, &opt.Options{
+func newMDServerLocalWithStorage(config Config, handleStorage, idStorage, mdStorage storage.Storage) (*MDServerLocal, error) {
+	handleDb, err := leveldb.Open(handleStorage, &opt.Options{
 		Compression: opt.NoCompression,
 	})
 	if err != nil {
 		return nil, err
 	}
-	idDb, err := leveldb.OpenFile(idDbfile, &opt.Options{
+	idDb, err := leveldb.Open(idStorage, &opt.Options{
 		Compression: opt.NoCompression,
 	})
 	if err != nil {
 		return nil, err
 	}
-	mdDb, err := leveldb.OpenFile(mdDbfile, &opt.Options{
+	mdDb, err := leveldb.Open(mdStorage, &opt.Options{
 		Compression: opt.NoCompression,
 	})
 	if err != nil {
@@ -37,6 +35,34 @@ func NewMDServerLocal(config Config, handleDbfile string, idDbfile string,
 	}
 	mdserv := &MDServerLocal{config, handleDb, idDb, mdDb}
 	return mdserv, nil
+}
+
+// NewMDServerLocal constructs a new MDServerLocal object that stores
+// data in the directories specified as parameters to this function.
+func NewMDServerLocal(config Config, handleDbfile string, idDbfile string,
+	mdDbfile string) (*MDServerLocal, error) {
+	handleStorage, err := storage.OpenFile(handleDbfile)
+	if err != nil {
+		return nil, err
+	}
+
+	idStorage, err := storage.OpenFile(idDbfile)
+	if err != nil {
+		return nil, err
+	}
+
+	mdStorage, err := storage.OpenFile(mdDbfile)
+	if err != nil {
+		return nil, err
+	}
+
+	return newMDServerLocalWithStorage(config, handleStorage, idStorage, mdStorage)
+}
+
+// NewMDServerMemory constructs a new MDServerLocal object that stores
+// all data in-memory.
+func NewMDServerMemory(config Config) (*MDServerLocal, error) {
+	return newMDServerLocalWithStorage(config, storage.NewMemStorage(), storage.NewMemStorage(), storage.NewMemStorage())
 }
 
 // GetAtHandle implements the MDServer interface for MDServerLocal.
