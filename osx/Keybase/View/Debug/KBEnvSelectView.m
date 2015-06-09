@@ -12,6 +12,7 @@
 #import "KBEnvironment.h"
 #import "KBHeaderLabelView.h"
 #import "KBCustomEnvView.h"
+#import "KBWorkspace.h"
 
 @interface KBEnvSelectView ()
 @property KBSplitView *splitView;
@@ -58,13 +59,12 @@
   self.viewLayout = [YOBorderLayout layoutWithCenter:_splitView top:@[header] bottom:@[buttons] insets:UIEdgeInsetsMake(20, 40, 20, 40) spacing:20];
 
   _customView = [[KBCustomEnvView alloc] init];
-  KBEnvConfig *custom = [_customView loadFromDefaults];
 
   [_listView setObjects:@[
                           [[KBEnvironment alloc] initWithConfig:[KBEnvConfig env:KBEnvKeybaseIO]],
                           [[KBEnvironment alloc] initWithConfig:[KBEnvConfig env:KBEnvLocalhost]],
                           [[KBEnvironment alloc] initWithConfig:[KBEnvConfig env:KBEnvLocalhost2]],
-                          [[KBEnvironment alloc] initWithConfig:custom],
+                          [[KBEnvironment alloc] initWithConfig:[KBEnvConfig loadFromUserDefaults:[KBWorkspace userDefaults]]],
                          ] animated:NO];
   [_listView setSelectedRow:[_listView.dataSource countForSection:0] - 1];
 }
@@ -77,7 +77,7 @@
   KBEnvironment *env = _listView.selectedObject;
   if ([env.config.identifier isEqualToString:@"custom"]) {
     KBEnvConfig *config = [_customView config];
-    [_customView saveToDefaults];
+    [config saveToUserDefaults:[KBWorkspace userDefaults]];
     NSError *error = nil;
     if (![config validate:&error]) {
       [KBActivity setError:error sender:self];
@@ -120,9 +120,9 @@
 
   KBEnvConfig *config = environment.config;
   [labels addSubview:createView(@"Id", config.identifier)];
-  [labels addSubview:createView(@"Home", KBPath(config.homeDir, YES))];
+  [labels addSubview:createView(@"Home", KBPath(config.homeDir, YES, NO))];
   if (config.host) [labels addSubview:createView(@"Host", config.host)];
-  if (config.mountDir) [labels addSubview:createView(@"Mount", KBPath(config.mountDir, YES))];
+  if (config.mountDir) [labels addSubview:createView(@"Mount", KBPath(config.mountDir, YES, NO))];
   if (config.isLaunchdEnabled) {
     [labels addSubview:createView(@"Service ID", config.launchdLabelService)];
     [labels addSubview:createView(@"KBFS ID", config.launchdLabelKBFS)];

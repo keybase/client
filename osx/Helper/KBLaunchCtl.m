@@ -7,7 +7,7 @@
 //
 
 #import "KBLaunchCtl.h"
-#import "KBHelperDefines.h"
+#import "KBDefines.h"
 
 @implementation KBLaunchCtl
 

@@ -7,7 +7,6 @@
 //
 
 #import "KBSignupView.h"
-#import "AppDelegate.h"
 #import "KBStrengthLabel.h"
 
 @interface KBSignupView ()
@@ -240,32 +239,32 @@
 
   if ([NSString gh_isBlank:username]) {
     // TODO Become first responder
-    [AppDelegate setError:KBErrorAlert(@"You need to enter a username.") sender:_usernameField];
+    [KBActivity setError:KBErrorAlert(@"You need to enter a username.") sender:_usernameField];
     return;
   }
 
   if ([NSString gh_isBlank:email]) {
-    [AppDelegate setError:KBErrorAlert(@"You need to enter an email address.") sender:_emailField];
+    [KBActivity setError:KBErrorAlert(@"You need to enter an email address.") sender:_emailField];
     return;
   }
 
   if ([NSString gh_isBlank:passphrase]) {
-    [AppDelegate setError:KBErrorAlert(@"You need to enter a passphrase.") sender:_passwordField];
+    [KBActivity setError:KBErrorAlert(@"You need to enter a passphrase.") sender:_passwordField];
     return;
   }
 
   if ([NSString gh_isBlank:deviceName]) {
-    [AppDelegate setError:KBErrorAlert(@"You need to enter a device name.") sender:_deviceNameField];
+    [KBActivity setError:KBErrorAlert(@"You need to enter a device name.") sender:_deviceNameField];
     return;
   }
 
   if (passphrase.length < 12) {
-    [AppDelegate setError:KBErrorAlert(@"Your passphrase needs to be at least 12 characters long.") sender:_passwordField];
+    [KBActivity setError:KBErrorAlert(@"Your passphrase needs to be at least 12 characters long.") sender:_passwordField];
     return;
   }
 
   if (![self passwordConfirmed]) {
-    [AppDelegate setError:KBErrorAlert(@"Your passphrases don't match.") sender:_passwordField];
+    [KBActivity setError:KBErrorAlert(@"Your passphrases don't match.") sender:_passwordField];
     return;
   }
 
@@ -279,10 +278,7 @@
   [self.navigation setProgressEnabled:YES];
   [request signupWithSessionID:request.sessionId email:email inviteCode:self.inviteField.text passphrase:passphrase username:username deviceName:deviceName completion:^(NSError *error, KBRSignupRes *res) {
     [self.navigation setProgressEnabled:NO];
-    if (error) {
-      [AppDelegate setError:error sender:self];
-      return;
-    }
+    if ([KBActivity setError:error sender:self]) return;
 
     // Clear all fields (esp password)
     self.passwordField.text = nil;

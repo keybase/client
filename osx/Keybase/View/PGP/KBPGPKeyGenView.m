@@ -7,7 +7,6 @@
 //
 
 #import "KBPGPKeyGenView.h"
-#import "AppDelegate.h"
 #import "KBAppDefines.h"
 #import "KBRPC.h"
 
@@ -86,13 +85,13 @@
   KBRPgpCreateUids *uids = [[KBRPgpCreateUids alloc] init];
   uids.useDefault = YES;
 
-  [self.navigation setProgressEnabled:YES];
+  [KBActivity setProgressEnabled:YES sender:self];
   KBRPgpRequest *request = [[KBRPgpRequest alloc] initWithClient:self.client];
   //BOOL pushSecret = _pushPrivateCheckbox.state == NSOnState;
   [request pgpKeyGenDefaultWithSessionID:request.sessionId createUids:uids completion:^(NSError *error) {
     [self.navigation setProgressEnabled:NO];
     if (error) {
-      [AppDelegate setError:error sender:self];
+      [KBActivity setError:error sender:self];
       return;
     }
     self.completion();

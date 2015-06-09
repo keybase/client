@@ -7,7 +7,6 @@
 //
 
 #import "KBDeviceAddView.h"
-#import "AppDelegate.h"
 
 @interface KBDeviceAddView ()
 @property KBTextView *inputField;
@@ -100,7 +99,7 @@
   NSString *secretWords = self.inputField.text;
 
   if ([NSString gh_isBlank:secretWords]) {
-    [AppDelegate setError:KBErrorAlert(@"You need to enter something.") sender:_inputField];
+    [KBActivity setError:KBErrorAlert(@"You need to enter something.") sender:_inputField];
     return;
   }
 

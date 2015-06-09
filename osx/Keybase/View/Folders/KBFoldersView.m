@@ -14,7 +14,7 @@
 #import "KBFolderUsersView.h"
 
 @interface KBFoldersView ()
-@property KBSegmentedControl *segmentedControl;
+@property NSSegmentedControl *segmentedControl;
 @property KBFileListView *favoritesView;
 @property KBFileListView *foldersView;
 @property KBButton *addButton;
@@ -28,7 +28,7 @@
   [super viewInit];
   [self kb_setBackgroundColor:KBAppearance.currentAppearance.secondaryBackgroundColor];
 
-  _segmentedControl = [[KBSegmentedControl alloc] init];
+  _segmentedControl = [[NSSegmentedControl alloc] init];
   [_segmentedControl setSegmentCount:2];
   [_segmentedControl setLabel:@"Favorites" forSegment:0];
   [_segmentedControl setLabel:@"All" forSegment:1];

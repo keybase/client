@@ -8,8 +8,8 @@
 
 #import <Foundation/Foundation.h>
 
-#import "KBAppDefines.h"
 #import "KBPreferences.h"
+#import <YOLayout/YOLayout.h>
 
 @interface KBPrefPopUpView : YOView
 

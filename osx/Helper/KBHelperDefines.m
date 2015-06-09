@@ -10,7 +10,7 @@
 
 #import <syslog.h>
 
-void KBLog(NSString *msg, ...) {
+void KBHelperLog(NSString *msg, ...) {
   va_list args;
   va_start(args, msg);
 

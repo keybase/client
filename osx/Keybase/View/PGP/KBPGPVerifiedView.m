@@ -8,7 +8,6 @@
 
 #import "KBPGPVerifiedView.h"
 
-#import "AppDelegate.h"
 #import "KBUserView.h"
 
 @interface KBPGPVerifiedView ()

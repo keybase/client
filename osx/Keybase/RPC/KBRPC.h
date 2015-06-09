@@ -62,6 +62,8 @@
 @property NSString *type;
 @property NSString *name;
 @property NSString *deviceID;
+@property long cTime;
+@property long mTime;
 @end
 
 @interface KBRStream : KBRObject

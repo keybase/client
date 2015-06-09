@@ -8,9 +8,10 @@
 
 #import "KBPreferences.h"
 
-#import "KBAppDefines.h"
+#import <Cocoa/Cocoa.h>
 #import <MASPreferences/MASPreferencesWindowController.h>
-#import "AppDelegate.h"
+#import <KBAppKit/KBAppKit.h>
+#import <CocoaLumberjack/CocoaLumberjack.h>
 
 #import "KBPrefGeneralView.h"
 #import "KBPrefAdvancedView.h"
@@ -20,6 +21,7 @@
 @property MASPreferencesWindowController *preferencesWindowController;
 @property NSString *configPath;
 @property NSMutableDictionary *config;
+@property NSUserDefaults *userDefaults;
 @end
 
 @interface KBPreferencesViewController : NSViewController <MASPreferencesViewController>
@@ -32,8 +34,9 @@
 
 @implementation KBPreferences
 
-- (void)open:(NSString *)configPath sender:(id)sender {
+- (void)open:(NSString *)configPath userDefaults:(NSUserDefaults *)userDefaults sender:(id)sender {
   _configPath = configPath;
+  _userDefaults = userDefaults;
   NSData *configData = [[NSData alloc] initWithContentsOfFile:_configPath];
   if (configData) {
     _config = [NSJSONSerialization JSONObjectWithData:configData options:NSJSONReadingMutableContainers error:nil];
@@ -92,7 +95,7 @@
   }
 
   if ([identifier gh_startsWith:@"Preferences."]) {
-    return [NSUserDefaults.standardUserDefaults objectForKey:identifier];
+    return [_userDefaults objectForKey:identifier];
   } else {
     NSAssert(_config, @"No config");
     return _config[identifier];
@@ -110,8 +113,8 @@
 
   if ([identifier gh_startsWith:@"Preferences."]) {
     DDLogDebug(@"Setting (local) %@=%@", identifier, value);
-    [NSUserDefaults.standardUserDefaults setObject:value forKey:identifier];
-    if (synchronize) [NSUserDefaults.standardUserDefaults synchronize];
+    [_userDefaults setObject:value forKey:identifier];
+    if (synchronize) [_userDefaults synchronize];
   } else {
     DDLogDebug(@"Setting %@=%@", identifier, value);
     _config[identifier] = value;

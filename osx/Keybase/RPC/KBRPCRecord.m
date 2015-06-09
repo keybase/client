@@ -10,8 +10,8 @@
 
 #import <ObjectiveSugar/ObjectiveSugar.h>
 #import <GHKit/GHKit.h>
-
-#import "AppDelegate.h"
+#import "KBAppDefines.h"
+#import "KBWorkspace.h"
 
 @interface KBRPCRecord ()
 @property NSString *recordId;
@@ -80,7 +80,7 @@
     _sessionDirectory[@(sessionId)] = sessionDirectory;
   }
 
-  NSString *directory = [AppDelegate applicationSupport:@[@"Recording", _recordId, sessionDirectory] create:YES error:nil];
+  NSString *directory = [KBWorkspace applicationSupport:@[@"Recording", _recordId, sessionDirectory] create:YES error:nil];
   NSNumberFormatter *indexFormatter = [[NSNumberFormatter alloc] init];
   [indexFormatter setFormatWidth:4];
   [indexFormatter setPaddingCharacter:@"0"];

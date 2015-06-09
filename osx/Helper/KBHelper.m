@@ -9,9 +9,7 @@
 #import "KBHelper.h"
 
 #import "KBFS.h"
-#import "KBHelperDefines.h"
 #import "KBLaunchCtl.h"
-#import "KBTask.h"
 #import <MPMessagePack/MPXPCProtocol.h>
 
 @implementation KBHelper
@@ -51,16 +49,6 @@
                              @"fuseRunningVersion": KBOrNull(kbfs.runningVersion),
                              };
   completion(nil, response);
-}
-
-- (void)run:(NSString *)cmd args:(NSArray *)args completion:(void (^)(NSError *error, id value))completion {
-  [KBTask execute:cmd args:args completion:^(NSError *error, NSString *output) {
-    if (error) {
-      completion(error, @(0));
-      return;
-    }
-    completion(nil, @(1));
-  }];
 }
 
 - (void)installCLI:(NSString *)destination completion:(void (^)(NSError *error, id value))completion {

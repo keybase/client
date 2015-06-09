@@ -11,7 +11,8 @@
 #import "KBPrefPopUpView.h"
 #import "KBPrefFileView.h"
 #import "KBPrefButton.h"
-#import "AppDelegate.h"
+#import "KBDefines.h"
+#import <ObjectiveSugar/ObjectiveSugar.h>
 
 @interface KBPrefAdvancedView ()
 @property KBPreferences *preferences;
@@ -24,17 +25,6 @@
     [self setOptions:@{@"spacing": @"10", @"insets": @"40,0,40,0"}];
     _preferences = preferences;
 
-
-    KBPrefButton *install = [[KBPrefButton alloc] init];
-    [install setCategory:@"Extensions"];
-    [install setButtonText:@"Install Command Line" targetBlock:^{
-      NSError *error = nil;
-      [self installCLI:&error];
-      if (error) {
-        [AppDelegate setError:error sender:self];
-      }
-    }];
-    [self addSubview:install];
 
     /*
     KBPrefPopUpView *apiHost = [[KBPrefPopUpView alloc] init];

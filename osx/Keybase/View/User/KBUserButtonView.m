@@ -8,7 +8,6 @@
 
 #import "KBUserButtonView.h"
 
-#import "AppDelegate.h"
 #import "KBUserImageView.h"
 
 @interface KBUserButtonView ()

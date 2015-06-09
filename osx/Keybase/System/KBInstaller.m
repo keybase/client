@@ -9,11 +9,11 @@
 #import "KBInstaller.h"
 
 #import "KBAppDefines.h"
-#import "AppDelegate.h"
 //#include <launch.h>
 #import "KBRunOver.h"
 #import "KBInstallable.h"
 #import "KBInstallAction.h"
+#import "KBWorkspace.h"
 
 @interface KBInstaller ()
 @property KBEnvironment *environment;
@@ -30,7 +30,7 @@
 
 - (void)install:(dispatch_block_t)completion {
   // Ensure application support dir is available
-  [AppDelegate applicationSupport:nil create:YES error:nil]; // TODO Handle error
+  [KBWorkspace applicationSupport:nil create:YES error:nil]; // TODO Handle error
 
   NSArray *installActionsNeeded = [_environment installActionsNeeded];
 

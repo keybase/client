@@ -9,7 +9,6 @@
 #import <Foundation/Foundation.h>
 
 #import "KBRPC.h"
-#import "AppDelegate.h"
 #import "KBSearchResults.h"
 
 @interface KBSearcher : NSObject

@@ -10,7 +10,6 @@
 
 #import "KBGPGKeysView.h"
 #import "KBButton.h"
-#import "AppDelegate.h"
 
 @interface KBKeySelectView ()
 @property KBGPGKeysView *keysView;
@@ -44,7 +43,7 @@
   _selectButton.targetBlock = ^{
     NSString *keyId = [[gself.keysView selectedGPGKey] keyID];
     if (!keyId) {
-      [AppDelegate setError:KBMakeError(-1, @"You need to select a key or cancel.") sender:gself];
+      [KBActivity setError:KBMakeError(-1, @"You need to select a key or cancel.") sender:gself];
       return;
     }
     //BOOL pushSecret = gself.pushCheckbox.state == NSOnState;

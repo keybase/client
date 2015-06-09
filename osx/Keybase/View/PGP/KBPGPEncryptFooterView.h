@@ -14,8 +14,17 @@
 
 @property KBButton *signButton;
 @property KBButton *includeSelfButton;
-//@property KBButton *attachmentButton;
 @property KBButton *encryptButton;
+@property KBButton *cancelButton;
 
+@end
+
+
+@interface KBPGPEncryptToolbarFooterView : YOVBox
+
+@property KBButton *signButton;
+@property KBButton *includeSelfButton;
+@property KBButton *encryptButton;
+@property KBButton *cancelButton;
 
 @end

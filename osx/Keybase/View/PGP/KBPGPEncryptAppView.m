@@ -21,10 +21,6 @@
 - (void)viewInit {
   [super viewInit];
 
-//  KBSplitView *encryptView = [[KBSplitView alloc] init];
-//  encryptView.dividerRatio = .50;
-//  [self addSubview:encryptView];
-
   GHWeakSelf gself = self;
   _encryptView = [[KBPGPEncryptView alloc] init];
   [KBActivity setProgressEnabled:YES sender:self];
@@ -41,11 +37,6 @@
 
   _outputView = [[KBPGPOutputView alloc] init];
   _outputView.footerView.closeButton.hidden = YES;
-//
-//  [encryptView setLeftView:_encryptView];
-//  [encryptView setRightView:_outputView];
-//
-//  self.viewLayout = [YOLayout fill:encryptView];
 
   self.viewLayout = [YOLayout fill:_encryptView];
 }

@@ -8,7 +8,7 @@
 
 #import "KBAppDebug.h"
 
-#import "KBMockViews.h"
+#import "KBDebugViews.h"
 #import "KBStyleGuideView.h"
 
 @implementation KBAppDebug
@@ -23,9 +23,17 @@
     [styleGuide open:self];
   }]];
 
-  [topView addSubview:[KBButton buttonWithText:@"Mocks" style:KBButtonStyleDefault options:KBButtonOptionsToolbar targetBlock:^{
-    KBMockViews *mockViews = [[KBMockViews alloc] init];
-    [mockViews open:self];
+  [topView addSubview:[KBButton buttonWithText:@"Debug View" style:KBButtonStyleDefault options:KBButtonOptionsToolbar targetBlock:^{
+    KBDebugViews *debugViews = [[KBDebugViews alloc] init];
+    [debugViews open:self];
+  }]];
+
+  [topView addSubview:[KBButton buttonWithText:@"Log (Error)" style:KBButtonStyleDefault options:KBButtonOptionsToolbar targetBlock:^{
+    DDLogError(@"%@", KBMakeError(-1, @"Test error message"));
+  }]];
+
+  [topView addSubview:[KBButton buttonWithText:@"Log (Warn)" style:KBButtonStyleDefault options:KBButtonOptionsToolbar targetBlock:^{
+    DDLogWarn(@"Warning message");
   }]];
 }
 

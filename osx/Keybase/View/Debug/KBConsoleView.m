@@ -8,13 +8,11 @@
 
 #import "KBConsoleView.h"
 
-#import "AppDelegate.h"
 #import "KBLaunchService.h"
 #import "KBAppDefines.h"
 
 #import "KBFSStatusView.h"
 #import "KBAppView.h"
-#import "KBLaunchCtl.h"
 #import "KBInstallAction.h"
 #import "KBLogFormatter.h"
 
@@ -29,7 +27,7 @@
   [super viewInit];
   [self kb_setBackgroundColor:NSColor.whiteColor];
 
-  _logFormatter = [[KBLogFormatter alloc] init];
+  _logFormatter = [[KBLogConsoleFormatter alloc] init];
 
   YOView *logView = [YOView view];
   [self addSubview:logView];
@@ -43,11 +41,19 @@
   _logView.view.usesAlternatingRowBackgroundColors = YES;
   _logView.view.allowsMultipleSelection = YES;
   _logView.view.allowsEmptySelection = YES;
-  _logView.cellSetBlock = ^(KBLabel *label, NSString *text, NSIndexPath *indexPath, NSTableColumn *tableColumn, KBListView *listView, BOOL dequeued) {
-    [label setText:text style:KBTextStyleDefault options:KBTextOptionsMonospace|KBTextOptionsSmall alignment:NSLeftTextAlignment lineBreakMode:NSLineBreakByClipping];
+  _logView.cellSetBlock = ^(KBLabel *label, DDLogMessage *logMessage, NSIndexPath *indexPath, NSTableColumn *tableColumn, KBListView *listView, BOOL dequeued) {
+
+    NSString *message = [gself.logFormatter formatLogMessage:logMessage];
+
+    KBTextOptions options = KBTextOptionsMonospace|KBTextOptionsSmall;
+    if (logMessage.flag & DDLogFlagError) options |= KBTextOptionsDanger;
+    if (logMessage.flag & DDLogFlagWarning) options |= KBTextOptionsWarning;
+
+    [label setText:message style:KBTextStyleDefault options:options alignment:NSLeftTextAlignment lineBreakMode:NSLineBreakByClipping];
   };
   _logView.onSelect = ^(KBTableView *tableView, KBTableSelection *selection) {
-    [gself.textView setText:[selection.objects join:@"\n\n"] style:KBTextStyleDefault options:KBTextOptionsMonospace|KBTextOptionsSmall alignment:NSLeftTextAlignment lineBreakMode:NSLineBreakByCharWrapping];
+    NSArray *messages = [selection.objects map:^(DDLogMessage *m) { return m.message; }];
+    [gself.textView setText:[messages join:@"\n\n"] style:KBTextStyleDefault options:KBTextOptionsMonospace|KBTextOptionsSmall alignment:NSLeftTextAlignment lineBreakMode:NSLineBreakByCharWrapping];
   };
   [logView addSubview:_logView];
 
@@ -82,13 +88,13 @@
 - (void)logMessage:(DDLogMessage *)logMessage {
   GHWeakSelf gself = self;
   dispatch_async(dispatch_get_main_queue(), ^{
-    [gself.logView addObjects:@[logMessage.message] animation:NSTableViewAnimationEffectNone];
+    [gself.logView addObjects:@[logMessage] animation:NSTableViewAnimationEffectNone];
     if ([gself.logView isAtBottom]) [gself.logView scrollToBottom:YES];
   });
 }
 
 - (NSString *)name { return @"Console"; }
-- (NSString *)info { return @"Logging goes here"; }
+- (NSString *)info { return @"Logging & messages"; }
 - (NSImage *)image { return [KBIcons imageForIcon:KBIconAlertNote]; };
 
 - (NSView *)componentView {

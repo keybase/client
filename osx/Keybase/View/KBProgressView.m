@@ -10,7 +10,6 @@
 
 #import "KBProgressOverlayView.h"
 #import "KBErrorView.h"
-#import "AppDelegate.h"
 
 @interface KBProgressView ()
 @property KBProgressOverlayView *progressView;
@@ -65,7 +64,7 @@
       };
        */
       [self close:self close:close];
-      [AppDelegate setError:error sender:self.sender];
+      [KBActivity setError:error sender:self.sender];
     } else {
       [self close:self close:close];
     }

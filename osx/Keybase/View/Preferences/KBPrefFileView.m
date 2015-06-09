@@ -7,6 +7,7 @@
 //
 
 #import "KBPrefFileView.h"
+#import <KBAppKit/KBAppKit.h>
 
 @interface KBPrefFileView ()
 @property KBLabel *label;

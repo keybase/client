@@ -1,11 +1,15 @@
 platform :osx, "10.8"
 
-target :Keybase do
+target "Keybase" do
+  pod "Sparkle"
+  pod "MASPreferences"
+end
+
+target "KBApp" do
   pod "Mantle"
   pod "GHKit"
   pod "ObjectiveSugar"
   pod "Slash"
-  pod "MASPreferences"
 
   pod "MPMessagePack"#, :path => "~/Projects/MPMessagePack"
 
@@ -14,11 +18,18 @@ target :Keybase do
   pod "ZXCVBN"
   pod "AFNetworking"
 
-  pod "Sparkle"
   pod "CocoaLumberjack"
   pod "GHODictionary"
+
+  pod "KBAppKit", :path => "~/Projects/KBAppKit"
+
 end
 
 target "keybase.Helper" do
   pod "MPMessagePack"#, :path => "~/Projects/MPMessagePack"
 end
+
+target "Share" do
+  pod "GHKit"
+end
+

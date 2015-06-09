@@ -9,9 +9,9 @@
 #import "KBRMockClient.h"
 
 #import <MPMessagePack/MPMessagePack.h>
-#import "AppDelegate.h"
 #import "KBRPCRegistration.h"
 #import "KBRPCRecord.h"
+#import "KBWorkspace.h"
 
 @interface KBRMockClient ()
 @property NSMutableDictionary *registrations;
@@ -64,7 +64,7 @@
 
 - (BOOL)replayMethod:(NSString *)requestMethod completion:(MPRequestCompletion)completion {
   GHWeakSelf gself = self;
-  NSString *directory = [AppDelegate applicationSupport:@[@"Record", @"default", requestMethod] create:NO error:nil];
+  NSString *directory = [KBWorkspace applicationSupport:@[@"Record", @"default", requestMethod] create:NO error:nil];
   NSArray *files = [NSFileManager.defaultManager contentsOfDirectoryAtPath:directory error:nil];
 
   if (files.count == 0) {
@@ -131,7 +131,7 @@
 }
 
 + (id)parse:(NSArray *)paths {
-  NSString *path = [AppDelegate applicationSupport:paths create:NO error:nil];
+  NSString *path = [KBWorkspace applicationSupport:paths create:NO error:nil];
   NSData *data = [NSData dataWithContentsOfFile:path];
   //NSAssert(data, @"No data found at %@", path);
   if (!data) return nil;

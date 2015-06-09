@@ -9,7 +9,6 @@
 #import "KBDevicesAppView.h"
 
 #import "KBDeviceView.h"
-#import "AppDelegate.h"
 #import "KBDeviceAddView.h"
 
 @interface KBDevicesAppView ()
@@ -79,7 +78,7 @@
     //gself.devicesView.progressView.animating = NO;
     if (error) {
       [gself.devicesView removeAllObjects];
-      [AppDelegate setError:error sender:self];
+      [KBActivity setError:error sender:self];
       return;
     }
     [gself.devicesView setObjects:items];
@@ -96,10 +95,7 @@
   KBRRevokeRequest *request = [[KBRRevokeRequest alloc] initWithClient:self.client];
   GHWeakSelf gself = self;
   [request revokeDeviceWithSessionID:request.sessionId idKb:device.deviceID completion:^(NSError *error) {
-    if (error) {
-      [AppDelegate setError:error sender:self];
-      return;
-    }
+    if ([KBActivity setError:error sender:self]) return;
 
     [gself.devicesView.dataSource removeObjectAtIndexPath:indexPathToRemove];
     [gself.devicesView reloadData];

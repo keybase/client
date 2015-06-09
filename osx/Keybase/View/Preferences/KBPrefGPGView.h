@@ -8,8 +8,8 @@
 
 #import <Foundation/Foundation.h>
 
-#import "KBAppDefines.h"
 #import "KBPreferences.h"
+#import <YOLayout/YOBox.h>
 
 @interface KBPrefGPGView : YOVBox
 

@@ -7,7 +7,6 @@
 //
 
 #import "KBUserStatusView.h"
-#import "AppDelegate.h"
 #import "KBUserImageView.h"
 
 @interface KBUserStatusView ()

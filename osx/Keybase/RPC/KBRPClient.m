@@ -9,11 +9,11 @@
 #import "KBRPClient.h"
 #import "KBRPC.h"
 #import "KBAlert.h"
-#import "AppDelegate.h"
 #import "KBRPCRegistration.h"
 #import "KBInstaller.h"
 #import "KBRPCRecord.h"
 #import "KBInstaller.h"
+#import "KBWorkspace.h"
 
 #import <MPMessagePack/MPMessagePackServer.h>
 
@@ -62,7 +62,7 @@
   _client.requestHandler = ^(NSNumber *messageId, NSString *method, NSArray *params, MPRequestCompletion completion) {
     DDLogDebug(@"Service requested: %@(%@)", method, KBDescription(params));
 
-//    if ([NSUserDefaults.standardUserDefaults boolForKey:@"Preferences.Advanced.Record"]) {
+//    if ([KBWorkspace userDefaults] boolForKey:@"Preferences.Advanced.Record"]) {
 //      [gself.recorder recordRequest:method params:params sessionId:[sessionId integerValue] callback:YES];
 //    }
 
@@ -215,14 +215,14 @@
                  MPErrorInfoKey: errorInfo,
                  }];
     }
-    if ([NSUserDefaults.standardUserDefaults boolForKey:@"Preferences.Advanced.Record"]) {
+    if ([[KBWorkspace userDefaults] boolForKey:@"Preferences.Advanced.Record"]) {
       if (result) [self.recorder recordResponse:method response:result sessionId:sessionId];
     }
     DDLogDebug(@"Replied: %@: %@", method, result ? KBDescription(result) : @"");
     completion(error, result);
   }];
   
-//  if ([NSUserDefaults.standardUserDefaults boolForKey:@"Preferences.Advanced.Record"]) {
+//  if ([[KBWorkspace userDefaults] boolForKey:@"Preferences.Advanced.Record"]) {
 //    [self.recorder recordRequest:method params:[_client encodeObject:params] sessionId:sessionId callback:NO];
 //  }
 }

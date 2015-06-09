@@ -15,7 +15,4 @@
 
 @property (nonatomic) KBEnvConfig *config;
 
-- (void)saveToDefaults;
-- (KBEnvConfig *)loadFromDefaults;
-
 @end

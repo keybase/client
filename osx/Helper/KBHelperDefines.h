@@ -15,5 +15,7 @@ typedef NS_ENUM(NSInteger, KBHelperError) {
 };
 
 
-void KBLog(NSString *msg, ...);
+void KBHelperLog(NSString *msg, ...);
 
+#undef KBLog
+#define KBLog KBHelperLog

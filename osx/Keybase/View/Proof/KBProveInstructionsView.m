@@ -8,7 +8,6 @@
 
 #import "KBProveInstructionsView.h"
 
-#import "AppDelegate.h"
 #import "KBProveType.h"
 
 @interface KBProveInstructionsView ()

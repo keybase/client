@@ -9,6 +9,7 @@
 #import "KBPrefPopUpView.h"
 
 #import "KBPrefOption.h"
+#import <KBAppKit/KBAppKit.h>
 
 @interface KBPrefPopUpView ()
 @property KBLabel *label;

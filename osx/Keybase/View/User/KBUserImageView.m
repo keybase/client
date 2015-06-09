@@ -7,8 +7,8 @@
 //
 
 #import "KBUserImageView.h"
-
-#import "AppDelegate.h"
+#import "KBWorkspace.h"
+#import "KBAppDefines.h"
 
 @implementation KBUserImageView
 
@@ -32,7 +32,7 @@
     self.image = nil;
     return;
   }
-  NSString *URLString = [AppDelegate.appView APIURLString:NSStringWithFormat(@"%@/picture?format=square_200", username)];
+  NSString *URLString = [KBWorkspace APIURLString:NSStringWithFormat(@"%@/picture?format=square_200", username)];
 
   NSMutableURLRequest *request = [NSMutableURLRequest requestWithURL:[NSURL URLWithString:URLString]];
   [request addValue:@"image/*" forHTTPHeaderField:@"Accept"];

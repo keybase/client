@@ -18,7 +18,6 @@
 #import "KBFileIcon.h"
 #import "KBFileReader.h"
 #import "KBFileWriter.h"
-#import "AppDelegate.h"
 #import "KBWork.h"
 #import "KBUserPickerView.h"
 #import "KBPGPTextView.h"
@@ -26,7 +25,6 @@
 @interface KBPGPEncryptView () <KBUserPickerViewDelegate>
 @property KBUserPickerView *userPickerView;
 @property KBPGPTextView *textView;
-@property YOBox *files;
 @property KBPGPEncryptFooterView *footerView;
 
 @property KBPGPEncrypt *encrypter;
@@ -43,6 +41,7 @@
   [self addSubview:topView];
   _userPickerView = [[KBUserPickerView alloc] init];
   _userPickerView.delegate = self;
+  _userPickerView.searchPosition = CGPointMake(1, -1);
   [topView addSubview:_userPickerView];
   [topView addSubview:[KBBox horizontalLine]];
 
@@ -125,15 +124,6 @@
 
 - (void)setText:(NSString *)text {
   _textView.text = text;
-}
-
-- (void)addFile:(KBFile *)file {
-  KBFileIcon *icon = [[KBFileIcon alloc] init];
-  icon.iconHeight = 60;
-  [icon setFile:file];
-  [_files addSubview:icon];
-  [_files setNeedsLayout:NO];
-  [self layoutView];
 }
 
 - (void)userPickerViewDidUpdate:(KBUserPickerView *)userPickerView {

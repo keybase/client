@@ -9,8 +9,6 @@
 #import "KBLaunchService.h"
 #import "KBEnvironment.h"
 #import "KBLaunchCtl.h"
-#import "AppDelegate.h"
-#import "KBTask.h"
 #import "KBWaitFor.h"
 
 @interface KBLaunchService ()

@@ -10,7 +10,6 @@
 
 #import "KBUserHeaderView.h"
 #import "KBUserInfoView.h"
-#import "AppDelegate.h"
 #import "KBProofResult.h"
 #import "KBFatalErrorView.h"
 #import "KBTrackView.h"
@@ -24,6 +23,7 @@
 #import "KBKeyImportView.h"
 #import "KBProveType.h"
 #import "KBAlertView.h"
+#import "KBWorkspace.h"
 
 @interface KBUserProfileView ()
 @property KBScrollView *scrollView;
@@ -135,13 +135,13 @@
 
   [client registerMethod:@"keybase.1.identifyUi.launchNetworkChecks" sessionId:sessionId requestHandler:^(NSNumber *messageId, NSString *method, NSArray *params, MPRequestCompletion completion) {
     KBRLaunchNetworkChecksRequestParams *requestParams = [[KBRLaunchNetworkChecksRequestParams alloc] initWithParams:params];
-    BOOL isSelf = [AppDelegate.appView.user.username isEqual:self.username];
+    BOOL isSelf = [[KBWorkspace currentUsername] isEqual:self.username];
     [gself.userInfoView addProofs:requestParams.id.proofs editable:isSelf targetBlock:^(KBProofLabel *proofLabel) {
       if (proofLabel.proofResult.result.proofResult.status != 1) {
         NSString *serviceName = proofLabel.proofResult.proof.key;
         [self connectWithServiceName:serviceName proofResult:proofLabel.proofResult];
       } else if (proofLabel.proofResult.result.hint.humanUrl) {
-        [AppDelegate.sharedDelegate openURLString:proofLabel.proofResult.result.hint.humanUrl sender:self];
+        [KBWorkspace openURLString:proofLabel.proofResult.result.hint.humanUrl sender:self];
       }
     }];
     [gself setNeedsLayout];
@@ -252,7 +252,7 @@
     [gself.headerView setProgressEnabled:NO];
     gself.loading = NO;
     if (error) {
-      [AppDelegate setError:error sender:self];
+      [KBActivity setError:error sender:self];
       return;
     }
     [self showTrack:identifyRes];
@@ -269,7 +269,7 @@
     [gself.headerView setProgressEnabled:NO];
     gself.loading = NO;
     if (error) {
-      [AppDelegate setError:error sender:self];
+      [KBActivity setError:error sender:self];
       return;
     }
 
@@ -311,7 +311,7 @@
 
   if (!_username) return;
 
-  BOOL isSelf = [AppDelegate.appView.user.username isEqual:username];
+  BOOL isSelf = [[KBWorkspace currentUsername] isEqual:username];
 
   [_headerView setUsername:_username];
   _headerView.hidden = NO;
@@ -332,7 +332,7 @@
   [request untrackWithSessionID:request.sessionId theirName:_username completion:^(NSError *error) {
     [self.headerView setProgressEnabled:NO];
     if (error) {
-      [AppDelegate setError:error sender:self];
+      [KBActivity setError:error sender:self];
       return;
     }
 
@@ -374,7 +374,7 @@
     [window close];
   };
   keyView.client = self.client;
-  BOOL isSelf = [AppDelegate.appView.user.username isEqual:self.username];
+  BOOL isSelf = [[KBWorkspace currentUsername] isEqual:self.username];
   [keyView setKeyId:keyId editable:isSelf];
 }
 
@@ -400,7 +400,7 @@
     [self selectPGPKey:requestParams completion:completion];
   }];
   [request pgpSelectWithSessionID:request.sessionId query:nil allowMulti:NO skipImport:NO completion:^(NSError *error) {
-    [AppDelegate setError:error sender:self];
+    [KBActivity setError:error sender:self];
     [self reload];
   }];
 }

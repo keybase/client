@@ -89,26 +89,6 @@
   [self updateCLI:[self config]];
 }
 
-- (void)saveToDefaults {
-  [NSUserDefaults.standardUserDefaults setObject:self.config.homeDir forKey:@"CustomHomeDir"];
-  [NSUserDefaults.standardUserDefaults setObject:self.config.sockFile forKey:@"CustomSockFile"];
-  [NSUserDefaults.standardUserDefaults setObject:self.config.mountDir forKey:@"CustomMountDir"];
-  [NSUserDefaults.standardUserDefaults synchronize];
-}
-
-- (KBEnvConfig *)loadFromDefaults {
-  NSString *homeDir = [NSUserDefaults.standardUserDefaults stringForKey:@"CustomHomeDir"];
-  if (!homeDir) homeDir = KBPath(@"~/Projects/Keybase", NO);
-
-//  NSString *sockFile = [NSUserDefaults.standardUserDefaults stringForKey:@"CustomSockFile"];
-//  if (!sockFile) sockFile = KBPath([KBEnvironment defaultSockFileForHomeDir:homeDir], NO);
-
-  NSString *mountDir = [NSUserDefaults.standardUserDefaults stringForKey:@"CustomMountDir"];
-  if (!mountDir) mountDir = KBPath(@"~/Keybase.dev", NO);
-
-  return [[KBEnvConfig alloc] initWithHomeDir:homeDir sockFile:nil mountDir:mountDir];
-}
-
 - (KBEnvConfig *)config {
   NSString *homeDir = [_homeDirField.text gh_strip];
 //  NSString *sockFile = [_socketFileField.text gh_strip];
@@ -117,9 +97,9 @@
 }
 
 - (void)setConfig:(KBEnvConfig *)config {
-  _homeDirField.text = KBPath(config.homeDir, YES);
-  _socketFileField.text = KBPath(config.sockFile, YES);
-  _mountDirField.text = KBPath(config.mountDir, YES);
+  _homeDirField.text = KBPath(config.homeDir, YES, NO);
+  _socketFileField.text = KBPath(config.sockFile, YES, NO);
+  _mountDirField.text = KBPath(config.mountDir, YES, NO);
   [self updateCLI:config];
   [self setNeedsLayout];
 }

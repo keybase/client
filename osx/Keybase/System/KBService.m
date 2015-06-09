@@ -9,7 +9,6 @@
 #import "KBService.h"
 
 #import "KBAppDefines.h"
-#import "AppDelegate.h"
 #import "KBInfoView.h"
 
 @interface KBService ()
@@ -40,8 +39,8 @@
 - (void)componentDidUpdate {
   GHODictionary *info = [GHODictionary dictionary];
 
-  info[@"Home"] = KBPath(self.config.homeDir, YES);
-  info[@"Socket"] = KBPath(self.config.sockFile, YES);
+  info[@"Home"] = KBPath(self.config.homeDir, YES, NO);
+  info[@"Socket"] = KBPath(self.config.sockFile, YES, NO);
 
   info[@"Launchd"] = self.label ? self.label : @"-";
   GHODictionary *statusInfo = [self componentStatusInfo];
@@ -57,7 +56,7 @@
   info[@"User Id"] = _userStatus ? _userStatus.user.uid : @"-";
 
   if (self.config.installEnabled) {
-    info[@"Launchd Plist"] = KBPath([self plistDestination], YES);
+    info[@"Launchd Plist"] = KBPath([self plistDestination], YES, NO);
   }
 
   info[@"Program"] = [self.config commandLineForService:NO escape:YES tilde:NO];

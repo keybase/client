@@ -8,7 +8,9 @@
 
 #import <Foundation/Foundation.h>
 
-// Defines shared between app and Helper
+//
+// This file should have no dependencies
+//
 
 typedef void (^KBCompletion)(NSError *error);
 typedef void (^KBOnCompletion)(NSError *error, id value);
@@ -26,6 +28,8 @@ NSNumber *KBNumberFromString(NSString *s);
 
 NSString *KBNSStringWithFormat(NSString *formatString, ...);
 
-NSString *KBPath(NSString *dir, BOOL tilde);
+NSString *KBPath(NSString *path, BOOL tilde, BOOL escape);
 
 #define LINK_SOURCE (@"/usr/local/bin/keybase")
+
+#define KBLog NSLog

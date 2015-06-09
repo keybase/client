@@ -9,8 +9,8 @@
 #import "KBUserHeaderView.h"
 
 #import "KBActivityIndicatorView.h"
-#import "AppDelegate.h"
 #import "KBUserImageView.h"
+#import "KBWorkspace.h"
 
 @interface KBUserHeaderView ()
 @property KBLabel *name1Label;
@@ -44,7 +44,7 @@
   _name2View.hidden = YES;
   GHWeakSelf gself = self;
   _name2View.targetBlock = ^ {
-    [AppDelegate.sharedDelegate openURLString:KBURLStringForUsername(gself.username) sender:gself];
+    [KBWorkspace openURLString:KBURLStringForUsername(gself.username) sender:gself];
   };
   [self addSubview:_name2View];
 

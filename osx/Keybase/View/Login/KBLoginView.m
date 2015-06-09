@@ -7,7 +7,6 @@
 //
 
 #import "KBLoginView.h"
-#import "AppDelegate.h"
 #import "KBDeviceSetupChooseView.h"
 #import "KBDeviceSetupPromptView.h"
 #import "KBDeviceSetupDisplayView.h"
@@ -122,12 +121,12 @@
   NSAssert(self.navigation, @"No navigation");
 
   if ([NSString gh_isBlank:username]) {
-    [AppDelegate setError:KBErrorAlert(@"You need to enter a username or email address.") sender:_usernameField];
+    [KBActivity setError:KBErrorAlert(@"You need to enter a username or email address.") sender:_usernameField];
     return;
   }
 
   if ([NSString gh_isBlank:passphrase]) {
-    [AppDelegate setError:KBErrorAlert(@"You need to enter a password.") sender:_passwordField];
+    [KBActivity setError:KBErrorAlert(@"You need to enter a password.") sender:_passwordField];
     return;
   }
 
@@ -265,7 +264,7 @@
     }
   }
 
-  [AppDelegate setError:error sender:self];
+  [KBActivity setError:error sender:self];
 }
 
 - (void)goBackToLogin {
@@ -275,7 +274,7 @@
 - (void)cancelLogin {
   KBRLoginRequest *request = [[KBRLoginRequest alloc] initWithClient:self.client];
   [request cancelLoginWithSessionID:request.sessionId completion:^(NSError *error) {
-    if (error) [AppDelegate setError:error sender:self];
+    [KBActivity setError:error sender:self];
     [self goBackToLogin];
   }];
 }
@@ -288,7 +287,7 @@
   deviceSetupView.selectButton.targetBlock = ^{
     KBDeviceSignerOption *option = [gdeviceSetupView.deviceSignerView selectedObject];
     if (!option) {
-      [AppDelegate setError:KBMakeError(-1, @"You need to select an option or cancel.") sender:self];
+      [KBActivity setError:KBMakeError(-1, @"You need to select an option or cancel.") sender:self];
       return;
     }
 

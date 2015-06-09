@@ -37,7 +37,7 @@
   if (statusInfo) [info addEntriesFromOrderedDictionary:statusInfo];
 
   if (self.config.installEnabled) {
-    info[@"Launchd Plist"] = KBPath([self plistDestination], YES);
+    info[@"Launchd Plist"] = KBPath([self plistDestination], YES, NO);
   }
 
   info[@"Program"] = [self.config commandLineForKBFS:NO escape:YES tilde:YES];

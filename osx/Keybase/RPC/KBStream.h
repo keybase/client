@@ -17,7 +17,7 @@ typedef NSString *(^KBFileOutput)(NSString *path);
 @interface KBStream : NSObject
 
 @property (readonly) id<KBReader> reader;
-@property (readonly)id<KBWriter> writer;
+@property (readonly) id<KBWriter> writer;
 @property (readonly) u_int32_t label;
 
 + (instancetype)streamWithReader:(id<KBReader>)reader writer:(id<KBWriter>)writer label:(int)label;

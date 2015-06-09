@@ -10,7 +10,6 @@
 
 #import <Slash/Slash.h>
 
-#import "AppDelegate.h"
 #import "KBProveType.h"
 #import "KBProveRooterInstructions.h"
 
@@ -109,7 +108,7 @@
 
   if ([NSString gh_isBlank:serviceUsername]) {
     // TODO Become first responder
-    [AppDelegate setError:KBErrorAlert(@"You need to choose a username.") sender:_inputView];
+    [KBActivity setError:KBErrorAlert(@"You need to choose a username.") sender:_inputView];
     return;
   }
 

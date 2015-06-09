@@ -10,7 +10,6 @@
 
 #import "KBUsersAppView.h"
 #import "KBUserProfileView.h"
-#import "AppDelegate.h"
 #import "KBLoginView.h"
 #import "KBSignupView.h"
 #import "KBInstaller.h"
@@ -27,7 +26,7 @@
 #import "KBControlPanel.h"
 #import "KBAppDebug.h"
 #import "KBSecretPromptView.h"
-#import "KBMockViews.h"
+#import "KBDebugViews.h"
 
 
 typedef NS_ENUM (NSInteger, KBAppViewMode) {
@@ -101,19 +100,15 @@ typedef NS_ENUM (NSInteger, KBAppViewMode) {
   _environment = environment;
 
 #ifdef DEBUG
-  //KBMockViews *mockViews = [[KBMockViews alloc] init];
-  //[mockViews open:self];
+  KBDebugViews *mockViews = [[KBDebugViews alloc] init];
+  mockViews.client = _environment.service.client;
+  [mockViews open:self];
 #endif
 
   NSDictionary *info = [[NSBundle mainBundle] infoDictionary];
   DDLogInfo(@"Keybase.app Version: %@", info[@"CFBundleShortVersionString"]);
 
   [self showInProgress:@"Loading"];
-
-  NSMutableArray *componentsForControlPanel = [_environment.componentsForControlPanel mutableCopy];
-  [componentsForControlPanel addObject:self];
-
-  [AppDelegate.sharedDelegate.controlPanel addComponents:componentsForControlPanel];
 
   GHWeakSelf gself = self;  
   [_environment installStatus:^(BOOL needsInstall) {
@@ -141,16 +136,16 @@ typedef NS_ENUM (NSInteger, KBAppViewMode) {
     errorInfo[NSLocalizedRecoveryOptionsErrorKey] = @[@"Retry", @"Quit"];
     error = [NSError errorWithDomain:error.domain code:error.code userInfo:errorInfo];
 
-    [AppDelegate setError:error sender:self completion:^(NSModalResponse res) {
+    [[NSApp delegate] setError:error sender:self completion:^(NSModalResponse res) {
       // Option to retry or quit if we are trying to get status for the first time
       if (res == NSAlertFirstButtonReturn) {
         [self checkStatus];
       } else {
-        [AppDelegate.sharedDelegate quitWithPrompt:YES sender:self];
+        [[NSApp delegate] quitWithPrompt:YES sender:self];
       }
     }];
   } else {
-    [AppDelegate setError:error sender:self];
+    [[NSApp delegate] setError:error sender:self];
   }
 }
 
@@ -270,7 +265,7 @@ typedef NS_ENUM (NSInteger, KBAppViewMode) {
     KBRLoginRequest *request = [[KBRLoginRequest alloc] initWithClient:gself.environment.service.client];
     [request logoutWithSessionID:request.sessionId completion:^(NSError *error) {
       if (error) {
-        [AppDelegate setError:error sender:self];
+        [[NSApp delegate] setError:error sender:self];
       }
       [self checkStatus];
     }];
@@ -430,7 +425,7 @@ typedef NS_ENUM (NSInteger, KBAppViewMode) {
 }
 
 - (BOOL)windowShouldClose:(id)sender {
-  [AppDelegate.sharedDelegate quitWithPrompt:YES sender:self];
+  [[NSApp delegate] quitWithPrompt:YES sender:self];
   return NO;
 }
 

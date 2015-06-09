@@ -9,6 +9,7 @@
 #import "KBStyleGuideView.h"
 
 #import "KBFileIcon.h"
+#import "KBLayouts.h"
 
 @interface KBStyleGuideView ()
 @property KBProgressOverlayView *progressView;

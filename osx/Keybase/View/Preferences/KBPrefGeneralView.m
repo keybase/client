@@ -13,6 +13,7 @@
 #import "KBPrefOption.h"
 
 #import <Sparkle/Sparkle.h>
+#import <CocoaLumberjack/CocoaLumberjack.h>
 
 @implementation KBPrefGeneralView
 
@@ -25,7 +26,7 @@
     [launchAtLogin setLabelText:@"Launch Keybase at login" identifier:@"Preferences.LaunchAtLogin" preferences:self];
     [self addSubview:launchAtLogin];
 
-    [self addSubview:[KBBox spacing:10]];
+    [self addSubview:[YOBox spacing:CGSizeMake(0, 10)]];
 
     KBPrefCheckbox *autoUpdate = [[KBPrefCheckbox alloc] init];
     [autoUpdate setCategory:@"Updater"];
@@ -51,7 +52,7 @@
     [sendsProfile setLabelText:@"Sends system profile" identifier:@"Preferences.Sparkle.SendsProfile" preferences:self];
     [self addSubview:sendsProfile];
 
-    [self addSubview:[KBBox spacing:10]];
+    [self addSubview:[YOBox spacing:CGSizeMake(0, 10)]];
 
     KBPrefPopUpView *logLevel = [[KBPrefPopUpView alloc] init];
     logLevel.inset = 0;

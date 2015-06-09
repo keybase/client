@@ -32,8 +32,30 @@
   }
 
   NSString *dateAndTime = [_dateFormatter stringFromDate:logMessage.timestamp];
-  return [NSString stringWithFormat:@"%@ %@:%@ %@ %@", dateAndTime, logMessage.fileName, @(logMessage.line), level, logMessage.message];
+  return [NSString stringWithFormat:@"%@ %@:%@%@ %@", dateAndTime, logMessage.fileName, @(logMessage.line), level, logMessage.message];
 }
 
+@end
+
+
+@interface KBLogConsoleFormatter ()
+@property NSDateFormatter *dateFormatter;
+@end
+
+@implementation KBLogConsoleFormatter
+
+- (id)init {
+  if ((self = [super init])) {
+    _dateFormatter = [[NSDateFormatter alloc] init];
+    [_dateFormatter setFormatterBehavior:NSDateFormatterBehavior10_4];
+    [_dateFormatter setDateFormat:@"HH:mm:ss.SSS"];
+  }
+  return self;
+}
+
+- (NSString *)formatLogMessage:(DDLogMessage *)logMessage {
+  NSString *time = [_dateFormatter stringFromDate:logMessage.timestamp];
+  return [NSString stringWithFormat:@"%@ %@", time, logMessage.message];
+}
 
 @end

@@ -11,5 +11,7 @@
 #import <CocoaLumberjack/CocoaLumberjack.h>
 
 @interface KBLogFormatter : NSObject <DDLogFormatter>
+@end
 
+@interface KBLogConsoleFormatter : NSObject <DDLogFormatter>
 @end

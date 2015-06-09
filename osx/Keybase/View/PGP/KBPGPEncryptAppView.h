@@ -8,7 +8,6 @@
 
 #import <Foundation/Foundation.h>
 
-#import "KBAppDefines.h"
 #import "KBContentView.h"
 
 @interface KBPGPEncryptAppView : KBContentView

@@ -7,7 +7,6 @@
 //
 
 #import "KBKeyImportView.h"
-#import "AppDelegate.h"
 #import "KBPGPTextView.h"
 
 @interface KBKeyImportView ()

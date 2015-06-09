@@ -10,7 +10,6 @@
 #import "KBAppDefines.h"
 #import <ServiceManagement/ServiceManagement.h>
 #import <MPMessagePack/MPXPCClient.h>
-#import "KBLaunchCtl.h"
 #import "KBAppDefines.h"
 #import "KBInfoView.h"
 #import "KBPrivilegedTask.h"
@@ -30,7 +29,7 @@
 }
 
 - (NSString *)info {
-  return @"Runs priviliged tasks";
+  return @"Runs privileged tasks";
 }
 
 - (NSImage *)image {

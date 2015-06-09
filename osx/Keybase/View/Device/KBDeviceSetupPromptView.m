@@ -7,7 +7,6 @@
 //
 
 #import "KBDeviceSetupPromptView.h"
-#import "AppDelegate.h"
 
 @interface KBDeviceSetupPromptView ()
 @property KBTextField *deviceNameField;
@@ -71,7 +70,7 @@
   NSString *deviceName = self.deviceNameField.text;
 
   if ([NSString gh_isBlank:deviceName]) {
-    [AppDelegate setError:KBErrorAlert(@"You need to enter a device name.") sender:_deviceNameField];
+    [KBActivity setError:KBErrorAlert(@"You need to enter a device name.") sender:_deviceNameField];
     return;
   }
 

@@ -9,7 +9,6 @@
 #import "KBUsersAppView.h"
 
 #import "KBUserProfileView.h"
-#import "AppDelegate.h"
 #import "KBProgressOverlayView.h"
 #import "KBUserView.h"
 #import "KBSearchResultView.h"
@@ -177,7 +176,7 @@
   [trackingRequest listTrackingWithSessionID:trackingRequest.sessionId filter:nil completion:^(NSError *error, NSArray *userSummaries) {
     gself.listProgressView.animating = NO;
     if (error) {
-      [AppDelegate setError:error sender:self];
+      [KBActivity setError:error sender:self];
       [gself.trackingView.listView removeAllObjects];
       return;
     }
@@ -187,7 +186,7 @@
   [self trackersUsers:^(NSError *error, NSArray *userSummaries) {
     gself.listProgressView.animating = NO;
     if (error) {
-      [AppDelegate setError:error sender:self];
+      [KBActivity setError:error sender:self];
       [gself.trackersView.listView removeAllObjects];
       return;
     }

@@ -8,7 +8,6 @@
 
 #import "KBFSStatusView.h"
 
-#import "AppDelegate.h"
 #import <MPMessagePack/MPXPCClient.h>
 #import "KBHelperTool.h"
 

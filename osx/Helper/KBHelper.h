@@ -8,6 +8,7 @@
 
 #import <Foundation/Foundation.h>
 
+#import "KBHelperDefines.h"
 #import <MPMessagePack/MPXPCService.h>
 
 @interface KBHelper : MPXPCService
