@@ -283,7 +283,6 @@ type UI interface {
 	GetDoctorUI() DoctorUI
 	GetIdentifyUI() IdentifyUI
 	GetIdentifyTrackUI(strict bool) IdentifyUI
-	GetIdentifyLubaUI() IdentifyUI
 	GetLoginUI() LoginUI
 	GetSecretUI() SecretUI
 	GetProveUI() ProveUI

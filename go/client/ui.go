@@ -23,10 +23,6 @@ type BaseIdentifyUI struct {
 
 func (ui BaseIdentifyUI) SetStrict(b bool) {}
 
-type IdentifyLubaUI struct {
-	BaseIdentifyUI
-}
-
 type IdentifyUI struct {
 	BaseIdentifyUI
 }
@@ -34,9 +30,7 @@ type IdentifyUI struct {
 func (ui *IdentifyTrackUI) Start(username string) {
 	G.Log.Info("Generating tracking statement for " + ColorString("bold", username))
 }
-func (ui *IdentifyLubaUI) Start(username string) {
-	G.Log.Info("LoadUserByAssertion: Verifying identify for " + ColorString("bold", username))
-}
+
 func (ui *IdentifyUI) Start(username string) {
 	G.Log.Info("Identifying " + ColorString("bold", username))
 }
@@ -60,9 +54,6 @@ func (ui BaseIdentifyUI) LaunchNetworkChecks(i *keybase1.Identity, u *keybase1.U
 	return
 }
 
-func (ui IdentifyLubaUI) FinishAndPrompt(o *keybase1.IdentifyOutcome) (keybase1.FinishAndPromptRes, error) {
-	return ui.baseFinishAndPrompt(o)
-}
 func (ui IdentifyUI) FinishAndPrompt(o *keybase1.IdentifyOutcome) (keybase1.FinishAndPromptRes, error) {
 	return ui.baseFinishAndPrompt(o)
 }
@@ -388,10 +379,6 @@ func (ui *UI) GetIdentifyTrackUI(strict bool) libkb.IdentifyUI {
 
 func (ui *UI) GetIdentifyUI() libkb.IdentifyUI {
 	return &IdentifyUI{BaseIdentifyUI{parent: ui}}
-}
-
-func (ui *UI) GetIdentifyLubaUI() libkb.IdentifyUI {
-	return &IdentifyLubaUI{BaseIdentifyUI{parent: ui}}
 }
 
 func (ui *UI) GetLoginUI() libkb.LoginUI {
