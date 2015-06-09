@@ -105,26 +105,29 @@ func (_mr *_MockKBFSOpsRecorder) GetFavDirs() *gomock.Call {
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "GetFavDirs")
 }
 
-func (_m *MockKBFSOps) GetRootMDForHandle(dirHandle *DirHandle) (*RootMetadata, error) {
-	ret := _m.ctrl.Call(_m, "GetRootMDForHandle", dirHandle)
-	ret0, _ := ret[0].(*RootMetadata)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
+func (_m *MockKBFSOps) GetOrCreateRootPathForHandle(handle *DirHandle) (Path, DirEntry, error) {
+	ret := _m.ctrl.Call(_m, "GetOrCreateRootPathForHandle", handle)
+	ret0, _ := ret[0].(Path)
+	ret1, _ := ret[1].(DirEntry)
+	ret2, _ := ret[2].(error)
+	return ret0, ret1, ret2
 }
 
-func (_mr *_MockKBFSOpsRecorder) GetRootMDForHandle(arg0 interface{}) *gomock.Call {
-	return _mr.mock.ctrl.RecordCall(_mr.mock, "GetRootMDForHandle", arg0)
+func (_mr *_MockKBFSOpsRecorder) GetOrCreateRootPathForHandle(arg0 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "GetOrCreateRootPathForHandle", arg0)
 }
 
-func (_m *MockKBFSOps) GetRootMD(dirID DirID) (*RootMetadata, error) {
-	ret := _m.ctrl.Call(_m, "GetRootMD", dirID)
-	ret0, _ := ret[0].(*RootMetadata)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
+func (_m *MockKBFSOps) GetRootPath(dir DirID) (Path, DirEntry, *DirHandle, error) {
+	ret := _m.ctrl.Call(_m, "GetRootPath", dir)
+	ret0, _ := ret[0].(Path)
+	ret1, _ := ret[1].(DirEntry)
+	ret2, _ := ret[2].(*DirHandle)
+	ret3, _ := ret[3].(error)
+	return ret0, ret1, ret2, ret3
 }
 
-func (_mr *_MockKBFSOpsRecorder) GetRootMD(arg0 interface{}) *gomock.Call {
-	return _mr.mock.ctrl.RecordCall(_mr.mock, "GetRootMD", arg0)
+func (_mr *_MockKBFSOpsRecorder) GetRootPath(arg0 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "GetRootPath", arg0)
 }
 
 func (_m *MockKBFSOps) GetDir(dir Path) (*DirBlock, error) {

@@ -50,18 +50,18 @@ type KBFSOps interface {
 	// GetFavDirs returns the logged-in user's list of favorite
 	// top-level folders.  This is a remote-access operation.
 	GetFavDirs() ([]DirID, error)
-	// GetRootMDForHandle returns the current metadata object
-	// corresponding to the given top-level folder's handle, if the
+	// GetOrCreateRootPathByHandle returns the root path, and root
+	// directory entry associated with the given DirHandle, if the
 	// logged-in user has read permissions to the top-level folder.
 	// It creates the folder if one doesn't exist yet, and the
 	// logged-in user has write permissions to the top-level folder.
 	// This is a remote-access operation.
-	GetRootMDForHandle(dirHandle *DirHandle) (*RootMetadata, error)
-	// GetRootMD returns the current metadata object corresponding to
-	// the given top-level folder, if the logged-in user has read
-	// permissions to the top-level folder.  This is a remote-access
-	// operation.
-	GetRootMD(dirID DirID) (*RootMetadata, error)
+	GetOrCreateRootPathForHandle(handle *DirHandle) (Path, DirEntry, error)
+	// GetRootPath returns the root path, root directory entry, and
+	// handle associated with the given DirID, if the logged-in user
+	// has read permissions to the top-level folder.  This is a
+	// remote-access operation.
+	GetRootPath(dir DirID) (Path, DirEntry, *DirHandle, error)
 	// GetDir returns the directory block (including a complete list
 	// of all the children in that directory and their metadata), if
 	// the logged-in user has read permission for the top-level

@@ -144,17 +144,25 @@ func makeIDAndRMD(config *ConfigMock) (
 	return userID, id, rmd
 }
 
-func TestKBFSOpsGetRootMDCacheSuccess(t *testing.T) {
+func TestKBFSOpsGetRootPathCacheSuccess(t *testing.T) {
 	mockCtrl, config := kbfsOpsInit(t, false)
 	defer kbfsTestShutdown(mockCtrl, config)
 
 	_, id, rmd := makeIDAndRMD(config)
 	rmd.data.Dir.Type = Dir
 
-	if rmd2, err := config.KBFSOps().GetRootMD(id); err != nil {
+	if p, de, h, err := config.KBFSOps().GetRootPath(id); err != nil {
 		t.Errorf("Got error on root MD: %v", err)
-	} else if rmd2 != rmd {
-		t.Errorf("Got bad MD back: %v", rmd2)
+	} else if p.TopDir != id {
+		t.Errorf("Got bad MD back: directory %v", p.TopDir)
+	} else if len(p.Path) != 1 {
+		t.Errorf("Got bad MD back: path size %d", len(p.Path))
+	} else if p.Path[0].ID != rmd.data.Dir.ID {
+		t.Errorf("Got bad MD back: root ID %v", p.Path[0].ID)
+	} else if de != rmd.data.Dir {
+		t.Errorf("Got bad MD back: direntry %v", de)
+	} else if h != rmd.GetDirHandle() {
+		t.Errorf("Got bad handle back: handle %v", h)
 	}
 }
 
@@ -233,7 +241,7 @@ func fillInNewMD(config *ConfigMock, rmd *RootMetadata) (
 	return
 }
 
-func TestKBFSOpsGetRootMDCreateNewSuccess(t *testing.T) {
+func TestKBFSOpsGetRootPathCreateNewSuccess(t *testing.T) {
 	mockCtrl, config := kbfsOpsInit(t, true)
 	defer kbfsTestShutdown(mockCtrl, config)
 
@@ -251,22 +259,26 @@ func TestKBFSOpsGetRootMDCreateNewSuccess(t *testing.T) {
 	config.mockMdops.EXPECT().Put(id, rmd).Return(nil)
 	config.mockMdcache.EXPECT().Put(rmd.mdID, rmd).Return(nil)
 
-	if rmd2, err := config.KBFSOps().GetRootMD(id); err != nil {
+	if p, de, h, err := config.KBFSOps().GetRootPath(id); err != nil {
 		t.Errorf("Got error on root MD: %v", err)
-	} else if rmd2 != rmd {
-		t.Errorf("Got bad MD back: %v", rmd2)
-	} else if rmd2.data.Dir.ID != rootID {
-		t.Errorf("Got bad MD rootID back: %v", rmd2.data.Dir.ID)
-	} else if rmd2.data.Dir.Type != Dir {
+	} else if p.TopDir != id {
+		t.Errorf("Got bad MD back: directory %v", p.TopDir)
+	} else if len(p.Path) != 1 {
+		t.Errorf("Got bad MD back: path size %d", len(p.Path))
+	} else if p.Path[0].ID != rootID {
+		t.Errorf("Got bad MD back: root ID %v", p.Path[0].ID)
+	} else if de.Type != Dir {
 		t.Error("Got bad MD non-dir rootID back")
-	} else if rmd2.data.Dir.QuotaSize != uint32(len(block)) {
-		t.Errorf("Got bad MD QuotaSize back: %d", rmd2.data.Dir.QuotaSize)
-	} else if rmd2.data.Dir.Size != uint64(plainSize) {
-		t.Errorf("Got bad MD Size back: %d", rmd2.data.Dir.Size)
-	} else if rmd2.data.Dir.Mtime == 0 {
+	} else if de.QuotaSize != uint32(len(block)) {
+		t.Errorf("Got bad MD QuotaSize back: %d", de.QuotaSize)
+	} else if de.Size != uint64(plainSize) {
+		t.Errorf("Got bad MD Size back: %d", de.Size)
+	} else if de.Mtime == 0 {
 		t.Error("Got zero MD MTime back")
-	} else if rmd2.data.Dir.Ctime == 0 {
+	} else if de.Ctime == 0 {
 		t.Error("Got zero MD CTime back")
+	} else if h != rmd.GetDirHandle() {
+		t.Errorf("Got bad handle back: handle %v", h)
 	}
 }
 
@@ -293,7 +305,7 @@ func TestKBFSOpsGetRootMDCreateNewFailNonWriter(t *testing.T) {
 	expectedErr := &WriteAccessError{
 		fmt.Sprintf("user_%s", userID), h.ToString(config)}
 
-	if _, err := config.KBFSOps().GetRootMD(id); err == nil {
+	if _, _, _, err := config.KBFSOps().GetRootPath(id); err == nil {
 		t.Errorf("Got no expected error on root MD")
 	} else if err.Error() != expectedErr.Error() {
 		t.Errorf("Got unexpected error on root MD: %v", err)
@@ -318,22 +330,24 @@ func TestKBFSOpsGetRootMDForHandleExisting(t *testing.T) {
 
 	config.mockMdops.EXPECT().GetAtHandle(h).Return(rmd, nil)
 
-	if rmd2, err := config.KBFSOps().GetRootMDForHandle(h); err != nil {
+	if p, de, err := config.KBFSOps().GetOrCreateRootPathForHandle(h); err != nil {
 		t.Errorf("Got error on root MD for handle: %v", err)
-	} else if rmd2 != rmd {
-		t.Errorf("Got bad MD back: %v", rmd2)
-	} else if rmd2.ID != id {
-		t.Errorf("Got bad dir id back: %v", rmd2.ID)
-	} else if rmd2.data.Dir.QuotaSize != 15 {
-		t.Errorf("Got bad MD QuotaSize back: %d", rmd2.data.Dir.QuotaSize)
-	} else if rmd2.data.Dir.Type != Dir {
+	} else if p.TopDir != id {
+		t.Errorf("Got bad dir id back: %v", p.TopDir)
+	} else if len(p.Path) != 1 {
+		t.Errorf("Got bad MD back: path size %d", len(p.Path))
+	} else if p.Path[0].ID != rmd.data.Dir.ID {
+		t.Errorf("Got bad MD back: root ID %v", p.Path[0].ID)
+	} else if de.QuotaSize != 15 {
+		t.Errorf("Got bad MD QuotaSize back: %d", de.QuotaSize)
+	} else if de.Type != Dir {
 		t.Error("Got bad MD non-dir rootID back")
-	} else if rmd2.data.Dir.Size != 10 {
-		t.Errorf("Got bad MD Size back: %d", rmd2.data.Dir.Size)
-	} else if rmd2.data.Dir.Mtime != 1 {
-		t.Errorf("Got bad MD MTime back: %d", rmd2.data.Dir.Mtime)
-	} else if rmd2.data.Dir.Ctime != 2 {
-		t.Errorf("Got bad MD CTime back: %d", rmd2.data.Dir.Ctime)
+	} else if de.Size != 10 {
+		t.Errorf("Got bad MD Size back: %d", de.Size)
+	} else if de.Mtime != 1 {
+		t.Errorf("Got bad MD MTime back: %d", de.Mtime)
+	} else if de.Ctime != 2 {
+		t.Errorf("Got bad MD CTime back: %d", de.Ctime)
 	}
 }
 

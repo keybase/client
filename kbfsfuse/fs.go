@@ -76,10 +76,11 @@ func (*Root) Attr(ctx context.Context, a *fuse.Attr) error {
 
 var _ fs.NodeRequestLookuper = (*Root)(nil)
 
-// getMD is a wrapper over KBFSOps.GetRootMDForHandle that gives
+// getMD is a wrapper over KBFSOps.GetRootPathForHandle that gives
 // useful results for home folders with public subdirectories.
 func (r *Root) getMD(dh *libkbfs.DirHandle) (libkbfs.DirID, libkbfs.BlockPointer, error) {
-	md, err := r.fs.config.KBFSOps().GetRootMDForHandle(dh)
+	rootPath, rootDe, err :=
+		r.fs.config.KBFSOps().GetOrCreateRootPathForHandle(dh)
 	if err != nil {
 		if _, ok := err.(*libkbfs.ReadAccessError); ok && dh.HasPublic() {
 			// This user cannot get the metadata for the folder, but
@@ -90,7 +91,7 @@ func (r *Root) getMD(dh *libkbfs.DirHandle) (libkbfs.DirID, libkbfs.BlockPointer
 		return libkbfs.NullDirID, libkbfs.BlockPointer{}, err
 	}
 
-	return md.ID, md.Data().Dir.BlockPointer, nil
+	return rootPath.TopDir, rootDe.BlockPointer, nil
 }
 
 // Lookup implements the fs.NodeRequestLookuper interface for Root.
@@ -151,11 +152,10 @@ func (r *Root) getDirent(ctx context.Context, work <-chan libkbfs.DirID, results
 			if !ok {
 				return nil
 			}
-			md, err := r.fs.config.KBFSOps().GetRootMD(dirID)
+			_, _, dh, err := r.fs.config.KBFSOps().GetRootPath(dirID)
 			if err != nil {
 				return err
 			}
-			dh := md.GetDirHandle()
 			name := dh.ToString(r.fs.config)
 			results <- fuse.Dirent{
 				Type: fuse.DT_Dir,
