@@ -99,3 +99,13 @@ func TestUntrack(t *testing.T) {
 	}
 	return
 }
+
+func TestUntrackRemoteOnly(t *testing.T) {
+	tc := SetupEngineTest(t, "untrack")
+	defer tc.Cleanup()
+	fu := CreateAndSignupFakeUser(tc, "untrk")
+
+	trackAliceWithOptions(tc, fu, TrackOptions{TrackLocalOnly: false})
+	untrackAlice(tc, fu)
+	assertUntracked(t, fu, "t_alice")
+}

@@ -359,12 +359,7 @@ func ParseWebServiceBinding(base GenericChainLink) (ret RemoteProofChainLink, e 
 func remoteProofInsertIntoTable(l RemoteProofChainLink, tab *IdentityTable) {
 	tab.insertLink(l)
 	if k := l.TableKey(); len(k) > 0 {
-		v, found := tab.remoteProofs[k]
-		if !found {
-			v = make([]RemoteProofChainLink, 0, 1)
-		}
-		v = append(v, l)
-		tab.remoteProofs[k] = v
+		tab.remoteProofs[k] = append(tab.remoteProofs[k], l)
 	}
 }
 
@@ -404,12 +399,7 @@ func (l *TrackChainLink) ToDisplayString() string {
 
 func (l *TrackChainLink) insertIntoTable(tab *IdentityTable) {
 	tab.insertLink(l)
-	list, found := tab.tracks[l.whom]
-	if !found {
-		list = make([]*TrackChainLink, 0, 1)
-	}
-	list = append(list, l)
-	tab.tracks[l.whom] = list
+	tab.tracks[l.whom] = append(tab.tracks[l.whom], l)
 }
 
 func (l *TrackChainLink) GetTrackedFOKID() (ret FOKID) {
@@ -513,7 +503,6 @@ func (l *TrackChainLink) ToServiceBlocks() (ret []*ServiceBlock) {
 	if err != nil {
 		return
 	}
-	ret = make([]*ServiceBlock, 0, ln)
 	for i := 0; i < ln; i++ {
 		proof := w.AtIndex(i).AtKey("remote_key_proof")
 		if i, e := proof.AtKey("state").GetInt(); e != nil {
@@ -991,17 +980,15 @@ func NewIdentityTable(eldest FOKID, sc *SigChain, h *SigHints) *IdentityTable {
 		links:        make(map[keybase1.SigID]TypedChainLink),
 		remoteProofs: make(map[string][]RemoteProofChainLink),
 		tracks:       make(map[string][]*TrackChainLink),
-		Order:        make([]TypedChainLink, 0, sc.Len()),
 		sigHints:     h,
-		activeProofs: make([]RemoteProofChainLink, 0, sc.Len()),
 		eldest:       eldest,
 	}
-	ret.Populate()
-	ret.CollectAndDedupeActiveProofs()
+	ret.populate()
+	ret.collectAndDedupeActiveProofs()
 	return ret
 }
 
-func (idt *IdentityTable) Populate() {
+func (idt *IdentityTable) populate() {
 	G.Log.Debug("+ Populate ID Table")
 	for _, link := range idt.sigChain.LimitToEldestFOKID(idt.eldest) {
 		tl, w := NewTypedChainLink(link)
@@ -1086,7 +1073,7 @@ func (idt *IdentityTable) GetRevokedCryptocurrencyForTesting() []CryptocurrencyC
 	return ret
 }
 
-func (idt *IdentityTable) CollectAndDedupeActiveProofs() {
+func (idt *IdentityTable) collectAndDedupeActiveProofs() {
 	seen := make(map[string]bool)
 	tab := idt.activeProofs
 	for _, list := range idt.remoteProofs {
@@ -1126,7 +1113,7 @@ func (idt *IdentityTable) Identify(is IdentifyState, ui IdentifyUI) {
 		wg.Add(1)
 		go func(l *LinkCheckResult) {
 			defer wg.Done()
-			idt.IdentifyActiveProof(l, is, ui)
+			idt.identifyActiveProof(l, is, ui)
 		}(lcr)
 	}
 
@@ -1140,7 +1127,7 @@ func (idt *IdentityTable) Identify(is IdentifyState, ui IdentifyUI) {
 
 //=========================================================================
 
-func (idt *IdentityTable) IdentifyActiveProof(lcr *LinkCheckResult, is IdentifyState, ui IdentifyUI) {
+func (idt *IdentityTable) identifyActiveProof(lcr *LinkCheckResult, is IdentifyState, ui IdentifyUI) {
 	idt.proofRemoteCheck((is.Track != nil), lcr)
 	lcr.link.DisplayCheck(ui, *lcr)
 }

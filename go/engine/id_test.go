@@ -1,6 +1,7 @@
 package engine
 
 import (
+	"fmt"
 	"reflect"
 	"testing"
 
@@ -182,12 +183,14 @@ func (ui *FakeIdentifyUI) FinishWebProofCheck(proof keybase1.RemoteProof, result
 	if ui.Proofs == nil {
 		ui.Proofs = make(map[string]string)
 	}
+	fmt.Printf("adding web proof: %+v\n", proof)
 	ui.Proofs[proof.Key] = proof.Value
 }
 func (ui *FakeIdentifyUI) FinishSocialProofCheck(proof keybase1.RemoteProof, result keybase1.LinkCheckResult) {
 	if ui.Proofs == nil {
 		ui.Proofs = make(map[string]string)
 	}
+	fmt.Printf("adding social proof: %+v\n", proof)
 	ui.Proofs[proof.Key] = proof.Value
 }
 func (ui *FakeIdentifyUI) FinishAndPrompt(*keybase1.IdentifyOutcome) (res keybase1.FinishAndPromptRes, err error) {
