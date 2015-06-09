@@ -27,13 +27,7 @@ func NewBuckDict() *BucketDict {
 
 func (bd *BucketDict) Add(k string, v *GpgPrimaryKey) {
 	k = strings.ToLower(k)
-	var bucket []*GpgPrimaryKey
-	var found bool
-	if bucket, found = bd.d[k]; !found {
-		bucket = make([]*GpgPrimaryKey, 0, 1)
-	}
-	bucket = append(bucket, v)
-	bd.d[k] = bucket
+	bd.d[k] = append(bd.d[k], v)
 }
 
 func (bd BucketDict) Get(k string) []*GpgPrimaryKey {
@@ -62,7 +56,7 @@ func Uniquify(inp []string) []string {
 	for _, s := range inp {
 		m[strings.ToLower(s)] = true
 	}
-	ret := make([]string, 0, len(inp))
+	ret := make([]string, 0, len(m))
 	for k := range m {
 		ret = append(ret, k)
 	}
@@ -237,9 +231,9 @@ func (k *GpgPrimaryKey) GetPgpIdentities() []keybase1.PgpIdentity {
 }
 
 func (k *GpgPrimaryKey) GetEmails() []string {
-	ret := make([]string, 0, len(k.identities))
-	for _, i := range k.identities {
-		ret = append(ret, i.Email)
+	ret := make([]string, len(k.identities))
+	for i, id := range k.identities {
+		ret[i] = id.Email
 	}
 	return ret
 }
@@ -353,7 +347,6 @@ func (ki *GpgKeyIndex) Sort() {
 
 func NewGpgKeyIndex() *GpgKeyIndex {
 	return &GpgKeyIndex{
-		Keys:         make([]*GpgPrimaryKey, 0, 1),
 		Emails:       NewBuckDict(),
 		Fingerprints: NewBuckDict(),
 		Id64s:        NewBuckDict(),
@@ -381,7 +374,7 @@ func (ki *GpgKeyIndex) PushElement(e GpgIndexElement) {
 }
 
 func (ki *GpgKeyIndex) AllFingerprints() []PgpFingerprint {
-	ret := make([]PgpFingerprint, 0, 1)
+	var ret []PgpFingerprint
 	for _, k := range ki.Keys {
 		if fp := k.GetFingerprint(); fp != nil {
 			ret = append(ret, *fp)

@@ -328,11 +328,7 @@ func NewTrackLookup(link *TrackChainLink) *TrackLookup {
 	for _, sb := range sbs {
 		set.Add(sb)
 		k, v := sb.ToKeyValuePair()
-		list, found := ids[k]
-		if !found {
-			list = make([]string, 0, 1)
-		}
-		ids[k] = append(list, v)
+		ids[k] = append(ids[k], v)
 	}
 	ret := &TrackLookup{link: link, set: set, ids: ids}
 	return ret

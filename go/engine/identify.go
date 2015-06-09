@@ -252,8 +252,7 @@ func (e *Identify) loadExpr(assertion string) error {
 }
 
 func (e *Identify) findBestComponent(expr libkb.AssertionExpression) string {
-	urls := make([]libkb.AssertionUrl, 0, 1)
-	urls = expr.CollectUrls(urls)
+	urls := expr.CollectUrls(nil)
 	if len(urls) == 0 {
 		return ""
 	}

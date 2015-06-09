@@ -179,7 +179,7 @@ func (e *ListTrackingEngine) runTable(trackList TrackList) (err error) {
 }
 
 func (e *ListTrackingEngine) runJSON(trackList TrackList, verbose bool) (err error) {
-	tmp := make([]*jsonw.Wrapper, 0, 1)
+	var tmp []*jsonw.Wrapper
 	for _, link := range trackList {
 		var rec *jsonw.Wrapper
 		var e2 error

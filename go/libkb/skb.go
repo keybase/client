@@ -358,7 +358,6 @@ type SKBKeyringFile struct {
 func NewSKBKeyringFile(n string) *SKBKeyringFile {
 	return &SKBKeyringFile{
 		filename: n,
-		Blocks:   make([]*SKB, 0, 1),
 		fpIndex:  make(map[PgpFingerprint]*SKB),
 		kidIndex: make(map[KIDMapKey]*SKB),
 		dirty:    false,

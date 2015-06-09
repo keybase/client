@@ -59,8 +59,7 @@ func (s *Base64Finder) search(searchFor []byte, url bool) bool {
 }
 
 func (s *Base64Finder) findOne(i int) (string, int) {
-
-	parts := make([]string, 0, 1)
+	var parts []string
 	l := len(s.lines)
 	state := 0
 
