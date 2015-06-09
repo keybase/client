@@ -76,7 +76,7 @@ func (*Root) Attr(ctx context.Context, a *fuse.Attr) error {
 
 var _ fs.NodeRequestLookuper = (*Root)(nil)
 
-// getMD is a wrapper over KBFSOps.GetRootPathForHandle that gives
+// getMD is a wrapper over KBFSOps.GetOrCreateRootPathForHandle that gives
 // useful results for home folders with public subdirectories.
 func (r *Root) getMD(dh *libkbfs.DirHandle) (libkbfs.DirID, libkbfs.BlockPointer, error) {
 	rootPath, rootDe, err :=
