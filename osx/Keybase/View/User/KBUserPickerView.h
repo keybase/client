@@ -24,6 +24,9 @@
 @property KBListView *searchResultsView;
 @property (weak) id<KBUserPickerViewDelegate> delegate;
 
+@property CGPoint searchPosition;
+@property (readonly) KBPopover *popover;
+
 - (void)hideSearch;
 
 - (NSArray *)usernames;

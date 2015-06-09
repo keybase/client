@@ -9,7 +9,6 @@
 #import "KBUserPickerView.h"
 
 #import "KBSearchResultView.h"
-#import "AppDelegate.h"
 #import "KBRunOver.h"
 #import "KBSearcher.h"
 #import "KBUserView.h"
@@ -78,7 +77,7 @@
 
   GHWeakSelf gself = self;
   _searchResultsView = [KBListView listViewWithPrototypeClass:KBUserCell.class rowHeight:56];
-  //[_searchResultsView setBorderEnabled:YES];
+  //_searchResultsView.scrollView.borderType = NSBezelBorder;
   _searchResultsView.cellSetBlock = ^(KBUserView *view, KBRUserSummary *userSummary, NSIndexPath *indexPath, NSTableColumn *tableColumn, KBListView *listView, BOOL dequeued) {
     [view setUserSummary:userSummary];
   };
@@ -303,7 +302,12 @@
 
 - (void)showSearch {
   if (!self.popover.isShowing && [KBTextField isFocused:_tokensField]) {
-    [self.popover show:_tokensField];
+
+    if (self.searchPosition.x != 0 || self.searchPosition.y != 0) {
+      [self.popover show:self.searchPosition options:KBPopoverOptionsShadow sender:self];
+    } else {
+      [self.popover show:CGPointZero options:KBPopoverOptionsShadow sender:_tokensField];
+    }
   }
 }
 
