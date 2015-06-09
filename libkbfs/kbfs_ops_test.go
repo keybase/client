@@ -174,9 +174,44 @@ func expectBlock(config *ConfigMock, id BlockID, block Block,
 	}).Return(err)
 }
 
-func expectGetTLFCryptKey(config *ConfigMock) {
-	config.mockKeyman.EXPECT().GetTLFCryptKey(
-		gomock.Any(), gomock.Any()).Return(TLFCryptKey{}, nil)
+// rmdMatcher implements the gomock.Matcher interface to compare
+// RootMetadata objects. We can't just compare pointers as copies are
+// made for mutations.
+type rmdMatcher struct {
+	rmd *RootMetadata
+}
+
+// Matches returns whether x is a *RootMetadata and it has the same ID
+// and latest key generation as m.rmd.
+func (m rmdMatcher) Matches(x interface{}) bool {
+	rmd, ok := x.(*RootMetadata)
+	if !ok {
+		return false
+	}
+	return (rmd.ID == m.rmd.ID) && (rmd.LatestKeyGeneration() == m.rmd.LatestKeyGeneration())
+}
+
+// String implements the Matcher interfaces for rmdMatcher.
+func (m rmdMatcher) String() string {
+	return fmt.Sprintf("Matches RMD %v", m.rmd)
+}
+
+func expectGetTLFCryptKeyForEncryption(config *ConfigMock, rmd *RootMetadata) {
+	config.mockKeyman.EXPECT().GetTLFCryptKeyForEncryption(
+		rmdMatcher{rmd}).Return(TLFCryptKey{}, nil)
+}
+
+func expectGetTLFCryptKeyForMDDecryption(config *ConfigMock, rmd *RootMetadata) {
+	config.mockKeyman.EXPECT().GetTLFCryptKeyForMDDecryption(
+		rmdMatcher{rmd}).Return(TLFCryptKey{}, nil)
+}
+
+// TODO: Add test coverage for decryption of blocks with an old key
+// generation.
+
+func expectGetTLFCryptKeyForBlockDecryption(config *ConfigMock, rmd *RootMetadata, blockPtr BlockPointer) {
+	config.mockKeyman.EXPECT().GetTLFCryptKeyForBlockDecryption(
+		rmdMatcher{rmd}, blockPtr).Return(TLFCryptKey{}, nil)
 }
 
 func fillInNewMD(config *ConfigMock, rmd *RootMetadata) (
@@ -184,7 +219,7 @@ func fillInNewMD(config *ConfigMock, rmd *RootMetadata) (
 	config.mockKeyman.EXPECT().Rekey(rmd).Do(func(rmd *RootMetadata) {
 		rmd.AddNewKeys(DirKeyBundle{})
 	}).Return(nil)
-	expectGetTLFCryptKey(config)
+	expectGetTLFCryptKeyForEncryption(config, rmd)
 	rootID = BlockID{42}
 	plainSize = 3
 	block = []byte{1, 2, 3, 4}
@@ -330,14 +365,15 @@ func TestKBFSOpsGetBaseDirUncachedSuccess(t *testing.T) {
 
 	rootID := BlockID{42}
 	dirBlock := NewDirBlock().(*DirBlock)
-	node := PathNode{BlockPointer{rootID, rmd.LatestKeyGeneration(), config.DataVersion(), u, 0}, ""}
+	blockPtr := BlockPointer{rootID, rmd.LatestKeyGeneration(), config.DataVersion(), u, 0}
+	node := PathNode{blockPtr, ""}
 	p := Path{id, []PathNode{node}}
 
 	// cache miss means fetching metadata and getting read key
 	err := &NoSuchBlockError{rootID}
 	config.mockBcache.EXPECT().Get(rootID).Return(nil, err)
 
-	expectGetTLFCryptKey(config)
+	expectGetTLFCryptKeyForBlockDecryption(config, rmd, blockPtr)
 	expectBlock(config, rootID, dirBlock, nil)
 	config.mockBcache.EXPECT().Put(rootID, gomock.Any(), false).Return(nil)
 
@@ -385,14 +421,15 @@ func TestKBFSOpsGetBaseDirUncachedFailMissingBlock(t *testing.T) {
 
 	rootID := BlockID{42}
 	dirBlock := NewDirBlock().(*DirBlock)
-	node := PathNode{BlockPointer{rootID, rmd.LatestKeyGeneration(), config.DataVersion(), u, 0}, ""}
+	blockPtr := BlockPointer{rootID, rmd.LatestKeyGeneration(), config.DataVersion(), u, 0}
+	node := PathNode{blockPtr, ""}
 	p := Path{id, []PathNode{node}}
 
 	// cache miss means fetching metadata and getting read key, then
 	// fail block fetch
 	err := &NoSuchBlockError{rootID}
 	config.mockBcache.EXPECT().Get(rootID).Return(nil, err)
-	expectGetTLFCryptKey(config)
+	expectGetTLFCryptKeyForBlockDecryption(config, rmd, blockPtr)
 	expectBlock(config, rootID, dirBlock, err)
 
 	if _, err2 := config.KBFSOps().GetDir(p); err2 == nil {
@@ -479,7 +516,7 @@ func expectSyncBlock(
 	skipSync int, refBytes uint64, unrefBytes uint64,
 	checkMD func(*RootMetadata), newRmd **RootMetadata, newBlocks []*DirBlock) (
 	Path, *gomock.Call) {
-	expectGetTLFCryptKey(config)
+	expectGetTLFCryptKeyForEncryption(config, rmd)
 
 	// construct new path
 	newPath := Path{
@@ -1546,13 +1583,14 @@ func TestKBFSOpsServerReadFullSuccess(t *testing.T) {
 	fileBlock := NewFileBlock().(*FileBlock)
 	fileBlock.Contents = []byte{1, 2, 3, 4, 5, 6, 7, 8, 9, 10}
 	node := PathNode{BlockPointer{rootID, rmd.LatestKeyGeneration(), config.DataVersion(), u, 0}, ""}
-	fileNode := PathNode{BlockPointer{fileID, rmd.LatestKeyGeneration(), config.DataVersion(), u, 15}, "f"}
+	fileBlockPtr := BlockPointer{fileID, rmd.LatestKeyGeneration(), config.DataVersion(), u, 15}
+	fileNode := PathNode{fileBlockPtr, "f"}
 	p := Path{id, []PathNode{node, fileNode}}
 
 	// cache miss means fetching metadata and getting read key
 	err := &NoSuchBlockError{rootID}
 	config.mockBcache.EXPECT().Get(fileID).Return(nil, err)
-	expectGetTLFCryptKey(config)
+	expectGetTLFCryptKeyForBlockDecryption(config, rmd, fileBlockPtr)
 	expectBlock(config, fileID, fileBlock, nil)
 	config.mockBcache.EXPECT().Put(fileID, gomock.Any(), false).Return(nil)
 
@@ -1578,13 +1616,14 @@ func TestKBFSOpsServerReadFailNoSuchBlock(t *testing.T) {
 	fileBlock := NewFileBlock().(*FileBlock)
 	fileBlock.Contents = []byte{1, 2, 3, 4, 5, 6, 7, 8, 9, 10}
 	node := PathNode{BlockPointer{rootID, rmd.LatestKeyGeneration(), config.DataVersion(), u, 0}, ""}
-	fileNode := PathNode{BlockPointer{fileID, rmd.LatestKeyGeneration(), config.DataVersion(), u, 0}, "f"}
+	fileBlockPtr := BlockPointer{fileID, rmd.LatestKeyGeneration(), config.DataVersion(), u, 0}
+	fileNode := PathNode{fileBlockPtr, "f"}
 	p := Path{id, []PathNode{node, fileNode}}
 
 	// cache miss means fetching metadata and getting read key
 	err := &NoSuchBlockError{rootID}
 	config.mockBcache.EXPECT().Get(fileID).Return(nil, err)
-	expectGetTLFCryptKey(config)
+	expectGetTLFCryptKeyForBlockDecryption(config, rmd, fileBlockPtr)
 	expectBlock(config, fileID, fileBlock, err)
 
 	n := len(fileBlock.Contents)
@@ -2497,7 +2536,7 @@ func TestSyncDirtyMultiBlocksSuccess(t *testing.T) {
 	config.mockBcache.EXPECT().Get(fileID).AnyTimes().Return(fileBlock, nil)
 
 	// the split is good
-	expectGetTLFCryptKey(config)
+	expectGetTLFCryptKeyForEncryption(config, rmd)
 	pad2 := 5
 	pad4 := 8
 	expectSyncDirtyBlock(config, id2, block2, int64(0), pad2)
@@ -2588,7 +2627,7 @@ func TestSyncDirtyMultiBlocksSplitInBlockSuccess(t *testing.T) {
 	config.mockBcache.EXPECT().Get(rootID).AnyTimes().Return(rootBlock, nil)
 	config.mockBcache.EXPECT().Get(fileID).AnyTimes().Return(fileBlock, nil)
 	config.mockBcache.EXPECT().Get(id3).Return(block3, nil)
-	expectGetTLFCryptKey(config)
+	expectGetTLFCryptKeyForEncryption(config, rmd)
 
 	// the split is in the middle
 	pad2 := 0
@@ -2746,7 +2785,7 @@ func TestSyncDirtyMultiBlocksCopyNextBlockSuccess(t *testing.T) {
 	config.mockBcache.EXPECT().IsDirty(id2).AnyTimes().Return(false)
 	config.mockBcache.EXPECT().Get(id4).Return(block4, nil)
 	config.mockBcache.EXPECT().IsDirty(id4).Times(2).Return(false)
-	expectGetTLFCryptKey(config)
+	expectGetTLFCryptKeyForEncryption(config, rmd)
 
 	// the split is in the middle
 	pad1 := 14

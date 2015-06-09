@@ -390,15 +390,37 @@ func (_m *MockKeyManager) EXPECT() *_MockKeyManagerRecorder {
 	return _m.recorder
 }
 
-func (_m *MockKeyManager) GetTLFCryptKey(dir Path, md *RootMetadata) (TLFCryptKey, error) {
-	ret := _m.ctrl.Call(_m, "GetTLFCryptKey", dir, md)
+func (_m *MockKeyManager) GetTLFCryptKeyForEncryption(md *RootMetadata) (TLFCryptKey, error) {
+	ret := _m.ctrl.Call(_m, "GetTLFCryptKeyForEncryption", md)
 	ret0, _ := ret[0].(TLFCryptKey)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-func (_mr *_MockKeyManagerRecorder) GetTLFCryptKey(arg0, arg1 interface{}) *gomock.Call {
-	return _mr.mock.ctrl.RecordCall(_mr.mock, "GetTLFCryptKey", arg0, arg1)
+func (_mr *_MockKeyManagerRecorder) GetTLFCryptKeyForEncryption(arg0 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "GetTLFCryptKeyForEncryption", arg0)
+}
+
+func (_m *MockKeyManager) GetTLFCryptKeyForMDDecryption(md *RootMetadata) (TLFCryptKey, error) {
+	ret := _m.ctrl.Call(_m, "GetTLFCryptKeyForMDDecryption", md)
+	ret0, _ := ret[0].(TLFCryptKey)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+func (_mr *_MockKeyManagerRecorder) GetTLFCryptKeyForMDDecryption(arg0 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "GetTLFCryptKeyForMDDecryption", arg0)
+}
+
+func (_m *MockKeyManager) GetTLFCryptKeyForBlockDecryption(md *RootMetadata, blockPtr BlockPointer) (TLFCryptKey, error) {
+	ret := _m.ctrl.Call(_m, "GetTLFCryptKeyForBlockDecryption", md, blockPtr)
+	ret0, _ := ret[0].(TLFCryptKey)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+func (_mr *_MockKeyManagerRecorder) GetTLFCryptKeyForBlockDecryption(arg0, arg1 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "GetTLFCryptKeyForBlockDecryption", arg0, arg1)
 }
 
 func (_m *MockKeyManager) Rekey(md *RootMetadata) error {

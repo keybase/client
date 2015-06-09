@@ -176,10 +176,24 @@ type KBPKI interface {
 	GetCurrentCryptPublicKey() (CryptPublicKey, error)
 }
 
-// KeyManager fetchs and constructs the keys needed for KBFS file operations.
+// KeyManager fetches and constructs the keys needed for KBFS file
+// operations.
 type KeyManager interface {
-	// GetTLFCryptKey gets the crypt key for the given TLF.
-	GetTLFCryptKey(dir Path, md *RootMetadata) (TLFCryptKey, error)
+	// GetTLFCryptKeyForEncryption gets the crypt key to use for
+	// encryption (i.e., with the latest key generation) for the
+	// TLF with the given metadata.
+	GetTLFCryptKeyForEncryption(md *RootMetadata) (TLFCryptKey, error)
+
+	// GetTLFCryptKeyForMDDecryption gets the crypt key to use for
+	// the TLF with the given metadata to decrypt the private
+	// portion of the metadata.
+	GetTLFCryptKeyForMDDecryption(md *RootMetadata) (TLFCryptKey, error)
+
+	// GetTLFCryptKeyForBlockDecryption gets the crypt key to use
+	// for the TLF with the given metadata to decrypt the block
+	// pointed to by the given pointer.
+	GetTLFCryptKeyForBlockDecryption(md *RootMetadata, blockPtr BlockPointer) (TLFCryptKey, error)
+
 	// Rekey creates a new epoch of keys for the given directory
 	Rekey(md *RootMetadata) error
 }

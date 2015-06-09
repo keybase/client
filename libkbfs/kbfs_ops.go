@@ -187,11 +187,7 @@ func (fs *KBFSOpsStandard) initMDInChannel(md *RootMetadata) error {
 	if keyGen != expectedKeyGen {
 		return InvalidKeyGenerationError{*md.GetDirHandle(), keyGen}
 	}
-	path := Path{md.ID, []PathNode{PathNode{
-		BlockPointer{BlockID{}, keyGen, fs.config.DataVersion(), user, 0},
-		md.GetDirHandle().ToString(fs.config),
-	}}}
-	tlfCryptKey, err := fs.config.KeyManager().GetTLFCryptKey(path, md)
+	tlfCryptKey, err := fs.config.KeyManager().GetTLFCryptKeyForEncryption(md)
 	if err != nil {
 		return err
 	}
@@ -213,6 +209,10 @@ func (fs *KBFSOpsStandard) initMDInChannel(md *RootMetadata) error {
 		Mtime: time.Now().UnixNano(),
 		Ctime: time.Now().UnixNano(),
 	}
+	path := Path{md.ID, []PathNode{PathNode{
+		BlockPointer{BlockID{}, keyGen, fs.config.DataVersion(), user, 0},
+		md.GetDirHandle().ToString(fs.config),
+	}}}
 	md.AddRefBlock(path, md.data.Dir.BlockPointer)
 	md.UnrefBytes = 0
 
@@ -335,7 +335,7 @@ func (fs *KBFSOpsStandard) getBlockInChannel(
 	if md, err := fs.getMDInChannel(dir, rtype); err != nil {
 		return nil, err
 	} else if k, err :=
-		fs.config.KeyManager().GetTLFCryptKey(dir, md); err != nil {
+		fs.config.KeyManager().GetTLFCryptKeyForBlockDecryption(md, dir.TailPointer()); err != nil {
 		return nil, err
 	} else if err := bops.Get(id, dir.TailPointer(), k, block); err != nil {
 		return nil, err
@@ -547,7 +547,7 @@ func (fs *KBFSOpsStandard) syncBlockInChannel(md *RootMetadata,
 	if err != nil {
 		return Path{}, DirEntry{}, err
 	}
-	tlfCryptKey, err := fs.config.KeyManager().GetTLFCryptKey(dir, md)
+	tlfCryptKey, err := fs.config.KeyManager().GetTLFCryptKeyForEncryption(md)
 	if err != nil {
 		return Path{}, DirEntry{}, err
 	}
@@ -1714,7 +1714,7 @@ func (fs *KBFSOpsStandard) syncInChannel(file Path) (Path, error) {
 			}
 		}
 
-		tlfCryptKey, err := fs.config.KeyManager().GetTLFCryptKey(file, md)
+		tlfCryptKey, err := fs.config.KeyManager().GetTLFCryptKeyForEncryption(md)
 		if err != nil {
 			return Path{}, err
 		}
