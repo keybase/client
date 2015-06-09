@@ -13,7 +13,7 @@ type IDEngineArg struct {
 type IDRes struct {
 	Outcome    *libkb.IdentifyOutcome
 	User       *libkb.User
-	TrackToken string
+	TrackToken libkb.IdentifyCacheToken
 }
 
 // IDEnginge is the type used by cmd_id Run, daemon id handler.
@@ -121,6 +121,6 @@ func (ir *IDRes) Export() *keybase1.IdentifyRes {
 	return &keybase1.IdentifyRes{
 		Outcome:    *((*ir.Outcome).Export()),
 		User:       ir.User.Export(),
-		TrackToken: ir.TrackToken,
+		TrackToken: ir.TrackToken.Export(),
 	}
 }

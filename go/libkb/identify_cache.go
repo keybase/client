@@ -21,8 +21,8 @@ func NewIdentifyCache() *IdentifyCache {
 	return res
 }
 
-func (c *IdentifyCache) Get(key string) (*IdentifyOutcome, error) {
-	v, err := c.cache.Get(key)
+func (c *IdentifyCache) Get(key IdentifyCacheToken) (*IdentifyOutcome, error) {
+	v, err := c.cache.Get(string(key))
 	if err != nil {
 		return nil, err
 	}
@@ -33,7 +33,7 @@ func (c *IdentifyCache) Get(key string) (*IdentifyOutcome, error) {
 	return outcome, nil
 }
 
-func (c *IdentifyCache) Insert(outcome *IdentifyOutcome) (string, error) {
+func (c *IdentifyCache) Insert(outcome *IdentifyOutcome) (IdentifyCacheToken, error) {
 	rb, err := RandBytes(16)
 	if err != nil {
 		return "", err
@@ -42,9 +42,19 @@ func (c *IdentifyCache) Insert(outcome *IdentifyOutcome) (string, error) {
 	if err := c.cache.Set(key, outcome); err != nil {
 		return "", err
 	}
-	return key, nil
+	return IdentifyCacheToken(key), nil
 }
 
-func (c *IdentifyCache) Delete(key string) error {
-	return c.cache.Delete(key)
+func (c *IdentifyCache) Delete(key IdentifyCacheToken) error {
+	return c.cache.Delete(string(key))
+}
+
+type IdentifyCacheToken string
+
+func (t IdentifyCacheToken) Export() string {
+	return string(t)
+}
+
+func ImportIdentifyCacheToken(t string) IdentifyCacheToken {
+	return IdentifyCacheToken(t)
 }

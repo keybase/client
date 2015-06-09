@@ -14,7 +14,7 @@ type Identify struct {
 	userExpr   libkb.AssertionExpression
 	outcome    *libkb.IdentifyOutcome
 	trackInst  *libkb.TrackInstructions
-	trackToken string
+	trackToken libkb.IdentifyCacheToken
 	libkb.Contextified
 }
 
@@ -135,7 +135,7 @@ func (e *Identify) Outcome() *libkb.IdentifyOutcome {
 	return e.outcome
 }
 
-func (e *Identify) TrackToken() string {
+func (e *Identify) TrackToken() libkb.IdentifyCacheToken {
 	return e.trackToken
 }
 

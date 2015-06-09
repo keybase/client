@@ -21,7 +21,7 @@ type TrackToken struct {
 }
 
 type TrackTokenArg struct {
-	Token   string
+	Token   libkb.IdentifyCacheToken
 	Me      *libkb.User
 	Options TrackOptions
 }

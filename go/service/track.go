@@ -2,6 +2,7 @@ package service
 
 import (
 	"github.com/keybase/client/go/engine"
+	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/protocol/go"
 	"github.com/maxtaco/go-framed-msgpack-rpc/rpc2"
 )
@@ -35,7 +36,7 @@ func (h *TrackHandler) Track(arg keybase1.TrackArg) error {
 
 func (h *TrackHandler) TrackWithToken(arg keybase1.TrackWithTokenArg) error {
 	earg := engine.TrackTokenArg{
-		Token: arg.TrackToken,
+		Token: libkb.ImportIdentifyCacheToken(arg.TrackToken),
 		Options: engine.TrackOptions{
 			TrackLocalOnly: arg.LocalOnly,
 			TrackApprove:   arg.ApproveRemote,
