@@ -93,22 +93,22 @@ func (s SocialProofList) Export() []keybase1.TrackProof {
 	return r
 }
 
-type PubKey struct {
+type PGPKey struct {
 	KeyFingerprint string `json:"key_fingerprint"`
 	Bits           int    `json:"bits"`
 	Algo           int    `json:"algo"`
 }
 
-func (p *PubKey) Export() keybase1.PublicKey {
+func (p *PGPKey) Export() keybase1.PublicKey {
 	return keybase1.PublicKey{
 		PGPFingerprint: p.KeyFingerprint,
 	}
 }
 
 type Proofs struct {
-	Social    SocialProofList `json:"social,omitempty"`
-	Web       WebProofList    `json:"web,omitempty"`
-	PublicKey *PubKey         `json:"public_key,omitempty"`
+	Social  SocialProofList `json:"social,omitempty"`
+	Web     WebProofList    `json:"web,omitempty"`
+	PGPKeys []*PGPKey       `json:"pgp_keys,omitempty"`
 }
 
 func (p *Proofs) Export() keybase1.Proofs {
@@ -119,8 +119,11 @@ func (p *Proofs) Export() keybase1.Proofs {
 		Web:    p.Web.Export(),
 		Social: p.Social.Export(),
 	}
-	if p.PublicKey != nil {
-		r.PublicKeys = []keybase1.PublicKey{p.PublicKey.Export()}
+	if len(p.PGPKeys) > 0 {
+		r.PublicKeys = make([]keybase1.PublicKey, len(p.PGPKeys))
+		for i, k := range p.PGPKeys {
+			r.PublicKeys[i] = k.Export()
+		}
 	}
 	return r
 }
