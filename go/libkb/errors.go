@@ -958,3 +958,9 @@ type UnknownSpecialKIDError struct {
 func (u UnknownSpecialKIDError) Error() string {
 	return fmt.Sprintf("Unknown special KID: %s", u.k)
 }
+
+type IdentifyTimeoutError struct{}
+
+func (e IdentifyTimeoutError) Error() string {
+	return "Identification expired."
+}

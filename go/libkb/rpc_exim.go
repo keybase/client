@@ -682,3 +682,11 @@ func (e PGPDecError) ToStatus() (s keybase1.Status) {
 	s.Desc = e.Msg
 	return
 }
+
+func (e IdentifyTimeoutError) ToStatus() keybase1.Status {
+	return keybase1.Status{
+		Code: SC_IDENTIFICATION_EXPIRED,
+		Name: "IDENTIFICATION_EXPIRED",
+		Desc: e.Error(),
+	}
+}

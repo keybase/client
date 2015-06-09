@@ -24,6 +24,9 @@ func NewIdentifyCache() *IdentifyCache {
 func (c *IdentifyCache) Get(key IdentifyCacheToken) (*IdentifyOutcome, error) {
 	v, err := c.cache.Get(string(key))
 	if err != nil {
+		if err == ramcache.ErrNotFound {
+			return nil, IdentifyTimeoutError{}
+		}
 		return nil, err
 	}
 	outcome, ok := v.(*IdentifyOutcome)

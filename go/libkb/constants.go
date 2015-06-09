@@ -61,8 +61,7 @@ var SUBKEY_EXPIRE_IN = 24 * 60 * 60 * 365 * 4     // 4 years
 
 var TRACK_SESSION_TIMEOUT = time.Minute
 
-// Is there any canonical list of errnos that this matches up to?
-// When adding new ones, what should we do?
+// Status codes.  This list should match keybase/lib/constants.iced.
 const (
 	SC_OK                        = 0
 	SC_LOGIN_REQUIRED            = 201
@@ -84,6 +83,7 @@ const (
 	SC_STREAM_EOF                = 1504
 	SC_API_NETWORK_ERROR         = 1601
 	SC_PROOF_ERROR               = 1701
+	SC_IDENTIFICATION_EXPIRED    = 1702
 )
 
 const (
