@@ -551,10 +551,25 @@ type PathNode struct {
 	Name string
 }
 
+// BranchName is the name given to a KBFS branch, for a particular
+// top-level folder.  Currently, the notion of a "branch" is
+// client-side only, and can be used to specify which root to use for
+// a top-level folder.  (For example, viewing a historical archive
+// could use a different branch name.)
+type BranchName string
+
+const (
+	// MasterBranch represents the mainline branch for a top-level
+	// folder.  Set to the empty string so that the default will be
+	// the master branch.
+	MasterBranch BranchName = ""
+)
+
 // Path represents the full KBFS path to a particular location, so
 // that a flush can traverse backwards and fix up ids along the way.
 type Path struct {
 	TopDir DirID
+	Branch BranchName // master branch, by default
 	Path   []PathNode
 }
 

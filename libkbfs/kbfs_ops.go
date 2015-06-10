@@ -580,7 +580,11 @@ func (fs *KBFSOpsStandard) syncBlockInChannel(md *RootMetadata,
 	// in the path
 	currBlock := newBlock
 	currName := name
-	newPath := Path{dir.TopDir, make([]PathNode, 0, len(dir.Path))}
+	newPath := Path{
+		TopDir: dir.TopDir,
+		Branch: dir.Branch,
+		Path:   make([]PathNode, 0, len(dir.Path)),
+	}
 	bps := newBlockPutState(len(dir.Path))
 	refPath := *dir.ChildPathNoPtr(name)
 	var newDe DirEntry
@@ -610,7 +614,11 @@ func (fs *KBFSOpsStandard) syncBlockInChannel(md *RootMetadata,
 			md.PrevRoot = fs.heads[dir.TopDir]
 			fs.globalStateLock.RUnlock()
 		} else {
-			prevDir := Path{dir.TopDir, dir.Path[:prevIdx+1]}
+			prevDir := Path{
+				TopDir: dir.TopDir,
+				Branch: dir.Branch,
+				Path:   dir.Path[:prevIdx+1],
+			}
 			prevDblock, err = fs.getDirInChannel(prevDir, write)
 			if err != nil {
 				return Path{}, DirEntry{}, err
@@ -1557,8 +1565,11 @@ func (fs *KBFSOpsStandard) setExInChannel(file Path, ex bool) (
 		md, dblock, *parentPath.ParentPath(), parentPath.TailName(),
 		Dir, false, false, zeroID)
 
-	newPath = Path{file.TopDir,
-		append(newParentPath.Path, file.Path[len(file.Path)-1])}
+	newPath = Path{
+		TopDir: file.TopDir,
+		Branch: file.Branch,
+		Path:   append(newParentPath.Path, file.Path[len(file.Path)-1]),
+	}
 	fs.notifyBatch(file.TopDir, []Path{newPath})
 	return
 }
@@ -1595,8 +1606,11 @@ func (fs *KBFSOpsStandard) setMtimeInChannel(file Path, mtime *time.Time) (
 	newParentPath, _, err := fs.syncBlockInChannel(
 		md, dblock, *parentPath.ParentPath(), parentPath.TailName(),
 		Dir, false, false, zeroID)
-	newPath := Path{file.TopDir,
-		append(newParentPath.Path, file.Path[len(file.Path)-1])}
+	newPath := Path{
+		TopDir: file.TopDir,
+		Branch: file.Branch,
+		Path:   append(newParentPath.Path, file.Path[len(file.Path)-1]),
+	}
 	fs.notifyBatch(file.TopDir, []Path{newPath})
 	return newPath, err
 }
