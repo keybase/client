@@ -30,7 +30,7 @@ var (
 // BlockServerRemote implements the BlockServer interface and
 // represents a remote KBFS block server.
 type BlockServerRemote struct {
-	kbpki KBPKI
+	config Config
 
 	srvAddr  string
 	certFile string
@@ -45,9 +45,9 @@ type BlockServerRemote struct {
 
 // NewBlockServerRemote constructs a new BlockServerRemote for the
 // given address.
-func NewBlockServerRemote(blkSrvAddr string, kbpki KBPKI) *BlockServerRemote {
+func NewBlockServerRemote(config Config, blkSrvAddr string) *BlockServerRemote {
 	b := &BlockServerRemote{
-		kbpki:    kbpki,
+		config:   config,
 		srvAddr:  blkSrvAddr,
 		certFile: "./cacert.pem",
 	}
@@ -78,6 +78,10 @@ func TLSConnect(cFile string, Addr string) (conn net.Conn, err error) {
 	return
 }
 
+func (b *BlockServerRemote) Config() Config {
+	return b.config
+}
+
 // ConnectOnce tries once to connect to the remote block server.
 func (b *BlockServerRemote) ConnectOnce() error {
 	var err error
@@ -89,7 +93,7 @@ func (b *BlockServerRemote) ConnectOnce() error {
 		rpc2.NewTransport(b.conn, libkb.NewRpcLogFactory(), libkb.WrapError), libkb.UnwrapError)}
 
 	var session *libkb.Session
-	if session, err = b.kbpki.GetSession(); err != nil {
+	if session, err = b.config.KBPKI().GetSession(); err != nil {
 		b.conn.Close()
 		return err
 	}
@@ -148,19 +152,25 @@ func (b *BlockServerRemote) Get(id BlockID, context BlockContext) (
 			return nil, BlockCryptKeyServerHalf{}, err
 		}
 	}
-	//XXX: if fails due to connection problem, should reconnect
 	bid := keybase1.BlockIdCombo{
 		BlockHash: hex.EncodeToString(id[:]),
 		Size:      int(context.GetQuotaSize()),
 		ChargedTo: context.GetWriter(),
 	}
-
 	res, err := b.clt.GetBlock(bid)
+	//XXX: if fails due to connection problem, should reconnect
 	if err != nil {
 		return nil, BlockCryptKeyServerHalf{}, err
 	}
 	// TODO: return the server-half of the block key
-	return res.Buf, BlockCryptKeyServerHalf{}, err
+	var kbuf []byte
+	kbuf, err = hex.DecodeString(res.Skey.BlockKey)
+	if err != nil {
+		return nil, BlockCryptKeyServerHalf{}, err
+	}
+	bk := BlockCryptKeyServerHalf{}
+	copy(bk.ServerHalf[:], kbuf)
+	return res.Buf, bk, err
 }
 
 // Put implements the BlockServer interface for BlockServerRemote.
@@ -182,7 +192,7 @@ func (b *BlockServerRemote) Put(id BlockID, context BlockContext,
 			EpochID:     0,
 			EpochKey:    "DEADBEEF",
 			RandBlockId: "DEADBEEF",
-			BlockKey:    "DEADBEEF",
+			BlockKey:    hex.EncodeToString(serverHalf.ServerHalf[:]),
 		},
 		Folder: "", //XXX: strib needs to tell me what folder this block belongs
 		Buf:    buf,
