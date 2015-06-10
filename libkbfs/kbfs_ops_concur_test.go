@@ -109,7 +109,7 @@ func TestKBFSOpsConcurDoubleMDGet(t *testing.T) {
 	config.KBFSOps().(*KBFSOpsStandard).dirRWChans.chans[dir] = rwc
 	for i := 0; i < n; i++ {
 		go func() {
-			_, err := config.KBFSOps().GetRootMD(dir)
+			_, _, _, err := config.KBFSOps().GetRootPath(dir)
 			c <- err
 		}()
 	}

@@ -50,18 +50,18 @@ type KBFSOps interface {
 	// GetFavDirs returns the logged-in user's list of favorite
 	// top-level folders.  This is a remote-access operation.
 	GetFavDirs() ([]DirID, error)
-	// GetRootMDForHandle returns the current metadata object
-	// corresponding to the given top-level folder's handle, if the
+	// GetOrCreateRootPathByHandle returns the root path, and root
+	// directory entry associated with the given DirHandle, if the
 	// logged-in user has read permissions to the top-level folder.
 	// It creates the folder if one doesn't exist yet, and the
 	// logged-in user has write permissions to the top-level folder.
 	// This is a remote-access operation.
-	GetRootMDForHandle(dirHandle *DirHandle) (*RootMetadata, error)
-	// GetRootMD returns the current metadata object corresponding to
-	// the given top-level folder, if the logged-in user has read
-	// permissions to the top-level folder.  This is a remote-access
-	// operation.
-	GetRootMD(dirID DirID) (*RootMetadata, error)
+	GetOrCreateRootPathForHandle(handle *DirHandle) (Path, DirEntry, error)
+	// GetRootPath returns the root path, root directory entry, and
+	// handle associated with the given DirID, if the logged-in user
+	// has read permissions to the top-level folder.  This is a
+	// remote-access operation.
+	GetRootPath(dir DirID) (Path, DirEntry, *DirHandle, error)
 	// GetDir returns the directory block (including a complete list
 	// of all the children in that directory and their metadata), if
 	// the logged-in user has read permission for the top-level
@@ -176,10 +176,24 @@ type KBPKI interface {
 	GetCurrentCryptPublicKey() (CryptPublicKey, error)
 }
 
-// KeyManager fetchs and constructs the keys needed for KBFS file operations.
+// KeyManager fetches and constructs the keys needed for KBFS file
+// operations.
 type KeyManager interface {
-	// GetTLFCryptKey gets the crypt key for the given TLF.
-	GetTLFCryptKey(dir Path, md *RootMetadata) (TLFCryptKey, error)
+	// GetTLFCryptKeyForEncryption gets the crypt key to use for
+	// encryption (i.e., with the latest key generation) for the
+	// TLF with the given metadata.
+	GetTLFCryptKeyForEncryption(md *RootMetadata) (TLFCryptKey, error)
+
+	// GetTLFCryptKeyForMDDecryption gets the crypt key to use for
+	// the TLF with the given metadata to decrypt the private
+	// portion of the metadata.
+	GetTLFCryptKeyForMDDecryption(md *RootMetadata) (TLFCryptKey, error)
+
+	// GetTLFCryptKeyForBlockDecryption gets the crypt key to use
+	// for the TLF with the given metadata to decrypt the block
+	// pointed to by the given pointer.
+	GetTLFCryptKeyForBlockDecryption(md *RootMetadata, blockPtr BlockPointer) (TLFCryptKey, error)
+
 	// Rekey creates a new epoch of keys for the given directory
 	Rekey(md *RootMetadata) error
 }
