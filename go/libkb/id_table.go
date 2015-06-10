@@ -1208,20 +1208,6 @@ func (idt *IdentityTable) proofRemoteCheck(hasPreviousTrack bool, res *LinkCheck
 	return
 }
 
-//=========================================================================
-
-func (idt *IdentityTable) ToOkProofs(proofs []Proof) []Proof {
-	for _, ap := range idt.activeProofs {
-		if ap.GetProofState() == keybase1.ProofState_OK {
-			k, v := ap.ToKeyValuePair()
-			proofs = append(proofs, Proof{Key: k, Value: v})
-		}
-	}
-	return proofs
-}
-
-//=========================================================================
-
 func (idt *IdentityTable) MakeTrackSet() *TrackSet {
 	ret := NewTrackSet()
 	for _, ap := range idt.activeProofs {
@@ -1229,5 +1215,3 @@ func (idt *IdentityTable) MakeTrackSet() *TrackSet {
 	}
 	return ret
 }
-
-//=========================================================================

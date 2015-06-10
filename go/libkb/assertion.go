@@ -355,27 +355,24 @@ type Proof struct {
 }
 
 type ProofSet struct {
-	proofs map[string]([]Proof)
+	proofs map[string][]Proof
 }
 
 func NewProofSet(proofs []Proof) *ProofSet {
-	ret := &ProofSet{}
-	d := make(map[string]([]Proof))
-	for _, proof := range proofs {
-		v, ok := d[proof.Key]
-		if !ok {
-			v = []Proof{proof}
-		} else {
-			v = append(v, proof)
-		}
-		d[proof.Key] = v
+	ret := &ProofSet{
+		proofs: make(map[string][]Proof),
 	}
-	ret.proofs = d
+	for _, proof := range proofs {
+		ret.Add(proof)
+	}
 	return ret
 }
 
+func (ps *ProofSet) Add(p Proof) {
+	ps.proofs[p.Key] = append(ps.proofs[p.Key], p)
+}
+
 func (ps ProofSet) Get(keys []string) (ret []Proof) {
-	ret = []Proof{}
 	for _, key := range keys {
 		if v, ok := ps.proofs[key]; ok {
 			ret = append(ret, v...)

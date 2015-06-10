@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/keybase/client/go/libkb"
+	keybase1 "github.com/keybase/client/protocol/go"
 )
 
 // Identify is an engine to identify a user.
@@ -183,12 +184,20 @@ func (e *Identify) run(ctx *Context) (*libkb.IdentifyOutcome, error) {
 	ctx.IdentifyUI.LaunchNetworkChecks(res.ExportToUncheckedIdentity(), e.user.Export())
 	e.user.IDTable().Identify(is, ctx.IdentifyUI)
 
-	if !e.userExpr.MatchSet(*e.user.ToOkProofSet()) {
+	base := e.user.ToOkProofSet()
+	activeProofs := e.user.IDTable().AllActiveProofs()
+	for _, ap := range activeProofs {
+		if ap.GetProofState() == keybase1.ProofState_OK {
+			k, v := ap.ToKeyValuePair()
+			base.Add(libkb.Proof{Key: k, Value: v})
+		}
+	}
+	if !e.userExpr.MatchSet(*base) {
 		return nil, fmt.Errorf("User %s didn't match given assertion", e.user.GetName())
 	}
 
 	// copy activeProofs into outcome:
-	res.SetActiveProofs(e.user.IDTable().AllActiveProofs())
+	res.SetActiveProofs(activeProofs)
 
 	e.G().Log.Debug("- Identify(%s)", e.user.GetName())
 

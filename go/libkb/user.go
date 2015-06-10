@@ -433,9 +433,6 @@ func (u *User) ToOkProofSet() *ProofSet {
 	for _, fp := range u.GetActivePgpFingerprints(true) {
 		proofs = append(proofs, Proof{Key: "fingerprint", Value: fp.String()})
 	}
-	if u.IDTable() != nil {
-		proofs = u.IDTable().ToOkProofs(proofs)
-	}
 
 	return NewProofSet(proofs)
 }
