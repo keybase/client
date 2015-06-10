@@ -7,20 +7,28 @@ import (
 type IdentifyState struct {
 	res   *IdentifyOutcome
 	u     *User
-	Track *TrackLookup
+	track *TrackLookup
 }
 
 func NewIdentifyState(res *IdentifyOutcome, u *User) IdentifyState {
 	return IdentifyState{res: res, u: u}
 }
 
+func (s *IdentifyState) CreateTrackLookup(t *TrackChainLink) {
+	s.track = NewTrackLookup(t)
+}
+
+func (s *IdentifyState) TrackLookup() *TrackLookup {
+	return s.track
+}
+
 func (s *IdentifyState) ComputeDeletedProofs() {
-	if s.Track == nil {
+	if s.track == nil {
 		return
 	}
 
 	found := s.res.TrackSet()
-	tracked := s.Track.set
+	tracked := s.track.set
 
 	// These are the proofs that we previously tracked that we
 	// didn't observe in the current profile
@@ -48,12 +56,14 @@ func (s *IdentifyState) InitResultList() {
 }
 
 func (s *IdentifyState) ComputeTrackDiffs() {
-	if s.Track != nil {
-		G.Log.Debug("| with tracking %v", s.Track.set)
-		for _, c := range s.res.ProofChecks {
-			c.diff = c.link.ComputeTrackDiff(s.Track)
-			c.trackedProofState = s.Track.GetProofState(c.link)
-		}
+	if s.track == nil {
+		return
+	}
+
+	G.Log.Debug("| with tracking %v", s.track.set)
+	for _, c := range s.res.ProofChecks {
+		c.diff = c.link.ComputeTrackDiff(s.track)
+		c.trackedProofState = s.track.GetProofState(c.link)
 	}
 }
 
@@ -73,14 +83,14 @@ func (s *IdentifyState) ComputeKeyDiffs(dhook func(keybase1.FOKID, *keybase1.Tra
 	found := s.u.GetActivePgpFOKIDs(true)
 	found_map := mapify(found)
 	var tracked []FOKID
-	if s.Track != nil {
-		tracked = s.Track.GetTrackedPGPFOKIDs()
+	if s.track != nil {
+		tracked = s.track.GetTrackedPGPFOKIDs()
 	}
 	tracked_map := mapify(tracked)
 
 	for _, fp := range found {
 		var diff TrackDiff
-		if s.Track != nil && !tracked_map[*fp.Fp] {
+		if s.track != nil && !tracked_map[*fp.Fp] {
 			diff = TrackDiffNew{}
 			s.res.KeyDiffs = append(s.res.KeyDiffs, diff)
 		} else {

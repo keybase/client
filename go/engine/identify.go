@@ -162,8 +162,8 @@ func (e *Identify) run(ctx *Context) (*libkb.IdentifyOutcome, error) {
 			return nil, err
 		}
 		if tlink != nil {
-			is.Track = libkb.NewTrackLookup(tlink)
-			res.TrackUsed = is.Track
+			is.CreateTrackLookup(tlink)
+			res.TrackUsed = is.TrackLookup()
 		}
 	}
 
@@ -171,7 +171,7 @@ func (e *Identify) run(ctx *Context) (*libkb.IdentifyOutcome, error) {
 		return nil, libkb.NoActiveKeyError{Username: e.user.GetName()}
 	}
 
-	ctx.IdentifyUI.ReportLastTrack(libkb.ExportTrackSummary(is.Track, e.user.GetName()))
+	ctx.IdentifyUI.ReportLastTrack(libkb.ExportTrackSummary(is.TrackLookup(), e.user.GetName()))
 
 	e.G().Log.Debug("+ Identify(%s)", e.user.GetName())
 

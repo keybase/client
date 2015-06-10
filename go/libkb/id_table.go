@@ -501,8 +501,8 @@ func (l *TrackChainLink) ToServiceBlocks() (ret []*ServiceBlock) {
 	if err != nil {
 		return
 	}
-	for i := 0; i < ln; i++ {
-		proof := w.AtIndex(i).AtKey("remote_key_proof")
+	for index := 0; index < ln; index++ {
+		proof := w.AtIndex(index).AtKey("remote_key_proof")
 		if i, e := proof.AtKey("state").GetInt(); e != nil {
 			G.Log.Warning("Bad 'state' in track statement: %s", e.Error())
 		} else if sb, e := ParseServiceBlock(proof.AtKey("check_data_json")); e != nil {
@@ -1086,7 +1086,7 @@ func (idt *IdentityTable) Identify(is IdentifyState, ui IdentifyUI) {
 //=========================================================================
 
 func (idt *IdentityTable) identifyActiveProof(lcr *LinkCheckResult, is IdentifyState, ui IdentifyUI) {
-	idt.proofRemoteCheck((is.Track != nil), lcr)
+	idt.proofRemoteCheck((is.track != nil), lcr)
 	lcr.link.DisplayCheck(ui, *lcr)
 }
 
