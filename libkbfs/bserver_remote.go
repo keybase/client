@@ -3,6 +3,7 @@ package libkbfs
 import (
 	"crypto/tls"
 	"crypto/x509"
+	_ "encoding/base64"
 	"encoding/hex"
 	"errors"
 	"fmt"
@@ -49,7 +50,7 @@ func NewBlockServerRemote(config Config, blkSrvAddr string) *BlockServerRemote {
 	b := &BlockServerRemote{
 		config:   config,
 		srvAddr:  blkSrvAddr,
-		certFile: "./cacert.pem",
+		certFile: "./cert.pem",
 	}
 
 	if err := b.ConnectOnce(); err != nil {
@@ -97,7 +98,13 @@ func (b *BlockServerRemote) ConnectOnce() error {
 		b.conn.Close()
 		return err
 	}
-
+	/*
+		var token []byte
+		if token, err = base64.StdEncoding.DecodeString(session.GetToken()); err != nil {
+			b.conn.Close()
+			return err
+		}
+	*/
 	if err = b.clt.EstablishSession(session.GetToken()); err != nil {
 		b.conn.Close()
 		return err
