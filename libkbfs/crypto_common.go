@@ -53,6 +53,12 @@ func (c *CryptoCommon) MakeTemporaryBlockID() (BlockID, error) {
 	return id, nil
 }
 
+// MakeBlockRefNonce implements the Crypto interface for CryptoCommon.
+func (c *CryptoCommon) MakeBlockRefNonce() (nonce BlockRefNonce, err error) {
+	err = cryptoRandRead(nonce[:])
+	return
+}
+
 // MakeRandomTLFKeys implements the Crypto interface for CryptoCommon.
 func (c *CryptoCommon) MakeRandomTLFKeys() (
 	tlfPublicKey TLFPublicKey,

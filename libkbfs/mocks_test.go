@@ -73,6 +73,16 @@ func (_mr *_MockBlockContextRecorder) GetQuotaSize() *gomock.Call {
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "GetQuotaSize")
 }
 
+func (_m *MockBlockContext) GetRefNonce() BlockRefNonce {
+	ret := _m.ctrl.Call(_m, "GetRefNonce")
+	ret0, _ := ret[0].(BlockRefNonce)
+	return ret0
+}
+
+func (_mr *_MockBlockContextRecorder) GetRefNonce() *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "GetRefNonce")
+}
+
 // Mock of KBFSOps interface
 type MockKBFSOps struct {
 	ctrl     *gomock.Controller
@@ -673,6 +683,17 @@ func (_m *MockCrypto) MakeTemporaryBlockID() (BlockID, error) {
 
 func (_mr *_MockCryptoRecorder) MakeTemporaryBlockID() *gomock.Call {
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "MakeTemporaryBlockID")
+}
+
+func (_m *MockCrypto) MakeBlockRefNonce() (BlockRefNonce, error) {
+	ret := _m.ctrl.Call(_m, "MakeBlockRefNonce")
+	ret0, _ := ret[0].(BlockRefNonce)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+func (_mr *_MockCryptoRecorder) MakeBlockRefNonce() *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "MakeBlockRefNonce")
 }
 
 func (_m *MockCrypto) MakeRandomTLFKeys() (TLFPublicKey, TLFPrivateKey, TLFEphemeralPublicKey, TLFEphemeralPrivateKey, TLFCryptKey, error) {

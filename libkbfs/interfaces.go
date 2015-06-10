@@ -19,6 +19,8 @@ type BlockContext interface {
 	// block (i.e., how much the writer will be charged for this
 	// block).
 	GetQuotaSize() uint32
+	// GetRefNonce returns the unique reference nonce for this block
+	GetRefNonce() BlockRefNonce
 }
 
 // KBFSOps handles all file system operations.  Expands all indirect
@@ -276,6 +278,11 @@ type Crypto interface {
 	// CSPRNG. This is used for indirect blocks before they're
 	// committed to the server.
 	MakeTemporaryBlockID() (BlockID, error)
+
+	// MakeRefNonce generates a block reference nonce using a
+	// CSPRNG. This is used for distinguishing different references to
+	// the same BlockID.
+	MakeBlockRefNonce() (BlockRefNonce, error)
 
 	// MakeRandomTLFKeys generates top-level folder keys using a CSPRNG.
 	MakeRandomTLFKeys() (TLFPublicKey, TLFPrivateKey, TLFEphemeralPublicKey,

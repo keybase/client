@@ -306,6 +306,15 @@ const (
 	FirstValidDataVer = 1
 )
 
+// BlockRefNonce is a 64-bit unique sequence of bytes for identifying
+// this reference of a block ID from other references to the same
+// (duplicated) block.
+type BlockRefNonce [8]byte
+
+// zeroBlockRefNonce is a special BlockRefNonce used for the initial
+// reference to a block.
+var zeroBlockRefNonce = BlockRefNonce([8]byte{0, 0, 0, 0, 0, 0, 0, 0})
+
 // BlockPointer is the ID and BlockContext representing a block in KBFS.
 type BlockPointer struct {
 	ID      BlockID
@@ -316,6 +325,17 @@ type BlockPointer struct {
 	// contained in the block. When non-zero, always at least the
 	// size of the plaintext data contained in the block.
 	QuotaSize uint32
+	// When RefNonce is all 0s, this is the initial reference to a
+	// particular block.  Using a constant refnonce for the initial
+	// reference allows the server identify and optimize for the
+	// common case where there is only one reference for a block.  Two
+	// initial references cannot happen simultaneously, because the
+	// encrypted block contents (and thus the block ID) will be
+	// randomized by the server-side block crypt key half.  All
+	// subsequent references to the same block must have a random
+	// RefNonce (it can't be a monotonically increasing number because
+	// that would require coordination among clients).
+	RefNonce BlockRefNonce `codec:"r,omitempty"`
 }
 
 // GetKeyGen implements the BlockContext interface for BlockPointer.
@@ -336,6 +356,11 @@ func (p BlockPointer) GetWriter() keybase1.UID {
 // GetQuotaSize implements the BlockContext interface for BlockPointer.
 func (p BlockPointer) GetQuotaSize() uint32 {
 	return p.QuotaSize
+}
+
+// GetRefNonce implements the BlockContext interface for BlockPointer.
+func (p BlockPointer) GetRefNonce() BlockRefNonce {
+	return p.RefNonce
 }
 
 // IsInitialized returns whether or not this BlockPointer has non-nil data.
