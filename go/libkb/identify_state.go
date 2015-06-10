@@ -18,7 +18,8 @@ func (s *IdentifyState) ComputeDeletedProofs() {
 	if s.Track == nil {
 		return
 	}
-	found := s.u.IDTable().MakeTrackSet()
+
+	found := s.res.TrackSet()
 	tracked := s.Track.set
 
 	// These are the proofs that we previously tracked that we

@@ -31,7 +31,7 @@ type TypedChainLink interface {
 	GetFOKID() FOKID
 	IsInCurrentFamily(u *User) bool
 	GetUsername() string
-	MarkChecked(ProofError)
+	// MarkChecked(ProofError)
 	GetProofState() keybase1.ProofState
 	GetUID() keybase1.UID
 	GetDelegatedKid() KID
@@ -883,10 +883,6 @@ type IdentityTable struct {
 	eldest           FOKID
 }
 
-func (idt *IdentityTable) AllActiveProofs() []RemoteProofChainLink {
-	return idt.remoteProofLinks.Active()
-}
-
 func (idt *IdentityTable) GetActiveProofsFor(st ServiceType) (ret []RemoteProofChainLink) {
 	return idt.remoteProofLinks.ForService(st)
 }
@@ -987,7 +983,8 @@ func (idt *IdentityTable) populate() {
 }
 
 func (idt *IdentityTable) insertRemoteProof(link RemoteProofChainLink) {
-	idt.remoteProofLinks.Insert(link)
+	// note that the links in the identity table have no ProofError state.
+	idt.remoteProofLinks.Insert(link, nil)
 }
 
 func (idt *IdentityTable) VerifySelfSig(s string, uid keybase1.UID) bool {
@@ -1144,7 +1141,7 @@ func (idt *IdentityTable) proofRemoteCheck(hasPreviousTrack bool, res *LinkCheck
 	if G.ProofCache != nil {
 		if res.cached = G.ProofCache.Get(sid); res.cached != nil {
 			res.err = res.cached.Status
-			p.MarkChecked(res.err)
+			// p.MarkChecked(res.err)
 			return
 		}
 	}
@@ -1161,7 +1158,7 @@ func (idt *IdentityTable) proofRemoteCheck(hasPreviousTrack bool, res *LinkCheck
 		res.err = pc.CheckStatus(*res.hint)
 	}
 
-	p.MarkChecked(res.err)
+	// p.MarkChecked(res.err)
 	if G.ProofCache != nil {
 		G.ProofCache.Put(sid, res.err)
 	}

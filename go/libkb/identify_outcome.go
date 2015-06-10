@@ -20,7 +20,6 @@ type IdentifyOutcome struct {
 	MeSet         bool // whether me was set at the time
 	LocalOnly     bool
 	ApproveRemote bool
-	activeProofs  RemoteProofList
 }
 
 func NewIdentifyOutcome(m bool) *IdentifyOutcome {
@@ -29,12 +28,28 @@ func NewIdentifyOutcome(m bool) *IdentifyOutcome {
 	}
 }
 
-func (i *IdentifyOutcome) SetActiveProofs(proofs RemoteProofList) {
-	i.activeProofs = proofs
+func (i *IdentifyOutcome) ActiveProofs() RemoteProofList {
+	rpl := NewRemoteProofLinks()
+	for _, p := range i.ProofChecks {
+		rpl.Insert(p.link, p.err)
+	}
+	return rpl.Active()
 }
 
-func (i *IdentifyOutcome) ActiveProofs() RemoteProofList {
-	return i.activeProofs
+func (i *IdentifyOutcome) StateOKAndActiveProofs() RemoteProofList {
+	rpl := NewRemoteProofLinks()
+	for _, p := range i.ProofChecks {
+		rpl.Insert(p.link, p.err)
+	}
+	return rpl.StateOKAndActive()
+}
+
+func (i *IdentifyOutcome) TrackSet() *TrackSet {
+	ret := NewTrackSet()
+	for _, ap := range i.ActiveProofs() {
+		ret.Add(ap)
+	}
+	return ret
 }
 
 func (i *IdentifyOutcome) ProofChecksSorted() []*LinkCheckResult {
