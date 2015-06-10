@@ -133,3 +133,30 @@ func TestTrackMultiple(t *testing.T) {
 
 	trackAlice(tc, fu)
 }
+
+func TestTrackLocal(t *testing.T) {
+	tc := SetupEngineTest(t, "track")
+	defer tc.Cleanup()
+	fu := CreateAndSignupFakeUser(tc, "track")
+
+	_, them, err := runTrackWithOptions(tc, fu, "t_alice", TrackOptions{TrackLocalOnly: true})
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	me, err := libkb.LoadMe(libkb.LoadUserArg{})
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	s, err := me.GetTrackingStatementFor(them.GetName(), them.GetUID())
+	if err != nil {
+		t.Fatal(err)
+	}
+	if s == nil {
+		t.Fatal("no tracking statement")
+	}
+	if s.IsRemote() {
+		t.Errorf("tracking statement is remote, expected local")
+	}
+}
