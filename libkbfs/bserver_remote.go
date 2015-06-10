@@ -213,6 +213,20 @@ func (b *BlockServerRemote) Put(id BlockID, context BlockContext,
 
 // Delete implements the BlockServer interface for BlockServerRemote.
 func (b *BlockServerRemote) Delete(id BlockID, context BlockContext) error {
+	arg := keybase1.DecBlockReferenceArg{
+		Bid: keybase1.BlockIdCombo{
+			ChargedTo: context.GetWriter(), //should be the original chargedto
+			BlockHash: hex.EncodeToString(id[:]),
+			Size:      int(context.GetQuotaSize()),
+		},
+		Nonce:     "0000",
+		Folder:    "",
+		ChargedTo: context.GetWriter(), //the actual writer to decrement quota from
+	}
+	err := b.clt.DecBlockReference(arg)
+	if err != nil {
+		return err
+	}
 	/*
 		if err := b.blockly.clt.blockSession(); err != nil {
 			return err
