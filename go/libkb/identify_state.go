@@ -39,8 +39,9 @@ func (s *IdentifyState) InitResultList() {
 	if idt == nil {
 		return
 	}
-	s.res.ProofChecks = make([]*LinkCheckResult, len(idt.activeProofs))
-	for i, p := range idt.activeProofs {
+	activeProofs := idt.remoteProofLinks.Active()
+	s.res.ProofChecks = make([]*LinkCheckResult, len(activeProofs))
+	for i, p := range activeProofs {
 		s.res.ProofChecks[i] = &LinkCheckResult{link: p, trackedProofState: keybase1.ProofState_NONE, position: i}
 	}
 }

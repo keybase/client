@@ -358,9 +358,7 @@ func ParseWebServiceBinding(base GenericChainLink) (ret RemoteProofChainLink, e 
 
 func remoteProofInsertIntoTable(l RemoteProofChainLink, tab *IdentityTable) {
 	tab.insertLink(l)
-	if k := l.TableKey(); len(k) > 0 {
-		tab.remoteProofs[k] = append(tab.remoteProofs[k], l)
-	}
+	tab.insertRemoteProof(l)
 }
 
 //
@@ -873,35 +871,24 @@ func ParseSelfSigChainLink(base GenericChainLink) (ret *SelfSigChainLink, err er
 //=========================================================================
 
 type IdentityTable struct {
-	sigChain       *SigChain
-	revocations    map[keybase1.SigID]bool
-	links          map[keybase1.SigID]TypedChainLink
-	remoteProofs   map[string][]RemoteProofChainLink
-	tracks         map[string][]*TrackChainLink
-	Order          []TypedChainLink
-	sigHints       *SigHints
-	activeProofs   []RemoteProofChainLink
-	cryptocurrency []*CryptocurrencyChainLink
-	checkResult    *CheckResult
-	eldest         FOKID
+	sigChain         *SigChain
+	revocations      map[keybase1.SigID]bool
+	links            map[keybase1.SigID]TypedChainLink
+	remoteProofLinks *RemoteProofLinks
+	tracks           map[string][]*TrackChainLink
+	Order            []TypedChainLink
+	sigHints         *SigHints
+	cryptocurrency   []*CryptocurrencyChainLink
+	checkResult      *CheckResult
+	eldest           FOKID
 }
 
 func (idt *IdentityTable) AllActiveProofs() []RemoteProofChainLink {
-	return idt.activeProofs
+	return idt.remoteProofLinks.Active()
 }
 
 func (idt *IdentityTable) GetActiveProofsFor(st ServiceType) (ret []RemoteProofChainLink) {
-	for _, k := range st.AllStringKeys() {
-		for _, l := range idt.remoteProofs[k] {
-			if !l.IsRevoked() {
-				ret = append(ret, l)
-				if l.LastWriterWins() {
-					break
-				}
-			}
-		}
-	}
-	return
+	return idt.remoteProofLinks.ForService(st)
 }
 
 func (idt *IdentityTable) GetTrackMap() map[string][]*TrackChainLink {
@@ -975,16 +962,15 @@ func NewTypedChainLink(cl *ChainLink) (ret TypedChainLink, w Warning) {
 
 func NewIdentityTable(eldest FOKID, sc *SigChain, h *SigHints) *IdentityTable {
 	ret := &IdentityTable{
-		sigChain:     sc,
-		revocations:  make(map[keybase1.SigID]bool),
-		links:        make(map[keybase1.SigID]TypedChainLink),
-		remoteProofs: make(map[string][]RemoteProofChainLink),
-		tracks:       make(map[string][]*TrackChainLink),
-		sigHints:     h,
-		eldest:       eldest,
+		sigChain:         sc,
+		revocations:      make(map[keybase1.SigID]bool),
+		links:            make(map[keybase1.SigID]TypedChainLink),
+		remoteProofLinks: NewRemoteProofLinks(),
+		tracks:           make(map[string][]*TrackChainLink),
+		sigHints:         h,
+		eldest:           eldest,
 	}
 	ret.populate()
-	ret.collectAndDedupeActiveProofs()
 	return ret
 }
 
@@ -998,6 +984,10 @@ func (idt *IdentityTable) populate() {
 		}
 	}
 	G.Log.Debug("- Populate ID Table")
+}
+
+func (idt *IdentityTable) insertRemoteProof(link RemoteProofChainLink) {
+	idt.remoteProofLinks.Insert(link)
 }
 
 func (idt *IdentityTable) VerifySelfSig(s string, uid keybase1.UID) bool {
@@ -1071,35 +1061,6 @@ func (idt *IdentityTable) GetRevokedCryptocurrencyForTesting() []CryptocurrencyC
 		}
 	}
 	return ret
-}
-
-func (idt *IdentityTable) collectAndDedupeActiveProofs() {
-	seen := make(map[string]bool)
-	tab := idt.activeProofs
-	for _, list := range idt.remoteProofs {
-		for i := len(list) - 1; i >= 0; i-- {
-			link := list[i]
-			if link.IsRevoked() {
-				continue
-			}
-
-			// We only want to use the last proof in the list
-			// if we have several (like for dns://chriscoyne.com)
-			id := link.ToDisplayString()
-			_, found := seen[id]
-			if !found {
-				tab = append(tab, link)
-				seen[id] = true
-			}
-
-			// Things like Twitter, Github, etc, are last-writer wins.
-			// Things like dns/https can have multiples
-			if link.LastWriterWins() {
-				break
-			}
-		}
-	}
-	idt.activeProofs = tab
 }
 
 func (idt *IdentityTable) Len() int {
@@ -1210,7 +1171,7 @@ func (idt *IdentityTable) proofRemoteCheck(hasPreviousTrack bool, res *LinkCheck
 
 func (idt *IdentityTable) MakeTrackSet() *TrackSet {
 	ret := NewTrackSet()
-	for _, ap := range idt.activeProofs {
+	for _, ap := range idt.remoteProofLinks.Active() {
 		ret.Add(ap)
 	}
 	return ret
