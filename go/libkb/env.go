@@ -542,9 +542,8 @@ func (e *Env) GetDevelMode() bool {
 		func() (bool, bool) {
 			if e.Test.Devel || e.GetServerURI() == DevelServerURI {
 				return true, true
-			} else {
-				return false, false
 			}
+			return false, false
 		},
 	)
 }

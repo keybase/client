@@ -176,12 +176,12 @@ func (g *GenericChainLink) BaseToTrackingStatement(state keybase1.ProofState) *j
 
 func remoteProofToTrackingStatement(s RemoteProofChainLink, base *jsonw.Wrapper) error {
 	typS := s.TableKey()
-	if i, found := REMOTE_SERVICE_TYPES[typS]; !found {
-		return fmt.Errorf("No service type found for '%s' in proof %d",
-			typS, s.GetSeqno())
-	} else {
-		base.AtKey("remote_key_proof").SetKey("proof_type", jsonw.NewInt(int(i)))
+	i, found := REMOTE_SERVICE_TYPES[typS]
+	if !found {
+		return fmt.Errorf("No service type found for %q in proof %d", typS, s.GetSeqno())
 	}
+
+	base.AtKey("remote_key_proof").SetKey("proof_type", jsonw.NewInt(int(i)))
 	base.AtKey("remote_key_proof").SetKey("check_data_json", s.CheckDataJson())
 	base.SetKey("sig_type", jsonw.NewInt(SIG_TYPE_REMOTE_PROOF))
 	return nil

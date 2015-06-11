@@ -453,35 +453,29 @@ func (c *ChainLink) VerifySigWithKeyFamily(ckf ComputedKeyFamily) (cached bool, 
 	return
 }
 
-func (c *ChainLink) VerifySig(k PgpKeyBundle) (cached bool, err error) {
-	cached = false
-
+func (c *ChainLink) VerifySig(k PgpKeyBundle) (bool, error) {
 	if c.sigVerified {
 		G.Log.Debug("Skipped verification (cached): %s", c.id)
-		cached = true
-		return
+		return true, nil
 	}
 
 	if c.unpacked.pgpFingerprint == nil {
-		err = NoKeyError{}
-		return
+		return false, NoKeyError{}
 	}
 
 	if !k.GetFingerprint().Eq(*c.unpacked.pgpFingerprint) {
-		err = fmt.Errorf("Key fingerprint mismatch")
-		return
-	}
-	if sigID, e2 := k.VerifyString(c.unpacked.sig,
-		[]byte(c.unpacked.payloadJsonStr)); e2 != nil {
-		err = e2
-		return
-	} else {
-		c.unpacked.sigID = sigID
+		return false, fmt.Errorf("Key fingerprint mismatch")
 	}
 
+	sigID, err := k.VerifyString(c.unpacked.sig, []byte(c.unpacked.payloadJsonStr))
+	if err != nil {
+		return false, err
+	}
+
+	c.unpacked.sigID = sigID
 	c.sigVerified = true
 	c.dirty = true
-	return
+	return false, nil
 }
 
 func ImportLinkFromServer(parent *SigChain, jw *jsonw.Wrapper, selfUID keybase1.UID) (ret *ChainLink, err error) {

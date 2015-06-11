@@ -34,9 +34,8 @@ func boxOpen(encryptedData []byte, nonce [24]byte, peersPublicKey NaclDHKeyPubli
 	data, ok := box.Open(nil, encryptedData, &nonce, (*[32]byte)(&peersPublicKey), (*[32]byte)(privateKey))
 	if ok {
 		return data, nil
-	} else {
-		return data, DecryptionError{}
 	}
+	return data, DecryptionError{}
 }
 
 // Test that sealing a message and then opening it works and returns

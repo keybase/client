@@ -27,10 +27,9 @@ func (rc *GithubChecker) CheckHint(h SigHint) ProofError {
 	ok2 := "https://gist.githubusercontent.com/" + u + "/"
 	if strings.HasPrefix(given, ok1) || strings.HasPrefix(given, ok2) {
 		return nil
-	} else {
-		return NewProofError(keybase1.ProofStatus_BAD_API_URL,
-			"Bad hint from server; URL start with either '%s' OR '%s'", ok1, ok2)
 	}
+	return NewProofError(keybase1.ProofStatus_BAD_API_URL,
+		"Bad hint from server; URL start with either '%s' OR '%s'", ok1, ok2)
 }
 
 func (rc *GithubChecker) CheckStatus(h SigHint) ProofError {

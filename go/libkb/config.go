@@ -485,13 +485,14 @@ func (f JsonConfigFile) GetProxyCACerts() (ret []string, err error) {
 	jw := f.jw.AtKey("proxyCAs")
 	if l, e := jw.Len(); e == nil {
 		for i := 0; i < l; i++ {
-			if s, e := jw.AtIndex(i).GetString(); e != nil {
+			s, e2 := jw.AtIndex(i).GetString()
+			if e2 != nil {
 				err = ConfigError{f.filename,
-					fmt.Sprintf("Error reading proxy CA file @ index %d: %s", i, e.Error())}
+					fmt.Sprintf("Error reading proxy CA file @ index %d: %s", i, e2)}
 				return
-			} else {
-				ret = append(ret, s)
 			}
+
+			ret = append(ret, s)
 		}
 	} else if s, e := jw.GetString(); e == nil {
 		ret = strings.Split(s, ":")

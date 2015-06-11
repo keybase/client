@@ -27,10 +27,9 @@ func NewRedditChecker(p RemoteProofChainLink) (*RedditChecker, ProofError) {
 func (rc *RedditChecker) CheckHint(h SigHint) ProofError {
 	if strings.HasPrefix(strings.ToLower(h.apiUrl), REDDIT_SUB) {
 		return nil
-	} else {
-		return NewProofError(keybase1.ProofStatus_BAD_API_URL,
-			"Bad hint from server; URL should start with '%s'", REDDIT_SUB)
 	}
+	return NewProofError(keybase1.ProofStatus_BAD_API_URL,
+		"Bad hint from server; URL should start with '%s'", REDDIT_SUB)
 }
 
 func (rc *RedditChecker) UnpackData(inp *jsonw.Wrapper) (*jsonw.Wrapper, ProofError) {
@@ -108,11 +107,11 @@ func (rc *RedditChecker) CheckStatus(h SigHint) ProofError {
 		return XapiError(err, h.apiUrl)
 	}
 
-	if dat, perr := rc.UnpackData(res.Body); perr != nil {
+	dat, perr := rc.UnpackData(res.Body)
+	if perr != nil {
 		return perr
-	} else {
-		return rc.CheckData(h, dat)
 	}
+	return rc.CheckData(h, dat)
 }
 
 //
@@ -132,9 +131,8 @@ func urlReencode(s string) string {
 			return `%29`
 		} else if r == "'" {
 			return `%27`
-		} else {
-			return ""
 		}
+		return ""
 	})
 	return s
 }

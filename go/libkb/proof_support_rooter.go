@@ -84,11 +84,12 @@ func (rc *RooterChecker) CheckStatus(h SigHint) ProofError {
 	if err != nil {
 		return XapiError(err, h.apiUrl)
 	}
-	if dat, perr := rc.UnpackData(res.Body); perr != nil {
+	dat, perr := rc.UnpackData(res.Body)
+	if perr != nil {
 		return perr
-	} else {
-		return rc.CheckData(h, dat)
 	}
+
+	return rc.CheckData(h, dat)
 }
 
 //

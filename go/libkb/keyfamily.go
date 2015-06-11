@@ -338,11 +338,11 @@ func (kf KeyFamily) KIDToFOKID(k KID) FOKID {
 // could be expired or revoked. Most callers should prefer the FindActive*
 // methods on the ComputedKeyFamily.
 func (kf KeyFamily) FindKeyWithKIDUnsafe(kid KID) (GenericKey, error) {
-	if key, ok := kf.AllKeys[kid.ToMapKey()]; !ok {
+	key, ok := kf.AllKeys[kid.ToMapKey()]
+	if !ok {
 		return nil, KeyFamilyError{fmt.Sprintf("No key found for %s", kid.String())}
-	} else {
-		return key, nil
 	}
+	return key, nil
 }
 
 func (ckf ComputedKeyFamily) getCkiIfActiveAtTime(f FOKID, t time.Time) (ret *ComputedKeyInfo, err error) {

@@ -158,13 +158,14 @@ func doChainTest(t *testing.T, testCase TestCase) {
 			// Success! We found the error we expected. This test is done.
 			G.Log.Debug("EXPECTED error encountered", sigchainErr)
 			return
-		} else {
-			// Got an error, but one of the wrong type. Tests with error names
-			// that are missing from the map (maybe because we add new test
-			// cases in the future) will also hit this branch.
-			t.Fatalf("Wrong error type encountered. Expected %s (%s), got %s: %s",
-				expectedType, testCase.ErrType, foundType, sigchainErr)
 		}
+
+		// Got an error, but one of the wrong type. Tests with error names
+		// that are missing from the map (maybe because we add new test
+		// cases in the future) will also hit this branch.
+		t.Fatalf("Wrong error type encountered. Expected %s (%s), got %s: %s",
+			expectedType, testCase.ErrType, foundType, sigchainErr)
+
 	}
 
 	// Tests that expected an error terminated above. Tests that get here

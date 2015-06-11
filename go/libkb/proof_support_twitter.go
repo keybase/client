@@ -65,10 +65,10 @@ func (rc *TwitterChecker) findSigInTweet(h SigHint, s *goquery.Selection) ProofE
 	}
 	if strings.HasPrefix(inside, checkText) {
 		return nil
-	} else {
-		return NewProofError(keybase1.ProofStatus_DELETED, "Could not find '%s' in '%s'",
-			checkText, inside)
 	}
+
+	return NewProofError(keybase1.ProofStatus_DELETED, "Could not find '%s' in '%s'",
+		checkText, inside)
 }
 
 func (rc *TwitterChecker) CheckStatus(h SigHint) ProofError {
@@ -88,18 +88,22 @@ func (rc *TwitterChecker) CheckStatus(h SigHint) ProofError {
 	// Only consider the first
 	div = div.First()
 
-	if author, ok := div.Attr("data-screen-name"); !ok {
+	author, ok := div.Attr("data-screen-name")
+	if !ok {
+		return NewProofError(keybase1.ProofStatus_BAD_USERNAME, "Username not found in DOM")
+	}
+	wanted := rc.proof.GetRemoteUsername()
+	if !rc.ScreenNameCompare(wanted, author) {
 		return NewProofError(keybase1.ProofStatus_BAD_USERNAME,
-			"Username not found in DOM")
-	} else if wanted := rc.proof.GetRemoteUsername(); !rc.ScreenNameCompare(wanted, author) {
-		return NewProofError(keybase1.ProofStatus_BAD_USERNAME,
-			"Bad post authored; wanted '%s' but got '%s'", wanted, author)
-	} else if p := div.Find("p.tweet-text"); p.Length() == 0 {
+			"Bad post authored; wanted %q but got %q", wanted, author)
+	}
+	p := div.Find("p.tweet-text")
+	if p.Length() == 0 {
 		return NewProofError(keybase1.ProofStatus_CONTENT_MISSING,
 			"Missing <div class='tweet-text'> container for tweet")
-	} else {
-		return rc.findSigInTweet(h, p.First())
 	}
+
+	return rc.findSigInTweet(h, p.First())
 }
 
 //

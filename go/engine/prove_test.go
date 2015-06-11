@@ -40,9 +40,8 @@ func (p *ProveUIMock) OkToCheck(arg keybase1.OkToCheckArg) (bool, error) {
 	if !p.checked {
 		p.checked = true
 		return p.hook(arg)
-	} else {
-		return false, fmt.Errorf("Check should have worked the first time!")
 	}
+	return false, fmt.Errorf("Check should have worked the first time!")
 }
 
 func (p *ProveUIMock) DisplayRecheckWarning(arg keybase1.DisplayRecheckWarningArg) error {
