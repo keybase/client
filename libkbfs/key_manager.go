@@ -12,8 +12,28 @@ type KeyManagerStandard struct {
 	config Config
 }
 
-// GetTLFCryptKey implements the KeyManager interface for KeyManagerStandard.
-func (km *KeyManagerStandard) GetTLFCryptKey(dir Path, md *RootMetadata) (
+// GetTLFCryptKeyForEncryption implements the KeyManager interface for
+// KeyManagerStandard.
+func (km *KeyManagerStandard) GetTLFCryptKeyForEncryption(md *RootMetadata) (
+	tlfCryptKey TLFCryptKey, err error) {
+	return km.getTLFCryptKey(md, md.LatestKeyGeneration())
+}
+
+// GetTLFCryptKeyForMDDecryption implements the KeyManager interface
+// for KeyManagerStandard.
+func (km *KeyManagerStandard) GetTLFCryptKeyForMDDecryption(md *RootMetadata) (
+	tlfCryptKey TLFCryptKey, err error) {
+	return km.getTLFCryptKey(md, md.LatestKeyGeneration())
+}
+
+// GetTLFCryptKeyForBlockDecryption implements the KeyManager interface for
+// KeyManagerStandard.
+func (km *KeyManagerStandard) GetTLFCryptKeyForBlockDecryption(md *RootMetadata, blockPtr BlockPointer) (
+	tlfCryptKey TLFCryptKey, err error) {
+	return km.getTLFCryptKey(md, blockPtr.KeyGen)
+}
+
+func (km *KeyManagerStandard) getTLFCryptKey(md *RootMetadata, keyGen KeyGen) (
 	tlfCryptKey TLFCryptKey, err error) {
 	if md.ID.IsPublic() {
 		// no key is needed, return an empty key
@@ -23,13 +43,6 @@ func (km *KeyManagerStandard) GetTLFCryptKey(dir Path, md *RootMetadata) (
 		return
 	}
 
-	// Figure out what version of the key we need.  The md will always
-	// need the latest key to encrypt, but old blocks may require
-	// older keys.
-	keyGen := md.LatestKeyGeneration()
-	if len(dir.Path) > 0 {
-		keyGen = dir.TailPointer().GetKeyGen()
-	}
 	if keyGen < FirstValidKeyGen {
 		err = InvalidKeyGenerationError{*md.GetDirHandle(), keyGen}
 		return

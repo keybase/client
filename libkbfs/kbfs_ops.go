@@ -154,6 +154,16 @@ func (fs *KBFSOpsStandard) getMDForWriteInChannel(dir Path) (
 	return &newMd, nil
 }
 
+func (fs *KBFSOpsStandard) rootPathFromMD(md *RootMetadata) Path {
+	return Path{
+		TopDir: md.ID,
+		Path: []PathNode{PathNode{
+			BlockPointer: md.Data().Dir.BlockPointer,
+			Name:         md.GetDirHandle().ToString(fs.config),
+		}},
+	}
+}
+
 func (fs *KBFSOpsStandard) initMDInChannel(md *RootMetadata) error {
 	// create a dblock since one doesn't exist yet
 	user, err := fs.config.KBPKI().GetLoggedInUser()
@@ -187,11 +197,7 @@ func (fs *KBFSOpsStandard) initMDInChannel(md *RootMetadata) error {
 	if keyGen != expectedKeyGen {
 		return InvalidKeyGenerationError{*md.GetDirHandle(), keyGen}
 	}
-	path := Path{md.ID, []PathNode{PathNode{
-		BlockPointer{BlockID{}, keyGen, fs.config.DataVersion(), user, 0},
-		md.GetDirHandle().ToString(fs.config),
-	}}}
-	tlfCryptKey, err := fs.config.KeyManager().GetTLFCryptKey(path, md)
+	tlfCryptKey, err := fs.config.KeyManager().GetTLFCryptKeyForEncryption(md)
 	if err != nil {
 		return err
 	}
@@ -213,6 +219,7 @@ func (fs *KBFSOpsStandard) initMDInChannel(md *RootMetadata) error {
 		Mtime: time.Now().UnixNano(),
 		Ctime: time.Now().UnixNano(),
 	}
+	path := fs.rootPathFromMD(md)
 	md.AddRefBlock(path, md.data.Dir.BlockPointer)
 	md.UnrefBytes = 0
 
@@ -265,14 +272,15 @@ func (fs *KBFSOpsStandard) getChans(id DirID) (
 	return
 }
 
-// GetRootMDForHandle implements the KBFSOps interface for KBFSOpsStandard
-func (fs *KBFSOpsStandard) GetRootMDForHandle(dirHandle *DirHandle) (
-	*RootMetadata, error) {
+// GetOrCreateRootPathForHandle implements the KBFSOps interface for
+// KBFSOpsStandard
+func (fs *KBFSOpsStandard) GetOrCreateRootPathForHandle(handle *DirHandle) (
+	path Path, de DirEntry, err error) {
 	// Do GetAtHandle() unlocked -- no cache lookups, should be fine
 	mdops := fs.config.MDOps()
-	md, err := mdops.GetAtHandle(dirHandle)
+	md, err := mdops.GetAtHandle(handle)
 	if err != nil {
-		return nil, err
+		return
 	}
 
 	// Type defaults to File, so if it was set to Dir then MD
@@ -282,7 +290,13 @@ func (fs *KBFSOpsStandard) GetRootMDForHandle(dirHandle *DirHandle) (
 		rwchan.QueueWriteReq(func() { errchan <- fs.initMDInChannel(md) })
 		err = <-errchan
 	}
-	return md, err
+	if err != nil {
+		return
+	}
+
+	path = fs.rootPathFromMD(md)
+	de = md.Data().Dir
+	return
 }
 
 // execReadInChannel first queues the passed-in method as a read
@@ -303,14 +317,23 @@ func (fs *KBFSOpsStandard) execReadInChannel(
 	return err
 }
 
-// GetRootMD implements the KBFSOps interface for KBFSOpsStandard
-func (fs *KBFSOpsStandard) GetRootMD(dir DirID) (md *RootMetadata, err error) {
+// GetRootPath implements the KBFSOps interface for KBFSOpsStandard
+func (fs *KBFSOpsStandard) GetRootPath(dir DirID) (
+	path Path, de DirEntry, handle *DirHandle, err error) {
 	// don't check read permissions here -- anyone should be able to read
 	// the MD to determine whether there's a public subdir or not
-	fs.execReadInChannel(dir, func(rtype reqType) error {
+	var md *RootMetadata
+	err = fs.execReadInChannel(dir, func(rtype reqType) error {
 		md, err = fs.getMDInChannel(Path{TopDir: dir}, rtype)
 		return err
 	})
+	if err != nil {
+		return
+	}
+
+	handle = md.GetDirHandle()
+	path = fs.rootPathFromMD(md)
+	de = md.Data().Dir
 	return
 }
 
@@ -335,7 +358,7 @@ func (fs *KBFSOpsStandard) getBlockInChannel(
 	if md, err := fs.getMDInChannel(dir, rtype); err != nil {
 		return nil, err
 	} else if k, err :=
-		fs.config.KeyManager().GetTLFCryptKey(dir, md); err != nil {
+		fs.config.KeyManager().GetTLFCryptKeyForBlockDecryption(md, dir.TailPointer()); err != nil {
 		return nil, err
 	} else if err := bops.Get(id, dir.TailPointer(), k, block); err != nil {
 		return nil, err
@@ -547,7 +570,7 @@ func (fs *KBFSOpsStandard) syncBlockInChannel(md *RootMetadata,
 	if err != nil {
 		return Path{}, DirEntry{}, err
 	}
-	tlfCryptKey, err := fs.config.KeyManager().GetTLFCryptKey(dir, md)
+	tlfCryptKey, err := fs.config.KeyManager().GetTLFCryptKeyForEncryption(md)
 	if err != nil {
 		return Path{}, DirEntry{}, err
 	}
@@ -1714,7 +1737,7 @@ func (fs *KBFSOpsStandard) syncInChannel(file Path) (Path, error) {
 			}
 		}
 
-		tlfCryptKey, err := fs.config.KeyManager().GetTLFCryptKey(file, md)
+		tlfCryptKey, err := fs.config.KeyManager().GetTLFCryptKeyForEncryption(md)
 		if err != nil {
 			return Path{}, err
 		}

@@ -24,12 +24,12 @@ func keyManagerShutdown(mockCtrl *gomock.Controller, config *ConfigMock) {
 	mockCtrl.Finish()
 }
 
-func expectCachedGetTLFCryptKey(config *ConfigMock, rmd *RootMetadata) {
-	config.mockKcache.EXPECT().GetTLFCryptKey(rmd.ID, rmd.LatestKeyGeneration()).Return(TLFCryptKey{}, nil)
+func expectCachedGetTLFCryptKey(config *ConfigMock, rmd *RootMetadata, keyGen KeyGen) {
+	config.mockKcache.EXPECT().GetTLFCryptKey(rmd.ID, keyGen).Return(TLFCryptKey{}, nil)
 }
 
-func expectUncachedGetTLFCryptKey(config *ConfigMock, rmd *RootMetadata, uid keybase1.UID, subkey CryptPublicKey) {
-	config.mockKcache.EXPECT().GetTLFCryptKey(rmd.ID, rmd.LatestKeyGeneration()).
+func expectUncachedGetTLFCryptKey(config *ConfigMock, rmd *RootMetadata, keyGen KeyGen, uid keybase1.UID, subkey CryptPublicKey) {
+	config.mockKcache.EXPECT().GetTLFCryptKey(rmd.ID, keyGen).
 		Return(TLFCryptKey{}, errors.New("NONE"))
 
 	// get the xor'd key out of the metadata
@@ -38,11 +38,11 @@ func expectUncachedGetTLFCryptKey(config *ConfigMock, rmd *RootMetadata, uid key
 
 	// get the server-side half and retrieve the real secret key
 	config.mockKops.EXPECT().GetTLFCryptKeyServerHalf(
-		rmd.ID, rmd.LatestKeyGeneration(), subkey).Return(TLFCryptKeyServerHalf{}, nil)
+		rmd.ID, keyGen, subkey).Return(TLFCryptKeyServerHalf{}, nil)
 	config.mockCrypto.EXPECT().UnmaskTLFCryptKey(TLFCryptKeyServerHalf{}, TLFCryptKeyClientHalf{}).Return(TLFCryptKey{}, nil)
 
 	// now put the key into the cache
-	config.mockKcache.EXPECT().PutTLFCryptKey(rmd.ID, rmd.LatestKeyGeneration(), TLFCryptKey{}).
+	config.mockKcache.EXPECT().PutTLFCryptKey(rmd.ID, keyGen, TLFCryptKey{}).
 		Return(nil)
 }
 
@@ -65,14 +65,7 @@ func expectRekey(config *ConfigMock, rmd *RootMetadata) {
 	config.mockKcache.EXPECT().PutTLFCryptKey(rmd.ID, newKeyGen, TLFCryptKey{}).Return(nil)
 }
 
-func pathFromRMD(config *ConfigMock, rmd *RootMetadata) Path {
-	return Path{rmd.ID, []PathNode{PathNode{
-		BlockPointer{BlockID{}, rmd.Data().Dir.GetKeyGen(), 0, keybase1.MakeTestUID(0), 0},
-		rmd.GetDirHandle().ToString(config),
-	}}}
-}
-
-func TestKeyManagerCachedSecretKeySuccess(t *testing.T) {
+func TestKeyManagerCachedSecretKeyForEncryptionSuccess(t *testing.T) {
 	mockCtrl, config := keyManagerInit(t)
 	defer keyManagerShutdown(mockCtrl, config)
 
@@ -80,15 +73,56 @@ func TestKeyManagerCachedSecretKeySuccess(t *testing.T) {
 	rmd := newRootMetadataForTest(h, id)
 	rmd.AddNewKeys(DirKeyBundle{})
 
-	expectCachedGetTLFCryptKey(config, rmd)
+	expectCachedGetTLFCryptKey(config, rmd, rmd.LatestKeyGeneration())
 
-	if _, err := config.KeyManager().GetTLFCryptKey(
-		pathFromRMD(config, rmd), rmd); err != nil {
-		t.Errorf("Got error on GetTLFCryptKey: %v", err)
+	if _, err := config.KeyManager().GetTLFCryptKeyForEncryption(rmd); err != nil {
+		t.Errorf("Got error on GetTLFCryptKeyForEncryption: %v", err)
 	}
 }
 
-func TestKeyManagerUncachedSecretKeySuccess(t *testing.T) {
+func TestKeyManagerCachedSecretKeyForMDDecryptionSuccess(t *testing.T) {
+	mockCtrl, config := keyManagerInit(t)
+	defer keyManagerShutdown(mockCtrl, config)
+
+	_, id, h := makeID(config)
+	rmd := newRootMetadataForTest(h, id)
+	rmd.AddNewKeys(DirKeyBundle{})
+
+	expectCachedGetTLFCryptKey(config, rmd, rmd.LatestKeyGeneration())
+
+	if _, err := config.KeyManager().GetTLFCryptKeyForMDDecryption(rmd); err != nil {
+		t.Errorf("Got error on GetTLFCryptKeyForMDDecryption: %v", err)
+	}
+}
+
+func TestKeyManagerCachedSecretKeyForBlockDecryptionSuccess(t *testing.T) {
+	mockCtrl, config := keyManagerInit(t)
+	defer keyManagerShutdown(mockCtrl, config)
+
+	_, id, h := makeID(config)
+	rmd := newRootMetadataForTest(h, id)
+	rmd.AddNewKeys(DirKeyBundle{})
+	rmd.AddNewKeys(DirKeyBundle{})
+
+	keyGen := rmd.LatestKeyGeneration() - 1
+	expectCachedGetTLFCryptKey(config, rmd, keyGen)
+
+	if _, err := config.KeyManager().GetTLFCryptKeyForBlockDecryption(rmd, BlockPointer{KeyGen: keyGen}); err != nil {
+		t.Errorf("Got error on GetTLFCryptKeyForBlockDecryption: %v", err)
+	}
+}
+
+func makeDirKeyBundle(uid keybase1.UID, cryptPublicKey CryptPublicKey) DirKeyBundle {
+	return DirKeyBundle{
+		RKeys: map[keybase1.UID]map[libkb.KIDMapKey]EncryptedTLFCryptKeyClientHalf{
+			uid: map[libkb.KIDMapKey]EncryptedTLFCryptKeyClientHalf{
+				cryptPublicKey.KID.ToMapKey(): EncryptedTLFCryptKeyClientHalf{},
+			},
+		},
+	}
+}
+
+func TestKeyManagerUncachedSecretKeyForEncryptionSuccess(t *testing.T) {
 	mockCtrl, config := keyManagerInit(t)
 	defer keyManagerShutdown(mockCtrl, config)
 
@@ -96,20 +130,48 @@ func TestKeyManagerUncachedSecretKeySuccess(t *testing.T) {
 	rmd := newRootMetadataForTest(h, id)
 
 	subkey := MakeFakeCryptPublicKeyOrBust("crypt public key")
-	dirKeyBundle := DirKeyBundle{
-		RKeys: map[keybase1.UID]map[libkb.KIDMapKey]EncryptedTLFCryptKeyClientHalf{
-			uid: map[libkb.KIDMapKey]EncryptedTLFCryptKeyClientHalf{
-				subkey.KID.ToMapKey(): EncryptedTLFCryptKeyClientHalf{},
-			},
-		},
+	rmd.AddNewKeys(makeDirKeyBundle(uid, subkey))
+
+	expectUncachedGetTLFCryptKey(config, rmd, rmd.LatestKeyGeneration(), uid, subkey)
+
+	if _, err := config.KeyManager().GetTLFCryptKeyForEncryption(rmd); err != nil {
+		t.Errorf("Got error on GetTLFCryptKeyForEncryption: %v", err)
 	}
-	rmd.AddNewKeys(dirKeyBundle)
+}
 
-	expectUncachedGetTLFCryptKey(config, rmd, uid, subkey)
+func TestKeyManagerUncachedSecretKeyForMDDecryptionSuccess(t *testing.T) {
+	mockCtrl, config := keyManagerInit(t)
+	defer keyManagerShutdown(mockCtrl, config)
 
-	if _, err := config.KeyManager().GetTLFCryptKey(
-		pathFromRMD(config, rmd), rmd); err != nil {
-		t.Errorf("Got error on GetTLFCryptKey: %v", err)
+	uid, id, h := makeID(config)
+	rmd := newRootMetadataForTest(h, id)
+
+	subkey := MakeFakeCryptPublicKeyOrBust("crypt public key")
+	rmd.AddNewKeys(makeDirKeyBundle(uid, subkey))
+
+	expectUncachedGetTLFCryptKey(config, rmd, rmd.LatestKeyGeneration(), uid, subkey)
+
+	if _, err := config.KeyManager().GetTLFCryptKeyForMDDecryption(rmd); err != nil {
+		t.Errorf("Got error on GetTLFCryptKeyForMDDecryption: %v", err)
+	}
+}
+
+func TestKeyManagerUncachedSecretKeyForBlockDecryptionSuccess(t *testing.T) {
+	mockCtrl, config := keyManagerInit(t)
+	defer keyManagerShutdown(mockCtrl, config)
+
+	uid, id, h := makeID(config)
+	rmd := newRootMetadataForTest(h, id)
+
+	subkey := MakeFakeCryptPublicKeyOrBust("crypt public key")
+	rmd.AddNewKeys(makeDirKeyBundle(uid, subkey))
+	rmd.AddNewKeys(makeDirKeyBundle(uid, subkey))
+
+	keyGen := rmd.LatestKeyGeneration() - 1
+	expectUncachedGetTLFCryptKey(config, rmd, keyGen, uid, subkey)
+
+	if _, err := config.KeyManager().GetTLFCryptKeyForBlockDecryption(rmd, BlockPointer{KeyGen: keyGen}); err != nil {
+		t.Errorf("Got error on GetTLFCryptKeyForBlockDecryption: %v", err)
 	}
 }
 

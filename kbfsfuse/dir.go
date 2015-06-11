@@ -46,12 +46,13 @@ func (d *Dir) Attr(ctx context.Context, a *fuse.Attr) error {
 
 	case d.parent == nil:
 		// Top-level folder
-		md, err := d.folder.fs.config.KBFSOps().GetRootMDForHandle(d.folder.dh)
+		_, rootDe, err :=
+			d.folder.fs.config.KBFSOps().GetOrCreateRootPathForHandle(
+				d.folder.dh)
 		if err != nil {
 			return err
 		}
-		de := &md.Data().Dir
-		fillAttr(de, a)
+		fillAttr(&rootDe, a)
 
 	default:
 		// Not a top-level folder => GetDir is safe.
@@ -116,21 +117,23 @@ func (d *Dir) Lookup(ctx context.Context, req *fuse.LookupRequest, resp *fuse.Lo
 			Writers: d.folder.dh.Writers,
 			Readers: []keybase1.UID{keybase1.PublicUID},
 		}
-		md, err := d.folder.fs.config.KBFSOps().GetRootMDForHandle(dhPub)
+		rootPath, _, err :=
+			d.folder.fs.config.KBFSOps().GetOrCreateRootPathForHandle(dhPub)
 		if err != nil {
 			return nil, err
 		}
+		if len(rootPath.Path) != 1 {
+			return nil, &libkbfs.BadPathError{
+				dhPub.ToString(d.folder.fs.config)}
+		}
 		pubFolder := &Folder{
 			fs: d.folder.fs,
-			id: md.ID,
+			id: rootPath.TopDir,
 			dh: dhPub,
 		}
 		child := &Dir{
-			folder: pubFolder,
-			pathNode: libkbfs.PathNode{
-				BlockPointer: md.Data().Dir.BlockPointer,
-				Name:         req.Name,
-			},
+			folder:   pubFolder,
+			pathNode: rootPath.Path[0],
 		}
 		return child, nil
 	}

@@ -149,26 +149,29 @@ func (f *FuseOps) LookupInDir(dNode *FuseNode, name string) (
 				Writers: dNode.DirHandle.Writers,
 				Readers: []keybase1.UID{keybase1.PublicUID},
 			}
-			md, err := f.config.KBFSOps().GetRootMDForHandle(dirHandle)
+			rootPath, rootDe, err :=
+				f.config.KBFSOps().GetOrCreateRootPathForHandle(dirHandle)
 			if err != nil {
 				return nil, f.translateError(err)
 			}
+			if len(rootPath.Path) != 1 {
+				return nil, f.translateError(
+					&libkbfs.BadPathError{dirHandle.ToString(f.config)})
+			}
 			fNode := &FuseNode{
 				Node:      nodefs.NewDefaultNode(),
-				Dir:       md.ID,
+				Dir:       rootPath.TopDir,
 				DirHandle: dirHandle,
-				Entry:     md.Data().Dir,
-				PathNode: libkbfs.PathNode{
-					BlockPointer: md.Data().Dir.BlockPointer,
-					Name:         dirHandle.ToString(f.config),
-				},
-				Ops: f,
+				Entry:     rootDe,
+				PathNode:  rootPath.Path[0],
+				Ops:       f,
 			}
 
 			node = dNode.Inode().NewChild(name, true, fNode)
 			f.topLock.Lock()
 			defer f.topLock.Unlock()
-			f.addTopNodeLocked(dirHandle.ToString(f.config), md.ID, fNode)
+			f.addTopNodeLocked(dirHandle.ToString(f.config),
+				rootPath.TopDir, fNode)
 			return node, fuse.OK
 		} else if p.TopDir == libkbfs.NullDirID {
 			uid, err := f.config.KBPKI().GetLoggedInUser()
@@ -347,7 +350,8 @@ func (f *FuseOps) LookupInRootByName(rNode *FuseNode, name string) (
 			node = rNode.Inode().NewChild(name, true, fNode)
 			f.addTopNodeLocked(name, fNode.Dir, fNode)
 		} else {
-			md, err := f.config.KBFSOps().GetRootMDForHandle(dirHandle)
+			rootPath, rootDe, err :=
+				f.config.KBFSOps().GetOrCreateRootPathForHandle(dirHandle)
 			var fNode *FuseNode
 			if _, ok :=
 				err.(*libkbfs.ReadAccessError); ok && dirHandle.HasPublic() {
@@ -368,26 +372,27 @@ func (f *FuseOps) LookupInRootByName(rNode *FuseNode, name string) (
 				}
 				f.topNodes[dirString] = fNode
 				f.topNodes[name] = fNode
-			} else if err != nil {
-				return nil, f.translateError(err)
 			} else {
+				if err != nil {
+					return nil, f.translateError(err)
+				} else if len(rootPath.Path) != 1 {
+					return nil, f.translateError(
+						&libkbfs.BadPathError{dirHandle.ToString(f.config)})
+				}
 				fNode = &FuseNode{
 					Node:      nodefs.NewDefaultNode(),
-					Dir:       md.ID,
+					Dir:       rootPath.TopDir,
 					DirHandle: dirHandle,
-					Entry:     md.Data().Dir,
-					PathNode: libkbfs.PathNode{
-						BlockPointer: md.Data().Dir.BlockPointer,
-						Name:         dirString,
-					},
-					Ops: f,
+					Entry:     rootDe,
+					PathNode:  rootPath.Path[0],
+					Ops:       f,
 				}
 			}
 
 			node = rNode.Inode().NewChild(name, true, fNode)
-			if md != nil {
-				f.addTopNodeLocked(name, md.ID, fNode)
-				f.addTopNodeLocked(dirString, md.ID, fNode)
+			if len(rootPath.Path) > 0 {
+				f.addTopNodeLocked(name, rootPath.TopDir, fNode)
+				f.addTopNodeLocked(dirString, rootPath.TopDir, fNode)
 			}
 		}
 	}
@@ -398,11 +403,15 @@ func (f *FuseOps) LookupInRootByName(rNode *FuseNode, name string) (
 // mount, given a top-level folder ID.
 func (f *FuseOps) LookupInRootByID(rNode *FuseNode, id libkbfs.DirID) (
 	node *nodefs.Inode, code fuse.Status) {
-	md, err := f.config.KBFSOps().GetRootMD(id)
+	rootPath, rootDe, dirHandle, err := f.config.KBFSOps().GetRootPath(id)
 	if err != nil {
 		return nil, f.translateError(err)
 	}
-	dirHandle := md.GetDirHandle()
+	if len(rootPath.Path) != 1 {
+		return nil, f.translateError(
+			&libkbfs.BadPathError{dirHandle.ToString(f.config)})
+	}
+
 	name := dirHandle.ToString(f.config)
 
 	node = rNode.Inode().GetChild(name)
@@ -417,12 +426,9 @@ func (f *FuseOps) LookupInRootByID(rNode *FuseNode, id libkbfs.DirID) (
 				Node:      nodefs.NewDefaultNode(),
 				Dir:       id,
 				DirHandle: dirHandle,
-				Entry:     md.Data().Dir,
-				PathNode: libkbfs.PathNode{
-					BlockPointer: md.Data().Dir.BlockPointer,
-					Name:         name,
-				},
-				Ops: f,
+				Entry:     rootDe,
+				PathNode:  rootPath.Path[0],
+				Ops:       f,
 			}
 
 			node = rNode.Inode().NewChild(name, true, fNode)
@@ -453,11 +459,12 @@ func (f *FuseOps) GetAttr(n *FuseNode, out *fuse.Attr) fuse.Status {
 						&libkbfs.NoSuchNameError{Name: name})
 				}
 			} else {
-				md, err := f.config.KBFSOps().GetRootMDForHandle(n.DirHandle)
+				var err error
+				_, de, err =
+					f.config.KBFSOps().GetOrCreateRootPathForHandle(n.DirHandle)
 				if err != nil {
 					return f.translateError(err)
 				}
-				de = md.Data().Dir
 			}
 
 			n.Entry = de

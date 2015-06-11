@@ -22,8 +22,7 @@ func (md *MDOpsStandard) processMetadata(
 	if rmds.IsInitialized() {
 		// decrypt the root data for non-public directories
 		if !handle.IsPublic() {
-			path := Path{rmds.MD.ID, []PathNode{}}
-			k, err := md.config.KeyManager().GetTLFCryptKey(path, &rmds.MD)
+			k, err := md.config.KeyManager().GetTLFCryptKeyForMDDecryption(&rmds.MD)
 			if err != nil {
 				return err
 			}
@@ -172,8 +171,7 @@ func (md *MDOpsStandard) Put(id DirID, rmd *RootMetadata) error {
 	}
 	crypto := md.config.Crypto()
 	if !id.IsPublic() {
-		path := Path{rmd.ID, []PathNode{}}
-		rk, err := md.config.KeyManager().GetTLFCryptKey(path, rmd)
+		rk, err := md.config.KeyManager().GetTLFCryptKeyForEncryption(rmd)
 		if err != nil {
 			return err
 		}
