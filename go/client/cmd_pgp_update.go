@@ -42,7 +42,7 @@ func (v *CmdPGPUpdate) RunClient() (err error) {
 func (v *CmdPGPUpdate) Run() error {
 	eng := engine.NewPGPUpdateEngine(v.fingerprints, v.all, G)
 	ctx := engine.Context{
-		LogUI: G_UI.GetLogUI(),
+		LogUI: GlobUI.GetLogUI(),
 	}
 	return engine.RunEngine(eng, &ctx)
 }

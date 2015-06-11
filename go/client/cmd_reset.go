@@ -15,7 +15,7 @@ const (
 )
 
 func (v *CmdReset) RunClient() (err error) {
-	if err = G_UI.PromptForConfirmation(resetPrompt); err != nil {
+	if err = GlobUI.PromptForConfirmation(resetPrompt); err != nil {
 		return
 	}
 
@@ -35,7 +35,7 @@ func (v *CmdReset) RunClient() (err error) {
 }
 
 func (v *CmdReset) Run() (err error) {
-	if err = G_UI.PromptForConfirmation(resetPrompt); err != nil {
+	if err = GlobUI.PromptForConfirmation(resetPrompt); err != nil {
 		return
 	}
 

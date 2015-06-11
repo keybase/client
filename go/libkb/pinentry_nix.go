@@ -48,7 +48,7 @@ func FindPinentry() (string, error) {
 		"/usr/local/MacGPG2/libexec/pinentry-mac.app/Contents/MacOS/pinentry-mac",
 	}
 
-	extra_paths := []string{}
+	extraPaths := []string{}
 
 	G.Log.Debug("+ FindPinentry()")
 
@@ -83,7 +83,7 @@ func FindPinentry() (string, error) {
 		}
 	}
 
-	for _, ep := range extra_paths {
+	for _, ep := range extraPaths {
 		for _, c := range cmds {
 			full := ep + "/" + c
 			if checkFull(full) {

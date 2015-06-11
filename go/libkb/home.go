@@ -56,12 +56,12 @@ func (x XdgPosix) Home(emptyOk bool) string {
 	return ret
 }
 
-func (x XdgPosix) dirHelper(env string, prefix_dirs ...string) string {
+func (x XdgPosix) dirHelper(env string, prefixDirs ...string) string {
 	var prfx string
 	prfx = os.Getenv(env)
 	if len(prfx) == 0 {
 		h := x.Home(false)
-		v := append([]string{h}, prefix_dirs...)
+		v := append([]string{h}, prefixDirs...)
 		prfx = x.Join(v...)
 	}
 	return x.Join(prfx, x.appName)

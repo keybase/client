@@ -12,7 +12,7 @@ import (
 
 // doctor ui rpc protocol
 func NewDoctorUIProtocol() rpc2.Protocol {
-	return keybase1.DoctorUiProtocol(&DoctorUIServer{G_UI.GetDoctorUI()})
+	return keybase1.DoctorUiProtocol(&DoctorUIServer{GlobUI.GetDoctorUI()})
 }
 
 // doctor ui server...translates keybase_1 protocol interface into

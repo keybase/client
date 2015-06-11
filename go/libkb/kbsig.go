@@ -65,11 +65,11 @@ func (u *User) ToTrackingStatementPgpKeys(errp *error) *jsonw.Wrapper {
 func (u *User) ToTrackingStatementBasics(errp *error) *jsonw.Wrapper {
 	ret := jsonw.NewDictionary()
 	ret.SetKey("username", jsonw.NewString(u.name))
-	if last_id_change, err := u.basics.AtKey("last_id_change").GetInt(); err == nil {
-		ret.SetKey("last_id_change", jsonw.NewInt(last_id_change))
+	if lastIDChange, err := u.basics.AtKey("last_id_change").GetInt(); err == nil {
+		ret.SetKey("last_id_change", jsonw.NewInt(lastIDChange))
 	}
-	if id_version, err := u.basics.AtKey("id_version").GetInt(); err == nil {
-		ret.SetKey("id_version", jsonw.NewInt(id_version))
+	if idVersion, err := u.basics.AtKey("id_version").GetInt(); err == nil {
+		ret.SetKey("id_version", jsonw.NewInt(idVersion))
 	}
 	return ret
 }
@@ -161,24 +161,24 @@ func (g *GenericChainLink) BaseToTrackingStatement(state keybase1.ProofState) *j
 	rkp.SetKey("state", jsonw.NewInt(int(state)))
 
 	prev := g.GetPrev()
-	var prev_val *jsonw.Wrapper
+	var prevVal *jsonw.Wrapper
 	if prev == nil {
-		prev_val = jsonw.NewNil()
+		prevVal = jsonw.NewNil()
 	} else {
-		prev_val = jsonw.NewString(prev.String())
+		prevVal = jsonw.NewString(prev.String())
 	}
 
-	ret.SetKey("prev", prev_val)
+	ret.SetKey("prev", prevVal)
 	ret.SetKey("ctime", jsonw.NewInt64(g.unpacked.ctime))
 	ret.SetKey("etime", jsonw.NewInt64(g.unpacked.etime))
 	return ret
 }
 
 func remoteProofToTrackingStatement(s RemoteProofChainLink, base *jsonw.Wrapper) error {
-	typ_s := s.TableKey()
-	if i, found := REMOTE_SERVICE_TYPES[typ_s]; !found {
+	typS := s.TableKey()
+	if i, found := REMOTE_SERVICE_TYPES[typS]; !found {
 		return fmt.Errorf("No service type found for '%s' in proof %d",
-			typ_s, s.GetSeqno())
+			typS, s.GetSeqno())
 	} else {
 		base.AtKey("remote_key_proof").SetKey("proof_type", jsonw.NewInt(int(i)))
 	}
@@ -190,18 +190,18 @@ func remoteProofToTrackingStatement(s RemoteProofChainLink, base *jsonw.Wrapper)
 func (u *User) ProofMetadata(ei int, signingKey FOKID, eldest *FOKID, ctime int64) (ret *jsonw.Wrapper, err error) {
 
 	var seqno int
-	var prev_s string
+	var prevS string
 	var key, prev *jsonw.Wrapper
 
-	last_seqno := u.sigChain().GetLastKnownSeqno()
-	last_link := u.sigChain().GetLastKnownId()
-	if last_link == nil {
+	lastSeqno := u.sigChain().GetLastKnownSeqno()
+	lastLink := u.sigChain().GetLastKnownId()
+	if lastLink == nil {
 		seqno = 1
 		prev = jsonw.NewNil()
 	} else {
-		seqno = int(last_seqno) + 1
-		prev_s = last_link.String()
-		prev = jsonw.NewString(prev_s)
+		seqno = int(lastSeqno) + 1
+		prevS = lastLink.String()
+		prev = jsonw.NewString(prevS)
 	}
 
 	if ctime == 0 {

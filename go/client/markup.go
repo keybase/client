@@ -94,7 +94,7 @@ type Renderer struct {
 }
 
 func NewRenderer(out io.Writer) *Renderer {
-	width, _ := G_UI.GetTerminalSize()
+	width, _ := GlobUI.GetTerminalSize()
 	if width == 0 {
 		width = 80
 	}

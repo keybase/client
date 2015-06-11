@@ -48,8 +48,8 @@ func (c *CmdBTC) RunClient() (err error) {
 func (c *CmdBTC) Run() error {
 	eng := engine.NewBTCEngine(c.address, c.force, G)
 	ctx := engine.Context{
-		LogUI:    G_UI.GetLogUI(),
-		SecretUI: G_UI.GetSecretUI(),
+		LogUI:    GlobUI.GetLogUI(),
+		SecretUI: GlobUI.GetSecretUI(),
 	}
 	return engine.RunEngine(eng, &ctx)
 }

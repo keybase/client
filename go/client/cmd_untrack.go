@@ -59,7 +59,7 @@ func (v *CmdUntrack) Run() error {
 	}
 	eng := engine.NewUntrackEngine(&arg, G)
 	ctx := engine.Context{
-		SecretUI: G_UI.GetSecretUI(),
+		SecretUI: GlobUI.GetSecretUI(),
 	}
 	return engine.RunEngine(eng, &ctx)
 }

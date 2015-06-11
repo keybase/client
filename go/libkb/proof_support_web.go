@@ -26,12 +26,12 @@ func NewWebChecker(p RemoteProofChainLink) (*WebChecker, ProofError) {
 func (rc *WebChecker) CheckHint(h SigHint) ProofError {
 
 	files := webKeybaseFiles
-	url_base := rc.proof.ToDisplayString()
-	their_url := strings.ToLower(h.apiUrl)
+	urlBase := rc.proof.ToDisplayString()
+	theirURL := strings.ToLower(h.apiUrl)
 
 	for _, file := range files {
-		our_url := url_base + "/" + file
-		if our_url == their_url {
+		ourURL := urlBase + "/" + file
+		if ourURL == theirURL {
 			return nil
 		}
 	}

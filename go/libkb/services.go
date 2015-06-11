@@ -29,16 +29,16 @@ type ServiceType interface {
 	GetApiArgKey() string
 }
 
-var _st_dispatch = make(map[string]ServiceType)
+var _stDispatch = make(map[string]ServiceType)
 
 func RegisterServiceType(st ServiceType) {
 	for _, k := range st.PrimaryStringKeys() {
-		_st_dispatch[k] = st
+		_stDispatch[k] = st
 	}
 }
 
 func GetServiceType(s string) ServiceType {
-	return _st_dispatch[strings.ToLower(s)]
+	return _stDispatch[strings.ToLower(s)]
 }
 
 //=============================================================================
@@ -134,9 +134,9 @@ func (t BaseServiceType) NormalizeUsername(s string) (string, error) {
 }
 
 func (t BaseServiceType) BaseCheckProofForUrl(text string, id keybase1.SigID) (err error) {
-	url_rxx := regexp.MustCompile(`https://(\S+)`)
+	urlRxx := regexp.MustCompile(`https://(\S+)`)
 	target := id.ToMediumID()
-	urls := url_rxx.FindAllString(text, -1)
+	urls := urlRxx.FindAllString(text, -1)
 	G.Log.Debug("Found urls %v", urls)
 	found := false
 	for _, u := range urls {

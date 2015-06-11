@@ -85,16 +85,16 @@ func (s *IdentifyState) ComputeKeyDiffs(dhook func(keybase1.FOKID, *keybase1.Tra
 	}
 
 	found := s.u.GetActivePgpFOKIDs(true)
-	found_map := mapify(found)
+	foundMap := mapify(found)
 	var tracked []FOKID
 	if s.track != nil {
 		tracked = s.track.GetTrackedPGPFOKIDs()
 	}
-	tracked_map := mapify(tracked)
+	trackedMap := mapify(tracked)
 
 	for _, fp := range found {
 		var diff TrackDiff
-		if s.track != nil && !tracked_map[*fp.Fp] {
+		if s.track != nil && !trackedMap[*fp.Fp] {
 			diff = TrackDiffNew{}
 			s.res.KeyDiffs = append(s.res.KeyDiffs, diff)
 		} else {
@@ -104,7 +104,7 @@ func (s *IdentifyState) ComputeKeyDiffs(dhook func(keybase1.FOKID, *keybase1.Tra
 	}
 
 	for _, fp := range tracked {
-		if !found_map[*fp.Fp] {
+		if !foundMap[*fp.Fp] {
 			diff := TrackDiffDeleted{fp.Fp}
 			s.res.KeyDiffs = append(s.res.KeyDiffs, diff)
 			display(fp, diff)

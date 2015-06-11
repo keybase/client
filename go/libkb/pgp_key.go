@@ -400,11 +400,11 @@ func (k *PgpKeyBundle) GetKid() KID {
 	buf := bytes.Buffer{}
 	k.PrimaryKey.Serialize(&buf)
 	byts := buf.Bytes()
-	hdr_bytes := 8
+	hdrBytes := 8
 	if len(byts) >= 193 {
-		hdr_bytes++
+		hdrBytes++
 	}
-	sum := sha256.Sum256(buf.Bytes()[hdr_bytes:])
+	sum := sha256.Sum256(buf.Bytes()[hdrBytes:])
 
 	out := append(prefix, sum[:]...)
 	out = append(out, byte(ID_SUFFIX_KID))

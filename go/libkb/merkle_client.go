@@ -298,12 +298,12 @@ func (mc *MerkleClient) LookupPath(q HttpArgs) (vp *VerificationPath, err error)
 		return
 	}
 
-	path_out, err := importPathFromJson(res.Body.AtKey("path"))
+	pathOut, err := importPathFromJson(res.Body.AtKey("path"))
 	if err != nil {
 		return
 	}
 
-	uid_path_out, err := importPathFromJson(res.Body.AtKey("uid_proof_path"))
+	uidPathOut, err := importPathFromJson(res.Body.AtKey("uid_proof_path"))
 	if err != nil {
 		return
 	}
@@ -313,7 +313,7 @@ func (mc *MerkleClient) LookupPath(q HttpArgs) (vp *VerificationPath, err error)
 		return
 	}
 
-	vp = &VerificationPath{uid, root, path_out, uid_path_out, idv, username}
+	vp = &VerificationPath{uid, root, pathOut, uidPathOut, idv, username}
 	return
 }
 
@@ -539,7 +539,7 @@ func (vp *VerificationPath) VerifyUsername() (username string, err error) {
 		return
 	}
 	hsh := sha256.Sum256([]byte(strings.ToLower(vp.username)))
-	hsh_s := hex.EncodeToString(hsh[:])
+	hshS := hex.EncodeToString(hsh[:])
 	var leaf *jsonw.Wrapper
 
 	if vp.root.legacyUidRootHash == nil {
@@ -547,7 +547,7 @@ func (vp *VerificationPath) VerifyUsername() (username string, err error) {
 		return
 	}
 
-	if leaf, err = vp.uidPath.VerifyPath(vp.root.legacyUidRootHash, hsh_s); err != nil {
+	if leaf, err = vp.uidPath.VerifyPath(vp.root.legacyUidRootHash, hshS); err != nil {
 		return
 	}
 
@@ -594,11 +594,11 @@ func (vp *VerificationPath) VerifyUser() (user *MerkleUserLeaf, err error) {
 	return
 }
 
-func (path PathSteps) VerifyPath(curr NodeHash, uid_s string) (juser *jsonw.Wrapper, err error) {
+func (path PathSteps) VerifyPath(curr NodeHash, uidS string) (juser *jsonw.Wrapper, err error) {
 
-	bpath := uid_s
+	bpath := uidS
 	pos := 0
-	last_typ := 0
+	lastTyp := 0
 
 	for i, step := range path {
 		payload := step.node
@@ -624,30 +624,30 @@ func (path PathSteps) VerifyPath(curr NodeHash, uid_s string) (juser *jsonw.Wrap
 		}
 		pos = epos
 
-		last_typ, err = jw.AtKey("type").GetInt()
+		lastTyp, err = jw.AtKey("type").GetInt()
 		if err != nil {
 			err = fmt.Errorf("At level %d, failed to get a valid 'type'", i)
 			break
 		}
 
-		if last_typ == MERKLE_TREE_NODE {
+		if lastTyp == MERKLE_TREE_NODE {
 			if plen == 0 {
 				err = fmt.Errorf("Empty prefix len at level=%d", i)
 				return
 			}
 			curr, err = GetNodeHash(jw.AtKey("tab").AtKey(step.prefix))
 			if err != nil {
-				err = MerkleNotFoundError{uid_s, err.Error()}
+				err = MerkleNotFoundError{uidS, err.Error()}
 				break
 			}
 			juser = nil
 		} else {
-			juser = jw.AtKey("tab").AtKey(uid_s)
+			juser = jw.AtKey("tab").AtKey(uidS)
 		}
 	}
 
 	if err == nil && juser == nil {
-		err = MerkleNotFoundError{uid_s, "tree path didn't end in a leaf"}
+		err = MerkleNotFoundError{uidS, "tree path didn't end in a leaf"}
 	}
 	return
 }

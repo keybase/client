@@ -7,7 +7,7 @@ import (
 )
 
 func parse(t *testing.T) *GpgKeyIndex {
-	buf := bytes.NewBufferString(my_keyring)
+	buf := bytes.NewBufferString(myKeyring)
 	i, e, w := ParseGpgIndexStream(buf)
 	if e != nil {
 		t.Fatalf("failure in parse: %s", e)
@@ -47,7 +47,7 @@ func TestFindMax(t *testing.T) {
 	}
 }
 
-var my_keyring = `
+var myKeyring = `
 tru::1:1416474053:1439900531:3:1:5
 pub:u:2048:17:76D78F0500D026C4:1282220531:1439900531::u:::scESC:
 fpr:::::::::85E38F69046B44C1EC9FB07B76D78F0500D026C4:

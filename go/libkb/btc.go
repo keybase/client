@@ -10,12 +10,12 @@ type BtcOpts struct {
 }
 
 func BtcAddrCheck(s string, opts *BtcOpts) (version int, pkhash []byte, err error) {
-	var ok_versions []int
+	var okVersions []int
 	if opts != nil && opts.versions != nil {
-		ok_versions = opts.versions
+		okVersions = opts.versions
 	} else {
 		// BTC and BTC multisig, only allowed for now
-		ok_versions = []int{0, 5}
+		okVersions = []int{0, 5}
 	}
 	buf, err := Decode58(s)
 	l := len(buf)
@@ -31,7 +31,7 @@ func BtcAddrCheck(s string, opts *BtcOpts) (version int, pkhash []byte, err erro
 
 	version = int(buf[0])
 	found := false
-	for _, v := range ok_versions {
+	for _, v := range okVersions {
 		if version == v {
 			found = true
 			break

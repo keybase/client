@@ -175,7 +175,7 @@ func (s *CmdSignupState) CheckRegistered() (err error) {
 		return
 	}
 	prompt := "Already registered; do you want to reregister?"
-	if rereg, err := G_UI.PromptYesNo(prompt, PromptDefaultNo); err != nil {
+	if rereg, err := GlobUI.PromptYesNo(prompt, PromptDefaultNo); err != nil {
 		return err
 	} else if !rereg {
 		return NotConfirmedError{}
@@ -202,7 +202,7 @@ func (s *CmdSignupState) Prompt() (err error) {
 
 	f := s.fields.passphraseRetry
 	if f.Disabled || libkb.IsYes(f.GetValue()) {
-		s.passphrase, err = G_UI.GetSecretUI().GetNewPassphrase(arg)
+		s.passphrase, err = GlobUI.GetSecretUI().GetNewPassphrase(arg)
 	}
 
 	return
@@ -263,7 +263,7 @@ func (s *CmdSignupState) runEngine() (retry bool, err error) {
 func (s *CmdSignupState) RequestInvitePromptForOk() (err error) {
 	prompt := "Would you like to be added to the invite request list?"
 	var invite bool
-	if invite, err = G_UI.PromptYesNo(prompt, PromptDefaultYes); err != nil {
+	if invite, err = GlobUI.PromptYesNo(prompt, PromptDefaultYes); err != nil {
 	} else if !invite {
 		err = NotConfirmedError{}
 	}
@@ -435,7 +435,7 @@ func (e *ClientModeSignupEngine) Init() error {
 	if e.doPrompt {
 		protocols = append(protocols, NewGPGUIProtocol())
 	} else {
-		ui := G_UI.GetGPGUI().(GPGUI)
+		ui := GlobUI.GetGPGUI().(GPGUI)
 		ui.noPrompt = true
 		protocols = append(protocols, keybase1.GpgUiProtocol(ui))
 	}

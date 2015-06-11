@@ -10,10 +10,10 @@ import (
 	logging "github.com/op/go-logging"
 )
 
-var (
-	fancy_format = "%{color}%{time:15:04:05.000000} ▶ %{level:.4s} %{id:03x}%{color:reset} %{message}"
-	plain_format = "%{level:.4s} %{id:03x} %{message}"
-	nice_format  = "%{color}▶ %{level:.4s} %{message} %{color:reset}"
+const (
+	fancyFormat = "%{color}%{time:15:04:05.000000} ▶ %{level:.4s} %{id:03x}%{color:reset} %{message}"
+	plainFormat = "%{level:.4s} %{id:03x} %{message}"
+	niceFormat  = "%{color}▶ %{level:.4s} %{message} %{color:reset}"
 )
 
 type Logger struct {
@@ -39,7 +39,7 @@ func (log *Logger) Errorf(fmt string, arg ...interface{}) {
 func (log *Logger) PlainLogging() {
 	log.configureMutex.Lock()
 	defer log.configureMutex.Unlock()
-	logging.SetFormatter(logging.MustStringFormatter(plain_format))
+	logging.SetFormatter(logging.MustStringFormatter(plainFormat))
 }
 
 func NewDefaultLogger() *Logger {
@@ -54,12 +54,12 @@ func (log *Logger) Configure(e *Env) {
 	defer log.configureMutex.Unlock()
 	var fmt string
 	if e.GetPlainLogging() {
-		fmt = plain_format
+		fmt = plainFormat
 	} else if e.GetDebug() {
-		fmt = fancy_format
+		fmt = fancyFormat
 		logging.SetLevel(logging.DEBUG, "keybase")
 	} else {
-		fmt = nice_format
+		fmt = niceFormat
 
 	}
 	logging.SetFormatter(logging.MustStringFormatter(fmt))

@@ -16,11 +16,11 @@ type CmdLogin struct {
 }
 
 func NewLoginUIProtocol() rpc2.Protocol {
-	return keybase1.LoginUiProtocol(G_UI.GetLoginUI())
+	return keybase1.LoginUiProtocol(GlobUI.GetLoginUI())
 }
 
 func NewLocksmithUIProtocol() rpc2.Protocol {
-	return keybase1.LocksmithUiProtocol(G_UI.GetLocksmithUI())
+	return keybase1.LocksmithUiProtocol(GlobUI.GetLocksmithUI())
 }
 
 func (v *CmdLogin) RunClient() (err error) {

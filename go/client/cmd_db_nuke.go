@@ -20,7 +20,7 @@ func (c *CmdDbNuke) RunClient() error { return c.Run() }
 func (c *CmdDbNuke) Run() error {
 	var err error
 	if !c.force {
-		err = G_UI.PromptForConfirmation("Really blast away your local DB cache?")
+		err = GlobUI.PromptForConfirmation("Really blast away your local DB cache?")
 	}
 	if err == nil {
 		err = G.LocalDb.Nuke()

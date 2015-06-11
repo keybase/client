@@ -235,14 +235,14 @@ func (s *SKB) UnlockSecretKey(lctx LoginContext, passphrase string, tsec *triple
 		}
 		unlocked, err = s.tsecUnlock(tsec)
 	case LKSecVersion:
-		pps_in := pps
+		ppsIn := pps
 		if pps == nil {
 			tsec, pps, err = s.unverifiedPassphraseStream(lctx, passphrase)
 			if err != nil {
 				return nil, fmt.Errorf("UnlockSecretKey: %s", err)
 			}
 		}
-		if unlocked, err = s.lksUnlock(lctx, pps, secretStorer, lksPreload); err == nil && pps_in == nil {
+		if unlocked, err = s.lksUnlock(lctx, pps, secretStorer, lksPreload); err == nil && ppsIn == nil {
 			// the unverified tsec, pps has been verified, so cache it:
 			if lctx != nil {
 				lctx.CreateStreamCache(tsec, pps)

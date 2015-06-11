@@ -45,8 +45,8 @@ func (c *CmdRevoke) RunClient() (err error) {
 func (c *CmdRevoke) Run() error {
 	eng := engine.NewRevokeEngine(c.id, engine.RevokeKey, G)
 	ctx := engine.Context{
-		LogUI:    G_UI.GetLogUI(),
-		SecretUI: G_UI.GetSecretUI(),
+		LogUI:    GlobUI.GetLogUI(),
+		SecretUI: GlobUI.GetSecretUI(),
 	}
 	return engine.RunEngine(eng, &ctx)
 }

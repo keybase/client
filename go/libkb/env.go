@@ -241,7 +241,7 @@ func (e *Env) getPgpFingerprint(flist ...(func() *PgpFingerprint)) *PgpFingerpri
 
 func (e *Env) GetBool(def bool, flist ...func() (bool, bool)) bool {
 	for _, f := range flist {
-		if val, is_set := f(); is_set {
+		if val, isSet := f(); isSet {
 			return val
 		}
 	}
@@ -257,7 +257,7 @@ type NegBoolFunc struct {
 // and also possible negations for those functions.
 func (e *Env) GetNegBool(def bool, flist []NegBoolFunc) bool {
 	for _, f := range flist {
-		if val, is_set := f.f(); is_set {
+		if val, isSet := f.f(); isSet {
 			return (val != f.neg)
 		}
 	}
@@ -266,7 +266,7 @@ func (e *Env) GetNegBool(def bool, flist []NegBoolFunc) bool {
 
 func (e *Env) GetInt(def int, flist ...func() (int, bool)) int {
 	for _, f := range flist {
-		if val, is_set := f(); is_set {
+		if val, isSet := f(); isSet {
 			return val
 		}
 	}

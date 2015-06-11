@@ -80,8 +80,8 @@ func (v *CmdTrack) Run() error {
 	}
 	eng := engine.NewTrackEngine(&arg, G)
 	ctx := engine.Context{
-		SecretUI:   G_UI.GetSecretUI(),
-		IdentifyUI: G_UI.GetIdentifyTrackUI(true),
+		SecretUI:   GlobUI.GetSecretUI(),
+		IdentifyUI: GlobUI.GetIdentifyTrackUI(true),
 	}
 	return engine.RunEngine(eng, &ctx)
 }

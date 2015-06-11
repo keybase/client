@@ -98,8 +98,8 @@ func (s *CmdPGPExport) finish(res []keybase1.KeyInfo, err error) error {
 
 func (s *CmdPGPExport) Run() (err error) {
 	ctx := engine.Context{
-		SecretUI: G_UI.GetSecretUI(),
-		LogUI:    G_UI.GetLogUI(),
+		SecretUI: GlobUI.GetSecretUI(),
+		LogUI:    GlobUI.GetLogUI(),
 	}
 	eng := engine.NewPGPKeyExportEngine(s.arg, G)
 	err = engine.RunEngine(eng, &ctx)

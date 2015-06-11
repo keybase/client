@@ -23,14 +23,14 @@ func NewRooterChecker(p RemoteProofChainLink) (*RooterChecker, ProofError) {
 }
 
 func (rc *RooterChecker) CheckHint(h SigHint) ProofError {
-	wanted_url := G.Env.GetServerURI() + API_URI_PATH_PREFIX + "/rooter/" + strings.ToLower(rc.proof.GetRemoteUsername()) + "/"
-	wanted_med_id := rc.proof.GetSigID().ToMediumID()
-	if !strings.HasPrefix(strings.ToLower(h.apiUrl), wanted_url) {
+	wantedURL := G.Env.GetServerURI() + API_URI_PATH_PREFIX + "/rooter/" + strings.ToLower(rc.proof.GetRemoteUsername()) + "/"
+	wantedMedID := rc.proof.GetSigID().ToMediumID()
+	if !strings.HasPrefix(strings.ToLower(h.apiUrl), wantedURL) {
 		return NewProofError(keybase1.ProofStatus_BAD_API_URL,
-			"Bad hint from server; URL should start with '%s'", wanted_url)
-	} else if !strings.Contains(h.checkText, wanted_med_id) {
+			"Bad hint from server; URL should start with '%s'", wantedURL)
+	} else if !strings.Contains(h.checkText, wantedMedID) {
 		return NewProofError(keybase1.ProofStatus_BAD_SIGNATURE,
-			"Bad proof-check text from server; need '%s' as a substring", wanted_med_id)
+			"Bad proof-check text from server; need '%s' as a substring", wantedMedID)
 	} else {
 		return nil
 	}

@@ -57,7 +57,7 @@ func (v *CmdPGPGen) RunClient() (err error) {
 }
 
 func (v *CmdPGPGen) Run() (err error) {
-	ctx := &engine.Context{SecretUI: G_UI.GetSecretUI(), LogUI: G_UI.GetLogUI()}
+	ctx := &engine.Context{SecretUI: GlobUI.GetSecretUI(), LogUI: GlobUI.GetLogUI()}
 	v.arg.Gen.MakeAllIds()
 	eng := engine.NewPGPKeyImportEngine(v.arg)
 	err = engine.RunEngine(eng, ctx)

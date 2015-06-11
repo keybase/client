@@ -89,20 +89,20 @@ func LoadUser(arg LoadUserArg) (ret *User, err error) {
 		return
 	}
 
-	var f1, load_remote bool
+	var f1, loadRemote bool
 
 	if local == nil {
 		G.Log.Debug("| No local user stored for %s", uid)
-		load_remote = true
+		loadRemote = true
 	} else if f1, err = local.CheckBasicsFreshness(leaf.idVersion); err != nil {
 		return
 	} else {
-		load_remote = !f1
+		loadRemote = !f1
 	}
 
 	G.Log.Debug("| Freshness: basics=%v; for %s", f1, uid)
 
-	if !load_remote && !arg.ForceReload {
+	if !loadRemote && !arg.ForceReload {
 		ret = local
 	} else if remote, err = LoadUserFromServer(arg, rres.body); err != nil {
 		return

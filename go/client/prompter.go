@@ -56,7 +56,7 @@ func (p *Prompter) ReadField(f *Field) (err error) {
 
 	var val string
 
-	term := G_UI.Terminal
+	term := GlobUI.Terminal
 	if term == nil {
 		return NoTerminalError{}
 	}

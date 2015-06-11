@@ -9,7 +9,7 @@ import (
 )
 
 func NewGPGUIProtocol() rpc2.Protocol {
-	return keybase1.GpgUiProtocol(G_UI.GetGPGUI())
+	return keybase1.GpgUiProtocol(GlobUI.GetGPGUI())
 }
 
 type GPGUI struct {

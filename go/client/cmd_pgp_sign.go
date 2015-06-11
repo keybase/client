@@ -123,7 +123,7 @@ func (s *CmdPGPSign) Run() (err error) {
 	}
 	earg := engine.PGPSignArg{Sink: s.sink, Source: s.source, Opts: s.opts}
 	ctx := engine.Context{
-		SecretUI: G_UI.GetSecretUI(),
+		SecretUI: GlobUI.GetSecretUI(),
 	}
 	eng := engine.NewPGPSignEngine(&earg, G)
 	err = engine.RunEngine(eng, &ctx)

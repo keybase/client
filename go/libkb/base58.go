@@ -7,16 +7,16 @@ import (
 )
 
 var alphabet = []byte("123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz")
-var alphabet_map map[byte]uint8
+var alphabetMap map[byte]uint8
 
 func getAlphabetMap() map[byte]uint8 {
-	if alphabet_map == nil {
-		alphabet_map = make(map[byte]uint8)
+	if alphabetMap == nil {
+		alphabetMap = make(map[byte]uint8)
 		for i, c := range []byte(alphabet) {
-			alphabet_map[c] = uint8(i)
+			alphabetMap[c] = uint8(i)
 		}
 	}
-	return alphabet_map
+	return alphabetMap
 }
 
 func reverseBuf(buf []byte) {
@@ -75,13 +75,13 @@ func Decode58(inp string) (outp []byte, err error) {
 	res := big.NewInt(0)
 
 	for i, c := range buf {
-		char_index, found := amap[c]
+		charIndex, found := amap[c]
 		if !found {
 			err = fmt.Errorf("Bad character '%c' found at pos %d", c, i)
 			return
 		}
 
-		tmp.Mul(place, big.NewInt(int64(char_index)))
+		tmp.Mul(place, big.NewInt(int64(charIndex)))
 		res.Add(res, tmp)
 
 		if i != len(buf)-1 {

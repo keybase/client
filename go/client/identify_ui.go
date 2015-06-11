@@ -11,11 +11,11 @@ type IdentifyUIServer struct {
 }
 
 func NewIdentifyUIProtocol() rpc2.Protocol {
-	return keybase1.IdentifyUiProtocol(&IdentifyUIServer{G_UI.GetIdentifyUI()})
+	return keybase1.IdentifyUiProtocol(&IdentifyUIServer{GlobUI.GetIdentifyUI()})
 }
 
 func NewIdentifyTrackUIProtocol() rpc2.Protocol {
-	ui := G_UI.GetIdentifyTrackUI(true)
+	ui := GlobUI.GetIdentifyTrackUI(true)
 	return keybase1.IdentifyUiProtocol(&IdentifyUIServer{ui})
 }
 

@@ -11,7 +11,7 @@ type SecretUIServer struct {
 }
 
 func NewSecretUIProtocol() rpc2.Protocol {
-	return keybase1.SecretUiProtocol(&SecretUIServer{G_UI.GetSecretUI()})
+	return keybase1.SecretUiProtocol(&SecretUIServer{GlobUI.GetSecretUI()})
 }
 
 func (s *SecretUIServer) GetSecret(arg keybase1.GetSecretArg) (res keybase1.SecretEntryRes, err error) {

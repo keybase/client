@@ -61,8 +61,8 @@ func (c *CmdSigsRevoke) RunClient() error {
 func (c *CmdSigsRevoke) Run() error {
 	eng := engine.NewRevokeSigsEngine(c.sigIDs, c.seqnos, G)
 	ctx := engine.Context{
-		LogUI:    G_UI.GetLogUI(),
-		SecretUI: G_UI.GetSecretUI(),
+		LogUI:    GlobUI.GetLogUI(),
+		SecretUI: GlobUI.GetSecretUI(),
 	}
 	return engine.RunEngine(eng, &ctx)
 }

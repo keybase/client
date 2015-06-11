@@ -85,14 +85,14 @@ func (e *Env) GenClientConfig() (*ClientConfig, error) {
 		return nil, e2
 	}
 	var rootCAs *x509.CertPool
-	if raw_ca := e.GetBundledCA(host); len(raw_ca) > 0 {
-		rootCAs, err = ParseCA(raw_ca)
+	if rawCA := e.GetBundledCA(host); len(rawCA) > 0 {
+		rootCAs, err = ParseCA(rawCA)
 		if err != nil {
 			err = fmt.Errorf("In parsing CAs for %s: %s", host, err.Error())
 			return nil, err
 		}
 		G.Log.Debug(fmt.Sprintf("Using special root CA for %s: %s",
-			host, ShortCA(raw_ca)))
+			host, ShortCA(rawCA)))
 	}
 
 	// If we're using proxies, they might have their own CAs.

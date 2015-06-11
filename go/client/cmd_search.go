@@ -53,8 +53,8 @@ func (c *CmdSearch) Run() error {
 		Query: c.query,
 	}, G)
 	ctx := engine.Context{
-		LogUI:    G_UI.GetLogUI(),
-		SecretUI: G_UI.GetSecretUI(),
+		LogUI:    GlobUI.GetLogUI(),
+		SecretUI: GlobUI.GetSecretUI(),
 	}
 	err := engine.RunEngine(eng, &ctx)
 	if err != nil {

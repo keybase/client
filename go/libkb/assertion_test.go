@@ -21,7 +21,7 @@ func TestSuccess1(t *testing.T) {
 
 func TestAssertions1(t *testing.T) {
 	a := "web://maxk.org && (https://foo.com || http://bar.com) && (bb@twitter || max || fingerprint://aabbcc)"
-	good_proofsets := []ProofSet{
+	goodProofsets := []ProofSet{
 		*NewProofSet([]Proof{
 			{"dns", "maxk.org"},
 			{"https", "bar.com"},
@@ -46,7 +46,7 @@ func TestAssertions1(t *testing.T) {
 		}),
 	}
 
-	bad_proofsets := []ProofSet{
+	badProofsets := []ProofSet{
 		*NewProofSet([]Proof{
 			{"dns", "max.org"},
 			{"http", "bar.com"},
@@ -78,12 +78,12 @@ func TestAssertions1(t *testing.T) {
 	if err != nil {
 		t.Errorf("Error parsing %s: %s", a, err.Error())
 	} else {
-		for i, proofset := range good_proofsets {
+		for i, proofset := range goodProofsets {
 			if !expr.MatchSet(proofset) {
 				t.Errorf("proofset %d failed to match", i)
 			}
 		}
-		for i, proofset := range bad_proofsets {
+		for i, proofset := range badProofsets {
 			if expr.MatchSet(proofset) {
 				t.Errorf("proofset %d should not have matched", i)
 			}
@@ -94,7 +94,7 @@ func TestAssertions1(t *testing.T) {
 func TestAssertions2(t *testing.T) {
 	// Coyne-style grammar
 	a := "web:maxk.org+max,malgorithms+https:nutflex.com+fingerprint:aabbcc,samwise+dns:match.com"
-	good_proofsets := []ProofSet{
+	goodProofsets := []ProofSet{
 		*NewProofSet([]Proof{
 			{"https", "maxk.org"},
 			{"keybase", "max"},
@@ -113,7 +113,7 @@ func TestAssertions2(t *testing.T) {
 	if err != nil {
 		t.Errorf("Error parsing %s: %s", a, err.Error())
 	} else {
-		for i, proofset := range good_proofsets {
+		for i, proofset := range goodProofsets {
 			if !expr.MatchSet(proofset) {
 				t.Errorf("proofset %d failed to match", i)
 			}

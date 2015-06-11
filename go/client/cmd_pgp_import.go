@@ -76,8 +76,8 @@ func (s *CmdPGPImport) RunClient() (err error) {
 
 func (s *CmdPGPImport) Run() (err error) {
 	ctx := engine.Context{
-		SecretUI: G_UI.GetSecretUI(),
-		LogUI:    G_UI.GetLogUI(),
+		SecretUI: GlobUI.GetSecretUI(),
+		LogUI:    GlobUI.GetLogUI(),
 	}
 	if err = s.readKeyData(); err != nil {
 		return

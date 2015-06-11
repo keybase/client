@@ -42,7 +42,7 @@ func (v *CmdPGPPull) Run() error {
 	}
 	eng := engine.NewPGPPullEngine(&arg, G)
 	ctx := engine.Context{
-		LogUI: G_UI.GetLogUI(),
+		LogUI: GlobUI.GetLogUI(),
 	}
 	return engine.RunEngine(eng, &ctx)
 }

@@ -275,7 +275,7 @@ func (a *InternalApiEngine) fixHeaders(arg ApiArg, req *http.Request) {
 func checkAppStatus(arg ApiArg, jw *jsonw.Wrapper) (string, error) {
 	var set []string
 
-	res_name, err := jw.AtKey("name").GetString()
+	resName, err := jw.AtKey("name").GetString()
 	if err != nil {
 		err = fmt.Errorf("Cannot find status name in reply")
 		return "", err
@@ -287,8 +287,8 @@ func checkAppStatus(arg ApiArg, jw *jsonw.Wrapper) (string, error) {
 		set = arg.AppStatus
 	}
 	for _, status := range set {
-		if res_name == status {
-			return res_name, nil
+		if resName == status {
+			return resName, nil
 		}
 	}
 	return "", NewAppStatusError(jw)

@@ -52,7 +52,7 @@ func newProveUIProtocol(ui ProveUI) rpc2.Protocol {
 func (p *CmdProve) RunClient() error {
 	var cli keybase1.ProveClient
 
-	proveUI := ProveUI{parent: G_UI}
+	proveUI := ProveUI{parent: GlobUI}
 	p.installOutputHook(&proveUI)
 
 	protocols := []rpc2.Protocol{
@@ -87,7 +87,7 @@ func (p *CmdProve) installOutputHook(ui *ProveUI) {
 
 // Run the prove engine in standalone mode.
 func (p *CmdProve) Run() (err error) {
-	ui := ProveUI{parent: G_UI}
+	ui := ProveUI{parent: GlobUI}
 	p.installOutputHook(&ui)
 
 	// command line interface wants the PromptPosted ui loop
@@ -95,8 +95,8 @@ func (p *CmdProve) Run() (err error) {
 
 	eng := engine.NewProve(&p.arg, G)
 	ctx := engine.Context{
-		LogUI:    G_UI.GetLogUI(),
-		SecretUI: G_UI.GetSecretUI(),
+		LogUI:    GlobUI.GetLogUI(),
+		SecretUI: GlobUI.GetSecretUI(),
 		ProveUI:  ui,
 	}
 	return engine.RunEngine(eng, &ctx)

@@ -144,7 +144,7 @@ func (sc *SigChain) LoadFromServer(t *MerkleTriple, selfUID keybase1.UID) (dirty
 		return
 	}
 
-	found_tail := false
+	foundTail := false
 
 	G.Log.Debug("| Got back %d new entries", lim)
 
@@ -160,15 +160,15 @@ func (sc *SigChain) LoadFromServer(t *MerkleTriple, selfUID keybase1.UID) (dirty
 			continue
 		}
 		links = append(links, link)
-		if !found_tail && t != nil {
-			if found_tail, err = link.checkAgainstMerkleTree(t); err != nil {
+		if !foundTail && t != nil {
+			if foundTail, err = link.checkAgainstMerkleTree(t); err != nil {
 				return
 			}
 		}
 		tail = link
 	}
 
-	if t != nil && !found_tail {
+	if t != nil && !foundTail {
 		err = NewServerChainError("Failed to reach (%s, %d) in server response",
 			t.LinkId, int(t.Seqno))
 		return
@@ -542,7 +542,7 @@ func (l *SigChainLoader) LoadLinksFromStorage() (err error) {
 	var curr LinkId
 	var links []*ChainLink
 	var mt *MerkleTriple
-	good_key := true
+	goodKey := true
 
 	uid := l.user.GetUID()
 
@@ -565,7 +565,7 @@ func (l *SigChainLoader) LoadLinksFromStorage() (err error) {
 
 	suid := l.selfUID()
 
-	for curr != nil && good_key {
+	for curr != nil && goodKey {
 		G.Log.Debug("| loading link; curr=%s", curr)
 		if link, err = ImportLinkFromStorage(curr, suid); err != nil {
 			return
@@ -576,12 +576,12 @@ func (l *SigChainLoader) LoadLinksFromStorage() (err error) {
 			loadFokid = &fokid2
 			G.Log.Debug("| Setting loadFokid=%s", fokid2)
 		} else if !l.allKeys && loadFokid != nil && !loadFokid.Eq(fokid2) {
-			good_key = false
+			goodKey = false
 			G.Log.Debug("| Stop loading at FOKID=%s (!= FOKID=%s)",
 				loadFokid.String(), fokid2.String())
 		}
 
-		if good_key {
+		if goodKey {
 			links = append(links, link)
 			curr = link.GetPrev()
 		}

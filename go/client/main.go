@@ -6,9 +6,9 @@ import (
 
 // Keep this around to simplify things
 var G = libkb.G
-var G_UI *UI
+var GlobUI *UI
 
 func InitUI() {
-	G_UI = &UI{}
-	G.SetUI(G_UI)
+	GlobUI = &UI{}
+	G.SetUI(GlobUI)
 }
