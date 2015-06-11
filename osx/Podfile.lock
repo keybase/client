@@ -48,7 +48,7 @@ PODS:
   - Slash/no-arc (0.1.2)
   - Sparkle (1.10.0)
   - YOLayout (0.2.3)
-  - ZXCVBN (1.0.4)
+  - ZXCVBN (1.0.5)
 
 DEPENDENCIES:
   - AFNetworking
@@ -81,6 +81,6 @@ SPEC CHECKSUMS:
   Slash: c74317f5ccf1e31f1d486a17e0d4076029ed3fc8
   Sparkle: c859bf5283b9f12aa45bceccf8e25ebb4c008eb2
   YOLayout: 24cf50a74e897aed4447aa2b3d640ed75927514d
-  ZXCVBN: 6bf251a7274d6a91d00fd195939da9952f8dfc54
+  ZXCVBN: f3888e3f6363b8cf57bcc32857a9bc09f9f9e18e
 
 COCOAPODS: 0.37.2
