@@ -427,7 +427,8 @@ func (c CtlClient) LogRotate() (err error) {
 }
 
 type DeviceListArg struct {
-	SessionID int `codec:"sessionID" json:"sessionID"`
+	SessionID int  `codec:"sessionID" json:"sessionID"`
+	All       bool `codec:"all" json:"all"`
 }
 
 type DeviceAddArg struct {
@@ -440,7 +441,7 @@ type DeviceAddCancelArg struct {
 }
 
 type DeviceInterface interface {
-	DeviceList(int) ([]Device, error)
+	DeviceList(DeviceListArg) ([]Device, error)
 	DeviceAdd(DeviceAddArg) error
 	DeviceAddCancel(int) error
 }
@@ -452,7 +453,7 @@ func DeviceProtocol(i DeviceInterface) rpc2.Protocol {
 			"deviceList": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
 				args := make([]DeviceListArg, 1)
 				if err = nxt(&args); err == nil {
-					ret, err = i.DeviceList(args[0].SessionID)
+					ret, err = i.DeviceList(args[0])
 				}
 				return
 			},
@@ -479,8 +480,7 @@ type DeviceClient struct {
 	Cli GenericClient
 }
 
-func (c DeviceClient) DeviceList(sessionID int) (res []Device, err error) {
-	__arg := DeviceListArg{SessionID: sessionID}
+func (c DeviceClient) DeviceList(__arg DeviceListArg) (res []Device, err error) {
 	err = c.Cli.Call("keybase.1.device.deviceList", []interface{}{__arg}, &res)
 	return
 }

@@ -15,7 +15,9 @@ import (
 
 // CmdDeviceList is the 'device list' command.  It displays all
 // the devices for the current user.
-type CmdDeviceList struct{}
+type CmdDeviceList struct {
+	all bool
+}
 
 // NewCmdDeviceList creates a new cli.Command.
 func NewCmdDeviceList(cl *libcmdline.CommandLine) cli.Command {
@@ -23,6 +25,12 @@ func NewCmdDeviceList(cl *libcmdline.CommandLine) cli.Command {
 		Name:        "list",
 		Usage:       "keybase device list",
 		Description: "List devices",
+		Flags: []cli.Flag{
+			cli.BoolFlag{
+				Name:  "a, all",
+				Usage: "include web devices",
+			},
+		},
 		Action: func(c *cli.Context) {
 			cl.ChooseCommand(&CmdDeviceList{}, "list", c)
 		},
@@ -36,7 +44,7 @@ func (c *CmdDeviceList) Run() error {
 	if err := engine.RunEngine(eng, ctx); err != nil {
 		return err
 	}
-	devs := eng.List()
+	devs := eng.List(c.all)
 	c.output(devs)
 	return nil
 }
@@ -54,7 +62,7 @@ func (c *CmdDeviceList) RunClient() error {
 		return err
 	}
 
-	devs, err := cli.DeviceList(0)
+	devs, err := cli.DeviceList(keybase1.DeviceListArg{All: c.all})
 	if err != nil {
 		return err
 	}
@@ -75,6 +83,7 @@ func (c *CmdDeviceList) output(devs []keybase1.Device) {
 
 // ParseArgv does nothing for this command.
 func (c *CmdDeviceList) ParseArgv(ctx *cli.Context) error {
+	c.all = ctx.Bool("all")
 	return nil
 }
 

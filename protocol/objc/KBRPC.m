@@ -183,8 +183,8 @@
 
 @implementation KBRDeviceRequest
 
-- (void)deviceListWithSessionID:(NSInteger)sessionID completion:(void (^)(NSError *error, NSArray *items))completion {
-  NSDictionary *params = @{@"sessionID": @(sessionID)};
+- (void)deviceListWithSessionID:(NSInteger)sessionID all:(BOOL)all completion:(void (^)(NSError *error, NSArray *items))completion {
+  NSDictionary *params = @{@"sessionID": @(sessionID), @"all": @(all)};
   [self.client sendRequestWithMethod:@"keybase.1.device.deviceList" params:params sessionId:self.sessionId completion:^(NSError *error, id retval) {
     if (error) {
         completion(error, nil);
@@ -1316,6 +1316,7 @@
 - (instancetype)initWithParams:(NSArray *)params {
   if ((self = [super initWithParams:params])) {
     self.sessionID = [params[0][@"sessionID"] integerValue];
+    self.all = [params[0][@"all"] boolValue];
   }
   return self;
 }

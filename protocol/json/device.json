@@ -177,6 +177,9 @@
       "request" : [ {
         "name" : "sessionID",
         "type" : "int"
+      }, {
+        "name" : "all",
+        "type" : "boolean"
       } ],
       "response" : {
         "type" : "array",

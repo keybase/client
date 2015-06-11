@@ -150,7 +150,7 @@
 @end
 
 @interface KBRDeviceRequest : KBRRequest
-- (void)deviceListWithSessionID:(NSInteger)sessionID completion:(void (^)(NSError *error, NSArray *items))completion;
+- (void)deviceListWithSessionID:(NSInteger)sessionID all:(BOOL)all completion:(void (^)(NSError *error, NSArray *items))completion;
 
 - (void)deviceAddWithSessionID:(NSInteger)sessionID secretPhrase:(NSString *)secretPhrase completion:(void (^)(NSError *error))completion;
 
@@ -869,6 +869,7 @@ typedef NS_ENUM (NSInteger, KBRPromptOverwriteType) {
 @end
 @interface KBRDeviceListRequestParams : KBRRequestParams
 @property NSInteger sessionID;
+@property BOOL all;
 @end
 @interface KBRDeviceAddRequestParams : KBRRequestParams
 @property NSInteger sessionID;

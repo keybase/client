@@ -16,13 +16,13 @@ func NewDeviceHandler(xp *rpc2.Transport) *DeviceHandler {
 	return &DeviceHandler{CancelHandler: NewCancelHandler(xp)}
 }
 
-func (h *DeviceHandler) DeviceList(sessionID int) ([]keybase1.Device, error) {
-	ctx := &engine.Context{LogUI: h.getLogUI(sessionID)}
+func (h *DeviceHandler) DeviceList(arg keybase1.DeviceListArg) ([]keybase1.Device, error) {
+	ctx := &engine.Context{LogUI: h.getLogUI(arg.SessionID)}
 	eng := engine.NewDevList(G)
 	if err := engine.RunEngine(eng, ctx); err != nil {
 		return nil, err
 	}
-	return eng.List(), nil
+	return eng.List(arg.All), nil
 }
 
 // DeviceAdd adds a sibkey using a SibkeyEngine.
