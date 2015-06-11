@@ -64,7 +64,6 @@
 
   NSArray *envs = @[
                     [[KBEnvironment alloc] initWithConfig:[KBEnvConfig env:KBEnvKeybaseIO]],
-                    [[KBEnvironment alloc] initWithConfig:[KBEnvConfig env:KBEnvSandbox]],
                     [[KBEnvironment alloc] initWithConfig:[KBEnvConfig env:KBEnvLocalhost]],
                     [[KBEnvironment alloc] initWithConfig:[KBEnvConfig env:KBEnvLocalhost2]],
                     [[KBEnvironment alloc] initWithConfig:[KBEnvConfig loadFromUserDefaults:[KBWorkspace userDefaults]]],

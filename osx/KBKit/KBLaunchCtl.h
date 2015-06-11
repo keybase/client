@@ -22,7 +22,10 @@ typedef void (^KBOnLaunchStatus)(KBServiceStatus *serviceStatus);
 + (void)load:(NSString *)plist label:(NSString *)label force:(BOOL)force completion:(KBOnLaunchExecution)completion;
 
 /*!
- @param disable Disables service so it won't restart (launchctl unload -w)
+ Unload service.
+ 
+ @param label If you want to wait for it to unload, specify the label (if nil, will not wait).
+ @param disable If YES, disables service so it won't restart (launchctl unload -w)
  */
 + (void)unload:(NSString *)plist label:(NSString *)label disable:(BOOL)disable completion:(KBOnLaunchExecution)completion;
 

@@ -19,7 +19,7 @@
   static NSUserDefaults *userDefaults;
   static dispatch_once_t onceToken;
   dispatch_once(&onceToken, ^{
-    userDefaults = [[NSUserDefaults alloc] initWithSuiteName:@"group.keybase.Keybase"];
+    userDefaults = [[NSUserDefaults alloc] initWithSuiteName:NSStringWithFormat(@"group.%@", KBGroupId)];
   });
   return userDefaults;
 }

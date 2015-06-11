@@ -36,7 +36,7 @@
   NSArray *installActionsNeeded = [_environment installActionsNeeded];
 
   KBRunOver *rover = [[KBRunOver alloc] init];
-  rover.objects = installActionsNeeded;
+  rover.enumerator = [installActionsNeeded objectEnumerator];
   rover.runBlock = ^(KBInstallAction *installAction, KBRunCompletion runCompletion) {
     DDLogDebug(@"Install: %@", installAction.name);
     [installAction.installable install:^(NSError *error) {

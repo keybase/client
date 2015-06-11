@@ -26,15 +26,18 @@ typedef void (^KBOnCompletion)(NSError *error, id value);
 
 #define KBMap(ARRAY, PROPERTY) [ARRAY map:^(id obj) { return [obj PROPERTY]; }]
 
-#ifndef KBLog
-#define KBLog NSLog
-#endif
+#define KBGroupId (@"Keybase")
 
 NSNumber *KBNumberFromString(NSString *s);
 
 NSString *KBNSStringWithFormat(NSString *formatString, ...);
 
 NSString *KBPath(NSString *path, BOOL tilde, BOOL escape);
+
+// Return path in directory (if directory is nil returns nil)
+NSString *KBPathInDir(NSString *dir, NSString *path, BOOL tilde, BOOL escape);
+
+NSURL *KBURLPath(NSString *path, BOOL isDir, BOOL tilde, BOOL escape);
 
 NSString *KBNSStringByStrippingHTML(NSString *str);
 

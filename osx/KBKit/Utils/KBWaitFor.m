@@ -8,6 +8,7 @@
 
 #import "KBWaitFor.h"
 #import "KBDefines.h"
+#import <CocoaLumberjack/CocoaLumberjack.h>
 
 @implementation KBWaitFor
 
@@ -24,7 +25,7 @@
       if (NSDate.date.timeIntervalSince1970 >= until.timeIntervalSince1970) {
         completion(nil);
       } else {
-        KBLog(@"Waiting (%@)", label);
+        DDLogDebug(@"Waiting (%@)", label);
         dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(delay * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
           [self waitFor:block delay:delay until:until label:label completion:completion];
         });

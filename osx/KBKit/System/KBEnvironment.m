@@ -70,7 +70,7 @@
 
 - (void)installStatus:(void (^)(BOOL needsInstall))completion {
   KBRunOver *rover = [[KBRunOver alloc] init];
-  rover.objects = _installActions;
+  rover.enumerator = [_installActions objectEnumerator];
   rover.runBlock = ^(KBInstallAction *installAction, KBRunCompletion runCompletion) {
     DDLogDebug(@"Checking %@", installAction.installable.name);
     [installAction.installable updateComponentStatus:^(NSError *error) {
@@ -89,7 +89,7 @@
 
 - (void)uninstallServices:(KBCompletion)completion {
   KBRunOver *rover = [[KBRunOver alloc] init];
-  rover.objects = [_services reverse];
+  rover.enumerator = [_services reverseObjectEnumerator];
   rover.runBlock = ^(id<KBInstallable> installable, KBRunCompletion runCompletion) {
     [installable uninstall:^(NSError *error) {
       runCompletion(installable);
@@ -108,7 +108,7 @@
   NSArray *dirs = @[@".cache/keybase", @".config/keybase", @".local/keybase"];
 
   KBRunOver *rover = [[KBRunOver alloc] init];
-  rover.objects = dirs;
+  rover.enumerator = [dirs objectEnumerator];
   rover.runBlock = ^(NSString *dir, KBRunCompletion runCompletion) {
     NSString *kbDir = NSStringWithFormat(@"%@/%@", homeDir, dir);
     if ([NSFileManager.defaultManager fileExistsAtPath:kbDir isDirectory:nil]) {

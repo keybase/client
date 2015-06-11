@@ -10,7 +10,6 @@
 
 typedef NS_ENUM (NSInteger, KBEnv) {
   KBEnvKeybaseIO,
-  KBEnvSandbox,
   KBEnvLocalhost,
   KBEnvLocalhost2
 };

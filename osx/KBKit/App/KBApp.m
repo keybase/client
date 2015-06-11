@@ -15,6 +15,7 @@
 #import "KBWorkspace.h"
 #import "KBLogFormatter.h"
 #import "KBEnvSelectView.h"
+#import "KBUninstaller.h"
 
 #import <AFNetworking/AFNetworking.h>
 
@@ -68,6 +69,16 @@
     DDLogInfo(@"Reachability: %@", AFStringFromNetworkReachabilityStatus(status));
   }];
   [AFNetworkReachabilityManager.sharedManager startMonitoring];
+
+  // Cleanup old stuff
+  if (![userDefaults objectForKey:@"InstallVersion"]) {
+    DDLogInfo(@"Removing old services and files");
+    [KBUninstaller uninstall:@"keybase" completion:^(NSError *error) {}];
+  }
+  // Save installed version in case a later upgrade needs this info
+  NSString *version = NSBundle.mainBundle.infoDictionary[@"CFBundleShortVersionString"];
+  [userDefaults setObject:version forKey:@"InstallVersion"];
+  [userDefaults synchronize];
 
   KBEnvSelectView *envSelectView = [[KBEnvSelectView alloc] init];
   KBNavigationView *navigation = [[KBNavigationView alloc] initWithView:envSelectView title:@"Keybase"];

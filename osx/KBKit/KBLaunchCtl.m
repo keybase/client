@@ -8,6 +8,7 @@
 
 #import "KBLaunchCtl.h"
 #import "KBDefines.h"
+#import <CocoaLumberjack/CocoaLumberjack.h>
 
 @implementation KBLaunchCtl
 
@@ -27,7 +28,7 @@
   if (force) [args addObject:@"-w"];
   [args addObject:plist];
   [self execute:@"/bin/launchctl" args:args completion:^(NSError *error, NSString *output) {
-    KBLog(@"Output: %@", output);
+    DDLogDebug(@"Output: %@", output);
     if (error) {
       completion(error, output);
       return;
@@ -45,14 +46,18 @@
   if (disable) [args addObject:@"-w"];
   [args addObject:plist];
   [self execute:@"/bin/launchctl" args:args completion:^(NSError *error, NSString *output) {
-    KBLog(@"Output: %@", output);
+    DDLogDebug(@"Output: %@", output);
     if (error) {
       completion(error, output);
       return;
     }
-    [self waitForUnloadWithLabel:label attempt:1 completion:^(NSError *error) {
-      completion(error, output);
-    }];
+    if (label) {
+      [self waitForUnloadWithLabel:label attempt:1 completion:^(NSError *error) {
+        completion(error, output);
+      }];
+    } else {
+      completion(nil, output);
+    }
   }];
 }
 
@@ -80,13 +85,13 @@
 + (void)waitForUnloadWithLabel:(NSString *)label attempt:(NSInteger)attempt completion:(void (^)(NSError *error))completion {
   [self status:label completion:^(KBServiceStatus *status) {
     if (!status || !status.isRunning) {
-      KBLog(@"%@ is not running (%@)", label, KBOr(status.info, @"-"));
+      DDLogDebug(@"%@ is not running (%@)", label, KBOr(status.info, @"-"));
       completion(nil);
     } else {
       if ((attempt + 1) >= 10) {
         completion(KBMakeError(-1, @"Wait unload timeout (launchctl)"));
       } else {
-        KBLog(@"Waiting for unload (#%@)", @(attempt));
+        DDLogDebug(@"Waiting for unload (#%@)", @(attempt));
         dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.5 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
           [self waitForUnloadWithLabel:label attempt:attempt+1 completion:completion];
         });
@@ -98,13 +103,13 @@
 + (void)waitForLoadWithLabel:(NSString *)label attempt:(NSInteger)attempt completion:(void (^)(NSError *error))completion {
   [self status:label completion:^(KBServiceStatus *status) {
     if (status && status.isRunning) {
-      KBLog(@"%@ is running: %@", status.label, status.pid);
+      DDLogDebug(@"%@ is running: %@", status.label, status.pid);
       completion(nil);
     } else {
       if ((attempt + 1) >= 10) {
         completion(KBMakeError(-1, @"Wait load timeout (launchctl)"));
       } else {
-        KBLog(@"Waiting for load (#%@)", @(attempt));
+        DDLogDebug(@"Waiting for load (#%@)", @(attempt));
         dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.5 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
           [self waitForLoadWithLabel:label attempt:attempt+1 completion:completion];
         });
@@ -121,7 +126,7 @@
   [task setStandardOutput:outpipe];
   [task setStandardError:outpipe];
   task.terminationHandler = ^(NSTask *t) {
-    KBLog(@"Task: \"%@ %@\" (%@)", command, [args componentsJoinedByString:@" "], @(t.terminationStatus));
+    DDLogDebug(@"Task: \"%@ %@\" (%@)", command, [args componentsJoinedByString:@" "], @(t.terminationStatus));
     NSFileHandle *read = [outpipe fileHandleForReading];
     NSData *data = [read readDataToEndOfFile];
     NSString *output = [[NSString alloc] initWithData:data encoding:NSUTF8StringEncoding];

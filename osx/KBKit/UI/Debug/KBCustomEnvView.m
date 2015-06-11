@@ -98,16 +98,19 @@
 
 - (void)setConfig:(KBEnvConfig *)config {
   _homeDirField.text = KBPath(config.homeDir, YES, NO);
-  _socketFileField.text = KBPath(config.sockFile, YES, NO);
+//  _socketFileField.text = KBPath(config.sockFile, YES, NO);
   _mountDirField.text = KBPath(config.mountDir, YES, NO);
   [self updateCLI:config];
   [self setNeedsLayout];
 }
 
 - (void)updateCLI:(KBEnvConfig *)config {
-  [_serviceCLI setText:[config commandLineForService:NO escape:YES tilde:NO] style:KBTextStyleDefault options:KBTextOptionsMonospace alignment:NSLeftTextAlignment lineBreakMode:NSLineBreakByWordWrapping];
+  NSString *serviceCLI = NSStringWithFormat(@"env -i %@", [config commandLineForService:NO escape:YES tilde:YES]);
+  NSString *kbfsCLI = NSStringWithFormat(@"env -i %@", [config commandLineForKBFS:NO escape:YES tilde:YES]);
 
-  [_kbfsCLI setText:[config commandLineForKBFS:NO escape:YES tilde:NO] style:KBTextStyleDefault options:KBTextOptionsMonospace alignment:NSLeftTextAlignment lineBreakMode:NSLineBreakByWordWrapping];
+  [_serviceCLI setText:serviceCLI style:KBTextStyleDefault options:KBTextOptionsMonospace alignment:NSLeftTextAlignment lineBreakMode:NSLineBreakByWordWrapping];
+
+  [_kbfsCLI setText:kbfsCLI style:KBTextStyleDefault options:KBTextOptionsMonospace alignment:NSLeftTextAlignment lineBreakMode:NSLineBreakByWordWrapping];
 
   [self setNeedsLayout];
 }

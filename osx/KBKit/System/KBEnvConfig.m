@@ -12,6 +12,8 @@
 
 #import <ObjectiveSugar/ObjectiveSugar.h>
 #import <AppKit/AppKit.h>
+#import <GHODictionary/GHODictionary.h>
+#import <CocoaLumberjack/CocoaLumberjack.h>
 
 @interface KBEnvConfig ()
 @property NSString *homeDir;
@@ -37,8 +39,8 @@
     switch (env) {
       case KBEnvKeybaseIO: {
         self.title = @"Keybase.io";
-        self.identifier = @"keybase_io";
-        self.homeDir = KBPath(@"~", NO, NO);
+        self.identifier = @"kb";
+        self.homeDir = [KBEnvConfig groupContainer:self.identifier];
         self.host = @"https://api.keybase.io:443";
         self.mountDir = KBPath(@"~/Keybase", NO, NO);
         self.debugEnabled = YES;
@@ -48,25 +50,10 @@
         self.installEnabled = YES;
         break;
       }
-      case KBEnvSandbox: {
-        self.title = @"Sandbox";
-        self.identifier = @"sandbox";
-        NSURL *containerURL = [[NSFileManager defaultManager] containerURLForSecurityApplicationGroupIdentifier:@"group.keybase.Keybase"];
-        self.homeDir = containerURL.path;
-        //self.host = @"http://localhost:3000";
-        //self.mountDir = KBPath(@"~/Keybase", NO, NO);
-        self.sockFile = KBPath(NSStringWithFormat(@"%@/keybased.sock", _homeDir), NO, NO);
-        self.debugEnabled = YES;
-        self.info = @"For use with app sandboxing.";
-        self.image = [NSImage imageNamed:NSImageNameFolder];
-        self.launchdEnabled = NO;
-        self.installEnabled = NO;
-        break;
-      }
       case KBEnvLocalhost: {
-        self.title = @"Localhost";
+        self.title = @"Local";
         self.identifier = @"localhost";
-        self.homeDir = KBPath(NSStringWithFormat(@"~/Library/Application Support/Keybase/%@", self.identifier), NO, NO);
+        self.homeDir = [KBEnvConfig groupContainer:self.identifier];
         self.host = @"http://localhost:3000";
         self.mountDir = KBPath(@"~/Keybase.localhost", NO, NO);
         self.debugEnabled = YES;
@@ -77,9 +64,9 @@
         break;
       }
       case KBEnvLocalhost2: {
-        self.title = @"Localhost #2";
+        self.title = @"Local #2";
         self.identifier = @"localhost2";
-        self.homeDir = KBPath(NSStringWithFormat(@"~/Library/Application Support/Keybase/%@", self.identifier), NO, NO);
+        self.homeDir = [KBEnvConfig groupContainer:self.identifier];
         self.host = @"http://localhost:3000";
         self.mountDir = KBPath(@"~/Keybase.localhost2", NO, NO);
         self.debugEnabled = YES;
@@ -99,9 +86,18 @@
   return self;
 }
 
++ (NSString *)groupContainer:(NSString *)path {
+  NSString *dir = [[NSFileManager defaultManager] containerURLForSecurityApplicationGroupIdentifier:KBGroupId].path;
+  return KBPathInDir(dir, path, NO, NO);
+}
+
 + (instancetype)loadFromUserDefaults:(NSUserDefaults *)userDefaults {
   NSString *homeDir = [userDefaults stringForKey:@"HomeDir"];
   NSString *mountDir = [userDefaults stringForKey:@"MountDir"];
+
+  if (!homeDir) homeDir = [KBEnvConfig groupContainer:@"dev"];
+  if (!mountDir) mountDir = KBPath(@"~/Keybase.dev", NO, NO);
+
   return [[KBEnvConfig alloc] initWithHomeDir:homeDir sockFile:nil mountDir:mountDir];
 }
 
@@ -113,8 +109,11 @@
 
 - (NSString *)sockFile:(BOOL)useDefault {
   NSString *sockFile;
-  if (_sockFile) sockFile = _sockFile;
-  else sockFile = KBPath(NSStringWithFormat(@"%@/.config/keybase/keybased.sock", _homeDir), NO, NO);
+  if (_sockFile) {
+    sockFile = _sockFile;
+  } else {
+    sockFile = KBPathInDir(_homeDir, @".config/keybase/keybased.sock", NO, NO);
+  }
   if ([sockFile length] > 103) {
     [NSException raise:NSInvalidArgumentException format:@"Sock path too long. It should be < 104 characters. %@", sockFile];
   }
@@ -123,8 +122,11 @@
 
 - (NSString *)configFile:(BOOL)useDefault {
   NSString *configFile;
-  if (_configFile) configFile = _configFile;
-  else configFile = KBPath(NSStringWithFormat(@"%@/.config/keybase/config.json", _homeDir), NO, NO);
+  if (_configFile) {
+    configFile = _configFile;
+  } else {
+    configFile = KBPathInDir(_homeDir, @".config/keybase/config.json", NO, NO);
+  }
   return configFile;
 }
 
@@ -159,7 +161,9 @@
   } else {
     [args addObject:@"./keybase"];
   }
-  [args addObjectsFromArray:@[@"-H", KBPath(_homeDir, tilde, escape)]];
+  if (_homeDir) {
+    [args addObjectsFromArray:@[@"-H", KBPath(_homeDir, tilde, escape)]];
+  }
 
   if (_host) {
     [args addObjectsFromArray:@[@"-s", _host]];
@@ -227,8 +231,9 @@
   return [[self programArgumentsForKeybase:useBundle escape:escape tilde:tilde service:YES] join:@" "];
 }
 
-- (NSDictionary *)envsForKBS:(BOOL)tilde escape:(BOOL)escape {
-  NSMutableDictionary *envs = [NSMutableDictionary dictionary];
+- (GHODictionary *)envsForKBS:(BOOL)tilde escape:(BOOL)escape {
+  GHODictionary *envs = [GHODictionary dictionary];
+  envs[@"PATH"] = @"/sbin:/Library/Filesystems/kbfuse.fs/Support"; // For umount, mount_osxfusefs
   envs[@"KEYBASE_SOCKET_FILE"] = KBPath([self sockFile:YES], tilde, escape);
   envs[@"KEYBASE_CONFIG_FILE"] = KBPath([self configFile:YES], tilde, escape);
   return envs;
@@ -238,7 +243,7 @@
   if (!self.launchdLabelKBFS) return nil;
 
   NSArray *args = [self programArgumentsForKBFS:YES escape:NO tilde:NO];
-  NSDictionary *envs = [self envsForKBS:NO escape:NO];
+  GHODictionary *envs = [self envsForKBS:NO escape:NO];
 
   // Logging
   NSString *logDir = KBPath(@"~/Library/Logs/Keybase", NO, NO);

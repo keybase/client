@@ -21,13 +21,13 @@
 @implementation KBPGPDecrypt
 
 - (void)decryptWithOptions:(KBRPgpDecryptOptions *)options streams:(NSArray *)streams client:(KBRPClient *)client sender:(id)sender completion:(void (^)(NSArray *works))completion {
-  KBRunOver *sb = [[KBRunOver alloc] init];
-  sb.objects = streams;
-  sb.runBlock = ^(KBStream *stream, KBRunCompletion runCompletion) {
+  KBRunOver *runOver = [[KBRunOver alloc] init];
+  runOver.enumerator = [streams objectEnumerator];
+  runOver.runBlock = ^(KBStream *stream, KBRunCompletion runCompletion) {
     [self decryptWithOptions:options stream:stream client:client sender:sender completion:runCompletion];
   };
-  sb.completion = completion;
-  [sb run];
+  runOver.completion = completion;
+  [runOver run];
 }
 
 - (void)decryptWithOptions:(KBRPgpDecryptOptions *)options stream:(KBStream *)stream client:(KBRPClient *)client sender:(id)sender completion:(KBRunCompletion)completion {

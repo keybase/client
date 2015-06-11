@@ -17,12 +17,10 @@ typedef void (^KBRunOverCompletion)(NSArray *outputs);
 
 @interface KBRunOver : NSObject
 
-@property NSArray *objects;
+@property NSEnumerator *enumerator;
 @property (copy) KBRunBlock runBlock;
 @property (copy) KBRunOverCompletion completion;
 
 - (void)run;
-
-- (void)run:(dispatch_queue_t)queue;
 
 @end

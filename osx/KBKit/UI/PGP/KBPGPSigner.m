@@ -13,13 +13,13 @@
 @implementation KBPGPSigner
 
 - (void)signWithOptions:(KBRPgpSignOptions *)options streams:(NSArray *)streams client:(KBRPClient *)client sender:(id)sender completion:(void (^)(NSArray *works))completion {
-  KBRunOver *sb = [[KBRunOver alloc] init];
-  sb.objects = streams;
-  sb.runBlock = ^(KBStream *stream, KBRunCompletion runCompletion) {
+  KBRunOver *runOver = [[KBRunOver alloc] init];
+  runOver.enumerator = [streams objectEnumerator];
+  runOver.runBlock = ^(KBStream *stream, KBRunCompletion runCompletion) {
     [self signWithOptions:options stream:stream client:client sender:sender completion:runCompletion];
   };
-  sb.completion = completion;
-  [sb run];
+  runOver.completion = completion;
+  [runOver run];
 }
 
 - (void)signWithOptions:(KBRPgpSignOptions *)options stream:(KBStream *)stream client:(KBRPClient *)client sender:(id)sender completion:(KBRunCompletion)completion {
