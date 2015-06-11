@@ -2,6 +2,7 @@ package libkbfs
 
 import (
 	"fmt"
+	"math"
 
 	"github.com/keybase/client/go/libkb"
 	"github.com/syndtr/goleveldb/leveldb"
@@ -152,35 +153,41 @@ func (md *MDServerLocal) Get(mdID MdID) (
 // getRange returns the consecutive (at most 'max') MD objects that
 // begin just after 'start' and lead forward to (and including) 'end'.
 func (md *MDServerLocal) getRange(id DirID, start MdID, end MdID, max int) (
-	[]*RootMetadataSigned, bool, error) {
+	sinceRmds []*RootMetadataSigned, hasMore bool, err error) {
 	// Make sure start exists in the db first
-	if _, err := md.Get(start); err != nil {
-		return nil, false, err
+	_, err = md.Get(start)
+	if err != nil {
+		return
 	}
 
 	if start == end {
-		return nil, false, nil
+		return
 	}
 
 	// Without backpointers, let's do the dumb thing and go forwards
 	// from 'end' until we find 'start'.
-	var sinceRmds []*RootMetadataSigned
 	rmds, err := md.Get(end)
 	if err != nil {
-		return nil, false, err
+		return
 	}
+	tmp := []*RootMetadataSigned{rmds}
 	for rmds.MD.PrevRoot != start {
 		// prepend the new item, so that the order increases over time
-		sinceRmds = append([]*RootMetadataSigned{rmds}, sinceRmds...)
 		rmds, err = md.Get(rmds.MD.PrevRoot)
 		if err != nil {
-			return nil, false, err
+			return
 		}
+		tmp = append(tmp, rmds)
 	}
-	sinceRmds = append([]*RootMetadataSigned{rmds}, sinceRmds...)
 
-	return sinceRmds[:max], false, nil
-
+	// reverse tmp, up to max items
+	numSince := int(math.Min(float64(len(tmp)), float64(max)))
+	sinceRmds = make([]*RootMetadataSigned, numSince)
+	for i := 0; i < numSince; i++ {
+		sinceRmds[i] = tmp[len(tmp)-1-i]
+	}
+	hasMore = numSince != len(tmp)
+	return
 }
 
 // GetSince implements the MDServer interface for MDServerLocal.

@@ -401,7 +401,8 @@ type MDOps interface {
 	// since (not including) the stated mdID, up to a client-imposed
 	// maximum.  The server may return fewer, and should also indicate
 	// whether there are more that could be returned.
-	GetSince(id DirID, mdID MdID, max int) ([]*RootMetadata, bool, error)
+	GetSince(id DirID, mdID MdID, max int) (
+		sinceRmds []*RootMetadata, hasMore bool, err error)
 
 	// PutUnmerged gives each device (identified by the device subkey
 	// KID) the ability to store its own unmerged version of the
@@ -416,7 +417,7 @@ type MDOps interface {
 	// value, it returns the list of MD objects from the beginning of
 	// the unmerged history for this device.
 	GetUnmergedSince(id DirID, deviceID libkb.KID, mdID MdID, max int) (
-		[]*RootMetadata, bool, error)
+		sinceRmds []*RootMetadata, hasMore bool, err error)
 
 	// GetFavorites returns the logged-in user's list of favorite
 	// top-level folders.
@@ -497,7 +498,8 @@ type MDServer interface {
 	// since (not including) the stated mdID, up to a client-imposed
 	// maximum.  The server may return fewer, and should also indicate
 	// whether there are more that could be returned.
-	GetSince(id DirID, mdID MdID, max int) ([]*RootMetadataSigned, bool, error)
+	GetSince(id DirID, mdID MdID, max int) (
+		sinceRmds []*RootMetadataSigned, hasMore bool, err error)
 	// Put stores the (signed/encrypted) metadata object for the given
 	// top-level folder, under the given MD ID.  If deviceID is
 	// non-nil, and the corresponding device has an unmerged history
@@ -525,7 +527,7 @@ type MDServer interface {
 	// value, it returns the list of MD objects from the beginning of
 	// the unmerged history for this device.
 	GetUnmergedSince(id DirID, deviceID libkb.KID, mdID MdID, max int) (
-		[]*RootMetadataSigned, bool, error)
+		sinceRmds []*RootMetadataSigned, hasMore bool, err error)
 
 	// GetFavorites returns the logged-in user's list of favorite
 	// top-level folders.
