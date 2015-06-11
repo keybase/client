@@ -184,10 +184,7 @@ func (e *Identify) run(ctx *Context) (*libkb.IdentifyOutcome, error) {
 	e.user.IDTable().Identify(is, ctx.IdentifyUI)
 
 	base := e.user.BaseProofSet()
-	for _, ap := range res.StateOKAndActiveProofs() {
-		k, v := ap.ToKeyValuePair()
-		base.Add(libkb.Proof{Key: k, Value: v})
-	}
+	res.AddProofsToSet(base)
 	if !e.userExpr.MatchSet(*base) {
 		return nil, fmt.Errorf("User %s didn't match given assertion", e.user.GetName())
 	}

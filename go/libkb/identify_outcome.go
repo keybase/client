@@ -45,8 +45,11 @@ func (i *IdentifyOutcome) ActiveProofs() []RemoteProofChainLink {
 	return i.remoteProofLinks().Active()
 }
 
-func (i *IdentifyOutcome) StateOKAndActiveProofs() []RemoteProofChainLink {
-	return i.remoteProofLinks().StateOKAndActive()
+func (i *IdentifyOutcome) AddProofsToSet(existing *ProofSet) {
+	for _, ap := range i.remoteProofLinks().StateOKAndActive() {
+		k, v := ap.ToKeyValuePair()
+		existing.Add(Proof{Key: k, Value: v})
+	}
 }
 
 func (i *IdentifyOutcome) TrackSet() *TrackSet {
