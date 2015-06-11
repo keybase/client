@@ -7,9 +7,6 @@
 //
 
 #import "ShareViewController.h"
-#import "KBPGPEncryptShareView.h"
-#import "KBService.h"
-#import "KBWorkspace.h"
 
 @interface ShareViewController ()
 @end
@@ -23,29 +20,6 @@
 - (void)loadView {
   [super loadView];
 
-  KBPGPEncryptShareView *encryptView = [[KBPGPEncryptShareView alloc] init];
-  [encryptView sizeToFit];
-  self.view = encryptView;
-
-  NSExtensionItem *item = self.extensionContext.inputItems.firstObject;
-  encryptView.extensionItem = item;
-
-  KBEnvConfig *config = [KBEnvConfig loadFromUserDefaults:[KBWorkspace userDefaults]];
-  if (!config) {
-    // TODO No config means they haven't run or installed the app
-  }
-  KBService *service = [[KBService alloc] initWithConfig:config];
-  encryptView.client = service.client;
-
-  encryptView.completion = ^(id sender, NSExtensionItem *item) {
-    if (!item) {
-      [self cancel];
-    } else {
-      [self share:item];
-    }
-  };
-  
-  DDLogDebug(@"Attachments: %@", item.attachments);
 }
 
 - (void)share:(NSExtensionItem *)outputItem {

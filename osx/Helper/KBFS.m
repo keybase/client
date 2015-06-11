@@ -8,7 +8,6 @@
 
 #import "KBFS.h"
 
-#import "KBHelperDefines.h"
 #import <IOKit/kext/KextManager.h>
 
 @interface KBFS ()

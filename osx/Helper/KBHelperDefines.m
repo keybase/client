@@ -21,3 +21,12 @@ void KBHelperLog(NSString *msg, ...) {
   NSLog(@"%@", string);
   syslog(LOG_NOTICE, "%s", [string UTF8String]);
 }
+
+
+NSString *KBNSStringWithFormat(NSString *formatString, ...) {
+  va_list args;
+  va_start(args, formatString);
+  NSString *string = [[NSString alloc] initWithFormat:formatString arguments:args];
+  va_end(args);
+  return string;
+}

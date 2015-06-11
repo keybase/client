@@ -2,18 +2,18 @@ platform :osx, "10.8"
 
 target "Keybase" do
   pod "Sparkle"
-  pod "MASPreferences"
 end
 
-target "KBApp" do
-  pod "Mantle"
+# Used by Keybase.app and extensions
+target "KBKit" do
   pod "GHKit"
   pod "ObjectiveSugar"
-  pod "Slash"
 
-  pod "MPMessagePack"#, :path => "~/Projects/MPMessagePack"
+  pod "Mantle"
 
-  pod "YOLayout"#, :path => "~/Projects/YOLayout"
+  pod "MPMessagePack"
+
+  pod "YOLayout"
 
   pod "ZXCVBN"
   pod "AFNetworking"
@@ -21,15 +21,17 @@ target "KBApp" do
   pod "CocoaLumberjack"
   pod "GHODictionary"
 
+  pod "MASPreferences"
+
   pod "KBAppKit", :path => "~/Projects/KBAppKit"
-
 end
 
+# This runs as a privileged helper so keep dependencies
+# here to a minimum.
 target "keybase.Helper" do
-  pod "MPMessagePack"#, :path => "~/Projects/MPMessagePack"
+  pod "MPMessagePack"
 end
 
-target "Share" do
-  pod "GHKit"
-end
+link_with "KBKit", "Share"
+link_with "KBKit", "Action"
 

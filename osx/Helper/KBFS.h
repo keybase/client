@@ -8,7 +8,7 @@
 
 #import <Foundation/Foundation.h>
 
-#import "KBDefines.h"
+#import "KBHelperDefines.h"
 
 #define KBFUSE_BUNDLE (@"/Library/Filesystems/kbfuse.fs")
 

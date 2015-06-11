@@ -1,0 +1,43 @@
+//
+//  KBDeviceSignerOption.m
+//  Keybase
+//
+//  Created by Gabriel on 2/18/15.
+//  Copyright (c) 2015 Gabriel Handford. All rights reserved.
+//
+
+#import "KBDeviceSignerOption.h"
+
+#import <ObjectiveSugar/ObjectiveSugar.h>
+#import <AppKit/AppKit.h>
+
+@implementation KBDeviceSignerOption
+
++ (instancetype)deviceWithDevice:(KBRDevice *)device {
+  KBDeviceSignerOption *option = [[KBDeviceSignerOption alloc] init];
+  option.signerType = KBDeviceSignerTypeDevice;
+  option.device = device;
+  option.title = device.name;
+  option.info = NSStringWithFormat(@"Use the device named %@ to authorize this installation.", device.name);
+  option.image = KBImageForDeviceType(device.type);
+  return option;
+}
+
++ (instancetype)PGP {
+  KBDeviceSignerOption *option = [[KBDeviceSignerOption alloc] init];
+  option.signerType = KBDeviceSignerTypePGP;
+  option.title = @"PGP Key";
+  option.info = @"Use your PGP key.";
+  option.image = KBImageForDeviceType(@"pgp");
+  return option;
+}
+
+@end
+
+
+NSImage *KBImageForDeviceType(NSString *type) {
+  if ([type isEqualTo:@"desktop"]) return [NSImage imageNamed:NSImageNameComputer];
+  else if ([type isEqualTo:@"web"]) return [NSImage imageNamed:NSImageNameNetwork];
+  else if ([type isEqualTo:@"pgp"]) return [NSImage imageNamed:NSImageNameUser];
+  else return nil;
+}

@@ -60,7 +60,6 @@ DEPENDENCIES:
   - MASPreferences
   - MPMessagePack
   - ObjectiveSugar
-  - Slash
   - Sparkle
   - YOLayout
   - ZXCVBN
