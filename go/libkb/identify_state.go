@@ -22,6 +22,10 @@ func (s *IdentifyState) TrackLookup() *TrackLookup {
 	return s.track
 }
 
+func (s *IdentifyState) HasPreviousTrack() bool {
+	return s.track != nil
+}
+
 func (s *IdentifyState) ComputeDeletedProofs() {
 	if s.track == nil {
 		return

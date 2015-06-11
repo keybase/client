@@ -183,7 +183,7 @@ func (e *Identify) run(ctx *Context) (*libkb.IdentifyOutcome, error) {
 	ctx.IdentifyUI.LaunchNetworkChecks(res.ExportToUncheckedIdentity(), e.user.Export())
 	e.user.IDTable().Identify(is, ctx.IdentifyUI)
 
-	base := e.user.ToOkProofSet()
+	base := e.user.BaseProofSet()
 	for _, ap := range res.StateOKAndActiveProofs() {
 		k, v := ap.ToKeyValuePair()
 		base.Add(libkb.Proof{Key: k, Value: v})

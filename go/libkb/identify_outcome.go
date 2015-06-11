@@ -21,6 +21,7 @@ type IdentifyOutcome struct {
 	MeSet         bool // whether me was set at the time
 	LocalOnly     bool
 	ApproveRemote bool
+	rpl           *RemoteProofLinks
 }
 
 func NewIdentifyOutcome(m bool) *IdentifyOutcome {
@@ -29,29 +30,28 @@ func NewIdentifyOutcome(m bool) *IdentifyOutcome {
 	}
 }
 
-func (i *IdentifyOutcome) ActiveProofs() []RemoteProofChainLink {
-	rpl := NewRemoteProofLinks()
-	for _, p := range i.ProofChecks {
-		rpl.Insert(p.link, p.err)
+func (i *IdentifyOutcome) remoteProofLinks() *RemoteProofLinks {
+	if i.rpl != nil {
+		return i.rpl
 	}
-	return rpl.Active()
+	i.rpl = NewRemoteProofLinks()
+	for _, p := range i.ProofChecks {
+		i.rpl.Insert(p.link, p.err)
+	}
+	return i.rpl
+}
+
+func (i *IdentifyOutcome) ActiveProofs() []RemoteProofChainLink {
+	return i.remoteProofLinks().Active()
 }
 
 func (i *IdentifyOutcome) StateOKAndActiveProofs() []RemoteProofChainLink {
-	rpl := NewRemoteProofLinks()
-	for _, p := range i.ProofChecks {
-		rpl.Insert(p.link, p.err)
-	}
-	return rpl.StateOKAndActive()
+	return i.remoteProofLinks().StateOKAndActive()
 }
 
 func (i *IdentifyOutcome) TrackSet() *TrackSet {
 	ret := NewTrackSet()
-	rpl := NewRemoteProofLinks()
-	for _, p := range i.ProofChecks {
-		rpl.Insert(p.link, p.err)
-	}
-	for _, ap := range rpl.ActiveWithState() {
+	for _, ap := range i.remoteProofLinks().ActiveWithState() {
 		ret.Add(ap)
 	}
 	return ret
@@ -139,11 +139,7 @@ func (i IdentifyOutcome) NumTrackChanges() int {
 }
 
 func (i IdentifyOutcome) TrackingStatement() *jsonw.Wrapper {
-	rpl := NewRemoteProofLinks()
-	for _, p := range i.ProofChecks {
-		rpl.Insert(p.link, p.err)
-	}
-	return rpl.TrackingStatement()
+	return i.remoteProofLinks().TrackingStatement()
 }
 
 func (i IdentifyOutcome) GetErrorAndWarnings(strict bool) (err error, warnings Warnings) {

@@ -1086,7 +1086,7 @@ func (idt *IdentityTable) Identify(is IdentifyState, ui IdentifyUI) {
 //=========================================================================
 
 func (idt *IdentityTable) identifyActiveProof(lcr *LinkCheckResult, is IdentifyState, ui IdentifyUI) {
-	idt.proofRemoteCheck((is.track != nil), lcr)
+	idt.proofRemoteCheck(is.HasPreviousTrack(), lcr)
 	lcr.link.DisplayCheck(ui, *lcr)
 }
 
@@ -1141,7 +1141,6 @@ func (idt *IdentityTable) proofRemoteCheck(hasPreviousTrack bool, res *LinkCheck
 	if G.ProofCache != nil {
 		if res.cached = G.ProofCache.Get(sid); res.cached != nil {
 			res.err = res.cached.Status
-			// p.MarkChecked(res.err)
 			return
 		}
 	}
@@ -1158,7 +1157,6 @@ func (idt *IdentityTable) proofRemoteCheck(hasPreviousTrack bool, res *LinkCheck
 		res.err = pc.CheckStatus(*res.hint)
 	}
 
-	// p.MarkChecked(res.err)
 	if G.ProofCache != nil {
 		G.ProofCache.Put(sid, res.err)
 	}

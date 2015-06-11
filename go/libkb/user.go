@@ -425,7 +425,9 @@ func (u *User) GetRemoteTrackingStatementFor(s string, i keybase1.UID) (link *Tr
 	return u.IDTable().GetTrackingStatementFor(s, i)
 }
 
-func (u *User) ToOkProofSet() *ProofSet {
+// BaseProofSet creates a basic proof set for a user with their
+// keybase and uid proofs and any pgp fingerpring proofs.
+func (u *User) BaseProofSet() *ProofSet {
 	proofs := []Proof{
 		{Key: "keybase", Value: u.name},
 		{Key: "uid", Value: u.id.String()},
