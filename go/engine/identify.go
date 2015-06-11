@@ -256,10 +256,10 @@ func (e *Identify) findBestComponent(expr libkb.AssertionExpression) string {
 		return ""
 	}
 
-	var uid, kb, soc, fp libkb.AssertionUrl
+	var uid, kb, soc, fp libkb.AssertionURL
 
 	for _, u := range urls {
-		if u.IsUid() {
+		if u.IsUID() {
 			uid = u
 			break
 		} else if u.IsKeybase() {
@@ -271,7 +271,7 @@ func (e *Identify) findBestComponent(expr libkb.AssertionExpression) string {
 		}
 	}
 
-	order := []libkb.AssertionUrl{uid, kb, fp, soc, urls[0]}
+	order := []libkb.AssertionURL{uid, kb, fp, soc, urls[0]}
 	for _, p := range order {
 		if p != nil {
 			return p.String()

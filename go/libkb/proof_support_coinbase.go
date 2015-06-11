@@ -33,7 +33,7 @@ func (rc *CoinbaseChecker) CheckHint(h SigHint) ProofError {
 }
 
 func (rc *CoinbaseChecker) CheckStatus(h SigHint) ProofError {
-	res, err := G.XAPI.GetHtml(ApiArg{
+	res, err := G.XAPI.GetHTML(ApiArg{
 		Endpoint:    h.apiURL,
 		NeedSession: false,
 	})

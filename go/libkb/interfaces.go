@@ -203,9 +203,9 @@ type API interface {
 type ExternalAPI interface {
 	Get(ApiArg) (*ExternalApiRes, error)
 	Post(ApiArg) (*ExternalApiRes, error)
-	GetHtml(ApiArg) (*ExternalHtmlRes, error)
+	GetHTML(ApiArg) (*ExternalHtmlRes, error)
 	GetText(ApiArg) (*ExternalTextRes, error)
-	PostHtml(ApiArg) (*ExternalHtmlRes, error)
+	PostHTML(ApiArg) (*ExternalHtmlRes, error)
 }
 
 type IdentifyUI interface {

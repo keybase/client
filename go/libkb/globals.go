@@ -147,7 +147,7 @@ func (g *GlobalContext) StartupMessage() {
 }
 
 func (g *GlobalContext) ConfigureAPI() error {
-	iapi, xapi, err := NewApiEngines(g.Env)
+	iapi, xapi, err := NewAPIEngines(g.Env)
 	if err != nil {
 		return fmt.Errorf("Failed to configure API access: %s", err.Error())
 	}

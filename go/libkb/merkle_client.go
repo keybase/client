@@ -71,7 +71,7 @@ type MerkleRoot struct {
 
 type MerkleTriple struct {
 	Seqno  Seqno          `json:"seqno"`
-	LinkId LinkId         `json:"id"`
+	LinkID LinkID         `json:"id"`
 	SigID  keybase1.SigID `json:"sigid,omitempty"`
 }
 
@@ -414,7 +414,7 @@ func (mc *MerkleClient) VerifyRoot(root *MerkleRoot) error {
 
 func parseTriple(jw *jsonw.Wrapper) (t *MerkleTriple, err error) {
 	var seqno, l int
-	var li LinkId
+	var li LinkID
 	var si keybase1.SigID
 
 	if jw.IsNil() {
@@ -432,7 +432,7 @@ func parseTriple(jw *jsonw.Wrapper) (t *MerkleTriple, err error) {
 		err = fmt.Errorf("Bad merkle triple, with > 3 values")
 	} else if seqno, err = jw.AtIndex(0).GetInt(); err != nil {
 		// noop
-	} else if li, err = GetLinkId(jw.AtIndex(1)); err != nil {
+	} else if li, err = GetLinkID(jw.AtIndex(1)); err != nil {
 		// noop
 	} else if l == 2 {
 		// noop

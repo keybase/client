@@ -72,7 +72,7 @@ func (rc *TwitterChecker) findSigInTweet(h SigHint, s *goquery.Selection) ProofE
 }
 
 func (rc *TwitterChecker) CheckStatus(h SigHint) ProofError {
-	res, err := G.XAPI.GetHtml(ApiArg{
+	res, err := G.XAPI.GetHTML(ApiArg{
 		Endpoint:    h.apiURL,
 		NeedSession: false,
 	})

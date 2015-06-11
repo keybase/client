@@ -25,10 +25,10 @@ func (res *ResolveResult) GetError() error {
 	return res.err
 }
 
-func ResolveUid(input string) (res ResolveResult) {
+func ResolveUID(input string) (res ResolveResult) {
 	G.Log.Debug("+ Resolving username %s", input)
-	var au AssertionUrl
-	if au, res.err = ParseAssertionUrl(input, false); res.err != nil {
+	var au AssertionURL
+	if au, res.err = ParseAssertionURL(input, false); res.err != nil {
 		return
 	}
 	res = resolveUid(au)
@@ -38,8 +38,8 @@ func ResolveUid(input string) (res ResolveResult) {
 func ResolveUidValuePair(key, value string) (res ResolveResult) {
 	G.Log.Debug("+ Resolve username (%s,%s)", key, value)
 
-	var au AssertionUrl
-	if au, res.err = ParseAssertionUrlKeyValue(key, value, false); res.err != nil {
+	var au AssertionURL
+	if au, res.err = ParseAssertionURLKeyValue(key, value, false); res.err != nil {
 		res = resolveUid(au)
 	}
 
@@ -47,9 +47,9 @@ func ResolveUidValuePair(key, value string) (res ResolveResult) {
 	return
 }
 
-func resolveUid(au AssertionUrl) ResolveResult {
+func resolveUid(au AssertionURL) ResolveResult {
 	// A standard keybase UID, so it's already resolved
-	if tmp := au.ToUid(); tmp.Exists() {
+	if tmp := au.ToUID(); tmp.Exists() {
 		return ResolveResult{uid: tmp}
 	}
 
@@ -69,7 +69,7 @@ func resolveUid(au AssertionUrl) ResolveResult {
 	return r
 }
 
-func resolveUsername(au AssertionUrl) (res ResolveResult) {
+func resolveUsername(au AssertionURL) (res ResolveResult) {
 
 	var key, val string
 	var ares *ApiRes

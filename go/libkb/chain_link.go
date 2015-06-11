@@ -14,9 +14,9 @@ const (
 	LINK_ID_LEN = 32
 )
 
-type LinkId []byte
+type LinkID []byte
 
-func GetLinkId(w *jsonw.Wrapper) (LinkId, error) {
+func GetLinkID(w *jsonw.Wrapper) (LinkID, error) {
 	if w.IsNil() {
 		return nil, nil
 	}
@@ -28,8 +28,8 @@ func GetLinkId(w *jsonw.Wrapper) (LinkId, error) {
 	return ret, err
 }
 
-func GetLinkIdVoid(w *jsonw.Wrapper, l *LinkId, e *error) {
-	ret, err := GetLinkId(w)
+func GetLinkIDVoid(w *jsonw.Wrapper, l *LinkID, e *error) {
+	ret, err := GetLinkID(w)
 	if err != nil {
 		*e = err
 	} else {
@@ -37,7 +37,7 @@ func GetLinkIdVoid(w *jsonw.Wrapper, l *LinkId, e *error) {
 	}
 }
 
-func (l *LinkId) UnmarshalJSON(b []byte) error {
+func (l *LinkID) UnmarshalJSON(b []byte) error {
 	lid, err := LinkIdFromHex(keybase1.Unquote(b))
 	if err != nil {
 		return err
@@ -46,28 +46,28 @@ func (l *LinkId) UnmarshalJSON(b []byte) error {
 	return nil
 }
 
-func (l *LinkId) MarshalJSON() ([]byte, error) {
+func (l *LinkID) MarshalJSON() ([]byte, error) {
 	return keybase1.Quote(l.String()), nil
 }
 
-func LinkIdFromHex(s string) (LinkId, error) {
+func LinkIdFromHex(s string) (LinkID, error) {
 	bv, err := hex.DecodeString(s)
 	if err == nil && len(bv) != LINK_ID_LEN {
 		err = fmt.Errorf("Bad link ID; wrong length: %d", len(bv))
 		bv = nil
 	}
-	var ret LinkId
+	var ret LinkID
 	if bv != nil {
-		ret = LinkId(bv)
+		ret = LinkID(bv)
 	}
 	return ret, err
 }
 
-func (l LinkId) String() string {
+func (l LinkID) String() string {
 	return hex.EncodeToString(l)
 }
 
-func (l LinkId) Eq(i2 LinkId) bool {
+func (l LinkID) Eq(i2 LinkID) bool {
 	if l == nil && i2 == nil {
 		return true
 	} else if l == nil || i2 == nil {
@@ -78,7 +78,7 @@ func (l LinkId) Eq(i2 LinkId) bool {
 }
 
 type ChainLinkUnpacked struct {
-	prev           LinkId
+	prev           LinkID
 	seqno          Seqno
 	payloadJsonStr string
 	ctime, etime   int64
@@ -95,7 +95,7 @@ type ChainLinkUnpacked struct {
 
 type ChainLink struct {
 	parent          *SigChain
-	id              LinkId
+	id              LinkID
 	hashVerified    bool
 	sigVerified     bool
 	payloadVerified bool
@@ -124,7 +124,7 @@ func (c *ChainLink) SetParent(parent *SigChain) {
 	c.parent = parent
 }
 
-func (c *ChainLink) GetPrev() LinkId {
+func (c *ChainLink) GetPrev() LinkID {
 	return c.unpacked.prev
 }
 
@@ -226,7 +226,7 @@ func (c *ChainLink) checkAgainstMerkleTree(t *MerkleTriple) (found bool, err err
 	if t != nil && c.GetSeqno() == t.Seqno {
 		G.Log.Debug("| Found chain tail advertised in Merkle tree @%d", int(t.Seqno))
 		found = true
-		if !c.id.Eq(t.LinkId) {
+		if !c.id.Eq(t.LinkID) {
 			err = fmt.Errorf("Bad chain ID at seqno=%d", int(t.Seqno))
 		}
 	}
@@ -254,7 +254,7 @@ func (c *ChainLink) UnpackPayloadJson(tmp *ChainLinkUnpacked) (err error) {
 	}
 	c.payloadJson.AtPath("body.key.username").GetStringVoid(&tmp.username, &err)
 	GetUIDVoid(c.payloadJson.AtPath("body.key.uid"), &tmp.uid, &err)
-	GetLinkIdVoid(c.payloadJson.AtKey("prev"), &tmp.prev, &err)
+	GetLinkIDVoid(c.payloadJson.AtKey("prev"), &tmp.prev, &err)
 	c.payloadJson.AtPath("body.type").GetStringVoid(&tmp.typ, &err)
 	c.payloadJson.AtKey("ctime").GetInt64Void(&tmp.ctime, &err)
 
@@ -365,9 +365,9 @@ func (c *ChainLink) CheckNameAndId(s string, i keybase1.UID) error {
 
 }
 
-func ComputeLinkId(d []byte) LinkId {
+func ComputeLinkId(d []byte) LinkID {
 	h := sha256.Sum256(d)
-	return LinkId(h[:])
+	return LinkID(h[:])
 }
 
 func (c *ChainLink) VerifyHash() error {
@@ -479,8 +479,8 @@ func (c *ChainLink) VerifySig(k PgpKeyBundle) (bool, error) {
 }
 
 func ImportLinkFromServer(parent *SigChain, jw *jsonw.Wrapper, selfUID keybase1.UID) (ret *ChainLink, err error) {
-	var id LinkId
-	GetLinkIdVoid(jw.AtKey("payload_hash"), &id, &err)
+	var id LinkID
+	GetLinkIDVoid(jw.AtKey("payload_hash"), &id, &err)
 	if err != nil {
 		return
 	}
@@ -491,7 +491,7 @@ func ImportLinkFromServer(parent *SigChain, jw *jsonw.Wrapper, selfUID keybase1.
 	return
 }
 
-func NewChainLink(parent *SigChain, id LinkId, jw *jsonw.Wrapper) *ChainLink {
+func NewChainLink(parent *SigChain, id LinkID, jw *jsonw.Wrapper) *ChainLink {
 	return &ChainLink{
 		parent: parent,
 		id:     id,
@@ -499,7 +499,7 @@ func NewChainLink(parent *SigChain, id LinkId, jw *jsonw.Wrapper) *ChainLink {
 	}
 }
 
-func ImportLinkFromStorage(id LinkId, selfUID keybase1.UID) (*ChainLink, error) {
+func ImportLinkFromStorage(id LinkID, selfUID keybase1.UID) (*ChainLink, error) {
 	jw, err := G.LocalDb.Get(DbKey{Typ: DB_LINK, Key: id.String()})
 	var ret *ChainLink
 	if err == nil {
@@ -650,7 +650,7 @@ func (c *ChainLink) MatchUidAndUsername(uid keybase1.UID, username string) bool 
 func (c ChainLink) ToMerkleTriple() *MerkleTriple {
 	return &MerkleTriple{
 		Seqno:  c.GetSeqno(),
-		LinkId: c.id,
+		LinkID: c.id,
 	}
 }
 

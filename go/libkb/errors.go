@@ -67,7 +67,7 @@ func NewProofApiError(s keybase1.ProofStatus, u string, d string, a ...interface
 //=============================================================================
 
 func XapiError(err error, u string) *ProofApiError {
-	if ae, ok := err.(*ApiError); ok {
+	if ae, ok := err.(*APIError); ok {
 		code := keybase1.ProofStatus_NONE
 		switch ae.Code / 100 {
 		case 3:
@@ -88,7 +88,7 @@ func XapiError(err error, u string) *ProofApiError {
 
 type FailedAssertionError struct {
 	user string
-	bad  []AssertionUrl
+	bad  []AssertionURL
 }
 
 func (u FailedAssertionError) Error() string {

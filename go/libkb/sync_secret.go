@@ -34,7 +34,7 @@ type DeviceKey struct {
 type DeviceKeyMap map[string]DeviceKey
 
 type ServerPrivateKeys struct {
-	Status      ApiStatus           `json:"status"`
+	Status      APIStatus           `json:"status"`
 	Version     int                 `json:"version"`
 	Mtime       *int                `json:"mtime"`
 	PrivateKeys ServerPrivateKeyMap `json:"private_keys"`

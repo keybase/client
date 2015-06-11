@@ -12,7 +12,7 @@ type AssertionExpression interface {
 	String() string
 	MatchSet(ps ProofSet) bool
 	HasOr() bool
-	CollectUrls([]AssertionUrl) []AssertionUrl
+	CollectUrls([]AssertionURL) []AssertionURL
 }
 
 type AssertionOr struct {
@@ -30,7 +30,7 @@ func (a AssertionOr) MatchSet(ps ProofSet) bool {
 	return false
 }
 
-func (a AssertionOr) CollectUrls(v []AssertionUrl) []AssertionUrl {
+func (a AssertionOr) CollectUrls(v []AssertionURL) []AssertionURL {
 	for _, t := range a.terms {
 		v = t.CollectUrls(v)
 	}
@@ -58,7 +58,7 @@ func (a AssertionAnd) HasOr() bool {
 	return false
 }
 
-func (a AssertionAnd) CollectUrls(v []AssertionUrl) []AssertionUrl {
+func (a AssertionAnd) CollectUrls(v []AssertionURL) []AssertionURL {
 	for _, t := range a.factors {
 		v = t.CollectUrls(v)
 	}
@@ -82,13 +82,13 @@ func (a AssertionAnd) String() string {
 	return fmt.Sprintf("(%s)", strings.Join(v, " && "))
 }
 
-type AssertionUrl interface {
+type AssertionURL interface {
 	AssertionExpression
 	Keys() []string
 	Check() error
 	IsKeybase() bool
-	IsUid() bool
-	ToUid() keybase1.UID
+	IsUID() bool
+	ToUID() keybase1.UID
 	IsSocial() bool
 	IsFingerprint() bool
 	MatchProof(p Proof) bool
@@ -98,23 +98,23 @@ type AssertionUrl interface {
 	ToLookup() (string, string, error)
 }
 
-type AssertionUrlBase struct {
+type AssertionURLBase struct {
 	Key, Value string
 }
 
-func (b AssertionUrlBase) ToKeyValuePair() (string, string) {
+func (b AssertionURLBase) ToKeyValuePair() (string, string) {
 	return b.Key, b.Value
 }
 
-func (b AssertionUrlBase) CacheKey() string {
+func (b AssertionURLBase) CacheKey() string {
 	return b.Key + ":" + b.Value
 }
 
-func (b AssertionUrlBase) GetValue() string {
+func (b AssertionURLBase) GetValue() string {
 	return b.Value
 }
 
-func (b AssertionUrlBase) matchSet(v AssertionUrl, ps ProofSet) bool {
+func (b AssertionURLBase) matchSet(v AssertionURL, ps ProofSet) bool {
 	proofs := ps.Get(v.Keys())
 	for _, proof := range proofs {
 		if v.MatchProof(proof) {
@@ -124,29 +124,29 @@ func (b AssertionUrlBase) matchSet(v AssertionUrl, ps ProofSet) bool {
 	return false
 }
 
-func (b AssertionUrlBase) HasOr() bool { return false }
+func (b AssertionURLBase) HasOr() bool { return false }
 
-func (a AssertionUid) MatchSet(ps ProofSet) bool     { return a.matchSet(a, ps) }
+func (a AssertionUID) MatchSet(ps ProofSet) bool     { return a.matchSet(a, ps) }
 func (a AssertionKeybase) MatchSet(ps ProofSet) bool { return a.matchSet(a, ps) }
 func (a AssertionWeb) MatchSet(ps ProofSet) bool     { return a.matchSet(a, ps) }
 func (a AssertionSocial) MatchSet(ps ProofSet) bool  { return a.matchSet(a, ps) }
-func (a AssertionHttp) MatchSet(ps ProofSet) bool    { return a.matchSet(a, ps) }
-func (a AssertionHttps) MatchSet(ps ProofSet) bool   { return a.matchSet(a, ps) }
-func (a AssertionDns) MatchSet(ps ProofSet) bool     { return a.matchSet(a, ps) }
+func (a AssertionHTTP) MatchSet(ps ProofSet) bool    { return a.matchSet(a, ps) }
+func (a AssertionHTTPS) MatchSet(ps ProofSet) bool   { return a.matchSet(a, ps) }
+func (a AssertionDNS) MatchSet(ps ProofSet) bool     { return a.matchSet(a, ps) }
 func (a AssertionFingerprint) MatchSet(ps ProofSet) bool {
 	return a.matchSet(a, ps)
 }
 func (a AssertionWeb) Keys() []string {
 	return []string{"dns", "http", "https"}
 }
-func (a AssertionHttp) Keys() []string               { return []string{"http", "https"} }
-func (b AssertionUrlBase) Keys() []string            { return []string{b.Key} }
-func (b AssertionUrlBase) IsKeybase() bool           { return false }
-func (b AssertionUrlBase) IsSocial() bool            { return false }
-func (b AssertionUrlBase) IsFingerprint() bool       { return false }
-func (b AssertionUrlBase) IsUid() bool               { return false }
-func (b AssertionUrlBase) ToUid() (ret keybase1.UID) { return ret }
-func (b AssertionUrlBase) MatchProof(proof Proof) bool {
+func (a AssertionHTTP) Keys() []string               { return []string{"http", "https"} }
+func (b AssertionURLBase) Keys() []string            { return []string{b.Key} }
+func (b AssertionURLBase) IsKeybase() bool           { return false }
+func (b AssertionURLBase) IsSocial() bool            { return false }
+func (b AssertionURLBase) IsFingerprint() bool       { return false }
+func (b AssertionURLBase) IsUID() bool               { return false }
+func (b AssertionURLBase) ToUID() (ret keybase1.UID) { return ret }
+func (b AssertionURLBase) MatchProof(proof Proof) bool {
 	return (strings.ToLower(proof.Value) == b.Value)
 }
 
@@ -162,40 +162,40 @@ func (a AssertionFingerprint) MatchProof(proof Proof) bool {
 	return (v1[(l1-l2):] == v2)
 }
 
-func (a AssertionUid) CollectUrls(v []AssertionUrl) []AssertionUrl         { return append(v, a) }
-func (a AssertionKeybase) CollectUrls(v []AssertionUrl) []AssertionUrl     { return append(v, a) }
-func (a AssertionWeb) CollectUrls(v []AssertionUrl) []AssertionUrl         { return append(v, a) }
-func (a AssertionSocial) CollectUrls(v []AssertionUrl) []AssertionUrl      { return append(v, a) }
-func (a AssertionHttp) CollectUrls(v []AssertionUrl) []AssertionUrl        { return append(v, a) }
-func (a AssertionHttps) CollectUrls(v []AssertionUrl) []AssertionUrl       { return append(v, a) }
-func (a AssertionDns) CollectUrls(v []AssertionUrl) []AssertionUrl         { return append(v, a) }
-func (a AssertionFingerprint) CollectUrls(v []AssertionUrl) []AssertionUrl { return append(v, a) }
+func (a AssertionUID) CollectUrls(v []AssertionURL) []AssertionURL         { return append(v, a) }
+func (a AssertionKeybase) CollectUrls(v []AssertionURL) []AssertionURL     { return append(v, a) }
+func (a AssertionWeb) CollectUrls(v []AssertionURL) []AssertionURL         { return append(v, a) }
+func (a AssertionSocial) CollectUrls(v []AssertionURL) []AssertionURL      { return append(v, a) }
+func (a AssertionHTTP) CollectUrls(v []AssertionURL) []AssertionURL        { return append(v, a) }
+func (a AssertionHTTPS) CollectUrls(v []AssertionURL) []AssertionURL       { return append(v, a) }
+func (a AssertionDNS) CollectUrls(v []AssertionURL) []AssertionURL         { return append(v, a) }
+func (a AssertionFingerprint) CollectUrls(v []AssertionURL) []AssertionURL { return append(v, a) }
 
-type AssertionSocial struct{ AssertionUrlBase }
-type AssertionWeb struct{ AssertionUrlBase }
-type AssertionKeybase struct{ AssertionUrlBase }
-type AssertionUid struct {
-	AssertionUrlBase
+type AssertionSocial struct{ AssertionURLBase }
+type AssertionWeb struct{ AssertionURLBase }
+type AssertionKeybase struct{ AssertionURLBase }
+type AssertionUID struct {
+	AssertionURLBase
 	uid keybase1.UID
 }
-type AssertionHttp struct{ AssertionUrlBase }
-type AssertionHttps struct{ AssertionUrlBase }
-type AssertionDns struct{ AssertionUrlBase }
-type AssertionFingerprint struct{ AssertionUrlBase }
+type AssertionHTTP struct{ AssertionURLBase }
+type AssertionHTTPS struct{ AssertionURLBase }
+type AssertionDNS struct{ AssertionURLBase }
+type AssertionFingerprint struct{ AssertionURLBase }
 
-func (b AssertionUrlBase) Check() error {
+func (b AssertionURLBase) Check() error {
 	if len(b.Value) == 0 {
 		return fmt.Errorf("Bad assertion, no value given (key=%s)", b.Key)
 	}
 	return nil
 }
 
-func (a AssertionHttp) Check() (err error)  { return a.CheckHost() }
-func (a AssertionHttps) Check() (err error) { return a.CheckHost() }
-func (a AssertionDns) Check() (err error)   { return a.CheckHost() }
+func (a AssertionHTTP) Check() (err error)  { return a.CheckHost() }
+func (a AssertionHTTPS) Check() (err error) { return a.CheckHost() }
+func (a AssertionDNS) Check() (err error)   { return a.CheckHost() }
 func (a AssertionWeb) Check() (err error)   { return a.CheckHost() }
 
-func (b AssertionUrlBase) CheckHost() (err error) {
+func (b AssertionURLBase) CheckHost() (err error) {
 	s := b.Value
 	if err = b.Check(); err == nil {
 		// Found this here: http://stackoverflow.com/questions/106179/regular-expression-to-match-dns-hostname-or-ip-address
@@ -206,20 +206,20 @@ func (b AssertionUrlBase) CheckHost() (err error) {
 	return
 }
 
-func (b AssertionUrlBase) String() string {
+func (b AssertionURLBase) String() string {
 	return fmt.Sprintf("%s://%s", b.Key, b.Value)
 }
 
 func (a AssertionWeb) ToLookup() (key, value string, err error) {
 	return "web", a.Value, nil
 }
-func (a AssertionHttp) ToLookup() (key, value string, err error) {
+func (a AssertionHTTP) ToLookup() (key, value string, err error) {
 	return "http", a.Value, nil
 }
-func (a AssertionHttps) ToLookup() (key, value string, err error) {
+func (a AssertionHTTPS) ToLookup() (key, value string, err error) {
 	return "https", a.Value, nil
 }
-func (a AssertionDns) ToLookup() (key, value string, err error) {
+func (a AssertionDNS) ToLookup() (key, value string, err error) {
 	return "dns", a.Value, nil
 }
 func (a AssertionFingerprint) ToLookup() (key, value string, err error) {
@@ -267,9 +267,9 @@ func parseToKVPair(s string) (key string, value string, err error) {
 func (a AssertionKeybase) IsKeybase() bool         { return true }
 func (a AssertionSocial) IsSocial() bool           { return true }
 func (a AssertionFingerprint) IsFingerprint() bool { return true }
-func (a AssertionUid) IsUid() bool                 { return true }
+func (a AssertionUID) IsUID() bool                 { return true }
 
-func (a AssertionUid) ToUid() keybase1.UID {
+func (a AssertionUID) ToUID() keybase1.UID {
 	if a.uid.IsNil() {
 		if tmp, err := UIDFromHex(a.Value); err == nil {
 			a.uid = tmp
@@ -282,11 +282,11 @@ func (a AssertionKeybase) ToLookup() (key, value string, err error) {
 	return "username", a.Value, nil
 }
 
-func (a AssertionUid) ToLookup() (key, value string, err error) {
+func (a AssertionUID) ToLookup() (key, value string, err error) {
 	return "uid", a.Value, nil
 }
 
-func (a AssertionUid) Check() (err error) {
+func (a AssertionUID) Check() (err error) {
 	a.uid, err = UIDFromHex(a.Value)
 	return
 }
@@ -302,17 +302,17 @@ func (a AssertionSocial) ToLookup() (key, value string, err error) {
 	return a.Key, a.Value, nil
 }
 
-func ParseAssertionUrl(s string, strict bool) (ret AssertionUrl, err error) {
+func ParseAssertionURL(s string, strict bool) (ret AssertionURL, err error) {
 	key, val, err := parseToKVPair(s)
 
 	if err != nil {
 		return
 	}
-	return ParseAssertionUrlKeyValue(key, val, strict)
+	return ParseAssertionURLKeyValue(key, val, strict)
 }
 
-func ParseAssertionUrlKeyValue(key, val string,
-	strict bool) (ret AssertionUrl, err error) {
+func ParseAssertionURLKeyValue(key, val string,
+	strict bool) (ret AssertionURL, err error) {
 
 	if len(key) == 0 {
 		if strict {
@@ -321,20 +321,20 @@ func ParseAssertionUrlKeyValue(key, val string,
 		}
 		key = "keybase"
 	}
-	base := AssertionUrlBase{key, val}
+	base := AssertionURLBase{key, val}
 	switch key {
 	case "keybase":
 		ret = AssertionKeybase{base}
 	case "uid":
-		ret = AssertionUid{AssertionUrlBase: base}
+		ret = AssertionUID{AssertionURLBase: base}
 	case "web":
 		ret = AssertionWeb{base}
 	case "http":
-		ret = AssertionHttp{base}
+		ret = AssertionHTTP{base}
 	case "https":
-		ret = AssertionHttps{base}
+		ret = AssertionHTTPS{base}
 	case "dns":
-		ret = AssertionDns{base}
+		ret = AssertionDNS{base}
 	case "fingerprint":
 		ret = AssertionFingerprint{base}
 	default:

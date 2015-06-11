@@ -304,7 +304,7 @@ func (u *User) ServiceProof(signingKey GenericKey, typ ServiceType, remotename s
 }
 
 // SimpleSignJson marshals the given Json structure and then signs it.
-func SignJson(jw *jsonw.Wrapper, key GenericKey) (out string, id keybase1.SigID, lid LinkId, err error) {
+func SignJson(jw *jsonw.Wrapper, key GenericKey) (out string, id keybase1.SigID, lid LinkID, err error) {
 	var tmp []byte
 	if tmp, err = jw.Marshal(); err != nil {
 		return

@@ -178,7 +178,7 @@ func (d *Delegator) Run(lctx LoginContext) (err error) {
 
 func (d *Delegator) SignAndPost(lctx LoginContext, jw *jsonw.Wrapper) (err error) {
 
-	var linkid LinkId
+	var linkid LinkID
 
 	if d.sig, d.sigID, linkid, err = SignJson(jw, d.signingKey); err != nil {
 		G.Log.Debug("| Failure in SignJson()")
@@ -197,9 +197,9 @@ func (d *Delegator) SignAndPost(lctx LoginContext, jw *jsonw.Wrapper) (err error
 	return nil
 }
 
-func (d *Delegator) updateLocalState(linkid LinkId) (err error) {
+func (d *Delegator) updateLocalState(linkid LinkID) (err error) {
 	d.Me.SigChainBump(linkid, d.sigID)
-	d.merkleTriple = MerkleTriple{LinkId: linkid, SigID: d.sigID}
+	d.merkleTriple = MerkleTriple{LinkID: linkid, SigID: d.sigID}
 
 	return d.Me.localDelegateKey(d.NewKey, d.sigID, d.getExistingKID(), d.IsSibkey(), d.isEldest)
 }

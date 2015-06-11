@@ -170,7 +170,7 @@ func (sc *SigChain) LoadFromServer(t *MerkleTriple, selfUID keybase1.UID) (dirty
 
 	if t != nil && !foundTail {
 		err = NewServerChainError("Failed to reach (%s, %d) in server response",
-			t.LinkId, int(t.Seqno))
+			t.LinkID, int(t.Seqno))
 		return
 	}
 
@@ -228,16 +228,16 @@ func (sc SigChain) GetCurrentTailTriple() (ret *MerkleTriple) {
 	return
 }
 
-func (sc SigChain) GetLastLoadedID() (ret LinkId) {
+func (sc SigChain) GetLastLoadedID() (ret LinkID) {
 	if l := last(sc.chainLinks); l != nil {
 		ret = l.id
 	}
 	return
 }
 
-func (sc SigChain) GetLastKnownID() (ret LinkId) {
+func (sc SigChain) GetLastKnownID() (ret LinkID) {
 	if sc.localChainTail != nil {
-		ret = sc.localChainTail.LinkId
+		ret = sc.localChainTail.LinkID
 	} else {
 		ret = sc.GetLastLoadedID()
 	}
@@ -539,7 +539,7 @@ func (l *SigChainLoader) AccessPreload() (cached bool, err error) {
 }
 
 func (l *SigChainLoader) LoadLinksFromStorage() (err error) {
-	var curr LinkId
+	var curr LinkID
 	var links []*ChainLink
 	var mt *MerkleTriple
 	goodKey := true
@@ -560,7 +560,7 @@ func (l *SigChainLoader) LoadLinksFromStorage() (err error) {
 	// removed their key, we still want to load their last chainlinks.
 	var loadFokid *FOKID
 
-	curr = mt.LinkId
+	curr = mt.LinkID
 	var link *ChainLink
 
 	suid := l.selfUID()
@@ -667,7 +667,7 @@ func (sc *SigChain) CheckFreshness(srv *MerkleTriple) (current bool, err error) 
 		current = true
 		if cli == nil {
 			err = Efn("Failed to read last link for user")
-		} else if !cli.LinkId.Eq(srv.LinkId) {
+		} else if !cli.LinkID.Eq(srv.LinkID) {
 			err = Efn("The server returned the wrong sigchain tail")
 		}
 	} else {

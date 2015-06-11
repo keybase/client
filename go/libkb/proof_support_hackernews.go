@@ -22,16 +22,18 @@ func ApiBase(un string) string {
 func (h *HackerNewsChecker) ApiBase() string {
 	return ApiBase(h.proof.GetRemoteUsername())
 }
-func (h *HackerNewsChecker) ApiUrl() string {
+func (h *HackerNewsChecker) ApiURL() string {
 	return h.ApiBase() + "/about.json"
 }
-func KarmaUrl(un string) string {
+func KarmaURL(un string) string {
 	return ApiBase(un) + "/karma.json"
 }
-func (h *HackerNewsChecker) KarmaUrl() string {
-	return KarmaUrl(h.proof.GetRemoteUsername())
+
+func (h *HackerNewsChecker) KarmaURL() string {
+	return KarmaURL(h.proof.GetRemoteUsername())
 }
-func (h *HackerNewsChecker) HumanUrl() string {
+
+func (h *HackerNewsChecker) HumanURL() string {
 	return "https://news.ycombinator.com/user?id=" + h.proof.GetRemoteUsername()
 }
 
@@ -40,7 +42,7 @@ func NewHackerNewsChecker(p RemoteProofChainLink) (*HackerNewsChecker, ProofErro
 }
 
 func (h *HackerNewsChecker) CheckHint(hint SigHint) ProofError {
-	wanted := h.ApiUrl()
+	wanted := h.ApiURL()
 	if Cicmp(wanted, hint.apiURL) {
 		return nil
 	}
@@ -78,7 +80,7 @@ func (h *HackerNewsChecker) CheckStatus(hint SigHint) ProofError {
 }
 
 func CheckKarma(un string) (int, error) {
-	u := KarmaUrl(un)
+	u := KarmaURL(un)
 	res, err := G.XAPI.Get(ApiArg{Endpoint: u, NeedSession: false})
 	if err != nil {
 		return 0, XapiError(err, u)

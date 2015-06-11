@@ -458,8 +458,8 @@ func (u *User) localDelegateKey(key GenericKey, sigID keybase1.SigID, kid KID, i
 	return
 }
 
-func (u *User) SigChainBump(linkID LinkId, sigID keybase1.SigID) {
-	u.SigChainBumpMT(MerkleTriple{LinkId: linkID, SigID: sigID})
+func (u *User) SigChainBump(linkID LinkID, sigID keybase1.SigID) {
+	u.SigChainBumpMT(MerkleTriple{LinkID: linkID, SigID: sigID})
 }
 
 func (u *User) SigChainBumpMT(mt MerkleTriple) {
