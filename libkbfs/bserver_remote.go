@@ -6,7 +6,6 @@ import (
 	_ "encoding/base64"
 	"encoding/hex"
 	"errors"
-	"fmt"
 	"io/ioutil"
 	"net"
 	"sync"
@@ -95,6 +94,7 @@ func (b *BlockServerRemote) ConnectOnce() error {
 
 	var session *libkb.Session
 	if session, err = b.config.KBPKI().GetSession(); err != nil {
+		libkb.G.Log.Warning("error getting session, disconnect from backend: %q", err)
 		b.conn.Close()
 		return err
 	}
@@ -164,20 +164,20 @@ func (b *BlockServerRemote) Get(id BlockID, context BlockContext) (
 		Size:      int(context.GetQuotaSize()),
 		ChargedTo: context.GetWriter(),
 	}
-	res, err := b.clt.GetBlock(bid)
 	//XXX: if fails due to connection problem, should reconnect
+	res, err := b.clt.GetBlock(bid)
 	if err != nil {
 		return nil, BlockCryptKeyServerHalf{}, err
 	}
+
 	// TODO: return the server-half of the block key
-	var kbuf []byte
-	kbuf, err = hex.DecodeString(res.Skey.BlockKey)
-	if err != nil {
+	if kbuf, err := hex.DecodeString(res.BlockKey); err != nil {
 		return nil, BlockCryptKeyServerHalf{}, err
+	} else {
+		bk := BlockCryptKeyServerHalf{}
+		copy(bk.ServerHalf[:], kbuf)
+		return res.Buf, bk, err
 	}
-	bk := BlockCryptKeyServerHalf{}
-	copy(bk.ServerHalf[:], kbuf)
-	return res.Buf, bk, err
 }
 
 // Put implements the BlockServer interface for BlockServerRemote.
@@ -195,20 +195,15 @@ func (b *BlockServerRemote) Put(id BlockID, context BlockContext,
 			BlockHash: hex.EncodeToString(id[:]),
 			Size:      int(context.GetQuotaSize()),
 		},
-		Skey: keybase1.BlockKey{
-			EpochID:     0,
-			EpochKey:    "DEADBEEF",
-			RandBlockId: "DEADBEEF",
-			BlockKey:    hex.EncodeToString(serverHalf.ServerHalf[:]),
-		},
-		Folder: "", //XXX: strib needs to tell me what folder this block belongs
-		Buf:    buf,
+		BlockKey: hex.EncodeToString(serverHalf.ServerHalf[:]),
+		Folder:   "", //XXX: strib needs to tell me what folder this block belongs
+		Buf:      buf,
 	}
-	if err := b.clt.PutBlock(arg); err != nil {
-		fmt.Printf("PUT err is %v\n", err)
-		return err
+	err := b.clt.PutBlock(arg)
+	if err != nil {
+		libkb.G.Log.Warning("PUT to backend err : %q", err)
 	}
-	return nil
+	return err
 }
 
 // Delete implements the BlockServer interface for BlockServerRemote.
@@ -225,22 +220,7 @@ func (b *BlockServerRemote) Delete(id BlockID, context BlockContext) error {
 	}
 	err := b.clt.DecBlockReference(arg)
 	if err != nil {
-		return err
+		libkb.G.Log.Warning("PUT to backend err : %q", err)
 	}
-	/*
-		if err := b.blockly.clt.blockSession(); err != nil {
-			return err
-		}
-			arg := keybase_1.DeleteArg{
-				Blockid: id[:],
-				Uid:     keybase_1.UID(context.GetWriter()),
-			}
-				if err := b.blockly.clt.Delete(arg); err != nil {
-					fmt.Printf("DEL err %v\n", err)
-					return err
-				} else {
-					return nil
-				}
-	*/
-	return nil
+	return err
 }
