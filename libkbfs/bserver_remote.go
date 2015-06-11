@@ -3,7 +3,6 @@ package libkbfs
 import (
 	"crypto/tls"
 	"crypto/x509"
-	_ "encoding/base64"
 	"encoding/hex"
 	"errors"
 	"io/ioutil"
@@ -78,6 +77,7 @@ func TLSConnect(cFile string, Addr string) (conn net.Conn, err error) {
 	return
 }
 
+// Config returns the configuration object
 func (b *BlockServerRemote) Config() Config {
 	return b.config
 }
@@ -171,13 +171,11 @@ func (b *BlockServerRemote) Get(id BlockID, context BlockContext) (
 	}
 
 	// TODO: return the server-half of the block key
-	if kbuf, err := hex.DecodeString(res.BlockKey); err != nil {
-		return nil, BlockCryptKeyServerHalf{}, err
-	} else {
-		bk := BlockCryptKeyServerHalf{}
+	bk := BlockCryptKeyServerHalf{}
+	if kbuf, err := hex.DecodeString(res.BlockKey); err == nil {
 		copy(bk.ServerHalf[:], kbuf)
-		return res.Buf, bk, err
 	}
+	return res.Buf, bk, err
 }
 
 // Put implements the BlockServer interface for BlockServerRemote.
