@@ -591,25 +591,35 @@ func (_m *MockBlockCache) EXPECT() *_MockBlockCacheRecorder {
 	return _m.recorder
 }
 
-func (_m *MockBlockCache) Get(id BlockID) (Block, error) {
-	ret := _m.ctrl.Call(_m, "Get", id)
+func (_m *MockBlockCache) Get(ptr BlockPointer, branch BranchName) (Block, error) {
+	ret := _m.ctrl.Call(_m, "Get", ptr, branch)
 	ret0, _ := ret[0].(Block)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-func (_mr *_MockBlockCacheRecorder) Get(arg0 interface{}) *gomock.Call {
-	return _mr.mock.ctrl.RecordCall(_mr.mock, "Get", arg0)
+func (_mr *_MockBlockCacheRecorder) Get(arg0, arg1 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "Get", arg0, arg1)
 }
 
-func (_m *MockBlockCache) Put(id BlockID, block Block, dirty bool) error {
-	ret := _m.ctrl.Call(_m, "Put", id, block, dirty)
+func (_m *MockBlockCache) Put(id BlockID, block Block) error {
+	ret := _m.ctrl.Call(_m, "Put", id, block)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
-func (_mr *_MockBlockCacheRecorder) Put(arg0, arg1, arg2 interface{}) *gomock.Call {
-	return _mr.mock.ctrl.RecordCall(_mr.mock, "Put", arg0, arg1, arg2)
+func (_mr *_MockBlockCacheRecorder) Put(arg0, arg1 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "Put", arg0, arg1)
+}
+
+func (_m *MockBlockCache) PutDirty(ptr BlockPointer, branch BranchName, block Block) error {
+	ret := _m.ctrl.Call(_m, "PutDirty", ptr, branch, block)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+func (_mr *_MockBlockCacheRecorder) PutDirty(arg0, arg1, arg2 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "PutDirty", arg0, arg1, arg2)
 }
 
 func (_m *MockBlockCache) Delete(id BlockID) error {
@@ -622,24 +632,34 @@ func (_mr *_MockBlockCacheRecorder) Delete(arg0 interface{}) *gomock.Call {
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "Delete", arg0)
 }
 
-func (_m *MockBlockCache) Finalize(oldID BlockID, newID BlockID) error {
-	ret := _m.ctrl.Call(_m, "Finalize", oldID, newID)
+func (_m *MockBlockCache) DeleteDirty(ptr BlockPointer, branch BranchName) error {
+	ret := _m.ctrl.Call(_m, "DeleteDirty", ptr, branch)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
-func (_mr *_MockBlockCacheRecorder) Finalize(arg0, arg1 interface{}) *gomock.Call {
-	return _mr.mock.ctrl.RecordCall(_mr.mock, "Finalize", arg0, arg1)
+func (_mr *_MockBlockCacheRecorder) DeleteDirty(arg0, arg1 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "DeleteDirty", arg0, arg1)
 }
 
-func (_m *MockBlockCache) IsDirty(id BlockID) bool {
-	ret := _m.ctrl.Call(_m, "IsDirty", id)
+func (_m *MockBlockCache) Finalize(oldPtr BlockPointer, branch BranchName, newID BlockID) error {
+	ret := _m.ctrl.Call(_m, "Finalize", oldPtr, branch, newID)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+func (_mr *_MockBlockCacheRecorder) Finalize(arg0, arg1, arg2 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "Finalize", arg0, arg1, arg2)
+}
+
+func (_m *MockBlockCache) IsDirty(ptr BlockPointer, branch BranchName) bool {
+	ret := _m.ctrl.Call(_m, "IsDirty", ptr, branch)
 	ret0, _ := ret[0].(bool)
 	return ret0
 }
 
-func (_mr *_MockBlockCacheRecorder) IsDirty(arg0 interface{}) *gomock.Call {
-	return _mr.mock.ctrl.RecordCall(_mr.mock, "IsDirty", arg0)
+func (_mr *_MockBlockCacheRecorder) IsDirty(arg0, arg1 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "IsDirty", arg0, arg1)
 }
 
 // Mock of Crypto interface

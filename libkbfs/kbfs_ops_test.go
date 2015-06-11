@@ -208,6 +208,27 @@ func (m rmdMatcher) String() string {
 	return fmt.Sprintf("Matches RMD %v", m.rmd)
 }
 
+// ptrMatcher implements the gomock.Matcher interface to compare
+// BlockPointer objects. We don't care about some of the fields in a
+// pointer for the purposes of these tests.
+type ptrMatcher struct {
+	ptr BlockPointer
+}
+
+// Matches implements the Matcher interface for ptrMatcher.
+func (p ptrMatcher) Matches(x interface{}) bool {
+	xPtr, ok := x.(BlockPointer)
+	if !ok {
+		return false
+	}
+	return (xPtr.ID == p.ptr.ID && xPtr.RefNonce == p.ptr.RefNonce)
+}
+
+// String implements the Matcher interface for ptrMatcher.
+func (p ptrMatcher) String() string {
+	return fmt.Sprintf("Matches BlockPointer %v", p.ptr)
+}
+
 func expectGetTLFCryptKeyForEncryption(config *ConfigMock, rmd *RootMetadata) {
 	config.mockKeyman.EXPECT().GetTLFCryptKeyForEncryption(
 		rmdMatcher{rmd}).Return(TLFCryptKey{}, nil)
@@ -259,7 +280,7 @@ func TestKBFSOpsGetRootPathCreateNewSuccess(t *testing.T) {
 	// now cache and put everything
 	config.mockBops.EXPECT().Put(rootID, id, gomock.Any(), block, gomock.Any()).
 		Return(nil)
-	config.mockBcache.EXPECT().Put(rootID, gomock.Any(), false).Return(nil)
+	config.mockBcache.EXPECT().Put(rootID, gomock.Any()).Return(nil)
 	config.mockMdops.EXPECT().Put(id, rmd).Return(nil)
 	config.mockMdcache.EXPECT().Put(rmd.mdID, rmd).Return(nil)
 
@@ -378,7 +399,8 @@ func TestKBFSOpsGetBaseDirCacheSuccess(t *testing.T) {
 	node := PathNode{makeBP(rootID, rmd, config, u, 0), ""}
 	p := Path{TopDir: id, Path: []PathNode{node}}
 
-	config.mockBcache.EXPECT().Get(rootID).Return(dirBlock, nil)
+	config.mockBcache.EXPECT().Get(node.BlockPointer, p.Branch).
+		Return(dirBlock, nil)
 
 	if block, err := config.KBFSOps().GetDir(p); err != nil {
 		t.Errorf("Got error on getdir: %v", err)
@@ -401,11 +423,11 @@ func TestKBFSOpsGetBaseDirUncachedSuccess(t *testing.T) {
 
 	// cache miss means fetching metadata and getting read key
 	err := &NoSuchBlockError{rootID}
-	config.mockBcache.EXPECT().Get(rootID).Return(nil, err)
+	config.mockBcache.EXPECT().Get(blockPtr, p.Branch).Return(nil, err)
 
 	expectGetTLFCryptKeyForBlockDecryption(config, rmd, blockPtr)
 	expectBlock(config, rootID, dirBlock, nil)
-	config.mockBcache.EXPECT().Put(rootID, gomock.Any(), false).Return(nil)
+	config.mockBcache.EXPECT().Put(rootID, gomock.Any()).Return(nil)
 
 	if _, err := config.KBFSOps().GetDir(p); err != nil {
 		t.Errorf("Got error on getdir: %v", err)
@@ -458,7 +480,7 @@ func TestKBFSOpsGetBaseDirUncachedFailMissingBlock(t *testing.T) {
 	// cache miss means fetching metadata and getting read key, then
 	// fail block fetch
 	err := &NoSuchBlockError{rootID}
-	config.mockBcache.EXPECT().Get(rootID).Return(nil, err)
+	config.mockBcache.EXPECT().Get(blockPtr, p.Branch).Return(nil, err)
 	expectGetTLFCryptKeyForBlockDecryption(config, rmd, blockPtr)
 	expectBlock(config, rootID, dirBlock, err)
 
@@ -521,7 +543,8 @@ func TestKBFSOpsGetNestedDirCacheSuccess(t *testing.T) {
 	bNode := PathNode{makeBP(bID, rmd, config, u, 0), "b"}
 	p := Path{TopDir: id, Path: []PathNode{node, aNode, bNode}}
 
-	config.mockBcache.EXPECT().Get(bID).Return(dirBlock, nil)
+	config.mockBcache.EXPECT().Get(bNode.BlockPointer, p.Branch).
+		Return(dirBlock, nil)
 
 	if block, err := config.KBFSOps().GetDir(p); err != nil {
 		t.Errorf("Got error on getdir: %v", err)
@@ -595,8 +618,8 @@ func expectSyncBlock(
 		// Hard to know whether the block will be finalized or just
 		// put into the cache.  Allow either one.  I don't think
 		// gomock lets us check that exactly one of them will happen.
-		config.mockBcache.EXPECT().Put(newID, gomock.Any(), false).
-			Do(func(id BlockID, block Block, dirty bool) {
+		config.mockBcache.EXPECT().Put(newID, gomock.Any()).
+			Do(func(id BlockID, block Block) {
 			if newBlocks != nil {
 				if dblock, ok := block.(*DirBlock); ok {
 					newBlocks[index] = dblock
@@ -609,14 +632,15 @@ func expectSyncBlock(
 				}
 			}
 		}).AnyTimes().Return(nil)
-		if index < len(path.Path) && path.Path[index].ID != zeroID {
-			config.mockBcache.EXPECT().Finalize(path.Path[index].ID, newID).
-				Do(func(oldId BlockID, newID BlockID) {
+		if index < len(path.Path) && path.Path[index].BlockPointer != zeroPtr {
+			config.mockBcache.EXPECT().Finalize(
+				ptrMatcher{path.Path[index].BlockPointer}, MasterBranch, newID).
+				Do(func(oldPtr BlockPointer, branch BranchName, newID BlockID) {
 				if newBlocks == nil {
 					return
 				}
 				// get the new block straight from the mock cache!
-				block, _ := config.BlockCache().Get(oldId)
+				block, _ := config.BlockCache().Get(oldPtr, branch)
 				// file blocks don't need saving
 				if dblock, ok := block.(*DirBlock); ok {
 					newBlocks[index] = dblock
@@ -746,18 +770,25 @@ func checkNewPath(t *testing.T, config Config, newPath Path, expectedPath Path,
 	}
 }
 
-func expectGetBlock(config *ConfigMock, id BlockID, block Block) {
-	config.mockBcache.EXPECT().Get(id).AnyTimes().Return(block, nil)
-	config.mockBcache.EXPECT().IsDirty(id).AnyTimes().Return(false)
+func expectGetBlock(config *ConfigMock, ptr BlockPointer, block Block) {
+	branch := MasterBranch
+	config.mockBcache.EXPECT().Get(ptrMatcher{ptr}, branch).
+		AnyTimes().Return(block, nil)
+	config.mockBcache.EXPECT().IsDirty(ptrMatcher{ptr}, branch).
+		AnyTimes().Return(false)
 }
 
-func expectGetBlockWithPut(config *ConfigMock, id BlockID, block Block) {
-	config.mockBcache.EXPECT().Get(id).Return(block, nil)
-	config.mockBcache.EXPECT().IsDirty(id).Return(false)
-	config.mockBcache.EXPECT().Put(id, gomock.Any(), true).AnyTimes().
-		Do(func(id BlockID, block Block, dirty bool) {
-		config.mockBcache.EXPECT().IsDirty(id).AnyTimes().Return(true)
-		config.mockBcache.EXPECT().Get(id).AnyTimes().Return(block, nil)
+func expectGetBlockWithPut(config *ConfigMock, ptr BlockPointer, block Block) {
+	branch := MasterBranch
+	config.mockBcache.EXPECT().Get(ptrMatcher{ptr}, branch).Return(block, nil)
+	config.mockBcache.EXPECT().IsDirty(ptrMatcher{ptr}, branch).Return(false)
+	config.mockBcache.EXPECT().PutDirty(ptrMatcher{ptr}, branch,
+		gomock.Any()).AnyTimes().
+		Do(func(ptr BlockPointer, branch BranchName, block Block) {
+		config.mockBcache.EXPECT().IsDirty(ptrMatcher{ptr}, branch).
+			AnyTimes().Return(true)
+		config.mockBcache.EXPECT().Get(ptrMatcher{ptr}, branch).AnyTimes().
+			Return(block, nil)
 	}).Return(nil)
 }
 
@@ -782,8 +813,8 @@ func testCreateEntrySuccess(t *testing.T, entryType EntryType) {
 	p := Path{TopDir: id, Path: []PathNode{node, aNode}}
 
 	// creating "a/b"
-	expectGetBlock(config, aID, aBlock)
-	expectGetBlock(config, rootID, rootBlock)
+	expectGetBlock(config, aNode.BlockPointer, aBlock)
+	expectGetBlock(config, node.BlockPointer, rootBlock)
 	// sync block
 	var newRmd *RootMetadata
 	blocks := make([]*DirBlock, 3)
@@ -857,7 +888,7 @@ func testCreateEntryFailDupName(t *testing.T, isDir bool) {
 	p := Path{TopDir: id, Path: []PathNode{node}}
 
 	// creating "a", which already exists in the root block
-	expectGetBlock(config, rootID, rootBlock)
+	expectGetBlock(config, node.BlockPointer, rootBlock)
 	expectedErr := &NameExistsError{"a"}
 
 	var err error
@@ -908,10 +939,10 @@ func testRemoveEntrySuccess(t *testing.T, entryType EntryType) {
 
 	// deleting "a/b"
 	if entryType != Sym {
-		expectGetBlock(config, bID, bBlock)
+		expectGetBlock(config, bNode.BlockPointer, bBlock)
 	}
-	expectGetBlock(config, aID, aBlock)
-	expectGetBlock(config, rootID, rootBlock)
+	expectGetBlock(config, aNode.BlockPointer, aBlock)
+	expectGetBlock(config, node.BlockPointer, rootBlock)
 	// sync block
 	var newRmd *RootMetadata
 	blocks := make([]*DirBlock, 2)
@@ -983,12 +1014,12 @@ func TestKBFSOpRemoveMultiBlockFileSuccess(t *testing.T) {
 	fileNode := PathNode{makeBP(fileID, rmd, config, userID, 0), "a"}
 	p := Path{TopDir: id, Path: []PathNode{node, fileNode}}
 
-	expectGetBlock(config, rootID, rootBlock)
-	expectGetBlock(config, fileID, fileBlock)
-	expectGetBlock(config, id1, block1)
-	expectGetBlock(config, id2, block2)
-	expectGetBlock(config, id3, block3)
-	expectGetBlock(config, id4, block4)
+	expectGetBlock(config, node.BlockPointer, rootBlock)
+	expectGetBlock(config, fileNode.BlockPointer, fileBlock)
+	expectGetBlock(config, fileBlock.IPtrs[0].BlockPointer, block1)
+	expectGetBlock(config, fileBlock.IPtrs[1].BlockPointer, block2)
+	expectGetBlock(config, fileBlock.IPtrs[2].BlockPointer, block3)
+	expectGetBlock(config, fileBlock.IPtrs[3].BlockPointer, block4)
 
 	// sync block
 	unrefBytes := uint64(10 + 4*5) // fileBlock + 4 indirect blocks
@@ -1039,7 +1070,7 @@ func TestRemoveDirFailNonEmpty(t *testing.T) {
 	bNode := PathNode{makeBP(bID, rmd, config, u, 0), "b"}
 	p := Path{TopDir: id, Path: []PathNode{node, aNode, bNode}}
 
-	expectGetBlock(config, bID, bBlock)
+	expectGetBlock(config, bNode.BlockPointer, bBlock)
 	expectedErr := &DirNotEmptyError{p.TailName()}
 
 	if _, err := config.KBFSOps().RemoveDir(p); err == nil {
@@ -1068,8 +1099,8 @@ func TestRemoveDirFailNoSuchName(t *testing.T) {
 	bNode := PathNode{makeBP(bID, rmd, config, u, 0), "b"}
 	p := Path{TopDir: id, Path: []PathNode{node, aNode, bNode}}
 
-	expectGetBlock(config, bID, bBlock)
-	expectGetBlock(config, aID, aBlock)
+	expectGetBlock(config, bNode.BlockPointer, bBlock)
+	expectGetBlock(config, aNode.BlockPointer, aBlock)
 	expectedErr := &NoSuchNameError{p.TailName()}
 
 	if _, err := config.KBFSOps().RemoveDir(p); err == nil {
@@ -1098,8 +1129,8 @@ func TestRenameInDirSuccess(t *testing.T) {
 	p := Path{TopDir: id, Path: []PathNode{node, aNode}}
 
 	// renaming "a/b" to "a/c"
-	expectGetBlock(config, aID, aBlock)
-	expectGetBlock(config, rootID, rootBlock)
+	expectGetBlock(config, aNode.BlockPointer, aBlock)
+	expectGetBlock(config, node.BlockPointer, rootBlock)
 	// sync block
 	var newRmd *RootMetadata
 	blocks := make([]*DirBlock, 3)
@@ -1142,7 +1173,7 @@ func TestRenameInRootSuccess(t *testing.T) {
 	p := Path{TopDir: id, Path: []PathNode{node}}
 
 	// renaming "a" to "b"
-	expectGetBlock(config, rootID, rootBlock)
+	expectGetBlock(config, node.BlockPointer, rootBlock)
 	// sync block
 	var newRmd *RootMetadata
 	blocks := make([]*DirBlock, 2)
@@ -1197,10 +1228,11 @@ func TestRenameAcrossDirsSuccess(t *testing.T) {
 	p2 := Path{TopDir: id, Path: []PathNode{node, dNode}}
 
 	// renaming "a/b" to "d/c"
-	expectGetBlock(config, aID, aBlock)
-	expectGetBlock(config, dID, dBlock)
-	expectGetBlockWithPut(config, rootID, rootBlock)
-	config.mockBcache.EXPECT().IsDirty(rootID).Return(false)
+	expectGetBlock(config, aNode.BlockPointer, aBlock)
+	expectGetBlock(config, dNode.BlockPointer, dBlock)
+	expectGetBlockWithPut(config, node.BlockPointer, rootBlock)
+	config.mockBcache.EXPECT().IsDirty(ptrMatcher{node.BlockPointer},
+		p1.Branch).Return(false)
 
 	// sync block
 	var newRmd *RootMetadata
@@ -1260,11 +1292,13 @@ func TestRenameAcrossPrefixSuccess(t *testing.T) {
 
 	// renaming "a/b" to "a/d/c"
 	// the common ancestor and its parent will be changed once and then re-read
-	expectGetBlockWithPut(config, aID, aBlock)
-	expectGetBlock(config, dID, dBlock)
-	expectGetBlockWithPut(config, rootID, rootBlock)
-	config.mockBcache.EXPECT().IsDirty(aID).Return(false)
-	config.mockBcache.EXPECT().IsDirty(rootID).Return(false)
+	expectGetBlockWithPut(config, aNode.BlockPointer, aBlock)
+	expectGetBlock(config, dNode.BlockPointer, dBlock)
+	expectGetBlockWithPut(config, node.BlockPointer, rootBlock)
+	config.mockBcache.EXPECT().IsDirty(ptrMatcher{aNode.BlockPointer},
+		p1.Branch).Return(false)
+	config.mockBcache.EXPECT().IsDirty(ptrMatcher{node.BlockPointer},
+		p1.Branch).Return(false)
 
 	// sync block
 	var newRmd *RootMetadata
@@ -1329,10 +1363,11 @@ func TestRenameAcrossOtherPrefixSuccess(t *testing.T) {
 	p2 := Path{TopDir: id, Path: []PathNode{node, aNode}}
 
 	// renaming "a/d/b" to "a/c"
-	expectGetBlockWithPut(config, aID, aBlock)
-	expectGetBlock(config, dID, dBlock)
-	expectGetBlock(config, rootID, rootBlock)
-	config.mockBcache.EXPECT().IsDirty(aID).Return(false)
+	expectGetBlockWithPut(config, aNode.BlockPointer, aBlock)
+	expectGetBlock(config, dNode.BlockPointer, dBlock)
+	expectGetBlock(config, node.BlockPointer, rootBlock)
+	config.mockBcache.EXPECT().IsDirty(ptrMatcher{aNode.BlockPointer},
+		p1.Branch).Return(false)
 
 	// sync block
 	var newRmd *RootMetadata
@@ -1416,6 +1451,30 @@ func TestRenameFailAcrossTopDirs(t *testing.T) {
 	}
 }
 
+func TestRenameFailAcrossBranches(t *testing.T) {
+	mockCtrl, config := kbfsOpsInit(t, false)
+	defer kbfsTestShutdown(mockCtrl, config)
+
+	userID1 := keybase1.MakeTestUID(15)
+	id1, h1, rmd1 := newDir(config, 1, true, false)
+	h1.Writers = append(h1.Writers, userID1)
+	expectUserCalls(h1, config)
+
+	rootID1 := BlockID{41}
+	aID1 := BlockID{42}
+	node1 := PathNode{makeBP(rootID1, &rmd1.MD, config, userID1, 0), ""}
+	aNode1 := PathNode{makeBP(aID1, &rmd1.MD, config, userID1, 0), "a"}
+	p1 := Path{TopDir: id1, Path: []PathNode{node1, aNode1}}
+	p2 := Path{TopDir: id1, Branch: "test", Path: []PathNode{node1, aNode1}}
+
+	expectedErr := &RenameAcrossDirsError{}
+	if _, _, err := config.KBFSOps().Rename(p1, "b", p2, "c"); err == nil {
+		t.Errorf("Got no expected error on rename")
+	} else if err.Error() != expectedErr.Error() {
+		t.Errorf("Got unexpected error on rename: %v", err)
+	}
+}
+
 func bytesEqual(actual []byte, expected []byte) bool {
 	// TODO: this must be built in somewhere
 	if len(actual) != len(expected) {
@@ -1443,7 +1502,7 @@ func TestKBFSOpsCacheReadFullSuccess(t *testing.T) {
 	fileNode := PathNode{makeBP(fileID, rmd, config, u, 0), "f"}
 	p := Path{TopDir: id, Path: []PathNode{node, fileNode}}
 
-	expectGetBlock(config, fileID, fileBlock)
+	expectGetBlock(config, fileNode.BlockPointer, fileBlock)
 
 	n := len(fileBlock.Contents)
 	dest := make([]byte, n, n)
@@ -1470,7 +1529,7 @@ func TestKBFSOpsCacheReadPartialSuccess(t *testing.T) {
 	fileNode := PathNode{makeBP(fileID, rmd, config, u, 0), "f"}
 	p := Path{TopDir: id, Path: []PathNode{node, fileNode}}
 
-	expectGetBlock(config, fileID, fileBlock)
+	expectGetBlock(config, fileNode.BlockPointer, fileBlock)
 
 	dest := make([]byte, 4, 4)
 	if n, err := config.KBFSOps().Read(p, dest, 2); err != nil {
@@ -1514,11 +1573,11 @@ func TestKBFSOpsCacheReadFullMultiBlockSuccess(t *testing.T) {
 	fileNode := PathNode{makeBP(fileID, rmd, config, u, 0), "a"}
 	p := Path{TopDir: id, Path: []PathNode{node, fileNode}}
 
-	expectGetBlock(config, fileID, fileBlock)
-	expectGetBlock(config, id1, block1)
-	expectGetBlock(config, id2, block2)
-	expectGetBlock(config, id3, block3)
-	expectGetBlock(config, id4, block4)
+	expectGetBlock(config, fileNode.BlockPointer, fileBlock)
+	expectGetBlock(config, fileBlock.IPtrs[0].BlockPointer, block1)
+	expectGetBlock(config, fileBlock.IPtrs[1].BlockPointer, block2)
+	expectGetBlock(config, fileBlock.IPtrs[2].BlockPointer, block3)
+	expectGetBlock(config, fileBlock.IPtrs[3].BlockPointer, block4)
 
 	n := 20
 	dest := make([]byte, n, n)
@@ -1566,10 +1625,10 @@ func TestKBFSOpsCacheReadPartialMultiBlockSuccess(t *testing.T) {
 	fileNode := PathNode{makeBP(fileID, rmd, config, u, 0), "a"}
 	p := Path{TopDir: id, Path: []PathNode{node, fileNode}}
 
-	expectGetBlock(config, fileID, fileBlock)
-	expectGetBlock(config, id1, block1)
-	expectGetBlock(config, id2, block2)
-	expectGetBlock(config, id3, block3)
+	expectGetBlock(config, fileNode.BlockPointer, fileBlock)
+	expectGetBlock(config, fileBlock.IPtrs[0].BlockPointer, block1)
+	expectGetBlock(config, fileBlock.IPtrs[1].BlockPointer, block2)
+	expectGetBlock(config, fileBlock.IPtrs[2].BlockPointer, block3)
 
 	n := 10
 	dest := make([]byte, n, n)
@@ -1598,7 +1657,7 @@ func TestKBFSOpsCacheReadFailPastEnd(t *testing.T) {
 	fileNode := PathNode{makeBP(fileID, rmd, config, u, 0), "f"}
 	p := Path{TopDir: id, Path: []PathNode{node, fileNode}}
 
-	expectGetBlock(config, fileID, fileBlock)
+	expectGetBlock(config, fileNode.BlockPointer, fileBlock)
 
 	dest := make([]byte, 4, 4)
 	if n, err := config.KBFSOps().Read(p, dest, 10); err != nil {
@@ -1625,10 +1684,11 @@ func TestKBFSOpsServerReadFullSuccess(t *testing.T) {
 
 	// cache miss means fetching metadata and getting read key
 	err := &NoSuchBlockError{rootID}
-	config.mockBcache.EXPECT().Get(fileID).Return(nil, err)
+	config.mockBcache.EXPECT().Get(ptrMatcher{fileNode.BlockPointer}, p.Branch).
+		Return(nil, err)
 	expectGetTLFCryptKeyForBlockDecryption(config, rmd, fileBlockPtr)
 	expectBlock(config, fileID, fileBlock, nil)
-	config.mockBcache.EXPECT().Put(fileID, gomock.Any(), false).Return(nil)
+	config.mockBcache.EXPECT().Put(fileID, gomock.Any()).Return(nil)
 
 	n := len(fileBlock.Contents)
 	dest := make([]byte, n, n)
@@ -1658,7 +1718,8 @@ func TestKBFSOpsServerReadFailNoSuchBlock(t *testing.T) {
 
 	// cache miss means fetching metadata and getting read key
 	err := &NoSuchBlockError{rootID}
-	config.mockBcache.EXPECT().Get(fileID).Return(nil, err)
+	config.mockBcache.EXPECT().Get(ptrMatcher{fileNode.BlockPointer}, p.Branch).
+		Return(nil, err)
 	expectGetTLFCryptKeyForBlockDecryption(config, rmd, fileBlockPtr)
 	expectBlock(config, fileID, fileBlock, err)
 
@@ -1697,21 +1758,23 @@ func TestKBFSOpsWriteNewBlockSuccess(t *testing.T) {
 	p := Path{TopDir: id, Path: []PathNode{node, fileNode}}
 	data := []byte{1, 2, 3, 4, 5, 6, 7, 8, 9, 10}
 
-	expectGetBlock(config, rootID, rootBlock)
-	expectGetBlock(config, fileID, fileBlock)
+	expectGetBlock(config, node.BlockPointer, rootBlock)
+	expectGetBlock(config, fileNode.BlockPointer, fileBlock)
 	config.mockBsplit.EXPECT().CopyUntilSplit(
 		gomock.Any(), gomock.Any(), data, int64(0)).
 		Do(func(block *FileBlock, lb bool, data []byte, off int64) {
 		block.Contents = data
 	}).Return(int64(len(data)))
 	var newFileBlock *FileBlock
-	config.mockBcache.EXPECT().Put(fileID, gomock.Any(), true).
-		Do(func(id BlockID, block Block, dirty bool) {
+	config.mockBcache.EXPECT().PutDirty(fileNode.BlockPointer, MasterBranch,
+		gomock.Any()).
+		Do(func(ptr BlockPointer, branch BranchName, block Block) {
 		newFileBlock = block.(*FileBlock)
 	}).Return(nil)
 	var newRootBlock *DirBlock
-	config.mockBcache.EXPECT().Put(rootID, gomock.Any(), true).
-		Do(func(id BlockID, block Block, dirty bool) {
+	config.mockBcache.EXPECT().PutDirty(node.BlockPointer, MasterBranch,
+		gomock.Any()).
+		Do(func(ptr BlockPointer, branch BranchName, block Block) {
 		newRootBlock = block.(*DirBlock)
 	}).Return(nil)
 	setRmdAfterWrite(config, nil)
@@ -1750,19 +1813,21 @@ func TestKBFSOpsWriteExtendSuccess(t *testing.T) {
 	data := []byte{6, 7, 8, 9, 10}
 	expectedFullData := []byte{1, 2, 3, 4, 5, 6, 7, 8, 9, 10}
 
-	expectGetBlock(config, rootID, rootBlock)
-	expectGetBlock(config, fileID, fileBlock)
+	expectGetBlock(config, node.BlockPointer, rootBlock)
+	expectGetBlock(config, fileNode.BlockPointer, fileBlock)
 	config.mockBsplit.EXPECT().CopyUntilSplit(
 		gomock.Any(), gomock.Any(), data, int64(5)).
 		Do(func(block *FileBlock, lb bool, data []byte, off int64) {
 		block.Contents = expectedFullData
 	}).Return(int64(len(data)))
 	var newFileBlock *FileBlock
-	config.mockBcache.EXPECT().Put(fileID, gomock.Any(), true).
-		Do(func(id BlockID, block Block, dirty bool) {
+	config.mockBcache.EXPECT().PutDirty(fileNode.BlockPointer, MasterBranch,
+		gomock.Any()).
+		Do(func(ptr BlockPointer, branch BranchName, block Block) {
 		newFileBlock = block.(*FileBlock)
 	}).Return(nil)
-	config.mockBcache.EXPECT().Put(rootID, gomock.Any(), true).Return(nil)
+	config.mockBcache.EXPECT().PutDirty(node.BlockPointer, MasterBranch,
+		gomock.Any()).Return(nil)
 	setRmdAfterWrite(config, nil)
 
 	if err := config.KBFSOps().Write(p, data, 5); err != nil {
@@ -1794,19 +1859,21 @@ func TestKBFSOpsWritePastEndSuccess(t *testing.T) {
 	data := []byte{6, 7, 8, 9, 10}
 	expectedFullData := []byte{1, 2, 3, 4, 5, 0, 0, 6, 7, 8, 9, 10}
 
-	expectGetBlock(config, rootID, rootBlock)
-	expectGetBlock(config, fileID, fileBlock)
+	expectGetBlock(config, node.BlockPointer, rootBlock)
+	expectGetBlock(config, fileNode.BlockPointer, fileBlock)
 	config.mockBsplit.EXPECT().CopyUntilSplit(
 		gomock.Any(), gomock.Any(), data, int64(7)).
 		Do(func(block *FileBlock, lb bool, data []byte, off int64) {
 		block.Contents = expectedFullData
 	}).Return(int64(len(data)))
 	var newFileBlock *FileBlock
-	config.mockBcache.EXPECT().Put(fileID, gomock.Any(), true).
-		Do(func(id BlockID, block Block, dirty bool) {
+	config.mockBcache.EXPECT().PutDirty(fileNode.BlockPointer, MasterBranch,
+		gomock.Any()).
+		Do(func(ptr BlockPointer, branch BranchName, block Block) {
 		newFileBlock = block.(*FileBlock)
 	}).Return(nil)
-	config.mockBcache.EXPECT().Put(rootID, gomock.Any(), true).Return(nil)
+	config.mockBcache.EXPECT().PutDirty(node.BlockPointer, MasterBranch,
+		gomock.Any()).Return(nil)
 	setRmdAfterWrite(config, nil)
 
 	if err := config.KBFSOps().Write(p, data, 7); err != nil {
@@ -1838,9 +1905,10 @@ func TestKBFSOpsWriteCauseSplit(t *testing.T) {
 	newData := []byte{1, 2, 3, 4, 5, 6, 7, 8, 9, 10}
 	expectedFullData := append([]byte{0}, newData...)
 
-	expectGetBlockWithPut(config, rootID, rootBlock)
-	expectGetBlockWithPut(config, fileID, fileBlock)
-	config.mockBcache.EXPECT().IsDirty(rootID).Return(false)
+	expectGetBlockWithPut(config, node.BlockPointer, rootBlock)
+	expectGetBlockWithPut(config, fileNode.BlockPointer, fileBlock)
+	config.mockBcache.EXPECT().IsDirty(ptrMatcher{node.BlockPointer}, p.Branch).
+		Return(false)
 
 	// only copy the first half first
 	config.mockBsplit.EXPECT().CopyUntilSplit(
@@ -1855,19 +1923,25 @@ func TestKBFSOpsWriteCauseSplit(t *testing.T) {
 	config.mockCrypto.EXPECT().MakeTemporaryBlockID().Return(id1, nil)
 	// the code doesn't distinguish puts for new left blocks, so it
 	// will check dirtiness once.
-	config.mockBcache.EXPECT().IsDirty(id1).Return(false)
+	config.mockBcache.EXPECT().IsDirty(ptrMatcher{BlockPointer{ID: id1}},
+		p.Branch).Return(false)
 	// new right block
 	config.mockCrypto.EXPECT().MakeTemporaryBlockID().Return(id2, nil)
 
-	config.mockBcache.EXPECT().Put(id1, gomock.Any(), true).
-		Do(func(id BlockID, block Block, dirty bool) {
-		config.mockBcache.EXPECT().Get(id).Return(block, nil)
-		config.mockBcache.EXPECT().IsDirty(id).AnyTimes().Return(true)
+	config.mockBcache.EXPECT().PutDirty(ptrMatcher{BlockPointer{ID: id1}},
+		MasterBranch, gomock.Any()).
+		Do(func(ptr BlockPointer, branch BranchName, block Block) {
+		config.mockBcache.EXPECT().Get(ptrMatcher{ptr}, branch).
+			Return(block, nil)
+		config.mockBcache.EXPECT().IsDirty(ptr, branch).
+			AnyTimes().Return(true)
 	}).Return(nil)
-	config.mockBcache.EXPECT().Put(id2, gomock.Any(), true).
-		Do(func(id BlockID, block Block, dirty bool) {
-		config.mockBcache.EXPECT().Get(id).AnyTimes().Return(block, nil)
-		config.mockBcache.EXPECT().IsDirty(id).AnyTimes().Return(true)
+	config.mockBcache.EXPECT().PutDirty(ptrMatcher{BlockPointer{ID: id2}},
+		MasterBranch, gomock.Any()).
+		Do(func(ptr BlockPointer, branch BranchName, block Block) {
+		config.mockBcache.EXPECT().Get(ptrMatcher{ptr}, branch).AnyTimes().
+			Return(block, nil)
+		config.mockBcache.EXPECT().IsDirty(ptr, branch).AnyTimes().Return(true)
 	}).Return(nil)
 	// next we'll get the right block again
 	// then the second half
@@ -1882,13 +1956,13 @@ func TestKBFSOpsWriteCauseSplit(t *testing.T) {
 	if err := config.KBFSOps().Write(p, newData, 1); err != nil {
 		t.Errorf("Got error on write: %v", err)
 	}
-	b, _ := config.BlockCache().Get(rootID)
+	b, _ := config.BlockCache().Get(node.BlockPointer, p.Branch)
 	newRootBlock := b.(*DirBlock)
-	b, _ = config.BlockCache().Get(fileID)
+	b, _ = config.BlockCache().Get(fileNode.BlockPointer, p.Branch)
 	pblock := b.(*FileBlock)
-	b, _ = config.BlockCache().Get(id1)
+	b, _ = config.BlockCache().Get(BlockPointer{ID: id1}, p.Branch)
 	block1 := b.(*FileBlock)
-	b, _ = config.BlockCache().Get(id2)
+	b, _ = config.BlockCache().Get(BlockPointer{ID: id2}, p.Branch)
 	block2 := b.(*FileBlock)
 
 	if len(config.observer.localUpdatePath.Path) != len(p.Path) {
@@ -1949,10 +2023,10 @@ func TestKBFSOpsWriteOverMultipleBlocks(t *testing.T) {
 	data := []byte{1, 2, 3, 4, 5}
 	expectedFullData := []byte{5, 4, 1, 2, 3, 4, 5, 8, 7, 6}
 
-	expectGetBlock(config, rootID, rootBlock)
-	expectGetBlock(config, fileID, fileBlock)
-	expectGetBlock(config, id1, block1)
-	expectGetBlock(config, id2, block2)
+	expectGetBlock(config, node.BlockPointer, rootBlock)
+	expectGetBlock(config, fileNode.BlockPointer, fileBlock)
+	expectGetBlock(config, fileBlock.IPtrs[0].BlockPointer, block1)
+	expectGetBlock(config, fileBlock.IPtrs[1].BlockPointer, block2)
 	// only copy the first half first
 	config.mockBsplit.EXPECT().CopyUntilSplit(
 		gomock.Any(), gomock.Any(), data, int64(2)).
@@ -1961,14 +2035,15 @@ func TestKBFSOpsWriteOverMultipleBlocks(t *testing.T) {
 	}).Return(int64(3))
 
 	// The parent is always dirtied so that we can sync properly later
-	config.mockBcache.EXPECT().Put(fileID, gomock.Any(), true).
-		AnyTimes().Return(nil)
+	config.mockBcache.EXPECT().PutDirty(fileNode.BlockPointer, p.Branch,
+		gomock.Any()).AnyTimes().Return(nil)
 
 	var newBlock1 *FileBlock
 	var newBlock2 *FileBlock
 	// updated copy of block1
-	c1 := config.mockBcache.EXPECT().Put(gomock.Any(), gomock.Any(), true).
-		Do(func(id BlockID, block Block, dirty bool) {
+	c1 := config.mockBcache.EXPECT().PutDirty(gomock.Any(), p.Branch,
+		gomock.Any()).
+		Do(func(ptr BlockPointer, branch BranchName, block Block) {
 		newBlock1 = block.(*FileBlock)
 	}).Return(nil)
 
@@ -1980,8 +2055,8 @@ func TestKBFSOpsWriteOverMultipleBlocks(t *testing.T) {
 	}).Return(int64(2))
 
 	// updated copy of block2
-	config.mockBcache.EXPECT().Put(gomock.Any(), gomock.Any(), true).
-		Do(func(id BlockID, block Block, dirty bool) {
+	config.mockBcache.EXPECT().PutDirty(gomock.Any(), p.Branch, gomock.Any()).
+		Do(func(ptr BlockPointer, branch BranchName, block Block) {
 		newBlock2 = block.(*FileBlock)
 	}).After(c1).Return(nil)
 
@@ -2024,16 +2099,18 @@ func TestKBFSOpsTruncateToZeroSuccess(t *testing.T) {
 	fileNode := PathNode{makeBP(fileID, rmd, config, userID, 0), "f"}
 	p := Path{TopDir: id, Path: []PathNode{node, fileNode}}
 
-	expectGetBlock(config, rootID, rootBlock)
-	expectGetBlock(config, fileID, fileBlock)
+	expectGetBlock(config, node.BlockPointer, rootBlock)
+	expectGetBlock(config, fileNode.BlockPointer, fileBlock)
 	var newFileBlock *FileBlock
-	config.mockBcache.EXPECT().Put(fileID, gomock.Any(), true).
-		Do(func(id BlockID, block Block, dirty bool) {
+	config.mockBcache.EXPECT().PutDirty(fileNode.BlockPointer, MasterBranch,
+		gomock.Any()).
+		Do(func(ptr BlockPointer, branch BranchName, block Block) {
 		newFileBlock = block.(*FileBlock)
 	}).Return(nil)
 	var newRootBlock *DirBlock
-	config.mockBcache.EXPECT().Put(rootID, gomock.Any(), true).
-		Do(func(id BlockID, block Block, dirty bool) {
+	config.mockBcache.EXPECT().PutDirty(node.BlockPointer, MasterBranch,
+		gomock.Any()).
+		Do(func(ptr BlockPointer, branch BranchName, block Block) {
 		newRootBlock = block.(*DirBlock)
 	}).Return(nil)
 
@@ -2071,8 +2148,8 @@ func TestKBFSOpsTruncateSameSize(t *testing.T) {
 	fileNode := PathNode{makeBP(fileID, rmd, config, u, 0), "f"}
 	p := Path{TopDir: id, Path: []PathNode{node, fileNode}}
 
-	expectGetBlock(config, rootID, rootBlock)
-	expectGetBlock(config, fileID, fileBlock)
+	expectGetBlock(config, node.BlockPointer, rootBlock)
+	expectGetBlock(config, fileNode.BlockPointer, fileBlock)
 
 	data := fileBlock.Contents
 	if err := config.KBFSOps().Truncate(p, 10); err != nil {
@@ -2102,14 +2179,16 @@ func TestKBFSOpsTruncateSmallerSuccess(t *testing.T) {
 	fileNode := PathNode{makeBP(fileID, rmd, config, userID, 0), "f"}
 	p := Path{TopDir: id, Path: []PathNode{node, fileNode}}
 
-	expectGetBlock(config, rootID, rootBlock)
-	expectGetBlock(config, fileID, fileBlock)
+	expectGetBlock(config, node.BlockPointer, rootBlock)
+	expectGetBlock(config, fileNode.BlockPointer, fileBlock)
 	var newFileBlock *FileBlock
-	config.mockBcache.EXPECT().Put(fileID, gomock.Any(), true).
-		Do(func(id BlockID, block Block, dirty bool) {
+	config.mockBcache.EXPECT().PutDirty(fileNode.BlockPointer, p.Branch,
+		gomock.Any()).
+		Do(func(ptr BlockPointer, branch BranchName, block Block) {
 		newFileBlock = block.(*FileBlock)
 	}).Return(nil)
-	config.mockBcache.EXPECT().Put(rootID, gomock.Any(), true).Return(nil)
+	config.mockBcache.EXPECT().PutDirty(node.BlockPointer, p.Branch,
+		gomock.Any()).Return(nil)
 
 	setRmdAfterWrite(config, nil)
 
@@ -2151,20 +2230,23 @@ func TestKBFSOpsTruncateRemovesABlock(t *testing.T) {
 	fileNode := PathNode{makeBP(fileID, rmd, config, userID, 0), "f"}
 	p := Path{TopDir: id, Path: []PathNode{node, fileNode}}
 
-	expectGetBlock(config, rootID, rootBlock)
-	expectGetBlock(config, fileID, fileBlock)
-	expectGetBlock(config, id1, block1)
+	expectGetBlock(config, node.BlockPointer, rootBlock)
+	expectGetBlock(config, fileNode.BlockPointer, fileBlock)
+	expectGetBlock(config, fileBlock.IPtrs[0].BlockPointer, block1)
 	var newPBlock *FileBlock
 	var newBlock1 *FileBlock
-	c1 := config.mockBcache.EXPECT().Put(fileID, gomock.Any(), true).
-		Do(func(id BlockID, block Block, dirty bool) {
+	c1 := config.mockBcache.EXPECT().PutDirty(fileNode.BlockPointer, p.Branch,
+		gomock.Any()).
+		Do(func(ptr BlockPointer, branch BranchName, block Block) {
 		newPBlock = block.(*FileBlock)
 	}).Return(nil)
-	config.mockBcache.EXPECT().Put(id1, gomock.Any(), true).
-		Do(func(id BlockID, block Block, dirty bool) {
+	config.mockBcache.EXPECT().PutDirty(fileBlock.IPtrs[0].BlockPointer,
+		p.Branch, gomock.Any()).
+		Do(func(ptr BlockPointer, branch BranchName, block Block) {
 		newBlock1 = block.(*FileBlock)
 	}).After(c1).Return(nil)
-	config.mockBcache.EXPECT().Put(rootID, gomock.Any(), true).Return(nil)
+	config.mockBcache.EXPECT().PutDirty(node.BlockPointer, p.Branch,
+		gomock.Any()).Return(nil)
 
 	var newRmd *RootMetadata
 	setRmdAfterWrite(config, &newRmd)
@@ -2205,8 +2287,8 @@ func TestKBFSOpsTruncateBiggerSuccess(t *testing.T) {
 	fileNode := PathNode{makeBP(fileID, rmd, config, userID, 0), "f"}
 	p := Path{TopDir: id, Path: []PathNode{node, fileNode}}
 
-	expectGetBlock(config, rootID, rootBlock)
-	expectGetBlock(config, fileID, fileBlock)
+	expectGetBlock(config, node.BlockPointer, rootBlock)
+	expectGetBlock(config, fileNode.BlockPointer, fileBlock)
 	config.mockBsplit.EXPECT().CopyUntilSplit(
 		gomock.Any(), gomock.Any(), []byte{0, 0, 0, 0, 0}, int64(5)).
 		Do(func(block *FileBlock, lb bool, data []byte, off int64) {
@@ -2214,11 +2296,13 @@ func TestKBFSOpsTruncateBiggerSuccess(t *testing.T) {
 	}).Return(int64(5))
 
 	var newFileBlock *FileBlock
-	config.mockBcache.EXPECT().Put(fileID, gomock.Any(), true).
-		Do(func(id BlockID, block Block, dirty bool) {
+	config.mockBcache.EXPECT().PutDirty(fileNode.BlockPointer, p.Branch,
+		gomock.Any()).
+		Do(func(ptr BlockPointer, branch BranchName, block Block) {
 		newFileBlock = block.(*FileBlock)
 	}).Return(nil)
-	config.mockBcache.EXPECT().Put(rootID, gomock.Any(), true).Return(nil)
+	config.mockBcache.EXPECT().PutDirty(node.BlockPointer, p.Branch,
+		gomock.Any()).Return(nil)
 
 	setRmdAfterWrite(config, nil)
 
@@ -2248,7 +2332,7 @@ func testSetExSuccess(t *testing.T, entryType EntryType, ex bool) {
 	aNode := PathNode{makeBP(aID, rmd, config, userID, 0), "a"}
 	p := Path{TopDir: id, Path: []PathNode{node, aNode}}
 
-	expectGetBlock(config, rootID, rootBlock)
+	expectGetBlock(config, node.BlockPointer, rootBlock)
 
 	expectedChanges := 1
 	// SetEx() should do nothing for symlinks.
@@ -2345,7 +2429,7 @@ func TestSetExFailNoSuchName(t *testing.T) {
 	aNode := PathNode{makeBP(aID, rmd, config, u, 0), "a"}
 	p := Path{TopDir: id, Path: []PathNode{node, aNode}}
 
-	expectGetBlock(config, rootID, rootBlock)
+	expectGetBlock(config, node.BlockPointer, rootBlock)
 	expectedErr := &NoSuchNameError{p.TailName()}
 
 	// chmod a+x a
@@ -2373,7 +2457,7 @@ func TestSetMtimeSuccess(t *testing.T) {
 	aNode := PathNode{makeBP(aID, rmd, config, userID, 0), "a"}
 	p := Path{TopDir: id, Path: []PathNode{node, aNode}}
 
-	expectGetBlock(config, rootID, rootBlock)
+	expectGetBlock(config, node.BlockPointer, rootBlock)
 	// sync block
 	var newRmd *RootMetadata
 	blocks := make([]*DirBlock, 2)
@@ -2430,7 +2514,7 @@ func TestMtimeFailNoSuchName(t *testing.T) {
 	aNode := PathNode{makeBP(aID, rmd, config, u, 0), "a"}
 	p := Path{TopDir: id, Path: []PathNode{node, aNode}}
 
-	expectGetBlock(config, rootID, rootBlock)
+	expectGetBlock(config, node.BlockPointer, rootBlock)
 	expectedErr := &NoSuchNameError{p.TailName()}
 
 	newMtime := time.Now()
@@ -2459,10 +2543,14 @@ func TestSyncDirtySuccess(t *testing.T) {
 	p := Path{TopDir: id, Path: []PathNode{node, aNode}}
 
 	// fsync a
-	config.mockBcache.EXPECT().IsDirty(aID).AnyTimes().Return(true)
-	config.mockBcache.EXPECT().IsDirty(rootID).AnyTimes().Return(true)
-	config.mockBcache.EXPECT().Get(rootID).AnyTimes().Return(rootBlock, nil)
-	config.mockBcache.EXPECT().Get(aID).AnyTimes().Return(aBlock, nil)
+	config.mockBcache.EXPECT().IsDirty(ptrMatcher{aNode.BlockPointer},
+		p.Branch).AnyTimes().Return(true)
+	config.mockBcache.EXPECT().IsDirty(ptrMatcher{node.BlockPointer}, p.Branch).
+		AnyTimes().Return(true)
+	config.mockBcache.EXPECT().Get(ptrMatcher{node.BlockPointer}, p.Branch).
+		AnyTimes().Return(rootBlock, nil)
+	config.mockBcache.EXPECT().Get(ptrMatcher{aNode.BlockPointer}, p.Branch).
+		AnyTimes().Return(aBlock, nil)
 
 	// sync block
 	var newRmd *RootMetadata
@@ -2491,7 +2579,8 @@ func TestSyncCleanSuccess(t *testing.T) {
 	p := Path{TopDir: id, Path: []PathNode{node, aNode}}
 
 	// fsync a
-	config.mockBcache.EXPECT().IsDirty(aID).Return(false)
+	config.mockBcache.EXPECT().IsDirty(ptrMatcher{aNode.BlockPointer},
+		p.Branch).Return(false)
 
 	if newP, err := config.KBFSOps().Sync(p); err != nil {
 		t.Errorf("Got unexpected error on sync: %v", err)
@@ -2507,13 +2596,16 @@ func TestSyncCleanSuccess(t *testing.T) {
 	}
 }
 
-func expectSyncDirtyBlock(config *ConfigMock, id BlockID, block *FileBlock,
-	splitAt int64, padSize int) *gomock.Call {
-	config.mockBcache.EXPECT().IsDirty(id).AnyTimes().Return(true)
-	config.mockBcache.EXPECT().Get(id).AnyTimes().Return(block, nil)
+func expectSyncDirtyBlock(config *ConfigMock, ptr BlockPointer,
+	block *FileBlock, splitAt int64, padSize int) *gomock.Call {
+	branch := MasterBranch
+	config.mockBcache.EXPECT().IsDirty(ptrMatcher{ptr}, branch).
+		AnyTimes().Return(true)
+	config.mockBcache.EXPECT().Get(ptrMatcher{ptr}, branch).
+		AnyTimes().Return(block, nil)
 	c1 := config.mockBsplit.EXPECT().CheckSplit(block).Return(splitAt)
 
-	newID := BlockID{id[0] + 100}
+	newID := BlockID{ptr.ID[0] + 100}
 	// Ideally, we'd use the size of block.Contents at the time
 	// that Ready() is called, but GoMock isn't expressive enough
 	// for that.
@@ -2522,9 +2614,10 @@ func expectSyncDirtyBlock(config *ConfigMock, id BlockID, block *FileBlock,
 	config.mockCrypto.EXPECT().UnmaskBlockCryptKey(BlockCryptKeyServerHalf{}, TLFCryptKey{}).Return(BlockCryptKey{}, nil)
 	c2 := config.mockBops.EXPECT().Ready(block, BlockCryptKey{}).
 		After(c1).Return(newID, len(block.Contents), newEncBuf, nil)
-	config.mockBcache.EXPECT().Finalize(id, newID).After(c2).Return(nil)
-	config.mockBops.EXPECT().Put(newID, gomock.Any(), gomock.Any(), newEncBuf,
-		gomock.Any()).Return(nil)
+	config.mockBcache.EXPECT().Finalize(ptrMatcher{ptr}, branch, newID).
+		After(c2).Return(nil)
+	config.mockBops.EXPECT().Put(newID, gomock.Any(), gomock.Any(),
+		newEncBuf, gomock.Any()).Return(nil)
 	return c2
 }
 
@@ -2565,19 +2658,29 @@ func TestSyncDirtyMultiBlocksSuccess(t *testing.T) {
 	p := Path{TopDir: id, Path: []PathNode{node, fileNode}}
 
 	// fsync a, only block 2 is dirty
-	config.mockBcache.EXPECT().IsDirty(fileID).AnyTimes().Return(true)
-	config.mockBcache.EXPECT().IsDirty(id1).AnyTimes().Return(false)
-	config.mockBcache.EXPECT().IsDirty(id3).AnyTimes().Return(false)
-	config.mockBcache.EXPECT().IsDirty(rootID).AnyTimes().Return(true)
-	config.mockBcache.EXPECT().Get(rootID).AnyTimes().Return(rootBlock, nil)
-	config.mockBcache.EXPECT().Get(fileID).AnyTimes().Return(fileBlock, nil)
+	config.mockBcache.EXPECT().IsDirty(ptrMatcher{fileNode.BlockPointer},
+		p.Branch).AnyTimes().Return(true)
+	config.mockBcache.EXPECT().IsDirty(
+		ptrMatcher{fileBlock.IPtrs[0].BlockPointer},
+		p.Branch).AnyTimes().Return(false)
+	config.mockBcache.EXPECT().IsDirty(
+		ptrMatcher{fileBlock.IPtrs[2].BlockPointer},
+		p.Branch).AnyTimes().Return(false)
+	config.mockBcache.EXPECT().IsDirty(ptrMatcher{node.BlockPointer}, p.Branch).
+		AnyTimes().Return(true)
+	config.mockBcache.EXPECT().Get(ptrMatcher{node.BlockPointer}, p.Branch).
+		AnyTimes().Return(rootBlock, nil)
+	config.mockBcache.EXPECT().Get(ptrMatcher{fileNode.BlockPointer}, p.Branch).
+		AnyTimes().Return(fileBlock, nil)
 
 	// the split is good
 	expectGetTLFCryptKeyForEncryption(config, rmd)
 	pad2 := 5
 	pad4 := 8
-	expectSyncDirtyBlock(config, id2, block2, int64(0), pad2)
-	expectSyncDirtyBlock(config, id4, block4, int64(0), pad4)
+	expectSyncDirtyBlock(config, fileBlock.IPtrs[1].BlockPointer, block2,
+		int64(0), pad2)
+	expectSyncDirtyBlock(config, fileBlock.IPtrs[3].BlockPointer, block4,
+		int64(0), pad4)
 
 	// sync 2 blocks, plus their pad sizes
 	refBytes := uint64((len(block2.Contents) + pad2) +
@@ -2598,9 +2701,11 @@ func TestSyncDirtyMultiBlocksSuccess(t *testing.T) {
 		expectSyncBlock(t, config, nil, userID, id, "", p, rmd, false, 0,
 			refBytes, unrefBytes, f, &newRmd, blocks)
 	config.mockBcache.EXPECT().Finalize(
-		fileID, expectedPath.Path[len(expectedPath.Path)-1].ID)
+		ptrMatcher{fileNode.BlockPointer}, p.Branch,
+		expectedPath.Path[len(expectedPath.Path)-1].ID)
 	config.mockBcache.EXPECT().Finalize(
-		rootID, expectedPath.Path[len(expectedPath.Path)-2].ID)
+		ptrMatcher{node.BlockPointer}, p.Branch,
+		expectedPath.Path[len(expectedPath.Path)-2].ID)
 
 	if newP, err := config.KBFSOps().Sync(p); err != nil {
 		t.Errorf("Got unexpected error on sync: %v", err)
@@ -2656,52 +2761,68 @@ func TestSyncDirtyMultiBlocksSplitInBlockSuccess(t *testing.T) {
 	p := Path{TopDir: id, Path: []PathNode{node, fileNode}}
 
 	// fsync a, only block 2 is dirty
-	config.mockBcache.EXPECT().IsDirty(fileID).AnyTimes().Return(true)
-	config.mockBcache.EXPECT().IsDirty(id1).AnyTimes().Return(false)
-	config.mockBcache.EXPECT().IsDirty(id3).Times(2).Return(false)
-	config.mockBcache.EXPECT().IsDirty(id4).AnyTimes().Return(false)
-	config.mockBcache.EXPECT().IsDirty(rootID).AnyTimes().Return(true)
-	config.mockBcache.EXPECT().Get(rootID).AnyTimes().Return(rootBlock, nil)
-	config.mockBcache.EXPECT().Get(fileID).AnyTimes().Return(fileBlock, nil)
-	config.mockBcache.EXPECT().Get(id3).Return(block3, nil)
+	config.mockBcache.EXPECT().IsDirty(ptrMatcher{fileNode.BlockPointer},
+		p.Branch).AnyTimes().Return(true)
+	config.mockBcache.EXPECT().IsDirty(
+		ptrMatcher{fileBlock.IPtrs[0].BlockPointer},
+		p.Branch).AnyTimes().Return(false)
+	config.mockBcache.EXPECT().IsDirty(
+		ptrMatcher{fileBlock.IPtrs[2].BlockPointer},
+		p.Branch).Times(2).Return(false)
+	config.mockBcache.EXPECT().IsDirty(
+		ptrMatcher{fileBlock.IPtrs[3].BlockPointer},
+		p.Branch).AnyTimes().Return(false)
+	config.mockBcache.EXPECT().IsDirty(ptrMatcher{node.BlockPointer}, p.Branch).
+		AnyTimes().Return(true)
+	config.mockBcache.EXPECT().Get(ptrMatcher{node.BlockPointer}, p.Branch).
+		AnyTimes().Return(rootBlock, nil)
+	config.mockBcache.EXPECT().Get(ptrMatcher{fileNode.BlockPointer}, p.Branch).
+		AnyTimes().Return(fileBlock, nil)
+	config.mockBcache.EXPECT().Get(ptrMatcher{fileBlock.IPtrs[2].BlockPointer},
+		p.Branch).Return(block3, nil)
 	expectGetTLFCryptKeyForEncryption(config, rmd)
 
 	// the split is in the middle
 	pad2 := 0
 	pad3 := 14
 	extraBytesFor3 := 2
-	expectSyncDirtyBlock(config, id2, block2,
+	expectSyncDirtyBlock(config, fileBlock.IPtrs[1].BlockPointer, block2,
 		int64(len(block2.Contents)-extraBytesFor3), pad2)
 	// this causes block 3 to be updated
 	var newBlock3 *FileBlock
-	config.mockBcache.EXPECT().Put(id3, gomock.Any(), true).
-		Do(func(id BlockID, block Block, dirty bool) {
+	config.mockBcache.EXPECT().PutDirty(fileBlock.IPtrs[2].BlockPointer,
+		p.Branch, gomock.Any()).
+		Do(func(ptr BlockPointer, branch BranchName, block Block) {
 		newBlock3 = block.(*FileBlock)
 		// id3 syncs just fine
-		config.mockBcache.EXPECT().IsDirty(id).AnyTimes().Return(true)
-		expectSyncDirtyBlock(config, id3, newBlock3, int64(0), pad3)
+		config.mockBcache.EXPECT().IsDirty(ptrMatcher{ptr}, branch).
+			AnyTimes().Return(true)
+		expectSyncDirtyBlock(config, ptr, newBlock3, int64(0), pad3)
 	}).Return(nil)
 
 	// id4 is the final block, and the split causes a new block to be made
 	pad4 := 9
 	pad5 := 1
-	c4 := expectSyncDirtyBlock(config, id4, block4, int64(3), pad4)
+	c4 := expectSyncDirtyBlock(config, fileBlock.IPtrs[3].BlockPointer,
+		block4, int64(3), pad4)
 	var newID5 BlockID
 	var newBlock5 *FileBlock
 	id5 := BlockID{48}
 	config.mockCrypto.EXPECT().MakeTemporaryBlockID().Return(id5, nil)
-	config.mockBcache.EXPECT().Put(id5, gomock.Any(), true).
-		Do(func(id BlockID, block Block, dirty bool) {
-		newID5 = id
+	config.mockBcache.EXPECT().PutDirty(ptrMatcher{BlockPointer{ID: id5}},
+		p.Branch, gomock.Any()).
+		Do(func(ptr BlockPointer, branch BranchName, block Block) {
+		newID5 = ptr.ID
 		newBlock5 = block.(*FileBlock)
 		// id5 syncs just fine
-		expectSyncDirtyBlock(config, id, newBlock5, int64(0), pad5)
-		config.mockBcache.EXPECT().IsDirty(id).AnyTimes().Return(true)
+		expectSyncDirtyBlock(config, ptr, newBlock5, int64(0), pad5)
+		config.mockBcache.EXPECT().IsDirty(ptrMatcher{ptr}, branch).
+			AnyTimes().Return(true)
 	}).Return(nil)
 
 	// The parent is dirtied too since the pointers changed
-	config.mockBcache.EXPECT().Put(fileID, gomock.Any(), true).
-		AnyTimes().Return(nil)
+	config.mockBcache.EXPECT().PutDirty(fileNode.BlockPointer, p.Branch,
+		gomock.Any()).AnyTimes().Return(nil)
 
 	// sync block contents and their padding sizes
 	refBytes := uint64((len(block2.Contents) + pad2) +
@@ -2814,19 +2935,30 @@ func TestSyncDirtyMultiBlocksCopyNextBlockSuccess(t *testing.T) {
 	p := Path{TopDir: id, Path: []PathNode{node, fileNode}}
 
 	// fsync a, only block 2 is dirty
-	config.mockBcache.EXPECT().IsDirty(fileID).AnyTimes().Return(true)
-	config.mockBcache.EXPECT().IsDirty(rootID).AnyTimes().Return(true)
-	config.mockBcache.EXPECT().Get(rootID).AnyTimes().Return(rootBlock, nil)
-	config.mockBcache.EXPECT().Get(fileID).AnyTimes().Return(fileBlock, nil)
-	config.mockBcache.EXPECT().Get(id2).Return(block2, nil)
-	config.mockBcache.EXPECT().IsDirty(id2).AnyTimes().Return(false)
-	config.mockBcache.EXPECT().Get(id4).Return(block4, nil)
-	config.mockBcache.EXPECT().IsDirty(id4).Times(2).Return(false)
+	config.mockBcache.EXPECT().IsDirty(ptrMatcher{fileNode.BlockPointer},
+		p.Branch).AnyTimes().Return(true)
+	config.mockBcache.EXPECT().IsDirty(ptrMatcher{node.BlockPointer}, p.Branch).
+		AnyTimes().Return(true)
+	config.mockBcache.EXPECT().Get(ptrMatcher{node.BlockPointer}, p.Branch).
+		AnyTimes().Return(rootBlock, nil)
+	config.mockBcache.EXPECT().Get(ptrMatcher{fileNode.BlockPointer}, p.Branch).
+		AnyTimes().Return(fileBlock, nil)
+	config.mockBcache.EXPECT().Get(ptrMatcher{fileBlock.IPtrs[1].BlockPointer},
+		p.Branch).Return(block2, nil)
+	config.mockBcache.EXPECT().IsDirty(
+		ptrMatcher{fileBlock.IPtrs[1].BlockPointer},
+		p.Branch).AnyTimes().Return(false)
+	config.mockBcache.EXPECT().Get(ptrMatcher{fileBlock.IPtrs[3].BlockPointer},
+		p.Branch).Return(block4, nil)
+	config.mockBcache.EXPECT().IsDirty(
+		ptrMatcher{fileBlock.IPtrs[3].BlockPointer},
+		p.Branch).Times(2).Return(false)
 	expectGetTLFCryptKeyForEncryption(config, rmd)
 
 	// the split is in the middle
 	pad1 := 14
-	expectSyncDirtyBlock(config, id1, block1, int64(-1), pad1)
+	expectSyncDirtyBlock(config, fileBlock.IPtrs[0].BlockPointer,
+		block1, int64(-1), pad1)
 	// this causes block 2 to be copied from (copy whole block)
 	config.mockBsplit.EXPECT().CopyUntilSplit(
 		gomock.Any(), gomock.Any(), block2.Contents, int64(5)).
@@ -2839,25 +2971,28 @@ func TestSyncDirtyMultiBlocksCopyNextBlockSuccess(t *testing.T) {
 	pad3 := 10
 	split4At := int64(3)
 	pad4 := 15
-	expectSyncDirtyBlock(config, id3, block3, int64(-1), pad3)
+	expectSyncDirtyBlock(config, fileBlock.IPtrs[2].BlockPointer, block3,
+		int64(-1), pad3)
 	config.mockBsplit.EXPECT().CopyUntilSplit(
 		gomock.Any(), gomock.Any(), block4.Contents, int64(5)).
 		Do(func(block *FileBlock, lb bool, data []byte, off int64) {
 		block.Contents = append(block.Contents, data[:3]...)
 	}).Return(split4At)
 	var newBlock4 *FileBlock
-	config.mockBcache.EXPECT().Put(id4, gomock.Any(), true).
-		Do(func(id BlockID, block Block, dirty bool) {
+	config.mockBcache.EXPECT().PutDirty(fileBlock.IPtrs[3].BlockPointer,
+		p.Branch, gomock.Any()).
+		Do(func(ptr BlockPointer, branch BranchName, block Block) {
 		newBlock4 = block.(*FileBlock)
 		// now block 4 is dirty, but it's the end of the line,
 		// so nothing else to do
-		expectSyncDirtyBlock(config, id4, newBlock4, int64(-1), pad4)
-		config.mockBcache.EXPECT().IsDirty(id).AnyTimes().Return(false)
+		expectSyncDirtyBlock(config, ptr, newBlock4, int64(-1), pad4)
+		config.mockBcache.EXPECT().IsDirty(ptrMatcher{ptr}, branch).
+			AnyTimes().Return(false)
 	}).Return(nil)
 
 	// The parent is dirtied too since the pointers changed
-	config.mockBcache.EXPECT().Put(fileID, gomock.Any(), true).
-		AnyTimes().Return(nil)
+	config.mockBcache.EXPECT().PutDirty(fileNode.BlockPointer, p.Branch,
+		gomock.Any()).AnyTimes().Return(nil)
 
 	// sync block
 	refBytes := uint64((len(block1.Contents) + pad1) +
@@ -2937,10 +3072,14 @@ func TestSyncDirtyWithBlockChangePointerSuccess(t *testing.T) {
 	p := Path{TopDir: id, Path: []PathNode{node, aNode}}
 
 	// fsync a
-	config.mockBcache.EXPECT().IsDirty(aID).AnyTimes().Return(true)
-	config.mockBcache.EXPECT().IsDirty(rootID).AnyTimes().Return(true)
-	config.mockBcache.EXPECT().Get(rootID).AnyTimes().Return(rootBlock, nil)
-	config.mockBcache.EXPECT().Get(aID).AnyTimes().Return(aBlock, nil)
+	config.mockBcache.EXPECT().IsDirty(ptrMatcher{aNode.BlockPointer},
+		p.Branch).AnyTimes().Return(true)
+	config.mockBcache.EXPECT().IsDirty(ptrMatcher{node.BlockPointer}, p.Branch).
+		AnyTimes().Return(true)
+	config.mockBcache.EXPECT().Get(ptrMatcher{node.BlockPointer}, p.Branch).
+		AnyTimes().Return(rootBlock, nil)
+	config.mockBcache.EXPECT().Get(ptrMatcher{aNode.BlockPointer}, p.Branch).
+		AnyTimes().Return(aBlock, nil)
 
 	// override the AnyTimes expect call done by default in expectSyncBlock()
 	config.mockBsplit.EXPECT().ShouldEmbedBlockChanges(gomock.Any()).
@@ -2963,7 +3102,7 @@ func TestSyncDirtyWithBlockChangePointerSuccess(t *testing.T) {
 		refBlockID, refPlainSize, refBuf, nil).After(lastCall)
 	config.mockBops.EXPECT().Put(refBlockID, id, gomock.Any(), refBuf,
 		gomock.Any()).Return(nil)
-	config.mockBcache.EXPECT().Put(refBlockID, gomock.Any(), false).Return(nil)
+	config.mockBcache.EXPECT().Put(refBlockID, gomock.Any()).Return(nil)
 
 	unrefBlockID := BlockID{254}
 	unrefPlainSize := 0
@@ -2974,7 +3113,7 @@ func TestSyncDirtyWithBlockChangePointerSuccess(t *testing.T) {
 		unrefBlockID, unrefPlainSize, unrefBuf, nil).After(lastCall)
 	config.mockBops.EXPECT().Put(unrefBlockID, id, gomock.Any(), unrefBuf,
 		gomock.Any()).Return(nil)
-	config.mockBcache.EXPECT().Put(unrefBlockID, gomock.Any(), false).
+	config.mockBcache.EXPECT().Put(unrefBlockID, gomock.Any()).
 		Return(nil)
 
 	if newP, err := config.KBFSOps().Sync(p); err != nil {

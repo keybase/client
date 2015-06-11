@@ -327,7 +327,7 @@ type BlockPointer struct {
 	QuotaSize uint32
 	// When RefNonce is all 0s, this is the initial reference to a
 	// particular block.  Using a constant refnonce for the initial
-	// reference allows the server identify and optimize for the
+	// reference allows the server to identify and optimize for the
 	// common case where there is only one reference for a block.  Two
 	// initial references cannot happen simultaneously, because the
 	// encrypted block contents (and thus the block ID) will be
