@@ -36,8 +36,7 @@
 }
 
 - (void)open {
-  DDTTYLogger.sharedInstance.logFormatter = [[KBLogFormatter alloc] init];
-  [DDLog addLogger:DDTTYLogger.sharedInstance withLevel:DDLogLevelDebug]; // Xcode output
+  [KBWorkspace setupLogging];
 
   NSUserDefaults *userDefaults = [KBWorkspace userDefaults];
   [userDefaults registerDefaults:

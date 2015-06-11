@@ -24,4 +24,6 @@
 - (IBAction)verify:(id)sender;
 - (IBAction)verifyFile:(id)sender;
 
++ (NSView *)encryptWithExtensionItem:(NSExtensionItem *)extensionItem completion:(KBOnExtension)completion;
+
 @end

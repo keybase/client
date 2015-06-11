@@ -18,6 +18,7 @@
 #import "KBPGPVerifyView.h"
 #import "KBPGPVerifyFileView.h"
 #import "KBWorkspace.h"
+#import "KBPGPEncryptActionView.h"
 
 @implementation KBAppActions
 
@@ -73,6 +74,20 @@
   KBPGPVerifyFileView *view = [[KBPGPVerifyFileView alloc] init];
   view.client = self.app.service.client;
   [self.app.mainWindow kb_addChildWindowForView:view rect:CGRectMake(0, 0, 400, 400) position:KBWindowPositionCenter title:@"Verify File" fixed:NO makeKey:YES];
+}
+
++ (NSView *)encryptWithExtensionItem:(NSExtensionItem *)extensionItem completion:(KBOnExtension)completion {
+  KBPGPEncryptActionView *encryptView = [[KBPGPEncryptActionView alloc] init];
+  [encryptView sizeToFit];
+
+  encryptView.extensionItem = extensionItem;
+
+  KBEnvConfig *config = [KBEnvConfig loadFromUserDefaults:[KBWorkspace userDefaults]];
+  KBService *service = [[KBService alloc] initWithConfig:config];
+  encryptView.client = service.client;
+
+  encryptView.completion = completion;
+  return encryptView;
 }
 
 @end

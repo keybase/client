@@ -8,15 +8,12 @@
 
 #import <Foundation/Foundation.h>
 
-
 #import "KBContentView.h"
 #import "KBPGPEncryptFooterView.h"
-
-typedef void (^KBPGPOnEncryptShare)(id sender, NSExtensionItem *outputItem);
 
 @interface KBPGPEncryptActionView : KBContentView
 
 @property NSExtensionItem *extensionItem;
-@property (copy) KBPGPOnEncryptShare completion;
+@property (copy) KBOnExtension completion;
 
 @end

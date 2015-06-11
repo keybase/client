@@ -51,6 +51,13 @@
 		0043D1411B28F1370036C532 /* KBPrefTextField.m in Sources */ = {isa = PBXBuildFile; fileRef = 0043D12D1B28F1370036C532 /* KBPrefTextField.m */; };
 		0043D1431B28F64E0036C532 /* Action.appex in Embed App Extensions */ = {isa = PBXBuildFile; fileRef = 009E13661B27B39300C72B28 /* Action.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		0043D1471B28F7220036C532 /* KBKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 00C0DC361B28EC1800A825D4 /* KBKit.framework */; };
+		004624B81B2917AB00E218AC /* FinderSync.m in Sources */ = {isa = PBXBuildFile; fileRef = 004624B71B2917AB00E218AC /* FinderSync.m */; };
+		004624BB1B2917AB00E218AC /* FinderSync.appex in Embed App Extensions */ = {isa = PBXBuildFile; fileRef = 004624B11B2917AB00E218AC /* FinderSync.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		004624C31B2917C200E218AC /* KBKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 00C0DC361B28EC1800A825D4 /* KBKit.framework */; };
+		004624C61B2917CB00E218AC /* KBKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 00C0DC361B28EC1800A825D4 /* KBKit.framework */; };
+		004624CB1B2A08F400E218AC /* KBUninstaller.h in Headers */ = {isa = PBXBuildFile; fileRef = 004624C91B2A08F400E218AC /* KBUninstaller.h */; };
+		004624CC1B2A08F400E218AC /* KBUninstaller.m in Sources */ = {isa = PBXBuildFile; fileRef = 004624CA1B2A08F400E218AC /* KBUninstaller.m */; };
+		004624CE1B2A3BE300E218AC /* FinderSync.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 004624CD1B2A3BE300E218AC /* FinderSync.framework */; };
 		0046C0E51B290A0B00C4D06F /* Sparkle.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0046C0E41B290A0B00C4D06F /* Sparkle.framework */; };
 		0046C0E61B290A3A00C4D06F /* Sparkle.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 0046C0E41B290A0B00C4D06F /* Sparkle.framework */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		0046C0E91B290CA100C4D06F /* KBAppActions.h in Headers */ = {isa = PBXBuildFile; fileRef = 0046C0E71B290CA100C4D06F /* KBAppActions.h */; settings = {ATTRIBUTES = (Public, ); }; };
@@ -364,6 +371,41 @@
 			remoteGlobalIDString = 009E13651B27B39300C72B28;
 			remoteInfo = Action;
 		};
+		004624B91B2917AB00E218AC /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 00CC43411A3A9E6C006118A9 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 004624B01B2917AB00E218AC;
+			remoteInfo = FinderSync;
+		};
+		004624BF1B2917BA00E218AC /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 00CC43411A3A9E6C006118A9 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 00C0DC351B28EC1800A825D4;
+			remoteInfo = KBKit;
+		};
+		004624C11B2917BF00E218AC /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 00CC43411A3A9E6C006118A9 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 00C0DC351B28EC1800A825D4;
+			remoteInfo = KBKit;
+		};
+		004624C41B2917C700E218AC /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 00CC43411A3A9E6C006118A9 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 00C0DC351B28EC1800A825D4;
+			remoteInfo = KBKit;
+		};
+		004624C71B29FB2B00E218AC /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 00CC43411A3A9E6C006118A9 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 00CC43481A3A9E6C006118A9;
+			remoteInfo = Keybase;
+		};
 		0057B0D81AE57B4800BFB0E7 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 00CC43411A3A9E6C006118A9 /* Project object */;
@@ -403,6 +445,7 @@
 			dstSubfolderSpec = 13;
 			files = (
 				0043D1431B28F64E0036C532 /* Action.appex in Embed App Extensions */,
+				004624BB1B2917AB00E218AC /* FinderSync.appex in Embed App Extensions */,
 			);
 			name = "Embed App Extensions";
 			runOnlyForDeploymentPostprocessing = 0;
@@ -484,6 +527,14 @@
 		0043D12B1B28F1370036C532 /* KBPrefPopUpView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBPrefPopUpView.m; sourceTree = "<group>"; };
 		0043D12C1B28F1370036C532 /* KBPrefTextField.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBPrefTextField.h; sourceTree = "<group>"; };
 		0043D12D1B28F1370036C532 /* KBPrefTextField.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBPrefTextField.m; sourceTree = "<group>"; };
+		004624B11B2917AB00E218AC /* FinderSync.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = FinderSync.appex; sourceTree = BUILT_PRODUCTS_DIR; };
+		004624B41B2917AB00E218AC /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		004624B51B2917AB00E218AC /* FinderSync.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = FinderSync.entitlements; sourceTree = "<group>"; };
+		004624B61B2917AB00E218AC /* FinderSync.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = FinderSync.h; sourceTree = "<group>"; };
+		004624B71B2917AB00E218AC /* FinderSync.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = FinderSync.m; sourceTree = "<group>"; };
+		004624C91B2A08F400E218AC /* KBUninstaller.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBUninstaller.h; sourceTree = "<group>"; };
+		004624CA1B2A08F400E218AC /* KBUninstaller.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBUninstaller.m; sourceTree = "<group>"; };
+		004624CD1B2A3BE300E218AC /* FinderSync.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = FinderSync.framework; path = System/Library/Frameworks/FinderSync.framework; sourceTree = SDKROOT; };
 		0046C0E41B290A0B00C4D06F /* Sparkle.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Sparkle.framework; path = Pods/Sparkle/Sparkle.framework; sourceTree = "<group>"; };
 		0046C0E71B290CA100C4D06F /* KBAppActions.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBAppActions.h; sourceTree = "<group>"; };
 		0046C0E81B290CA100C4D06F /* KBAppActions.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBAppActions.m; sourceTree = "<group>"; };
@@ -814,6 +865,16 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				004624C31B2917C200E218AC /* KBKit.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		004624AE1B2917AB00E218AC /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				004624CE1B2A3BE300E218AC /* FinderSync.framework in Frameworks */,
+				004624C61B2917CB00E218AC /* KBKit.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -956,6 +1017,25 @@
 			path = Preferences;
 			sourceTree = "<group>";
 		};
+		004624B21B2917AB00E218AC /* FinderSync */ = {
+			isa = PBXGroup;
+			children = (
+				004624B61B2917AB00E218AC /* FinderSync.h */,
+				004624B71B2917AB00E218AC /* FinderSync.m */,
+				004624B31B2917AB00E218AC /* Supporting Files */,
+			);
+			path = FinderSync;
+			sourceTree = "<group>";
+		};
+		004624B31B2917AB00E218AC /* Supporting Files */ = {
+			isa = PBXGroup;
+			children = (
+				004624B41B2917AB00E218AC /* Info.plist */,
+				004624B51B2917AB00E218AC /* FinderSync.entitlements */,
+			);
+			name = "Supporting Files";
+			sourceTree = "<group>";
+		};
 		00566A531A9BAD4800CA236E /* Install */ = {
 			isa = PBXGroup;
 			children = (
@@ -988,6 +1068,7 @@
 			children = (
 				009E13671B27B39300C72B28 /* Action */,
 				001C6B381B24F8630048F086 /* Share */,
+				004624B21B2917AB00E218AC /* FinderSync */,
 			);
 			path = Extensions;
 			sourceTree = "<group>";
@@ -1406,6 +1487,8 @@
 				009E16051B28AA3600C72B28 /* KBInstaller.m */,
 				009E16061B28AA3600C72B28 /* KBService.h */,
 				009E16071B28AA3600C72B28 /* KBService.m */,
+				004624C91B2A08F400E218AC /* KBUninstaller.h */,
+				004624CA1B2A08F400E218AC /* KBUninstaller.m */,
 			);
 			path = Component;
 			sourceTree = "<group>";
@@ -1456,8 +1539,8 @@
 				00F808061A4A5F600038BC63 /* README.md */,
 				004D14961A3BCF1F0083888D /* Podfile */,
 				00CC434B1A3A9E6C006118A9 /* Keybase */,
-				00734B291B263FB500F3B714 /* Extensions */,
 				009E137E1B28A93D00C72B28 /* KBKit */,
+				00734B291B263FB500F3B714 /* Extensions */,
 				0013926F1B06B18A0082DEA8 /* Resources */,
 				0057B0BB1AE57A7A00BFB0E7 /* Helper */,
 				00566A531A9BAD4800CA236E /* Install */,
@@ -1477,6 +1560,7 @@
 				00AA750F1B27635D0069A6CC /* Tests.xctest */,
 				009E13661B27B39300C72B28 /* Action.appex */,
 				00C0DC361B28EC1800A825D4 /* KBKit.framework */,
+				004624B11B2917AB00E218AC /* FinderSync.appex */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -1506,6 +1590,7 @@
 		468C135BF6D934E5DFBB8513 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				004624CD1B2A3BE300E218AC /* FinderSync.framework */,
 				0046C0E41B290A0B00C4D06F /* Sparkle.framework */,
 				92A4A228BA0B528D11BAFDA9 /* libPods-KBKit.a */,
 				EE90BB7C590E1825E8556714 /* libPods-Keybase.a */,
@@ -1662,6 +1747,7 @@
 				0043D1301B28F1370036C532 /* KBPrefButton.h in Headers */,
 				00C0DCDD1B28EC7800A825D4 /* KBFileListEditView.h in Headers */,
 				0043D10F1B28EF670036C532 /* KBAppView.h in Headers */,
+				004624CB1B2A08F400E218AC /* KBUninstaller.h in Headers */,
 				00C0DCF71B28EC7800A825D4 /* KBPGPEncryptView.h in Headers */,
 				00C0DC751B28EC3F00A825D4 /* KBStream.h in Headers */,
 				00C0DC591B28EC3F00A825D4 /* KBLaunchCtl.h in Headers */,
@@ -1717,10 +1803,29 @@
 			buildRules = (
 			);
 			dependencies = (
+				004624C21B2917BF00E218AC /* PBXTargetDependency */,
 			);
 			name = Share;
 			productName = Share;
 			productReference = 001C6B371B24F8630048F086 /* Share.appex */;
+			productType = "com.apple.product-type.app-extension";
+		};
+		004624B01B2917AB00E218AC /* FinderSync */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 004624BE1B2917AB00E218AC /* Build configuration list for PBXNativeTarget "FinderSync" */;
+			buildPhases = (
+				004624AD1B2917AB00E218AC /* Sources */,
+				004624AE1B2917AB00E218AC /* Frameworks */,
+				004624AF1B2917AB00E218AC /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				004624C51B2917C700E218AC /* PBXTargetDependency */,
+			);
+			name = FinderSync;
+			productName = FinderSync;
+			productReference = 004624B11B2917AB00E218AC /* FinderSync.appex */;
 			productType = "com.apple.product-type.app-extension";
 		};
 		0057B0B31AE57A4900BFB0E7 /* keybase.Helper */ = {
@@ -1753,6 +1858,7 @@
 			buildRules = (
 			);
 			dependencies = (
+				004624C01B2917BA00E218AC /* PBXTargetDependency */,
 			);
 			name = Action;
 			productName = Action;
@@ -1770,6 +1876,7 @@
 			buildRules = (
 			);
 			dependencies = (
+				004624C81B29FB2B00E218AC /* PBXTargetDependency */,
 			);
 			name = Tests;
 			productName = Tests;
@@ -1815,6 +1922,7 @@
 				0057B0D91AE57B4800BFB0E7 /* PBXTargetDependency */,
 				0043D1041B28ED290036C532 /* PBXTargetDependency */,
 				0043D1451B28F64E0036C532 /* PBXTargetDependency */,
+				004624BA1B2917AB00E218AC /* PBXTargetDependency */,
 			);
 			name = Keybase;
 			productName = Keybase;
@@ -1843,6 +1951,15 @@
 							};
 						};
 					};
+					004624B01B2917AB00E218AC = {
+						CreatedOnToolsVersion = 6.3.2;
+						DevelopmentTeam = 99229SGT5K;
+						SystemCapabilities = {
+							com.apple.ApplicationGroups.Mac = {
+								enabled = 1;
+							};
+						};
+					};
 					0057B0B31AE57A4900BFB0E7 = {
 						CreatedOnToolsVersion = 6.3;
 						DevelopmentTeam = 99229SGT5K;
@@ -1850,9 +1967,15 @@
 					009E13651B27B39300C72B28 = {
 						CreatedOnToolsVersion = 6.3.2;
 						DevelopmentTeam = 99229SGT5K;
+						SystemCapabilities = {
+							com.apple.ApplicationGroups.Mac = {
+								enabled = 1;
+							};
+						};
 					};
 					00AA750E1B27635D0069A6CC = {
 						CreatedOnToolsVersion = 6.3.2;
+						TestTargetID = 00CC43481A3A9E6C006118A9;
 					};
 					00C0DC351B28EC1800A825D4 = {
 						CreatedOnToolsVersion = 6.3.2;
@@ -1891,6 +2014,7 @@
 				0057B0B31AE57A4900BFB0E7 /* keybase.Helper */,
 				001C6B361B24F8630048F086 /* Share */,
 				009E13651B27B39300C72B28 /* Action */,
+				004624B01B2917AB00E218AC /* FinderSync */,
 				00AA750E1B27635D0069A6CC /* Tests */,
 			);
 		};
@@ -1903,6 +2027,13 @@
 			files = (
 				009E135C1B27654200C72B28 /* ShareViewController.xib in Resources */,
 				001C6B3C1B24F8630048F086 /* icon.icns in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		004624AF1B2917AB00E218AC /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -2031,6 +2162,14 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		004624AD1B2917AB00E218AC /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				004624B81B2917AB00E218AC /* FinderSync.m in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		0057B0B01AE57A4900BFB0E7 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -2131,6 +2270,7 @@
 				00C0DD0C1B28EC7800A825D4 /* KBPGPSignView.m in Sources */,
 				00C0DD121B28EC7800A825D4 /* KBPGPVerify.m in Sources */,
 				00C0DCA61B28EC6100A825D4 /* KBSearchField.m in Sources */,
+				004624CC1B2A08F400E218AC /* KBUninstaller.m in Sources */,
 				00C0DD1A1B28EC7800A825D4 /* KBPGPVerifyFooterView.m in Sources */,
 				00C0DCAC1B28EC6100A825D4 /* KBSearchResultView.m in Sources */,
 				0046C0EA1B290CA100C4D06F /* KBAppActions.m in Sources */,
@@ -2243,6 +2383,31 @@
 			target = 009E13651B27B39300C72B28 /* Action */;
 			targetProxy = 0043D1441B28F64E0036C532 /* PBXContainerItemProxy */;
 		};
+		004624BA1B2917AB00E218AC /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 004624B01B2917AB00E218AC /* FinderSync */;
+			targetProxy = 004624B91B2917AB00E218AC /* PBXContainerItemProxy */;
+		};
+		004624C01B2917BA00E218AC /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 00C0DC351B28EC1800A825D4 /* KBKit */;
+			targetProxy = 004624BF1B2917BA00E218AC /* PBXContainerItemProxy */;
+		};
+		004624C21B2917BF00E218AC /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 00C0DC351B28EC1800A825D4 /* KBKit */;
+			targetProxy = 004624C11B2917BF00E218AC /* PBXContainerItemProxy */;
+		};
+		004624C51B2917C700E218AC /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 00C0DC351B28EC1800A825D4 /* KBKit */;
+			targetProxy = 004624C41B2917C700E218AC /* PBXContainerItemProxy */;
+		};
+		004624C81B29FB2B00E218AC /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 00CC43481A3A9E6C006118A9 /* Keybase */;
+			targetProxy = 004624C71B29FB2B00E218AC /* PBXContainerItemProxy */;
+		};
 		0057B0D91AE57B4800BFB0E7 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
 			target = 0057B0B31AE57A4900BFB0E7 /* keybase.Helper */;
@@ -2292,6 +2457,40 @@
 				INFOPLIST_FILE = Extensions/Share/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks @executable_path/../../../../Frameworks";
 				PRODUCT_NAME = Share;
+				SKIP_INSTALL = YES;
+			};
+			name = Release;
+		};
+		004624BC1B2917AB00E218AC /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_ENTITLEMENTS = Extensions/FinderSync/FinderSync.entitlements;
+				CODE_SIGN_IDENTITY = "Developer ID Application";
+				COMBINE_HIDPI_IMAGES = YES;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				INFOPLIST_FILE = Extensions/FinderSync/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks @executable_path/../../../../Frameworks";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+			};
+			name = Debug;
+		};
+		004624BD1B2917AB00E218AC /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_ENTITLEMENTS = Extensions/FinderSync/FinderSync.entitlements;
+				CODE_SIGN_IDENTITY = "Developer ID Application";
+				COMBINE_HIDPI_IMAGES = YES;
+				COPY_PHASE_STRIP = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				INFOPLIST_FILE = Extensions/FinderSync/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks @executable_path/../../../../Frameworks";
+				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = YES;
 			};
 			name = Release;
@@ -2387,6 +2586,7 @@
 		00AA75191B27635D0069A6CC /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
 				COMBINE_HIDPI_IMAGES = YES;
 				DEBUG_INFORMATION_FORMAT = dwarf;
 				FRAMEWORK_SEARCH_PATHS = (
@@ -2401,12 +2601,14 @@
 				INFOPLIST_FILE = Tests/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks @loader_path/../Frameworks";
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Keybase.app/Contents/MacOS/Keybase";
 			};
 			name = Debug;
 		};
 		00AA751A1B27635D0069A6CC /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
 				COMBINE_HIDPI_IMAGES = YES;
 				COPY_PHASE_STRIP = NO;
 				FRAMEWORK_SEARCH_PATHS = (
@@ -2417,6 +2619,7 @@
 				INFOPLIST_FILE = Tests/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks @loader_path/../Frameworks";
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Keybase.app/Contents/MacOS/Keybase";
 			};
 			name = Release;
 		};
@@ -2606,6 +2809,14 @@
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
+		};
+		004624BE1B2917AB00E218AC /* Build configuration list for PBXNativeTarget "FinderSync" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				004624BC1B2917AB00E218AC /* Debug */,
+				004624BD1B2917AB00E218AC /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
 		};
 		0057B0BA1AE57A4900BFB0E7 /* Build configuration list for PBXNativeTarget "keybase.Helper" */ = {
 			isa = XCConfigurationList;

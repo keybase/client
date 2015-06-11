@@ -10,6 +10,7 @@
 
 typedef void (^KBCompletion)(NSError *error);
 typedef void (^KBOnCompletion)(NSError *error, id value);
+typedef void (^KBOnExtension)(id sender, NSExtensionItem *outputItem);
 
 #define KBMakeError(CODE, MSG, ...) [NSError errorWithDomain:@"Keybase" code:CODE userInfo:@{NSLocalizedDescriptionKey:[NSString stringWithFormat:MSG, ##__VA_ARGS__], NSLocalizedRecoveryOptionsErrorKey: @[@"OK"]}]
 
@@ -26,7 +27,7 @@ typedef void (^KBOnCompletion)(NSError *error, id value);
 
 #define KBMap(ARRAY, PROPERTY) [ARRAY map:^(id obj) { return [obj PROPERTY]; }]
 
-#define KBGroupId (@"Keybase")
+#define KBAppGroupId (@"keybase")
 
 NSNumber *KBNumberFromString(NSString *s);
 

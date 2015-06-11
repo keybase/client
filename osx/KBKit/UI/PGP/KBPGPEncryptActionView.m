@@ -21,6 +21,8 @@
 #import "KBWork.h"
 #import "KBUserPickerView.h"
 #import "KBPGPTextView.h"
+#import "KBWorkspace.h"
+#import "KBService.h"
 
 @interface KBPGPEncryptActionView () <KBUserPickerViewDelegate>
 @property KBUserPickerView *userPickerView;

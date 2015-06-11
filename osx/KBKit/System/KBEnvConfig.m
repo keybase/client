@@ -87,7 +87,7 @@
 }
 
 + (NSString *)groupContainer:(NSString *)path {
-  NSString *dir = [[NSFileManager defaultManager] containerURLForSecurityApplicationGroupIdentifier:KBGroupId].path;
+  NSString *dir = [[NSFileManager defaultManager] containerURLForSecurityApplicationGroupIdentifier:KBAppGroupId].path;
   return KBPathInDir(dir, path, NO, NO);
 }
 

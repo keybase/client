@@ -7,10 +7,8 @@
 //
 
 #import "ActionViewController.h"
-#import "KBPGPEncryptActionView.h"
-#import "KBService.h"
-#import "KBWorkspace.h"
-#import "KBLogFormatter.h"
+
+#import <KBKit/KBAppActions.h>
 
 @interface ActionViewController ()
 @end
@@ -22,35 +20,21 @@
 }
 
 - (void)loadView {
-  static dispatch_once_t onceToken;
-  dispatch_once(&onceToken, ^{
-    DDTTYLogger.sharedInstance.logFormatter = [[KBLogFormatter alloc] init];
-    [DDLog addLogger:DDTTYLogger.sharedInstance withLevel:DDLogLevelDebug]; // Xcode output
-  });
-
-  KBPGPEncryptActionView *encryptView = [[KBPGPEncryptActionView alloc] init];
-  [encryptView sizeToFit];
-  self.view = encryptView;
-
   NSExtensionItem *item = self.extensionContext.inputItems.firstObject;
-  encryptView.extensionItem = item;
-
-  KBEnvConfig *config = [KBEnvConfig env:KBEnvSandbox];
-  KBService *service = [[KBService alloc] initWithConfig:config];
-  encryptView.client = service.client;
-
-  encryptView.completion = ^(id sender, NSExtensionItem *item) {
-    if (!item) {
+  DDLogDebug(@"Attachments: %@", item.attachments);
+  id view = [KBAppActions encryptWithExtensionItem:item completion:^(id sender, NSExtensionItem *outputItem) {
+    if (!outputItem) {
       [self cancel];
     } else {
-      [self share:item];
+      [self performAction:outputItem];
     }
-  };
+  }];
 
-  DDLogDebug(@"Attachments: %@", item.attachments);
+  [view sizeToFit];
+  self.view = view;
 }
 
-- (void)share:(NSExtensionItem *)outputItem {
+- (void)performAction:(NSExtensionItem *)outputItem {
   [self.extensionContext completeRequestReturningItems:@[outputItem] completionHandler:nil];
 }
 

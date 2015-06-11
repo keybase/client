@@ -16,4 +16,6 @@
 
 + (NSUserDefaults *)userDefaults;
 
++ (void)setupLogging;
+
 @end

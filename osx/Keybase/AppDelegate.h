@@ -8,8 +8,12 @@
 
 #import <Cocoa/Cocoa.h>
 
+//#import <KBKit/KBKit.h>
 #import <KBKit/KBApp.h>
 #import <KBKit/KBAppActions.h>
+#import <KBKit/KBNotifications.h>
+#import <KBKit/KBWorkspace.h>
+
 
 @interface AppDelegate : NSObject <KBAppDelegate>
 

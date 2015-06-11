@@ -9,9 +9,11 @@
 #import "KBWorkspace.h"
 
 #import "KBAlert.h"
+#import "KBLogFormatter.h"
 #import "KBDefines.h"
 
 #import <ObjectiveSugar/ObjectiveSugar.h>
+#import <CocoaLumberjack/CocoaLumberjack.h>
 
 @implementation KBWorkspace
 
@@ -19,9 +21,17 @@
   static NSUserDefaults *userDefaults;
   static dispatch_once_t onceToken;
   dispatch_once(&onceToken, ^{
-    userDefaults = [[NSUserDefaults alloc] initWithSuiteName:NSStringWithFormat(@"group.%@", KBGroupId)];
+    userDefaults = [[NSUserDefaults alloc] initWithSuiteName:KBAppGroupId];
   });
   return userDefaults;
+}
+
++ (void)setupLogging {
+  static dispatch_once_t onceToken;
+  dispatch_once(&onceToken, ^{
+    DDTTYLogger.sharedInstance.logFormatter = [[KBLogFormatter alloc] init];
+    [DDLog addLogger:DDTTYLogger.sharedInstance withLevel:DDLogLevelDebug]; // Xcode output
+  });
 }
 
 + (NSString *)applicationSupport:(NSArray *)subdirs create:(BOOL)create error:(NSError **)error {
