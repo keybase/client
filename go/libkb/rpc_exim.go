@@ -313,7 +313,7 @@ func (ir *IdentifyOutcome) Export() *keybase1.IdentifyOutcome {
 	for i, w := range ir.Warnings {
 		v[i] = w.Warning()
 	}
-	del := make([]keybase1.TrackDiff, 0, len(ir.Deleted))
+	del := make([]keybase1.TrackDiff, len(ir.Deleted))
 	for i, d := range ir.Deleted {
 		del[i] = *ExportTrackDiff(d)
 	}

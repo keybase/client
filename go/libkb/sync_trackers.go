@@ -40,7 +40,6 @@ func (t Trackers) compact() (ret Trackers) {
 	index := make(map[keybase1.UID]int)
 
 	ret.Version = t.Version
-	ret.Trackers = make([]Tracker, 0, len(t.Trackers))
 
 	for _, el := range t.Trackers {
 		if _, found := index[el.GetUID()]; !found {

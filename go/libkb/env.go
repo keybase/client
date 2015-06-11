@@ -577,14 +577,15 @@ func (e *Env) GetMerkleKIDs() []KID {
 	if slist == nil {
 		return nil
 	}
-	ret := make([]KID, 0, len(slist))
+	var ret []KID
 	for _, s := range slist {
 		kid, err := ImportKID(s)
 		if err != nil {
 			G.Log.Warning("Skipping bad Merkle KID: %s", s)
-		} else {
-			ret = append(ret, kid)
+			continue
 		}
+
+		ret = append(ret, kid)
 	}
 
 	return ret

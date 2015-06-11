@@ -241,7 +241,6 @@ func NewMerkleRootFromJson(jw *jsonw.Wrapper) (ret *MerkleRoot, err error) {
 }
 
 func importPathFromJson(jw *jsonw.Wrapper) (out []*PathStep, err error) {
-
 	if jw.IsNil() {
 		return
 	}
@@ -256,14 +255,12 @@ func importPathFromJson(jw *jsonw.Wrapper) (out []*PathStep, err error) {
 		return
 	}
 
-	out = make([](*PathStep), 0, l)
 	for i := 0; i < l; i++ {
 		var step *PathStep
 		if step, err = pathStepFromJson(path.AtIndex(i)); err != nil {
 			return
-		} else {
-			out = append(out, step)
 		}
+		out = append(out, step)
 	}
 	return
 }

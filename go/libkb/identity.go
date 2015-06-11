@@ -32,7 +32,7 @@ func ParseIdentity(s string) (*Identity, error) {
 }
 
 func (i Identity) Format() string {
-	parts := make([]string, 0, 3)
+	var parts []string
 	if len(i.Username) > 0 {
 		parts = append(parts, i.Username)
 	}
