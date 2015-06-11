@@ -253,7 +253,7 @@ func (c *ChainLink) UnpackPayloadJson(tmp *ChainLinkUnpacked) (err error) {
 		}
 	}
 	c.payloadJson.AtPath("body.key.username").GetStringVoid(&tmp.username, &err)
-	GetUidVoid(c.payloadJson.AtPath("body.key.uid"), &tmp.uid, &err)
+	GetUIDVoid(c.payloadJson.AtPath("body.key.uid"), &tmp.uid, &err)
 	GetLinkIdVoid(c.payloadJson.AtKey("prev"), &tmp.prev, &err)
 	c.payloadJson.AtPath("body.type").GetStringVoid(&tmp.typ, &err)
 	c.payloadJson.AtKey("ctime").GetInt64Void(&tmp.ctime, &err)

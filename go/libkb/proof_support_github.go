@@ -21,7 +21,7 @@ func NewGithubChecker(p RemoteProofChainLink) (*GithubChecker, ProofError) {
 }
 
 func (rc *GithubChecker) CheckHint(h SigHint) ProofError {
-	given := strings.ToLower(h.apiUrl)
+	given := strings.ToLower(h.apiURL)
 	u := strings.ToLower(rc.proof.GetRemoteUsername())
 	ok1 := "https://gist.github.com/" + u + "/"
 	ok2 := "https://gist.githubusercontent.com/" + u + "/"
@@ -34,12 +34,12 @@ func (rc *GithubChecker) CheckHint(h SigHint) ProofError {
 
 func (rc *GithubChecker) CheckStatus(h SigHint) ProofError {
 	res, err := G.XAPI.GetText(ApiArg{
-		Endpoint:    h.apiUrl,
+		Endpoint:    h.apiURL,
 		NeedSession: false,
 	})
 
 	if err != nil {
-		return XapiError(err, h.apiUrl)
+		return XapiError(err, h.apiURL)
 	}
 
 	var sigBody []byte
@@ -81,7 +81,7 @@ func (t GithubServiceType) GetPrompt() string {
 	return "Your username on Github"
 }
 
-func (t GithubServiceType) ToServiceJson(un string) *jsonw.Wrapper {
+func (t GithubServiceType) ToServiceJSON(un string) *jsonw.Wrapper {
 	return t.BaseToServiceJson(t, un)
 }
 

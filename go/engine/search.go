@@ -108,7 +108,7 @@ func (e *SearchEngine) Run(ctx *Context) error {
 		if err != nil {
 			return err
 		}
-		uid, err := libkb.UidFromHex(uidString)
+		uid, err := libkb.UIDFromHex(uidString)
 		if err != nil {
 			return err
 		}

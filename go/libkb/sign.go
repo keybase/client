@@ -123,13 +123,13 @@ func getSigningKey(e *openpgp.Entity, now time.Time) (openpgp.Key, bool) {
 	return openpgp.Key{}, false
 }
 
-// 	SimpleSign signs the given data stream, outputs an armored string which is
+// SimpleSign signs the given data stream, outputs an armored string which is
 // the attached signature of the input data
 func SimpleSign(payload []byte, key PgpKeyBundle) (out string, id keybase1.SigID, err error) {
 	var outb bytes.Buffer
 	var in io.WriteCloser
 	var h HashSummer
-	if in, err, h = ArmoredAttachedSign(NopWriteCloser{&outb}, openpgp.Entity(key), nil, nil); err != nil {
+	if in, h, err = ArmoredAttachedSign(NopWriteCloser{&outb}, openpgp.Entity(key), nil, nil); err != nil {
 		return
 	}
 	if _, err = in.Write(payload); err != nil {
@@ -233,7 +233,7 @@ func (h HashingWriteCloser) Close() error {
 
 type HashSummer func() []byte
 
-func ArmoredAttachedSign(out io.WriteCloser, signed openpgp.Entity, hints *openpgp.FileHints, config *packet.Config) (in io.WriteCloser, err error, h HashSummer) {
+func ArmoredAttachedSign(out io.WriteCloser, signed openpgp.Entity, hints *openpgp.FileHints, config *packet.Config) (in io.WriteCloser, h HashSummer, err error) {
 
 	var aout io.WriteCloser
 
@@ -253,7 +253,7 @@ func AttachedSignWrapper(out io.WriteCloser, key PgpKeyBundle, armored bool) (
 	in io.WriteCloser, err error) {
 
 	if armored {
-		in, err, _ = ArmoredAttachedSign(out, openpgp.Entity(key), nil, nil)
+		in, _, err = ArmoredAttachedSign(out, openpgp.Entity(key), nil, nil)
 	} else {
 		in, err = AttachedSign(out, openpgp.Entity(key), nil, nil)
 	}

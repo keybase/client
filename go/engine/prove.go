@@ -191,7 +191,7 @@ func (p *Prove) postProofToServer() (err error) {
 		Id:             p.sigID,
 		Supersede:      p.supersede,
 		RemoteUsername: p.usernameNormalized,
-		RemoteKey:      p.st.GetApiArgKey(),
+		RemoteKey:      p.st.GetAPIArgKey(),
 		SigningKey:     p.signingKey,
 	}
 	p.postRes, err = libkb.PostProof(arg)

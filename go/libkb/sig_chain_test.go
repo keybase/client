@@ -96,7 +96,7 @@ func doChainTest(t *testing.T, testCase TestCase) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	uid, err := UidFromHex(input.UID)
+	uid, err := UIDFromHex(input.UID)
 	if err != nil {
 		t.Fatal(err)
 	}

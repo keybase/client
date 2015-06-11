@@ -15,17 +15,17 @@ type UserConfig struct {
 	Salt   string  `json:"salt"`
 	Device *string `json:"device"`
 
-	importedId       keybase1.UID
+	importedID       keybase1.UID
 	importedSalt     []byte
-	importedDeviceId *DeviceID
+	importedDeviceID *DeviceID
 }
 
 //==================================================================
 
-func (u UserConfig) GetUID() keybase1.UID         { return u.importedId }
+func (u UserConfig) GetUID() keybase1.UID         { return u.importedID }
 func (u UserConfig) GetUsername() string          { return u.Name }
 func (u UserConfig) GetSalt() []byte              { return u.importedSalt }
-func (u UserConfig) GetDeviceID() (ret *DeviceID) { return u.importedDeviceId }
+func (u UserConfig) GetDeviceID() (ret *DeviceID) { return u.importedDeviceID }
 
 //==================================================================
 
@@ -35,9 +35,9 @@ func NewUserConfig(id keybase1.UID, name string, salt []byte, dev *DeviceID) *Us
 		Name:             name,
 		Salt:             hex.EncodeToString(salt),
 		Device:           nil,
-		importedId:       id,
+		importedID:       id,
 		importedSalt:     salt,
-		importedDeviceId: dev,
+		importedDeviceID: dev,
 	}
 	if dev != nil {
 		tmp := dev.String()
@@ -50,15 +50,15 @@ func NewUserConfig(id keybase1.UID, name string, salt []byte, dev *DeviceID) *Us
 
 func (u *UserConfig) Import() (err error) {
 	var tmp keybase1.UID
-	if tmp, err = UidFromHex(u.Id); err != nil {
+	if tmp, err = UIDFromHex(u.Id); err != nil {
 		return
 	}
-	u.importedId = tmp
+	u.importedID = tmp
 	if u.importedSalt, err = hex.DecodeString(u.Salt); err != nil {
 		return
 	}
 	if u.Device != nil {
-		if u.importedDeviceId, err = ImportDeviceID(*u.Device); err != nil {
+		if u.importedDeviceID, err = ImportDeviceID(*u.Device); err != nil {
 			return
 		}
 	}
@@ -67,7 +67,7 @@ func (u *UserConfig) Import() (err error) {
 
 //==================================================================
 
-func ImportUserConfigFromJsonWrapper(jw *jsonw.Wrapper) (ret *UserConfig, err error) {
+func ImportUserConfigFromJSONWrapper(jw *jsonw.Wrapper) (ret *UserConfig, err error) {
 	var tmp UserConfig
 	if jw == nil {
 		return
@@ -85,7 +85,7 @@ func ImportUserConfigFromJsonWrapper(jw *jsonw.Wrapper) (ret *UserConfig, err er
 //==================================================================
 
 func (u *UserConfig) SetDevice(d *DeviceID) {
-	u.importedDeviceId = d
+	u.importedDeviceID = d
 	var s *string
 	if d != nil {
 		tmp := d.String()

@@ -243,7 +243,7 @@ func (s *Session) Check() error {
 		var err error
 		var uid keybase1.UID
 		var username, csrf string
-		GetUidVoid(res.Body.AtKey("logged_in_uid"), &uid, &err)
+		GetUIDVoid(res.Body.AtKey("logged_in_uid"), &uid, &err)
 		res.Body.AtKey("username").GetStringVoid(&username, &err)
 		res.Body.AtKey("csrf_token").GetStringVoid(&csrf, &err)
 		if err != nil {

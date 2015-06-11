@@ -615,12 +615,12 @@ func (k *PgpKeyBundle) CheckIdentity(kbid Identity) (match bool, ctime int64, et
 
 // Fulfill the TrackIdComponent interface
 
-func (p PgpFingerprint) ToIdString() string {
+func (p PgpFingerprint) ToIDString() string {
 	return p.String()
 }
 
 func (p PgpFingerprint) ToKeyValuePair() (string, string) {
-	return "fingerprint", p.ToIdString()
+	return "fingerprint", p.ToIDString()
 }
 
 func (p PgpFingerprint) GetProofState() keybase1.ProofState {

@@ -228,18 +228,18 @@ func (sc SigChain) GetCurrentTailTriple() (ret *MerkleTriple) {
 	return
 }
 
-func (sc SigChain) GetLastLoadedId() (ret LinkId) {
+func (sc SigChain) GetLastLoadedID() (ret LinkId) {
 	if l := last(sc.chainLinks); l != nil {
 		ret = l.id
 	}
 	return
 }
 
-func (sc SigChain) GetLastKnownId() (ret LinkId) {
+func (sc SigChain) GetLastKnownID() (ret LinkId) {
 	if sc.localChainTail != nil {
 		ret = sc.localChainTail.LinkId
 	} else {
-		ret = sc.GetLastLoadedId()
+		ret = sc.GetLastLoadedID()
 	}
 	return
 }
@@ -319,7 +319,7 @@ func (sc *SigChain) Dump(w io.Writer) {
 		fmt.Fprintf(w, "link %d: %+v\n", i, l)
 	}
 	fmt.Fprintf(w, "last known seqno: %d\n", sc.GetLastKnownSeqno())
-	fmt.Fprintf(w, "last known id: %s\n", sc.GetLastKnownId())
+	fmt.Fprintf(w, "last known id: %s\n", sc.GetLastKnownID())
 }
 
 // verifySubchain verifies the given subchain and outputs a yes/no answer
@@ -511,7 +511,7 @@ type SigChainLoader struct {
 
 //========================================================================
 
-func (l *SigChainLoader) LoadLastLinkIdFromStorage() (mt *MerkleTriple, err error) {
+func (l *SigChainLoader) LoadLastLinkIDFromStorage() (mt *MerkleTriple, err error) {
 	var tmp MerkleTriple
 	var found bool
 	found, err = G.LocalDb.GetInto(&tmp, l.dbKey())
@@ -549,7 +549,7 @@ func (l *SigChainLoader) LoadLinksFromStorage() (err error) {
 	G.Log.Debug("+ SigChainLoader.LoadFromStorage(%s)", uid)
 	defer func() { G.Log.Debug("- SigChainLoader.LoadFromStorage(%s) -> %s", uid, ErrToOk(err)) }()
 
-	if mt, err = l.LoadLastLinkIdFromStorage(); err != nil || mt == nil {
+	if mt, err = l.LoadLastLinkIDFromStorage(); err != nil || mt == nil {
 		G.Log.Debug("| Failed to load last link ID")
 		return err
 	}

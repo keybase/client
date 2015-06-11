@@ -25,7 +25,7 @@ func NewRooterChecker(p RemoteProofChainLink) (*RooterChecker, ProofError) {
 func (rc *RooterChecker) CheckHint(h SigHint) ProofError {
 	wantedURL := G.Env.GetServerURI() + API_URI_PATH_PREFIX + "/rooter/" + strings.ToLower(rc.proof.GetRemoteUsername()) + "/"
 	wantedMedID := rc.proof.GetSigID().ToMediumID()
-	if !strings.HasPrefix(strings.ToLower(h.apiUrl), wantedURL) {
+	if !strings.HasPrefix(strings.ToLower(h.apiURL), wantedURL) {
 		return NewProofError(keybase1.ProofStatus_BAD_API_URL,
 			"Bad hint from server; URL should start with '%s'", wantedURL)
 	} else if !strings.Contains(h.checkText, wantedMedID) {
@@ -78,11 +78,11 @@ func (rc *RooterChecker) UnpackData(inp *jsonw.Wrapper) (string, ProofError) {
 
 func (rc *RooterChecker) CheckStatus(h SigHint) ProofError {
 	res, err := G.XAPI.Get(ApiArg{
-		Endpoint:    h.apiUrl,
+		Endpoint:    h.apiURL,
 		NeedSession: false,
 	})
 	if err != nil {
-		return XapiError(err, h.apiUrl)
+		return XapiError(err, h.apiURL)
 	}
 	dat, perr := rc.UnpackData(res.Body)
 	if perr != nil {
@@ -122,7 +122,7 @@ func (t RooterServiceType) GetPrompt() string {
 	return "Your username on Rooter"
 }
 
-func (t RooterServiceType) ToServiceJson(un string) *jsonw.Wrapper {
+func (t RooterServiceType) ToServiceJSON(un string) *jsonw.Wrapper {
 	return t.BaseToServiceJson(t, un)
 }
 

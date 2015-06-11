@@ -16,9 +16,9 @@ import (
 
 func (sh SigHint) Export() *keybase1.SigHint {
 	return &keybase1.SigHint{
-		RemoteId:  sh.remoteId,
-		ApiUrl:    sh.apiUrl,
-		HumanUrl:  sh.humanUrl,
+		RemoteId:  sh.remoteID,
+		ApiUrl:    sh.apiURL,
+		HumanUrl:  sh.humanURL,
 		CheckText: sh.checkText,
 	}
 }

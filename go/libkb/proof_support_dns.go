@@ -112,7 +112,7 @@ func (t DnsServiceType) GetPrompt() string {
 	return "Your DNS domain"
 }
 
-func (t DnsServiceType) ToServiceJson(un string) *jsonw.Wrapper {
+func (t DnsServiceType) ToServiceJSON(un string) *jsonw.Wrapper {
 	ret := jsonw.NewDictionary()
 	ret.SetKey("protocol", jsonw.NewString("dns"))
 	ret.SetKey("domain", jsonw.NewString(un))
@@ -143,7 +143,7 @@ func (t DnsServiceType) CheckProofText(text string, id keybase1.SigID, sig strin
 	return t.BaseCheckProofTextShort(text, id, true)
 }
 
-func (t DnsServiceType) GetApiArgKey() string { return "remote_host" }
+func (t DnsServiceType) GetAPIArgKey() string { return "remote_host" }
 func (t DnsServiceType) LastWriterWins() bool { return false }
 
 //=============================================================================

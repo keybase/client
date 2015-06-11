@@ -26,7 +26,7 @@ func (rc *CoinbaseChecker) ProfileUrl() string {
 
 func (rc *CoinbaseChecker) CheckHint(h SigHint) ProofError {
 	wanted := rc.ProfileUrl()
-	if wanted == strings.ToLower(h.apiUrl) {
+	if wanted == strings.ToLower(h.apiURL) {
 		return nil
 	}
 	return NewProofError(keybase1.ProofStatus_BAD_API_URL, "Bad hint from server; URL should be %q", wanted)
@@ -34,11 +34,11 @@ func (rc *CoinbaseChecker) CheckHint(h SigHint) ProofError {
 
 func (rc *CoinbaseChecker) CheckStatus(h SigHint) ProofError {
 	res, err := G.XAPI.GetHtml(ApiArg{
-		Endpoint:    h.apiUrl,
+		Endpoint:    h.apiURL,
 		NeedSession: false,
 	})
 	if err != nil {
-		return XapiError(err, h.apiUrl)
+		return XapiError(err, h.apiURL)
 	}
 	csssel := "div#public_key_content pre.statement"
 	div := res.GoQuery.Find(csssel)
@@ -87,7 +87,7 @@ func (t CoinbaseServiceType) GetPrompt() string {
 	return "Your username on Coinbase"
 }
 
-func (t CoinbaseServiceType) ToServiceJson(un string) *jsonw.Wrapper {
+func (t CoinbaseServiceType) ToServiceJSON(un string) *jsonw.Wrapper {
 	return t.BaseToServiceJson(t, un)
 }
 

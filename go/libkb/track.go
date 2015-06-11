@@ -10,27 +10,27 @@ import (
 
 // Can be a ProofLinkWithState, one of the identities listed in a
 // tracking statement, or a PGP Fingerprint!
-type TrackIdComponent interface {
-	ToIdString() string
+type TrackIDComponent interface {
+	ToIDString() string
 	ToKeyValuePair() (string, string)
 	GetProofState() keybase1.ProofState
 	LastWriterWins() bool
 }
 
 type TrackSet struct {
-	ids      map[string]TrackIdComponent
+	ids      map[string]TrackIDComponent
 	services map[string]bool
 }
 
 func NewTrackSet() *TrackSet {
 	return &TrackSet{
-		ids:      make(map[string]TrackIdComponent),
+		ids:      make(map[string]TrackIDComponent),
 		services: make(map[string]bool),
 	}
 }
 
-func (ts TrackSet) Add(t TrackIdComponent) {
-	ts.ids[t.ToIdString()] = t
+func (ts TrackSet) Add(t TrackIDComponent) {
+	ts.ids[t.ToIDString()] = t
 	if t.LastWriterWins() {
 		k, _ := t.ToKeyValuePair()
 		ts.services[k] = true
@@ -45,7 +45,7 @@ func (ts TrackSet) GetProofState(id string) keybase1.ProofState {
 	return ret
 }
 
-func (ts TrackSet) Subtract(b TrackSet) (out []TrackIdComponent) {
+func (ts TrackSet) Subtract(b TrackSet) (out []TrackIDComponent) {
 	for _, c := range ts.ids {
 		if !b.HasMember(c) {
 			out = append(out, c)
@@ -54,7 +54,7 @@ func (ts TrackSet) Subtract(b TrackSet) (out []TrackIdComponent) {
 	return
 }
 
-func (ts TrackSet) HasMember(t TrackIdComponent) bool {
+func (ts TrackSet) HasMember(t TrackIDComponent) bool {
 	var found bool
 
 	// For LastWriterWins like social networks, then it just matters
@@ -64,7 +64,7 @@ func (ts TrackSet) HasMember(t TrackIdComponent) bool {
 		k, _ := t.ToKeyValuePair()
 		_, found = ts.services[k]
 	} else {
-		_, found = ts.ids[t.ToIdString()]
+		_, found = ts.ids[t.ToIDString()]
 	}
 	return found
 }
@@ -242,14 +242,14 @@ func (t TrackDiffClash) GetTrackDiffType() keybase1.TrackDiffType {
 }
 
 type TrackDiffDeleted struct {
-	idc TrackIdComponent
+	idc TrackIDComponent
 }
 
 func (t TrackDiffDeleted) BreaksTracking() bool {
 	return true
 }
 func (t TrackDiffDeleted) ToDisplayString() string {
-	return "Deleted proof: " + t.idc.ToIdString()
+	return "Deleted proof: " + t.idc.ToIDString()
 }
 func (t TrackDiffDeleted) IsSameAsTracked() bool {
 	return false

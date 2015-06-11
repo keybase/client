@@ -25,7 +25,7 @@ func NewRedditChecker(p RemoteProofChainLink) (*RedditChecker, ProofError) {
 }
 
 func (rc *RedditChecker) CheckHint(h SigHint) ProofError {
-	if strings.HasPrefix(strings.ToLower(h.apiUrl), REDDIT_SUB) {
+	if strings.HasPrefix(strings.ToLower(h.apiURL), REDDIT_SUB) {
 		return nil
 	}
 	return NewProofError(keybase1.ProofStatus_BAD_API_URL,
@@ -100,11 +100,11 @@ func (rc *RedditChecker) CheckData(h SigHint, dat *jsonw.Wrapper) ProofError {
 
 func (rc *RedditChecker) CheckStatus(h SigHint) ProofError {
 	res, err := G.XAPI.Get(ApiArg{
-		Endpoint:    h.apiUrl,
+		Endpoint:    h.apiURL,
 		NeedSession: false,
 	})
 	if err != nil {
-		return XapiError(err, h.apiUrl)
+		return XapiError(err, h.apiURL)
 	}
 
 	dat, perr := rc.UnpackData(res.Body)
@@ -157,7 +157,7 @@ func (t RedditServiceType) GetTypeName() string { return "reddit" }
 
 func (t RedditServiceType) GetPrompt() string { return "Your username on Reddit" }
 
-func (t RedditServiceType) ToServiceJson(un string) *jsonw.Wrapper {
+func (t RedditServiceType) ToServiceJSON(un string) *jsonw.Wrapper {
 	return t.BaseToServiceJson(t, un)
 }
 

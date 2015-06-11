@@ -271,7 +271,7 @@ func (a AssertionUid) IsUid() bool                 { return true }
 
 func (a AssertionUid) ToUid() keybase1.UID {
 	if a.uid.IsNil() {
-		if tmp, err := UidFromHex(a.Value); err == nil {
+		if tmp, err := UIDFromHex(a.Value); err == nil {
 			a.uid = tmp
 		}
 	}
@@ -287,7 +287,7 @@ func (a AssertionUid) ToLookup() (key, value string, err error) {
 }
 
 func (a AssertionUid) Check() (err error) {
-	a.uid, err = UidFromHex(a.Value)
+	a.uid, err = UIDFromHex(a.Value)
 	return
 }
 

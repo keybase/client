@@ -41,7 +41,7 @@ func NewHackerNewsChecker(p RemoteProofChainLink) (*HackerNewsChecker, ProofErro
 
 func (h *HackerNewsChecker) CheckHint(hint SigHint) ProofError {
 	wanted := h.ApiUrl()
-	if Cicmp(wanted, hint.apiUrl) {
+	if Cicmp(wanted, hint.apiURL) {
 		return nil
 	}
 
@@ -50,11 +50,11 @@ func (h *HackerNewsChecker) CheckHint(hint SigHint) ProofError {
 
 func (h *HackerNewsChecker) CheckStatus(hint SigHint) ProofError {
 	res, err := G.XAPI.GetText(ApiArg{
-		Endpoint:    hint.apiUrl,
+		Endpoint:    hint.apiURL,
 		NeedSession: false,
 	})
 	if err != nil {
-		return XapiError(err, hint.apiUrl)
+		return XapiError(err, hint.apiURL)
 	}
 
 	var sigID keybase1.SigID
@@ -114,7 +114,7 @@ func (t HackerNewsServiceType) GetPrompt() string {
 	return "Your username on HackerNews (**case-sensitive**)"
 }
 
-func (t HackerNewsServiceType) ToServiceJson(un string) *jsonw.Wrapper {
+func (t HackerNewsServiceType) ToServiceJSON(un string) *jsonw.Wrapper {
 	return t.BaseToServiceJson(t, un)
 }
 

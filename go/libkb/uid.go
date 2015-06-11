@@ -10,7 +10,7 @@ import (
 	jsonw "github.com/keybase/go-jsonw"
 )
 
-func UidFromHex(s string) (keybase1.UID, error) {
+func UIDFromHex(s string) (keybase1.UID, error) {
 	u, err := keybase1.UIDFromString(s)
 	if err != nil {
 		var nilUID keybase1.UID
@@ -25,10 +25,10 @@ func GetUID(w *jsonw.Wrapper) (keybase1.UID, error) {
 	if err != nil {
 		return nilUID, err
 	}
-	return UidFromHex(s)
+	return UIDFromHex(s)
 }
 
-func GetUidVoid(w *jsonw.Wrapper, u *keybase1.UID, e *error) {
+func GetUIDVoid(w *jsonw.Wrapper, u *keybase1.UID, e *error) {
 	uid, err := GetUID(w)
 	if err == nil {
 		*u = uid

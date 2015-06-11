@@ -7,14 +7,14 @@ import (
 
 type SigHint struct {
 	sigID     keybase1.SigID
-	remoteId  string
-	apiUrl    string
-	humanUrl  string
+	remoteID  string
+	apiURL    string
+	humanURL  string
 	checkText string
 }
 
-func (sh SigHint) GetHumanUrl() string  { return sh.humanUrl }
-func (sh SigHint) GetApiUrl() string    { return sh.apiUrl }
+func (sh SigHint) GetHumanURL() string  { return sh.humanURL }
+func (sh SigHint) GetApiUrl() string    { return sh.apiURL }
 func (sh SigHint) GetCheckText() string { return sh.checkText }
 
 type SigHints struct {
@@ -27,9 +27,9 @@ type SigHints struct {
 func NewSigHint(jw *jsonw.Wrapper) (sh *SigHint, err error) {
 	sh = &SigHint{}
 	sh.sigID, err = GetSigID(jw.AtKey("sig_id"), true)
-	sh.remoteId, _ = jw.AtKey("remote_id").GetString()
-	sh.apiUrl, _ = jw.AtKey("api_url").GetString()
-	sh.humanUrl, _ = jw.AtKey("human_url").GetString()
+	sh.remoteID, _ = jw.AtKey("remote_id").GetString()
+	sh.apiURL, _ = jw.AtKey("api_url").GetString()
+	sh.humanURL, _ = jw.AtKey("human_url").GetString()
 	sh.checkText, _ = jw.AtKey("proof_text_check").GetString()
 	return
 }
@@ -77,23 +77,23 @@ func (sh *SigHints) PopulateWith(jw *jsonw.Wrapper) (err error) {
 	return
 }
 
-func (sh SigHint) MarshalToJson() *jsonw.Wrapper {
+func (sh SigHint) MarshalToJSON() *jsonw.Wrapper {
 	ret := jsonw.NewDictionary()
 	ret.SetKey("sig_id", jsonw.NewString(sh.sigID.ToString(true)))
-	ret.SetKey("remote_id", jsonw.NewString(sh.remoteId))
-	ret.SetKey("api_url", jsonw.NewString(sh.apiUrl))
-	ret.SetKey("human_url", jsonw.NewString(sh.humanUrl))
+	ret.SetKey("remote_id", jsonw.NewString(sh.remoteID))
+	ret.SetKey("api_url", jsonw.NewString(sh.apiURL))
+	ret.SetKey("human_url", jsonw.NewString(sh.humanURL))
 	ret.SetKey("proof_text_check", jsonw.NewString(sh.checkText))
 	return ret
 }
 
-func (sh SigHints) MarshalToJson() *jsonw.Wrapper {
+func (sh SigHints) MarshalToJSON() *jsonw.Wrapper {
 	ret := jsonw.NewDictionary()
 	ret.SetKey("version", jsonw.NewInt(sh.version))
 	ret.SetKey("hints", jsonw.NewArray(len(sh.hints)))
 	i := 0
 	for _, v := range sh.hints {
-		ret.AtKey("hints").SetIndex(i, v.MarshalToJson())
+		ret.AtKey("hints").SetIndex(i, v.MarshalToJSON())
 		i++
 	}
 	return ret
@@ -102,7 +102,7 @@ func (sh SigHints) MarshalToJson() *jsonw.Wrapper {
 func (sh *SigHints) Store() (err error) {
 	G.Log.Debug("+ SigHints.Store() for uid=%s", sh.uid)
 	if sh.dirty {
-		err = G.LocalDb.Put(DbKeyUID(DB_SIG_HINTS, sh.uid), []DbKey{}, sh.MarshalToJson())
+		err = G.LocalDb.Put(DbKeyUID(DB_SIG_HINTS, sh.uid), []DbKey{}, sh.MarshalToJSON())
 		sh.dirty = false
 	} else {
 		G.Log.Debug("| SigHints.Store() skipped; wasn't dirty")

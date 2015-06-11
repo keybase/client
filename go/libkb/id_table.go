@@ -101,7 +101,7 @@ type RemoteProofChainLink interface {
 	DisplayCheck(ui IdentifyUI, lcr LinkCheckResult)
 	ToTrackingStatement(keybase1.ProofState) (*jsonw.Wrapper, error)
 	CheckDataJson() *jsonw.Wrapper
-	ToIdString() string
+	ToIDString() string
 	ToKeyValuePair() (string, string)
 	ComputeTrackDiff(tl *TrackLookup) TrackDiff
 	GetProofType() keybase1.ProofType
@@ -174,7 +174,7 @@ func (w *WebProofChainLink) CheckDataJson() *jsonw.Wrapper {
 	}
 	return ret
 }
-func (w *WebProofChainLink) ToIdString() string { return w.ToDisplayString() }
+func (w *WebProofChainLink) ToIDString() string { return w.ToDisplayString() }
 func (w *WebProofChainLink) ToKeyValuePair() (string, string) {
 	return w.GetProtocol(), w.GetHostname()
 }
@@ -212,7 +212,7 @@ func (s *SocialProofChainLink) GetRemoteUsername() string { return s.username }
 func (s *SocialProofChainLink) GetHostname() string       { return "" }
 func (s *SocialProofChainLink) GetProtocol() string       { return "" }
 func (s *SocialProofChainLink) ProofText() string         { return s.proofText }
-func (s *SocialProofChainLink) ToIdString() string        { return s.ToDisplayString() }
+func (s *SocialProofChainLink) ToIDString() string        { return s.ToDisplayString() }
 func (s *SocialProofChainLink) ToKeyValuePair() (string, string) {
 	return s.service, s.username
 }
@@ -275,7 +275,7 @@ func (sb ServiceBlock) GetProofState() keybase1.ProofState { return sb.proofStat
 
 func (sb ServiceBlock) IsSocial() bool { return sb.social }
 
-func (sb ServiceBlock) ToIdString() string {
+func (sb ServiceBlock) ToIDString() string {
 	if sb.social {
 		return sb.id + "@" + sb.typ
 	}
@@ -837,7 +837,7 @@ func (s *SelfSigChainLink) ToTrackingStatement(keybase1.ProofState) (*jsonw.Wrap
 	return nil, nil
 }
 
-func (s *SelfSigChainLink) ToIdString() string { return s.GetUsername() }
+func (s *SelfSigChainLink) ToIDString() string { return s.GetUsername() }
 func (s *SelfSigChainLink) ToKeyValuePair() (string, string) {
 	return s.TableKey(), s.GetUsername()
 }

@@ -246,7 +246,7 @@ func (c *CmdListTrackers) ParseArgv(ctx *cli.Context) error {
 	if len(ctx.Args()) == 1 {
 		if byUID {
 			var err error
-			c.uid, err = libkb.UidFromHex(ctx.Args()[0])
+			c.uid, err = libkb.UIDFromHex(ctx.Args()[0])
 			if err != nil {
 				return err
 			}

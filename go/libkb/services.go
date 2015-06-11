@@ -18,7 +18,7 @@ type ServiceType interface {
 	LastWriterWins() bool
 	PreProofCheck(username string) (*Markup, error)
 	PreProofWarning(remotename string) *Markup
-	ToServiceJson(remotename string) *jsonw.Wrapper
+	ToServiceJSON(remotename string) *jsonw.Wrapper
 	PostInstructions(remotename string) *Markup
 	DisplayName(username string) string
 	RecheckProofPosting(tryNumber int, status keybase1.ProofStatus) (warning *Markup, err error)
@@ -26,7 +26,7 @@ type ServiceType interface {
 	GetTypeName() string
 	CheckProofText(text string, id keybase1.SigID, sig string) error
 	FormatProofText(*PostProofRes) (string, error)
-	GetApiArgKey() string
+	GetAPIArgKey() string
 }
 
 var _stDispatch = make(map[string]ServiceType)
@@ -150,7 +150,7 @@ func (t BaseServiceType) BaseCheckProofForUrl(text string, id keybase1.SigID) (e
 	return
 }
 
-func (t BaseServiceType) GetApiArgKey() string {
+func (t BaseServiceType) GetAPIArgKey() string {
 	return "remote_username"
 }
 

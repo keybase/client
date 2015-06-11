@@ -86,7 +86,7 @@ func (s *SignupJoinEngine) Post(arg SignupJoinEngineRunArg) (err error) {
 		}})
 	if err == nil {
 		s.username = arg.Username
-		libkb.GetUidVoid(res.Body.AtKey("uid"), &s.uid, &err)
+		libkb.GetUIDVoid(res.Body.AtKey("uid"), &s.uid, &err)
 		res.Body.AtKey("session").GetStringVoid(&s.session, &err)
 		res.Body.AtKey("csrf_token").GetStringVoid(&s.csrf, &err)
 	}

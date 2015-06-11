@@ -135,7 +135,7 @@ func (e *ListTrackingEngine) linkSocialProofs(link *libkb.TrackChainLink) (res [
 		res = append(res, keybase1.TrackProof{
 			ProofType: proofType,
 			ProofName: proofName,
-			IdString:  sb.ToIdString(),
+			IdString:  sb.ToIDString(),
 		})
 	}
 	return res

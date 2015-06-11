@@ -194,7 +194,7 @@ func (u *User) ProofMetadata(ei int, signingKey FOKID, eldest *FOKID, ctime int6
 	var key, prev *jsonw.Wrapper
 
 	lastSeqno := u.sigChain().GetLastKnownSeqno()
-	lastLink := u.sigChain().GetLastKnownId()
+	lastLink := u.sigChain().GetLastKnownID()
 	if lastLink == nil {
 		seqno = 1
 		prev = jsonw.NewNil()
@@ -299,7 +299,7 @@ func (u *User) ServiceProof(signingKey GenericKey, typ ServiceType, remotename s
 	if err != nil {
 		return
 	}
-	ret.AtKey("body").SetKey("service", typ.ToServiceJson(remotename))
+	ret.AtKey("body").SetKey("service", typ.ToServiceJSON(remotename))
 	return
 }
 

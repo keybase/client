@@ -272,7 +272,7 @@ func (s *LoginState) saveLoginState(lctx LoginContext, res *loginAPIResult) erro
 }
 
 func (r PostAuthProofRes) loginResult() (*loginAPIResult, error) {
-	uid, err := UidFromHex(r.UidHex)
+	uid, err := UIDFromHex(r.UidHex)
 	if err != nil {
 		return nil, err
 	}

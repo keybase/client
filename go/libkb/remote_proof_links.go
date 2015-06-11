@@ -147,8 +147,8 @@ func (p ProofLinkWithState) LastWriterWins() bool {
 	return p.link.LastWriterWins()
 }
 
-func (p ProofLinkWithState) ToIdString() string {
-	return p.link.ToIdString()
+func (p ProofLinkWithState) ToIDString() string {
+	return p.link.ToIDString()
 }
 
 func (p ProofLinkWithState) ToKeyValuePair() (string, string) {

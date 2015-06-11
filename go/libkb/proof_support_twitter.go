@@ -24,7 +24,7 @@ func NewTwitterChecker(p RemoteProofChainLink) (*TwitterChecker, ProofError) {
 func (rc *TwitterChecker) CheckHint(h SigHint) ProofError {
 	wantedURL := ("https://twitter.com/" + strings.ToLower(rc.proof.GetRemoteUsername()) + "/")
 	wantedShortID := (" " + rc.proof.GetSigID().ToShortID() + " /")
-	if !strings.HasPrefix(strings.ToLower(h.apiUrl), wantedURL) {
+	if !strings.HasPrefix(strings.ToLower(h.apiURL), wantedURL) {
 		return NewProofError(keybase1.ProofStatus_BAD_API_URL,
 			"Bad hint from server; URL should start with '%s'", wantedURL)
 	} else if !strings.Contains(h.checkText, wantedShortID) {
@@ -73,11 +73,11 @@ func (rc *TwitterChecker) findSigInTweet(h SigHint, s *goquery.Selection) ProofE
 
 func (rc *TwitterChecker) CheckStatus(h SigHint) ProofError {
 	res, err := G.XAPI.GetHtml(ApiArg{
-		Endpoint:    h.apiUrl,
+		Endpoint:    h.apiURL,
 		NeedSession: false,
 	})
 	if err != nil {
-		return XapiError(err, h.apiUrl)
+		return XapiError(err, h.apiURL)
 	}
 	csssel := "div.permalink-tweet-container div.permalink-tweet"
 	div := res.GoQuery.Find(csssel)
@@ -136,7 +136,7 @@ func (t TwitterServiceType) GetPrompt() string {
 	return "Your username on Twitter"
 }
 
-func (t TwitterServiceType) ToServiceJson(un string) *jsonw.Wrapper {
+func (t TwitterServiceType) ToServiceJSON(un string) *jsonw.Wrapper {
 	return t.BaseToServiceJson(t, un)
 }
 

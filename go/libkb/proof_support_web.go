@@ -27,7 +27,7 @@ func (rc *WebChecker) CheckHint(h SigHint) ProofError {
 
 	files := webKeybaseFiles
 	urlBase := rc.proof.ToDisplayString()
-	theirURL := strings.ToLower(h.apiUrl)
+	theirURL := strings.ToLower(h.apiURL)
 
 	for _, file := range files {
 		ourURL := urlBase + "/" + file
@@ -38,18 +38,18 @@ func (rc *WebChecker) CheckHint(h SigHint) ProofError {
 
 	return NewProofError(keybase1.ProofStatus_BAD_API_URL,
 		"Bad hint from server; didn't recognize API url: %s",
-		h.apiUrl)
+		h.apiURL)
 
 }
 
 func (rc *WebChecker) CheckStatus(h SigHint) ProofError {
 	res, err := G.XAPI.GetText(ApiArg{
-		Endpoint:    h.apiUrl,
+		Endpoint:    h.apiURL,
 		NeedSession: false,
 	})
 
 	if err != nil {
-		return XapiError(err, h.apiUrl)
+		return XapiError(err, h.apiURL)
 	}
 
 	var sigBody []byte
@@ -135,7 +135,7 @@ func (t WebServiceType) GetPrompt() string {
 	return "Web site to check"
 }
 
-func (t WebServiceType) ToServiceJson(un string) *jsonw.Wrapper {
+func (t WebServiceType) ToServiceJSON(un string) *jsonw.Wrapper {
 	h, p, _ := ParseWeb(un)
 	ret := jsonw.NewDictionary()
 	ret.SetKey("protocol", jsonw.NewString(p+":"))
@@ -188,7 +188,7 @@ func (t WebServiceType) CheckProofText(text string, id keybase1.SigID, sig strin
 	return t.BaseCheckProofTextFull(text, id, sig)
 }
 
-func (t WebServiceType) GetApiArgKey() string { return "remote_host" }
+func (t WebServiceType) GetAPIArgKey() string { return "remote_host" }
 func (t WebServiceType) LastWriterWins() bool { return false }
 
 //=============================================================================

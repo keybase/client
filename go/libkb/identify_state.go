@@ -67,7 +67,7 @@ func (s *IdentifyState) ComputeTrackDiffs() {
 	G.Log.Debug("| with tracking %v", s.track.set)
 	for _, c := range s.res.ProofChecks {
 		c.diff = c.link.ComputeTrackDiff(s.track)
-		c.trackedProofState = s.track.GetProofState(c.link.ToIdString())
+		c.trackedProofState = s.track.GetProofState(c.link.ToIDString())
 	}
 }
 

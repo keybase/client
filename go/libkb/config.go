@@ -195,7 +195,7 @@ func (f *JsonConfigFile) SwitchUser(un string) error {
 // GetUserConfigForUsername sees if there's a UserConfig object for the given
 // username previously stored.
 func (f JsonConfigFile) GetUserConfigForUsername(s string) (*UserConfig, error) {
-	return ImportUserConfigFromJsonWrapper(f.jw.AtKey("users").AtKey(s))
+	return ImportUserConfigFromJSONWrapper(f.jw.AtKey("users").AtKey(s))
 }
 
 func (f JsonConfigFile) GetAllUsernames() (current string, others []string, err error) {
