@@ -88,7 +88,7 @@ func (u *User) ToTrackingStatement(w *jsonw.Wrapper, outcome *IdentifyOutcome) (
 	track.SetKey("seq_tail", u.ToTrackingStatementSeqTail())
 	track.SetKey("basics", u.ToTrackingStatementBasics(&err))
 	track.SetKey("id", UIDWrapper(u.id))
-	track.SetKey("remote_proofs", outcome.ActiveProofs().ToTrackingStatement())
+	track.SetKey("remote_proofs", outcome.TrackingStatement())
 
 	if err != nil {
 		return
@@ -141,40 +141,24 @@ func (u *User) ToKeyStanza(signing FOKID, eldest *FOKID) (ret *jsonw.Wrapper, er
 	return
 }
 
-func (s *SocialProofChainLink) ToTrackingStatement() (*jsonw.Wrapper, error) {
-	ret := s.BaseToTrackingStatement()
+func (s *SocialProofChainLink) ToTrackingStatement(state keybase1.ProofState) (*jsonw.Wrapper, error) {
+	ret := s.BaseToTrackingStatement(state)
 	err := remoteProofToTrackingStatement(s, ret)
 	if err != nil {
 		ret = nil
 	}
+
 	return ret, err
 }
 
-func (pl RemoteProofList) ToTrackingStatement() *jsonw.Wrapper {
-	var proofs []*jsonw.Wrapper
-	for _, proof := range pl {
-		if d, err := proof.ToTrackingStatement(); err != nil {
-			G.Log.Warning("Problem with a proof: %s", err.Error())
-		} else if d != nil {
-			proofs = append(proofs, d)
-		}
-	}
-
-	res := jsonw.NewArray(len(proofs))
-	for i, proof := range proofs {
-		res.SetIndex(i, proof)
-	}
-	return res
-}
-
-func (g *GenericChainLink) BaseToTrackingStatement() *jsonw.Wrapper {
+func (g *GenericChainLink) BaseToTrackingStatement(state keybase1.ProofState) *jsonw.Wrapper {
 	ret := jsonw.NewDictionary()
 	ret.SetKey("curr", jsonw.NewString(g.id.String()))
 	ret.SetKey("sig_id", jsonw.NewString(g.GetSigID().ToString(true)))
 
 	rkp := jsonw.NewDictionary()
 	ret.SetKey("remote_key_proof", rkp)
-	rkp.SetKey("state", jsonw.NewInt(int(g.GetProofState())))
+	rkp.SetKey("state", jsonw.NewInt(int(state)))
 
 	prev := g.GetPrev()
 	var prev_val *jsonw.Wrapper

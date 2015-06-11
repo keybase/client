@@ -37,9 +37,9 @@ func (ts TrackSet) Add(t TrackIdComponent) {
 	}
 }
 
-func (ts TrackSet) GetProofState(tic TrackIdComponent) keybase1.ProofState {
+func (ts TrackSet) GetProofState(id string) keybase1.ProofState {
 	ret := keybase1.ProofState_NONE
-	if obj := ts.ids[tic.ToIdString()]; obj != nil {
+	if obj := ts.ids[id]; obj != nil {
 		ret = obj.GetProofState()
 	}
 	return ret
@@ -107,8 +107,8 @@ func (l TrackLookup) ToSummary() TrackSummary {
 	}
 }
 
-func (l TrackLookup) GetProofState(tic TrackIdComponent) keybase1.ProofState {
-	return l.set.GetProofState(tic)
+func (l TrackLookup) GetProofState(id string) keybase1.ProofState {
+	return l.set.GetProofState(id)
 }
 
 func (l TrackLookup) GetTrackedPGPFingerprints() []PgpFingerprint {

@@ -31,8 +31,6 @@ type TypedChainLink interface {
 	GetFOKID() FOKID
 	IsInCurrentFamily(u *User) bool
 	GetUsername() string
-	// MarkChecked(ProofError)
-	GetProofState() keybase1.ProofState
 	GetUID() keybase1.UID
 	GetDelegatedKid() KID
 	GetParentKid() KID
@@ -84,7 +82,6 @@ func (g *GenericChainLink) GetUsername() string {
 func (g *GenericChainLink) GetUID() keybase1.UID {
 	return g.unpacked.uid
 }
-func (g *GenericChainLink) GetProofState() keybase1.ProofState { return g.GetProofState0() }
 
 func (g *GenericChainLink) GetDevice() *Device { return nil }
 
@@ -102,7 +99,7 @@ type RemoteProofChainLink interface {
 	GetHostname() string
 	GetProtocol() string
 	DisplayCheck(ui IdentifyUI, lcr LinkCheckResult)
-	ToTrackingStatement() (*jsonw.Wrapper, error)
+	ToTrackingStatement(keybase1.ProofState) (*jsonw.Wrapper, error)
 	CheckDataJson() *jsonw.Wrapper
 	ToIdString() string
 	ToKeyValuePair() (string, string)
@@ -110,8 +107,6 @@ type RemoteProofChainLink interface {
 	GetProofType() keybase1.ProofType
 	ProofText() string
 }
-
-type RemoteProofList []RemoteProofChainLink
 
 type WebProofChainLink struct {
 	GenericChainLink
@@ -141,8 +136,8 @@ func (w *WebProofChainLink) GetProofType() keybase1.ProofType {
 	return keybase1.ProofType_GENERIC_WEB_SITE
 }
 
-func (w *WebProofChainLink) ToTrackingStatement() (*jsonw.Wrapper, error) {
-	ret := w.BaseToTrackingStatement()
+func (w *WebProofChainLink) ToTrackingStatement(state keybase1.ProofState) (*jsonw.Wrapper, error) {
+	ret := w.BaseToTrackingStatement(state)
 	err := remoteProofToTrackingStatement(w, ret)
 	if err != nil {
 		ret = nil
@@ -227,7 +222,12 @@ func NewWebProofChainLink(b GenericChainLink, p, h, proofText string) *WebProofC
 	return &WebProofChainLink{b, p, h, proofText}
 }
 func NewSocialProofChainLink(b GenericChainLink, s, u, proofText string) *SocialProofChainLink {
-	return &SocialProofChainLink{b, s, u, proofText}
+	return &SocialProofChainLink{
+		GenericChainLink: b,
+		service:          s,
+		username:         u,
+		proofText:        proofText,
+	}
 }
 
 func (s *SocialProofChainLink) ComputeTrackDiff(tl *TrackLookup) TrackDiff {
@@ -510,7 +510,7 @@ func (l *TrackChainLink) ToServiceBlocks() (ret []*ServiceBlock) {
 		} else {
 			sb.proofState = keybase1.ProofState(i)
 			if sb.proofState != keybase1.ProofState_OK {
-				G.Log.Debug("Including broken proof at index = %d\n", i)
+				G.Log.Debug("Including broken proof at index = %d\n", index)
 			}
 			ret = append(ret, sb)
 		}
@@ -833,7 +833,7 @@ func (s *SelfSigChainLink) DisplayCheck(ui IdentifyUI, lcr LinkCheckResult) {}
 
 func (s *SelfSigChainLink) CheckDataJson() *jsonw.Wrapper { return nil }
 
-func (s *SelfSigChainLink) ToTrackingStatement() (*jsonw.Wrapper, error) {
+func (s *SelfSigChainLink) ToTrackingStatement(keybase1.ProofState) (*jsonw.Wrapper, error) {
 	return nil, nil
 }
 
@@ -1164,12 +1164,4 @@ func (idt *IdentityTable) proofRemoteCheck(hasPreviousTrack bool, res *LinkCheck
 	}
 
 	return
-}
-
-func (idt *IdentityTable) MakeTrackSet() *TrackSet {
-	ret := NewTrackSet()
-	for _, ap := range idt.remoteProofLinks.Active() {
-		ret.Add(ap)
-	}
-	return ret
 }

@@ -2,6 +2,7 @@ package libkb
 
 import (
 	keybase1 "github.com/keybase/client/protocol/go"
+	jsonw "github.com/keybase/go-jsonw"
 )
 
 // RemoteProofLinks holds a set of RemoteProofChainLinks,
@@ -13,6 +14,11 @@ type RemoteProofLinks struct {
 type remoteLinkAndErr struct {
 	link RemoteProofChainLink
 	err  ProofError
+}
+
+type ProofLinkWithState struct {
+	link  RemoteProofChainLink
+	state keybase1.ProofState
 }
 
 // NewRemoteProofLinks creates a new empty collection of proof
@@ -60,6 +66,15 @@ func (r *RemoteProofLinks) Active() []RemoteProofChainLink {
 	return links
 }
 
+func (r *RemoteProofLinks) ActiveWithState() []ProofLinkWithState {
+	a := r.active()
+	links := make([]ProofLinkWithState, len(a))
+	for i, b := range a {
+		links[i] = ProofLinkWithState{link: b.link, state: ProofErrorToState(b.err)}
+	}
+	return links
+}
+
 // StateOKAndActive returns all the active proofs that are also
 // ProofState_OK.
 //
@@ -78,6 +93,26 @@ func (r *RemoteProofLinks) StateOKAndActive() []RemoteProofChainLink {
 		links = append(links, b.link)
 	}
 	return links
+}
+
+func (r *RemoteProofLinks) TrackingStatement() *jsonw.Wrapper {
+	var proofs []*jsonw.Wrapper
+	for _, x := range r.active() {
+		d, err := x.link.ToTrackingStatement(ProofErrorToState(x.err))
+		if err != nil {
+			G.Log.Warning("Problem with a proof: %s", err)
+			continue
+		}
+		if d != nil {
+			proofs = append(proofs, d)
+		}
+	}
+
+	res := jsonw.NewArray(len(proofs))
+	for i, proof := range proofs {
+		res.SetIndex(i, proof)
+	}
+	return res
 }
 
 func (r *RemoteProofLinks) active() []remoteLinkAndErr {
@@ -109,4 +144,20 @@ func (r *RemoteProofLinks) active() []remoteLinkAndErr {
 		}
 	}
 	return links
+}
+
+func (p ProofLinkWithState) GetProofState() keybase1.ProofState {
+	return p.state
+}
+
+func (p ProofLinkWithState) LastWriterWins() bool {
+	return p.link.LastWriterWins()
+}
+
+func (p ProofLinkWithState) ToIdString() string {
+	return p.link.ToIdString()
+}
+
+func (p ProofLinkWithState) ToKeyValuePair() (string, string) {
+	return p.link.ToKeyValuePair()
 }

@@ -108,7 +108,6 @@ type ChainLink struct {
 	packed      *jsonw.Wrapper
 	payloadJson *jsonw.Wrapper
 	unpacked    *ChainLinkUnpacked
-	lastChecked *CheckResult
 	cki         *ComputedKeyInfos
 
 	typed TypedChainLink
@@ -141,25 +140,8 @@ func (c *ChainLink) GetUID() keybase1.UID {
 	return c.unpacked.uid
 }
 
-func (c *ChainLink) MarkChecked(err ProofError) {
-	c.lastChecked = &CheckResult{
-		Status: err,
-		Time:   time.Now(),
-	}
-}
-
 func (c *ChainLink) GetPayloadJson() *jsonw.Wrapper {
 	return c.payloadJson
-}
-
-func (c *ChainLink) GetProofState0() keybase1.ProofState {
-	if c.lastChecked == nil {
-		return keybase1.ProofState_NONE
-	} else if c.lastChecked.Status == nil {
-		return keybase1.ProofState_OK
-	} else {
-		return keybase1.ProofState_TEMP_FAILURE
-	}
 }
 
 func (c *ChainLink) Pack() error {

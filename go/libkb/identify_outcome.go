@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	keybase1 "github.com/keybase/client/protocol/go"
+	jsonw "github.com/keybase/go-jsonw"
 )
 
 type IdentifyOutcome struct {
@@ -28,7 +29,7 @@ func NewIdentifyOutcome(m bool) *IdentifyOutcome {
 	}
 }
 
-func (i *IdentifyOutcome) ActiveProofs() RemoteProofList {
+func (i *IdentifyOutcome) ActiveProofs() []RemoteProofChainLink {
 	rpl := NewRemoteProofLinks()
 	for _, p := range i.ProofChecks {
 		rpl.Insert(p.link, p.err)
@@ -36,7 +37,7 @@ func (i *IdentifyOutcome) ActiveProofs() RemoteProofList {
 	return rpl.Active()
 }
 
-func (i *IdentifyOutcome) StateOKAndActiveProofs() RemoteProofList {
+func (i *IdentifyOutcome) StateOKAndActiveProofs() []RemoteProofChainLink {
 	rpl := NewRemoteProofLinks()
 	for _, p := range i.ProofChecks {
 		rpl.Insert(p.link, p.err)
@@ -46,7 +47,11 @@ func (i *IdentifyOutcome) StateOKAndActiveProofs() RemoteProofList {
 
 func (i *IdentifyOutcome) TrackSet() *TrackSet {
 	ret := NewTrackSet()
-	for _, ap := range i.ActiveProofs() {
+	rpl := NewRemoteProofLinks()
+	for _, p := range i.ProofChecks {
+		rpl.Insert(p.link, p.err)
+	}
+	for _, ap := range rpl.ActiveWithState() {
 		ret.Add(ap)
 	}
 	return ret
@@ -131,6 +136,14 @@ func (i IdentifyOutcome) NumTrackChanges() int {
 		}
 	}
 	return ntc
+}
+
+func (i IdentifyOutcome) TrackingStatement() *jsonw.Wrapper {
+	rpl := NewRemoteProofLinks()
+	for _, p := range i.ProofChecks {
+		rpl.Insert(p.link, p.err)
+	}
+	return rpl.TrackingStatement()
 }
 
 func (i IdentifyOutcome) GetErrorAndWarnings(strict bool) (err error, warnings Warnings) {
