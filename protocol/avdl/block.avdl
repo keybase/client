@@ -4,13 +4,13 @@ protocol block {
 	import idl "backend_common.avdl";
 
 	record GetBlockRes {
-		BlockKey skey;
+		string blockKey;
 		bytes buf;
 	}
 
 	void establishSession(string sid);
 
-	void putBlock(BlockIdCombo bid, string folder, BlockKey skey, bytes buf);
+	void putBlock(BlockIdCombo bid, string folder, string blockKey, bytes buf);
 	GetBlockRes getBlock(BlockIdCombo bid);
 
 	void incBlockReference(BlockIdCombo bid, string nonce, string folder, UID chargedTo);

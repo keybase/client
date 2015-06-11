@@ -186,26 +186,10 @@
     } ]
   }, {
     "type" : "record",
-    "name" : "BlockKey",
-    "fields" : [ {
-      "name" : "epochID",
-      "type" : "int"
-    }, {
-      "name" : "epochKey",
-      "type" : "string"
-    }, {
-      "name" : "randBlockId",
-      "type" : "string"
-    }, {
-      "name" : "blockKey",
-      "type" : "string"
-    } ]
-  }, {
-    "type" : "record",
     "name" : "GetBlockRes",
     "fields" : [ {
-      "name" : "skey",
-      "type" : "BlockKey"
+      "name" : "blockKey",
+      "type" : "string"
     }, {
       "name" : "buf",
       "type" : "bytes"
@@ -227,8 +211,8 @@
         "name" : "folder",
         "type" : "string"
       }, {
-        "name" : "skey",
-        "type" : "BlockKey"
+        "name" : "blockKey",
+        "type" : "string"
       }, {
         "name" : "buf",
         "type" : "bytes"

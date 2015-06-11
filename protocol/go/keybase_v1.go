@@ -83,16 +83,9 @@ type BlockIdCombo struct {
 	ChargedTo UID    `codec:"chargedTo" json:"chargedTo"`
 }
 
-type BlockKey struct {
-	EpochID     int    `codec:"epochID" json:"epochID"`
-	EpochKey    string `codec:"epochKey" json:"epochKey"`
-	RandBlockId string `codec:"randBlockId" json:"randBlockId"`
-	BlockKey    string `codec:"blockKey" json:"blockKey"`
-}
-
 type GetBlockRes struct {
-	Skey BlockKey `codec:"skey" json:"skey"`
-	Buf  []byte   `codec:"buf" json:"buf"`
+	BlockKey string `codec:"blockKey" json:"blockKey"`
+	Buf      []byte `codec:"buf" json:"buf"`
 }
 
 type EstablishSessionArg struct {
@@ -100,10 +93,10 @@ type EstablishSessionArg struct {
 }
 
 type PutBlockArg struct {
-	Bid    BlockIdCombo `codec:"bid" json:"bid"`
-	Folder string       `codec:"folder" json:"folder"`
-	Skey   BlockKey     `codec:"skey" json:"skey"`
-	Buf    []byte       `codec:"buf" json:"buf"`
+	Bid      BlockIdCombo `codec:"bid" json:"bid"`
+	Folder   string       `codec:"folder" json:"folder"`
+	BlockKey string       `codec:"blockKey" json:"blockKey"`
+	Buf      []byte       `codec:"buf" json:"buf"`
 }
 
 type GetBlockArg struct {

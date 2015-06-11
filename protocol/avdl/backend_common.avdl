@@ -9,13 +9,6 @@ protocol backendCommon {
 		UID chargedTo;
 	}
 
-	record BlockKey{
-		int epochID;
-		string epochKey;
-		string randBlockId;
-		string blockKey;
-	}
-
 }
 
 
