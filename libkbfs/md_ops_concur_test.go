@@ -47,14 +47,14 @@ func (m *MDOpsConcurTest) GetSince(id DirID, mdID MdID, max int) (
 	return nil, false, nil
 }
 
-func (m *MDOpsConcurTest) Put(id DirID, deviceID libkb.KID,
-	unmergedID MdID, md *RootMetadata) error {
+func (m *MDOpsConcurTest) Put(id DirID, md *RootMetadata, deviceID libkb.KID,
+	unmergedBase MdID) error {
 	md.SerializedPrivateMetadata = make([]byte, 1, 1)
 	return nil
 }
 
-func (m *MDOpsConcurTest) PutUnmerged(id DirID, deviceID libkb.KID,
-	rmd *RootMetadata) error {
+func (m *MDOpsConcurTest) PutUnmerged(id DirID, rmd *RootMetadata,
+	deviceID libkb.KID) error {
 	return nil
 }
 

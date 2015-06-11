@@ -133,7 +133,7 @@ func putMDForPrivateShare(config *ConfigMock, rmds *RootMetadataSigned,
 
 	rmds.MD.mdID = NullMdID
 	mdID := expectMdID(config)
-	config.mockMdserv.EXPECT().Put(id, nil, NullMdID, mdID, gomock.Any()).Return(nil)
+	config.mockMdserv.EXPECT().Put(id, mdID, gomock.Any(), nil, NullMdID).Return(nil)
 }
 
 func TestMDOpsGetAtHandlePublicSuccess(t *testing.T) {
@@ -497,7 +497,7 @@ func TestMDOpsPutPrivateSuccess(t *testing.T) {
 	id, _, rmds := newDir(config, 1, true, false)
 	putMDForPrivateShare(config, rmds, id)
 
-	if err := config.MDOps().Put(id, nil, NullMdID, &rmds.MD); err != nil {
+	if err := config.MDOps().Put(id, &rmds.MD, nil, NullMdID); err != nil {
 		t.Errorf("Got error on put: %v", err)
 	}
 }
@@ -517,7 +517,7 @@ func TestMDOpsPutFailEncode(t *testing.T) {
 	err := errors.New("Fake fail")
 	config.mockCodec.EXPECT().Encode(gomock.Any()).Return(nil, err)
 
-	if err2 := config.MDOps().Put(id, nil, NullMdID, rmd); err2 != err {
+	if err2 := config.MDOps().Put(id, rmd, nil, NullMdID); err2 != err {
 		t.Errorf("Got bad error on put: %v", err2)
 	}
 }

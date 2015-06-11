@@ -331,23 +331,23 @@ func (md *MDOpsStandard) readyMD(id DirID, rmd *RootMetadata) (
 }
 
 // Put implements the MDOps interface for MDOpsStandard.
-func (md *MDOpsStandard) Put(id DirID, deviceID libkb.KID, unmergedID MdID,
-	rmd *RootMetadata) error {
+func (md *MDOpsStandard) Put(id DirID, rmd *RootMetadata, deviceID libkb.KID,
+	unmergedBase MdID) error {
 	mdID, rmds, err := md.readyMD(id, rmd)
 	if err != nil {
 		return err
 	}
-	return md.config.MDServer().Put(id, deviceID, unmergedID, mdID, rmds)
+	return md.config.MDServer().Put(id, mdID, rmds, deviceID, unmergedBase)
 }
 
 // PutUnmerged implements the MDOps interface for MDOpsStandard.
-func (md *MDOpsStandard) PutUnmerged(id DirID, deviceID libkb.KID,
-	rmd *RootMetadata) error {
+func (md *MDOpsStandard) PutUnmerged(id DirID, rmd *RootMetadata,
+	deviceID libkb.KID) error {
 	mdID, rmds, err := md.readyMD(id, rmd)
 	if err != nil {
 		return err
 	}
-	return md.config.MDServer().PutUnmerged(id, deviceID, mdID, rmds)
+	return md.config.MDServer().PutUnmerged(id, mdID, rmds, deviceID)
 }
 
 // GetUnmergedSince implements the MDOps interface for MDOpsStandard.

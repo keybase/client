@@ -232,8 +232,8 @@ func (md *MDServerLocal) getUnmergedInfo(id DirID) (
 }
 
 // Put implements the MDServer interface for MDServerLocal.
-func (md *MDServerLocal) Put(id DirID, deviceID libkb.KID, unmergedID MdID,
-	mdID MdID, rmds *RootMetadataSigned) error {
+func (md *MDServerLocal) Put(id DirID, mdID MdID, rmds *RootMetadataSigned,
+	deviceID libkb.KID, unmergedBase MdID) error {
 	err := md.put(id, mdID, rmds, md.idDb, mdID[:])
 	if err != nil {
 		return err
@@ -260,11 +260,11 @@ func (md *MDServerLocal) Put(id DirID, deviceID libkb.KID, unmergedID MdID,
 		return fmt.Errorf("Missing unmerged info for device %v for folder %v",
 			deviceID, id)
 	}
-	if devInfo.Head == unmergedID {
+	if devInfo.Head == unmergedBase {
 		// deleting the whole history
 		delete(u.Devices, devKey)
 	} else {
-		devInfo.Base = unmergedID
+		devInfo.Base = unmergedBase
 		// at this point, the earliest link in the unmerged chain will
 		// no longer point to a valid MdID (because the one it points
 		// to got fixed up in the merge and removed from the unmerged
@@ -281,8 +281,8 @@ func (md *MDServerLocal) Put(id DirID, deviceID libkb.KID, unmergedID MdID,
 }
 
 // PutUnmerged implements the MDServer interface for MDServerLocal.
-func (md *MDServerLocal) PutUnmerged(id DirID, deviceID libkb.KID,
-	mdID MdID, rmds *RootMetadataSigned) error {
+func (md *MDServerLocal) PutUnmerged(id DirID, mdID MdID,
+	rmds *RootMetadataSigned, deviceID libkb.KID) error {
 	// First update the per-device unmerged info
 	exists, u, err := md.getUnmergedInfo(id)
 	if err != nil {

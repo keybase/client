@@ -1011,8 +1011,8 @@ func (_mr *_MockMDOpsRecorder) Get(arg0 interface{}) *gomock.Call {
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "Get", arg0)
 }
 
-func (_m *MockMDOps) Put(id DirID, deviceID libkb.KID, unmergedID MdID, md *RootMetadata) error {
-	ret := _m.ctrl.Call(_m, "Put", id, deviceID, unmergedID, md)
+func (_m *MockMDOps) Put(id DirID, rmd *RootMetadata, deviceID libkb.KID, unmergedBase MdID) error {
+	ret := _m.ctrl.Call(_m, "Put", id, rmd, deviceID, unmergedBase)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
@@ -1033,8 +1033,8 @@ func (_mr *_MockMDOpsRecorder) GetSince(arg0, arg1, arg2 interface{}) *gomock.Ca
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "GetSince", arg0, arg1, arg2)
 }
 
-func (_m *MockMDOps) PutUnmerged(id DirID, deviceID libkb.KID, rmd *RootMetadata) error {
-	ret := _m.ctrl.Call(_m, "PutUnmerged", id, deviceID, rmd)
+func (_m *MockMDOps) PutUnmerged(id DirID, rmd *RootMetadata, deviceID libkb.KID) error {
+	ret := _m.ctrl.Call(_m, "PutUnmerged", id, rmd, deviceID)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
@@ -1249,8 +1249,8 @@ func (_mr *_MockMDServerRecorder) GetSince(arg0, arg1, arg2 interface{}) *gomock
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "GetSince", arg0, arg1, arg2)
 }
 
-func (_m *MockMDServer) Put(id DirID, deviceID libkb.KID, unmergedID MdID, mdID MdID, md *RootMetadataSigned) error {
-	ret := _m.ctrl.Call(_m, "Put", id, deviceID, unmergedID, mdID, md)
+func (_m *MockMDServer) Put(id DirID, mdID MdID, rmds *RootMetadataSigned, deviceID libkb.KID, unmergedBase MdID) error {
+	ret := _m.ctrl.Call(_m, "Put", id, mdID, rmds, deviceID, unmergedBase)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
@@ -1259,8 +1259,8 @@ func (_mr *_MockMDServerRecorder) Put(arg0, arg1, arg2, arg3, arg4 interface{}) 
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "Put", arg0, arg1, arg2, arg3, arg4)
 }
 
-func (_m *MockMDServer) PutUnmerged(id DirID, deviceID libkb.KID, mdID MdID, rmds *RootMetadataSigned) error {
-	ret := _m.ctrl.Call(_m, "PutUnmerged", id, deviceID, mdID, rmds)
+func (_m *MockMDServer) PutUnmerged(id DirID, mdID MdID, rmds *RootMetadataSigned, deviceID libkb.KID) error {
+	ret := _m.ctrl.Call(_m, "PutUnmerged", id, mdID, rmds, deviceID)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
