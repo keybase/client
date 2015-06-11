@@ -92,7 +92,7 @@ func (fs *KBFSOpsStandard) getMDInChannel(dir Path, rtype reqType) (
 
 	// not in cache, fetch from server and add to cache
 	mdops := fs.config.MDOps()
-	md, err := mdops.Get(dir.TopDir)
+	md, err := mdops.GetTLF(dir.TopDir)
 	if err != nil {
 		return nil, err
 	}

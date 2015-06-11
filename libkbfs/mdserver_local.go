@@ -100,7 +100,7 @@ func (md *MDServerLocal) GetAtHandle(handle *DirHandle) (
 	var id DirID
 	if err != leveldb.ErrNotFound {
 		copy(id[:], buf[:len(id)])
-		return md.Get(id)
+		return md.GetTLF(id)
 	}
 
 	// Make a new one.
@@ -126,19 +126,19 @@ func (md *MDServerLocal) GetAtHandle(handle *DirHandle) (
 	return &RootMetadataSigned{MD: *rmd}, nil
 }
 
-// Get implements the MDServer interface for MDServerLocal.
-func (md *MDServerLocal) Get(id DirID) (*RootMetadataSigned, error) {
+// GetTLF implements the MDServer interface for MDServerLocal.
+func (md *MDServerLocal) GetTLF(id DirID) (*RootMetadataSigned, error) {
 	buf, err := md.idDb.Get(id[:], nil)
 	var mdID MdID
 	if err != leveldb.ErrNotFound {
 		copy(mdID[:], buf[:len(mdID)])
-		return md.GetAtID(id, mdID)
+		return md.Get(mdID)
 	}
 	return nil, err
 }
 
-// GetAtID implements the MDServer interface for MDServerLocal.
-func (md *MDServerLocal) GetAtID(id DirID, mdID MdID) (
+// Get implements the MDServer interface for MDServerLocal.
+func (md *MDServerLocal) Get(mdID MdID) (
 	*RootMetadataSigned, error) {
 	buf, err := md.mdDb.Get(mdID[:], nil)
 	if err != nil {
@@ -154,7 +154,7 @@ func (md *MDServerLocal) GetAtID(id DirID, mdID MdID) (
 func (md *MDServerLocal) getRange(id DirID, start MdID, end MdID, max int) (
 	[]*RootMetadataSigned, bool, error) {
 	// Make sure start exists in the db first
-	if _, err := md.GetAtID(id, start); err != nil {
+	if _, err := md.Get(start); err != nil {
 		return nil, false, err
 	}
 
@@ -165,14 +165,14 @@ func (md *MDServerLocal) getRange(id DirID, start MdID, end MdID, max int) (
 	// Without backpointers, let's do the dumb thing and go forwards
 	// from 'end' until we find 'start'.
 	var sinceRmds []*RootMetadataSigned
-	rmds, err := md.GetAtID(id, end)
+	rmds, err := md.Get(end)
 	if err != nil {
 		return nil, false, err
 	}
 	for rmds.MD.PrevRoot != start {
 		// prepend the new item, so that the order increases over time
 		sinceRmds = append([]*RootMetadataSigned{rmds}, sinceRmds...)
-		rmds, err = md.GetAtID(id, rmds.MD.PrevRoot)
+		rmds, err = md.Get(rmds.MD.PrevRoot)
 		if err != nil {
 			return nil, false, err
 		}
@@ -186,7 +186,7 @@ func (md *MDServerLocal) getRange(id DirID, start MdID, end MdID, max int) (
 // GetSince implements the MDServer interface for MDServerLocal.
 func (md *MDServerLocal) GetSince(id DirID, mdID MdID, max int) (
 	[]*RootMetadataSigned, bool, error) {
-	rmds, err := md.Get(id)
+	rmds, err := md.GetTLF(id)
 	if err != nil {
 		return nil, false, err
 	}

@@ -266,7 +266,7 @@ func TestKBFSOpsGetRootPathCreateNewSuccess(t *testing.T) {
 	rmd := newRootMetadataForTest(h, id)
 
 	// create a new MD
-	config.mockMdops.EXPECT().Get(id).Return(rmd, nil)
+	config.mockMdops.EXPECT().GetTLF(id).Return(rmd, nil)
 	// now KBFS will fill it in:
 	rootPtr, plainSize, readyBlockData := fillInNewMD(config, rmd)
 	// now cache and put everything
@@ -314,7 +314,7 @@ func TestKBFSOpsGetRootMDCreateNewFailNonWriter(t *testing.T) {
 	// in reality, createNewMD should fail early because the MD server
 	// will refuse to create the new MD for this user.  But for this test,
 	// we won't bother
-	config.mockMdops.EXPECT().Get(id).Return(rmd, nil)
+	config.mockMdops.EXPECT().GetTLF(id).Return(rmd, nil)
 	// try to get the MD for writing, but fail (no puts should happen)
 	config.mockKbpki.EXPECT().GetLoggedInUser().AnyTimes().Return(userID, nil)
 	expectedErr := &WriteAccessError{

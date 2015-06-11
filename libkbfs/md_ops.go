@@ -147,9 +147,9 @@ func (md *MDOpsStandard) processMetadataWithID(
 	return md.processMetadata(rmds.MD.GetDirHandle(), rmds)
 }
 
-// Get implements the MDOps interface for MDOpsStandard.
-func (md *MDOpsStandard) Get(id DirID) (*RootMetadata, error) {
-	rmds, err := md.config.MDServer().Get(id)
+// GetTLF implements the MDOps interface for MDOpsStandard.
+func (md *MDOpsStandard) GetTLF(id DirID) (*RootMetadata, error) {
+	rmds, err := md.config.MDServer().GetTLF(id)
 	if err != nil {
 		return nil, err
 	}
@@ -160,15 +160,15 @@ func (md *MDOpsStandard) Get(id DirID) (*RootMetadata, error) {
 	return &rmds.MD, nil
 }
 
-// GetAtID implements the MDOps interface for MDOpsStandard.
-func (md *MDOpsStandard) GetAtID(id DirID, mdID MdID) (
+// Get implements the MDOps interface for MDOpsStandard.
+func (md *MDOpsStandard) Get(mdID MdID) (
 	*RootMetadata, error) {
 	// TODO: implement a cache for non-current MD
-	rmds, err := md.config.MDServer().GetAtID(id, mdID)
+	rmds, err := md.config.MDServer().Get(mdID)
 	if err != nil {
 		return nil, err
 	}
-	err = md.processMetadataWithID(id, rmds)
+	err = md.processMetadata(rmds.MD.GetDirHandle(), rmds)
 	if err != nil {
 		return nil, err
 	}

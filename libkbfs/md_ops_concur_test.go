@@ -26,11 +26,11 @@ func (m *MDOpsConcurTest) GetAtHandle(handle *DirHandle) (
 	return nil, fmt.Errorf("Not supported")
 }
 
-func (m *MDOpsConcurTest) Get(id DirID) (*RootMetadata, error) {
+func (m *MDOpsConcurTest) GetTLF(id DirID) (*RootMetadata, error) {
 	_, ok := <-m.enter
 	if !ok {
 		// Only one caller should ever get here
-		return nil, fmt.Errorf("More than one caller to Get()!")
+		return nil, fmt.Errorf("More than one caller to GetTLF()!")
 	}
 	<-m.start
 	dh := NewDirHandle()
@@ -38,7 +38,7 @@ func (m *MDOpsConcurTest) Get(id DirID) (*RootMetadata, error) {
 	return NewRootMetadata(dh, id), nil
 }
 
-func (m *MDOpsConcurTest) GetAtID(id DirID, mdID MdID) (*RootMetadata, error) {
+func (m *MDOpsConcurTest) Get(mdID MdID) (*RootMetadata, error) {
 	return nil, fmt.Errorf("Not supported")
 }
 

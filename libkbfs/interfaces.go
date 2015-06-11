@@ -377,15 +377,14 @@ type MDOps interface {
 	// one doesn't exist yet, and the logged-in user has write
 	// permissions to the top-level folder.
 	GetAtHandle(handle *DirHandle) (*RootMetadata, error)
-	// Get returns the current metadata object corresponding to the
+	// GetTLF returns the current metadata object corresponding to the
 	// given top-level folder, if the logged-in user has read
 	// permission on the folder.
-	Get(id DirID) (*RootMetadata, error)
-	// GetAtID returns the metadata object corresponding to the given
-	// top-level folder's handle, which matches the provided MD ID, if
-	// one exists and the logged-in user has read permissions on the
-	// folder.
-	GetAtID(id DirID, mdID MdID) (*RootMetadata, error)
+	GetTLF(id DirID) (*RootMetadata, error)
+	// Get returns the metadata object corresponding that matches the
+	// provided MD ID, if one exists and the logged-in user has read
+	// permissions on the corresponding top-level folder.
+	Get(mdID MdID) (*RootMetadata, error)
 	// Put stores the given metadata object for the top-level folder
 	// on the server, if the logged-in user has write permission on
 	// the folder.  If deviceID is non-nil, and the corresponding
@@ -480,15 +479,14 @@ type MDServer interface {
 	// creates the folder if one doesn't exist yet, and the logged-in
 	// user has permission to do so.
 	GetAtHandle(handle *DirHandle) (*RootMetadataSigned, error)
-	// Get returns the current (signed/encrypted) metadata object
+	// GetTLF returns the current (signed/encrypted) metadata object
 	// corresponding to the given top-level folder, if the logged-in
 	// user has read permission on the folder.
-	Get(id DirID) (*RootMetadataSigned, error)
-	// GetAtID returns the (signed/encrypted) metadata object
-	// corresponding to the given top-level folder's handle, which
-	// matches the provided MD ID, if one exists and the logged-in
-	// user has read permission on the folder.
-	GetAtID(id DirID, mdID MdID) (*RootMetadataSigned, error)
+	GetTLF(id DirID) (*RootMetadataSigned, error)
+	// Get returns the (signed/encrypted) metadata object that matches
+	// the provided MD ID, if one exists and the logged-in user has
+	// read permission on the corresponding top-level folder.
+	Get(mdID MdID) (*RootMetadataSigned, error)
 	// GetSince returns all the MD objects that have been committed
 	// since (not including) the stated mdID, up to a client-imposed
 	// maximum.  The server may return fewer, and should also indicate
