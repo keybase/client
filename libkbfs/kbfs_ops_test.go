@@ -41,9 +41,10 @@ func (cbo *CheckBlockOps) Ready(block Block, cryptKey BlockCryptKey) (
 	return
 }
 
-func (cbo *CheckBlockOps) Put(id BlockID, context BlockContext, buf []byte,
-	serverHalf BlockCryptKeyServerHalf) error {
-	if err := cbo.delegate.Put(id, context, buf, serverHalf); err != nil {
+func (cbo *CheckBlockOps) Put(id BlockID, tlfID DirID, context BlockContext,
+	buf []byte, serverHalf BlockCryptKeyServerHalf) error {
+	if err := cbo.delegate.Put(id, tlfID, context, buf,
+		serverHalf); err != nil {
 		return err
 	}
 	if context.GetQuotaSize() != uint32(len(buf)) {
@@ -253,7 +254,7 @@ func TestKBFSOpsGetRootPathCreateNewSuccess(t *testing.T) {
 	// now KBFS will fill it in:
 	rootID, plainSize, block := fillInNewMD(config, rmd)
 	// now cache and put everything
-	config.mockBops.EXPECT().Put(rootID, gomock.Any(), block, gomock.Any()).
+	config.mockBops.EXPECT().Put(rootID, id, gomock.Any(), block, gomock.Any()).
 		Return(nil)
 	config.mockBcache.EXPECT().Put(rootID, gomock.Any(), false).Return(nil)
 	config.mockMdops.EXPECT().Put(id, rmd).Return(nil)
@@ -568,8 +569,8 @@ func expectSyncBlock(
 		lastCall = call
 		newPath.Path[i].ID = newID
 		index := i
-		config.mockBops.EXPECT().Put(newID, gomock.Any(), newBuf, gomock.Any()).
-			Return(nil)
+		config.mockBops.EXPECT().Put(newID, rmd.ID, gomock.Any(), newBuf,
+			gomock.Any()).Return(nil)
 		// Hard to know whether the block will be finalized or just
 		// put into the cache.  Allow either one.  I don't think
 		// gomock lets us check that exactly one of them will happen.
@@ -2501,8 +2502,8 @@ func expectSyncDirtyBlock(config *ConfigMock, id BlockID, block *FileBlock,
 	c2 := config.mockBops.EXPECT().Ready(block, BlockCryptKey{}).
 		After(c1).Return(newID, len(block.Contents), newEncBuf, nil)
 	config.mockBcache.EXPECT().Finalize(id, newID).After(c2).Return(nil)
-	config.mockBops.EXPECT().Put(newID, gomock.Any(), newEncBuf, gomock.Any()).
-		Return(nil)
+	config.mockBops.EXPECT().Put(newID, gomock.Any(), gomock.Any(), newEncBuf,
+		gomock.Any()).Return(nil)
 	return c2
 }
 
@@ -2938,7 +2939,7 @@ func TestSyncDirtyWithBlockChangePointerSuccess(t *testing.T) {
 	config.mockCrypto.EXPECT().UnmaskBlockCryptKey(BlockCryptKeyServerHalf{}, TLFCryptKey{}).Return(BlockCryptKey{}, nil)
 	lastCall = config.mockBops.EXPECT().Ready(gomock.Any(), BlockCryptKey{}).Return(
 		refBlockID, refPlainSize, refBuf, nil).After(lastCall)
-	config.mockBops.EXPECT().Put(refBlockID, gomock.Any(), refBuf,
+	config.mockBops.EXPECT().Put(refBlockID, id, gomock.Any(), refBuf,
 		gomock.Any()).Return(nil)
 	config.mockBcache.EXPECT().Put(refBlockID, gomock.Any(), false).Return(nil)
 
@@ -2949,7 +2950,7 @@ func TestSyncDirtyWithBlockChangePointerSuccess(t *testing.T) {
 	config.mockCrypto.EXPECT().UnmaskBlockCryptKey(BlockCryptKeyServerHalf{}, TLFCryptKey{}).Return(BlockCryptKey{}, nil)
 	lastCall = config.mockBops.EXPECT().Ready(gomock.Any(), BlockCryptKey{}).Return(
 		unrefBlockID, unrefPlainSize, unrefBuf, nil).After(lastCall)
-	config.mockBops.EXPECT().Put(unrefBlockID, gomock.Any(), unrefBuf,
+	config.mockBops.EXPECT().Put(unrefBlockID, id, gomock.Any(), unrefBuf,
 		gomock.Any()).Return(nil)
 	config.mockBcache.EXPECT().Put(unrefBlockID, gomock.Any(), false).
 		Return(nil)

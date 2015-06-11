@@ -1088,14 +1088,14 @@ func (_mr *_MockBlockOpsRecorder) Ready(arg0, arg1 interface{}) *gomock.Call {
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "Ready", arg0, arg1)
 }
 
-func (_m *MockBlockOps) Put(id BlockID, context BlockContext, buf []byte, serverHalf BlockCryptKeyServerHalf) error {
-	ret := _m.ctrl.Call(_m, "Put", id, context, buf, serverHalf)
+func (_m *MockBlockOps) Put(id BlockID, tlfID DirID, context BlockContext, buf []byte, serverHalf BlockCryptKeyServerHalf) error {
+	ret := _m.ctrl.Call(_m, "Put", id, tlfID, context, buf, serverHalf)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
-func (_mr *_MockBlockOpsRecorder) Put(arg0, arg1, arg2, arg3 interface{}) *gomock.Call {
-	return _mr.mock.ctrl.RecordCall(_mr.mock, "Put", arg0, arg1, arg2, arg3)
+func (_mr *_MockBlockOpsRecorder) Put(arg0, arg1, arg2, arg3, arg4 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "Put", arg0, arg1, arg2, arg3, arg4)
 }
 
 func (_m *MockBlockOps) Delete(id BlockID, context BlockContext) error {
@@ -1216,14 +1216,14 @@ func (_mr *_MockBlockServerRecorder) Get(arg0, arg1 interface{}) *gomock.Call {
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "Get", arg0, arg1)
 }
 
-func (_m *MockBlockServer) Put(id BlockID, context BlockContext, buf []byte, serverHalf BlockCryptKeyServerHalf) error {
-	ret := _m.ctrl.Call(_m, "Put", id, context, buf, serverHalf)
+func (_m *MockBlockServer) Put(id BlockID, tlfID DirID, context BlockContext, buf []byte, serverHalf BlockCryptKeyServerHalf) error {
+	ret := _m.ctrl.Call(_m, "Put", id, tlfID, context, buf, serverHalf)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
-func (_mr *_MockBlockServerRecorder) Put(arg0, arg1, arg2, arg3 interface{}) *gomock.Call {
-	return _mr.mock.ctrl.RecordCall(_mr.mock, "Put", arg0, arg1, arg2, arg3)
+func (_mr *_MockBlockServerRecorder) Put(arg0, arg1, arg2, arg3, arg4 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "Put", arg0, arg1, arg2, arg3, arg4)
 }
 
 func (_m *MockBlockServer) Delete(id BlockID, context BlockContext) error {

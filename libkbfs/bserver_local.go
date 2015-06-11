@@ -68,8 +68,8 @@ func (b *BlockServerLocal) Get(
 }
 
 // Put implements the BlockServer interface for BlockServerLocal
-func (b *BlockServerLocal) Put(id BlockID, context BlockContext, buf []byte,
-	serverHalf BlockCryptKeyServerHalf) error {
+func (b *BlockServerLocal) Put(id BlockID, tlfID DirID, context BlockContext,
+	buf []byte, serverHalf BlockCryptKeyServerHalf) error {
 	entry := blockEntry{BlockData: buf, KeyServerHalf: serverHalf}
 	entryBuf, err := b.config.Codec().Encode(entry)
 	if err != nil {

@@ -180,7 +180,7 @@ func (b *BlockServerRemote) Get(id BlockID, context BlockContext) (
 
 // Put implements the BlockServer interface for BlockServerRemote.
 // TODO: store the server-half of the block key
-func (b *BlockServerRemote) Put(id BlockID, context BlockContext,
+func (b *BlockServerRemote) Put(id BlockID, tlfID DirID, context BlockContext,
 	buf []byte, serverHalf BlockCryptKeyServerHalf) error {
 	if !b.connected {
 		if err := b.WaitForReconnect(); err != nil {
@@ -194,7 +194,7 @@ func (b *BlockServerRemote) Put(id BlockID, context BlockContext,
 			Size:      int(context.GetQuotaSize()),
 		},
 		BlockKey: hex.EncodeToString(serverHalf.ServerHalf[:]),
-		Folder:   "", //XXX: strib needs to tell me what folder this block belongs
+		Folder:   "", // TODO: convert tlfID to the appropriate type
 		Buf:      buf,
 	}
 	err := b.clt.PutBlock(arg)

@@ -228,7 +228,8 @@ func (fs *KBFSOpsStandard) initMDInChannel(md *RootMetadata) error {
 		return NewWriteAccessError(fs.config, md.GetDirHandle(), user)
 	}
 
-	if err = fs.config.BlockOps().Put(id, &md.data.Dir, buf, key); err != nil {
+	if err = fs.config.BlockOps().Put(id, md.ID, &md.data.Dir,
+		buf, key); err != nil {
 		return err
 	}
 	if err = fs.config.BlockCache().Put(id, newDblock, false); err != nil {
@@ -729,7 +730,7 @@ func (fs *KBFSOpsStandard) syncBlockInChannel(md *RootMetadata,
 		buf := bps.bufs[i]
 		ctxt := bps.contexts[i]
 		key := bps.keys[i]
-		if err = bops.Put(id, ctxt, buf, key); err != nil {
+		if err = bops.Put(id, md.ID, ctxt, buf, key); err != nil {
 			return Path{}, DirEntry{}, err
 		}
 		if oldID, ok := bps.oldIDs[id]; ok && bcache.IsDirty(oldID) {
@@ -1765,7 +1766,8 @@ func (fs *KBFSOpsStandard) syncInChannel(file Path) (Path, error) {
 				fblock.IPtrs[i].ID = id
 				fblock.IPtrs[i].Writer = user
 				md.AddRefBlock(file, fblock.IPtrs[i].BlockPointer)
-				if err := bops.Put(id, &fblock.IPtrs[i], buf, key); err != nil {
+				if err := bops.Put(id, md.ID, &fblock.IPtrs[i],
+					buf, key); err != nil {
 					return Path{}, err
 				}
 			}

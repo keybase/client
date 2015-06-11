@@ -236,9 +236,10 @@ func TestBlockOpsPutSuccess(t *testing.T) {
 	encData := []byte{1, 2, 3, 4}
 	ctxt := makeContext(encData)
 	k := BlockCryptKeyServerHalf{}
-	config.mockBserv.EXPECT().Put(id, ctxt, encData, k).Return(nil)
+	tlfID := DirID{2}
+	config.mockBserv.EXPECT().Put(id, tlfID, ctxt, encData, k).Return(nil)
 
-	if err := config.BlockOps().Put(id, ctxt, encData, k); err != nil {
+	if err := config.BlockOps().Put(id, tlfID, ctxt, encData, k); err != nil {
 		t.Errorf("Got error on put: %v", err)
 	}
 }
@@ -252,7 +253,8 @@ func TestBlockOpsPutFailInconsistentByteCountError(t *testing.T) {
 	encData := []byte{1, 2, 3, 4}
 	ctxt := makeContext(encData[:3])
 	k := BlockCryptKeyServerHalf{}
-	err := config.BlockOps().Put(id, ctxt, encData, k)
+	tlfID := DirID{2}
+	err := config.BlockOps().Put(id, tlfID, ctxt, encData, k)
 	if _, ok := err.(*InconsistentByteCountError); !ok {
 		t.Errorf("Unexpectedly did not get InconsistentByteCountError;"+
 			" instead got %v", err)
@@ -269,9 +271,10 @@ func TestBlockOpsPutFail(t *testing.T) {
 	ctxt := makeContext(encData)
 	err := errors.New("Fake fail")
 	k := BlockCryptKeyServerHalf{}
-	config.mockBserv.EXPECT().Put(id, ctxt, encData, k).Return(err)
+	tlfID := DirID{2}
+	config.mockBserv.EXPECT().Put(id, tlfID, ctxt, encData, k).Return(err)
 
-	if err2 := config.BlockOps().Put(id, ctxt, encData, k); err2 != err {
+	if err2 := config.BlockOps().Put(id, tlfID, ctxt, encData, k); err2 != err {
 		t.Errorf("Got bad error on put: %v", err2)
 	}
 }

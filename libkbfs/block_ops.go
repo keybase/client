@@ -80,8 +80,8 @@ func (b *BlockOpsStandard) Ready(
 }
 
 // Put implements the BlockOps interface for BlockOpsStandard.
-func (b *BlockOpsStandard) Put(id BlockID, context BlockContext, buf []byte,
-	serverHalf BlockCryptKeyServerHalf) (err error) {
+func (b *BlockOpsStandard) Put(id BlockID, tlfID DirID, context BlockContext,
+	buf []byte, serverHalf BlockCryptKeyServerHalf) (err error) {
 	if context.GetQuotaSize() != uint32(len(buf)) {
 		err = &InconsistentByteCountError{
 			ExpectedByteCount: int(context.GetQuotaSize()),
@@ -90,7 +90,7 @@ func (b *BlockOpsStandard) Put(id BlockID, context BlockContext, buf []byte,
 		return
 	}
 	bserv := b.config.BlockServer()
-	err = bserv.Put(id, context, buf, serverHalf)
+	err = bserv.Put(id, tlfID, context, buf, serverHalf)
 	return
 }
 

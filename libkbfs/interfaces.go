@@ -416,7 +416,7 @@ type BlockOps interface {
 		id BlockID, plainSize int, buf []byte, err error)
 	// Put stores the (encrypted) block data under the given ID and
 	// context on the server, along with the server half of the block key.
-	Put(id BlockID, context BlockContext, buf []byte,
+	Put(id BlockID, tlfID DirID, context BlockContext, buf []byte,
 		serverHalf BlockCryptKeyServerHalf) error
 	// Delete instructs the server to delete the block data associated
 	// with the given ID and context.
@@ -474,7 +474,7 @@ type BlockServer interface {
 	// Put stores the (encrypted) block data under the given ID and
 	// context on the server, along with the server half of the block
 	// key.
-	Put(id BlockID, context BlockContext, buf []byte,
+	Put(id BlockID, tlfID DirID, context BlockContext, buf []byte,
 		serverHalf BlockCryptKeyServerHalf) error
 	// Delete instructs the server to delete the block data
 	// associated with the given ID. No error is returned if no
