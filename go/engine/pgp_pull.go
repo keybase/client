@@ -48,8 +48,8 @@ func (e *PGPPullEngine) SubConsumers() []libkb.UIConsumer {
 func proofSetFromUserSummary(summary keybase1.UserSummary) *libkb.ProofSet {
 	// TODO: This logic is kind of duplicated from User.ToOkProofSet(). Clean that up?
 	proofs := []libkb.Proof{
-		libkb.Proof{Key: "keybase", Value: summary.Username},
-		libkb.Proof{Key: "uid", Value: summary.Uid.String()},
+		{Key: "keybase", Value: summary.Username},
+		{Key: "uid", Value: summary.Uid.String()},
 	}
 	for _, socialProof := range summary.Proofs.Social {
 		proofs = append(proofs, libkb.Proof{

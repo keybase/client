@@ -1,7 +1,5 @@
 package libkb
 
-import ()
-
 // SpecialKeyRing holds blessed keys, like the one Keybase uses to sign
 // its Merkle Root.
 type SpecialKeyRing struct {

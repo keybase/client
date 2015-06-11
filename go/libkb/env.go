@@ -334,23 +334,23 @@ func (e *Env) GetAutoFork() bool {
 	def := (runtime.GOOS != "darwin")
 	return e.GetNegBool(def,
 		[]NegBoolFunc{
-			NegBoolFunc{
+			{
 				neg: false,
 				f:   func() (bool, bool) { return e.cmd.GetAutoFork() },
 			},
-			NegBoolFunc{
+			{
 				neg: true,
 				f:   func() (bool, bool) { return e.cmd.GetNoAutoFork() },
 			},
-			NegBoolFunc{
+			{
 				neg: false,
 				f:   func() (bool, bool) { return e.getEnvBool("KEYBASE_AUTO_FORK") },
 			},
-			NegBoolFunc{
+			{
 				neg: true,
 				f:   func() (bool, bool) { return e.getEnvBool("KEYBASE_NO_AUTO_FORK") },
 			},
-			NegBoolFunc{
+			{
 				neg: false,
 				f:   func() (bool, bool) { return e.config.GetAutoFork() },
 			},
