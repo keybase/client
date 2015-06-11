@@ -11,6 +11,7 @@
 #import "KBHeaderLabelView.h"
 #import "KBFormatter.h"
 #import "KBKitDefines.h"
+#import "KBNotifications.h"
 
 @interface KBKeyView ()
 @property YOVBox *labels;

@@ -8,17 +8,37 @@
 
 #import "AppDelegate.h"
 
+#import <KBKit/KBNotifications.h>
+#import <KBKit/KBWorkspace.h>
+
 #import <Sparkle/Sparkle.h>
 #import <CocoaLumberjack/CocoaLumberjack.h>
 
 @interface AppDelegate ()
 @property KBApp *app;
+@property NSStatusItem *statusItem;
 @end
 
 @implementation AppDelegate
 
 - (void)applicationDidFinishLaunching:(NSNotification *)notification {
   _app = [[KBApp alloc] init];
+  _appActions.app = _app;
+
+  _statusItem = [[NSStatusBar systemStatusBar] statusItemWithLength:NSVariableStatusItemLength];
+  //_statusItem.title = @"Keybase";
+#ifdef DEBUG
+  _statusItem.image = [NSImage imageNamed:@"StatusIconDev"];
+#else
+  _statusItem.image = [NSImage imageNamed:@"StatusIconBW"];
+#endif
+  //_statusItem.alternateImage = [NSImage imageNamed:@""]; // Highlighted
+  _statusItem.highlightMode = YES; // Blue background when selected
+
+  [self updateMenu];
+
+  [NSNotificationCenter.defaultCenter addObserver:self selector:@selector(statusChanged:) name:KBStatusDidChangeNotification object:nil];
+
   [_app open];
 }
 
@@ -31,12 +51,59 @@
 }
 
 + (instancetype)sharedDelegate {
-  return (AppDelegate *)[[NSApplication sharedApplication] delegate];
+  return (AppDelegate *)[NSApp delegate];
 }
 
 - (BOOL)setError:(NSError *)error sender:(NSView *)sender {
   return [_app setError:error sender:sender];
 }
+
+- (void)updateMenu {
+  _statusItem.menu = [self loadMenu];
+}
+
+- (void)statusChanged:(NSNotification *)notification {
+  [self updateMenu];
+}
+
+- (NSMenu *)loadMenu {
+  NSMenu *menu = [[NSMenu alloc] init];
+
+  [menu addItemWithTitle:@"Preferences" action:@selector(preferences:) keyEquivalent:@""];
+
+  KBRGetCurrentStatusRes *status = self.app.service.userStatus;
+  if (status) {
+    if (status.loggedIn && status.user) {
+      [menu addItemWithTitle:NSStringWithFormat(@"Log Out (%@)", status.user.username) action:@selector(logout:) keyEquivalent:@""];
+      [menu addItem:[NSMenuItem separatorItem]];
+    } else {
+      [menu addItemWithTitle:@"Log In" action:@selector(login:) keyEquivalent:@""];
+      [menu addItem:[NSMenuItem separatorItem]];
+    }
+  }
+
+  [menu addItem:[NSMenuItem separatorItem]];
+  [menu addItemWithTitle:@"Quit" action:@selector(quit:) keyEquivalent:@""];
+  return menu;
+}
+
+- (IBAction)preferences:(id)sender {
+  [self.app.preferences open:self.app.service.userConfig.configPath userDefaults:[KBWorkspace userDefaults] sender:self.app.appView];
+}
+
+- (IBAction)login:(id)sender {
+  [self.app.appView showLogin];
+}
+
+- (IBAction)logout:(id)sender {
+  [self.app.appView logout:YES];
+}
+
+- (IBAction)quit:(id)sender {
+  [self.app quitWithPrompt:YES sender:sender];
+}
+
+#pragma mark Preferences
 
 - (id)preferencesValueForIdentifier:(NSString *)identifier {
   if ([identifier isEqualTo:@"Preferences.Sparkle.AutoUpdate"]) {

@@ -11,10 +11,6 @@
 
 #import "KBFormatter.h"
 
-NSString *const KBTrackingListDidChangeNotification = @"KBTrackingListDidChangeNotification";
-NSString *const KBUserDidChangeNotification = @"KBUserDidChangeNotification";
-NSString *const KBStatusDidChangeNotification = @"KBStatusDidChangeNotification";
-
 NSString *KBDescriptionForKID(NSData *kid) {
   if (!kid) return nil;
   if ([kid length] < 16) return [KBHexString(kid, @"") uppercaseString];

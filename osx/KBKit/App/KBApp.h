@@ -9,6 +9,10 @@
 #import <Foundation/Foundation.h>
 #import <AppKit/AppKit.h>
 
+#import "KBService.h"
+#import "KBAppView.h"
+#import "KBPreferences.h"
+
 @class KBApp;
 
 @protocol KBAppDelegate <NSApplicationDelegate>
@@ -20,14 +24,17 @@
 
 @interface KBApp : NSObject
 
+@property (readonly) KBAppView *appView;
+@property (readonly) KBPreferences *preferences;
+
 // App instance if present as a property of the NSApplicationDelegate
 + (instancetype)app;
 
 - (void)open;
 
-- (IBAction)preferences:(id)sender;
-- (IBAction)quit:(id)sender;
-- (IBAction)logout:(id)sender;
+- (NSWindow *)mainWindow;
+
+- (KBService *)service;
 
 - (void)quitWithPrompt:(BOOL)prompt sender:(id)sender;
 
@@ -36,5 +43,7 @@
 
 - (BOOL)setError:(NSError *)error sender:(NSView *)sender;
 - (BOOL)setError:(NSError *)error sender:(NSView *)sender completion:(void (^)(NSModalResponse returnCode))completion;
+
+
 
 @end

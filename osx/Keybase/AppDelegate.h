@@ -9,8 +9,11 @@
 #import <Cocoa/Cocoa.h>
 
 #import <KBKit/KBApp.h>
+#import <KBKit/KBAppActions.h>
 
 @interface AppDelegate : NSObject <KBAppDelegate>
+
+@property IBOutlet KBAppActions *appActions;
 
 + (instancetype)sharedDelegate;
 

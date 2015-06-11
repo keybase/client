@@ -12,17 +12,10 @@
 #import "KBRPC.h"
 #import "KBEnvironment.h"
 
-@class KBAppView;
-
-@protocol KBAppViewDelegate
-- (void)appViewDidUpdateStatus:(KBAppView *)appView;
-@end
-
 @interface KBAppView : YOView
 
 @property (nonatomic) KBRUser *user;
 @property (readonly) KBEnvironment *environment;
-@property (weak) id<KBAppViewDelegate> delegate;
 
 - (void)openWithEnvironment:(KBEnvironment *)environment;
 

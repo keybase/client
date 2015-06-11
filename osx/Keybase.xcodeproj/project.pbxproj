@@ -53,6 +53,11 @@
 		0043D1471B28F7220036C532 /* KBKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 00C0DC361B28EC1800A825D4 /* KBKit.framework */; };
 		0046C0E51B290A0B00C4D06F /* Sparkle.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0046C0E41B290A0B00C4D06F /* Sparkle.framework */; };
 		0046C0E61B290A3A00C4D06F /* Sparkle.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 0046C0E41B290A0B00C4D06F /* Sparkle.framework */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		0046C0E91B290CA100C4D06F /* KBAppActions.h in Headers */ = {isa = PBXBuildFile; fileRef = 0046C0E71B290CA100C4D06F /* KBAppActions.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		0046C0EA1B290CA100C4D06F /* KBAppActions.m in Sources */ = {isa = PBXBuildFile; fileRef = 0046C0E81B290CA100C4D06F /* KBAppActions.m */; };
+		0046C0ED1B29114F00C4D06F /* KBNotifications.h in Headers */ = {isa = PBXBuildFile; fileRef = 0046C0EB1B29114F00C4D06F /* KBNotifications.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		0046C0EE1B29114F00C4D06F /* KBNotifications.m in Sources */ = {isa = PBXBuildFile; fileRef = 0046C0EC1B29114F00C4D06F /* KBNotifications.m */; };
+		0046C0EF1B29123C00C4D06F /* KBKit.h in Headers */ = {isa = PBXBuildFile; fileRef = 009E13841B28A93D00C72B28 /* KBKit.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		004F44091B154EBA0021A29D /* kbfuse.bundle in Resources */ = {isa = PBXBuildFile; fileRef = 004F44081B154EBA0021A29D /* kbfuse.bundle */; };
 		0057B0C61AE57A7A00BFB0E7 /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 0057B0C21AE57A7A00BFB0E7 /* main.m */; };
 		0057B0DB1AE57B5900BFB0E7 /* keybase.Helper in Copy Files */ = {isa = PBXBuildFile; fileRef = 0057B0B41AE57A4900BFB0E7 /* keybase.Helper */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
@@ -88,7 +93,7 @@
 		00C0DC5A1B28EC3F00A825D4 /* KBLaunchCtl.m in Sources */ = {isa = PBXBuildFile; fileRef = 00C0DC281B28E91300A825D4 /* KBLaunchCtl.m */; };
 		00C0DC5B1B28EC3F00A825D4 /* KBServiceStatus.h in Headers */ = {isa = PBXBuildFile; fileRef = 00C0DC291B28E91300A825D4 /* KBServiceStatus.h */; };
 		00C0DC5C1B28EC3F00A825D4 /* KBServiceStatus.m in Sources */ = {isa = PBXBuildFile; fileRef = 00C0DC2A1B28E91300A825D4 /* KBServiceStatus.m */; };
-		00C0DC5D1B28EC3F00A825D4 /* KBWorkspace.h in Headers */ = {isa = PBXBuildFile; fileRef = 009E13871B28A93D00C72B28 /* KBWorkspace.h */; };
+		00C0DC5D1B28EC3F00A825D4 /* KBWorkspace.h in Headers */ = {isa = PBXBuildFile; fileRef = 009E13871B28A93D00C72B28 /* KBWorkspace.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		00C0DC5E1B28EC3F00A825D4 /* KBWorkspace.m in Sources */ = {isa = PBXBuildFile; fileRef = 009E13881B28A93D00C72B28 /* KBWorkspace.m */; };
 		00C0DC5F1B28EC3F00A825D4 /* KBRMockClient.h in Headers */ = {isa = PBXBuildFile; fileRef = 009E13901B28A93D00C72B28 /* KBRMockClient.h */; };
 		00C0DC601B28EC3F00A825D4 /* KBRMockClient.m in Sources */ = {isa = PBXBuildFile; fileRef = 009E13911B28A93D00C72B28 /* KBRMockClient.m */; };
@@ -480,6 +485,10 @@
 		0043D12C1B28F1370036C532 /* KBPrefTextField.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBPrefTextField.h; sourceTree = "<group>"; };
 		0043D12D1B28F1370036C532 /* KBPrefTextField.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBPrefTextField.m; sourceTree = "<group>"; };
 		0046C0E41B290A0B00C4D06F /* Sparkle.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Sparkle.framework; path = Pods/Sparkle/Sparkle.framework; sourceTree = "<group>"; };
+		0046C0E71B290CA100C4D06F /* KBAppActions.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBAppActions.h; sourceTree = "<group>"; };
+		0046C0E81B290CA100C4D06F /* KBAppActions.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBAppActions.m; sourceTree = "<group>"; };
+		0046C0EB1B29114F00C4D06F /* KBNotifications.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBNotifications.h; sourceTree = "<group>"; };
+		0046C0EC1B29114F00C4D06F /* KBNotifications.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBNotifications.m; sourceTree = "<group>"; };
 		004D14961A3BCF1F0083888D /* Podfile */ = {isa = PBXFileReference; lastKnownFileType = text; path = Podfile; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.ruby; };
 		004F44051B154C1C0021A29D /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
 		004F44081B154EBA0021A29D /* kbfuse.bundle */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.plug-in"; path = kbfuse.bundle; sourceTree = "<group>"; };
@@ -912,6 +921,10 @@
 				0043D10C1B28EF670036C532 /* KBSourceOutlineView.m */,
 				0043D1151B28F0E00036C532 /* KBApp.h */,
 				0043D1161B28F0E00036C532 /* KBApp.m */,
+				0046C0E71B290CA100C4D06F /* KBAppActions.h */,
+				0046C0E81B290CA100C4D06F /* KBAppActions.m */,
+				0046C0EB1B29114F00C4D06F /* KBNotifications.h */,
+				0046C0EC1B29114F00C4D06F /* KBNotifications.m */,
 			);
 			path = App;
 			sourceTree = "<group>";
@@ -1548,6 +1561,7 @@
 				008E04881B28ECFF000F15AA /* KBProgressView.h in Headers */,
 				00C0DD4B1B28EC8B00A825D4 /* KBConsoleView.h in Headers */,
 				00C0DD2D1B28EC8300A825D4 /* KBFilePreviewView.h in Headers */,
+				0046C0ED1B29114F00C4D06F /* KBNotifications.h in Headers */,
 				00C0DCC31B28EC6600A825D4 /* KBUserView.h in Headers */,
 				008E04841B28ECFF000F15AA /* KBImageLabel.h in Headers */,
 				00C0DD031B28EC7800A825D4 /* KBPGPSigner.h in Headers */,
@@ -1563,6 +1577,7 @@
 				00C0DCA51B28EC6100A825D4 /* KBSearchField.h in Headers */,
 				00C0DC6B1B28EC3F00A825D4 /* KBRRequest.h in Headers */,
 				00C0DCD31B28EC6F00A825D4 /* KBAlertView.h in Headers */,
+				0046C0E91B290CA100C4D06F /* KBAppActions.h in Headers */,
 				00C0DC771B28EC3F00A825D4 /* KBWriter.h in Headers */,
 				00C0DCA31B28EC6100A825D4 /* KBSearcher.h in Headers */,
 				00C0DD251B28EC8300A825D4 /* KBFile.h in Headers */,
@@ -1604,6 +1619,7 @@
 				00C0DD231B28EC7E00A825D4 /* KBKeyView.h in Headers */,
 				00C0DCCB1B28EC6B00A825D4 /* KBProveInstructionsView.h in Headers */,
 				00C0DCD71B28EC7300A825D4 /* KBAppProgressView.h in Headers */,
+				0046C0EF1B29123C00C4D06F /* KBKit.h in Headers */,
 				0043D12E1B28F1370036C532 /* KBPrefAdvancedView.h in Headers */,
 				00C0DCF31B28EC7800A825D4 /* KBPGPEncryptFilesView.h in Headers */,
 				00C0DD331B28EC8300A825D4 /* KBFoldersView.h in Headers */,
@@ -2117,6 +2133,7 @@
 				00C0DCA61B28EC6100A825D4 /* KBSearchField.m in Sources */,
 				00C0DD1A1B28EC7800A825D4 /* KBPGPVerifyFooterView.m in Sources */,
 				00C0DCAC1B28EC6100A825D4 /* KBSearchResultView.m in Sources */,
+				0046C0EA1B290CA100C4D06F /* KBAppActions.m in Sources */,
 				00C0DD561B28EC8B00A825D4 /* KBFSStatusView.m in Sources */,
 				00C0DD3C1B28EC8700A825D4 /* KBDeviceAddView.m in Sources */,
 				00C0DD5A1B28EC8B00A825D4 /* KBStyleGuideView.m in Sources */,
@@ -2136,6 +2153,7 @@
 				00C0DD341B28EC8300A825D4 /* KBFoldersView.m in Sources */,
 				00C0DD4E1B28EC8B00A825D4 /* KBControlPanel.m in Sources */,
 				00C0DD141B28EC7800A825D4 /* KBPGPVerifyAppView.m in Sources */,
+				0046C0EE1B29114F00C4D06F /* KBNotifications.m in Sources */,
 				00C0DC6E1B28EC3F00A825D4 /* KBRRequestParams.m in Sources */,
 				00C0DCCA1B28EC6B00A825D4 /* KBProveInputView.m in Sources */,
 				00C0DCEA1B28EC7800A825D4 /* KBPGPDecryptFooterView.m in Sources */,

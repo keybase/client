@@ -18,6 +18,7 @@
 #import "KBSearchListView.h"
 #import "KBSearcher.h"
 #import "KBKitDefines.h"
+#import "KBNotifications.h"
 
 @interface KBUsersAppView ()
 @property KBSearchControl *searchField;

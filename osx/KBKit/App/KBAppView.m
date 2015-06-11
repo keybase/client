@@ -28,6 +28,7 @@
 #import "KBSecretPromptView.h"
 #import "KBInstallerView.h"
 #import "KBAppDebug.h"
+#import "KBNotifications.h"
 
 typedef NS_ENUM (NSInteger, KBAppViewMode) {
   KBAppViewModeInProgress = 1,
@@ -287,7 +288,6 @@ typedef NS_ENUM (NSInteger, KBAppViewMode) {
       return;
     }
     [self updateStatus:status];
-    [self.delegate appViewDidUpdateStatus:self];
     // TODO reload current view if coming back from disconnect?
     [NSNotificationCenter.defaultCenter postNotificationName:KBStatusDidChangeNotification object:nil userInfo:@{@"config": config, @"status": status}];
   }];

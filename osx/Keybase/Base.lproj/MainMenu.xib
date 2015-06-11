@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<document type="com.apple.InterfaceBuilder3.Cocoa.XIB" version="3.0" toolsVersion="7702" systemVersion="14D136" targetRuntime="MacOSX.Cocoa" propertyAccessControl="none" useAutolayout="YES" customObjectInstantitationMethod="direct">
+<document type="com.apple.InterfaceBuilder3.Cocoa.XIB" version="3.0" toolsVersion="7706" systemVersion="14D136" targetRuntime="MacOSX.Cocoa" propertyAccessControl="none" useAutolayout="YES" customObjectInstantitationMethod="direct">
     <dependencies>
-        <plugIn identifier="com.apple.InterfaceBuilder.CocoaPlugin" version="7702"/>
+        <plugIn identifier="com.apple.InterfaceBuilder.CocoaPlugin" version="7706"/>
     </dependencies>
     <objects>
         <customObject id="-2" userLabel="File's Owner" customClass="NSApplication">
@@ -11,7 +11,11 @@
         </customObject>
         <customObject id="-1" userLabel="First Responder" customClass="FirstResponder"/>
         <customObject id="-3" userLabel="Application" customClass="NSObject"/>
-        <customObject id="Voe-Tx-rLC" customClass="AppDelegate"/>
+        <customObject id="Voe-Tx-rLC" customClass="AppDelegate">
+            <connections>
+                <outlet property="appActions" destination="sgt-hv-QAE" id="aYL-Zy-rab"/>
+            </connections>
+        </customObject>
         <customObject id="YLy-65-1bz" customClass="NSFontManager"/>
         <menu title="Main Menu" systemMenu="main" id="AYu-sK-qS6">
             <items>
@@ -26,11 +30,7 @@
                                 </connections>
                             </menuItem>
                             <menuItem isSeparatorItem="YES" id="VOq-y0-SEH"/>
-                            <menuItem title="Preferences…" keyEquivalent="," id="BOF-NM-1cW">
-                                <connections>
-                                    <action selector="preferences:" target="Voe-Tx-rLC" id="nu5-ut-g2O"/>
-                                </connections>
-                            </menuItem>
+                            <menuItem title="Preferences…" keyEquivalent="," id="BOF-NM-1cW"/>
                             <menuItem isSeparatorItem="YES" id="wFC-TO-SCJ"/>
                             <menuItem title="Check for Updates..." id="e8t-Jg-KlZ">
                                 <modifierMask key="keyEquivalentModifierMask"/>
@@ -62,11 +62,7 @@
                                 </connections>
                             </menuItem>
                             <menuItem isSeparatorItem="YES" id="kCx-OE-vgT"/>
-                            <menuItem title="Quit Keybase" keyEquivalent="q" id="4sb-4s-VLi">
-                                <connections>
-                                    <action selector="quit:" target="Voe-Tx-rLC" id="0N9-ws-xqP"/>
-                                </connections>
-                            </menuItem>
+                            <menuItem title="Quit Keybase" keyEquivalent="q" id="4sb-4s-VLi"/>
                         </items>
                     </menu>
                 </menuItem>
@@ -641,58 +637,58 @@
                             <menuItem title="Encrypt (Text)" id="l8d-br-Xgs">
                                 <modifierMask key="keyEquivalentModifierMask"/>
                                 <connections>
-                                    <action selector="encrypt:" target="Voe-Tx-rLC" id="mGv-iD-uqA"/>
+                                    <action selector="encrypt:" target="sgt-hv-QAE" id="rZu-OB-e7e"/>
                                 </connections>
                             </menuItem>
                             <menuItem title="Encrypt (Files)" id="1JV-DW-i8f">
                                 <modifierMask key="keyEquivalentModifierMask"/>
                                 <connections>
-                                    <action selector="encryptFile:" target="Voe-Tx-rLC" id="pzm-dk-d8o"/>
+                                    <action selector="encryptFile:" target="sgt-hv-QAE" id="1y8-xb-GfA"/>
                                 </connections>
                             </menuItem>
                             <menuItem isSeparatorItem="YES" id="8ty-P6-xxk"/>
                             <menuItem title="Decrypt (Text)" id="lpk-oF-x7E">
                                 <modifierMask key="keyEquivalentModifierMask"/>
                                 <connections>
-                                    <action selector="decrypt:" target="Voe-Tx-rLC" id="d9q-Gj-rR1"/>
+                                    <action selector="decrypt:" target="sgt-hv-QAE" id="Al0-ke-4Wd"/>
                                 </connections>
                             </menuItem>
                             <menuItem title="Decrypt (Files)" id="HxN-b5-eLU">
                                 <modifierMask key="keyEquivalentModifierMask"/>
                                 <connections>
-                                    <action selector="decryptFile:" target="Voe-Tx-rLC" id="4gD-l6-nUA"/>
+                                    <action selector="decryptFile:" target="sgt-hv-QAE" id="2dg-4q-Sea"/>
                                 </connections>
                             </menuItem>
                             <menuItem isSeparatorItem="YES" id="XZ7-Yo-hya"/>
                             <menuItem title="Sign (Text)" id="haB-7X-NaD">
                                 <modifierMask key="keyEquivalentModifierMask"/>
                                 <connections>
-                                    <action selector="sign:" target="Voe-Tx-rLC" id="hdU-Q1-XA0"/>
+                                    <action selector="sign:" target="sgt-hv-QAE" id="dLy-ya-e7D"/>
                                 </connections>
                             </menuItem>
                             <menuItem title="Sign (File)" id="asn-dM-5tl">
                                 <modifierMask key="keyEquivalentModifierMask"/>
                                 <connections>
-                                    <action selector="signFile:" target="Voe-Tx-rLC" id="J6p-fx-fmm"/>
+                                    <action selector="signFile:" target="sgt-hv-QAE" id="tcY-aS-54R"/>
                                 </connections>
                             </menuItem>
                             <menuItem title="Sign (Files)" id="z6n-6L-HKn">
                                 <modifierMask key="keyEquivalentModifierMask"/>
                                 <connections>
-                                    <action selector="signFiles:" target="Voe-Tx-rLC" id="jqG-Jd-Mlu"/>
+                                    <action selector="signFiles:" target="sgt-hv-QAE" id="Pla-Ot-dT5"/>
                                 </connections>
                             </menuItem>
                             <menuItem isSeparatorItem="YES" id="YkX-ax-9J9"/>
                             <menuItem title="Verify" id="OiT-4T-sgp" userLabel="Verify">
                                 <modifierMask key="keyEquivalentModifierMask"/>
                                 <connections>
-                                    <action selector="verify:" target="Voe-Tx-rLC" id="uVP-NU-MbJ"/>
+                                    <action selector="verify:" target="sgt-hv-QAE" id="BWe-re-ugZ"/>
                                 </connections>
                             </menuItem>
                             <menuItem title="Verify (File)" id="AYr-WI-Hzf">
                                 <modifierMask key="keyEquivalentModifierMask"/>
                                 <connections>
-                                    <action selector="verifyFile:" target="Voe-Tx-rLC" id="GR6-7w-pW2"/>
+                                    <action selector="verifyFile:" target="sgt-hv-QAE" id="2w8-Pe-6Ja"/>
                                 </connections>
                             </menuItem>
                         </items>
@@ -738,5 +734,6 @@
             </items>
         </menu>
         <customObject id="lXh-Py-V3Y" customClass="SUUpdater"/>
+        <customObject id="sgt-hv-QAE" customClass="KBAppActions"/>
     </objects>
 </document>

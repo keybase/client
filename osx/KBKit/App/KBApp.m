@@ -15,25 +15,13 @@
 #import "KBWorkspace.h"
 #import "KBLogFormatter.h"
 #import "KBEnvSelectView.h"
-#import "KBPGPEncryptView.h"
-#import "KBPGPEncryptFilesView.h"
-#import "KBPGPDecryptView.h"
-#import "KBPGPDecryptFileView.h"
-#import "KBPGPSignView.h"
-#import "KBPGPSignFileView.h"
-#import "KBPGPSignFilesView.h"
-#import "KBPGPVerifyView.h"
-#import "KBPGPVerifyFileView.h"
 
 #import <AFNetworking/AFNetworking.h>
 
-
-@interface KBApp () <KBAppViewDelegate>
+@interface KBApp ()
 @property KBAppView *appView;
 @property KBPreferences *preferences;
 @property BOOL alerting;
-
-@property NSStatusItem *statusItem; // Menubar
 
 // Debug
 @property KBControlPanel *controlPanel;
@@ -100,19 +88,7 @@
 }
 
 - (void)openWithEnvironment:(KBEnvironment *)environment {
-  _statusItem = [[NSStatusBar systemStatusBar] statusItemWithLength:NSVariableStatusItemLength];
-  //_statusItem.title = @"Keybase";
-#ifdef DEBUG
-  _statusItem.image = [NSImage imageNamed:@"StatusIconDev"];
-#else
-  _statusItem.image = [NSImage imageNamed:@"StatusIconBW"];
-#endif
-  //_statusItem.alternateImage = [NSImage imageNamed:@""]; // Highlighted
-  _statusItem.highlightMode = YES; // Blue background when selected
-  [self updateMenu];
-
   _appView = [[KBAppView alloc] init];
-  _appView.delegate = self;
   [_appView openWindow];
 
   NSMutableArray *componentsForControlPanel = [environment.componentsForControlPanel mutableCopy];
@@ -123,26 +99,12 @@
   [_appView openWithEnvironment:environment];
 }
 
-- (void)updateMenu {
-  NSMenu *menu = [[NSMenu alloc] init];
+- (NSWindow *)mainWindow {
+  return _appView.window;
+}
 
-  [menu addItemWithTitle:@"Preferences" action:@selector(preferences:) keyEquivalent:@""];
-
-  KBRGetCurrentStatusRes *status = _appView.environment.service.userStatus;
-  if (status) {
-    if (status.loggedIn && status.user) {
-      [menu addItemWithTitle:NSStringWithFormat(@"Log Out (%@)", status.user.username) action:@selector(logout:) keyEquivalent:@""];
-      [menu addItem:[NSMenuItem separatorItem]];
-    } else {
-      [menu addItemWithTitle:@"Log In" action:@selector(login:) keyEquivalent:@""];
-      [menu addItem:[NSMenuItem separatorItem]];
-    }
-  }
-
-  [menu addItem:[NSMenuItem separatorItem]];
-  [menu addItemWithTitle:@"Quit" action:@selector(quit:) keyEquivalent:@""];
-
-  _statusItem.menu = menu;
+- (KBService *)service {
+  return _appView.environment.service;
 }
 
 - (NSString *)currentUsername {
@@ -151,22 +113,6 @@
 
 - (NSString *)APIURLString:(NSString *)path {
   return [[self appView] APIURLString:path];
-}
-
-- (IBAction)preferences:(id)sender {
-  [_preferences open:_appView.environment.service.userConfig.configPath userDefaults:[KBWorkspace userDefaults] sender:_appView];
-}
-
-- (IBAction)login:(id)sender {
-  [self.appView showLogin];
-}
-
-- (IBAction)logout:(id)sender {
-  [self.appView logout:YES];
-}
-
-- (IBAction)quit:(id)sender {
-  [self quitWithPrompt:YES sender:sender];
 }
 
 - (void)quitWithPrompt:(BOOL)prompt sender:(id)sender {
@@ -182,60 +128,6 @@
 - (void)closeAllWindows {
   [_appView.window close];
   [_preferences close];
-}
-
-- (IBAction)encrypt:(id)sender {
-  KBPGPEncryptView *view = [[KBPGPEncryptView alloc] init];
-  view.client = self.appView.environment.service.client;
-  [self.appView.window kb_addChildWindowForView:view rect:CGRectMake(0, 0, 510, 400) position:KBWindowPositionCenter title:@"Encrypt" fixed:NO makeKey:YES];
-}
-
-- (IBAction)encryptFile:(id)sender {
-  KBPGPEncryptFilesView *view = [[KBPGPEncryptFilesView alloc] init];
-  view.client = self.appView.environment.service.client;
-  [self.appView.window kb_addChildWindowForView:view rect:CGRectMake(0, 0, 510, 400) position:KBWindowPositionCenter title:@"Encrypt Files" fixed:NO makeKey:YES];
-}
-
-- (IBAction)decrypt:(id)sender {
-  KBPGPDecryptView *view = [[KBPGPDecryptView alloc] init];
-  view.client = self.appView.environment.service.client;
-  [self.appView.window kb_addChildWindowForView:view rect:CGRectMake(0, 0, 510, 400) position:KBWindowPositionCenter title:@"Decrypt" fixed:NO makeKey:YES];
-}
-
-- (IBAction)decryptFile:(id)sender {
-  KBPGPDecryptFileView *view = [[KBPGPDecryptFileView alloc] init];
-  view.client = self.appView.environment.service.client;
-  [self.appView.window kb_addChildWindowForView:view rect:CGRectMake(0, 0, 510, 400) position:KBWindowPositionCenter title:@"Decrypt Files" fixed:NO makeKey:YES];
-}
-
-- (IBAction)sign:(id)sender {
-  KBPGPSignView *view = [[KBPGPSignView alloc] init];
-  view.client = self.appView.environment.service.client;
-  [self.appView.window kb_addChildWindowForView:view rect:CGRectMake(0, 0, 510, 400) position:KBWindowPositionCenter title:@"Sign" fixed:NO makeKey:YES];
-}
-
-- (IBAction)signFile:(id)sender {
-  KBPGPSignFileView *view = [[KBPGPSignFileView alloc] init];
-  view.client = self.appView.environment.service.client;
-  [self.appView.window kb_addChildWindowForView:view rect:CGRectMake(0, 0, 400, 400) position:KBWindowPositionCenter title:@"Sign File" fixed:NO makeKey:YES];
-}
-
-- (IBAction)signFiles:(id)sender {
-  KBPGPSignFilesView *view = [[KBPGPSignFilesView alloc] init];
-  view.client = self.appView.environment.service.client;
-  [self.appView.window kb_addChildWindowForView:view rect:CGRectMake(0, 0, 400, 400) position:KBWindowPositionCenter title:@"Sign Files" fixed:NO makeKey:YES];
-}
-
-- (IBAction)verify:(id)sender {
-  KBPGPVerifyView *view = [[KBPGPVerifyView alloc] init];
-  view.client = self.appView.environment.service.client;
-  [self.appView.window kb_addChildWindowForView:view rect:CGRectMake(0, 0, 400, 400) position:KBWindowPositionCenter title:@"Verify" fixed:NO makeKey:YES];
-}
-
-- (IBAction)verifyFile:(id)sender {
-  KBPGPVerifyFileView *view = [[KBPGPVerifyFileView alloc] init];
-  view.client = self.appView.environment.service.client;
-  [self.appView.window kb_addChildWindowForView:view rect:CGRectMake(0, 0, 400, 400) position:KBWindowPositionCenter title:@"Verify File" fixed:NO makeKey:YES];
 }
 
 #pragma mark Error Handling
@@ -280,12 +172,5 @@
   }];
   return YES;
 }
-
-#pragma mark KBAppViewDelegate
-
-- (void)appViewDidUpdateStatus:(KBAppView *)appView {
-  [self updateMenu];
-}
-
 
 @end

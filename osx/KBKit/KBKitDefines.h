@@ -6,10 +6,6 @@
 //  Copyright (c) 2014 Gabriel Handford. All rights reserved.
 //
 
-extern NSString *const KBTrackingListDidChangeNotification;
-extern NSString *const KBUserDidChangeNotification;
-extern NSString *const KBStatusDidChangeNotification;
-
 NSString *KBDisplayURLStringForUsername(NSString *username);
 NSString *KBURLStringForUsername(NSString *username);
 
