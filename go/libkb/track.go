@@ -8,8 +8,8 @@ import (
 	jsonw "github.com/keybase/go-jsonw"
 )
 
-// Can either be a RemoteProofChainLink or one of the identities
-// listed in a tracking statement, or a PGP Fingerprint!
+// Can be a ProofLinkWithState, one of the identities listed in a
+// tracking statement, or a PGP Fingerprint!
 type TrackIdComponent interface {
 	ToIdString() string
 	ToKeyValuePair() (string, string)
