@@ -13,25 +13,51 @@ import (
 	testvectors "github.com/keybase/keybase-test-vectors/go"
 )
 
-// TODO: For now the tests have all been given strict error types. In the
-// future we will probably want something a little looser, to accommodate
-// implementation differences (usually the order in which different checks
-// happen).
-func getErrorTypesMap() map[string]reflect.Type {
-	return map[string]reflect.Type{
-		"BAD_LINK_FORMAT":           nil,
-		"NONEXISTENT_KID":           reflect.TypeOf(KeyFamilyError{}),
-		"VERIFY_FAILED":             reflect.TypeOf(BadSigError{}),
-		"REVERSE_SIG_VERIFY_FAILED": reflect.TypeOf(ReverseSigError{}),
-		"KID_MISMATCH":              reflect.TypeOf(ChainLinkKIDMismatchError{}),
-		"FINGERPRINT_MISMATCH":      reflect.TypeOf(ChainLinkFingerprintMismatchError{}),
-		"CTIME_MISMATCH":            reflect.TypeOf(CtimeMismatchError{}),
-		"INVALID_SIBKEY":            reflect.TypeOf(KeyRevokedError{}),
-		"EXPIRED_SIBKEY":            reflect.TypeOf(KeyExpiredError{}),
-		"WRONG_UID":                 reflect.TypeOf(UidMismatchError{}),
-		"WRONG_USERNAME":            reflect.TypeOf(BadUsernameError{}),
-		"WRONG_SEQNO":               reflect.TypeOf(ChainLinkWrongSeqnoError{}),
-		"WRONG_PREV":                reflect.TypeOf(ChainLinkPrevHashMismatchError{}),
+// Returns a map from error name strings to sets of Go error types. If a test
+// returns any error type in the corresponding set, it's a pass. (The reason
+// the types aren't one-to-one here is that implementation differences between
+// the Go and JS sigchains make that more trouble than it's worth.)
+func getErrorTypesMap() map[string]map[reflect.Type]bool {
+	return map[string]map[reflect.Type]bool{
+		"CTIME_MISMATCH": map[reflect.Type]bool{
+			reflect.TypeOf(CtimeMismatchError{}): true,
+		},
+		"EXPIRED_SIBKEY": map[reflect.Type]bool{
+			reflect.TypeOf(KeyExpiredError{}): true,
+		},
+		"FINGERPRINT_MISMATCH": map[reflect.Type]bool{
+			reflect.TypeOf(ChainLinkFingerprintMismatchError{}): true,
+		},
+		"INVALID_SIBKEY": map[reflect.Type]bool{
+			reflect.TypeOf(KeyRevokedError{}): true,
+		},
+		"KEY_OWNERSHIP": map[reflect.Type]bool{
+			reflect.TypeOf(KeyFamilyError{}): true,
+		},
+		"KID_MISMATCH": map[reflect.Type]bool{
+			reflect.TypeOf(ChainLinkKIDMismatchError{}): true,
+		},
+		"NONEXISTENT_KID": map[reflect.Type]bool{
+			reflect.TypeOf(KeyFamilyError{}): true,
+		},
+		"REVERSE_SIG_VERIFY_FAILED": map[reflect.Type]bool{
+			reflect.TypeOf(ReverseSigError{}): true,
+		},
+		"VERIFY_FAILED": map[reflect.Type]bool{
+			reflect.TypeOf(BadSigError{}): true,
+		},
+		"WRONG_UID": map[reflect.Type]bool{
+			reflect.TypeOf(UidMismatchError{}): true,
+		},
+		"WRONG_USERNAME": map[reflect.Type]bool{
+			reflect.TypeOf(BadUsernameError{}): true,
+		},
+		"WRONG_SEQNO": map[reflect.Type]bool{
+			reflect.TypeOf(ChainLinkWrongSeqnoError{}): true,
+		},
+		"WRONG_PREV": map[reflect.Type]bool{
+			reflect.TypeOf(ChainLinkPrevHashMismatchError{}): true,
+		},
 	}
 }
 
@@ -150,11 +176,17 @@ func doChainTest(t *testing.T, testCase TestCase) {
 	// type.
 	if testCase.ErrType != "" {
 		if sigchainErr == nil {
-			t.Fatal("Expected error from VerifySigsAndComputeKeys.")
+			t.Fatalf("Expected %s error from VerifySigsAndComputeKeys. No error returned.", testCase.ErrType)
 		}
-		expectedType := getErrorTypesMap()[testCase.ErrType]
 		foundType := reflect.TypeOf(sigchainErr)
-		if expectedType == foundType {
+		expectedTypes := getErrorTypesMap()[testCase.ErrType]
+		if expectedTypes == nil || len(expectedTypes) == 0 {
+			msg := "No Go error types defined for expected failure %s.\n" +
+				"This could be because of new test cases in github.com/keybase/keybase-test-vectors.\n" +
+				"Go error returned: %s"
+			t.Fatalf(msg, testCase.ErrType, foundType)
+		}
+		if expectedTypes[foundType] {
 			// Success! We found the error we expected. This test is done.
 			G.Log.Debug("EXPECTED error encountered", sigchainErr)
 			return
@@ -163,8 +195,8 @@ func doChainTest(t *testing.T, testCase TestCase) {
 		// Got an error, but one of the wrong type. Tests with error names
 		// that are missing from the map (maybe because we add new test
 		// cases in the future) will also hit this branch.
-		t.Fatalf("Wrong error type encountered. Expected %s (%s), got %s: %s",
-			expectedType, testCase.ErrType, foundType, sigchainErr)
+		t.Fatalf("Wrong error type encountered. Expected %#v (%s), got %s: %s",
+			expectedTypes, testCase.ErrType, foundType, sigchainErr)
 
 	}
 
@@ -187,7 +219,7 @@ func doChainTest(t *testing.T, testCase TestCase) {
 	}
 	// Don't use the current time to get keys, because that will cause test
 	// failures 5 years from now :-D
-	testTime := time.Unix(sigchain.chainLinks[len(sigchain.chainLinks)-1].unpacked.ctime, 0)
+	testTime := getCurrentTimeForTest(sigchain, keyFamily)
 	numSibkeys := len(ckf.GetAllActiveSibkeysAtTime(testTime))
 	if numSibkeys != testCase.Sibkeys {
 		t.Fatalf("Expected %d sibkeys, got %d", testCase.Sibkeys, numSibkeys)
@@ -211,4 +243,22 @@ func createKeyFamily(bundles []string) (*KeyFamily, error) {
 	publicKeys := jsonw.NewDictionary()
 	publicKeys.SetKey("all_bundles", allKeys)
 	return ParseKeyFamily(publicKeys)
+}
+
+func getCurrentTimeForTest(sigChain SigChain, keyFamily *KeyFamily) time.Time {
+	// Pick a test time that's the latest ctime of all links and PGP keys.
+	var t time.Time
+	for _, link := range sigChain.chainLinks {
+		linkCTime := time.Unix(link.unpacked.ctime, 0)
+		if linkCTime.After(t) {
+			t = linkCTime
+		}
+	}
+	for _, pgp := range keyFamily.pgps {
+		keyCTime := pgp.PrimaryKey.CreationTime
+		if keyCTime.After(t) {
+			t = keyCTime
+		}
+	}
+	return t
 }

@@ -438,7 +438,8 @@ func (sc *SigChain) VerifySigsAndComputeKeys(eldest *KID, ckf *ComputedKeyFamily
 		G.Log.Debug("| Empty chain after we limited to eldest %s", eldest.String())
 		eldestKey := ckf.kf.AllKeys[eldest.ToMapKey()]
 		sc.localCki = NewComputedKeyInfos()
-		sc.localCki.InsertServerEldestKey(eldestKey, sc.username)
+		err = sc.localCki.InsertServerEldestKey(eldestKey, sc.username)
+		ckf.cki = sc.localCki
 		return
 	}
 
