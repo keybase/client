@@ -314,9 +314,12 @@ func (u *User) GetSyncedSecretKey() (ret *SKB, err error) {
 		return
 	}
 
-	G.LoginState().SecretSyncer(func(s *SecretSyncer) {
+	aerr := G.LoginState().SecretSyncer(func(s *SecretSyncer) {
 		ret, err = s.FindActiveKey(ckf)
 	}, "User - FindActiveKey")
+	if aerr != nil {
+		return nil, aerr
+	}
 
 	return
 }

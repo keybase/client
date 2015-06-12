@@ -160,9 +160,12 @@ func (a *PGPGenArg) AddDefaultUid() {
 	a.Ids = append(a.Ids, KeybaseIdentity(""))
 }
 
-func (a *PGPGenArg) MakeAllIds() {
-	a.CreatePgpIDs()
+func (a *PGPGenArg) MakeAllIds() error {
+	if err := a.CreatePgpIDs(); err != nil {
+		return err
+	}
 	a.AddDefaultUid()
+	return nil
 }
 
 func (a *PGPGenArg) PGPUserIDs() ([]*packet.UserId, error) {

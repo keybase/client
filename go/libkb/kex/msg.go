@@ -78,15 +78,17 @@ func (m *Msg) MacSum(secret SecretKey) ([]byte, error) {
 	if err := codec.NewEncoder(&buf, &h).Encode(m); err != nil {
 		return nil, err
 	}
-	return m.mac(buf.Bytes(), secret[:]), nil
+	return m.mac(buf.Bytes(), secret[:])
 }
 
 // mac is a convenience function to calculate the hmac of message
 // for key.
-func (m *Msg) mac(message, key []byte) []byte {
+func (m *Msg) mac(message, key []byte) ([]byte, error) {
 	mac := hmac.New(sha256.New, key)
-	mac.Write(message)
-	return mac.Sum(nil)
+	if _, err := mac.Write(message); err != nil {
+		return nil, err
+	}
+	return mac.Sum(nil), nil
 }
 
 // Name returns the name of the message.

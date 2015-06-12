@@ -86,14 +86,16 @@ func (s *Session) SetUsername(username string) {
 	s.username = &username
 }
 
-func (s *Session) SetLoggedIn(sessionID, csrfToken, username string, uid keybase1.UID) {
+func (s *Session) SetLoggedIn(sessionID, csrfToken, username string, uid keybase1.UID) error {
 	s.valid = true
 	s.uid = uid
 	s.username = &username
 	s.token = sessionID
 	if s.file == nil {
 		G.Log.Warning("s.file == nil")
-		s.Load()
+		if err := s.Load(); err != nil {
+			return err
+		}
 	}
 	if s.GetDictionary() == nil {
 		G.Log.Warning("s.GetDict() == nil")
@@ -102,6 +104,8 @@ func (s *Session) SetLoggedIn(sessionID, csrfToken, username string, uid keybase
 
 	s.SetCsrf(csrfToken)
 	s.SetDirty()
+
+	return nil
 }
 
 func (s *Session) SetDirty() {

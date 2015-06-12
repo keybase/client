@@ -39,6 +39,8 @@ func (v *CmdPGPGen) ParseArgv(ctx *cli.Context) (err error) {
 	return err
 }
 
+// XXX is there a reason this uses CreatePgpIDs and the standalone
+// Run below uses MakeAllIds?
 func (v *CmdPGPGen) RunClient() (err error) {
 	var cli keybase1.PgpClient
 	protocols := []rpc2.Protocol{
@@ -58,7 +60,9 @@ func (v *CmdPGPGen) RunClient() (err error) {
 
 func (v *CmdPGPGen) Run() (err error) {
 	ctx := &engine.Context{SecretUI: GlobUI.GetSecretUI(), LogUI: GlobUI.GetLogUI()}
-	v.arg.Gen.MakeAllIds()
+	if err = v.arg.Gen.MakeAllIds(); err != nil {
+		return
+	}
 	eng := engine.NewPGPKeyImportEngine(v.arg)
 	err = engine.RunEngine(eng, ctx)
 	PGPMultiWarn(err)

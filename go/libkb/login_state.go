@@ -218,7 +218,9 @@ func (s *LoginState) computeLoginPw(lctx LoginContext) (macSum []byte, err error
 	}
 	sec := lctx.PassphraseStreamCache().PassphraseStream().PWHash()
 	mac := hmac.New(sha512.New, sec)
-	mac.Write(loginSession)
+	if _, err = mac.Write(loginSession); err != nil {
+		return
+	}
 	macSum = mac.Sum(nil)
 	return
 }
@@ -301,7 +303,9 @@ func (s *LoginState) pubkeyLoginHelper(lctx LoginContext, username string, getSe
 	s.G().Log.Debug("+ pubkeyLoginHelper()")
 	defer func() {
 		if err != nil {
-			lctx.SecretSyncer().Clear()
+			if e := lctx.SecretSyncer().Clear(); e != nil {
+				s.G().Log.Info("error clearing secret syncer: %s", e)
+			}
 		}
 		s.G().Log.Debug("- pubkeyLoginHelper() -> %s", ErrToOk(err))
 	}()
@@ -459,7 +463,9 @@ func (s *LoginState) getEmailOrUsername(lctx LoginContext, username *string, log
 	}
 
 	// username set, so redo config
-	s.G().ConfigureConfig()
+	if err = s.G().ConfigureConfig(); err != nil {
+		return
+	}
 	return s.switchUser(lctx, *username)
 }
 
@@ -685,10 +691,7 @@ func (s *LoginState) loginWithPassphrase(lctx LoginContext, username, passphrase
 }
 
 func (s *LoginState) logout(a LoginContext) error {
-	s.G().Log.Debug("+ Logout called")
-	a.Logout()
-	s.G().Log.Debug("- Logout called")
-	return nil
+	return a.Logout()
 }
 
 // Account is a convenience function to allow access to
@@ -724,11 +727,19 @@ func (s *LoginState) LoginSession(h func(*LoginSession), name string) error {
 }
 
 func (s *LoginState) SecretSyncer(h func(*SecretSyncer), name string) error {
-	return s.Account(func(a *Account) {
+	var err error
+	aerr := s.Account(func(a *Account) {
 		// SecretSyncer needs session loaded:
-		a.localSession.Load()
+		err = a.localSession.Load()
+		if err != nil {
+			return
+		}
 		h(a.SecretSyncer())
 	}, name)
+	if aerr != nil {
+		return aerr
+	}
+	return err
 }
 
 func (s *LoginState) RunSecretSyncer(uid keybase1.UID) error {

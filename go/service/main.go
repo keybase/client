@@ -26,30 +26,43 @@ func NewService(d bool) *Service {
 	return &Service{}
 }
 
-func RegisterProtocols(srv *rpc2.Server, xp *rpc2.Transport) {
-	srv.Register(keybase1.BTCProtocol(NewBTCHandler(xp)))
-	srv.Register(keybase1.ConfigProtocol(ConfigHandler{xp}))
-	srv.Register(keybase1.CryptoProtocol(NewCryptoHandler(xp)))
-	srv.Register(keybase1.CtlProtocol(CtlHandler{}))
-	srv.Register(keybase1.DeviceProtocol(NewDeviceHandler(xp)))
-	srv.Register(keybase1.DoctorProtocol(NewDoctorHandler(xp)))
-	srv.Register(keybase1.IdentifyProtocol(NewIdentifyHandler(xp)))
-	srv.Register(keybase1.LoginProtocol(NewLoginHandler(xp)))
-	srv.Register(keybase1.ProveProtocol(NewProveHandler(xp)))
-	srv.Register(keybase1.SessionProtocol(NewSessionHandler(xp)))
-	srv.Register(keybase1.SignupProtocol(NewSignupHandler(xp)))
-	srv.Register(keybase1.SigsProtocol(NewSigsHandler(xp)))
-	srv.Register(keybase1.PgpProtocol(NewPGPHandler(xp)))
-	srv.Register(keybase1.RevokeProtocol(NewRevokeHandler(xp)))
-	srv.Register(keybase1.TrackProtocol(NewTrackHandler(xp)))
-	srv.Register(keybase1.UserProtocol(NewUserHandler(xp)))
+func RegisterProtocols(srv *rpc2.Server, xp *rpc2.Transport) error {
+	protocols := []rpc2.Protocol{
+		keybase1.BTCProtocol(NewBTCHandler(xp)),
+		keybase1.ConfigProtocol(ConfigHandler{xp}),
+		keybase1.CryptoProtocol(NewCryptoHandler(xp)),
+		keybase1.CtlProtocol(CtlHandler{}),
+		keybase1.DeviceProtocol(NewDeviceHandler(xp)),
+		keybase1.DoctorProtocol(NewDoctorHandler(xp)),
+		keybase1.IdentifyProtocol(NewIdentifyHandler(xp)),
+		keybase1.LoginProtocol(NewLoginHandler(xp)),
+		keybase1.ProveProtocol(NewProveHandler(xp)),
+		keybase1.SessionProtocol(NewSessionHandler(xp)),
+		keybase1.SignupProtocol(NewSignupHandler(xp)),
+		keybase1.SigsProtocol(NewSigsHandler(xp)),
+		keybase1.PgpProtocol(NewPGPHandler(xp)),
+		keybase1.RevokeProtocol(NewRevokeHandler(xp)),
+		keybase1.TrackProtocol(NewTrackHandler(xp)),
+		keybase1.UserProtocol(NewUserHandler(xp)),
+	}
+	for _, proto := range protocols {
+		if err := srv.Register(proto); err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
 func (d *Service) Handle(c net.Conn) {
 	xp := rpc2.NewTransport(c, libkb.NewRpcLogFactory(), libkb.WrapError)
 	server := rpc2.NewServer(xp, libkb.WrapError)
-	RegisterProtocols(server, xp)
-	server.Run(true)
+	if err := RegisterProtocols(server, xp); err != nil {
+		G.Log.Warning("RegisterProtocols error: %s", err)
+		return
+	}
+	if err := server.Run(true); err != nil {
+		G.Log.Warning("Run error: %s", err)
+	}
 }
 
 func (d *Service) RunClient() (err error) {
@@ -91,7 +104,10 @@ func (d *Service) Run() (err error) {
 // If the daemon is already running, we need to be able to check what version
 // it is, in case the client has been updated.
 func (d *Service) writeVersionFile() error {
-	os.MkdirAll(G.Env.GetCacheDir(), 0700) // 0700 as per the XDG standard
+	// 0700 as per the XDG standard
+	if err := os.MkdirAll(G.Env.GetCacheDir(), 0700); err != nil {
+		return err
+	}
 	versionFilePath := path.Join(G.Env.GetCacheDir(), "service.version")
 	return ioutil.WriteFile(versionFilePath, []byte(libkb.CLIENT_VERSION), 0644)
 }
@@ -156,7 +172,9 @@ func (d *Service) ListenLoop() (err error) {
 	}
 	G.PushShutdownHook(func() error {
 		G.Log.Info("Closing socket")
-		d.lockPid.Close()
+		if err := d.lockPid.Close(); err != nil {
+			G.Log.Warning("error closing lock pid file: %s", err)
+		}
 		return l.Close()
 	})
 	for {

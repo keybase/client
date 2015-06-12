@@ -1158,7 +1158,9 @@ func (idt *IdentityTable) proofRemoteCheck(hasPreviousTrack bool, res *LinkCheck
 	}
 
 	if G.ProofCache != nil {
-		G.ProofCache.Put(sid, res.err)
+		if err := G.ProofCache.Put(sid, res.err); err != nil {
+			G.Log.Warning("proof cache put error: %s", err)
+		}
 	}
 
 	return

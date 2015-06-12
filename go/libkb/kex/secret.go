@@ -49,7 +49,9 @@ func (s *Secret) calculate(username string) error {
 	}
 
 	mac := hmac.New(sha256.New, []byte("kex-session"))
-	mac.Write(key)
+	if _, err := mac.Write(key); err != nil {
+		return err
+	}
 
 	copy(s.strongID[:], mac.Sum(nil))
 	copy(s.secret[:], key)
