@@ -54,7 +54,9 @@ func TestPGPUpdate(t *testing.T) {
 	}
 
 	// Add the modified key to the gpg keyring
-	gpgCLI.ExportKey(*bundle)
+	if err := gpgCLI.ExportKey(*bundle); err != nil {
+		t.Fatal(err)
+	}
 
 	// Now run `client pgp update` with a fingerprint that doesn't match.
 	err = doUpdate([]string{"not_a_real_fingerprint"}, false, tc)

@@ -65,7 +65,6 @@ func (d *Locksmith) SubConsumers() []libkb.UIConsumer {
 }
 
 func (d *Locksmith) Run(ctx *Context) error {
-	// This can fail, but we'll warn if it does.
 	d.syncSecrets(ctx)
 
 	// check the user, fill in d.status
@@ -115,7 +114,6 @@ func (d *Locksmith) fix(ctx *Context) error {
 func (d *Locksmith) LoginCheckup(ctx *Context, u *libkb.User) error {
 	d.user = u
 
-	// This can fail, but we'll warn if it does.
 	d.syncSecrets(ctx)
 
 	if err := d.checkKeys(ctx); err != nil {
@@ -134,18 +132,18 @@ func (d *Locksmith) Cancel() error {
 	return d.kex.Cancel()
 }
 
-func (d *Locksmith) syncSecrets(ctx *Context) (err error) {
+// This can fail, but we'll warn if it does.
+func (d *Locksmith) syncSecrets(ctx *Context) {
 	if ctx.LoginContext != nil {
-		if err = ctx.LoginContext.RunSecretSyncer(d.arg.User.GetUID()); err != nil {
+		if err := ctx.LoginContext.RunSecretSyncer(d.arg.User.GetUID()); err != nil {
 			d.G().Log.Warning("Problem syncing secrets from server: %s", err)
 		}
 
 	} else {
-		if err = d.G().LoginState().RunSecretSyncer(d.arg.User.GetUID()); err != nil {
+		if err := d.G().LoginState().RunSecretSyncer(d.arg.User.GetUID()); err != nil {
 			d.G().Log.Warning("Problem syncing secrets from server: %s", err)
 		}
 	}
-	return err
 }
 
 func (d *Locksmith) checkKeys(ctx *Context) error {
@@ -320,9 +318,12 @@ func (d *Locksmith) deviceSign(ctx *Context, withPGPOption bool) error {
 	if ctx.LoginContext != nil {
 		devs, err = ctx.LoginContext.SecretSyncer().ActiveDevices()
 	} else {
-		d.G().LoginState().SecretSyncer(func(ss *libkb.SecretSyncer) {
+		aerr := d.G().LoginState().SecretSyncer(func(ss *libkb.SecretSyncer) {
 			devs, err = ss.ActiveDevices()
 		}, "Locksmith - deviceSign - ActiveDevices")
+		if aerr != nil {
+			return aerr
+		}
 	}
 	if err != nil {
 		return err
@@ -373,7 +374,9 @@ func (d *Locksmith) deviceSign(ctx *Context, withPGPOption bool) error {
 				Attempt: i + 1,
 				Total:   totalTries,
 			}
-			ctx.LocksmithUI.DeviceSignAttemptErr(uiarg)
+			if err = ctx.LocksmithUI.DeviceSignAttemptErr(uiarg); err != nil {
+				d.G().Log.Info("error making ui call DeviceSignAttemptErr: %s", err)
+			}
 		} else if res.Signer.Kind == keybase1.DeviceSignerKind_DEVICE {
 			if res.Signer.DeviceID == nil {
 				return fmt.Errorf("selected device for signing, but DeviceID is nil")
@@ -392,7 +395,9 @@ func (d *Locksmith) deviceSign(ctx *Context, withPGPOption bool) error {
 				Attempt: i + 1,
 				Total:   totalTries,
 			}
-			ctx.LocksmithUI.DeviceSignAttemptErr(uiarg)
+			if err = ctx.LocksmithUI.DeviceSignAttemptErr(uiarg); err != nil {
+				d.G().Log.Info("error making ui call DeviceSignAttemptErr: %s", err)
+			}
 		} else {
 			return fmt.Errorf("unknown signer kind: %d", res.Signer.Kind)
 		}
@@ -426,9 +431,12 @@ func (d *Locksmith) deviceSignPGP(ctx *Context) error {
 	if ctx.LoginContext != nil {
 		pk, ok = ctx.LoginContext.SecretSyncer().FindPrivateKey(selected.GetKid().String())
 	} else {
-		d.G().LoginState().SecretSyncer(func(ss *libkb.SecretSyncer) {
+		err := d.G().LoginState().SecretSyncer(func(ss *libkb.SecretSyncer) {
 			pk, ok = ss.FindPrivateKey(selected.GetKid().String())
 		}, "Locksmith - deviceSignPGP - FindPrivateKey")
+		if err != nil {
+			return err
+		}
 	}
 	if ok {
 		skb, err := pk.ToSKB()
@@ -566,9 +574,12 @@ func (d *Locksmith) detKeySrvHalf(ctx *Context) ([]byte, error) {
 	if ctx.LoginContext != nil {
 		half, err = ctx.LoginContext.SecretSyncer().FindDetKeySrvHalf(libkb.KEY_TYPE_KB_NACL_EDDSA_SERVER_HALF)
 	} else {
-		d.G().LoginState().SecretSyncer(func(ss *libkb.SecretSyncer) {
+		aerr := d.G().LoginState().SecretSyncer(func(ss *libkb.SecretSyncer) {
 			half, err = ss.FindDetKeySrvHalf(libkb.KEY_TYPE_KB_NACL_EDDSA_SERVER_HALF)
 		}, "Locksmith - detKeySrvHalf")
+		if aerr != nil {
+			return nil, aerr
+		}
 	}
 	return half, err
 }
@@ -620,9 +631,12 @@ func (d *Locksmith) hasActiveDevice(ctx *Context) bool {
 	if ctx.LoginContext != nil {
 		res = ctx.LoginContext.SecretSyncer().HasActiveDevice()
 	} else {
-		d.G().LoginState().SecretSyncer(func(ss *libkb.SecretSyncer) {
+		err := d.G().LoginState().SecretSyncer(func(ss *libkb.SecretSyncer) {
 			res = ss.HasActiveDevice()
 		}, "Locksmith - hasActiveDevice")
+		if err != nil {
+			d.G().Log.Warning("secret syncer error in hasActiveDevices: %s", err)
+		}
 	}
 	return res
 }

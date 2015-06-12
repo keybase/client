@@ -47,9 +47,12 @@ func (k *KexCom) sessionArgs(ctx *Context) (token, csrf string) {
 	if ctx.LoginContext != nil {
 		token, csrf = ctx.LoginContext.LocalSession().APIArgs()
 	} else {
-		k.G().LoginState().LocalSession(func(s *libkb.Session) {
+		err := k.G().LoginState().LocalSession(func(s *libkb.Session) {
 			token, csrf = s.APIArgs()
 		}, "kexcom - APIArgs")
+		if err != nil {
+			k.G().Log.Warning("error getting LocalSession: %s", err)
+		}
 	}
 	return
 }

@@ -90,9 +90,7 @@ func createFakeUserWithPGPOnly(t *testing.T, tc libkb.TestContext) *FakeUser {
 			return err
 		}
 
-		// XXX does this need to be in the ls func?
-		s.fakeLKS()
-		return nil
+		return s.fakeLKS()
 	}
 	if err := s.G().LoginState().ExternalFunc(f, "createFakeUserWithPGPOnly"); err != nil {
 		tc.T.Fatal(err)
@@ -150,7 +148,9 @@ func createFakeUserWithPGPPubOnly(t *testing.T, tc libkb.TestContext) *FakeUser 
 			return err
 		}
 
-		s.fakeLKS()
+		if err := s.fakeLKS(); err != nil {
+			return err
+		}
 
 		if err := s.addGPG(a, ctx, false); err != nil {
 			return err
@@ -192,7 +192,9 @@ func createFakeUserWithPGPMult(t *testing.T, tc libkb.TestContext) *FakeUser {
 		fu.User = s.GetMe()
 
 		// fake the lks:
-		s.fakeLKS()
+		if err := s.fakeLKS(); err != nil {
+			return err
+		}
 
 		if err := s.addGPG(a, ctx, false); err != nil {
 			return err
@@ -239,7 +241,7 @@ func createFakeUserWithPGPSibkey(tc libkb.TestContext) *FakeUser {
 
 // fakeLKS is used to create a lks that has the server half when
 // creating a fake user that doesn't have a device.
-func (s *SignupEngine) fakeLKS() {
+func (s *SignupEngine) fakeLKS() error {
 	s.lks = libkb.NewLKSec(s.tspkey.LksClientHalf(), s.uid, s.G())
-	s.lks.GenerateServerHalf()
+	return s.lks.GenerateServerHalf()
 }

@@ -63,7 +63,14 @@ func NewScanKeys(secui libkb.SecretUI, idui libkb.IdentifyUI, opts *TrackOptions
 			return
 		}
 		lks := libkb.NewLKSec(a.PassphraseStreamCache().PassphraseStream().LksClientHalf(), sk.me.GetUID(), sk.G())
-		lks.Load(a)
+		err = lks.Load(a)
+		if err != nil {
+			// It's ok if lks fails to load.  Probably due to lack of device.
+			// This is just a preloaded lksec, and further down the line will
+			// handle it.
+			sk.G().Log.Debug("No lksec available due to %q error.  Proceeding anyway.", err)
+			lks = nil
+		}
 
 		var ring *libkb.SKBKeyringFile
 		ring, err = a.Keyring()

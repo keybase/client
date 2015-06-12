@@ -90,7 +90,7 @@ func TestTrack(t *testing.T) {
 	defer untrackAlice(tc, fu)
 
 	// Assert that we gracefully handle the case of no login
-	tc.G.Logout()
+	Logout(tc)
 	_, _, err := runTrack(tc, fu, "t_bob")
 	if err == nil {
 		t.Fatal("expected logout error; got no error")
@@ -114,7 +114,7 @@ func TestTrackNoPubKey(t *testing.T) {
 	tc := SetupEngineTest(t, "track")
 	defer tc.Cleanup()
 	fu := CreateAndSignupFakeUser(tc, "track")
-	tc.G.Logout()
+	Logout(tc)
 
 	tracker := CreateAndSignupFakeUser(tc, "track")
 	_, _, err := runTrack(tc, tracker, fu.Username)

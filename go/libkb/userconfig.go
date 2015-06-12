@@ -22,10 +22,12 @@ type UserConfig struct {
 
 //==================================================================
 
-func (u UserConfig) GetUID() keybase1.UID         { return u.importedID }
-func (u UserConfig) GetUsername() string          { return u.Name }
-func (u UserConfig) GetSalt() []byte              { return u.importedSalt }
-func (u UserConfig) GetDeviceID() (ret *DeviceID) { return u.importedDeviceID }
+func (u UserConfig) GetUID() keybase1.UID { return u.importedID }
+func (u UserConfig) GetUsername() string  { return u.Name }
+func (u UserConfig) GetSalt() []byte      { return u.importedSalt }
+func (u UserConfig) GetDeviceID() (ret *DeviceID) {
+	return u.importedDeviceID
+}
 
 //==================================================================
 

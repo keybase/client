@@ -171,16 +171,19 @@ type UserPlusKeys struct {
 	Keys      []*libkb.PgpKeyBundle
 }
 
-func (e *PGPKeyfinder) loadMe() error {
+func (e *PGPKeyfinder) loadMe() {
+	if e.runerr != nil {
+		return
+	}
 	if e.me != nil {
-		return nil
+		return
 	}
 	me, err := libkb.LoadMe(libkb.LoadUserArg{})
 	if err != nil {
-		return err
+		e.runerr = err
+		return
 	}
 	e.me = me
-	return nil
 }
 
 func (e *PGPKeyfinder) addUser(user *libkb.User, tracked bool) {

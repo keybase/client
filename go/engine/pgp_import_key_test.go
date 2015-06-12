@@ -126,7 +126,9 @@ func armorKey(t *testing.T, tc libkb.TestContext, email string) (libkb.PgpFinger
 	if err := (*openpgp.Entity)(bundle).SerializePrivate(writer, nil); err != nil {
 		t.Fatal(err)
 	}
-	writer.Close()
+	if err := writer.Close(); err != nil {
+		t.Fatal(err)
+	}
 	fp := *bundle.GetFingerprintP()
 	return fp, string(buf.Bytes())
 }

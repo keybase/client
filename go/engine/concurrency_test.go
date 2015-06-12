@@ -34,7 +34,7 @@ func TestConcurrentLogin(t *testing.T) {
 		go func(index int) {
 			defer lwg.Done()
 			for j := 0; j < 4; j++ {
-				tc.G.Logout()
+				Logout(tc)
 				u.Login(tc.G)
 			}
 			fmt.Printf("logout/login #%d done\n", index)
@@ -96,7 +96,7 @@ func TestConcurrentGetPassphraseStream(t *testing.T) {
 		go func(index int) {
 			defer lwg.Done()
 			for j := 0; j < 4; j++ {
-				tc.G.Logout()
+				Logout(tc)
 				u.Login(tc.G)
 			}
 			fmt.Printf("logout/login #%d done\n", index)
@@ -147,9 +147,9 @@ func TestConcurrentSignup(t *testing.T) {
 		go func(index int) {
 			defer lwg.Done()
 			for j := 0; j < 4; j++ {
-				tc.G.Logout()
+				Logout(tc)
 				u.Login(tc.G)
-				tc.G.Logout()
+				Logout(tc)
 			}
 			fmt.Printf("logout/login #%d done\n", index)
 		}(i)
@@ -158,7 +158,7 @@ func TestConcurrentSignup(t *testing.T) {
 		go func(index int) {
 			defer mwg.Done()
 			CreateAndSignupFakeUserSafe(tc.G, "login")
-			tc.G.Logout()
+			Logout(tc)
 			fmt.Printf("func caller %d done\n", index)
 		}(i)
 	}

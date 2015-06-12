@@ -49,9 +49,12 @@ func TestBasicMessage(t *testing.T) {
 	}
 
 	var tok, csrf string
-	tc.G.LoginState().LocalSession(func(s *libkb.Session) {
+	err = tc.G.LoginState().LocalSession(func(s *libkb.Session) {
 		tok, csrf = s.APIArgs()
 	}, "TestBasicMessage")
+	if err != nil {
+		t.Fatal(err)
+	}
 
 	s := kex.NewSender(kex.DirectionYtoX, sec.Secret(), tok, csrf, tc.G)
 	r := kex.NewReceiver(kex.DirectionYtoX, sec, tok, csrf)
@@ -87,9 +90,12 @@ func TestBadMACMessage(t *testing.T) {
 	}
 
 	var tok, csrf string
-	tc.G.LoginState().LocalSession(func(s *libkb.Session) {
+	err = tc.G.LoginState().LocalSession(func(s *libkb.Session) {
 		tok, csrf = s.APIArgs()
 	}, "TestBadMACMessage")
+	if err != nil {
+		t.Fatal(err)
+	}
 
 	s := kex.NewSender(kex.DirectionYtoX, sec.Secret(), tok, csrf, tc.G)
 	r := kex.NewReceiver(kex.DirectionYtoX, sec, tok, csrf)

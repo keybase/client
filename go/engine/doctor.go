@@ -164,9 +164,13 @@ func (e *Doctor) status(ctx *Context) {
 	// get list of active devices
 	var err error
 	var devs libkb.DeviceKeyMap
-	e.G().LoginState().SecretSyncer(func(ss *libkb.SecretSyncer) {
+	aerr := e.G().LoginState().SecretSyncer(func(ss *libkb.SecretSyncer) {
 		devs, err = ss.ActiveDevices()
 	}, "Doctor - ActiveDevices")
+	if aerr != nil {
+		e.runErr = err
+		return
+	}
 	if err != nil {
 		e.runErr = err
 		return

@@ -160,7 +160,7 @@ func TestIdPGPNotEldest(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	tc.G.Logout()
+	Logout(tc)
 
 	idUI, _, err := runIdentify(&tc, u.Username)
 	if err != nil {

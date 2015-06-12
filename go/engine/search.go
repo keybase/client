@@ -85,7 +85,10 @@ func (e *SearchEngine) Run(ctx *Context) error {
 			}
 		}
 		webProofs := []keybase1.WebProof{}
-		webProofsLen, _ := components.AtKey("websites").Len()
+		webProofsLen, err := components.AtKey("websites").Len()
+		if err != nil {
+			webProofsLen = 0
+		}
 		for i := 0; i < webProofsLen; i++ {
 			site, err := components.AtKey("websites").AtIndex(i).AtKey("val").GetString()
 			if err != nil {
@@ -113,7 +116,10 @@ func (e *SearchEngine) Run(ctx *Context) error {
 			return err
 		}
 		// Sometimes thumbnail is null. In that case empty string is fine.
-		thumbnail, _ := completion.AtKey("thumbnail").GetString()
+		thumbnail, err := completion.AtKey("thumbnail").GetString()
+		if err != nil {
+			thumbnail = ""
+		}
 		e.results = append(e.results, keybase1.UserSummary{
 			Uid:       uid,
 			Username:  username,

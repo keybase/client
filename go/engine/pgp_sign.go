@@ -58,10 +58,16 @@ func (p *PGPSignEngine) Run(ctx *Context) (err error) {
 
 	defer func() {
 		if dumpTo != nil {
-			dumpTo.Close()
+			if e := dumpTo.Close(); e != nil {
+				p.G().Log.Warning("error closing dumpTo: %s", e)
+			}
 		}
-		p.arg.Sink.Close()
-		p.arg.Source.Close()
+		if e := p.arg.Sink.Close(); e != nil {
+			p.G().Log.Warning("error closing Sink: %s", e)
+		}
+		if e := p.arg.Source.Close(); e != nil {
+			p.G().Log.Warning("error closing Source: %s", e)
+		}
 	}()
 
 	me, err := libkb.LoadMe(libkb.LoadUserArg{})

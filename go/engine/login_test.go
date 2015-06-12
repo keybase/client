@@ -13,11 +13,11 @@ func TestLoginAndSwitch(t *testing.T) {
 	defer tc.Cleanup()
 
 	u1 := CreateAndSignupFakeUser(tc, "login")
-	tc.G.Logout()
+	Logout(tc)
 	u2 := CreateAndSignupFakeUser(tc, "login")
-	tc.G.Logout()
+	Logout(tc)
 	u1.LoginOrBust(tc)
-	tc.G.Logout()
+	Logout(tc)
 	u2.LoginOrBust(tc)
 
 	return
@@ -92,7 +92,7 @@ func TestLoginAddsKeys(t *testing.T) {
 
 	username, passphrase := createFakeUserWithNoKeys(tc)
 
-	tc.G.Logout()
+	Logout(tc)
 
 	li := NewLoginWithPromptEngine(username, tc.G)
 	secui := libkb.TestSecretUI{Passphrase: passphrase}
@@ -114,7 +114,7 @@ func TestLoginDetKeyOnly(t *testing.T) {
 
 	username, passphrase := createFakeUserWithDetKey(tc)
 
-	tc.G.Logout()
+	Logout(tc)
 
 	li := NewLoginWithPromptEngine(username, tc.G)
 	secui := libkb.TestSecretUI{Passphrase: passphrase}
@@ -140,7 +140,7 @@ func TestLoginDetKeyOnly(t *testing.T) {
 func TestLoginPGPSignNewDevice(t *testing.T) {
 	tc := SetupEngineTest(t, "login")
 	u1 := createFakeUserWithPGPOnly(t, tc)
-	tc.G.Logout()
+	Logout(tc)
 	tc.Cleanup()
 
 	// redo SetupEngineTest to get a new home directory...should look like a new device.
@@ -175,7 +175,7 @@ func TestLoginPGPSignNewDevice(t *testing.T) {
 func TestLoginPGPPubOnlySignNewDevice(t *testing.T) {
 	tc := SetupEngineTest(t, "login")
 	u1 := createFakeUserWithPGPPubOnly(t, tc)
-	tc.G.Logout()
+	Logout(tc)
 
 	// redo SetupEngineTest to get a new home directory...should look like a new device.
 	tc2 := SetupEngineTest(t, "login")
@@ -217,7 +217,7 @@ func TestLoginPGPPubOnlySignNewDevice(t *testing.T) {
 func TestLoginPGPMultSignNewDevice(t *testing.T) {
 	tc := SetupEngineTest(t, "login")
 	u1 := createFakeUserWithPGPMult(t, tc)
-	tc.G.Logout()
+	Logout(tc)
 	defer tc.Cleanup()
 
 	// redo SetupEngineTest to get a new home directory...should look like a new device.
@@ -277,7 +277,7 @@ func TestLoginInterruptDeviceRegister(t *testing.T) {
 	}
 	lks := libkb.NewLKSec(tk.LksClientHalf(), me.GetUID(), tc.G)
 
-	tc.G.Logout()
+	Logout(tc)
 
 	// going to register a device only, not generating the device keys.
 	dregArgs := &DeviceRegisterArgs{
@@ -348,7 +348,7 @@ func TestLoginInterruptDevicePush(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	tc.G.Logout()
+	Logout(tc)
 
 	// now login and see if it correctly generates needed keys
 	li := NewLoginWithPassphraseEngine(username, passphrase, false, tc.G)

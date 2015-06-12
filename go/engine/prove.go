@@ -142,7 +142,9 @@ func (p *Prove) doPrechecks(ctx *Context) (err error) {
 	var w *libkb.Markup
 	w, err = p.st.PreProofCheck(p.usernameNormalized)
 	if w != nil {
-		ctx.ProveUI.OutputPrechecks(keybase1.OutputPrechecksArg{Text: w.Export()})
+		if uierr := ctx.ProveUI.OutputPrechecks(keybase1.OutputPrechecksArg{Text: w.Export()}); uierr != nil {
+			p.G().Log.Warning("prove ui OutputPrechecks call error: %s", uierr)
+		}
 	}
 	return
 }
@@ -230,9 +232,12 @@ func (p *Prove) promptPostedLoop(ctx *Context) (err error) {
 		}
 		warn, err = p.st.RecheckProofPosting(i, status)
 		if warn != nil {
-			ctx.ProveUI.DisplayRecheckWarning(keybase1.DisplayRecheckWarningArg{
+			uierr := ctx.ProveUI.DisplayRecheckWarning(keybase1.DisplayRecheckWarningArg{
 				Text: warn.Export(),
 			})
+			if uierr != nil {
+				p.G().Log.Warning("prove ui DisplayRecheckWarning call error: %s", uierr)
+			}
 		}
 		if err != nil {
 			break

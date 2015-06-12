@@ -211,11 +211,13 @@ func (k *KexSib) handlePleaseSign(ctx *Context, m *kex.Msg) error {
 		return err
 	}
 
-	if k.verifyPleaseSign(jw, newKID); err != nil {
+	if err = k.verifyPleaseSign(jw, newKID); err != nil {
 		return err
 	}
 
-	jw.SetValueAtPath("body.sibkey.reverse_sig", jsonw.NewString(sig))
+	if err = jw.SetValueAtPath("body.sibkey.reverse_sig", jsonw.NewString(sig)); err != nil {
+		return err
+	}
 
 	del := libkb.Delegator{
 		NewKey:       newKey,

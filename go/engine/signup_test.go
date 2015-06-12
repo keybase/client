@@ -30,7 +30,7 @@ func TestSignupEngine(t *testing.T) {
 	}
 
 	// Now try to logout and log back in
-	tc.G.Logout()
+	Logout(tc)
 
 	if err = AssertDeviceID(tc.G); err != nil {
 		t.Fatal(err)
@@ -51,7 +51,7 @@ func TestSignupEngine(t *testing.T) {
 	}
 
 	// Now try to logout and log back in w/ PublicKey Auth
-	tc.G.Logout()
+	Logout(tc)
 
 	if err := AssertLoggedOut(tc); err != nil {
 		t.Fatal(err)
@@ -79,7 +79,7 @@ func TestSignupEngine(t *testing.T) {
 	}
 
 	// Now try to logout to make sure we logged out OK
-	tc.G.Logout()
+	Logout(tc)
 
 	if err = AssertDeviceID(tc.G); err != nil {
 		t.Fatal(err)
@@ -157,9 +157,9 @@ func TestIssue280(t *testing.T) {
 
 	// Initialize state with user U1
 	u1 := CreateAndSignupFakeUser(tc, "login")
-	tc.G.Logout()
+	Logout(tc)
 	u1.LoginOrBust(tc)
-	tc.G.Logout()
+	Logout(tc)
 
 	// Now try to sign in as user U2, and do something
 	// that needs access to a locked local secret key.

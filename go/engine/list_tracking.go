@@ -161,9 +161,12 @@ func (e *ListTrackingEngine) linkWebProofs(link *libkb.TrackChainLink) (res []ke
 	return res
 }
 
-func (e *ListTrackingEngine) runTable(trackList TrackList) (err error) {
+func (e *ListTrackingEngine) runTable(trackList TrackList) error {
 	for _, link := range trackList {
-		uid, _ := link.GetTrackedUid()
+		uid, err := link.GetTrackedUid()
+		if err != nil {
+			return err
+		}
 		entry := keybase1.UserSummary{
 			Username:     link.ToDisplayString(),
 			SigIDDisplay: link.GetSigID().ToDisplayString(true),
@@ -175,10 +178,10 @@ func (e *ListTrackingEngine) runTable(trackList TrackList) (err error) {
 		entry.Proofs.Web = e.linkWebProofs(link)
 		e.tableResult = append(e.tableResult, entry)
 	}
-	return
+	return nil
 }
 
-func (e *ListTrackingEngine) runJSON(trackList TrackList, verbose bool) (err error) {
+func (e *ListTrackingEngine) runJSON(trackList TrackList, verbose bool) error {
 	var tmp []*jsonw.Wrapper
 	for _, link := range trackList {
 		var rec *jsonw.Wrapper
@@ -195,11 +198,13 @@ func (e *ListTrackingEngine) runJSON(trackList TrackList, verbose bool) (err err
 
 	ret := jsonw.NewArray(len(tmp))
 	for i, r := range tmp {
-		ret.SetIndex(i, r)
+		if err := ret.SetIndex(i, r); err != nil {
+			return err
+		}
 	}
 
 	e.jsonResult = ret.MarshalPretty()
-	return
+	return nil
 }
 
 func condenseRecord(l *libkb.TrackChainLink) (*jsonw.Wrapper, error) {
