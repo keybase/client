@@ -194,7 +194,7 @@ func (b *BlockServerRemote) Put(id BlockID, tlfID DirID, context BlockContext,
 			Size:      int(context.GetQuotaSize()),
 		},
 		BlockKey: hex.EncodeToString(serverHalf.ServerHalf[:]),
-		Folder:   "", // TODO: convert tlfID to the appropriate type
+		Folder:   hex.EncodeToString(tlfID[:]),
 		Buf:      buf,
 	}
 	err := b.clt.PutBlock(arg)
