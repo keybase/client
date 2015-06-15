@@ -74,19 +74,29 @@ type exportTest struct {
 	count  int
 }
 
-func pgpExport(ctx *Context, g *libkb.GlobalContext, secret bool, query string, exact bool) (int, error) {
-	arg := keybase1.PgpExportArg{
-		Options: keybase1.PGPQuery{
-			Secret:     secret,
-			Query:      query,
-			ExactMatch: exact,
-		},
+type exportCounts struct {
+	either      int
+	fingerprint int
+	kid         int
+}
+
+func pgpExport(ctx *Context, g *libkb.GlobalContext, secret bool, query string, exact bool) (exportCounts, error) {
+	opts := keybase1.PGPQuery{
+		Secret:     secret,
+		Query:      query,
+		ExactMatch: exact,
 	}
 
+	var xcount exportCounts
+	arg := keybase1.PgpExportArg{
+		Options: opts,
+	}
 	xe := NewPGPKeyExportEngine(arg, g)
 	if err := RunEngine(xe, ctx); err != nil {
-		return 0, err
+		return xcount, err
 	}
 
-	return len(xe.Results()), nil
+	xcount.either = len(xe.Results())
+
+	return xcount, nil
 }
