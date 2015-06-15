@@ -57,11 +57,6 @@
 
   [KBAppearance setCurrentAppearance:KBAppearance.lightAppearance];
 
-  // TODO Remove this
-  [KBButton setErrorHandler:^(KBButton *button, NSError *error) {
-    [self setError:error sender:button];
-  }];
-
   // Network reachability is a diagnostic tool that can be used to understand why a request might have failed.
   // It should not be used to determine whether or not to make a request.
   [AFNetworkReachabilityManager.sharedManager setReachabilityStatusChangeBlock:^(AFNetworkReachabilityStatus status) {

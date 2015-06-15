@@ -9,7 +9,6 @@
 #import "KBStyleGuideView.h"
 
 #import "KBFileIcon.h"
-#import "KBLayouts.h"
 
 @interface KBStyleGuideView ()
 @property KBProgressOverlayView *progressView;
@@ -62,7 +61,33 @@
   KBButton *buttonImageText = [KBButton buttonWithText:@"Back" image:image style:KBButtonStyleDefault options:0];
   [buttonView addSubview:buttonImageText];
 
-  buttonView.viewLayout = [YOLayout layoutWithLayoutBlock:[KBLayouts gridLayoutForViews:buttonView.subviews viewSize:CGSizeMake(200, 42) padding:10]];
+  buttonView.viewLayout = [YOLayout layoutWithLayoutBlock:^CGSize(id<YOLayout> layout, CGSize size) {
+    CGSize itemSize = CGSizeMake(200, 42);
+    CGFloat padding = 10;
+    if (itemSize.width > size.width) itemSize.width = size.width;
+
+    CGFloat x = 0;
+    CGFloat y = 0;
+    NSInteger index = 0;
+    BOOL wrap = NO;
+    for (id view in buttonView.subviews) {
+
+      wrap = (x + itemSize.width) > size.width;
+      if (wrap) {
+        x = 0;
+        y += itemSize.height + padding;
+      }
+
+      [layout setFrame:CGRectMake(x, y, itemSize.width, itemSize.height) view:view];
+
+      // If we didn't wrap on last item, then wrap
+      x += itemSize.width + padding;
+      index++;
+    }
+    y += itemSize.height + padding;
+    return CGSizeMake(size.width, y);
+  }];
+
   [contentView addSubview:buttonView];
 
   YOBox *linkView = [YOBox box:@{@"spacing": @(10), @"minSize": @"200,40"}];

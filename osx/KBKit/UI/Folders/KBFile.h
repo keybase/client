@@ -33,6 +33,8 @@ typedef NS_ENUM(NSInteger, KBFileResponse) {
 
 + (instancetype)fileWithURL:(NSURL *)URL;
 
++ (instancetype)fileFromExtensionItem:(NSExtensionItem *)extensionItem;
+
 + (instancetype)folderWithName:(NSString *)name dateModified:(NSDate *)dateModified;
 
 NSImage *KBImageForFile(KBFile *file);

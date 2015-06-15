@@ -77,8 +77,7 @@
 }
 
 + (NSView *)encryptWithExtensionItem:(NSExtensionItem *)extensionItem completion:(KBOnExtension)completion {
-  KBPGPEncryptActionView *encryptView = [[KBPGPEncryptActionView alloc] init];
-  [encryptView sizeToFit];
+  KBPGPEncryptActionView *encryptView = [[KBPGPEncryptActionView alloc] initWithFrame:CGRectMake(0, 0, 400, 300)];
 
   encryptView.extensionItem = extensionItem;
 

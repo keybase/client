@@ -35,10 +35,11 @@
   _verifiedView = [[KBPGPVerifiedView alloc] init];
   [self addSubview:_verifiedView];
 
-  GHWeakSelf gself =self;
+  GHWeakSelf gself = self;
   _footerView = [[KBPGPOutputFooterView alloc] init];
-  _footerView.editButton.targetBlock = ^{
-    [gself.navigation popViewAnimated:YES];
+  _footerView.editButton.targetBlock = ^{ [gself.navigation popViewAnimated:YES]; };
+  _footerView.shareButton.dispatchBlock = ^(KBButton *button, dispatch_block_t completion) {
+    [gself share:button completion:completion];
   };
   _footerView.closeButton.targetBlock = ^{ [[gself window] close]; };
   [self addSubview:_footerView];
@@ -61,11 +62,24 @@
   [self setNeedsLayout];
 }
 
-//- (void)share {
-//  NSSharingServicePicker *sharingServicePicker = [[NSSharingServicePicker alloc] initWithItems:urls];
-//  sharingServicePicker.delegate = self;
-//
-//  [sharingServicePicker showRelativeToRect:[sender bounds] ofView:sender preferredEdge:NSMinYEdge];
+- (void)share:(id)sender completion:(dispatch_block_t)completion {
+  NSMutableArray *items = [NSMutableArray array];
+  if (_textView.isArmored) {
+    [items addObject:[[NSString alloc] initWithData:_textView.data encoding:NSUTF8StringEncoding]];
+  } else {
+    NSAssert(NO, @"TODO Share unsupported");
+  }
+
+  NSSharingServicePicker *sharingServicePicker = [[NSSharingServicePicker alloc] initWithItems:items];
+  sharingServicePicker.delegate = self;
+  [sharingServicePicker showRelativeToRect:[sender bounds] ofView:sender preferredEdge:NSMinYEdge];
+  completion();
+}
+
+//- (void)mailShare {
+//  NSSharingService *mailShare = [NSSharingService sharingServiceNamed:NSSharingServiceNameComposeEmail];
+//  NSArray *shareItems = @[]; // @[textAttributedString, tempFileURL];
+//  [mailShare performWithItems:shareItems];
 //}
 
 - (void)setPgpSigVerification:(KBRPgpSigVerification *)pgpSigVerification {

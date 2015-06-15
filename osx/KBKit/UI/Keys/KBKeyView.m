@@ -38,7 +38,7 @@
   YOHBox *buttons = [YOHBox box:@{@"insets": @(20), @"spacing": @(40), @"horizontalAlignment": @"right"}];
   [self addSubview:buttons];
   KBButton *removeButton = [KBButton buttonWithText:@"Remove" style:KBButtonStyleDanger options:KBButtonOptionsToolbar];
-  removeButton.dispatchBlock = ^(KBButton *button, KBButtonCompletion completion) {
+  removeButton.dispatchBlock = ^(KBButton *button, dispatch_block_t completion) {
     [self removePGPKey:completion];
   };
   [buttons addSubview:removeButton];
@@ -90,7 +90,7 @@
   _cancelButton.targetBlock();
 }
 
-- (void)removePGPKey:(KBButtonCompletion)completion {
+- (void)removePGPKey:(dispatch_block_t)completion {
   NSAssert(_keyId.kid, @"No kid");
   NSData *kid = _keyId.kid;
   [KBAlert yesNoWithTitle:@"Delete PGP Key" description:@"Are you sure you want to remove this PGP Key?" yes:@"Delete" view:self completion:^(BOOL yes) {
@@ -101,7 +101,7 @@
         [self close];
       }];
     } else {
-      completion(nil);
+      completion();
     }
   }];
 }

@@ -8,6 +8,8 @@
 
 #import "ShareViewController.h"
 
+#import <KBKit/KBAppActions.h>
+
 @interface ShareViewController ()
 @end
 
@@ -18,8 +20,17 @@
 }
 
 - (void)loadView {
-  [super loadView];
+  NSExtensionItem *item = self.extensionContext.inputItems.firstObject;
+  DDLogDebug(@"Attachments: %@", item.attachments);
+  id view = [KBAppActions encryptWithExtensionItem:item completion:^(id sender, NSExtensionItem *outputItem) {
+    if (!outputItem) {
+      [self cancel];
+    } else {
+      [self share:outputItem];
+    }
+  }];
 
+  self.view = view;
 }
 
 - (void)share:(NSExtensionItem *)outputItem {

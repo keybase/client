@@ -37,6 +37,7 @@
 #import "KBSignupView.h"
 #import "KBFile.h"
 #import "KBSecretPromptView.h"
+#import "KBAppActions.h"
 
 @implementation KBDebugViews
 
@@ -91,7 +92,7 @@
   [contentView addSubview:[KBButton linkWithText:@"PGP Sign" targetBlock:^{ [self showPGPSign]; }]];
   [contentView addSubview:[KBButton linkWithText:@"PGP Sign (File)" targetBlock:^{ [self showPGPSignFile]; }]];
 
-  [contentView addSubview:[KBButton linkWithText:@"PGP Encrypt (Share)" targetBlock:^{ [self showPGPEncryptShare]; }]];
+  [contentView addSubview:[KBButton linkWithText:@"PGP Encrypt (Action)" targetBlock:^{ [self showPGPEncryptAction]; }]];
 
   [self setDocumentView:contentView];
 }
@@ -176,7 +177,7 @@
 - (void)showDeviceSetupDisplay {
   KBDeviceSetupDisplayView *secretWordsView = [[KBDeviceSetupDisplayView alloc] init];
   [secretWordsView setSecretWords:@"profit tiny dumb cherry explain poet" deviceNameExisting:@"Macbook (Work)" deviceNameToAdd:@"Macbook (Home)"];
-  secretWordsView.button.dispatchBlock = ^(KBButton *button, KBButtonCompletion completion) { [[button window] close]; };
+  secretWordsView.button.dispatchBlock = ^(KBButton *button, dispatch_block_t completion) { [[button window] close]; };
   [self openInWindow:secretWordsView size:CGSizeMake(600, 400) title:nil];
 }
 
@@ -207,7 +208,7 @@
   KBDeviceSetupChooseView *deviceSetupView = [self deviceSetupChooseView];
   devicePromptView.completion = ^(id sender, NSError *error, NSString *deviceName) { [navigation pushView:deviceSetupView animated:YES]; };
   deviceSetupView.selectButton.targetBlock = ^{ [navigation pushView:secretWordsView animated:YES]; };
-  secretWordsView.button.dispatchBlock = ^(KBButton *button, KBButtonCompletion completion) { [[button window] close]; };
+  secretWordsView.button.dispatchBlock = ^(KBButton *button, dispatch_block_t completion) { [[button window] close]; };
 }
 
 - (void)showSignup {
@@ -243,7 +244,7 @@
 
   KBDeviceSetupChooseView *deviceSetupView = [[KBDeviceSetupChooseView alloc] init];
   [deviceSetupView setDevices:@[device1, device2, device3] hasPGP:YES];
-  deviceSetupView.cancelButton.dispatchBlock = ^(KBButton *button, KBButtonCompletion completion) { [[button window] close]; };
+  deviceSetupView.cancelButton.dispatchBlock = ^(KBButton *button, dispatch_block_t completion) { [[button window] close]; };
   return deviceSetupView;
 }
 
@@ -259,22 +260,16 @@
   [self openInWindow:encryptView size:CGSizeMake(600, 400) title:@"Encrypt"];
 }
 
-- (void)showPGPEncryptShare {
-  KBPGPEncryptActionView *view = [[KBPGPEncryptActionView alloc] init];
-  view.client = self.client;
-
+- (void)showPGPEncryptAction {
   NSExtensionItem *item = [[NSExtensionItem alloc] init];
-
   NSAttributedString *text = [[NSAttributedString alloc] initWithString:@"Test"];
   item.attributedContentText = text;
 
-  view.extensionItem = item;
-
-  [view sizeToFit];
-  view.completion = ^(id sender, NSExtensionItem *item) {
+  NSView *view = [KBAppActions encryptWithExtensionItem:item completion:^(id sender, NSExtensionItem *outputItem) {
+    DDLogDebug(@"Output: %@", outputItem);
     [[sender window] close];
-  };
-  [self.window kb_addChildWindowForView:view size:view.frame.size];
+  }];
+  [self.window kb_addChildWindowForView:view size:view.frame.size makeKey:YES];
 }
 
 - (void)showPGPEncryptFile {

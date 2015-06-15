@@ -37,6 +37,12 @@
   return folder;
 }
 
++ (instancetype)fileFromExtensionItem:(NSExtensionItem *)extensionItem {
+  KBFile *file = [[KBFile alloc] init];
+  NSAssert(NO, @"TODO");
+  return file;
+}
+
 NSImage *KBImageForFile(KBFile *file) {
   if (file.fileType == KBFileTypeFolder) {
     return [[NSWorkspace sharedWorkspace] iconForFileType:NSFileTypeForHFSTypeCode(kGenericFolderIcon)];

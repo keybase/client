@@ -13,7 +13,7 @@
 
 @interface KBPGPEncryptActionView : KBContentView
 
-@property NSExtensionItem *extensionItem;
+@property (nonatomic) NSExtensionItem *extensionItem;
 @property (copy) KBOnExtension completion;
 
 @end

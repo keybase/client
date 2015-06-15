@@ -46,7 +46,7 @@
   BBPasswordStrength *strength = [[BBPasswordStrength alloc] initWithPassword:password];
 
   NSUInteger score = [strength score];
-  NSColor *color = KBNSColorFromRGB(0x333333);
+  NSColor *color = KBColorFromRGBA(0x333333, 1.0, NSBackgroundStyleLight);
   if (score == 0) {
     color = [NSColor colorWithRed:200.0/255.0 green:24.0/255.0 blue:24.0/255.0 alpha:1.0];
   } else if (score == 1) {

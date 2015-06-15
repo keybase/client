@@ -23,12 +23,17 @@
 #import "KBPGPTextView.h"
 #import "KBWorkspace.h"
 #import "KBService.h"
+#import "KBComposeTextView.h"
 
 @interface KBPGPEncryptActionView () <KBUserPickerViewDelegate>
 @property KBUserPickerView *userPickerView;
 @property KBPGPEncryptToolbarFooterView *footerView;
-
 @property KBPGPEncrypt *encrypter;
+
+@property KBComposeTextView *textView;
+@property KBFileIcon *fileIcon;
+
+@property YOBorderLayout *borderLayout;
 @end
 
 @implementation KBPGPEncryptActionView
@@ -37,16 +42,13 @@
   [super viewInit];
   [self kb_setBackgroundColor:KBAppearance.currentAppearance.backgroundColor];
 
-  YOVBox *contentView = [YOVBox box];
-  [self addSubview:contentView];
-
   GHWeakSelf gself = self;
   YOVBox *topView = [YOVBox box];
   [self addSubview:topView];
   _userPickerView = [[KBUserPickerView alloc] init];
   _userPickerView.delegate = self;
-  _userPickerView.searchPosition = CGPointMake(1, -1);
-  [contentView addSubview:_userPickerView];
+  [topView addSubview:_userPickerView];
+  [topView addSubview:[KBBox horizontalLine]];
 
   _footerView = [[KBPGPEncryptToolbarFooterView alloc] init];
   _footerView.encryptButton.targetBlock = ^{ [gself encrypt]; };
@@ -55,12 +57,22 @@
   _footerView.cancelButton.targetBlock = ^{
     gself.completion(gself, nil);
   };
-  [contentView addSubview:_footerView];
+  [self addSubview:_footerView];
 
-  self.viewLayout = [YOLayout layoutWithLayoutBlock:^CGSize(id<YOLayout> layout, CGSize size) {
-    if (size.width == 0) size.width = 500;
-    return [layout sizeToFitVerticalInFrame:CGRectMake(0, 0, size.width, size.height) view:contentView].size;
-  }];
+  _textView = [[KBComposeTextView alloc] init];
+
+  _fileIcon = [[KBFileIcon alloc] init];
+  _fileIcon.iconHeight = 400;
+  _fileIcon.font = [NSFont systemFontOfSize:18];
+
+  _borderLayout = [YOBorderLayout layoutWithCenter:nil top:@[topView] bottom:@[_footerView]];
+  self.viewLayout = _borderLayout;
+}
+
+- (void)layout {
+  [super layout];
+  NSView *centerView = _borderLayout.center;
+  [_userPickerView setSearchRect:CGRectMake(1, 1, centerView.bounds.size.width - 2, centerView.bounds.size.height)];
 }
 
 - (void)setClient:(KBRPClient *)client {
@@ -68,32 +80,41 @@
   _userPickerView.client = client;
 }
 
-- (void)encrypt {
-  KBReader *reader = nil;
-
+- (void)setExtensionItem:(NSExtensionItem *)extensionItem {
+  _extensionItem = extensionItem;
   NSString *text = _extensionItem.attributedContentText.string;
-  BOOL binaryOut = NO;
   if (text) {
-    reader = [KBReader readerWithData:[text dataUsingEncoding:NSUTF8StringEncoding]];
-    binaryOut = YES;
+    [_fileIcon removeFromSuperview];
+    _borderLayout.center = _textView;
+    [self addSubview:_textView];
+    _textView.text = text;
+  } else {
+    [_textView removeFromSuperview];
+    _borderLayout.center = _fileIcon;
+    [self addSubview:_fileIcon];
+    _fileIcon.file = [KBFile fileFromExtensionItem:extensionItem];
   }
+  [self setNeedsLayout];
+}
 
-  if (!reader) {
-    [KBActivity setError:KBMakeError(-1, @"Nothing to encrypt") sender:self];
-    return;
+- (void)encrypt {
+  id<KBReader> reader;
+  KBRPgpEncryptOptions *options = [[KBRPgpEncryptOptions alloc] init];
+  if ([_textView superview]) {
+    reader = [KBReader readerWithData:[_textView.text dataUsingEncoding:NSUTF8StringEncoding]];
+  } else if ([_fileIcon superview]) {
+    options.binaryOut = YES;
+    reader = [KBFileReader fileReaderWithPath:_fileIcon.file.path];
   }
 
   KBWriter *writer = [KBWriter writer];
   KBStream *stream = [KBStream streamWithReader:reader writer:writer label:arc4random()];
 
-  _encrypter = [[KBPGPEncrypt alloc] init];
-  KBRPgpEncryptOptions *options = [[KBRPgpEncryptOptions alloc] init];
   options.recipients = _userPickerView.usernames;
-  //options.noSelf = _footerView.includeSelfButton.state != NSOnState;
-  //options.noSign = _footerView.signButton.state != NSOnState;
-  options.binaryOut = binaryOut;
+
   [KBActivity setProgressEnabled:YES sender:self];
   //GHWeakSelf gself = self;
+  _encrypter = [[KBPGPEncrypt alloc] init];
   [_encrypter encryptWithOptions:options streams:@[stream] client:self.client sender:self completion:^(NSArray *works) {
     KBWork *work = works[0];
     NSError *error = [work error];
@@ -103,7 +124,7 @@
     KBStream *stream = [work output];
     if (stream.writer.data) {
       NSExtensionItem *outputItem = [[NSExtensionItem alloc] init];
-      if (!binaryOut) {
+      if (!options.binaryOut) {
         NSString *string = [[NSString alloc] initWithData:stream.writer.data encoding:NSUTF8StringEncoding];
         outputItem.attributedContentText = [[NSAttributedString alloc] initWithString:string];
       }
@@ -114,6 +135,10 @@
 
 - (void)userPickerViewDidUpdate:(KBUserPickerView *)userPickerView {
 
+}
+
+- (void)userPickerView:(KBUserPickerView *)userPickerView didUpdateSearch:(BOOL)visible {
+  [_textView setEnabled:!visible];
 }
 
 @end

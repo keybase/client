@@ -14,10 +14,10 @@
 #import "KBPGPSigner.h"
 #import "KBPGPSignFooterView.h"
 #import "KBWork.h"
-#import "KBPGPTextView.h"
+#import "KBComposeTextView.h"
 
 @interface KBPGPSignView ()
-@property KBPGPTextView *textView;
+@property KBComposeTextView *textView;
 @property KBPGPSignFooterView *footerView;
 @property KBPGPSigner *signer;
 @end
@@ -28,9 +28,7 @@
   [super viewInit];
 
   GHWeakSelf gself = self;
-  _textView = [[KBPGPTextView alloc] init];
-  _textView.view.editable = YES;
-  _textView.view.textContainerInset = CGSizeMake(10, 10);
+  _textView = [[KBComposeTextView alloc] init];
   _textView.onChange = ^(KBTextView *textView) {
     if (gself.onSign) gself.onSign(gself, nil, KBRSignModeClear);
   };

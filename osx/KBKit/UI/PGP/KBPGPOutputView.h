@@ -12,7 +12,7 @@
 #import "KBContentView.h"
 #import "KBPGPOutputFooterView.h"
 
-@interface KBPGPOutputView : KBContentView
+@interface KBPGPOutputView : KBContentView <NSSharingServicePickerDelegate>
 
 @property (readonly) KBPGPOutputFooterView *footerView;
 

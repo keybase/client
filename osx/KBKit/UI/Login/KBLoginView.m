@@ -51,9 +51,9 @@
   [contentView addSubview:_passwordField];
 
   _saveToKeychainButton = [KBButton buttonWithText:@"Remember Me" style:KBButtonStyleCheckbox];
-  _saveToKeychainButton.dispatchBlock = ^(KBButton *button, KBButtonCompletion completion) {
+  _saveToKeychainButton.dispatchBlock = ^(KBButton *button, dispatch_block_t completion) {
     [gself keychainChanged:button.state == NSOnState];
-    completion(nil);
+    completion();
   };
   [contentView addSubview:_saveToKeychainButton];
 

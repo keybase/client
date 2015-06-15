@@ -35,7 +35,7 @@
 				<key>NSExtensionActivationSupportsText</key>
 				<true/>
 				<key>NSExtensionActivationSupportsFileWithMaxCount</key>
-				<string>1</string>
+				<integer>1</integer>
 			</dict>
 			<key>NSExtensionServiceRoleType</key>
 			<string>NSExtensionServiceRoleTypeEditor</string>
