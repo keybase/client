@@ -147,34 +147,32 @@ func (h *PGPHandler) PgpImport(arg keybase1.PgpImportArg) error {
 	return err
 }
 
-func (h *PGPHandler) PgpExport(arg keybase1.PgpExportArg) (ret []keybase1.KeyInfo, err error) {
+type exporter interface {
+	engine.Engine
+	Results() []keybase1.KeyInfo
+}
+
+func (h *PGPHandler) export(sessionID int, ex exporter) ([]keybase1.KeyInfo, error) {
 	ctx := &engine.Context{
-		SecretUI: h.getSecretUI(arg.SessionID),
-		LogUI:    h.getLogUI(arg.SessionID),
+		SecretUI: h.getSecretUI(sessionID),
+		LogUI:    h.getLogUI(sessionID),
 	}
-	eng := engine.NewPGPKeyExportEngine(arg, G)
-	if err = engine.RunEngine(eng, ctx); err != nil {
-		return
+	if err := engine.RunEngine(ex, ctx); err != nil {
+		return nil, err
 	}
-	ret = eng.Results()
-	return
+	return ex.Results(), nil
+}
+
+func (h *PGPHandler) PgpExport(arg keybase1.PgpExportArg) (ret []keybase1.KeyInfo, err error) {
+	return h.export(arg.SessionID, engine.NewPGPKeyExportEngine(arg, G))
+}
+
+func (h *PGPHandler) PgpExportByKID(arg keybase1.PgpExportByKIDArg) (ret []keybase1.KeyInfo, err error) {
+	return h.export(arg.SessionID, engine.NewPGPKeyExportByKIDEngine(arg, G))
 }
 
 func (h *PGPHandler) PgpExportByFingerprint(arg keybase1.PgpExportByFingerprintArg) (ret []keybase1.KeyInfo, err error) {
-	/*
-		ctx := &engine.Context{
-			SecretUI: h.getSecretUI(arg.SessionID),
-			LogUI:    h.getLogUI(arg.SessionID),
-		}
-		eng := engine.NewPGPKeyExportEngine(arg, G)
-		if err = engine.RunEngine(eng, ctx); err != nil {
-			return
-		}
-		ret = eng.Results()
-		return
-	*/
-	panic("not yet implemented")
-	return
+	return h.export(arg.SessionID, engine.NewPGPKeyExportByFingerprintEngine(arg, G))
 }
 
 func (h *PGPHandler) PgpKeyGen(arg keybase1.PgpKeyGenArg) (err error) {
@@ -205,7 +203,7 @@ func (h *PGPHandler) PgpDeletePrimary(sessionID int) (err error) {
 }
 
 func (h *PGPHandler) PgpSelect(sarg keybase1.PgpSelectArg) error {
-	arg := engine.GPGImportKeyArg{Query: sarg.KidQuery, AllowMulti: sarg.AllowMulti, SkipImport: sarg.SkipImport}
+	arg := engine.GPGImportKeyArg{Query: sarg.FingerprintQuery, AllowMulti: sarg.AllowMulti, SkipImport: sarg.SkipImport}
 	gpg := engine.NewGPGImportKeyEngine(&arg, G)
 	ctx := &engine.Context{
 		GPGUI:    h.getGPGUI(sarg.SessionID),
@@ -214,21 +212,6 @@ func (h *PGPHandler) PgpSelect(sarg keybase1.PgpSelectArg) error {
 		LoginUI:  h.getLoginUI(sarg.SessionID),
 	}
 	return engine.RunEngine(gpg, ctx)
-}
-
-func (h *PGPHandler) PgpSelectByFingerprint(sarg keybase1.PgpSelectByFingerprintArg) error {
-	/*
-		arg := engine.GPGImportKeyArg{Query: sarg.KidQuery, AllowMulti: sarg.AllowMulti, SkipImport: sarg.SkipImport}
-		gpg := engine.NewGPGImportKeyEngine(&arg, G)
-		ctx := &engine.Context{
-			GPGUI:    h.getGPGUI(sarg.SessionID),
-			SecretUI: h.getSecretUI(sarg.SessionID),
-			LogUI:    h.getLogUI(sarg.SessionID),
-			LoginUI:  h.getLoginUI(sarg.SessionID),
-		}
-		return engine.RunEngine(gpg, ctx)
-	*/
-	panic("not yet implemented")
 }
 
 func (h *PGPHandler) PgpUpdate(arg keybase1.PgpUpdateArg) error {

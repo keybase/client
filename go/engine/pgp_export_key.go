@@ -6,15 +6,27 @@ package engine
 //
 
 import (
+	"fmt"
+
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/protocol/go"
 )
 
+type queryType int
+
+const (
+	unset queryType = iota
+	fingerprint
+	kid
+	either
+)
+
 type PGPKeyExportEngine struct {
 	libkb.Contextified
-	arg keybase1.PgpExportArg
-	res []keybase1.KeyInfo
-	me  *libkb.User
+	arg   keybase1.PGPQuery
+	qtype queryType
+	res   []keybase1.KeyInfo
+	me    *libkb.User
 }
 
 func (e *PGPKeyExportEngine) GetPrereqs() EnginePrereqs {
@@ -43,7 +55,24 @@ func (e *PGPKeyExportEngine) Results() []keybase1.KeyInfo {
 
 func NewPGPKeyExportEngine(arg keybase1.PgpExportArg, g *libkb.GlobalContext) *PGPKeyExportEngine {
 	return &PGPKeyExportEngine{
-		arg:          arg,
+		arg:          arg.Options,
+		qtype:        either,
+		Contextified: libkb.NewContextified(g),
+	}
+}
+
+func NewPGPKeyExportByKIDEngine(arg keybase1.PgpExportByKIDArg, g *libkb.GlobalContext) *PGPKeyExportEngine {
+	return &PGPKeyExportEngine{
+		arg:          arg.Options,
+		qtype:        kid,
+		Contextified: libkb.NewContextified(g),
+	}
+}
+
+func NewPGPKeyExportByFingerprintEngine(arg keybase1.PgpExportByFingerprintArg, g *libkb.GlobalContext) *PGPKeyExportEngine {
+	return &PGPKeyExportEngine{
+		arg:          arg.Options,
+		qtype:        fingerprint,
 		Contextified: libkb.NewContextified(g),
 	}
 }
@@ -64,53 +93,64 @@ func (e *PGPKeyExportEngine) exportPublic() (err error) {
 		if fp == nil || err != nil {
 			continue
 		}
-		if len(e.arg.FingerprintQuery) > 0 && !libkb.KeyMatchesQuery(k, e.arg.FingerprintQuery) {
-			continue
+		if len(e.arg.Query) > 0 {
+			var match bool
+			switch e.qtype {
+			case either:
+				match = libkb.KeyMatchesQuery(k, e.arg.Query, e.arg.ExactMatch)
+			case fingerprint:
+				match = fp.Match(e.arg.Query, e.arg.ExactMatch)
+			case kid:
+				match = k.GetKid().Match(e.arg.Query, e.arg.ExactMatch)
+			}
+			if !match {
+				continue
+			}
 		}
 		e.pushRes(*fp, s, k.VerboseDescription())
 	}
 	return
 }
 
-func (e *PGPKeyExportEngine) exportSecret(ctx *Context) (err error) {
+func (e *PGPKeyExportEngine) exportSecret(ctx *Context) error {
 	ska := libkb.SecretKeyArg{
-		Me:       e.me,
-		KeyType:  libkb.PGPKeyType,
-		KeyQuery: e.arg.KidQuery,
+		Me:         e.me,
+		KeyType:    libkb.PGPKeyType,
+		KeyQuery:   e.arg.Query,
+		ExactMatch: e.arg.ExactMatch,
 	}
-	var key libkb.GenericKey
-	var skb *libkb.SKB
-	var ok bool
-	var ret string
 
-	key, skb, err = e.G().Keyrings.GetSecretKeyWithPrompt(ctx.LoginContext, ska, ctx.SecretUI, "key export")
+	key, skb, err := e.G().Keyrings.GetSecretKeyWithPrompt(ctx.LoginContext, ska, ctx.SecretUI, "key export")
 	if err != nil {
-		return
+		if _, ok := err.(libkb.NoSecretKeyError); ok {
+			// if no secret key found, don't return an error, just let
+			// the result be empty
+			return nil
+		}
+		return err
 	}
 	fp := key.GetFingerprintP()
 	if fp == nil {
-		err = libkb.BadKeyError{Msg: "no fingerprint found"}
-		return
+		return libkb.BadKeyError{Msg: "no fingerprint found"}
 	}
 
-	if _, ok = key.(*libkb.PgpKeyBundle); !ok {
-		err = libkb.BadKeyError{Msg: "Expected a PGP key"}
-		return
+	if _, ok := key.(*libkb.PgpKeyBundle); !ok {
+		return libkb.BadKeyError{Msg: "Expected a PGP key"}
 	}
 
 	raw := skb.RawUnlockedKey()
 	if raw == nil {
-		err = libkb.BadKeyError{Msg: "can't get raw representation of key"}
-		return
+		return libkb.BadKeyError{Msg: "can't get raw representation of key"}
 	}
 
-	if ret, err = libkb.PgpKeyRawToArmored(raw, true); err != nil {
-		return
+	ret, err := libkb.PgpKeyRawToArmored(raw, true)
+	if err != nil {
+		return err
 	}
 
 	e.pushRes(*fp, ret, "")
 
-	return
+	return nil
 }
 
 func (e *PGPKeyExportEngine) loadMe() (err error) {
@@ -124,6 +164,10 @@ func (e *PGPKeyExportEngine) Run(ctx *Context) (err error) {
 	defer func() {
 		e.G().Log.Debug("- PGPKeyExportEngine::Run -> %s", libkb.ErrToOk(err))
 	}()
+
+	if e.qtype == unset {
+		return fmt.Errorf("PGPKeyExportEngine: query type not set.")
+	}
 
 	if err = e.loadMe(); err != nil {
 		return

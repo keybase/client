@@ -437,7 +437,7 @@ func (k SKBKeyringFile) SearchWithComputedKeyFamily(ckf *ComputedKeyFamily, ska 
 			G.Log.Debug("| Checking KID: %s -> %d", kid, int(active))
 			if !ska.KeyType.nonDeviceKeyMatches(key) {
 				G.Log.Debug("| Skipped, doesn't match type=%s", ska.KeyType)
-			} else if !KeyMatchesQuery(key, ska.KeyQuery) {
+			} else if !KeyMatchesQuery(key, ska.KeyQuery, ska.ExactMatch) {
 				G.Log.Debug("| Skipped, doesn't match query=%s", ska.KeyQuery)
 
 			} else if active != DLG_SIBKEY {

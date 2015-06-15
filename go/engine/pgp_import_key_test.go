@@ -22,7 +22,7 @@ func TestPGPImportAndExport(t *testing.T) {
 
 	// try all four permutations of push options:
 
-	fp, key := armorKey(t, tc, u.Email)
+	fp, _, key := armorKey(t, tc, u.Email)
 	eng, err := NewPGPKeyImportEngineFromBytes([]byte(key), false, tc.G)
 	if err != nil {
 		t.Fatal(err)
@@ -31,7 +31,7 @@ func TestPGPImportAndExport(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	fp, key = armorKey(t, tc, u.Email)
+	fp, _, key = armorKey(t, tc, u.Email)
 	eng, err = NewPGPKeyImportEngineFromBytes([]byte(key), true, tc.G)
 	if err != nil {
 		t.Fatal(err)
@@ -40,10 +40,11 @@ func TestPGPImportAndExport(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	// XXX this is probably wrong...want to use the ByFingerprint version.
 	arg := keybase1.PgpExportArg{
-		Secret:   true,
-		KidQuery: fp.String(),
+		Options: keybase1.PGPQuery{
+			Secret: true,
+			Query:  fp.String(),
+		},
 	}
 
 	xe := NewPGPKeyExportEngine(arg, tc.G)
@@ -55,10 +56,11 @@ func TestPGPImportAndExport(t *testing.T) {
 		t.Fatalf("Expected 1 key back out")
 	}
 
-	// XXX this is probably wrong...want to use the ByFingerprint version.
 	arg = keybase1.PgpExportArg{
-		Secret:   true,
-		KidQuery: fp.String()[0:10] + "aabb",
+		Options: keybase1.PGPQuery{
+			Secret: true,
+			Query:  fp.String()[0:10] + "aabb",
+		},
 	}
 
 	xe = NewPGPKeyExportEngine(arg, tc.G)
@@ -69,7 +71,9 @@ func TestPGPImportAndExport(t *testing.T) {
 	}
 
 	arg = keybase1.PgpExportArg{
-		Secret: false,
+		Options: keybase1.PGPQuery{
+			Secret: false,
+		},
 	}
 	xe = NewPGPKeyExportEngine(arg, tc.G)
 	if err := RunEngine(xe, ctx); err != nil {
@@ -115,7 +119,7 @@ func TestIssue454(t *testing.T) {
 	}
 }
 
-func armorKey(t *testing.T, tc libkb.TestContext, email string) (libkb.PgpFingerprint, string) {
+func armorKey(t *testing.T, tc libkb.TestContext, email string) (libkb.PgpFingerprint, libkb.KID, string) {
 	bundle, err := tc.MakePGPKey(email)
 	if err != nil {
 		t.Fatal(err)
@@ -132,7 +136,8 @@ func armorKey(t *testing.T, tc libkb.TestContext, email string) (libkb.PgpFinger
 		t.Fatal(err)
 	}
 	fp := *bundle.GetFingerprintP()
-	return fp, string(buf.Bytes())
+	kid := bundle.GetKid()
+	return fp, kid, string(buf.Bytes())
 }
 
 const pubkeyIssue325 = `-----BEGIN PGP PUBLIC KEY BLOCK-----

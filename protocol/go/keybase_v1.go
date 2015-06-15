@@ -1592,6 +1592,12 @@ type KeyInfo struct {
 	Desc        string `codec:"desc" json:"desc"`
 }
 
+type PGPQuery struct {
+	Secret     bool   `codec:"secret" json:"secret"`
+	Query      string `codec:"query" json:"query"`
+	ExactMatch bool   `codec:"exactMatch" json:"exactMatch"`
+}
+
 type PgpCreateUids struct {
 	UseDefault bool          `codec:"useDefault" json:"useDefault"`
 	Ids        []PgpIdentity `codec:"ids" json:"ids"`
@@ -1636,17 +1642,18 @@ type PgpImportArg struct {
 }
 
 type PgpExportArg struct {
-	SessionID        int    `codec:"sessionID" json:"sessionID"`
-	Secret           bool   `codec:"secret" json:"secret"`
-	FingerprintQuery string `codec:"fingerprintQuery" json:"fingerprintQuery"`
-	ExactMatch       bool   `codec:"exactMatch" json:"exactMatch"`
+	SessionID int      `codec:"sessionID" json:"sessionID"`
+	Options   PGPQuery `codec:"options" json:"options"`
+}
+
+type PgpExportByFingerprintArg struct {
+	SessionID int      `codec:"sessionID" json:"sessionID"`
+	Options   PGPQuery `codec:"options" json:"options"`
 }
 
 type PgpExportByKIDArg struct {
-	SessionID  int    `codec:"sessionID" json:"sessionID"`
-	Secret     bool   `codec:"secret" json:"secret"`
-	KidQuery   string `codec:"kidQuery" json:"kidQuery"`
-	ExactMatch bool   `codec:"exactMatch" json:"exactMatch"`
+	SessionID int      `codec:"sessionID" json:"sessionID"`
+	Options   PGPQuery `codec:"options" json:"options"`
 }
 
 type PgpKeyGenArg struct {
@@ -1672,7 +1679,6 @@ type PgpSelectArg struct {
 	FingerprintQuery string `codec:"fingerprintQuery" json:"fingerprintQuery"`
 	AllowMulti       bool   `codec:"allowMulti" json:"allowMulti"`
 	SkipImport       bool   `codec:"skipImport" json:"skipImport"`
-	ExactMatch       bool   `codec:"exactMatch" json:"exactMatch"`
 }
 
 type PgpUpdateArg struct {
@@ -1689,6 +1695,7 @@ type PgpInterface interface {
 	PgpVerify(PgpVerifyArg) (PgpSigVerification, error)
 	PgpImport(PgpImportArg) error
 	PgpExport(PgpExportArg) ([]KeyInfo, error)
+	PgpExportByFingerprint(PgpExportByFingerprintArg) ([]KeyInfo, error)
 	PgpExportByKID(PgpExportByKIDArg) ([]KeyInfo, error)
 	PgpKeyGen(PgpKeyGenArg) error
 	PgpKeyGenDefault(PgpKeyGenDefaultArg) error
@@ -1747,6 +1754,13 @@ func PgpProtocol(i PgpInterface) rpc2.Protocol {
 				args := make([]PgpExportArg, 1)
 				if err = nxt(&args); err == nil {
 					ret, err = i.PgpExport(args[0])
+				}
+				return
+			},
+			"pgpExportByFingerprint": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
+				args := make([]PgpExportByFingerprintArg, 1)
+				if err = nxt(&args); err == nil {
+					ret, err = i.PgpExportByFingerprint(args[0])
 				}
 				return
 			},
@@ -1833,6 +1847,11 @@ func (c PgpClient) PgpImport(__arg PgpImportArg) (err error) {
 
 func (c PgpClient) PgpExport(__arg PgpExportArg) (res []KeyInfo, err error) {
 	err = c.Cli.Call("keybase.1.pgp.pgpExport", []interface{}{__arg}, &res)
+	return
+}
+
+func (c PgpClient) PgpExportByFingerprint(__arg PgpExportByFingerprintArg) (res []KeyInfo, err error) {
+	err = c.Cli.Call("keybase.1.pgp.pgpExportByFingerprint", []interface{}{__arg}, &res)
 	return
 }
 

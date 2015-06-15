@@ -181,7 +181,8 @@ type SecretKeyArg struct {
 
 	// For non-device keys, a string that the key has to match. If
 	// empty, any valid key is allowed.
-	KeyQuery string
+	KeyQuery   string
+	ExactMatch bool // if set, full equality required
 }
 
 // GetSecretKeyLocked gets a secret key for the current user by first
@@ -227,7 +228,7 @@ func (k *Keyrings) GetSecretKeyLocked(lctx LoginContext, ska SecretKeyArg) (ret 
 		return
 	} else if ret == nil {
 	} else if pub, err = ret.GetPubKey(); err != nil {
-	} else if !KeyMatchesQuery(pub, ska.KeyQuery) {
+	} else if !KeyMatchesQuery(pub, ska.KeyQuery, ska.ExactMatch) {
 		k.G().Log.Debug("| Can't use Synced PGP key; doesn't match query %s", ska.KeyQuery)
 		ret = nil
 	} else {

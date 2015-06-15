@@ -15,6 +15,24 @@ import (
 type KID []byte
 type KID2 []byte
 
+func (k KID) Match(q string, exact bool) bool {
+	if k == nil {
+		return false
+	}
+
+	if exact {
+		return strings.ToLower(k.String()) == strings.ToLower(q)
+	}
+
+	if strings.HasPrefix(k.String(), strings.ToLower(q)) {
+		return true
+	}
+	if strings.HasPrefix(k.ToShortIdString(), q) {
+		return true
+	}
+	return false
+}
+
 // Remove the need for the KIDMapKey type. See
 // https://github.com/keybase/client/issues/413 .
 type KIDMapKey string
@@ -237,19 +255,11 @@ func (f FOKID) ToMapKeys() (ret []FOKIDMapKey) {
 func (f FOKID) P() *FOKID { return &f }
 
 // Any valid FOKID matches the empty string.
-func (f FOKID) matchQuery(s string) bool {
-	if f.Fp != nil && strings.HasSuffix(strings.ToLower(f.Fp.String()), strings.ToLower(s)) {
+func (f FOKID) matchQuery(s string, exact bool) bool {
+	if f.Fp.Match(s, exact) {
 		return true
 	}
-	if f.Kid != nil {
-		if strings.HasPrefix(f.Kid.String(), strings.ToLower(s)) {
-			return true
-		}
-		if strings.HasPrefix(f.Kid.ToShortIdString(), s) {
-			return true
-		}
-	}
-	return false
+	return f.Kid.Match(s, exact)
 }
 
 func GenericKeyToFOKID(key GenericKey) FOKID {
@@ -260,8 +270,8 @@ func GenericKeyToFOKID(key GenericKey) FOKID {
 }
 
 // Any valid key matches the empty string.
-func KeyMatchesQuery(key GenericKey, q string) bool {
-	return GenericKeyToFOKID(key).matchQuery(q)
+func KeyMatchesQuery(key GenericKey, q string, exact bool) bool {
+	return GenericKeyToFOKID(key).matchQuery(q, exact)
 }
 
 func IsPGP(key GenericKey) bool {

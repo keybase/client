@@ -620,6 +620,9 @@
 @implementation KBRKeyInfo
 @end
 
+@implementation KBRPGPQuery
+@end
+
 @implementation KBRPgpCreateUids
 + (NSValueTransformer *)idsJSONTransformer { return [MTLJSONAdapter arrayTransformerWithModelClass:KBRPgpIdentity.class]; }
 @end
@@ -678,8 +681,8 @@
   }];
 }
 
-- (void)pgpExportWithSessionID:(NSInteger)sessionID secret:(BOOL)secret fingerprintQuery:(NSString *)fingerprintQuery exactMatch:(BOOL)exactMatch completion:(void (^)(NSError *error, NSArray *items))completion {
-  NSDictionary *params = @{@"sessionID": @(sessionID), @"secret": @(secret), @"fingerprintQuery": KBRValue(fingerprintQuery), @"exactMatch": @(exactMatch)};
+- (void)pgpExportWithSessionID:(NSInteger)sessionID options:(KBRPGPQuery *)options completion:(void (^)(NSError *error, NSArray *items))completion {
+  NSDictionary *params = @{@"sessionID": @(sessionID), @"options": KBRValue(options)};
   [self.client sendRequestWithMethod:@"keybase.1.pgp.pgpExport" params:params sessionId:self.sessionId completion:^(NSError *error, id retval) {
     if (error) {
         completion(error, nil);
@@ -690,8 +693,20 @@
   }];
 }
 
-- (void)pgpExportByKIDWithSessionID:(NSInteger)sessionID secret:(BOOL)secret kidQuery:(NSString *)kidQuery exactMatch:(BOOL)exactMatch completion:(void (^)(NSError *error, NSArray *items))completion {
-  NSDictionary *params = @{@"sessionID": @(sessionID), @"secret": @(secret), @"kidQuery": KBRValue(kidQuery), @"exactMatch": @(exactMatch)};
+- (void)pgpExportByFingerprintWithSessionID:(NSInteger)sessionID options:(KBRPGPQuery *)options completion:(void (^)(NSError *error, NSArray *items))completion {
+  NSDictionary *params = @{@"sessionID": @(sessionID), @"options": KBRValue(options)};
+  [self.client sendRequestWithMethod:@"keybase.1.pgp.pgpExportByFingerprint" params:params sessionId:self.sessionId completion:^(NSError *error, id retval) {
+    if (error) {
+        completion(error, nil);
+        return;
+      }
+      NSArray *results = retval ? [MTLJSONAdapter modelsOfClass:KBRKeyInfo.class fromJSONArray:retval error:&error] : nil;
+      completion(error, results);
+  }];
+}
+
+- (void)pgpExportByKIDWithSessionID:(NSInteger)sessionID options:(KBRPGPQuery *)options completion:(void (^)(NSError *error, NSArray *items))completion {
+  NSDictionary *params = @{@"sessionID": @(sessionID), @"options": KBRValue(options)};
   [self.client sendRequestWithMethod:@"keybase.1.pgp.pgpExportByKID" params:params sessionId:self.sessionId completion:^(NSError *error, id retval) {
     if (error) {
         completion(error, nil);
@@ -723,8 +738,8 @@
   }];
 }
 
-- (void)pgpSelectWithSessionID:(NSInteger)sessionID fingerprintQuery:(NSString *)fingerprintQuery allowMulti:(BOOL)allowMulti skipImport:(BOOL)skipImport exactMatch:(BOOL)exactMatch completion:(void (^)(NSError *error))completion {
-  NSDictionary *params = @{@"sessionID": @(sessionID), @"fingerprintQuery": KBRValue(fingerprintQuery), @"allowMulti": @(allowMulti), @"skipImport": @(skipImport), @"exactMatch": @(exactMatch)};
+- (void)pgpSelectWithSessionID:(NSInteger)sessionID fingerprintQuery:(NSString *)fingerprintQuery allowMulti:(BOOL)allowMulti skipImport:(BOOL)skipImport completion:(void (^)(NSError *error))completion {
+  NSDictionary *params = @{@"sessionID": @(sessionID), @"fingerprintQuery": KBRValue(fingerprintQuery), @"allowMulti": @(allowMulti), @"skipImport": @(skipImport)};
   [self.client sendRequestWithMethod:@"keybase.1.pgp.pgpSelect" params:params sessionId:self.sessionId completion:^(NSError *error, id retval) {
     completion(error);
   }];
@@ -1854,9 +1869,19 @@
 - (instancetype)initWithParams:(NSArray *)params {
   if ((self = [super initWithParams:params])) {
     self.sessionID = [params[0][@"sessionID"] integerValue];
-    self.secret = [params[0][@"secret"] boolValue];
-    self.fingerprintQuery = params[0][@"fingerprintQuery"];
-    self.exactMatch = [params[0][@"exactMatch"] boolValue];
+    self.options = [MTLJSONAdapter modelOfClass:KBRPGPQuery.class fromJSONDictionary:params[0][@"options"] error:nil];
+  }
+  return self;
+}
+
+@end
+
+@implementation KBRPgpExportByFingerprintRequestParams
+
+- (instancetype)initWithParams:(NSArray *)params {
+  if ((self = [super initWithParams:params])) {
+    self.sessionID = [params[0][@"sessionID"] integerValue];
+    self.options = [MTLJSONAdapter modelOfClass:KBRPGPQuery.class fromJSONDictionary:params[0][@"options"] error:nil];
   }
   return self;
 }
@@ -1868,9 +1893,7 @@
 - (instancetype)initWithParams:(NSArray *)params {
   if ((self = [super initWithParams:params])) {
     self.sessionID = [params[0][@"sessionID"] integerValue];
-    self.secret = [params[0][@"secret"] boolValue];
-    self.kidQuery = params[0][@"kidQuery"];
-    self.exactMatch = [params[0][@"exactMatch"] boolValue];
+    self.options = [MTLJSONAdapter modelOfClass:KBRPGPQuery.class fromJSONDictionary:params[0][@"options"] error:nil];
   }
   return self;
 }
@@ -1924,7 +1947,6 @@
     self.fingerprintQuery = params[0][@"fingerprintQuery"];
     self.allowMulti = [params[0][@"allowMulti"] boolValue];
     self.skipImport = [params[0][@"skipImport"] boolValue];
-    self.exactMatch = [params[0][@"exactMatch"] boolValue];
   }
   return self;
 }

@@ -135,7 +135,7 @@ func (u *User) FilterActivePgpKeys(sibkey bool, query string) []*PgpKeyBundle {
 	keys := u.GetActivePgpKeys(sibkey)
 	var res []*PgpKeyBundle
 	for _, k := range keys {
-		if KeyMatchesQuery(k, query) {
+		if KeyMatchesQuery(k, query, false) {
 			res = append(res, k)
 		}
 	}

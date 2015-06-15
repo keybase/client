@@ -282,6 +282,19 @@
     } ]
   }, {
     "type" : "record",
+    "name" : "PGPQuery",
+    "fields" : [ {
+      "name" : "secret",
+      "type" : "boolean"
+    }, {
+      "name" : "query",
+      "type" : "string"
+    }, {
+      "name" : "exactMatch",
+      "type" : "boolean"
+    } ]
+  }, {
+    "type" : "record",
     "name" : "PgpCreateUids",
     "fields" : [ {
       "name" : "useDefault",
@@ -387,14 +400,21 @@
         "name" : "sessionID",
         "type" : "int"
       }, {
-        "name" : "secret",
-        "type" : "boolean"
+        "name" : "options",
+        "type" : "PGPQuery"
+      } ],
+      "response" : {
+        "type" : "array",
+        "items" : "KeyInfo"
+      }
+    },
+    "pgpExportByFingerprint" : {
+      "request" : [ {
+        "name" : "sessionID",
+        "type" : "int"
       }, {
-        "name" : "fingerprintQuery",
-        "type" : "string"
-      }, {
-        "name" : "exactMatch",
-        "type" : "boolean"
+        "name" : "options",
+        "type" : "PGPQuery"
       } ],
       "response" : {
         "type" : "array",
@@ -406,14 +426,8 @@
         "name" : "sessionID",
         "type" : "int"
       }, {
-        "name" : "secret",
-        "type" : "boolean"
-      }, {
-        "name" : "kidQuery",
-        "type" : "string"
-      }, {
-        "name" : "exactMatch",
-        "type" : "boolean"
+        "name" : "options",
+        "type" : "PGPQuery"
       } ],
       "response" : {
         "type" : "array",
@@ -471,9 +485,6 @@
         "type" : "boolean"
       }, {
         "name" : "skipImport",
-        "type" : "boolean"
-      }, {
-        "name" : "exactMatch",
         "type" : "boolean"
       } ],
       "response" : "null"

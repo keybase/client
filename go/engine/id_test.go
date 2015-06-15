@@ -151,7 +151,7 @@ func TestIdPGPNotEldest(t *testing.T) {
 	u := CreateAndSignupFakeUser(tc, "login")
 	secui := libkb.TestSecretUI{Passphrase: u.Passphrase}
 	ctx := &Context{LogUI: tc.G.UI.GetLogUI(), SecretUI: secui}
-	_, key := armorKey(t, tc, u.Email)
+	_, _, key := armorKey(t, tc, u.Email)
 	eng, err := NewPGPKeyImportEngineFromBytes([]byte(key), true, tc.G)
 	if err != nil {
 		t.Fatal(err)
