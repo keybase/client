@@ -49,7 +49,7 @@ func (s *CmdPGPExport) ParseArgv(ctx *cli.Context) error {
 	var err error
 
 	s.arg.Secret = ctx.Bool("secret")
-	s.arg.Query = ctx.String("query")
+	s.arg.KidQuery = ctx.String("query")
 	s.outfile = ctx.String("outfile")
 
 	if nargs > 0 {

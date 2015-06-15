@@ -64,7 +64,7 @@ func (e *PGPKeyExportEngine) exportPublic() (err error) {
 		if fp == nil || err != nil {
 			continue
 		}
-		if len(e.arg.Query) > 0 && !libkb.KeyMatchesQuery(k, e.arg.Query) {
+		if len(e.arg.KidQuery) > 0 && !libkb.KeyMatchesQuery(k, e.arg.KidQuery) {
 			continue
 		}
 		e.pushRes(*fp, s, k.VerboseDescription())
@@ -76,7 +76,7 @@ func (e *PGPKeyExportEngine) exportSecret(ctx *Context) (err error) {
 	ska := libkb.SecretKeyArg{
 		Me:       e.me,
 		KeyType:  libkb.PGPKeyType,
-		KeyQuery: e.arg.Query,
+		KeyQuery: e.arg.KidQuery,
 	}
 	var key libkb.GenericKey
 	var skb *libkb.SKB

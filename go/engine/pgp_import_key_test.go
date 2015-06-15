@@ -40,9 +40,10 @@ func TestPGPImportAndExport(t *testing.T) {
 		t.Fatal(err)
 	}
 
+	// XXX this is probably wrong...want to use the ByFingerprint version.
 	arg := keybase1.PgpExportArg{
-		Secret: true,
-		Query:  fp.String(),
+		Secret:   true,
+		KidQuery: fp.String(),
 	}
 
 	xe := NewPGPKeyExportEngine(arg, tc.G)
@@ -54,9 +55,10 @@ func TestPGPImportAndExport(t *testing.T) {
 		t.Fatalf("Expected 1 key back out")
 	}
 
+	// XXX this is probably wrong...want to use the ByFingerprint version.
 	arg = keybase1.PgpExportArg{
-		Secret: true,
-		Query:  fp.String()[0:10] + "aabb",
+		Secret:   true,
+		KidQuery: fp.String()[0:10] + "aabb",
 	}
 
 	xe = NewPGPKeyExportEngine(arg, tc.G)
