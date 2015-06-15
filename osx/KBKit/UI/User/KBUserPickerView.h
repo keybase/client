@@ -17,6 +17,7 @@
 
 @protocol KBUserPickerViewDelegate
 - (void)userPickerViewDidUpdate:(KBUserPickerView *)userPickerView;
+- (void)userPickerView:(KBUserPickerView *)userPickerView didUpdateSearch:(BOOL)visible;
 @end
 
 @interface KBUserPickerView : YOView <NSTokenFieldDelegate, KBSearchControlDelegate>
@@ -25,8 +26,8 @@
 @property KBListView *searchResultsView;
 @property (weak) id<KBUserPickerViewDelegate> delegate;
 
-@property CGPoint searchPosition;
-@property (readonly) KBPopover *popover;
+@property (nonatomic) CGRect searchRect;
+//@property (readonly) KBPopover *popover;
 
 - (void)hideSearch;
 

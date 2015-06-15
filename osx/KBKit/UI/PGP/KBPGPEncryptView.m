@@ -20,11 +20,11 @@
 #import "KBFileWriter.h"
 #import "KBWork.h"
 #import "KBUserPickerView.h"
-#import "KBPGPTextView.h"
+#import "KBComposeTextView.h"
 
 @interface KBPGPEncryptView () <KBUserPickerViewDelegate>
 @property KBUserPickerView *userPickerView;
-@property KBPGPTextView *textView;
+@property KBComposeTextView *textView;
 @property KBPGPEncryptFooterView *footerView;
 
 @property KBPGPEncrypt *encrypter;
@@ -41,13 +41,10 @@
   [self addSubview:topView];
   _userPickerView = [[KBUserPickerView alloc] init];
   _userPickerView.delegate = self;
-  _userPickerView.searchPosition = CGPointMake(1, -1);
   [topView addSubview:_userPickerView];
   [topView addSubview:[KBBox horizontalLine]];
 
-  _textView = [[KBPGPTextView alloc] init];
-  _textView.view.textContainerInset = CGSizeMake(10, 10);
-  _textView.view.editable = YES;
+  _textView = [[KBComposeTextView alloc] init];
   _textView.onChange = ^(KBTextView *textView) {
     if (gself.onEncrypt) gself.onEncrypt(gself, nil);
   };
@@ -67,16 +64,15 @@
   self.viewLayout = [YOBorderLayout layoutWithCenter:_textView top:@[topView] bottom:@[bottomView] insets:UIEdgeInsetsZero spacing:0];
 }
 
+- (void)layout {
+  [super layout];
+  [_userPickerView setSearchRect:CGRectMake(1, 1, _textView.bounds.size.width - 2, _textView.bounds.size.height - 2)];
+}
+
 - (void)setClient:(KBRPClient *)client {
   [super setClient:client];
   _userPickerView.client = client;
 }
-
-//- (void)mailShare {
-//  NSSharingService *mailShare = [NSSharingService sharingServiceNamed:NSSharingServiceNameComposeEmail];
-//  NSArray *shareItems = @[]; // @[textAttributedString, tempFileURL];
-//  [mailShare performWithItems:shareItems];
-//}
 
 - (void)encrypt {
   NSString *text = _textView.text;
@@ -126,12 +122,17 @@
   _textView.text = text;
 }
 
+// This will let the user picker group grow if someone adds alot of users
 - (void)userPickerViewDidUpdate:(KBUserPickerView *)userPickerView {
   CGSize size = userPickerView.frame.size;
   CGSize sizeThatFits = [userPickerView sizeThatFits:self.frame.size];
   if (sizeThatFits.height > size.height) {
     [self layoutView];
   }
+}
+
+- (void)userPickerView:(KBUserPickerView *)userPickerView didUpdateSearch:(BOOL)visible {
+  [_textView setEnabled:!visible];
 }
 
 @end

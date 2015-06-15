@@ -95,7 +95,6 @@
 
   _popover = [[KBPopover alloc] init];
   _popover.contentView = _searchResultsView;
-  _popover.contentSize = CGSizeMake(300, 300);
 
   YOSelf yself = self;
   self.viewLayout = [YOLayout layoutWithLayoutBlock:^CGSize(id<YOLayout> layout, CGSize size) {
@@ -116,8 +115,8 @@
 }
 
 - (void)updatePickerResults {
-  CGFloat contentHeight = [_searchResultsView contentHeight:600];
-  _popover.contentSize = CGSizeMake(300, contentHeight);
+  CGFloat contentHeight = [_searchResultsView calculateContentHeightWithMax:0];
+  _popover.maxContentSize = CGSizeMake(0, contentHeight);
 }
 
 - (void)focusTokensField {
@@ -189,6 +188,20 @@
   [self.delegate userPickerViewDidUpdate:self];
 }
 
+//- (BOOL)control:(NSControl *)control textShouldBeginEditing:(NSText *)fieldEditor {
+//  return YES;
+//}
+//
+//- (BOOL)control:(NSControl *)control textShouldEndEditing:(NSText *)fieldEditor {
+//  return YES;
+//}
+
+- (void)controlTextDidEndEditing:(NSNotification *)notification {
+  // If field is ending editing because of search list view selection, that will hide it.
+  // This gives the search list view the chance to select and deselect visibly.
+  if (!_searchResultsView.isSelectionChanging) [self hideSearch];
+}
+
 - (NSTokenStyle)tokenField:(NSTokenField *)tokenField styleForRepresentedObject:(id)representedObject {
   if ([representedObject isKindOfClass:NSString.class]) {
     return NSPlainTextTokenStyle;
@@ -233,15 +246,6 @@
     [self.window makeFirstResponder:[self nextKeyView]];
   }
   return NO; // No means let the token field handle it
-}
-
-- (BOOL)control:(NSControl *)control textShouldBeginEditing:(NSText *)fieldEditor {
-  return YES;
-}
-
-- (BOOL)control:(NSControl *)control textShouldEndEditing:(NSText *)fieldEditor {
-  [self hideSearch];
-  return YES;
 }
 
 - (void)viewToken:(id)sender {
@@ -300,20 +304,29 @@
 
 #pragma mark Search
 
+- (void)setSearchRect:(CGRect)searchRect {
+  _searchRect = searchRect;
+  NSView *topView = self.window.contentView;
+  CGPoint p = [topView convertPoint:CGPointZero fromView:self];
+  p.y += self.bounds.size.height;
+
+  CGRect rect = _searchRect;
+  rect.origin.x += p.x;
+  rect.origin.y += p.y;
+  [self.popover setContentRect:rect];
+}
+
 - (void)showSearch {
   if (!self.popover.isShowing && [KBTextField isFocused:_tokensField]) {
-
-    if (self.searchPosition.x != 0 || self.searchPosition.y != 0) {
-      [self.popover show:self.searchPosition options:KBPopoverOptionsShadow sender:self];
-    } else {
-      [self.popover show:CGPointZero options:KBPopoverOptionsShadow sender:_tokensField];
-    }
+    [self.popover showAboveView:self.window.contentView options:KBPopoverOptionsShadow];
+    [self.delegate userPickerView:self didUpdateSearch:YES];
   }
 }
 
 - (void)hideSearch {
-  [self.popover close];
+  [self.popover hide];
   _progressView.animating = NO;
+  [self.delegate userPickerView:self didUpdateSearch:NO];
 }
 
 - (void)searchControlShouldOpen:(KBSearchControl *)searchControl {
