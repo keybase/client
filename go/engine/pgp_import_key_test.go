@@ -64,10 +64,11 @@ func TestPGPImportAndExport(t *testing.T) {
 	}
 
 	xe = NewPGPKeyExportEngine(arg, tc.G)
-	if err := RunEngine(xe, ctx); err == nil {
-		t.Fatalf("Expected an error on fictious key")
-	} else if _, ok := err.(libkb.NoSecretKeyError); !ok {
-		t.Fatalf("Expected a 'NoSecretKeyError; got %s", err.Error())
+	if err := RunEngine(xe, ctx); err != nil {
+		t.Fatal(err)
+	}
+	if len(xe.Results()) != 0 {
+		t.Fatalf("num keys exported: %d, expected 0", len(xe.Results()))
 	}
 
 	arg = keybase1.PgpExportArg{
