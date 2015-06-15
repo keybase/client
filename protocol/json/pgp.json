@@ -390,7 +390,7 @@
         "name" : "secret",
         "type" : "boolean"
       }, {
-        "name" : "kidQuery",
+        "name" : "fingerprintQuery",
         "type" : "string"
       }, {
         "name" : "exactMatch",
@@ -401,7 +401,7 @@
         "items" : "KeyInfo"
       }
     },
-    "pgpExportByFingerprint" : {
+    "pgpExportByKID" : {
       "request" : [ {
         "name" : "sessionID",
         "type" : "int"
@@ -409,7 +409,7 @@
         "name" : "secret",
         "type" : "boolean"
       }, {
-        "name" : "fingerprintQuery",
+        "name" : "kidQuery",
         "type" : "string"
       }, {
         "name" : "exactMatch",
@@ -460,25 +460,6 @@
       "response" : "null"
     },
     "pgpSelect" : {
-      "request" : [ {
-        "name" : "sessionID",
-        "type" : "int"
-      }, {
-        "name" : "kidQuery",
-        "type" : "string"
-      }, {
-        "name" : "allowMulti",
-        "type" : "boolean"
-      }, {
-        "name" : "skipImport",
-        "type" : "boolean"
-      }, {
-        "name" : "exactMatch",
-        "type" : "boolean"
-      } ],
-      "response" : "null"
-    },
-    "pgpSelectByFingerprint" : {
       "request" : [ {
         "name" : "sessionID",
         "type" : "int"

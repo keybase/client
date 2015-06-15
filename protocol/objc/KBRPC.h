@@ -576,9 +576,9 @@ typedef NS_ENUM (NSInteger, KBRSignMode) {
 
 - (void)pgpImportWithSessionID:(NSInteger)sessionID key:(NSData *)key pushSecret:(BOOL)pushSecret completion:(void (^)(NSError *error))completion;
 
-- (void)pgpExportWithSessionID:(NSInteger)sessionID secret:(BOOL)secret kidQuery:(NSString *)kidQuery exactMatch:(BOOL)exactMatch completion:(void (^)(NSError *error, NSArray *items))completion;
+- (void)pgpExportWithSessionID:(NSInteger)sessionID secret:(BOOL)secret fingerprintQuery:(NSString *)fingerprintQuery exactMatch:(BOOL)exactMatch completion:(void (^)(NSError *error, NSArray *items))completion;
 
-- (void)pgpExportByFingerprintWithSessionID:(NSInteger)sessionID secret:(BOOL)secret fingerprintQuery:(NSString *)fingerprintQuery exactMatch:(BOOL)exactMatch completion:(void (^)(NSError *error, NSArray *items))completion;
+- (void)pgpExportByKIDWithSessionID:(NSInteger)sessionID secret:(BOOL)secret kidQuery:(NSString *)kidQuery exactMatch:(BOOL)exactMatch completion:(void (^)(NSError *error, NSArray *items))completion;
 
 - (void)pgpKeyGenWithSessionID:(NSInteger)sessionID primaryBits:(NSInteger)primaryBits subkeyBits:(NSInteger)subkeyBits createUids:(KBRPgpCreateUids *)createUids allowMulti:(BOOL)allowMulti doExport:(BOOL)doExport completion:(void (^)(NSError *error))completion;
 
@@ -586,9 +586,7 @@ typedef NS_ENUM (NSInteger, KBRSignMode) {
 
 - (void)pgpDeletePrimaryWithSessionID:(NSInteger)sessionID completion:(void (^)(NSError *error))completion;
 
-- (void)pgpSelectWithSessionID:(NSInteger)sessionID kidQuery:(NSString *)kidQuery allowMulti:(BOOL)allowMulti skipImport:(BOOL)skipImport exactMatch:(BOOL)exactMatch completion:(void (^)(NSError *error))completion;
-
-- (void)pgpSelectByFingerprintWithSessionID:(NSInteger)sessionID fingerprintQuery:(NSString *)fingerprintQuery allowMulti:(BOOL)allowMulti skipImport:(BOOL)skipImport exactMatch:(BOOL)exactMatch completion:(void (^)(NSError *error))completion;
+- (void)pgpSelectWithSessionID:(NSInteger)sessionID fingerprintQuery:(NSString *)fingerprintQuery allowMulti:(BOOL)allowMulti skipImport:(BOOL)skipImport exactMatch:(BOOL)exactMatch completion:(void (^)(NSError *error))completion;
 
 - (void)pgpUpdateWithSessionID:(NSInteger)sessionID all:(BOOL)all fingerprints:(NSArray *)fingerprints completion:(void (^)(NSError *error))completion;
 
@@ -1052,13 +1050,13 @@ typedef NS_ENUM (NSInteger, KBRPromptOverwriteType) {
 @interface KBRPgpExportRequestParams : KBRRequestParams
 @property NSInteger sessionID;
 @property BOOL secret;
-@property NSString *kidQuery;
+@property NSString *fingerprintQuery;
 @property BOOL exactMatch;
 @end
-@interface KBRPgpExportByFingerprintRequestParams : KBRRequestParams
+@interface KBRPgpExportByKIDRequestParams : KBRRequestParams
 @property NSInteger sessionID;
 @property BOOL secret;
-@property NSString *fingerprintQuery;
+@property NSString *kidQuery;
 @property BOOL exactMatch;
 @end
 @interface KBRPgpKeyGenRequestParams : KBRRequestParams
@@ -1077,13 +1075,6 @@ typedef NS_ENUM (NSInteger, KBRPromptOverwriteType) {
 @property NSInteger sessionID;
 @end
 @interface KBRPgpSelectRequestParams : KBRRequestParams
-@property NSInteger sessionID;
-@property NSString *kidQuery;
-@property BOOL allowMulti;
-@property BOOL skipImport;
-@property BOOL exactMatch;
-@end
-@interface KBRPgpSelectByFingerprintRequestParams : KBRRequestParams
 @property NSInteger sessionID;
 @property NSString *fingerprintQuery;
 @property BOOL allowMulti;

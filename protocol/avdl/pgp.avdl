@@ -73,8 +73,8 @@ protocol pgp {
 
 	// Exports all active PGP keys, public. Only allows armored export.
 	// If you ask for private, you can get at most one key back.
-	array<KeyInfo> pgpExport(int sessionID, boolean secret, string kidQuery, boolean exactMatch);
-	array<KeyInfo> pgpExportByFingerprint(int sessionID, boolean secret, string fingerprintQuery, boolean exactMatch);
+	array<KeyInfo> pgpExport(int sessionID, boolean secret, string fingerprintQuery, boolean exactMatch);
+	array<KeyInfo> pgpExportByKID(int sessionID, boolean secret, string kidQuery, boolean exactMatch);
 
 	record PgpCreateUids {
 		boolean useDefault;
@@ -88,8 +88,7 @@ protocol pgp {
 	void pgpDeletePrimary(int sessionID);
 
 	// select an existing key and add to kb
-	void pgpSelect(int sessionID, string kidQuery, boolean allowMulti, boolean skipImport, boolean exactMatch);
-	void pgpSelectByFingerprint(int sessionID, string fingerprintQuery, boolean allowMulti, boolean skipImport, boolean exactMatch);
+	void pgpSelect(int sessionID, string fingerprintQuery, boolean allowMulti, boolean skipImport, boolean exactMatch);
 
 	// push updated key(s) to the server
 	void pgpUpdate(int sessionID, boolean all, array<string> fingerprints);

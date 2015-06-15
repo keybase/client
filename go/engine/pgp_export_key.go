@@ -64,7 +64,7 @@ func (e *PGPKeyExportEngine) exportPublic() (err error) {
 		if fp == nil || err != nil {
 			continue
 		}
-		if len(e.arg.KidQuery) > 0 && !libkb.KeyMatchesQuery(k, e.arg.KidQuery) {
+		if len(e.arg.FingerprintQuery) > 0 && !libkb.KeyMatchesQuery(k, e.arg.FingerprintQuery) {
 			continue
 		}
 		e.pushRes(*fp, s, k.VerboseDescription())
