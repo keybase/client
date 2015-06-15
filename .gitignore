@@ -3,6 +3,9 @@
 *.a
 *.so
 
+# OSX BS
+.DS_Store
+
 # Folders
 _obj
 _test
