@@ -85,7 +85,7 @@ func (r *Receiver) Next(name MsgName, timeout time.Duration) (*Msg, error) {
 				return nil, libkb.CanceledError{}
 			}
 
-			G.Log.Info("message name: %s, expecting %s.  Ignoring this message.", m.Name, name)
+			G.Log.Info("message name: %s, expecting %s.  Ignoring this message.", m.Name(), name)
 
 		case <-time.After(timeout):
 			G.Log.Info("timed out waiting for message %s", name)
@@ -114,7 +114,7 @@ func (r *Receiver) Receive(m *Meta) (int, error) {
 		// check to see if this receiver has seen this message before
 		smac := hex.EncodeToString(msg.Body.Mac)
 		if r.seen[smac] {
-			G.Log.Warning("skipping message [%s:%s]: already seen", msg.Name, smac)
+			G.Log.Warning("skipping message [%s:%s]: already seen", msg.Name(), smac)
 			continue
 		}
 
@@ -124,7 +124,7 @@ func (r *Receiver) Receive(m *Meta) (int, error) {
 			r.seqno = msg.Seqno
 		}
 
-		G.Log.Debug("received message [%s]", msg.Name)
+		G.Log.Debug("received message [%s]", msg.Name())
 
 		// set meta's sender and receiver
 		m.Sender = msg.Sender
@@ -148,6 +148,7 @@ func (r *Receiver) Receive(m *Meta) (int, error) {
 // Cancel stops the reciever.
 func (r *Receiver) Cancel() error {
 	close(r.Msgs)
+	r.Msgs = nil
 	return nil
 }
 
