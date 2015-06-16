@@ -9,8 +9,8 @@
 #import <Foundation/Foundation.h>
 
 #import <KBAppKit/KBAppKit.h>
-#import "KBKitDefines.h"
 #import "KBRPC.h"
+#import "KBAppDefines.h"
 
 @class KBAppToolbar;
 

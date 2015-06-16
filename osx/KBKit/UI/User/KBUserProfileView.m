@@ -25,7 +25,6 @@
 #import "KBProveType.h"
 #import "KBAlertView.h"
 #import "KBWorkspace.h"
-#import "KBKitDefines.h"
 #import "KBNotifications.h"
 
 @interface KBUserProfileView ()

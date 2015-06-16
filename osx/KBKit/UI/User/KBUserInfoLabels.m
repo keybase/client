@@ -12,7 +12,6 @@
 #import "KBProveType.h"
 #import "KBDefines.h"
 #import "KBFormatter.h"
-#import "KBKitDefines.h"
 
 @interface KBUserInfoLabels ()
 @property KBLabel *headerLabel;

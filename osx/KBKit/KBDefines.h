@@ -46,3 +46,11 @@ NSString *KBNSStringByStrippingHTML(NSString *str);
 
 BOOL KBIsErrorName(NSError *error, NSString *name);
 
+
+NSString *KBDisplayURLStringForUsername(NSString *username);
+NSString *KBURLStringForUsername(NSString *username);
+
+NSString *KBPGPKeyIdFromFingerprint(NSString *fingerprint);
+
+NSString *KBDescriptionForKID(NSData *kid);
+NSString *KBDescriptionForFingerprint(NSString *fingerprint, NSInteger indexForLineBreak);

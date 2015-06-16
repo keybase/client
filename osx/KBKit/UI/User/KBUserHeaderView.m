@@ -11,7 +11,7 @@
 #import "KBActivityIndicatorView.h"
 #import "KBUserImageView.h"
 #import "KBWorkspace.h"
-#import "KBKitDefines.h"
+#import "KBDefines.h"
 
 @interface KBUserHeaderView ()
 @property KBLabel *name1Label;

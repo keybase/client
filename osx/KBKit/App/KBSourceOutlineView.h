@@ -9,8 +9,8 @@
 #import <Foundation/Foundation.h>
 
 #import <KBAppKit/KBAppKit.h>
-#import "KBKitDefines.h"
 #import "KBUserStatusView.h"
+#import "KBAppDefines.h"
 
 @class KBSourceOutlineView;
 

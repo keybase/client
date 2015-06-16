@@ -17,7 +17,6 @@
 #import "KBUserListView.h"
 #import "KBSearchListView.h"
 #import "KBSearcher.h"
-#import "KBKitDefines.h"
 #import "KBNotifications.h"
 
 @interface KBUsersAppView ()

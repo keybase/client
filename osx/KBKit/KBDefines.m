@@ -7,6 +7,7 @@
 //
 
 #import "KBDefines.h"
+#import "KBFormatter.h"
 
 NSNumber *KBNumberFromString(NSString *s) {
   NSInteger n = [s integerValue];
@@ -49,4 +50,40 @@ NSString *KBNSStringByStrippingHTML(NSString *str) {
   while ((r = [str rangeOfString:@"<[^>]+>" options:NSRegularExpressionSearch]).location != NSNotFound)
     str = [str stringByReplacingCharactersInRange:r withString:@""];
   return str;
+}
+
+
+
+
+NSString *KBDescriptionForKID(NSData *kid) {
+  if (!kid) return nil;
+  if ([kid length] < 16) return [KBHexString(kid, @"") uppercaseString];
+  return [KBHexString([kid subdataWithRange:NSMakeRange(kid.length-16, 16)], @"") uppercaseString];
+}
+
+NSString *KBPGPKeyIdFromFingerprint(NSString *fingerprint) {
+  if (!fingerprint) return nil;
+  if ([fingerprint length] < 16) return fingerprint;
+  return [[fingerprint substringFromIndex:[fingerprint length] - 16] lowercaseString];
+}
+
+NSString *KBDescriptionForFingerprint(NSString *fingerprint, NSInteger indexForLineBreak) {
+  NSMutableString *s = [[NSMutableString alloc] init];
+  for (NSInteger i = 1; i <= fingerprint.length; i++) {
+    [s appendString:[NSString stringWithFormat:@"%c", [fingerprint characterAtIndex:i-1]]];
+    if (indexForLineBreak == i) {
+      [s appendString:@"\n"];
+    } else {
+      if (i % 4 == 0) [s appendString:@" "];
+    }
+  }
+  return [s uppercaseString];
+}
+
+NSString *KBDisplayURLStringForUsername(NSString *username) {
+  return KBNSStringWithFormat(@"keybase.io/%@", username);
+}
+
+NSString *KBURLStringForUsername(NSString *username) {
+  return KBNSStringWithFormat(@"https://keybase.io/%@", username);
 }
