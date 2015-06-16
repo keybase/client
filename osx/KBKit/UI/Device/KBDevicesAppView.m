@@ -105,7 +105,7 @@
 - (void)addDevice {
   KBDeviceAddView *view = [[KBDeviceAddView alloc] init];
   view.client = self.client;
-  view.completion = ^(BOOL added) {
+  view.completion = ^(id sender, BOOL added) {
     [self refresh];
   };
   [view openInWindow:(KBWindow *)self.window];

@@ -126,7 +126,7 @@
 }
 
 - (void)close:(BOOL)added {
-  self.completion(YES);
+  self.completion(self, YES);
   [self.window close];
 }
 
