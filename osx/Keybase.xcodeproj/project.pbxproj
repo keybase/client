@@ -352,6 +352,7 @@
 		00C0DD5A1B28EC8B00A825D4 /* KBStyleGuideView.m in Sources */ = {isa = PBXBuildFile; fileRef = 009E13D41B28A93D00C72B28 /* KBStyleGuideView.m */; };
 		00CC43521A3A9E6C006118A9 /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 00CC43511A3A9E6C006118A9 /* main.m */; };
 		00CC43541A3A9E6C006118A9 /* Images.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 00CC43531A3A9E6C006118A9 /* Images.xcassets */; };
+		00DAF5C01B2F8969000D7F9A /* Social.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 00DAF5BE1B2F885D000D7F9A /* Social.framework */; };
 		4107D6DB8EFF41B5241BD2F4 /* libPods-Keybase.a in Frameworks */ = {isa = PBXBuildFile; fileRef = EE90BB7C590E1825E8556714 /* libPods-Keybase.a */; };
 		58C3E639B91016531F23947C /* libPods-keybase.Helper.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 28243FD1B0705F42278302F1 /* libPods-keybase.Helper.a */; };
 		B9DBD381EDEB1C3DE31B4531 /* libPods-KBKit.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 92A4A228BA0B528D11BAFDA9 /* libPods-KBKit.a */; };
@@ -856,6 +857,7 @@
 		00CC43511A3A9E6C006118A9 /* main.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = main.m; sourceTree = "<group>"; };
 		00CC43531A3A9E6C006118A9 /* Images.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Images.xcassets; sourceTree = "<group>"; };
 		00CC43561A3A9E6C006118A9 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = Base; path = Base.lproj/MainMenu.xib; sourceTree = "<group>"; };
+		00DAF5BE1B2F885D000D7F9A /* Social.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Social.framework; path = System/Library/Frameworks/Social.framework; sourceTree = SDKROOT; };
 		00F808061A4A5F600038BC63 /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
 		00FB76BA1B0C5B300070DEED /* KBDefinesTest.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBDefinesTest.m; sourceTree = "<group>"; };
 		00FB76BC1B0C5B5D0070DEED /* KBEnvConfigTest.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBEnvConfigTest.m; sourceTree = "<group>"; };
@@ -874,6 +876,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				00DAF5C01B2F8969000D7F9A /* Social.framework in Frameworks */,
 				004624C31B2917C200E218AC /* KBKit.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -1156,6 +1159,7 @@
 		009E13C11B28A93D00C72B28 /* UI */ = {
 			isa = PBXGroup;
 			children = (
+				00DAF5B91B2F8262000D7F9A /* Share */,
 				009E13C21B28A93D00C72B28 /* Debug */,
 				009E13D51B28A93D00C72B28 /* Device */,
 				009E13E41B28A93D00C72B28 /* Folders */,
@@ -1596,9 +1600,17 @@
 			name = "Supporting Files";
 			sourceTree = "<group>";
 		};
+		00DAF5B91B2F8262000D7F9A /* Share */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			path = Share;
+			sourceTree = "<group>";
+		};
 		468C135BF6D934E5DFBB8513 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				00DAF5BE1B2F885D000D7F9A /* Social.framework */,
 				004624CD1B2A3BE300E218AC /* FinderSync.framework */,
 				0046C0E41B290A0B00C4D06F /* Sparkle.framework */,
 				92A4A228BA0B528D11BAFDA9 /* libPods-KBKit.a */,

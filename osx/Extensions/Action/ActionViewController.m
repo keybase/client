@@ -11,6 +11,7 @@
 #import <KBKit/KBAppActions.h>
 
 @interface ActionViewController ()
+@property KBAppActions *app;
 @end
 
 @implementation ActionViewController
@@ -22,7 +23,8 @@
 - (void)loadView {
   NSExtensionItem *item = self.extensionContext.inputItems.firstObject;
   DDLogDebug(@"Attachments: %@", item.attachments);
-  id view = [KBAppActions encryptWithExtensionItem:item completion:^(id sender, NSExtensionItem *outputItem) {
+  _app = [[KBAppActions alloc] init];
+  id view = [_app encryptViewWithExtensionItem:item completion:^(id sender, NSExtensionItem *outputItem) {
     if (!outputItem) {
       [self cancel];
     } else {

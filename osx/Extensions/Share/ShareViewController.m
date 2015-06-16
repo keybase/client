@@ -11,35 +11,19 @@
 #import <KBKit/KBAppActions.h>
 
 @interface ShareViewController ()
+@property KBAppActions *app;
 @end
 
 @implementation ShareViewController
 
-- (NSString *)nibName {
-  return @"ShareViewController";
-}
-
-- (void)loadView {
+- (void)didSelectPost {
   NSExtensionItem *item = self.extensionContext.inputItems.firstObject;
   DDLogDebug(@"Attachments: %@", item.attachments);
-  id view = [KBAppActions encryptWithExtensionItem:item completion:^(id sender, NSExtensionItem *outputItem) {
-    if (!outputItem) {
-      [self cancel];
-    } else {
-      [self share:outputItem];
-    }
+
+  _app = [[KBAppActions alloc] init];
+  [_app encryptExtensionItem:item usernames:@[] sender:self.view completion:^(id sender, NSExtensionItem *outputItem) {
+    if (outputItem) [self.extensionContext completeRequestReturningItems:@[outputItem] completionHandler:nil];
   }];
-
-  self.view = view;
-}
-
-- (void)share:(NSExtensionItem *)outputItem {
-  [self.extensionContext completeRequestReturningItems:@[outputItem] completionHandler:nil];
-}
-
-- (void)cancel {
-  NSError *cancelError = [NSError errorWithDomain:NSCocoaErrorDomain code:NSUserCancelledError userInfo:nil];
-  [self.extensionContext cancelRequestWithError:cancelError];
 }
 
 @end

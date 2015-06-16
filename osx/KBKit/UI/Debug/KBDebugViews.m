@@ -46,8 +46,8 @@
   [self kb_setBackgroundColor:NSColor.whiteColor];
 
   YOVBox *contentView = [YOVBox box:@{@"spacing": @"4", @"insets": @"20"}];
-  [contentView addSubview:[KBLabel labelWithText:@"Mocks" style:KBTextStyleHeader]];
-  [contentView addSubview:[KBLabel labelWithText:@"These views use mock data!" style:KBTextStyleDefault]];
+  [contentView addSubview:[KBLabel labelWithText:@"These views may use mock data." style:KBTextStyleDefault]];
+  [contentView addSubview:[KBBox lineWithInsets:UIEdgeInsetsMake(10, 10, 10, 10)]];
 
   [contentView addSubview:[KBButton linkWithText:@"Login" targetBlock:^{ [self showLogin]; }]];
   [contentView addSubview:[KBButton linkWithText:@"Signup" targetBlock:^{ [self showSignup]; }]];
@@ -98,7 +98,7 @@
 }
 
 - (void)open:(id)sender {
-  [[sender window] kb_addChildWindowForView:self rect:CGRectMake(0, 40, 400, 600) position:KBWindowPositionLeft title:@"Mocks" fixed:NO makeKey:NO];
+  [[sender window] kb_addChildWindowForView:self rect:CGRectMake(0, 40, 400, 600) position:KBWindowPositionLeft title:@"Debug" fixed:NO makeKey:NO];
 }
 
 - (void)showProgressView:(NSTimeInterval)delay error:(BOOL)error {
@@ -166,11 +166,13 @@
 
   KBKeySelectView *selectView = [[KBKeySelectView alloc] init];
   [selectView setGPGKeys:requestParams.keys];
+  selectView.completion = ^(id sender, id response) { [[sender window] close]; };
   [self openInWindow:selectView size:CGSizeMake(600, 400) title:nil];
 }
 
 - (void)showImportKey {
   KBKeyImportView *keyImportView = [[KBKeyImportView alloc] init];
+  keyImportView.completion = ^(id sender, BOOL imported) { [[sender window] close]; };
   [self openInWindow:keyImportView size:CGSizeMake(600, 400) title:nil];
 }
 
@@ -183,7 +185,7 @@
 
 - (void)showDeviceAdd {
   KBDeviceAddView *view = [[KBDeviceAddView alloc] init];
-  view.completion = ^(BOOL ok) {};
+  view.completion = ^(id sender, BOOL ok) { [[sender window] close]; };
   [self openInWindow:view size:CGSizeMake(600, 400) title:nil];
 }
 
@@ -223,9 +225,7 @@
 
 - (void)showDeviceSetupPrompt {
   KBDeviceSetupPromptView *devicePromptView = [[KBDeviceSetupPromptView alloc] init];
-  devicePromptView.completion = ^(id sender, NSError *error, NSString *deviceName) {
-    [[sender window] close];
-  };
+  devicePromptView.completion = ^(id sender, NSError *error, NSString *deviceName) { [[sender window] close]; };
   [self openInWindow:devicePromptView size:CGSizeMake(600, 400) title:nil];
 }
 
@@ -265,7 +265,8 @@
   NSAttributedString *text = [[NSAttributedString alloc] initWithString:@"Test"];
   item.attributedContentText = text;
 
-  NSView *view = [KBAppActions encryptWithExtensionItem:item completion:^(id sender, NSExtensionItem *outputItem) {
+  KBAppActions *app = [[KBAppActions alloc] init];
+  NSView *view = [app encryptViewWithExtensionItem:item completion:^(id sender, NSExtensionItem *outputItem) {
     DDLogDebug(@"Output: %@", outputItem);
     [[sender window] close];
   }];

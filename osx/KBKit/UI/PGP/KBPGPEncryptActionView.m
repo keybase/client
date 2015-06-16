@@ -72,7 +72,7 @@
 - (void)layout {
   [super layout];
   NSView *centerView = _borderLayout.center;
-  [_userPickerView setSearchRect:CGRectMake(1, 1, centerView.bounds.size.width - 2, centerView.bounds.size.height)];
+  [_userPickerView setSearchResultsFrame:CGRectMake(0, 1, centerView.bounds.size.width, centerView.bounds.size.height) inView:self];
 }
 
 - (void)setClient:(KBRPClient *)client {
@@ -99,15 +99,19 @@
 
 - (void)encrypt {
   id<KBReader> reader;
+  id<KBWriter> writer;
   KBRPgpEncryptOptions *options = [[KBRPgpEncryptOptions alloc] init];
   if ([_textView superview]) {
     reader = [KBReader readerWithData:[_textView.text dataUsingEncoding:NSUTF8StringEncoding]];
+    writer = [KBWriter writer];
   } else if ([_fileIcon superview]) {
     options.binaryOut = YES;
-    reader = [KBFileReader fileReaderWithPath:_fileIcon.file.path];
+    NSString *path = _fileIcon.file.path;
+    reader = [KBFileReader fileReaderWithPath:path];
+    NSString *outPath = [path stringByAppendingPathExtension:@"gpg"];
+    writer = [KBFileWriter fileWriterWithPath:outPath];
   }
 
-  KBWriter *writer = [KBWriter writer];
   KBStream *stream = [KBStream streamWithReader:reader writer:writer label:arc4random()];
 
   options.recipients = _userPickerView.usernames;

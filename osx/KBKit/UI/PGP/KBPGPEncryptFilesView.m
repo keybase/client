@@ -96,7 +96,7 @@
   [self.navigation pushView:outputView animated:YES];
 }
 
-// This will let the user picker group grow if someone adds alot of users
+// This will let the user picker group grow if someone adds a lot of users
 - (void)userPickerViewDidUpdate:(KBUserPickerView *)userPickerView {
   CGSize size = userPickerView.frame.size;
   CGSize sizeThatFits = [userPickerView sizeThatFits:self.frame.size];

@@ -102,8 +102,8 @@
 }
 
 - (void)saveToUserDefaults:(NSUserDefaults *)userDefaults {
-  [userDefaults setObject:self.homeDir forKey:@"HomeDir"];
-  [userDefaults setObject:self.mountDir forKey:@"MountDir"];
+  [userDefaults setObject:KBPath(self.homeDir, NO, NO) forKey:@"HomeDir"];
+  [userDefaults setObject:KBPath(self.mountDir, NO, NO) forKey:@"MountDir"];
   [userDefaults synchronize];
 }
 

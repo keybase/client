@@ -13,7 +13,7 @@ target "KBKit" do
 
   pod "MPMessagePack"
 
-  pod "YOLayout"
+  pod "YOLayout"#, :path => "~/Projects/YOLayout"
 
   pod "ZXCVBN"
   pod "AFNetworking"
@@ -23,7 +23,7 @@ target "KBKit" do
 
   pod "MASPreferences"
 
-  pod "KBAppKit", :path => "~/Projects/KBAppKit"
+  pod "KBAppKit"#, :path => "~/Projects/KBAppKit"
 end
 
 # This runs as a privileged helper so keep dependencies
@@ -31,7 +31,4 @@ end
 target "keybase.Helper" do
   pod "MPMessagePack"
 end
-
-link_with "KBKit", "Share"
-link_with "KBKit", "Action"
 

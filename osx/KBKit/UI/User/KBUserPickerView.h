@@ -23,11 +23,10 @@
 @interface KBUserPickerView : YOView <NSTokenFieldDelegate, KBSearchControlDelegate>
 
 @property KBRPClient *client;
-@property KBListView *searchResultsView;
 @property (weak) id<KBUserPickerViewDelegate> delegate;
 
-@property (nonatomic) CGRect searchRect;
-//@property (readonly) KBPopover *popover;
+//@property KBListView *searchResultsView;
+- (void)setSearchResultsFrame:(CGRect)searchResultsFrame inView:(NSView *)inView;
 
 - (void)hideSearch;
 

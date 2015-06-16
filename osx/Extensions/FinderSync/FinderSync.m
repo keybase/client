@@ -10,6 +10,8 @@
 
 #import <KBKit/KBWorkspace.h>
 
+#define KBLog NSLog
+
 @interface FinderSync ()
 @property NSString *mountDir;
 @end
@@ -22,9 +24,9 @@
 - (instancetype)init {
   if ((self = [super init])) {
     NSString *mountDir = [KBWorkspace.userDefaults objectForKey:@"MountDir"];
-    NSLog(@"Finder sync using: %@", mountDir);
     if (mountDir) {
-      [FIFinderSyncController defaultController].directoryURLs = [NSSet setWithObject:[NSURL fileURLWithPath:mountDir]];
+      NSLog(@"Finder sync using: %@", mountDir);
+      FIFinderSyncController.defaultController.directoryURLs = [NSSet setWithObject:[NSURL fileURLWithPath:mountDir]];
     }
     [FIFinderSyncController.defaultController setBadgeImage:[NSImage imageNamed:NSImageNameStatusUnavailable] label:@"Unavailable" forBadgeIdentifier:KBBadgeUnavailable];
     [FIFinderSyncController.defaultController setBadgeImage:[NSImage imageNamed:NSImageNameStatusAvailable] label:@"Available" forBadgeIdentifier:KBBadgeAvailable];
@@ -37,20 +39,20 @@
 - (void)beginObservingDirectoryAtURL:(NSURL *)URL {
   // The user is now seeing the container's contents.
   // If they see it in more than one view at a time, we're only told once.
-  NSLog(@"beginObservingDirectoryAtURL:%@", URL.filePathURL);
+  KBLog(@"beginObservingDirectoryAtURL:%@", URL.filePathURL);
 }
 
 - (void)endObservingDirectoryAtURL:(NSURL *)URL {
   // The user is no longer seeing the container's contents.
-  NSLog(@"endObservingDirectoryAtURL:%@", URL.filePathURL);
+  KBLog(@"endObservingDirectoryAtURL:%@", URL.filePathURL);
 }
 
 - (void)requestBadgeIdentifierForURL:(NSURL *)URL {
-  NSLog(@"requestBadgeIdentifierForURL:%@", URL.filePathURL);
-
-  [[FIFinderSyncController defaultController] setBadgeIdentifier:KBBadgeUnavailable forURL:URL];
+  KBLog(@"requestBadgeIdentifierForURL:%@", URL.filePathURL);
+  [FIFinderSyncController.defaultController setBadgeIdentifier:KBBadgeUnavailable forURL:URL];
 }
 
+/*
 #pragma mark Menu/Toolbar
 
 - (NSString *)toolbarItemName {
@@ -75,11 +77,12 @@
   NSURL *target = [[FIFinderSyncController defaultController] targetedURL];
   NSArray *items = [[FIFinderSyncController defaultController] selectedItemURLs];
 
-  NSLog(@"%@, target: %@, items:", [sender title], [target filePathURL]);
+  KBLog(@"%@, target: %@, items:", [sender title], [target filePathURL]);
   [items enumerateObjectsUsingBlock: ^(id obj, NSUInteger idx, BOOL *stop) {
-    NSLog(@" %@", [obj filePathURL]);
+    KBLog(@" %@", [obj filePathURL]);
   }];
 }
+ */
 
 @end
 

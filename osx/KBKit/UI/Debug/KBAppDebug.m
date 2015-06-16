@@ -23,7 +23,7 @@
     [styleGuide open:self];
   }]];
 
-  [topView addSubview:[KBButton buttonWithText:@"Debug View" style:KBButtonStyleDefault options:KBButtonOptionsToolbar targetBlock:^{
+  [topView addSubview:[KBButton buttonWithText:@"View Debug/Mocks" style:KBButtonStyleDefault options:KBButtonOptionsToolbar targetBlock:^{
     KBDebugViews *debugViews = [[KBDebugViews alloc] init];
     [debugViews open:self];
   }]];

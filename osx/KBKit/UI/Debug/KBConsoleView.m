@@ -57,6 +57,7 @@
   _textView = [[KBTextView alloc] init];
   _textView.borderType = NSBezelBorder;
   _textView.identifier = @"textView";
+  _textView.editable = NO;
   _textView.view.textContainerInset = CGSizeMake(5, 5);
   [logView addSubview:_textView];
 

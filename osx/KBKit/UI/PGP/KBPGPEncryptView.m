@@ -61,18 +61,25 @@
   _footerView.includeSelfButton.state = NSOnState;
   [bottomView addSubview:_footerView];
 
-  self.viewLayout = [YOBorderLayout layoutWithCenter:_textView top:@[topView] bottom:@[bottomView] insets:UIEdgeInsetsZero spacing:0];
+  self.viewLayout = [YOBorderLayout layoutWithCenter:_textView top:@[topView] bottom:@[bottomView]];
 }
 
 - (void)layout {
   [super layout];
-  [_userPickerView setSearchRect:CGRectMake(1, 1, _textView.bounds.size.width - 2, _textView.bounds.size.height - 2)];
+  NSView *centerView = _textView;
+  [_userPickerView setSearchResultsFrame:CGRectMake(0, 1, centerView.bounds.size.width, centerView.bounds.size.height) inView:self];
 }
 
 - (void)setClient:(KBRPClient *)client {
   [super setClient:client];
   _userPickerView.client = client;
 }
+
+//- (void)mailShare {
+//  NSSharingService *mailShare = [NSSharingService sharingServiceNamed:NSSharingServiceNameComposeEmail];
+//  NSArray *shareItems = @[]; // @[textAttributedString, tempFileURL];
+//  [mailShare performWithItems:shareItems];
+//}
 
 - (void)encrypt {
   NSString *text = _textView.text;
@@ -122,7 +129,6 @@
   _textView.text = text;
 }
 
-// This will let the user picker group grow if someone adds alot of users
 - (void)userPickerViewDidUpdate:(KBUserPickerView *)userPickerView {
   CGSize size = userPickerView.frame.size;
   CGSize sizeThatFits = [userPickerView sizeThatFits:self.frame.size];
@@ -131,6 +137,7 @@
   }
 }
 
+// This will let the user picker group grow if someone adds a lot of users
 - (void)userPickerView:(KBUserPickerView *)userPickerView didUpdateSearch:(BOOL)visible {
   [_textView setEnabled:!visible];
 }

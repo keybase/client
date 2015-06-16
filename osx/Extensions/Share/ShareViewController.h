@@ -7,7 +7,8 @@
 //
 
 #import <Cocoa/Cocoa.h>
+#import <Social/Social.h>
 
-@interface ShareViewController : NSViewController
+@interface ShareViewController : SLComposeServiceViewController
 
 @end

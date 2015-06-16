@@ -18,4 +18,7 @@
 
 - (void)encryptWithOptions:(KBRPgpEncryptOptions *)options stream:(KBStream *)stream client:(KBRPClient *)client sender:(id)sender completion:(KBRunCompletion)completion;
 
+
+- (void)encryptText:(NSString *)text usernames:(NSArray *)usernames client:(KBRPClient *)client sender:(id)sender completion:(KBRunCompletion)completion;
+
 @end

@@ -24,7 +24,9 @@
 @property KBActivityIndicatorView *progressView;
 @property KBSearcher *search;
 
+@property KBListView *searchResultsView;
 @property KBPopover *popover;
+@property NSView *popoverInView;
 @end
 
 @interface KBUserToken : NSObject
@@ -304,21 +306,16 @@
 
 #pragma mark Search
 
-- (void)setSearchRect:(CGRect)searchRect {
-  _searchRect = searchRect;
-  NSView *topView = self.window.contentView;
-  CGPoint p = [topView convertPoint:CGPointZero fromView:self];
-  p.y += self.bounds.size.height;
-
-  CGRect rect = _searchRect;
-  rect.origin.x += p.x;
-  rect.origin.y += p.y;
+- (void)setSearchResultsFrame:(CGRect)searchResultsFrame inView:(NSView *)inView {
+  _popoverInView = inView;
+  CGRect rect = searchResultsFrame;
+  rect.origin.y += self.bounds.size.height;
   [self.popover setContentRect:rect];
 }
 
 - (void)showSearch {
   if (!self.popover.isShowing && [KBTextField isFocused:_tokensField]) {
-    [self.popover showAboveView:self.window.contentView options:KBPopoverOptionsShadow];
+    [self.popover showAboveView:_popoverInView options:KBPopoverOptionsShadow];
     [self.delegate userPickerView:self didUpdateSearch:YES];
   }
 }

@@ -51,4 +51,20 @@
   [_trackView registerClient:client sessionId:sessionId sender:sender];
 }
 
+- (void)encryptText:(NSString *)text usernames:(NSArray *)usernames client:(KBRPClient *)client sender:(id)sender completion:(KBRunCompletion)completion {
+  KBRPgpEncryptOptions *options = [[KBRPgpEncryptOptions alloc] init];
+  id<KBReader> reader = [KBReader readerWithData:[text dataUsingEncoding:NSUTF8StringEncoding]];
+  id<KBWriter> writer = [KBWriter writer];
+
+  KBStream *stream = [KBStream streamWithReader:reader writer:writer label:arc4random()];
+
+  options.recipients = usernames;
+
+  KBPGPEncrypt *encrypter = [[KBPGPEncrypt alloc] init];
+  [encrypter encryptWithOptions:options streams:@[stream] client:client sender:sender completion:^(NSArray *works) {
+    KBWork *work = works[0];
+    completion(work); // KBWork
+  }];
+}
+
 @end
