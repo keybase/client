@@ -25,53 +25,61 @@ func TestPGPExportOptions(t *testing.T) {
 	}
 
 	table := []exportTest{
-		{true, fp.String(), false, 1},
-		{true, fp.String(), true, 1},
-		{false, fp.String(), false, 1},
-		{false, fp.String(), true, 1},
+		{true, fp.String(), false, 1, 1, 0},
+		{true, fp.String(), true, 1, 1, 0},
+		{false, fp.String(), false, 1, 1, 0},
+		{false, fp.String(), true, 1, 1, 0},
 
 		// fingerprint substring must be suffix:
-		{true, fp.String()[len(fp.String())-5:], false, 1},
-		{true, fp.String()[len(fp.String())-5:], true, 0},
-		{false, fp.String()[len(fp.String())-5:], false, 1},
-		{false, fp.String()[len(fp.String())-5:], true, 0},
-		{true, fp.String()[0:5], false, 0},
-		{true, fp.String()[0:5], true, 0},
-		{false, fp.String()[0:5], false, 0},
-		{false, fp.String()[0:5], true, 0},
+		{true, fp.String()[len(fp.String())-5:], false, 1, 1, 0},
+		{true, fp.String()[len(fp.String())-5:], true, 0, 0, 0},
+		{false, fp.String()[len(fp.String())-5:], false, 1, 1, 0},
+		{false, fp.String()[len(fp.String())-5:], true, 0, 0, 0},
+		{true, fp.String()[0:5], false, 0, 0, 0},
+		{true, fp.String()[0:5], true, 0, 0, 0},
+		{false, fp.String()[0:5], false, 0, 0, 0},
+		{false, fp.String()[0:5], true, 0, 0, 0},
 
-		{true, kid.String(), false, 1},
-		{true, kid.String(), true, 1},
-		{false, kid.String(), false, 1},
-		{false, kid.String(), true, 1},
+		{true, kid.String(), false, 1, 0, 1},
+		{true, kid.String(), true, 1, 0, 1},
+		{false, kid.String(), false, 1, 0, 1},
+		{false, kid.String(), true, 1, 0, 1},
 
 		// kid substring must be prefix:
-		{true, kid.String()[len(fp.String())-5:], false, 0},
-		{true, kid.String()[len(fp.String())-5:], true, 0},
-		{false, kid.String()[len(fp.String())-5:], false, 0},
-		{false, kid.String()[len(fp.String())-5:], true, 0},
-		{true, kid.String()[0:5], false, 1},
-		{true, kid.String()[0:5], true, 0},
-		{false, kid.String()[0:5], false, 1},
-		{false, kid.String()[0:5], true, 0},
+		{true, kid.String()[len(fp.String())-5:], false, 0, 0, 0},
+		{true, kid.String()[len(fp.String())-5:], true, 0, 0, 0},
+		{false, kid.String()[len(fp.String())-5:], false, 0, 0, 0},
+		{false, kid.String()[len(fp.String())-5:], true, 0, 0, 0},
+		{true, kid.String()[0:5], false, 1, 0, 1},
+		{true, kid.String()[0:5], true, 0, 0, 0},
+		{false, kid.String()[0:5], false, 1, 0, 1},
+		{false, kid.String()[0:5], true, 0, 0, 0},
 	}
 
 	for i, test := range table {
-		n, err := pgpExport(ctx, tc.G, test.secret, test.query, test.exact)
+		ec, err := pgpExport(ctx, tc.G, test.secret, test.query, test.exact)
 		if err != nil {
 			t.Errorf("test %d error: %s", i, err)
 		}
-		if n != test.count {
-			t.Errorf("test %d: num keys exported: %d, expected %d", i, n, test.count)
+		if ec.either != test.either {
+			t.Errorf("test %d: (either) num keys exported: %d, expected %d", i, ec.either, test.either)
+		}
+		if ec.fingerprint != test.fingerprint {
+			t.Errorf("test %d: (fp) num keys exported: %d, expected %d", i, ec.fingerprint, test.fingerprint)
+		}
+		if ec.kid != test.kid {
+			t.Errorf("test %d: (kid) num keys exported: %d, expected %d", i, ec.kid, test.kid)
 		}
 	}
 }
 
 type exportTest struct {
-	secret bool
-	query  string
-	exact  bool
-	count  int
+	secret      bool
+	query       string
+	exact       bool
+	either      int
+	fingerprint int
+	kid         int
 }
 
 type exportCounts struct {
@@ -88,6 +96,7 @@ func pgpExport(ctx *Context, g *libkb.GlobalContext, secret bool, query string, 
 	}
 
 	var xcount exportCounts
+
 	arg := keybase1.PgpExportArg{
 		Options: opts,
 	}
@@ -97,6 +106,26 @@ func pgpExport(ctx *Context, g *libkb.GlobalContext, secret bool, query string, 
 	}
 
 	xcount.either = len(xe.Results())
+
+	farg := keybase1.PgpExportByFingerprintArg{
+		Options: opts,
+	}
+	xf := NewPGPKeyExportByFingerprintEngine(farg, g)
+	if err := RunEngine(xf, ctx); err != nil {
+		return xcount, err
+	}
+
+	xcount.fingerprint = len(xf.Results())
+
+	karg := keybase1.PgpExportByKIDArg{
+		Options: opts,
+	}
+	xk := NewPGPKeyExportByKIDEngine(karg, g)
+	if err := RunEngine(xk, ctx); err != nil {
+		return xcount, err
+	}
+
+	xcount.kid = len(xk.Results())
 
 	return xcount, nil
 }

@@ -85,6 +85,22 @@ func (e *PGPKeyExportEngine) pushRes(fp libkb.PgpFingerprint, key string, desc s
 	})
 }
 
+func (e *PGPKeyExportEngine) queryMatch(k libkb.GenericKey) bool {
+	if len(e.arg.Query) == 0 {
+		return true
+	}
+	var match bool
+	switch e.qtype {
+	case either:
+		match = libkb.KeyMatchesQuery(k, e.arg.Query, e.arg.ExactMatch)
+	case fingerprint:
+		match = k.GetFingerprintP().Match(e.arg.Query, e.arg.ExactMatch)
+	case kid:
+		match = k.GetKid().Match(e.arg.Query, e.arg.ExactMatch)
+	}
+	return match
+}
+
 func (e *PGPKeyExportEngine) exportPublic() (err error) {
 	keys := e.me.GetActivePgpKeys(false)
 	for _, k := range keys {
@@ -93,19 +109,8 @@ func (e *PGPKeyExportEngine) exportPublic() (err error) {
 		if fp == nil || err != nil {
 			continue
 		}
-		if len(e.arg.Query) > 0 {
-			var match bool
-			switch e.qtype {
-			case either:
-				match = libkb.KeyMatchesQuery(k, e.arg.Query, e.arg.ExactMatch)
-			case fingerprint:
-				match = fp.Match(e.arg.Query, e.arg.ExactMatch)
-			case kid:
-				match = k.GetKid().Match(e.arg.Query, e.arg.ExactMatch)
-			}
-			if !match {
-				continue
-			}
+		if !e.queryMatch(k) {
+			continue
 		}
 		e.pushRes(*fp, s, k.VerboseDescription())
 	}
@@ -132,6 +137,10 @@ func (e *PGPKeyExportEngine) exportSecret(ctx *Context) error {
 	fp := key.GetFingerprintP()
 	if fp == nil {
 		return libkb.BadKeyError{Msg: "no fingerprint found"}
+	}
+
+	if !e.queryMatch(key) {
+		return nil
 	}
 
 	if _, ok := key.(*libkb.PgpKeyBundle); !ok {
