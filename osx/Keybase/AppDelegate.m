@@ -12,16 +12,12 @@
 #import <CocoaLumberjack/CocoaLumberjack.h>
 
 @interface AppDelegate ()
-@property KBApp *app;
 @property NSStatusItem *statusItem;
 @end
 
 @implementation AppDelegate
 
 - (void)applicationDidFinishLaunching:(NSNotification *)notification {
-  _app = [[KBApp alloc] init];
-  _appActions.app = _app;
-
   _statusItem = [[NSStatusBar systemStatusBar] statusItemWithLength:NSVariableStatusItemLength];
   //_statusItem.title = @"Keybase";
 #ifdef DEBUG

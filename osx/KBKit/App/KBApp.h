@@ -44,6 +44,16 @@
 - (BOOL)setError:(NSError *)error sender:(NSView *)sender;
 - (BOOL)setError:(NSError *)error sender:(NSView *)sender completion:(void (^)(NSModalResponse returnCode))completion;
 
+#pragma mark Menu Actions
 
+- (IBAction)encrypt:(id)sender;
+- (IBAction)encryptFile:(id)sender;
+- (IBAction)decrypt:(id)sender;
+- (IBAction)decryptFile:(id)sender;
+- (IBAction)sign:(id)sender;
+- (IBAction)signFile:(id)sender;
+- (IBAction)signFiles:(id)sender;
+- (IBAction)verify:(id)sender;
+- (IBAction)verifyFile:(id)sender;
 
 @end

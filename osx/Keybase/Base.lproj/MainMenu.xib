@@ -6,16 +6,17 @@
     <objects>
         <customObject id="-2" userLabel="File's Owner" customClass="NSApplication">
             <connections>
-                <outlet property="delegate" destination="Voe-Tx-rLC" id="GzC-gU-4Uq"/>
+                <outlet property="delegate" destination="Voe-Tx-rLC" id="A2c-zs-NCp"/>
             </connections>
         </customObject>
         <customObject id="-1" userLabel="First Responder" customClass="FirstResponder"/>
         <customObject id="-3" userLabel="Application" customClass="NSObject"/>
         <customObject id="Voe-Tx-rLC" customClass="AppDelegate">
             <connections>
-                <outlet property="appActions" destination="sgt-hv-QAE" id="aYL-Zy-rab"/>
+                <outlet property="app" destination="sgt-hv-QAE" id="OT2-l5-J4O"/>
             </connections>
         </customObject>
+        <customObject id="sgt-hv-QAE" customClass="KBApp"/>
         <customObject id="YLy-65-1bz" customClass="NSFontManager"/>
         <menu title="Main Menu" systemMenu="main" id="AYu-sK-qS6">
             <items>
@@ -734,6 +735,5 @@
             </items>
         </menu>
         <customObject id="lXh-Py-V3Y" customClass="SUUpdater"/>
-        <customObject id="sgt-hv-QAE" customClass="KBAppActions"/>
     </objects>
 </document>

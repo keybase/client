@@ -37,7 +37,7 @@
 #import "KBSignupView.h"
 #import "KBFile.h"
 #import "KBSecretPromptView.h"
-#import "KBAppActions.h"
+#import "KBAppExtensions.h"
 
 @implementation KBDebugViews
 
@@ -265,7 +265,7 @@
   NSAttributedString *text = [[NSAttributedString alloc] initWithString:@"Test"];
   item.attributedContentText = text;
 
-  KBAppActions *app = [[KBAppActions alloc] init];
+  KBAppExtensions *app = [[KBAppExtensions alloc] init];
   NSView *view = [app encryptViewWithExtensionItem:item completion:^(id sender, NSExtensionItem *outputItem) {
     DDLogDebug(@"Output: %@", outputItem);
     [[sender window] close];

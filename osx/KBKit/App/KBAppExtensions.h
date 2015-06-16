@@ -1,5 +1,5 @@
 //
-//  KBAppActions.h
+//  KBAppExtensions.h
 //  Keybase
 //
 //  Created by Gabriel on 6/10/15.
@@ -7,22 +7,11 @@
 //
 
 #import <Foundation/Foundation.h>
+#import <AppKit/AppKit.h>
 
-#import "KBApp.h"
+#import "KBDefines.h"
 
-@interface KBAppActions : NSObject
-
-@property (weak) KBApp *app;
-
-- (IBAction)encrypt:(id)sender;
-- (IBAction)encryptFile:(id)sender;
-- (IBAction)decrypt:(id)sender;
-- (IBAction)decryptFile:(id)sender;
-- (IBAction)sign:(id)sender;
-- (IBAction)signFile:(id)sender;
-- (IBAction)signFiles:(id)sender;
-- (IBAction)verify:(id)sender;
-- (IBAction)verifyFile:(id)sender;
+@interface KBAppExtensions : NSObject
 
 - (NSView *)encryptViewWithExtensionItem:(NSExtensionItem *)extensionItem completion:(KBOnExtension)completion;
 

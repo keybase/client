@@ -67,8 +67,8 @@
 		0046253D1B2A5B6100E218AC /* KBComposeTextView.m in Sources */ = {isa = PBXBuildFile; fileRef = 0046253B1B2A5B6100E218AC /* KBComposeTextView.m */; };
 		0046C0E51B290A0B00C4D06F /* Sparkle.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0046C0E41B290A0B00C4D06F /* Sparkle.framework */; };
 		0046C0E61B290A3A00C4D06F /* Sparkle.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 0046C0E41B290A0B00C4D06F /* Sparkle.framework */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
-		0046C0E91B290CA100C4D06F /* KBAppActions.h in Headers */ = {isa = PBXBuildFile; fileRef = 0046C0E71B290CA100C4D06F /* KBAppActions.h */; settings = {ATTRIBUTES = (Public, ); }; };
-		0046C0EA1B290CA100C4D06F /* KBAppActions.m in Sources */ = {isa = PBXBuildFile; fileRef = 0046C0E81B290CA100C4D06F /* KBAppActions.m */; };
+		0046C0E91B290CA100C4D06F /* KBAppExtensions.h in Headers */ = {isa = PBXBuildFile; fileRef = 0046C0E71B290CA100C4D06F /* KBAppExtensions.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		0046C0EA1B290CA100C4D06F /* KBAppExtensions.m in Sources */ = {isa = PBXBuildFile; fileRef = 0046C0E81B290CA100C4D06F /* KBAppExtensions.m */; };
 		0046C0ED1B29114F00C4D06F /* KBNotifications.h in Headers */ = {isa = PBXBuildFile; fileRef = 0046C0EB1B29114F00C4D06F /* KBNotifications.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		0046C0EE1B29114F00C4D06F /* KBNotifications.m in Sources */ = {isa = PBXBuildFile; fileRef = 0046C0EC1B29114F00C4D06F /* KBNotifications.m */; };
 		0046C0EF1B29123C00C4D06F /* KBKit.h in Headers */ = {isa = PBXBuildFile; fileRef = 009E13841B28A93D00C72B28 /* KBKit.h */; settings = {ATTRIBUTES = (Public, ); }; };
@@ -552,8 +552,8 @@
 		0046253A1B2A5B6100E218AC /* KBComposeTextView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBComposeTextView.h; sourceTree = "<group>"; };
 		0046253B1B2A5B6100E218AC /* KBComposeTextView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBComposeTextView.m; sourceTree = "<group>"; };
 		0046C0E41B290A0B00C4D06F /* Sparkle.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Sparkle.framework; path = Pods/Sparkle/Sparkle.framework; sourceTree = "<group>"; };
-		0046C0E71B290CA100C4D06F /* KBAppActions.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBAppActions.h; sourceTree = "<group>"; };
-		0046C0E81B290CA100C4D06F /* KBAppActions.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBAppActions.m; sourceTree = "<group>"; };
+		0046C0E71B290CA100C4D06F /* KBAppExtensions.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBAppExtensions.h; sourceTree = "<group>"; };
+		0046C0E81B290CA100C4D06F /* KBAppExtensions.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBAppExtensions.m; sourceTree = "<group>"; };
 		0046C0EB1B29114F00C4D06F /* KBNotifications.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBNotifications.h; sourceTree = "<group>"; };
 		0046C0EC1B29114F00C4D06F /* KBNotifications.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBNotifications.m; sourceTree = "<group>"; };
 		004D14961A3BCF1F0083888D /* Podfile */ = {isa = PBXFileReference; lastKnownFileType = text; path = Podfile; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.ruby; };
@@ -994,8 +994,8 @@
 				0043D10C1B28EF670036C532 /* KBSourceOutlineView.m */,
 				0043D1151B28F0E00036C532 /* KBApp.h */,
 				0043D1161B28F0E00036C532 /* KBApp.m */,
-				0046C0E71B290CA100C4D06F /* KBAppActions.h */,
-				0046C0E81B290CA100C4D06F /* KBAppActions.m */,
+				0046C0E71B290CA100C4D06F /* KBAppExtensions.h */,
+				0046C0E81B290CA100C4D06F /* KBAppExtensions.m */,
 				0046C0EB1B29114F00C4D06F /* KBNotifications.h */,
 				0046C0EC1B29114F00C4D06F /* KBNotifications.m */,
 			);
@@ -1683,7 +1683,7 @@
 				00C0DCA51B28EC6100A825D4 /* KBSearchField.h in Headers */,
 				00C0DC6B1B28EC3F00A825D4 /* KBRRequest.h in Headers */,
 				00C0DCD31B28EC6F00A825D4 /* KBAlertView.h in Headers */,
-				0046C0E91B290CA100C4D06F /* KBAppActions.h in Headers */,
+				0046C0E91B290CA100C4D06F /* KBAppExtensions.h in Headers */,
 				00C0DC771B28EC3F00A825D4 /* KBWriter.h in Headers */,
 				00C0DCA31B28EC6100A825D4 /* KBSearcher.h in Headers */,
 				004625381B2A5A9400E218AC /* KBStrengthLabel.h in Headers */,
@@ -2294,7 +2294,7 @@
 				004624CC1B2A08F400E218AC /* KBUninstaller.m in Sources */,
 				00C0DD1A1B28EC7800A825D4 /* KBPGPVerifyFooterView.m in Sources */,
 				00C0DCAC1B28EC6100A825D4 /* KBSearchResultView.m in Sources */,
-				0046C0EA1B290CA100C4D06F /* KBAppActions.m in Sources */,
+				0046C0EA1B290CA100C4D06F /* KBAppExtensions.m in Sources */,
 				00C0DD561B28EC8B00A825D4 /* KBFSStatusView.m in Sources */,
 				00C0DD3C1B28EC8700A825D4 /* KBDeviceAddView.m in Sources */,
 				00C0DD5A1B28EC8B00A825D4 /* KBStyleGuideView.m in Sources */,
