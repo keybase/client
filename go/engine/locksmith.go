@@ -6,6 +6,7 @@ import (
 	"sync"
 
 	"github.com/keybase/client/go/libkb"
+	"github.com/keybase/client/go/libkb/kex"
 	keybase1 "github.com/keybase/client/protocol/go"
 )
 
@@ -390,6 +391,10 @@ func (d *Locksmith) deviceSign(ctx *Context, withPGPOption bool) error {
 				return nil
 			}
 			ctx.LogUI.Info("deviceSignExistingDevice error: %s", err)
+			if err == kex.ErrProtocolEOF {
+				ctx.LogUI.Info("deviceSignExistingDevice not retrying after EOF error")
+				return libkb.CanceledError{}
+			}
 			uiarg := keybase1.DeviceSignAttemptErrArg{
 				Msg:     err.Error(),
 				Attempt: i + 1,

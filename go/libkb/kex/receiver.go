@@ -9,9 +9,17 @@ import (
 	"github.com/keybase/client/go/libkb"
 )
 
-// StartTimeout is the time the kex protocol will wait for the
-// first message when the sibling device starts the key exchange.
-var StartTimeout = 5 * time.Minute
+// HelloTimeout is the time the kex protocol will wait for the
+// hello message from the existing sibling device.  It is long
+// because it might take the user a while to access the existing
+// device.
+var HelloTimeout = 5 * time.Minute
+
+// StartTimeout is the duration the existing sibling device will
+// wait for a start message.  It is very short because the message
+// should be on the server already.  If there are no messages
+// waiting, then the secret phrase is likely incorrect.
+var StartTimeout = 1 * time.Second
 
 // IntraTimeout is the time the kex protocol will wait for
 // messages once the key exchange has begun.
@@ -105,11 +113,12 @@ func (r *Receiver) Receive(m *Meta) (int, error) {
 
 		// check to see if this receiver has seen this message before
 		smac := hex.EncodeToString(msg.Body.Mac)
-		if _, seen := r.seen[smac]; seen {
+		if r.seen[smac] {
 			G.Log.Warning("skipping message [%s:%s]: already seen", msg.Name, smac)
-		} else {
-			r.seen[smac] = true
+			continue
 		}
+
+		r.seen[smac] = true
 
 		if msg.Seqno > r.seqno {
 			r.seqno = msg.Seqno

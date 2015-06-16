@@ -16,7 +16,7 @@ import (
 // uses an existing device to provision it.  This test uses
 // the api server for all kex communication.
 func TestLoginNewDeviceKex(t *testing.T) {
-	kex.StartTimeout = 5 * time.Second
+	kex.HelloTimeout = 5 * time.Second
 	kex.IntraTimeout = 5 * time.Second
 	kex.PollDuration = 1 * time.Second
 
@@ -102,7 +102,13 @@ func TestLoginNewDeviceCancel(t *testing.T) {
 
 	// log in with device Y
 	li := NewLoginWithPromptEngine(u.Username, tcY.G)
-	ctx := &Context{LogUI: tcY.G.UI.GetLogUI(), LocksmithUI: docui, GPGUI: &gpgtestui{}, SecretUI: secui, LoginUI: &libkb.TestLoginUI{}}
+	ctx := &Context{
+		LogUI:       tcY.G.UI.GetLogUI(),
+		LocksmithUI: docui,
+		GPGUI:       &gpgtestui{},
+		SecretUI:    secui,
+		LoginUI:     &libkb.TestLoginUI{},
+	}
 	err := RunEngine(li, ctx)
 	if err == nil {
 		t.Fatal("expected cancel err, got nil err")
@@ -125,6 +131,92 @@ func TestLoginNewDeviceCancel(t *testing.T) {
 		t.Errorf("user on device Y is logged in according to GetCurrentStatus even though they canceled device provisioning")
 
 	}
+}
+
+// TestLoginNewDeviceKexBadPhrase is a device provisioning test.
+// It simulates the scenario where a user logs in to a new device and
+// uses an existing device to provision it, but a bad secret
+// phrase is entered on the existing device.
+func TestLoginNewDeviceKexBadPhrase(t *testing.T) {
+	kex.HelloTimeout = 5 * time.Second
+	kex.IntraTimeout = 5 * time.Second
+	kex.PollDuration = 1 * time.Second
+
+	// test context for device X
+	tcX := SetupEngineTest(t, "loginX")
+	defer tcX.Cleanup()
+
+	// sign up with device X
+	u := CreateAndSignupFakeUser(tcX, "login")
+	docui := &lockuiDevice{lockui: &lockui{}}
+	secui := libkb.TestSecretUI{Passphrase: u.Passphrase}
+
+	// test that we can get the secret key:
+	// XXX this is necessary for the test to pass once the goroutine starts
+	me, err := libkb.LoadMe(libkb.LoadUserArg{PublicKeyOptional: true})
+	if err != nil {
+		t.Fatal(err)
+	}
+	arg := libkb.SecretKeyArg{
+		Me:      me,
+		KeyType: libkb.DeviceSigningKeyType,
+	}
+	_, _, err = tcX.G.Keyrings.GetSecretKeyWithPrompt(nil, arg, secui, "new device install")
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	var li *LoginEngine
+	var wg sync.WaitGroup
+
+	wg.Add(1)
+	go func() {
+		defer func() {
+			// cancel the login engine when this is done.
+			if li != nil {
+				li.Cancel()
+			}
+		}()
+
+		// authorize on device X
+		ctx := &Context{LogUI: tcX.G.UI.GetLogUI(), LocksmithUI: docui, SecretUI: secui}
+
+		// wait for docui to know the secret
+		for len(docui.secretPhrase()) == 0 {
+			time.Sleep(50 * time.Millisecond)
+		}
+
+		// ok, we know the secret phrase, but will enter it incorrectly:
+		kx := NewKexSib(tcX.G, docui.secretPhrase()+" gibberish")
+		err := RunEngine(kx, ctx)
+		if err != libkb.ErrInvalidKexPhrase {
+			t.Fatal(err)
+		}
+
+		wg.Done()
+	}()
+
+	// test context for device Y
+	tcY := SetupEngineTest(t, "loginY")
+	defer tcY.Cleanup()
+
+	if tcY.G == tcX.G {
+		t.Fatalf("tcY.G == tcX.G")
+	}
+
+	// log in with device Y
+	li = NewLoginWithPromptEngine(u.Username, tcY.G)
+	ctx := &Context{LogUI: tcY.G.UI.GetLogUI(), LocksmithUI: docui, GPGUI: &gpgtestui{}, SecretUI: secui, LoginUI: &libkb.TestLoginUI{}}
+	err = RunEngine(li, ctx)
+	if err != nil {
+		if _, ok := err.(libkb.CanceledError); !ok {
+			t.Fatal(err)
+		}
+	} else {
+		t.Fatal("login on device Y should have returned error")
+	}
+
+	wg.Wait()
 }
 
 type lockuiDevice struct {

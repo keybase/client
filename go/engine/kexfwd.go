@@ -113,7 +113,7 @@ func (k *KexFwd) Run(ctx *Context) error {
 
 	// wait for Hello() from X
 	k.kexStatus(ctx, "waiting for Hello from X", keybase1.KexStatusCode_HELLO_WAIT)
-	if err := k.next(ctx, kex.HelloMsg, kex.StartTimeout, k.handleHello); err != nil {
+	if err := k.next(ctx, kex.HelloMsg, kex.HelloTimeout, k.handleHello); err != nil {
 		return err
 	}
 	k.kexStatus(ctx, "received Hello from X", keybase1.KexStatusCode_HELLO_RECEIVED)
