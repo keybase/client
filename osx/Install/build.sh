@@ -12,9 +12,13 @@ KB_GO_SRC="$GOPATH/src/github.com/keybase/client/go"
 KBFS_GO_SRC="$GOPATH/src/github.com/keybase/kbfs"
 CODE_SIGN_IDENTITY="Developer ID Application: Keybase, Inc. (99229SGT5K)"
 
+# Clear existing build dir
 rm -rf $BUILD_DEST
 mkdir -p $BUILD_DEST
 
+# Read the version from go/libkb/version.go.
+# This is the core version info that we use for both the service and app,
+# though this may change in the future.
 VERSION=`head -1 "$KB_GO_SRC/libkb/version.go" | cut -f2 -d ' ' | tr -d ' '`
 #echo "// $VERSION\npackage libkb\n\nvar CLIENT_VERSION = \"$VERSION\"\n" | gofmt > $KB_GO_SRC/libkb/version.go
 
@@ -23,8 +27,11 @@ if [ "$VERSION" = "" ]; then
   exit 1
 fi
 
+echo "Version from libkb/version.go: $VERSION"
+
 #
-# Keybase (go)
+# Build go services.
+# If the are already present, don't rebuild.
 #
 
 if [ ! -f "$KB_GO_SRC/keybase/keybase" ]; then
@@ -64,6 +71,14 @@ echo "  Service Version: $KB_SERVICE_VERSION"
 echo "  Helper Version: $KB_HELPER_VERSION"
 echo "  KBFS Version: $KBFS_VERSION"
 echo "  Fuse Version: $KB_FUSE_VERSION"
+echo " "
+echo "Is the correct?"
+select o in "Yes" "No"; do
+    case $o in
+        Yes ) break;;
+        No ) exit;;
+    esac
+done
 
 echo "  Updating $PLIST"
 /usr/libexec/PlistBuddy -c "Set :CFBundleVersion '${VERSION}'" $PLIST
