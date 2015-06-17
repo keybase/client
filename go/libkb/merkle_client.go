@@ -412,37 +412,42 @@ func (mc *MerkleClient) VerifyRoot(root *MerkleRoot) error {
 	return nil
 }
 
-func parseTriple(jw *jsonw.Wrapper) (t *MerkleTriple, err error) {
-	var seqno, l int
-	var li LinkID
-	var si keybase1.SigID
-
+func parseTriple(jw *jsonw.Wrapper) (*MerkleTriple, error) {
 	if jw.IsNil() {
 		return nil, nil
 	}
 
-	if l, err = jw.Len(); err != nil {
-		return
+	l, err := jw.Len()
+	if err != nil {
+		return nil, err
 	}
 	if l == 0 {
 		return nil, nil
-	} else if l == 1 {
-		err = fmt.Errorf("Bad merkle 'triple', with < 2 values")
-	} else if l > 3 {
-		err = fmt.Errorf("Bad merkle triple, with > 3 values")
-	} else if seqno, err = jw.AtIndex(0).GetInt(); err != nil {
-		// noop
-	} else if li, err = GetLinkID(jw.AtIndex(1)); err != nil {
-		// noop
-	} else if l == 2 {
-		// noop
-	} else {
+	}
+	if l == 1 {
+		return nil, fmt.Errorf("Bad merkle 'triple', with < 2 values")
+	}
+	if l > 3 {
+		return nil, fmt.Errorf("Bad merkle triple, with > 3 values")
+	}
+	seqno, err := jw.AtIndex(0).GetInt()
+	if err != nil {
+		return nil, err
+	}
+	li, err := GetLinkID(jw.AtIndex(1))
+	if err != nil {
+		return nil, err
+	}
+
+	var si keybase1.SigID
+	if l == 3 {
 		si, err = GetSigID(jw.AtIndex(2), false)
+		if err != nil {
+			return nil, err
+		}
 	}
-	if err == nil {
-		t = &MerkleTriple{Seqno(seqno), li, si}
-	}
-	return
+
+	return &MerkleTriple{Seqno(seqno), li, si}, nil
 
 }
 

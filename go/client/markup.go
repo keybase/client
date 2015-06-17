@@ -148,9 +148,10 @@ func (r *Renderer) RenderNode(node *html.Node) {
 
 	var cp *CodePair
 
-	if node.DataAtom == atom.Ul {
+	switch node.DataAtom {
+	case atom.Ul:
 		r.indent++
-	} else if node.DataAtom == atom.Li {
+	case atom.Li:
 		var bullet string
 		if bp := GetNodeAttrVal(node, "bullet"); bp != nil {
 			bullet = *bp
@@ -158,17 +159,19 @@ func (r *Renderer) RenderNode(node *html.Node) {
 			bullet = "• "
 		}
 		r.NewParagraph(bullet)
-	} else if node.DataAtom == atom.P {
+	case atom.P:
 		r.NewParagraph("")
-	} else if node.DataAtom == atom.Strong {
+	case atom.Strong:
 		cp = &CpBold
-	} else if node.DataAtom == atom.Em {
+	case atom.Em:
 		cp = &CpItalic
-	} else if node.Data == "url" {
-		cp = &CpUnderline
-	} else if node.Data == "color" {
-		if c := GetNodeAttrVal(node, "name"); c != nil {
-			cp = GetColorCode(*c)
+	default:
+		if node.Data == "url" {
+			cp = &CpUnderline
+		} else if node.Data == "color" {
+			if c := GetNodeAttrVal(node, "name"); c != nil {
+				cp = GetColorCode(*c)
+			}
 		}
 	}
 

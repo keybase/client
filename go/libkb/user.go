@@ -397,9 +397,9 @@ func (u *User) Equal(other *User) bool {
 	return u.id == other.id
 }
 
-func (u *User) GetTrackingStatementFor(s string, i keybase1.UID) (link *TrackChainLink, err error) {
+func (u *User) GetTrackingStatementFor(s string, i keybase1.UID) (*TrackChainLink, error) {
 	G.Log.Debug("+ GetTrackingStatement for %s", i)
-	defer G.Log.Debug("- GetTrackingStatement for %s -> %s", i, ErrToOk(err))
+	defer G.Log.Debug("- GetTrackingStatement for %s", i)
 
 	remote, e1 := u.GetRemoteTrackingStatementFor(s, i)
 	local, e2 := GetLocalTrack(u.id, i)
@@ -408,22 +408,29 @@ func (u *User) GetTrackingStatementFor(s string, i keybase1.UID) (link *TrackCha
 	G.Log.Debug("| Load local -> %v", (local != nil))
 
 	if e1 != nil && e2 != nil {
-		err = e1
-	} else if local == nil && remote == nil {
-		// noop
-	} else if local == nil && remote != nil {
-		link = remote
-	} else if remote == nil && local != nil {
-		link = local
-	} else if remote.GetCTime().After(local.GetCTime()) {
-		link = remote
-	} else {
-		link = local
+		return nil, e1
 	}
-	return
+
+	if local == nil && remote == nil {
+		return nil, nil
+	}
+
+	if local == nil && remote != nil {
+		return remote, nil
+	}
+
+	if remote == nil && local != nil {
+		return local, nil
+	}
+
+	if remote.GetCTime().After(local.GetCTime()) {
+		return remote, nil
+	}
+
+	return local, nil
 }
 
-func (u *User) GetRemoteTrackingStatementFor(s string, i keybase1.UID) (link *TrackChainLink, err error) {
+func (u *User) GetRemoteTrackingStatementFor(s string, i keybase1.UID) (*TrackChainLink, error) {
 	if u.IDTable() == nil {
 		return nil, nil
 	}
