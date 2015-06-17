@@ -22,8 +22,7 @@ target "KBKit" do
   pod "GHODictionary"
 
   pod "MASPreferences"
-
-  pod "KBAppKit"#, :path => "~/Projects/KBAppKit"
+  pod "Slash"
 end
 
 # This runs as a privileged helper so keep dependencies

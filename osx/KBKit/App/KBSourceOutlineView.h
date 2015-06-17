@@ -8,7 +8,7 @@
 
 #import <Foundation/Foundation.h>
 
-#import <KBAppKit/KBAppKit.h>
+#import "KBAppKit.h"
 #import "KBUserStatusView.h"
 #import "KBAppDefines.h"
 

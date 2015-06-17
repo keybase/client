@@ -10,7 +10,7 @@
 
 #import "KBFile.h"
 
-#import <KBAppKit/KBAppKit.h>
+#import "KBAppKit.h"
 
 @interface KBFilePreviewView : YOView
 

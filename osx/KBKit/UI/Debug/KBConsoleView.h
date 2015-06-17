@@ -8,7 +8,7 @@
 
 #import <Foundation/Foundation.h>
 
-#import <KBAppKit/KBAppKit.h>
+#import "KBAppKit.h"
 
 typedef NS_ENUM (NSInteger, KBConsoleType) {
   KBConsoleTypeApp,

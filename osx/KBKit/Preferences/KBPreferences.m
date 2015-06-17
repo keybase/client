@@ -10,7 +10,7 @@
 
 #import <Cocoa/Cocoa.h>
 #import <MASPreferences/MASPreferencesWindowController.h>
-#import <KBAppKit/KBAppKit.h>
+#import "KBAppKit.h"
 #import <CocoaLumberjack/CocoaLumberjack.h>
 
 #import "KBPrefGeneralView.h"
