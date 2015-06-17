@@ -14,6 +14,12 @@ import (
 // Keep this around to simplify things
 var G = libkb.G
 
+var cmd libcmdline.Command
+
+type Canceler interface {
+	Cancel() error
+}
+
 func main() {
 
 	g := G
@@ -37,7 +43,8 @@ func mainInner(g *libkb.GlobalContext) error {
 	cl.AddCommands(client.GetCommands(cl))
 	cl.AddCommands(service.GetCommands(cl))
 
-	cmd, err := cl.Parse(os.Args)
+	var err error
+	cmd, err = cl.Parse(os.Args)
 	if err != nil {
 		err = fmt.Errorf("Error parsing command line arguments: %s\n", err.Error())
 		return err
@@ -77,6 +84,16 @@ func HandleSignals() {
 	for {
 		s := <-c
 		if s != nil {
+			G.Log.Debug("trapped signal %v", s)
+
+			// if the current command has a Cancel function, then call it:
+			if canc, ok := cmd.(Canceler); ok {
+				G.Log.Debug("canceling running command")
+				if err := canc.Cancel(); err != nil {
+					G.Log.Warning("error canceling command: %s", err)
+				}
+			}
+
 			G.Shutdown()
 			G.Log.Error("interrupted")
 			os.Exit(3)

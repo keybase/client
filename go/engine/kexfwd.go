@@ -89,10 +89,6 @@ func (k *KexFwd) Run(ctx *Context) error {
 	// start message receive loop
 	k.poll(ctx, m, sec)
 
-	done := make(chan bool)
-	defer close(done)
-	go libkb.TrapKeypress(done)
-
 	// tell user the command to enter on existing device (X)
 	// note: this has to happen before StartKexSession call for tests to work.
 	k.G().Log.Debug("KexFwd: displaying sibkey command")

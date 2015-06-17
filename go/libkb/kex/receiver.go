@@ -58,6 +58,9 @@ func (r *Receiver) Poll(m *Meta) {
 			G.Log.Debug("polling stopping due to EOF")
 			return
 		}
+		if err != nil {
+			G.Log.Debug("kex receiver poll continuing even though got error: %s (%T)", err, err)
+		}
 		if r.done {
 			G.Log.Debug("polling stopping due to done flag")
 			return
@@ -147,6 +150,7 @@ func (r *Receiver) Receive(m *Meta) (int, error) {
 
 // Cancel stops the reciever.
 func (r *Receiver) Cancel() error {
+	G.Log.Info("closing Receiver")
 	close(r.Msgs)
 	r.Msgs = nil
 	return nil

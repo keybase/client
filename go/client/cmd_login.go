@@ -12,7 +12,8 @@ import (
 )
 
 type CmdLogin struct {
-	Username string
+	Username  string
+	sessionID int
 }
 
 func NewLoginUIProtocol() rpc2.Protocol {
@@ -23,23 +24,37 @@ func NewLocksmithUIProtocol() rpc2.Protocol {
 	return keybase1.LocksmithUiProtocol(GlobUI.GetLocksmithUI())
 }
 
-func (v *CmdLogin) RunClient() (err error) {
-	var cli keybase1.LoginClient
+func (v *CmdLogin) client() (*keybase1.LoginClient, error) {
 	protocols := []rpc2.Protocol{
 		NewLoginUIProtocol(),
 		NewLogUIProtocol(),
 		NewSecretUIProtocol(),
 		NewLocksmithUIProtocol(),
 	}
-
-	if cli, err = GetLoginClient(); err != nil {
-	} else if err = RegisterProtocols(protocols); err != nil {
-	} else {
-		err = cli.LoginWithPrompt(keybase1.LoginWithPromptArg{
-			Username: v.Username,
-		})
+	if err := RegisterProtocols(protocols); err != nil {
+		return nil, err
 	}
-	return
+
+	c, err := GetLoginClient()
+	if err != nil {
+		return nil, err
+	}
+	return &c, nil
+}
+
+func (v *CmdLogin) RunClient() error {
+	cli, err := v.client()
+	if err != nil {
+		return err
+	}
+	v.sessionID, err = libkb.RandInt()
+	if err != nil {
+		return err
+	}
+	return cli.LoginWithPrompt(keybase1.LoginWithPromptArg{
+		SessionID: v.sessionID,
+		Username:  v.Username,
+	})
 }
 
 func (v *CmdLogin) Run() error {
@@ -52,6 +67,17 @@ func (v *CmdLogin) Run() error {
 	}
 	li := engine.NewLoginWithPromptEngine(v.Username, G)
 	return engine.RunEngine(li, ctx)
+}
+
+func (v *CmdLogin) Cancel() error {
+	if v.sessionID == 0 {
+		return nil
+	}
+	cli, err := v.client()
+	if err != nil {
+		return err
+	}
+	return cli.CancelLogin(v.sessionID)
 }
 
 func NewCmdLogin(cl *libcmdline.CommandLine) cli.Command {

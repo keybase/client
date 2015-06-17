@@ -125,7 +125,6 @@ func (e *LoginEngine) Cancel() error {
 	e.locksmithMu.Lock()
 	defer e.locksmithMu.Unlock()
 	if e.locksmith == nil {
-		e.G().Log.Debug("LoginEngine Cancel called but locksmith is nil")
 		return nil
 	}
 
