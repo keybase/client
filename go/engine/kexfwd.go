@@ -174,8 +174,14 @@ func (k *KexFwd) Run(ctx *Context) error {
 }
 
 func (k *KexFwd) Cancel() error {
+	k.G().Log.Debug("canceling KexFwd")
 	m := kex.NewMeta(k.args.User.GetUID(), k.secret.StrongID(), k.deviceID, k.args.Dst, kex.DirectionXtoY)
-	return k.cancel(m)
+	if err := k.cancel(m); err != nil {
+		return err
+	}
+	k.wg.Wait()
+	k.G().Log.Debug("done canceling KexFwd")
+	return nil
 }
 
 func (k *KexFwd) handleHello(ctx *Context, m *kex.Msg) error {
