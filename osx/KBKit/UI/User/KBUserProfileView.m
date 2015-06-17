@@ -72,16 +72,11 @@
   self.viewLayout = [YOLayout fill:_scrollView];
 }
 
-- (void)updateWindow {
-  if (!self.popupWindow) return;
-
-  // If we are in a popup lets adjust our window so all the content is visible
-  [self layoutView];
-  CGSize size = CGSizeMake(self.frame.size.width, self.frame.size.height + 40);
-  // Only make it bigger (not smaller)
-  if (size.height > self.window.frame.size.height) {
-    CGRect frame = CGRectMake(self.window.frame.origin.x, self.window.frame.origin.y, size.width, size.height);
-    [self.window setFrame:frame display:YES];
+- (void)updatePopupWindow {
+  if (self.popup) {
+    // If we are in a popup lets adjust our window so all the content is visible
+    CGSize size = [self sizeThatFits:self.frame.size];
+    [self.window setContentSize:size];
   }
 }
 
@@ -103,13 +98,13 @@
   }];
 }
 
-- (void)openPopupWindow:(KBWindow *)parentWindow {
-  NSAssert(parentWindow, @"No parent window");
+- (void)openPopupWindow {
+  NSAssert(self.fromWindow, @"No window");
   [self removeFromSuperview];
-  [parentWindow kb_addChildWindowForView:self rect:CGRectMake(0, 0, 400, 400) position:KBWindowPositionCenter title:@"Keybase" fixed:NO makeKey:NO];
+  [self.fromWindow kb_addChildWindowForView:self size:CGSizeMake(400, 400) makeKey:NO];
 }
 
-- (void)registerClient:(KBRPClient *)client sessionId:(NSInteger)sessionId sender:(id)sender {
+- (void)registerClient:(KBRPClient *)client sessionId:(NSInteger)sessionId {
   GHWeakSelf gself = self;
   self.client = client;
 
@@ -120,6 +115,8 @@
     gself.username = requestParams.username;
     gself.headerView.hidden = NO;
     [gself.headerView setUsername:requestParams.username];
+    [gself setNeedsLayout];
+    [gself updatePopupWindow];
     completion(nil, nil);
   }];
 
@@ -131,6 +128,7 @@
       [self openKeyWithKeyId:keyId];
     }];
     [gself setNeedsLayout];
+    [gself updatePopupWindow];
     completion(nil, nil);
   }];
 
@@ -146,7 +144,7 @@
       }
     }];
     [gself setNeedsLayout];
-    [gself updateWindow];
+    [gself updatePopupWindow];
 
     completion(nil, nil);
   }];
@@ -157,8 +155,7 @@
 
     }];
     [gself setNeedsLayout];
-
-    [gself updateWindow];
+    [gself updatePopupWindow];
     completion(nil, nil);
   }];
 
@@ -167,8 +164,8 @@
     KBRRemoteProof *proof = requestParams.rp;
     KBRLinkCheckResult *lcr = requestParams.lcr;
     [gself.userInfoView updateProofResult:[KBProofResult proofResultForProof:proof result:lcr]];
-    [self setNeedsLayout];
-
+    [gself setNeedsLayout];
+    [gself updatePopupWindow];
     completion(nil, nil);
   }];
 
@@ -177,12 +174,15 @@
     KBRRemoteProof *proof = requestParams.rp;
     KBRLinkCheckResult *lcr = requestParams.lcr;
     [gself.userInfoView updateProofResult:[KBProofResult proofResultForProof:proof result:lcr]];
-    [self setNeedsLayout];
+    [gself setNeedsLayout];
+    [gself updatePopupWindow];
     completion(nil, nil);
   }];
 
   [client registerMethod:@"keybase.1.identifyUi.reportLastTrack" sessionId:sessionId requestHandler:^(NSNumber *messageId, NSString *method, NSArray *params, MPRequestCompletion completion) {
     // TODO Show this?
+    [gself setNeedsLayout];
+    [gself updatePopupWindow];
     completion(nil, nil);
   }];
 
@@ -200,6 +200,8 @@
         completion(nil, nil);
       }
     }];
+    [gself setNeedsLayout];
+    [gself updatePopupWindow];
   }];
 
   [client registerMethod:@"keybase.1.identifyUi.finish" sessionId:sessionId requestHandler:^(NSNumber *messageId, NSString *method, NSArray *params, MPRequestCompletion completion) {
@@ -218,21 +220,21 @@
 - (void)showTrackPrompt:(KBUserTrackStatus *)trackStatus completion:(void (^)(BOOL track))completion {
   GHWeakSelf gself = self;
   self.trackView.hidden = NO;
-  [self.trackView setTrackStatus:trackStatus skipable:!!self.popupWindow completion:^(BOOL track) {
+  [self.trackView setTrackStatus:trackStatus skipable:self.popup completion:^(BOOL track) {
     if (!track) {
       [gself showTrackAction:KBTrackActionSkipped username:trackStatus.username error:nil];
       completion(NO);
     } else {
       // How to handle errors from callback prompt
-      [gself showTrackAction:KBTrackActionSuccess username:trackStatus.username error:nil];
+      [gself showTrackAction:KBTrackActionTracked username:trackStatus.username error:nil];
       completion(YES);
     }
   }];
   [self setNeedsLayout];
 
-  if (self.popupWindow) {
+  if (self.popup) {
     if (trackStatus.status != KBTrackStatusValid) {
-      [self openPopupWindow:self.popupWindow];
+      [self openPopupWindow];
     } else {
       completion(NO); // No need to track
     }
@@ -246,7 +248,7 @@
   GHWeakSelf gself = self;
   KBUserTrackStatus *trackStatus = [[KBUserTrackStatus alloc] initWithUsername:identify.user.username identifyOutcome:identify.outcome];
   self.trackView.hidden = NO;
-  [self.trackView setTrackStatus:trackStatus skipable:!!self.popupWindow completion:^(BOOL track) {
+  [self.trackView setTrackStatus:trackStatus skipable:self.popup completion:^(BOOL track) {
     if (track) {
       [gself track:trackStatus.username];
     } else {
@@ -259,13 +261,13 @@
   KBRTrackRequest *request = [[KBRTrackRequest alloc] initWithClient:self.client];
   GHWeakSelf gself = self;
   [KBActivity setProgressEnabled:YES sender:self];
-  [self registerClient:self.client sessionId:request.sessionId sender:self];
+  [self registerClient:self.client sessionId:request.sessionId];
   [request trackWithTokenWithSessionID:request.sessionId trackToken:self.trackToken localOnly:NO approveRemote:YES completion:^(NSError *error) {
     [KBActivity setProgressEnabled:NO sender:self];
     if (error) {
-      [gself showTrackAction:KBTrackActionError username:username error:error];
+      [gself showTrackAction:KBTrackActionErrored username:username error:error];
     } else {
-      [gself showTrackAction:KBTrackActionSuccess username:username error:nil];
+      [gself showTrackAction:KBTrackActionTracked username:username error:nil];
     }
   }];
 }
@@ -277,7 +279,7 @@
     [NSNotificationCenter.defaultCenter postNotificationName:KBTrackingListDidChangeNotification object:nil userInfo:@{@"username": username}];
   });
 
-  if (self.popupWindow) {
+  if (self.popup) {
     [[self window] close];
   }
 }
@@ -287,7 +289,7 @@
   _loading = YES;
   GHWeakSelf gself = self;
   KBRIdentifyRequest *identifyRequest = [[KBRIdentifyRequest alloc] initWithClient:self.client];
-  [self registerClient:self.client sessionId:identifyRequest.sessionId sender:self];
+  [self registerClient:self.client sessionId:identifyRequest.sessionId];
   [identifyRequest identifyDefaultWithSessionID:identifyRequest.sessionId userAssertion:_username completion:^(NSError *error, KBRIdentifyRes *identifyRes) {
     [gself.headerView setProgressEnabled:NO];
     gself.loading = NO;
@@ -304,7 +306,7 @@
   _loading = YES;
   GHWeakSelf gself = self;
   KBRIdentifyRequest *identifyRequest = [[KBRIdentifyRequest alloc] initWithClient:self.client];
-  [self registerClient:self.client sessionId:identifyRequest.sessionId sender:self];
+  [self registerClient:self.client sessionId:identifyRequest.sessionId];
   [identifyRequest identifyDefaultWithSessionID:identifyRequest.sessionId userAssertion:_username completion:^(NSError *error, KBRIdentifyRes *identifyRes) {
     [gself.headerView setProgressEnabled:NO];
     gself.loading = NO;
@@ -369,16 +371,14 @@
   [self.headerView setProgressEnabled:YES];
   KBRTrackRequest *request = [[KBRTrackRequest alloc] initWithClient:self.client];
   GHWeakSelf gself = self;
-  [request untrackWithSessionID:request.sessionId theirName:_username completion:^(NSError *error) {
+  NSString *username = _username;
+  [request untrackWithSessionID:request.sessionId theirName:username completion:^(NSError *error) {
     [self.headerView setProgressEnabled:NO];
     if (error) {
-      [KBActivity setError:error sender:self];
-      return;
+      [gself showTrackAction:KBTrackActionErrored username:username error:error];
+    } else {
+      [gself showTrackAction:KBTrackActionUntracked username:username error:nil];
     }
-
-    dispatch_async(dispatch_get_main_queue(), ^{
-      [NSNotificationCenter.defaultCenter postNotificationName:KBTrackingListDidChangeNotification object:nil userInfo:@{@"username": gself.username}];
-    });
   }];
 }
 

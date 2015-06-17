@@ -22,8 +22,9 @@ typedef NS_ENUM (NSInteger, KBTrackStatus) {
 typedef NS_ENUM (NSInteger, KBTrackAction) {
   KBTrackActionNone,
   KBTrackActionSkipped,
-  KBTrackActionSuccess,
-  KBTrackActionError,
+  KBTrackActionTracked,
+  KBTrackActionUntracked,
+  KBTrackActionErrored,
 };
 
 @interface KBUserTrackStatus : NSObject

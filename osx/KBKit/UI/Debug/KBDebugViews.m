@@ -66,7 +66,12 @@
 
   [contentView addSubview:[KBButton linkWithText:@"Prove" targetBlock:^{ [self showProve:@"twitter"]; }]];
   [contentView addSubview:[KBButton linkWithText:@"Prove Instructions" targetBlock:^{ [self showProveInstructions]; }]];
-  [contentView addSubview:[KBButton linkWithText:@"Track" targetBlock:^{ [self showTrack]; }]];
+
+  [contentView addSubview:[KBBox lineWithInsets:UIEdgeInsetsMake(10, 10, 10, 10)]];
+
+  [contentView addSubview:[KBButton linkWithText:@"Track (alice)" targetBlock:^{ [self showTrack:@"t_alice"]; }]];
+  [contentView addSubview:[KBButton linkWithText:@"Track (charlie)" targetBlock:^{ [self showTrack:@"t_charlie"]; }]];
+  [contentView addSubview:[KBButton linkWithText:@"Track (doug)" targetBlock:^{ [self showTrack:@"t_doug"]; }]];
 
   [contentView addSubview:[KBBox lineWithInsets:UIEdgeInsetsMake(10, 10, 10, 10)]];
 
@@ -151,13 +156,12 @@
   }
 }
 
-- (void)showTrack {
+- (void)showTrack:(NSString *)username {
   KBUserProfileView *userProfileView = [[KBUserProfileView alloc] init];
-  userProfileView.popupWindow = (KBWindow *)[self window];
-  NSWindow *window = [self openInWindow:userProfileView size:CGSizeMake(400, 400) title:@"Keybase"];
-  [window setLevel:NSFloatingWindowLevel];
-
-  [userProfileView setUsername:@"test" client:self.client];
+  userProfileView.popup = YES;
+  userProfileView.fromWindow = (KBWindow *)[self window];
+  [userProfileView setUsername:username client:self.client];
+  [userProfileView openPopupWindow];
 }
 
 - (void)showSelectKey {

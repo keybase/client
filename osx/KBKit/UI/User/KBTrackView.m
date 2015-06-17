@@ -28,39 +28,33 @@
   _label = [[KBLabel alloc] init];
   [self addSubview:_label];
 
+  YOHBox *buttons = [YOHBox box:@{@"spacing": @(10), @"horizontalAlignment": @"center"}];
+  buttons.ignoreLayoutForHidden = YES;
+  [self addSubview:buttons];
+
   GHWeakSelf gself = self;
   _trackButton = [KBButton buttonWithText:@"Track" style:KBButtonStylePrimary];
   _trackButton.targetBlock = ^{ gself.completion(YES); };
-  [self addSubview:_trackButton];
+  [buttons addSubview:_trackButton];
 
-  _untrackButton = [KBButton buttonWithText:@"Remove Tracking" style:KBButtonStyleDefault];
-  [self addSubview:_untrackButton];
+  _untrackButton = [KBButton buttonWithText:@"Remove Tracking" style:KBButtonStyleDanger];
+  [buttons addSubview:_untrackButton];
 
   _cancelButton = [KBButton button];
   _cancelButton.targetBlock = ^{ gself.completion(NO); };
-  [self addSubview:_cancelButton];
+  [buttons addSubview:_cancelButton];
 
   YOSelf yself = self;
   self.viewLayout = [YOLayout layoutWithLayoutBlock:^(id<YOLayout> layout, CGSize size) {
     CGFloat y = 20;
-    y += [layout sizeToFitVerticalInFrame:CGRectMake(40, y, size.width - 80, 0) view:yself.label].size.height + 10;
-
-    if (!yself.trackButton.hidden) {
-      [layout sizeToFitVerticalInFrame:CGRectMake(50, y, 200, 0) view:yself.trackButton];
-    }
-    if (!yself.untrackButton.hidden) {
-      [layout sizeToFitVerticalInFrame:CGRectMake(50, y, 200, 0) view:yself.untrackButton];
-    }
-    if (!yself.cancelButton.hidden) {
-      [layout sizeToFitVerticalInFrame:CGRectMake(270, y, 100, 0) view:yself.cancelButton];
-    }
-
-    y += 60;
-
+    y += [layout sizeToFitVerticalInFrame:CGRectMake(40, y, size.width - 80, 0) view:yself.label].size.height + 20;
+    y += [layout sizeToFitVerticalInFrame:CGRectMake(40, y, size.width - 80, 40) view:buttons].size.height + 20;
     return CGSizeMake(size.width, y);
   }];
 
-  [self clear];
+  _trackButton.hidden = YES;
+  _cancelButton.hidden = YES;
+  _untrackButton.hidden = YES;
 }
 
 - (void)clear {
@@ -69,16 +63,18 @@
   _untrackButton.hidden = YES;
   _trackStatus = nil;
   _completion = nil;
+  [self setNeedsLayout];
 }
 
 - (void)enableTracking:(NSString *)label color:(NSColor *)color update:(BOOL)update {
-  [_label setMarkup:label font:[NSFont systemFontOfSize:14] color:color alignment:NSLeftTextAlignment lineBreakMode:NSLineBreakByWordWrapping];
+  [_label setMarkup:label font:KBAppearance.currentAppearance.textFont color:color alignment:NSCenterTextAlignment lineBreakMode:NSLineBreakByWordWrapping];
   if (update) {
-    [_trackButton setText:@"Yes, Update" style:KBButtonStylePrimary alignment:NSCenterTextAlignment lineBreakMode:NSLineBreakByTruncatingTail];
+    [_trackButton setText:@"Yes, Update" style:KBButtonStylePrimary options:0];
   } else {
-    [_trackButton setText:@"Yes, Track" style:KBButtonStylePrimary alignment:NSCenterTextAlignment lineBreakMode:NSLineBreakByTruncatingTail];
+    [_trackButton setText:@"Yes, Track" style:KBButtonStylePrimary options:0];
   }
   _trackButton.hidden = NO;
+  [self setNeedsLayout];
 }
 
 - (void)setTrackStatus:(KBUserTrackStatus *)trackStatus skipable:(BOOL)skipable completion:(KBTrackCompletion)completion {
@@ -86,7 +82,7 @@
   _trackStatus = trackStatus;
   _completion = completion;
 
-  NSString *cancelText = @"Cancel";
+  NSString *cancelText = @"Close";
   switch (_trackStatus.status) {
     case KBTrackStatusNone: {
       [self enableTracking:NSStringWithFormat(@"<strong>Publicly track \"%@\"?</strong>", _trackStatus.username) color:KBAppearance.currentAppearance.textColor update:NO];
@@ -94,8 +90,9 @@
       break;
     }
     case KBTrackStatusValid: {
-      [_label setMarkup:NSStringWithFormat(@"Your tracking statement of %@ is up to date.", _trackStatus.username) font:[NSFont systemFontOfSize:14] color:[KBAppearance.currentAppearance successColor] alignment:NSLeftTextAlignment lineBreakMode:NSLineBreakByWordWrapping];
+      [_label setMarkup:@"Your tracking statement of is up to date." font:KBAppearance.currentAppearance.textFont color:KBAppearance.currentAppearance.successColor alignment:NSCenterTextAlignment lineBreakMode:NSLineBreakByWordWrapping];
       _untrackButton.hidden = NO;
+      cancelText = @"Close";
       break;
     }
     case KBTrackStatusBroken: {
@@ -110,30 +107,35 @@
       break;
     }
     case KBTrackStatusUntrackable: {
-      [_label setMarkup:@"We found an account, but they haven't proven their identity." font:[NSFont systemFontOfSize:14] color:[KBAppearance.currentAppearance warnColor] alignment:NSLeftTextAlignment lineBreakMode:NSLineBreakByWordWrapping];
-      cancelText = @"OK";
+      [_label setMarkup:@"We found an account but we don't have anything to track, since they haven't proven their identity." font:[NSFont systemFontOfSize:14] color:[KBAppearance.currentAppearance warnColor] alignment:NSCenterTextAlignment lineBreakMode:NSLineBreakByWordWrapping];
+      cancelText = @"Close";
       break;
     }
     case KBTrackStatusFail: {
-      [_label setMarkup:@"Oops, some proofs failed." font:[NSFont systemFontOfSize:14] color:[KBAppearance.currentAppearance warnColor] alignment:NSLeftTextAlignment lineBreakMode:NSLineBreakByWordWrapping];
-      cancelText = @"OK";
+      [_label setMarkup:@"Oops, some proofs failed." font:[NSFont systemFontOfSize:14] color:[KBAppearance.currentAppearance warnColor] alignment:NSCenterTextAlignment lineBreakMode:NSLineBreakByWordWrapping];
+      cancelText = @"Close";
       break;
     }
   }
 
   _cancelButton.hidden = !skipable;
   [_cancelButton setText:cancelText style:KBButtonStyleDefault options:0];
+  [self setNeedsLayout];
 }
 
 - (void)setTrackAction:(KBTrackAction)trackAction error:(NSError *)error {
   switch (trackAction) {
-    case KBTrackActionError: {
+    case KBTrackActionErrored: {
       DDLogError(@"Error tracking: %@", error);
       [_label setMarkup:NSStringWithFormat(@"There was an error tracking %@. (%@)", _trackStatus.username, error.localizedDescription) font:[NSFont systemFontOfSize:14] color:KBAppearance.currentAppearance.dangerColor alignment:NSCenterTextAlignment lineBreakMode:NSLineBreakByWordWrapping];
       break;
     }
-    case KBTrackActionSuccess: {
+    case KBTrackActionTracked: {
       [_label setMarkup:NSStringWithFormat(@"Success! You are now tracking %@.", _trackStatus.username) font:[NSFont systemFontOfSize:14] color:[KBAppearance.currentAppearance successColor] alignment:NSCenterTextAlignment lineBreakMode:NSLineBreakByWordWrapping];
+      break;
+    }
+    case KBTrackActionUntracked: {
+      [_label setMarkup:@"OK, we removed the tracking." font:[NSFont systemFontOfSize:14] color:KBAppearance.currentAppearance.successColor alignment:NSCenterTextAlignment lineBreakMode:NSLineBreakByWordWrapping];
       break;
     }
     case KBTrackActionSkipped: {
