@@ -6,11 +6,22 @@ import (
 	lru "github.com/hashicorp/golang-lru"
 )
 
+type dirtyBlockID struct {
+	id       BlockID
+	refNonce BlockRefNonce
+	branch   BranchName
+}
+
 // BlockCacheStandard implements the BlockCache interface by storing
-// blocks in an in-memomry LRU cache.
+// blocks in an in-memory LRU cache.  Clean blocks are identified
+// internally by just their block ID (since blocks are immutable and
+// content-addressable).  Dirty blocks are identified by their block
+// ID, branch name, and reference nonce, since the same block may be
+// forked and modified on different branches and under different
+// references simulatenously.
 type BlockCacheStandard struct {
 	lru       *lru.Cache
-	dirty     map[BlockID]Block
+	dirty     map[dirtyBlockID]Block
 	dirtyLock sync.RWMutex
 }
 
@@ -21,70 +32,111 @@ func NewBlockCacheStandard(capacity int) *BlockCacheStandard {
 	if err != nil {
 		return nil
 	}
-	return &BlockCacheStandard{tmp, make(map[BlockID]Block), sync.RWMutex{}}
+	return &BlockCacheStandard{
+		lru:       tmp,
+		dirty:     make(map[dirtyBlockID]Block),
+		dirtyLock: sync.RWMutex{},
+	}
 }
 
 // Get implements the BlockCache interface for BlockCacheStandard.
-func (b *BlockCacheStandard) Get(id BlockID) (Block, error) {
+func (b *BlockCacheStandard) Get(ptr BlockPointer, branch BranchName) (
+	Block, error) {
+	dirtyID := dirtyBlockID{
+		id:       ptr.ID,
+		refNonce: ptr.RefNonce,
+		branch:   branch,
+	}
+
 	b.dirtyLock.RLock()
 	defer b.dirtyLock.RUnlock()
 
-	if block, ok := b.dirty[id]; ok {
+	if block, ok := b.dirty[dirtyID]; ok {
 		return block, nil
 	}
-	if tmp, ok := b.lru.Get(id); ok {
+	if tmp, ok := b.lru.Get(ptr.ID); ok {
 		block, ok := tmp.(Block)
 		if !ok {
-			return nil, &BadDataError{id}
+			return nil, &BadDataError{ptr.ID}
 		}
 		return block, nil
 	}
-	return nil, &NoSuchBlockError{id}
+	return nil, &NoSuchBlockError{ptr.ID}
 }
 
 // Put implements the BlockCache interface for BlockCacheStandard.
-func (b *BlockCacheStandard) Put(id BlockID, block Block, dirty bool) error {
-	if dirty {
-		b.dirtyLock.Lock()
-		defer b.dirtyLock.Unlock()
-		b.dirty[id] = block
-	} else {
-		b.lru.Add(id, block)
-	}
+func (b *BlockCacheStandard) Put(id BlockID, block Block) error {
+	b.lru.Add(id, block)
 	return nil
 }
 
-func (b *BlockCacheStandard) deleteLocked(id BlockID) error {
-	delete(b.dirty, id)
-	b.lru.Remove(id)
+// PutDirty implements the BlockCache interface for BlockCacheStandard.
+func (b *BlockCacheStandard) PutDirty(ptr BlockPointer,
+	branch BranchName, block Block) error {
+	dirtyID := dirtyBlockID{
+		id:       ptr.ID,
+		refNonce: ptr.RefNonce,
+		branch:   branch,
+	}
+
+	b.dirtyLock.Lock()
+	defer b.dirtyLock.Unlock()
+	b.dirty[dirtyID] = block
 	return nil
 }
 
 // Delete implements the BlockCache interface for BlockCacheStandard.
 func (b *BlockCacheStandard) Delete(id BlockID) error {
+	b.lru.Remove(id)
+	return nil
+}
+
+// DeleteDirty implements the BlockCache interface for BlockCacheStandard.
+func (b *BlockCacheStandard) DeleteDirty(
+	ptr BlockPointer, branch BranchName) error {
+	dirtyID := dirtyBlockID{
+		id:       ptr.ID,
+		refNonce: ptr.RefNonce,
+		branch:   branch,
+	}
+
 	b.dirtyLock.Lock()
 	defer b.dirtyLock.Unlock()
-	return b.deleteLocked(id)
+	delete(b.dirty, dirtyID)
+	return nil
 }
 
 // Finalize implements the BlockCache interface for BlockCacheStandard.
-func (b *BlockCacheStandard) Finalize(oldID BlockID, newID BlockID) error {
+func (b *BlockCacheStandard) Finalize(
+	oldPtr BlockPointer, branch BranchName, newID BlockID) error {
+	dirtyID := dirtyBlockID{
+		id:       oldPtr.ID,
+		refNonce: oldPtr.RefNonce,
+		branch:   branch,
+	}
+
 	b.dirtyLock.Lock()
 	defer b.dirtyLock.Unlock()
 
-	if block, ok := b.dirty[oldID]; ok {
-		b.deleteLocked(oldID)
-		b.Put(newID, block, false)
+	if block, ok := b.dirty[dirtyID]; ok {
+		delete(b.dirty, dirtyID)
+		b.Put(newID, block)
 		return nil
 	}
-	return &FinalizeError{oldID}
+	return &FinalizeError{oldPtr.ID}
 }
 
 // IsDirty implements the BlockCache interface for BlockCacheStandard.
-func (b *BlockCacheStandard) IsDirty(id BlockID) (isDirty bool) {
+func (b *BlockCacheStandard) IsDirty(
+	ptr BlockPointer, branch BranchName) (isDirty bool) {
+	dirtyID := dirtyBlockID{
+		id:       ptr.ID,
+		refNonce: ptr.RefNonce,
+		branch:   branch,
+	}
+
 	b.dirtyLock.RLock()
 	defer b.dirtyLock.RUnlock()
-
-	_, isDirty = b.dirty[id]
+	_, isDirty = b.dirty[dirtyID]
 	return
 }

@@ -19,6 +19,8 @@ type BlockContext interface {
 	// block (i.e., how much the writer will be charged for this
 	// block).
 	GetQuotaSize() uint32
+	// GetRefNonce returns the unique reference nonce for this block
+	GetRefNonce() BlockRefNonce
 }
 
 // KBFSOps handles all file system operations.  Expands all indirect
@@ -250,21 +252,27 @@ type KeyCache interface {
 type BlockCache interface {
 	// Get gets the block associated with the given block ID.  Returns
 	// the dirty block for the given ID, if one exists.
-	Get(id BlockID) (Block, error)
-	// Put stores the block associated with the given block ID, and
-	// marks it as dirty if it has outstanding changes beyond the
-	// "official" version of the block with that ID.
-	Put(id BlockID, block Block, dirty bool) error
-	// Delete removes the block associated with the given block ID
-	// from the cache.  No error is returned if no block exists
-	// for the given ID.
+	Get(ptr BlockPointer, branch BranchName) (Block, error)
+	// Put stores the final (content-addressable) block associated
+	// with the given block ID.
+	Put(id BlockID, block Block) error
+	// PutDirty stores a dirty block currently identified by the given
+	// block pointer and branch name.
+	PutDirty(ptr BlockPointer, branch BranchName, block Block) error
+	// Delete removes the (non-dirty) block associated with the given
+	// block ID from the cache.  No error is returned if no block
+	// exists for the given ID.
 	Delete(id BlockID) error
+	// DeleteDirty removes the dirty block associated with the given
+	// block pointer and branch from the cache.  No error is returned
+	// if no block exists for the given ID.
+	DeleteDirty(ptr BlockPointer, branch BranchName) error
 	// Finalize transitions a dirty block, stored under the block's
-	// old block ID, to a new block with the new ID.
-	Finalize(oldID BlockID, newID BlockID) error
-	// IsDirty states whether or not the given block ID is dirty in
-	// this cache.
-	IsDirty(id BlockID) bool
+	// old block pointer, to a new block with the new, final ID.
+	Finalize(oldPtr BlockPointer, branch BranchName, newID BlockID) error
+	// IsDirty states whether or not the block associated with the
+	// given block pointer and branch name is dirty in this cache.
+	IsDirty(ptr BlockPointer, branch BranchName) bool
 }
 
 // Crypto signs, verifies, encrypts, and decrypts stuff.
@@ -276,6 +284,11 @@ type Crypto interface {
 	// CSPRNG. This is used for indirect blocks before they're
 	// committed to the server.
 	MakeTemporaryBlockID() (BlockID, error)
+
+	// MakeRefNonce generates a block reference nonce using a
+	// CSPRNG. This is used for distinguishing different references to
+	// the same BlockID.
+	MakeBlockRefNonce() (BlockRefNonce, error)
 
 	// MakeRandomTLFKeys generates top-level folder keys using a CSPRNG.
 	MakeRandomTLFKeys() (TLFPublicKey, TLFPrivateKey, TLFEphemeralPublicKey,
@@ -416,7 +429,7 @@ type BlockOps interface {
 		id BlockID, plainSize int, buf []byte, err error)
 	// Put stores the (encrypted) block data under the given ID and
 	// context on the server, along with the server half of the block key.
-	Put(id BlockID, context BlockContext, buf []byte,
+	Put(id BlockID, tlfID DirID, context BlockContext, buf []byte,
 		serverHalf BlockCryptKeyServerHalf) error
 	// Delete instructs the server to delete the block data associated
 	// with the given ID and context.
@@ -474,7 +487,7 @@ type BlockServer interface {
 	// Put stores the (encrypted) block data under the given ID and
 	// context on the server, along with the server half of the block
 	// key.
-	Put(id BlockID, context BlockContext, buf []byte,
+	Put(id BlockID, tlfID DirID, context BlockContext, buf []byte,
 		serverHalf BlockCryptKeyServerHalf) error
 	// Delete instructs the server to delete the block data
 	// associated with the given ID. No error is returned if no
