@@ -16,8 +16,8 @@ import (
 type ClientConfig struct {
 	Host       string
 	Port       int
-	UseTls     bool
-	Url        *url.URL
+	UseTLS     bool // XXX unused?
+	URL        *url.URL
 	RootCAs    *x509.CertPool
 	Prefix     string
 	UseCookies bool
@@ -79,7 +79,7 @@ func (e *Env) GenClientConfig() (*ClientConfig, error) {
 	if err != nil {
 		return nil, err
 	}
-	useTls := (url.Scheme == "https")
+	useTLS := (url.Scheme == "https")
 	host, port, e2 := SplitHost(url.Host)
 	if e2 != nil {
 		return nil, e2
@@ -100,7 +100,7 @@ func (e *Env) GenClientConfig() (*ClientConfig, error) {
 		return nil, err
 	}
 
-	ret := &ClientConfig{host, port, useTls, url, rootCAs, url.Path, true, HTTP_DEFAULT_TIMEOUT}
+	ret := &ClientConfig{host, port, useTLS, url, rootCAs, url.Path, true, HTTP_DEFAULT_TIMEOUT}
 	return ret, nil
 }
 

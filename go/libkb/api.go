@@ -209,7 +209,7 @@ func (arg ApiArg) getHTTPArgs() url.Values {
 // InternalApiEngine
 
 func (a *InternalAPIEngine) getURL(arg ApiArg) url.URL {
-	u := *a.config.Url
+	u := *a.config.URL
 	var path string
 	if len(a.config.Prefix) > 0 {
 		path = a.config.Prefix

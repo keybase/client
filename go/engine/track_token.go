@@ -175,7 +175,7 @@ func (e *TrackToken) storeRemoteTrack(ctx *Context) (err error) {
 		return err
 	}
 
-	linkid := libkb.ComputeLinkId(e.trackStatementBytes)
+	linkid := libkb.ComputeLinkID(e.trackStatementBytes)
 	e.arg.Me.SigChainBump(linkid, sigid)
 
 	return err

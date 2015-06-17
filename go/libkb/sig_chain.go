@@ -214,7 +214,7 @@ func (sc *SigChain) VerifyChain() (err error) {
 		} else if curr.GetSeqno() != 1 {
 			return ChainLinkWrongSeqnoError{fmt.Errorf("First seqno must be 1, not %d", curr.GetSeqno())}
 		}
-		if err = curr.CheckNameAndId(sc.username, sc.uid); err != nil {
+		if err = curr.CheckNameAndID(sc.username, sc.uid); err != nil {
 			return
 		}
 		curr.chainVerified = true

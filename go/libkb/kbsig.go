@@ -310,7 +310,7 @@ func SignJson(jw *jsonw.Wrapper, key GenericKey) (out string, id keybase1.SigID,
 		return
 	}
 	out, id, err = key.SignToString(tmp)
-	lid = ComputeLinkId(tmp)
+	lid = ComputeLinkID(tmp)
 	return
 }
 

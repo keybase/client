@@ -24,7 +24,7 @@ func GetLinkID(w *jsonw.Wrapper) (LinkID, error) {
 	if err != nil {
 		return nil, err
 	}
-	ret, err := LinkIdFromHex(s)
+	ret, err := LinkIDFromHex(s)
 	return ret, err
 }
 
@@ -38,7 +38,7 @@ func GetLinkIDVoid(w *jsonw.Wrapper, l *LinkID, e *error) {
 }
 
 func (l *LinkID) UnmarshalJSON(b []byte) error {
-	lid, err := LinkIdFromHex(keybase1.Unquote(b))
+	lid, err := LinkIDFromHex(keybase1.Unquote(b))
 	if err != nil {
 		return err
 	}
@@ -50,7 +50,7 @@ func (l *LinkID) MarshalJSON() ([]byte, error) {
 	return keybase1.Quote(l.String()), nil
 }
 
-func LinkIdFromHex(s string) (LinkID, error) {
+func LinkIDFromHex(s string) (LinkID, error) {
 	bv, err := hex.DecodeString(s)
 	if err == nil && len(bv) != LINK_ID_LEN {
 		err = fmt.Errorf("Bad link ID; wrong length: %d", len(bv))
@@ -80,7 +80,7 @@ func (l LinkID) Eq(i2 LinkID) bool {
 type ChainLinkUnpacked struct {
 	prev           LinkID
 	seqno          Seqno
-	payloadJsonStr string
+	payloadJSONStr string
 	ctime, etime   int64
 	pgpFingerprint *PgpFingerprint
 	kid            KID
@@ -106,7 +106,7 @@ type ChainLink struct {
 	dirty           bool
 
 	packed      *jsonw.Wrapper
-	payloadJson *jsonw.Wrapper
+	payloadJSON *jsonw.Wrapper
 	unpacked    *ChainLinkUnpacked
 	cki         *ComputedKeyInfos
 
@@ -140,15 +140,15 @@ func (c *ChainLink) GetUID() keybase1.UID {
 	return c.unpacked.uid
 }
 
-func (c *ChainLink) GetPayloadJson() *jsonw.Wrapper {
-	return c.payloadJson
+func (c *ChainLink) GetPayloadJSON() *jsonw.Wrapper {
+	return c.payloadJSON
 }
 
 func (c *ChainLink) Pack() error {
 	p := jsonw.NewDictionary()
 
 	// Store the original JSON string so its order is preserved
-	p.SetKey("payload_json", jsonw.NewString(c.unpacked.payloadJsonStr))
+	p.SetKey("payload_json", jsonw.NewString(c.unpacked.payloadJSONStr))
 	p.SetKey("sig", jsonw.NewString(c.unpacked.sig))
 	p.SetKey("sig_id", jsonw.NewString(string(c.unpacked.sigID)))
 	p.SetKey("kid", jsonw.NewString(c.unpacked.kid.String()))
@@ -169,7 +169,7 @@ func (c *ChainLink) Pack() error {
 }
 
 func (c *ChainLink) GetMerkleSeqno() int {
-	i, err := c.payloadJson.AtPath("body.merkle_root.seqno").GetInt()
+	i, err := c.payloadJSON.AtPath("body.merkle_root.seqno").GetInt()
 	if err != nil {
 		i = 0
 	}
@@ -178,7 +178,7 @@ func (c *ChainLink) GetMerkleSeqno() int {
 
 func (c *ChainLink) GetRevocations() []keybase1.SigID {
 	var ret []keybase1.SigID
-	jw := c.payloadJson.AtKey("body").AtKey("revoke")
+	jw := c.payloadJSON.AtKey("body").AtKey("revoke")
 	s, err := GetSigID(jw.AtKey("sig_id"), true)
 	if err == nil {
 		ret = append(ret, s)
@@ -198,7 +198,7 @@ func (c *ChainLink) GetRevocations() []keybase1.SigID {
 
 func (c *ChainLink) GetRevokeKids() []KID {
 	var ret []KID
-	jw := c.payloadJson.AtKey("body").AtKey("revoke")
+	jw := c.payloadJSON.AtKey("body").AtKey("revoke")
 	if jw.IsNil() {
 		return nil
 	}
@@ -233,35 +233,35 @@ func (c *ChainLink) checkAgainstMerkleTree(t *MerkleTriple) (found bool, err err
 	return
 }
 
-func (c *ChainLink) UnpackPayloadJson(tmp *ChainLinkUnpacked) (err error) {
+func (c *ChainLink) UnpackPayloadJSON(tmp *ChainLinkUnpacked) (err error) {
 	var sq int64
 	var e2 error
 
-	if jw := c.payloadJson.AtPath("body.key.fingerprint"); !jw.IsNil() {
+	if jw := c.payloadJSON.AtPath("body.key.fingerprint"); !jw.IsNil() {
 		if tmp.pgpFingerprint, e2 = GetPgpFingerprint(jw); e2 != nil {
 			err = e2
 		}
 	}
-	if jw := c.payloadJson.AtPath("body.key.kid"); !jw.IsNil() {
+	if jw := c.payloadJSON.AtPath("body.key.kid"); !jw.IsNil() {
 		if tmp.kid, e2 = GetKID(jw); e2 != nil {
 			err = e2
 		}
 	}
-	if jw := c.payloadJson.AtPath("body.key.eldest_kid"); !jw.IsNil() {
+	if jw := c.payloadJSON.AtPath("body.key.eldest_kid"); !jw.IsNil() {
 		if tmp.eldestKid, e2 = GetKID(jw); e2 != nil {
 			err = e2
 		}
 	}
-	c.payloadJson.AtPath("body.key.username").GetStringVoid(&tmp.username, &err)
-	GetUIDVoid(c.payloadJson.AtPath("body.key.uid"), &tmp.uid, &err)
-	GetLinkIDVoid(c.payloadJson.AtKey("prev"), &tmp.prev, &err)
-	c.payloadJson.AtPath("body.type").GetStringVoid(&tmp.typ, &err)
-	c.payloadJson.AtKey("ctime").GetInt64Void(&tmp.ctime, &err)
+	c.payloadJSON.AtPath("body.key.username").GetStringVoid(&tmp.username, &err)
+	GetUIDVoid(c.payloadJSON.AtPath("body.key.uid"), &tmp.uid, &err)
+	GetLinkIDVoid(c.payloadJSON.AtKey("prev"), &tmp.prev, &err)
+	c.payloadJSON.AtPath("body.type").GetStringVoid(&tmp.typ, &err)
+	c.payloadJSON.AtKey("ctime").GetInt64Void(&tmp.ctime, &err)
 
-	c.payloadJson.AtKey("seqno").GetInt64Void(&sq, &err)
+	c.payloadJSON.AtKey("seqno").GetInt64Void(&sq, &err)
 
 	var ei int64
-	c.payloadJson.AtKey("expire_in").GetInt64Void(&ei, &err)
+	c.payloadJSON.AtKey("expire_in").GetInt64Void(&ei, &err)
 
 	if err != nil {
 		return
@@ -275,7 +275,7 @@ func (c *ChainLink) UnpackPayloadJson(tmp *ChainLinkUnpacked) (err error) {
 
 func (c *ChainLink) UnpackLocal() (err error) {
 	tmp := ChainLinkUnpacked{}
-	err = c.UnpackPayloadJson(&tmp)
+	err = c.UnpackPayloadJSON(&tmp)
 	if err == nil {
 		c.unpacked = &tmp
 	}
@@ -298,18 +298,18 @@ func (c *ChainLink) Unpack(trusted bool, selfUID keybase1.UID) (err error) {
 
 	c.packed.AtKey("sig").GetStringVoid(&tmp.sig, &err)
 	tmp.sigID, err = GetSigID(c.packed.AtKey("sig_id"), true)
-	c.packed.AtKey("payload_json").GetStringVoid(&tmp.payloadJsonStr, &err)
+	c.packed.AtKey("payload_json").GetStringVoid(&tmp.payloadJSONStr, &err)
 
 	if err != nil {
 		return err
 	}
 
-	c.payloadJson, err = jsonw.Unmarshal([]byte(tmp.payloadJsonStr))
+	c.payloadJSON, err = jsonw.Unmarshal([]byte(tmp.payloadJSONStr))
 	if err != nil {
 		return err
 	}
 
-	err = c.UnpackPayloadJson(&tmp)
+	err = c.UnpackPayloadJSON(&tmp)
 	if err != nil {
 		return err
 	}
@@ -349,7 +349,7 @@ func (c *ChainLink) Unpack(trusted bool, selfUID keybase1.UID) (err error) {
 	return err
 }
 
-func (c *ChainLink) CheckNameAndId(s string, i keybase1.UID) error {
+func (c *ChainLink) CheckNameAndID(s string, i keybase1.UID) error {
 	if c.unpacked.uid.NotEqual(i) {
 		return UidMismatchError{
 			fmt.Sprintf("UID mismatch %s != %s in Link %s", c.unpacked.uid, i, c.id),
@@ -365,7 +365,7 @@ func (c *ChainLink) CheckNameAndId(s string, i keybase1.UID) error {
 
 }
 
-func ComputeLinkId(d []byte) LinkID {
+func ComputeLinkID(d []byte) LinkID {
 	h := sha256.Sum256(d)
 	return LinkID(h[:])
 }
@@ -375,7 +375,7 @@ func (c *ChainLink) VerifyHash() error {
 		return nil
 	}
 
-	h := sha256.Sum256([]byte(c.unpacked.payloadJsonStr))
+	h := sha256.Sum256([]byte(c.unpacked.payloadJSONStr))
 	if !FastByteArrayEq(h[:], c.id) {
 		return fmt.Errorf("hash mismatch")
 	}
@@ -388,7 +388,7 @@ func (c *ChainLink) VerifyPayload() error {
 		return nil
 	}
 
-	sigid, err := SigAssertPayload(c.unpacked.sig, []byte(c.unpacked.payloadJsonStr))
+	sigid, err := SigAssertPayload(c.unpacked.sig, []byte(c.unpacked.payloadJSONStr))
 	if err != nil {
 		return err
 	}
@@ -445,7 +445,7 @@ func (c *ChainLink) VerifySigWithKeyFamily(ckf ComputedKeyFamily) (cached bool, 
 		return
 	}
 
-	if sigID, err = key.VerifyString(c.unpacked.sig, []byte(c.unpacked.payloadJsonStr)); err != nil {
+	if sigID, err = key.VerifyString(c.unpacked.sig, []byte(c.unpacked.payloadJSONStr)); err != nil {
 		return cached, BadSigError{err.Error()}
 	}
 	c.unpacked.sigID = sigID
@@ -467,7 +467,7 @@ func (c *ChainLink) VerifySig(k PgpKeyBundle) (bool, error) {
 		return false, fmt.Errorf("Key fingerprint mismatch")
 	}
 
-	sigID, err := k.VerifyString(c.unpacked.sig, []byte(c.unpacked.payloadJsonStr))
+	sigID, err := k.VerifyString(c.unpacked.sig, []byte(c.unpacked.payloadJSONStr))
 	if err != nil {
 		return false, err
 	}
@@ -640,10 +640,6 @@ func (c *ChainLink) GetFOKID() FOKID {
 
 func (c *ChainLink) MatchFingerprint(fp PgpFingerprint) bool {
 	return c.unpacked.pgpFingerprint != nil && fp.Eq(*c.unpacked.pgpFingerprint)
-}
-
-func (c *ChainLink) MatchUidAndUsername(uid keybase1.UID, username string) bool {
-	return uid.Equal(c.unpacked.uid) && username == c.unpacked.username
 }
 
 // ToLinkSummary converts a ChainLink into a MerkleTriple object.
