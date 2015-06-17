@@ -211,6 +211,8 @@ func (sc *SigChain) VerifyChain() (err error) {
 			if prev.GetSeqno()+1 != curr.GetSeqno() {
 				return ChainLinkWrongSeqnoError{fmt.Errorf("Chain seqno mismatch at seqno=%d (previous=%d)", curr.GetSeqno(), prev.GetSeqno())}
 			}
+		} else if curr.GetSeqno() != 1 {
+			return ChainLinkWrongSeqnoError{fmt.Errorf("First seqno must be 1, not %d", curr.GetSeqno())}
 		}
 		if err = curr.CheckNameAndId(sc.username, sc.uid); err != nil {
 			return
@@ -291,7 +293,7 @@ func (sc *SigChain) Store() (err error) {
 
 // LimitToEldestFOKID takes the given sigchain and walks backward,
 // stopping once it scrolls of the current FOKID.
-func (sc *SigChain) LimitToEldestFOKID(fokid FOKID) (links []*ChainLink) {
+func (sc *SigChain) LimitToEldestFOKID(fokid FOKID) (links []*ChainLink, err error) {
 	if sc.chainLinks == nil {
 		return
 	}
@@ -304,6 +306,15 @@ func (sc *SigChain) LimitToEldestFOKID(fokid FOKID) (links []*ChainLink) {
 			break
 		}
 	}
+
+	// The eldest FOKID *must* refer to the latest subchain. Make sure there
+	// are no earlier matching subchains.
+	for i := lastGood - 1; i >= 0; i-- {
+		if sc.chainLinks[i].MatchEldestFOKID(fokid) {
+			return nil, NotLatestSubchainError{"The eldest key's subchain must always be at the end."}
+		}
+	}
+
 	if lastGood == 0 {
 		links = sc.chainLinks
 	} else {
@@ -432,7 +443,10 @@ func (sc *SigChain) VerifySigsAndComputeKeys(eldest *KID, ckf *ComputedKeyFamily
 		return
 	}
 	eldestFOKID := ckf.kf.KIDToFOKID(*eldest)
-	links := sc.LimitToEldestFOKID(eldestFOKID)
+	links, err := sc.LimitToEldestFOKID(eldestFOKID)
+	if err != nil {
+		return
+	}
 
 	if links == nil || len(links) == 0 {
 		G.Log.Debug("| Empty chain after we limited to eldest %s", eldest.String())

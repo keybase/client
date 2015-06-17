@@ -956,7 +956,7 @@ func NewTypedChainLink(cl *ChainLink) (ret TypedChainLink, w Warning) {
 	return
 }
 
-func NewIdentityTable(eldest FOKID, sc *SigChain, h *SigHints) *IdentityTable {
+func NewIdentityTable(eldest FOKID, sc *SigChain, h *SigHints) (*IdentityTable, error) {
 	ret := &IdentityTable{
 		sigChain:         sc,
 		revocations:      make(map[keybase1.SigID]bool),
@@ -966,13 +966,17 @@ func NewIdentityTable(eldest FOKID, sc *SigChain, h *SigHints) *IdentityTable {
 		sigHints:         h,
 		eldest:           eldest,
 	}
-	ret.populate()
-	return ret
+	err := ret.populate()
+	return ret, err
 }
 
-func (idt *IdentityTable) populate() {
+func (idt *IdentityTable) populate() error {
 	G.Log.Debug("+ Populate ID Table")
-	for _, link := range idt.sigChain.LimitToEldestFOKID(idt.eldest) {
+	links, err := idt.sigChain.LimitToEldestFOKID(idt.eldest)
+	if err != nil {
+		return err
+	}
+	for _, link := range links {
 		tl, w := NewTypedChainLink(link)
 		tl.insertIntoTable(idt)
 		if w != nil {
@@ -980,6 +984,7 @@ func (idt *IdentityTable) populate() {
 		}
 	}
 	G.Log.Debug("- Populate ID Table")
+	return nil
 }
 
 func (idt *IdentityTable) insertRemoteProof(link RemoteProofChainLink) {

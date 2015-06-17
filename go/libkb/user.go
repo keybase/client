@@ -347,14 +347,17 @@ func (u *User) sigChain() *SigChain {
 	return u.sigChainMem
 }
 
-func (u *User) MakeIDTable() (err error) {
+func (u *User) MakeIDTable() error {
 	if fokid := u.GetEldestFOKID(); fokid == nil {
-		err = NoKeyError{"Expected a key but didn't find one"}
+		return NoKeyError{"Expected a key but didn't find one"}
 	} else {
-		idt := NewIdentityTable(*fokid, u.sigChain(), u.sigHints)
+		idt, err := NewIdentityTable(*fokid, u.sigChain(), u.sigHints)
+		if err != nil {
+			return err
+		}
 		u.idTable = idt
 	}
-	return
+	return nil
 }
 
 func (u *User) VerifySelfSig() error {

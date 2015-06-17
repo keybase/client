@@ -965,3 +965,13 @@ type IdentifyTimeoutError struct{}
 func (e IdentifyTimeoutError) Error() string {
 	return "Identification expired."
 }
+
+//=============================================================================
+
+type NotLatestSubchainError struct {
+	Msg string
+}
+
+func (e NotLatestSubchainError) Error() string {
+	return e.Msg
+}

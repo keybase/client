@@ -40,6 +40,9 @@ func getErrorTypesMap() map[string]map[reflect.Type]bool {
 		"NONEXISTENT_KID": map[reflect.Type]bool{
 			reflect.TypeOf(KeyFamilyError{}): true,
 		},
+		"NOT_LATEST_SUBCHAIN": map[reflect.Type]bool{
+			reflect.TypeOf(NotLatestSubchainError{}): true,
+		},
 		"REVERSE_SIG_VERIFY_FAILED": map[reflect.Type]bool{
 			reflect.TypeOf(ReverseSigError{}): true,
 		},
@@ -170,7 +173,10 @@ func doChainTest(t *testing.T, testCase TestCase) {
 	// Run the actual sigchain verification. This is most of the code that's
 	// actually being tested.
 	ckf := ComputedKeyFamily{kf: keyFamily}
-	_, sigchainErr := sigchain.VerifySigsAndComputeKeys(&eldestKID, &ckf)
+	sigchainErr := sigchain.VerifyChain()
+	if sigchainErr == nil {
+		_, sigchainErr = sigchain.VerifySigsAndComputeKeys(&eldestKID, &ckf)
+	}
 
 	// Some tests expect an error. If we get one, make sure it's the right
 	// type.
@@ -208,7 +214,10 @@ func doChainTest(t *testing.T, testCase TestCase) {
 
 	// Check the expected results: total unrevoked links, sibkeys, and subkeys.
 	unrevokedCount := 0
-	idtable := NewIdentityTable(FOKID{Kid: eldestKID}, &sigchain, nil)
+	idtable, err := NewIdentityTable(FOKID{Kid: eldestKID}, &sigchain, nil)
+	if err != nil {
+		t.Fatal(err)
+	}
 	for _, link := range idtable.links {
 		if !link.IsRevoked() {
 			unrevokedCount++
