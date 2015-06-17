@@ -101,6 +101,8 @@
 		009E13711B27B39300C72B28 /* ActionViewController.xib in Resources */ = {isa = PBXBuildFile; fileRef = 009E13701B27B39300C72B28 /* ActionViewController.xib */; };
 		009E137D1B28A91F00C72B28 /* AppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = 009E137C1B28A91F00C72B28 /* AppDelegate.m */; };
 		009E167D1B28AF6800C72B28 /* MainMenu.xib in Resources */ = {isa = PBXBuildFile; fileRef = 00CC43551A3A9E6C006118A9 /* MainMenu.xib */; };
+		00B81D681B32148F009872E4 /* KBUserTrackStatus.h in Headers */ = {isa = PBXBuildFile; fileRef = 00B81D661B32148F009872E4 /* KBUserTrackStatus.h */; };
+		00B81D691B32148F009872E4 /* KBUserTrackStatus.m in Sources */ = {isa = PBXBuildFile; fileRef = 00B81D671B32148F009872E4 /* KBUserTrackStatus.m */; };
 		00C0DC551B28EC3F00A825D4 /* KBDefines.h in Headers */ = {isa = PBXBuildFile; fileRef = 00C0DC251B28E91300A825D4 /* KBDefines.h */; };
 		00C0DC561B28EC3F00A825D4 /* KBDefines.m in Sources */ = {isa = PBXBuildFile; fileRef = 00C0DC261B28E91300A825D4 /* KBDefines.m */; };
 		00C0DC5D1B28EC3F00A825D4 /* KBWorkspace.h in Headers */ = {isa = PBXBuildFile; fileRef = 009E13871B28A93D00C72B28 /* KBWorkspace.h */; settings = {ATTRIBUTES = (Public, ); }; };
@@ -852,6 +854,8 @@
 		009E16541B28AD6900C72B28 /* KBPrivilegedTask.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBPrivilegedTask.m; sourceTree = "<group>"; };
 		00AA750F1B27635D0069A6CC /* Tests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = Tests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		00AA75121B27635D0069A6CC /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		00B81D661B32148F009872E4 /* KBUserTrackStatus.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBUserTrackStatus.h; sourceTree = "<group>"; };
+		00B81D671B32148F009872E4 /* KBUserTrackStatus.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBUserTrackStatus.m; sourceTree = "<group>"; };
 		00C0DC251B28E91300A825D4 /* KBDefines.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBDefines.h; sourceTree = "<group>"; };
 		00C0DC261B28E91300A825D4 /* KBDefines.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBDefines.m; sourceTree = "<group>"; };
 		00C0DC361B28EC1800A825D4 /* KBKit.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = KBKit.framework; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -1131,6 +1135,7 @@
 				009E13881B28A93D00C72B28 /* KBWorkspace.m */,
 				0043D1061B28EF670036C532 /* App */,
 				000E07831B30AFC800FEE4C6 /* KBFS */,
+				00B81D651B32147F009872E4 /* Track */,
 				0043D1191B28F1370036C532 /* Preferences */,
 				009E13891B28A93D00C72B28 /* RPC */,
 				001A83571B28DB7B006E61E9 /* IO */,
@@ -1552,6 +1557,15 @@
 			name = "Supporting Files";
 			sourceTree = "<group>";
 		};
+		00B81D651B32147F009872E4 /* Track */ = {
+			isa = PBXGroup;
+			children = (
+				00B81D661B32148F009872E4 /* KBUserTrackStatus.h */,
+				00B81D671B32148F009872E4 /* KBUserTrackStatus.m */,
+			);
+			path = Track;
+			sourceTree = "<group>";
+		};
 		00C0DC381B28EC1900A825D4 /* Supporting Files */ = {
 			isa = PBXGroup;
 			children = (
@@ -1778,6 +1792,7 @@
 				00C0DD591B28EC8B00A825D4 /* KBStyleGuideView.h in Headers */,
 				00C0DCB51B28EC6600A825D4 /* KBUserInfoLabels.h in Headers */,
 				00C0DC8D1B28EC5A00A825D4 /* KBCLIInstall.h in Headers */,
+				00B81D681B32148F009872E4 /* KBUserTrackStatus.h in Headers */,
 				00C0DC811B28EC5000A825D4 /* KBWork.h in Headers */,
 				0046253C1B2A5B6100E218AC /* KBComposeTextView.h in Headers */,
 				00C0DD1F1B28EC7E00A825D4 /* KBKeyImportView.h in Headers */,
@@ -2381,6 +2396,7 @@
 				000E07821B30AE8500FEE4C6 /* KBServiceStatus.m in Sources */,
 				00C0DCE21B28EC7800A825D4 /* KBPGPDecrypt.m in Sources */,
 				00C0DC901B28EC5A00A825D4 /* KBComponent.m in Sources */,
+				00B81D691B32148F009872E4 /* KBUserTrackStatus.m in Sources */,
 				004625351B2A5A8B00E218AC /* KBTrackView.m in Sources */,
 				008E047D1B28ECFF000F15AA /* KBContentView.m in Sources */,
 				0043D1411B28F1370036C532 /* KBPrefTextField.m in Sources */,

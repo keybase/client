@@ -256,7 +256,7 @@
     NSString *username = [obj username];
     KBUserProfileView *trackView = [[KBUserProfileView alloc] init];
     [trackView setUsername:username client:self.client];
-    [trackView openPopup:self];
+    [trackView openPopupWindow:(KBWindow *)[self window]];
   }
 }
 

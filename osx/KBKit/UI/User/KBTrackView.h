@@ -11,16 +11,18 @@
 #import <KBAppKit/KBAppKit.h>
 #import "KBRPC.h"
 
-typedef void (^KBTrackResponseBlock)(NSString *username);
+#import "KBUserTrackStatus.h"
+
+typedef void (^KBTrackCompletion)(BOOL track); // track is NO if skipped
 
 @interface KBTrackView : YOView
 
 @property (readonly) KBButton *untrackButton;
 
+- (void)setTrackStatus:(KBUserTrackStatus *)trackStatus skipable:(BOOL)skipable completion:(KBTrackCompletion)completion;
+
+- (void)setTrackAction:(KBTrackAction)trackAction error:(NSError *)error;
+
 - (void)clear;
-
-- (BOOL)setUsername:(NSString *)username popup:(BOOL)popup identifyOutcome:(KBRIdentifyOutcome *)identifyOutcome trackResponse:(KBTrackResponseBlock)trackResponse;
-
-- (BOOL)setTrackCompleted:(NSError *)error;
 
 @end

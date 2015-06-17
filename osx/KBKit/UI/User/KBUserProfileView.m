@@ -73,7 +73,7 @@
 }
 
 - (void)updateWindow {
-  if (!_popup) return;
+  if (!self.popupWindow) return;
 
   // If we are in a popup lets adjust our window so all the content is visible
   [self layoutView];
@@ -103,11 +103,10 @@
   }];
 }
 
-- (void)openPopup:(id)sender {
-  //NSAssert(self.popup, @"No configured as a popup");
-  NSAssert(!self.window, @"Already in window");
+- (void)openPopupWindow:(KBWindow *)parentWindow {
+  NSAssert(parentWindow, @"No parent window");
   [self removeFromSuperview];
-  [[sender window] kb_addChildWindowForView:self rect:CGRectMake(0, 0, 400, 400) position:KBWindowPositionCenter title:@"Keybase" fixed:NO makeKey:NO];
+  [parentWindow kb_addChildWindowForView:self rect:CGRectMake(0, 0, 400, 400) position:KBWindowPositionCenter title:@"Keybase" fixed:NO makeKey:NO];
 }
 
 - (void)registerClient:(KBRPClient *)client sessionId:(NSInteger)sessionId sender:(id)sender {
@@ -187,6 +186,22 @@
     completion(nil, nil);
   }];
 
+  [client registerMethod:@"keybase.1.identifyUi.finishAndPrompt" sessionId:sessionId requestHandler:^(NSNumber *messageId, NSString *method, NSArray *params, MPRequestCompletion completion) {
+    KBRFinishAndPromptRequestParams *requestParams = [[KBRFinishAndPromptRequestParams alloc] initWithParams:params];
+
+    KBUserTrackStatus *trackStatus = [[KBUserTrackStatus alloc] initWithUsername:gself.username identifyOutcome:requestParams.outcome];
+    [self showTrackPrompt:trackStatus completion:^(BOOL track) {
+      // There is a daemon bug where keybase generates local track statement anyway
+      if (track) {
+        KBRFinishAndPromptRes *response = [[KBRFinishAndPromptRes alloc] init];
+        response.trackRemote = YES;
+        completion(nil, response);
+      } else {
+        completion(nil, nil);
+      }
+    }];
+  }];
+
   [client registerMethod:@"keybase.1.identifyUi.finish" sessionId:sessionId requestHandler:^(NSNumber *messageId, NSString *method, NSArray *params, MPRequestCompletion completion) {
     completion(nil, nil);
   }];
@@ -197,28 +212,47 @@
 }
 
 - (BOOL)isLoadingUsername:(NSString *)username {
-  return [_username isEqualToString:username] && _loading;
+  return [self.username isEqualToString:username] && _loading;
 }
 
-- (void)showTrack:(KBRIdentifyRes *)identify {
-  NSAssert([identify.user.username isEqualTo:_username], @"Mismatched users");
-  self.trackToken = identify.trackToken;
-
-  self.trackView.hidden = NO;
+- (void)showTrackPrompt:(KBUserTrackStatus *)trackStatus completion:(void (^)(BOOL track))completion {
   GHWeakSelf gself = self;
-  NSString *username = _username;
-  BOOL trackPrompt = [self.trackView setUsername:username popup:self.popup identifyOutcome:identify.outcome trackResponse:^(NSString *username) {
-    [gself track:username];
+  self.trackView.hidden = NO;
+  [self.trackView setTrackStatus:trackStatus skipable:!!self.popupWindow completion:^(BOOL track) {
+    if (!track) {
+      [gself showTrackAction:KBTrackActionSkipped username:trackStatus.username error:nil];
+      completion(NO);
+    } else {
+      // How to handle errors from callback prompt
+      [gself showTrackAction:KBTrackActionSuccess username:trackStatus.username error:nil];
+      completion(YES);
+    }
   }];
   [self setNeedsLayout];
 
-  if (self.popup && trackPrompt && !self.window) {
-    [self openPopup:self];
+  if (self.popupWindow) {
+    if (trackStatus.status != KBTrackStatusValid) {
+      [self openPopupWindow:self.popupWindow];
+    } else {
+      completion(NO); // No need to track
+    }
   }
+}
 
-  if (!trackPrompt) {
-    DDLogDebug(@"No track prompt required");
-  }
+- (void)showTrackOption:(KBRIdentifyRes *)identify {
+  NSAssert([identify.user.username isEqualTo:self.username], @"Mismatched users");
+  self.trackToken = identify.trackToken;
+
+  GHWeakSelf gself = self;
+  KBUserTrackStatus *trackStatus = [[KBUserTrackStatus alloc] initWithUsername:identify.user.username identifyOutcome:identify.outcome];
+  self.trackView.hidden = NO;
+  [self.trackView setTrackStatus:trackStatus skipable:!!self.popupWindow completion:^(BOOL track) {
+    if (track) {
+      [gself track:trackStatus.username];
+    } else {
+      [gself showTrackAction:KBTrackActionSkipped username:identify.user.username error:nil];
+    }
+  }];
 }
 
 - (void)track:(NSString *)username {
@@ -228,18 +262,22 @@
   [self registerClient:self.client sessionId:request.sessionId sender:self];
   [request trackWithTokenWithSessionID:request.sessionId trackToken:self.trackToken localOnly:NO approveRemote:YES completion:^(NSError *error) {
     [KBActivity setProgressEnabled:NO sender:self];
-    [gself showTrackResult:username error:error];
+    if (error) {
+      [gself showTrackAction:KBTrackActionError username:username error:error];
+    } else {
+      [gself showTrackAction:KBTrackActionSuccess username:username error:nil];
+    }
   }];
 }
 
-- (void)showTrackResult:(NSString *)username error:(NSError *)error {
-  [self.trackView setTrackCompleted:error];
+- (void)showTrackAction:(KBTrackAction)trackAction username:(NSString *)username error:(NSError *)error {
+  [self.trackView setTrackAction:trackAction error:error];
 
   dispatch_async(dispatch_get_main_queue(), ^{
     [NSNotificationCenter.defaultCenter postNotificationName:KBTrackingListDidChangeNotification object:nil userInfo:@{@"username": username}];
   });
 
-  if (self.popup) {
+  if (self.popupWindow) {
     [[self window] close];
   }
 }
@@ -257,7 +295,7 @@
       [KBActivity setError:error sender:self];
       return;
     }
-    [self showTrack:identifyRes];
+    [self showTrackOption:identifyRes];
   }];
 }
 

@@ -153,7 +153,7 @@
 
 - (void)showTrack {
   KBUserProfileView *userProfileView = [[KBUserProfileView alloc] init];
-  userProfileView.popup = YES;
+  userProfileView.popupWindow = (KBWindow *)[self window];
   NSWindow *window = [self openInWindow:userProfileView size:CGSizeMake(400, 400) title:@"Keybase"];
   [window setLevel:NSFloatingWindowLevel];
 

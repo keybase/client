@@ -15,8 +15,7 @@
 
 @interface KBUserProfileView : KBContentView
 
-@property (getter=isPopup) BOOL popup;
-
+@property (weak) KBWindow *popupWindow;
 @property (readonly, getter=isLoading) BOOL loading;
 
 - (BOOL)isLoadingUsername:(NSString *)username;
@@ -29,7 +28,7 @@
 
 - (void)registerClient:(KBRPClient *)client sessionId:(NSInteger)sessionId sender:(id)sender;
 
-- (void)openPopup:(id)sender;
+- (void)openPopupWindow:(KBWindow *)parentWindow;
 
 @end
 
