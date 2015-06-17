@@ -113,24 +113,25 @@ func (ui IdentifyTrackUI) FinishAndPrompt(o *keybase1.IdentifyOutcome) (ret keyb
 
 	def := PromptDefaultYes
 	isEqual := false
-	if ntf > 0 || nd > 0 {
+	switch {
+	case ntf > 0 || nd > 0:
 		prompt = "Your tracking statement of " + un + " is broken; fix it?"
 		def = PromptDefaultNo
-	} else if tracked && ntc > 0 {
+	case tracked && ntc > 0:
 		prompt = "Your tracking statement of " + un +
 			" is still valid; update it to reflect new proofs?"
 		def = PromptDefaultYes
-	} else if tracked && ntc == 0 {
+	case tracked && ntc == 0:
 		G.Log.Info("Your tracking statement is up-to-date")
 		isEqual = true
-	} else if nps == 0 {
+	case nps == 0:
 		prompt = "We found an account for " + un +
 			", but they haven't proven their identity. Still track them?"
 		def = PromptDefaultNo
-	} else if npf > 0 {
+	case npf > 0:
 		prompt = "Some proofs failed; still track " + un + "?"
 		def = PromptDefaultNo
-	} else {
+	default:
 		prompt = "Is this the " + ColorString("bold", un) + " you wanted?"
 		def = PromptDefaultYes
 	}

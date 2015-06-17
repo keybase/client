@@ -132,19 +132,25 @@ func (g *GpgCLI) ImportKey(secret bool, fp PgpFingerprint) (ret *PgpKeyBundle, e
 	}
 
 	res := g.Run2(arg)
-	var el openpgp.EntityList
-	if err = res.Err; err != nil {
-	} else if el, err = openpgp.ReadKeyRing(res.Stdout); err != nil {
-	} else if err = res.Wait(); err != nil {
-	} else if len(el) == 0 {
-		err = NoKeyError{fmt.Sprintf("No %s key for %s found", which, fp.ToKeyId())}
-	} else if len(el) > 1 {
-		err = TooManyKeysError{len(el), fp}
-	} else {
-		ret = (*PgpKeyBundle)(el[0])
+	if res.Err != nil {
+		return nil, res.Err
 	}
 
-	return
+	el, err := openpgp.ReadKeyRing(res.Stdout)
+	if err != nil {
+		return nil, err
+	}
+	if err = res.Wait(); err != nil {
+		return nil, err
+	}
+	if len(el) == 0 {
+		return nil, NoKeyError{fmt.Sprintf("No %s key for %s found", which, fp.ToKeyId())}
+	}
+	if len(el) > 1 {
+		return nil, TooManyKeysError{len(el), fp}
+	}
+
+	return (*PgpKeyBundle)(el[0]), nil
 }
 
 func (g *GpgCLI) ExportKey(k PgpKeyBundle) (err error) {

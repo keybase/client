@@ -19,7 +19,63 @@ type LoadUserArg struct {
 	Contextified
 }
 
-func LoadMe(arg LoadUserArg) (ret *User, err error) {
+func (arg *LoadUserArg) checkUIDName() error {
+	if arg.Uid.Exists() {
+		return nil
+	}
+
+	if len(arg.Name) == 0 && !arg.Self {
+		return fmt.Errorf("no username given to LoadUser")
+	}
+
+	if len(arg.Name) > 0 && arg.Self {
+		return fmt.Errorf("If loading self, can't provide a username")
+	}
+
+	if !arg.Self {
+		return nil
+	}
+
+	if arg.Uid = myUID(arg.G(), arg.LoginContext); arg.Uid.IsNil() {
+		arg.Name = arg.G().Env.GetUsername()
+	}
+	return nil
+}
+
+func (arg *LoadUserArg) resolveUID() (ResolveResult, error) {
+	var rres ResolveResult
+	if arg.Uid.Exists() {
+		return rres, nil
+	}
+	if len(arg.Name) == 0 {
+		return rres, LoadUserError{"we don't know the current user's UID or name"}
+	}
+
+	if rres = ResolveUID(arg.Name); rres.err != nil {
+		return rres, rres.err
+	}
+
+	if rres.uid.IsNil() {
+		return rres, fmt.Errorf("No resolution for name=%s", arg.Name)
+	}
+
+	arg.Uid = rres.uid
+	return rres, nil
+}
+
+// after resolution, check if this is a self load
+func (arg *LoadUserArg) checkSelf() {
+	if arg.Self {
+		return
+	}
+
+	myuid := myUID(G, arg.LoginContext)
+	if myuid.Exists() && arg.Uid.Exists() && myuid.Equal(arg.Uid) {
+		arg.Self = true
+	}
+}
+
+func LoadMe(arg LoadUserArg) (*User, error) {
 	arg.Self = true
 	return LoadUser(arg)
 }
@@ -34,96 +90,38 @@ func LoadUser(arg LoadUserArg) (ret *User, err error) {
 		}
 	}()
 
-	if arg.Uid.Exists() {
-		// noop
-	} else if len(arg.Name) == 0 && !arg.Self {
-		err = fmt.Errorf("no username given to LoadUser")
-	} else if len(arg.Name) > 0 && arg.Self {
-		err = fmt.Errorf("If loading self, can't provide a username")
-	} else if !arg.Self {
-		// noop
-	} else if arg.Uid = myUID(arg.G(), arg.LoginContext); arg.Uid.IsNil() {
-		arg.Name = arg.G().Env.GetUsername()
-	}
-
-	if err != nil {
-		return
+	// make sure we have a uid or a name to load
+	if err = arg.checkUIDName(); err != nil {
+		return nil, err
 	}
 
 	G.Log.Debug("+ LoadUser(uid=%v, name=%v)", arg.Uid, arg.Name)
 
-	var rres ResolveResult
-	var uid keybase1.UID
-	if arg.Uid.Exists() {
-		uid = arg.Uid
-	} else if len(arg.Name) == 0 {
-		err = LoadUserError{"we don't know the current user's UID or name"}
-		return
-	} else if rres = ResolveUID(arg.Name); rres.err != nil {
-		err = rres.err
-		return
-	} else if rres.uid.IsNil() {
-		err = fmt.Errorf("No resolution for name=%s", arg.Name)
-		return
-	} else {
-		arg.Uid = rres.uid
-		uid = arg.Uid
-	}
-
-	if !arg.Self {
-		if myuid := myUID(G, arg.LoginContext); myuid.Exists() && arg.Uid.Exists() && myuid.Equal(arg.Uid) {
-			arg.Self = true
-		}
-	}
-
-	G.Log.Debug("| resolved to %s", uid)
-
-	var local, remote *User
-
-	if local, err = LoadUserFromLocalStorage(uid); err != nil {
-		G.Log.Warning("Failed to load %s from storage: %s", uid, err.Error())
-	}
-
-	leaf, err := LookupMerkleLeaf(uid, local)
+	// resolve the uid from the name, if necessary
+	rres, err := arg.resolveUID()
 	if err != nil {
-		return
+		return nil, err
 	}
 
-	var f1, loadRemote bool
+	// check to see if this is a self load
+	arg.checkSelf()
 
-	if local == nil {
-		G.Log.Debug("| No local user stored for %s", uid)
-		loadRemote = true
-	} else if f1, err = local.CheckBasicsFreshness(leaf.idVersion); err != nil {
-		return
-	} else {
-		loadRemote = !f1
+	G.Log.Debug("| resolved to %s", arg.Uid)
+
+	// load user from local, remote
+	ret, err = loadUser(arg.Uid, rres, arg.ForceReload)
+	if err != nil {
+		return nil, err
 	}
-
-	G.Log.Debug("| Freshness: basics=%v; for %s", f1, uid)
-
-	if !loadRemote && !arg.ForceReload {
-		ret = local
-	} else if remote, err = LoadUserFromServer(arg, rres.body); err != nil {
-		return
-	} else {
-		ret = remote
-	}
-
-	if ret == nil {
-		return
-	}
-
-	ret.leaf = *leaf
 
 	// Match the returned User object to the Merkle tree. Also make sure
 	// that the username queried for matches the User returned (if it
 	// was indeed queried for)
-	if err = leaf.MatchUser(ret, arg.Uid, rres.kbUsername); err != nil {
+	if err = ret.leaf.MatchUser(ret, arg.Uid, rres.kbUsername); err != nil {
 		return
 	}
 
-	if err = ret.LoadSigChains(arg.AllKeys, leaf, arg.Self); err != nil {
+	if err = ret.LoadSigChains(arg.AllKeys, &ret.leaf, arg.Self); err != nil {
 		return
 	}
 
@@ -133,7 +131,7 @@ func LoadUser(arg LoadUserArg) (ret *User, err error) {
 
 	// Proactively cache fetches from remote server to local storage
 	if e2 := ret.Store(); e2 != nil {
-		G.Log.Warning("Problem storing user %s: %s", ret.GetName(), e2.Error())
+		G.Log.Warning("Problem storing user %s: %s", ret.GetName(), e2)
 	}
 
 	if ret.HasActiveKey() {
@@ -157,6 +155,45 @@ func LoadUser(arg LoadUserArg) (ret *User, err error) {
 	}
 
 	return
+}
+
+func loadUser(uid keybase1.UID, rres ResolveResult, force bool) (*User, error) {
+	local, err := LoadUserFromLocalStorage(uid)
+	if err != nil {
+		G.Log.Warning("Failed to load %s from storage: %s", uid, err)
+	}
+
+	leaf, err := LookupMerkleLeaf(uid, local)
+	if err != nil {
+		return nil, err
+	}
+
+	var f1, loadRemote bool
+
+	if local == nil {
+		G.Log.Debug("| No local user stored for %s", uid)
+		loadRemote = true
+	} else if f1, err = local.CheckBasicsFreshness(leaf.idVersion); err != nil {
+		return nil, err
+	} else {
+		loadRemote = !f1
+	}
+
+	G.Log.Debug("| Freshness: basics=%v; for %s", f1, uid)
+
+	var ret *User
+	if !loadRemote && !force {
+		ret = local
+	} else if ret, err = LoadUserFromServer(uid, rres.body); err != nil {
+		return nil, err
+	}
+
+	if ret == nil {
+		return nil, nil
+	}
+
+	ret.leaf = *leaf
+	return ret, nil
 }
 
 func LoadUserFromLocalStorage(uid keybase1.UID) (u *User, err error) {
@@ -187,8 +224,8 @@ func LoadUserFromLocalStorage(uid keybase1.UID) (u *User, err error) {
 	return
 }
 
-func LoadUserFromServer(arg LoadUserArg, body *jsonw.Wrapper) (u *User, err error) {
-	G.Log.Debug("+ Load User from server: %s", arg.Uid)
+func LoadUserFromServer(uid keybase1.UID, body *jsonw.Wrapper) (u *User, err error) {
+	G.Log.Debug("+ Load User from server: %s", uid)
 
 	// Res.body might already have been preloaded a a result of a Resolve call earlier.
 	if body == nil {
@@ -196,7 +233,7 @@ func LoadUserFromServer(arg LoadUserArg, body *jsonw.Wrapper) (u *User, err erro
 			Endpoint:    "user/lookup",
 			NeedSession: false,
 			Args: HttpArgs{
-				"uid": UIDArg(arg.Uid),
+				"uid": UIDArg(uid),
 			},
 		})
 
@@ -211,7 +248,7 @@ func LoadUserFromServer(arg LoadUserArg, body *jsonw.Wrapper) (u *User, err erro
 	if u, err = NewUserFromServer(body); err != nil {
 		return
 	}
-	G.Log.Debug("- Load user from server: %s -> %s", arg.Uid, ErrToOk(err))
+	G.Log.Debug("- Load user from server: %s -> %s", uid, ErrToOk(err))
 
 	return
 }
