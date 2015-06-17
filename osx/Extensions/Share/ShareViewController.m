@@ -8,12 +8,12 @@
 
 #import "ShareViewController.h"
 
-#import <KBKit/KBAppExtensions.h>
+#import <KBKit/KBAppExtension.h>
 
 #define KBLog NSLog
 
 @interface ShareViewController ()
-@property KBAppExtensions *app;
+@property KBAppExtension *app;
 @end
 
 @implementation ShareViewController
@@ -22,7 +22,7 @@
   NSExtensionItem *item = self.extensionContext.inputItems.firstObject;
   KBLog(@"Attachments: %@", item.attachments);
 
-  _app = [[KBAppExtensions alloc] init];
+  _app = [[KBAppExtension alloc] init];
   [_app encryptExtensionItem:item usernames:@[] sender:self.view completion:^(id sender, NSExtensionItem *outputItem) {
     if (outputItem) [self.extensionContext completeRequestReturningItems:@[outputItem] completionHandler:nil];
   }];

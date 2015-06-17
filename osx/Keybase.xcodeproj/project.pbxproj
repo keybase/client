@@ -13,6 +13,8 @@
 		000E07801B30AE8500FEE4C6 /* KBLaunchCtl.m in Sources */ = {isa = PBXBuildFile; fileRef = 000E077C1B30AE8500FEE4C6 /* KBLaunchCtl.m */; };
 		000E07811B30AE8500FEE4C6 /* KBServiceStatus.h in Headers */ = {isa = PBXBuildFile; fileRef = 000E077D1B30AE8500FEE4C6 /* KBServiceStatus.h */; };
 		000E07821B30AE8500FEE4C6 /* KBServiceStatus.m in Sources */ = {isa = PBXBuildFile; fileRef = 000E077E1B30AE8500FEE4C6 /* KBServiceStatus.m */; };
+		000E078A1B30B0E700FEE4C6 /* KBFinder.h in Headers */ = {isa = PBXBuildFile; fileRef = 000E07881B30B0E700FEE4C6 /* KBFinder.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		000E078B1B30B0E700FEE4C6 /* KBFinder.m in Sources */ = {isa = PBXBuildFile; fileRef = 000E07891B30B0E700FEE4C6 /* KBFinder.m */; };
 		001392741B06B18A0082DEA8 /* DmgBackground.pxm in Resources */ = {isa = PBXBuildFile; fileRef = 001392701B06B18A0082DEA8 /* DmgBackground.pxm */; };
 		001392751B06B18A0082DEA8 /* Fuse.icns in Resources */ = {isa = PBXBuildFile; fileRef = 001392711B06B18A0082DEA8 /* Fuse.icns */; };
 		001392761B06B18A0082DEA8 /* gpgtools.icns in Resources */ = {isa = PBXBuildFile; fileRef = 001392721B06B18A0082DEA8 /* gpgtools.icns */; };
@@ -73,8 +75,8 @@
 		0046253D1B2A5B6100E218AC /* KBComposeTextView.m in Sources */ = {isa = PBXBuildFile; fileRef = 0046253B1B2A5B6100E218AC /* KBComposeTextView.m */; };
 		0046C0E51B290A0B00C4D06F /* Sparkle.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0046C0E41B290A0B00C4D06F /* Sparkle.framework */; };
 		0046C0E61B290A3A00C4D06F /* Sparkle.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 0046C0E41B290A0B00C4D06F /* Sparkle.framework */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
-		0046C0E91B290CA100C4D06F /* KBAppExtensions.h in Headers */ = {isa = PBXBuildFile; fileRef = 0046C0E71B290CA100C4D06F /* KBAppExtensions.h */; settings = {ATTRIBUTES = (Public, ); }; };
-		0046C0EA1B290CA100C4D06F /* KBAppExtensions.m in Sources */ = {isa = PBXBuildFile; fileRef = 0046C0E81B290CA100C4D06F /* KBAppExtensions.m */; };
+		0046C0E91B290CA100C4D06F /* KBAppExtension.h in Headers */ = {isa = PBXBuildFile; fileRef = 0046C0E71B290CA100C4D06F /* KBAppExtension.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		0046C0EA1B290CA100C4D06F /* KBAppExtension.m in Sources */ = {isa = PBXBuildFile; fileRef = 0046C0E81B290CA100C4D06F /* KBAppExtension.m */; };
 		0046C0ED1B29114F00C4D06F /* KBNotifications.h in Headers */ = {isa = PBXBuildFile; fileRef = 0046C0EB1B29114F00C4D06F /* KBNotifications.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		0046C0EE1B29114F00C4D06F /* KBNotifications.m in Sources */ = {isa = PBXBuildFile; fileRef = 0046C0EC1B29114F00C4D06F /* KBNotifications.m */; };
 		0046C0EF1B29123C00C4D06F /* KBKit.h in Headers */ = {isa = PBXBuildFile; fileRef = 009E13841B28A93D00C72B28 /* KBKit.h */; settings = {ATTRIBUTES = (Public, ); }; };
@@ -489,6 +491,8 @@
 		000E077C1B30AE8500FEE4C6 /* KBLaunchCtl.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBLaunchCtl.m; sourceTree = "<group>"; };
 		000E077D1B30AE8500FEE4C6 /* KBServiceStatus.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBServiceStatus.h; sourceTree = "<group>"; };
 		000E077E1B30AE8500FEE4C6 /* KBServiceStatus.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBServiceStatus.m; sourceTree = "<group>"; };
+		000E07881B30B0E700FEE4C6 /* KBFinder.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBFinder.h; sourceTree = "<group>"; };
+		000E07891B30B0E700FEE4C6 /* KBFinder.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBFinder.m; sourceTree = "<group>"; };
 		001392701B06B18A0082DEA8 /* DmgBackground.pxm */ = {isa = PBXFileReference; lastKnownFileType = file; path = DmgBackground.pxm; sourceTree = "<group>"; };
 		001392711B06B18A0082DEA8 /* Fuse.icns */ = {isa = PBXFileReference; lastKnownFileType = image.icns; path = Fuse.icns; sourceTree = "<group>"; };
 		001392721B06B18A0082DEA8 /* gpgtools.icns */ = {isa = PBXFileReference; lastKnownFileType = image.icns; path = gpgtools.icns; sourceTree = "<group>"; };
@@ -558,8 +562,8 @@
 		0046253A1B2A5B6100E218AC /* KBComposeTextView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBComposeTextView.h; sourceTree = "<group>"; };
 		0046253B1B2A5B6100E218AC /* KBComposeTextView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBComposeTextView.m; sourceTree = "<group>"; };
 		0046C0E41B290A0B00C4D06F /* Sparkle.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Sparkle.framework; path = Pods/Sparkle/Sparkle.framework; sourceTree = "<group>"; };
-		0046C0E71B290CA100C4D06F /* KBAppExtensions.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBAppExtensions.h; sourceTree = "<group>"; };
-		0046C0E81B290CA100C4D06F /* KBAppExtensions.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBAppExtensions.m; sourceTree = "<group>"; };
+		0046C0E71B290CA100C4D06F /* KBAppExtension.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBAppExtension.h; sourceTree = "<group>"; };
+		0046C0E81B290CA100C4D06F /* KBAppExtension.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBAppExtension.m; sourceTree = "<group>"; };
 		0046C0EB1B29114F00C4D06F /* KBNotifications.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBNotifications.h; sourceTree = "<group>"; };
 		0046C0EC1B29114F00C4D06F /* KBNotifications.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBNotifications.m; sourceTree = "<group>"; };
 		004D14961A3BCF1F0083888D /* Podfile */ = {isa = PBXFileReference; lastKnownFileType = text; path = Podfile; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.ruby; };
@@ -934,6 +938,15 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		000E07831B30AFC800FEE4C6 /* KBFS */ = {
+			isa = PBXGroup;
+			children = (
+				000E07881B30B0E700FEE4C6 /* KBFinder.h */,
+				000E07891B30B0E700FEE4C6 /* KBFinder.m */,
+			);
+			path = KBFS;
+			sourceTree = "<group>";
+		};
 		0013926F1B06B18A0082DEA8 /* Resources */ = {
 			isa = PBXGroup;
 			children = (
@@ -994,8 +1007,8 @@
 				0043D10C1B28EF670036C532 /* KBSourceOutlineView.m */,
 				0043D1151B28F0E00036C532 /* KBApp.h */,
 				0043D1161B28F0E00036C532 /* KBApp.m */,
-				0046C0E71B290CA100C4D06F /* KBAppExtensions.h */,
-				0046C0E81B290CA100C4D06F /* KBAppExtensions.m */,
+				0046C0E71B290CA100C4D06F /* KBAppExtension.h */,
+				0046C0E81B290CA100C4D06F /* KBAppExtension.m */,
 				0046C0EB1B29114F00C4D06F /* KBNotifications.h */,
 				0046C0EC1B29114F00C4D06F /* KBNotifications.m */,
 				000E07771B30AC7E00FEE4C6 /* KBAppDefines.h */,
@@ -1117,6 +1130,7 @@
 				009E13871B28A93D00C72B28 /* KBWorkspace.h */,
 				009E13881B28A93D00C72B28 /* KBWorkspace.m */,
 				0043D1061B28EF670036C532 /* App */,
+				000E07831B30AFC800FEE4C6 /* KBFS */,
 				0043D1191B28F1370036C532 /* Preferences */,
 				009E13891B28A93D00C72B28 /* RPC */,
 				001A83571B28DB7B006E61E9 /* IO */,
@@ -1674,6 +1688,7 @@
 				00C0DD571B28EC8B00A825D4 /* KBInfoView.h in Headers */,
 				00C0DD091B28EC7800A825D4 /* KBPGPSignFooterView.h in Headers */,
 				00C0DC551B28EC3F00A825D4 /* KBDefines.h in Headers */,
+				000E078A1B30B0E700FEE4C6 /* KBFinder.h in Headers */,
 				00C0DD311B28EC8300A825D4 /* KBFoldersAppView.h in Headers */,
 				000E07791B30AC7E00FEE4C6 /* KBAppDefines.h in Headers */,
 				00C0DCFB1B28EC7800A825D4 /* KBPGPOutputFileView.h in Headers */,
@@ -1683,7 +1698,7 @@
 				00C0DCA51B28EC6100A825D4 /* KBSearchField.h in Headers */,
 				00C0DC6B1B28EC3F00A825D4 /* KBRRequest.h in Headers */,
 				00C0DCD31B28EC6F00A825D4 /* KBAlertView.h in Headers */,
-				0046C0E91B290CA100C4D06F /* KBAppExtensions.h in Headers */,
+				0046C0E91B290CA100C4D06F /* KBAppExtension.h in Headers */,
 				00C0DC771B28EC3F00A825D4 /* KBWriter.h in Headers */,
 				00C0DCA31B28EC6100A825D4 /* KBSearcher.h in Headers */,
 				004625381B2A5A9400E218AC /* KBStrengthLabel.h in Headers */,
@@ -2232,6 +2247,7 @@
 				00C0DC681B28EC3F00A825D4 /* KBRPCRecord.m in Sources */,
 				00C0DCF21B28EC7800A825D4 /* KBPGPEncryptAppView.m in Sources */,
 				00C0DCF61B28EC7800A825D4 /* KBPGPEncryptFooterView.m in Sources */,
+				000E078B1B30B0E700FEE4C6 /* KBFinder.m in Sources */,
 				00C0DD301B28EC8300A825D4 /* KBFileSelectView.m in Sources */,
 				00C0DC781B28EC3F00A825D4 /* KBWriter.m in Sources */,
 				00C0DCF41B28EC7800A825D4 /* KBPGPEncryptFilesView.m in Sources */,
@@ -2292,7 +2308,7 @@
 				004624CC1B2A08F400E218AC /* KBUninstaller.m in Sources */,
 				00C0DD1A1B28EC7800A825D4 /* KBPGPVerifyFooterView.m in Sources */,
 				00C0DCAC1B28EC6100A825D4 /* KBSearchResultView.m in Sources */,
-				0046C0EA1B290CA100C4D06F /* KBAppExtensions.m in Sources */,
+				0046C0EA1B290CA100C4D06F /* KBAppExtension.m in Sources */,
 				00C0DD561B28EC8B00A825D4 /* KBFSStatusView.m in Sources */,
 				00C0DD3C1B28EC8700A825D4 /* KBDeviceAddView.m in Sources */,
 				00C0DD5A1B28EC8B00A825D4 /* KBStyleGuideView.m in Sources */,

@@ -1,5 +1,5 @@
 //
-//  KBAppExtensions.h
+//  KBAppExtension.h
 //  Keybase
 //
 //  Created by Gabriel on 6/10/15.
@@ -10,8 +10,9 @@
 #import <AppKit/AppKit.h>
 
 #import "KBDefines.h"
+#import "KBFinder.h"
 
-@interface KBAppExtensions : NSObject
+@interface KBAppExtension : NSObject
 
 - (NSView *)encryptViewWithExtensionItem:(NSExtensionItem *)extensionItem completion:(KBOnExtension)completion;
 

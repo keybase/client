@@ -8,33 +8,25 @@
 
 #import "FinderSync.h"
 
+#import <KBKit/KBFinder.h>
 #import <KBKit/KBWorkspace.h>
 
 #define KBLog NSLog
 
 @interface FinderSync ()
-@property NSString *mountDir;
+@property KBFinder *finder;
 @end
-
-#define KBBadgeAvailable (@"available")
-#define KBBadgeUnavailable (@"unavailable")
 
 @implementation FinderSync
 
 - (instancetype)init {
   if ((self = [super init])) {
-    NSString *mountDir = [KBWorkspace.userDefaults objectForKey:@"MountDir"];
-    if (mountDir) {
-      NSLog(@"Finder sync using: %@", mountDir);
-      FIFinderSyncController.defaultController.directoryURLs = [NSSet setWithObject:[NSURL fileURLWithPath:mountDir]];
-    }
-    [FIFinderSyncController.defaultController setBadgeImage:[NSImage imageNamed:NSImageNameStatusUnavailable] label:@"Unavailable" forBadgeIdentifier:KBBadgeUnavailable];
-    [FIFinderSyncController.defaultController setBadgeImage:[NSImage imageNamed:NSImageNameStatusAvailable] label:@"Available" forBadgeIdentifier:KBBadgeAvailable];
+    [KBWorkspace setupLogging];
+    KBLog(@"FinderSync init");    
+    _finder = [[KBFinder alloc] initWithFinderSyncController:FIFinderSyncController.defaultController];
   }
   return self;
 }
-
-#pragma mark -
 
 - (void)beginObservingDirectoryAtURL:(NSURL *)URL {
   // The user is now seeing the container's contents.
@@ -48,8 +40,10 @@
 }
 
 - (void)requestBadgeIdentifierForURL:(NSURL *)URL {
-  KBLog(@"requestBadgeIdentifierForURL:%@", URL.filePathURL);
-  [FIFinderSyncController.defaultController setBadgeIdentifier:KBBadgeUnavailable forURL:URL];
+  [_finder badgeIdForPath:URL.filePathURL.path completion:^(NSString *badgeId) {
+    KBLog(@"Badge for path: %@: %@", URL.filePathURL.path, badgeId);
+    [FIFinderSyncController.defaultController setBadgeIdentifier:badgeId forURL:URL];
+  }];
 }
 
 /*
