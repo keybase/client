@@ -20,13 +20,14 @@ import (
 	"runtime"
 	"sync"
 
+	"github.com/keybase/client/go/logger"
 	keybase1 "github.com/keybase/client/protocol/go"
 )
 
 type ShutdownHook func() error
 
 type GlobalContext struct {
-	Log             *Logger        // Handles all logging
+	Log             *logger.Logger // Handles all logging
 	Env             *Env           // Env variables, cmdline args & config
 	Keyrings        *Keyrings      // Gpg Keychains holding keys
 	API             API            // How to make a REST call to the server
@@ -53,7 +54,7 @@ type GlobalContext struct {
 
 func NewGlobalContext() *GlobalContext {
 	return &GlobalContext{
-		Log: NewDefaultLogger(),
+		Log: logger.New(),
 	}
 }
 
@@ -103,7 +104,7 @@ func (g *GlobalContext) Logout() error {
 }
 
 func (g *GlobalContext) ConfigureLogging() error {
-	g.Log.Configure(g.Env)
+	g.Log.Configure(g.Env.GetPlainLogging(), g.Env.GetDebug(), g.Env.GetLogFile())
 	g.Output = os.Stdout
 	return nil
 }

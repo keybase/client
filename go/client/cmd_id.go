@@ -7,6 +7,7 @@ import (
 	"github.com/keybase/client/go/engine"
 	"github.com/keybase/client/go/libcmdline"
 	"github.com/keybase/client/go/libkb"
+	"github.com/keybase/client/go/logger"
 	keybase1 "github.com/keybase/client/protocol/go"
 	"github.com/maxtaco/go-framed-msgpack-rpc/rpc2"
 )
@@ -58,7 +59,7 @@ func (v *CmdID) RunClient() error {
 func (v *CmdID) Run() error {
 	logui := G.UI.GetLogUI()
 	if v.trackStatement {
-		logui = libkb.NewNullLogger()
+		logui = logger.NewNull()
 	}
 	eng := engine.NewIDEngine(v.makeArg(), G)
 	ctx := engine.Context{

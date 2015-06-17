@@ -1,6 +1,6 @@
 // +build darwin
 
-package libkb
+package pinentry
 
 import (
 	kc "github.com/keybase/go-osxkeychain"

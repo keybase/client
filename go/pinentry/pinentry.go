@@ -1,4 +1,4 @@
-package libkb
+package pinentry
 
 import (
 	"bufio"
@@ -8,6 +8,7 @@ import (
 	"os/exec"
 	"strings"
 
+	"github.com/keybase/client/go/logger"
 	keybase1 "github.com/keybase/client/protocol/go"
 )
 
@@ -24,10 +25,15 @@ type Pinentry struct {
 	path    string
 	term    string
 	tty     string
+	prog    string
+	log     *logger.Logger
 }
 
-func NewPinentry() *Pinentry {
-	return &Pinentry{path: ""}
+func New(envprog string, log *logger.Logger) *Pinentry {
+	return &Pinentry{
+		prog: envprog,
+		log:  log,
+	}
 }
 
 func (pe *Pinentry) Init() (error, error) {
@@ -48,7 +54,7 @@ func (pe *Pinentry) SetInitError(e error) {
 }
 
 func (pe *Pinentry) FindProgram() (error, error) {
-	prog := G.Env.GetPinentry()
+	prog := pe.prog
 	var err, fatalerr error
 	if len(prog) > 0 {
 		if err = canExec(prog); err == nil {
@@ -58,7 +64,7 @@ func (pe *Pinentry) FindProgram() (error, error) {
 				prog, err.Error())
 			fatalerr = err
 		}
-	} else if prog, err = FindPinentry(); err == nil {
+	} else if prog, err = FindPinentry(pe.log); err == nil {
 		pe.path = prog
 	}
 	return err, fatalerr
@@ -67,9 +73,9 @@ func (pe *Pinentry) FindProgram() (error, error) {
 func (pe *Pinentry) GetTerminalName() error {
 	tty, err := os.Readlink("/proc/self/fd/0")
 	if err != nil {
-		G.Log.Debug("| Can't find terminal name via /proc lookup: %s", err.Error())
+		pe.log.Debug("| Can't find terminal name via /proc lookup: %s", err)
 	} else {
-		G.Log.Debug("| found tty=%s", tty)
+		pe.log.Debug("| found tty=%s", tty)
 		pe.tty = tty
 	}
 	// Tis not a fatal error.  In particular, it won't work on OSX
@@ -78,7 +84,7 @@ func (pe *Pinentry) GetTerminalName() error {
 
 func (pe *Pinentry) Get(arg keybase1.SecretEntryArg) (res *keybase1.SecretEntryRes, err error) {
 
-	G.Log.Debug("+ Pinentry::Get()")
+	pe.log.Debug("+ Pinentry::Get()")
 
 	// Do a lazy initialization
 	if err, _ = pe.Init(); err != nil {
@@ -95,7 +101,7 @@ func (pe *Pinentry) Get(arg keybase1.SecretEntryArg) (res *keybase1.SecretEntryR
 		return
 	}
 	res, err = inst.Run(arg)
-	G.Log.Debug("- Pinentry::Get() -> %s", ErrToOk(err))
+	pe.log.Debug("- Pinentry::Get() -> %v", err)
 	return
 }
 
@@ -132,15 +138,14 @@ func (pi *pinentryInstance) Init() (err error) {
 
 	parent := pi.parent
 
-	G.Log.Debug("+ pinentryInstance::Init()")
+	parent.log.Debug("+ pinentryInstance::Init()")
 
 	pi.cmd = exec.Command(parent.path)
 	pi.stdin, _ = pi.cmd.StdinPipe()
 	pi.stdout, _ = pi.cmd.StdoutPipe()
 
 	if err = pi.cmd.Start(); err != nil {
-		G.Log.Errorf("unexpected error running pinentry (%s): %s",
-			parent.path, err.Error())
+		parent.log.Warning("unexpected error running pinentry (%s): %s", parent.path, err)
 		return
 	}
 
@@ -165,7 +170,7 @@ func (pi *pinentryInstance) Init() (err error) {
 		pi.Set("OPTION", "ttytype="+parent.term, &err)
 	}
 
-	G.Log.Debug("- pinentryInstance::Init() -> %s", ErrToOk(err))
+	parent.log.Debug("- pinentryInstance::Init() -> %v", err)
 	return
 }
 

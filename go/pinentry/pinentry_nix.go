@@ -1,11 +1,13 @@
 // +build darwin dragonfly freebsd linux nacl netbsd openbsd solaris
 
-package libkb
+package pinentry
 
 import (
 	"fmt"
 	"os"
 	"os/exec"
+
+	"github.com/keybase/client/go/logger"
 )
 
 //
@@ -42,7 +44,7 @@ func canExec(s string) error {
 	}
 }
 
-func FindPinentry() (string, error) {
+func FindPinentry(log *logger.Logger) (string, error) {
 	bins := []string{
 		// If you install MacTools you'll wind up with this pinentry
 		"/usr/local/MacGPG2/libexec/pinentry-mac.app/Contents/MacOS/pinentry-mac",
@@ -50,7 +52,7 @@ func FindPinentry() (string, error) {
 
 	extraPaths := []string{}
 
-	G.Log.Debug("+ FindPinentry()")
+	log.Debug("+ FindPinentry()")
 
 	cmds := []string{
 		"pinentry-gtk-2",
@@ -59,10 +61,10 @@ func FindPinentry() (string, error) {
 	}
 
 	checkFull := func(s string) bool {
-		G.Log.Debug("| Check fullpath %s", s)
+		log.Debug("| Check fullpath %s", s)
 		found := (canExec(s) == nil)
 		if found {
-			G.Log.Debug("- Found: %s", s)
+			log.Debug("- Found: %s", s)
 		}
 		return found
 	}
@@ -75,10 +77,10 @@ func FindPinentry() (string, error) {
 
 	path := os.Getenv("PATH")
 	for _, c := range cmds {
-		G.Log.Debug("| Looking for %s in standard PATH %s", c, path)
+		log.Debug("| Looking for %s in standard PATH %s", c, path)
 		fullc, err := exec.LookPath(c)
 		if err == nil {
-			G.Log.Debug("- Found %s", fullc)
+			log.Debug("- Found %s", fullc)
 			return fullc, nil
 		}
 	}
@@ -92,6 +94,6 @@ func FindPinentry() (string, error) {
 		}
 	}
 
-	G.Log.Debug("- FindPinentry: none found")
+	log.Debug("- FindPinentry: none found")
 	return "", fmt.Errorf("No pinentry found, checked a bunch of different places")
 }

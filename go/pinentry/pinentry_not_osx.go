@@ -1,6 +1,6 @@
 // +build !darwin
 
-package libkb
+package pinentry
 
 func (pi *pinentryInstance) useSecretStore(useSecretStore bool) error {
 	return nil

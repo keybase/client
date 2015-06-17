@@ -4,11 +4,12 @@ import (
 	"fmt"
 
 	"github.com/keybase/client/go/libkb"
+	"github.com/keybase/client/go/pinentry"
 	keybase1 "github.com/keybase/client/protocol/go"
 )
 
 type SecretEntry struct {
-	pinentry *libkb.Pinentry
+	pinentry *pinentry.Pinentry
 	terminal *Terminal
 	initRes  *error
 }
@@ -29,7 +30,7 @@ func (se *SecretEntry) Init() (err error) {
 	if G.Env.GetNoPinentry() {
 		G.Log.Debug("| Pinentry skipped due to config")
 	} else {
-		pe := libkb.NewPinentry()
+		pe := pinentry.New(G.Env.GetPinentry(), G.Log)
 		if e2, fatalerr := pe.Init(); fatalerr != nil {
 			err = fatalerr
 		} else if e2 != nil {

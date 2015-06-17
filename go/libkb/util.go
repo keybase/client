@@ -16,6 +16,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/keybase/client/go/logger"
 	keybase1 "github.com/keybase/client/protocol/go"
 )
 
@@ -275,12 +276,5 @@ func RandIntn(n int) int {
 // name, its File object, or an Error if it didn't work out.
 func OpenLogFile() (name string, file *os.File, err error) {
 	name = G.Env.GetLogFile()
-	if err = MakeParentDirs(name); err != nil {
-		return
-	}
-	file, err = os.OpenFile(name, (os.O_APPEND | os.O_WRONLY | os.O_CREATE), 0600)
-	if err != nil {
-		return
-	}
-	return
+	return logger.OpenLogFile(name)
 }

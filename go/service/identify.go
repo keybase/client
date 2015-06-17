@@ -3,6 +3,7 @@ package service
 import (
 	"github.com/keybase/client/go/engine"
 	"github.com/keybase/client/go/libkb"
+	"github.com/keybase/client/go/logger"
 	keybase1 "github.com/keybase/client/protocol/go"
 	"github.com/maxtaco/go-framed-msgpack-rpc/rpc2"
 )
@@ -48,7 +49,7 @@ func (h *IdentifyHandler) IdentifyDefault(arg keybase1.IdentifyDefaultArg) (keyb
 func (h *IdentifyHandler) identify(sessionID int, iarg engine.IDEngineArg, doInteractive bool) (res *engine.IDRes, err error) {
 	logui := h.getLogUI(sessionID)
 	if iarg.TrackStatement {
-		logui = libkb.NewNullLogger()
+		logui = logger.NewNull()
 	}
 	ctx := engine.Context{
 		LogUI:      logui,
