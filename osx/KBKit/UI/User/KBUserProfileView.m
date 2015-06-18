@@ -439,7 +439,7 @@
     KBRSelectKeyAndPushOptionRequestParams *requestParams = [[KBRSelectKeyAndPushOptionRequestParams alloc] initWithParams:params];
     [self selectPGPKey:requestParams completion:completion];
   }];
-  [request pgpSelectWithSessionID:request.sessionId query:nil allowMulti:NO skipImport:NO completion:^(NSError *error) {
+  [request pgpSelectWithSessionID:request.sessionId fingerprintQuery:nil allowMulti:NO skipImport:NO completion:^(NSError *error) {
     [KBActivity setError:error sender:self];
     [self reload];
   }];

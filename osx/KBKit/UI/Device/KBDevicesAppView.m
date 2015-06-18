@@ -74,7 +74,7 @@
   GHWeakSelf gself = self;
   // TODO animating?
   //_devicesView.progressView.animating = YES;
-  [request deviceListWithSessionID:request.sessionId completion:^(NSError *error, NSArray *items) {
+  [request deviceListWithSessionID:request.sessionId all:NO completion:^(NSError *error, NSArray *items) {
     //gself.devicesView.progressView.animating = NO;
     if (error) {
       [gself.devicesView removeAllObjects];

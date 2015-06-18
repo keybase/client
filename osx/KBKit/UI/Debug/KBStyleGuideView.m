@@ -139,12 +139,12 @@
   NSMutableAttributedString *icons = [[NSMutableAttributedString alloc] init];
   [icons appendAttributedString:[KBAwesomeFont attributedStringForIcon:@"twitter" color:KBAppearance.currentAppearance.selectColor size:32]];
   NSDictionary *attributes = @{NSForegroundColorAttributeName: KBAppearance.currentAppearance.selectColor, NSFontAttributeName: [NSFont systemFontOfSize:32]};
-  [icons appendAttributedString:[[NSAttributedString alloc] initWithString:@"Twitter" attributes:attributes]];
+  [icons appendAttributedString:[[NSAttributedString alloc] initWithString:@" Twitter\n" attributes:attributes]];
 
   [icons appendAttributedString:[KBAwesomeFont attributedStringForIcon:@"github" color:KBAppearance.currentAppearance.selectColor size:32]];
-  [icons appendAttributedString:[[NSAttributedString alloc] initWithString:@"Github" attributes:attributes]];
+  [icons appendAttributedString:[[NSAttributedString alloc] initWithString:@" Github\n" attributes:attributes]];
   [icons appendAttributedString:[KBAwesomeFont attributedStringForIcon:@"reddit" color:KBAppearance.currentAppearance.selectColor size:32]];
-  [icons appendAttributedString:[[NSAttributedString alloc] initWithString:@"Reddit" attributes:attributes]];
+  [icons appendAttributedString:[[NSAttributedString alloc] initWithString:@" Reddit\n" attributes:attributes]];
   [fontAwesomeLabel setAttributedText:icons];
 
 

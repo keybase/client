@@ -68,15 +68,16 @@
   if (_keyId.pgpFingerprint) [pgpLabel addText:[KBHexString(_keyId.pgpFingerprint, @"") uppercaseString] style:KBTextStyleDefault options:KBTextOptionsMonospace lineBreakMode:NSLineBreakByTruncatingMiddle targetBlock:nil];
   [_labels addSubview:pgpLabel];
 
-  NSString *query = KBHexString(_keyId.kid, nil);
-
   _textView.attributedText = nil;
   [self setNeedsLayout];
 
   [KBActivity setProgressEnabled:YES sender:self];
   GHWeakSelf gself = self;
   KBRPgpRequest *request = [[KBRPgpRequest alloc] initWithClient:self.client];
-  [request pgpExportWithSessionID:request.sessionId secret:NO query:query completion:^(NSError *error, NSArray *keys) {
+  KBRPGPQuery *options = [[KBRPGPQuery alloc] init];
+  options.query = KBHexString(_keyId.kid, nil);
+  options.exactMatch = YES;
+  [request pgpExportWithSessionID:request.sessionId options:options completion:^(NSError *error, NSArray *keys) {
     [KBActivity setProgressEnabled:NO sender:self];
     // TODO This only works when we are the user being key exported
     KBRKeyInfo *keyInfo = [keys firstObject];
