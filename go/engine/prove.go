@@ -180,7 +180,7 @@ func (p *Prove) generateProof(ctx *Context) (err error) {
 	if seckey, err = locked.PromptAndUnlock(ctx.LoginContext, "proof signature", which, nil, ctx.SecretUI, nil); err != nil {
 		return
 	}
-	if p.sig, p.sigID, _, err = libkb.SignJson(p.proof, seckey); err != nil {
+	if p.sig, p.sigID, _, err = libkb.SignJSON(p.proof, seckey); err != nil {
 		return
 	}
 	return

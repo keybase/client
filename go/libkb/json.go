@@ -9,7 +9,7 @@ import (
 	jsonw "github.com/keybase/go-jsonw"
 )
 
-type JsonFile struct {
+type JSONFile struct {
 	filename string
 	which    string
 	jw       *jsonw.Wrapper
@@ -17,16 +17,16 @@ type JsonFile struct {
 	dirty    bool
 }
 
-func NewJsonFile(filename, which string) *JsonFile {
-	return &JsonFile{filename, which, jsonw.NewDictionary(), false, false}
+func NewJSONFile(filename, which string) *JSONFile {
+	return &JSONFile{filename, which, jsonw.NewDictionary(), false, false}
 }
 
-func (f *JsonFile) GetWrapper() *jsonw.Wrapper {
+func (f *JSONFile) GetWrapper() *jsonw.Wrapper {
 	return f.jw
 }
-func (f *JsonFile) Exists() bool { return f.exists }
+func (f *JSONFile) Exists() bool { return f.exists }
 
-func (f *JsonFile) Load(warnOnNotFound bool) error {
+func (f *JSONFile) Load(warnOnNotFound bool) error {
 	G.Log.Debug(fmt.Sprintf("+ loading %s file: %s", f.which, f.filename))
 	file, err := os.Open(f.filename)
 	if err != nil {
@@ -61,14 +61,14 @@ func (f *JsonFile) Load(warnOnNotFound bool) error {
 	return nil
 }
 
-func (f *JsonFile) MaybeSave(pretty bool, mode os.FileMode) (err error) {
+func (f *JSONFile) MaybeSave(pretty bool, mode os.FileMode) (err error) {
 	if f != nil && f.dirty {
 		err = f.Save(pretty, mode)
 	}
 	return
 }
 
-func (f *JsonFile) Nuke() error {
+func (f *JSONFile) Nuke() error {
 	G.Log.Debug("+ nuke file %s", f.filename)
 
 	err := os.Remove(f.filename)
@@ -77,7 +77,7 @@ func (f *JsonFile) Nuke() error {
 	return err
 }
 
-func (f *JsonFile) Save(pretty bool, mode os.FileMode) (err error) {
+func (f *JSONFile) Save(pretty bool, mode os.FileMode) (err error) {
 	G.Log.Debug(fmt.Sprintf("+ saving %s file %s", f.which, f.filename))
 
 	err = MakeParentDirs(f.filename)

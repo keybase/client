@@ -73,7 +73,7 @@ type ComputedKeyInfos struct {
 	Devices map[string]*Device
 
 	// Map of KID -> DeviceID (in hex)
-	KidToDeviceId map[KIDMapKey]string
+	KIDToDeviceID map[KIDMapKey]string
 
 	// The last-added Web device, to figure out where the DetKey is.
 	WebDeviceID string
@@ -127,7 +127,7 @@ func (cki ComputedKeyInfos) ShallowCopy() *ComputedKeyInfos {
 		Infos:         make(map[FOKIDMapKey]*ComputedKeyInfo, len(cki.Infos)),
 		Sigs:          make(map[keybase1.SigID]*ComputedKeyInfo, len(cki.Sigs)),
 		Devices:       make(map[string]*Device, len(cki.Devices)),
-		KidToDeviceId: make(map[KIDMapKey]string, len(cki.KidToDeviceId)),
+		KIDToDeviceID: make(map[KIDMapKey]string, len(cki.KIDToDeviceID)),
 	}
 	for k, v := range cki.Infos {
 		ret.Infos[k] = v
@@ -141,8 +141,8 @@ func (cki ComputedKeyInfos) ShallowCopy() *ComputedKeyInfos {
 		ret.Devices[k] = v
 	}
 
-	for k, v := range cki.KidToDeviceId {
-		ret.KidToDeviceId[k] = v
+	for k, v := range cki.KIDToDeviceID {
+		ret.KIDToDeviceID[k] = v
 	}
 
 	return ret
@@ -153,7 +153,7 @@ func NewComputedKeyInfos() *ComputedKeyInfos {
 		Infos:         make(map[FOKIDMapKey]*ComputedKeyInfo),
 		Sigs:          make(map[keybase1.SigID]*ComputedKeyInfo),
 		Devices:       make(map[string]*Device),
-		KidToDeviceId: make(map[KIDMapKey]string),
+		KIDToDeviceID: make(map[KIDMapKey]string),
 	}
 }
 
@@ -628,7 +628,7 @@ func (ckf ComputedKeyFamily) GetAllActiveKeysForDevice(deviceID string) ([]KID, 
 	// Find the sibkey(s) that belong to this device.
 	for _, sibkey := range ckf.GetAllActiveSibkeys() {
 		sibkeyKID := sibkey.GetKid()
-		if ckf.cki.KidToDeviceId[sibkeyKID.ToMapKey()] == deviceID {
+		if ckf.cki.KIDToDeviceID[sibkeyKID.ToMapKey()] == deviceID {
 			ret = append(ret, sibkeyKID)
 			// For each sibkey we find, get all its subkeys too.
 			for _, subkey := range ckf.GetAllActiveSubkeys() {
@@ -706,11 +706,11 @@ func (ckf *ComputedKeyFamily) UpdateDevices(tcl TypedChainLink) (err error) {
 	// that's fine for now.
 	if prevKid.IsValid() {
 		G.Log.Debug("| Clear out old key")
-		delete(ckf.cki.KidToDeviceId, prevKid.ToMapKey())
+		delete(ckf.cki.KIDToDeviceID, prevKid.ToMapKey())
 	}
 
 	if kid.IsValid() {
-		ckf.cki.KidToDeviceId[kid.ToMapKey()] = did
+		ckf.cki.KIDToDeviceID[kid.ToMapKey()] = did
 	}
 
 	// Last-writer wins on the Web device
@@ -798,7 +798,7 @@ func (ckf *ComputedKeyFamily) GetDeviceForKey(key GenericKey) (ret *Device, err 
 }
 
 func (ckf *ComputedKeyFamily) getDeviceForKid(kid KID) (ret *Device, err error) {
-	if didString, found := ckf.cki.KidToDeviceId[kid.ToMapKey()]; found {
+	if didString, found := ckf.cki.KIDToDeviceID[kid.ToMapKey()]; found {
 		ret = ckf.cki.Devices[didString]
 	}
 	return

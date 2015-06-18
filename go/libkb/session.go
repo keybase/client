@@ -15,7 +15,7 @@ type SessionReader interface {
 
 type Session struct {
 	Contextified
-	file     *JsonFile
+	file     *JSONFile
 	token    string
 	csrf     string
 	inFile   bool
@@ -162,7 +162,7 @@ func (s *Session) Load() error {
 		return err
 	}
 
-	s.file = NewJsonFile(s.G().Env.GetSessionFilename(), "session")
+	s.file = NewJSONFile(s.G().Env.GetSessionFilename(), "session")
 	err = s.file.Load(false)
 	s.loaded = true
 

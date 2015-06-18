@@ -71,7 +71,7 @@ func (t BaseServiceType) BaseRecheckProofPosting(tryNumber int, status keybase1.
 	return
 }
 
-func (t BaseServiceType) BaseToServiceJson(st ServiceType, un string) *jsonw.Wrapper {
+func (t BaseServiceType) BaseToServiceJSON(st ServiceType, un string) *jsonw.Wrapper {
 	ret := jsonw.NewDictionary()
 	ret.SetKey("name", jsonw.NewString(st.GetTypeName()))
 	ret.SetKey("username", jsonw.NewString(un))

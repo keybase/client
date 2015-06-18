@@ -62,8 +62,8 @@ type MerkleRoot struct {
 	seqno             Seqno
 	pgpFingerprint    PgpFingerprint
 	sigs              *jsonw.Wrapper
-	payloadJsonString string
-	payloadJson       *jsonw.Wrapper
+	payloadJSONString string
+	payloadJSON       *jsonw.Wrapper
 	rootHash          NodeHash
 	legacyUidRootHash NodeHash
 	ctime             int64
@@ -167,7 +167,7 @@ func (mc *MerkleClient) LoadRoot() error {
 		G.Log.Debug("- MerkleClient.LoadRoot() -> nil")
 		return nil
 	}
-	mr, err := NewMerkleRootFromJson(curr)
+	mr, err := NewMerkleRootFromJSON(curr)
 	if err != nil {
 		return err
 	}
@@ -184,22 +184,22 @@ func (mr *MerkleRoot) Store() error {
 		Key: fmt.Sprintf("%d", mr.seqno),
 	},
 		[]DbKey{merkleHeadKey()},
-		mr.ToJson(),
+		mr.ToJSON(),
 	)
 	return err
 }
 
-func (mr *MerkleRoot) ToJson() (jw *jsonw.Wrapper) {
+func (mr *MerkleRoot) ToJSON() (jw *jsonw.Wrapper) {
 	ret := jsonw.NewDictionary()
 	ret.SetKey("sigs", mr.sigs)
-	ret.SetKey("payload_json", jsonw.NewString(mr.payloadJsonString))
+	ret.SetKey("payload_json", jsonw.NewString(mr.payloadJSONString))
 	return ret
 }
 
-func NewMerkleRootFromJson(jw *jsonw.Wrapper) (ret *MerkleRoot, err error) {
+func NewMerkleRootFromJSON(jw *jsonw.Wrapper) (ret *MerkleRoot, err error) {
 	var seqno int64
 	var sigs *jsonw.Wrapper
-	var payloadJsonString string
+	var payloadJSONString string
 	var pj *jsonw.Wrapper
 	var fp PgpFingerprint
 	var rh, lurh NodeHash
@@ -209,11 +209,11 @@ func NewMerkleRootFromJson(jw *jsonw.Wrapper) (ret *MerkleRoot, err error) {
 		return
 	}
 
-	if payloadJsonString, err = jw.AtKey("payload_json").GetString(); err != nil {
+	if payloadJSONString, err = jw.AtKey("payload_json").GetString(); err != nil {
 		return
 	}
 
-	if pj, err = jsonw.Unmarshal([]byte(payloadJsonString)); err != nil {
+	if pj, err = jsonw.Unmarshal([]byte(payloadJSONString)); err != nil {
 		return
 	}
 
@@ -231,8 +231,8 @@ func NewMerkleRootFromJson(jw *jsonw.Wrapper) (ret *MerkleRoot, err error) {
 		seqno:             Seqno(seqno),
 		pgpFingerprint:    fp,
 		sigs:              sigs,
-		payloadJsonString: payloadJsonString,
-		payloadJson:       pj,
+		payloadJSONString: payloadJSONString,
+		payloadJSON:       pj,
 		rootHash:          rh,
 		legacyUidRootHash: lurh,
 		ctime:             ctime,
@@ -240,7 +240,7 @@ func NewMerkleRootFromJson(jw *jsonw.Wrapper) (ret *MerkleRoot, err error) {
 	return
 }
 
-func importPathFromJson(jw *jsonw.Wrapper) (out []*PathStep, err error) {
+func importPathFromJSON(jw *jsonw.Wrapper) (out []*PathStep, err error) {
 	if jw.IsNil() {
 		return
 	}
@@ -257,7 +257,7 @@ func importPathFromJson(jw *jsonw.Wrapper) (out []*PathStep, err error) {
 
 	for i := 0; i < l; i++ {
 		var step *PathStep
-		if step, err = pathStepFromJson(path.AtIndex(i)); err != nil {
+		if step, err = pathStepFromJSON(path.AtIndex(i)); err != nil {
 			return
 		}
 		out = append(out, step)
@@ -280,7 +280,7 @@ func (mc *MerkleClient) LookupPath(q HTTPArgs) (vp *VerificationPath, err error)
 		return
 	}
 
-	root, err := NewMerkleRootFromJson(res.Body.AtKey("root"))
+	root, err := NewMerkleRootFromJSON(res.Body.AtKey("root"))
 	if err != nil {
 		return
 	}
@@ -298,12 +298,12 @@ func (mc *MerkleClient) LookupPath(q HTTPArgs) (vp *VerificationPath, err error)
 		return
 	}
 
-	pathOut, err := importPathFromJson(res.Body.AtKey("path"))
+	pathOut, err := importPathFromJSON(res.Body.AtKey("path"))
 	if err != nil {
 		return
 	}
 
-	uidPathOut, err := importPathFromJson(res.Body.AtKey("uid_proof_path"))
+	uidPathOut, err := importPathFromJSON(res.Body.AtKey("uid_proof_path"))
 	if err != nil {
 		return
 	}
@@ -317,7 +317,7 @@ func (mc *MerkleClient) LookupPath(q HTTPArgs) (vp *VerificationPath, err error)
 	return
 }
 
-func pathStepFromJson(jw *jsonw.Wrapper) (ps *PathStep, err error) {
+func pathStepFromJSON(jw *jsonw.Wrapper) (ps *PathStep, err error) {
 
 	var prefix string
 	pw := jw.AtKey("prefix")
@@ -398,7 +398,7 @@ func (mc *MerkleClient) VerifyRoot(root *MerkleRoot) error {
 	}
 
 	// Actually run the PGP verification over the signature
-	_, err = key.VerifyString(sig, []byte(root.payloadJsonString))
+	_, err = key.VerifyString(sig, []byte(root.payloadJSONString))
 	if err != nil {
 		return err
 	}
@@ -693,7 +693,7 @@ func (mc *MerkleClient) LookupUser(q HTTPArgs) (u *MerkleUserLeaf, err error) {
 	return
 }
 
-func (mr *MerkleRoot) ToSigJson() (ret *jsonw.Wrapper) {
+func (mr *MerkleRoot) ToSigJSON() (ret *jsonw.Wrapper) {
 
 	ret = jsonw.NewDictionary()
 	ret.SetKey("seqno", jsonw.NewInt(int(mr.seqno)))
@@ -703,11 +703,11 @@ func (mr *MerkleRoot) ToSigJson() (ret *jsonw.Wrapper) {
 	return
 }
 
-func (mc *MerkleClient) LastRootToSigJson() (ret *jsonw.Wrapper, err error) {
+func (mc *MerkleClient) LastRootToSigJSON() (ret *jsonw.Wrapper, err error) {
 	// Lazy-init, only when needed.
 	if err = mc.Init(); err == nil {
 		mc.RLock()
-		ret = mc.lastRoot.ToSigJson()
+		ret = mc.lastRoot.ToSigJSON()
 		mc.RUnlock()
 	}
 	return

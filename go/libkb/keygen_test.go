@@ -9,7 +9,7 @@ import (
 type cidTest struct {
 	name      string
 	noDefArg  bool
-	pgpUidArg []string
+	pgpUIDArg []string
 	errOut    error
 	idsOut    []Identity
 }
@@ -61,7 +61,7 @@ func TestCreateIds(t *testing.T) {
 	G.Env.GetConfigWriter().SetUserConfig(NewUserConfig(uid, "foo", []byte{}, nil), true)
 
 	for _, test := range cidTests {
-		arg := &PGPGenArg{PrimaryBits: 1024, SubkeyBits: 1024, PGPUids: test.pgpUidArg, NoDefPGPUid: test.noDefArg}
+		arg := &PGPGenArg{PrimaryBits: 1024, SubkeyBits: 1024, PGPUids: test.pgpUIDArg, NoDefPGPUid: test.noDefArg}
 		if err := arg.Init(); err != nil {
 			t.Errorf("%s: arg init err: %s", test.name, err)
 			continue

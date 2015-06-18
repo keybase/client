@@ -77,7 +77,7 @@ func (e *BTCEngine) Run(ctx *Context) error {
 	if err != nil {
 		return err
 	}
-	sig, _, _, err := libkb.SignJson(claim, sigKey)
+	sig, _, _, err := libkb.SignJSON(claim, sigKey)
 	if err != nil {
 		return err
 	}

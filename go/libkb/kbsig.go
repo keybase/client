@@ -23,7 +23,7 @@ func clientInfo() *jsonw.Wrapper {
 
 func merkleRootInfo() (ret *jsonw.Wrapper) {
 	if mc := G.MerkleClient; mc != nil {
-		ret, _ = mc.LastRootToSigJson()
+		ret, _ = mc.LastRootToSigJSON()
 	}
 	return ret
 }
@@ -304,7 +304,7 @@ func (u *User) ServiceProof(signingKey GenericKey, typ ServiceType, remotename s
 }
 
 // SimpleSignJson marshals the given Json structure and then signs it.
-func SignJson(jw *jsonw.Wrapper, key GenericKey) (out string, id keybase1.SigID, lid LinkID, err error) {
+func SignJSON(jw *jsonw.Wrapper, key GenericKey) (out string, id keybase1.SigID, lid LinkID, err error) {
 	var tmp []byte
 	if tmp, err = jw.Marshal(); err != nil {
 		return
@@ -315,7 +315,7 @@ func SignJson(jw *jsonw.Wrapper, key GenericKey) (out string, id keybase1.SigID,
 }
 
 // revSig is optional.  Added for kex scenario.
-func keyToProofJson(newkey GenericKey, typ string, signingKey FOKID, revSig string, u *User) (ret *jsonw.Wrapper, err error) {
+func keyToProofJSON(newkey GenericKey, typ string, signingKey FOKID, revSig string, u *User) (ret *jsonw.Wrapper, err error) {
 	ret = jsonw.NewDictionary()
 
 	if typ == SIBKEY_TYPE {
@@ -350,7 +350,7 @@ func (u *User) delegateKeyProof(newkey GenericKey, signingkey FOKID, typ string,
 	}
 
 	var kp *jsonw.Wrapper
-	if kp, err = keyToProofJson(newkey, typ, signingkey, revSig, u); err != nil {
+	if kp, err = keyToProofJSON(newkey, typ, signingkey, revSig, u); err != nil {
 		return
 	}
 

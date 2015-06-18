@@ -16,12 +16,12 @@ type UserConfigWrapper struct {
 }
 
 type JSONConfigFile struct {
-	*JsonFile
+	*JSONFile
 	userConfigWrapper *UserConfigWrapper
 }
 
 func NewJSONConfigFile(s string) *JSONConfigFile {
-	return &JSONConfigFile{NewJsonFile(s, "config"), &UserConfigWrapper{}}
+	return &JSONConfigFile{NewJSONFile(s, "config"), &UserConfigWrapper{}}
 }
 
 type valueGetter func(*jsonw.Wrapper) (interface{}, error)

@@ -117,7 +117,7 @@ func (e *RevokeEngine) Run(ctx *Context) error {
 	if err != nil {
 		return err
 	}
-	sig, _, _, err := libkb.SignJson(proof, sigKey)
+	sig, _, _, err := libkb.SignJSON(proof, sigKey)
 	if err != nil {
 		return err
 	}

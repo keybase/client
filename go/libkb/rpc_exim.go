@@ -544,7 +544,7 @@ func (ckf ComputedKeyFamily) Export() []keybase1.PublicKey {
 			}
 		}
 		cki := ckf.cki.Infos[kid.ToFOKIDMapKey()]
-		deviceID := ckf.cki.KidToDeviceId[kid.ToMapKey()]
+		deviceID := ckf.cki.KIDToDeviceID[kid.ToMapKey()]
 		device := ckf.cki.Devices[deviceID]
 		deviceDescription := ""
 		if device != nil {

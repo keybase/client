@@ -162,7 +162,7 @@ func (d *Delegator) Run(lctx LoginContext) (err error) {
 			return err
 		}
 
-		if d.RevSig, _, _, err = SignJson(jw, d.NewKey); err != nil {
+		if d.RevSig, _, _, err = SignJSON(jw, d.NewKey); err != nil {
 			G.Log.Debug("| Failure in intermediate SignJson()")
 			return err
 		}
@@ -180,7 +180,7 @@ func (d *Delegator) SignAndPost(lctx LoginContext, jw *jsonw.Wrapper) (err error
 
 	var linkid LinkID
 
-	if d.sig, d.sigID, linkid, err = SignJson(jw, d.signingKey); err != nil {
+	if d.sig, d.sigID, linkid, err = SignJSON(jw, d.signingKey); err != nil {
 		G.Log.Debug("| Failure in SignJson()")
 		return err
 	}

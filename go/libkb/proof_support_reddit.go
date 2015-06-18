@@ -158,7 +158,7 @@ func (t RedditServiceType) GetTypeName() string { return "reddit" }
 func (t RedditServiceType) GetPrompt() string { return "Your username on Reddit" }
 
 func (t RedditServiceType) ToServiceJSON(un string) *jsonw.Wrapper {
-	return t.BaseToServiceJson(t, un)
+	return t.BaseToServiceJSON(t, un)
 }
 
 func (t RedditServiceType) PostInstructions(un string) *Markup {

@@ -88,7 +88,7 @@ func (t CoinbaseServiceType) GetPrompt() string {
 }
 
 func (t CoinbaseServiceType) ToServiceJSON(un string) *jsonw.Wrapper {
-	return t.BaseToServiceJson(t, un)
+	return t.BaseToServiceJSON(t, un)
 }
 
 func (t CoinbaseServiceType) PostInstructions(un string) *Markup {

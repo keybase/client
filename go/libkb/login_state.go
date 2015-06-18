@@ -249,7 +249,7 @@ func (s *LoginState) postLoginToServer(lctx LoginContext, eOu string, lgpw []byt
 	}
 
 	b := res.Body
-	sessionId, err := b.AtKey("session").GetString()
+	sessionID, err := b.AtKey("session").GetString()
 	if err != nil {
 		return nil, err
 	}
@@ -266,7 +266,7 @@ func (s *LoginState) postLoginToServer(lctx LoginContext, eOu string, lgpw []byt
 		return nil, err
 	}
 
-	return &loginAPIResult{sessionId, csrfToken, uid, uname}, nil
+	return &loginAPIResult{sessionID, csrfToken, uid, uname}, nil
 }
 
 func (s *LoginState) saveLoginState(lctx LoginContext, res *loginAPIResult) error {
@@ -336,7 +336,7 @@ func (s *LoginState) pubkeyLoginHelper(lctx LoginContext, username string, getSe
 		return
 	}
 
-	if sig, _, _, err = SignJson(proof, key); err != nil {
+	if sig, _, _, err = SignJSON(proof, key); err != nil {
 		return
 	}
 

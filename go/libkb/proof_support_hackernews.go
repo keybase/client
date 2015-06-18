@@ -117,7 +117,7 @@ func (t HackerNewsServiceType) GetPrompt() string {
 }
 
 func (t HackerNewsServiceType) ToServiceJSON(un string) *jsonw.Wrapper {
-	return t.BaseToServiceJson(t, un)
+	return t.BaseToServiceJSON(t, un)
 }
 
 func (t HackerNewsServiceType) PostInstructions(un string) *Markup {

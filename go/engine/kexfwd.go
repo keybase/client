@@ -213,7 +213,7 @@ func (k *KexFwd) revSig(eddsa libkb.NaclKeyPair) (sig string, err error) {
 	if jw, _, err = k.args.User.KeyProof(delg); err != nil {
 		return
 	}
-	sig, _, _, err = libkb.SignJson(jw, eddsa)
+	sig, _, _, err = libkb.SignJSON(jw, eddsa)
 	return
 }
 

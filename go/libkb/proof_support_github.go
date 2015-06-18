@@ -82,7 +82,7 @@ func (t GithubServiceType) GetPrompt() string {
 }
 
 func (t GithubServiceType) ToServiceJSON(un string) *jsonw.Wrapper {
-	return t.BaseToServiceJson(t, un)
+	return t.BaseToServiceJSON(t, un)
 }
 
 func (t GithubServiceType) PostInstructions(un string) *Markup {

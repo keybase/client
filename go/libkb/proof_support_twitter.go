@@ -137,7 +137,7 @@ func (t TwitterServiceType) GetPrompt() string {
 }
 
 func (t TwitterServiceType) ToServiceJSON(un string) *jsonw.Wrapper {
-	return t.BaseToServiceJson(t, un)
+	return t.BaseToServiceJSON(t, un)
 }
 
 func (t TwitterServiceType) PostInstructions(un string) *Markup {
