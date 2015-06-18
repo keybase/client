@@ -10,7 +10,7 @@
 
 #import "KBRPC.h"
 
-#import "KBAppKit.h"
+#import <KBAppKit/KBAppKit.h>
 
 @class KBGPGKeysView;
 

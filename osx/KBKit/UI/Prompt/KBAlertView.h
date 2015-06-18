@@ -6,7 +6,7 @@
 //  Copyright (c) 2015 Gabriel Handford. All rights reserved.
 //
 
-#import "KBAppKit.h"
+#import <KBAppKit/KBAppKit.h>
 
 typedef void (^KBAlertViewCompletion)(NSInteger tag);
 

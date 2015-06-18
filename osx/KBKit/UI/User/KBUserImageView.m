@@ -10,7 +10,7 @@
 #import "KBWorkspace.h"
 #import "KBApp.h"
 
-#import "KBAppKit.h"
+#import <KBAppKit/KBAppKit.h>
 
 @implementation KBImageView (KBUserImageView)
 

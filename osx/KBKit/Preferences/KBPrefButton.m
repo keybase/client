@@ -7,7 +7,7 @@
 //
 
 #import "KBPrefButton.h"
-#import "KBAppKit.h"
+#import <KBAppKit/KBAppKit.h>
 
 @interface KBPrefButton ()
 @property KBLabel *categoryLabel; // Optional

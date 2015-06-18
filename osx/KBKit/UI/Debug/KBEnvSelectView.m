@@ -14,7 +14,7 @@
 #import "KBCustomEnvView.h"
 #import "KBWorkspace.h"
 
-#import "KBAppKit.h"
+#import <KBAppKit/KBAppKit.h>
 
 @interface KBEnvSelectView ()
 @property KBSplitView *splitView;

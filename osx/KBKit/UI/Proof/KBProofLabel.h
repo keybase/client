@@ -8,7 +8,7 @@
 
 #import <Foundation/Foundation.h>
 
-#import "KBAppKit.h"
+#import <KBAppKit/KBAppKit.h>
 #import "KBProofResult.h"
 #import "KBRPC.h"
 

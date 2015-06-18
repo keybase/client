@@ -7,7 +7,7 @@
 //
 
 #import <Foundation/Foundation.h>
-#import "KBAppKit.h"
+#import <KBAppKit/KBAppKit.h>
 
 @interface KBComposeTextView : KBTextView
 

@@ -8,7 +8,7 @@
 
 #import <Foundation/Foundation.h>
 
-#import "KBAppKit.h"
+#import <KBAppKit/KBAppKit.h>
 #import <GHODictionary/GHODictionary.h>
 
 @interface KBInfoView : YOView
