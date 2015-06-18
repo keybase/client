@@ -17,19 +17,21 @@ type RedditChecker struct {
 	proof RemoteProofChainLink
 }
 
-var REDDIT_PREFIX = "https://www.reddit.com"
-var REDDIT_SUB = REDDIT_PREFIX + "/r/keybaseproofs"
+const (
+	RedditPrefix = "https://www.reddit.com"
+	RedditSub    = RedditPrefix + "/r/keybaseproofs"
+)
 
 func NewRedditChecker(p RemoteProofChainLink) (*RedditChecker, ProofError) {
 	return &RedditChecker{p}, nil
 }
 
 func (rc *RedditChecker) CheckHint(h SigHint) ProofError {
-	if strings.HasPrefix(strings.ToLower(h.apiURL), REDDIT_SUB) {
+	if strings.HasPrefix(strings.ToLower(h.apiURL), RedditSub) {
 		return nil
 	}
 	return NewProofError(keybase1.ProofStatus_BAD_API_URL,
-		"Bad hint from server; URL should start with '%s'", REDDIT_SUB)
+		"Bad hint from server; URL should start with '%s'", RedditSub)
 }
 
 func (rc *RedditChecker) UnpackData(inp *jsonw.Wrapper) (*jsonw.Wrapper, ProofError) {

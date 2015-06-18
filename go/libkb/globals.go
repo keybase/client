@@ -138,7 +138,7 @@ func (g *GlobalContext) ConfigureKeyring() error {
 }
 
 func VersionMessage(linefn func(string)) {
-	linefn(fmt.Sprintf("Keybase Command-Line App v%s", CLIENT_VERSION))
+	linefn(fmt.Sprintf("Keybase Command-Line App v%s", ClientVersion))
 	linefn(fmt.Sprintf("- Built with %s", runtime.Version()))
 	linefn("- Visit https://keybase.io for more details")
 }

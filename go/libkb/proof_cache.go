@@ -117,7 +117,7 @@ func (pc *ProofCache) Get(sid keybase1.SigID) *CheckResult {
 
 func (pc ProofCache) dbKey(sid keybase1.SigID) (DbKey, string) {
 	sidstr := sid.ToString(true)
-	key := DbKey{Typ: DB_PROOF_CHECK, Key: sidstr}
+	key := DbKey{Typ: DBProofCheck, Key: sidstr}
 	return key, sidstr
 }
 

@@ -102,7 +102,7 @@ func (sh SigHints) MarshalToJSON() *jsonw.Wrapper {
 func (sh *SigHints) Store() (err error) {
 	G.Log.Debug("+ SigHints.Store() for uid=%s", sh.uid)
 	if sh.dirty {
-		err = G.LocalDb.Put(DbKeyUID(DB_SIG_HINTS, sh.uid), []DbKey{}, sh.MarshalToJSON())
+		err = G.LocalDb.Put(DbKeyUID(DBSigHints, sh.uid), []DbKey{}, sh.MarshalToJSON())
 		sh.dirty = false
 	} else {
 		G.Log.Debug("| SigHints.Store() skipped; wasn't dirty")
@@ -114,7 +114,7 @@ func (sh *SigHints) Store() (err error) {
 func LoadSigHints(uid keybase1.UID) (sh *SigHints, err error) {
 	G.Log.Debug("+ LoadSigHints(%s)", uid)
 	var jw *jsonw.Wrapper
-	jw, err = G.LocalDb.Get(DbKeyUID(DB_SIG_HINTS, uid))
+	jw, err = G.LocalDb.Get(DbKeyUID(DBSigHints, uid))
 	if err != nil {
 		return
 	}

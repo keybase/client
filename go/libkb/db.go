@@ -99,24 +99,24 @@ func (j *JSONLocalDb) Lookup(id DbKey) (*jsonw.Wrapper, error) {
 func (j *JSONLocalDb) Delete(id DbKey) error { return j.engine.Delete(id) }
 
 const (
-	DB_USER                       = 0x00
-	DB_SIG                        = 0x0f
-	DB_LINK                       = 0xe0
-	DB_LOCAL_TRACK                = 0xe1
-	DB_PGP_KEY                    = 0xe3
-	DB_SIG_HINTS                  = 0xe4
-	DB_PROOF_CHECK                = 0xe5
-	DB_USER_SECRET_KEYS           = 0xe6
-	DB_SIG_CHAIN_TAIL_PUBLIC      = 0xe7
-	DB_SIG_CHAIN_TAIL_SEMIPRIVATE = 0xe8
-	DB_SIG_CHAIN_TAIL_ENCRYPTED   = 0xe9
-	DB_MERKLE_ROOT                = 0xf0
-	DB_TRACKERS                   = 0xf1
+	DBUser                    = 0x00
+	DBSig                     = 0x0f
+	DBLink                    = 0xe0
+	DBLocalTrack              = 0xe1
+	DBPGPKey                  = 0xe3
+	DBSigHints                = 0xe4
+	DBProofCheck              = 0xe5
+	DBUserSecretKeys          = 0xe6
+	DBSigChainTailPublic      = 0xe7
+	DBSigChainTailSemiprivate = 0xe8
+	DBSigChainTailEncrypted   = 0xe9
+	DBMerkleRoot              = 0xf0
+	DBTrackers                = 0xf1
 )
 
 const (
-	DB_LOOKUP_USERNAME    = 0x00
-	DB_LOOKUP_MERKLE_ROOT = 0x01
+	DBLookupUsername   = 0x00
+	DBLookupMerkleRoot = 0x01
 )
 
 func DbKeyUID(t ObjType, uid keybase1.UID) DbKey {

@@ -21,10 +21,10 @@ import (
 type PgpKeyBundle openpgp.Entity
 
 const (
-	PGP_FINGERPRINT_LEN = 20
+	PGPFingerprintLen = 20
 )
 
-type PgpFingerprint [PGP_FINGERPRINT_LEN]byte
+type PgpFingerprint [PGPFingerprintLen]byte
 
 // Remove the need for the PgpFingerprintMapKey type. See
 // https://github.com/keybase/client/issues/413 .
@@ -36,7 +36,7 @@ func PgpFingerprintFromHex(s string) (*PgpFingerprint, error) {
 	var ret *PgpFingerprint
 	if err != nil {
 		// Noop
-	} else if n != PGP_FINGERPRINT_LEN {
+	} else if n != PGPFingerprintLen {
 		err = fmt.Errorf("Bad fingerprint; wrong length: %d", n)
 	} else {
 		ret = &fp
@@ -110,7 +110,7 @@ func (k *PgpKeyBundle) StoreToLocalDb() error {
 	}
 	val := jsonw.NewString(s)
 	G.Log.Debug("| Storing Key (fp=%s, kid=%s) to Local DB", k.GetFingerprint(), k.GetKid())
-	return G.LocalDb.Put(DbKey{Typ: DB_PGP_KEY, Key: k.GetFingerprint().String()}, []DbKey{}, val)
+	return G.LocalDb.Put(DbKey{Typ: DBPGPKey, Key: k.GetFingerprint().String()}, []DbKey{}, val)
 }
 
 func (p PgpFingerprint) Eq(p2 PgpFingerprint) bool {

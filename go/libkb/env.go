@@ -298,7 +298,7 @@ func (e *Env) GetConfigFilename() string {
 		func() string { return e.cmd.GetConfigFilename() },
 		func() string { return os.Getenv("KEYBASE_CONFIG_FILE") },
 		func() string { return e.config.GetConfigFilename() },
-		func() string { return filepath.Join(e.GetConfigDir(), CONFIG_FILE) },
+		func() string { return filepath.Join(e.GetConfigDir(), ConfigFile) },
 	)
 }
 
@@ -307,7 +307,7 @@ func (e *Env) GetSessionFilename() string {
 		func() string { return e.cmd.GetSessionFilename() },
 		func() string { return os.Getenv("KEYBASE_SESSION_FILE") },
 		func() string { return e.config.GetSessionFilename() },
-		func() string { return filepath.Join(e.GetCacheDir(), SESSION_FILE) },
+		func() string { return filepath.Join(e.GetCacheDir(), SessionFile) },
 	)
 }
 
@@ -316,7 +316,7 @@ func (e *Env) GetDbFilename() string {
 		func() string { return e.cmd.GetDbFilename() },
 		func() string { return os.Getenv("KEYBASE_DB_FILE") },
 		func() string { return e.config.GetDbFilename() },
-		func() string { return filepath.Join(e.GetDataDir(), DB_FILE) },
+		func() string { return filepath.Join(e.GetDataDir(), DBFile) },
 	)
 }
 
@@ -395,7 +395,7 @@ func (e *Env) GetSocketFile() (ret string, err error) {
 		var d string
 		d, err = e.GetRuntimeDir()
 		if err == nil {
-			ret = filepath.Join(d, SOCKET_FILE)
+			ret = filepath.Join(d, SocketFile)
 		}
 	}
 	return
@@ -411,7 +411,7 @@ func (e *Env) GetPidFile() (ret string, err error) {
 		var d string
 		d, err = e.GetRuntimeDir()
 		if err == nil {
-			ret = filepath.Join(d, PID_FILE)
+			ret = filepath.Join(d, PIDFile)
 		}
 	}
 	return
@@ -619,7 +619,7 @@ func (e *Env) GetSecretKeyringTemplate() string {
 		func() string { return e.cmd.GetSecretKeyringTemplate() },
 		func() string { return os.Getenv("KEYBASE_SECRET_KEYRING_TEMPLATE") },
 		func() string { return e.config.GetSecretKeyringTemplate() },
-		func() string { return filepath.Join(e.GetConfigDir(), SECRET_KEYRING_TEMPLATE) },
+		func() string { return filepath.Join(e.GetConfigDir(), SecretKeyringTemplate) },
 	)
 }
 

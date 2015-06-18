@@ -265,8 +265,8 @@ func (u *User) StoreTopLevel() error {
 	jw.SetKey("pictures", u.pictures)
 
 	err := G.LocalDb.Put(
-		DbKeyUID(DB_USER, u.id),
-		[]DbKey{{Typ: DB_LOOKUP_USERNAME, Key: u.name}},
+		DbKeyUID(DBUser, u.id),
+		[]DbKey{{Typ: DBLookupUsername, Key: u.name}},
 		jw,
 	)
 	G.Log.Debug("- StoreTopLevel -> %s", ErrToOk(err))

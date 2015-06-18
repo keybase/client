@@ -248,7 +248,7 @@ func ExportTrackDiff(d TrackDiff) (res *keybase1.TrackDiff) {
 //=============================================================================
 
 func ImportPgpFingerprint(f keybase1.FOKID) (ret *PgpFingerprint) {
-	if f.PgpFingerprint != nil && len(*f.PgpFingerprint) == PGP_FINGERPRINT_LEN {
+	if f.PgpFingerprint != nil && len(*f.PgpFingerprint) == PGPFingerprintLen {
 		var tmp PgpFingerprint
 		copy(tmp[:], (*f.PgpFingerprint)[:])
 		ret = &tmp

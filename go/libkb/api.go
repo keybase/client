@@ -214,7 +214,7 @@ func (a *InternalAPIEngine) getURL(arg APIArg) url.URL {
 	if len(a.config.Prefix) > 0 {
 		path = a.config.Prefix
 	} else {
-		path = API_URI_PATH_PREFIX
+		path = APIURIPathPrefix
 	}
 	u.Path = path + "/" + arg.Endpoint + ".json"
 	return u
@@ -242,7 +242,7 @@ func (a *InternalAPIEngine) consumeHeaders(resp *http.Response) error {
 		lastUpgradeWarningMu.Lock()
 		if lastUpgradeWarning == nil || now.Sub(*lastUpgradeWarning) > 3*time.Minute {
 			G.Log.Warning("Upgrade recommended to client version %s or above (you have v%s)",
-				u, CLIENT_VERSION)
+				u, ClientVersion)
 			lastUpgradeWarning = &now
 		}
 		lastUpgradeWarningMu.Unlock()
@@ -264,8 +264,8 @@ func (a *InternalAPIEngine) fixHeaders(arg APIArg, req *http.Request) {
 			G.Log.Warning("fixHeaders:  need session, but session csrf empty")
 		}
 	}
-	req.Header.Set("User-Agent", USER_AGENT)
-	req.Header.Set("X-Keybase-Client", IDENTIFY_AS)
+	req.Header.Set("User-Agent", UserAgent)
+	req.Header.Set("X-Keybase-Client", IdentifyAs)
 }
 
 func checkAppStatus(arg APIArg, jw *jsonw.Wrapper) (string, error) {
@@ -393,9 +393,9 @@ func (a *InternalAPIEngine) DoRequest(arg APIArg, req *http.Request) (*APIRes, e
 // ExternalApiEngine
 
 const (
-	XAPI_RES_JSON = iota
-	XAPI_RES_HTML = iota
-	XAPI_RES_TEXT = iota
+	XAPIResJSON = iota
+	XAPIResHTML
+	XAPIResText
 )
 
 func (api *ExternalAPIEngine) fixHeaders(arg APIArg, req *http.Request) {
@@ -415,21 +415,21 @@ func (api *ExternalAPIEngine) DoRequest(
 	var resp *http.Response
 	var jw *jsonw.Wrapper
 
-	resp, jw, err = doRequestShared(api, arg, req, (restype == XAPI_RES_JSON))
+	resp, jw, err = doRequestShared(api, arg, req, (restype == XAPIResJSON))
 	if err != nil {
 		return
 	}
 
 	switch restype {
-	case XAPI_RES_JSON:
+	case XAPIResJSON:
 		ar = &ExternalAPIRes{resp.StatusCode, jw}
-	case XAPI_RES_HTML:
+	case XAPIResHTML:
 		var goq *goquery.Document
 		goq, err = goquery.NewDocumentFromResponse(resp)
 		if err == nil {
 			hr = &ExternalHTMLRes{resp.StatusCode, goq}
 		}
-	case XAPI_RES_TEXT:
+	case XAPIResText:
 		var buf bytes.Buffer
 		_, err := buf.ReadFrom(resp.Body)
 		if err == nil {
@@ -462,17 +462,17 @@ func (api *ExternalAPIEngine) getCommon(arg APIArg, restype int) (
 }
 
 func (api *ExternalAPIEngine) Get(arg APIArg) (res *ExternalAPIRes, err error) {
-	res, _, _, err = api.getCommon(arg, XAPI_RES_JSON)
+	res, _, _, err = api.getCommon(arg, XAPIResJSON)
 	return
 }
 
 func (api *ExternalAPIEngine) GetHTML(arg APIArg) (res *ExternalHTMLRes, err error) {
-	_, res, _, err = api.getCommon(arg, XAPI_RES_HTML)
+	_, res, _, err = api.getCommon(arg, XAPIResHTML)
 	return
 }
 
 func (api *ExternalAPIEngine) GetText(arg APIArg) (res *ExternalTextRes, err error) {
-	_, _, res, err = api.getCommon(arg, XAPI_RES_TEXT)
+	_, _, res, err = api.getCommon(arg, XAPIResText)
 	return
 }
 
@@ -496,12 +496,12 @@ func (api *ExternalAPIEngine) postCommon(arg APIArg, restype int) (
 }
 
 func (api *ExternalAPIEngine) Post(arg APIArg) (res *ExternalAPIRes, err error) {
-	res, _, err = api.postCommon(arg, XAPI_RES_JSON)
+	res, _, err = api.postCommon(arg, XAPIResJSON)
 	return
 }
 
 func (api *ExternalAPIEngine) PostHTML(arg APIArg) (res *ExternalHTMLRes, err error) {
-	_, res, err = api.postCommon(arg, XAPI_RES_HTML)
+	_, res, err = api.postCommon(arg, XAPIResHTML)
 	return
 }
 

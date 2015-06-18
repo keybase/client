@@ -38,7 +38,7 @@ func (h ConfigHandler) GetConfig(sessionID int) (keybase1.Config, error) {
 		c.GpgPath = gpg.Path()
 	}
 
-	c.Version = libkb.CLIENT_VERSION
+	c.Version = libkb.ClientVersion
 
 	dir, err := filepath.Abs(filepath.Dir(os.Args[0]))
 	if err == nil {

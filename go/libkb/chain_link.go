@@ -11,7 +11,7 @@ import (
 )
 
 const (
-	LINK_ID_LEN = 32
+	LinkIDLen = 32
 )
 
 type LinkID []byte
@@ -52,7 +52,7 @@ func (l *LinkID) MarshalJSON() ([]byte, error) {
 
 func LinkIDFromHex(s string) (LinkID, error) {
 	bv, err := hex.DecodeString(s)
-	if err == nil && len(bv) != LINK_ID_LEN {
+	if err == nil && len(bv) != LinkIDLen {
 		err = fmt.Errorf("Bad link ID; wrong length: %d", len(bv))
 		bv = nil
 	}
@@ -500,7 +500,7 @@ func NewChainLink(parent *SigChain, id LinkID, jw *jsonw.Wrapper) *ChainLink {
 }
 
 func ImportLinkFromStorage(id LinkID, selfUID keybase1.UID) (*ChainLink, error) {
-	jw, err := G.LocalDb.Get(DbKey{Typ: DB_LINK, Key: id.String()})
+	jw, err := G.LocalDb.Get(DbKey{Typ: DBLink, Key: id.String()})
 	var ret *ChainLink
 	if err == nil {
 		// May as well recheck onload (maybe revisit this)
@@ -590,7 +590,7 @@ func (c *ChainLink) Store() (didStore bool, err error) {
 		return
 	}
 
-	key := DbKey{Typ: DB_LINK, Key: c.id.String()}
+	key := DbKey{Typ: DBLink, Key: c.id.String()}
 
 	// Don't write with any aliases
 	if err = G.LocalDb.Put(key, []DbKey{}, c.packed); err != nil {

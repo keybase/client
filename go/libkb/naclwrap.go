@@ -24,7 +24,7 @@ type NaclSigInfo struct {
 	Detached bool          `codec:"detached"`
 }
 
-const NACL_DH_KEYSIZE = 32
+const NaclDHKeysize = 32
 
 // TODO: Ideally, ed25519 would expose how many random bytes it needs.
 const NaclSigningKeySecretSize = 32
@@ -48,8 +48,8 @@ type NaclSigningKeyPair struct {
 	Private *NaclSigningKeyPrivate
 }
 
-type NaclDHKeyPublic [NACL_DH_KEYSIZE]byte
-type NaclDHKeyPrivate [NACL_DH_KEYSIZE]byte
+type NaclDHKeyPublic [NaclDHKeysize]byte
+type NaclDHKeyPrivate [NaclDHKeysize]byte
 
 type NaclDHKeyPair struct {
 	Public  NaclDHKeyPublic
@@ -116,7 +116,7 @@ func ImportKeypairFromKID(kid KID) (key GenericKey, err error) {
 			key = tmp
 		}
 	case byte(KID_NACL_DH):
-		if len(raw) != NACL_DH_KEYSIZE {
+		if len(raw) != NaclDHKeysize {
 			err = BadKeyError{"Bad DH key size"}
 		} else {
 			tmp := NaclDHKeyPair{}
@@ -140,12 +140,12 @@ func ImportNaclSigningKeyPairFromHex(s string) (ret NaclSigningKeyPair, err erro
 
 func ImportNaclDHKeyPairFromBytes(pub []byte, priv []byte) (ret NaclDHKeyPair, err error) {
 	var body []byte
-	if body, err = importNaclKid(KID(pub), byte(KID_NACL_DH), NACL_DH_KEYSIZE); err != nil {
+	if body, err = importNaclKid(KID(pub), byte(KID_NACL_DH), NaclDHKeysize); err != nil {
 		return
 	}
 	copy(ret.Public[:], body)
 	if priv == nil {
-	} else if len(priv) != NACL_DH_KEYSIZE {
+	} else if len(priv) != NaclDHKeysize {
 		err = BadKeyError{"Secret key was wrong size"}
 	} else {
 		ret.Private = &NaclDHKeyPrivate{}
@@ -156,7 +156,7 @@ func ImportNaclDHKeyPairFromBytes(pub []byte, priv []byte) (ret NaclDHKeyPair, e
 
 func ImportNaclDHKeyPairFromHex(s string) (ret NaclDHKeyPair, err error) {
 	var body []byte
-	if body, err = importNaclHex(s, byte(KID_NACL_DH), NACL_DH_KEYSIZE); err != nil {
+	if body, err = importNaclHex(s, byte(KID_NACL_DH), NaclDHKeysize); err != nil {
 		return
 	}
 	copy(ret.Public[:], body)

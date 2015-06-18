@@ -498,7 +498,7 @@ type ChainType struct {
 }
 
 var PublicChain = &ChainType{
-	DbType:          DB_SIG_CHAIN_TAIL_PUBLIC,
+	DbType:          DBSigChainTailPublic,
 	Private:         false,
 	Encrypted:       false,
 	GetMerkleTriple: func(u *MerkleUserLeaf) *MerkleTriple { return u.public },

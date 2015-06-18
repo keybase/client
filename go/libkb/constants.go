@@ -8,39 +8,48 @@ import (
 	keybase1 "github.com/keybase/client/protocol/go"
 )
 
-var DevelServerURI = "http://localhost:3000"
-var ProductionServerURI = "https://keybase.io"
+const (
+	DevelServerURI      = "http://localhost:3000"
+	ProductionServerURI = "https://keybase.io"
+)
+
 var ServerURI = DevelServerURI
 
-var CONFIG_FILE = "config.json"
-var SESSION_FILE = "session.json"
-var SECRET_KEYRING_TEMPLATE = "secretkeys.%u.mpack"
-var DB_FILE = "keybase.leveldb"
-var API_VERSION = "1.0"
-var API_URI_PATH_PREFIX = "/_/api/" + API_VERSION
-var DAEMON_PORT = 40933
-var SOCKET_FILE = "keybased.sock"
-var PID_FILE = "keybased.pid"
+const (
+	ConfigFile  = "config.json"
+	SessionFile = "session.json"
+	DBFile      = "keybase.leveldb"
+	SocketFile  = "keybased.sock"
+	PIDFile     = "keybased.pid"
 
-var GO_CLIENT_ID = "keybase.io go client"
+	SecretKeyringTemplate = "secretkeys.%u.mpack"
 
-var IDENTIFY_AS = GO_CLIENT_ID + " v" + CLIENT_VERSION + " " + runtime.GOOS
-var USER_AGENT = ("Keybase-Go-CLI/" + CLIENT_VERSION +
-	" (" + runtime.Version() + " on " + runtime.GOOS + ")")
+	APIVersion       = "1.0"
+	APIURIPathPrefix = "/_/api/" + APIVersion
+	DaemonPort       = 40933
+	GoClientID       = "keybase.io go client"
+	IdentifyAs       = GoClientID + " v" + ClientVersion + " " + runtime.GOOS
+)
 
-var PERM_FILE os.FileMode = 0600
-var PERM_DIR os.FileMode = 0700
-var UMASKABLE_PERM_FILE os.FileMode = 0666
+var UserAgent = "Keybase-Go-CLI/" + ClientVersion + " (" + runtime.Version() + " on " + runtime.GOOS + ")"
 
-var USER_CACHE_SIZE = 0x1000
-var PGP_FINGERPRINT_HEX_LEN = 40
+const (
+	PERM_FILE           os.FileMode = 0600
+	PERM_DIR            os.FileMode = 0700
+	UMASKABLE_PERM_FILE os.FileMode = 0666
+)
 
-var PROOF_CACHE_SIZE = 0x10000
-var PROOF_CACHE_LONG_DUR = 6 * time.Hour
-var PROOF_CACHE_MEDIUM_DUR = 30 * time.Minute
-var PROOF_CACHE_SHORT_DUR = 1 * time.Minute
+const (
+	USER_CACHE_SIZE         = 0x1000
+	PGP_FINGERPRINT_HEX_LEN = 40
 
-var SIG_SHORT_ID_BYTES = 27
+	PROOF_CACHE_SIZE       = 0x10000
+	PROOF_CACHE_LONG_DUR   = 6 * time.Hour
+	PROOF_CACHE_MEDIUM_DUR = 30 * time.Minute
+	PROOF_CACHE_SHORT_DUR  = 1 * time.Minute
+
+	SIG_SHORT_ID_BYTES = 27
+)
 
 var MerkleProdKIDs = []string{
 	"010159baae6c7d43c66adf8fb7bb2b8b4cbe408c062cfc369e693ccb18f85631dbcd0a",
@@ -49,17 +58,20 @@ var MerkleTestKIDs = []string{
 	"0101be58b6c82db64f6ccabb05088db443c69f87d5d48857d709ed6f73948dabe67d0a",
 }
 
-var KEYBASE_KID_V1 = 1 // Uses SHA-256
-var KEYBASE_KID_V2 = 2 // Uses Shake256
-var KEYBASE_SIGNATURE_V1 = 1
-var SIG_EXPIRE_IN = 24 * 60 * 60 * 365 * 10       // 10 years
-var NACL_EDDSA_EXPIRE_IN = 24 * 60 * 60 * 365 * 3 // 3 years
-var NACL_DH_EXPIRE_IN = 24 * 60 * 60 * 365 * 3    // 3 years
-var AUTH_EXPIRE_IN = 24 * 60 * 60 * 365           // 1 year
-var KEY_EXPIRE_IN = 24 * 60 * 60 * 365 * 8        // 8 years
-var SUBKEY_EXPIRE_IN = 24 * 60 * 60 * 365 * 4     // 4 years
+const (
+	KEYBASE_KID_V1       = 1 // Uses SHA-256
+	KEYBASE_KID_V2       = 2 // Uses Shake256
+	KEYBASE_SIGNATURE_V1 = 1
 
-var TRACK_SESSION_TIMEOUT = time.Minute
+	SIG_EXPIRE_IN        = 24 * 60 * 60 * 365 * 10 // 10 years
+	NACL_EDDSA_EXPIRE_IN = 24 * 60 * 60 * 365 * 3  // 3 years
+	NACL_DH_EXPIRE_IN    = 24 * 60 * 60 * 365 * 3  // 3 years
+	AUTH_EXPIRE_IN       = 24 * 60 * 60 * 365      // 1 year
+	KEY_EXPIRE_IN        = 24 * 60 * 60 * 365 * 8  // 8 years
+	SUBKEY_EXPIRE_IN     = 24 * 60 * 60 * 365 * 4  // 4 years
+
+	TRACK_SESSION_TIMEOUT = time.Minute
+)
 
 // Status codes.  This list should match keybase/lib/constants.iced.
 const (
@@ -138,7 +150,7 @@ const (
 
 const DOWNLOAD_URL = "https://keybase.io/download"
 
-var PGP_VERSION = "Keybase Go " + CLIENT_VERSION + " (" + runtime.GOOS + ")"
+var PGP_VERSION = "Keybase Go " + ClientVersion + " (" + runtime.GOOS + ")"
 
 var PgpArmorHeaders = map[string]string{
 	"Version": PGP_VERSION,
@@ -167,14 +179,14 @@ var RemoteServiceOrder = []keybase1.ProofType{
 	keybase1.ProofType_GENERIC_WEB_SITE,
 }
 
-var CANONICAL_HOST = "keybase.io"
+const CANONICAL_HOST = "keybase.io"
 
 const (
 	HTTP_DEFAULT_TIMEOUT = 10 * time.Second
 )
 
 // Packet tags for OpenPGP and also Keybase packets
-var (
+const (
 	KEYBASE_PACKET_V1 = 1
 	TAG_P3SKB         = 513
 	TAG_SIGNATURE     = 514
@@ -192,7 +204,7 @@ const (
 )
 
 // OpenPGP hash IDs, taken from http://tools.ietf.org/html/rfc4880#section-9.4
-var (
+const (
 	HASH_PGP_MD5       = 1
 	HASH_PGP_SHA1      = 2
 	HASH_PGP_RIPEMD160 = 3
@@ -202,16 +214,16 @@ var (
 	HASH_PGP_SHA224    = 11
 )
 
-var (
+const (
 	SIG_KB_EDDSA = KID_NACL_EDDSA
 )
 
-var (
+const (
 	SERVER_UPDATE_LAG = time.Minute
 )
 
 // key_revocation_types
-var (
+const (
 	REV_SIMPLE_DELETE = 0
 	REV_FULL          = 1
 	REV_DATED         = 2

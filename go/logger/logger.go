@@ -15,7 +15,7 @@ const (
 	niceFormat  = "%{color}▶ %{level:.4s} %{message} %{color:reset}"
 )
 
-var PERM_DIR os.FileMode = 0700
+const permDir os.FileMode = 0700
 
 type Logger struct {
 	logging.Logger
@@ -118,7 +118,7 @@ func MakeParentDirs(filename string) error {
 	}
 
 	if !exists {
-		err = os.MkdirAll(dir, PERM_DIR)
+		err = os.MkdirAll(dir, permDir)
 		if err != nil {
 			return err
 		}

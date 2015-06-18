@@ -109,7 +109,7 @@ func (ss *SecretSyncer) syncFromServer(uid keybase1.UID, sr SessionReader) (err 
 }
 
 func (ss *SecretSyncer) dbKey(uid keybase1.UID) DbKey {
-	return DbKeyUID(DB_USER_SECRET_KEYS, uid)
+	return DbKeyUID(DBUserSecretKeys, uid)
 }
 
 func (ss *SecretSyncer) store(uid keybase1.UID) (err error) {

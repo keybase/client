@@ -341,7 +341,7 @@ func (l *TrackLookup) GetCTime() time.Time {
 //=====================================================================
 
 func LocalTrackDBKey(tracker, trackee keybase1.UID) DbKey {
-	return DbKey{Typ: DB_LOCAL_TRACK, Key: fmt.Sprintf("%s-%s", tracker, trackee)}
+	return DbKey{Typ: DBLocalTrack, Key: fmt.Sprintf("%s-%s", tracker, trackee)}
 }
 
 //=====================================================================

@@ -237,7 +237,7 @@ func NewCommandLine(addHelp bool, extraFlags []cli.Flag) *CommandLine {
 func (p *CommandLine) PopulateApp(addHelp bool, extraFlags []cli.Flag) {
 	app := p.app
 	app.Name = "keybase"
-	app.Version = libkb.CLIENT_VERSION
+	app.Version = libkb.ClientVersion
 	app.Usage = "control keybase either with 1-off commands, " +
 		"or start a daemon"
 

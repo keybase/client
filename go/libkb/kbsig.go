@@ -16,8 +16,8 @@ import (
 
 func clientInfo() *jsonw.Wrapper {
 	ret := jsonw.NewDictionary()
-	ret.SetKey("version", jsonw.NewString(CLIENT_VERSION))
-	ret.SetKey("name", jsonw.NewString(GO_CLIENT_ID))
+	ret.SetKey("version", jsonw.NewString(ClientVersion))
+	ret.SetKey("name", jsonw.NewString(GoClientID))
 	return ret
 }
 

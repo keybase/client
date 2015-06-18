@@ -64,7 +64,7 @@ func (t *TrackerSyncer) Trackers() *Trackers {
 }
 
 func (t *TrackerSyncer) dbKey(uid keybase1.UID) DbKey {
-	return DbKeyUID(DB_TRACKERS, uid)
+	return DbKeyUID(DBTrackers, uid)
 }
 
 func (t *TrackerSyncer) loadFromStorage(uid keybase1.UID) (err error) {

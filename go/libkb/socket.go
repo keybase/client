@@ -55,7 +55,7 @@ func DialSocket(info SocketInfo) (ret net.Conn, err error) {
 func ConfigureSocketInfo() (ret SocketInfo, err error) {
 	port := G.Env.GetDaemonPort()
 	if runtime.GOOS == "windows" && port == 0 {
-		port = DAEMON_PORT
+		port = DaemonPort
 	}
 	if port != 0 {
 		ret = SocketInfoTCP{port}

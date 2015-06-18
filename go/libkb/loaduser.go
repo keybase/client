@@ -198,7 +198,7 @@ func loadUser(uid keybase1.UID, rres ResolveResult, force bool) (*User, error) {
 
 func LoadUserFromLocalStorage(uid keybase1.UID) (u *User, err error) {
 	G.Log.Debug("+ LoadUserFromLocalStorage(%s)", uid)
-	jw, err := G.LocalDb.Get(DbKeyUID(DB_USER, uid))
+	jw, err := G.LocalDb.Get(DbKeyUID(DBUser, uid))
 	if err != nil {
 		return nil, err
 	}

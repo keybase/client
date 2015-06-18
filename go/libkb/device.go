@@ -8,11 +8,11 @@ import (
 )
 
 const (
-	DEVICE_ID_LEN    = 16
-	DEVICE_ID_SUFFIX = 0x18
+	DeviceIDLen    = 16
+	DeviceIDSuffix = 0x18
 )
 
-type DeviceID [DEVICE_ID_LEN]byte
+type DeviceID [DeviceIDLen]byte
 
 func (d DeviceID) String() string {
 	return hex.EncodeToString(d[:])
@@ -20,18 +20,18 @@ func (d DeviceID) String() string {
 
 func NewDeviceID() (id DeviceID, err error) {
 	var b []byte
-	b, err = RandBytes(DEVICE_ID_LEN)
+	b, err = RandBytes(DeviceIDLen)
 	if err != nil {
 		return id, err
 	}
-	b[DEVICE_ID_LEN-1] = DEVICE_ID_SUFFIX
+	b[DeviceIDLen-1] = DeviceIDSuffix
 	copy(id[:], b)
 	return id, nil
 }
 
 func ImportDeviceID(s string) (d *DeviceID, err error) {
-	if len(s) != 2*DEVICE_ID_LEN {
-		err = fmt.Errorf("Bad Deviced ID length: %d", len(s))
+	if len(s) != 2*DeviceIDLen {
+		err = fmt.Errorf("Bad Device ID length: %d", len(s))
 		return
 	}
 	var tmp []byte
@@ -40,7 +40,7 @@ func ImportDeviceID(s string) (d *DeviceID, err error) {
 		return
 	}
 
-	if c := tmp[DEVICE_ID_LEN-1]; c != DEVICE_ID_SUFFIX {
+	if c := tmp[DeviceIDLen-1]; c != DeviceIDSuffix {
 		err = fmt.Errorf("Bad suffix byte: %02x", c)
 		return
 	}

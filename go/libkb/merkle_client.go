@@ -15,8 +15,8 @@ import (
 type Seqno int64
 
 const (
-	NODE_HASH_LEN_LONG  = sha512.Size // = 64
-	NODE_HASH_LEN_SHORT = sha256.Size // = 32
+	NodeHashLenLong  = sha512.Size // = 64
+	NodeHashLenShort = sha256.Size // = 32
 )
 
 type NodeHash interface {
@@ -24,8 +24,8 @@ type NodeHash interface {
 	String() string
 }
 
-type NodeHashShort [NODE_HASH_LEN_SHORT]byte
-type NodeHashLong [NODE_HASH_LEN_LONG]byte
+type NodeHashShort [NodeHashLenShort]byte
+type NodeHashLong [NodeHashLenLong]byte
 
 func (h1 NodeHashShort) Check(s string) bool {
 	h2 := sha256.Sum256([]byte(s))
@@ -101,16 +101,16 @@ type PathStep struct {
 }
 
 func NodeHashFromHex(s string) (NodeHash, error) {
-	buf := make([]byte, NODE_HASH_LEN_LONG)
+	buf := make([]byte, NodeHashLenLong)
 	n, err := hex.Decode(buf, []byte(s))
 	var ret NodeHash
 	if err != nil {
 		// Noop
-	} else if n == NODE_HASH_LEN_LONG {
+	} else if n == NodeHashLenLong {
 		var tmp NodeHashLong
 		copy([]byte(tmp[:]), buf)
 		ret = tmp
-	} else if n == NODE_HASH_LEN_SHORT {
+	} else if n == NodeHashLenShort {
 		var tmp NodeHashShort
 		copy([]byte(tmp[:]), buf)
 		ret = tmp
@@ -152,7 +152,7 @@ func (mc *MerkleClient) Init() error {
 
 func merkleHeadKey() DbKey {
 	return DbKey{
-		Typ: DB_LOOKUP_MERKLE_ROOT,
+		Typ: DBLookupMerkleRoot,
 		Key: "HEAD",
 	}
 }
@@ -180,7 +180,7 @@ func (mc *MerkleClient) LoadRoot() error {
 
 func (mr *MerkleRoot) Store() error {
 	err := G.LocalDb.Put(DbKey{
-		Typ: DB_MERKLE_ROOT,
+		Typ: DBMerkleRoot,
 		Key: fmt.Sprintf("%d", mr.seqno),
 	},
 		[]DbKey{merkleHeadKey()},

@@ -22,7 +22,7 @@ func CodecHandle() *codec.MsgpackHandle {
 	return &mh
 }
 
-var SHA256_CODE = 8
+const SHA256Code = 8
 
 type KeybasePacketHash struct {
 	Type  int    `codec:"type"`
@@ -48,7 +48,7 @@ func (p *KeybasePacket) HashToBytes() (ret []byte, err error) {
 		p.Hash.Value = tmp
 	}()
 	p.Hash.Value = zb[:]
-	p.Hash.Type = SHA256_CODE
+	p.Hash.Type = SHA256Code
 
 	var encoded []byte
 	if encoded, err = p.Encode(); err != nil {
@@ -73,7 +73,7 @@ func (p *KeybasePacket) CheckHash() error {
 		return nil
 	}
 	given := p.Hash.Value
-	if p.Hash.Type != SHA256_CODE {
+	if p.Hash.Type != SHA256Code {
 		err = fmt.Errorf("Bad hash code: %d", p.Hash.Type)
 	} else if gotten, err = p.HashToBytes(); err != nil {
 
