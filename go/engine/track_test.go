@@ -35,7 +35,7 @@ func runTrackWithOptions(tc libkb.TestContext, fu *FakeUser, username string, op
 	return
 }
 
-func assertTracked(t *testing.T, fu *FakeUser, theirName string) {
+func assertTracking(t *testing.T, theirName string) {
 	me, err := libkb.LoadMe(libkb.LoadUserArg{})
 	if err != nil {
 		t.Fatal(err)
@@ -81,7 +81,7 @@ func trackAliceWithOptions(tc libkb.TestContext, fu *FakeUser, options TrackOpti
 		tc.T.Fatal(err)
 	}
 	checkAliceProofs(tc.T, idUI, res)
-	assertTracked(tc.T, fu, "t_alice")
+	assertTracking(tc.T, "t_alice")
 	return
 }
 
@@ -95,7 +95,7 @@ func trackBobWithOptions(tc libkb.TestContext, fu *FakeUser, options TrackOption
 		tc.T.Fatal(err)
 	}
 	checkBobProofs(tc.T, idUI, res)
-	assertTracked(tc.T, fu, "t_bob")
+	assertTracking(tc.T, "t_bob")
 	return
 }
 

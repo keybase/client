@@ -43,5 +43,5 @@ func trackWithToken(tc libkb.TestContext, fu *FakeUser, username string) {
 	}
 
 	defer runUntrack(tc.G, fu, username)
-	assertTracked(tc.T, fu, username)
+	assertTracking(tc.T, username)
 }

@@ -18,7 +18,7 @@ func runUntrack(g *libkb.GlobalContext, fu *FakeUser, username string) error {
 	return RunEngine(eng, &ctx)
 }
 
-func assertUntracked(t *testing.T, fu *FakeUser, theirName string) {
+func assertUntracked(t *testing.T, theirName string) {
 	me, err := libkb.LoadMe(libkb.LoadUserArg{})
 	if err != nil {
 		t.Fatal(err)
@@ -68,20 +68,20 @@ func TestUntrack(t *testing.T) {
 
 	// Local-tracked only.
 	trackAliceWithOptions(tc, fu, TrackOptions{TrackLocalOnly: true})
-	assertTracked(t, fu, "t_alice")
+	assertTracking(t, "t_alice")
 	untrackAlice(tc, fu)
-	assertUntracked(t, fu, "t_alice")
+	assertUntracked(t, "t_alice")
 
 	// Remote-tracked only.
 	trackAliceWithOptions(tc, fu, TrackOptions{TrackLocalOnly: false})
 	untrackAlice(tc, fu)
-	assertUntracked(t, fu, "t_alice")
+	assertUntracked(t, "t_alice")
 
 	// Both local- and remote-tracked.
 	trackAliceWithOptions(tc, fu, TrackOptions{TrackLocalOnly: true})
 	trackAliceWithOptions(tc, fu, TrackOptions{TrackLocalOnly: false})
 	untrackAlice(tc, fu)
-	assertUntracked(t, fu, "t_alice")
+	assertUntracked(t, "t_alice")
 
 	// Assert that we gracefully handle cases where there is nothing to untrack.
 	err := runUntrack(tc.G, fu, "t_alice")
@@ -107,5 +107,5 @@ func TestUntrackRemoteOnly(t *testing.T) {
 
 	trackAliceWithOptions(tc, fu, TrackOptions{TrackLocalOnly: false})
 	untrackAlice(tc, fu)
-	assertUntracked(t, fu, "t_alice")
+	assertUntracked(t, "t_alice")
 }

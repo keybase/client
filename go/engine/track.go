@@ -67,6 +67,10 @@ func (e *TrackEngine) Run(ctx *Context) error {
 		return err
 	}
 	ti := libkb.ImportFinishAndPromptRes(tmp)
+	if !ti.Local && !ti.Remote {
+		e.G().Log.Debug("no tracking desired via ui")
+		return nil
+	}
 
 	// now proceed to track with the token and the result of user interaction:
 	if !ti.Remote {
