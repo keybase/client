@@ -11,7 +11,6 @@ import (
 )
 
 type KID []byte
-type KID2 []byte
 
 func (k KID) Match(q string, exact bool) bool {
 	if k == nil {

@@ -175,7 +175,7 @@ func (e *PGPKeyExportEngine) Run(ctx *Context) (err error) {
 	}()
 
 	if e.qtype == unset {
-		return fmt.Errorf("PGPKeyExportEngine: query type not set.")
+		return fmt.Errorf("PGPKeyExportEngine: query type not set")
 	}
 
 	if err = e.loadMe(); err != nil {
