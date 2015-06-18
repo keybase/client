@@ -2,7 +2,6 @@ package engine
 
 import (
 	"bytes"
-	"fmt"
 	"os"
 	"strings"
 	"testing"
@@ -265,74 +264,47 @@ type cstest struct {
 }
 
 var cstests = []cstest{
-	{name: "ascii", msg: clearsignASCII},
-	{name: "emoji", msg: clearsignEmoji},
+	{name: "ascii", msg: "hello"},
+	{name: "emoji", msg: "😓😕😙"},
 }
 
 func TestPGPDecryptClearsign(t *testing.T) {
-	t.Skip()
 	tc := SetupEngineTest(t, "PGPDecrypt")
 	defer tc.Cleanup()
 
+	fu := createFakeUserWithPGPSibkey(tc)
+	ctx := decengctx(fu, tc)
+
 	for _, test := range cstests {
+		signedMsg := sign(ctx, tc, test.msg, keybase1.SignMode_CLEAR)
+		t.Logf("%s: signed message:\n\n%s\n", test.name, signedMsg)
+
 		decoded := libkb.NewBufferCloser()
 		arg := &PGPDecryptArg{
-			Source: strings.NewReader(test.msg),
+			Source: strings.NewReader(signedMsg),
 			Sink:   decoded,
-		}
-		ctx := &Context{
-			SecretUI:   libkb.TestSecretUI{},
-			LogUI:      tc.G.UI.GetLogUI(),
-			IdentifyUI: &FakeIdentifyUI{},
 		}
 		eng := NewPGPDecrypt(arg, tc.G)
 		if err := RunEngine(eng, ctx); err != nil {
-			t.Errorf("clearsign test %q error: %q", test.name, err)
+			t.Errorf("%s: decrypt error: %q", test.name, err)
 			continue
 		}
 		msg := decoded.Bytes()
-		fmt.Printf("clearsign test %q decoded message: %s\n", test.name, string(msg))
+		trimmed := strings.TrimSpace(string(msg))
+		t.Logf("clearsign test %q decoded message: %s\n", test.name, trimmed)
+		if trimmed != test.msg {
+			t.Errorf("%s: expected msg %q, got %q", test.name, test.msg, trimmed)
+		}
+
+		status := eng.SignatureStatus()
+		if !status.IsSigned {
+			t.Errorf("%s: expected IsSigned", test.name)
+		}
+		if !status.Verified {
+			t.Errorf("%s: expected Verified", test.name)
+		}
+		if status.Entity == nil {
+			t.Errorf("%s: signature status entity is nil", test.name)
+		}
 	}
 }
-
-const clearsignASCII = `-----BEGIN PGP SIGNED MESSAGE-----
-Hash: SHA256
-
-hello
------BEGIN PGP SIGNATURE-----
-
-wsFcBAEBCAAQBQJVgt0ACRAUYRAuxcGVygAAVJgQAA6lcAR4uEskffx/CiGcicc5
-EVy3nKHJiClQFUtLnZdi0isOCl+uPnOM6snwo/4u4mctdZ01/bfCNwpWAxhQDSsV
-QK2kXhx94YtW0Pp3QRMdiMFzrKdLFNLCYbcwJuiacPbPC+BfumO/mFq8HSTvrWjN
-dR3/kY6do/9X/MZYY4IMMKj6H6j1ypXEUbPsMntyovuQtnreR70wxCR5/L/mTZNS
-effxf6A96nR5lWrXygGeMDLbdsOopo6ZMTn6dLIbIoBQZGO/Js2O8x0EPZe23fSl
-yut0drDDWzEW153xzSal5BSGR/Iui+TMX9LUlgdNu0qolHIp8aH1ky1xxwvG/EF+
-MoxSSjyes71YgWeUmWoxNWjVQ2v11gQ58Lz0wMXegGiphAA8tkULPxCrm3PJXCuu
-AFswYTyuwG/AYv/KAZMrXPw9yC6vsZMOOgk3vf1QhzjCgBxFT477/JSR3bqSg6s2
-ZGiJ4OBKJb4LKOGUcaM0W+eGT9eRTIeclvuwuCaTh2mKGDfy1RHMZhfH6CiMftfK
-5ZvLZizsLbGyFIIo2CMWg2/Rr89+f4bZl7y0CWlTeF3kqZr5s0F7MbsbHvgLNjq4
-YBFIBja0A+E9DJYfUqewQwgpm921dJocs9Y65cPEXfUIvws8wAJRD90RpsMOTcoy
-TVM6xjjo0vS3UghBY0Zz
-=yDdF
------END PGP SIGNATURE-----`
-
-const clearsignEmoji = `-----BEGIN PGP SIGNED MESSAGE-----
-Hash: SHA256
-
-😓😕😙
------BEGIN PGP SIGNATURE-----
-
-wsFcBAEBCAAQBQJVcdygCRAOCFVquTBgxAAAJKMQALh5LT64AcX6crOZl0d+RqNJ
-2SlzCgOSd9pUeEzybz2hwHQg43/2RexwWMXFTwklLypsialSun4xy9YODp6KDUzk
-zeVBxbvYdYJehDS6LQKy/8He9aQDjmwX6kXnrBKRBWY9vKYq5tigv3qgJ2RgbURv
-+7Y4SIyDRKwy9IwwH/zO48u1pxqdPZKaG7P3csjjE6LWWCoywuSLaZnJm9Zp+tQS
-BQu4BIUXkfqMv2svbglgPXMMppvandtKsKSAbC2exibmG4WvugOJEPZlBDHMJVc1
-/TRNCyBXSuTMBBTxgn4oU/t9Ug/u6l26UZIHNZMHjHWv6oKzEwKVStAgnaTtpTnO
-8W5/ZywUBQZvhpZNE1h4k8u3QWz7Yva4A/sok0/FSteHqH40pCrAj7fVzXshnxTT
-ezVqj8oiArXGbYXyDATnPXpUO93ji76U7DIrxm6y4wz7AcOwVlU1N2SJ8IXpEJLt
-SO0TWUhR4Mr8FoQtUknpNysyDdtvib+R70Lu6LORL57moKCXDvzFXeb3j3oqdjPk
-o8iVSK4lDWpdbWNcEtvzFJF+idROZV0STnFYWHwDAAdza4nxB9rgD+Vbg6hURv3C
-teSqjQl5mFedYsH4VPxLnHI/fsOd16Toy7SQM8jz25EmK3wkFBgJLvVSoZyoOyjS
-IOCGPgZFGCq6qb1te9up
-=BQ89
------END PGP SIGNATURE-----`

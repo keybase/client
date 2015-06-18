@@ -1,10 +1,14 @@
 package libkb
 
 import (
+	"bytes"
+	"fmt"
 	"io"
+	"io/ioutil"
 
 	"golang.org/x/crypto/openpgp"
 	"golang.org/x/crypto/openpgp/armor"
+	"golang.org/x/crypto/openpgp/clearsign"
 	"golang.org/x/crypto/openpgp/errors"
 )
 
@@ -26,14 +30,15 @@ func PGPDecryptWithBundles(source io.Reader, sink io.Writer, keys []*PgpKeyBundl
 
 func PGPDecrypt(source io.Reader, sink io.Writer, kr openpgp.KeyRing) (*SignatureStatus, error) {
 	peeker := NewPeeker(source)
-	head := make([]byte, 10)
-	_, err := peeker.Peek(head)
-	if err != nil {
-		return nil, err
-	}
 
 	var r io.Reader = peeker
-	if IsArmored(head) {
+
+	armored, clearsigned := PGPDetect(peeker)
+	if clearsigned {
+		return pgpDecryptClearsign(peeker, sink, kr)
+	}
+
+	if armored {
 		b, err := armor.Decode(r)
 		if err != nil {
 			return nil, err
@@ -72,6 +77,41 @@ func PGPDecrypt(source io.Reader, sink io.Writer, kr openpgp.KeyRing) (*Signatur
 			status.Verified = true
 		}
 	}
+
+	return &status, nil
+}
+
+func pgpDecryptClearsign(source io.Reader, sink io.Writer, kr openpgp.KeyRing) (*SignatureStatus, error) {
+	// clearsign decode only works with the whole data slice, not a reader
+	// so have to read it all here:
+	msg, err := ioutil.ReadAll(source)
+	if err != nil {
+		return nil, err
+	}
+	b, _ := clearsign.Decode(msg)
+	if b == nil {
+		return nil, fmt.Errorf("Unable to decode clearsigned message")
+	}
+
+	signer, err := openpgp.CheckDetachedSignature(kr, bytes.NewReader(b.Bytes), b.ArmoredSignature.Body)
+	if err != nil {
+		return nil, fmt.Errorf("Check sig error: %s", err)
+	}
+
+	n, err := io.Copy(sink, bytes.NewReader(b.Plaintext))
+	if err != nil {
+		return nil, err
+	}
+	G.Log.Debug("PGPDecrypt: copied %d bytes to writer", n)
+
+	var status SignatureStatus
+	if signer == nil {
+		return &status, nil
+	}
+
+	status.IsSigned = true
+	status.Verified = true
+	status.Entity = signer
 
 	return &status, nil
 }

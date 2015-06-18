@@ -246,6 +246,17 @@ func IsClearsign(p *Peeker) bool {
 	return bytes.HasPrefix(bytes.TrimSpace(start), clearStart)
 }
 
+func PGPDetect(p *Peeker) (armored, clearsign bool) {
+	start := make([]byte, len(clearStart)+1)
+	_, err := p.Peek(start)
+	if err != nil {
+		return
+	}
+	clearsign = bytes.HasPrefix(bytes.TrimSpace(start), clearStart)
+	armored = IsArmored(start)
+	return
+}
+
 func RandInt64() (int64, error) {
 	max := big.NewInt(math.MaxInt64)
 	x, err := rand.Int(rand.Reader, max)
