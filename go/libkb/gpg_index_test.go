@@ -8,7 +8,7 @@ import (
 
 func parse(t *testing.T) *GpgKeyIndex {
 	buf := bytes.NewBufferString(myKeyring)
-	i, e, w := ParseGpgIndexStream(buf)
+	i, w, e := ParseGpgIndexStream(buf)
 	if e != nil {
 		t.Fatalf("failure in parse: %s", e)
 	}

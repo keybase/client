@@ -94,7 +94,7 @@ func (e *GPGImportKeyEngine) Run(ctx *Context) (err error) {
 	if _, err = gpg.Configure(); err != nil {
 		return err
 	}
-	index, err, warns := gpg.Index(true, e.arg.Query)
+	index, warns, err := gpg.Index(true, e.arg.Query)
 	if err != nil {
 		return err
 	}

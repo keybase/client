@@ -494,7 +494,7 @@ func (p *GpgIndexParser) Parse(stream io.Reader) (ki *GpgKeyIndex, err error) {
 
 //=============================================================================
 
-func ParseGpgIndexStream(stream io.Reader) (ki *GpgKeyIndex, err error, w Warnings) {
+func ParseGpgIndexStream(stream io.Reader) (ki *GpgKeyIndex, w Warnings, err error) {
 	eng := NewGpgIndexParser()
 	ki, err = eng.Parse(stream)
 	w = eng.warnings
@@ -503,7 +503,7 @@ func ParseGpgIndexStream(stream io.Reader) (ki *GpgKeyIndex, err error, w Warnin
 
 //=============================================================================
 
-func (g *GpgCLI) Index(secret bool, query string) (ki *GpgKeyIndex, err error, w Warnings) {
+func (g *GpgCLI) Index(secret bool, query string) (ki *GpgKeyIndex, w Warnings, err error) {
 	var k string
 	if secret {
 		k = "-K"
@@ -520,7 +520,7 @@ func (g *GpgCLI) Index(secret bool, query string) (ki *GpgKeyIndex, err error, w
 	}
 	if res := g.Run2(garg); res.Err != nil {
 		err = res.Err
-	} else if ki, err, w = ParseGpgIndexStream(res.Stdout); err != nil {
+	} else if ki, w, err = ParseGpgIndexStream(res.Stdout); err != nil {
 	} else {
 		err = res.Wait()
 	}

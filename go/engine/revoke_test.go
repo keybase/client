@@ -66,7 +66,7 @@ func TestRevokeDevice(t *testing.T) {
 		t.Fatal("Expected to find a web device.")
 	}
 
-	doRevoke(tc, u, webDevice.Id, RevokeDevice)
+	doRevoke(tc, u, webDevice.ID, RevokeDevice)
 
 	assertNumDevicesAndKeys(t, u, 1, 2)
 }

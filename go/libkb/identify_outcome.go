@@ -138,7 +138,7 @@ func (i IdentifyOutcome) TrackingStatement() *jsonw.Wrapper {
 	return i.remoteProofLinks().TrackingStatement()
 }
 
-func (i IdentifyOutcome) GetErrorAndWarnings(strict bool) (err error, warnings Warnings) {
+func (i IdentifyOutcome) GetErrorAndWarnings(strict bool) (warnings Warnings, err error) {
 
 	if i.Error != nil {
 		err = i.Error
@@ -178,11 +178,11 @@ func (i IdentifyOutcome) GetErrorAndWarnings(strict bool) (err error, warnings W
 }
 
 func (i IdentifyOutcome) GetError() error {
-	e, _ := i.GetErrorAndWarnings(true)
+	_, e := i.GetErrorAndWarnings(true)
 	return e
 }
 
-func (i IdentifyOutcome) GetErrorLax() (error, Warnings) {
+func (i IdentifyOutcome) GetErrorLax() (Warnings, error) {
 	return i.GetErrorAndWarnings(true)
 }
 

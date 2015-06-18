@@ -58,7 +58,7 @@ func TestListTrackingJSON(t *testing.T) {
 	trackAlice(tc, fu)
 	defer untrackAlice(tc, fu)
 
-	arg := ListTrackingEngineArg{Json: true, Verbose: true}
+	arg := ListTrackingEngineArg{JSON: true, Verbose: true}
 	eng := NewListTrackingEngine(&arg, tc.G)
 	ctx := Context{}
 	err := RunEngine(eng, &ctx)
