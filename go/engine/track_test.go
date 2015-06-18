@@ -53,6 +53,24 @@ func assertTracked(t *testing.T, fu *FakeUser, theirName string) {
 	}
 }
 
+func assertNotTracking(t *testing.T, theirName string) {
+	me, err := libkb.LoadMe(libkb.LoadUserArg{})
+	if err != nil {
+		t.Fatal(err)
+	}
+	them, err := libkb.LoadUser(libkb.LoadUserArg{Name: theirName})
+	if err != nil {
+		t.Fatal(err)
+	}
+	s, err := me.GetTrackingStatementFor(them.GetName(), them.GetUID())
+	if err != nil {
+		t.Fatal(err)
+	}
+	if s != nil {
+		t.Errorf("a tracking statement exists for %s -> %s", me.GetName(), them.GetName())
+	}
+}
+
 func trackAlice(tc libkb.TestContext, fu *FakeUser) {
 	trackAliceWithOptions(tc, fu, TrackOptions{})
 }
