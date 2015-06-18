@@ -40,8 +40,8 @@ func (e *PGPEncrypt) Name() string {
 }
 
 // GetPrereqs returns the engine prereqs.
-func (e *PGPEncrypt) GetPrereqs() EnginePrereqs {
-	return EnginePrereqs{}
+func (e *PGPEncrypt) Prereqs() Prereqs {
+	return Prereqs{}
 }
 
 // RequiredUIs returns the required UIs.

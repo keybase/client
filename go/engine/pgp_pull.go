@@ -29,8 +29,8 @@ func (e *PGPPullEngine) Name() string {
 	return "PGPPull"
 }
 
-func (e *PGPPullEngine) GetPrereqs() EnginePrereqs {
-	return EnginePrereqs{
+func (e *PGPPullEngine) Prereqs() Prereqs {
+	return Prereqs{
 		Session: true,
 	}
 }

@@ -31,8 +31,8 @@ func (e *TrackEngine) Name() string {
 	return "Track"
 }
 
-func (e *TrackEngine) GetPrereqs() EnginePrereqs {
-	return EnginePrereqs{
+func (e *TrackEngine) Prereqs() Prereqs {
+	return Prereqs{
 		Session: true,
 	}
 }

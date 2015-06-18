@@ -32,8 +32,8 @@ func (e *RevokeEngine) Name() string {
 	return "Revoke"
 }
 
-func (e *RevokeEngine) GetPrereqs() EnginePrereqs {
-	return EnginePrereqs{
+func (e *RevokeEngine) Prereqs() Prereqs {
+	return Prereqs{
 		Session: true,
 	}
 }

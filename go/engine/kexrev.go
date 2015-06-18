@@ -24,8 +24,8 @@ func (k *KexRev) Name() string {
 	return "KexRev"
 }
 
-func (k *KexRev) GetPrereqs() EnginePrereqs {
-	return EnginePrereqs{Session: true}
+func (k *KexRev) Prereqs() Prereqs {
+	return Prereqs{Session: true}
 }
 
 func (k *KexRev) RequiredUIs() []libkb.UIKind {

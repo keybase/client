@@ -68,7 +68,7 @@ func (e *LoginEngine) Name() string {
 	return "Login"
 }
 
-func (e *LoginEngine) GetPrereqs() EnginePrereqs { return EnginePrereqs{} }
+func (e *LoginEngine) Prereqs() Prereqs { return Prereqs{} }
 
 func (e *LoginEngine) RequiredUIs() []libkb.UIKind {
 	return e.requiredUIs

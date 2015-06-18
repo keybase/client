@@ -66,8 +66,8 @@ func (e *DeviceKeygen) Name() string {
 }
 
 // GetPrereqs returns the engine prereqs.
-func (e *DeviceKeygen) GetPrereqs() EnginePrereqs {
-	return EnginePrereqs{Session: true}
+func (e *DeviceKeygen) Prereqs() Prereqs {
+	return Prereqs{Session: true}
 }
 
 // RequiredUIs returns the required UIs.

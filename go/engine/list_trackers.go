@@ -38,12 +38,12 @@ func (e *ListTrackersEngine) Name() string {
 }
 
 // GetPrereqs returns the engine prereqs (none).
-func (e *ListTrackersEngine) GetPrereqs() EnginePrereqs {
+func (e *ListTrackersEngine) Prereqs() Prereqs {
 	session := false
 	if e.uid.IsNil() && len(e.username) == 0 {
 		session = true
 	}
-	return EnginePrereqs{Session: session}
+	return Prereqs{Session: session}
 }
 
 // RequiredUIs returns the required UIs.

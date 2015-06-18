@@ -36,8 +36,8 @@ func NewGPGImportKeyEngine(arg *GPGImportKeyArg, g *libkb.GlobalContext) *GPGImp
 	}
 }
 
-func (e *GPGImportKeyEngine) GetPrereqs() EnginePrereqs {
-	return EnginePrereqs{
+func (e *GPGImportKeyEngine) Prereqs() Prereqs {
+	return Prereqs{
 		Session: true,
 	}
 }

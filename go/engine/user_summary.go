@@ -26,8 +26,8 @@ func (e *UserSummary) Name() string {
 }
 
 // GetPrereqs returns the engine prereqs (none).
-func (e *UserSummary) GetPrereqs() EnginePrereqs {
-	return EnginePrereqs{}
+func (e *UserSummary) Prereqs() Prereqs {
+	return Prereqs{}
 }
 
 // RequiredUIs returns the required UIs.

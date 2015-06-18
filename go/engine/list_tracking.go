@@ -48,7 +48,7 @@ func (e *ListTrackingEngine) Name() string {
 	return "ListTracking"
 }
 
-func (e *ListTrackingEngine) GetPrereqs() EnginePrereqs { return EnginePrereqs{} }
+func (e *ListTrackingEngine) Prereqs() Prereqs { return Prereqs{} }
 
 func (e *ListTrackingEngine) RequiredUIs() []libkb.UIKind { return []libkb.UIKind{} }
 

@@ -41,8 +41,8 @@ func (k *KexFwd) Name() string {
 	return "KexFwd"
 }
 
-func (k *KexFwd) GetPrereqs() EnginePrereqs {
-	return EnginePrereqs{Session: true}
+func (k *KexFwd) Prereqs() Prereqs {
+	return Prereqs{Session: true}
 }
 
 func (k *KexFwd) RequiredUIs() []libkb.UIKind {

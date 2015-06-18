@@ -44,7 +44,7 @@ func (s *SignupEngine) RequiredUIs() []libkb.UIKind {
 	return nil
 }
 
-func (s *SignupEngine) GetPrereqs() EnginePrereqs { return EnginePrereqs{} }
+func (s *SignupEngine) Prereqs() Prereqs { return Prereqs{} }
 
 func (s *SignupEngine) SubConsumers() []libkb.UIConsumer {
 	return []libkb.UIConsumer{

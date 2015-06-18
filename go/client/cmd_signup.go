@@ -405,7 +405,7 @@ func (e *ClientModeSignupEngine) SubConsumers() []libkb.UIConsumer {
 	return nil
 }
 
-func (e *ClientModeSignupEngine) GetPrereqs() (ret engine.EnginePrereqs) { return }
+func (e *ClientModeSignupEngine) Prereqs() (ret engine.Prereqs) { return }
 
 func (e *ClientModeSignupEngine) CheckRegistered() (err error) {
 	G.Log.Debug("+ ClientModeSignupEngine::CheckRegistered")

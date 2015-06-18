@@ -64,9 +64,9 @@ func (e *Identify) Name() string {
 }
 
 // GetPrereqs returns the engine prereqs.
-func (e *Identify) GetPrereqs() EnginePrereqs {
+func (e *Identify) Prereqs() Prereqs {
 	// if WithTracking is on, we need to be logged in
-	return EnginePrereqs{Session: e.arg.WithTracking}
+	return Prereqs{Session: e.arg.WithTracking}
 }
 
 // RequiredUIs returns the required UIs.

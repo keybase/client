@@ -40,8 +40,8 @@ func (e *TrackToken) Name() string {
 }
 
 // GetPrereqs returns the engine prereqs.
-func (e *TrackToken) GetPrereqs() EnginePrereqs {
-	return EnginePrereqs{
+func (e *TrackToken) Prereqs() Prereqs {
+	return Prereqs{
 		Session: true,
 	}
 }

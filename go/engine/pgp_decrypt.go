@@ -38,8 +38,8 @@ func (e *PGPDecrypt) Name() string {
 }
 
 // GetPrereqs returns the engine prereqs.
-func (e *PGPDecrypt) GetPrereqs() EnginePrereqs {
-	return EnginePrereqs{}
+func (e *PGPDecrypt) Prereqs() Prereqs {
+	return Prereqs{}
 }
 
 // RequiredUIs returns the required UIs.

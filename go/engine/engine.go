@@ -7,19 +7,19 @@ import (
 	"github.com/keybase/client/go/libkb"
 )
 
-type EnginePrereqs struct {
+type Prereqs struct {
 	Session bool
 }
 
 type Engine interface {
 	Run(ctx *Context) error
-	GetPrereqs() EnginePrereqs
+	Prereqs() Prereqs
 	libkb.UIConsumer
 	G() *libkb.GlobalContext
 }
 
 func runPrereqs(e Engine, ctx *Context) (err error) {
-	prq := e.GetPrereqs()
+	prq := e.Prereqs()
 
 	if prq.Session {
 		var ok bool

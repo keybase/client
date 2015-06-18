@@ -36,8 +36,8 @@ func (e *PGPKeyfinder) Name() string {
 }
 
 // GetPrereqs returns the engine prereqs.
-func (e *PGPKeyfinder) GetPrereqs() EnginePrereqs {
-	return EnginePrereqs{}
+func (e *PGPKeyfinder) Prereqs() Prereqs {
+	return Prereqs{}
 }
 
 // RequiredUIs returns the required UIs.

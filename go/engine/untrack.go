@@ -29,8 +29,8 @@ func (e *UntrackEngine) Name() string {
 	return "Untrack"
 }
 
-func (e *UntrackEngine) GetPrereqs() EnginePrereqs {
-	return EnginePrereqs{
+func (e *UntrackEngine) Prereqs() Prereqs {
+	return Prereqs{
 		Session: true,
 	}
 }

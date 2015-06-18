@@ -39,8 +39,8 @@ func (p *Prove) Name() string {
 }
 
 // GetPrereqs returns the engine prereqs.
-func (p *Prove) GetPrereqs() EnginePrereqs {
-	return EnginePrereqs{Session: true}
+func (p *Prove) Prereqs() Prereqs {
+	return Prereqs{Session: true}
 }
 
 // RequiredUIs returns the required UIs.

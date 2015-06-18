@@ -42,8 +42,8 @@ func (e *PGPVerify) Name() string {
 }
 
 // GetPrereqs returns the engine prereqs.
-func (e *PGPVerify) GetPrereqs() EnginePrereqs {
-	return EnginePrereqs{}
+func (e *PGPVerify) Prereqs() Prereqs {
+	return Prereqs{}
 }
 
 // RequiredUIs returns the required UIs.

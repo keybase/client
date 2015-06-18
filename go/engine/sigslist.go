@@ -41,8 +41,8 @@ func (e *SigsList) Name() string {
 }
 
 // GetPrereqs returns the engine prereqs.
-func (e *SigsList) GetPrereqs() EnginePrereqs {
-	return EnginePrereqs{}
+func (e *SigsList) Prereqs() Prereqs {
+	return Prereqs{}
 }
 
 // RequiredUIs returns the required UIs.

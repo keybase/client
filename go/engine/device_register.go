@@ -39,7 +39,7 @@ func (d *DeviceRegister) SubConsumers() []libkb.UIConsumer {
 	return nil
 }
 
-func (d *DeviceRegister) GetPrereqs() EnginePrereqs { return EnginePrereqs{} }
+func (d *DeviceRegister) Prereqs() Prereqs { return Prereqs{} }
 
 func (d *DeviceRegister) Run(ctx *Context) error {
 	if d.args.Me.HasDeviceInCurrentInstall() {

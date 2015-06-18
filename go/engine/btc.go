@@ -25,8 +25,8 @@ func (e *BTCEngine) Name() string {
 	return "BTC"
 }
 
-func (e *BTCEngine) GetPrereqs() EnginePrereqs {
-	return EnginePrereqs{
+func (e *BTCEngine) Prereqs() Prereqs {
+	return Prereqs{
 		Session: true,
 	}
 }

@@ -18,8 +18,8 @@ func (e *ResetEngine) Name() string {
 	return "Reset"
 }
 
-func (e *ResetEngine) GetPrereqs() EnginePrereqs {
-	return EnginePrereqs{}
+func (e *ResetEngine) Prereqs() Prereqs {
+	return Prereqs{}
 }
 
 func (e *ResetEngine) RequiredUIs() []libkb.UIKind {

@@ -22,8 +22,8 @@ type PGPSignArg struct {
 	Opts   keybase1.PgpSignOptions
 }
 
-func (p *PGPSignEngine) GetPrereqs() EnginePrereqs {
-	return EnginePrereqs{
+func (p *PGPSignEngine) Prereqs() Prereqs {
+	return Prereqs{
 		Session: true,
 	}
 }

@@ -25,8 +25,8 @@ func (d *DevList) Name() string {
 	return "DevList"
 }
 
-func (d *DevList) GetPrereqs() EnginePrereqs {
-	return EnginePrereqs{Session: true}
+func (d *DevList) Prereqs() Prereqs {
+	return Prereqs{Session: true}
 }
 
 func (d *DevList) RequiredUIs() []libkb.UIKind {

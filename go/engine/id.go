@@ -34,8 +34,8 @@ func (e *IDEngine) Name() string {
 	return "Id"
 }
 
-func (e *IDEngine) GetPrereqs() EnginePrereqs {
-	return EnginePrereqs{Session: e.arg.TrackStatement}
+func (e *IDEngine) Prereqs() Prereqs {
+	return Prereqs{Session: e.arg.TrackStatement}
 }
 
 func (e *IDEngine) RequiredUIs() []libkb.UIKind {

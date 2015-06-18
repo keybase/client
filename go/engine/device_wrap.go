@@ -36,8 +36,8 @@ func (e *DeviceWrap) Name() string {
 }
 
 // GetPrereqs returns the engine prereqs.
-func (e *DeviceWrap) GetPrereqs() EnginePrereqs {
-	return EnginePrereqs{}
+func (e *DeviceWrap) Prereqs() Prereqs {
+	return Prereqs{}
 }
 
 // RequiredUIs returns the required UIs.

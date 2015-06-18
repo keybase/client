@@ -25,8 +25,8 @@ func (e *RevokeSigsEngine) Name() string {
 	return "RevokeSigs"
 }
 
-func (e *RevokeSigsEngine) GetPrereqs() EnginePrereqs {
-	return EnginePrereqs{
+func (e *RevokeSigsEngine) Prereqs() Prereqs {
+	return Prereqs{
 		Session: true,
 	}
 }

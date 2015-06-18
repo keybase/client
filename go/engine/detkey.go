@@ -47,7 +47,7 @@ func (d *DetKeyEngine) SubConsumers() []libkb.UIConsumer {
 	return nil
 }
 
-func (d *DetKeyEngine) GetPrereqs() EnginePrereqs { return EnginePrereqs{} }
+func (d *DetKeyEngine) Prereqs() Prereqs { return Prereqs{} }
 
 // Run runs the detkey engine.
 func (d *DetKeyEngine) Run(ctx *Context) error {

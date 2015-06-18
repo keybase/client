@@ -30,8 +30,8 @@ func (e *PGPUpdateEngine) Name() string {
 	return "PGPUpdate"
 }
 
-func (e *PGPUpdateEngine) GetPrereqs() EnginePrereqs {
-	return EnginePrereqs{
+func (e *PGPUpdateEngine) Prereqs() Prereqs {
+	return Prereqs{
 		Session: true,
 	}
 }

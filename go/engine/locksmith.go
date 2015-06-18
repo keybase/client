@@ -43,7 +43,7 @@ func NewLocksmith(arg *LocksmithArg, g *libkb.GlobalContext) *Locksmith {
 	}
 }
 
-func (d *Locksmith) GetPrereqs() EnginePrereqs { return EnginePrereqs{} }
+func (d *Locksmith) Prereqs() Prereqs { return Prereqs{} }
 
 func (d *Locksmith) Name() string {
 	return "Locksmith"

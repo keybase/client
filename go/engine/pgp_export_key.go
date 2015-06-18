@@ -29,8 +29,8 @@ type PGPKeyExportEngine struct {
 	me    *libkb.User
 }
 
-func (e *PGPKeyExportEngine) GetPrereqs() EnginePrereqs {
-	return EnginePrereqs{
+func (e *PGPKeyExportEngine) Prereqs() Prereqs {
+	return Prereqs{
 		Session: true,
 	}
 }

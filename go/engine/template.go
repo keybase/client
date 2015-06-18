@@ -29,8 +29,8 @@ func (e *Template) Name() string {
 }
 
 // GetPrereqs returns the engine prereqs.
-func (e *Template) GetPrereqs() EnginePrereqs {
-	return EnginePrereqs{}
+func (e *Template) Prereqs() Prereqs {
+	return Prereqs{}
 }
 
 // RequiredUIs returns the required UIs.

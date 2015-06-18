@@ -27,8 +27,8 @@ func (e *Doctor) Name() string {
 }
 
 // GetPrereqs returns the engine prereqs.
-func (e *Doctor) GetPrereqs() EnginePrereqs {
-	return EnginePrereqs{}
+func (e *Doctor) Prereqs() Prereqs {
+	return Prereqs{}
 }
 
 // RequiredUIs returns the required UIs.

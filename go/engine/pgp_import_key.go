@@ -118,8 +118,8 @@ func (e *PGPKeyImportEngine) Name() string {
 	return "PGPKeyImportEngine"
 }
 
-func (e *PGPKeyImportEngine) GetPrereqs() EnginePrereqs {
-	return EnginePrereqs{
+func (e *PGPKeyImportEngine) Prereqs() Prereqs {
+	return Prereqs{
 		Session: true,
 	}
 }

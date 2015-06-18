@@ -31,8 +31,8 @@ func (e *SearchEngine) Name() string {
 	return "Search"
 }
 
-func (e *SearchEngine) GetPrereqs() EnginePrereqs {
-	return EnginePrereqs{}
+func (e *SearchEngine) Prereqs() Prereqs {
+	return Prereqs{}
 }
 
 func (e *SearchEngine) RequiredUIs() []libkb.UIKind {
