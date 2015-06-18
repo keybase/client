@@ -90,7 +90,7 @@ func (b *BlockServerRemote) ConnectOnce() error {
 	}
 
 	b.clt = keybase1.BlockClient{Cli: rpc2.NewClient(
-		rpc2.NewTransport(b.conn, libkb.NewRpcLogFactory(), libkb.WrapError), libkb.UnwrapError)}
+		rpc2.NewTransport(b.conn, libkb.NewRPCLogFactory(), libkb.WrapError), libkb.UnwrapError)}
 
 	var session *libkb.Session
 	if session, err = b.config.KBPKI().GetSession(); err != nil {

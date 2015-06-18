@@ -146,7 +146,7 @@ func (k *KBPKIClient) GetCurrentCryptPublicKey() (CryptPublicKey, error) {
 	if err != nil {
 		return CryptPublicKey{}, err
 	}
-	libkb.G.Log.Debug("got device subkey %s", deviceSubkey.GetKid().ToShortIdString())
+	libkb.G.Log.Debug("got device subkey %s", deviceSubkey.GetKid().ToShortIDString())
 	return CryptPublicKey{deviceSubkey.GetKid()}, nil
 }
 
