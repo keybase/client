@@ -179,14 +179,8 @@
 		00C0DCA41B28EC6100A825D4 /* KBSearcher.m in Sources */ = {isa = PBXBuildFile; fileRef = 009E14941B28A93D00C72B28 /* KBSearcher.m */; };
 		00C0DCA51B28EC6100A825D4 /* KBSearchField.h in Headers */ = {isa = PBXBuildFile; fileRef = 009E14951B28A93D00C72B28 /* KBSearchField.h */; };
 		00C0DCA61B28EC6100A825D4 /* KBSearchField.m in Sources */ = {isa = PBXBuildFile; fileRef = 009E14961B28A93D00C72B28 /* KBSearchField.m */; };
-		00C0DCA71B28EC6100A825D4 /* KBSearchResult.h in Headers */ = {isa = PBXBuildFile; fileRef = 009E14971B28A93D00C72B28 /* KBSearchResult.h */; };
-		00C0DCA81B28EC6100A825D4 /* KBSearchResult.m in Sources */ = {isa = PBXBuildFile; fileRef = 009E14981B28A93D00C72B28 /* KBSearchResult.m */; };
 		00C0DCA91B28EC6100A825D4 /* KBSearchResults.h in Headers */ = {isa = PBXBuildFile; fileRef = 009E14991B28A93D00C72B28 /* KBSearchResults.h */; };
 		00C0DCAA1B28EC6100A825D4 /* KBSearchResults.m in Sources */ = {isa = PBXBuildFile; fileRef = 009E149A1B28A93D00C72B28 /* KBSearchResults.m */; };
-		00C0DCAB1B28EC6100A825D4 /* KBSearchResultView.h in Headers */ = {isa = PBXBuildFile; fileRef = 009E149B1B28A93D00C72B28 /* KBSearchResultView.h */; };
-		00C0DCAC1B28EC6100A825D4 /* KBSearchResultView.m in Sources */ = {isa = PBXBuildFile; fileRef = 009E149C1B28A93D00C72B28 /* KBSearchResultView.m */; };
-		00C0DCAD1B28EC6600A825D4 /* KBSearchListView.h in Headers */ = {isa = PBXBuildFile; fileRef = 009E149E1B28A93D00C72B28 /* KBSearchListView.h */; };
-		00C0DCAE1B28EC6600A825D4 /* KBSearchListView.m in Sources */ = {isa = PBXBuildFile; fileRef = 009E149F1B28A93D00C72B28 /* KBSearchListView.m */; };
 		00C0DCB01B28EC6600A825D4 /* KBUserButtonView.m in Sources */ = {isa = PBXBuildFile; fileRef = 009E14A11B28A93D00C72B28 /* KBUserButtonView.m */; };
 		00C0DCB11B28EC6600A825D4 /* KBUserHeaderView.h in Headers */ = {isa = PBXBuildFile; fileRef = 009E14A21B28A93D00C72B28 /* KBUserHeaderView.h */; };
 		00C0DCB21B28EC6600A825D4 /* KBUserHeaderView.m in Sources */ = {isa = PBXBuildFile; fileRef = 009E14A31B28A93D00C72B28 /* KBUserHeaderView.m */; };
@@ -796,14 +790,8 @@
 		009E14941B28A93D00C72B28 /* KBSearcher.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBSearcher.m; sourceTree = "<group>"; };
 		009E14951B28A93D00C72B28 /* KBSearchField.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBSearchField.h; sourceTree = "<group>"; };
 		009E14961B28A93D00C72B28 /* KBSearchField.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBSearchField.m; sourceTree = "<group>"; };
-		009E14971B28A93D00C72B28 /* KBSearchResult.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBSearchResult.h; sourceTree = "<group>"; };
-		009E14981B28A93D00C72B28 /* KBSearchResult.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBSearchResult.m; sourceTree = "<group>"; };
 		009E14991B28A93D00C72B28 /* KBSearchResults.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBSearchResults.h; sourceTree = "<group>"; };
 		009E149A1B28A93D00C72B28 /* KBSearchResults.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBSearchResults.m; sourceTree = "<group>"; };
-		009E149B1B28A93D00C72B28 /* KBSearchResultView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBSearchResultView.h; sourceTree = "<group>"; };
-		009E149C1B28A93D00C72B28 /* KBSearchResultView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBSearchResultView.m; sourceTree = "<group>"; };
-		009E149E1B28A93D00C72B28 /* KBSearchListView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBSearchListView.h; sourceTree = "<group>"; };
-		009E149F1B28A93D00C72B28 /* KBSearchListView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBSearchListView.m; sourceTree = "<group>"; };
 		009E14A01B28A93D00C72B28 /* KBUserButtonView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBUserButtonView.h; sourceTree = "<group>"; };
 		009E14A11B28A93D00C72B28 /* KBUserButtonView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBUserButtonView.m; sourceTree = "<group>"; };
 		009E14A21B28A93D00C72B28 /* KBUserHeaderView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBUserHeaderView.h; sourceTree = "<group>"; };
@@ -1456,12 +1444,8 @@
 				009E14941B28A93D00C72B28 /* KBSearcher.m */,
 				009E14951B28A93D00C72B28 /* KBSearchField.h */,
 				009E14961B28A93D00C72B28 /* KBSearchField.m */,
-				009E14971B28A93D00C72B28 /* KBSearchResult.h */,
-				009E14981B28A93D00C72B28 /* KBSearchResult.m */,
 				009E14991B28A93D00C72B28 /* KBSearchResults.h */,
 				009E149A1B28A93D00C72B28 /* KBSearchResults.m */,
-				009E149B1B28A93D00C72B28 /* KBSearchResultView.h */,
-				009E149C1B28A93D00C72B28 /* KBSearchResultView.m */,
 			);
 			path = Search;
 			sourceTree = "<group>";
@@ -1471,8 +1455,6 @@
 			children = (
 				004625321B2A5A8B00E218AC /* KBTrackView.h */,
 				004625331B2A5A8B00E218AC /* KBTrackView.m */,
-				009E149E1B28A93D00C72B28 /* KBSearchListView.h */,
-				009E149F1B28A93D00C72B28 /* KBSearchListView.m */,
 				009E14A01B28A93D00C72B28 /* KBUserButtonView.h */,
 				009E14A11B28A93D00C72B28 /* KBUserButtonView.m */,
 				009E14A21B28A93D00C72B28 /* KBUserHeaderView.h */,
@@ -1710,7 +1692,6 @@
 			files = (
 				00C0DCF11B28EC7800A825D4 /* KBPGPEncryptAppView.h in Headers */,
 				00C0DD131B28EC7800A825D4 /* KBPGPVerifyAppView.h in Headers */,
-				00C0DCAD1B28EC6600A825D4 /* KBSearchListView.h in Headers */,
 				00C0DC891B28EC5500A825D4 /* KBLaunchService.h in Headers */,
 				0043D1111B28EF670036C532 /* KBSourceOutlineView.h in Headers */,
 				00C0DC831B28EC5000A825D4 /* KBConvert.h in Headers */,
@@ -1758,7 +1739,6 @@
 				008E04821B28ECFF000F15AA /* KBHeaderLabelView.h in Headers */,
 				0043D13C1B28F1370036C532 /* KBPrefOption.h in Headers */,
 				00C0DCD11B28EC6B00A825D4 /* KBProveView.h in Headers */,
-				00C0DCAB1B28EC6100A825D4 /* KBSearchResultView.h in Headers */,
 				0043D13E1B28F1370036C532 /* KBPrefPopUpView.h in Headers */,
 				00C0DCB91B28EC6600A825D4 /* KBUserListView.h in Headers */,
 				00C0DCF91B28EC7800A825D4 /* KBPGPKeyGenView.h in Headers */,
@@ -1775,7 +1755,6 @@
 				00C0DD1B1B28EC7800A825D4 /* KBPGPVerifyView.h in Headers */,
 				008E04801B28ECFF000F15AA /* KBFatalErrorView.h in Headers */,
 				00C0DC9B1B28EC5A00A825D4 /* KBInstallAction.h in Headers */,
-				00C0DCA71B28EC6100A825D4 /* KBSearchResult.h in Headers */,
 				00C0DC651B28EC3F00A825D4 /* KBRPClient.h in Headers */,
 				00C0DD411B28EC8700A825D4 /* KBDeviceSetupDisplayView.h in Headers */,
 				00C0DD231B28EC7E00A825D4 /* KBKeyView.h in Headers */,
@@ -2335,7 +2314,6 @@
 				00C0DC8E1B28EC5A00A825D4 /* KBCLIInstall.m in Sources */,
 				0043D10E1B28EF670036C532 /* KBAppToolbar.m in Sources */,
 				00C0DCF81B28EC7800A825D4 /* KBPGPEncryptView.m in Sources */,
-				00C0DCA81B28EC6100A825D4 /* KBSearchResult.m in Sources */,
 				00C0DCB21B28EC6600A825D4 /* KBUserHeaderView.m in Sources */,
 				004625391B2A5A9400E218AC /* KBStrengthLabel.m in Sources */,
 				00C0DCBE1B28EC6600A825D4 /* KBUserProfileView.m in Sources */,
@@ -2352,7 +2330,6 @@
 				00C0DCA61B28EC6100A825D4 /* KBSearchField.m in Sources */,
 				004624CC1B2A08F400E218AC /* KBUninstaller.m in Sources */,
 				00C0DD1A1B28EC7800A825D4 /* KBPGPVerifyFooterView.m in Sources */,
-				00C0DCAC1B28EC6100A825D4 /* KBSearchResultView.m in Sources */,
 				0046C0EA1B290CA100C4D06F /* KBAppExtension.m in Sources */,
 				00C0DD561B28EC8B00A825D4 /* KBFSStatusView.m in Sources */,
 				00C0DD3C1B28EC8700A825D4 /* KBDeviceAddView.m in Sources */,
@@ -2413,7 +2390,6 @@
 				00C0DCB81B28EC6600A825D4 /* KBUserInfoView.m in Sources */,
 				00C0DCDA1B28EC7300A825D4 /* KBLoginView.m in Sources */,
 				00C0DD021B28EC7800A825D4 /* KBPGPSignAppView.m in Sources */,
-				00C0DCAE1B28EC6600A825D4 /* KBSearchListView.m in Sources */,
 				00C0DCF01B28EC7800A825D4 /* KBPGPEncryptActionView.m in Sources */,
 				00C0DD581B28EC8B00A825D4 /* KBInfoView.m in Sources */,
 				00C0DC921B28EC5A00A825D4 /* KBComponentStatus.m in Sources */,

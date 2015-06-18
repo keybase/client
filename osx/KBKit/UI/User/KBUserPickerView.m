@@ -8,7 +8,6 @@
 
 #import "KBUserPickerView.h"
 
-#import "KBSearchResultView.h"
 #import "KBRunOver.h"
 #import "KBSearcher.h"
 #import "KBUserView.h"

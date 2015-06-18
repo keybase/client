@@ -45,7 +45,7 @@
 
 - (void)setBackgroundStyle:(NSBackgroundStyle)backgroundStyle {
   id<KBAppearance> appearance = (backgroundStyle == NSBackgroundStyleDark ? KBAppearance.darkAppearance : KBAppearance.lightAppearance);
-  [self.nameLabel setFont:[self.class fontForStyle:_style] color:appearance.textColor];
+  [self.nameLabel setColor:appearance.textColor];
   [self setNeedsLayout];
 }
 

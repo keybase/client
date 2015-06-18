@@ -43,13 +43,11 @@
 
 - (void)setAttributedText:(NSMutableAttributedString *)attributedText alignment:(NSTextAlignment)alignment lineBreakMode:(NSLineBreakMode)lineBreakMode;
 
-- (void)setFont:(NSFont *)font color:(NSColor *)color;
-
 - (void)setBorderWithColor:(NSColor *)color width:(CGFloat)width;
 
 - (void)setBorderEnabled:(BOOL)borderEnabled;
 
-- (void)setStyle:(KBTextStyle)style options:(KBTextOptions)options appearance:(id<KBAppearance>)appearance;
+- (void)setColor:(NSColor *)color;
 
 - (BOOL)hasText;
 

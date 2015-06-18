@@ -14,10 +14,19 @@
   return [NSFont fontWithName:@"FontAwesome" size:size];
 }
 
++ (NSAttributedString *)attributedStringForIcon:(NSString *)icon appearance:(id<KBAppearance>)appearance style:(KBTextStyle)style options:(KBTextOptions)options {
+  NSColor *color = [appearance textColorForStyle:style options:options];
+  CGFloat fontSize = [appearance fontForStyle:style options:options].pointSize;
+  return [self attributedStringForIcon:icon color:color size:fontSize];
+}
+
 + (NSAttributedString *)attributedStringForIcon:(NSString *)icon color:(NSColor *)color size:(CGFloat)size {
   NSString *code = [self codeForIcon:icon];
   if (!code) return nil;
-  NSDictionary *attributes = @{NSForegroundColorAttributeName: color, NSFontAttributeName: [self fontWithSize:size]};
+  NSMutableParagraphStyle *paragraphStyle = [[NSMutableParagraphStyle alloc] init];
+  paragraphStyle.alignment = NSLeftTextAlignment;
+  paragraphStyle.lineBreakMode = NSLineBreakByClipping;
+  NSDictionary *attributes = @{NSForegroundColorAttributeName: color, NSFontAttributeName: [self fontWithSize:size], NSParagraphStyleAttributeName: paragraphStyle};
   return [[NSAttributedString alloc] initWithString:code attributes:attributes];
 }
 

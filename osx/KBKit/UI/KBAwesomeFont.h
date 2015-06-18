@@ -9,11 +9,15 @@
 #import <Foundation/Foundation.h>
 #import <AppKit/AppKit.h>
 
+#import "KBAppearance.h"
+
 @interface KBAwesomeFont : NSObject
 
 + (NSFont *)fontWithSize:(CGFloat)size;
 
 + (NSString *)codeForIcon:(NSString *)icon;
+
++ (NSAttributedString *)attributedStringForIcon:(NSString *)icon appearance:(id<KBAppearance>)appearance style:(KBTextStyle)style options:(KBTextOptions)options;
 
 + (NSAttributedString *)attributedStringForIcon:(NSString *)icon color:(NSColor *)color size:(CGFloat)size;
 

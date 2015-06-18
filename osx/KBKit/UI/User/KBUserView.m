@@ -9,6 +9,7 @@
 #import "KBUserView.h"
 
 #import "KBUserImageView.h"
+#import "KBAwesomeFont.h"
 
 @implementation KBUserView
 
@@ -20,30 +21,48 @@
 - (void)setUser:(KBRUser *)user {
   self.imageSize = CGSizeMake(40, 40);
   [self.titleLabel setText:user.username font:KBAppearance.currentAppearance.boldLargeTextFont color:[KBAppearance.currentAppearance textColor] alignment:NSLeftTextAlignment];
+  self.infoLabel.attributedText = nil;
   [self.imageView kb_setUsername:user.username];
   [self setNeedsLayout];
 }
 
-KBRTrackProof *KBFindProof(KBRProofs *proofs, NSString *proofType) {
-  for (KBRTrackProof *proof in proofs.social) {
-    if ([proof.proofType isEqualToString:proofType]) return proof;
-  }
-  return nil;
-}
-
 - (void)setUserSummary:(KBRUserSummary *)userSummary {
   self.imageSize = CGSizeMake(40, 40);
-  [self.titleLabel setText:userSummary.username font:KBAppearance.currentAppearance.boldLargeTextFont color:[KBAppearance.currentAppearance textColor] alignment:NSLeftTextAlignment];
-
-  KBRTrackProof *proof = KBFindProof(userSummary.proofs, @"twitter");
-
-  if (proof) {
-    [self.infoLabel setText:NSStringWithFormat(@"%@@twitter", proof.proofName) style:KBTextStyleDefault];
-  } else {
-    self.infoLabel.attributedText = nil;
-  }
+  [self.titleLabel setText:userSummary.username font:KBAppearance.currentAppearance.boldLargeTextFont color:[KBAppearance.currentAppearance textColor] alignment:NSLeftTextAlignment lineBreakMode:NSLineBreakByClipping];
+  self.infoLabel.attributedText = [self attributedStringForUserSummary:userSummary appearance:KBAppearance.currentAppearance];
   [self.imageView kb_setUsername:userSummary.username];
   [self setNeedsLayout];
+}
+
+- (NSAttributedString *)attributedStringForProof:(KBRTrackProof *)proof appearance:(id<KBAppearance>)appearance attributes:(NSDictionary *)attributes {
+  NSMutableAttributedString *proofText = [[NSMutableAttributedString alloc] init];
+  NSAttributedString *icon = [KBAwesomeFont attributedStringForIcon:proof.proofType appearance:appearance style:KBTextStyleSecondaryText options:0];
+  if (icon) {
+    [proofText appendAttributedString:icon];
+    [proofText appendAttributedString:[[NSAttributedString alloc] initWithString:NSStringWithFormat(@" %@", proof.proofName) attributes:attributes]];
+  } else {
+    [proofText appendAttributedString:[[NSAttributedString alloc] initWithString:proof.idString attributes:attributes]];
+  }
+  return proofText;
+}
+
+- (NSMutableAttributedString *)attributedStringForUserSummary:(KBRUserSummary *)userSummary appearance:(id<KBAppearance>)appearance {
+  NSMutableArray *strings = [NSMutableArray array];
+  NSMutableParagraphStyle *paragraphStyle = [[NSMutableParagraphStyle alloc] init];
+  paragraphStyle.alignment = NSLeftTextAlignment;
+  paragraphStyle.lineBreakMode = NSLineBreakByClipping;
+  NSDictionary *attributes = @{NSFontAttributeName: appearance.textFont, NSParagraphStyleAttributeName: paragraphStyle};
+  if (userSummary.fullName) {
+    [strings addObject:[[NSAttributedString alloc] initWithString:userSummary.fullName attributes:attributes]];
+  }
+
+  for (KBRTrackProof *proof in userSummary.proofs.social) {
+    NSAttributedString *proofText = [self attributedStringForProof:proof appearance:appearance attributes:attributes];
+    if (proofText) [strings addObject:proofText];
+  }
+
+  if ([strings count] == 0) return nil;
+  return [KBText join:strings delimeter:[[NSAttributedString alloc] initWithString:@"  " attributes:attributes]];
 }
 
 @end

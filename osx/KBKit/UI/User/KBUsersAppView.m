@@ -11,11 +11,9 @@
 #import "KBUserProfileView.h"
 #import "KBProgressOverlayView.h"
 #import "KBUserView.h"
-#import "KBSearchResultView.h"
 #import "KBSearchField.h"
 #import "KBViews.h"
 #import "KBUserListView.h"
-#import "KBSearchListView.h"
 #import "KBSearcher.h"
 #import "KBNotifications.h"
 

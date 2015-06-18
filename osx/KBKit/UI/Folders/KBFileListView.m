@@ -92,7 +92,6 @@
       label.identifier = @"KBFileListView.dateLabel";
     }
     label.verticalAlignment = KBVerticalAlignmentMiddle;
-    [label setStyle:KBTextStyleSecondaryText options:0 appearance:KBAppearance.currentAppearance];
     [label setText:[_dateFormatter stringFromDate:file.dateModified] font:[KBFileLabel fontForStyle:self.imageLabelStyle] color:KBAppearance.currentAppearance.secondaryTextColor alignment:NSLeftTextAlignment lineBreakMode:NSLineBreakByTruncatingTail];
     return label;
   } else {

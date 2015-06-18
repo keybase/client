@@ -195,7 +195,8 @@
 
 - (void)setMarkup:(NSString *)markup style:(KBTextStyle)style alignment:(NSTextAlignment)alignment lineBreakMode:(NSLineBreakMode)lineBreakMode {
   _style = style;
-  [self setMarkup:markup font:[KBAppearance.currentAppearance fontForStyle:_style options:0] color:[KBAppearance.currentAppearance textColorForStyle:_style options:0] alignment:alignment lineBreakMode:lineBreakMode];
+  _options = 0;
+  [self setMarkup:markup font:[KBAppearance.currentAppearance fontForStyle:style options:0] color:[KBAppearance.currentAppearance textColorForStyle:style options:0] alignment:alignment lineBreakMode:lineBreakMode];
 }
 
 - (void)setMarkup:(NSString *)markup font:(NSFont *)font color:(NSColor *)color alignment:(NSTextAlignment)alignment lineBreakMode:(NSLineBreakMode)lineBreakMode {
@@ -211,25 +212,11 @@
   [self setAttributedText:attributedText];
 }
 
-- (void)setFont:(NSFont *)font color:(NSColor *)color {
+- (void)setColor:(NSColor *)color {
   NSMutableAttributedString *str = [_attributedText mutableCopy];
-
-  if (font) {
-    [str removeAttribute:NSFontAttributeName range:NSMakeRange(0, str.length)];
-    [str addAttribute:NSFontAttributeName value:font range:NSMakeRange(0, str.length)];
-  }
-  if (color) {
-    [str removeAttribute:NSForegroundColorAttributeName range:NSMakeRange(0, str.length)];
-    [str addAttribute:NSForegroundColorAttributeName value:color range:NSMakeRange(0, str.length)];
-  }
-
+  [str removeAttribute:NSForegroundColorAttributeName range:NSMakeRange(0, str.length)];
+  [str addAttribute:NSForegroundColorAttributeName value:color range:NSMakeRange(0, str.length)];
   [self setAttributedText:str];
-}
-
-- (void)setStyle:(KBTextStyle)style options:(KBTextOptions)options appearance:(id<KBAppearance>)appearance {
-  _style = style;
-  _options = options;
-  [self setFont:[appearance fontForStyle:_style options:options] color:[appearance textColorForStyle:_style options:options]];
 }
 
 - (void)setAttributedText:(NSAttributedString *)attributedText {
@@ -245,7 +232,7 @@
   //NSAssert(_style != KBTextStyleNone, @"Background style only works if label.style is set");
   id<KBAppearance> appearance = (backgroundStyle == NSBackgroundStyleDark ? KBAppearance.darkAppearance : KBAppearance.lightAppearance);
   NSColor *color = [appearance textColorForStyle:_style options:_options];
-  [self setFont:nil color:color];
+  [self setColor:color];
   [self setNeedsLayout];
 }
 

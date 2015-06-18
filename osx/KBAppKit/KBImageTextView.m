@@ -76,8 +76,8 @@
 
 - (void)setBackgroundStyle:(NSBackgroundStyle)backgroundStyle {
   id<KBAppearance> appearance = (backgroundStyle == NSBackgroundStyleDark ? KBAppearance.darkAppearance : KBAppearance.lightAppearance);
-  [self.titleLabel setFont:appearance.boldTextFont color:appearance.textColor];
-  [self.infoLabel setStyle:KBTextStyleSecondaryText options:0 appearance:appearance];
+  [self.titleLabel setColor:appearance.textColor];
+  [self.infoLabel setColor:[appearance textColorForStyle:KBTextStyleSecondaryText options:0]];
 
   if (self.tintImageForStyle) {
     if (backgroundStyle == NSBackgroundStyleDark) {

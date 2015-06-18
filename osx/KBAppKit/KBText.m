@@ -41,6 +41,7 @@
 }
 
 + (NSMutableAttributedString *)join:(NSArray *)attributedStrings delimeter:(NSAttributedString *)delimeter {
+  if ([attributedStrings count] == 1) return attributedStrings[0];
   NSMutableAttributedString *text = [[NSMutableAttributedString alloc] init];
   for (NSInteger index = 0; index < attributedStrings.count; index++) {
     NSAttributedString *as = attributedStrings[index];
