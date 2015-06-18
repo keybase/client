@@ -49,7 +49,13 @@
   _footerView.includeSelfButton.state = NSOnState;
   [self addSubview:_footerView];
 
-  self.viewLayout = [YOBorderLayout layoutWithCenter:_fileListEditView top:@[topView] bottom:@[_footerView] insets:UIEdgeInsetsZero spacing:0];
+  self.viewLayout = [YOBorderLayout layoutWithCenter:_fileListEditView top:@[topView] bottom:@[_footerView]];
+}
+
+- (void)layout {
+  [super layout];
+  NSView *centerView = _fileListEditView;
+  [_userPickerView setSearchResultsFrame:CGRectMake(0, 1, centerView.bounds.size.width, centerView.bounds.size.height) inView:self];
 }
 
 - (void)setClient:(KBRPClient *)client {

@@ -27,12 +27,12 @@
 
   GHWeakSelf gself = self;
   _verifyView = [[KBPGPVerifyView alloc] init];
-  _verifyView.onVerify = ^(KBPGPVerifyView *view, KBRPgpSigVerification *verification) {
-    if (verification) {
-      // TODO: Need output from verifier
-      NSString *text = [[NSString alloc] initWithData:[NSData data] encoding:NSUTF8StringEncoding];
+  _verifyView.onVerify = ^(KBPGPVerifyView *view, KBPGPDecrypted *decrypted) {
+    KBRPgpSigVerification *pgpSigVerification = decrypted.pgpSigVerification;
+    if (pgpSigVerification) {
+      NSString *text = [[NSString alloc] initWithData:decrypted.stream.writer.data encoding:NSUTF8StringEncoding];
       [gself.outputView setText:text wrap:YES];
-      [gself.outputView setPgpSigVerification:verification];
+      [gself.outputView setPgpSigVerification:pgpSigVerification];
       [gself.navigation pushView:gself.outputView animated:YES];
     } else {
       DDLogDebug(@"Clearing");

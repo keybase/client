@@ -12,15 +12,16 @@
 #import "KBStream.h"
 #import "KBFileReader.h"
 #import "KBPGPOutputView.h"
-#import "KBPGPVerify.h"
 #import "KBPGPVerifyFooterView.h"
 #import "KBFileSelectView.h"
 #import "KBPGPTextView.h"
+#import "KBPGPDecrypt.h"
+#import "KBWork.h"
 
 @interface KBPGPVerifyView ()
 @property KBPGPTextView *textView;
 @property KBPGPVerifyFooterView *footerView;
-@property KBPGPVerify *verifier;
+@property KBPGPDecrypt *decrypter;
 @end
 
 @implementation KBPGPVerifyView
@@ -30,9 +31,6 @@
 
   GHWeakSelf gself = self;
   _textView = [[KBPGPTextView alloc] init];
-  _textView.onChange = ^(KBTextView *textView) {
-    gself.onVerify(gself, nil);
-  };
   [self addSubview:_textView];
 
   _footerView = [[KBPGPVerifyFooterView alloc] init];
@@ -51,9 +49,6 @@
 }
 
 - (void)verify {
-  _verifier = [[KBPGPVerify alloc] init];
-  KBRPgpVerifyOptions *options = [[KBRPgpVerifyOptions alloc] init];
-
   NSData *signatureData = [_textView.text dataUsingEncoding:NSUTF8StringEncoding];
 
   if (signatureData.length == 0) {
@@ -61,24 +56,34 @@
     return;
   }
 
-  KBStream *stream = nil;
+  // Decrypt and assert signed so we get both the verification and the data.
+  // If you wanted only the verification you should user KBPGPVerify.
+  // This isn't working see https://github.com/keybase/client/issues/475
+  _decrypter = [[KBPGPDecrypt alloc] init];
+
   KBReader *reader = [KBReader readerWithData:signatureData];
-  stream = [KBStream streamWithReader:reader writer:nil label:arc4random()];
+  KBWriter *writer = [KBWriter writer];
+  KBStream *stream = [KBStream streamWithReader:reader writer:writer label:arc4random()];
+  KBRPgpDecryptOptions *options = [[KBRPgpDecryptOptions alloc] init];
+  options.assertSigned = YES;
 
   [KBActivity setProgressEnabled:YES sender:self];
-  [_verifier verifyWithOptions:options stream:stream client:self.client sender:self completion:^(NSError *error, KBStream *stream, KBRPgpSigVerification *pgpSigVerification) {
+  [_decrypter decryptWithOptions:options streams:@[stream] client:self.client sender:self completion:^(NSArray *works) {
+    NSError *error = [works[0] error];
     [KBActivity setProgressEnabled:NO sender:self];
     if ([KBActivity setError:error sender:self]) return;
-
+    KBWork *work = works[0];
+    KBPGPDecrypted *decrypted = [work output];
     if (self.onVerify) {
-      self.onVerify(self, pgpSigVerification);
+      self.onVerify(self, decrypted);
     } else {
-      [self _verified:pgpSigVerification];
+      [self _verified:decrypted];
     }
   }];
 }
 
-- (void)_verified:(KBRPgpSigVerification *)pgpSigVerification {
+- (void)_verified:(KBPGPDecrypted *)decrypted {
+  KBRPgpSigVerification *pgpSigVerification = decrypted.pgpSigVerification;
   if (pgpSigVerification.verified) {
     NSString *title = NSStringWithFormat(@"Verified from %@", pgpSigVerification.signer.username);
     NSString *description = NSStringWithFormat(@"Verified from %@ with PGP key fingerprint %@", pgpSigVerification.signer.username, pgpSigVerification.signKey.PGPFingerprint);

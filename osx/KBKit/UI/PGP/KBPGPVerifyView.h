@@ -9,10 +9,11 @@
 #import <Foundation/Foundation.h>
 
 #import "KBContentView.h"
+#import "KBPGPDecrypted.h"
 
 @class KBPGPVerifyView;
 
-typedef void (^KBPGPOnVerify)(KBPGPVerifyView *view, KBRPgpSigVerification *verification);
+typedef void (^KBPGPOnVerify)(KBPGPVerifyView *view, KBPGPDecrypted *decrypted);
 
 @interface KBPGPVerifyView : KBContentView
 

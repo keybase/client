@@ -226,25 +226,25 @@
 - (IBAction)signFile:(id)sender {
   KBPGPSignFileView *view = [[KBPGPSignFileView alloc] init];
   view.client = self.service.client;
-  [self.mainWindow kb_addChildWindowForView:view rect:CGRectMake(0, 0, 400, 400) position:KBWindowPositionCenter title:@"Sign File" fixed:NO makeKey:YES];
+  [self.mainWindow kb_addChildWindowForView:view rect:CGRectMake(0, 0, 510, 400) position:KBWindowPositionCenter title:@"Sign File" fixed:NO makeKey:YES];
 }
 
 - (IBAction)signFiles:(id)sender {
   KBPGPSignFilesView *view = [[KBPGPSignFilesView alloc] init];
   view.client = self.service.client;
-  [self.mainWindow kb_addChildWindowForView:view rect:CGRectMake(0, 0, 400, 400) position:KBWindowPositionCenter title:@"Sign Files" fixed:NO makeKey:YES];
+  [self.mainWindow kb_addChildWindowForView:view rect:CGRectMake(0, 0, 510, 400) position:KBWindowPositionCenter title:@"Sign Files" fixed:NO makeKey:YES];
 }
 
 - (IBAction)verify:(id)sender {
   KBPGPVerifyView *view = [[KBPGPVerifyView alloc] init];
   view.client = self.service.client;
-  [self.mainWindow kb_addChildWindowForView:view rect:CGRectMake(0, 0, 400, 400) position:KBWindowPositionCenter title:@"Verify" fixed:NO makeKey:YES];
+  [self.mainWindow kb_addChildWindowForView:view rect:CGRectMake(0, 0, 510, 400) position:KBWindowPositionCenter title:@"Verify" fixed:NO makeKey:YES];
 }
 
 - (IBAction)verifyFile:(id)sender {
   KBPGPVerifyFileView *view = [[KBPGPVerifyFileView alloc] init];
   view.client = self.service.client;
-  [self.mainWindow kb_addChildWindowForView:view rect:CGRectMake(0, 0, 400, 400) position:KBWindowPositionCenter title:@"Verify File" fixed:NO makeKey:YES];
+  [self.mainWindow kb_addChildWindowForView:view rect:CGRectMake(0, 0, 510, 400) position:KBWindowPositionCenter title:@"Verify File" fixed:NO makeKey:YES];
 }
 
 @end
