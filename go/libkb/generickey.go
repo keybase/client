@@ -1,45 +1,12 @@
 package libkb
 
 import (
-	"encoding/base64"
-	"encoding/hex"
-	"encoding/json"
 	"fmt"
 	"strings"
 
 	keybase1 "github.com/keybase/client/protocol/go"
-	jsonw "github.com/keybase/go-jsonw"
 	triplesec "github.com/keybase/go-triplesec"
 )
-
-type KID []byte
-type KID2 []byte
-
-func (k KID) Match(q string, exact bool) bool {
-	if k == nil {
-		return false
-	}
-
-	if exact {
-		return strings.ToLower(k.String()) == strings.ToLower(q)
-	}
-
-	if strings.HasPrefix(k.String(), strings.ToLower(q)) {
-		return true
-	}
-	if strings.HasPrefix(k.ToShortIdString(), q) {
-		return true
-	}
-	return false
-}
-
-// Remove the need for the KIDMapKey type. See
-// https://github.com/keybase/client/issues/413 .
-type KIDMapKey string
-
-func (key KIDMapKey) ToKID() (KID, error) {
-	return ImportKID(string(key))
-}
 
 type AlgoType int
 
@@ -70,70 +37,6 @@ type GenericKey interface {
 	Encode() (string, error) // encode public key to string
 }
 
-func (k KID) ToFOKID() FOKID {
-	return FOKID{Kid: k}
-}
-
-func (k KID) ToMapKey() KIDMapKey {
-	return KIDMapKey(k.String())
-}
-
-func (k KID) ToFOKIDMapKey() FOKIDMapKey {
-	return FOKIDMapKey(k.ToMapKey())
-}
-
-func (k KID) ToShortIdString() string {
-	return strings.TrimRight(base64.URLEncoding.EncodeToString(k[0:12]), "=")
-}
-
-func (k KID) String() string {
-	return hex.EncodeToString(k)
-}
-
-func (k KID) IsValid() bool {
-	return k != nil && len(k) > 0
-}
-
-func ImportKID(s string) (ret KID, err error) {
-	var tmp []byte
-	if tmp, err = hex.DecodeString(s); err == nil && len(tmp) > 0 {
-		ret = KID(tmp)
-	}
-	return
-}
-
-func GetKID(w *jsonw.Wrapper) (kid KID, err error) {
-	var s string
-	if s, err = w.GetString(); err == nil && len(s) > 0 {
-		kid, err = ImportKID(s)
-	}
-	return
-}
-
-func (k KID) MarshalJSON() ([]byte, error) {
-	return json.Marshal(k.String())
-}
-
-func (k *KID) UnmarshalJSON(b []byte) error {
-	var s string
-	if err := json.Unmarshal(b, &s); err != nil {
-		return err
-	}
-	kid, err := ImportKID(s)
-	if err != nil {
-		return err
-	}
-	*k = kid
-	return nil
-}
-
-func (k KID) ToJsonw() *jsonw.Wrapper {
-	if k == nil {
-		return jsonw.NewNil()
-	}
-	return jsonw.NewString(k.String())
-}
-
 func CanEncrypt(key GenericKey) bool {
 	switch key.(type) {
 	case NaclDHKeyPair:
@@ -143,14 +46,6 @@ func CanEncrypt(key GenericKey) bool {
 	default:
 		return false
 	}
-}
-
-func (k KID) ToBytes() []byte {
-	return []byte(k)
-}
-
-func (k KID) Eq(k2 KID) bool {
-	return SecureByteArrayEq([]byte(k), []byte(k2))
 }
 
 func WriteLksSKBToKeyring(k GenericKey, lks *LKSec, lui LogUI, lctx LoginContext) (*SKB, error) {
@@ -183,83 +78,6 @@ func skbPushAndSave(skb *SKB, lui LogUI, lctx LoginContext) error {
 		return err
 	}
 	return nil
-}
-
-// FOKID is a "Fingerprint Or a KID" or both, or neither.
-// We have different things in different sigchains, so we
-// have this layer to abstract away the differences.
-type FOKID struct {
-	Kid KID
-	Fp  *PgpFingerprint
-}
-
-// Can be either a KIDMapKey or PgpFingerprintMapKey, or empty.
-type FOKIDMapKey string
-
-// EqKid checks if the KID portion of the FOKID is equal
-// to the given KID
-func (f FOKID) EqKid(k2 KID) bool {
-	return (f.Kid == nil && k2 == nil) || (f.Kid != nil && k2 != nil && f.Kid.Eq(k2))
-}
-
-// Eq checks that two FOKIDs are equal. Two FOKIDs are equal if
-// (their KIDs match OR the Fingerprints match) AND they don't have
-// any mismatches.
-func (f FOKID) Eq(f2 FOKID) (ret bool) {
-	if f.Kid == nil || f2.Kid == nil {
-	} else if f.Kid.Eq(f2.Kid) {
-		ret = true
-	} else {
-		return false
-	}
-
-	if f.Fp == nil || f2.Fp == nil {
-	} else if f.Fp.Eq(*f2.Fp) {
-		ret = true
-	} else {
-		return false
-	}
-	return ret
-}
-
-func (f FOKID) String() string {
-	if f.Kid != nil {
-		return f.Kid.String()
-	} else if f.Fp != nil {
-		return f.Fp.String()
-	} else {
-		return ""
-	}
-}
-
-func (f FOKID) ToFirstMapKey() FOKIDMapKey {
-	if f.Kid != nil {
-		return f.Kid.ToFOKIDMapKey()
-	} else if f.Fp != nil {
-		return f.Fp.ToFOKIDMapKey()
-	} else {
-		return ""
-	}
-}
-
-func (f FOKID) ToMapKeys() (ret []FOKIDMapKey) {
-	if f.Kid != nil {
-		ret = append(ret, f.Kid.ToFOKIDMapKey())
-	}
-	if f.Fp != nil {
-		ret = append(ret, f.Fp.ToFOKIDMapKey())
-	}
-	return
-}
-
-func (f FOKID) P() *FOKID { return &f }
-
-// Any valid FOKID matches the empty string.
-func (f FOKID) matchQuery(s string, exact bool) bool {
-	if f.Fp.Match(s, exact) {
-		return true
-	}
-	return f.Kid.Match(s, exact)
 }
 
 func GenericKeyToFOKID(key GenericKey) FOKID {

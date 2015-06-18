@@ -104,20 +104,6 @@ func (p *PgpFingerprint) Match(q string, exact bool) bool {
 	return strings.HasSuffix(strings.ToLower(p.String()), strings.ToLower(q))
 }
 
-func (k KID) LoadPGPKeyFromLocalDB() (*PgpKeyBundle, error) {
-	dbobj, err := G.LocalDb.Get(DbKey{
-		Typ: DB_PGP_KEY,
-		Key: k.String(),
-	})
-	if err != nil {
-		return nil, err
-	}
-	if dbobj == nil {
-		return nil, nil
-	}
-	return GetOneKey(dbobj)
-}
-
 func (k *PgpKeyBundle) StoreToLocalDb() error {
 	s, err := k.Encode()
 	if err != nil {

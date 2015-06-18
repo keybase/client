@@ -43,19 +43,6 @@ func (k NaclSigningKeyPublic) Verify(msg []byte, sig *NaclSignature) bool {
 	return ed25519.Verify((*[ed25519.PublicKeySize]byte)(&k), msg, (*[ed25519.SignatureSize]byte)(sig))
 }
 
-func (k KID) ToNaclSigningKeyPublic() *NaclSigningKeyPublic {
-	if len(k) != 3+ed25519.PublicKeySize {
-		return nil
-	}
-	if k[0] != byte(KEYBASE_KID_V1) || k[1] != byte(KID_NACL_EDDSA) ||
-		k[len(k)-1] != byte(ID_SUFFIX_KID) {
-		return nil
-	}
-	var ret NaclSigningKeyPublic
-	copy(ret[:], k[2:len(k)-1])
-	return &ret
-}
-
 type NaclSigningKeyPair struct {
 	Public  NaclSigningKeyPublic
 	Private *NaclSigningKeyPrivate
