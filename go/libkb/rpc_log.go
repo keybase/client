@@ -9,7 +9,7 @@ import (
 
 // RPC log options, can turn on debugging, &c.
 
-type RpcLogOptions struct {
+type RPCLogOptions struct {
 	clientTrace    bool
 	serverTrace    bool
 	profile        bool
@@ -18,7 +18,7 @@ type RpcLogOptions struct {
 	noAddress      bool
 }
 
-func (r *RpcLogOptions) Reload() {
+func (r *RPCLogOptions) Reload() {
 	s := G.Env.GetLocalRPCDebug()
 	r.clientTrace = false
 	r.serverTrace = false
@@ -46,33 +46,33 @@ func (r *RpcLogOptions) Reload() {
 	}
 }
 
-func (r *RpcLogOptions) ShowAddress() bool    { return !r.noAddress }
-func (r *RpcLogOptions) ShowArg() bool        { return r.verboseTrace }
-func (r *RpcLogOptions) ShowResult() bool     { return r.verboseTrace }
-func (r *RpcLogOptions) Profile() bool        { return r.profile }
-func (r *RpcLogOptions) ClientTrace() bool    { return r.clientTrace }
-func (r *RpcLogOptions) ServerTrace() bool    { return r.serverTrace }
-func (r *RpcLogOptions) TransportStart() bool { return r.connectionInfo || G.Service }
+func (r *RPCLogOptions) ShowAddress() bool    { return !r.noAddress }
+func (r *RPCLogOptions) ShowArg() bool        { return r.verboseTrace }
+func (r *RPCLogOptions) ShowResult() bool     { return r.verboseTrace }
+func (r *RPCLogOptions) Profile() bool        { return r.profile }
+func (r *RPCLogOptions) ClientTrace() bool    { return r.clientTrace }
+func (r *RPCLogOptions) ServerTrace() bool    { return r.serverTrace }
+func (r *RPCLogOptions) TransportStart() bool { return r.connectionInfo || G.Service }
 
-var rpcLogOptions *RpcLogOptions
+var rpcLogOptions *RPCLogOptions
 var rpcLogOptionsOnce sync.Once
 
-func getRpcLogOptions() *RpcLogOptions {
+func getRPCLogOptions() *RPCLogOptions {
 	rpcLogOptionsOnce.Do(func() {
-		rpcLogOptions = &RpcLogOptions{}
+		rpcLogOptions = &RPCLogOptions{}
 		rpcLogOptions.Reload()
 	})
 	return rpcLogOptions
 }
 
-type RpcLogFactory struct{}
+type RPCLogFactory struct{}
 
-func NewRpcLogFactory() *RpcLogFactory {
-	return &RpcLogFactory{}
+func NewRPCLogFactory() *RPCLogFactory {
+	return &RPCLogFactory{}
 }
 
-func (r *RpcLogFactory) NewLog(a net.Addr) rpc2.LogInterface {
-	ret := rpc2.SimpleLog{Addr: a, Out: G.Log, Opts: getRpcLogOptions()}
+func (r *RPCLogFactory) NewLog(a net.Addr) rpc2.LogInterface {
+	ret := rpc2.SimpleLog{Addr: a, Out: G.Log, Opts: getRPCLogOptions()}
 	ret.TransportStart()
 	return ret
 }

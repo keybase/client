@@ -175,11 +175,11 @@ func (u UserNotFoundError) Error() string {
 //=============================================================================
 
 type AlreadyRegisteredError struct {
-	Uid keybase1.UID
+	UID keybase1.UID
 }
 
 func (u AlreadyRegisteredError) Error() string {
-	return fmt.Sprintf("Already registered (with uid=%s)", u.Uid)
+	return fmt.Sprintf("Already registered (with uid=%s)", u.UID)
 }
 
 //=============================================================================
@@ -585,11 +585,11 @@ func (e SelfTrackError) Error() string {
 
 //=============================================================================
 
-type NoUiError struct {
+type NoUIError struct {
 	which string
 }
 
-func (e NoUiError) Error() string {
+func (e NoUIError) Error() string {
 	return fmt.Sprintf("no %s-UI was available", e.which)
 }
 

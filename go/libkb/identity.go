@@ -49,7 +49,7 @@ func (i Identity) String() string {
 	return i.Format()
 }
 
-func (i Identity) ToPgpUserId() *packet.UserId {
+func (i Identity) ToPgpUserID() *packet.UserId {
 	return packet.NewUserId(i.Username, i.Comment, i.Email)
 
 }

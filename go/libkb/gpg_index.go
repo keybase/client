@@ -70,7 +70,7 @@ type GpgBaseKey struct {
 	Trust       string
 	Bits        int
 	Algo        int
-	Id64        string
+	ID64        string
 	Created     int64
 	Expires     int64
 	fingerprint *PgpFingerprint
@@ -105,7 +105,7 @@ func (k *GpgBaseKey) ParseBase(line *GpgIndexLine) (err error) {
 
 	k.Type = line.At(0)
 	k.Trust = line.At(1)
-	k.Id64 = line.At(4)
+	k.ID64 = line.At(4)
 
 	parseTimeStamp := func(s string) (ret int64, err error) {
 		// No date was specified
@@ -160,7 +160,7 @@ func (k *GpgPrimaryKey) ToRow(i int) []string {
 	v := []string{
 		fmt.Sprintf("(%d)", i),
 		fmt.Sprintf("%d%s", k.Bits, k.AlgoString()),
-		k.fingerprint.ToKeyId(),
+		k.fingerprint.ToKeyID(),
 		k.ExpirationString(),
 	}
 	for _, i := range k.identities {
@@ -175,7 +175,7 @@ func (k *GpgBaseKey) SetFingerprint(pgp *PgpFingerprint) {
 
 func (k *GpgPrimaryKey) Parse(l *GpgIndexLine) (err error) {
 	if err = k.ParseBase(l); err != nil {
-	} else if err = k.AddUid(l); err != nil {
+	} else if err = k.AddUID(l); err != nil {
 	}
 	return
 }
@@ -192,7 +192,7 @@ func ParseGpgPrimaryKey(l *GpgIndexLine) (key *GpgPrimaryKey, err error) {
 	return
 }
 
-func (k *GpgPrimaryKey) AddUid(l *GpgIndexLine) (err error) {
+func (k *GpgPrimaryKey) AddUID(l *GpgIndexLine) (err error) {
 	var id *Identity
 	if f := l.At(9); len(f) == 0 {
 	} else if id, err = ParseIdentity(f); err != nil {
@@ -238,11 +238,11 @@ func (k *GpgPrimaryKey) GetEmails() []string {
 	return ret
 }
 
-func (k *GpgPrimaryKey) GetAllId64s() []string {
+func (k *GpgPrimaryKey) GetAllID64s() []string {
 	var ret []string
 	add := func(fp *PgpFingerprint) {
 		if fp != nil {
-			ret = append(ret, fp.ToKeyId())
+			ret = append(ret, fp.ToKeyID())
 		}
 	}
 	add(k.GetFingerprint())
@@ -272,7 +272,7 @@ func (k *GpgPrimaryKey) AddLine(l *GpgIndexLine) (err error) {
 		case "fpr":
 			err = k.AddFingerprint(l)
 		case "uid":
-			err = k.AddUid(l)
+			err = k.AddUID(l)
 		case "uat":
 		case "sub", "ssb":
 			err = k.AddSubkey(l)
@@ -304,7 +304,7 @@ type GpgIndexElement interface {
 
 type GpgKeyIndex struct {
 	Keys                        []*GpgPrimaryKey
-	Emails, Fingerprints, Id64s *BucketDict
+	Emails, Fingerprints, ID64s *BucketDict
 }
 
 func (ki *GpgKeyIndex) Len() int {
@@ -349,7 +349,7 @@ func NewGpgKeyIndex() *GpgKeyIndex {
 	return &GpgKeyIndex{
 		Emails:       NewBuckDict(),
 		Fingerprints: NewBuckDict(),
-		Id64s:        NewBuckDict(),
+		ID64s:        NewBuckDict(),
 	}
 }
 
@@ -361,8 +361,8 @@ func (ki *GpgKeyIndex) IndexKey(k *GpgPrimaryKey) {
 	for _, e := range Uniquify(k.GetEmails()) {
 		ki.Emails.Add(e, k)
 	}
-	for _, i := range Uniquify(k.GetAllId64s()) {
-		ki.Id64s.Add(i, k)
+	for _, i := range Uniquify(k.GetAllID64s()) {
+		ki.ID64s.Add(i, k)
 	}
 }
 

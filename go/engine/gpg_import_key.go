@@ -104,7 +104,7 @@ func (e *GPGImportKeyEngine) Run(ctx *Context) (err error) {
 	for _, key := range index.Keys {
 		gk := keybase1.GPGKey{
 			Algorithm:  fmt.Sprintf("%d%s", key.Bits, key.AlgoString()),
-			KeyID:      key.GetFingerprint().ToKeyId(),
+			KeyID:      key.GetFingerprint().ToKeyID(),
 			Expiration: key.ExpirationString(),
 			Identities: key.GetPgpIdentities(),
 		}
@@ -123,7 +123,7 @@ func (e *GPGImportKeyEngine) Run(ctx *Context) (err error) {
 
 	var selected *libkb.GpgPrimaryKey
 	for _, key := range index.Keys {
-		if key.GetFingerprint().ToKeyId() == res.KeyID {
+		if key.GetFingerprint().ToKeyID() == res.KeyID {
 			selected = key
 			break
 		}
@@ -142,7 +142,7 @@ func (e *GPGImportKeyEngine) Run(ctx *Context) (err error) {
 		return err
 	}
 
-	e.G().Log.Info("Bundle unlocked: %s", selected.GetFingerprint().ToKeyId())
+	e.G().Log.Info("Bundle unlocked: %s", selected.GetFingerprint().ToKeyID())
 
 	eng := NewPGPKeyImportEngine(PGPKeyImportEngineArg{
 		Pregen:     bundle,
@@ -164,7 +164,7 @@ func (e *GPGImportKeyEngine) Run(ctx *Context) (err error) {
 		return
 	}
 
-	e.G().Log.Info("Key %s imported", selected.GetFingerprint().ToKeyId())
+	e.G().Log.Info("Key %s imported", selected.GetFingerprint().ToKeyID())
 
 	e.last = bundle
 

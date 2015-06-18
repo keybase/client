@@ -56,7 +56,7 @@ func (s *SignupJoinEngine) CheckRegistered() (err error) {
 	if cr := s.G().Env.GetConfig(); cr == nil {
 		err = fmt.Errorf("No configuration file available")
 	} else if u := cr.GetUID(); u.Exists() {
-		err = libkb.AlreadyRegisteredError{Uid: u}
+		err = libkb.AlreadyRegisteredError{UID: u}
 	}
 	s.G().Log.Debug("- libkb.SignupJoinEngine::CheckRegistered -> %s", libkb.ErrToOk(err))
 	return err

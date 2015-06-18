@@ -84,7 +84,7 @@ func (h *UserHandler) LoadUser(arg keybase1.LoadUserArg) (user keybase1.User, er
 		uid = *arg.Uid
 	}
 	userObj, err := libkb.LoadUser(libkb.LoadUserArg{
-		Uid:  uid,
+		UID:  uid,
 		Name: arg.Username,
 		Self: arg.Self,
 	})

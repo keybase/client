@@ -14,7 +14,7 @@ type SigHint struct {
 }
 
 func (sh SigHint) GetHumanURL() string  { return sh.humanURL }
-func (sh SigHint) GetApiUrl() string    { return sh.apiURL }
+func (sh SigHint) GetAPIURL() string    { return sh.apiURL }
 func (sh SigHint) GetCheckText() string { return sh.checkText }
 
 type SigHints struct {

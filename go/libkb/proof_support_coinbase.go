@@ -20,12 +20,12 @@ func NewCoinbaseChecker(p RemoteProofChainLink) (*CoinbaseChecker, ProofError) {
 	return &CoinbaseChecker{p}, nil
 }
 
-func (rc *CoinbaseChecker) ProfileUrl() string {
+func (rc *CoinbaseChecker) ProfileURL() string {
 	return "https://coinbase.com/" + rc.proof.GetRemoteUsername() + "/public-key"
 }
 
 func (rc *CoinbaseChecker) CheckHint(h SigHint) ProofError {
-	wanted := rc.ProfileUrl()
+	wanted := rc.ProfileURL()
 	if wanted == strings.ToLower(h.apiURL) {
 		return nil
 	}

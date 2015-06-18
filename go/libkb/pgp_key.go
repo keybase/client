@@ -82,7 +82,7 @@ func (p PgpFingerprint) ToQuads() string {
 	return string(ret)
 }
 
-func (p PgpFingerprint) ToKeyId() string {
+func (p PgpFingerprint) ToKeyID() string {
 	return strings.ToUpper(hex.EncodeToString(p[12:20]))
 }
 
@@ -90,7 +90,7 @@ func (p PgpFingerprint) ToDisplayString(verbose bool) string {
 	if verbose {
 		return p.String()
 	}
-	return p.ToKeyId()
+	return p.ToKeyID()
 }
 
 func (p *PgpFingerprint) Match(q string, exact bool) bool {
@@ -474,7 +474,7 @@ func (k *PgpKeyBundle) Unlock(reason string, secretUI SecretUI) error {
 		Reason:   reason,
 		KeyDesc:  k.VerboseDescription(),
 		Unlocker: unlocker,
-		Ui:       secretUI,
+		UI:       secretUI,
 	}.Run()
 	return err
 }
@@ -510,7 +510,7 @@ func (k PgpKeyBundle) VerifyStringAndExtract(sig string) (msg []byte, id keybase
 }
 
 func (k PgpKeyBundle) VerifyString(sig string, msg []byte) (id keybase1.SigID, err error) {
-	extractedMsg, resId, err := k.VerifyStringAndExtract(sig)
+	extractedMsg, resID, err := k.VerifyStringAndExtract(sig)
 	if err != nil {
 		return
 	}
@@ -518,7 +518,7 @@ func (k PgpKeyBundle) VerifyString(sig string, msg []byte) (id keybase1.SigID, e
 		err = BadSigError{"wrong payload"}
 		return
 	}
-	id = resId
+	id = resID
 	return
 }
 

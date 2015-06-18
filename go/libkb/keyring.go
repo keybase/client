@@ -14,7 +14,7 @@ type KeyringFile struct {
 	filename         string
 	Entities         openpgp.EntityList
 	isPublic         bool
-	indexId          map[string](*openpgp.Entity) // Map of 64-bit uppercase-hex KeyIds
+	indexID          map[string](*openpgp.Entity) // Map of 64-bit uppercase-hex KeyIds
 	indexFingerprint map[PgpFingerprint](*openpgp.Entity)
 	Contextified
 }
@@ -77,14 +77,14 @@ func (k *KeyringFile) LoadAndIndex() error {
 
 func (k *KeyringFile) Index() error {
 	k.G().Log.Debug("+ Index on %s", k.filename)
-	k.indexId = make(map[string](*openpgp.Entity))
+	k.indexID = make(map[string](*openpgp.Entity))
 	k.indexFingerprint = make(map[PgpFingerprint](*openpgp.Entity))
 	p := 0
 	s := 0
 	for _, entity := range k.Entities {
 		if entity.PrimaryKey != nil {
 			id := entity.PrimaryKey.KeyIdString()
-			k.indexId[id] = entity
+			k.indexID[id] = entity
 			fp := PgpFingerprint(entity.PrimaryKey.Fingerprint)
 			k.indexFingerprint[fp] = entity
 			p++
@@ -92,7 +92,7 @@ func (k *KeyringFile) Index() error {
 		for _, subkey := range entity.Subkeys {
 			if subkey.PublicKey != nil {
 				id := subkey.PublicKey.KeyIdString()
-				k.indexId[id] = entity
+				k.indexID[id] = entity
 				fp := PgpFingerprint(subkey.PublicKey.Fingerprint)
 				k.indexFingerprint[fp] = entity
 				s++

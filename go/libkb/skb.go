@@ -634,7 +634,7 @@ func (s *SKB) PromptAndUnlock(lctx LoginContext, reason, which string, secretSto
 		Which:          which,
 		UseSecretStore: secretStore != nil,
 		Unlocker:       unlocker,
-		Ui:             ui,
+		UI:             ui,
 	}.Run()
 }
 

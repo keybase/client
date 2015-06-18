@@ -144,7 +144,7 @@ func (g *GpgCLI) ImportKey(secret bool, fp PgpFingerprint) (ret *PgpKeyBundle, e
 		return nil, err
 	}
 	if len(el) == 0 {
-		return nil, NoKeyError{fmt.Sprintf("No %s key for %s found", which, fp.ToKeyId())}
+		return nil, NoKeyError{fmt.Sprintf("No %s key for %s found", which, fp.ToKeyID())}
 	}
 	if len(el) > 1 {
 		return nil, TooManyKeysError{len(el), fp}

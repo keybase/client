@@ -16,17 +16,17 @@ type HackerNewsChecker struct {
 	proof RemoteProofChainLink
 }
 
-func ApiBase(un string) string {
+func APIBase(un string) string {
 	return "https://hacker-news.firebaseio.com/v0/user/" + un
 }
-func (h *HackerNewsChecker) ApiBase() string {
-	return ApiBase(h.proof.GetRemoteUsername())
+func (h *HackerNewsChecker) APIBase() string {
+	return APIBase(h.proof.GetRemoteUsername())
 }
-func (h *HackerNewsChecker) ApiURL() string {
-	return h.ApiBase() + "/about.json"
+func (h *HackerNewsChecker) APIURL() string {
+	return h.APIBase() + "/about.json"
 }
 func KarmaURL(un string) string {
-	return ApiBase(un) + "/karma.json"
+	return APIBase(un) + "/karma.json"
 }
 
 func (h *HackerNewsChecker) KarmaURL() string {
@@ -42,7 +42,7 @@ func NewHackerNewsChecker(p RemoteProofChainLink) (*HackerNewsChecker, ProofErro
 }
 
 func (h *HackerNewsChecker) CheckHint(hint SigHint) ProofError {
-	wanted := h.ApiURL()
+	wanted := h.APIURL()
 	if Cicmp(wanted, hint.apiURL) {
 		return nil
 	}
@@ -141,7 +141,7 @@ func (t HackerNewsServiceType) RecheckProofPosting(tryNumber int, status keybase
 func (t HackerNewsServiceType) GetProofType() string { return t.BaseGetProofType(t) }
 
 func (t HackerNewsServiceType) CheckProofText(text string, id keybase1.SigID, sig string) (err error) {
-	return t.BaseCheckProofForUrl(text, id)
+	return t.BaseCheckProofForURL(text, id)
 }
 
 func (t HackerNewsServiceType) PreProofCheck(un string) (markup *Markup, err error) {

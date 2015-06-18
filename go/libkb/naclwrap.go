@@ -201,19 +201,19 @@ func (k NaclSigningKeyPair) GetKid() (ret KID) {
 	return k.Public.GetKid()
 }
 
-func (k NaclSigningKeyPair) ToShortIdString() string {
-	return k.Public.GetKid().ToShortIdString()
+func (k NaclSigningKeyPair) ToShortIDString() string {
+	return k.Public.GetKid().ToShortIDString()
 }
 
-func (k NaclDHKeyPair) ToShortIdString() string {
-	return k.Public.GetKid().ToShortIdString()
+func (k NaclDHKeyPair) ToShortIDString() string {
+	return k.Public.GetKid().ToShortIDString()
 }
 
 func (k NaclSigningKeyPair) VerboseDescription() string {
-	return fmt.Sprintf("255-bit EdDSA signing key (%s)", k.ToShortIdString())
+	return fmt.Sprintf("255-bit EdDSA signing key (%s)", k.ToShortIDString())
 }
 func (k NaclDHKeyPair) VerboseDescription() string {
-	return fmt.Sprintf("255-bit Curve25519 DH key (%s)", k.ToShortIdString())
+	return fmt.Sprintf("255-bit Curve25519 DH key (%s)", k.ToShortIDString())
 }
 
 func (k NaclSigningKeyPair) GetFingerprintP() *PgpFingerprint {
@@ -327,7 +327,7 @@ func (k NaclSigningKeyPair) VerifyStringAndExtract(sig string) (msg []byte, id k
 }
 
 func (k NaclSigningKeyPair) VerifyString(sig string, msg []byte) (id keybase1.SigID, err error) {
-	extractedMsg, resId, err := k.VerifyStringAndExtract(sig)
+	extractedMsg, resID, err := k.VerifyStringAndExtract(sig)
 	if err != nil {
 		return
 	}
@@ -335,7 +335,7 @@ func (k NaclSigningKeyPair) VerifyString(sig string, msg []byte) (id keybase1.Si
 		err = BadSigError{"wrong payload"}
 		return
 	}
-	id = resId
+	id = resID
 	return
 }
 

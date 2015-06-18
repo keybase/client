@@ -81,9 +81,9 @@ func NewPgpKeyBundle(arg PGPGenArg, logUI LogUI) (*PgpKeyBundle, error) {
 	}
 
 	for i, uid := range uids {
-		isPrimaryId := true
+		isPrimaryID := true
 		if i > 0 {
-			isPrimaryId = false
+			isPrimaryID = false
 		}
 		id := &openpgp.Identity{
 			Name:   uid.Name,
@@ -93,7 +93,7 @@ func NewPgpKeyBundle(arg PGPGenArg, logUI LogUI) (*PgpKeyBundle, error) {
 				SigType:              packet.SigTypePositiveCert,
 				PubKeyAlgo:           packet.PubKeyAlgoRSA,
 				Hash:                 arg.Config.Hash(),
-				IsPrimaryId:          &isPrimaryId,
+				IsPrimaryId:          &isPrimaryID,
 				FlagsValid:           true,
 				FlagSign:             true,
 				FlagCertify:          true,
@@ -153,7 +153,7 @@ func (a *PGPGenArg) CreatePgpIDs() error {
 	return nil
 }
 
-func (a *PGPGenArg) AddDefaultUid() {
+func (a *PGPGenArg) AddDefaultUID() {
 	if a.NoDefPGPUid {
 		return
 	}
@@ -164,14 +164,14 @@ func (a *PGPGenArg) MakeAllIds() error {
 	if err := a.CreatePgpIDs(); err != nil {
 		return err
 	}
-	a.AddDefaultUid()
+	a.AddDefaultUID()
 	return nil
 }
 
 func (a *PGPGenArg) PGPUserIDs() ([]*packet.UserId, error) {
 	uids := make([]*packet.UserId, len(a.Ids))
 	for i, id := range a.Ids {
-		uids[i] = id.ToPgpUserId()
+		uids[i] = id.ToPgpUserID()
 		if uids[i] == nil {
 			return nil, fmt.Errorf("Id[%d] failed to convert to PGPUserId (%+v)", i, id)
 		}

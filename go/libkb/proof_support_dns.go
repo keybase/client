@@ -12,15 +12,15 @@ import (
 // Dns
 //
 
-type DnsChecker struct {
+type DNSChecker struct {
 	proof RemoteProofChainLink
 }
 
-func NewDnsChecker(p RemoteProofChainLink) (*DnsChecker, ProofError) {
-	return &DnsChecker{p}, nil
+func NewDNSChecker(p RemoteProofChainLink) (*DNSChecker, ProofError) {
+	return &DNSChecker{p}, nil
 }
 
-func (rc *DnsChecker) CheckHint(h SigHint) ProofError {
+func (rc *DNSChecker) CheckHint(h SigHint) ProofError {
 	_, sigID, err := OpenSig(rc.proof.GetArmoredSig())
 
 	if err != nil {
@@ -38,7 +38,7 @@ func (rc *DnsChecker) CheckHint(h SigHint) ProofError {
 	return nil
 }
 
-func (rc *DnsChecker) CheckDomain(sig string, domain string) ProofError {
+func (rc *DNSChecker) CheckDomain(sig string, domain string) ProofError {
 	txt, err := net.LookupTXT(domain)
 	if err != nil {
 		return NewProofError(keybase1.ProofStatus_DNS_ERROR,
@@ -56,7 +56,7 @@ func (rc *DnsChecker) CheckDomain(sig string, domain string) ProofError {
 		len(txt), domain, sig)
 }
 
-func (rc *DnsChecker) CheckStatus(h SigHint) ProofError {
+func (rc *DNSChecker) CheckStatus(h SigHint) ProofError {
 
 	wanted := h.checkText
 	G.Log.Debug("| DNS proof, want TXT value: %s", wanted)
@@ -78,12 +78,12 @@ func (rc *DnsChecker) CheckStatus(h SigHint) ProofError {
 //
 //=============================================================================
 
-type DnsServiceType struct{ BaseServiceType }
+type DNSServiceType struct{ BaseServiceType }
 
-func (t DnsServiceType) AllStringKeys() []string     { return t.BaseAllStringKeys(t) }
-func (t DnsServiceType) PrimaryStringKeys() []string { return t.BasePrimaryStringKeys(t) }
+func (t DNSServiceType) AllStringKeys() []string     { return t.BaseAllStringKeys(t) }
+func (t DNSServiceType) PrimaryStringKeys() []string { return t.BasePrimaryStringKeys(t) }
 
-func ParseDns(s string) (ret string, err error) {
+func ParseDNS(s string) (ret string, err error) {
 	if strings.HasPrefix(s, "dns://") {
 		s = s[6:]
 	}
@@ -95,65 +95,65 @@ func ParseDns(s string) (ret string, err error) {
 	return
 }
 
-func (t DnsServiceType) CheckUsername(s string) error {
-	_, e := ParseDns(s)
+func (t DNSServiceType) CheckUsername(s string) error {
+	_, e := ParseDNS(s)
 	return e
 }
 
-func (t DnsServiceType) NormalizeUsername(s string) (string, error) {
-	return ParseDns(s)
+func (t DNSServiceType) NormalizeUsername(s string) (string, error) {
+	return ParseDNS(s)
 }
 
-func (t DnsServiceType) ToChecker() Checker {
+func (t DNSServiceType) ToChecker() Checker {
 	return t.BaseToChecker(t, "a valid domain name")
 }
 
-func (t DnsServiceType) GetPrompt() string {
+func (t DNSServiceType) GetPrompt() string {
 	return "Your DNS domain"
 }
 
-func (t DnsServiceType) ToServiceJSON(un string) *jsonw.Wrapper {
+func (t DNSServiceType) ToServiceJSON(un string) *jsonw.Wrapper {
 	ret := jsonw.NewDictionary()
 	ret.SetKey("protocol", jsonw.NewString("dns"))
 	ret.SetKey("domain", jsonw.NewString(un))
 	return ret
 }
 
-func (t DnsServiceType) FormatProofText(ppr *PostProofRes) (string, error) {
+func (t DNSServiceType) FormatProofText(ppr *PostProofRes) (string, error) {
 	return (ppr.Text + "\n"), nil
 }
 
-func (t DnsServiceType) PostInstructions(un string) *Markup {
+func (t DNSServiceType) PostInstructions(un string) *Markup {
 	return FmtMarkup(`Please save the following as a DNS TXT entry for
 <strong>` + un + `</strong> OR <strong>_keybase.` + un + `</strong>:`)
 }
 
-func (t DnsServiceType) DisplayName(un string) string { return "Dns" }
-func (t DnsServiceType) GetTypeName() string          { return "dns" }
+func (t DNSServiceType) DisplayName(un string) string { return "Dns" }
+func (t DNSServiceType) GetTypeName() string          { return "dns" }
 
-func (t DnsServiceType) RecheckProofPosting(tryNumber int, status keybase1.ProofStatus) (warning *Markup, err error) {
+func (t DNSServiceType) RecheckProofPosting(tryNumber int, status keybase1.ProofStatus) (warning *Markup, err error) {
 	warning = FmtMarkup(`<p>We couldn't find a DNS proof for...<strong>yet</strong></p>
 <p>DNS propogation can be slow; we'll keep trying and email you the result</p>`)
 	err = WaitForItError{}
 	return
 }
-func (t DnsServiceType) GetProofType() string { return t.BaseGetProofType(t) }
+func (t DNSServiceType) GetProofType() string { return t.BaseGetProofType(t) }
 
-func (t DnsServiceType) CheckProofText(text string, id keybase1.SigID, sig string) (err error) {
+func (t DNSServiceType) CheckProofText(text string, id keybase1.SigID, sig string) (err error) {
 	return t.BaseCheckProofTextShort(text, id, true)
 }
 
-func (t DnsServiceType) GetAPIArgKey() string { return "remote_host" }
-func (t DnsServiceType) LastWriterWins() bool { return false }
+func (t DNSServiceType) GetAPIArgKey() string { return "remote_host" }
+func (t DNSServiceType) LastWriterWins() bool { return false }
 
 //=============================================================================
 
 func init() {
-	RegisterServiceType(DnsServiceType{})
+	RegisterServiceType(DNSServiceType{})
 	RegisterSocialNetwork("dns")
 	RegisterProofCheckHook("dns",
 		func(l RemoteProofChainLink) (ProofChecker, ProofError) {
-			return NewDnsChecker(l)
+			return NewDNSChecker(l)
 		})
 }
 

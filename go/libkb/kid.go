@@ -24,7 +24,7 @@ func (k KID) Match(q string, exact bool) bool {
 	if strings.HasPrefix(k.String(), strings.ToLower(q)) {
 		return true
 	}
-	if strings.HasPrefix(k.ToShortIdString(), q) {
+	if strings.HasPrefix(k.ToShortIDString(), q) {
 		return true
 	}
 	return false
@@ -42,7 +42,7 @@ func (k KID) ToFOKIDMapKey() FOKIDMapKey {
 	return FOKIDMapKey(k.ToMapKey())
 }
 
-func (k KID) ToShortIdString() string {
+func (k KID) ToShortIDString() string {
 	return strings.TrimRight(base64.URLEncoding.EncodeToString(k[0:12]), "=")
 }
 

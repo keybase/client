@@ -31,23 +31,23 @@ func ResolveUID(input string) (res ResolveResult) {
 	if au, res.err = ParseAssertionURL(input, false); res.err != nil {
 		return
 	}
-	res = resolveUid(au)
+	res = resolveUID(au)
 	return
 }
 
-func ResolveUidValuePair(key, value string) (res ResolveResult) {
+func ResolveUIDValuePair(key, value string) (res ResolveResult) {
 	G.Log.Debug("+ Resolve username (%s,%s)", key, value)
 
 	var au AssertionURL
 	if au, res.err = ParseAssertionURLKeyValue(key, value, false); res.err != nil {
-		res = resolveUid(au)
+		res = resolveUID(au)
 	}
 
 	G.Log.Debug("- Resolve username (%s,%s) -> %v", key, value, res.uid)
 	return
 }
 
-func resolveUid(au AssertionURL) ResolveResult {
+func resolveUID(au AssertionURL) ResolveResult {
 	// A standard keybase UID, so it's already resolved
 	if tmp := au.ToUID(); tmp.Exists() {
 		return ResolveResult{uid: tmp}

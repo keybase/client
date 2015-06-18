@@ -5,7 +5,7 @@ import (
 )
 
 type UserInfo struct {
-	Uid      keybase1.UID
+	UID      keybase1.UID
 	Username string
 }
 

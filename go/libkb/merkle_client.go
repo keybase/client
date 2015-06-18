@@ -65,7 +65,7 @@ type MerkleRoot struct {
 	payloadJSONString string
 	payloadJSON       *jsonw.Wrapper
 	rootHash          NodeHash
-	legacyUidRootHash NodeHash
+	legacyUIDRootHash NodeHash
 	ctime             int64
 }
 
@@ -234,7 +234,7 @@ func NewMerkleRootFromJSON(jw *jsonw.Wrapper) (ret *MerkleRoot, err error) {
 		payloadJSONString: payloadJSONString,
 		payloadJSON:       pj,
 		rootHash:          rh,
-		legacyUidRootHash: lurh,
+		legacyUIDRootHash: lurh,
 		ctime:             ctime,
 	}
 	return
@@ -547,12 +547,12 @@ func (vp *VerificationPath) VerifyUsername() (username string, err error) {
 	hshS := hex.EncodeToString(hsh[:])
 	var leaf *jsonw.Wrapper
 
-	if vp.root.legacyUidRootHash == nil {
+	if vp.root.legacyUIDRootHash == nil {
 		err = MerkleClientError{"no legacy UID root hash found in root"}
 		return
 	}
 
-	if leaf, err = vp.uidPath.VerifyPath(vp.root.legacyUidRootHash, hshS); err != nil {
+	if leaf, err = vp.uidPath.VerifyPath(vp.root.legacyUIDRootHash, hshS); err != nil {
 		return
 	}
 

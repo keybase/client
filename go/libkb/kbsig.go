@@ -130,7 +130,7 @@ func (u *User) ToKeyStanza(signing FOKID, eldest *FOKID) (ret *jsonw.Wrapper, er
 
 	if fp := signing.Fp; fp != nil {
 		ret.SetKey("fingerprint", jsonw.NewString(fp.String()))
-		ret.SetKey("key_id", jsonw.NewString(fp.ToKeyId()))
+		ret.SetKey("key_id", jsonw.NewString(fp.ToKeyID()))
 	}
 
 	ret.SetKey("kid", jsonw.NewString(signingKid.String()))

@@ -137,7 +137,7 @@ Enjoy!
 
 func (s *CmdSignupState) RunClient() error {
 	G.Log.Debug("| Client mode")
-	s.engine = &ClientModeSignupEngine{doPrompt: s.doPrompt}
+	s.engine = &clientModeSignupEngine{doPrompt: s.doPrompt}
 	return s.run()
 }
 
@@ -379,7 +379,7 @@ func (s *CmdSignupState) GetUsage() libkb.Usage {
 	}
 }
 
-type ClientModeSignupEngine struct {
+type clientModeSignupEngine struct {
 	scli     keybase1.SignupClient
 	ccli     keybase1.ConfigClient
 	arg      *engine.SignupEngineRunArg
@@ -387,11 +387,11 @@ type ClientModeSignupEngine struct {
 	libkb.Contextified
 }
 
-func (e *ClientModeSignupEngine) Name() string {
-	return "ClientModeSignupEngine"
+func (e *clientModeSignupEngine) Name() string {
+	return "clientModeSignupEngine"
 }
 
-func (e *ClientModeSignupEngine) RequiredUIs() []libkb.UIKind {
+func (e *clientModeSignupEngine) RequiredUIs() []libkb.UIKind {
 	return []libkb.UIKind{
 		libkb.LogUIKind,
 		libkb.GPGUIKind,
@@ -399,26 +399,26 @@ func (e *ClientModeSignupEngine) RequiredUIs() []libkb.UIKind {
 	}
 }
 
-func (e *ClientModeSignupEngine) SubConsumers() []libkb.UIConsumer {
+func (e *clientModeSignupEngine) SubConsumers() []libkb.UIConsumer {
 	// this doesn't use any subengines itself, so nil is ok here.
 	// the destination of this will handle it...
 	return nil
 }
 
-func (e *ClientModeSignupEngine) Prereqs() (ret engine.Prereqs) { return }
+func (e *clientModeSignupEngine) Prereqs() (ret engine.Prereqs) { return }
 
-func (e *ClientModeSignupEngine) CheckRegistered() (err error) {
-	G.Log.Debug("+ ClientModeSignupEngine::CheckRegistered")
+func (e *clientModeSignupEngine) CheckRegistered() (err error) {
+	G.Log.Debug("+ clientModeSignupEngine::CheckRegistered")
 	var rres keybase1.GetCurrentStatusRes
 	if rres, err = e.ccli.GetCurrentStatus(0); err != nil {
 	} else if rres.Registered {
 		err = libkb.AlreadyRegisteredError{}
 	}
-	G.Log.Debug("- ClientModeSignupEngine::CheckRegistered -> %s", libkb.ErrToOk(err))
+	G.Log.Debug("- clientModeSignupEngine::CheckRegistered -> %s", libkb.ErrToOk(err))
 	return
 }
 
-func (e *ClientModeSignupEngine) Init() error {
+func (e *clientModeSignupEngine) Init() error {
 	var err error
 	if e.scli, err = GetSignupClient(); err != nil {
 		return err
@@ -445,11 +445,11 @@ func (e *ClientModeSignupEngine) Init() error {
 	return nil
 }
 
-func (e *ClientModeSignupEngine) SetArg(arg *engine.SignupEngineRunArg) {
+func (e *clientModeSignupEngine) SetArg(arg *engine.SignupEngineRunArg) {
 	e.arg = arg
 }
 
-func (e *ClientModeSignupEngine) Run(ctx *engine.Context) error {
+func (e *clientModeSignupEngine) Run(ctx *engine.Context) error {
 	// in case daemon restarted before the last time the connections
 	// were established:
 	if err := e.Init(); err != nil {
@@ -480,7 +480,7 @@ func (e *ClientModeSignupEngine) Run(ctx *engine.Context) error {
 	return err
 }
 
-func (e *ClientModeSignupEngine) PostInviteRequest(arg libkb.InviteRequestArg) (err error) {
+func (e *clientModeSignupEngine) PostInviteRequest(arg libkb.InviteRequestArg) (err error) {
 	rarg := keybase1.InviteRequestArg{
 		Email:    arg.Email,
 		Fullname: arg.Fullname,

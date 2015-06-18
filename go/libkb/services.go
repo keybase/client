@@ -133,7 +133,7 @@ func (t BaseServiceType) NormalizeUsername(s string) (string, error) {
 	return strings.ToLower(s), nil
 }
 
-func (t BaseServiceType) BaseCheckProofForUrl(text string, id keybase1.SigID) (err error) {
+func (t BaseServiceType) BaseCheckProofForURL(text string, id keybase1.SigID) (err error) {
 	urlRxx := regexp.MustCompile(`https://(\S+)`)
 	target := id.ToMediumID()
 	urls := urlRxx.FindAllString(text, -1)

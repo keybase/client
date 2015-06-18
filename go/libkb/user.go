@@ -348,15 +348,15 @@ func (u *User) sigChain() *SigChain {
 }
 
 func (u *User) MakeIDTable() error {
-	if fokid := u.GetEldestFOKID(); fokid == nil {
+	fokid := u.GetEldestFOKID()
+	if fokid == nil {
 		return NoKeyError{"Expected a key but didn't find one"}
-	} else {
-		idt, err := NewIdentityTable(*fokid, u.sigChain(), u.sigHints)
-		if err != nil {
-			return err
-		}
-		u.idTable = idt
 	}
+	idt, err := NewIdentityTable(*fokid, u.sigChain(), u.sigHints)
+	if err != nil {
+		return err
+	}
+	u.idTable = idt
 	return nil
 }
 

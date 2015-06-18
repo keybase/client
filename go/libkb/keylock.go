@@ -12,7 +12,7 @@ type KeyUnlocker struct {
 	KeyDesc        string
 	Which          string
 	UseSecretStore bool
-	Ui             SecretUI
+	UI             SecretUI
 	Unlocker       func(pw string, storeSecret bool) (ret GenericKey, err error)
 }
 
@@ -29,8 +29,8 @@ func (arg KeyUnlocker) Run() (ret GenericKey, err error) {
 		desc = desc + "\nReason: " + arg.Reason
 	}
 
-	if arg.Ui == nil {
-		err = NoUiError{"secret"}
+	if arg.UI == nil {
+		err = NoUIError{"secret"}
 		return
 	}
 
@@ -38,7 +38,7 @@ func (arg KeyUnlocker) Run() (ret GenericKey, err error) {
 
 	for i := 0; (arg.Tries <= 0 || i < arg.Tries) && ret == nil && err == nil; i++ {
 		var res *keybase1.SecretEntryRes
-		res, err = arg.Ui.GetSecret(keybase1.SecretEntryArg{
+		res, err = arg.UI.GetSecret(keybase1.SecretEntryArg{
 			Err:            emsg,
 			Desc:           desc,
 			Prompt:         prompt,

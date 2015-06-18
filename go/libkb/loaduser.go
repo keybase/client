@@ -8,7 +8,7 @@ import (
 )
 
 type LoadUserArg struct {
-	Uid               keybase1.UID
+	UID               keybase1.UID
 	Name              string
 	PublicKeyOptional bool
 	NoCacheResult     bool // currently ignore
@@ -20,7 +20,7 @@ type LoadUserArg struct {
 }
 
 func (arg *LoadUserArg) checkUIDName() error {
-	if arg.Uid.Exists() {
+	if arg.UID.Exists() {
 		return nil
 	}
 
@@ -36,7 +36,7 @@ func (arg *LoadUserArg) checkUIDName() error {
 		return nil
 	}
 
-	if arg.Uid = myUID(arg.G(), arg.LoginContext); arg.Uid.IsNil() {
+	if arg.UID = myUID(arg.G(), arg.LoginContext); arg.UID.IsNil() {
 		arg.Name = arg.G().Env.GetUsername()
 	}
 	return nil
@@ -44,7 +44,7 @@ func (arg *LoadUserArg) checkUIDName() error {
 
 func (arg *LoadUserArg) resolveUID() (ResolveResult, error) {
 	var rres ResolveResult
-	if arg.Uid.Exists() {
+	if arg.UID.Exists() {
 		return rres, nil
 	}
 	if len(arg.Name) == 0 {
@@ -59,7 +59,7 @@ func (arg *LoadUserArg) resolveUID() (ResolveResult, error) {
 		return rres, fmt.Errorf("No resolution for name=%s", arg.Name)
 	}
 
-	arg.Uid = rres.uid
+	arg.UID = rres.uid
 	return rres, nil
 }
 
@@ -70,7 +70,7 @@ func (arg *LoadUserArg) checkSelf() {
 	}
 
 	myuid := myUID(G, arg.LoginContext)
-	if myuid.Exists() && arg.Uid.Exists() && myuid.Equal(arg.Uid) {
+	if myuid.Exists() && arg.UID.Exists() && myuid.Equal(arg.UID) {
 		arg.Self = true
 	}
 }
@@ -95,7 +95,7 @@ func LoadUser(arg LoadUserArg) (ret *User, err error) {
 		return nil, err
 	}
 
-	G.Log.Debug("+ LoadUser(uid=%v, name=%v)", arg.Uid, arg.Name)
+	G.Log.Debug("+ LoadUser(uid=%v, name=%v)", arg.UID, arg.Name)
 
 	// resolve the uid from the name, if necessary
 	rres, err := arg.resolveUID()
@@ -106,10 +106,10 @@ func LoadUser(arg LoadUserArg) (ret *User, err error) {
 	// check to see if this is a self load
 	arg.checkSelf()
 
-	G.Log.Debug("| resolved to %s", arg.Uid)
+	G.Log.Debug("| resolved to %s", arg.UID)
 
 	// load user from local, remote
-	ret, err = loadUser(arg.Uid, rres, arg.ForceReload)
+	ret, err = loadUser(arg.UID, rres, arg.ForceReload)
 	if err != nil {
 		return nil, err
 	}
@@ -117,7 +117,7 @@ func LoadUser(arg LoadUserArg) (ret *User, err error) {
 	// Match the returned User object to the Merkle tree. Also make sure
 	// that the username queried for matches the User returned (if it
 	// was indeed queried for)
-	if err = ret.leaf.MatchUser(ret, arg.Uid, rres.kbUsername); err != nil {
+	if err = ret.leaf.MatchUser(ret, arg.UID, rres.kbUsername); err != nil {
 		return
 	}
 

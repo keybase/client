@@ -274,13 +274,13 @@ func (s *LoginState) saveLoginState(lctx LoginContext, res *loginAPIResult) erro
 }
 
 func (r PostAuthProofRes) loginResult() (*loginAPIResult, error) {
-	uid, err := UIDFromHex(r.UidHex)
+	uid, err := UIDFromHex(r.UIDHex)
 	if err != nil {
 		return nil, err
 	}
 	ret := &loginAPIResult{
-		sessionID: r.SessionId,
-		csrfToken: r.CsrfToken,
+		sessionID: r.SessionID,
+		csrfToken: r.CSRFToken,
 		uid:       uid,
 		username:  r.Username,
 	}
@@ -514,7 +514,7 @@ func (s *LoginState) stretchPassphraseIfNecessary(lctx LoginContext, un string, 
 
 	if len(pp) == 0 {
 		if ui == nil {
-			return NoUiError{"secret"}
+			return NoUIError{"secret"}
 		}
 
 		var err error

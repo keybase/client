@@ -10,13 +10,13 @@ import (
 
 type PostProofRes struct {
 	Text     string
-	Id       string
+	ID       string
 	Metadata *jsonw.Wrapper
 }
 
 type PostProofArg struct {
 	Sig            string
-	Id             keybase1.SigID
+	ID             keybase1.SigID
 	RemoteUsername string
 	ProofType      string
 	Supersede      bool
@@ -26,8 +26,8 @@ type PostProofArg struct {
 
 func PostProof(arg PostProofArg) (*PostProofRes, error) {
 	hargs := HTTPArgs{
-		"sig_id_base":     S{arg.Id.ToString(false)},
-		"sig_id_short":    S{arg.Id.ToShortID()},
+		"sig_id_base":     S{arg.ID.ToString(false)},
+		"sig_id_short":    S{arg.ID.ToShortID()},
 		"sig":             S{arg.Sig},
 		"is_remote_proof": B{true},
 		"supersede":       B{arg.Supersede},
@@ -47,7 +47,7 @@ func PostProof(arg PostProofArg) (*PostProofRes, error) {
 	}
 	var tmp PostProofRes
 	res.Body.AtKey("proof_text").GetStringVoid(&tmp.Text, &err)
-	res.Body.AtKey("proof_id").GetStringVoid(&tmp.Id, &err)
+	res.Body.AtKey("proof_id").GetStringVoid(&tmp.ID, &err)
 	tmp.Metadata = res.Body.AtKey("proof_metadata")
 
 	var ret *PostProofRes
@@ -64,10 +64,10 @@ type PostAuthProofArg struct {
 }
 
 type PostAuthProofRes struct {
-	SessionId string `json:"session"`
-	AuthId    string `json:"auth_id"`
-	CsrfToken string `json:"csrf_token"`
-	UidHex    string `json:"uid"`
+	SessionID string `json:"session"`
+	AuthID    string `json:"auth_id"`
+	CSRFToken string `json:"csrf_token"`
+	UIDHex    string `json:"uid"`
 	Username  string `json:"username"`
 }
 
@@ -123,12 +123,12 @@ func DeletePrimary() (err error) {
 	return
 }
 
-func CheckPosted(proofId string) (found bool, status keybase1.ProofStatus, err error) {
+func CheckPosted(proofID string) (found bool, status keybase1.ProofStatus, err error) {
 	res, e2 := G.API.Post(APIArg{
 		Endpoint:    "sig/posted",
 		NeedSession: true,
 		Args: HTTPArgs{
-			"proof_id": S{proofId},
+			"proof_id": S{proofID},
 		},
 	})
 	if e2 != nil {

@@ -552,7 +552,7 @@ func (d *Locksmith) selectPGPKey(ctx *Context, keys []*libkb.PgpKeyBundle) (*lib
 
 	var selected *libkb.PgpKeyBundle
 	for _, key := range keys {
-		if key.GetFingerprint().ToKeyId() == keyid {
+		if key.GetFingerprint().ToKeyID() == keyid {
 			selected = key
 			break
 		}

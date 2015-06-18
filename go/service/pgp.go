@@ -182,7 +182,7 @@ func (h *PGPHandler) PgpKeyGen(arg keybase1.PgpKeyGenArg) (err error) {
 
 func (h *PGPHandler) keygen(sessionID int, earg engine.PGPKeyImportEngineArg, doInteractive bool) (err error) {
 	ctx := &engine.Context{LogUI: h.getLogUI(sessionID), SecretUI: h.getSecretUI(sessionID)}
-	earg.Gen.AddDefaultUid()
+	earg.Gen.AddDefaultUID()
 	eng := engine.NewPGPKeyImportEngine(earg)
 	err = engine.RunEngine(eng, ctx)
 	return err

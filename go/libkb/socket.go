@@ -19,7 +19,7 @@ type SocketInfoUnix struct {
 	file string
 }
 
-type SocketInfoTcp struct {
+type SocketInfoTCP struct {
 	port int
 }
 
@@ -31,11 +31,11 @@ func (s SocketInfoUnix) ToStringPair() (string, string) {
 	return "unix", s.file
 }
 
-func (s SocketInfoTcp) PrepSocket() error {
+func (s SocketInfoTCP) PrepSocket() error {
 	return nil
 }
 
-func (s SocketInfoTcp) ToStringPair() (string, string) {
+func (s SocketInfoTCP) ToStringPair() (string, string) {
 	return "tcp", fmt.Sprintf("127.0.0.1:%d", s.port)
 }
 
@@ -58,7 +58,7 @@ func ConfigureSocketInfo() (ret SocketInfo, err error) {
 		port = DAEMON_PORT
 	}
 	if port != 0 {
-		ret = SocketInfoTcp{port}
+		ret = SocketInfoTCP{port}
 	} else {
 		var s string
 		s, err = G.Env.GetSocketFile()
@@ -102,7 +102,7 @@ func (g *GlobalContext) GetSocket() (net.Conn, *rpc2.Transport, error) {
 		} else {
 			sw.conn, sw.err = DialSocket(g.SocketInfo)
 			if sw.err == nil {
-				sw.xp = rpc2.NewTransport(sw.conn, NewRpcLogFactory(), WrapError)
+				sw.xp = rpc2.NewTransport(sw.conn, NewRPCLogFactory(), WrapError)
 			}
 		}
 		g.socketWrapperMu.Lock()

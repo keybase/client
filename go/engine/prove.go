@@ -190,7 +190,7 @@ func (p *Prove) postProofToServer() (err error) {
 	arg := libkb.PostProofArg{
 		Sig:            p.sig,
 		ProofType:      p.st.GetProofType(),
-		Id:             p.sigID,
+		ID:             p.sigID,
 		Supersede:      p.supersede,
 		RemoteUsername: p.usernameNormalized,
 		RemoteKey:      p.st.GetAPIArgKey(),
@@ -226,7 +226,7 @@ func (p *Prove) promptPostedLoop(ctx *Context) (err error) {
 		if !retry || err != nil {
 			break
 		}
-		found, status, err = libkb.CheckPosted(p.postRes.Id)
+		found, status, err = libkb.CheckPosted(p.postRes.ID)
 		if found || err != nil {
 			break
 		}

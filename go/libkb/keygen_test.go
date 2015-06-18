@@ -75,7 +75,7 @@ func TestCreateIds(t *testing.T) {
 			// this is an error test, no need to do anything else
 			continue
 		}
-		arg.AddDefaultUid()
+		arg.AddDefaultUID()
 		if len(arg.Ids) != len(test.idsOut) {
 			t.Errorf("%s: %d IDs, expected %d.", test.name, len(arg.Ids), len(test.idsOut))
 			continue

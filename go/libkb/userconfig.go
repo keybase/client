@@ -10,7 +10,7 @@ import (
 //==================================================================
 
 type UserConfig struct {
-	Id     string  `json:"id"`
+	ID     string  `json:"id"`
 	Name   string  `json:"name"`
 	Salt   string  `json:"salt"`
 	Device *string `json:"device"`
@@ -33,7 +33,7 @@ func (u UserConfig) GetDeviceID() (ret *DeviceID) {
 
 func NewUserConfig(id keybase1.UID, name string, salt []byte, dev *DeviceID) *UserConfig {
 	ret := &UserConfig{
-		Id:               id.String(),
+		ID:               id.String(),
 		Name:             name,
 		Salt:             hex.EncodeToString(salt),
 		Device:           nil,
@@ -52,7 +52,7 @@ func NewUserConfig(id keybase1.UID, name string, salt []byte, dev *DeviceID) *Us
 
 func (u *UserConfig) Import() (err error) {
 	var tmp keybase1.UID
-	if tmp, err = UIDFromHex(u.Id); err != nil {
+	if tmp, err = UIDFromHex(u.ID); err != nil {
 		return
 	}
 	u.importedID = tmp
