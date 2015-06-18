@@ -24,7 +24,6 @@
 @property KBActivityIndicatorView *progressView;
 @property KBSearcher *search;
 @property KBListView *searchResultsView;
-@property BOOL reloadSearchDataFromDelay;
 
 @property KBPopover *popover;
 @property NSView *popoverInView;
@@ -348,8 +347,6 @@
 
   if (searchResults.header && [results count] > 0) [results insertObject:[KBTableViewHeader tableViewHeaderWithTitle:searchResults.header] atIndex:0];
   [_searchResultsView addObjects:results animation:NSTableViewAnimationEffectNone];
-  //[_searchResultsView.dataSource addObjects:results section:0 indexPaths:nil];
-  //[self reloadSearchDelay];
 
   if ([_searchResultsView rowCount] > 0) {
     [self showSearch];
@@ -362,19 +359,7 @@
   DDLogDebug(@"Clear results");
   //[_searchResultsView removeAllObjects];
   [_searchResultsView.dataSource removeAllObjects];
-  [self reloadSearchDelay];
-}
-
-- (void)reloadSearchDelay {
-  // Delay the reload so it's not all jankey (buffer reloads)
-  self.reloadSearchDataFromDelay = YES;
-  GHWeakSelf gself = self;
-  dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.3 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
-    if (gself.reloadSearchDataFromDelay) {
-      [gself.searchResultsView reloadData];
-      self.reloadSearchDataFromDelay = NO;
-    }
-  });
+  [_search reloadDelay:_searchResultsView];
 }
 
 - (void)searchControl:(KBSearchControl *)searchControl progressEnabled:(BOOL)progressEnabled {

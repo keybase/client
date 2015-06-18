@@ -8,6 +8,10 @@
 
 #import "KBSearcher.h"
 
+@interface KBSearcher ()
+@property BOOL reloadDelay;
+@end
+
 @implementation KBSearcher
 
 - (void)search:(NSString *)query client:(KBRPClient *)client remote:(BOOL)remote completion:(void (^)(NSError *error, KBSearchResults *searchResults))completion {
@@ -32,5 +36,16 @@
   }
 }
 
+- (void)reloadDelay:(KBTableView *)tableView {
+  // Delay the reload so it's not all jankey (buffer reloads)
+  _reloadDelay = YES;
+  GHWeakSelf gself = self;
+  dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.15 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
+    if (gself.reloadDelay) {
+      [tableView reloadData];
+      self.reloadDelay = NO;
+    }
+  });
+}
 
 @end

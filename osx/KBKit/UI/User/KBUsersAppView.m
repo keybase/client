@@ -254,16 +254,20 @@
 }
 
 - (void)searchControl:(KBSearchControl *)searchControl shouldDisplaySearchResults:(KBSearchResults *)searchResults {
+  NSInteger previousCount = [_searchView.listView rowCount];
+
   NSSet *usernames = [NSSet setWithArray:[[_searchView.listView objectsWithoutHeaders] map:^(KBRUserSummary *us) { return us.username; }]];
   NSArray *filtered = [searchResults.results reject:^BOOL(KBRUserSummary *us) { return [usernames containsObject:us.username]; }];
   NSMutableArray *results = [filtered mutableCopy];
   if (searchResults.header && [results count] > 0) [results insertObject:[KBTableViewHeader tableViewHeaderWithTitle:searchResults.header] atIndex:0];
-  [_searchView.listView addObjects:results animation:NSTableViewAnimationSlideUp];
+  [_searchView.listView addObjects:results animation:previousCount > 0 ? NSTableViewAnimationSlideUp : NSTableViewAnimationEffectNone];
   [self showSearch];
 }
 
 - (void)searchControlShouldClearSearchResults:(KBSearchControl *)searchControl {
-  [_searchView.listView removeAllObjects];
+  //[_searchView.listView removeAllObjects];
+  [_searchView.listView.dataSource removeAllObjects];
+  [_search reloadDelay:_searchView.listView];
 }
 
 - (void)searchControl:(KBSearchControl *)searchControl progressEnabled:(BOOL)progressEnabled {
