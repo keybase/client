@@ -103,7 +103,7 @@ func (f *JSONFile) Save(pretty bool, mode os.FileMode) (err error) {
 	var writer *os.File
 	flags := (os.O_WRONLY | os.O_CREATE | os.O_TRUNC)
 	if mode == 0 {
-		mode = PERM_FILE // By default, secrecy
+		mode = PermFile // By default, secrecy
 	}
 	writer, err = os.OpenFile(f.filename, flags, mode)
 	if err != nil {

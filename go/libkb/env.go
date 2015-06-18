@@ -489,7 +489,7 @@ func (e *Env) GetBundledCA(host string) string {
 }
 
 func (e *Env) GetUserCacheSize() int {
-	return e.GetInt(USER_CACHE_SIZE,
+	return e.GetInt(UserCacheSize,
 		func() (int, bool) { return e.cmd.GetUserCacheSize() },
 		func() (int, bool) { return e.getEnvInt("KEYBASE_USER_CACHE_SIZE") },
 		func() (int, bool) { return e.config.GetUserCacheSize() },
@@ -497,7 +497,7 @@ func (e *Env) GetUserCacheSize() int {
 }
 
 func (e *Env) GetProofCacheSize() int {
-	return e.GetInt(PROOF_CACHE_SIZE,
+	return e.GetInt(ProofCacheSize,
 		e.cmd.GetProofCacheSize,
 		func() (int, bool) { return e.getEnvInt("KEYBASE_PROOF_CACHE_SIZE") },
 		e.config.GetProofCacheSize,
@@ -505,21 +505,21 @@ func (e *Env) GetProofCacheSize() int {
 }
 
 func (e *Env) GetProofCacheLongDur() time.Duration {
-	return e.GetDuration(PROOF_CACHE_LONG_DUR,
+	return e.GetDuration(ProofCacheLongDur,
 		func() (time.Duration, bool) { return e.getEnvDuration("KEYBASE_PROOF_CACHE_LONG_DUR") },
 		e.config.GetProofCacheLongDur,
 	)
 }
 
 func (e *Env) GetProofCacheMediumDur() time.Duration {
-	return e.GetDuration(PROOF_CACHE_MEDIUM_DUR,
+	return e.GetDuration(ProofCacheMediumDur,
 		func() (time.Duration, bool) { return e.getEnvDuration("KEYBASE_PROOF_CACHE_MEDIUM_DUR") },
 		e.config.GetProofCacheMediumDur,
 	)
 }
 
 func (e *Env) GetProofCacheShortDur() time.Duration {
-	return e.GetDuration(PROOF_CACHE_SHORT_DUR,
+	return e.GetDuration(ProofCacheShortDur,
 		func() (time.Duration, bool) { return e.getEnvDuration("KEYBASE_PROOF_CACHE_SHORT_DUR") },
 		e.config.GetProofCacheShortDur,
 	)

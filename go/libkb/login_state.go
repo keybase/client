@@ -332,7 +332,7 @@ func (s *LoginState) pubkeyLoginHelper(lctx LoginContext, username string, getSe
 		return err
 	}
 
-	if proof, err = me.AuthenticationProof(key, loginSessionEncoded, AUTH_EXPIRE_IN); err != nil {
+	if proof, err = me.AuthenticationProof(key, loginSessionEncoded, AuthExpireIn); err != nil {
 		return
 	}
 

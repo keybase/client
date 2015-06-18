@@ -49,7 +49,7 @@ func MakeParentDirs(filename string) error {
 	}
 
 	if !exists {
-		err = os.MkdirAll(dir, PERM_DIR)
+		err = os.MkdirAll(dir, PermDir)
 		if err != nil {
 			G.Log.Errorf("Can't make parent dir %s", dir)
 			return err
@@ -139,7 +139,7 @@ type SafeWriter interface {
 func SafeWriteToFile(t SafeWriter) error {
 	fn := t.GetFilename()
 	G.Log.Debug(fmt.Sprintf("+ Writing to %s", fn))
-	tmpfn, tmp, err := TempFile(fn, PERM_FILE)
+	tmpfn, tmp, err := TempFile(fn, PermFile)
 	G.Log.Debug(fmt.Sprintf("| Temporary file generated: %s", tmpfn))
 	if err != nil {
 		return err

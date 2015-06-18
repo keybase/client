@@ -206,7 +206,7 @@ func (k *KexFwd) revSig(eddsa libkb.NaclKeyPair) (sig string, err error) {
 		NewKey:        eddsa,
 		Me:            k.args.User,
 		Sibkey:        true,
-		Expire:        libkb.NACL_EDDSA_EXPIRE_IN,
+		Expire:        libkb.NaclEdDSAExpireIn,
 		Device:        k.GetDevice(),
 	}
 	var jw *jsonw.Wrapper

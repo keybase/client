@@ -121,7 +121,7 @@ func (d *Service) GetExclusiveLock() error {
 	if err != nil {
 		return err
 	}
-	if err = os.MkdirAll(dir, libkb.PERM_DIR); err != nil {
+	if err = os.MkdirAll(dir, libkb.PermDir); err != nil {
 		return err
 	}
 	if err := d.lockPIDFile(); err != nil {

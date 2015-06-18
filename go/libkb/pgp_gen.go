@@ -188,10 +188,10 @@ func (a *PGPGenArg) Init() (err error) {
 		a.SubkeyBits = defBits
 	}
 	if a.PrimaryLifetime == 0 {
-		a.PrimaryLifetime = KEY_EXPIRE_IN
+		a.PrimaryLifetime = KeyExpireIn
 	}
 	if a.SubkeyLifetime == 0 {
-		a.SubkeyLifetime = SUBKEY_EXPIRE_IN
+		a.SubkeyLifetime = SubkeyExpireIn
 	}
 	return
 }

@@ -34,21 +34,21 @@ const (
 var UserAgent = "Keybase-Go-CLI/" + ClientVersion + " (" + runtime.Version() + " on " + runtime.GOOS + ")"
 
 const (
-	PERM_FILE           os.FileMode = 0600
-	PERM_DIR            os.FileMode = 0700
-	UMASKABLE_PERM_FILE os.FileMode = 0666
+	PermFile          os.FileMode = 0600
+	PermDir           os.FileMode = 0700
+	UmaskablePermFile os.FileMode = 0666
 )
 
 const (
-	USER_CACHE_SIZE         = 0x1000
-	PGP_FINGERPRINT_HEX_LEN = 40
+	UserCacheSize        = 0x1000
+	PGPFingerprintHexLen = 40
 
-	PROOF_CACHE_SIZE       = 0x10000
-	PROOF_CACHE_LONG_DUR   = 6 * time.Hour
-	PROOF_CACHE_MEDIUM_DUR = 30 * time.Minute
-	PROOF_CACHE_SHORT_DUR  = 1 * time.Minute
+	ProofCacheSize      = 0x10000
+	ProofCacheLongDur   = 6 * time.Hour
+	ProofCacheMediumDur = 30 * time.Minute
+	ProofCacheShortDur  = 1 * time.Minute
 
-	SIG_SHORT_ID_BYTES = 27
+	SigShortIDBytes = 27
 )
 
 var MerkleProdKIDs = []string{
@@ -59,18 +59,15 @@ var MerkleTestKIDs = []string{
 }
 
 const (
-	KEYBASE_KID_V1       = 1 // Uses SHA-256
-	KEYBASE_KID_V2       = 2 // Uses Shake256
-	KEYBASE_SIGNATURE_V1 = 1
+	KeybaseKIDV1       = 1 // Uses SHA-256
+	KeybaseSignatureV1 = 1
 
-	SIG_EXPIRE_IN        = 24 * 60 * 60 * 365 * 10 // 10 years
-	NACL_EDDSA_EXPIRE_IN = 24 * 60 * 60 * 365 * 3  // 3 years
-	NACL_DH_EXPIRE_IN    = 24 * 60 * 60 * 365 * 3  // 3 years
-	AUTH_EXPIRE_IN       = 24 * 60 * 60 * 365      // 1 year
-	KEY_EXPIRE_IN        = 24 * 60 * 60 * 365 * 8  // 8 years
-	SUBKEY_EXPIRE_IN     = 24 * 60 * 60 * 365 * 4  // 4 years
-
-	TRACK_SESSION_TIMEOUT = time.Minute
+	SigExpireIn       = 24 * 60 * 60 * 365 * 10 // 10 years
+	NaclEdDSAExpireIn = 24 * 60 * 60 * 365 * 3  // 3 years
+	NaclDHExpireIn    = 24 * 60 * 60 * 365 * 3  // 3 years
+	AuthExpireIn      = 24 * 60 * 60 * 365      // 1 year
+	KeyExpireIn       = 24 * 60 * 60 * 365 * 8  // 8 years
+	SubkeyExpireIn    = 24 * 60 * 60 * 365 * 4  // 4 years
 )
 
 // Status codes.  This list should match keybase/lib/constants.iced.

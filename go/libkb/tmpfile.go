@@ -15,7 +15,7 @@ func TempFile(prefix string, mode os.FileMode) (string, *os.File, error) {
 	flags := os.O_WRONLY | os.O_CREATE | os.O_EXCL
 	filename := strings.Join([]string{prefix, suffix}, ".")
 	if mode == 0 {
-		mode = PERM_FILE
+		mode = PermFile
 	}
 	file, err := os.OpenFile(filename, flags, mode)
 	return filename, file, err

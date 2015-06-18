@@ -84,7 +84,7 @@ func (d *DetKeyEngine) eddsa(ctx *Context, tpk libkb.PassphraseStream) error {
 	}
 	d.newEddsaKey = key
 
-	return d.push(ctx, key, signingKey, serverHalf, libkb.NACL_EDDSA_EXPIRE_IN, true)
+	return d.push(ctx, key, signingKey, serverHalf, libkb.NaclEdDSAExpireIn, true)
 }
 
 func GenSigningDetKey(tpk libkb.PassphraseStream, serverHalf []byte) (gkey libkb.GenericKey, err error) {
@@ -124,7 +124,7 @@ func (d *DetKeyEngine) dh(ctx *Context, seed []byte) error {
 	key.Private = &libkb.NaclDHKeyPrivate{}
 	copy(key.Private[:], (*priv)[:])
 
-	return d.push(ctx, key, d.newEddsaKey, serverHalf, libkb.NACL_DH_EXPIRE_IN, false)
+	return d.push(ctx, key, d.newEddsaKey, serverHalf, libkb.NaclDHExpireIn, false)
 }
 
 func serverSeed(seed, serverHalf []byte) (newseed []byte, err error) {

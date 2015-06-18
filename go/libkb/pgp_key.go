@@ -381,7 +381,7 @@ func (k *PgpKeyBundle) CanSign() bool {
 func (k *PgpKeyBundle) GetKid() KID {
 
 	prefix := []byte{
-		byte(KEYBASE_KID_V1),
+		byte(KeybaseKIDV1),
 		byte(k.PrimaryKey.PubKeyAlgo),
 	}
 

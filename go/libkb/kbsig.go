@@ -95,7 +95,7 @@ func (u *User) ToTrackingStatement(w *jsonw.Wrapper, outcome *IdentifyOutcome) (
 	}
 
 	w.SetKey("type", jsonw.NewString("track"))
-	w.SetKey("version", jsonw.NewInt(KEYBASE_SIGNATURE_V1))
+	w.SetKey("version", jsonw.NewInt(KeybaseSignatureV1))
 	w.SetKey("track", track)
 	return
 }
@@ -111,7 +111,7 @@ func (u *User) ToUntrackingStatement(w *jsonw.Wrapper) (err error) {
 	untrack.SetKey("basics", u.ToUntrackingStatementBasics())
 	untrack.SetKey("id", UIDWrapper(u.GetUID()))
 	w.SetKey("type", jsonw.NewString("untrack"))
-	w.SetKey("version", jsonw.NewInt(KEYBASE_SIGNATURE_V1))
+	w.SetKey("version", jsonw.NewInt(KeybaseSignatureV1))
 	w.SetKey("untrack", untrack)
 	return
 }
@@ -209,7 +209,7 @@ func (u *User) ProofMetadata(ei int, signingKey FOKID, eldest *FOKID, ctime int6
 	}
 
 	if ei == 0 {
-		ei = SIG_EXPIRE_IN
+		ei = SigExpireIn
 	}
 
 	ret = jsonw.NewDictionary()
@@ -284,7 +284,7 @@ func (u *User) selfProof(signingKey GenericKey, eldest *FOKID, device *Device, t
 		return
 	}
 	body := ret.AtKey("body")
-	body.SetKey("version", jsonw.NewInt(KEYBASE_SIGNATURE_V1))
+	body.SetKey("version", jsonw.NewInt(KeybaseSignatureV1))
 	body.SetKey("type", jsonw.NewString(typ))
 
 	if device != nil {
@@ -342,7 +342,7 @@ func (u *User) delegateKeyProof(newkey GenericKey, signingkey FOKID, typ string,
 		return
 	}
 	body := ret.AtKey("body")
-	body.SetKey("version", jsonw.NewInt(KEYBASE_SIGNATURE_V1))
+	body.SetKey("version", jsonw.NewInt(KeybaseSignatureV1))
 	body.SetKey("type", jsonw.NewString(typ))
 
 	if device != nil {
@@ -384,7 +384,7 @@ func (u *User) RevokeKeysProof(key GenericKey, kidsToRevoke []KID, deviceToDisab
 		return nil, err
 	}
 	body := ret.AtKey("body")
-	body.SetKey("version", jsonw.NewInt(KEYBASE_SIGNATURE_V1))
+	body.SetKey("version", jsonw.NewInt(KeybaseSignatureV1))
 	body.SetKey("type", jsonw.NewString("revoke"))
 	revokeSection := jsonw.NewDictionary()
 	revokeSection.SetKey("kids", jsonw.NewWrapper(kidsToRevoke))
@@ -409,7 +409,7 @@ func (u *User) RevokeSigsProof(key GenericKey, sigIDsToRevoke []keybase1.SigID) 
 		return nil, err
 	}
 	body := ret.AtKey("body")
-	body.SetKey("version", jsonw.NewInt(KEYBASE_SIGNATURE_V1))
+	body.SetKey("version", jsonw.NewInt(KeybaseSignatureV1))
 	body.SetKey("type", jsonw.NewString("revoke"))
 	revokeSection := jsonw.NewDictionary()
 	idsArray := jsonw.NewArray(len(sigIDsToRevoke))
@@ -427,7 +427,7 @@ func (u *User) CryptocurrencySig(key GenericKey, address string, sigToRevoke key
 		return nil, err
 	}
 	body := ret.AtKey("body")
-	body.SetKey("version", jsonw.NewInt(KEYBASE_SIGNATURE_V1))
+	body.SetKey("version", jsonw.NewInt(KeybaseSignatureV1))
 	body.SetKey("type", jsonw.NewString("cryptocurrency"))
 	currencySection := jsonw.NewDictionary()
 	currencySection.SetKey("address", jsonw.NewString(address))

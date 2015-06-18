@@ -146,7 +146,7 @@ func (s *FileSink) lazyOpen() error {
 		err = fmt.Errorf("open previously failed")
 	} else if !s.opened {
 		flags := os.O_WRONLY | os.O_CREATE | os.O_TRUNC
-		mode := libkb.UMASKABLE_PERM_FILE
+		mode := libkb.UmaskablePermFile
 		f, err := os.OpenFile(s.name, flags, mode)
 		if err != nil {
 			s.failed = true

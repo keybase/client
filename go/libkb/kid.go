@@ -105,7 +105,7 @@ func (k KID) ToNaclSigningKeyPublic() *NaclSigningKeyPublic {
 	if len(k) != 3+ed25519.PublicKeySize {
 		return nil
 	}
-	if k[0] != byte(KEYBASE_KID_V1) || k[1] != byte(KID_NACL_EDDSA) ||
+	if k[0] != byte(KeybaseKIDV1) || k[1] != byte(KID_NACL_EDDSA) ||
 		k[len(k)-1] != byte(ID_SUFFIX_KID) {
 		return nil
 	}

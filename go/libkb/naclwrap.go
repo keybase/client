@@ -71,7 +71,7 @@ func importNaclKid(kid KID, typ byte, bodyLen int) (ret []byte, err error) {
 		return
 	}
 
-	if kid[0] != byte(KEYBASE_KID_V1) || kid[l-1] != byte(ID_SUFFIX_KID) || kid[1] != typ {
+	if kid[0] != byte(KeybaseKIDV1) || kid[l-1] != byte(ID_SUFFIX_KID) || kid[1] != typ {
 		err = BadKeyError{"bad header or trailer bytes"}
 		return
 	}
@@ -101,7 +101,7 @@ func ImportKeypairFromKID(kid KID) (key GenericKey, err error) {
 		err = BadKeyError{"KID was way too short"}
 		return
 	}
-	if kid[0] != byte(KEYBASE_KID_V1) || kid[l-1] != byte(ID_SUFFIX_KID) {
+	if kid[0] != byte(KeybaseKIDV1) || kid[l-1] != byte(ID_SUFFIX_KID) {
 		err = BadKeyError{"bad header or trailer found"}
 		return
 	}
@@ -165,7 +165,7 @@ func ImportNaclDHKeyPairFromHex(s string) (ret NaclDHKeyPair, err error) {
 
 func (k NaclDHKeyPublic) GetKid() KID {
 	prefix := []byte{
-		byte(KEYBASE_KID_V1),
+		byte(KeybaseKIDV1),
 		byte(KID_NACL_DH),
 	}
 	suffix := byte(ID_SUFFIX_KID)
@@ -188,7 +188,7 @@ func (k NaclSigningKeyPair) GetAlgoType() AlgoType {
 
 func (k NaclSigningKeyPublic) GetKid() KID {
 	prefix := []byte{
-		byte(KEYBASE_KID_V1),
+		byte(KeybaseKIDV1),
 		byte(KID_NACL_EDDSA),
 	}
 	suffix := byte(ID_SUFFIX_KID)

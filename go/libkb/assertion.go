@@ -223,7 +223,7 @@ func (a AssertionDNS) ToLookup() (key, value string, err error) {
 	return "dns", a.Value, nil
 }
 func (a AssertionFingerprint) ToLookup() (key, value string, err error) {
-	cmp := len(a.Value) - PGP_FINGERPRINT_HEX_LEN
+	cmp := len(a.Value) - PGPFingerprintHexLen
 	value = a.Value
 	if len(a.Value) < 4 {
 		err = fmt.Errorf("fingerprint queries must be at least 2 bytes long")
