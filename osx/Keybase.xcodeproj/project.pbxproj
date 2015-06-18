@@ -80,6 +80,9 @@
 		0046C0ED1B29114F00C4D06F /* KBNotifications.h in Headers */ = {isa = PBXBuildFile; fileRef = 0046C0EB1B29114F00C4D06F /* KBNotifications.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		0046C0EE1B29114F00C4D06F /* KBNotifications.m in Sources */ = {isa = PBXBuildFile; fileRef = 0046C0EC1B29114F00C4D06F /* KBNotifications.m */; };
 		0046C0EF1B29123C00C4D06F /* KBKit.h in Headers */ = {isa = PBXBuildFile; fileRef = 009E13841B28A93D00C72B28 /* KBKit.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		004EF2CB1B3340ED007822CE /* FontAwesome.otf in CopyFiles */ = {isa = PBXBuildFile; fileRef = 004EF2C81B33409A007822CE /* FontAwesome.otf */; };
+		004EF2CF1B334323007822CE /* KBAwesomeFont.h in Headers */ = {isa = PBXBuildFile; fileRef = 004EF2CD1B334323007822CE /* KBAwesomeFont.h */; };
+		004EF2D01B334323007822CE /* KBAwesomeFont.m in Sources */ = {isa = PBXBuildFile; fileRef = 004EF2CE1B334323007822CE /* KBAwesomeFont.m */; };
 		004F44091B154EBA0021A29D /* kbfuse.bundle in Resources */ = {isa = PBXBuildFile; fileRef = 004F44081B154EBA0021A29D /* kbfuse.bundle */; };
 		0057B0C61AE57A7A00BFB0E7 /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 0057B0C21AE57A7A00BFB0E7 /* main.m */; };
 		0057B0DB1AE57B5900BFB0E7 /* keybase.Helper in Copy Files */ = {isa = PBXBuildFile; fileRef = 0057B0B41AE57A4900BFB0E7 /* keybase.Helper */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
@@ -464,6 +467,16 @@
 			name = "Embed App Extensions";
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		004EF2CA1B3340D8007822CE /* CopyFiles */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = Fonts;
+			dstSubfolderSpec = 7;
+			files = (
+				004EF2CB1B3340ED007822CE /* FontAwesome.otf in CopyFiles */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		0057B0B21AE57A4900BFB0E7 /* CopyFiles */ = {
 			isa = PBXCopyFilesBuildPhase;
 			buildActionMask = 2147483647;
@@ -569,6 +582,9 @@
 		0046C0EB1B29114F00C4D06F /* KBNotifications.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBNotifications.h; sourceTree = "<group>"; };
 		0046C0EC1B29114F00C4D06F /* KBNotifications.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBNotifications.m; sourceTree = "<group>"; };
 		004D14961A3BCF1F0083888D /* Podfile */ = {isa = PBXFileReference; lastKnownFileType = text; path = Podfile; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.ruby; };
+		004EF2C81B33409A007822CE /* FontAwesome.otf */ = {isa = PBXFileReference; lastKnownFileType = file; path = FontAwesome.otf; sourceTree = "<group>"; };
+		004EF2CD1B334323007822CE /* KBAwesomeFont.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBAwesomeFont.h; sourceTree = "<group>"; };
+		004EF2CE1B334323007822CE /* KBAwesomeFont.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBAwesomeFont.m; sourceTree = "<group>"; };
 		004F44051B154C1C0021A29D /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
 		004F44081B154EBA0021A29D /* kbfuse.bundle */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.plug-in"; path = kbfuse.bundle; sourceTree = "<group>"; };
 		00566A581A9BAD4800CA236E /* build.sh */ = {isa = PBXFileReference; lastKnownFileType = text.script.sh; path = build.sh; sourceTree = "<group>"; };
@@ -1067,6 +1083,14 @@
 			name = "Supporting Files";
 			sourceTree = "<group>";
 		};
+		004EF2C71B33409A007822CE /* Fonts */ = {
+			isa = PBXGroup;
+			children = (
+				004EF2C81B33409A007822CE /* FontAwesome.otf */,
+			);
+			path = Fonts;
+			sourceTree = "<group>";
+		};
 		00566A531A9BAD4800CA236E /* Install */ = {
 			isa = PBXGroup;
 			children = (
@@ -1200,6 +1224,8 @@
 				009E140F1B28A93D00C72B28 /* KBProgressView.m */,
 				0046253A1B2A5B6100E218AC /* KBComposeTextView.h */,
 				0046253B1B2A5B6100E218AC /* KBComposeTextView.m */,
+				004EF2CD1B334323007822CE /* KBAwesomeFont.h */,
+				004EF2CE1B334323007822CE /* KBAwesomeFont.m */,
 			);
 			path = UI;
 			sourceTree = "<group>";
@@ -1619,6 +1645,7 @@
 		00CC434C1A3A9E6C006118A9 /* Supporting Files */ = {
 			isa = PBXGroup;
 			children = (
+				004EF2C71B33409A007822CE /* Fonts */,
 				009E13611B2794CF00C72B28 /* Keybase.entitlements */,
 				00CC43531A3A9E6C006118A9 /* Images.xcassets */,
 				00CC43551A3A9E6C006118A9 /* MainMenu.xib */,
@@ -1799,6 +1826,7 @@
 				00C0DD471B28EC8700A825D4 /* KBDeviceView.h in Headers */,
 				0043D1301B28F1370036C532 /* KBPrefButton.h in Headers */,
 				00C0DCDD1B28EC7800A825D4 /* KBFileListEditView.h in Headers */,
+				004EF2CF1B334323007822CE /* KBAwesomeFont.h in Headers */,
 				0043D10F1B28EF670036C532 /* KBAppView.h in Headers */,
 				004624CB1B2A08F400E218AC /* KBUninstaller.h in Headers */,
 				00C0DCF71B28EC7800A825D4 /* KBPGPEncryptView.h in Headers */,
@@ -1961,6 +1989,7 @@
 				00CC43451A3A9E6C006118A9 /* Sources */,
 				00CC43461A3A9E6C006118A9 /* Frameworks */,
 				00CC43471A3A9E6C006118A9 /* Resources */,
+				004EF2CA1B3340D8007822CE /* CopyFiles */,
 				0057B0DA1AE57B4C00BFB0E7 /* Copy Files */,
 				001392891B0BDB8A0082DEA8 /* CopyFiles */,
 				0043D1051B28ED290036C532 /* Embed Frameworks */,
@@ -2289,6 +2318,7 @@
 				00C0DC9A1B28EC5A00A825D4 /* KBInstallable.m in Sources */,
 				00C0DC621B28EC3F00A825D4 /* KBRObject.m in Sources */,
 				00C0DCE41B28EC7800A825D4 /* KBPGPDecryptAppView.m in Sources */,
+				004EF2D01B334323007822CE /* KBAwesomeFont.m in Sources */,
 				0043D13F1B28F1370036C532 /* KBPrefPopUpView.m in Sources */,
 				00C0DCA01B28EC5A00A825D4 /* KBService.m in Sources */,
 				00C0DC7A1B28EC5000A825D4 /* KBLogFormatter.m in Sources */,

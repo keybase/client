@@ -24,6 +24,7 @@ typedef NS_OPTIONS (NSInteger, KBTextOptions) {
   KBTextOptionsSmall = 1 << 3,
   KBTextOptionsDanger = 1 << 4,
   KBTextOptionsWarning = 1 << 5,
+  KBTextOptionsSelect = 1 << 6,
 };
 
 typedef NS_ENUM (NSInteger, KBButtonStyle) {

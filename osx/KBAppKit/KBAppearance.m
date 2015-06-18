@@ -47,6 +47,7 @@ static id<KBAppearance> gCurrentAppearance = NULL;
 - (NSColor *)textColorForStyle:(KBTextStyle)style options:(KBTextOptions)options {
   if (options & KBTextOptionsDanger) return KBColorWithStyle(self.dangerColor, NSBackgroundStyleDark);
   if (options & KBTextOptionsWarning) return KBColorWithStyle(self.warnColor, NSBackgroundStyleDark);
+  if (options & KBTextOptionsSelect) return KBColorWithStyle(self.selectColor, NSBackgroundStyleLight);
 
   switch (style) {
     case KBTextStyleDefault:
@@ -181,7 +182,7 @@ static id<KBAppearance> gCurrentAppearance = NULL;
 }
 
 - (NSFont *)headerLargeTextFont {
-  return [NSFont fontWithName:@"Helvetica Neue Thin" size:BASE_FONT_SIZE+14];
+  return [NSFont fontWithName:@"Helvetica Neue Thin" size:BASE_FONT_SIZE+18];
   //return [NSFont systemFontOfSize:BASE_FONT_SIZE+10];
 }
 

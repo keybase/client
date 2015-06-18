@@ -9,6 +9,7 @@
 #import "KBProveInputView.h"
 
 #import "KBProveType.h"
+#import "KBAwesomeFont.h"
 
 @interface KBProveInputView ()
 @property KBLabel *header;
@@ -57,24 +58,30 @@
   _label.attributedText = nil;
 
   NSString *headerText = KBNameForServiceName(serviceName);
+  NSString *headerIcon = nil;
   NSString *labelText = @"What's your username?";
   NSString *placeholder = @"@username";
 
   if ([serviceName isEqualTo:@"twitter"]) {
     labelText = @"What's your Twitter username?";
     placeholder = @"@username";
+    headerIcon = @"twitter";
   } else if ([serviceName isEqualTo:@"github"]) {
     labelText = @"What's your Github username?";
     placeholder = @"username";
+    headerIcon = @"github";
   } else if ([serviceName isEqualTo:@"reddit"]) {
     labelText = @"What's your Reddit username?";
     placeholder = @"username";
+    headerIcon = @"reddit";
   } else if ([serviceName isEqualTo:@"coinbase"]) {
     labelText = @"What's your Coinbase username?";
     placeholder = @"username";
+    headerIcon = @"bitcoin";
   } else if ([serviceName isEqualTo:@"hackernews"]) {
     labelText = @"What's your HackerNews username?";
     placeholder = @"username";
+    headerIcon = @"hackerNews";
   } else if ([serviceName isEqualTo:@"dns"]) {
     labelText = @"What domain name do you want to add?";
     placeholder = @"yoursite.com";
@@ -92,8 +99,18 @@
     placeholder = @"username";
   }
 
-  [_header setText:headerText style:KBTextStyleHeaderLarge alignment:NSCenterTextAlignment lineBreakMode:NSLineBreakByTruncatingTail];
-  [_label setText:labelText font:[KBAppearance.currentAppearance textFont] color:[KBAppearance.currentAppearance textColor] alignment:NSLeftTextAlignment];
+  if (headerIcon) {
+    NSFont *headerFont = [KBAppearance.currentAppearance fontForStyle:KBTextStyleHeaderLarge options:0];
+    NSMutableAttributedString *header = [[NSMutableAttributedString alloc] init];
+    [header appendAttributedString:[KBAwesomeFont attributedStringForIcon:headerIcon color:KBAppearance.currentAppearance.selectColor size:headerFont.pointSize]];
+    NSDictionary *attributes = @{NSForegroundColorAttributeName: KBAppearance.currentAppearance.selectColor, NSFontAttributeName: headerFont};
+    [header appendAttributedString:[[NSAttributedString alloc] initWithString:NSStringWithFormat(@" %@", headerText) attributes:attributes]];
+    [_header setAttributedText:header alignment:NSCenterTextAlignment lineBreakMode:NSLineBreakByTruncatingTail];
+  } else {
+    [_header setText:headerText style:KBTextStyleHeaderLarge options:KBTextOptionsSelect alignment:NSCenterTextAlignment lineBreakMode:NSLineBreakByTruncatingTail];
+  }
+
+  [_label setText:labelText font:[KBAppearance.currentAppearance textFont] color:KBAppearance.currentAppearance.textColor alignment:NSLeftTextAlignment];
   _inputField.placeholder = placeholder;
 
   [self setNeedsLayout];

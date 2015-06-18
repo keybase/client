@@ -9,6 +9,7 @@
 #import "KBStyleGuideView.h"
 
 #import "KBFileIcon.h"
+#import "KBAwesomeFont.h"
 
 @interface KBStyleGuideView ()
 @property KBProgressOverlayView *progressView;
@@ -131,6 +132,21 @@
   icon2.iconHeight = 60;
   [icon2 setFile:[KBFile fileWithPath:@"~/Temp/test-a-really-long-file-name-a-really-long-file-name-a-really-long-file-name-a-really-long-file-name.txt"]];
   [contentView addSubview:icon2];
+
+  KBLabel *fontAwesomeLabel = [[KBLabel alloc] init];
+  [contentView addSubview:fontAwesomeLabel];
+
+  NSMutableAttributedString *icons = [[NSMutableAttributedString alloc] init];
+  [icons appendAttributedString:[KBAwesomeFont attributedStringForIcon:@"twitter" color:KBAppearance.currentAppearance.selectColor size:32]];
+  NSDictionary *attributes = @{NSForegroundColorAttributeName: KBAppearance.currentAppearance.selectColor, NSFontAttributeName: [NSFont systemFontOfSize:32]};
+  [icons appendAttributedString:[[NSAttributedString alloc] initWithString:@"Twitter" attributes:attributes]];
+
+  [icons appendAttributedString:[KBAwesomeFont attributedStringForIcon:@"github" color:KBAppearance.currentAppearance.selectColor size:32]];
+  [icons appendAttributedString:[[NSAttributedString alloc] initWithString:@"Github" attributes:attributes]];
+  [icons appendAttributedString:[KBAwesomeFont attributedStringForIcon:@"reddit" color:KBAppearance.currentAppearance.selectColor size:32]];
+  [icons appendAttributedString:[[NSAttributedString alloc] initWithString:@"Reddit" attributes:attributes]];
+  [fontAwesomeLabel setAttributedText:icons];
+
 
   KBScrollView *scrollView = [[KBScrollView alloc] init];
   [scrollView setDocumentView:contentView];
