@@ -270,6 +270,7 @@ var cstests = []cstest{
 }
 
 func TestPGPDecryptClearsign(t *testing.T) {
+	t.Skip()
 	tc := SetupEngineTest(t, "PGPDecrypt")
 	defer tc.Cleanup()
 
