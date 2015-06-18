@@ -177,10 +177,10 @@ func (u *User) GetServerSeqno() (i int, err error) {
 	i = -1
 
 	G.Log.Debug("+ Get server seqno for user: %s", u.name)
-	res, err := G.API.Get(ApiArg{
+	res, err := G.API.Get(APIArg{
 		Endpoint:    "user/lookup",
 		NeedSession: false,
-		Args: HttpArgs{
+		Args: HTTPArgs{
 			"username": S{u.name},
 			"fields":   S{"sigs"},
 		},

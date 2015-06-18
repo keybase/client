@@ -33,7 +33,7 @@ func (rc *GithubChecker) CheckHint(h SigHint) ProofError {
 }
 
 func (rc *GithubChecker) CheckStatus(h SigHint) ProofError {
-	res, err := G.XAPI.GetText(ApiArg{
+	res, err := G.XAPI.GetText(APIArg{
 		Endpoint:    h.apiURL,
 		NeedSession: false,
 	})

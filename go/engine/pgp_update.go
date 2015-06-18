@@ -91,10 +91,10 @@ func (e *PGPUpdateEngine) Run(ctx *Context) error {
 			return err
 		}
 		ctx.LogUI.Info("Posting update for key %s.", fingerprint.String())
-		_, err = e.G().API.Post(libkb.ApiArg{
+		_, err = e.G().API.Post(libkb.APIArg{
 			Endpoint:    "key/add",
 			NeedSession: true,
-			Args: libkb.HttpArgs{
+			Args: libkb.HTTPArgs{
 				"public_key": libkb.S{Val: keyBlob},
 				"is_update":  libkb.I{Val: 1},
 			},

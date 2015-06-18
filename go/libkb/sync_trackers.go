@@ -110,7 +110,7 @@ func (t *TrackerSyncer) syncFromServer(uid keybase1.UID, sr SessionReader) (err 
 
 	lv := t.getLoadedVersion()
 
-	hargs := HttpArgs{
+	hargs := HTTPArgs{
 		"uid":   UIDArg(uid),
 		"limit": I{5000},
 	}
@@ -119,8 +119,8 @@ func (t *TrackerSyncer) syncFromServer(uid keybase1.UID, sr SessionReader) (err 
 		hargs.Add("version", I{lv})
 	}
 
-	var res *ApiRes
-	res, err = t.G().API.Get(ApiArg{
+	var res *APIRes
+	res, err = t.G().API.Get(APIArg{
 		Endpoint:    "user/trackers",
 		Args:        hargs,
 		NeedSession: false,

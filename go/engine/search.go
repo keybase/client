@@ -46,13 +46,13 @@ func (e *SearchEngine) SubConsumers() []libkb.UIConsumer {
 }
 
 func (e *SearchEngine) Run(ctx *Context) error {
-	APIArgs := libkb.HttpArgs{
+	APIArgs := libkb.HTTPArgs{
 		"q": libkb.S{Val: e.query},
 	}
 	if e.numWanted > 0 {
 		APIArgs["num_wanted"] = libkb.I{Val: e.numWanted}
 	}
-	res, err := e.G().API.Get(libkb.ApiArg{
+	res, err := e.G().API.Get(libkb.APIArg{
 		Endpoint: "user/autocomplete",
 		Args:     APIArgs,
 	})

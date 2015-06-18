@@ -182,7 +182,7 @@ func remoteProofToTrackingStatement(s RemoteProofChainLink, base *jsonw.Wrapper)
 	}
 
 	base.AtKey("remote_key_proof").SetKey("proof_type", jsonw.NewInt(int(i)))
-	base.AtKey("remote_key_proof").SetKey("check_data_json", s.CheckDataJson())
+	base.AtKey("remote_key_proof").SetKey("check_data_json", s.CheckDataJSON())
 	base.SetKey("sig_type", jsonw.NewInt(SIG_TYPE_REMOTE_PROOF))
 	return nil
 }

@@ -25,7 +25,7 @@ type PostProofArg struct {
 }
 
 func PostProof(arg PostProofArg) (*PostProofRes, error) {
-	hargs := HttpArgs{
+	hargs := HTTPArgs{
 		"sig_id_base":     S{arg.Id.ToString(false)},
 		"sig_id_short":    S{arg.Id.ToShortID()},
 		"sig":             S{arg.Sig},
@@ -36,7 +36,7 @@ func PostProof(arg PostProofArg) (*PostProofRes, error) {
 	}
 	hargs.Add(arg.RemoteKey, S{arg.RemoteUsername})
 
-	res, err := G.API.Post(ApiArg{
+	res, err := G.API.Post(APIArg{
 		Endpoint:    "sig/post",
 		NeedSession: true,
 		Args:        hargs,
@@ -72,12 +72,12 @@ type PostAuthProofRes struct {
 }
 
 func PostAuthProof(arg PostAuthProofArg) (*PostAuthProofRes, error) {
-	hargs := HttpArgs{
+	hargs := HTTPArgs{
 		"uid":         UIDArg(arg.uid),
 		"sig":         S{arg.sig},
 		"signing_kid": S{arg.key.GetKid().String()},
 	}
-	res, err := G.API.Post(ApiArg{
+	res, err := G.API.Post(APIArg{
 		Endpoint:    "sig/post_auth",
 		NeedSession: false,
 		Args:        hargs,
@@ -100,9 +100,9 @@ type InviteRequestArg struct {
 }
 
 func PostInviteRequest(arg InviteRequestArg) (err error) {
-	_, err = G.API.Post(ApiArg{
+	_, err = G.API.Post(APIArg{
 		Endpoint: "invitation_request",
-		Args: HttpArgs{
+		Args: HTTPArgs{
 			"email":     S{arg.Email},
 			"full_name": S{arg.Fullname},
 			"notes":     S{arg.Notes},
@@ -112,10 +112,10 @@ func PostInviteRequest(arg InviteRequestArg) (err error) {
 }
 
 func DeletePrimary() (err error) {
-	_, err = G.API.Post(ApiArg{
+	_, err = G.API.Post(APIArg{
 		Endpoint:    "key/revoke",
 		NeedSession: true,
-		Args: HttpArgs{
+		Args: HTTPArgs{
 			"revoke_primary":  I{1},
 			"revocation_type": I{REV_SIMPLE_DELETE},
 		},
@@ -124,10 +124,10 @@ func DeletePrimary() (err error) {
 }
 
 func CheckPosted(proofId string) (found bool, status keybase1.ProofStatus, err error) {
-	res, e2 := G.API.Post(ApiArg{
+	res, e2 := G.API.Post(APIArg{
 		Endpoint:    "sig/posted",
 		NeedSession: true,
-		Args: HttpArgs{
+		Args: HTTPArgs{
 			"proof_id": S{proofId},
 		},
 	})
@@ -146,10 +146,10 @@ func CheckPosted(proofId string) (found bool, status keybase1.ProofStatus, err e
 }
 
 func CheckPostedViaSigID(sigID keybase1.SigID) (found bool, status keybase1.ProofStatus, err error) {
-	res, e2 := G.API.Post(ApiArg{
+	res, e2 := G.API.Post(APIArg{
 		Endpoint:    "sig/posted",
 		NeedSession: true,
-		Args: HttpArgs{
+		Args: HTTPArgs{
 			"sig_id": S{sigID.ToString(true)},
 		},
 	})
@@ -172,10 +172,10 @@ func PostDeviceLKS(lctx LoginContext, deviceID, deviceType string, serverHalf []
 	if len(serverHalf) == 0 {
 		return fmt.Errorf("PostDeviceLKS: called with empty serverHalf")
 	}
-	arg := ApiArg{
+	arg := APIArg{
 		Endpoint:    "device/update",
 		NeedSession: true,
-		Args: HttpArgs{
+		Args: HTTPArgs{
 			"device_id":       S{Val: deviceID},
 			"type":            S{Val: deviceType},
 			"lks_server_half": S{Val: hex.EncodeToString(serverHalf)},

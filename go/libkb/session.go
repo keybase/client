@@ -229,7 +229,7 @@ func (s *Session) Check() error {
 		return nil
 	}
 
-	res, err := s.G().API.Get(ApiArg{
+	res, err := s.G().API.Get(APIArg{
 		SessionR:    s,
 		Endpoint:    "sesscheck",
 		NeedSession: true,
@@ -279,7 +279,7 @@ func (s *Session) IsValid() bool {
 
 func (s *Session) postLogout() error {
 
-	_, err := s.G().API.Post(ApiArg{
+	_, err := s.G().API.Post(APIArg{
 		SessionR:    s,
 		Endpoint:    "logout",
 		NeedSession: true,

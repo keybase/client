@@ -77,7 +77,7 @@ func (rc *RooterChecker) UnpackData(inp *jsonw.Wrapper) (string, ProofError) {
 }
 
 func (rc *RooterChecker) CheckStatus(h SigHint) ProofError {
-	res, err := G.XAPI.Get(ApiArg{
+	res, err := G.XAPI.Get(APIArg{
 		Endpoint:    h.apiURL,
 		NeedSession: false,
 	})

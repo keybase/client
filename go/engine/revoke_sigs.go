@@ -94,10 +94,10 @@ func (e *RevokeSigsEngine) Run(ctx *Context) error {
 		return err
 	}
 	kid := sigKey.GetKid()
-	_, err = e.G().API.Post(libkb.ApiArg{
+	_, err = e.G().API.Post(libkb.APIArg{
 		Endpoint:    "sig/revoke",
 		NeedSession: true,
-		Args: libkb.HttpArgs{
+		Args: libkb.HTTPArgs{
 			"signing_kid": libkb.S{Val: kid.String()},
 			"sig":         libkb.S{Val: sig},
 		},

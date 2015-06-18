@@ -6,11 +6,11 @@ import (
 	"strconv"
 )
 
-type HttpValue interface {
+type HTTPValue interface {
 	String() string
 }
 
-type HttpArgs map[string]HttpValue
+type HTTPArgs map[string]HTTPValue
 
 type S struct {
 	Val string
@@ -32,12 +32,12 @@ type B struct {
 	Val bool
 }
 
-func (a *HttpArgs) Add(s string, v HttpValue) {
+func (a *HTTPArgs) Add(s string, v HTTPValue) {
 	(*a)[s] = v
 }
 
-func NewHttpArgs() HttpArgs {
-	return make(HttpArgs)
+func NewHTTPArgs() HTTPArgs {
+	return make(HTTPArgs)
 }
 
 func (s S) String() string    { return s.Val }
@@ -51,7 +51,7 @@ func (b B) String() string {
 	return "0"
 }
 
-func (a HttpArgs) ToValues() url.Values {
+func (a HTTPArgs) ToValues() url.Values {
 	ret := url.Values{}
 	for k, v := range a {
 		ret.Set(k, v.String())
@@ -59,12 +59,12 @@ func (a HttpArgs) ToValues() url.Values {
 	return ret
 }
 
-func (a HttpArgs) EncodeToString() string {
+func (a HTTPArgs) EncodeToString() string {
 	return a.ToValues().Encode()
 }
 
-func HttpArgsFromKeyValuePair(key string, val HttpValue) HttpArgs {
-	ret := HttpArgs{}
+func HTTPArgsFromKeyValuePair(key string, val HTTPValue) HTTPArgs {
+	ret := HTTPArgs{}
 	ret[key] = val
 	return ret
 }

@@ -189,7 +189,7 @@ func (e *Doctor) status(ctx *Context) {
 		cd, err := kf.GetCurrentDevice(e.G())
 		if err == nil {
 			uistatus.CurrentDevice = &keybase1.Device{
-				DeviceID: cd.Id,
+				DeviceID: cd.ID,
 				Type:     cd.Type,
 			}
 			if cd.Description != nil {

@@ -210,7 +210,7 @@ func (d Delegator) post(lctx LoginContext) (err error) {
 		return
 	}
 
-	hargs := HttpArgs{
+	hargs := HTTPArgs{
 		"sig_id_base":     S{Val: d.sigID.ToString(false)},
 		"sig_id_short":    S{Val: d.sigID.ToShortID()},
 		"sig":             S{Val: d.sig},
@@ -230,7 +230,7 @@ func (d Delegator) post(lctx LoginContext) (err error) {
 	}
 
 	G.Log.Debug("Post NewKey: %v", hargs)
-	arg := ApiArg{
+	arg := APIArg{
 		Endpoint:     "key/add",
 		NeedSession:  true,
 		Args:         hargs,

@@ -230,10 +230,10 @@ func (s *LoginState) postLoginToServer(lctx LoginContext, eOu string, lgpw []byt
 	if err != nil {
 		return nil, err
 	}
-	res, err := s.G().API.Post(ApiArg{
+	res, err := s.G().API.Post(APIArg{
 		Endpoint:    "login",
 		NeedSession: false,
-		Args: HttpArgs{
+		Args: HTTPArgs{
 			"email_or_username": S{eOu},
 			"hmac_pwh":          S{hex.EncodeToString(lgpw)},
 			"login_session":     S{loginSessionEncoded},

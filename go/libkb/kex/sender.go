@@ -102,10 +102,10 @@ func (s *Sender) post(msg *Msg) error {
 
 	libkb.G.Log.Debug("posting message %s {dir: %d, seqno: %d, w: %x, uid: %x}", msg.Name(), msg.Direction, msg.Seqno, msg.WeakID, msg.UID)
 
-	_, err = s.G().API.Post(libkb.ApiArg{
+	_, err = s.G().API.Post(libkb.APIArg{
 		Endpoint:    "kex/send",
 		NeedSession: true,
-		Args: libkb.HttpArgs{
+		Args: libkb.HTTPArgs{
 			"dir":      libkb.I{Val: int(msg.Direction)},
 			"I":        libkb.S{Val: hex.EncodeToString(msg.StrongID[:])},
 			"msg":      libkb.S{Val: menc},

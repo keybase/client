@@ -32,7 +32,7 @@ type GlobalContext struct {
 	Keyrings        *Keyrings      // Gpg Keychains holding keys
 	API             API            // How to make a REST call to the server
 	ResolveCache    *ResolveCache  // cache of resolve results
-	LocalDb         *JsonLocalDb   // Local DB for cache
+	LocalDb         *JSONLocalDb   // Local DB for cache
 	MerkleClient    *MerkleClient  // client for querying server's merkle sig tree
 	XAPI            ExternalAPI    // for contacting Twitter, Github, etc.
 	Output          io.Writer      // where 'Stdout'-style output goes
@@ -114,7 +114,7 @@ func (g *GlobalContext) PushShutdownHook(sh ShutdownHook) {
 }
 
 func (g *GlobalContext) ConfigureConfig() error {
-	c := NewJsonConfigFile(g.Env.GetConfigFilename())
+	c := NewJSONConfigFile(g.Env.GetConfigFilename())
 	err := c.Load(false)
 	if err != nil {
 		return err
@@ -170,7 +170,7 @@ func (g *GlobalContext) ConfigureCaches() error {
 	// We consider the local DB as a cache; it's caching our
 	// fetches from the server after all (and also our cryptographic
 	// checking).
-	g.LocalDb = NewJsonLocalDb(NewLevelDb())
+	g.LocalDb = NewJSONLocalDb(NewLevelDb())
 	return g.LocalDb.Open()
 }
 

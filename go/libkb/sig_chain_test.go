@@ -50,7 +50,7 @@ func getErrorTypesMap() map[string]map[reflect.Type]bool {
 			reflect.TypeOf(BadSigError{}): true,
 		},
 		"WRONG_UID": map[reflect.Type]bool{
-			reflect.TypeOf(UidMismatchError{}): true,
+			reflect.TypeOf(UIDMismatchError{}): true,
 		},
 		"WRONG_USERNAME": map[reflect.Type]bool{
 			reflect.TypeOf(BadUsernameError{}): true,

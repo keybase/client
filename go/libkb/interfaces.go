@@ -138,7 +138,7 @@ type ConfigWriter interface {
 	Write() error
 }
 
-type HttpRequest interface {
+type HTTPRequest interface {
 	SetEnvironment(env Env)
 }
 
@@ -157,55 +157,55 @@ type Command interface {
 	GetUsage() Usage
 }
 
-type ApiArg struct {
+type APIArg struct {
 	Endpoint    string
 	uArgs       url.Values
-	Args        HttpArgs
+	Args        HTTPArgs
 	NeedSession bool
 	SessionR    SessionReader
-	HttpStatus  []int
+	HTTPStatus  []int
 	AppStatus   []string
 	DecodeTo    interface{}
 	Contextified
 }
 
-type ApiRes struct {
+type APIRes struct {
 	Status     *jsonw.Wrapper
 	Body       *jsonw.Wrapper
-	HttpStatus int
+	HTTPStatus int
 	AppStatus  string
 }
 
-type ExternalHtmlRes struct {
-	HttpStatus int
+type ExternalHTMLRes struct {
+	HTTPStatus int
 	GoQuery    *goquery.Document
 }
 
 type ExternalTextRes struct {
-	HttpStatus int
+	HTTPStatus int
 	Body       string
 }
 
-type ExternalApiRes struct {
-	HttpStatus int
+type ExternalAPIRes struct {
+	HTTPStatus int
 	Body       *jsonw.Wrapper
 }
 
 type API interface {
-	Get(ApiArg) (*ApiRes, error)
-	GetResp(ApiArg) (*http.Response, error)
-	GetDecode(ApiArg, interface{}) error
-	Post(ApiArg) (*ApiRes, error)
-	PostResp(ApiArg) (*http.Response, error)
-	PostDecode(ApiArg, interface{}) error
+	Get(APIArg) (*APIRes, error)
+	GetResp(APIArg) (*http.Response, error)
+	GetDecode(APIArg, interface{}) error
+	Post(APIArg) (*APIRes, error)
+	PostResp(APIArg) (*http.Response, error)
+	PostDecode(APIArg, interface{}) error
 }
 
 type ExternalAPI interface {
-	Get(ApiArg) (*ExternalApiRes, error)
-	Post(ApiArg) (*ExternalApiRes, error)
-	GetHTML(ApiArg) (*ExternalHtmlRes, error)
-	GetText(ApiArg) (*ExternalTextRes, error)
-	PostHTML(ApiArg) (*ExternalHtmlRes, error)
+	Get(APIArg) (*ExternalAPIRes, error)
+	Post(APIArg) (*ExternalAPIRes, error)
+	GetHTML(APIArg) (*ExternalHTMLRes, error)
+	GetText(APIArg) (*ExternalTextRes, error)
+	PostHTML(APIArg) (*ExternalHTMLRes, error)
 }
 
 type IdentifyUI interface {

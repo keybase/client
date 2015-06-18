@@ -119,10 +119,10 @@ func (s *LoginSession) Load() error {
 		return fmt.Errorf("LoginSession already loaded for %s", s.sessionFor)
 	}
 
-	res, err := s.G().API.Get(ApiArg{
+	res, err := s.G().API.Get(APIArg{
 		Endpoint:    "getsalt",
 		NeedSession: false,
-		Args: HttpArgs{
+		Args: HTTPArgs{
 			"email_or_username": S{Val: s.sessionFor},
 		},
 	})

@@ -444,7 +444,7 @@ func (p *GpgIndexParser) ParseKey(l *GpgIndexLine) (ret *GpgPrimaryKey, err erro
 	var line *GpgIndexLine
 	ret, err = ParseGpgPrimaryKey(l)
 	done := false
-	for !done && err == nil && !p.isEof() {
+	for !done && err == nil && !p.isEOF() {
 		if line, err = p.GetLine(); line == nil || err != nil {
 		} else if line.IsNewKey() {
 			p.PutbackLine(line)
@@ -461,7 +461,7 @@ func (p *GpgIndexParser) GetLine() (ret *GpgIndexLine, err error) {
 	if p.putback != nil {
 		ret = p.putback
 		p.putback = nil
-	} else if p.isEof() {
+	} else if p.isEOF() {
 	} else if s, e2 := p.src.ReadString(byte('\n')); e2 == nil {
 		p.lineno++
 		ret, err = ParseLine(s, p.lineno)
@@ -477,12 +477,12 @@ func (p *GpgIndexParser) PutbackLine(line *GpgIndexLine) {
 	p.putback = line
 }
 
-func (p GpgIndexParser) isEof() bool { return p.eof }
+func (p GpgIndexParser) isEOF() bool { return p.eof }
 
 func (p *GpgIndexParser) Parse(stream io.Reader) (ki *GpgKeyIndex, err error) {
 	p.src = bufio.NewReader(stream)
 	ki = NewGpgKeyIndex()
-	for err == nil && !p.isEof() {
+	for err == nil && !p.isEOF() {
 		var el GpgIndexElement
 		if el, err = p.ParseElement(); err == nil && el != nil {
 			ki.PushElement(el)

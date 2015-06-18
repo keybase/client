@@ -265,12 +265,12 @@ func importPathFromJson(jw *jsonw.Wrapper) (out []*PathStep, err error) {
 	return
 }
 
-func (mc *MerkleClient) LookupPath(q HttpArgs) (vp *VerificationPath, err error) {
+func (mc *MerkleClient) LookupPath(q HTTPArgs) (vp *VerificationPath, err error) {
 
 	// Poll for 10s and ask for a race-free state.
 	q.Add("poll", I{10})
 
-	res, err := G.API.Get(ApiArg{
+	res, err := G.API.Get(APIArg{
 		Endpoint:    "merkle/path",
 		NeedSession: false,
 		Args:        q,
@@ -561,7 +561,7 @@ func (vp *VerificationPath) VerifyUsername() (username string, err error) {
 		return
 	}
 	if vp.uid.NotEqual(uid2) {
-		err = UidMismatchError{fmt.Sprintf("UID %s != %s via merkle tree", uid2, vp.uid)}
+		err = UIDMismatchError{fmt.Sprintf("UID %s != %s via merkle tree", uid2, vp.uid)}
 		return
 	}
 
@@ -657,7 +657,7 @@ func (path PathSteps) VerifyPath(curr NodeHash, uidS string) (juser *jsonw.Wrapp
 	return
 }
 
-func (mc *MerkleClient) LookupUser(q HttpArgs) (u *MerkleUserLeaf, err error) {
+func (mc *MerkleClient) LookupUser(q HTTPArgs) (u *MerkleUserLeaf, err error) {
 
 	G.Log.Debug("+ MerkleClient.LookupUser(%v)", q)
 

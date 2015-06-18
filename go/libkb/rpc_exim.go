@@ -562,7 +562,7 @@ func (ckf ComputedKeyFamily) Export() []keybase1.PublicKey {
 			PGPIdentities:     identities,
 			IsSibkey:          cki.Sibkey,
 			IsEldest:          cki.Eldest,
-			IsWeb:             (device != nil && device.Id == ckf.cki.WebDeviceID),
+			IsWeb:             (device != nil && device.ID == ckf.cki.WebDeviceID),
 			ParentID:          parentID,
 			DeviceID:          deviceID,
 			DeviceDescription: deviceDescription,

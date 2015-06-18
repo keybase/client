@@ -220,7 +220,7 @@ func (k *KexFwd) revSig(eddsa libkb.NaclKeyPair) (sig string, err error) {
 func (k *KexFwd) GetDevice() *libkb.Device {
 	s := libkb.DEVICE_STATUS_ACTIVE
 	return &libkb.Device{
-		Id:          k.deviceID.String(),
+		ID:          k.deviceID.String(),
 		Type:        k.args.DevType,
 		Description: &k.args.DevDesc,
 		Status:      &s,

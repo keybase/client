@@ -69,7 +69,7 @@ type DeviceStatus struct {
 
 type Device struct {
 	// TODO: Store this as a DeviceID instead.
-	Id          string  `json:"id"`
+	ID          string  `json:"id"`
 	Type        string  `json:"type"`
 	Kid         KID     `json:"kid,omitempty"`
 	Description *string `json:"description,omitempty"`
@@ -87,7 +87,7 @@ func NewWebDevice() (ret *Device) {
 	} else {
 		s := DEVICE_STATUS_ACTIVE
 		ret = &Device{
-			Id:     did.String(),
+			ID:     did.String(),
 			Type:   DEVICE_TYPE_WEB,
 			Status: &s,
 		}

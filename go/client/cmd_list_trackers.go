@@ -201,7 +201,7 @@ func (c *CmdListTrackers) outputJSON(sums []keybase1.UserSummary) error {
 		PublicKeys []keybase1.PublicKey  `json:"public_keys,omitempty"`
 	}
 	type smallSum struct {
-		Uid      keybase1.UID `json:"uid"`
+		UID      keybase1.UID `json:"uid"`
 		Username string       `json:"username"`
 		FullName string       `json:"full_name,omitempty"`
 		Proofs   smallProofs  `json:"proofs,omitempty"`
@@ -209,7 +209,7 @@ func (c *CmdListTrackers) outputJSON(sums []keybase1.UserSummary) error {
 	small := make([]smallSum, len(sums))
 	for i, s := range sums {
 		small[i] = smallSum{
-			Uid:      s.Uid,
+			UID:      s.Uid,
 			Username: s.Username,
 			FullName: s.FullName,
 			Proofs: smallProofs{

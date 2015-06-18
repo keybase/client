@@ -27,10 +27,10 @@ func NewSignupJoinEngine(g *libkb.GlobalContext) *SignupJoinEngine {
 
 // XXX why is this here?
 func CheckUsernameAvailable(g *libkb.GlobalContext, s string) (err error) {
-	_, err = g.API.Get(libkb.ApiArg{
+	_, err = g.API.Get(libkb.APIArg{
 		Endpoint:    "user/lookup",
 		NeedSession: false,
-		Args: libkb.HttpArgs{
+		Args: libkb.HTTPArgs{
 			"username": libkb.S{Val: s},
 			"fields":   libkb.S{Val: "basics"},
 		},
@@ -72,10 +72,10 @@ type SignupJoinEngineRunArg struct {
 }
 
 func (s *SignupJoinEngine) Post(arg SignupJoinEngineRunArg) (err error) {
-	var res *libkb.ApiRes
-	res, err = s.G().API.Post(libkb.ApiArg{
+	var res *libkb.APIRes
+	res, err = s.G().API.Post(libkb.APIArg{
 		Endpoint: "signup",
-		Args: libkb.HttpArgs{
+		Args: libkb.HTTPArgs{
 			"salt":          libkb.S{Val: hex.EncodeToString(arg.PWSalt)},
 			"pwh":           libkb.S{Val: hex.EncodeToString(arg.PWHash)},
 			"username":      libkb.S{Val: arg.Username},

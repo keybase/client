@@ -128,10 +128,10 @@ func LoadSigHints(uid keybase1.UID) (sh *SigHints, err error) {
 
 func (sh *SigHints) Refresh() error {
 	G.Log.Debug("+ Refresh SigHints() for uid=%s", sh.uid)
-	res, err := G.API.Get(ApiArg{
+	res, err := G.API.Get(APIArg{
 		Endpoint:    "sig/hints",
 		NeedSession: false,
-		Args: HttpArgs{
+		Args: HTTPArgs{
 			"uid": UIDArg(sh.uid),
 			"low": I{sh.version},
 		},

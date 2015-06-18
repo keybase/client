@@ -93,7 +93,7 @@ func (n NullConfiguration) GetNullAtPath(string) bool {
 type TestParameters struct {
 	ConfigFilename string
 	Home           string
-	ServerUri      string
+	ServerURI      string
 	GPGHome        string
 	GPGOptions     []string
 	Debug          bool
@@ -284,7 +284,7 @@ func (e *Env) GetDuration(def time.Duration, flist ...func() (time.Duration, boo
 
 func (e *Env) GetServerURI() string {
 	return e.GetString(
-		func() string { return e.Test.ServerUri },
+		func() string { return e.Test.ServerURI },
 		func() string { return e.cmd.GetServerURI() },
 		func() string { return os.Getenv("KEYBASE_SERVER_URI") },
 		func() string { return e.config.GetServerURI() },

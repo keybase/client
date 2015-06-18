@@ -13,9 +13,9 @@ type CmdPing struct{}
 func (v *CmdPing) RunClient() error { return v.Run() }
 
 func (v *CmdPing) Run() error {
-	_, err := G.API.Post(libkb.ApiArg{
+	_, err := G.API.Post(libkb.APIArg{
 		Endpoint: "ping",
-		Args: libkb.HttpArgs{
+		Args: libkb.HTTPArgs{
 			"alice":   libkb.S{Val: "hi alice"},
 			"bob":     libkb.I{Val: 1000},
 			"charlie": libkb.B{Val: true},
@@ -24,7 +24,7 @@ func (v *CmdPing) Run() error {
 	if err != nil {
 		return err
 	}
-	_, err = G.API.Get(libkb.ApiArg{Endpoint: "ping"})
+	_, err = G.API.Get(libkb.APIArg{Endpoint: "ping"})
 	if err != nil {
 		return err
 	}

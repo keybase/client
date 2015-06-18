@@ -154,9 +154,9 @@ func (e *UserSummary) get() (map[keybase1.UID]*Summary, error) {
 	var j struct {
 		Users map[keybase1.UID]*Summary `json:"display"`
 	}
-	args := libkb.ApiArg{
+	args := libkb.APIArg{
 		Endpoint: "user/display_info",
-		Args: libkb.HttpArgs{
+		Args: libkb.HTTPArgs{
 			"uids": libkb.S{Val: e.uidlist()},
 		},
 	}

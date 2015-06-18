@@ -129,7 +129,7 @@ func (s *CmdListTracking) RunClient() error {
 
 func (s *CmdListTracking) Run() (err error) {
 	arg := engine.ListTrackingEngineArg{
-		Json:    s.json,
+		JSON:    s.json,
 		Verbose: s.verbose,
 		Filter:  s.filter,
 	}

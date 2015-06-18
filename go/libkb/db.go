@@ -42,17 +42,17 @@ func DbKeyParse(s string) (string, *DbKey, error) {
 	return v[0], &DbKey{ObjType(b), v[2]}, nil
 }
 
-type JsonLocalDb struct {
+type JSONLocalDb struct {
 	engine LocalDb
 }
 
-func NewJsonLocalDb(e LocalDb) *JsonLocalDb { return &JsonLocalDb{e} }
-func (j *JsonLocalDb) Open() error          { return j.engine.Open() }
-func (j *JsonLocalDb) ForceOpen() error     { return j.engine.ForceOpen() }
-func (j *JsonLocalDb) Close() error         { return j.engine.Close() }
-func (j *JsonLocalDb) Nuke() error          { return j.engine.Nuke() }
+func NewJSONLocalDb(e LocalDb) *JSONLocalDb { return &JSONLocalDb{e} }
+func (j *JSONLocalDb) Open() error          { return j.engine.Open() }
+func (j *JSONLocalDb) ForceOpen() error     { return j.engine.ForceOpen() }
+func (j *JSONLocalDb) Close() error         { return j.engine.Close() }
+func (j *JSONLocalDb) Nuke() error          { return j.engine.Nuke() }
 
-func (j *JsonLocalDb) Put(id DbKey, aliases []DbKey, val *jsonw.Wrapper) error {
+func (j *JSONLocalDb) Put(id DbKey, aliases []DbKey, val *jsonw.Wrapper) error {
 	bytes, err := val.Marshal()
 	if err == nil {
 		err = j.engine.Put(id, aliases, bytes)
@@ -60,7 +60,7 @@ func (j *JsonLocalDb) Put(id DbKey, aliases []DbKey, val *jsonw.Wrapper) error {
 	return err
 }
 
-func (j *JsonLocalDb) Get(id DbKey) (*jsonw.Wrapper, error) {
+func (j *JSONLocalDb) Get(id DbKey) (*jsonw.Wrapper, error) {
 	bytes, found, err := j.engine.Get(id)
 	var ret *jsonw.Wrapper
 	if found {
@@ -69,7 +69,7 @@ func (j *JsonLocalDb) Get(id DbKey) (*jsonw.Wrapper, error) {
 	return ret, err
 }
 
-func (j *JsonLocalDb) GetInto(obj interface{}, id DbKey) (found bool, err error) {
+func (j *JSONLocalDb) GetInto(obj interface{}, id DbKey) (found bool, err error) {
 	var buf []byte
 	buf, found, err = j.engine.Get(id)
 	if err == nil && found {
@@ -78,7 +78,7 @@ func (j *JsonLocalDb) GetInto(obj interface{}, id DbKey) (found bool, err error)
 	return
 }
 
-func (j *JsonLocalDb) PutObj(id DbKey, aliases []DbKey, obj interface{}) (err error) {
+func (j *JSONLocalDb) PutObj(id DbKey, aliases []DbKey, obj interface{}) (err error) {
 	var bytes []byte
 	bytes, err = json.Marshal(obj)
 	if err == nil {
@@ -87,7 +87,7 @@ func (j *JsonLocalDb) PutObj(id DbKey, aliases []DbKey, obj interface{}) (err er
 	return err
 }
 
-func (j *JsonLocalDb) Lookup(id DbKey) (*jsonw.Wrapper, error) {
+func (j *JSONLocalDb) Lookup(id DbKey) (*jsonw.Wrapper, error) {
 	bytes, found, err := j.engine.Lookup(id)
 	var ret *jsonw.Wrapper
 	if found {
@@ -96,7 +96,7 @@ func (j *JsonLocalDb) Lookup(id DbKey) (*jsonw.Wrapper, error) {
 	return ret, err
 }
 
-func (j *JsonLocalDb) Delete(id DbKey) error { return j.engine.Delete(id) }
+func (j *JSONLocalDb) Delete(id DbKey) error { return j.engine.Delete(id) }
 
 const (
 	DB_USER                       = 0x00

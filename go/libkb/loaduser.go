@@ -229,10 +229,10 @@ func LoadUserFromServer(uid keybase1.UID, body *jsonw.Wrapper) (u *User, err err
 
 	// Res.body might already have been preloaded a a result of a Resolve call earlier.
 	if body == nil {
-		res, err := G.API.Get(ApiArg{
+		res, err := G.API.Get(APIArg{
 			Endpoint:    "user/lookup",
 			NeedSession: false,
-			Args: HttpArgs{
+			Args: HTTPArgs{
 				"uid": UIDArg(uid),
 			},
 		})
@@ -265,7 +265,7 @@ func LookupMerkleLeaf(uid keybase1.UID, local *User) (f *MerkleUserLeaf, err err
 		err = fmt.Errorf("uid parameter for LookupMerkleLeaf empty")
 		return
 	}
-	q := NewHttpArgs()
+	q := NewHTTPArgs()
 	q.Add("uid", UIDArg(uid))
 
 	f, err = G.MerkleClient.LookupUser(q)

@@ -351,7 +351,7 @@ func (c *ChainLink) Unpack(trusted bool, selfUID keybase1.UID) (err error) {
 
 func (c *ChainLink) CheckNameAndID(s string, i keybase1.UID) error {
 	if c.unpacked.uid.NotEqual(i) {
-		return UidMismatchError{
+		return UIDMismatchError{
 			fmt.Sprintf("UID mismatch %s != %s in Link %s", c.unpacked.uid, i, c.id),
 		}
 	}

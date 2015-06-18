@@ -49,7 +49,7 @@ func (e *ProofErrorImpl) Error() string {
 func (e *ProofErrorImpl) GetProofStatus() keybase1.ProofStatus { return e.Status }
 func (e *ProofErrorImpl) GetDesc() string                      { return e.Desc }
 
-type ProofApiError struct {
+type ProofAPIError struct {
 	ProofErrorImpl
 	url string
 }
@@ -59,14 +59,14 @@ type ProofApiError struct {
 //	return fmt.Sprintf("%s (url=%s; code=%d)", e.Desc, e.url, int(e.Status))
 //}
 
-func NewProofApiError(s keybase1.ProofStatus, u string, d string, a ...interface{}) *ProofApiError {
+func NewProofAPIError(s keybase1.ProofStatus, u string, d string, a ...interface{}) *ProofAPIError {
 	base := NewProofError(s, d, a...)
-	return &ProofApiError{*base, u}
+	return &ProofAPIError{*base, u}
 }
 
 //=============================================================================
 
-func XapiError(err error, u string) *ProofApiError {
+func XapiError(err error, u string) *ProofAPIError {
 	if ae, ok := err.(*APIError); ok {
 		code := keybase1.ProofStatus_NONE
 		switch ae.Code / 100 {
@@ -79,9 +79,9 @@ func XapiError(err error, u string) *ProofApiError {
 		default:
 			code = keybase1.ProofStatus_HTTP_OTHER
 		}
-		return NewProofApiError(code, u, ae.Msg)
+		return NewProofAPIError(code, u, ae.Msg)
 	}
-	return NewProofApiError(keybase1.ProofStatus_INTERNAL_ERROR, u, err.Error())
+	return NewProofAPIError(keybase1.ProofStatus_INTERNAL_ERROR, u, err.Error())
 }
 
 //=============================================================================
@@ -700,11 +700,11 @@ func (e NotProvisionedError) Error() string {
 
 //=============================================================================
 
-type UidMismatchError struct {
+type UIDMismatchError struct {
 	Msg string
 }
 
-func (u UidMismatchError) Error() string {
+func (u UIDMismatchError) Error() string {
 	return fmt.Sprintf("UID mismatch error: %s", u.Msg)
 }
 

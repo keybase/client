@@ -125,7 +125,7 @@ func TestReadMissingVar(t *testing.T) {
 }
 
 func setAndCheck(t *testing.T, config *libkb.TestConfig, key string, value string,
-	checker func(libkb.JsonConfigFile, string)) {
+	checker func(libkb.JSONConfigFile, string)) {
 	var called bool
 	c := CmdConfig{}
 	c.key = key
@@ -136,7 +136,7 @@ func setAndCheck(t *testing.T, config *libkb.TestConfig, key string, value strin
 	c.Run()
 
 	// check the file by reading it in
-	cf := libkb.NewJsonConfigFile(config.GetConfigFileName())
+	cf := libkb.NewJSONConfigFile(config.GetConfigFileName())
 	if err := cf.Load(false); err != nil {
 		t.Fatalf("Couldn't load config file %s", config.GetConfigFileName())
 	}
@@ -153,7 +153,7 @@ func TestSetBool(t *testing.T) {
 	config.InitTest(t, "{}")
 	defer config.CleanTest()
 
-	checker := func(cf libkb.JsonConfigFile, key string) {
+	checker := func(cf libkb.JSONConfigFile, key string) {
 		if ret, isSet := cf.GetBoolAtPath(key); !isSet || ret != true {
 			t.Errorf("Couldn't read boolean after setting; ret=%t, isSet=%t",
 				ret, isSet)
@@ -168,7 +168,7 @@ func TestSetInt(t *testing.T) {
 	config.InitTest(t, "{}")
 	defer config.CleanTest()
 
-	checker := func(cf libkb.JsonConfigFile, key string) {
+	checker := func(cf libkb.JSONConfigFile, key string) {
 		if ret, isSet := cf.GetIntAtPath(key); !isSet || ret != 1 {
 			t.Errorf("Couldn't read int after setting; ret=%d, isSet=%t",
 				ret, isSet)
@@ -183,7 +183,7 @@ func TestSetString(t *testing.T) {
 	config.InitTest(t, "{}")
 	defer config.CleanTest()
 
-	checker := func(cf libkb.JsonConfigFile, key string) {
+	checker := func(cf libkb.JSONConfigFile, key string) {
 		if ret, isSet := cf.GetStringAtPath(key); !isSet || ret != "blah" {
 			t.Errorf("Couldn't read string after setting; ret=%s, isSet=%t",
 				ret, isSet)
@@ -198,7 +198,7 @@ func TestSetStringAtLongPath(t *testing.T) {
 	config.InitTest(t, "{}")
 	defer config.CleanTest()
 
-	checker := func(cf libkb.JsonConfigFile, key string) {
+	checker := func(cf libkb.JSONConfigFile, key string) {
 		if ret, isSet := cf.GetStringAtPath(key); !isSet || ret != "blah" {
 			t.Errorf("Couldn't read string after setting; ret=%s, isSet=%t",
 				ret, isSet)
@@ -213,7 +213,7 @@ func TestSetStringInExisting(t *testing.T) {
 	config.InitTest(t, `{ "aaa": { "xxx": "yyy"} }`)
 	defer config.CleanTest()
 
-	checker := func(cf libkb.JsonConfigFile, key string) {
+	checker := func(cf libkb.JSONConfigFile, key string) {
 		if ret, isSet := cf.GetStringAtPath(key); !isSet || ret != "blah" {
 			t.Errorf("Couldn't read string after setting; ret=%s, isSet=%t",
 				ret, isSet)
@@ -222,7 +222,7 @@ func TestSetStringInExisting(t *testing.T) {
 
 	setAndCheck(t, config, "aaa.bbb.ccc", "blah", checker)
 	// and make sure the existing key is still there
-	cf := libkb.NewJsonConfigFile(config.GetConfigFileName())
+	cf := libkb.NewJSONConfigFile(config.GetConfigFileName())
 	if err := cf.Load(false); err != nil {
 		t.Fatalf("Couldn't load config file %s", config.GetConfigFileName())
 	}
@@ -237,7 +237,7 @@ func TestSetStringOverwrite(t *testing.T) {
 	config.InitTest(t, `{ "a": "b" }`)
 	defer config.CleanTest()
 
-	checker := func(cf libkb.JsonConfigFile, key string) {
+	checker := func(cf libkb.JSONConfigFile, key string) {
 		if ret, isSet := cf.GetStringAtPath(key); !isSet || ret != "blah" {
 			t.Errorf("Couldn't read string after setting; ret=%s, isSet=%t",
 				ret, isSet)
@@ -252,7 +252,7 @@ func TestSetStringLongOverwrite(t *testing.T) {
 	config.InitTest(t, `{ "a": "b" }`)
 	defer config.CleanTest()
 
-	checker := func(cf libkb.JsonConfigFile, key string) {
+	checker := func(cf libkb.JSONConfigFile, key string) {
 		if ret, isSet := cf.GetStringAtPath(key); !isSet || ret != "blah" {
 			t.Errorf("Couldn't read string after setting; ret=%s, isSet=%t",
 				ret, isSet)
@@ -267,7 +267,7 @@ func TestSetStringShortOverwrite(t *testing.T) {
 	config.InitTest(t, `{ "aaa": { "xxx": "yyy"} }`)
 	defer config.CleanTest()
 
-	checker := func(cf libkb.JsonConfigFile, key string) {
+	checker := func(cf libkb.JSONConfigFile, key string) {
 		if ret, isSet := cf.GetStringAtPath(key); !isSet || ret != "blah" {
 			t.Errorf("Couldn't read string after setting; ret=%s, isSet=%t",
 				ret, isSet)
@@ -282,7 +282,7 @@ func TestSetNull(t *testing.T) {
 	config.InitTest(t, "{}")
 	defer config.CleanTest()
 
-	checker := func(cf libkb.JsonConfigFile, key string) {
+	checker := func(cf libkb.JSONConfigFile, key string) {
 		if isSet := cf.GetNullAtPath(key); !isSet {
 			t.Errorf("Couldn't read null after setting")
 		}
@@ -296,7 +296,7 @@ func TestSetEmptyString(t *testing.T) {
 	config.InitTest(t, "{}")
 	defer config.CleanTest()
 
-	checker := func(cf libkb.JsonConfigFile, key string) {
+	checker := func(cf libkb.JSONConfigFile, key string) {
 		if ret, isSet := cf.GetStringAtPath(key); !isSet || ret != "" {
 			t.Errorf("Couldn't read string after setting; ret=%s, isSet=%t",
 				ret, isSet)
@@ -311,7 +311,7 @@ func TestOverwriteNull(t *testing.T) {
 	config.InitTest(t, `{ "a": null }`)
 	defer config.CleanTest()
 
-	checker := func(cf libkb.JsonConfigFile, key string) {
+	checker := func(cf libkb.JSONConfigFile, key string) {
 		if ret, isSet := cf.GetStringAtPath(key); !isSet || ret != "blah" {
 			t.Errorf("Couldn't read string after setting; ret=%s, isSet=%t",
 				ret, isSet)
@@ -340,7 +340,7 @@ func TestClear(t *testing.T) {
 
 	// make sure it's really done
 	fn := config.GetConfigFileName()
-	cf := libkb.NewJsonConfigFile(fn)
+	cf := libkb.NewJSONConfigFile(fn)
 	if err := cf.Load(false); err != nil {
 		t.Fatalf("Couldn't load config file %s", fn)
 	}

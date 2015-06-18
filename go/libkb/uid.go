@@ -41,7 +41,7 @@ func UIDWrapper(uid keybase1.UID) *jsonw.Wrapper {
 	return jsonw.NewString(uid.String())
 }
 
-func UIDArg(uid keybase1.UID) HttpValue {
+func UIDArg(uid keybase1.UID) HTTPValue {
 	return S{Val: uid.String()}
 }
 
@@ -64,7 +64,7 @@ func UsernameToUID(s string) keybase1.UID {
 func CheckUIDAgainstUsername(uid keybase1.UID, username string) (err error) {
 	u2 := UsernameToUID(username)
 	if uid.NotEqual(u2) {
-		err = UidMismatchError{fmt.Sprintf("%s != %s (via %s)", uid, u2, username)}
+		err = UIDMismatchError{fmt.Sprintf("%s != %s (via %s)", uid, u2, username)}
 	}
 	return
 }

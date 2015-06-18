@@ -51,7 +51,7 @@ func (h *HackerNewsChecker) CheckHint(hint SigHint) ProofError {
 }
 
 func (h *HackerNewsChecker) CheckStatus(hint SigHint) ProofError {
-	res, err := G.XAPI.GetText(ApiArg{
+	res, err := G.XAPI.GetText(APIArg{
 		Endpoint:    hint.apiURL,
 		NeedSession: false,
 	})
@@ -81,7 +81,7 @@ func (h *HackerNewsChecker) CheckStatus(hint SigHint) ProofError {
 
 func CheckKarma(un string) (int, error) {
 	u := KarmaURL(un)
-	res, err := G.XAPI.Get(ApiArg{Endpoint: u, NeedSession: false})
+	res, err := G.XAPI.Get(APIArg{Endpoint: u, NeedSession: false})
 	if err != nil {
 		return 0, XapiError(err, u)
 	}

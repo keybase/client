@@ -59,11 +59,11 @@ func (sk *SpecialKeyRing) Load(kid KID) (GenericKey, error) {
 	if err != nil || key == nil {
 
 		G.Log.Debug("| Load(%s) going to network", kid)
-		var res *ApiRes
-		res, err = G.API.Get(ApiArg{
+		var res *APIRes
+		res, err = G.API.Get(APIArg{
 			Endpoint:    "key/special",
 			NeedSession: false,
-			Args: HttpArgs{
+			Args: HTTPArgs{
 				"kid": S{kid.String()},
 			},
 		})

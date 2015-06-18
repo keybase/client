@@ -25,7 +25,7 @@ func (tl TrackList) Less(i, j int) bool {
 }
 
 type ListTrackingEngineArg struct {
-	Json    bool
+	JSON    bool
 	Verbose bool
 	Filter  string
 }
@@ -72,7 +72,7 @@ func (e *ListTrackingEngine) Run(ctx *Context) (err error) {
 
 	sort.Sort(trackList)
 
-	if e.arg.Json {
+	if e.arg.JSON {
 		err = e.runJSON(trackList, e.arg.Verbose)
 	} else {
 		err = e.runTable(trackList)
@@ -163,7 +163,7 @@ func (e *ListTrackingEngine) linkWebProofs(link *libkb.TrackChainLink) (res []ke
 
 func (e *ListTrackingEngine) runTable(trackList TrackList) error {
 	for _, link := range trackList {
-		uid, err := link.GetTrackedUid()
+		uid, err := link.GetTrackedUID()
 		if err != nil {
 			return err
 		}
@@ -208,7 +208,7 @@ func (e *ListTrackingEngine) runJSON(trackList TrackList, verbose bool) error {
 }
 
 func condenseRecord(l *libkb.TrackChainLink) (*jsonw.Wrapper, error) {
-	uid, err := l.GetTrackedUid()
+	uid, err := l.GetTrackedUID()
 	if err != nil {
 		return nil, err
 	}

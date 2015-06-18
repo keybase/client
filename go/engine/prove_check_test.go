@@ -27,10 +27,10 @@ func TestProveCheck(t *testing.T) {
 		if sigID.IsNil() {
 			return false, fmt.Errorf("empty sigID; can't make a post")
 		}
-		apiArg := libkb.ApiArg{
+		apiArg := libkb.APIArg{
 			Endpoint:    "rooter",
 			NeedSession: true,
-			Args: libkb.HttpArgs{
+			Args: libkb.HTTPArgs{
 				"post": libkb.S{Val: sigID.ToMediumID()},
 			},
 		}

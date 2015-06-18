@@ -125,10 +125,10 @@ func (sc *SigChain) LoadFromServer(t *MerkleTriple, selfUID keybase1.UID) (dirty
 	G.Log.Debug("+ Load SigChain from server (uid=%s, low=%d)", sc.uid, low)
 	defer func() { G.Log.Debug("- Loaded SigChain -> %s", ErrToOk(err)) }()
 
-	res, err := G.API.Get(ApiArg{
+	res, err := G.API.Get(APIArg{
 		Endpoint:    "sig/get",
 		NeedSession: false,
-		Args: HttpArgs{
+		Args: HTTPArgs{
 			"uid": UIDArg(sc.uid),
 			"low": I{int(low)},
 		},

@@ -77,13 +77,13 @@ func (ss *SecretSyncer) loadFromStorage(uid keybase1.UID) (err error) {
 }
 
 func (ss *SecretSyncer) syncFromServer(uid keybase1.UID, sr SessionReader) (err error) {
-	hargs := HttpArgs{}
+	hargs := HTTPArgs{}
 
 	if ss.keys != nil {
 		hargs.Add("version", I{ss.keys.Version})
 	}
-	var res *ApiRes
-	res, err = ss.G().API.Get(ApiArg{
+	var res *APIRes
+	res, err = ss.G().API.Get(APIArg{
 		Endpoint:    "key/fetch_private",
 		Args:        hargs,
 		NeedSession: true,

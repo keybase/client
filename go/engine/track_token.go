@@ -157,10 +157,10 @@ func (e *TrackToken) storeRemoteTrack(ctx *Context) (err error) {
 		return err
 	}
 
-	_, err = e.G().API.Post(libkb.ApiArg{
+	_, err = e.G().API.Post(libkb.APIArg{
 		Endpoint:    "follow",
 		NeedSession: true,
-		Args: libkb.HttpArgs{
+		Args: libkb.HTTPArgs{
 			"sig_id_base":  libkb.S{Val: sigid.ToString(false)},
 			"sig_id_short": libkb.S{Val: sigid.ToShortID()},
 			"sig":          libkb.S{Val: sig},

@@ -186,10 +186,10 @@ func (r *Receiver) get() (MsgList, error) {
 	var j struct {
 		Msgs MsgList `json:"msgs"`
 	}
-	args := libkb.ApiArg{
+	args := libkb.APIArg{
 		Endpoint:    "kex/receive",
 		NeedSession: true,
-		Args: libkb.HttpArgs{
+		Args: libkb.HTTPArgs{
 			"w":    r.secret.WeakID(),
 			"dir":  libkb.I{Val: int(r.direction)},
 			"low":  libkb.I{Val: r.seqno + 1},

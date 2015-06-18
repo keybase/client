@@ -72,7 +72,7 @@ func resolveUid(au AssertionURL) ResolveResult {
 func resolveUsername(au AssertionURL) (res ResolveResult) {
 
 	var key, val string
-	var ares *ApiRes
+	var ares *APIRes
 	var l int
 
 	if au.IsKeybase() {
@@ -83,9 +83,9 @@ func resolveUsername(au AssertionURL) (res ResolveResult) {
 		return
 	}
 
-	ha := HttpArgsFromKeyValuePair(key, S{val})
+	ha := HTTPArgsFromKeyValuePair(key, S{val})
 	ha.Add("multi", I{1})
-	ares, res.err = G.API.Get(ApiArg{
+	ares, res.err = G.API.Get(APIArg{
 		Endpoint:    "user/lookup",
 		NeedSession: false,
 		Args:        ha,

@@ -82,10 +82,10 @@ func (e *BTCEngine) Run(ctx *Context) error {
 		return err
 	}
 	kid := sigKey.GetKid()
-	_, err = e.G().API.Post(libkb.ApiArg{
+	_, err = e.G().API.Post(libkb.APIArg{
 		Endpoint:    "sig/post",
 		NeedSession: true,
-		Args: libkb.HttpArgs{
+		Args: libkb.HTTPArgs{
 			"sig":             libkb.S{Val: sig},
 			"signing_kid":     libkb.S{Val: kid.String()},
 			"is_remote_proof": libkb.B{Val: false},

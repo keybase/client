@@ -256,9 +256,9 @@ func (s *ScanKeys) apiLookup(id uint64) (username, uid string, err error) {
 	}
 
 	// lookup key on api server
-	args := libkb.ApiArg{
+	args := libkb.APIArg{
 		Endpoint: "key/basics",
-		Args: libkb.HttpArgs{
+		Args: libkb.HTTPArgs{
 			"pgp_key_id": libkb.UHex{Val: id},
 		},
 	}

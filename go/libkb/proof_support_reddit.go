@@ -99,7 +99,7 @@ func (rc *RedditChecker) CheckData(h SigHint, dat *jsonw.Wrapper) ProofError {
 }
 
 func (rc *RedditChecker) CheckStatus(h SigHint) ProofError {
-	res, err := G.XAPI.Get(ApiArg{
+	res, err := G.XAPI.Get(APIArg{
 		Endpoint:    h.apiURL,
 		NeedSession: false,
 	})
@@ -172,7 +172,7 @@ func (t RedditServiceType) FormatProofText(ppr *PostProofRes) (res string, err e
 		return
 	}
 
-	q := urlReencode(HttpArgs{"title": S{title}, "text": S{ppr.Text}}.EncodeToString())
+	q := urlReencode(HTTPArgs{"title": S{title}, "text": S{ppr.Text}}.EncodeToString())
 
 	u := url.URL{
 		Scheme:   "https",

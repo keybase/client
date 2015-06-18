@@ -249,7 +249,7 @@ func (e *DeviceKeygen) newNaclArg(ctx *Context, gen libkb.NaclGenerator, expire 
 func (e *DeviceKeygen) device() *libkb.Device {
 	s := libkb.DEVICE_STATUS_ACTIVE
 	return &libkb.Device{
-		Id:          e.args.DeviceID.String(),
+		ID:          e.args.DeviceID.String(),
 		Description: &e.args.DeviceName,
 		Type:        libkb.DEVICE_TYPE_DESKTOP,
 		Status:      &s,

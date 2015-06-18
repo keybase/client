@@ -100,7 +100,7 @@ type RemoteProofChainLink interface {
 	GetProtocol() string
 	DisplayCheck(ui IdentifyUI, lcr LinkCheckResult)
 	ToTrackingStatement(keybase1.ProofState) (*jsonw.Wrapper, error)
-	CheckDataJson() *jsonw.Wrapper
+	CheckDataJSON() *jsonw.Wrapper
 	ToIDString() string
 	ToKeyValuePair() (string, string)
 	ComputeTrackDiff(tl *TrackLookup) TrackDiff
@@ -162,7 +162,7 @@ func (w *WebProofChainLink) GetHostname() string       { return w.hostname }
 func (w *WebProofChainLink) GetProtocol() string       { return w.protocol }
 func (w *WebProofChainLink) ProofText() string         { return w.proofText }
 
-func (w *WebProofChainLink) CheckDataJson() *jsonw.Wrapper {
+func (w *WebProofChainLink) CheckDataJSON() *jsonw.Wrapper {
 	ret := jsonw.NewDictionary()
 	if w.protocol == "dns" {
 		ret.SetKey("protocol", jsonw.NewString(w.protocol))
@@ -245,7 +245,7 @@ func (s *SocialProofChainLink) DisplayCheck(ui IdentifyUI, lcr LinkCheckResult) 
 	ui.FinishSocialProofCheck(ExportRemoteProof(s), lcr.Export())
 }
 
-func (s *SocialProofChainLink) CheckDataJson() *jsonw.Wrapper {
+func (s *SocialProofChainLink) CheckDataJSON() *jsonw.Wrapper {
 	ret := jsonw.NewDictionary()
 	ret.SetKey("username", jsonw.NewString(s.username))
 	ret.SetKey("name", jsonw.NewString(s.service))
@@ -479,7 +479,7 @@ func (l *TrackChainLink) GetTrackedPGPFOKIDs() ([]FOKID, error) {
 	return res, nil
 }
 
-func (l *TrackChainLink) GetTrackedUid() (keybase1.UID, error) {
+func (l *TrackChainLink) GetTrackedUID() (keybase1.UID, error) {
 	return GetUID(l.payloadJSON.AtPath("body.track.id"))
 }
 
@@ -831,7 +831,7 @@ func (s *SelfSigChainLink) ProofText() string         { return "" }
 
 func (s *SelfSigChainLink) DisplayCheck(ui IdentifyUI, lcr LinkCheckResult) {}
 
-func (s *SelfSigChainLink) CheckDataJson() *jsonw.Wrapper { return nil }
+func (s *SelfSigChainLink) CheckDataJSON() *jsonw.Wrapper { return nil }
 
 func (s *SelfSigChainLink) ToTrackingStatement(keybase1.ProofState) (*jsonw.Wrapper, error) {
 	return nil, nil
@@ -1031,7 +1031,7 @@ func (idt *IdentityTable) GetTrackingStatementFor(s string, uid keybase1.UID) (
 			link := list[i]
 			if link.IsRevoked() {
 				// noop; continue on!
-			} else if uid2, e2 := link.GetTrackedUid(); e2 != nil {
+			} else if uid2, e2 := link.GetTrackedUID(); e2 != nil {
 				err = fmt.Errorf("Bad tracking statement for %s: %s", s, e2.Error())
 			} else if uid.NotEqual(uid2) {
 				err = fmt.Errorf("Bad UID in tracking statement for %s: %s != %s", s, uid, uid2)

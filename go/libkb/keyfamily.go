@@ -685,7 +685,7 @@ func (ckf *ComputedKeyFamily) UpdateDevices(tcl TypedChainLink) (err error) {
 		return
 	}
 
-	did := dobj.Id
+	did := dobj.ID
 	kid := dobj.Kid
 
 	G.Log.Debug("| Device ID=%s; KID=%s", did, kid.String())
@@ -716,7 +716,7 @@ func (ckf *ComputedKeyFamily) UpdateDevices(tcl TypedChainLink) (err error) {
 	// Last-writer wins on the Web device
 	if dobj != nil && dobj.IsWeb() {
 		G.Log.Debug("| Set Web/DetKey Device")
-		ckf.cki.WebDeviceID = dobj.Id
+		ckf.cki.WebDeviceID = dobj.ID
 	}
 
 	return

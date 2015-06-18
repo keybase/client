@@ -113,7 +113,7 @@ func (e *UntrackEngine) loadThem() (them *libkb.User, remoteLink, localLink *lib
 	var uid keybase1.UID
 	uidTrusted := false
 	if rLink != nil {
-		if uid, err = rLink.GetTrackedUid(); err != nil {
+		if uid, err = rLink.GetTrackedUID(); err != nil {
 			return
 		}
 		uidTrusted = true
@@ -192,10 +192,10 @@ func (e *UntrackEngine) storeRemoteUntrack(them *libkb.User, ctx *Context) (err 
 		return
 	}
 
-	_, err = e.G().API.Post(libkb.ApiArg{
+	_, err = e.G().API.Post(libkb.APIArg{
 		Endpoint:    "follow",
 		NeedSession: true,
-		Args: libkb.HttpArgs{
+		Args: libkb.HTTPArgs{
 			"sig_id_base":  libkb.S{Val: sigid.ToString(false)},
 			"sig_id_short": libkb.S{Val: sigid.ToShortID()},
 			"sig":          libkb.S{Val: sig},

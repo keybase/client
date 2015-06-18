@@ -43,7 +43,7 @@ func (rc *WebChecker) CheckHint(h SigHint) ProofError {
 }
 
 func (rc *WebChecker) CheckStatus(h SigHint) ProofError {
-	res, err := G.XAPI.GetText(ApiArg{
+	res, err := G.XAPI.GetText(APIArg{
 		Endpoint:    h.apiURL,
 		NeedSession: false,
 	})
@@ -100,11 +100,11 @@ func (t WebServiceType) NormalizeUsername(s string) (ret string, err error) {
 	if host, prot, err = ParseWeb(s); err != nil {
 		return
 	}
-	var res *ApiRes
-	res, err = G.API.Get(ApiArg{
+	var res *APIRes
+	res, err = G.API.Get(APIArg{
 		Endpoint:    "remotes/check",
 		NeedSession: true,
-		Args: HttpArgs{
+		Args: HTTPArgs{
 			"hostname": S{host},
 		},
 	})
