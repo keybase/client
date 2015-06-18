@@ -23,8 +23,9 @@
 
 @property KBActivityIndicatorView *progressView;
 @property KBSearcher *search;
-
 @property KBListView *searchResultsView;
+@property BOOL reloadSearchDataFromDelay;
+
 @property KBPopover *popover;
 @property NSView *popoverInView;
 @end
@@ -316,12 +317,14 @@
 
 - (void)showSearch {
   if (!self.popover.isShowing && [KBTextField isFocused:_tokensField]) {
+    DDLogDebug(@"Show search");
     [self.popover showAboveView:_popoverInView options:KBPopoverOptionsShadow];
     [self.delegate userPickerView:self didUpdateSearch:YES];
   }
 }
 
 - (void)hideSearch {
+  DDLogDebug(@"Hide search");
   [self.popover hide];
   _progressView.animating = NO;
   [self.delegate userPickerView:self didUpdateSearch:NO];
@@ -345,6 +348,8 @@
 
   if (searchResults.header && [results count] > 0) [results insertObject:[KBTableViewHeader tableViewHeaderWithTitle:searchResults.header] atIndex:0];
   [_searchResultsView addObjects:results animation:NSTableViewAnimationEffectNone];
+  //[_searchResultsView.dataSource addObjects:results section:0 indexPaths:nil];
+  //[self reloadSearchDelay];
 
   if ([_searchResultsView rowCount] > 0) {
     [self showSearch];
@@ -354,7 +359,22 @@
 }
 
 - (void)searchControlShouldClearSearchResults:(KBSearchControl *)searchControl {
-  [_searchResultsView removeAllObjects];
+  DDLogDebug(@"Clear results");
+  //[_searchResultsView removeAllObjects];
+  [_searchResultsView.dataSource removeAllObjects];
+  [self reloadSearchDelay];
+}
+
+- (void)reloadSearchDelay {
+  // Delay the reload so it's not all jankey (buffer reloads)
+  self.reloadSearchDataFromDelay = YES;
+  GHWeakSelf gself = self;
+  dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.3 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
+    if (gself.reloadSearchDataFromDelay) {
+      [gself.searchResultsView reloadData];
+      self.reloadSearchDataFromDelay = NO;
+    }
+  });
 }
 
 - (void)searchControl:(KBSearchControl *)searchControl progressEnabled:(BOOL)progressEnabled {
@@ -365,6 +385,5 @@
   if (!_search) _search = [[KBSearcher alloc] init];
   [_search search:query client:self.client remote:delay completion:completion];
 }
-
 
 @end

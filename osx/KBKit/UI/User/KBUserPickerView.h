@@ -25,7 +25,6 @@
 @property KBRPClient *client;
 @property (weak) id<KBUserPickerViewDelegate> delegate;
 
-//@property KBListView *searchResultsView;
 - (void)setSearchResultsFrame:(CGRect)searchResultsFrame inView:(NSView *)inView;
 
 - (void)hideSearch;

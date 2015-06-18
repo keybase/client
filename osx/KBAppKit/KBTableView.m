@@ -109,9 +109,13 @@
 - (void)addObjects:(NSArray *)objects animation:(NSTableViewAnimationOptions)animation {
   NSMutableArray *indexPaths = [NSMutableArray array];
   [self.dataSource addObjects:objects section:0 indexPaths:indexPaths];
-  [self.view beginUpdates];
-  if ([indexPaths count] > 0) [self.view insertRowsAtIndexes:[self itemIndexSet:indexPaths] withAnimation:animation];
-  [self.view endUpdates];
+  if (animation != NSTableViewAnimationEffectNone) {
+    [self.view beginUpdates];
+    if ([indexPaths count] > 0) [self.view insertRowsAtIndexes:[self itemIndexSet:indexPaths] withAnimation:animation];
+    [self.view endUpdates];
+  } else {
+    [self reloadData];
+  }
 }
 
 - (NSArray *)objects {
