@@ -24,7 +24,7 @@
 
 - (void)clear;
 
-- (void)addHeader:(NSString *)header text:(NSString *)text targetBlock:(dispatch_block_t)targetBlock;
+- (void)addHeader:(NSAttributedString *)header text:(NSAttributedString *)text targetBlock:(dispatch_block_t)targetBlock;
 
 - (NSArray */*of NSString*/)missingServices;
 

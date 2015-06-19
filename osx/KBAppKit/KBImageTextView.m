@@ -60,14 +60,14 @@
 }
 
 - (void)setTitle:(NSString *)title info:(NSString *)info image:(NSImage *)image {
-  [self.titleLabel setText:title font:KBAppearance.currentAppearance.boldTextFont color:KBAppearance.currentAppearance.textColor alignment:NSLeftTextAlignment];
+  [self.titleLabel setText:title style:KBTextStyleDefault options:KBTextOptionsStrong alignment:NSLeftTextAlignment lineBreakMode:NSLineBreakByClipping];
   [self.infoLabel setText:info style:KBTextStyleSecondaryText options:KBTextOptionsSmall alignment:NSLeftTextAlignment lineBreakMode:NSLineBreakByClipping];
   self.imageView.image = image;
   [self setNeedsLayout];
 }
 
 - (void)setTitle:(NSString *)title info:(NSString *)info imageURLString:(NSString *)imageURLString imageSize:(CGSize)imageSize {
-  [self.titleLabel setText:title font:KBAppearance.currentAppearance.boldTextFont color:KBAppearance.currentAppearance.textColor alignment:NSLeftTextAlignment];
+  [self.titleLabel setText:title style:KBTextStyleDefault options:KBTextOptionsStrong alignment:NSLeftTextAlignment lineBreakMode:NSLineBreakByClipping];
   [self.infoLabel setText:info style:KBTextStyleSecondaryText options:KBTextOptionsSmall alignment:NSLeftTextAlignment lineBreakMode:NSLineBreakByClipping];
   self.imageSize = imageSize;
   [self.imageView setImageWithURL:[NSURL URLWithString:imageURLString] placeholderImage:nil];
@@ -76,8 +76,8 @@
 
 - (void)setBackgroundStyle:(NSBackgroundStyle)backgroundStyle {
   id<KBAppearance> appearance = (backgroundStyle == NSBackgroundStyleDark ? KBAppearance.darkAppearance : KBAppearance.lightAppearance);
-  [self.titleLabel setFont:appearance.boldTextFont color:appearance.textColor];
-  [self.infoLabel setStyle:KBTextStyleSecondaryText options:0 appearance:appearance];
+  [self.titleLabel setColor:appearance.textColor];
+  [self.infoLabel setColor:[appearance textColorForStyle:KBTextStyleSecondaryText options:0]];
 
   if (self.tintImageForStyle) {
     if (backgroundStyle == NSBackgroundStyleDark) {

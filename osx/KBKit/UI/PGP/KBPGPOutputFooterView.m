@@ -14,14 +14,12 @@
   [super viewInit];
   [self addSubview:[KBBox horizontalLine]];
   YOView *footerView = [YOView view];
-  NSImage *backImage = [NSImage imageNamed:@"46-Arrows-black-arrow-67-24"];
-  backImage.size = CGSizeMake(12, 12);
-  _editButton = [KBButton buttonWithText:@"Back" image:backImage style:KBButtonStyleDefault options:KBButtonOptionsToolbar];
+
+  _editButton = [KBFontAwesome buttonForIcon:@"angleLeft" text:@"Back" style:KBButtonStyleDefault options:0];
   [footerView addSubview:_editButton];
 
-  NSImage *shareImage = [NSImage imageNamed:@"16-Transfers-black-upload-2-24"];
-  shareImage.size = CGSizeMake(12, 12);
-  _shareButton = [KBButton buttonWithText:@"Share" image:shareImage style:KBButtonStyleDefault options:KBButtonOptionsToolbar];
+//  _shareButton = [KBButton buttonWithAttributedTitle:[KBFontAwesome attributedStringForIcon:@"angleUp" text:@"Share" style:KBTextStyleDefault options:0 alignment:NSCenterTextAlignment lineBreakMode:NSLineBreakByClipping] style:0]; //
+  _shareButton = [KBButton buttonWithText:@"Share" style:KBButtonStyleDefault];
   [footerView addSubview:_shareButton];
 
   _closeButton = [KBButton buttonWithText:@"Done" style:KBButtonStyleDefault];

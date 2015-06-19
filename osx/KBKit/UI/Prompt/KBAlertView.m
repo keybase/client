@@ -50,7 +50,7 @@
 }
 
 - (void)setInformativeText:(NSString *)informativeText {
-  [_label setText:informativeText font:[KBAppearance.currentAppearance textFont] color:[KBAppearance.currentAppearance textColor] alignment:NSCenterTextAlignment];
+  [_label setText:informativeText style:KBTextStyleDefault options:0 alignment:NSCenterTextAlignment lineBreakMode:NSLineBreakByTruncatingTail];
   [self setNeedsLayout];
 }
 

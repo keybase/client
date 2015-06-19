@@ -61,7 +61,7 @@
 
   NSString *text = ([password length] > 0 ? [self scoreLabelForScore:strength.score length:password.length] : @"");
 
-  [self setText:text font:[NSFont systemFontOfSize:12] color:color alignment:NSRightTextAlignment];
+  [self setText:text font:[NSFont systemFontOfSize:12] color:color alignment:NSRightTextAlignment lineBreakMode:NSLineBreakByClipping];
 }
 
 @end

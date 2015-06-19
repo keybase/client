@@ -77,7 +77,7 @@
 
 - (void)setHeader:(NSString *)header info:(NSString *)info details:(NSString *)details previousError:(NSString *)previousError {
   [_header setText:header style:KBTextStyleHeaderLarge alignment:NSCenterTextAlignment lineBreakMode:NSLineBreakByTruncatingTail];
-  [_label setText:info font:[KBAppearance.currentAppearance textFont] color:[KBAppearance.currentAppearance textColor] alignment:NSLeftTextAlignment];
+  [_label setText:info style:KBTextStyleDefault options:0 alignment:NSLeftTextAlignment lineBreakMode:NSLineBreakByClipping];
 
   [_errorLabel setText:previousError style:KBTextStyleDefault options:KBTextOptionsDanger alignment:NSLeftTextAlignment lineBreakMode:NSLineBreakByWordWrapping];
   

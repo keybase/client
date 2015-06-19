@@ -9,7 +9,6 @@
 #import "KBStyleGuideView.h"
 
 #import "KBFileIcon.h"
-#import "KBAwesomeFont.h"
 
 @interface KBStyleGuideView ()
 @property KBProgressOverlayView *progressView;
@@ -137,16 +136,18 @@
   [contentView addSubview:fontAwesomeLabel];
 
   NSMutableAttributedString *icons = [[NSMutableAttributedString alloc] init];
-  [icons appendAttributedString:[KBAwesomeFont attributedStringForIcon:@"twitter" color:KBAppearance.currentAppearance.selectColor size:32]];
-  NSDictionary *attributes = @{NSForegroundColorAttributeName: KBAppearance.currentAppearance.selectColor, NSFontAttributeName: [NSFont systemFontOfSize:32]};
-  [icons appendAttributedString:[[NSAttributedString alloc] initWithString:@" Twitter\n" attributes:attributes]];
+  NSDictionary *largeAttributes = @{NSForegroundColorAttributeName: KBAppearance.currentAppearance.selectColor, NSFontAttributeName: [NSFont systemFontOfSize:32]};
+  [icons appendAttributedString:[KBFontAwesome attributedStringForIcon:@"twitter" color:KBAppearance.currentAppearance.selectColor size:32 alignment:NSLeftTextAlignment lineBreakMode:NSLineBreakByClipping]];
+  [icons appendAttributedString:[[NSAttributedString alloc] initWithString:@" Twitter\n" attributes:largeAttributes]];
 
-  [icons appendAttributedString:[KBAwesomeFont attributedStringForIcon:@"github" color:KBAppearance.currentAppearance.selectColor size:32]];
-  [icons appendAttributedString:[[NSAttributedString alloc] initWithString:@" Github\n" attributes:attributes]];
-  [icons appendAttributedString:[KBAwesomeFont attributedStringForIcon:@"reddit" color:KBAppearance.currentAppearance.selectColor size:32]];
-  [icons appendAttributedString:[[NSAttributedString alloc] initWithString:@" Reddit\n" attributes:attributes]];
+  [icons appendAttributedString:[KBFontAwesome attributedStringForIcon:@"reddit" appearance:KBAppearance.currentAppearance style:KBTextStyleHeaderLarge options:KBTextOptionsSelect alignment:NSLeftTextAlignment lineBreakMode:NSLineBreakByClipping]];
+  [icons appendAttributedString:[[NSAttributedString alloc] initWithString:@" Reddit\n" attributes:largeAttributes]];
+
+  [icons appendAttributedString:[KBFontAwesome attributedStringForIcon:@"github" appearance:KBAppearance.currentAppearance style:KBTextStyleDefault options:0 alignment:NSLeftTextAlignment lineBreakMode:NSLineBreakByClipping]];
+  NSDictionary *attributes = @{NSForegroundColorAttributeName: KBAppearance.currentAppearance.textColor, NSFontAttributeName: [NSFont systemFontOfSize:14]};
+  [icons appendAttributedString:[[NSAttributedString alloc] initWithString:@" gabriel\n" attributes:attributes]];
+
   [fontAwesomeLabel setAttributedText:icons];
-
 
   KBScrollView *scrollView = [[KBScrollView alloc] init];
   [scrollView setDocumentView:contentView];
