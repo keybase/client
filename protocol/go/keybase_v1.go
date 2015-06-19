@@ -1592,7 +1592,7 @@ type KeyInfo struct {
 	Desc        string `codec:"desc" json:"desc"`
 }
 
-type PGPQuery struct {
+type PgpQuery struct {
 	Secret     bool   `codec:"secret" json:"secret"`
 	Query      string `codec:"query" json:"query"`
 	ExactMatch bool   `codec:"exactMatch" json:"exactMatch"`
@@ -1643,17 +1643,17 @@ type PgpImportArg struct {
 
 type PgpExportArg struct {
 	SessionID int      `codec:"sessionID" json:"sessionID"`
-	Options   PGPQuery `codec:"options" json:"options"`
+	Options   PgpQuery `codec:"options" json:"options"`
 }
 
 type PgpExportByFingerprintArg struct {
 	SessionID int      `codec:"sessionID" json:"sessionID"`
-	Options   PGPQuery `codec:"options" json:"options"`
+	Options   PgpQuery `codec:"options" json:"options"`
 }
 
 type PgpExportByKIDArg struct {
 	SessionID int      `codec:"sessionID" json:"sessionID"`
-	Options   PGPQuery `codec:"options" json:"options"`
+	Options   PgpQuery `codec:"options" json:"options"`
 }
 
 type PgpKeyGenArg struct {

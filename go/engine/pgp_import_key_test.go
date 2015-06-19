@@ -41,7 +41,7 @@ func TestPGPImportAndExport(t *testing.T) {
 	}
 
 	arg := keybase1.PgpExportArg{
-		Options: keybase1.PGPQuery{
+		Options: keybase1.PgpQuery{
 			Secret: true,
 			Query:  fp.String(),
 		},
@@ -57,7 +57,7 @@ func TestPGPImportAndExport(t *testing.T) {
 	}
 
 	arg = keybase1.PgpExportArg{
-		Options: keybase1.PGPQuery{
+		Options: keybase1.PgpQuery{
 			Secret: true,
 			Query:  fp.String()[0:10] + "aabb",
 		},
@@ -72,7 +72,7 @@ func TestPGPImportAndExport(t *testing.T) {
 	}
 
 	arg = keybase1.PgpExportArg{
-		Options: keybase1.PGPQuery{
+		Options: keybase1.PgpQuery{
 			Secret: false,
 		},
 	}

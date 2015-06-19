@@ -282,7 +282,7 @@
     } ]
   }, {
     "type" : "record",
-    "name" : "PGPQuery",
+    "name" : "PgpQuery",
     "fields" : [ {
       "name" : "secret",
       "type" : "boolean"
@@ -401,7 +401,7 @@
         "type" : "int"
       }, {
         "name" : "options",
-        "type" : "PGPQuery"
+        "type" : "PgpQuery"
       } ],
       "response" : {
         "type" : "array",
@@ -414,7 +414,7 @@
         "type" : "int"
       }, {
         "name" : "options",
-        "type" : "PGPQuery"
+        "type" : "PgpQuery"
       } ],
       "response" : {
         "type" : "array",
@@ -427,7 +427,7 @@
         "type" : "int"
       }, {
         "name" : "options",
-        "type" : "PGPQuery"
+        "type" : "PgpQuery"
       } ],
       "response" : {
         "type" : "array",

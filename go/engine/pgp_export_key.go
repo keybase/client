@@ -23,7 +23,7 @@ const (
 
 type PGPKeyExportEngine struct {
 	libkb.Contextified
-	arg   keybase1.PGPQuery
+	arg   keybase1.PgpQuery
 	qtype queryType
 	res   []keybase1.KeyInfo
 	me    *libkb.User

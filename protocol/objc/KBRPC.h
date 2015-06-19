@@ -558,7 +558,7 @@ typedef NS_ENUM (NSInteger, KBRSignMode) {
 @property NSString *desc;
 @end
 
-@interface KBRPGPQuery : KBRObject
+@interface KBRPgpQuery : KBRObject
 @property BOOL secret;
 @property NSString *query;
 @property BOOL exactMatch;
@@ -582,11 +582,11 @@ typedef NS_ENUM (NSInteger, KBRSignMode) {
 
 - (void)pgpImportWithSessionID:(NSInteger)sessionID key:(NSData *)key pushSecret:(BOOL)pushSecret completion:(void (^)(NSError *error))completion;
 
-- (void)pgpExportWithSessionID:(NSInteger)sessionID options:(KBRPGPQuery *)options completion:(void (^)(NSError *error, NSArray *items))completion;
+- (void)pgpExportWithSessionID:(NSInteger)sessionID options:(KBRPgpQuery *)options completion:(void (^)(NSError *error, NSArray *items))completion;
 
-- (void)pgpExportByFingerprintWithSessionID:(NSInteger)sessionID options:(KBRPGPQuery *)options completion:(void (^)(NSError *error, NSArray *items))completion;
+- (void)pgpExportByFingerprintWithSessionID:(NSInteger)sessionID options:(KBRPgpQuery *)options completion:(void (^)(NSError *error, NSArray *items))completion;
 
-- (void)pgpExportByKIDWithSessionID:(NSInteger)sessionID options:(KBRPGPQuery *)options completion:(void (^)(NSError *error, NSArray *items))completion;
+- (void)pgpExportByKIDWithSessionID:(NSInteger)sessionID options:(KBRPgpQuery *)options completion:(void (^)(NSError *error, NSArray *items))completion;
 
 - (void)pgpKeyGenWithSessionID:(NSInteger)sessionID primaryBits:(NSInteger)primaryBits subkeyBits:(NSInteger)subkeyBits createUids:(KBRPgpCreateUids *)createUids allowMulti:(BOOL)allowMulti doExport:(BOOL)doExport completion:(void (^)(NSError *error))completion;
 
@@ -1057,15 +1057,15 @@ typedef NS_ENUM (NSInteger, KBRPromptOverwriteType) {
 @end
 @interface KBRPgpExportRequestParams : KBRRequestParams
 @property NSInteger sessionID;
-@property KBRPGPQuery *options;
+@property KBRPgpQuery *options;
 @end
 @interface KBRPgpExportByFingerprintRequestParams : KBRRequestParams
 @property NSInteger sessionID;
-@property KBRPGPQuery *options;
+@property KBRPgpQuery *options;
 @end
 @interface KBRPgpExportByKIDRequestParams : KBRRequestParams
 @property NSInteger sessionID;
-@property KBRPGPQuery *options;
+@property KBRPgpQuery *options;
 @end
 @interface KBRPgpKeyGenRequestParams : KBRRequestParams
 @property NSInteger sessionID;

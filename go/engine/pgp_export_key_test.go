@@ -89,7 +89,7 @@ type exportCounts struct {
 }
 
 func pgpExport(ctx *Context, g *libkb.GlobalContext, secret bool, query string, exact bool) (exportCounts, error) {
-	opts := keybase1.PGPQuery{
+	opts := keybase1.PgpQuery{
 		Secret:     secret,
 		Query:      query,
 		ExactMatch: exact,
