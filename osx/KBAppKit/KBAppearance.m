@@ -198,6 +198,18 @@ static id<KBAppearance> gCurrentAppearance = NULL;
   return [NSColor colorWithWhite:0.966 alpha:1.0];
 }
 
+- (NSMutableAttributedString *)attributedString:(NSString *)string style:(KBTextStyle)style options:(KBTextOptions)options alignment:(NSTextAlignment)alignment lineBreakMode:(NSLineBreakMode)lineBreakMode {
+  NSColor *color = [self textColorForStyle:style options:options];
+  NSFont *font = [self fontForStyle:style options:options];
+
+  NSMutableParagraphStyle *paragraphStyle = [[NSMutableParagraphStyle alloc] init];
+  paragraphStyle.alignment = alignment;
+  paragraphStyle.lineBreakMode = lineBreakMode;
+
+  NSDictionary *attributes = @{NSForegroundColorAttributeName: color, NSFontAttributeName: font, NSParagraphStyleAttributeName:paragraphStyle};
+  return [[NSMutableAttributedString alloc] initWithString:string attributes:attributes];
+}
+
 - (NSColor *)buttonTextColorForStyle:(KBButtonStyle)style options:(KBButtonOptions)options enabled:(BOOL)enabled highlighted:(BOOL)highlighted {
   if (!enabled) return KBColorFromRGBA(0x666666, 1.0, NSBackgroundStyleLight);
   switch (style) {

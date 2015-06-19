@@ -57,7 +57,7 @@
   [super viewInit];
 
   _label = [[KBLabel alloc] init];
-  [_label setText:@"To" font:KBAppearance.currentAppearance.textFont color:KBAppearance.currentAppearance.textColor alignment:NSLeftTextAlignment];
+  [_label setText:@"To" style:KBTextStyleDefault alignment:NSLeftTextAlignment lineBreakMode:NSLineBreakByClipping];
   [self addSubview:_label];
 
   _tokensField = [[NSTokenField alloc] init];
@@ -345,6 +345,7 @@
   NSMutableArray *results = [filtered mutableCopy];
 
   if (searchResults.header && [results count] > 0) [results insertObject:[KBTableViewHeader tableViewHeaderWithTitle:searchResults.header] atIndex:0];
+  // Datasource might have been altered without reload here (so animations won't work, see reloadDelay)
   [_searchResultsView addObjects:results animation:NSTableViewAnimationEffectNone];
 
   if ([_searchResultsView rowCount] > 0) {

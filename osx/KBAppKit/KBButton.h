@@ -34,6 +34,8 @@ typedef void (^KBButtonDispatchBlock)(KBButton *button, dispatch_block_t complet
 
 + (instancetype)buttonWithText:(NSString *)text image:(NSImage *)image style:(KBButtonStyle)style options:(KBButtonOptions)options;
 
++ (instancetype)buttonWithAttributedTitle:(NSAttributedString *)attributedTitle style:(KBButtonStyle)style options:(KBButtonOptions)options;
+
 + (instancetype)linkWithText:(NSString *)text targetBlock:(dispatch_block_t)targetBlock;
 
 - (void)setText:(NSString *)text style:(KBButtonStyle)style options:(KBButtonOptions)options;
@@ -46,7 +48,7 @@ typedef void (^KBButtonDispatchBlock)(KBButton *button, dispatch_block_t complet
 
 - (void)setMarkup:(NSString *)markup style:(KBButtonStyle)style font:(NSFont *)font alignment:(NSTextAlignment)alignment;
 
-- (void)setAttributedTitle:(NSAttributedString *)attributedTitle style:(KBButtonStyle)style;
+- (void)setAttributedTitle:(NSAttributedString *)attributedTitle style:(KBButtonStyle)style options:(KBButtonOptions)options;
 
 @end
 

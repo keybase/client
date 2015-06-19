@@ -159,8 +159,8 @@
     completion(nil, nil);
   }];
 
-  [client registerMethod:@"keybase.1.identifyUi.finishWebProofCheck" sessionId:sessionId requestHandler:^(NSNumber *messageId, NSString *method, NSArray *params, MPRequestCompletion completion) {
-    KBRFinishWebProofCheckRequestParams *requestParams = [[KBRFinishWebProofCheckRequestParams alloc] initWithParams:params];
+  [client registerMethod:@"keybase.1.identifyUi.finishSocialProofCheck" sessionId:sessionId requestHandler:^(NSNumber *messageId, NSString *method, NSArray *params, MPRequestCompletion completion) {
+    KBRFinishSocialProofCheckRequestParams *requestParams = [[KBRFinishSocialProofCheckRequestParams alloc] initWithParams:params];
     KBRRemoteProof *proof = requestParams.rp;
     KBRLinkCheckResult *lcr = requestParams.lcr;
     [gself.userInfoView updateProofResult:[KBProofResult proofResultForProof:proof result:lcr]];
@@ -169,8 +169,8 @@
     completion(nil, nil);
   }];
 
-  [client registerMethod:@"keybase.1.identifyUi.finishSocialProofCheck" sessionId:sessionId requestHandler:^(NSNumber *messageId, NSString *method, NSArray *params, MPRequestCompletion completion) {
-    KBRFinishSocialProofCheckRequestParams *requestParams = [[KBRFinishSocialProofCheckRequestParams alloc] initWithParams:params];
+  [client registerMethod:@"keybase.1.identifyUi.finishWebProofCheck" sessionId:sessionId requestHandler:^(NSNumber *messageId, NSString *method, NSArray *params, MPRequestCompletion completion) {
+    KBRFinishWebProofCheckRequestParams *requestParams = [[KBRFinishWebProofCheckRequestParams alloc] initWithParams:params];
     KBRRemoteProof *proof = requestParams.rp;
     KBRLinkCheckResult *lcr = requestParams.lcr;
     [gself.userInfoView updateProofResult:[KBProofResult proofResultForProof:proof result:lcr]];
@@ -315,22 +315,21 @@
       return;
     }
 
-    [gself.userInfoView addHeader:@" " text:@" " targetBlock:^{}];
-
     if ([gself.fokids count] == 0) {
-      [gself.userInfoView addHeader:@" " text:@"Add a PGP Key" targetBlock:^{
-        [gself addPGPKey];
-      }];
+      NSAttributedString *textLabel = [KBAppearance.currentAppearance attributedString:@"Add a PGP Key" style:KBTextStyleDefault options:KBTextOptionsSelect alignment:NSLeftTextAlignment lineBreakMode:NSLineBreakByWordWrapping];
+      [gself.userInfoView addHeader:nil text:textLabel targetBlock:^{ [gself addPGPKey]; }];
     }
 
     for (NSString *serviceName in [gself.userInfoView missingServices]) {
-      if ([serviceName isEqualTo:@"dns"]) {
-        [gself.userInfoView addHeader:@" " text:@"Add Domain" targetBlock:^{ [gself connectWithServiceName:serviceName proofResult:nil]; }];
-      } else if ([serviceName isEqualTo:@"http"]) {
-        [gself.userInfoView addHeader:@" " text:@"Add Website" targetBlock:^{ [gself connectWithServiceName:serviceName proofResult:nil]; }];
-      } else {
-        [gself.userInfoView addHeader:@" " text:NSStringWithFormat(@"Connect to %@", KBNameForServiceName(serviceName)) targetBlock:^{ [gself connectWithServiceName:serviceName proofResult:nil]; }];
-      }
+      NSString *label = nil;
+      if ([serviceName isEqualTo:@"dns"]) label = @"Add Domain";
+      else if ([serviceName isEqualTo:@"http"]) label = @"Add Website";
+      else if ([serviceName isEqualTo:@"https"]) label = @"Add Website";
+      else label = NSStringWithFormat(@"Connect to %@", KBNameForServiceName(serviceName));
+
+      NSAttributedString *icon = [KBFontAwesome attributedStringForIcon:serviceName style:KBTextStyleDefault options:0 alignment:NSLeftTextAlignment lineBreakMode:NSLineBreakByClipping];
+      NSAttributedString *textLabel = [KBAppearance.currentAppearance attributedString:label style:KBTextStyleDefault options:KBTextOptionsSelect alignment:NSLeftTextAlignment lineBreakMode:NSLineBreakByCharWrapping];
+      [gself.userInfoView addHeader:icon text:textLabel targetBlock:^{ [gself connectWithServiceName:serviceName proofResult:nil]; }];
     }
     [self setNeedsLayout];
   }];

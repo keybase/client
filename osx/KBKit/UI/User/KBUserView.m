@@ -9,7 +9,6 @@
 #import "KBUserView.h"
 
 #import "KBUserImageView.h"
-#import "KBAwesomeFont.h"
 
 @implementation KBUserView
 
@@ -20,7 +19,7 @@
 
 - (void)setUser:(KBRUser *)user {
   self.imageSize = CGSizeMake(40, 40);
-  [self.titleLabel setText:user.username font:KBAppearance.currentAppearance.boldLargeTextFont color:[KBAppearance.currentAppearance textColor] alignment:NSLeftTextAlignment];
+  [self.titleLabel setText:user.username style:KBTextStyleDefault options:KBTextOptionsStrong alignment:NSLeftTextAlignment lineBreakMode:NSLineBreakByClipping];
   self.infoLabel.attributedText = nil;
   [self.imageView kb_setUsername:user.username];
   [self setNeedsLayout];
@@ -28,22 +27,15 @@
 
 - (void)setUserSummary:(KBRUserSummary *)userSummary {
   self.imageSize = CGSizeMake(40, 40);
-  [self.titleLabel setText:userSummary.username font:KBAppearance.currentAppearance.boldLargeTextFont color:[KBAppearance.currentAppearance textColor] alignment:NSLeftTextAlignment lineBreakMode:NSLineBreakByClipping];
+  [self.titleLabel setText:userSummary.username style:KBTextStyleDefault options:KBTextOptionsStrong alignment:NSLeftTextAlignment lineBreakMode:NSLineBreakByClipping];
   self.infoLabel.attributedText = [self attributedStringForUserSummary:userSummary appearance:KBAppearance.currentAppearance];
   [self.imageView kb_setUsername:userSummary.username];
   [self setNeedsLayout];
 }
 
 - (NSAttributedString *)attributedStringForProof:(KBRTrackProof *)proof appearance:(id<KBAppearance>)appearance attributes:(NSDictionary *)attributes {
-  NSMutableAttributedString *proofText = [[NSMutableAttributedString alloc] init];
-  NSAttributedString *icon = [KBAwesomeFont attributedStringForIcon:proof.proofType appearance:appearance style:KBTextStyleSecondaryText options:0];
-  if (icon) {
-    [proofText appendAttributedString:icon];
-    [proofText appendAttributedString:[[NSAttributedString alloc] initWithString:NSStringWithFormat(@" %@", proof.proofName) attributes:attributes]];
-  } else {
-    [proofText appendAttributedString:[[NSAttributedString alloc] initWithString:proof.idString attributes:attributes]];
-  }
-  return proofText;
+  // TODO If no icon, we should show proof.idString as text?
+  return [KBFontAwesome attributedStringForIcon:proof.proofType text:proof.proofName appearance:appearance style:KBTextStyleSecondaryText options:KBTextOptionsSmall alignment:NSLeftTextAlignment lineBreakMode:NSLineBreakByClipping];
 }
 
 - (NSMutableAttributedString *)attributedStringForUserSummary:(KBRUserSummary *)userSummary appearance:(id<KBAppearance>)appearance {

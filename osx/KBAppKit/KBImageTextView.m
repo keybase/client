@@ -60,14 +60,14 @@
 }
 
 - (void)setTitle:(NSString *)title info:(NSString *)info image:(NSImage *)image {
-  [self.titleLabel setText:title font:KBAppearance.currentAppearance.boldTextFont color:KBAppearance.currentAppearance.textColor alignment:NSLeftTextAlignment];
+  [self.titleLabel setText:title style:KBTextStyleDefault options:KBTextOptionsStrong alignment:NSLeftTextAlignment lineBreakMode:NSLineBreakByClipping];
   [self.infoLabel setText:info style:KBTextStyleSecondaryText options:KBTextOptionsSmall alignment:NSLeftTextAlignment lineBreakMode:NSLineBreakByClipping];
   self.imageView.image = image;
   [self setNeedsLayout];
 }
 
 - (void)setTitle:(NSString *)title info:(NSString *)info imageURLString:(NSString *)imageURLString imageSize:(CGSize)imageSize {
-  [self.titleLabel setText:title font:KBAppearance.currentAppearance.boldTextFont color:KBAppearance.currentAppearance.textColor alignment:NSLeftTextAlignment];
+  [self.titleLabel setText:title style:KBTextStyleDefault options:KBTextOptionsStrong alignment:NSLeftTextAlignment lineBreakMode:NSLineBreakByClipping];
   [self.infoLabel setText:info style:KBTextStyleSecondaryText options:KBTextOptionsSmall alignment:NSLeftTextAlignment lineBreakMode:NSLineBreakByClipping];
   self.imageSize = imageSize;
   [self.imageView setImageWithURL:[NSURL URLWithString:imageURLString] placeholderImage:nil];

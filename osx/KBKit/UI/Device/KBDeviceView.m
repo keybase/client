@@ -15,8 +15,8 @@
   NSString *deviceName = [device.name gh_present];
   if ([NSString gh_isBlank:deviceName]) deviceName = [device.type capitalizedString];
 
-  [self.titleLabel setText:deviceName font:KBAppearance.currentAppearance.boldLargeTextFont color:KBAppearance.currentAppearance.textColor alignment:NSLeftTextAlignment];
-  [self.infoLabel setText:device.type font:KBAppearance.currentAppearance.textFont color:KBAppearance.currentAppearance.secondaryTextColor alignment:NSLeftTextAlignment];
+  [self.titleLabel setText:deviceName style:KBTextStyleDefault options:KBTextOptionsStrong alignment:NSLeftTextAlignment lineBreakMode:NSLineBreakByClipping];
+  [self.infoLabel setText:device.type style:KBTextStyleSecondaryText options:KBTextOptionsSmall alignment:NSLeftTextAlignment lineBreakMode:NSLineBreakByClipping];
 
   self.imageView.image = KBImageForDeviceType(device.type);
 

@@ -89,7 +89,7 @@
     return;
   }
 
-  [_name1Label setText:_username font:[NSFont boldSystemFontOfSize:36] color:[KBAppearance.currentAppearance textColor] alignment:NSLeftTextAlignment];
+  [_name1Label setText:_username font:[NSFont boldSystemFontOfSize:36] color:[KBAppearance.currentAppearance textColor] alignment:NSLeftTextAlignment lineBreakMode:NSLineBreakByClipping];
 
   _name2View.hidden = NO;
   [_name2View setText:KBDisplayURLStringForUsername(_username) style:KBButtonStyleLink font:[NSFont systemFontOfSize:16] alignment:NSLeftTextAlignment lineBreakMode:NSLineBreakByWordWrapping];

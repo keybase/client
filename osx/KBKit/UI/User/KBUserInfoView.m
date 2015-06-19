@@ -79,7 +79,7 @@
   return services;
 }
 
-- (void)addHeader:(NSString *)header text:(NSString *)text targetBlock:(dispatch_block_t)targetBlock {
+- (void)addHeader:(NSAttributedString *)header text:(NSAttributedString *)text targetBlock:(dispatch_block_t)targetBlock {
   KBUserInfoLabels *label = [[KBUserInfoLabels alloc] init];
   [label addHeader:header text:text targetBlock:targetBlock];
   [self addLabels:@[label]];

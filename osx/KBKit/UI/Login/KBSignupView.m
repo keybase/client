@@ -199,7 +199,7 @@
 
 - (BOOL)passwordConfirmed {
   if ([_passwordField.text gh_present] && [_passwordConfirmField.text gh_present] && ![_passwordConfirmField.text isEqualTo:_passwordField.text]) {
-    [_passwordConfirmLabel setText:@"Mismatch" font:[NSFont systemFontOfSize:12] color:KBAppearance.currentAppearance.dangerColor alignment:NSRightTextAlignment];
+    [_passwordConfirmLabel setText:@"Mismatch" font:[NSFont systemFontOfSize:12] color:KBAppearance.currentAppearance.dangerColor alignment:NSRightTextAlignment lineBreakMode:NSLineBreakByClipping];
     [self setNeedsLayout];
     return NO;
   } else {
@@ -221,14 +221,14 @@
   KBRSignupRequest *request = [[KBRSignupRequest alloc] initWithClient:self.client];
   [request checkUsernameAvailableWithSessionID:request.sessionId username:username completion:^(NSError *error) {
     if (error.code == 701) {
-      [gself.usernameStatusLabel setText:@"Already taken" font:[NSFont systemFontOfSize:12] color:KBAppearance.currentAppearance.dangerColor alignment:NSRightTextAlignment];
+      [gself.usernameStatusLabel setText:@"Already taken" font:[NSFont systemFontOfSize:12] color:KBAppearance.currentAppearance.dangerColor alignment:NSRightTextAlignment lineBreakMode:NSLineBreakByClipping];
     } else if (error) {
       DDLogError(@"Error checking username: %@", error);
       gself.usernameStatusLabel.attributedText = nil;
       [self setNeedsLayout];
       return;
     } else {
-      [gself.usernameStatusLabel setText:@"OK" font:[NSFont systemFontOfSize:12] color:KBAppearance.currentAppearance.successColor alignment:NSRightTextAlignment];
+      [gself.usernameStatusLabel setText:@"OK" font:[NSFont systemFontOfSize:12] color:KBAppearance.currentAppearance.successColor alignment:NSRightTextAlignment lineBreakMode:NSLineBreakByClipping];
     }
     [self setNeedsLayout];
   }];

@@ -9,7 +9,6 @@
 #import "KBProveInputView.h"
 
 #import "KBProveType.h"
-#import "KBAwesomeFont.h"
 
 @interface KBProveInputView ()
 @property KBLabel *header;
@@ -102,7 +101,7 @@
   if (headerIcon) {
     NSFont *headerFont = [KBAppearance.currentAppearance fontForStyle:KBTextStyleHeaderLarge options:0];
     NSMutableAttributedString *header = [[NSMutableAttributedString alloc] init];
-    [header appendAttributedString:[KBAwesomeFont attributedStringForIcon:headerIcon color:KBAppearance.currentAppearance.selectColor size:headerFont.pointSize]];
+    [header appendAttributedString:[KBFontAwesome attributedStringForIcon:headerIcon color:KBAppearance.currentAppearance.selectColor size:headerFont.pointSize alignment:NSCenterTextAlignment lineBreakMode:NSLineBreakByClipping]];
     NSDictionary *attributes = @{NSForegroundColorAttributeName: KBAppearance.currentAppearance.selectColor, NSFontAttributeName: headerFont};
     [header appendAttributedString:[[NSAttributedString alloc] initWithString:NSStringWithFormat(@" %@", headerText) attributes:attributes]];
     [_header setAttributedText:header alignment:NSCenterTextAlignment lineBreakMode:NSLineBreakByTruncatingTail];
@@ -110,7 +109,7 @@
     [_header setText:headerText style:KBTextStyleHeaderLarge options:KBTextOptionsSelect alignment:NSCenterTextAlignment lineBreakMode:NSLineBreakByTruncatingTail];
   }
 
-  [_label setText:labelText font:[KBAppearance.currentAppearance textFont] color:KBAppearance.currentAppearance.textColor alignment:NSLeftTextAlignment];
+  [_label setText:labelText font:[KBAppearance.currentAppearance textFont] color:KBAppearance.currentAppearance.textColor alignment:NSLeftTextAlignment lineBreakMode:NSLineBreakByWordWrapping];
   _inputField.placeholder = placeholder;
 
   [self setNeedsLayout];

@@ -26,7 +26,7 @@
 //  [self addSubview:imageView];
 
   KBLabel *headerLabel = [[KBLabel alloc] init];
-  [headerLabel setText:@"Oops!" font:[NSFont boldSystemFontOfSize:32] color:NSColor.blackColor alignment:NSCenterTextAlignment];
+  [headerLabel setText:@"Oops!" font:[NSFont boldSystemFontOfSize:32] color:NSColor.blackColor alignment:NSCenterTextAlignment lineBreakMode:NSLineBreakByClipping];
   [self addSubview:headerLabel];
 
   _titleLabel = [[KBLabel alloc] init];
@@ -65,7 +65,7 @@
 }
 
 - (void)setError:(NSError *)error {
-  [_titleLabel setText:@"There was a problem and we couldn't recover. This usually means there is something wrong with your Keybase installation. This information might help you resolve this issue:" font:[NSFont systemFontOfSize:14] color:[KBAppearance.currentAppearance textColor] alignment:NSLeftTextAlignment];
+  [_titleLabel setText:@"There was a problem and we couldn't recover. This usually means there is something wrong with your Keybase installation. This information might help you resolve this issue:" font:[NSFont systemFontOfSize:14] color:[KBAppearance.currentAppearance textColor] alignment:NSLeftTextAlignment lineBreakMode:NSLineBreakByWordWrapping];
 
   NSMutableArray *info = [NSMutableArray array];
 
@@ -83,7 +83,7 @@
     [info addObject:NSStringWithFormat(@"%@: %@", key, error.userInfo[key])];
   }
 
-  [_descriptionLabel setText:[info join:@"\n\n"] font:[NSFont systemFontOfSize:14] color:[KBAppearance.currentAppearance textColor] alignment:NSLeftTextAlignment];
+  [_descriptionLabel setText:[info join:@"\n\n"] font:[NSFont systemFontOfSize:14] color:[KBAppearance.currentAppearance textColor] alignment:NSLeftTextAlignment lineBreakMode:NSLineBreakByWordWrapping];
   [self setNeedsLayout];
 }
 

@@ -173,16 +173,13 @@
     self.attributedText = nil;
     return;
   }
-  NSMutableAttributedString *str = [[NSMutableAttributedString alloc] initWithString:text];
-
   NSMutableParagraphStyle *paragraphStyle = [[NSMutableParagraphStyle alloc] init];
   paragraphStyle.alignment = alignment;
   paragraphStyle.lineBreakMode = lineBreakMode;
 
   NSDictionary *attributes = @{NSForegroundColorAttributeName:color, NSFontAttributeName:font, NSParagraphStyleAttributeName:paragraphStyle};
-  [str setAttributes:attributes range:NSMakeRange(0, str.length)];
 
-  self.attributedText = str;
+  self.attributedText = [[NSMutableAttributedString alloc] initWithString:text attributes:attributes];
 }
 
 - (void)setMarkup:(NSString *)markup {

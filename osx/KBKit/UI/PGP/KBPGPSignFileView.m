@@ -40,9 +40,7 @@
   [contentView addSubview:_fileIcon];
 
   YOSelf yself = self;
-  NSImage *attachmentImage = [NSImage imageNamed:@"1-Edition-black-clip-1-24"];
-  attachmentImage.size = CGSizeMake(12, 12);
-  KBButton *chooseButton = [KBButton buttonWithText:@"Choose File" image:attachmentImage style:KBButtonStyleDefault options:0];
+  KBButton *chooseButton = [KBButton buttonWithText:@"Choose File" style:KBButtonStyleDefault options:0];
   chooseButton.targetBlock = ^{ [yself chooseInput]; };
   [contentView addSubview:chooseButton];
 

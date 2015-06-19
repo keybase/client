@@ -37,9 +37,7 @@
   [toolbarView addSubview:[KBBox horizontalLine]];
 
   YOSelf yself = self;
-  NSImage *attachmentImage = [NSImage imageNamed:@"1-Edition-black-clip-1-24"];
-  attachmentImage.size = CGSizeMake(12, 12);
-  KBButton *attachmentButton = [KBButton buttonWithText:@"Open files" image:attachmentImage style:KBButtonStyleDefault options:KBButtonOptionsToolbar];
+  KBButton *attachmentButton = [KBButton buttonWithText:@"Open files" style:KBButtonStyleDefault options:KBButtonOptionsToolbar];
   attachmentButton.targetBlock = ^{ [yself chooseInput]; };
   [buttonsView addSubview:attachmentButton];
 

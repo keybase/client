@@ -66,6 +66,12 @@
   return button;
 }
 
++ (instancetype)buttonWithAttributedTitle:(NSAttributedString *)attributedTitle style:(KBButtonStyle)style options:(KBButtonOptions)options {
+  KBButton *button = [[KBButton alloc] init];
+  [button setAttributedTitle:attributedTitle style:style options:options];
+  return button;
+}
+
 + (instancetype)linkWithText:(NSString *)text targetBlock:(dispatch_block_t)targetBlock {
   KBButton *button = [[KBButton alloc] init];
   [button setText:text style:KBButtonStyleLink alignment:NSLeftTextAlignment lineBreakMode:NSLineBreakByTruncatingTail];
@@ -170,7 +176,7 @@
 }
 
 - (void)setText:(NSString *)text font:(NSFont *)font color:(NSColor *)color alignment:(NSTextAlignment)alignment lineBreakMode:(NSLineBreakMode)lineBreakMode {
-  [self setAttributedTitle:[KBButton attributedText:text font:font color:color alignment:alignment lineBreakMode:lineBreakMode] style:KBButtonStyleText];
+  [self setAttributedTitle:[KBButton attributedText:text font:font color:color alignment:alignment lineBreakMode:lineBreakMode] style:KBButtonStyleText options:0];
 }
 
 - (void)setText:(NSString *)text style:(KBButtonStyle)style font:(NSFont *)font alignment:(NSTextAlignment)alignment lineBreakMode:(NSLineBreakMode)lineBreakMode {
@@ -182,7 +188,7 @@
 }
 
 - (void)setText:(NSString *)text style:(KBButtonStyle)style options:(KBButtonOptions)options font:(NSFont *)font alignment:(NSTextAlignment)alignment lineBreakMode:(NSLineBreakMode)lineBreakMode {
-  [self setAttributedTitle:[KBButton attributedText:text font:font color:nil alignment:alignment lineBreakMode:lineBreakMode] style:style];
+  [self setAttributedTitle:[KBButton attributedText:text font:font color:nil alignment:alignment lineBreakMode:lineBreakMode] style:style options:options];
 }
 
 + (KBButtonCell *)buttonCellWithStyle:(KBButtonStyle)style options:(KBButtonOptions)options button:(KBButton *)button {
@@ -217,8 +223,8 @@
   [self setNeedsDisplay];
 }
 
-- (void)setAttributedTitle:(NSAttributedString *)attributedTitle style:(KBButtonStyle)style {
-  KBButtonCell *cell = [self _setCellForStyle:style options:0];
+- (void)setAttributedTitle:(NSAttributedString *)attributedTitle style:(KBButtonStyle)style options:(KBButtonOptions)options {
+  KBButtonCell *cell = [self _setCellForStyle:style options:options];
   [cell setAttributedTitle:attributedTitle];
   [self setNeedsDisplay];
 }

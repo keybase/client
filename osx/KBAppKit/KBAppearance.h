@@ -85,6 +85,8 @@ typedef NS_OPTIONS (NSInteger, KBButtonOptions) {
 - (NSColor *)buttonFillColorForStyle:(KBButtonStyle)style options:(KBButtonOptions)options enabled:(BOOL)enabled highlighted:(BOOL)highlighted toggled:(BOOL)toggled;
 - (NSColor *)buttonStrokeColorForStyle:(KBButtonStyle)style options:(KBButtonOptions)options enabled:(BOOL)enabled highlighted:(BOOL)highlighted;
 
+- (NSMutableAttributedString *)attributedString:(NSString *)string style:(KBTextStyle)style options:(KBTextOptions)options alignment:(NSTextAlignment)alignment lineBreakMode:(NSLineBreakMode)lineBreakMode;
+
 @end
 
 @interface KBAppearance : NSObject

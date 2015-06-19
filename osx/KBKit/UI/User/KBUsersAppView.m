@@ -258,6 +258,7 @@
   NSArray *filtered = [searchResults.results reject:^BOOL(KBRUserSummary *us) { return [usernames containsObject:us.username]; }];
   NSMutableArray *results = [filtered mutableCopy];
   if (searchResults.header && [results count] > 0) [results insertObject:[KBTableViewHeader tableViewHeaderWithTitle:searchResults.header] atIndex:0];
+  // Datasource might have been altered without reload here (if previousCount == 0), so animation won't work in that case (see reloadDelay)
   [_searchView.listView addObjects:results animation:previousCount > 0 ? NSTableViewAnimationSlideUp : NSTableViewAnimationEffectNone];
   [self showSearch];
 }
