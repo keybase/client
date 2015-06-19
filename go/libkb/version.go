@@ -1,4 +1,4 @@
-// 0.1.40
+// 0.1.41
 package libkb
 
-const ClientVersion = "0.1.40"
+const ClientVersion = "0.1.41"
