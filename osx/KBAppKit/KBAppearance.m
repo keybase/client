@@ -114,6 +114,10 @@ static id<KBAppearance> gCurrentAppearance = NULL;
   return NSColor.whiteColor;
 }
 
+- (NSColor *)primaryButtonColor {
+  return self.selectColor;
+}
+
 - (NSColor *)successColor {
   return [NSColor colorWithRed:9.0/255.0 green:179.0/255.0 blue:18.0/255.0 alpha:1.0f];
 }
@@ -136,6 +140,14 @@ static id<KBAppearance> gCurrentAppearance = NULL;
 
 - (NSColor *)dangerBackgroundColor {
   return [NSColor colorWithRed:247.0/255.0 green:238.0/255.0 blue:241.0/255.0 alpha:1.0f];
+}
+
+- (NSColor *)dangerButtonColor {
+  return [NSColor colorWithRed:208.0/255.0 green:59.0/255.0 blue:59.0/255.0 alpha:1.0];
+}
+
+- (NSColor *)warnButtonColor {
+  return [NSColor colorWithRed:232.0/255.0 green:134.0/255.0 blue:0/255.0 alpha:1.0f];
 }
 
 - (NSColor *)infoBackgroundColor {
@@ -218,6 +230,7 @@ static id<KBAppearance> gCurrentAppearance = NULL;
 
     case KBButtonStylePrimary:
     case KBButtonStyleDanger:
+    case KBButtonStyleWarning:
       return KBColorFromRGBA(0xFFFFFF, 1.0, NSBackgroundStyleLight);
 
     case KBButtonStyleLink:
@@ -239,6 +252,7 @@ static id<KBAppearance> gCurrentAppearance = NULL;
     case KBButtonStyleDefault:
     case KBButtonStylePrimary:
     case KBButtonStyleDanger:
+    case KBButtonStyleWarning:
       return KBColorFromRGBA(0xEFEFEF, 1.0, NSBackgroundStyleLight);
 
     case KBButtonStyleLink:
@@ -262,6 +276,9 @@ static id<KBAppearance> gCurrentAppearance = NULL;
     case KBButtonStyleDanger:
       return [NSColor colorWithRed:189.0/255.0 green:26.0/255.0 blue:29.0/255.0 alpha:1.0];
 
+    case KBButtonStyleWarning:
+      return [self warnButtonColor];
+
     case KBButtonStyleCheckbox:
     case KBButtonStyleLink:
       return nil;
@@ -277,10 +294,13 @@ static id<KBAppearance> gCurrentAppearance = NULL;
       return [NSColor colorWithWhite:0.99 alpha:1.0];
 
     case KBButtonStylePrimary:
-      return KBAppearance.currentAppearance.selectColor;
+      return [self primaryButtonColor];
 
     case KBButtonStyleDanger:
-      return [NSColor colorWithRed:208.0/255.0 green:59.0/255.0 blue:59.0/255.0 alpha:1.0];
+      return [self dangerButtonColor];
+
+    case KBButtonStyleWarning:
+      return [self warnButtonColor];
 
     case KBButtonStyleEmpty:
     case KBButtonStyleLink:
@@ -295,6 +315,7 @@ static id<KBAppearance> gCurrentAppearance = NULL;
     case KBButtonStyleDefault:
     case KBButtonStylePrimary:
     case KBButtonStyleDanger:
+    case KBButtonStyleWarning:
       return KBColorFromRGBA(0xCCCCCC, 1.0, NSBackgroundStyleLight);
 
     case KBButtonStyleLink:
@@ -313,6 +334,7 @@ static id<KBAppearance> gCurrentAppearance = NULL;
 
     case KBButtonStylePrimary:
     case KBButtonStyleDanger:
+    case KBButtonStyleWarning:
       return nil;
 
     case KBButtonStyleLink:

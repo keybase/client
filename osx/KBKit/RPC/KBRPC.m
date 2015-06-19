@@ -620,7 +620,7 @@
 @implementation KBRKeyInfo
 @end
 
-@implementation KBRPGPQuery
+@implementation KBRPgpQuery
 @end
 
 @implementation KBRPgpCreateUids
@@ -681,7 +681,7 @@
   }];
 }
 
-- (void)pgpExportWithSessionID:(NSInteger)sessionID options:(KBRPGPQuery *)options completion:(void (^)(NSError *error, NSArray *items))completion {
+- (void)pgpExportWithSessionID:(NSInteger)sessionID options:(KBRPgpQuery *)options completion:(void (^)(NSError *error, NSArray *items))completion {
   NSDictionary *params = @{@"sessionID": @(sessionID), @"options": KBRValue(options)};
   [self.client sendRequestWithMethod:@"keybase.1.pgp.pgpExport" params:params sessionId:self.sessionId completion:^(NSError *error, id retval) {
     if (error) {
@@ -693,7 +693,7 @@
   }];
 }
 
-- (void)pgpExportByFingerprintWithSessionID:(NSInteger)sessionID options:(KBRPGPQuery *)options completion:(void (^)(NSError *error, NSArray *items))completion {
+- (void)pgpExportByFingerprintWithSessionID:(NSInteger)sessionID options:(KBRPgpQuery *)options completion:(void (^)(NSError *error, NSArray *items))completion {
   NSDictionary *params = @{@"sessionID": @(sessionID), @"options": KBRValue(options)};
   [self.client sendRequestWithMethod:@"keybase.1.pgp.pgpExportByFingerprint" params:params sessionId:self.sessionId completion:^(NSError *error, id retval) {
     if (error) {
@@ -705,7 +705,7 @@
   }];
 }
 
-- (void)pgpExportByKIDWithSessionID:(NSInteger)sessionID options:(KBRPGPQuery *)options completion:(void (^)(NSError *error, NSArray *items))completion {
+- (void)pgpExportByKIDWithSessionID:(NSInteger)sessionID options:(KBRPgpQuery *)options completion:(void (^)(NSError *error, NSArray *items))completion {
   NSDictionary *params = @{@"sessionID": @(sessionID), @"options": KBRValue(options)};
   [self.client sendRequestWithMethod:@"keybase.1.pgp.pgpExportByKID" params:params sessionId:self.sessionId completion:^(NSError *error, id retval) {
     if (error) {
@@ -1869,7 +1869,7 @@
 - (instancetype)initWithParams:(NSArray *)params {
   if ((self = [super initWithParams:params])) {
     self.sessionID = [params[0][@"sessionID"] integerValue];
-    self.options = [MTLJSONAdapter modelOfClass:KBRPGPQuery.class fromJSONDictionary:params[0][@"options"] error:nil];
+    self.options = [MTLJSONAdapter modelOfClass:KBRPgpQuery.class fromJSONDictionary:params[0][@"options"] error:nil];
   }
   return self;
 }
@@ -1881,7 +1881,7 @@
 - (instancetype)initWithParams:(NSArray *)params {
   if ((self = [super initWithParams:params])) {
     self.sessionID = [params[0][@"sessionID"] integerValue];
-    self.options = [MTLJSONAdapter modelOfClass:KBRPGPQuery.class fromJSONDictionary:params[0][@"options"] error:nil];
+    self.options = [MTLJSONAdapter modelOfClass:KBRPgpQuery.class fromJSONDictionary:params[0][@"options"] error:nil];
   }
   return self;
 }
@@ -1893,7 +1893,7 @@
 - (instancetype)initWithParams:(NSArray *)params {
   if ((self = [super initWithParams:params])) {
     self.sessionID = [params[0][@"sessionID"] integerValue];
-    self.options = [MTLJSONAdapter modelOfClass:KBRPGPQuery.class fromJSONDictionary:params[0][@"options"] error:nil];
+    self.options = [MTLJSONAdapter modelOfClass:KBRPgpQuery.class fromJSONDictionary:params[0][@"options"] error:nil];
   }
   return self;
 }

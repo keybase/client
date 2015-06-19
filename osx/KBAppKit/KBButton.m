@@ -122,6 +122,7 @@
     case KBButtonStyleDefault:
     case KBButtonStylePrimary:
     case KBButtonStyleDanger:
+    case KBButtonStyleWarning:
       return CGSizeMake(24, 16);
   }
 }
@@ -191,6 +192,12 @@
   [self setAttributedTitle:[KBButton attributedText:text font:font color:nil alignment:alignment lineBreakMode:lineBreakMode] style:style options:options];
 }
 
+- (void)changeText:(NSString *)text style:(KBButtonStyle)style {
+  self.style = style;
+  [self.cell changeText:text style:style];
+  [self setNeedsDisplay];
+}
+
 + (KBButtonCell *)buttonCellWithStyle:(KBButtonStyle)style options:(KBButtonOptions)options button:(KBButton *)button {
   KBButtonCell *cell = [[KBButtonCell alloc] init];
   cell.style = style;
@@ -209,6 +216,8 @@
   self.cell = cell;
   if (style == KBButtonStyleCheckbox) {
     [self setButtonType:NSSwitchButton];
+  } else if (options & KBButtonOptionsToggle) {
+    [self setButtonType:NSPushOnPushOffButton];
   }
   return cell;
 }
@@ -218,6 +227,8 @@
 }
 
 - (void)setText:(NSString *)text style:(KBButtonStyle)style options:(KBButtonOptions)options alignment:(NSTextAlignment)alignment lineBreakMode:(NSLineBreakMode)lineBreakMode {
+  if (!self.identifier) self.identifier = text; // Default identifier for debug
+
   KBButtonCell *cell = [self _setCellForStyle:style options:options];
   [cell setText:text alignment:alignment lineBreakMode:lineBreakMode];
   [self setNeedsDisplay];
@@ -251,6 +262,7 @@
     case KBButtonStyleDefault:
     case KBButtonStylePrimary:
     case KBButtonStyleDanger:
+    case KBButtonStyleWarning:
       return [KBAppearance.currentAppearance buttonFont];
 
     case KBButtonStyleLink:
@@ -277,7 +289,14 @@
 }
 
 - (void)setText:(NSString *)text alignment:(NSTextAlignment)alignment lineBreakMode:(NSLineBreakMode)lineBreakMode {
-  [self setAttributedTitle:[KBButton attributedText:text font:[KBButton fontForStyle:self.style options:self.options] color:[KBAppearance.currentAppearance textColor] alignment:alignment lineBreakMode:lineBreakMode]];
+  self.attributedTitle = [KBButton attributedText:text font:[KBButton fontForStyle:self.style options:self.options] color:[KBAppearance.currentAppearance textColor] alignment:alignment lineBreakMode:lineBreakMode];
+}
+
+- (void)changeText:(NSString *)text style:(KBButtonStyle)style {
+  NSMutableAttributedString *str = [self.attributedTitle mutableCopy];
+  [str replaceCharactersInRange:NSMakeRange(0, text.length) withString:text];
+  self.style = style;
+  self.attributedTitle = str;
 }
 
 - (void)setMarkup:(NSString *)markup style:(KBButtonStyle)style font:(NSFont *)font alignment:(NSTextAlignment)alignment {
@@ -334,7 +353,7 @@
 
 - (void)drawBezelWithFrame:(NSRect)frame inView:(NSView *)controlView {
   NSColor *strokeColor = [KBAppearance.currentAppearance buttonStrokeColorForStyle:self.style options:self.options enabled:self.enabled highlighted:self.highlighted];
-  NSColor *fillColor = [KBAppearance.currentAppearance buttonFillColorForStyle:self.style options:self.options enabled:self.enabled highlighted:self.highlighted toggled:(self.parent.toggleEnabled ? self.state : NSOffState)];
+  NSColor *fillColor = [KBAppearance.currentAppearance buttonFillColorForStyle:self.style options:self.options enabled:self.enabled highlighted:self.highlighted toggled:((self.parent.options & KBButtonOptionsToggle) ? self.state : NSOffState)];
 
   NSBezierPath *path;
   if (strokeColor) {

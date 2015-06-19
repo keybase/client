@@ -11,10 +11,11 @@
 #import "KBHeaderLabelView.h"
 #import "KBFormatter.h"
 #import "KBNotifications.h"
+#import "KBPGPTextView.h"
 
 @interface KBKeyView ()
 @property YOVBox *labels;
-@property KBTextView *textView;
+@property KBPGPTextView *textView;
 
 @property KBRFOKID *keyId;
 @end
@@ -28,24 +29,36 @@
   _labels = [YOVBox box:@{@"insets": @(20)}];
   [self addSubview:_labels];
 
-  _textView = [[KBTextView alloc] init];
-  _textView.view.editable = NO;
-  _textView.view.textContainerInset = CGSizeMake(10, 10);
+  _textView = [[KBPGPTextView alloc] init];
+  _textView.editable = NO;
   _textView.borderType = NSBezelBorder;
   [self addSubview:_textView];
 
-  YOHBox *buttons = [YOHBox box:@{@"insets": @(20), @"spacing": @(40), @"horizontalAlignment": @"right"}];
+  YOHBox *buttons = [YOHBox box:@{@"insets": @(20), @"spacing": @(20), @"minSize": @"90,0"}];
   [self addSubview:buttons];
-  KBButton *removeButton = [KBButton buttonWithText:@"Remove" style:KBButtonStyleDanger options:KBButtonOptionsToolbar];
-  removeButton.dispatchBlock = ^(KBButton *button, dispatch_block_t completion) {
-    [self removePGPKey:completion];
+
+  KBButton *exportButton = [KBButton buttonWithText:@"Show Secret" style:KBButtonStyleDefault options:KBButtonOptionsToolbar|KBButtonOptionsToggle];
+  exportButton.dispatchBlock = ^(KBButton *button, dispatch_block_t completion) {
+    if (button.state == NSOnState) {
+      [self showSecret:completion];
+      [button changeText:@"Hide Secret" style:KBButtonStyleDefault];
+    } else {
+      [self showPublic:completion];
+      [button changeText:@"Show Secret" style:KBButtonStyleDefault];
+    }
   };
+  [buttons addSubview:exportButton];
+
+  KBButton *removeButton = [KBButton buttonWithText:@"Remove" style:KBButtonStyleDanger options:KBButtonOptionsToolbar];
+  removeButton.dispatchBlock = ^(KBButton *button, dispatch_block_t completion) { [self removePGPKey:completion]; };
   [buttons addSubview:removeButton];
 
+  YOHBox *rightButtons = [YOHBox box:@{@"spacing": @(10), @"horizontalAlignment": @"right", @"minSize": @"90,0"}];
   _cancelButton = [KBButton buttonWithText:@"Close" style:KBButtonStyleDefault options:KBButtonOptionsToolbar];
-  [buttons addSubview:_cancelButton];
+  [rightButtons addSubview:_cancelButton];
+  [buttons addSubview:rightButtons];
 
-  self.viewLayout = [YOBorderLayout layoutWithCenter:_textView top:@[_labels] bottom:@[buttons] insets:UIEdgeInsetsZero spacing:0];
+  self.viewLayout = [YOBorderLayout layoutWithCenter:_textView top:@[_labels] bottom:@[buttons]];
 }
 
 - (void)setKeyId:(KBRFOKID *)keyId editable:(BOOL)editable {
@@ -72,22 +85,41 @@
   [self setNeedsLayout];
 
   [KBActivity setProgressEnabled:YES sender:self];
-  GHWeakSelf gself = self;
-  KBRPgpRequest *request = [[KBRPgpRequest alloc] initWithClient:self.client];
-  KBRPGPQuery *options = [[KBRPGPQuery alloc] init];
-  options.query = KBHexString(_keyId.kid, nil);
-  options.exactMatch = YES;
-  [request pgpExportWithSessionID:request.sessionId options:options completion:^(NSError *error, NSArray *keys) {
+  [self showPublic:^{
     [KBActivity setProgressEnabled:NO sender:self];
-    // TODO This only works when we are the user being key exported
-    KBRKeyInfo *keyInfo = [keys firstObject];
-    [gself.textView setText:keyInfo.key style:KBTextStyleDefault options:KBTextOptionsMonospace alignment:NSLeftTextAlignment lineBreakMode:NSLineBreakByClipping];
-    [self setNeedsLayout];
   }];
 }
 
 - (void)close {
   _cancelButton.targetBlock();
+}
+
+- (void)showPublic:(dispatch_block_t)completion {
+  GHWeakSelf gself = self;
+  KBRPgpRequest *request = [[KBRPgpRequest alloc] initWithClient:self.client];
+  KBRPgpQuery *options = [[KBRPgpQuery alloc] init];
+  options.query = KBHexString(_keyId.kid, nil);
+  options.exactMatch = YES;
+  [request pgpExportWithSessionID:request.sessionId options:options completion:^(NSError *error, NSArray *keys) {
+    // TODO This only works when we are the user being key exported
+    KBRKeyInfo *keyInfo = [keys firstObject];
+    [gself.textView setText:keyInfo.key style:KBTextStyleDefault options:KBTextOptionsMonospace alignment:NSLeftTextAlignment lineBreakMode:NSLineBreakByClipping];
+    completion();
+  }];
+}
+
+- (void)showSecret:(dispatch_block_t)completion {
+  KBRPgpRequest *request = [[KBRPgpRequest alloc] initWithClient:self.client];
+  KBRPgpQuery *options = [[KBRPgpQuery alloc] init];
+  options.query = KBHexString(_keyId.kid, nil);
+  options.exactMatch = YES;
+  options.secret = YES;
+  GHWeakSelf gself = self;
+  [request pgpExportByKIDWithSessionID:request.sessionId options:options completion:^(NSError *error, NSArray *items) {
+    completion();
+    KBRKeyInfo *keyInfo = items[0];
+    gself.textView.text = keyInfo.key;
+  }];
 }
 
 - (void)removePGPKey:(dispatch_block_t)completion {

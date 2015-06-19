@@ -46,4 +46,12 @@
   }
 }
 
+- (void)open:(id)sender {
+  YOView *view = [YOView view];
+  [view addSubview:self];
+  view.viewLayout = [YOLayout fill:self];
+  [[sender window] kb_addChildWindowForView:view rect:CGRectMake(0, 0, 510, 400) position:KBWindowPositionCenter title:@"Key" fixed:NO makeKey:NO];
+}
+
+
 @end

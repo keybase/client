@@ -29,30 +29,26 @@
   [self addSubview:label];
    */
 
-  KBButton *usersButton = [KBButton buttonWithText:@"Users" image:[KBIcons.icons imageForIcon:KBIconUsers size:CGSizeMake(30, 30)] style:KBButtonStyleEmpty options:0];
+  KBButton *usersButton = [KBButton buttonWithText:@"Users" image:[KBIcons.icons imageForIcon:KBIconUsers size:CGSizeMake(30, 30)] style:KBButtonStyleEmpty options:KBButtonOptionsToggle];
   usersButton.tag = KBAppViewItemUsers;
-  usersButton.toggleEnabled = YES;
   usersButton.targetBlock = ^{ [self notifyItemSelected:KBAppViewItemUsers]; };
   [usersButton.cell setImagePosition:NSImageAbove];
   [self addSubview:usersButton];
 
-  KBButton *foldersButton = [KBButton buttonWithText:@"Folders" image:[KBIcons.icons imageForIcon:KBIconGroupFolder size:CGSizeMake(ImageWidth, ImageWidth)] style:KBButtonStyleEmpty options:0];
+  KBButton *foldersButton = [KBButton buttonWithText:@"Folders" image:[KBIcons.icons imageForIcon:KBIconGroupFolder size:CGSizeMake(ImageWidth, ImageWidth)] style:KBButtonStyleEmpty options:KBButtonOptionsToggle];
   foldersButton.tag = KBAppViewItemFolders;
-  foldersButton.toggleEnabled = YES;
   foldersButton.targetBlock = ^{ [self notifyItemSelected:KBAppViewItemFolders]; };
   [foldersButton.cell setImagePosition:NSImageAbove];
   [self addSubview:foldersButton];
 
-  KBButton *devicesButton = [KBButton buttonWithText:@"Devices" image:[KBIcons.icons imageForIcon:KBIconMacbook size:CGSizeMake(ImageWidth, ImageWidth)] style:KBButtonStyleEmpty options:0];
+  KBButton *devicesButton = [KBButton buttonWithText:@"Devices" image:[KBIcons.icons imageForIcon:KBIconMacbook size:CGSizeMake(ImageWidth, ImageWidth)] style:KBButtonStyleEmpty options:KBButtonOptionsToggle];
   devicesButton.tag = KBAppViewItemDevices;
-  devicesButton.toggleEnabled = YES;
   devicesButton.targetBlock = ^{ [self notifyItemSelected:KBAppViewItemDevices]; };
   [devicesButton.cell setImagePosition:NSImageAbove];
   [self addSubview:devicesButton];
 
-  KBButton *pgpButton = [KBButton buttonWithText:@"PGP" image:[KBIcons.icons imageForIcon:KBIconPGP size:CGSizeMake(ImageWidth, ImageWidth)] style:KBButtonStyleEmpty options:0];
+  KBButton *pgpButton = [KBButton buttonWithText:@"PGP" image:[KBIcons.icons imageForIcon:KBIconPGP size:CGSizeMake(ImageWidth, ImageWidth)] style:KBButtonStyleEmpty options:KBButtonOptionsToggle];
   pgpButton.tag = KBAppViewItemPGP;
-  pgpButton.toggleEnabled = YES;
   pgpButton.targetBlock = ^{ [self notifyItemSelected:KBAppViewItemPGP]; };
   [pgpButton.cell setImagePosition:NSImageAbove];
   [self addSubview:pgpButton];
@@ -61,8 +57,7 @@
   [self addSubview:border];
 
   _userProfileButton = [[KBUserButtonView alloc] init];
-  [_userProfileButton setButtonStyle:KBButtonStyleDefault options:KBButtonOptionsToolbar];
-  _userProfileButton.button.toggleEnabled = YES;
+  [_userProfileButton setButtonStyle:KBButtonStyleDefault options:KBButtonOptionsToolbar|KBButtonOptionsToggle];
   _userProfileButton.button.tag = KBAppViewItemProfile;
   _userProfileButton.hidden = YES;
   _userProfileButton.button.targetBlock = ^{

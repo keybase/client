@@ -29,7 +29,6 @@
 
   _textView = [[KBPGPTextView alloc] init];
   _textView.view.editable = NO;
-  _textView.view.textContainerInset = CGSizeMake(10, 10);
   [self addSubview:_textView];
 
   _verifiedView = [[KBPGPVerifiedView alloc] init];

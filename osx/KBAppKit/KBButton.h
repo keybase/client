@@ -20,7 +20,6 @@ typedef void (^KBButtonDispatchBlock)(KBButton *button, dispatch_block_t complet
 @property (nonatomic, copy) dispatch_block_t targetBlock;
 @property (nonatomic, copy) KBButtonDispatchBlock dispatchBlock; // Button disables from target to completion()
 @property CGSize padding;
-@property (getter=isToggleEnabled) BOOL toggleEnabled;
 
 + (instancetype)button;
 + (instancetype)buttonWithText:(NSString *)text style:(KBButtonStyle)style;
@@ -46,6 +45,9 @@ typedef void (^KBButtonDispatchBlock)(KBButton *button, dispatch_block_t complet
 
 - (void)setText:(NSString *)text style:(KBButtonStyle)style font:(NSFont *)font alignment:(NSTextAlignment)alignment lineBreakMode:(NSLineBreakMode)lineBreakMode;
 
+- (void)changeText:(NSString *)text;
+- (void)changeText:(NSString *)text style:(KBButtonStyle)style;
+
 - (void)setMarkup:(NSString *)markup style:(KBButtonStyle)style font:(NSFont *)font alignment:(NSTextAlignment)alignment;
 
 - (void)setAttributedTitle:(NSAttributedString *)attributedTitle style:(KBButtonStyle)style options:(KBButtonOptions)options;
@@ -58,6 +60,8 @@ typedef void (^KBButtonDispatchBlock)(KBButton *button, dispatch_block_t complet
 @property KBButtonOptions options;
 
 - (void)setText:(NSString *)text alignment:(NSTextAlignment)alignment lineBreakMode:(NSLineBreakMode)lineBreakMode;
+
+- (void)changeText:(NSString *)text style:(KBButtonStyle)style;
 
 - (void)setMarkup:(NSString *)markup style:(KBButtonStyle)style font:(NSFont *)font alignment:(NSTextAlignment)alignment;
 

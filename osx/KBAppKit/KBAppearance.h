@@ -31,6 +31,7 @@ typedef NS_ENUM (NSInteger, KBButtonStyle) {
   KBButtonStyleDefault,
   KBButtonStylePrimary,
   KBButtonStyleDanger,
+  KBButtonStyleWarning,
   KBButtonStyleLink,
   KBButtonStyleCheckbox,
   KBButtonStyleText,
@@ -39,6 +40,7 @@ typedef NS_ENUM (NSInteger, KBButtonStyle) {
 
 typedef NS_OPTIONS (NSInteger, KBButtonOptions) {
   KBButtonOptionsToolbar = 1 << 1,
+  KBButtonOptionsToggle = 1 << 2,
 };
 
 @protocol KBAppearance
@@ -56,6 +58,7 @@ typedef NS_OPTIONS (NSInteger, KBButtonOptions) {
 - (NSColor *)dangerColor;
 - (NSColor *)dangerBackgroundColor;
 - (NSColor *)infoBackgroundColor;
+- (NSColor *)primaryBackgroundColor;
 
 - (NSColor *)lineColor;
 - (NSColor *)secondaryLineColor;

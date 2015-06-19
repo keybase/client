@@ -18,4 +18,6 @@
 
 - (void)setData:(NSData *)data armored:(BOOL)armored;
 
+- (void)open:(id)sender;
+
 @end
