@@ -19,46 +19,46 @@ import (
 // the Go and JS sigchains make that more trouble than it's worth.)
 func getErrorTypesMap() map[string]map[reflect.Type]bool {
 	return map[string]map[reflect.Type]bool{
-		"CTIME_MISMATCH": map[reflect.Type]bool{
+		"CTIME_MISMATCH": {
 			reflect.TypeOf(CtimeMismatchError{}): true,
 		},
-		"EXPIRED_SIBKEY": map[reflect.Type]bool{
+		"EXPIRED_SIBKEY": {
 			reflect.TypeOf(KeyExpiredError{}): true,
 		},
-		"FINGERPRINT_MISMATCH": map[reflect.Type]bool{
+		"FINGERPRINT_MISMATCH": {
 			reflect.TypeOf(ChainLinkFingerprintMismatchError{}): true,
 		},
-		"INVALID_SIBKEY": map[reflect.Type]bool{
+		"INVALID_SIBKEY": {
 			reflect.TypeOf(KeyRevokedError{}): true,
 		},
-		"KEY_OWNERSHIP": map[reflect.Type]bool{
+		"KEY_OWNERSHIP": {
 			reflect.TypeOf(KeyFamilyError{}): true,
 		},
-		"KID_MISMATCH": map[reflect.Type]bool{
+		"KID_MISMATCH": {
 			reflect.TypeOf(ChainLinkKIDMismatchError{}): true,
 		},
-		"NONEXISTENT_KID": map[reflect.Type]bool{
+		"NONEXISTENT_KID": {
 			reflect.TypeOf(KeyFamilyError{}): true,
 		},
-		"NOT_LATEST_SUBCHAIN": map[reflect.Type]bool{
+		"NOT_LATEST_SUBCHAIN": {
 			reflect.TypeOf(NotLatestSubchainError{}): true,
 		},
-		"REVERSE_SIG_VERIFY_FAILED": map[reflect.Type]bool{
+		"REVERSE_SIG_VERIFY_FAILED": {
 			reflect.TypeOf(ReverseSigError{}): true,
 		},
-		"VERIFY_FAILED": map[reflect.Type]bool{
+		"VERIFY_FAILED": {
 			reflect.TypeOf(BadSigError{}): true,
 		},
-		"WRONG_UID": map[reflect.Type]bool{
+		"WRONG_UID": {
 			reflect.TypeOf(UIDMismatchError{}): true,
 		},
-		"WRONG_USERNAME": map[reflect.Type]bool{
+		"WRONG_USERNAME": {
 			reflect.TypeOf(BadUsernameError{}): true,
 		},
-		"WRONG_SEQNO": map[reflect.Type]bool{
+		"WRONG_SEQNO": {
 			reflect.TypeOf(ChainLinkWrongSeqnoError{}): true,
 		},
-		"WRONG_PREV": map[reflect.Type]bool{
+		"WRONG_PREV": {
 			reflect.TypeOf(ChainLinkPrevHashMismatchError{}): true,
 		},
 	}
