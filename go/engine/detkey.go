@@ -84,7 +84,7 @@ func (d *DetKeyEngine) eddsa(ctx *Context, tpk libkb.PassphraseStream) error {
 	}
 	d.newEddsaKey = key
 
-	return d.push(ctx, key, signingKey, serverHalf, libkb.NaclEdDSAExpireIn, true)
+	return d.push(ctx, newPusher(key, signingKey, serverHalf).EdDSA())
 }
 
 func GenSigningDetKey(tpk libkb.PassphraseStream, serverHalf []byte) (gkey libkb.GenericKey, err error) {
@@ -124,27 +124,61 @@ func (d *DetKeyEngine) dh(ctx *Context, seed []byte) error {
 	key.Private = &libkb.NaclDHKeyPrivate{}
 	copy(key.Private[:], (*priv)[:])
 
-	return d.push(ctx, key, d.newEddsaKey, serverHalf, libkb.NaclDHExpireIn, false)
+	return d.push(ctx, newPusher(key, d.newEddsaKey, serverHalf).DH())
+}
+
+func (d *DetKeyEngine) push(ctx *Context, p *pusher) error {
+	return p.push(ctx, d.arg.Me, d.dev)
+}
+
+type pusher struct {
+	key        libkb.GenericKey
+	signing    libkb.GenericKey
+	serverHalf []byte
+	expire     int
+	sibkey     bool
+}
+
+func newPusher(key, signing libkb.GenericKey, serverHalf []byte) *pusher {
+	return &pusher{
+		key:        key,
+		signing:    signing,
+		serverHalf: serverHalf,
+	}
+}
+
+func (p *pusher) EdDSA() *pusher {
+	p.expire = libkb.NaclEdDSAExpireIn
+	p.sibkey = true
+	return p
+}
+
+func (p *pusher) DH() *pusher {
+	p.expire = libkb.NaclDHExpireIn
+	p.sibkey = false
+	return p
+}
+
+func (p *pusher) push(ctx *Context, me *libkb.User, device *libkb.Device) error {
+	if device == nil {
+		return libkb.ErrCannotGenerateDevice
+	}
+
+	g := libkb.Delegator{
+		NewKey:      p.key,
+		Sibkey:      p.sibkey,
+		Expire:      p.expire,
+		ExistingKey: p.signing,
+		ServerHalf:  p.serverHalf,
+		Me:          me,
+		Device:      device,
+	}
+
+	return g.Run(ctx.LoginContext)
 }
 
 func serverSeed(seed, serverHalf []byte) (newseed []byte, err error) {
 	newseed = make([]byte, len(seed))
 	libkb.XORBytes(newseed, seed, serverHalf)
 	return newseed, nil
-}
-
-func (d *DetKeyEngine) push(ctx *Context, key libkb.GenericKey, signing libkb.GenericKey, serverHalf []byte, expire int, sibkey bool) error {
-	if d.dev == nil {
-		return libkb.ErrCannotGenerateDevice
-	}
-	g := libkb.Delegator{
-		NewKey:      key,
-		Sibkey:      sibkey,
-		Expire:      expire,
-		ExistingKey: signing,
-		ServerHalf:  serverHalf,
-		Me:          d.arg.Me,
-		Device:      d.dev,
-	}
-	return g.Run(ctx.LoginContext)
 }

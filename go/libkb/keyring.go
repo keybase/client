@@ -223,23 +223,33 @@ func (k *Keyrings) GetSecretKeyLocked(lctx LoginContext, ska SecretKeyArg) (ret 
 
 	if ska.KeyType != PGPKeyType {
 		k.G().Log.Debug("| Skipped Synced PGP key (via options)")
-	} else if ret, err = ska.Me.SyncedSecretKey(lctx); err != nil {
-		k.G().Log.Warning("Error fetching synced PGP secret key: %s", err.Error())
+		err = NoSecretKeyError{}
 		return
-	} else if ret == nil {
-	} else if pub, err = ret.GetPubKey(); err != nil {
-	} else if !KeyMatchesQuery(pub, ska.KeyQuery, ska.ExactMatch) {
-		k.G().Log.Debug("| Can't use Synced PGP key; doesn't match query %s", ska.KeyQuery)
-		ret = nil
-	} else {
-		which = "your Keybase.io passphrase"
 	}
 
+	if ret, err = ska.Me.SyncedSecretKey(lctx); err != nil {
+		k.G().Log.Warning("Error fetching synced PGP secret key: %s", err)
+		return
+	}
 	if ret == nil {
 		err = NoSecretKeyError{}
+		return
 	}
-	return
 
+	if pub, err = ret.GetPubKey(); err != nil {
+		return
+	}
+
+	if !KeyMatchesQuery(pub, ska.KeyQuery, ska.ExactMatch) {
+		k.G().Log.Debug("| Can't use Synced PGP key; doesn't match query %s", ska.KeyQuery)
+		ret = nil
+		err = NoSecretKeyError{}
+		return
+
+	}
+
+	which = "your Keybase.io passphrase"
+	return
 }
 
 // TODO: Figure out whether and how to dep-inject the SecretStore.
