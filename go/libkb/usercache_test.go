@@ -33,7 +33,7 @@ func TestConcurrentUserCache(t *testing.T) {
 		wg.Add(1)
 		go func() {
 			for j := 0; j < 100; j++ {
-				x, err := RandBytes(UID_LEN)
+				x, err := RandBytes(keybase1.UID_LEN)
 				if err != nil {
 					t.Fatal(err)
 				}
