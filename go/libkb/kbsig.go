@@ -269,7 +269,7 @@ func (u *User) KeyProof(arg Delegator) (ret *jsonw.Wrapper, pushType string, err
 		} else {
 			pushType = SubkeyType
 		}
-		ret, err = u.delegateKeyProof(arg.NewKey, *ekfokid, pushType, arg.Expire, arg.Device, arg.RevSig, arg.Ctime)
+		ret, err = u.delegateKeyProof(arg, *ekfokid, pushType)
 	}
 	return
 }
@@ -336,26 +336,26 @@ func keyToProofJSON(newkey GenericKey, typ string, signingKey FOKID, revSig stri
 	return
 }
 
-func (u *User) delegateKeyProof(newkey GenericKey, signingkey FOKID, typ string, ei int, device *Device, revSig string, ctime int64) (ret *jsonw.Wrapper, err error) {
-	ret, err = u.ProofMetadata(ei, signingkey, nil, ctime)
+func (u *User) delegateKeyProof(arg Delegator, signingkey FOKID, pushType string) (ret *jsonw.Wrapper, err error) {
+	ret, err = u.ProofMetadata(arg.Expire, signingkey, nil, arg.Ctime)
 	if err != nil {
 		return
 	}
 	body := ret.AtKey("body")
 	body.SetKey("version", jsonw.NewInt(KeybaseSignatureV1))
-	body.SetKey("type", jsonw.NewString(typ))
+	body.SetKey("type", jsonw.NewString(pushType))
 
-	if device != nil {
-		setDeviceOnBody(body, newkey, *device)
+	if arg.Device != nil {
+		setDeviceOnBody(body, arg.NewKey, *arg.Device)
 	}
 
 	var kp *jsonw.Wrapper
-	if kp, err = keyToProofJSON(newkey, typ, signingkey, revSig, u); err != nil {
+	if kp, err = keyToProofJSON(arg.NewKey, pushType, signingkey, arg.RevSig, u); err != nil {
 		return
 	}
 
-	// 'typ' can be 'subkey' or 'sibkey'
-	body.SetKey(typ, kp)
+	// pushType can be 'subkey' or 'sibkey'
+	body.SetKey(pushType, kp)
 	return
 }
 
