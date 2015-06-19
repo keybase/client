@@ -218,8 +218,16 @@ func (u *User) StoreSigChain() error {
 }
 
 func (u *User) LoadSigChains(allKeys bool, f *MerkleUserLeaf, self bool) (err error) {
-	sc := u.sigChain()
-	u.sigChainMem, err = LoadSigChain(u, allKeys, f, PublicChain, sc, self, u.G())
+	loader := SigChainLoader{
+		user:         u,
+		self:         self,
+		allKeys:      allKeys,
+		leaf:         f,
+		chainType:    PublicChain,
+		preload:      u.sigChain(),
+		Contextified: NewContextified(u.G()),
+	}
+	u.sigChainMem, err = loader.Load()
 
 	// Eventually load the others, but for now, this one is good enough
 	return err

@@ -69,8 +69,7 @@ func (rc *RedditChecker) ScreenNameCompare(s1, s2 string) bool {
 func (rc *RedditChecker) CheckData(h SigHint, dat *jsonw.Wrapper) ProofError {
 	sigBody, sigID, err := OpenSig(rc.proof.GetArmoredSig())
 	if err != nil {
-		return NewProofError(keybase1.ProofStatus_BAD_SIGNATURE,
-			"Bad signature: %s", err)
+		return NewProofError(keybase1.ProofStatus_BAD_SIGNATURE, "Bad signature: %s", err)
 	}
 
 	var subreddit, author, selftext, title string
@@ -80,24 +79,28 @@ func (rc *RedditChecker) CheckData(h SigHint, dat *jsonw.Wrapper) ProofError {
 	dat.AtKey("selftext").GetStringVoid(&selftext, &err)
 	dat.AtKey("title").GetStringVoid(&title, &err)
 
-	var ret ProofError
-
 	if err != nil {
-		ret = NewProofError(keybase1.ProofStatus_CONTENT_MISSING, "content missing: %s", err)
-	} else if strings.ToLower(subreddit) != "keybaseproofs" {
-		ret = NewProofError(keybase1.ProofStatus_SERVICE_ERROR, "the post must be to /r/KeybaseProofs")
-	} else if wanted := rc.proof.GetRemoteUsername(); !rc.ScreenNameCompare(author, wanted) {
-		ret = NewProofError(keybase1.ProofStatus_BAD_USERNAME,
-			"Bad post author; wanted '%s' but got '%s'", wanted, author)
-	} else if psid := sigID.ToMediumID(); !strings.Contains(title, psid) {
-		ret = NewProofError(keybase1.ProofStatus_TITLE_NOT_FOUND,
-			"Missing signature ID (%s) in post title ('%s')",
-			psid, title)
-	} else if !FindBase64Block(selftext, sigBody, false) {
-		ret = NewProofError(keybase1.ProofStatus_TEXT_NOT_FOUND, "signature not found in body")
+		return NewProofError(keybase1.ProofStatus_CONTENT_MISSING, "content missing: %s", err)
 	}
 
-	return ret
+	if strings.ToLower(subreddit) != "keybaseproofs" {
+		return NewProofError(keybase1.ProofStatus_SERVICE_ERROR, "the post must be to /r/KeybaseProofs")
+	}
+
+	if wanted := rc.proof.GetRemoteUsername(); !rc.ScreenNameCompare(author, wanted) {
+		return NewProofError(keybase1.ProofStatus_BAD_USERNAME,
+			"Bad post author; wanted '%s' but got '%s'", wanted, author)
+	}
+
+	if psid := sigID.ToMediumID(); !strings.Contains(title, psid) {
+		return NewProofError(keybase1.ProofStatus_TITLE_NOT_FOUND, "Missing signature ID (%s) in post title ('%s')", psid, title)
+	}
+
+	if !FindBase64Block(selftext, sigBody, false) {
+		return NewProofError(keybase1.ProofStatus_TEXT_NOT_FOUND, "signature not found in body")
+	}
+
+	return nil
 }
 
 func (rc *RedditChecker) CheckStatus(h SigHint) ProofError {

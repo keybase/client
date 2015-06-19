@@ -317,13 +317,17 @@ func (ki *GpgKeyIndex) Less(i, j int) bool {
 	a, b := ki.Keys[i], ki.Keys[j]
 	if len(a.identities) > len(b.identities) {
 		return true
-	} else if len(a.identities) < len(b.identities) {
+	}
+	if len(a.identities) < len(b.identities) {
 		return false
-	} else if a.Expires == 0 {
+	}
+	if a.Expires == 0 {
 		return true
-	} else if b.Expires == 0 {
+	}
+	if b.Expires == 0 {
 		return false
-	} else if a.Expires > b.Expires {
+	}
+	if a.Expires > b.Expires {
 		return true
 	}
 	return false
@@ -461,16 +465,24 @@ func (p *GpgIndexParser) GetLine() (ret *GpgIndexLine, err error) {
 	if p.putback != nil {
 		ret = p.putback
 		p.putback = nil
-	} else if p.isEOF() {
-	} else if s, e2 := p.src.ReadString(byte('\n')); e2 == nil {
-		p.lineno++
-		ret, err = ParseLine(s, p.lineno)
-	} else if e2 == io.EOF {
-		p.eof = true
-	} else {
-		err = e2
+		return
 	}
-	return
+
+	if p.isEOF() {
+		return
+	}
+
+	s, e2 := p.src.ReadString(byte('\n'))
+	if e2 == io.EOF {
+		p.eof = true
+		return
+	}
+	if e2 != nil {
+		return nil, e2
+	}
+
+	p.lineno++
+	return ParseLine(s, p.lineno)
 }
 
 func (p *GpgIndexParser) PutbackLine(line *GpgIndexLine) {

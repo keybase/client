@@ -72,8 +72,7 @@ func (v *CmdPGPGen) Run() (err error) {
 func PGPMultiWarn(err error) {
 	if err == nil {
 	} else if kee, ok := err.(libkb.KeyExistsError); ok {
-		G.Log.Warning("You already have a PGP key registered (%s)",
-			kee.Key.ToQuads())
+		G.Log.Warning("You already have a PGP key registered (%s)", kee.Key.ToQuads())
 		G.Log.Info("Specify the `--multi` flag to override this check")
 	}
 	return

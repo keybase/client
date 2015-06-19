@@ -121,33 +121,37 @@ func (pc ProofCache) dbKey(sid keybase1.SigID) (DbKey, string) {
 	return key, sidstr
 }
 
-func (pc *ProofCache) dbGet(sid keybase1.SigID) *CheckResult {
-	var ret *CheckResult
-
+func (pc *ProofCache) dbGet(sid keybase1.SigID) (cr *CheckResult) {
 	dbkey, sidstr := pc.dbKey(sid)
 
-	jw, err := G.LocalDb.Get(dbkey)
-
 	G.Log.Debug("+ ProofCache.dbGet(%s)", sidstr)
+	defer G.Log.Debug("- ProofCache.dbGet(%s) -> %v", sidstr, (cr != nil))
 
+	jw, err := G.LocalDb.Get(dbkey)
 	if err != nil {
 		G.Log.Errorf("Error lookup up proof check in DB: %s", err)
-	} else if jw == nil {
+		return nil
+	}
+	if jw == nil {
 		G.Log.Debug("| Cached CheckResult for %s wasn't found ", sidstr)
-	} else if cr, err := NewCheckResult(jw); err != nil {
+		return nil
+	}
+
+	cr, err = NewCheckResult(jw)
+	if err != nil {
 		G.Log.Errorf("Bad cached CheckResult for %s", sidstr)
-	} else if !cr.IsFresh() {
+		return nil
+	}
+
+	if !cr.IsFresh() {
 		if err := G.LocalDb.Delete(dbkey); err != nil {
 			G.Log.Errorf("Delete error: %s", err)
 		}
 		G.Log.Debug("| Cached CheckResult for %s wasn't fresh", sidstr)
-	} else {
-		ret = cr
+		return nil
 	}
 
-	G.Log.Debug("- ProofCache.dbGet(%s) -> %v", sidstr, (ret != nil))
-
-	return ret
+	return cr
 }
 
 func (pc *ProofCache) dbPut(sid keybase1.SigID, cr CheckResult) error {

@@ -644,13 +644,12 @@ func (l *SigChainLoader) GetMerkleTriple() (ret *MerkleTriple) {
 //========================================================================
 
 func (sc *SigChain) CheckFreshness(srv *MerkleTriple) (current bool, err error) {
-	current = false
-
 	cli := sc.GetCurrentTailTriple()
 
 	future := sc.GetFutureChainTail()
 	Efn := NewServerChainError
 	G.Log.Debug("+ CheckFreshness")
+	defer G.Log.Debug("- CheckFreshness (%s) -> (%v,%s)", sc.uid, current, ErrToOk(err))
 	a := Seqno(-1)
 	b := Seqno(-1)
 
@@ -674,16 +673,28 @@ func (sc *SigChain) CheckFreshness(srv *MerkleTriple) (current bool, err error) 
 
 	if srv == nil && cli != nil {
 		err = Efn("Server claimed not to have this user in its tree (we had v=%d)", cli.Seqno)
-	} else if srv == nil {
-	} else if b < 0 || a > b {
+		return
+	}
+
+	if srv == nil {
+		return
+	}
+
+	if b < 0 || a > b {
 		err = Efn("Server version-rollback suspected: Local %d > %d", a, b)
-	} else if b == a {
+		return
+	}
+
+	if b == a {
 		G.Log.Debug("| Local chain version is up-to-date @ version %d", b)
 		current = true
 		if cli == nil {
 			err = Efn("Failed to read last link for user")
-		} else if !cli.LinkID.Eq(srv.LinkID) {
+			return
+		}
+		if !cli.LinkID.Eq(srv.LinkID) {
 			err = Efn("The server returned the wrong sigchain tail")
+			return
 		}
 	} else {
 		G.Log.Debug("| Local chain version is out-of-date: %d < %d", a, b)
@@ -695,7 +706,6 @@ func (sc *SigChain) CheckFreshness(srv *MerkleTriple) (current bool, err error) 
 		current = false
 	}
 
-	G.Log.Debug("- CheckFreshness (%s) -> (%v,%s)", sc.uid, current, ErrToOk(err))
 	return
 }
 
@@ -840,12 +850,3 @@ func (l *SigChainLoader) Load() (ret *SigChain, err error) {
 
 	return
 }
-
-//========================================================================
-
-func LoadSigChain(u *User, allKeys bool, f *MerkleUserLeaf, t *ChainType, preload *SigChain, self bool, gc *GlobalContext) (ret *SigChain, err error) {
-	loader := SigChainLoader{user: u, self: self, allKeys: allKeys, leaf: f, chainType: t, preload: preload, Contextified: NewContextified(gc)}
-	return loader.Load()
-}
-
-//========================================================================
