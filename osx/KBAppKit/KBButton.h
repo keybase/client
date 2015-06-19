@@ -45,7 +45,6 @@ typedef void (^KBButtonDispatchBlock)(KBButton *button, dispatch_block_t complet
 
 - (void)setText:(NSString *)text style:(KBButtonStyle)style font:(NSFont *)font alignment:(NSTextAlignment)alignment lineBreakMode:(NSLineBreakMode)lineBreakMode;
 
-- (void)changeText:(NSString *)text;
 - (void)changeText:(NSString *)text style:(KBButtonStyle)style;
 
 - (void)setMarkup:(NSString *)markup style:(KBButtonStyle)style font:(NSFont *)font alignment:(NSTextAlignment)alignment;

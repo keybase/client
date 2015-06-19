@@ -31,7 +31,11 @@
                                 </connections>
                             </menuItem>
                             <menuItem isSeparatorItem="YES" id="VOq-y0-SEH"/>
-                            <menuItem title="Preferences…" keyEquivalent="," id="BOF-NM-1cW"/>
+                            <menuItem title="Preferences…" keyEquivalent="," id="BOF-NM-1cW">
+                                <connections>
+                                    <action selector="preferences:" target="Voe-Tx-rLC" id="QrA-LT-P7E"/>
+                                </connections>
+                            </menuItem>
                             <menuItem isSeparatorItem="YES" id="wFC-TO-SCJ"/>
                             <menuItem title="Check for Updates..." id="e8t-Jg-KlZ">
                                 <modifierMask key="keyEquivalentModifierMask"/>
@@ -63,7 +67,11 @@
                                 </connections>
                             </menuItem>
                             <menuItem isSeparatorItem="YES" id="kCx-OE-vgT"/>
-                            <menuItem title="Quit Keybase" keyEquivalent="q" id="4sb-4s-VLi"/>
+                            <menuItem title="Quit Keybase" keyEquivalent="q" id="4sb-4s-VLi">
+                                <connections>
+                                    <action selector="quit:" target="Voe-Tx-rLC" id="s3Y-OI-ca8"/>
+                                </connections>
+                            </menuItem>
                         </items>
                     </menu>
                 </menuItem>
@@ -161,7 +169,7 @@
                                     <action selector="paste:" target="-1" id="UvS-8e-Qdg"/>
                                 </connections>
                             </menuItem>
-                            <menuItem title="Paste and Match Style" keyEquivalent="V" id="WeT-3V-zwk">
+                            <menuItem title="Paste and Match Style" keyEquivalent="v" id="WeT-3V-zwk">
                                 <modifierMask key="keyEquivalentModifierMask" option="YES" command="YES"/>
                                 <connections>
                                     <action selector="pasteAsPlainText:" target="-1" id="cEh-KX-wJQ"/>

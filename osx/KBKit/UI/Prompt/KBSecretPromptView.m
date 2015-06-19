@@ -30,7 +30,6 @@
     [contentView addSubview:_header];
 
     YOVBox *labels = [YOVBox box:@{@"spacing": @(20)}];
-    labels.debug = YES;
     labels.ignoreLayoutForHidden = YES;
     {
       _label = [[KBLabel alloc] init];
