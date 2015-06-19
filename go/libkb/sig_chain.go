@@ -391,7 +391,7 @@ func (sc *SigChain) verifySubchain(kf KeyFamily, links []*ChainLink) (cached boo
 		if isDelegating || isFinalLink || isLastLinkInSameKeyRun {
 			_, err = link.VerifySigWithKeyFamily(ckf)
 			if err != nil {
-				G.Log.Debug("| Failure in VerifySigWithKeyFamily: %s", err.Error())
+				G.Log.Debug("| Failure in VerifySigWithKeyFamily: %s", err)
 				return
 			}
 		}
@@ -399,13 +399,13 @@ func (sc *SigChain) verifySubchain(kf KeyFamily, links []*ChainLink) (cached boo
 		if isDelegating {
 			err = ckf.Delegate(tcl)
 			if err != nil {
-				G.Log.Debug("| Failure in Delegate: %s", err.Error())
+				G.Log.Debug("| Failure in Delegate: %s", err)
 				return
 			}
 		}
 
 		if err = tcl.VerifyReverseSig(&kf); err != nil {
-			G.Log.Debug("| Failure in VerifyReverseSig: %s", err.Error())
+			G.Log.Debug("| Failure in VerifyReverseSig: %s", err)
 			return
 		}
 

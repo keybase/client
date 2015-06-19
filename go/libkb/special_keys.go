@@ -73,7 +73,7 @@ func (sk *SpecialKeyRing) Load(kid KID) (GenericKey, error) {
 		}
 		if err == nil {
 			if e2 := key.StoreToLocalDb(); e2 != nil {
-				G.Log.Warning("Failed to store key: %s", e2.Error())
+				G.Log.Warning("Failed to store key: %s", e2)
 			}
 		}
 	} else {

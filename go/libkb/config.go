@@ -497,7 +497,7 @@ func (f JSONConfigFile) GetProxyCACerts() (ret []string, err error) {
 	} else if s, e := jw.GetString(); e == nil {
 		ret = strings.Split(s, ":")
 	} else if !jw.IsNil() {
-		err = ConfigError{f.filename, fmt.Sprintf("Can't read Proxy CA certs: %s", e.Error())}
+		err = ConfigError{f.filename, fmt.Sprintf("Can't read Proxy CA certs: %s", e)}
 	}
 	return
 }

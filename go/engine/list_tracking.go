@@ -189,7 +189,7 @@ func (e *ListTrackingEngine) runJSON(trackList TrackList, verbose bool) error {
 		if verbose {
 			rec = link.GetPayloadJSON()
 		} else if rec, e2 = condenseRecord(link); e2 != nil {
-			e.G().Log.Warning("In conversion to JSON: %s", e2.Error())
+			e.G().Log.Warning("In conversion to JSON: %s", e2)
 		}
 		if e2 == nil {
 			tmp = append(tmp, rec)

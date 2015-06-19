@@ -339,7 +339,7 @@ func (c *ChainLink) Unpack(trusted bool, selfUID keybase1.UID) (err error) {
 			c.sigVerified = true
 			G.Log.Debug("| Link is marked as 'sig_verified'")
 			if e3 := c.UnpackComputedKeyInfos(c.packed.AtKey("computed_key_infos")); e3 != nil {
-				G.Log.Warning("Problem unpacking computed key infos: %s\n", e3.Error())
+				G.Log.Warning("Problem unpacking computed key infos: %s\n", e3)
 			}
 		}
 	}

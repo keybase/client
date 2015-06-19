@@ -363,7 +363,7 @@ func GetLocalTrack(tracker, trackee keybase1.UID) (ret *TrackChainLink, err erro
 
 	cl := &ChainLink{payloadJSON: obj, unsigned: true}
 	if err = cl.UnpackLocal(); err != nil {
-		G.Log.Debug("| unpack failed -> %s", err.Error())
+		G.Log.Debug("| unpack failed -> %s", err)
 		return
 	}
 	base := GenericChainLink{cl}

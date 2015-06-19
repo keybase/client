@@ -210,7 +210,7 @@ func Render(w io.Writer, m *libkb.Markup) {
 	w = getWriter(w)
 	doc, err := Q.NewDocumentFromReader(m.ToReader())
 	if err != nil {
-		fmt.Printf("Cannot render markup: %s\n", err.Error())
+		fmt.Printf("Cannot render markup: %s\n", err)
 		return
 	}
 	renderer := NewRenderer(os.Stdout)

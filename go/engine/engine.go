@@ -53,7 +53,7 @@ func RunEngine(e Engine, ctx *Context) error {
 
 func check(c libkb.UIConsumer, ctx *Context) error {
 	if err := checkUI(c, ctx); err != nil {
-		return CheckError{fmt.Sprintf("%s: %s", c.Name(), err.Error())}
+		return CheckError{fmt.Sprintf("%s: %s", c.Name(), err)}
 	}
 
 	for _, sub := range c.SubConsumers() {

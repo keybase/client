@@ -56,7 +56,7 @@ func TestParser1(t *testing.T) {
 	outp := "(keybase://a || ((keybase://b && keybase://c) || (keybase://d || ((keybase://e && keybase://f) || (keybase://g && (keybase://h || keybase://i))))))"
 	expr, err := AssertionParse(inp)
 	if err != nil {
-		t.Errorf(err.Error())
+		t.Error(err)
 	} else if expr.String() != outp {
 		t.Errorf("Wrong parse result: %s v %s", expr.String(), outp)
 	}
@@ -67,7 +67,7 @@ func TestParser2(t *testing.T) {
 	outp := "(web://a.aa || ((http://b.bb && dns://c.cc) || (keybase://d || ((fingerprint://e && reddit://f) || (twitter://g && (https://h.in || dns://i.co))))))"
 	expr, err := AssertionParse(inp)
 	if err != nil {
-		t.Errorf(err.Error())
+		t.Error(err)
 	} else if expr.String() != outp {
 		t.Errorf("Wrong parse result: %s v %s", expr.String(), outp)
 	}
@@ -96,7 +96,7 @@ func TestParserFail1(t *testing.T) {
 		if err == nil {
 			t.Errorf("Expected a parse error in %s (got %v)", bad, expr)
 		} else if err.Error() != bad.v {
-			t.Errorf("Got wrong error; wanted '%s', but got '%s'", bad.v, err.Error())
+			t.Errorf("Got wrong error; wanted '%s', but got '%s'", bad.v, err)
 		}
 	}
 }

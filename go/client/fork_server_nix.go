@@ -43,12 +43,12 @@ func ForkServerNix(cl libkb.CommandLine) error {
 		srv.ReleaseLock()
 		err = spawnServer(cl)
 		if err != nil {
-			G.Log.Errorf("Error in spawning server process: %s", err.Error())
+			G.Log.Errorf("Error in spawning server process: %s", err)
 			return err
 		}
 		err = pingLoop()
 		if err != nil {
-			G.Log.Errorf("Ping failure after server fork: %s", err.Error())
+			G.Log.Errorf("Ping failure after server fork: %s", err)
 			return err
 		}
 	} else {
@@ -68,7 +68,7 @@ func pingLoop() error {
 			return nil
 		}
 		G.ClearSocketError()
-		G.Log.Debug("Failed to connect to socket (%d): %s", i, err.Error())
+		G.Log.Debug("Failed to connect to socket (%d): %s", i, err)
 		err = nil
 		time.Sleep(200 * time.Millisecond)
 	}
@@ -180,7 +180,7 @@ func spawnServer(cl libkb.CommandLine) (err error) {
 
 	pid, err = syscall.ForkExec(cmd, args, &attr)
 	if err != nil {
-		err = fmt.Errorf("Error in ForkExec: %s", err.Error())
+		err = fmt.Errorf("Error in ForkExec: %s", err)
 	} else {
 		G.Log.Info("Forking background server with pid=%d", pid)
 	}

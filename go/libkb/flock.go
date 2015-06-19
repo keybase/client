@@ -43,11 +43,11 @@ func (f *LockPIDFile) Lock() (err error) {
 func (f *LockPIDFile) Close() (err error) {
 	if f.file != nil {
 		if e1 := f.file.Close(); e1 != nil {
-			G.Log.Warning("Error closing pid file: %s\n", e1.Error())
+			G.Log.Warning("Error closing pid file: %s\n", e1)
 		}
 		G.Log.Debug("Cleaning up pidfile %s", f.name)
 		if err = os.Remove(f.name); err != nil {
-			G.Log.Warning("Error removing pidfile: %s\n", err.Error())
+			G.Log.Warning("Error removing pidfile: %s\n", err)
 		}
 	}
 	return

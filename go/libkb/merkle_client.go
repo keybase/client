@@ -404,7 +404,7 @@ func (mc *MerkleClient) VerifyRoot(root *MerkleRoot) error {
 	}
 
 	if e2 := root.Store(); e2 != nil {
-		G.Log.Errorf("Cannot commit Merkle root to local DB: %s", e2.Error())
+		G.Log.Errorf("Cannot commit Merkle root to local DB: %s", e2)
 	}
 
 	mc.verified[root.seqno] = true
@@ -579,7 +579,7 @@ func (vp *VerificationPath) VerifyUser() (user *MerkleUserLeaf, err error) {
 
 	if leaf != nil && err == nil {
 		if leaf, err = leaf.ToArray(); err != nil {
-			msg := fmt.Sprintf("Didn't find a leaf for user in tree: %s", err.Error())
+			msg := fmt.Sprintf("Didn't find a leaf for user in tree: %s", err)
 			err = MerkleNotFoundError{vp.uid.String(), msg}
 		}
 	}
@@ -587,7 +587,7 @@ func (vp *VerificationPath) VerifyUser() (user *MerkleUserLeaf, err error) {
 	if err == nil {
 		// noop
 	} else if _, ok := err.(MerkleNotFoundError); ok {
-		G.Log.Debug(fmt.Sprintf("In checking Merkle tree: %s", err.Error()))
+		G.Log.Debug(fmt.Sprintf("In checking Merkle tree: %s", err))
 	} else {
 		return
 	}
@@ -615,7 +615,7 @@ func (path PathSteps) VerifyPath(curr NodeHash, uidS string) (juser *jsonw.Wrapp
 		var jw *jsonw.Wrapper
 		jw, err = jsonw.Unmarshal([]byte(payload))
 		if err != nil {
-			err = fmt.Errorf("Can't parse JSON at level=%d: %s", i, err.Error())
+			err = fmt.Errorf("Can't parse JSON at level=%d: %s", i, err)
 			break
 		}
 

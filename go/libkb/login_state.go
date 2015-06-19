@@ -311,7 +311,7 @@ func (s *LoginState) pubkeyLoginHelper(lctx LoginContext, username string, getSe
 	}()
 
 	if _, err = s.G().Env.GetConfig().GetUserConfigForUsername(username); err != nil {
-		s.G().Log.Debug("| No Userconfig for %s: %s", username, err.Error())
+		s.G().Log.Debug("| No Userconfig for %s: %s", username, err)
 		return
 	}
 

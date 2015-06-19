@@ -74,11 +74,11 @@ func (k *KexCom) next(ctx *Context, name kex.MsgName, timeout time.Duration, han
 	msg, err := k.rec.Next(name, timeout)
 	k.G().Log.Debug("%s: got message %s", k.debugName, name)
 	if err != nil {
-		k.G().Log.Warning("%s: receiving Kex message %s gave error: %s", k.debugName, name, err.Error())
+		k.G().Log.Warning("%s: receiving Kex message %s gave error: %s", k.debugName, name, err)
 		return err
 	}
 	if err := k.verifyRequest(&msg.Meta); err != nil {
-		k.G().Log.Warning("%s: verifying Kex message %s gave error: %s", k.debugName, name, err.Error())
+		k.G().Log.Warning("%s: verifying Kex message %s gave error: %s", k.debugName, name, err)
 		return err
 	}
 	k.G().Log.Debug("%s: dispatching message to handler: %s", k.debugName, name)

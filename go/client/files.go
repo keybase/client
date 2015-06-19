@@ -151,7 +151,7 @@ func (s *FileSink) lazyOpen() error {
 		if err != nil {
 			s.failed = true
 			return fmt.Errorf("Failed to open %s for writing: %s",
-				s.name, err.Error())
+				s.name, err)
 		}
 		s.file = f
 		s.bufw = bufio.NewWriter(f)
@@ -182,7 +182,7 @@ func (s *FileSink) Close() error {
 func (s *FileSink) HitError(e error) error {
 	var err error
 	if e != nil && s.opened {
-		G.Log.Debug("Deleting file %s after error %s", s.name, e.Error())
+		G.Log.Debug("Deleting file %s after error %s", s.name, e)
 		err = os.Remove(s.name)
 	}
 	return err

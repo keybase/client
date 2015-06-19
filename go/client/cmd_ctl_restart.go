@@ -32,7 +32,7 @@ func (s *CmdCtlRestart) RunClient() (err error) {
 	var cli keybase1.CtlClient
 	if cli, err = GetCtlClient(); err != nil {
 	} else if err = cli.Stop(); err != nil {
-		G.Log.Warning("Stop failed: %s", err.Error())
+		G.Log.Warning("Stop failed: %s", err)
 	} else {
 		// Wait a few seconds before the server stops
 		G.Log.Info("Delaying for shutdown...")

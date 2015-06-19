@@ -88,7 +88,7 @@ func (e *Env) GenClientConfig() (*ClientConfig, error) {
 	if rawCA := e.GetBundledCA(host); len(rawCA) > 0 {
 		rootCAs, err = ParseCA(rawCA)
 		if err != nil {
-			err = fmt.Errorf("In parsing CAs for %s: %s", host, err.Error())
+			err = fmt.Errorf("In parsing CAs for %s: %s", host, err)
 			return nil, err
 		}
 		G.Log.Debug(fmt.Sprintf("Using special root CA for %s: %s",

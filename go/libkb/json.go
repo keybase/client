@@ -108,7 +108,7 @@ func (f *JSONFile) Save(pretty bool, mode os.FileMode) (err error) {
 	writer, err = os.OpenFile(f.filename, flags, mode)
 	if err != nil {
 		G.Log.Errorf("Failed to open %s file %s for writing: %s",
-			f.which, f.filename, err.Error())
+			f.which, f.filename, err)
 		return err
 	}
 	defer writer.Close()
@@ -125,14 +125,14 @@ func (f *JSONFile) Save(pretty bool, mode os.FileMode) (err error) {
 
 	if err != nil {
 		G.Log.Errorf("Error encoding data to %s file %s: %s",
-			f.which, f.filename, err.Error())
+			f.which, f.filename, err)
 		return err
 	}
 
 	err = writer.Close()
 	if err != nil {
 		G.Log.Errorf("Error flushing %s file %s: %s",
-			f.which, f.filename, err.Error())
+			f.which, f.filename, err)
 		return err
 	}
 

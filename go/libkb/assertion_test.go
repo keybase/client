@@ -13,7 +13,7 @@ func TestSuccess1(t *testing.T) {
 		{"twitter", "maxtaco"},
 	})
 	if err != nil {
-		t.Errorf("Error parsing %s: %s", a, err.Error())
+		t.Errorf("Error parsing %s: %s", a, err)
 	} else if !expr.MatchSet(*proofs) {
 		t.Errorf("Should have matched")
 	}
@@ -76,7 +76,7 @@ func TestAssertions1(t *testing.T) {
 	}
 	expr, err := AssertionParse(a)
 	if err != nil {
-		t.Errorf("Error parsing %s: %s", a, err.Error())
+		t.Errorf("Error parsing %s: %s", a, err)
 	} else {
 		for i, proofset := range goodProofsets {
 			if !expr.MatchSet(proofset) {
@@ -111,7 +111,7 @@ func TestAssertions2(t *testing.T) {
 	}
 	expr, err := AssertionParse(a)
 	if err != nil {
-		t.Errorf("Error parsing %s: %s", a, err.Error())
+		t.Errorf("Error parsing %s: %s", a, err)
 	} else {
 		for i, proofset := range goodProofsets {
 			if !expr.MatchSet(proofset) {

@@ -69,7 +69,7 @@ func (sh *SigHints) PopulateWith(jw *jsonw.Wrapper) (err error) {
 	for i := 0; i < n; i++ {
 		hint, tmpe := NewSigHint(jw.AtKey("hints").AtIndex(i))
 		if tmpe != nil {
-			G.Log.Warning("Bad SigHint Loaded: %s", tmpe.Error())
+			G.Log.Warning("Bad SigHint Loaded: %s", tmpe)
 		} else {
 			sh.hints[hint.sigID] = hint
 		}

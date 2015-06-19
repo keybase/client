@@ -381,7 +381,7 @@ func (k *SKBKeyringFile) Load() (err error) {
 		if os.IsNotExist(err) {
 			G.Log.Debug("| Keybase secret keyring doesn't exist: %s", k.filename)
 		} else {
-			G.Log.Warning("Error opening %s: %s", k.filename, err.Error())
+			G.Log.Warning("Error opening %s: %s", k.filename, err)
 		}
 
 	} else if err == nil {
@@ -523,7 +523,7 @@ func (k SKBKeyringFile) WriteTo(w io.Writer) (int64, error) {
 	}
 	b64 := base64.NewEncoder(base64.StdEncoding, w)
 	if err = packets.EncodeTo(b64); err != nil {
-		G.Log.Warning("Encoding problem: %s", err.Error())
+		G.Log.Warning("Encoding problem: %s", err)
 		return 0, err
 	}
 	G.Log.Debug("- WriteTo")

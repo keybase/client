@@ -48,7 +48,7 @@ func (rc *GithubChecker) CheckStatus(h SigHint) ProofError {
 
 	if err != nil {
 		return NewProofError(keybase1.ProofStatus_BAD_SIGNATURE,
-			"Bad signature: %s", err.Error())
+			"Bad signature: %s", err)
 	}
 
 	if !FindBase64Block(res.Body, sigBody, false) {

@@ -46,7 +46,7 @@ func mainInner(g *libkb.GlobalContext) error {
 	var err error
 	cmd, err = cl.Parse(os.Args)
 	if err != nil {
-		err = fmt.Errorf("Error parsing command line arguments: %s\n", err.Error())
+		err = fmt.Errorf("Error parsing command line arguments: %s\n", err)
 		return err
 	}
 

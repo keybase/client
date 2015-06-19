@@ -88,14 +88,14 @@ func TestUntrack(t *testing.T) {
 	if err == nil {
 		t.Fatal("expected untrack error; got no error")
 	} else if _, ok := err.(libkb.UntrackError); !ok {
-		t.Fatalf("expected an UntrackError; got %s", err.Error())
+		t.Fatalf("expected an UntrackError; got %s", err)
 	}
 
 	err = runUntrack(tc.G, fu, "t_bob")
 	if err == nil {
 		t.Fatal("expected untrack error; got no error")
 	} else if _, ok := err.(libkb.UntrackError); !ok {
-		t.Fatalf("expected an UntrackError; got %s", err.Error())
+		t.Fatalf("expected an UntrackError; got %s", err)
 	}
 	return
 }

@@ -80,7 +80,7 @@ func (d *Service) Run() (err error) {
 	if len(d.chdirTo) != 0 {
 		etmp := os.Chdir(d.chdirTo)
 		if etmp != nil {
-			G.Log.Warning("Could not change directory to %s: %s", d.chdirTo, etmp.Error())
+			G.Log.Warning("Could not change directory to %s: %s", d.chdirTo, etmp)
 		} else {
 			G.Log.Info("Changing runtime dir to %s", d.chdirTo)
 		}

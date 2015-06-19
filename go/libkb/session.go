@@ -178,19 +178,19 @@ func (s *Session) Load() error {
 		s.file.jw.AtKey("session").GetStringVoid(&token, &tmp)
 		if tmp != nil {
 			s.G().Log.Warning("Bad 'session' value in session file %s: %s",
-				s.file.filename, tmp.Error())
+				s.file.filename, tmp)
 			ok = false
 		}
 		s.file.jw.AtKey("csrf").GetStringVoid(&csrf, &tmp)
 		if tmp != nil {
 			s.G().Log.Warning("Bad 'csrf' value in session file %s: %s",
-				s.file.filename, tmp.Error())
+				s.file.filename, tmp)
 			ok = false
 		}
 		s.file.jw.AtKey("device_provisioned").GetStringVoid(&devid, &tmp)
 		if tmp != nil {
 			s.G().Log.Warning("Bad 'device_provisioned' value in session file %s: %s",
-				s.file.filename, tmp.Error())
+				s.file.filename, tmp)
 			ok = false
 		}
 		mtime, _ := s.file.jw.AtKey("mtime").GetInt64()
@@ -251,7 +251,7 @@ func (s *Session) Check() error {
 		res.Body.AtKey("username").GetStringVoid(&username, &err)
 		res.Body.AtKey("csrf_token").GetStringVoid(&csrf, &err)
 		if err != nil {
-			err = fmt.Errorf("Server replied with unrecognized response: %s", err.Error())
+			err = fmt.Errorf("Server replied with unrecognized response: %s", err)
 			return err
 		}
 		s.valid = true
@@ -300,7 +300,7 @@ func (s *Session) Logout() error {
 		e2 = s.postLogout()
 		if e3 := s.file.Nuke(); e3 != nil {
 			s.inFile = false
-			s.G().Log.Warning("Failed to remove session file: %s", e3.Error())
+			s.G().Log.Warning("Failed to remove session file: %s", e3)
 		}
 	}
 	if err == nil && e2 != nil {

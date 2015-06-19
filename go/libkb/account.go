@@ -228,7 +228,7 @@ func (a *Account) LockedLocalSecretKey(ska SecretKeyArg) *SKB {
 	if (ska.KeyType == DeviceSigningKeyType) || (ska.KeyType == DeviceEncryptionKeyType) {
 		key, err := a.getDeviceKey(ckf, ska.KeyType)
 		if err != nil {
-			a.G().Log.Debug("| No key for current device: %s", err.Error())
+			a.G().Log.Debug("| No key for current device: %s", err)
 		}
 
 		if key == nil {

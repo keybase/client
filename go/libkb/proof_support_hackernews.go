@@ -65,7 +65,7 @@ func (h *HackerNewsChecker) CheckStatus(hint SigHint) ProofError {
 
 	if err != nil {
 		return NewProofError(keybase1.ProofStatus_BAD_SIGNATURE,
-			"Bad signature: %s", err.Error())
+			"Bad signature: %s", err)
 	}
 
 	wanted := sigID.ToMediumID()
@@ -151,7 +151,7 @@ func (t HackerNewsServiceType) PreProofCheck(un string) (markup *Markup, err err
  have <strong>karma &gt; 1</strong>.</p>
 <p>Your account <strong>` + un + `</strong> doesn't qualify or doesn't exist.</p>`)
 		if e != nil {
-			G.Log.Debug("Error from HN: %s", e.Error())
+			G.Log.Debug("Error from HN: %s", e)
 		}
 		err = InsufficientKarmaError{un}
 	}

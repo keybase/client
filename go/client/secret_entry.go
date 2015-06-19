@@ -34,7 +34,7 @@ func (se *SecretEntry) Init() (err error) {
 		if e2, fatalerr := pe.Init(); fatalerr != nil {
 			err = fatalerr
 		} else if e2 != nil {
-			G.Log.Debug("| Pinentry initialization failed: %s", e2.Error())
+			G.Log.Debug("| Pinentry initialization failed: %s", e2)
 		} else {
 			se.pinentry = pe
 			G.Log.Debug("| Pinentry initialized")

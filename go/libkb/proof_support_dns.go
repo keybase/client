@@ -25,7 +25,7 @@ func (rc *DNSChecker) CheckHint(h SigHint) ProofError {
 
 	if err != nil {
 		return NewProofError(keybase1.ProofStatus_BAD_SIGNATURE,
-			"Bad signature: %s", err.Error())
+			"Bad signature: %s", err)
 	}
 
 	wanted := sigID.ToMediumID()
@@ -42,7 +42,7 @@ func (rc *DNSChecker) CheckDomain(sig string, domain string) ProofError {
 	txt, err := net.LookupTXT(domain)
 	if err != nil {
 		return NewProofError(keybase1.ProofStatus_DNS_ERROR,
-			"DNS failure for %s: %s", domain, err.Error())
+			"DNS failure for %s: %s", domain, err)
 	}
 
 	for _, record := range txt {

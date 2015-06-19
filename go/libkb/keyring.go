@@ -111,13 +111,13 @@ func (k *KeyringFile) Load() error {
 		G.Log.Warning(fmt.Sprintf("No PGP Keyring found at %s", k.filename))
 		err = nil
 	} else if err != nil {
-		G.Log.Errorf("Cannot open keyring %s: %s\n", k.filename, err.Error())
+		G.Log.Errorf("Cannot open keyring %s: %s\n", k.filename, err)
 		return err
 	}
 	if file != nil {
 		k.Entities, err = openpgp.ReadKeyRing(file)
 		if err != nil {
-			G.Log.Errorf("Cannot parse keyring %s: %s\n", k.filename, err.Error())
+			G.Log.Errorf("Cannot parse keyring %s: %s\n", k.filename, err)
 			return err
 		}
 	}

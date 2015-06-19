@@ -346,7 +346,7 @@ func ParseWebServiceBinding(base GenericChainLink) (ret RemoteProofChainLink, e 
 	if jw.IsNil() {
 		ret, e = ParseSelfSigChainLink(base)
 	} else if sb, err := ParseServiceBlock(jw); err != nil {
-		e = fmt.Errorf("%s @%s", err.Error(), base.ToDebugString())
+		e = fmt.Errorf("%s @%s", err, base.ToDebugString())
 	} else if sb.social {
 		ret = NewSocialProofChainLink(base, sb.typ, sb.id, sptf)
 	} else {
@@ -382,7 +382,7 @@ func ParseTrackChainLink(b GenericChainLink) (ret *TrackChainLink, err error) {
 	var whom string
 	whom, err = b.payloadJSON.AtPath("body.track.basics.username").GetString()
 	if err != nil {
-		err = fmt.Errorf("Bad track statement @%s: %s", b.ToDebugString(), err.Error())
+		err = fmt.Errorf("Bad track statement @%s: %s", b.ToDebugString(), err)
 	} else {
 		ret = &TrackChainLink{b, whom, nil, false}
 	}
@@ -504,9 +504,9 @@ func (l *TrackChainLink) ToServiceBlocks() (ret []*ServiceBlock) {
 	for index := 0; index < ln; index++ {
 		proof := w.AtIndex(index).AtKey("remote_key_proof")
 		if i, e := proof.AtKey("state").GetInt(); e != nil {
-			G.Log.Warning("Bad 'state' in track statement: %s", e.Error())
+			G.Log.Warning("Bad 'state' in track statement: %s", e)
 		} else if sb, e := ParseServiceBlock(proof.AtKey("check_data_json")); e != nil {
-			G.Log.Warning("Bad remote_key_proof.check_data_json: %s", e.Error())
+			G.Log.Warning("Bad remote_key_proof.check_data_json: %s", e)
 		} else {
 			sb.proofState = keybase1.ProofState(i)
 			if sb.proofState != keybase1.ProofState_OK {
@@ -537,14 +537,14 @@ func ParseSibkeyChainLink(b GenericChainLink) (ret *SibkeyChainLink, err error) 
 	var device *Device
 
 	if kid, err = GetKID(b.payloadJSON.AtPath("body.sibkey.kid")); err != nil {
-		err = ChainLinkError{fmt.Sprintf("Bad sibkey statement @%s: %s", b.ToDebugString(), err.Error())}
+		err = ChainLinkError{fmt.Sprintf("Bad sibkey statement @%s: %s", b.ToDebugString(), err)}
 		return
 	}
 
 	var rs string
 	if rs, err = b.payloadJSON.AtPath("body.sibkey.reverse_sig").GetString(); err != nil {
 		err = ChainLinkError{fmt.Sprintf("Missing reverse_sig in sibkey delegation: @%s: %s",
-			b.ToDebugString(), err.Error())}
+			b.ToDebugString(), err)}
 		return
 	}
 
@@ -585,12 +585,12 @@ func (s *SibkeyChainLink) VerifyReverseSig(kf *KeyFamily) (err error) {
 
 	var p1, p2 []byte
 	if p1, _, err = key.VerifyStringAndExtract(s.reverseSig); err != nil {
-		err = ReverseSigError{fmt.Sprintf("Failed to verify/extract sig: %s", err.Error())}
+		err = ReverseSigError{fmt.Sprintf("Failed to verify/extract sig: %s", err)}
 		return
 	}
 
 	if p1, err = jsonw.Canonicalize(p1); err != nil {
-		err = ReverseSigError{fmt.Sprintf("Failed to canonicalize json: %s", err.Error())}
+		err = ReverseSigError{fmt.Sprintf("Failed to canonicalize json: %s", err)}
 		return
 	}
 
@@ -598,7 +598,7 @@ func (s *SibkeyChainLink) VerifyReverseSig(kf *KeyFamily) (err error) {
 	path := "body.sibkey.reverse_sig"
 	s.payloadJSON.SetValueAtPath(path, jsonw.NewNil())
 	if p2, err = s.payloadJSON.Marshal(); err != nil {
-		err = ReverseSigError{fmt.Sprintf("Can't remarshal JSON statement: %s", err.Error())}
+		err = ReverseSigError{fmt.Sprintf("Can't remarshal JSON statement: %s", err)}
 		return
 	}
 
@@ -626,9 +626,9 @@ type SubkeyChainLink struct {
 func ParseSubkeyChainLink(b GenericChainLink) (ret *SubkeyChainLink, err error) {
 	var kid, pkid KID
 	if kid, err = GetKID(b.payloadJSON.AtPath("body.subkey.kid")); err != nil {
-		err = ChainLinkError{fmt.Sprintf("Can't get KID for subkey @%s: %s", b.ToDebugString(), err.Error())}
+		err = ChainLinkError{fmt.Sprintf("Can't get KID for subkey @%s: %s", b.ToDebugString(), err)}
 	} else if pkid, err = GetKID(b.payloadJSON.AtPath("body.subkey.parent_kid")); err != nil {
-		err = ChainLinkError{fmt.Sprintf("Can't get parent_kid for subkey @%s: %s", b.ToDebugString(), err.Error())}
+		err = ChainLinkError{fmt.Sprintf("Can't get parent_kid for subkey @%s: %s", b.ToDebugString(), err)}
 	} else {
 		ret = &SubkeyChainLink{b, kid, pkid}
 	}
@@ -679,7 +679,7 @@ func ParseUntrackChainLink(b GenericChainLink) (ret *UntrackChainLink, err error
 	var whom string
 	whom, err = b.payloadJSON.AtPath("body.untrack.basics.username").GetString()
 	if err != nil {
-		err = fmt.Errorf("Bad track statement @%s: %s", b.ToDebugString(), err.Error())
+		err = fmt.Errorf("Bad track statement @%s: %s", b.ToDebugString(), err)
 	} else {
 		ret = &UntrackChainLink{b, whom}
 	}
@@ -743,7 +743,7 @@ func ParseCryptocurrencyChainLink(b GenericChainLink) (
 
 	_, pkhash, err = BtcAddrCheck(addr, nil)
 	if err != nil {
-		err = fmt.Errorf("At signature %s: %s", b.ToDebugString(), err.Error())
+		err = fmt.Errorf("At signature %s: %s", b.ToDebugString(), err)
 		return
 	}
 	cl = &CryptocurrencyChainLink{b, pkhash, addr}
@@ -1032,7 +1032,7 @@ func (idt *IdentityTable) GetTrackingStatementFor(s string, uid keybase1.UID) (
 			if link.IsRevoked() {
 				// noop; continue on!
 			} else if uid2, e2 := link.GetTrackedUID(); e2 != nil {
-				err = fmt.Errorf("Bad tracking statement for %s: %s", s, e2.Error())
+				err = fmt.Errorf("Bad tracking statement for %s: %s", s, e2)
 			} else if uid.NotEqual(uid2) {
 				err = fmt.Errorf("Bad UID in tracking statement for %s: %s != %s", s, uid, uid2)
 			} else {

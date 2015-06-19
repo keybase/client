@@ -131,14 +131,14 @@ func (pc *ProofCache) dbGet(sid keybase1.SigID) *CheckResult {
 	G.Log.Debug("+ ProofCache.dbGet(%s)", sidstr)
 
 	if err != nil {
-		G.Log.Errorf("Error lookup up proof check in DB: %s", err.Error())
+		G.Log.Errorf("Error lookup up proof check in DB: %s", err)
 	} else if jw == nil {
 		G.Log.Debug("| Cached CheckResult for %s wasn't found ", sidstr)
 	} else if cr, err := NewCheckResult(jw); err != nil {
 		G.Log.Errorf("Bad cached CheckResult for %s", sidstr)
 	} else if !cr.IsFresh() {
 		if err := G.LocalDb.Delete(dbkey); err != nil {
-			G.Log.Errorf("Delete error: %s", err.Error())
+			G.Log.Errorf("Delete error: %s", err)
 		}
 		G.Log.Debug("| Cached CheckResult for %s wasn't fresh", sidstr)
 	} else {

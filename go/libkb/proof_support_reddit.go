@@ -48,7 +48,7 @@ func (rc *RedditChecker) UnpackData(inp *jsonw.Wrapper) (*jsonw.Wrapper, ProofEr
 	cm := keybase1.ProofStatus_CONTENT_MISSING
 
 	if err != nil {
-		pe = NewProofError(cm, "Bad proof JSON: %s", err.Error())
+		pe = NewProofError(cm, "Bad proof JSON: %s", err)
 	} else if k1 != "Listing" {
 		pe = NewProofError(cf,
 			"Reddit: Wanted a post of type 'Listing', but got %s", k1)
@@ -70,7 +70,7 @@ func (rc *RedditChecker) CheckData(h SigHint, dat *jsonw.Wrapper) ProofError {
 	sigBody, sigID, err := OpenSig(rc.proof.GetArmoredSig())
 	if err != nil {
 		return NewProofError(keybase1.ProofStatus_BAD_SIGNATURE,
-			"Bad signature: %s", err.Error())
+			"Bad signature: %s", err)
 	}
 
 	var subreddit, author, selftext, title string
@@ -83,7 +83,7 @@ func (rc *RedditChecker) CheckData(h SigHint, dat *jsonw.Wrapper) ProofError {
 	var ret ProofError
 
 	if err != nil {
-		ret = NewProofError(keybase1.ProofStatus_CONTENT_MISSING, "content missing: %s", err.Error())
+		ret = NewProofError(keybase1.ProofStatus_CONTENT_MISSING, "content missing: %s", err)
 	} else if strings.ToLower(subreddit) != "keybaseproofs" {
 		ret = NewProofError(keybase1.ProofStatus_SERVICE_ERROR, "the post must be to /r/KeybaseProofs")
 	} else if wanted := rc.proof.GetRemoteUsername(); !rc.ScreenNameCompare(author, wanted) {

@@ -61,7 +61,7 @@ func (pe *Pinentry) FindProgram() (error, error) {
 			pe.path = prog
 		} else {
 			err = fmt.Errorf("Can't execute given pinentry program '%s': %s",
-				prog, err.Error())
+				prog, err)
 			fatalerr = err
 		}
 	} else if prog, err = FindPinentry(pe.log); err == nil {
@@ -153,7 +153,7 @@ func (pi *pinentryInstance) Init() (err error) {
 	lineb, _, err := pi.br.ReadLine()
 
 	if err != nil {
-		err = fmt.Errorf("Failed to get getpin greeting: %s", err.Error())
+		err = fmt.Errorf("Failed to get getpin greeting: %s", err)
 		return
 	}
 

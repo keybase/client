@@ -42,7 +42,7 @@ func NewUserThin(name string, uid keybase1.UID) *User {
 func NewUser(o *jsonw.Wrapper) (*User, error) {
 	uid, err := GetUID(o.AtKey("id"))
 	if err != nil {
-		return nil, fmt.Errorf("user object lacks an ID: %s", err.Error())
+		return nil, fmt.Errorf("user object lacks an ID: %s", err)
 	}
 	name, err := o.AtKey("basics").AtKey("username").GetString()
 	if err != nil {

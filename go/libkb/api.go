@@ -167,7 +167,7 @@ func doRequestShared(api Requester, arg APIArg, req *http.Request, wantJSONRes b
 		err = decoder.Decode(&obj)
 		resp.Body.Close()
 		if err != nil {
-			err = fmt.Errorf("Error in parsing JSON reply from server: %s", err.Error())
+			err = fmt.Errorf("Error in parsing JSON reply from server: %s", err)
 			return nil, nil, err
 		}
 
@@ -370,7 +370,7 @@ func (a *InternalAPIEngine) DoRequest(arg APIArg, req *http.Request) (*APIRes, e
 
 	status, err := jw.AtKey("status").ToDictionary()
 	if err != nil {
-		err = fmt.Errorf("Cannot parse server's 'status' field: %s", err.Error())
+		err = fmt.Errorf("Cannot parse server's 'status' field: %s", err)
 		return nil, err
 	}
 

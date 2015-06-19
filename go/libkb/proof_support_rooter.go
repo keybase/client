@@ -44,7 +44,7 @@ func (rc *RooterChecker) CheckData(h SigHint, dat string) ProofError {
 	_, sigID, err := OpenSig(rc.proof.GetArmoredSig())
 	if err != nil {
 		return NewProofError(keybase1.ProofStatus_BAD_SIGNATURE,
-			"Bad signature: %s", err.Error())
+			"Bad signature: %s", err)
 	} else if !strings.Contains(dat, sigID.ToMediumID()) {
 		return NewProofError(keybase1.ProofStatus_TEXT_NOT_FOUND,
 			"Missing signature ID (%s) in post title ('%s')",
@@ -65,7 +65,7 @@ func (rc *RooterChecker) UnpackData(inp *jsonw.Wrapper) (string, ProofError) {
 	cm := keybase1.ProofStatus_CONTENT_MISSING
 
 	if err != nil {
-		pe = NewProofError(cm, "Bad proof JSON: %s", err.Error())
+		pe = NewProofError(cm, "Bad proof JSON: %s", err)
 	} else if status != "OK" {
 		pe = NewProofError(cf, "Rooter: Non-OK status: %s", status)
 	} else {

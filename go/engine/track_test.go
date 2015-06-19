@@ -113,7 +113,7 @@ func TestTrack(t *testing.T) {
 	if err == nil {
 		t.Fatal("expected logout error; got no error")
 	} else if _, ok := err.(libkb.LoginRequiredError); !ok {
-		t.Fatalf("expected a LoginRequireError; got %s", err.Error())
+		t.Fatalf("expected a LoginRequireError; got %s", err)
 	}
 	fu.LoginOrBust(tc)
 	trackBob(tc, fu)

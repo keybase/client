@@ -83,7 +83,7 @@ func (d *Device) IsWeb() bool {
 
 func NewWebDevice() (ret *Device) {
 	if did, err := NewDeviceID(); err != nil {
-		G.Log.Errorf("In random new device ID: %s", err.Error())
+		G.Log.Errorf("In random new device ID: %s", err)
 	} else {
 		s := DeviceStatusActive
 		ret = &Device{

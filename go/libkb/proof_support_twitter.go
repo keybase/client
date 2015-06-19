@@ -47,7 +47,7 @@ func (rc *TwitterChecker) findSigInTweet(h SigHint, s *goquery.Selection) ProofE
 	checkText := h.checkText
 
 	if err != nil {
-		return NewProofError(keybase1.ProofStatus_CONTENT_FAILURE, "No HTML tweet found: %s", err.Error())
+		return NewProofError(keybase1.ProofStatus_CONTENT_FAILURE, "No HTML tweet found: %s", err)
 	}
 
 	G.Log.Debug("+ Checking tweet '%s' for signature '%s'", inside, checkText)
