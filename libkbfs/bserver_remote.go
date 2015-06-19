@@ -5,6 +5,7 @@ import (
 	"crypto/x509"
 	"encoding/hex"
 	"errors"
+	"fmt"
 	"io/ioutil"
 	"net"
 	"sync"
@@ -90,7 +91,7 @@ func (b *BlockServerRemote) ConnectOnce() error {
 	}
 
 	b.clt = keybase1.BlockClient{Cli: rpc2.NewClient(
-		rpc2.NewTransport(b.conn, libkb.NewRpcLogFactory(), libkb.WrapError), libkb.UnwrapError)}
+		rpc2.NewTransport(b.conn, libkb.NewRPCLogFactory(), libkb.WrapError), libkb.UnwrapError)}
 
 	var session *libkb.Session
 	if session, err = b.config.KBPKI().GetSession(); err != nil {
@@ -98,13 +99,6 @@ func (b *BlockServerRemote) ConnectOnce() error {
 		b.conn.Close()
 		return err
 	}
-	/*
-		var token []byte
-		if token, err = base64.StdEncoding.DecodeString(session.GetToken()); err != nil {
-			b.conn.Close()
-			return err
-		}
-	*/
 	if err = b.clt.EstablishSession(session.GetToken()); err != nil {
 		b.conn.Close()
 		return err
@@ -200,6 +194,8 @@ func (b *BlockServerRemote) Put(id BlockID, tlfID DirID, context BlockContext,
 	err := b.clt.PutBlock(arg)
 	if err != nil {
 		libkb.G.Log.Warning("PUT to backend err : %q", err)
+	} else {
+		fmt.Println("Put Err is NIL!!\n")
 	}
 	return err
 }
