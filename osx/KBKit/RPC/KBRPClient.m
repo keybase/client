@@ -76,7 +76,7 @@
     } else if ([method isEqualToString:@"keybase.1.secretUi.getSecret"]) {
       DDLogDebug(@"Password prompt: %@", KBDescription(params));
       KBRGetSecretRequestParams *requestParams = [[KBRGetSecretRequestParams alloc] initWithParams:params];
-      [gself.delegate RPClient:gself didRequestSecretForPrompt:requestParams.pinentry.prompt info:@"" details:requestParams.pinentry.description previousError:requestParams.pinentry.err completion:^(NSString *secret) {
+      [gself.delegate RPClient:gself didRequestSecretForPrompt:requestParams.pinentry.prompt info:@"" details:requestParams.pinentry.desc previousError:requestParams.pinentry.err completion:^(NSString *secret) {
         KBRSecretEntryRes *entry = [[KBRSecretEntryRes alloc] init];
         entry.text = secret;
         entry.canceled = !secret;

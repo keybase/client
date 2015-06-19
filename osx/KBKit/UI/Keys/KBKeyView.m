@@ -26,7 +26,7 @@
   [super viewInit];
   [self kb_setBackgroundColor:KBAppearance.currentAppearance.backgroundColor];
 
-  _labels = [YOVBox box:@{@"insets": @(20)}];
+  _labels = [YOVBox box:@{@"insets": @(20), @"spacing": @(4)}];
   [self addSubview:_labels];
 
   _textView = [[KBPGPTextView alloc] init];
@@ -40,11 +40,27 @@
   KBButton *exportButton = [KBButton buttonWithText:@"Show Secret" style:KBButtonStyleDefault options:KBButtonOptionsToolbar|KBButtonOptionsToggle];
   exportButton.dispatchBlock = ^(KBButton *button, dispatch_block_t completion) {
     if (button.state == NSOnState) {
-      [self showSecret:completion];
-      [button changeText:@"Hide Secret" style:KBButtonStyleDefault];
+      [self showSecret:^(NSError *error, KBRKeyInfo *keyInfo) {
+        if (error) {
+          [KBActivity setError:error sender:self];
+          button.state = NSOffState;
+          completion();
+        } else {
+          [button changeText:@"Hide Secret" style:KBButtonStyleDefault];
+          completion();
+        }
+      }];
     } else {
-      [self showPublic:completion];
-      [button changeText:@"Show Secret" style:KBButtonStyleDefault];
+      [self showPublic:^(NSError *error, KBRKeyInfo *keyInfo) {
+        if (error) {
+          [KBActivity setError:error sender:self];
+          button.state = NSOnState;
+          completion();
+        } else {
+          [button changeText:@"Show Secret" style:KBButtonStyleDefault];
+          completion();
+        }
+      }];
     }
   };
   [buttons addSubview:exportButton];
@@ -69,24 +85,30 @@
 
   [_labels kb_removeAllSubviews];
 
+  /*
   KBHeaderLabelView *keyLabel = [[KBHeaderLabelView alloc] init];
   keyLabel.columnWidth = 140;
   [keyLabel setHeader:@"Key ID"];
-  if (_keyId.kid) [keyLabel addText:[KBHexString(_keyId.kid, @"") uppercaseString] style:KBTextStyleDefault options:KBTextOptionsMonospace lineBreakMode:NSLineBreakByTruncatingMiddle targetBlock:nil];
+  if (_keyId.kid) [keyLabel addText:[KBHexString(_keyId.kid, @"") uppercaseString] style:KBTextStyleDefault options:KBTextOptionsMonospace lineBreakMode:NSLineBreakByCharWrapping targetBlock:nil];
   [_labels addSubview:keyLabel];
+   */
 
-  KBHeaderLabelView *pgpLabel = [[KBHeaderLabelView alloc] init];
-  pgpLabel.columnWidth = 140;
-  [pgpLabel setHeader:@"PGP Fingerprint"];
-  if (_keyId.pgpFingerprint) [pgpLabel addText:[KBHexString(_keyId.pgpFingerprint, @"") uppercaseString] style:KBTextStyleDefault options:KBTextOptionsMonospace lineBreakMode:NSLineBreakByTruncatingMiddle targetBlock:nil];
-  [_labels addSubview:pgpLabel];
+  if (_keyId.pgpFingerprint) {
+    KBHeaderLabelView *pgpLabel = [[KBHeaderLabelView alloc] init];
+    pgpLabel.columnWidth = 140;
+    [pgpLabel setHeader:@"PGP Fingerprint"];
+    if (_keyId.pgpFingerprint) [pgpLabel addText:[KBHexString(_keyId.pgpFingerprint, @"") uppercaseString] style:KBTextStyleDefault options:KBTextOptionsMonospace lineBreakMode:NSLineBreakByCharWrapping targetBlock:nil];
+    [_labels addSubview:pgpLabel];
+  }
 
   _textView.attributedText = nil;
   [self setNeedsLayout];
 
   [KBActivity setProgressEnabled:YES sender:self];
-  [self showPublic:^{
+  [self showPublic:^(NSError *error, KBRKeyInfo *keyInfo) {
     [KBActivity setProgressEnabled:NO sender:self];
+    if (error) [KBActivity setError:error sender:self];
+    if (keyInfo.desc.length > 0) [self addDescription:keyInfo.desc];
   }];
 }
 
@@ -94,7 +116,16 @@
   _cancelButton.targetBlock();
 }
 
-- (void)showPublic:(dispatch_block_t)completion {
+- (void)addDescription:(NSString *)desc {
+  KBHeaderLabelView *label = [[KBHeaderLabelView alloc] init];
+  label.columnWidth = 140;
+  [label setHeader:@"Description"];
+  if (_keyId.pgpFingerprint) [label addText:desc style:KBTextStyleDefault options:KBTextOptionsMonospace lineBreakMode:NSLineBreakByWordWrapping targetBlock:nil];
+  [_labels addSubview:label];
+  [self setNeedsLayout];
+}
+
+- (void)showPublic:(void (^)(NSError *error, KBRKeyInfo *keyInfo))completion {
   GHWeakSelf gself = self;
   KBRPgpRequest *request = [[KBRPgpRequest alloc] initWithClient:self.client];
   KBRPgpQuery *options = [[KBRPgpQuery alloc] init];
@@ -104,11 +135,11 @@
     // TODO This only works when we are the user being key exported
     KBRKeyInfo *keyInfo = [keys firstObject];
     [gself.textView setText:keyInfo.key style:KBTextStyleDefault options:KBTextOptionsMonospace alignment:NSLeftTextAlignment lineBreakMode:NSLineBreakByClipping];
-    completion();
+    completion(error, keyInfo);
   }];
 }
 
-- (void)showSecret:(dispatch_block_t)completion {
+- (void)showSecret:(void (^)(NSError *error, KBRKeyInfo *keyInfo))completion {
   KBRPgpRequest *request = [[KBRPgpRequest alloc] initWithClient:self.client];
   KBRPgpQuery *options = [[KBRPgpQuery alloc] init];
   options.query = KBHexString(_keyId.kid, nil);
@@ -116,9 +147,11 @@
   options.secret = YES;
   GHWeakSelf gself = self;
   [request pgpExportByKIDWithSessionID:request.sessionId options:options completion:^(NSError *error, NSArray *items) {
-    completion();
     KBRKeyInfo *keyInfo = items[0];
-    gself.textView.text = keyInfo.key;
+    if (keyInfo.key) {
+      gself.textView.text = keyInfo.key;
+    }
+    completion(error, keyInfo);
   }];
 }
 

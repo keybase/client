@@ -11,6 +11,7 @@
 @interface KBSecretPromptView ()
 @property KBLabel *header;
 @property KBLabel *label;
+@property KBLabel *detailsLabel;
 @property KBLabel *errorLabel;
 @property KBSecureTextField *inputField;
 @property KBButton *button;
@@ -23,40 +24,47 @@
   [super viewInit];
   [self kb_setBackgroundColor:KBAppearance.currentAppearance.backgroundColor];
 
-  YOVBox *contentView = [YOVBox box:@{@"insets": @"10,80,10,80"}];
+  YOVBox *contentView = [YOVBox box:@{@"insets": @"10,80,10,80", @"spacing": @(30)}];
+  {
+    _header = [[KBLabel alloc] init];
+    [contentView addSubview:_header];
+
+    YOVBox *labels = [YOVBox box:@{@"spacing": @(20)}];
+    labels.debug = YES;
+    labels.ignoreLayoutForHidden = YES;
+    {
+      _label = [[KBLabel alloc] init];
+      _label.selectable = YES;
+      [labels addSubview:_label];
+
+      _detailsLabel = [[KBLabel alloc] init];
+      _detailsLabel.selectable = YES;
+      [labels addSubview:_detailsLabel];
+
+      _errorLabel = [[KBLabel alloc] init];
+      _errorLabel.selectable = YES;
+      [labels addSubview:_errorLabel];
+    }
+    [contentView addSubview:labels];
+
+    _inputField = [[KBSecureTextField alloc] init];
+    [contentView addSubview:_inputField];
+
+    GHWeakSelf gself = self;
+    YOHBox *bottomView = [YOHBox box:@{@"spacing": @(20), @"minSize": @"130,0", @"horizontalAlignment": @"center"}];
+    {
+      _cancelButton = [KBButton buttonWithText:@"Cancel" style:KBButtonStyleDefault];
+      _cancelButton.targetBlock = ^{ [gself closeWithPassword:nil]; };
+      [bottomView addSubview:_cancelButton];
+
+      _button = [KBButton buttonWithText:@"OK" style:KBButtonStylePrimary];
+      _button.targetBlock = ^{ [gself closeWithPassword:gself.inputField.text]; };
+      [_button setKeyEquivalent:@"\r"];
+      [bottomView addSubview:_button];
+    }
+    [contentView addSubview:bottomView];
+  }
   [self addSubview:contentView];
-
-  _header = [[KBLabel alloc] init];
-  [contentView addSubview:_header];
-  [contentView addSubview:[YOBox spacing:CGSizeMake(0, 30)]];
-
-  _label = [[KBLabel alloc] init];
-  _label.selectable = YES;
-  _label.identifier = @"label";
-  [contentView addSubview:_label];
-  [contentView addSubview:[YOBox spacing:CGSizeMake(0, 20)]];
-
-  _errorLabel = [[KBLabel alloc] init];
-  _errorLabel.selectable = YES;
-  [contentView addSubview:_errorLabel];
-  [contentView addSubview:[YOBox spacing:CGSizeMake(0, 20)]];
-
-  _inputField = [[KBSecureTextField alloc] init];
-  _inputField.identifier = @"input";
-  [contentView addSubview:_inputField];
-  [contentView addSubview:[YOBox spacing:CGSizeMake(0, 40)]];
-
-  GHWeakSelf gself = self;
-  YOHBox *bottomView = [YOHBox box:@{@"spacing": @(20), @"minSize": @"130,0", @"horizontalAlignment": @"center"}];
-  [contentView addSubview:bottomView];
-  _cancelButton = [KBButton buttonWithText:@"Cancel" style:KBButtonStyleDefault];
-  _cancelButton.targetBlock = ^{ [gself closeWithPassword:nil]; };
-  [bottomView addSubview:_cancelButton];
-
-  _button = [KBButton buttonWithText:@"OK" style:KBButtonStylePrimary];
-  _button.targetBlock = ^{ [gself closeWithPassword:gself.inputField.text]; };
-  [_button setKeyEquivalent:@"\r"];
-  [bottomView addSubview:_button];
 
   self.viewLayout = [YOLayout center:contentView];
 }
@@ -77,9 +85,27 @@
 
 - (void)setHeader:(NSString *)header info:(NSString *)info details:(NSString *)details previousError:(NSString *)previousError {
   [_header setText:header style:KBTextStyleHeaderLarge alignment:NSCenterTextAlignment lineBreakMode:NSLineBreakByTruncatingTail];
-  [_label setText:info style:KBTextStyleDefault options:0 alignment:NSLeftTextAlignment lineBreakMode:NSLineBreakByClipping];
 
-  [_errorLabel setText:previousError style:KBTextStyleDefault options:KBTextOptionsDanger alignment:NSLeftTextAlignment lineBreakMode:NSLineBreakByWordWrapping];
+  if (info.length > 0) {
+    [_label setText:info style:KBTextStyleDefault options:0 alignment:NSCenterTextAlignment lineBreakMode:NSLineBreakByClipping];
+    _label.hidden = NO;
+  } else {
+    _label.hidden = YES;
+  }
+
+  if (details.length > 0) {
+    [_detailsLabel setText:details style:KBTextStyleDefault options:0 alignment:NSLeftTextAlignment lineBreakMode:NSLineBreakByClipping];
+    _detailsLabel.hidden = NO;
+  } else {
+    _detailsLabel.hidden = YES;
+  }
+
+  if (previousError.length > 0) {
+    [_errorLabel setText:previousError style:KBTextStyleDefault options:KBTextOptionsDanger alignment:NSCenterTextAlignment lineBreakMode:NSLineBreakByWordWrapping];
+    _errorLabel.hidden = NO;
+  } else {
+    _errorLabel.hidden = YES;
+  }
   
   [self setNeedsLayout];
 }

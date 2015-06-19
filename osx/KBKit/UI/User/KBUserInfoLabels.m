@@ -71,12 +71,7 @@
 
 - (void)addKey:(KBRFOKID *)key targetBlock:(void (^)(id sender, id object))targetBlock {
   [_headerLabel setAttributedText:[KBFontAwesome attributedStringForIcon:@"key" style:KBTextStyleDefault options:0 alignment:NSLeftTextAlignment lineBreakMode:NSLineBreakByClipping]];
-  NSString *keyDescription;
-  if (key.kid) {
-    keyDescription = KBDescriptionForKID(key.kid);
-  } else if (key.pgpFingerprint) {
-    keyDescription = KBDescriptionForFingerprint(KBPGPKeyIdFromFingerprint(KBHexString(key.pgpFingerprint, @"")), 0);
-  }
+  NSString *keyDescription = KBDescriptionForFingerprint(KBPGPKeyIdFromFingerprint(KBHexString(key.pgpFingerprint, @"")), 0);
   KBButton *button = [KBButton buttonWithText:keyDescription style:KBButtonStyleLink alignment:NSLeftTextAlignment lineBreakMode:NSLineBreakByTruncatingTail];
   button.targetBlock = ^{ targetBlock(self, key); };
   [_buttons addObject:button];
