@@ -72,89 +72,89 @@ const (
 
 // Status codes.  This list should match keybase/lib/constants.iced.
 const (
-	SC_OK                        = 0
-	SC_LOGIN_REQUIRED            = 201
-	SC_BAD_SESSION               = 202
-	SC_BAD_LOGIN_PASSWORD        = 204
-	SC_GENERIC                   = 218
-	SC_ALREADY_LOGGED_IN         = 235
-	SC_CANCELED                  = 237
-	SC_BAD_SIGNUP_USERNAME_TAKEN = 701
-	SC_KEY_NOT_FOUND             = 901
-	SC_KEY_IN_USE                = 907
-	SC_KEY_BAD_GEN               = 913
-	SC_KEY_NO_SECRET             = 914
-	SC_KEY_NO_ACTIVE             = 915
-	SC_BAD_TRACK_SESSION         = 1301
-	SC_STREAM_EXISTS             = 1501
-	SC_STREAM_NOT_FOUND          = 1502
-	SC_STREAM_WRONG_KIND         = 1503
-	SC_STREAM_EOF                = 1504
-	SC_API_NETWORK_ERROR         = 1601
-	SC_PROOF_ERROR               = 1701
-	SC_IDENTIFICATION_EXPIRED    = 1702
+	SCOk                     = 0
+	SCLoginRequired          = 201
+	SCBadSession             = 202
+	SCBadLoginPassword       = 204
+	SCGeneric                = 218
+	SCAlreadyLoggedIn        = 235
+	SCCanceled               = 237
+	SCBadSignupUsernameTaken = 701
+	SCKeyNotFound            = 901
+	SCKeyInUse               = 907
+	SCKeyBadGen              = 913
+	SCKeyNoSecret            = 914
+	SCKeyNoActive            = 915
+	SCBadTrackSession        = 1301
+	SCStreamExists           = 1501
+	SCStreamNotFound         = 1502
+	SCStreamWrongKind        = 1503
+	SCStreamEOF              = 1504
+	SCAPINetworkError        = 1601
+	SCProofError             = 1701
+	SCIdentificationExpired  = 1702
 )
 
 const (
-	ID_SUFFIX_KID = 0x0a
+	IDSuffixKID = 0x0a
 )
 
 const (
-	MERKLE_TREE_NODE = 1
-	MERKLE_TREE_LEAF = 2
+	MerkleTreeNode = 1
+	MerkleTreeLeaf = 2
 )
 
 const (
-	SIBKEY_TYPE = "sibkey"
-	SUBKEY_TYPE = "subkey"
-	ELDEST_TYPE = "eldest"
+	SibkeyType = "sibkey"
+	SubkeyType = "subkey"
+	EldestType = "eldest"
 )
 
 const (
-	SIG_TYPE_NONE           = 0
-	SIG_TYPE_SELF_SIG       = 1
-	SIG_TYPE_REMOTE_PROOF   = 2
-	SIG_TYPE_TRACK          = 3
-	SIG_TYPE_UNTRACK        = 4
-	SIG_TYPE_REVOKE         = 5
-	SIG_TYPE_CRYPTOCURRENCY = 6
-	SIG_TYPE_ANNOUNCEMENT   = 7
+	SigTypeNone           = 0
+	SigTypeSelfSig        = 1
+	SigTypeRemoteProof    = 2
+	SigTypeTrack          = 3
+	SigTypeUntrack        = 4
+	SigTypeRevoke         = 5
+	SigTypeCryptocurrency = 6
+	SigTypeAnnouncement   = 7
 )
 
 type KeyType int
 
 const (
-	KEY_TYPE_NONE                      KeyType = 0
-	KEY_TYPE_OPEN_PGP_PUBLIC                   = 1
-	KEY_TYPE_P3SKB_PRIVATE                     = 2
-	KEY_TYPE_KB_NACL_EDDSA                     = 3
-	KEY_TYPE_KB_NACL_DH                        = 4
-	KEY_TYPE_KB_NACL_EDDSA_SERVER_HALF         = 5
-	KEY_TYPE_KB_NACL_DH_SERVER_HALF            = 6
+	KeyTypeNone                  KeyType = 0
+	KeyTypeOpenPGPPublic                 = 1
+	KeyTypeP3skbPrivate                  = 2
+	KeyTypeKbNaclEddsa                   = 3
+	KeyTypeKbNaclDH                      = 4
+	KeyTypeKbNaclEddsaServerHalf         = 5
+	KeyTypeKbNaclDHServerHalf            = 6
 )
 
 const (
-	DEVICE_STATUS_NONE    = 0
-	DEVICE_STATUS_ACTIVE  = 1
-	DEVICE_STATUS_DEFUNCT = 2
+	DeviceStatusNone    = 0
+	DeviceStatusActive  = 1
+	DeviceStatusDefunct = 2
 )
 
 const (
-	DEVICE_TYPE_DESKTOP = "desktop"
-	DEVICE_TYPE_MOBILE  = "mobile"
-	DEVICE_TYPE_WEB     = "web"
+	DeviceTypeDesktop = "desktop"
+	DeviceTypeMobile  = "mobile"
+	DeviceTypeWeb     = "web"
 )
 
-const DOWNLOAD_URL = "https://keybase.io/download"
+const DownloadURL = "https://keybase.io/download"
 
-var PGP_VERSION = "Keybase Go " + ClientVersion + " (" + runtime.GOOS + ")"
+var PGPVersion = "Keybase Go " + ClientVersion + " (" + runtime.GOOS + ")"
 
 var PgpArmorHeaders = map[string]string{
-	"Version": PGP_VERSION,
-	"Comment": DOWNLOAD_URL,
+	"Version": PGPVersion,
+	"Comment": DownloadURL,
 }
 
-var REMOTE_SERVICE_TYPES = map[string]keybase1.ProofType{
+var RemoteServiceTypes = map[string]keybase1.ProofType{
 	"keybase":    keybase1.ProofType_KEYBASE,
 	"twitter":    keybase1.ProofType_TWITTER,
 	"github":     keybase1.ProofType_GITHUB,
@@ -176,80 +176,80 @@ var RemoteServiceOrder = []keybase1.ProofType{
 	keybase1.ProofType_GENERIC_WEB_SITE,
 }
 
-const CANONICAL_HOST = "keybase.io"
+const CanonicalHost = "keybase.io"
 
 const (
-	HTTP_DEFAULT_TIMEOUT = 10 * time.Second
+	HTTPDefaultTimeout = 10 * time.Second
 )
 
 // Packet tags for OpenPGP and also Keybase packets
 const (
-	KEYBASE_PACKET_V1 = 1
-	TAG_P3SKB         = 513
-	TAG_SIGNATURE     = 514
+	KeybasePacketV1 = 1
+	TagP3skb        = 513
+	TagSignature    = 514
 )
 
 const (
-	KID_PGP_BASE    AlgoType = 0x00
-	KID_PGP_RSA              = 0x1
-	KID_PGP_ELGAMAL          = 0x10
-	KID_PGP_DSA              = 0x11
-	KID_PGP_ECDH             = 0x12
-	KID_PGP_ECDSA            = 0x13
-	KID_NACL_EDDSA           = 0x20
-	KID_NACL_DH              = 0x21
+	KIDPGPBase    AlgoType = 0x00
+	KIDPGPRsa              = 0x1
+	KIDPGPElgamal          = 0x10
+	KIDPGPDsa              = 0x11
+	KIDPGPEcdh             = 0x12
+	KIDPGPEcdsa            = 0x13
+	KIDNaclEddsa           = 0x20
+	KIDNaclDH              = 0x21
 )
 
 // OpenPGP hash IDs, taken from http://tools.ietf.org/html/rfc4880#section-9.4
 const (
-	HASH_PGP_MD5       = 1
-	HASH_PGP_SHA1      = 2
-	HASH_PGP_RIPEMD160 = 3
-	HASH_PGP_SHA256    = 8
-	HASH_PGP_SHA384    = 9
-	HASH_PGP_SHA512    = 10
-	HASH_PGP_SHA224    = 11
+	HashPGPMd5       = 1
+	HashPGPSha1      = 2
+	HashPGPRipemd160 = 3
+	HashPGPSha256    = 8
+	HashPGPSha384    = 9
+	HashPGPSha512    = 10
+	HashPGPSha224    = 11
 )
 
 const (
-	SIG_KB_EDDSA = KID_NACL_EDDSA
+	SigKbEddsa = KIDNaclEddsa
 )
 
 const (
-	SERVER_UPDATE_LAG = time.Minute
+	ServerUpdateLag = time.Minute
 )
 
 // key_revocation_types
 const (
-	REV_SIMPLE_DELETE = 0
-	REV_FULL          = 1
-	REV_DATED         = 2
+	RevSimpleDelete = 0
+	RevFull         = 1
+	RevDated        = 2
 )
 
 type KeyStatus int
 
 const (
-	KEY_UNCANCELLED KeyStatus = iota
-	KEY_REVOKED
-	KEY_DELETED
-	KEY_SUPERSEDED
+	KeyUncancelled KeyStatus = iota
+	KeyRevoked
+	KeyDeleted
+	KeySuperseded
 )
 
 type KeyRole int
 
 const (
-	DLG_NONE KeyRole = iota
-	DLG_SIBKEY
-	DLG_SUBKEY
+	DLGNone KeyRole = iota
+	DLGSibkey
+	DLGSubkey
 )
 
 const (
-	KEX_SCRYPT_COST   = 32768
-	KEX_SCRYPT_R      = 8
-	KEX_SCRYPT_P      = 1
-	KEX_SCRYPT_KEYLEN = 32
+	KexScryptCost   = 32768
+	KexScryptR      = 8
+	KexScryptP      = 1
+	KexScryptKeylen = 32
 )
 
-const KEX_SESSION_ID_ENTROPY = 65 // kex doc specifies 65 bits of entropy
+const KexSessionIDEntropy = 65 // kex doc specifies 65 bits of entropy
 
-const USER_SUMMARY_LIMIT = 500 // max number of user summaries in one request
+const UserSummaryLimit = 500 // max number of user summaries in one request

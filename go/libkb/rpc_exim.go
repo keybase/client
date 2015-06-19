@@ -125,14 +125,14 @@ func ExportErrorAsStatus(e error) (ret *keybase1.Status) {
 
 	if e == io.EOF {
 		return &keybase1.Status{
-			Code: SC_STREAM_EOF,
+			Code: SCStreamEOF,
 			Name: "STREAM_EOF",
 		}
 	}
 
 	if e == errors.ErrKeyIncorrect {
 		return &keybase1.Status{
-			Code: SC_KEY_NO_ACTIVE,
+			Code: SCKeyNoActive,
 			Name: "SC_KEY_NO_ACTIVE",
 			Desc: "No PGP key found",
 		}
@@ -147,7 +147,7 @@ func ExportErrorAsStatus(e error) (ret *keybase1.Status) {
 
 	return &keybase1.Status{
 		Name: "GENERIC",
-		Code: SC_GENERIC,
+		Code: SCGeneric,
 		Desc: e.Error(),
 	}
 }
@@ -173,35 +173,35 @@ func ImportStatusAsError(s *keybase1.Status) error {
 		return nil
 	}
 	switch s.Code {
-	case SC_OK:
+	case SCOk:
 		return nil
-	case SC_GENERIC:
+	case SCGeneric:
 		return fmt.Errorf(s.Desc)
-	case SC_BAD_LOGIN_PASSWORD:
+	case SCBadLoginPassword:
 		return PassphraseError{s.Desc}
-	case SC_KEY_BAD_GEN:
+	case SCKeyBadGen:
 		return KeyGenError{s.Desc}
-	case SC_ALREADY_LOGGED_IN:
+	case SCAlreadyLoggedIn:
 		return LoggedInError{}
-	case SC_CANCELED:
+	case SCCanceled:
 		return CanceledError{s.Desc}
-	case SC_KEY_NO_SECRET:
+	case SCKeyNoSecret:
 		return NoSecretKeyError{}
-	case SC_LOGIN_REQUIRED:
+	case SCLoginRequired:
 		return LoginRequiredError{s.Desc}
-	case SC_KEY_IN_USE:
+	case SCKeyInUse:
 		var fp *PgpFingerprint
 		if len(s.Desc) > 0 {
 			fp, _ = PgpFingerprintFromHex(s.Desc)
 		}
 		return KeyExistsError{fp}
-	case SC_STREAM_EXISTS:
+	case SCStreamExists:
 		return StreamExistsError{}
-	case SC_STREAM_NOT_FOUND:
+	case SCStreamNotFound:
 		return StreamNotFoundError{}
-	case SC_STREAM_WRONG_KIND:
+	case SCStreamWrongKind:
 		return StreamWrongKindError{}
-	case SC_STREAM_EOF:
+	case SCStreamEOF:
 		return io.EOF
 	default:
 		ase := AppStatusError{
@@ -385,7 +385,7 @@ func (c CurrentStatus) Export() (ret keybase1.GetCurrentStatusRes) {
 //=============================================================================
 
 func (p PassphraseError) ToStatus() (s keybase1.Status) {
-	s.Code = SC_BAD_LOGIN_PASSWORD
+	s.Code = SCBadLoginPassword
 	s.Name = "BAD_LOGIN_PASSWORD"
 	s.Desc = p.msg
 	return
@@ -400,7 +400,7 @@ func (m Markup) Export() (ret keybase1.Text) {
 //=============================================================================
 
 func (e LoggedInError) ToStatus() (s keybase1.Status) {
-	s.Code = SC_ALREADY_LOGGED_IN
+	s.Code = SCAlreadyLoggedIn
 	s.Name = "ALREADY_LOGGED_IN"
 	s.Desc = "Already logged in as a different user"
 	return
@@ -409,7 +409,7 @@ func (e LoggedInError) ToStatus() (s keybase1.Status) {
 //=============================================================================
 
 func (e KeyGenError) ToStatus() (s keybase1.Status) {
-	s.Code = SC_KEY_BAD_GEN
+	s.Code = SCKeyBadGen
 	s.Name = "KEY_BAD_GEN"
 	s.Desc = e.Msg
 	return
@@ -418,7 +418,7 @@ func (e KeyGenError) ToStatus() (s keybase1.Status) {
 //=============================================================================
 
 func (c CanceledError) ToStatus() (s keybase1.Status) {
-	s.Code = SC_CANCELED
+	s.Code = SCCanceled
 	s.Name = "CANCELED"
 	s.Desc = c.M
 	return
@@ -427,7 +427,7 @@ func (c CanceledError) ToStatus() (s keybase1.Status) {
 //=============================================================================
 
 func (c KeyExistsError) ToStatus() (s keybase1.Status) {
-	s.Code = SC_KEY_IN_USE
+	s.Code = SCKeyInUse
 	s.Name = "KEY_IN_USE"
 	if c.Key != nil {
 		s.Desc = c.Key.String()
@@ -438,7 +438,7 @@ func (c KeyExistsError) ToStatus() (s keybase1.Status) {
 //=============================================================================
 
 func (c NoActiveKeyError) ToStatus() (s keybase1.Status) {
-	s.Code = SC_KEY_NO_ACTIVE
+	s.Code = SCKeyNoActive
 	s.Name = "KEY_NO_ACTIVE"
 	s.Desc = c.Error()
 	return
@@ -619,19 +619,19 @@ func (t Tracker) Export() keybase1.Tracker { return keybase1.Tracker(t) }
 //=============================================================================
 
 func (e StreamExistsError) ToStatus(s keybase1.Status) {
-	s.Code = SC_STREAM_EXISTS
+	s.Code = SCStreamExists
 	s.Name = "STREAM_EXISTS"
 	return
 }
 
 func (e StreamNotFoundError) ToStatus(s keybase1.Status) {
-	s.Code = SC_STREAM_NOT_FOUND
+	s.Code = SCStreamNotFound
 	s.Name = "SC_STREAM_NOT_FOUND"
 	return
 }
 
 func (e StreamWrongKindError) ToStatus(s keybase1.Status) {
-	s.Code = SC_STREAM_WRONG_KIND
+	s.Code = SCStreamWrongKind
 	s.Name = "STREAM_WRONG_KIND"
 	return
 }
@@ -639,7 +639,7 @@ func (e StreamWrongKindError) ToStatus(s keybase1.Status) {
 //=============================================================================
 
 func (u NoSecretKeyError) ToStatus() (s keybase1.Status) {
-	s.Code = SC_KEY_NO_SECRET
+	s.Code = SCKeyNoSecret
 	s.Name = "KEY_NO_SECRET"
 	return
 }
@@ -647,7 +647,7 @@ func (u NoSecretKeyError) ToStatus() (s keybase1.Status) {
 //=============================================================================
 
 func (u LoginRequiredError) ToStatus() (s keybase1.Status) {
-	s.Code = SC_LOGIN_REQUIRED
+	s.Code = SCLoginRequired
 	s.Name = "LOGIN_REQUIRED"
 	s.Desc = u.Context
 	return
@@ -656,28 +656,28 @@ func (u LoginRequiredError) ToStatus() (s keybase1.Status) {
 //=============================================================================
 
 func (e APINetError) ToStatus() (s keybase1.Status) {
-	s.Code = SC_API_NETWORK_ERROR
+	s.Code = SCAPINetworkError
 	s.Name = "API_NETWORK_ERROR"
 	s.Desc = e.Error()
 	return
 }
 
 func (e ProofNotFoundForServiceError) ToStatus() (s keybase1.Status) {
-	s.Code = SC_PROOF_ERROR
+	s.Code = SCProofError
 	s.Name = "PROOF_ERROR"
 	s.Desc = e.Error()
 	return
 }
 
 func (e ProofNotFoundForUsernameError) ToStatus() (s keybase1.Status) {
-	s.Code = SC_PROOF_ERROR
+	s.Code = SCProofError
 	s.Name = "PROOF_ERROR"
 	s.Desc = e.Error()
 	return
 }
 
 func (e PGPDecError) ToStatus() (s keybase1.Status) {
-	s.Code = SC_KEY_NOT_FOUND
+	s.Code = SCKeyNotFound
 	s.Name = "KEY_NOT_FOUND"
 	s.Desc = e.Msg
 	return
@@ -685,7 +685,7 @@ func (e PGPDecError) ToStatus() (s keybase1.Status) {
 
 func (e IdentifyTimeoutError) ToStatus() keybase1.Status {
 	return keybase1.Status{
-		Code: SC_IDENTIFICATION_EXPIRED,
+		Code: SCIdentificationExpired,
 		Name: "IDENTIFICATION_EXPIRED",
 		Desc: e.Error(),
 	}

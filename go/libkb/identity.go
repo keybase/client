@@ -59,8 +59,8 @@ func KeybaseIdentity(un string) Identity {
 		un = G.Env.GetUsername()
 	}
 	return Identity{
-		Username: CANONICAL_HOST + "/" + un,
-		Email:    un + "@" + CANONICAL_HOST,
+		Username: CanonicalHost + "/" + un,
+		Email:    un + "@" + CanonicalHost,
 	}
 }
 

@@ -178,7 +178,7 @@ func (e *Doctor) status(ctx *Context) {
 
 	for k, v := range devs {
 		dev := keybase1.Device{Type: v.Type, Name: v.Description, DeviceID: k}
-		if v.Type != libkb.DEVICE_TYPE_WEB {
+		if v.Type != libkb.DeviceTypeWeb {
 			uistatus.Devices = append(uistatus.Devices, dev)
 		} else {
 			uistatus.WebDevice = &dev

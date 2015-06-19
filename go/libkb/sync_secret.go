@@ -146,7 +146,7 @@ func (k *ServerPrivateKey) FindActiveKey(ckf *ComputedKeyFamily) (ret *SKB, err 
 	if kid, err = ImportKID(k.Kid); err != nil {
 		return
 	}
-	if ckf.GetKeyRole(kid) != DLG_SIBKEY {
+	if ckf.GetKeyRole(kid) != DLGSibkey {
 		return
 	}
 	if packet, err = DecodeArmoredPacket(k.Bundle); err != nil && packet == nil {
@@ -185,7 +185,7 @@ func (ss *SecretSyncer) HasActiveDevice() bool {
 		return false
 	}
 	for _, v := range ss.keys.Devices {
-		if v.Status == DEVICE_STATUS_ACTIVE && v.Type != DEVICE_TYPE_WEB {
+		if v.Status == DeviceStatusActive && v.Type != DeviceTypeWeb {
 			return true
 		}
 	}
@@ -198,7 +198,7 @@ func (ss *SecretSyncer) ActiveDevices() (DeviceKeyMap, error) {
 	}
 	res := make(DeviceKeyMap)
 	for k, v := range ss.keys.Devices {
-		if v.Status != DEVICE_STATUS_ACTIVE {
+		if v.Status != DeviceStatusActive {
 			continue
 		}
 		res[k] = v
@@ -209,7 +209,7 @@ func (ss *SecretSyncer) ActiveDevices() (DeviceKeyMap, error) {
 // FindDetKeySrvHalf locates the detkey matching kt and returns
 // the bundle, which is the server half of the detkey.
 func (ss *SecretSyncer) FindDetKeySrvHalf(kt KeyType) ([]byte, error) {
-	if kt != KEY_TYPE_KB_NACL_EDDSA_SERVER_HALF && kt != KEY_TYPE_KB_NACL_DH_SERVER_HALF {
+	if kt != KeyTypeKbNaclEddsaServerHalf && kt != KeyTypeKbNaclDHServerHalf {
 		return nil, fmt.Errorf("invalid key type")
 	}
 	if ss.keys == nil {
@@ -232,7 +232,7 @@ func (ss *SecretSyncer) DumpPrivateKeys() {
 }
 
 func (k ServerPrivateKey) ToSKB() (*SKB, error) {
-	if k.KeyType != KEY_TYPE_P3SKB_PRIVATE {
+	if k.KeyType != KeyTypeP3skbPrivate {
 		return nil, fmt.Errorf("invalid key type for skb conversion: %d", k.KeyType)
 	}
 	p, err := DecodeArmoredPacket(k.Bundle)

@@ -120,7 +120,7 @@ func (u *User) ToKeyStanza(signing FOKID, eldest *FOKID) (ret *jsonw.Wrapper, er
 	ret = jsonw.NewDictionary()
 	ret.SetKey("uid", UIDWrapper(u.id))
 	ret.SetKey("username", jsonw.NewString(u.name))
-	ret.SetKey("host", jsonw.NewString(CANONICAL_HOST))
+	ret.SetKey("host", jsonw.NewString(CanonicalHost))
 
 	if eldest == nil {
 		eldest = u.GetEldestFOKID()
@@ -176,14 +176,14 @@ func (g *GenericChainLink) BaseToTrackingStatement(state keybase1.ProofState) *j
 
 func remoteProofToTrackingStatement(s RemoteProofChainLink, base *jsonw.Wrapper) error {
 	typS := s.TableKey()
-	i, found := REMOTE_SERVICE_TYPES[typS]
+	i, found := RemoteServiceTypes[typS]
 	if !found {
 		return fmt.Errorf("No service type found for %q in proof %d", typS, s.GetSeqno())
 	}
 
 	base.AtKey("remote_key_proof").SetKey("proof_type", jsonw.NewInt(int(i)))
 	base.AtKey("remote_key_proof").SetKey("check_data_json", s.CheckDataJSON())
-	base.SetKey("sig_type", jsonw.NewInt(SIG_TYPE_REMOTE_PROOF))
+	base.SetKey("sig_type", jsonw.NewInt(SigTypeRemoteProof))
 	return nil
 }
 
@@ -262,12 +262,12 @@ func (u *User) KeyProof(arg Delegator) (ret *jsonw.Wrapper, pushType string, err
 	if ekfokid == nil {
 		fokid := GenericKeyToFOKID(arg.NewKey)
 		ret, err = u.eldestKeyProof(arg.NewKey, &fokid, arg.Device)
-		pushType = ELDEST_TYPE
+		pushType = EldestType
 	} else {
 		if arg.Sibkey {
-			pushType = SIBKEY_TYPE
+			pushType = SibkeyType
 		} else {
-			pushType = SUBKEY_TYPE
+			pushType = SubkeyType
 		}
 		ret, err = u.delegateKeyProof(arg.NewKey, *ekfokid, pushType, arg.Expire, arg.Device, arg.RevSig, arg.Ctime)
 	}
@@ -275,7 +275,7 @@ func (u *User) KeyProof(arg Delegator) (ret *jsonw.Wrapper, pushType string, err
 }
 
 func (u *User) eldestKeyProof(signingKey GenericKey, eldest *FOKID, device *Device) (ret *jsonw.Wrapper, err error) {
-	return u.selfProof(signingKey, eldest, device, ELDEST_TYPE)
+	return u.selfProof(signingKey, eldest, device, EldestType)
 }
 
 func (u *User) selfProof(signingKey GenericKey, eldest *FOKID, device *Device, typ string) (ret *jsonw.Wrapper, err error) {
@@ -318,7 +318,7 @@ func SignJSON(jw *jsonw.Wrapper, key GenericKey) (out string, id keybase1.SigID,
 func keyToProofJSON(newkey GenericKey, typ string, signingKey FOKID, revSig string, u *User) (ret *jsonw.Wrapper, err error) {
 	ret = jsonw.NewDictionary()
 
-	if typ == SIBKEY_TYPE {
+	if typ == SibkeyType {
 		val := jsonw.NewNil()
 		if len(revSig) > 0 {
 			val = jsonw.NewString(revSig)
@@ -328,7 +328,7 @@ func keyToProofJSON(newkey GenericKey, typ string, signingKey FOKID, revSig stri
 
 	// For subkeys let's say who our parent is.  In this case it's the signing key,
 	// though that can change in the future.
-	if typ == SUBKEY_TYPE && signingKey.Kid != nil {
+	if typ == SubkeyType && signingKey.Kid != nil {
 		ret.SetKey("parent_kid", jsonw.NewString(signingKey.Kid.String()))
 	}
 
@@ -397,7 +397,7 @@ func (u *User) RevokeKeysProof(key GenericKey, kidsToRevoke []KID, deviceToDisab
 		deviceSection := jsonw.NewDictionary()
 		deviceSection.SetKey("id", jsonw.NewString(deviceToDisable))
 		deviceSection.SetKey("type", jsonw.NewString(device.Type))
-		deviceSection.SetKey("status", jsonw.NewInt(DEVICE_STATUS_DEFUNCT))
+		deviceSection.SetKey("status", jsonw.NewInt(DeviceStatusDefunct))
 		body.SetKey("device", deviceSection)
 	}
 	return ret, nil

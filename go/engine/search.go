@@ -73,7 +73,7 @@ func (e *SearchEngine) Run(ctx *Context) error {
 		components := completion.AtKey("components")
 		socialProofs := []keybase1.TrackProof{}
 		for _, proofTypeName := range componentKeys {
-			if _, isService := libkb.REMOTE_SERVICE_TYPES[proofTypeName]; isService {
+			if _, isService := libkb.RemoteServiceTypes[proofTypeName]; isService {
 				val, err := components.AtKey(proofTypeName).AtKey("val").GetString()
 				if err != nil {
 					return err

@@ -496,9 +496,9 @@ func (d LocksmithUI) SelectSigner(arg keybase1.SelectSignerArg) (res keybase1.Se
 	for i, dev := range arg.Devices {
 		var req string
 		switch dev.Type {
-		case libkb.DEVICE_TYPE_DESKTOP:
+		case libkb.DeviceTypeDesktop:
 			req = "requires access to that computer"
-		case libkb.DEVICE_TYPE_MOBILE:
+		case libkb.DeviceTypeMobile:
 			req = "requires your device"
 		default:
 			return res, fmt.Errorf("unknown device type: %q", dev.Type)

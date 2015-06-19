@@ -71,7 +71,7 @@ func (sc SigChain) GetComputedKeyInfos() (cki *ComputedKeyInfos) {
 
 func (sc SigChain) GetFutureChainTail() (ret *MerkleTriple) {
 	now := time.Now()
-	if sc.localChainTail != nil && now.Sub(sc.localChainUpdateTime) < SERVER_UPDATE_LAG {
+	if sc.localChainTail != nil && now.Sub(sc.localChainUpdateTime) < ServerUpdateLag {
 		ret = sc.localChainTail
 	}
 	return
@@ -385,7 +385,7 @@ func (sc *SigChain) verifySubchain(kf KeyFamily, links []*ChainLink) (cached boo
 		// Note that we do this *before* processing revocations in the key
 		// family. That's important because a chain link might revoke the same
 		// key that signed it.
-		isDelegating := (tcl.GetRole() != DLG_NONE)
+		isDelegating := (tcl.GetRole() != DLGNone)
 		isFinalLink := (linkIndex == len(links)-1)
 		isLastLinkInSameKeyRun := (isFinalLink || !newFokid.Eq(links[linkIndex+1].ToFOKID()))
 		if isDelegating || isFinalLink || isLastLinkInSameKeyRun {

@@ -37,7 +37,7 @@ func CheckUsernameAvailable(g *libkb.GlobalContext, s string) (err error) {
 	})
 	if err == nil {
 		err = libkb.AppStatusError{
-			Code: libkb.SC_BAD_SIGNUP_USERNAME_TAKEN,
+			Code: libkb.SCBadSignupUsernameTaken,
 			Name: "BAD_SIGNUP_USERNAME_TAKEN",
 			Desc: fmt.Sprintf("Username '%s' is taken", s),
 		}

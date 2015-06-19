@@ -229,7 +229,7 @@ func (k *KexSib) handlePleaseSign(ctx *Context, m *kex.Msg) error {
 		ExistingKey:  k.sigKey,
 		Me:           k.user,
 		Expire:       libkb.NaclEdDSAExpireIn,
-		PushType:     libkb.SIBKEY_TYPE,
+		PushType:     libkb.SibkeyType,
 		EldestKID:    k.user.GetEldestFOKID().Kid,
 		Contextified: libkb.NewContextified(k.G()),
 	}

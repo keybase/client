@@ -66,7 +66,7 @@ func (g *GenericChainLink) GetDelegatedKid() KID                 { return nil }
 func (g *GenericChainLink) GetParentKid() KID                    { return nil }
 func (g *GenericChainLink) VerifyReverseSig(kf *KeyFamily) error { return nil }
 func (g *GenericChainLink) IsRevocationIsh() bool                { return false }
-func (g *GenericChainLink) GetRole() KeyRole                     { return DLG_NONE }
+func (g *GenericChainLink) GetRole() KeyRole                     { return DLGNone }
 func (g *GenericChainLink) IsRevoked() bool                      { return g.revoked }
 func (g *GenericChainLink) GetSeqno() Seqno                      { return g.unpacked.seqno }
 func (g *GenericChainLink) GetPgpFingerprint() *PgpFingerprint {
@@ -253,7 +253,7 @@ func (s *SocialProofChainLink) CheckDataJSON() *jsonw.Wrapper {
 }
 
 func (s *SocialProofChainLink) GetProofType() keybase1.ProofType {
-	ret, found := REMOTE_SERVICE_TYPES[s.service]
+	ret, found := RemoteServiceTypes[s.service]
 	if !found {
 		ret = keybase1.ProofType_NONE
 	}
@@ -559,8 +559,8 @@ func ParseSibkeyChainLink(b GenericChainLink) (ret *SibkeyChainLink, err error) 
 }
 
 func (s *SibkeyChainLink) GetDelegatedKid() KID    { return s.kid }
-func (s *SibkeyChainLink) GetRole() KeyRole        { return DLG_SIBKEY }
-func (s *SibkeyChainLink) Type() string            { return SIBKEY_TYPE }
+func (s *SibkeyChainLink) GetRole() KeyRole        { return DLGSibkey }
+func (s *SibkeyChainLink) Type() string            { return SibkeyType }
 func (s *SibkeyChainLink) ToDisplayString() string { return s.kid.String() }
 func (s *SibkeyChainLink) GetDevice() *Device      { return s.device }
 func (s *SibkeyChainLink) insertIntoTable(tab *IdentityTable) {
@@ -635,9 +635,9 @@ func ParseSubkeyChainLink(b GenericChainLink) (ret *SubkeyChainLink, err error) 
 	return
 }
 
-func (s *SubkeyChainLink) Type() string            { return SUBKEY_TYPE }
+func (s *SubkeyChainLink) Type() string            { return SubkeyType }
 func (s *SubkeyChainLink) ToDisplayString() string { return s.kid.String() }
-func (s *SubkeyChainLink) GetRole() KeyRole        { return DLG_SUBKEY }
+func (s *SubkeyChainLink) GetRole() KeyRole        { return DLGSubkey }
 func (s *SubkeyChainLink) GetDelegatedKid() KID    { return s.kid }
 func (s *SubkeyChainLink) GetParentKid() KID       { return s.parentKid }
 func (s *SubkeyChainLink) insertIntoTable(tab *IdentityTable) {
@@ -933,9 +933,9 @@ func NewTypedChainLink(cl *ChainLink) (ret TypedChainLink, w Warning) {
 			ret, err = ParseCryptocurrencyChainLink(base)
 		case "revoke":
 			ret, err = ParseRevokeChainLink(base)
-		case SIBKEY_TYPE:
+		case SibkeyType:
 			ret, err = ParseSibkeyChainLink(base)
-		case SUBKEY_TYPE:
+		case SubkeyType:
 			ret, err = ParseSubkeyChainLink(base)
 		case "device":
 			ret, err = ParseDeviceChainLink(base)

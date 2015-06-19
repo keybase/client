@@ -402,7 +402,7 @@ func (k *PgpKeyBundle) GetKid() KID {
 	sum := sha256.Sum256(buf.Bytes()[hdrBytes:])
 
 	out := append(prefix, sum[:]...)
-	out = append(out, byte(ID_SUFFIX_KID))
+	out = append(out, byte(IDSuffixKID))
 
 	return KID(out)
 }
@@ -536,8 +536,8 @@ func ExportAsFOKID(fp *PgpFingerprint, kid KID) (ret keybase1.FOKID) {
 
 func IsPgpAlgo(algo AlgoType) bool {
 	switch algo {
-	case KID_PGP_RSA, KID_PGP_ELGAMAL,
-		KID_PGP_DSA, KID_PGP_ECDH, KID_PGP_ECDSA:
+	case KIDPGPRsa, KIDPGPElgamal,
+		KIDPGPDsa, KIDPGPEcdh, KIDPGPEcdsa:
 		return true
 	}
 	return false

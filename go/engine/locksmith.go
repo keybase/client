@@ -332,7 +332,7 @@ func (d *Locksmith) deviceSign(ctx *Context, withPGPOption bool) error {
 
 	var arg keybase1.SelectSignerArg
 	for k, v := range devs {
-		if v.Type != libkb.DEVICE_TYPE_WEB {
+		if v.Type != libkb.DeviceTypeWeb {
 			arg.Devices = append(arg.Devices, keybase1.Device{Type: v.Type, Name: v.Description, DeviceID: k})
 		}
 	}
@@ -385,7 +385,7 @@ func (d *Locksmith) deviceSign(ctx *Context, withPGPOption bool) error {
 			if res.Signer.DeviceName == nil {
 				return fmt.Errorf("selected device for signing, but DeviceName is nil")
 			}
-			err := d.deviceSignExistingDevice(ctx, *res.Signer.DeviceID, *res.Signer.DeviceName, newDeviceName, libkb.DEVICE_TYPE_DESKTOP)
+			err := d.deviceSignExistingDevice(ctx, *res.Signer.DeviceID, *res.Signer.DeviceName, newDeviceName, libkb.DeviceTypeDesktop)
 			if err == nil {
 				ctx.LogUI.Debug("device sign w/ existing device succes")
 				return nil
@@ -577,10 +577,10 @@ func (d *Locksmith) detKeySrvHalf(ctx *Context) ([]byte, error) {
 	var half []byte
 	var err error
 	if ctx.LoginContext != nil {
-		half, err = ctx.LoginContext.SecretSyncer().FindDetKeySrvHalf(libkb.KEY_TYPE_KB_NACL_EDDSA_SERVER_HALF)
+		half, err = ctx.LoginContext.SecretSyncer().FindDetKeySrvHalf(libkb.KeyTypeKbNaclEddsaServerHalf)
 	} else {
 		aerr := d.G().LoginState().SecretSyncer(func(ss *libkb.SecretSyncer) {
-			half, err = ss.FindDetKeySrvHalf(libkb.KEY_TYPE_KB_NACL_EDDSA_SERVER_HALF)
+			half, err = ss.FindDetKeySrvHalf(libkb.KeyTypeKbNaclEddsaServerHalf)
 		}, "Locksmith - detKeySrvHalf")
 		if aerr != nil {
 			return nil, aerr

@@ -174,8 +174,8 @@ func (e *UserSummary) get() (map[keybase1.UID]*Summary, error) {
 }
 
 func (e *UserSummary) uidlist() string {
-	if len(e.uids) > libkb.USER_SUMMARY_LIMIT {
-		e.uids = e.uids[0:libkb.USER_SUMMARY_LIMIT]
+	if len(e.uids) > libkb.UserSummaryLimit {
+		e.uids = e.uids[0:libkb.UserSummaryLimit]
 	}
 	s := make([]string, len(e.uids))
 	for i, u := range e.uids {

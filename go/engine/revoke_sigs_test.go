@@ -23,8 +23,8 @@ func TestRevokeSig(t *testing.T) {
 
 	// Add another PGP key, so that we have a couple to revoke. That means that
 	// signatures #5 and #6 are the ones that delegate our PGP keys.
-	const FIRST_PGP_SIG_SEQNO = 5
-	const SECOND_PGP_SIG_SEQNO = 6
+	const FirstPGPSigSeqno = 5
+	const SecondPGPSigSeqno = 6
 
 	arg := PGPKeyImportEngineArg{
 		Gen: &libkb.PGPGenArg{
@@ -50,7 +50,7 @@ func TestRevokeSig(t *testing.T) {
 	assertNumDevicesAndKeys(t, u, 2, 6) // no change
 
 	// Now make sure a good seqno works.
-	revokeEngine = NewRevokeSigsEngine(nil, []int{FIRST_PGP_SIG_SEQNO}, tc.G)
+	revokeEngine = NewRevokeSigsEngine(nil, []int{FirstPGPSigSeqno}, tc.G)
 	err = RunEngine(revokeEngine, ctx)
 	if err != nil {
 		t.Fatal(err)
@@ -58,7 +58,7 @@ func TestRevokeSig(t *testing.T) {
 	assertNumDevicesAndKeys(t, u, 2, 5) // The first PGP key is gone.
 
 	// Revoking the same key again should fail.
-	revokeEngine = NewRevokeSigsEngine(nil, []int{FIRST_PGP_SIG_SEQNO}, tc.G)
+	revokeEngine = NewRevokeSigsEngine(nil, []int{FirstPGPSigSeqno}, tc.G)
 	err = RunEngine(revokeEngine, ctx)
 	if err == nil {
 		t.Fatal(err)
@@ -70,7 +70,7 @@ func TestRevokeSig(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	sigID := realUser.GetSigIDFromSeqno(SECOND_PGP_SIG_SEQNO)
+	sigID := realUser.GetSigIDFromSeqno(SecondPGPSigSeqno)
 	revokeEngine = NewRevokeSigsEngine([]keybase1.SigID{sigID}, nil, tc.G)
 	err = RunEngine(revokeEngine, ctx)
 	if err != nil {

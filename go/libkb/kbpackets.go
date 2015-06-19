@@ -158,9 +158,9 @@ func (p *KeybasePacket) MyUnmarshalBinary(data []byte) error {
 	var body interface{}
 
 	switch p.Tag {
-	case TAG_P3SKB:
+	case TagP3skb:
 		body = &SKB{}
-	case TAG_SIGNATURE:
+	case TagSignature:
 		body = &NaclSigInfo{}
 	default:
 		return fmt.Errorf("Unknown packet tag: %d", p.Tag)

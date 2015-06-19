@@ -16,7 +16,7 @@ func (e BadTrackSessionError) Error() string {
 
 func (e BadTrackSessionError) ToStatus() keybase1.Status {
 	return keybase1.Status{
-		Code: libkb.SC_BAD_TRACK_SESSION,
+		Code: libkb.SCBadTrackSession,
 		Name: "BAD_TRACK_SESISON",
 		Desc: fmt.Sprintf("Track session %d wasn't found", e.i),
 	}

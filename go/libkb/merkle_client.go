@@ -635,7 +635,7 @@ func (path PathSteps) VerifyPath(curr NodeHash, uidS string) (juser *jsonw.Wrapp
 			break
 		}
 
-		if lastTyp == MERKLE_TREE_NODE {
+		if lastTyp == MerkleTreeNode {
 			if plen == 0 {
 				err = fmt.Errorf("Empty prefix len at level=%d", i)
 				return

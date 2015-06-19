@@ -119,8 +119,8 @@ func (s *SKB) newLKSec(clientHalf []byte) *LKSec {
 
 func (s *SKB) ToPacket() (ret *KeybasePacket, err error) {
 	ret = &KeybasePacket{
-		Version: KEYBASE_PACKET_V1,
-		Tag:     TAG_P3SKB, // Keybase tags starts at 513 (OpenPGP are 0-30)
+		Version: KeybasePacketV1,
+		Tag:     TagP3skb,
 	}
 	ret.Body = s
 	err = ret.HashMe()
@@ -131,9 +131,9 @@ func (s *SKB) ReadKey() (g GenericKey, err error) {
 	switch {
 	case IsPgpAlgo(s.Type) || s.Type == 0:
 		g, err = ReadOneKeyFromBytes(s.Pub)
-	case s.Type == KID_NACL_EDDSA:
+	case s.Type == KIDNaclEddsa:
 		g, err = ImportNaclSigningKeyPairFromBytes(s.Pub, nil)
-	case s.Type == KID_NACL_DH:
+	case s.Type == KIDNaclDH:
 		g, err = ImportNaclDHKeyPairFromBytes(s.Pub, nil)
 	default:
 		err = UnknownKeyTypeError{s.Type}
@@ -269,9 +269,9 @@ func (s *SKB) parseUnlocked(unlocked []byte) (key GenericKey, err error) {
 	switch {
 	case IsPgpAlgo(s.Type) || s.Type == 0:
 		key, err = ReadOneKeyFromBytes(unlocked)
-	case s.Type == KID_NACL_EDDSA:
+	case s.Type == KIDNaclEddsa:
 		key, err = ImportNaclSigningKeyPairFromBytes(s.Pub, unlocked)
-	case s.Type == KID_NACL_DH:
+	case s.Type == KIDNaclDH:
 		key, err = ImportNaclDHKeyPairFromBytes(s.Pub, unlocked)
 	}
 
@@ -440,7 +440,7 @@ func (k SKBKeyringFile) SearchWithComputedKeyFamily(ckf *ComputedKeyFamily, ska 
 			} else if !KeyMatchesQuery(key, ska.KeyQuery, ska.ExactMatch) {
 				G.Log.Debug("| Skipped, doesn't match query=%s", ska.KeyQuery)
 
-			} else if active != DLG_SIBKEY {
+			} else if active != DLGSibkey {
 				G.Log.Debug("| Skipped, active=%d", int(active))
 			} else {
 				return k.Blocks[i]

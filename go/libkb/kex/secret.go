@@ -19,7 +19,7 @@ type Secret struct {
 
 // NewSecret creates a new random secret for a user.
 func NewSecret(username string) (*Secret, error) {
-	words, err := libkb.SecWordList(libkb.KEX_SESSION_ID_ENTROPY)
+	words, err := libkb.SecWordList(libkb.KexSessionIDEntropy)
 	if err != nil {
 		return nil, err
 	}
@@ -43,7 +43,7 @@ func SecretFromPhrase(username, phrase string) (*Secret, error) {
 // strong session ID by hmac-sha256'ing the secret.
 func (s *Secret) calculate(username string) error {
 	key, err := scrypt.Key([]byte(s.phrase), []byte(username),
-		libkb.KEX_SCRYPT_COST, libkb.KEX_SCRYPT_R, libkb.KEX_SCRYPT_P, libkb.KEX_SCRYPT_KEYLEN)
+		libkb.KexScryptCost, libkb.KexScryptR, libkb.KexScryptP, libkb.KexScryptKeylen)
 	if err != nil {
 		return err
 	}

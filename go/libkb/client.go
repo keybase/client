@@ -100,7 +100,7 @@ func (e *Env) GenClientConfig() (*ClientConfig, error) {
 		return nil, err
 	}
 
-	ret := &ClientConfig{host, port, useTLS, url, rootCAs, url.Path, true, HTTP_DEFAULT_TIMEOUT}
+	ret := &ClientConfig{host, port, useTLS, url, rootCAs, url.Path, true, HTTPDefaultTimeout}
 	return ret, nil
 }
 
@@ -120,7 +120,7 @@ func NewClient(config *ClientConfig, needCookie bool) *Client {
 		}
 		timeout = config.Timeout
 	} else {
-		timeout = HTTP_DEFAULT_TIMEOUT
+		timeout = HTTPDefaultTimeout
 	}
 
 	ret := &Client{

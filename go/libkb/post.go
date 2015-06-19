@@ -117,7 +117,7 @@ func DeletePrimary() (err error) {
 		NeedSession: true,
 		Args: HTTPArgs{
 			"revoke_primary":  I{1},
-			"revocation_type": I{REV_SIMPLE_DELETE},
+			"revocation_type": I{RevSimpleDelete},
 		},
 	})
 	return

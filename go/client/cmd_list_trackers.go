@@ -89,8 +89,8 @@ func (c *CmdListTrackers) Run() error {
 
 func populateList(trs []keybase1.Tracker, summarizer batchfn) (ret []keybase1.UserSummary, err error) {
 
-	for i := 0; i < len(trs); i += libkb.USER_SUMMARY_LIMIT {
-		max := i + libkb.USER_SUMMARY_LIMIT
+	for i := 0; i < len(trs); i += libkb.UserSummaryLimit {
+		max := i + libkb.UserSummaryLimit
 		if max > len(trs) {
 			max = len(trs)
 		}

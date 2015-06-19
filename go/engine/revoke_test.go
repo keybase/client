@@ -16,7 +16,7 @@ func getActiveDevicesAndKeys(t *testing.T, u *FakeUser) ([]*libkb.Device, []libk
 
 	activeDevices := []*libkb.Device{}
 	for _, device := range user.GetComputedKeyFamily().GetAllDevices() {
-		if device.Status != nil && *device.Status == libkb.DEVICE_STATUS_ACTIVE {
+		if device.Status != nil && *device.Status == libkb.DeviceStatusActive {
 			activeDevices = append(activeDevices, device)
 		}
 	}

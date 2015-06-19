@@ -71,7 +71,7 @@ func importNaclKid(kid KID, typ byte, bodyLen int) (ret []byte, err error) {
 		return
 	}
 
-	if kid[0] != byte(KeybaseKIDV1) || kid[l-1] != byte(ID_SUFFIX_KID) || kid[1] != typ {
+	if kid[0] != byte(KeybaseKIDV1) || kid[l-1] != byte(IDSuffixKID) || kid[1] != typ {
 		err = BadKeyError{"bad header or trailer bytes"}
 		return
 	}
@@ -81,7 +81,7 @@ func importNaclKid(kid KID, typ byte, bodyLen int) (ret []byte, err error) {
 
 func ImportNaclSigningKeyPairFromBytes(pub []byte, priv []byte) (ret NaclSigningKeyPair, err error) {
 	var body []byte
-	if body, err = importNaclKid(KID(pub), byte(KID_NACL_EDDSA), ed25519.PublicKeySize); err != nil {
+	if body, err = importNaclKid(KID(pub), byte(KIDNaclEddsa), ed25519.PublicKeySize); err != nil {
 		return
 	}
 	copy(ret.Public[:], body)
@@ -101,13 +101,13 @@ func ImportKeypairFromKID(kid KID) (key GenericKey, err error) {
 		err = BadKeyError{"KID was way too short"}
 		return
 	}
-	if kid[0] != byte(KeybaseKIDV1) || kid[l-1] != byte(ID_SUFFIX_KID) {
+	if kid[0] != byte(KeybaseKIDV1) || kid[l-1] != byte(IDSuffixKID) {
 		err = BadKeyError{"bad header or trailer found"}
 		return
 	}
 	raw := kid[2:(l - 1)]
 	switch kid[1] {
-	case byte(KID_NACL_EDDSA):
+	case byte(KIDNaclEddsa):
 		if len(raw) != ed25519.PublicKeySize {
 			err = BadKeyError{"Bad EdDSA key size"}
 		} else {
@@ -115,7 +115,7 @@ func ImportKeypairFromKID(kid KID) (key GenericKey, err error) {
 			copy(tmp.Public[:], raw)
 			key = tmp
 		}
-	case byte(KID_NACL_DH):
+	case byte(KIDNaclDH):
 		if len(raw) != NaclDHKeysize {
 			err = BadKeyError{"Bad DH key size"}
 		} else {
@@ -131,7 +131,7 @@ func ImportKeypairFromKID(kid KID) (key GenericKey, err error) {
 
 func ImportNaclSigningKeyPairFromHex(s string) (ret NaclSigningKeyPair, err error) {
 	var body []byte
-	if body, err = importNaclHex(s, byte(KID_NACL_EDDSA), ed25519.PublicKeySize); err != nil {
+	if body, err = importNaclHex(s, byte(KIDNaclEddsa), ed25519.PublicKeySize); err != nil {
 		return
 	}
 	copy(ret.Public[:], body)
@@ -140,7 +140,7 @@ func ImportNaclSigningKeyPairFromHex(s string) (ret NaclSigningKeyPair, err erro
 
 func ImportNaclDHKeyPairFromBytes(pub []byte, priv []byte) (ret NaclDHKeyPair, err error) {
 	var body []byte
-	if body, err = importNaclKid(KID(pub), byte(KID_NACL_DH), NaclDHKeysize); err != nil {
+	if body, err = importNaclKid(KID(pub), byte(KIDNaclDH), NaclDHKeysize); err != nil {
 		return
 	}
 	copy(ret.Public[:], body)
@@ -156,7 +156,7 @@ func ImportNaclDHKeyPairFromBytes(pub []byte, priv []byte) (ret NaclDHKeyPair, e
 
 func ImportNaclDHKeyPairFromHex(s string) (ret NaclDHKeyPair, err error) {
 	var body []byte
-	if body, err = importNaclHex(s, byte(KID_NACL_DH), NaclDHKeysize); err != nil {
+	if body, err = importNaclHex(s, byte(KIDNaclDH), NaclDHKeysize); err != nil {
 		return
 	}
 	copy(ret.Public[:], body)
@@ -166,9 +166,9 @@ func ImportNaclDHKeyPairFromHex(s string) (ret NaclDHKeyPair, err error) {
 func (k NaclDHKeyPublic) GetKid() KID {
 	prefix := []byte{
 		byte(KeybaseKIDV1),
-		byte(KID_NACL_DH),
+		byte(KIDNaclDH),
 	}
-	suffix := byte(ID_SUFFIX_KID)
+	suffix := byte(IDSuffixKID)
 	out := append(prefix, k[:]...)
 	out = append(out, suffix)
 	return KID(out)
@@ -179,19 +179,19 @@ func (k NaclDHKeyPair) GetFingerprintP() *PgpFingerprint {
 }
 
 func (k NaclDHKeyPair) GetAlgoType() AlgoType {
-	return KID_NACL_DH
+	return KIDNaclDH
 }
 
 func (k NaclSigningKeyPair) GetAlgoType() AlgoType {
-	return KID_NACL_EDDSA
+	return KIDNaclEddsa
 }
 
 func (k NaclSigningKeyPublic) GetKid() KID {
 	prefix := []byte{
 		byte(KeybaseKIDV1),
-		byte(KID_NACL_EDDSA),
+		byte(KIDNaclEddsa),
 	}
-	suffix := byte(ID_SUFFIX_KID)
+	suffix := byte(IDSuffixKID)
 	out := append(prefix, k[:]...)
 	out = append(out, suffix)
 	return KID(out)
@@ -266,8 +266,8 @@ func (k NaclSigningKeyPair) Sign(msg []byte) (ret *NaclSigInfo, err error) {
 		Kid:      k.GetKid(),
 		Payload:  msg,
 		Sig:      *k.Private.Sign(msg),
-		SigType:  SIG_KB_EDDSA,
-		HashType: HASH_PGP_SHA512,
+		SigType:  SigKbEddsa,
+		HashType: HashPGPSha512,
 		Detached: true,
 	}
 	return
@@ -356,8 +356,8 @@ func (k NaclDHKeyPair) VerifyString(sig string, msg []byte) (id keybase1.SigID, 
 
 func (s *NaclSigInfo) ToPacket() (ret *KeybasePacket, err error) {
 	ret = &KeybasePacket{
-		Version: KEYBASE_PACKET_V1,
-		Tag:     TAG_SIGNATURE,
+		Version: KeybasePacketV1,
+		Tag:     TagSignature,
 	}
 	ret.Body = s
 	return
@@ -390,7 +390,7 @@ func (k NaclSigningKeyPair) ToSKB(gc *GlobalContext, t *triplesec.Cipher) (*SKB,
 	ret := &SKB{}
 	ret.SetGlobalContext(gc)
 	ret.Pub = k.GetKid()
-	ret.Type = KID_NACL_EDDSA
+	ret.Type = KIDNaclEddsa
 	ret.Priv.Encryption = 0
 	ret.Priv.Data = (*k.Private)[:]
 	return ret, nil
@@ -400,7 +400,7 @@ func (k NaclDHKeyPair) ToSKB(gc *GlobalContext, t *triplesec.Cipher) (*SKB, erro
 	ret := &SKB{}
 	ret.SetGlobalContext(gc)
 	ret.Pub = k.GetKid()
-	ret.Type = KID_NACL_DH
+	ret.Type = KIDNaclDH
 	ret.Priv.Encryption = 0
 	ret.Priv.Data = (*k.Private)[:]
 	return ret, nil
@@ -413,7 +413,7 @@ func (k NaclSigningKeyPair) ToLksSKB(lks *LKSec) (*SKB, error) {
 	}
 	ret := &SKB{Contextified: lks.Contextified}
 	ret.Pub = k.GetKid()
-	ret.Type = KID_NACL_EDDSA
+	ret.Type = KIDNaclEddsa
 	ret.Priv.Encryption = LKSecVersion
 	ret.Priv.Data = data
 	return ret, nil
@@ -426,7 +426,7 @@ func (k NaclDHKeyPair) ToLksSKB(lks *LKSec) (*SKB, error) {
 	}
 	ret := &SKB{Contextified: lks.Contextified}
 	ret.Pub = k.GetKid()
-	ret.Type = KID_NACL_DH
+	ret.Type = KIDNaclDH
 	ret.Priv.Encryption = LKSecVersion
 	ret.Priv.Data = data
 	return ret, nil

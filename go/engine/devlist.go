@@ -80,7 +80,7 @@ func (d *DevList) List(all bool) []keybase1.Device {
 
 	var filtered []keybase1.Device
 	for _, d := range d.devices {
-		if d.Type == libkb.DEVICE_TYPE_WEB {
+		if d.Type == libkb.DeviceTypeWeb {
 			continue
 		}
 		filtered = append(filtered, d)
