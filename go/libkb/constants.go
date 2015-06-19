@@ -28,10 +28,10 @@ const (
 	APIURIPathPrefix = "/_/api/" + APIVersion
 	DaemonPort       = 40933
 	GoClientID       = "keybase.io go client"
-	IdentifyAs       = GoClientID + " v" + ClientVersion + " " + runtime.GOOS
+	IdentifyAs       = GoClientID + " v" + Version + " " + runtime.GOOS
 )
 
-var UserAgent = "Keybase-Go-CLI/" + ClientVersion + " (" + runtime.Version() + " on " + runtime.GOOS + ")"
+var UserAgent = "Keybase-Go-CLI/" + Version + " (" + runtime.Version() + " on " + runtime.GOOS + ")"
 
 const (
 	PermFile          os.FileMode = 0600
@@ -147,7 +147,7 @@ const (
 
 const DownloadURL = "https://keybase.io/download"
 
-var PGPVersion = "Keybase Go " + ClientVersion + " (" + runtime.GOOS + ")"
+var PGPVersion = "Keybase Go " + Version + " (" + runtime.GOOS + ")"
 
 var PgpArmorHeaders = map[string]string{
 	"Version": PGPVersion,

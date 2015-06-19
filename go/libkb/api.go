@@ -242,7 +242,7 @@ func (a *InternalAPIEngine) consumeHeaders(resp *http.Response) error {
 		lastUpgradeWarningMu.Lock()
 		if lastUpgradeWarning == nil || now.Sub(*lastUpgradeWarning) > 3*time.Minute {
 			G.Log.Warning("Upgrade recommended to client version %s or above (you have v%s)",
-				u, ClientVersion)
+				u, Version)
 			lastUpgradeWarning = &now
 		}
 		lastUpgradeWarningMu.Unlock()
