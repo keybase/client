@@ -6,7 +6,6 @@ import (
 	"github.com/keybase/cli"
 	"github.com/keybase/client/go/libcmdline"
 	"github.com/keybase/client/go/libkb"
-	keybase1 "github.com/keybase/client/protocol/go"
 )
 
 func NewCmdCtlStop(cl *libcmdline.CommandLine) cli.Command {
@@ -28,12 +27,11 @@ func (s *CmdCtlStop) ParseArgv(ctx *cli.Context) error {
 }
 
 func (s *CmdCtlStop) RunClient() (err error) {
-	var cli keybase1.CtlClient
-	if cli, err = GetCtlClient(); err != nil {
-	} else {
-		err = cli.Stop()
+	cli, err := GetCtlClient()
+	if err != nil {
+		return err
 	}
-	return err
+	return cli.Stop()
 }
 
 func (s *CmdCtlStop) Run() error {

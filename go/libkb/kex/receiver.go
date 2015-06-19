@@ -39,6 +39,7 @@ type Receiver struct {
 	done      bool
 	sessToken string // api session token
 	sessCsrf  string // api session csrf
+	errs      chan error
 }
 
 // NewReceiver creates a Receiver that will route messages to the
@@ -46,8 +47,15 @@ type Receiver struct {
 // direction.
 func NewReceiver(dir Direction, secret *Secret, sessToken, sessCsrf string) *Receiver {
 	sm := make(map[string]bool)
-	ch := make(chan *Msg, 10)
-	return &Receiver{direction: dir, secret: secret, seen: sm, Msgs: ch, sessToken: sessToken, sessCsrf: sessCsrf}
+	return &Receiver{
+		direction: dir,
+		secret:    secret,
+		seen:      sm,
+		Msgs:      make(chan *Msg, 10),
+		errs:      make(chan error),
+		sessToken: sessToken,
+		sessCsrf:  sessCsrf,
+	}
 }
 
 // Poll calls Receive until it gets ErrProtocolEOF.
@@ -59,6 +67,10 @@ func (r *Receiver) Poll(m *Meta) {
 			return
 		}
 		if err != nil {
+			if _, ok := err.(libkb.AppStatusError); ok {
+				r.errs <- err
+				return
+			}
 			G.Log.Debug("kex receiver poll continuing even though got error: %s (%T)", err, err)
 		}
 		if r.done {
@@ -89,6 +101,9 @@ func (r *Receiver) Next(name MsgName, timeout time.Duration) (*Msg, error) {
 			}
 
 			G.Log.Info("message name: %s, expecting %s.  Ignoring this message.", m.Name(), name)
+		case err := <-r.errs:
+			G.Log.Info("error waiting for message %s: %s", name, err)
+			return nil, err
 
 		case <-time.After(timeout):
 			G.Log.Info("timed out waiting for message %s", name)
@@ -106,6 +121,7 @@ func (r *Receiver) Receive(m *Meta) (int, error) {
 	if err != nil {
 		return 0, err
 	}
+	G.Log.Warning("no error, %d msgs", len(msgs))
 	var count int
 	for _, msg := range msgs {
 
@@ -184,7 +200,12 @@ func (r *Receiver) get() (MsgList, error) {
 	libkb.G.Log.Debug("get: {dir: %d, seqno: %d, w = %s}", r.direction, r.seqno, r.secret.WeakID())
 
 	var j struct {
-		Msgs MsgList `json:"msgs"`
+		Msgs   MsgList `json:"msgs"`
+		Status struct {
+			Code int    `json:"code"`
+			Name string `json:"name"`
+			Desc string `json:"desc"`
+		}
 	}
 	args := libkb.APIArg{
 		Endpoint:    "kex/receive",
@@ -199,6 +220,9 @@ func (r *Receiver) get() (MsgList, error) {
 	}
 	if err := libkb.G.API.GetDecode(args, &j); err != nil {
 		return nil, err
+	}
+	if j.Status.Code != libkb.SCOk {
+		return nil, libkb.AppStatusError{Code: j.Status.Code, Name: j.Status.Name, Desc: j.Status.Desc}
 	}
 
 	sort.Sort(j.Msgs)

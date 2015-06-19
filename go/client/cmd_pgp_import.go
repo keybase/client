@@ -54,11 +54,9 @@ func (s *CmdPGPImport) ParseArgv(ctx *cli.Context) error {
 	return err
 }
 
-func (s *CmdPGPImport) RunClient() (err error) {
-	var cli keybase1.PgpClient
-
-	if err = s.readKeyData(); err != nil {
-		return
+func (s *CmdPGPImport) RunClient() error {
+	if err := s.readKeyData(); err != nil {
+		return err
 	}
 
 	protocols := []rpc2.Protocol{
@@ -66,12 +64,14 @@ func (s *CmdPGPImport) RunClient() (err error) {
 		NewSecretUIProtocol(),
 	}
 
-	if cli, err = GetPGPClient(); err != nil {
-	} else if err = RegisterProtocols(protocols); err != nil {
-	} else {
-		err = cli.PgpImport(s.arg)
+	cli, err := GetPGPClient()
+	if err != nil {
+		return err
 	}
-	return err
+	if err = RegisterProtocols(protocols); err != nil {
+		return err
+	}
+	return cli.PgpImport(s.arg)
 }
 
 func (s *CmdPGPImport) Run() (err error) {
@@ -89,15 +89,17 @@ func (s *CmdPGPImport) Run() (err error) {
 	return engine.RunEngine(eng, &ctx)
 }
 
-func (s *CmdPGPImport) readKeyData() (err error) {
-	var src Source
-	if src, err = initSource("", s.infile); err != nil {
-	} else if err = src.Open(); err != nil {
-	} else {
-		s.arg.Key, err = ioutil.ReadAll(src)
+func (s *CmdPGPImport) readKeyData() error {
+	src, err := initSource("", s.infile)
+	if err != nil {
+		return err
 	}
-	src.Close()
-	return
+	if err = src.Open(); err != nil {
+		return err
+	}
+	defer src.Close()
+	s.arg.Key, err = ioutil.ReadAll(src)
+	return err
 }
 
 func (s *CmdPGPImport) GetUsage() libkb.Usage {

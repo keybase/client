@@ -264,13 +264,15 @@ func (s *CmdSignupState) RequestInvitePromptForOk() (err error) {
 	prompt := "Would you like to be added to the invite request list?"
 	var invite bool
 	if invite, err = GlobUI.PromptYesNo(prompt, PromptDefaultYes); err != nil {
-	} else if !invite {
-		err = NotConfirmedError{}
+		return err
 	}
-	return err
+	if !invite {
+		return NotConfirmedError{}
+	}
+	return nil
 }
 
-func (s *CmdSignupState) RequestInvitePromptForData() (err error) {
+func (s *CmdSignupState) RequestInvitePromptForData() error {
 
 	fullname := &Field{
 		Name:   "fullname",
@@ -283,16 +285,16 @@ func (s *CmdSignupState) RequestInvitePromptForData() (err error) {
 
 	fields := []*Field{fullname, notes}
 	prompter := NewPrompter(fields)
-	if err = prompter.Run(); err != nil {
-	} else {
-		s.fullname = fullname.GetValue()
-		s.notes = notes.GetValue()
+	if err := prompter.Run(); err != nil {
+		return err
 	}
-	return
+	s.fullname = fullname.GetValue()
+	s.notes = notes.GetValue()
+	return nil
 }
 
-func (s *CmdSignupState) RequestInvitePost() (err error) {
-	err = s.engine.PostInviteRequest(libkb.InviteRequestArg{
+func (s *CmdSignupState) RequestInvitePost() error {
+	err := s.engine.PostInviteRequest(libkb.InviteRequestArg{
 		Email:    s.fields.email.GetValue(),
 		Fullname: s.fullname,
 		Notes:    s.notes,
@@ -303,13 +305,14 @@ func (s *CmdSignupState) RequestInvitePost() (err error) {
 	return err
 }
 
-func (s *CmdSignupState) RequestInvite() (err error) {
-	if err = s.RequestInvitePromptForOk(); err != nil {
-	} else if err = s.RequestInvitePromptForData(); err != nil {
-	} else {
-		err = s.RequestInvitePost()
+func (s *CmdSignupState) RequestInvite() error {
+	if err := s.RequestInvitePromptForOk(); err != nil {
+		return err
 	}
-	return err
+	if err := s.RequestInvitePromptForData(); err != nil {
+		return err
+	}
+	return s.RequestInvitePost()
 }
 
 func (s *CmdSignupState) MakePrompter() {
@@ -409,12 +412,15 @@ func (e *clientModeSignupEngine) Prereqs() (ret engine.Prereqs) { return }
 
 func (e *clientModeSignupEngine) CheckRegistered() (err error) {
 	G.Log.Debug("+ clientModeSignupEngine::CheckRegistered")
+	defer G.Log.Debug("- clientModeSignupEngine::CheckRegistered -> %s", libkb.ErrToOk(err))
 	var rres keybase1.GetCurrentStatusRes
 	if rres, err = e.ccli.GetCurrentStatus(0); err != nil {
-	} else if rres.Registered {
-		err = libkb.AlreadyRegisteredError{}
+		return err
 	}
-	G.Log.Debug("- clientModeSignupEngine::CheckRegistered -> %s", libkb.ErrToOk(err))
+	if rres.Registered {
+		err = libkb.AlreadyRegisteredError{}
+		return
+	}
 	return
 }
 

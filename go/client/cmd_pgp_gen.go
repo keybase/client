@@ -7,7 +7,6 @@ import (
 	"github.com/keybase/client/go/engine"
 	"github.com/keybase/client/go/libcmdline"
 	"github.com/keybase/client/go/libkb"
-	keybase1 "github.com/keybase/client/protocol/go"
 	"github.com/maxtaco/go-framed-msgpack-rpc/rpc2"
 )
 
@@ -42,20 +41,23 @@ func (v *CmdPGPGen) ParseArgv(ctx *cli.Context) (err error) {
 // XXX is there a reason this uses CreatePgpIDs and the standalone
 // Run below uses MakeAllIds?
 func (v *CmdPGPGen) RunClient() (err error) {
-	var cli keybase1.PgpClient
 	protocols := []rpc2.Protocol{
 		NewLogUIProtocol(),
 		NewSecretUIProtocol(),
 	}
-	gen := v.arg.Gen
-	if cli, err = GetPGPClient(); err != nil {
-	} else if err = RegisterProtocols(protocols); err != nil {
-	} else if err = gen.CreatePgpIDs(); err != nil {
-	} else {
-		err = cli.PgpKeyGen(v.arg.Export())
+	cli, err := GetPGPClient()
+	if err != nil {
+		return err
 	}
+	if err = RegisterProtocols(protocols); err != nil {
+		return err
+	}
+	if err = v.arg.Gen.CreatePgpIDs(); err != nil {
+		return err
+	}
+	err = cli.PgpKeyGen(v.arg.Export())
 	PGPMultiWarn(err)
-	return
+	return err
 }
 
 func (v *CmdPGPGen) Run() (err error) {
@@ -71,11 +73,12 @@ func (v *CmdPGPGen) Run() (err error) {
 
 func PGPMultiWarn(err error) {
 	if err == nil {
-	} else if kee, ok := err.(libkb.KeyExistsError); ok {
+		return
+	}
+	if kee, ok := err.(libkb.KeyExistsError); ok {
 		G.Log.Warning("You already have a PGP key registered (%s)", kee.Key.ToQuads())
 		G.Log.Info("Specify the `--multi` flag to override this check")
 	}
-	return
 }
 
 func NewCmdPGPGen(cl *libcmdline.CommandLine) cli.Command {

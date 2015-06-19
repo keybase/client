@@ -60,40 +60,43 @@ func (s *CmdPGPExport) ParseArgv(ctx *cli.Context) error {
 }
 
 func (s *CmdPGPExport) RunClient() (err error) {
-	var cli keybase1.PgpClient
 	protocols := []rpc2.Protocol{
 		NewLogUIProtocol(),
 		NewSecretUIProtocol(),
 	}
 
-	if cli, err = GetPGPClient(); err != nil {
-	} else if err = RegisterProtocols(protocols); err != nil {
-	} else {
-		err = s.finish(cli.PgpExport(s.arg))
-	}
-	return err
-}
-
-func (s *CmdPGPExport) finish(res []keybase1.KeyInfo, err error) error {
+	cli, err := GetPGPClient()
 	if err != nil {
 		return err
+	}
+	if err = RegisterProtocols(protocols); err != nil {
+		return err
+	}
+	return s.finish(cli.PgpExport(s.arg))
+}
+
+func (s *CmdPGPExport) finish(res []keybase1.KeyInfo, inErr error) error {
+	if inErr != nil {
+		return inErr
 	}
 	if len(res) > 1 {
 		G.Log.Warning("Found several matches:")
 		for _, k := range res {
+			// XXX os.Stderr?  why not Log?
 			os.Stderr.Write([]byte(k.Desc + "\n\n"))
 		}
-		err = fmt.Errorf("Specify a key to export")
-	} else if len(res) == 0 {
-		err = fmt.Errorf("No matching keys found")
-	} else {
-		snk := initSink(s.outfile)
-		if err = snk.Open(); err == nil {
-			snk.Write([]byte(res[0].Key))
-			err = snk.Close()
-		}
+		return fmt.Errorf("Specify a key to export")
 	}
-	return err
+	if len(res) == 0 {
+		return fmt.Errorf("No matching keys found")
+	}
+
+	snk := initSink(s.outfile)
+	if err := snk.Open(); err != nil {
+		return err
+	}
+	snk.Write([]byte(res[0].Key))
+	return snk.Close()
 }
 
 func (s *CmdPGPExport) Run() (err error) {

@@ -61,27 +61,29 @@ type CmdPGPSign struct {
 
 func (s *CmdPGPSign) ParseArgv(ctx *cli.Context) error {
 	nargs := len(ctx.Args())
-	var err error
+	if nargs > 1 {
+		return fmt.Errorf("sign takes at most 1 arg, an infile")
+	}
 
 	s.opts.BinaryOut = ctx.Bool("binary")
 	s.opts.BinaryIn = !ctx.Bool("text")
 
 	msg := ctx.String("message")
 	outfile := ctx.String("outfile")
-	var infile string
 
+	var infile string
 	if nargs == 1 {
 		infile = ctx.Args()[0]
-	} else if nargs > 1 {
-		err = fmt.Errorf("sign takes at most 1 arg, an infile")
 	}
 
 	clr := ctx.Bool("clearsign")
 	dtch := ctx.Bool("detached")
 
 	if clr && dtch {
-		err = fmt.Errorf("Can't specify both -c and -d")
-	} else if clr {
+		return fmt.Errorf("Can't specify both -c and -d")
+	}
+
+	if clr {
 		s.opts.Mode = keybase1.SignMode_CLEAR
 	} else if dtch {
 		s.opts.Mode = keybase1.SignMode_DETACHED
@@ -91,30 +93,28 @@ func (s *CmdPGPSign) ParseArgv(ctx *cli.Context) error {
 
 	s.opts.KeyQuery = ctx.String("key")
 
-	if err == nil {
-		err = s.FilterInit(msg, infile, outfile)
-	}
-
-	return err
+	return s.FilterInit(msg, infile, outfile)
 }
 
 func (s *CmdPGPSign) RunClient() (err error) {
-	var cli keybase1.PgpClient
-	var snk, src keybase1.Stream
 	protocols := []rpc2.Protocol{
 		NewStreamUIProtocol(),
 		NewSecretUIProtocol(),
 	}
 
-	if cli, err = GetPGPClient(); err != nil {
-	} else if err = RegisterProtocols(protocols); err != nil {
-	} else if snk, src, err = s.ClientFilterOpen(); err != nil {
-	} else {
+	cli, err := GetPGPClient()
+	if err != nil {
+		return err
+	}
+	if err = RegisterProtocols(protocols); err != nil {
+		return err
+	}
+	snk, src, err := s.ClientFilterOpen()
+	if err == nil {
 		arg := keybase1.PgpSignArg{Source: src, Sink: snk, Opts: s.opts}
 		err = cli.PgpSign(arg)
 	}
-	s.Close(err)
-	return err
+	return s.Close(err)
 }
 
 func (s *CmdPGPSign) Run() (err error) {

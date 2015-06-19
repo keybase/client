@@ -395,6 +395,10 @@ func (d *Locksmith) deviceSign(ctx *Context, withPGPOption bool) error {
 				ctx.LogUI.Info("deviceSignExistingDevice not retrying after EOF error")
 				return libkb.CanceledError{}
 			}
+			if _, ok := err.(libkb.AppStatusError); ok {
+				ctx.LogUI.Info("deviceSignExistingDevice not retrying after AppStatusError: %s", err)
+				return err
+			}
 			uiarg := keybase1.DeviceSignAttemptErrArg{
 				Msg:     err.Error(),
 				Attempt: i + 1,

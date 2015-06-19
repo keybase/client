@@ -4,21 +4,19 @@ import (
 	"github.com/keybase/cli"
 	"github.com/keybase/client/go/libcmdline"
 	"github.com/keybase/client/go/libkb"
-	keybase1 "github.com/keybase/client/protocol/go"
 )
 
 type CmdLogout struct{}
 
-func (v *CmdLogout) RunClient() (err error) {
-	var cli keybase1.LoginClient
-	if cli, err = GetLoginClient(); err != nil {
-	} else {
-		err = cli.Logout(0)
+func (v *CmdLogout) RunClient() error {
+	cli, err := GetLoginClient()
+	if err != nil {
+		return err
 	}
-	return
+	return cli.Logout(0)
 }
 
-func (v *CmdLogout) Run() (err error) {
+func (v *CmdLogout) Run() error {
 	return libkb.G.Logout()
 }
 
