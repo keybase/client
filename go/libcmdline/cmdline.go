@@ -71,7 +71,7 @@ func (p CommandLine) GetDbFilename() string {
 func (p CommandLine) GetDebug() (bool, bool) {
 	return p.GetBool("debug", true)
 }
-func (p CommandLine) GetPgpFingerprint() *libkb.PgpFingerprint {
+func (p CommandLine) GetPgpFingerprint() *libkb.PGPFingerprint {
 	return libkb.PgpFingerprintFromHexNoError(p.GetGString("fingerprint"))
 }
 func (p CommandLine) GetProxy() string {

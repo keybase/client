@@ -23,7 +23,7 @@ const (
 
 type PGPKeyExportEngine struct {
 	libkb.Contextified
-	arg   keybase1.PgpQuery
+	arg   keybase1.PGPQuery
 	qtype queryType
 	res   []keybase1.KeyInfo
 	me    *libkb.User
@@ -53,7 +53,7 @@ func (e *PGPKeyExportEngine) Results() []keybase1.KeyInfo {
 	return e.res
 }
 
-func NewPGPKeyExportEngine(arg keybase1.PgpExportArg, g *libkb.GlobalContext) *PGPKeyExportEngine {
+func NewPGPKeyExportEngine(arg keybase1.PGPExportArg, g *libkb.GlobalContext) *PGPKeyExportEngine {
 	return &PGPKeyExportEngine{
 		arg:          arg.Options,
 		qtype:        either,
@@ -61,7 +61,7 @@ func NewPGPKeyExportEngine(arg keybase1.PgpExportArg, g *libkb.GlobalContext) *P
 	}
 }
 
-func NewPGPKeyExportByKIDEngine(arg keybase1.PgpExportByKIDArg, g *libkb.GlobalContext) *PGPKeyExportEngine {
+func NewPGPKeyExportByKIDEngine(arg keybase1.PGPExportByKIDArg, g *libkb.GlobalContext) *PGPKeyExportEngine {
 	return &PGPKeyExportEngine{
 		arg:          arg.Options,
 		qtype:        kid,
@@ -69,7 +69,7 @@ func NewPGPKeyExportByKIDEngine(arg keybase1.PgpExportByKIDArg, g *libkb.GlobalC
 	}
 }
 
-func NewPGPKeyExportByFingerprintEngine(arg keybase1.PgpExportByFingerprintArg, g *libkb.GlobalContext) *PGPKeyExportEngine {
+func NewPGPKeyExportByFingerprintEngine(arg keybase1.PGPExportByFingerprintArg, g *libkb.GlobalContext) *PGPKeyExportEngine {
 	return &PGPKeyExportEngine{
 		arg:          arg.Options,
 		qtype:        fingerprint,
@@ -77,7 +77,7 @@ func NewPGPKeyExportByFingerprintEngine(arg keybase1.PgpExportByFingerprintArg, 
 	}
 }
 
-func (e *PGPKeyExportEngine) pushRes(fp libkb.PgpFingerprint, key string, desc string) {
+func (e *PGPKeyExportEngine) pushRes(fp libkb.PGPFingerprint, key string, desc string) {
 	e.res = append(e.res, keybase1.KeyInfo{
 		Fingerprint: fp.String(),
 		Key:         key,

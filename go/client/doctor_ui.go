@@ -90,12 +90,12 @@ func (d DoctorUI) DisplayStatus(status keybase1.DoctorStatus) (bool, error) {
 		var signout string
 		if status.SignerOpts.OtherDevice {
 			signout = "You can authorize this device with an existing device"
-			if status.SignerOpts.Pgp {
+			if status.SignerOpts.PGP {
 				signout += " or a PGP key."
 			} else {
 				signout += "."
 			}
-		} else if status.SignerOpts.Pgp {
+		} else if status.SignerOpts.PGP {
 			signout = "You can authorize this device with a PGP key."
 		} else {
 			return false, fmt.Errorf("no signers available")

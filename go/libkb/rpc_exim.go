@@ -190,7 +190,7 @@ func ImportStatusAsError(s *keybase1.Status) error {
 	case SCLoginRequired:
 		return LoginRequiredError{s.Desc}
 	case SCKeyInUse:
-		var fp *PgpFingerprint
+		var fp *PGPFingerprint
 		if len(s.Desc) > 0 {
 			fp, _ = PgpFingerprintFromHex(s.Desc)
 		}
@@ -247,16 +247,16 @@ func ExportTrackDiff(d TrackDiff) (res *keybase1.TrackDiff) {
 
 //=============================================================================
 
-func ImportPgpFingerprint(f keybase1.FOKID) (ret *PgpFingerprint) {
-	if f.PgpFingerprint != nil && len(*f.PgpFingerprint) == PGPFingerprintLen {
-		var tmp PgpFingerprint
-		copy(tmp[:], (*f.PgpFingerprint)[:])
+func ImportPgpFingerprint(f keybase1.FOKID) (ret *PGPFingerprint) {
+	if f.PGPFingerprint != nil && len(*f.PGPFingerprint) == PGPFingerprintLen {
+		var tmp PGPFingerprint
+		copy(tmp[:], (*f.PGPFingerprint)[:])
 		ret = &tmp
 	}
 	return
 }
 
-func ImportPgpFingerprintSlice(fp []byte) (ret *PgpFingerprint) {
+func ImportPgpFingerprintSlice(fp []byte) (ret *PGPFingerprint) {
 	if fp == nil {
 		return nil
 	}
@@ -264,14 +264,14 @@ func ImportPgpFingerprintSlice(fp []byte) (ret *PgpFingerprint) {
 		return nil
 	}
 
-	var tmp PgpFingerprint
+	var tmp PGPFingerprint
 	copy(tmp[:], fp)
 	return &tmp
 }
 
-func (f *PgpFingerprint) ExportToFOKID() (ret keybase1.FOKID) {
+func (f *PGPFingerprint) ExportToFOKID() (ret keybase1.FOKID) {
 	slc := (*f)[:]
-	ret.PgpFingerprint = &slc
+	ret.PGPFingerprint = &slc
 	return
 }
 
@@ -280,7 +280,7 @@ func (f *PgpFingerprint) ExportToFOKID() (ret keybase1.FOKID) {
 func (f *FOKID) Export() (ret keybase1.FOKID) {
 	if f != nil && f.Fp != nil {
 		slc := (*f.Fp)[:]
-		ret.PgpFingerprint = &slc
+		ret.PGPFingerprint = &slc
 	}
 	if f != nil && f.Kid != nil {
 		tmp := []byte(f.Kid)
@@ -459,21 +459,21 @@ func (c NoActiveKeyError) ToStatus() (s keybase1.Status) {
 
 //=============================================================================
 
-func (ids Identities) Export() (res []keybase1.PgpIdentity) {
+func (ids Identities) Export() (res []keybase1.PGPIdentity) {
 	var n int
 	if ids == nil {
 		n = 0
 	} else {
 		n = len(ids)
 	}
-	res = make([]keybase1.PgpIdentity, n)
+	res = make([]keybase1.PGPIdentity, n)
 	for i, id := range ids {
 		res[i] = id.Export()
 	}
 	return
 }
 
-func ImportPgpIdentities(ids []keybase1.PgpIdentity) (ret Identities) {
+func ImportPgpIdentities(ids []keybase1.PGPIdentity) (ret Identities) {
 	ret = Identities(make([]Identity, len(ids)))
 	for i, id := range ids {
 		ret[i] = ImportPgpIdentity(id)
@@ -483,14 +483,14 @@ func ImportPgpIdentities(ids []keybase1.PgpIdentity) (ret Identities) {
 
 //=============================================================================
 
-func (id Identity) Export() (ret keybase1.PgpIdentity) {
+func (id Identity) Export() (ret keybase1.PGPIdentity) {
 	ret.Username = id.Username
 	ret.Email = id.Email
 	ret.Comment = id.Comment
 	return
 }
 
-func ImportPgpIdentity(arg keybase1.PgpIdentity) (ret Identity) {
+func ImportPgpIdentity(arg keybase1.PGPIdentity) (ret Identity) {
 	ret.Username = arg.Username
 	ret.Email = arg.Email
 	ret.Comment = arg.Comment
@@ -518,11 +518,11 @@ func (l PublicKeyList) Less(i, j int) bool {
 }
 func (l PublicKeyList) Swap(i, j int) { l[i], l[j] = l[j], l[i] }
 
-func ExportPgpIdentity(identity *openpgp.Identity) keybase1.PgpIdentity {
+func ExportPgpIdentity(identity *openpgp.Identity) keybase1.PGPIdentity {
 	if identity == nil || identity.UserId == nil {
-		return keybase1.PgpIdentity{}
+		return keybase1.PGPIdentity{}
 	}
-	return keybase1.PgpIdentity{
+	return keybase1.PGPIdentity{
 		Username: identity.UserId.Name,
 		Email:    identity.UserId.Email,
 		Comment:  identity.UserId.Comment,
@@ -532,7 +532,7 @@ func ExportPgpIdentity(identity *openpgp.Identity) keybase1.PgpIdentity {
 func (bundle *PgpKeyBundle) Export() keybase1.PublicKey {
 	kid := bundle.GetKid().String()
 	fingerprintStr := ""
-	identities := []keybase1.PgpIdentity{}
+	identities := []keybase1.PGPIdentity{}
 	fingerprintStr = bundle.GetFingerprint().String()
 	for _, identity := range bundle.Identities {
 		identities = append(identities, ExportPgpIdentity(identity))
@@ -549,7 +549,7 @@ func (ckf ComputedKeyFamily) Export() []keybase1.PublicKey {
 	addKey := func(key GenericKey) {
 		kid := key.GetKid()
 		fingerprintStr := ""
-		identities := []keybase1.PgpIdentity{}
+		identities := []keybase1.PGPIdentity{}
 		if pgpBundle, isPGP := key.(*PgpKeyBundle); isPGP {
 			fingerprintStr = pgpBundle.GetFingerprint().String()
 			for _, identity := range pgpBundle.Identities {
@@ -608,16 +608,16 @@ func (u *User) Export() *keybase1.User {
 
 //=============================================================================
 
-func (a PGPGenArg) ExportTo(ret *keybase1.PgpKeyGenArg) {
+func (a PGPGenArg) ExportTo(ret *keybase1.PGPKeyGenArg) {
 	ret.PrimaryBits = a.PrimaryBits
 	ret.SubkeyBits = a.SubkeyBits
-	ret.CreateUids = keybase1.PgpCreateUids{UseDefault: !a.NoDefPGPUid, Ids: a.Ids.Export()}
+	ret.CreateUids = keybase1.PGPCreateUids{UseDefault: !a.NoDefPGPUid, Ids: a.Ids.Export()}
 	return
 }
 
 //=============================================================================
 
-func ImportKeyGenArg(a keybase1.PgpKeyGenArg) (ret PGPGenArg) {
+func ImportKeyGenArg(a keybase1.PGPKeyGenArg) (ret PGPGenArg) {
 	ret.PrimaryBits = a.PrimaryBits
 	ret.SubkeyBits = a.SubkeyBits
 	ret.NoDefPGPUid = !a.CreateUids.UseDefault

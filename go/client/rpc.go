@@ -108,10 +108,10 @@ func GetSigsClient() (cli keybase1.SigsClient, err error) {
 	return
 }
 
-func GetPGPClient() (cli keybase1.PgpClient, err error) {
+func GetPGPClient() (cli keybase1.PGPClient, err error) {
 	var rcli *rpc2.Client
 	if rcli, _, err = GetRPCClient(); err == nil {
-		cli = keybase1.PgpClient{Cli: rcli}
+		cli = keybase1.PGPClient{Cli: rcli}
 	}
 	return
 }

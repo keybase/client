@@ -69,7 +69,7 @@ func sign(ctx *Context, tc libkb.TestContext, msg string, mode keybase1.SignMode
 	arg := &PGPSignArg{
 		Sink:   sink,
 		Source: ioutil.NopCloser(strings.NewReader(msg)),
-		Opts:   keybase1.PgpSignOptions{Mode: keybase1.SignMode(mode)},
+		Opts:   keybase1.PGPSignOptions{Mode: keybase1.SignMode(mode)},
 	}
 	eng := NewPGPSignEngine(arg, tc.G)
 	if err := RunEngine(eng, ctx); err != nil {

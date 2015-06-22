@@ -36,7 +36,7 @@ func NewCmdPGPImport(cl *libcmdline.CommandLine) cli.Command {
 
 type CmdPGPImport struct {
 	UnixFilter
-	arg    keybase1.PgpImportArg
+	arg    keybase1.PGPImportArg
 	infile string
 }
 
@@ -71,7 +71,7 @@ func (s *CmdPGPImport) RunClient() error {
 	if err = RegisterProtocols(protocols); err != nil {
 		return err
 	}
-	return cli.PgpImport(s.arg)
+	return cli.PGPImport(s.arg)
 }
 
 func (s *CmdPGPImport) Run() (err error) {

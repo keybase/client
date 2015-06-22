@@ -19,7 +19,7 @@ type PGPSignEngine struct {
 type PGPSignArg struct {
 	Sink   io.WriteCloser
 	Source io.ReadCloser
-	Opts   keybase1.PgpSignOptions
+	Opts   keybase1.PGPSignOptions
 }
 
 func (p *PGPSignEngine) Prereqs() Prereqs {

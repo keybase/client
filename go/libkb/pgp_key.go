@@ -24,16 +24,16 @@ const (
 	PGPFingerprintLen = 20
 )
 
-type PgpFingerprint [PGPFingerprintLen]byte
+type PGPFingerprint [PGPFingerprintLen]byte
 
 // Remove the need for the PgpFingerprintMapKey type. See
 // https://github.com/keybase/client/issues/413 .
 type PgpFingerprintMapKey string
 
-func PgpFingerprintFromHex(s string) (*PgpFingerprint, error) {
-	var fp PgpFingerprint
+func PgpFingerprintFromHex(s string) (*PGPFingerprint, error) {
+	var fp PGPFingerprint
 	n, err := hex.Decode([]byte(fp[:]), []byte(s))
-	var ret *PgpFingerprint
+	var ret *PGPFingerprint
 	if err != nil {
 		// Noop
 	} else if n != PGPFingerprintLen {
@@ -44,7 +44,7 @@ func PgpFingerprintFromHex(s string) (*PgpFingerprint, error) {
 	return ret, err
 }
 
-func PgpFingerprintFromHexNoError(s string) *PgpFingerprint {
+func PgpFingerprintFromHexNoError(s string) *PGPFingerprint {
 	if len(s) == 0 {
 		return nil
 	} else if f, e := PgpFingerprintFromHex(s); e == nil {
@@ -54,19 +54,19 @@ func PgpFingerprintFromHexNoError(s string) *PgpFingerprint {
 	}
 }
 
-func (p PgpFingerprint) String() string {
+func (p PGPFingerprint) String() string {
 	return hex.EncodeToString(p[:])
 }
 
-func (p PgpFingerprint) ToMapKey() PgpFingerprintMapKey {
+func (p PGPFingerprint) ToMapKey() PgpFingerprintMapKey {
 	return PgpFingerprintMapKey(p.String())
 }
 
-func (p PgpFingerprint) ToFOKIDMapKey() FOKIDMapKey {
+func (p PGPFingerprint) ToFOKIDMapKey() FOKIDMapKey {
 	return FOKIDMapKey(p.ToMapKey())
 }
 
-func (p PgpFingerprint) ToQuads() string {
+func (p PGPFingerprint) ToQuads() string {
 	x := []byte(strings.ToUpper(p.String()))
 	totlen := len(x)*5/4 - 1
 	ret := make([]byte, totlen)
@@ -82,18 +82,18 @@ func (p PgpFingerprint) ToQuads() string {
 	return string(ret)
 }
 
-func (p PgpFingerprint) ToKeyID() string {
+func (p PGPFingerprint) ToKeyID() string {
 	return strings.ToUpper(hex.EncodeToString(p[12:20]))
 }
 
-func (p PgpFingerprint) ToDisplayString(verbose bool) string {
+func (p PGPFingerprint) ToDisplayString(verbose bool) string {
 	if verbose {
 		return p.String()
 	}
 	return p.ToKeyID()
 }
 
-func (p *PgpFingerprint) Match(q string, exact bool) bool {
+func (p *PGPFingerprint) Match(q string, exact bool) bool {
 	if p == nil {
 		return false
 	}
@@ -113,11 +113,11 @@ func (k *PgpKeyBundle) StoreToLocalDb() error {
 	return G.LocalDb.Put(DbKey{Typ: DBPGPKey, Key: k.GetFingerprint().String()}, []DbKey{}, val)
 }
 
-func (p PgpFingerprint) Eq(p2 PgpFingerprint) bool {
+func (p PGPFingerprint) Eq(p2 PGPFingerprint) bool {
 	return FastByteArrayEq(p[:], p2[:])
 }
 
-func GetPgpFingerprint(w *jsonw.Wrapper) (*PgpFingerprint, error) {
+func GetPgpFingerprint(w *jsonw.Wrapper) (*PGPFingerprint, error) {
 	s, err := w.GetString()
 	if err != nil {
 		return nil, err
@@ -125,7 +125,7 @@ func GetPgpFingerprint(w *jsonw.Wrapper) (*PgpFingerprint, error) {
 	return PgpFingerprintFromHex(s)
 }
 
-func GetPgpFingerprintVoid(w *jsonw.Wrapper, p *PgpFingerprint, e *error) {
+func GetPgpFingerprintVoid(w *jsonw.Wrapper, p *PGPFingerprint, e *error) {
 	ret, err := GetPgpFingerprint(w)
 	if err != nil {
 		*e = err
@@ -140,11 +140,11 @@ func (k PgpKeyBundle) toList() openpgp.EntityList {
 	return list
 }
 
-func (k PgpKeyBundle) GetFingerprint() PgpFingerprint {
-	return PgpFingerprint(k.PrimaryKey.Fingerprint)
+func (k PgpKeyBundle) GetFingerprint() PGPFingerprint {
+	return PGPFingerprint(k.PrimaryKey.Fingerprint)
 }
 
-func (k PgpKeyBundle) GetFingerprintP() *PgpFingerprint {
+func (k PgpKeyBundle) GetFingerprintP() *PGPFingerprint {
 	fp := k.GetFingerprint()
 	return &fp
 }
@@ -479,7 +479,7 @@ func (k *PgpKeyBundle) Unlock(reason string, secretUI SecretUI) error {
 	return err
 }
 
-func (k *PgpKeyBundle) CheckFingerprint(fp *PgpFingerprint) error {
+func (k *PgpKeyBundle) CheckFingerprint(fp *PGPFingerprint) error {
 	if k == nil {
 		return UnexpectedKeyError{}
 	}
@@ -522,10 +522,10 @@ func (k PgpKeyBundle) VerifyString(sig string, msg []byte) (id keybase1.SigID, e
 	return
 }
 
-func ExportAsFOKID(fp *PgpFingerprint, kid KID) (ret keybase1.FOKID) {
+func ExportAsFOKID(fp *PGPFingerprint, kid KID) (ret keybase1.FOKID) {
 	if fp != nil {
 		b := (*fp)[:]
-		ret.PgpFingerprint = &b
+		ret.PGPFingerprint = &b
 	}
 	if kid != nil {
 		b := []byte(kid)
@@ -560,8 +560,8 @@ func (k *PgpKeyBundle) IdentityNames() []string {
 	return names
 }
 
-func (k *PgpKeyBundle) GetPgpIdentities() []keybase1.PgpIdentity {
-	ret := make([]keybase1.PgpIdentity, len(k.Identities))
+func (k *PgpKeyBundle) GetPgpIdentities() []keybase1.PGPIdentity {
+	ret := make([]keybase1.PGPIdentity, len(k.Identities))
 	for _, pgpIdentity := range k.Identities {
 		ret = append(ret, ExportPgpIdentity(pgpIdentity))
 	}
@@ -592,19 +592,19 @@ func (k *PgpKeyBundle) CheckIdentity(kbid Identity) (match bool, ctime int64, et
 
 // Fulfill the TrackIdComponent interface
 
-func (p PgpFingerprint) ToIDString() string {
+func (p PGPFingerprint) ToIDString() string {
 	return p.String()
 }
 
-func (p PgpFingerprint) ToKeyValuePair() (string, string) {
+func (p PGPFingerprint) ToKeyValuePair() (string, string) {
 	return "fingerprint", p.ToIDString()
 }
 
-func (p PgpFingerprint) GetProofState() keybase1.ProofState {
+func (p PGPFingerprint) GetProofState() keybase1.ProofState {
 	return keybase1.ProofState_OK
 }
 
-func (p PgpFingerprint) LastWriterWins() bool {
+func (p PGPFingerprint) LastWriterWins() bool {
 	return false
 }
 

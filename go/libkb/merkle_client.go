@@ -60,7 +60,7 @@ type MerkleClient struct {
 
 type MerkleRoot struct {
 	seqno             Seqno
-	pgpFingerprint    PgpFingerprint
+	pgpFingerprint    PGPFingerprint
 	sigs              *jsonw.Wrapper
 	payloadJSONString string
 	payloadJSON       *jsonw.Wrapper
@@ -201,7 +201,7 @@ func NewMerkleRootFromJSON(jw *jsonw.Wrapper) (ret *MerkleRoot, err error) {
 	var sigs *jsonw.Wrapper
 	var payloadJSONString string
 	var pj *jsonw.Wrapper
-	var fp PgpFingerprint
+	var fp PGPFingerprint
 	var rh, lurh NodeHash
 	var ctime int64
 

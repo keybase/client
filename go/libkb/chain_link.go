@@ -82,7 +82,7 @@ type ChainLinkUnpacked struct {
 	seqno          Seqno
 	payloadJSONStr string
 	ctime, etime   int64
-	pgpFingerprint *PgpFingerprint
+	pgpFingerprint *PGPFingerprint
 	kid            KID
 	eldestKid      KID
 	sig            string
@@ -631,14 +631,14 @@ func (c *ChainLink) MatchEldestFOKID(fokid FOKID) bool {
 	return c.ToEldestFOKID().Eq(fokid)
 }
 
-func (c *ChainLink) GetPgpFingerprint() *PgpFingerprint { return c.unpacked.pgpFingerprint }
+func (c *ChainLink) GetPgpFingerprint() *PGPFingerprint { return c.unpacked.pgpFingerprint }
 func (c *ChainLink) GetKid() KID                        { return c.unpacked.kid }
 
 func (c *ChainLink) GetFOKID() FOKID {
 	return FOKID{Kid: c.GetKid(), Fp: c.GetPgpFingerprint()}
 }
 
-func (c *ChainLink) MatchFingerprint(fp PgpFingerprint) bool {
+func (c *ChainLink) MatchFingerprint(fp PGPFingerprint) bool {
 	return c.unpacked.pgpFingerprint != nil && fp.Eq(*c.unpacked.pgpFingerprint)
 }
 

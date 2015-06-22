@@ -350,7 +350,7 @@ func (s *SKB) SetUID(uid keybase1.UID) {
 type SKBKeyringFile struct {
 	filename string
 	Blocks   []*SKB
-	fpIndex  map[PgpFingerprint]*SKB
+	fpIndex  map[PGPFingerprint]*SKB
 	kidIndex map[KIDMapKey]*SKB
 	dirty    bool
 }
@@ -358,7 +358,7 @@ type SKBKeyringFile struct {
 func NewSKBKeyringFile(n string) *SKBKeyringFile {
 	return &SKBKeyringFile{
 		filename: n,
-		fpIndex:  make(map[PgpFingerprint]*SKB),
+		fpIndex:  make(map[PGPFingerprint]*SKB),
 		kidIndex: make(map[KIDMapKey]*SKB),
 		dirty:    false,
 	}
@@ -452,7 +452,7 @@ func (k SKBKeyringFile) SearchWithComputedKeyFamily(ckf *ComputedKeyFamily, ska 
 	return nil
 }
 
-func (k SKBKeyringFile) LookupByFingerprint(fp PgpFingerprint) *SKB {
+func (k SKBKeyringFile) LookupByFingerprint(fp PGPFingerprint) *SKB {
 	ret, ok := k.fpIndex[fp]
 	if !ok {
 		ret = nil

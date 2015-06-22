@@ -26,7 +26,7 @@ type TypedChainLink interface {
 	GetSeqno() Seqno
 	GetCTime() time.Time
 	GetETime() time.Time
-	GetPgpFingerprint() *PgpFingerprint
+	GetPgpFingerprint() *PGPFingerprint
 	GetKid() KID
 	GetFOKID() FOKID
 	IsInCurrentFamily(u *User) bool
@@ -69,7 +69,7 @@ func (g *GenericChainLink) IsRevocationIsh() bool                { return false 
 func (g *GenericChainLink) GetRole() KeyRole                     { return DLGNone }
 func (g *GenericChainLink) IsRevoked() bool                      { return g.revoked }
 func (g *GenericChainLink) GetSeqno() Seqno                      { return g.unpacked.seqno }
-func (g *GenericChainLink) GetPgpFingerprint() *PgpFingerprint {
+func (g *GenericChainLink) GetPgpFingerprint() *PGPFingerprint {
 	return g.unpacked.pgpFingerprint
 }
 
@@ -407,12 +407,12 @@ func (l *TrackChainLink) GetTrackedFOKID() (ret FOKID) {
 	return
 }
 
-func (l *TrackChainLink) GetTrackedPGPFingerprints() ([]PgpFingerprint, error) {
+func (l *TrackChainLink) GetTrackedPGPFingerprints() ([]PGPFingerprint, error) {
 	// presumably order is important, so we'll only use the map as a set
 	// to deduplicate keys.
-	set := make(map[PgpFingerprint]bool)
+	set := make(map[PGPFingerprint]bool)
 
-	var res []PgpFingerprint
+	var res []PGPFingerprint
 
 	fk := l.GetTrackedFOKID()
 	if fk.Fp != nil {
@@ -445,7 +445,7 @@ func (l *TrackChainLink) GetTrackedPGPFingerprints() ([]PgpFingerprint, error) {
 func (l *TrackChainLink) GetTrackedPGPFOKIDs() ([]FOKID, error) {
 	// presumably order is important, so we'll only use the map as a set
 	// to deduplicate keys.
-	set := make(map[PgpFingerprint]bool)
+	set := make(map[PGPFingerprint]bool)
 
 	var res []FOKID
 

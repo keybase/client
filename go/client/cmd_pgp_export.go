@@ -40,7 +40,7 @@ func NewCmdPGPExport(cl *libcmdline.CommandLine) cli.Command {
 
 type CmdPGPExport struct {
 	UnixFilter
-	arg     keybase1.PgpExportArg
+	arg     keybase1.PGPExportArg
 	outfile string
 }
 
@@ -72,7 +72,7 @@ func (s *CmdPGPExport) RunClient() (err error) {
 	if err = RegisterProtocols(protocols); err != nil {
 		return err
 	}
-	return s.finish(cli.PgpExport(s.arg))
+	return s.finish(cli.PGPExport(s.arg))
 }
 
 func (s *CmdPGPExport) finish(res []keybase1.KeyInfo, inErr error) error {

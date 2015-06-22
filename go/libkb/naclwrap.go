@@ -174,7 +174,7 @@ func (k NaclDHKeyPublic) GetKid() KID {
 	return KID(out)
 }
 
-func (k NaclDHKeyPair) GetFingerprintP() *PgpFingerprint {
+func (k NaclDHKeyPair) GetFingerprintP() *PGPFingerprint {
 	return nil
 }
 
@@ -216,7 +216,7 @@ func (k NaclDHKeyPair) VerboseDescription() string {
 	return fmt.Sprintf("255-bit Curve25519 DH key (%s)", k.ToShortIDString())
 }
 
-func (k NaclSigningKeyPair) GetFingerprintP() *PgpFingerprint {
+func (k NaclSigningKeyPair) GetFingerprintP() *PGPFingerprint {
 	return nil
 }
 

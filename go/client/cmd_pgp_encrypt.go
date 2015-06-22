@@ -117,7 +117,7 @@ func (c *CmdPGPEncrypt) RunClient() error {
 	if err != nil {
 		return err
 	}
-	opts := keybase1.PgpEncryptOptions{
+	opts := keybase1.PGPEncryptOptions{
 		Recipients:    c.recipients,
 		NoSign:        !c.sign,
 		NoSelf:        c.noSelf,
@@ -126,8 +126,8 @@ func (c *CmdPGPEncrypt) RunClient() error {
 		LocalOnly:     c.localOnly,
 		ApproveRemote: c.approveRemote,
 	}
-	arg := keybase1.PgpEncryptArg{Source: src, Sink: snk, Opts: opts}
-	err = cli.PgpEncrypt(arg)
+	arg := keybase1.PGPEncryptArg{Source: src, Sink: snk, Opts: opts}
+	err = cli.PGPEncrypt(arg)
 
 	c.Close(err)
 	return err

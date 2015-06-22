@@ -44,7 +44,7 @@ func (v *CmdPGPSelect) RunClient() error {
 		return err
 	}
 
-	err = c.PgpSelect(keybase1.PgpSelectArg{FingerprintQuery: v.query, AllowMulti: v.multi, SkipImport: v.skipImport})
+	err = c.PGPSelect(keybase1.PGPSelectArg{FingerprintQuery: v.query, AllowMulti: v.multi, SkipImport: v.skipImport})
 	PGPMultiWarn(err)
 	return err
 }

@@ -5,14 +5,14 @@ import (
 	keybase1 "github.com/keybase/client/protocol/go"
 )
 
-func (a *PGPKeyImportEngineArg) Export() (ret keybase1.PgpKeyGenArg) {
+func (a *PGPKeyImportEngineArg) Export() (ret keybase1.PGPKeyGenArg) {
 	ret.AllowMulti = a.AllowMulti
 	ret.DoExport = a.DoExport
 	a.Gen.ExportTo(&ret)
 	return
 }
 
-func ImportPGPKeyImportEngineArg(a keybase1.PgpKeyGenArg) (ret PGPKeyImportEngineArg) {
+func ImportPGPKeyImportEngineArg(a keybase1.PGPKeyGenArg) (ret PGPKeyImportEngineArg) {
 	ga := libkb.ImportKeyGenArg(a)
 	ret = PGPKeyImportEngineArg{
 		AllowMulti: a.AllowMulti,

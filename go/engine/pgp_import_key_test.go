@@ -40,8 +40,8 @@ func TestPGPImportAndExport(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	arg := keybase1.PgpExportArg{
-		Options: keybase1.PgpQuery{
+	arg := keybase1.PGPExportArg{
+		Options: keybase1.PGPQuery{
 			Secret: true,
 			Query:  fp.String(),
 		},
@@ -56,8 +56,8 @@ func TestPGPImportAndExport(t *testing.T) {
 		t.Fatalf("Expected 1 key back out")
 	}
 
-	arg = keybase1.PgpExportArg{
-		Options: keybase1.PgpQuery{
+	arg = keybase1.PGPExportArg{
+		Options: keybase1.PGPQuery{
 			Secret: true,
 			Query:  fp.String()[0:10] + "aabb",
 		},
@@ -71,8 +71,8 @@ func TestPGPImportAndExport(t *testing.T) {
 		t.Fatalf("num keys exported: %d, expected 0", len(xe.Results()))
 	}
 
-	arg = keybase1.PgpExportArg{
-		Options: keybase1.PgpQuery{
+	arg = keybase1.PGPExportArg{
+		Options: keybase1.PGPQuery{
 			Secret: false,
 		},
 	}
@@ -120,7 +120,7 @@ func TestIssue454(t *testing.T) {
 	}
 }
 
-func armorKey(t *testing.T, tc libkb.TestContext, email string) (libkb.PgpFingerprint, libkb.KID, string) {
+func armorKey(t *testing.T, tc libkb.TestContext, email string) (libkb.PGPFingerprint, libkb.KID, string) {
 	bundle, err := tc.MakePGPKey(email)
 	if err != nil {
 		t.Fatal(err)

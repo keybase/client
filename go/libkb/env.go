@@ -35,7 +35,7 @@ func (n NullConfiguration) GetUID() (ret keybase1.UID)                    { retu
 func (n NullConfiguration) GetGpg() string                                { return "" }
 func (n NullConfiguration) GetGpgOptions() []string                       { return nil }
 func (n NullConfiguration) GetGpgDisabled() (bool, bool)                  { return false, false }
-func (n NullConfiguration) GetPgpFingerprint() *PgpFingerprint            { return nil }
+func (n NullConfiguration) GetPgpFingerprint() *PGPFingerprint            { return nil }
 func (n NullConfiguration) GetSecretKeyringTemplate() string              { return "" }
 func (n NullConfiguration) GetSalt() []byte                               { return nil }
 func (n NullConfiguration) GetSocketFile() string                         { return "" }
@@ -230,7 +230,7 @@ func (e *Env) GetString(flist ...(func() string)) string {
 	return ret
 }
 
-func (e *Env) getPgpFingerprint(flist ...(func() *PgpFingerprint)) *PgpFingerprint {
+func (e *Env) getPgpFingerprint(flist ...(func() *PGPFingerprint)) *PGPFingerprint {
 	for _, f := range flist {
 		if ret := f(); ret != nil {
 			return ret

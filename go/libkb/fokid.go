@@ -5,7 +5,7 @@ package libkb
 // have this layer to abstract away the differences.
 type FOKID struct {
 	Kid KID
-	Fp  *PgpFingerprint
+	Fp  *PGPFingerprint
 }
 
 // Can be either a KIDMapKey or PgpFingerprintMapKey, or empty.

@@ -97,7 +97,7 @@ func last(links []*ChainLink) (ret *ChainLink) {
 	return links[len(links)-1]
 }
 
-func (sc *SigChain) VerifiedChainLinks(fp PgpFingerprint) (ret []*ChainLink) {
+func (sc *SigChain) VerifiedChainLinks(fp PGPFingerprint) (ret []*ChainLink) {
 	last := sc.GetLastLink()
 	if last == nil || !last.sigVerified {
 		return

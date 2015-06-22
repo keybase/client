@@ -37,7 +37,7 @@ func TestPgpSign(t *testing.T) {
 	earg := PGPSignArg{
 		Sink:   libkb.NopWriteCloser{W: &sink},
 		Source: ioutil.NopCloser(bytes.NewBufferString(msg)),
-		Opts: keybase1.PgpSignOptions{
+		Opts: keybase1.PGPSignOptions{
 			Mode: keybase1.SignMode_ATTACHED,
 		},
 	}

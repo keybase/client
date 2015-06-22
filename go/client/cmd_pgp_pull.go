@@ -31,7 +31,7 @@ func (v *CmdPGPPull) RunClient() (err error) {
 		return err
 	}
 
-	return cli.PgpPull(keybase1.PgpPullArg{
+	return cli.PGPPull(keybase1.PGPPullArg{
 		UserAsserts: v.userAsserts,
 	})
 }

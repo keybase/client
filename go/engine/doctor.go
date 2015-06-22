@@ -143,7 +143,7 @@ func (e *Doctor) status(ctx *Context) {
 
 	signopts := keybase1.DoctorSignerOpts{
 		OtherDevice: status.HaveActiveDevice,
-		Pgp:         status.HavePGP,
+		PGP:         status.HavePGP,
 		Internal:    status.NoKeys || status.HaveDetKey,
 	}
 	if signopts.OtherDevice {

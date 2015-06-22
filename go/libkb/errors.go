@@ -145,7 +145,7 @@ func (w WrongKidError) Error() string {
 //=============================================================================
 
 type WrongKeyError struct {
-	wanted, got *PgpFingerprint
+	wanted, got *PGPFingerprint
 }
 
 func (e WrongKeyError) Error() string {
@@ -251,7 +251,7 @@ func (u NoSecretKeyError) Error() string {
 
 type TooManyKeysError struct {
 	n  int
-	fp PgpFingerprint
+	fp PGPFingerprint
 }
 
 func (e TooManyKeysError) Error() string {
@@ -261,7 +261,7 @@ func (e TooManyKeysError) Error() string {
 //=============================================================================
 
 type NoSelectedKeyError struct {
-	wanted *PgpFingerprint
+	wanted *PGPFingerprint
 }
 
 func (n NoSelectedKeyError) Error() string {
@@ -271,7 +271,7 @@ func (n NoSelectedKeyError) Error() string {
 //=============================================================================
 
 type KeyExistsError struct {
-	Key *PgpFingerprint
+	Key *PGPFingerprint
 }
 
 func (k KeyExistsError) Error() string {
@@ -313,7 +313,7 @@ func (p BadKeyError) Error() string {
 //=============================================================================
 
 type BadFingerprintError struct {
-	fp1, fp2 PgpFingerprint
+	fp1, fp2 PGPFingerprint
 }
 
 func (b BadFingerprintError) Error() string {

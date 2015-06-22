@@ -55,7 +55,7 @@ func NewCmdPGPSign(cl *libcmdline.CommandLine) cli.Command {
 type CmdPGPSign struct {
 	UnixFilter
 	msg  string
-	opts keybase1.PgpSignOptions
+	opts keybase1.PGPSignOptions
 	arg  engine.PGPSignArg
 }
 
@@ -111,8 +111,8 @@ func (s *CmdPGPSign) RunClient() (err error) {
 	}
 	snk, src, err := s.ClientFilterOpen()
 	if err == nil {
-		arg := keybase1.PgpSignArg{Source: src, Sink: snk, Opts: s.opts}
-		err = cli.PgpSign(arg)
+		arg := keybase1.PGPSignArg{Source: src, Sink: snk, Opts: s.opts}
+		err = cli.PGPSign(arg)
 	}
 	return s.Close(err)
 }

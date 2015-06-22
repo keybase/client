@@ -115,7 +115,7 @@ type RunGpgRes struct {
 	Wait  func() error
 }
 
-func (g *GpgCLI) ImportKey(secret bool, fp PgpFingerprint) (ret *PgpKeyBundle, err error) {
+func (g *GpgCLI) ImportKey(secret bool, fp PGPFingerprint) (ret *PgpKeyBundle, err error) {
 	var cmd string
 	var which string
 	if secret {

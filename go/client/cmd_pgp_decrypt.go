@@ -103,14 +103,14 @@ func (c *CmdPGPDecrypt) RunClient() error {
 	if err != nil {
 		return err
 	}
-	opts := keybase1.PgpDecryptOptions{
+	opts := keybase1.PGPDecryptOptions{
 		AssertSigned:  c.signed,
 		SignedBy:      c.signedBy,
 		LocalOnly:     c.localOnly,
 		ApproveRemote: c.approveRemote,
 	}
-	arg := keybase1.PgpDecryptArg{Source: src, Sink: snk, Opts: opts}
-	_, err = cli.PgpDecrypt(arg)
+	arg := keybase1.PGPDecryptArg{Source: src, Sink: snk, Opts: opts}
+	_, err = cli.PGPDecrypt(arg)
 
 	c.Close(err)
 

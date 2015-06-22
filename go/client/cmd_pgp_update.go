@@ -33,7 +33,7 @@ func (v *CmdPGPUpdate) RunClient() (err error) {
 		return err
 	}
 
-	return cli.PgpUpdate(keybase1.PgpUpdateArg{
+	return cli.PGPUpdate(keybase1.PGPUpdateArg{
 		Fingerprints: v.fingerprints,
 		All:          v.all,
 	})

@@ -55,7 +55,7 @@ func (v *CmdPGPGen) RunClient() (err error) {
 	if err = v.arg.Gen.CreatePgpIDs(); err != nil {
 		return err
 	}
-	err = cli.PgpKeyGen(v.arg.Export())
+	err = cli.PGPKeyGen(v.arg.Export())
 	PGPMultiWarn(err)
 	return err
 }

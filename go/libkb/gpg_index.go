@@ -73,7 +73,7 @@ type GpgBaseKey struct {
 	ID64        string
 	Created     int64
 	Expires     int64
-	fingerprint *PgpFingerprint
+	fingerprint *PGPFingerprint
 }
 
 func (k GpgBaseKey) AlgoString() string {
@@ -136,7 +136,7 @@ func (k *GpgBaseKey) ParseBase(line *GpgIndexLine) (err error) {
 //=============================================================================
 
 type GpgFingerprinter interface {
-	SetFingerprint(pgp *PgpFingerprint)
+	SetFingerprint(pgp *PGPFingerprint)
 }
 
 type GpgPrimaryKey struct {
@@ -169,7 +169,7 @@ func (k *GpgPrimaryKey) ToRow(i int) []string {
 	return v
 }
 
-func (k *GpgBaseKey) SetFingerprint(pgp *PgpFingerprint) {
+func (k *GpgBaseKey) SetFingerprint(pgp *PGPFingerprint) {
 	k.fingerprint = pgp
 }
 
@@ -206,7 +206,7 @@ func (k *GpgPrimaryKey) AddUID(l *GpgIndexLine) (err error) {
 }
 
 func (k *GpgPrimaryKey) AddFingerprint(l *GpgIndexLine) (err error) {
-	var fp *PgpFingerprint
+	var fp *PGPFingerprint
 	if f := l.At(9); len(f) == 0 {
 		err = fmt.Errorf("no fingerprint given")
 	} else if fp, err = PgpFingerprintFromHex(f); err == nil {
@@ -218,12 +218,12 @@ func (k *GpgPrimaryKey) AddFingerprint(l *GpgIndexLine) (err error) {
 	return
 }
 
-func (k *GpgPrimaryKey) GetFingerprint() *PgpFingerprint {
+func (k *GpgPrimaryKey) GetFingerprint() *PGPFingerprint {
 	return k.fingerprint
 }
 
-func (k *GpgPrimaryKey) GetPgpIdentities() []keybase1.PgpIdentity {
-	ret := make([]keybase1.PgpIdentity, len(k.identities))
+func (k *GpgPrimaryKey) GetPgpIdentities() []keybase1.PGPIdentity {
+	ret := make([]keybase1.PGPIdentity, len(k.identities))
 	for i, ident := range k.identities {
 		ret[i] = ident.Export()
 	}
@@ -240,7 +240,7 @@ func (k *GpgPrimaryKey) GetEmails() []string {
 
 func (k *GpgPrimaryKey) GetAllID64s() []string {
 	var ret []string
-	add := func(fp *PgpFingerprint) {
+	add := func(fp *PGPFingerprint) {
 		if fp != nil {
 			ret = append(ret, fp.ToKeyID())
 		}
@@ -377,8 +377,8 @@ func (ki *GpgKeyIndex) PushElement(e GpgIndexElement) {
 	}
 }
 
-func (ki *GpgKeyIndex) AllFingerprints() []PgpFingerprint {
-	var ret []PgpFingerprint
+func (ki *GpgKeyIndex) AllFingerprints() []PGPFingerprint {
+	var ret []PGPFingerprint
 	for _, k := range ki.Keys {
 		if fp := k.GetFingerprint(); fp != nil {
 			ret = append(ret, *fp)

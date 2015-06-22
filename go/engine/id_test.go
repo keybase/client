@@ -205,7 +205,7 @@ func (ui *FakeIdentifyUI) DisplayKey(ik keybase1.IdentifyKey) {
 	}
 	fok := libkb.FOKID{
 		Kid: ik.KID,
-		Fp:  libkb.ImportPgpFingerprintSlice(ik.PgpFingerprint),
+		Fp:  libkb.ImportPgpFingerprintSlice(ik.PGPFingerprint),
 	}
 
 	ui.Keys[fok.ToFirstMapKey()] = ik.TrackDiff

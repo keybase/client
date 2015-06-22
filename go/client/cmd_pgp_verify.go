@@ -101,16 +101,16 @@ func (c *CmdPGPVerify) RunClient() error {
 	if err != nil {
 		return err
 	}
-	arg := keybase1.PgpVerifyArg{
+	arg := keybase1.PGPVerifyArg{
 		Source: src,
-		Opts: keybase1.PgpVerifyOptions{
+		Opts: keybase1.PGPVerifyOptions{
 			LocalOnly:     c.localOnly,
 			ApproveRemote: c.approveRemote,
 			Signature:     c.detachedData,
 			SignedBy:      c.signedBy,
 		},
 	}
-	_, err = cli.PgpVerify(arg)
+	_, err = cli.PGPVerify(arg)
 
 	c.Close(err)
 	return err

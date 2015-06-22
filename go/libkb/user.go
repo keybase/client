@@ -145,7 +145,7 @@ func (u *User) FilterActivePgpKeys(sibkey bool, query string) []*PgpKeyBundle {
 // GetActivePgpFingerprints looks into the user's ComputedKeyFamily and
 // returns only the fingerprint of the active PGP keys.
 // If you want only sibkeys, then // specify sibkey=true.
-func (u *User) GetActivePgpFingerprints(sibkey bool) (ret []PgpFingerprint) {
+func (u *User) GetActivePgpFingerprints(sibkey bool) (ret []PGPFingerprint) {
 	for _, pgp := range u.GetActivePgpKeys(sibkey) {
 		ret = append(ret, pgp.GetFingerprint())
 	}
@@ -340,7 +340,7 @@ func (u *User) GetEldestFOKID() (ret *FOKID) {
 	if u.leaf.eldest == nil {
 		return nil
 	}
-	var fp *PgpFingerprint
+	var fp *PGPFingerprint
 	if fingerprint, ok := u.keyFamily.kid2pgp[u.leaf.eldest.ToMapKey()]; ok {
 		fp = &fingerprint
 	}

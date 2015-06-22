@@ -12,7 +12,7 @@ type AlgoType int
 
 type GenericKey interface {
 	GetKid() KID
-	GetFingerprintP() *PgpFingerprint
+	GetFingerprintP() *PGPFingerprint
 	GetAlgoType() AlgoType
 
 	// Sign to an ASCII signature (which includes the message

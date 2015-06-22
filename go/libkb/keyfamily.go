@@ -91,7 +91,7 @@ type KeyFamily struct {
 
 	// These fields are computed on the client side, so they can be trusted.
 	pgp2kid map[PgpFingerprintMapKey]KID
-	kid2pgp map[KIDMapKey]PgpFingerprint
+	kid2pgp map[KIDMapKey]PGPFingerprint
 
 	AllKeys map[KIDMapKey]GenericKey
 
@@ -269,7 +269,7 @@ func ParseKeyFamily(jw *jsonw.Wrapper) (ret *KeyFamily, err error) {
 
 	kf := KeyFamily{
 		pgp2kid:      make(map[PgpFingerprintMapKey]KID),
-		kid2pgp:      make(map[KIDMapKey]PgpFingerprint),
+		kid2pgp:      make(map[KIDMapKey]PGPFingerprint),
 		Contextified: NewContextified(G),
 	}
 
@@ -444,7 +444,7 @@ func (ckf *ComputedKeyFamily) Delegate(tcl TypedChainLink) (err error) {
 
 // Delegate marks the given ComputedKeyInfos object that the given kid is now
 // delegated, as of time tm, in sigid, as signed by signingKid, etc.
-func (cki *ComputedKeyInfos) Delegate(kid KID, fingerprint *PgpFingerprint, tm *KeybaseTime, sigid keybase1.SigID, signingKid, parentKid KID, isSibkey bool, ctime, etime time.Time) (err error) {
+func (cki *ComputedKeyInfos) Delegate(kid KID, fingerprint *PGPFingerprint, tm *KeybaseTime, sigid keybase1.SigID, signingKid, parentKid KID, isSibkey bool, ctime, etime time.Time) (err error) {
 	G.Log.Debug("ComputeKeyInfos::Delegate To %s with %s at sig %s", kid.String(), signingKid, sigid.ToDisplayString(true))
 	key := kid.ToFOKIDMapKey()
 	info, found := cki.Infos[key]
