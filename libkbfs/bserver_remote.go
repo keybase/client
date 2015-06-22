@@ -155,7 +155,6 @@ func (b *BlockServerRemote) Get(id BlockID, context BlockContext) (
 	}
 	bid := keybase1.BlockIdCombo{
 		BlockHash: hex.EncodeToString(id[:]),
-		Size:      int(context.GetQuotaSize()),
 		ChargedTo: context.GetWriter(),
 	}
 	//XXX: if fails due to connection problem, should reconnect
@@ -185,7 +184,6 @@ func (b *BlockServerRemote) Put(id BlockID, tlfID DirID, context BlockContext,
 		Bid: keybase1.BlockIdCombo{
 			ChargedTo: context.GetWriter(),
 			BlockHash: hex.EncodeToString(id[:]),
-			Size:      int(context.GetQuotaSize()),
 		},
 		BlockKey: hex.EncodeToString(serverHalf.ServerHalf[:]),
 		Folder:   hex.EncodeToString(tlfID[:]),
@@ -206,7 +204,6 @@ func (b *BlockServerRemote) Delete(id BlockID, context BlockContext) error {
 		Bid: keybase1.BlockIdCombo{
 			ChargedTo: context.GetWriter(), //should be the original chargedto
 			BlockHash: hex.EncodeToString(id[:]),
-			Size:      int(context.GetQuotaSize()),
 		},
 		Nonce:     "0000",
 		Folder:    "",
