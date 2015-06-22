@@ -192,8 +192,6 @@ func (b *BlockServerRemote) Put(id BlockID, tlfID DirID, context BlockContext,
 	err := b.clt.PutBlock(arg)
 	if err != nil {
 		libkb.G.Log.Warning("PUT to backend err : %q", err)
-	} else {
-		fmt.Println("Put Err is NIL!!\n")
 	}
 	return err
 }
