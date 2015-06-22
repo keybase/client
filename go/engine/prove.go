@@ -72,11 +72,12 @@ func (p *Prove) checkExists1(ctx *Context) (err error) {
 			Typ:     keybase1.PromptOverwriteType_SOCIAL,
 		})
 		if err != nil {
-		} else if !redo {
-			err = libkb.NotConfirmedError{}
-		} else {
-			p.supersede = true
+			return err
 		}
+		if !redo {
+			return libkb.NotConfirmedError{}
+		}
+		p.supersede = true
 	}
 	return
 }
@@ -128,11 +129,13 @@ func (p *Prove) checkExists2(ctx *Context) (err error) {
 				Typ:     keybase1.PromptOverwriteType_SITE,
 			})
 			if err != nil {
-			} else if !redo {
-				err = libkb.NotConfirmedError{}
-			} else {
-				p.supersede = true
+				return
 			}
+			if !redo {
+				err = libkb.NotConfirmedError{}
+				return
+			}
+			p.supersede = true
 		}
 	}
 	return

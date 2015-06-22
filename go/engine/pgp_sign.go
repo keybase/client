@@ -99,13 +99,14 @@ func (p *PGPSignEngine) Run(ctx *Context) (err error) {
 	case keybase1.SignMode_ATTACHED:
 		dumpTo, err = libkb.AttachedSignWrapper(p.arg.Sink, *pgp, !bo)
 	case keybase1.SignMode_DETACHED:
-		if bi && bo {
+		switch {
+		case bi && bo:
 			err = openpgp.DetachSign(p.arg.Sink, pgpe, p.arg.Source, nil)
-		} else if bi && !bo {
+		case bi && !bo:
 			err = openpgp.ArmoredDetachSign(p.arg.Sink, pgpe, p.arg.Source, nil)
-		} else if !bi && bo {
+		case !bi && bo:
 			err = openpgp.DetachSignText(p.arg.Sink, pgpe, p.arg.Source, nil)
-		} else {
+		default:
 			err = openpgp.ArmoredDetachSignText(p.arg.Sink, pgpe, p.arg.Source, nil)
 		}
 	case keybase1.SignMode_CLEAR:

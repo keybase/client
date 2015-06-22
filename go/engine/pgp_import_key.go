@@ -11,7 +11,6 @@ import (
 	"strings"
 
 	"github.com/keybase/client/go/libkb"
-	triplesec "github.com/keybase/go-triplesec"
 )
 
 type PGPKeyImportEngine struct {
@@ -272,28 +271,33 @@ func (e *PGPKeyImportEngine) generate(ctx *Context) (err error) {
 	}
 
 	e.G().Log.Debug("| WriteKey (hasSecret = %v)", e.bundle.HasSecretKey())
-	if e.arg.NoSave || !e.bundle.HasSecretKey() {
-	} else if err = e.saveLKS(ctx); err != nil {
-		return
+	if !e.arg.NoSave && e.bundle.HasSecretKey() {
+		if err = e.saveLKS(ctx); err != nil {
+			return
+		}
 	}
 
-	if !e.arg.PushSecret {
-	} else if err = e.prepareSecretPush(ctx); err != nil {
-		return
+	if e.arg.PushSecret {
+		if err = e.prepareSecretPush(ctx); err != nil {
+			return
+		}
 	}
 	return
 
 }
 
-func (e *PGPKeyImportEngine) prepareSecretPush(ctx *Context) (err error) {
-	var tsec *triplesec.Cipher
-	var skb *libkb.SKB
-	if tsec, err = e.G().LoginState().GetVerifiedTriplesec(ctx.SecretUI); err != nil {
-	} else if skb, err = e.bundle.ToSKB(e.G(), tsec); err != nil {
-	} else {
-		e.epk, err = skb.ArmoredEncode()
+func (e *PGPKeyImportEngine) prepareSecretPush(ctx *Context) error {
+	tsec, err := e.G().LoginState().GetVerifiedTriplesec(ctx.SecretUI)
+	if err != nil {
+		return err
 	}
-	return
+	skb, err := e.bundle.ToSKB(e.G(), tsec)
+	if err != nil {
+		return err
+	}
+	e.epk, err = skb.ArmoredEncode()
+
+	return err
 }
 
 func (e *PGPKeyImportEngine) push(ctx *Context) (err error) {

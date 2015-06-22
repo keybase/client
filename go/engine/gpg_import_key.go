@@ -82,9 +82,10 @@ func (e *GPGImportKeyEngine) Run(ctx *Context) (err error) {
 	gpg := e.G().GetGpgClient()
 
 	me := e.arg.Me
-	if me != nil {
-	} else if me, err = libkb.LoadMe(libkb.LoadUserArg{PublicKeyOptional: true}); err != nil {
-		return err
+	if me == nil {
+		if me, err = libkb.LoadMe(libkb.LoadUserArg{PublicKeyOptional: true}); err != nil {
+			return err
+		}
 	}
 
 	if err = PGPCheckMulti(me, e.arg.AllowMulti); err != nil {

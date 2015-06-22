@@ -262,7 +262,9 @@ func (e *Identify) findBestComponent(expr libkb.AssertionExpression) string {
 		if u.IsUID() {
 			uid = u
 			break
-		} else if u.IsKeybase() {
+		}
+
+		if u.IsKeybase() {
 			kb = u
 		} else if u.IsFingerprint() && fp == nil {
 			fp = u
