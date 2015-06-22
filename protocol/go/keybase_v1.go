@@ -22,7 +22,7 @@ type Status struct {
 
 type UID string
 type FOKID struct {
-	PgpFingerprint *[]byte `codec:"pgpFingerprint,omitempty" json:"pgpFingerprint,omitempty"`
+	PGPFingerprint *[]byte `codec:"pgpFingerprint,omitempty" json:"pgpFingerprint,omitempty"`
 	Kid            *[]byte `codec:"kid,omitempty" json:"kid,omitempty"`
 }
 
@@ -31,7 +31,7 @@ type Text struct {
 	Markup bool   `codec:"markup" json:"markup"`
 }
 
-type PgpIdentity struct {
+type PGPIdentity struct {
 	Username string `codec:"username" json:"username"`
 	Comment  string `codec:"comment" json:"comment"`
 	Email    string `codec:"email" json:"email"`
@@ -46,7 +46,7 @@ type Image struct {
 type PublicKey struct {
 	KID               string        `codec:"KID" json:"KID"`
 	PGPFingerprint    string        `codec:"PGPFingerprint" json:"PGPFingerprint"`
-	PGPIdentities     []PgpIdentity `codec:"PGPIdentities" json:"PGPIdentities"`
+	PGPIdentities     []PGPIdentity `codec:"PGPIdentities" json:"PGPIdentities"`
 	IsSibkey          bool          `codec:"isSibkey" json:"isSibkey"`
 	IsEldest          bool          `codec:"isEldest" json:"isEldest"`
 	IsWeb             bool          `codec:"isWeb" json:"isWeb"`
@@ -533,7 +533,7 @@ const (
 
 type DoctorSignerOpts struct {
 	OtherDevice bool `codec:"otherDevice" json:"otherDevice"`
-	Pgp         bool `codec:"pgp" json:"pgp"`
+	PGP         bool `codec:"pgp" json:"pgp"`
 	Internal    bool `codec:"internal" json:"internal"`
 }
 
@@ -621,7 +621,7 @@ type GPGKey struct {
 	KeyID      string        `codec:"keyID" json:"keyID"`
 	Creation   string        `codec:"creation" json:"creation"`
 	Expiration string        `codec:"expiration" json:"expiration"`
-	Identities []PgpIdentity `codec:"identities" json:"identities"`
+	Identities []PGPIdentity `codec:"identities" json:"identities"`
 }
 
 type SelectKeyRes struct {
@@ -889,7 +889,7 @@ type IdentifyRow struct {
 }
 
 type IdentifyKey struct {
-	PgpFingerprint []byte     `codec:"pgpFingerprint" json:"pgpFingerprint"`
+	PGPFingerprint []byte     `codec:"pgpFingerprint" json:"pgpFingerprint"`
 	KID            []byte     `codec:"KID" json:"KID"`
 	TrackDiff      *TrackDiff `codec:"trackDiff,omitempty" json:"trackDiff,omitempty"`
 }
@@ -1546,14 +1546,14 @@ const (
 	SignMode_CLEAR    SignMode = 2
 )
 
-type PgpSignOptions struct {
+type PGPSignOptions struct {
 	KeyQuery  string   `codec:"keyQuery" json:"keyQuery"`
 	Mode      SignMode `codec:"mode" json:"mode"`
 	BinaryIn  bool     `codec:"binaryIn" json:"binaryIn"`
 	BinaryOut bool     `codec:"binaryOut" json:"binaryOut"`
 }
 
-type PgpEncryptOptions struct {
+type PGPEncryptOptions struct {
 	Recipients    []string `codec:"recipients" json:"recipients"`
 	NoSign        bool     `codec:"noSign" json:"noSign"`
 	NoSelf        bool     `codec:"noSelf" json:"noSelf"`
@@ -1563,21 +1563,21 @@ type PgpEncryptOptions struct {
 	ApproveRemote bool     `codec:"approveRemote" json:"approveRemote"`
 }
 
-type PgpSigVerification struct {
+type PGPSigVerification struct {
 	IsSigned bool      `codec:"isSigned" json:"isSigned"`
 	Verified bool      `codec:"verified" json:"verified"`
 	Signer   User      `codec:"signer" json:"signer"`
 	SignKey  PublicKey `codec:"signKey" json:"signKey"`
 }
 
-type PgpDecryptOptions struct {
+type PGPDecryptOptions struct {
 	AssertSigned  bool   `codec:"assertSigned" json:"assertSigned"`
 	SignedBy      string `codec:"signedBy" json:"signedBy"`
 	LocalOnly     bool   `codec:"localOnly" json:"localOnly"`
 	ApproveRemote bool   `codec:"approveRemote" json:"approveRemote"`
 }
 
-type PgpVerifyOptions struct {
+type PGPVerifyOptions struct {
 	SignedBy      string `codec:"signedBy" json:"signedBy"`
 	LocalOnly     bool   `codec:"localOnly" json:"localOnly"`
 	ApproveRemote bool   `codec:"approveRemote" json:"approveRemote"`
@@ -1590,217 +1590,217 @@ type KeyInfo struct {
 	Desc        string `codec:"desc" json:"desc"`
 }
 
-type PgpQuery struct {
+type PGPQuery struct {
 	Secret     bool   `codec:"secret" json:"secret"`
 	Query      string `codec:"query" json:"query"`
 	ExactMatch bool   `codec:"exactMatch" json:"exactMatch"`
 }
 
-type PgpCreateUids struct {
+type PGPCreateUids struct {
 	UseDefault bool          `codec:"useDefault" json:"useDefault"`
-	Ids        []PgpIdentity `codec:"ids" json:"ids"`
+	Ids        []PGPIdentity `codec:"ids" json:"ids"`
 }
 
-type PgpSignArg struct {
+type PGPSignArg struct {
 	SessionID int            `codec:"sessionID" json:"sessionID"`
 	Source    Stream         `codec:"source" json:"source"`
 	Sink      Stream         `codec:"sink" json:"sink"`
-	Opts      PgpSignOptions `codec:"opts" json:"opts"`
+	Opts      PGPSignOptions `codec:"opts" json:"opts"`
 }
 
-type PgpPullArg struct {
+type PGPPullArg struct {
 	SessionID   int      `codec:"sessionID" json:"sessionID"`
 	UserAsserts []string `codec:"userAsserts" json:"userAsserts"`
 }
 
-type PgpEncryptArg struct {
+type PGPEncryptArg struct {
 	SessionID int               `codec:"sessionID" json:"sessionID"`
 	Source    Stream            `codec:"source" json:"source"`
 	Sink      Stream            `codec:"sink" json:"sink"`
-	Opts      PgpEncryptOptions `codec:"opts" json:"opts"`
+	Opts      PGPEncryptOptions `codec:"opts" json:"opts"`
 }
 
-type PgpDecryptArg struct {
+type PGPDecryptArg struct {
 	SessionID int               `codec:"sessionID" json:"sessionID"`
 	Source    Stream            `codec:"source" json:"source"`
 	Sink      Stream            `codec:"sink" json:"sink"`
-	Opts      PgpDecryptOptions `codec:"opts" json:"opts"`
+	Opts      PGPDecryptOptions `codec:"opts" json:"opts"`
 }
 
-type PgpVerifyArg struct {
+type PGPVerifyArg struct {
 	SessionID int              `codec:"sessionID" json:"sessionID"`
 	Source    Stream           `codec:"source" json:"source"`
-	Opts      PgpVerifyOptions `codec:"opts" json:"opts"`
+	Opts      PGPVerifyOptions `codec:"opts" json:"opts"`
 }
 
-type PgpImportArg struct {
+type PGPImportArg struct {
 	SessionID  int    `codec:"sessionID" json:"sessionID"`
 	Key        []byte `codec:"key" json:"key"`
 	PushSecret bool   `codec:"pushSecret" json:"pushSecret"`
 }
 
-type PgpExportArg struct {
+type PGPExportArg struct {
 	SessionID int      `codec:"sessionID" json:"sessionID"`
-	Options   PgpQuery `codec:"options" json:"options"`
+	Options   PGPQuery `codec:"options" json:"options"`
 }
 
-type PgpExportByFingerprintArg struct {
+type PGPExportByFingerprintArg struct {
 	SessionID int      `codec:"sessionID" json:"sessionID"`
-	Options   PgpQuery `codec:"options" json:"options"`
+	Options   PGPQuery `codec:"options" json:"options"`
 }
 
-type PgpExportByKIDArg struct {
+type PGPExportByKIDArg struct {
 	SessionID int      `codec:"sessionID" json:"sessionID"`
-	Options   PgpQuery `codec:"options" json:"options"`
+	Options   PGPQuery `codec:"options" json:"options"`
 }
 
-type PgpKeyGenArg struct {
+type PGPKeyGenArg struct {
 	SessionID   int           `codec:"sessionID" json:"sessionID"`
 	PrimaryBits int           `codec:"primaryBits" json:"primaryBits"`
 	SubkeyBits  int           `codec:"subkeyBits" json:"subkeyBits"`
-	CreateUids  PgpCreateUids `codec:"createUids" json:"createUids"`
+	CreateUids  PGPCreateUids `codec:"createUids" json:"createUids"`
 	AllowMulti  bool          `codec:"allowMulti" json:"allowMulti"`
 	DoExport    bool          `codec:"doExport" json:"doExport"`
 }
 
-type PgpKeyGenDefaultArg struct {
+type PGPKeyGenDefaultArg struct {
 	SessionID  int           `codec:"sessionID" json:"sessionID"`
-	CreateUids PgpCreateUids `codec:"createUids" json:"createUids"`
+	CreateUids PGPCreateUids `codec:"createUids" json:"createUids"`
 }
 
-type PgpDeletePrimaryArg struct {
+type PGPDeletePrimaryArg struct {
 	SessionID int `codec:"sessionID" json:"sessionID"`
 }
 
-type PgpSelectArg struct {
+type PGPSelectArg struct {
 	SessionID        int    `codec:"sessionID" json:"sessionID"`
 	FingerprintQuery string `codec:"fingerprintQuery" json:"fingerprintQuery"`
 	AllowMulti       bool   `codec:"allowMulti" json:"allowMulti"`
 	SkipImport       bool   `codec:"skipImport" json:"skipImport"`
 }
 
-type PgpUpdateArg struct {
+type PGPUpdateArg struct {
 	SessionID    int      `codec:"sessionID" json:"sessionID"`
 	All          bool     `codec:"all" json:"all"`
 	Fingerprints []string `codec:"fingerprints" json:"fingerprints"`
 }
 
-type PgpInterface interface {
-	PgpSign(PgpSignArg) error
-	PgpPull(PgpPullArg) error
-	PgpEncrypt(PgpEncryptArg) error
-	PgpDecrypt(PgpDecryptArg) (PgpSigVerification, error)
-	PgpVerify(PgpVerifyArg) (PgpSigVerification, error)
-	PgpImport(PgpImportArg) error
-	PgpExport(PgpExportArg) ([]KeyInfo, error)
-	PgpExportByFingerprint(PgpExportByFingerprintArg) ([]KeyInfo, error)
-	PgpExportByKID(PgpExportByKIDArg) ([]KeyInfo, error)
-	PgpKeyGen(PgpKeyGenArg) error
-	PgpKeyGenDefault(PgpKeyGenDefaultArg) error
-	PgpDeletePrimary(int) error
-	PgpSelect(PgpSelectArg) error
-	PgpUpdate(PgpUpdateArg) error
+type PGPInterface interface {
+	PGPSign(PGPSignArg) error
+	PGPPull(PGPPullArg) error
+	PGPEncrypt(PGPEncryptArg) error
+	PGPDecrypt(PGPDecryptArg) (PGPSigVerification, error)
+	PGPVerify(PGPVerifyArg) (PGPSigVerification, error)
+	PGPImport(PGPImportArg) error
+	PGPExport(PGPExportArg) ([]KeyInfo, error)
+	PGPExportByFingerprint(PGPExportByFingerprintArg) ([]KeyInfo, error)
+	PGPExportByKID(PGPExportByKIDArg) ([]KeyInfo, error)
+	PGPKeyGen(PGPKeyGenArg) error
+	PGPKeyGenDefault(PGPKeyGenDefaultArg) error
+	PGPDeletePrimary(int) error
+	PGPSelect(PGPSelectArg) error
+	PGPUpdate(PGPUpdateArg) error
 }
 
-func PgpProtocol(i PgpInterface) rpc2.Protocol {
+func PGPProtocol(i PGPInterface) rpc2.Protocol {
 	return rpc2.Protocol{
 		Name: "keybase.1.pgp",
 		Methods: map[string]rpc2.ServeHook{
 			"pgpSign": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
-				args := make([]PgpSignArg, 1)
+				args := make([]PGPSignArg, 1)
 				if err = nxt(&args); err == nil {
-					err = i.PgpSign(args[0])
+					err = i.PGPSign(args[0])
 				}
 				return
 			},
 			"pgpPull": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
-				args := make([]PgpPullArg, 1)
+				args := make([]PGPPullArg, 1)
 				if err = nxt(&args); err == nil {
-					err = i.PgpPull(args[0])
+					err = i.PGPPull(args[0])
 				}
 				return
 			},
 			"pgpEncrypt": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
-				args := make([]PgpEncryptArg, 1)
+				args := make([]PGPEncryptArg, 1)
 				if err = nxt(&args); err == nil {
-					err = i.PgpEncrypt(args[0])
+					err = i.PGPEncrypt(args[0])
 				}
 				return
 			},
 			"pgpDecrypt": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
-				args := make([]PgpDecryptArg, 1)
+				args := make([]PGPDecryptArg, 1)
 				if err = nxt(&args); err == nil {
-					ret, err = i.PgpDecrypt(args[0])
+					ret, err = i.PGPDecrypt(args[0])
 				}
 				return
 			},
 			"pgpVerify": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
-				args := make([]PgpVerifyArg, 1)
+				args := make([]PGPVerifyArg, 1)
 				if err = nxt(&args); err == nil {
-					ret, err = i.PgpVerify(args[0])
+					ret, err = i.PGPVerify(args[0])
 				}
 				return
 			},
 			"pgpImport": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
-				args := make([]PgpImportArg, 1)
+				args := make([]PGPImportArg, 1)
 				if err = nxt(&args); err == nil {
-					err = i.PgpImport(args[0])
+					err = i.PGPImport(args[0])
 				}
 				return
 			},
 			"pgpExport": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
-				args := make([]PgpExportArg, 1)
+				args := make([]PGPExportArg, 1)
 				if err = nxt(&args); err == nil {
-					ret, err = i.PgpExport(args[0])
+					ret, err = i.PGPExport(args[0])
 				}
 				return
 			},
 			"pgpExportByFingerprint": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
-				args := make([]PgpExportByFingerprintArg, 1)
+				args := make([]PGPExportByFingerprintArg, 1)
 				if err = nxt(&args); err == nil {
-					ret, err = i.PgpExportByFingerprint(args[0])
+					ret, err = i.PGPExportByFingerprint(args[0])
 				}
 				return
 			},
 			"pgpExportByKID": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
-				args := make([]PgpExportByKIDArg, 1)
+				args := make([]PGPExportByKIDArg, 1)
 				if err = nxt(&args); err == nil {
-					ret, err = i.PgpExportByKID(args[0])
+					ret, err = i.PGPExportByKID(args[0])
 				}
 				return
 			},
 			"pgpKeyGen": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
-				args := make([]PgpKeyGenArg, 1)
+				args := make([]PGPKeyGenArg, 1)
 				if err = nxt(&args); err == nil {
-					err = i.PgpKeyGen(args[0])
+					err = i.PGPKeyGen(args[0])
 				}
 				return
 			},
 			"pgpKeyGenDefault": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
-				args := make([]PgpKeyGenDefaultArg, 1)
+				args := make([]PGPKeyGenDefaultArg, 1)
 				if err = nxt(&args); err == nil {
-					err = i.PgpKeyGenDefault(args[0])
+					err = i.PGPKeyGenDefault(args[0])
 				}
 				return
 			},
 			"pgpDeletePrimary": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
-				args := make([]PgpDeletePrimaryArg, 1)
+				args := make([]PGPDeletePrimaryArg, 1)
 				if err = nxt(&args); err == nil {
-					err = i.PgpDeletePrimary(args[0].SessionID)
+					err = i.PGPDeletePrimary(args[0].SessionID)
 				}
 				return
 			},
 			"pgpSelect": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
-				args := make([]PgpSelectArg, 1)
+				args := make([]PGPSelectArg, 1)
 				if err = nxt(&args); err == nil {
-					err = i.PgpSelect(args[0])
+					err = i.PGPSelect(args[0])
 				}
 				return
 			},
 			"pgpUpdate": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
-				args := make([]PgpUpdateArg, 1)
+				args := make([]PGPUpdateArg, 1)
 				if err = nxt(&args); err == nil {
-					err = i.PgpUpdate(args[0])
+					err = i.PGPUpdate(args[0])
 				}
 				return
 			},
@@ -1809,77 +1809,77 @@ func PgpProtocol(i PgpInterface) rpc2.Protocol {
 
 }
 
-type PgpClient struct {
+type PGPClient struct {
 	Cli GenericClient
 }
 
-func (c PgpClient) PgpSign(__arg PgpSignArg) (err error) {
+func (c PGPClient) PGPSign(__arg PGPSignArg) (err error) {
 	err = c.Cli.Call("keybase.1.pgp.pgpSign", []interface{}{__arg}, nil)
 	return
 }
 
-func (c PgpClient) PgpPull(__arg PgpPullArg) (err error) {
+func (c PGPClient) PGPPull(__arg PGPPullArg) (err error) {
 	err = c.Cli.Call("keybase.1.pgp.pgpPull", []interface{}{__arg}, nil)
 	return
 }
 
-func (c PgpClient) PgpEncrypt(__arg PgpEncryptArg) (err error) {
+func (c PGPClient) PGPEncrypt(__arg PGPEncryptArg) (err error) {
 	err = c.Cli.Call("keybase.1.pgp.pgpEncrypt", []interface{}{__arg}, nil)
 	return
 }
 
-func (c PgpClient) PgpDecrypt(__arg PgpDecryptArg) (res PgpSigVerification, err error) {
+func (c PGPClient) PGPDecrypt(__arg PGPDecryptArg) (res PGPSigVerification, err error) {
 	err = c.Cli.Call("keybase.1.pgp.pgpDecrypt", []interface{}{__arg}, &res)
 	return
 }
 
-func (c PgpClient) PgpVerify(__arg PgpVerifyArg) (res PgpSigVerification, err error) {
+func (c PGPClient) PGPVerify(__arg PGPVerifyArg) (res PGPSigVerification, err error) {
 	err = c.Cli.Call("keybase.1.pgp.pgpVerify", []interface{}{__arg}, &res)
 	return
 }
 
-func (c PgpClient) PgpImport(__arg PgpImportArg) (err error) {
+func (c PGPClient) PGPImport(__arg PGPImportArg) (err error) {
 	err = c.Cli.Call("keybase.1.pgp.pgpImport", []interface{}{__arg}, nil)
 	return
 }
 
-func (c PgpClient) PgpExport(__arg PgpExportArg) (res []KeyInfo, err error) {
+func (c PGPClient) PGPExport(__arg PGPExportArg) (res []KeyInfo, err error) {
 	err = c.Cli.Call("keybase.1.pgp.pgpExport", []interface{}{__arg}, &res)
 	return
 }
 
-func (c PgpClient) PgpExportByFingerprint(__arg PgpExportByFingerprintArg) (res []KeyInfo, err error) {
+func (c PGPClient) PGPExportByFingerprint(__arg PGPExportByFingerprintArg) (res []KeyInfo, err error) {
 	err = c.Cli.Call("keybase.1.pgp.pgpExportByFingerprint", []interface{}{__arg}, &res)
 	return
 }
 
-func (c PgpClient) PgpExportByKID(__arg PgpExportByKIDArg) (res []KeyInfo, err error) {
+func (c PGPClient) PGPExportByKID(__arg PGPExportByKIDArg) (res []KeyInfo, err error) {
 	err = c.Cli.Call("keybase.1.pgp.pgpExportByKID", []interface{}{__arg}, &res)
 	return
 }
 
-func (c PgpClient) PgpKeyGen(__arg PgpKeyGenArg) (err error) {
+func (c PGPClient) PGPKeyGen(__arg PGPKeyGenArg) (err error) {
 	err = c.Cli.Call("keybase.1.pgp.pgpKeyGen", []interface{}{__arg}, nil)
 	return
 }
 
-func (c PgpClient) PgpKeyGenDefault(__arg PgpKeyGenDefaultArg) (err error) {
+func (c PGPClient) PGPKeyGenDefault(__arg PGPKeyGenDefaultArg) (err error) {
 	err = c.Cli.Call("keybase.1.pgp.pgpKeyGenDefault", []interface{}{__arg}, nil)
 	return
 }
 
-func (c PgpClient) PgpDeletePrimary(sessionID int) (err error) {
-	__arg := PgpDeletePrimaryArg{SessionID: sessionID}
+func (c PGPClient) PGPDeletePrimary(sessionID int) (err error) {
+	__arg := PGPDeletePrimaryArg{SessionID: sessionID}
 	err = c.Cli.Call("keybase.1.pgp.pgpDeletePrimary", []interface{}{__arg}, nil)
 	return
 }
 
-func (c PgpClient) PgpSelect(__arg PgpSelectArg) (err error) {
+func (c PGPClient) PGPSelect(__arg PGPSelectArg) (err error) {
 	err = c.Cli.Call("keybase.1.pgp.pgpSelect", []interface{}{__arg}, nil)
 	return
 }
 
-func (c PgpClient) PgpUpdate(__arg PgpUpdateArg) (err error) {
+func (c PGPClient) PGPUpdate(__arg PGPUpdateArg) (err error) {
 	err = c.Cli.Call("keybase.1.pgp.pgpUpdate", []interface{}{__arg}, nil)
 	return
 }

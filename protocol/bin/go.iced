@@ -282,7 +282,7 @@ class GoEmitter2 extends GoEmitter
     res = details.response
     args = if arg.nargs then "#{(@emit_field_type (arg.single or arg).type ).type}" else ""
     res_types = []
-    if res isnt "null" then res_types.push @emit_field_type(res).type
+    if res isnt "null" then res_types.push @go_lint_capitalize(@emit_field_type(res).type)
     res_types.push "error"
     @output "#{@go_export_case(name)}(#{args}) (#{res_types.join ","})"
 
@@ -292,7 +292,7 @@ class GoEmitter2 extends GoEmitter
     res = details.response
     out_list = []
     if res isnt "null"
-      out_list.push "res #{@emit_field_type(res).type}"
+      out_list.push "res #{@go_lint_capitalize(@emit_field_type(res).type)}"
       res_in = "&res"
     else
       res_in = "nil"
