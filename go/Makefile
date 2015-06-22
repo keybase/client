@@ -10,6 +10,10 @@ vet:
 lint:
 	golint ./... | grep -v comment | grep -v KeysById | grep -v "error should be the last type" || echo "Lint-free!"
 
+# to run splint, first do this:  go get stathat.com/c/splint
+splint:
+	splint -s 100 `find . -name "*.go"`
+
 cover:
 	go test -covermode=count ./...
 
@@ -44,4 +48,4 @@ coverlibkb:
 coverclean:
 	rm /tmp/count.out
 
-.PHONY: test
+.PHONY: test splint fmt lint vet cover testclean coverclient coverdaemon coverengine coverlibcmdline coverlibkb coverclean
