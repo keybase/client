@@ -11,7 +11,15 @@ path = require 'path'
 
 class GoEmitter
 
-  go_export_case : (n) -> n[0].toUpperCase() + n[1...]
+  go_export_case : (n) ->
+    ret = n[0].toUpperCase() + n[1...]
+    @go_lint_capitalize ret
+
+  go_lint_capitalize : (n) ->
+    n = n.replace /pgp/g, "PGP"
+    n = n.replace /Pgp/g, "PGP"
+    n
+
   go_package : (n) -> n.replace(/[.-]/g, "")
 
   go_primitive_type : (m) ->
@@ -67,7 +75,7 @@ class GoEmitter
       omitempty = if optional then ",omitempty" else ""
       @output [
         @go_export_case(f.name),
-        type,
+        @go_lint_capitalize(type),
         "`codec:\"#{f.name}#{omitempty}\" json:\"#{f.name}#{omitempty}\"`"
       ].join "\t"
     @untab()
