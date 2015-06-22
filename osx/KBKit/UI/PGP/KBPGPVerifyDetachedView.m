@@ -60,7 +60,7 @@
 
 - (void)verify {
   _verifier = [[KBPGPVerify alloc] init];
-  KBRPgpVerifyOptions *options = [[KBRPgpVerifyOptions alloc] init];
+  KBRPGPVerifyOptions *options = [[KBRPGPVerifyOptions alloc] init];
 
   NSData *signatureData = [_textView.text dataUsingEncoding:NSUTF8StringEncoding];
   NSString *filePath = [_fileSelectView path];
@@ -82,7 +82,7 @@
   }
 
   [KBActivity setProgressEnabled:YES sender:self];
-  [_verifier verifyWithOptions:options stream:stream client:self.client sender:self completion:^(NSError *error, KBStream *stream, KBRPgpSigVerification *pgpSigVerification) {
+  [_verifier verifyWithOptions:options stream:stream client:self.client sender:self completion:^(NSError *error, KBStream *stream, KBRPGPSigVerification *pgpSigVerification) {
     [KBActivity setProgressEnabled:NO sender:self];
     if ([KBActivity setError:error sender:self]) return;
 
@@ -94,7 +94,7 @@
   }];
 }
 
-- (void)_verified:(KBRPgpSigVerification *)pgpSigVerification {
+- (void)_verified:(KBRPGPSigVerification *)pgpSigVerification {
   if (pgpSigVerification.verified) {
     NSString *title = NSStringWithFormat(@"Verified from %@", pgpSigVerification.signer.username);
     NSString *description = NSStringWithFormat(@"Verified from %@ with PGP key fingerprint %@", pgpSigVerification.signer.username, pgpSigVerification.signKey.PGPFingerprint);

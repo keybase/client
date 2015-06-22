@@ -40,7 +40,7 @@
   }];
 }
 
-- (void)setPgpSigVerification:(KBRPgpSigVerification *)pgpSigVerification {
+- (void)setPgpSigVerification:(KBRPGPSigVerification *)pgpSigVerification {
   _pgpSigVerification = pgpSigVerification;
   [_userView setUser:nil];
   _userView.hidden = YES;

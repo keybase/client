@@ -62,7 +62,7 @@
 
 - (void)signStreams:(NSArray *)streams {
   _signer = [[KBPGPSigner alloc] init];
-  KBRPgpSignOptions *options = [[KBRPgpSignOptions alloc] init];
+  KBRPGPSignOptions *options = [[KBRPGPSignOptions alloc] init];
 
   if ([self isDetached]) {
     options.mode = KBRSignModeDetached;

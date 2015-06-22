@@ -20,7 +20,7 @@
 
 - (void)setData:(NSData *)data armored:(BOOL)armored;
 
-- (void)setPgpSigVerification:(KBRPgpSigVerification *)pgpSigVerification;
+- (void)setPgpSigVerification:(KBRPGPSigVerification *)pgpSigVerification;
 
 - (void)clear;
 

@@ -128,7 +128,7 @@
 - (void)showPublic:(void (^)(NSError *error, KBRKeyInfo *keyInfo))completion {
   GHWeakSelf gself = self;
   KBRPgpRequest *request = [[KBRPgpRequest alloc] initWithClient:self.client];
-  KBRPgpQuery *options = [[KBRPgpQuery alloc] init];
+  KBRPGPQuery *options = [[KBRPGPQuery alloc] init];
   options.query = KBHexString(_keyId.kid, nil);
   options.exactMatch = YES;
   [request pgpExportWithSessionID:request.sessionId options:options completion:^(NSError *error, NSArray *keys) {
@@ -141,7 +141,7 @@
 
 - (void)showSecret:(void (^)(NSError *error, KBRKeyInfo *keyInfo))completion {
   KBRPgpRequest *request = [[KBRPgpRequest alloc] initWithClient:self.client];
-  KBRPgpQuery *options = [[KBRPgpQuery alloc] init];
+  KBRPGPQuery *options = [[KBRPGPQuery alloc] init];
   options.query = KBHexString(_keyId.kid, nil);
   options.exactMatch = YES;
   options.secret = YES;

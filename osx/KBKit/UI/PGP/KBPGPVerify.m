@@ -10,7 +10,7 @@
 
 @implementation KBPGPVerify
 
-- (void)verifyWithOptions:(KBRPgpVerifyOptions *)options stream:(KBStream *)stream client:(KBRPClient *)client sender:(id)sender completion:(void (^)(NSError *error, KBStream *stream, KBRPgpSigVerification *pgpSigVerification))completion {
+- (void)verifyWithOptions:(KBRPGPVerifyOptions *)options stream:(KBStream *)stream client:(KBRPClient *)client sender:(id)sender completion:(void (^)(NSError *error, KBStream *stream, KBRPGPSigVerification *pgpSigVerification))completion {
   KBRPgpRequest *request = [[KBRPgpRequest alloc] initWithClient:client];
 
   [stream registerWithClient:client sessionId:request.sessionId];
@@ -18,7 +18,7 @@
   KBRStream *source = [[KBRStream alloc] init];
   source.fd = stream.label;
 
-  [request pgpVerifyWithSessionID:request.sessionId source:source opts:options completion:^(NSError *error, KBRPgpSigVerification *pgpSigVerification) {
+  [request pgpVerifyWithSessionID:request.sessionId source:source opts:options completion:^(NSError *error, KBRPGPSigVerification *pgpSigVerification) {
 
     if (error && error.code == 1504) {
       error = KBMakeError(-1, @"This appears to be a detached signature. You need to specify both the signature and the file to verify against.");

@@ -10,12 +10,12 @@
 
 @interface KBPGPDecrypted ()
 @property KBStream *stream;
-@property KBRPgpSigVerification *pgpSigVerification;
+@property KBRPGPSigVerification *pgpSigVerification;
 @end
 
 @implementation KBPGPDecrypted
 
-+ (instancetype)decryptedWithStream:(KBStream *)stream pgpSigVerification:(KBRPgpSigVerification *)pgpSigVerification {
++ (instancetype)decryptedWithStream:(KBStream *)stream pgpSigVerification:(KBRPGPSigVerification *)pgpSigVerification {
   KBPGPDecrypted *decrypted = [[KBPGPDecrypted alloc] init];
   decrypted.stream = stream;
   decrypted.pgpSigVerification = pgpSigVerification;

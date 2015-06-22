@@ -90,7 +90,7 @@
 
 - (void)decryptStreams:(NSArray *)streams {
   _decrypter = [[KBPGPDecrypt alloc] init];
-  KBRPgpDecryptOptions *options = [[KBRPgpDecryptOptions alloc] init];
+  KBRPGPDecryptOptions *options = [[KBRPGPDecryptOptions alloc] init];
 
   self.navigation.progressEnabled = YES;
   [_decrypter decryptWithOptions:options streams:streams client:self.client sender:self completion:^(NSArray *works) {

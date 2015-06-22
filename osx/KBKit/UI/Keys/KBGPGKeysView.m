@@ -54,7 +54,7 @@
   } else if ([tableColumn.identifier isEqualTo:@"expiration"]) {
     return [key expiration];
   } else if ([tableColumn.identifier isEqualTo:@"identities"]) {
-    return [[[key identities] map:^(KBRPgpIdentity *i) { return NSStringWithFormat(@"%@ <%@>", i.username, i.email); }] join:@", "];
+    return [[[key identities] map:^(KBRPGPIdentity *i) { return NSStringWithFormat(@"%@ <%@>", i.username, i.email); }] join:@", "];
   }
   return nil;
 }

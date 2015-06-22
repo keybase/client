@@ -123,8 +123,8 @@
   [client registerMethod:@"keybase.1.identifyUi.displayKey" sessionId:sessionId requestHandler:^(NSNumber *messageId, NSString *method, NSArray *params, MPRequestCompletion completion) {
     KBRDisplayKeyRequestParams *requestParams = [[KBRDisplayKeyRequestParams alloc] initWithParams:params];
     if (!gself.fokids) gself.fokids = [NSMutableArray array];
-    [gself.fokids addObject:requestParams.fokid];
-    [gself.userInfoView addKey:requestParams.fokid targetBlock:^(KBRFOKID *keyId) {
+    [gself.fokids addObject:requestParams.key];
+    [gself.userInfoView addKey:requestParams.key targetBlock:^(KBRFOKID *keyId) {
       [self openKeyWithKeyId:keyId];
     }];
     [gself setNeedsLayout];
@@ -421,7 +421,7 @@
   KBProgressView *progressView = [[KBProgressView alloc] init];
   [progressView setProgressTitle:@"Generating"];
   progressView.work = ^(KBCompletion completion) {
-    KBRPgpCreateUids *uids = [[KBRPgpCreateUids alloc] init];
+    KBRPGPCreateUids *uids = [[KBRPGPCreateUids alloc] init];
     uids.useDefault = YES;
     KBRPgpRequest *request = [[KBRPgpRequest alloc] initWithClient:self.client];
     [request pgpKeyGenDefaultWithSessionID:request.sessionId createUids:uids completion:^(NSError *error) {

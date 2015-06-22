@@ -49,7 +49,7 @@
 
 - (void)sign {
   _signer = [[KBPGPSigner alloc] init];
-  KBRPgpSignOptions *options = [[KBRPgpSignOptions alloc] init];
+  KBRPGPSignOptions *options = [[KBRPGPSignOptions alloc] init];
   options.mode = _footerView.clearSign.state == NSOnState ? KBRSignModeClear : KBRSignModeAttached;
   options.binaryIn = NO;
   options.binaryOut = NO;

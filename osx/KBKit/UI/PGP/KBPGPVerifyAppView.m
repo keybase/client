@@ -28,7 +28,7 @@
   GHWeakSelf gself = self;
   _verifyView = [[KBPGPVerifyView alloc] init];
   _verifyView.onVerify = ^(KBPGPVerifyView *view, KBPGPDecrypted *decrypted) {
-    KBRPgpSigVerification *pgpSigVerification = decrypted.pgpSigVerification;
+    KBRPGPSigVerification *pgpSigVerification = decrypted.pgpSigVerification;
     if (pgpSigVerification) {
       NSString *text = [[NSString alloc] initWithData:decrypted.stream.writer.data encoding:NSUTF8StringEncoding];
       [gself.outputView setText:text wrap:YES];

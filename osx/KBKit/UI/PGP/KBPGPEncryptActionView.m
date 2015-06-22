@@ -100,7 +100,7 @@
 - (void)encrypt {
   id<KBReader> reader;
   id<KBWriter> writer;
-  KBRPgpEncryptOptions *options = [[KBRPgpEncryptOptions alloc] init];
+  KBRPGPEncryptOptions *options = [[KBRPGPEncryptOptions alloc] init];
   if ([_textView superview]) {
     reader = [KBReader readerWithData:[_textView.text dataUsingEncoding:NSUTF8StringEncoding]];
     writer = [KBWriter writer];

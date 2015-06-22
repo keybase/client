@@ -14,9 +14,9 @@
 
 @interface KBPGPEncrypt : NSObject
 
-- (void)encryptWithOptions:(KBRPgpEncryptOptions *)options streams:(NSArray *)streams client:(KBRPClient *)client sender:(id)sender completion:(void (^)(NSArray *works))completion;
+- (void)encryptWithOptions:(KBRPGPEncryptOptions *)options streams:(NSArray *)streams client:(KBRPClient *)client sender:(id)sender completion:(void (^)(NSArray *works))completion;
 
-- (void)encryptWithOptions:(KBRPgpEncryptOptions *)options stream:(KBStream *)stream client:(KBRPClient *)client sender:(id)sender completion:(KBRunCompletion)completion;
+- (void)encryptWithOptions:(KBRPGPEncryptOptions *)options stream:(KBStream *)stream client:(KBRPClient *)client sender:(id)sender completion:(KBRunCompletion)completion;
 
 
 - (void)encryptText:(NSString *)text usernames:(NSArray *)usernames client:(KBRPClient *)client sender:(id)sender completion:(KBRunCompletion)completion;

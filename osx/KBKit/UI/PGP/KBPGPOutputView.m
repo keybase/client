@@ -81,7 +81,7 @@
 //  [mailShare performWithItems:shareItems];
 //}
 
-- (void)setPgpSigVerification:(KBRPgpSigVerification *)pgpSigVerification {
+- (void)setPgpSigVerification:(KBRPGPSigVerification *)pgpSigVerification {
   _verifiedView.pgpSigVerification = pgpSigVerification;
   [self setNeedsLayout];
 }

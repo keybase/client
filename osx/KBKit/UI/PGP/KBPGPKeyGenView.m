@@ -82,7 +82,7 @@
 }
 
 - (void)generateKey {
-  KBRPgpCreateUids *uids = [[KBRPgpCreateUids alloc] init];
+  KBRPGPCreateUids *uids = [[KBRPGPCreateUids alloc] init];
   uids.useDefault = YES;
 
   [KBActivity setProgressEnabled:YES sender:self];

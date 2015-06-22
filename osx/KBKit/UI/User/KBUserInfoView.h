@@ -16,7 +16,7 @@
 
 - (BOOL)updateProofResult:(KBProofResult *)proofResult;
 
-- (void)addKey:(KBRFOKID *)key targetBlock:(void (^)(KBRFOKID *key))targetBlock;
+- (void)addKey:(KBRIdentifyKey *)key targetBlock:(void (^)(KBRFOKID *key))targetBlock;
 
 - (void)addCryptocurrency:(KBRCryptocurrency *)cryptocurrency targetBlock:(void (^)(KBRCryptocurrency *cryptocurrency))targetBlock;
 

@@ -12,7 +12,7 @@
 
 @class KBPGPVerifyDetachedView;
 
-typedef void (^KBPGPOnDetachedVerify)(KBPGPVerifyDetachedView *view, KBRPgpSigVerification *verification);
+typedef void (^KBPGPOnDetachedVerify)(KBPGPVerifyDetachedView *view, KBRPGPSigVerification *verification);
 
 @interface KBPGPVerifyDetachedView : KBContentView
 

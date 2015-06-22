@@ -12,7 +12,7 @@
 
 @implementation KBPGPSigner
 
-- (void)signWithOptions:(KBRPgpSignOptions *)options streams:(NSArray *)streams client:(KBRPClient *)client sender:(id)sender completion:(void (^)(NSArray *works))completion {
+- (void)signWithOptions:(KBRPGPSignOptions *)options streams:(NSArray *)streams client:(KBRPClient *)client sender:(id)sender completion:(void (^)(NSArray *works))completion {
   KBRunOver *runOver = [[KBRunOver alloc] init];
   runOver.enumerator = [streams objectEnumerator];
   runOver.runBlock = ^(KBStream *stream, KBRunCompletion runCompletion) {
@@ -22,7 +22,7 @@
   [runOver run];
 }
 
-- (void)signWithOptions:(KBRPgpSignOptions *)options stream:(KBStream *)stream client:(KBRPClient *)client sender:(id)sender completion:(KBRunCompletion)completion {
+- (void)signWithOptions:(KBRPGPSignOptions *)options stream:(KBStream *)stream client:(KBRPClient *)client sender:(id)sender completion:(KBRunCompletion)completion {
   KBRPgpRequest *request = [[KBRPgpRequest alloc] initWithClient:client];
 
   [stream registerWithClient:client sessionId:request.sessionId];

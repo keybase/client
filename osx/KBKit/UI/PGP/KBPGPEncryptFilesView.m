@@ -78,7 +78,7 @@
 
 - (void)encryptStreams:(NSArray *)streams {
   _encrypter = [[KBPGPEncrypt alloc] init];
-  KBRPgpEncryptOptions *options = [[KBRPgpEncryptOptions alloc] init];
+  KBRPGPEncryptOptions *options = [[KBRPGPEncryptOptions alloc] init];
   options.recipients = _userPickerView.usernames;
   options.noSelf = _footerView.includeSelfButton.state != NSOnState;
   options.noSign = _footerView.signButton.state != NSOnState;

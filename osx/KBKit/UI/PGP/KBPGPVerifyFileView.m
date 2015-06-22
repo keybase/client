@@ -86,11 +86,11 @@
   KBFileReader *fileReader = [KBFileReader fileReaderWithPath:_fileIcon.file.path];
   KBStream *stream = [KBStream streamWithReader:fileReader writer:nil label:arc4random()];
 
-  KBRPgpVerifyOptions *options = [[KBRPgpVerifyOptions alloc] init];
+  KBRPGPVerifyOptions *options = [[KBRPGPVerifyOptions alloc] init];
 
   _verifier = [[KBPGPVerify alloc] init];
   self.navigation.progressEnabled = YES;
-  [_verifier verifyWithOptions:options stream:stream client:self.client sender:self completion:^(NSError *error, KBStream *stream, KBRPgpSigVerification *pgpSigVerification) {
+  [_verifier verifyWithOptions:options stream:stream client:self.client sender:self completion:^(NSError *error, KBStream *stream, KBRPGPSigVerification *pgpSigVerification) {
     self.navigation.progressEnabled = NO;
     if ([self.navigation setError:error sender:self]) return;
 

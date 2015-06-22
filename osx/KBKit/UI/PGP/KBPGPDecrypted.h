@@ -14,8 +14,8 @@
 @interface KBPGPDecrypted : NSObject
 
 @property (readonly) KBStream *stream;
-@property (readonly) KBRPgpSigVerification *pgpSigVerification;
+@property (readonly) KBRPGPSigVerification *pgpSigVerification;
 
-+ (instancetype)decryptedWithStream:(KBStream *)stream pgpSigVerification:(KBRPgpSigVerification *)pgpSigVerification;
++ (instancetype)decryptedWithStream:(KBStream *)stream pgpSigVerification:(KBRPGPSigVerification *)pgpSigVerification;
 
 @end

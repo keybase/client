@@ -15,6 +15,6 @@
 
 @interface KBPGPVerify : NSObject
 
-- (void)verifyWithOptions:(KBRPgpVerifyOptions *)options stream:(KBStream *)stream client:(KBRPClient *)client sender:(id)sender completion:(void (^)(NSError *error, KBStream *stream, KBRPgpSigVerification *pgpSigVerification))completion;
+- (void)verifyWithOptions:(KBRPGPVerifyOptions *)options stream:(KBStream *)stream client:(KBRPClient *)client sender:(id)sender completion:(void (^)(NSError *error, KBStream *stream, KBRPGPSigVerification *pgpSigVerification))completion;
 
 @end

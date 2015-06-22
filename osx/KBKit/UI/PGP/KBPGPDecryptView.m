@@ -49,7 +49,7 @@
 
 - (void)decrypt {
   _decrypter = [[KBPGPDecrypt alloc] init];
-  KBRPgpDecryptOptions *options = [[KBRPgpDecryptOptions alloc] init];
+  KBRPGPDecryptOptions *options = [[KBRPGPDecryptOptions alloc] init];
 
   NSData *data = [_textView.text dataUsingEncoding:NSUTF8StringEncoding];
   KBReader *reader = [KBReader readerWithData:data];

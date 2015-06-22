@@ -17,7 +17,7 @@
 
 @implementation KBPGPEncrypt
 
-- (void)encryptWithOptions:(KBRPgpEncryptOptions *)options streams:(NSArray *)streams client:(KBRPClient *)client sender:(id)sender completion:(void (^)(NSArray *works))completion {
+- (void)encryptWithOptions:(KBRPGPEncryptOptions *)options streams:(NSArray *)streams client:(KBRPClient *)client sender:(id)sender completion:(void (^)(NSArray *works))completion {
   KBRunOver *runOver = [[KBRunOver alloc] init];
   runOver.enumerator = [streams objectEnumerator];
   runOver.runBlock = ^(KBStream *stream, KBRunCompletion runCompletion) {
@@ -27,7 +27,7 @@
   [runOver run];
 }
 
-- (void)encryptWithOptions:(KBRPgpEncryptOptions *)options stream:(KBStream *)stream client:(KBRPClient *)client sender:(id)sender completion:(KBRunCompletion)completion {
+- (void)encryptWithOptions:(KBRPGPEncryptOptions *)options stream:(KBStream *)stream client:(KBRPClient *)client sender:(id)sender completion:(KBRunCompletion)completion {
   KBRPgpRequest *request = [[KBRPgpRequest alloc] initWithClient:client];
 
   [self registerTrackView:request.sessionId client:client sender:sender];
@@ -54,7 +54,7 @@
 }
 
 - (void)encryptText:(NSString *)text usernames:(NSArray *)usernames client:(KBRPClient *)client sender:(id)sender completion:(KBRunCompletion)completion {
-  KBRPgpEncryptOptions *options = [[KBRPgpEncryptOptions alloc] init];
+  KBRPGPEncryptOptions *options = [[KBRPGPEncryptOptions alloc] init];
   id<KBReader> reader = [KBReader readerWithData:[text dataUsingEncoding:NSUTF8StringEncoding]];
   id<KBWriter> writer = [KBWriter writer];
 

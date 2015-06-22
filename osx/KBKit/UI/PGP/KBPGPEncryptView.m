@@ -89,7 +89,7 @@
   KBStream *stream = [KBStream streamWithReader:reader writer:writer label:arc4random()];
 
   _encrypter = [[KBPGPEncrypt alloc] init];
-  KBRPgpEncryptOptions *options = [[KBRPgpEncryptOptions alloc] init];
+  KBRPGPEncryptOptions *options = [[KBRPGPEncryptOptions alloc] init];
   options.recipients = _userPickerView.usernames;
   options.noSelf = _footerView.includeSelfButton.state != NSOnState;
   options.noSign = _footerView.signButton.state != NSOnState;

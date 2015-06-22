@@ -64,7 +64,7 @@
   KBReader *reader = [KBReader readerWithData:signatureData];
   KBWriter *writer = [KBWriter writer];
   KBStream *stream = [KBStream streamWithReader:reader writer:writer label:arc4random()];
-  KBRPgpDecryptOptions *options = [[KBRPgpDecryptOptions alloc] init];
+  KBRPGPDecryptOptions *options = [[KBRPGPDecryptOptions alloc] init];
   options.assertSigned = YES;
 
   [KBActivity setProgressEnabled:YES sender:self];
@@ -83,7 +83,7 @@
 }
 
 - (void)_verified:(KBPGPDecrypted *)decrypted {
-  KBRPgpSigVerification *pgpSigVerification = decrypted.pgpSigVerification;
+  KBRPGPSigVerification *pgpSigVerification = decrypted.pgpSigVerification;
   if (pgpSigVerification.verified) {
     NSString *title = NSStringWithFormat(@"Verified from %@", pgpSigVerification.signer.username);
     NSString *description = NSStringWithFormat(@"Verified from %@ with PGP key fingerprint %@", pgpSigVerification.signer.username, pgpSigVerification.signKey.PGPFingerprint);

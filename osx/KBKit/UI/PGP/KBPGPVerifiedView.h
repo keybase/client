@@ -13,6 +13,6 @@
 
 @interface KBPGPVerifiedView : YOVBox
 
-@property (nonatomic) KBRPgpSigVerification *pgpSigVerification;
+@property (nonatomic) KBRPGPSigVerification *pgpSigVerification;
 
 @end

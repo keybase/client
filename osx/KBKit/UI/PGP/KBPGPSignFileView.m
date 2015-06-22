@@ -71,7 +71,7 @@
 }
 
 - (void)signDetached {
-  KBRPgpSignOptions *options = [[KBRPgpSignOptions alloc] init];
+  KBRPGPSignOptions *options = [[KBRPGPSignOptions alloc] init];
   options.binaryIn = YES;
   options.binaryOut = NO;
   options.mode = KBRSignModeDetached;
@@ -83,7 +83,7 @@
 }
 
 - (void)signAttached {
-  KBRPgpSignOptions *options = [[KBRPgpSignOptions alloc] init];
+  KBRPGPSignOptions *options = [[KBRPGPSignOptions alloc] init];
   options.mode = KBRSignModeAttached;
   options.binaryIn = YES;
   options.binaryOut = YES;
@@ -98,7 +98,7 @@
   }];
 }
 
-- (void)signStream:(KBStream *)stream options:(KBRPgpSignOptions *)options {
+- (void)signStream:(KBStream *)stream options:(KBRPGPSignOptions *)options {
   _signer = [[KBPGPSigner alloc] init];
   self.navigation.progressEnabled = YES;
   [_signer signWithOptions:options streams:@[stream] client:self.client sender:self completion:^(NSArray *works) {
