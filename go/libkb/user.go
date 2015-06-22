@@ -119,21 +119,21 @@ func (u *User) GetComputedKeyFamily() (ret *ComputedKeyFamily) {
 	return
 }
 
-// GetActivePgpKeys looks into the user's ComputedKeyFamily and
+// GetActivePGPKeys looks into the user's ComputedKeyFamily and
 // returns only the active PGP keys.  If you want only sibkeys, then
 // specify sibkey=true.
-func (u *User) GetActivePgpKeys(sibkey bool) (ret []*PgpKeyBundle) {
+func (u *User) GetActivePGPKeys(sibkey bool) (ret []*PGPKeyBundle) {
 	if ckf := u.GetComputedKeyFamily(); ckf != nil {
-		ret = ckf.GetActivePgpKeys(sibkey)
+		ret = ckf.GetActivePGPKeys(sibkey)
 	}
 	return
 }
 
-// FilterActivePgpKeys returns the active pgp keys that match
+// FilterActivePGPKeys returns the active pgp keys that match
 // query.
-func (u *User) FilterActivePgpKeys(sibkey bool, query string) []*PgpKeyBundle {
-	keys := u.GetActivePgpKeys(sibkey)
-	var res []*PgpKeyBundle
+func (u *User) FilterActivePGPKeys(sibkey bool, query string) []*PGPKeyBundle {
+	keys := u.GetActivePGPKeys(sibkey)
+	var res []*PGPKeyBundle
 	for _, k := range keys {
 		if KeyMatchesQuery(k, query, false) {
 			res = append(res, k)
@@ -142,18 +142,18 @@ func (u *User) FilterActivePgpKeys(sibkey bool, query string) []*PgpKeyBundle {
 	return res
 }
 
-// GetActivePgpFingerprints looks into the user's ComputedKeyFamily and
+// GetActivePGPFingerprints looks into the user's ComputedKeyFamily and
 // returns only the fingerprint of the active PGP keys.
 // If you want only sibkeys, then // specify sibkey=true.
-func (u *User) GetActivePgpFingerprints(sibkey bool) (ret []PGPFingerprint) {
-	for _, pgp := range u.GetActivePgpKeys(sibkey) {
+func (u *User) GetActivePGPFingerprints(sibkey bool) (ret []PGPFingerprint) {
+	for _, pgp := range u.GetActivePGPKeys(sibkey) {
 		ret = append(ret, pgp.GetFingerprint())
 	}
 	return
 }
 
-func (u *User) GetActivePgpFOKIDs(sibkey bool) (ret []FOKID) {
-	for _, pgp := range u.GetActivePgpKeys(sibkey) {
+func (u *User) GetActivePGPFOKIDs(sibkey bool) (ret []FOKID) {
+	for _, pgp := range u.GetActivePGPKeys(sibkey) {
 		ret = append(ret, GenericKeyToFOKID(pgp))
 	}
 	return
@@ -453,7 +453,7 @@ func (u *User) BaseProofSet() *ProofSet {
 		{Key: "keybase", Value: u.name},
 		{Key: "uid", Value: u.id.String()},
 	}
-	for _, fp := range u.GetActivePgpFingerprints(true) {
+	for _, fp := range u.GetActivePGPFingerprints(true) {
 		proofs = append(proofs, Proof{Key: "fingerprint", Value: fp.String()})
 	}
 

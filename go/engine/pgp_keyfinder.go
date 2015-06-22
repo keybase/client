@@ -128,7 +128,7 @@ func (e *PGPKeyfinder) loadKeys(ctx *Context) {
 
 	// get the pgp keys for all the users
 	for _, x := range e.uplus {
-		keys := x.User.GetActivePgpKeys(true)
+		keys := x.User.GetActivePGPKeys(true)
 		if len(keys) == 0 {
 			e.runerr = fmt.Errorf("User %s doesn't have a pgp key", x.User.GetName())
 			return
@@ -168,7 +168,7 @@ func (e *PGPKeyfinder) identifyUser(ctx *Context, user string) error {
 type UserPlusKeys struct {
 	User      *libkb.User
 	IsTracked bool
-	Keys      []*libkb.PgpKeyBundle
+	Keys      []*libkb.PGPKeyBundle
 }
 
 func (e *PGPKeyfinder) loadMe() {

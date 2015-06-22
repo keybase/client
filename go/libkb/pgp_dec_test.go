@@ -19,7 +19,7 @@ func TestPGPDecryptBasic(t *testing.T) {
 
 	mid := NewBufferCloser()
 	msg := "Is it time for lunch?"
-	recipients := []*PgpKeyBundle{keyA, keyB}
+	recipients := []*PGPKeyBundle{keyA, keyB}
 	if err := PGPEncrypt(strings.NewReader(msg), mid, nil, recipients); err != nil {
 		t.Fatal(err)
 	}

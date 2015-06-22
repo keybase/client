@@ -55,7 +55,7 @@ func (e *PGPUpdateEngine) Run(ctx *Context) error {
 	if err != nil {
 		return err
 	}
-	fingerprints := me.GetActivePgpFingerprints(false /* not just sibkeys */)
+	fingerprints := me.GetActivePGPFingerprints(false /* not just sibkeys */)
 	if len(fingerprints) > 1 && !e.all && len(e.selectedFingerprints) == 0 {
 		return fmt.Errorf("You have more than one PGP key. To update all of them, use --all.")
 	}

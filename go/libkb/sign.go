@@ -125,7 +125,7 @@ func getSigningKey(e *openpgp.Entity, now time.Time) (openpgp.Key, bool) {
 
 // SimpleSign signs the given data stream, outputs an armored string which is
 // the attached signature of the input data
-func SimpleSign(payload []byte, key PgpKeyBundle) (out string, id keybase1.SigID, err error) {
+func SimpleSign(payload []byte, key PGPKeyBundle) (out string, id keybase1.SigID, err error) {
 	var outb bytes.Buffer
 	var in io.WriteCloser
 	var h HashSummer
@@ -237,7 +237,7 @@ func ArmoredAttachedSign(out io.WriteCloser, signed openpgp.Entity, hints *openp
 
 	var aout io.WriteCloser
 
-	aout, err = armor.Encode(out, "PGP MESSAGE", PgpArmorHeaders)
+	aout, err = armor.Encode(out, "PGP MESSAGE", PGPArmorHeaders)
 	if err != nil {
 		return
 	}
@@ -249,7 +249,7 @@ func ArmoredAttachedSign(out io.WriteCloser, signed openpgp.Entity, hints *openp
 	return
 }
 
-func AttachedSignWrapper(out io.WriteCloser, key PgpKeyBundle, armored bool) (
+func AttachedSignWrapper(out io.WriteCloser, key PGPKeyBundle, armored bool) (
 	in io.WriteCloser, err error) {
 
 	if armored {

@@ -127,15 +127,15 @@ func (tc *TestContext) GenerateGPGKeyring(ids ...string) error {
 	return nil
 }
 
-func (tc *TestContext) MakePGPKey(id string) (*PgpKeyBundle, error) {
+func (tc *TestContext) MakePGPKey(id string) (*PGPKeyBundle, error) {
 	arg := PGPGenArg{
 		PrimaryBits: 1024,
 		SubkeyBits:  1024,
 		PGPUids:     []string{id},
 	}
 	arg.Init()
-	arg.CreatePgpIDs()
-	return NewPgpKeyBundle(arg, tc.G.UI.GetLogUI())
+	arg.CreatePGPIDs()
+	return NewPGPKeyBundle(arg, tc.G.UI.GetLogUI())
 }
 
 func setupTestContext(nm string) (tc TestContext, err error) {

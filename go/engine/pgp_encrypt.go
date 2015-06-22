@@ -76,8 +76,8 @@ func (e *PGPEncrypt) Run(ctx *Context) error {
 		}
 	}
 
-	var mykey *libkb.PgpKeyBundle
-	var signer *libkb.PgpKeyBundle
+	var mykey *libkb.PGPKeyBundle
+	var signer *libkb.PGPKeyBundle
 	if !e.arg.NoSign {
 		me, err := libkb.LoadMe(libkb.LoadUserArg{})
 		if err != nil {
@@ -95,7 +95,7 @@ func (e *PGPEncrypt) Run(ctx *Context) error {
 		}
 
 		var ok bool
-		mykey, ok = key.(*libkb.PgpKeyBundle)
+		mykey, ok = key.(*libkb.PGPKeyBundle)
 		if !ok {
 			return errors.New("Can only sign with PGP keys")
 		}
@@ -117,14 +117,14 @@ func (e *PGPEncrypt) Run(ctx *Context) error {
 	if e.arg.BinaryOutput {
 		writer = e.arg.Sink
 	} else {
-		aw, err := armor.Encode(e.arg.Sink, "PGP MESSAGE", libkb.PgpArmorHeaders)
+		aw, err := armor.Encode(e.arg.Sink, "PGP MESSAGE", libkb.PGPArmorHeaders)
 		if err != nil {
 			return err
 		}
 		writer = aw
 	}
 
-	var recipients []*libkb.PgpKeyBundle
+	var recipients []*libkb.PGPKeyBundle
 	if !e.arg.NoSelf {
 		if mykey == nil {
 			// need to load the public key for the logged in user
@@ -153,13 +153,13 @@ func (e *PGPEncrypt) Run(ctx *Context) error {
 	return nil
 }
 
-func (e *PGPEncrypt) loadSelfKey() (*libkb.PgpKeyBundle, error) {
+func (e *PGPEncrypt) loadSelfKey() (*libkb.PGPKeyBundle, error) {
 	me, err := libkb.LoadMe(libkb.LoadUserArg{})
 	if err != nil {
 		return nil, err
 	}
 
-	keys := me.FilterActivePgpKeys(true, e.arg.KeyQuery)
+	keys := me.FilterActivePGPKeys(true, e.arg.KeyQuery)
 	if len(keys) == 0 {
 		return nil, libkb.NoKeyError{Msg: "No PGP key found for encrypting for self"}
 	}

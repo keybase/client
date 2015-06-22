@@ -38,7 +38,7 @@ func (v *CmdPGPGen) ParseArgv(ctx *cli.Context) (err error) {
 	return err
 }
 
-// XXX is there a reason this uses CreatePgpIDs and the standalone
+// XXX is there a reason this uses CreatePGPIDs and the standalone
 // Run below uses MakeAllIds?
 func (v *CmdPGPGen) RunClient() (err error) {
 	protocols := []rpc2.Protocol{
@@ -52,7 +52,7 @@ func (v *CmdPGPGen) RunClient() (err error) {
 	if err = RegisterProtocols(protocols); err != nil {
 		return err
 	}
-	if err = v.arg.Gen.CreatePgpIDs(); err != nil {
+	if err = v.arg.Gen.CreatePGPIDs(); err != nil {
 		return err
 	}
 	err = cli.PGPKeyGen(v.arg.Export())

@@ -72,7 +72,7 @@ func (e *RevokeEngine) getKIDsToRevoke(me *libkb.User) ([]libkb.KID, error) {
 		if !libkb.IsPGP(key) {
 			return nil, fmt.Errorf("Key %s is not a PGP key. To revoke device keys, use the `device remove` command.", e.id)
 		}
-		for _, activePGPKey := range me.GetComputedKeyFamily().GetActivePgpKeys(false /* sibkeys only */) {
+		for _, activePGPKey := range me.GetComputedKeyFamily().GetActivePGPKeys(false /* sibkeys only */) {
 			if activePGPKey.GetKid().Eq(kid) {
 				return []libkb.KID{kid}, nil
 			}

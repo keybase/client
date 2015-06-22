@@ -149,7 +149,7 @@ const DownloadURL = "https://keybase.io/download"
 
 var PGPVersion = "Keybase Go " + Version + " (" + runtime.GOOS + ")"
 
-var PgpArmorHeaders = map[string]string{
+var PGPArmorHeaders = map[string]string{
 	"Version": PGPVersion,
 	"Comment": DownloadURL,
 }

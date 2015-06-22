@@ -217,7 +217,7 @@ func NewMerkleRootFromJSON(jw *jsonw.Wrapper) (ret *MerkleRoot, err error) {
 		return
 	}
 
-	GetPgpFingerprintVoid(pj.AtPath("body.key.fingerprint"), &fp, &err)
+	GetPGPFingerprintVoid(pj.AtPath("body.key.fingerprint"), &fp, &err)
 	pj.AtPath("body.seqno").GetInt64Void(&seqno, &err)
 	GetNodeHashVoid(pj.AtPath("body.root"), &rh, &err)
 	lurh, _ = GetNodeHash(pj.AtPath("body.legacy_uid_root"))

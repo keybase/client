@@ -127,7 +127,7 @@ func sigVer(ss *libkb.SignatureStatus, owner *libkb.User) keybase1.PGPSigVerific
 			}
 		}
 		if ss.Entity != nil {
-			bundle := (*libkb.PgpKeyBundle)(ss.Entity)
+			bundle := (*libkb.PGPKeyBundle)(ss.Entity)
 			res.SignKey = bundle.Export()
 		}
 	}
@@ -191,7 +191,7 @@ func (h *PGPHandler) keygen(sessionID int, earg engine.PGPKeyImportEngineArg, do
 func (h *PGPHandler) PGPKeyGenDefault(arg keybase1.PGPKeyGenDefaultArg) (err error) {
 	earg := engine.PGPKeyImportEngineArg{
 		Gen: &libkb.PGPGenArg{
-			Ids:         libkb.ImportPgpIdentities(arg.CreateUids.Ids),
+			Ids:         libkb.ImportPGPIdentities(arg.CreateUids.Ids),
 			NoDefPGPUid: !arg.CreateUids.UseDefault,
 		},
 	}

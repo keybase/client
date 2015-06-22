@@ -38,7 +38,7 @@ type CommandLine interface {
 	GetGpg() string
 	GetGpgOptions() []string
 	GetGpgDisabled() (bool, bool)
-	GetPgpFingerprint() *PGPFingerprint
+	GetPGPFingerprint() *PGPFingerprint
 	GetSecretKeyringTemplate() string
 	GetSocketFile() string
 	GetPidFile() string

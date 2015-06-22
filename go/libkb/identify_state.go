@@ -94,7 +94,7 @@ func (s *IdentifyState) ComputeKeyDiffs(dhook func(keybase1.IdentifyKey)) {
 		dhook(k)
 	}
 
-	found := s.u.GetActivePgpFOKIDs(true)
+	found := s.u.GetActivePGPFOKIDs(true)
 	foundMap := mapify(found)
 	var tracked []FOKID
 	if s.track != nil {

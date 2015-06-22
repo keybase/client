@@ -41,7 +41,7 @@ func CanEncrypt(key GenericKey) bool {
 	switch key.(type) {
 	case NaclDHKeyPair:
 		return true
-	case *PgpKeyBundle:
+	case *PGPKeyBundle:
 		return true
 	default:
 		return false
@@ -93,12 +93,12 @@ func KeyMatchesQuery(key GenericKey, q string, exact bool) bool {
 }
 
 func IsPGP(key GenericKey) bool {
-	_, ok := key.(*PgpKeyBundle)
+	_, ok := key.(*PGPKeyBundle)
 	return ok
 }
 
 func ParseGenericKey(bundle string) (GenericKey, error) {
-	if isPgpBundle(bundle) {
+	if isPGPBundle(bundle) {
 		// PGP key
 		return ReadOneKeyFromString(bundle)
 	}
@@ -110,6 +110,6 @@ func ParseGenericKey(bundle string) (GenericKey, error) {
 	return ImportKeypairFromKID(kid)
 }
 
-func isPgpBundle(armored string) bool {
+func isPGPBundle(armored string) bool {
 	return strings.HasPrefix(armored, "-----BEGIN PGP")
 }

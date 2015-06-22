@@ -26,7 +26,7 @@ type TypedChainLink interface {
 	GetSeqno() Seqno
 	GetCTime() time.Time
 	GetETime() time.Time
-	GetPgpFingerprint() *PGPFingerprint
+	GetPGPFingerprint() *PGPFingerprint
 	GetKid() KID
 	GetFOKID() FOKID
 	IsInCurrentFamily(u *User) bool
@@ -69,7 +69,7 @@ func (g *GenericChainLink) IsRevocationIsh() bool                { return false 
 func (g *GenericChainLink) GetRole() KeyRole                     { return DLGNone }
 func (g *GenericChainLink) IsRevoked() bool                      { return g.revoked }
 func (g *GenericChainLink) GetSeqno() Seqno                      { return g.unpacked.seqno }
-func (g *GenericChainLink) GetPgpFingerprint() *PGPFingerprint {
+func (g *GenericChainLink) GetPGPFingerprint() *PGPFingerprint {
 	return g.unpacked.pgpFingerprint
 }
 
@@ -402,7 +402,7 @@ func (l *TrackChainLink) insertIntoTable(tab *IdentityTable) {
 
 func (l *TrackChainLink) GetTrackedFOKID() (ret FOKID) {
 	jw := l.payloadJSON.AtPath("body.track.key")
-	ret.Fp, _ = GetPgpFingerprint(jw.AtKey("key_fingerprint"))
+	ret.Fp, _ = GetPGPFingerprint(jw.AtKey("key_fingerprint"))
 	ret.Kid, _ = GetKID(jw.AtKey("kid"))
 	return
 }
@@ -430,7 +430,7 @@ func (l *TrackChainLink) GetTrackedPGPFingerprints() ([]PGPFingerprint, error) {
 		return nil, err
 	}
 	for i := 0; i < n; i++ {
-		fp, err := GetPgpFingerprint(jw.AtIndex(i).AtKey("key_fingerprint"))
+		fp, err := GetPGPFingerprint(jw.AtIndex(i).AtKey("key_fingerprint"))
 		if err != nil {
 			return nil, err
 		}
@@ -465,7 +465,7 @@ func (l *TrackChainLink) GetTrackedPGPFOKIDs() ([]FOKID, error) {
 		return nil, err
 	}
 	for i := 0; i < n; i++ {
-		fp, err := GetPgpFingerprint(jw.AtIndex(i).AtKey("key_fingerprint"))
+		fp, err := GetPGPFingerprint(jw.AtIndex(i).AtKey("key_fingerprint"))
 		if err != nil {
 			return nil, err
 		}

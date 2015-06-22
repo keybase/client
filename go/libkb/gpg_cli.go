@@ -115,7 +115,7 @@ type RunGpgRes struct {
 	Wait  func() error
 }
 
-func (g *GpgCLI) ImportKey(secret bool, fp PGPFingerprint) (ret *PgpKeyBundle, err error) {
+func (g *GpgCLI) ImportKey(secret bool, fp PGPFingerprint) (ret *PGPKeyBundle, err error) {
 	var cmd string
 	var which string
 	if secret {
@@ -150,10 +150,10 @@ func (g *GpgCLI) ImportKey(secret bool, fp PGPFingerprint) (ret *PgpKeyBundle, e
 		return nil, TooManyKeysError{len(el), fp}
 	}
 
-	return (*PgpKeyBundle)(el[0]), nil
+	return (*PGPKeyBundle)(el[0]), nil
 }
 
-func (g *GpgCLI) ExportKey(k PgpKeyBundle) (err error) {
+func (g *GpgCLI) ExportKey(k PGPKeyBundle) (err error) {
 	arg := RunGpg2Arg{
 		Arguments: []string{"--import"},
 		Stdin:     true,

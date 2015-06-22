@@ -16,7 +16,7 @@ import (
 
 type PGPKeyImportEngine struct {
 	me     *libkb.User
-	bundle *libkb.PgpKeyBundle
+	bundle *libkb.PGPKeyBundle
 	arg    PGPKeyImportEngineArg
 	epk    string
 	del    *libkb.Delegator
@@ -25,7 +25,7 @@ type PGPKeyImportEngine struct {
 
 type PGPKeyImportEngineArg struct {
 	Gen        *libkb.PGPGenArg
-	Pregen     *libkb.PgpKeyBundle
+	Pregen     *libkb.PGPKeyBundle
 	SigningKey libkb.GenericKey
 	Me         *libkb.User
 	Ctx        *libkb.GlobalContext
@@ -38,7 +38,7 @@ type PGPKeyImportEngineArg struct {
 }
 
 func NewPGPKeyImportEngineFromBytes(key []byte, pushPrivate bool, gc *libkb.GlobalContext) (eng *PGPKeyImportEngine, err error) {
-	var bundle *libkb.PgpKeyBundle
+	var bundle *libkb.PGPKeyBundle
 	if libkb.IsArmored(key) {
 		bundle, err = libkb.ReadPrivateKeyFromString(string(key))
 	} else {
@@ -84,10 +84,10 @@ func (e *PGPKeyImportEngine) loadLoginSession(ctx *Context) error {
 
 func (e *PGPKeyImportEngine) generateKey(ctx *Context) (err error) {
 	gen := e.arg.Gen
-	if err = gen.CreatePgpIDs(); err != nil {
+	if err = gen.CreatePGPIDs(); err != nil {
 		return
 	}
-	e.bundle, err = libkb.NewPgpKeyBundle(*gen, ctx.LogUI)
+	e.bundle, err = libkb.NewPGPKeyBundle(*gen, ctx.LogUI)
 	return
 }
 
@@ -318,7 +318,7 @@ func PGPCheckMulti(me *libkb.User, allowMulti bool) (err error) {
 	if allowMulti {
 		return
 	}
-	if pgps := me.GetActivePgpKeys(false); len(pgps) > 0 {
+	if pgps := me.GetActivePGPKeys(false); len(pgps) > 0 {
 		err = libkb.KeyExistsError{Key: pgps[0].GetFingerprintP()}
 	}
 	return

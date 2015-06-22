@@ -8,7 +8,7 @@ type FOKID struct {
 	Fp  *PGPFingerprint
 }
 
-// Can be either a KIDMapKey or PgpFingerprintMapKey, or empty.
+// Can be either a KIDMapKey or PGPFingerprintMapKey, or empty.
 type FOKIDMapKey string
 
 // EqKid checks if the KID portion of the FOKID is equal

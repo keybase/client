@@ -125,7 +125,7 @@ func printKey(key keybase1.PublicKey, subkeys []keybase1.PublicKey, indent int) 
 	}
 	fmt.Printf("%s%s%s\n", indentSpace(indent), key.KID, eldestStr)
 	if key.PGPFingerprint != "" {
-		fmt.Printf("%sPGP Fingerprint: %s\n", indentSpace(indent+1), libkb.PgpFingerprintFromHexNoError(key.PGPFingerprint).ToQuads())
+		fmt.Printf("%sPGP Fingerprint: %s\n", indentSpace(indent+1), libkb.PGPFingerprintFromHexNoError(key.PGPFingerprint).ToQuads())
 		fmt.Printf("%sPGP Identities:\n", indentSpace(indent+1))
 		for _, identity := range key.PGPIdentities {
 			commentStr := ""

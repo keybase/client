@@ -51,7 +51,7 @@ func NewPGPSignEngine(arg *PGPSignArg, g *libkb.GlobalContext) *PGPSignEngine {
 
 func (p *PGPSignEngine) Run(ctx *Context) (err error) {
 	var key libkb.GenericKey
-	var pgp *libkb.PgpKeyBundle
+	var pgp *libkb.PGPKeyBundle
 	var ok bool
 	var dumpTo io.WriteCloser
 	var written int64
@@ -85,7 +85,7 @@ func (p *PGPSignEngine) Run(ctx *Context) (err error) {
 
 	if err != nil {
 		return
-	} else if pgp, ok = key.(*libkb.PgpKeyBundle); !ok {
+	} else if pgp, ok = key.(*libkb.PGPKeyBundle); !ok {
 		err = fmt.Errorf("Can only sign with PGP keys (for now)")
 		return
 	}

@@ -33,7 +33,7 @@ type ParsedSig struct {
 	LiteralData []byte
 }
 
-func PgpOpenSig(armored string) (ps *ParsedSig, err error) {
+func PGPOpenSig(armored string) (ps *ParsedSig, err error) {
 	pso := ParsedSig{}
 	pso.Block, err = armor.Decode(strings.NewReader(armored))
 	if err != nil {
@@ -51,9 +51,9 @@ func PgpOpenSig(armored string) (ps *ParsedSig, err error) {
 // the armor.  It will return the body of the signature, the
 // sigID of the body, or an error if it didn't work out.
 func OpenSig(armored string) (ret []byte, id keybase1.SigID, err error) {
-	if isPgpBundle(armored) {
+	if isPGPBundle(armored) {
 		var ps *ParsedSig
-		if ps, err = PgpOpenSig(armored); err == nil {
+		if ps, err = PGPOpenSig(armored); err == nil {
 			ret = ps.SigBody
 			id = ps.ID()
 		}
@@ -66,15 +66,15 @@ func OpenSig(armored string) (ret []byte, id keybase1.SigID, err error) {
 }
 
 func SigAssertPayload(armored string, expected []byte) (sigID keybase1.SigID, err error) {
-	if isPgpBundle(armored) {
-		return SigAssertPgpPayload(armored, expected)
+	if isPGPBundle(armored) {
+		return SigAssertPGPPayload(armored, expected)
 	}
 	return SigAssertKbPayload(armored, expected)
 }
 
-func SigAssertPgpPayload(armored string, expected []byte) (sigID keybase1.SigID, err error) {
+func SigAssertPGPPayload(armored string, expected []byte) (sigID keybase1.SigID, err error) {
 	var ps *ParsedSig
-	ps, err = PgpOpenSig(armored)
+	ps, err = PGPOpenSig(armored)
 	if err != nil {
 		return
 	}
@@ -104,7 +104,7 @@ func (ps *ParsedSig) AssertPayload(expected []byte) error {
 	return nil
 }
 
-func (ps *ParsedSig) Verify(k PgpKeyBundle) (err error) {
+func (ps *ParsedSig) Verify(k PGPKeyBundle) (err error) {
 	ps.MD, err = openpgp.ReadMessage(bytes.NewReader(ps.SigBody), k, nil, nil)
 	if err != nil {
 		return

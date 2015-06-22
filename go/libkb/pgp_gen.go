@@ -38,11 +38,11 @@ func ui32p(i int) *uint32 {
 //
 // Modification of: https://code.google.com/p/go/source/browse/openpgp/keys.go?repo=crypto&r=8fec09c61d5d66f460d227fd1df3473d7e015bc6#456
 //  From golang.com/x/crypto/openpgp/keys.go
-func NewPgpKeyBundle(arg PGPGenArg, logUI LogUI) (*PgpKeyBundle, error) {
+func NewPGPKeyBundle(arg PGPGenArg, logUI LogUI) (*PGPKeyBundle, error) {
 	currentTime := arg.Config.Now()
 
 	if len(arg.Ids) == 0 {
-		return nil, errors.InvalidArgumentError("No Ids in PgpArg")
+		return nil, errors.InvalidArgumentError("No Ids in PGPArg")
 	}
 	uids, err := arg.PGPUserIDs()
 	if err != nil {
@@ -129,13 +129,13 @@ func NewPgpKeyBundle(arg PGPGenArg, logUI LogUI) (*PgpKeyBundle, error) {
 	e.Subkeys[0].PrivateKey.IsSubkey = true
 	e.Subkeys[0].Sig.KeyLifetimeSecs = ui32p(arg.SubkeyLifetime)
 
-	return (*PgpKeyBundle)(e), nil
+	return (*PGPKeyBundle)(e), nil
 }
 
 // CreateIDs creates identities for KeyGenArg.Ids if none exist.
 // It uses PGPUids to determine the set of Ids.  It does not set the
 // default keybase.io uid.  AddDefaultUid() does that.
-func (a *PGPGenArg) CreatePgpIDs() error {
+func (a *PGPGenArg) CreatePGPIDs() error {
 	if len(a.Ids) > 0 {
 		return nil
 	}
@@ -161,7 +161,7 @@ func (a *PGPGenArg) AddDefaultUID() {
 }
 
 func (a *PGPGenArg) MakeAllIds() error {
-	if err := a.CreatePgpIDs(); err != nil {
+	if err := a.CreatePGPIDs(); err != nil {
 		return err
 	}
 	a.AddDefaultUID()
@@ -171,7 +171,7 @@ func (a *PGPGenArg) MakeAllIds() error {
 func (a *PGPGenArg) PGPUserIDs() ([]*packet.UserId, error) {
 	uids := make([]*packet.UserId, len(a.Ids))
 	for i, id := range a.Ids {
-		uids[i] = id.ToPgpUserID()
+		uids[i] = id.ToPGPUserID()
 		if uids[i] == nil {
 			return nil, fmt.Errorf("Id[%d] failed to convert to PGPUserId (%+v)", i, id)
 		}

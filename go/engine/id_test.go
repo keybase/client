@@ -79,7 +79,7 @@ func checkDisplayKeys(t *testing.T, idUI *FakeIdentifyUI, callCount, keyCount in
 
 	// this doesn't work anymore:
 	//	for k := range idUI.Keys {
-	//		if k.PgpFingerprint == nil {
+	//		if k.PGPFingerprint == nil {
 	//			t.Errorf("key %v: not pgp.  only pgp keys should be displayed.", k)
 	//		}
 	//	}
@@ -205,7 +205,7 @@ func (ui *FakeIdentifyUI) DisplayKey(ik keybase1.IdentifyKey) {
 	}
 	fok := libkb.FOKID{
 		Kid: ik.KID,
-		Fp:  libkb.ImportPgpFingerprintSlice(ik.PGPFingerprint),
+		Fp:  libkb.ImportPGPFingerprintSlice(ik.PGPFingerprint),
 	}
 
 	ui.Keys[fok.ToFirstMapKey()] = ik.TrackDiff

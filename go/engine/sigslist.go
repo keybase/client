@@ -79,7 +79,7 @@ func (e *SigsList) Sigs() []keybase1.Sig {
 	res := make([]keybase1.Sig, len(e.sigs))
 	for i, s := range e.sigs {
 		var key string
-		fp := s.GetPgpFingerprint()
+		fp := s.GetPGPFingerprint()
 		if fp != nil {
 			key = fp.ToDisplayString(e.Verbose)
 		}
@@ -113,7 +113,7 @@ func (e *SigsList) JSON() (string, error) {
 	exp := make([]sigexp, len(e.sigs))
 	for i, s := range e.sigs {
 		var key string
-		fp := s.GetPgpFingerprint()
+		fp := s.GetPGPFingerprint()
 		if fp != nil {
 			key = fp.ToDisplayString(e.Verbose)
 		}

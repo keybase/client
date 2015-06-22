@@ -105,7 +105,7 @@ func (d *Locksmith) hasKeyFamily() bool {
 }
 
 func (d *Locksmith) hasPGP() bool {
-	return len(d.arg.User.GetActivePgpKeys(false)) > 0
+	return len(d.arg.User.GetActivePGPKeys(false)) > 0
 }
 
 func (d *Locksmith) fix(ctx *Context) error {
@@ -176,7 +176,7 @@ func (d *Locksmith) checkKeys(ctx *Context) error {
 	d.G().Log.Debug("| Syncing secrets")
 	d.syncSecrets(ctx)
 
-	hasPGP := len(d.user.GetActivePgpKeys(false)) > 0
+	hasPGP := len(d.user.GetActivePGPKeys(false)) > 0
 
 	if d.hasActiveDevice(ctx) {
 		// they have at least one device, just not this device...
@@ -416,8 +416,8 @@ func (d *Locksmith) deviceSign(ctx *Context, withPGPOption bool) error {
 }
 
 func (d *Locksmith) deviceSignPGP(ctx *Context) error {
-	pgpKeys := d.user.GetActivePgpKeys(false)
-	var selected *libkb.PgpKeyBundle
+	pgpKeys := d.user.GetActivePGPKeys(false)
+	var selected *libkb.PGPKeyBundle
 	if len(pgpKeys) > 1 {
 		// show a list of pgp keys and let them select which one to use
 		var err error
@@ -535,7 +535,7 @@ func (d *Locksmith) deviceSignExistingDevice(ctx *Context, existingID, existingN
 	return err
 }
 
-func (d *Locksmith) selectPGPKey(ctx *Context, keys []*libkb.PgpKeyBundle) (*libkb.PgpKeyBundle, error) {
+func (d *Locksmith) selectPGPKey(ctx *Context, keys []*libkb.PGPKeyBundle) (*libkb.PGPKeyBundle, error) {
 	var gks []keybase1.GPGKey
 	for _, key := range keys {
 		algo, kid, creation := key.KeyInfo()
@@ -543,7 +543,7 @@ func (d *Locksmith) selectPGPKey(ctx *Context, keys []*libkb.PgpKeyBundle) (*lib
 			Algorithm:  algo,
 			KeyID:      kid,
 			Creation:   creation,
-			Identities: key.GetPgpIdentities(),
+			Identities: key.GetPGPIdentities(),
 		}
 		gks = append(gks, gk)
 	}
@@ -554,7 +554,7 @@ func (d *Locksmith) selectPGPKey(ctx *Context, keys []*libkb.PgpKeyBundle) (*lib
 	}
 	ctx.LogUI.Debug("SelectKey result: %+v", keyid)
 
-	var selected *libkb.PgpKeyBundle
+	var selected *libkb.PGPKeyBundle
 	for _, key := range keys {
 		if key.GetFingerprint().ToKeyID() == keyid {
 			selected = key

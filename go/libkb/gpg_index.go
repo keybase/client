@@ -209,7 +209,7 @@ func (k *GpgPrimaryKey) AddFingerprint(l *GpgIndexLine) (err error) {
 	var fp *PGPFingerprint
 	if f := l.At(9); len(f) == 0 {
 		err = fmt.Errorf("no fingerprint given")
-	} else if fp, err = PgpFingerprintFromHex(f); err == nil {
+	} else if fp, err = PGPFingerprintFromHex(f); err == nil {
 		k.top.SetFingerprint(fp)
 	}
 	if err != nil {
@@ -222,7 +222,7 @@ func (k *GpgPrimaryKey) GetFingerprint() *PGPFingerprint {
 	return k.fingerprint
 }
 
-func (k *GpgPrimaryKey) GetPgpIdentities() []keybase1.PGPIdentity {
+func (k *GpgPrimaryKey) GetPGPIdentities() []keybase1.PGPIdentity {
 	ret := make([]keybase1.PGPIdentity, len(k.identities))
 	for i, ident := range k.identities {
 		ret[i] = ident.Export()

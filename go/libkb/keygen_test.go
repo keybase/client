@@ -66,7 +66,7 @@ func TestCreateIds(t *testing.T) {
 			t.Errorf("%s: arg init err: %s", test.name, err)
 			continue
 		}
-		err := arg.CreatePgpIDs()
+		err := arg.CreatePGPIDs()
 		if err != test.errOut {
 			t.Errorf("%s: error %v, expected %v", test.name, err, test.errOut)
 			continue
@@ -90,8 +90,8 @@ func TestCreateIds(t *testing.T) {
 			continue
 		}
 
-		// test the PgpKeyBundle
-		bundle, err := NewPgpKeyBundle(*arg, G.UI.GetLogUI())
+		// test the PGPKeyBundle
+		bundle, err := NewPGPKeyBundle(*arg, G.UI.GetLogUI())
 		if err != nil {
 			t.Errorf("%s: bundle error: %s", test.name, err)
 		}

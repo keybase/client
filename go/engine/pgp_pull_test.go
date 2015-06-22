@@ -43,7 +43,7 @@ func createGpgClient(tc libkb.TestContext) *libkb.GpgCLI {
 
 func assertKeysPresent(t *testing.T, gpgClient *libkb.GpgCLI, fingerprints []string) {
 	for _, fingerprint := range fingerprints {
-		fpObj, err := gpgClient.ImportKey(false /*secret*/, *libkb.PgpFingerprintFromHexNoError(fingerprint))
+		fpObj, err := gpgClient.ImportKey(false /*secret*/, *libkb.PGPFingerprintFromHexNoError(fingerprint))
 		if err != nil {
 			t.Fatal("Should have fingerprint in keyring:", fingerprint)
 		}
@@ -55,14 +55,14 @@ func assertKeysPresent(t *testing.T, gpgClient *libkb.GpgCLI, fingerprints []str
 
 func assertKeysMissing(t *testing.T, gpgClient *libkb.GpgCLI, fingerprints []string) {
 	for _, fingerprint := range fingerprints {
-		_, err := gpgClient.ImportKey(false /*secret*/, *libkb.PgpFingerprintFromHexNoError(fingerprint))
+		_, err := gpgClient.ImportKey(false /*secret*/, *libkb.PGPFingerprintFromHexNoError(fingerprint))
 		if err == nil {
 			t.Fatal("Should not already have fingerprint in keyring:", fingerprint)
 		}
 	}
 }
 
-func runPgpPull(tc libkb.TestContext, arg PGPPullEngineArg) {
+func runPGPPull(tc libkb.TestContext, arg PGPPullEngineArg) {
 	eng := NewPGPPullEngine(&arg, tc.G)
 	ctx := Context{
 		LogUI: tc.G.UI.GetLogUI(),
@@ -73,7 +73,7 @@ func runPgpPull(tc libkb.TestContext, arg PGPPullEngineArg) {
 	}
 }
 
-func runPgpPullExpectingError(tc libkb.TestContext, arg PGPPullEngineArg) {
+func runPGPPullExpectingError(tc libkb.TestContext, arg PGPPullEngineArg) {
 	eng := NewPGPPullEngine(&arg, tc.G)
 	ctx := Context{
 		LogUI: tc.G.UI.GetLogUI(),
@@ -95,7 +95,7 @@ func TestPGPPullAll(t *testing.T) {
 
 	assertKeysMissing(t, gpgClient, []string{aliceFp, bobFp})
 
-	runPgpPull(tc, PGPPullEngineArg{})
+	runPGPPull(tc, PGPPullEngineArg{})
 
 	assertKeysPresent(t, gpgClient, []string{aliceFp, bobFp})
 }
@@ -111,7 +111,7 @@ func TestPGPPullOne(t *testing.T) {
 
 	assertKeysMissing(t, gpgClient, []string{aliceFp, bobFp})
 
-	runPgpPull(tc, PGPPullEngineArg{
+	runPGPPull(tc, PGPPullEngineArg{
 		// ID'ing the same user twice should be ok.
 		UserAsserts: []string{"t_bob", "t_bob+kbtester1@twitter"},
 	})
@@ -131,7 +131,7 @@ func TestPGPPullBadIDs(t *testing.T) {
 
 	assertKeysMissing(t, gpgClient, []string{aliceFp, bobFp})
 
-	runPgpPullExpectingError(tc, PGPPullEngineArg{
+	runPGPPullExpectingError(tc, PGPPullEngineArg{
 		// ID'ing a nonexistent/untracked user should fail the pull.
 		UserAsserts: []string{"t_bob", "t_NOT_TRACKED_BY_ME"},
 	})

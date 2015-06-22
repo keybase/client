@@ -173,7 +173,7 @@ func (s *ScanKeys) extractKeys(lctx libkb.LoginContext, ring *libkb.SKBKeyringFi
 	}
 
 	for _, b := range ring.Blocks {
-		if !libkb.IsPgpAlgo(b.Type) {
+		if !libkb.IsPGPAlgo(b.Type) {
 			continue
 		}
 		if err := s.extractKey(lctx, b, ui, lks); err != nil {
@@ -194,7 +194,7 @@ func (s *ScanKeys) extractKey(lctx libkb.LoginContext, skb *libkb.SKB, ui libkb.
 	if err != nil {
 		return err
 	}
-	bundle, ok := k.(*libkb.PgpKeyBundle)
+	bundle, ok := k.(*libkb.PGPKeyBundle)
 	if ok {
 		s.keys = append(s.keys, (*openpgp.Entity)(bundle))
 	}

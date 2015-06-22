@@ -18,7 +18,7 @@ import (
 	"golang.org/x/crypto/openpgp/packet"
 )
 
-type PgpKeyBundle openpgp.Entity
+type PGPKeyBundle openpgp.Entity
 
 const (
 	PGPFingerprintLen = 20
@@ -26,11 +26,11 @@ const (
 
 type PGPFingerprint [PGPFingerprintLen]byte
 
-// Remove the need for the PgpFingerprintMapKey type. See
+// Remove the need for the PGPFingerprintMapKey type. See
 // https://github.com/keybase/client/issues/413 .
-type PgpFingerprintMapKey string
+type PGPFingerprintMapKey string
 
-func PgpFingerprintFromHex(s string) (*PGPFingerprint, error) {
+func PGPFingerprintFromHex(s string) (*PGPFingerprint, error) {
 	var fp PGPFingerprint
 	n, err := hex.Decode([]byte(fp[:]), []byte(s))
 	var ret *PGPFingerprint
@@ -44,10 +44,10 @@ func PgpFingerprintFromHex(s string) (*PGPFingerprint, error) {
 	return ret, err
 }
 
-func PgpFingerprintFromHexNoError(s string) *PGPFingerprint {
+func PGPFingerprintFromHexNoError(s string) *PGPFingerprint {
 	if len(s) == 0 {
 		return nil
-	} else if f, e := PgpFingerprintFromHex(s); e == nil {
+	} else if f, e := PGPFingerprintFromHex(s); e == nil {
 		return f
 	} else {
 		return nil
@@ -58,8 +58,8 @@ func (p PGPFingerprint) String() string {
 	return hex.EncodeToString(p[:])
 }
 
-func (p PGPFingerprint) ToMapKey() PgpFingerprintMapKey {
-	return PgpFingerprintMapKey(p.String())
+func (p PGPFingerprint) ToMapKey() PGPFingerprintMapKey {
+	return PGPFingerprintMapKey(p.String())
 }
 
 func (p PGPFingerprint) ToFOKIDMapKey() FOKIDMapKey {
@@ -103,7 +103,7 @@ func (p *PGPFingerprint) Match(q string, exact bool) bool {
 	return strings.HasSuffix(strings.ToLower(p.String()), strings.ToLower(q))
 }
 
-func (k *PgpKeyBundle) StoreToLocalDb() error {
+func (k *PGPKeyBundle) StoreToLocalDb() error {
 	s, err := k.Encode()
 	if err != nil {
 		return err
@@ -117,16 +117,16 @@ func (p PGPFingerprint) Eq(p2 PGPFingerprint) bool {
 	return FastByteArrayEq(p[:], p2[:])
 }
 
-func GetPgpFingerprint(w *jsonw.Wrapper) (*PGPFingerprint, error) {
+func GetPGPFingerprint(w *jsonw.Wrapper) (*PGPFingerprint, error) {
 	s, err := w.GetString()
 	if err != nil {
 		return nil, err
 	}
-	return PgpFingerprintFromHex(s)
+	return PGPFingerprintFromHex(s)
 }
 
-func GetPgpFingerprintVoid(w *jsonw.Wrapper, p *PGPFingerprint, e *error) {
-	ret, err := GetPgpFingerprint(w)
+func GetPGPFingerprintVoid(w *jsonw.Wrapper, p *PGPFingerprint, e *error) {
+	ret, err := GetPGPFingerprint(w)
 	if err != nil {
 		*e = err
 	} else {
@@ -134,39 +134,39 @@ func GetPgpFingerprintVoid(w *jsonw.Wrapper, p *PGPFingerprint, e *error) {
 	}
 }
 
-func (k PgpKeyBundle) toList() openpgp.EntityList {
+func (k PGPKeyBundle) toList() openpgp.EntityList {
 	list := make(openpgp.EntityList, 1, 1)
 	list[0] = (*openpgp.Entity)(&k)
 	return list
 }
 
-func (k PgpKeyBundle) GetFingerprint() PGPFingerprint {
+func (k PGPKeyBundle) GetFingerprint() PGPFingerprint {
 	return PGPFingerprint(k.PrimaryKey.Fingerprint)
 }
 
-func (k PgpKeyBundle) GetFingerprintP() *PGPFingerprint {
+func (k PGPKeyBundle) GetFingerprintP() *PGPFingerprint {
 	fp := k.GetFingerprint()
 	return &fp
 }
 
-func (k PgpKeyBundle) KeysById(id uint64) []openpgp.Key {
+func (k PGPKeyBundle) KeysById(id uint64) []openpgp.Key {
 	return k.toList().KeysById(id)
 }
 
-func (k PgpKeyBundle) KeysByIdUsage(id uint64, usage byte) []openpgp.Key {
+func (k PGPKeyBundle) KeysByIdUsage(id uint64, usage byte) []openpgp.Key {
 	return k.toList().KeysByIdUsage(id, usage)
 }
 
-func (k PgpKeyBundle) DecryptionKeys() []openpgp.Key {
+func (k PGPKeyBundle) DecryptionKeys() []openpgp.Key {
 	return k.toList().DecryptionKeys()
 }
 
-func (k PgpKeyBundle) MatchesKey(key *openpgp.Key) bool {
+func (k PGPKeyBundle) MatchesKey(key *openpgp.Key) bool {
 	return FastByteArrayEq(k.PrimaryKey.Fingerprint[:],
 		key.Entity.PrimaryKey.Fingerprint[:])
 }
 
-func (k *PgpKeyBundle) Encode() (ret string, err error) {
+func (k *PGPKeyBundle) Encode() (ret string, err error) {
 	buf := bytes.Buffer{}
 	err = k.EncodeToStream(NopWriteCloser{&buf})
 	if err == nil {
@@ -175,7 +175,7 @@ func (k *PgpKeyBundle) Encode() (ret string, err error) {
 	return
 }
 
-func PgpKeyRawToArmored(raw []byte, priv bool) (ret string, err error) {
+func PGPKeyRawToArmored(raw []byte, priv bool) (ret string, err error) {
 
 	var writer io.WriteCloser
 	var out bytes.Buffer
@@ -188,7 +188,7 @@ func PgpKeyRawToArmored(raw []byte, priv bool) (ret string, err error) {
 	}
 	hdr := fmt.Sprintf("PGP %s KEY BLOCK", which)
 
-	writer, err = armor.Encode(&out, hdr, PgpArmorHeaders)
+	writer, err = armor.Encode(&out, hdr, PGPArmorHeaders)
 
 	if err != nil {
 		return
@@ -201,11 +201,11 @@ func PgpKeyRawToArmored(raw []byte, priv bool) (ret string, err error) {
 	return
 }
 
-func (k *PgpKeyBundle) EncodeToStream(wc io.WriteCloser) (err error) {
+func (k *PGPKeyBundle) EncodeToStream(wc io.WriteCloser) (err error) {
 
 	// See Issue #32
 	var writer io.WriteCloser
-	writer, err = armor.Encode(wc, "PGP PUBLIC KEY BLOCK", PgpArmorHeaders)
+	writer, err = armor.Encode(wc, "PGP PUBLIC KEY BLOCK", PGPArmorHeaders)
 
 	if err != nil {
 		return
@@ -222,7 +222,7 @@ func (k *PgpKeyBundle) EncodeToStream(wc io.WriteCloser) (err error) {
 
 // note:  openpgp.ReadArmoredKeyRing only returns the first block.
 // It will never return multiple entities.
-func ReadOneKeyFromString(s string) (*PgpKeyBundle, error) {
+func ReadOneKeyFromString(s string) (*PGPKeyBundle, error) {
 	reader := strings.NewReader(s)
 	el, err := openpgp.ReadArmoredKeyRing(reader)
 	return finishReadOne(el, err)
@@ -264,10 +264,10 @@ func firstPrivateKey(s string) (string, error) {
 }
 
 // ReadPrivateKeyFromString finds the first private key block in s
-// and decodes it into a PgpKeyBundle.  It is useful in the case
+// and decodes it into a PGPKeyBundle.  It is useful in the case
 // where s contains multiple key blocks and you want the private
 // key block.  For example, the result of gpg export.
-func ReadPrivateKeyFromString(s string) (*PgpKeyBundle, error) {
+func ReadPrivateKeyFromString(s string) (*PGPKeyBundle, error) {
 	priv, err := firstPrivateKey(s)
 	if err != nil {
 		G.Log.Warning("invalid key string:\n%s\n", s)
@@ -276,7 +276,7 @@ func ReadPrivateKeyFromString(s string) (*PgpKeyBundle, error) {
 	return ReadOneKeyFromString(priv)
 }
 
-func finishReadOne(el []*openpgp.Entity, err error) (*PgpKeyBundle, error) {
+func finishReadOne(el []*openpgp.Entity, err error) (*PGPKeyBundle, error) {
 	if err != nil {
 		return nil, err
 	}
@@ -285,17 +285,17 @@ func finishReadOne(el []*openpgp.Entity, err error) (*PgpKeyBundle, error) {
 	} else if len(el) != 1 {
 		return nil, fmt.Errorf("Found multiple keys; wanted just one")
 	} else {
-		return (*PgpKeyBundle)(el[0]), nil
+		return (*PGPKeyBundle)(el[0]), nil
 	}
 }
 
-func ReadOneKeyFromBytes(b []byte) (*PgpKeyBundle, error) {
+func ReadOneKeyFromBytes(b []byte) (*PGPKeyBundle, error) {
 	reader := bytes.NewBuffer(b)
 	el, err := openpgp.ReadKeyRing(reader)
 	return finishReadOne(el, err)
 }
 
-func GetOneKey(jw *jsonw.Wrapper) (*PgpKeyBundle, error) {
+func GetOneKey(jw *jsonw.Wrapper) (*PGPKeyBundle, error) {
 	s, err := jw.GetString()
 	if err != nil {
 		return nil, err
@@ -305,7 +305,7 @@ func GetOneKey(jw *jsonw.Wrapper) (*PgpKeyBundle, error) {
 
 // XXX for now this is OK but probably we need a PGP uid parser
 // as in pgp-utils
-func (k *PgpKeyBundle) FindKeybaseUsername(un string) bool {
+func (k *PGPKeyBundle) FindKeybaseUsername(un string) bool {
 
 	rxx := regexp.MustCompile("(?i)< " + un + "@keybase.io>$")
 
@@ -317,13 +317,13 @@ func (k *PgpKeyBundle) FindKeybaseUsername(un string) bool {
 	return false
 }
 
-func (k PgpKeyBundle) VerboseDescription() string {
+func (k PGPKeyBundle) VerboseDescription() string {
 	lines := k.UsersDescription()
 	lines = append(lines, k.KeyDescription())
 	return strings.Join(lines, "\n")
 }
 
-func (k PgpKeyBundle) UsersDescription() []string {
+func (k PGPKeyBundle) UsersDescription() []string {
 	id := k.GetPrimaryUID()
 	if len(id) == 0 {
 		return nil
@@ -333,7 +333,7 @@ func (k PgpKeyBundle) UsersDescription() []string {
 
 // GetPrimaryUID gets the primary UID in the given key bundle, returned
 // in the 'Max K (foo) <bar@baz.com>' convention.
-func (k PgpKeyBundle) GetPrimaryUID() string {
+func (k PGPKeyBundle) GetPrimaryUID() string {
 
 	var pri *openpgp.Identity
 	var s string
@@ -361,11 +361,11 @@ func (k PgpKeyBundle) GetPrimaryUID() string {
 	return s
 }
 
-func (k *PgpKeyBundle) HasSecretKey() bool {
+func (k *PGPKeyBundle) HasSecretKey() bool {
 	return k.PrivateKey != nil
 }
 
-func (k *PgpKeyBundle) CheckSecretKey() (err error) {
+func (k *PGPKeyBundle) CheckSecretKey() (err error) {
 	if k.PrivateKey == nil {
 		err = NoSecretKeyError{}
 	} else if k.PrivateKey.Encrypted {
@@ -374,11 +374,11 @@ func (k *PgpKeyBundle) CheckSecretKey() (err error) {
 	return
 }
 
-func (k *PgpKeyBundle) CanSign() bool {
+func (k *PGPKeyBundle) CanSign() bool {
 	return k.PrivateKey != nil && !k.PrivateKey.Encrypted
 }
 
-func (k *PgpKeyBundle) GetKid() KID {
+func (k *PGPKeyBundle) GetKid() KID {
 
 	prefix := []byte{
 		byte(KeybaseKIDV1),
@@ -407,16 +407,16 @@ func (k *PgpKeyBundle) GetKid() KID {
 	return KID(out)
 }
 
-func (k PgpKeyBundle) GetAlgoType() AlgoType {
+func (k PGPKeyBundle) GetAlgoType() AlgoType {
 	return AlgoType(k.PrimaryKey.PubKeyAlgo)
 }
 
-func (k PgpKeyBundle) KeyDescription() string {
+func (k PGPKeyBundle) KeyDescription() string {
 	algo, kid, creation := k.KeyInfo()
 	return fmt.Sprintf("%s, ID %s, created %s", algo, kid, creation)
 }
 
-func (k PgpKeyBundle) KeyInfo() (algorithm, kid, creation string) {
+func (k PGPKeyBundle) KeyInfo() (algorithm, kid, creation string) {
 	pubkey := k.PrimaryKey
 
 	var typ string
@@ -443,7 +443,7 @@ func (k PgpKeyBundle) KeyInfo() (algorithm, kid, creation string) {
 	return
 }
 
-func (k *PgpKeyBundle) Unlock(reason string, secretUI SecretUI) error {
+func (k *PGPKeyBundle) Unlock(reason string, secretUI SecretUI) error {
 	if !k.PrivateKey.Encrypted {
 		return nil
 	}
@@ -479,7 +479,7 @@ func (k *PgpKeyBundle) Unlock(reason string, secretUI SecretUI) error {
 	return err
 }
 
-func (k *PgpKeyBundle) CheckFingerprint(fp *PGPFingerprint) error {
+func (k *PGPKeyBundle) CheckFingerprint(fp *PGPFingerprint) error {
 	if k == nil {
 		return UnexpectedKeyError{}
 	}
@@ -493,13 +493,13 @@ func (k *PgpKeyBundle) CheckFingerprint(fp *PGPFingerprint) error {
 	return nil
 }
 
-func (k *PgpKeyBundle) SignToString(msg []byte) (sig string, id keybase1.SigID, err error) {
+func (k *PGPKeyBundle) SignToString(msg []byte) (sig string, id keybase1.SigID, err error) {
 	return SimpleSign(msg, *k)
 }
 
-func (k PgpKeyBundle) VerifyStringAndExtract(sig string) (msg []byte, id keybase1.SigID, err error) {
+func (k PGPKeyBundle) VerifyStringAndExtract(sig string) (msg []byte, id keybase1.SigID, err error) {
 	var ps *ParsedSig
-	if ps, err = PgpOpenSig(sig); err != nil {
+	if ps, err = PGPOpenSig(sig); err != nil {
 		return
 	} else if err = ps.Verify(k); err != nil {
 		return
@@ -509,7 +509,7 @@ func (k PgpKeyBundle) VerifyStringAndExtract(sig string) (msg []byte, id keybase
 	return
 }
 
-func (k PgpKeyBundle) VerifyString(sig string, msg []byte) (id keybase1.SigID, err error) {
+func (k PGPKeyBundle) VerifyString(sig string, msg []byte) (id keybase1.SigID, err error) {
 	extractedMsg, resID, err := k.VerifyStringAndExtract(sig)
 	if err != nil {
 		return
@@ -534,7 +534,7 @@ func ExportAsFOKID(fp *PGPFingerprint, kid KID) (ret keybase1.FOKID) {
 	return
 }
 
-func IsPgpAlgo(algo AlgoType) bool {
+func IsPGPAlgo(algo AlgoType) bool {
 	switch algo {
 	case KIDPGPRsa, KIDPGPElgamal,
 		KIDPGPDsa, KIDPGPEcdh, KIDPGPEcdsa:
@@ -543,7 +543,7 @@ func IsPgpAlgo(algo AlgoType) bool {
 	return false
 }
 
-func (k *PgpKeyBundle) FindEmail(em string) bool {
+func (k *PGPKeyBundle) FindEmail(em string) bool {
 	for _, ident := range k.Identities {
 		if i, e := ParseIdentity(ident.Name); e == nil && i.Email == em {
 			return true
@@ -552,7 +552,7 @@ func (k *PgpKeyBundle) FindEmail(em string) bool {
 	return false
 }
 
-func (k *PgpKeyBundle) IdentityNames() []string {
+func (k *PGPKeyBundle) IdentityNames() []string {
 	var names []string
 	for _, ident := range k.Identities {
 		names = append(names, ident.Name)
@@ -560,15 +560,15 @@ func (k *PgpKeyBundle) IdentityNames() []string {
 	return names
 }
 
-func (k *PgpKeyBundle) GetPgpIdentities() []keybase1.PGPIdentity {
+func (k *PGPKeyBundle) GetPGPIdentities() []keybase1.PGPIdentity {
 	ret := make([]keybase1.PGPIdentity, len(k.Identities))
 	for _, pgpIdentity := range k.Identities {
-		ret = append(ret, ExportPgpIdentity(pgpIdentity))
+		ret = append(ret, ExportPGPIdentity(pgpIdentity))
 	}
 	return ret
 }
 
-func (k *PgpKeyBundle) CheckIdentity(kbid Identity) (match bool, ctime int64, etime int64) {
+func (k *PGPKeyBundle) CheckIdentity(kbid Identity) (match bool, ctime int64, etime int64) {
 	ctime, etime = -1, -1
 	for _, pgpIdentity := range k.Identities {
 		if Cicmp(pgpIdentity.UserId.Email, kbid.Email) {

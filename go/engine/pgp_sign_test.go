@@ -10,7 +10,7 @@ import (
 )
 
 // Test login switching between two different users.
-func TestPgpSign(t *testing.T) {
+func TestPGPSign(t *testing.T) {
 	tc := SetupEngineTest(t, "pgp_sign")
 	defer tc.Cleanup()
 	fu := createFakeUserWithPGPOnly(t, tc)

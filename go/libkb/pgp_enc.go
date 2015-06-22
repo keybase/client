@@ -7,7 +7,7 @@ import (
 	"golang.org/x/crypto/openpgp"
 )
 
-func PGPEncrypt(source io.Reader, sink io.WriteCloser, signer *PgpKeyBundle, recipients []*PgpKeyBundle) error {
+func PGPEncrypt(source io.Reader, sink io.WriteCloser, signer *PGPKeyBundle, recipients []*PGPKeyBundle) error {
 	to := make([]*openpgp.Entity, len(recipients))
 	for i, r := range recipients {
 		to[i] = (*openpgp.Entity)(r)
@@ -30,7 +30,7 @@ func PGPEncrypt(source io.Reader, sink io.WriteCloser, signer *PgpKeyBundle, rec
 	return nil
 }
 
-func PGPEncryptString(input string, signer *PgpKeyBundle, recipients []*PgpKeyBundle) ([]byte, error) {
+func PGPEncryptString(input string, signer *PGPKeyBundle, recipients []*PGPKeyBundle) ([]byte, error) {
 	source := strings.NewReader(input)
 	sink := NewBufferCloser()
 	if err := PGPEncrypt(source, sink, signer, recipients); err != nil {

@@ -27,7 +27,7 @@ func TestPGPEncrypt(t *testing.T) {
 
 	msg := "59 seconds"
 	sink := NewBufferCloser()
-	recipients := []*PgpKeyBundle{bundleSrc, bundleDst}
+	recipients := []*PGPKeyBundle{bundleSrc, bundleDst}
 	if err := PGPEncrypt(strings.NewReader(msg), sink, bundleSrc, recipients); err != nil {
 		t.Fatal(err)
 	}
@@ -67,7 +67,7 @@ func TestPGPEncryptString(t *testing.T) {
 	}
 
 	msg := "59 seconds"
-	recipients := []*PgpKeyBundle{bundleSrc, bundleDst}
+	recipients := []*PGPKeyBundle{bundleSrc, bundleDst}
 	out, err := PGPEncryptString(msg, bundleSrc, recipients)
 	if err != nil {
 		t.Fatal(err)
@@ -109,7 +109,7 @@ func TestPGPEncryptQuick(t *testing.T) {
 
 	f := func(msg []byte) bool {
 		sink := NewBufferCloser()
-		recipients := []*PgpKeyBundle{bundleSrc, bundleDst}
+		recipients := []*PGPKeyBundle{bundleSrc, bundleDst}
 		if err := PGPEncrypt(bytes.NewReader(msg), sink, bundleSrc, recipients); err != nil {
 			return false
 		}
@@ -165,7 +165,7 @@ func TestPGPEncryptLong(t *testing.T) {
 	G.Log.Info("msg size: %d", len(msg))
 
 	sink := NewBufferCloser()
-	recipients := []*PgpKeyBundle{bundleSrc, bundleDst}
+	recipients := []*PGPKeyBundle{bundleSrc, bundleDst}
 	if err := PGPEncrypt(bytes.NewReader(msg), sink, bundleSrc, recipients); err != nil {
 		t.Fatal(err)
 	}

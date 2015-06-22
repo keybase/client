@@ -102,7 +102,7 @@ func (e *PGPKeyExportEngine) queryMatch(k libkb.GenericKey) bool {
 }
 
 func (e *PGPKeyExportEngine) exportPublic() (err error) {
-	keys := e.me.GetActivePgpKeys(false)
+	keys := e.me.GetActivePGPKeys(false)
 	for _, k := range keys {
 		fp := k.GetFingerprintP()
 		s, err := k.Encode()
@@ -143,7 +143,7 @@ func (e *PGPKeyExportEngine) exportSecret(ctx *Context) error {
 		return nil
 	}
 
-	if _, ok := key.(*libkb.PgpKeyBundle); !ok {
+	if _, ok := key.(*libkb.PGPKeyBundle); !ok {
 		return libkb.BadKeyError{Msg: "Expected a PGP key"}
 	}
 
@@ -152,7 +152,7 @@ func (e *PGPKeyExportEngine) exportSecret(ctx *Context) error {
 		return libkb.BadKeyError{Msg: "can't get raw representation of key"}
 	}
 
-	ret, err := libkb.PgpKeyRawToArmored(raw, true)
+	ret, err := libkb.PGPKeyRawToArmored(raw, true)
 	if err != nil {
 		return err
 	}

@@ -16,7 +16,7 @@ func doUpdate(fingerprints []string, all bool, tc libkb.TestContext) (err error)
 	return
 }
 
-func getFakeUsersKeyBundleFromServer(t *testing.T, fu *FakeUser) *libkb.PgpKeyBundle {
+func getFakeUsersKeyBundleFromServer(t *testing.T, fu *FakeUser) *libkb.PGPKeyBundle {
 	user, err := libkb.LoadUser(libkb.LoadUserArg{
 		Name:        fu.Username,
 		ForceReload: true,
@@ -25,7 +25,7 @@ func getFakeUsersKeyBundleFromServer(t *testing.T, fu *FakeUser) *libkb.PgpKeyBu
 		t.Fatal("Failed loading user", err)
 	}
 	ckf := user.GetComputedKeyFamily()
-	keys := ckf.GetActivePgpKeys(true /* sibkeys */)
+	keys := ckf.GetActivePGPKeys(true /* sibkeys */)
 	if len(keys) != 1 {
 		t.Fatal("Expected only one key.")
 	}

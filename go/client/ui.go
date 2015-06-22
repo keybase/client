@@ -350,7 +350,7 @@ func (ui BaseIdentifyUI) DisplayKey(key keybase1.IdentifyKey) {
 		ds = TrackDiffToColoredString(*key.TrackDiff) + " "
 	}
 	var s string
-	if fp := libkb.ImportPgpFingerprintSlice(key.PGPFingerprint); fp != nil {
+	if fp := libkb.ImportPGPFingerprintSlice(key.PGPFingerprint); fp != nil {
 		s = fp.ToQuads()
 	} else {
 		s = "<none>"

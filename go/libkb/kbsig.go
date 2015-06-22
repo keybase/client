@@ -43,8 +43,8 @@ func (u *User) ToTrackingStatementKey(errp *error) *jsonw.Wrapper {
 	return ret
 }
 
-func (u *User) ToTrackingStatementPgpKeys(errp *error) *jsonw.Wrapper {
-	keys := u.GetActivePgpKeys(true)
+func (u *User) ToTrackingStatementPGPKeys(errp *error) *jsonw.Wrapper {
+	keys := u.GetActivePGPKeys(true)
 	if len(keys) == 0 {
 		return nil
 	}
@@ -82,7 +82,7 @@ func (u *User) ToTrackingStatement(w *jsonw.Wrapper, outcome *IdentifyOutcome) (
 
 	track := jsonw.NewDictionary()
 	track.SetKey("key", u.ToTrackingStatementKey(&err))
-	if pgpkeys := u.ToTrackingStatementPgpKeys(&err); pgpkeys != nil {
+	if pgpkeys := u.ToTrackingStatementPGPKeys(&err); pgpkeys != nil {
 		track.SetKey("pgp_keys", pgpkeys)
 	}
 	track.SetKey("seq_tail", u.ToTrackingStatementSeqTail())

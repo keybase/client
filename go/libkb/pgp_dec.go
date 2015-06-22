@@ -20,7 +20,7 @@ type SignatureStatus struct {
 	Entity         *openpgp.Entity
 }
 
-func PGPDecryptWithBundles(source io.Reader, sink io.Writer, keys []*PgpKeyBundle) (*SignatureStatus, error) {
+func PGPDecryptWithBundles(source io.Reader, sink io.Writer, keys []*PGPKeyBundle) (*SignatureStatus, error) {
 	opkr := make(openpgp.EntityList, len(keys))
 	for i, k := range keys {
 		opkr[i] = (*openpgp.Entity)(k)

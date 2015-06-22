@@ -46,7 +46,7 @@ type SKBPriv struct {
 	Encryption int    `codec:"encryption"`
 }
 
-func (key *PgpKeyBundle) ToSKB(gc *GlobalContext, tsec *triplesec.Cipher) (ret *SKB, err error) {
+func (key *PGPKeyBundle) ToSKB(gc *GlobalContext, tsec *triplesec.Cipher) (ret *SKB, err error) {
 
 	ret = &SKB{}
 	ret.SetGlobalContext(gc)
@@ -79,7 +79,7 @@ func (key *PgpKeyBundle) ToSKB(gc *GlobalContext, tsec *triplesec.Cipher) (ret *
 	return
 }
 
-func (key *PgpKeyBundle) ToLksSKB(lks *LKSec) (ret *SKB, err error) {
+func (key *PGPKeyBundle) ToLksSKB(lks *LKSec) (ret *SKB, err error) {
 	if lks == nil {
 		return nil, fmt.Errorf("nil lks")
 	}
@@ -129,7 +129,7 @@ func (s *SKB) ToPacket() (ret *KeybasePacket, err error) {
 
 func (s *SKB) ReadKey() (g GenericKey, err error) {
 	switch {
-	case IsPgpAlgo(s.Type) || s.Type == 0:
+	case IsPGPAlgo(s.Type) || s.Type == 0:
 		g, err = ReadOneKeyFromBytes(s.Pub)
 	case s.Type == KIDNaclEddsa:
 		g, err = ImportNaclSigningKeyPairFromBytes(s.Pub, nil)
@@ -267,7 +267,7 @@ func (s *SKB) UnlockSecretKey(lctx LoginContext, passphrase string, tsec *triple
 func (s *SKB) parseUnlocked(unlocked []byte) (key GenericKey, err error) {
 
 	switch {
-	case IsPgpAlgo(s.Type) || s.Type == 0:
+	case IsPGPAlgo(s.Type) || s.Type == 0:
 		key, err = ReadOneKeyFromBytes(unlocked)
 	case s.Type == KIDNaclEddsa:
 		key, err = ImportNaclSigningKeyPairFromBytes(s.Pub, unlocked)

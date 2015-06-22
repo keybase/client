@@ -161,7 +161,7 @@ func (e *PGPPullEngine) Run(ctx *Context) error {
 			continue
 		}
 
-		for _, bundle := range user.GetActivePgpKeys(false) {
+		for _, bundle := range user.GetActivePGPKeys(false) {
 			// Check each key against the tracked set.
 			if !trackedFingerprints[bundle.GetFingerprint().String()] {
 				ctx.LogUI.Warning("Keybase says that %s owns key %s, but you have not tracked this fingerprint before.", user.GetName(), bundle.GetFingerprint())

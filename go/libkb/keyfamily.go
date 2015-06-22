@@ -87,10 +87,10 @@ type RawKeyFamily struct {
 // Once the client downloads a RawKeyFamily, it converts it into a KeyFamily,
 // which has some additional information about Fingerprints and PGP keys
 type KeyFamily struct {
-	pgps []*PgpKeyBundle
+	pgps []*PGPKeyBundle
 
 	// These fields are computed on the client side, so they can be trusted.
-	pgp2kid map[PgpFingerprintMapKey]KID
+	pgp2kid map[PGPFingerprintMapKey]KID
 	kid2pgp map[KIDMapKey]PGPFingerprint
 
 	AllKeys map[KIDMapKey]GenericKey
@@ -108,7 +108,7 @@ type ComputedKeyFamily struct {
 }
 
 // Insert inserts the given ComputedKeyInfo object 1 or 2 times,
-// depending on if a KID or PgpFingerprint or both are available.
+// depending on if a KID or PGPFingerprint or both are available.
 func (cki *ComputedKeyInfos) Insert(f *FOKID, i *ComputedKeyInfo) {
 	if f != nil {
 		keys := f.ToMapKeys()
@@ -179,7 +179,7 @@ func (cki ComputedKeyInfos) InsertLocalEldestKey(fokid FOKID) {
 // eldest key that the server reported.
 func (cki ComputedKeyInfos) InsertServerEldestKey(eldestKey GenericKey, un string) error {
 	kbid := KeybaseIdentity(un)
-	if pgp, ok := eldestKey.(*PgpKeyBundle); ok {
+	if pgp, ok := eldestKey.(*PGPKeyBundle); ok {
 		match, ctime, etime := pgp.CheckIdentity(kbid)
 		if match {
 			eldestCki := NewComputedKeyInfo(true, true, KeyUncancelled, ctime, etime)
@@ -218,12 +218,12 @@ func (ckf ComputedKeyFamily) InsertEldestLink(tcl TypedChainLink, username strin
 	}
 
 	// Also check PGP key times.
-	var ctimePgp, etimePgp int64 = -1, -1
-	if pgp, ok := key.(*PgpKeyBundle); ok {
+	var ctimePGP, etimePGP int64 = -1, -1
+	if pgp, ok := key.(*PGPKeyBundle); ok {
 		kbid := KeybaseIdentity(username)
-		var foundPgp bool
-		foundPgp, ctimePgp, etimePgp = pgp.CheckIdentity(kbid)
-		found = found || foundPgp
+		var foundPGP bool
+		foundPGP, ctimePGP, etimePGP = pgp.CheckIdentity(kbid)
+		found = found || foundPGP
 		if !found {
 			return KeyFamilyError{"First link signed by key that doesn't match Keybase user id."}
 		}
@@ -232,15 +232,15 @@ func (ckf ComputedKeyFamily) InsertEldestLink(tcl TypedChainLink, username strin
 	}
 
 	var ctime int64
-	if ctimePgp >= 0 {
-		ctime = ctimePgp
+	if ctimePGP >= 0 {
+		ctime = ctimePGP
 	} else {
 		ctime = ctimeKb
 	}
 
 	var etime int64
-	if etimePgp >= 0 {
-		etime = etimePgp
+	if etimePGP >= 0 {
+		etime = etimePGP
 	} else {
 		etime = etimeKb
 	}
@@ -268,7 +268,7 @@ func ParseKeyFamily(jw *jsonw.Wrapper) (ret *KeyFamily, err error) {
 	}
 
 	kf := KeyFamily{
-		pgp2kid:      make(map[PgpFingerprintMapKey]KID),
+		pgp2kid:      make(map[PGPFingerprintMapKey]KID),
 		kid2pgp:      make(map[KIDMapKey]PGPFingerprint),
 		Contextified: NewContextified(G),
 	}
@@ -289,7 +289,7 @@ func ParseKeyFamily(jw *jsonw.Wrapper) (ret *KeyFamily, err error) {
 		}
 		kf.AllKeys[key.GetKid().ToMapKey()] = key
 		// Collect the PGP keys.
-		pgp, isPGP := key.(*PgpKeyBundle)
+		pgp, isPGP := key.(*PGPKeyBundle)
 		if isPGP {
 			kf.pgps = append(kf.pgps, pgp)
 		}
@@ -556,7 +556,7 @@ func (ckf ComputedKeyFamily) FindKeybaseName(s string) bool {
 // LocalDelegate performs a local key delegation, without the server's permissions.
 // We'll need to do this when a key is locally generated.
 func (kf *KeyFamily) LocalDelegate(key GenericKey) (err error) {
-	if pgp, ok := key.(*PgpKeyBundle); ok {
+	if pgp, ok := key.(*PGPKeyBundle); ok {
 		kf.pgp2kid[pgp.GetFingerprint().ToMapKey()] = pgp.GetKid()
 		kf.pgps = append(kf.pgps, pgp)
 	}
@@ -658,11 +658,11 @@ func (ckf ComputedKeyFamily) HasActiveKey() bool {
 	return false
 }
 
-// GetActivePgpKeys gets the active PGP keys from the ComputedKeyFamily.
+// GetActivePGPKeys gets the active PGP keys from the ComputedKeyFamily.
 // If sibkey is False it will return all active PGP keys. Otherwise, it
 // will return only the Sibkeys. Note the keys need to be non-canceled,
 // and non-expired.
-func (ckf ComputedKeyFamily) GetActivePgpKeys(sibkey bool) (ret []*PgpKeyBundle) {
+func (ckf ComputedKeyFamily) GetActivePGPKeys(sibkey bool) (ret []*PGPKeyBundle) {
 	for _, pgp := range ckf.kf.pgps {
 		role := ckf.GetKeyRole(pgp.GetKid())
 		if (sibkey && role == DLGSibkey) || role != DLGNone {

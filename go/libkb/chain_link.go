@@ -238,7 +238,7 @@ func (c *ChainLink) UnpackPayloadJSON(tmp *ChainLinkUnpacked) (err error) {
 	var e2 error
 
 	if jw := c.payloadJSON.AtPath("body.key.fingerprint"); !jw.IsNil() {
-		if tmp.pgpFingerprint, e2 = GetPgpFingerprint(jw); e2 != nil {
+		if tmp.pgpFingerprint, e2 = GetPGPFingerprint(jw); e2 != nil {
 			err = e2
 		}
 	}
@@ -453,7 +453,7 @@ func (c *ChainLink) VerifySigWithKeyFamily(ckf ComputedKeyFamily) (cached bool, 
 	return
 }
 
-func (c *ChainLink) VerifySig(k PgpKeyBundle) (bool, error) {
+func (c *ChainLink) VerifySig(k PGPKeyBundle) (bool, error) {
 	if c.sigVerified {
 		G.Log.Debug("Skipped verification (cached): %s", c.id)
 		return true, nil
@@ -631,11 +631,11 @@ func (c *ChainLink) MatchEldestFOKID(fokid FOKID) bool {
 	return c.ToEldestFOKID().Eq(fokid)
 }
 
-func (c *ChainLink) GetPgpFingerprint() *PGPFingerprint { return c.unpacked.pgpFingerprint }
+func (c *ChainLink) GetPGPFingerprint() *PGPFingerprint { return c.unpacked.pgpFingerprint }
 func (c *ChainLink) GetKid() KID                        { return c.unpacked.kid }
 
 func (c *ChainLink) GetFOKID() FOKID {
-	return FOKID{Kid: c.GetKid(), Fp: c.GetPgpFingerprint()}
+	return FOKID{Kid: c.GetKid(), Fp: c.GetPGPFingerprint()}
 }
 
 func (c *ChainLink) MatchFingerprint(fp PGPFingerprint) bool {

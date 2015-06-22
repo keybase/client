@@ -87,7 +87,7 @@ func (k KID) Eq(k2 KID) bool {
 }
 
 // XXX why is this a function on the KID type???
-func (k KID) LoadPGPKeyFromLocalDB() (*PgpKeyBundle, error) {
+func (k KID) LoadPGPKeyFromLocalDB() (*PGPKeyBundle, error) {
 	dbobj, err := G.LocalDb.Get(DbKey{
 		Typ: DBPGPKey,
 		Key: k.String(),

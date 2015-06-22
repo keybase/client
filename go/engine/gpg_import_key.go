@@ -24,7 +24,7 @@ type GPGImportKeyArg struct {
 }
 
 type GPGImportKeyEngine struct {
-	last *libkb.PgpKeyBundle
+	last *libkb.PGPKeyBundle
 	arg  *GPGImportKeyArg
 	libkb.Contextified
 }
@@ -106,7 +106,7 @@ func (e *GPGImportKeyEngine) Run(ctx *Context) (err error) {
 			Algorithm:  fmt.Sprintf("%d%s", key.Bits, key.AlgoString()),
 			KeyID:      key.GetFingerprint().ToKeyID(),
 			Expiration: key.ExpirationString(),
-			Identities: key.GetPgpIdentities(),
+			Identities: key.GetPGPIdentities(),
 		}
 		gks = append(gks, gk)
 	}
@@ -171,6 +171,6 @@ func (e *GPGImportKeyEngine) Run(ctx *Context) (err error) {
 	return nil
 }
 
-func (e *GPGImportKeyEngine) LastKey() *libkb.PgpKeyBundle {
+func (e *GPGImportKeyEngine) LastKey() *libkb.PGPKeyBundle {
 	return e.last
 }
