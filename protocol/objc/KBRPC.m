@@ -355,7 +355,6 @@
 @end
 
 @implementation KBRIdentity
-+ (NSValueTransformer *)keysJSONTransformer { return [MTLJSONAdapter arrayTransformerWithModelClass:KBRIdentifyKey.class]; }
 + (NSValueTransformer *)proofsJSONTransformer { return [MTLJSONAdapter arrayTransformerWithModelClass:KBRIdentifyRow.class]; }
 + (NSValueTransformer *)cryptocurrencyJSONTransformer { return [MTLJSONAdapter arrayTransformerWithModelClass:KBRCryptocurrency.class]; }
 + (NSValueTransformer *)deletedJSONTransformer { return [MTLJSONAdapter arrayTransformerWithModelClass:KBRTrackDiff.class]; }
@@ -408,8 +407,8 @@
   }];
 }
 
-- (void)displayKeyWithSessionID:(NSInteger)sessionID fokid:(KBRFOKID *)fokid diff:(KBRTrackDiff *)diff completion:(void (^)(NSError *error))completion {
-  NSDictionary *params = @{@"sessionID": @(sessionID), @"fokid": KBRValue(fokid), @"diff": KBRValue(diff)};
+- (void)displayKeyWithSessionID:(NSInteger)sessionID key:(KBRIdentifyKey *)key completion:(void (^)(NSError *error))completion {
+  NSDictionary *params = @{@"sessionID": @(sessionID), @"key": KBRValue(key)};
   [self.client sendRequestWithMethod:@"keybase.1.identifyUi.displayKey" params:params sessionId:self.sessionId completion:^(NSError *error, id retval) {
     completion(error);
   }];
@@ -1533,8 +1532,7 @@
 - (instancetype)initWithParams:(NSArray *)params {
   if ((self = [super initWithParams:params])) {
     self.sessionID = [params[0][@"sessionID"] integerValue];
-    self.fokid = [MTLJSONAdapter modelOfClass:KBRFOKID.class fromJSONDictionary:params[0][@"fokid"] error:nil];
-    self.diff = [MTLJSONAdapter modelOfClass:KBRTrackDiff.class fromJSONDictionary:params[0][@"diff"] error:nil];
+    self.key = [MTLJSONAdapter modelOfClass:KBRIdentifyKey.class fromJSONDictionary:params[0][@"key"] error:nil];
   }
   return self;
 }

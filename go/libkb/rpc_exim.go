@@ -256,6 +256,19 @@ func ImportPgpFingerprint(f keybase1.FOKID) (ret *PgpFingerprint) {
 	return
 }
 
+func ImportPgpFingerprintSlice(fp []byte) (ret *PgpFingerprint) {
+	if fp == nil {
+		return nil
+	}
+	if len(fp) != PGPFingerprintLen {
+		return nil
+	}
+
+	var tmp PgpFingerprint
+	copy(tmp[:], fp)
+	return &tmp
+}
+
 func (f *PgpFingerprint) ExportToFOKID() (ret keybase1.FOKID) {
 	slc := (*f)[:]
 	ret.PgpFingerprint = &slc

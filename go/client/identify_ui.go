@@ -40,7 +40,7 @@ func (i *IdentifyUIServer) DisplayCryptocurrency(arg keybase1.DisplayCryptocurre
 }
 
 func (i *IdentifyUIServer) DisplayKey(arg keybase1.DisplayKeyArg) error {
-	i.ui.DisplayKey(arg.Fokid, arg.Diff)
+	i.ui.DisplayKey(arg.Key)
 	return nil
 }
 

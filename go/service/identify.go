@@ -92,8 +92,8 @@ func (u *RemoteBaseIdentifyUI) DisplayCryptocurrency(c keybase1.Cryptocurrency) 
 	return
 }
 
-func (u *RemoteBaseIdentifyUI) DisplayKey(k keybase1.FOKID, d *keybase1.TrackDiff) {
-	u.uicli.DisplayKey(keybase1.DisplayKeyArg{SessionID: u.sessionID, Fokid: k, Diff: d})
+func (u *RemoteBaseIdentifyUI) DisplayKey(key keybase1.IdentifyKey) {
+	u.uicli.DisplayKey(keybase1.DisplayKeyArg{SessionID: u.sessionID, Key: key})
 	return
 }
 

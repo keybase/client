@@ -343,13 +343,14 @@ func (ui BaseIdentifyUI) DisplayCryptocurrency(l keybase1.Cryptocurrency) {
 	ui.ReportHook(msg)
 }
 
-func (ui BaseIdentifyUI) DisplayKey(f keybase1.FOKID, diff *keybase1.TrackDiff) {
+// func (ui BaseIdentifyUI) DisplayKey(f keybase1.FOKID, diff *keybase1.TrackDiff) {
+func (ui BaseIdentifyUI) DisplayKey(key keybase1.IdentifyKey) {
 	var ds string
-	if diff != nil {
-		ds = TrackDiffToColoredString(*diff) + " "
+	if key.TrackDiff != nil {
+		ds = TrackDiffToColoredString(*key.TrackDiff) + " "
 	}
 	var s string
-	if fp := libkb.ImportPgpFingerprint(f); fp != nil {
+	if fp := libkb.ImportPgpFingerprintSlice(key.PgpFingerprint); fp != nil {
 		s = fp.ToQuads()
 	} else {
 		s = "<none>"

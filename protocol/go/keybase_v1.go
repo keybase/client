@@ -903,7 +903,6 @@ type Cryptocurrency struct {
 type Identity struct {
 	Status          *Status          `codec:"status,omitempty" json:"status,omitempty"`
 	WhenLastTracked int              `codec:"whenLastTracked" json:"whenLastTracked"`
-	Keys            []IdentifyKey    `codec:"keys" json:"keys"`
 	Proofs          []IdentifyRow    `codec:"proofs" json:"proofs"`
 	Cryptocurrency  []Cryptocurrency `codec:"cryptocurrency" json:"cryptocurrency"`
 	Deleted         []TrackDiff      `codec:"deleted" json:"deleted"`
@@ -959,9 +958,8 @@ type DisplayCryptocurrencyArg struct {
 }
 
 type DisplayKeyArg struct {
-	SessionID int        `codec:"sessionID" json:"sessionID"`
-	Fokid     FOKID      `codec:"fokid" json:"fokid"`
-	Diff      *TrackDiff `codec:"diff,omitempty" json:"diff,omitempty"`
+	SessionID int         `codec:"sessionID" json:"sessionID"`
+	Key       IdentifyKey `codec:"key" json:"key"`
 }
 
 type ReportLastTrackArg struct {

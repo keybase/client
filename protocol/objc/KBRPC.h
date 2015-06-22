@@ -357,7 +357,6 @@ typedef NS_ENUM (NSInteger, KBRTrackDiffType) {
 @interface KBRIdentity : KBRObject
 @property KBRStatus *status;
 @property NSInteger whenLastTracked;
-@property NSArray *keys; /*of KBRIdentifyKey*/
 @property NSArray *proofs; /*of KBRIdentifyRow*/
 @property NSArray *cryptocurrency; /*of KBRCryptocurrency*/
 @property NSArray *deleted; /*of KBRTrackDiff*/
@@ -399,7 +398,7 @@ typedef NS_ENUM (NSInteger, KBRTrackDiffType) {
 
 - (void)displayCryptocurrencyWithSessionID:(NSInteger)sessionID c:(KBRCryptocurrency *)c completion:(void (^)(NSError *error))completion;
 
-- (void)displayKeyWithSessionID:(NSInteger)sessionID fokid:(KBRFOKID *)fokid diff:(KBRTrackDiff *)diff completion:(void (^)(NSError *error))completion;
+- (void)displayKeyWithSessionID:(NSInteger)sessionID key:(KBRIdentifyKey *)key completion:(void (^)(NSError *error))completion;
 
 - (void)reportLastTrackWithSessionID:(NSInteger)sessionID track:(KBRTrackSummary *)track completion:(void (^)(NSError *error))completion;
 
@@ -937,8 +936,7 @@ typedef NS_ENUM (NSInteger, KBRPromptOverwriteType) {
 @end
 @interface KBRDisplayKeyRequestParams : KBRRequestParams
 @property NSInteger sessionID;
-@property KBRFOKID *fokid;
-@property KBRTrackDiff *diff;
+@property KBRIdentifyKey *key;
 @end
 @interface KBRReportLastTrackRequestParams : KBRRequestParams
 @property NSInteger sessionID;

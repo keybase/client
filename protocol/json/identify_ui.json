@@ -354,12 +354,6 @@
       "name" : "whenLastTracked",
       "type" : "int"
     }, {
-      "name" : "keys",
-      "type" : {
-        "type" : "array",
-        "items" : "IdentifyKey"
-      }
-    }, {
       "name" : "proofs",
       "type" : {
         "type" : "array",
@@ -492,11 +486,8 @@
         "name" : "sessionID",
         "type" : "int"
       }, {
-        "name" : "fokid",
-        "type" : "FOKID"
-      }, {
-        "name" : "diff",
-        "type" : [ "null", "TrackDiff" ]
+        "name" : "key",
+        "type" : "IdentifyKey"
       } ],
       "response" : "null"
     },

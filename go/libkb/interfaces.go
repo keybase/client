@@ -214,7 +214,7 @@ type IdentifyUI interface {
 	FinishSocialProofCheck(keybase1.RemoteProof, keybase1.LinkCheckResult)
 	FinishAndPrompt(*keybase1.IdentifyOutcome) (keybase1.FinishAndPromptRes, error)
 	DisplayCryptocurrency(keybase1.Cryptocurrency)
-	DisplayKey(keybase1.FOKID, *keybase1.TrackDiff)
+	DisplayKey(keybase1.IdentifyKey)
 	ReportLastTrack(*keybase1.TrackSummary)
 	LaunchNetworkChecks(*keybase1.Identity, *keybase1.User)
 	DisplayTrackStatement(string) error
