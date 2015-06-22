@@ -17,14 +17,15 @@ type CurrentStatus struct {
 }
 
 func GetCurrentStatus() (res CurrentStatus, err error) {
-	if cr := G.Env.GetConfig(); cr == nil {
-	} else {
-		res.Configured = true
-		if u := cr.GetUID(); u.Exists() {
-			res.Registered = true
-			res.User = NewUserThin(cr.GetUsername(), u)
-		}
-		res.LoggedIn, err = G.LoginState().LoggedInProvisionedLoad()
+	cr := G.Env.GetConfig()
+	if cr == nil {
+		return
 	}
+	res.Configured = true
+	if u := cr.GetUID(); u.Exists() {
+		res.Registered = true
+		res.User = NewUserThin(cr.GetUsername(), u)
+	}
+	res.LoggedIn, err = G.LoginState().LoggedInProvisionedLoad()
 	return
 }

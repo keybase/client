@@ -209,13 +209,14 @@ func (pi *pinentryInstance) Run(arg keybase1.SecretEntryArg) (res *keybase1.Secr
 		return
 	}
 	line := string(lineb)
-	if strings.HasPrefix(line, "D ") {
+	switch {
+	case strings.HasPrefix(line, "D "):
 		res = &keybase1.SecretEntryRes{Text: resDecode(line[2:])}
-	} else if strings.HasPrefix(line, "ERR 83886179 canceled") {
+	case strings.HasPrefix(line, "ERR 83886179 canceled"):
 		res = &keybase1.SecretEntryRes{Canceled: true}
-	} else if line == "OK" {
+	case line == "OK":
 		res = &keybase1.SecretEntryRes{}
-	} else {
+	default:
 		return nil, fmt.Errorf("GETPIN response didn't start with D; got %q", line)
 	}
 

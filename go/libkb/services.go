@@ -45,7 +45,7 @@ func GetServiceType(s string) ServiceType {
 
 type BaseServiceType struct{}
 
-func (t BaseServiceType) BaseCheckProofTextShort(text string, id keybase1.SigID, med bool) (err error) {
+func (t BaseServiceType) BaseCheckProofTextShort(text string, id keybase1.SigID, med bool) error {
 	blocks := FindBase64Snippets(text)
 	var target string
 	if med {
@@ -55,15 +55,15 @@ func (t BaseServiceType) BaseCheckProofTextShort(text string, id keybase1.SigID,
 	}
 	for _, b := range blocks {
 		if len(b) < len(target) {
-		} else if b != target {
-			err = WrongSigError{b}
-			return
-		} else {
-			return
+			continue
 		}
+		if b != target {
+			return WrongSigError{b}
+		}
+		// found match:
+		return nil
 	}
-	err = NotFoundError{"Couldn't find signature ID " + target + " in text"}
-	return
+	return NotFoundError{"Couldn't find signature ID " + target + " in text"}
 }
 
 func (t BaseServiceType) BaseRecheckProofPosting(tryNumber int, status keybase1.ProofStatus) (warning *Markup, err error) {
@@ -116,12 +116,13 @@ func (t BaseServiceType) BaseCheckProofTextFull(text string, id keybase1.SigID, 
 	found := false
 	for _, b := range blocks {
 		if len(b) < 80 {
-		} else if b != target {
+			continue
+		}
+		if b != target {
 			err = WrongSigError{b}
 			return
-		} else {
-			found = true
 		}
+		found = true
 	}
 	if !found {
 		err = NotFoundError{"Couldn't find signature ID " + target + " in text"}
