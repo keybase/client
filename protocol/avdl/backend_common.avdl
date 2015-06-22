@@ -5,7 +5,6 @@ protocol backendCommon {
 
 	record BlockIdCombo{
 		string blockHash;
-		int size;
 		UID chargedTo;
 	}
 

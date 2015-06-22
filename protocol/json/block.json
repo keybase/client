@@ -178,9 +178,6 @@
       "name" : "blockHash",
       "type" : "string"
     }, {
-      "name" : "size",
-      "type" : "int"
-    }, {
       "name" : "chargedTo",
       "type" : "UID"
     } ]

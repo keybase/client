@@ -79,7 +79,6 @@ type Stream struct {
 type SigID string
 type BlockIdCombo struct {
 	BlockHash string `codec:"blockHash" json:"blockHash"`
-	Size      int    `codec:"size" json:"size"`
 	ChargedTo UID    `codec:"chargedTo" json:"chargedTo"`
 }
 
