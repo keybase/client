@@ -125,9 +125,16 @@ func (k *GpgBaseKey) ParseBase(line *GpgIndexLine) (err error) {
 	}
 
 	if k.Bits, err = strconv.Atoi(line.At(2)); err != nil {
-	} else if k.Algo, err = strconv.Atoi(line.At(3)); err != nil {
-	} else if k.Created, err = parseTimeStamp(line.At(5)); err != nil {
-	} else if k.Expires, err = parseTimeStamp(line.At(6)); err != nil {
+		return
+	}
+	if k.Algo, err = strconv.Atoi(line.At(3)); err != nil {
+		return
+	}
+	if k.Created, err = parseTimeStamp(line.At(5)); err != nil {
+		return
+	}
+	if k.Expires, err = parseTimeStamp(line.At(6)); err != nil {
+		return
 	}
 
 	return
@@ -147,6 +154,9 @@ type GpgPrimaryKey struct {
 }
 
 func (k *GpgPrimaryKey) IsValid() bool {
+	if k == nil {
+		return false
+	}
 	if k.Trust == "r" {
 		return false
 	} else if k.Expires == 0 {
@@ -173,11 +183,14 @@ func (k *GpgBaseKey) SetFingerprint(pgp *PGPFingerprint) {
 	k.fingerprint = pgp
 }
 
-func (k *GpgPrimaryKey) Parse(l *GpgIndexLine) (err error) {
-	if err = k.ParseBase(l); err != nil {
-	} else if err = k.AddUID(l); err != nil {
+func (k *GpgPrimaryKey) Parse(l *GpgIndexLine) error {
+	if err := k.ParseBase(l); err != nil {
+		return err
 	}
-	return
+	if err := k.AddUID(l); err != nil {
+		return err
+	}
+	return nil
 }
 
 func NewGpgPrimaryKey() *GpgPrimaryKey {
@@ -371,8 +384,7 @@ func (ki *GpgKeyIndex) IndexKey(k *GpgPrimaryKey) {
 }
 
 func (ki *GpgKeyIndex) PushElement(e GpgIndexElement) {
-	if key := e.ToKey(); key == nil {
-	} else if key.IsValid() {
+	if key := e.ToKey(); key.IsValid() {
 		ki.IndexKey(key)
 	}
 }
@@ -530,12 +542,15 @@ func (g *GpgCLI) Index(secret bool, query string) (ki *GpgKeyIndex, w Warnings, 
 		Arguments: args,
 		Stdout:    true,
 	}
-	if res := g.Run2(garg); res.Err != nil {
+	res := g.Run2(garg)
+	if res.Err != nil {
 		err = res.Err
-	} else if ki, w, err = ParseGpgIndexStream(res.Stdout); err != nil {
-	} else {
-		err = res.Wait()
+		return
 	}
+	if ki, w, err = ParseGpgIndexStream(res.Stdout); err != nil {
+		return
+	}
+	err = res.Wait()
 	return
 }
 

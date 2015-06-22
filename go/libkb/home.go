@@ -75,13 +75,12 @@ func (x XdgPosix) DataDir() string   { return x.dirHelper("XDG_DATA_HOME", ".loc
 
 func (x XdgPosix) xdgRuntimeDir() string { return os.Getenv("XDG_RUNTIME_DIR") }
 
-func (x XdgPosix) RuntimeDir() (ret string, err error) {
-	ret = x.xdgRuntimeDir()
+func (x XdgPosix) RuntimeDir() (string, error) {
+	ret := x.xdgRuntimeDir()
 	if len(ret) != 0 {
-	} else {
-		ret = x.ConfigDir()
+		return ret, nil
 	}
-	return
+	return x.ConfigDir(), nil
 }
 
 func (x XdgPosix) ChdirDir() (ret string, err error) {

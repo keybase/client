@@ -86,18 +86,20 @@ func NewProofCache(capac int) (*ProofCache, error) {
 }
 
 func (pc *ProofCache) memGet(sid keybase1.SigID) *CheckResult {
-	var ret *CheckResult
-
-	if tmp, found := pc.lru.Get(sid); !found {
-		// noop!
-	} else if cr, ok := tmp.(CheckResult); !ok {
-		G.Log.Errorf("Bad type assertion in ProofCache.Get")
-	} else if !cr.IsFresh() {
-		pc.lru.Remove(sid)
-	} else {
-		ret = &cr
+	tmp, found := pc.lru.Get(sid)
+	if !found {
+		return nil
 	}
-	return ret
+	cr, ok := tmp.(CheckResult)
+	if !ok {
+		G.Log.Errorf("Bad type assertion in ProofCache.Get")
+		return nil
+	}
+	if !cr.IsFresh() {
+		pc.lru.Remove(sid)
+		return nil
+	}
+	return &cr
 }
 
 func (pc *ProofCache) memPut(sid keybase1.SigID, cr CheckResult) {

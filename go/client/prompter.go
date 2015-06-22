@@ -36,7 +36,9 @@ func NewPrompter(f []*Field) *Prompter {
 func (p *Prompter) Run() error {
 	for _, f := range p.Fields {
 		if f.Disabled {
-		} else if err := p.ReadField(f); err != nil {
+			continue
+		}
+		if err := p.ReadField(f); err != nil {
 			return err
 		}
 	}

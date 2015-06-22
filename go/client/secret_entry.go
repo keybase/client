@@ -41,10 +41,10 @@ func (se *SecretEntry) Init() (err error) {
 		}
 	}
 
-	if err != nil {
-		// We can't proceed if we hit a fatal error above
-	} else if se.pinentry == nil && se.terminal == nil {
-		err = fmt.Errorf("No terminal and pinentry init; cannot input secrets")
+	if err == nil {
+		if se.pinentry == nil && se.terminal == nil {
+			err = fmt.Errorf("No terminal and pinentry init; cannot input secrets")
+		}
 	}
 
 	se.initRes = &err

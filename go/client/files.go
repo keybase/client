@@ -195,26 +195,23 @@ type UnixFilter struct {
 }
 
 func initSink(fn string) Sink {
-	var ret Sink
 	if len(fn) == 0 || fn == "-" {
-		ret = &StdoutSink{}
-	} else {
-		ret = NewFileSink(fn)
+		return &StdoutSink{}
 	}
-	return ret
+	return NewFileSink(fn)
 }
 
-func initSource(msg, infile string) (src Source, err error) {
+func initSource(msg, infile string) (Source, error) {
 	if len(msg) > 0 && len(infile) > 0 {
-		err = fmt.Errorf("Can't handle both a passed message and an infile")
-	} else if len(msg) > 0 {
-		src = NewBufferSource(msg)
-	} else if len(infile) == 0 || infile == "-" {
-		src = &StdinSource{}
-	} else {
-		src = NewFileSource(infile)
+		return nil, fmt.Errorf("Can't handle both a passed message and an infile")
 	}
-	return
+	if len(msg) > 0 {
+		return NewBufferSource(msg), nil
+	}
+	if len(infile) == 0 || infile == "-" {
+		return &StdinSource{}, nil
+	}
+	return NewFileSource(infile), nil
 }
 
 func (u *UnixFilter) FilterInit(msg, infile, outfile string) (err error) {

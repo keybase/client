@@ -89,27 +89,31 @@ func colorByteSequence(code int) []byte {
 func (cp CodePair) OpenBytes() []byte  { return colorByteSequence(cp.Open) }
 func (cp CodePair) CloseBytes() []byte { return colorByteSequence(cp.Close) }
 
-func ColorOpen(which string) (ret []byte) {
+func ColorOpen(which string) []byte {
 	if G.Env.GetPlainLogging() {
-	} else if cp, ok := codes[which]; ok {
-		ret = colorByteSequence(cp.Open)
+		return nil
 	}
-	return
+	if cp, ok := codes[which]; ok {
+		return colorByteSequence(cp.Open)
+	}
+	return nil
 }
 
-func GetColorCode(which string) (ret *CodePair) {
+func GetColorCode(which string) *CodePair {
 	if tmp, ok := codes[which]; ok {
-		ret = &tmp
+		return &tmp
 	}
-	return
+	return nil
 }
 
-func ColorClose(which string) (ret []byte) {
+func ColorClose(which string) []byte {
 	if G.Env.GetPlainLogging() {
-	} else if cp, ok := codes[which]; ok {
-		ret = colorByteSequence(cp.Close)
+		return nil
 	}
-	return
+	if cp, ok := codes[which]; ok {
+		return colorByteSequence(cp.Close)
+	}
+	return nil
 }
 
 func ColorBytes(which string, text []byte) []byte {
