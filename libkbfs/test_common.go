@@ -1,6 +1,8 @@
 package libkbfs
 
-import "testing"
+import (
+	_ "fmt"
+)
 
 // Return a new initialized RootMetadata object for testing.
 func newRootMetadataForTest(d *DirHandle, id DirID) *RootMetadata {
@@ -13,7 +15,7 @@ func newRootMetadataForTest(d *DirHandle, id DirID) *RootMetadata {
 
 // MakeTestConfigOrBust creates and returns a config suitable for
 // unit-testing with the given list of users.
-func MakeTestConfigOrBust(t *testing.T, users ...string) *ConfigLocal {
+func MakeTestConfigOrBust(users ...string) *ConfigLocal {
 	config := NewConfigLocal()
 
 	localUsers := MakeLocalUsers(users)
@@ -31,19 +33,19 @@ func MakeTestConfigOrBust(t *testing.T, users ...string) *ConfigLocal {
 
 	blockServer, err := NewBlockServerMemory(config)
 	if err != nil {
-		t.Fatal(err)
+		panic(err)
 	}
 	config.SetBlockServer(blockServer)
 
 	mdServer, err := NewMDServerMemory(config)
 	if err != nil {
-		t.Fatal(err)
+		panic(err)
 	}
 	config.SetMDServer(mdServer)
 
 	keyOps, err := NewKeyServerMemory(config.Codec())
 	if err != nil {
-		t.Fatal(err)
+		panic(err)
 	}
 	config.SetKeyOps(keyOps)
 
@@ -74,7 +76,13 @@ func ConfigAsUser(config *ConfigLocal, loggedInUser string) *ConfigLocal {
 	c.SetCrypto(crypto)
 
 	c.SetBlockServer(config.BlockServer())
-	c.SetMDServer(config.MDServer())
+
+	mdServer, err := NewMDServerMemory(c)
+	if err != nil {
+		panic(err)
+	}
+	c.SetMDServer(mdServer)
+
 	c.SetKeyOps(config.KeyOps())
 
 	return c
