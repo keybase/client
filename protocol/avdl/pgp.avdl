@@ -9,7 +9,7 @@ protocol pgp {
 		CLEAR_2
 	}
 
-	record PgpSignOptions {
+	record PGPSignOptions {
 		string keyQuery;
 		SignMode mode;
 		boolean binaryIn;
@@ -17,13 +17,13 @@ protocol pgp {
 	}
 
 	// Return a source that we should be writing to.
-	void pgpSign(int sessionID, Stream source, Stream sink, PgpSignOptions opts);
+	void pgpSign(int sessionID, Stream source, Stream sink, PGPSignOptions opts);
 
 	// Download PGP keys for tracked users and update the local GPG keyring.
 	// If usernames is nonempty, update only those users.
 	void pgpPull(int sessionID, array<string> userAsserts);
 
-	record PgpEncryptOptions {
+	record PGPEncryptOptions {
 		array<string> recipients; // user assertions
 		boolean noSign;
 		boolean noSelf;
@@ -33,35 +33,35 @@ protocol pgp {
 		boolean approveRemote;  // approve remote track without prompt
 	}
 
-	void pgpEncrypt(int sessionID, Stream source, Stream sink, PgpEncryptOptions opts);
+	void pgpEncrypt(int sessionID, Stream source, Stream sink, PGPEncryptOptions opts);
 
-	// PgpSigVerification is returned by pgpDecrypt and pgpVerify with information
+	// PGPSigVerification is returned by pgpDecrypt and pgpVerify with information
 	// about a the signature verification.  If isSigned is false, there was no
 	// signature, and the rest of the fields should be ignored.
-	record PgpSigVerification {
+	record PGPSigVerification {
 		boolean isSigned; // true if message was signed
 		boolean verified; // true if signature verified
 		User signer; // who signed it
 		PublicKey signKey; // the pub key that signed it
 	}
 
-	record PgpDecryptOptions {
+	record PGPDecryptOptions {
 		boolean assertSigned;
 		string signedBy; // assert that signature made by this user
 		boolean localOnly; // store track locally only
 		boolean approveRemote;  // approve remote track without prompt
 	}
 
-	PgpSigVerification pgpDecrypt(int sessionID, Stream source, Stream sink, PgpDecryptOptions opts);
+	PGPSigVerification pgpDecrypt(int sessionID, Stream source, Stream sink, PGPDecryptOptions opts);
 
-	record PgpVerifyOptions {
+	record PGPVerifyOptions {
 		string signedBy; // assert that signature made by this user
 		boolean localOnly; // store track locally only
 		boolean approveRemote;  // approve remote track without prompt
 		bytes signature; // detached signature data (binary or armored), can be empty
 	}
 
-	PgpSigVerification pgpVerify(int sessionID, Stream source, PgpVerifyOptions opts);
+	PGPSigVerification pgpVerify(int sessionID, Stream source, PGPVerifyOptions opts);
 
 	void pgpImport(int sessionID, bytes key, boolean pushSecret);
 
@@ -72,25 +72,25 @@ protocol pgp {
 	}
 
 	// If 'secret' is true, you get at most one key back.
-	record PgpQuery {
+	record PGPQuery {
 		boolean secret;
 		string query;
 		boolean exactMatch;
 	}
 
 	// Exports active PGP keys. Only allows armored export.
-	array<KeyInfo> pgpExport(int sessionID, PgpQuery options);
-	array<KeyInfo> pgpExportByFingerprint(int sessionID, PgpQuery options);
-	array<KeyInfo> pgpExportByKID(int sessionID, PgpQuery options);
+	array<KeyInfo> pgpExport(int sessionID, PGPQuery options);
+	array<KeyInfo> pgpExportByFingerprint(int sessionID, PGPQuery options);
+	array<KeyInfo> pgpExportByKID(int sessionID, PGPQuery options);
 
-	record PgpCreateUids {
+	record PGPCreateUids {
 		boolean useDefault;
-		array<PgpIdentity> ids;
+		array<PGPIdentity> ids;
 	}
 
-	void pgpKeyGen(int sessionID, int primaryBits, int subkeyBits, PgpCreateUids createUids, boolean allowMulti, boolean doExport);
+	void pgpKeyGen(int sessionID, int primaryBits, int subkeyBits, PGPCreateUids createUids, boolean allowMulti, boolean doExport);
 
-	void pgpKeyGenDefault(int sessionID, PgpCreateUids createUids);
+	void pgpKeyGenDefault(int sessionID, PGPCreateUids createUids);
 
 	void pgpDeletePrimary(int sessionID);
 

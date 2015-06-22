@@ -27,7 +27,7 @@ protocol Common {
 		boolean markup;
 	}
 
-	record PgpIdentity {
+	record PGPIdentity {
 		string username;
 		string comment;
 		string email;
@@ -42,7 +42,7 @@ protocol Common {
 	record PublicKey {
 		string KID;
 		string PGPFingerprint; // empty for non-PGP keys
-		array<PgpIdentity> PGPIdentities; // same
+		array<PGPIdentity> PGPIdentities; // same
 		boolean isSibkey;
 		boolean isEldest;
 		boolean isWeb;

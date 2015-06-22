@@ -57,7 +57,7 @@
     } ]
   }, {
     "type" : "record",
-    "name" : "PgpIdentity",
+    "name" : "PGPIdentity",
     "fields" : [ {
       "name" : "username",
       "type" : "string"
@@ -94,7 +94,7 @@
       "name" : "PGPIdentities",
       "type" : {
         "type" : "array",
-        "items" : "PgpIdentity"
+        "items" : "PGPIdentity"
       }
     }, {
       "name" : "isSibkey",
@@ -190,7 +190,7 @@
       "name" : "identities",
       "type" : {
         "type" : "array",
-        "items" : "PgpIdentity"
+        "items" : "PGPIdentity"
       }
     } ]
   }, {

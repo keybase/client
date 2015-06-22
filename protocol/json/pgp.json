@@ -57,7 +57,7 @@
     } ]
   }, {
     "type" : "record",
-    "name" : "PgpIdentity",
+    "name" : "PGPIdentity",
     "fields" : [ {
       "name" : "username",
       "type" : "string"
@@ -94,7 +94,7 @@
       "name" : "PGPIdentities",
       "type" : {
         "type" : "array",
-        "items" : "PgpIdentity"
+        "items" : "PGPIdentity"
       }
     }, {
       "name" : "isSibkey",
@@ -177,7 +177,7 @@
     "symbols" : [ "ATTACHED_0", "DETACHED_1", "CLEAR_2" ]
   }, {
     "type" : "record",
-    "name" : "PgpSignOptions",
+    "name" : "PGPSignOptions",
     "fields" : [ {
       "name" : "keyQuery",
       "type" : "string"
@@ -193,7 +193,7 @@
     } ]
   }, {
     "type" : "record",
-    "name" : "PgpEncryptOptions",
+    "name" : "PGPEncryptOptions",
     "fields" : [ {
       "name" : "recipients",
       "type" : {
@@ -221,7 +221,7 @@
     } ]
   }, {
     "type" : "record",
-    "name" : "PgpSigVerification",
+    "name" : "PGPSigVerification",
     "fields" : [ {
       "name" : "isSigned",
       "type" : "boolean"
@@ -237,7 +237,7 @@
     } ]
   }, {
     "type" : "record",
-    "name" : "PgpDecryptOptions",
+    "name" : "PGPDecryptOptions",
     "fields" : [ {
       "name" : "assertSigned",
       "type" : "boolean"
@@ -253,7 +253,7 @@
     } ]
   }, {
     "type" : "record",
-    "name" : "PgpVerifyOptions",
+    "name" : "PGPVerifyOptions",
     "fields" : [ {
       "name" : "signedBy",
       "type" : "string"
@@ -282,7 +282,7 @@
     } ]
   }, {
     "type" : "record",
-    "name" : "PgpQuery",
+    "name" : "PGPQuery",
     "fields" : [ {
       "name" : "secret",
       "type" : "boolean"
@@ -295,7 +295,7 @@
     } ]
   }, {
     "type" : "record",
-    "name" : "PgpCreateUids",
+    "name" : "PGPCreateUids",
     "fields" : [ {
       "name" : "useDefault",
       "type" : "boolean"
@@ -303,7 +303,7 @@
       "name" : "ids",
       "type" : {
         "type" : "array",
-        "items" : "PgpIdentity"
+        "items" : "PGPIdentity"
       }
     } ]
   } ],
@@ -320,7 +320,7 @@
         "type" : "Stream"
       }, {
         "name" : "opts",
-        "type" : "PgpSignOptions"
+        "type" : "PGPSignOptions"
       } ],
       "response" : "null"
     },
@@ -349,7 +349,7 @@
         "type" : "Stream"
       }, {
         "name" : "opts",
-        "type" : "PgpEncryptOptions"
+        "type" : "PGPEncryptOptions"
       } ],
       "response" : "null"
     },
@@ -365,9 +365,9 @@
         "type" : "Stream"
       }, {
         "name" : "opts",
-        "type" : "PgpDecryptOptions"
+        "type" : "PGPDecryptOptions"
       } ],
-      "response" : "PgpSigVerification"
+      "response" : "PGPSigVerification"
     },
     "pgpVerify" : {
       "request" : [ {
@@ -378,9 +378,9 @@
         "type" : "Stream"
       }, {
         "name" : "opts",
-        "type" : "PgpVerifyOptions"
+        "type" : "PGPVerifyOptions"
       } ],
-      "response" : "PgpSigVerification"
+      "response" : "PGPSigVerification"
     },
     "pgpImport" : {
       "request" : [ {
@@ -401,7 +401,7 @@
         "type" : "int"
       }, {
         "name" : "options",
-        "type" : "PgpQuery"
+        "type" : "PGPQuery"
       } ],
       "response" : {
         "type" : "array",
@@ -414,7 +414,7 @@
         "type" : "int"
       }, {
         "name" : "options",
-        "type" : "PgpQuery"
+        "type" : "PGPQuery"
       } ],
       "response" : {
         "type" : "array",
@@ -427,7 +427,7 @@
         "type" : "int"
       }, {
         "name" : "options",
-        "type" : "PgpQuery"
+        "type" : "PGPQuery"
       } ],
       "response" : {
         "type" : "array",
@@ -446,7 +446,7 @@
         "type" : "int"
       }, {
         "name" : "createUids",
-        "type" : "PgpCreateUids"
+        "type" : "PGPCreateUids"
       }, {
         "name" : "allowMulti",
         "type" : "boolean"
@@ -462,7 +462,7 @@
         "type" : "int"
       }, {
         "name" : "createUids",
-        "type" : "PgpCreateUids"
+        "type" : "PGPCreateUids"
       } ],
       "response" : "null"
     },
