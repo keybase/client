@@ -6,7 +6,7 @@ import (
 	"testing"
 	"time"
 
-	"code.google.com/p/gomock/gomock"
+	"github.com/golang/mock/gomock"
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/protocol/go"
 )

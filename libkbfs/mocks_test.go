@@ -4,8 +4,8 @@
 package libkbfs
 
 import (
-	gomock "code.google.com/p/gomock/gomock"
 	fmt "fmt"
+	"github.com/golang/mock/gomock"
 	libkb "github.com/keybase/client/go/libkb"
 	go0 "github.com/keybase/client/protocol/go"
 	time "time"
