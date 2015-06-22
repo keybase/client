@@ -138,6 +138,14 @@ func ExportErrorAsStatus(e error) (ret *keybase1.Status) {
 		}
 	}
 
+	if e == ErrTimeout {
+		return &keybase1.Status{
+			Code: SCTimeout,
+			Name: "SC_TIMEOUT",
+			Desc: e.Error(),
+		}
+	}
+
 	if ee, ok := e.(ExportableError); ok {
 		tmp := ee.ToStatus()
 		return &tmp

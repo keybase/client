@@ -91,6 +91,7 @@ const (
 	SCStreamWrongKind        = 1503
 	SCStreamEOF              = 1504
 	SCAPINetworkError        = 1601
+	SCTimeout                = 1602
 	SCProofError             = 1701
 	SCIdentificationExpired  = 1702
 )
