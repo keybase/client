@@ -83,7 +83,7 @@ func (m *MDOpsConcurTest) GetFavorites() ([]DirID, error) {
 }
 
 func kbfsOpsConcurInit(t *testing.T, users ...string) (Config, keybase1.UID) {
-	config := MakeTestConfigOrBust(t, users...)
+	config := MakeTestConfigOrBust(false, users...)
 
 	loggedInUser, err := config.KBPKI().GetLoggedInUser()
 	if err != nil {
