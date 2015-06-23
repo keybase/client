@@ -98,7 +98,7 @@ func (b *BlockServerRemote) ConnectOnce() error {
 
 	var session *libkb.Session
 	if session, err = b.config.KBPKI().GetSession(); err != nil || session == nil {
-		libkb.G.Log.Warning("BLockServerRemote: error getting session %q", err)
+		libkb.G.Log.Warning("BlockServerRemote: error getting session %q", err)
 		return err
 	}
 
@@ -194,10 +194,6 @@ func (b *BlockServerRemote) Put(id BlockID, tlfID DirID, context BlockContext,
 	err := b.clt.PutBlock(arg)
 	if err != nil {
 		libkb.G.Log.Warning("PUT to backend err : %q", err)
-		//XXX: just silently ignore duplicate error for now
-		if strings.Contains(err.Error(), `objstore/table: update/put already applied`) == true {
-			err = nil
-		}
 	}
 	return err
 }
@@ -215,7 +211,7 @@ func (b *BlockServerRemote) Delete(id BlockID, context BlockContext) error {
 	}
 	err := b.clt.DecBlockReference(arg)
 	if err != nil {
-		libkb.G.Log.Warning("PUT to backend err : %q", err)
+		libkb.G.Log.Warning("Delete to backend err : %q", err)
 	}
 	return err
 }
