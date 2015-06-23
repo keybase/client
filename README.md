@@ -29,7 +29,7 @@ If the last command fails please see [here](https://groups.google.com/forum/#!ms
 * Sign up one (or more) users in a different terminal
 
         cd client/go/keybase
-        ./keybase -H ~/kbtest signup # Note: 202020202020202020202020 can be used as a test invite code
+        ./keybase -H ~/kbtest signup -c 202020202020202020202020 # -c value is a reusable test invite code
 
 Now, in kbfs/:
 
