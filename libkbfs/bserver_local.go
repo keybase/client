@@ -1,6 +1,8 @@
 package libkbfs
 
 import (
+	"encoding/base64"
+	"fmt"
 	"github.com/syndtr/goleveldb/leveldb"
 	"github.com/syndtr/goleveldb/leveldb/opt"
 	"github.com/syndtr/goleveldb/leveldb/storage"
@@ -75,6 +77,8 @@ func (b *BlockServerLocal) Put(id BlockID, tlfID DirID, context BlockContext,
 	if err != nil {
 		return err
 	}
+	fmt.Printf("id=%s buf=%s\n", base64.StdEncoding.EncodeToString(id[:]), buf)
+	fmt.Printf("id=%s msg-packed-buf=%s\n", base64.StdEncoding.EncodeToString(id[:]), entryBuf)
 	return b.db.Put(id[:], entryBuf, nil)
 }
 
