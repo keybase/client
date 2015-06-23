@@ -13,18 +13,23 @@ type BlockOpsStandard struct {
 var _ BlockOps = (*BlockOpsStandard)(nil)
 
 // Get implements the BlockOps interface for BlockOpsStandard.
-func (b *BlockOpsStandard) Get(id BlockID, context BlockContext,
-	tlfCryptKey TLFCryptKey, block Block) error {
+func (b *BlockOpsStandard) Get(md *RootMetadata, blockPtr BlockPointer, block Block) error {
 	bserv := b.config.BlockServer()
-	buf, blockServerHalf, err := bserv.Get(id, context)
+	buf, blockServerHalf, err := bserv.Get(blockPtr.ID, blockPtr)
 	if err != nil {
 		return err
 	}
-	if context.GetQuotaSize() != uint32(len(buf)) {
+
+	if blockPtr.QuotaSize != uint32(len(buf)) {
 		err = &InconsistentByteCountError{
-			ExpectedByteCount: int(context.GetQuotaSize()),
+			ExpectedByteCount: int(blockPtr.QuotaSize),
 			ByteCount:         len(buf),
 		}
+		return err
+	}
+
+	tlfCryptKey, err := b.config.KeyManager().GetTLFCryptKeyForBlockDecryption(md, blockPtr)
+	if err != nil {
 		return err
 	}
 
@@ -40,58 +45,79 @@ func (b *BlockOpsStandard) Get(id BlockID, context BlockContext,
 }
 
 // Ready implements the BlockOps interface for BlockOpsStandard.
-func (b *BlockOpsStandard) Ready(
-	block Block, cryptKey BlockCryptKey) (id BlockID, plainSize int, buf []byte, err error) {
+func (b *BlockOpsStandard) Ready(md *RootMetadata, block Block) (id BlockID, plainSize int, readyBlockData ReadyBlockData, err error) {
 	defer func() {
 		if err != nil {
 			id = BlockID{}
 			plainSize = 0
-			buf = nil
+			readyBlockData = ReadyBlockData{}
 		}
 	}()
+
 	crypto := b.config.Crypto()
-	if plainSize, buf, err = crypto.EncryptBlock(block, cryptKey); err != nil {
+
+	tlfCryptKey, err := b.config.KeyManager().GetTLFCryptKeyForEncryption(md)
+	if err != nil {
 		return
 	}
 
-	if len(buf) < plainSize {
+	// New server key half for the block.
+	serverHalf, err := crypto.MakeRandomBlockCryptKeyServerHalf()
+	if err != nil {
+		return
+	}
+
+	blockKey, err := crypto.UnmaskBlockCryptKey(serverHalf, tlfCryptKey)
+	if err != nil {
+		return
+	}
+
+	plainSize, buf, err := crypto.EncryptBlock(block, blockKey)
+	if err != nil {
+		return
+	}
+
+	readyBlockData = ReadyBlockData{
+		buf:        buf,
+		serverHalf: serverHalf,
+	}
+
+	quotaSize := readyBlockData.GetQuotaSize()
+	if quotaSize < plainSize {
 		err = &TooLowByteCountError{
 			ExpectedMinByteCount: plainSize,
-			ByteCount:            len(buf),
+			ByteCount:            quotaSize,
 		}
 		return
 	}
 
 	// now get the block ID for the buffer
-	var h libkb.NodeHash
-	if h, err = crypto.Hash(buf); err != nil {
+	h, err := crypto.Hash(buf)
+	if err != nil {
 		return
 	}
 
-	var nhs libkb.NodeHashShort
-	var ok bool
-	if nhs, ok = h.(libkb.NodeHashShort); !ok {
+	nhs, ok := h.(libkb.NodeHashShort)
+	if !ok {
 		err = &BadCryptoError{id}
 		return
 	}
 
 	id = BlockID(nhs)
+
 	return
 }
 
 // Put implements the BlockOps interface for BlockOpsStandard.
-func (b *BlockOpsStandard) Put(id BlockID, tlfID DirID, context BlockContext,
-	buf []byte, serverHalf BlockCryptKeyServerHalf) (err error) {
-	if context.GetQuotaSize() != uint32(len(buf)) {
-		err = &InconsistentByteCountError{
-			ExpectedByteCount: int(context.GetQuotaSize()),
-			ByteCount:         len(buf),
+func (b *BlockOpsStandard) Put(md *RootMetadata, blockPtr BlockPointer, readyBlockData ReadyBlockData) error {
+	if blockPtr.QuotaSize != uint32(len(readyBlockData.buf)) {
+		return &InconsistentByteCountError{
+			ExpectedByteCount: int(blockPtr.QuotaSize),
+			ByteCount:         len(readyBlockData.buf),
 		}
-		return
 	}
 	bserv := b.config.BlockServer()
-	err = bserv.Put(id, tlfID, context, buf, serverHalf)
-	return
+	return bserv.Put(blockPtr.ID, md.ID, blockPtr, readyBlockData.buf, readyBlockData.serverHalf)
 }
 
 // Delete implements the BlockOps interface for BlockOpsStandard.

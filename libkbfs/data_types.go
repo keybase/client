@@ -338,16 +338,6 @@ type BlockPointer struct {
 	RefNonce BlockRefNonce `codec:"r,omitempty"`
 }
 
-// GetKeyGen implements the BlockContext interface for BlockPointer.
-func (p BlockPointer) GetKeyGen() KeyGen {
-	return p.KeyGen
-}
-
-// GetDataVer implements the BlockContext interface for BlockPointer.
-func (p BlockPointer) GetDataVer() DataVer {
-	return p.DataVer
-}
-
 // GetWriter implements the BlockContext interface for BlockPointer.
 func (p BlockPointer) GetWriter() keybase1.UID {
 	return p.Writer
@@ -366,6 +356,20 @@ func (p BlockPointer) GetRefNonce() BlockRefNonce {
 // IsInitialized returns whether or not this BlockPointer has non-nil data.
 func (p BlockPointer) IsInitialized() bool {
 	return p.ID != NullBlockID
+}
+
+// ReadyBlockData is a block that has been encoded (and possibly
+// encrypted).
+type ReadyBlockData struct {
+	// These fields should not be used outside of BlockOps.Put().
+	buf        []byte
+	serverHalf BlockCryptKeyServerHalf
+}
+
+// GetQuotaSize returns the size of the encoded (and possibly
+// encrypted) block data.
+func (r ReadyBlockData) GetQuotaSize() int {
+	return len(r.buf)
 }
 
 // DirHandle uniquely identifies top-level directories by readers and

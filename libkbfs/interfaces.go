@@ -414,23 +414,26 @@ type KeyOps interface {
 // BlockOps gets and puts data blocks to a BlockServer. It performs
 // the necessary crypto operations on each block.
 type BlockOps interface {
-	// Get gets the block associated with the given block ID and
-	// context, uses the block key generated from the given TLF key
-	// and the fetched server-side block key-half to decrypt, and
-	// fills in the provided block object with its contents, if the
-	// logged-in user has read permission for that block.
-	Get(id BlockID, context BlockContext, tlfCryptKey TLFCryptKey,
-		block Block) error
-	// Ready turns plaintext blocks into encrypted buffers using the
-	// provided key, and calculates their IDs and sizes, so that we
-	// can do a bunch of block puts in parallel for every write.
-	// Ready() must guarantee that plainSize <= len(buf).
-	Ready(block Block, cryptKey BlockCryptKey) (
-		id BlockID, plainSize int, buf []byte, err error)
-	// Put stores the (encrypted) block data under the given ID and
-	// context on the server, along with the server half of the block key.
-	Put(id BlockID, tlfID DirID, context BlockContext, buf []byte,
-		serverHalf BlockCryptKeyServerHalf) error
+	// Get gets the block associated with the given block pointer
+	// (which belongs to the TLF with the given metadata),
+	// decrypts it if necessary, and fills in the provided block
+	// object with its contents, if the logged-in user has read
+	// permission for that block.
+	Get(md *RootMetadata, blockPtr BlockPointer, block Block) error
+
+	// Ready turns the given block (which belongs to the TLF with
+	// the given metadata) into encoded (and possibly encrypted)
+	// data, and calculates its ID and size, so that we can do a
+	// bunch of block puts in parallel for every write. Ready()
+	// must guarantee that plainSize <=
+	// readyBlockData.QuotaSize().
+	Ready(md *RootMetadata, block Block) (id BlockID, plainSize int, readyBlockData ReadyBlockData, err error)
+
+	// Put stores the readied block data under the given block
+	// pointer (which belongs to the TLF with the given metadata)
+	// on the server.
+	Put(md *RootMetadata, blockPtr BlockPointer, readyBlockData ReadyBlockData) error
+
 	// Delete instructs the server to delete the block data associated
 	// with the given ID and context.
 	Delete(id BlockID, context BlockContext) error
