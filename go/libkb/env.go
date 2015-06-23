@@ -160,8 +160,12 @@ func NewEnv(cmd CommandLine, config ConfigReader) *Env {
 		config = NullConfiguration{}
 	}
 	e := Env{cmd: cmd, config: config}
+
+	dev := e.GetDevelMode()
+
 	e.homeFinder = NewHomeFinder("keybase",
-		func() string { return e.getHomeFromCmdOrConfig() })
+		func() string { return e.getHomeFromCmdOrConfig() },
+		dev)
 	return &e
 }
 
