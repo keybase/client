@@ -1,7 +1,6 @@
 package libkbfs
 
 import (
-	"encoding/base64"
 	"github.com/syndtr/goleveldb/leveldb"
 	"github.com/syndtr/goleveldb/leveldb/opt"
 	"github.com/syndtr/goleveldb/leveldb/storage"
