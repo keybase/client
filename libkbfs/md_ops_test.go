@@ -95,25 +95,17 @@ func verifyMDForPrivateShare(config *ConfigMock, rmds *RootMetadataSigned,
 		MacPublicKey{}, packedData, gomock.Any()).Return(nil)
 }
 
-func expectMdID(config *ConfigMock) MdID {
-	// get the MD id, and test that it actually gets set in the metadata
-	mdID := MdID{42}
-	config.mockCodec.EXPECT().Encode(gomock.Any()).AnyTimes().
-		Return([]byte{0}, nil)
-	config.mockCrypto.EXPECT().Hash(gomock.Any()).AnyTimes().
-		Return(libkb.NodeHashShort(mdID), nil)
-	return mdID
-}
-
 func putMDForPublic(config *ConfigMock, rmds *RootMetadataSigned,
 	id DirID) {
 	packedData := []byte{4, 3, 2, 1}
 	config.mockCodec.EXPECT().Encode(rmds.MD.data).Return(packedData, nil)
+	config.mockCodec.EXPECT().Encode(gomock.Any()).AnyTimes().
+		Return([]byte{0}, nil)
 
 	config.mockCrypto.EXPECT().Sign(gomock.Any()).Return(SignatureInfo{}, nil)
 
-	mdID := expectMdID(config)
-	config.mockMdserv.EXPECT().Put(id, nil, NullMdID, mdID, gomock.Any()).Return(nil)
+	config.mockMdserv.EXPECT().Put(id, rmds.MD.mdID, gomock.Any(), nil,
+		NullMdID).Return(nil)
 }
 
 func putMDForPrivateShare(config *ConfigMock, rmds *RootMetadataSigned,
@@ -131,9 +123,8 @@ func putMDForPrivateShare(config *ConfigMock, rmds *RootMetadataSigned,
 	config.mockCrypto.EXPECT().MAC(MacPublicKey{}, packedData).
 		Times(2).Return(packedData, nil)
 
-	rmds.MD.mdID = NullMdID
-	mdID := expectMdID(config)
-	config.mockMdserv.EXPECT().Put(id, mdID, gomock.Any(), nil, NullMdID).Return(nil)
+	config.mockMdserv.EXPECT().Put(id, rmds.MD.mdID, gomock.Any(), nil,
+		NullMdID).Return(nil)
 }
 
 func TestMDOpsGetAtHandlePublicSuccess(t *testing.T) {
@@ -484,7 +475,7 @@ func TestMDOpsPutPublicSuccess(t *testing.T) {
 	id, _, rmds := newDir(config, 1, false, true)
 	putMDForPublic(config, rmds, id)
 
-	if err := config.MDOps().Put(id, nil, NullMdID, &rmds.MD); err != nil {
+	if err := config.MDOps().Put(id, &rmds.MD, nil, NullMdID); err != nil {
 		t.Errorf("Got error on put: %v", err)
 	}
 }
