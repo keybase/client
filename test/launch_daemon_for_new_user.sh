@@ -100,7 +100,7 @@ if [ $? -eq 0 ]; then
     docker run -d -v $GOPATH/bin:/keybase/bin -v $sdir:/keybase/socket --name $iname --link $KBWEB_INSTANCE_NAME:kbweb $KBDAEMON_IMAGE_NAME
     check_daemon 1 30 "Not logged in"
     user="u$usernum""_$RANDOM"
-    docker exec -ti $iname keybase signup --username $user --email $user@email.com --passphrase pass$user --device fakedevice -c 202020202020202020202020 --batch
+    docker exec -u keybase -ti $iname keybase signup --username $user --email $user@email.com --passphrase pass$user --device fakedevice -c 202020202020202020202020 --batch
     check_daemon 1 30
     echo $user
     print_env $user
