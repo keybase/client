@@ -232,6 +232,7 @@ type PromptArg struct {
 	PinentryPrompt string
 	Checker        *Checker
 	RetryMessage   string
+	UseSecretStore bool
 }
 
 type LoginUI interface {

@@ -622,6 +622,7 @@ func (ui SecretUI) GetNewPassphrase(earg keybase1.GetNewPassphraseArg) (eres key
 		PinentryPrompt: earg.PinentryPrompt,
 		RetryMessage:   earg.RetryMessage,
 		Checker:        &libkb.CheckPassphraseNew,
+		UseSecretStore: earg.UseSecretStore,
 	}
 
 	orig := arg
@@ -637,7 +638,7 @@ func (ui SecretUI) GetNewPassphrase(earg keybase1.GetNewPassphraseArg) (eres key
 			rm = ""
 		}
 
-		if text, eres.StoreSecret, err = ui.ppprompt(arg, earg.UseSecretStore); err != nil {
+		if text, eres.StoreSecret, err = ui.ppprompt(arg); err != nil {
 			return
 		}
 
@@ -646,7 +647,9 @@ func (ui SecretUI) GetNewPassphrase(earg keybase1.GetNewPassphraseArg) (eres key
 		arg.RetryMessage = ""
 		arg.Checker = nil
 
-		if text2, _, err = ui.ppprompt(arg, false /* useSecretStore */); err != nil {
+		arg2 := arg
+		arg2.UseSecretStore = false
+		if text2, _, err = ui.ppprompt(arg2); err != nil {
 			return
 		}
 		if text == text2 {
@@ -668,11 +671,12 @@ func (ui SecretUI) GetKeybasePassphrase(arg keybase1.GetKeybasePassphraseArg) (t
 		PinentryDesc:   desc,
 		Checker:        &libkb.CheckPassphraseSimple,
 		RetryMessage:   arg.Retry,
-	}, false /* useSecretStore */)
+		UseSecretStore: false,
+	})
 	return
 }
 
-func (ui SecretUI) ppprompt(arg libkb.PromptArg, useSecretStore bool) (text string, storeSecret bool, err error) {
+func (ui SecretUI) ppprompt(arg libkb.PromptArg) (text string, storeSecret bool, err error) {
 
 	first := true
 	var res *keybase1.SecretEntryRes
@@ -695,7 +699,7 @@ func (ui SecretUI) ppprompt(arg libkb.PromptArg, useSecretStore bool) (text stri
 			Err:            emp,
 			Desc:           arg.PinentryDesc,
 			Prompt:         arg.PinentryPrompt,
-			UseSecretStore: useSecretStore,
+			UseSecretStore: arg.UseSecretStore,
 		}, &keybase1.SecretEntryArg{
 			Err:    emt,
 			Prompt: tp,
