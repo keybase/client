@@ -99,16 +99,8 @@ func TestSignupWithGPG(t *testing.T) {
 		t.Fatal(err)
 	}
 	secui := libkb.TestSecretUI{Passphrase: fu.Passphrase}
-	arg := SignupEngineRunArg{
-		Username:    fu.Username,
-		Email:       fu.Email,
-		InviteCode:  testInviteCode,
-		Passphrase:  fu.Passphrase,
-		StoreSecret: false,
-		DeviceName:  "my device",
-		SkipGPG:     false,
-		SkipMail:    true,
-	}
+	arg := MakeTestSignupEngineRunArg(fu)
+	arg.SkipGPG = false
 	s := NewSignupEngine(&arg, tc.G)
 	ctx := &Context{
 		LogUI:    tc.G.UI.GetLogUI(),
@@ -126,16 +118,7 @@ func TestLocalKeySecurity(t *testing.T) {
 	defer tc.Cleanup()
 	fu := NewFakeUserOrBust(t, "se")
 	secui := libkb.TestSecretUI{Passphrase: fu.Passphrase}
-	arg := SignupEngineRunArg{
-		Username:    fu.Username,
-		Email:       fu.Email,
-		InviteCode:  testInviteCode,
-		Passphrase:  fu.Passphrase,
-		StoreSecret: false,
-		DeviceName:  "my device",
-		SkipGPG:     true,
-		SkipMail:    true,
-	}
+	arg := MakeTestSignupEngineRunArg(fu)
 	s := NewSignupEngine(&arg, tc.G)
 	ctx := &Context{
 		LogUI:    tc.G.UI.GetLogUI(),
@@ -187,16 +170,8 @@ func TestLocalKeySecurityStoreSecret(t *testing.T) {
 	}
 
 	secui := libkb.TestSecretUI{Passphrase: fu.Passphrase}
-	arg := SignupEngineRunArg{
-		Username:    fu.Username,
-		Email:       fu.Email,
-		InviteCode:  testInviteCode,
-		Passphrase:  fu.Passphrase,
-		StoreSecret: true,
-		DeviceName:  "my device",
-		SkipGPG:     true,
-		SkipMail:    true,
-	}
+	arg := MakeTestSignupEngineRunArg(fu)
+	arg.StoreSecret = true
 	s := NewSignupEngine(&arg, tc.G)
 	ctx := &Context{
 		LogUI:    tc.G.UI.GetLogUI(),
