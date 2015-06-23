@@ -151,6 +151,56 @@ func TestLocalKeySecurity(t *testing.T) {
 	}
 }
 
+// Test that the signup engine stores the secret correctly when
+// StoreSecret is set.
+func TestLocalKeySecurityStoreSecret(t *testing.T) {
+	tc := SetupEngineTest(t, "signup")
+	defer tc.Cleanup()
+	fu := NewFakeUserOrBust(t, "se")
+
+	secretStore := libkb.NewSecretStore(fu.Username)
+	if secretStore == nil {
+		t.Skip("No SecretStore on this platform")
+	}
+
+	_, err := secretStore.RetrieveSecret()
+	if err == nil {
+		t.Fatal("User unexpectedly has secret")
+	}
+
+	secui := libkb.TestSecretUI{Passphrase: fu.Passphrase}
+	arg := SignupEngineRunArg{fu.Username, fu.Email, testInviteCode, fu.Passphrase, true, "my device", true, true}
+	s := NewSignupEngine(&arg, tc.G)
+	ctx := &Context{
+		LogUI:    tc.G.UI.GetLogUI(),
+		GPGUI:    &gpgtestui{},
+		SecretUI: secui,
+		LoginUI:  &libkb.TestLoginUI{Username: fu.Username},
+	}
+	if err := RunEngine(s, ctx); err != nil {
+		t.Fatal(err)
+	}
+
+	secret, err := s.lks.GetSecret()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	storedSecret, err := secretStore.RetrieveSecret()
+	if err != nil {
+		t.Error(err)
+	}
+
+	if string(secret) != string(storedSecret) {
+		t.Errorf("Expected %v, got %v", secret, storedSecret)
+	}
+
+	err = secretStore.ClearSecret()
+	if err != nil {
+		t.Error(err)
+	}
+}
+
 func TestIssue280(t *testing.T) {
 	tc := SetupEngineTest(t, "login")
 	defer tc.Cleanup()
