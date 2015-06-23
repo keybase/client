@@ -23,4 +23,5 @@ Pods
 Install/build/*
 Install/Updater/site/*.html
 Install/osxfuse
+Install/brew/*.bottle.tar.gz
 copyui.sh
