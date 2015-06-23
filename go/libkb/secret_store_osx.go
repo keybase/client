@@ -29,7 +29,7 @@ func (kss *KeychainSecretStore) StoreSecret(secret []byte) (err error) {
 		AccountName: kss.accountName,
 		Password:    encodedSecret,
 	}
-	err = kc.ReplaceOrAddGenericPassword(&attributes)
+	err = kc.RemoveAndAddGenericPassword(&attributes)
 	return
 }
 
