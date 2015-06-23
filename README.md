@@ -12,12 +12,13 @@ To run the KBFS FUSE client:
 
 * Check out https://github.com/keybase/client, and do:
 
-        go get -u ./...
-        cd daemon && go build && cd ..
-        cd client && go build && cd ..
+        go get -u ./... (NOTE: may need to omit -u on OSX)
+        cd client/go/keybase && go build && cd ../../..
         ln -s $GOPATH/src/github.com/keybase/client/git-hooks/pre-commit $GOPATH/src/github.com/keybase/kbfs/.git/hooks/
         go get -u github.com/golang/lint/golint
         go get golang.org/x/tools/cmd/vet
+        
+If the last command fails please see [here](https://groups.google.com/forum/#!msg/golang-nuts/lz0nPiUwfUk/E92u9uZhMHYJ).
 
 * Run the daemon
 
@@ -36,7 +37,7 @@ Now, in kbfs/:
     cd kbfsfuse
     go build
     mkdir /tmp/kbfs  # or whatever you prefer
-    ./kbfsfuse -debug -client /tmp/kbfs
+    HOME=~/kbtest ./kbfsfuse -debug -client /tmp/kbfs
 
 Now you can do cool stuff like (assuming keybase users "strib" and
 "max"; logged in as "strib"):
@@ -55,7 +56,7 @@ to 'strib' until 'max' looks in his private folder while logged in.
 If you want to reset your file system state, and you're in kbfs/kbfsfuse, do:
 
     <kill running kbfsfuse>
-    fusermount -u /tmp/kbfs
+    fusermount -u /tmp/kbfs (NOTE: on OSX 'diskutil unmount /tmp/kbfs')
     rm -rf kbfs_*/
 
 # Code style
