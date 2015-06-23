@@ -69,7 +69,7 @@
   [self setNeedsLayout];
 }
 
-- (void)addKey:(KBRIdentifyKey *)key targetBlock:(void (^)(id sender, id object))targetBlock {
+- (void)addKey:(KBRIdentifyKey *)key targetBlock:(void (^)(id sender, KBRIdentifyKey *key))targetBlock {
   [_headerLabel setAttributedText:[KBFontAwesome attributedStringForIcon:@"key" style:KBTextStyleDefault options:0 alignment:NSLeftTextAlignment lineBreakMode:NSLineBreakByClipping]];
   NSString *keyDescription = KBDescriptionForFingerprint(KBPGPKeyIdFromFingerprint(KBHexString(key.pgpFingerprint, @"")), 0);
   KBButton *button = [KBButton buttonWithText:keyDescription style:KBButtonStyleLink alignment:NSLeftTextAlignment lineBreakMode:NSLineBreakByTruncatingTail];

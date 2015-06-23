@@ -19,6 +19,7 @@
 @property NSString *homeDir;
 @property NSString *host;
 @property (getter=isDebugEnabled) BOOL debugEnabled;
+@property (getter=isDebugEnabled) BOOL develMode;
 @property NSString *mountDir;
 @property NSString *sockFile;
 @property NSString *identifier;
@@ -37,10 +38,10 @@
 - (instancetype)initWithEnv:(KBEnv)env {
   if ((self = [super init])) {
     switch (env) {
-      case KBEnvKeybaseIO: {
+      case KBEnvProd: {
         self.title = @"Keybase.io";
         self.identifier = @"kb";
-        self.homeDir = [KBEnvConfig groupContainer:self.identifier];
+        self.homeDir = KBPath(@"~", NO, NO); // [KBEnvConfig groupContainer:self.identifier];
         self.host = @"https://api.keybase.io:443";
         self.mountDir = KBPath(@"~/Keybase", NO, NO);
         self.debugEnabled = YES;
@@ -50,25 +51,13 @@
         self.installEnabled = YES;
         break;
       }
-      case KBEnvLocalhost: {
+      case KBEnvDevel: {
         self.title = @"Local";
         self.identifier = @"localhost";
-        self.homeDir = [KBEnvConfig groupContainer:self.identifier];
+        self.homeDir = KBPath(@"~", NO, NO); //[KBEnvConfig groupContainer:self.identifier];
         self.host = @"http://localhost:3000";
-        self.mountDir = KBPath(@"~/Keybase.localhost", NO, NO);
-        self.debugEnabled = YES;
-        self.info = @"Uses the localhost web server";
-        self.image = [NSImage imageNamed:NSImageNameComputer];
-        self.launchdEnabled = YES;
-        self.installEnabled = YES;
-        break;
-      }
-      case KBEnvLocalhost2: {
-        self.title = @"Local #2";
-        self.identifier = @"localhost2";
-        self.homeDir = [KBEnvConfig groupContainer:self.identifier];
-        self.host = @"http://localhost:3000";
-        self.mountDir = KBPath(@"~/Keybase.localhost2", NO, NO);
+        self.develMode = YES;
+        self.mountDir = KBPath(@"~/Keybase.local", NO, NO);
         self.debugEnabled = YES;
         self.info = @"Uses the localhost web server";
         self.image = [NSImage imageNamed:NSImageNameComputer];
@@ -95,7 +84,7 @@
   NSString *homeDir = [userDefaults stringForKey:@"HomeDir"];
   NSString *mountDir = [userDefaults stringForKey:@"MountDir"];
 
-  if (!homeDir) homeDir = [KBEnvConfig groupContainer:@"dev"];
+  //if (!homeDir) homeDir = [KBEnvConfig groupContainer:@"dev"];
   if (!mountDir) mountDir = KBPath(@"~/Keybase.dev", NO, NO);
 
   return [[KBEnvConfig alloc] initWithHomeDir:homeDir sockFile:nil mountDir:mountDir];
@@ -112,7 +101,7 @@
   if (_sockFile) {
     sockFile = _sockFile;
   } else {
-    sockFile = KBPathInDir(_homeDir, @".config/keybase/keybased.sock", NO, NO);
+    sockFile = KBPathInDir([self configDir], @"keybased.sock", NO, NO);
   }
   if ([sockFile length] > 103) {
     [NSException raise:NSInvalidArgumentException format:@"Sock path too long. It should be < 104 characters. %@", sockFile];
@@ -120,12 +109,18 @@
   return sockFile;
 }
 
+- (NSString *)configDir {
+  NSString *appName = @"Keybase";
+  if (self.develMode) appName = @"KeybaseDev";
+  return KBPathInDir(_homeDir, NSStringWithFormat(@"Library/Application Support/%@", appName), NO, NO);
+}
+
 - (NSString *)configFile:(BOOL)useDefault {
   NSString *configFile;
   if (_configFile) {
     configFile = _configFile;
   } else {
-    configFile = KBPathInDir(_homeDir, @".config/keybase/config.json", NO, NO);
+    configFile = KBPathInDir([self configDir], @"config.json", NO, NO);
   }
   return configFile;
 }
@@ -198,6 +193,7 @@
   return @{
            @"Label": self.launchdLabelService,
            @"ProgramArguments": args,
+           @"RunAtLoad": @YES,
            @"KeepAlive": @YES,
            @"StandardOutPath": NSStringWithFormat(@"%@/%@.log", logDir, self.launchdLabelService),
            @"StandardErrorPath": NSStringWithFormat(@"%@/%@.err", logDir, self.launchdLabelService),
@@ -254,6 +250,7 @@
            @"Label": self.launchdLabelKBFS,
            @"EnvironmentVariables": envs,
            @"ProgramArguments": args,
+           @"RunAtLoad": @YES,
            @"KeepAlive": @YES,
            @"StandardOutPath": NSStringWithFormat(@"%@/%@.log", logDir, self.launchdLabelKBFS),
            @"StandardErrorPath": NSStringWithFormat(@"%@/%@.err", logDir, self.launchdLabelKBFS),
@@ -267,6 +264,10 @@
 }
 
 - (BOOL)validate:(NSError **)error {
+  if (!_homeDir) {
+    if (error) *error = KBMakeError(-1, @"You need to specify a home directory");
+    return NO;
+  }
   if (![NSFileManager.defaultManager fileExistsAtPath:KBPath(_homeDir, NO, NO) isDirectory:nil]) {
     if (error) *error = KBMakeError(-1, @"%@ doesn't exist", _homeDir);
     return NO;

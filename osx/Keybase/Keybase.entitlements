@@ -4,7 +4,11 @@
 <dict>
 	<key>com.apple.security.application-groups</key>
 	<array>
-		<string>keybase</string>
+		<string>$(TeamIdentifierPrefix)keybase</string>
+	</array>
+	<key>keychain-access-groups</key>
+	<array>
+		<string>$(AppIdentifierPrefix)keybase</string>
 	</array>
 </dict>
 </plist>

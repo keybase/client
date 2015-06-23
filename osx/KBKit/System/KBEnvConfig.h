@@ -9,9 +9,8 @@
 #import <Foundation/Foundation.h>
 
 typedef NS_ENUM (NSInteger, KBEnv) {
-  KBEnvKeybaseIO,
-  KBEnvLocalhost,
-  KBEnvLocalhost2
+  KBEnvProd,
+  KBEnvDevel,
 };
 
 @interface KBEnvConfig : NSObject

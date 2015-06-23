@@ -16,6 +16,6 @@
 
 @property KBButton *cancelButton;
 
-- (void)setKeyId:(KBRFOKID *)keyId editable:(BOOL)editable;
+- (void)setKey:(KBRIdentifyKey *)key editable:(BOOL)editable;
 
 @end

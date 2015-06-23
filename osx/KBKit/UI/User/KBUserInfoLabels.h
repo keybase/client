@@ -19,7 +19,7 @@
 
 - (void)addProofResults:(NSArray *)proofResults serviceName:(NSString *)serviceName editable:(BOOL)editable targetBlock:(void (^)(KBProofLabel *proofLabel))targetBlock;
 
-- (void)addKey:(KBRFOKID *)key targetBlock:(void (^)(id sender, id object))targetBlock;
+- (void)addKey:(KBRIdentifyKey *)key targetBlock:(void (^)(id sender, KBRIdentifyKey *key))targetBlock;
 
 - (void)addCryptocurrency:(KBRCryptocurrency *)cryptocurrency targetBlock:(void (^)(id sender, id object))targetBlock;
 

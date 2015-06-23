@@ -124,8 +124,8 @@
     KBRDisplayKeyRequestParams *requestParams = [[KBRDisplayKeyRequestParams alloc] initWithParams:params];
     if (!gself.fokids) gself.fokids = [NSMutableArray array];
     [gself.fokids addObject:requestParams.key];
-    [gself.userInfoView addKey:requestParams.key targetBlock:^(KBRFOKID *keyId) {
-      [self openKeyWithKeyId:keyId];
+    [gself.userInfoView addKey:requestParams.key targetBlock:^(KBRIdentifyKey *key) {
+      [self openKey:key];
     }];
     [gself setNeedsLayout];
     [gself updatePopupWindow];
@@ -406,7 +406,7 @@
   }];
 }
 
-- (void)openKeyWithKeyId:(KBRFOKID *)keyId {
+- (void)openKey:(KBRIdentifyKey *)key {
   KBKeyView *keyView = [[KBKeyView alloc] init];
   NSWindow *window = [self.window kb_addChildWindowForView:keyView rect:CGRectMake(0, 0, 500, 400) position:KBWindowPositionCenter title:@"Key" fixed:NO makeKey:YES];
   keyView.cancelButton.targetBlock = ^{
@@ -414,7 +414,7 @@
   };
   keyView.client = self.client;
   BOOL isSelf = [[KBApp.app currentUsername] isEqual:self.username];
-  [keyView setKeyId:keyId editable:isSelf];
+  [keyView setKey:key editable:isSelf];
 }
 
 - (void)generatePGPKey {

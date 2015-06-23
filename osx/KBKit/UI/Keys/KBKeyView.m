@@ -17,7 +17,7 @@
 @property YOVBox *labels;
 @property KBPGPTextView *textView;
 
-@property KBRFOKID *keyId;
+@property KBRIdentifyKey *key;
 @end
 
 @implementation KBKeyView
@@ -77,11 +77,10 @@
   self.viewLayout = [YOBorderLayout layoutWithCenter:_textView top:@[_labels] bottom:@[buttons]];
 }
 
-- (void)setKeyId:(KBRFOKID *)keyId editable:(BOOL)editable {
+- (void)setKey:(KBRIdentifyKey *)key editable:(BOOL)editable {
   NSAssert(self.window, @"Not in a window");
-  NSAssert(keyId.kid, @"No kid");
 
-  _keyId = keyId;
+  _key = key;
 
   [_labels kb_removeAllSubviews];
 
@@ -93,11 +92,11 @@
   [_labels addSubview:keyLabel];
    */
 
-  if (_keyId.pgpFingerprint) {
+  if (_key.pgpFingerprint) {
     KBHeaderLabelView *pgpLabel = [[KBHeaderLabelView alloc] init];
     pgpLabel.columnWidth = 140;
     [pgpLabel setHeader:@"PGP Fingerprint"];
-    if (_keyId.pgpFingerprint) [pgpLabel addText:[KBHexString(_keyId.pgpFingerprint, @"") uppercaseString] style:KBTextStyleDefault options:KBTextOptionsMonospace lineBreakMode:NSLineBreakByCharWrapping targetBlock:nil];
+    if (_key.pgpFingerprint) [pgpLabel addText:[KBHexString(_key.pgpFingerprint, @"") uppercaseString] style:KBTextStyleDefault options:KBTextOptionsMonospace lineBreakMode:NSLineBreakByCharWrapping targetBlock:nil];
     [_labels addSubview:pgpLabel];
   }
 
@@ -120,7 +119,7 @@
   KBHeaderLabelView *label = [[KBHeaderLabelView alloc] init];
   label.columnWidth = 140;
   [label setHeader:@"Description"];
-  if (_keyId.pgpFingerprint) [label addText:desc style:KBTextStyleDefault options:KBTextOptionsMonospace lineBreakMode:NSLineBreakByWordWrapping targetBlock:nil];
+  if (_key.pgpFingerprint) [label addText:desc style:KBTextStyleDefault options:KBTextOptionsMonospace lineBreakMode:NSLineBreakByWordWrapping targetBlock:nil];
   [_labels addSubview:label];
   [self setNeedsLayout];
 }
@@ -129,7 +128,7 @@
   GHWeakSelf gself = self;
   KBRPgpRequest *request = [[KBRPgpRequest alloc] initWithClient:self.client];
   KBRPGPQuery *options = [[KBRPGPQuery alloc] init];
-  options.query = KBHexString(_keyId.kid, nil);
+  options.query = KBHexString(_key.KID, nil);
   options.exactMatch = YES;
   [request pgpExportWithSessionID:request.sessionId options:options completion:^(NSError *error, NSArray *keys) {
     // TODO This only works when we are the user being key exported
@@ -142,7 +141,7 @@
 - (void)showSecret:(void (^)(NSError *error, KBRKeyInfo *keyInfo))completion {
   KBRPgpRequest *request = [[KBRPgpRequest alloc] initWithClient:self.client];
   KBRPGPQuery *options = [[KBRPGPQuery alloc] init];
-  options.query = KBHexString(_keyId.kid, nil);
+  options.query = KBHexString(_key.KID, nil);
   options.exactMatch = YES;
   options.secret = YES;
   GHWeakSelf gself = self;
@@ -156,8 +155,7 @@
 }
 
 - (void)removePGPKey:(dispatch_block_t)completion {
-  NSAssert(_keyId.kid, @"No kid");
-  NSData *kid = _keyId.kid;
+  NSData *kid = _key.KID;
   [KBAlert yesNoWithTitle:@"Delete PGP Key" description:@"Are you sure you want to remove this PGP Key?" yes:@"Delete" view:self completion:^(BOOL yes) {
     if (yes) {
       KBRRevokeRequest *request = [[KBRRevokeRequest alloc] initWithClient:self.client];

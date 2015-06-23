@@ -85,9 +85,9 @@
   [self addLabels:@[label]];
 }
 
-- (void)addKey:(KBRIdentifyKey *)key targetBlock:(void (^)(KBRFOKID *key))targetBlock {
+- (void)addKey:(KBRIdentifyKey *)key targetBlock:(void (^)(KBRIdentifyKey *key))targetBlock {
   KBUserInfoLabels *label = [[KBUserInfoLabels alloc] init];
-  [label addKey:key targetBlock:^(id sender, KBRFOKID *key) {
+  [label addKey:key targetBlock:^(id sender, KBRIdentifyKey *key) {
     targetBlock(key);
   }];
   [self addLabels:@[label]];

@@ -22,7 +22,6 @@
 		0013928E1B0BE6170082DEA8 /* uninstall_helper in CopyFiles */ = {isa = PBXBuildFile; fileRef = 0013928C1B0BE5DC0082DEA8 /* uninstall_helper */; };
 		001C6B3C1B24F8630048F086 /* icon.icns in Resources */ = {isa = PBXBuildFile; fileRef = 001C6B3B1B24F8630048F086 /* icon.icns */; };
 		001C6B401B24F8630048F086 /* ShareViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 001C6B3F1B24F8630048F086 /* ShareViewController.m */; };
-		0033CEBC1B2B9C4E00239B85 /* Share.appex in Embed App Extensions */ = {isa = PBXBuildFile; fileRef = 001C6B371B24F8630048F086 /* Share.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		003B40451B265F7B000B7D3B /* KBHelper.m in Sources */ = {isa = PBXBuildFile; fileRef = 0057B0C01AE57A7A00BFB0E7 /* KBHelper.m */; };
 		003B40471B265F7B000B7D3B /* KBFS.m in Sources */ = {isa = PBXBuildFile; fileRef = 003C454C1AE6CECD00431829 /* KBFS.m */; };
 		003B40481B265F7B000B7D3B /* KBHelperDefines.m in Sources */ = {isa = PBXBuildFile; fileRef = 003C454F1AE6D1CA00431829 /* KBHelperDefines.m */; };
@@ -58,7 +57,6 @@
 		0043D13F1B28F1370036C532 /* KBPrefPopUpView.m in Sources */ = {isa = PBXBuildFile; fileRef = 0043D12B1B28F1370036C532 /* KBPrefPopUpView.m */; };
 		0043D1401B28F1370036C532 /* KBPrefTextField.h in Headers */ = {isa = PBXBuildFile; fileRef = 0043D12C1B28F1370036C532 /* KBPrefTextField.h */; };
 		0043D1411B28F1370036C532 /* KBPrefTextField.m in Sources */ = {isa = PBXBuildFile; fileRef = 0043D12D1B28F1370036C532 /* KBPrefTextField.m */; };
-		0043D1431B28F64E0036C532 /* Action.appex in Embed App Extensions */ = {isa = PBXBuildFile; fileRef = 009E13661B27B39300C72B28 /* Action.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		0043D1471B28F7220036C532 /* KBKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 00C0DC361B28EC1800A825D4 /* KBKit.framework */; };
 		004624B81B2917AB00E218AC /* FinderSync.m in Sources */ = {isa = PBXBuildFile; fileRef = 004624B71B2917AB00E218AC /* FinderSync.m */; };
 		004624BB1B2917AB00E218AC /* FinderSync.appex in Embed App Extensions */ = {isa = PBXBuildFile; fileRef = 004624B11B2917AB00E218AC /* FinderSync.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
@@ -84,6 +82,8 @@
 		004F44091B154EBA0021A29D /* kbfuse.bundle in Resources */ = {isa = PBXBuildFile; fileRef = 004F44081B154EBA0021A29D /* kbfuse.bundle */; };
 		0057B0C61AE57A7A00BFB0E7 /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 0057B0C21AE57A7A00BFB0E7 /* main.m */; };
 		0057B0DB1AE57B5900BFB0E7 /* keybase.Helper in Copy Files */ = {isa = PBXBuildFile; fileRef = 0057B0B41AE57A4900BFB0E7 /* keybase.Helper */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
+		0086E3691B38C08D0042FED8 /* Share.appex in Embed App Extensions */ = {isa = PBXBuildFile; fileRef = 001C6B371B24F8630048F086 /* Share.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		0086E36A1B38C0900042FED8 /* Action.appex in Embed App Extensions */ = {isa = PBXBuildFile; fileRef = 009E13661B27B39300C72B28 /* Action.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		008E047C1B28ECFF000F15AA /* KBContentView.h in Headers */ = {isa = PBXBuildFile; fileRef = 009E14021B28A93D00C72B28 /* KBContentView.h */; };
 		008E047D1B28ECFF000F15AA /* KBContentView.m in Sources */ = {isa = PBXBuildFile; fileRef = 009E14031B28A93D00C72B28 /* KBContentView.m */; };
 		008E047E1B28ECFF000F15AA /* KBErrorView.h in Headers */ = {isa = PBXBuildFile; fileRef = 009E14041B28A93D00C72B28 /* KBErrorView.h */; };
@@ -452,9 +452,9 @@
 			dstPath = "";
 			dstSubfolderSpec = 13;
 			files = (
-				0043D1431B28F64E0036C532 /* Action.appex in Embed App Extensions */,
-				0033CEBC1B2B9C4E00239B85 /* Share.appex in Embed App Extensions */,
+				0086E36A1B38C0900042FED8 /* Action.appex in Embed App Extensions */,
 				004624BB1B2917AB00E218AC /* FinderSync.appex in Embed App Extensions */,
+				0086E3691B38C08D0042FED8 /* Share.appex in Embed App Extensions */,
 			);
 			name = "Embed App Extensions";
 			runOnlyForDeploymentPostprocessing = 0;
@@ -1999,6 +1999,9 @@
 							com.apple.ApplicationGroups.Mac = {
 								enabled = 1;
 							};
+							com.apple.Keychain = {
+								enabled = 1;
+							};
 							com.apple.Sandbox = {
 								enabled = 1;
 							};
@@ -2009,6 +2012,9 @@
 						DevelopmentTeam = 99229SGT5K;
 						SystemCapabilities = {
 							com.apple.ApplicationGroups.Mac = {
+								enabled = 1;
+							};
+							com.apple.Keychain = {
 								enabled = 1;
 							};
 						};
@@ -2022,6 +2028,9 @@
 						DevelopmentTeam = 99229SGT5K;
 						SystemCapabilities = {
 							com.apple.ApplicationGroups.Mac = {
+								enabled = 1;
+							};
+							com.apple.Keychain = {
 								enabled = 1;
 							};
 						};
@@ -2043,6 +2052,9 @@
 							};
 							com.apple.InAppPurchase = {
 								enabled = 0;
+							};
+							com.apple.Keychain = {
+								enabled = 1;
 							};
 						};
 					};
@@ -2489,7 +2501,8 @@
 			baseConfigurationReference = 009E16211B28AC9300C72B28 /* Pods-KBKit.debug.xcconfig */;
 			buildSettings = {
 				CODE_SIGN_ENTITLEMENTS = Extensions/Share/Share.entitlements;
-				CODE_SIGN_IDENTITY = "Developer ID Application";
+				CODE_SIGN_IDENTITY = "Mac Developer";
+				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "Mac Developer";
 				COMBINE_HIDPI_IMAGES = YES;
 				DEBUG_INFORMATION_FORMAT = dwarf;
 				GCC_NO_COMMON_BLOCKS = YES;
@@ -2500,6 +2513,7 @@
 				INFOPLIST_FILE = Extensions/Share/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks @executable_path/../../../../Frameworks";
 				PRODUCT_NAME = Share;
+				PROVISIONING_PROFILE = "";
 				SKIP_INSTALL = YES;
 			};
 			name = Debug;
@@ -2509,13 +2523,15 @@
 			baseConfigurationReference = 009E16221B28AC9300C72B28 /* Pods-KBKit.release.xcconfig */;
 			buildSettings = {
 				CODE_SIGN_ENTITLEMENTS = Extensions/Share/Share.entitlements;
-				CODE_SIGN_IDENTITY = "Developer ID Application";
+				CODE_SIGN_IDENTITY = "Mac Developer";
+				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "Mac Developer";
 				COMBINE_HIDPI_IMAGES = YES;
 				COPY_PHASE_STRIP = NO;
 				GCC_NO_COMMON_BLOCKS = YES;
 				INFOPLIST_FILE = Extensions/Share/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks @executable_path/../../../../Frameworks";
 				PRODUCT_NAME = Share;
+				PROVISIONING_PROFILE = "";
 				SKIP_INSTALL = YES;
 			};
 			name = Release;
@@ -2524,7 +2540,8 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				CODE_SIGN_ENTITLEMENTS = Extensions/FinderSync/FinderSync.entitlements;
-				CODE_SIGN_IDENTITY = "Developer ID Application";
+				CODE_SIGN_IDENTITY = "Mac Developer";
+				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "Mac Developer";
 				COMBINE_HIDPI_IMAGES = YES;
 				DEBUG_INFORMATION_FORMAT = dwarf;
 				GCC_NO_COMMON_BLOCKS = YES;
@@ -2535,6 +2552,7 @@
 				INFOPLIST_FILE = Extensions/FinderSync/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks @executable_path/../../../../Frameworks";
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				PROVISIONING_PROFILE = "";
 				SKIP_INSTALL = YES;
 			};
 			name = Debug;
@@ -2543,13 +2561,15 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				CODE_SIGN_ENTITLEMENTS = Extensions/FinderSync/FinderSync.entitlements;
-				CODE_SIGN_IDENTITY = "Developer ID Application";
+				CODE_SIGN_IDENTITY = "Mac Developer";
+				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "Mac Developer";
 				COMBINE_HIDPI_IMAGES = YES;
 				COPY_PHASE_STRIP = NO;
 				GCC_NO_COMMON_BLOCKS = YES;
 				INFOPLIST_FILE = Extensions/FinderSync/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks @executable_path/../../../../Frameworks";
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				PROVISIONING_PROFILE = "";
 				SKIP_INSTALL = YES;
 			};
 			name = Release;
@@ -2611,7 +2631,8 @@
 			baseConfigurationReference = 009E16211B28AC9300C72B28 /* Pods-KBKit.debug.xcconfig */;
 			buildSettings = {
 				CODE_SIGN_ENTITLEMENTS = Extensions/Action/Action.entitlements;
-				CODE_SIGN_IDENTITY = "Developer ID Application";
+				CODE_SIGN_IDENTITY = "Mac Developer";
+				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "Mac Developer";
 				COMBINE_HIDPI_IMAGES = YES;
 				DEBUG_INFORMATION_FORMAT = dwarf;
 				GCC_NO_COMMON_BLOCKS = YES;
@@ -2622,6 +2643,7 @@
 				INFOPLIST_FILE = Extensions/Action/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks @executable_path/../../../../Frameworks";
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				PROVISIONING_PROFILE = "";
 				SKIP_INSTALL = YES;
 			};
 			name = Debug;
@@ -2631,13 +2653,15 @@
 			baseConfigurationReference = 009E16221B28AC9300C72B28 /* Pods-KBKit.release.xcconfig */;
 			buildSettings = {
 				CODE_SIGN_ENTITLEMENTS = Extensions/Action/Action.entitlements;
-				CODE_SIGN_IDENTITY = "Developer ID Application";
+				CODE_SIGN_IDENTITY = "Mac Developer";
+				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "Mac Developer";
 				COMBINE_HIDPI_IMAGES = YES;
 				COPY_PHASE_STRIP = NO;
 				GCC_NO_COMMON_BLOCKS = YES;
 				INFOPLIST_FILE = Extensions/Action/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks @executable_path/../../../../Frameworks";
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				PROVISIONING_PROFILE = "";
 				SKIP_INSTALL = YES;
 			};
 			name = Release;
@@ -2819,7 +2843,8 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIconDev;
 				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_ENTITLEMENTS = Keybase/Keybase.entitlements;
-				CODE_SIGN_IDENTITY = "Developer ID Application: Keybase, Inc. (99229SGT5K)";
+				CODE_SIGN_IDENTITY = "Mac Developer";
+				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "Mac Developer";
 				COMBINE_HIDPI_IMAGES = YES;
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(inherited)",
@@ -2842,7 +2867,8 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_ENTITLEMENTS = Keybase/Keybase.entitlements;
-				CODE_SIGN_IDENTITY = "Developer ID Application: Keybase, Inc. (99229SGT5K)";
+				CODE_SIGN_IDENTITY = "Mac Developer";
+				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "Mac Developer";
 				COMBINE_HIDPI_IMAGES = YES;
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(inherited)",
