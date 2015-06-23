@@ -15,7 +15,7 @@ func newRootMetadataForTest(d *DirHandle, id DirID) *RootMetadata {
 
 // MakeTestConfigOrBust creates and returns a config suitable for
 // unit-testing with the given list of users.
-func MakeTestConfigOrBust(users ...string) *ConfigLocal {
+func MakeTestConfigOrBust(blockServerType string, users ...string) *ConfigLocal {
 	config := NewConfigLocal()
 
 	localUsers := MakeLocalUsers(users)
@@ -31,11 +31,16 @@ func MakeTestConfigOrBust(users ...string) *ConfigLocal {
 	crypto := NewCryptoLocal(config.Codec(), signingKey, cryptPrivateKey)
 	config.SetCrypto(crypto)
 
-	blockServer, err := NewBlockServerMemory(config)
-	if err != nil {
-		panic(err)
+	if blockServerType == "remote" {
+		blockServer := libkbfs.NewBlockServerRemote(config, bserver.Config.BServerAddr)
+		config.SetBlockServer(blockServer)
+	} else {
+		blockServer, err := NewBlockServerMemory(config)
+		if err != nil {
+			panic(err)
+		}
+		config.SetBlockServer(blockServer)
 	}
-	config.SetBlockServer(blockServer)
 
 	mdServer, err := NewMDServerMemory(config)
 	if err != nil {
@@ -76,12 +81,7 @@ func ConfigAsUser(config *ConfigLocal, loggedInUser string) *ConfigLocal {
 	c.SetCrypto(crypto)
 
 	c.SetBlockServer(config.BlockServer())
-
-	mdServer, err := NewMDServerMemory(c)
-	if err != nil {
-		panic(err)
-	}
-	c.SetMDServer(mdServer)
+	c.SetMDServer(config.MDServer())
 
 	c.SetKeyOps(config.KeyOps())
 
