@@ -201,7 +201,7 @@ func doChainTest(t *testing.T, testCase TestCase) {
 		// Got an error, but one of the wrong type. Tests with error names
 		// that are missing from the map (maybe because we add new test
 		// cases in the future) will also hit this branch.
-		t.Fatalf("Wrong error type encountered. Expected %#v (%s), got %s: %s",
+		t.Fatalf("Wrong error type encountered. Expected %v (%s), got %s: %s",
 			expectedTypes, testCase.ErrType, foundType, sigchainErr)
 
 	}

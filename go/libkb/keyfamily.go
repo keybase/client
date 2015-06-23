@@ -438,6 +438,10 @@ func (ckf *ComputedKeyFamily) Delegate(tcl TypedChainLink) (err error) {
 	tm := TclToKeybaseTime(tcl)
 	fp := ckf.kf.kid2pgp[kid.ToMapKey()]
 
+	if _, ok := ckf.kf.AllKeys[kid.ToMapKey()]; !ok {
+		return KeyFamilyError{fmt.Sprintf("Delegated KID %s is not in the key family", kid.String())}
+	}
+
 	err = ckf.cki.Delegate(kid, &fp, tm, sigid, tcl.GetKid(), tcl.GetParentKid(), (tcl.GetRole() == DLGSibkey), tcl.GetCTime(), tcl.GetETime())
 	return
 }
