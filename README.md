@@ -20,15 +20,16 @@ To run the KBFS FUSE client:
         
 If the last command fails please see [here](https://groups.google.com/forum/#!msg/golang-nuts/lz0nPiUwfUk/E92u9uZhMHYJ).
 
-* Run the daemon
+* Run the service
 
         rm -rf ~/kbtest
-        cd daemon
-        ./daemon -d -H ~/kbtest -s http://localhost:3000
+        cd client/go/keybase
+        ./keybase -H ~/kbtest service start
+
 * Sign up one (or more) users in a different terminal
 
-        cd client
-        ./client -H ~/kbtest signup
+        cd client/go/keybase
+        ./keybase -H ~/kbtest signup # Note: 202020202020202020202020 can be used as a test invite code
 
 Now, in kbfs/:
 
@@ -56,7 +57,7 @@ to 'strib' until 'max' looks in his private folder while logged in.
 If you want to reset your file system state, and you're in kbfs/kbfsfuse, do:
 
     <kill running kbfsfuse>
-    fusermount -u /tmp/kbfs (NOTE: on OSX 'diskutil unmount /tmp/kbfs')
+    fusermount -u /tmp/kbfs # on OSX: 'diskutil unmount /tmp/kbfs'
     rm -rf kbfs_*/
 
 # Code style
