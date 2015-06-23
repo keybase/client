@@ -5,7 +5,6 @@ import (
 	"testing"
 	"time"
 
-	_ "fmt"
 	"github.com/hanwen/go-fuse/fuse"
 	"github.com/hanwen/go-fuse/fuse/nodefs"
 	keybase1 "github.com/keybase/client/protocol/go"
@@ -247,7 +246,7 @@ func TestLocalUpdateAll(t *testing.T) {
 // Test that a local notification for a path, for which we only have
 // nodes for some prefix of the path, works correctly.
 func TestPartialLocalUpdate(t *testing.T) {
-	config := libkbfs.ConfigAsUser(TestConfigLocal, "jdoe")
+	config := libkbfs.ConfigAsUser(TestConfigLocal, "test_user")
 
 	root := NewFuseRoot(config)
 	_ = nodefs.NewFileSystemConnector(root, nil)

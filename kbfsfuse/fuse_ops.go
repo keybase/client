@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"sync"
 	"syscall"
 	"time"
@@ -352,6 +353,7 @@ func (f *FuseOps) LookupInRootByName(rNode *FuseNode, name string) (
 		} else {
 			rootPath, rootDe, err :=
 				f.config.KBFSOps().GetOrCreateRootPathForHandle(dirHandle)
+			fmt.Printf("After GetOr... %v\n", err)
 			var fNode *FuseNode
 			if _, ok :=
 				err.(*libkbfs.ReadAccessError); ok && dirHandle.HasPublic() {
