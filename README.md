@@ -116,11 +116,11 @@ logged in as two users:
 
     cd $GOPATH/src/github.com/keybase/kbfs/
     go build ./...
-    ./setup_multiuser_test.sh 2
+    test/setup_multiuser_test.sh 2
 
 Now you have a webserver running, and two logged-in users.  To act as user1:
 
-    ./switch_to_user_env.sh 1
+    test/switch_to_user_env.sh 1
     . /tmp/user1.env
 
 Now you have KBFS mounted at /tmp/kbfs, acting as user 1.  This user's
@@ -134,7 +134,7 @@ other user via $KBUSER2.
 Now you can switch to user2 and read the shared file you just created,
 but not the private file
 
-    ./switch_to_user_env.sh 2
+    test/switch_to_user_env.sh 2
     . /tmp/user2.env
     cat /tmp/kbfs/$KBUSER1,$KBUSER2/shared  # succeeds
     cat /tmp/kbfs/$KBUSER1/private  # fails!
@@ -145,5 +145,5 @@ which only supports one user at a time).
 
 When you are done testing, you can nuke your environment:
 
-    ./nuke_multiuser_test.sh 2
+    test/nuke_multiuser_test.sh 2
 
