@@ -50,11 +50,6 @@ func (g *GpgCLI) Configure() (configExplicit bool, err error) {
 		return
 	}
 
-	if G.Env.GetGpgDisabled() {
-		g.configured = true
-		return
-	}
-
 	prog := G.Env.GetGpg()
 	opts := G.Env.GetGpgOptions()
 

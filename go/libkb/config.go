@@ -357,9 +357,6 @@ func (f JSONConfigFile) GetGpgOptions() []string {
 func (f JSONConfigFile) GetDevelMode() (bool, bool) {
 	return f.GetTopLevelBool("devel")
 }
-func (f JSONConfigFile) GetGpgDisabled() (bool, bool) {
-	return f.GetTopLevelBool("gpg.disabled")
-}
 func (f JSONConfigFile) GetNoPinentry() (bool, bool) {
 	return f.GetBoolAtPath("pinentry.disabled")
 }

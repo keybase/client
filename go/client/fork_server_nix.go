@@ -85,7 +85,6 @@ func makeServerCommandLine(cl libkb.CommandLine) (arg0 string, args []string, er
 	bools := []string{
 		"debug",
 		"api-dump",
-		"gpg-disabled",
 		"plain-logging",
 	}
 

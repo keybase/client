@@ -34,7 +34,6 @@ func (n NullConfiguration) GetPinentry() string                           { retu
 func (n NullConfiguration) GetUID() (ret keybase1.UID)                    { return }
 func (n NullConfiguration) GetGpg() string                                { return "" }
 func (n NullConfiguration) GetGpgOptions() []string                       { return nil }
-func (n NullConfiguration) GetGpgDisabled() (bool, bool)                  { return false, false }
 func (n NullConfiguration) GetPGPFingerprint() *PGPFingerprint            { return nil }
 func (n NullConfiguration) GetSecretKeyringTemplate() string              { return "" }
 func (n NullConfiguration) GetSalt() []byte                               { return nil }
@@ -608,14 +607,6 @@ func (e *Env) GetGpgOptions() []string {
 		func() []string { return e.Test.GPGOptions },
 		func() []string { return e.cmd.GetGpgOptions() },
 		func() []string { return e.config.GetGpgOptions() },
-	)
-}
-
-func (e *Env) GetGpgDisabled() bool {
-	return e.GetBool(false,
-		func() (bool, bool) { return e.cmd.GetGpgDisabled() },
-		func() (bool, bool) { return e.getEnvBool("KEYBASE_GPG_DISABLED") },
-		func() (bool, bool) { return e.config.GetGpgDisabled() },
 	)
 }
 
