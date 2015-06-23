@@ -6,7 +6,7 @@ import (
 )
 
 func TestPosix(t *testing.T) {
-	hf := NewHomeFinder("tester", nil, true)
+	hf := NewHomeFinder("tester", nil, "posix", false)
 	d := hf.CacheDir()
 	if !strings.Contains(d, ".cache/tester") {
 		t.Errorf("Bad Cache dir: %s", d)

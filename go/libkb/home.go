@@ -7,7 +7,6 @@ import (
 	"os"
 	"path/filepath"
 	"regexp"
-	"runtime"
 	"strings"
 	"unicode"
 )
@@ -17,7 +16,7 @@ type HomeGetter func() string
 type Base struct {
 	appName string
 	getHome HomeGetter
-	dev bool
+	dev     bool
 }
 
 type HomeFinder interface {
@@ -124,12 +123,12 @@ func (d Darwin) homeDir(prefixDirs ...string) string {
 	return filepath.Join(dirs...)
 }
 
-func (d Darwin) CacheDir() string             { return d.homeDir("Library", "Caches") }
-func (d Darwin) ConfigDir() string            { return d.homeDir("Library", "Application Support") }
-func (d Darwin) DataDir() string              { return d.ConfigDir() }
-func (d Darwin) RuntimeDir() (string, error)  { return d.ConfigDir(), nil }
-func (d Darwin) ChdirDir() (string, error)    { return d.RuntimeDir() }
-func (d Darwin) LogDir() string               { return d.homeDir("Library", "Logs") }
+func (d Darwin) CacheDir() string            { return d.homeDir("Library", "Caches") }
+func (d Darwin) ConfigDir() string           { return d.homeDir("Library", "Application Support") }
+func (d Darwin) DataDir() string             { return d.ConfigDir() }
+func (d Darwin) RuntimeDir() (string, error) { return d.ConfigDir(), nil }
+func (d Darwin) ChdirDir() (string, error)   { return d.RuntimeDir() }
+func (d Darwin) LogDir() string              { return d.homeDir("Library", "Logs") }
 
 func (d Darwin) Home(emptyOk bool) string {
 	var ret string
@@ -192,12 +191,12 @@ func (w Win32) Home(emptyOk bool) string {
 	return ret
 }
 
-func NewHomeFinder(appName string, getHome HomeGetter, dev bool) HomeFinder {
-	if runtime.GOOS == "windows" {
+func NewHomeFinder(appName string, getHome HomeGetter, osname string, dev bool) HomeFinder {
+	if osname == "windows" {
 		return Win32{Base{appName, getHome, dev}}
-	} else if runtime.GOOS == "darwin" {
-	  return Darwin{Base{appName, getHome, dev}}
-  } else {
-    return XdgPosix{Base{appName, getHome, dev}}
-  }
+	} else if osname == "darwin" {
+		return Darwin{Base{appName, getHome, dev}}
+	} else {
+		return XdgPosix{Base{appName, getHome, dev}}
+	}
 }

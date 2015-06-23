@@ -165,6 +165,7 @@ func NewEnv(cmd CommandLine, config ConfigReader) *Env {
 
 	e.homeFinder = NewHomeFinder("keybase",
 		func() string { return e.getHomeFromCmdOrConfig() },
+		runtime.GOOS,
 		dev)
 	return &e
 }
