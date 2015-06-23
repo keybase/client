@@ -180,6 +180,10 @@ func (s *SignupEngine) registerDevice(a libkb.LoginContext, ctx *Context, device
 	ctx.LoginContext.LocalSession().SetDeviceProvisioned(s.G().Env.GetDeviceID().String())
 
 	if s.arg.StoreSecret {
+		// Create the secret store as late as possible here
+		// (instead of when we first get the value of
+		// StoreSecret) as the username may change during the
+		// signup process.
 		secretStore := libkb.NewSecretStore(s.me.GetName())
 		secret, err := s.lks.GetSecret()
 		if err != nil {
