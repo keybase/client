@@ -49,7 +49,16 @@ func NewFakeUserOrBust(t *testing.T, prefix string) (fu *FakeUser) {
 
 func CreateAndSignupFakeUser(tc libkb.TestContext, prefix string) *FakeUser {
 	fu := NewFakeUserOrBust(tc.T, prefix)
-	arg := SignupEngineRunArg{fu.Username, fu.Email, testInviteCode, fu.Passphrase, false, "my device", true, true}
+	arg := SignupEngineRunArg{
+		Username:    fu.Username,
+		Email:       fu.Email,
+		InviteCode:  testInviteCode,
+		Passphrase:  fu.Passphrase,
+		StoreSecret: false,
+		DeviceName:  "my device",
+		SkipGPG:     true,
+		SkipMail:    true,
+	}
 	ctx := &Context{
 		LogUI:    tc.G.UI.GetLogUI(),
 		GPGUI:    &gpgtestui{},
@@ -69,7 +78,17 @@ func CreateAndSignupFakeUserSafe(g *libkb.GlobalContext, prefix string) (*FakeUs
 	if err != nil {
 		return nil, err
 	}
-	arg := SignupEngineRunArg{fu.Username, fu.Email, testInviteCode, fu.Passphrase, false, "my device", true, true}
+
+	arg := SignupEngineRunArg{
+		Username:    fu.Username,
+		Email:       fu.Email,
+		InviteCode:  testInviteCode,
+		Passphrase:  fu.Passphrase,
+		StoreSecret: false,
+		DeviceName:  "my device",
+		SkipGPG:     true,
+		SkipMail:    true,
+	}
 	ctx := &Context{
 		LogUI:    g.UI.GetLogUI(),
 		GPGUI:    &gpgtestui{},

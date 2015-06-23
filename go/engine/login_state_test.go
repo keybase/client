@@ -524,7 +524,16 @@ func TestSignupWithStoreThenLogin(t *testing.T) {
 		t.Errorf("User %s unexpectedly has a stored secret", fu.Username)
 	}
 
-	arg := SignupEngineRunArg{fu.Username, fu.Email, testInviteCode, fu.Passphrase, true, "my device", true, true}
+	arg := SignupEngineRunArg{
+		Username:    fu.Username,
+		Email:       fu.Email,
+		InviteCode:  testInviteCode,
+		Passphrase:  fu.Passphrase,
+		StoreSecret: true,
+		DeviceName:  "my device",
+		SkipGPG:     true,
+		SkipMail:    true,
+	}
 	ctx := &Context{
 		LogUI: tc.G.UI.GetLogUI(),
 		GPGUI: &gpgtestui{},
