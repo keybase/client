@@ -75,16 +75,23 @@ func expectBlockEncrypt(config *ConfigMock, rmd *RootMetadata, decData Block, pl
 		Return(BlockCryptKeyServerHalf{}, nil)
 	config.mockCrypto.EXPECT().UnmaskBlockCryptKey(
 		BlockCryptKeyServerHalf{}, TLFCryptKey{}).Return(BlockCryptKey{}, nil)
+	encryptedBlock := EncryptedBlock{
+		EncryptedData: encData,
+	}
 	config.mockCrypto.EXPECT().EncryptBlock(decData, BlockCryptKey{}).
-		Return(plainSize, encData, err)
+		Return(plainSize, encryptedBlock, err)
+	if err == nil {
+		config.mockCodec.EXPECT().Encode(encryptedBlock).Return(encData, nil)
+	}
 }
 
 func expectBlockDecrypt(config *ConfigMock, rmd *RootMetadata, blockPtr BlockPointer, encData []byte, block TestBlock, err error) {
 	expectGetTLFCryptKeyForBlockDecryption(config, rmd, blockPtr)
 	config.mockCrypto.EXPECT().UnmaskBlockCryptKey(gomock.Any(), gomock.Any()).
 		Return(BlockCryptKey{}, nil)
-	config.mockCrypto.EXPECT().DecryptBlock(encData, BlockCryptKey{}, gomock.Any()).
-		Do(func(buf []byte, key BlockCryptKey, b Block) {
+	config.mockCodec.EXPECT().Decode(encData, gomock.Any()).Return(nil)
+	config.mockCrypto.EXPECT().DecryptBlock(gomock.Any(), BlockCryptKey{}, gomock.Any()).
+		Do(func(encryptedBlock EncryptedBlock, key BlockCryptKey, b Block) {
 		if b != nil {
 			tb := b.(*TestBlock)
 			*tb = block

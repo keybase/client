@@ -74,8 +74,8 @@ func (c *CryptoClient) Sign(msg []byte) (sigInfo SignatureInfo, err error) {
 // DecryptTLFCryptKeyClientHalf implements the Crypto interface for
 // CryptoClient.
 func (c *CryptoClient) DecryptTLFCryptKeyClientHalf(publicKey TLFEphemeralPublicKey, encryptedClientHalf EncryptedTLFCryptKeyClientHalf) (clientHalf TLFCryptKeyClientHalf, err error) {
-	if encryptedClientHalf.Version != TLFEncryptionBox {
-		err = UnknownTLFEncryptionVer{encryptedClientHalf.Version}
+	if encryptedClientHalf.Version != EncryptionSecretbox {
+		err = UnknownEncryptionVer{encryptedClientHalf.Version}
 		return
 	}
 
@@ -88,7 +88,7 @@ func (c *CryptoClient) DecryptTLFCryptKeyClientHalf(publicKey TLFEphemeralPublic
 
 	var nonce keybase1.BoxNonce
 	if len(encryptedClientHalf.Nonce) != len(nonce) {
-		err = libkb.DecryptionError{}
+		err = InvalidNonceError{encryptedClientHalf.Nonce}
 		return
 	}
 	copy(nonce[:], encryptedClientHalf.Nonce)

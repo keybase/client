@@ -829,9 +829,9 @@ func (_mr *_MockCryptoRecorder) DecryptTLFCryptKeyClientHalf(arg0, arg1 interfac
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "DecryptTLFCryptKeyClientHalf", arg0, arg1)
 }
 
-func (_m *MockCrypto) EncryptPrivateMetadata(buf []byte, key TLFCryptKey) ([]byte, error) {
-	ret := _m.ctrl.Call(_m, "EncryptPrivateMetadata", buf, key)
-	ret0, _ := ret[0].([]byte)
+func (_m *MockCrypto) EncryptPrivateMetadata(pmd *PrivateMetadata, key TLFCryptKey) (EncryptedPrivateMetadata, error) {
+	ret := _m.ctrl.Call(_m, "EncryptPrivateMetadata", pmd, key)
+	ret0, _ := ret[0].(EncryptedPrivateMetadata)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -840,9 +840,9 @@ func (_mr *_MockCryptoRecorder) EncryptPrivateMetadata(arg0, arg1 interface{}) *
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "EncryptPrivateMetadata", arg0, arg1)
 }
 
-func (_m *MockCrypto) DecryptPrivateMetadata(buf []byte, key TLFCryptKey) ([]byte, error) {
-	ret := _m.ctrl.Call(_m, "DecryptPrivateMetadata", buf, key)
-	ret0, _ := ret[0].([]byte)
+func (_m *MockCrypto) DecryptPrivateMetadata(encryptedPMD EncryptedPrivateMetadata, key TLFCryptKey) (*PrivateMetadata, error) {
+	ret := _m.ctrl.Call(_m, "DecryptPrivateMetadata", encryptedPMD, key)
+	ret0, _ := ret[0].(*PrivateMetadata)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -851,10 +851,10 @@ func (_mr *_MockCryptoRecorder) DecryptPrivateMetadata(arg0, arg1 interface{}) *
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "DecryptPrivateMetadata", arg0, arg1)
 }
 
-func (_m *MockCrypto) EncryptBlock(block Block, key BlockCryptKey) (int, []byte, error) {
+func (_m *MockCrypto) EncryptBlock(block Block, key BlockCryptKey) (int, EncryptedBlock, error) {
 	ret := _m.ctrl.Call(_m, "EncryptBlock", block, key)
 	ret0, _ := ret[0].(int)
-	ret1, _ := ret[1].([]byte)
+	ret1, _ := ret[1].(EncryptedBlock)
 	ret2, _ := ret[2].(error)
 	return ret0, ret1, ret2
 }
@@ -863,7 +863,7 @@ func (_mr *_MockCryptoRecorder) EncryptBlock(arg0, arg1 interface{}) *gomock.Cal
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "EncryptBlock", arg0, arg1)
 }
 
-func (_m *MockCrypto) DecryptBlock(encryptedBlock []byte, key BlockCryptKey, block Block) error {
+func (_m *MockCrypto) DecryptBlock(encryptedBlock EncryptedBlock, key BlockCryptKey, block Block) error {
 	ret := _m.ctrl.Call(_m, "DecryptBlock", encryptedBlock, key, block)
 	ret0, _ := ret[0].(error)
 	return ret0

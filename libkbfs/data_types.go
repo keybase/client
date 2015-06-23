@@ -205,24 +205,33 @@ type TLFCryptKeyClientHalf struct {
 	ClientHalf [32]byte
 }
 
-// TLFEncryptionVer denotes a version for the encryption method.
-type TLFEncryptionVer int
+// EncryptionVer denotes a version for the encryption method.
+type EncryptionVer int
 
 const (
-	// TLFEncryptionBox is the encryption version that uses
-	// nacl/box.
-	TLFEncryptionBox TLFEncryptionVer = 1
+	// EncryptionSecretbox is the encryption version that uses
+	// nacl/secretbox or nacl/box.
+	EncryptionSecretbox EncryptionVer = 1
 )
 
-// EncryptedTLFCryptKeyClientHalf is an encrypted
-// TLFCryptKeyCLientHalf.
-type EncryptedTLFCryptKeyClientHalf struct {
+// encryptedData is encrypted data with a nonce and a version.
+type encryptedData struct {
 	// Exported only for serialization purposes. Should only be
 	// used by implementations of Crypto.
-	Version       TLFEncryptionVer
+	Version       EncryptionVer
 	EncryptedData []byte
 	Nonce         []byte
 }
+
+// EncryptedTLFCryptKeyClientHalf is an encrypted
+// TLFCryptKeyCLientHalf object.
+type EncryptedTLFCryptKeyClientHalf encryptedData
+
+// EncryptedPrivateMetadata is an encrypted PrivateMetadata object.
+type EncryptedPrivateMetadata encryptedData
+
+// EncryptedBlock is an encrypted Block.
+type EncryptedBlock encryptedData
 
 // DeepCopy returns a complete copy of this EncryptedTLFCryptKeyClientHalf.
 func (ech EncryptedTLFCryptKeyClientHalf) DeepCopy() (echCopy EncryptedTLFCryptKeyClientHalf) {

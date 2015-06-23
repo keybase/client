@@ -40,8 +40,14 @@ func (b *BlockOpsStandard) Get(md *RootMetadata, blockPtr BlockPointer, block Bl
 		return err
 	}
 
+	var encryptedBlock EncryptedBlock
+	err = b.config.Codec().Decode(buf, &encryptedBlock)
+	if err != nil {
+		return err
+	}
+
 	// decrypt the block
-	return b.config.Crypto().DecryptBlock(buf, blockCryptKey, block)
+	return b.config.Crypto().DecryptBlock(encryptedBlock, blockCryptKey, block)
 }
 
 // Ready implements the BlockOps interface for BlockOpsStandard.
@@ -72,7 +78,12 @@ func (b *BlockOpsStandard) Ready(md *RootMetadata, block Block) (id BlockID, pla
 		return
 	}
 
-	plainSize, buf, err := crypto.EncryptBlock(block, blockKey)
+	plainSize, encryptedBlock, err := crypto.EncryptBlock(block, blockKey)
+	if err != nil {
+		return
+	}
+
+	buf, err := b.config.Codec().Encode(encryptedBlock)
 	if err != nil {
 		return
 	}

@@ -20,22 +20,28 @@ func (md *MDOpsStandard) processMetadata(
 	// verify signature and deserialize root data, if the sig is not blank.
 	// a blank sig means this is a brand new MD object, nothing to check
 	if rmds.IsInitialized() {
-		// decrypt the root data for non-public directories
-		if !handle.IsPublic() {
+		if handle.IsPublic() {
+			if err := codec.Decode(rmds.MD.SerializedPrivateMetadata, &rmds.MD.data); err != nil {
+				return err
+			}
+		} else {
+			// decrypt the root data for non-public directories
+			var encryptedPrivateMetadata EncryptedPrivateMetadata
+			if err := codec.Decode(rmds.MD.SerializedPrivateMetadata, &encryptedPrivateMetadata); err != nil {
+				return err
+			}
+
 			k, err := md.config.KeyManager().GetTLFCryptKeyForMDDecryption(&rmds.MD)
 			if err != nil {
 				return err
 			}
-			databuf, err := crypto.DecryptPrivateMetadata(rmds.MD.SerializedPrivateMetadata, k)
+
+			privateMetadata, err := crypto.DecryptPrivateMetadata(encryptedPrivateMetadata, k)
 			if err != nil {
 				return err
 			}
-			if err := codec.Decode(databuf, &rmds.MD.data); err != nil {
-				return err
-			}
-		} else if err := codec.Decode(
-			rmds.MD.SerializedPrivateMetadata, &rmds.MD.data); err != nil {
-			return err
+
+			rmds.MD.data = *privateMetadata
 		}
 
 		// Make sure the last writer is really a valid writer
@@ -165,22 +171,29 @@ func (md *MDOpsStandard) Put(id DirID, rmd *RootMetadata) error {
 
 	// First encode (and maybe encrypt) the root data
 	codec := md.config.Codec()
-	databuf, err := codec.Encode(rmd.data)
-	if err != nil {
-		return err
-	}
 	crypto := md.config.Crypto()
-	if !id.IsPublic() {
-		rk, err := md.config.KeyManager().GetTLFCryptKeyForEncryption(rmd)
+	if id.IsPublic() {
+		encodedPrivateMetadata, err := codec.Encode(rmd.data)
 		if err != nil {
 			return err
 		}
-		rmd.SerializedPrivateMetadata, err = crypto.EncryptPrivateMetadata(databuf, rk)
-		if err != nil {
-			return err
-		}
+		rmd.SerializedPrivateMetadata = encodedPrivateMetadata
 	} else {
-		rmd.SerializedPrivateMetadata = databuf
+		k, err := md.config.KeyManager().GetTLFCryptKeyForEncryption(rmd)
+		if err != nil {
+			return err
+		}
+
+		encryptedPrivateMetadata, err := crypto.EncryptPrivateMetadata(&rmd.data, k)
+		if err != nil {
+			return err
+		}
+
+		encodedEncryptedPrivateMetadata, err := codec.Encode(encryptedPrivateMetadata)
+		if err != nil {
+			return err
+		}
+		rmd.SerializedPrivateMetadata = encodedEncryptedPrivateMetadata
 	}
 
 	// encode the metadata and sign it

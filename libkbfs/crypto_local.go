@@ -93,8 +93,8 @@ func (c *CryptoLocal) Sign(msg []byte) (sigInfo SignatureInfo, err error) {
 // DecryptTLFCryptKeyClientHalf implements the Crypto interface for
 // CryptoLocal.
 func (c *CryptoLocal) DecryptTLFCryptKeyClientHalf(publicKey TLFEphemeralPublicKey, encryptedClientHalf EncryptedTLFCryptKeyClientHalf) (clientHalf TLFCryptKeyClientHalf, err error) {
-	if encryptedClientHalf.Version != TLFEncryptionBox {
-		err = libkb.DecryptionError{}
+	if encryptedClientHalf.Version != EncryptionSecretbox {
+		err = UnknownEncryptionVer{encryptedClientHalf.Version}
 		return
 	}
 
@@ -107,12 +107,11 @@ func (c *CryptoLocal) DecryptTLFCryptKeyClientHalf(publicKey TLFEphemeralPublicK
 
 	var nonce [24]byte
 	if len(encryptedClientHalf.Nonce) != len(nonce) {
-		err = libkb.DecryptionError{}
+		err = InvalidNonceError{encryptedClientHalf.Nonce}
 		return
 	}
 	copy(nonce[:], encryptedClientHalf.Nonce)
 
-	var ok bool
 	decryptedData, ok := box.Open(nil, encryptedClientHalf.EncryptedData, &nonce, (*[32]byte)(&publicKey.PublicKey), (*[32]byte)(c.cryptPrivateKey.kp.Private))
 	if !ok {
 		err = libkb.DecryptionError{}

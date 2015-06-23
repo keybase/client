@@ -45,7 +45,7 @@ func (fc FakeCryptoClient) Call(s string, args interface{}, res interface{}) err
 		arg := args.([]interface{})[0].(keybase1.UnboxBytes32Arg)
 		publicKey := TLFEphemeralPublicKey{libkb.NaclDHKeyPublic(arg.PeersPublicKey)}
 		encryptedClientHalf := EncryptedTLFCryptKeyClientHalf{
-			Version:       TLFEncryptionBox,
+			Version:       EncryptionSecretbox,
 			EncryptedData: arg.EncryptedBytes32[:],
 			Nonce:         arg.Nonce[:],
 		}
@@ -124,7 +124,7 @@ func TestCryptoClientDecryptTLFCryptKeyClientHalfBoxSeal(t *testing.T) {
 
 	encryptedData := box.Seal(nil, clientHalf.ClientHalf[:], &nonce, (*[32]byte)(&dhKeyPair.Public), (*[32]byte)(&ephPrivateKey.PrivateKey))
 	encryptedClientHalf := EncryptedTLFCryptKeyClientHalf{
-		Version:       TLFEncryptionBox,
+		Version:       EncryptionSecretbox,
 		Nonce:         nonce[:],
 		EncryptedData: encryptedData,
 	}
@@ -170,7 +170,7 @@ func TestCryptoClientDecryptEncryptedTLFCryptKeyClientHalf(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	if encryptedClientHalf.Version != TLFEncryptionBox {
+	if encryptedClientHalf.Version != EncryptionSecretbox {
 		t.Fatalf("Unexpected encryption version %d", encryptedClientHalf.Version)
 	}
 
@@ -218,7 +218,7 @@ func TestCryptoClientDecryptTLFCryptKeyClientHalfFailures(t *testing.T) {
 
 	encryptedClientHalfWrongVersion := encryptedClientHalf
 	encryptedClientHalfWrongVersion.Version++
-	expectedErr = UnknownTLFEncryptionVer{encryptedClientHalfWrongVersion.Version}
+	expectedErr = UnknownEncryptionVer{encryptedClientHalfWrongVersion.Version}
 	_, err = c.DecryptTLFCryptKeyClientHalf(ephPublicKey, encryptedClientHalfWrongVersion)
 	if err != expectedErr {
 		t.Errorf("Expected %v, got %v", expectedErr, err)
@@ -235,10 +235,10 @@ func TestCryptoClientDecryptTLFCryptKeyClientHalfFailures(t *testing.T) {
 	}
 
 	encryptedClientHalfWrongNonceSize := encryptedClientHalf
-	encryptedClientHalfWrongNonceSize.Nonce = encryptedClientHalfWrongSize.Nonce[:len(encryptedClientHalfWrongSize.Nonce)-1]
-	expectedErr = libkb.DecryptionError{}
-	_, err = c.DecryptTLFCryptKeyClientHalf(ephPublicKey, encryptedClientHalfWrongSize)
-	if err != expectedErr {
+	encryptedClientHalfWrongNonceSize.Nonce = encryptedClientHalfWrongNonceSize.Nonce[:len(encryptedClientHalfWrongNonceSize.Nonce)-1]
+	expectedErr = InvalidNonceError{encryptedClientHalfWrongNonceSize.Nonce}
+	_, err = c.DecryptTLFCryptKeyClientHalf(ephPublicKey, encryptedClientHalfWrongNonceSize)
+	if err.Error() != expectedErr.Error() {
 		t.Errorf("Expected %v, got %v", expectedErr, err)
 	}
 

@@ -420,13 +420,24 @@ func (e UnexpectedShortCryptoRandRead) Error() string {
 	return "Unexpected short read from crypto.rand.Read()"
 }
 
-// UnknownTLFEncryptionVer indicates that we can't decrypt a
-// TLFCryptKeyClientHalf because it has an unknown version.
-type UnknownTLFEncryptionVer struct {
-	ver TLFEncryptionVer
+// UnknownEncryptionVer indicates that we can't decrypt an
+// encryptedData object because it has an unknown version.
+type UnknownEncryptionVer struct {
+	ver EncryptionVer
 }
 
-// Error implements the error interface for UnknownSigVer.
-func (e UnknownTLFEncryptionVer) Error() string {
-	return fmt.Sprintf("Unknown TLF encryption version %d", int(e.ver))
+// Error implements the error interface for UnknownEncryptionVer.
+func (e UnknownEncryptionVer) Error() string {
+	return fmt.Sprintf("Unknown encryption version %d", int(e.ver))
+}
+
+// InvalidNonceError indicates that an invalid cryptographic nonce was
+// detected.
+type InvalidNonceError struct {
+	nonce []byte
+}
+
+// Error implements the error interface for InvalidNonceError.
+func (e InvalidNonceError) Error() string {
+	return fmt.Sprintf("Invalid nonce %v", e.nonce)
 }

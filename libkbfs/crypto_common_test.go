@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	"golang.org/x/crypto/nacl/box"
+	"golang.org/x/crypto/nacl/secretbox"
 
 	"github.com/keybase/client/go/libkb"
 )
@@ -249,13 +250,9 @@ func TestCryptoCommonEncryptDecryptBlock(t *testing.T) {
 	block := TestBlock{42}
 	key := BlockCryptKey{}
 
-	plainSize, encryptedBlock, err := c.EncryptBlock(block, key)
+	_, encryptedBlock, err := c.EncryptBlock(block, key)
 	if err != nil {
 		t.Fatal(err)
-	}
-
-	if plainSize > len(encryptedBlock) {
-		t.Errorf("plainSize=%d > encryptedSize=%d", plainSize, len(encryptedBlock))
 	}
 
 	var decryptedBlock TestBlock
@@ -382,8 +379,8 @@ func TestCryptoCommonEncryptTLFCryptKeyClientHalf(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	if encryptedClientHalf.Version != TLFEncryptionBox {
-		t.Errorf("Expected version %v, got %v", TLFEncryptionBox, encryptedClientHalf.Version)
+	if encryptedClientHalf.Version != EncryptionSecretbox {
+		t.Errorf("Expected version %v, got %v", EncryptionSecretbox, encryptedClientHalf.Version)
 	}
 
 	expectedEncryptedLength := len(clientHalf.ClientHalf) + box.Overhead
@@ -401,7 +398,6 @@ func TestCryptoCommonEncryptTLFCryptKeyClientHalf(t *testing.T) {
 		t.Error("Empty nonce")
 	}
 
-	var ok bool
 	decryptedData, ok := box.Open(nil, encryptedClientHalf.EncryptedData, &nonce, (*[32]byte)(&ephPublicKey.PublicKey), (*[32]byte)(privateKey.kp.Private))
 	if !ok {
 		t.Fatal("Decryption failed")
@@ -416,4 +412,342 @@ func TestCryptoCommonEncryptTLFCryptKeyClientHalf(t *testing.T) {
 	if clientHalf != clientHalf2 {
 		t.Fatal("client half != decrypted client half")
 	}
+}
+
+func checkSecretboxOpen(t *testing.T, encryptedData encryptedData, key [32]byte) (encodedData []byte) {
+	if encryptedData.Version != EncryptionSecretbox {
+		t.Errorf("Expected version %v, got %v", EncryptionSecretbox, encryptedData.Version)
+	}
+
+	if len(encryptedData.Nonce) != 24 {
+		t.Fatalf("Expected nonce length 24, got %d", len(encryptedData.Nonce))
+	}
+
+	var nonce [24]byte
+	copy(nonce[:], encryptedData.Nonce)
+	if nonce == ([24]byte{}) {
+		t.Error("Empty nonce")
+	}
+
+	encodedData, ok := secretbox.Open(nil, encryptedData.EncryptedData, &nonce, &key)
+	if !ok {
+		t.Fatal("Decryption failed")
+	}
+
+	return encodedData
+}
+
+// Test that crypto.EncryptPrivateMetadata() encrypts its passed-in
+// PrivateMetadata object properly.
+func TestEncryptPrivateMetadata(t *testing.T) {
+	codec := NewCodecMsgpack()
+	c := CryptoCommon{codec}
+
+	_, tlfPrivateKey, _, _, cryptKey, err := c.MakeRandomTLFKeys()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	privateMetadata := PrivateMetadata{
+		TLFPrivateKey: tlfPrivateKey,
+	}
+	expectedEncodedPrivateMetadata, err := codec.Encode(privateMetadata)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	encryptedPrivateMetadata, err := c.EncryptPrivateMetadata(&privateMetadata, cryptKey)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	encodedPrivateMetadata := checkSecretboxOpen(t, encryptedData(encryptedPrivateMetadata), cryptKey.Key)
+
+	if string(encodedPrivateMetadata) != string(expectedEncodedPrivateMetadata) {
+		t.Fatalf("Expected encoded data %v, got %v", expectedEncodedPrivateMetadata, encodedPrivateMetadata)
+	}
+}
+
+func secretboxSeal(t *testing.T, c *CryptoCommon, data interface{}, key [32]byte) encryptedData {
+	encodedData, err := c.codec.Encode(data)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	var nonce [24]byte
+	err = cryptoRandRead(nonce[:])
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	sealedPmd := secretbox.Seal(nil, encodedData, &nonce, &key)
+
+	return encryptedData{
+		Version:       EncryptionSecretbox,
+		Nonce:         nonce[:],
+		EncryptedData: sealedPmd,
+	}
+}
+
+// Test that crypto.DecryptPrivateMetadata() decrypts a
+// PrivateMetadata object encrypted with the default method (current
+// nacl/secretbox).
+func TestDecryptPrivateMetadataSecretboxSeal(t *testing.T) {
+	codec := NewCodecMsgpack()
+	c := CryptoCommon{codec}
+
+	_, tlfPrivateKey, _, _, cryptKey, err := c.MakeRandomTLFKeys()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	privateMetadata := PrivateMetadata{
+		TLFPrivateKey: tlfPrivateKey,
+	}
+
+	encryptedPrivateMetadata := EncryptedPrivateMetadata(secretboxSeal(t, &c, privateMetadata, cryptKey.Key))
+
+	decryptedPrivateMetadata, err := c.DecryptPrivateMetadata(encryptedPrivateMetadata, cryptKey)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if *decryptedPrivateMetadata != privateMetadata {
+		t.Errorf("Decrypted private metadata %v doesn't match %v", decryptedPrivateMetadata, privateMetadata)
+	}
+}
+
+// Test that crypto.DecryptPrivateMetadata() decrypts a
+// PrivateMetadata object encrypted with the default method (current
+// nacl/secretbox).
+func TestDecryptEncryptedPrivateMetadata(t *testing.T) {
+	codec := NewCodecMsgpack()
+	c := CryptoCommon{codec}
+
+	_, tlfPrivateKey, _, _, cryptKey, err := c.MakeRandomTLFKeys()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	privateMetadata := PrivateMetadata{
+		TLFPrivateKey: tlfPrivateKey,
+	}
+
+	encryptedPrivateMetadata, err := c.EncryptPrivateMetadata(&privateMetadata, cryptKey)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	decryptedPrivateMetadata, err := c.DecryptPrivateMetadata(encryptedPrivateMetadata, cryptKey)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if *decryptedPrivateMetadata != privateMetadata {
+		t.Errorf("Decrypted private metadata %v doesn't match %v", decryptedPrivateMetadata, privateMetadata)
+	}
+}
+
+func checkDecryptionFailures(
+	t *testing.T, encryptedData encryptedData, key interface{},
+	decryptFn func(encryptedData encryptedData, key interface{}) error,
+	corruptKeyFn func(interface{}) interface{}) {
+	var err, expectedErr error
+
+	// Wrong version.
+
+	encryptedDataWrongVersion := encryptedData
+	encryptedDataWrongVersion.Version++
+	expectedErr = UnknownEncryptionVer{encryptedDataWrongVersion.Version}
+	err = decryptFn(encryptedDataWrongVersion, key)
+	if err != expectedErr {
+		t.Errorf("Expected %v, got %v", expectedErr, err)
+	}
+
+	// Wrong nonce size.
+
+	encryptedDataWrongNonceSize := encryptedData
+	encryptedDataWrongNonceSize.Nonce = encryptedDataWrongNonceSize.Nonce[:len(encryptedDataWrongNonceSize.Nonce)-1]
+	expectedErr = InvalidNonceError{encryptedDataWrongNonceSize.Nonce}
+	err = decryptFn(encryptedDataWrongNonceSize, key)
+	if err.Error() != expectedErr.Error() {
+		t.Errorf("Expected %v, got %v", expectedErr, err)
+	}
+
+	// Corrupt key.
+
+	keyCorrupt := corruptKeyFn(key)
+	expectedErr = libkb.DecryptionError{}
+	err = decryptFn(encryptedData, keyCorrupt)
+	if err != expectedErr {
+		t.Errorf("Expected %v, got %v", expectedErr, err)
+	}
+
+	// Corrupt data.
+
+	encryptedDataCorruptData := encryptedData
+	encryptedDataCorruptData.EncryptedData[0] = ^encryptedDataCorruptData.EncryptedData[0]
+	expectedErr = libkb.DecryptionError{}
+	err = decryptFn(encryptedDataCorruptData, key)
+	if err != expectedErr {
+		t.Errorf("Expected %v, got %v", expectedErr, err)
+	}
+}
+
+// Test various failure cases for crypto.DecryptPrivateMetadata().
+func TestDecryptPrivateMetadataFailures(t *testing.T) {
+	codec := NewCodecMsgpack()
+	c := CryptoCommon{codec}
+
+	_, tlfPrivateKey, _, _, cryptKey, err := c.MakeRandomTLFKeys()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	privateMetadata := PrivateMetadata{
+		TLFPrivateKey: tlfPrivateKey,
+	}
+
+	encryptedPrivateMetadata, err := c.EncryptPrivateMetadata(&privateMetadata, cryptKey)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	checkDecryptionFailures(t, encryptedData(encryptedPrivateMetadata), cryptKey,
+		func(encryptedData encryptedData, key interface{}) error {
+			_, err = c.DecryptPrivateMetadata(EncryptedPrivateMetadata(encryptedData), key.(TLFCryptKey))
+			return err
+		},
+		func(key interface{}) interface{} {
+			cryptKey := key.(TLFCryptKey)
+			cryptKeyCorrupt := cryptKey
+			cryptKeyCorrupt.Key[0] = ^cryptKeyCorrupt.Key[0]
+			return cryptKeyCorrupt
+		})
+}
+
+func makeBlockCryptKey(t *testing.T, c *CryptoCommon) BlockCryptKey {
+	_, _, _, _, tlfCryptKey, err := c.MakeRandomTLFKeys()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	serverHalf, err := c.MakeRandomBlockCryptKeyServerHalf()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	blockCryptKey, err := c.UnmaskBlockCryptKey(serverHalf, tlfCryptKey)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	return blockCryptKey
+}
+
+// Test that crypto.EncryptBlock() encrypts its passed-in Block object
+// properly.
+func TestEncryptBlock(t *testing.T) {
+	codec := NewCodecMsgpack()
+	c := CryptoCommon{codec}
+
+	cryptKey := makeBlockCryptKey(t, &c)
+
+	block := 50
+	expectedEncodedBlock, err := codec.Encode(block)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	plainSize, encryptedBlock, err := c.EncryptBlock(block, cryptKey)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if plainSize != len(expectedEncodedBlock) {
+		t.Errorf("Expected plain size %d, got %d", len(expectedEncodedBlock), plainSize)
+	}
+
+	encodedBlock := checkSecretboxOpen(t, encryptedData(encryptedBlock), cryptKey.Key)
+
+	if string(encodedBlock) != string(expectedEncodedBlock) {
+		t.Fatalf("Expected encoded data %v, got %v", expectedEncodedBlock, encodedBlock)
+	}
+}
+
+// Test that crypto.DecryptBlock() decrypts a Block object encrypted
+// with the default method (current nacl/secretbox).
+func TestDecryptBlockSecretboxSeal(t *testing.T) {
+	codec := NewCodecMsgpack()
+	c := CryptoCommon{codec}
+
+	cryptKey := makeBlockCryptKey(t, &c)
+
+	block := 50
+
+	encryptedBlock := EncryptedBlock(secretboxSeal(t, &c, block, cryptKey.Key))
+
+	var decryptedBlock int
+	err := c.DecryptBlock(encryptedBlock, cryptKey, &decryptedBlock)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if decryptedBlock != block {
+		t.Errorf("Decrypted block %d doesn't match %d", decryptedBlock, block)
+	}
+}
+
+// Test that crypto.DecryptBlock() decrypts a Block object encrypted
+// with the default method (current nacl/secretbox).
+func TestDecryptEncryptedBlock(t *testing.T) {
+	codec := NewCodecMsgpack()
+	c := CryptoCommon{codec}
+
+	cryptKey := makeBlockCryptKey(t, &c)
+
+	block := 50
+
+	_, encryptedBlock, err := c.EncryptBlock(&block, cryptKey)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	var decryptedBlock int
+	err = c.DecryptBlock(encryptedBlock, cryptKey, &decryptedBlock)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if decryptedBlock != block {
+		t.Errorf("Decrypted block %d doesn't match %d", decryptedBlock, block)
+	}
+}
+
+// Test various failure cases for crypto.DecryptBlock().
+func TestDecryptBlockFailures(t *testing.T) {
+	codec := NewCodecMsgpack()
+	c := CryptoCommon{codec}
+
+	cryptKey := makeBlockCryptKey(t, &c)
+
+	block := 50
+
+	_, encryptedBlock, err := c.EncryptBlock(&block, cryptKey)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	checkDecryptionFailures(t, encryptedData(encryptedBlock), cryptKey,
+		func(encryptedData encryptedData, key interface{}) error {
+			var dummy int
+			return c.DecryptBlock(EncryptedBlock(encryptedData), key.(BlockCryptKey), &dummy)
+			return err
+		},
+		func(key interface{}) interface{} {
+			cryptKey := key.(BlockCryptKey)
+			cryptKeyCorrupt := cryptKey
+			cryptKeyCorrupt.Key[0] = ^cryptKeyCorrupt.Key[0]
+			return cryptKeyCorrupt
+		})
 }

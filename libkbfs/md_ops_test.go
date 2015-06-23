@@ -28,8 +28,15 @@ func newDir(config *ConfigMock, x byte, share bool, public bool) (
 	DirID, *DirHandle, *RootMetadataSigned) {
 	id := DirID{0}
 	id[0] = x
-	id[DirIDLen-1] = DirIDSuffix
+	if public {
+		id[DirIDLen-1] = PubDirIDSuffix
+	} else {
+		id[DirIDLen-1] = DirIDSuffix
+	}
 	h := NewDirHandle()
+	if public {
+		h.Readers = []keybase1.UID{keybase1.PublicUID}
+	}
 	h.Writers = append(h.Writers, keybase1.MakeTestUID(15))
 	if share {
 		h.Writers = append(h.Writers, keybase1.MakeTestUID(16))
@@ -60,48 +67,64 @@ func newDir(config *ConfigMock, x byte, share bool, public bool) (
 	return id, h, rmds
 }
 
-func verifyMDForPrivateShare(config *ConfigMock, rmds *RootMetadataSigned,
-	id DirID) {
-	packedData := []byte{4, 3, 2, 1}
-
-	expectGetTLFCryptKeyForMDDecryption(config, &rmds.MD)
-	config.mockCrypto.EXPECT().DecryptPrivateMetadata(
-		rmds.MD.SerializedPrivateMetadata, TLFCryptKey{}).Return(packedData, nil)
-	config.mockCodec.EXPECT().Decode(packedData, gomock.Any()).
-		Return(nil)
-	config.mockCodec.EXPECT().Encode(gomock.Any()).Return(packedData, nil)
-	config.mockKops.EXPECT().GetMacPublicKey(rmds.MD.data.LastWriter).
-		Return(MacPublicKey{}, nil)
-	config.mockCrypto.EXPECT().VerifyMAC(
-		MacPublicKey{}, packedData, gomock.Any()).Return(nil)
-}
-
-func verifyMDForPublicShare(config *ConfigMock, rmds *RootMetadataSigned,
+func verifyMDForPublic(config *ConfigMock, rmds *RootMetadataSigned,
 	id DirID, hasVerifyingKeyErr error, verifyErr error) {
-	packedData := []byte{4, 3, 2, 1}
-
-	expectGetTLFCryptKeyForMDDecryption(config, &rmds.MD)
-	config.mockCrypto.EXPECT().DecryptPrivateMetadata(
-		rmds.MD.SerializedPrivateMetadata, TLFCryptKey{}).Return(packedData, nil)
-	config.mockCodec.EXPECT().Decode(packedData, gomock.Any()).
+	config.mockCodec.EXPECT().Decode(rmds.MD.SerializedPrivateMetadata, &rmds.MD.data).
 		Return(nil)
-	config.mockCodec.EXPECT().Encode(gomock.Any()).Return(packedData, nil)
+
+	packedData := []byte{4, 3, 2, 1}
+	config.mockCodec.EXPECT().Encode(rmds.MD).Return(packedData, nil)
 	config.mockKbpki.EXPECT().HasVerifyingKey(gomock.Any(), gomock.Any()).AnyTimes().Return(hasVerifyingKeyErr)
 	if hasVerifyingKeyErr == nil {
 		config.mockCrypto.EXPECT().Verify(packedData, rmds.SigInfo).Return(verifyErr)
 	}
 }
 
-func putMDForPrivateShare(config *ConfigMock, rmds *RootMetadataSigned,
+func verifyMDForPrivateShare(config *ConfigMock, rmds *RootMetadataSigned,
+	id DirID) {
+	config.mockCodec.EXPECT().Decode(rmds.MD.SerializedPrivateMetadata, gomock.Any()).
+		Return(nil)
+	expectGetTLFCryptKeyForMDDecryption(config, &rmds.MD)
+	config.mockCrypto.EXPECT().DecryptPrivateMetadata(
+		gomock.Any(), TLFCryptKey{}).Return(&rmds.MD.data, nil)
+
+	packedData := []byte{4, 3, 2, 1}
+	config.mockCodec.EXPECT().Encode(rmds.MD).Return(packedData, nil)
+	config.mockKops.EXPECT().GetMacPublicKey(rmds.MD.data.LastWriter).
+		Return(MacPublicKey{}, nil)
+	config.mockCrypto.EXPECT().VerifyMAC(
+		MacPublicKey{}, packedData, gomock.Any()).Return(nil)
+}
+
+func expectMdID(config *ConfigMock) MdID {
+	// get the MD id, and test that it actually gets set in the metadata
+	mdID := MdID{42}
+	config.mockCodec.EXPECT().Encode(gomock.Any()).AnyTimes().
+		Return([]byte{0}, nil)
+	config.mockCrypto.EXPECT().Hash(gomock.Any()).AnyTimes().
+		Return(libkb.NodeHashShort(mdID), nil)
+	return mdID
+}
+
+func putMDForPublic(config *ConfigMock, rmds *RootMetadataSigned,
 	id DirID) {
 	packedData := []byte{4, 3, 2, 1}
-	rmds.MD.SerializedPrivateMetadata = packedData
+	config.mockCodec.EXPECT().Encode(rmds.MD.data).Return(packedData, nil)
 
-	config.mockCodec.EXPECT().Encode(gomock.Any()).Return(packedData, nil).
-		Times(2)
+	config.mockCrypto.EXPECT().Sign(gomock.Any()).Return(SignatureInfo{}, nil)
+
+	mdID := expectMdID(config)
+	config.mockMdserv.EXPECT().Put(id, mdID, gomock.Any()).Return(nil)
+}
+
+func putMDForPrivateShare(config *ConfigMock, rmds *RootMetadataSigned,
+	id DirID) {
 	expectGetTLFCryptKeyForEncryption(config, &rmds.MD)
 	config.mockCrypto.EXPECT().EncryptPrivateMetadata(
-		packedData, TLFCryptKey{}).Return(packedData, nil)
+		&rmds.MD.data, TLFCryptKey{}).Return(EncryptedPrivateMetadata{}, nil)
+
+	packedData := []byte{4, 3, 2, 1}
+	config.mockCodec.EXPECT().Encode(gomock.Any()).Return(packedData, nil).Times(2)
 
 	// Make a MAC for each writer
 	config.mockKops.EXPECT().GetMacPublicKey(gomock.Any()).
@@ -109,14 +132,27 @@ func putMDForPrivateShare(config *ConfigMock, rmds *RootMetadataSigned,
 	config.mockCrypto.EXPECT().MAC(MacPublicKey{}, packedData).
 		Times(2).Return(packedData, nil)
 
-	// get the MD id, and test that it actually gets set in the metadata
-	mdID := MdID{42}
-	config.mockCodec.EXPECT().Encode(gomock.Any()).AnyTimes().
-		Return([]byte{0}, nil)
-	config.mockCrypto.EXPECT().Hash(gomock.Any()).AnyTimes().
-		Return(libkb.NodeHashShort(mdID), nil)
-
+	mdID := expectMdID(config)
 	config.mockMdserv.EXPECT().Put(id, mdID, gomock.Any()).Return(nil)
+}
+
+func TestMDOpsGetAtHandlePublicSuccess(t *testing.T) {
+	mockCtrl, config := mdOpsInit(t)
+	defer mdOpsShutdown(mockCtrl, config)
+
+	// expect one call to fetch MD, and one to verify it
+	id, h, rmds := newDir(config, 1, false, true)
+
+	config.mockMdserv.EXPECT().GetAtHandle(h).Return(rmds, nil)
+	verifyMDForPublic(config, rmds, id, nil, nil)
+
+	if rmd2, err := config.MDOps().GetAtHandle(h); err != nil {
+		t.Errorf("Got error on get: %v", err)
+	} else if rmd2.ID != id {
+		t.Errorf("Got back wrong id on get: %v (expected %v)", rmd2.ID, id)
+	} else if rmd2 != &rmds.MD {
+		t.Errorf("Got back wrong data on get: %v (expected %v)", rmd2, &rmds.MD)
+	}
 }
 
 func TestMDOpsGetAtHandlePrivateSuccess(t *testing.T) {
@@ -138,25 +174,6 @@ func TestMDOpsGetAtHandlePrivateSuccess(t *testing.T) {
 	}
 }
 
-func TestMDOpsGetAtHandlePublicSuccess(t *testing.T) {
-	mockCtrl, config := mdOpsInit(t)
-	defer mdOpsShutdown(mockCtrl, config)
-
-	// expect one call to fetch MD, and one to verify it
-	id, h, rmds := newDir(config, 1, false, true)
-
-	config.mockMdserv.EXPECT().GetAtHandle(h).Return(rmds, nil)
-	verifyMDForPublicShare(config, rmds, id, nil, nil)
-
-	if rmd2, err := config.MDOps().GetAtHandle(h); err != nil {
-		t.Errorf("Got error on get: %v", err)
-	} else if rmd2.ID != id {
-		t.Errorf("Got back wrong id on get: %v (expected %v)", rmd2.ID, id)
-	} else if rmd2 != &rmds.MD {
-		t.Errorf("Got back wrong data on get: %v (expected %v)", rmd2, &rmds.MD)
-	}
-}
-
 func TestMDOpsGetAtHandlePublicFailFindKey(t *testing.T) {
 	mockCtrl, config := mdOpsInit(t)
 	defer mdOpsShutdown(mockCtrl, config)
@@ -166,7 +183,7 @@ func TestMDOpsGetAtHandlePublicFailFindKey(t *testing.T) {
 
 	config.mockMdserv.EXPECT().GetAtHandle(h).Return(rmds, nil)
 
-	verifyMDForPublicShare(config, rmds, id, KeyNotFoundError{}, nil)
+	verifyMDForPublic(config, rmds, id, KeyNotFoundError{}, nil)
 
 	_, err := config.MDOps().GetAtHandle(h)
 	if _, ok := err.(KeyNotFoundError); !ok {
@@ -184,7 +201,7 @@ func TestMDOpsGetAtHandlePublicFailVerify(t *testing.T) {
 	config.mockMdserv.EXPECT().GetAtHandle(h).Return(rmds, nil)
 
 	expectedErr := libkb.VerificationError{}
-	verifyMDForPublicShare(config, rmds, id, nil, expectedErr)
+	verifyMDForPublic(config, rmds, id, nil, expectedErr)
 
 	if _, err := config.MDOps().GetAtHandle(h); err != expectedErr {
 		t.Errorf("Got unexpected error on get: %v", err)
@@ -336,7 +353,20 @@ func TestMDOpsGetAtIDFail(t *testing.T) {
 	}
 }
 
-func TestMDOpsPutSuccess(t *testing.T) {
+func TestMDOpsPutPublicSuccess(t *testing.T) {
+	mockCtrl, config := mdOpsInit(t)
+	defer mdOpsShutdown(mockCtrl, config)
+
+	// expect one call to sign MD, and one to put it
+	id, _, rmds := newDir(config, 1, false, true)
+	putMDForPublic(config, rmds, id)
+
+	if err := config.MDOps().Put(id, &rmds.MD); err != nil {
+		t.Errorf("Got error on put: %v", err)
+	}
+}
+
+func TestMDOpsPutPrivateSuccess(t *testing.T) {
 	mockCtrl, config := mdOpsInit(t)
 	defer mdOpsShutdown(mockCtrl, config)
 
@@ -356,6 +386,10 @@ func TestMDOpsPutFailEncode(t *testing.T) {
 	// expect one call to sign MD, and fail it
 	id, h, _ := newDir(config, 1, true, false)
 	rmd := NewRootMetadata(h, id)
+
+	expectGetTLFCryptKeyForEncryption(config, rmd)
+	config.mockCrypto.EXPECT().EncryptPrivateMetadata(
+		&rmd.data, TLFCryptKey{}).Return(EncryptedPrivateMetadata{}, nil)
 
 	err := errors.New("Fake fail")
 	config.mockCodec.EXPECT().Encode(gomock.Any()).Return(nil, err)

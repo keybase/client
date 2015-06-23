@@ -329,21 +329,21 @@ type Crypto interface {
 		encryptedClientHalf EncryptedTLFCryptKeyClientHalf) (
 		TLFCryptKeyClientHalf, error)
 
-	// EncryptPrivateMetadata encrypts a serialized PrivateMetadata object.
-	EncryptPrivateMetadata(buf []byte, key TLFCryptKey) ([]byte, error)
-	// DecryptPrivateMetadata decrypts a serialized PrivateMetadata object.
-	DecryptPrivateMetadata(buf []byte, key TLFCryptKey) ([]byte, error)
+	// EncryptPrivateMetadata encrypts a PrivateMetadata object.
+	EncryptPrivateMetadata(pmd *PrivateMetadata, key TLFCryptKey) (EncryptedPrivateMetadata, error)
+	// DecryptPrivateMetadata decrypts a PrivateMetadata object.
+	DecryptPrivateMetadata(encryptedPMD EncryptedPrivateMetadata, key TLFCryptKey) (*PrivateMetadata, error)
 
 	// EncryptBlocks encrypts a block. plainSize is the size of the encoded
 	// block; EncryptBlock() must guarantee that plainSize <=
 	// len(encryptedBlock).
 	EncryptBlock(block Block, key BlockCryptKey) (
-		plainSize int, encryptedBlock []byte, err error)
+		plainSize int, encryptedBlock EncryptedBlock, err error)
 
 	// DecryptBlock decrypts a block. Similar to EncryptBlock(),
 	// DecryptBlock() must guarantee that (size of the decrypted
 	// block) <= len(encryptedBlock).
-	DecryptBlock(encryptedBlock []byte, key BlockCryptKey, block Block) error
+	DecryptBlock(encryptedBlock EncryptedBlock, key BlockCryptKey, block Block) error
 
 	// Mac computes a keyed MAC of buf using a shared secret derived
 	// from the given MacPublicKey and the current user's MAC private

@@ -6,6 +6,7 @@ import (
 
 	"github.com/keybase/client/go/libkb"
 	"golang.org/x/crypto/nacl/box"
+	"golang.org/x/crypto/nacl/secretbox"
 )
 
 // Belt-and-suspenders wrapper around crypto.rand.Read().
@@ -204,42 +205,105 @@ func (c *CryptoCommon) EncryptTLFCryptKeyClientHalf(privateKey TLFEphemeralPriva
 	encryptedData := box.Seal(nil, clientHalf.ClientHalf[:], &nonce, (*[32]byte)(&dhKeyPair.Public), (*[32]byte)(&privateKey.PrivateKey))
 
 	encryptedClientHalf = EncryptedTLFCryptKeyClientHalf{
-		Version:       TLFEncryptionBox,
+		Version:       EncryptionSecretbox,
 		Nonce:         nonce[:],
 		EncryptedData: encryptedData,
 	}
 	return
 }
 
+func (c *CryptoCommon) encryptData(data []byte, key [32]byte) (encryptedData, error) {
+	var nonce [24]byte
+	err := cryptoRandRead(nonce[:])
+	if err != nil {
+		return encryptedData{}, err
+	}
+
+	sealedData := secretbox.Seal(nil, data, &nonce, &key)
+
+	return encryptedData{
+		Version:       EncryptionSecretbox,
+		Nonce:         nonce[:],
+		EncryptedData: sealedData,
+	}, nil
+}
+
 // EncryptPrivateMetadata implements the Crypto interface for CryptoCommon.
-func (c *CryptoCommon) EncryptPrivateMetadata(buf []byte, key TLFCryptKey) ([]byte, error) {
-	return buf, nil
+func (c *CryptoCommon) EncryptPrivateMetadata(pmd *PrivateMetadata, key TLFCryptKey) (encryptedPmd EncryptedPrivateMetadata, err error) {
+	encodedPmd, err := c.codec.Encode(pmd)
+	if err != nil {
+		return
+	}
+
+	encryptedData, err := c.encryptData(encodedPmd, key.Key)
+	if err != nil {
+		return
+	}
+
+	encryptedPmd = EncryptedPrivateMetadata(encryptedData)
+	return
+}
+
+func (c *CryptoCommon) decryptData(encryptedData encryptedData, key [32]byte) ([]byte, error) {
+	if encryptedData.Version != EncryptionSecretbox {
+		return nil, UnknownEncryptionVer{encryptedData.Version}
+	}
+
+	var nonce [24]byte
+	if len(encryptedData.Nonce) != len(nonce) {
+		return nil, InvalidNonceError{encryptedData.Nonce}
+	}
+	copy(nonce[:], encryptedData.Nonce)
+
+	decryptedData, ok := secretbox.Open(nil, encryptedData.EncryptedData, &nonce, &key)
+	if !ok {
+		return nil, libkb.DecryptionError{}
+	}
+
+	return decryptedData, nil
 }
 
 // DecryptPrivateMetadata implements the Crypto interface for CryptoCommon.
-func (c *CryptoCommon) DecryptPrivateMetadata(buf []byte, key TLFCryptKey) ([]byte, error) {
-	return buf, nil
+func (c *CryptoCommon) DecryptPrivateMetadata(encryptedPmd EncryptedPrivateMetadata, key TLFCryptKey) (*PrivateMetadata, error) {
+	encodedPmd, err := c.decryptData(encryptedData(encryptedPmd), key.Key)
+	if err != nil {
+		return nil, err
+	}
+
+	var pmd PrivateMetadata
+	err = c.codec.Decode(encodedPmd, &pmd)
+	if err != nil {
+		return nil, err
+	}
+
+	return &pmd, nil
 }
 
 // EncryptBlock implements the Crypto interface for CryptoCommon.
-func (c *CryptoCommon) EncryptBlock(block Block, key BlockCryptKey) (plainSize int, encryptedBlock []byte, err error) {
+func (c *CryptoCommon) EncryptBlock(block Block, key BlockCryptKey) (plainSize int, encryptedBlock EncryptedBlock, err error) {
 	// TODO: add padding
 	encodedBlock, err := c.codec.Encode(block)
 	if err != nil {
 		return
 	}
-	// TODO: When we actually do crypto here, make sure that
-	// plainSize <= len(encryptedBlock) still holds.
+
+	encryptedData, err := c.encryptData(encodedBlock, key.Key)
+	if err != nil {
+		return
+	}
+
 	plainSize = len(encodedBlock)
-	encryptedBlock = encodedBlock
+	encryptedBlock = EncryptedBlock(encryptedData)
 	return
 }
 
 // DecryptBlock implements the Crypto interface for CryptoCommon.
-func (c *CryptoCommon) DecryptBlock(encryptedBlock []byte, key BlockCryptKey, block Block) (err error) {
-	// TODO: When we actually do crypto here, make sure that
-	// len(encodedBlock) <= len(encryptedBlock) holds.
-	encodedBlock := encryptedBlock
+func (c *CryptoCommon) DecryptBlock(encryptedBlock EncryptedBlock, key BlockCryptKey, block Block) (err error) {
+	encodedBlock, err := c.decryptData(encryptedData(encryptedBlock), key.Key)
+	if err != nil {
+		return err
+	}
+
 	return c.codec.Decode(encodedBlock, &block)
 }
 
