@@ -11,6 +11,7 @@
 typedef NS_ENUM (NSInteger, KBEnv) {
   KBEnvProd,
   KBEnvDevel,
+  KBEnvBrew,
 };
 
 @interface KBEnvConfig : NSObject

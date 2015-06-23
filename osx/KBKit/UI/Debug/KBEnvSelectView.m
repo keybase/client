@@ -65,6 +65,7 @@
   NSArray *envs = @[
                     [[KBEnvironment alloc] initWithConfig:[KBEnvConfig env:KBEnvProd]],
                     [[KBEnvironment alloc] initWithConfig:[KBEnvConfig env:KBEnvDevel]],
+                    [[KBEnvironment alloc] initWithConfig:[KBEnvConfig env:KBEnvBrew]],
                     [[KBEnvironment alloc] initWithConfig:[KBEnvConfig loadFromUserDefaults:[KBWorkspace userDefaults]]],
                     ];
   [_listView setObjects:envs animated:NO];
@@ -95,8 +96,10 @@
       return;
     }
     self.onSelect([[KBEnvironment alloc] initWithConfig:config]);
-  } else {
+  } else if ([env.config.identifier isEqualToString:@"brew"]) {
     self.onSelect(env);
+  } else {
+    [KBActivity setError:KBMakeError(-1, @"Only supporting custom and brew envs for the moment") sender:self];
   }
 }
 

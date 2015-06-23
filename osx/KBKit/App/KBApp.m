@@ -77,11 +77,9 @@
   }];
   [AFNetworkReachabilityManager.sharedManager startMonitoring];
 
-//  // Cleanup old stuff
-//  if (![userDefaults objectForKey:@"InstallVersion"]) {
-//    DDLogInfo(@"Removing old services and files");
-//    [KBUninstaller uninstall:@"keybase" completion:^(NSError *error) {}];
-//  }
+  // Cleanup old stuff
+  DDLogInfo(@"Removing old services and files");
+  [KBUninstaller uninstall:@"keybase" completion:^(NSError *error) {}];
 
   // Save installed version in case a later upgrade needs this info
   NSString *version = NSBundle.mainBundle.infoDictionary[@"CFBundleShortVersionString"];

@@ -9,11 +9,8 @@
 #import "KBEnvConfig.h"
 
 #import "KBDefines.h"
-
-#import <ObjectiveSugar/ObjectiveSugar.h>
-#import <AppKit/AppKit.h>
+#import <KBAppKit/KBAppKit.h>
 #import <GHODictionary/GHODictionary.h>
-#import <CocoaLumberjack/CocoaLumberjack.h>
 
 @interface KBEnvConfig ()
 @property NSString *homeDir;
@@ -41,7 +38,6 @@
       case KBEnvProd: {
         self.title = @"Keybase.io";
         self.identifier = @"kb";
-        self.homeDir = KBPath(@"~", NO, NO); // [KBEnvConfig groupContainer:self.identifier];
         self.host = @"https://api.keybase.io:443";
         self.mountDir = KBPath(@"~/Keybase", NO, NO);
         self.debugEnabled = YES;
@@ -54,7 +50,6 @@
       case KBEnvDevel: {
         self.title = @"Local";
         self.identifier = @"localhost";
-        self.homeDir = KBPath(@"~", NO, NO); //[KBEnvConfig groupContainer:self.identifier];
         self.host = @"http://localhost:3000";
         self.develMode = YES;
         self.mountDir = KBPath(@"~/Keybase.local", NO, NO);
@@ -63,6 +58,17 @@
         self.image = [NSImage imageNamed:NSImageNameComputer];
         self.launchdEnabled = YES;
         self.installEnabled = YES;
+        break;
+      }
+      case KBEnvBrew: {
+        self.title = @"Homebrew";
+        self.identifier = @"brew";
+        self.mountDir = KBPath(@"~/Keybase.brew", NO, NO);
+        self.debugEnabled = YES;
+        self.info = @"Uses homebrew install";
+        self.image = [KBIcons imageForIcon:KBIconExecutableBinary];
+        self.launchdEnabled = NO;
+        self.installEnabled = NO;
         break;
       }
     }
@@ -112,7 +118,8 @@
 - (NSString *)configDir {
   NSString *appName = @"Keybase";
   if (self.develMode) appName = @"KeybaseDev";
-  return KBPathInDir(_homeDir, NSStringWithFormat(@"Library/Application Support/%@", appName), NO, NO);
+  NSString *homeDir = _homeDir ? _homeDir : KBPath(@"~", NO, NO);
+  return KBPathInDir(homeDir, NSStringWithFormat(@"Library/Application Support/%@", appName), NO, NO);
 }
 
 - (NSString *)configFile:(BOOL)useDefault {
@@ -264,11 +271,7 @@
 }
 
 - (BOOL)validate:(NSError **)error {
-  if (!_homeDir) {
-    if (error) *error = KBMakeError(-1, @"You need to specify a home directory");
-    return NO;
-  }
-  if (![NSFileManager.defaultManager fileExistsAtPath:KBPath(_homeDir, NO, NO) isDirectory:nil]) {
+  if (_homeDir && ![NSFileManager.defaultManager fileExistsAtPath:KBPath(_homeDir, NO, NO) isDirectory:nil]) {
     if (error) *error = KBMakeError(-1, @"%@ doesn't exist", _homeDir);
     return NO;
   }
@@ -276,7 +279,7 @@
     if (error) *error = KBMakeError(-1, @"%@ doesn't exist", _sockFile);
     return NO;
   }
-  if (![NSFileManager.defaultManager fileExistsAtPath:KBPath(_mountDir, NO, NO) isDirectory:nil]) {
+  if (_mountDir && ![NSFileManager.defaultManager fileExistsAtPath:KBPath(_mountDir, NO, NO) isDirectory:nil]) {
     if (error) *error = KBMakeError(-1, @"%@ doesn't exist", _mountDir);
     return NO;
   }

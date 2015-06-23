@@ -35,7 +35,7 @@
     }
   };
   rover.completion = ^(NSArray *outputs) {
-    [self deleteAll:@"~/Library/Application Support/Keybase"];
+    //[self deleteAll:@"~/Library/Application Support/Keybase"];
     completion(nil);
   };
   [rover run];
