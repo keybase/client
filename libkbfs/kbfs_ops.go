@@ -276,7 +276,6 @@ func (fs *KBFSOpsStandard) GetOrCreateRootPathForHandle(handle *DirHandle) (
 	mdops := fs.config.MDOps()
 	md, err := mdops.GetAtHandle(handle)
 	if err != nil {
-		fmt.Printf("Inside GetOr.. %v\n", err)
 		return
 	}
 
