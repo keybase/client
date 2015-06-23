@@ -978,26 +978,26 @@ func (_m *MockMDOps) EXPECT() *_MockMDOpsRecorder {
 	return _m.recorder
 }
 
-func (_m *MockMDOps) GetAtHandle(handle *DirHandle) (*RootMetadata, error) {
-	ret := _m.ctrl.Call(_m, "GetAtHandle", handle)
+func (_m *MockMDOps) GetForHandle(handle *DirHandle) (*RootMetadata, error) {
+	ret := _m.ctrl.Call(_m, "GetForHandle", handle)
 	ret0, _ := ret[0].(*RootMetadata)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-func (_mr *_MockMDOpsRecorder) GetAtHandle(arg0 interface{}) *gomock.Call {
-	return _mr.mock.ctrl.RecordCall(_mr.mock, "GetAtHandle", arg0)
+func (_mr *_MockMDOpsRecorder) GetForHandle(arg0 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "GetForHandle", arg0)
 }
 
-func (_m *MockMDOps) GetTLF(id DirID) (*RootMetadata, error) {
-	ret := _m.ctrl.Call(_m, "GetTLF", id)
+func (_m *MockMDOps) GetForTLF(id DirID) (*RootMetadata, error) {
+	ret := _m.ctrl.Call(_m, "GetForTLF", id)
 	ret0, _ := ret[0].(*RootMetadata)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-func (_mr *_MockMDOpsRecorder) GetTLF(arg0 interface{}) *gomock.Call {
-	return _mr.mock.ctrl.RecordCall(_mr.mock, "GetTLF", arg0)
+func (_mr *_MockMDOpsRecorder) GetForTLF(arg0 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "GetForTLF", arg0)
 }
 
 func (_m *MockMDOps) Get(mdID MdID) (*RootMetadata, error) {
@@ -1204,26 +1204,26 @@ func (_m *MockMDServer) EXPECT() *_MockMDServerRecorder {
 	return _m.recorder
 }
 
-func (_m *MockMDServer) GetAtHandle(handle *DirHandle) (*RootMetadataSigned, error) {
-	ret := _m.ctrl.Call(_m, "GetAtHandle", handle)
+func (_m *MockMDServer) GetForHandle(handle *DirHandle) (*RootMetadataSigned, error) {
+	ret := _m.ctrl.Call(_m, "GetForHandle", handle)
 	ret0, _ := ret[0].(*RootMetadataSigned)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-func (_mr *_MockMDServerRecorder) GetAtHandle(arg0 interface{}) *gomock.Call {
-	return _mr.mock.ctrl.RecordCall(_mr.mock, "GetAtHandle", arg0)
+func (_mr *_MockMDServerRecorder) GetForHandle(arg0 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "GetForHandle", arg0)
 }
 
-func (_m *MockMDServer) GetTLF(id DirID) (*RootMetadataSigned, error) {
-	ret := _m.ctrl.Call(_m, "GetTLF", id)
+func (_m *MockMDServer) GetForTLF(id DirID) (*RootMetadataSigned, error) {
+	ret := _m.ctrl.Call(_m, "GetForTLF", id)
 	ret0, _ := ret[0].(*RootMetadataSigned)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-func (_mr *_MockMDServerRecorder) GetTLF(arg0 interface{}) *gomock.Call {
-	return _mr.mock.ctrl.RecordCall(_mr.mock, "GetTLF", arg0)
+func (_mr *_MockMDServerRecorder) GetForTLF(arg0 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "GetForTLF", arg0)
 }
 
 func (_m *MockMDServer) Get(mdID MdID) (*RootMetadataSigned, error) {

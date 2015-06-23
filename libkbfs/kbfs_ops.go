@@ -92,7 +92,7 @@ func (fs *KBFSOpsStandard) getMDInChannel(dir Path, rtype reqType) (
 
 	// not in cache, fetch from server and add to cache
 	mdops := fs.config.MDOps()
-	md, err := mdops.GetTLF(dir.TopDir)
+	md, err := mdops.GetForTLF(dir.TopDir)
 	if err != nil {
 		return nil, err
 	}
@@ -266,9 +266,9 @@ func (fs *KBFSOpsStandard) getChans(id DirID) (
 // KBFSOpsStandard
 func (fs *KBFSOpsStandard) GetOrCreateRootPathForHandle(handle *DirHandle) (
 	path Path, de DirEntry, err error) {
-	// Do GetAtHandle() unlocked -- no cache lookups, should be fine
+	// Do GetForHandle() unlocked -- no cache lookups, should be fine
 	mdops := fs.config.MDOps()
-	md, err := mdops.GetAtHandle(handle)
+	md, err := mdops.GetForHandle(handle)
 	if err != nil {
 		return
 	}

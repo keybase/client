@@ -21,16 +21,16 @@ func NewMDOpsConcurTest(uid keybase1.UID) *MDOpsConcurTest {
 	}
 }
 
-func (m *MDOpsConcurTest) GetAtHandle(handle *DirHandle) (
+func (m *MDOpsConcurTest) GetForHandle(handle *DirHandle) (
 	*RootMetadata, error) {
 	return nil, fmt.Errorf("Not supported")
 }
 
-func (m *MDOpsConcurTest) GetTLF(id DirID) (*RootMetadata, error) {
+func (m *MDOpsConcurTest) GetForTLF(id DirID) (*RootMetadata, error) {
 	_, ok := <-m.enter
 	if !ok {
 		// Only one caller should ever get here
-		return nil, fmt.Errorf("More than one caller to GetTLF()!")
+		return nil, fmt.Errorf("More than one caller to GetForTLF()!")
 	}
 	<-m.start
 	dh := NewDirHandle()

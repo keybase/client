@@ -94,14 +94,14 @@ func NewMDServerMemory(config Config) (*MDServerLocal, error) {
 		storage.NewMemStorage())
 }
 
-// GetAtHandle implements the MDServer interface for MDServerLocal.
-func (md *MDServerLocal) GetAtHandle(handle *DirHandle) (
+// GetForHandle implements the MDServer interface for MDServerLocal.
+func (md *MDServerLocal) GetForHandle(handle *DirHandle) (
 	*RootMetadataSigned, error) {
 	buf, err := md.handleDb.Get(handle.ToBytes(md.config), nil)
 	var id DirID
 	if err != leveldb.ErrNotFound {
 		copy(id[:], buf[:len(id)])
-		return md.GetTLF(id)
+		return md.GetForTLF(id)
 	}
 
 	// Make a new one.
@@ -127,8 +127,8 @@ func (md *MDServerLocal) GetAtHandle(handle *DirHandle) (
 	return &RootMetadataSigned{MD: *rmd}, nil
 }
 
-// GetTLF implements the MDServer interface for MDServerLocal.
-func (md *MDServerLocal) GetTLF(id DirID) (*RootMetadataSigned, error) {
+// GetForTLF implements the MDServer interface for MDServerLocal.
+func (md *MDServerLocal) GetForTLF(id DirID) (*RootMetadataSigned, error) {
 	buf, err := md.idDb.Get(id[:], nil)
 	var mdID MdID
 	if err != leveldb.ErrNotFound {
@@ -193,7 +193,7 @@ func (md *MDServerLocal) getRange(id DirID, start MdID, end MdID, max int) (
 // GetSince implements the MDServer interface for MDServerLocal.
 func (md *MDServerLocal) GetSince(id DirID, mdID MdID, max int) (
 	[]*RootMetadataSigned, bool, error) {
-	rmds, err := md.GetTLF(id)
+	rmds, err := md.GetForTLF(id)
 	if err != nil {
 		return nil, false, err
 	}
@@ -238,7 +238,10 @@ func (md *MDServerLocal) getUnmergedInfo(id DirID) (
 	return
 }
 
-// Put implements the MDServer interface for MDServerLocal.
+// Put implements the MDServer interface for MDServerLocal.  It does
+// not check that unmergedBase is part of the unmerged history; it
+// simply updates the unmerged base to that MdID without any
+// verification.
 func (md *MDServerLocal) Put(id DirID, mdID MdID, rmds *RootMetadataSigned,
 	deviceID libkb.KID, unmergedBase MdID) error {
 	err := md.put(id, mdID, rmds, md.idDb, mdID[:])

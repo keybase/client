@@ -127,17 +127,17 @@ func putMDForPrivateShare(config *ConfigMock, rmds *RootMetadataSigned,
 		NullMdID).Return(nil)
 }
 
-func TestMDOpsGetAtHandlePublicSuccess(t *testing.T) {
+func TestMDOpsGetForHandlePublicSuccess(t *testing.T) {
 	mockCtrl, config := mdOpsInit(t)
 	defer mdOpsShutdown(mockCtrl, config)
 
 	// expect one call to fetch MD, and one to verify it
 	id, h, rmds := newDir(config, 1, false, true)
 
-	config.mockMdserv.EXPECT().GetAtHandle(h).Return(rmds, nil)
+	config.mockMdserv.EXPECT().GetForHandle(h).Return(rmds, nil)
 	verifyMDForPublic(config, rmds, id, nil, nil)
 
-	if rmd2, err := config.MDOps().GetAtHandle(h); err != nil {
+	if rmd2, err := config.MDOps().GetForHandle(h); err != nil {
 		t.Errorf("Got error on get: %v", err)
 	} else if rmd2.ID != id {
 		t.Errorf("Got back wrong id on get: %v (expected %v)", rmd2.ID, id)
@@ -146,17 +146,17 @@ func TestMDOpsGetAtHandlePublicSuccess(t *testing.T) {
 	}
 }
 
-func TestMDOpsGetAtHandlePrivateSuccess(t *testing.T) {
+func TestMDOpsGetForHandlePrivateSuccess(t *testing.T) {
 	mockCtrl, config := mdOpsInit(t)
 	defer mdOpsShutdown(mockCtrl, config)
 
 	// expect one call to fetch MD, and one to verify it
 	id, h, rmds := newDir(config, 1, true, false)
 
-	config.mockMdserv.EXPECT().GetAtHandle(h).Return(rmds, nil)
+	config.mockMdserv.EXPECT().GetForHandle(h).Return(rmds, nil)
 	verifyMDForPrivateShare(config, rmds, id)
 
-	if rmd2, err := config.MDOps().GetAtHandle(h); err != nil {
+	if rmd2, err := config.MDOps().GetForHandle(h); err != nil {
 		t.Errorf("Got error on get: %v", err)
 	} else if rmd2.ID != id {
 		t.Errorf("Got back wrong id on get: %v (expected %v)", rmd2.ID, id)
@@ -165,41 +165,41 @@ func TestMDOpsGetAtHandlePrivateSuccess(t *testing.T) {
 	}
 }
 
-func TestMDOpsGetAtHandlePublicFailFindKey(t *testing.T) {
+func TestMDOpsGetForHandlePublicFailFindKey(t *testing.T) {
 	mockCtrl, config := mdOpsInit(t)
 	defer mdOpsShutdown(mockCtrl, config)
 
 	// expect one call to fetch MD, and one to verify it
 	id, h, rmds := newDir(config, 1, false, true)
 
-	config.mockMdserv.EXPECT().GetAtHandle(h).Return(rmds, nil)
+	config.mockMdserv.EXPECT().GetForHandle(h).Return(rmds, nil)
 
 	verifyMDForPublic(config, rmds, id, KeyNotFoundError{}, nil)
 
-	_, err := config.MDOps().GetAtHandle(h)
+	_, err := config.MDOps().GetForHandle(h)
 	if _, ok := err.(KeyNotFoundError); !ok {
 		t.Errorf("Got unexpected error on get: %v", err)
 	}
 }
 
-func TestMDOpsGetAtHandlePublicFailVerify(t *testing.T) {
+func TestMDOpsGetForHandlePublicFailVerify(t *testing.T) {
 	mockCtrl, config := mdOpsInit(t)
 	defer mdOpsShutdown(mockCtrl, config)
 
 	// expect one call to fetch MD, and one to verify it
 	id, h, rmds := newDir(config, 1, false, true)
 
-	config.mockMdserv.EXPECT().GetAtHandle(h).Return(rmds, nil)
+	config.mockMdserv.EXPECT().GetForHandle(h).Return(rmds, nil)
 
 	expectedErr := libkb.VerificationError{}
 	verifyMDForPublic(config, rmds, id, nil, expectedErr)
 
-	if _, err := config.MDOps().GetAtHandle(h); err != expectedErr {
+	if _, err := config.MDOps().GetForHandle(h); err != expectedErr {
 		t.Errorf("Got unexpected error on get: %v", err)
 	}
 }
 
-func TestMDOpsGetAtHandleFailGet(t *testing.T) {
+func TestMDOpsGetForHandleFailGet(t *testing.T) {
 	mockCtrl, config := mdOpsInit(t)
 	defer mdOpsShutdown(mockCtrl, config)
 
@@ -208,14 +208,14 @@ func TestMDOpsGetAtHandleFailGet(t *testing.T) {
 	err := errors.New("Fake fail")
 
 	// only the get happens, no verify needed with a blank sig
-	config.mockMdserv.EXPECT().GetAtHandle(h).Return(nil, err)
+	config.mockMdserv.EXPECT().GetForHandle(h).Return(nil, err)
 
-	if _, err2 := config.MDOps().GetAtHandle(h); err2 != err {
+	if _, err2 := config.MDOps().GetForHandle(h); err2 != err {
 		t.Errorf("Got bad error on get: %v", err2)
 	}
 }
 
-func TestMDOpsGetAtHandleFailHandleCheck(t *testing.T) {
+func TestMDOpsGetForHandleFailHandleCheck(t *testing.T) {
 	mockCtrl, config := mdOpsInit(t)
 	defer mdOpsShutdown(mockCtrl, config)
 
@@ -227,10 +227,10 @@ func TestMDOpsGetAtHandleFailHandleCheck(t *testing.T) {
 	newWriter := keybase1.MakeTestUID(100)
 	h.Writers = append(h.Writers, newWriter)
 	expectUserCall(newWriter, config)
-	config.mockMdserv.EXPECT().GetAtHandle(h).Return(rmds, nil)
+	config.mockMdserv.EXPECT().GetForHandle(h).Return(rmds, nil)
 	verifyMDForPrivateShare(config, rmds, id)
 
-	if _, err := config.MDOps().GetAtHandle(h); err == nil {
+	if _, err := config.MDOps().GetForHandle(h); err == nil {
 		t.Errorf("Got no error on bad handle check test")
 	} else if _, ok := err.(*MDMismatchError); !ok {
 		t.Errorf("Got unexpected error on bad handle check test: %v", err)
@@ -244,10 +244,10 @@ func TestMDOpsGetSuccess(t *testing.T) {
 	// expect one call to fetch MD, and one to verify it
 	id, _, rmds := newDir(config, 1, true, false)
 
-	config.mockMdserv.EXPECT().GetTLF(id).Return(rmds, nil)
+	config.mockMdserv.EXPECT().GetForTLF(id).Return(rmds, nil)
 	verifyMDForPrivateShare(config, rmds, id)
 
-	if rmd2, err := config.MDOps().GetTLF(id); err != nil {
+	if rmd2, err := config.MDOps().GetForTLF(id); err != nil {
 		t.Errorf("Got error on get: %v", err)
 	} else if rmd2 != &rmds.MD {
 		t.Errorf("Got back wrong data on get: %v (expected %v)", rmd2, &rmds.MD)
@@ -267,9 +267,9 @@ func TestMDOpsGetBlankSigSuccess(t *testing.T) {
 	}
 
 	// only the get happens, no verify needed with a blank sig
-	config.mockMdserv.EXPECT().GetTLF(id).Return(rmds, nil)
+	config.mockMdserv.EXPECT().GetForTLF(id).Return(rmds, nil)
 
-	if rmd2, err := config.MDOps().GetTLF(id); err != nil {
+	if rmd2, err := config.MDOps().GetForTLF(id); err != nil {
 		t.Errorf("Got error on get: %v", err)
 	} else if rmd2 != &rmds.MD {
 		t.Errorf("Got back wrong data on get: %v (expected %v)", rmd2, &rmds.MD)
@@ -285,9 +285,9 @@ func TestMDOpsGetFailGet(t *testing.T) {
 	err := errors.New("Fake fail")
 
 	// only the get happens, no verify needed with a blank sig
-	config.mockMdserv.EXPECT().GetTLF(id).Return(nil, err)
+	config.mockMdserv.EXPECT().GetForTLF(id).Return(nil, err)
 
-	if _, err2 := config.MDOps().GetTLF(id); err2 != err {
+	if _, err2 := config.MDOps().GetForTLF(id); err2 != err {
 		t.Errorf("Got bad error on get: %v", err2)
 	}
 }
@@ -300,9 +300,9 @@ func TestMDOpsGetFailIdCheck(t *testing.T) {
 	_, _, rmds := newDir(config, 1, true, false)
 	id2, _, _ := newDir(config, 2, true, false)
 
-	config.mockMdserv.EXPECT().GetTLF(id2).Return(rmds, nil)
+	config.mockMdserv.EXPECT().GetForTLF(id2).Return(rmds, nil)
 
-	if _, err := config.MDOps().GetTLF(id2); err == nil {
+	if _, err := config.MDOps().GetForTLF(id2); err == nil {
 		t.Errorf("Got no error on bad id check test")
 	} else if _, ok := err.(*MDMismatchError); !ok {
 		t.Errorf("Got unexpected error on bad id check test: %v", err)

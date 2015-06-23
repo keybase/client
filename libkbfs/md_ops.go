@@ -111,10 +111,11 @@ func (md *MDOpsStandard) processMetadata(
 	return nil
 }
 
-// GetAtHandle implements the MDOps interface for MDOpsStandard.
-func (md *MDOpsStandard) GetAtHandle(handle *DirHandle) (*RootMetadata, error) {
+// GetForHandle implements the MDOps interface for MDOpsStandard.
+func (md *MDOpsStandard) GetForHandle(handle *DirHandle) (
+	*RootMetadata, error) {
 	mdserv := md.config.MDServer()
-	if rmds, err := mdserv.GetAtHandle(handle); err != nil {
+	if rmds, err := mdserv.GetForHandle(handle); err != nil {
 		return nil, err
 	} else if err := md.processMetadata(handle, rmds); err != nil {
 		return nil, err
@@ -147,9 +148,9 @@ func (md *MDOpsStandard) processMetadataWithID(
 	return md.processMetadata(rmds.MD.GetDirHandle(), rmds)
 }
 
-// GetTLF implements the MDOps interface for MDOpsStandard.
-func (md *MDOpsStandard) GetTLF(id DirID) (*RootMetadata, error) {
-	rmds, err := md.config.MDServer().GetTLF(id)
+// GetForTLF implements the MDOps interface for MDOpsStandard.
+func (md *MDOpsStandard) GetForTLF(id DirID) (*RootMetadata, error) {
+	rmds, err := md.config.MDServer().GetForTLF(id)
 	if err != nil {
 		return nil, err
 	}

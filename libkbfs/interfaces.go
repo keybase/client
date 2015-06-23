@@ -371,30 +371,31 @@ type Codec interface {
 // MDOps gets and puts root metadata to an MDServer.  On a get, it
 // verifies the metadata is signed by the metadata's signing key.
 type MDOps interface {
-	// GetAtHandle returns the current metadata object corresponding
+	// GetForHandle returns the current metadata object corresponding
 	// to the given top-level folder's handle, if the logged-in user
 	// has read permission on the folder.  It creates the folder if
 	// one doesn't exist yet, and the logged-in user has write
 	// permissions to the top-level folder.
-	GetAtHandle(handle *DirHandle) (*RootMetadata, error)
-	// GetTLF returns the current metadata object corresponding to the
+	GetForHandle(handle *DirHandle) (*RootMetadata, error)
+	// GetForTLF returns the current metadata object corresponding to the
 	// given top-level folder, if the logged-in user has read
 	// permission on the folder.
-	GetTLF(id DirID) (*RootMetadata, error)
+	GetForTLF(id DirID) (*RootMetadata, error)
 	// Get returns the metadata object corresponding that matches the
 	// provided MD ID, if one exists and the logged-in user has read
 	// permissions on the corresponding top-level folder.
 	Get(mdID MdID) (*RootMetadata, error)
 	// Put stores the given metadata object for the top-level folder
 	// on the server, if the logged-in user has write permission on
-	// the folder.  If deviceID is non-nil, and the corresponding
-	// device has an unmerged history that includes the given unmerged
-	// head MdID, the device's unmerged history is truncated up to
-	// that id.  If the server cannot commit this MD to this top-level
-	// folder because md.PrevRoot does not match the current MD object
-	// for the folder due to another concurrent writer, it will return
-	// a specific error (TODO: make one) and the caller is expected to
-	// call PutUnmerged if it wants durability over consistency.
+	// the folder.  If deviceID is non-nil, the unmerged history for
+	// the corresponding device is updated to indicate that everything
+	// up to and including the provided unmergedBase has been merged
+	// (similar to a git rebase).  If the server cannot commit this MD
+	// to this top-level folder because md.PrevRoot does not match the
+	// current MD object for the folder due to another concurrent
+	// writer, it will return a specific error (TODO: make one) and
+	// the caller is expected to call PutUnmerged if it wants
+	// durability over consistency.
 	Put(id DirID, rmd *RootMetadata, deviceID libkb.KID,
 		unmergedBase MdID) error
 	// GetSince returns all the MD objects that have been committed
@@ -480,16 +481,16 @@ type BlockOps interface {
 // TODO: Add interface for searching by time
 // TODO: PutFavorites() to allow for signed favorites list
 type MDServer interface {
-	// GetAtHandle returns the current (signed/encrypted) metadata
+	// GetForHandle returns the current (signed/encrypted) metadata
 	// object corresponding to the given top-level folder's handle, if
 	// the logged-in user has read permission on the folder.  It
 	// creates the folder if one doesn't exist yet, and the logged-in
 	// user has permission to do so.
-	GetAtHandle(handle *DirHandle) (*RootMetadataSigned, error)
-	// GetTLF returns the current (signed/encrypted) metadata object
+	GetForHandle(handle *DirHandle) (*RootMetadataSigned, error)
+	// GetForTLF returns the current (signed/encrypted) metadata object
 	// corresponding to the given top-level folder, if the logged-in
 	// user has read permission on the folder.
-	GetTLF(id DirID) (*RootMetadataSigned, error)
+	GetForTLF(id DirID) (*RootMetadataSigned, error)
 	// Get returns the (signed/encrypted) metadata object that matches
 	// the provided MD ID, if one exists and the logged-in user has
 	// read permission on the corresponding top-level folder.
@@ -502,14 +503,14 @@ type MDServer interface {
 		sinceRmds []*RootMetadataSigned, hasMore bool, err error)
 	// Put stores the (signed/encrypted) metadata object for the given
 	// top-level folder, under the given MD ID.  If deviceID is
-	// non-nil, and the corresponding device has an unmerged history
-	// that includes the given unmerged head MdID, the device's
-	// unmerged history is truncated up to that id.  If the server
-	// cannot commit this MD to this top-level folder because
-	// md.PrevRoot does not match the current MD object for the folder
-	// due to another concurrent writer, it will return a specific
-	// error (TODO: make one) and the caller is expected to call
-	// PutUnmerged if it wants durability over consistency.
+	// non-nil, the unmerged history for the corresponding device is
+	// updated to indicate that everything up to and including the
+	// provided unmergedBase has been merged (similar to a git
+	// rebase).  If the server cannot commit this MD to this top-level
+	// folder because md.PrevRoot does not match the current MD object
+	// for the folder due to another concurrent writer, it will return
+	// a specific error (TODO: make one) and the caller is expected to
+	// call PutUnmerged if it wants durability over consistency.
 	Put(id DirID, mdID MdID, rmds *RootMetadataSigned, deviceID libkb.KID,
 		unmergedBase MdID) error
 
