@@ -646,7 +646,7 @@ func (ui SecretUI) GetNewPassphrase(earg keybase1.GetNewPassphraseArg) (eres key
 		arg.RetryMessage = ""
 		arg.Checker = nil
 
-		if text2, _, err = ui.ppprompt(arg, false); err != nil {
+		if text2, _, err = ui.ppprompt(arg, false /* useSecretStore */); err != nil {
 			return
 		}
 		if text == text2 {
@@ -668,7 +668,7 @@ func (ui SecretUI) GetKeybasePassphrase(arg keybase1.GetKeybasePassphraseArg) (t
 		PinentryDesc:   desc,
 		Checker:        &libkb.CheckPassphraseSimple,
 		RetryMessage:   arg.Retry,
-	}, false)
+	}, false /* useSecretStore */)
 	return
 }
 
