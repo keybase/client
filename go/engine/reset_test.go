@@ -3,6 +3,8 @@ package engine
 import (
 	"os"
 	"testing"
+
+	"github.com/keybase/client/go/libkb"
 )
 
 func assertFileExists(t *testing.T, path string) {
@@ -21,7 +23,17 @@ func TestReset(t *testing.T) {
 	tc := SetupEngineTest(t, "reset")
 	defer tc.Cleanup()
 
-	_ = CreateAndSignupFakeUser(tc, "reset")
+	fu := CreateAndSignupFakeUser(tc, "reset")
+
+	// TODO: Pass a flag into CreateAndSignupFakeUser to have it
+	// store the secret.
+	secretStore := libkb.NewSecretStore(fu.Username)
+	if secretStore != nil {
+		err := secretStore.StoreSecret([]byte("fake secret"))
+		if err != nil {
+			t.Fatal(err)
+		}
+	}
 
 	dbPath := tc.G.Env.GetDbFilename()
 	sessionPath := tc.G.Env.GetSessionFilename()
@@ -41,6 +53,13 @@ func TestReset(t *testing.T) {
 
 	if LoggedIn(tc) {
 		t.Error("Unexpectedly still logged in")
+	}
+
+	if secretStore != nil {
+		secret, err := secretStore.RetrieveSecret()
+		if err == nil {
+			t.Error("Unexpectedly got secret %v", secret)
+		}
 	}
 
 	assertFileDoesNotExist(t, dbPath)
