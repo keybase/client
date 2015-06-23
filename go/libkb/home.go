@@ -1,6 +1,7 @@
 package libkb
 
 import (
+	"fmt"
 	"io/ioutil"
 	"log"
 	"os"
@@ -8,6 +9,7 @@ import (
 	"regexp"
 	"runtime"
 	"strings"
+	"unicode"
 )
 
 type HomeGetter func() string
@@ -15,6 +17,7 @@ type HomeGetter func() string
 type Base struct {
 	appName string
 	getHome HomeGetter
+	dev bool
 }
 
 type HomeFinder interface {
@@ -98,6 +101,49 @@ func (x XdgPosix) LogDir() string {
 	return x.CacheDir()
 }
 
+type Darwin struct {
+	Base
+}
+
+func (d Darwin) dirName(s string) string {
+	a := []rune(s)
+	a[0] = unicode.ToUpper(a[0]) // Ensure directory name is capitalized
+	return string(a)
+}
+
+func (d Darwin) homeDir(prefixDirs ...string) string {
+	dir := d.Home(false)
+	var dirs []string
+	dirs = append([]string{dir}, prefixDirs...)
+
+	var appName = d.dirName(d.appName)
+	if d.dev {
+		appName = fmt.Sprintf("%sDev", appName)
+	}
+	dirs = append(dirs, appName)
+	return filepath.Join(dirs...)
+}
+
+func (d Darwin) CacheDir() string             { return d.homeDir("Library", "Caches") }
+func (d Darwin) ConfigDir() string            { return d.homeDir("Library", "Application Support") }
+func (d Darwin) DataDir() string              { return d.ConfigDir() }
+func (d Darwin) RuntimeDir() (string, error)  { return d.ConfigDir(), nil }
+func (d Darwin) ChdirDir() (string, error)    { return d.RuntimeDir() }
+func (d Darwin) LogDir() string               { return d.homeDir("Library", "Logs") }
+
+func (d Darwin) Home(emptyOk bool) string {
+	var ret string
+	if d.getHome != nil {
+		ret = d.getHome()
+	}
+	if len(ret) == 0 && !emptyOk {
+		ret = os.Getenv("HOME")
+	}
+	return ret
+}
+
+func (d Darwin) Normalize(s string) string { return s }
+
 type Win32 struct {
 	Base
 }
@@ -146,9 +192,12 @@ func (w Win32) Home(emptyOk bool) string {
 	return ret
 }
 
-func NewHomeFinder(appName string, getHome HomeGetter) HomeFinder {
+func NewHomeFinder(appName string, getHome HomeGetter, dev bool) HomeFinder {
 	if runtime.GOOS == "windows" {
-		return Win32{Base{appName, getHome}}
-	}
-	return XdgPosix{Base{appName, getHome}}
+		return Win32{Base{appName, getHome, dev}}
+	} else if runtime.GOOS == "darwin" {
+	  return Darwin{Base{appName, getHome, dev}}
+  } else {
+    return XdgPosix{Base{appName, getHome, dev}}
+  }
 }
