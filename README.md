@@ -12,7 +12,7 @@ To run the KBFS FUSE client:
 
 * Check out https://github.com/keybase/client, and do:
 
-        go get -u ./... (NOTE: may need to omit -u on OSX)
+        go get -u -f ./...
         cd client/go/keybase && go build && cd ../../..
         ln -s $GOPATH/src/github.com/keybase/client/git-hooks/pre-commit $GOPATH/src/github.com/keybase/kbfs/.git/hooks/
         go get -u github.com/golang/lint/golint
