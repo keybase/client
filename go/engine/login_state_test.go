@@ -505,3 +505,54 @@ func TestLoginWithPassphraseWithStore(t *testing.T) {
 }
 
 // TODO: Test LoginWithPassphrase with pubkey login failing.
+
+// Test that the signup with saving the secret, logout, then login
+// flow works.
+func TestSignupWithStoreThenLogin(t *testing.T) {
+	// TODO: Get this working on non-OS X platforms (by mocking
+	// out the SecretStore).
+	if !libkb.HasSecretStore() {
+		t.Skip("Skipping test since there is no secret store")
+	}
+
+	tc := SetupEngineTest(t, "signup with store then login")
+	defer tc.Cleanup()
+
+	fu := NewFakeUserOrBust(tc.T, "lssl")
+
+	if userHasStoredSecret(&tc, fu.Username) {
+		t.Errorf("User %s unexpectedly has a stored secret", fu.Username)
+	}
+
+	arg := SignupEngineRunArg{fu.Username, fu.Email, testInviteCode, fu.Passphrase, true, "my device", true, true}
+	ctx := &Context{
+		LogUI: tc.G.UI.GetLogUI(),
+		GPGUI: &gpgtestui{},
+		SecretUI: &libkb.TestSecretUI{
+			Passphrase:  fu.Passphrase,
+			StoreSecret: true,
+		},
+		LoginUI: libkb.TestLoginUI{Username: fu.Username},
+	}
+	s := NewSignupEngine(&arg, tc.G)
+	err := RunEngine(s, ctx)
+	if err != nil {
+		tc.T.Fatal(err)
+	}
+
+	Logout(tc)
+
+	// TODO: Mock out the SecretStore and make sure that it's
+	// actually consulted.
+	if err := tc.G.LoginState().LoginWithStoredSecret(fu.Username, nil); err != nil {
+		t.Error(err)
+	}
+
+	if err := libkb.ClearStoredSecret(fu.Username); err != nil {
+		t.Error(err)
+	}
+
+	if userHasStoredSecret(&tc, fu.Username) {
+		t.Errorf("User %s unexpectedly has a stored secret", fu.Username)
+	}
+}
