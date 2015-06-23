@@ -1,7 +1,7 @@
 package libkbfs
 
 import (
-	_ "fmt"
+	bserver "github.com/keybase/kbfs/bserver"
 )
 
 // Return a new initialized RootMetadata object for testing.
@@ -15,7 +15,7 @@ func newRootMetadataForTest(d *DirHandle, id DirID) *RootMetadata {
 
 // MakeTestConfigOrBust creates and returns a config suitable for
 // unit-testing with the given list of users.
-func MakeTestConfigOrBust(blockServerType string, users ...string) *ConfigLocal {
+func MakeTestConfigOrBust(blockServerRemote bool, users ...string) *ConfigLocal {
 	config := NewConfigLocal()
 
 	localUsers := MakeLocalUsers(users)
@@ -31,8 +31,8 @@ func MakeTestConfigOrBust(blockServerType string, users ...string) *ConfigLocal 
 	crypto := NewCryptoLocal(config.Codec(), signingKey, cryptPrivateKey)
 	config.SetCrypto(crypto)
 
-	if blockServerType == "remote" {
-		blockServer := libkbfs.NewBlockServerRemote(config, bserver.Config.BServerAddr)
+	if blockServerRemote == true {
+		blockServer := NewBlockServerRemote(config, bserver.Config.BServerAddr)
 		config.SetBlockServer(blockServer)
 	} else {
 		blockServer, err := NewBlockServerMemory(config)

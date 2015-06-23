@@ -7,6 +7,7 @@ import (
 	"errors"
 	"io/ioutil"
 	"net"
+	"strings"
 	"sync"
 	"time"
 
@@ -52,6 +53,7 @@ func NewBlockServerRemote(config Config, blkSrvAddr string) *BlockServerRemote {
 	}
 
 	if err := b.ConnectOnce(); err != nil {
+		libkb.G.Log.Warning("NewBlockServerRemote: cannot connect to backend err : %v", err)
 		go b.Reconnect()
 	}
 
@@ -92,18 +94,19 @@ func (b *BlockServerRemote) ConnectOnce() error {
 	b.clt = keybase1.BlockClient{Cli: rpc2.NewClient(
 		rpc2.NewTransport(b.conn, libkb.NewRPCLogFactory(), libkb.WrapError), libkb.UnwrapError)}
 
+	b.connected = true
+
 	var session *libkb.Session
-	if session, err = b.config.KBPKI().GetSession(); err != nil {
-		libkb.G.Log.Warning("error getting session, disconnect from backend: %q", err)
-		b.conn.Close()
-		return err
-	}
-	if err = b.clt.EstablishSession(session.GetToken()); err != nil {
-		b.conn.Close()
+	if session, err = b.config.KBPKI().GetSession(); err != nil || session == nil {
+		libkb.G.Log.Warning("BLockServerRemote: error getting session %q", err)
 		return err
 	}
 
-	b.connected = true
+	if err = b.clt.EstablishSession(session.GetToken()); err != nil {
+		libkb.G.Log.Warning("BlockServerRemote: error getting session token %q", err)
+		return err
+	}
+
 	return nil
 }
 
@@ -191,6 +194,10 @@ func (b *BlockServerRemote) Put(id BlockID, tlfID DirID, context BlockContext,
 	err := b.clt.PutBlock(arg)
 	if err != nil {
 		libkb.G.Log.Warning("PUT to backend err : %q", err)
+		//XXX: just silently ignore duplicate error for now
+		if strings.Contains(err.Error(), `objstore/table: update/put already applied`) == true {
+			err = nil
+		}
 	}
 	return err
 }
