@@ -83,7 +83,7 @@ func fsTimeEqual(a, b time.Time) bool {
 }
 
 func TestStatRoot(t *testing.T) {
-	config := libkbfs.MakeTestConfigOrBust(*BServerRemote, "jdoe")
+	config := libkbfs.MakeTestConfigOrBust(t, *BServerRemote, "jdoe")
 	mnt := makeFS(t, config)
 	defer mnt.Close()
 
@@ -97,7 +97,7 @@ func TestStatRoot(t *testing.T) {
 }
 
 func TestStatMyFolder(t *testing.T) {
-	config := libkbfs.MakeTestConfigOrBust(*BServerRemote, "jdoe")
+	config := libkbfs.MakeTestConfigOrBust(t, *BServerRemote, "jdoe")
 	mnt := makeFS(t, config)
 	defer mnt.Close()
 
@@ -111,7 +111,7 @@ func TestStatMyFolder(t *testing.T) {
 }
 
 func TestStatAlias(t *testing.T) {
-	config := libkbfs.MakeTestConfigOrBust(*BServerRemote, "jdoe")
+	config := libkbfs.MakeTestConfigOrBust(t, *BServerRemote, "jdoe")
 	mnt := makeFS(t, config)
 	defer mnt.Close()
 
@@ -133,7 +133,7 @@ func TestStatAlias(t *testing.T) {
 }
 
 func TestStatMyPublic(t *testing.T) {
-	config := libkbfs.MakeTestConfigOrBust(*BServerRemote, "jdoe")
+	config := libkbfs.MakeTestConfigOrBust(t, *BServerRemote, "jdoe")
 	mnt := makeFS(t, config)
 	defer mnt.Close()
 
@@ -147,7 +147,7 @@ func TestStatMyPublic(t *testing.T) {
 }
 
 func TestReaddirRoot(t *testing.T) {
-	config := libkbfs.MakeTestConfigOrBust(*BServerRemote, "jdoe")
+	config := libkbfs.MakeTestConfigOrBust(t, *BServerRemote, "jdoe")
 	mnt := makeFS(t, config)
 	defer mnt.Close()
 
@@ -170,7 +170,7 @@ func TestReaddirRoot(t *testing.T) {
 }
 
 func TestReaddirMyFolderEmpty(t *testing.T) {
-	config := libkbfs.MakeTestConfigOrBust(*BServerRemote, "jdoe")
+	config := libkbfs.MakeTestConfigOrBust(t, *BServerRemote, "jdoe")
 	mnt := makeFS(t, config)
 	defer mnt.Close()
 
@@ -180,7 +180,7 @@ func TestReaddirMyFolderEmpty(t *testing.T) {
 }
 
 func TestReaddirMyFolderWithFiles(t *testing.T) {
-	config := libkbfs.MakeTestConfigOrBust(*BServerRemote, "jdoe")
+	config := libkbfs.MakeTestConfigOrBust(t, *BServerRemote, "jdoe")
 	mnt := makeFS(t, config)
 	defer mnt.Close()
 
@@ -203,7 +203,7 @@ func TestReaddirMyFolderWithFiles(t *testing.T) {
 }
 
 func TestCreateThenRead(t *testing.T) {
-	config := libkbfs.MakeTestConfigOrBust(*BServerRemote, "jdoe")
+	config := libkbfs.MakeTestConfigOrBust(t, *BServerRemote, "jdoe")
 	mnt := makeFS(t, config)
 	defer mnt.Close()
 
@@ -231,7 +231,7 @@ func TestCreateThenRead(t *testing.T) {
 }
 
 func TestReadUnflushed(t *testing.T) {
-	config := libkbfs.MakeTestConfigOrBust(*BServerRemote, "jdoe")
+	config := libkbfs.MakeTestConfigOrBust(t, *BServerRemote, "jdoe")
 	mnt := makeFS(t, config)
 	defer mnt.Close()
 
@@ -257,7 +257,7 @@ func TestReadUnflushed(t *testing.T) {
 }
 
 func TestMountAgain(t *testing.T) {
-	config := libkbfs.MakeTestConfigOrBust(*BServerRemote, "jdoe")
+	config := libkbfs.MakeTestConfigOrBust(t, *BServerRemote, "jdoe")
 
 	const input = "hello, world\n"
 	const filename = "myfile"
@@ -286,7 +286,7 @@ func TestMountAgain(t *testing.T) {
 }
 
 func TestCreateExecutable(t *testing.T) {
-	config := libkbfs.MakeTestConfigOrBust(*BServerRemote, "jdoe")
+	config := libkbfs.MakeTestConfigOrBust(t, *BServerRemote, "jdoe")
 	mnt := makeFS(t, config)
 	defer mnt.Close()
 
@@ -304,7 +304,7 @@ func TestCreateExecutable(t *testing.T) {
 }
 
 func TestMkdir(t *testing.T) {
-	config := libkbfs.MakeTestConfigOrBust(*BServerRemote, "jdoe")
+	config := libkbfs.MakeTestConfigOrBust(t, *BServerRemote, "jdoe")
 	mnt := makeFS(t, config)
 	defer mnt.Close()
 
@@ -322,7 +322,7 @@ func TestMkdir(t *testing.T) {
 }
 
 func TestMkdirAndCreateDeep(t *testing.T) {
-	config := libkbfs.MakeTestConfigOrBust(*BServerRemote, "jdoe")
+	config := libkbfs.MakeTestConfigOrBust(t, *BServerRemote, "jdoe")
 	const input = "hello, world\n"
 
 	func() {
@@ -360,7 +360,7 @@ func TestMkdirAndCreateDeep(t *testing.T) {
 }
 
 func TestSymlink(t *testing.T) {
-	config := libkbfs.MakeTestConfigOrBust(*BServerRemote, "jdoe")
+	config := libkbfs.MakeTestConfigOrBust(t, *BServerRemote, "jdoe")
 
 	func() {
 		mnt := makeFS(t, config)
@@ -389,7 +389,7 @@ func TestSymlink(t *testing.T) {
 }
 
 func TestRename(t *testing.T) {
-	config := libkbfs.MakeTestConfigOrBust(*BServerRemote, "jdoe")
+	config := libkbfs.MakeTestConfigOrBust(t, *BServerRemote, "jdoe")
 	mnt := makeFS(t, config)
 	defer mnt.Close()
 
@@ -423,7 +423,7 @@ func TestRename(t *testing.T) {
 }
 
 func TestRenameOverwrite(t *testing.T) {
-	config := libkbfs.MakeTestConfigOrBust(*BServerRemote, "jdoe")
+	config := libkbfs.MakeTestConfigOrBust(t, *BServerRemote, "jdoe")
 	mnt := makeFS(t, config)
 	defer mnt.Close()
 
@@ -460,7 +460,7 @@ func TestRenameOverwrite(t *testing.T) {
 }
 
 func TestRenameCrossDir(t *testing.T) {
-	config := libkbfs.MakeTestConfigOrBust(*BServerRemote, "jdoe")
+	config := libkbfs.MakeTestConfigOrBust(t, *BServerRemote, "jdoe")
 	mnt := makeFS(t, config)
 	defer mnt.Close()
 
@@ -500,7 +500,7 @@ func TestRenameCrossDir(t *testing.T) {
 }
 
 func TestRenameCrossFolder(t *testing.T) {
-	config := libkbfs.MakeTestConfigOrBust(*BServerRemote, "jdoe", "wsmith")
+	config := libkbfs.MakeTestConfigOrBust(t, *BServerRemote, "jdoe", "wsmith")
 	mnt := makeFS(t, config)
 	defer mnt.Close()
 
@@ -554,7 +554,7 @@ func TestRenameCrossFolder(t *testing.T) {
 }
 
 func TestRemoveFile(t *testing.T) {
-	config := libkbfs.MakeTestConfigOrBust(*BServerRemote, "jdoe")
+	config := libkbfs.MakeTestConfigOrBust(t, *BServerRemote, "jdoe")
 	mnt := makeFS(t, config)
 	defer mnt.Close()
 
@@ -578,7 +578,7 @@ func TestRemoveFile(t *testing.T) {
 }
 
 func TestRemoveDir(t *testing.T) {
-	config := libkbfs.MakeTestConfigOrBust(*BServerRemote, "jdoe")
+	config := libkbfs.MakeTestConfigOrBust(t, *BServerRemote, "jdoe")
 	mnt := makeFS(t, config)
 	defer mnt.Close()
 
@@ -601,7 +601,7 @@ func TestRemoveDir(t *testing.T) {
 }
 
 func TestRemoveDirNotEmpty(t *testing.T) {
-	config := libkbfs.MakeTestConfigOrBust(*BServerRemote, "jdoe")
+	config := libkbfs.MakeTestConfigOrBust(t, *BServerRemote, "jdoe")
 	mnt := makeFS(t, config)
 	defer mnt.Close()
 
@@ -628,7 +628,7 @@ func TestRemoveFileWhileOpenWriting_Desired(t *testing.T) {
 	// when this works, rename function and remove
 	// TestRemoveFileWhileOpenWriting_Current
 	t.Skip("Not implemented yet. https://github.com/keybase/kbfs/issues/81")
-	config := libkbfs.MakeTestConfigOrBust(*BServerRemote, "jdoe")
+	config := libkbfs.MakeTestConfigOrBust(t, *BServerRemote, "jdoe")
 	mnt := makeFS(t, config)
 	defer mnt.Close()
 
@@ -660,7 +660,7 @@ func TestRemoveFileWhileOpenWriting_Desired(t *testing.T) {
 }
 
 func TestRemoveFileWhileOpenWriting_Current(t *testing.T) {
-	config := libkbfs.MakeTestConfigOrBust(*BServerRemote, "jdoe")
+	config := libkbfs.MakeTestConfigOrBust(t, *BServerRemote, "jdoe")
 	mnt := makeFS(t, config)
 	defer mnt.Close()
 
@@ -713,7 +713,7 @@ func TestRemoveFileWhileOpenReading_Desired(t *testing.T) {
 	// when this works, rename function and remove
 	// TestRemoveFileWhileOpenWriting_Current
 	t.Skip("Not implemented yet. https://github.com/keybase/kbfs/issues/82")
-	config := libkbfs.MakeTestConfigOrBust(*BServerRemote, "jdoe")
+	config := libkbfs.MakeTestConfigOrBust(t, *BServerRemote, "jdoe")
 	mnt := makeFS(t, config)
 	defer mnt.Close()
 
@@ -758,7 +758,7 @@ func TestRemoveFileWhileOpenReading_Current(t *testing.T) {
 	if runtime.GOOS == "darwin" {
 		t.Skip("on OS X, the relevant reads seems to be served from page cache, so we can't get this to trigger")
 	}
-	config := libkbfs.MakeTestConfigOrBust(*BServerRemote, "jdoe")
+	config := libkbfs.MakeTestConfigOrBust(t, *BServerRemote, "jdoe")
 	mnt := makeFS(t, config)
 	defer mnt.Close()
 
@@ -810,7 +810,7 @@ func TestRemoveFileWhileOpenReading_Current(t *testing.T) {
 }
 
 func TestTruncateGrow(t *testing.T) {
-	config := libkbfs.MakeTestConfigOrBust(*BServerRemote, "jdoe")
+	config := libkbfs.MakeTestConfigOrBust(t, *BServerRemote, "jdoe")
 	mnt := makeFS(t, config)
 	defer mnt.Close()
 
@@ -843,7 +843,7 @@ func TestTruncateGrow(t *testing.T) {
 }
 
 func TestTruncateShrink(t *testing.T) {
-	config := libkbfs.MakeTestConfigOrBust(*BServerRemote, "jdoe")
+	config := libkbfs.MakeTestConfigOrBust(t, *BServerRemote, "jdoe")
 	mnt := makeFS(t, config)
 	defer mnt.Close()
 
@@ -876,7 +876,7 @@ func TestTruncateShrink(t *testing.T) {
 }
 
 func TestChmodExec(t *testing.T) {
-	config := libkbfs.MakeTestConfigOrBust(*BServerRemote, "jdoe")
+	config := libkbfs.MakeTestConfigOrBust(t, *BServerRemote, "jdoe")
 	mnt := makeFS(t, config)
 	defer mnt.Close()
 
@@ -900,7 +900,7 @@ func TestChmodExec(t *testing.T) {
 }
 
 func TestChmodNonExec(t *testing.T) {
-	config := libkbfs.MakeTestConfigOrBust(*BServerRemote, "jdoe")
+	config := libkbfs.MakeTestConfigOrBust(t, *BServerRemote, "jdoe")
 	mnt := makeFS(t, config)
 	defer mnt.Close()
 
@@ -924,7 +924,7 @@ func TestChmodNonExec(t *testing.T) {
 }
 
 func TestSetattrMtime(t *testing.T) {
-	config := libkbfs.MakeTestConfigOrBust(*BServerRemote, "jdoe")
+	config := libkbfs.MakeTestConfigOrBust(t, *BServerRemote, "jdoe")
 	mnt := makeFS(t, config)
 	defer mnt.Close()
 
@@ -952,7 +952,7 @@ func TestSetattrMtime(t *testing.T) {
 }
 
 func TestFsync(t *testing.T) {
-	config := libkbfs.MakeTestConfigOrBust(*BServerRemote, "jdoe")
+	config := libkbfs.MakeTestConfigOrBust(t, *BServerRemote, "jdoe")
 	mnt := makeFS(t, config)
 	defer mnt.Close()
 
@@ -975,7 +975,7 @@ func TestFsync(t *testing.T) {
 }
 
 func TestReaddirMyPublic(t *testing.T) {
-	config := libkbfs.MakeTestConfigOrBust(*BServerRemote, "jdoe")
+	config := libkbfs.MakeTestConfigOrBust(t, *BServerRemote, "jdoe")
 	mnt := makeFS(t, config)
 	defer mnt.Close()
 
@@ -995,7 +995,7 @@ func TestReaddirMyPublic(t *testing.T) {
 func TestReaddirOtherFolderAsReader(t *testing.T) {
 	// TODO bystander is a bug workaround
 	// https://github.com/keybase/kbfs/issues/91
-	config := libkbfs.MakeTestConfigOrBust(*BServerRemote, "jdoe", "wsmith", "bystander")
+	config := libkbfs.MakeTestConfigOrBust(t, *BServerRemote, "jdoe", "wsmith", "bystander")
 	func() {
 		mnt := makeFS(t, config)
 		defer mnt.Close()
@@ -1016,7 +1016,7 @@ func TestReaddirOtherFolderAsReader(t *testing.T) {
 }
 
 func TestStatOtherFolder(t *testing.T) {
-	config := libkbfs.MakeTestConfigOrBust(*BServerRemote, "jdoe", "wsmith")
+	config := libkbfs.MakeTestConfigOrBust(t, *BServerRemote, "jdoe", "wsmith")
 	func() {
 		mnt := makeFS(t, config)
 		defer mnt.Close()
@@ -1043,7 +1043,7 @@ func TestStatOtherFolder(t *testing.T) {
 }
 
 func TestStatOtherFolderPublic(t *testing.T) {
-	config := libkbfs.MakeTestConfigOrBust(*BServerRemote, "jdoe", "wsmith")
+	config := libkbfs.MakeTestConfigOrBust(t, *BServerRemote, "jdoe", "wsmith")
 	func() {
 		mnt := makeFS(t, config)
 		defer mnt.Close()
@@ -1070,7 +1070,7 @@ func TestStatOtherFolderPublic(t *testing.T) {
 }
 
 func TestReadPublicFile(t *testing.T) {
-	config := libkbfs.MakeTestConfigOrBust(*BServerRemote, "jdoe", "wsmith")
+	config := libkbfs.MakeTestConfigOrBust(t, *BServerRemote, "jdoe", "wsmith")
 	const input = "hello, world\n"
 	func() {
 		mnt := makeFS(t, config)
@@ -1096,7 +1096,7 @@ func TestReadPublicFile(t *testing.T) {
 }
 
 func TestReaddirOtherFolderPublicAsAnyone(t *testing.T) {
-	config := libkbfs.MakeTestConfigOrBust(*BServerRemote, "jdoe", "wsmith")
+	config := libkbfs.MakeTestConfigOrBust(t, *BServerRemote, "jdoe", "wsmith")
 	func() {
 		mnt := makeFS(t, config)
 		defer mnt.Close()
@@ -1117,7 +1117,7 @@ func TestReaddirOtherFolderPublicAsAnyone(t *testing.T) {
 }
 
 func TestReaddirOtherFolderAsAnyone(t *testing.T) {
-	config := libkbfs.MakeTestConfigOrBust(*BServerRemote, "jdoe", "wsmith")
+	config := libkbfs.MakeTestConfigOrBust(t, *BServerRemote, "jdoe", "wsmith")
 	func() {
 		mnt := makeFS(t, config)
 		defer mnt.Close()

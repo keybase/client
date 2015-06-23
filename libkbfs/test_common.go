@@ -2,6 +2,7 @@ package libkbfs
 
 import (
 	bserver "github.com/keybase/kbfs/bserver"
+	"testing"
 )
 
 // Return a new initialized RootMetadata object for testing.
@@ -15,7 +16,7 @@ func newRootMetadataForTest(d *DirHandle, id DirID) *RootMetadata {
 
 // MakeTestConfigOrBust creates and returns a config suitable for
 // unit-testing with the given list of users.
-func MakeTestConfigOrBust(blockServerRemote bool, users ...string) *ConfigLocal {
+func MakeTestConfigOrBust(t *testing.T, blockServerRemote bool, users ...string) *ConfigLocal {
 	config := NewConfigLocal()
 
 	localUsers := MakeLocalUsers(users)
@@ -31,26 +32,26 @@ func MakeTestConfigOrBust(blockServerRemote bool, users ...string) *ConfigLocal 
 	crypto := NewCryptoLocal(config.Codec(), signingKey, cryptPrivateKey)
 	config.SetCrypto(crypto)
 
-	if blockServerRemote == true {
+	if blockServerRemote {
 		blockServer := NewBlockServerRemote(config, bserver.Config.BServerAddr)
 		config.SetBlockServer(blockServer)
 	} else {
 		blockServer, err := NewBlockServerMemory(config)
 		if err != nil {
-			panic(err)
+			t.Fatal(err)
 		}
 		config.SetBlockServer(blockServer)
 	}
 
 	mdServer, err := NewMDServerMemory(config)
 	if err != nil {
-		panic(err)
+		t.Fatal(err)
 	}
 	config.SetMDServer(mdServer)
 
 	keyOps, err := NewKeyServerMemory(config.Codec())
 	if err != nil {
-		panic(err)
+		t.Fatal(err)
 	}
 	config.SetKeyOps(keyOps)
 

@@ -44,7 +44,7 @@ func waitForUpdates(node *FuseNode) {
 
 // Test that looking up one's own public directory works.
 func TestLookupSelfPublic(t *testing.T) {
-	config := libkbfs.MakeTestConfigOrBust(*BServerRemote, "test_user")
+	config := libkbfs.MakeTestConfigOrBust(t, *BServerRemote, "test_user")
 
 	root := NewFuseRoot(config)
 	_ = nodefs.NewFileSystemConnector(root, nil)
@@ -56,7 +56,7 @@ func TestLookupSelfPublic(t *testing.T) {
 
 // Test that looking up someone else's public directory works.
 func TestLookupOtherPublic(t *testing.T) {
-	config := libkbfs.MakeTestConfigOrBust(*BServerRemote, "test_user1", "test_user2")
+	config := libkbfs.MakeTestConfigOrBust(t, *BServerRemote, "test_user1", "test_user2")
 
 	// First, look up the test_user1/public as test_user1 to
 	// create it.
@@ -83,7 +83,7 @@ func TestLookupOtherPublic(t *testing.T) {
 
 // Test that looking up someone else's private file doesn't work.
 func TestLookupOtherPrivateFile(t *testing.T) {
-	config := libkbfs.MakeTestConfigOrBust(*BServerRemote, "test_user1", "test_user2")
+	config := libkbfs.MakeTestConfigOrBust(t, *BServerRemote, "test_user1", "test_user2")
 
 	// First, look up the test_user1/public as test_user1 to
 	// create it.
@@ -160,7 +160,7 @@ func checkPathBlockPointers(
 // and looking up a directory that needs updating marks it as not
 // needing updating.
 func TestNeedUpdateBasic(t *testing.T) {
-	config := libkbfs.MakeTestConfigOrBust(*BServerRemote, "test_user")
+	config := libkbfs.MakeTestConfigOrBust(t, *BServerRemote, "test_user")
 
 	root := NewFuseRoot(config)
 	_ = nodefs.NewFileSystemConnector(root, nil)
@@ -194,7 +194,7 @@ func TestNeedUpdateBasic(t *testing.T) {
 // directory marks the path from the new directory's parent to the
 // user root as needing updating, and not just the parent.
 func TestNeedUpdateAll(t *testing.T) {
-	config := libkbfs.MakeTestConfigOrBust(*BServerRemote, "test_user")
+	config := libkbfs.MakeTestConfigOrBust(t, *BServerRemote, "test_user")
 
 	root := NewFuseRoot(config)
 	_ = nodefs.NewFileSystemConnector(root, nil)
@@ -223,7 +223,7 @@ func TestNeedUpdateAll(t *testing.T) {
 
 // Test that writing a file causes its whole path to need an update
 func TestLocalUpdateAll(t *testing.T) {
-	config := libkbfs.MakeTestConfigOrBust(*BServerRemote, "test_user")
+	config := libkbfs.MakeTestConfigOrBust(t, *BServerRemote, "test_user")
 
 	root := NewFuseRoot(config)
 	_ = nodefs.NewFileSystemConnector(root, nil)
@@ -245,7 +245,7 @@ func TestLocalUpdateAll(t *testing.T) {
 // Test that a local notification for a path, for which we only have
 // nodes for some prefix of the path, works correctly.
 func TestPartialLocalUpdate(t *testing.T) {
-	config := libkbfs.MakeTestConfigOrBust(*BServerRemote, "test_user")
+	config := libkbfs.MakeTestConfigOrBust(t, *BServerRemote, "test_user")
 
 	root := NewFuseRoot(config)
 	_ = nodefs.NewFileSystemConnector(root, nil)
@@ -277,7 +277,7 @@ func TestPartialLocalUpdate(t *testing.T) {
 // Test that a batch notification for a path, for which we only have
 // nodes for some prefix of the path, works correctly.
 func TestPartialBatchUpdate(t *testing.T) {
-	config := libkbfs.MakeTestConfigOrBust(*BServerRemote, "test_user")
+	config := libkbfs.MakeTestConfigOrBust(t, *BServerRemote, "test_user")
 
 	root := NewFuseRoot(config)
 	_ = nodefs.NewFileSystemConnector(root, nil)
@@ -336,7 +336,7 @@ func testCompleteBatchUpdate(t *testing.T, root *FuseNode, folderName string) {
 // private directory, sets NeedsUpdate and the BlockPointer correctly
 // on all nodes of the path.
 func TestCompleteBatchUpdatePrivate(t *testing.T) {
-	config := libkbfs.MakeTestConfigOrBust(*BServerRemote, "test_user")
+	config := libkbfs.MakeTestConfigOrBust(t, *BServerRemote, "test_user")
 
 	root := NewFuseRoot(config)
 	_ = nodefs.NewFileSystemConnector(root, nil)
@@ -347,7 +347,7 @@ func TestCompleteBatchUpdatePrivate(t *testing.T) {
 // directory, sets NeedsUpdate and the BlockPointer correctly on all
 // nodes of the path.
 func TestCompleteBatchUpdatePublic(t *testing.T) {
-	config := libkbfs.MakeTestConfigOrBust(*BServerRemote, "test_user")
+	config := libkbfs.MakeTestConfigOrBust(t, *BServerRemote, "test_user")
 
 	root := NewFuseRoot(config)
 	_ = nodefs.NewFileSystemConnector(root, nil)
@@ -358,7 +358,7 @@ func TestCompleteBatchUpdatePublic(t *testing.T) {
 
 // Test that setting the mtime works
 func TestSetMtime(t *testing.T) {
-	config := libkbfs.MakeTestConfigOrBust(*BServerRemote, "test_user")
+	config := libkbfs.MakeTestConfigOrBust(t, *BServerRemote, "test_user")
 
 	root := NewFuseRoot(config)
 	_ = nodefs.NewFileSystemConnector(root, nil)
