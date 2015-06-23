@@ -8,6 +8,7 @@ ADD test/start_daemon_in_container.sh /start_daemon.sh
 
 RUN useradd -m keybase
 USER keybase
+ENV KEYBASE_DEVEL_MODE 1
 ENV KEYBASE_SOCKET_FILE /keybase/socket/keybase.sock
 ENV KEYBASE_DEBUG true
 ENV PATH=$PATH:/keybase/bin
