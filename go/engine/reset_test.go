@@ -23,13 +23,26 @@ func TestReset(t *testing.T) {
 	tc := SetupEngineTest(t, "reset")
 	defer tc.Cleanup()
 
-	fu := CreateAndSignupFakeUser(tc, "reset")
+	// Sign up a new user and have it store its secret in the
+	// secret store.
+	fu := NewFakeUserOrBust(tc.T, "reset")
+	arg := MakeTestSignupEngineRunArg(fu)
+	arg.StoreSecret = true
+	ctx := &Context{
+		LogUI:    tc.G.UI.GetLogUI(),
+		GPGUI:    &gpgtestui{},
+		SecretUI: fu.NewSecretUI(),
+		LoginUI:  libkb.TestLoginUI{Username: fu.Username},
+	}
+	s := NewSignupEngine(&arg, tc.G)
+	err := RunEngine(s, ctx)
+	if err != nil {
+		tc.T.Fatal(err)
+	}
 
-	// TODO: Pass a flag into CreateAndSignupFakeUser to have it
-	// store the secret.
 	secretStore := libkb.NewSecretStore(fu.Username)
 	if secretStore != nil {
-		err := secretStore.StoreSecret([]byte("fake secret"))
+		_, err := secretStore.RetrieveSecret()
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -46,7 +59,7 @@ func TestReset(t *testing.T) {
 	}
 
 	e := NewResetEngine(tc.G)
-	ctx := &Context{}
+	ctx = &Context{}
 	if err := RunEngine(e, ctx); err != nil {
 		t.Fatal(err)
 	}
