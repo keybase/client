@@ -322,7 +322,10 @@ func (s *SKB) lksUnlock(lctx LoginContext, pps PassphraseStream, secretStorer Se
 			return
 		}
 		// Ignore any errors storing the secret.
-		_ = secretStorer.StoreSecret(secret)
+		storeSecretErr := secretStorer.StoreSecret(secret)
+		if storeSecretErr != nil {
+			s.G().Log.Warning("StoreSecret error: %s", storeSecretErr)
+		}
 	}
 
 	return

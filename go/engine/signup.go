@@ -190,7 +190,10 @@ func (s *SignupEngine) registerDevice(a libkb.LoginContext, ctx *Context, device
 			return err
 		}
 		// Ignore any errors storing the secret.
-		_ = secretStore.StoreSecret(secret)
+		storeSecretErr := secretStore.StoreSecret(secret)
+		if storeSecretErr != nil {
+			s.G().Log.Warning("StoreSecret error: %s", storeSecretErr)
+		}
 	}
 
 	return nil
