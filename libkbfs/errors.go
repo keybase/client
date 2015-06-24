@@ -466,3 +466,17 @@ func (e InvalidPublicTLFOperation) Error() string {
 	return fmt.Sprintf("Tried to do invalid operation %s on public TLF %v",
 		e.opName, e.id)
 }
+
+// WrongOpsError indicates that an unexpected path got passed into a
+// FolderBranchOps instance
+type WrongOpsError struct {
+	path      Path
+	opsID     DirID
+	opsBranch BranchName
+}
+
+// Error implements the error interface for WrongOpsError.
+func (e WrongOpsError) Error() string {
+	return fmt.Sprintf("Ops for folder %v, branch %s, was given path %s, "+
+		"branch %s", e.opsID, e.opsBranch, e.path, e.path.Branch)
+}

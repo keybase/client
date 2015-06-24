@@ -165,7 +165,9 @@ func makeIDAndRMD(t *testing.T, config *ConfigMock) (
 	userID, id, h := makeID(t, config, false)
 	rmd := newRootMetadataForTest(h, id)
 	addNewKeysOrBust(t, rmd, DirKeyBundle{})
-	config.KBFSOps().(*KBFSOpsStandard).heads[id] = rmd.mdID
+
+	ops := config.KBFSOps().(*KBFSOpsStandard).getOps(opID{id, MasterBranch})
+	ops.head = rmd
 	rmd.SerializedPrivateMetadata = make([]byte, 1)
 	config.mockMdcache.EXPECT().Get(rmd.mdID).AnyTimes().Return(rmd, nil)
 	config.Notifier().RegisterForChanges([]DirID{id}, config.observer)
@@ -342,8 +344,11 @@ func TestKBFSOpsGetRootMDForHandleExisting(t *testing.T) {
 	}
 
 	config.mockMdops.EXPECT().GetForHandle(h).Return(rmd, nil)
+	ops := config.KBFSOps().(*KBFSOpsStandard).getOps(opID{id, MasterBranch})
+	ops.head = rmd
 
-	if p, de, err := config.KBFSOps().GetOrCreateRootPathForHandle(h); err != nil {
+	if p, de, err :=
+		config.KBFSOps().GetOrCreateRootPathForHandle(h); err != nil {
 		t.Errorf("Got error on root MD for handle: %v", err)
 	} else if p.TopDir != id {
 		t.Errorf("Got bad dir id back: %v", p.TopDir)
@@ -445,8 +450,8 @@ func TestKBFSOpsGetBaseDirUncachedFailNonReader(t *testing.T) {
 	p := Path{TopDir: id, Path: []PathNode{node}}
 
 	// won't even try getting the block if the user isn't a reader
-	config.KBFSOps().(*KBFSOpsStandard).heads[id] = rmd.mdID
-	config.mockMdcache.EXPECT().Get(rmd.mdID).Return(rmd, nil)
+	ops := config.KBFSOps().(*KBFSOpsStandard).getOps(opID{id, MasterBranch})
+	ops.head = rmd
 	config.mockKbpki.EXPECT().GetLoggedInUser().AnyTimes().Return(userID, nil)
 	expectUserCall(userID, config)
 	expectedErr := &ReadAccessError{
@@ -522,7 +527,8 @@ func TestKBFSOpsGetNestedDirCacheSuccess(t *testing.T) {
 
 	u, id, h := makeID(t, config, false)
 	rmd := newRootMetadataForTest(h, id)
-	config.KBFSOps().(*KBFSOpsStandard).heads[id] = rmd.mdID
+	ops := config.KBFSOps().(*KBFSOpsStandard).getOps(opID{id, MasterBranch})
+	ops.head = rmd
 	config.mockMdcache.EXPECT().Get(rmd.mdID).AnyTimes().Return(rmd, nil)
 
 	rootID := BlockID{42}
@@ -1780,15 +1786,6 @@ func TestKBFSOpsServerReadFailNoSuchBlock(t *testing.T) {
 	}
 }
 
-func setRmdAfterWrite(config *ConfigMock, newRmd **RootMetadata) {
-	config.mockMdcache.EXPECT().Put(gomock.Any(), gomock.Any()).
-		Do(func(id MdID, rmd *RootMetadata) {
-		if newRmd != nil {
-			*newRmd = rmd
-		}
-	})
-}
-
 func TestKBFSOpsWriteNewBlockSuccess(t *testing.T) {
 	mockCtrl, config := kbfsOpsInit(t, true)
 	defer kbfsTestShutdown(mockCtrl, config)
@@ -1818,7 +1815,6 @@ func TestKBFSOpsWriteNewBlockSuccess(t *testing.T) {
 		Do(func(block *FileBlock, lb bool, data []byte, off int64) {
 		block.Contents = data
 	}).Return(int64(len(data)))
-	setRmdAfterWrite(config, nil)
 
 	if err := config.KBFSOps().Write(p, data, 0); err != nil {
 		t.Errorf("Got error on write: %v", err)
@@ -1827,6 +1823,9 @@ func TestKBFSOpsWriteNewBlockSuccess(t *testing.T) {
 	newFileBlock := getFileBlockFromCache(t, config, fileNode.BlockPointer,
 		p.Branch)
 	newRootBlock := getDirBlockFromCache(t, config, node.BlockPointer, p.Branch)
+	ops := config.KBFSOps().(*KBFSOpsStandard).getOps(opID{id, MasterBranch})
+	newRootBlock = ops.updateDirBlock(
+		Path{TopDir: id, Path: []PathNode{node}}, newRootBlock)
 
 	if len(config.observer.localUpdatePath.Path) != len(p.Path) {
 		t.Errorf("Missing or incorrect local update during write: %s",
@@ -1877,7 +1876,6 @@ func TestKBFSOpsWriteExtendSuccess(t *testing.T) {
 		Do(func(block *FileBlock, lb bool, data []byte, off int64) {
 		block.Contents = expectedFullData
 	}).Return(int64(len(data)))
-	setRmdAfterWrite(config, nil)
 
 	if err := config.KBFSOps().Write(p, data, 5); err != nil {
 		t.Errorf("Got error on write: %v", err)
@@ -1930,7 +1928,6 @@ func TestKBFSOpsWritePastEndSuccess(t *testing.T) {
 		Do(func(block *FileBlock, lb bool, data []byte, off int64) {
 		block.Contents = expectedFullData
 	}).Return(int64(len(data)))
-	setRmdAfterWrite(config, nil)
 
 	if err := config.KBFSOps().Write(p, data, 7); err != nil {
 		t.Errorf("Got error on write: %v", err)
@@ -2001,13 +1998,15 @@ func TestKBFSOpsWriteCauseSplit(t *testing.T) {
 		block.Contents = data
 	}).Return(int64(5))
 
-	setRmdAfterWrite(config, nil)
-
 	if err := config.KBFSOps().Write(p, newData, 1); err != nil {
 		t.Errorf("Got error on write: %v", err)
 	}
 	b, _ := config.BlockCache().Get(node.BlockPointer, p.Branch)
 	newRootBlock := b.(*DirBlock)
+	ops := config.KBFSOps().(*KBFSOpsStandard).getOps(opID{id, MasterBranch})
+	newRootBlock = ops.updateDirBlock(
+		Path{TopDir: id, Path: []PathNode{node}}, newRootBlock)
+
 	b, _ = config.BlockCache().Get(fileNode.BlockPointer, p.Branch)
 	pblock := b.(*FileBlock)
 	b, _ = config.BlockCache().Get(BlockPointer{ID: id1}, p.Branch)
@@ -2103,9 +2102,6 @@ func TestKBFSOpsWriteOverMultipleBlocks(t *testing.T) {
 		block.Contents = append(data, block2.Contents[2:]...)
 	}).Return(int64(2))
 
-	var newRmd *RootMetadata
-	setRmdAfterWrite(config, &newRmd)
-
 	if err := config.KBFSOps().Write(p, data, 2); err != nil {
 		t.Errorf("Got error on write: %v", err)
 	}
@@ -2125,8 +2121,11 @@ func TestKBFSOpsWriteOverMultipleBlocks(t *testing.T) {
 	}
 
 	index := len(p.Path) - 1
-	checkBlockChange(t, newRmd.data.UnrefBlocks.Changes, p, index, 0, id1)
-	checkBlockChange(t, newRmd.data.UnrefBlocks.Changes, p, index, 0, id2)
+	// merge the unref cache to make it easy to check for changes
+	ops := config.KBFSOps().(*KBFSOpsStandard).getOps(opID{id, MasterBranch})
+	ops.mergeUnrefCacheLocked(p, rmd) // no need to lock in test
+	checkBlockChange(t, rmd.data.UnrefBlocks.Changes, p, index, 0, id1)
+	checkBlockChange(t, rmd.data.UnrefBlocks.Changes, p, index, 0, id2)
 	checkBlockCache(t, config, []BlockID{rootID, fileID, id1, id2},
 		map[BlockPointer]BranchName{
 			fileNode.BlockPointer:           p.Branch,
@@ -2162,7 +2161,6 @@ func TestKBFSOpsTruncateToZeroSuccess(t *testing.T) {
 
 	config.BlockCache().Put(node.BlockPointer.ID, rootBlock)
 	config.BlockCache().Put(fileNode.BlockPointer.ID, fileBlock)
-	setRmdAfterWrite(config, nil)
 
 	data := []byte{}
 	if err := config.KBFSOps().Truncate(p, 0); err != nil {
@@ -2172,6 +2170,9 @@ func TestKBFSOpsTruncateToZeroSuccess(t *testing.T) {
 	newFileBlock := getFileBlockFromCache(t, config, fileNode.BlockPointer,
 		p.Branch)
 	newRootBlock := getDirBlockFromCache(t, config, node.BlockPointer, p.Branch)
+	ops := config.KBFSOps().(*KBFSOpsStandard).getOps(opID{id, MasterBranch})
+	newRootBlock = ops.updateDirBlock(
+		Path{TopDir: id, Path: []PathNode{node}}, newRootBlock)
 
 	if len(config.observer.localUpdatePath.Path) != len(p.Path) {
 		t.Errorf("Missing or incorrect local update during truncate: %s",
@@ -2249,7 +2250,6 @@ func TestKBFSOpsTruncateSmallerSuccess(t *testing.T) {
 
 	config.BlockCache().Put(node.BlockPointer.ID, rootBlock)
 	config.BlockCache().Put(fileNode.BlockPointer.ID, fileBlock)
-	setRmdAfterWrite(config, nil)
 
 	data := []byte{1, 2, 3, 4, 5}
 	if err := config.KBFSOps().Truncate(p, 5); err != nil {
@@ -2304,8 +2304,6 @@ func TestKBFSOpsTruncateRemovesABlock(t *testing.T) {
 	config.BlockCache().Put(node.BlockPointer.ID, rootBlock)
 	config.BlockCache().Put(fileNode.BlockPointer.ID, fileBlock)
 	config.BlockCache().Put(fileBlock.IPtrs[0].BlockPointer.ID, block1)
-	var newRmd *RootMetadata
-	setRmdAfterWrite(config, &newRmd)
 
 	data := []byte{5, 4, 3, 2}
 	if err := config.KBFSOps().Truncate(p, 4); err != nil {
@@ -2317,6 +2315,10 @@ func TestKBFSOpsTruncateRemovesABlock(t *testing.T) {
 	newBlock1 := getFileBlockFromCache(t, config,
 		fileBlock.IPtrs[0].BlockPointer, p.Branch)
 
+	// merge unref changes so we can easily check the block changes
+	ops := config.KBFSOps().(*KBFSOpsStandard).getOps(opID{id, MasterBranch})
+	ops.mergeUnrefCacheLocked(p, rmd) // no need to lock in test
+
 	if len(config.observer.localUpdatePath.Path) != len(p.Path) {
 		t.Errorf("Missing or incorrect local update during truncate: %s",
 			config.observer.localUpdatePath)
@@ -2324,12 +2326,12 @@ func TestKBFSOpsTruncateRemovesABlock(t *testing.T) {
 		t.Errorf("Wrote bad contents: %v", newBlock1.Contents)
 	} else if len(newPBlock.IPtrs) != 1 {
 		t.Errorf("Wrong number of indirect pointers: %d", len(newPBlock.IPtrs))
-	} else if newRmd.UnrefBytes != 0+5+6 {
+	} else if rmd.UnrefBytes != 0+5+6 {
 		// The fileid and both blocks were all modified and marked dirty
 		t.Errorf("Truncated block not correctly unref'd, unrefBytes = %d",
 			rmd.UnrefBytes)
 	}
-	checkBlockChange(t, newRmd.data.UnrefBlocks.Changes, p,
+	checkBlockChange(t, rmd.data.UnrefBlocks.Changes, p,
 		len(p.Path)-1, 0, id2)
 	checkBlockCache(t, config, []BlockID{rootID, fileID, id1},
 		map[BlockPointer]BranchName{
@@ -2368,8 +2370,6 @@ func TestKBFSOpsTruncateBiggerSuccess(t *testing.T) {
 		Do(func(block *FileBlock, lb bool, data []byte, off int64) {
 		block.Contents = append(block.Contents, data...)
 	}).Return(int64(5))
-
-	setRmdAfterWrite(config, nil)
 
 	data := []byte{1, 2, 3, 4, 5, 0, 0, 0, 0, 0}
 	if err := config.KBFSOps().Truncate(p, 10); err != nil {

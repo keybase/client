@@ -27,6 +27,7 @@ func (m *MDOpsConcurTest) GetForHandle(handle *DirHandle) (
 }
 
 func (m *MDOpsConcurTest) GetForTLF(id DirID) (*RootMetadata, error) {
+	fmt.Printf("HERE in GETFORTLF\n")
 	_, ok := <-m.enter
 	if !ok {
 		// Only one caller should ever get here
@@ -49,6 +50,8 @@ func (m *MDOpsConcurTest) GetSince(id DirID, mdID MdID, max int) (
 
 func (m *MDOpsConcurTest) Put(id DirID, md *RootMetadata, deviceID libkb.KID,
 	unmergedBase MdID) error {
+	<-m.start
+	<-m.enter
 	md.SerializedPrivateMetadata = make([]byte, 1, 1)
 	return nil
 }
