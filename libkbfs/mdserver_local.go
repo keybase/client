@@ -2,7 +2,6 @@ package libkbfs
 
 import (
 	"fmt"
-	"math"
 
 	"github.com/keybase/client/go/libkb"
 	"github.com/syndtr/goleveldb/leveldb"
@@ -181,7 +180,10 @@ func (md *MDServerLocal) getRange(id DirID, start MdID, end MdID, max int) (
 	}
 
 	// reverse tmp, up to max items
-	numSince := int(math.Min(float64(len(tmp)), float64(max)))
+	numSince := len(tmp)
+	if numSince > max {
+		numSince = max
+	}
 	sinceRmds = make([]*RootMetadataSigned, numSince)
 	for i := 0; i < numSince; i++ {
 		sinceRmds[i] = tmp[len(tmp)-1-i]
