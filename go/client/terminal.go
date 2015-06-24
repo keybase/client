@@ -101,5 +101,14 @@ func (t Terminal) GetSecret(arg *keybase1.SecretEntryArg) (res *keybase1.SecretE
 		res = &keybase1.SecretEntryRes{Text: txt}
 	}
 
+	if arg.UseSecretStore {
+		// TODO: Come up with better prompt for non-OS X
+		// platforms.
+		res.StoreSecret, err = t.PromptYesNo("Store secret in Keychain?", PromptDefaultYes)
+		if err != nil {
+			return
+		}
+	}
+
 	return
 }
