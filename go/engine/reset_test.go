@@ -24,7 +24,7 @@ func TestReset(t *testing.T) {
 	defer tc.Cleanup()
 
 	// Sign up a new user and have it store its secret in the
-	// secret store.
+	// secret store (if possible).
 	fu := NewFakeUserOrBust(tc.T, "reset")
 	arg := MakeTestSignupEngineRunArg(fu)
 	arg.StoreSecret = libkb.HasSecretStore()
