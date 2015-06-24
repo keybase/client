@@ -88,3 +88,7 @@ func HasSecretStore() bool {
 func GetUsersWithStoredSecrets() ([]string, error) {
 	return kc.GetAllAccountNames(keychainServiceName)
 }
+
+func GetTerminalPrompt() string {
+	return "Store your key in Apple's local keychain?"
+}

@@ -104,9 +104,7 @@ func (t Terminal) GetSecret(arg *keybase1.SecretEntryArg) (res *keybase1.SecretE
 	if arg.UseSecretStore {
 		// TODO: Default to 'No' and dismiss the question for
 		// about a day if 'No' is selected.
-		//
-		// TODO: Come up with prompts for other platforms.
-		res.StoreSecret, err = t.PromptYesNo("Store your key in Apple's local keychain?", PromptDefaultYes)
+		res.StoreSecret, err = t.PromptYesNo(libkb.GetTerminalPrompt(), PromptDefaultYes)
 		if err != nil {
 			return
 		}

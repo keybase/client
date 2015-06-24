@@ -18,9 +18,9 @@ type SecretStore interface {
 	ClearSecret() error
 }
 
-// NewSecretStore(username string), HasSecretStore(), and
-// GetUsersWithStoredSecrets() ([]string, error) are defined in
-// platform-specific files.
+// NewSecretStore(username string), HasSecretStore(),
+// GetUsersWithStoredSecrets() ([]string, error), and
+// GetTerminalPrompt() are defined in platform-specific files.
 
 func GetConfiguredAccounts() ([]keybase1.ConfiguredAccount, error) {
 	usernames, err := GetUsersWithStoredSecrets()
