@@ -18,7 +18,7 @@ func NewLoginHandler(xp *rpc2.Transport) *LoginHandler {
 }
 
 func (h *LoginHandler) GetConfiguredAccounts(sessionID int) ([]keybase1.ConfiguredAccount, error) {
-	return libkb.GetConfiguredAccounts()
+	return libkb.GetConfiguredAccounts(G)
 }
 
 func (h *LoginHandler) Logout(sessionID int) error {
