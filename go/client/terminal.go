@@ -3,6 +3,7 @@ package client
 import (
 	"io"
 
+	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/minterm"
 	keybase1 "github.com/keybase/client/protocol/go"
 )
@@ -35,6 +36,40 @@ func (t Terminal) Prompt(s string) (string, error) {
 	return t.engine.Prompt(s)
 }
 
+func (t Terminal) PromptYesNo(p string, def PromptDefault) (ret bool, err error) {
+	var ch string
+	switch def {
+	case PromptDefaultNeither:
+		ch = "[y/n]"
+	case PromptDefaultYes:
+		ch = "[Y/n]"
+	case PromptDefaultNo:
+		ch = "[y/N]"
+	}
+	prompt := p + " " + ch + " "
+	done := false
+	for !done && err == nil {
+		var s string
+		if s, err = t.Prompt(prompt); err != nil {
+		} else if libkb.IsYes(s) {
+			ret = true
+			done = true
+		} else if libkb.IsNo(s) {
+			ret = false
+			done = true
+		} else if libkb.IsEmpty(s) {
+			if def == PromptDefaultNo {
+				ret = false
+				done = true
+			} else if def == PromptDefaultYes {
+				ret = true
+				done = true
+			}
+		}
+	}
+	return
+}
+
 func (t Terminal) GetSize() (int, int) {
 	return t.engine.Size()
 }
@@ -64,6 +99,17 @@ func (t Terminal) GetSecret(arg *keybase1.SecretEntryArg) (res *keybase1.SecretE
 		}
 	} else {
 		res = &keybase1.SecretEntryRes{Text: txt}
+	}
+
+	if arg.UseSecretStore {
+		// TODO: Default to 'No' and dismiss the question for
+		// about a day if 'No' is selected.
+		//
+		// TODO: Come up with prompts for other platforms.
+		res.StoreSecret, err = t.PromptYesNo("Store your key in Apple's local keychain?", PromptDefaultYes)
+		if err != nil {
+			return
+		}
 	}
 
 	return
