@@ -106,7 +106,7 @@ func NewCmdPGPGen(cl *libcmdline.CommandLine) cli.Command {
 			},
 			cli.BoolFlag{
 				Name:  "no-export",
-				Usage: "Turn of exporting of new keys to GPG keychain",
+				Usage: "Disable exporting of new keys to GPG keychain",
 			},
 		},
 		Action: func(c *cli.Context) {
