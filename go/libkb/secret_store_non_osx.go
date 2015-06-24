@@ -13,3 +13,8 @@ func HasSecretStore() bool {
 func GetUsersWithStoredSecrets() ([]string, error) {
 	return nil, nil
 }
+
+func GetTerminalPrompt() string {
+	// TODO: Come up with specific prompts for other platforms.
+	return "Store your key in the local secret store?"
+}
