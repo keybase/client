@@ -780,37 +780,7 @@ const (
 )
 
 func (ui *UI) PromptYesNo(p string, def PromptDefault) (ret bool, err error) {
-	var ch string
-	switch def {
-	case PromptDefaultNeither:
-		ch = "[y/n]"
-	case PromptDefaultYes:
-		ch = "[Y/n]"
-	case PromptDefaultNo:
-		ch = "[y/N]"
-	}
-	prompt := p + " " + ch + " "
-	done := false
-	for !done && err == nil {
-		var s string
-		if s, err = ui.Terminal.Prompt(prompt); err != nil {
-		} else if libkb.IsYes(s) {
-			ret = true
-			done = true
-		} else if libkb.IsNo(s) {
-			ret = false
-			done = true
-		} else if libkb.IsEmpty(s) {
-			if def == PromptDefaultNo {
-				ret = false
-				done = true
-			} else if def == PromptDefaultYes {
-				ret = true
-				done = true
-			}
-		}
-	}
-	return
+	return ui.Terminal.PromptYesNo(p, def)
 }
 
 var ErrInputCanceled InputCanceledError
