@@ -22,18 +22,38 @@ type SecretStore interface {
 // GetUsersWithStoredSecrets() ([]string, error), and
 // GetTerminalPrompt() are defined in platform-specific files.
 
-func GetConfiguredAccounts() ([]keybase1.ConfiguredAccount, error) {
-	usernames, err := GetUsersWithStoredSecrets()
+func GetConfiguredAccounts(g *GlobalContext) ([]keybase1.ConfiguredAccount, error) {
+	currentUsername, otherUsernames, err := g.Env.GetConfig().GetAllUsernames()
 	if err != nil {
 		return nil, err
 	}
-	configuredAccounts := make([]keybase1.ConfiguredAccount, len(usernames))
 
-	for i, username := range usernames {
-		configuredAccounts[i] = keybase1.ConfiguredAccount{
-			Username:        username,
-			HasStoredSecret: true,
+	allUsernames := append(otherUsernames, currentUsername)
+
+	accounts := make(map[string]keybase1.ConfiguredAccount)
+
+	for _, username := range allUsernames {
+		accounts[username] = keybase1.ConfiguredAccount{
+			Username: username,
 		}
+	}
+
+	storedSecretUsernames, err := GetUsersWithStoredSecrets()
+	if err != nil {
+		return nil, err
+	}
+
+	for _, username := range storedSecretUsernames {
+		account, ok := accounts[username]
+		if ok {
+			account.HasStoredSecret = true
+			accounts[username] = account
+		}
+	}
+
+	configuredAccounts := make([]keybase1.ConfiguredAccount, 0, len(accounts))
+	for _, account := range accounts {
+		configuredAccounts = append(configuredAccounts, account)
 	}
 
 	return configuredAccounts, nil
