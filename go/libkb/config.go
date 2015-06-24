@@ -276,7 +276,13 @@ func (f *JSONConfigFile) setUserConfigWithLock(u *UserConfig, overwrite bool) er
 			f.dirty = true
 		}
 		if parent.AtKey(un).IsNil() || overwrite {
-			parent.SetKey(un, jsonw.NewWrapper(*u))
+			// Store *u as a dictionary.
+			w := jsonw.NewWrapper(*u)
+			var tmp map[string]interface{}
+			if err := w.UnmarshalAgain(&tmp); err != nil {
+				return err
+			}
+			parent.SetKey(un, jsonw.NewWrapper(tmp))
 			f.userConfigWrapper.userConfig = u
 			f.dirty = true
 		}
