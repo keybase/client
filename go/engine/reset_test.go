@@ -27,7 +27,7 @@ func TestReset(t *testing.T) {
 	// secret store.
 	fu := NewFakeUserOrBust(tc.T, "reset")
 	arg := MakeTestSignupEngineRunArg(fu)
-	arg.StoreSecret = true
+	arg.StoreSecret = libkb.HasSecretStore()
 	ctx := &Context{
 		LogUI:    tc.G.UI.GetLogUI(),
 		GPGUI:    &gpgtestui{},
@@ -40,8 +40,8 @@ func TestReset(t *testing.T) {
 		tc.T.Fatal(err)
 	}
 
-	secretStore := libkb.NewSecretStore(fu.Username)
-	if secretStore != nil {
+	if libkb.HasSecretStore() {
+		secretStore := libkb.NewSecretStore(fu.Username)
 		_, err := secretStore.RetrieveSecret()
 		if err != nil {
 			t.Fatal(err)
@@ -68,7 +68,8 @@ func TestReset(t *testing.T) {
 		t.Error("Unexpectedly still logged in")
 	}
 
-	if secretStore != nil {
+	if libkb.HasSecretStore() {
+		secretStore := libkb.NewSecretStore(fu.Username)
 		secret, err := secretStore.RetrieveSecret()
 		if err == nil {
 			t.Error("Unexpectedly got secret %v", secret)
