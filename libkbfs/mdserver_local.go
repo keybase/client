@@ -171,7 +171,7 @@ func (md *MDServerLocal) getRange(id DirID, start MdID, end MdID, max int) (
 	}
 	tmp := []*RootMetadataSigned{rmds}
 	for rmds.MD.PrevRoot != start {
-		// prepend the new item, so that the order increases over time
+		// append the newer item; we'll reverse the list later
 		rmds, err = md.Get(rmds.MD.PrevRoot)
 		if err != nil {
 			return
@@ -264,11 +264,15 @@ func (md *MDServerLocal) Put(id DirID, mdID MdID, rmds *RootMetadataSigned,
 	// now clear out the unmerged history up to unmergedID
 	exists, u, err := md.getUnmergedInfo(id)
 	if err != nil || !exists {
+		// when no unmerged info exists for this folder, return err == nil
 		return err
 	}
 	devKey := deviceID.ToMapKey()
 	devInfo, ok := u.Devices[devKey]
 	if !ok {
+		// Technically could return nil here, but since this is a
+		// local server that only supports one device, we should never
+		// hit that case.
 		return fmt.Errorf("Missing unmerged info for device %v for folder %v",
 			deviceID, id)
 	}
@@ -305,9 +309,8 @@ func (md *MDServerLocal) PutUnmerged(id DirID, mdID MdID,
 	devKey := deviceID.ToMapKey()
 	udev, ok := u.Devices[devKey]
 	if !ok {
-		udev = unmergedDevInfo{}
 		// this must be the first branch from committed data
-		udev.Base = rmds.MD.PrevRoot
+		udev = unmergedDevInfo{Base: rmds.MD.PrevRoot}
 	}
 	udev.Head = mdID
 	u.Devices[devKey] = udev
@@ -323,6 +326,7 @@ func (md *MDServerLocal) GetUnmergedSince(id DirID, deviceID libkb.KID,
 	mdID MdID, max int) ([]*RootMetadataSigned, bool, error) {
 	exists, u, err := md.getUnmergedInfo(id)
 	if err != nil || !exists {
+		// if there's no unmerged info, just return err == nil
 		return nil, false, err
 	}
 	devKey := deviceID.ToMapKey()
