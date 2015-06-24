@@ -180,6 +180,7 @@
   }
 
   if (service) {
+    [args addObject:@"-L"]; // Plain logging
     // Run service (this should be the last arg)
     [args addObject:@"service"];
   }
