@@ -259,8 +259,8 @@ func (t TestSecretUI) GetSecret(p keybase1.SecretEntryArg, terminal *keybase1.Se
 	}, nil
 }
 
-func (t TestSecretUI) GetNewPassphrase(keybase1.GetNewPassphraseArg) (string, error) {
-	return t.Passphrase, nil
+func (t TestSecretUI) GetNewPassphrase(keybase1.GetNewPassphraseArg) (keybase1.GetNewPassphraseRes, error) {
+	return keybase1.GetNewPassphraseRes{Passphrase: t.Passphrase}, nil
 }
 
 func (t TestSecretUI) GetKeybasePassphrase(keybase1.GetKeybasePassphraseArg) (string, error) {

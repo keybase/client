@@ -91,9 +91,9 @@ func (m *GetSecretMock) GetSecret(arg keybase1.SecretEntryArg, _ *keybase1.Secre
 	return &keybase1.SecretEntryRes{Text: m.Passphrase, StoreSecret: storeSecret}, nil
 }
 
-func (m *GetSecretMock) GetNewPassphrase(keybase1.GetNewPassphraseArg) (string, error) {
-	m.LastErr = errors.New("GetSecret unexpectedly called more than once")
-	return "invalid passphrase", m.LastErr
+func (m *GetSecretMock) GetNewPassphrase(keybase1.GetNewPassphraseArg) (keybase1.GetNewPassphraseRes, error) {
+	m.LastErr = errors.New("GetNewPassphrase unexpectedly called")
+	return keybase1.GetNewPassphraseRes{Passphrase: "invalid passphrase"}, m.LastErr
 }
 
 func (m *GetSecretMock) GetKeybasePassphrase(keybase1.GetKeybasePassphraseArg) (string, error) {
@@ -224,9 +224,9 @@ func (m *GetKeybasePassphraseMock) GetSecret(keybase1.SecretEntryArg, *keybase1.
 	return nil, errors.New("Fail pubkey login")
 }
 
-func (m *GetKeybasePassphraseMock) GetNewPassphrase(keybase1.GetNewPassphraseArg) (string, error) {
+func (m *GetKeybasePassphraseMock) GetNewPassphrase(keybase1.GetNewPassphraseArg) (keybase1.GetNewPassphraseRes, error) {
 	m.LastErr = errors.New("GetNewPassphrase unexpectedly called")
-	return "invalid passphrase", m.LastErr
+	return keybase1.GetNewPassphraseRes{Passphrase: "invalid passphrase"}, m.LastErr
 }
 
 func (m *GetKeybasePassphraseMock) GetKeybasePassphrase(keybase1.GetKeybasePassphraseArg) (string, error) {
@@ -505,3 +505,55 @@ func TestLoginWithPassphraseWithStore(t *testing.T) {
 }
 
 // TODO: Test LoginWithPassphrase with pubkey login failing.
+
+// Test that the signup with saving the secret, logout, then login
+// flow works.
+func TestSignupWithStoreThenLogin(t *testing.T) {
+	// TODO: Get this working on non-OS X platforms (by mocking
+	// out the SecretStore).
+	if !libkb.HasSecretStore() {
+		t.Skip("Skipping test since there is no secret store")
+	}
+
+	tc := SetupEngineTest(t, "signup with store then login")
+	defer tc.Cleanup()
+
+	fu := NewFakeUserOrBust(tc.T, "lssl")
+
+	if userHasStoredSecret(&tc, fu.Username) {
+		t.Errorf("User %s unexpectedly has a stored secret", fu.Username)
+	}
+
+	arg := MakeTestSignupEngineRunArg(fu)
+	arg.StoreSecret = true
+	ctx := &Context{
+		LogUI: tc.G.UI.GetLogUI(),
+		GPGUI: &gpgtestui{},
+		SecretUI: &libkb.TestSecretUI{
+			Passphrase:  fu.Passphrase,
+			StoreSecret: true,
+		},
+		LoginUI: libkb.TestLoginUI{Username: fu.Username},
+	}
+	s := NewSignupEngine(&arg, tc.G)
+	err := RunEngine(s, ctx)
+	if err != nil {
+		tc.T.Fatal(err)
+	}
+
+	Logout(tc)
+
+	// TODO: Mock out the SecretStore and make sure that it's
+	// actually consulted.
+	if err := tc.G.LoginState().LoginWithStoredSecret(fu.Username, nil); err != nil {
+		t.Error(err)
+	}
+
+	if err := libkb.ClearStoredSecret(fu.Username); err != nil {
+		t.Error(err)
+	}
+
+	if userHasStoredSecret(&tc, fu.Username) {
+		t.Errorf("User %s unexpectedly has a stored secret", fu.Username)
+	}
+}

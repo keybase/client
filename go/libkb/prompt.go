@@ -6,10 +6,10 @@ import (
 )
 
 func PromptForNewTsec(arg keybase1.GetNewPassphraseArg, ui SecretUI) (tsec *triplesec.Cipher, err error) {
-	var text string
-	if text, err = ui.GetNewPassphrase(arg); err != nil {
+	res, err := ui.GetNewPassphrase(arg)
+	if err != nil {
 		return
 	}
-	tsec, err = triplesec.NewCipher([]byte(text), nil)
+	tsec, err = triplesec.NewCipher([]byte(res.Passphrase), nil)
 	return
 }

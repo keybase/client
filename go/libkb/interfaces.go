@@ -232,6 +232,7 @@ type PromptArg struct {
 	PinentryPrompt string
 	Checker        *Checker
 	RetryMessage   string
+	UseSecretStore bool
 }
 
 type LoginUI interface {
@@ -250,7 +251,7 @@ type ProveUI interface {
 
 type SecretUI interface {
 	GetSecret(pinentry keybase1.SecretEntryArg, terminal *keybase1.SecretEntryArg) (*keybase1.SecretEntryRes, error)
-	GetNewPassphrase(keybase1.GetNewPassphraseArg) (string, error)
+	GetNewPassphrase(keybase1.GetNewPassphraseArg) (keybase1.GetNewPassphraseRes, error)
 	GetKeybasePassphrase(keybase1.GetKeybasePassphraseArg) (string, error)
 }
 

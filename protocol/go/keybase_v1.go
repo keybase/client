@@ -2228,6 +2228,11 @@ type SecretEntryRes struct {
 	StoreSecret bool   `codec:"storeSecret" json:"storeSecret"`
 }
 
+type GetNewPassphraseRes struct {
+	Passphrase  string `codec:"passphrase" json:"passphrase"`
+	StoreSecret bool   `codec:"storeSecret" json:"storeSecret"`
+}
+
 type GetSecretArg struct {
 	SessionID int             `codec:"sessionID" json:"sessionID"`
 	Pinentry  SecretEntryArg  `codec:"pinentry" json:"pinentry"`
@@ -2240,6 +2245,7 @@ type GetNewPassphraseArg struct {
 	PinentryDesc   string `codec:"pinentryDesc" json:"pinentryDesc"`
 	PinentryPrompt string `codec:"pinentryPrompt" json:"pinentryPrompt"`
 	RetryMessage   string `codec:"retryMessage" json:"retryMessage"`
+	UseSecretStore bool   `codec:"useSecretStore" json:"useSecretStore"`
 }
 
 type GetKeybasePassphraseArg struct {
@@ -2250,7 +2256,7 @@ type GetKeybasePassphraseArg struct {
 
 type SecretUiInterface interface {
 	GetSecret(GetSecretArg) (SecretEntryRes, error)
-	GetNewPassphrase(GetNewPassphraseArg) (string, error)
+	GetNewPassphrase(GetNewPassphraseArg) (GetNewPassphraseRes, error)
 	GetKeybasePassphrase(GetKeybasePassphraseArg) (string, error)
 }
 
@@ -2293,7 +2299,7 @@ func (c SecretUiClient) GetSecret(__arg GetSecretArg) (res SecretEntryRes, err e
 	return
 }
 
-func (c SecretUiClient) GetNewPassphrase(__arg GetNewPassphraseArg) (res string, err error) {
+func (c SecretUiClient) GetNewPassphrase(__arg GetNewPassphraseArg) (res GetNewPassphraseRes, err error) {
 	err = c.Cli.Call("keybase.1.secretUi.getNewPassphrase", []interface{}{__arg}, &res)
 	return
 }

@@ -99,7 +99,8 @@ func TestSignupWithGPG(t *testing.T) {
 		t.Fatal(err)
 	}
 	secui := libkb.TestSecretUI{Passphrase: fu.Passphrase}
-	arg := SignupEngineRunArg{fu.Username, fu.Email, testInviteCode, fu.Passphrase, "my device", false, true}
+	arg := MakeTestSignupEngineRunArg(fu)
+	arg.SkipGPG = false
 	s := NewSignupEngine(&arg, tc.G)
 	ctx := &Context{
 		LogUI:    tc.G.UI.GetLogUI(),
@@ -117,7 +118,7 @@ func TestLocalKeySecurity(t *testing.T) {
 	defer tc.Cleanup()
 	fu := NewFakeUserOrBust(t, "se")
 	secui := libkb.TestSecretUI{Passphrase: fu.Passphrase}
-	arg := SignupEngineRunArg{fu.Username, fu.Email, testInviteCode, fu.Passphrase, "my device", true, true}
+	arg := MakeTestSignupEngineRunArg(fu)
 	s := NewSignupEngine(&arg, tc.G)
 	ctx := &Context{
 		LogUI:    tc.G.UI.GetLogUI(),
@@ -148,6 +149,57 @@ func TestLocalKeySecurity(t *testing.T) {
 	}
 	if string(dec) != text {
 		t.Errorf("decrypt: %q, expected %q", string(dec), text)
+	}
+}
+
+// Test that the signup engine stores the secret correctly when
+// StoreSecret is set.
+func TestLocalKeySecurityStoreSecret(t *testing.T) {
+	tc := SetupEngineTest(t, "signup")
+	defer tc.Cleanup()
+	fu := NewFakeUserOrBust(t, "se")
+
+	secretStore := libkb.NewSecretStore(fu.Username)
+	if secretStore == nil {
+		t.Skip("No SecretStore on this platform")
+	}
+
+	_, err := secretStore.RetrieveSecret()
+	if err == nil {
+		t.Fatal("User unexpectedly has secret")
+	}
+
+	secui := libkb.TestSecretUI{Passphrase: fu.Passphrase}
+	arg := MakeTestSignupEngineRunArg(fu)
+	arg.StoreSecret = true
+	s := NewSignupEngine(&arg, tc.G)
+	ctx := &Context{
+		LogUI:    tc.G.UI.GetLogUI(),
+		GPGUI:    &gpgtestui{},
+		SecretUI: secui,
+		LoginUI:  &libkb.TestLoginUI{Username: fu.Username},
+	}
+	if err := RunEngine(s, ctx); err != nil {
+		t.Fatal(err)
+	}
+
+	secret, err := s.lks.GetSecret()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	storedSecret, err := secretStore.RetrieveSecret()
+	if err != nil {
+		t.Error(err)
+	}
+
+	if string(secret) != string(storedSecret) {
+		t.Errorf("Expected %v, got %v", secret, storedSecret)
+	}
+
+	err = secretStore.ClearSecret()
+	if err != nil {
+		t.Error(err)
 	}
 }
 
