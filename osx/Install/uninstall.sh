@@ -16,4 +16,5 @@ do
 done
 
 echo "Removing state"
-rm -rf ~/Library/Application\ Support/Keybase
+mv ~/Library/Application\ Support/Keybase* ~/.Trash/
+mv ~/Library/Caches/Keybase* ~/.Trash/

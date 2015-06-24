@@ -315,12 +315,15 @@ typedef NS_ENUM (NSInteger, KBAppViewMode) {
   [self.sourceView.statusView setStatus:status];
   [self.toolbar setUser:status.user];
 
+  // Don't change if we are in the installer
+  if (_mode == KBAppViewModeInstaller) return;
+
   if (status.loggedIn && status.user) {
     // Show profile if logging in or we are already showing profile, refresh it
     if (_mode != KBAppViewModeMain || _toolbar.selectedItem == KBAppViewItemProfile) {
       [self showProfile];
     }
-  } else {
+  } else if (_mode != KBAppViewModeLogin || _mode != KBAppViewModeSignup) {
     [self showLogin];
   }
 }

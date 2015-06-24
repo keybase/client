@@ -132,6 +132,12 @@
   return configFile;
 }
 
+
+- (NSString *)cachePath:(NSString *)filename {
+  NSString *homeDir = _homeDir ? _homeDir : KBPath(@"~", NO, NO);
+  return KBPathInDir(homeDir, NSStringWithFormat(@"Library/Caches/%@", filename), NO, NO);
+}
+
 + (instancetype)env:(KBEnv)env {
   return [[self.class alloc] initWithEnv:env];
 }
@@ -150,10 +156,6 @@
     self.debugEnabled = YES;
   }
   return self;
-}
-
-- (NSString *)cachePath:(NSString *)filename {
-  return NSStringWithFormat(@"%@/.cache/keybase/%@", self.homeDir, filename);
 }
 
 - (NSArray *)programArgumentsForKeybase:(BOOL)useBundle escape:(BOOL)escape tilde:(BOOL)tilde service:(BOOL)service {
