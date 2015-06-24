@@ -309,7 +309,7 @@ func (e *PGPKeyImportEngine) push(ctx *Context) (err error) {
 	}
 	e.G().Log.Debug("- PGP::Push -> %s", libkb.ErrToOk(err))
 
-	ctx.LogUI.Info("Generated and pushed new PGP key:")
+	ctx.LogUI.Info("Generated new PGP key:")
 	d := e.bundle.VerboseDescription()
 	for _, line := range strings.Split(d, "\n") {
 		ctx.LogUI.Info("  %s", line)
