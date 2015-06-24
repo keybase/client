@@ -8,8 +8,12 @@
 
 #import <Foundation/Foundation.h>
 
-#import "KBContentView.h"
+#import <KBAppKit/KBAppKit.h>
+#import "KBRPC.h"
 
-@interface KBPGPVerifyFileView : KBContentView
+@interface KBPGPVerifyFileView : YOView
+
+@property KBNavigationView *navigation;
+@property KBRPClient *client;
 
 @end

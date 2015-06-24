@@ -8,9 +8,13 @@
 
 #import <Foundation/Foundation.h>
 
-#import "KBContentView.h"
+#import <KBAppKit/KBAppKit.h>
+#import "KBRPC.h"
 
-@interface KBDeviceSetupDisplayView : KBContentView
+@interface KBDeviceSetupDisplayView : YOView
+
+@property KBNavigationView *navigation;
+@property KBRPClient *client;
 
 @property KBButton *button;
 @property KBButton *cancelButton;

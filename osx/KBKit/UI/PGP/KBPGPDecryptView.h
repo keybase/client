@@ -8,14 +8,18 @@
 
 #import <Foundation/Foundation.h>
 
-#import "KBContentView.h"
+#import <KBAppKit/KBAppKit.h>
+#import "KBRPC.h"
 #import "KBPGPDecrypted.h"
 
 @class KBPGPDecryptView;
 
 typedef void (^KBPGPOnDecrypt)(KBPGPDecryptView *view, KBPGPDecrypted *decrypted);
 
-@interface KBPGPDecryptView : KBContentView
+@interface KBPGPDecryptView : YOView
+
+@property KBNavigationView *navigation;
+@property KBRPClient *client;
 
 @property (copy) KBPGPOnDecrypt onDecrypt;
 

@@ -8,13 +8,17 @@
 
 #import <Foundation/Foundation.h>
 
-#import "KBContentView.h"
+#import <KBAppKit/KBAppKit.h>
+#import "KBRPC.h"
 
 @class KBPGPVerifyDetachedView;
 
 typedef void (^KBPGPOnDetachedVerify)(KBPGPVerifyDetachedView *view, KBRPGPSigVerification *verification);
 
-@interface KBPGPVerifyDetachedView : KBContentView
+@interface KBPGPVerifyDetachedView : YOView
+
+@property KBNavigationView *navigation;
+@property KBRPClient *client;
 
 @property (copy) KBPGPOnDetachedVerify onVerify;
 

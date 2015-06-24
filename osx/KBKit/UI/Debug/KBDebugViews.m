@@ -69,6 +69,10 @@
 
   [contentView addSubview:[KBBox lineWithInsets:UIEdgeInsetsMake(10, 10, 10, 10)]];
 
+  [contentView addSubview:[KBButton linkWithText:@"Web View" targetBlock:^{ [self showWebView]; }]];
+
+  [contentView addSubview:[KBBox lineWithInsets:UIEdgeInsetsMake(10, 10, 10, 10)]];
+
   [contentView addSubview:[KBButton linkWithText:@"Track (alice)" targetBlock:^{ [self showTrack:@"t_alice"]; }]];
   [contentView addSubview:[KBButton linkWithText:@"Track (charlie)" targetBlock:^{ [self showTrack:@"t_charlie"]; }]];
   [contentView addSubview:[KBButton linkWithText:@"Track (doug)" targetBlock:^{ [self showTrack:@"t_doug"]; }]];
@@ -128,8 +132,10 @@
   }];
 }
 
-- (NSWindow *)openInWindow:(KBContentView *)view size:(CGSize)size title:(NSString *)title {
-  view.client = self.client;
+- (NSWindow *)openInWindow:(YOView *)view size:(CGSize)size title:(NSString *)title {
+  if ([view respondsToSelector:@selector(setClient:)]) {
+    [(id)view setClient:(KBRPClient *)self.client];
+  }
   return [self.window kb_addChildWindowForView:view rect:CGRectMake(0, 0, size.width, size.height) position:KBWindowPositionCenter title:title fixed:NO makeKey:YES];
 }
 
@@ -322,6 +328,12 @@
 - (void)showError {
   NSError *error = KBMakeErrorWithRecovery(-1, @"This is the error message.", @"This is the recovery suggestion.");
   [KBApp.app setError:error sender:self];
+}
+
+- (void)showWebView {
+  KBWebView *webView = [[KBWebView alloc] init];
+  [webView openURLString:@"https://twitter.com/"];
+  [self openInWindow:webView size:CGSizeMake(800, 600) title:@"Twitter"];
 }
 
 @end

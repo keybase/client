@@ -8,10 +8,14 @@
 
 #import <Foundation/Foundation.h>
 
-#import "KBContentView.h"
+#import <KBAppKit/KBAppKit.h>
+#import "KBRPC.h"
 #import "KBComponent.h"
 
-@interface KBControlPanel : KBContentView
+@interface KBControlPanel : YOView
+
+@property KBNavigationView *navigation;
+@property KBRPClient *client;
 
 - (void)open:(id)sender;
 

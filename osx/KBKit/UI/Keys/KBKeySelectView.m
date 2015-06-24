@@ -10,6 +10,7 @@
 
 #import "KBGPGKeysView.h"
 #import "KBButton.h"
+#import "KBDefines.h"
 
 @interface KBKeySelectView ()
 @property KBGPGKeysView *keysView;

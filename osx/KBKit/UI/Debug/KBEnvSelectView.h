@@ -10,12 +10,16 @@
 
 
 #import "KBRPC.h"
-#import "KBContentView.h"
+#import <KBAppKit/KBAppKit.h>
+#import "KBRPC.h"
 #import "KBEnvironment.h"
 
 typedef void (^KBEnvSelect)(KBEnvironment *environment);
 
-@interface KBEnvSelectView : KBContentView
+@interface KBEnvSelectView : YOView
+
+@property KBNavigationView *navigation;
+@property KBRPClient *client;
 
 @property (copy) KBEnvSelect onSelect;
 

@@ -8,14 +8,16 @@
 
 #import <Foundation/Foundation.h>
 
-
 #import "KBRPC.h"
 #import "KBGPGKeysView.h"
-#import "KBContentView.h"
+#import <KBAppKit/KBAppKit.h>
 
 typedef void (^KBKeySelectViewCompletion)(id sender, id response);
 
-@interface KBKeySelectView : KBContentView
+@interface KBKeySelectView : YOView
+
+@property KBNavigationView *navigation;
+@property KBRPClient *client;
 
 @property (copy) KBKeySelectViewCompletion completion;
 

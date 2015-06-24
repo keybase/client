@@ -8,10 +8,14 @@
 
 #import <Foundation/Foundation.h>
 
-#import "KBContentView.h"
+#import <KBAppKit/KBAppKit.h>
+#import "KBRPC.h"
 #import "KBFile.h"
 
-@interface KBPGPEncryptFilesView : KBContentView
+@interface KBPGPEncryptFilesView : YOView
+
+@property KBNavigationView *navigation;
+@property (nonatomic) KBRPClient *client;
 
 - (void)addFile:(KBFile *)file;
 

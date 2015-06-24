@@ -10,6 +10,7 @@
 
 #import "KBDebugViews.h"
 #import "KBStyleGuideView.h"
+#import "KBDefines.h"
 
 @implementation KBAppDebug
 

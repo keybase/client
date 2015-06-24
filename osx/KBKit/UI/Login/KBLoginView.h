@@ -10,7 +10,8 @@
 
 #import <KBAppKit/KBAppKit.h>
 #import "KBRPC.h"
-#import "KBContentView.h"
+#import <KBAppKit/KBAppKit.h>
+#import "KBRPC.h"
 
 @class KBLoginView;
 
@@ -18,7 +19,10 @@
 - (void)loginViewDidLogin:(KBLoginView *)loginView;
 @end
 
-@interface KBLoginView : KBContentView <NSTextFieldDelegate>
+@interface KBLoginView : YOView
+
+@property KBNavigationView *navigation;
+@property KBRPClient *client;
 @property (weak) id<KBLoginViewDelegate> delegate;
 
 @property KBTextField *usernameField;

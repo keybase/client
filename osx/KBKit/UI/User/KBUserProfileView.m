@@ -26,6 +26,7 @@
 #import "KBAlertView.h"
 #import "KBWorkspace.h"
 #import "KBNotifications.h"
+#import "KBProofView.h"
 
 @interface KBUserProfileView ()
 @property KBScrollView *scrollView;
@@ -91,13 +92,6 @@
   [self setNeedsLayout];
 }
 
-- (void)connectWithServiceName:(NSString *)serviceName proofResult:(KBProofResult *)proofResult {
-  GHWeakSelf gself = self;
-  [KBProveView connectWithServiceName:serviceName proofResult:proofResult client:self.client window:(KBWindow *)self.window completion:^(BOOL success) {
-    [gself reload]; // Always reload even if canceled
-  }];
-}
-
 - (void)openPopupWindow {
   NSAssert(self.fromWindow, @"No window");
   [self removeFromSuperview];
@@ -140,7 +134,7 @@
         NSString *serviceName = proofLabel.proofResult.proof.key;
         [self connectWithServiceName:serviceName proofResult:proofLabel.proofResult];
       } else if (proofLabel.proofResult.result.hint.humanUrl) {
-        [KBWorkspace openURLString:proofLabel.proofResult.result.hint.humanUrl sender:self];
+        [self viewProof:proofLabel.proofResult];
       }
     }];
     [gself setNeedsLayout];
@@ -209,12 +203,42 @@
   }];
 }
 
-- (void)reload {
-  [self setUsername:self.username client:self.client];
-}
-
 - (BOOL)isLoadingUsername:(NSString *)username {
   return [self.username isEqualToString:username] && _loading;
+}
+
+- (void)viewProof:(KBProofResult *)proofResult {
+  KBProofView *proofView = [[KBProofView alloc] init];
+  proofView.proofResult = proofResult;
+  proofView.client = self.client;
+  NSString *serviceName = proofResult.proof.key;
+  proofView.completion = ^(id sender, KBProofViewAction action) {
+    switch (action) {
+      case KBProofViewActionClose: break;
+      case KBProofViewActionRevoked: {
+        [self refresh];
+        break;
+      }
+      case KBProofViewActionWantsReplace: {
+        [self connectWithServiceName:serviceName proofResult:proofResult];
+        break;
+      }
+      case KBProofViewActionOpen: {
+        [KBWorkspace openURLString:proofResult.result.hint.humanUrl prompt:NO sender:self];
+        break;
+      }
+    }
+    [[sender window] close];
+  };
+  CGSize size = [proofView sizeThatFits:CGSizeMake(500, 0)];
+  [self.window kb_addChildWindowForView:proofView rect:CGRectMake(0, 0, size.width, size.height) position:KBWindowPositionCenter title:KBNameForServiceName(serviceName) fixed:NO makeKey:YES]; // CGRectMake(0, 0, 780, 640)
+}
+
+- (void)connectWithServiceName:(NSString *)serviceName proofResult:(KBProofResult *)proofResult {
+  GHWeakSelf gself = self;
+  [KBProveView connectWithServiceName:serviceName proofResult:proofResult client:self.client window:(KBWindow *)self.window completion:^(BOOL success) {
+    [gself refresh]; // Always reload even if canceled
+  }];
 }
 
 - (void)showTrackPrompt:(KBUserTrackStatus *)trackStatus completion:(void (^)(BOOL track))completion {
@@ -408,13 +432,12 @@
 
 - (void)openKey:(KBRIdentifyKey *)key {
   KBKeyView *keyView = [[KBKeyView alloc] init];
-  NSWindow *window = [self.window kb_addChildWindowForView:keyView rect:CGRectMake(0, 0, 500, 400) position:KBWindowPositionCenter title:@"Key" fixed:NO makeKey:YES];
-  keyView.cancelButton.targetBlock = ^{
-    [window close];
-  };
   keyView.client = self.client;
   BOOL isSelf = [[KBApp.app currentUsername] isEqual:self.username];
   [keyView setKey:key editable:isSelf];
+  keyView.cancelButton.dispatchBlock = ^(KBButton *button, dispatch_block_t completion) { [[button window] close]; completion(); };
+
+  [self.window kb_addChildWindowForView:keyView rect:CGRectMake(0, 0, 500, 400) position:KBWindowPositionCenter title:@"Key" fixed:NO makeKey:YES];
 }
 
 - (void)generatePGPKey {
@@ -426,7 +449,7 @@
     KBRPgpRequest *request = [[KBRPgpRequest alloc] initWithClient:self.client];
     [request pgpKeyGenDefaultWithSessionID:request.sessionId createUids:uids completion:^(NSError *error) {
       completion(error);
-      [self reload];
+      [self refresh];
     }];
   };
   [progressView openAndDoIt:(KBWindow *)self.window];
@@ -440,7 +463,7 @@
   }];
   [request pgpSelectWithSessionID:request.sessionId fingerprintQuery:nil allowMulti:NO skipImport:NO completion:^(NSError *error) {
     [KBActivity setError:error sender:self];
-    [self reload];
+    [self refresh];
   }];
 }
 
@@ -492,7 +515,7 @@
 
 - (void)update:(NSNotification *)notification {
   if ([notification.userInfo[@"username"] isEqualToString:_view.username]) {
-    [_view reload];
+    [_view refresh];
   }
 }
 

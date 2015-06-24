@@ -11,9 +11,13 @@
 
 #import "KBRPC.h"
 #import "KBTrackView.h"
-#import "KBContentView.h"
+#import <KBAppKit/KBAppKit.h>
+#import "KBRPC.h"
 
-@interface KBUserProfileView : KBContentView
+@interface KBUserProfileView : YOView
+
+@property KBNavigationView *navigation;
+@property KBRPClient *client;
 
 @property (readonly, getter=isLoading) BOOL loading;
 

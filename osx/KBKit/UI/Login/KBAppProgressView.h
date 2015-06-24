@@ -8,9 +8,13 @@
 
 #import <Foundation/Foundation.h>
 
-#import "KBContentView.h"
+#import <KBAppKit/KBAppKit.h>
+#import "KBRPC.h"
 
-@interface KBAppProgressView : KBContentView
+@interface KBAppProgressView : YOView
+
+@property KBNavigationView *navigation;
+@property KBRPClient *client;
 
 - (void)enableProgressWithTitle:(NSString *)title;
 - (void)disableProgress;

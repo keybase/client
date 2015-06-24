@@ -10,9 +10,13 @@
 
 
 #import "KBRPC.h"
-#import "KBContentView.h"
+#import <KBAppKit/KBAppKit.h>
+#import "KBRPC.h"
 
-@interface KBKeyView : KBContentView
+@interface KBKeyView : YOView
+
+@property KBNavigationView *navigation;
+@property KBRPClient *client;
 
 @property KBButton *cancelButton;
 

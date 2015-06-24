@@ -82,10 +82,10 @@
 		004F44091B154EBA0021A29D /* kbfuse.bundle in Resources */ = {isa = PBXBuildFile; fileRef = 004F44081B154EBA0021A29D /* kbfuse.bundle */; };
 		0057B0C61AE57A7A00BFB0E7 /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 0057B0C21AE57A7A00BFB0E7 /* main.m */; };
 		0057B0DB1AE57B5900BFB0E7 /* keybase.Helper in Copy Files */ = {isa = PBXBuildFile; fileRef = 0057B0B41AE57A4900BFB0E7 /* keybase.Helper */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
+		0060C7DC1B3B57AF00E70F69 /* KBProofView.h in Headers */ = {isa = PBXBuildFile; fileRef = 0060C7DA1B3B57AF00E70F69 /* KBProofView.h */; };
+		0060C7DD1B3B57AF00E70F69 /* KBProofView.m in Sources */ = {isa = PBXBuildFile; fileRef = 0060C7DB1B3B57AF00E70F69 /* KBProofView.m */; };
 		0086E3691B38C08D0042FED8 /* Share.appex in Embed App Extensions */ = {isa = PBXBuildFile; fileRef = 001C6B371B24F8630048F086 /* Share.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		0086E36A1B38C0900042FED8 /* Action.appex in Embed App Extensions */ = {isa = PBXBuildFile; fileRef = 009E13661B27B39300C72B28 /* Action.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
-		008E047C1B28ECFF000F15AA /* KBContentView.h in Headers */ = {isa = PBXBuildFile; fileRef = 009E14021B28A93D00C72B28 /* KBContentView.h */; };
-		008E047D1B28ECFF000F15AA /* KBContentView.m in Sources */ = {isa = PBXBuildFile; fileRef = 009E14031B28A93D00C72B28 /* KBContentView.m */; };
 		008E047E1B28ECFF000F15AA /* KBErrorView.h in Headers */ = {isa = PBXBuildFile; fileRef = 009E14041B28A93D00C72B28 /* KBErrorView.h */; };
 		008E047F1B28ECFF000F15AA /* KBErrorView.m in Sources */ = {isa = PBXBuildFile; fileRef = 009E14051B28A93D00C72B28 /* KBErrorView.m */; };
 		008E04801B28ECFF000F15AA /* KBFatalErrorView.h in Headers */ = {isa = PBXBuildFile; fileRef = 009E14061B28A93D00C72B28 /* KBFatalErrorView.h */; };
@@ -585,6 +585,8 @@
 		0057B0C01AE57A7A00BFB0E7 /* KBHelper.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBHelper.m; sourceTree = "<group>"; };
 		0057B0C11AE57A7A00BFB0E7 /* keybase.Helper.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = keybase.Helper.plist; sourceTree = "<group>"; };
 		0057B0C21AE57A7A00BFB0E7 /* main.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = main.m; sourceTree = "<group>"; };
+		0060C7DA1B3B57AF00E70F69 /* KBProofView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBProofView.h; sourceTree = "<group>"; };
+		0060C7DB1B3B57AF00E70F69 /* KBProofView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBProofView.m; sourceTree = "<group>"; };
 		0093A00E1AF1201800082859 /* KBLaunchCtlTest.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = KBLaunchCtlTest.m; sourceTree = "<group>"; };
 		009E135B1B27654200C72B28 /* ShareViewController.xib */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.xib; path = ShareViewController.xib; sourceTree = "<group>"; };
 		009E13611B2794CF00C72B28 /* Keybase.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = Keybase.entitlements; sourceTree = "<group>"; };
@@ -672,8 +674,6 @@
 		009E13FA1B28A93D00C72B28 /* KBUserPermission.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBUserPermission.m; sourceTree = "<group>"; };
 		009E13FC1B28A93D00C72B28 /* KBInstallerView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBInstallerView.h; sourceTree = "<group>"; };
 		009E13FD1B28A93D00C72B28 /* KBInstallerView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBInstallerView.m; sourceTree = "<group>"; };
-		009E14021B28A93D00C72B28 /* KBContentView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBContentView.h; sourceTree = "<group>"; };
-		009E14031B28A93D00C72B28 /* KBContentView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBContentView.m; sourceTree = "<group>"; };
 		009E14041B28A93D00C72B28 /* KBErrorView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBErrorView.h; sourceTree = "<group>"; };
 		009E14051B28A93D00C72B28 /* KBErrorView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBErrorView.m; sourceTree = "<group>"; };
 		009E14061B28A93D00C72B28 /* KBFatalErrorView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBFatalErrorView.h; sourceTree = "<group>"; };
@@ -1194,8 +1194,6 @@
 				009E14901B28A93D00C72B28 /* Search */,
 				009E149D1B28A93D00C72B28 /* User */,
 				009E13FB1B28A93D00C72B28 /* Install */,
-				009E14021B28A93D00C72B28 /* KBContentView.h */,
-				009E14031B28A93D00C72B28 /* KBContentView.m */,
 				009E14041B28A93D00C72B28 /* KBErrorView.h */,
 				009E14051B28A93D00C72B28 /* KBErrorView.m */,
 				009E14061B28A93D00C72B28 /* KBFatalErrorView.h */,
@@ -1425,6 +1423,8 @@
 				009E148D1B28A93D00C72B28 /* KBProveType.m */,
 				009E148E1B28A93D00C72B28 /* KBProveView.h */,
 				009E148F1B28A93D00C72B28 /* KBProveView.m */,
+				0060C7DA1B3B57AF00E70F69 /* KBProofView.h */,
+				0060C7DB1B3B57AF00E70F69 /* KBProofView.m */,
 			);
 			path = Proof;
 			sourceTree = "<group>";
@@ -1703,6 +1703,7 @@
 				000E077F1B30AE8500FEE4C6 /* KBLaunchCtl.h in Headers */,
 				00C0DD571B28EC8B00A825D4 /* KBInfoView.h in Headers */,
 				00C0DD091B28EC7800A825D4 /* KBPGPSignFooterView.h in Headers */,
+				0060C7DC1B3B57AF00E70F69 /* KBProofView.h in Headers */,
 				00C0DC551B28EC3F00A825D4 /* KBDefines.h in Headers */,
 				000E078A1B30B0E700FEE4C6 /* KBFinder.h in Headers */,
 				00C0DD311B28EC8300A825D4 /* KBFoldersAppView.h in Headers */,
@@ -1788,7 +1789,6 @@
 				00C0DD4D1B28EC8B00A825D4 /* KBControlPanel.h in Headers */,
 				00C0DD0D1B28EC7800A825D4 /* KBPGPTextView.h in Headers */,
 				00C0DC7F1B28EC5000A825D4 /* KBWaitFor.h in Headers */,
-				008E047C1B28ECFF000F15AA /* KBContentView.h in Headers */,
 				00C0DD591B28EC8B00A825D4 /* KBStyleGuideView.h in Headers */,
 				00C0DCB51B28EC6600A825D4 /* KBUserInfoLabels.h in Headers */,
 				00C0DC8D1B28EC5A00A825D4 /* KBCLIInstall.h in Headers */,
@@ -2403,12 +2403,12 @@
 				00C0DD281B28EC8300A825D4 /* KBFileIcon.m in Sources */,
 				0043D1311B28F1370036C532 /* KBPrefButton.m in Sources */,
 				00C0DCBC1B28EC6600A825D4 /* KBUserPickerView.m in Sources */,
+				0060C7DD1B3B57AF00E70F69 /* KBProofView.m in Sources */,
 				000E07821B30AE8500FEE4C6 /* KBServiceStatus.m in Sources */,
 				00C0DCE21B28EC7800A825D4 /* KBPGPDecrypt.m in Sources */,
 				00C0DC901B28EC5A00A825D4 /* KBComponent.m in Sources */,
 				00B81D691B32148F009872E4 /* KBUserTrackStatus.m in Sources */,
 				004625351B2A5A8B00E218AC /* KBTrackView.m in Sources */,
-				008E047D1B28ECFF000F15AA /* KBContentView.m in Sources */,
 				0043D1411B28F1370036C532 /* KBPrefTextField.m in Sources */,
 				00C0DC6C1B28EC3F00A825D4 /* KBRRequest.m in Sources */,
 				00C0DCAA1B28EC6100A825D4 /* KBSearchResults.m in Sources */,
@@ -2585,6 +2585,7 @@
 					"DEBUG=1",
 					"$(inherited)",
 				);
+				OTHER_CODE_SIGN_FLAGS = "";
 				OTHER_LDFLAGS = (
 					"$(inherited)",
 					"-sectcreate",
@@ -2609,6 +2610,7 @@
 				CODE_SIGN_IDENTITY = "Developer ID Application: Keybase, Inc. (99229SGT5K)";
 				COPY_PHASE_STRIP = NO;
 				GCC_NO_COMMON_BLOCKS = YES;
+				OTHER_CODE_SIGN_FLAGS = "";
 				OTHER_LDFLAGS = (
 					"$(inherited)",
 					"-sectcreate",
@@ -2727,6 +2729,7 @@
 				INFOPLIST_FILE = KBKit/Info.plist;
 				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks @loader_path/Frameworks";
+				OTHER_CODE_SIGN_FLAGS = "";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = YES;
 				VERSIONING_SYSTEM = "apple-generic";
@@ -2751,6 +2754,7 @@
 				INFOPLIST_FILE = KBKit/Info.plist;
 				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks @loader_path/Frameworks";
+				OTHER_CODE_SIGN_FLAGS = "";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = YES;
 				VERSIONING_SYSTEM = "apple-generic";

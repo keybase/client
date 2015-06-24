@@ -9,9 +9,13 @@
 #import <Foundation/Foundation.h>
 
 
-#import "KBContentView.h"
+#import <KBAppKit/KBAppKit.h>
+#import "KBRPC.h"
 
-@interface KBPGPKeyGenView : KBContentView
+@interface KBPGPKeyGenView : YOView
+
+@property KBNavigationView *navigation;
+@property KBRPClient *client;
 
 @property (copy) dispatch_block_t completion;
 

@@ -8,11 +8,14 @@
 
 #import <Foundation/Foundation.h>
 
-
 #import "KBDeviceSignerOption.h"
-#import "KBContentView.h"
+#import <KBAppKit/KBAppKit.h>
+#import "KBRPC.h"
 
-@interface KBDeviceSetupChooseView : KBContentView
+@interface KBDeviceSetupChooseView : YOView
+
+@property KBNavigationView *navigation;
+@property KBRPClient *client;
 
 @property KBListView *deviceSignerView;
 @property KBButton *selectButton;

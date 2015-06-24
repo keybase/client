@@ -12,7 +12,7 @@
 
 + (NSString *)applicationSupport:(NSArray *)subdirs create:(BOOL)create error:(NSError **)error;
 
-+ (void)openURLString:(NSString *)URLString sender:(id)sender;
++ (void)openURLString:(NSString *)URLString prompt:(BOOL)prompt sender:(id)sender;
 
 + (NSUserDefaults *)userDefaults;
 

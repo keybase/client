@@ -8,10 +8,15 @@
 
 #import <Foundation/Foundation.h>
 
-#import "KBContentView.h"
+#import <KBAppKit/KBAppKit.h>
+#import "KBRPC.h"
 #import "KBPGPEncryptFooterView.h"
+#import "KBDefines.h"
 
-@interface KBPGPEncryptActionView : KBContentView
+@interface KBPGPEncryptActionView : YOView
+
+@property KBNavigationView *navigation;
+@property (nonatomic) KBRPClient *client;
 
 @property (nonatomic) NSExtensionItem *extensionItem;
 @property (copy) KBOnExtension completion;

@@ -12,7 +12,7 @@
 
 #import <CocoaLumberjack/CocoaLumberjack.h>
 
-@interface KBSignupView ()
+@interface KBSignupView () <NSTextFieldDelegate, KBTextFieldFocusDelegate>
 @property KBTextField *inviteField;
 @property KBTextField *passwordField;
 @property KBTextField *passwordConfirmField;

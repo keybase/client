@@ -8,9 +8,13 @@
 
 #import <Foundation/Foundation.h>
 
-#import "KBContentView.h"
+#import <KBAppKit/KBAppKit.h>
+#import "KBRPC.h"
 
-@interface KBFoldersAppView : KBContentView
+@interface KBFoldersAppView : YOView
+
+@property KBNavigationView *navigation;
+@property KBRPClient *client;
 
 - (void)reload;
 

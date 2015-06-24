@@ -41,7 +41,7 @@
         self.host = @"https://api.keybase.io:443";
         self.mountDir = KBPath(@"~/Keybase", NO, NO);
         self.debugEnabled = YES;
-        self.info = @"Uses api.keybase.io.";
+        self.info = @"Uses keybase.io";
         self.image = [NSImage imageNamed:NSImageNameNetwork];
         self.launchdEnabled = YES;
         self.installEnabled = YES;
@@ -102,7 +102,7 @@
   [userDefaults synchronize];
 }
 
-- (NSString *)sockFile:(BOOL)useDefault {
+- (NSString *)sockFile {
   NSString *sockFile;
   if (_sockFile) {
     sockFile = _sockFile;
@@ -115,14 +115,16 @@
   return sockFile;
 }
 
-- (NSString *)configDir {
-  NSString *appName = @"Keybase";
-  if (self.develMode) appName = @"KeybaseDev";
-  NSString *homeDir = _homeDir ? _homeDir : KBPath(@"~", NO, NO);
-  return KBPathInDir(homeDir, NSStringWithFormat(@"Library/Application Support/%@", appName), NO, NO);
+- (NSString *)appName {
+  return self.develMode ? @"KeybaseDev" : @"Keybase";
 }
 
-- (NSString *)configFile:(BOOL)useDefault {
+- (NSString *)configDir {
+  NSString *homeDir = _homeDir ? _homeDir : KBPath(@"~", NO, NO);
+  return KBPathInDir(homeDir, NSStringWithFormat(@"Library/Application Support/%@", [self appName]), NO, NO);
+}
+
+- (NSString *)configFile {
   NSString *configFile;
   if (_configFile) {
     configFile = _configFile;
@@ -131,7 +133,6 @@
   }
   return configFile;
 }
-
 
 - (NSString *)cachePath:(NSString *)filename {
   NSString *homeDir = _homeDir ? _homeDir : KBPath(@"~", NO, NO);
@@ -240,8 +241,8 @@
 - (GHODictionary *)envsForKBS:(BOOL)tilde escape:(BOOL)escape {
   GHODictionary *envs = [GHODictionary dictionary];
   envs[@"PATH"] = @"/sbin:/Library/Filesystems/kbfuse.fs/Support"; // For umount, mount_osxfusefs
-  envs[@"KEYBASE_SOCKET_FILE"] = KBPath([self sockFile:YES], tilde, escape);
-  envs[@"KEYBASE_CONFIG_FILE"] = KBPath([self configFile:YES], tilde, escape);
+  envs[@"KEYBASE_SOCKET_FILE"] = KBPath([self sockFile], tilde, escape);
+  envs[@"KEYBASE_CONFIG_FILE"] = KBPath([self configFile], tilde, escape);
   return envs;
 }
 

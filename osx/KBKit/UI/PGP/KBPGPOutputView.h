@@ -9,10 +9,14 @@
 #import <Foundation/Foundation.h>
 
 
-#import "KBContentView.h"
+#import <KBAppKit/KBAppKit.h>
+#import "KBRPC.h"
 #import "KBPGPOutputFooterView.h"
 
-@interface KBPGPOutputView : KBContentView <NSSharingServicePickerDelegate>
+@interface KBPGPOutputView : YOView <NSSharingServicePickerDelegate>
+
+@property KBNavigationView *navigation;
+@property KBRPClient *client;
 
 @property (readonly) KBPGPOutputFooterView *footerView;
 

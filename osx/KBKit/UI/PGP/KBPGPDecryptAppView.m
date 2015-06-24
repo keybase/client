@@ -51,7 +51,6 @@
 }
 
 - (void)setClient:(KBRPClient *)client {
-  [super setClient:client];
   _decryptView.client = client;
 }
 

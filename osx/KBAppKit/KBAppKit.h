@@ -50,3 +50,4 @@ FOUNDATION_EXPORT const unsigned char KBAppKitVersionString[];
 #import <KBAppKit/KBColor.h>
 #import <KBAppKit/KBImage.h>
 #import <KBAppKit/KBFontAwesome.h>
+#import <KBAppKit/KBWebView.h>

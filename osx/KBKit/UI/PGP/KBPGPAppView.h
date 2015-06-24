@@ -9,8 +9,12 @@
 #import <Foundation/Foundation.h>
 
 
-#import "KBContentView.h"
+#import <KBAppKit/KBAppKit.h>
+#import "KBRPC.h"
 
-@interface KBPGPAppView : KBContentView
+@interface KBPGPAppView : YOView
+
+@property KBNavigationView *navigation;
+@property (nonatomic) KBRPClient *client;
 
 @end

@@ -10,6 +10,7 @@
 
 #import "KBProveType.h"
 #import "KBProveRooterInstructions.h"
+#import "KBDefines.h"
 
 @interface KBProveView ()
 @property (nonatomic) NSString *serviceName;
@@ -90,7 +91,7 @@
   _instructionsView = [self instructionsViewForServiceName:_serviceName];
   GHWeakSelf gself = self;
   [_instructionsView setProofText:proofText serviceName:_serviceName];
-  _instructionsView.button.targetBlock = ^{ [gself continueProof]; };
+  _instructionsView.button.targetBlock = ^{ [gself checkProof]; };
   _instructionsView.cancelButton.targetBlock = ^{ [gself cancel]; };
   [self addSubview:_instructionsView];
 
@@ -195,10 +196,26 @@
     [KBActivity setProgressEnabled:NO sender:self];
     if ([KBActivity setError:error sender:self]) return;
 
-    [self openInstructionsWithProofText:checkProofStatus.proofText];
+    if (!checkProofStatus.found) {
+      [self openInstructionsWithProofText:checkProofStatus.proofText];
+    } else {
+      self.completion(YES);
+    }
+  }];
+}
+
+- (void)checkProof {
+  NSString *sigID = _sigId;
+  KBRProveRequest *request = [[KBRProveRequest alloc] initWithClient:self.client];
+  [KBActivity setProgressEnabled:YES sender:self];
+  [request checkProofWithSessionID:request.sessionId sigID:sigID completion:^(NSError *error, KBRCheckProofStatus *checkProofStatus) {
+    [KBActivity setProgressEnabled:NO sender:self];
+    if ([KBActivity setError:error sender:self]) return;
 
     if (checkProofStatus.found) {
-      self.completion(NO);
+      self.completion(YES);
+    } else {
+      [KBActivity setError:KBMakeError(checkProofStatus.status, @"Oops, we couldn't find the proof.") sender:self];
     }
   }];
 }

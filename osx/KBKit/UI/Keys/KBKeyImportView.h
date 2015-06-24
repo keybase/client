@@ -8,11 +8,15 @@
 
 #import <Foundation/Foundation.h>
 
-#import "KBContentView.h"
+#import <KBAppKit/KBAppKit.h>
+#import "KBRPC.h"
 
 typedef void (^KBKeyImportCompletion)(id sender, BOOL imported);
 
-@interface KBKeyImportView : KBContentView
+@interface KBKeyImportView : YOView
+
+@property KBNavigationView *navigation;
+@property KBRPClient *client;
 
 @property (copy) KBKeyImportCompletion completion;
 

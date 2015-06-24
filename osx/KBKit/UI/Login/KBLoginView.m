@@ -14,7 +14,7 @@
 
 #define PASSWORD_PLACEHOLDER (@"-----------")
 
-@interface KBLoginView () <KBTextFieldFocusDelegate>
+@interface KBLoginView () <NSTextFieldDelegate, KBTextFieldFocusDelegate>
 @property KBSecureTextField *passwordField;
 @property KBButton *saveToKeychainButton;
 @property KBRLoginRequest *request;

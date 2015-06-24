@@ -21,6 +21,7 @@ typedef NS_ENUM (NSInteger, KBEnv) {
 @property (readonly, getter=isDebugEnabled) BOOL debugEnabled;
 @property (readonly) NSString *mountDir;
 @property (nonatomic, readonly) NSString *sockFile;
+@property (nonatomic, readonly) NSString *configFile;
 @property (readonly) NSString *identifier;
 @property (readonly, getter=isLaunchdEnabled) BOOL launchdEnabled;
 @property (readonly) NSString *launchdLabelService;
@@ -51,9 +52,6 @@ typedef NS_ENUM (NSInteger, KBEnv) {
 - (NSString *)cachePath:(NSString *)filename;
 
 - (NSBundle *)bundle;
-
-- (NSString *)sockFile:(BOOL)useDefault;
-- (NSString *)configFile:(BOOL)useDefault;
 
 - (BOOL)validate:(NSError **)error;
 

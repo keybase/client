@@ -9,9 +9,13 @@
 #import <Foundation/Foundation.h>
 
 
-#import "KBContentView.h"
+#import <KBAppKit/KBAppKit.h>
+#import "KBRPC.h"
 
-@interface KBStyleGuideView : KBContentView
+@interface KBStyleGuideView : YOView
+
+@property KBNavigationView *navigation;
+@property KBRPClient *client;
 
 - (void)open:(id)sender;
 

@@ -59,10 +59,14 @@
   return directory;
 }
 
-+ (void)openURLString:(NSString *)URLString sender:(id)sender {
-  [KBAlert yesNoWithTitle:@"Open a Link" description:NSStringWithFormat(@"Do you want to open %@?", URLString) yes:@"Open" view:sender completion:^(BOOL yes) {
-    if (yes) [NSWorkspace.sharedWorkspace openURL:[NSURL URLWithString:URLString]];
-  }];
++ (void)openURLString:(NSString *)URLString prompt:(BOOL)prompt sender:(id)sender {
+  if (!prompt) {
+    [NSWorkspace.sharedWorkspace openURL:[NSURL URLWithString:URLString]];
+  } else {
+    [KBAlert yesNoWithTitle:@"Open a Link" description:NSStringWithFormat(@"Do you want to open %@?", URLString) yes:@"Open" view:sender completion:^(BOOL yes) {
+      if (yes) [NSWorkspace.sharedWorkspace openURL:[NSURL URLWithString:URLString]];
+    }];
+  }
 }
 
 @end

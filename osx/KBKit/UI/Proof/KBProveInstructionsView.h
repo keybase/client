@@ -8,9 +8,10 @@
 
 #import <Foundation/Foundation.h>
 
-
 #import "KBRPC.h"
-#import "KBContentView.h"
+#import <KBAppKit/KBAppKit.h>
+#import "KBRPC.h"
+#import <KBAppKit/KBAppKit.h>
 
 @protocol KBProveInstructionsView
 @property KBButton *button;
@@ -18,7 +19,10 @@
 - (void)setProofText:(NSString *)proofText serviceName:(NSString *)serviceName;
 @end
 
-@interface KBProveInstructionsView : KBContentView <KBProveInstructionsView>
+@interface KBProveInstructionsView : YOView <KBProveInstructionsView>
+
+@property KBNavigationView *navigation;
+@property KBRPClient *client;
 
 @end
 

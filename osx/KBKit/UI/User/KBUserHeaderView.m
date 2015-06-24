@@ -45,7 +45,7 @@
   _name2View.hidden = YES;
   GHWeakSelf gself = self;
   _name2View.targetBlock = ^ {
-    [KBWorkspace openURLString:KBURLStringForUsername(gself.username) sender:gself];
+    [KBWorkspace openURLString:KBURLStringForUsername(gself.username) prompt:YES sender:gself];
   };
   [self addSubview:_name2View];
 

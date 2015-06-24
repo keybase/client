@@ -8,6 +8,8 @@
 
 #import "KBDeviceAddView.h"
 
+#import "KBDefines.h"
+
 @interface KBDeviceAddView ()
 @property KBTextView *inputField;
 @property NSNumber *sessionId;

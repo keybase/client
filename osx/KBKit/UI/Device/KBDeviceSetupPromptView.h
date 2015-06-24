@@ -8,11 +8,15 @@
 
 #import <Foundation/Foundation.h>
 
-#import "KBContentView.h"
+#import <KBAppKit/KBAppKit.h>
+#import "KBRPC.h"
 
 typedef void (^KBDevicePromptCompletion)(id sender, NSError *error, NSString *deviceName);
 
-@interface KBDeviceSetupPromptView : KBContentView
+@interface KBDeviceSetupPromptView : YOView
+
+@property KBNavigationView *navigation;
+@property KBRPClient *client;
 
 @property (copy) KBDevicePromptCompletion completion;
 

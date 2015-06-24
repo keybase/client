@@ -8,13 +8,17 @@
 
 #import <Foundation/Foundation.h>
 
-#import "KBContentView.h"
+#import <KBAppKit/KBAppKit.h>
+#import "KBRPC.h"
 
 @class KBPGPSignView;
 
 typedef void (^KBPGPOnSign)(KBPGPSignView *view, NSData *signedData, KBRSignMode mode);
 
-@interface KBPGPSignView : KBContentView
+@interface KBPGPSignView : YOView
+
+@property KBNavigationView *navigation;
+@property KBRPClient *client;
 
 @property (copy) KBPGPOnSign onSign;
 

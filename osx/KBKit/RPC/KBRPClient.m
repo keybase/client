@@ -112,10 +112,10 @@
 
   _client.coder = [[KBRPCCoder alloc] init];
 
-  DDLogDebug(@"Connecting: %@", [self.config sockFile:YES]);
+  DDLogDebug(@"Connecting: %@", [self.config sockFile]);
   _connectAttempt++;
   [self.delegate RPClientWillConnect:self];
-  [_client openWithSocket:[self.config sockFile:YES] completion:^(NSError *error) {
+  [_client openWithSocket:[self.config sockFile] completion:^(NSError *error) {
     if (error) {
       gself.status = KBRPClientStatusClosed;
 
