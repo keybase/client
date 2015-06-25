@@ -37,12 +37,6 @@ type PGPIdentity struct {
 	Email    string `codec:"email" json:"email"`
 }
 
-type Image struct {
-	Url    string `codec:"url" json:"url"`
-	Width  int    `codec:"width" json:"width"`
-	Height int    `codec:"height" json:"height"`
-}
-
 type PublicKey struct {
 	KID               string        `codec:"KID" json:"KID"`
 	PGPFingerprint    string        `codec:"PGPFingerprint" json:"PGPFingerprint"`
@@ -60,7 +54,6 @@ type PublicKey struct {
 type User struct {
 	Uid        UID         `codec:"uid" json:"uid"`
 	Username   string      `codec:"username" json:"username"`
-	Image      *Image      `codec:"image,omitempty" json:"image,omitempty"`
 	PublicKeys []PublicKey `codec:"publicKeys" json:"publicKeys"`
 }
 

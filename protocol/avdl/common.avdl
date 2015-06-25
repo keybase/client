@@ -33,12 +33,6 @@ protocol Common {
 		string email;
 	}
 
-	record Image {
-		string url;
-		int width;
-		int height;
-	}
-
 	record PublicKey {
 		string KID;
 		string PGPFingerprint; // empty for non-PGP keys
@@ -56,7 +50,6 @@ protocol Common {
 	record User {
 		UID uid;
 		string username;
-		union { null, Image } image;
 		array<PublicKey> publicKeys;
 	}
 
