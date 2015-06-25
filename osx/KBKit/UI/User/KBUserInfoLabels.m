@@ -9,7 +9,7 @@
 #import "KBUserInfoLabels.h"
 
 #import "KBProofLabel.h"
-#import "KBProveType.h"
+
 #import "KBDefines.h"
 #import "KBFormatter.h"
 

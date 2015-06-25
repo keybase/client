@@ -54,3 +54,18 @@ NSString *KBPGPKeyIdFromFingerprint(NSString *fingerprint);
 
 NSString *KBDescriptionForKID(NSData *kid);
 NSString *KBDescriptionForFingerprint(NSString *fingerprint, NSInteger indexForLineBreak);
+
+
+typedef NS_ENUM (NSInteger, KBProofAction) {
+  KBProofActionCancel = 0,
+  KBProofActionRetry,
+  KBProofActionReplace,
+  KBProofActionRevoke,
+  KBProofActionOpen
+};
+
+NSString *KBImageNameForServiceName(NSString *serviceName);
+
+NSString *KBShortNameForServiceName(NSString *serviceName);
+
+NSString *KBNameForServiceName(NSString *serviceName);

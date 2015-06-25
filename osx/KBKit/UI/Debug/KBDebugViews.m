@@ -122,8 +122,7 @@
 }
 
 - (void)showProve:(NSString *)serviceName {
-  [KBProveView connectWithServiceName:serviceName proofResult:nil client:self.client window:(KBWindow *)self.window completion:^(BOOL success) {
-
+  [KBProveView createProofWithServiceName:serviceName client:self.client window:(KBWindow *)self.window completion:^(id sender, BOOL success) {
   }];
 }
 

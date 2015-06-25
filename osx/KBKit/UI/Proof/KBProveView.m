@@ -8,7 +8,7 @@
 
 #import "KBProveView.h"
 
-#import "KBProveType.h"
+
 #import "KBProveRooterInstructions.h"
 #import "KBDefines.h"
 
@@ -30,9 +30,10 @@
   [self kb_setBackgroundColor:KBAppearance.currentAppearance.backgroundColor];
 
   GHWeakSelf gself = self;
-
+  
   _inputView = [[KBProveInputView alloc] init];
   _inputView.button.targetBlock = ^{ [gself startProof]; };
+  _inputView.cancelButton.targetBlock = ^{ [gself cancel]; };
   [self addSubview:_inputView];
 
   YOSelf yself = self;
@@ -43,19 +44,27 @@
   }];
 }
 
-+ (void)connectWithServiceName:(NSString *)serviceName proofResult:(KBProofResult *)proofResult client:(KBRPClient *)client window:(KBWindow *)window completion:(KBProveCompletion)completion {
++ (void)createProofWithServiceName:(NSString *)serviceName client:(KBRPClient *)client window:(KBWindow *)window completion:(KBProveCompletion)completion {
+  [self _setServiceName:serviceName proofResult:nil client:client window:window completion:completion];
+}
+
++ (void)replaceProof:(KBProofResult *)proofResult client:(KBRPClient *)client window:(KBWindow *)window completion:(KBProveCompletion)completion {
+  [self _setServiceName:nil proofResult:proofResult client:client window:window completion:completion];
+}
+
++ (void)_setServiceName:(NSString *)serviceName proofResult:(KBProofResult *)proofResult client:(KBRPClient *)client window:(KBWindow *)window completion:(KBProveCompletion)completion {
   KBProveView *proveView = [[KBProveView alloc] init];
   proveView.client = client;
-  [proveView setServiceName:serviceName proofResult:proofResult];
+  if (serviceName) [proveView setServiceName:serviceName];
+  if (proofResult) [proveView setProofResult:proofResult];
 
-  NSWindow *proveWindow = [window addModalWindowForView:proveView rect:CGRectMake(0, 0, 620, 420)];
-
-  KBProveCompletion close = ^(BOOL success) {
-    [proveWindow close];
-    completion(success);
+  KBProveCompletion close = ^(id sender, BOOL success) {
+    [[sender window] close];
+    completion(sender, success);
   };
   proveView.completion = close;
-  proveView.inputView.cancelButton.targetBlock = ^{ close(NO); };
+
+  [window kb_addChildWindowForView:proveView rect:CGRectMake(0, 0, 620, 420) position:KBWindowPositionCenter title:@"Connect" fixed:NO makeKey:YES];
 }
 
 - (YOView<KBProveInstructionsView> *)instructionsViewForServiceName:(NSString *)serviceName {
@@ -66,24 +75,28 @@
   }
 }
 
-- (void)setServiceName:(NSString *)serviceName proofResult:(KBProofResult *)proofResult {
+// If creating
+- (void)setServiceName:(NSString *)serviceName {
   _serviceName = serviceName;
+  _serviceUsername = nil;
+  _sigId = nil;
+  [_inputView setServiceName:_serviceName];
+  [self setNeedsLayout];
+  [self.window makeFirstResponder:_inputView.inputField];
+
+}
+
+// If replacing
+- (void)setProofResult:(KBProofResult *)proofResult {
+  _serviceName = proofResult.proof.key;
   _serviceUsername = proofResult.proof.value;
   _sigId = proofResult.proof.sigID;
 
-  [_inputView setServiceName:serviceName];
-
-  if (_serviceUsername) {
-    _inputView.inputField.text = _serviceUsername;
-  }
+  [_inputView setServiceName:_serviceName];
+  _inputView.inputField.text = _serviceUsername;
 
   [self setNeedsLayout];
-
-//  if (_sigId) {
-//    [self continueProof];
-//  } else {
   [self.window makeFirstResponder:_inputView.inputField];
-//  }
 }
 
 - (void)openInstructionsWithProofText:(NSString *)proofText {
@@ -172,6 +185,10 @@
 }
 
 - (void)cancel {
+  self.completion(self, NO);
+}
+
+- (void)abandon {
   NSString *sigID = _sigId;
   if (!sigID) {
     [KBActivity setError:KBMakeError(-1, @"Nothing to remove") sender:self];
@@ -184,7 +201,7 @@
   [request revokeSigsWithSessionID:request.sessionId ids:@[sigID] seqnos:nil completion:^(NSError *error) {
     [KBActivity setProgressEnabled:NO sender:self];
     if ([KBActivity setError:error sender:self]) return;
-    gself.completion(NO);
+    gself.completion(gself, NO);
   }];
 }
 
@@ -199,7 +216,7 @@
     if (!checkProofStatus.found) {
       [self openInstructionsWithProofText:checkProofStatus.proofText];
     } else {
-      self.completion(YES);
+      self.completion(self, YES);
     }
   }];
 }
@@ -213,7 +230,7 @@
     if ([KBActivity setError:error sender:self]) return;
 
     if (checkProofStatus.found) {
-      self.completion(YES);
+      self.completion(self, YES);
     } else {
       [KBActivity setError:KBMakeError(checkProofStatus.status, @"Oops, we couldn't find the proof.") sender:self];
     }

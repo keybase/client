@@ -8,7 +8,7 @@
 
 #import "KBProofView.h"
 
-#import "KBProveType.h"
+
 #import "KBWorkspace.h"
 #import <GHKit/GHKit.h>
 
@@ -30,7 +30,7 @@
   YOVBox *linkView = [YOVBox box:@{@"insets": @(40)}];
   {
     _link = [KBButton button];
-    _link.targetBlock = ^{ gself.completion(gself, KBProofViewActionOpen); };
+    _link.targetBlock = ^{ gself.completion(gself, KBProofActionOpen); };
     [linkView addSubview:_link];
   }
   [self addSubview:linkView];
@@ -40,20 +40,20 @@
   {
     [bottomView addSubview:[KBBox horizontalLine]];
 
-    YOHBox *buttons = [YOHBox box:@{@"spacing": @(10), @"insets": @(20)}];
+    YOHBox *buttons = [YOHBox box:@{@"spacing": @(10), @"insets": @"10,20,10,20"}];
     {
       KBButton *replaceButton = [KBButton buttonWithText:@"Replace" style:KBButtonStyleDefault options:KBButtonOptionsToolbar];
-      replaceButton.targetBlock = ^{ self.completion(gself, KBProofViewActionWantsReplace); };
+      replaceButton.targetBlock = ^{ self.completion(gself, KBProofActionReplace); };
       [buttons addSubview:replaceButton];
 
       KBButton *revokeButton = [KBButton buttonWithText:@"Revoke" style:KBButtonStyleDanger options:KBButtonOptionsToolbar];
-      revokeButton.targetBlock = ^{ [gself revoke]; };
+      revokeButton.targetBlock = ^{ self.completion(gself, KBProofActionRevoke); };
       [buttons addSubview:revokeButton];
 
       YOHBox *rightButtons = [YOHBox box:@{@"spacing": @(10), @"horizontalAlignment": @"right", @"minSize": @"90,0"}];
       {
         KBButton *cancelButton = [KBButton buttonWithText:@"Close" style:KBButtonStyleDefault options:KBButtonOptionsToolbar];
-        cancelButton.targetBlock = ^{ gself.completion(gself, KBProofViewActionClose); };
+        cancelButton.targetBlock = ^{ gself.completion(gself, KBProofActionCancel); };
         [rightButtons addSubview:cancelButton];
       }
       [buttons addSubview:rightButtons];
@@ -61,6 +61,8 @@
     [bottomView addSubview:buttons];
   }
   [self addSubview:bottomView];
+
+  self.viewLayout = [YOBorderLayout layoutWithCenter:linkView top:nil bottom:@[bottomView]];
 }
 
 - (void)setProofResult:(KBProofResult *)proofResult {
@@ -68,24 +70,6 @@
   //[_webView openURLString:proofResult.result.hint.humanUrl];
   [_link setText:proofResult.result.hint.humanUrl style:KBButtonStyleLink options:0];
   [self setNeedsLayout];
-}
-
-- (void)revoke {
-  [KBAlert yesNoWithTitle:@"Quit" description:@"Are you sure you want to revoke this proof?" yes:@"Revoke" view:self completion:^(BOOL yes) {
-    if (yes) [self _revoke];
-  }];
-}
-
-- (void)_revoke {
-  NSAssert(_proofResult.proof.sigID, @"No proof sigId");
-  GHWeakSelf gself = self;
-  [KBActivity setProgressEnabled:YES sender:self];
-  KBRRevokeRequest *request = [[KBRRevokeRequest alloc] initWithClient:self.client];
-  [request revokeSigsWithSessionID:request.sessionId ids:@[_proofResult.proof.sigID] seqnos:nil completion:^(NSError *error) {
-    [KBActivity setProgressEnabled:NO sender:self];
-    if ([KBActivity setError:error sender:self]) return;
-    gself.completion(self, KBProofViewActionRevoked);
-  }];
 }
 
 @end

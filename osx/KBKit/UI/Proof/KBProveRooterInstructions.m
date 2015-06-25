@@ -7,7 +7,6 @@
 //
 
 #import "KBProveRooterInstructions.h"
-#import "KBProveType.h"
 
 @interface KBProveRooterInstructions ()
 @property KBLabel *instructionsLabel;
@@ -31,10 +30,10 @@
   _proofView.view.textContainerInset = CGSizeMake(10, 10);
   [self addSubview:_proofView];
 
-  YOHBox *buttonsView = [YOHBox box:@{@"spacing": @(20), @"horizontalAlignment": @"center", @"minSize": @"160,0"}];
+  YOHBox *buttonsView = [YOHBox box:@{@"spacing": @(20), @"horizontalAlignment": @"right", @"minSize": @"160,0"}];
   [self addSubview:buttonsView];
 
-  _cancelButton = [KBButton buttonWithText:@"No, Thanks" style:KBButtonStyleDefault];
+  _cancelButton = [KBButton buttonWithText:@"Close" style:KBButtonStyleDefault];
   [buttonsView addSubview:_cancelButton];
 
   _button = [KBButton buttonWithText:@"OK, I posted it." style:KBButtonStylePrimary];

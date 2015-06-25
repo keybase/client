@@ -16,13 +16,15 @@
 #import "KBRPC.h"
 #import "KBProofResult.h"
 
-typedef void (^KBProveCompletion)(BOOL success);
+typedef void (^KBProveCompletion)(id sender, BOOL success);
 
 @interface KBProveView : YOView
 
 @property KBNavigationView *navigation;
 @property KBRPClient *client;
 
-+ (void)connectWithServiceName:(NSString *)serviceName proofResult:(KBProofResult *)proofResult client:(KBRPClient *)client window:(KBWindow *)window completion:(KBProveCompletion)completion;
++ (void)createProofWithServiceName:(NSString *)serviceName client:(KBRPClient *)client window:(KBWindow *)window completion:(KBProveCompletion)completion;
+
++ (void)replaceProof:(KBProofResult *)proofResult client:(KBRPClient *)client window:(KBWindow *)window completion:(KBProveCompletion)completion ;
 
 @end

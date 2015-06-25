@@ -8,7 +8,7 @@
 
 #import "KBProveInstructionsView.h"
 
-#import "KBProveType.h"
+#import "KBDefines.h"
 #import "KBWorkspace.h"
 #import <GHKit/GHKit.h>
 
@@ -28,7 +28,7 @@
   [super viewInit];
   [self kb_setBackgroundColor:KBAppearance.currentAppearance.backgroundColor];
 
-  YOVBox *instructionsView = [YOVBox box:@{@"spacing": @(10)}];
+  YOVBox *instructionsView = [YOVBox box:@{@"spacing": @(10), @"insets": @(20)}];
   instructionsView.ignoreLayoutForHidden = YES;
   {
     _instructionsLabel = [[KBLabel alloc] init];
@@ -46,28 +46,38 @@
   _proofView.view.textContainerInset = CGSizeMake(10, 10);
   [self addSubview:_proofView];
 
-  YOVBox *bottomView = [YOVBox box:@{@"spacing": @(20)}];
+  YOVBox *bottomView = [YOVBox box];
+  [bottomView kb_setBackgroundColor:KBAppearance.currentAppearance.secondaryBackgroundColor];
+  {
+    YOHBox *buttons = [YOHBox box:@{@"spacing": @(10), @"insets": @(20)}];
+    {
+      GHWeakSelf gself = self;
+      _clipboardCopyButton = [KBButton buttonWithText:@"Copy to clipboard" style:KBButtonStyleDefault options:KBButtonOptionsToolbar];
+      _clipboardCopyButton.targetBlock = ^{ [gself copyToClipboard]; };
+      [buttons addSubview:_clipboardCopyButton];
+
+      YOHBox *rightButtons = [YOHBox box:@{@"spacing": @(10), @"horizontalAlignment": @"right", @"minSize": @"90,0"}];
+      {
+        _button = [KBButton buttonWithText:@"OK, I posted it." style:KBButtonStylePrimary options:KBButtonOptionsToolbar];
+        [rightButtons addSubview:_button];
+
+        _cancelButton = [KBButton buttonWithText:@"Close" style:KBButtonStyleDefault options:KBButtonOptionsToolbar];
+        [rightButtons addSubview:_cancelButton];
+      }
+      [buttons addSubview:rightButtons];
+    }
+    [bottomView addSubview:buttons];
+  }
   [self addSubview:bottomView];
 
-  GHWeakSelf gself = self;
-  _clipboardCopyButton = [KBButton buttonWithText:@"Copy to clipboard" style:KBButtonStyleLink];
-  _clipboardCopyButton.targetBlock = ^{
-    [NSPasteboard.generalPasteboard clearContents];
-    BOOL pasted = [NSPasteboard.generalPasteboard writeObjects:@[gself.proofText]];
-    DDLogDebug(@"Pasted? %@", @(pasted));
-  };
-  [bottomView addSubview:_clipboardCopyButton];
+  self.viewLayout = [YOBorderLayout layoutWithCenter:_proofView top:@[instructionsView] bottom:@[bottomView]];
+}
 
-  YOHBox *buttonsView = [YOHBox box:@{@"spacing": @(20), @"horizontalAlignment": @"center", @"minSize": @"160,0"}];
-  [bottomView addSubview:buttonsView];
-
-  _cancelButton = [KBButton buttonWithText:@"No, Thanks" style:KBButtonStyleDefault];
-  [buttonsView addSubview:_cancelButton];
-
-  _button = [KBButton buttonWithText:@"OK, I posted it." style:KBButtonStylePrimary];
-  [buttonsView addSubview:_button];
-
-  self.viewLayout = [YOBorderLayout layoutWithCenter:_proofView top:@[instructionsView] bottom:@[bottomView] insets:UIEdgeInsetsMake(20, 40, 20, 40) spacing:20];
+- (void)copyToClipboard {
+  [NSPasteboard.generalPasteboard clearContents];
+  if (self.proofText) {
+    [NSPasteboard.generalPasteboard writeObjects:@[self.proofText]];
+  }
 }
 
 - (void)setProofText:(NSString *)proofText serviceName:(NSString *)serviceName {
@@ -76,14 +86,14 @@
 
   NSString *instructionsText;
   if ([serviceName isEqualToString:@"github"]) {
-    instructionsText = @"Please login to GitHub and save a public gist called keybase.md:";
+    instructionsText = @"Please login to GitHub and save a <strong>public gist</strong> called <code>keybase.md</code>:";
   } else if (name) {
     instructionsText = NSStringWithFormat(@"Post the following to %@:", name);
   } else {
     instructionsText = @"Post the following:";
   }
 
-  [self.instructionsLabel setText:instructionsText style:KBTextStyleDefault];
+  [self.instructionsLabel setMarkup:instructionsText];
 
   GHWeakSelf gself = self;
   NSString *linkLabel = nil;

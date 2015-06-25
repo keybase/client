@@ -8,7 +8,7 @@
 
 #import "KBProveInputView.h"
 
-#import "KBProveType.h"
+#import "KBDefines.h"
 
 @interface KBProveInputView ()
 @property KBLabel *header;

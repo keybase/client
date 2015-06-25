@@ -78,8 +78,6 @@
 }
 
 - (void)setKey:(KBRIdentifyKey *)key editable:(BOOL)editable {
-  NSAssert(self.window, @"Not in a window");
-
   _key = key;
 
   [_labels kb_removeAllSubviews];

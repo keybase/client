@@ -1,5 +1,5 @@
 //
-//  KBProofView.h
+//  KBProofRepairView.h
 //  Keybase
 //
 //  Created by Gabriel on 6/24/15.
@@ -13,12 +13,12 @@
 #import "KBProofResult.h"
 #import "KBDefines.h"
 
-typedef void (^KBProofViewCompletion)(id sender, KBProofAction action);
+typedef void (^KBProofRepairViewCompletion)(id sender, KBProofAction action);
 
-@interface KBProofView : YOView
+@interface KBProofRepairView : YOView
 
 @property KBRPClient *client;
 @property (nonatomic) KBProofResult *proofResult;
-@property (copy) KBProofViewCompletion completion;
+@property (copy) KBProofRepairViewCompletion completion;
 
 @end

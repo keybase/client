@@ -22,11 +22,12 @@
 #import "KBProgressView.h"
 #import "KBKeyView.h"
 #import "KBKeyImportView.h"
-#import "KBProveType.h"
+
 #import "KBAlertView.h"
 #import "KBWorkspace.h"
 #import "KBNotifications.h"
 #import "KBProofView.h"
+#import "KBProofRepairView.h"
 
 @interface KBUserProfileView ()
 @property KBScrollView *scrollView;
@@ -131,8 +132,7 @@
     BOOL isSelf = [[KBApp.app currentUsername] isEqual:self.username];
     [gself.userInfoView addProofs:requestParams.id.proofs editable:isSelf targetBlock:^(KBProofLabel *proofLabel) {
       if (proofLabel.proofResult.result.proofResult.status != 1) {
-        NSString *serviceName = proofLabel.proofResult.proof.key;
-        [self connectWithServiceName:serviceName proofResult:proofLabel.proofResult];
+        [self repairProof:proofLabel.proofResult];
       } else if (proofLabel.proofResult.result.hint.humanUrl) {
         [self viewProof:proofLabel.proofResult];
       }
@@ -205,40 +205,6 @@
 
 - (BOOL)isLoadingUsername:(NSString *)username {
   return [self.username isEqualToString:username] && _loading;
-}
-
-- (void)viewProof:(KBProofResult *)proofResult {
-  KBProofView *proofView = [[KBProofView alloc] init];
-  proofView.proofResult = proofResult;
-  proofView.client = self.client;
-  NSString *serviceName = proofResult.proof.key;
-  proofView.completion = ^(id sender, KBProofViewAction action) {
-    switch (action) {
-      case KBProofViewActionClose: break;
-      case KBProofViewActionRevoked: {
-        [self refresh];
-        break;
-      }
-      case KBProofViewActionWantsReplace: {
-        [self connectWithServiceName:serviceName proofResult:proofResult];
-        break;
-      }
-      case KBProofViewActionOpen: {
-        [KBWorkspace openURLString:proofResult.result.hint.humanUrl prompt:NO sender:self];
-        break;
-      }
-    }
-    [[sender window] close];
-  };
-  CGSize size = [proofView sizeThatFits:CGSizeMake(500, 0)];
-  [self.window kb_addChildWindowForView:proofView rect:CGRectMake(0, 0, size.width, size.height) position:KBWindowPositionCenter title:KBNameForServiceName(serviceName) fixed:NO makeKey:YES]; // CGRectMake(0, 0, 780, 640)
-}
-
-- (void)connectWithServiceName:(NSString *)serviceName proofResult:(KBProofResult *)proofResult {
-  GHWeakSelf gself = self;
-  [KBProveView connectWithServiceName:serviceName proofResult:proofResult client:self.client window:(KBWindow *)self.window completion:^(BOOL success) {
-    [gself refresh]; // Always reload even if canceled
-  }];
 }
 
 - (void)showTrackPrompt:(KBUserTrackStatus *)trackStatus completion:(void (^)(BOOL track))completion {
@@ -353,7 +319,7 @@
 
       NSAttributedString *icon = [KBFontAwesome attributedStringForIcon:serviceName style:KBTextStyleDefault options:0 alignment:NSLeftTextAlignment lineBreakMode:NSLineBreakByClipping];
       NSAttributedString *textLabel = [KBAppearance.currentAppearance attributedString:label style:KBTextStyleDefault options:KBTextOptionsSelect alignment:NSLeftTextAlignment lineBreakMode:NSLineBreakByCharWrapping];
-      [gself.userInfoView addHeader:icon text:textLabel targetBlock:^{ [gself connectWithServiceName:serviceName proofResult:nil]; }];
+      [gself.userInfoView addHeader:icon text:textLabel targetBlock:^{ [gself createProofWithServiceName:serviceName]; }];
     }
     [self setNeedsLayout];
   }];
@@ -488,6 +454,94 @@
     if (imported) [self refresh];
     [[sender window] close];
   };
+}
+
+#pragma mark Proof
+
+- (void)viewProof:(KBProofResult *)proofResult {
+  KBProofView *proofView = [[KBProofView alloc] init];
+  proofView.proofResult = proofResult;
+  proofView.client = self.client;
+  GHWeakSelf gself = self;
+  proofView.completion = ^(id sender, KBProofAction action) {
+    [gself handleProofAction:action proofResult:proofResult];
+    [[sender window] close];
+  };
+  NSString *title = KBNameForServiceName(proofResult.proof.key);
+  [self.window kb_addChildWindowForView:proofView rect:CGRectMake(0, 0, 500, 200) position:KBWindowPositionCenter title:title fixed:NO makeKey:YES];
+}
+
+- (void)repairProof:(KBProofResult *)proofResult {
+  KBProofRepairView *proofRepairView = [[KBProofRepairView alloc] init];
+  proofRepairView.proofResult = proofResult;
+  proofRepairView.client = self.client;
+  GHWeakSelf gself = self;
+  proofRepairView.completion = ^(id sender, KBProofAction action) {
+    [gself handleProofAction:action proofResult:proofResult];
+    [[sender window] close];
+  };
+  [self.window kb_addChildWindowForView:proofRepairView rect:CGRectMake(0, 0, 500, 200) position:KBWindowPositionCenter title:@"Proof Failed" fixed:NO makeKey:YES];
+}
+
+- (void)handleProofAction:(KBProofAction)proofAction proofResult:(KBProofResult *)proofResult {
+  switch (proofAction) {
+    case KBProofActionRetry: [self retryProof:proofResult]; break;
+    case KBProofActionReplace: [self replaceProof:proofResult]; break;
+    case KBProofActionRevoke: [self revokeProof:proofResult]; break;
+    case KBProofActionOpen: [self openProof:proofResult]; break;
+    case KBProofActionCancel: break;
+  }
+}
+
+- (void)createProofWithServiceName:(NSString *)serviceName {
+  GHWeakSelf gself = self;
+  [KBProveView createProofWithServiceName:serviceName client:self.client window:(KBWindow *)self.window completion:^(id sender, BOOL success) {
+    [gself refresh]; // TODO We're always reloading even if canceled
+  }];
+}
+
+- (void)retryProof:(KBProofResult *)proofResult {
+  NSString *sigID = proofResult.proof.sigID;
+  KBRProveRequest *request = [[KBRProveRequest alloc] initWithClient:self.client];
+  [KBActivity setProgressEnabled:YES sender:self];
+  [request checkProofWithSessionID:request.sessionId sigID:sigID completion:^(NSError *error, KBRCheckProofStatus *checkProofStatus) {
+    [KBActivity setProgressEnabled:NO sender:self];
+    if ([KBActivity setError:error sender:self]) return;
+
+    if (checkProofStatus.found) {
+      [self refresh];
+    } else {
+      [KBActivity setError:KBMakeError(checkProofStatus.status, @"Oops, we couldn't find the proof.") sender:self];
+    }
+  }];
+}
+
+- (void)replaceProof:(KBProofResult *)proofResult {
+  GHWeakSelf gself = self;
+  [KBProveView replaceProof:proofResult client:self.client window:(KBWindow *)self.window completion:^(id sender, BOOL success) {
+    [gself refresh]; // Always reload even if canceled
+  }];
+}
+
+- (void)openProof:(KBProofResult *)proofResult {
+  [KBWorkspace openURLString:proofResult.result.hint.humanUrl prompt:NO sender:self];
+}
+
+- (void)revokeProof:(KBProofResult *)proofResult {
+  [KBAlert yesNoWithTitle:@"Quit" description:@"Are you sure you want to revoke this proof?" yes:@"Revoke" view:self completion:^(BOOL yes) {
+    if (yes) [self _revokeProof:proofResult];
+  }];
+}
+
+- (void)_revokeProof:(KBProofResult *)proofResult {
+  NSAssert(proofResult.proof.sigID, @"No proof sigId");
+  GHWeakSelf gself = self;
+  [KBActivity setProgressEnabled:YES sender:self];
+  KBRRevokeRequest *request = [[KBRRevokeRequest alloc] initWithClient:self.client];
+  [request revokeSigsWithSessionID:request.sessionId ids:@[proofResult.proof.sigID] seqnos:nil completion:^(NSError *error) {
+    [KBActivity setProgressEnabled:NO sender:self];
+    [gself refresh];
+  }];
 }
 
 @end
