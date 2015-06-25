@@ -70,7 +70,7 @@
 }
 
 - (void)addKey:(KBRIdentifyKey *)key targetBlock:(void (^)(id sender, KBRIdentifyKey *key))targetBlock {
-  [_headerLabel setAttributedText:[KBFontAwesome attributedStringForIcon:@"key" style:KBTextStyleDefault options:0 alignment:NSLeftTextAlignment lineBreakMode:NSLineBreakByClipping]];
+  [_headerLabel setAttributedText:[KBFontIcon attributedStringForIcon:@"key" style:KBTextStyleDefault options:0 alignment:NSLeftTextAlignment lineBreakMode:NSLineBreakByClipping sender:self]];
   NSString *keyDescription = KBDescriptionForFingerprint(KBPGPKeyIdFromFingerprint(KBHexString(key.pgpFingerprint, @"")), 0);
   KBButton *button = [KBButton buttonWithText:keyDescription style:KBButtonStyleLink alignment:NSLeftTextAlignment lineBreakMode:NSLineBreakByTruncatingTail];
   button.targetBlock = ^{ targetBlock(self, key); };
@@ -80,7 +80,7 @@
 }
 
 - (void)addCryptocurrency:(KBRCryptocurrency *)cryptocurrency targetBlock:(void (^)(id sender, id object))targetBlock {
-  [_headerLabel setAttributedText:[KBFontAwesome attributedStringForIcon:@"bitcoin" style:KBTextStyleDefault options:0 alignment:NSLeftTextAlignment lineBreakMode:NSLineBreakByClipping]];
+  [_headerLabel setAttributedText:[KBFontIcon attributedStringForIcon:@"bitcoin" style:KBTextStyleDefault options:0 alignment:NSLeftTextAlignment lineBreakMode:NSLineBreakByClipping sender:self]];
   KBButton *button = [KBButton buttonWithText:cryptocurrency.address style:KBButtonStyleLink alignment:NSLeftTextAlignment lineBreakMode:NSLineBreakByTruncatingTail];
   button.targetBlock = ^{ targetBlock(self, cryptocurrency); };
   [_buttons addObject:button];
@@ -91,7 +91,7 @@
 - (void)addProofResults:(NSArray *)proofResults serviceName:(NSString *)serviceName editable:(BOOL)editable targetBlock:(void (^)(KBProofLabel *proofLabel))targetBlock {
   _proofResults = proofResults;
 
-  [_headerLabel setAttributedText:[KBFontAwesome attributedStringForIcon:serviceName text:KBShortNameForServiceName(serviceName) style:KBTextStyleDefault options:0 alignment:NSLeftTextAlignment lineBreakMode:NSLineBreakByClipping]];
+  [_headerLabel setAttributedText:[KBFontIcon attributedStringForIcon:serviceName text:KBShortNameForServiceName(serviceName) style:KBTextStyleDefault options:0 alignment:NSLeftTextAlignment lineBreakMode:NSLineBreakByClipping sender:self] ];
 
   if ([proofResults count] == 0) {
     //[self addLabelWithText:@"Edit" font:[NSFont systemFontOfSize:14] tag:-1 targetBlock:^(id sender) { targetBlock(blockSelf, nil); }];

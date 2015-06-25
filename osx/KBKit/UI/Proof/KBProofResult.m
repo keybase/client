@@ -7,6 +7,7 @@
 //
 
 #import "KBProofResult.h"
+#import "KBFormatter.h"
 
 #import <GHKit/GHKit.h>
 
@@ -20,7 +21,7 @@
 }
 
 - (NSString *)description {
-  return GHDescription(@"proof", @"result");
+  return KBDescription(self);
 }
 
 @end

@@ -16,7 +16,7 @@
 #import "KBRunOver.h"
 
 #import <ObjectiveSugar/ObjectiveSugar.h>
-#import <CocoaLumberjack/CocoaLumberjack.h>
+#import "KBDefines.h"
 
 @interface KBEnvironment ()
 @property KBEnvConfig *config;

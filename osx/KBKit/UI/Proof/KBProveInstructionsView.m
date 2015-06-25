@@ -18,30 +18,32 @@
 @property KBTextView *proofView;
 @property KBButton *clipboardCopyButton;
 @property NSString *proofText;
+@property NSString *serviceName;
 @end
 
 @implementation KBProveInstructionsView
-
-@synthesize cancelButton=_cancelButton, button=_button;
 
 - (void)viewInit {
   [super viewInit];
   [self kb_setBackgroundColor:KBAppearance.currentAppearance.backgroundColor];
 
-  YOVBox *instructionsView = [YOVBox box:@{@"spacing": @(10), @"insets": @(20)}];
-  instructionsView.ignoreLayoutForHidden = YES;
+  YOVBox *topView = [YOVBox box];
   {
-    _instructionsLabel = [[KBLabel alloc] init];
-    [instructionsView addSubview:_instructionsLabel];
-    _linkButton = [KBButton button];
-    _linkButton.hidden = YES;
-
-    [instructionsView addSubview:_linkButton];
+    YOVBox *instructionsView = [YOVBox box:@{@"spacing": @(10), @"insets": @(20)}];
+    instructionsView.ignoreLayoutForHidden = YES;
+    {
+      _instructionsLabel = [[KBLabel alloc] init];
+      [instructionsView addSubview:_instructionsLabel];
+      _linkButton = [KBButton button];
+      _linkButton.hidden = YES;
+      [instructionsView addSubview:_linkButton];
+    }
+    [topView addSubview:instructionsView];
+    [topView addSubview:[KBBox horizontalLine]];
   }
-  [self addSubview:instructionsView];
+  [self addSubview:topView];
 
   _proofView = [[KBTextView alloc] init];
-  _proofView.borderType = NSBezelBorder;
   _proofView.view.editable = NO;
   _proofView.view.textContainerInset = CGSizeMake(10, 10);
   [self addSubview:_proofView];
@@ -49,10 +51,11 @@
   YOVBox *bottomView = [YOVBox box];
   [bottomView kb_setBackgroundColor:KBAppearance.currentAppearance.secondaryBackgroundColor];
   {
+    [bottomView addSubview:[KBBox horizontalLine]];
     YOHBox *buttons = [YOHBox box:@{@"spacing": @(10), @"insets": @(20)}];
     {
       GHWeakSelf gself = self;
-      _clipboardCopyButton = [KBButton buttonWithText:@"Copy to clipboard" style:KBButtonStyleDefault options:KBButtonOptionsToolbar];
+      _clipboardCopyButton = [KBButton buttonWithText:@"Copy to Clipboard" style:KBButtonStyleDefault options:KBButtonOptionsToolbar];
       _clipboardCopyButton.targetBlock = ^{ [gself copyToClipboard]; };
       [buttons addSubview:_clipboardCopyButton];
 
@@ -70,7 +73,7 @@
   }
   [self addSubview:bottomView];
 
-  self.viewLayout = [YOBorderLayout layoutWithCenter:_proofView top:@[instructionsView] bottom:@[bottomView]];
+  self.viewLayout = [YOBorderLayout layoutWithCenter:_proofView top:@[topView] bottom:@[bottomView]];
 }
 
 - (void)copyToClipboard {
@@ -80,8 +83,13 @@
   }
 }
 
+- (void)viewDidAppear:(BOOL)animated {
+  self.navigation.titleView.title = NSStringWithFormat(@"Connect to %@", KBNameForServiceName(_serviceName));
+}
+
 - (void)setProofText:(NSString *)proofText serviceName:(NSString *)serviceName {
   _proofText = proofText;
+  _serviceName = serviceName;
   NSString *name = KBNameForServiceName(serviceName);
 
   NSString *instructionsText;
@@ -99,6 +107,7 @@
   NSString *linkLabel = nil;
   if ([serviceName isEqualToString:@"twitter"]) linkLabel = @"Open Twitter";
   else if ([serviceName isEqualToString:@"github"]) linkLabel = @"Open Github";
+  else if ([serviceName isEqualToString:@"rooter"]) linkLabel = @"Open Rooter";
   if (linkLabel) {
     _linkButton.hidden = NO;
     [_linkButton setText:linkLabel style:KBButtonStyleLink alignment:NSLeftTextAlignment lineBreakMode:NSLineBreakByCharWrapping];
@@ -117,6 +126,8 @@
     URLString = NSStringWithFormat(@"https://twitter.com/intent/tweet?text=%@", [NSURL gh_encodeComponent:proofText]);
   } else if ([serviceName isEqualToString:@"github"]) {
     URLString = @"https://gist.github.com";
+  } else if ([serviceName isEqualToString:@"rooter"]) {
+    URLString = NSStringWithFormat(@"http://localhost:3000/_/api/1.0/rooter.json?post=%@", [NSURL gh_encodeComponent:proofText]);
   }
   if (URLString) {
     [KBWorkspace openURLString:URLString prompt:NO sender:self];

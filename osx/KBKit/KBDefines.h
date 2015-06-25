@@ -8,6 +8,9 @@
 
 #import <Foundation/Foundation.h>
 
+#import <CocoaLumberjack/CocoaLumberjack.h>
+static const int ddLogLevel = DDLogLevelDebug;
+
 typedef void (^KBCompletion)(NSError *error);
 typedef void (^KBOnCompletion)(NSError *error, id value);
 typedef void (^KBOnExtension)(id sender, NSExtensionItem *outputItem);
@@ -61,7 +64,9 @@ typedef NS_ENUM (NSInteger, KBProofAction) {
   KBProofActionRetry,
   KBProofActionReplace,
   KBProofActionRevoke,
-  KBProofActionOpen
+  KBProofActionOpen,
+  KBProofActionView,
+  KBProofActionRepair,
 };
 
 NSString *KBImageNameForServiceName(NSString *serviceName);

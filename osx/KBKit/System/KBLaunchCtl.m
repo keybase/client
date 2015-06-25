@@ -8,7 +8,6 @@
 
 #import "KBLaunchCtl.h"
 #import "KBDefines.h"
-#import <CocoaLumberjack/CocoaLumberjack.h>
 
 @implementation KBLaunchCtl
 

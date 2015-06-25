@@ -14,6 +14,8 @@
 @interface KBDevicesAppView ()
 @property KBSplitView *splitView;
 @property KBListView *devicesView;
+
+@property KBDeviceAddView *addView;
 @end
 
 @implementation KBDevicesAppView
@@ -27,7 +29,7 @@
   YOSelf yself = self;
 
   YOView *devicesView = [[YOView alloc] init];
-  KBButton *addButton = [KBFontAwesome buttonForIcon:@"plus" text:nil style:KBButtonStyleDefault options:KBButtonOptionsToolbar];
+  KBButton *addButton = [KBFontIcon buttonForIcon:@"plus" text:nil style:KBButtonStyleDefault options:KBButtonOptionsToolbar sender:self];
   addButton.targetBlock = ^{
     [yself addDevice];
   };
@@ -101,12 +103,18 @@
 }
 
 - (void)addDevice {
-  KBDeviceAddView *view = [[KBDeviceAddView alloc] init];
-  view.client = self.client;
-  view.completion = ^(id sender, BOOL added) {
-    [self refresh];
+  if (_addView) {
+    [_addView.window close];
+    _addView = nil;
+  }
+
+  _addView = [[KBDeviceAddView alloc] init];
+  _addView.client = self.client;
+  GHWeakSelf gself = self;
+  _addView.completion = ^(id sender, BOOL added) {
+    [gself refresh];
   };
-  [view openInWindow:(KBWindow *)self.window];
+  [_addView openInWindow:(KBWindow *)self.window];
 }
 
 @end

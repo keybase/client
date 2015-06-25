@@ -13,16 +13,15 @@
 #import "KBRPC.h"
 #import <KBAppKit/KBAppKit.h>
 
-@protocol KBProveInstructionsView
-@property KBButton *button;
-@property KBButton *cancelButton;
-- (void)setProofText:(NSString *)proofText serviceName:(NSString *)serviceName;
-@end
-
-@interface KBProveInstructionsView : YOView <KBProveInstructionsView>
+@interface KBProveInstructionsView : YOView
 
 @property KBNavigationView *navigation;
 @property KBRPClient *client;
+
+@property KBButton *button;
+@property KBButton *cancelButton;
+
+- (void)setProofText:(NSString *)proofText serviceName:(NSString *)serviceName;
 
 @end
 

@@ -15,7 +15,7 @@
   [self addSubview:[KBBox horizontalLine]];
   YOView *footerView = [YOView view];
 
-  _editButton = [KBFontAwesome buttonForIcon:@"angleLeft" text:@"Back" style:KBButtonStyleDefault options:0];
+  _editButton = [KBFontIcon buttonForIcon:@"angleLeft" text:@"Back" style:KBButtonStyleDefault options:0 sender:self];
   [footerView addSubview:_editButton];
 
 //  _shareButton = [KBButton buttonWithAttributedTitle:[KBFontAwesome attributedStringForIcon:@"angleUp" text:@"Share" style:KBTextStyleDefault options:0 alignment:NSCenterTextAlignment lineBreakMode:NSLineBreakByClipping] style:0]; //

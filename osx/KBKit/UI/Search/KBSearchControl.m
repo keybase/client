@@ -7,6 +7,7 @@
 //
 
 #import "KBSearchControl.h"
+#import "KBDefines.h"
 
 @interface KBSearchControl ()
 @property NSString *searchText;

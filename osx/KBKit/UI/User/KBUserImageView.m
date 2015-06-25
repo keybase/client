@@ -15,8 +15,9 @@
 @implementation KBImageView (KBUserImageView)
 
 - (void)kb_setUsername:(NSString *)username {
+  self.image = nil;
+  [self setNeedsDisplay];
   if (!username) {
-    self.image = nil;
     return;
   }
   NSString *URLString = [KBApp.app APIURLString:NSStringWithFormat(@"%@/picture?format=square_200", username)];
@@ -27,6 +28,7 @@
   GHWeakSelf gself = self;
   [self setImageWithURLRequest:request placeholderImage:nil success:^(NSURLRequest *request, NSHTTPURLResponse *response, NSImage *image) {
     gself.image = image;
+    [gself setNeedsDisplay];
   } failure:^(NSURLRequest *request, NSHTTPURLResponse *response, NSError *error) {
     if (response.statusCode == 404) {
       [gself setImageWithURL:[NSURL URLWithString:@"https://keybase.io/images/no_photo.png"]];

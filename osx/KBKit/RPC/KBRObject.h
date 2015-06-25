@@ -11,9 +11,7 @@
 
 @interface KBRObject : MTLModel <MTLJSONSerializing>
 
-- (NSString *)propertiesDescription:(NSString *)prefix;
-
 @end
 
 // Validate the array and that it contains all elements of class
-NSArray *KBRArray(id obj, Class clazz);
+NSArray *KBRValidateArray(id array, Class clazz);

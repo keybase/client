@@ -23,7 +23,7 @@
 
 @interface NSView (KBViews)
 - (void)setNavigation:(KBNavigationView *)navigation;
-- (void)viewWillAppearInView:(NSView *)view animated:(BOOL)animated;
+//- (void)viewWillAppearInView:(NSView *)view animated:(BOOL)animated;
 - (void)viewDidAppear:(BOOL)animated;
 @end
 
@@ -125,10 +125,6 @@
   }
 }
 
-- (void)viewWillAppearInView:(NSView *)view animated:(BOOL)animated {
-  //[[self currentView] viewWillAppearInView:view animated:animated];
-}
-
 - (void)viewDidAppear:(BOOL)animated {
   [[self currentView] viewDidAppear:animated];
 }
@@ -201,14 +197,14 @@
     [CATransaction begin];
     //[CATransaction setAnimationDuration:2.0]; // For debug
     [_titleView navigationView:self willTransitionView:inView transitionType:transitionType];
-    if ([inView respondsToSelector:@selector(viewWillAppearInView:animated:)]) [inView viewWillAppearInView:_contentView animated:YES];
+    //if ([inView respondsToSelector:@selector(viewWillAppearInView:animated:)]) [inView viewWillAppearInView:_contentView animated:YES];
     [self layoutView];
     [CATransaction setCompletionBlock:^{ if ([inView respondsToSelector:@selector(viewDidAppear:)]) [inView viewDidAppear:YES]; }];
     [self.contentView.animator replaceSubview:outView with:inView];
     [CATransaction commit];
   } else {
     [self layoutView];
-    if ([inView respondsToSelector:@selector(viewWillAppearInView:animated:)]) [inView viewWillAppearInView:_contentView animated:NO];
+    //if ([inView respondsToSelector:@selector(viewWillAppearInView:animated:)]) [inView viewWillAppearInView:_contentView animated:NO];
     if (outView) {
       [_contentView replaceSubview:outView with:inView];
     } else {

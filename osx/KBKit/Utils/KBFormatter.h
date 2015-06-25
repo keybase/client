@@ -16,3 +16,7 @@
 NSString *KBDescription(id obj);
 NSString *KBHexString(NSData *data, NSString *defaultValue);
 NSData *KBHexData(NSString *s);
+
+GHODictionary *KBObjectToDictionary(id obj, BOOL includeNull);
+NSString *KBClassNameOfPropertyNamed(Class clazz, NSString *propertyName);
+NSArray *KBPropertyNames(Class clazz);

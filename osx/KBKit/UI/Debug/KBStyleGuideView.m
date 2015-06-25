@@ -137,13 +137,13 @@
 
   NSMutableAttributedString *icons = [[NSMutableAttributedString alloc] init];
   NSDictionary *largeAttributes = @{NSForegroundColorAttributeName: KBAppearance.currentAppearance.selectColor, NSFontAttributeName: [NSFont systemFontOfSize:32]};
-  [icons appendAttributedString:[KBFontAwesome attributedStringForIcon:@"twitter" color:KBAppearance.currentAppearance.selectColor size:32 alignment:NSLeftTextAlignment lineBreakMode:NSLineBreakByClipping]];
+  [icons appendAttributedString:[KBFontIcon attributedStringForIcon:@"twitter" color:KBAppearance.currentAppearance.selectColor size:32 alignment:NSLeftTextAlignment lineBreakMode:NSLineBreakByClipping sender:self]];
   [icons appendAttributedString:[[NSAttributedString alloc] initWithString:@" Twitter\n" attributes:largeAttributes]];
 
-  [icons appendAttributedString:[KBFontAwesome attributedStringForIcon:@"reddit" appearance:KBAppearance.currentAppearance style:KBTextStyleHeaderLarge options:KBTextOptionsSelect alignment:NSLeftTextAlignment lineBreakMode:NSLineBreakByClipping]];
+  [icons appendAttributedString:[KBFontIcon attributedStringForIcon:@"reddit" appearance:KBAppearance.currentAppearance style:KBTextStyleHeaderLarge options:KBTextOptionsSelect alignment:NSLeftTextAlignment lineBreakMode:NSLineBreakByClipping sender:self]];
   [icons appendAttributedString:[[NSAttributedString alloc] initWithString:@" Reddit\n" attributes:largeAttributes]];
 
-  [icons appendAttributedString:[KBFontAwesome attributedStringForIcon:@"github" appearance:KBAppearance.currentAppearance style:KBTextStyleDefault options:0 alignment:NSLeftTextAlignment lineBreakMode:NSLineBreakByClipping]];
+  [icons appendAttributedString:[KBFontIcon attributedStringForIcon:@"github" appearance:KBAppearance.currentAppearance style:KBTextStyleDefault options:0 alignment:NSLeftTextAlignment lineBreakMode:NSLineBreakByClipping sender:self]];
   NSDictionary *attributes = @{NSForegroundColorAttributeName: KBAppearance.currentAppearance.textColor, NSFontAttributeName: [NSFont systemFontOfSize:14]};
   [icons appendAttributedString:[[NSAttributedString alloc] initWithString:@" gabriel\n" attributes:attributes]];
 

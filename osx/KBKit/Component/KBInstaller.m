@@ -14,7 +14,7 @@
 #import "KBInstallAction.h"
 #import "KBWorkspace.h"
 
-#import <CocoaLumberjack/CocoaLumberjack.h>
+#import "KBDefines.h"
 
 @interface KBInstaller ()
 @property KBEnvironment *environment;

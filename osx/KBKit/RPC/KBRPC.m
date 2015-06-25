@@ -1386,7 +1386,7 @@
   if ((self = [super initWithParams:params])) {
     self.sessionID = [params[0][@"sessionID"] integerValue];
     self.currentUser = params[0][@"currentUser"];
-    self.otherUsers = KBRArray(params[0][@"otherUsers"], NSString.class);
+    self.otherUsers = KBRValidateArray(params[0][@"otherUsers"], NSString.class);
   }
   return self;
 }
@@ -1801,7 +1801,7 @@
 - (instancetype)initWithParams:(NSArray *)params {
   if ((self = [super initWithParams:params])) {
     self.sessionID = [params[0][@"sessionID"] integerValue];
-    self.userAsserts = KBRArray(params[0][@"userAsserts"], NSString.class);
+    self.userAsserts = KBRValidateArray(params[0][@"userAsserts"], NSString.class);
   }
   return self;
 }
@@ -1957,7 +1957,7 @@
   if ((self = [super initWithParams:params])) {
     self.sessionID = [params[0][@"sessionID"] integerValue];
     self.all = [params[0][@"all"] boolValue];
-    self.fingerprints = KBRArray(params[0][@"fingerprints"], NSString.class);
+    self.fingerprints = KBRValidateArray(params[0][@"fingerprints"], NSString.class);
   }
   return self;
 }
@@ -2119,8 +2119,8 @@
 - (instancetype)initWithParams:(NSArray *)params {
   if ((self = [super initWithParams:params])) {
     self.sessionID = [params[0][@"sessionID"] integerValue];
-    self.ids = KBRArray(params[0][@"ids"], NSString.class);
-    self.seqnos = KBRArray(params[0][@"seqnos"], NSNumber.class);
+    self.ids = KBRValidateArray(params[0][@"ids"], NSString.class);
+    self.seqnos = KBRValidateArray(params[0][@"seqnos"], NSNumber.class);
   }
   return self;
 }
@@ -2376,7 +2376,7 @@
 - (instancetype)initWithParams:(NSArray *)params {
   if ((self = [super initWithParams:params])) {
     self.sessionID = [params[0][@"sessionID"] integerValue];
-    self.uids = KBRArray(params[0][@"uids"], NSString.class);
+    self.uids = KBRValidateArray(params[0][@"uids"], NSString.class);
   }
   return self;
 }

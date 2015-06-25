@@ -35,7 +35,7 @@
 
 - (NSAttributedString *)attributedStringForProof:(KBRTrackProof *)proof appearance:(id<KBAppearance>)appearance attributes:(NSDictionary *)attributes {
   // TODO If no icon, we should show proof.idString as text?
-  return [KBFontAwesome attributedStringForIcon:proof.proofType text:proof.proofName appearance:appearance style:KBTextStyleSecondaryText options:KBTextOptionsSmall alignment:NSLeftTextAlignment lineBreakMode:NSLineBreakByClipping];
+  return [KBFontIcon attributedStringForIcon:proof.proofType text:proof.proofName appearance:appearance style:KBTextStyleSecondaryText options:KBTextOptionsSmall alignment:NSLeftTextAlignment lineBreakMode:NSLineBreakByClipping sender:self];
 }
 
 - (NSMutableAttributedString *)attributedStringForUserSummary:(KBRUserSummary *)userSummary appearance:(id<KBAppearance>)appearance {

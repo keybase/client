@@ -42,14 +42,14 @@
 - (void)setFrame:(NSRect)frame {
   [super setFrame:frame];
   if (_roundedRatio > 0) {
-    [self setRounded:ceilf(frame.size.width/2.0)];
+    [self setRounded:frame.size.width/2.0];
   }
 }
 
 - (void)setRounded:(CGFloat)cornerRadius {
   self.wantsLayer = YES;
-  self.layer.borderWidth = 1.0;
-  self.layer.borderColor = KBAppearance.currentAppearance.lineColor.CGColor;
+  self.layer.borderWidth = 0.0;
+  //self.layer.borderColor = nil;
   self.layer.cornerRadius = cornerRadius;
   self.layer.masksToBounds = YES;
 }

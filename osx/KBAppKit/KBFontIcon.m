@@ -1,33 +1,36 @@
 //
-//  KBFontAwesome.m
+//  KBFontIcon.m
 //  Keybase
 //
 //  Created by Gabriel on 6/18/15.
 //  Copyright (c) 2015 Keybase. All rights reserved.
 //
 
-#import "KBFontAwesome.h"
+#import "KBFontIcon.h"
 
 #import <CocoaLumberjack/CocoaLumberjack.h>
 #import <ObjectiveSugar/ObjectiveSugar.h>
 
-@implementation KBFontAwesome
+@implementation KBFontIcon
 
-+ (NSFont *)fontWithSize:(CGFloat)size {
-  return [NSFont fontWithName:@"FontAwesome" size:size];
++ (NSFont *)fontWithSize:(CGFloat)size type:(KBFontIconType)type {
+  switch (type) {
+    case KBFontIconTypeFontAwesome: return [NSFont fontWithName:@"FontAwesome" size:size];
+    //case KBFontIconTypeBlackTieLight: return [NSFont fontWithName:@"BlackTie-Light" size:size];
+    case KBFontIconTypeBlackTieRegular: return [NSFont fontWithName:@"BlackTie-Regular" size:size];
+  }
 }
 
-+ (NSAttributedString *)attributedStringForIcon:(NSString *)icon style:(KBTextStyle)style options:(KBTextOptions)options alignment:(NSTextAlignment)alignment lineBreakMode:(NSLineBreakMode)lineBreakMode {
-  return [self attributedStringForIcon:icon appearance:KBAppearance.currentAppearance style:style options:options alignment:alignment lineBreakMode:lineBreakMode];
++ (NSAttributedString *)attributedStringForIcon:(NSString *)icon style:(KBTextStyle)style options:(KBTextOptions)options alignment:(NSTextAlignment)alignment lineBreakMode:(NSLineBreakMode)lineBreakMode sender:(id)sender {
+  return [self attributedStringForIcon:icon appearance:KBAppearance.currentAppearance style:style options:options alignment:alignment lineBreakMode:lineBreakMode sender:sender];
 }
 
-+ (NSAttributedString *)attributedStringForIcon:(NSString *)icon text:(NSString *)text style:(KBTextStyle)style options:(KBTextOptions)options alignment:(NSTextAlignment)alignment lineBreakMode:(NSLineBreakMode)lineBreakMode {
-
-  return [self attributedStringForIcon:icon text:text appearance:KBAppearance.currentAppearance style:style options:options alignment:alignment lineBreakMode:lineBreakMode];
++ (NSAttributedString *)attributedStringForIcon:(NSString *)icon text:(NSString *)text style:(KBTextStyle)style options:(KBTextOptions)options alignment:(NSTextAlignment)alignment lineBreakMode:(NSLineBreakMode)lineBreakMode sender:(id)sender {
+  return [self attributedStringForIcon:icon text:text appearance:KBAppearance.currentAppearance style:style options:options alignment:alignment lineBreakMode:lineBreakMode sender:sender];
 }
 
-+ (NSAttributedString *)attributedStringForIcon:(NSString *)icon text:(NSString *)text appearance:(id<KBAppearance>)appearance style:(KBTextStyle)style options:(KBTextOptions)options alignment:(NSTextAlignment)alignment lineBreakMode:(NSLineBreakMode)lineBreakMode {
-  NSAttributedString *iconStr = [self attributedStringForIcon:icon style:style options:options alignment:alignment lineBreakMode:lineBreakMode];
++ (NSAttributedString *)attributedStringForIcon:(NSString *)icon text:(NSString *)text appearance:(id<KBAppearance>)appearance style:(KBTextStyle)style options:(KBTextOptions)options alignment:(NSTextAlignment)alignment lineBreakMode:(NSLineBreakMode)lineBreakMode sender:(id)sender {
+  NSAttributedString *iconStr = [self attributedStringForIcon:icon style:style options:options alignment:alignment lineBreakMode:lineBreakMode sender:sender];
   if (!iconStr) {
     return [KBAppearance.currentAppearance attributedString:text style:style options:options alignment:alignment lineBreakMode:lineBreakMode];
   }
@@ -39,45 +42,77 @@
   return str;
 }
 
-+ (NSAttributedString *)attributedStringForIcon:(NSString *)icon appearance:(id<KBAppearance>)appearance style:(KBTextStyle)style options:(KBTextOptions)options alignment:(NSTextAlignment)alignment lineBreakMode:(NSLineBreakMode)lineBreakMode {
++ (NSAttributedString *)attributedStringForIcon:(NSString *)icon appearance:(id<KBAppearance>)appearance style:(KBTextStyle)style options:(KBTextOptions)options alignment:(NSTextAlignment)alignment lineBreakMode:(NSLineBreakMode)lineBreakMode sender:(id)sender {
   NSColor *color = [appearance textColorForStyle:style options:options];
   CGFloat fontSize = [appearance fontForStyle:style options:options].pointSize;
-  return [self attributedStringForIcon:icon color:color size:fontSize alignment:alignment lineBreakMode:lineBreakMode];
+  return [self attributedStringForIcon:icon color:color size:fontSize alignment:alignment lineBreakMode:lineBreakMode sender:sender];
 }
 
-+ (NSAttributedString *)attributedStringForIcon:(NSString *)icon color:(NSColor *)color size:(CGFloat)size alignment:(NSTextAlignment)alignment lineBreakMode:(NSLineBreakMode)lineBreakMode {
++ (NSAttributedString *)attributedStringForIcon:(NSString *)icon color:(NSColor *)color size:(CGFloat)size alignment:(NSTextAlignment)alignment lineBreakMode:(NSLineBreakMode)lineBreakMode sender:(id)sender {
   NSString *code = [self codeForIcon:icon];
   if (!code) return nil;
   NSMutableParagraphStyle *paragraphStyle = [[NSMutableParagraphStyle alloc] init];
   paragraphStyle.alignment = alignment;
   paragraphStyle.lineBreakMode = lineBreakMode;
-  NSDictionary *attributes = @{NSForegroundColorAttributeName: color, NSFontAttributeName: [self fontWithSize:size], NSParagraphStyleAttributeName: paragraphStyle};
+  NSDictionary *attributes = @{NSForegroundColorAttributeName: color, NSFontAttributeName: [self fontWithSize:size type:[self fontIconTypeForIcon:icon sender:sender]], NSParagraphStyleAttributeName: paragraphStyle};
   return [[NSAttributedString alloc] initWithString:code attributes:attributes];
 }
 
-+ (KBButton *)buttonForIcon:(NSString *)icon text:(NSString *)text style:(KBButtonStyle)style options:(KBButtonOptions)options {
-  return [KBButton buttonWithAttributedTitle:[KBFontAwesome attributedStringForIcon:icon color:KBAppearance.currentAppearance.textColor size:KBAppearance.currentAppearance.buttonFont.pointSize alignment:NSCenterTextAlignment lineBreakMode:NSLineBreakByClipping] style:style options:options];
++ (KBButton *)buttonForIcon:(NSString *)icon text:(NSString *)text style:(KBButtonStyle)style options:(KBButtonOptions)options sender:(id)sender {
+  return [KBButton buttonWithAttributedTitle:[KBFontIcon attributedStringForIcon:icon color:KBAppearance.currentAppearance.textColor size:KBAppearance.currentAppearance.buttonFont.pointSize alignment:NSCenterTextAlignment lineBreakMode:NSLineBreakByClipping sender:sender] style:style options:options];
+}
+
++ (KBFontIconType)fontIconTypeForIcon:(NSString *)icon sender:(id)sender {
+  //BOOL isRetina = [[sender window] backingScaleFactor] > 1.0;
+  if ([icon isEqualTo:@"plus"]) return KBFontIconTypeBlackTieRegular;
+  return KBFontIconTypeFontAwesome;
 }
 
 + (NSString *)codeForIcon:(NSString *)icon {
-  if ([icon isEqualTo:@"hackernews"]) icon = @"hackerNews";
-  else if ([icon isEqualTo:@"coinbase"]) icon = @"bitcoin";
-  else if ([icon isEqualTo:@"http"]) icon = @"link";
-  else if ([icon isEqualTo:@"https"]) icon = @"link";
-  else if ([icon isEqualTo:@"dns"]) icon = @"anchor";
-  else if ([icon isEqualTo:@"rooter"]) icon = @"floppyO";
+  NSDictionary *aliases = @{
+                            @"hackernews": @"hackerNews",
+                            @"coinbase": @"bitcoin",
+                            @"http": @"link",
+                            @"https": @"link",
+                            @"dns": @"anchor",
+                            @"rooter": @"floppyO",
+                            };
+  if (aliases[icon]) icon = aliases[icon];
 
-  NSString *code = [self allIcons][icon];
-  if (!code) DDLogError(@"No code for icon: %@", icon);
+  NSString *blackTieCode = [self blackTieCodes][icon];
+  if (blackTieCode) return blackTieCode;
+
+//  NSString *fontAwesomeCode = [self fontAwesomeCodes][icon];
+//  if (fontAwesomeCode) return fontAwesomeCode;
+
+  NSString *code = [self otherCodes][icon];
+  NSAssert(code, @"No icon for code: %@", code);
   return code;
 }
 
-// From FontAwesomeKit
-+ (NSDictionary *)allIcons {
-  static NSMutableDictionary *icons;
++ (NSDictionary *)blackTieCodes {
+  static NSDictionary *icons;
   static dispatch_once_t onceToken;
   dispatch_once(&onceToken, ^{
-    icons = [NSMutableDictionary dictionaryWithObjectsAndKeys:
+    icons = @{@"plus": @"\uf01b"};
+  });
+  return icons;
+}
+
++ (NSDictionary *)fontAwesomeCodes {
+  static NSDictionary *icons;
+  static dispatch_once_t onceToken;
+  dispatch_once(&onceToken, ^{
+    icons = @{}; // TODO
+  });
+  return icons;
+}
+
++ (NSDictionary *)otherCodes {
+  static NSDictionary *icons;
+  static dispatch_once_t onceToken;
+  dispatch_once(&onceToken, ^{
+    icons = [NSDictionary dictionaryWithObjectsAndKeys:
            @"\uf042", @"adjust",
            @"\uf170", @"adn",
            @"\uf037", @"alignCenter",

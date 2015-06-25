@@ -9,6 +9,7 @@
 #import "KBFormatter.h"
 
 #import <ObjectiveSugar/ObjectiveSugar.h>
+#import <objc/objc-runtime.h>
 
 @interface KBFormatter (NSDictionaryCreation)
 - (NSDictionary *)toDictionary;
@@ -43,8 +44,12 @@
     return [self formatDictionary:dict level:level+1];
   //} else if ([obj isKindOfClass:NSData.class]) {
   //  return KBHexString(obj, @"");
-  } else {
+  } else if ([obj conformsToProtocol:@protocol(NSCopying)]) { // Default for core types
     return [obj description];
+  } else {
+    GHODictionary *dict = KBObjectToDictionary(obj, YES);
+    if ([dict count] == 0) return [obj description];
+    return [self formatDictionary:dict level:level+1];
   }
 }
 
@@ -72,6 +77,47 @@
 NSString *KBDescription(id obj) {
   KBFormatter *formatter = [[KBFormatter alloc] init];
   return [formatter format:obj];
+}
+
+GHODictionary *KBObjectToDictionary(id obj, BOOL includeNull) {
+  NSArray *propertyNames = KBPropertyNames([obj class]);
+  GHODictionary *odict = [[GHODictionary alloc] initWithCapacity:[propertyNames count]];
+  for (NSString *propertyName in propertyNames) {
+    id value = [obj valueForKey:propertyName];
+    if (!value && includeNull) odict[propertyName] = [NSNull null];
+    else if (value) odict[propertyName] = value;
+  }
+  return odict;
+}
+
+NSString *KBClassNameOfPropertyNamed(Class clazz, NSString *propertyName) {
+  objc_property_t property = class_getProperty(clazz, propertyName.UTF8String);
+  NSString *propertyAttributes = [NSString stringWithCString:property_getAttributes(property) encoding:NSUTF8StringEncoding];
+  NSArray *splitPropertyAttributes = [propertyAttributes componentsSeparatedByString:@","];
+  if (splitPropertyAttributes.count > 0) {
+    // xcdoc://ios//library/prerelease/ios/documentation/Cocoa/Conceptual/ObjCRuntimeGuide/Articles/ocrtPropertyIntrospection.html
+    NSString *encodeType = splitPropertyAttributes[0];
+    NSArray *splitEncodeType = [encodeType componentsSeparatedByString:@"\""];
+    if (splitEncodeType.count > 1) {
+      NSString *className = splitEncodeType[1];
+      return className;
+    }
+  }
+  return nil;
+}
+
+NSArray *KBPropertyNames(Class clazz) {
+  unsigned int count;
+  objc_property_t *properties = class_copyPropertyList(clazz, &count);
+  NSMutableArray *propertyNames = [NSMutableArray arrayWithCapacity:count];
+  for (NSUInteger i = 0; i < count; i++) {
+    objc_property_t property = properties[i];
+    const char *propName = property_getName(property);
+    NSString *propertyName = [NSString stringWithCString:propName encoding:NSUTF8StringEncoding];
+    [propertyNames addObject:propertyName];
+  }
+  free(properties);
+  return propertyNames;
 }
 
 NSString *KBHexString(NSData *data, NSString *defaultValue) {

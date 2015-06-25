@@ -41,9 +41,7 @@
   [self addSubview:_segmentedControl];
 
   GHWeakSelf gself = self;
-  NSImage *folderAddImage = [NSImage imageNamed:@"19-Interface-black-add-1-24"];
-  folderAddImage.size = CGSizeMake(14, 14);
-  _addButton = [KBButton buttonWithImage:folderAddImage style:KBButtonStyleDefault options:KBButtonOptionsToolbar];
+  _addButton = [KBFontIcon buttonForIcon:@"plus" text:nil style:KBButtonStyleDefault options:KBButtonOptionsToolbar sender:self];
   _addButton.targetBlock = ^{ [gself addFolder]; };
   [self addSubview:_addButton];
 

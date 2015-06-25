@@ -62,9 +62,9 @@
 + (NSAttributedString *)parseMarkup:(NSString *)markup options:(NSDictionary *)options {
   NSFont *font = GHIfNull(options[@"font"], nil);
   NSColor *color = GHIfNull(options[@"color"], nil);
-  NSTextAlignment alignment = [options[@"alignment"] integerValue];
-  NSLineBreakMode lineBreakMode = [options[@"lineBreakMode"] integerValue];
-  CGFloat lineSpacing = [options[@"lineSpacing"] floatValue];
+  NSTextAlignment alignment = options[@"alignment"] ? [options[@"alignment"] integerValue] : NSLeftTextAlignment;
+  NSLineBreakMode lineBreakMode = options[@"lineBreakMode"] ? [options[@"lineBreakMode"] integerValue] : NSLineBreakByWordWrapping;
+  NSNumber *lineSpacing = GHIfNull(options[@"lineSpacing"], nil);
 
   if (!font) font = KBAppearance.currentAppearance.textFont;
   if (!color) color = KBAppearance.currentAppearance.textColor;
@@ -72,16 +72,21 @@
   NSMutableParagraphStyle *paragraphStyle = [[NSMutableParagraphStyle alloc] init];
   paragraphStyle.alignment = alignment;
   paragraphStyle.lineBreakMode = lineBreakMode;
-  paragraphStyle.lineSpacing = lineSpacing;
+  if (lineSpacing) paragraphStyle.lineSpacing = [lineSpacing floatValue];
 
   NSDictionary *defaultStyle = @{NSFontAttributeName:font, NSForegroundColorAttributeName:color, NSParagraphStyleAttributeName:paragraphStyle};
 
-  NSDictionary *style = @{@"$default": defaultStyle,
+  NSDictionary *style = @{
+                          @"$default": defaultStyle,
                           @"p": defaultStyle,
                           //@"h3": @{NSFontAttributeName: [NSFont boldSystemFontOfSize:font.pointSize + 6]},
                           //@"h4": @{NSFontAttributeName: [NSFont boldSystemFontOfSize:font.pointSize + 4]},
                           @"em": @{NSFontAttributeName: [NSFont fontWithName:@"Helvetica Neue Italic" size:font.pointSize]},
                           @"strong": @{NSFontAttributeName: [NSFont boldSystemFontOfSize:font.pointSize]},
+                          @"code": @{
+                              NSFontAttributeName: [NSFont fontWithName:@"Monaco" size:font.pointSize],
+                              NSBackgroundColorAttributeName: KBColorFromRGBA(0xFEFEFE, 1.0, NSBackgroundStyleLight),
+                              },
                           @"a": @{
                               NSForegroundColorAttributeName: KBAppearance.currentAppearance.selectColor,
                               NSCursorAttributeName: NSCursor.pointingHandCursor
@@ -93,8 +98,8 @@
                           };
   NSError *error = nil;
   NSAttributedString *str = [[SLSMarkupParser attributedStringWithMarkup:markup style:style error:&error] mutableCopy];
+  NSAssert(str, @"Unable to parse markup: %@; %@", markup, error);
   if (!str) {
-    DDLogError(@"Unable to parse markup: %@; %@", markup, error);
     str = [[NSMutableAttributedString alloc] initWithString:markup attributes:defaultStyle];
   }
   return str;

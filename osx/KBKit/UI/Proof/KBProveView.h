@@ -23,8 +23,8 @@ typedef void (^KBProveCompletion)(id sender, BOOL success);
 @property KBNavigationView *navigation;
 @property KBRPClient *client;
 
-+ (void)createProofWithServiceName:(NSString *)serviceName client:(KBRPClient *)client window:(KBWindow *)window completion:(KBProveCompletion)completion;
++ (void)createProofWithServiceName:(NSString *)serviceName client:(KBRPClient *)client sender:(id)sender completion:(KBProveCompletion)completion;
 
-+ (void)replaceProof:(KBProofResult *)proofResult client:(KBRPClient *)client window:(KBWindow *)window completion:(KBProveCompletion)completion ;
++ (void)replaceProof:(KBProofResult *)proofResult client:(KBRPClient *)client sender:(id)sender completion:(KBProveCompletion)completion ;
 
 @end

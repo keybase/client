@@ -8,6 +8,7 @@
 
 #import "KBTrackView.h"
 
+#import "KBDefines.h"
 #import "KBUserTrackStatus.h"
 
 @interface KBTrackView ()

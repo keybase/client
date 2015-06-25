@@ -49,7 +49,7 @@
 
   _inviteField = [[KBTextField alloc] init];
   _inviteField.placeholder = @"Invite Code";
-  _inviteField.text = @"202020202020202020202111"; // TODO: Hardcoded
+  _inviteField.text = @"202020202020202020202020"; // TODO: Hardcoded
   //[contentView addSubview:_inviteField];
 
   _popover = [[KBHoverView alloc] init];

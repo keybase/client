@@ -101,7 +101,7 @@
   if (headerIcon) {
     NSFont *headerFont = [KBAppearance.currentAppearance fontForStyle:KBTextStyleHeaderLarge options:0];
     NSMutableAttributedString *header = [[NSMutableAttributedString alloc] init];
-    [header appendAttributedString:[KBFontAwesome attributedStringForIcon:headerIcon color:KBAppearance.currentAppearance.selectColor size:headerFont.pointSize alignment:NSCenterTextAlignment lineBreakMode:NSLineBreakByClipping]];
+    [header appendAttributedString:[KBFontIcon attributedStringForIcon:headerIcon color:KBAppearance.currentAppearance.selectColor size:headerFont.pointSize alignment:NSCenterTextAlignment lineBreakMode:NSLineBreakByClipping sender:self]];
     NSDictionary *attributes = @{NSForegroundColorAttributeName: KBAppearance.currentAppearance.selectColor, NSFontAttributeName: headerFont};
     [header appendAttributedString:[[NSAttributedString alloc] initWithString:NSStringWithFormat(@" %@", headerText) attributes:attributes]];
     [_header setAttributedText:header alignment:NSCenterTextAlignment lineBreakMode:NSLineBreakByTruncatingTail];

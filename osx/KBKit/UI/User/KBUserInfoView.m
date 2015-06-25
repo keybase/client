@@ -12,6 +12,7 @@
 #import "KBRPC.h"
 #import "KBProofResult.h"
 
+#import "KBDefines.h"
 #import <GHODictionary/GHODictionary.h>
 
 @interface KBUserInfoView ()
@@ -61,6 +62,7 @@
   if (!updated) {
     DDLogDebug(@"Proof result not found: %@", proofResult);
   }
+  [self setNeedsLayout];
   return updated;
 }
 
@@ -113,9 +115,7 @@
     KBUserInfoLabels *label = [[KBUserInfoLabels alloc] init];
     [label addProofResults:proofResults serviceName:key editable:editable targetBlock:targetBlock];
     [self addLabels:@[label]];
-  }
-
-  [self setNeedsLayout];
+  }  
 }
 
 @end

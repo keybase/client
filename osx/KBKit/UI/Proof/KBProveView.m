@@ -8,8 +8,6 @@
 
 #import "KBProveView.h"
 
-
-#import "KBProveRooterInstructions.h"
 #import "KBDefines.h"
 
 @interface KBProveView ()
@@ -17,7 +15,6 @@
 @property (copy) KBProveCompletion completion;
 
 @property KBProveInputView *inputView;
-@property YOView<KBProveInstructionsView> *instructionsView;
 
 @property NSString *serviceUsername;
 @property NSString *sigId;
@@ -36,43 +33,35 @@
   _inputView.cancelButton.targetBlock = ^{ [gself cancel]; };
   [self addSubview:_inputView];
 
-  YOSelf yself = self;
-  self.viewLayout = [YOLayout layoutWithLayoutBlock:^(id<YOLayout> layout, CGSize size) {
-    [layout centerWithSize:CGSizeMake(size.width, 0) frame:CGRectMake(0, 0, size.width, size.height) view:yself.inputView];
-    [layout setSize:size view:yself.instructionsView options:0];
-    return size;
-  }];
+  self.viewLayout = [YOLayout center:_inputView];
 }
 
-+ (void)createProofWithServiceName:(NSString *)serviceName client:(KBRPClient *)client window:(KBWindow *)window completion:(KBProveCompletion)completion {
-  [self _setServiceName:serviceName proofResult:nil client:client window:window completion:completion];
++ (void)createProofWithServiceName:(NSString *)serviceName client:(KBRPClient *)client sender:(id)sender completion:(KBProveCompletion)completion {
+  [self _setServiceName:serviceName proofResult:nil client:client sender:sender completion:completion];
 }
 
-+ (void)replaceProof:(KBProofResult *)proofResult client:(KBRPClient *)client window:(KBWindow *)window completion:(KBProveCompletion)completion {
-  [self _setServiceName:nil proofResult:proofResult client:client window:window completion:completion];
++ (void)replaceProof:(KBProofResult *)proofResult client:(KBRPClient *)client sender:(id)sender completion:(KBProveCompletion)completion {
+  [self _setServiceName:nil proofResult:proofResult client:client sender:sender completion:completion];
 }
 
-+ (void)_setServiceName:(NSString *)serviceName proofResult:(KBProofResult *)proofResult client:(KBRPClient *)client window:(KBWindow *)window completion:(KBProveCompletion)completion {
++ (void)_setServiceName:(NSString *)serviceName proofResult:(KBProofResult *)proofResult client:(KBRPClient *)client sender:(id)sender completion:(KBProveCompletion)completion {
   KBProveView *proveView = [[KBProveView alloc] init];
   proveView.client = client;
   if (serviceName) [proveView setServiceName:serviceName];
   if (proofResult) [proveView setProofResult:proofResult];
 
   KBProveCompletion close = ^(id sender, BOOL success) {
-    [[sender window] close];
+    NSAssert([proveView.navigation window], @"No window?");
+    [[proveView.navigation window] close];
     completion(sender, success);
   };
   proveView.completion = close;
 
-  [window kb_addChildWindowForView:proveView rect:CGRectMake(0, 0, 620, 420) position:KBWindowPositionCenter title:@"Connect" fixed:NO makeKey:YES];
+  [[sender window] kb_addChildWindowForView:proveView rect:CGRectMake(0, 0, 620, 420) position:KBWindowPositionCenter title:@"" fixed:NO makeKey:YES];
 }
 
-- (YOView<KBProveInstructionsView> *)instructionsViewForServiceName:(NSString *)serviceName {
-  if ([serviceName isEqualTo:@"rooter"]) {
-    return [[KBProveRooterInstructions alloc] init];
-  } else {
-    return [[KBProveInstructionsView alloc] init];
-  }
+- (void)viewDidAppear:(BOOL)animated {
+  [self.window makeFirstResponder:_inputView.inputField];
 }
 
 // If creating
@@ -82,8 +71,6 @@
   _sigId = nil;
   [_inputView setServiceName:_serviceName];
   [self setNeedsLayout];
-  [self.window makeFirstResponder:_inputView.inputField];
-
 }
 
 // If replacing
@@ -96,23 +83,15 @@
   _inputView.inputField.text = _serviceUsername;
 
   [self setNeedsLayout];
-  [self.window makeFirstResponder:_inputView.inputField];
 }
 
 - (void)openInstructionsWithProofText:(NSString *)proofText {
-  [_instructionsView removeFromSuperview];
-  _instructionsView = [self instructionsViewForServiceName:_serviceName];
+  KBProveInstructionsView *instructionsView = [[KBProveInstructionsView alloc] init];
   GHWeakSelf gself = self;
-  [_instructionsView setProofText:proofText serviceName:_serviceName];
-  _instructionsView.button.targetBlock = ^{ [gself checkProof]; };
-  _instructionsView.cancelButton.targetBlock = ^{ [gself cancel]; };
-  [self addSubview:_instructionsView];
-
-  [self setNeedsLayout];
-
-  // TODO Animate change
-  self.inputView.hidden = YES;
-  self.instructionsView.hidden = NO;
+  [instructionsView setProofText:proofText serviceName:_serviceName];
+  instructionsView.button.targetBlock = ^{ [gself checkProof]; };
+  instructionsView.cancelButton.targetBlock = ^{ [gself cancel]; };
+  [self.navigation pushView:instructionsView animated:YES];
 }
 
 - (void)startProof {
@@ -124,10 +103,13 @@
     return;
   }
 
+  // If we're here we're replacing. We don't want to continue.
+  /*
   if (_serviceUsername && [_serviceUsername isEqualTo:serviceUsername]) {
     [self continueProof];
     return;
   }
+   */
   _serviceUsername = serviceUsername;
 
   GHWeakSelf gself = self;
@@ -189,16 +171,12 @@
 }
 
 - (void)abandon {
-  NSString *sigID = _sigId;
-  if (!sigID) {
-    [KBActivity setError:KBMakeError(-1, @"Nothing to remove") sender:self];
-    return;
-  }
-
+  NSAssert(_sigId, @"No sigId");
+  NSString *sigId = _sigId;
   GHWeakSelf gself = self;
   [KBActivity setProgressEnabled:YES sender:self];
   KBRRevokeRequest *request = [[KBRRevokeRequest alloc] initWithClient:self.client];
-  [request revokeSigsWithSessionID:request.sessionId ids:@[sigID] seqnos:nil completion:^(NSError *error) {
+  [request revokeSigsWithSessionID:request.sessionId ids:@[sigId] seqnos:nil completion:^(NSError *error) {
     [KBActivity setProgressEnabled:NO sender:self];
     if ([KBActivity setError:error sender:self]) return;
     gself.completion(gself, NO);
@@ -206,10 +184,11 @@
 }
 
 - (void)continueProof {
-  NSString *sigID = _sigId;
+  NSAssert(_sigId, @"No sigId");
+  NSString *sigId = _sigId;
   KBRProveRequest *request = [[KBRProveRequest alloc] initWithClient:self.client];
   [KBActivity setProgressEnabled:YES sender:self];
-  [request checkProofWithSessionID:request.sessionId sigID:sigID completion:^(NSError *error, KBRCheckProofStatus *checkProofStatus) {
+  [request checkProofWithSessionID:request.sessionId sigID:sigId completion:^(NSError *error, KBRCheckProofStatus *checkProofStatus) {
     [KBActivity setProgressEnabled:NO sender:self];
     if ([KBActivity setError:error sender:self]) return;
 
@@ -222,6 +201,7 @@
 }
 
 - (void)checkProof {
+  NSAssert(_sigId, @"No sigId");
   NSString *sigID = _sigId;
   KBRProveRequest *request = [[KBRProveRequest alloc] initWithClient:self.client];
   [KBActivity setProgressEnabled:YES sender:self];

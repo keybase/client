@@ -18,6 +18,9 @@
 #import "KBActivityIndicatorView.h"
 #import "KBAppearance.h"
 
+#import <CocoaLumberjack/CocoaLumberjack.h>
+static const int ddLogLevel = DDLogLevelDebug;
+
 @interface KBActivityIndicatorView ()
 @property (nonatomic, weak) CAShapeLayer *shapeLayer;
 @end
@@ -54,15 +57,15 @@
     frame.size.height = s;
   }
 
-  if (_animating) {
-    [self removeAnimation];
-  }
+  // Our frame changed. If we are animating we should remove and re-add,
+  // which will cause a flicker (TODO).
+  if (!CGSizeEqualToSize(self.shapeLayer.frame.size, frame.size)) {
+    if (_animating && !self.hidden) [self removeAnimation];
 
-  self.shapeLayer.frame = frame;
-  self.shapeLayer.path = [[self layoutPath] kb_CGPath];
+    self.shapeLayer.frame = frame;
+    self.shapeLayer.path = [[self layoutPath] kb_CGPath];
 
-  if (_animating) {
-    [self addAnimation];
+    if (_animating && !self.hidden) [self addAnimation];
   }
 }
 
@@ -111,6 +114,7 @@
 static NSString *const KBActivityIndicatorViewSpinAnimationKey = @"KBActivityIndicatorViewSpinAnimationKey";
 
 - (void)addAnimation {
+  DDLogDebug(@"Add animation");
   CABasicAnimation *spinAnimation = [CABasicAnimation animationWithKeyPath:@"transform.rotation"];
   spinAnimation.toValue = @(1*2*M_PI);
   spinAnimation.timingFunction = [CAMediaTimingFunction functionWithName:kCAMediaTimingFunctionLinear];
