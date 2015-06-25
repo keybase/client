@@ -223,9 +223,6 @@
       "name" : "uid",
       "type" : "UID"
     }, {
-      "name" : "thumbnail",
-      "type" : "string"
-    }, {
       "name" : "username",
       "type" : "string"
     }, {

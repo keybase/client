@@ -31,7 +31,6 @@ protocol user {
 
 	record UserSummary {
 		UID uid;
-		string thumbnail;
 		string username;
 		int idVersion;
 		string fullName;
@@ -45,7 +44,7 @@ protocol user {
 	// they are "unchecked" in that the client is not verifying the info from the server.
 	// if len(uids) > 500, the first 500 will be returned.
 	array<UserSummary> loadUncheckedUserSummaries(int sessionID, array<UID> uids);
-	
+
 	// Load a single user from the server, and verify key family data. This can
 	// be expensive, thus the single UID argument instead of an array.
 	User loadUser(int sessionID, union{null, UID} uid, string username, boolean self);

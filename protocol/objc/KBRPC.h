@@ -791,7 +791,6 @@ typedef NS_ENUM (NSInteger, KBRPromptOverwriteType) {
 
 @interface KBRUserSummary : KBRObject
 @property NSString *uid;
-@property NSString *thumbnail;
 @property NSString *username;
 @property NSInteger idVersion;
 @property NSString *fullName;

@@ -115,15 +115,9 @@ func (e *SearchEngine) Run(ctx *Context) error {
 		if err != nil {
 			return err
 		}
-		// Sometimes thumbnail is null. In that case empty string is fine.
-		thumbnail, err := completion.AtKey("thumbnail").GetString()
-		if err != nil {
-			thumbnail = ""
-		}
 		e.results = append(e.results, keybase1.UserSummary{
 			Uid:       uid,
 			Username:  username,
-			Thumbnail: thumbnail,
 			Proofs: keybase1.Proofs{
 				Social: socialProofs,
 				Web:    webProofs,
