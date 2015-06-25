@@ -53,13 +53,6 @@ func checkKeyedProfile(t *testing.T, idUI *FakeIdentifyUI, them *libkb.User, nam
 		t.Fatal("LaunchNetworkChecks User not equal to result user.", idUI.User, exported)
 	}
 
-	if hasImg && them.Image == nil {
-		t.Logf("result user: %+v", them)
-		t.Fatalf("%s: Missing user image.", name)
-	} else if !hasImg && them.Image != nil {
-		t.Fatalf("%s: User has an image but shouldn't", name)
-	}
-
 	if !reflect.DeepEqual(expectedProofs, idUI.Proofs) {
 		t.Fatal("Wrong proofs.", expectedProofs, idUI.Proofs)
 	}
