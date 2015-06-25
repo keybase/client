@@ -8,7 +8,7 @@ protocol block {
 		bytes buf;
 	}
 
-	void establishSession(string sid);
+	void establishSession(UID user, string sid);
 
 	void putBlock(BlockIdCombo bid, string folder, string blockKey, bytes buf);
 	GetBlockRes getBlock(BlockIdCombo bid);

@@ -195,6 +195,9 @@
   "messages" : {
     "establishSession" : {
       "request" : [ {
+        "name" : "user",
+        "type" : "UID"
+      }, {
         "name" : "sid",
         "type" : "string"
       } ],

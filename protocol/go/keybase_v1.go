@@ -88,7 +88,8 @@ type GetBlockRes struct {
 }
 
 type EstablishSessionArg struct {
-	Sid string `codec:"sid" json:"sid"`
+	User UID    `codec:"user" json:"user"`
+	Sid  string `codec:"sid" json:"sid"`
 }
 
 type PutBlockArg struct {
@@ -117,7 +118,7 @@ type DecBlockReferenceArg struct {
 }
 
 type BlockInterface interface {
-	EstablishSession(string) error
+	EstablishSession(EstablishSessionArg) error
 	PutBlock(PutBlockArg) error
 	GetBlock(BlockIdCombo) (GetBlockRes, error)
 	IncBlockReference(IncBlockReferenceArg) error
@@ -131,7 +132,7 @@ func BlockProtocol(i BlockInterface) rpc2.Protocol {
 			"establishSession": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
 				args := make([]EstablishSessionArg, 1)
 				if err = nxt(&args); err == nil {
-					err = i.EstablishSession(args[0].Sid)
+					err = i.EstablishSession(args[0])
 				}
 				return
 			},
@@ -172,8 +173,7 @@ type BlockClient struct {
 	Cli GenericClient
 }
 
-func (c BlockClient) EstablishSession(sid string) (err error) {
-	__arg := EstablishSessionArg{Sid: sid}
+func (c BlockClient) EstablishSession(__arg EstablishSessionArg) (err error) {
 	err = c.Cli.Call("keybase.1.block.establishSession", []interface{}{__arg}, nil)
 	return
 }
