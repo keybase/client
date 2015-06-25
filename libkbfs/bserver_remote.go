@@ -93,18 +93,31 @@ func (b *BlockServerRemote) ConnectOnce() error {
 	b.clt = keybase1.BlockClient{Cli: rpc2.NewClient(
 		rpc2.NewTransport(b.conn, libkb.NewRPCLogFactory(), libkb.WrapError), libkb.UnwrapError)}
 
-	b.connected = true
-
+	var token string
 	var session *libkb.Session
-	if session, err = b.config.KBPKI().GetSession(); err != nil || session == nil {
+	if session, err = b.config.KBPKI().GetSession(); err != nil {
 		libkb.G.Log.Warning("BlockServerRemote: error getting session %q", err)
+		return err
+	} else if session != nil {
+		token = session.GetToken()
+	}
+
+	var user keybase1.UID
+	user, err = b.config.KBPKI().GetLoggedInUser()
+	if err != nil {
 		return err
 	}
 
-	if err = b.clt.EstablishSession(session.GetToken()); err != nil {
+	arg := keybase1.EstablishSessionArg{
+		User: user,
+		Sid:  token,
+	}
+	if err = b.clt.EstablishSession(arg); err != nil {
 		libkb.G.Log.Warning("BlockServerRemote: error getting session token %q", err)
 		return err
 	}
+
+	b.connected = true
 
 	return nil
 }
