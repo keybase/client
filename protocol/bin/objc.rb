@@ -97,7 +97,7 @@ def value_for_type(type, name, enums, aliases)
     type_for_array = type["items"]
     type_for_array = aliases[type_for_array] if aliases[type_for_array]
     if is_native_type(type_for_array)
-      return "KBRArray(#{varname}, #{classname(type_for_array, aliases)}.class)"
+      return "KBRValidateArray(#{varname}, #{classname(type_for_array, aliases)}.class)"
     else
       return "[MTLJSONAdapter modelsOfClass:#{classname(type_for_array, aliases)}.class fromJSONArray:#{varname} error:nil]"
     end
