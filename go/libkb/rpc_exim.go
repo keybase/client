@@ -609,7 +609,6 @@ func (u *User) Export() *keybase1.User {
 	return &keybase1.User{
 		Uid:        u.GetUID(),
 		Username:   u.GetName(),
-		Image:      u.Image,
 		PublicKeys: publicKeys,
 	}
 }

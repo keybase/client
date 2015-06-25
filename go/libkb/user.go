@@ -21,7 +21,6 @@ type User struct {
 	sigChainMem *SigChain
 	idTable     *IdentityTable
 	sigHints    *SigHints
-	Image       *keybase1.Image
 
 	leaf MerkleUserLeaf
 
@@ -49,16 +48,6 @@ func NewUser(o *jsonw.Wrapper) (*User, error) {
 		return nil, fmt.Errorf("user object for %s lacks a name", uid)
 	}
 
-	var imagePtr *keybase1.Image
-	pictureBlob := o.AtKey("pictures").AtKey("primary")
-	if !pictureBlob.IsNil() && pictureBlob.Error() == nil {
-		var image keybase1.Image
-		err = pictureBlob.UnmarshalAgain(&image)
-		if err == nil {
-			imagePtr = &image
-		}
-	}
-
 	kf, err := ParseKeyFamily(o.AtKey("public_keys"))
 	if err != nil {
 		return nil, err
@@ -73,7 +62,6 @@ func NewUser(o *jsonw.Wrapper) (*User, error) {
 		id:         uid,
 		name:       name,
 		dirty:      false,
-		Image:      imagePtr,
 	}, nil
 }
 
