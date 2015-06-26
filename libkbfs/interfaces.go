@@ -15,10 +15,6 @@ type Block interface{}
 type BlockContext interface {
 	// GetWriter returns the UID of the writer for the corresponding block
 	GetWriter() keybase1.UID
-	// GetQuotaSize returns the encrypted size of the corresponding
-	// block (i.e., how much the writer will be charged for this
-	// block).
-	GetQuotaSize() uint32
 	// GetRefNonce returns the unique reference nonce for this block
 	GetRefNonce() BlockRefNonce
 }

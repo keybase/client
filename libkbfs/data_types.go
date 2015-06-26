@@ -365,11 +365,6 @@ func (p BlockPointer) GetWriter() keybase1.UID {
 	return p.Writer
 }
 
-// GetQuotaSize implements the BlockContext interface for BlockPointer.
-func (p BlockPointer) GetQuotaSize() uint32 {
-	return p.QuotaSize
-}
-
 // GetRefNonce implements the BlockContext interface for BlockPointer.
 func (p BlockPointer) GetRefNonce() BlockRefNonce {
 	return p.RefNonce
