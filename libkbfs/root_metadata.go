@@ -250,23 +250,21 @@ func (md *RootMetadata) ClearMetadataID() {
 }
 
 // AddRefBlock adds the specified block to the add block change list.
-func (md *RootMetadata) AddRefBlock(path Path, ptr BlockPointer, refBytes uint32) {
-	if refBytes == 0 {
-		// TODO: Return an error instead.
-		panic("zero refBytes")
+func (md *RootMetadata) AddRefBlock(path Path, info BlockInfo) error {
+	if info.EncodedSize == 0 {
+		return InconsistentEncodedSizeError{info.ID, info.EncodedSize}
 	}
-	md.RefBytes += uint64(refBytes)
-	md.data.RefBlocks.AddBlock(path, ptr)
+	md.RefBytes += uint64(info.EncodedSize)
+	md.data.RefBlocks.AddBlock(path, info.BlockPointer)
+	return nil
 }
 
 // AddUnrefBlock adds the specified block to the add block change list.
-func (md *RootMetadata) AddUnrefBlock(path Path, ptr BlockPointer, unrefBytes uint32) {
-	if unrefBytes == 0 {
-		// TODO: Return an error instead.
-		return
+func (md *RootMetadata) AddUnrefBlock(path Path, info BlockInfo) {
+	if info.EncodedSize > 0 {
+		md.UnrefBytes += uint64(info.EncodedSize)
+		md.data.UnrefBlocks.AddBlock(path, info.BlockPointer)
 	}
-	md.UnrefBytes += uint64(unrefBytes)
-	md.data.UnrefBlocks.AddBlock(path, ptr)
 }
 
 // ClearBlockChanges resets the block change lists to empty for this

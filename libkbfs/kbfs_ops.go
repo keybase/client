@@ -642,7 +642,7 @@ func (fs *KBFSOpsStandard) syncBlockInChannel(md *RootMetadata,
 		} else {
 			parentDE = prevDblock.Children[currName]
 		}
-		md.AddUnrefBlock(refPath, parentDE.BlockPointer, parentDE.EncodedSize)
+		md.AddUnrefBlock(refPath, parentDE.BlockInfo)
 		if de.ID != zeroPtr.ID && de.Type == Dir {
 			// if syncBlocks is being called multiple times, some directory
 			// blocks may be written as dirty to the cache.  For those blocks,
@@ -902,7 +902,7 @@ func (fs *KBFSOpsStandard) removeEntryInChannel(path Path) (Path, error) {
 		return Path{}, &NoSuchNameError{name}
 	}
 
-	md.AddUnrefBlock(path, de.BlockPointer, de.EncodedSize)
+	md.AddUnrefBlock(path, de.BlockInfo)
 	// If this is an indirect block, we need to delete all of its
 	// children as well. (TODO: handle multiple levels of
 	// indirection.)  NOTE: non-empty directories can't be removed, so
@@ -918,7 +918,7 @@ func (fs *KBFSOpsStandard) removeEntryInChannel(path Path) (Path, error) {
 		}
 		if fBlock.IsInd {
 			for _, ptr := range fBlock.IPtrs {
-				md.AddUnrefBlock(path, ptr.BlockPointer, ptr.EncodedSize)
+				md.AddUnrefBlock(path, ptr.BlockInfo)
 			}
 		}
 	}
@@ -1382,7 +1382,7 @@ func (fs *KBFSOpsStandard) writeDataInChannel(
 
 		if oldLen != len(block.Contents) || de.Writer != user {
 			// remember how many bytes it was
-			md.AddUnrefBlock(file, de.BlockPointer, de.EncodedSize)
+			md.AddUnrefBlock(file, de.BlockInfo)
 			de.EncodedSize = 0
 			// update the file info
 			de.Size += uint64(len(block.Contents) - oldLen)
@@ -1399,7 +1399,7 @@ func (fs *KBFSOpsStandard) writeDataInChannel(
 		if parentBlock != nil {
 			grandParentPtr := parentBlock.IPtrs[indexInParent]
 			// remember how many bytes it was
-			md.AddUnrefBlock(file, grandParentPtr.BlockPointer, grandParentPtr.EncodedSize)
+			md.AddUnrefBlock(file, grandParentPtr.BlockInfo)
 			parentBlock.IPtrs[indexInParent].EncodedSize = 0
 		}
 		// keep the old block ID while it's dirty
@@ -1475,7 +1475,7 @@ func (fs *KBFSOpsStandard) truncateInChannel(file Path, size uint64) error {
 	if more {
 		// TODO: if indexInParent == 0, we can remove the level of indirection
 		for _, ptr := range parentBlock.IPtrs[indexInParent+1:] {
-			md.AddUnrefBlock(file, ptr.BlockPointer, ptr.EncodedSize)
+			md.AddUnrefBlock(file, ptr.BlockInfo)
 		}
 		parentBlock.IPtrs = parentBlock.IPtrs[:indexInParent+1]
 		// always make the parent block dirty, so we will sync it
@@ -1490,7 +1490,7 @@ func (fs *KBFSOpsStandard) truncateInChannel(file Path, size uint64) error {
 
 	if parentBlock != nil {
 		grandParentPtr := parentBlock.IPtrs[indexInParent]
-		md.AddUnrefBlock(file, grandParentPtr.BlockPointer, grandParentPtr.EncodedSize)
+		md.AddUnrefBlock(file, grandParentPtr.BlockInfo)
 		parentBlock.IPtrs[indexInParent].EncodedSize = 0
 	}
 
@@ -1500,7 +1500,7 @@ func (fs *KBFSOpsStandard) truncateInChannel(file Path, size uint64) error {
 		return err
 	}
 
-	md.AddUnrefBlock(file, de.BlockPointer, de.EncodedSize)
+	md.AddUnrefBlock(file, de.BlockInfo)
 	de.EncodedSize = 0
 	de.Size = size
 	de.Writer = user
@@ -1714,7 +1714,7 @@ func (fs *KBFSOpsStandard) syncInChannel(file Path) (Path, error) {
 						return Path{}, err
 					}
 					fblock.IPtrs[i+1].Off = ptr.Off + int64(len(block.Contents))
-					md.AddUnrefBlock(file, fblock.IPtrs[i+1].BlockPointer, fblock.IPtrs[i+1].EncodedSize)
+					md.AddUnrefBlock(file, fblock.IPtrs[i+1].BlockInfo)
 					fblock.IPtrs[i+1].EncodedSize = 0
 				case splitAt < 0:
 					if !more {
@@ -1739,7 +1739,7 @@ func (fs *KBFSOpsStandard) syncInChannel(file Path) (Path, error) {
 						}
 						fblock.IPtrs[i+1].Off =
 							ptr.Off + int64(len(block.Contents))
-						md.AddUnrefBlock(file, fblock.IPtrs[i+1].BlockPointer, fblock.IPtrs[i+1].EncodedSize)
+						md.AddUnrefBlock(file, fblock.IPtrs[i+1].BlockInfo)
 						fblock.IPtrs[i+1].EncodedSize = 0
 					} else {
 						// TODO: delete the block, and if we're down to just
@@ -1747,7 +1747,7 @@ func (fs *KBFSOpsStandard) syncInChannel(file Path) (Path, error) {
 						// TODO: When we implement more than one level of indirection,
 						// make sure that the pointer to the parent block in the
 						// grandparent block has EncodedSize 0.
-						md.AddUnrefBlock(file, fblock.IPtrs[i+1].BlockPointer, fblock.IPtrs[i+1].EncodedSize)
+						md.AddUnrefBlock(file, fblock.IPtrs[i+1].BlockInfo)
 						fblock.IPtrs =
 							append(fblock.IPtrs[:i+1], fblock.IPtrs[i+2:]...)
 					}
