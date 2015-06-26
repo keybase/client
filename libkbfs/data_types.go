@@ -378,9 +378,9 @@ type ReadyBlockData struct {
 	serverHalf BlockCryptKeyServerHalf
 }
 
-// GetQuotaSize returns the size of the encoded (and encrypted) block
-// data.
-func (r ReadyBlockData) GetQuotaSize() int {
+// GetEncodedSize returns the size of the encoded (and encrypted)
+// block data.
+func (r ReadyBlockData) GetEncodedSize() int {
 	return len(r.buf)
 }
 
@@ -798,10 +798,10 @@ type DirEntry struct {
 	// When non-zero, the size of the encoded (and encrypted) data
 	// contained in the block. When non-zero, always at least the
 	// size of the plaintext data contained in the block.
-	QuotaSize uint32
-	Type      EntryType
-	Size      uint64
-	SymPath   string `codec:",omitempty"` // must be within the same root dir
+	EncodedSize uint32
+	Type        EntryType
+	Size        uint64
+	SymPath     string `codec:",omitempty"` // must be within the same root dir
 	// Mtime is in unix nanoseconds
 	Mtime int64
 	// Ctime is in unix nanoseconds
@@ -816,26 +816,26 @@ func (de *DirEntry) IsInitialized() bool {
 // IndirectDirPtr pairs an indirect dir block with the start of that
 // block's range of directory entries (inclusive)
 type IndirectDirPtr struct {
-	// TODO: Make sure that the block is not dirty when the QuotaSize
+	// TODO: Make sure that the block is not dirty when the EncodedSize
 	// field is non-zero.
 	BlockPointer
 	// When non-zero, the size of the encoded (and encrypted) data
 	// contained in the block. When non-zero, always at least the
 	// size of the plaintext data contained in the block.
-	QuotaSize uint32
-	Off       string
+	EncodedSize uint32
+	Off         string
 }
 
 // IndirectFilePtr pairs an indirect file block with the start of that
 // block's range of bytes (inclusive)
 type IndirectFilePtr struct {
-	// When the QuotaSize field is non-zero, the block must not be dirty.
+	// When the EncodedSize field is non-zero, the block must not be dirty.
 	BlockPointer
 	// When non-zero, the size of the encoded (and encrypted) data
 	// contained in the block. When non-zero, always at least the
 	// size of the plaintext data contained in the block.
-	QuotaSize uint32
-	Off       int64
+	EncodedSize uint32
+	Off         int64
 }
 
 // CommonBlock holds block data that is common for both subdirectories

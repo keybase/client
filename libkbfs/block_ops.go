@@ -85,11 +85,11 @@ func (b *BlockOpsStandard) Ready(md *RootMetadata, block Block) (id BlockID, pla
 		serverHalf: serverHalf,
 	}
 
-	quotaSize := readyBlockData.GetQuotaSize()
-	if quotaSize < plainSize {
+	encodedSize := readyBlockData.GetEncodedSize()
+	if encodedSize < plainSize {
 		err = &TooLowByteCountError{
 			ExpectedMinByteCount: plainSize,
-			ByteCount:            quotaSize,
+			ByteCount:            encodedSize,
 		}
 		return
 	}

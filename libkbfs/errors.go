@@ -377,17 +377,17 @@ func (e *TooLowByteCountError) Error() string {
 		e.ExpectedMinByteCount, e.ByteCount)
 }
 
-// InconsistentQuotaSizeError is raised when a dirty block has a
-// non-zero quota size.
-type InconsistentQuotaSizeError struct {
-	ID        BlockID
-	QuotaSize uint32
+// InconsistentEncodedSizeError is raised when a dirty block has a
+// non-zero encoded size.
+type InconsistentEncodedSizeError struct {
+	ID          BlockID
+	EncodedSize uint32
 }
 
-// Error implements the error interface for InconsistentQuotaSizeError
-func (e *InconsistentQuotaSizeError) Error() string {
+// Error implements the error interface for InconsistentEncodedSizeError
+func (e *InconsistentEncodedSizeError) Error() string {
 	return fmt.Sprintf("Block pointer to dirty block %v with non-zero "+
-		"quota size = %d bytes", e.ID, e.QuotaSize)
+		"encoded size = %d bytes", e.ID, e.EncodedSize)
 }
 
 // WriteNeededInReadRequest indicates that the system needs write
