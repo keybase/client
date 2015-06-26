@@ -887,6 +887,8 @@ func (fbo *FolderBranchOps) syncBlockLocked(md *RootMetadata,
 func (fbo *FolderBranchOps) finalizeBlocksLocked(bps *blockPutState,
 	newPaths []Path) error {
 	bcache := fbo.config.BlockCache()
+	fbo.cacheLock.Lock()
+	defer fbo.cacheLock.Unlock()
 	for _, blockState := range bps.blockStates {
 		id := blockState.blockPtr.ID
 		if oldPtr, ok := bps.oldPtrs[id]; ok &&
@@ -901,6 +903,13 @@ func (fbo *FolderBranchOps) finalizeBlocksLocked(bps *blockPutState,
 			if err := bcache.Finalize(
 				oldPtr, newPaths[0].Branch, id); err != nil {
 				return err
+			}
+
+			// move the deCache for this directory
+			oldPtrStripped := stripBP(oldPtr)
+			if deMap, ok := fbo.deCache[oldPtrStripped]; ok {
+				fbo.deCache[stripBP(blockState.blockPtr)] = deMap
+				delete(fbo.deCache, oldPtrStripped)
 			}
 		} else {
 			if err := bcache.Put(id, blockState.block); err != nil {
@@ -1276,18 +1285,27 @@ func (fbo *FolderBranchOps) renameLocked(
 
 	// if there are any outstanding de updates from writes/truncates
 	// for the moved path, we need to move them too
-	fbo.cacheLock.Lock()
-	if deMap, ok := fbo.deCache[stripBP(oldParent.TailPointer())]; ok {
-		dePtr := stripBP(newDe.BlockPointer)
-		if de, ok := deMap[dePtr]; ok {
-			newPtr := stripBP(newParent.TailPointer())
-			if _, ok = fbo.deCache[newPtr]; !ok {
-				fbo.deCache[newPtr] = make(map[BlockPointer]DirEntry)
+	if oldParent.TailPointer().ID != newParent.TailPointer().ID {
+		fbo.cacheLock.Lock()
+		oldPtr := stripBP(oldParent.TailPointer())
+		if deMap, ok := fbo.deCache[oldPtr]; ok {
+			dePtr := stripBP(newDe.BlockPointer)
+			if de, ok := deMap[dePtr]; ok {
+				newPtr := stripBP(newParent.TailPointer())
+				if _, ok = fbo.deCache[newPtr]; !ok {
+					fbo.deCache[newPtr] = make(map[BlockPointer]DirEntry)
+				}
+				fbo.deCache[newPtr][dePtr] = de
+				delete(deMap, dePtr)
+				if deMap == nil {
+					delete(fbo.deCache, oldPtr)
+				} else {
+					fbo.deCache[oldPtr] = deMap
+				}
 			}
-			fbo.deCache[newPtr][dePtr] = de
 		}
+		fbo.cacheLock.Unlock()
 	}
-	fbo.cacheLock.Unlock()
 
 	// find the common ancestor
 	var i int

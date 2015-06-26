@@ -559,8 +559,7 @@ func TestRenameCrossFolder(t *testing.T) {
 }
 
 func TestWriteThenRenameDesired(t *testing.T) {
-	t.Skip("Broken; ReadDir after write has wrong file size, " +
-		"and second write fails")
+	t.Skip("Broken; second write fails with I/O error")
 	config := libkbfs.MakeTestConfigOrBust(t, *BServerRemote, "jdoe")
 	mnt := makeFS(t, config)
 	defer mnt.Close()
