@@ -196,7 +196,8 @@ type KeyManager interface {
 	// pointed to by the given pointer.
 	GetTLFCryptKeyForBlockDecryption(md *RootMetadata, blockPtr BlockPointer) (TLFCryptKey, error)
 
-	// Rekey creates a new epoch of keys for the given directory
+	// Rekey creates a new epoch of keys for the given TLF, which
+	// must not be public.
 	Rekey(md *RootMetadata) error
 }
 
@@ -452,11 +453,10 @@ type BlockOps interface {
 	Get(md *RootMetadata, blockPtr BlockPointer, block Block) error
 
 	// Ready turns the given block (which belongs to the TLF with
-	// the given metadata) into encoded (and possibly encrypted)
-	// data, and calculates its ID and size, so that we can do a
-	// bunch of block puts in parallel for every write. Ready()
-	// must guarantee that plainSize <=
-	// readyBlockData.QuotaSize().
+	// the given metadata) into encoded (and encrypted) data, and
+	// calculates its ID and size, so that we can do a bunch of
+	// block puts in parallel for every write. Ready() must
+	// guarantee that plainSize <= readyBlockData.QuotaSize().
 	Ready(md *RootMetadata, block Block) (id BlockID, plainSize int, readyBlockData ReadyBlockData, err error)
 
 	// Put stores the readied block data under the given block

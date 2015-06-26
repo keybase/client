@@ -1,16 +1,26 @@
 package libkbfs
 
 import (
-	bserver "github.com/keybase/kbfs/bserver"
 	"testing"
+
+	bserver "github.com/keybase/kbfs/bserver"
 )
 
 // Return a new initialized RootMetadata object for testing.
 func newRootMetadataForTest(d *DirHandle, id DirID) *RootMetadata {
 	rmd := NewRootMetadata(d, id)
-	// TODO: Set this to 0 for public directories.
-	rmd.data.Dir.KeyGen = 1
-	rmd.data.Dir.DataVer = 1
+	var keyGen KeyGen
+	if id.IsPublic() {
+		keyGen = PublicKeyGen
+	} else {
+		keyGen = 1
+	}
+	rmd.data.Dir = DirEntry{
+		BlockPointer: BlockPointer{
+			KeyGen:  keyGen,
+			DataVer: 1,
+		},
+	}
 	// make up the MD ID
 	rmd.mdID = MdID{id[0]}
 	return rmd

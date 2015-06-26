@@ -171,8 +171,10 @@ func (fs *KBFSOpsStandard) initMDInChannel(md *RootMetadata) error {
 		return err
 	}
 
-	if !md.GetDirHandle().IsWriter(user) {
-		return NewWriteAccessError(fs.config, md.GetDirHandle(), user)
+	handle := md.GetDirHandle()
+
+	if !handle.IsWriter(user) {
+		return NewWriteAccessError(fs.config, handle, user)
 	}
 
 	newDblock := &DirBlock{
@@ -182,20 +184,21 @@ func (fs *KBFSOpsStandard) initMDInChannel(md *RootMetadata) error {
 		Children: make(map[string]DirEntry),
 	}
 
-	// create a new set of keys for this metadata
-	if err := fs.config.KeyManager().Rekey(md); err != nil {
-		return err
-	}
-
-	keyGen := md.LatestKeyGeneration()
 	var expectedKeyGen KeyGen
 	if md.ID.IsPublic() {
+		md.Writers = make([]keybase1.UID, len(handle.Writers))
+		copy(md.Writers, handle.Writers)
 		expectedKeyGen = PublicKeyGen
 	} else {
+		// create a new set of keys for this metadata
+		if err := fs.config.KeyManager().Rekey(md); err != nil {
+			return err
+		}
 		expectedKeyGen = FirstValidKeyGen
 	}
+	keyGen := md.LatestKeyGeneration()
 	if keyGen != expectedKeyGen {
-		return InvalidKeyGenerationError{*md.GetDirHandle(), keyGen}
+		return InvalidKeyGenerationError{*handle, keyGen}
 	}
 	ptr, plainSize, readyBlockData, err := fs.readyBlock(md, newDblock, user)
 	if err != nil {
@@ -214,8 +217,8 @@ func (fs *KBFSOpsStandard) initMDInChannel(md *RootMetadata) error {
 	md.UnrefBytes = 0
 
 	// make sure we're a writer before putting any blocks
-	if !md.GetDirHandle().IsWriter(user) {
-		return NewWriteAccessError(fs.config, md.GetDirHandle(), user)
+	if !handle.IsWriter(user) {
+		return NewWriteAccessError(fs.config, handle, user)
 	}
 
 	if err = fs.config.BlockOps().Put(md, ptr, readyBlockData); err != nil {

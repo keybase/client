@@ -453,3 +453,16 @@ type InvalidNonceError struct {
 func (e InvalidNonceError) Error() string {
 	return fmt.Sprintf("Invalid nonce %v", e.nonce)
 }
+
+// InvalidPublicTLFOperation indicates that an invalid operation was
+// attempted on a public TLF.
+type InvalidPublicTLFOperation struct {
+	id     DirID
+	opName string
+}
+
+// Error implements the error interface for InvalidPublicTLFOperation.
+func (e InvalidPublicTLFOperation) Error() string {
+	return fmt.Sprintf("Tried to do invalid operation %s on public TLF %v",
+		e.opName, e.id)
+}

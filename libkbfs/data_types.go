@@ -252,6 +252,19 @@ type TLFCryptKey struct {
 	Key [32]byte
 }
 
+// PublicTLFCryptKey is the TLFCryptKey used for all public TLFs. That
+// means that anyone with just the block key for a public TLF can
+// decrypt that block. This is not the zero TLFCryptKey so that we can
+// distinguish it from an (erroneously?) unset TLFCryptKey.
+var PublicTLFCryptKey = TLFCryptKey{
+	Key: [32]byte{
+		0x18, 0x18, 0x18, 0x18, 0x18, 0x18, 0x18, 0x18,
+		0x18, 0x18, 0x18, 0x18, 0x18, 0x18, 0x18, 0x18,
+		0x18, 0x18, 0x18, 0x18, 0x18, 0x18, 0x18, 0x18,
+		0x18, 0x18, 0x18, 0x18, 0x18, 0x18, 0x18, 0x18,
+	},
+}
+
 // BlockCryptKeyServerHalf is a masked version of a BlockCryptKey,
 // which can be recovered only with the TLFCryptKey used to mask the
 // server half.
@@ -330,7 +343,7 @@ type BlockPointer struct {
 	KeyGen  KeyGen  // if valid, which generation of the DirKeyBundle to use.
 	DataVer DataVer // if valid, which version of the KBFS data structures is pointed to
 	Writer  keybase1.UID
-	// When non-zero, the size of the (possibly encrypted) data
+	// When non-zero, the size of the encoded (and encrypted) data
 	// contained in the block. When non-zero, always at least the
 	// size of the plaintext data contained in the block.
 	QuotaSize uint32
@@ -367,16 +380,15 @@ func (p BlockPointer) IsInitialized() bool {
 	return p.ID != NullBlockID
 }
 
-// ReadyBlockData is a block that has been encoded (and possibly
-// encrypted).
+// ReadyBlockData is a block that has been encoded (and encrypted).
 type ReadyBlockData struct {
 	// These fields should not be used outside of BlockOps.Put().
 	buf        []byte
 	serverHalf BlockCryptKeyServerHalf
 }
 
-// GetQuotaSize returns the size of the encoded (and possibly
-// encrypted) block data.
+// GetQuotaSize returns the size of the encoded (and encrypted) block
+// data.
 func (r ReadyBlockData) GetQuotaSize() int {
 	return len(r.buf)
 }
@@ -728,8 +740,10 @@ func (dkb DirKeyBundle) DeepCopy() DirKeyBundle {
 type RootMetadata struct {
 	// Serialized, possibly encrypted, version of the PrivateMetadata
 	SerializedPrivateMetadata []byte `codec:"data"`
-	// key generations for this metadata.  The most recent one is last in
-	// the array.
+	// For public TLFs (since those don't have any keys at all).
+	Writers []keybase1.UID
+	// For private TLFs. Key generations for this metadata. The
+	// most recent one is last in the array.
 	Keys []DirKeyBundle
 	// Pointer to the previous root block ID
 	PrevRoot MdID
@@ -826,9 +840,18 @@ type PrivateMetadata struct {
 // NewRootMetadata constructs a new RootMetadata object with the given
 // handle and ID.
 func NewRootMetadata(d *DirHandle, id DirID) *RootMetadata {
+	var writers []keybase1.UID
+	if id.IsPublic() {
+		writers = make([]keybase1.UID, 0, 1)
+	}
+	var keys []DirKeyBundle
+	if id.IsPublic() {
+		keys = make([]DirKeyBundle, 0, 1)
+	}
 	md := RootMetadata{
-		Keys: make([]DirKeyBundle, 0, 1),
-		ID:   id,
+		Writers: writers,
+		Keys:    keys,
+		ID:      id,
 		data: PrivateMetadata{
 			RefBlocks: BlockChanges{
 				Changes: NewBlockChangeNode(),
@@ -855,6 +878,8 @@ func (md RootMetadata) Data() *PrivateMetadata {
 func (md RootMetadata) DeepCopy() RootMetadata {
 	newMd := md
 	// no need to copy the serialized metadata, if it exists
+	newMd.Writers = make([]keybase1.UID, len(md.Writers))
+	copy(newMd.Writers, md.Writers)
 	newMd.Keys = make([]DirKeyBundle, len(md.Keys))
 	for i, k := range md.Keys {
 		newMd.Keys[i] = k.DeepCopy()
@@ -868,6 +893,10 @@ func (md RootMetadata) DeepCopy() RootMetadata {
 }
 
 func (md RootMetadata) getDirKeyBundle(keyGen KeyGen) (*DirKeyBundle, error) {
+	if md.ID.IsPublic() {
+		return nil, InvalidPublicTLFOperation{md.ID, "getDirKeyBundle"}
+	}
+
 	if keyGen < FirstValidKeyGen {
 		return nil, InvalidKeyGenerationError{*md.GetDirHandle(), keyGen}
 	}
@@ -922,8 +951,12 @@ func (md RootMetadata) LatestKeyGeneration() KeyGen {
 
 // AddNewKeys makes a new key generation for this RootMetadata using the
 // given DirKeyBundle.
-func (md *RootMetadata) AddNewKeys(keys DirKeyBundle) {
+func (md *RootMetadata) AddNewKeys(keys DirKeyBundle) error {
+	if md.ID.IsPublic() {
+		return InvalidPublicTLFOperation{md.ID, "AddNewKeys"}
+	}
 	md.Keys = append(md.Keys, keys)
+	return nil
 }
 
 // GetDirHandle computes and returns the DirHandle for this
@@ -934,16 +967,19 @@ func (md *RootMetadata) GetDirHandle() *DirHandle {
 	}
 
 	h := &DirHandle{}
-	// TODO: Handle public directories (which will have no keys at
-	// all).
-	dkb := &md.Keys[len(md.Keys)-1]
-	for w := range dkb.WKeys {
-		h.Writers = append(h.Writers, w)
-	}
 	if md.ID.IsPublic() {
-		h.Readers = append(h.Readers, keybase1.PublicUID)
+		h.Readers = []keybase1.UID{keybase1.PublicUID}
+		h.Writers = make([]keybase1.UID, len(md.Writers))
+		copy(h.Writers, md.Writers)
 	} else {
+		dkb := &md.Keys[len(md.Keys)-1]
+		for w := range dkb.WKeys {
+			h.Writers = append(h.Writers, w)
+		}
 		for r := range dkb.RKeys {
+			// TODO: Return an error instead if r is
+			// PublicUID. Maybe return an error if r is in
+			// WKeys also.
 			if _, ok := dkb.WKeys[r]; !ok &&
 				r != keybase1.PublicUID {
 				h.Readers = append(h.Readers, r)

@@ -36,10 +36,7 @@ func (km *KeyManagerStandard) GetTLFCryptKeyForBlockDecryption(md *RootMetadata,
 func (km *KeyManagerStandard) getTLFCryptKey(md *RootMetadata, keyGen KeyGen) (
 	tlfCryptKey TLFCryptKey, err error) {
 	if md.ID.IsPublic() {
-		// no key is needed, return an empty key
-		// TODO: This should be handled at a higher level,
-		// i.e. all the encryption/decryption code should be
-		// bypassed for public directories.
+		tlfCryptKey = PublicTLFCryptKey
 		return
 	}
 
@@ -179,7 +176,9 @@ func (km *KeyManagerStandard) secretKeysForUser(md *RootMetadata, uid keybase1.U
 
 // Rekey implements the KeyManager interface for KeyManagerStandard.
 func (km *KeyManagerStandard) Rekey(md *RootMetadata) error {
-	// TODO: Don't rekey public directories.
+	if md.ID.IsPublic() {
+		return InvalidPublicTLFOperation{md.ID, "rekey"}
+	}
 
 	crypto := km.config.Crypto()
 	pubKey, privKey, ePubKey, ePrivKey, tlfCryptKey, err := crypto.MakeRandomTLFKeys()
@@ -209,7 +208,11 @@ func (km *KeyManagerStandard) Rekey(md *RootMetadata) error {
 		}
 		newKeys.RKeys[r] = uMap
 	}
-	md.AddNewKeys(newKeys)
+
+	err = md.AddNewKeys(newKeys)
+	if err != nil {
+		return err
+	}
 
 	// Discard ePrivKey.
 

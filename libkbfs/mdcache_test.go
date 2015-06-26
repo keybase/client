@@ -63,7 +63,7 @@ func TestMdcachePut(t *testing.T) {
 	mockCtrl, config := mdCacheInit(t, 100)
 	defer mdCacheShutdown(mockCtrl, config)
 
-	_, h, _ := newDir(config, 1, true, false)
+	_, h, _ := newDir(t, config, 1, true, false)
 	h.Writers = append(h.Writers, keybase1.MakeTestUID(0))
 
 	testMdcachePut(t, MdID{1}, h, config)
@@ -73,15 +73,15 @@ func TestMdcachePutPastCapacity(t *testing.T) {
 	mockCtrl, config := mdCacheInit(t, 2)
 	defer mdCacheShutdown(mockCtrl, config)
 
-	_, h0, _ := newDir(config, 1, true, false)
+	_, h0, _ := newDir(t, config, 1, true, false)
 	id0 := MdID{0}
 	h0.Writers = append(h0.Writers, keybase1.MakeTestUID(0))
 
-	_, h1, _ := newDir(config, 2, true, false)
+	_, h1, _ := newDir(t, config, 2, true, false)
 	id1 := MdID{1}
 	h1.Writers = append(h1.Writers, keybase1.MakeTestUID(1))
 
-	_, h2, _ := newDir(config, 3, true, false)
+	_, h2, _ := newDir(t, config, 3, true, false)
 	id2 := MdID{2}
 	h2.Writers = append(h2.Writers, keybase1.MakeTestUID(2))
 

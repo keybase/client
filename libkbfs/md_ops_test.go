@@ -23,7 +23,7 @@ func mdOpsShutdown(mockCtrl *gomock.Controller, config *ConfigMock) {
 	mockCtrl.Finish()
 }
 
-func newDir(config *ConfigMock, x byte, share bool, public bool) (
+func newDir(t *testing.T, config *ConfigMock, x byte, share bool, public bool) (
 	DirID, *DirHandle, *RootMetadataSigned) {
 	id := DirID{0}
 	id[0] = x
@@ -46,7 +46,9 @@ func newDir(config *ConfigMock, x byte, share bool, public bool) (
 
 	rmd := newRootMetadataForTest(h, id)
 	rmd.data.LastWriter = h.Writers[0]
-	rmd.AddNewKeys(DirKeyBundle{})
+	if !public {
+		addNewKeysOrBust(t, rmd, DirKeyBundle{})
+	}
 
 	rmds := &RootMetadataSigned{}
 	if public || !share {
@@ -132,7 +134,7 @@ func TestMDOpsGetForHandlePublicSuccess(t *testing.T) {
 	defer mdOpsShutdown(mockCtrl, config)
 
 	// expect one call to fetch MD, and one to verify it
-	id, h, rmds := newDir(config, 1, false, true)
+	id, h, rmds := newDir(t, config, 1, false, true)
 
 	config.mockMdserv.EXPECT().GetForHandle(h).Return(rmds, nil)
 	verifyMDForPublic(config, rmds, id, nil, nil)
@@ -151,7 +153,7 @@ func TestMDOpsGetForHandlePrivateSuccess(t *testing.T) {
 	defer mdOpsShutdown(mockCtrl, config)
 
 	// expect one call to fetch MD, and one to verify it
-	id, h, rmds := newDir(config, 1, true, false)
+	id, h, rmds := newDir(t, config, 1, true, false)
 
 	config.mockMdserv.EXPECT().GetForHandle(h).Return(rmds, nil)
 	verifyMDForPrivateShare(config, rmds, id)
@@ -170,7 +172,7 @@ func TestMDOpsGetForHandlePublicFailFindKey(t *testing.T) {
 	defer mdOpsShutdown(mockCtrl, config)
 
 	// expect one call to fetch MD, and one to verify it
-	id, h, rmds := newDir(config, 1, false, true)
+	id, h, rmds := newDir(t, config, 1, false, true)
 
 	config.mockMdserv.EXPECT().GetForHandle(h).Return(rmds, nil)
 
@@ -187,7 +189,7 @@ func TestMDOpsGetForHandlePublicFailVerify(t *testing.T) {
 	defer mdOpsShutdown(mockCtrl, config)
 
 	// expect one call to fetch MD, and one to verify it
-	id, h, rmds := newDir(config, 1, false, true)
+	id, h, rmds := newDir(t, config, 1, false, true)
 
 	config.mockMdserv.EXPECT().GetForHandle(h).Return(rmds, nil)
 
@@ -204,7 +206,7 @@ func TestMDOpsGetForHandleFailGet(t *testing.T) {
 	defer mdOpsShutdown(mockCtrl, config)
 
 	// expect one call to fetch MD, and fail it
-	_, h, _ := newDir(config, 1, true, false)
+	_, h, _ := newDir(t, config, 1, true, false)
 	err := errors.New("Fake fail")
 
 	// only the get happens, no verify needed with a blank sig
@@ -220,7 +222,7 @@ func TestMDOpsGetForHandleFailHandleCheck(t *testing.T) {
 	defer mdOpsShutdown(mockCtrl, config)
 
 	// expect one call to fetch MD, and one to verify it, and fail that one
-	id, h, rmds := newDir(config, 1, true, false)
+	id, h, rmds := newDir(t, config, 1, true, false)
 	rmds.MD.cachedDirHandle = NewDirHandle()
 
 	// add a new writer after the MD was made, to force a failure
@@ -242,7 +244,7 @@ func TestMDOpsGetSuccess(t *testing.T) {
 	defer mdOpsShutdown(mockCtrl, config)
 
 	// expect one call to fetch MD, and one to verify it
-	id, _, rmds := newDir(config, 1, true, false)
+	id, _, rmds := newDir(t, config, 1, true, false)
 
 	config.mockMdserv.EXPECT().GetForTLF(id).Return(rmds, nil)
 	verifyMDForPrivateShare(config, rmds, id)
@@ -260,7 +262,7 @@ func TestMDOpsGetBlankSigSuccess(t *testing.T) {
 
 	// expect one call to fetch MD, give back a blank sig that doesn't need
 	// verification
-	id, h, _ := newDir(config, 1, true, false)
+	id, h, _ := newDir(t, config, 1, true, false)
 	rmd := newRootMetadataForTest(h, id)
 	rmds := &RootMetadataSigned{
 		MD: *rmd,
@@ -281,7 +283,7 @@ func TestMDOpsGetFailGet(t *testing.T) {
 	defer mdOpsShutdown(mockCtrl, config)
 
 	// expect one call to fetch MD, and fail it
-	id, _, _ := newDir(config, 1, true, false)
+	id, _, _ := newDir(t, config, 1, true, false)
 	err := errors.New("Fake fail")
 
 	// only the get happens, no verify needed with a blank sig
@@ -297,8 +299,8 @@ func TestMDOpsGetFailIdCheck(t *testing.T) {
 	defer mdOpsShutdown(mockCtrl, config)
 
 	// expect one call to fetch MD, and one to verify it, and fail that one
-	_, _, rmds := newDir(config, 1, true, false)
-	id2, _, _ := newDir(config, 2, true, false)
+	_, _, rmds := newDir(t, config, 1, true, false)
+	id2, _, _ := newDir(t, config, 2, true, false)
 
 	config.mockMdserv.EXPECT().GetForTLF(id2).Return(rmds, nil)
 
@@ -314,7 +316,7 @@ func TestMDOpsGetAtIDSuccess(t *testing.T) {
 	defer mdOpsShutdown(mockCtrl, config)
 
 	// expect one call to fetch MD, and one to verify it
-	id, _, rmds := newDir(config, 1, true, false)
+	id, _, rmds := newDir(t, config, 1, true, false)
 
 	mdID := rmds.MD.mdID
 	config.mockMdserv.EXPECT().Get(mdID).Return(rmds, nil)
@@ -346,7 +348,7 @@ func TestMDOpsGetAtIDWrongMdID(t *testing.T) {
 	defer mdOpsShutdown(mockCtrl, config)
 
 	// expect one call to fetch MD, and fail it
-	id, _, rmds := newDir(config, 1, true, false)
+	id, _, rmds := newDir(t, config, 1, true, false)
 	mdID := MdID{42}
 	config.mockMdserv.EXPECT().Get(mdID).Return(rmds, nil)
 	verifyMDForPrivateShare(config, rmds, id)
@@ -362,11 +364,11 @@ func testMDOpsGetSinceSuccess(t *testing.T, fromStart bool) {
 	defer mdOpsShutdown(mockCtrl, config)
 
 	// expect one call to fetch MD, and one to verify it
-	id, _, rmds1 := newDir(config, 1, true, false)
-	_, _, rmds2 := newDir(config, 1, true, false)
+	id, _, rmds1 := newDir(t, config, 1, true, false)
+	_, _, rmds2 := newDir(t, config, 1, true, false)
 	rmds2.MD.mdID = MdID{42}
 	rmds1.MD.PrevRoot = rmds2.MD.mdID
-	_, _, rmds3 := newDir(config, 1, true, false)
+	_, _, rmds3 := newDir(t, config, 1, true, false)
 	rmds3.MD.mdID = MdID{43}
 	rmds2.MD.PrevRoot = rmds3.MD.mdID
 	mdID4 := MdID{44}
@@ -409,11 +411,11 @@ func TestMDOpsGetSinceFailBadPrevRoot(t *testing.T) {
 	defer mdOpsShutdown(mockCtrl, config)
 
 	// expect one call to fetch MD, and one to verify it
-	id, _, rmds1 := newDir(config, 1, true, false)
-	_, _, rmds2 := newDir(config, 1, true, false)
+	id, _, rmds1 := newDir(t, config, 1, true, false)
+	_, _, rmds2 := newDir(t, config, 1, true, false)
 	rmds2.MD.mdID = MdID{42}
 	rmds1.MD.PrevRoot = MdID{46} // points to some random ID
-	_, _, rmds3 := newDir(config, 1, true, false)
+	_, _, rmds3 := newDir(t, config, 1, true, false)
 	rmds3.MD.mdID = MdID{43}
 	rmds2.MD.PrevRoot = rmds3.MD.mdID
 	mdID4 := MdID{44}
@@ -441,11 +443,11 @@ func TestMDOpsGetSinceFailBadStart(t *testing.T) {
 	defer mdOpsShutdown(mockCtrl, config)
 
 	// expect one call to fetch MD, and one to verify it
-	id, _, rmds1 := newDir(config, 1, true, false)
-	_, _, rmds2 := newDir(config, 1, true, false)
+	id, _, rmds1 := newDir(t, config, 1, true, false)
+	_, _, rmds2 := newDir(t, config, 1, true, false)
 	rmds2.MD.mdID = MdID{42}
 	rmds1.MD.PrevRoot = rmds2.MD.mdID
-	_, _, rmds3 := newDir(config, 1, true, false)
+	_, _, rmds3 := newDir(t, config, 1, true, false)
 	rmds3.MD.mdID = MdID{43}
 	rmds2.MD.PrevRoot = rmds3.MD.mdID
 	mdID4 := MdID{44}
@@ -472,7 +474,7 @@ func TestMDOpsPutPublicSuccess(t *testing.T) {
 	defer mdOpsShutdown(mockCtrl, config)
 
 	// expect one call to sign MD, and one to put it
-	id, _, rmds := newDir(config, 1, false, true)
+	id, _, rmds := newDir(t, config, 1, false, true)
 	putMDForPublic(config, rmds, id)
 
 	if err := config.MDOps().Put(id, &rmds.MD, nil, NullMdID); err != nil {
@@ -485,7 +487,7 @@ func TestMDOpsPutPrivateSuccess(t *testing.T) {
 	defer mdOpsShutdown(mockCtrl, config)
 
 	// expect one call to sign MD, and one to put it
-	id, _, rmds := newDir(config, 1, true, false)
+	id, _, rmds := newDir(t, config, 1, true, false)
 	putMDForPrivateShare(config, rmds, id)
 
 	if err := config.MDOps().Put(id, &rmds.MD, nil, NullMdID); err != nil {
@@ -498,7 +500,7 @@ func TestMDOpsPutFailEncode(t *testing.T) {
 	defer mdOpsShutdown(mockCtrl, config)
 
 	// expect one call to sign MD, and fail it
-	id, h, _ := newDir(config, 1, true, false)
+	id, h, _ := newDir(t, config, 1, true, false)
 	rmd := newRootMetadataForTest(h, id)
 
 	expectGetTLFCryptKeyForEncryption(config, rmd)
@@ -518,8 +520,8 @@ func TestMDOpsGetFavoritesSuccess(t *testing.T) {
 	defer mdOpsShutdown(mockCtrl, config)
 
 	// expect one call to fetch favorites
-	id1, _, _ := newDir(config, 1, true, false)
-	id2, _, _ := newDir(config, 2, true, false)
+	id1, _, _ := newDir(t, config, 1, true, false)
+	id2, _, _ := newDir(t, config, 2, true, false)
 	ids := []DirID{id1, id2}
 
 	config.mockMdserv.EXPECT().GetFavorites().Return(ids, nil)
