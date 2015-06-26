@@ -377,16 +377,17 @@ func (e *TooLowByteCountError) Error() string {
 		e.ExpectedMinByteCount, e.ByteCount)
 }
 
-// InconsistentBlockPointerError that the system is using an
-// inconsistent block pointer for a block.
-type InconsistentBlockPointerError struct {
-	Ptr BlockPointer
+// InconsistentQuotaSizeError is raised when a dirty block has a
+// non-zero quota size.
+type InconsistentQuotaSizeError struct {
+	ID        BlockID
+	QuotaSize uint32
 }
 
-// Error implements the error interface for InconsistentBlockPointerError
-func (e *InconsistentBlockPointerError) Error() string {
+// Error implements the error interface for InconsistentQuotaSizeError
+func (e *InconsistentQuotaSizeError) Error() string {
 	return fmt.Sprintf("Block pointer to dirty block %v with non-zero "+
-		"quota size = %d bytes", e.Ptr.ID, e.Ptr.QuotaSize)
+		"quota size = %d bytes", e.ID, e.QuotaSize)
 }
 
 // WriteNeededInReadRequest indicates that the system needs write

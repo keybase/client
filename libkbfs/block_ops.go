@@ -20,14 +20,6 @@ func (b *BlockOpsStandard) Get(md *RootMetadata, blockPtr BlockPointer, block Bl
 		return err
 	}
 
-	if blockPtr.QuotaSize != uint32(len(buf)) {
-		err = &InconsistentByteCountError{
-			ExpectedByteCount: int(blockPtr.QuotaSize),
-			ByteCount:         len(buf),
-		}
-		return err
-	}
-
 	tlfCryptKey, err := b.config.KeyManager().GetTLFCryptKeyForBlockDecryption(md, blockPtr)
 	if err != nil {
 		return err
@@ -121,12 +113,6 @@ func (b *BlockOpsStandard) Ready(md *RootMetadata, block Block) (id BlockID, pla
 
 // Put implements the BlockOps interface for BlockOpsStandard.
 func (b *BlockOpsStandard) Put(md *RootMetadata, blockPtr BlockPointer, readyBlockData ReadyBlockData) error {
-	if blockPtr.QuotaSize != uint32(len(readyBlockData.buf)) {
-		return &InconsistentByteCountError{
-			ExpectedByteCount: int(blockPtr.QuotaSize),
-			ByteCount:         len(readyBlockData.buf),
-		}
-	}
 	bserv := b.config.BlockServer()
 	return bserv.Put(blockPtr.ID, md.ID, blockPtr, readyBlockData.buf, readyBlockData.serverHalf)
 }

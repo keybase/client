@@ -207,13 +207,14 @@ func (fs *KBFSOpsStandard) initMDInChannel(md *RootMetadata) error {
 
 	md.data.Dir = DirEntry{
 		BlockPointer: ptr,
+		QuotaSize:    uint32(readyBlockData.GetQuotaSize()),
 		Type:         Dir,
 		Size:         uint64(plainSize),
 		Mtime:        time.Now().UnixNano(),
 		Ctime:        time.Now().UnixNano(),
 	}
 	path := fs.rootPathFromMD(md)
-	md.AddRefBlock(path, md.data.Dir.BlockPointer)
+	md.AddRefBlock(path, md.data.Dir.BlockPointer, md.data.Dir.QuotaSize)
 	md.UnrefBytes = 0
 
 	// make sure we're a writer before putting any blocks
@@ -458,11 +459,10 @@ func (fs *KBFSOpsStandard) readyBlock(md *RootMetadata, block Block, user keybas
 	}
 
 	ptr = BlockPointer{
-		ID:        id,
-		KeyGen:    md.LatestKeyGeneration(),
-		DataVer:   fs.config.DataVersion(),
-		Writer:    user,
-		QuotaSize: uint32(readyBlockData.GetQuotaSize()),
+		ID:      id,
+		KeyGen:  md.LatestKeyGeneration(),
+		DataVer: fs.config.DataVersion(),
+		Writer:  user,
 		// TODO: for now, the reference nonce for a block is just zero.
 		// When we implement de-duping, we should set it to a random nonce
 		// for all but the initial reference.
@@ -473,13 +473,14 @@ func (fs *KBFSOpsStandard) readyBlock(md *RootMetadata, block Block, user keybas
 
 func (fs *KBFSOpsStandard) readyBlockMultiple(md *RootMetadata, currBlock Block,
 	user keybase1.UID, bps *blockPutState) (
-	blockPtr BlockPointer, plainSize int, err error) {
+	blockPtr BlockPointer, plainSize, quotaSize int, err error) {
 	blockPtr, plainSize, readyBlockData, err := fs.readyBlock(md, currBlock, user)
 	if err != nil {
 		return
 	}
 
 	bps.addNewBlock(blockPtr, currBlock, readyBlockData)
+	quotaSize = readyBlockData.GetQuotaSize()
 	return
 }
 
@@ -491,13 +492,13 @@ func (fs *KBFSOpsStandard) unembedBlockChanges(bps *blockPutState,
 	}
 	block := NewFileBlock().(*FileBlock)
 	block.Contents = buf
-	blockPtr, _, err := fs.readyBlockMultiple(md, block, user, bps)
+	blockPtr, _, quotaSize, err := fs.readyBlockMultiple(md, block, user, bps)
 	if err != nil {
 		return
 	}
 	changes.Pointer = blockPtr
 	changes.Changes = nil
-	md.RefBytes += uint64(blockPtr.QuotaSize)
+	md.RefBytes += uint64(quotaSize)
 	return
 }
 
@@ -560,7 +561,7 @@ func (fs *KBFSOpsStandard) syncBlockInChannel(md *RootMetadata,
 	doSetTime := true
 	now := time.Now().UnixNano()
 	for len(newPath.Path) < len(dir.Path)+1 {
-		blockPtr, plainSize, err :=
+		blockPtr, plainSize, quotaSize, err :=
 			fs.readyBlockMultiple(md, currBlock, user, bps)
 		if err != nil {
 			return Path{}, DirEntry{}, err
@@ -632,23 +633,25 @@ func (fs *KBFSOpsStandard) syncBlockInChannel(md *RootMetadata,
 			de.Size = uint64(plainSize)
 		}
 
+		var parentDE DirEntry
 		if prevIdx < 0 {
-			md.AddUnrefBlock(refPath, md.data.Dir.BlockPointer)
+			parentDE = md.data.Dir
 		} else {
-			md.AddUnrefBlock(refPath,
-				prevDblock.Children[currName].BlockPointer)
+			parentDE = prevDblock.Children[currName]
 		}
+		md.AddUnrefBlock(refPath, parentDE.BlockPointer, parentDE.QuotaSize)
 		if de.ID != zeroPtr.ID && de.Type == Dir {
 			// if syncBlocks is being called multiple times, some directory
 			// blocks may be written as dirty to the cache.  For those blocks,
 			// save the old ID
 			bps.oldPtrs[blockPtr.ID] = de.BlockPointer
 		}
-		md.AddRefBlock(refPath, blockPtr)
+		md.AddRefBlock(refPath, blockPtr, uint32(quotaSize))
 		if len(refPath.Path) > 1 {
 			refPath = *refPath.ParentPath()
 		}
 		de.BlockPointer = blockPtr
+		de.QuotaSize = uint32(quotaSize)
 
 		if doSetTime {
 			if mtime {
@@ -893,7 +896,7 @@ func (fs *KBFSOpsStandard) removeEntryInChannel(path Path) (Path, error) {
 		return Path{}, &NoSuchNameError{name}
 	}
 
-	md.AddUnrefBlock(path, de.BlockPointer)
+	md.AddUnrefBlock(path, de.BlockPointer, de.QuotaSize)
 	// If this is an indirect block, we need to delete all of its
 	// children as well. (TODO: handle multiple levels of
 	// indirection.)  NOTE: non-empty directories can't be removed, so
@@ -909,7 +912,7 @@ func (fs *KBFSOpsStandard) removeEntryInChannel(path Path) (Path, error) {
 		}
 		if fBlock.IsInd {
 			for _, ptr := range fBlock.IPtrs {
-				md.AddUnrefBlock(path, ptr.BlockPointer)
+				md.AddUnrefBlock(path, ptr.BlockPointer, ptr.QuotaSize)
 			}
 		}
 	}
@@ -1163,12 +1166,6 @@ func (fs *KBFSOpsStandard) getFileBlockAtOffset(
 		if block, err = fs.getFileInChannel(newPath, rtype); err != nil {
 			return
 		}
-		if nextPtr.QuotaSize > 0 && nextPtr.QuotaSize < uint32(len(block.Contents)) {
-			err = &TooHighByteCountError{
-				ExpectedMaxByteCount: int(nextPtr.QuotaSize),
-				ByteCount:            len(block.Contents),
-			}
-		}
 	}
 
 	return
@@ -1256,15 +1253,16 @@ func (fs *KBFSOpsStandard) newRightBlockInChannel(
 	}
 
 	pblock.IPtrs = append(pblock.IPtrs, IndirectFilePtr{
-		BlockPointer{
-			ID:        newRID,
-			KeyGen:    md.LatestKeyGeneration(),
-			DataVer:   fs.config.DataVersion(),
-			Writer:    user,
-			QuotaSize: 0,
-			RefNonce:  zeroBlockRefNonce,
+		BlockPointer: BlockPointer{
+			ID:       newRID,
+			KeyGen:   md.LatestKeyGeneration(),
+			DataVer:  fs.config.DataVersion(),
+			Writer:   user,
+			RefNonce: zeroBlockRefNonce,
 		},
-		off})
+		QuotaSize: 0,
+		Off:       off,
+	})
 
 	if err := fs.config.BlockCache().PutDirty(
 		pblock.IPtrs[len(pblock.IPtrs)-1].BlockPointer,
@@ -1344,14 +1342,16 @@ func (fs *KBFSOpsStandard) writeDataInChannel(
 					},
 					IPtrs: []IndirectFilePtr{
 						IndirectFilePtr{
-							BlockPointer{
-								ID:        newID,
-								KeyGen:    md.LatestKeyGeneration(),
-								DataVer:   fs.config.DataVersion(),
-								Writer:    user,
-								QuotaSize: 0,
-								RefNonce:  zeroBlockRefNonce,
-							}, 0},
+							BlockPointer: BlockPointer{
+								ID:       newID,
+								KeyGen:   md.LatestKeyGeneration(),
+								DataVer:  fs.config.DataVersion(),
+								Writer:   user,
+								RefNonce: zeroBlockRefNonce,
+							},
+							QuotaSize: 0,
+							Off:       0,
+						},
 					},
 				}
 				if err := bcache.PutDirty(
@@ -1372,7 +1372,7 @@ func (fs *KBFSOpsStandard) writeDataInChannel(
 
 		if oldLen != len(block.Contents) || de.Writer != user {
 			// remember how many bytes it was
-			md.AddUnrefBlock(file, de.BlockPointer)
+			md.AddUnrefBlock(file, de.BlockPointer, de.QuotaSize)
 			de.QuotaSize = 0
 			// update the file info
 			de.Size += uint64(len(block.Contents) - oldLen)
@@ -1387,9 +1387,9 @@ func (fs *KBFSOpsStandard) writeDataInChannel(
 		}
 
 		if parentBlock != nil {
+			grandParentPtr := parentBlock.IPtrs[indexInParent]
 			// remember how many bytes it was
-			md.AddUnrefBlock(file,
-				parentBlock.IPtrs[indexInParent].BlockPointer)
+			md.AddUnrefBlock(file, grandParentPtr.BlockPointer, grandParentPtr.QuotaSize)
 			parentBlock.IPtrs[indexInParent].QuotaSize = 0
 		}
 		// keep the old block ID while it's dirty
@@ -1465,7 +1465,7 @@ func (fs *KBFSOpsStandard) truncateInChannel(file Path, size uint64) error {
 	if more {
 		// TODO: if indexInParent == 0, we can remove the level of indirection
 		for _, ptr := range parentBlock.IPtrs[indexInParent+1:] {
-			md.AddUnrefBlock(file, ptr.BlockPointer)
+			md.AddUnrefBlock(file, ptr.BlockPointer, ptr.QuotaSize)
 		}
 		parentBlock.IPtrs = parentBlock.IPtrs[:indexInParent+1]
 		// always make the parent block dirty, so we will sync it
@@ -1479,7 +1479,8 @@ func (fs *KBFSOpsStandard) truncateInChannel(file Path, size uint64) error {
 	}
 
 	if parentBlock != nil {
-		md.AddUnrefBlock(file, parentBlock.IPtrs[indexInParent].BlockPointer)
+		grandParentPtr := parentBlock.IPtrs[indexInParent]
+		md.AddUnrefBlock(file, grandParentPtr.BlockPointer, grandParentPtr.QuotaSize)
 		parentBlock.IPtrs[indexInParent].QuotaSize = 0
 	}
 
@@ -1489,7 +1490,7 @@ func (fs *KBFSOpsStandard) truncateInChannel(file Path, size uint64) error {
 		return err
 	}
 
-	md.AddUnrefBlock(file, de.BlockPointer)
+	md.AddUnrefBlock(file, de.BlockPointer, de.QuotaSize)
 	de.QuotaSize = 0
 	de.Size = size
 	de.Writer = user
@@ -1666,7 +1667,7 @@ func (fs *KBFSOpsStandard) syncInChannel(file Path) (Path, error) {
 			ptr := fblock.IPtrs[i]
 			isDirty := bcache.IsDirty(ptr.BlockPointer, file.Branch)
 			if (ptr.QuotaSize > 0) && isDirty {
-				return Path{}, &InconsistentBlockPointerError{ptr.BlockPointer}
+				return Path{}, &InconsistentQuotaSizeError{ptr.ID, ptr.QuotaSize}
 			}
 			if isDirty {
 				_, _, _, block, more, _, err :=
@@ -1703,7 +1704,7 @@ func (fs *KBFSOpsStandard) syncInChannel(file Path) (Path, error) {
 						return Path{}, err
 					}
 					fblock.IPtrs[i+1].Off = ptr.Off + int64(len(block.Contents))
-					md.AddUnrefBlock(file, fblock.IPtrs[i+1].BlockPointer)
+					md.AddUnrefBlock(file, fblock.IPtrs[i+1].BlockPointer, fblock.IPtrs[i+1].QuotaSize)
 					fblock.IPtrs[i+1].QuotaSize = 0
 				case splitAt < 0:
 					if !more {
@@ -1728,7 +1729,7 @@ func (fs *KBFSOpsStandard) syncInChannel(file Path) (Path, error) {
 						}
 						fblock.IPtrs[i+1].Off =
 							ptr.Off + int64(len(block.Contents))
-						md.AddUnrefBlock(file, fblock.IPtrs[i+1].BlockPointer)
+						md.AddUnrefBlock(file, fblock.IPtrs[i+1].BlockPointer, fblock.IPtrs[i+1].QuotaSize)
 						fblock.IPtrs[i+1].QuotaSize = 0
 					} else {
 						// TODO: delete the block, and if we're down to just
@@ -1736,7 +1737,7 @@ func (fs *KBFSOpsStandard) syncInChannel(file Path) (Path, error) {
 						// TODO: When we implement more than one level of indirection,
 						// make sure that the pointer to the parent block in the
 						// grandparent block has QuotaSize 0.
-						md.AddUnrefBlock(file, fblock.IPtrs[i+1].BlockPointer)
+						md.AddUnrefBlock(file, fblock.IPtrs[i+1].BlockPointer, fblock.IPtrs[i+1].QuotaSize)
 						fblock.IPtrs =
 							append(fblock.IPtrs[:i+1], fblock.IPtrs[i+2:]...)
 					}
@@ -1749,7 +1750,7 @@ func (fs *KBFSOpsStandard) syncInChannel(file Path) (Path, error) {
 			// TODO: parallelize these?
 			isDirty := bcache.IsDirty(ptr.BlockPointer, file.Branch)
 			if (ptr.QuotaSize > 0) && isDirty {
-				return Path{}, &InconsistentBlockPointerError{ptr.BlockPointer}
+				return Path{}, &InconsistentQuotaSizeError{ptr.ID, ptr.QuotaSize}
 			}
 			if isDirty {
 				_, _, _, block, _, _, err :=
@@ -1765,7 +1766,8 @@ func (fs *KBFSOpsStandard) syncInChannel(file Path) (Path, error) {
 
 				bcache.Finalize(ptr.BlockPointer, file.Branch, newPtr.ID)
 				fblock.IPtrs[i].BlockPointer = newPtr
-				md.AddRefBlock(file, newPtr)
+				fblock.IPtrs[i].QuotaSize = uint32(readyBlockData.GetQuotaSize())
+				md.AddRefBlock(file, newPtr, fblock.IPtrs[i].QuotaSize)
 				if err := bops.Put(md, newPtr, readyBlockData); err != nil {
 					return Path{}, err
 				}

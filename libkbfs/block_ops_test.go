@@ -107,8 +107,7 @@ func makeRMD() *RootMetadata {
 
 func makePtr(id BlockID, encData []byte) BlockPointer {
 	return BlockPointer{
-		ID:        id,
-		QuotaSize: uint32(len(encData)),
+		ID: id,
 	}
 }
 
@@ -136,26 +135,6 @@ func TestBlockOpsGetSuccess(t *testing.T) {
 
 	if gotBlock != decData {
 		t.Errorf("Got back wrong block data on get: %v", gotBlock)
-	}
-}
-
-func TestBlockOpsGetFailInconsistentByteCount(t *testing.T) {
-	mockCtrl, config := blockOpsInit(t)
-	defer blockOpsShutdown(mockCtrl, config)
-
-	// expect just one call to fetch a block
-	id := BlockID{1}
-	encData := []byte{1, 2, 3, 4}
-	blockPtr := makePtr(id, encData[:3])
-	config.mockBserv.EXPECT().Get(id, blockPtr).Return(
-		encData, BlockCryptKeyServerHalf{}, nil)
-
-	rmd := makeRMD()
-
-	err := config.BlockOps().Get(rmd, blockPtr, nil)
-	if _, ok := err.(*InconsistentByteCountError); !ok {
-		t.Errorf("Unexpectedly did not get InconsistentByteCountError; "+
-			"instead got %v", err)
 	}
 }
 
@@ -323,28 +302,6 @@ func TestBlockOpsPutSuccess(t *testing.T) {
 
 	if err := config.BlockOps().Put(rmd, blockPtr, readyBlockData); err != nil {
 		t.Errorf("Got error on put: %v", err)
-	}
-}
-
-func TestBlockOpsPutFailInconsistentByteCountError(t *testing.T) {
-	mockCtrl, config := blockOpsInit(t)
-	defer blockOpsShutdown(mockCtrl, config)
-
-	// expect one call to put a block
-	id := BlockID{1}
-	encData := []byte{1, 2, 3, 4}
-	blockPtr := makePtr(id, encData[:3])
-
-	rmd := makeRMD()
-
-	readyBlockData := ReadyBlockData{
-		buf: encData,
-	}
-
-	err := config.BlockOps().Put(rmd, blockPtr, readyBlockData)
-	if _, ok := err.(*InconsistentByteCountError); !ok {
-		t.Errorf("Unexpectedly did not get InconsistentByteCountError;"+
-			" instead got %v", err)
 	}
 }
 
