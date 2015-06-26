@@ -378,7 +378,7 @@ func (e *TooLowByteCountError) Error() string {
 }
 
 // InconsistentEncodedSizeError is raised when a dirty block has a
-// non-zero encoded size, or a clean block has zero encoded size.
+// non-zero encoded size.
 type InconsistentEncodedSizeError struct {
 	ID          BlockID
 	EncodedSize uint32

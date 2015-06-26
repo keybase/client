@@ -213,10 +213,7 @@ func (fs *KBFSOpsStandard) initMDInChannel(md *RootMetadata) error {
 		Ctime:     time.Now().UnixNano(),
 	}
 	path := fs.rootPathFromMD(md)
-	err = md.AddRefBlock(path, md.data.Dir.BlockInfo)
-	if err != nil {
-		return err
-	}
+	md.AddRefBlock(path, md.data.Dir.BlockInfo)
 	md.UnrefBytes = 0
 
 	// make sure we're a writer before putting any blocks
@@ -649,10 +646,7 @@ func (fs *KBFSOpsStandard) syncBlockInChannel(md *RootMetadata,
 			// save the old ID
 			bps.oldPtrs[info.ID] = de.BlockPointer
 		}
-		err = md.AddRefBlock(refPath, info)
-		if err != nil {
-			return Path{}, DirEntry{}, err
-		}
+		md.AddRefBlock(refPath, info)
 
 		if len(refPath.Path) > 1 {
 			refPath = *refPath.ParentPath()
@@ -1776,9 +1770,7 @@ func (fs *KBFSOpsStandard) syncInChannel(file Path) (Path, error) {
 
 				bcache.Finalize(ptr.BlockPointer, file.Branch, newInfo.ID)
 				fblock.IPtrs[i].BlockInfo = newInfo
-				if err := md.AddRefBlock(file, newInfo); err != nil {
-					return Path{}, err
-				}
+				md.AddRefBlock(file, newInfo)
 
 				if err := bops.Put(md, newInfo.BlockPointer, readyBlockData); err != nil {
 					return Path{}, err

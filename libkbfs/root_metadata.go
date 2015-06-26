@@ -250,13 +250,9 @@ func (md *RootMetadata) ClearMetadataID() {
 }
 
 // AddRefBlock adds the specified block to the add block change list.
-func (md *RootMetadata) AddRefBlock(path Path, info BlockInfo) error {
-	if info.EncodedSize == 0 {
-		return InconsistentEncodedSizeError{info.ID, info.EncodedSize}
-	}
+func (md *RootMetadata) AddRefBlock(path Path, info BlockInfo) {
 	md.RefBytes += uint64(info.EncodedSize)
 	md.data.RefBlocks.AddBlock(path, info.BlockPointer)
-	return nil
 }
 
 // AddUnrefBlock adds the specified block to the add block change list.
