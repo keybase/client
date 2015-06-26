@@ -16,9 +16,11 @@ func newRootMetadataForTest(d *DirHandle, id DirID) *RootMetadata {
 		keyGen = 1
 	}
 	rmd.data.Dir = DirEntry{
-		BlockPointer: BlockPointer{
-			KeyGen:  keyGen,
-			DataVer: 1,
+		BlockInfo: BlockInfo{
+			BlockPointer: BlockPointer{
+				KeyGen:  keyGen,
+				DataVer: 1,
+			},
 		},
 	}
 	// make up the MD ID
