@@ -27,7 +27,6 @@ func (m *MDOpsConcurTest) GetForHandle(handle *DirHandle) (
 }
 
 func (m *MDOpsConcurTest) GetForTLF(id DirID) (*RootMetadata, error) {
-	fmt.Printf("HERE in GETFORTLF\n")
 	_, ok := <-m.enter
 	if !ok {
 		// Only one caller should ever get here
