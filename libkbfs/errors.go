@@ -378,14 +378,14 @@ func (e *TooLowByteCountError) Error() string {
 }
 
 // InconsistentEncodedSizeError is raised when a dirty block has a
-// non-zero encoded size.
+// non-zero encoded size, or a clean block has zero encoded size.
 type InconsistentEncodedSizeError struct {
 	ID          BlockID
 	EncodedSize uint32
 }
 
 // Error implements the error interface for InconsistentEncodedSizeError
-func (e *InconsistentEncodedSizeError) Error() string {
+func (e InconsistentEncodedSizeError) Error() string {
 	return fmt.Sprintf("Block pointer to dirty block %v with non-zero "+
 		"encoded size = %d bytes", e.ID, e.EncodedSize)
 }

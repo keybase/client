@@ -200,23 +200,23 @@ func (fs *KBFSOpsStandard) initMDInChannel(md *RootMetadata) error {
 	if keyGen != expectedKeyGen {
 		return InvalidKeyGenerationError{*handle, keyGen}
 	}
-	ptr, plainSize, readyBlockData, err := fs.readyBlock(md, newDblock, user)
+	info, plainSize, readyBlockData, err := fs.readyBlock(md, newDblock, user)
 	if err != nil {
 		return err
 	}
 
 	md.data.Dir = DirEntry{
-		BlockInfo: BlockInfo{
-			BlockPointer: ptr,
-			EncodedSize:  uint32(readyBlockData.GetEncodedSize()),
-		},
-		Type:  Dir,
-		Size:  uint64(plainSize),
-		Mtime: time.Now().UnixNano(),
-		Ctime: time.Now().UnixNano(),
+		BlockInfo: info,
+		Type:      Dir,
+		Size:      uint64(plainSize),
+		Mtime:     time.Now().UnixNano(),
+		Ctime:     time.Now().UnixNano(),
 	}
 	path := fs.rootPathFromMD(md)
-	md.AddRefBlock(path, md.data.Dir.BlockPointer, md.data.Dir.EncodedSize)
+	err = md.AddRefBlock(path, md.data.Dir.BlockInfo)
+	if err != nil {
+		return err
+	}
 	md.UnrefBytes = 0
 
 	// make sure we're a writer before putting any blocks
@@ -224,10 +224,10 @@ func (fs *KBFSOpsStandard) initMDInChannel(md *RootMetadata) error {
 		return NewWriteAccessError(fs.config, handle, user)
 	}
 
-	if err = fs.config.BlockOps().Put(md, ptr, readyBlockData); err != nil {
+	if err = fs.config.BlockOps().Put(md, info.BlockPointer, readyBlockData); err != nil {
 		return err
 	}
-	if err = fs.config.BlockCache().Put(ptr.ID, newDblock); err != nil {
+	if err = fs.config.BlockCache().Put(info.ID, newDblock); err != nil {
 		return err
 	}
 
@@ -454,35 +454,37 @@ func (bps *blockPutState) addNewBlock(blockPtr BlockPointer, block Block,
 }
 
 func (fs *KBFSOpsStandard) readyBlock(md *RootMetadata, block Block, user keybase1.UID) (
-	ptr BlockPointer, plainSize int, readyBlockData ReadyBlockData, err error) {
+	info BlockInfo, plainSize int, readyBlockData ReadyBlockData, err error) {
 	id, plainSize, readyBlockData, err := fs.config.BlockOps().Ready(md, block)
 	if err != nil {
 		return
 	}
 
-	ptr = BlockPointer{
-		ID:      id,
-		KeyGen:  md.LatestKeyGeneration(),
-		DataVer: fs.config.DataVersion(),
-		Writer:  user,
-		// TODO: for now, the reference nonce for a block is just zero.
-		// When we implement de-duping, we should set it to a random nonce
-		// for all but the initial reference.
-		RefNonce: zeroBlockRefNonce,
+	info = BlockInfo{
+		BlockPointer: BlockPointer{
+			ID:      id,
+			KeyGen:  md.LatestKeyGeneration(),
+			DataVer: fs.config.DataVersion(),
+			Writer:  user,
+			// TODO: for now, the reference nonce for a block is just zero.
+			// When we implement de-duping, we should set it to a random nonce
+			// for all but the initial reference.
+			RefNonce: zeroBlockRefNonce,
+		},
+		EncodedSize: uint32(readyBlockData.GetEncodedSize()),
 	}
 	return
 }
 
 func (fs *KBFSOpsStandard) readyBlockMultiple(md *RootMetadata, currBlock Block,
 	user keybase1.UID, bps *blockPutState) (
-	blockPtr BlockPointer, plainSize, encodedSize int, err error) {
-	blockPtr, plainSize, readyBlockData, err := fs.readyBlock(md, currBlock, user)
+	info BlockInfo, plainSize int, err error) {
+	info, plainSize, readyBlockData, err := fs.readyBlock(md, currBlock, user)
 	if err != nil {
 		return
 	}
 
-	bps.addNewBlock(blockPtr, currBlock, readyBlockData)
-	encodedSize = readyBlockData.GetEncodedSize()
+	bps.addNewBlock(info.BlockPointer, currBlock, readyBlockData)
 	return
 }
 
@@ -494,13 +496,13 @@ func (fs *KBFSOpsStandard) unembedBlockChanges(bps *blockPutState,
 	}
 	block := NewFileBlock().(*FileBlock)
 	block.Contents = buf
-	blockPtr, _, encodedSize, err := fs.readyBlockMultiple(md, block, user, bps)
+	info, _, err := fs.readyBlockMultiple(md, block, user, bps)
 	if err != nil {
 		return
 	}
-	changes.Pointer = blockPtr
+	changes.Pointer = info.BlockPointer
 	changes.Changes = nil
-	md.RefBytes += uint64(encodedSize)
+	md.RefBytes += uint64(info.EncodedSize)
 	return
 }
 
@@ -563,14 +565,13 @@ func (fs *KBFSOpsStandard) syncBlockInChannel(md *RootMetadata,
 	doSetTime := true
 	now := time.Now().UnixNano()
 	for len(newPath.Path) < len(dir.Path)+1 {
-		blockPtr, plainSize, encodedSize, err :=
-			fs.readyBlockMultiple(md, currBlock, user, bps)
+		info, plainSize, err := fs.readyBlockMultiple(md, currBlock, user, bps)
 		if err != nil {
 			return Path{}, DirEntry{}, err
 		}
 
 		// prepend to path and setup next one
-		newPath.Path = append([]PathNode{PathNode{blockPtr, currName}},
+		newPath.Path = append([]PathNode{PathNode{info.BlockPointer, currName}},
 			newPath.Path...)
 
 		// get the parent block
@@ -646,14 +647,17 @@ func (fs *KBFSOpsStandard) syncBlockInChannel(md *RootMetadata,
 			// if syncBlocks is being called multiple times, some directory
 			// blocks may be written as dirty to the cache.  For those blocks,
 			// save the old ID
-			bps.oldPtrs[blockPtr.ID] = de.BlockPointer
+			bps.oldPtrs[info.ID] = de.BlockPointer
 		}
-		md.AddRefBlock(refPath, blockPtr, uint32(encodedSize))
+		err = md.AddRefBlock(refPath, info)
+		if err != nil {
+			return Path{}, DirEntry{}, err
+		}
+
 		if len(refPath.Path) > 1 {
 			refPath = *refPath.ParentPath()
 		}
-		de.BlockPointer = blockPtr
-		de.EncodedSize = uint32(encodedSize)
+		de.BlockInfo = info
 
 		if doSetTime {
 			if mtime {
@@ -1765,16 +1769,18 @@ func (fs *KBFSOpsStandard) syncInChannel(file Path) (Path, error) {
 					return Path{}, err
 				}
 
-				newPtr, _, readyBlockData, err := fs.readyBlock(md, block, user)
+				newInfo, _, readyBlockData, err := fs.readyBlock(md, block, user)
 				if err != nil {
 					return Path{}, err
 				}
 
-				bcache.Finalize(ptr.BlockPointer, file.Branch, newPtr.ID)
-				fblock.IPtrs[i].BlockPointer = newPtr
-				fblock.IPtrs[i].EncodedSize = uint32(readyBlockData.GetEncodedSize())
-				md.AddRefBlock(file, newPtr, fblock.IPtrs[i].EncodedSize)
-				if err := bops.Put(md, newPtr, readyBlockData); err != nil {
+				bcache.Finalize(ptr.BlockPointer, file.Branch, newInfo.ID)
+				fblock.IPtrs[i].BlockInfo = newInfo
+				if err := md.AddRefBlock(file, newInfo); err != nil {
+					return Path{}, err
+				}
+
+				if err := bops.Put(md, newInfo.BlockPointer, readyBlockData); err != nil {
 					return Path{}, err
 				}
 			}
