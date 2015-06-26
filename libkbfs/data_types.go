@@ -337,7 +337,7 @@ type BlockRefNonce [8]byte
 // reference to a block.
 var zeroBlockRefNonce = BlockRefNonce([8]byte{0, 0, 0, 0, 0, 0, 0, 0})
 
-// BlockPointer is the ID and BlockContext representing a block in KBFS.
+// BlockInfo contains the identifying information for a block in KBFS.
 type BlockPointer struct {
 	ID      BlockID
 	KeyGen  KeyGen  // if valid, which generation of the DirKeyBundle to use.
@@ -354,6 +354,20 @@ type BlockPointer struct {
 	// RefNonce (it can't be a monotonically increasing number because
 	// that would require coordination among clients).
 	RefNonce BlockRefNonce `codec:"r,omitempty"`
+}
+
+// BlockInfo contains all information about a block in KBFS and its
+// contents.
+//
+// TODO: Move everything but ID and RefNonce from BlockPointer into
+// this type.
+type BlockInfo struct {
+	BlockPointer
+	// When non-zero, the size of the encoded (and possibly
+	// encrypted) data contained in the block. When non-zero,
+	// always at least the size of the plaintext data contained in
+	// the block.
+	EncodedSize uint32
 }
 
 // GetWriter implements the BlockContext interface for BlockPointer.
@@ -794,14 +808,10 @@ func (et EntryType) String() string {
 
 // DirEntry is the MD for each child in a directory
 type DirEntry struct {
-	BlockPointer
-	// When non-zero, the size of the encoded (and encrypted) data
-	// contained in the block. When non-zero, always at least the
-	// size of the plaintext data contained in the block.
-	EncodedSize uint32
-	Type        EntryType
-	Size        uint64
-	SymPath     string `codec:",omitempty"` // must be within the same root dir
+	BlockInfo
+	Type    EntryType
+	Size    uint64
+	SymPath string `codec:",omitempty"` // must be within the same root dir
 	// Mtime is in unix nanoseconds
 	Mtime int64
 	// Ctime is in unix nanoseconds
@@ -818,24 +828,17 @@ func (de *DirEntry) IsInitialized() bool {
 type IndirectDirPtr struct {
 	// TODO: Make sure that the block is not dirty when the EncodedSize
 	// field is non-zero.
-	BlockPointer
-	// When non-zero, the size of the encoded (and encrypted) data
-	// contained in the block. When non-zero, always at least the
-	// size of the plaintext data contained in the block.
-	EncodedSize uint32
-	Off         string
+	BlockInfo
+	Off string
 }
 
 // IndirectFilePtr pairs an indirect file block with the start of that
 // block's range of bytes (inclusive)
 type IndirectFilePtr struct {
-	// When the EncodedSize field is non-zero, the block must not be dirty.
-	BlockPointer
-	// When non-zero, the size of the encoded (and encrypted) data
-	// contained in the block. When non-zero, always at least the
-	// size of the plaintext data contained in the block.
-	EncodedSize uint32
-	Off         int64
+	// When the EncodedSize field is non-zero, the block must not
+	// be dirty.
+	BlockInfo
+	Off int64
 }
 
 // CommonBlock holds block data that is common for both subdirectories

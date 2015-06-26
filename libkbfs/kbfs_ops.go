@@ -206,12 +206,14 @@ func (fs *KBFSOpsStandard) initMDInChannel(md *RootMetadata) error {
 	}
 
 	md.data.Dir = DirEntry{
-		BlockPointer: ptr,
-		EncodedSize:  uint32(readyBlockData.GetEncodedSize()),
-		Type:         Dir,
-		Size:         uint64(plainSize),
-		Mtime:        time.Now().UnixNano(),
-		Ctime:        time.Now().UnixNano(),
+		BlockInfo: BlockInfo{
+			BlockPointer: ptr,
+			EncodedSize:  uint32(readyBlockData.GetEncodedSize()),
+		},
+		Type:  Dir,
+		Size:  uint64(plainSize),
+		Mtime: time.Now().UnixNano(),
+		Ctime: time.Now().UnixNano(),
 	}
 	path := fs.rootPathFromMD(md)
 	md.AddRefBlock(path, md.data.Dir.BlockPointer, md.data.Dir.EncodedSize)
@@ -1253,15 +1255,17 @@ func (fs *KBFSOpsStandard) newRightBlockInChannel(
 	}
 
 	pblock.IPtrs = append(pblock.IPtrs, IndirectFilePtr{
-		BlockPointer: BlockPointer{
-			ID:       newRID,
-			KeyGen:   md.LatestKeyGeneration(),
-			DataVer:  fs.config.DataVersion(),
-			Writer:   user,
-			RefNonce: zeroBlockRefNonce,
+		BlockInfo: BlockInfo{
+			BlockPointer: BlockPointer{
+				ID:       newRID,
+				KeyGen:   md.LatestKeyGeneration(),
+				DataVer:  fs.config.DataVersion(),
+				Writer:   user,
+				RefNonce: zeroBlockRefNonce,
+			},
+			EncodedSize: 0,
 		},
-		EncodedSize: 0,
-		Off:         off,
+		Off: off,
 	})
 
 	if err := fs.config.BlockCache().PutDirty(
@@ -1342,15 +1346,17 @@ func (fs *KBFSOpsStandard) writeDataInChannel(
 					},
 					IPtrs: []IndirectFilePtr{
 						IndirectFilePtr{
-							BlockPointer: BlockPointer{
-								ID:       newID,
-								KeyGen:   md.LatestKeyGeneration(),
-								DataVer:  fs.config.DataVersion(),
-								Writer:   user,
-								RefNonce: zeroBlockRefNonce,
+							BlockInfo: BlockInfo{
+								BlockPointer: BlockPointer{
+									ID:       newID,
+									KeyGen:   md.LatestKeyGeneration(),
+									DataVer:  fs.config.DataVersion(),
+									Writer:   user,
+									RefNonce: zeroBlockRefNonce,
+								},
+								EncodedSize: 0,
 							},
-							EncodedSize: 0,
-							Off:         0,
+							Off: 0,
 						},
 					},
 				}
