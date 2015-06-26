@@ -380,14 +380,13 @@ func (e *TooLowByteCountError) Error() string {
 // InconsistentEncodedSizeError is raised when a dirty block has a
 // non-zero encoded size.
 type InconsistentEncodedSizeError struct {
-	ID          BlockID
-	EncodedSize uint32
+	info BlockInfo
 }
 
 // Error implements the error interface for InconsistentEncodedSizeError
 func (e InconsistentEncodedSizeError) Error() string {
 	return fmt.Sprintf("Block pointer to dirty block %v with non-zero "+
-		"encoded size = %d bytes", e.ID, e.EncodedSize)
+		"encoded size = %d bytes", e.info.ID, e.info.EncodedSize)
 }
 
 // WriteNeededInReadRequest indicates that the system needs write

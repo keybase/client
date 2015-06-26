@@ -633,13 +633,12 @@ func (fs *KBFSOpsStandard) syncBlockInChannel(md *RootMetadata,
 			de.Size = uint64(plainSize)
 		}
 
-		var parentDE DirEntry
 		if prevIdx < 0 {
-			parentDE = md.data.Dir
+			md.AddUnrefBlock(refPath, md.data.Dir.BlockInfo)
 		} else {
-			parentDE = prevDblock.Children[currName]
+			md.AddUnrefBlock(refPath,
+				prevDblock.Children[currName].BlockInfo)
 		}
-		md.AddUnrefBlock(refPath, parentDE.BlockInfo)
 		if de.ID != zeroPtr.ID && de.Type == Dir {
 			// if syncBlocks is being called multiple times, some directory
 			// blocks may be written as dirty to the cache.  For those blocks,
@@ -1391,9 +1390,9 @@ func (fs *KBFSOpsStandard) writeDataInChannel(
 		}
 
 		if parentBlock != nil {
-			grandParentPtr := parentBlock.IPtrs[indexInParent]
 			// remember how many bytes it was
-			md.AddUnrefBlock(file, grandParentPtr.BlockInfo)
+			md.AddUnrefBlock(file,
+				parentBlock.IPtrs[indexInParent].BlockInfo)
 			parentBlock.IPtrs[indexInParent].EncodedSize = 0
 		}
 		// keep the old block ID while it's dirty
@@ -1483,8 +1482,8 @@ func (fs *KBFSOpsStandard) truncateInChannel(file Path, size uint64) error {
 	}
 
 	if parentBlock != nil {
-		grandParentPtr := parentBlock.IPtrs[indexInParent]
-		md.AddUnrefBlock(file, grandParentPtr.BlockInfo)
+		md.AddUnrefBlock(file,
+			parentBlock.IPtrs[indexInParent].BlockInfo)
 		parentBlock.IPtrs[indexInParent].EncodedSize = 0
 	}
 
@@ -1671,7 +1670,7 @@ func (fs *KBFSOpsStandard) syncInChannel(file Path) (Path, error) {
 			ptr := fblock.IPtrs[i]
 			isDirty := bcache.IsDirty(ptr.BlockPointer, file.Branch)
 			if (ptr.EncodedSize > 0) && isDirty {
-				return Path{}, &InconsistentEncodedSizeError{ptr.ID, ptr.EncodedSize}
+				return Path{}, InconsistentEncodedSizeError{ptr.BlockInfo}
 			}
 			if isDirty {
 				_, _, _, block, more, _, err :=
@@ -1754,7 +1753,7 @@ func (fs *KBFSOpsStandard) syncInChannel(file Path) (Path, error) {
 			// TODO: parallelize these?
 			isDirty := bcache.IsDirty(ptr.BlockPointer, file.Branch)
 			if (ptr.EncodedSize > 0) && isDirty {
-				return Path{}, &InconsistentEncodedSizeError{ptr.ID, ptr.EncodedSize}
+				return Path{}, &InconsistentEncodedSizeError{ptr.BlockInfo}
 			}
 			if isDirty {
 				_, _, _, block, _, _, err :=
@@ -1771,7 +1770,6 @@ func (fs *KBFSOpsStandard) syncInChannel(file Path) (Path, error) {
 				bcache.Finalize(ptr.BlockPointer, file.Branch, newInfo.ID)
 				fblock.IPtrs[i].BlockInfo = newInfo
 				md.AddRefBlock(file, newInfo)
-
 				if err := bops.Put(md, newInfo.BlockPointer, readyBlockData); err != nil {
 					return Path{}, err
 				}
