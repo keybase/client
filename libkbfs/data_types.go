@@ -337,7 +337,7 @@ type BlockRefNonce [8]byte
 // reference to a block.
 var zeroBlockRefNonce = BlockRefNonce([8]byte{0, 0, 0, 0, 0, 0, 0, 0})
 
-// BlockInfo contains the identifying information for a block in KBFS.
+// BlockPointer contains the identifying information for a block in KBFS.
 type BlockPointer struct {
 	ID      BlockID
 	KeyGen  KeyGen  // if valid, which generation of the DirKeyBundle to use.

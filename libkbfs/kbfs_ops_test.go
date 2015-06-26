@@ -383,6 +383,12 @@ func makeBI(id BlockID, rmd *RootMetadata, config Config,
 	}
 }
 
+func makeBIFromID(id BlockID) BlockInfo {
+	return BlockInfo{
+		BlockPointer: BlockPointer{ID: id},
+	}
+}
+
 func TestKBFSOpsGetBaseDirCacheSuccess(t *testing.T) {
 	mockCtrl, config := kbfsOpsInit(t, false)
 	defer kbfsTestShutdown(mockCtrl, config)
@@ -582,6 +588,11 @@ func expectSyncBlock(
 		newID := BlockID{lastID}
 		newBuf := []byte{lastID}
 		refBytes += uint64(len(newBuf))
+		// TODO: Track unrefBytes as well (and check the unref block
+		// changes below).  Currently no tests create a path with a
+		// non-0-size directory block, so we can safely omit tracking
+		// it.  However, it would be better if the tests could cover
+		// that case.
 		lastID++
 		readyBlockData := ReadyBlockData{
 			buf: newBuf,
@@ -608,7 +619,7 @@ func expectSyncBlock(
 			Do(func(id MdID, rmd *RootMetadata) {
 			*newRmd = rmd
 			refBlocks := rmd.data.RefBlocks.Changes
-			// Check that the ref/unref bytes are correct.
+			// Check that the ref bytes are correct.
 			if rmd.RefBytes != refBytes {
 				t.Errorf("Unexpected refbytes: %d vs %d",
 					rmd.RefBytes, refBytes)
@@ -617,11 +628,12 @@ func expectSyncBlock(
 				t.Errorf("Unexpected unrefbytes: %d vs %d",
 					rmd.UnrefBytes, unrefBytes)
 			}
-			// check that the ref block changes include the expected
+			// check that the ref/unref block changes include the expected
 			// blocks
 			if refBlocks != nil {
 				for i := 0; i < len(newPath.Path)-1; i++ {
-					checkBlockChange(t, refBlocks, newPath, i, 0, newPath.Path[i].ID)
+					checkBlockChange(t, refBlocks, newPath, i, 0,
+						newPath.Path[i].ID)
 				}
 			}
 			if checkMD != nil {
@@ -761,10 +773,8 @@ func testCreateEntrySuccess(t *testing.T, entryType EntryType) {
 	aID := BlockID{43}
 	rootBlock := NewDirBlock().(*DirBlock)
 	rootBlock.Children["a"] = DirEntry{
-		BlockInfo: BlockInfo{
-			BlockPointer: BlockPointer{ID: aID},
-		},
-		Type: Dir,
+		BlockInfo: makeBIFromID(aID),
+		Type:      Dir,
 	}
 	aBlock := NewDirBlock().(*DirBlock)
 	node := PathNode{makeBP(rootID, rmd, config, userID), ""}
@@ -844,10 +854,8 @@ func testCreateEntryFailDupName(t *testing.T, isDir bool) {
 	aID := BlockID{43}
 	rootBlock := NewDirBlock().(*DirBlock)
 	rootBlock.Children["a"] = DirEntry{
-		BlockInfo: BlockInfo{
-			BlockPointer: BlockPointer{ID: aID},
-		},
-		Type: Dir,
+		BlockInfo: makeBIFromID(aID),
+		Type:      Dir,
 	}
 	node := PathNode{makeBP(rootID, rmd, config, u), ""}
 	p := Path{TopDir: id, Path: []PathNode{node}}
@@ -889,17 +897,13 @@ func testRemoveEntrySuccess(t *testing.T, entryType EntryType) {
 	bID := BlockID{43}
 	rootBlock := NewDirBlock().(*DirBlock)
 	rootBlock.Children["a"] = DirEntry{
-		BlockInfo: BlockInfo{
-			BlockPointer: BlockPointer{ID: aID},
-		},
-		Type: Dir,
+		BlockInfo: makeBIFromID(aID),
+		Type:      Dir,
 	}
 	aBlock := NewDirBlock().(*DirBlock)
 	aBlock.Children["b"] = DirEntry{
-		BlockInfo: BlockInfo{
-			BlockPointer: BlockPointer{ID: bID},
-		},
-		Type: entryType,
+		BlockInfo: makeBIFromID(bID),
+		Type:      entryType,
 	}
 	bBlock := NewFileBlock()
 	if entryType == Dir {
@@ -1044,26 +1048,21 @@ func TestRemoveDirFailNonEmpty(t *testing.T) {
 	rootID := BlockID{41}
 	aID := BlockID{42}
 	bID := BlockID{43}
+	cID := BlockID{44}
 	rootBlock := NewDirBlock().(*DirBlock)
 	rootBlock.Children["a"] = DirEntry{
-		BlockInfo: BlockInfo{
-			BlockPointer: BlockPointer{ID: aID},
-		},
-		Type: Dir,
+		BlockInfo: makeBIFromID(aID),
+		Type:      Dir,
 	}
 	aBlock := NewDirBlock().(*DirBlock)
 	aBlock.Children["b"] = DirEntry{
-		BlockInfo: BlockInfo{
-			BlockPointer: BlockPointer{ID: aID},
-		},
-		Type: Dir,
+		BlockInfo: makeBIFromID(bID),
+		Type:      Dir,
 	}
 	bBlock := NewDirBlock().(*DirBlock)
 	bBlock.Children["c"] = DirEntry{
-		BlockInfo: BlockInfo{
-			BlockPointer: BlockPointer{ID: bID},
-		},
-		Type: File,
+		BlockInfo: makeBIFromID(cID),
+		Type:      File,
 	}
 	node := PathNode{makeBP(rootID, rmd, config, u), ""}
 	aNode := PathNode{makeBP(aID, rmd, config, u), "a"}
@@ -1091,10 +1090,8 @@ func TestRemoveDirFailNoSuchName(t *testing.T) {
 	bID := BlockID{43}
 	rootBlock := NewDirBlock().(*DirBlock)
 	rootBlock.Children["a"] = DirEntry{
-		BlockInfo: BlockInfo{
-			BlockPointer: BlockPointer{ID: aID},
-		},
-		Type: Dir,
+		BlockInfo: makeBIFromID(aID),
+		Type:      Dir,
 	}
 	aBlock := NewDirBlock().(*DirBlock)
 	bBlock := NewDirBlock().(*DirBlock)
@@ -1125,17 +1122,13 @@ func TestRenameInDirSuccess(t *testing.T) {
 	bID := BlockID{43}
 	rootBlock := NewDirBlock().(*DirBlock)
 	rootBlock.Children["a"] = DirEntry{
-		BlockInfo: BlockInfo{
-			BlockPointer: BlockPointer{ID: aID},
-		},
-		Type: Dir,
+		BlockInfo: makeBIFromID(aID),
+		Type:      Dir,
 	}
 	aBlock := NewDirBlock().(*DirBlock)
 	aBlock.Children["b"] = DirEntry{
-		BlockInfo: BlockInfo{
-			BlockPointer: BlockPointer{ID: bID},
-		},
-		Type: File,
+		BlockInfo: makeBIFromID(bID),
+		Type:      File,
 	}
 	node := PathNode{makeBP(rootID, rmd, config, userID), ""}
 	aNode := PathNode{makeBP(aID, rmd, config, userID), "a"}
@@ -1184,10 +1177,8 @@ func TestRenameInRootSuccess(t *testing.T) {
 	aID := BlockID{42}
 	rootBlock := NewDirBlock().(*DirBlock)
 	rootBlock.Children["a"] = DirEntry{
-		BlockInfo: BlockInfo{
-			BlockPointer: BlockPointer{ID: aID},
-		},
-		Type: File,
+		BlockInfo: makeBIFromID(aID),
+		Type:      File,
 	}
 	node := PathNode{makeBP(rootID, rmd, config, userID), ""}
 	p := Path{TopDir: id, Path: []PathNode{node}}
@@ -1237,17 +1228,13 @@ func TestRenameAcrossDirsSuccess(t *testing.T) {
 	rmd.data.Dir.Type = Dir
 	rootBlock := NewDirBlock().(*DirBlock)
 	rootBlock.Children["a"] = DirEntry{
-		BlockInfo: BlockInfo{
-			BlockPointer: BlockPointer{ID: aID},
-		},
-		Type: Dir,
+		BlockInfo: makeBIFromID(aID),
+		Type:      Dir,
 	}
 	aBlock := NewDirBlock().(*DirBlock)
 	aBlock.Children["b"] = DirEntry{
-		BlockInfo: BlockInfo{
-			BlockPointer: BlockPointer{ID: bID},
-		},
-		Type: File,
+		BlockInfo: makeBIFromID(bID),
+		Type:      File,
 	}
 	node := PathNode{makeBP(rootID, rmd, config, userID), ""}
 	aNode := PathNode{makeBP(aID, rmd, config, userID), "a"}
@@ -1255,10 +1242,8 @@ func TestRenameAcrossDirsSuccess(t *testing.T) {
 
 	dID := BlockID{40}
 	rootBlock.Children["d"] = DirEntry{
-		BlockInfo: BlockInfo{
-			BlockPointer: BlockPointer{ID: dID},
-		},
-		Type: Dir,
+		BlockInfo: makeBIFromID(dID),
+		Type:      Dir,
 	}
 	dBlock := NewDirBlock().(*DirBlock)
 	dNode := PathNode{makeBP(dID, rmd, config, userID), "d"}
@@ -1321,23 +1306,17 @@ func TestRenameAcrossPrefixSuccess(t *testing.T) {
 	rmd.data.Dir.Type = Dir
 	rootBlock := NewDirBlock().(*DirBlock)
 	rootBlock.Children["a"] = DirEntry{
-		BlockInfo: BlockInfo{
-			BlockPointer: BlockPointer{ID: aID},
-		},
-		Type: Dir,
+		BlockInfo: makeBIFromID(aID),
+		Type:      Dir,
 	}
 	aBlock := NewDirBlock().(*DirBlock)
 	aBlock.Children["b"] = DirEntry{
-		BlockInfo: BlockInfo{
-			BlockPointer: BlockPointer{ID: bID},
-		},
-		Type: File,
+		BlockInfo: makeBIFromID(bID),
+		Type:      File,
 	}
 	aBlock.Children["d"] = DirEntry{
-		BlockInfo: BlockInfo{
-			BlockPointer: BlockPointer{ID: dID},
-		},
-		Type: File,
+		BlockInfo: makeBIFromID(dID),
+		Type:      File,
 	}
 	dBlock := NewDirBlock().(*DirBlock)
 	node := PathNode{makeBP(rootID, rmd, config, userID), ""}
@@ -1413,24 +1392,18 @@ func TestRenameAcrossOtherPrefixSuccess(t *testing.T) {
 	rmd.data.Dir.Type = Dir
 	rootBlock := NewDirBlock().(*DirBlock)
 	rootBlock.Children["a"] = DirEntry{
-		BlockInfo: BlockInfo{
-			BlockPointer: BlockPointer{ID: aID},
-		},
-		Type: Dir,
+		BlockInfo: makeBIFromID(aID),
+		Type:      Dir,
 	}
 	aBlock := NewDirBlock().(*DirBlock)
 	aBlock.Children["d"] = DirEntry{
-		BlockInfo: BlockInfo{
-			BlockPointer: BlockPointer{ID: dID},
-		},
-		Type: File,
+		BlockInfo: makeBIFromID(dID),
+		Type:      File,
 	}
 	dBlock := NewDirBlock().(*DirBlock)
 	dBlock.Children["b"] = DirEntry{
-		BlockInfo: BlockInfo{
-			BlockPointer: BlockPointer{ID: bID},
-		},
-		Type: File,
+		BlockInfo: makeBIFromID(bID),
+		Type:      File,
 	}
 	node := PathNode{makeBP(rootID, rmd, config, userID), ""}
 	aNode := PathNode{makeBP(aID, rmd, config, userID), "a"}
@@ -2228,10 +2201,8 @@ func TestKBFSOpsTruncateSameSize(t *testing.T) {
 	fileID := BlockID{43}
 	rootBlock := NewDirBlock().(*DirBlock)
 	rootBlock.Children["f"] = DirEntry{
-		BlockInfo: BlockInfo{
-			BlockPointer: BlockPointer{ID: fileID},
-		},
-		Type: File,
+		BlockInfo: makeBIFromID(fileID),
+		Type:      File,
 	}
 	fileBlock := NewFileBlock().(*FileBlock)
 	fileBlock.Contents = []byte{1, 2, 3, 4, 5, 6, 7, 8, 9, 10}
@@ -2313,10 +2284,8 @@ func TestKBFSOpsTruncateRemovesABlock(t *testing.T) {
 	id2 := BlockID{45}
 	rootBlock := NewDirBlock().(*DirBlock)
 	rootBlock.Children["f"] = DirEntry{
-		BlockInfo: BlockInfo{
-			BlockPointer: BlockPointer{ID: fileID},
-		},
-		Size: 10,
+		BlockInfo: makeBIFromID(fileID),
+		Size:      10,
 	}
 	fileBlock := NewFileBlock().(*FileBlock)
 	fileBlock.IsInd = true
@@ -2433,11 +2402,9 @@ func testSetExSuccess(t *testing.T, entryType EntryType, ex bool) {
 	aID := BlockID{43}
 	rootBlock := NewDirBlock().(*DirBlock)
 	rootBlock.Children["a"] = DirEntry{
-		BlockInfo: BlockInfo{
-			BlockPointer: BlockPointer{ID: aID},
-		},
-		Size: 1,
-		Type: entryType,
+		BlockInfo: makeBIFromID(aID),
+		Size:      1,
+		Type:      entryType,
 	}
 	node := PathNode{makeBP(rootID, rmd, config, userID), ""}
 	aNode := PathNode{makeBP(aID, rmd, config, userID), "a"}
@@ -2568,10 +2535,8 @@ func TestSetMtimeSuccess(t *testing.T) {
 	aID := BlockID{43}
 	rootBlock := NewDirBlock().(*DirBlock)
 	rootBlock.Children["a"] = DirEntry{
-		BlockInfo: BlockInfo{
-			BlockPointer: BlockPointer{ID: aID},
-		},
-		Type: File,
+		BlockInfo: makeBIFromID(aID),
+		Type:      File,
 	}
 	node := PathNode{makeBP(rootID, rmd, config, userID), ""}
 	aNode := PathNode{makeBP(aID, rmd, config, userID), "a"}
@@ -2613,11 +2578,9 @@ func TestSetMtimeNull(t *testing.T) {
 	rootBlock := NewDirBlock().(*DirBlock)
 	oldMtime := time.Now().UnixNano()
 	rootBlock.Children["a"] = DirEntry{
-		BlockInfo: BlockInfo{
-			BlockPointer: BlockPointer{ID: aID},
-		},
-		Type:  File,
-		Mtime: oldMtime,
+		BlockInfo: makeBIFromID(aID),
+		Type:      File,
+		Mtime:     oldMtime,
 	}
 	node := PathNode{makeBP(rootID, rmd, config, u), ""}
 	aNode := PathNode{makeBP(aID, rmd, config, u), "a"}
@@ -2669,10 +2632,8 @@ func TestSyncDirtySuccess(t *testing.T) {
 	aID := BlockID{43}
 	rootBlock := NewDirBlock().(*DirBlock)
 	rootBlock.Children["a"] = DirEntry{
-		BlockInfo: BlockInfo{
-			BlockPointer: BlockPointer{ID: aID},
-		},
-		Type: File,
+		BlockInfo: makeBIFromID(aID),
+		Type:      File,
 	}
 	aBlock := NewFileBlock().(*FileBlock)
 	node := PathNode{makeBP(rootID, rmd, config, userID), ""}
@@ -2767,10 +2728,8 @@ func TestSyncDirtyMultiBlocksSuccess(t *testing.T) {
 	id4 := BlockID{47}
 	rootBlock := NewDirBlock().(*DirBlock)
 	rootBlock.Children["a"] = DirEntry{
-		BlockInfo: BlockInfo{
-			BlockPointer: BlockPointer{ID: fileID},
-		},
-		Size: 20,
+		BlockInfo: makeBIFromID(fileID),
+		Size:      20,
 	}
 	fileBlock := NewFileBlock().(*FileBlock)
 	fileBlock.IsInd = true
@@ -2875,10 +2834,8 @@ func TestSyncDirtyMultiBlocksSplitInBlockSuccess(t *testing.T) {
 	id4 := BlockID{47}
 	rootBlock := NewDirBlock().(*DirBlock)
 	rootBlock.Children["a"] = DirEntry{
-		BlockInfo: BlockInfo{
-			BlockPointer: BlockPointer{ID: fileID},
-		},
-		Size: 20,
+		BlockInfo: makeBIFromID(fileID),
+		Size:      20,
 	}
 	fileBlock := NewFileBlock().(*FileBlock)
 	fileBlock.IsInd = true
@@ -3059,10 +3016,8 @@ func TestSyncDirtyMultiBlocksCopyNextBlockSuccess(t *testing.T) {
 	id4 := BlockID{47}
 	rootBlock := NewDirBlock().(*DirBlock)
 	rootBlock.Children["a"] = DirEntry{
-		BlockInfo: BlockInfo{
-			BlockPointer: BlockPointer{ID: fileID},
-		},
-		Size: 20,
+		BlockInfo: makeBIFromID(fileID),
+		Size:      20,
 	}
 	fileBlock := NewFileBlock().(*FileBlock)
 	fileBlock.IsInd = true
@@ -3216,10 +3171,8 @@ func TestSyncDirtyWithBlockChangePointerSuccess(t *testing.T) {
 	aID := BlockID{43}
 	rootBlock := NewDirBlock().(*DirBlock)
 	rootBlock.Children["a"] = DirEntry{
-		BlockInfo: BlockInfo{
-			BlockPointer: BlockPointer{ID: aID},
-		},
-		Type: File,
+		BlockInfo: makeBIFromID(aID),
+		Type:      File,
 	}
 	aBlock := NewFileBlock().(*FileBlock)
 	node := PathNode{makeBP(rootID, rmd, config, userID), ""}
