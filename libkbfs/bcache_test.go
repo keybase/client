@@ -158,24 +158,3 @@ func TestBcacheDeleteDirty(t *testing.T) {
 		t.Errorf("Got unexpected error on 2nd get: %v", err)
 	}
 }
-
-func TestBcacheFinalize(t *testing.T) {
-	bcache := NewBlockCacheStandard(100)
-
-	id1 := BlockID{1}
-	id2 := BlockID{2}
-	testBcachePut(t, id1, bcache, true)
-
-	if err := bcache.Finalize(
-		BlockPointer{ID: id1}, MasterBranch, id2); err != nil {
-		t.Errorf("Couldnt finalize: %v", err)
-	}
-	testExpectedMissing(t, id1, bcache)
-
-	// 2 should be there now, and be not-dirty
-	if _, err := bcache.Get(BlockPointer{ID: id2}, MasterBranch); err != nil {
-		t.Errorf("Got unexpected error on 2nd get: %v", err)
-	} else if bcache.IsDirty(BlockPointer{ID: id2}, MasterBranch) {
-		t.Errorf("Finalized block is still dirty")
-	}
-}

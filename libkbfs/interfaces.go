@@ -264,9 +264,6 @@ type BlockCache interface {
 	// block pointer and branch from the cache.  No error is returned
 	// if no block exists for the given ID.
 	DeleteDirty(ptr BlockPointer, branch BranchName) error
-	// Finalize transitions a dirty block, stored under the block's
-	// old block pointer, to a new block with the new, final ID.
-	Finalize(oldPtr BlockPointer, branch BranchName, newID BlockID) error
 	// IsDirty states whether or not the block associated with the
 	// given block pointer and branch name is dirty in this cache.
 	IsDirty(ptr BlockPointer, branch BranchName) bool

@@ -2034,6 +2034,7 @@ func (fbo *FolderBranchOps) syncLocked(file Path) (Path, error) {
 	//   4) Then go through once more, and ready and finalize each
 	//      dirty block, updating its ID in the indirect pointer list
 	bsplit := fbo.config.BlockSplitter()
+	deferDirtyDeletes := make([]func() error, 0, 1)
 	if fblock.IsInd {
 		for i := 0; i < len(fblock.IPtrs); i++ {
 			ptr := fblock.IPtrs[i]
@@ -2142,7 +2143,16 @@ func (fbo *FolderBranchOps) syncLocked(file Path) (Path, error) {
 					return Path{}, err
 				}
 
-				bcache.Finalize(ptr.BlockPointer, file.Branch, newInfo.ID)
+				// put the new block in the cache, but defer the
+				// finalize until after the new path is ready, in case
+				// anyone tries to read the dirty file in the
+				// meantime.
+				bcache.Put(newInfo.ID, block)
+				localPtr := ptr.BlockPointer
+				deferDirtyDeletes = append(deferDirtyDeletes, func() error {
+					return bcache.DeleteDirty(localPtr, file.Branch)
+				})
+
 				fblock.IPtrs[i].BlockInfo = newInfo
 				md.AddRefBlock(file, newInfo)
 				bps.addNewBlock(newInfo.BlockPointer, block, readyBlockData)
@@ -2163,11 +2173,13 @@ func (fbo *FolderBranchOps) syncLocked(file Path) (Path, error) {
 
 	// update the file's directory entry to the cached copy
 	parentPtr := stripBP(parentPath.TailPointer())
+	doDeleteDe := false
+	filePtr := stripBP(file.TailPointer())
 	if deMap, ok := fbo.deCache[parentPtr]; ok {
-		filePtr := stripBP(file.TailPointer())
 		if de, ok := deMap[filePtr]; ok {
 			dblock.Children[file.TailName()] = de
 			lbc[parentPath.TailPointer()] = dblock
+			doDeleteDe = true
 			delete(deMap, filePtr)
 			if deMap == nil {
 				delete(fbo.deCache, parentPtr)
@@ -2196,17 +2208,48 @@ func (fbo *FolderBranchOps) syncLocked(file Path) (Path, error) {
 	if err != nil {
 		return Path{}, err
 	}
+
+	// Make the block available at the new ID, but keep it under the
+	// old ID in case someone tries to read the file under the old ID
+	// before the sync is complete.
+	fbo.blockLock.Lock()
+	bcache.Put(newPath.TailPointer().ID, fblock)
+	deferDirtyDeletes = append(deferDirtyDeletes, func() error {
+		return bcache.DeleteDirty(file.TailPointer(), file.Branch)
+	})
+	fbo.blockLock.Unlock()
+
 	err = fbo.finalizeWriteLocked(md, bps, []Path{newPath})
 	if err != nil {
 		return Path{}, err
 	}
 
-	// finalize the top block
-	//
-	// TODO: check to see if there have been any writes since we last
-	// had the blockLock.  If so, we need to move those dirty blocks
-	// over to their new IDs.
-	bcache.Finalize(file.TailPointer(), file.Branch, newPath.TailPointer().ID)
+	fbo.blockLock.Lock()
+	defer fbo.blockLock.Unlock()
+	fbo.cacheLock.Lock()
+	defer fbo.cacheLock.Unlock()
+	for _, f := range deferDirtyDeletes {
+		// TODO: check to see if there have been any writes since we
+		// last had the blockLock (should be able to do this via the
+		// unrefCache).  If so, we need to move those dirty blocks
+		// over to their new IDs.  We also have to fix up the
+		// unrefCache and deCache accordingly.
+		err = f()
+		if err != nil {
+			return Path{}, err
+		}
+	}
+
+	// clear the updated de from the cache
+	if doDeleteDe {
+		deMap := fbo.deCache[parentPtr]
+		delete(deMap, filePtr)
+		if deMap == nil {
+			delete(fbo.deCache, parentPtr)
+		} else {
+			fbo.deCache[parentPtr] = deMap
+		}
+	}
 
 	return newPath, nil
 }

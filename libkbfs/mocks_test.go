@@ -5,7 +5,7 @@ package libkbfs
 
 import (
 	fmt "fmt"
-	"github.com/golang/mock/gomock"
+	gomock "github.com/golang/mock/gomock"
 	libkb "github.com/keybase/client/go/libkb"
 	go0 "github.com/keybase/client/protocol/go"
 	time "time"
@@ -61,16 +61,6 @@ func (_m *MockBlockContext) GetWriter() go0.UID {
 
 func (_mr *_MockBlockContextRecorder) GetWriter() *gomock.Call {
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "GetWriter")
-}
-
-func (_m *MockBlockContext) GetQuotaSize() uint32 {
-	ret := _m.ctrl.Call(_m, "GetQuotaSize")
-	ret0, _ := ret[0].(uint32)
-	return ret0
-}
-
-func (_mr *_MockBlockContextRecorder) GetQuotaSize() *gomock.Call {
-	return _mr.mock.ctrl.RecordCall(_mr.mock, "GetQuotaSize")
 }
 
 func (_m *MockBlockContext) GetRefNonce() BlockRefNonce {
@@ -640,16 +630,6 @@ func (_m *MockBlockCache) DeleteDirty(ptr BlockPointer, branch BranchName) error
 
 func (_mr *_MockBlockCacheRecorder) DeleteDirty(arg0, arg1 interface{}) *gomock.Call {
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "DeleteDirty", arg0, arg1)
-}
-
-func (_m *MockBlockCache) Finalize(oldPtr BlockPointer, branch BranchName, newID BlockID) error {
-	ret := _m.ctrl.Call(_m, "Finalize", oldPtr, branch, newID)
-	ret0, _ := ret[0].(error)
-	return ret0
-}
-
-func (_mr *_MockBlockCacheRecorder) Finalize(arg0, arg1, arg2 interface{}) *gomock.Call {
-	return _mr.mock.ctrl.RecordCall(_mr.mock, "Finalize", arg0, arg1, arg2)
 }
 
 func (_m *MockBlockCache) IsDirty(ptr BlockPointer, branch BranchName) bool {

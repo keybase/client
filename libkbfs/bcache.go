@@ -106,26 +106,6 @@ func (b *BlockCacheStandard) DeleteDirty(
 	return nil
 }
 
-// Finalize implements the BlockCache interface for BlockCacheStandard.
-func (b *BlockCacheStandard) Finalize(
-	oldPtr BlockPointer, branch BranchName, newID BlockID) error {
-	dirtyID := dirtyBlockID{
-		id:       oldPtr.ID,
-		refNonce: oldPtr.RefNonce,
-		branch:   branch,
-	}
-
-	b.dirtyLock.Lock()
-	defer b.dirtyLock.Unlock()
-
-	if block, ok := b.dirty[dirtyID]; ok {
-		delete(b.dirty, dirtyID)
-		b.Put(newID, block)
-		return nil
-	}
-	return &FinalizeError{oldPtr.ID}
-}
-
 // IsDirty implements the BlockCache interface for BlockCacheStandard.
 func (b *BlockCacheStandard) IsDirty(
 	ptr BlockPointer, branch BranchName) (isDirty bool) {

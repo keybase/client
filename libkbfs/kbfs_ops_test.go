@@ -2806,14 +2806,14 @@ func TestSyncDirtyMultiBlocksSuccess(t *testing.T) {
 		nil)
 }
 
-func putAndFinalizeAnyBlock(config *ConfigMock, p Path) {
+func putAndCleanAnyBlock(config *ConfigMock, p Path) {
 	config.mockBcache.EXPECT().Put(gomock.Any(), gomock.Any()).
 		Do(func(id BlockID, block Block) {
 		config.mockBcache.EXPECT().Get(
 			ptrMatcher{BlockPointer{ID: id}}, p.Branch).
 			AnyTimes().Return(block, nil)
 	}).AnyTimes().Return(nil)
-	config.mockBcache.EXPECT().Finalize(gomock.Any(), p.Branch, gomock.Any()).
+	config.mockBcache.EXPECT().DeleteDirty(gomock.Any(), p.Branch).
 		AnyTimes().Return(nil)
 }
 
@@ -2944,7 +2944,7 @@ func TestSyncDirtyMultiBlocksSplitInBlockSuccess(t *testing.T) {
 	expectedPath, _ :=
 		expectSyncBlock(t, config, c4, userID, id, "", p, rmd, false, 0,
 			refBytes, unrefBytes, f, &newRmd, blocks)
-	putAndFinalizeAnyBlock(config, p)
+	putAndCleanAnyBlock(config, p)
 
 	newID2 := BlockID{id2[0] + 100}
 	newID3 := BlockID{id3[0] + 100}
@@ -3122,7 +3122,7 @@ func TestSyncDirtyMultiBlocksCopyNextBlockSuccess(t *testing.T) {
 	expectedPath, _ :=
 		expectSyncBlock(t, config, nil, userID, id, "", p, rmd, false, 0,
 			refBytes, unrefBytes, f, &newRmd, blocks)
-	putAndFinalizeAnyBlock(config, p)
+	putAndCleanAnyBlock(config, p)
 
 	newID1 := BlockID{id1[0] + 100}
 	newID3 := BlockID{id3[0] + 100}
