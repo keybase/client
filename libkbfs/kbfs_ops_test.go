@@ -2642,7 +2642,9 @@ func TestSyncDirtySuccess(t *testing.T) {
 
 	// fsync a
 	config.BlockCache().PutDirty(aNode.BlockPointer, p.Branch, aBlock)
-	config.BlockCache().PutDirty(node.BlockPointer, p.Branch, rootBlock)
+	config.BlockCache().Put(node.BlockPointer.ID, rootBlock)
+	// TODO: put a dirty DE entry in the cache, to test that the new
+	// root block has the correct file size.
 
 	// sync block
 	var newRmd *RootMetadata
@@ -2656,7 +2658,7 @@ func TestSyncDirtySuccess(t *testing.T) {
 		checkNewPath(t, config, newP, expectedPath, newRmd, blocks,
 			Exec, "", false)
 	}
-	checkBlockCache(t, config, blocks, nil)
+	checkBlockCache(t, config, append(blocks, rootID), nil)
 }
 
 func TestSyncCleanSuccess(t *testing.T) {
@@ -2754,7 +2756,7 @@ func TestSyncDirtyMultiBlocksSuccess(t *testing.T) {
 
 	// fsync a, only block 2 is dirty
 	config.BlockCache().PutDirty(fileNode.BlockPointer, p.Branch, fileBlock)
-	config.BlockCache().PutDirty(node.BlockPointer, p.Branch, rootBlock)
+	config.BlockCache().Put(node.BlockPointer.ID, rootBlock)
 
 	// the split is good
 	pad2 := 5
@@ -2800,7 +2802,8 @@ func TestSyncDirtyMultiBlocksSuccess(t *testing.T) {
 			Exec, "", false)
 	}
 	checkBlockCache(t, config,
-		append(blocks, fileBlock.IPtrs[1].ID, fileBlock.IPtrs[3].ID), nil)
+		append(blocks, rootID, fileBlock.IPtrs[1].ID, fileBlock.IPtrs[3].ID),
+		nil)
 }
 
 func putAndFinalizeAnyBlock(config *ConfigMock, p Path) {
@@ -3181,7 +3184,7 @@ func TestSyncDirtyWithBlockChangePointerSuccess(t *testing.T) {
 
 	// fsync a
 	config.BlockCache().PutDirty(aNode.BlockPointer, p.Branch, aBlock)
-	config.BlockCache().PutDirty(node.BlockPointer, p.Branch, rootBlock)
+	config.BlockCache().Put(node.BlockPointer.ID, rootBlock)
 
 	// override the AnyTimes expect call done by default in expectSyncBlock()
 	config.mockBsplit.EXPECT().ShouldEmbedBlockChanges(gomock.Any()).
@@ -3227,5 +3230,6 @@ func TestSyncDirtyWithBlockChangePointerSuccess(t *testing.T) {
 		checkNewPath(t, config, newP, expectedPath, newRmd, blocks,
 			Exec, "", false)
 	}
-	checkBlockCache(t, config, append(blocks, refBlockID, unrefBlockID), nil)
+	checkBlockCache(t, config,
+		append(blocks, rootID, refBlockID, unrefBlockID), nil)
 }

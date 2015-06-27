@@ -437,7 +437,6 @@ func (fbo *FolderBranchOps) getBlockLocked(md *RootMetadata,
 	if !fbo.blockWriteLocked {
 		fbo.blockLock.RLock()
 	}
-	fbo.blockLock.RLock()
 	if err := bcache.Put(dir.TailPointer().ID, block); err != nil {
 		return nil, err
 	}
@@ -844,10 +843,11 @@ func (fbo *FolderBranchOps) syncBlockLocked(md *RootMetadata,
 		if prevIdx >= 0 && dir.Path[prevIdx].BlockPointer == stopAt {
 			// Put this back into the cache as dirty -- the next
 			// syncBlock call will ready it.
-			if err = fbo.cacheBlockIfNotYetDirtyLocked(
-				stopAt, dir.Branch, currBlock); err != nil {
-				return Path{}, DirEntry{}, nil, err
+			dblock, ok := currBlock.(*DirBlock)
+			if !ok {
+				return Path{}, DirEntry{}, nil, &BadDataError{stopAt.ID}
 			}
+			lbc[stopAt] = dblock
 			break
 		}
 		doSetTime = nextDoSetTime
@@ -891,30 +891,16 @@ func (fbo *FolderBranchOps) finalizeBlocksLocked(bps *blockPutState,
 	defer fbo.cacheLock.Unlock()
 	for _, blockState := range bps.blockStates {
 		id := blockState.blockPtr.ID
-		if oldPtr, ok := bps.oldPtrs[id]; ok &&
-			bcache.IsDirty(oldPtr, newPaths[0].Branch) {
-			// During a rename, there may still be dirty blocks in the
-			// cache that are under their old ID.  Move them to their
-			// new ID.
-			//
-			// TODO: if the old block has been written to since this
-			// sync started, copy it over to the new ID and keep it
-			// marked as dirty.
-			if err := bcache.Finalize(
-				oldPtr, newPaths[0].Branch, id); err != nil {
-				return err
-			}
-
+		if oldPtr, ok := bps.oldPtrs[id]; ok {
 			// move the deCache for this directory
 			oldPtrStripped := stripBP(oldPtr)
 			if deMap, ok := fbo.deCache[oldPtrStripped]; ok {
 				fbo.deCache[stripBP(blockState.blockPtr)] = deMap
 				delete(fbo.deCache, oldPtrStripped)
 			}
-		} else {
-			if err := bcache.Put(id, blockState.block); err != nil {
-				return err
-			}
+		}
+		if err := bcache.Put(id, blockState.block); err != nil {
+			return err
 		}
 	}
 	return nil
@@ -2214,13 +2200,13 @@ func (fbo *FolderBranchOps) syncLocked(file Path) (Path, error) {
 	if err != nil {
 		return Path{}, err
 	}
-	bcache.Finalize(file.TailPointer(), file.Branch, newPath.TailPointer().ID)
 
-	// the parent block was probably also dirty, finalize that one too
-	if bcache.IsDirty(parentPath.TailPointer(), file.Branch) {
-		bcache.Finalize(parentPath.TailPointer(), file.Branch,
-			newPath.ParentPath().TailPointer().ID)
-	}
+	// finalize the top block
+	//
+	// TODO: check to see if there have been any writes since we last
+	// had the blockLock.  If so, we need to move those dirty blocks
+	// over to their new IDs.
+	bcache.Finalize(file.TailPointer(), file.Branch, newPath.TailPointer().ID)
 
 	return newPath, nil
 }
