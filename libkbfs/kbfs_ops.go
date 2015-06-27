@@ -75,7 +75,7 @@ func (fs *KBFSOpsStandard) getOpsByPath(path Path) *FolderBranchOps {
 // KBFSOpsStandard
 func (fs *KBFSOpsStandard) GetOrCreateRootPathForHandle(handle *DirHandle) (
 	path Path, de DirEntry, err error) {
-	// Do GetAtHandle() unlocked -- no cache lookups, should be fine
+	// Do GetForHandle() unlocked -- no cache lookups, should be fine
 	mdops := fs.config.MDOps()
 	md, err := mdops.GetForHandle(handle)
 	if err != nil {
