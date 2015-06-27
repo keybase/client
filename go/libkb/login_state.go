@@ -555,8 +555,12 @@ func (s *LoginState) loginWithPromptHelper(lctx LoginContext, username string, l
 		return key, err
 	}
 
-	if loggedIn, err = s.tryPubkeyLoginHelper(lctx, username, getSecretKeyFn); err != nil || loggedIn {
-		return
+	// If we're forcing a login to check our passphrase (as in when we're called
+	// from verifyPassphrase), then don't use public key login at all.
+	if !force {
+		if loggedIn, err = s.tryPubkeyLoginHelper(lctx, username, getSecretKeyFn); err != nil || loggedIn {
+			return
+		}
 	}
 
 	return s.tryPassphrasePromptLogin(lctx, username, secretUI)
