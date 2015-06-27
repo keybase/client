@@ -74,6 +74,7 @@ type loginAPIResult struct {
 	csrfToken string
 	uid       keybase1.UID
 	username  string
+	ppGen     int // passphrase generation #
 }
 
 type afterFn func(LoginContext) error
@@ -265,8 +266,12 @@ func (s *LoginState) postLoginToServer(lctx LoginContext, eOu string, lgpw []byt
 	if err != nil {
 		return nil, err
 	}
+	ppgen, err := b.AtPath("me.basics.passphrase_generation").GetInt()
+	if err != nil {
+		return nil, err
+	}
 
-	return &loginAPIResult{sessionID, csrfToken, uid, uname}, nil
+	return &loginAPIResult{sessionID, csrfToken, uid, uname, ppgen}, nil
 }
 
 func (s *LoginState) saveLoginState(lctx LoginContext, res *loginAPIResult) error {
