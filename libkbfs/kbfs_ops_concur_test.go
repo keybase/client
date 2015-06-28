@@ -129,7 +129,7 @@ func TestKBFSOpsConcurReadDuringSync(t *testing.T) {
 	m.start <- struct{}{}
 
 	// now make sure we can read the file and see the byte we wrote
-	buf := make([]byte, 1, 1)
+	buf := make([]byte, 1)
 	nr, err := kbfsOps.Read(filePath, buf, 0)
 	if err != nil {
 		t.Errorf("Couldn't read data: %v\n", err)
@@ -143,5 +143,86 @@ func TestKBFSOpsConcurReadDuringSync(t *testing.T) {
 	err = <-errChan
 	if err != nil {
 		t.Errorf("Sync got an error: %v", err)
+	}
+}
+
+// Test that a write can happen concurrently with a sync
+func TestKBFSOpsConcurWriteDuringSync(t *testing.T) {
+	config, uid := kbfsOpsConcurInit(t, "test_user")
+	defer config.KBFSOps().(*KBFSOpsStandard).Shutdown()
+
+	// create and write to a file
+	kbfsOps := config.KBFSOps()
+	h := NewDirHandle()
+	uid, err := config.KBPKI().GetLoggedInUser()
+	if err != nil {
+		t.Errorf("Couldn't get logged in user: %v", err)
+	}
+	h.Writers = append(h.Writers, uid)
+	rootPath, _, err := kbfsOps.GetOrCreateRootPathForHandle(h)
+	if err != nil {
+		t.Errorf("Couldn't create folder: %v", err)
+	}
+	filePath, _, err := kbfsOps.CreateFile(rootPath, "a", false)
+	if err != nil {
+		t.Fatalf("Couldn't create file: %v", err)
+	}
+	data := []byte{1}
+	err = kbfsOps.Write(filePath, data, 0)
+	if err != nil {
+		t.Errorf("Couldn't write file: %v", err)
+	}
+
+	// now make an MDOps that will pause during Put()
+	m := NewMDOpsConcurTest(uid)
+	config.SetMDOps(m)
+
+	// start the sync
+	pathChan := make(chan Path, 1)
+	errChan := make(chan error)
+	go func() {
+		p, err := kbfsOps.Sync(filePath)
+		pathChan <- p
+		errChan <- err
+	}()
+
+	// wait until Sync gets stuck at MDOps.Put()
+	m.start <- struct{}{}
+
+	// now make sure we can write the file and see the new byte we wrote
+	newData := []byte{2}
+	err = kbfsOps.Write(filePath, newData, 1)
+	if err != nil {
+		t.Errorf("Couldn't write data: %v\n", err)
+	}
+
+	// read the data back
+	buf := make([]byte, 2)
+	nr, err := kbfsOps.Read(filePath, buf, 0)
+	if err != nil {
+		t.Errorf("Couldn't read data: %v\n", err)
+	}
+	expectedData := append(data, newData...)
+	if nr != 2 || !bytesEqual(expectedData, buf) {
+		t.Errorf("Got wrong data %v; expected %v", buf, expectedData)
+	}
+
+	// now unblock Sync and make sure there was no error
+	m.enter <- struct{}{}
+	err = <-errChan
+	if err != nil {
+		t.Errorf("Sync got an error: %v", err)
+	}
+
+	// finally, make sure we can still read it after the sync too
+	// (even though the second write hasn't been sync'd yet)
+	buf2 := make([]byte, 2)
+	newPath := <-pathChan
+	nr, err = kbfsOps.Read(newPath, buf2, 0)
+	if err != nil {
+		t.Errorf("Couldn't read data: %v\n", err)
+	}
+	if nr != 2 || !bytesEqual(expectedData, buf2) {
+		t.Errorf("2nd read: Got wrong data %v; expected %v", buf2, expectedData)
 	}
 }

@@ -66,6 +66,20 @@ const (
 //    is not in the cache and needs to be fetched, we should release
 //    the mutex before doing the network operation, and lock it again
 //    before writing the block back to the cache.
+//
+// We want to allow writes and truncates to a file that's currently
+// being sync'd, like any good networked file system.  The tricky part
+// is making sure the changes can both: a) be read while the sync is
+// happening, and b) be applied to the new file path after the sync is
+// done.
+//
+// For now, we just do the dumb, brute force thing for now: if a block
+// is currently being sync'd, it copies the block and puts it back
+// into the cache as modified.  Then, when the sync finishes, it
+// throws away the modified blocks and re-applies the change to the
+// new file path (which might have a completely different set of
+// blocks, so we can't just reuse the blocks that were modified during
+// the sync.)
 type FolderBranchOps struct {
 	config           Config
 	id               DirID
@@ -73,11 +87,22 @@ type FolderBranchOps struct {
 	bType            branchType
 	head             *RootMetadata
 	observers        []Observer
-	blockWriteLocked bool // blockLock is locked for writing
-	// for writes and truncates, track the unsynced to-be-unref'd
+	blockWriteLocked bool // blockLock is locked for writing tracks
+	// Which blocks are currently being synced, so that writes and
+	// truncates can do copy-on-write to avoid messing up the ongoing
+	// sync.  The bool value is true if the block needs to be
+	// copied before written to.
+	copyFileBlocks map[BlockPointer]bool
+	// Writes and truncates for blocks that were being sync'd, and
+	// need to be replayed after the sync finishes on top of the new
+	// versions of the blocks.
+	deferredWrites []func(*RootMetadata, Path) error
+	// set to true if this write or truncate should be deferred
+	doDeferWrite bool
+	// For writes and truncates, track the unsynced to-be-unref'd
 	// block infos, per-path
 	unrefCache map[BlockPointer][]BlockInfo
-	// for writes and truncates, track the modified (but not yet
+	// For writes and truncates, track the modified (but not yet
 	// committed) directory entries.  The outer map maps the parent
 	// BlockPointer to the inner map, which maps entry name to a
 	// modified entry.
@@ -87,9 +112,13 @@ type FolderBranchOps struct {
 	// should only be taken in the following order to avoid deadlock:
 	writerLock sync.Locker  // taken by any method making MD modifications
 	headLock   sync.RWMutex // protects access to the MD
-	blockLock  sync.RWMutex // protects access to blocks in this folder
-	obsLock    sync.RWMutex // protects access to observers
-	cacheLock  sync.Mutex   // protects unrefCache and deCache
+
+	// protects access to blocks in this folder and to
+	// copyFileBlocks/deferredWrites
+	blockLock sync.RWMutex
+
+	obsLock   sync.RWMutex // protects access to observers
+	cacheLock sync.Mutex   // protects unrefCache and deCache
 }
 
 var _ KBFSOps = (*FolderBranchOps)(nil)
@@ -98,14 +127,16 @@ var _ KBFSOps = (*FolderBranchOps)(nil)
 func NewFolderBranchOps(config Config, id DirID, branch BranchName,
 	bType branchType) *FolderBranchOps {
 	return &FolderBranchOps{
-		config:     config,
-		id:         id,
-		branch:     branch,
-		bType:      bType,
-		observers:  make([]Observer, 0),
-		unrefCache: make(map[BlockPointer][]BlockInfo),
-		deCache:    make(map[BlockPointer]map[BlockPointer]DirEntry),
-		writerLock: &sync.Mutex{},
+		config:         config,
+		id:             id,
+		branch:         branch,
+		bType:          bType,
+		observers:      make([]Observer, 0),
+		copyFileBlocks: make(map[BlockPointer]bool),
+		deferredWrites: make([]func(*RootMetadata, Path) error, 0),
+		unrefCache:     make(map[BlockPointer][]BlockInfo),
+		deCache:        make(map[BlockPointer]map[BlockPointer]DirEntry),
+		writerLock:     &sync.Mutex{},
 	}
 }
 
@@ -481,20 +512,25 @@ func (fbo *FolderBranchOps) getDirLocked(
 // blockLock should be taken for reading by the caller, and writerLock
 // too if rtype == write.
 func (fbo *FolderBranchOps) getFileLocked(
-	md *RootMetadata, dir Path, rtype reqType) (*FileBlock, error) {
-	// get the directory for the last element in the path
-	block, err := fbo.getBlockLocked(md, dir, NewFileBlock, rtype)
+	md *RootMetadata, file Path, rtype reqType) (*FileBlock, error) {
+	// get the file for the last element in the path
+	block, err := fbo.getBlockLocked(md, file, NewFileBlock, rtype)
 	if err != nil {
 		return nil, err
 	}
 	fblock, ok := block.(*FileBlock)
 	if !ok {
-		return nil, &NotFileError{dir}
+		return nil, &NotFileError{file}
 	}
-	if rtype == write && !fbo.config.BlockCache().IsDirty(
-		dir.TailPointer(), dir.Branch) {
-		// copy the block if it's for writing
-		fblock = fblock.DeepCopy()
+	ptr := file.TailPointer()
+	if rtype == write {
+		// copy the block if it's for writing, and either the block is
+		// not yet dirty or the block is currently being sync'd and
+		// needs a copy even though it's already dirty
+		if !fbo.config.BlockCache().IsDirty(ptr, file.Branch) ||
+			fbo.copyFileBlocks[ptr] {
+			fblock = fblock.DeepCopy()
+		}
 	}
 	return fblock, nil
 }
@@ -674,6 +710,14 @@ func (fbo *FolderBranchOps) saveMdToCacheLocked(md *RootMetadata) error {
 func (fbo *FolderBranchOps) cacheBlockIfNotYetDirtyLocked(
 	ptr BlockPointer, branch BranchName, block Block) error {
 	if !fbo.config.BlockCache().IsDirty(ptr, branch) {
+		return fbo.config.BlockCache().PutDirty(ptr, branch, block)
+	} else if fbo.copyFileBlocks[ptr] {
+		fbo.copyFileBlocks[ptr] = false
+		fbo.doDeferWrite = true
+		// Overwrite the dirty block if this is a copy-on-write during
+		// a sync.  Don't worry, the old dirty block is safe in the
+		// sync goroutine (and also probably saved to the cache under
+		// its new ID already.
 		return fbo.config.BlockCache().PutDirty(ptr, branch, block)
 	}
 	return nil
@@ -1725,6 +1769,7 @@ func (fbo *FolderBranchOps) Write(
 	fbo.blockWriteLocked = true
 	defer func() {
 		fbo.blockWriteLocked = false
+		fbo.doDeferWrite = false
 	}()
 
 	err = fbo.writeDataLocked(md, file, data, off)
@@ -1732,24 +1777,29 @@ func (fbo *FolderBranchOps) Write(
 		return err
 	}
 
+	if fbo.doDeferWrite {
+		// There's an ongoing sync, and this write altered dirty
+		// blocks that are in the process of syncing.  So, we have to
+		// redo this write once the sync is complete, using the new
+		// file path.
+		//
+		// There is probably a less terrible of doing this that
+		// doesn't involve so much copying and rewriting, but this is
+		// the most obviously correct way.
+		dataCopy := make([]byte, len(data))
+		copy(dataCopy, data)
+		fbo.deferredWrites = append(fbo.deferredWrites,
+			func(rmd *RootMetadata, f Path) error {
+				return fbo.writeDataLocked(md, f, dataCopy, off)
+			})
+	}
+
 	return nil
 }
 
-// Truncate implements the KBFSOps interface for FolderBranchOps
-func (fbo *FolderBranchOps) Truncate(file Path, size uint64) error {
-	err := fbo.checkPath(file)
-	if err != nil {
-		return err
-	}
-
-	// Get the MD for reading.  We won't modify it; we'll track the
-	// unref changes on the side, and put them into the MD during the
-	// sync.
-	md, err := fbo.getMDLocked(file, read)
-	if err != nil {
-		return err
-	}
-
+// blockLocked must be held for writing by the caller
+func (fbo *FolderBranchOps) truncateLocked(
+	md *RootMetadata, file Path, size uint64) error {
 	// check writer status explicitly
 	user, err := fbo.config.KBPKI().GetLoggedInUser()
 	if err != nil {
@@ -1758,13 +1808,6 @@ func (fbo *FolderBranchOps) Truncate(file Path, size uint64) error {
 	if !md.GetDirHandle().IsWriter(user) {
 		return NewWriteAccessError(fbo.config, md.GetDirHandle(), user)
 	}
-
-	fbo.blockLock.Lock()
-	defer fbo.blockLock.Unlock()
-	fbo.blockWriteLocked = true
-	defer func() {
-		fbo.blockWriteLocked = false
-	}()
 
 	fblock, err := fbo.getFileLocked(md, file, write)
 	if err != nil {
@@ -1854,6 +1897,47 @@ func (fbo *FolderBranchOps) Truncate(file Path, size uint64) error {
 	}
 
 	fbo.notifyLocal(file)
+	return nil
+}
+
+// Truncate implements the KBFSOps interface for FolderBranchOps
+func (fbo *FolderBranchOps) Truncate(file Path, size uint64) error {
+	err := fbo.checkPath(file)
+	if err != nil {
+		return err
+	}
+
+	// Get the MD for reading.  We won't modify it; we'll track the
+	// unref changes on the side, and put them into the MD during the
+	// sync.
+	md, err := fbo.getMDLocked(file, read)
+	if err != nil {
+		return err
+	}
+
+	fbo.blockLock.Lock()
+	defer fbo.blockLock.Unlock()
+	fbo.blockWriteLocked = true
+	defer func() {
+		fbo.blockWriteLocked = false
+		fbo.doDeferWrite = false
+	}()
+
+	err = fbo.truncateLocked(md, file, size)
+	if err != nil {
+		return err
+	}
+
+	if fbo.doDeferWrite {
+		// There's an ongoing sync, and this truncate altered
+		// dirty blocks that are in the process of syncing.  So,
+		// we have to redo this truncate once the sync is complete,
+		// using the new file path.
+		fbo.deferredWrites = append(fbo.deferredWrites,
+			func(rmd *RootMetadata, f Path) error {
+				return fbo.truncateLocked(md, f, size)
+			})
+	}
 	return nil
 }
 
@@ -2034,7 +2118,7 @@ func (fbo *FolderBranchOps) syncLocked(file Path) (Path, error) {
 	//   4) Then go through once more, and ready and finalize each
 	//      dirty block, updating its ID in the indirect pointer list
 	bsplit := fbo.config.BlockSplitter()
-	deferDirtyDeletes := make([]func() error, 0, 1)
+	deferredDirtyDeletes := make([]func() error, 0, 1)
 	if fblock.IsInd {
 		for i := 0; i < len(fblock.IPtrs); i++ {
 			ptr := fblock.IPtrs[i]
@@ -2149,16 +2233,20 @@ func (fbo *FolderBranchOps) syncLocked(file Path) (Path, error) {
 				// meantime.
 				bcache.Put(newInfo.ID, block)
 				localPtr := ptr.BlockPointer
-				deferDirtyDeletes = append(deferDirtyDeletes, func() error {
-					return bcache.DeleteDirty(localPtr, file.Branch)
-				})
+				deferredDirtyDeletes =
+					append(deferredDirtyDeletes, func() error {
+						return bcache.DeleteDirty(localPtr, file.Branch)
+					})
 
 				fblock.IPtrs[i].BlockInfo = newInfo
 				md.AddRefBlock(file, newInfo)
 				bps.addNewBlock(newInfo.BlockPointer, block, readyBlockData)
+				fbo.copyFileBlocks[localPtr] = true
 			}
 		}
 	}
+
+	fbo.copyFileBlocks[file.TailPointer()] = true
 
 	parentPath := file.ParentPath()
 	dblock, err := fbo.getDirLocked(md, *parentPath, write)
@@ -2214,7 +2302,7 @@ func (fbo *FolderBranchOps) syncLocked(file Path) (Path, error) {
 	// before the sync is complete.
 	fbo.blockLock.Lock()
 	bcache.Put(newPath.TailPointer().ID, fblock)
-	deferDirtyDeletes = append(deferDirtyDeletes, func() error {
+	deferredDirtyDeletes = append(deferredDirtyDeletes, func() error {
 		return bcache.DeleteDirty(file.TailPointer(), file.Branch)
 	})
 	fbo.blockLock.Unlock()
@@ -2227,15 +2315,13 @@ func (fbo *FolderBranchOps) syncLocked(file Path) (Path, error) {
 	fbo.blockLock.Lock()
 	defer fbo.blockLock.Unlock()
 	fbo.cacheLock.Lock()
-	defer fbo.cacheLock.Unlock()
-	for _, f := range deferDirtyDeletes {
-		// TODO: check to see if there have been any writes since we
-		// last had the blockLock (should be able to do this via the
-		// unrefCache).  If so, we need to move those dirty blocks
-		// over to their new IDs.  We also have to fix up the
-		// unrefCache and deCache accordingly.
+	for _, f := range deferredDirtyDeletes {
+		// This will also clear any dirty blocks that resulted from a
+		// write/truncate happening during the sync.  But that's ok,
+		// because we will redo them below.
 		err = f()
 		if err != nil {
+			fbo.cacheLock.Unlock()
 			return Path{}, err
 		}
 	}
@@ -2248,6 +2334,22 @@ func (fbo *FolderBranchOps) syncLocked(file Path) (Path, error) {
 			delete(fbo.deCache, parentPtr)
 		} else {
 			fbo.deCache[parentPtr] = deMap
+		}
+	}
+	fbo.cacheLock.Unlock()
+
+	fbo.copyFileBlocks = make(map[BlockPointer]bool)
+	// Redo any writes or truncates that happened to our file while
+	// the sync was happening.
+	writes := fbo.deferredWrites
+	fbo.deferredWrites = make([]func(*RootMetadata, Path) error, 0)
+	for _, f := range writes {
+		// we can safely read head here because we hold writerLock
+		err = f(fbo.head, newPath)
+		if err != nil {
+			// It's a little weird to return an error from a deferred
+			// write here. Hopefully that will never happen.
+			return Path{}, err
 		}
 	}
 
