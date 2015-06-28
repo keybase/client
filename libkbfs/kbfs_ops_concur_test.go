@@ -225,4 +225,122 @@ func TestKBFSOpsConcurWriteDuringSync(t *testing.T) {
 	if nr != 2 || !bytesEqual(expectedData, buf2) {
 		t.Errorf("2nd read: Got wrong data %v; expected %v", buf2, expectedData)
 	}
+
+	// there should be 5 blocks at this point: the original root block
+	// + 2 modifications (create + write), the top indirect file block
+	// and a modification (write).
+	numCleanBlocks := config.BlockCache().(*BlockCacheStandard).lru.Len()
+	if numCleanBlocks != 5 {
+		t.Errorf("Unexpected number of cached clean blocks: %d\n",
+			numCleanBlocks)
+	}
+}
+
+// Test that a write can happen concurrently with a sync when there
+// are multiple blocks in the file.
+func TestKBFSOpsConcurWriteDuringSyncMultiBlocks(t *testing.T) {
+	config, uid := kbfsOpsConcurInit(t, "test_user")
+	defer config.KBFSOps().(*KBFSOpsStandard).Shutdown()
+
+	// make blocks small
+	config.BlockSplitter().(*BlockSplitterSimple).maxSize = 5
+
+	// create and write to a file
+	kbfsOps := config.KBFSOps()
+	h := NewDirHandle()
+	uid, err := config.KBPKI().GetLoggedInUser()
+	if err != nil {
+		t.Errorf("Couldn't get logged in user: %v", err)
+	}
+	h.Writers = append(h.Writers, uid)
+	rootPath, _, err := kbfsOps.GetOrCreateRootPathForHandle(h)
+	if err != nil {
+		t.Errorf("Couldn't create folder: %v", err)
+	}
+	filePath, _, err := kbfsOps.CreateFile(rootPath, "a", false)
+	if err != nil {
+		t.Fatalf("Couldn't create file: %v", err)
+	}
+	// 2 blocks worth of data
+	data := []byte{1, 2, 3, 4, 5, 6, 7, 8, 9, 10}
+	err = kbfsOps.Write(filePath, data, 0)
+	if err != nil {
+		t.Errorf("Couldn't write file: %v", err)
+	}
+
+	// sync these initial blocks
+	filePath, err = kbfsOps.Sync(filePath)
+	if err != nil {
+		t.Errorf("Couldn't do the first sync: %v", err)
+	}
+
+	// there should be 7 blocks at this point: the original root block
+	// + 2 modifications (create + write), the top indirect file block
+	// and a modification (write), and its two children blocks.
+	numCleanBlocks := config.BlockCache().(*BlockCacheStandard).lru.Len()
+	if numCleanBlocks != 7 {
+		t.Errorf("Unexpected number of cached clean blocks: %d\n",
+			numCleanBlocks)
+	}
+
+	// write to the first block
+	b1data := []byte{11, 12}
+	err = kbfsOps.Write(filePath, b1data, 0)
+	if err != nil {
+		t.Errorf("Couldn't write 1st block of file: %v", err)
+	}
+
+	// now make an MDOps that will pause during Put()
+	m := NewMDOpsConcurTest(uid)
+	config.SetMDOps(m)
+
+	// start the sync
+	pathChan := make(chan Path, 1)
+	errChan := make(chan error)
+	go func() {
+		p, err := kbfsOps.Sync(filePath)
+		pathChan <- p
+		errChan <- err
+	}()
+
+	// wait until Sync gets stuck at MDOps.Put()
+	m.start <- struct{}{}
+
+	// now make sure we can write the second block of the file and see
+	// the new bytes we wrote
+	newData := []byte{20}
+	err = kbfsOps.Write(filePath, newData, 9)
+	if err != nil {
+		t.Errorf("Couldn't write data: %v\n", err)
+	}
+
+	// read the data back
+	buf := make([]byte, 10)
+	nr, err := kbfsOps.Read(filePath, buf, 0)
+	if err != nil {
+		t.Errorf("Couldn't read data: %v\n", err)
+	}
+	expectedData := []byte{11, 12, 3, 4, 5, 6, 7, 8, 9, 20}
+	if nr != 10 || !bytesEqual(expectedData, buf) {
+		t.Errorf("Got wrong data %v; expected %v", buf, expectedData)
+	}
+
+	// now unblock Sync and make sure there was no error
+	m.enter <- struct{}{}
+	err = <-errChan
+	if err != nil {
+		t.Errorf("Sync got an error: %v", err)
+	}
+
+	// finally, make sure we can still read it after the sync too
+	// (even though the second write hasn't been sync'd yet)
+	buf2 := make([]byte, 10)
+	newPath := <-pathChan
+	nr, err = kbfsOps.Read(newPath, buf2, 0)
+	if err != nil {
+		t.Errorf("Couldn't read data: %v\n", err)
+	}
+	if nr != 10 || !bytesEqual(expectedData, buf2) {
+		t.Errorf("2nd read: Got wrong data %v; expected %v", buf2, expectedData)
+	}
 }

@@ -1624,7 +1624,7 @@ func (fbo *FolderBranchOps) writeDataLocked(
 	n := int64(len(data))
 	nCopied := int64(0)
 
-	dblock, de, err := fbo.getEntryLocked(md, file)
+	_, de, err := fbo.getEntryLocked(md, file)
 	if err != nil {
 		return err
 	}
@@ -1714,12 +1714,6 @@ func (fbo *FolderBranchOps) writeDataLocked(
 				fbo.deCache[parentPtr] = make(map[BlockPointer]DirEntry)
 			}
 			fbo.deCache[parentPtr][stripBP(file.TailPointer())] = de
-			// the copy will be dirty, so put it in the cache
-			if err = fbo.cacheBlockIfNotYetDirtyLocked(
-				file.ParentPath().TailPointer(), file.Branch,
-				dblock); err != nil {
-				return err
-			}
 		}
 
 		if parentBlock != nil {
@@ -1736,8 +1730,12 @@ func (fbo *FolderBranchOps) writeDataLocked(
 	}
 
 	if fblock.IsInd {
-		// always make the parent block dirty, so we will sync its
-		// indirect blocks
+		// Always make the top block dirty, so we will sync its
+		// indirect blocks.  This has the added benefit of ensuring
+		// that any write to a file while it's being sync'd will be
+		// deferred, even if it's to a block that's not currently
+		// being sync'd, since this top-most block will always be in
+		// the copyFileBlocks set.
 		if err = fbo.cacheBlockIfNotYetDirtyLocked(
 			file.TailPointer(), file.Branch, fblock); err != nil {
 			return err
@@ -1849,16 +1847,29 @@ func (fbo *FolderBranchOps) truncateLocked(
 		}
 		parentBlock.IPtrs = parentBlock.IPtrs[:indexInParent+1]
 		// always make the parent block dirty, so we will sync it
-		// TODO: When we implement more than one level of indirection,
-		// make sure that the pointer to parentBlock in the grandparent block
-		// has EncodedSize 0.
 		if err = fbo.cacheBlockIfNotYetDirtyLocked(
 			file.TailPointer(), file.Branch, parentBlock); err != nil {
 			return err
 		}
 	}
 
+	if fblock.IsInd {
+		// Always make the top block dirty, so we will sync its
+		// indirect blocks.  This has the added benefit of ensuring
+		// that any truncate to a file while it's being sync'd will be
+		// deferred, even if it's to a block that's not currently
+		// being sync'd, since this top-most block will always be in
+		// the copyFileBlocks set.
+		if err = fbo.cacheBlockIfNotYetDirtyLocked(
+			file.TailPointer(), file.Branch, fblock); err != nil {
+			return err
+		}
+	}
+
 	if parentBlock != nil {
+		// TODO: When we implement more than one level of indirection,
+		// make sure that the pointer to parentBlock in the grandparent block
+		// has EncodedSize 0.
 		fbo.unrefCache[filePtr] = append(fbo.unrefCache[filePtr],
 			parentBlock.IPtrs[indexInParent].BlockInfo)
 		parentBlock.IPtrs[indexInParent].EncodedSize = 0
@@ -1868,7 +1879,7 @@ func (fbo *FolderBranchOps) truncateLocked(
 	fbo.cacheLock.Unlock()
 
 	// update the local entry size
-	dblock, de, err := fbo.getEntryLocked(md, file)
+	_, de, err := fbo.getEntryLocked(md, file)
 	if err != nil {
 		return err
 	}
@@ -1882,15 +1893,8 @@ func (fbo *FolderBranchOps) truncateLocked(
 		fbo.deCache[parentPtr] = make(map[BlockPointer]DirEntry)
 	}
 	fbo.deCache[parentPtr][stripBP(file.TailPointer())] = de
-	// the copy will be dirty, so put it in the cache
-	// TODO: Once we implement indirect dir blocks, make sure that
-	// the pointer to dblock in its parent block has EncodedSize 0.
-	if err = fbo.cacheBlockIfNotYetDirtyLocked(
-		file.ParentPath().TailPointer(), file.Branch, dblock); err != nil {
-		return err
-	}
 
-	// keep the old block ID while it's dirty
+	// Keep the old block ID while it's dirty.
 	if err = fbo.cacheBlockIfNotYetDirtyLocked(
 		ptr, file.Branch, block); err != nil {
 		return err
@@ -2326,7 +2330,11 @@ func (fbo *FolderBranchOps) syncLocked(file Path) (Path, error) {
 		}
 	}
 
-	// clear the updated de from the cache
+	// Clear the updated de from the cache.  We are guaranteed that
+	// any concurrent write to this file was deferred, even if it was
+	// to a block that wasn't currently being sync'd, since the
+	// top-most block is always in copyFileBlocks and is always
+	// dirtied during a write/truncate.
 	if doDeleteDe {
 		deMap := fbo.deCache[parentPtr]
 		delete(deMap, filePtr)

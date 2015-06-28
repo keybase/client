@@ -1841,7 +1841,6 @@ func TestKBFSOpsWriteNewBlockSuccess(t *testing.T) {
 	checkBlockCache(t, config, []BlockID{rootID, fileID},
 		map[BlockPointer]BranchName{
 			fileNode.BlockPointer: p.Branch,
-			node.BlockPointer:     p.Branch,
 		})
 }
 
@@ -1893,7 +1892,6 @@ func TestKBFSOpsWriteExtendSuccess(t *testing.T) {
 	checkBlockCache(t, config, []BlockID{rootID, fileID},
 		map[BlockPointer]BranchName{
 			fileNode.BlockPointer: p.Branch,
-			node.BlockPointer:     p.Branch,
 		})
 }
 
@@ -1945,7 +1943,6 @@ func TestKBFSOpsWritePastEndSuccess(t *testing.T) {
 	checkBlockCache(t, config, []BlockID{rootID, fileID},
 		map[BlockPointer]BranchName{
 			fileNode.BlockPointer: p.Branch,
-			node.BlockPointer:     p.Branch,
 		})
 }
 
@@ -2045,7 +2042,6 @@ func TestKBFSOpsWriteCauseSplit(t *testing.T) {
 	checkBlockCache(t, config, []BlockID{rootID, fileID},
 		map[BlockPointer]BranchName{
 			fileNode.BlockPointer:        p.Branch,
-			node.BlockPointer:            p.Branch,
 			pblock.IPtrs[0].BlockPointer: p.Branch,
 			pblock.IPtrs[1].BlockPointer: p.Branch,
 		})
@@ -2188,7 +2184,6 @@ func TestKBFSOpsTruncateToZeroSuccess(t *testing.T) {
 	checkBlockCache(t, config, []BlockID{rootID, fileID},
 		map[BlockPointer]BranchName{
 			fileNode.BlockPointer: p.Branch,
-			node.BlockPointer:     p.Branch,
 		})
 }
 
@@ -2268,7 +2263,79 @@ func TestKBFSOpsTruncateSmallerSuccess(t *testing.T) {
 	checkBlockCache(t, config, []BlockID{rootID, fileID},
 		map[BlockPointer]BranchName{
 			fileNode.BlockPointer: p.Branch,
-			node.BlockPointer:     p.Branch,
+		})
+}
+
+func TestKBFSOpsTruncateShortensLastBlock(t *testing.T) {
+	mockCtrl, config := kbfsOpsInit(t, true)
+	defer kbfsTestShutdown(mockCtrl, config)
+
+	userID, id, rmd := makeIDAndRMD(t, config)
+
+	rootID := BlockID{42}
+	fileID := BlockID{43}
+	id1 := BlockID{44}
+	id2 := BlockID{45}
+	rootBlock := NewDirBlock().(*DirBlock)
+	rootBlock.Children["f"] = DirEntry{
+		BlockInfo: makeBIFromID(fileID),
+		Size:      10,
+	}
+	fileBlock := NewFileBlock().(*FileBlock)
+	fileBlock.IsInd = true
+	fileBlock.IPtrs = []IndirectFilePtr{
+		IndirectFilePtr{makeBI(id1, rmd, config, userID, 5), 0},
+		IndirectFilePtr{makeBI(id2, rmd, config, userID, 6), 5},
+	}
+	block1 := NewFileBlock().(*FileBlock)
+	block1.Contents = []byte{5, 4, 3, 2, 1}
+	block2 := NewFileBlock().(*FileBlock)
+	block2.Contents = []byte{10, 9, 8, 7, 6}
+	node := PathNode{makeBP(rootID, rmd, config, userID), ""}
+	fileNode := PathNode{makeBP(fileID, rmd, config, userID), "f"}
+	p := Path{TopDir: id, Path: []PathNode{node, fileNode}}
+
+	config.BlockCache().Put(node.BlockPointer.ID, rootBlock)
+	config.BlockCache().Put(fileNode.BlockPointer.ID, fileBlock)
+	config.BlockCache().Put(fileBlock.IPtrs[0].BlockPointer.ID, block1)
+	config.BlockCache().Put(fileBlock.IPtrs[1].BlockPointer.ID, block2)
+
+	data2 := []byte{10, 9}
+	if err := config.KBFSOps().Truncate(p, 7); err != nil {
+		t.Errorf("Got error on truncate: %v", err)
+	}
+
+	newPBlock := getFileBlockFromCache(t, config, fileNode.BlockPointer,
+		p.Branch)
+	newBlock1 := getFileBlockFromCache(t, config,
+		fileBlock.IPtrs[0].BlockPointer, p.Branch)
+	newBlock2 := getFileBlockFromCache(t, config,
+		fileBlock.IPtrs[1].BlockPointer, p.Branch)
+
+	// merge unref changes so we can easily check the block changes
+	ops := config.KBFSOps().(*KBFSOpsStandard).getOps(opID{id, MasterBranch})
+	ops.mergeUnrefCacheLocked(p, rmd) // no need to lock in test
+
+	if len(config.observer.localUpdatePath.Path) != len(p.Path) {
+		t.Errorf("Missing or incorrect local update during truncate: %s",
+			config.observer.localUpdatePath)
+	} else if !bytesEqual(block1.Contents, newBlock1.Contents) {
+		t.Errorf("Wrote bad contents for block 1: %v", newBlock1.Contents)
+	} else if !bytesEqual(data2, newBlock2.Contents) {
+		t.Errorf("Wrote bad contents for block 2: %v", newBlock2.Contents)
+	} else if len(newPBlock.IPtrs) != 2 {
+		t.Errorf("Wrong number of indirect pointers: %d", len(newPBlock.IPtrs))
+	} else if rmd.UnrefBytes != 0+6 {
+		// The fileid and the last block was all modified and marked dirty
+		t.Errorf("Truncated block not correctly unref'd, unrefBytes = %d",
+			rmd.UnrefBytes)
+	}
+	checkBlockChange(t, rmd.data.UnrefBlocks.Changes, p,
+		len(p.Path)-1, 0, id2)
+	checkBlockCache(t, config, []BlockID{rootID, fileID, id1, id2},
+		map[BlockPointer]BranchName{
+			fileNode.BlockPointer:           p.Branch,
+			fileBlock.IPtrs[1].BlockPointer: p.Branch,
 		})
 }
 
@@ -2336,7 +2403,6 @@ func TestKBFSOpsTruncateRemovesABlock(t *testing.T) {
 	checkBlockCache(t, config, []BlockID{rootID, fileID, id1},
 		map[BlockPointer]BranchName{
 			fileNode.BlockPointer:           p.Branch,
-			node.BlockPointer:               p.Branch,
 			fileBlock.IPtrs[0].BlockPointer: p.Branch,
 		})
 }
@@ -2388,7 +2454,6 @@ func TestKBFSOpsTruncateBiggerSuccess(t *testing.T) {
 	checkBlockCache(t, config, []BlockID{rootID, fileID},
 		map[BlockPointer]BranchName{
 			fileNode.BlockPointer: p.Branch,
-			node.BlockPointer:     p.Branch,
 		})
 }
 
