@@ -51,21 +51,22 @@ func (ps *PassphraseStream) SetGeneration(gen PassphraseGeneration) {
 }
 
 func (ps PassphraseStream) PWHash() []byte {
-	return d.stream[pwhIndex:eddsaIndex]
+	return ps.stream[pwhIndex:eddsaIndex]
 }
 
 func (ps PassphraseStream) EdDSASeed() []byte {
-	return d.stream[eddsaIndex:dhIndex]
+	return ps.stream[eddsaIndex:dhIndex]
 }
 
 func (ps PassphraseStream) DHSeed() []byte {
-	return d.stream[dhIndex:lksIndex]
+	return ps.stream[dhIndex:lksIndex]
 }
 
 func (ps PassphraseStream) LksClientHalf() []byte {
-	return d.stream[lksIndex:]
+	return ps.stream[lksIndex:]
 }
 
 func (ps PassphraseStream) String() string {
-	return fmt.Sprintf("pwh:   %x\nEdDSA: %x\nDH:    %x\nlks:   %x", d.PWHash(), d.EdDSASeed(), d.DHSeed(), d.LksClientHalf())
+	return fmt.Sprintf("pwh:   %x\nEdDSA: %x\nDH:    %x\nlks:   %x",
+		ps.PWHash(), ps.EdDSASeed(), ps.DHSeed(), ps.LksClientHalf())
 }
