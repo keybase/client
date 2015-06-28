@@ -77,3 +77,16 @@ func (ps PassphraseStream) String() string {
 func (ps PassphraseStream) Generation() PassphraseGeneration {
 	return ps.gen
 }
+
+// Clone a passphrase stream and return a copy.
+func (ps *PassphraseStream) Clone() *PassphraseStream {
+	if ps == nil {
+		return nil
+	}
+	arr := make([]byte, len(ps.stream))
+	copy(arr, ps.stream)
+	return &PassphraseStream{
+		stream: arr,
+		gen:    ps.gen,
+	}
+}

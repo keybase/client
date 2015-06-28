@@ -63,7 +63,7 @@ func TestDecodeSKBSequence(t *testing.T) {
 }
 
 func makeTestLKSec(t *testing.T, gc *GlobalContext) *LKSec {
-	lks := NewLKSec([]byte("client half"), "1111111111111111111111111111111111111111111111111111111111111119", gc)
+	lks := NewLKSec([]byte("client half"), PassphraseGeneration(0), "1111111111111111111111111111111111111111111111111111111111111119", gc)
 	if err := lks.GenerateServerHalf(); err != nil {
 		t.Fatal(err)
 	}

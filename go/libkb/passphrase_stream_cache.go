@@ -31,7 +31,18 @@ func (s *PassphraseStreamCache) Triplesec() *triplesec.Cipher {
 	return s.tsec
 }
 
+// PassphraseStream returns a copy of the currently cached passphrase stream,
+// or nil if none exists.
 func (s *PassphraseStreamCache) PassphraseStream() *PassphraseStream {
+	if s == nil {
+		return nil
+	}
+	return s.passphraseStream.Clone()
+}
+
+// PassphraseStream returns a reference to the currently cached passphrase stream,
+// or nil if none exists.
+func (s *PassphraseStreamCache) PassphraseStreamRef() *PassphraseStream {
 	if s == nil {
 		return nil
 	}
