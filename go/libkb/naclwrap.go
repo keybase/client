@@ -533,3 +533,15 @@ func SigAssertKbPayload(armored string, expected []byte) (sigID keybase1.SigID, 
 	sigID = ComputeSigIDFromSigBody(byt)
 	return
 }
+
+func (n NaclDHKeyPair) Encrypt(msg []byte, sender *NaclDHKeyPair) (ret *NaclEncryptionInfo, err error) {
+	if sender == nil {
+		var tmp NaclDHKeyPair
+		tmp, err = GenerateNaclDHKeyPair()
+		if err != nil {
+			return
+		}
+		sender = &tmp
+	}
+	return
+}
