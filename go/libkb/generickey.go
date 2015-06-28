@@ -42,6 +42,7 @@ type GenericKey interface {
 	CheckSecretKey() error
 	CanSign() bool
 	CanEncrypt() bool
+	CanDecrypt() bool
 	HasSecretKey() bool
 	Encode() (string, error) // encode public key to string
 }

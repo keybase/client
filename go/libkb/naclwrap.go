@@ -534,6 +534,18 @@ func SigAssertKbPayload(armored string, expected []byte) (sigID keybase1.SigID, 
 	return
 }
 
+// CanEncrypt always returns false for a signing key pair.
+func (n NaclSigningKeyPair) CanEncrypt() bool { return false }
+
+// CanDecrypt always returns false for a signing key pair.
+func (n NaclSigningKeyPair) CanDecrypt() bool { return false }
+
+// CanEncrypt always returns true for an encryption key pair.
+func (n NaclDHKeyPair) CanEncrypt() bool { return true }
+
+// CanDecrypt returns true if there's a private key available
+func (n NaclDHKeyPair) CanDecrypt() bool { return n.Private != nil }
+
 func (n NaclDHKeyPair) Encrypt(msg []byte, sender *NaclDHKeyPair) (ret *NaclEncryptionInfo, err error) {
 	if sender == nil {
 		var tmp NaclDHKeyPair
