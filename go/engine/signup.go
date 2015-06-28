@@ -163,7 +163,7 @@ func (s *SignupEngine) join(a libkb.LoginContext, username, email, inviteCode st
 }
 
 func (s *SignupEngine) registerDevice(a libkb.LoginContext, ctx *Context, deviceName string) error {
-	s.lks = libkb.NewLKSec(s.ppStream.LksClientHalf(), s.uid, s.G())
+	s.lks = libkb.NewLKSec(s.tspkey.LksClientHalf(), s.ppStream.Generation(), s.uid, s.G())
 	args := &DeviceWrapArgs{
 		Me:         s.me,
 		DeviceName: deviceName,

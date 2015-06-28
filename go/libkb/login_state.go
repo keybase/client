@@ -568,10 +568,12 @@ func (s *LoginState) loginWithPromptHelper(lctx LoginContext, username string, l
 		return key, err
 	}
 
-	if loggedIn, err = s.tryPubkeyLoginHelper(lctx, username, getSecretKeyFn); err != nil || loggedIn {
-		return
+	// See #510, this is needed for us to function properly.
+	if !force {
+		if loggedIn, err = s.tryPubkeyLoginHelper(lctx, username, getSecretKeyFn); err != nil || loggedIn {
+			return
+		}
 	}
-
 	return s.tryPassphrasePromptLogin(lctx, username, secretUI)
 }
 

@@ -222,7 +222,7 @@ func (e *DeviceKeygen) pushLKS(ctx *Context) {
 	}
 
 	// send it to api server
-	e.pushErr = libkb.PostDeviceLKS(ctx.LoginContext, e.args.DeviceID.String(), libkb.DeviceTypeDesktop, serverHalf)
+	e.pushErr = libkb.PostDeviceLKS(ctx.LoginContext, e.args.DeviceID.String(), libkb.DeviceTypeDesktop, serverHalf, e.args.Lks.Generation())
 	if e.pushErr != nil {
 		return
 	}

@@ -42,7 +42,7 @@ type PassphraseStream struct {
 func NewPassphraseStream(s []byte) *PassphraseStream {
 	return &PassphraseStream{
 		stream: s,
-		gen:    PassphraseGeneration(-1),
+		gen:    PassphraseGeneration(0),
 	}
 }
 
@@ -69,4 +69,11 @@ func (ps PassphraseStream) LksClientHalf() []byte {
 func (ps PassphraseStream) String() string {
 	return fmt.Sprintf("pwh:   %x\nEdDSA: %x\nDH:    %x\nlks:   %x",
 		ps.PWHash(), ps.EdDSASeed(), ps.DHSeed(), ps.LksClientHalf())
+}
+
+// Generation returns the generation of this passphrase stream.
+// It is >=0 for valid generation #.  If 0, then we assume the
+// passphrase has never been reset.
+func (ps PassphraseStream) Generation() PassphraseGeneration {
+	return ps.gen
 }
