@@ -14,6 +14,11 @@ import (
 	triplesec "github.com/keybase/go-triplesec"
 )
 
+// PassphraseGeneration represents which generation of the passphrase is
+// currently in use.  It's used to guard against race conditions in which
+// the passphrase is changed on one device which the other still has it cached.
+type PassphraseGeneration int
+
 // LoginState controls the state of the current user's login
 // session and associated variables.  It also serializes access to
 // the various Login functions and requests for the Account
@@ -33,10 +38,11 @@ type LoginContext interface {
 	LoggedInLoad() (bool, error)
 	Logout() error
 
-	CreateStreamCache(tsec *triplesec.Cipher, pps PassphraseStream)
+	CreateStreamCache(tsec *triplesec.Cipher, pps *PassphraseStream)
 	CreateStreamCacheViaStretch(passphrase string) error
 	PassphraseStreamCache() *PassphraseStreamCache
 	ClearStreamCache()
+	SetStreamGeneration(gen PassphraseGeneration)
 
 	CreateLoginSessionWithSalt(emailOrUsername string, salt []byte) error
 	LoadLoginSession(emailOrUsername string) error
@@ -74,7 +80,7 @@ type loginAPIResult struct {
 	csrfToken string
 	uid       keybase1.UID
 	username  string
-	ppGen     int // passphrase generation #
+	ppGen     PassphraseGeneration
 }
 
 type afterFn func(LoginContext) error
@@ -161,7 +167,7 @@ func (s *LoginState) Shutdown() error {
 // GetPassphraseStream either returns a cached, verified passphrase stream
 // (maybe from a previous login) or generates a new one via Login. It will
 // return the current Passphrase stream on success or an error on failure.
-func (s *LoginState) GetPassphraseStream(ui SecretUI) (ret PassphraseStream, err error) {
+func (s *LoginState) GetPassphraseStream(ui SecretUI) (ret *PassphraseStream, err error) {
 	ret, err = s.PassphraseStream()
 	if err != nil {
 		return
@@ -266,12 +272,12 @@ func (s *LoginState) postLoginToServer(lctx LoginContext, eOu string, lgpw []byt
 	if err != nil {
 		return nil, err
 	}
-	ppgen, err := b.AtPath("me.basics.passphrase_generation").GetInt()
+	ppGen, err := b.AtPath("me.basics.passphrase_generation").GetInt()
 	if err != nil {
 		return nil, err
 	}
 
-	return &loginAPIResult{sessionID, csrfToken, uid, uname, ppgen}, nil
+	return &loginAPIResult{sessionID, csrfToken, uid, uname, PassphraseGeneration(ppGen)}, nil
 }
 
 func (s *LoginState) saveLoginState(lctx LoginContext, res *loginAPIResult) error {
@@ -498,6 +504,8 @@ func (s *LoginState) passphraseLogin(lctx LoginContext, username, passphrase str
 		lctx.ClearStreamCache()
 		return err
 	}
+
+	lctx.SetStreamGeneration(res.ppGen)
 
 	if err := s.saveLoginState(lctx, res); err != nil {
 		return err
@@ -806,8 +814,8 @@ func (s *LoginState) LoggedInProvisionedLoad() (lin bool, err error) {
 	return
 }
 
-func (s *LoginState) PassphraseStream() (PassphraseStream, error) {
-	var pps PassphraseStream
+func (s *LoginState) PassphraseStream() (*PassphraseStream, error) {
+	var pps *PassphraseStream
 	err := s.PassphraseStreamCache(func(c *PassphraseStreamCache) {
 		pps = c.PassphraseStream()
 	}, "PassphraseStream")

@@ -310,7 +310,7 @@ func (k *Keyrings) GetSecretKeyWithPassphrase(lctx LoginContext, me *User, passp
 	}
 	skb.SetUID(me.GetUID())
 	var tsec *triplesec.Cipher
-	var pps PassphraseStream
+	var pps *PassphraseStream
 	if lctx != nil {
 		tsec = lctx.PassphraseStreamCache().Triplesec()
 		pps = lctx.PassphraseStreamCache().PassphraseStream()

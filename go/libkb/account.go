@@ -110,11 +110,22 @@ func (a *Account) Logout() error {
 	return nil
 }
 
-func (a *Account) CreateStreamCache(tsec *triplesec.Cipher, pps PassphraseStream) {
+func (a *Account) CreateStreamCache(tsec *triplesec.Cipher, pps *PassphraseStream) {
 	if a.streamCache != nil {
 		a.G().Log.Warning("Account.CreateStreamCache overwriting exisitng StreamCache")
 	}
 	a.streamCache = NewPassphraseStreamCache(tsec, pps)
+}
+
+// SetStreamGeneration sets the passphrase generation on the cached stream
+// if it exists, and otherwise will wind up warning of a problem.
+func (a *Account) SetStreamGeneration(gen PassphraseGeneration) {
+	ps := a.PassphraseStream()
+	if ps == nil {
+		a.G().Log.Warning("Passphrase stream was nil; unexpected")
+	} else {
+		ps.SetGeneration(gen)
+	}
 }
 
 func (a *Account) CreateStreamCacheViaStretch(passphrase string) error {
@@ -142,7 +153,7 @@ func (a *Account) PassphraseStreamCache() *PassphraseStreamCache {
 	return a.streamCache
 }
 
-func (a *Account) PassphraseStream() PassphraseStream {
+func (a *Account) PassphraseStream() *PassphraseStream {
 	return a.PassphraseStreamCache().PassphraseStream()
 }
 

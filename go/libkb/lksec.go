@@ -195,10 +195,10 @@ func (s *LKSec) apiServerHalf(lctx LoginContext, devid *DeviceID) error {
 	return nil
 }
 
-// GetLKSForEncrypt gets a verified passphrase stream, and returns
+// NewLKSForEncrypt gets a verified passphrase stream, and returns
 // an LKS that works for encryption.
 func NewLKSForEncrypt(ui SecretUI, uid keybase1.UID, gc *GlobalContext) (ret *LKSec, err error) {
-	var pps PassphraseStream
+	var pps *PassphraseStream
 	if pps, err = gc.LoginState().GetPassphraseStream(ui); err != nil {
 		return
 	}

@@ -178,7 +178,7 @@ func TestUnusedSecretStore(t *testing.T) {
 	// It doesn't matter what passphraseStream contains, as long
 	// as it's the right size.
 	err := tc.G.LoginState().Account(func(a *Account) {
-		a.CreateStreamCache(nil, make([]byte, extraLen))
+		a.CreateStreamCache(nil, NewPassphraseStream(make([]byte, extraLen)))
 	}, "TestUnusedSecretStore")
 	if err != nil {
 		t.Fatal(err)

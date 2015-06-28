@@ -7,7 +7,7 @@ import (
 
 type SignupState struct {
 	salt    []byte
-	passkey libkb.PassphraseStream
+	passkey *libkb.PassphraseStream
 }
 
 func NewSignupState() *SignupState {

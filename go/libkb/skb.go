@@ -186,7 +186,7 @@ func (s *SKB) unlockSecretKeyFromSecretRetriever(secretRetriever SecretRetriever
 // unverifiedPassphraseStream takes a passphrase as a parameter and
 // also the salt from the Account and computes a Triplesec and
 // a passphrase stream.  It's not verified through a Login.
-func (s *SKB) unverifiedPassphraseStream(lctx LoginContext, passphrase string) (tsec *triplesec.Cipher, ret PassphraseStream, err error) {
+func (s *SKB) unverifiedPassphraseStream(lctx LoginContext, passphrase string) (tsec *triplesec.Cipher, ret *PassphraseStream, err error) {
 	var salt []byte
 	username := s.G().Env.GetUsername()
 	if lctx != nil {
@@ -217,7 +217,7 @@ func (s *SKB) unverifiedPassphraseStream(lctx LoginContext, passphrase string) (
 	return StretchPassphrase(passphrase, salt)
 }
 
-func (s *SKB) UnlockSecretKey(lctx LoginContext, passphrase string, tsec *triplesec.Cipher, pps PassphraseStream, secretStorer SecretStorer, lksPreload *LKSec) (key GenericKey, err error) {
+func (s *SKB) UnlockSecretKey(lctx LoginContext, passphrase string, tsec *triplesec.Cipher, pps *PassphraseStream, secretStorer SecretStorer, lksPreload *LKSec) (key GenericKey, err error) {
 	if key = s.decryptedSecret; key != nil {
 		return
 	}
@@ -300,7 +300,7 @@ func (s *SKB) tsecUnlock(tsec *triplesec.Cipher) ([]byte, error) {
 	return unlocked, nil
 }
 
-func (s *SKB) lksUnlock(lctx LoginContext, pps PassphraseStream, secretStorer SecretStorer, lks *LKSec) (unlocked []byte, err error) {
+func (s *SKB) lksUnlock(lctx LoginContext, pps *PassphraseStream, secretStorer SecretStorer, lks *LKSec) (unlocked []byte, err error) {
 	if lks == nil {
 		s.G().Log.Debug("creating new lks")
 		lks = s.newLKSec(pps.LksClientHalf())
@@ -593,7 +593,7 @@ func (s *SKB) PromptAndUnlock(lctx LoginContext, reason, which string, secretSto
 	}
 
 	var tsec *triplesec.Cipher
-	var pps PassphraseStream
+	var pps *PassphraseStream
 	if lctx != nil {
 		tsec = lctx.PassphraseStreamCache().Triplesec()
 		pps = lctx.PassphraseStreamCache().PassphraseStream()

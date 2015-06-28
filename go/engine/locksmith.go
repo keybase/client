@@ -565,7 +565,7 @@ func (d *Locksmith) selectPGPKey(ctx *Context, keys []*libkb.PGPKeyBundle) (*lib
 	return selected, nil
 }
 
-func (d *Locksmith) ppStream(ctx *Context) (ret libkb.PassphraseStream, err error) {
+func (d *Locksmith) ppStream(ctx *Context) (ret *libkb.PassphraseStream, err error) {
 	if ctx.LoginContext != nil {
 		cached := ctx.LoginContext.PassphraseStreamCache()
 		if cached == nil {

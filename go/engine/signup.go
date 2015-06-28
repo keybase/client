@@ -10,7 +10,7 @@ import (
 
 type SignupEngine struct {
 	pwsalt     []byte
-	ppStream   libkb.PassphraseStream
+	ppStream   *libkb.PassphraseStream
 	uid        keybase1.UID
 	me         *libkb.User
 	signingKey libkb.GenericKey

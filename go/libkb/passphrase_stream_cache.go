@@ -8,16 +8,16 @@ import (
 
 type PassphraseStreamCache struct {
 	tsec             *triplesec.Cipher
-	passphraseStream PassphraseStream
+	passphraseStream *PassphraseStream
 }
 
 type PassphraseStreamCacheReader interface {
 	Triplesec() *triplesec.Cipher
-	PassphraseStream() PassphraseStream
+	PassphraseStream() *PassphraseStream
 	Valid() bool
 }
 
-func NewPassphraseStreamCache(tsec *triplesec.Cipher, ps PassphraseStream) *PassphraseStreamCache {
+func NewPassphraseStreamCache(tsec *triplesec.Cipher, ps *PassphraseStream) *PassphraseStreamCache {
 	return &PassphraseStreamCache{
 		tsec:             tsec,
 		passphraseStream: ps,
@@ -31,7 +31,7 @@ func (s *PassphraseStreamCache) Triplesec() *triplesec.Cipher {
 	return s.tsec
 }
 
-func (s *PassphraseStreamCache) PassphraseStream() PassphraseStream {
+func (s *PassphraseStreamCache) PassphraseStream() *PassphraseStream {
 	if s == nil {
 		return nil
 	}
