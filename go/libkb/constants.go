@@ -188,6 +188,7 @@ const (
 	KeybasePacketV1 = 1
 	TagP3skb        = 513
 	TagSignature    = 514
+	TagEncryption   = 515
 )
 
 const (

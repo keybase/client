@@ -162,6 +162,8 @@ func (p *KeybasePacket) MyUnmarshalBinary(data []byte) error {
 		body = &SKB{}
 	case TagSignature:
 		body = &NaclSigInfo{}
+	case TagEncryption:
+		body = &NaclEncryptionInfo{}
 	default:
 		return fmt.Errorf("Unknown packet tag: %d", p.Tag)
 	}

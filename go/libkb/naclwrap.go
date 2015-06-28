@@ -24,6 +24,14 @@ type NaclSigInfo struct {
 	Detached bool          `codec:"detached"`
 }
 
+type NaclEncryptionInfo struct {
+	Ciphertext     []byte `codec:"ciphertext"`
+	EncryptionType int    `codec:"enc_type"`
+	Nonce          []byte `codec:"nonce"`
+	Receiver       KID    `codec:"receiver_key"`
+	Sender         KID    `codec:"sender_key"`
+}
+
 const NaclDHKeysize = 32
 
 // TODO: Ideally, ed25519 would expose how many random bytes it needs.
