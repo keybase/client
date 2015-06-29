@@ -15,7 +15,7 @@ function check_server() {
 }
 
 # If there's already a server listening on port 3000, just use it
-if check_server 2 1; then
+if check_server 1 1; then
     echo "Keybase server already running"
     exit 0
 fi
