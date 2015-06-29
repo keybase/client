@@ -537,26 +537,38 @@ func SigAssertKbPayload(armored string, expected []byte) (sigID keybase1.SigID, 
 	return
 }
 
+// EncryptToString fails for this type of key.
+func (k NaclSigningKeyPair) EncryptToString(plaintext []byte, sender GenericKey) (ciphertext string, err error) {
+	err = KeyCannotEncryptError{}
+	return
+}
+
+// DecryptFromString fails for this type of key.
+func (k NaclSigningKeyPair) DecryptFromString(ciphertext string) (msg []byte, sender KID, err error) {
+	err = KeyCannotDecryptError{}
+	return
+}
+
 // CanEncrypt always returns false for a signing key pair.
-func (n NaclSigningKeyPair) CanEncrypt() bool { return false }
+func (k NaclSigningKeyPair) CanEncrypt() bool { return false }
 
 // CanDecrypt always returns false for a signing key pair.
-func (n NaclSigningKeyPair) CanDecrypt() bool { return false }
+func (k NaclSigningKeyPair) CanDecrypt() bool { return false }
 
 // CanEncrypt always returns true for an encryption key pair.
-func (n NaclDHKeyPair) CanEncrypt() bool { return true }
+func (k NaclDHKeyPair) CanEncrypt() bool { return true }
 
 // CanDecrypt returns true if there's a private key available
-func (n NaclDHKeyPair) CanDecrypt() bool { return n.Private != nil }
+func (k NaclDHKeyPair) CanDecrypt() bool { return k.Private != nil }
 
 // Encrypt a message for the given sender.  If sender is nil, an ephemeral
 // keypair will be invented
-func (n NaclDHKeyPair) Encrypt(msg []byte, sender *NaclDHKeyPair) (*NaclEncryptionInfo, error) {
+func (k NaclDHKeyPair) Encrypt(msg []byte, sender *NaclDHKeyPair) (*NaclEncryptionInfo, error) {
 	if sender == nil {
-		if tmp, err := GenerateNaclDHKeyPair(); err != nil {
-			return nil, err
-		} else {
+		if tmp, err := GenerateNaclDHKeyPair(); err == nil {
 			sender = &tmp
+		} else {
+			return nil, err
 		}
 	} else if sender.Private == nil {
 		return nil, NoSecretKeyError{}
@@ -570,12 +582,12 @@ func (n NaclDHKeyPair) Encrypt(msg []byte, sender *NaclDHKeyPair) (*NaclEncrypti
 	}
 
 	var ctext []byte
-	ctext = box.Seal(ctext, msg, &nonce, ((*[32]byte)(&n.Public)), ((*[32]byte)(sender.Private)))
+	ctext = box.Seal(ctext, msg, &nonce, ((*[32]byte)(&k.Public)), ((*[32]byte)(sender.Private)))
 	ret := &NaclEncryptionInfo{
 		Ciphertext:     ctext,
 		EncryptionType: KIDNaclDH,
 		Nonce:          nonce[:],
-		Receiver:       n.GetKid(),
+		Receiver:       k.GetKid(),
 		Sender:         sender.GetKid(),
 	}
 
@@ -585,7 +597,7 @@ func (n NaclDHKeyPair) Encrypt(msg []byte, sender *NaclDHKeyPair) (*NaclEncrypti
 // EncryptToString encrypts the plaintext using DiffieHelman; the this object is
 // the receiver, and the passed sender is optional.  If not provided, we'll make
 // up an ephemeral key.
-func (n NaclDHKeyPair) EncryptToString(plaintext []byte, sender GenericKey) (string, error) {
+func (k NaclDHKeyPair) EncryptToString(plaintext []byte, sender GenericKey) (string, error) {
 	var senderDh *NaclDHKeyPair
 	if sender != nil {
 		var ok bool
@@ -594,7 +606,7 @@ func (n NaclDHKeyPair) EncryptToString(plaintext []byte, sender GenericKey) (str
 		}
 	}
 
-	info, err := n.Encrypt(plaintext, senderDh)
+	info, err := k.Encrypt(plaintext, senderDh)
 	if err != nil {
 		return "", nil
 	}
@@ -603,18 +615,18 @@ func (n NaclDHKeyPair) EncryptToString(plaintext []byte, sender GenericKey) (str
 }
 
 // ToPacket implements the Packetable interface.
-func (n *NaclEncryptionInfo) ToPacket() (ret *KeybasePacket, err error) {
+func (k *NaclEncryptionInfo) ToPacket() (ret *KeybasePacket, err error) {
 	ret = &KeybasePacket{
 		Version: KeybasePacketV1,
 		Tag:     TagEncryption,
 	}
-	ret.Body = n
+	ret.Body = k
 	return
 }
 
 // DecryptFromString decrypts the output of EncryptToString above,
 // and returns the KID of the other end.
-func (n NaclDHKeyPair) DecryptFromString(ciphertext string) (msg []byte, sender KID, err error) {
+func (k NaclDHKeyPair) DecryptFromString(ciphertext string) (msg []byte, sender KID, err error) {
 	var kbp *KeybasePacket
 	var nei *NaclEncryptionInfo
 	var ok bool
@@ -627,11 +639,13 @@ func (n NaclDHKeyPair) DecryptFromString(ciphertext string) (msg []byte, sender 
 		err = UnmarshalError{"NaCl Encryption"}
 		return
 	}
-	return n.Decrypt(nei)
+	return k.Decrypt(nei)
 }
 
-func (n NaclDHKeyPair) Decrypt(nei *NaclEncryptionInfo) (plaintext []byte, sender KID, err error) {
-	if n.Private == nil {
+// Decrypt a NaclEncryptionInfo packet, and on success return the plaintext
+// and the KID of the sender (which might be an ephemeral key).
+func (k NaclDHKeyPair) Decrypt(nei *NaclEncryptionInfo) (plaintext []byte, sender KID, err error) {
+	if k.Private == nil {
 		err = NoSecretKeyError{}
 		return
 	}
@@ -658,13 +672,13 @@ func (n NaclDHKeyPair) Decrypt(nei *NaclEncryptionInfo) (plaintext []byte, sende
 		return
 	}
 
-	if !n.GetKid().Eq(nei.Receiver) {
+	if !k.GetKid().Eq(nei.Receiver) {
 		err = DecryptWrongReceiverError{}
 		return
 	}
 
 	if plaintext, ok = box.Open(plaintext, nei.Ciphertext, &nonce,
-		((*[32]byte)(&senderDH.Public)), ((*[32]byte)(n.Private))); !ok {
+		((*[32]byte)(&senderDH.Public)), ((*[32]byte)(k.Private))); !ok {
 		err = DecryptOpenError{}
 		return
 	}

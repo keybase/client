@@ -567,6 +567,12 @@ func (k KeyCannotDecryptError) Error() string {
 	return "Key cannot decrypt data"
 }
 
+type KeyUnimplementedError struct{}
+
+func (k KeyUnimplementedError) Error() string {
+	return "Key function isn't implemented yet"
+}
+
 //=============================================================================
 
 type DecryptBadPacketTypeError struct{}

@@ -587,6 +587,26 @@ func (k *PGPKeyBundle) CheckIdentity(kbid Identity) (match bool, ctime int64, et
 	return
 }
 
+// EncryptToString fails for this type of key, since we haven't implemented it yet
+func (k *PGPKeyBundle) EncryptToString(plaintext []byte, sender GenericKey) (ciphertext string, err error) {
+	err = KeyCannotEncryptError{}
+	return
+}
+
+// DecryptFromString fails for this type of key, since we haven't implemented it yet
+func (k *PGPKeyBundle) DecryptFromString(ciphertext string) (msg []byte, sender KID, err error) {
+	err = KeyCannotDecryptError{}
+	return
+}
+
+// CanEncrypt returns false for now, since we haven't implemented PGP encryption of packets
+// for metadata operations
+func (k *PGPKeyBundle) CanEncrypt() bool { return false }
+
+// CanDecrypt returns false for now, since we haven't implemented PGP encryption of packets
+// for metadata operations
+func (k *PGPKeyBundle) CanDecrypt() bool { return false }
+
 //===================================================
 
 // Fulfill the TrackIdComponent interface
