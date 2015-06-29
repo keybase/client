@@ -2122,7 +2122,7 @@ func (fbo *FolderBranchOps) syncLocked(file Path) (Path, error) {
 	//   4) Then go through once more, and ready and finalize each
 	//      dirty block, updating its ID in the indirect pointer list
 	bsplit := fbo.config.BlockSplitter()
-	deferredDirtyDeletes := make([]func() error, 0, 1)
+	var deferredDirtyDeletes []func() error
 	if fblock.IsInd {
 		for i := 0; i < len(fblock.IPtrs); i++ {
 			ptr := fblock.IPtrs[i]
@@ -2304,12 +2304,21 @@ func (fbo *FolderBranchOps) syncLocked(file Path) (Path, error) {
 	// Make the block available at the new ID, but keep it under the
 	// old ID in case someone tries to read the file under the old ID
 	// before the sync is complete.
-	fbo.blockLock.Lock()
-	bcache.Put(newPath.TailPointer().ID, fblock)
-	deferredDirtyDeletes = append(deferredDirtyDeletes, func() error {
-		return bcache.DeleteDirty(file.TailPointer(), file.Branch)
-	})
-	fbo.blockLock.Unlock()
+	err = func() error {
+		fbo.blockLock.Lock()
+		defer fbo.blockLock.Unlock()
+		err := bcache.Put(newPath.TailPointer().ID, fblock)
+		if err != nil {
+			return err
+		}
+		deferredDirtyDeletes = append(deferredDirtyDeletes, func() error {
+			return bcache.DeleteDirty(file.TailPointer(), file.Branch)
+		})
+		return nil
+	}()
+	if err != nil {
+		return Path{}, err
+	}
 
 	err = fbo.finalizeWriteLocked(md, bps, []Path{newPath})
 	if err != nil {
@@ -2318,39 +2327,44 @@ func (fbo *FolderBranchOps) syncLocked(file Path) (Path, error) {
 
 	fbo.blockLock.Lock()
 	defer fbo.blockLock.Unlock()
-	fbo.cacheLock.Lock()
-	for _, f := range deferredDirtyDeletes {
-		// This will also clear any dirty blocks that resulted from a
-		// write/truncate happening during the sync.  But that's ok,
-		// because we will redo them below.
-		err = f()
-		if err != nil {
-			fbo.cacheLock.Unlock()
-			return Path{}, err
+	err = func() error {
+		fbo.cacheLock.Lock()
+		defer fbo.cacheLock.Unlock()
+		for _, f := range deferredDirtyDeletes {
+			// This will also clear any dirty blocks that resulted from a
+			// write/truncate happening during the sync.  But that's ok,
+			// because we will redo them below.
+			err = f()
+			if err != nil {
+				return err
+			}
 		}
-	}
 
-	// Clear the updated de from the cache.  We are guaranteed that
-	// any concurrent write to this file was deferred, even if it was
-	// to a block that wasn't currently being sync'd, since the
-	// top-most block is always in copyFileBlocks and is always
-	// dirtied during a write/truncate.
-	if doDeleteDe {
-		deMap := fbo.deCache[parentPtr]
-		delete(deMap, filePtr)
-		if deMap == nil {
-			delete(fbo.deCache, parentPtr)
-		} else {
-			fbo.deCache[parentPtr] = deMap
+		// Clear the updated de from the cache.  We are guaranteed that
+		// any concurrent write to this file was deferred, even if it was
+		// to a block that wasn't currently being sync'd, since the
+		// top-most block is always in copyFileBlocks and is always
+		// dirtied during a write/truncate.
+		if doDeleteDe {
+			deMap := fbo.deCache[parentPtr]
+			delete(deMap, filePtr)
+			if deMap == nil {
+				delete(fbo.deCache, parentPtr)
+			} else {
+				fbo.deCache[parentPtr] = deMap
+			}
 		}
+		return nil
+	}()
+	if err != nil {
+		return Path{}, err
 	}
-	fbo.cacheLock.Unlock()
 
 	fbo.copyFileBlocks = make(map[BlockPointer]bool)
 	// Redo any writes or truncates that happened to our file while
 	// the sync was happening.
 	writes := fbo.deferredWrites
-	fbo.deferredWrites = make([]func(*RootMetadata, Path) error, 0)
+	fbo.deferredWrites = nil
 	for _, f := range writes {
 		// we can safely read head here because we hold writerLock
 		err = f(fbo.head, newPath)
