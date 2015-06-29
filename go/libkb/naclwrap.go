@@ -549,6 +549,8 @@ func (n NaclDHKeyPair) CanEncrypt() bool { return true }
 // CanDecrypt returns true if there's a private key available
 func (n NaclDHKeyPair) CanDecrypt() bool { return n.Private != nil }
 
+// Encrypt a message for the given sender.  If sender is nil, an ephemeral
+// keypair will be invented
 func (n NaclDHKeyPair) Encrypt(msg []byte, sender *NaclDHKeyPair) (*NaclEncryptionInfo, error) {
 	if sender == nil {
 		if tmp, err := GenerateNaclDHKeyPair(); err != nil {
@@ -607,5 +609,65 @@ func (n *NaclEncryptionInfo) ToPacket() (ret *KeybasePacket, err error) {
 		Tag:     TagEncryption,
 	}
 	ret.Body = n
+	return
+}
+
+// DecryptFromString decrypts the output of EncryptToString above,
+// and returns the KID of the other end.
+func (n NaclDHKeyPair) DecryptFromString(ciphertext string) (msg []byte, sender KID, err error) {
+	var kbp *KeybasePacket
+	var nei *NaclEncryptionInfo
+	var ok bool
+
+	if kbp, err = DecodeArmoredPacket(ciphertext); err != nil {
+		return
+	}
+
+	if nei, ok = kbp.Body.(*NaclEncryptionInfo); !ok {
+		err = UnmarshalError{"NaCl Encryption"}
+		return
+	}
+	return n.Decrypt(nei)
+}
+
+func (n NaclDHKeyPair) Decrypt(nei *NaclEncryptionInfo) (plaintext []byte, sender KID, err error) {
+	if n.Private == nil {
+		err = NoSecretKeyError{}
+		return
+	}
+	if nei.EncryptionType != KIDNaclDH {
+		err = DecryptBadPacketTypeError{}
+		return
+	}
+	var nonce [NaclDHNonceSize]byte
+	if len(nei.Nonce) != NaclDHNonceSize {
+		err = DecryptBadNonceError{}
+		return
+	}
+	copy(nonce[:], nei.Nonce)
+
+	var gk GenericKey
+	if gk, err = ImportKeypairFromKID(nei.Sender); err != nil {
+		return
+	}
+
+	var senderDH NaclDHKeyPair
+	var ok bool
+	if senderDH, ok = gk.(NaclDHKeyPair); !ok {
+		err = DecryptBadSenderError{}
+		return
+	}
+
+	if !n.GetKid().Eq(nei.Receiver) {
+		err = DecryptWrongReceiverError{}
+		return
+	}
+
+	if plaintext, ok = box.Open(plaintext, nei.Ciphertext, &nonce,
+		((*[32]byte)(&senderDH.Public)), ((*[32]byte)(n.Private))); !ok {
+		err = DecryptOpenError{}
+		return
+	}
+	sender = senderDH.GetKid()
 	return
 }

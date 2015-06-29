@@ -569,6 +569,38 @@ func (k KeyCannotDecryptError) Error() string {
 
 //=============================================================================
 
+type DecryptBadPacketTypeError struct{}
+
+func (d DecryptBadPacketTypeError) Error() string {
+	return "Bad packet type; can't decrypt"
+}
+
+type DecryptBadNonceError struct{}
+
+func (d DecryptBadNonceError) Error() string {
+	return "Bad packet nonce; can't decrypt"
+}
+
+type DecryptBadSenderError struct{}
+
+func (d DecryptBadSenderError) Error() string {
+	return "Bad sender key"
+}
+
+type DecryptWrongReceiverError struct{}
+
+func (d DecryptWrongReceiverError) Error() string {
+	return "Bad receiver key"
+}
+
+type DecryptOpenError struct{}
+
+func (d DecryptOpenError) Error() string {
+	return "box.Open failure; ciphertext was corrupted or wrong key"
+}
+
+//=============================================================================
+
 type NoConfigFile struct{}
 
 func (n NoConfigFile) Error() string {
