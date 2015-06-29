@@ -1,6 +1,7 @@
 package main
 
 import (
+	"math/rand"
 	"sync"
 	"syscall"
 	"time"
@@ -25,6 +26,7 @@ type ErrorNode struct {
 // FuseOps implements the low-level FUSE interface for go-fuse, in a
 // goroutine-safe way.
 type FuseOps struct {
+	ctx          context.Context
 	config       libkbfs.Config
 	topNodes     map[string]*FuseNode
 	topNodesByID map[libkbfs.DirID]*FuseNode
@@ -33,8 +35,9 @@ type FuseOps struct {
 }
 
 // NewFuseRoot constructs a new root FUSE node for KBFS.
-func NewFuseRoot(config libkbfs.Config) *FuseNode {
+func NewFuseRoot(ctx context.Context, config libkbfs.Config) *FuseNode {
 	f := &FuseOps{
+		ctx:          ctx,
 		config:       config,
 		topNodes:     make(map[string]*FuseNode),
 		topNodesByID: make(map[libkbfs.DirID]*FuseNode),
@@ -150,7 +153,8 @@ func (f *FuseOps) LookupInDir(dNode *FuseNode, name string) (
 				Readers: []keybase1.UID{keybase1.PublicUID},
 			}
 			rootPath, rootDe, err :=
-				f.config.KBFSOps().GetOrCreateRootPathForHandle(dirHandle)
+				f.config.KBFSOps().GetOrCreateRootPathForHandle(
+					f.ctx, dirHandle)
 			if err != nil {
 				return nil, f.translateError(err)
 			}
@@ -182,7 +186,7 @@ func (f *FuseOps) LookupInDir(dNode *FuseNode, name string) (
 				f.config, dNode.DirHandle, uid))
 		}
 
-		dBlock, err := f.config.KBFSOps().GetDir(p)
+		dBlock, err := f.config.KBFSOps().GetDir(f.ctx, p)
 		if err != nil {
 			return nil, f.translateError(err)
 		}
@@ -229,7 +233,7 @@ func (f *FuseOps) LookupInDir(dNode *FuseNode, name string) (
 // case, we'd only need to set NeedUpdate for those two nodes.
 
 // LocalChange sets NeedUpdate for all nodes that we know about on the path
-func (f *FuseOps) LocalChange(path libkbfs.Path) {
+func (f *FuseOps) LocalChange(ctx context.Context, path libkbfs.Path) {
 	f.topLock.RLock()
 	defer f.topLock.RUnlock()
 
@@ -277,7 +281,8 @@ func (f *FuseOps) updatePaths(n *FuseNode, newPath []libkbfs.PathNode) {
 // BatchChanges sets NeedUpdate for all nodes that we know about on
 // the path, and updates the PathNode (including the new
 // BlockPointer).
-func (f *FuseOps) BatchChanges(dir libkbfs.DirID, paths []libkbfs.Path) {
+func (f *FuseOps) BatchChanges(
+	ctx context.Context, dir libkbfs.DirID, paths []libkbfs.Path) {
 	if len(paths) == 0 {
 		return
 	}
@@ -351,7 +356,8 @@ func (f *FuseOps) LookupInRootByName(rNode *FuseNode, name string) (
 			f.addTopNodeLocked(name, fNode.Dir, fNode)
 		} else {
 			rootPath, rootDe, err :=
-				f.config.KBFSOps().GetOrCreateRootPathForHandle(dirHandle)
+				f.config.KBFSOps().GetOrCreateRootPathForHandle(
+					f.ctx, dirHandle)
 			var fNode *FuseNode
 			if _, ok :=
 				err.(*libkbfs.ReadAccessError); ok && dirHandle.HasPublic() {
@@ -403,7 +409,8 @@ func (f *FuseOps) LookupInRootByName(rNode *FuseNode, name string) (
 // mount, given a top-level folder ID.
 func (f *FuseOps) LookupInRootByID(rNode *FuseNode, id libkbfs.DirID) (
 	node *nodefs.Inode, code fuse.Status) {
-	rootPath, rootDe, dirHandle, err := f.config.KBFSOps().GetRootPath(id)
+	rootPath, rootDe, dirHandle, err := f.config.KBFSOps().
+		GetRootPath(f.ctx, id)
 	if err != nil {
 		return nil, f.translateError(err)
 	}
@@ -446,7 +453,7 @@ func (f *FuseOps) GetAttr(n *FuseNode, out *fuse.Attr) fuse.Status {
 			var de libkbfs.DirEntry
 			if len(p.Path) > 1 {
 				// need to fetch the entry anew
-				dBlock, err := f.config.KBFSOps().GetDir(*p.ParentPath())
+				dBlock, err := f.config.KBFSOps().GetDir(f.ctx, *p.ParentPath())
 				if err != nil {
 					return f.translateError(err)
 				}
@@ -461,7 +468,8 @@ func (f *FuseOps) GetAttr(n *FuseNode, out *fuse.Attr) fuse.Status {
 			} else {
 				var err error
 				_, de, err =
-					f.config.KBFSOps().GetOrCreateRootPathForHandle(n.DirHandle)
+					f.config.KBFSOps().GetOrCreateRootPathForHandle(
+						f.ctx, n.DirHandle)
 				if err != nil {
 					return f.translateError(err)
 				}
@@ -522,7 +530,7 @@ func (f *FuseOps) ListDir(n *FuseNode) (
 		})
 	}
 
-	if dBlock, err := f.config.KBFSOps().GetDir(p); err != nil {
+	if dBlock, err := f.config.KBFSOps().GetDir(f.ctx, p); err != nil {
 		code = f.translateError(err)
 		if !hasPublic {
 			return
@@ -565,7 +573,7 @@ func (f *FuseOps) ListRoot() (stream []fuse.DirEntry, code fuse.Status) {
 func (f *FuseOps) Chmod(n *FuseNode, perms uint32) (code fuse.Status) {
 	ex := perms&0100 != 0
 	p := n.getPath(1)
-	_, err := f.config.KBFSOps().SetEx(p, ex)
+	_, err := f.config.KBFSOps().SetEx(f.ctx, p, ex)
 	if err != nil {
 		return f.translateError(err)
 	}
@@ -576,7 +584,7 @@ func (f *FuseOps) Chmod(n *FuseNode, perms uint32) (code fuse.Status) {
 // Utimens sets the mtime for the given KBFS node.
 func (f *FuseOps) Utimens(n *FuseNode, mtime *time.Time) (code fuse.Status) {
 	p := n.getPath(1)
-	_, err := f.config.KBFSOps().SetMtime(p, mtime)
+	_, err := f.config.KBFSOps().SetMtime(f.ctx, p, mtime)
 	if err != nil {
 		return f.translateError(err)
 	}
@@ -592,7 +600,7 @@ func (f *FuseOps) Mkdir(n *FuseNode, name string) (
 	}
 
 	p := n.getPath(1)
-	newPath, de, err := f.config.KBFSOps().CreateDir(p, name)
+	newPath, de, err := f.config.KBFSOps().CreateDir(f.ctx, p, name)
 	if err != nil {
 		return nil, f.translateError(err)
 	}
@@ -619,7 +627,8 @@ func (f *FuseOps) Mknod(n *FuseNode, name string, mode uint32) (
 	}
 
 	p := n.getPath(1)
-	newPath, de, err := f.config.KBFSOps().CreateFile(p, name, mode&0100 != 0)
+	newPath, de, err := f.config.KBFSOps().CreateFile(
+		f.ctx, p, name, mode&0100 != 0)
 	if err != nil {
 		return nil, f.translateError(err)
 	}
@@ -644,7 +653,7 @@ func (f *FuseOps) Mknod(n *FuseNode, name string, mode uint32) (
 func (f *FuseOps) Read(n *FuseNode, dest []byte, off int64) (
 	fuse.ReadResult, fuse.Status) {
 	p := n.getPath(1)
-	bytes, err := f.config.KBFSOps().Read(p, dest, off)
+	bytes, err := f.config.KBFSOps().Read(f.ctx, p, dest, off)
 	if err != nil {
 		return nil, f.translateError(err)
 	}
@@ -655,7 +664,7 @@ func (f *FuseOps) Read(n *FuseNode, dest []byte, off int64) (
 func (f *FuseOps) Write(n *FuseNode, data []byte, off int64) (
 	written uint32, code fuse.Status) {
 	p := n.getPath(1)
-	err := f.config.KBFSOps().Write(p, data, off)
+	err := f.config.KBFSOps().Write(f.ctx, p, data, off)
 	if err != nil {
 		return 0, f.translateError(err)
 	}
@@ -665,7 +674,7 @@ func (f *FuseOps) Write(n *FuseNode, data []byte, off int64) (
 // Truncate truncates the size of the given KBFS file.
 func (f *FuseOps) Truncate(n *FuseNode, size uint64) (code fuse.Status) {
 	p := n.getPath(1)
-	err := f.config.KBFSOps().Truncate(p, size)
+	err := f.config.KBFSOps().Truncate(f.ctx, p, size)
 	if err != nil {
 		return f.translateError(err)
 	}
@@ -680,7 +689,7 @@ func (f *FuseOps) Symlink(n *FuseNode, name string, content string) (
 	}
 
 	p := n.getPath(1)
-	_, de, err := f.config.KBFSOps().CreateLink(p, name, content)
+	_, de, err := f.config.KBFSOps().CreateLink(f.ctx, p, name, content)
 	if err != nil {
 		return nil, f.translateError(err)
 	}
@@ -730,9 +739,9 @@ func (f *FuseOps) RmEntry(n *FuseNode, name string, isDir bool) (
 
 	var err error
 	if isDir {
-		_, err = f.config.KBFSOps().RemoveDir(p)
+		_, err = f.config.KBFSOps().RemoveDir(f.ctx, p)
 	} else {
-		_, err = f.config.KBFSOps().RemoveEntry(p)
+		_, err = f.config.KBFSOps().RemoveEntry(f.ctx, p)
 	}
 	if err != nil {
 		return f.translateError(err)
@@ -761,7 +770,7 @@ func (f *FuseOps) Rename(
 	}
 
 	_, _, err := f.config.KBFSOps().Rename(
-		oldPath, oldName, newPath, newName)
+		f.ctx, oldPath, oldName, newPath, newName)
 	if err != nil {
 		return f.translateError(err)
 	}
@@ -779,7 +788,7 @@ func (f *FuseOps) Rename(
 // Flush syncs the given KBFS node.
 func (f *FuseOps) Flush(n *FuseNode) fuse.Status {
 	p := n.getPath(1)
-	_, err := f.config.KBFSOps().Sync(p)
+	_, err := f.config.KBFSOps().Sync(f.ctx, p)
 	if err != nil {
 		return f.translateError(err)
 	}
@@ -1118,9 +1127,10 @@ func (f *FuseFile) Flush() fuse.Status {
 	return <-statchan
 }
 
-func runHanwenFUSE(config *libkbfs.ConfigLocal, debug bool,
+func runHanwenFUSE(ctx context.Context, config *libkbfs.ConfigLocal, debug bool,
 	mountpoint string) error {
-	root := NewFuseRoot(config)
+	root := NewFuseRoot(context.WithValue(ctx, ctxAppIDKey, rand.Int63()),
+		config)
 
 	server, _, err := nodefs.MountRoot(mountpoint, root, nil)
 	if err != nil {

@@ -7,6 +7,7 @@ import (
 	"time"
 
 	keybase1 "github.com/keybase/client/protocol/go"
+	"golang.org/x/net/context"
 )
 
 // reqType indicates whether an operation makes MD modifications or not
@@ -96,7 +97,7 @@ type FolderBranchOps struct {
 	// Writes and truncates for blocks that were being sync'd, and
 	// need to be replayed after the sync finishes on top of the new
 	// versions of the blocks.
-	deferredWrites []func(*RootMetadata, Path) error
+	deferredWrites []func(context.Context, *RootMetadata, Path) error
 	// set to true if this write or truncate should be deferred
 	doDeferWrite bool
 	// For writes and truncates, track the unsynced to-be-unref'd
@@ -133,10 +134,11 @@ func NewFolderBranchOps(config Config, id DirID, branch BranchName,
 		bType:          bType,
 		observers:      make([]Observer, 0),
 		copyFileBlocks: make(map[BlockPointer]bool),
-		deferredWrites: make([]func(*RootMetadata, Path) error, 0),
-		unrefCache:     make(map[BlockPointer][]BlockInfo),
-		deCache:        make(map[BlockPointer]map[BlockPointer]DirEntry),
-		writerLock:     &sync.Mutex{},
+		deferredWrites: make(
+			[]func(context.Context, *RootMetadata, Path) error, 0),
+		unrefCache: make(map[BlockPointer][]BlockInfo),
+		deCache:    make(map[BlockPointer]map[BlockPointer]DirEntry),
+		writerLock: &sync.Mutex{},
 	}
 }
 
@@ -147,7 +149,7 @@ func (fbo *FolderBranchOps) Shutdown() {
 }
 
 // GetFavDirs implements the KBFSOps interface for FolderBranchOps
-func (fbo *FolderBranchOps) GetFavDirs() ([]DirID, error) {
+func (fbo *FolderBranchOps) GetFavDirs(ctx context.Context) ([]DirID, error) {
 	return nil, fmt.Errorf("GetFavDirs is not supported by FolderBranchOps")
 }
 
@@ -351,7 +353,8 @@ func (fbo *FolderBranchOps) initMDLocked(md *RootMetadata) error {
 
 // GetOrCreateRootPathForHandle implements the KBFSOps interface for
 // FolderBranchOps
-func (fbo *FolderBranchOps) GetOrCreateRootPathForHandle(handle *DirHandle) (
+func (fbo *FolderBranchOps) GetOrCreateRootPathForHandle(
+	ctx context.Context, handle *DirHandle) (
 	path Path, de DirEntry, err error) {
 	err = fmt.Errorf("GetOrCreateRootPathForHandle is not supported by " +
 		"FolderBranchOps")
@@ -367,7 +370,8 @@ func (fbo *FolderBranchOps) checkPath(path Path) error {
 
 // CheckForNewMDAndInit sees whether the given MD object has been
 // initialized yet; if not, it does so.
-func (fbo *FolderBranchOps) CheckForNewMDAndInit(md *RootMetadata) error {
+func (fbo *FolderBranchOps) CheckForNewMDAndInit(
+	ctx context.Context, md *RootMetadata) error {
 	if md.ID != fbo.id {
 		return WrongOpsError{Path{TopDir: md.ID}, fbo.id, fbo.branch}
 	}
@@ -400,7 +404,7 @@ func (fbo *FolderBranchOps) execReadThenWrite(f func(reqType) error) error {
 }
 
 // GetRootPath implements the KBFSOps interface for FolderBranchOps
-func (fbo *FolderBranchOps) GetRootPath(dir DirID) (
+func (fbo *FolderBranchOps) GetRootPath(ctx context.Context, dir DirID) (
 	path Path, de DirEntry, handle *DirHandle, err error) {
 	if dir != fbo.id {
 		err = WrongOpsError{Path{TopDir: dir}, fbo.id, fbo.branch}
@@ -569,7 +573,8 @@ func (fbo *FolderBranchOps) updateDirBlock(
 }
 
 // GetDir implements the KBFSOps interface for FolderBranchOps
-func (fbo *FolderBranchOps) GetDir(dir Path) (block *DirBlock, err error) {
+func (fbo *FolderBranchOps) GetDir(ctx context.Context, dir Path) (
+	block *DirBlock, err error) {
 	err = fbo.checkPath(dir)
 	if err != nil {
 		return
@@ -951,8 +956,8 @@ func (fbo *FolderBranchOps) finalizeBlocksLocked(bps *blockPutState,
 }
 
 // writerLock must be taken by the caller.
-func (fbo *FolderBranchOps) finalizeWriteLocked(md *RootMetadata,
-	bps *blockPutState, newPaths []Path) error {
+func (fbo *FolderBranchOps) finalizeWriteLocked(ctx context.Context,
+	md *RootMetadata, bps *blockPutState, newPaths []Path) error {
 	if len(newPaths) == 0 {
 		return fmt.Errorf("Can't finalize 0 paths")
 	}
@@ -984,21 +989,21 @@ func (fbo *FolderBranchOps) finalizeWriteLocked(md *RootMetadata,
 
 	fbo.saveMdToCacheLocked(md)
 
-	fbo.notifyBatch(newPaths[0].TopDir, newPaths)
+	fbo.notifyBatch(ctx, newPaths[0].TopDir, newPaths)
 	return nil
 }
 
 // writerLock must be taken by the caller, but not blockLock
-func (fbo *FolderBranchOps) syncBlockAndFinalizeLocked(md *RootMetadata,
-	newBlock Block, dir Path, name string, entryType EntryType,
-	mtime bool, ctime bool, stopAt BlockPointer) (
+func (fbo *FolderBranchOps) syncBlockAndFinalizeLocked(ctx context.Context,
+	md *RootMetadata, newBlock Block, dir Path, name string,
+	entryType EntryType, mtime bool, ctime bool, stopAt BlockPointer) (
 	Path, DirEntry, error) {
 	p, de, bps, err := fbo.syncBlockLocked(md, newBlock, dir, name, entryType,
 		true, true, zeroPtr, nil)
 	if err != nil {
 		return Path{}, DirEntry{}, err
 	}
-	err = fbo.finalizeWriteLocked(md, bps, []Path{p})
+	err = fbo.finalizeWriteLocked(ctx, md, bps, []Path{p})
 	if err != nil {
 		return Path{}, DirEntry{}, err
 	}
@@ -1007,7 +1012,8 @@ func (fbo *FolderBranchOps) syncBlockAndFinalizeLocked(md *RootMetadata,
 
 // entryType must not by Sym.  writerLock must be taken by caller.
 func (fbo *FolderBranchOps) createEntryLocked(
-	dir Path, name string, entryType EntryType) (Path, DirEntry, error) {
+	ctx context.Context, dir Path, name string, entryType EntryType) (
+	Path, DirEntry, error) {
 	// verify we have permission to write
 	md, err := fbo.getMDForWriteLocked(dir)
 	if err != nil {
@@ -1046,13 +1052,13 @@ func (fbo *FolderBranchOps) createEntryLocked(
 		}
 	}
 
-	return fbo.syncBlockAndFinalizeLocked(md, newBlock, dir, name, entryType,
-		true, true, zeroPtr)
+	return fbo.syncBlockAndFinalizeLocked(ctx, md, newBlock, dir, name,
+		entryType, true, true, zeroPtr)
 }
 
 // CreateDir implements the KBFSOps interface for FolderBranchOps
-func (fbo *FolderBranchOps) CreateDir(dir Path, path string) (
-	Path, DirEntry, error) {
+func (fbo *FolderBranchOps) CreateDir(
+	ctx context.Context, dir Path, path string) (Path, DirEntry, error) {
 	err := fbo.checkPath(dir)
 	if err != nil {
 		return Path{}, DirEntry{}, err
@@ -1060,11 +1066,12 @@ func (fbo *FolderBranchOps) CreateDir(dir Path, path string) (
 
 	fbo.writerLock.Lock()
 	defer fbo.writerLock.Unlock()
-	return fbo.createEntryLocked(dir, path, Dir)
+	return fbo.createEntryLocked(ctx, dir, path, Dir)
 }
 
 // CreateFile implements the KBFSOps interface for FolderBranchOps
-func (fbo *FolderBranchOps) CreateFile(dir Path, path string, isExec bool) (
+func (fbo *FolderBranchOps) CreateFile(
+	ctx context.Context, dir Path, path string, isExec bool) (
 	p Path, de DirEntry, err error) {
 	err = fbo.checkPath(dir)
 	if err != nil {
@@ -1080,12 +1087,13 @@ func (fbo *FolderBranchOps) CreateFile(dir Path, path string, isExec bool) (
 
 	fbo.writerLock.Lock()
 	defer fbo.writerLock.Unlock()
-	return fbo.createEntryLocked(dir, path, entryType)
+	return fbo.createEntryLocked(ctx, dir, path, entryType)
 }
 
 // writerLock must be taken by caller.
 func (fbo *FolderBranchOps) createLinkLocked(
-	dir Path, fromPath string, toPath string) (Path, DirEntry, error) {
+	ctx context.Context, dir Path, fromPath string, toPath string) (
+	Path, DirEntry, error) {
 	// verify we have permission to write
 	md, err := fbo.getMDForWriteLocked(dir)
 	if err != nil {
@@ -1117,14 +1125,15 @@ func (fbo *FolderBranchOps) createLinkLocked(
 	}
 
 	newPath, _, err := fbo.syncBlockAndFinalizeLocked(
-		md, dblock, *dir.ParentPath(), dir.TailName(), Dir,
+		ctx, md, dblock, *dir.ParentPath(), dir.TailName(), Dir,
 		true, true, zeroPtr)
 	return newPath, dblock.Children[fromPath], err
 }
 
 // CreateLink implements the KBFSOps interface for FolderBranchOps
 func (fbo *FolderBranchOps) CreateLink(
-	dir Path, fromPath string, toPath string) (Path, DirEntry, error) {
+	ctx context.Context, dir Path, fromPath string, toPath string) (
+	Path, DirEntry, error) {
 	err := fbo.checkPath(dir)
 	if err != nil {
 		return Path{}, DirEntry{}, err
@@ -1132,12 +1141,12 @@ func (fbo *FolderBranchOps) CreateLink(
 
 	fbo.writerLock.Lock()
 	defer fbo.writerLock.Unlock()
-	return fbo.createLinkLocked(dir, fromPath, toPath)
+	return fbo.createLinkLocked(ctx, dir, fromPath, toPath)
 }
 
 // writerLock must be taken by caller.
-func (fbo *FolderBranchOps) removeEntryLocked(md *RootMetadata, path Path) (
-	Path, error) {
+func (fbo *FolderBranchOps) removeEntryLocked(ctx context.Context,
+	md *RootMetadata, path Path) (Path, error) {
 	parentPath := *path.ParentPath()
 	name := path.TailName()
 
@@ -1181,13 +1190,14 @@ func (fbo *FolderBranchOps) removeEntryLocked(md *RootMetadata, path Path) (
 
 	// sync the parent directory
 	newPath, _, err := fbo.syncBlockAndFinalizeLocked(
-		md, pblock, *parentPath.ParentPath(), parentPath.TailName(),
+		ctx, md, pblock, *parentPath.ParentPath(), parentPath.TailName(),
 		Dir, true, true, zeroPtr)
 	return newPath, err
 }
 
 // RemoveDir implements the KBFSOps interface for FolderBranchOps
-func (fbo *FolderBranchOps) RemoveDir(dir Path) (p Path, err error) {
+func (fbo *FolderBranchOps) RemoveDir(
+	ctx context.Context, dir Path) (p Path, err error) {
 	err = fbo.checkPath(dir)
 	if err != nil {
 		return
@@ -1212,11 +1222,12 @@ func (fbo *FolderBranchOps) RemoveDir(dir Path) (p Path, err error) {
 	}
 	fbo.blockLock.RUnlock()
 
-	return fbo.removeEntryLocked(md, dir)
+	return fbo.removeEntryLocked(ctx, md, dir)
 }
 
 // RemoveEntry implements the KBFSOps interface for FolderBranchOps
-func (fbo *FolderBranchOps) RemoveEntry(file Path) (p Path, err error) {
+func (fbo *FolderBranchOps) RemoveEntry(ctx context.Context, file Path) (
+	p Path, err error) {
 	err = fbo.checkPath(file)
 	if err != nil {
 		return
@@ -1231,13 +1242,13 @@ func (fbo *FolderBranchOps) RemoveEntry(file Path) (p Path, err error) {
 		return Path{}, err
 	}
 
-	return fbo.removeEntryLocked(md, file)
+	return fbo.removeEntryLocked(ctx, md, file)
 }
 
 // writerLock must be taken by caller.
 func (fbo *FolderBranchOps) renameLocked(
-	oldParent Path, oldName string, newParent Path, newName string) (
-	Path, Path, error) {
+	ctx context.Context, oldParent Path, oldName string, newParent Path,
+	newName string) (Path, Path, error) {
 	// verify we have permission to write
 	md, err := fbo.getMDForWriteLocked(oldParent)
 	if err != nil {
@@ -1406,7 +1417,8 @@ func (fbo *FolderBranchOps) renameLocked(
 	if oldBps != nil {
 		newBps.mergeOtherBps(oldBps)
 	}
-	err = fbo.finalizeWriteLocked(md, newBps, []Path{newOldPath, newNewPath})
+	err = fbo.finalizeWriteLocked(
+		ctx, md, newBps, []Path{newOldPath, newNewPath})
 	if err != nil {
 		return Path{}, Path{}, err
 	}
@@ -1415,8 +1427,8 @@ func (fbo *FolderBranchOps) renameLocked(
 
 // Rename implements the KBFSOps interface for FolderBranchOps
 func (fbo *FolderBranchOps) Rename(
-	oldParent Path, oldName string, newParent Path, newName string) (
-	Path, Path, error) {
+	ctx context.Context, oldParent Path, oldName string, newParent Path,
+	newName string) (Path, Path, error) {
 	// only works for paths within the same topdir
 	if (oldParent.TopDir != newParent.TopDir) ||
 		(oldParent.Branch != newParent.Branch) ||
@@ -1431,7 +1443,7 @@ func (fbo *FolderBranchOps) Rename(
 
 	fbo.writerLock.Lock()
 	defer fbo.writerLock.Unlock()
-	return fbo.renameLocked(oldParent, oldName, newParent, newName)
+	return fbo.renameLocked(ctx, oldParent, oldName, newParent, newName)
 }
 
 // blockLock must be taken for reading by caller.
@@ -1524,8 +1536,8 @@ func (fbo *FolderBranchOps) readLocked(file Path, dest []byte, off int64) (
 }
 
 // Read implements the KBFSOps interface for FolderBranchOps
-func (fbo *FolderBranchOps) Read(file Path, dest []byte, off int64) (
-	int64, error) {
+func (fbo *FolderBranchOps) Read(
+	ctx context.Context, file Path, dest []byte, off int64) (int64, error) {
 	err := fbo.checkPath(file)
 	if err != nil {
 		return 0, err
@@ -1604,7 +1616,8 @@ func (fbo *FolderBranchOps) newRightBlockLocked(
 
 // blockLock must be taken for writing by the caller.
 func (fbo *FolderBranchOps) writeDataLocked(
-	md *RootMetadata, file Path, data []byte, off int64) error {
+	ctx context.Context, md *RootMetadata, file Path, data []byte,
+	off int64, doNotify bool) error {
 	// check writer status explicitly
 	user, err := fbo.config.KBPKI().GetLoggedInUser()
 	if err != nil {
@@ -1742,13 +1755,15 @@ func (fbo *FolderBranchOps) writeDataLocked(
 		}
 	}
 
-	fbo.notifyLocal(file)
+	if doNotify {
+		fbo.notifyLocal(ctx, file)
+	}
 	return nil
 }
 
 // Write implements the KBFSOps interface for FolderBranchOps
 func (fbo *FolderBranchOps) Write(
-	file Path, data []byte, off int64) error {
+	ctx context.Context, file Path, data []byte, off int64) error {
 	err := fbo.checkPath(file)
 	if err != nil {
 		return err
@@ -1770,7 +1785,7 @@ func (fbo *FolderBranchOps) Write(
 		fbo.doDeferWrite = false
 	}()
 
-	err = fbo.writeDataLocked(md, file, data, off)
+	err = fbo.writeDataLocked(ctx, md, file, data, off, true)
 	if err != nil {
 		return err
 	}
@@ -1787,8 +1802,9 @@ func (fbo *FolderBranchOps) Write(
 		dataCopy := make([]byte, len(data))
 		copy(dataCopy, data)
 		fbo.deferredWrites = append(fbo.deferredWrites,
-			func(rmd *RootMetadata, f Path) error {
-				return fbo.writeDataLocked(md, f, dataCopy, off)
+			func(ctx context.Context, rmd *RootMetadata, f Path) error {
+				return fbo.writeDataLocked(
+					ctx, md, f, dataCopy, off, false)
 			})
 	}
 
@@ -1797,7 +1813,8 @@ func (fbo *FolderBranchOps) Write(
 
 // blockLocked must be held for writing by the caller
 func (fbo *FolderBranchOps) truncateLocked(
-	md *RootMetadata, file Path, size uint64) error {
+	ctx context.Context, md *RootMetadata, file Path, size uint64,
+	doNotify bool) error {
 	// check writer status explicitly
 	user, err := fbo.config.KBPKI().GetLoggedInUser()
 	if err != nil {
@@ -1821,8 +1838,8 @@ func (fbo *FolderBranchOps) truncateLocked(
 	if currLen < iSize {
 		// if we need to extend the file, let's just do a write
 		moreNeeded := iSize - currLen
-		return fbo.writeDataLocked(
-			md, file, make([]byte, moreNeeded, moreNeeded), currLen)
+		return fbo.writeDataLocked(ctx, md, file, make([]byte, moreNeeded,
+			moreNeeded), currLen, doNotify)
 	} else if currLen == iSize {
 		// same size!
 		return nil
@@ -1900,12 +1917,15 @@ func (fbo *FolderBranchOps) truncateLocked(
 		return err
 	}
 
-	fbo.notifyLocal(file)
+	if doNotify {
+		fbo.notifyLocal(ctx, file)
+	}
 	return nil
 }
 
 // Truncate implements the KBFSOps interface for FolderBranchOps
-func (fbo *FolderBranchOps) Truncate(file Path, size uint64) error {
+func (fbo *FolderBranchOps) Truncate(
+	ctx context.Context, file Path, size uint64) error {
 	err := fbo.checkPath(file)
 	if err != nil {
 		return err
@@ -1927,7 +1947,7 @@ func (fbo *FolderBranchOps) Truncate(file Path, size uint64) error {
 		fbo.doDeferWrite = false
 	}()
 
-	err = fbo.truncateLocked(md, file, size)
+	err = fbo.truncateLocked(ctx, md, file, size, true)
 	if err != nil {
 		return err
 	}
@@ -1938,16 +1958,16 @@ func (fbo *FolderBranchOps) Truncate(file Path, size uint64) error {
 		// we have to redo this truncate once the sync is complete,
 		// using the new file path.
 		fbo.deferredWrites = append(fbo.deferredWrites,
-			func(rmd *RootMetadata, f Path) error {
-				return fbo.truncateLocked(md, f, size)
+			func(ctx context.Context, rmd *RootMetadata, f Path) error {
+				return fbo.truncateLocked(ctx, md, f, size, false)
 			})
 	}
 	return nil
 }
 
 // writerLock must be taken by caller.
-func (fbo *FolderBranchOps) setExLocked(file Path, ex bool) (
-	newPath Path, err error) {
+func (fbo *FolderBranchOps) setExLocked(
+	ctx context.Context, file Path, ex bool) (newPath Path, err error) {
 	// verify we have permission to write
 	md, err := fbo.getMDForWriteLocked(file)
 	if err != nil {
@@ -1988,12 +2008,12 @@ func (fbo *FolderBranchOps) setExLocked(file Path, ex bool) (
 		Path:   append(newParentPath.Path, file.Path[len(file.Path)-1]),
 	}
 
-	err = fbo.finalizeWriteLocked(md, bps, []Path{newPath})
+	err = fbo.finalizeWriteLocked(ctx, md, bps, []Path{newPath})
 	return
 }
 
 // SetEx implements the KBFSOps interface for FolderBranchOps
-func (fbo *FolderBranchOps) SetEx(file Path, ex bool) (
+func (fbo *FolderBranchOps) SetEx(ctx context.Context, file Path, ex bool) (
 	newPath Path, err error) {
 	err = fbo.checkPath(file)
 	if err != nil {
@@ -2002,13 +2022,12 @@ func (fbo *FolderBranchOps) SetEx(file Path, ex bool) (
 
 	fbo.writerLock.Lock()
 	defer fbo.writerLock.Unlock()
-	return fbo.setExLocked(file, ex)
-	return
+	return fbo.setExLocked(ctx, file, ex)
 }
 
 // writerLock must be taken by caller.
-func (fbo *FolderBranchOps) setMtimeLocked(file Path, mtime *time.Time) (
-	Path, error) {
+func (fbo *FolderBranchOps) setMtimeLocked(
+	ctx context.Context, file Path, mtime *time.Time) (Path, error) {
 	// verify we have permission to write
 	md, err := fbo.getMDForWriteLocked(file)
 	if err != nil {
@@ -2036,7 +2055,7 @@ func (fbo *FolderBranchOps) setMtimeLocked(file Path, mtime *time.Time) (
 		Branch: file.Branch,
 		Path:   append(newParentPath.Path, file.Path[len(file.Path)-1]),
 	}
-	err = fbo.finalizeWriteLocked(md, bps, []Path{newPath})
+	err = fbo.finalizeWriteLocked(ctx, md, bps, []Path{newPath})
 	if err != nil {
 		return Path{}, err
 	}
@@ -2044,8 +2063,8 @@ func (fbo *FolderBranchOps) setMtimeLocked(file Path, mtime *time.Time) (
 }
 
 // SetMtime implements the KBFSOps interface for FolderBranchOps
-func (fbo *FolderBranchOps) SetMtime(file Path, mtime *time.Time) (
-	p Path, err error) {
+func (fbo *FolderBranchOps) SetMtime(
+	ctx context.Context, file Path, mtime *time.Time) (p Path, err error) {
 	if mtime == nil {
 		// Can happen on some OSes (e.g. OSX) when trying to set the atime only
 		return file, nil
@@ -2058,7 +2077,7 @@ func (fbo *FolderBranchOps) SetMtime(file Path, mtime *time.Time) (
 
 	fbo.writerLock.Lock()
 	defer fbo.writerLock.Unlock()
-	return fbo.setMtimeLocked(file, mtime)
+	return fbo.setMtimeLocked(ctx, file, mtime)
 }
 
 // cacheLock should be taken by the caller
@@ -2073,7 +2092,8 @@ func (fbo *FolderBranchOps) mergeUnrefCacheLocked(file Path, md *RootMetadata) {
 }
 
 // writerLock must be taken by the caller.
-func (fbo *FolderBranchOps) syncLocked(file Path) (Path, error) {
+func (fbo *FolderBranchOps) syncLocked(ctx context.Context, file Path) (
+	Path, error) {
 	// if the cache for this file isn't dirty, we're done
 	fbo.blockLock.RLock()
 	bcache := fbo.config.BlockCache()
@@ -2320,7 +2340,7 @@ func (fbo *FolderBranchOps) syncLocked(file Path) (Path, error) {
 		return Path{}, err
 	}
 
-	err = fbo.finalizeWriteLocked(md, bps, []Path{newPath})
+	err = fbo.finalizeWriteLocked(ctx, md, bps, []Path{newPath})
 	if err != nil {
 		return Path{}, err
 	}
@@ -2367,7 +2387,7 @@ func (fbo *FolderBranchOps) syncLocked(file Path) (Path, error) {
 	fbo.deferredWrites = nil
 	for _, f := range writes {
 		// we can safely read head here because we hold writerLock
-		err = f(fbo.head, newPath)
+		err = f(ctx, fbo.head, newPath)
 		if err != nil {
 			// It's a little weird to return an error from a deferred
 			// write here. Hopefully that will never happen.
@@ -2379,7 +2399,8 @@ func (fbo *FolderBranchOps) syncLocked(file Path) (Path, error) {
 }
 
 // Sync implements the KBFSOps interface for FolderBranchOps
-func (fbo *FolderBranchOps) Sync(file Path) (p Path, err error) {
+func (fbo *FolderBranchOps) Sync(ctx context.Context, file Path) (
+	p Path, err error) {
 	err = fbo.checkPath(file)
 	if err != nil {
 		return
@@ -2387,7 +2408,7 @@ func (fbo *FolderBranchOps) Sync(file Path) (p Path, err error) {
 
 	fbo.writerLock.Lock()
 	defer fbo.writerLock.Unlock()
-	return fbo.syncLocked(file)
+	return fbo.syncLocked(ctx, file)
 }
 
 // RegisterForChanges registers a single Observer to receive
@@ -2415,18 +2436,19 @@ func (fbo *FolderBranchOps) UnregisterFromChanges(obs Observer) error {
 	return nil
 }
 
-func (fbo *FolderBranchOps) notifyLocal(path Path) {
+func (fbo *FolderBranchOps) notifyLocal(ctx context.Context, path Path) {
 	fbo.obsLock.RLock()
 	defer fbo.obsLock.RUnlock()
 	for _, obs := range fbo.observers {
-		obs.LocalChange(path)
+		obs.LocalChange(ctx, path)
 	}
 }
 
-func (fbo *FolderBranchOps) notifyBatch(dir DirID, paths []Path) {
+func (fbo *FolderBranchOps) notifyBatch(
+	ctx context.Context, dir DirID, paths []Path) {
 	fbo.obsLock.RLock()
 	defer fbo.obsLock.RUnlock()
 	for _, obs := range fbo.observers {
-		obs.BatchChanges(dir, paths)
+		obs.BatchChanges(ctx, dir, paths)
 	}
 }

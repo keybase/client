@@ -26,7 +26,7 @@ func (s *Symlink) Attr(ctx context.Context, a *fuse.Attr) error {
 	defer s.parent.folder.mu.RUnlock()
 
 	p := s.getPathLocked()
-	de, err := statPath(s.parent.folder.fs.config.KBFSOps(), p)
+	de, err := statPath(ctx, s.parent.folder.fs.config.KBFSOps(), p)
 	if err != nil {
 		return err
 	}
@@ -50,7 +50,7 @@ func (s *Symlink) Readlink(ctx context.Context, req *fuse.ReadlinkRequest) (stri
 	defer s.parent.folder.mu.RUnlock()
 
 	p := s.getPathLocked()
-	de, err := statPath(s.parent.folder.fs.config.KBFSOps(), p)
+	de, err := statPath(ctx, s.parent.folder.fs.config.KBFSOps(), p)
 	if err != nil {
 		return "", err
 	}

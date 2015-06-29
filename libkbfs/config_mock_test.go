@@ -2,19 +2,24 @@ package libkbfs
 
 import (
 	"github.com/golang/mock/gomock"
+	"golang.org/x/net/context"
 )
 
 type FakeObserver struct {
 	localUpdatePath  Path
 	batchUpdatePaths []Path
+	ctx              context.Context
 }
 
-func (fn *FakeObserver) LocalChange(path Path) {
+func (fn *FakeObserver) LocalChange(ctx context.Context, path Path) {
 	fn.localUpdatePath = path
+	fn.ctx = ctx
 }
 
-func (fn *FakeObserver) BatchChanges(dir DirID, paths []Path) {
+func (fn *FakeObserver) BatchChanges(
+	ctx context.Context, dir DirID, paths []Path) {
 	fn.batchUpdatePaths = paths
+	fn.ctx = ctx
 }
 
 type ConfigMock struct {

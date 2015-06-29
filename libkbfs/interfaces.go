@@ -6,6 +6,7 @@ import (
 
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/protocol/go"
+	"golang.org/x/net/context"
 )
 
 // Block just needs to be (de)serialized using msgpack
@@ -44,62 +45,74 @@ type BlockContext interface {
 // In this case, the modification will not be visible to other clients
 // until the KBFS code on this device performs automatic conflict
 // resolution in the background.
+//
+// All methods take a Context (see https://blog.golang.org/context),
+// and if that context is cancelled during the operation, KBFSOps will
+// abort any blocking calls and fail the operation with a
+// CanceledError.  Any notifications resulting from an operation will
+// also include this ctx (or a Context derived from it), allowing the
+// caller to determine whether the notification is a result of their
+// own action or an external action.
 type KBFSOps interface {
 	// GetFavDirs returns the logged-in user's list of favorite
 	// top-level folders.  This is a remote-access operation.
-	GetFavDirs() ([]DirID, error)
+	GetFavDirs(ctx context.Context) ([]DirID, error)
 	// GetOrCreateRootPathByHandle returns the root path, and root
 	// directory entry associated with the given DirHandle, if the
 	// logged-in user has read permissions to the top-level folder.
 	// It creates the folder if one doesn't exist yet, and the
 	// logged-in user has write permissions to the top-level folder.
 	// This is a remote-access operation.
-	GetOrCreateRootPathForHandle(handle *DirHandle) (Path, DirEntry, error)
+	GetOrCreateRootPathForHandle(ctx context.Context, handle *DirHandle) (
+		Path, DirEntry, error)
 	// GetRootPath returns the root path, root directory entry, and
 	// handle associated with the given DirID, if the logged-in user
 	// has read permissions to the top-level folder.  This is a
 	// remote-access operation.
-	GetRootPath(dir DirID) (Path, DirEntry, *DirHandle, error)
+	GetRootPath(ctx context.Context, dir DirID) (Path, DirEntry, *DirHandle,
+		error)
 	// GetDir returns the directory block (including a complete list
 	// of all the children in that directory and their metadata), if
 	// the logged-in user has read permission for the top-level
 	// folder.  This is a remote-access operation.
-	GetDir(dir Path) (*DirBlock, error)
+	GetDir(ctx context.Context, dir Path) (*DirBlock, error)
 	// CreateDir creates a new subdirectory under the given path, if
 	// the logged-in user has write permission to the top-level
 	// folder.  Returns the new Path for the created subdirectory, and
 	// its new directory entry.  This is a remote-sync operation.
-	CreateDir(dir Path, path string) (Path, DirEntry, error)
+	CreateDir(ctx context.Context, dir Path, path string) (
+		Path, DirEntry, error)
 	// CreateFile creates a new file under the given path, if the
 	// logged-in user has write permission to the top-level folder.
 	// Returns the new Path for the created file, and its new
 	// directory entry.  This is a remote-sync operation.
-	CreateFile(dir Path, path string, isEx bool) (Path, DirEntry, error)
+	CreateFile(ctx context.Context, dir Path, path string, isEx bool) (
+		Path, DirEntry, error)
 	// CreateLink creates a new symlink under the given path, if the
 	// logged-in user has write permission to the top-level folder.
 	// Returns the new Path for the created symlink, and its new
 	// directory entry.  This is a remote-sync operation.
-	CreateLink(dir Path, fromPath string, toPath string) (
+	CreateLink(ctx context.Context, dir Path, fromPath string, toPath string) (
 		Path, DirEntry, error)
 	// RemoveDir removes the subdirectory represented by the given
 	// path, if the logged-in user has write permission to the
 	// top-level folder.  Will return an error if the subdirectory is
 	// not empty.  Returns the new Path for the parent directory.
 	// This is a remote-sync operation.
-	RemoveDir(dir Path) (Path, error)
+	RemoveDir(ctx context.Context, dir Path) (Path, error)
 	// RemoveEntry removes the directory entry represented by the
 	// given path, if the logged-in user has write permission to the
 	// top-level folder.  Returns the new Path for the parent
 	// directory.  This is a remote-sync operation.
-	RemoveEntry(file Path) (Path, error)
+	RemoveEntry(ctx context.Context, file Path) (Path, error)
 	// Rename performs an atomic rename operation with a given
 	// top-level folder if the logged-in user has write permission to
 	// that folder, and will return an error if paths from different
 	// folders are passed in.  Returns an updated path for the old
 	// parent directory, and an updated path for the new directory
 	// entry.  This is a remote-sync operation.
-	Rename(oldParent Path, oldName string, newParent Path, newName string) (
-		Path, Path, error)
+	Rename(ctx context.Context, oldParent Path, oldName string, newParent Path,
+		newName string) (Path, Path, error)
 	// Read fills in the given buffer with data from the file at the
 	// given path starting at the given offset, if the logged-in user
 	// has read permission to the top-level folder.  The read data
@@ -111,7 +124,7 @@ type KBFSOps interface {
 	// unlinked file may or may not succeed, depending on whether or
 	// not the data has been cached locally.  This is a remote-access
 	// operation.
-	Read(file Path, dest []byte, off int64) (int64, error)
+	Read(ctx context.Context, file Path, dest []byte, off int64) (int64, error)
 	// Write modifies the file at the given path, by writing the given
 	// buffer at the given offset within the file, if the logged-in
 	// user has write permission to the top-level folder.  It
@@ -121,7 +134,7 @@ type KBFSOps interface {
 	// may or may not succeed as no-ops, depending on whether or not
 	// the necessary blocks have been locally cached.  This is a
 	// remote-access operation.
-	Write(file Path, data []byte, off int64) error
+	Write(ctx context.Context, file Path, data []byte, off int64) error
 	// Truncate modifies the file at the given path, by either
 	// shrinking or extending its size to match the given size, if the
 	// logged-in user has write permission to the top-level folder.
@@ -129,25 +142,25 @@ type KBFSOps interface {
 	// on an unlinked file may or may not succeed as no-ops, depending
 	// on whether or not the necessary blocks have been locally
 	// cached.  This is a remote-access operation.
-	Truncate(file Path, size uint64) error
+	Truncate(ctx context.Context, file Path, size uint64) error
 	// SetEx turns on or off the executable bit on the file
 	// represented by a given path, if the logged-in user has write
 	// permissions to the top-level folder.  It returns the updated
 	// path to the file.  This is a remote-sync operation.
-	SetEx(file Path, ex bool) (newPath Path, err error)
+	SetEx(ctx context.Context, file Path, ex bool) (newPath Path, err error)
 	// SetMtime sets the modification time on the file represented by
 	// a given path, if the logged-in user has write permissions to
 	// the top-level folder.  It returns the updated path to the
 	// file. If mtime is nil, it is a noop.  This is a remote-sync
 	// operation.
-	SetMtime(file Path, mtime *time.Time) (Path, error)
+	SetMtime(ctx context.Context, file Path, mtime *time.Time) (Path, error)
 	// Sync flushes all outstanding writes and truncates for the given
 	// file to the KBFS servers, if the logged-in user has write
 	// permissions to the top-level folder.  If done through a file
 	// system interface, this may include modifications done via
 	// multiple file handles.  It returns the updated path to the
 	// file.  This is a remote-sync operation.
-	Sync(file Path) (Path, error)
+	Sync(ctx context.Context, file Path) (Path, error)
 }
 
 // KBPKI interacts with kbpkid to fetch info from keybase
@@ -581,10 +594,10 @@ type Observer interface {
 	// LocalChange announces that the file at this path has been
 	// updated locally, but not yet saved at the server.  The nodes
 	// along the path are still identified by the same IDs.
-	LocalChange(path Path)
+	LocalChange(ctx context.Context, path Path)
 	// BatchChanges announces that the files at this path have all
 	// been updated together, and may have changed their IDs.
-	BatchChanges(dir DirID, paths []Path)
+	BatchChanges(ctx context.Context, dir DirID, paths []Path)
 	// TODO: Notify about changes in favorites list
 }
 

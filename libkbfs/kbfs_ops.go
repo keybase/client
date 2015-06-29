@@ -3,6 +3,8 @@ package libkbfs
 import (
 	"sync"
 	"time"
+
+	"golang.org/x/net/context"
 )
 
 // opID is a key for a particular Ops data structure, corresponding to
@@ -40,7 +42,7 @@ func (fs *KBFSOpsStandard) Shutdown() {
 }
 
 // GetFavDirs implements the KBFSOps interface for KBFSOpsStandard
-func (fs *KBFSOpsStandard) GetFavDirs() ([]DirID, error) {
+func (fs *KBFSOpsStandard) GetFavDirs(ctx context.Context) ([]DirID, error) {
 	mdops := fs.config.MDOps()
 	return mdops.GetFavorites()
 }
@@ -73,7 +75,8 @@ func (fs *KBFSOpsStandard) getOpsByPath(path Path) *FolderBranchOps {
 
 // GetOrCreateRootPathForHandle implements the KBFSOps interface for
 // KBFSOpsStandard
-func (fs *KBFSOpsStandard) GetOrCreateRootPathForHandle(handle *DirHandle) (
+func (fs *KBFSOpsStandard) GetOrCreateRootPathForHandle(
+	ctx context.Context, handle *DirHandle) (
 	path Path, de DirEntry, err error) {
 	// Do GetForHandle() unlocked -- no cache lookups, should be fine
 	mdops := fs.config.MDOps()
@@ -84,66 +87,72 @@ func (fs *KBFSOpsStandard) GetOrCreateRootPathForHandle(handle *DirHandle) (
 
 	// TODO: add a 'branch' parameter
 	ops := fs.getOps(opID{tlf: md.ID, branch: MasterBranch})
-	err = ops.CheckForNewMDAndInit(md)
+	err = ops.CheckForNewMDAndInit(ctx, md)
 	if err != nil {
 		return
 	}
 
-	path, de, _, err = ops.GetRootPath(md.ID)
+	path, de, _, err = ops.GetRootPath(ctx, md.ID)
 	return
 }
 
 // GetRootPath implements the KBFSOps interface for KBFSOpsStandard
-func (fs *KBFSOpsStandard) GetRootPath(dir DirID) (
+func (fs *KBFSOpsStandard) GetRootPath(ctx context.Context, dir DirID) (
 	path Path, de DirEntry, handle *DirHandle, err error) {
 	// TODO: add a 'branch' parameter
 	ops := fs.getOps(opID{tlf: dir, branch: MasterBranch})
-	return ops.GetRootPath(dir)
+	return ops.GetRootPath(ctx, dir)
 }
 
 // GetDir implements the KBFSOps interface for KBFSOpsStandard
-func (fs *KBFSOpsStandard) GetDir(dir Path) (block *DirBlock, err error) {
+func (fs *KBFSOpsStandard) GetDir(ctx context.Context, dir Path) (
+	block *DirBlock, err error) {
 	ops := fs.getOpsByPath(dir)
-	return ops.GetDir(dir)
+	return ops.GetDir(ctx, dir)
 }
 
 // CreateDir implements the KBFSOps interface for KBFSOpsStandard
-func (fs *KBFSOpsStandard) CreateDir(dir Path, path string) (
+func (fs *KBFSOpsStandard) CreateDir(
+	ctx context.Context, dir Path, path string) (
 	p Path, de DirEntry, err error) {
 	ops := fs.getOpsByPath(dir)
-	return ops.CreateDir(dir, path)
+	return ops.CreateDir(ctx, dir, path)
 }
 
 // CreateFile implements the KBFSOps interface for KBFSOpsStandard
-func (fs *KBFSOpsStandard) CreateFile(dir Path, path string, isExec bool) (
+func (fs *KBFSOpsStandard) CreateFile(
+	ctx context.Context, dir Path, path string, isExec bool) (
 	p Path, de DirEntry, err error) {
 	ops := fs.getOpsByPath(dir)
-	return ops.CreateFile(dir, path, isExec)
+	return ops.CreateFile(ctx, dir, path, isExec)
 }
 
 // CreateLink implements the KBFSOps interface for KBFSOpsStandard
 func (fs *KBFSOpsStandard) CreateLink(
-	dir Path, fromPath string, toPath string) (p Path, de DirEntry, err error) {
+	ctx context.Context, dir Path, fromPath string, toPath string) (
+	p Path, de DirEntry, err error) {
 	ops := fs.getOpsByPath(dir)
-	return ops.CreateLink(dir, fromPath, toPath)
+	return ops.CreateLink(ctx, dir, fromPath, toPath)
 }
 
 // RemoveDir implements the KBFSOps interface for KBFSOpsStandard
-func (fs *KBFSOpsStandard) RemoveDir(dir Path) (p Path, err error) {
+func (fs *KBFSOpsStandard) RemoveDir(ctx context.Context, dir Path) (
+	p Path, err error) {
 	ops := fs.getOpsByPath(dir)
-	return ops.RemoveDir(dir)
+	return ops.RemoveDir(ctx, dir)
 }
 
 // RemoveEntry implements the KBFSOps interface for KBFSOpsStandard
-func (fs *KBFSOpsStandard) RemoveEntry(file Path) (p Path, err error) {
+func (fs *KBFSOpsStandard) RemoveEntry(ctx context.Context, file Path) (
+	p Path, err error) {
 	ops := fs.getOpsByPath(file)
-	return ops.RemoveEntry(file)
+	return ops.RemoveEntry(ctx, file)
 }
 
 // Rename implements the KBFSOps interface for KBFSOpsStandard
 func (fs *KBFSOpsStandard) Rename(
-	oldParent Path, oldName string, newParent Path, newName string) (
-	oldP Path, newP Path, err error) {
+	ctx context.Context, oldParent Path, oldName string, newParent Path,
+	newName string) (oldP Path, newP Path, err error) {
 	// only works for paths within the same topdir
 	if (oldParent.TopDir != newParent.TopDir) ||
 		(oldParent.Branch != newParent.Branch) ||
@@ -152,45 +161,50 @@ func (fs *KBFSOpsStandard) Rename(
 	}
 
 	ops := fs.getOpsByPath(oldParent)
-	return ops.Rename(oldParent, oldName, newParent, newName)
+	return ops.Rename(ctx, oldParent, oldName, newParent, newName)
 }
 
 // Read implements the KBFSOps interface for KBFSOpsStandard
-func (fs *KBFSOpsStandard) Read(file Path, dest []byte, off int64) (
+func (fs *KBFSOpsStandard) Read(
+	ctx context.Context, file Path, dest []byte, off int64) (
 	numRead int64, err error) {
 	ops := fs.getOpsByPath(file)
-	return ops.Read(file, dest, off)
+	return ops.Read(ctx, file, dest, off)
 }
 
 // Write implements the KBFSOps interface for KBFSOpsStandard
-func (fs *KBFSOpsStandard) Write(file Path, data []byte, off int64) error {
+func (fs *KBFSOpsStandard) Write(
+	ctx context.Context, file Path, data []byte, off int64) error {
 	ops := fs.getOpsByPath(file)
-	return ops.Write(file, data, off)
+	return ops.Write(ctx, file, data, off)
 }
 
 // Truncate implements the KBFSOps interface for KBFSOpsStandard
-func (fs *KBFSOpsStandard) Truncate(file Path, size uint64) error {
+func (fs *KBFSOpsStandard) Truncate(
+	ctx context.Context, file Path, size uint64) error {
 	ops := fs.getOpsByPath(file)
-	return ops.Truncate(file, size)
+	return ops.Truncate(ctx, file, size)
 }
 
 // SetEx implements the KBFSOps interface for KBFSOpsStandard
-func (fs *KBFSOpsStandard) SetEx(file Path, ex bool) (newPath Path, err error) {
+func (fs *KBFSOpsStandard) SetEx(ctx context.Context, file Path, ex bool) (
+	newPath Path, err error) {
 	ops := fs.getOpsByPath(file)
-	return ops.SetEx(file, ex)
+	return ops.SetEx(ctx, file, ex)
 }
 
 // SetMtime implements the KBFSOps interface for KBFSOpsStandard
-func (fs *KBFSOpsStandard) SetMtime(file Path, mtime *time.Time) (
-	p Path, err error) {
+func (fs *KBFSOpsStandard) SetMtime(
+	ctx context.Context, file Path, mtime *time.Time) (p Path, err error) {
 	ops := fs.getOpsByPath(file)
-	return ops.SetMtime(file, mtime)
+	return ops.SetMtime(ctx, file, mtime)
 }
 
 // Sync implements the KBFSOps interface for KBFSOpsStandard
-func (fs *KBFSOpsStandard) Sync(file Path) (p Path, err error) {
+func (fs *KBFSOpsStandard) Sync(ctx context.Context, file Path) (
+	p Path, err error) {
 	ops := fs.getOpsByPath(file)
-	return ops.Sync(file)
+	return ops.Sync(ctx, file)
 }
 
 // Notifier:

@@ -5,7 +5,10 @@ import (
 
 	"bazil.org/fuse"
 	"github.com/keybase/kbfs/libkbfs"
+	"golang.org/x/net/context"
 )
+
+var ctxAppIDKey = "kbfsfuse-app-id"
 
 // statPath gets the path from KBFSOps. The path must not refer to a
 // top-level folder.
@@ -13,9 +16,10 @@ import (
 // This function assumes that the path referred to was once an
 // existing path. Thus, it returns ESTALE if the path cannot be found
 // anymore.
-func statPath(ops libkbfs.KBFSOps, p libkbfs.Path) (*libkbfs.DirEntry, error) {
+func statPath(ctx context.Context, ops libkbfs.KBFSOps, p libkbfs.Path) (
+	*libkbfs.DirEntry, error) {
 	pp := *p.ParentPath()
-	dir, err := ops.GetDir(pp)
+	dir, err := ops.GetDir(ctx, pp)
 	if err != nil {
 		return nil, err
 	}

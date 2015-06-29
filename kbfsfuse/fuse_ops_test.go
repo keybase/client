@@ -9,6 +9,7 @@ import (
 	"github.com/hanwen/go-fuse/fuse/nodefs"
 	keybase1 "github.com/keybase/client/protocol/go"
 	"github.com/keybase/kbfs/libkbfs"
+	"golang.org/x/net/context"
 )
 
 func doLookupOrBust(t *testing.T, parent *FuseNode, name string) *FuseNode {
@@ -46,7 +47,7 @@ func waitForUpdates(node *FuseNode) {
 func TestLookupSelfPublic(t *testing.T) {
 	config := libkbfs.MakeTestConfigOrBust(t, *BServerRemote, "test_user")
 
-	root := NewFuseRoot(config)
+	root := NewFuseRoot(context.Background(), config)
 	_ = nodefs.NewFileSystemConnector(root, nil)
 
 	node1 := doLookupOrBust(t, root, "test_user")
@@ -61,7 +62,7 @@ func TestLookupOtherPublic(t *testing.T) {
 	// First, look up the test_user1/public as test_user1 to
 	// create it.
 
-	root := NewFuseRoot(config)
+	root := NewFuseRoot(context.Background(), config)
 	_ = nodefs.NewFileSystemConnector(root, nil)
 
 	node1 := doLookupOrBust(t, root, "test_user1")
@@ -71,7 +72,7 @@ func TestLookupOtherPublic(t *testing.T) {
 
 	config.KBPKI().(*libkbfs.KBPKILocal).LoggedIn = keybase1.MakeTestUID(2)
 	config.SetMDCache(libkbfs.NewMDCacheStandard(5000))
-	root = NewFuseRoot(config)
+	root = NewFuseRoot(context.Background(), config)
 	_ = nodefs.NewFileSystemConnector(root, nil)
 
 	// Then, do the lookup again as test_user2.
@@ -88,7 +89,7 @@ func TestLookupOtherPrivateFile(t *testing.T) {
 	// First, look up the test_user1/public as test_user1 to
 	// create it.
 
-	root := NewFuseRoot(config)
+	root := NewFuseRoot(context.Background(), config)
 	_ = nodefs.NewFileSystemConnector(root, nil)
 
 	node1 := doLookupOrBust(t, root, "test_user1")
@@ -98,7 +99,7 @@ func TestLookupOtherPrivateFile(t *testing.T) {
 
 	config.KBPKI().(*libkbfs.KBPKILocal).LoggedIn = keybase1.MakeTestUID(2)
 	config.SetMDCache(libkbfs.NewMDCacheStandard(5000))
-	root = NewFuseRoot(config)
+	root = NewFuseRoot(context.Background(), config)
 	_ = nodefs.NewFileSystemConnector(root, nil)
 
 	// Then, do the lookup again as test_user2.
@@ -162,7 +163,7 @@ func checkPathBlockPointers(
 func TestNeedUpdateBasic(t *testing.T) {
 	config := libkbfs.MakeTestConfigOrBust(t, *BServerRemote, "test_user")
 
-	root := NewFuseRoot(config)
+	root := NewFuseRoot(context.Background(), config)
 	_ = nodefs.NewFileSystemConnector(root, nil)
 
 	if root.NeedUpdate {
@@ -196,7 +197,7 @@ func TestNeedUpdateBasic(t *testing.T) {
 func TestNeedUpdateAll(t *testing.T) {
 	config := libkbfs.MakeTestConfigOrBust(t, *BServerRemote, "test_user")
 
-	root := NewFuseRoot(config)
+	root := NewFuseRoot(context.Background(), config)
 	_ = nodefs.NewFileSystemConnector(root, nil)
 
 	// Make /test_user/dir1/dir2/dir3 and clear their NeedUpdate
@@ -225,7 +226,7 @@ func TestNeedUpdateAll(t *testing.T) {
 func TestLocalUpdateAll(t *testing.T) {
 	config := libkbfs.MakeTestConfigOrBust(t, *BServerRemote, "test_user")
 
-	root := NewFuseRoot(config)
+	root := NewFuseRoot(context.Background(), config)
 	_ = nodefs.NewFileSystemConnector(root, nil)
 
 	// Make /test_user/dir1/dir2/dir3 and clear their NeedUpdate
@@ -247,7 +248,7 @@ func TestLocalUpdateAll(t *testing.T) {
 func TestPartialLocalUpdate(t *testing.T) {
 	config := libkbfs.MakeTestConfigOrBust(t, *BServerRemote, "test_user")
 
-	root := NewFuseRoot(config)
+	root := NewFuseRoot(context.Background(), config)
 	_ = nodefs.NewFileSystemConnector(root, nil)
 
 	node1 := doLookupOrBust(t, root, "test_user")
@@ -266,7 +267,7 @@ func TestPartialLocalUpdate(t *testing.T) {
 			libkbfs.PathNode{Name: "dir3"},
 		},
 	}
-	root.Ops.LocalChange(newPath)
+	root.Ops.LocalChange(root.Ops.ctx, newPath)
 	root.Ops.Shutdown()
 
 	nodes := []*FuseNode{root, node1, node2}
@@ -279,7 +280,7 @@ func TestPartialLocalUpdate(t *testing.T) {
 func TestPartialBatchUpdate(t *testing.T) {
 	config := libkbfs.MakeTestConfigOrBust(t, *BServerRemote, "test_user")
 
-	root := NewFuseRoot(config)
+	root := NewFuseRoot(context.Background(), config)
 	_ = nodefs.NewFileSystemConnector(root, nil)
 
 	node1 := doLookupOrBust(t, root, "test_user")
@@ -295,7 +296,7 @@ func TestPartialBatchUpdate(t *testing.T) {
 			libkbfs.PathNode{Name: "dir2"},
 			libkbfs.PathNode{Name: "dir3"},
 		}}
-	root.Ops.BatchChanges(node1.Dir, []libkbfs.Path{newPath})
+	root.Ops.BatchChanges(root.Ops.ctx, node1.Dir, []libkbfs.Path{newPath})
 	root.Ops.Shutdown()
 
 	nodes := []*FuseNode{root, node1, node2}
@@ -323,7 +324,7 @@ func testCompleteBatchUpdate(t *testing.T, root *FuseNode, folderName string) {
 
 	// finally, update again using the old path, to verify that the
 	// IDs change back correctly.
-	root.Ops.BatchChanges(node1.Dir, []libkbfs.Path{newPath})
+	root.Ops.BatchChanges(root.Ops.ctx, node1.Dir, []libkbfs.Path{newPath})
 	root.Ops.Shutdown()
 
 	nodes := []*FuseNode{root, node1, node2}
@@ -338,7 +339,7 @@ func testCompleteBatchUpdate(t *testing.T, root *FuseNode, folderName string) {
 func TestCompleteBatchUpdatePrivate(t *testing.T) {
 	config := libkbfs.MakeTestConfigOrBust(t, *BServerRemote, "test_user")
 
-	root := NewFuseRoot(config)
+	root := NewFuseRoot(context.Background(), config)
 	_ = nodefs.NewFileSystemConnector(root, nil)
 	testCompleteBatchUpdate(t, root, "test_user")
 }
@@ -349,7 +350,7 @@ func TestCompleteBatchUpdatePrivate(t *testing.T) {
 func TestCompleteBatchUpdatePublic(t *testing.T) {
 	config := libkbfs.MakeTestConfigOrBust(t, *BServerRemote, "test_user")
 
-	root := NewFuseRoot(config)
+	root := NewFuseRoot(context.Background(), config)
 	_ = nodefs.NewFileSystemConnector(root, nil)
 
 	userRoot := doLookupOrBust(t, root, "test_user")
@@ -360,7 +361,7 @@ func TestCompleteBatchUpdatePublic(t *testing.T) {
 func TestSetMtime(t *testing.T) {
 	config := libkbfs.MakeTestConfigOrBust(t, *BServerRemote, "test_user")
 
-	root := NewFuseRoot(config)
+	root := NewFuseRoot(context.Background(), config)
 	_ = nodefs.NewFileSystemConnector(root, nil)
 
 	node1 := doLookupOrBust(t, root, "test_user")

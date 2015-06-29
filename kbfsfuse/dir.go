@@ -48,7 +48,7 @@ func (d *Dir) Attr(ctx context.Context, a *fuse.Attr) error {
 		// Top-level folder
 		_, rootDe, err :=
 			d.folder.fs.config.KBFSOps().GetOrCreateRootPathForHandle(
-				d.folder.dh)
+				ctx, d.folder.dh)
 		if err != nil {
 			return err
 		}
@@ -56,7 +56,8 @@ func (d *Dir) Attr(ctx context.Context, a *fuse.Attr) error {
 
 	default:
 		// Not a top-level folder => GetDir is safe.
-		de, err := statPath(d.folder.fs.config.KBFSOps(), d.getPathLocked())
+		de, err := statPath(ctx, d.folder.fs.config.KBFSOps(),
+			d.getPathLocked())
 		if err != nil {
 			return err
 		}
@@ -118,7 +119,8 @@ func (d *Dir) Lookup(ctx context.Context, req *fuse.LookupRequest, resp *fuse.Lo
 			Readers: []keybase1.UID{keybase1.PublicUID},
 		}
 		rootPath, _, err :=
-			d.folder.fs.config.KBFSOps().GetOrCreateRootPathForHandle(dhPub)
+			d.folder.fs.config.KBFSOps().
+				GetOrCreateRootPathForHandle(ctx, dhPub)
 		if err != nil {
 			return nil, err
 		}
@@ -138,7 +140,7 @@ func (d *Dir) Lookup(ctx context.Context, req *fuse.LookupRequest, resp *fuse.Lo
 		return child, nil
 	}
 
-	dirBlock, err := d.folder.fs.config.KBFSOps().GetDir(p)
+	dirBlock, err := d.folder.fs.config.KBFSOps().GetDir(ctx, p)
 	if err != nil {
 		return nil, err
 	}
@@ -192,7 +194,8 @@ func (d *Dir) Create(ctx context.Context, req *fuse.CreateRequest, resp *fuse.Cr
 	defer d.folder.mu.Unlock()
 
 	isExec := (req.Mode.Perm() & 0100) != 0
-	pChild, de, err := d.folder.fs.config.KBFSOps().CreateFile(d.getPathLocked(), req.Name, isExec)
+	pChild, de, err := d.folder.fs.config.KBFSOps().CreateFile(
+		ctx, d.getPathLocked(), req.Name, isExec)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -215,7 +218,8 @@ func (d *Dir) Mkdir(ctx context.Context, req *fuse.MkdirRequest) (fs.Node, error
 	d.folder.mu.Lock()
 	defer d.folder.mu.Unlock()
 
-	pChild, de, err := d.folder.fs.config.KBFSOps().CreateDir(d.getPathLocked(), req.Name)
+	pChild, de, err := d.folder.fs.config.KBFSOps().CreateDir(
+		ctx, d.getPathLocked(), req.Name)
 	if err != nil {
 		return nil, err
 	}
@@ -239,7 +243,8 @@ func (d *Dir) Symlink(ctx context.Context, req *fuse.SymlinkRequest) (fs.Node, e
 	d.folder.mu.Lock()
 	defer d.folder.mu.Unlock()
 
-	p, _, err := d.folder.fs.config.KBFSOps().CreateLink(d.getPathLocked(), req.NewName, req.Target)
+	p, _, err := d.folder.fs.config.KBFSOps().CreateLink(
+		ctx, d.getPathLocked(), req.NewName, req.Target)
 	if err != nil {
 		return nil, err
 	}
@@ -284,7 +289,8 @@ func (d *Dir) Rename(ctx context.Context, req *fuse.RenameRequest, newDir fs.Nod
 	oldParent := d.getPathLocked()
 	newParent := newDir2.getPathLocked()
 
-	pOld, pNew, err := d.folder.fs.config.KBFSOps().Rename(oldParent, req.OldName, newParent, req.NewName)
+	pOld, pNew, err := d.folder.fs.config.KBFSOps().Rename(
+		ctx, oldParent, req.OldName, newParent, req.NewName)
 	if err != nil {
 		return err
 	}
@@ -303,7 +309,7 @@ func (d *Dir) Remove(ctx context.Context, req *fuse.RemoveRequest) error {
 	defer d.folder.mu.Unlock()
 
 	p := d.getPathLocked()
-	dirBlock, err := d.folder.fs.config.KBFSOps().GetDir(p)
+	dirBlock, err := d.folder.fs.config.KBFSOps().GetDir(ctx, p)
 	if err != nil {
 		return err
 	}
@@ -327,9 +333,9 @@ func (d *Dir) Remove(ctx context.Context, req *fuse.RemoveRequest) error {
 
 	var p2 libkbfs.Path
 	if req.Dir {
-		p2, err = d.folder.fs.config.KBFSOps().RemoveDir(p)
+		p2, err = d.folder.fs.config.KBFSOps().RemoveDir(ctx, p)
 	} else {
-		p2, err = d.folder.fs.config.KBFSOps().RemoveEntry(p)
+		p2, err = d.folder.fs.config.KBFSOps().RemoveEntry(ctx, p)
 	}
 	if err != nil {
 		return err
@@ -363,7 +369,7 @@ func (d *Dir) ReadDirAll(ctx context.Context) ([]fuse.Dirent, error) {
 		return res, nil
 	}
 
-	dirBlock, err := d.folder.fs.config.KBFSOps().GetDir(p)
+	dirBlock, err := d.folder.fs.config.KBFSOps().GetDir(ctx, p)
 	if err != nil {
 		return nil, err
 	}

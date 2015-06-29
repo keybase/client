@@ -480,3 +480,10 @@ func (e WrongOpsError) Error() string {
 	return fmt.Sprintf("Ops for folder %v, branch %s, was given path %s, "+
 		"branch %s", e.opsID, e.opsBranch, e.path, e.path.Branch)
 }
+
+type CanceledError struct {
+}
+
+func (e CanceledError) Error() string {
+	return "The operation was canceled."
+}

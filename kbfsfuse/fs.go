@@ -2,6 +2,7 @@ package main
 
 import (
 	"log"
+	"math/rand"
 	"os"
 	"sync"
 
@@ -15,7 +16,8 @@ func logMsg(msg interface{}) {
 	log.Printf("FUSE: %s\n", msg)
 }
 
-func runNewFUSE(config *libkbfs.ConfigLocal, debug bool, mountpoint string) error {
+func runNewFUSE(ctx context.Context, config *libkbfs.ConfigLocal, debug bool,
+	mountpoint string) error {
 	if debug {
 		fuse.Debug = logMsg
 	}
@@ -27,6 +29,7 @@ func runNewFUSE(config *libkbfs.ConfigLocal, debug bool, mountpoint string) erro
 	defer c.Close()
 
 	filesys := &FS{
+		ctx:    context.WithValue(ctx, ctxAppIDKey, rand.Int63()),
 		config: config,
 	}
 	if err := fs.Serve(c, filesys); err != nil {
@@ -44,6 +47,7 @@ func runNewFUSE(config *libkbfs.ConfigLocal, debug bool, mountpoint string) erro
 
 // FS implements the newfuse FS interface for KBFS.
 type FS struct {
+	ctx    context.Context
 	config *libkbfs.ConfigLocal
 }
 
@@ -80,7 +84,7 @@ var _ fs.NodeRequestLookuper = (*Root)(nil)
 // useful results for home folders with public subdirectories.
 func (r *Root) getMD(dh *libkbfs.DirHandle) (libkbfs.DirID, libkbfs.BlockPointer, error) {
 	rootPath, rootDe, err :=
-		r.fs.config.KBFSOps().GetOrCreateRootPathForHandle(dh)
+		r.fs.config.KBFSOps().GetOrCreateRootPathForHandle(r.fs.ctx, dh)
 	if err != nil {
 		if _, ok := err.(*libkbfs.ReadAccessError); ok && dh.HasPublic() {
 			// This user cannot get the metadata for the folder, but
@@ -152,7 +156,7 @@ func (r *Root) getDirent(ctx context.Context, work <-chan libkbfs.DirID, results
 			if !ok {
 				return nil
 			}
-			_, _, dh, err := r.fs.config.KBFSOps().GetRootPath(dirID)
+			_, _, dh, err := r.fs.config.KBFSOps().GetRootPath(ctx, dirID)
 			if err != nil {
 				return err
 			}
@@ -169,7 +173,7 @@ func (r *Root) getDirent(ctx context.Context, work <-chan libkbfs.DirID, results
 
 // ReadDirAll implements the ReadDirAll interface for Root.
 func (r *Root) ReadDirAll(ctx context.Context) ([]fuse.Dirent, error) {
-	favs, err := r.fs.config.KBFSOps().GetFavDirs()
+	favs, err := r.fs.config.KBFSOps().GetFavDirs(ctx)
 	if err != nil {
 		return nil, err
 	}

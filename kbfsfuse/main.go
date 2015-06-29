@@ -14,6 +14,7 @@ import (
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/protocol/go"
 	"github.com/keybase/kbfs/libkbfs"
+	"golang.org/x/net/context"
 )
 
 var cpuprofile = flag.String("cpuprofile", "", "write cpu profile to file")
@@ -89,6 +90,8 @@ func main() {
 	client.InitUI()
 	libkb.G.UI.Configure()
 
+	ctx := context.Background()
+
 	if *local {
 		users := []string{"strib", "max", "chris", "fred"}
 		userIndex := -1
@@ -137,11 +140,11 @@ func main() {
 	}
 
 	if *newFUSE {
-		if err := runNewFUSE(config, *debug, flag.Arg(0)); err != nil {
+		if err := runNewFUSE(ctx, config, *debug, flag.Arg(0)); err != nil {
 			log.Fatalf("error serving filesystem: %v", err)
 		}
 	} else {
-		if err := runHanwenFUSE(config, *debug, flag.Arg(0)); err != nil {
+		if err := runHanwenFUSE(ctx, config, *debug, flag.Arg(0)); err != nil {
 			log.Fatalf("error serving filesystem: %v", err)
 		}
 	}

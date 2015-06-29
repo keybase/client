@@ -20,6 +20,7 @@ import (
 
 func makeFS(t testing.TB, config *libkbfs.ConfigLocal) *fstestutil.Mount {
 	filesys := &FS{
+		ctx:    context.Background(),
 		config: config,
 	}
 	mnt, err := fstestutil.MountedT(t, filesys)
@@ -159,7 +160,8 @@ func TestReaddirRoot(t *testing.T) {
 		if err != nil {
 			t.Fatalf("cannot parse jdoe as folder: %v", err)
 		}
-		if _, _, err := config.KBFSOps().GetOrCreateRootPathForHandle(dh); err != nil {
+		if _, _, err := config.KBFSOps().GetOrCreateRootPathForHandle(
+			context.Background(), dh); err != nil {
 			t.Fatalf("cannot set up a favorite: %v", err)
 		}
 	}
