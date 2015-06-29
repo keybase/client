@@ -194,7 +194,7 @@ func TestNaclDecryptFromIced(t *testing.T) {
 	seed := "b26ba6f6865b28f9332620c73c2984e2d2a8a83ef5eb59ca47d3b70cfa9f222f"
 	ctext := "g6Rib2R5hapjaXBoZXJ0ZXh0xEw2dXZRKyUI5wbSfQGSv61xVIl/cpD8hFN+Gsc5LGEtuXmGG1+1rUFv4QWizfLgqhywaitotmApYJv07zFTUT5sxOU+i2er43XQkkwmqGVuY190eXBlIaVub25jZcQY/rYiRGjPmmxurm5PMlhJuJwP9jk7UJIFrHJlY2VpdmVyX2tlecQjASHyQFIJdlHbnV1oT3MKne5ob7Rmf0emMciNbkD1IyfCKgqqc2VuZGVyX2tlecQjASFKiKO16sYJaloJ4URJM+pL6BSYJcz8M/Za2MSrKCvqawqjdGFnzQIDp3ZlcnNpb24B"
 	plaintext := []byte("Man hands on misery to man. It deepens like a coastal shelf.")
-	seedBytes, err := hex.DecodeString(seed); 
+	seedBytes, err := hex.DecodeString(seed)
 	if err != nil {
 		t.Fatal(err)
 	}

@@ -214,3 +214,10 @@ func NewLKSForEncrypt(ui SecretUI, uid keybase1.UID, gc *GlobalContext) (ret *LK
 	ret = NewLKSec(pps.LksClientHalf(), pps.Generation(), uid, gc)
 	return
 }
+
+// EncryptClientHalfRecovery takes the client half of the LKS secret
+// and ecrypts it for the given key.  This is for recovery of passphrases
+// on device recovery operations.
+func (s *LKSec) EncryptClientHalfRecovery(key GenericKey) (string, error) {
+	return key.EncryptToString(s.clientHalf, nil)
+}

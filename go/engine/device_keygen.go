@@ -205,6 +205,13 @@ func (e *DeviceKeygen) pushEncKey(ctx *Context, signer libkb.GenericKey, eldestK
 	_, e.pushErr = e.naclEncGen.Push(ctx.LoginContext)
 }
 
+func (e *DeviceKeygen) generateClientHalfRecovery() (string, libkb.KID, error) {
+	key := e.naclEncGen.GetKeyPair()
+	kid := key.GetKid()
+	ctext, err := e.args.Lks.EncryptClientHalfRecovery(key)
+	return ctext, kid, err
+}
+
 func (e *DeviceKeygen) pushLKS(ctx *Context) {
 	if e.pushErr != nil {
 		return
@@ -221,8 +228,14 @@ func (e *DeviceKeygen) pushLKS(ctx *Context) {
 		return
 	}
 
+	var chr string
+	var chrk libkb.KID
+	if chr, chrk, e.pushErr = e.generateClientHalfRecovery(); e.pushErr != nil {
+		return
+	}
+
 	// send it to api server
-	e.pushErr = libkb.PostDeviceLKS(ctx.LoginContext, e.args.DeviceID.String(), libkb.DeviceTypeDesktop, serverHalf, e.args.Lks.Generation())
+	e.pushErr = libkb.PostDeviceLKS(ctx.LoginContext, e.args.DeviceID.String(), libkb.DeviceTypeDesktop, serverHalf, e.args.Lks.Generation(), chr, chrk)
 	if e.pushErr != nil {
 		return
 	}
