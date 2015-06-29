@@ -40,6 +40,9 @@ const NaclSigningKeySecretSize = 32
 // TODO: Ideally, box would expose how many random bytes it needs.
 const NaclDHKeySecretSize = 32
 
+// Todo: Ideally, box would specify nonce size
+const NaclDHNonceSize = 24
+
 type NaclSigningKeyPublic [ed25519.PublicKeySize]byte
 type NaclSigningKeyPrivate [ed25519.PrivateKeySize]byte
 
@@ -546,14 +549,63 @@ func (n NaclDHKeyPair) CanEncrypt() bool { return true }
 // CanDecrypt returns true if there's a private key available
 func (n NaclDHKeyPair) CanDecrypt() bool { return n.Private != nil }
 
-func (n NaclDHKeyPair) Encrypt(msg []byte, sender *NaclDHKeyPair) (ret *NaclEncryptionInfo, err error) {
+func (n NaclDHKeyPair) Encrypt(msg []byte, sender *NaclDHKeyPair) (*NaclEncryptionInfo, error) {
 	if sender == nil {
-		var tmp NaclDHKeyPair
-		tmp, err = GenerateNaclDHKeyPair()
-		if err != nil {
-			return
+		if tmp, err := GenerateNaclDHKeyPair(); err != nil {
+			return nil, err
+		} else {
+			sender = &tmp
 		}
-		sender = &tmp
+	} else if sender.Private == nil {
+		return nil, NoSecretKeyError{}
 	}
+
+	var nonce [NaclDHNonceSize]byte
+	if nRead, err := rand.Read(nonce[:]); err != nil {
+		return nil, err
+	} else if nRead != NaclDHNonceSize {
+		return nil, fmt.Errorf("Short random read: %d", nRead)
+	}
+
+	var ctext []byte
+	ctext = box.Seal(ctext, msg, &nonce, ((*[32]byte)(&n.Public)), ((*[32]byte)(sender.Private)))
+	ret := &NaclEncryptionInfo{
+		Ciphertext:     ctext,
+		EncryptionType: KIDNaclDH,
+		Nonce:          nonce[:],
+		Receiver:       n.GetKid(),
+		Sender:         sender.GetKid(),
+	}
+
+	return ret, nil
+}
+
+// EncryptToString encrypts the plaintext using DiffieHelman; the this object is
+// the receiver, and the passed sender is optional.  If not provided, we'll make
+// up an ephemeral key.
+func (n NaclDHKeyPair) EncryptToString(plaintext []byte, sender GenericKey) (string, error) {
+	var senderDh *NaclDHKeyPair
+	if sender != nil {
+		var ok bool
+		if senderDh, ok = sender.(*NaclDHKeyPair); !ok {
+			return "", NoSecretKeyError{}
+		}
+	}
+
+	info, err := n.Encrypt(plaintext, senderDh)
+	if err != nil {
+		return "", nil
+	}
+
+	return PacketArmoredEncode(info)
+}
+
+// ToPacket implements the Packetable interface.
+func (n *NaclEncryptionInfo) ToPacket() (ret *KeybasePacket, err error) {
+	ret = &KeybasePacket{
+		Version: KeybasePacketV1,
+		Tag:     TagEncryption,
+	}
+	ret.Body = n
 	return
 }
