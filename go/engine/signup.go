@@ -152,8 +152,8 @@ func (s *SignupEngine) join(a libkb.LoginContext, username, email, inviteCode st
 		return res
 	}
 
-	s.tspkey.SetGeneration(res.PpGen)
-	a.CreateStreamCache(s.tsec, s.tspkey)
+	s.ppStream.SetGeneration(res.PpGen)
+	a.CreateStreamCache(s.tsec, s.ppStream)
 
 	s.uid = res.UID
 	user, err := libkb.LoadUser(libkb.LoadUserArg{Self: true, UID: res.UID, PublicKeyOptional: true})
@@ -165,7 +165,7 @@ func (s *SignupEngine) join(a libkb.LoginContext, username, email, inviteCode st
 }
 
 func (s *SignupEngine) registerDevice(a libkb.LoginContext, ctx *Context, deviceName string) error {
-	s.lks = libkb.NewLKSec(s.tspkey.LksClientHalf(), s.ppStream.Generation(), s.uid, s.G())
+	s.lks = libkb.NewLKSec(s.ppStream.LksClientHalf(), s.ppStream.Generation(), s.uid, s.G())
 	args := &DeviceWrapArgs{
 		Me:         s.me,
 		DeviceName: deviceName,
