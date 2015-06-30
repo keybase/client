@@ -481,9 +481,11 @@ func (e WrongOpsError) Error() string {
 		"branch %s", e.opsID, e.opsBranch, e.path, e.path.Branch)
 }
 
+// CanceledError indicates that the operation was canceled.
 type CanceledError struct {
 }
 
+// Error implements the error interface for CanceledError.
 func (e CanceledError) Error() string {
 	return "The operation was canceled."
 }
