@@ -270,7 +270,6 @@ func firstPrivateKey(s string) (string, error) {
 func ReadPrivateKeyFromString(s string) (*PGPKeyBundle, error) {
 	priv, err := firstPrivateKey(s)
 	if err != nil {
-		G.Log.Warning("invalid key string:\n%s\n", s)
 		return nil, err
 	}
 	return ReadOneKeyFromString(priv)
