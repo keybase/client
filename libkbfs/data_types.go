@@ -720,61 +720,77 @@ func (dkb DirKeyBundle) DeepCopy() DirKeyBundle {
 	return newDkb
 }
 
-// BlockChangeNode tracks the blocks that have changed at a particular
-// path in a folder's namespace, and includes pointers to the
-// BlockChangeNode of the children of this path
-type BlockChangeNode struct {
-	Blocks   []BlockPointer              `codec:"b,omitempty"`
-	Children map[string]*BlockChangeNode `codec:"c,omitempty"`
-}
-
-// NewBlockChangeNode constructs a new, empty BlockChangeNode.
-func NewBlockChangeNode() *BlockChangeNode {
-	return &BlockChangeNode{
-		nil,
-		make(map[string]*BlockChangeNode),
-	}
-}
-
-// AddBlock recursively adds the specified block to this
-// BlockChangeNode, under the right path.
-func (bcn *BlockChangeNode) AddBlock(path Path, index int, ptr BlockPointer) {
-	if index == len(path.Path)-1 {
-		bcn.Blocks = append(bcn.Blocks, ptr)
-	} else {
-		name := path.Path[index+1].Name
-		child, ok := bcn.Children[name]
-		if !ok {
-			child = NewBlockChangeNode()
-			bcn.Children[name] = child
-		}
-		child.AddBlock(path, index+1, ptr)
-	}
-}
-
-// BlockChanges tracks the set of blocks that changed in a commit.
-// Could either be used referenced or dereferenced blocks.  Might
-// consist of just a BlockPointer if the list is too big to embed in
-// the MD structure directly.
+// BlockChanges tracks the set of blocks that changed in a commit, and
+// the operations that made the changes.  It might consist of just a
+// BlockPointer if the list is too big to embed in the MD structure
+// directly.
+//
+// If this commit represents a conflict-resolution merge, which may
+// comprise multiple individual operations, then there will be an
+// ordered list of the changes for individual operations.  This lets
+// the notification and conflict resolution strategies figure out the
+// difference between a renamed file and a modified file, for example.
 type BlockChanges struct {
 	// If this is set, the actual changes are stored in a block (where
 	// the block contains a serialized version of BlockChanges)
-	Pointer BlockPointer `codec:",omitempty"`
-	// The top node of the block change tree
-	Changes *BlockChangeNode `codec:",omitempty"`
+	Pointer BlockPointer `codec:"p,omitempty"`
+	// An ordered list of operations completed in this update
+	Ops []interface{} `codec:"o,omitempty"`
 	// Estimate the number of bytes that this set of changes will take to encode
 	sizeEstimate uint64
+	// Most recent operation (currently being populated).  We keep
+	// this here, instead of using the tails of Ops, because we need
+	// it typed as an op and not an interface{}.
+	latestOp op
 }
 
-// AddBlock adds the specified block to this BlockChanges and updates
-// the size estimate.
-func (bc *BlockChanges) AddBlock(path Path, ptr BlockPointer) {
-	bc.Changes.AddBlock(path, 0, ptr)
+// Equals returns true if the given BlockChanges is equal to this
+// BlockChanges.  Currently does not check for equality at the
+// operation level.
+func (bc BlockChanges) Equals(other BlockChanges) bool {
+	if bc.Pointer != other.Pointer || len(bc.Ops) != len(other.Ops) ||
+		bc.sizeEstimate != other.sizeEstimate {
+		return false
+	}
+	// TODO: check for op equality?
+	return true
+}
+
+func (bc *BlockChanges) addBPSize() {
 	// estimate size of BlockPointer as 2 UIDs and 3 64-bit ints
 	// XXX: use unsafe.SizeOf here instead?  It's not crucial that
 	// it's right.
-	bc.sizeEstimate += uint64(len(path.String()) +
-		libkb.NodeHashLenShort + keybase1.UID_LEN + 3*8)
+	bc.sizeEstimate += uint64(libkb.NodeHashLenShort + keybase1.UID_LEN + 3*8)
+}
+
+// AddRefBlock adds the newly-referenced block to this BlockChanges
+// and updates the size estimate.
+func (bc *BlockChanges) AddRefBlock(ptr BlockPointer) {
+	bc.latestOp.AddRefBlock(ptr)
+	bc.addBPSize()
+}
+
+// AddUnrefBlock adds the newly unreferenced block to this BlockChanges
+// and updates the size estimate.
+func (bc *BlockChanges) AddUnrefBlock(ptr BlockPointer) {
+	bc.latestOp.AddUnrefBlock(ptr)
+	bc.addBPSize()
+}
+
+// AddUpdate adds the newly updated block to this BlockChanges
+// and updates the size estimate.
+func (bc *BlockChanges) AddUpdate(oldPtr BlockPointer, newPtr BlockPointer) {
+	bc.latestOp.AddUpdate(oldPtr, newPtr)
+	bc.addBPSize()
+	bc.addBPSize()
+}
+
+// AddOp starts a new operation for this BlockChanges.  Subsequent
+// Add* calls will populate this operation.
+func (bc *BlockChanges) AddOp(o op) {
+	bc.Ops = append(bc.Ops, o)
+	bc.latestOp = o
+	bc.sizeEstimate += o.SizeExceptUpdates()
 }
 
 // EntryType is the type of a directory entry.
@@ -914,3 +930,12 @@ func (fb FileBlock) DeepCopy() *FileBlock {
 	// TODO: copy padding once we support it.
 	return fblockCopy
 }
+
+// extCode is used to register codec extensions
+type extCode uint64
+
+// these track the start of a range of unique extCodes for various
+// types of extensions.
+const (
+	extCodeOpsRangeStart = 1
+)

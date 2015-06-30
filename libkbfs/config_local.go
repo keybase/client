@@ -218,6 +218,7 @@ func (c *ConfigLocal) Codec() Codec {
 // SetCodec implements the Config interface for ConfigLocal.
 func (c *ConfigLocal) SetCodec(co Codec) {
 	c.codec = co
+	RegisterOps(c.codec)
 }
 
 // MDOps implements the Config interface for ConfigLocal.

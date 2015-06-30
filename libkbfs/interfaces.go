@@ -2,6 +2,7 @@ package libkbfs
 
 import (
 	"fmt"
+	"reflect"
 	"time"
 
 	"github.com/keybase/client/go/libkb"
@@ -373,6 +374,12 @@ type Codec interface {
 	Decode(buf []byte, obj interface{}) error
 	// Encode marshals the given object into a returned buffer.
 	Encode(obj interface{}) ([]byte, error)
+	// RegisterType should be called for all types that are stored
+	// under ambiguous types (like interface{}) in a struct that will
+	// be encoded/decoded by the codec.  Each must have a unique
+	// extCode.  Types that include other extension types are not
+	// supported.
+	RegisterType(rt reflect.Type, code extCode)
 }
 
 // MDOps gets and puts root metadata to an MDServer.  On a get, it

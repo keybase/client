@@ -65,6 +65,8 @@ func NewConfigMock(c *gomock.Controller, ctr *SafeTestReporter) *ConfigMock {
 	config.mockCrypto = NewMockCrypto(c)
 	config.SetCrypto(config.mockCrypto)
 	config.mockCodec = NewMockCodec(c)
+	config.mockCodec.EXPECT().RegisterType(gomock.Any(), gomock.Any()).
+		AnyTimes().Return()
 	config.SetCodec(config.mockCodec)
 	config.mockMdops = NewMockMDOps(c)
 	config.SetMDOps(config.mockMdops)

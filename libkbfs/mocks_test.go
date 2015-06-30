@@ -9,6 +9,7 @@ import (
 	libkb "github.com/keybase/client/go/libkb"
 	go0 "github.com/keybase/client/protocol/go"
 	context "golang.org/x/net/context"
+	reflect "reflect"
 	time "time"
 )
 
@@ -936,6 +937,14 @@ func (_m *MockCodec) Encode(obj interface{}) ([]byte, error) {
 
 func (_mr *_MockCodecRecorder) Encode(arg0 interface{}) *gomock.Call {
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "Encode", arg0)
+}
+
+func (_m *MockCodec) RegisterType(rt reflect.Type, code extCode) {
+	_m.ctrl.Call(_m, "RegisterType", rt, code)
+}
+
+func (_mr *_MockCodecRecorder) RegisterType(arg0, arg1 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "RegisterType", arg0, arg1)
 }
 
 // Mock of MDOps interface

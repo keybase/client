@@ -18,10 +18,16 @@ type PrivateMetadata struct {
 	// m_f as described in 4.1.1 of https://keybase.io/blog/crypto
 	// .
 	TLFPrivateKey TLFPrivateKey
-	// The blocks that were added during the update that created this MD
-	RefBlocks BlockChanges
-	// The blocks that were unref'd during the update that created this MD
-	UnrefBlocks BlockChanges
+	// The block changes done as part of the update that created this MD
+	Changes BlockChanges
+}
+
+// Equals returns true if the given PrivateMetadata is equal to this
+// PrivateMetadata.
+func (pm PrivateMetadata) Equals(other PrivateMetadata) bool {
+	return pm.Dir == other.Dir && pm.LastWriter == other.LastWriter &&
+		pm.TLFPrivateKey == other.TLFPrivateKey &&
+		pm.Changes.Equals(other.Changes)
 }
 
 // RootMetadata is the MD that is signed by the writer.
@@ -66,14 +72,7 @@ func NewRootMetadata(d *DirHandle, id DirID) *RootMetadata {
 		Writers: writers,
 		Keys:    keys,
 		ID:      id,
-		data: PrivateMetadata{
-			RefBlocks: BlockChanges{
-				Changes: NewBlockChangeNode(),
-			},
-			UnrefBlocks: BlockChanges{
-				Changes: NewBlockChangeNode(),
-			},
-		},
+		data:    PrivateMetadata{},
 		// need to keep the dir handle around long
 		// enough to rekey the metadata for the first
 		// time
@@ -249,18 +248,35 @@ func (md *RootMetadata) ClearMetadataID() {
 	md.mdID = NullMdID
 }
 
-// AddRefBlock adds the specified block to the add block change list.
-func (md *RootMetadata) AddRefBlock(path Path, info BlockInfo) {
+// AddRefBlock adds the newly-referenced block to the add block change list.
+func (md *RootMetadata) AddRefBlock(info BlockInfo) {
 	md.RefBytes += uint64(info.EncodedSize)
-	md.data.RefBlocks.AddBlock(path, info.BlockPointer)
+	md.data.Changes.AddRefBlock(stripBP(info.BlockPointer))
 }
 
-// AddUnrefBlock adds the specified block to the add block change list.
-func (md *RootMetadata) AddUnrefBlock(path Path, info BlockInfo) {
+// AddUnrefBlock adds the newly-unreferenced block to the add block change list.
+func (md *RootMetadata) AddUnrefBlock(info BlockInfo) {
 	if info.EncodedSize > 0 {
 		md.UnrefBytes += uint64(info.EncodedSize)
-		md.data.UnrefBlocks.AddBlock(path, info.BlockPointer)
+		md.data.Changes.AddUnrefBlock(stripBP(info.BlockPointer))
 	}
+}
+
+// AddUpdate adds the newly-updated block to the add block change list.
+func (md *RootMetadata) AddUpdate(oldInfo BlockInfo, newInfo BlockInfo) {
+	if oldInfo.EncodedSize > 0 {
+		md.UnrefBytes += uint64(oldInfo.EncodedSize)
+		md.RefBytes += uint64(newInfo.EncodedSize)
+		md.data.Changes.AddUpdate(stripBP(oldInfo.BlockPointer),
+			stripBP(newInfo.BlockPointer))
+	}
+}
+
+// AddOp starts a new operation for this MD update.  Subsequent
+// AddRefBlock, AddUnrefBlock, and AddUpdate calls will be applied to
+// this operation.
+func (md *RootMetadata) AddOp(o op) {
+	md.data.Changes.AddOp(o)
 }
 
 // ClearBlockChanges resets the block change lists to empty for this
@@ -268,10 +284,9 @@ func (md *RootMetadata) AddUnrefBlock(path Path, info BlockInfo) {
 func (md *RootMetadata) ClearBlockChanges() {
 	md.RefBytes = 0
 	md.UnrefBytes = 0
-	md.data.RefBlocks.sizeEstimate = 0
-	md.data.UnrefBlocks.sizeEstimate = 0
-	md.data.RefBlocks.Changes = NewBlockChangeNode()
-	md.data.UnrefBlocks.Changes = NewBlockChangeNode()
+	md.data.Changes.sizeEstimate = 0
+	md.data.Changes.latestOp = nil
+	md.data.Changes.Ops = nil
 }
 
 // RootMetadataSigned is the top-level MD object stored in MD server

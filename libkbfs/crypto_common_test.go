@@ -512,7 +512,7 @@ func TestDecryptPrivateMetadataSecretboxSeal(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	if *decryptedPrivateMetadata != privateMetadata {
+	if !decryptedPrivateMetadata.Equals(privateMetadata) {
 		t.Errorf("Decrypted private metadata %v doesn't match %v", decryptedPrivateMetadata, privateMetadata)
 	}
 }
@@ -543,7 +543,7 @@ func TestDecryptEncryptedPrivateMetadata(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	if *decryptedPrivateMetadata != privateMetadata {
+	if !decryptedPrivateMetadata.Equals(privateMetadata) {
 		t.Errorf("Decrypted private metadata %v doesn't match %v", decryptedPrivateMetadata, privateMetadata)
 	}
 }

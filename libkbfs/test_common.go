@@ -21,6 +21,7 @@ func newRootMetadataForTest(d *DirHandle, id DirID) *RootMetadata {
 				KeyGen:  keyGen,
 				DataVer: 1,
 			},
+			EncodedSize: 1,
 		},
 	}
 	// make up the MD ID
