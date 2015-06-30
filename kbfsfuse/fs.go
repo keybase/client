@@ -2,7 +2,7 @@ package main
 
 import (
 	"log"
-	"math/rand"
+	_ "math/rand"
 	"os"
 	"sync"
 
@@ -29,9 +29,9 @@ func runNewFUSE(ctx context.Context, config *libkbfs.ConfigLocal, debug bool,
 	defer c.Close()
 
 	filesys := &FS{
-		ctx:    context.WithValue(ctx, ctxAppIDKey, rand.Int63()),
 		config: config,
 	}
+	// TODO: pass in context.WithValue(ctx, ctxAppIDKey, rand.Int63()) to Serve
 	if err := fs.Serve(c, filesys); err != nil {
 		return err
 	}
@@ -47,7 +47,6 @@ func runNewFUSE(ctx context.Context, config *libkbfs.ConfigLocal, debug bool,
 
 // FS implements the newfuse FS interface for KBFS.
 type FS struct {
-	ctx    context.Context
 	config *libkbfs.ConfigLocal
 }
 
@@ -82,9 +81,9 @@ var _ fs.NodeRequestLookuper = (*Root)(nil)
 
 // getMD is a wrapper over KBFSOps.GetOrCreateRootPathForHandle that gives
 // useful results for home folders with public subdirectories.
-func (r *Root) getMD(dh *libkbfs.DirHandle) (libkbfs.DirID, libkbfs.BlockPointer, error) {
+func (r *Root) getMD(ctx context.Context, dh *libkbfs.DirHandle) (libkbfs.DirID, libkbfs.BlockPointer, error) {
 	rootPath, rootDe, err :=
-		r.fs.config.KBFSOps().GetOrCreateRootPathForHandle(r.fs.ctx, dh)
+		r.fs.config.KBFSOps().GetOrCreateRootPathForHandle(ctx, dh)
 	if err != nil {
 		if _, ok := err.(*libkbfs.ReadAccessError); ok && dh.HasPublic() {
 			// This user cannot get the metadata for the folder, but
@@ -123,7 +122,7 @@ func (r *Root) Lookup(ctx context.Context, req *fuse.LookupRequest, resp *fuse.L
 		return n, nil
 	}
 
-	mdID, blockp, err := r.getMD(dh)
+	mdID, blockp, err := r.getMD(ctx, dh)
 	if err != nil {
 		// TODO make errors aware of fuse
 		return nil, err

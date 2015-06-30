@@ -20,7 +20,6 @@ import (
 
 func makeFS(t testing.TB, config *libkbfs.ConfigLocal) *fstestutil.Mount {
 	filesys := &FS{
-		ctx:    context.Background(),
 		config: config,
 	}
 	mnt, err := fstestutil.MountedT(t, filesys)
