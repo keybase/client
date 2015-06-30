@@ -10,7 +10,7 @@ import (
 
 type SignupEngine struct {
 	pwsalt     []byte
-	tspkey     libkb.PassphraseStream
+	ppStream   libkb.PassphraseStream
 	uid        keybase1.UID
 	me         *libkb.User
 	signingKey libkb.GenericKey
@@ -129,11 +129,11 @@ func (s *SignupEngine) genTSPassKey(a libkb.LoginContext, passphrase string) err
 	}
 	s.pwsalt = salt
 	var tsec *triplesec.Cipher
-	tsec, s.tspkey, err = libkb.StretchPassphrase(passphrase, salt)
+	tsec, s.ppStream, err = libkb.StretchPassphrase(passphrase, salt)
 	if err != nil {
 		return err
 	}
-	a.CreateStreamCache(tsec, s.tspkey)
+	a.CreateStreamCache(tsec, s.ppStream)
 	return nil
 }
 
@@ -144,7 +144,7 @@ func (s *SignupEngine) join(a libkb.LoginContext, username, email, inviteCode st
 		Username:   username,
 		Email:      email,
 		InviteCode: inviteCode,
-		PWHash:     s.tspkey.PWHash(),
+		PWHash:     s.ppStream.PWHash(),
 		PWSalt:     s.pwsalt,
 		SkipMail:   skipMail,
 	}
@@ -163,7 +163,7 @@ func (s *SignupEngine) join(a libkb.LoginContext, username, email, inviteCode st
 }
 
 func (s *SignupEngine) registerDevice(a libkb.LoginContext, ctx *Context, deviceName string) error {
-	s.lks = libkb.NewLKSec(s.tspkey.LksClientHalf(), s.uid, s.G())
+	s.lks = libkb.NewLKSec(s.ppStream.LksClientHalf(), s.uid, s.G())
 	args := &DeviceWrapArgs{
 		Me:         s.me,
 		DeviceName: deviceName,
@@ -201,7 +201,7 @@ func (s *SignupEngine) registerDevice(a libkb.LoginContext, ctx *Context, device
 
 func (s *SignupEngine) genDetKeys(ctx *Context) error {
 	arg := &DetKeyArgs{
-		Tsp:         s.tspkey,
+		Tsp:         s.ppStream,
 		Me:          s.me,
 		SigningKey:  s.signingKey,
 		EldestKeyID: s.signingKey.GetKid(),

@@ -54,7 +54,7 @@ func createFakeUserWithDetKey(tc libkb.TestContext) (username, passphrase string
 	// generate the detkey only, using SelfProof
 	arg := &DetKeyArgs{
 		Me:        s.me,
-		Tsp:       s.tspkey,
+		Tsp:       s.ppStream,
 		SelfProof: true,
 	}
 	eng := NewDetKeyEngine(arg, tc.G)
@@ -242,6 +242,6 @@ func createFakeUserWithPGPSibkey(tc libkb.TestContext) *FakeUser {
 // fakeLKS is used to create a lks that has the server half when
 // creating a fake user that doesn't have a device.
 func (s *SignupEngine) fakeLKS() error {
-	s.lks = libkb.NewLKSec(s.tspkey.LksClientHalf(), s.uid, s.G())
+	s.lks = libkb.NewLKSec(s.ppStream.LksClientHalf(), s.uid, s.G())
 	return s.lks.GenerateServerHalf()
 }

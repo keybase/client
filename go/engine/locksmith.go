@@ -237,7 +237,7 @@ func (d *Locksmith) addDeviceKey(ctx *Context) error {
 	if err != nil {
 		return err
 	}
-	tk, err := d.tspkey(ctx)
+	tk, err := d.ppStream(ctx)
 	if err != nil {
 		return err
 	}
@@ -264,7 +264,7 @@ func (d *Locksmith) addDeviceKeyWithSigner(ctx *Context, signer libkb.GenericKey
 	if err != nil {
 		return err
 	}
-	tk, err := d.tspkey(ctx)
+	tk, err := d.ppStream(ctx)
 	if err != nil {
 		return err
 	}
@@ -290,7 +290,7 @@ func (d *Locksmith) addDetKey(ctx *Context, eldest libkb.KID) error {
 	if d.signingKey == nil {
 		return fmt.Errorf("addDetKey called, but d.signingKey is nil")
 	}
-	tk, err := d.tspkey(ctx)
+	tk, err := d.ppStream(ctx)
 	if err != nil {
 		return err
 	}
@@ -509,7 +509,7 @@ func (d *Locksmith) deviceSignExistingDevice(ctx *Context, existingID, existingN
 		return err
 	}
 
-	tk, err := d.tspkey(ctx)
+	tk, err := d.ppStream(ctx)
 	if err != nil {
 		return err
 	}
@@ -565,7 +565,7 @@ func (d *Locksmith) selectPGPKey(ctx *Context, keys []*libkb.PGPKeyBundle) (*lib
 	return selected, nil
 }
 
-func (d *Locksmith) tspkey(ctx *Context) (ret libkb.PassphraseStream, err error) {
+func (d *Locksmith) ppStream(ctx *Context) (ret libkb.PassphraseStream, err error) {
 	if ctx.LoginContext != nil {
 		cached := ctx.LoginContext.PassphraseStreamCache()
 		if cached == nil {
@@ -612,7 +612,7 @@ func (d *Locksmith) detkey(ctx *Context) (libkb.GenericKey, error) {
 	}
 
 	// regenerate the detkey
-	tk, err := d.tspkey(ctx)
+	tk, err := d.ppStream(ctx)
 	if err != nil {
 		return nil, err
 	}
