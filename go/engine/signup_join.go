@@ -17,6 +17,7 @@ type SignupJoinEngine struct {
 	csrf           string
 	lastPassphrase string
 	username       string
+	ppGen          libkb.PassphraseGeneration
 
 	libkb.Contextified
 }
@@ -73,6 +74,7 @@ type SignupJoinEngineRunArg struct {
 
 func (s *SignupJoinEngine) Post(arg SignupJoinEngineRunArg) (err error) {
 	var res *libkb.APIRes
+	var ppGenTmp int
 	res, err = s.G().API.Post(libkb.APIArg{
 		Endpoint: "signup",
 		Args: libkb.HTTPArgs{
@@ -89,9 +91,11 @@ func (s *SignupJoinEngine) Post(arg SignupJoinEngineRunArg) (err error) {
 		libkb.GetUIDVoid(res.Body.AtKey("uid"), &s.uid, &err)
 		res.Body.AtKey("session").GetStringVoid(&s.session, &err)
 		res.Body.AtKey("csrf_token").GetStringVoid(&s.csrf, &err)
+		res.Body.AtPath("me.basics.passphrase_generation").GetIntVoid(&ppGenTmp, &err)
 	}
 	if err == nil {
 		err = libkb.CheckUIDAgainstUsername(s.uid, arg.Username)
+		s.ppGen = libkb.PassphraseGeneration(ppGenTmp)
 	}
 	return
 }
@@ -103,6 +107,7 @@ type SignupJoinEngineRunRes struct {
 	UID          keybase1.UID
 	User         *libkb.User
 	Err          error
+	PpGen        libkb.PassphraseGeneration
 }
 
 func (r SignupJoinEngineRunRes) Error() string {
@@ -121,6 +126,7 @@ func (s *SignupJoinEngine) Run(lctx libkb.LoginContext, arg SignupJoinEngineRunA
 	}
 	res.WriteOk = true
 	res.UID = s.uid
+	res.PpGen = s.ppGen
 	return
 }
 

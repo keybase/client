@@ -11,6 +11,7 @@ import (
 type SignupEngine struct {
 	pwsalt     []byte
 	ppStream   *libkb.PassphraseStream
+	tsec       *triplesec.Cipher
 	uid        keybase1.UID
 	me         *libkb.User
 	signingKey libkb.GenericKey
@@ -128,12 +129,10 @@ func (s *SignupEngine) genTSPassKey(a libkb.LoginContext, passphrase string) err
 		return err
 	}
 	s.pwsalt = salt
-	var tsec *triplesec.Cipher
-	tsec, s.ppStream, err = libkb.StretchPassphrase(passphrase, salt)
+	s.tsec, s.ppStream, err = libkb.StretchPassphrase(passphrase, salt)
 	if err != nil {
 		return err
 	}
-	a.CreateStreamCache(tsec, s.ppStream)
 	return nil
 }
 
@@ -152,6 +151,9 @@ func (s *SignupEngine) join(a libkb.LoginContext, username, email, inviteCode st
 	if res.Err != nil {
 		return res
 	}
+
+	s.tspkey.SetGeneration(res.PpGen)
+	a.CreateStreamCache(s.tsec, s.tspkey)
 
 	s.uid = res.UID
 	user, err := libkb.LoadUser(libkb.LoadUserArg{Self: true, UID: res.UID, PublicKeyOptional: true})
