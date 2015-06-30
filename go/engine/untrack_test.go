@@ -28,7 +28,7 @@ func assertUntracked(t *testing.T, theirName string) {
 		t.Fatal(err)
 	}
 
-	s, err := me.GetTrackingStatementFor(them.GetName(), them.GetUID())
+	s, err := me.TrackChcainLinkFor(them.GetName(), them.GetUID())
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -36,7 +36,7 @@ func assertUntracked(t *testing.T, theirName string) {
 		t.Fatal("expected not to get a tracking statement; but got one")
 	}
 
-	s, err = libkb.GetLocalTrack(me.GetUID(), them.GetUID())
+	s, err = libkb.LocalTrackChainLinkFor(me.GetUID(), them.GetUID())
 	if err != nil {
 		t.Fatal(err)
 	}

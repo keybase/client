@@ -133,7 +133,7 @@ func (e *UntrackEngine) loadThem() (them *libkb.User, remoteLink, localLink *lib
 		}
 	}
 
-	lLink, err := libkb.GetLocalTrack(e.arg.Me.GetUID(), uid)
+	lLink, err := libkb.LocalTrackChainLinkFor(e.arg.Me.GetUID(), uid)
 	if err != nil {
 		return
 	}

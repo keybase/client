@@ -22,7 +22,7 @@ func TestTrackProofStatus(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	s, err := me.GetTrackingStatementFor(them.GetName(), them.GetUID())
+	s, err := me.TrackChcainLinkFor(them.GetName(), them.GetUID())
 	if err != nil {
 		t.Fatal(err)
 	}

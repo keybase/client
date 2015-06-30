@@ -393,12 +393,12 @@ func (u *User) Equal(other *User) bool {
 	return u.id == other.id
 }
 
-func (u *User) GetTrackingStatementFor(username string, uid keybase1.UID) (*TrackChainLink, error) {
+func (u *User) TrackChcainLinkFor(username string, uid keybase1.UID) (*TrackChainLink, error) {
 	G.Log.Debug("+ GetTrackingStatement for %s", uid)
 	defer G.Log.Debug("- GetTrackingStatement for %s", uid)
 
-	remote, e1 := u.GetRemoteTrackingStatementFor(username, uid)
-	local, e2 := GetLocalTrack(u.id, uid)
+	remote, e1 := u.remoteTrackChainLinkFor(username, uid)
+	local, e2 := LocalTrackChainLinkFor(u.id, uid)
 
 	G.Log.Debug("| Load remote -> %v", (remote != nil))
 	G.Log.Debug("| Load local -> %v", (local != nil))
@@ -426,12 +426,12 @@ func (u *User) GetTrackingStatementFor(username string, uid keybase1.UID) (*Trac
 	return local, nil
 }
 
-func (u *User) GetRemoteTrackingStatementFor(s string, i keybase1.UID) (*TrackChainLink, error) {
+func (u *User) remoteTrackChainLinkFor(username string, uid keybase1.UID) (*TrackChainLink, error) {
 	if u.IDTable() == nil {
 		return nil, nil
 	}
 
-	return u.IDTable().GetTrackingStatementFor(s, i)
+	return u.IDTable().TrackChcainLinkFor(username, uid)
 }
 
 // BaseProofSet creates a basic proof set for a user with their

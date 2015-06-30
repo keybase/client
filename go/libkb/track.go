@@ -346,7 +346,7 @@ func LocalTrackDBKey(tracker, trackee keybase1.UID) DbKey {
 
 //=====================================================================
 
-func GetLocalTrack(tracker, trackee keybase1.UID) (ret *TrackChainLink, err error) {
+func LocalTrackChainLinkFor(tracker, trackee keybase1.UID) (ret *TrackChainLink, err error) {
 	G.Log.Debug("+ GetLocalTrack(%s,%s)", tracker, trackee)
 	defer G.Log.Debug("- GetLocalTrack(%s,%s) -> (%v, %s)", tracker, trackee, ret, ErrToOk(err))
 

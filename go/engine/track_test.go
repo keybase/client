@@ -44,7 +44,7 @@ func assertTracking(t *testing.T, theirName string) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	s, err := me.GetTrackingStatementFor(them.GetName(), them.GetUID())
+	s, err := me.TrackChcainLinkFor(them.GetName(), them.GetUID())
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -62,7 +62,7 @@ func assertNotTracking(t *testing.T, theirName string) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	s, err := me.GetTrackingStatementFor(them.GetName(), them.GetUID())
+	s, err := me.TrackChcainLinkFor(them.GetName(), them.GetUID())
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -167,7 +167,7 @@ func TestTrackLocal(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	s, err := me.GetTrackingStatementFor(them.GetName(), them.GetUID())
+	s, err := me.TrackChcainLinkFor(them.GetName(), them.GetUID())
 	if err != nil {
 		t.Fatal(err)
 	}
