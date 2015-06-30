@@ -393,12 +393,12 @@ func (u *User) Equal(other *User) bool {
 	return u.id == other.id
 }
 
-func (u *User) GetTrackingStatementFor(s string, i keybase1.UID) (*TrackChainLink, error) {
-	G.Log.Debug("+ GetTrackingStatement for %s", i)
-	defer G.Log.Debug("- GetTrackingStatement for %s", i)
+func (u *User) GetTrackingStatementFor(username string, uid keybase1.UID) (*TrackChainLink, error) {
+	G.Log.Debug("+ GetTrackingStatement for %s", uid)
+	defer G.Log.Debug("- GetTrackingStatement for %s", uid)
 
-	remote, e1 := u.GetRemoteTrackingStatementFor(s, i)
-	local, e2 := GetLocalTrack(u.id, i)
+	remote, e1 := u.GetRemoteTrackingStatementFor(username, uid)
+	local, e2 := GetLocalTrack(u.id, uid)
 
 	G.Log.Debug("| Load remote -> %v", (remote != nil))
 	G.Log.Debug("| Load local -> %v", (local != nil))

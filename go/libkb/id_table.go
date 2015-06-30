@@ -1023,24 +1023,27 @@ func (idt *IdentityTable) GetTrackList() (ret []*TrackChainLink) {
 	return
 }
 
-func (idt *IdentityTable) GetTrackingStatementFor(s string, uid keybase1.UID) (
-	ret *TrackChainLink, err error) {
-	if list, found := idt.tracks[s]; found {
-		l := len(list)
-		for i := l - 1; i >= 0 && ret == nil && err == nil; i-- {
-			link := list[i]
-			if link.IsRevoked() {
-				// noop; continue on!
-			} else if uid2, e2 := link.GetTrackedUID(); e2 != nil {
-				err = fmt.Errorf("Bad tracking statement for %s: %s", s, e2)
-			} else if uid.NotEqual(uid2) {
-				err = fmt.Errorf("Bad UID in tracking statement for %s: %s != %s", s, uid, uid2)
-			} else {
-				ret = link
-			}
-		}
+func (idt *IdentityTable) GetTrackingStatementFor(username string, uid keybase1.UID) (*TrackChainLink, error) {
+	list, found := idt.tracks[username]
+	if !found {
+		return nil, nil
 	}
-	return
+	for i := len(list) - 1; i >= 0; i-- {
+		link := list[i]
+		if link.IsRevoked() {
+			// noop; continue on!
+			continue
+		}
+		uid2, err := link.GetTrackedUID()
+		if err != nil {
+			return nil, fmt.Errorf("Bad tracking statement for %s: %s", username, err)
+		}
+		if uid.NotEqual(uid2) {
+			return nil, fmt.Errorf("Bad UID in tracking statement for %s: %s != %s", username, uid, uid2)
+		}
+		return link, nil
+	}
+	return nil, nil
 }
 
 func (idt *IdentityTable) ActiveCryptocurrency() *CryptocurrencyChainLink {
