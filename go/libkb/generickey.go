@@ -28,11 +28,21 @@ type GenericKey interface {
 	// signature ID.
 	VerifyString(sig string, msg []byte) (id keybase1.SigID, err error)
 
+	// Encrypt to an ASCII armored encryption; optionally include a sender's
+	// (private) key so that we can provably see who sent the message.
+	EncryptToString(plaintext []byte, sender GenericKey) (ciphertext string, err error)
+
+	// Decrypt the output of Encrypt above; provide the plaintext and also
+	// the KID of the key that sent the message (if applicable).
+	DecryptFromString(ciphertext string) (msg []byte, sender KID, err error)
+
 	ToSKB(gc *GlobalContext, ts *triplesec.Cipher) (*SKB, error)
 	ToLksSKB(lks *LKSec) (*SKB, error)
 	VerboseDescription() string
 	CheckSecretKey() error
 	CanSign() bool
+	CanEncrypt() bool
+	CanDecrypt() bool
 	HasSecretKey() bool
 	Encode() (string, error) // encode public key to string
 }

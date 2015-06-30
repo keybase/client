@@ -10,7 +10,8 @@ import (
 
 type SignupEngine struct {
 	pwsalt     []byte
-	ppStream   libkb.PassphraseStream
+	ppStream   *libkb.PassphraseStream
+	tsec       *triplesec.Cipher
 	uid        keybase1.UID
 	me         *libkb.User
 	signingKey libkb.GenericKey
@@ -128,12 +129,10 @@ func (s *SignupEngine) genTSPassKey(a libkb.LoginContext, passphrase string) err
 		return err
 	}
 	s.pwsalt = salt
-	var tsec *triplesec.Cipher
-	tsec, s.ppStream, err = libkb.StretchPassphrase(passphrase, salt)
+	s.tsec, s.ppStream, err = libkb.StretchPassphrase(passphrase, salt)
 	if err != nil {
 		return err
 	}
-	a.CreateStreamCache(tsec, s.ppStream)
 	return nil
 }
 
@@ -153,6 +152,9 @@ func (s *SignupEngine) join(a libkb.LoginContext, username, email, inviteCode st
 		return res
 	}
 
+	s.ppStream.SetGeneration(res.PpGen)
+	a.CreateStreamCache(s.tsec, s.ppStream)
+
 	s.uid = res.UID
 	user, err := libkb.LoadUser(libkb.LoadUserArg{Self: true, UID: res.UID, PublicKeyOptional: true})
 	if err != nil {
@@ -163,7 +165,7 @@ func (s *SignupEngine) join(a libkb.LoginContext, username, email, inviteCode st
 }
 
 func (s *SignupEngine) registerDevice(a libkb.LoginContext, ctx *Context, deviceName string) error {
-	s.lks = libkb.NewLKSec(s.ppStream.LksClientHalf(), s.uid, s.G())
+	s.lks = libkb.NewLKSec(s.ppStream.LksClientHalf(), s.ppStream.Generation(), s.uid, s.G())
 	args := &DeviceWrapArgs{
 		Me:         s.me,
 		DeviceName: deviceName,

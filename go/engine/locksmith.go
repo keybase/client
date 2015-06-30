@@ -242,7 +242,7 @@ func (d *Locksmith) addDeviceKey(ctx *Context) error {
 		return err
 	}
 
-	d.lks = libkb.NewLKSec(tk.LksClientHalf(), d.user.GetUID(), d.G())
+	d.lks = libkb.NewLKSec(tk.LksClientHalf(), tk.Generation(), d.user.GetUID(), d.G())
 	args := &DeviceWrapArgs{
 		Me:         d.user,
 		DeviceName: devname,
@@ -268,7 +268,7 @@ func (d *Locksmith) addDeviceKeyWithSigner(ctx *Context, signer libkb.GenericKey
 	if err != nil {
 		return err
 	}
-	d.lks = libkb.NewLKSec(tk.LksClientHalf(), d.user.GetUID(), d.G())
+	d.lks = libkb.NewLKSec(tk.LksClientHalf(), tk.Generation(), d.user.GetUID(), d.G())
 	args := &DeviceWrapArgs{
 		Me:         d.user,
 		DeviceName: devname,
@@ -523,7 +523,7 @@ func (d *Locksmith) deviceSignExistingDevice(ctx *Context, existingID, existingN
 	}
 
 	d.kexMu.Lock()
-	d.kex = NewKexFwd(tk.LksClientHalf(), kargs, d.G())
+	d.kex = NewKexFwd(tk.LksClientHalf(), tk.Generation(), kargs, d.G())
 	d.kexMu.Unlock()
 
 	err = RunEngine(d.kex, ctx)
@@ -565,7 +565,7 @@ func (d *Locksmith) selectPGPKey(ctx *Context, keys []*libkb.PGPKeyBundle) (*lib
 	return selected, nil
 }
 
-func (d *Locksmith) ppStream(ctx *Context) (ret libkb.PassphraseStream, err error) {
+func (d *Locksmith) ppStream(ctx *Context) (ret *libkb.PassphraseStream, err error) {
 	if ctx.LoginContext != nil {
 		cached := ctx.LoginContext.PassphraseStreamCache()
 		if cached == nil {

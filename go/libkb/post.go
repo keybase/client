@@ -168,7 +168,9 @@ func CheckPostedViaSigID(sigID keybase1.SigID) (found bool, status keybase1.Proo
 	return rfound, keybase1.ProofStatus(rstatus), rerr
 }
 
-func PostDeviceLKS(lctx LoginContext, deviceID, deviceType string, serverHalf []byte) error {
+func PostDeviceLKS(lctx LoginContext, deviceID, deviceType string, serverHalf []byte,
+	ppGen PassphraseGeneration,
+	clientHalfRecovery string, clientHalfRecoveryKID KID) error {
 	if len(serverHalf) == 0 {
 		return fmt.Errorf("PostDeviceLKS: called with empty serverHalf")
 	}
@@ -179,6 +181,9 @@ func PostDeviceLKS(lctx LoginContext, deviceID, deviceType string, serverHalf []
 			"device_id":       S{Val: deviceID},
 			"type":            S{Val: deviceType},
 			"lks_server_half": S{Val: hex.EncodeToString(serverHalf)},
+			"ppgen":           I{Val: int(ppGen)},
+			"lks_client_half": S{Val: clientHalfRecovery},
+			"kid":             S{Val: clientHalfRecoveryKID.String()},
 		},
 	}
 	if lctx != nil {
