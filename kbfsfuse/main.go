@@ -90,8 +90,6 @@ func main() {
 	client.InitUI()
 	libkb.G.UI.Configure()
 
-	ctx := context.Background()
-
 	if *local {
 		users := []string{"strib", "max", "chris", "fred"}
 		userIndex := -1
@@ -139,8 +137,9 @@ func main() {
 		log.Fatal("Usage:\n  kbfs [-client|-local] MOUNTPOINT")
 	}
 
+	ctx := context.Background()
 	if *newFUSE {
-		if err := runNewFUSE(ctx, config, *debug, flag.Arg(0)); err != nil {
+		if err := runNewFUSE(config, *debug, flag.Arg(0)); err != nil {
 			log.Fatalf("error serving filesystem: %v", err)
 		}
 	} else {

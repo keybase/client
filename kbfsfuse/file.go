@@ -21,6 +21,8 @@ var _ fs.Node = (*File)(nil)
 
 // Attr implements the fs.Node interface for File.
 func (f *File) Attr(ctx context.Context, a *fuse.Attr) error {
+	ctx = f.parent.folder.fs.context(ctx)
+
 	f.parent.folder.mu.RLock()
 	defer f.parent.folder.mu.RUnlock()
 
@@ -74,6 +76,7 @@ func (f *File) sync(ctx context.Context) error {
 
 // Fsync implements the fs.NodeFsyncer interface for File.
 func (f *File) Fsync(ctx context.Context, req *fuse.FsyncRequest) error {
+	ctx = f.parent.folder.fs.context(ctx)
 	return f.sync(ctx)
 }
 
@@ -83,6 +86,8 @@ var _ fs.HandleReader = (*File)(nil)
 
 // Read implements the fs.HandleReader interface for File.
 func (f *File) Read(ctx context.Context, req *fuse.ReadRequest, resp *fuse.ReadResponse) error {
+	ctx = f.parent.folder.fs.context(ctx)
+
 	f.parent.folder.mu.RLock()
 	defer f.parent.folder.mu.RUnlock()
 
@@ -97,6 +102,8 @@ var _ fs.HandleWriter = (*File)(nil)
 
 // Write implements the fs.HandleWriter interface for File.
 func (f *File) Write(ctx context.Context, req *fuse.WriteRequest, resp *fuse.WriteResponse) error {
+	ctx = f.parent.folder.fs.context(ctx)
+
 	f.parent.folder.mu.Lock()
 	defer f.parent.folder.mu.Unlock()
 
@@ -113,6 +120,7 @@ var _ fs.HandleFlusher = (*File)(nil)
 
 // Flush implements the fs.HandleFlusher interface for File.
 func (f *File) Flush(ctx context.Context, req *fuse.FlushRequest) error {
+	ctx = f.parent.folder.fs.context(ctx)
 	// I'm not sure about the guarantees from KBFSOps, so we don't
 	// differentiate between Flush and Fsync.
 	return f.sync(ctx)
@@ -122,6 +130,8 @@ var _ fs.NodeSetattrer = (*File)(nil)
 
 // Setattr implements the fs.NodeSetattrer interface for File.
 func (f *File) Setattr(ctx context.Context, req *fuse.SetattrRequest, resp *fuse.SetattrResponse) error {
+	ctx = f.parent.folder.fs.context(ctx)
+
 	f.parent.folder.mu.Lock()
 	defer f.parent.folder.mu.Unlock()
 

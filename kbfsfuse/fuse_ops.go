@@ -1,7 +1,6 @@
 package main
 
 import (
-	"math/rand"
 	"sync"
 	"syscall"
 	"time"
@@ -26,23 +25,23 @@ type ErrorNode struct {
 // FuseOps implements the low-level FUSE interface for go-fuse, in a
 // goroutine-safe way.
 type FuseOps struct {
-	ctx          context.Context
 	config       libkbfs.Config
 	topNodes     map[string]*FuseNode
 	topNodesByID map[libkbfs.DirID]*FuseNode
 	topLock      sync.RWMutex
 	dirRWChans   *libkbfs.DirRWSchedulers
+	ctx          context.Context
 }
 
 // NewFuseRoot constructs a new root FUSE node for KBFS.
 func NewFuseRoot(ctx context.Context, config libkbfs.Config) *FuseNode {
 	f := &FuseOps{
-		ctx:          ctx,
 		config:       config,
 		topNodes:     make(map[string]*FuseNode),
 		topNodesByID: make(map[libkbfs.DirID]*FuseNode),
 		dirRWChans:   libkbfs.NewDirRWSchedulers(config),
 	}
+	f.ctx = context.WithValue(ctx, ctxAppIDKey, f)
 	return &FuseNode{
 		Node: nodefs.NewDefaultNode(),
 		Ops:  f,
@@ -1129,8 +1128,7 @@ func (f *FuseFile) Flush() fuse.Status {
 
 func runHanwenFUSE(ctx context.Context, config *libkbfs.ConfigLocal, debug bool,
 	mountpoint string) error {
-	root := NewFuseRoot(context.WithValue(ctx, ctxAppIDKey, rand.Int63()),
-		config)
+	root := NewFuseRoot(ctx, config)
 
 	server, _, err := nodefs.MountRoot(mountpoint, root, nil)
 	if err != nil {

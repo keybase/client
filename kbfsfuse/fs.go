@@ -2,7 +2,6 @@ package main
 
 import (
 	"log"
-	_ "math/rand"
 	"os"
 	"sync"
 
@@ -16,7 +15,7 @@ func logMsg(msg interface{}) {
 	log.Printf("FUSE: %s\n", msg)
 }
 
-func runNewFUSE(ctx context.Context, config *libkbfs.ConfigLocal, debug bool,
+func runNewFUSE(config *libkbfs.ConfigLocal, debug bool,
 	mountpoint string) error {
 	if debug {
 		fuse.Debug = logMsg
@@ -31,7 +30,7 @@ func runNewFUSE(ctx context.Context, config *libkbfs.ConfigLocal, debug bool,
 	filesys := &FS{
 		config: config,
 	}
-	// TODO: pass in context.WithValue(ctx, ctxAppIDKey, rand.Int63()) to Serve
+	// TODO: pass in context.WithValue(ctx, ctxAppIDKey, filesys) to Serve
 	if err := fs.Serve(c, filesys); err != nil {
 		return err
 	}
@@ -48,6 +47,14 @@ func runNewFUSE(ctx context.Context, config *libkbfs.ConfigLocal, debug bool,
 // FS implements the newfuse FS interface for KBFS.
 type FS struct {
 	config *libkbfs.ConfigLocal
+}
+
+// context wraps the given Context with a specific value for this FS
+// instance.
+//
+// TODO: get rid of this once fs.Serve() takes a Context.
+func (f *FS) context(ctx context.Context) context.Context {
+	return context.WithValue(ctx, ctxAppIDKey, f)
 }
 
 var _ fs.FS = (*FS)(nil)
@@ -99,6 +106,7 @@ func (r *Root) getMD(ctx context.Context, dh *libkbfs.DirHandle) (libkbfs.DirID,
 
 // Lookup implements the fs.NodeRequestLookuper interface for Root.
 func (r *Root) Lookup(ctx context.Context, req *fuse.LookupRequest, resp *fuse.LookupResponse) (fs.Node, error) {
+	ctx = r.fs.context(ctx)
 	r.mu.Lock()
 	defer r.mu.Unlock()
 
@@ -172,6 +180,7 @@ func (r *Root) getDirent(ctx context.Context, work <-chan libkbfs.DirID, results
 
 // ReadDirAll implements the ReadDirAll interface for Root.
 func (r *Root) ReadDirAll(ctx context.Context) ([]fuse.Dirent, error) {
+	ctx = r.fs.context(ctx)
 	favs, err := r.fs.config.KBFSOps().GetFavDirs(ctx)
 	if err != nil {
 		return nil, err
