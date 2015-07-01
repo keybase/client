@@ -49,12 +49,7 @@ func (p *ProveUIMock) DisplayRecheckWarning(arg keybase1.DisplayRecheckWarningAr
 	return nil
 }
 
-func TestProveRooter(t *testing.T) {
-
-	tc := SetupEngineTest(t, "prove")
-	defer tc.Cleanup()
-
-	fu := CreateAndSignupFakeUser(tc, "prove")
+func proveRooter(g *libkb.GlobalContext, fu *FakeUser) (*ProveUIMock, error) {
 	arg := keybase1.StartProofArg{
 		Service:      "rooter",
 		Username:     fu.Username,
@@ -62,7 +57,7 @@ func TestProveRooter(t *testing.T) {
 		PromptPosted: true,
 	}
 
-	eng := NewProve(&arg, tc.G)
+	eng := NewProve(&arg, g)
 
 	hook := func(arg keybase1.OkToCheckArg) (bool, error) {
 		sigID := eng.sigID
@@ -76,22 +71,33 @@ func TestProveRooter(t *testing.T) {
 				"post": libkb.S{Val: sigID.ToMediumID()},
 			},
 		}
-		_, err := tc.G.API.Post(apiArg)
+		_, err := g.API.Post(apiArg)
 		return (err == nil), err
 	}
 
 	proveUI := &ProveUIMock{hook: hook}
 
 	ctx := Context{
-		LogUI:    tc.G.UI.GetLogUI(),
+		LogUI:    g.UI.GetLogUI(),
 		SecretUI: fu.NewSecretUI(),
 		ProveUI:  proveUI,
 	}
 
 	err := RunEngine(eng, &ctx)
+	return proveUI, err
+}
+
+func TestProveRooter(t *testing.T) {
+	tc := SetupEngineTest(t, "prove")
+	defer tc.Cleanup()
+
+	fu := CreateAndSignupFakeUser(tc, "prove")
+
+	proveUI, err := proveRooter(tc.G, fu)
 	if err != nil {
 		t.Fatal(err)
 	}
+
 	if proveUI.overwrite {
 		t.Error("unexpected prompt for overwrite in test")
 	}

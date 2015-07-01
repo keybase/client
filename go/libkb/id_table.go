@@ -1023,7 +1023,7 @@ func (idt *IdentityTable) GetTrackList() (ret []*TrackChainLink) {
 	return
 }
 
-func (idt *IdentityTable) TrackChcainLinkFor(username string, uid keybase1.UID) (*TrackChainLink, error) {
+func (idt *IdentityTable) TrackChainLinkFor(username string, uid keybase1.UID) (*TrackChainLink, error) {
 	list, found := idt.tracks[username]
 	if !found {
 		return nil, nil

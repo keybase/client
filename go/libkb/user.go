@@ -393,7 +393,7 @@ func (u *User) Equal(other *User) bool {
 	return u.id == other.id
 }
 
-func (u *User) TrackChcainLinkFor(username string, uid keybase1.UID) (*TrackChainLink, error) {
+func (u *User) TrackChainLinkFor(username string, uid keybase1.UID) (*TrackChainLink, error) {
 	G.Log.Debug("+ GetTrackingStatement for %s", uid)
 	defer G.Log.Debug("- GetTrackingStatement for %s", uid)
 
@@ -431,7 +431,7 @@ func (u *User) remoteTrackChainLinkFor(username string, uid keybase1.UID) (*Trac
 		return nil, nil
 	}
 
-	return u.IDTable().TrackChcainLinkFor(username, uid)
+	return u.IDTable().TrackChainLinkFor(username, uid)
 }
 
 // BaseProofSet creates a basic proof set for a user with their

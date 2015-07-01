@@ -28,7 +28,7 @@ func assertUntracked(t *testing.T, theirName string) {
 		t.Fatal(err)
 	}
 
-	s, err := me.TrackChcainLinkFor(them.GetName(), them.GetUID())
+	s, err := me.TrackChainLinkFor(them.GetName(), them.GetUID())
 	if err != nil {
 		t.Fatal(err)
 	}

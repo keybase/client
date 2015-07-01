@@ -272,7 +272,7 @@ func (p *Prove) SigID() keybase1.SigID {
 	return p.sigID
 }
 
-// Run is runs the Prove engine, performing all steps of the proof process.
+// Run runs the Prove engine, performing all steps of the proof process.
 func (p *Prove) Run(ctx *Context) (err error) {
 	p.G().Log.Debug("+ ProofEngine.Run")
 	defer func() {

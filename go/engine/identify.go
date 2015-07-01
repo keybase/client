@@ -157,7 +157,7 @@ func (e *Identify) run(ctx *Context) (*libkb.IdentifyOutcome, error) {
 			return nil, libkb.LoginRequiredError{Context: "identify with tracking"}
 		}
 
-		tlink, err := e.me.TrackChcainLinkFor(e.user.GetName(), e.user.GetUID())
+		tlink, err := e.me.TrackChainLinkFor(e.user.GetName(), e.user.GetUID())
 		if err != nil {
 			return nil, err
 		}
