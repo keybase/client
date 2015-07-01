@@ -16,9 +16,44 @@ type sb struct {
 	proofState keybase1.ProofState
 }
 
-type sbtest struct {
-	name   string
-	blocks []sb
+func checkTrack(tc libkb.TestContext, fu *FakeUser, username string, blocks []sb, status keybase1.TrackStatus) error {
+	ui, them, err := runTrack(tc, fu, username)
+	if err != nil {
+		return err
+	}
+
+	me, err := libkb.LoadMe(libkb.LoadUserArg{})
+	if err != nil {
+		return err
+	}
+	s, err := me.TrackChainLinkFor(them.GetName(), them.GetUID())
+	if err != nil {
+		return err
+	}
+
+	sbs := s.ToServiceBlocks()
+	if len(sbs) != len(blocks) {
+		return fmt.Errorf("num service blocks: %d, expected %d", len(sbs), len(blocks))
+	}
+	sort.Sort(byID(sbs))
+	for i, sb := range sbs {
+		tsb := blocks[i]
+		if sb.IsSocial() != tsb.social {
+			return fmt.Errorf("(sb %d): social: %v, expected %v", i, sb.IsSocial(), tsb.social)
+		}
+		if sb.ToIDString() != tsb.id {
+			return fmt.Errorf("(sb %d): id: %s, expected %s", i, sb.ToIDString(), tsb.id)
+		}
+		if sb.GetProofState() != tsb.proofState {
+			return fmt.Errorf("(sb %d): proof state: %d, expected %d", i, sb.GetProofState(), tsb.proofState)
+		}
+	}
+
+	if ui.Outcome.TrackStatus != status {
+		return fmt.Errorf("track status: %d, expected %d", ui.Outcome.TrackStatus, status)
+	}
+
+	return nil
 }
 
 type byID []*libkb.ServiceBlock
@@ -27,72 +62,62 @@ func (b byID) Len() int           { return len(b) }
 func (b byID) Less(x, y int) bool { return b[x].ToIDString() < b[y].ToIDString() }
 func (b byID) Swap(x, y int)      { b[x], b[y] = b[y], b[x] }
 
+type sbtest struct {
+	name   string
+	blocks []sb
+	status keybase1.TrackStatus
+}
+
 // these aren't that interesting since all the proof states are
 // the same, but it does some basic testing of the service blocks
 // in a TrackChainLink.
 var sbtests = []sbtest{
-	{name: "t_alice", blocks: []sb{
-		{social: true, id: "kbtester2@github", proofState: keybase1.ProofState_OK},
-		{social: true, id: "tacovontaco@twitter", proofState: keybase1.ProofState_OK},
-	}},
-	{name: "t_bob", blocks: []sb{
-		{social: true, id: "kbtester1@github", proofState: keybase1.ProofState_OK},
-		{social: true, id: "kbtester1@twitter", proofState: keybase1.ProofState_OK},
-	}},
-	{name: "t_charlie", blocks: []sb{
-		{social: true, id: "tacoplusplus@github", proofState: keybase1.ProofState_OK},
-		{social: true, id: "tacovontaco@twitter", proofState: keybase1.ProofState_OK},
-	}},
-	{name: "t_doug", blocks: []sb{
-		{social: true, id: "kbtester1@github", proofState: keybase1.ProofState_OK},
-		{social: true, id: "kbtester1@twitter", proofState: keybase1.ProofState_OK},
-	}},
+	{
+		name: "t_alice",
+		blocks: []sb{
+			{social: true, id: "kbtester2@github", proofState: keybase1.ProofState_OK},
+			{social: true, id: "tacovontaco@twitter", proofState: keybase1.ProofState_OK},
+		},
+		status: keybase1.TrackStatus_NEW_OK,
+	},
+	{
+		name: "t_bob",
+		blocks: []sb{
+			{social: true, id: "kbtester1@github", proofState: keybase1.ProofState_OK},
+			{social: true, id: "kbtester1@twitter", proofState: keybase1.ProofState_OK},
+		},
+		status: keybase1.TrackStatus_NEW_OK,
+	},
+	{
+		name: "t_charlie",
+		blocks: []sb{
+			{social: true, id: "tacoplusplus@github", proofState: keybase1.ProofState_OK},
+			{social: true, id: "tacovontaco@twitter", proofState: keybase1.ProofState_OK},
+		},
+		status: keybase1.TrackStatus_NEW_OK,
+	},
+	{
+		name:   "t_doug",
+		status: keybase1.TrackStatus_NEW_ZERO_PROOFS,
+	},
 }
 
-func TestTrackServiceBlocks(t *testing.T) {
+func TestTrackProofServiceBlocks(t *testing.T) {
 	tc := SetupEngineTest(t, "track")
 	defer tc.Cleanup()
 	fu := CreateAndSignupFakeUser(tc, "track")
 
 	for _, test := range sbtests {
-		_, them, err := runTrack(tc, fu, test.name)
+		err := checkTrack(tc, fu, test.name, test.blocks, test.status)
 		if err != nil {
-			t.Errorf("%s: runTrack err: %s", test.name, err)
-			continue
+			t.Errorf("%s: %s", test.name, err)
 		}
-		defer runUntrack(tc.G, fu, test.name)
-
-		me, err := libkb.LoadMe(libkb.LoadUserArg{})
-		if err != nil {
-			t.Errorf("%s: LoadMe err: %s", test.name, err)
-			continue
-		}
-		s, err := me.TrackChainLinkFor(them.GetName(), them.GetUID())
-		if err != nil {
-			t.Errorf("%s: TrackChainLinkFor err: %s", test.name, err)
-			continue
-		}
-
-		sbs := s.ToServiceBlocks()
-		sort.Sort(byID(sbs))
-		for i, sb := range sbs {
-			fmt.Printf("service block: %+v (%T)\n", sb, sb)
-			tsb := test.blocks[i]
-			if sb.IsSocial() != tsb.social {
-				t.Errorf("%s (sb %d): social: %v, expected %v", test.name, i, sb.IsSocial(), tsb.social)
-			}
-			if sb.ToIDString() != tsb.id {
-				t.Errorf("%s (sb %d): id: %s, expected %s", test.name, i, sb.ToIDString(), tsb.id)
-			}
-			if sb.GetProofState() != tsb.proofState {
-				t.Errorf("%s (sb %d): proof state: %d, expected %d", test.name, i, sb.GetProofState(), tsb.proofState)
-			}
-		}
+		runUntrack(tc.G, fu, test.name)
 	}
 }
 
 // track a user that has no proofs
-func TestTrackNoProofs(t *testing.T) {
+func TestTrackProofZero(t *testing.T) {
 	tc := SetupEngineTest(t, "track")
 	defer tc.Cleanup()
 
@@ -102,23 +127,10 @@ func TestTrackNoProofs(t *testing.T) {
 
 	// create a user to track the proofUser
 	trackUser := CreateAndSignupFakeUser(tc, "track")
-	_, them, err := runTrack(tc, trackUser, proofUser.Username)
-	if err != nil {
-		t.Fatal(err)
-	}
 
-	me, err := libkb.LoadMe(libkb.LoadUserArg{})
+	err := checkTrack(tc, trackUser, proofUser.Username, nil, keybase1.TrackStatus_NEW_ZERO_PROOFS)
 	if err != nil {
 		t.Fatal(err)
-	}
-	s, err := me.TrackChainLinkFor(them.GetName(), them.GetUID())
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	sbs := s.ToServiceBlocks()
-	if len(sbs) != 0 {
-		t.Fatalf("num service blocks: %d, expected 0", len(sbs))
 	}
 }
 
@@ -138,39 +150,27 @@ func TestTrackProofRooter(t *testing.T) {
 
 	// create a user to track the proofUser
 	trackUser := CreateAndSignupFakeUser(tc, "track")
-	_, them, err := runTrack(tc, trackUser, proofUser.Username)
+
+	rbl := sb{
+		social:     true,
+		id:         proofUser.Username + "@rooter",
+		proofState: keybase1.ProofState_OK,
+	}
+	err = checkTrack(tc, trackUser, proofUser.Username, []sb{rbl}, keybase1.TrackStatus_NEW_OK)
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	me, err := libkb.LoadMe(libkb.LoadUserArg{})
+	// retrack, check the track status
+	err = checkTrack(tc, trackUser, proofUser.Username, []sb{rbl}, keybase1.TrackStatus_UPDATE_OK)
 	if err != nil {
 		t.Fatal(err)
-	}
-	s, err := me.TrackChainLinkFor(them.GetName(), them.GetUID())
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	sbs := s.ToServiceBlocks()
-	if len(sbs) != 1 {
-		t.Fatalf("num service blocks: %d, expected 1", len(sbs))
-	}
-	sb := sbs[0]
-	if !sb.IsSocial() {
-		t.Errorf("service block not social, expected it to be")
-	}
-	if sb.ToIDString() != proofUser.Username+"@rooter" {
-		t.Errorf("id string: %s, expected %s@rooter", sb.ToIDString(), proofUser.Username)
-	}
-	if sb.GetProofState() != keybase1.ProofState_OK {
-		t.Errorf("proof state: %d, expected %d", sb.GetProofState(), keybase1.ProofState_OK)
 	}
 }
 
 // upgrade tracking statement when new proof is added:
 // track a user that has no proofs, then track them again after they add a proof
-func TestTrackUpgrade(t *testing.T) {
+func TestTrackProofUpgrade(t *testing.T) {
 	tc := SetupEngineTest(t, "track")
 	defer tc.Cleanup()
 
@@ -180,23 +180,9 @@ func TestTrackUpgrade(t *testing.T) {
 
 	// create a user to track the proofUser
 	trackUser := CreateAndSignupFakeUser(tc, "track")
-	_, them, err := runTrack(tc, trackUser, proofUser.Username)
+	err := checkTrack(tc, trackUser, proofUser.Username, nil, keybase1.TrackStatus_NEW_ZERO_PROOFS)
 	if err != nil {
 		t.Fatal(err)
-	}
-
-	me, err := libkb.LoadMe(libkb.LoadUserArg{})
-	if err != nil {
-		t.Fatal(err)
-	}
-	s, err := me.TrackChainLinkFor(them.GetName(), them.GetUID())
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	sbs := s.ToServiceBlocks()
-	if len(sbs) != 0 {
-		t.Fatalf("num service blocks: %d, expected 0", len(sbs))
 	}
 
 	// proofUser adds a rooter proof:
@@ -210,37 +196,58 @@ func TestTrackUpgrade(t *testing.T) {
 
 	// trackUser tracks proofUser again:
 	trackUser.LoginOrBust(tc)
-	ui, them, err := runTrack(tc, trackUser, proofUser.Username)
+
+	rbl := sb{
+		social:     true,
+		id:         proofUser.Username + "@rooter",
+		proofState: keybase1.ProofState_OK,
+	}
+	err = checkTrack(tc, trackUser, proofUser.Username, []sb{rbl}, keybase1.TrackStatus_UPDATE_NEW_PROOFS)
+	if err != nil {
+		t.Fatal(err)
+	}
+}
+
+// test a change to a proof
+func TestTrackProofChangeSinceTrack(t *testing.T) {
+	tc := SetupEngineTest(t, "track")
+	defer tc.Cleanup()
+
+	// create a user with a rooter proof
+	proofUser := CreateAndSignupFakeUser(tc, "proof")
+	_, err := proveRooter(tc.G, proofUser)
+	if err != nil {
+		t.Fatal(err)
+	}
+	Logout(tc)
+
+	// create a user to track the proofUser
+	trackUser := CreateAndSignupFakeUser(tc, "track")
+
+	rbl := sb{
+		social:     true,
+		id:         proofUser.Username + "@rooter",
+		proofState: keybase1.ProofState_OK,
+	}
+	err = checkTrack(tc, trackUser, proofUser.Username, []sb{rbl}, keybase1.TrackStatus_NEW_OK)
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	me, err = libkb.LoadMe(libkb.LoadUserArg{})
+	Logout(tc)
+
+	// proof user logs in and does a new rooter proof
+	proofUser.LoginOrBust(tc)
+	_, err = proveRooter(tc.G, proofUser)
 	if err != nil {
 		t.Fatal(err)
 	}
-	s, err = me.TrackChainLinkFor(them.GetName(), them.GetUID())
+	Logout(tc)
+
+	// track user logs in and tracks proof user again
+	trackUser.LoginOrBust(tc)
+	err = checkTrack(tc, trackUser, proofUser.Username, []sb{rbl}, keybase1.TrackStatus_NEW_OK)
 	if err != nil {
 		t.Fatal(err)
-	}
-
-	sbs = s.ToServiceBlocks()
-	if len(sbs) != 1 {
-		t.Fatalf("num service blocks: %d, expected 1", len(sbs))
-	}
-	sb := sbs[0]
-	if !sb.IsSocial() {
-		t.Errorf("service block not social, expected it to be")
-	}
-	if sb.ToIDString() != proofUser.Username+"@rooter" {
-		t.Errorf("id string: %s, expected %s@rooter", sb.ToIDString(), proofUser.Username)
-	}
-	if sb.GetProofState() != keybase1.ProofState_OK {
-		t.Errorf("proof state: %d, expected %d", sb.GetProofState(), keybase1.ProofState_OK)
-	}
-
-	if ui.Outcome.TrackStatus != keybase1.TrackStatus_UPDATE_NEW_PROOFS {
-		t.Errorf("track status: %d, expected %d", ui.Outcome.TrackStatus, keybase1.TrackStatus_UPDATE_NEW_PROOFS)
-		t.Logf("outcome: %+v", ui.Outcome)
 	}
 }
