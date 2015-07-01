@@ -175,7 +175,7 @@ func (s *LoginState) GetPassphraseStream(ui SecretUI) (ret *PassphraseStream, er
 	if ret != nil {
 		return
 	}
-	if err = s.verifyPassphrase(ui); err != nil {
+	if err = s.verifyPassphraseWithServer(ui); err != nil {
 		return
 	}
 	ret, err = s.PassphraseStream()
@@ -199,7 +199,7 @@ func (s *LoginState) GetVerifiedTriplesec(ui SecretUI) (ret *triplesec.Cipher, e
 		return
 	}
 
-	if err = s.verifyPassphrase(ui); err != nil {
+	if err = s.verifyPassphraseWithServer(ui); err != nil {
 		return
 	}
 
@@ -539,7 +539,7 @@ func (s *LoginState) stretchPassphraseIfNecessary(lctx LoginContext, un string, 
 	return lctx.CreateStreamCacheViaStretch(pp)
 }
 
-func (s *LoginState) verifyPassphrase(ui SecretUI) error {
+func (s *LoginState) verifyPassphraseWithServer(ui SecretUI) error {
 	return s.loginHandle(func(lctx LoginContext) error {
 		return s.loginWithPromptHelper(lctx, s.G().Env.GetUsername(), nil, ui, true)
 	}, nil, "LoginState - verifyPassphrase")
@@ -568,7 +568,8 @@ func (s *LoginState) loginWithPromptHelper(lctx LoginContext, username string, l
 		return key, err
 	}
 
-	// See #510, this is needed for us to function properly.
+	// If we're forcing a login to check our passphrase (as in when we're called
+	// from verifyPassphraseWithServer), then don't use public key login at all. See issue #510.
 	if !force {
 		if loggedIn, err = s.tryPubkeyLoginHelper(lctx, username, getSecretKeyFn); err != nil || loggedIn {
 			return
