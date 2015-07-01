@@ -555,18 +555,6 @@ func (c *ChainLink) checkServerSignatureMetadata(kf *KeyFamily) error {
 			}
 		}
 	}
-	// Check the ctime.
-	serverCtimeUnix, err := c.packed.AtKey("ctime").GetInt64()
-	if err != nil {
-		return err
-	}
-	serverCtime := time.Unix(serverCtimeUnix, 0)
-	if !serverCtime.Equal(c.GetCTime()) {
-		return CtimeMismatchError{
-			fmt.Sprintf("Server ctime (%d) doesn't match signed ctime (%d)",
-				serverCtimeUnix, c.GetCTime().Unix()),
-		}
-	}
 	return nil
 }
 
