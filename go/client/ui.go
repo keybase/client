@@ -113,6 +113,7 @@ func (ui IdentifyTrackUI) FinishAndPrompt(o *keybase1.IdentifyOutcome) (ret keyb
 
 	def := PromptDefaultYes
 	isEqual := false
+	// XXX change this to use keybase1.TrackStatus
 	switch {
 	case ntf > 0 || nd > 0:
 		prompt = "Your tracking statement of " + un + " is broken; fix it?"

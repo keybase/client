@@ -170,6 +170,7 @@ type FakeIdentifyUI struct {
 	Fapr            keybase1.FinishAndPromptRes
 	Keys            map[libkb.FOKIDMapKey]*keybase1.TrackDiff
 	DisplayKeyCalls int
+	Outcome         *keybase1.IdentifyOutcome
 }
 
 func (ui *FakeIdentifyUI) FinishWebProofCheck(proof keybase1.RemoteProof, result keybase1.LinkCheckResult) {
@@ -184,8 +185,9 @@ func (ui *FakeIdentifyUI) FinishSocialProofCheck(proof keybase1.RemoteProof, res
 	}
 	ui.Proofs[proof.Key] = proof.Value
 }
-func (ui *FakeIdentifyUI) FinishAndPrompt(*keybase1.IdentifyOutcome) (res keybase1.FinishAndPromptRes, err error) {
+func (ui *FakeIdentifyUI) FinishAndPrompt(outcome *keybase1.IdentifyOutcome) (res keybase1.FinishAndPromptRes, err error) {
 	res = ui.Fapr
+	ui.Outcome = outcome
 	return
 }
 func (ui *FakeIdentifyUI) DisplayCryptocurrency(keybase1.Cryptocurrency) {

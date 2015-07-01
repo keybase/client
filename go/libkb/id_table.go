@@ -1119,9 +1119,9 @@ func ComputeRemoteDiff(tracked, observed keybase1.ProofState) TrackDiff {
 	if observed == tracked {
 		return TrackDiffNone{}
 	} else if observed == keybase1.ProofState_OK {
-		return TrackDiffRemoteFail{observed}
-	} else if tracked == keybase1.ProofState_OK {
 		return TrackDiffRemoteWorking{tracked}
+	} else if tracked == keybase1.ProofState_OK {
+		return TrackDiffRemoteFail{observed}
 	}
 	return TrackDiffRemoteChanged{tracked, observed}
 }

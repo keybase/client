@@ -285,11 +285,21 @@ typedef NS_ENUM (NSInteger, KBRTrackDiffType) {
 @property BOOL isRemote;
 @end
 
+typedef NS_ENUM (NSInteger, KBRTrackStatus) {
+	KBRTrackStatusNewOk = 1,
+	KBRTrackStatusNewZeroProofs = 2,
+	KBRTrackStatusNewFailProofs = 3,
+	KBRTrackStatusUpdateBroken = 4,
+	KBRTrackStatusUpdateNewProofs = 5,
+	KBRTrackStatusUpdateOk = 6,
+};
+
 @interface KBRIdentifyOutcome : KBRObject
 @property NSString *username;
 @property KBRStatus *status;
 @property NSArray *warnings; /*of string*/
 @property KBRTrackSummary *trackUsed;
+@property KBRTrackStatus trackStatus;
 @property NSInteger numTrackFailures;
 @property NSInteger numTrackChanges;
 @property NSInteger numProofFailures;

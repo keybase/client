@@ -343,6 +343,7 @@ func (ir *IdentifyOutcome) Export() *keybase1.IdentifyOutcome {
 		Status:            ExportErrorAsStatus(ir.Error),
 		Warnings:          v,
 		TrackUsed:         ExportTrackSummary(ir.TrackUsed, ir.Username),
+		TrackStatus:       ir.TrackStatus(),
 		NumTrackFailures:  ir.NumTrackFailures(),
 		NumTrackChanges:   ir.NumTrackChanges(),
 		NumProofFailures:  ir.NumProofFailures(),

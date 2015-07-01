@@ -196,6 +196,10 @@
       "type" : "boolean"
     } ]
   }, {
+    "type" : "enum",
+    "name" : "TrackStatus",
+    "symbols" : [ "NEW_OK_1", "NEW_ZERO_PROOFS_2", "NEW_FAIL_PROOFS_3", "UPDATE_BROKEN_4", "UPDATE_NEW_PROOFS_5", "UPDATE_OK_6" ]
+  }, {
     "type" : "record",
     "name" : "IdentifyOutcome",
     "fields" : [ {
@@ -213,6 +217,9 @@
     }, {
       "name" : "trackUsed",
       "type" : [ "null", "TrackSummary" ]
+    }, {
+      "name" : "trackStatus",
+      "type" : "TrackStatus"
     }, {
       "name" : "numTrackFailures",
       "type" : "int"

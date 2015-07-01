@@ -103,6 +103,9 @@ func (i IdentifyOutcome) NumTrackFailures() int {
 	}
 	for _, c := range i.ProofChecks {
 		if check(c.diff) || check(c.remoteDiff) {
+			fmt.Printf("proof check track failure: %+v\n", c)
+			fmt.Printf("hint: %+v\n", c.hint)
+			fmt.Printf("diff type: %T\n", c.remoteDiff)
 			ntf++
 		}
 	}
@@ -132,6 +135,27 @@ func (i IdentifyOutcome) NumTrackChanges() int {
 		}
 	}
 	return ntc
+}
+
+func (i IdentifyOutcome) TrackStatus() keybase1.TrackStatus {
+	if i.NumTrackFailures() > 0 || i.NumDeleted() > 0 {
+		return keybase1.TrackStatus_UPDATE_BROKEN
+	}
+	if i.TrackUsed != nil {
+		if i.NumTrackChanges() > 0 {
+			return keybase1.TrackStatus_UPDATE_NEW_PROOFS
+		}
+		if i.NumTrackChanges() == 0 {
+			return keybase1.TrackStatus_UPDATE_OK
+		}
+	}
+	if i.NumProofSuccesses() == 0 {
+		return keybase1.TrackStatus_NEW_ZERO_PROOFS
+	}
+	if i.NumProofFailures() > 0 {
+		return keybase1.TrackStatus_NEW_FAIL_PROOFS
+	}
+	return keybase1.TrackStatus_NEW_OK
 }
 
 func (i IdentifyOutcome) TrackingStatement() *jsonw.Wrapper {

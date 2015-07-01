@@ -785,11 +785,23 @@ type TrackSummary struct {
 	IsRemote bool   `codec:"isRemote" json:"isRemote"`
 }
 
+type TrackStatus int
+
+const (
+	TrackStatus_NEW_OK            TrackStatus = 1
+	TrackStatus_NEW_ZERO_PROOFS   TrackStatus = 2
+	TrackStatus_NEW_FAIL_PROOFS   TrackStatus = 3
+	TrackStatus_UPDATE_BROKEN     TrackStatus = 4
+	TrackStatus_UPDATE_NEW_PROOFS TrackStatus = 5
+	TrackStatus_UPDATE_OK         TrackStatus = 6
+)
+
 type IdentifyOutcome struct {
 	Username          string        `codec:"username" json:"username"`
 	Status            *Status       `codec:"status,omitempty" json:"status,omitempty"`
 	Warnings          []string      `codec:"warnings" json:"warnings"`
 	TrackUsed         *TrackSummary `codec:"trackUsed,omitempty" json:"trackUsed,omitempty"`
+	TrackStatus       TrackStatus   `codec:"trackStatus" json:"trackStatus"`
 	NumTrackFailures  int           `codec:"numTrackFailures" json:"numTrackFailures"`
 	NumTrackChanges   int           `codec:"numTrackChanges" json:"numTrackChanges"`
 	NumProofFailures  int           `codec:"numProofFailures" json:"numProofFailures"`
