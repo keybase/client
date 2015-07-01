@@ -72,7 +72,7 @@ func TestReset(t *testing.T) {
 		secretStore := libkb.NewSecretStore(fu.Username)
 		secret, err := secretStore.RetrieveSecret()
 		if err == nil {
-			t.Error("Unexpectedly got secret %v", secret)
+			t.Errorf("Unexpectedly got secret %v", secret)
 		}
 	}
 

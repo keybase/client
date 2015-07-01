@@ -157,7 +157,7 @@ func TestNaclEncryptEphemeral(t *testing.T) {
 		t.Fatal(err)
 	}
 	if !FastByteArrayEq(out, msg) {
-		t.Error("Message mismatch: %s != %s", msg, out)
+		t.Errorf("Message mismatch: %s != %s", msg, out)
 	}
 	if kid.Eq(keyPair.GetKid()) {
 		t.Error("KID should be an ephemeral key, not ours")
@@ -183,7 +183,7 @@ func TestNaclEncryptKnown(t *testing.T) {
 		t.Fatal(err)
 	}
 	if !FastByteArrayEq(out, msg) {
-		t.Error("Message mismatch: %s != %s", msg, out)
+		t.Errorf("Message mismatch: %s != %s", msg, out)
 	}
 	if !kid.Eq(sender.GetKid()) {
 		t.Error("KID mismatch for sender")
