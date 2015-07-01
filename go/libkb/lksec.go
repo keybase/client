@@ -14,13 +14,15 @@ type LKSec struct {
 	serverHalf []byte
 	clientHalf []byte
 	secret     []byte
+	ppGen      PassphraseGeneration
 	uid        keybase1.UID
 	Contextified
 }
 
-func NewLKSec(clientHalf []byte, uid keybase1.UID, gc *GlobalContext) *LKSec {
+func NewLKSec(clientHalf []byte, ppGen PassphraseGeneration, uid keybase1.UID, gc *GlobalContext) *LKSec {
 	return &LKSec{
 		clientHalf:   clientHalf,
+		ppGen:        ppGen,
 		uid:          uid,
 		Contextified: NewContextified(gc),
 	}
@@ -29,6 +31,7 @@ func NewLKSec(clientHalf []byte, uid keybase1.UID, gc *GlobalContext) *LKSec {
 func NewLKSecWithFullSecret(secret []byte, uid keybase1.UID, gc *GlobalContext) *LKSec {
 	return &LKSec{
 		secret:       secret,
+		ppGen:        PassphraseGeneration(-1),
 		uid:          uid,
 		Contextified: NewContextified(gc),
 	}
@@ -40,6 +43,12 @@ func (s *LKSec) SetUID(u keybase1.UID) {
 
 func (s *LKSec) SetClientHalf(b []byte) {
 	s.clientHalf = b
+}
+
+// Generation returns the passphrase generation that this local key security
+// object is derived from.
+func (s LKSec) Generation() PassphraseGeneration {
+	return s.ppGen
 }
 
 func (s *LKSec) GenerateServerHalf() error {
@@ -195,13 +204,20 @@ func (s *LKSec) apiServerHalf(lctx LoginContext, devid *DeviceID) error {
 	return nil
 }
 
-// GetLKSForEncrypt gets a verified passphrase stream, and returns
+// NewLKSForEncrypt gets a verified passphrase stream, and returns
 // an LKS that works for encryption.
 func NewLKSForEncrypt(ui SecretUI, uid keybase1.UID, gc *GlobalContext) (ret *LKSec, err error) {
-	var pps PassphraseStream
+	var pps *PassphraseStream
 	if pps, err = gc.LoginState().GetPassphraseStream(ui); err != nil {
 		return
 	}
-	ret = NewLKSec(pps.LksClientHalf(), uid, gc)
+	ret = NewLKSec(pps.LksClientHalf(), pps.Generation(), uid, gc)
 	return
+}
+
+// EncryptClientHalfRecovery takes the client half of the LKS secret
+// and ecrypts it for the given key.  This is for recovery of passphrases
+// on device recovery operations.
+func (s *LKSec) EncryptClientHalfRecovery(key GenericKey) (string, error) {
+	return key.EncryptToString(s.clientHalf, nil)
 }

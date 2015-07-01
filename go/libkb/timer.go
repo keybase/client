@@ -86,7 +86,7 @@ const (
 	TimerAPI TimerSelector = 1 << iota
 	// TimerXAPI enables External API timers
 	TimerXAPI
-	// TimerRPC enableds RPC timers
+	// TimerRPC enables RPC timers
 	TimerRPC
 )
 

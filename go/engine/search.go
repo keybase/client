@@ -116,8 +116,8 @@ func (e *SearchEngine) Run(ctx *Context) error {
 			return err
 		}
 		e.results = append(e.results, keybase1.UserSummary{
-			Uid:       uid,
-			Username:  username,
+			Uid:      uid,
+			Username: username,
 			Proofs: keybase1.Proofs{
 				Social: socialProofs,
 				Web:    webProofs,

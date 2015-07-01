@@ -14,7 +14,7 @@ import (
 // generate a fake users who only has a detkey, but perhaps it
 // will be useful for something else...
 type DetKeyArgs struct {
-	Tsp         libkb.PassphraseStream
+	Tsp         *libkb.PassphraseStream
 	SelfProof   bool
 	Me          *libkb.User
 	SigningKey  libkb.GenericKey
@@ -67,7 +67,7 @@ func (d *DetKeyEngine) Run(ctx *Context) error {
 	return nil
 }
 
-func (d *DetKeyEngine) eddsa(ctx *Context, tpk libkb.PassphraseStream) error {
+func (d *DetKeyEngine) eddsa(ctx *Context, tpk *libkb.PassphraseStream) error {
 	serverHalf, err := libkb.RandBytes(len(tpk.EdDSASeed()))
 	if err != nil {
 		return err
@@ -87,7 +87,7 @@ func (d *DetKeyEngine) eddsa(ctx *Context, tpk libkb.PassphraseStream) error {
 	return d.push(ctx, newPusher(key, signingKey, serverHalf).EdDSA())
 }
 
-func GenSigningDetKey(tpk libkb.PassphraseStream, serverHalf []byte) (gkey libkb.GenericKey, err error) {
+func GenSigningDetKey(tpk *libkb.PassphraseStream, serverHalf []byte) (gkey libkb.GenericKey, err error) {
 	xseed, err := serverSeed(tpk.EdDSASeed(), serverHalf)
 	if err != nil {
 		return nil, err
