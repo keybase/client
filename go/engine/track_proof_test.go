@@ -103,6 +103,7 @@ func TestTrackProofRooter(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
+	tc.G.Logout()
 
 	// create a user to track the proofUser
 	trackUser := CreateAndSignupFakeUser(tc, "track")
@@ -110,5 +111,28 @@ func TestTrackProofRooter(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	_ = them
+
+	me, err := libkb.LoadMe(libkb.LoadUserArg{})
+	if err != nil {
+		t.Fatal(err)
+	}
+	s, err := me.TrackChainLinkFor(them.GetName(), them.GetUID())
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	sbs := s.ToServiceBlocks()
+	if len(sbs) != 1 {
+		t.Fatalf("num service blocks: %d, expected 1", len(sbs))
+	}
+	sb := sbs[0]
+	if !sb.IsSocial() {
+		t.Errorf("service block not social, expected it to be")
+	}
+	if sb.ToIDString() != proofUser.Username+"@rooter" {
+		t.Errorf("id string: %s, expected %s@rooter", sb.ToIDString(), proofUser.Username)
+	}
+	if sb.GetProofState() != keybase1.ProofState_OK {
+		t.Errorf("proof state: %d, expected %d", sb.GetProofState(), keybase1.ProofState_OK)
+	}
 }

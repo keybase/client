@@ -165,6 +165,7 @@ var RemoteServiceTypes = map[string]keybase1.ProofType{
 	"https":      keybase1.ProofType_GENERIC_WEB_SITE,
 	"http":       keybase1.ProofType_GENERIC_WEB_SITE,
 	"dns":        keybase1.ProofType_DNS,
+	"rooter":     keybase1.ProofType_ROOTER,
 }
 
 var RemoteServiceOrder = []keybase1.ProofType{
@@ -175,6 +176,7 @@ var RemoteServiceOrder = []keybase1.ProofType{
 	keybase1.ProofType_COINBASE,
 	keybase1.ProofType_HACKERNEWS,
 	keybase1.ProofType_GENERIC_WEB_SITE,
+	keybase1.ProofType_ROOTER,
 }
 
 const CanonicalHost = "keybase.io"
