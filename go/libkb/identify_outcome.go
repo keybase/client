@@ -103,9 +103,6 @@ func (i IdentifyOutcome) NumTrackFailures() int {
 	}
 	for _, c := range i.ProofChecks {
 		if check(c.diff) || check(c.remoteDiff) {
-			fmt.Printf("proof check track failure: %+v\n", c)
-			fmt.Printf("hint: %+v\n", c.hint)
-			fmt.Printf("diff type: %T\n", c.remoteDiff)
 			ntf++
 		}
 	}
