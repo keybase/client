@@ -1146,11 +1146,9 @@ func (idt *IdentityTable) proofRemoteCheck(hasPreviousTrack bool, res *LinkCheck
 		return
 	}
 
-	if G.ProofCache != nil {
-		if res.cached = G.ProofCache.Get(sid); res.cached != nil {
-			res.err = res.cached.Status
-			return
-		}
+	if res.cached = G.ProofCache.Get(sid); res.cached != nil {
+		res.err = res.cached.Status
+		return
 	}
 
 	var pc ProofChecker
@@ -1165,10 +1163,8 @@ func (idt *IdentityTable) proofRemoteCheck(hasPreviousTrack bool, res *LinkCheck
 		res.err = pc.CheckStatus(*res.hint)
 	}
 
-	if G.ProofCache != nil {
-		if err := G.ProofCache.Put(sid, res.err); err != nil {
-			G.Log.Warning("proof cache put error: %s", err)
-		}
+	if err := G.ProofCache.Put(sid, res.err); err != nil {
+		G.Log.Warning("proof cache put error: %s", err)
 	}
 
 	return

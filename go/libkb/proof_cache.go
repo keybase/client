@@ -107,6 +107,9 @@ func (pc *ProofCache) memPut(sid keybase1.SigID, cr CheckResult) {
 }
 
 func (pc *ProofCache) Get(sid keybase1.SigID) *CheckResult {
+	if pc == nil {
+		return nil
+	}
 	pc.mutex.Lock()
 	defer pc.mutex.Unlock()
 
@@ -163,6 +166,9 @@ func (pc *ProofCache) dbPut(sid keybase1.SigID, cr CheckResult) error {
 }
 
 func (pc *ProofCache) Put(sid keybase1.SigID, pe ProofError) error {
+	if pc == nil {
+		return nil
+	}
 	pc.mutex.Lock()
 	defer pc.mutex.Unlock()
 	cr := CheckResult{pe, time.Now()}

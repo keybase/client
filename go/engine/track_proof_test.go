@@ -246,7 +246,7 @@ func TestTrackProofChangeSinceTrack(t *testing.T) {
 
 	// track user logs in and tracks proof user again
 	trackUser.LoginOrBust(tc)
-	err = checkTrack(tc, trackUser, proofUser.Username, []sb{rbl}, keybase1.TrackStatus_NEW_OK)
+	err = checkTrack(tc, trackUser, proofUser.Username, []sb{rbl}, keybase1.TrackStatus_UPDATE_NEW_PROOFS)
 	if err != nil {
 		t.Fatal(err)
 	}
