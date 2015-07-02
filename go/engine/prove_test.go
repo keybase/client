@@ -87,6 +87,40 @@ func proveRooter(g *libkb.GlobalContext, fu *FakeUser) (*ProveUIMock, error) {
 	return proveUI, err
 }
 
+func proveRooterFail(g *libkb.GlobalContext, fu *FakeUser) (*ProveUIMock, error) {
+	arg := keybase1.StartProofArg{
+		Service:      "rooter",
+		Username:     fu.Username,
+		Force:        false,
+		PromptPosted: true,
+	}
+
+	eng := NewProve(&arg, g)
+
+	hook := func(arg keybase1.OkToCheckArg) (bool, error) {
+		apiArg := libkb.APIArg{
+			Endpoint:    "rooter",
+			NeedSession: true,
+			Args: libkb.HTTPArgs{
+				"post": libkb.S{Val: "XXXXXXX"},
+			},
+		}
+		_, err := g.API.Post(apiArg)
+		return (err == nil), err
+	}
+
+	proveUI := &ProveUIMock{hook: hook}
+
+	ctx := Context{
+		LogUI:    g.UI.GetLogUI(),
+		SecretUI: fu.NewSecretUI(),
+		ProveUI:  proveUI,
+	}
+
+	err := RunEngine(eng, &ctx)
+	return proveUI, err
+}
+
 func TestProveRooter(t *testing.T) {
 	tc := SetupEngineTest(t, "prove")
 	defer tc.Cleanup()

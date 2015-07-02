@@ -251,3 +251,62 @@ func TestTrackProofChangeSinceTrack(t *testing.T) {
 		t.Fatal(err)
 	}
 }
+
+// track a user that has a failed rooter proof
+func TestTrackProofRooterFail(t *testing.T) {
+	tc := SetupEngineTest(t, "track")
+	defer tc.Cleanup()
+
+	// create a user with a rooter proof
+	proofUser := CreateAndSignupFakeUser(tc, "proof")
+	_, err := proveRooterFail(tc.G, proofUser)
+	if err == nil {
+		t.Fatal("should have been an error")
+	}
+	Logout(tc)
+
+	// create a user to track the proofUser
+	trackUser := CreateAndSignupFakeUser(tc, "track")
+
+	// proveRooterFail posts a bad sig id, so it won't be found.
+	// thus the state is ProofState_NONE
+	rbl := sb{
+		social:     true,
+		id:         proofUser.Username + "@rooter",
+		proofState: keybase1.ProofState_NONE,
+	}
+	// and they have no proofs
+	err = checkTrack(tc, trackUser, proofUser.Username, []sb{rbl}, keybase1.TrackStatus_NEW_ZERO_PROOFS)
+	if err != nil {
+		t.Fatal(err)
+	}
+}
+
+// track a user that has a rooter proof, delete the proof, then
+// track again.
+func TestTrackProofRooterDelete(t *testing.T) {
+	tc := SetupEngineTest(t, "track")
+	defer tc.Cleanup()
+
+	// create a user with a rooter proof
+	proofUser := CreateAndSignupFakeUser(tc, "proof")
+	_, err := proveRooter(tc.G, proofUser)
+	if err != nil {
+		t.Fatal(err)
+	}
+	Logout(tc)
+
+	// create a user to track the proofUser
+	trackUser := CreateAndSignupFakeUser(tc, "track")
+
+	rbl := sb{
+		social:     true,
+		id:         proofUser.Username + "@rooter",
+		proofState: keybase1.ProofState_OK,
+	}
+	err = checkTrack(tc, trackUser, proofUser.Username, []sb{rbl}, keybase1.TrackStatus_NEW_OK)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+}
