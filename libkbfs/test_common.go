@@ -3,11 +3,12 @@ package libkbfs
 import (
 	"testing"
 
+	keybase1 "github.com/keybase/client/protocol/go"
 	bserver "github.com/keybase/kbfs/bserver"
 )
 
-// Return a new initialized RootMetadata object for testing.
-func newRootMetadataForTest(d *DirHandle, id DirID) *RootMetadata {
+// NewRootMetadataForTest returns a new initialized RootMetadata object for testing.
+func NewRootMetadataForTest(d *DirHandle, id DirID) *RootMetadata {
 	rmd := NewRootMetadata(d, id)
 	var keyGen KeyGen
 	if id.IsPublic() {
@@ -102,4 +103,55 @@ func ConfigAsUser(config *ConfigLocal, loggedInUser string) *ConfigLocal {
 	c.SetKeyOps(config.KeyOps())
 
 	return c
+}
+
+// NewFolder returns a new RootMetadataSigned for testing.
+func NewFolder(t *testing.T, x byte, revision uint64, share bool, public bool) (
+	DirID, *DirHandle, *RootMetadataSigned) {
+	id := DirID{0}
+	id[0] = x
+	if public {
+		id[DirIDLen-1] = PubDirIDSuffix
+	} else {
+		id[DirIDLen-1] = DirIDSuffix
+	}
+	h := NewDirHandle()
+	if public {
+		h.Readers = []keybase1.UID{keybase1.PublicUID}
+	}
+	h.Writers = append(h.Writers, keybase1.MakeTestUID(15))
+	if share {
+		h.Writers = append(h.Writers, keybase1.MakeTestUID(16))
+	}
+
+	rmd := NewRootMetadataForTest(h, id)
+	rmd.Revision = revision
+	rmd.data.LastWriter = h.Writers[0]
+	if !public {
+		AddNewKeysOrBust(t, rmd, DirKeyBundle{})
+	}
+
+	rmds := &RootMetadataSigned{}
+	if public || !share {
+		rmds.SigInfo = SignatureInfo{
+			Version:      SigED25519,
+			Signature:    []byte{42},
+			VerifyingKey: MakeFakeVerifyingKeyOrBust("fake key"),
+		}
+	} else {
+		rmds.Macs = make(map[keybase1.UID][]byte)
+		rmds.Macs[h.Writers[0]] = []byte{42}
+		if share {
+			rmds.Macs[h.Writers[1]] = []byte{43}
+		}
+	}
+	rmds.MD = *rmd
+	return id, h, rmds
+}
+
+// AddNewKeysOrBust adds new keys to root metadata and blows up on error.
+func AddNewKeysOrBust(t *testing.T, rmd *RootMetadata, dkb DirKeyBundle) {
+	if err := rmd.AddNewKeys(dkb); err != nil {
+		t.Fatal(err)
+	}
 }

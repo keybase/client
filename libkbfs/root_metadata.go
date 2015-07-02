@@ -43,6 +43,8 @@ type RootMetadata struct {
 	PrevRoot MdID
 	// The directory ID, signed over to make verification easier
 	ID DirID
+	// The revision number
+	Revision uint64
 
 	// The total number of bytes in new blocks
 	RefBytes uint64
@@ -55,6 +57,11 @@ type RootMetadata struct {
 	cachedDirHandle *DirHandle
 	// The cached ID for this MD structure (hash)
 	mdID MdID
+}
+
+// GetKeyGeneration returns the current key generation for the current block.
+func (md *RootMetadata) GetKeyGeneration() int {
+	return len(rmd.Keys)
 }
 
 // NewRootMetadata constructs a new RootMetadata object with the given

@@ -70,7 +70,7 @@ func TestKeyManagerPublicTLFCryptKey(t *testing.T) {
 	defer keyManagerShutdown(mockCtrl, config)
 
 	id, h, _ := newDir(t, config, 1, false, true)
-	rmd := newRootMetadataForTest(h, id)
+	rmd := NewRootMetadataForTest(h, id)
 
 	tlfCryptKey, err := config.KeyManager().GetTLFCryptKeyForEncryption(rmd)
 	if err != nil {
@@ -105,8 +105,8 @@ func TestKeyManagerCachedSecretKeyForEncryptionSuccess(t *testing.T) {
 	defer keyManagerShutdown(mockCtrl, config)
 
 	_, id, h := makeID(t, config, false)
-	rmd := newRootMetadataForTest(h, id)
-	addNewKeysOrBust(t, rmd, DirKeyBundle{})
+	rmd := NewRootMetadataForTest(h, id)
+	AddNewKeysOrBust(t, rmd, DirKeyBundle{})
 
 	expectCachedGetTLFCryptKey(config, rmd, rmd.LatestKeyGeneration())
 
@@ -120,8 +120,8 @@ func TestKeyManagerCachedSecretKeyForMDDecryptionSuccess(t *testing.T) {
 	defer keyManagerShutdown(mockCtrl, config)
 
 	_, id, h := makeID(t, config, false)
-	rmd := newRootMetadataForTest(h, id)
-	addNewKeysOrBust(t, rmd, DirKeyBundle{})
+	rmd := NewRootMetadataForTest(h, id)
+	AddNewKeysOrBust(t, rmd, DirKeyBundle{})
 
 	expectCachedGetTLFCryptKey(config, rmd, rmd.LatestKeyGeneration())
 
@@ -135,9 +135,9 @@ func TestKeyManagerCachedSecretKeyForBlockDecryptionSuccess(t *testing.T) {
 	defer keyManagerShutdown(mockCtrl, config)
 
 	_, id, h := makeID(t, config, false)
-	rmd := newRootMetadataForTest(h, id)
-	addNewKeysOrBust(t, rmd, DirKeyBundle{})
-	addNewKeysOrBust(t, rmd, DirKeyBundle{})
+	rmd := NewRootMetadataForTest(h, id)
+	AddNewKeysOrBust(t, rmd, DirKeyBundle{})
+	AddNewKeysOrBust(t, rmd, DirKeyBundle{})
 
 	keyGen := rmd.LatestKeyGeneration() - 1
 	expectCachedGetTLFCryptKey(config, rmd, keyGen)
@@ -162,10 +162,10 @@ func TestKeyManagerUncachedSecretKeyForEncryptionSuccess(t *testing.T) {
 	defer keyManagerShutdown(mockCtrl, config)
 
 	uid, id, h := makeID(t, config, false)
-	rmd := newRootMetadataForTest(h, id)
+	rmd := NewRootMetadataForTest(h, id)
 
 	subkey := MakeFakeCryptPublicKeyOrBust("crypt public key")
-	addNewKeysOrBust(t, rmd, makeDirKeyBundle(uid, subkey))
+	AddNewKeysOrBust(t, rmd, makeDirKeyBundle(uid, subkey))
 
 	expectUncachedGetTLFCryptKey(config, rmd, rmd.LatestKeyGeneration(), uid, subkey)
 
@@ -179,10 +179,10 @@ func TestKeyManagerUncachedSecretKeyForMDDecryptionSuccess(t *testing.T) {
 	defer keyManagerShutdown(mockCtrl, config)
 
 	uid, id, h := makeID(t, config, false)
-	rmd := newRootMetadataForTest(h, id)
+	rmd := NewRootMetadataForTest(h, id)
 
 	subkey := MakeFakeCryptPublicKeyOrBust("crypt public key")
-	addNewKeysOrBust(t, rmd, makeDirKeyBundle(uid, subkey))
+	AddNewKeysOrBust(t, rmd, makeDirKeyBundle(uid, subkey))
 
 	expectUncachedGetTLFCryptKey(config, rmd, rmd.LatestKeyGeneration(), uid, subkey)
 
@@ -196,11 +196,11 @@ func TestKeyManagerUncachedSecretKeyForBlockDecryptionSuccess(t *testing.T) {
 	defer keyManagerShutdown(mockCtrl, config)
 
 	uid, id, h := makeID(t, config, false)
-	rmd := newRootMetadataForTest(h, id)
+	rmd := NewRootMetadataForTest(h, id)
 
 	subkey := MakeFakeCryptPublicKeyOrBust("crypt public key")
-	addNewKeysOrBust(t, rmd, makeDirKeyBundle(uid, subkey))
-	addNewKeysOrBust(t, rmd, makeDirKeyBundle(uid, subkey))
+	AddNewKeysOrBust(t, rmd, makeDirKeyBundle(uid, subkey))
+	AddNewKeysOrBust(t, rmd, makeDirKeyBundle(uid, subkey))
 
 	keyGen := rmd.LatestKeyGeneration() - 1
 	expectUncachedGetTLFCryptKey(config, rmd, keyGen, uid, subkey)
@@ -215,7 +215,7 @@ func TestKeyManagerRekeySuccessPublic(t *testing.T) {
 	defer keyManagerShutdown(mockCtrl, config)
 
 	_, id, h := makeID(t, config, true)
-	rmd := newRootMetadataForTest(h, id)
+	rmd := NewRootMetadataForTest(h, id)
 	if rmd.LatestKeyGeneration() != PublicKeyGen {
 		t.Errorf("Expected %d, got %d", rmd.LatestKeyGeneration(), PublicKeyGen)
 	}
@@ -234,7 +234,7 @@ func TestKeyManagerRekeySuccessPrivate(t *testing.T) {
 	defer keyManagerShutdown(mockCtrl, config)
 
 	_, id, h := makeID(t, config, false)
-	rmd := newRootMetadataForTest(h, id)
+	rmd := NewRootMetadataForTest(h, id)
 	oldKeyGen := rmd.LatestKeyGeneration()
 
 	expectRekey(config, rmd)

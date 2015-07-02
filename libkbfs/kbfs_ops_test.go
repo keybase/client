@@ -174,8 +174,8 @@ func getOps(config Config, id DirID) *FolderBranchOps {
 func makeIDAndRMD(t *testing.T, config *ConfigMock) (
 	keybase1.UID, DirID, *RootMetadata) {
 	userID, id, h := makeID(t, config, false)
-	rmd := newRootMetadataForTest(h, id)
-	addNewKeysOrBust(t, rmd, DirKeyBundle{})
+	rmd := NewRootMetadataForTest(h, id)
+	AddNewKeysOrBust(t, rmd, DirKeyBundle{})
 
 	ops := getOps(config, id)
 	ops.head = rmd
@@ -250,7 +250,7 @@ func fillInNewMD(t *testing.T, config *ConfigMock, rmd *RootMetadata) (
 	rootPtr BlockPointer, plainSize int, readyBlockData ReadyBlockData) {
 	if !rmd.ID.IsPublic() {
 		config.mockKeyman.EXPECT().Rekey(rmd).Do(func(rmd *RootMetadata) {
-			addNewKeysOrBust(t, rmd, DirKeyBundle{})
+			AddNewKeysOrBust(t, rmd, DirKeyBundle{})
 		}).Return(nil)
 	}
 	rootPtr = BlockPointer{
@@ -273,7 +273,7 @@ func testKBFSOpsGetRootNodeCreateNewSuccess(t *testing.T, public bool) {
 	defer kbfsTestShutdown(mockCtrl, config)
 
 	_, id, h := makeID(t, config, public)
-	rmd := newRootMetadataForTest(h, id)
+	rmd := NewRootMetadataForTest(h, id)
 
 	// create a new MD
 	config.mockMdops.EXPECT().GetForTLF(id).Return(rmd, nil)
@@ -331,7 +331,7 @@ func TestKBFSOpsGetRootMDCreateNewFailNonWriter(t *testing.T) {
 	h.Readers = []keybase1.UID{userID}
 	h.Writers = []keybase1.UID{ownerID}
 
-	rmd := newRootMetadataForTest(h, id)
+	rmd := NewRootMetadataForTest(h, id)
 
 	// create a new MD
 	expectUserCalls(h, config)
@@ -356,7 +356,7 @@ func TestKBFSOpsGetRootMDForHandleExisting(t *testing.T) {
 	defer kbfsTestShutdown(mockCtrl, config)
 
 	_, id, h := makeID(t, config, false)
-	rmd := newRootMetadataForTest(h, id)
+	rmd := NewRootMetadataForTest(h, id)
 	rmd.data.Dir = DirEntry{
 		BlockInfo: BlockInfo{
 			EncodedSize: 15,
@@ -505,7 +505,7 @@ func TestKBFSOpsGetBaseDirChildrenUncachedFailNonReader(t *testing.T) {
 	h.Writers = []keybase1.UID{ownerID}
 	expectUserCalls(h, config)
 
-	rmd := newRootMetadataForTest(h, id)
+	rmd := NewRootMetadataForTest(h, id)
 
 	rootID := BlockID{42}
 	node := PathNode{makeBP(rootID, rmd, config, userID), ""}
@@ -558,7 +558,7 @@ func TestKBFSOpsGetNestedDirChildrenCacheSuccess(t *testing.T) {
 	defer kbfsTestShutdown(mockCtrl, config)
 
 	u, id, h := makeID(t, config, false)
-	rmd := newRootMetadataForTest(h, id)
+	rmd := NewRootMetadataForTest(h, id)
 	ops := getOps(config, id)
 	ops.head = rmd
 	config.mockMdcache.EXPECT().Get(rmd.mdID).AnyTimes().Return(rmd, nil)
@@ -598,7 +598,7 @@ func TestKBFSOpsLookupSuccess(t *testing.T) {
 	defer kbfsTestShutdown(mockCtrl, config)
 
 	u, id, h := makeID(t, config, false)
-	rmd := newRootMetadataForTest(h, id)
+	rmd := NewRootMetadataForTest(h, id)
 	ops := getOps(config, id)
 	ops.head = rmd
 	config.mockMdcache.EXPECT().Get(rmd.mdID).AnyTimes().Return(rmd, nil)
@@ -639,7 +639,7 @@ func TestKBFSOpsLookupSymlinkSuccess(t *testing.T) {
 	defer kbfsTestShutdown(mockCtrl, config)
 
 	u, id, h := makeID(t, config, false)
-	rmd := newRootMetadataForTest(h, id)
+	rmd := NewRootMetadataForTest(h, id)
 	ops := getOps(config, id)
 	ops.head = rmd
 	config.mockMdcache.EXPECT().Get(rmd.mdID).AnyTimes().Return(rmd, nil)
@@ -676,7 +676,7 @@ func TestKBFSOpsLookupNoSuchNameFail(t *testing.T) {
 	defer kbfsTestShutdown(mockCtrl, config)
 
 	u, id, h := makeID(t, config, false)
-	rmd := newRootMetadataForTest(h, id)
+	rmd := NewRootMetadataForTest(h, id)
 	ops := getOps(config, id)
 	ops.head = rmd
 	config.mockMdcache.EXPECT().Get(rmd.mdID).AnyTimes().Return(rmd, nil)
@@ -710,7 +710,7 @@ func TestKBFSOpsStatSuccess(t *testing.T) {
 	defer kbfsTestShutdown(mockCtrl, config)
 
 	u, id, h := makeID(t, config, false)
-	rmd := newRootMetadataForTest(h, id)
+	rmd := NewRootMetadataForTest(h, id)
 	ops := getOps(config, id)
 	ops.head = rmd
 	config.mockMdcache.EXPECT().Get(rmd.mdID).AnyTimes().Return(rmd, nil)

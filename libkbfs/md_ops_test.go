@@ -25,46 +25,11 @@ func mdOpsShutdown(mockCtrl *gomock.Controller, config *ConfigMock) {
 
 func newDir(t *testing.T, config *ConfigMock, x byte, share bool, public bool) (
 	DirID, *DirHandle, *RootMetadataSigned) {
-	id := DirID{0}
-	id[0] = x
-	if public {
-		id[DirIDLen-1] = PubDirIDSuffix
-	} else {
-		id[DirIDLen-1] = DirIDSuffix
-	}
-	h := NewDirHandle()
-	if public {
-		h.Readers = []keybase1.UID{keybase1.PublicUID}
-	}
-	h.Writers = append(h.Writers, keybase1.MakeTestUID(15))
-	if share {
-		h.Writers = append(h.Writers, keybase1.MakeTestUID(16))
-	}
+	revision := uint64(1) // hardcoded as it's unused for now.
+	id, h, rmds := NewFolder(t, x, revision, share, public)
 	expectUserCalls(h, config)
 	config.mockKbpki.EXPECT().GetLoggedInUser().AnyTimes().
 		Return(h.Writers[0], nil)
-
-	rmd := newRootMetadataForTest(h, id)
-	rmd.data.LastWriter = h.Writers[0]
-	if !public {
-		addNewKeysOrBust(t, rmd, DirKeyBundle{})
-	}
-
-	rmds := &RootMetadataSigned{}
-	if public || !share {
-		rmds.SigInfo = SignatureInfo{
-			Version:      SigED25519,
-			Signature:    []byte{42},
-			VerifyingKey: MakeFakeVerifyingKeyOrBust("fake key"),
-		}
-	} else {
-		rmds.Macs = make(map[keybase1.UID][]byte)
-		rmds.Macs[h.Writers[0]] = []byte{42}
-		if share {
-			rmds.Macs[h.Writers[1]] = []byte{43}
-		}
-	}
-	rmds.MD = *rmd
 	return id, h, rmds
 }
 
@@ -263,7 +228,7 @@ func TestMDOpsGetBlankSigSuccess(t *testing.T) {
 	// expect one call to fetch MD, give back a blank sig that doesn't need
 	// verification
 	id, h, _ := newDir(t, config, 1, true, false)
-	rmd := newRootMetadataForTest(h, id)
+	rmd := NewRootMetadataForTest(h, id)
 	rmds := &RootMetadataSigned{
 		MD: *rmd,
 	}
@@ -501,7 +466,7 @@ func TestMDOpsPutFailEncode(t *testing.T) {
 
 	// expect one call to sign MD, and fail it
 	id, h, _ := newDir(t, config, 1, true, false)
-	rmd := newRootMetadataForTest(h, id)
+	rmd := NewRootMetadataForTest(h, id)
 
 	expectGetTLFCryptKeyForEncryption(config, rmd)
 	config.mockCrypto.EXPECT().EncryptPrivateMetadata(
