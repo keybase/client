@@ -3,16 +3,9 @@
 
 @implementation KBRAccountRequest
 
-- (void)changePassphraseWithSessionID:(NSInteger)sessionID oldPassphrase:(NSString *)oldPassphrase newPassphrase:(NSString *)newPassphrase completion:(void (^)(NSError *error))completion {
-  NSDictionary *params = @{@"sessionID": @(sessionID), @"oldPassphrase": KBRValue(oldPassphrase), @"newPassphrase": KBRValue(newPassphrase)};
+- (void)changePassphraseWithSessionID:(NSInteger)sessionID oldPassphrase:(NSString *)oldPassphrase newPassphrase:(NSString *)newPassphrase force:(BOOL)force completion:(void (^)(NSError *error))completion {
+  NSDictionary *params = @{@"sessionID": @(sessionID), @"oldPassphrase": KBRValue(oldPassphrase), @"newPassphrase": KBRValue(newPassphrase), @"force": @(force)};
   [self.client sendRequestWithMethod:@"keybase.1.account.changePassphrase" params:params sessionId:self.sessionId completion:^(NSError *error, id retval) {
-    completion(error);
-  }];
-}
-
-- (void)forceChangePassphraseWithSessionID:(NSInteger)sessionID newPassphrase:(NSString *)newPassphrase completion:(void (^)(NSError *error))completion {
-  NSDictionary *params = @{@"sessionID": @(sessionID), @"newPassphrase": KBRValue(newPassphrase)};
-  [self.client sendRequestWithMethod:@"keybase.1.account.forceChangePassphrase" params:params sessionId:self.sessionId completion:^(NSError *error, id retval) {
     completion(error);
   }];
 }
@@ -1254,18 +1247,7 @@
     self.sessionID = [params[0][@"sessionID"] integerValue];
     self.oldPassphrase = params[0][@"oldPassphrase"];
     self.newPassphrase = params[0][@"newPassphrase"];
-  }
-  return self;
-}
-
-@end
-
-@implementation KBRForceChangePassphraseRequestParams
-
-- (instancetype)initWithParams:(NSArray *)params {
-  if ((self = [super initWithParams:params])) {
-    self.sessionID = [params[0][@"sessionID"] integerValue];
-    self.newPassphrase = params[0][@"newPassphrase"];
+    self.force = [params[0][@"force"] boolValue];
   }
   return self;
 }

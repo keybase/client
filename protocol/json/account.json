@@ -13,16 +13,9 @@
       }, {
         "name" : "newPassphrase",
         "type" : "string"
-      } ],
-      "response" : "null"
-    },
-    "forceChangePassphrase" : {
-      "request" : [ {
-        "name" : "sessionID",
-        "type" : "int"
       }, {
-        "name" : "newPassphrase",
-        "type" : "string"
+        "name" : "force",
+        "type" : "boolean"
       } ],
       "response" : "null"
     }

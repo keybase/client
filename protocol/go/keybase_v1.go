@@ -12,16 +12,11 @@ type ChangePassphraseArg struct {
 	SessionID     int    `codec:"sessionID" json:"sessionID"`
 	OldPassphrase string `codec:"oldPassphrase" json:"oldPassphrase"`
 	NewPassphrase string `codec:"newPassphrase" json:"newPassphrase"`
-}
-
-type ForceChangePassphraseArg struct {
-	SessionID     int    `codec:"sessionID" json:"sessionID"`
-	NewPassphrase string `codec:"newPassphrase" json:"newPassphrase"`
+	Force         bool   `codec:"force" json:"force"`
 }
 
 type AccountInterface interface {
 	ChangePassphrase(ChangePassphraseArg) error
-	ForceChangePassphrase(ForceChangePassphraseArg) error
 }
 
 func AccountProtocol(i AccountInterface) rpc2.Protocol {
@@ -32,13 +27,6 @@ func AccountProtocol(i AccountInterface) rpc2.Protocol {
 				args := make([]ChangePassphraseArg, 1)
 				if err = nxt(&args); err == nil {
 					err = i.ChangePassphrase(args[0])
-				}
-				return
-			},
-			"forceChangePassphrase": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
-				args := make([]ForceChangePassphraseArg, 1)
-				if err = nxt(&args); err == nil {
-					err = i.ForceChangePassphrase(args[0])
 				}
 				return
 			},
@@ -53,11 +41,6 @@ type AccountClient struct {
 
 func (c AccountClient) ChangePassphrase(__arg ChangePassphraseArg) (err error) {
 	err = c.Cli.Call("keybase.1.account.changePassphrase", []interface{}{__arg}, nil)
-	return
-}
-
-func (c AccountClient) ForceChangePassphrase(__arg ForceChangePassphraseArg) (err error) {
-	err = c.Cli.Call("keybase.1.account.forceChangePassphrase", []interface{}{__arg}, nil)
 	return
 }
 
