@@ -21,6 +21,21 @@ type BlockContext interface {
 	GetRefNonce() BlockRefNonce
 }
 
+// Node represents a direct pointer to a file or directory in KBFS.
+// It is somewhat like an inode in a regular file system.  Users of
+// KBFS can use Node as a handle when accessing files or directories
+// they have previously looked up.
+//
+// Nodes are reference-counted.  When the caller is done with a
+// particular Node, they must call Forget() on the node before
+// dropping the reference.
+type Node interface {
+	// Forget must be called whenever the user of a Node is done with it.
+	Forget()
+	// GetFolderBranch returns the folder ID and branch for this Node.
+	GetFolderBranch() (DirID, BranchName)
+}
+
 // KBFSOps handles all file system operations.  Expands all indirect
 // pointers.  Operations that modify the server data change all the
 // block IDs along the path, and so must return a path with the new
@@ -659,4 +674,27 @@ type Config interface {
 	// ReqsBufSize indicates the number of read or write operations
 	// that can be buffered per folder
 	ReqsBufSize() int
+}
+
+// NodeCache holds Nodes, and allows libkbfs to update them when
+// things change about the underlying KBFS blocks.  It is probably
+// most useful to instantiate this on a per-folder-branch basis, so
+// that it can create a Path with the correct DirId and Branch name.
+type NodeCache interface {
+	// GetOrCreate either makes a new Node for the given BlockPointer,
+	// or returns an existing one. It increments the refcount for the
+	// returned Node.  TODO: If we ever support hard links, we will
+	// have to revisit the "name" and "parent" parameters here.
+	// Returns an error if parent cannot be found.
+	GetOrCreate(ptr BlockPointer, name string, parent Node) (Node, error)
+	// UpdatePointer swaps the BlockPointer for the corresponding
+	// Node.  NodeCache ignores this call when oldPtr is not cached in
+	// any Node.
+	UpdatePointer(oldPtr BlockPointer, newPtr BlockPointer)
+	// UpdateParent swaps the parent node for the corresponding Node.
+	// NodeCache ignores the call when ptr is not cached.  Returns an
+	// error if newParent cannot be found.
+	UpdateParent(ptr BlockPointer, newParent Node) error
+	// PathFromNode creates the path up to a given Node.
+	PathFromNode(node Node) Path
 }

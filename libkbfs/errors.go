@@ -489,3 +489,14 @@ type CanceledError struct {
 func (e CanceledError) Error() string {
 	return "The operation was canceled."
 }
+
+// ParentNodeNotFoundError indicates that we tried to update a Node's
+// parent with a BlockPointer that we don't yet know about.
+type ParentNodeNotFoundError struct {
+	parent BlockPointer
+}
+
+// Error implements the error interface for ParentNodeNotFoundError.
+func (e ParentNodeNotFoundError) Error() string {
+	return fmt.Sprintf("No such parent node found for pointer %v", e.parent)
+}
