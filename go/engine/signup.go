@@ -90,7 +90,7 @@ func (s *SignupEngine) Run(ctx *Context) error {
 	}
 
 	f := func(a libkb.LoginContext) error {
-		if err := s.genTSPassKey(a, s.arg.Passphrase); err != nil {
+		if err := s.genPassphraseStream(a, s.arg.Passphrase); err != nil {
 			return err
 		}
 
@@ -123,7 +123,7 @@ func (s *SignupEngine) Run(ctx *Context) error {
 	return s.G().LoginState().ExternalFunc(f, "SignupEngine - Run")
 }
 
-func (s *SignupEngine) genTSPassKey(a libkb.LoginContext, passphrase string) error {
+func (s *SignupEngine) genPassphraseStream(a libkb.LoginContext, passphrase string) error {
 	salt, err := libkb.RandBytes(triplesec.SaltLen)
 	if err != nil {
 		return err

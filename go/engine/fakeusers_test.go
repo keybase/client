@@ -14,7 +14,7 @@ func createFakeUserWithNoKeys(tc libkb.TestContext) (username, passphrase string
 
 	f := func(a libkb.LoginContext) error {
 		// going to just run the join step of signup engine
-		if err := s.genTSPassKey(a, passphrase); err != nil {
+		if err := s.genPassphraseStream(a, passphrase); err != nil {
 			return err
 		}
 
@@ -38,7 +38,7 @@ func createFakeUserWithDetKey(tc libkb.TestContext) (username, passphrase string
 	s := NewSignupEngine(nil, tc.G)
 
 	f := func(a libkb.LoginContext) error {
-		if err := s.genTSPassKey(a, passphrase); err != nil {
+		if err := s.genPassphraseStream(a, passphrase); err != nil {
 			return err
 		}
 
@@ -82,7 +82,7 @@ func createFakeUserWithPGPOnly(t *testing.T, tc libkb.TestContext) *FakeUser {
 	s := NewSignupEngine(nil, tc.G)
 
 	f := func(a libkb.LoginContext) error {
-		if err := s.genTSPassKey(a, fu.Passphrase); err != nil {
+		if err := s.genPassphraseStream(a, fu.Passphrase); err != nil {
 			return err
 		}
 
@@ -140,7 +140,7 @@ func createFakeUserWithPGPPubOnly(t *testing.T, tc libkb.TestContext) *FakeUser 
 	}
 
 	f := func(a libkb.LoginContext) error {
-		if err := s.genTSPassKey(a, fu.Passphrase); err != nil {
+		if err := s.genPassphraseStream(a, fu.Passphrase); err != nil {
 			return err
 		}
 
@@ -181,7 +181,7 @@ func createFakeUserWithPGPMult(t *testing.T, tc libkb.TestContext) *FakeUser {
 	}
 
 	f := func(a libkb.LoginContext) error {
-		if err := s.genTSPassKey(a, fu.Passphrase); err != nil {
+		if err := s.genPassphraseStream(a, fu.Passphrase); err != nil {
 			return err
 		}
 
