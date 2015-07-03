@@ -8,8 +8,9 @@ import (
 // ChangePassphrase engine is used for changing the user's passphrase, either
 // by replacement or by force.
 type ChangePassphrase struct {
-	arg *keybase1.ChangePassphraseArg
-	me  *libkb.User
+	arg      *keybase1.ChangePassphraseArg
+	me       *libkb.User
+	ppStream *libkb.PassphraseStream
 	libkb.Contextified
 }
 
@@ -44,11 +45,6 @@ func (c *ChangePassphrase) SubConsumers() []libkb.UIConsumer {
 	return nil
 }
 
-func (p *ChangePassphrase) loadMe() (err error) {
-	p.me, err = libkb.LoadMe(libkb.LoadUserArg{AllKeys: false, ForceReload: true})
-	return
-}
-
 // Run the engine
 func (c *ChangePassphrase) Run(ctx *Context) (err error) {
 
@@ -61,5 +57,24 @@ func (c *ChangePassphrase) Run(ctx *Context) (err error) {
 		return
 	}
 
+	if !c.arg.Force {
+		if err = c.getVerifiedPassphraseHash(ctx); err != nil {
+			return
+		}
+	}
+
 	return nil
+}
+
+func (c *ChangePassphrase) loadMe() (err error) {
+	c.me, err = libkb.LoadMe(libkb.LoadUserArg{AllKeys: false, ForceReload: true})
+	return
+}
+
+func (c *ChangePassphrase) getVerifiedPassphraseHash(ctx *Context) (err error) {
+	if len(c.arg.OldPassphrase) == 0 {
+		c.ppStream, err = c.G().LoginState().GetPassphraseStream(ctx.SecretUI)
+	}
+
+	return
 }
