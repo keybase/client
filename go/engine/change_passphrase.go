@@ -21,3 +21,45 @@ func NewChangePassphrase(a *keybase1.ChangePassphraseArg, g *libkb.GlobalContext
 		Contextified: libkb.NewContextified(g),
 	}
 }
+
+// Name provides the name of the engine for the engine interface
+func (c *ChangePassphrase) Name() string {
+	return "ChangePassphrase"
+}
+
+// Prereqs returns engine prereqs
+func (c *ChangePassphrase) Prereqs() Prereqs {
+	return Prereqs{Session: true}
+}
+
+// RequiredUIs returns the required UIs.
+func (c *ChangePassphrase) RequiredUIs() []libkb.UIKind {
+	return []libkb.UIKind{
+		libkb.SecretUIKind,
+	}
+}
+
+// SubConsumers requires the other UI consumers of this engine
+func (c *ChangePassphrase) SubConsumers() []libkb.UIConsumer {
+	return nil
+}
+
+func (p *ChangePassphrase) loadMe() (err error) {
+	p.me, err = libkb.LoadMe(libkb.LoadUserArg{AllKeys: false, ForceReload: true})
+	return
+}
+
+// Run the engine
+func (c *ChangePassphrase) Run(ctx *Context) (err error) {
+
+	c.G().Log.Debug("+ ChangePassphrase.Run")
+	defer func() {
+		c.G().Log.Debug("- ChangePassphrase.Run -> %s", libkb.ErrToOk(err))
+	}()
+
+	if err = c.loadMe(); err != nil {
+		return
+	}
+
+	return nil
+}
