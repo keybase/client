@@ -1,0 +1,12 @@
+
+@namespace("keybase.1")
+protocol account {
+
+	// Change the passphrase from old to new.  If old isn't set, then
+	// prompt at the UI for it.
+	void changePassphrase(int sessionID, string oldPassphrase, string newPassphrase);
+
+	// If we don't have our old passphrase handy, we can still force changing
+	// passphrase with a valid signature from a valid sibkey.
+	void forceChangePassphrase(int sessionID, string newPassphrase);
+}

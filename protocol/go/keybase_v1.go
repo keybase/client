@@ -8,7 +8,59 @@ type GenericClient interface {
 	Call(s string, args interface{}, res interface{}) error
 }
 
-type Time int64
+type ChangePassphraseArg struct {
+	SessionID     int    `codec:"sessionID" json:"sessionID"`
+	OldPassphrase string `codec:"oldPassphrase" json:"oldPassphrase"`
+	NewPassphrase string `codec:"newPassphrase" json:"newPassphrase"`
+}
+
+type ForceChangePassphraseArg struct {
+	SessionID     int    `codec:"sessionID" json:"sessionID"`
+	NewPassphrase string `codec:"newPassphrase" json:"newPassphrase"`
+}
+
+type AccountInterface interface {
+	ChangePassphrase(ChangePassphraseArg) error
+	ForceChangePassphrase(ForceChangePassphraseArg) error
+}
+
+func AccountProtocol(i AccountInterface) rpc2.Protocol {
+	return rpc2.Protocol{
+		Name: "keybase.1.account",
+		Methods: map[string]rpc2.ServeHook{
+			"changePassphrase": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
+				args := make([]ChangePassphraseArg, 1)
+				if err = nxt(&args); err == nil {
+					err = i.ChangePassphrase(args[0])
+				}
+				return
+			},
+			"forceChangePassphrase": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
+				args := make([]ForceChangePassphraseArg, 1)
+				if err = nxt(&args); err == nil {
+					err = i.ForceChangePassphrase(args[0])
+				}
+				return
+			},
+		},
+	}
+
+}
+
+type AccountClient struct {
+	Cli GenericClient
+}
+
+func (c AccountClient) ChangePassphrase(__arg ChangePassphraseArg) (err error) {
+	err = c.Cli.Call("keybase.1.account.changePassphrase", []interface{}{__arg}, nil)
+	return
+}
+
+func (c AccountClient) ForceChangePassphrase(__arg ForceChangePassphraseArg) (err error) {
+	err = c.Cli.Call("keybase.1.account.forceChangePassphrase", []interface{}{__arg}, nil)
+	return
+}
+
 type StringKVPair struct {
 	Key   string `codec:"key" json:"key"`
 	Value string `codec:"value" json:"value"`
@@ -22,12 +74,9 @@ type Status struct {
 }
 
 type UID string
-type DeviceID string
-type SigID string
-type KID string
 type FOKID struct {
 	PGPFingerprint *[]byte `codec:"pgpFingerprint,omitempty" json:"pgpFingerprint,omitempty"`
-	Kid            *KID    `codec:"kid,omitempty" json:"kid,omitempty"`
+	Kid            *[]byte `codec:"kid,omitempty" json:"kid,omitempty"`
 }
 
 type Text struct {
@@ -42,17 +91,17 @@ type PGPIdentity struct {
 }
 
 type PublicKey struct {
-	KID               KID           `codec:"KID" json:"KID"`
+	KID               string        `codec:"KID" json:"KID"`
 	PGPFingerprint    string        `codec:"PGPFingerprint" json:"PGPFingerprint"`
 	PGPIdentities     []PGPIdentity `codec:"PGPIdentities" json:"PGPIdentities"`
 	IsSibkey          bool          `codec:"isSibkey" json:"isSibkey"`
 	IsEldest          bool          `codec:"isEldest" json:"isEldest"`
 	IsWeb             bool          `codec:"isWeb" json:"isWeb"`
 	ParentID          string        `codec:"parentID" json:"parentID"`
-	DeviceID          DeviceID      `codec:"deviceID" json:"deviceID"`
+	DeviceID          string        `codec:"deviceID" json:"deviceID"`
 	DeviceDescription string        `codec:"deviceDescription" json:"deviceDescription"`
-	CTime             Time          `codec:"cTime" json:"cTime"`
-	ETime             Time          `codec:"eTime" json:"eTime"`
+	CTime             int64         `codec:"cTime" json:"cTime"`
+	ETime             int64         `codec:"eTime" json:"eTime"`
 }
 
 type User struct {
@@ -62,17 +111,18 @@ type User struct {
 }
 
 type Device struct {
-	Type     string   `codec:"type" json:"type"`
-	Name     string   `codec:"name" json:"name"`
-	DeviceID DeviceID `codec:"deviceID" json:"deviceID"`
-	CTime    Time     `codec:"cTime" json:"cTime"`
-	MTime    Time     `codec:"mTime" json:"mTime"`
+	Type     string `codec:"type" json:"type"`
+	Name     string `codec:"name" json:"name"`
+	DeviceID string `codec:"deviceID" json:"deviceID"`
+	CTime    int64  `codec:"cTime" json:"cTime"`
+	MTime    int64  `codec:"mTime" json:"mTime"`
 }
 
 type Stream struct {
 	Fd int `codec:"fd" json:"fd"`
 }
 
+type SigID string
 type BlockIdCombo struct {
 	BlockHash string `codec:"blockHash" json:"blockHash"`
 	ChargedTo UID    `codec:"chargedTo" json:"chargedTo"`
@@ -366,28 +416,15 @@ func (c CryptoClient) UnboxBytes32(__arg UnboxBytes32Arg) (res Bytes32, err erro
 	return
 }
 
-type ServiceStatusRes struct {
-	Time Time `codec:"time" json:"time"`
-}
-
 type StopArg struct {
 }
 
 type LogRotateArg struct {
 }
 
-type PanicArg struct {
-	Message string `codec:"message" json:"message"`
-}
-
-type StatusArg struct {
-}
-
 type CtlInterface interface {
 	Stop() error
 	LogRotate() error
-	Panic(string) error
-	Status() (ServiceStatusRes, error)
 }
 
 func CtlProtocol(i CtlInterface) rpc2.Protocol {
@@ -408,20 +445,6 @@ func CtlProtocol(i CtlInterface) rpc2.Protocol {
 				}
 				return
 			},
-			"panic": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
-				args := make([]PanicArg, 1)
-				if err = nxt(&args); err == nil {
-					err = i.Panic(args[0].Message)
-				}
-				return
-			},
-			"status": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
-				args := make([]StatusArg, 1)
-				if err = nxt(&args); err == nil {
-					ret, err = i.Status()
-				}
-				return
-			},
 		},
 	}
 
@@ -438,17 +461,6 @@ func (c CtlClient) Stop() (err error) {
 
 func (c CtlClient) LogRotate() (err error) {
 	err = c.Cli.Call("keybase.1.ctl.logRotate", []interface{}{LogRotateArg{}}, nil)
-	return
-}
-
-func (c CtlClient) Panic(message string) (err error) {
-	__arg := PanicArg{Message: message}
-	err = c.Cli.Call("keybase.1.ctl.panic", []interface{}{__arg}, nil)
-	return
-}
-
-func (c CtlClient) Status() (res ServiceStatusRes, err error) {
-	err = c.Cli.Call("keybase.1.ctl.status", []interface{}{StatusArg{}}, &res)
 	return
 }
 
@@ -807,7 +819,7 @@ const (
 	TrackDiffType_NONE           TrackDiffType = 0
 	TrackDiffType_ERROR          TrackDiffType = 1
 	TrackDiffType_CLASH          TrackDiffType = 2
-	TrackDiffType_REVOKED        TrackDiffType = 3
+	TrackDiffType_DELETED        TrackDiffType = 3
 	TrackDiffType_UPGRADED       TrackDiffType = 4
 	TrackDiffType_NEW            TrackDiffType = 5
 	TrackDiffType_REMOTE_FAIL    TrackDiffType = 6
@@ -822,33 +834,21 @@ type TrackDiff struct {
 
 type TrackSummary struct {
 	Username string `codec:"username" json:"username"`
-	Time     Time   `codec:"time" json:"time"`
+	Time     int    `codec:"time" json:"time"`
 	IsRemote bool   `codec:"isRemote" json:"isRemote"`
 }
-
-type TrackStatus int
-
-const (
-	TrackStatus_NEW_OK            TrackStatus = 1
-	TrackStatus_NEW_ZERO_PROOFS   TrackStatus = 2
-	TrackStatus_NEW_FAIL_PROOFS   TrackStatus = 3
-	TrackStatus_UPDATE_BROKEN     TrackStatus = 4
-	TrackStatus_UPDATE_NEW_PROOFS TrackStatus = 5
-	TrackStatus_UPDATE_OK         TrackStatus = 6
-)
 
 type IdentifyOutcome struct {
 	Username          string        `codec:"username" json:"username"`
 	Status            *Status       `codec:"status,omitempty" json:"status,omitempty"`
 	Warnings          []string      `codec:"warnings" json:"warnings"`
 	TrackUsed         *TrackSummary `codec:"trackUsed,omitempty" json:"trackUsed,omitempty"`
-	TrackStatus       TrackStatus   `codec:"trackStatus" json:"trackStatus"`
 	NumTrackFailures  int           `codec:"numTrackFailures" json:"numTrackFailures"`
 	NumTrackChanges   int           `codec:"numTrackChanges" json:"numTrackChanges"`
 	NumProofFailures  int           `codec:"numProofFailures" json:"numProofFailures"`
-	NumRevoked        int           `codec:"numRevoked" json:"numRevoked"`
+	NumDeleted        int           `codec:"numDeleted" json:"numDeleted"`
 	NumProofSuccesses int           `codec:"numProofSuccesses" json:"numProofSuccesses"`
-	Revoked           []TrackDiff   `codec:"revoked" json:"revoked"`
+	Deleted           []TrackDiff   `codec:"deleted" json:"deleted"`
 	LocalOnly         bool          `codec:"localOnly" json:"localOnly"`
 	ApproveRemote     bool          `codec:"approveRemote" json:"approveRemote"`
 }
@@ -865,20 +865,18 @@ type RemoteProof struct {
 	Value         string    `codec:"value" json:"value"`
 	DisplayMarkup string    `codec:"displayMarkup" json:"displayMarkup"`
 	SigID         SigID     `codec:"sigID" json:"sigID"`
-	MTime         Time      `codec:"mTime" json:"mTime"`
+	Mtime         int       `codec:"mtime" json:"mtime"`
 }
 
 type IdentifyArg struct {
-	SessionID        int    `codec:"sessionID" json:"sessionID"`
-	UserAssertion    string `codec:"userAssertion" json:"userAssertion"`
-	TrackStatement   bool   `codec:"trackStatement" json:"trackStatement"`
-	ForceRemoteCheck bool   `codec:"forceRemoteCheck" json:"forceRemoteCheck"`
+	SessionID      int    `codec:"sessionID" json:"sessionID"`
+	UserAssertion  string `codec:"userAssertion" json:"userAssertion"`
+	TrackStatement bool   `codec:"trackStatement" json:"trackStatement"`
 }
 
 type IdentifyDefaultArg struct {
-	SessionID        int    `codec:"sessionID" json:"sessionID"`
-	UserAssertion    string `codec:"userAssertion" json:"userAssertion"`
-	ForceRemoteCheck bool   `codec:"forceRemoteCheck" json:"forceRemoteCheck"`
+	SessionID     int    `codec:"sessionID" json:"sessionID"`
+	UserAssertion string `codec:"userAssertion" json:"userAssertion"`
 }
 
 type IdentifyInterface interface {
@@ -937,7 +935,7 @@ type IdentifyRow struct {
 
 type IdentifyKey struct {
 	PGPFingerprint []byte     `codec:"pgpFingerprint" json:"pgpFingerprint"`
-	KID            KID        `codec:"KID" json:"KID"`
+	KID            []byte     `codec:"KID" json:"KID"`
 	TrackDiff      *TrackDiff `codec:"trackDiff,omitempty" json:"trackDiff,omitempty"`
 }
 
@@ -952,7 +950,7 @@ type Identity struct {
 	WhenLastTracked int              `codec:"whenLastTracked" json:"whenLastTracked"`
 	Proofs          []IdentifyRow    `codec:"proofs" json:"proofs"`
 	Cryptocurrency  []Cryptocurrency `codec:"cryptocurrency" json:"cryptocurrency"`
-	Revoked         []TrackDiff      `codec:"revoked" json:"revoked"`
+	Deleted         []TrackDiff      `codec:"deleted" json:"deleted"`
 }
 
 type SigHint struct {
@@ -964,7 +962,7 @@ type SigHint struct {
 
 type CheckResult struct {
 	ProofResult   ProofResult `codec:"proofResult" json:"proofResult"`
-	Time          Time        `codec:"time" json:"time"`
+	Timestamp     int         `codec:"timestamp" json:"timestamp"`
 	DisplayMarkup string      `codec:"displayMarkup" json:"displayMarkup"`
 }
 
@@ -1198,7 +1196,7 @@ const (
 
 type DeviceSigner struct {
 	Kind       DeviceSignerKind `codec:"kind" json:"kind"`
-	DeviceID   *DeviceID        `codec:"deviceID,omitempty" json:"deviceID,omitempty"`
+	DeviceID   *string          `codec:"deviceID,omitempty" json:"deviceID,omitempty"`
 	DeviceName *string          `codec:"deviceName,omitempty" json:"deviceName,omitempty"`
 }
 
@@ -2196,8 +2194,8 @@ type RevokeKeyArg struct {
 }
 
 type RevokeDeviceArg struct {
-	SessionID int      `codec:"sessionID" json:"sessionID"`
-	Id        DeviceID `codec:"id" json:"id"`
+	SessionID int    `codec:"sessionID" json:"sessionID"`
+	Id        string `codec:"id" json:"id"`
 }
 
 type RevokeSigsArg struct {
@@ -2361,7 +2359,7 @@ type Session struct {
 	Uid             UID    `codec:"uid" json:"uid"`
 	Username        string `codec:"username" json:"username"`
 	Token           string `codec:"token" json:"token"`
-	DeviceSubkeyKid KID    `codec:"deviceSubkeyKid" json:"deviceSubkeyKid"`
+	DeviceSubkeyKid string `codec:"deviceSubkeyKid" json:"deviceSubkeyKid"`
 }
 
 type CurrentSessionArg struct {
@@ -2485,7 +2483,7 @@ type Sig struct {
 	SigID        SigID  `codec:"sigID" json:"sigID"`
 	SigIDDisplay string `codec:"sigIDDisplay" json:"sigIDDisplay"`
 	Type         string `codec:"type" json:"type"`
-	CTime        Time   `codec:"cTime" json:"cTime"`
+	Ctime        int    `codec:"ctime" json:"ctime"`
 	Revoked      bool   `codec:"revoked" json:"revoked"`
 	Active       bool   `codec:"active" json:"active"`
 	Key          string `codec:"key" json:"key"`
@@ -2634,11 +2632,10 @@ func (c StreamUiClient) Write(__arg WriteArg) (res int, err error) {
 }
 
 type TrackArg struct {
-	SessionID        int    `codec:"sessionID" json:"sessionID"`
-	TheirName        string `codec:"theirName" json:"theirName"`
-	LocalOnly        bool   `codec:"localOnly" json:"localOnly"`
-	ApproveRemote    bool   `codec:"approveRemote" json:"approveRemote"`
-	ForceRemoteCheck bool   `codec:"forceRemoteCheck" json:"forceRemoteCheck"`
+	SessionID     int    `codec:"sessionID" json:"sessionID"`
+	TheirName     string `codec:"theirName" json:"theirName"`
+	LocalOnly     bool   `codec:"localOnly" json:"localOnly"`
+	ApproveRemote bool   `codec:"approveRemote" json:"approveRemote"`
 }
 
 type TrackWithTokenArg struct {
@@ -2744,9 +2741,9 @@ func (c UiClient) PromptYesNo(__arg PromptYesNoArg) (res bool, err error) {
 }
 
 type Tracker struct {
-	Tracker UID  `codec:"tracker" json:"tracker"`
-	Status  int  `codec:"status" json:"status"`
-	MTime   Time `codec:"mTime" json:"mTime"`
+	Tracker UID `codec:"tracker" json:"tracker"`
+	Status  int `codec:"status" json:"status"`
+	Mtime   int `codec:"mtime" json:"mtime"`
 }
 
 type TrackProof struct {
@@ -2774,7 +2771,7 @@ type UserSummary struct {
 	Bio          string `codec:"bio" json:"bio"`
 	Proofs       Proofs `codec:"proofs" json:"proofs"`
 	SigIDDisplay string `codec:"sigIDDisplay" json:"sigIDDisplay"`
-	TrackTime    Time   `codec:"trackTime" json:"trackTime"`
+	TrackTime    int64  `codec:"trackTime" json:"trackTime"`
 }
 
 type ListTrackersArg struct {

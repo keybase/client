@@ -3,6 +3,13 @@
 #import "KBRRequest.h"
 #import "KBRRequestParams.h"
 
+@interface KBRAccountRequest : KBRRequest
+- (void)changePassphraseWithSessionID:(NSInteger)sessionID oldPassphrase:(NSString *)oldPassphrase newPassphrase:(NSString *)newPassphrase completion:(void (^)(NSError *error))completion;
+
+- (void)forceChangePassphraseWithSessionID:(NSInteger)sessionID newPassphrase:(NSString *)newPassphrase completion:(void (^)(NSError *error))completion;
+
+@end
+
 @interface KBRStringKVPair : KBRObject
 @property NSString *key;
 @property NSString *value;
@@ -835,6 +842,15 @@ typedef NS_ENUM (NSInteger, KBRPromptOverwriteType) {
 
 - (void)searchWithSessionID:(NSInteger)sessionID query:(NSString *)query completion:(void (^)(NSError *error, NSArray *items))completion;
 
+@end
+@interface KBRChangePassphraseRequestParams : KBRRequestParams
+@property NSInteger sessionID;
+@property NSString *oldPassphrase;
+@property NSString *newPassphrase;
+@end
+@interface KBRForceChangePassphraseRequestParams : KBRRequestParams
+@property NSInteger sessionID;
+@property NSString *newPassphrase;
 @end
 @interface KBREstablishSessionRequestParams : KBRRequestParams
 @property NSString *user;

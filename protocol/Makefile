@@ -11,6 +11,7 @@ config:
 	npm install -d
 
 build-stamp: \
+	json/account.json \
 	json/block.json \
 	json/btc.json \
 	json/config.json \
