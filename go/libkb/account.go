@@ -128,6 +128,15 @@ func (a *Account) SetStreamGeneration(gen PassphraseGeneration) {
 	}
 }
 
+// GetStreamGeneration() gets the generation of the currently cached
+// passphrase stream
+func (a *Acount) GetStreamGeneration() (ret PassphraseGeneration) {
+	if ps := a.PassphraseStream(); ps != nil {
+		ret = ps.Generation()
+	}	
+	return 
+}
+
 func (a *Account) CreateStreamCacheViaStretch(passphrase string) error {
 
 	if a.streamCache.Valid() {
@@ -168,6 +177,15 @@ func (a *Account) PassphraseStreamRef() *PassphraseStream {
 func (a *Account) ClearStreamCache() {
 	a.streamCache.Clear()
 	a.streamCache = nil
+}
+
+// ClearLoginSession clears out any cached login sessions with the account
+// object
+func (a *Account) ClearLoginSession() {
+	if a.loginSession != nil {
+		a.loginSession.Clear()
+		a.loginSession = nil
+	}
 }
 
 func (a *Account) SecretSyncer() *SecretSyncer {

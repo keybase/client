@@ -43,10 +43,12 @@ type LoginContext interface {
 	PassphraseStreamCache() *PassphraseStreamCache
 	ClearStreamCache()
 	SetStreamGeneration(gen PassphraseGeneration)
+	GetStreamGeneration() PassphraseGeneration
 
 	CreateLoginSessionWithSalt(emailOrUsername string, salt []byte) error
 	LoadLoginSession(emailOrUsername string) error
 	LoginSession() *LoginSession
+	ClearLoginSession() 
 
 	LocalSession() *Session
 	EnsureUsername(username string)
@@ -210,6 +212,21 @@ func (s *LoginState) GetVerifiedTriplesec(ui SecretUI) (ret *triplesec.Cipher, e
 		return
 	}
 	err = InternalError{"No cached keystream data after login attempt"}
+	return
+}
+
+// VerifyPlaintextPassphrase verifies that the supplied plaintext passphrase
+// is indeed the correct passphrase for the logged in user.  This is accomplished
+// via a login request.  The side effect will be that we'll retrieve the
+// correct generation number of the current passphrase from the server.
+func (s *LoginState) VerifyPlaintextPassphrase(pp string) (ppStream *PassphraseSteram, err error) {
+	err = s.loginHandle(func(lctx LoginContext) error {
+		ret := a.verifyPlaintextPassphraseForLoggedInUser(lctx, pp)
+		if ret == nil {
+			ppStream = lctx.PassphraseStream()
+		}
+		return ret
+	}, nil, "VerifyPLaintextPassphrase")
 	return
 }
 
@@ -478,6 +495,30 @@ func (s *LoginState) getEmailOrUsername(lctx LoginContext, username *string, log
 		return
 	}
 	return s.switchUser(lctx, *username)
+}
+
+func (s *LoginState) verifyPlaintextPassphraseForLoggedInUser(lctx LoginContext, passphrase string) (err error) {
+	s.G().Log.Debug("+ LoginState.verifyPlaintextPassphraseForLoggedInUser", )
+	defer func() {
+		s.G().Log.Debug("- LoginState.verifyPlaintextPassphraseForLoggedInUser -> %s", ErrToOk(err))
+	}()
+
+	var username string
+	if username, err = s.getEmailOrUsername(lctx, &username, nil); err != nil {
+		return
+	}
+
+	// For a login reattempt
+	lctx.ClearStreamCache()
+
+	// Since a login session is likely stale by now (if we still have one)
+	lctx.ClearLoginSession()
+
+	// Pass nil SecretUI (since we don't want to trigger the UI)
+	// and also no retry message.
+	err = s.passphraseLogin(lctx, username, passphrase, nil, "")
+
+	return 
 }
 
 func (s *LoginState) passphraseLogin(lctx LoginContext, username, passphrase string, secretUI SecretUI, retryMsg string) (err error) {

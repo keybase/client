@@ -138,7 +138,10 @@ func (e *TrackToken) storeLocalTrack() error {
 
 func (e *TrackToken) storeRemoteTrack(ctx *Context) (err error) {
 	e.G().Log.Debug("+ StoreRemoteTrack")
-	defer e.G().Log.Debug("- StoreRemoteTrack -> %s", libkb.ErrToOk(err))
+	
+	defer func() {
+		e.G().Log.Debug("- StoreRemoteTrack -> %s", libkb.ErrToOk(err))
+	}()
 
 	// need to unlock private key
 	if e.lockedKey == nil {

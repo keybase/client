@@ -56,11 +56,35 @@ func (c *ChangePassphrase) Run(ctx *Context) (err error) {
 	if err = c.loadMe(); err != nil {
 		return
 	}
+	if c.arg.Force {
+		err = c.runForcedUpdate(ctx)
+	} else {
+		err = c.runStandardUpdate(ctx)
+	}
+	return 
+}
 
-	if !c.arg.Force {
-		if err = c.getVerifiedPassphraseHash(ctx); err != nil {
-			return
-		}
+func (c *ChangePassphrase) runForcedUpdate(ctx *Context) (err error) {
+	// Strategy:
+	//  1. Get unlocked device for decryption and signing
+	return	
+}
+
+func (c *ChangePassphrase) runStandardUpdate(ctx *Context) (err error) {
+
+	c.G().Log.Debug("+ ChangePassphrase.runStandardUpdate")
+	defer func() {
+		c.G().Log.Debug("- ChangePassphrase.runStandardUpdate -> %s", libkb.ErrToOk(err))
+	}()
+
+	if len(c.arg.OldPassphrase) == 0 {
+		err = c.getVerifiedPassphraseHash(ctx)
+	} else {
+		err = c.verifySuppliedPassphrase(ctx)
+	}
+
+	if err != nil {
+		return err
 	}
 
 	return nil
@@ -72,9 +96,11 @@ func (c *ChangePassphrase) loadMe() (err error) {
 }
 
 func (c *ChangePassphrase) getVerifiedPassphraseHash(ctx *Context) (err error) {
-	if len(c.arg.OldPassphrase) == 0 {
-		c.ppStream, err = c.G().LoginState().GetPassphraseStream(ctx.SecretUI)
-	}
+	c.ppStream, err = c.G().LoginState().GetPassphraseStream(ctx.SecretUI)
+	return
+}
 
+func (c *ChangePassphrase) verifySuppliedPassphrase(ctx *Context) error {
+	c.ppStream, err = c.G().LoginState.VerifyPlaintextPassphrase(c.arg.OldPassphrase)
 	return
 }
