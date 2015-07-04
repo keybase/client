@@ -63,11 +63,11 @@ func TestKBFSOpsConcurDoubleMDGet(t *testing.T) {
 	dir := DirID{0}
 	cl := &CounterLock{}
 
-	ops := config.KBFSOps().(*KBFSOpsStandard).getOps(opID{dir, MasterBranch})
+	ops := getOps(config, dir)
 	ops.writerLock = cl
 	for i := 0; i < n; i++ {
 		go func() {
-			_, _, _, err := config.KBFSOps().GetRootPath(ctx, dir)
+			_, _, _, err := config.KBFSOps().GetRootNode(ctx, dir)
 			c <- err
 		}()
 	}
@@ -106,18 +106,18 @@ func TestKBFSOpsConcurReadDuringSync(t *testing.T) {
 		t.Errorf("Couldn't get logged in user: %v", err)
 	}
 	h.Writers = append(h.Writers, uid)
-	rootPath, _, err := kbfsOps.GetOrCreateRootPathForHandle(ctx, h)
+	rootNode, _, err := kbfsOps.GetOrCreateRootNodeForHandle(ctx, h)
 	if err != nil {
 		t.Errorf("Couldn't create folder: %v", err)
 	}
-	filePath, _, err := kbfsOps.CreateFile(ctx, rootPath, "a", false)
+	fileNode, _, err := kbfsOps.CreateFile(ctx, rootNode, "a", false)
 	if err != nil {
 		t.Fatalf("Couldn't create file: %v", err)
 	}
 	data := []byte{1}
-	err = kbfsOps.Write(ctx, filePath, data, 0)
+	err = kbfsOps.Write(ctx, fileNode, data, 0)
 	if err != nil {
-		t.Errorf("Couldn't write file: %v", err)
+		t.Fatalf("Couldn't write file: %v", err)
 	}
 
 	// now make an MDOps that will pause during Put()
@@ -127,8 +127,7 @@ func TestKBFSOpsConcurReadDuringSync(t *testing.T) {
 	// start the sync
 	errChan := make(chan error)
 	go func() {
-		_, err := kbfsOps.Sync(ctx, filePath)
-		errChan <- err
+		errChan <- kbfsOps.Sync(ctx, fileNode)
 	}()
 
 	// wait until Sync gets stuck at MDOps.Put()
@@ -136,7 +135,7 @@ func TestKBFSOpsConcurReadDuringSync(t *testing.T) {
 
 	// now make sure we can read the file and see the byte we wrote
 	buf := make([]byte, 1)
-	nr, err := kbfsOps.Read(ctx, filePath, buf, 0)
+	nr, err := kbfsOps.Read(ctx, fileNode, buf, 0)
 	if err != nil {
 		t.Errorf("Couldn't read data: %v\n", err)
 	}
@@ -165,16 +164,16 @@ func TestKBFSOpsConcurWriteDuringSync(t *testing.T) {
 		t.Errorf("Couldn't get logged in user: %v", err)
 	}
 	h.Writers = append(h.Writers, uid)
-	rootPath, _, err := kbfsOps.GetOrCreateRootPathForHandle(ctx, h)
+	rootNode, _, err := kbfsOps.GetOrCreateRootNodeForHandle(ctx, h)
 	if err != nil {
 		t.Errorf("Couldn't create folder: %v", err)
 	}
-	filePath, _, err := kbfsOps.CreateFile(ctx, rootPath, "a", false)
+	fileNode, _, err := kbfsOps.CreateFile(ctx, rootNode, "a", false)
 	if err != nil {
 		t.Fatalf("Couldn't create file: %v", err)
 	}
 	data := []byte{1}
-	err = kbfsOps.Write(ctx, filePath, data, 0)
+	err = kbfsOps.Write(ctx, fileNode, data, 0)
 	if err != nil {
 		t.Errorf("Couldn't write file: %v", err)
 	}
@@ -184,12 +183,9 @@ func TestKBFSOpsConcurWriteDuringSync(t *testing.T) {
 	config.SetMDOps(m)
 
 	// start the sync
-	pathChan := make(chan Path, 1)
 	errChan := make(chan error)
 	go func() {
-		p, err := kbfsOps.Sync(ctx, filePath)
-		pathChan <- p
-		errChan <- err
+		errChan <- kbfsOps.Sync(ctx, fileNode)
 	}()
 
 	// wait until Sync gets stuck at MDOps.Put()
@@ -197,14 +193,14 @@ func TestKBFSOpsConcurWriteDuringSync(t *testing.T) {
 
 	// now make sure we can write the file and see the new byte we wrote
 	newData := []byte{2}
-	err = kbfsOps.Write(ctx, filePath, newData, 1)
+	err = kbfsOps.Write(ctx, fileNode, newData, 1)
 	if err != nil {
 		t.Errorf("Couldn't write data: %v\n", err)
 	}
 
 	// read the data back
 	buf := make([]byte, 2)
-	nr, err := kbfsOps.Read(ctx, filePath, buf, 0)
+	nr, err := kbfsOps.Read(ctx, fileNode, buf, 0)
 	if err != nil {
 		t.Errorf("Couldn't read data: %v\n", err)
 	}
@@ -223,8 +219,7 @@ func TestKBFSOpsConcurWriteDuringSync(t *testing.T) {
 	// finally, make sure we can still read it after the sync too
 	// (even though the second write hasn't been sync'd yet)
 	buf2 := make([]byte, 2)
-	newPath := <-pathChan
-	nr, err = kbfsOps.Read(ctx, newPath, buf2, 0)
+	nr, err = kbfsOps.Read(ctx, fileNode, buf2, 0)
 	if err != nil {
 		t.Errorf("Couldn't read data: %v\n", err)
 	}
@@ -259,23 +254,23 @@ func TestKBFSOpsConcurWriteDuringSyncMultiBlocks(t *testing.T) {
 		t.Errorf("Couldn't get logged in user: %v", err)
 	}
 	h.Writers = append(h.Writers, uid)
-	rootPath, _, err := kbfsOps.GetOrCreateRootPathForHandle(ctx, h)
+	rootNode, _, err := kbfsOps.GetOrCreateRootNodeForHandle(ctx, h)
 	if err != nil {
 		t.Errorf("Couldn't create folder: %v", err)
 	}
-	filePath, _, err := kbfsOps.CreateFile(ctx, rootPath, "a", false)
+	fileNode, _, err := kbfsOps.CreateFile(ctx, rootNode, "a", false)
 	if err != nil {
 		t.Fatalf("Couldn't create file: %v", err)
 	}
 	// 2 blocks worth of data
 	data := []byte{1, 2, 3, 4, 5, 6, 7, 8, 9, 10}
-	err = kbfsOps.Write(ctx, filePath, data, 0)
+	err = kbfsOps.Write(ctx, fileNode, data, 0)
 	if err != nil {
 		t.Errorf("Couldn't write file: %v", err)
 	}
 
 	// sync these initial blocks
-	filePath, err = kbfsOps.Sync(ctx, filePath)
+	err = kbfsOps.Sync(ctx, fileNode)
 	if err != nil {
 		t.Errorf("Couldn't do the first sync: %v", err)
 	}
@@ -291,7 +286,7 @@ func TestKBFSOpsConcurWriteDuringSyncMultiBlocks(t *testing.T) {
 
 	// write to the first block
 	b1data := []byte{11, 12}
-	err = kbfsOps.Write(ctx, filePath, b1data, 0)
+	err = kbfsOps.Write(ctx, fileNode, b1data, 0)
 	if err != nil {
 		t.Errorf("Couldn't write 1st block of file: %v", err)
 	}
@@ -301,12 +296,9 @@ func TestKBFSOpsConcurWriteDuringSyncMultiBlocks(t *testing.T) {
 	config.SetMDOps(m)
 
 	// start the sync
-	pathChan := make(chan Path, 1)
 	errChan := make(chan error)
 	go func() {
-		p, err := kbfsOps.Sync(ctx, filePath)
-		pathChan <- p
-		errChan <- err
+		errChan <- kbfsOps.Sync(ctx, fileNode)
 	}()
 
 	// wait until Sync gets stuck at MDOps.Put()
@@ -315,14 +307,14 @@ func TestKBFSOpsConcurWriteDuringSyncMultiBlocks(t *testing.T) {
 	// now make sure we can write the second block of the file and see
 	// the new bytes we wrote
 	newData := []byte{20}
-	err = kbfsOps.Write(ctx, filePath, newData, 9)
+	err = kbfsOps.Write(ctx, fileNode, newData, 9)
 	if err != nil {
 		t.Errorf("Couldn't write data: %v\n", err)
 	}
 
 	// read the data back
 	buf := make([]byte, 10)
-	nr, err := kbfsOps.Read(ctx, filePath, buf, 0)
+	nr, err := kbfsOps.Read(ctx, fileNode, buf, 0)
 	if err != nil {
 		t.Errorf("Couldn't read data: %v\n", err)
 	}
@@ -341,8 +333,7 @@ func TestKBFSOpsConcurWriteDuringSyncMultiBlocks(t *testing.T) {
 	// finally, make sure we can still read it after the sync too
 	// (even though the second write hasn't been sync'd yet)
 	buf2 := make([]byte, 10)
-	newPath := <-pathChan
-	nr, err = kbfsOps.Read(ctx, newPath, buf2, 0)
+	nr, err = kbfsOps.Read(ctx, fileNode, buf2, 0)
 	if err != nil {
 		t.Errorf("Couldn't read data: %v\n", err)
 	}

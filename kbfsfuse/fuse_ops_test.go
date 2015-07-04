@@ -1,7 +1,6 @@
 package main
 
 import (
-	"strings"
 	"testing"
 	"time"
 
@@ -113,44 +112,19 @@ func TestLookupOtherPrivateFile(t *testing.T) {
 	root.Ops.Shutdown()
 }
 
-func checkPathNeedsUpdate(
-	t *testing.T, nodes []*FuseNode, update bool, expectedPath string) {
-	path := make([]string, 0, len(nodes))
-
+func checkPathNeedsUpdate(t *testing.T, nodes []*FuseNode, update bool) {
 	// The first one (root) should never need an update
 	if len(nodes) > 0 && nodes[0].NeedUpdate {
 		t.Error("/ unexpectedly needs update")
 	}
 
-	for _, n := range nodes[1:] {
-		path = append(path, n.PathNode.Name)
+	for i, n := range nodes[1:] {
 		if n.NeedUpdate != update {
-			p := n.getPath(1)
 			needs := "needs"
 			if update {
 				needs = "does not need"
 			}
-			t.Errorf("%s unexpectedly %s update", p.String(), needs)
-		}
-	}
-
-	newPath := strings.Join(path, "/")
-	if newPath != expectedPath {
-		t.Errorf("Expected path %s does not match new path %s",
-			expectedPath, newPath)
-	}
-}
-
-func checkPathBlockPointers(
-	t *testing.T, nodes []*FuseNode, newPath libkbfs.Path) {
-	// check that the block pointers match all along the path (but
-	// skip the first one, because the path doesn't include the root)
-	for i, n := range nodes[1:] {
-		pn := newPath.Path[i]
-		if n.PathNode.BlockPointer != pn.BlockPointer {
-			t.Errorf("Unexpected block pointer on node %d: "+
-				"expected %v, got %v\n", i, pn.BlockPointer,
-				n.PathNode.BlockPointer)
+			t.Errorf("Node %d unexpectedly %s update", i, needs)
 		}
 	}
 }
@@ -181,13 +155,12 @@ func TestNeedUpdateBasic(t *testing.T) {
 	node2 := doMkDirOrBust(t, node1, "dir")
 	waitForUpdates(node1)
 
-	checkPathNeedsUpdate(t, []*FuseNode{root, node1, node2}, true,
-		"test_user/dir")
+	checkPathNeedsUpdate(t, []*FuseNode{root, node1, node2}, true)
 
 	// Look up /test_user again.
 	node1 = doLookupOrBust(t, root, "test_user")
 
-	checkPathNeedsUpdate(t, []*FuseNode{root, node1}, false, "test_user")
+	checkPathNeedsUpdate(t, []*FuseNode{root, node1}, false)
 	root.Ops.Shutdown()
 }
 
@@ -218,8 +191,7 @@ func TestNeedUpdateAll(t *testing.T) {
 	root.Ops.Shutdown()
 
 	checkPathNeedsUpdate(t,
-		[]*FuseNode{root, node1, node2, node3, node4, node5}, true,
-		"test_user/dir1/dir2/dir3/dir4")
+		[]*FuseNode{root, node1, node2, node3, node4, node5}, true)
 }
 
 // Test that writing a file causes its whole path to need an update
@@ -239,8 +211,7 @@ func TestLocalUpdateAll(t *testing.T) {
 	node3.Write(nil, []byte{0, 1, 2}, 0, nil)
 	root.Ops.Shutdown()
 
-	checkPathNeedsUpdate(t, []*FuseNode{root, node1, node2, node3}, true,
-		"test_user/dir1/file1")
+	checkPathNeedsUpdate(t, []*FuseNode{root, node1, node2, node3}, true)
 }
 
 // Test that a local notification for a path, for which we only have
@@ -258,11 +229,11 @@ func TestPartialLocalUpdate(t *testing.T) {
 
 	// Somewhere else, someone writes test_user/dir1/dir2/dir3
 	newPath := libkbfs.Path{
-		TopDir: node1.Dir,
+		TopDir: node1.getTopDir(),
 		// Only the Name fields are used.
 		Path: []libkbfs.PathNode{
-			node1.PathNode,
-			node2.PathNode,
+			libkbfs.PathNode{Name: ""},
+			libkbfs.PathNode{Name: "dir1"},
 			libkbfs.PathNode{Name: "dir2"},
 			libkbfs.PathNode{Name: "dir3"},
 		},
@@ -271,8 +242,7 @@ func TestPartialLocalUpdate(t *testing.T) {
 	root.Ops.Shutdown()
 
 	nodes := []*FuseNode{root, node1, node2}
-	checkPathNeedsUpdate(t, nodes, true, "test_user/dir1")
-	checkPathBlockPointers(t, nodes, newPath)
+	checkPathNeedsUpdate(t, nodes, true)
 }
 
 // Test that a batch notification for a path, for which we only have
@@ -288,20 +258,20 @@ func TestPartialBatchUpdate(t *testing.T) {
 
 	// Somewhere else, someone creates test_user/dir1/dir2/dir3
 	newPath := libkbfs.Path{
-		TopDir: node1.Dir,
+		TopDir: node1.getTopDir(),
 		// Only the Name fields are used.
 		Path: []libkbfs.PathNode{
-			node1.PathNode,
-			node2.PathNode,
+			libkbfs.PathNode{Name: ""},
+			libkbfs.PathNode{Name: "dir1"},
 			libkbfs.PathNode{Name: "dir2"},
 			libkbfs.PathNode{Name: "dir3"},
 		}}
-	root.Ops.BatchChanges(root.Ops.ctx, node1.Dir, []libkbfs.Path{newPath})
+	root.Ops.BatchChanges(root.Ops.ctx, node1.getTopDir(),
+		[]libkbfs.Path{newPath})
 	root.Ops.Shutdown()
 
 	nodes := []*FuseNode{root, node1, node2}
-	checkPathNeedsUpdate(t, nodes, true, "test_user/dir1")
-	checkPathBlockPointers(t, nodes, newPath)
+	checkPathNeedsUpdate(t, nodes, true)
 }
 
 func testCompleteBatchUpdate(t *testing.T, root *FuseNode, folderName string) {
@@ -311,10 +281,10 @@ func testCompleteBatchUpdate(t *testing.T, root *FuseNode, folderName string) {
 
 	// Construct an updated path using the current node IDs
 	newPath := libkbfs.Path{
-		TopDir: node1.Dir,
+		TopDir: node1.getTopDir(),
 		Path: []libkbfs.PathNode{
-			node1.PathNode,
-			node2.PathNode,
+			libkbfs.PathNode{Name: ""},
+			libkbfs.PathNode{Name: "file1"},
 		},
 	}
 
@@ -324,18 +294,17 @@ func testCompleteBatchUpdate(t *testing.T, root *FuseNode, folderName string) {
 
 	// finally, update again using the old path, to verify that the
 	// IDs change back correctly.
-	root.Ops.BatchChanges(root.Ops.ctx, node1.Dir, []libkbfs.Path{newPath})
+	root.Ops.BatchChanges(root.Ops.ctx, node1.getTopDir(),
+		[]libkbfs.Path{newPath})
 	root.Ops.Shutdown()
 
 	nodes := []*FuseNode{root, node1, node2}
-	checkPathNeedsUpdate(t, nodes, true,
-		node1.DirHandle.ToString(root.Ops.config)+"/file1")
-	checkPathBlockPointers(t, nodes, newPath)
+	checkPathNeedsUpdate(t, nodes, true)
 }
 
 // Test that a full path batch update, on an existing file in a
-// private directory, sets NeedsUpdate and the BlockPointer correctly
-// on all nodes of the path.
+// private directory, sets NeedsUpdate correctly on all nodes of the
+// path.
 func TestCompleteBatchUpdatePrivate(t *testing.T) {
 	config := libkbfs.MakeTestConfigOrBust(t, *BServerRemote, "test_user")
 
@@ -345,8 +314,7 @@ func TestCompleteBatchUpdatePrivate(t *testing.T) {
 }
 
 // Test that a full path batch update, on an existing file in a public
-// directory, sets NeedsUpdate and the BlockPointer correctly on all
-// nodes of the path.
+// directory, sets NeedsUpdate correctly on all nodes of the path.
 func TestCompleteBatchUpdatePublic(t *testing.T) {
 	config := libkbfs.MakeTestConfigOrBust(t, *BServerRemote, "test_user")
 

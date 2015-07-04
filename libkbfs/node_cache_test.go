@@ -86,8 +86,8 @@ func TestNodeCacheUpdatePointer(t *testing.T) {
 	}
 }
 
-// Tests that UpdateParent works as expected
-func TestNodeCacheUpdateParentSuccess(t *testing.T) {
+// Tests that Move works as expected
+func TestNodeCacheMoveSuccess(t *testing.T) {
 	ncs := newNodeCacheStandard(DirID{0}, "")
 
 	parentPtr := BlockPointer{ID: BlockID{0}}
@@ -110,7 +110,7 @@ func TestNodeCacheUpdateParentSuccess(t *testing.T) {
 	}
 
 	// now move child2 under child1
-	err = ncs.UpdateParent(childPtr2, childNode1)
+	err = ncs.Move(childPtr2, childNode1, "child3")
 	if err != nil {
 		t.Errorf("Couldn't update parent: %v", err)
 	}
@@ -130,11 +130,15 @@ func TestNodeCacheUpdateParentSuccess(t *testing.T) {
 	if ncs.nodes[childPtr2].refCount != 1 {
 		t.Errorf("Child1 has wrong refcount: %d", ncs.nodes[childPtr2].refCount)
 	}
+	if childNode2.(*nodeStandard).pathNode.Name != "child3" {
+		t.Errorf("Child2 has the wrong name after move: %s",
+			childNode2.(*nodeStandard).pathNode.Name)
+	}
 }
 
 // Tests that a child can't be updated with an unknown parent (and
 // that forget() works)
-func TestNodeCacheUpdateParentNoParent(t *testing.T) {
+func TestNodeCacheMoveNoParent(t *testing.T) {
 	ncs := newNodeCacheStandard(DirID{0}, "")
 
 	parentPtr := BlockPointer{ID: BlockID{0}}
@@ -160,7 +164,7 @@ func TestNodeCacheUpdateParentNoParent(t *testing.T) {
 	ncs.forget(childNode1)
 
 	// now move child2 under child1
-	err = ncs.UpdateParent(childPtr2, childNode1)
+	err = ncs.Move(childPtr2, childNode1, "child3")
 	expectedErr := ParentNodeNotFoundError{childPtr1}
 	if err != expectedErr {
 		t.Errorf("Got unexpected error when updating parent: %v", err)

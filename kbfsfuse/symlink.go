@@ -14,8 +14,8 @@ import (
 type Symlink struct {
 	fs.NodeRef
 
-	parent   *Dir
-	pathNode libkbfs.PathNode
+	parent *Dir
+	name   string
 }
 
 var _ fs.Node = (*Symlink)(nil)
@@ -25,21 +25,20 @@ func (s *Symlink) Attr(ctx context.Context, a *fuse.Attr) error {
 	s.parent.folder.mu.RLock()
 	defer s.parent.folder.mu.RUnlock()
 
-	p := s.getPathLocked()
-	de, err := statPath(ctx, s.parent.folder.fs.config.KBFSOps(), p)
+	node, de, err := s.parent.folder.fs.config.KBFSOps().Lookup(ctx, s.parent.node, s.name)
 	if err != nil {
 		return err
 	}
 
-	fillAttr(de, a)
+	// TODO: There shouldn't be any node for a Symlink, so maybe return
+	// an error here?
+	if node != nil {
+		defer node.Forget()
+	}
+
+	fillAttr(&de, a)
 	a.Mode = os.ModeSymlink | 0777
 	return nil
-}
-
-func (s *Symlink) getPathLocked() libkbfs.Path {
-	p := s.parent.getPathLocked()
-	p.Path = append(p.Path, s.pathNode)
-	return p
 }
 
 var _ fs.NodeReadlinker = (*Symlink)(nil)
@@ -49,11 +48,17 @@ func (s *Symlink) Readlink(ctx context.Context, req *fuse.ReadlinkRequest) (stri
 	s.parent.folder.mu.RLock()
 	defer s.parent.folder.mu.RUnlock()
 
-	p := s.getPathLocked()
-	de, err := statPath(ctx, s.parent.folder.fs.config.KBFSOps(), p)
+	node, de, err := s.parent.folder.fs.config.KBFSOps().Lookup(ctx, s.parent.node, s.name)
 	if err != nil {
 		return "", err
 	}
+
+	// TODO: There shouldn't be any node for a Symlink, so maybe return
+	// an error here?
+	if node != nil {
+		defer node.Forget()
+	}
+
 	if de.Type != libkbfs.Sym {
 		return "", fuse.Errno(syscall.EINVAL)
 	}

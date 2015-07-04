@@ -86,22 +86,22 @@ func (*Root) Attr(ctx context.Context, a *fuse.Attr) error {
 
 var _ fs.NodeRequestLookuper = (*Root)(nil)
 
-// getMD is a wrapper over KBFSOps.GetOrCreateRootPathForHandle that gives
+// getMD is a wrapper over KBFSOps.GetOrCreateRootNodeForHandle that gives
 // useful results for home folders with public subdirectories.
-func (r *Root) getMD(ctx context.Context, dh *libkbfs.DirHandle) (libkbfs.DirID, libkbfs.BlockPointer, error) {
-	rootPath, rootDe, err :=
-		r.fs.config.KBFSOps().GetOrCreateRootPathForHandle(ctx, dh)
+func (r *Root) getMD(ctx context.Context, dh *libkbfs.DirHandle) (libkbfs.Node, error) {
+	rootNode, _, err :=
+		r.fs.config.KBFSOps().GetOrCreateRootNodeForHandle(ctx, dh)
 	if err != nil {
 		if _, ok := err.(*libkbfs.ReadAccessError); ok && dh.HasPublic() {
 			// This user cannot get the metadata for the folder, but
 			// we know it has a public subdirectory, so serve it
 			// anyway.
-			return libkbfs.NullDirID, libkbfs.BlockPointer{}, nil
+			return nil, nil
 		}
-		return libkbfs.NullDirID, libkbfs.BlockPointer{}, err
+		return nil, err
 	}
 
-	return rootPath.TopDir, rootDe.BlockPointer, nil
+	return rootNode, nil
 }
 
 // Lookup implements the fs.NodeRequestLookuper interface for Root.
@@ -130,12 +130,16 @@ func (r *Root) Lookup(ctx context.Context, req *fuse.LookupRequest, resp *fuse.L
 		return n, nil
 	}
 
-	mdID, blockp, err := r.getMD(ctx, dh)
+	rootNode, err := r.getMD(ctx, dh)
 	if err != nil {
 		// TODO make errors aware of fuse
 		return nil, err
 	}
 
+	mdID := libkbfs.NullDirID
+	if rootNode != nil {
+		mdID, _ = rootNode.GetFolderBranch()
+	}
 	folder := &Folder{
 		fs: r.fs,
 		id: mdID,
@@ -143,10 +147,7 @@ func (r *Root) Lookup(ctx context.Context, req *fuse.LookupRequest, resp *fuse.L
 	}
 	child := &Dir{
 		folder: folder,
-		pathNode: libkbfs.PathNode{
-			BlockPointer: blockp,
-			Name:         req.Name,
-		},
+		node:   rootNode,
 	}
 	r.folders[req.Name] = child
 	return child, nil
@@ -163,7 +164,7 @@ func (r *Root) getDirent(ctx context.Context, work <-chan libkbfs.DirID, results
 			if !ok {
 				return nil
 			}
-			_, _, dh, err := r.fs.config.KBFSOps().GetRootPath(ctx, dirID)
+			_, _, dh, err := r.fs.config.KBFSOps().GetRootNode(ctx, dirID)
 			if err != nil {
 				return err
 			}

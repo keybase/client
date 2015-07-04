@@ -27,9 +27,9 @@ type Folder struct {
 type Dir struct {
 	fs.NodeRef
 
-	folder   *Folder
-	parent   *Dir
-	pathNode libkbfs.PathNode
+	folder *Folder
+	parent *Dir
+	node   libkbfs.Node
 }
 
 var _ fs.Node = (*Dir)(nil)
@@ -48,22 +48,25 @@ func (d *Dir) Attr(ctx context.Context, a *fuse.Attr) error {
 
 	case d.parent == nil:
 		// Top-level folder
-		_, rootDe, err :=
-			d.folder.fs.config.KBFSOps().GetOrCreateRootPathForHandle(
+		rootNode, rootDe, err :=
+			d.folder.fs.config.KBFSOps().GetOrCreateRootNodeForHandle(
 				ctx, d.folder.dh)
 		if err != nil {
 			return err
 		}
+		defer rootNode.Forget()
 		fillAttr(&rootDe, a)
 
 	default:
-		// Not a top-level folder => GetDir is safe.
-		de, err := statPath(ctx, d.folder.fs.config.KBFSOps(),
-			d.getPathLocked())
+		// Not a top-level folder => Stat is safe.
+		de, err := d.folder.fs.config.KBFSOps().Stat(ctx, d.node)
 		if err != nil {
+			if _, ok := err.(*libkbfs.NoSuchNameError); ok {
+				return fuse.ESTALE
+			}
 			return err
 		}
-		fillAttr(de, a)
+		fillAttr(&de, a)
 	}
 
 	a.Mode = os.ModeDir | 0700
@@ -71,37 +74,6 @@ func (d *Dir) Attr(ctx context.Context, a *fuse.Attr) error {
 		a.Mode |= 0055
 	}
 	return nil
-}
-
-// getPath returns the Path for the current directory.
-//
-// Caller is responsible for locking.
-func (d *Dir) getPathLocked() libkbfs.Path {
-	p := libkbfs.Path{
-		TopDir: d.folder.id,
-	}
-	for cur := d; cur != nil; cur = cur.parent {
-		p.Path = append(p.Path, cur.pathNode)
-	}
-	// reverse
-	for i := len(p.Path)/2 - 1; i >= 0; i-- {
-		opp := len(p.Path) - 1 - i
-		p.Path[i], p.Path[opp] = p.Path[opp], p.Path[i]
-	}
-	return p
-}
-
-// Update the PathNode stored here, and in parents.
-//
-// Caller is responsible for locking.
-func (d *Dir) updatePathLocked(p libkbfs.Path) {
-	for dir, path := d, p.Path; dir != nil; dir, path = dir.parent, path[:len(path)-1] {
-		pNode := path[len(path)-1]
-		if dir.pathNode.Name != pNode.Name {
-			break
-		}
-		dir.pathNode = pNode
-	}
 }
 
 var _ fs.NodeRequestLookuper = (*Dir)(nil)
@@ -113,44 +85,38 @@ func (d *Dir) Lookup(ctx context.Context, req *fuse.LookupRequest, resp *fuse.Lo
 	d.folder.mu.RLock()
 	defer d.folder.mu.RUnlock()
 
-	p := d.getPathLocked()
-
 	if req.Name == libkbfs.PublicName &&
-		p.HasPublic() &&
+		d.parent == nil &&
 		d.folder.dh.HasPublic() {
 		dhPub := &libkbfs.DirHandle{
 			Writers: d.folder.dh.Writers,
 			Readers: []keybase1.UID{keybase1.PublicUID},
 		}
-		rootPath, _, err :=
+		rootNode, _, err :=
 			d.folder.fs.config.KBFSOps().
-				GetOrCreateRootPathForHandle(ctx, dhPub)
+				GetOrCreateRootNodeForHandle(ctx, dhPub)
 		if err != nil {
 			return nil, err
 		}
-		if len(rootPath.Path) != 1 {
-			return nil, &libkbfs.BadPathError{
-				dhPub.ToString(d.folder.fs.config)}
-		}
+		id, _ := rootNode.GetFolderBranch()
 		pubFolder := &Folder{
 			fs: d.folder.fs,
-			id: rootPath.TopDir,
+			id: id,
 			dh: dhPub,
 		}
 		child := &Dir{
-			folder:   pubFolder,
-			pathNode: rootPath.Path[0],
+			folder: pubFolder,
+			node:   rootNode,
 		}
 		return child, nil
 	}
 
-	dirBlock, err := d.folder.fs.config.KBFSOps().GetDir(ctx, p)
+	newNode, de, err := d.folder.fs.config.KBFSOps().Lookup(ctx, d.node, req.Name)
 	if err != nil {
+		if _, ok := err.(*libkbfs.NoSuchNameError); ok {
+			return nil, fuse.ENOENT
+		}
 		return nil, err
-	}
-	de, ok := dirBlock.Children[req.Name]
-	if !ok {
-		return nil, fuse.ENOENT
 	}
 
 	switch de.Type {
@@ -160,10 +126,7 @@ func (d *Dir) Lookup(ctx context.Context, req *fuse.LookupRequest, resp *fuse.Lo
 	case libkbfs.File, libkbfs.Exec:
 		child := &File{
 			parent: d,
-			pathNode: libkbfs.PathNode{
-				BlockPointer: de.BlockPointer,
-				Name:         req.Name,
-			},
+			node:   newNode,
 		}
 		return child, nil
 
@@ -171,20 +134,14 @@ func (d *Dir) Lookup(ctx context.Context, req *fuse.LookupRequest, resp *fuse.Lo
 		child := &Dir{
 			folder: d.folder,
 			parent: d,
-			pathNode: libkbfs.PathNode{
-				BlockPointer: de.BlockPointer,
-				Name:         req.Name,
-			},
+			node:   newNode,
 		}
 		return child, nil
 
 	case libkbfs.Sym:
 		child := &Symlink{
 			parent: d,
-			pathNode: libkbfs.PathNode{
-				// use a null block pointer for symlinks
-				Name: req.Name,
-			},
+			name:   req.Name,
 		}
 		return child, nil
 	}
@@ -200,19 +157,15 @@ func (d *Dir) Create(ctx context.Context, req *fuse.CreateRequest, resp *fuse.Cr
 	defer d.folder.mu.Unlock()
 
 	isExec := (req.Mode.Perm() & 0100) != 0
-	pChild, de, err := d.folder.fs.config.KBFSOps().CreateFile(
-		ctx, d.getPathLocked(), req.Name, isExec)
+	newNode, _, err := d.folder.fs.config.KBFSOps().CreateFile(
+		ctx, d.node, req.Name, isExec)
 	if err != nil {
 		return nil, nil, err
 	}
-	d.updatePathLocked(*pChild.ParentPath())
 
 	child := &File{
 		parent: d,
-		pathNode: libkbfs.PathNode{
-			BlockPointer: de.BlockPointer,
-			Name:         req.Name,
-		},
+		node:   newNode,
 	}
 	return child, child, nil
 }
@@ -226,20 +179,16 @@ func (d *Dir) Mkdir(ctx context.Context, req *fuse.MkdirRequest) (fs.Node, error
 	d.folder.mu.Lock()
 	defer d.folder.mu.Unlock()
 
-	pChild, de, err := d.folder.fs.config.KBFSOps().CreateDir(
-		ctx, d.getPathLocked(), req.Name)
+	newNode, _, err := d.folder.fs.config.KBFSOps().CreateDir(
+		ctx, d.node, req.Name)
 	if err != nil {
 		return nil, err
 	}
-	d.updatePathLocked(*pChild.ParentPath())
 
 	child := &Dir{
 		folder: d.folder,
 		parent: d,
-		pathNode: libkbfs.PathNode{
-			BlockPointer: de.BlockPointer,
-			Name:         req.Name,
-		},
+		node:   newNode,
 	}
 	return child, nil
 }
@@ -253,19 +202,15 @@ func (d *Dir) Symlink(ctx context.Context, req *fuse.SymlinkRequest) (fs.Node, e
 	d.folder.mu.Lock()
 	defer d.folder.mu.Unlock()
 
-	p, _, err := d.folder.fs.config.KBFSOps().CreateLink(
-		ctx, d.getPathLocked(), req.NewName, req.Target)
+	_, err := d.folder.fs.config.KBFSOps().CreateLink(
+		ctx, d.node, req.NewName, req.Target)
 	if err != nil {
 		return nil, err
 	}
-	d.updatePathLocked(p)
 
 	child := &Symlink{
 		parent: d,
-		pathNode: libkbfs.PathNode{
-			// use a null block pointer for symlinks
-			Name: req.NewName,
-		},
+		name:   req.NewName,
 	}
 	return child, nil
 }
@@ -298,17 +243,11 @@ func (d *Dir) Rename(ctx context.Context, req *fuse.RenameRequest, newDir fs.Nod
 		return fuse.Errno(syscall.EXDEV)
 	}
 
-	oldParent := d.getPathLocked()
-	newParent := newDir2.getPathLocked()
-
-	pOld, pNew, err := d.folder.fs.config.KBFSOps().Rename(
-		ctx, oldParent, req.OldName, newParent, req.NewName)
+	err := d.folder.fs.config.KBFSOps().Rename(
+		ctx, d.node, req.OldName, newDir2.node, req.NewName)
 	if err != nil {
 		return err
 	}
-	// TODO why can't i trigger a test failure if these are missing
-	d.updatePathLocked(pOld)
-	newDir2.updatePathLocked(pNew)
 
 	return nil
 }
@@ -322,40 +261,16 @@ func (d *Dir) Remove(ctx context.Context, req *fuse.RemoveRequest) error {
 	d.folder.mu.Lock()
 	defer d.folder.mu.Unlock()
 
-	p := d.getPathLocked()
-	dirBlock, err := d.folder.fs.config.KBFSOps().GetDir(ctx, p)
-	if err != nil {
-		return err
-	}
-
-	de, ok := dirBlock.Children[req.Name]
-	if !ok {
-		return fuse.ENOENT
-	}
-
-	p.Path = append(p.Path, libkbfs.PathNode{
-		BlockPointer: de.BlockPointer,
-		Name:         req.Name,
-	})
-
-	switch {
-	case !req.Dir && de.Type == libkbfs.Dir:
-		return fuse.Errno(syscall.EISDIR)
-	case req.Dir && de.Type != libkbfs.Dir:
-		return fuse.Errno(syscall.ENOTDIR)
-	}
-
-	var p2 libkbfs.Path
+	var err error
 	if req.Dir {
-		p2, err = d.folder.fs.config.KBFSOps().RemoveDir(ctx, p)
+		err = d.folder.fs.config.KBFSOps().RemoveDir(ctx, d.node, req.Name)
 	} else {
-		p2, err = d.folder.fs.config.KBFSOps().RemoveEntry(ctx, p)
+		err = d.folder.fs.config.KBFSOps().RemoveEntry(ctx, d.node, req.Name)
 	}
 	if err != nil {
 		return err
 	}
 
-	d.updatePathLocked(p2)
 	return nil
 }
 
@@ -371,8 +286,7 @@ func (d *Dir) ReadDirAll(ctx context.Context) ([]fuse.Dirent, error) {
 	defer d.folder.mu.RUnlock()
 
 	var res []fuse.Dirent
-	p := d.getPathLocked()
-	hasPublic := p.HasPublic() && d.folder.dh.HasPublic()
+	hasPublic := d.parent == nil && d.folder.dh.HasPublic()
 	if hasPublic {
 		res = append(res, fuse.Dirent{
 			Name: libkbfs.PublicName,
@@ -385,16 +299,16 @@ func (d *Dir) ReadDirAll(ctx context.Context) ([]fuse.Dirent, error) {
 		return res, nil
 	}
 
-	dirBlock, err := d.folder.fs.config.KBFSOps().GetDir(ctx, p)
+	children, err := d.folder.fs.config.KBFSOps().GetDirChildren(ctx, d.node)
 	if err != nil {
 		return nil, err
 	}
 
-	for name, de := range dirBlock.Children {
+	for name, et := range children {
 		fde := fuse.Dirent{
 			Name: name,
 		}
-		switch de.Type {
+		switch et {
 		case libkbfs.File, libkbfs.Exec:
 			fde.Type = fuse.DT_File
 		case libkbfs.Dir:

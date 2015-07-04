@@ -127,9 +127,9 @@ func (ncs *nodeCacheStandard) UpdatePointer(
 	ncs.nodes[newPtr] = entry
 }
 
-// UpdateParent implements the NodeCache interface for nodeCacheStandard.
-func (ncs *nodeCacheStandard) UpdateParent(
-	ptr BlockPointer, newParent Node) error {
+// Move implements the NodeCache interface for nodeCacheStandard.
+func (ncs *nodeCacheStandard) Move(
+	ptr BlockPointer, newParent Node, newName string) error {
 	ncs.lock.Lock()
 	defer ncs.lock.Unlock()
 	entry, ok := ncs.nodes[ptr]
@@ -148,6 +148,7 @@ func (ncs *nodeCacheStandard) UpdateParent(
 		}
 	}
 	entry.node.parent = newParent
+	entry.node.pathNode.Name = newName
 	return nil
 }
 

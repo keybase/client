@@ -69,68 +69,76 @@ type Node interface {
 // also include this ctx (or a Context derived from it), allowing the
 // caller to determine whether the notification is a result of their
 // own action or an external action.
+//
+// Any caller MUST call Node.Forget() whenever it is done using any
+// Node returned from a KBFSOps API call.
 type KBFSOps interface {
 	// GetFavDirs returns the logged-in user's list of favorite
 	// top-level folders.  This is a remote-access operation.
 	GetFavDirs(ctx context.Context) ([]DirID, error)
-	// GetOrCreateRootPathByHandle returns the root path, and root
+	// GetOrCreateRootNodeByHandle returns the root node, and root
 	// directory entry associated with the given DirHandle, if the
 	// logged-in user has read permissions to the top-level folder.
 	// It creates the folder if one doesn't exist yet, and the
 	// logged-in user has write permissions to the top-level folder.
 	// This is a remote-access operation.
-	GetOrCreateRootPathForHandle(ctx context.Context, handle *DirHandle) (
-		Path, DirEntry, error)
-	// GetRootPath returns the root path, root directory entry, and
+	GetOrCreateRootNodeForHandle(ctx context.Context, handle *DirHandle) (
+		Node, DirEntry, error)
+	// GetRootNode returns the root node, root directory entry, and
 	// handle associated with the given DirID, if the logged-in user
 	// has read permissions to the top-level folder.  This is a
 	// remote-access operation.
-	GetRootPath(ctx context.Context, dir DirID) (Path, DirEntry, *DirHandle,
+	GetRootNode(ctx context.Context, dir DirID) (Node, DirEntry, *DirHandle,
 		error)
-	// GetDir returns the directory block (including a complete list
-	// of all the children in that directory and their metadata), if
-	// the logged-in user has read permission for the top-level
-	// folder.  This is a remote-access operation.
-	GetDir(ctx context.Context, dir Path) (*DirBlock, error)
-	// CreateDir creates a new subdirectory under the given path, if
+	// GetDirChildren returns a map of children in the directory,
+	// mapped to their EntryType, if the logged-in user has read
+	// permission for the top-level folder.  This is a remote-access
+	// operation.
+	GetDirChildren(ctx context.Context, dir Node) (map[string]EntryType, error)
+	// Lookup returns the Node and directory entry associated with a
+	// given name in a directory, if the logged-in user has read
+	// permissions to the top-level folder.  The returned Node is nil
+	// if the name is a symlink.  This is a remote-access operation.
+	Lookup(ctx context.Context, dir Node, name string) (Node, DirEntry, error)
+	// Stat returns the directory entry associated with a
+	// given Node, if the logged-in user has read permissions to the
+	// top-level folder.  This is a remote-access operation.
+	Stat(ctx context.Context, node Node) (DirEntry, error)
+	// CreateDir creates a new subdirectory under the given node, if
 	// the logged-in user has write permission to the top-level
-	// folder.  Returns the new Path for the created subdirectory, and
+	// folder.  Returns the new Node for the created subdirectory, and
 	// its new directory entry.  This is a remote-sync operation.
-	CreateDir(ctx context.Context, dir Path, path string) (
-		Path, DirEntry, error)
-	// CreateFile creates a new file under the given path, if the
+	CreateDir(ctx context.Context, dir Node, name string) (
+		Node, DirEntry, error)
+	// CreateFile creates a new file under the given node, if the
 	// logged-in user has write permission to the top-level folder.
-	// Returns the new Path for the created file, and its new
+	// Returns the new Node for the created file, and its new
 	// directory entry.  This is a remote-sync operation.
-	CreateFile(ctx context.Context, dir Path, path string, isEx bool) (
-		Path, DirEntry, error)
-	// CreateLink creates a new symlink under the given path, if the
+	CreateFile(ctx context.Context, dir Node, name string, isEx bool) (
+		Node, DirEntry, error)
+	// CreateLink creates a new symlink under the given node, if the
 	// logged-in user has write permission to the top-level folder.
-	// Returns the new Path for the created symlink, and its new
+	// Returns the new Node for the created symlink, and its new
 	// directory entry.  This is a remote-sync operation.
-	CreateLink(ctx context.Context, dir Path, fromPath string, toPath string) (
-		Path, DirEntry, error)
+	CreateLink(ctx context.Context, dir Node, fromName string, toPath string) (
+		DirEntry, error)
 	// RemoveDir removes the subdirectory represented by the given
-	// path, if the logged-in user has write permission to the
+	// node, if the logged-in user has write permission to the
 	// top-level folder.  Will return an error if the subdirectory is
-	// not empty.  Returns the new Path for the parent directory.
-	// This is a remote-sync operation.
-	RemoveDir(ctx context.Context, dir Path) (Path, error)
+	// not empty.  This is a remote-sync operation.
+	RemoveDir(ctx context.Context, dir Node, dirName string) error
 	// RemoveEntry removes the directory entry represented by the
-	// given path, if the logged-in user has write permission to the
-	// top-level folder.  Returns the new Path for the parent
-	// directory.  This is a remote-sync operation.
-	RemoveEntry(ctx context.Context, file Path) (Path, error)
+	// given node, if the logged-in user has write permission to the
+	// top-level folder.  This is a remote-sync operation.
+	RemoveEntry(ctx context.Context, dir Node, name string) error
 	// Rename performs an atomic rename operation with a given
 	// top-level folder if the logged-in user has write permission to
-	// that folder, and will return an error if paths from different
-	// folders are passed in.  Returns an updated path for the old
-	// parent directory, and an updated path for the new directory
-	// entry.  This is a remote-sync operation.
-	Rename(ctx context.Context, oldParent Path, oldName string, newParent Path,
-		newName string) (Path, Path, error)
+	// that folder, and will return an error if nodes from different
+	// folders are passed in.  This is a remote-sync operation.
+	Rename(ctx context.Context, oldParent Node, oldName string, newParent Node,
+		newName string) error
 	// Read fills in the given buffer with data from the file at the
-	// given path starting at the given offset, if the logged-in user
+	// given node starting at the given offset, if the logged-in user
 	// has read permission to the top-level folder.  The read data
 	// reflects any outstanding writes and truncates to that file that
 	// have been written through this KBFSOps object, even if those
@@ -140,8 +148,8 @@ type KBFSOps interface {
 	// unlinked file may or may not succeed, depending on whether or
 	// not the data has been cached locally.  This is a remote-access
 	// operation.
-	Read(ctx context.Context, file Path, dest []byte, off int64) (int64, error)
-	// Write modifies the file at the given path, by writing the given
+	Read(ctx context.Context, file Node, dest []byte, off int64) (int64, error)
+	// Write modifies the file at the given node, by writing the given
 	// buffer at the given offset within the file, if the logged-in
 	// user has write permission to the top-level folder.  It
 	// overwrites any data already there, and extends the file size as
@@ -150,33 +158,31 @@ type KBFSOps interface {
 	// may or may not succeed as no-ops, depending on whether or not
 	// the necessary blocks have been locally cached.  This is a
 	// remote-access operation.
-	Write(ctx context.Context, file Path, data []byte, off int64) error
-	// Truncate modifies the file at the given path, by either
+	Write(ctx context.Context, file Node, data []byte, off int64) error
+	// Truncate modifies the file at the given node, by either
 	// shrinking or extending its size to match the given size, if the
 	// logged-in user has write permission to the top-level folder.
 	// If extending the file, it pads the new data with 0s.  Truncates
 	// on an unlinked file may or may not succeed as no-ops, depending
 	// on whether or not the necessary blocks have been locally
 	// cached.  This is a remote-access operation.
-	Truncate(ctx context.Context, file Path, size uint64) error
+	Truncate(ctx context.Context, file Node, size uint64) error
 	// SetEx turns on or off the executable bit on the file
-	// represented by a given path, if the logged-in user has write
-	// permissions to the top-level folder.  It returns the updated
-	// path to the file.  This is a remote-sync operation.
-	SetEx(ctx context.Context, file Path, ex bool) (newPath Path, err error)
-	// SetMtime sets the modification time on the file represented by
-	// a given path, if the logged-in user has write permissions to
-	// the top-level folder.  It returns the updated path to the
-	// file. If mtime is nil, it is a noop.  This is a remote-sync
+	// represented by a given node, if the logged-in user has write
+	// permissions to the top-level folder.  This is a remote-sync
 	// operation.
-	SetMtime(ctx context.Context, file Path, mtime *time.Time) (Path, error)
+	SetEx(ctx context.Context, file Node, ex bool) error
+	// SetMtime sets the modification time on the file represented by
+	// a given node, if the logged-in user has write permissions to
+	// the top-level folder.  If mtime is nil, it is a noop.  This is
+	// a remote-sync operation.
+	SetMtime(ctx context.Context, file Node, mtime *time.Time) error
 	// Sync flushes all outstanding writes and truncates for the given
 	// file to the KBFS servers, if the logged-in user has write
 	// permissions to the top-level folder.  If done through a file
 	// system interface, this may include modifications done via
-	// multiple file handles.  It returns the updated path to the
-	// file.  This is a remote-sync operation.
-	Sync(ctx context.Context, file Path) (Path, error)
+	// multiple file handles.  This is a remote-sync operation.
+	Sync(ctx context.Context, file Node) error
 }
 
 // KBPKI interacts with kbpkid to fetch info from keybase
@@ -691,10 +697,10 @@ type NodeCache interface {
 	// Node.  NodeCache ignores this call when oldPtr is not cached in
 	// any Node.
 	UpdatePointer(oldPtr BlockPointer, newPtr BlockPointer)
-	// UpdateParent swaps the parent node for the corresponding Node.
-	// NodeCache ignores the call when ptr is not cached.  Returns an
-	// error if newParent cannot be found.
-	UpdateParent(ptr BlockPointer, newParent Node) error
+	// Move swaps the parent node for the corresponding Node, and
+	// updates the node's name.  NodeCache ignores the call when ptr
+	// is not cached.  Returns an error if newParent cannot be found.
+	Move(ptr BlockPointer, newParent Node, newName string) error
 	// PathFromNode creates the path up to a given Node.
 	PathFromNode(node Node) Path
 }

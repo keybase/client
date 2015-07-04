@@ -159,7 +159,7 @@ func TestReaddirRoot(t *testing.T) {
 		if err != nil {
 			t.Fatalf("cannot parse jdoe as folder: %v", err)
 		}
-		if _, _, err := config.KBFSOps().GetOrCreateRootPathForHandle(
+		if _, _, err := config.KBFSOps().GetOrCreateRootNodeForHandle(
 			context.Background(), dh); err != nil {
 			t.Fatalf("cannot set up a favorite: %v", err)
 		}
@@ -199,7 +199,6 @@ func TestReaddirMyFolderWithFiles(t *testing.T) {
 			t.Fatal(err)
 		}
 	}
-
 	checkDir(t, path.Join(mnt.Dir, "jdoe"), files)
 }
 

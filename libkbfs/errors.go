@@ -80,12 +80,12 @@ func (e *DirNotEmptyError) Errno() fuse.Errno {
 // TopDirAccessError that the user tried to perform an unpermitted
 // operation on a top-level folder.
 type TopDirAccessError struct {
-	Name Path
+	ID DirID
 }
 
 // Error implements the error interface for TopDirAccessError
 func (e *TopDirAccessError) Error() string {
-	return fmt.Sprintf("Operation not permitted on folder %s", e.Name.TopDir)
+	return fmt.Sprintf("Operation not permitted on folder %s", e.ID)
 }
 
 // RenameAcrossDirsError indicates that the user tried to do an atomic
@@ -470,15 +470,16 @@ func (e InvalidPublicTLFOperation) Error() string {
 // WrongOpsError indicates that an unexpected path got passed into a
 // FolderBranchOps instance
 type WrongOpsError struct {
-	path      Path
-	opsID     DirID
-	opsBranch BranchName
+	nodeID     DirID
+	nodeBranch BranchName
+	opsID      DirID
+	opsBranch  BranchName
 }
 
 // Error implements the error interface for WrongOpsError.
 func (e WrongOpsError) Error() string {
 	return fmt.Sprintf("Ops for folder %v, branch %s, was given path %s, "+
-		"branch %s", e.opsID, e.opsBranch, e.path, e.path.Branch)
+		"branch %s", e.opsID, e.opsBranch, e.nodeID, e.nodeBranch)
 }
 
 // CanceledError indicates that the operation was canceled.
