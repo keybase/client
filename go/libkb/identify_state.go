@@ -38,9 +38,9 @@ func (s *IdentifyState) ComputeRevokedProofs() {
 
 	for _, e := range diff {
 		// If the proofs in the difference are for GOOD proofs,
-		// the we have a problem.  Mark the proof as "DELETED"
+		// the we have a problem.  Mark the proof as "REVOKED"
 		if e.GetProofState() == keybase1.ProofState_OK {
-			s.res.Deleted = append(s.res.Deleted, TrackDiffDeleted{e})
+			s.res.Revoked = append(s.res.Revoked, TrackDiffRevoked{e})
 		}
 	}
 }
@@ -113,7 +113,7 @@ func (s *IdentifyState) ComputeKeyDiffs(dhook func(keybase1.IdentifyKey)) {
 
 	for _, fp := range tracked {
 		if !foundMap[*fp.Fp] {
-			diff := TrackDiffDeleted{fp.Fp}
+			diff := TrackDiffRevoked{fp.Fp}
 			s.res.KeyDiffs = append(s.res.KeyDiffs, diff)
 			display(fp, diff)
 		}

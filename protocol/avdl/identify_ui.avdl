@@ -33,7 +33,7 @@ protocol identifyUi {
 		int whenLastTracked;
 		array<IdentifyRow> proofs;
 		array<Cryptocurrency> cryptocurrency;
-		array<TrackDiff> deleted;
+		array<TrackDiff> revoked;
 	}
 
 	record SigHint {

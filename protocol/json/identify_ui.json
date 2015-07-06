@@ -171,7 +171,7 @@
   }, {
     "type" : "enum",
     "name" : "TrackDiffType",
-    "symbols" : [ "NONE_0", "ERROR_1", "CLASH_2", "DELETED_3", "UPGRADED_4", "NEW_5", "REMOTE_FAIL_6", "REMOTE_WORKING_7", "REMOTE_CHANGED_8" ]
+    "symbols" : [ "NONE_0", "ERROR_1", "CLASH_2", "REVOKED_3", "UPGRADED_4", "NEW_5", "REMOTE_FAIL_6", "REMOTE_WORKING_7", "REMOTE_CHANGED_8" ]
   }, {
     "type" : "record",
     "name" : "TrackDiff",
@@ -230,13 +230,13 @@
       "name" : "numProofFailures",
       "type" : "int"
     }, {
-      "name" : "numDeleted",
+      "name" : "numRevoked",
       "type" : "int"
     }, {
       "name" : "numProofSuccesses",
       "type" : "int"
     }, {
-      "name" : "deleted",
+      "name" : "revoked",
       "type" : {
         "type" : "array",
         "items" : "TrackDiff"
@@ -357,7 +357,7 @@
         "items" : "Cryptocurrency"
       }
     }, {
-      "name" : "deleted",
+      "name" : "revoked",
       "type" : {
         "type" : "array",
         "items" : "TrackDiff"

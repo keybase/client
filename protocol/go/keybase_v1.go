@@ -766,7 +766,7 @@ const (
 	TrackDiffType_NONE           TrackDiffType = 0
 	TrackDiffType_ERROR          TrackDiffType = 1
 	TrackDiffType_CLASH          TrackDiffType = 2
-	TrackDiffType_DELETED        TrackDiffType = 3
+	TrackDiffType_REVOKED        TrackDiffType = 3
 	TrackDiffType_UPGRADED       TrackDiffType = 4
 	TrackDiffType_NEW            TrackDiffType = 5
 	TrackDiffType_REMOTE_FAIL    TrackDiffType = 6
@@ -805,9 +805,9 @@ type IdentifyOutcome struct {
 	NumTrackFailures  int           `codec:"numTrackFailures" json:"numTrackFailures"`
 	NumTrackChanges   int           `codec:"numTrackChanges" json:"numTrackChanges"`
 	NumProofFailures  int           `codec:"numProofFailures" json:"numProofFailures"`
-	NumDeleted        int           `codec:"numDeleted" json:"numDeleted"`
+	NumRevoked        int           `codec:"numRevoked" json:"numRevoked"`
 	NumProofSuccesses int           `codec:"numProofSuccesses" json:"numProofSuccesses"`
-	Deleted           []TrackDiff   `codec:"deleted" json:"deleted"`
+	Revoked           []TrackDiff   `codec:"revoked" json:"revoked"`
 	LocalOnly         bool          `codec:"localOnly" json:"localOnly"`
 	ApproveRemote     bool          `codec:"approveRemote" json:"approveRemote"`
 }
@@ -909,7 +909,7 @@ type Identity struct {
 	WhenLastTracked int              `codec:"whenLastTracked" json:"whenLastTracked"`
 	Proofs          []IdentifyRow    `codec:"proofs" json:"proofs"`
 	Cryptocurrency  []Cryptocurrency `codec:"cryptocurrency" json:"cryptocurrency"`
-	Deleted         []TrackDiff      `codec:"deleted" json:"deleted"`
+	Revoked         []TrackDiff      `codec:"revoked" json:"revoked"`
 }
 
 type SigHint struct {

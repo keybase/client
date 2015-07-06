@@ -85,10 +85,10 @@ func (ir IdentifyOutcome) ExportToUncheckedIdentity() *keybase1.Identity {
 		tmp.Proofs[j] = p.ExportToIdentifyRow(j)
 	}
 
-	tmp.Deleted = make([]keybase1.TrackDiff, len(ir.Deleted))
-	for j, d := range ir.Deleted {
+	tmp.Revoked = make([]keybase1.TrackDiff, len(ir.Revoked))
+	for j, d := range ir.Revoked {
 		// Should have all non-nil elements...
-		tmp.Deleted[j] = *ExportTrackDiff(d)
+		tmp.Revoked[j] = *ExportTrackDiff(d)
 	}
 	return &tmp
 }
@@ -334,8 +334,8 @@ func (ir *IdentifyOutcome) Export() *keybase1.IdentifyOutcome {
 	for i, w := range ir.Warnings {
 		v[i] = w.Warning()
 	}
-	del := make([]keybase1.TrackDiff, len(ir.Deleted))
-	for i, d := range ir.Deleted {
+	del := make([]keybase1.TrackDiff, len(ir.Revoked))
+	for i, d := range ir.Revoked {
 		del[i] = *ExportTrackDiff(d)
 	}
 	ret := &keybase1.IdentifyOutcome{
@@ -347,9 +347,9 @@ func (ir *IdentifyOutcome) Export() *keybase1.IdentifyOutcome {
 		NumTrackFailures:  ir.NumTrackFailures(),
 		NumTrackChanges:   ir.NumTrackChanges(),
 		NumProofFailures:  ir.NumProofFailures(),
-		NumDeleted:        ir.NumDeleted(),
+		NumRevoked:        ir.NumRevoked(),
 		NumProofSuccesses: ir.NumProofSuccesses(),
-		Deleted:           del,
+		Revoked:           del,
 		LocalOnly:         ir.LocalOnly,
 		ApproveRemote:     ir.ApproveRemote,
 	}

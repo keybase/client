@@ -302,7 +302,7 @@
 @end
 
 @implementation KBRIdentifyOutcome
-+ (NSValueTransformer *)deletedJSONTransformer { return [MTLJSONAdapter arrayTransformerWithModelClass:KBRTrackDiff.class]; }
++ (NSValueTransformer *)revokedJSONTransformer { return [MTLJSONAdapter arrayTransformerWithModelClass:KBRTrackDiff.class]; }
 @end
 
 @implementation KBRIdentifyRes
@@ -354,7 +354,7 @@
 @implementation KBRIdentity
 + (NSValueTransformer *)proofsJSONTransformer { return [MTLJSONAdapter arrayTransformerWithModelClass:KBRIdentifyRow.class]; }
 + (NSValueTransformer *)cryptocurrencyJSONTransformer { return [MTLJSONAdapter arrayTransformerWithModelClass:KBRCryptocurrency.class]; }
-+ (NSValueTransformer *)deletedJSONTransformer { return [MTLJSONAdapter arrayTransformerWithModelClass:KBRTrackDiff.class]; }
++ (NSValueTransformer *)revokedJSONTransformer { return [MTLJSONAdapter arrayTransformerWithModelClass:KBRTrackDiff.class]; }
 @end
 
 @implementation KBRSigHint

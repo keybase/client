@@ -266,7 +266,7 @@ typedef NS_ENUM (NSInteger, KBRTrackDiffType) {
 	KBRTrackDiffTypeNone = 0,
 	KBRTrackDiffTypeError = 1,
 	KBRTrackDiffTypeClash = 2,
-	KBRTrackDiffTypeDeleted = 3,
+	KBRTrackDiffTypeRevoked = 3,
 	KBRTrackDiffTypeUpgraded = 4,
 	KBRTrackDiffTypeNew = 5,
 	KBRTrackDiffTypeRemoteFail = 6,
@@ -303,9 +303,9 @@ typedef NS_ENUM (NSInteger, KBRTrackStatus) {
 @property NSInteger numTrackFailures;
 @property NSInteger numTrackChanges;
 @property NSInteger numProofFailures;
-@property NSInteger numDeleted;
+@property NSInteger numRevoked;
 @property NSInteger numProofSuccesses;
-@property NSArray *deleted; /*of KBRTrackDiff*/
+@property NSArray *revoked; /*of KBRTrackDiff*/
 @property BOOL localOnly;
 @property BOOL approveRemote;
 @end
@@ -361,7 +361,7 @@ typedef NS_ENUM (NSInteger, KBRTrackStatus) {
 @property NSInteger whenLastTracked;
 @property NSArray *proofs; /*of KBRIdentifyRow*/
 @property NSArray *cryptocurrency; /*of KBRCryptocurrency*/
-@property NSArray *deleted; /*of KBRTrackDiff*/
+@property NSArray *revoked; /*of KBRTrackDiff*/
 @end
 
 @interface KBRSigHint : KBRObject

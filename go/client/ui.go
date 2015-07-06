@@ -67,9 +67,9 @@ func (ui IdentifyTrackUI) SetStrict(b bool) {
 	ui.strict = b
 }
 
-func (ui IdentifyTrackUI) ReportDeleted(del []keybase1.TrackDiff) {
+func (ui IdentifyTrackUI) ReportRevoked(del []keybase1.TrackDiff) {
 	if len(del) > 0 {
-		G.Log.Warning("Some proofs you previously tracked were deleted:")
+		G.Log.Warning("Some proofs you previously tracked were revoked:")
 		for _, d := range del {
 			ui.ReportHook(BADX + " " + TrackDiffToColoredString(d))
 		}
@@ -92,8 +92,8 @@ func (ui IdentifyTrackUI) FinishAndPrompt(o *keybase1.IdentifyOutcome) (ret keyb
 	// The number of proofs that failed.
 	npf := o.NumProofFailures
 
-	// Deleted proofs are those we used to look for but are gone!
-	nd := o.NumDeleted
+	// Revoked proofs are those we used to look for but are gone!
+	nd := o.NumRevoked
 
 	// The number of proofs that actually worked
 	nps := o.NumProofSuccesses
@@ -109,7 +109,7 @@ func (ui IdentifyTrackUI) FinishAndPrompt(o *keybase1.IdentifyOutcome) (ret keyb
 	G.Log.Debug("| Status for track(%s): ntf=%d; ntc=%d; npf=%d, nd=%d; nps=%d; tracked=%v; isRemote=%v",
 		un, ntf, ntc, npf, nd, nps, tracked, isRemote)
 
-	ui.ReportDeleted(o.Deleted)
+	ui.ReportRevoked(o.Revoked)
 
 	def := PromptDefaultYes
 	isEqual := false
@@ -273,7 +273,7 @@ func TrackDiffToColoredString(t keybase1.TrackDiff) string {
 	s := "<" + t.DisplayMarkup + ">"
 	var color string
 	switch t.Type {
-	case keybase1.TrackDiffType_ERROR, keybase1.TrackDiffType_CLASH, keybase1.TrackDiffType_DELETED:
+	case keybase1.TrackDiffType_ERROR, keybase1.TrackDiffType_CLASH, keybase1.TrackDiffType_REVOKED:
 		color = "red"
 	case keybase1.TrackDiffType_UPGRADED:
 		color = "orange"

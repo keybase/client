@@ -8,7 +8,7 @@ protocol identifyCommon {
 		NONE_0,
 		ERROR_1,
 		CLASH_2,
-		DELETED_3,
+		REVOKED_3,
 		UPGRADED_4,
 		NEW_5,
 		REMOTE_FAIL_6,
@@ -54,9 +54,9 @@ protocol identifyCommon {
 		int numTrackFailures;
 		int numTrackChanges;
 		int numProofFailures;
-		int numDeleted;
+		int numRevoked;
 		int numProofSuccesses;
-		array<TrackDiff> deleted;
+		array<TrackDiff> revoked;
 		boolean localOnly;
 		boolean approveRemote;
 	}

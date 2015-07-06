@@ -13,7 +13,7 @@ type IdentifyOutcome struct {
 	Username      string
 	Error         error
 	KeyDiffs      []TrackDiff
-	Deleted       []TrackDiffDeleted
+	Revoked       []TrackDiffRevoked
 	ProofChecks   []*LinkCheckResult
 	Warnings      []Warning
 	TrackUsed     *TrackLookup
@@ -68,8 +68,8 @@ func (i *IdentifyOutcome) ProofChecksSorted() []*LinkCheckResult {
 	return res
 }
 
-func (i IdentifyOutcome) NumDeleted() int {
-	return len(i.Deleted)
+func (i IdentifyOutcome) NumRevoked() int {
+	return len(i.Revoked)
 }
 
 func (i IdentifyOutcome) NumProofFailures() int {
@@ -131,7 +131,7 @@ func (i IdentifyOutcome) NumTrackChanges() int {
 }
 
 func (i IdentifyOutcome) TrackStatus() keybase1.TrackStatus {
-	if i.NumTrackFailures() > 0 || i.NumDeleted() > 0 {
+	if i.NumTrackFailures() > 0 || i.NumRevoked() > 0 {
 		return keybase1.TrackStatus_UPDATE_BROKEN
 	}
 	if i.TrackUsed != nil {
@@ -172,8 +172,8 @@ func (i IdentifyOutcome) GetErrorAndWarnings(strict bool) (warnings Warnings, er
 		}
 	}
 
-	for _, deleted := range i.Deleted {
-		softErr(deleted.ToDisplayString())
+	for _, revoked := range i.Revoked {
+		softErr(revoked.ToDisplayString())
 	}
 
 	if nfails := i.NumProofFailures(); nfails > 0 {

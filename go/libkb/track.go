@@ -241,24 +241,24 @@ func (t TrackDiffClash) GetTrackDiffType() keybase1.TrackDiffType {
 	return keybase1.TrackDiffType_CLASH
 }
 
-type TrackDiffDeleted struct {
+type TrackDiffRevoked struct {
 	idc TrackIDComponent
 }
 
-func (t TrackDiffDeleted) BreaksTracking() bool {
+func (t TrackDiffRevoked) BreaksTracking() bool {
 	return true
 }
-func (t TrackDiffDeleted) ToDisplayString() string {
+func (t TrackDiffRevoked) ToDisplayString() string {
 	return "Deleted proof: " + t.idc.ToIDString()
 }
-func (t TrackDiffDeleted) IsSameAsTracked() bool {
+func (t TrackDiffRevoked) IsSameAsTracked() bool {
 	return false
 }
-func (t TrackDiffDeleted) ToDisplayMarkup() *Markup {
+func (t TrackDiffRevoked) ToDisplayMarkup() *Markup {
 	return NewMarkup(t.ToDisplayString())
 }
-func (t TrackDiffDeleted) GetTrackDiffType() keybase1.TrackDiffType {
-	return keybase1.TrackDiffType_DELETED
+func (t TrackDiffRevoked) GetTrackDiffType() keybase1.TrackDiffType {
+	return keybase1.TrackDiffType_REVOKED
 }
 
 type TrackDiffRemoteFail struct {
