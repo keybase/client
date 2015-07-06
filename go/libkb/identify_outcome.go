@@ -68,10 +68,12 @@ func (i *IdentifyOutcome) ProofChecksSorted() []*LinkCheckResult {
 	return res
 }
 
+// Revoked proofs are those we used to look for but are gone!
 func (i IdentifyOutcome) NumRevoked() int {
 	return len(i.Revoked)
 }
 
+// The number of proofs that failed.
 func (i IdentifyOutcome) NumProofFailures() int {
 	nfails := 0
 	for _, c := range i.ProofChecks {
@@ -82,6 +84,7 @@ func (i IdentifyOutcome) NumProofFailures() int {
 	return nfails
 }
 
+// The number of proofs that actually worked
 func (i IdentifyOutcome) NumProofSuccesses() int {
 	nsucc := 0
 	for _, c := range i.ProofChecks {
@@ -92,6 +95,9 @@ func (i IdentifyOutcome) NumProofSuccesses() int {
 	return nsucc
 }
 
+// A "Track Failure" is when we previously tracked this user, and
+// some aspect of their proof changed.  Like their key changed, or
+// they changed Twitter names
 func (i IdentifyOutcome) NumTrackFailures() int {
 	ntf := 0
 	check := func(d TrackDiff) bool {
@@ -112,6 +118,8 @@ func (i IdentifyOutcome) NumTrackFailures() int {
 	return ntf
 }
 
+// A "Track Change" isn't necessary a failure, maybe they upgraded
+// a proof from HTTP to HTTPS.  But we still should retrack if we can.
 func (i IdentifyOutcome) NumTrackChanges() int {
 	ntc := 0
 	check := func(d TrackDiff) bool {

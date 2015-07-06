@@ -80,24 +80,6 @@ func (ui IdentifyTrackUI) FinishAndPrompt(o *keybase1.IdentifyOutcome) (ret keyb
 	var prompt string
 	un := o.Username
 
-	// A "Track Failure" is when we previously tracked this user, and
-	// some aspect of their proof changed.  Like their key changed, or
-	// they changed Twitter names
-	ntf := o.NumTrackFailures
-
-	// A "Track Change" isn't necessary a failure, maybe they upgraded
-	// a proof from HTTP to HTTPS.  But we still should retrack if we can.
-	ntc := o.NumTrackChanges
-
-	// The number of proofs that failed.
-	npf := o.NumProofFailures
-
-	// Revoked proofs are those we used to look for but are gone!
-	nd := o.NumRevoked
-
-	// The number of proofs that actually worked
-	nps := o.NumProofSuccesses
-
 	// Whether we used a tracking statement when checking the identity
 	// this time...
 	tracked := o.TrackUsed != nil
@@ -106,30 +88,26 @@ func (ui IdentifyTrackUI) FinishAndPrompt(o *keybase1.IdentifyOutcome) (ret keyb
 		isRemote = o.TrackUsed.IsRemote
 	}
 
-	G.Log.Debug("| Status for track(%s): ntf=%d; ntc=%d; npf=%d, nd=%d; nps=%d; tracked=%v; isRemote=%v",
-		un, ntf, ntc, npf, nd, nps, tracked, isRemote)
-
 	ui.ReportRevoked(o.Revoked)
 
 	def := PromptDefaultYes
 	isEqual := false
-	// XXX change this to use keybase1.TrackStatus
-	switch {
-	case ntf > 0 || nd > 0:
+	switch o.TrackStatus {
+	case keybase1.TrackStatus_UPDATE_BROKEN:
 		prompt = "Your tracking statement of " + un + " is broken; fix it?"
 		def = PromptDefaultNo
-	case tracked && ntc > 0:
+	case keybase1.TrackStatus_UPDATE_NEW_PROOFS:
 		prompt = "Your tracking statement of " + un +
 			" is still valid; update it to reflect new proofs?"
 		def = PromptDefaultYes
-	case tracked && ntc == 0:
+	case keybase1.TrackStatus_UPDATE_OK:
 		G.Log.Info("Your tracking statement is up-to-date")
 		isEqual = true
-	case nps == 0:
+	case keybase1.TrackStatus_NEW_ZERO_PROOFS:
 		prompt = "We found an account for " + un +
 			", but they haven't proven their identity. Still track them?"
 		def = PromptDefaultNo
-	case npf > 0:
+	case keybase1.TrackStatus_NEW_FAIL_PROOFS:
 		prompt = "Some proofs failed; still track " + un + "?"
 		def = PromptDefaultNo
 	default:
