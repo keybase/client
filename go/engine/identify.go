@@ -178,7 +178,7 @@ func (e *Identify) run(ctx *Context) (*libkb.IdentifyOutcome, error) {
 	is.ComputeKeyDiffs(ctx.IdentifyUI.DisplayKey)
 	is.InitResultList()
 	is.ComputeTrackDiffs()
-	is.ComputeDeletedProofs()
+	is.ComputeRevokedProofs()
 
 	ctx.IdentifyUI.LaunchNetworkChecks(res.ExportToUncheckedIdentity(), e.user.Export())
 	e.user.IDTable().Identify(is, ctx.IdentifyUI)

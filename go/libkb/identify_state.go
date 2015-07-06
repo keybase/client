@@ -24,7 +24,7 @@ func (s *IdentifyState) HasPreviousTrack() bool {
 	return s.track != nil
 }
 
-func (s *IdentifyState) ComputeDeletedProofs() {
+func (s *IdentifyState) ComputeRevokedProofs() {
 	if s.track == nil {
 		return
 	}
