@@ -8,7 +8,7 @@ func TestProveRooter(t *testing.T) {
 
 	fu := CreateAndSignupFakeUser(tc, "prove")
 
-	proveUI, err := proveRooter(tc.G, fu)
+	proveUI, _, err := proveRooter(tc.G, fu)
 	if err != nil {
 		t.Fatal(err)
 	}

@@ -51,7 +51,7 @@ func (p *ProveUIMock) DisplayRecheckWarning(arg keybase1.DisplayRecheckWarningAr
 	return nil
 }
 
-func proveRooter(g *libkb.GlobalContext, fu *FakeUser) (*ProveUIMock, error) {
+func proveRooter(g *libkb.GlobalContext, fu *FakeUser) (*ProveUIMock, keybase1.SigID, error) {
 	arg := keybase1.StartProofArg{
 		Service:      "rooter",
 		Username:     fu.Username,
@@ -94,7 +94,7 @@ func proveRooter(g *libkb.GlobalContext, fu *FakeUser) (*ProveUIMock, error) {
 	}
 
 	err := RunEngine(eng, &ctx)
-	return proveUI, err
+	return proveUI, eng.sigID, err
 }
 
 func proveRooterFail(g *libkb.GlobalContext, fu *FakeUser) (*ProveUIMock, error) {
