@@ -246,7 +246,7 @@ func TestTrackProofChangeSinceTrack(t *testing.T) {
 
 	// track user logs in and tracks proof user again
 	trackUser.LoginOrBust(tc)
-	err = checkTrack(tc, trackUser, proofUser.Username, []sb{rbl}, keybase1.TrackStatus_UPDATE_NEW_PROOFS)
+	err = checkTrack(tc, trackUser, proofUser.Username, []sb{rbl}, keybase1.TrackStatus_UPDATE_OK)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -290,7 +290,7 @@ func TestTrackProofRooterDelete(t *testing.T) {
 
 	// create a user with a rooter proof
 	proofUser := CreateAndSignupFakeUser(tc, "proof")
-	_, err := proveRooter(tc.G, proofUser)
+	ui, err := proveRooter(tc.G, proofUser)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -309,4 +309,21 @@ func TestTrackProofRooterDelete(t *testing.T) {
 		t.Fatal(err)
 	}
 
+	// delete the rooter proof
+	Logout(tc)
+	proofUser.LoginOrBust(tc)
+	if err := proveRooterDelete(tc.G, ui.postID); err != nil {
+		t.Fatal(err)
+	}
+	Logout(tc)
+
+	// don't use proof cache
+	tc.G.ProofCache = nil
+
+	// track again
+	trackUser.LoginOrBust(tc)
+	err = checkTrack(tc, trackUser, proofUser.Username, []sb{rbl}, keybase1.TrackStatus_UPDATE_BROKEN)
+	if err != nil {
+		t.Fatal(err)
+	}
 }

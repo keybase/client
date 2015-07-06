@@ -1073,7 +1073,6 @@ func (idt *IdentityTable) Len() int {
 }
 
 func (idt *IdentityTable) Identify(is IdentifyState, ui IdentifyUI) {
-
 	var wg sync.WaitGroup
 	for _, lcr := range is.res.ProofChecks {
 		wg.Add(1)
@@ -1127,7 +1126,6 @@ func ComputeRemoteDiff(tracked, observed keybase1.ProofState) TrackDiff {
 }
 
 func (idt *IdentityTable) proofRemoteCheck(hasPreviousTrack bool, res *LinkCheckResult) {
-
 	p := res.link
 
 	G.Log.Debug("+ RemoteCheckProof %s", p.ToDebugString())

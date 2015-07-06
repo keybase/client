@@ -22,10 +22,10 @@ func TestProveCheck(t *testing.T) {
 
 	eng := NewProve(&arg, tc.G)
 
-	hook := func(arg keybase1.OkToCheckArg) (bool, error) {
+	hook := func(arg keybase1.OkToCheckArg) (bool, string, error) {
 		sigID := eng.sigID
 		if sigID.IsNil() {
-			return false, fmt.Errorf("empty sigID; can't make a post")
+			return false, "", fmt.Errorf("empty sigID; can't make a post")
 		}
 		apiArg := libkb.APIArg{
 			Endpoint:    "rooter",
@@ -35,7 +35,7 @@ func TestProveCheck(t *testing.T) {
 			},
 		}
 		_, err := tc.G.API.Post(apiArg)
-		return (err == nil), err
+		return (err == nil), "", err
 	}
 
 	proveUI := &ProveUIMock{hook: hook}
