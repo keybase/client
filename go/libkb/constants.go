@@ -76,6 +76,7 @@ const (
 	SCLoginRequired          = 201
 	SCBadSession             = 202
 	SCBadLoginPassword       = 204
+	SCNotFound               = 205
 	SCGeneric                = 218
 	SCAlreadyLoggedIn        = 235
 	SCCanceled               = 237

@@ -21,7 +21,6 @@ type IdentifyOutcome struct {
 	MeSet         bool // whether me was set at the time
 	LocalOnly     bool
 	ApproveRemote bool
-	rpl           *RemoteProofLinks
 }
 
 func NewIdentifyOutcome(m bool) *IdentifyOutcome {
@@ -31,14 +30,11 @@ func NewIdentifyOutcome(m bool) *IdentifyOutcome {
 }
 
 func (i *IdentifyOutcome) remoteProofLinks() *RemoteProofLinks {
-	if i.rpl != nil {
-		return i.rpl
-	}
-	i.rpl = NewRemoteProofLinks()
+	rpl := NewRemoteProofLinks()
 	for _, p := range i.ProofChecks {
-		i.rpl.Insert(p.link, p.err)
+		rpl.Insert(p.link, p.err)
 	}
-	return i.rpl
+	return rpl
 }
 
 func (i *IdentifyOutcome) ActiveProofs() []RemoteProofChainLink {

@@ -32,14 +32,9 @@ func (s *IdentifyState) ComputeDeletedProofs() {
 	found := s.res.TrackSet()
 	tracked := s.track.set
 
-	// fmt.Printf("found: %+v\n", found)
-	// fmt.Printf("tracked: %+v\n", tracked)
-
 	// These are the proofs that we previously tracked that we
 	// didn't observe in the current profile
 	diff := (*tracked).Subtract(*found)
-
-	// fmt.Printf("num deleted found: %d\n", len(diff))
 
 	for _, e := range diff {
 		// If the proofs in the difference are for GOOD proofs,

@@ -26,11 +26,13 @@ func ProofErrorIsSoft(pe ProofError) bool {
 func ProofErrorToState(pe ProofError) keybase1.ProofState {
 	if pe == nil {
 		return keybase1.ProofState_OK
-	} else if s := pe.GetProofStatus(); s == keybase1.ProofStatus_NO_HINT || s == keybase1.ProofStatus_UNKNOWN_TYPE {
-		return keybase1.ProofState_NONE
-	} else {
-		return keybase1.ProofState_TEMP_FAILURE
 	}
+
+	if s := pe.GetProofStatus(); s == keybase1.ProofStatus_NO_HINT || s == keybase1.ProofStatus_UNKNOWN_TYPE {
+		return keybase1.ProofState_NONE
+	}
+
+	return keybase1.ProofState_TEMP_FAILURE
 }
 
 type ProofErrorImpl struct {

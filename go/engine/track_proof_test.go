@@ -31,6 +31,8 @@ func checkTrack(tc libkb.TestContext, fu *FakeUser, username string, blocks []sb
 		return err
 	}
 
+	tc.T.Logf("payload json:\n%s", s.GetPayloadJSON().MarshalPretty())
+
 	sbs := s.ToServiceBlocks()
 	if len(sbs) != len(blocks) {
 		return fmt.Errorf("num service blocks: %d, expected %d", len(sbs), len(blocks))
@@ -282,9 +284,12 @@ func TestTrackProofRooterFail(t *testing.T) {
 	}
 }
 
-// track a user that has a rooter proof, delete the proof, then
+// track a user that has a rooter proof, remove the proof, then
 // track again.
-func TestTrackProofRooterDelete(t *testing.T) {
+// Note that the API server won't notice that the rooter proof has
+// been removed as it only checks every 12 hours.  The client will
+// notice and should generate an appropriate tracking statement.
+func TestTrackProofRooterRemove(t *testing.T) {
 	tc := SetupEngineTest(t, "track")
 	defer tc.Cleanup()
 
@@ -309,10 +314,10 @@ func TestTrackProofRooterDelete(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	// delete the rooter proof
+	// remove the rooter proof
 	Logout(tc)
 	proofUser.LoginOrBust(tc)
-	if err := proveRooterDelete(tc.G, ui.postID); err != nil {
+	if err := proveRooterRemove(tc.G, ui.postID); err != nil {
 		t.Fatal(err)
 	}
 	Logout(tc)
@@ -322,7 +327,14 @@ func TestTrackProofRooterDelete(t *testing.T) {
 
 	// track again
 	trackUser.LoginOrBust(tc)
+	rbl.proofState = keybase1.ProofState_TEMP_FAILURE
 	err = checkTrack(tc, trackUser, proofUser.Username, []sb{rbl}, keybase1.TrackStatus_UPDATE_BROKEN)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	// check that it is fixed
+	err = checkTrack(tc, trackUser, proofUser.Username, []sb{rbl}, keybase1.TrackStatus_UPDATE_OK)
 	if err != nil {
 		t.Fatal(err)
 	}

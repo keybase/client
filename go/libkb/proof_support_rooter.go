@@ -53,26 +53,38 @@ func (rc *RooterChecker) CheckData(h SigHint, dat string) ProofError {
 	return nil
 }
 
+func (rc *RooterChecker) contentMissing(err error) ProofError {
+	return NewProofError(keybase1.ProofStatus_CONTENT_MISSING, "Bad proof JSON: %s", err)
+}
+
 func (rc *RooterChecker) UnpackData(inp *jsonw.Wrapper) (string, ProofError) {
-	var status, post, ret string
+	var status, post string
 	var err error
 
-	inp.AtPath("status.name").GetStringVoid(&status, &err)
-	inp.AtPath("toot.post").GetStringVoid(&post, &err)
-
-	var pe ProofError
 	cf := keybase1.ProofStatus_CONTENT_FAILURE
-	cm := keybase1.ProofStatus_CONTENT_MISSING
 
+	inp.AtPath("status.name").GetStringVoid(&status, &err)
 	if err != nil {
-		pe = NewProofError(cm, "Bad proof JSON: %s", err)
-	} else if status != "OK" {
-		pe = NewProofError(cf, "Rooter: Non-OK status: %s", status)
-	} else {
-		ret = post
+		return "", rc.contentMissing(err)
+	}
+	if status != "OK" {
+		var code int
+		inp.AtPath("status.code").GetIntVoid(&code, &err)
+		if err != nil {
+			return "", rc.contentMissing(err)
+		}
+		if code == SCNotFound {
+			return "", NewProofError(keybase1.ProofStatus_NOT_FOUND, status)
+		}
+		return "", NewProofError(cf, "Rooter: Non-OK status: %s", status)
 	}
 
-	return ret, pe
+	inp.AtPath("toot.post").GetStringVoid(&post, &err)
+	if err != nil {
+		return "", rc.contentMissing(err)
+	}
+
+	return post, nil
 
 }
 

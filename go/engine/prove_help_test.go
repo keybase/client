@@ -139,7 +139,7 @@ func proveRooterFail(g *libkb.GlobalContext, fu *FakeUser) (*ProveUIMock, error)
 	return proveUI, err
 }
 
-func proveRooterDelete(g *libkb.GlobalContext, postID string) error {
+func proveRooterRemove(g *libkb.GlobalContext, postID string) error {
 	apiArg := libkb.APIArg{
 		Endpoint:    "rooter/delete",
 		NeedSession: true,
