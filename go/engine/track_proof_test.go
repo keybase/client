@@ -16,7 +16,7 @@ type sb struct {
 	proofState keybase1.ProofState
 }
 
-func checkTrack(tc libkb.TestContext, fu *FakeUser, username string, blocks []sb, status keybase1.TrackStatus) error {
+func checkTrack(tc libkb.TestContext, fu *FakeUser, username string, blocks []sb, outcome *keybase1.IdentifyOutcome) error {
 	ui, them, err := runTrack(tc, fu, username)
 	if err != nil {
 		return err
@@ -51,8 +51,24 @@ func checkTrack(tc libkb.TestContext, fu *FakeUser, username string, blocks []sb
 		}
 	}
 
-	if ui.Outcome.TrackStatus != status {
-		return fmt.Errorf("track status: %d, expected %d", ui.Outcome.TrackStatus, status)
+	if ui.Outcome.TrackStatus != outcome.TrackStatus {
+		return fmt.Errorf("track status: %d, expected %d", ui.Outcome.TrackStatus, outcome.TrackStatus)
+	}
+
+	if ui.Outcome.NumTrackFailures != outcome.NumTrackFailures {
+		return fmt.Errorf("num track failures: %d, expected %d", ui.Outcome.NumTrackFailures, outcome.NumTrackFailures)
+	}
+	if ui.Outcome.NumTrackChanges != outcome.NumTrackChanges {
+		return fmt.Errorf("num track changes: %d, expected %d", ui.Outcome.NumTrackChanges, outcome.NumTrackChanges)
+	}
+	if ui.Outcome.NumProofFailures != outcome.NumProofFailures {
+		return fmt.Errorf("num proof failures: %d, expected %d", ui.Outcome.NumProofFailures, outcome.NumProofFailures)
+	}
+	if ui.Outcome.NumProofSuccesses != outcome.NumProofSuccesses {
+		return fmt.Errorf("num proof successes: %d, expected %d", ui.Outcome.NumProofSuccesses, outcome.NumProofSuccesses)
+	}
+	if ui.Outcome.NumRevoked != outcome.NumRevoked {
+		return fmt.Errorf("num revoked: %d, expected %d", ui.Outcome.NumRevoked, outcome.NumRevoked)
 	}
 
 	return nil
@@ -65,9 +81,9 @@ func (b byID) Less(x, y int) bool { return b[x].ToIDString() < b[y].ToIDString()
 func (b byID) Swap(x, y int)      { b[x], b[y] = b[y], b[x] }
 
 type sbtest struct {
-	name   string
-	blocks []sb
-	status keybase1.TrackStatus
+	name    string
+	blocks  []sb
+	outcome keybase1.IdentifyOutcome
 }
 
 // these aren't that interesting since all the proof states are
@@ -80,7 +96,10 @@ var sbtests = []sbtest{
 			{social: true, id: "kbtester2@github", proofState: keybase1.ProofState_OK},
 			{social: true, id: "tacovontaco@twitter", proofState: keybase1.ProofState_OK},
 		},
-		status: keybase1.TrackStatus_NEW_OK,
+		outcome: keybase1.IdentifyOutcome{
+			NumProofSuccesses: 2,
+			TrackStatus:       keybase1.TrackStatus_NEW_OK,
+		},
 	},
 	{
 		name: "t_bob",
@@ -88,7 +107,10 @@ var sbtests = []sbtest{
 			{social: true, id: "kbtester1@github", proofState: keybase1.ProofState_OK},
 			{social: true, id: "kbtester1@twitter", proofState: keybase1.ProofState_OK},
 		},
-		status: keybase1.TrackStatus_NEW_OK,
+		outcome: keybase1.IdentifyOutcome{
+			NumProofSuccesses: 2,
+			TrackStatus:       keybase1.TrackStatus_NEW_OK,
+		},
 	},
 	{
 		name: "t_charlie",
@@ -96,11 +118,16 @@ var sbtests = []sbtest{
 			{social: true, id: "tacoplusplus@github", proofState: keybase1.ProofState_OK},
 			{social: true, id: "tacovontaco@twitter", proofState: keybase1.ProofState_OK},
 		},
-		status: keybase1.TrackStatus_NEW_OK,
+		outcome: keybase1.IdentifyOutcome{
+			NumProofSuccesses: 2,
+			TrackStatus:       keybase1.TrackStatus_NEW_OK,
+		},
 	},
 	{
-		name:   "t_doug",
-		status: keybase1.TrackStatus_NEW_ZERO_PROOFS,
+		name: "t_doug",
+		outcome: keybase1.IdentifyOutcome{
+			TrackStatus: keybase1.TrackStatus_NEW_ZERO_PROOFS,
+		},
 	},
 }
 
@@ -110,7 +137,7 @@ func TestTrackProofServiceBlocks(t *testing.T) {
 	fu := CreateAndSignupFakeUser(tc, "track")
 
 	for _, test := range sbtests {
-		err := checkTrack(tc, fu, test.name, test.blocks, test.status)
+		err := checkTrack(tc, fu, test.name, test.blocks, &test.outcome)
 		if err != nil {
 			t.Errorf("%s: %s", test.name, err)
 		}
@@ -130,7 +157,10 @@ func TestTrackProofZero(t *testing.T) {
 	// create a user to track the proofUser
 	trackUser := CreateAndSignupFakeUser(tc, "track")
 
-	err := checkTrack(tc, trackUser, proofUser.Username, nil, keybase1.TrackStatus_NEW_ZERO_PROOFS)
+	outcome := keybase1.IdentifyOutcome{
+		TrackStatus: keybase1.TrackStatus_NEW_ZERO_PROOFS,
+	}
+	err := checkTrack(tc, trackUser, proofUser.Username, nil, &outcome)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -158,13 +188,18 @@ func TestTrackProofRooter(t *testing.T) {
 		id:         proofUser.Username + "@rooter",
 		proofState: keybase1.ProofState_OK,
 	}
-	err = checkTrack(tc, trackUser, proofUser.Username, []sb{rbl}, keybase1.TrackStatus_NEW_OK)
+	outcome := keybase1.IdentifyOutcome{
+		NumProofSuccesses: 1,
+		TrackStatus:       keybase1.TrackStatus_NEW_OK,
+	}
+	err = checkTrack(tc, trackUser, proofUser.Username, []sb{rbl}, &outcome)
 	if err != nil {
 		t.Fatal(err)
 	}
 
 	// retrack, check the track status
-	err = checkTrack(tc, trackUser, proofUser.Username, []sb{rbl}, keybase1.TrackStatus_UPDATE_OK)
+	outcome.TrackStatus = keybase1.TrackStatus_UPDATE_OK
+	err = checkTrack(tc, trackUser, proofUser.Username, []sb{rbl}, &outcome)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -182,7 +217,10 @@ func TestTrackProofUpgrade(t *testing.T) {
 
 	// create a user to track the proofUser
 	trackUser := CreateAndSignupFakeUser(tc, "track")
-	err := checkTrack(tc, trackUser, proofUser.Username, nil, keybase1.TrackStatus_NEW_ZERO_PROOFS)
+	outcome := keybase1.IdentifyOutcome{
+		TrackStatus: keybase1.TrackStatus_NEW_ZERO_PROOFS,
+	}
+	err := checkTrack(tc, trackUser, proofUser.Username, nil, &outcome)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -204,7 +242,12 @@ func TestTrackProofUpgrade(t *testing.T) {
 		id:         proofUser.Username + "@rooter",
 		proofState: keybase1.ProofState_OK,
 	}
-	err = checkTrack(tc, trackUser, proofUser.Username, []sb{rbl}, keybase1.TrackStatus_UPDATE_NEW_PROOFS)
+	outcome = keybase1.IdentifyOutcome{
+		NumTrackChanges:   1,
+		NumProofSuccesses: 1,
+		TrackStatus:       keybase1.TrackStatus_UPDATE_NEW_PROOFS,
+	}
+	err = checkTrack(tc, trackUser, proofUser.Username, []sb{rbl}, &outcome)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -231,7 +274,11 @@ func TestTrackProofChangeSinceTrack(t *testing.T) {
 		id:         proofUser.Username + "@rooter",
 		proofState: keybase1.ProofState_OK,
 	}
-	err = checkTrack(tc, trackUser, proofUser.Username, []sb{rbl}, keybase1.TrackStatus_NEW_OK)
+	outcome := keybase1.IdentifyOutcome{
+		NumProofSuccesses: 1,
+		TrackStatus:       keybase1.TrackStatus_NEW_OK,
+	}
+	err = checkTrack(tc, trackUser, proofUser.Username, []sb{rbl}, &outcome)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -248,7 +295,8 @@ func TestTrackProofChangeSinceTrack(t *testing.T) {
 
 	// track user logs in and tracks proof user again
 	trackUser.LoginOrBust(tc)
-	err = checkTrack(tc, trackUser, proofUser.Username, []sb{rbl}, keybase1.TrackStatus_UPDATE_OK)
+	outcome.TrackStatus = keybase1.TrackStatus_UPDATE_OK
+	err = checkTrack(tc, trackUser, proofUser.Username, []sb{rbl}, &outcome)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -277,8 +325,12 @@ func TestTrackProofRooterFail(t *testing.T) {
 		id:         proofUser.Username + "@rooter",
 		proofState: keybase1.ProofState_NONE,
 	}
+	outcome := keybase1.IdentifyOutcome{
+		NumProofFailures: 1,
+		TrackStatus:      keybase1.TrackStatus_NEW_ZERO_PROOFS,
+	}
 	// and they have no proofs
-	err = checkTrack(tc, trackUser, proofUser.Username, []sb{rbl}, keybase1.TrackStatus_NEW_ZERO_PROOFS)
+	err = checkTrack(tc, trackUser, proofUser.Username, []sb{rbl}, &outcome)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -309,7 +361,11 @@ func TestTrackProofRooterRemove(t *testing.T) {
 		id:         proofUser.Username + "@rooter",
 		proofState: keybase1.ProofState_OK,
 	}
-	err = checkTrack(tc, trackUser, proofUser.Username, []sb{rbl}, keybase1.TrackStatus_NEW_OK)
+	outcome := keybase1.IdentifyOutcome{
+		NumProofSuccesses: 1,
+		TrackStatus:       keybase1.TrackStatus_NEW_OK,
+	}
+	err = checkTrack(tc, trackUser, proofUser.Username, []sb{rbl}, &outcome)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -328,13 +384,23 @@ func TestTrackProofRooterRemove(t *testing.T) {
 	// track again
 	trackUser.LoginOrBust(tc)
 	rbl.proofState = keybase1.ProofState_TEMP_FAILURE
-	err = checkTrack(tc, trackUser, proofUser.Username, []sb{rbl}, keybase1.TrackStatus_UPDATE_BROKEN)
+	outcome = keybase1.IdentifyOutcome{
+		NumTrackFailures: 1,
+		NumTrackChanges:  1,
+		NumProofFailures: 1,
+		TrackStatus:      keybase1.TrackStatus_UPDATE_BROKEN,
+	}
+	err = checkTrack(tc, trackUser, proofUser.Username, []sb{rbl}, &outcome)
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	// check that it is fixed
-	err = checkTrack(tc, trackUser, proofUser.Username, []sb{rbl}, keybase1.TrackStatus_UPDATE_OK)
+	// check that it is "fixed"
+	outcome = keybase1.IdentifyOutcome{
+		NumProofFailures: 1,
+		TrackStatus:      keybase1.TrackStatus_UPDATE_OK,
+	}
+	err = checkTrack(tc, trackUser, proofUser.Username, []sb{rbl}, &outcome)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -364,7 +430,11 @@ func TestTrackProofRooterRevoke(t *testing.T) {
 		id:         proofUser.Username + "@rooter",
 		proofState: keybase1.ProofState_OK,
 	}
-	err = checkTrack(tc, trackUser, proofUser.Username, []sb{rbl}, keybase1.TrackStatus_NEW_OK)
+	outcome := keybase1.IdentifyOutcome{
+		NumProofSuccesses: 1,
+		TrackStatus:       keybase1.TrackStatus_NEW_OK,
+	}
+	err = checkTrack(tc, trackUser, proofUser.Username, []sb{rbl}, &outcome)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -385,13 +455,20 @@ func TestTrackProofRooterRevoke(t *testing.T) {
 
 	// track proofUser again and check revoked proof handled correctly
 	trackUser.LoginOrBust(tc)
-	err = checkTrack(tc, trackUser, proofUser.Username, nil, keybase1.TrackStatus_UPDATE_BROKEN)
+	outcome = keybase1.IdentifyOutcome{
+		NumRevoked:  1,
+		TrackStatus: keybase1.TrackStatus_UPDATE_BROKEN,
+	}
+	err = checkTrack(tc, trackUser, proofUser.Username, nil, &outcome)
 	if err != nil {
 		t.Fatal(err)
 	}
 
 	// track again and check for fix
-	err = checkTrack(tc, trackUser, proofUser.Username, nil, keybase1.TrackStatus_UPDATE_OK)
+	outcome = keybase1.IdentifyOutcome{
+		TrackStatus: keybase1.TrackStatus_UPDATE_OK,
+	}
+	err = checkTrack(tc, trackUser, proofUser.Username, nil, &outcome)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -429,7 +506,11 @@ func TestTrackProofRooterOther(t *testing.T) {
 		id:         proofUserOther.Username + "@rooter",
 		proofState: keybase1.ProofState_OK,
 	}
-	err = checkTrack(tc, trackUser, proofUser.Username, []sb{rbl}, keybase1.TrackStatus_NEW_OK)
+	outcome := keybase1.IdentifyOutcome{
+		NumProofSuccesses: 1,
+		TrackStatus:       keybase1.TrackStatus_NEW_OK,
+	}
+	err = checkTrack(tc, trackUser, proofUser.Username, []sb{rbl}, &outcome)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -458,7 +539,11 @@ func TestTrackProofRooterChange(t *testing.T) {
 		id:         proofUser.Username + "@rooter",
 		proofState: keybase1.ProofState_OK,
 	}
-	err = checkTrack(tc, trackUser, proofUser.Username, []sb{rbl}, keybase1.TrackStatus_NEW_OK)
+	outcome := keybase1.IdentifyOutcome{
+		NumProofSuccesses: 1,
+		TrackStatus:       keybase1.TrackStatus_NEW_OK,
+	}
+	err = checkTrack(tc, trackUser, proofUser.Username, []sb{rbl}, &outcome)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -478,14 +563,31 @@ func TestTrackProofRooterChange(t *testing.T) {
 	// track proofUser again and check new rooter proof with different account handled correctly
 	trackUser.LoginOrBust(tc)
 	rbl.id = proofUserOther.Username + "@rooter"
-	err = checkTrack(tc, trackUser, proofUser.Username, []sb{rbl}, keybase1.TrackStatus_UPDATE_BROKEN)
+	outcome = keybase1.IdentifyOutcome{
+		NumTrackChanges:   1,
+		NumTrackFailures:  1,
+		NumProofSuccesses: 1,
+		TrackStatus:       keybase1.TrackStatus_UPDATE_BROKEN,
+	}
+	err = checkTrack(tc, trackUser, proofUser.Username, []sb{rbl}, &outcome)
 	if err != nil {
 		t.Fatal(err)
 	}
 
 	// track again and check for fix
-	err = checkTrack(tc, trackUser, proofUser.Username, []sb{rbl}, keybase1.TrackStatus_UPDATE_OK)
+	outcome = keybase1.IdentifyOutcome{
+		NumProofSuccesses: 1,
+		TrackStatus:       keybase1.TrackStatus_UPDATE_OK,
+	}
+	err = checkTrack(tc, trackUser, proofUser.Username, []sb{rbl}, &outcome)
 	if err != nil {
 		t.Fatal(err)
 	}
 }
+
+// TODO:
+// get a test that will generate TrackSTatus_NEW_FAIL_PROOFS
+//   (this requires two services, one with an ok proof, one with a
+//   failing proof)
+// test upgrade from http to https, or a secure rooter post vs.
+// regular rooter post to get TrackDiffUpgraded.
