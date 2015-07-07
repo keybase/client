@@ -130,7 +130,7 @@ func (a *Account) SetStreamGeneration(gen PassphraseGeneration) {
 
 // GetStreamGeneration() gets the generation of the currently cached
 // passphrase stream
-func (a *Acount) GetStreamGeneration() (ret PassphraseGeneration) {
+func (a *Account) GetStreamGeneration() (ret PassphraseGeneration) {
 	if ps := a.PassphraseStream(); ps != nil {
 		ret = ps.Generation()
 	}	

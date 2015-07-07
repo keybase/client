@@ -219,11 +219,11 @@ func (s *LoginState) GetVerifiedTriplesec(ui SecretUI) (ret *triplesec.Cipher, e
 // is indeed the correct passphrase for the logged in user.  This is accomplished
 // via a login request.  The side effect will be that we'll retrieve the
 // correct generation number of the current passphrase from the server.
-func (s *LoginState) VerifyPlaintextPassphrase(pp string) (ppStream *PassphraseSteram, err error) {
+func (s *LoginState) VerifyPlaintextPassphrase(pp string) (ppStream *PassphraseStream, err error) {
 	err = s.loginHandle(func(lctx LoginContext) error {
-		ret := a.verifyPlaintextPassphraseForLoggedInUser(lctx, pp)
+		ret := s.verifyPlaintextPassphraseForLoggedInUser(lctx, pp)
 		if ret == nil {
-			ppStream = lctx.PassphraseStream()
+			ppStream = lctx.PassphraseStreamCache().PassphraseStream()
 		}
 		return ret
 	}, nil, "VerifyPLaintextPassphrase")
@@ -504,7 +504,7 @@ func (s *LoginState) verifyPlaintextPassphraseForLoggedInUser(lctx LoginContext,
 	}()
 
 	var username string
-	if username, err = s.getEmailOrUsername(lctx, &username, nil); err != nil {
+	if err = s.getEmailOrUsername(lctx, &username, nil); err != nil {
 		return
 	}
 

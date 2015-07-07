@@ -100,7 +100,7 @@ func (c *ChangePassphrase) getVerifiedPassphraseHash(ctx *Context) (err error) {
 	return
 }
 
-func (c *ChangePassphrase) verifySuppliedPassphrase(ctx *Context) error {
-	c.ppStream, err = c.G().LoginState.VerifyPlaintextPassphrase(c.arg.OldPassphrase)
+func (c *ChangePassphrase) verifySuppliedPassphrase(ctx *Context) (err error) {
+	c.ppStream, err = c.G().LoginState().VerifyPlaintextPassphrase(c.arg.OldPassphrase)
 	return
 }
