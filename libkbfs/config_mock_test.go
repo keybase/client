@@ -6,19 +6,20 @@ import (
 )
 
 type FakeObserver struct {
-	localUpdatePath  Path
-	batchUpdatePaths []Path
-	ctx              context.Context
+	localChange  Node
+	batchChanges []NodeChange
+	ctx          context.Context
 }
 
-func (fn *FakeObserver) LocalChange(ctx context.Context, path Path) {
-	fn.localUpdatePath = path
+func (fn *FakeObserver) LocalChange(ctx context.Context,
+	node Node, write WriteRange) {
+	fn.localChange = node
 	fn.ctx = ctx
 }
 
 func (fn *FakeObserver) BatchChanges(
-	ctx context.Context, dir DirID, paths []Path) {
-	fn.batchUpdatePaths = paths
+	ctx context.Context, dir DirID, nodeChanges []NodeChange) {
+	fn.batchChanges = nodeChanges
 	fn.ctx = ctx
 }
 

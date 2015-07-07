@@ -757,6 +757,7 @@ func (fbo *FolderBranchOps) unembedBlockChanges(bps *blockPutState,
 	if err != nil {
 		return
 	}
+	md.data.cachedChanges = *changes
 	changes.Pointer = info.BlockPointer
 	changes.Ops = nil
 	md.RefBytes += uint64(info.EncodedSize)
@@ -1068,7 +1069,7 @@ func (fbo *FolderBranchOps) finalizeWriteLocked(ctx context.Context,
 		return err
 	}
 
-	fbo.notifyBatch(ctx, newPaths[0].TopDir, newPaths)
+	fbo.notifyBatch(ctx, md)
 	return nil
 }
 
@@ -1877,7 +1878,7 @@ func (fbo *FolderBranchOps) writeDataLocked(
 	si.op.addWrite(uint64(off), uint64(len(data)))
 
 	if doNotify {
-		fbo.notifyLocal(ctx, file)
+		fbo.notifyLocal(ctx, file, si.op)
 	}
 	return nil
 }
@@ -2039,7 +2040,7 @@ func (fbo *FolderBranchOps) truncateLocked(
 	}
 
 	if doNotify {
-		fbo.notifyLocal(ctx, file)
+		fbo.notifyLocal(ctx, file, si.op)
 	}
 	return nil
 }
@@ -2568,19 +2569,114 @@ func (fbo *FolderBranchOps) UnregisterFromChanges(obs Observer) error {
 	return nil
 }
 
-func (fbo *FolderBranchOps) notifyLocal(ctx context.Context, path Path) {
+func (fbo *FolderBranchOps) notifyLocal(ctx context.Context,
+	file Path, so *syncOp) {
+	node := fbo.nodeCache.GetWithoutReference(stripBP(file.TailPointer()))
+	if node == nil {
+		return
+	}
+	// notify about the most recent write op
+	write := so.Writes[len(so.Writes)-1]
+
 	fbo.obsLock.RLock()
 	defer fbo.obsLock.RUnlock()
 	for _, obs := range fbo.observers {
-		obs.LocalChange(ctx, path)
+		obs.LocalChange(ctx, node, write)
 	}
 }
 
-func (fbo *FolderBranchOps) notifyBatch(
-	ctx context.Context, dir DirID, paths []Path) {
+func (fbo *FolderBranchOps) addChangeForUpdatedDir(
+	ptr BlockPointer, changes []NodeChange) []NodeChange {
+	node := fbo.nodeCache.GetWithoutReference(stripBP(ptr))
+	if node == nil {
+		return changes
+	}
+
+	return append(changes, NodeChange{
+		Node:        node,
+		AttrUpdated: true, // times changed at least
+		DirUpdated:  true,
+	})
+}
+
+// notifyBatch sends out a notification for the most recent op in md
+func (fbo *FolderBranchOps) notifyBatch(ctx context.Context, md *RootMetadata) {
+	var op interface{}
+	if md.data.Changes.Ops != nil {
+		op = md.data.Changes.Ops[len(md.data.Changes.Ops)-1]
+	} else {
+		// Uh-oh, the block changes have been kicked out into a block.
+		// Use a cached copy instead, and clear it when done.
+		op = md.data.cachedChanges.Ops[len(md.data.cachedChanges.Ops)-1]
+		md.data.cachedChanges.Ops = nil
+	}
+
+	var changes []NodeChange
+	switch realOp := op.(type) {
+	default:
+		return
+	case *createOp:
+		changes = fbo.addChangeForUpdatedDir(realOp.Dir.Ref, changes)
+		if len(changes) != 1 {
+			return
+		}
+	case *rmOp:
+		changes = fbo.addChangeForUpdatedDir(realOp.Dir.Ref, changes)
+		if len(changes) != 1 {
+			return
+		}
+	case *renameOp:
+		changes = fbo.addChangeForUpdatedDir(realOp.OldDir.Ref, changes)
+		desiredLen := 1
+		if realOp.NewDir.Ref != zeroPtr {
+			changes = fbo.addChangeForUpdatedDir(realOp.NewDir.Ref, changes)
+			desiredLen = 2
+		}
+		if len(changes) != desiredLen {
+			return
+		}
+	case *syncOp:
+		node := fbo.nodeCache.GetWithoutReference(stripBP(realOp.File.Ref))
+		if node == nil {
+			return
+		}
+
+		changes = append(changes, NodeChange{
+			Node:        node,
+			AttrUpdated: true, // times changed at least
+			FileUpdated: realOp.Writes,
+		})
+	case *setAttrOp:
+		node := fbo.nodeCache.GetWithoutReference(stripBP(realOp.Dir.Ref))
+		if node == nil {
+			return
+		}
+		childPath :=
+			*fbo.nodeCache.PathFromNode(node).ChildPathNoPtr(realOp.Name)
+
+		// find the node for the actual change; requires looking up
+		// the child entry to get the BlockPointer, unfortunately.
+		fbo.blockLock.RLock()
+		_, de, err := fbo.getEntryLocked(md, childPath)
+		if err != nil {
+			fbo.blockLock.RUnlock()
+			return
+		}
+		fbo.blockLock.RUnlock()
+		childNode := fbo.nodeCache.GetWithoutReference(stripBP(de.BlockPointer))
+		if childNode == nil {
+			return
+		}
+
+		changes = append(changes, NodeChange{
+			Node:        childNode,
+			AttrUpdated: true,
+		})
+	}
+
 	fbo.obsLock.RLock()
 	defer fbo.obsLock.RUnlock()
 	for _, obs := range fbo.observers {
-		obs.BatchChanges(ctx, dir, paths)
+		obs.BatchChanges(ctx, fbo.id, changes)
 	}
 }

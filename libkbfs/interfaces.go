@@ -615,17 +615,27 @@ type BlockSplitter interface {
 	ShouldEmbedBlockChanges(bc *BlockChanges) bool
 }
 
+// NodeChange represents a change made to a node as part of an atomic
+// file system operation.
+type NodeChange struct {
+	Node        Node
+	AttrUpdated bool
+	DirUpdated  bool
+	FileUpdated []WriteRange
+}
+
 // Observer can be notified that there is an available update for a
 // given directory.  The notification callbacks should not block, or
-// make any calls to the Notifier interface.
+// make any calls to the Notifier interface.  Nodes passed to the
+// observer should not be held past the end of the notification
+// callback.
 type Observer interface {
-	// LocalChange announces that the file at this path has been
-	// updated locally, but not yet saved at the server.  The nodes
-	// along the path are still identified by the same IDs.
-	LocalChange(ctx context.Context, path Path)
-	// BatchChanges announces that the files at this path have all
-	// been updated together, and may have changed their IDs.
-	BatchChanges(ctx context.Context, dir DirID, paths []Path)
+	// LocalChange announces that the file at this Node has been
+	// updated locally, but not yet saved at the server.
+	LocalChange(ctx context.Context, node Node, write WriteRange)
+	// BatchChanges announces that the nodes have all been updated
+	// together atomically.
+	BatchChanges(ctx context.Context, dir DirID, changes []NodeChange)
 	// TODO: Notify about changes in favorites list
 }
 
@@ -693,6 +703,9 @@ type NodeCache interface {
 	// have to revisit the "name" and "parent" parameters here.
 	// Returns an error if parent cannot be found.
 	GetOrCreate(ptr BlockPointer, name string, parent Node) (Node, error)
+	// GetWithoutReference returns the Node associated with the given
+	// ptr if one already exists.  Otherwise, it returns nil.
+	GetWithoutReference(ptr BlockPointer) Node
 	// UpdatePointer swaps the BlockPointer for the corresponding
 	// Node.  NodeCache ignores this call when oldPtr is not cached in
 	// any Node.

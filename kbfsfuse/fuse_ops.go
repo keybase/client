@@ -31,6 +31,9 @@ type FuseOps struct {
 	topLock      sync.RWMutex
 	dirRWChans   *libkbfs.DirRWSchedulers
 	ctx          context.Context
+
+	// naturally protected by the dirRWChans
+	fuseNodeMap map[libkbfs.Node]*FuseNode
 }
 
 // NewFuseRoot constructs a new root FUSE node for KBFS.
@@ -40,6 +43,7 @@ func NewFuseRoot(ctx context.Context, config libkbfs.Config) *FuseNode {
 		topNodes:     make(map[string]*FuseNode),
 		topNodesByID: make(map[libkbfs.DirID]*FuseNode),
 		dirRWChans:   libkbfs.NewDirRWSchedulers(config),
+		fuseNodeMap:  make(map[libkbfs.Node]*FuseNode),
 	}
 	f.ctx = context.WithValue(ctx, ctxAppIDKey, f)
 	return &FuseNode{
@@ -153,6 +157,7 @@ func (f *FuseOps) LookupInDir(dNode *FuseNode, name string) (
 				fsNode:    rootNode,
 				Ops:       f,
 			}
+			f.fuseNodeMap[rootNode] = fNode
 
 			node = dNode.Inode().NewChild(name, true, fNode)
 			f.topLock.Lock()
@@ -180,6 +185,7 @@ func (f *FuseOps) LookupInDir(dNode *FuseNode, name string) (
 			Ops:      f,
 			Entry:    de,
 		}
+		f.fuseNodeMap[newNode] = fNode
 		if de.Type != libkbfs.Dir {
 			fNode.File = &FuseFile{
 				File: nodefs.NewDefaultFile(),
@@ -192,57 +198,33 @@ func (f *FuseOps) LookupInDir(dNode *FuseNode, name string) (
 	return node, fuse.OK
 }
 
-// LocalChange sets NeedUpdate for all nodes that we know about on the path
-func (f *FuseOps) LocalChange(ctx context.Context, path libkbfs.Path) {
+// LocalChange sets NeedUpdate for the relevant node.
+func (f *FuseOps) LocalChange(
+	ctx context.Context, node libkbfs.Node, write libkbfs.WriteRange) {
 	f.topLock.RLock()
 	defer f.topLock.RUnlock()
 
-	topNode := f.topNodesByID[path.TopDir]
+	dir, _ := node.GetFolderBranch()
+	topNode := f.topNodesByID[dir]
 	if topNode == nil {
 		return
 	}
 
 	rwchan := topNode.getChan()
 	rwchan.QueueWriteReq(func() {
-		// Set NeedUpdate for all relevant FuseNodes
-		currNode := topNode
-		for i := 0; currNode != nil && i < len(path.Path); {
-			currNode.NeedUpdate = true
-			i++
-			// lookup the next node, if possible
-			var nextNode *nodefs.Inode
-			if i < len(path.Path) {
-				pn := path.Path[i]
-				nextNode = currNode.Inode().GetChild(pn.Name)
-			}
-			if nextNode != nil {
-				currNode = nextNode.Node().(*FuseNode)
-			} else {
-				currNode = nil
-			}
+		fNode := f.fuseNodeMap[node]
+		if fNode == nil {
+			return
 		}
+
+		fNode.NeedUpdate = true
 	})
 }
 
-func (f *FuseOps) updatePaths(n *FuseNode, newPath []libkbfs.PathNode) {
-	// Update all the paths back to the root.
-	//
-	// TODO: Make sure len(newPath) == length of path from n to root.
-	index := len(newPath) - 1
-	currNode := n
-	for index >= 0 && currNode != nil {
-		currNode.NeedUpdate = true
-		index--
-		currNode = currNode.PrevNode
-	}
-}
-
-// BatchChanges sets NeedUpdate for all nodes that we know about on
-// the path, and updates the PathNode (including the new
-// BlockPointer).
+// BatchChanges sets NeedUpdate for all relevant nodes.
 func (f *FuseOps) BatchChanges(
-	ctx context.Context, dir libkbfs.DirID, paths []libkbfs.Path) {
-	if len(paths) == 0 {
+	ctx context.Context, dir libkbfs.DirID, changes []libkbfs.NodeChange) {
+	if len(changes) == 0 {
 		return
 	}
 
@@ -256,22 +238,15 @@ func (f *FuseOps) BatchChanges(
 
 	rwchan := topNode.getChan()
 	rwchan.QueueWriteReq(func() {
-		for _, path := range paths {
-			// TODO: verify path.TopDir matches dir
-			// navigate to the end of the path, then update the complete path
-			currNode := topNode
-			// Count the number of nodes for which we already have
-			// corresponding FuseNodes.
-			i := 1
-			for ; i < len(path.Path); i++ {
-				nextNode := currNode.Inode().GetChild(path.Path[i].Name)
-				if nextNode == nil {
-					break
-				} else {
-					currNode = nextNode.Node().(*FuseNode)
-				}
+		for _, change := range changes {
+			if !change.AttrUpdated {
+				continue
 			}
-			f.updatePaths(currNode, path.Path[:i])
+			fNode := f.fuseNodeMap[change.Node]
+			if fNode == nil {
+				continue
+			}
+			fNode.NeedUpdate = true
 		}
 	})
 }
@@ -343,6 +318,7 @@ func (f *FuseOps) LookupInRootByName(rNode *FuseNode, name string) (
 					fsNode:    rootNode,
 					Ops:       f,
 				}
+				f.fuseNodeMap[rootNode] = fNode
 			}
 
 			node = rNode.Inode().NewChild(name, true, fNode)
@@ -381,6 +357,7 @@ func (f *FuseOps) LookupInRootByID(rNode *FuseNode, id libkbfs.DirID) (
 				fsNode:    rootNode,
 				Ops:       f,
 			}
+			f.fuseNodeMap[rootNode] = fNode
 
 			node = rNode.Inode().NewChild(name, true, fNode)
 			f.addTopNodeLocked(name, fNode)
@@ -516,7 +493,6 @@ func (f *FuseOps) Chmod(n *FuseNode, perms uint32) (code fuse.Status) {
 	if err != nil {
 		return f.translateError(err)
 	}
-	n.NeedUpdate = true // hack until notifications are per-node
 
 	return fuse.OK
 }
@@ -527,7 +503,6 @@ func (f *FuseOps) Utimens(n *FuseNode, mtime *time.Time) (code fuse.Status) {
 	if err != nil {
 		return f.translateError(err)
 	}
-	n.NeedUpdate = true // hack until notifications are per-node
 
 	return fuse.OK
 }
@@ -552,6 +527,7 @@ func (f *FuseOps) Mkdir(n *FuseNode, name string) (
 		Entry:    de,
 		Ops:      f,
 	}
+	f.fuseNodeMap[fsNode] = fNode
 	newNode = n.Inode().NewChild(name, true, fNode)
 
 	code = fuse.OK
@@ -580,6 +556,7 @@ func (f *FuseOps) Mknod(n *FuseNode, name string, mode uint32) (
 		File:     &FuseFile{File: nodefs.NewDefaultFile()},
 		Ops:      f,
 	}
+	f.fuseNodeMap[fsNode] = fNode
 	fNode.File.Node = fNode
 	newNode = n.Inode().NewChild(name, true, fNode)
 
@@ -774,6 +751,8 @@ func (n *FuseNode) OnMount(conn *nodefs.FileSystemConnector) {
 // OnForget implements go-fuse Node interface for FuseNode
 func (n *FuseNode) OnForget() {
 	n.fsNode.Forget()
+	rwchan := n.getChan()
+	rwchan.QueueWriteReq(func() { delete(n.Ops.fuseNodeMap, n.fsNode) })
 }
 
 func (n *FuseNode) getChans() (rwchan util.RWScheduler, statchan statusChan) {

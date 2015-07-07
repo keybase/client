@@ -112,16 +112,11 @@ func TestLookupOtherPrivateFile(t *testing.T) {
 	root.Ops.Shutdown()
 }
 
-func checkPathNeedsUpdate(t *testing.T, nodes []*FuseNode, update bool) {
-	// The first one (root) should never need an update
-	if len(nodes) > 0 && nodes[0].NeedUpdate {
-		t.Error("/ unexpectedly needs update")
-	}
-
-	for i, n := range nodes[1:] {
-		if n.NeedUpdate != update {
+func checkNodesNeedUpdate(t *testing.T, nodes []*FuseNode, update []bool) {
+	for i, n := range nodes {
+		if n.NeedUpdate != update[i] {
 			needs := "needs"
-			if update {
+			if update[i] {
 				needs = "does not need"
 			}
 			t.Errorf("Node %d unexpectedly %s update", i, needs)
@@ -155,43 +150,58 @@ func TestNeedUpdateBasic(t *testing.T) {
 	node2 := doMkDirOrBust(t, node1, "dir")
 	waitForUpdates(node1)
 
-	checkPathNeedsUpdate(t, []*FuseNode{root, node1, node2}, true)
+	checkNodesNeedUpdate(t, []*FuseNode{root, node1, node2},
+		[]bool{false, true, false})
 
 	// Look up /test_user again.
 	node1 = doLookupOrBust(t, root, "test_user")
 
-	checkPathNeedsUpdate(t, []*FuseNode{root, node1}, false)
+	checkNodesNeedUpdate(t, []*FuseNode{root, node1}, []bool{false, false})
 	root.Ops.Shutdown()
 }
 
 // Test that nodes start off as not needing updating, making a
 // directory marks the path from the new directory's parent to the
 // user root as needing updating, and not just the parent.
-func TestNeedUpdateAll(t *testing.T) {
+func testNeedUpdateAll(t *testing.T, root *FuseNode) {
+	// Make dir1/dir2/dir3 and clear their NeedUpdate
+	// flags.
+	node1 := doMkDirOrBust(t, root, "dir1")
+	node2 := doMkDirOrBust(t, node1, "dir2")
+	node3 := doMkDirOrBust(t, node2, "dir3")
+
+	node1 = doLookupOrBust(t, root, "dir1")
+	node2 = doLookupOrBust(t, node1, "dir2")
+	node3 = doLookupOrBust(t, node2, "dir3")
+
+	// Make /test_user/dir1/dir2/dir3/dir4.
+	node4 := doMkDirOrBust(t, node3, "dir4")
+	root.Ops.Shutdown()
+
+	checkNodesNeedUpdate(t,
+		[]*FuseNode{node1, node2, node3, node4},
+		[]bool{false, false, true, false})
+}
+
+func TestNeedUpdateAllPrivate(t *testing.T) {
 	config := libkbfs.MakeTestConfigOrBust(t, *BServerRemote, "test_user")
 
 	root := NewFuseRoot(context.Background(), config)
 	_ = nodefs.NewFileSystemConnector(root, nil)
 
-	// Make /test_user/dir1/dir2/dir3 and clear their NeedUpdate
-	// flags.
+	userRoot := doLookupOrBust(t, root, "test_user")
+	testNeedUpdateAll(t, userRoot)
+}
 
-	node1 := doLookupOrBust(t, root, "test_user")
-	node2 := doMkDirOrBust(t, node1, "dir1")
-	node3 := doMkDirOrBust(t, node2, "dir2")
-	node4 := doMkDirOrBust(t, node3, "dir3")
+func TestNeedUpdateAllPublic(t *testing.T) {
+	config := libkbfs.MakeTestConfigOrBust(t, *BServerRemote, "test_user")
 
-	node1 = doLookupOrBust(t, root, "test_user")
-	node2 = doLookupOrBust(t, node1, "dir1")
-	node3 = doLookupOrBust(t, node2, "dir2")
-	node4 = doLookupOrBust(t, node3, "dir3")
+	root := NewFuseRoot(context.Background(), config)
+	_ = nodefs.NewFileSystemConnector(root, nil)
 
-	// Make /test_user/dir1/dir2/dir3/dir4.
-	node5 := doMkDirOrBust(t, node4, "dir4")
-	root.Ops.Shutdown()
-
-	checkPathNeedsUpdate(t,
-		[]*FuseNode{root, node1, node2, node3, node4, node5}, true)
+	userRoot := doLookupOrBust(t, root, "test_user")
+	publicRoot := doLookupOrBust(t, userRoot, "public")
+	testNeedUpdateAll(t, publicRoot)
 }
 
 // Test that writing a file causes its whole path to need an update
@@ -211,118 +221,8 @@ func TestLocalUpdateAll(t *testing.T) {
 	node3.Write(nil, []byte{0, 1, 2}, 0, nil)
 	root.Ops.Shutdown()
 
-	checkPathNeedsUpdate(t, []*FuseNode{root, node1, node2, node3}, true)
-}
-
-// Test that a local notification for a path, for which we only have
-// nodes for some prefix of the path, works correctly.
-func TestPartialLocalUpdate(t *testing.T) {
-	config := libkbfs.MakeTestConfigOrBust(t, *BServerRemote, "test_user")
-
-	root := NewFuseRoot(context.Background(), config)
-	_ = nodefs.NewFileSystemConnector(root, nil)
-
-	node1 := doLookupOrBust(t, root, "test_user")
-	node2 := doMkDirOrBust(t, node1, "dir1")
-	// lookup node2 again to ensure that BatchChanges has taken effect
-	node2 = doLookupOrBust(t, node1, "dir1")
-
-	// Somewhere else, someone writes test_user/dir1/dir2/dir3
-	newPath := libkbfs.Path{
-		TopDir: node1.getTopDir(),
-		// Only the Name fields are used.
-		Path: []libkbfs.PathNode{
-			libkbfs.PathNode{Name: ""},
-			libkbfs.PathNode{Name: "dir1"},
-			libkbfs.PathNode{Name: "dir2"},
-			libkbfs.PathNode{Name: "dir3"},
-		},
-	}
-	root.Ops.LocalChange(root.Ops.ctx, newPath)
-	root.Ops.Shutdown()
-
-	nodes := []*FuseNode{root, node1, node2}
-	checkPathNeedsUpdate(t, nodes, true)
-}
-
-// Test that a batch notification for a path, for which we only have
-// nodes for some prefix of the path, works correctly.
-func TestPartialBatchUpdate(t *testing.T) {
-	config := libkbfs.MakeTestConfigOrBust(t, *BServerRemote, "test_user")
-
-	root := NewFuseRoot(context.Background(), config)
-	_ = nodefs.NewFileSystemConnector(root, nil)
-
-	node1 := doLookupOrBust(t, root, "test_user")
-	node2 := doMkDirOrBust(t, node1, "dir1")
-
-	// Somewhere else, someone creates test_user/dir1/dir2/dir3
-	newPath := libkbfs.Path{
-		TopDir: node1.getTopDir(),
-		// Only the Name fields are used.
-		Path: []libkbfs.PathNode{
-			libkbfs.PathNode{Name: ""},
-			libkbfs.PathNode{Name: "dir1"},
-			libkbfs.PathNode{Name: "dir2"},
-			libkbfs.PathNode{Name: "dir3"},
-		}}
-	root.Ops.BatchChanges(root.Ops.ctx, node1.getTopDir(),
-		[]libkbfs.Path{newPath})
-	root.Ops.Shutdown()
-
-	nodes := []*FuseNode{root, node1, node2}
-	checkPathNeedsUpdate(t, nodes, true)
-}
-
-func testCompleteBatchUpdate(t *testing.T, root *FuseNode, folderName string) {
-	node1 := doLookupOrBust(t, root, folderName)
-	node2 := doMknodOrBust(t, node1, "file1")
-	node2.Flush() // noop to force wait on update
-
-	// Construct an updated path using the current node IDs
-	newPath := libkbfs.Path{
-		TopDir: node1.getTopDir(),
-		Path: []libkbfs.PathNode{
-			libkbfs.PathNode{Name: ""},
-			libkbfs.PathNode{Name: "file1"},
-		},
-	}
-
-	// now write/flush to change IDs
-	node2.Write(nil, []byte{0, 1, 2}, 0, nil)
-	node2.Flush()
-
-	// finally, update again using the old path, to verify that the
-	// IDs change back correctly.
-	root.Ops.BatchChanges(root.Ops.ctx, node1.getTopDir(),
-		[]libkbfs.Path{newPath})
-	root.Ops.Shutdown()
-
-	nodes := []*FuseNode{root, node1, node2}
-	checkPathNeedsUpdate(t, nodes, true)
-}
-
-// Test that a full path batch update, on an existing file in a
-// private directory, sets NeedsUpdate correctly on all nodes of the
-// path.
-func TestCompleteBatchUpdatePrivate(t *testing.T) {
-	config := libkbfs.MakeTestConfigOrBust(t, *BServerRemote, "test_user")
-
-	root := NewFuseRoot(context.Background(), config)
-	_ = nodefs.NewFileSystemConnector(root, nil)
-	testCompleteBatchUpdate(t, root, "test_user")
-}
-
-// Test that a full path batch update, on an existing file in a public
-// directory, sets NeedsUpdate correctly on all nodes of the path.
-func TestCompleteBatchUpdatePublic(t *testing.T) {
-	config := libkbfs.MakeTestConfigOrBust(t, *BServerRemote, "test_user")
-
-	root := NewFuseRoot(context.Background(), config)
-	_ = nodefs.NewFileSystemConnector(root, nil)
-
-	userRoot := doLookupOrBust(t, root, "test_user")
-	testCompleteBatchUpdate(t, userRoot, "public")
+	checkNodesNeedUpdate(t, []*FuseNode{root, node1, node2, node3},
+		[]bool{false, true, true, true})
 }
 
 // Test that setting the mtime works

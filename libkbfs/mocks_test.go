@@ -1462,16 +1462,16 @@ func (_m *MockObserver) EXPECT() *_MockObserverRecorder {
 	return _m.recorder
 }
 
-func (_m *MockObserver) LocalChange(ctx context.Context, path Path) {
-	_m.ctrl.Call(_m, "LocalChange", ctx, path)
+func (_m *MockObserver) LocalChange(ctx context.Context, node Node, write WriteRange) {
+	_m.ctrl.Call(_m, "LocalChange", ctx, node, write)
 }
 
-func (_mr *_MockObserverRecorder) LocalChange(arg0, arg1 interface{}) *gomock.Call {
-	return _mr.mock.ctrl.RecordCall(_mr.mock, "LocalChange", arg0, arg1)
+func (_mr *_MockObserverRecorder) LocalChange(arg0, arg1, arg2 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "LocalChange", arg0, arg1, arg2)
 }
 
-func (_m *MockObserver) BatchChanges(ctx context.Context, dir DirID, paths []Path) {
-	_m.ctrl.Call(_m, "BatchChanges", ctx, dir, paths)
+func (_m *MockObserver) BatchChanges(ctx context.Context, dir DirID, changes []NodeChange) {
+	_m.ctrl.Call(_m, "BatchChanges", ctx, dir, changes)
 }
 
 func (_mr *_MockObserverRecorder) BatchChanges(arg0, arg1, arg2 interface{}) *gomock.Call {
@@ -1878,6 +1878,16 @@ func (_m *MockNodeCache) GetOrCreate(ptr BlockPointer, name string, parent Node)
 
 func (_mr *_MockNodeCacheRecorder) GetOrCreate(arg0, arg1, arg2 interface{}) *gomock.Call {
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "GetOrCreate", arg0, arg1, arg2)
+}
+
+func (_m *MockNodeCache) GetWithoutReference(ptr BlockPointer) Node {
+	ret := _m.ctrl.Call(_m, "GetWithoutReference", ptr)
+	ret0, _ := ret[0].(Node)
+	return ret0
+}
+
+func (_mr *_MockNodeCacheRecorder) GetWithoutReference(arg0 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "GetWithoutReference", arg0)
 }
 
 func (_m *MockNodeCache) UpdatePointer(oldPtr BlockPointer, newPtr BlockPointer) {

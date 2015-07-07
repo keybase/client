@@ -890,7 +890,7 @@ func checkNewPath(t *testing.T, ctx context.Context, config Config,
 	// well (but need to handle the rename case where there can be
 	// multiple updates).  For now, just check that there's at least
 	// one update.
-	if len(config.(*ConfigMock).observer.batchUpdatePaths) < 1 {
+	if len(config.(*ConfigMock).observer.batchChanges) < 1 {
 		t.Errorf("No batch notifications sent, at least one expected")
 	}
 	if ctx.Value(tCtxID) != config.(*ConfigMock).observer.ctx.Value(tCtxID) {
@@ -1489,9 +1489,9 @@ func TestRenameInDirSuccess(t *testing.T) {
 		t, config, newP.Path[1].BlockPointer, newP.Branch)
 	if _, ok := b1.Children["b"]; ok {
 		t.Errorf("entry for b is still around after rename")
-	} else if len(config.observer.batchUpdatePaths) != 2 {
-		t.Errorf("Expected 2 batch notifications, got %d",
-			len(config.observer.batchUpdatePaths))
+	} else if len(config.observer.batchChanges) != 1 {
+		t.Errorf("Expected 1 batch notification, got %d",
+			len(config.observer.batchChanges))
 	}
 	blocks = blocks[:len(blocks)-1] // the last block is never in the cache
 	checkBlockCache(t, config, append(blocks, rootID, aID), nil)
@@ -1562,9 +1562,9 @@ func TestRenameInRootSuccess(t *testing.T) {
 		t, config, newP.Path[0].BlockPointer, newP.Branch)
 	if _, ok := b0.Children["a"]; ok {
 		t.Errorf("entry for a is still around after rename")
-	} else if len(config.observer.batchUpdatePaths) != 2 {
-		t.Errorf("Expected 2 batch notifications, got %d",
-			len(config.observer.batchUpdatePaths))
+	} else if len(config.observer.batchChanges) != 1 {
+		t.Errorf("Expected 1 batch notification, got %d",
+			len(config.observer.batchChanges))
 	}
 	blocks = blocks[:len(blocks)-1] // the last block is never in the cache
 	checkBlockCache(t, config, append(blocks, rootID), nil)
@@ -1667,9 +1667,9 @@ func TestRenameAcrossDirsSuccess(t *testing.T) {
 		t, config, newP1.Path[0].BlockPointer, newP1.Branch)
 	if _, ok := b0.Children["b"]; ok {
 		t.Errorf("entry for b is still around after rename")
-	} else if len(config.observer.batchUpdatePaths) != 2 {
+	} else if len(config.observer.batchChanges) != 2 {
 		t.Errorf("Expected 2 batch notifications, got %d",
-			len(config.observer.batchUpdatePaths))
+			len(config.observer.batchChanges))
 	}
 	blocks2 = blocks2[:len(blocks2)-1] // the last block is never in the cache
 	checkBlockCache(t, config,
@@ -1786,9 +1786,9 @@ func TestRenameAcrossPrefixSuccess(t *testing.T) {
 		t, config, newP1.Path[1].BlockPointer, newP1.Branch)
 	if _, ok := b1.Children["b"]; ok {
 		t.Errorf("entry for b is still around after rename")
-	} else if len(config.observer.batchUpdatePaths) != 2 {
+	} else if len(config.observer.batchChanges) != 2 {
 		t.Errorf("Expected 2 batch notifications, got %d",
-			len(config.observer.batchUpdatePaths))
+			len(config.observer.batchChanges))
 	}
 	blocks = blocks[:len(blocks)-1] // the last block is never in the cache
 	checkBlockCache(t, config,
@@ -1889,9 +1889,9 @@ func TestRenameAcrossOtherPrefixSuccess(t *testing.T) {
 		t, config, newP1.Path[2].BlockPointer, newP1.Branch)
 	if _, ok := b2.Children["b"]; ok {
 		t.Errorf("entry for b is still around after rename")
-	} else if len(config.observer.batchUpdatePaths) != 2 {
+	} else if len(config.observer.batchChanges) != 2 {
 		t.Errorf("Expected 2 batch notifications, got %d",
-			len(config.observer.batchUpdatePaths))
+			len(config.observer.batchChanges))
 	}
 	blocks2 = blocks2[:len(blocks2)-1] // the last block is never in the cache
 	checkBlockCache(t, config,
@@ -2229,7 +2229,7 @@ func TestKBFSOpsServerReadFailNoSuchBlock(t *testing.T) {
 }
 
 func checkSyncOp(t *testing.T, so *syncOp, filePtr BlockPointer,
-	writes []writeRange) {
+	writes []WriteRange) {
 	if so == nil {
 		t.Error("No sync info for written file!")
 	}
@@ -2249,7 +2249,7 @@ func checkSyncOp(t *testing.T, so *syncOp, filePtr BlockPointer,
 }
 
 func checkSyncOpInCache(t *testing.T, ops *FolderBranchOps,
-	filePtr BlockPointer, writes []writeRange) {
+	filePtr BlockPointer, writes []WriteRange) {
 	// check the in-progress syncOp
 	si, ok := ops.unrefCache[filePtr]
 	if !ok {
@@ -2300,9 +2300,10 @@ func TestKBFSOpsWriteNewBlockSuccess(t *testing.T) {
 	newRootBlock = ops.updateDirBlock(
 		Path{TopDir: id, Path: []PathNode{node}}, newRootBlock)
 
-	if len(config.observer.localUpdatePath.Path) != len(p.Path) {
-		t.Errorf("Missing or incorrect local update during write: %s",
-			config.observer.localUpdatePath)
+	if len(ops.nodeCache.PathFromNode(config.observer.localChange).Path) !=
+		len(p.Path) {
+		t.Errorf("Missing or incorrect local update during write: %v",
+			config.observer.localChange)
 	} else if ctx.Value(tCtxID) != config.observer.ctx.Value(tCtxID) {
 		t.Errorf("Wrong context value passed in local notify: %v",
 			config.observer.ctx.Value(tCtxID))
@@ -2319,7 +2320,7 @@ func TestKBFSOpsWriteNewBlockSuccess(t *testing.T) {
 			fileNode.BlockPointer: p.Branch,
 		})
 	checkSyncOpInCache(t, ops, stripBP(fileNode.BlockPointer),
-		[]writeRange{writeRange{0, uint64(len(data))}})
+		[]WriteRange{WriteRange{0, uint64(len(data))}})
 }
 
 func TestKBFSOpsWriteExtendSuccess(t *testing.T) {
@@ -2363,9 +2364,10 @@ func TestKBFSOpsWriteExtendSuccess(t *testing.T) {
 	newFileBlock := getFileBlockFromCache(t, config, fileNode.BlockPointer,
 		p.Branch)
 
-	if len(config.observer.localUpdatePath.Path) != len(p.Path) {
-		t.Errorf("Missing or incorrect local update during write: %s",
-			config.observer.localUpdatePath)
+	if len(ops.nodeCache.PathFromNode(config.observer.localChange).Path) !=
+		len(p.Path) {
+		t.Errorf("Missing or incorrect local update during write: %v",
+			config.observer.localChange)
 	} else if ctx.Value(tCtxID) != config.observer.ctx.Value(tCtxID) {
 		t.Errorf("Wrong context value passed in local notify: %v",
 			config.observer.ctx.Value(tCtxID))
@@ -2377,7 +2379,7 @@ func TestKBFSOpsWriteExtendSuccess(t *testing.T) {
 			fileNode.BlockPointer: p.Branch,
 		})
 	checkSyncOpInCache(t, ops, stripBP(fileNode.BlockPointer),
-		[]writeRange{writeRange{5, uint64(len(data))}})
+		[]WriteRange{WriteRange{5, uint64(len(data))}})
 }
 
 func TestKBFSOpsWritePastEndSuccess(t *testing.T) {
@@ -2421,9 +2423,10 @@ func TestKBFSOpsWritePastEndSuccess(t *testing.T) {
 	newFileBlock := getFileBlockFromCache(t, config, fileNode.BlockPointer,
 		p.Branch)
 
-	if len(config.observer.localUpdatePath.Path) != len(p.Path) {
-		t.Errorf("Missing or incorrect local update during write: %s",
-			config.observer.localUpdatePath)
+	if len(ops.nodeCache.PathFromNode(config.observer.localChange).Path) !=
+		len(p.Path) {
+		t.Errorf("Missing or incorrect local update during write: %v",
+			config.observer.localChange)
 	} else if ctx.Value(tCtxID) != config.observer.ctx.Value(tCtxID) {
 		t.Errorf("Wrong context value passed in local notify: %v",
 			config.observer.ctx.Value(tCtxID))
@@ -2435,7 +2438,7 @@ func TestKBFSOpsWritePastEndSuccess(t *testing.T) {
 			fileNode.BlockPointer: p.Branch,
 		})
 	checkSyncOpInCache(t, ops, stripBP(fileNode.BlockPointer),
-		[]writeRange{writeRange{7, uint64(len(data))}})
+		[]WriteRange{WriteRange{7, uint64(len(data))}})
 }
 
 func TestKBFSOpsWriteCauseSplit(t *testing.T) {
@@ -2504,9 +2507,10 @@ func TestKBFSOpsWriteCauseSplit(t *testing.T) {
 	b, _ = config.BlockCache().Get(makeBPNoUser(id2, rmd, config), p.Branch)
 	block2 := b.(*FileBlock)
 
-	if len(config.observer.localUpdatePath.Path) != len(p.Path) {
-		t.Errorf("Missing or incorrect local update during write: %s",
-			config.observer.localUpdatePath)
+	if len(ops.nodeCache.PathFromNode(config.observer.localChange).Path) !=
+		len(p.Path) {
+		t.Errorf("Missing or incorrect local update during write: %v",
+			config.observer.localChange)
 	} else if ctx.Value(tCtxID) != config.observer.ctx.Value(tCtxID) {
 		t.Errorf("Wrong context value passed in local notify: %v",
 			config.observer.ctx.Value(tCtxID))
@@ -2542,7 +2546,7 @@ func TestKBFSOpsWriteCauseSplit(t *testing.T) {
 			pblock.IPtrs[1].BlockPointer: p.Branch,
 		})
 	checkSyncOpInCache(t, ops, stripBP(fileNode.BlockPointer),
-		[]writeRange{writeRange{1, uint64(len(newData))}})
+		[]WriteRange{WriteRange{1, uint64(len(newData))}})
 }
 
 func TestKBFSOpsWriteOverMultipleBlocks(t *testing.T) {
@@ -2609,9 +2613,10 @@ func TestKBFSOpsWriteOverMultipleBlocks(t *testing.T) {
 	newBlock2 := getFileBlockFromCache(t, config,
 		fileBlock.IPtrs[1].BlockPointer, p.Branch)
 
-	if len(config.observer.localUpdatePath.Path) != len(p.Path) {
-		t.Errorf("Missing or incorrect local update during write: %s",
-			config.observer.localUpdatePath)
+	if len(ops.nodeCache.PathFromNode(config.observer.localChange).Path) !=
+		len(p.Path) {
+		t.Errorf("Missing or incorrect local update during write: %v",
+			config.observer.localChange)
 	} else if ctx.Value(tCtxID) != config.observer.ctx.Value(tCtxID) {
 		t.Errorf("Wrong context value passed in local notify: %v",
 			config.observer.ctx.Value(tCtxID))
@@ -2623,7 +2628,7 @@ func TestKBFSOpsWriteOverMultipleBlocks(t *testing.T) {
 
 	// merge the unref cache to make it easy to check for changes
 	checkSyncOpInCache(t, ops, stripBP(fileNode.BlockPointer),
-		[]writeRange{writeRange{2, uint64(len(data))}})
+		[]WriteRange{WriteRange{2, uint64(len(data))}})
 	ops.mergeUnrefCacheLocked(p, rmd) // no need to lock in test
 	checkBlockCache(t, config, []BlockID{rootID, fileID, id1, id2},
 		map[BlockPointer]BranchName{
@@ -2674,9 +2679,10 @@ func TestKBFSOpsTruncateToZeroSuccess(t *testing.T) {
 	newRootBlock = ops.updateDirBlock(
 		Path{TopDir: id, Path: []PathNode{node}}, newRootBlock)
 
-	if len(config.observer.localUpdatePath.Path) != len(p.Path) {
-		t.Errorf("Missing or incorrect local update during truncate: %s",
-			config.observer.localUpdatePath)
+	if len(ops.nodeCache.PathFromNode(config.observer.localChange).Path) !=
+		len(p.Path) {
+		t.Errorf("Missing or incorrect local update during truncate: %v",
+			config.observer.localChange)
 	} else if ctx.Value(tCtxID) != config.observer.ctx.Value(tCtxID) {
 		t.Errorf("Wrong context value passed in local notify: %v",
 			config.observer.ctx.Value(tCtxID))
@@ -2693,7 +2699,7 @@ func TestKBFSOpsTruncateToZeroSuccess(t *testing.T) {
 			fileNode.BlockPointer: p.Branch,
 		})
 	checkSyncOpInCache(t, ops, stripBP(fileNode.BlockPointer),
-		[]writeRange{writeRange{0, 0}})
+		[]WriteRange{WriteRange{0, 0}})
 }
 
 func TestKBFSOpsTruncateSameSize(t *testing.T) {
@@ -2723,9 +2729,9 @@ func TestKBFSOpsTruncateSameSize(t *testing.T) {
 	data := fileBlock.Contents
 	if err := config.KBFSOps().Truncate(ctx, n, 10); err != nil {
 		t.Errorf("Got error on truncate: %v", err)
-	} else if len(config.observer.localUpdatePath.Path) != 0 {
-		t.Errorf("Unexpected local update during truncate: %s",
-			config.observer.localUpdatePath)
+	} else if config.observer.localChange != nil {
+		t.Errorf("Unexpected local update during truncate: %v",
+			config.observer.localChange)
 	} else if !bytesEqual(data, fileBlock.Contents) {
 		t.Errorf("Wrote bad contents: %v", data)
 	}
@@ -2767,9 +2773,10 @@ func TestKBFSOpsTruncateSmallerSuccess(t *testing.T) {
 	newFileBlock := getFileBlockFromCache(t, config, fileNode.BlockPointer,
 		p.Branch)
 
-	if len(config.observer.localUpdatePath.Path) != len(p.Path) {
-		t.Errorf("Missing or incorrect local update during truncate: %s",
-			config.observer.localUpdatePath)
+	if len(ops.nodeCache.PathFromNode(config.observer.localChange).Path) !=
+		len(p.Path) {
+		t.Errorf("Missing or incorrect local update during truncate: %v",
+			config.observer.localChange)
 	} else if ctx.Value(tCtxID) != config.observer.ctx.Value(tCtxID) {
 		t.Errorf("Wrong context value passed in local notify: %v",
 			config.observer.ctx.Value(tCtxID))
@@ -2781,7 +2788,7 @@ func TestKBFSOpsTruncateSmallerSuccess(t *testing.T) {
 			fileNode.BlockPointer: p.Branch,
 		})
 	checkSyncOpInCache(t, ops, stripBP(fileNode.BlockPointer),
-		[]writeRange{writeRange{5, 0}})
+		[]WriteRange{WriteRange{5, 0}})
 }
 
 func TestKBFSOpsTruncateShortensLastBlock(t *testing.T) {
@@ -2836,12 +2843,13 @@ func TestKBFSOpsTruncateShortensLastBlock(t *testing.T) {
 
 	// merge unref changes so we can easily check the block changes
 	checkSyncOpInCache(t, ops, stripBP(fileNode.BlockPointer),
-		[]writeRange{writeRange{7, 0}})
+		[]WriteRange{WriteRange{7, 0}})
 	ops.mergeUnrefCacheLocked(p, rmd) // no need to lock in test
 
-	if len(config.observer.localUpdatePath.Path) != len(p.Path) {
-		t.Errorf("Missing or incorrect local update during truncate: %s",
-			config.observer.localUpdatePath)
+	if len(ops.nodeCache.PathFromNode(config.observer.localChange).Path) !=
+		len(p.Path) {
+		t.Errorf("Missing or incorrect local update during truncate: %v",
+			config.observer.localChange)
 	} else if ctx.Value(tCtxID) != config.observer.ctx.Value(tCtxID) {
 		t.Errorf("Wrong context value passed in local notify: %v",
 			config.observer.ctx.Value(tCtxID))
@@ -2912,12 +2920,13 @@ func TestKBFSOpsTruncateRemovesABlock(t *testing.T) {
 
 	// merge unref changes so we can easily check the block changes
 	checkSyncOpInCache(t, ops, stripBP(fileNode.BlockPointer),
-		[]writeRange{writeRange{4, 0}})
+		[]WriteRange{WriteRange{4, 0}})
 	ops.mergeUnrefCacheLocked(p, rmd) // no need to lock in test
 
-	if len(config.observer.localUpdatePath.Path) != len(p.Path) {
-		t.Errorf("Missing or incorrect local update during truncate: %s",
-			config.observer.localUpdatePath)
+	if len(ops.nodeCache.PathFromNode(config.observer.localChange).Path) !=
+		len(p.Path) {
+		t.Errorf("Missing or incorrect local update during truncate: %v",
+			config.observer.localChange)
 	} else if ctx.Value(tCtxID) != config.observer.ctx.Value(tCtxID) {
 		t.Errorf("Wrong context value passed in local notify: %v",
 			config.observer.ctx.Value(tCtxID))
@@ -2977,9 +2986,10 @@ func TestKBFSOpsTruncateBiggerSuccess(t *testing.T) {
 	newFileBlock := getFileBlockFromCache(t, config, fileNode.BlockPointer,
 		p.Branch)
 
-	if len(config.observer.localUpdatePath.Path) != len(p.Path) {
-		t.Errorf("Missing or incorrect local update during truncate: %s",
-			config.observer.localUpdatePath)
+	if len(ops.nodeCache.PathFromNode(config.observer.localChange).Path) !=
+		len(p.Path) {
+		t.Errorf("Missing or incorrect local update during truncate: %v",
+			config.observer.localChange)
 	} else if ctx.Value(tCtxID) != config.observer.ctx.Value(tCtxID) {
 		t.Errorf("Wrong context value passed in local notify: %v",
 			config.observer.ctx.Value(tCtxID))
@@ -2993,7 +3003,7 @@ func TestKBFSOpsTruncateBiggerSuccess(t *testing.T) {
 	// A truncate past the end of the file actually translates into a
 	// write for the difference
 	checkSyncOpInCache(t, ops, stripBP(fileNode.BlockPointer),
-		[]writeRange{writeRange{5, 5}})
+		[]WriteRange{WriteRange{5, 5}})
 }
 
 func testSetExSuccess(t *testing.T, entryType EntryType, ex bool) {
@@ -3052,9 +3062,9 @@ func testSetExSuccess(t *testing.T, entryType EntryType, ex bool) {
 		t.Errorf("Got unexpected error on setex: %v", err)
 	}
 	newP := ops.nodeCache.PathFromNode(n)
-	if expectedChanges != len(config.observer.batchUpdatePaths) {
+	if expectedChanges != len(config.observer.batchChanges) {
 		t.Errorf("got changed=%d, expected %d",
-			len(config.observer.batchUpdatePaths), expectedChanges)
+			len(config.observer.batchChanges), expectedChanges)
 	} else {
 		if blocks != nil {
 			rootBlock = getDirBlockFromCache(
@@ -3339,7 +3349,7 @@ func TestSyncDirtySuccess(t *testing.T) {
 	}
 	// make sure the write is propagated
 	checkSyncOp(t, so, stripBP(aNode.BlockPointer),
-		[]writeRange{writeRange{0, 10}})
+		[]WriteRange{WriteRange{0, 10}})
 }
 
 func TestSyncCleanSuccess(t *testing.T) {

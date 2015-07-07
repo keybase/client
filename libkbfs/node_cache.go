@@ -112,6 +112,17 @@ func (ncs *nodeCacheStandard) GetOrCreate(
 	return entry.node, nil
 }
 
+// GetWithoutReference implements the NodeCache interface for nodeCacheStandard.
+func (ncs *nodeCacheStandard) GetWithoutReference(ptr BlockPointer) Node {
+	ncs.lock.RLock()
+	defer ncs.lock.RUnlock()
+	entry := ncs.nodes[ptr]
+	if entry == nil {
+		return nil
+	}
+	return entry.node
+}
+
 // UpdatePointer implements the NodeCache interface for nodeCacheStandard.
 func (ncs *nodeCacheStandard) UpdatePointer(
 	oldPtr BlockPointer, newPtr BlockPointer) {

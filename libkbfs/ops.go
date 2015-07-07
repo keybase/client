@@ -144,9 +144,9 @@ func (ro *renameOp) SizeExceptUpdates() uint64 {
 	return uint64(len(ro.NewName) + len(ro.NewName))
 }
 
-// writeRange represents a file modification.  Len is 0 for a
+// WriteRange represents a file modification.  Len is 0 for a
 // truncate.
-type writeRange struct {
+type WriteRange struct {
 	Off uint64 `codec:"o"`
 	Len uint64 `codec:"l,omitempty"` // 0 for truncates
 }
@@ -155,7 +155,7 @@ type writeRange struct {
 type syncOp struct {
 	OpCommon
 	File   blockUpdate  `codec:"f"`
-	Writes []writeRange `codec:"w"`
+	Writes []WriteRange `codec:"w"`
 }
 
 func newSyncOp(oldFile BlockPointer) *syncOp {
@@ -170,11 +170,11 @@ func newSyncOp(oldFile BlockPointer) *syncOp {
 }
 
 func (so *syncOp) addWrite(off uint64, length uint64) {
-	so.Writes = append(so.Writes, writeRange{off, length})
+	so.Writes = append(so.Writes, WriteRange{off, length})
 }
 
 func (so *syncOp) addTruncate(off uint64) {
-	so.Writes = append(so.Writes, writeRange{off, 0})
+	so.Writes = append(so.Writes, WriteRange{off, 0})
 }
 
 func (so *syncOp) SizeExceptUpdates() uint64 {

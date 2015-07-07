@@ -20,6 +20,10 @@ type PrivateMetadata struct {
 	TLFPrivateKey TLFPrivateKey
 	// The block changes done as part of the update that created this MD
 	Changes BlockChanges
+	// When the above Changes field gets unembedded into its own
+	// block, we may want to temporarily keep around the old
+	// BlockChanges for easy reference.
+	cachedChanges BlockChanges
 }
 
 // Equals returns true if the given PrivateMetadata is equal to this
