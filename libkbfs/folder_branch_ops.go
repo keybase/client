@@ -162,16 +162,12 @@ func (fbo *FolderBranchOps) GetFavDirs(ctx context.Context) ([]DirID, error) {
 	return nil, fmt.Errorf("GetFavDirs is not supported by FolderBranchOps")
 }
 
-func (fbo *FolderBranchOps) checkDataVersion(dir Path) error {
-	dataVer := fbo.config.DataVersion()
-	if len(dir.Path) > 0 {
-		dataVer = dir.TailPointer().DataVer
+func (fbo *FolderBranchOps) checkDataVersion(p Path, ptr BlockPointer) error {
+	if ptr.DataVer < FirstValidDataVer {
+		return InvalidDataVersionError{ptr.DataVer}
 	}
-	if dataVer < FirstValidDataVer {
-		return InvalidDataVersionError{dataVer}
-	}
-	if dataVer > fbo.config.DataVersion() {
-		return NewDataVersionError{dir, dataVer}
+	if ptr.DataVer > fbo.config.DataVersion() {
+		return NewDataVersionError{p, ptr.DataVer}
 	}
 	return nil
 }
@@ -433,14 +429,6 @@ type makeNewBlock func() Block
 // blockLock should be taken for reading by the caller.
 func (fbo *FolderBranchOps) getBlockLocked(md *RootMetadata,
 	dir Path, newBlock makeNewBlock, rtype reqType) (Block, error) {
-	/**
-	* TODO: move to lookup
-		 	err := fbo.checkDataVersion(dir)
-			if err != nil {
-				return nil, err
-			}
-	*/
-
 	bcache := fbo.config.BlockCache()
 	if block, err := bcache.Get(dir.TailPointer(), dir.Branch); err == nil {
 		return block, nil
@@ -655,6 +643,11 @@ func (fbo *FolderBranchOps) Lookup(ctx context.Context, dir Node, name string) (
 	if de.Type == Sym {
 		node = nil
 	} else {
+		err = fbo.checkDataVersion(childPath, de.BlockPointer)
+		if err != nil {
+			return
+		}
+
 		node, err =
 			fbo.nodeCache.GetOrCreate(stripBP(de.BlockPointer), name, dir)
 	}

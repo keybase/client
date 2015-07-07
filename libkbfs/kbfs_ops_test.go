@@ -705,6 +705,44 @@ func TestKBFSOpsLookupNoSuchNameFail(t *testing.T) {
 	}
 }
 
+func TestKBFSOpsLookupNewDataVersionFail(t *testing.T) {
+	mockCtrl, config, ctx := kbfsOpsInit(t, false)
+	defer kbfsTestShutdown(mockCtrl, config)
+
+	u, id, h := makeID(t, config, false)
+	rmd := NewRootMetadataForTest(h, id)
+	ops := getOps(config, id)
+	ops.head = rmd
+	config.mockMdcache.EXPECT().Get(rmd.mdID).AnyTimes().Return(rmd, nil)
+
+	rootID := BlockID{42}
+	aID := BlockID{43}
+	bID := BlockID{44}
+	dirBlock := NewDirBlock().(*DirBlock)
+	bInfo := makeBIFromID(bID)
+	bInfo.DataVer = 10
+	dirBlock.Children["b"] = DirEntry{
+		BlockInfo: bInfo,
+		Type:      Dir,
+	}
+	node := PathNode{makeBP(rootID, rmd, config, u), ""}
+	aNode := PathNode{makeBP(aID, rmd, config, u), "a"}
+	bNode := PathNode{makeBP(bID, rmd, config, u), "b"}
+	p := Path{TopDir: id, Path: []PathNode{node, aNode}}
+	n := nodeFromPath(ops, p)
+
+	config.BlockCache().Put(aID, dirBlock)
+	expectedErr := &NewDataVersionError{
+		Path{TopDir: id, Path: []PathNode{node, aNode, bNode}}, bInfo.DataVer}
+
+	_, _, err := config.KBFSOps().Lookup(ctx, n, "b")
+	if err == nil {
+		t.Error("No expected error found on lookup")
+	} else if err.Error() != expectedErr.Error() {
+		t.Errorf("Unexpected error after bad lookup: %v", err)
+	}
+}
+
 func TestKBFSOpsStatSuccess(t *testing.T) {
 	mockCtrl, config, ctx := kbfsOpsInit(t, false)
 	defer kbfsTestShutdown(mockCtrl, config)
