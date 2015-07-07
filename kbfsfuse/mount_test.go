@@ -685,10 +685,7 @@ func TestRemoveDirNotEmpty(t *testing.T) {
 	}
 }
 
-func TestRemoveFileWhileOpenWriting_Desired(t *testing.T) {
-	// when this works, rename function and remove
-	// TestRemoveFileWhileOpenWriting_Current
-	t.Skip("Not implemented yet. https://github.com/keybase/kbfs/issues/81")
+func TestRemoveFileWhileOpenWriting(t *testing.T) {
 	config := libkbfs.MakeTestConfigOrBust(t, *BServerRemote, "jdoe")
 	mnt := makeFS(t, config)
 	defer mnt.Close()
@@ -713,7 +710,9 @@ func TestRemoveFileWhileOpenWriting_Desired(t *testing.T) {
 		t.Fatalf("error on close: %v", err)
 	}
 
-	checkDir(t, path.Join(mnt.Dir, "jdoe"), map[string]fileInfoCheck{})
+	checkDir(t, path.Join(mnt.Dir, "jdoe"), map[string]fileInfoCheck{
+		"public": nil,
+	})
 
 	if _, err := ioutil.ReadFile(p); !os.IsNotExist(err) {
 		t.Errorf("file still exists: %v", err)

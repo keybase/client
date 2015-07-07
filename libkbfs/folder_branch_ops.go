@@ -2225,6 +2225,13 @@ func (fbo *FolderBranchOps) syncLocked(ctx context.Context, file Path) error {
 		return err
 	}
 
+	// If the MD doesn't match the MD expected by the path, that
+	// implies we are using a cached path, which implies the node has
+	// been unlinked.  In that case, we can safely ignore this sync.
+	if stripBP(md.data.Dir.BlockPointer) != stripBP(file.Path[0].BlockPointer) {
+		return nil
+	}
+
 	doUnlock := true
 	fbo.blockLock.RLock()
 	defer func() {
