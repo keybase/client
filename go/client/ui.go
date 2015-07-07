@@ -266,9 +266,6 @@ func TrackDiffToColoredString(t keybase1.TrackDiff) string {
 	return s
 }
 
-func (ui BaseIdentifyUI) TrackDiffErrorToString(libkb.TrackDiffError) string {
-	return ColorString("red", "<error>")
-}
 func (ui BaseIdentifyUI) TrackDiffUpgradedToString(t libkb.TrackDiffUpgraded) string {
 	return ColorString("orange", "<Upgraded from "+t.GetPrev()+" to "+t.GetCurr()+">")
 }

@@ -139,26 +139,6 @@ type TrackDiff interface {
 	GetTrackDiffType() keybase1.TrackDiffType
 }
 
-type TrackDiffError struct {
-	err error
-}
-
-func (t TrackDiffError) BreaksTracking() bool {
-	return true
-}
-func (t TrackDiffError) ToDisplayString() string {
-	return "error"
-}
-func (t TrackDiffError) IsSameAsTracked() bool {
-	return false
-}
-func (t TrackDiffError) ToDisplayMarkup() *Markup {
-	return NewMarkup(t.ToDisplayString())
-}
-func (t TrackDiffError) GetTrackDiffType() keybase1.TrackDiffType {
-	return keybase1.TrackDiffType_ERROR
-}
-
 type TrackDiffUpgraded struct {
 	prev, curr string
 }
