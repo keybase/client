@@ -163,7 +163,7 @@ func (ncs *nodeCacheStandard) Move(
 }
 
 // Unlink implements the NodeCache interface for nodeCacheStandard.
-func (ncs *nodeCacheStandard) Unlink(ptr BlockPointer, oldPath Path) {
+func (ncs *nodeCacheStandard) Unlink(ptr BlockPointer, oldPath path) {
 	ncs.lock.Lock()
 	defer ncs.lock.Unlock()
 	entry, ok := ncs.nodes[ptr]
@@ -183,7 +183,7 @@ func (ncs *nodeCacheStandard) Unlink(ptr BlockPointer, oldPath Path) {
 }
 
 // PathFromNode implements the NodeCache interface for nodeCacheStandard.
-func (ncs *nodeCacheStandard) PathFromNode(node Node) (p Path) {
+func (ncs *nodeCacheStandard) PathFromNode(node Node) (p path) {
 	ncs.lock.RLock()
 	defer ncs.lock.RUnlock()
 
@@ -191,37 +191,37 @@ func (ncs *nodeCacheStandard) PathFromNode(node Node) (p Path) {
 	for currNode != nil {
 		ns, ok := currNode.(*nodeStandard)
 		if !ok {
-			p.Path = nil
+			p.path = nil
 			return
 		}
 
-		if ns.parent == nil && len(ns.cachedPath.Path) > 0 {
+		if ns.parent == nil && len(ns.cachedPath.path) > 0 {
 			// The node was unlinked, but is still in use, so use its
 			// cached path.  The path is already reversed, so append
 			// it backwards one-by-one to the existing path.  If this
 			// is the first node, we can just optimize by returning
 			// the complete cached path.
-			if len(p.Path) == 0 {
+			if len(p.path) == 0 {
 				return ns.cachedPath
 			}
-			for i := len(ns.cachedPath.Path) - 1; i >= 0; i-- {
-				p.Path = append(p.Path, ns.cachedPath.Path[i])
+			for i := len(ns.cachedPath.path) - 1; i >= 0; i-- {
+				p.path = append(p.path, ns.cachedPath.path[i])
 			}
 			break
 		}
 
-		p.Path = append(p.Path, *ns.pathNode)
+		p.path = append(p.path, *ns.pathNode)
 		currNode = ns.parent
 	}
 
 	// need to reverse the path nodes
-	for i := len(p.Path)/2 - 1; i >= 0; i-- {
-		opp := len(p.Path) - 1 - i
-		p.Path[i], p.Path[opp] = p.Path[opp], p.Path[i]
+	for i := len(p.path)/2 - 1; i >= 0; i-- {
+		opp := len(p.path) - 1 - i
+		p.path[i], p.path[opp] = p.path[opp], p.path[i]
 	}
 
 	// TODO: would it make any sense to cache the constructed path?
-	p.TopDir = ncs.id
-	p.Branch = ncs.branch
+	p.topDir = ncs.id
+	p.branch = ncs.branch
 	return
 }

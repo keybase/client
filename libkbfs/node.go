@@ -3,11 +3,11 @@ package libkbfs
 // NodeStandard implements the Node interface using a very simple data
 // structure that tracks its own PathNode and parent.
 type nodeStandard struct {
-	pathNode *PathNode
+	pathNode *pathNode
 	parent   Node
 	cache    *nodeCacheStandard
 	// used only when parent is nil (the node has been unlinked)
-	cachedPath Path
+	cachedPath path
 }
 
 var _ Node = (*nodeStandard)(nil)
@@ -15,7 +15,7 @@ var _ Node = (*nodeStandard)(nil)
 func newNodeStandard(ptr BlockPointer, name string, parent Node,
 	cache *nodeCacheStandard) *nodeStandard {
 	return &nodeStandard{
-		pathNode: &PathNode{
+		pathNode: &pathNode{
 			BlockPointer: ptr,
 			Name:         name,
 		},

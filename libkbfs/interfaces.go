@@ -721,7 +721,7 @@ type NodeCache interface {
 	// ignores the call when ptr is not cached.  The path is required
 	// because the caller may have made changes to the parent nodes
 	// already that shouldn't be reflected in the cached path.
-	Unlink(ptr BlockPointer, oldPath Path)
+	Unlink(ptr BlockPointer, oldPath path)
 	// PathFromNode creates the path up to a given Node.
-	PathFromNode(node Node) Path
+	PathFromNode(node Node) path
 }

@@ -1908,7 +1908,7 @@ func (_mr *_MockNodeCacheRecorder) Move(arg0, arg1, arg2 interface{}) *gomock.Ca
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "Move", arg0, arg1, arg2)
 }
 
-func (_m *MockNodeCache) Unlink(ptr BlockPointer, oldPath Path) {
+func (_m *MockNodeCache) Unlink(ptr BlockPointer, oldPath path) {
 	_m.ctrl.Call(_m, "Unlink", ptr, oldPath)
 }
 
@@ -1916,9 +1916,9 @@ func (_mr *_MockNodeCacheRecorder) Unlink(arg0, arg1 interface{}) *gomock.Call {
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "Unlink", arg0, arg1)
 }
 
-func (_m *MockNodeCache) PathFromNode(node Node) Path {
+func (_m *MockNodeCache) PathFromNode(node Node) path {
 	ret := _m.ctrl.Call(_m, "PathFromNode", node)
-	ret0, _ := ret[0].(Path)
+	ret0, _ := ret[0].(path)
 	return ret0
 }
 

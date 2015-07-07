@@ -4,7 +4,7 @@ import "testing"
 
 func setupNodeCache(t *testing.T, id DirID, branch BranchName, flat bool) (
 	ncs *nodeCacheStandard, parentNode Node, childNode1 Node, childNode2 Node,
-	childPath1 []PathNode, childPath2 []PathNode) {
+	childPath1 []pathNode, childPath2 []pathNode) {
 	ncs = newNodeCacheStandard(id, branch)
 
 	parentPtr := BlockPointer{ID: BlockID{0}}
@@ -32,38 +32,38 @@ func setupNodeCache(t *testing.T, id DirID, branch BranchName, flat bool) (
 		t.Errorf("Couldn't create second child node: %v", err)
 	}
 
-	childPath1 = []PathNode{
-		PathNode{
+	childPath1 = []pathNode{
+		pathNode{
 			BlockPointer: parentPtr,
 			Name:         "",
 		},
-		PathNode{
+		pathNode{
 			BlockPointer: childPtr1,
 			Name:         "child",
 		},
 	}
 	if flat {
-		childPath2 = []PathNode{
-			PathNode{
+		childPath2 = []pathNode{
+			pathNode{
 				BlockPointer: parentPtr,
 				Name:         "",
 			},
-			PathNode{
+			pathNode{
 				BlockPointer: childPtr2,
 				Name:         "child2",
 			},
 		}
 	} else {
-		childPath2 = []PathNode{
-			PathNode{
+		childPath2 = []pathNode{
+			pathNode{
 				BlockPointer: parentPtr,
 				Name:         "",
 			},
-			PathNode{
+			pathNode{
 				BlockPointer: childPtr1,
 				Name:         "child",
 			},
-			PathNode{
+			pathNode{
 				BlockPointer: childPtr2,
 				Name:         "child2",
 			},
@@ -196,21 +196,21 @@ func TestNodeCacheMoveNoParent(t *testing.T) {
 }
 
 func checkNodeCachePath(t *testing.T, id DirID, branch BranchName,
-	path Path, expectedPath []PathNode) {
-	if len(path.Path) != len(expectedPath) {
-		t.Errorf("Bad path length: %v vs %v", len(path.Path), len(expectedPath))
+	path path, expectedPath []pathNode) {
+	if len(path.path) != len(expectedPath) {
+		t.Errorf("Bad path length: %v vs %v", len(path.path), len(expectedPath))
 	}
 
 	for i, n := range expectedPath {
-		if path.Path[i] != n {
-			t.Errorf("Bad node on path, index %d: %v vs %v", i, path.Path[i], n)
+		if path.path[i] != n {
+			t.Errorf("Bad node on path, index %d: %v vs %v", i, path.path[i], n)
 		}
 	}
-	if path.TopDir != id {
-		t.Errorf("Wrong top dir: %v vs %v", path.TopDir, id)
+	if path.topDir != id {
+		t.Errorf("Wrong top dir: %v vs %v", path.topDir, id)
 	}
-	if path.Branch != BranchName(branch) {
-		t.Errorf("Wrong branch: %s vs %s", path.Branch, branch)
+	if path.branch != BranchName(branch) {
+		t.Errorf("Wrong branch: %s vs %s", path.branch, branch)
 	}
 }
 

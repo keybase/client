@@ -158,24 +158,24 @@ func NewWriteAccessError(config Config, dir *DirHandle,
 // directory-specific operation on something that isn't a
 // subdirectory.
 type NotDirError struct {
-	Path Path
+	path path
 }
 
 // Error implements the error interface for NotDirError
 func (e NotDirError) Error() string {
 	return fmt.Sprintf("%s is not a directory (in folder %s)",
-		&e.Path, e.Path.TopDir)
+		&e.path, e.path.topDir)
 }
 
 // NotFileError indicates that the user tried to perform a
 // file-specific operation on something that isn't a file.
 type NotFileError struct {
-	Path Path
+	path path
 }
 
 // Error implements the error interface for NotFileError
 func (e NotFileError) Error() string {
-	return fmt.Sprintf("%s is not a file (folder %s)", e.Path, e.Path.TopDir)
+	return fmt.Sprintf("%s is not a file (folder %s)", e.path, e.path.topDir)
 }
 
 // BadDataError indicates that KBFS is storing corrupt data for a block.
@@ -280,7 +280,7 @@ func (e InvalidDataVersionError) Error() string {
 // been written using a new data version that our client doesn't
 // understand.
 type NewDataVersionError struct {
-	Path    Path
+	path    path
 	DataVer DataVer
 }
 
@@ -289,7 +289,7 @@ func (e NewDataVersionError) Error() string {
 	return fmt.Sprintf(
 		"The data at path %s is of a version (%d) that we can't read "+
 			"(in folder %s)",
-		e.Path, e.DataVer, e.Path.TopDir)
+		e.path, e.DataVer, e.path.topDir)
 }
 
 // InvalidKeyGenerationError indicates that an invalid key generation

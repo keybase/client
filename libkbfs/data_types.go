@@ -601,7 +601,7 @@ func (d *DirHandle) ToBytes(config Config) (out []byte) {
 
 // PathNode is a single node along an KBFS path, pointing to the top
 // block for that node of the path.
-type PathNode struct {
+type pathNode struct {
 	BlockPointer
 	Name string
 }
@@ -620,28 +620,28 @@ const (
 	MasterBranch BranchName = ""
 )
 
-// Path represents the full KBFS path to a particular location, so
+// path represents the full KBFS path to a particular location, so
 // that a flush can traverse backwards and fix up ids along the way.
-type Path struct {
-	TopDir DirID
-	Branch BranchName // master branch, by default
-	Path   []PathNode
+type path struct {
+	topDir DirID
+	branch BranchName // master branch, by default
+	path   []pathNode
 }
 
 // TailName returns the name of the final node in the Path.
-func (p Path) TailName() string {
-	return p.Path[len(p.Path)-1].Name
+func (p path) tailName() string {
+	return p.path[len(p.path)-1].Name
 }
 
 // TailPointer returns the BlockPointer of the final node in the Path.
-func (p Path) TailPointer() BlockPointer {
-	return p.Path[len(p.Path)-1].BlockPointer
+func (p path) tailPointer() BlockPointer {
+	return p.path[len(p.path)-1].BlockPointer
 }
 
 // String implements the fmt.Stringer interface for Path.
-func (p Path) String() string {
-	names := make([]string, 0, len(p.Path))
-	for _, node := range p.Path {
+func (p path) String() string {
+	names := make([]string, 0, len(p.path))
+	for _, node := range p.path {
 		names = append(names, node.Name)
 	}
 	return strings.Join(names, "/")
@@ -649,32 +649,32 @@ func (p Path) String() string {
 
 // ParentPath returns a new Path representing the parent subdirectory
 // of this Path.  Should not be called with a path of length 1.
-func (p Path) ParentPath() *Path {
-	return &Path{TopDir: p.TopDir, Path: p.Path[:len(p.Path)-1]}
+func (p path) parentPath() *path {
+	return &path{topDir: p.topDir, path: p.path[:len(p.path)-1]}
 }
 
 // ChildPathNoPtr returns a new Path with the addition of a new entry
 // with the given name.  That final PathNode will have no BlockPointer.
-func (p Path) ChildPathNoPtr(name string) *Path {
-	child := &Path{
-		TopDir: p.TopDir,
-		Branch: p.Branch,
-		Path:   make([]PathNode, len(p.Path), len(p.Path)+1),
+func (p path) ChildPathNoPtr(name string) *path {
+	child := &path{
+		topDir: p.topDir,
+		branch: p.branch,
+		path:   make([]pathNode, len(p.path), len(p.path)+1),
 	}
-	copy(child.Path, p.Path)
-	child.Path = append(child.Path, PathNode{Name: name})
+	copy(child.path, p.path)
+	child.path = append(child.path, pathNode{Name: name})
 	return child
 }
 
 // HasPublic returns whether or not this is a top-level folder that
 // should have a "public" subdirectory.
-func (p Path) HasPublic() bool {
+func (p path) hasPublic() bool {
 	// This directory has a corresponding public subdirectory if the
 	// path has only one node and the top-level directory is not
 	// already public TODO: Ideally, we'd also check if there are no
 	// explicit readers, but for now we expect the caller to check
 	// that.
-	return len(p.Path) == 1 && !p.TopDir.IsPublic()
+	return len(p.path) == 1 && !p.topDir.IsPublic()
 }
 
 // DirKeyBundle is a bundle of all the keys for a directory
@@ -864,7 +864,7 @@ type CommonBlock struct {
 	// is this block so big it requires indirect pointers?
 	IsInd bool
 	// these two fields needed to randomize the hash key for unencrypted files
-	Path    string `codec:",omitempty"`
+	path    string `codec:",omitempty"`
 	BlockNo uint32 `codec:",omitempty"`
 	// XXX: just used for randomization until we have encryption
 	Seed int64
