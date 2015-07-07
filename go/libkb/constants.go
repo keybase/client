@@ -43,7 +43,7 @@ const (
 	UserCacheSize        = 0x1000
 	PGPFingerprintHexLen = 40
 
-	ProofCacheSize      = 0x10000
+	ProofCacheSize      = 0x1000
 	ProofCacheLongDur   = 6 * time.Hour
 	ProofCacheMediumDur = 30 * time.Minute
 	ProofCacheShortDur  = 1 * time.Minute
