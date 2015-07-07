@@ -37,7 +37,9 @@ func (cr CheckResult) IsFresh() bool {
 	if cr.Status == nil {
 		interval = G.Env.GetProofCacheLongDur()
 	} else if ProofErrorIsSoft(cr.Status) {
-		interval = G.Env.GetProofCacheShortDur()
+		// don't use cache results for "soft" errors (500s, timeouts)
+		// see issue #140
+		return false
 	} else {
 		interval = G.Env.GetProofCacheMediumDur()
 	}
