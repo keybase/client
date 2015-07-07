@@ -586,8 +586,9 @@ func TestTrackProofRooterChange(t *testing.T) {
 }
 
 // TODO:
-// get a test that will generate TrackSTatus_NEW_FAIL_PROOFS
+// * get a test that will generate TrackStatus_NEW_FAIL_PROOFS
 //   (this requires two services, one with an ok proof, one with a
 //   failing proof)
-// test upgrade from http to https, or a secure rooter post vs.
-// regular rooter post to get TrackDiffUpgraded.
+// * test upgrade from http to https, or a secure rooter post vs.
+//   regular rooter post to get TrackDiffUpgraded.
+// * a test that will generate TrackDiffRemoteChanged
