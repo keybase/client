@@ -340,7 +340,10 @@ func TestTrackProofRooterRemove(t *testing.T) {
 	}
 }
 
-// test tracking a user who revokes a proof
+// test tracking a user who revokes a proof.  Revoking a proof
+// removes it from the sig chain, so this tests the
+// libkb.IdentifyState.ComputeRevokedProofs() function, and how
+// libkb.IdentifyOutcome.TrackStatus() interprets the result.
 func TestTrackProofRooterRevoke(t *testing.T) {
 	tc := SetupEngineTest(t, "track")
 	defer tc.Cleanup()
@@ -389,6 +392,99 @@ func TestTrackProofRooterRevoke(t *testing.T) {
 
 	// track again and check for fix
 	err = checkTrack(tc, trackUser, proofUser.Username, nil, keybase1.TrackStatus_UPDATE_OK)
+	if err != nil {
+		t.Fatal(err)
+	}
+}
+
+// proofUser makes a user@rooter proof, then a user2@rooter proof.
+// trackUser tracks proofUser.  Verify the tracking statement.
+func TestTrackProofRooterOther(t *testing.T) {
+	tc := SetupEngineTest(t, "track")
+	defer tc.Cleanup()
+
+	// create a user with a rooter proof
+	proofUser := CreateAndSignupFakeUser(tc, "proof")
+	_, _, err := proveRooter(tc.G, proofUser)
+	if err != nil {
+		t.Fatal(err)
+	}
+	Logout(tc)
+
+	// post a rooter proof as a different rooter user
+	proofUserOther := CreateAndSignupFakeUser(tc, "proof")
+	Logout(tc)
+	proofUser.LoginOrBust(tc)
+	_, _, err = proveRooterOther(tc.G, proofUser, proofUserOther.Username)
+	if err != nil {
+		t.Fatal(err)
+	}
+	Logout(tc)
+
+	// create a user to track the proofUser
+	trackUser := CreateAndSignupFakeUser(tc, "track")
+
+	rbl := sb{
+		social:     true,
+		id:         proofUserOther.Username + "@rooter",
+		proofState: keybase1.ProofState_OK,
+	}
+	err = checkTrack(tc, trackUser, proofUser.Username, []sb{rbl}, keybase1.TrackStatus_NEW_OK)
+	if err != nil {
+		t.Fatal(err)
+	}
+}
+
+// proofUser makes a user@rooter proof, trackUser tracks
+// proofUser.  proofUser makes a user2@rooter proof, trackUser
+// tracks proofUser again.  Test that the change is noticed.
+func TestTrackProofRooterChange(t *testing.T) {
+	tc := SetupEngineTest(t, "track")
+	defer tc.Cleanup()
+
+	// create a user with a rooter proof
+	proofUser := CreateAndSignupFakeUser(tc, "proof")
+	_, _, err := proveRooter(tc.G, proofUser)
+	if err != nil {
+		t.Fatal(err)
+	}
+	Logout(tc)
+
+	// create a user to track the proofUser
+	trackUser := CreateAndSignupFakeUser(tc, "track")
+
+	rbl := sb{
+		social:     true,
+		id:         proofUser.Username + "@rooter",
+		proofState: keybase1.ProofState_OK,
+	}
+	err = checkTrack(tc, trackUser, proofUser.Username, []sb{rbl}, keybase1.TrackStatus_NEW_OK)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	// post a rooter proof as a different rooter user
+	Logout(tc)
+	proofUserOther := CreateAndSignupFakeUser(tc, "proof")
+	Logout(tc)
+
+	proofUser.LoginOrBust(tc)
+	_, _, err = proveRooterOther(tc.G, proofUser, proofUserOther.Username)
+	if err != nil {
+		t.Fatal(err)
+	}
+	Logout(tc)
+
+	// track proofUser again and check new rooter proof with different account handled correctly
+	trackUser.LoginOrBust(tc)
+	rbl.id = proofUserOther.Username + "@rooter"
+	err = checkTrack(tc, trackUser, proofUser.Username, []sb{rbl}, keybase1.TrackStatus_UPDATE_BROKEN)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	// track again and check for fix
+	err = checkTrack(tc, trackUser, proofUser.Username, []sb{rbl}, keybase1.TrackStatus_UPDATE_OK)
 	if err != nil {
 		t.Fatal(err)
 	}

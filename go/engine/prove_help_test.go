@@ -150,3 +150,50 @@ func proveRooterRemove(g *libkb.GlobalContext, postID string) error {
 	_, err := g.API.Post(apiArg)
 	return err
 }
+
+func proveRooterOther(g *libkb.GlobalContext, fu *FakeUser, rooterUsername string) (*ProveUIMock, keybase1.SigID, error) {
+	arg := keybase1.StartProofArg{
+		Service:      "rooter",
+		Username:     rooterUsername,
+		Force:        false,
+		PromptPosted: true,
+	}
+
+	eng := NewProve(&arg, g)
+
+	hook := func(arg keybase1.OkToCheckArg) (bool, string, error) {
+		sigID := eng.sigID
+		if sigID.IsNil() {
+			return false, "", fmt.Errorf("empty sigID; can't make a post")
+		}
+		apiArg := libkb.APIArg{
+			Endpoint:    "rooter",
+			NeedSession: true,
+			Args: libkb.HTTPArgs{
+				"post":     libkb.S{Val: sigID.ToMediumID()},
+				"username": libkb.S{Val: rooterUsername},
+			},
+		}
+		res, err := g.API.Post(apiArg)
+		ok := err == nil
+		var postID string
+		if ok {
+			pid, err := res.Body.AtKey("post_id").GetString()
+			if err == nil {
+				postID = pid
+			}
+		}
+		return ok, postID, err
+	}
+
+	proveUI := &ProveUIMock{hook: hook}
+
+	ctx := Context{
+		LogUI:    g.UI.GetLogUI(),
+		SecretUI: fu.NewSecretUI(),
+		ProveUI:  proveUI,
+	}
+
+	err := RunEngine(eng, &ctx)
+	return proveUI, eng.sigID, err
+}
