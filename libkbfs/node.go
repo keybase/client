@@ -6,6 +6,8 @@ type nodeStandard struct {
 	pathNode *PathNode
 	parent   Node
 	cache    *nodeCacheStandard
+	// used only when parent is nil (the node has been unlinked)
+	cachedPath Path
 }
 
 var _ Node = (*nodeStandard)(nil)

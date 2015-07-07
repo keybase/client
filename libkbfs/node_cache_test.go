@@ -2,28 +2,83 @@ package libkbfs
 
 import "testing"
 
-// Tests for simple GetOrCreate successes (with and without a parent)
-func TestNodeCacheGetOrCreateSuccess(t *testing.T) {
-	ncs := newNodeCacheStandard(DirID{0}, "")
+func setupNodeCache(t *testing.T, id DirID, branch BranchName, flat bool) (
+	ncs *nodeCacheStandard, parentNode Node, childNode1 Node, childNode2 Node,
+	childPath1 []PathNode, childPath2 []PathNode) {
+	ncs = newNodeCacheStandard(id, branch)
 
 	parentPtr := BlockPointer{ID: BlockID{0}}
-	parentNode, err := ncs.GetOrCreate(parentPtr, "", nil)
+	var err error
+	parentNode, err = ncs.GetOrCreate(parentPtr, "", nil)
 	if err != nil {
 		t.Errorf("Couldn't create top-level parent node: %v", err)
 	}
 
 	// now create a child node for that parent
 	childPtr1 := BlockPointer{ID: BlockID{1}}
-	childNode1A, err := ncs.GetOrCreate(childPtr1, "child", parentNode)
+	childNode1, err = ncs.GetOrCreate(childPtr1, "child", parentNode)
 	if err != nil {
 		t.Errorf("Couldn't create child node: %v", err)
 	}
 
+	parent2 := childNode1
+	if flat {
+		parent2 = parentNode
+	}
+
 	childPtr2 := BlockPointer{ID: BlockID{2}}
-	_, err = ncs.GetOrCreate(childPtr2, "child2", parentNode)
+	childNode2, err = ncs.GetOrCreate(childPtr2, "child2", parent2)
 	if err != nil {
 		t.Errorf("Couldn't create second child node: %v", err)
 	}
+
+	childPath1 = []PathNode{
+		PathNode{
+			BlockPointer: parentPtr,
+			Name:         "",
+		},
+		PathNode{
+			BlockPointer: childPtr1,
+			Name:         "child",
+		},
+	}
+	if flat {
+		childPath2 = []PathNode{
+			PathNode{
+				BlockPointer: parentPtr,
+				Name:         "",
+			},
+			PathNode{
+				BlockPointer: childPtr2,
+				Name:         "child2",
+			},
+		}
+	} else {
+		childPath2 = []PathNode{
+			PathNode{
+				BlockPointer: parentPtr,
+				Name:         "",
+			},
+			PathNode{
+				BlockPointer: childPtr1,
+				Name:         "child",
+			},
+			PathNode{
+				BlockPointer: childPtr2,
+				Name:         "child2",
+			},
+		}
+	}
+	return
+}
+
+// Tests for simple GetOrCreate successes (with and without a parent)
+func TestNodeCacheGetOrCreateSuccess(t *testing.T) {
+	ncs, parentNode, childNode1A, _, path1, path2 :=
+		setupNodeCache(t, DirID{0}, "", true)
+	parentPtr := path1[0].BlockPointer
+	childPtr1 := path1[1].BlockPointer
+	childPtr2 := path2[1].BlockPointer
 
 	// make sure we get the same node back for the second call
 	childNode1B, err := ncs.GetOrCreate(childPtr1, "child", parentNode)
@@ -88,29 +143,14 @@ func TestNodeCacheUpdatePointer(t *testing.T) {
 
 // Tests that Move works as expected
 func TestNodeCacheMoveSuccess(t *testing.T) {
-	ncs := newNodeCacheStandard(DirID{0}, "")
-
-	parentPtr := BlockPointer{ID: BlockID{0}}
-	parentNode, err := ncs.GetOrCreate(parentPtr, "", nil)
-	if err != nil {
-		t.Errorf("Couldn't create top-level parent node: %v", err)
-	}
-
-	// now create a child node for that parent
-	childPtr1 := BlockPointer{ID: BlockID{1}}
-	childNode1, err := ncs.GetOrCreate(childPtr1, "child", parentNode)
-	if err != nil {
-		t.Errorf("Couldn't create child node: %v", err)
-	}
-
-	childPtr2 := BlockPointer{ID: BlockID{2}}
-	childNode2, err := ncs.GetOrCreate(childPtr2, "child2", parentNode)
-	if err != nil {
-		t.Errorf("Couldn't create second child node: %v", err)
-	}
+	ncs, _, childNode1, childNode2, path1, path2 :=
+		setupNodeCache(t, DirID{0}, "", true)
+	parentPtr := path1[0].BlockPointer
+	childPtr1 := path1[1].BlockPointer
+	childPtr2 := path2[1].BlockPointer
 
 	// now move child2 under child1
-	err = ncs.Move(childPtr2, childNode1, "child3")
+	err := ncs.Move(childPtr2, childNode1, "child3")
 	if err != nil {
 		t.Errorf("Couldn't update parent: %v", err)
 	}
@@ -139,79 +179,24 @@ func TestNodeCacheMoveSuccess(t *testing.T) {
 // Tests that a child can't be updated with an unknown parent (and
 // that forget() works)
 func TestNodeCacheMoveNoParent(t *testing.T) {
-	ncs := newNodeCacheStandard(DirID{0}, "")
-
-	parentPtr := BlockPointer{ID: BlockID{0}}
-	parentNode, err := ncs.GetOrCreate(parentPtr, "", nil)
-	if err != nil {
-		t.Errorf("Couldn't create top-level parent node: %v", err)
-	}
-
-	// now create a child node for that parent
-	childPtr1 := BlockPointer{ID: BlockID{1}}
-	childNode1, err := ncs.GetOrCreate(childPtr1, "child", parentNode)
-	if err != nil {
-		t.Errorf("Couldn't create child node: %v", err)
-	}
-
-	childPtr2 := BlockPointer{ID: BlockID{2}}
-	_, err = ncs.GetOrCreate(childPtr2, "child2", parentNode)
-	if err != nil {
-		t.Errorf("Couldn't create second child node: %v", err)
-	}
+	ncs, _, childNode1, _, path1, path2 :=
+		setupNodeCache(t, DirID{0}, "", true)
+	childPtr1 := path1[1].BlockPointer
+	childPtr2 := path2[1].BlockPointer
 
 	// get rid of child1
 	ncs.forget(childNode1)
 
 	// now move child2 under child1
-	err = ncs.Move(childPtr2, childNode1, "child3")
+	err := ncs.Move(childPtr2, childNode1, "child3")
 	expectedErr := ParentNodeNotFoundError{childPtr1}
 	if err != expectedErr {
 		t.Errorf("Got unexpected error when updating parent: %v", err)
 	}
 }
 
-// Tests that PathFromNode works correctly
-func TestNodeCachePathFromNode(t *testing.T) {
-	id := DirID{42}
-	branch := "testBranch"
-	ncs := newNodeCacheStandard(id, BranchName(branch))
-
-	parentPtr := BlockPointer{ID: BlockID{0}}
-	parentNode, err := ncs.GetOrCreate(parentPtr, "", nil)
-	if err != nil {
-		t.Errorf("Couldn't create top-level parent node: %v", err)
-	}
-
-	// now create a child node for that parent
-	childPtr1 := BlockPointer{ID: BlockID{1}}
-	childNode1, err := ncs.GetOrCreate(childPtr1, "child", parentNode)
-	if err != nil {
-		t.Errorf("Couldn't create child node: %v", err)
-	}
-
-	childPtr2 := BlockPointer{ID: BlockID{2}}
-	childNode2, err := ncs.GetOrCreate(childPtr2, "child2", childNode1)
-	if err != nil {
-		t.Errorf("Couldn't create second child node: %v", err)
-	}
-
-	path := ncs.PathFromNode(childNode2)
-	expectedPath := []PathNode{
-		PathNode{
-			BlockPointer: parentPtr,
-			Name:         "",
-		},
-		PathNode{
-			BlockPointer: childPtr1,
-			Name:         "child",
-		},
-		PathNode{
-			BlockPointer: childPtr2,
-			Name:         "child2",
-		},
-	}
-
+func checkNodeCachePath(t *testing.T, id DirID, branch BranchName,
+	path Path, expectedPath []PathNode) {
 	if len(path.Path) != len(expectedPath) {
 		t.Errorf("Bad path length: %v vs %v", len(path.Path), len(expectedPath))
 	}
@@ -227,4 +212,46 @@ func TestNodeCachePathFromNode(t *testing.T) {
 	if path.Branch != BranchName(branch) {
 		t.Errorf("Wrong branch: %s vs %s", path.Branch, branch)
 	}
+}
+
+// Tests that a child can be unlinked completely from the parent, and
+// still have a path
+func TestNodeCacheUnlink(t *testing.T) {
+	id := DirID{42}
+	branch := BranchName("testBranch")
+	ncs, _, _, childNode2, _, path2 :=
+		setupNodeCache(t, id, branch, false)
+	childPtr2 := path2[2].BlockPointer
+
+	// unlink child2
+	ncs.Unlink(childPtr2, ncs.PathFromNode(childNode2))
+
+	path := ncs.PathFromNode(childNode2)
+	checkNodeCachePath(t, id, branch, path, path2)
+}
+
+// Tests that a child can be unlinked completely from the parent, and
+// still have a path
+func TestNodeCacheUnlinkParent(t *testing.T) {
+	id := DirID{42}
+	branch := BranchName("testBranch")
+	ncs, _, childNode1, childNode2, _, path2 :=
+		setupNodeCache(t, id, branch, false)
+	childPtr1 := path2[1].BlockPointer
+
+	// unlink node 2's parent
+	ncs.Unlink(childPtr1, ncs.PathFromNode(childNode1))
+
+	path := ncs.PathFromNode(childNode2)
+	checkNodeCachePath(t, id, branch, path, path2)
+}
+
+// Tests that PathFromNode works correctly
+func TestNodeCachePathFromNode(t *testing.T) {
+	id := DirID{42}
+	branch := BranchName("testBranch")
+	ncs, _, _, childNode2, _, path2 :=
+		setupNodeCache(t, id, branch, false)
+	path := ncs.PathFromNode(childNode2)
+	checkNodeCachePath(t, id, branch, path, path2)
 }

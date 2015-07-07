@@ -700,7 +700,15 @@ type NodeCache interface {
 	// Move swaps the parent node for the corresponding Node, and
 	// updates the node's name.  NodeCache ignores the call when ptr
 	// is not cached.  Returns an error if newParent cannot be found.
+	// If newParent is nil, it treats the ptr's corresponding node as
+	// being unlinked from the old parent completely.
 	Move(ptr BlockPointer, newParent Node, newName string) error
+	// Unlink set the corresponding node's parent to nil and caches
+	// the provided path in case the node is still open. NodeCache
+	// ignores the call when ptr is not cached.  The path is required
+	// because the caller may have made changes to the parent nodes
+	// already that shouldn't be reflected in the cached path.
+	Unlink(ptr BlockPointer, oldPath Path)
 	// PathFromNode creates the path up to a given Node.
 	PathFromNode(node Node) Path
 }

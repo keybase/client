@@ -1263,15 +1263,15 @@ func (fbo *FolderBranchOps) removeEntryLocked(ctx context.Context,
 
 	md.AddOp(newRmOp(name, stripBP(dir.TailPointer())))
 	md.AddUnrefBlock(de.BlockInfo)
+	// construct a path for the child so we can unlink with it.
+	childPath := *dir.ChildPathNoPtr(name)
+	childPath.Path[len(childPath.Path)-1].BlockPointer = de.BlockPointer
+
 	// If this is an indirect block, we need to delete all of its
 	// children as well. (TODO: handle multiple levels of
 	// indirection.)  NOTE: non-empty directories can't be removed, so
 	// no need to check for indirect directory blocks here.
 	if de.Type == File || de.Type == Exec {
-		// construct a path for the child so we can check the file contents
-		childPath := *dir.ChildPathNoPtr(name)
-		childPath.Path[len(childPath.Path)-1].BlockPointer = de.BlockPointer
-
 		block, err := fbo.getBlockLocked(md, childPath, NewFileBlock, write)
 		if err != nil {
 			return NoSuchBlockError{de.ID}
@@ -1295,9 +1295,10 @@ func (fbo *FolderBranchOps) removeEntryLocked(ctx context.Context,
 		ctx, md, pblock, *dir.ParentPath(), dir.TailName(),
 		Dir, true, true, zeroPtr)
 	if err != nil {
-		fbo.nodeCache.Move(stripBP(de.BlockPointer), nil, "")
+		return err
 	}
-	return err
+	fbo.nodeCache.Unlink(stripBP(de.BlockPointer), childPath)
+	return nil
 }
 
 // RemoveDir implements the KBFSOps interface for FolderBranchOps

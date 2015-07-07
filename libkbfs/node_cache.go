@@ -137,19 +137,38 @@ func (ncs *nodeCacheStandard) Move(
 		return nil
 	}
 
+	err := ncs.newChildForParentLocked(newParent)
+	if err != nil {
+		return err
+	}
 	oldParent := entry.node.parent
 	if oldParent != nil {
 		ncs.forgetLocked(oldParent)
 	}
-	if newParent != nil {
-		err := ncs.newChildForParentLocked(newParent)
-		if err != nil {
-			return err
-		}
-	}
+
 	entry.node.parent = newParent
 	entry.node.pathNode.Name = newName
 	return nil
+}
+
+// Unlink implements the NodeCache interface for nodeCacheStandard.
+func (ncs *nodeCacheStandard) Unlink(ptr BlockPointer, oldPath Path) {
+	ncs.lock.Lock()
+	defer ncs.lock.Unlock()
+	entry, ok := ncs.nodes[ptr]
+	if !ok {
+		return
+	}
+
+	entry.node.cachedPath = oldPath
+	oldParent := entry.node.parent
+	if oldParent != nil {
+		ncs.forgetLocked(oldParent)
+	}
+
+	entry.node.parent = nil
+	entry.node.pathNode.Name = ""
+	return
 }
 
 // PathFromNode implements the NodeCache interface for nodeCacheStandard.
@@ -164,6 +183,22 @@ func (ncs *nodeCacheStandard) PathFromNode(node Node) (p Path) {
 			p.Path = nil
 			return
 		}
+
+		if ns.parent == nil && len(ns.cachedPath.Path) > 0 {
+			// The node was unlinked, but is still in use, so use its
+			// cached path.  The path is already reversed, so append
+			// it backwards one-by-one to the existing path.  If this
+			// is the first node, we can just optimize by returning
+			// the complete cached path.
+			if len(p.Path) == 0 {
+				return ns.cachedPath
+			}
+			for i := len(ns.cachedPath.Path) - 1; i >= 0; i-- {
+				p.Path = append(p.Path, ns.cachedPath.Path[i])
+			}
+			break
+		}
+
 		p.Path = append(p.Path, *ns.pathNode)
 		currNode = ns.parent
 	}

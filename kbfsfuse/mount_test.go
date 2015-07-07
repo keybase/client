@@ -720,60 +720,7 @@ func TestRemoveFileWhileOpenWriting_Desired(t *testing.T) {
 	}
 }
 
-func TestRemoveFileWhileOpenWriting_Current(t *testing.T) {
-	config := libkbfs.MakeTestConfigOrBust(t, *BServerRemote, "jdoe")
-	mnt := makeFS(t, config)
-	defer mnt.Close()
-
-	p := path.Join(mnt.Dir, "jdoe", "myfile")
-	f, err := os.Create(p)
-	if err != nil {
-		t.Fatalf("cannot create file: %v", err)
-	}
-	defer f.Close()
-
-	if err := os.Remove(p); err != nil {
-		t.Fatalf("cannot delete file: %v", err)
-	}
-
-	// this must not resurrect a deleted file
-	const input = "hello, world\n"
-	_, err = f.Write([]byte(input))
-	if err == nil {
-		t.Fatalf("expected an error from write")
-	}
-	perr, ok := err.(*os.PathError)
-	if !ok {
-		t.Fatalf("expected a PathError from write: %v", err)
-	}
-	if g, e := perr.Op, "write"; g != e {
-		t.Errorf("wrong PathError.Op: %q != %q", g, e)
-	}
-	if g, e := perr.Path, p; g != e {
-		t.Errorf("wrong PathError.Path: %q != %q", g, e)
-	}
-	// TODO want ESTALE or ENOENT, maybe?
-	if g, e := perr.Err, syscall.EIO; g != e {
-		t.Errorf("expected EIO: %T %v", perr.Err, perr.Err)
-	}
-
-	if err := f.Close(); err != nil {
-		t.Fatalf("error on close: %v", err)
-	}
-
-	checkDir(t, path.Join(mnt.Dir, "jdoe"), map[string]fileInfoCheck{
-		"public": nil,
-	})
-
-	if _, err := ioutil.ReadFile(p); !os.IsNotExist(err) {
-		t.Errorf("file still exists: %v", err)
-	}
-}
-
-func TestRemoveFileWhileOpenReading_Desired(t *testing.T) {
-	// when this works, rename function and remove
-	// TestRemoveFileWhileOpenWriting_Current
-	t.Skip("Not implemented yet. https://github.com/keybase/kbfs/issues/82")
+func TestRemoveFileWhileOpenReading(t *testing.T) {
 	config := libkbfs.MakeTestConfigOrBust(t, *BServerRemote, "jdoe")
 	mnt := makeFS(t, config)
 	defer mnt.Close()
@@ -800,61 +747,6 @@ func TestRemoveFileWhileOpenReading_Desired(t *testing.T) {
 	}
 	if g, e := string(buf), input; g != e {
 		t.Errorf("read wrong content: %q != %q", g, e)
-	}
-
-	if err := f.Close(); err != nil {
-		t.Fatalf("error on close: %v", err)
-	}
-
-	checkDir(t, path.Join(mnt.Dir, "jdoe"), map[string]fileInfoCheck{
-		"public": nil,
-	})
-
-	if _, err := ioutil.ReadFile(p); !os.IsNotExist(err) {
-		t.Errorf("file still exists: %v", err)
-	}
-}
-
-func TestRemoveFileWhileOpenReading_Current(t *testing.T) {
-	if runtime.GOOS == "darwin" {
-		t.Skip("on OS X, the relevant reads seems to be served from page cache, so we can't get this to trigger")
-	}
-	config := libkbfs.MakeTestConfigOrBust(t, *BServerRemote, "jdoe")
-	mnt := makeFS(t, config)
-	defer mnt.Close()
-
-	p := path.Join(mnt.Dir, "jdoe", "myfile")
-	const input = "hello, world\n"
-	if err := ioutil.WriteFile(p, []byte(input), 0644); err != nil {
-		t.Fatal(err)
-	}
-
-	f, err := os.Open(p)
-	if err != nil {
-		t.Fatalf("cannot open file: %v", err)
-	}
-	defer f.Close()
-
-	if err := os.Remove(p); err != nil {
-		t.Fatalf("cannot delete file: %v", err)
-	}
-
-	_, err = ioutil.ReadAll(f)
-	if err == nil {
-		t.Fatalf("expected an error from read")
-	}
-	perr, ok := err.(*os.PathError)
-	if !ok {
-		t.Fatalf("expected a PathError from read: %v", err)
-	}
-	if g, e := perr.Op, "read"; g != e {
-		t.Errorf("wrong PathError.Op: %q != %q", g, e)
-	}
-	if g, e := perr.Path, p; g != e {
-		t.Errorf("wrong PathError.Path: %q != %q", g, e)
-	}
-	if g, e := perr.Err, syscall.ESTALE; g != e {
-		t.Errorf("expected ESTALE: %T %v", perr.Err, perr.Err)
 	}
 
 	if err := f.Close(); err != nil {
