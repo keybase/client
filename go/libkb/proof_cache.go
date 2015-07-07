@@ -72,20 +72,31 @@ func NewCheckResult(jw *jsonw.Wrapper) (res *CheckResult, err error) {
 }
 
 type ProofCache struct {
-	lru *lru.Cache
+	capac int
+	lru   *lru.Cache
 	sync.RWMutex
 }
 
-func NewProofCache(capac int) (*ProofCache, error) {
-	lru, err := lru.New(capac)
-	if err != nil {
-		return nil, err
+func NewProofCache(capac int) *ProofCache {
+	return &ProofCache{capac: capac}
+}
+
+func (pc *ProofCache) setup() error {
+	if pc.lru != nil {
+		return nil
 	}
-	ret := &ProofCache{lru: lru}
-	return ret, nil
+	lru, err := lru.New(pc.capac)
+	if err != nil {
+		return err
+	}
+	pc.lru = lru
+	return nil
 }
 
 func (pc *ProofCache) memGet(sid keybase1.SigID) *CheckResult {
+	if err := pc.setup(); err != nil {
+		return nil
+	}
 	tmp, found := pc.lru.Get(sid)
 	if !found {
 		return nil
@@ -103,6 +114,9 @@ func (pc *ProofCache) memGet(sid keybase1.SigID) *CheckResult {
 }
 
 func (pc *ProofCache) memPut(sid keybase1.SigID, cr CheckResult) {
+	if err := pc.setup(); err != nil {
+		return
+	}
 	pc.lru.Add(sid, cr)
 }
 

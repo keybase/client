@@ -160,12 +160,7 @@ func (g *GlobalContext) ConfigureAPI() error {
 func (g *GlobalContext) ConfigureCaches() error {
 	g.ResolveCache = NewResolveCache()
 	g.IdentifyCache = NewIdentifyCache()
-
-	var err error
-	g.ProofCache, err = NewProofCache(g.Env.GetProofCacheSize())
-	if err != nil {
-		return err
-	}
+	g.ProofCache = NewProofCache(g.Env.GetProofCacheSize())
 
 	// We consider the local DB as a cache; it's caching our
 	// fetches from the server after all (and also our cryptographic
