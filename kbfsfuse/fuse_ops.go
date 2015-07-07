@@ -104,8 +104,12 @@ func (n *ErrorNode) Read(
 }
 
 func (n *FuseNode) getTopDir() libkbfs.DirID {
-	id, _ := n.fsNode.GetFolderBranch()
-	return id
+	if n.fsNode != nil {
+		id, _ := n.fsNode.GetFolderBranch()
+		return id
+	}
+	// used for the root directory
+	return libkbfs.DirID{0}
 }
 
 func (n *FuseNode) getChan() util.RWScheduler {
@@ -308,7 +312,6 @@ func (f *FuseOps) LookupInRootByName(rNode *FuseNode, name string) (
 		dirString := dirHandle.ToString(f.config)
 		if fNode, ok := f.topNodes[dirString]; ok {
 			node = rNode.Inode().NewChild(name, true, fNode)
-			f.addTopNodeLocked(name, fNode)
 		} else {
 			rootNode, rootDe, err :=
 				f.config.KBFSOps().GetOrCreateRootNodeForHandle(
@@ -344,7 +347,6 @@ func (f *FuseOps) LookupInRootByName(rNode *FuseNode, name string) (
 
 			node = rNode.Inode().NewChild(name, true, fNode)
 			if rootNode != nil {
-				f.addTopNodeLocked(name, fNode)
 				f.addTopNodeLocked(dirString, fNode)
 			}
 		}
