@@ -558,8 +558,7 @@ func TestRenameCrossFolder(t *testing.T) {
 	}
 }
 
-func TestWriteThenRenameDesired(t *testing.T) {
-	t.Skip("Broken; second write fails with I/O error")
+func TestWriteThenRename(t *testing.T) {
 	config := libkbfs.MakeTestConfigOrBust(t, *BServerRemote, "jdoe")
 	mnt := makeFS(t, config)
 	defer mnt.Close()
