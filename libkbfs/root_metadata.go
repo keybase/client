@@ -61,7 +61,7 @@ type RootMetadata struct {
 
 // GetKeyGeneration returns the current key generation for the current block.
 func (md *RootMetadata) GetKeyGeneration() int {
-	return len(rmd.Keys)
+	return len(md.Keys)
 }
 
 // NewRootMetadata constructs a new RootMetadata object with the given
