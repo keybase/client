@@ -167,7 +167,7 @@ type FakeIdentifyUI struct {
 	Proofs          map[string]string
 	User            *keybase1.User
 	Fapr            keybase1.FinishAndPromptRes
-	Keys            map[libkb.FOKIDMapKey]*keybase1.TrackDiff
+	Keys            map[libkb.PGPFingerprint]*keybase1.TrackDiff
 	DisplayKeyCalls int
 	Outcome         *keybase1.IdentifyOutcome
 }
@@ -192,17 +192,13 @@ func (ui *FakeIdentifyUI) FinishAndPrompt(outcome *keybase1.IdentifyOutcome) (re
 func (ui *FakeIdentifyUI) DisplayCryptocurrency(keybase1.Cryptocurrency) {
 }
 
-// func (ui *FakeIdentifyUI) DisplayKey(kid keybase1.FOKID, td *keybase1.TrackDiff) {
 func (ui *FakeIdentifyUI) DisplayKey(ik keybase1.IdentifyKey) {
 	if ui.Keys == nil {
-		ui.Keys = make(map[libkb.FOKIDMapKey]*keybase1.TrackDiff)
+		ui.Keys = make(map[libkb.PGPFingerprint]*keybase1.TrackDiff)
 	}
-	fok := libkb.FOKID{
-		Kid: ik.KID,
-		Fp:  libkb.ImportPGPFingerprintSlice(ik.PGPFingerprint),
-	}
+	fp := libkb.ImportPGPFingerprintSlice(ik.PGPFingerprint)
 
-	ui.Keys[fok.ToFirstMapKey()] = ik.TrackDiff
+	ui.Keys[*fp] = ik.TrackDiff
 	ui.DisplayKeyCalls++
 }
 func (ui *FakeIdentifyUI) ReportLastTrack(*keybase1.TrackSummary) {

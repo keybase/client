@@ -137,7 +137,7 @@ func armorKey(t *testing.T, tc libkb.TestContext, email string) (libkb.PGPFinger
 		t.Fatal(err)
 	}
 	fp := *bundle.GetFingerprintP()
-	kid := bundle.GetKid()
+	kid := bundle.GetKID()
 	return fp, kid, string(buf.Bytes())
 }
 

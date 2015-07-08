@@ -20,11 +20,6 @@
 @property NSArray *fields; /*of KBRStringKVPair*/
 @end
 
-@interface KBRFOKID : KBRObject
-@property NSData *pgpFingerprint;
-@property NSString *kid;
-@end
-
 @interface KBRText : KBRObject
 @property NSString *data;
 @property BOOL markup;

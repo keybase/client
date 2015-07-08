@@ -206,7 +206,7 @@ func (s *SignupEngine) genDetKeys(ctx *Context) error {
 		PPStream:    s.ppStream,
 		Me:          s.me,
 		SigningKey:  s.signingKey,
-		EldestKeyID: s.signingKey.GetKid(),
+		EldestKeyID: s.signingKey.GetKID(),
 	}
 	eng := NewDetKeyEngine(arg, s.G())
 	return RunEngine(eng, ctx)

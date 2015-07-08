@@ -119,14 +119,6 @@ func (l TrackLookup) GetTrackedPGPFingerprints() []PGPFingerprint {
 	return ret
 }
 
-func (l TrackLookup) GetTrackedPGPFOKIDs() []FOKID {
-	ret, err := l.link.GetTrackedPGPFOKIDs()
-	if err != nil {
-		G.Log.Warning("Error in lookup up tracked PGP FOKIDs: %s", err)
-	}
-	return ret
-}
-
 func (l TrackLookup) IsRemote() bool {
 	return l.link.IsRemote()
 }

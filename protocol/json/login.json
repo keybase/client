@@ -57,16 +57,6 @@
     "typedef" : "string"
   }, {
     "type" : "record",
-    "name" : "FOKID",
-    "fields" : [ {
-      "name" : "pgpFingerprint",
-      "type" : [ "null", "bytes" ]
-    }, {
-      "name" : "kid",
-      "type" : [ "null", "KID" ]
-    } ]
-  }, {
-    "type" : "record",
     "name" : "Text",
     "fields" : [ {
       "name" : "data",

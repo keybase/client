@@ -104,7 +104,7 @@ func (c *ChangePassphrase) runForcedUpdate(ctx *Context) (err error) {
 			Endpoint:    "passphrase/recover",
 			NeedSession: true,
 			Args: libkb.HTTPArgs{
-				"kid": encKey.GetKid(),
+				"kid": encKey.GetKID(),
 			},
 		})
 	if err != nil {
@@ -156,7 +156,7 @@ func (c *ChangePassphrase) runForcedUpdate(ctx *Context) (err error) {
 			return
 		}
 		args.Add("sig", libkb.S{Val: sig})
-		args.Add("signing_kid", sigKey.GetKid())
+		args.Add("signing_kid", sigKey.GetKID())
 
 		postArg := libkb.APIArg{
 			Endpoint:    "passphrase/sign",
@@ -264,7 +264,7 @@ func (c *ChangePassphrase) commonArgs(a *libkb.Account, oldClientHalf []byte) (*
 		if err != nil {
 			return nil, err
 		}
-		lksch[key.GetKid()] = ctext
+		lksch[key.GetKID()] = ctext
 	}
 	lkschJSON, err := json.Marshal(lksch)
 	if err != nil {

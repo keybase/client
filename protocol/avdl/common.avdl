@@ -29,11 +29,6 @@ protocol Common {
 	@typedef("string")
 	record KID {}
 
-	record FOKID {
-		union { null, bytes } pgpFingerprint;
-		union { null, KID } kid;
-	}
-
 	record Text {
 		string data;
 		boolean markup;

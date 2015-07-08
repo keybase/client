@@ -77,7 +77,6 @@ func (u *idLubaUI) FinishAndPrompt(*keybase1.IdentifyOutcome) (res keybase1.Fini
 	return
 }
 func (u *idLubaUI) DisplayCryptocurrency(keybase1.Cryptocurrency)          {}
-func (u *idLubaUI) DisplayKey(keybase1.FOKID, *keybase1.TrackDiff)         {}
 func (u *idLubaUI) ReportLastTrack(*keybase1.TrackSummary)                 {}
 func (u *idLubaUI) Start(string)                                           {}
 func (u *idLubaUI) LaunchNetworkChecks(*keybase1.Identity, *keybase1.User) {}

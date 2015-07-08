@@ -172,7 +172,7 @@ func ImportNaclDHKeyPairFromHex(s string) (ret NaclDHKeyPair, err error) {
 	return
 }
 
-func (k NaclDHKeyPublic) GetKid() keybase1.KID {
+func (k NaclDHKeyPublic) GetKID() keybase1.KID {
 	prefix := []byte{
 		byte(KeybaseKIDV1),
 		byte(KIDNaclDH),
@@ -195,7 +195,7 @@ func (k NaclSigningKeyPair) GetAlgoType() AlgoType {
 	return KIDNaclEddsa
 }
 
-func (k NaclSigningKeyPublic) GetKid() keybase1.KID {
+func (k NaclSigningKeyPublic) GetKID() keybase1.KID {
 	prefix := []byte{
 		byte(KeybaseKIDV1),
 		byte(KIDNaclEddsa),
@@ -206,16 +206,16 @@ func (k NaclSigningKeyPublic) GetKid() keybase1.KID {
 	return keybase1.KIDFromSlice(out)
 }
 
-func (k NaclSigningKeyPair) GetKid() (ret keybase1.KID) {
-	return k.Public.GetKid()
+func (k NaclSigningKeyPair) GetKID() (ret keybase1.KID) {
+	return k.Public.GetKID()
 }
 
 func (k NaclSigningKeyPair) ToShortIDString() string {
-	return k.Public.GetKid().ToShortIDString()
+	return k.Public.GetKID().ToShortIDString()
 }
 
 func (k NaclDHKeyPair) ToShortIDString() string {
-	return k.Public.GetKid().ToShortIDString()
+	return k.Public.GetKID().ToShortIDString()
 }
 
 func (k NaclSigningKeyPair) VerboseDescription() string {
@@ -229,8 +229,8 @@ func (k NaclSigningKeyPair) GetFingerprintP() *PGPFingerprint {
 	return nil
 }
 
-func (k NaclDHKeyPair) GetKid() keybase1.KID {
-	return k.Public.GetKid()
+func (k NaclDHKeyPair) GetKID() keybase1.KID {
+	return k.Public.GetKID()
 }
 
 func (k NaclSigningKeyPair) CheckSecretKey() error {
@@ -245,11 +245,11 @@ func (k NaclSigningKeyPair) HasSecretKey() bool {
 }
 
 func (k NaclSigningKeyPair) Encode() (string, error) {
-	return k.GetKid().String(), nil
+	return k.GetKID().String(), nil
 }
 
 func (k NaclDHKeyPair) Encode() (string, error) {
-	return k.GetKid().String(), nil
+	return k.GetKID().String(), nil
 }
 
 func (k NaclDHKeyPair) CheckSecretKey() error {
@@ -272,7 +272,7 @@ func (k NaclSigningKeyPair) Sign(msg []byte) (ret *NaclSigInfo, err error) {
 		return
 	}
 	ret = &NaclSigInfo{
-		Kid:      k.GetKid().ToBytes(),
+		Kid:      k.GetKID().ToBytes(),
 		Payload:  msg,
 		Sig:      *k.Private.Sign(msg),
 		SigType:  SigKbEddsa,
@@ -326,8 +326,8 @@ func (k NaclSigningKeyPair) VerifyStringAndExtract(sig string) (msg []byte, id k
 	}
 
 	nkid := keybase1.KIDFromSlice(naclSig.Kid)
-	if nkid.NotEqual(k.GetKid()) {
-		err = WrongKidError{nkid, k.GetKid()}
+	if nkid.NotEqual(k.GetKID()) {
+		err = WrongKidError{nkid, k.GetKID()}
 		return
 	}
 
@@ -411,7 +411,7 @@ func (s *NaclSigInfo) ArmoredEncode() (ret string, err error) {
 func (k NaclSigningKeyPair) ToSKB(gc *GlobalContext, t *triplesec.Cipher) (*SKB, error) {
 	ret := &SKB{}
 	ret.SetGlobalContext(gc)
-	ret.Pub = k.GetKid().ToBytes()
+	ret.Pub = k.GetKID().ToBytes()
 	ret.Type = KIDNaclEddsa
 	ret.Priv.Encryption = 0
 	ret.Priv.Data = (*k.Private)[:]
@@ -421,7 +421,7 @@ func (k NaclSigningKeyPair) ToSKB(gc *GlobalContext, t *triplesec.Cipher) (*SKB,
 func (k NaclDHKeyPair) ToSKB(gc *GlobalContext, t *triplesec.Cipher) (*SKB, error) {
 	ret := &SKB{}
 	ret.SetGlobalContext(gc)
-	ret.Pub = k.GetKid().ToBytes()
+	ret.Pub = k.GetKID().ToBytes()
 	ret.Type = KIDNaclDH
 	ret.Priv.Encryption = 0
 	ret.Priv.Data = (*k.Private)[:]
@@ -434,7 +434,7 @@ func (k NaclSigningKeyPair) ToLksSKB(lks *LKSec) (*SKB, error) {
 		return nil, err
 	}
 	ret := &SKB{Contextified: lks.Contextified}
-	ret.Pub = k.GetKid().ToBytes()
+	ret.Pub = k.GetKID().ToBytes()
 	ret.Type = KIDNaclEddsa
 	ret.Priv.Encryption = LKSecVersion
 	ret.Priv.Data = data
@@ -447,7 +447,7 @@ func (k NaclDHKeyPair) ToLksSKB(lks *LKSec) (*SKB, error) {
 		return nil, err
 	}
 	ret := &SKB{Contextified: lks.Contextified}
-	ret.Pub = k.GetKid().ToBytes()
+	ret.Pub = k.GetKID().ToBytes()
 	ret.Type = KIDNaclDH
 	ret.Priv.Encryption = LKSecVersion
 	ret.Priv.Data = data
@@ -598,8 +598,8 @@ func (k NaclDHKeyPair) Encrypt(msg []byte, sender *NaclDHKeyPair) (*NaclEncrypti
 		Ciphertext:     ctext,
 		EncryptionType: KIDNaclDH,
 		Nonce:          nonce[:],
-		Receiver:       k.GetKid().ToBytes(),
-		Sender:         sender.GetKid().ToBytes(),
+		Receiver:       k.GetKID().ToBytes(),
+		Sender:         sender.GetKID().ToBytes(),
 	}
 
 	return ret, nil
@@ -684,7 +684,7 @@ func (k NaclDHKeyPair) Decrypt(nei *NaclEncryptionInfo) (plaintext []byte, sende
 	}
 
 	rkid := keybase1.KIDFromSlice(nei.Receiver)
-	if k.GetKid().NotEqual(rkid) {
+	if k.GetKID().NotEqual(rkid) {
 		err = DecryptWrongReceiverError{}
 		return
 	}
@@ -694,6 +694,6 @@ func (k NaclDHKeyPair) Decrypt(nei *NaclEncryptionInfo) (plaintext []byte, sende
 		err = DecryptOpenError{}
 		return
 	}
-	sender = senderDH.GetKid()
+	sender = senderDH.GetKID()
 	return
 }

@@ -93,7 +93,7 @@ func (e *RevokeSigsEngine) Run(ctx *Context) error {
 	if err != nil {
 		return err
 	}
-	kid := sigKey.GetKid()
+	kid := sigKey.GetKID()
 	_, err = e.G().API.Post(libkb.APIArg{
 		Endpoint:    "sig/revoke",
 		NeedSession: true,

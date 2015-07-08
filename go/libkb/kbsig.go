@@ -35,10 +35,11 @@ func (u *User) ToTrackingStatementKey(errp *error) *jsonw.Wrapper {
 	if !u.HasActiveKey() {
 		*errp = fmt.Errorf("User %s doesn't have an active key", u.GetName())
 	} else {
-		fokid := u.GetEldestFOKID()
-		ret.SetKey("kid", jsonw.NewString(fokid.Kid.String()))
-		if fokid.Fp != nil {
-			ret.SetKey("key_fingerprint", jsonw.NewString(fokid.Fp.String()))
+		kid := u.GetEldestKID()
+		ret.SetKey("kid", jsonw.NewString(kid.String()))
+		ckf := u.GetComputedKeyFamily()
+		if fingerprint, exists := ckf.kf.kid2pgp[*kid]; exists {
+			ret.SetKey("key_fingerprint", jsonw.NewString(fingerprint.String()))
 		}
 	}
 	return ret
@@ -53,10 +54,11 @@ func (u *User) ToTrackingStatementPGPKeys(errp *error) *jsonw.Wrapper {
 	ret := jsonw.NewArray(len(keys))
 	for i, k := range keys {
 		kd := jsonw.NewDictionary()
-		fokid := GenericKeyToFOKID(k)
-		kd.SetKey("kid", jsonw.NewString(fokid.Kid.String()))
-		if fokid.Fp != nil {
-			kd.SetKey("key_fingerprint", jsonw.NewString(fokid.Fp.String()))
+		kid := k.GetKID()
+		fp := k.GetFingerprintP()
+		kd.SetKey("kid", jsonw.NewString(kid.String()))
+		if fp != nil {
+			kd.SetKey("key_fingerprint", jsonw.NewString(fp.String()))
 		}
 		ret.SetIndex(i, kd)
 	}
@@ -117,26 +119,24 @@ func (u *User) ToUntrackingStatement(w *jsonw.Wrapper) (err error) {
 	return
 }
 
-func (u *User) ToKeyStanza(signing FOKID, eldest *FOKID) (ret *jsonw.Wrapper, err error) {
+func (u *User) ToKeyStanza(signingKid keybase1.KID, signingFingerprint *PGPFingerprint, eldest *keybase1.KID) (ret *jsonw.Wrapper, err error) {
 	ret = jsonw.NewDictionary()
 	ret.SetKey("uid", UIDWrapper(u.id))
 	ret.SetKey("username", jsonw.NewString(u.name))
 	ret.SetKey("host", jsonw.NewString(CanonicalHost))
 
 	if eldest == nil {
-		eldest = u.GetEldestFOKID()
+		eldest = u.GetEldestKID()
 	}
 
-	signingKid := signing.Kid
-
-	if fp := signing.Fp; fp != nil {
-		ret.SetKey("fingerprint", jsonw.NewString(fp.String()))
-		ret.SetKey("key_id", jsonw.NewString(fp.ToKeyID()))
+	if signingFingerprint != nil {
+		ret.SetKey("fingerprint", jsonw.NewString(signingFingerprint.String()))
+		ret.SetKey("key_id", jsonw.NewString(signingFingerprint.ToKeyID()))
 	}
 
 	ret.SetKey("kid", jsonw.NewString(signingKid.String()))
 	if eldest != nil {
-		ret.SetKey("eldest_kid", jsonw.NewString(eldest.Kid.String()))
+		ret.SetKey("eldest_kid", jsonw.NewString(eldest.String()))
 	}
 
 	return
@@ -188,7 +188,11 @@ func remoteProofToTrackingStatement(s RemoteProofChainLink, base *jsonw.Wrapper)
 	return nil
 }
 
-func (u *User) ProofMetadata(ei int, signingKey FOKID, eldest *FOKID, ctime int64) (ret *jsonw.Wrapper, err error) {
+func (u *User) ProofMetadata(ei int, signingKey GenericKey, eldest *keybase1.KID, ctime int64) (ret *jsonw.Wrapper, err error) {
+	return u.ProofMetadataWithoutKey(ei, signingKey.GetKID(), signingKey.GetFingerprintP(), eldest, ctime)
+}
+
+func (u *User) ProofMetadataWithoutKey(ei int, signingKID keybase1.KID, signingFingerprint *PGPFingerprint, eldest *keybase1.KID, ctime int64) (ret *jsonw.Wrapper, err error) {
 
 	var seqno int
 	var prevS string
@@ -221,7 +225,7 @@ func (u *User) ProofMetadata(ei int, signingKey FOKID, eldest *FOKID, ctime int6
 	ret.SetKey("prev", prev)
 
 	body := jsonw.NewDictionary()
-	key, err = u.ToKeyStanza(signingKey, eldest)
+	key, err = u.ToKeyStanza(signingKID, signingFingerprint, eldest)
 	if err != nil {
 		ret = nil
 		return
@@ -238,7 +242,7 @@ func (u *User) ProofMetadata(ei int, signingKey FOKID, eldest *FOKID, ctime int6
 }
 
 func (u *User) TrackingProofFor(signingKey GenericKey, u2 *User, outcome *IdentifyOutcome) (ret *jsonw.Wrapper, err error) {
-	ret, err = u.ProofMetadata(0, GenericKeyToFOKID(signingKey), nil, 0)
+	ret, err = u.ProofMetadata(0, signingKey, nil, 0)
 	if err == nil {
 		err = u2.ToTrackingStatement(ret.AtKey("body"), outcome)
 	}
@@ -246,7 +250,7 @@ func (u *User) TrackingProofFor(signingKey GenericKey, u2 *User, outcome *Identi
 }
 
 func (u *User) UntrackingProofFor(signingKey GenericKey, u2 *User) (ret *jsonw.Wrapper, err error) {
-	ret, err = u.ProofMetadata(0, GenericKeyToFOKID(signingKey), nil, 0)
+	ret, err = u.ProofMetadata(0, signingKey, nil, 0)
 	if err == nil {
 		err = u2.ToUntrackingStatement(ret.AtKey("body"))
 	}
@@ -254,15 +258,15 @@ func (u *User) UntrackingProofFor(signingKey GenericKey, u2 *User) (ret *jsonw.W
 }
 
 func setDeviceOnBody(body *jsonw.Wrapper, key GenericKey, device Device) {
-	device.Kid = key.GetKid()
+	device.Kid = key.GetKID()
 	body.SetKey("device", device.Export())
 }
 
 func (u *User) KeyProof(arg Delegator) (ret *jsonw.Wrapper, pushType string, err error) {
-	ekfokid := arg.GetExistingKeyFOKID()
-	if ekfokid == nil {
-		fokid := GenericKeyToFOKID(arg.NewKey)
-		ret, err = u.eldestKeyProof(arg.NewKey, &fokid, arg.Device)
+	ekkid := arg.GetExistingKeyKID()
+	if ekkid == nil {
+		newKID := arg.NewKey.GetKID()
+		ret, err = u.eldestKeyProof(arg.NewKey, &newKID, arg.Device)
 		pushType = EldestType
 	} else {
 		if arg.Sibkey {
@@ -270,17 +274,17 @@ func (u *User) KeyProof(arg Delegator) (ret *jsonw.Wrapper, pushType string, err
 		} else {
 			pushType = SubkeyType
 		}
-		ret, err = u.delegateKeyProof(arg, *ekfokid, pushType)
+		ret, err = u.delegateKeyProof(arg, *ekkid, pushType)
 	}
 	return
 }
 
-func (u *User) eldestKeyProof(signingKey GenericKey, eldest *FOKID, device *Device) (ret *jsonw.Wrapper, err error) {
+func (u *User) eldestKeyProof(signingKey GenericKey, eldest *keybase1.KID, device *Device) (ret *jsonw.Wrapper, err error) {
 	return u.selfProof(signingKey, eldest, device, EldestType)
 }
 
-func (u *User) selfProof(signingKey GenericKey, eldest *FOKID, device *Device, typ string) (ret *jsonw.Wrapper, err error) {
-	ret, err = u.ProofMetadata(0, GenericKeyToFOKID(signingKey), eldest, 0)
+func (u *User) selfProof(signingKey GenericKey, eldest *keybase1.KID, device *Device, typ string) (ret *jsonw.Wrapper, err error) {
+	ret, err = u.ProofMetadata(0, signingKey, eldest, 0)
 	if err != nil {
 		return
 	}
@@ -316,7 +320,7 @@ func SignJSON(jw *jsonw.Wrapper, key GenericKey) (out string, id keybase1.SigID,
 }
 
 // revSig is optional.  Added for kex scenario.
-func keyToProofJSON(newkey GenericKey, typ string, signingKey FOKID, revSig string, u *User) (ret *jsonw.Wrapper, err error) {
+func keyToProofJSON(newkey GenericKey, typ string, signingKey keybase1.KID, revSig string, u *User) (ret *jsonw.Wrapper, err error) {
 	ret = jsonw.NewDictionary()
 
 	if typ == SibkeyType {
@@ -329,16 +333,16 @@ func keyToProofJSON(newkey GenericKey, typ string, signingKey FOKID, revSig stri
 
 	// For subkeys let's say who our parent is.  In this case it's the signing key,
 	// though that can change in the future.
-	if typ == SubkeyType && signingKey.Kid.Exists() {
-		ret.SetKey("parent_kid", signingKey.Kid.ToJsonw())
+	if typ == SubkeyType {
+		ret.SetKey("parent_kid", signingKey.ToJsonw())
 	}
 
-	ret.SetKey("kid", jsonw.NewString(newkey.GetKid().String()))
+	ret.SetKey("kid", jsonw.NewString(newkey.GetKID().String()))
 	return
 }
 
-func (u *User) delegateKeyProof(arg Delegator, signingkey FOKID, pushType string) (ret *jsonw.Wrapper, err error) {
-	ret, err = u.ProofMetadata(arg.Expire, signingkey, nil, arg.Ctime)
+func (u *User) delegateKeyProof(arg Delegator, signingkey keybase1.KID, pushType string) (ret *jsonw.Wrapper, err error) {
+	ret, err = u.ProofMetadataWithoutKey(arg.Expire, signingkey, nil, nil, arg.Ctime)
 	if err != nil {
 		return
 	}
@@ -364,7 +368,7 @@ func (u *User) delegateKeyProof(arg Delegator, signingkey FOKID, pushType string
 // to prove a log-in to the system.  If successful, the server will return with
 // a session token.
 func (u *User) AuthenticationProof(key GenericKey, session string, ei int) (ret *jsonw.Wrapper, err error) {
-	if ret, err = u.ProofMetadata(ei, GenericKeyToFOKID(key), nil, 0); err != nil {
+	if ret, err = u.ProofMetadata(ei, key, nil, 0); err != nil {
 		return
 	}
 	body := ret.AtKey("body")
@@ -380,7 +384,7 @@ func (u *User) AuthenticationProof(key GenericKey, session string, ei int) (ret 
 }
 
 func (u *User) RevokeKeysProof(key GenericKey, kidsToRevoke []keybase1.KID, deviceToDisable keybase1.DeviceID) (*jsonw.Wrapper, error) {
-	ret, err := u.ProofMetadata(0 /* ei */, GenericKeyToFOKID(key), nil, 0)
+	ret, err := u.ProofMetadata(0 /* ei */, key, nil, 0)
 	if err != nil {
 		return nil, err
 	}
@@ -405,7 +409,7 @@ func (u *User) RevokeKeysProof(key GenericKey, kidsToRevoke []keybase1.KID, devi
 }
 
 func (u *User) RevokeSigsProof(key GenericKey, sigIDsToRevoke []keybase1.SigID) (*jsonw.Wrapper, error) {
-	ret, err := u.ProofMetadata(0 /* ei */, GenericKeyToFOKID(key), nil, 0)
+	ret, err := u.ProofMetadata(0 /* ei */, key, nil, 0)
 	if err != nil {
 		return nil, err
 	}
@@ -423,7 +427,7 @@ func (u *User) RevokeSigsProof(key GenericKey, sigIDsToRevoke []keybase1.SigID) 
 }
 
 func (u *User) CryptocurrencySig(key GenericKey, address string, sigToRevoke keybase1.SigID) (*jsonw.Wrapper, error) {
-	ret, err := u.ProofMetadata(0 /* ei */, GenericKeyToFOKID(key), nil, 0)
+	ret, err := u.ProofMetadata(0 /* ei */, key, nil, 0)
 	if err != nil {
 		return nil, err
 	}
@@ -443,7 +447,7 @@ func (u *User) CryptocurrencySig(key GenericKey, address string, sigToRevoke key
 }
 
 func (u *User) UpdatePassphraseProof(key GenericKey, pwh string, ppGen int) (*jsonw.Wrapper, error) {
-	ret, err := u.ProofMetadata(0, GenericKeyToFOKID(key), nil, 0)
+	ret, err := u.ProofMetadata(0, key, nil, 0)
 	if err != nil {
 		return nil, err
 	}

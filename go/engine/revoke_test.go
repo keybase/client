@@ -105,7 +105,7 @@ func TestRevokeKey(t *testing.T) {
 		t.Fatal("Expected to find PGP key")
 	}
 
-	doRevokeKey(tc, u, (*pgpKey).GetKid().String())
+	doRevokeKey(tc, u, (*pgpKey).GetKID().String())
 
 	assertNumDevicesAndKeys(t, u, 2, 4)
 }

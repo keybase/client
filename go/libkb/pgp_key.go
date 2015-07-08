@@ -54,11 +54,6 @@ func (p PGPFingerprint) String() string {
 	return hex.EncodeToString(p[:])
 }
 
-// XXX jack please delete this when FOKID goes away
-func (p PGPFingerprint) ToFOKIDMapKey() FOKIDMapKey {
-	return FOKIDMapKey(p.String())
-}
-
 func (p PGPFingerprint) ToQuads() string {
 	x := []byte(strings.ToUpper(p.String()))
 	totlen := len(x)*5/4 - 1
@@ -102,7 +97,7 @@ func (k *PGPKeyBundle) StoreToLocalDb() error {
 		return err
 	}
 	val := jsonw.NewString(s)
-	G.Log.Debug("| Storing Key (fp=%s, kid=%s) to Local DB", k.GetFingerprint(), k.GetKid())
+	G.Log.Debug("| Storing Key (fp=%s, kid=%s) to Local DB", k.GetFingerprint(), k.GetKID())
 	return G.LocalDb.Put(DbKey{Typ: DBPGPKey, Key: k.GetFingerprint().String()}, []DbKey{}, val)
 }
 
@@ -370,7 +365,7 @@ func (k *PGPKeyBundle) CanSign() bool {
 	return k.PrivateKey != nil && !k.PrivateKey.Encrypted
 }
 
-func (k *PGPKeyBundle) GetKid() keybase1.KID {
+func (k *PGPKeyBundle) GetKID() keybase1.KID {
 
 	prefix := []byte{
 		byte(KeybaseKIDV1),
@@ -511,17 +506,6 @@ func (k PGPKeyBundle) VerifyString(sig string, msg []byte) (id keybase1.SigID, e
 		return
 	}
 	id = resID
-	return
-}
-
-func ExportAsFOKID(fp *PGPFingerprint, kid keybase1.KID) (ret keybase1.FOKID) {
-	if fp != nil {
-		b := (*fp)[:]
-		ret.PGPFingerprint = &b
-	}
-	if kid.Exists() {
-		ret.Kid = &kid
-	}
 	return
 }
 

@@ -137,7 +137,7 @@ func (k *KexSib) loopReceives(ctx *Context, m *kex.Meta, sec *kex.Secret) error 
 	m.Sender = k.deviceID
 	m.Receiver = k.devidY
 	k.kexStatus(ctx, "sending Hello to Y", keybase1.KexStatusCode_HELLO_SEND)
-	if err := k.server.Hello(m, m.Sender, pair.GetKid()); err != nil {
+	if err := k.server.Hello(m, m.Sender, pair.GetKID()); err != nil {
 		return err
 	}
 
@@ -168,9 +168,9 @@ func (k *KexSib) handleStart(ctx *Context, m *kex.Msg) error {
 }
 
 func (k *KexSib) verifyPleaseSign(jw *jsonw.Wrapper, newKID keybase1.KID) (err error) {
-	jw.AssertEqAtPath("body.key.kid", k.sigKey.GetKid().ToJsonw(), &err)
+	jw.AssertEqAtPath("body.key.kid", k.sigKey.GetKID().ToJsonw(), &err)
 	jw.AssertEqAtPath("body.key.uid", libkb.UIDWrapper(k.user.GetUID()), &err)
-	jw.AssertEqAtPath("body.key.eldest_kid", k.user.GetEldestFOKID().Kid.ToJsonw(), &err)
+	jw.AssertEqAtPath("body.key.eldest_kid", k.user.GetEldestKID().ToJsonw(), &err)
 	jw.AssertEqAtPath("body.key.username", jsonw.NewString(k.user.GetName()), &err)
 	jw.AssertEqAtPath("body.device.kid", newKID.ToJsonw(), &err)
 	jw.AssertEqAtPath("body.type", jsonw.NewString("sibkey"), &err)
@@ -232,7 +232,7 @@ func (k *KexSib) handlePleaseSign(ctx *Context, m *kex.Msg) error {
 		Me:           k.user,
 		Expire:       libkb.NaclEdDSAExpireIn,
 		PushType:     libkb.SibkeyType,
-		EldestKID:    k.user.GetEldestFOKID().Kid,
+		EldestKID:    *k.user.GetEldestKID(),
 		Contextified: libkb.NewContextified(k.G()),
 	}
 

@@ -27,8 +27,7 @@ type TypedChainLink interface {
 	GetCTime() time.Time
 	GetETime() time.Time
 	GetPGPFingerprint() *PGPFingerprint
-	GetKid() keybase1.KID
-	GetFOKID() FOKID
+	GetKID() keybase1.KID
 	IsInCurrentFamily(u *User) bool
 	GetUsername() string
 	GetUID() keybase1.UID
@@ -400,11 +399,22 @@ func (l *TrackChainLink) insertIntoTable(tab *IdentityTable) {
 	tab.tracks[l.whom] = append(tab.tracks[l.whom], l)
 }
 
-func (l *TrackChainLink) GetTrackedFOKID() (ret FOKID) {
+func (l *TrackChainLink) GetTrackedKID() *keybase1.KID {
 	jw := l.payloadJSON.AtPath("body.track.key")
-	ret.Fp, _ = GetPGPFingerprint(jw.AtKey("key_fingerprint"))
-	ret.Kid, _ = GetKID(jw.AtKey("kid"))
-	return
+	kid, err := GetKID(jw.AtKey("kid"))
+	if err == nil {
+		return &kid
+	}
+	return nil
+}
+
+func (l *TrackChainLink) GetTrackedFingerprint() (ret *PGPFingerprint) {
+	jw := l.payloadJSON.AtPath("body.track.key")
+	fp, err := GetPGPFingerprint(jw.AtKey("key_fingerprint"))
+	if err == nil {
+		return fp
+	}
+	return nil
 }
 
 func (l *TrackChainLink) GetTrackedPGPFingerprints() ([]PGPFingerprint, error) {
@@ -414,10 +424,10 @@ func (l *TrackChainLink) GetTrackedPGPFingerprints() ([]PGPFingerprint, error) {
 
 	var res []PGPFingerprint
 
-	fk := l.GetTrackedFOKID()
-	if fk.Fp != nil {
-		res = append(res, *fk.Fp)
-		set[*fk.Fp] = true
+	fp := l.GetTrackedFingerprint()
+	if fp != nil {
+		res = append(res, *fp)
+		set[*fp] = true
 	}
 
 	jw := l.payloadJSON.AtPath("body.track.pgp_keys")
@@ -436,43 +446,6 @@ func (l *TrackChainLink) GetTrackedPGPFingerprints() ([]PGPFingerprint, error) {
 		}
 		if fp != nil && !set[*fp] {
 			res = append(res, *fp)
-			set[*fp] = true
-		}
-	}
-	return res, nil
-}
-
-func (l *TrackChainLink) GetTrackedPGPFOKIDs() ([]FOKID, error) {
-	// presumably order is important, so we'll only use the map as a set
-	// to deduplicate keys.
-	set := make(map[PGPFingerprint]bool)
-
-	var res []FOKID
-
-	fk := l.GetTrackedFOKID()
-	if fk.Fp != nil {
-		res = append(res, fk)
-		set[*fk.Fp] = true
-	}
-
-	jw := l.payloadJSON.AtPath("body.track.pgp_keys")
-	if jw.IsNil() {
-		return res, nil
-	}
-
-	n, err := jw.Len()
-	if err != nil {
-		return nil, err
-	}
-	for i := 0; i < n; i++ {
-		fp, err := GetPGPFingerprint(jw.AtIndex(i).AtKey("key_fingerprint"))
-		if err != nil {
-			return nil, err
-		}
-		// it might not exist:
-		kid, _ := GetKID(jw.AtIndex(i).AtKey("kid"))
-		if fp != nil && !set[*fp] {
-			res = append(res, FOKID{Fp: fp, Kid: kid})
 			set[*fp] = true
 		}
 	}
@@ -880,7 +853,7 @@ type IdentityTable struct {
 	sigHints         *SigHints
 	cryptocurrency   []*CryptocurrencyChainLink
 	checkResult      *CheckResult
-	eldest           FOKID
+	eldest           keybase1.KID
 }
 
 func (idt *IdentityTable) GetActiveProofsFor(st ServiceType) (ret []RemoteProofChainLink) {
@@ -956,7 +929,7 @@ func NewTypedChainLink(cl *ChainLink) (ret TypedChainLink, w Warning) {
 	return
 }
 
-func NewIdentityTable(eldest FOKID, sc *SigChain, h *SigHints) (*IdentityTable, error) {
+func NewIdentityTable(eldest keybase1.KID, sc *SigChain, h *SigHints) (*IdentityTable, error) {
 	ret := &IdentityTable{
 		sigChain:         sc,
 		revocations:      make(map[keybase1.SigID]bool),
@@ -972,7 +945,7 @@ func NewIdentityTable(eldest FOKID, sc *SigChain, h *SigHints) (*IdentityTable, 
 
 func (idt *IdentityTable) populate() error {
 	G.Log.Debug("+ Populate ID Table")
-	links, err := idt.sigChain.LimitToEldestFOKID(idt.eldest)
+	links, err := idt.sigChain.LimitToEldestKID(idt.eldest)
 	if err != nil {
 		return err
 	}

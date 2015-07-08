@@ -31,7 +31,7 @@ func PostProof(arg PostProofArg) (*PostProofRes, error) {
 		"sig":             S{arg.Sig},
 		"is_remote_proof": B{true},
 		"supersede":       B{arg.Supersede},
-		"signing_kid":     S{arg.SigningKey.GetKid().String()},
+		"signing_kid":     S{arg.SigningKey.GetKID().String()},
 		"type":            S{arg.ProofType},
 	}
 	hargs.Add(arg.RemoteKey, S{arg.RemoteUsername})
@@ -76,7 +76,7 @@ func PostAuthProof(arg PostAuthProofArg) (*PostAuthProofRes, error) {
 	hargs := HTTPArgs{
 		"uid":         UIDArg(arg.uid),
 		"sig":         S{arg.sig},
-		"signing_kid": S{arg.key.GetKid().String()},
+		"signing_kid": S{arg.key.GetKID().String()},
 	}
 	res, err := G.API.Post(APIArg{
 		Endpoint:    "sig/post_auth",

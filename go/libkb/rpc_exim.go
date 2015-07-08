@@ -254,15 +254,6 @@ func ExportTrackDiff(d TrackDiff) (res *keybase1.TrackDiff) {
 
 //=============================================================================
 
-func ImportPGPFingerprint(f keybase1.FOKID) (ret *PGPFingerprint) {
-	if f.PGPFingerprint != nil && len(*f.PGPFingerprint) == PGPFingerprintLen {
-		var tmp PGPFingerprint
-		copy(tmp[:], (*f.PGPFingerprint)[:])
-		ret = &tmp
-	}
-	return
-}
-
 func ImportPGPFingerprintSlice(fp []byte) (ret *PGPFingerprint) {
 	if fp == nil {
 		return nil
@@ -274,25 +265,6 @@ func ImportPGPFingerprintSlice(fp []byte) (ret *PGPFingerprint) {
 	var tmp PGPFingerprint
 	copy(tmp[:], fp)
 	return &tmp
-}
-
-func (f *PGPFingerprint) ExportToFOKID() (ret keybase1.FOKID) {
-	slc := (*f)[:]
-	ret.PGPFingerprint = &slc
-	return
-}
-
-//=============================================================================
-
-func (f *FOKID) Export() (ret keybase1.FOKID) {
-	if f != nil && f.Fp != nil {
-		slc := (*f.Fp)[:]
-		ret.PGPFingerprint = &slc
-	}
-	if f != nil && f.Kid.Exists() {
-		ret.Kid = &f.Kid
-	}
-	return
 }
 
 //=============================================================================
@@ -537,7 +509,7 @@ func ExportPGPIdentity(identity *openpgp.Identity) keybase1.PGPIdentity {
 }
 
 func (bundle *PGPKeyBundle) Export() keybase1.PublicKey {
-	kid := bundle.GetKid()
+	kid := bundle.GetKID()
 	fingerprintStr := ""
 	identities := []keybase1.PGPIdentity{}
 	fingerprintStr = bundle.GetFingerprint().String()
@@ -554,7 +526,7 @@ func (bundle *PGPKeyBundle) Export() keybase1.PublicKey {
 func (ckf ComputedKeyFamily) Export() []keybase1.PublicKey {
 	exportedKeys := []keybase1.PublicKey{}
 	addKey := func(key GenericKey) {
-		kid := key.GetKid()
+		kid := key.GetKID()
 		fingerprintStr := ""
 		identities := []keybase1.PGPIdentity{}
 		if pgpBundle, isPGP := key.(*PGPKeyBundle); isPGP {
@@ -563,7 +535,7 @@ func (ckf ComputedKeyFamily) Export() []keybase1.PublicKey {
 				identities = append(identities, ExportPGPIdentity(identity))
 			}
 		}
-		cki := ckf.cki.Infos[KIDToFOKIDMapKey(kid)]
+		cki := ckf.cki.Infos[kid]
 		deviceID := ckf.cki.KIDToDeviceID[kid]
 		device := ckf.cki.Devices[deviceID]
 		deviceDescription := ""

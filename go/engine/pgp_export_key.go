@@ -96,7 +96,7 @@ func (e *PGPKeyExportEngine) queryMatch(k libkb.GenericKey) bool {
 	case fingerprint:
 		match = k.GetFingerprintP().Match(e.arg.Query, e.arg.ExactMatch)
 	case kid:
-		match = k.GetKid().Match(e.arg.Query, e.arg.ExactMatch)
+		match = k.GetKID().Match(e.arg.Query, e.arg.ExactMatch)
 	}
 	return match
 }

@@ -84,7 +84,7 @@ type ChainLinkUnpacked struct {
 	ctime, etime   int64
 	pgpFingerprint *PGPFingerprint
 	kid            keybase1.KID
-	eldestKid      keybase1.KID
+	eldestKID      keybase1.KID
 	sig            string
 	sigID          keybase1.SigID
 	uid            keybase1.UID
@@ -248,7 +248,7 @@ func (c *ChainLink) UnpackPayloadJSON(tmp *ChainLinkUnpacked) (err error) {
 		}
 	}
 	if jw := c.payloadJSON.AtPath("body.key.eldest_kid"); !jw.IsNil() {
-		if tmp.eldestKid, e2 = GetKID(jw); e2 != nil {
+		if tmp.eldestKID, e2 = GetKID(jw); e2 != nil {
 			err = e2
 		}
 	}
@@ -314,10 +314,18 @@ func (c *ChainLink) Unpack(trusted bool, selfUID keybase1.UID) (err error) {
 		return err
 	}
 
+	// Set the unpacked.kid member if it's not already set. If it is set, check
+	// that the value is consistent with what's in the outer JSON blob.
+	serverKID, err := GetKID(c.packed.AtKey("kid"))
+	if err != nil {
+		return err
+	}
 	if tmp.kid.IsNil() {
-		tmp.kid, err = GetKID(c.packed.AtKey("kid"))
-		if err != nil {
-			return err
+		tmp.kid = serverKID
+	} else if tmp.kid != serverKID {
+		return ChainLinkKIDMismatchError{
+			fmt.Sprintf("Payload KID (%s) doesn't match server KID (%s).",
+				tmp.kid, serverKID),
 		}
 	}
 
@@ -437,7 +445,7 @@ func (c *ChainLink) VerifySigWithKeyFamily(ckf ComputedKeyFamily) (cached bool, 
 		return cached, err
 	}
 
-	if key, _, err = ckf.FindActiveSibkeyAtTime(c.ToFOKID(), c.GetCTime()); err != nil {
+	if key, _, err = ckf.FindActiveSibkeyAtTime(c.GetKID(), c.GetCTime()); err != nil {
 		return
 	}
 
@@ -534,10 +542,12 @@ func (c *ChainLink) checkServerSignatureMetadata(kf *KeyFamily) error {
 	if err != nil {
 		return err
 	}
-	// Check the KID.
+	// Check the KID. This is actually redundant of a check we do in Unpack(),
+	// but I'm keeping it here in case we change the way we unpack in the
+	// future.  --jacko
 	if c.unpacked.kid.Exists() && c.unpacked.kid.NotEqual(serverKID) {
 		return ChainLinkKIDMismatchError{
-			fmt.Sprintf("chain link KID (%s) doesn't match server KID (%s)",
+			fmt.Sprintf("Payload KID (%s) doesn't match server KID (%s).",
 				c.unpacked.kid, serverKID),
 		}
 	}
@@ -550,7 +560,7 @@ func (c *ChainLink) checkServerSignatureMetadata(kf *KeyFamily) error {
 		}
 		if payloadFingerprintStr != serverFingerprintStr {
 			return ChainLinkFingerprintMismatchError{
-				fmt.Sprintf("Chain link fingerprint (%s) did not match server key (%s).",
+				fmt.Sprintf("Payload fingerprint (%s) did not match server key (%s).",
 					payloadFingerprintStr, serverFingerprintStr),
 			}
 		}
@@ -592,42 +602,21 @@ func (c *ChainLink) Store() (didStore bool, err error) {
 	return
 }
 
-// ToFOKID takes the current chain link and extracts the current (signing)
-// FOKID
-func (c *ChainLink) ToFOKID() (ret FOKID) {
-	ret = FOKID{
-		Fp:  c.unpacked.pgpFingerprint,
-		Kid: c.unpacked.kid,
-	}
-	return
-}
-
-// ToEldestFOKID takes the current chain link and extracts the eldest
-// FOKID from it. Legacy links don't specify it, so we'll have to infer
-func (c *ChainLink) ToEldestFOKID() (ret FOKID) {
-	if c.unpacked.eldestKid.Exists() {
-		ret = FOKID{Kid: c.unpacked.eldestKid}
-	} else {
-		ret = c.ToFOKID()
-	}
-	return
-}
-
-// MatchFOKID checks if the given ChainLink matches the given
-// FOKID using standard FOKID equality.
-func (c *ChainLink) MatchEldestFOKID(fokid FOKID) bool {
-	return c.ToEldestFOKID().Eq(fokid)
-}
-
 func (c *ChainLink) GetPGPFingerprint() *PGPFingerprint { return c.unpacked.pgpFingerprint }
-func (c *ChainLink) GetKid() keybase1.KID               { return c.unpacked.kid }
-
-func (c *ChainLink) GetFOKID() FOKID {
-	return FOKID{Kid: c.GetKid(), Fp: c.GetPGPFingerprint()}
-}
+func (c *ChainLink) GetKID() keybase1.KID               { return c.unpacked.kid }
 
 func (c *ChainLink) MatchFingerprint(fp PGPFingerprint) bool {
 	return c.unpacked.pgpFingerprint != nil && fp.Eq(*c.unpacked.pgpFingerprint)
+}
+
+func (c *ChainLink) ToEldestKID() keybase1.KID {
+	if !c.unpacked.eldestKID.IsNil() {
+		return c.unpacked.eldestKID
+	}
+	// For links that don't explicitly specify an eldest KID, it's implied
+	// that we're starting a new subchain, so the signing KID is the
+	// eldest.
+	return c.GetKID()
 }
 
 // ToLinkSummary converts a ChainLink into a MerkleTriple object.
@@ -642,11 +631,11 @@ func (c ChainLink) ToMerkleTriple() *MerkleTriple {
 // IsInCurrentFamily checks to see if the given chainlink
 // was signed by a key in the current family.
 func (c *ChainLink) IsInCurrentFamily(u *User) bool {
-	fokid := u.GetEldestFOKID()
-	if fokid == nil {
+	eldest := u.GetEldestKID()
+	if eldest == nil {
 		return false
 	}
-	return c.MatchEldestFOKID(*fokid)
+	return *eldest == c.ToEldestKID()
 }
 
 //=========================================================================

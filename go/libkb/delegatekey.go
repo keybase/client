@@ -19,7 +19,7 @@ type Delegator struct {
 	// Set these fields
 	NewKey            GenericKey
 	ExistingKey       GenericKey
-	ExistingFOKID     *FOKID
+	ExistingKID       *keybase1.KID
 	EldestKID         keybase1.KID
 	Me                *User
 	Sibkey            bool
@@ -39,22 +39,21 @@ type Delegator struct {
 	merkleTriple MerkleTriple
 }
 
-func (d Delegator) getSigningKID() keybase1.KID { return d.signingKey.GetKid() }
+func (d Delegator) getSigningKID() keybase1.KID { return d.signingKey.GetKID() }
 
 func (d Delegator) getExistingKID() (kid keybase1.KID) {
 	if d.ExistingKey == nil {
 		return
 	}
-	return d.ExistingKey.GetKid()
+	return d.ExistingKey.GetKID()
 }
 
-func (d Delegator) GetExistingKeyFOKID() (ret *FOKID) {
+func (d Delegator) GetExistingKeyKID() (ret *keybase1.KID) {
 	if d.ExistingKey != nil {
-		ret = GenericKeyToFOKID(d.ExistingKey).P()
-	} else {
-		ret = d.ExistingFOKID
+		kid := d.ExistingKey.GetKID()
+		return &kid
 	}
-	return ret
+	return d.ExistingKID
 }
 
 // Sometime our callers don't set Sibkey=true for eldest keys, so
@@ -83,14 +82,14 @@ func (d *Delegator) CheckArgs() (err error) {
 	}
 
 	if d.EldestKID.Exists() || d.isEldest {
-	} else if fokid := d.Me.GetEldestFOKID(); fokid == nil || fokid.Kid.IsNil() {
+	} else if kid := d.Me.GetEldestKID(); kid == nil {
 		err = NoEldestKeyError{}
 		return err
 	} else {
-		d.EldestKID = fokid.Kid
+		d.EldestKID = *kid
 	}
 
-	G.Log.Debug("| Picked key %s for signing", d.signingKey.GetKid())
+	G.Log.Debug("| Picked key %s for signing", d.signingKey.GetKID())
 	G.Log.Debug("- Delegator::checkArgs()")
 
 	return nil

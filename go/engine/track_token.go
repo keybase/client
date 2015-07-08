@@ -169,7 +169,7 @@ func (e *TrackToken) storeRemoteTrack(ctx *Context) (err error) {
 			"sig":          libkb.S{Val: sig},
 			"uid":          libkb.UIDArg(e.them.GetUID()),
 			"type":         libkb.S{Val: "track"},
-			"signing_kid":  e.signingKeyPub.GetKid(),
+			"signing_kid":  e.signingKeyPub.GetKID(),
 		},
 	})
 

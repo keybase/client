@@ -19,9 +19,6 @@
 + (NSValueTransformer *)fieldsJSONTransformer { return [MTLJSONAdapter arrayTransformerWithModelClass:KBRStringKVPair.class]; }
 @end
 
-@implementation KBRFOKID
-@end
-
 @implementation KBRText
 @end
 

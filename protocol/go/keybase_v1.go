@@ -61,11 +61,6 @@ type UID string
 type DeviceID string
 type SigID string
 type KID string
-type FOKID struct {
-	PGPFingerprint *[]byte `codec:"pgpFingerprint,omitempty" json:"pgpFingerprint,omitempty"`
-	Kid            *KID    `codec:"kid,omitempty" json:"kid,omitempty"`
-}
-
 type Text struct {
 	Data   string `codec:"data" json:"data"`
 	Markup bool   `codec:"markup" json:"markup"`

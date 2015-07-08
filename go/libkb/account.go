@@ -270,7 +270,7 @@ func (a *Account) LockedLocalSecretKey(ska SecretKeyArg) *SKB {
 		if key == nil {
 			a.G().Log.Debug("| Key for current device is nil")
 		} else {
-			kid := key.GetKid()
+			kid := key.GetKID()
 			a.G().Log.Debug("| Found KID for current device: %s", kid)
 			ret = keyring.LookupByKid(kid)
 			if ret != nil {

@@ -98,7 +98,7 @@ func (d *Locksmith) hasKeyFamily() bool {
 	if kf == nil {
 		return false
 	}
-	if d.arg.User.GetEldestFOKID() == nil {
+	if d.arg.User.GetEldestKID() == nil {
 		return false
 	}
 	return true
@@ -158,7 +158,7 @@ func (d *Locksmith) checkKeys(ctx *Context) error {
 		d.G().Log.Debug("| User didn't have a key family")
 		return d.addBasicKeys(ctx)
 	}
-	if d.user.GetEldestFOKID() == nil {
+	if d.user.GetEldestKID() == nil {
 		d.G().Log.Debug("| User didn't have an eldest key")
 		return d.addBasicKeys(ctx)
 	}
@@ -193,7 +193,7 @@ func (d *Locksmith) checkKeys(ctx *Context) error {
 
 		d.G().Log.Debug("| The user has a detkey")
 		// use their detkey to sign this device
-		err = d.addDeviceKeyWithSigner(ctx, dk, dk.GetKid())
+		err = d.addDeviceKeyWithSigner(ctx, dk, dk.GetKID())
 
 	} else if _, ok := err.(libkb.NotFoundError); ok {
 
@@ -225,7 +225,7 @@ func (d *Locksmith) addBasicKeys(ctx *Context) error {
 		return err
 	}
 
-	if err := d.addDetKey(ctx, d.signingKey.GetKid()); err != nil {
+	if err := d.addDetKey(ctx, d.signingKey.GetKID()); err != nil {
 		return err
 	}
 
@@ -433,15 +433,15 @@ func (d *Locksmith) deviceSignPGP(ctx *Context) error {
 	}
 
 	ctx.LogUI.Debug("selected pgp key: %s", selected.VerboseDescription())
-	ctx.LogUI.Debug("selected pgp key kid: %s", selected.GetKid())
+	ctx.LogUI.Debug("selected pgp key kid: %s", selected.GetKID())
 
 	var pk libkb.ServerPrivateKey
 	var ok bool
 	if ctx.LoginContext != nil {
-		pk, ok = ctx.LoginContext.SecretSyncer().FindPrivateKey(selected.GetKid().String())
+		pk, ok = ctx.LoginContext.SecretSyncer().FindPrivateKey(selected.GetKID().String())
 	} else {
 		err := d.G().LoginState().SecretSyncer(func(ss *libkb.SecretSyncer) {
-			pk, ok = ss.FindPrivateKey(selected.GetKid().String())
+			pk, ok = ss.FindPrivateKey(selected.GetKID().String())
 		}, "Locksmith - deviceSignPGP - FindPrivateKey")
 		if err != nil {
 			return err
@@ -483,16 +483,16 @@ func (d *Locksmith) deviceSignPGPNext(ctx *Context, pgpk libkb.GenericKey) error
 		return fmt.Errorf("pgp key can't sign")
 	}
 
-	eldest := d.user.GetEldestFOKID().Kid
+	eldest := d.user.GetEldestKID()
 	ctx.LogUI.Debug("eldest kid from user: %s", eldest)
-	if err := d.addDeviceKeyWithSigner(ctx, pgpk, eldest); err != nil {
+	if err := d.addDeviceKeyWithSigner(ctx, pgpk, *eldest); err != nil {
 		return err
 	}
 
 	dk, err := d.detkey(ctx)
 	if err != nil || dk == nil {
 		ctx.LogUI.Debug("no detkey found, adding one")
-		if err := d.addDetKey(ctx, eldest); err != nil {
+		if err := d.addDetKey(ctx, *eldest); err != nil {
 			return err
 		}
 	}

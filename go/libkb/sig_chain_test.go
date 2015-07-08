@@ -129,18 +129,9 @@ func doChainTest(t *testing.T, testCase TestCase) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	sigchain := SigChain{username: input.Username, uid: uid}
 	chainLen, err := inputBlob.AtKey("chain").Len()
 	if err != nil {
 		t.Fatal(err)
-	}
-	for i := 0; i < chainLen; i++ {
-		linkBlob := inputBlob.AtKey("chain").AtIndex(i)
-		link, err := ImportLinkFromServer(&sigchain, linkBlob, uid)
-		if err != nil {
-			t.Fatal(err)
-		}
-		sigchain.chainLinks = append(sigchain.chainLinks, link)
 	}
 
 	// Get the eldest key. This is assumed to be the first key in the list of
@@ -152,7 +143,7 @@ func doChainTest(t *testing.T, testCase TestCase) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		eldestKID = eldestKey.GetKid()
+		eldestKID = eldestKey.GetKID()
 	} else {
 		eldestKIDStr, found := input.LabelKids[testCase.Eldest]
 		if !found {
@@ -161,16 +152,26 @@ func doChainTest(t *testing.T, testCase TestCase) {
 		eldestKID = keybase1.KIDFromString(eldestKIDStr)
 	}
 
-	// Parse all the bundles.
+	// Parse all the key bundles.
 	keyFamily, err := createKeyFamily(input.Keys)
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	// Run the actual sigchain verification. This is most of the code that's
-	// actually being tested.
+	// Run the actual sigchain parsing and verification. This is most of the
+	// code that's actually being tested.
+	var sigchainErr error
 	ckf := ComputedKeyFamily{kf: keyFamily}
-	sigchainErr := sigchain.VerifyChain()
+	sigchain := SigChain{username: input.Username, uid: uid}
+	for i := 0; i < chainLen; i++ {
+		linkBlob := inputBlob.AtKey("chain").AtIndex(i)
+		link, err := ImportLinkFromServer(&sigchain, linkBlob, uid)
+		if err != nil {
+			sigchainErr = err
+			break
+		}
+		sigchain.chainLinks = append(sigchain.chainLinks, link)
+	}
 	if sigchainErr == nil {
 		_, sigchainErr = sigchain.VerifySigsAndComputeKeys(&eldestKID, &ckf)
 	}
@@ -211,7 +212,7 @@ func doChainTest(t *testing.T, testCase TestCase) {
 
 	// Check the expected results: total unrevoked links, sibkeys, and subkeys.
 	unrevokedCount := 0
-	idtable, err := NewIdentityTable(FOKID{Kid: eldestKID}, &sigchain, nil)
+	idtable, err := NewIdentityTable(eldestKID, &sigchain, nil)
 	if err != nil {
 		t.Fatal(err)
 	}

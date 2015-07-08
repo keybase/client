@@ -27,7 +27,7 @@ func (sp *SelfProvisioner) CheckKeyProvisioned() error {
 	}
 
 	err = G.LoginState().Keyring(func(ring *SKBKeyringFile) {
-		sp.secretKey = ring.LookupByKid(key.GetKid())
+		sp.secretKey = ring.LookupByKid(key.GetKID())
 	}, "SelfProvisioner - LookupByKid")
 	if err != nil {
 		return err
@@ -59,7 +59,7 @@ func (sp *SelfProvisioner) FindBestReprovisionKey() (ret GenericKey, err error) 
 				continue
 			} else if key, e2 := block.GetPubKey(); key == nil || e2 != nil {
 				continue
-			} else if key2, _, e2 := ckf.FindActiveSibkey(GenericKeyToFOKID(key)); key2 != nil && e2 == nil {
+			} else if key2, _, e2 := ckf.FindActiveSibkey(key.GetKID()); key2 != nil && e2 == nil {
 				ret = key
 				return
 			}
@@ -80,7 +80,7 @@ func (sp *SelfProvisioner) ReprovisionKey() (err error) {
 	if key, err = sp.FindBestReprovisionKey(); err != nil {
 		return
 	}
-	kid := key.GetKid()
+	kid := key.GetKID()
 	G.Log.Warning("Not setting per-device KID to %s; NOOP due to partial implementation", kid)
 	return
 }

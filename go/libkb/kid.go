@@ -14,11 +14,3 @@ func GetKID(w *jsonw.Wrapper) (kid keybase1.KID, err error) {
 	kid = keybase1.KIDFromString(s)
 	return
 }
-
-func KIDToFOKIDMapKey(k keybase1.KID) FOKIDMapKey {
-	return FOKIDMapKey(k)
-}
-
-func KIDToFOKID(k keybase1.KID) FOKID {
-	return FOKID{Kid: k}
-}

@@ -402,7 +402,7 @@ func (k *SKBKeyringFile) addToIndex(g GenericKey, b *SKB) {
 	if fp := g.GetFingerprintP(); fp != nil {
 		k.fpIndex[*fp] = b
 	}
-	k.kidIndex[g.GetKid()] = b
+	k.kidIndex[g.GetKID()] = b
 }
 
 func (k *SKBKeyringFile) Index() (err error) {
@@ -435,7 +435,7 @@ func (k SKBKeyringFile) SearchWithComputedKeyFamily(ckf *ComputedKeyFamily, ska 
 	for i := len(k.Blocks) - 1; i >= 0; i-- {
 		G.Log.Debug("| trying key index# -> %d", i)
 		if key, err := k.Blocks[i].GetPubKey(); err == nil && key != nil {
-			kid = key.GetKid()
+			kid = key.GetKID()
 			active := ckf.GetKeyRole(kid)
 			G.Log.Debug("| Checking KID: %s -> %d", kid, int(active))
 			if !ska.KeyType.nonDeviceKeyMatches(key) {

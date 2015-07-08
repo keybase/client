@@ -70,39 +70,33 @@ func (s *IdentifyState) ComputeTrackDiffs() {
 }
 
 func (s *IdentifyState) ComputeKeyDiffs(dhook func(keybase1.IdentifyKey)) {
-	mapify := func(v []FOKID) map[PGPFingerprint]bool {
+	mapify := func(v []PGPFingerprint) map[PGPFingerprint]bool {
 		ret := make(map[PGPFingerprint]bool)
-		for _, f := range v {
-			ret[*f.Fp] = true
+		for _, k := range v {
+			ret[k] = true
 		}
 		return ret
 	}
 
-	display := func(fokid FOKID, diff TrackDiff) {
+	display := func(fp PGPFingerprint, diff TrackDiff) {
 		k := keybase1.IdentifyKey{
 			TrackDiff: ExportTrackDiff(diff),
 		}
-		xfk := fokid.Export()
-		if xfk.PGPFingerprint != nil {
-			k.PGPFingerprint = *xfk.PGPFingerprint
-		}
-		if xfk.Kid != nil {
-			k.KID = *xfk.Kid
-		}
+		k.PGPFingerprint = fp[:]
 		dhook(k)
 	}
 
-	found := s.u.GetActivePGPFOKIDs(true)
+	found := s.u.GetActivePGPFingerprints(true)
 	foundMap := mapify(found)
-	var tracked []FOKID
+	var tracked []PGPFingerprint
 	if s.track != nil {
-		tracked = s.track.GetTrackedPGPFOKIDs()
+		tracked = s.track.GetTrackedPGPFingerprints()
 	}
 	trackedMap := mapify(tracked)
 
 	for _, fp := range found {
 		var diff TrackDiff
-		if s.track != nil && !trackedMap[*fp.Fp] {
+		if s.track != nil && !trackedMap[fp] {
 			diff = TrackDiffNew{}
 			s.res.KeyDiffs = append(s.res.KeyDiffs, diff)
 		} else {
@@ -112,8 +106,8 @@ func (s *IdentifyState) ComputeKeyDiffs(dhook func(keybase1.IdentifyKey)) {
 	}
 
 	for _, fp := range tracked {
-		if !foundMap[*fp.Fp] {
-			diff := TrackDiffRevoked{fp.Fp}
+		if !foundMap[fp] {
+			diff := TrackDiffRevoked{fp}
 			s.res.KeyDiffs = append(s.res.KeyDiffs, diff)
 			display(fp, diff)
 		}

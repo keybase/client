@@ -79,7 +79,7 @@ func (e *RevokeEngine) getKIDsToRevoke(me *libkb.User) ([]keybase1.KID, error) {
 			return nil, fmt.Errorf("Key %s is not a PGP key. To revoke device keys, use the `device remove` command.", e.kidString)
 		}
 		for _, activePGPKey := range me.GetComputedKeyFamily().GetActivePGPKeys(false /* sibkeys only */) {
-			if activePGPKey.GetKid().Equal(kid) {
+			if activePGPKey.GetKID().Equal(kid) {
 				return []keybase1.KID{kid}, nil
 			}
 		}
@@ -127,7 +127,7 @@ func (e *RevokeEngine) Run(ctx *Context) error {
 	if err != nil {
 		return err
 	}
-	kid := sigKey.GetKid()
+	kid := sigKey.GetKID()
 	_, err = e.G().API.Post(libkb.APIArg{
 		Endpoint:    "sig/revoke",
 		NeedSession: true,

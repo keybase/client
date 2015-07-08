@@ -11,7 +11,7 @@ import (
 type AlgoType int
 
 type GenericKey interface {
-	GetKid() keybase1.KID
+	GetKID() keybase1.KID
 	GetFingerprintP() *PGPFingerprint
 	GetAlgoType() AlgoType
 
@@ -90,16 +90,12 @@ func skbPushAndSave(skb *SKB, lui LogUI, lctx LoginContext) error {
 	return nil
 }
 
-func GenericKeyToFOKID(key GenericKey) FOKID {
-	return FOKID{
-		Kid: key.GetKid(),
-		Fp:  key.GetFingerprintP(),
-	}
-}
-
 // Any valid key matches the empty string.
 func KeyMatchesQuery(key GenericKey, q string, exact bool) bool {
-	return GenericKeyToFOKID(key).matchQuery(q, exact)
+	if key.GetKID().Match(q, exact) {
+		return true
+	}
+	return key.GetFingerprintP().Match(q, exact)
 }
 
 func IsPGP(key GenericKey) bool {

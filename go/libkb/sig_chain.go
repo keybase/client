@@ -45,7 +45,7 @@ func (sc *SigChain) LocalDelegate(kf *KeyFamily, key GenericKey, sigID keybase1.
 	}
 	if cki == nil {
 		cki = NewComputedKeyInfos()
-		cki.InsertLocalEldestKey(FOKID{Kid: signingKid})
+		cki.InsertLocalEldestKey(signingKid)
 	}
 
 	// Update the current state
@@ -53,7 +53,7 @@ func (sc *SigChain) LocalDelegate(kf *KeyFamily, key GenericKey, sigID keybase1.
 
 	if len(sigID) > 0 {
 		var zeroTime time.Time
-		err = cki.Delegate(key.GetKid(), key.GetFingerprintP(), NowAsKeybaseTime(0), sigID, signingKid, signingKid, isSibkey, time.Unix(0, 0), zeroTime)
+		err = cki.Delegate(key.GetKID(), NowAsKeybaseTime(0), sigID, signingKid, signingKid, isSibkey, time.Unix(0, 0), zeroTime)
 	}
 
 	return
@@ -291,26 +291,26 @@ func (sc *SigChain) Store() (err error) {
 	return nil
 }
 
-// LimitToEldestFOKID takes the given sigchain and walks backward,
-// stopping once it scrolls of the current FOKID.
-func (sc *SigChain) LimitToEldestFOKID(fokid FOKID) (links []*ChainLink, err error) {
+// LimitToEldestKID takes the given sigchain and walks backward,
+// stopping once it scrolls off the current KID.
+func (sc *SigChain) LimitToEldestKID(eldest keybase1.KID) (links []*ChainLink, err error) {
 	if sc.chainLinks == nil {
 		return
 	}
 	l := len(sc.chainLinks)
 	lastGood := l
 	for i := l - 1; i >= 0; i-- {
-		if sc.chainLinks[i].MatchEldestFOKID(fokid) {
+		if sc.chainLinks[i].ToEldestKID().Equal(eldest) {
 			lastGood = i
 		} else {
 			break
 		}
 	}
 
-	// The eldest FOKID *must* refer to the latest subchain. Make sure there
+	// The eldest KID *must* refer to the latest subchain. Make sure there
 	// are no earlier matching subchains.
 	for i := lastGood - 1; i >= 0; i-- {
-		if sc.chainLinks[i].MatchEldestFOKID(fokid) {
+		if sc.chainLinks[i].ToEldestKID().Equal(eldest) {
 			return nil, NotLatestSubchainError{"The eldest key's subchain must always be at the end."}
 		}
 	}
@@ -363,7 +363,7 @@ func (sc *SigChain) verifySubchain(kf KeyFamily, links []*ChainLink) (cached boo
 
 	for linkIndex, link := range links {
 
-		newFokid := link.ToFOKID()
+		newKID := link.GetKID()
 
 		tcl, w := NewTypedChainLink(link)
 		if w != nil {
@@ -387,7 +387,7 @@ func (sc *SigChain) verifySubchain(kf KeyFamily, links []*ChainLink) (cached boo
 		// key that signed it.
 		isDelegating := (tcl.GetRole() != DLGNone)
 		isFinalLink := (linkIndex == len(links)-1)
-		isLastLinkInSameKeyRun := (isFinalLink || !newFokid.Eq(links[linkIndex+1].ToFOKID()))
+		isLastLinkInSameKeyRun := (isFinalLink || newKID != links[linkIndex+1].GetKID())
 		if isDelegating || isFinalLink || isLastLinkInSameKeyRun {
 			_, err = link.VerifySigWithKeyFamily(ckf)
 			if err != nil {
@@ -442,8 +442,7 @@ func (sc *SigChain) VerifySigsAndComputeKeys(eldest *keybase1.KID, ckf *Computed
 		G.Log.Debug("| VerifyWithKey short-circuit, since no Key available")
 		return
 	}
-	eldestFOKID := ckf.kf.KIDToFOKID(*eldest)
-	links, err := sc.LimitToEldestFOKID(eldestFOKID)
+	links, err := sc.LimitToEldestKID(*eldest)
 	if err != nil {
 		return
 	}
@@ -573,7 +572,7 @@ func (l *SigChainLoader) LoadLinksFromStorage() (err error) {
 	// allKeys. We have to load something...  Note that we don't use l.fp
 	// here (as we used to) since if the user used to have chainlinks, and then
 	// removed their key, we still want to load their last chainlinks.
-	var loadFokid *FOKID
+	var loadKID *keybase1.KID
 
 	curr = mt.LinkID
 	var link *ChainLink
@@ -585,15 +584,14 @@ func (l *SigChainLoader) LoadLinksFromStorage() (err error) {
 		if link, err = ImportLinkFromStorage(curr, suid); err != nil {
 			return
 		}
-		fokid2 := link.ToEldestFOKID()
+		kid2 := link.ToEldestKID()
 
-		if loadFokid == nil {
-			loadFokid = &fokid2
-			G.Log.Debug("| Setting loadFokid=%s", fokid2)
-		} else if !l.allKeys && loadFokid != nil && !loadFokid.Eq(fokid2) {
+		if loadKID == nil {
+			loadKID = &kid2
+			G.Log.Debug("| Setting loadKID=%s", kid2)
+		} else if !l.allKeys && loadKID != nil && *loadKID != kid2 {
 			goodKey = false
-			G.Log.Debug("| Stop loading at FOKID=%s (!= FOKID=%s)",
-				loadFokid.String(), fokid2.String())
+			G.Log.Debug("| Stop loading at KID=%s (!= KID=%s)", loadKID, kid2)
 		}
 
 		if goodKey {

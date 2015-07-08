@@ -319,7 +319,6 @@ func (ui BaseIdentifyUI) DisplayCryptocurrency(l keybase1.Cryptocurrency) {
 	ui.ReportHook(msg)
 }
 
-// func (ui BaseIdentifyUI) DisplayKey(f keybase1.FOKID, diff *keybase1.TrackDiff) {
 func (ui BaseIdentifyUI) DisplayKey(key keybase1.IdentifyKey) {
 	var ds string
 	if key.TrackDiff != nil {

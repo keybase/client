@@ -114,7 +114,7 @@ func (e *DeviceKeygen) Push(ctx *Context, pargs *DeviceKeygenPushArgs) error {
 	if pargs.IsEldest {
 		e.pushEldest(ctx, pargs)
 		encSigner = e.naclSignGen.GetKeyPair()
-		eldestKID = encSigner.GetKid()
+		eldestKID = encSigner.GetKID()
 	} else if !pargs.SkipSignerPush {
 		e.pushSibkey(ctx, pargs)
 		encSigner = e.naclSignGen.GetKeyPair()
@@ -208,7 +208,7 @@ func (e *DeviceKeygen) pushEncKey(ctx *Context, signer libkb.GenericKey, eldestK
 
 func (e *DeviceKeygen) generateClientHalfRecovery() (string, keybase1.KID, error) {
 	key := e.naclEncGen.GetKeyPair()
-	kid := key.GetKid()
+	kid := key.GetKID()
 	ctext, err := e.args.Lks.EncryptClientHalfRecovery(key)
 	return ctext, kid, err
 }
