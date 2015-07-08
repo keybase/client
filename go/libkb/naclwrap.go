@@ -381,9 +381,7 @@ func (p KeybasePacket) ToNaclSigInfo() (*NaclSigInfo, error) {
 	return ret, nil
 }
 
-// func KIDToNaclSigningKeyPublic(k keybase1.KID) *NaclSigningKeyPublic {
 func KIDToNaclSigningKeyPublic(bk []byte) *NaclSigningKeyPublic {
-	// bk := k.ToBytes()
 	if len(bk) != 3+ed25519.PublicKeySize {
 		return nil
 	}
