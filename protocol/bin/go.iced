@@ -27,6 +27,7 @@ class GoEmitter
       boolean : "bool"
       bytes : "[]byte"
       long : "int64"
+      time : "Time"
     map[m] or m
 
   constructor : () ->
@@ -46,6 +47,7 @@ class GoEmitter
   emit_field_type : (t) ->
     optional = false
     type = if typeof(t) is 'string' then @go_primitive_type(t)
+    else if typeof(t) is 'time' then @go_primitive_type(t)
     else if typeof(t) is 'object'
       if Array.isArray(t) and t[0] == "null"
         optional = true
@@ -63,7 +65,8 @@ class GoEmitter
   # record Obj {}
   #
   emit_typedef : (t) ->
-    @output "type #{t.name} #{@emit_field_type(t.typedef).type}"
+    if t.typedef != "time"
+      @output "type #{t.name} #{@emit_field_type(t.typedef).type}"
     true
 
   emit_record : (json, {wrapper} ) ->

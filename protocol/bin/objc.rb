@@ -22,6 +22,7 @@ def classname(type, aliases)
   when "int" then "NSNumber"
   when "string" then "NSString"
   when "bytes" then "NSData"
+  when "time" then "NSDate"
   else
     "KBR#{type}"
   end
@@ -37,6 +38,7 @@ def objc_for_type(type, enums, aliases, space)
   name, ptr = case type
   when "string" then ["NSString *", true]
   when "int" then ["NSInteger", false]
+  when "time" then ["NSDate *", true]
   when "long" then ["long", false]
   when "array" then ["NSArray *", true]
   when "boolean" then ["BOOL", false]
@@ -57,7 +59,7 @@ def objc_for_type(type, enums, aliases, space)
 end
 
 def is_native_type(type)
-  is_primitive_type(type) || ["string", "array", "bytes"].include?(type)
+  is_primitive_type(type) || ["string", "array", "bytes", "time"].include?(type)
 end
 
 def is_primitive_type(type)
@@ -80,6 +82,7 @@ def default_name_for_type(type)
   case type
   when "string" then "str"
   when "int" then "n"
+  when "time" then "date"
   when "long" then "l"
   when "array" then "items"
   when "boolean" then "b"

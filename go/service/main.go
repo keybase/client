@@ -6,11 +6,13 @@ import (
 	"net"
 	"os"
 	"path"
+	"reflect"
 
 	"github.com/keybase/cli"
 	"github.com/keybase/client/go/libcmdline"
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/protocol/go"
+	"github.com/ugorji/go/codec"
 	"github.com/maxtaco/go-framed-msgpack-rpc/rpc2"
 )
 
@@ -54,7 +56,13 @@ func RegisterProtocols(srv *rpc2.Server, xp *rpc2.Transport) error {
 }
 
 func (d *Service) Handle(c net.Conn) {
-	xp := rpc2.NewTransport(c, libkb.NewRPCLogFactory(), libkb.WrapError)
+	mh := codec.MsgpackHandle{WriteExt: true, Convert: true}
+	timeType := reflect.TypeOf(keybase1.Time{})
+	var timeExt keybase1.Time
+	mh.SetExt(timeType, 1, timeExt)
+
+	xp := rpc2.NewTransportWithCodec(c, &mh, libkb.NewRPCLogFactory(), libkb.WrapError)
+
 	server := rpc2.NewServer(xp, libkb.WrapError)
 	if err := RegisterProtocols(server, xp); err != nil {
 		G.Log.Warning("RegisterProtocols error: %s", err)
