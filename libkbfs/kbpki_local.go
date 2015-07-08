@@ -71,7 +71,7 @@ func (k *KBPKILocal) HasVerifyingKey(uid keybase1.UID, verifyingKey VerifyingKey
 	}
 
 	for _, k := range u.VerifyingKeys {
-		if k.KID.Eq(verifyingKey.KID) {
+		if k.KID.Equal(verifyingKey.KID) {
 			return nil
 		}
 	}

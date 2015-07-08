@@ -6,7 +6,6 @@ import (
 
 	"bazil.org/fuse"
 
-	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/protocol/go"
 )
 
@@ -378,7 +377,7 @@ func (e UnknownSigVer) Error() string {
 // KeyNotFoundError indicates that a key matching the given KID
 // couldn't be found.
 type KeyNotFoundError struct {
-	kid libkb.KID
+	kid keybase1.KID
 }
 
 // Error implements the error interface for KeyNotFoundError.

@@ -42,7 +42,7 @@ func verifyingKeysToPublicKeys(keys []VerifyingKey) []keybase1.PublicKey {
 	publicKeys := make([]keybase1.PublicKey, len(keys))
 	for i, key := range keys {
 		publicKeys[i] = keybase1.PublicKey{
-			KID:      key.KID.String(),
+			KID:      key.KID,
 			IsSibkey: true,
 		}
 	}
@@ -53,7 +53,7 @@ func cryptPublicKeysToPublicKeys(keys []CryptPublicKey) []keybase1.PublicKey {
 	publicKeys := make([]keybase1.PublicKey, len(keys))
 	for i, key := range keys {
 		publicKeys[i] = keybase1.PublicKey{
-			KID:      key.KID.String(),
+			KID:      key.KID,
 			IsSibkey: false,
 		}
 	}

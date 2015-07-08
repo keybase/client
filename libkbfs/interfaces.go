@@ -431,7 +431,7 @@ type MDOps interface {
 	// writer, it will return a specific error (TODO: make one) and
 	// the caller is expected to call PutUnmerged if it wants
 	// durability over consistency.
-	Put(id DirID, rmd *RootMetadata, deviceID libkb.KID,
+	Put(id DirID, rmd *RootMetadata, deviceID keybase1.KID,
 		unmergedBase MdID) error
 	// GetSince returns all the MD objects that have been committed
 	// since (not including) the stated mdID, up to a client-imposed
@@ -444,7 +444,7 @@ type MDOps interface {
 	// KID) the ability to store its own unmerged version of the
 	// metadata, in order to provide per-device durability when
 	// consistency can't be quickly guaranteed.
-	PutUnmerged(id DirID, rmd *RootMetadata, deviceID libkb.KID) error
+	PutUnmerged(id DirID, rmd *RootMetadata, deviceID keybase1.KID) error
 	// GetUnmergedSince returns all the MD objects that have been
 	// saved to the unmerged linear history for this device since (not
 	// including) the stated mdID, up to a client-imposed maximum.
@@ -452,7 +452,7 @@ type MDOps interface {
 	// there are more that could be returned.   If mdID is the nil
 	// value, it returns the list of MD objects from the beginning of
 	// the unmerged history for this device.
-	GetUnmergedSince(id DirID, deviceID libkb.KID, mdID MdID, max int) (
+	GetUnmergedSince(id DirID, deviceID keybase1.KID, mdID MdID, max int) (
 		sinceRmds []*RootMetadata, hasMore bool, err error)
 
 	// GetFavorites returns the logged-in user's list of favorite
@@ -545,7 +545,7 @@ type MDServer interface {
 	// for the folder due to another concurrent writer, it will return
 	// a specific error (TODO: make one) and the caller is expected to
 	// call PutUnmerged if it wants durability over consistency.
-	Put(id DirID, mdID MdID, rmds *RootMetadataSigned, deviceID libkb.KID,
+	Put(id DirID, mdID MdID, rmds *RootMetadataSigned, deviceID keybase1.KID,
 		unmergedBase MdID) error
 
 	// PutUnmerged gives each device (identified by the device subkey
@@ -553,7 +553,7 @@ type MDServer interface {
 	// metadata, in order to provide per-device durability when
 	// consistency can't be quickly guaranteed.
 	PutUnmerged(id DirID, mdID MdID, rmds *RootMetadataSigned,
-		deviceID libkb.KID) error
+		deviceID keybase1.KID) error
 	// GetUnmergedSince returns all the MD objects that have been
 	// saved to the unmerged linear history for this device since (not
 	// including) the stated mdID, up to a client-imposed maximum.
@@ -561,7 +561,7 @@ type MDServer interface {
 	// there are more that could be returned.  If mdID is the nil
 	// value, it returns the list of MD objects from the beginning of
 	// the unmerged history for this device.
-	GetUnmergedSince(id DirID, deviceID libkb.KID, mdID MdID, max int) (
+	GetUnmergedSince(id DirID, deviceID keybase1.KID, mdID MdID, max int) (
 		sinceRmds []*RootMetadataSigned, hasMore bool, err error)
 
 	// GetFavorites returns the logged-in user's list of favorite

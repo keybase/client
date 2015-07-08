@@ -99,11 +99,7 @@ func (k *KBPKIClient) HasVerifyingKey(uid keybase1.UID, verifyingKey VerifyingKe
 		if !publicKey.IsSibkey || len(publicKey.PGPFingerprint) > 0 {
 			continue
 		}
-		kid, err := libkb.ImportKID(publicKey.KID)
-		if err != nil {
-			return err
-		}
-		if verifyingKey.KID.Eq(kid) {
+		if verifyingKey.KID.Equal(publicKey.KID) {
 			libkb.G.Log.Debug("found verifying key %s for user %s", verifyingKey.KID, uid)
 			return nil
 		}
@@ -125,11 +121,7 @@ func (k *KBPKIClient) GetCryptPublicKeys(uid keybase1.UID) (
 		if publicKey.IsSibkey || len(publicKey.PGPFingerprint) > 0 {
 			continue
 		}
-		kid, err := libkb.ImportKID(publicKey.KID)
-		if err != nil {
-			return nil, err
-		}
-		key, err := libkb.ImportKeypairFromKID(kid)
+		key, err := libkb.ImportKeypairFromKID(publicKey.KID)
 		if err != nil {
 			return nil, err
 		}
@@ -174,12 +166,7 @@ func (k *KBPKIClient) session() (session *libkb.Session, deviceSubkey libkb.Gene
 		return
 	}
 
-	deviceSubkeyKid, err := libkb.ImportKID(res.DeviceSubkeyKid)
-	if err != nil {
-		return
-	}
-
-	deviceSubkey, err = libkb.ImportKeypairFromKID(deviceSubkeyKid)
+	deviceSubkey, err = libkb.ImportKeypairFromKID(res.DeviceSubkeyKid)
 	if err != nil {
 		return
 	}

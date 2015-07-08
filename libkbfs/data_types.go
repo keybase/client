@@ -57,7 +57,7 @@ type VerifyingKey struct {
 	// Even though we currently use NaclSignatures, we use a KID
 	// here (which encodes the key type) as we may end up storing
 	// other kinds of signatures.
-	KID libkb.KID
+	KID keybase1.KID
 }
 
 // IsNil returns true if the VerifyingKey is nil.
@@ -162,7 +162,7 @@ type CryptPublicKey struct {
 	// Even though we currently use nacl/box, we use a KID here
 	// (which encodes the key type) as we may end up storing other
 	// kinds of keys.
-	KID libkb.KID
+	KID keybase1.KID
 }
 
 func (k CryptPublicKey) String() string {
@@ -681,10 +681,10 @@ func (p Path) HasPublic() bool {
 type DirKeyBundle struct {
 	// Symmetric secret key, encrypted for each writer's device
 	// (identified by the KID of the corresponding device CryptPublicKey).
-	WKeys map[keybase1.UID]map[libkb.KIDMapKey]EncryptedTLFCryptKeyClientHalf
+	WKeys map[keybase1.UID]map[keybase1.KID]EncryptedTLFCryptKeyClientHalf
 	// Symmetric secret key, encrypted for each reader's device
 	// (identified by the KID of the corresponding device CryptPublicKey).
-	RKeys map[keybase1.UID]map[libkb.KIDMapKey]EncryptedTLFCryptKeyClientHalf
+	RKeys map[keybase1.UID]map[keybase1.KID]EncryptedTLFCryptKeyClientHalf
 
 	// M_f as described in 4.1.1 of https://keybase.io/blog/crypto
 	// .
@@ -702,16 +702,16 @@ type DirKeyBundle struct {
 // DeepCopy returns a complete copy of this DirKeyBundle.
 func (dkb DirKeyBundle) DeepCopy() DirKeyBundle {
 	newDkb := dkb
-	newDkb.WKeys = make(map[keybase1.UID]map[libkb.KIDMapKey]EncryptedTLFCryptKeyClientHalf)
+	newDkb.WKeys = make(map[keybase1.UID]map[keybase1.KID]EncryptedTLFCryptKeyClientHalf)
 	for u, m := range dkb.WKeys {
-		newDkb.WKeys[u] = make(map[libkb.KIDMapKey]EncryptedTLFCryptKeyClientHalf)
+		newDkb.WKeys[u] = make(map[keybase1.KID]EncryptedTLFCryptKeyClientHalf)
 		for k, b := range m {
 			newDkb.WKeys[u][k] = b.DeepCopy()
 		}
 	}
-	newDkb.RKeys = make(map[keybase1.UID]map[libkb.KIDMapKey]EncryptedTLFCryptKeyClientHalf)
+	newDkb.RKeys = make(map[keybase1.UID]map[keybase1.KID]EncryptedTLFCryptKeyClientHalf)
 	for u, m := range dkb.RKeys {
-		newDkb.RKeys[u] = make(map[libkb.KIDMapKey]EncryptedTLFCryptKeyClientHalf)
+		newDkb.RKeys[u] = make(map[keybase1.KID]EncryptedTLFCryptKeyClientHalf)
 		for k, b := range m {
 			newDkb.RKeys[u][k] = b.DeepCopy()
 		}

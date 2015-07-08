@@ -161,7 +161,7 @@ func (c *CryptoCommon) Verify(msg []byte, sigInfo SignatureInfo) (err error) {
 		return
 	}
 
-	publicKey := sigInfo.VerifyingKey.KID.ToNaclSigningKeyPublic()
+	publicKey := libkb.KIDToNaclSigningKeyPublic(sigInfo.VerifyingKey.KID.ToBytes())
 	if publicKey == nil {
 		err = libkb.KeyCannotVerifyError{}
 		return

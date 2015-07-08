@@ -3,7 +3,7 @@ package libkbfs
 import (
 	"fmt"
 
-	"github.com/keybase/client/go/libkb"
+	keybase1 "github.com/keybase/client/protocol/go"
 	"github.com/syndtr/goleveldb/leveldb"
 	"github.com/syndtr/goleveldb/leveldb/opt"
 	"github.com/syndtr/goleveldb/leveldb/storage"
@@ -15,7 +15,7 @@ type unmergedDevInfo struct {
 }
 
 type unmergedInfo struct {
-	Devices map[libkb.KIDMapKey]unmergedDevInfo
+	Devices map[keybase1.KID]unmergedDevInfo
 }
 
 // MDServerLocal just stores blocks in local leveldb instances.
@@ -245,7 +245,7 @@ func (md *MDServerLocal) getUnmergedInfo(id DirID) (
 // simply updates the unmerged base to that MdID without any
 // verification.
 func (md *MDServerLocal) Put(id DirID, mdID MdID, rmds *RootMetadataSigned,
-	deviceID libkb.KID, unmergedBase MdID) error {
+	deviceID keybase1.KID, unmergedBase MdID) error {
 	err := md.put(id, mdID, rmds, md.idDb, mdID[:])
 	if err != nil {
 		return err
@@ -256,7 +256,7 @@ func (md *MDServerLocal) Put(id DirID, mdID MdID, rmds *RootMetadataSigned,
 		return err
 	}
 
-	if deviceID == nil {
+	if deviceID.IsNil() {
 		// nothing to do if no unmerged device is specified
 		return nil
 	}
@@ -267,8 +267,7 @@ func (md *MDServerLocal) Put(id DirID, mdID MdID, rmds *RootMetadataSigned,
 		// when no unmerged info exists for this folder, return err == nil
 		return err
 	}
-	devKey := deviceID.ToMapKey()
-	devInfo, ok := u.Devices[devKey]
+	devInfo, ok := u.Devices[deviceID]
 	if !ok {
 		// Technically could return nil here, but since this is a
 		// local server that only supports one device, we should never
@@ -278,7 +277,7 @@ func (md *MDServerLocal) Put(id DirID, mdID MdID, rmds *RootMetadataSigned,
 	}
 	if devInfo.Head == unmergedBase {
 		// deleting the whole history
-		delete(u.Devices, devKey)
+		delete(u.Devices, deviceID)
 	} else {
 		devInfo.Base = unmergedBase
 		// at this point, the earliest link in the unmerged chain will
@@ -286,7 +285,7 @@ func (md *MDServerLocal) Put(id DirID, mdID MdID, rmds *RootMetadataSigned,
 		// to got fixed up in the merge and removed from the unmerged
 		// list).  That's unfortunate, but we can't clear the PrevRoot
 		// because its included in the signature.
-		u.Devices[devKey] = devInfo
+		u.Devices[deviceID] = devInfo
 	}
 
 	ubytes, err := md.config.Codec().Encode(&u)
@@ -298,22 +297,21 @@ func (md *MDServerLocal) Put(id DirID, mdID MdID, rmds *RootMetadataSigned,
 
 // PutUnmerged implements the MDServer interface for MDServerLocal.
 func (md *MDServerLocal) PutUnmerged(id DirID, mdID MdID,
-	rmds *RootMetadataSigned, deviceID libkb.KID) error {
+	rmds *RootMetadataSigned, deviceID keybase1.KID) error {
 	// First update the per-device unmerged info
 	exists, u, err := md.getUnmergedInfo(id)
 	if err != nil {
 		return err
 	} else if !exists {
-		u = unmergedInfo{Devices: make(map[libkb.KIDMapKey]unmergedDevInfo)}
+		u = unmergedInfo{Devices: make(map[keybase1.KID]unmergedDevInfo)}
 	}
-	devKey := deviceID.ToMapKey()
-	udev, ok := u.Devices[devKey]
+	udev, ok := u.Devices[deviceID]
 	if !ok {
 		// this must be the first branch from committed data
 		udev = unmergedDevInfo{Base: rmds.MD.PrevRoot}
 	}
 	udev.Head = mdID
-	u.Devices[devKey] = udev
+	u.Devices[deviceID] = udev
 	ubytes, err := md.config.Codec().Encode(&u)
 	if err != nil {
 		return err
@@ -322,15 +320,14 @@ func (md *MDServerLocal) PutUnmerged(id DirID, mdID MdID,
 }
 
 // GetUnmergedSince implements the MDServer interface for MDServerLocal.
-func (md *MDServerLocal) GetUnmergedSince(id DirID, deviceID libkb.KID,
+func (md *MDServerLocal) GetUnmergedSince(id DirID, deviceID keybase1.KID,
 	mdID MdID, max int) ([]*RootMetadataSigned, bool, error) {
 	exists, u, err := md.getUnmergedInfo(id)
 	if err != nil || !exists {
 		// if there's no unmerged info, just return err == nil
 		return nil, false, err
 	}
-	devKey := deviceID.ToMapKey()
-	udev, ok := u.Devices[devKey]
+	udev, ok := u.Devices[deviceID]
 	if !ok {
 		return nil, false, nil
 	}

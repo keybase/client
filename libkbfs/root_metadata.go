@@ -4,7 +4,7 @@ import (
 	"sort"
 
 	"github.com/keybase/client/go/libkb"
-	"github.com/keybase/client/protocol/go"
+	keybase1 "github.com/keybase/client/protocol/go"
 )
 
 // PrivateMetadata contains the portion of metadata that's secret for private
@@ -137,7 +137,7 @@ func (md RootMetadata) GetEncryptedTLFCryptKeyClientHalfData(
 		return
 	}
 
-	key := currentCryptPublicKey.KID.ToMapKey()
+	key := currentCryptPublicKey.KID
 	if u, ok1 := dkb.WKeys[user]; ok1 {
 		encryptedClientHalf, ok = u[key]
 	} else if u, ok1 = dkb.RKeys[user]; ok1 {

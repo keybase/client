@@ -1,9 +1,6 @@
 package libkbfs
 
-import (
-	"github.com/keybase/client/go/libkb"
-	keybase1 "github.com/keybase/client/protocol/go"
-)
+import keybase1 "github.com/keybase/client/protocol/go"
 
 // KeyManagerStandard implements the KeyManager interface by fetching
 // keys from KeyOps and KBPKI, and computing the complete keys
@@ -112,14 +109,14 @@ func (km *KeyManagerStandard) getTLFCryptKey(md *RootMetadata, keyGen KeyGen) (
 }
 
 func (km *KeyManagerStandard) secretKeysForUser(md *RootMetadata, uid keybase1.UID,
-	tlfCryptKey TLFCryptKey, ePrivKey TLFEphemeralPrivateKey) (uMap map[libkb.KIDMapKey]EncryptedTLFCryptKeyClientHalf, err error) {
+	tlfCryptKey TLFCryptKey, ePrivKey TLFEphemeralPrivateKey) (uMap map[keybase1.KID]EncryptedTLFCryptKeyClientHalf, err error) {
 	defer func() {
 		if err != nil {
 			uMap = nil
 		}
 	}()
 
-	uMap = make(map[libkb.KIDMapKey]EncryptedTLFCryptKeyClientHalf)
+	uMap = make(map[keybase1.KID]EncryptedTLFCryptKeyClientHalf)
 
 	if md.ID.IsPublic() {
 		// no per-device keys for public directories
@@ -168,7 +165,7 @@ func (km *KeyManagerStandard) secretKeysForUser(md *RootMetadata, uid keybase1.U
 			return
 		}
 
-		uMap[k.KID.ToMapKey()] = encryptedClientHalf
+		uMap[k.KID] = encryptedClientHalf
 	}
 
 	return
@@ -188,8 +185,8 @@ func (km *KeyManagerStandard) Rekey(md *RootMetadata) error {
 
 	handle := md.GetDirHandle()
 	newKeys := DirKeyBundle{
-		WKeys:                 make(map[keybase1.UID]map[libkb.KIDMapKey]EncryptedTLFCryptKeyClientHalf),
-		RKeys:                 make(map[keybase1.UID]map[libkb.KIDMapKey]EncryptedTLFCryptKeyClientHalf),
+		WKeys:                 make(map[keybase1.UID]map[keybase1.KID]EncryptedTLFCryptKeyClientHalf),
+		RKeys:                 make(map[keybase1.UID]map[keybase1.KID]EncryptedTLFCryptKeyClientHalf),
 		TLFPublicKey:          pubKey,
 		TLFEphemeralPublicKey: ePubKey,
 	}

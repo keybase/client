@@ -3,7 +3,6 @@ package libkbfs
 import (
 	"fmt"
 
-	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/protocol/go"
 )
 
@@ -332,7 +331,7 @@ func (md *MDOpsStandard) readyMD(id DirID, rmd *RootMetadata) (
 }
 
 // Put implements the MDOps interface for MDOpsStandard.
-func (md *MDOpsStandard) Put(id DirID, rmd *RootMetadata, deviceID libkb.KID,
+func (md *MDOpsStandard) Put(id DirID, rmd *RootMetadata, deviceID keybase1.KID,
 	unmergedBase MdID) error {
 	mdID, rmds, err := md.readyMD(id, rmd)
 	if err != nil {
@@ -343,7 +342,7 @@ func (md *MDOpsStandard) Put(id DirID, rmd *RootMetadata, deviceID libkb.KID,
 
 // PutUnmerged implements the MDOps interface for MDOpsStandard.
 func (md *MDOpsStandard) PutUnmerged(id DirID, rmd *RootMetadata,
-	deviceID libkb.KID) error {
+	deviceID keybase1.KID) error {
 	mdID, rmds, err := md.readyMD(id, rmd)
 	if err != nil {
 		return err
@@ -352,7 +351,7 @@ func (md *MDOpsStandard) PutUnmerged(id DirID, rmd *RootMetadata,
 }
 
 // GetUnmergedSince implements the MDOps interface for MDOpsStandard.
-func (md *MDOpsStandard) GetUnmergedSince(id DirID, deviceID libkb.KID,
+func (md *MDOpsStandard) GetUnmergedSince(id DirID, deviceID keybase1.KID,
 	mdID MdID, max int) ([]*RootMetadata, bool, error) {
 	sinceRmds, more, err :=
 		md.config.MDServer().GetUnmergedSince(id, deviceID, mdID, max)

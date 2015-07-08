@@ -320,7 +320,8 @@ func (fbo *FolderBranchOps) initMDLocked(md *RootMetadata) error {
 
 	// finally, write out the new metadata
 	md.data.LastWriter = user
-	if err = fbo.config.MDOps().Put(md.ID, md, nil, NullMdID); err != nil {
+	var nilKID keybase1.KID
+	if err = fbo.config.MDOps().Put(md.ID, md, nilKID, NullMdID); err != nil {
 		return err
 	}
 	if mdID, err := md.MetadataID(fbo.config); err != nil {
@@ -1040,8 +1041,9 @@ func (fbo *FolderBranchOps) finalizeWriteLocked(ctx context.Context,
 
 	// finally, write out the new metadata
 	md.data.LastWriter = user
+	var nilKID keybase1.KID
 	if err = fbo.config.MDOps().Put(
-		newPaths[0].TopDir, md, nil, NullMdID); err != nil {
+		newPaths[0].TopDir, md, nilKID, NullMdID); err != nil {
 		return err
 	}
 	// TODO: PutUnmerged if necessary
