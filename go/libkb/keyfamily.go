@@ -90,7 +90,7 @@ type KeyFamily struct {
 	pgps []*PGPKeyBundle
 
 	// These fields are computed on the client side, so they can be trusted.
-	pgp2kid map[PGPFingerprintMapKey]keybase1.KID
+	pgp2kid map[PGPFingerprint]keybase1.KID
 	kid2pgp map[keybase1.KID]PGPFingerprint
 
 	AllKeys map[keybase1.KID]GenericKey
@@ -268,7 +268,7 @@ func ParseKeyFamily(jw *jsonw.Wrapper) (ret *KeyFamily, err error) {
 	}
 
 	kf := KeyFamily{
-		pgp2kid:      make(map[PGPFingerprintMapKey]keybase1.KID),
+		pgp2kid:      make(map[PGPFingerprint]keybase1.KID),
 		kid2pgp:      make(map[keybase1.KID]PGPFingerprint),
 		Contextified: NewContextified(G),
 	}
@@ -299,7 +299,7 @@ func ParseKeyFamily(jw *jsonw.Wrapper) (ret *KeyFamily, err error) {
 	for _, p := range kf.pgps {
 		fp := p.GetFingerprint()
 		kid := p.GetKid()
-		kf.pgp2kid[fp.ToMapKey()] = kid
+		kf.pgp2kid[fp] = kid
 		kf.kid2pgp[kid] = fp
 	}
 
@@ -314,7 +314,7 @@ func (kf KeyFamily) FindKeyWithFOKIDUnsafe(f FOKID) (key GenericKey, err error) 
 	var found bool
 	kid := f.Kid
 	if kid.IsNil() && f.Fp != nil {
-		if kid, found = kf.pgp2kid[f.Fp.ToMapKey()]; !found {
+		if kid, found = kf.pgp2kid[*(f.Fp)]; !found {
 			err = KeyFamilyError{fmt.Sprintf("No KID for PGP fingerprint %s found", f.Fp.String())}
 			return
 		}
@@ -561,7 +561,7 @@ func (ckf ComputedKeyFamily) FindKeybaseName(s string) bool {
 // We'll need to do this when a key is locally generated.
 func (kf *KeyFamily) LocalDelegate(key GenericKey) (err error) {
 	if pgp, ok := key.(*PGPKeyBundle); ok {
-		kf.pgp2kid[pgp.GetFingerprint().ToMapKey()] = pgp.GetKid()
+		kf.pgp2kid[pgp.GetFingerprint()] = pgp.GetKid()
 		kf.pgps = append(kf.pgps, pgp)
 	}
 	kf.AllKeys[key.GetKid()] = key

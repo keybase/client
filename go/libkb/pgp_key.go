@@ -26,10 +26,6 @@ const (
 
 type PGPFingerprint [PGPFingerprintLen]byte
 
-// Remove the need for the PGPFingerprintMapKey type. See
-// https://github.com/keybase/client/issues/413 .
-type PGPFingerprintMapKey string
-
 func PGPFingerprintFromHex(s string) (*PGPFingerprint, error) {
 	var fp PGPFingerprint
 	n, err := hex.Decode([]byte(fp[:]), []byte(s))
@@ -58,12 +54,9 @@ func (p PGPFingerprint) String() string {
 	return hex.EncodeToString(p[:])
 }
 
-func (p PGPFingerprint) ToMapKey() PGPFingerprintMapKey {
-	return PGPFingerprintMapKey(p.String())
-}
-
+// XXX jack please delete this when FOKID goes away
 func (p PGPFingerprint) ToFOKIDMapKey() FOKIDMapKey {
-	return FOKIDMapKey(p.ToMapKey())
+	return FOKIDMapKey(p.String())
 }
 
 func (p PGPFingerprint) ToQuads() string {
