@@ -3,7 +3,6 @@ package libkbfs
 import (
 	"fmt"
 
-	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/protocol/go"
 )
 
@@ -47,7 +46,7 @@ func (m *MDOpsConcurTest) GetSince(id DirID, mdID MdID, max int) (
 	return nil, false, nil
 }
 
-func (m *MDOpsConcurTest) Put(id DirID, md *RootMetadata, deviceID libkb.KID,
+func (m *MDOpsConcurTest) Put(id DirID, md *RootMetadata, deviceID keybase1.KID,
 	unmergedBase MdID) error {
 	<-m.start
 	<-m.enter
@@ -56,16 +55,17 @@ func (m *MDOpsConcurTest) Put(id DirID, md *RootMetadata, deviceID libkb.KID,
 }
 
 func (m *MDOpsConcurTest) PutUnmerged(id DirID, rmd *RootMetadata,
-	deviceID libkb.KID) error {
+	deviceID keybase1.KID) error {
 	return nil
 }
 
-func (m *MDOpsConcurTest) GetLastCommittedPoint(id DirID, deviceID libkb.KID) (
+func (m *MDOpsConcurTest) GetLastCommittedPoint(id DirID,
+	deviceID keybase1.KID) (
 	bool, MdID, error) {
 	return false, MdID{0}, nil
 }
 
-func (m *MDOpsConcurTest) GetUnmergedSince(id DirID, deviceID libkb.KID,
+func (m *MDOpsConcurTest) GetUnmergedSince(id DirID, deviceID keybase1.KID,
 	mdID MdID, max int) ([]*RootMetadata, bool, error) {
 	return nil, false, nil
 }

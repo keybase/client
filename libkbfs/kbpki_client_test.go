@@ -48,7 +48,7 @@ func (fc FakeKBPKIClient) Call(s string, args interface{}, res interface{}) erro
 		session := res.(*keybase1.Session)
 		session.Uid = keybase1.UID(user.GetUID())
 		session.Username = user.GetName()
-		session.DeviceSubkeyKid = deviceSubkey.KID.String()
+		session.DeviceSubkeyKid = deviceSubkey.KID
 
 	default:
 		return fmt.Errorf("Unknown call: %s %v %v", s, args, res)
@@ -119,7 +119,7 @@ func TestKBPKIClientGetCryptPublicKeys(t *testing.T) {
 
 	kid := cryptPublicKeys[0].KID
 	expectedKID := localUsers[0].CryptPublicKeys[0].KID
-	if !kid.Eq(expectedKID) {
+	if kid != expectedKID {
 		t.Errorf("Expected %s, got %s", expectedKID, kid)
 	}
 }
@@ -137,7 +137,7 @@ func TestKBPKIClientGetCurrentCryptPublicKey(t *testing.T) {
 
 	kid := currPublicKey.KID
 	expectedKID := localUsers[1].GetCurrentCryptPublicKey().KID
-	if !kid.Eq(expectedKID) {
+	if kid != expectedKID {
 		t.Errorf("Expected %s, got %s", expectedKID, kid)
 	}
 }

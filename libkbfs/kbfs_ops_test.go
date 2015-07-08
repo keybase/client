@@ -281,7 +281,8 @@ func testKBFSOpsGetRootNodeCreateNewSuccess(t *testing.T, public bool) {
 	rootPtr, plainSize, readyBlockData := fillInNewMD(t, config, rmd)
 	// now cache and put everything
 	config.mockBops.EXPECT().Put(rmd, ptrMatcher{rootPtr}, readyBlockData).Return(nil)
-	config.mockMdops.EXPECT().Put(id, rmd, nil, NullMdID).Return(nil)
+	var nilKID keybase1.KID
+	config.mockMdops.EXPECT().Put(id, rmd, nilKID, NullMdID).Return(nil)
 	config.mockMdcache.EXPECT().Put(rmd.mdID, rmd).Return(nil)
 
 	n, de, h, err := config.KBFSOps().GetRootNode(ctx, id)
@@ -827,8 +828,9 @@ func expectSyncBlock(
 	}
 	if skipSync == 0 {
 		// sign the MD and put it
-		config.mockMdops.EXPECT().Put(id, gomock.Any(), nil, NullMdID).
-			Do(func(id DirID, rmd *RootMetadata, deviceID libkb.KID,
+		var nilKID keybase1.KID
+		config.mockMdops.EXPECT().Put(id, gomock.Any(), nilKID, NullMdID).
+			Do(func(id DirID, rmd *RootMetadata, deviceID keybase1.KID,
 			unmergedID MdID) {
 			// add some serialized metadata to satisfy the check
 			rmd.SerializedPrivateMetadata = make([]byte, 1)

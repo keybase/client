@@ -1056,7 +1056,7 @@ func (_mr *_MockMDOpsRecorder) Get(arg0 interface{}) *gomock.Call {
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "Get", arg0)
 }
 
-func (_m *MockMDOps) Put(id DirID, rmd *RootMetadata, deviceID libkb.KID, unmergedBase MdID) error {
+func (_m *MockMDOps) Put(id DirID, rmd *RootMetadata, deviceID go0.KID, unmergedBase MdID) error {
 	ret := _m.ctrl.Call(_m, "Put", id, rmd, deviceID, unmergedBase)
 	ret0, _ := ret[0].(error)
 	return ret0
@@ -1078,7 +1078,7 @@ func (_mr *_MockMDOpsRecorder) GetSince(arg0, arg1, arg2 interface{}) *gomock.Ca
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "GetSince", arg0, arg1, arg2)
 }
 
-func (_m *MockMDOps) PutUnmerged(id DirID, rmd *RootMetadata, deviceID libkb.KID) error {
+func (_m *MockMDOps) PutUnmerged(id DirID, rmd *RootMetadata, deviceID go0.KID) error {
 	ret := _m.ctrl.Call(_m, "PutUnmerged", id, rmd, deviceID)
 	ret0, _ := ret[0].(error)
 	return ret0
@@ -1088,7 +1088,7 @@ func (_mr *_MockMDOpsRecorder) PutUnmerged(arg0, arg1, arg2 interface{}) *gomock
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "PutUnmerged", arg0, arg1, arg2)
 }
 
-func (_m *MockMDOps) GetUnmergedSince(id DirID, deviceID libkb.KID, mdID MdID, max int) ([]*RootMetadata, bool, error) {
+func (_m *MockMDOps) GetUnmergedSince(id DirID, deviceID go0.KID, mdID MdID, max int) ([]*RootMetadata, bool, error) {
 	ret := _m.ctrl.Call(_m, "GetUnmergedSince", id, deviceID, mdID, max)
 	ret0, _ := ret[0].([]*RootMetadata)
 	ret1, _ := ret[1].(bool)
@@ -1294,7 +1294,7 @@ func (_mr *_MockMDServerRecorder) GetSince(arg0, arg1, arg2 interface{}) *gomock
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "GetSince", arg0, arg1, arg2)
 }
 
-func (_m *MockMDServer) Put(id DirID, mdID MdID, rmds *RootMetadataSigned, deviceID libkb.KID, unmergedBase MdID) error {
+func (_m *MockMDServer) Put(id DirID, mdID MdID, rmds *RootMetadataSigned, deviceID go0.KID, unmergedBase MdID) error {
 	ret := _m.ctrl.Call(_m, "Put", id, mdID, rmds, deviceID, unmergedBase)
 	ret0, _ := ret[0].(error)
 	return ret0
@@ -1304,7 +1304,7 @@ func (_mr *_MockMDServerRecorder) Put(arg0, arg1, arg2, arg3, arg4 interface{}) 
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "Put", arg0, arg1, arg2, arg3, arg4)
 }
 
-func (_m *MockMDServer) PutUnmerged(id DirID, mdID MdID, rmds *RootMetadataSigned, deviceID libkb.KID) error {
+func (_m *MockMDServer) PutUnmerged(id DirID, mdID MdID, rmds *RootMetadataSigned, deviceID go0.KID) error {
 	ret := _m.ctrl.Call(_m, "PutUnmerged", id, mdID, rmds, deviceID)
 	ret0, _ := ret[0].(error)
 	return ret0
@@ -1314,7 +1314,7 @@ func (_mr *_MockMDServerRecorder) PutUnmerged(arg0, arg1, arg2, arg3 interface{}
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "PutUnmerged", arg0, arg1, arg2, arg3)
 }
 
-func (_m *MockMDServer) GetUnmergedSince(id DirID, deviceID libkb.KID, mdID MdID, max int) ([]*RootMetadataSigned, bool, error) {
+func (_m *MockMDServer) GetUnmergedSince(id DirID, deviceID go0.KID, mdID MdID, max int) ([]*RootMetadataSigned, bool, error) {
 	ret := _m.ctrl.Call(_m, "GetUnmergedSince", id, deviceID, mdID, max)
 	ret0, _ := ret[0].([]*RootMetadataSigned)
 	ret1, _ := ret[1].(bool)
@@ -1896,6 +1896,14 @@ func (_m *MockNodeCache) Move(ptr BlockPointer, newParent Node, newName string) 
 
 func (_mr *_MockNodeCacheRecorder) Move(arg0, arg1, arg2 interface{}) *gomock.Call {
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "Move", arg0, arg1, arg2)
+}
+
+func (_m *MockNodeCache) Unlink(ptr BlockPointer, oldPath Path) {
+	_m.ctrl.Call(_m, "Unlink", ptr, oldPath)
+}
+
+func (_mr *_MockNodeCacheRecorder) Unlink(arg0, arg1 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "Unlink", arg0, arg1)
 }
 
 func (_m *MockNodeCache) PathFromNode(node Node) Path {

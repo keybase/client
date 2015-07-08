@@ -5,7 +5,6 @@ import (
 	"testing"
 
 	"github.com/golang/mock/gomock"
-	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/protocol/go"
 )
 
@@ -149,9 +148,9 @@ func TestKeyManagerCachedSecretKeyForBlockDecryptionSuccess(t *testing.T) {
 
 func makeDirKeyBundle(uid keybase1.UID, cryptPublicKey CryptPublicKey) DirKeyBundle {
 	return DirKeyBundle{
-		RKeys: map[keybase1.UID]map[libkb.KIDMapKey]EncryptedTLFCryptKeyClientHalf{
-			uid: map[libkb.KIDMapKey]EncryptedTLFCryptKeyClientHalf{
-				cryptPublicKey.KID.ToMapKey(): EncryptedTLFCryptKeyClientHalf{},
+		RKeys: map[keybase1.UID]map[keybase1.KID]EncryptedTLFCryptKeyClientHalf{
+			uid: map[keybase1.KID]EncryptedTLFCryptKeyClientHalf{
+				cryptPublicKey.KID: EncryptedTLFCryptKeyClientHalf{},
 			},
 		},
 	}

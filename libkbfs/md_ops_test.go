@@ -71,7 +71,8 @@ func putMDForPublic(config *ConfigMock, rmds *RootMetadataSigned,
 
 	config.mockCrypto.EXPECT().Sign(gomock.Any()).Return(SignatureInfo{}, nil)
 
-	config.mockMdserv.EXPECT().Put(id, rmds.MD.mdID, gomock.Any(), nil,
+	var nilKID keybase1.KID
+	config.mockMdserv.EXPECT().Put(id, rmds.MD.mdID, gomock.Any(), nilKID,
 		NullMdID).Return(nil)
 }
 
@@ -90,7 +91,8 @@ func putMDForPrivateShare(config *ConfigMock, rmds *RootMetadataSigned,
 	config.mockCrypto.EXPECT().MAC(MacPublicKey{}, packedData).
 		Times(2).Return(packedData, nil)
 
-	config.mockMdserv.EXPECT().Put(id, rmds.MD.mdID, gomock.Any(), nil,
+	var nilKID keybase1.KID
+	config.mockMdserv.EXPECT().Put(id, rmds.MD.mdID, gomock.Any(), nilKID,
 		NullMdID).Return(nil)
 }
 
@@ -442,7 +444,8 @@ func TestMDOpsPutPublicSuccess(t *testing.T) {
 	id, _, rmds := newDir(t, config, 1, false, true)
 	putMDForPublic(config, rmds, id)
 
-	if err := config.MDOps().Put(id, &rmds.MD, nil, NullMdID); err != nil {
+	var nilKID keybase1.KID
+	if err := config.MDOps().Put(id, &rmds.MD, nilKID, NullMdID); err != nil {
 		t.Errorf("Got error on put: %v", err)
 	}
 }
@@ -455,7 +458,8 @@ func TestMDOpsPutPrivateSuccess(t *testing.T) {
 	id, _, rmds := newDir(t, config, 1, true, false)
 	putMDForPrivateShare(config, rmds, id)
 
-	if err := config.MDOps().Put(id, &rmds.MD, nil, NullMdID); err != nil {
+	var nilKID keybase1.KID
+	if err := config.MDOps().Put(id, &rmds.MD, nilKID, NullMdID); err != nil {
 		t.Errorf("Got error on put: %v", err)
 	}
 }
@@ -475,7 +479,8 @@ func TestMDOpsPutFailEncode(t *testing.T) {
 	err := errors.New("Fake fail")
 	config.mockCodec.EXPECT().Encode(gomock.Any()).Return(nil, err)
 
-	if err2 := config.MDOps().Put(id, rmd, nil, NullMdID); err2 != err {
+	var nilKID keybase1.KID
+	if err2 := config.MDOps().Put(id, rmd, nilKID, NullMdID); err2 != err {
 		t.Errorf("Got bad error on put: %v", err2)
 	}
 }

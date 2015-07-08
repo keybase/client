@@ -295,7 +295,7 @@ func TestCryptoCommonVerifyFailures(t *testing.T) {
 	// Corrupt key.
 
 	sigInfoCorruptKey := sigInfo.DeepCopy()
-	sigInfoCorruptKey.VerifyingKey.KID = libkb.KID{}
+	sigInfoCorruptKey.VerifyingKey.KID = ""
 	expectedErr = libkb.KeyCannotVerifyError{}
 	err = c.Verify(msg, sigInfoCorruptKey)
 	if err != expectedErr {

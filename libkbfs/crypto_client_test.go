@@ -34,7 +34,8 @@ func (fc FakeCryptoClient) Call(s string, args interface{}, res interface{}) err
 		// there's no need.
 		var ed25519Signature keybase1.ED25519Signature
 		copy(ed25519Signature[:], sigInfo.Signature)
-		publicKey := sigInfo.VerifyingKey.KID.ToNaclSigningKeyPublic()
+		publicKey :=
+			libkb.KIDToNaclSigningKeyPublic(sigInfo.VerifyingKey.KID.ToBytes())
 		*sigRes = keybase1.ED25519SignatureInfo{
 			Sig:       ed25519Signature,
 			PublicKey: keybase1.ED25519PublicKey(*publicKey),
