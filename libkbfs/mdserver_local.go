@@ -118,9 +118,9 @@ func (md *MDServerLocal) GetForHandle(handle *DirHandle) (
 	if !handle.IsWriter(user) {
 		dirstring := handle.ToString(md.config)
 		if u, err2 := md.config.KBPKI().GetUser(user); err2 == nil {
-			return nil, &WriteAccessError{u.GetName(), dirstring}
+			return nil, WriteAccessError{u.GetName(), dirstring}
 		}
-		return nil, &WriteAccessError{user.String(), dirstring}
+		return nil, WriteAccessError{user.String(), dirstring}
 	}
 
 	return &RootMetadataSigned{MD: *rmd}, nil

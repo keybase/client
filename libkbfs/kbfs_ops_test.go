@@ -341,7 +341,7 @@ func TestKBFSOpsGetRootMDCreateNewFailNonWriter(t *testing.T) {
 	config.mockMdops.EXPECT().GetForTLF(id).Return(rmd, nil)
 	// try to get the MD for writing, but fail (no puts should happen)
 	config.mockKbpki.EXPECT().GetLoggedInUser().AnyTimes().Return(userID, nil)
-	expectedErr := &WriteAccessError{
+	expectedErr := WriteAccessError{
 		fmt.Sprintf("user_%s", userID), h.ToString(config)}
 
 	if _, _, _, err := config.KBFSOps().GetRootNode(ctx, id); err == nil {
@@ -517,12 +517,12 @@ func TestKBFSOpsGetBaseDirChildrenUncachedFailNonReader(t *testing.T) {
 	ops.head = rmd
 	config.mockKbpki.EXPECT().GetLoggedInUser().AnyTimes().Return(userID, nil)
 	expectUserCall(userID, config)
-	expectedErr := &ReadAccessError{
+	expectedErr := ReadAccessError{
 		fmt.Sprintf("user_%s", userID), h.ToString(config)}
 
 	if _, err := config.KBFSOps().GetDirChildren(ctx, n); err == nil {
 		t.Errorf("Got no expected error on getdir")
-	} else if err.Error() != expectedErr.Error() {
+	} else if err != expectedErr {
 		t.Errorf("Got unexpected error on root MD: %v", err)
 	}
 }
@@ -543,12 +543,12 @@ func TestKBFSOpsGetBaseDirChildrenUncachedFailMissingBlock(t *testing.T) {
 
 	// cache miss means fetching metadata and getting read key, then
 	// fail block fetch
-	err := &NoSuchBlockError{rootID}
+	err := NoSuchBlockError{rootID}
 	expectBlock(config, rmd, blockPtr, dirBlock, err)
 
 	if _, err2 := config.KBFSOps().GetDirChildren(ctx, n); err2 == nil {
 		t.Errorf("Got no expected error on getdir")
-	} else if err2.Error() != err.Error() {
+	} else if err2 != err {
 		t.Errorf("Got unexpected error on root MD: %v", err)
 	}
 }
@@ -696,11 +696,11 @@ func TestKBFSOpsLookupNoSuchNameFail(t *testing.T) {
 
 	config.BlockCache().Put(aID, dirBlock)
 
-	expectedErr := &NoSuchNameError{"c"}
+	expectedErr := NoSuchNameError{"c"}
 	_, _, err := config.KBFSOps().Lookup(ctx, n, "c")
 	if err == nil {
 		t.Error("No error as expected on Lookup")
-	} else if err.Error() != expectedErr.Error() {
+	} else if err != expectedErr {
 		t.Errorf("Unexpected error after bad Lookup: %v", err)
 	}
 }
@@ -1106,7 +1106,7 @@ func testCreateEntryFailDupName(t *testing.T, isDir bool) {
 
 	// creating "a", which already exists in the root block
 	config.BlockCache().Put(node.BlockPointer.ID, rootBlock)
-	expectedErr := &NameExistsError{"a"}
+	expectedErr := NameExistsError{"a"}
 
 	var err error
 	// dir and link have different checks for dup name
@@ -1117,7 +1117,7 @@ func testCreateEntryFailDupName(t *testing.T, isDir bool) {
 	}
 	if err == nil {
 		t.Errorf("Got no expected error on create")
-	} else if err.Error() != expectedErr.Error() {
+	} else if err != expectedErr {
 		t.Errorf("Got unexpected error on create: %v", err)
 	}
 }
@@ -1358,11 +1358,11 @@ func TestRemoveDirFailNonEmpty(t *testing.T) {
 
 	config.BlockCache().Put(bNode.BlockPointer.ID, bBlock)
 	config.BlockCache().Put(aNode.BlockPointer.ID, aBlock)
-	expectedErr := &DirNotEmptyError{bNode.Name}
+	expectedErr := DirNotEmptyError{bNode.Name}
 
 	if err := config.KBFSOps().RemoveDir(ctx, n, "b"); err == nil {
 		t.Errorf("Got no expected error on removal")
-	} else if err.Error() != expectedErr.Error() {
+	} else if err != expectedErr {
 		t.Errorf("Got unexpected error on removal: %v", err)
 	}
 }
@@ -1392,11 +1392,11 @@ func TestRemoveDirFailNoSuchName(t *testing.T) {
 
 	config.BlockCache().Put(bNode.BlockPointer.ID, bBlock)
 	config.BlockCache().Put(aNode.BlockPointer.ID, aBlock)
-	expectedErr := &NoSuchNameError{bNode.Name}
+	expectedErr := NoSuchNameError{bNode.Name}
 
 	if err := config.KBFSOps().RemoveDir(ctx, n, "b"); err == nil {
 		t.Errorf("Got no expected error on removal")
-	} else if err.Error() != expectedErr.Error() {
+	} else if err != expectedErr {
 		t.Errorf("Got unexpected error on removal: %v", err)
 	}
 }
@@ -1888,7 +1888,7 @@ func TestRenameFailAcrossTopDirs(t *testing.T) {
 	ops2 := getOps(config, id2)
 	n2 := nodeFromPath(ops2, p2)
 
-	expectedErr := &RenameAcrossDirsError{}
+	expectedErr := RenameAcrossDirsError{}
 
 	if err := config.KBFSOps().Rename(ctx, n1, "b", n2, "c"); err == nil {
 		t.Errorf("Got no expected error on rename")
@@ -1917,7 +1917,7 @@ func TestRenameFailAcrossBranches(t *testing.T) {
 	ops2 := config.KBFSOps().(*KBFSOpsStandard).getOps(opID{id1, "test"})
 	n2 := nodeFromPath(ops2, p2)
 
-	expectedErr := &RenameAcrossDirsError{}
+	expectedErr := RenameAcrossDirsError{}
 	if err := config.KBFSOps().Rename(ctx, n1, "b", n2, "c"); err == nil {
 		t.Errorf("Got no expected error on rename")
 	} else if err.Error() != expectedErr.Error() {
@@ -2176,12 +2176,12 @@ func TestKBFSOpsServerReadFailNoSuchBlock(t *testing.T) {
 	pNode := nodeFromPath(ops, p)
 
 	// cache miss means fetching metadata and getting read key
-	err := &NoSuchBlockError{rootID}
+	err := NoSuchBlockError{rootID}
 	expectBlock(config, rmd, fileBlockPtr, fileBlock, err)
 
 	n := len(fileBlock.Contents)
 	dest := make([]byte, n, n)
-	if _, err2 := config.KBFSOps().Read(ctx, pNode, dest, 0); err == nil {
+	if _, err2 := config.KBFSOps().Read(ctx, pNode, dest, 0); err2 == nil {
 		t.Errorf("Got no expected error")
 	} else if err2 != err {
 		t.Errorf("Got unexpected error: %v", err2)
@@ -3102,12 +3102,12 @@ func TestSetExFailNoSuchName(t *testing.T) {
 	n := nodeFromPath(ops, p)
 
 	config.BlockCache().Put(node.BlockPointer.ID, rootBlock)
-	expectedErr := &NoSuchNameError{p.TailName()}
+	expectedErr := NoSuchNameError{p.TailName()}
 
 	// chmod a+x a
 	if err := config.KBFSOps().SetEx(ctx, n, true); err == nil {
 		t.Errorf("Got no expected error on setex")
-	} else if err.Error() != expectedErr.Error() {
+	} else if err != expectedErr {
 		t.Errorf("Got unexpected error on setex: %v", err)
 	}
 }
@@ -3224,12 +3224,12 @@ func TestMtimeFailNoSuchName(t *testing.T) {
 	n := nodeFromPath(ops, p)
 
 	config.BlockCache().Put(node.BlockPointer.ID, rootBlock)
-	expectedErr := &NoSuchNameError{p.TailName()}
+	expectedErr := NoSuchNameError{p.TailName()}
 
 	newMtime := time.Now()
 	if err := config.KBFSOps().SetMtime(ctx, n, &newMtime); err == nil {
 		t.Errorf("Got no expected error on setmtime")
-	} else if err.Error() != expectedErr.Error() {
+	} else if err != expectedErr {
 		t.Errorf("Got unexpected error on setmtime: %v", err)
 	}
 }

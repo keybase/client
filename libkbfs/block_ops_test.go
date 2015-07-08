@@ -212,7 +212,7 @@ func TestBlockOpsReadyFailTooLowByteCount(t *testing.T) {
 	expectBlockEncrypt(config, rmd, decData, 4, encData, nil)
 
 	_, _, _, err := config.BlockOps().Ready(rmd, decData)
-	if _, ok := err.(*TooLowByteCountError); !ok {
+	if _, ok := err.(TooLowByteCountError); !ok {
 		t.Errorf("Unexpectedly did not get TooLowByteCountError; "+
 			"instead got %v", err)
 	}
@@ -270,9 +270,9 @@ func TestBlockOpsReadyFailCast(t *testing.T) {
 
 	config.mockCrypto.EXPECT().Hash(encData).Return(badID, nil)
 
-	err := &BadCryptoError{BlockID{0}}
+	err := BadCryptoError{BlockID{0}}
 	if _, _, _, err2 :=
-		config.BlockOps().Ready(rmd, decData); err2.Error() != err.Error() {
+		config.BlockOps().Ready(rmd, decData); err2 != err {
 		t.Errorf("Got bad error on ready: %v (expected %v)", err2, err)
 	}
 }

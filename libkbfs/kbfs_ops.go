@@ -172,7 +172,7 @@ func (fs *KBFSOpsStandard) Rename(
 
 	// only works for nodes within the same topdir
 	if (oldID != newID) || (oldBranch != newBranch) {
-		return &RenameAcrossDirsError{}
+		return RenameAcrossDirsError{}
 	}
 
 	ops := fs.getOpsByNode(oldParent)

@@ -87,7 +87,7 @@ func (b *BlockOpsStandard) Ready(md *RootMetadata, block Block) (id BlockID, pla
 
 	encodedSize := readyBlockData.GetEncodedSize()
 	if encodedSize < plainSize {
-		err = &TooLowByteCountError{
+		err = TooLowByteCountError{
 			ExpectedMinByteCount: plainSize,
 			ByteCount:            encodedSize,
 		}
@@ -102,7 +102,7 @@ func (b *BlockOpsStandard) Ready(md *RootMetadata, block Block) (id BlockID, pla
 
 	nhs, ok := h.(libkb.NodeHashShort)
 	if !ok {
-		err = &BadCryptoError{id}
+		err = BadCryptoError{id}
 		return
 	}
 

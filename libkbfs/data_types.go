@@ -459,7 +459,7 @@ func ParseDirHandle(ctx context.Context, config Config, name string) (
 	*DirHandle, error) {
 	splitNames := strings.SplitN(name, ReaderSep, 3)
 	if len(splitNames) > 2 {
-		return nil, &BadPathError{name}
+		return nil, BadPathError{name}
 	}
 	writerNames := strings.Split(splitNames[0], ",")
 	var readerNames []string
@@ -554,7 +554,7 @@ func resolveUids(config Config, uids []keybase1.UID) string {
 		} else if user, err := config.KBPKI().GetUser(uid); err == nil {
 			names = append(names, user.GetName())
 		} else {
-			config.Reporter().Report(RptE, &WrapError{err})
+			config.Reporter().Report(RptE, WrapError{err})
 			names = append(names, fmt.Sprintf("uid:%s", uid))
 		}
 	}

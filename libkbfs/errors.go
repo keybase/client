@@ -21,7 +21,7 @@ type WrapError struct {
 }
 
 // String implements the fmt.Stringer interface for WrapError
-func (e *WrapError) String() string {
+func (e WrapError) String() string {
 	return e.Err.Error()
 }
 
@@ -32,7 +32,7 @@ type NameExistsError struct {
 }
 
 // Error implements the error interface for NameExistsError
-func (e *NameExistsError) Error() string {
+func (e NameExistsError) Error() string {
 	return fmt.Sprintf("%s already exists", e.Name)
 }
 
@@ -43,7 +43,7 @@ type NoSuchNameError struct {
 }
 
 // Error implements the error interface for NoSuchNameError
-func (e *NoSuchNameError) Error() string {
+func (e NoSuchNameError) Error() string {
 	return fmt.Sprintf("%s doesn't exist", e.Name)
 }
 
@@ -54,7 +54,7 @@ type BadPathError struct {
 }
 
 // Error implements the error interface for BadPathError
-func (e *BadPathError) Error() string {
+func (e BadPathError) Error() string {
 	return fmt.Sprintf("%s is in an incorrect format", e.Name)
 }
 
@@ -65,15 +65,15 @@ type DirNotEmptyError struct {
 }
 
 // Error implements the error interface for DirNotEmptyError
-func (e *DirNotEmptyError) Error() string {
+func (e DirNotEmptyError) Error() string {
 	return fmt.Sprintf("Directory %s is not empty and can't be removed", e.Name)
 }
 
-var _ fuse.ErrorNumber = (*DirNotEmptyError)(nil)
+var _ fuse.ErrorNumber = DirNotEmptyError{""}
 
 // Errno implements the fuse.ErrorNumber interface for
 // DirNotEmptyError
-func (e *DirNotEmptyError) Errno() fuse.Errno {
+func (e DirNotEmptyError) Errno() fuse.Errno {
 	return fuse.Errno(syscall.ENOTEMPTY)
 }
 
@@ -84,7 +84,7 @@ type TopDirAccessError struct {
 }
 
 // Error implements the error interface for TopDirAccessError
-func (e *TopDirAccessError) Error() string {
+func (e TopDirAccessError) Error() string {
 	return fmt.Sprintf("Operation not permitted on folder %s", e.ID)
 }
 
@@ -94,7 +94,7 @@ type RenameAcrossDirsError struct {
 }
 
 // Error implements the error interface for RenameAcrossDirsError
-func (e *RenameAcrossDirsError) Error() string {
+func (e RenameAcrossDirsError) Error() string {
 	return fmt.Sprintf("Cannot rename across directories")
 }
 
@@ -104,7 +104,7 @@ type ErrorFileAccessError struct {
 }
 
 // Error implements the error interface for ErrorFileAccessError
-func (e *ErrorFileAccessError) Error() string {
+func (e ErrorFileAccessError) Error() string {
 	return fmt.Sprintf("Operation not allowed on file %s", ErrorFile)
 }
 
@@ -116,7 +116,7 @@ type ReadAccessError struct {
 }
 
 // Error implements the error interface for ReadAccessError
-func (e *ReadAccessError) Error() string {
+func (e ReadAccessError) Error() string {
 	return fmt.Sprintf("%s does not have read access to directory %s",
 		e.User, e.Dir)
 }
@@ -129,7 +129,7 @@ type WriteAccessError struct {
 }
 
 // Error implements the error interface for WriteAccessError
-func (e *WriteAccessError) Error() string {
+func (e WriteAccessError) Error() string {
 	return fmt.Sprintf("%s does not have write access to directory %s",
 		e.User, e.Dir)
 }
@@ -139,9 +139,9 @@ func (e *WriteAccessError) Error() string {
 func NewReadAccessError(config Config, dir *DirHandle, uid keybase1.UID) error {
 	dirname := dir.ToString(config)
 	if u, err2 := config.KBPKI().GetUser(uid); err2 == nil {
-		return &ReadAccessError{u.GetName(), dirname}
+		return ReadAccessError{u.GetName(), dirname}
 	}
-	return &ReadAccessError{uid.String(), dirname}
+	return ReadAccessError{uid.String(), dirname}
 }
 
 // NewWriteAccessError constructs a WriteAccessError for the given
@@ -150,9 +150,9 @@ func NewWriteAccessError(config Config, dir *DirHandle,
 	uid keybase1.UID) error {
 	dirname := dir.ToString(config)
 	if u, err2 := config.KBPKI().GetUser(uid); err2 == nil {
-		return &WriteAccessError{u.GetName(), dirname}
+		return WriteAccessError{u.GetName(), dirname}
 	}
-	return &WriteAccessError{uid.String(), dirname}
+	return WriteAccessError{uid.String(), dirname}
 }
 
 // NotDirError indicates that the user tried to perform a
@@ -163,7 +163,7 @@ type NotDirError struct {
 }
 
 // Error implements the error interface for NotDirError
-func (e *NotDirError) Error() string {
+func (e NotDirError) Error() string {
 	return fmt.Sprintf("%s is not a directory (in folder %s)",
 		&e.Path, e.Path.TopDir)
 }
@@ -175,7 +175,7 @@ type NotFileError struct {
 }
 
 // Error implements the error interface for NotFileError
-func (e *NotFileError) Error() string {
+func (e NotFileError) Error() string {
 	return fmt.Sprintf("%s is not a file (folder %s)", e.Path, e.Path.TopDir)
 }
 
@@ -185,7 +185,7 @@ type BadDataError struct {
 }
 
 // Error implements the error interface for BadDataError
-func (e *BadDataError) Error() string {
+func (e BadDataError) Error() string {
 	return fmt.Sprintf("Bad data for block %v", e.ID)
 }
 
@@ -195,18 +195,8 @@ type NoSuchBlockError struct {
 }
 
 // Error implements the error interface for NoSuchBlockError
-func (e *NoSuchBlockError) Error() string {
+func (e NoSuchBlockError) Error() string {
 	return fmt.Sprintf("Couldn't get block %v", e.ID)
-}
-
-// FinalizeError indicates that the given block ID could not be finalized.
-type FinalizeError struct {
-	ID BlockID
-}
-
-// Error implements the error interface for FinalizeError
-func (e *FinalizeError) Error() string {
-	return fmt.Sprintf("No need to finalize block %v; not dirty", e.ID)
 }
 
 // BadCryptoError indicates that KBFS performed a bad crypto operation.
@@ -215,7 +205,7 @@ type BadCryptoError struct {
 }
 
 // Error implements the error interface for BadCryptoError
-func (e *BadCryptoError) Error() string {
+func (e BadCryptoError) Error() string {
 	return fmt.Sprintf("Bad crypto for block %v", e.ID)
 }
 
@@ -226,7 +216,7 @@ type BadCryptoMDError struct {
 }
 
 // Error implements the error interface for BadCryptoMDError
-func (e *BadCryptoMDError) Error() string {
+func (e BadCryptoMDError) Error() string {
 	return fmt.Sprintf("Bad crypto for the metadata of directory %v", e.ID)
 }
 
@@ -237,7 +227,7 @@ type BadMDError struct {
 }
 
 // Error implements the error interface for BadMDError
-func (e *BadMDError) Error() string {
+func (e BadMDError) Error() string {
 	return fmt.Sprintf("Wrong format for metadata for directory %v", e.ID)
 }
 
@@ -261,7 +251,7 @@ type MDMismatchError struct {
 }
 
 // Error implements the error interface for MDMismatchError
-func (e *MDMismatchError) Error() string {
+func (e MDMismatchError) Error() string {
 	return fmt.Sprintf("Could not verify metadata for directory %s: %s",
 		e.Dir, e.Err)
 }
@@ -272,7 +262,7 @@ type NoSuchMDError struct {
 }
 
 // Error implements the error interface for NoSuchMDError
-func (e *NoSuchMDError) Error() string {
+func (e NoSuchMDError) Error() string {
 	return fmt.Sprintf("Couldn't get metadata for %v", e.ID)
 }
 
@@ -334,34 +324,8 @@ type BadSplitError struct {
 }
 
 // Error implements the error interface for BadSplitError
-func (e *BadSplitError) Error() string {
+func (e BadSplitError) Error() string {
 	return "Unexpected bad block split"
-}
-
-// InconsistentByteCountError indicates that size of a block doesn't
-// match the expected size.
-type InconsistentByteCountError struct {
-	ExpectedByteCount int
-	ByteCount         int
-}
-
-// Error implements the error interface for InconsistentByteCountError
-func (e *InconsistentByteCountError) Error() string {
-	return fmt.Sprintf("Expected %d bytes, got %d bytes",
-		e.ExpectedByteCount, e.ByteCount)
-}
-
-// TooHighByteCountError indicates that size of a block is bigger than
-// the expected size.
-type TooHighByteCountError struct {
-	ExpectedMaxByteCount int
-	ByteCount            int
-}
-
-// Error implements the error interface for TooHighByteCountError
-func (e *TooHighByteCountError) Error() string {
-	return fmt.Sprintf("Expected at most %d bytes, got %d bytes",
-		e.ExpectedMaxByteCount, e.ByteCount)
 }
 
 // TooLowByteCountError indicates that size of a block is smaller than
@@ -372,7 +336,7 @@ type TooLowByteCountError struct {
 }
 
 // Error implements the error interface for TooLowByteCountError
-func (e *TooLowByteCountError) Error() string {
+func (e TooLowByteCountError) Error() string {
 	return fmt.Sprintf("Expected at least %d bytes, got %d bytes",
 		e.ExpectedMinByteCount, e.ByteCount)
 }
@@ -396,7 +360,7 @@ type WriteNeededInReadRequest struct {
 }
 
 // Error implements the error interface for WriteNeededInReadRequest
-func (e *WriteNeededInReadRequest) Error() string {
+func (e WriteNeededInReadRequest) Error() string {
 	return "This request needs exclusive access, but doesn't have it."
 }
 

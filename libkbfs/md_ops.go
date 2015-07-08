@@ -49,7 +49,7 @@ func (md *MDOpsStandard) processMetadata(
 		// Make sure the last writer is really a valid writer
 		writer := rmds.MD.data.LastWriter
 		if !handle.IsWriter(writer) {
-			return &MDMismatchError{
+			return MDMismatchError{
 				handle.ToString(md.config),
 				fmt.Sprintf("MD (id=%s) was written by a non-writer %s",
 					rmds.MD.ID, writer)}
@@ -78,7 +78,7 @@ func (md *MDOpsStandard) processMetadata(
 			//   * Get shared secret with our private MAC key
 			//   * Verify using MAC
 			if mac, ok := rmds.Macs[me]; !ok {
-				return &MDMismatchError{
+				return MDMismatchError{
 					handle.ToString(md.config),
 					fmt.Sprintf("MD (id=%s) is a private share but doesn't "+
 						"contain a key for my logged in user (%s)",
@@ -125,7 +125,7 @@ func (md *MDOpsStandard) GetForHandle(handle *DirHandle) (
 			handleString := handle.ToString(md.config)
 			fetchedHandleString := rmds.MD.GetDirHandle().ToString(md.config)
 			if fetchedHandleString != handleString {
-				return nil, &MDMismatchError{
+				return nil, MDMismatchError{
 					handleString,
 					fmt.Sprintf("MD (id=%s) contained unexpected handle %s",
 						rmds.MD.ID, fetchedHandleString)}
@@ -139,7 +139,7 @@ func (md *MDOpsStandard) processMetadataWithID(
 	id DirID, rmds *RootMetadataSigned) error {
 	// Make sure the signed-over ID matches
 	if id != rmds.MD.ID {
-		return &MDMismatchError{
+		return MDMismatchError{
 			id.String(),
 			fmt.Sprintf("MD contained unexpected id %s",
 				rmds.MD.ID.String()),
@@ -179,7 +179,7 @@ func (md *MDOpsStandard) Get(mdID MdID) (
 		return nil, err
 	}
 	if mdID != realMdID {
-		return nil, &MDMismatchError{
+		return nil, MDMismatchError{
 			rmds.MD.GetDirHandle().ToString(md.config),
 			fmt.Sprintf("MD returned for MdID %v really has an ID of %v",
 				mdID, realMdID),
@@ -202,7 +202,7 @@ func (md *MDOpsStandard) processRange(id DirID, startRoot MdID,
 
 		// make sure the chain is correct
 		if rmds.MD.PrevRoot != lastRoot && lastRoot != NullMdID {
-			return nil, &MDMismatchError{
+			return nil, MDMismatchError{
 				rmds.MD.GetDirHandle().ToString(md.config),
 				fmt.Sprintf("MD (id=%v) points to an unexpected root (%v) "+
 					"instead of %v", currRoot, rmds.MD.PrevRoot, lastRoot),

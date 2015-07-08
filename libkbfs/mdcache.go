@@ -26,9 +26,9 @@ func (md *MDCacheStandard) Get(id MdID) (*RootMetadata, error) {
 		if rmd, ok := tmp.(*RootMetadata); ok {
 			return rmd, nil
 		}
-		return nil, &BadMDError{id}
+		return nil, BadMDError{id}
 	}
-	return nil, &NoSuchMDError{id}
+	return nil, NoSuchMDError{id}
 }
 
 // Put implements the MDCache interface for MDCacheStandard.

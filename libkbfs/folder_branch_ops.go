@@ -189,7 +189,7 @@ func (fbo *FolderBranchOps) getMDLocked(rtype reqType) (
 	// if we're in read mode, we can't safely fetch the new MD without
 	// causing races, so bail
 	if rtype == read {
-		return nil, &WriteNeededInReadRequest{}
+		return nil, WriteNeededInReadRequest{}
 	}
 
 	// not in cache, fetch from server and add to cache
@@ -390,7 +390,7 @@ func (fbo *FolderBranchOps) execReadThenWrite(f func(reqType) error) error {
 	err := f(read)
 
 	// Redo as a write request if needed
-	if _, ok := err.(*WriteNeededInReadRequest); ok {
+	if _, ok := err.(WriteNeededInReadRequest); ok {
 		fbo.writerLock.Lock()
 		defer fbo.writerLock.Unlock()
 		err = f(write)
@@ -499,7 +499,7 @@ func (fbo *FolderBranchOps) getDirLocked(
 	}
 	dblock, ok := block.(*DirBlock)
 	if !ok {
-		return nil, &NotDirError{dir}
+		return nil, NotDirError{dir}
 	}
 	if rtype == write && !fbo.config.BlockCache().IsDirty(
 		dir.TailPointer(), dir.Branch) {
@@ -624,7 +624,7 @@ func (fbo *FolderBranchOps) getEntryLocked(md *RootMetadata, file Path) (
 	name := file.TailName()
 	de, ok := dblock.Children[name]
 	if !ok {
-		return nil, DirEntry{}, &NoSuchNameError{name}
+		return nil, DirEntry{}, NoSuchNameError{name}
 	}
 
 	return dblock, de, err
@@ -906,7 +906,7 @@ func (fbo *FolderBranchOps) syncBlockLocked(md *RootMetadata,
 				// If this isn't the first time
 				// around, we have an error.
 				if len(newPath.Path) > 1 {
-					return Path{}, DirEntry{}, nil, &NoSuchNameError{currName}
+					return Path{}, DirEntry{}, nil, NoSuchNameError{currName}
 				}
 
 				// If this is a file, the size should be 0. (TODO:
@@ -976,7 +976,7 @@ func (fbo *FolderBranchOps) syncBlockLocked(md *RootMetadata,
 			// syncBlock call will ready it.
 			dblock, ok := currBlock.(*DirBlock)
 			if !ok {
-				return Path{}, DirEntry{}, nil, &BadDataError{stopAt.ID}
+				return Path{}, DirEntry{}, nil, BadDataError{stopAt.ID}
 			}
 			lbc[stopAt] = dblock
 			break
@@ -1115,7 +1115,7 @@ func (fbo *FolderBranchOps) createEntryLocked(
 
 	// does name already exist?
 	if _, ok := dblock.Children[name]; ok {
-		return nil, DirEntry{}, &NameExistsError{name}
+		return nil, DirEntry{}, NameExistsError{name}
 	}
 
 	md.AddOp(newCreateOp(name, stripBP(dirPath.TailPointer())))
@@ -1207,7 +1207,7 @@ func (fbo *FolderBranchOps) createLinkLocked(
 
 	// does name already exist?
 	if _, ok := dblock.Children[fromName]; ok {
-		return DirEntry{}, &NameExistsError{fromName}
+		return DirEntry{}, NameExistsError{fromName}
 	}
 
 	md.AddOp(newCreateOp(fromName, stripBP(dirPath.TailPointer())))
@@ -1258,7 +1258,7 @@ func (fbo *FolderBranchOps) removeEntryLocked(ctx context.Context,
 	// make sure the entry exists
 	de, ok := pblock.Children[name]
 	if !ok {
-		return &NoSuchNameError{name}
+		return NoSuchNameError{name}
 	}
 
 	md.AddOp(newRmOp(name, stripBP(dir.TailPointer())))
@@ -1274,7 +1274,7 @@ func (fbo *FolderBranchOps) removeEntryLocked(ctx context.Context,
 
 		block, err := fbo.getBlockLocked(md, childPath, NewFileBlock, write)
 		if err != nil {
-			return &NoSuchBlockError{de.ID}
+			return NoSuchBlockError{de.ID}
 		}
 		fBlock, ok := block.(*FileBlock)
 		if !ok {
@@ -1324,7 +1324,7 @@ func (fbo *FolderBranchOps) RemoveDir(
 		pblock, err := fbo.getDirLocked(md, dirPath, read)
 		de, ok := pblock.Children[dirName]
 		if !ok {
-			return &NoSuchNameError{dirName}
+			return NoSuchNameError{dirName}
 		}
 
 		// construct a path for the child so we can check for an empty dir
@@ -1337,7 +1337,7 @@ func (fbo *FolderBranchOps) RemoveDir(
 		}
 
 		if len(childBlock.Children) > 0 {
-			return &DirNotEmptyError{dirName}
+			return DirNotEmptyError{dirName}
 		}
 		return nil
 	}()
@@ -1394,7 +1394,7 @@ func (fbo *FolderBranchOps) renameLocked(
 	}
 	// does name exist?
 	if _, ok := oldPBlock.Children[oldName]; !ok {
-		return &NoSuchNameError{oldName}
+		return NoSuchNameError{oldName}
 	}
 
 	md.AddOp(newRenameOp(oldName, stripBP(oldParent.TailPointer()),
@@ -1572,7 +1572,7 @@ func (fbo *FolderBranchOps) Rename(
 	if (oldParentPath.TopDir != newParentPath.TopDir) ||
 		(oldParentPath.Branch != newParentPath.Branch) ||
 		(oldParentPath.Path[0].ID != newParentPath.Path[0].ID) {
-		return &RenameAcrossDirsError{}
+		return RenameAcrossDirsError{}
 	}
 
 	return fbo.renameLocked(ctx, oldParentPath, oldName, newParentPath,
@@ -1787,7 +1787,7 @@ func (fbo *FolderBranchOps) writeDataLocked(
 		// existing block (or appended to the end of the final block), so
 		// we shouldn't ever hit this case:
 		if more && oldLen < len(block.Contents) {
-			return &BadSplitError{}
+			return BadSplitError{}
 		}
 
 		// TODO: support multiple levels of indirection.  Right now the

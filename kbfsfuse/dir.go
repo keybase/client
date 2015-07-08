@@ -61,7 +61,7 @@ func (d *Dir) Attr(ctx context.Context, a *fuse.Attr) error {
 		// Not a top-level folder => Stat is safe.
 		de, err := d.folder.fs.config.KBFSOps().Stat(ctx, d.node)
 		if err != nil {
-			if _, ok := err.(*libkbfs.NoSuchNameError); ok {
+			if _, ok := err.(libkbfs.NoSuchNameError); ok {
 				return fuse.ESTALE
 			}
 			return err
@@ -113,7 +113,7 @@ func (d *Dir) Lookup(ctx context.Context, req *fuse.LookupRequest, resp *fuse.Lo
 
 	newNode, de, err := d.folder.fs.config.KBFSOps().Lookup(ctx, d.node, req.Name)
 	if err != nil {
-		if _, ok := err.(*libkbfs.NoSuchNameError); ok {
+		if _, ok := err.(libkbfs.NoSuchNameError); ok {
 			return nil, fuse.ENOENT
 		}
 		return nil, err

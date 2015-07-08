@@ -315,7 +315,7 @@ func (f *FuseOps) LookupInRootByName(rNode *FuseNode, name string) (
 					f.ctx, dirHandle)
 			var fNode *FuseNode
 			if _, ok :=
-				err.(*libkbfs.ReadAccessError); ok && dirHandle.HasPublic() {
+				err.(libkbfs.ReadAccessError); ok && dirHandle.HasPublic() {
 				// This user cannot get the metadata for the directory.
 				// But, if it has a public directory, we should still be
 				// able to list that public directory, right?  Make a fake
@@ -534,7 +534,7 @@ func (f *FuseOps) Utimens(n *FuseNode, mtime *time.Time) (code fuse.Status) {
 func (f *FuseOps) Mkdir(n *FuseNode, name string) (
 	newNode *nodefs.Inode, code fuse.Status) {
 	if name == libkbfs.ErrorFile {
-		return nil, f.translateError(&libkbfs.ErrorFileAccessError{})
+		return nil, f.translateError(libkbfs.ErrorFileAccessError{})
 	}
 
 	fsNode, de, err := f.config.KBFSOps().CreateDir(f.ctx, n.fsNode, name)
@@ -560,7 +560,7 @@ func (f *FuseOps) Mkdir(n *FuseNode, name string) (
 func (f *FuseOps) Mknod(n *FuseNode, name string, mode uint32) (
 	newNode *nodefs.Inode, code fuse.Status) {
 	if name == libkbfs.ErrorFile {
-		return nil, f.translateError(&libkbfs.ErrorFileAccessError{})
+		return nil, f.translateError(libkbfs.ErrorFileAccessError{})
 	}
 
 	fsNode, de, err := f.config.KBFSOps().CreateFile(
@@ -618,7 +618,7 @@ func (f *FuseOps) Truncate(n *FuseNode, size uint64) (code fuse.Status) {
 func (f *FuseOps) Symlink(n *FuseNode, name string, content string) (
 	newNode *nodefs.Inode, code fuse.Status) {
 	if name == libkbfs.ErrorFile {
-		return nil, f.translateError(&libkbfs.ErrorFileAccessError{})
+		return nil, f.translateError(libkbfs.ErrorFileAccessError{})
 	}
 
 	de, err := f.config.KBFSOps().CreateLink(f.ctx, n.fsNode, name, content)
@@ -648,14 +648,14 @@ func (f *FuseOps) Readlink(n *FuseNode) ([]byte, fuse.Status) {
 func (f *FuseOps) RmEntry(n *FuseNode, name string, isDir bool) (
 	code fuse.Status) {
 	if name == libkbfs.ErrorFile {
-		return f.translateError(&libkbfs.ErrorFileAccessError{})
+		return f.translateError(libkbfs.ErrorFileAccessError{})
 	}
 
 	// Can't remove public directories
 	if name == libkbfs.PublicName {
 		if n.PrevNode == nil && !n.getTopDir().IsPublic() {
 			return f.translateError(
-				&libkbfs.TopDirAccessError{ID: n.getTopDir()})
+				libkbfs.TopDirAccessError{ID: n.getTopDir()})
 		}
 	}
 
@@ -681,11 +681,11 @@ func (f *FuseOps) Rename(
 	oldParent *FuseNode, oldName string, newParent *FuseNode, newName string) (
 	code fuse.Status) {
 	if oldName == libkbfs.ErrorFile || newName == libkbfs.ErrorFile {
-		return f.translateError(&libkbfs.ErrorFileAccessError{})
+		return f.translateError(libkbfs.ErrorFileAccessError{})
 	}
 
 	if oldParent.getTopDir() != newParent.getTopDir() {
-		return f.translateError(&libkbfs.RenameAcrossDirsError{})
+		return f.translateError(libkbfs.RenameAcrossDirsError{})
 	}
 
 	err := f.config.KBFSOps().Rename(
@@ -714,33 +714,33 @@ func (f *FuseOps) Flush(n *FuseNode) fuse.Status {
 }
 
 func (f *FuseOps) translateError(err error) fuse.Status {
-	f.config.Reporter().Report(libkbfs.RptE, &libkbfs.WrapError{Err: err})
+	f.config.Reporter().Report(libkbfs.RptE, libkbfs.WrapError{Err: err})
 	switch err.(type) {
-	case *libkbfs.NameExistsError:
+	case libkbfs.NameExistsError:
 		return fuse.Status(syscall.EEXIST)
-	case *libkbfs.NoSuchNameError:
+	case libkbfs.NoSuchNameError:
 		return fuse.ENOENT
-	case *libkbfs.BadPathError:
+	case libkbfs.BadPathError:
 		return fuse.EINVAL
-	case *libkbfs.DirNotEmptyError:
+	case libkbfs.DirNotEmptyError:
 		return fuse.Status(syscall.ENOTEMPTY)
-	case *libkbfs.RenameAcrossDirsError:
+	case libkbfs.RenameAcrossDirsError:
 		return fuse.EINVAL
-	case *libkbfs.ErrorFileAccessError:
+	case libkbfs.ErrorFileAccessError:
 		return fuse.EACCES
-	case *libkbfs.ReadAccessError:
+	case libkbfs.ReadAccessError:
 		return fuse.EACCES
-	case *libkbfs.WriteAccessError:
+	case libkbfs.WriteAccessError:
 		return fuse.EACCES
-	case *libkbfs.TopDirAccessError:
+	case libkbfs.TopDirAccessError:
 		return fuse.EACCES
-	case *libkbfs.NotDirError:
+	case libkbfs.NotDirError:
 		return fuse.ENOTDIR
-	case *libkbfs.NotFileError:
+	case libkbfs.NotFileError:
 		return fuse.Status(syscall.EISDIR)
-	case *libkbfs.NoSuchMDError:
+	case libkbfs.NoSuchMDError:
 		return fuse.ENOENT
-	case *libkbfs.NewDataVersionError:
+	case libkbfs.NewDataVersionError:
 		return fuse.Status(syscall.ENOTSUP)
 	default:
 		return fuse.EIO

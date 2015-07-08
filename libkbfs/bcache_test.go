@@ -38,7 +38,7 @@ func testExpectedMissing(t *testing.T, id BlockID, bcache BlockCache) {
 	ptr := BlockPointer{ID: id}
 	if _, err := bcache.Get(ptr, MasterBranch); err == nil {
 		t.Errorf("No expected error on 1st get: %v", err)
-	} else if err.Error() != expectedErr.Error() {
+	} else if err != expectedErr {
 		t.Errorf("Got unexpected error on 1st get: %v", err)
 	}
 }

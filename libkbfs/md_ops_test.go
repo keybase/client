@@ -199,7 +199,7 @@ func TestMDOpsGetForHandleFailHandleCheck(t *testing.T) {
 
 	if _, err := config.MDOps().GetForHandle(h); err == nil {
 		t.Errorf("Got no error on bad handle check test")
-	} else if _, ok := err.(*MDMismatchError); !ok {
+	} else if _, ok := err.(MDMismatchError); !ok {
 		t.Errorf("Got unexpected error on bad handle check test: %v", err)
 	}
 }
@@ -271,7 +271,7 @@ func TestMDOpsGetFailIdCheck(t *testing.T) {
 
 	if _, err := config.MDOps().GetForTLF(id2); err == nil {
 		t.Errorf("Got no error on bad id check test")
-	} else if _, ok := err.(*MDMismatchError); !ok {
+	} else if _, ok := err.(MDMismatchError); !ok {
 		t.Errorf("Got unexpected error on bad id check test: %v", err)
 	}
 }
@@ -319,7 +319,7 @@ func TestMDOpsGetAtIDWrongMdID(t *testing.T) {
 	verifyMDForPrivateShare(config, rmds, id)
 
 	_, err := config.MDOps().Get(mdID)
-	if _, ok := err.(*MDMismatchError); !ok {
+	if _, ok := err.(MDMismatchError); !ok {
 		t.Errorf("Got unexpected error on get with mismatched md IDs: %v", err)
 	}
 }
@@ -397,7 +397,7 @@ func TestMDOpsGetSinceFailBadPrevRoot(t *testing.T) {
 	_, _, err := config.MDOps().GetSince(id, mdID4, max)
 	if err == nil {
 		t.Errorf("Got no expected error on GetSince")
-	} else if _, ok := err.(*MDMismatchError); !ok {
+	} else if _, ok := err.(MDMismatchError); !ok {
 		t.Errorf("Got unexpected error on GetSince with bad PrevRoot chain: %v",
 			err)
 	}
@@ -428,7 +428,7 @@ func TestMDOpsGetSinceFailBadStart(t *testing.T) {
 	_, _, err := config.MDOps().GetSince(id, badStart, max)
 	if err == nil {
 		t.Errorf("Got no expected error on GetSince")
-	} else if _, ok := err.(*MDMismatchError); !ok {
+	} else if _, ok := err.(MDMismatchError); !ok {
 		t.Errorf("Got unexpected error on GetSince with bad PrevRoot chain: %v",
 			err)
 	}

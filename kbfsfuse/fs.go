@@ -92,7 +92,7 @@ func (r *Root) getMD(ctx context.Context, dh *libkbfs.DirHandle) (libkbfs.Node, 
 	rootNode, _, err :=
 		r.fs.config.KBFSOps().GetOrCreateRootNodeForHandle(ctx, dh)
 	if err != nil {
-		if _, ok := err.(*libkbfs.ReadAccessError); ok && dh.HasPublic() {
+		if _, ok := err.(libkbfs.ReadAccessError); ok && dh.HasPublic() {
 			// This user cannot get the metadata for the folder, but
 			// we know it has a public subdirectory, so serve it
 			// anyway.

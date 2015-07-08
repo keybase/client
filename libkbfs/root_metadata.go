@@ -244,7 +244,7 @@ func (md *RootMetadata) MetadataID(config Config) (MdID, error) {
 	}
 	nhs, ok := h.(libkb.NodeHashShort)
 	if !ok {
-		return NullMdID, &BadCryptoMDError{md.ID}
+		return NullMdID, BadCryptoMDError{md.ID}
 	}
 	md.mdID = MdID(nhs)
 	return md.mdID, nil

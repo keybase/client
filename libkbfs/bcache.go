@@ -57,11 +57,11 @@ func (b *BlockCacheStandard) Get(ptr BlockPointer, branch BranchName) (
 	if tmp, ok := b.lru.Get(ptr.ID); ok {
 		block, ok := tmp.(Block)
 		if !ok {
-			return nil, &BadDataError{ptr.ID}
+			return nil, BadDataError{ptr.ID}
 		}
 		return block, nil
 	}
-	return nil, &NoSuchBlockError{ptr.ID}
+	return nil, NoSuchBlockError{ptr.ID}
 }
 
 // Put implements the BlockCache interface for BlockCacheStandard.

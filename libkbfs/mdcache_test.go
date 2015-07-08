@@ -92,10 +92,10 @@ func TestMdcachePutPastCapacity(t *testing.T) {
 	// id 0 should no longer be in the cache
 	// make sure we can get it successfully
 	expectUserCalls(h0, config)
-	expectedErr := &NoSuchMDError{id0}
+	expectedErr := NoSuchMDError{id0}
 	if _, err := config.MDCache().Get(id0); err == nil {
 		t.Errorf("No expected error on get")
-	} else if err.Error() != expectedErr.Error() {
+	} else if err != expectedErr {
 		t.Errorf("Got unexpected error on get: %v", err)
 	}
 }
