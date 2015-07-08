@@ -3,8 +3,9 @@
 protocol track {
 	import idl "common.avdl";
 
-	// this will perform identify and track
-	void track(int sessionID, string theirName, boolean localOnly, boolean approveRemote);
+	// this will perform identify and track.
+	// see identify.avdl for explanation of forceRemoteCheck.
+	void track(int sessionID, string theirName, boolean localOnly, boolean approveRemote, boolean forceRemoteCheck);
 	
 	// include the trackToken returned in IdentifyRes.
 	void trackWithToken(int sessionID, string trackToken, boolean localOnly, boolean approveRemote);

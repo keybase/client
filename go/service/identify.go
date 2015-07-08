@@ -38,7 +38,7 @@ func (h *IdentifyHandler) Identify(arg keybase1.IdentifyArg) (keybase1.IdentifyR
 }
 
 func (h *IdentifyHandler) IdentifyDefault(arg keybase1.IdentifyDefaultArg) (keybase1.IdentifyRes, error) {
-	iarg := engine.IDEngineArg{UserAssertion: arg.UserAssertion}
+	iarg := engine.IDEngineArg{UserAssertion: arg.UserAssertion, ForceRemoteCheck: arg.ForceRemoteCheck}
 	res, err := h.identify(arg.SessionID, iarg, true)
 	if err != nil {
 		return keybase1.IdentifyRes{}, err

@@ -1056,8 +1056,8 @@
 
 @implementation KBRTrackRequest
 
-- (void)trackWithSessionID:(NSInteger)sessionID theirName:(NSString *)theirName localOnly:(BOOL)localOnly approveRemote:(BOOL)approveRemote completion:(void (^)(NSError *error))completion {
-  NSDictionary *params = @{@"sessionID": @(sessionID), @"theirName": KBRValue(theirName), @"localOnly": @(localOnly), @"approveRemote": @(approveRemote)};
+- (void)trackWithSessionID:(NSInteger)sessionID theirName:(NSString *)theirName localOnly:(BOOL)localOnly approveRemote:(BOOL)approveRemote forceRemoteCheck:(BOOL)forceRemoteCheck completion:(void (^)(NSError *error))completion {
+  NSDictionary *params = @{@"sessionID": @(sessionID), @"theirName": KBRValue(theirName), @"localOnly": @(localOnly), @"approveRemote": @(approveRemote), @"forceRemoteCheck": @(forceRemoteCheck)};
   [self.client sendRequestWithMethod:@"keybase.1.track.track" params:params sessionId:self.sessionId completion:^(NSError *error, id retval) {
     completion(error);
   }];
@@ -2295,6 +2295,7 @@
     self.theirName = params[0][@"theirName"];
     self.localOnly = [params[0][@"localOnly"] boolValue];
     self.approveRemote = [params[0][@"approveRemote"] boolValue];
+    self.forceRemoteCheck = [params[0][@"forceRemoteCheck"] boolValue];
   }
   return self;
 }

@@ -21,7 +21,18 @@ func checkTrack(tc libkb.TestContext, fu *FakeUser, username string, blocks []sb
 	if err != nil {
 		return err
 	}
+	return checkTrackCommon(tc, blocks, outcome, them, ui)
+}
 
+func checkTrackForce(tc libkb.TestContext, fu *FakeUser, username string, blocks []sb, outcome *keybase1.IdentifyOutcome) error {
+	ui, them, err := runTrackWithOptions(tc, fu, username, TrackOptions{}, true)
+	if err != nil {
+		return err
+	}
+	return checkTrackCommon(tc, blocks, outcome, them, ui)
+}
+
+func checkTrackCommon(tc libkb.TestContext, blocks []sb, outcome *keybase1.IdentifyOutcome, them *libkb.User, ui *FakeIdentifyUI) error {
 	me, err := libkb.LoadMe(libkb.LoadUserArg{})
 	if err != nil {
 		return err
@@ -378,9 +389,6 @@ func TestTrackProofRooterRemove(t *testing.T) {
 	}
 	Logout(tc)
 
-	// don't use proof cache
-	tc.G.ProofCache = nil
-
 	// track again
 	trackUser.LoginOrBust(tc)
 	rbl.proofState = keybase1.ProofState_TEMP_FAILURE
@@ -390,7 +398,8 @@ func TestTrackProofRooterRemove(t *testing.T) {
 		NumProofFailures: 1,
 		TrackStatus:      keybase1.TrackStatus_UPDATE_BROKEN,
 	}
-	err = checkTrack(tc, trackUser, proofUser.Username, []sb{rbl}, &outcome)
+	// use checkTrackForce to skip any proof cache results
+	err = checkTrackForce(tc, trackUser, proofUser.Username, []sb{rbl}, &outcome)
 	if err != nil {
 		t.Fatal(err)
 	}

@@ -170,6 +170,9 @@
       }, {
         "name" : "approveRemote",
         "type" : "boolean"
+      }, {
+        "name" : "forceRemoteCheck",
+        "type" : "boolean"
       } ],
       "response" : "null"
     },

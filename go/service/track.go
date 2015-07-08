@@ -25,6 +25,7 @@ func (h *TrackHandler) Track(arg keybase1.TrackArg) error {
 			TrackLocalOnly: arg.LocalOnly,
 			TrackApprove:   arg.ApproveRemote,
 		},
+		ForceRemoteCheck: arg.ForceRemoteCheck,
 	}
 	ctx := engine.Context{
 		IdentifyUI: h.NewRemoteIdentifyUI(arg.SessionID),

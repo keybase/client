@@ -8,10 +8,10 @@ import (
 )
 
 func runTrack(tc libkb.TestContext, fu *FakeUser, username string) (idUI *FakeIdentifyUI, them *libkb.User, err error) {
-	return runTrackWithOptions(tc, fu, username, TrackOptions{})
+	return runTrackWithOptions(tc, fu, username, TrackOptions{}, false)
 }
 
-func runTrackWithOptions(tc libkb.TestContext, fu *FakeUser, username string, options TrackOptions) (idUI *FakeIdentifyUI, them *libkb.User, err error) {
+func runTrackWithOptions(tc libkb.TestContext, fu *FakeUser, username string, options TrackOptions, forceRemoteCheck bool) (idUI *FakeIdentifyUI, them *libkb.User, err error) {
 	idUI = &FakeIdentifyUI{
 		Fapr: keybase1.FinishAndPromptRes{
 			TrackLocal:  options.TrackLocalOnly,
@@ -20,8 +20,9 @@ func runTrackWithOptions(tc libkb.TestContext, fu *FakeUser, username string, op
 	}
 
 	arg := &TrackEngineArg{
-		TheirName: username,
-		Options:   options,
+		TheirName:        username,
+		Options:          options,
+		ForceRemoteCheck: forceRemoteCheck,
 	}
 	ctx := &Context{
 		LogUI:      tc.G.UI.GetLogUI(),
@@ -76,7 +77,7 @@ func trackAlice(tc libkb.TestContext, fu *FakeUser) {
 }
 
 func trackAliceWithOptions(tc libkb.TestContext, fu *FakeUser, options TrackOptions) {
-	idUI, res, err := runTrackWithOptions(tc, fu, "t_alice", options)
+	idUI, res, err := runTrackWithOptions(tc, fu, "t_alice", options, false)
 	if err != nil {
 		tc.T.Fatal(err)
 	}
@@ -90,7 +91,7 @@ func trackBob(tc libkb.TestContext, fu *FakeUser) {
 }
 
 func trackBobWithOptions(tc libkb.TestContext, fu *FakeUser, options TrackOptions) {
-	idUI, res, err := runTrackWithOptions(tc, fu, "t_bob", options)
+	idUI, res, err := runTrackWithOptions(tc, fu, "t_bob", options, false)
 	if err != nil {
 		tc.T.Fatal(err)
 	}
@@ -157,7 +158,7 @@ func TestTrackLocal(t *testing.T) {
 	defer tc.Cleanup()
 	fu := CreateAndSignupFakeUser(tc, "track")
 
-	_, them, err := runTrackWithOptions(tc, fu, "t_alice", TrackOptions{TrackLocalOnly: true})
+	_, them, err := runTrackWithOptions(tc, fu, "t_alice", TrackOptions{TrackLocalOnly: true}, false)
 	if err != nil {
 		t.Fatal(err)
 	}

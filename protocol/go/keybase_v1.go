@@ -2593,10 +2593,11 @@ func (c StreamUiClient) Write(__arg WriteArg) (res int, err error) {
 }
 
 type TrackArg struct {
-	SessionID     int    `codec:"sessionID" json:"sessionID"`
-	TheirName     string `codec:"theirName" json:"theirName"`
-	LocalOnly     bool   `codec:"localOnly" json:"localOnly"`
-	ApproveRemote bool   `codec:"approveRemote" json:"approveRemote"`
+	SessionID        int    `codec:"sessionID" json:"sessionID"`
+	TheirName        string `codec:"theirName" json:"theirName"`
+	LocalOnly        bool   `codec:"localOnly" json:"localOnly"`
+	ApproveRemote    bool   `codec:"approveRemote" json:"approveRemote"`
+	ForceRemoteCheck bool   `codec:"forceRemoteCheck" json:"forceRemoteCheck"`
 }
 
 type TrackWithTokenArg struct {
