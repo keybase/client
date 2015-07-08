@@ -19,9 +19,10 @@ type Identify struct {
 }
 
 type IdentifyArg struct {
-	TargetUsername string // The user being identified, leave blank to identify self
-	WithTracking   bool   // true if want tracking statement for logged in user on TargetUsername
-	AllowSelf      bool   // if we're allowed to id/track ourself
+	TargetUsername   string // The user being identified, leave blank to identify self
+	WithTracking     bool   // true if want tracking statement for logged in user on TargetUsername
+	AllowSelf        bool   // if we're allowed to id/track ourself
+	ForceRemoteCheck bool   // true: skip proof cache and perform all remote proof checks
 
 	// When tracking is being performed, the identify engine is used with a tracking ui.
 	// These options are sent to the ui based on command line options.
@@ -29,20 +30,22 @@ type IdentifyArg struct {
 	TrackOptions TrackOptions
 }
 
-func NewIdentifyArg(targetUsername string, withTracking bool) *IdentifyArg {
+func NewIdentifyArg(targetUsername string, withTracking, forceRemoteCheck bool) *IdentifyArg {
 	return &IdentifyArg{
-		TargetUsername: targetUsername,
-		WithTracking:   withTracking,
-		AllowSelf:      true,
+		TargetUsername:   targetUsername,
+		WithTracking:     withTracking,
+		AllowSelf:        true,
+		ForceRemoteCheck: forceRemoteCheck,
 	}
 }
 
-func NewIdentifyTrackArg(targetUsername string, withTracking bool, options TrackOptions) *IdentifyArg {
+func NewIdentifyTrackArg(targetUsername string, withTracking, forceRemoteCheck bool, options TrackOptions) *IdentifyArg {
 	return &IdentifyArg{
-		TargetUsername: targetUsername,
-		WithTracking:   withTracking,
-		TrackOptions:   options,
-		AllowSelf:      false,
+		TargetUsername:   targetUsername,
+		WithTracking:     withTracking,
+		TrackOptions:     options,
+		AllowSelf:        false,
+		ForceRemoteCheck: forceRemoteCheck,
 	}
 }
 
@@ -181,7 +184,7 @@ func (e *Identify) run(ctx *Context) (*libkb.IdentifyOutcome, error) {
 	is.ComputeRevokedProofs()
 
 	ctx.IdentifyUI.LaunchNetworkChecks(res.ExportToUncheckedIdentity(), e.user.Export())
-	e.user.IDTable().Identify(is, ctx.IdentifyUI)
+	e.user.IDTable().Identify(is, e.arg.ForceRemoteCheck, ctx.IdentifyUI)
 
 	base := e.user.BaseProofSet()
 	res.AddProofsToSet(base)

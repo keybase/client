@@ -33,7 +33,7 @@ func TestIdentify(t *testing.T) {
 
 	for _, x := range idtests {
 		ctx := &Context{IdentifyUI: &FakeIdentifyUI{}}
-		eng := NewIdentify(NewIdentifyArg(x.assertion, false), tc.G)
+		eng := NewIdentify(NewIdentifyArg(x.assertion, false, false), tc.G)
 		err := RunEngine(eng, ctx)
 		if x.valid && err != nil {
 			t.Errorf("assertion %q failed unexpectedly: %s", x.assertion, err)
@@ -52,7 +52,7 @@ func TestIdentifyWithTracking(t *testing.T) {
 
 	for _, x := range idtests {
 		ctx := &Context{IdentifyUI: &FakeIdentifyUI{}}
-		eng := NewIdentify(NewIdentifyArg(x.assertion, true), tc.G)
+		eng := NewIdentify(NewIdentifyArg(x.assertion, true, false), tc.G)
 		err := RunEngine(eng, ctx)
 		if x.valid && err != nil {
 			t.Errorf("assertion %q failed unexpectedly: %s", x.assertion, err)
@@ -77,11 +77,11 @@ func TestIdentifySelf(t *testing.T) {
 	assertions := []string{"", u.Username}
 	for _, a := range assertions {
 		ctx := &Context{IdentifyUI: &FakeIdentifyUI{}}
-		eng := NewIdentify(NewIdentifyArg(a, false), tc.G)
+		eng := NewIdentify(NewIdentifyArg(a, false, false), tc.G)
 		if err := RunEngine(eng, ctx); err != nil {
 			t.Errorf("identify self (%q) (withTracking = false) failed: %s", a, err)
 		}
-		eng = NewIdentify(NewIdentifyArg(a, true), tc.G)
+		eng = NewIdentify(NewIdentifyArg(a, true, false), tc.G)
 		if err := RunEngine(eng, ctx); err != nil {
 			t.Errorf("identify self (%q) (withTracking = true) failed: %s", a, err)
 		}

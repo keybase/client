@@ -51,7 +51,7 @@ func (e *TrackEngine) SubConsumers() []libkb.UIConsumer {
 }
 
 func (e *TrackEngine) Run(ctx *Context) error {
-	iarg := NewIdentifyTrackArg(e.arg.TheirName, true, e.arg.Options)
+	iarg := NewIdentifyTrackArg(e.arg.TheirName, true, false, e.arg.Options)
 	ieng := NewIdentify(iarg, e.G())
 	if err := RunEngine(ieng, ctx); err != nil {
 		e.G().Log.Info("identify run err: %s", err)

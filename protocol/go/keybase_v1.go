@@ -828,14 +828,16 @@ type RemoteProof struct {
 }
 
 type IdentifyArg struct {
-	SessionID      int    `codec:"sessionID" json:"sessionID"`
-	UserAssertion  string `codec:"userAssertion" json:"userAssertion"`
-	TrackStatement bool   `codec:"trackStatement" json:"trackStatement"`
+	SessionID        int    `codec:"sessionID" json:"sessionID"`
+	UserAssertion    string `codec:"userAssertion" json:"userAssertion"`
+	TrackStatement   bool   `codec:"trackStatement" json:"trackStatement"`
+	ForceRemoteCheck bool   `codec:"forceRemoteCheck" json:"forceRemoteCheck"`
 }
 
 type IdentifyDefaultArg struct {
-	SessionID     int    `codec:"sessionID" json:"sessionID"`
-	UserAssertion string `codec:"userAssertion" json:"userAssertion"`
+	SessionID        int    `codec:"sessionID" json:"sessionID"`
+	UserAssertion    string `codec:"userAssertion" json:"userAssertion"`
+	ForceRemoteCheck bool   `codec:"forceRemoteCheck" json:"forceRemoteCheck"`
 }
 
 type IdentifyInterface interface {

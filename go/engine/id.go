@@ -6,8 +6,9 @@ import (
 )
 
 type IDEngineArg struct {
-	UserAssertion  string
-	TrackStatement bool // output a track statement
+	UserAssertion    string
+	TrackStatement   bool // output a track statement
+	ForceRemoteCheck bool // don't use proof cache
 }
 
 type IDRes struct {
@@ -61,7 +62,7 @@ func (e *IDEngine) Result() *IDRes {
 }
 
 func (e *IDEngine) run(ctx *Context) (*IDRes, error) {
-	iarg := NewIdentifyArg(e.arg.UserAssertion, e.arg.TrackStatement)
+	iarg := NewIdentifyArg(e.arg.UserAssertion, e.arg.TrackStatement, e.arg.ForceRemoteCheck)
 	ieng := NewIdentify(iarg, e.G())
 	if err := RunEngine(ieng, ctx); err != nil {
 		return nil, err
@@ -112,8 +113,9 @@ func (a IDEngineArg) Export() (res keybase1.IdentifyArg) {
 
 func ImportIDEngineArg(a keybase1.IdentifyArg) (ret IDEngineArg) {
 	return IDEngineArg{
-		UserAssertion:  a.UserAssertion,
-		TrackStatement: a.TrackStatement,
+		UserAssertion:    a.UserAssertion,
+		TrackStatement:   a.TrackStatement,
+		ForceRemoteCheck: a.ForceRemoteCheck,
 	}
 }
 

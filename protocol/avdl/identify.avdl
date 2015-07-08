@@ -4,6 +4,8 @@ protocol identify {
 	import idl "common.avdl";
 	import idl "identify_common.avdl";
 
-	IdentifyRes identify(int sessionID, string userAssertion, boolean trackStatement);
-	IdentifyRes identifyDefault(int sessionID, string userAssertion);
+	// set forceRemoteCheck to true to force all remote proofs to be checked and
+	// not use any cached proof check results.
+	IdentifyRes identify(int sessionID, string userAssertion, boolean trackStatement, boolean forceRemoteCheck);
+	IdentifyRes identifyDefault(int sessionID, string userAssertion, boolean forceRemoteCheck);
 }

@@ -120,7 +120,7 @@ func (e *PGPDecrypt) checkSignedBy(ctx *Context) error {
 	e.G().Log.Debug("checking signed by assertion: %q", e.arg.SignedBy)
 
 	// load the user in SignedBy
-	arg := NewIdentifyArg(e.arg.SignedBy, false)
+	arg := NewIdentifyArg(e.arg.SignedBy, false, false)
 	eng := NewIdentify(arg, e.G())
 	if err := RunEngine(eng, ctx); err != nil {
 		return err

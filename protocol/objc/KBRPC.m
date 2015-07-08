@@ -313,8 +313,8 @@
 
 @implementation KBRIdentifyRequest
 
-- (void)identifyWithSessionID:(NSInteger)sessionID userAssertion:(NSString *)userAssertion trackStatement:(BOOL)trackStatement completion:(void (^)(NSError *error, KBRIdentifyRes *identifyRes))completion {
-  NSDictionary *params = @{@"sessionID": @(sessionID), @"userAssertion": KBRValue(userAssertion), @"trackStatement": @(trackStatement)};
+- (void)identifyWithSessionID:(NSInteger)sessionID userAssertion:(NSString *)userAssertion trackStatement:(BOOL)trackStatement forceRemoteCheck:(BOOL)forceRemoteCheck completion:(void (^)(NSError *error, KBRIdentifyRes *identifyRes))completion {
+  NSDictionary *params = @{@"sessionID": @(sessionID), @"userAssertion": KBRValue(userAssertion), @"trackStatement": @(trackStatement), @"forceRemoteCheck": @(forceRemoteCheck)};
   [self.client sendRequestWithMethod:@"keybase.1.identify.identify" params:params sessionId:self.sessionId completion:^(NSError *error, id retval) {
     if (error) {
         completion(error, nil);
@@ -325,8 +325,8 @@
   }];
 }
 
-- (void)identifyDefaultWithSessionID:(NSInteger)sessionID userAssertion:(NSString *)userAssertion completion:(void (^)(NSError *error, KBRIdentifyRes *identifyRes))completion {
-  NSDictionary *params = @{@"sessionID": @(sessionID), @"userAssertion": KBRValue(userAssertion)};
+- (void)identifyDefaultWithSessionID:(NSInteger)sessionID userAssertion:(NSString *)userAssertion forceRemoteCheck:(BOOL)forceRemoteCheck completion:(void (^)(NSError *error, KBRIdentifyRes *identifyRes))completion {
+  NSDictionary *params = @{@"sessionID": @(sessionID), @"userAssertion": KBRValue(userAssertion), @"forceRemoteCheck": @(forceRemoteCheck)};
   [self.client sendRequestWithMethod:@"keybase.1.identify.identifyDefault" params:params sessionId:self.sessionId completion:^(NSError *error, id retval) {
     if (error) {
         completion(error, nil);
@@ -1460,6 +1460,7 @@
     self.sessionID = [params[0][@"sessionID"] integerValue];
     self.userAssertion = params[0][@"userAssertion"];
     self.trackStatement = [params[0][@"trackStatement"] boolValue];
+    self.forceRemoteCheck = [params[0][@"forceRemoteCheck"] boolValue];
   }
   return self;
 }
@@ -1472,6 +1473,7 @@
   if ((self = [super initWithParams:params])) {
     self.sessionID = [params[0][@"sessionID"] integerValue];
     self.userAssertion = params[0][@"userAssertion"];
+    self.forceRemoteCheck = [params[0][@"forceRemoteCheck"] boolValue];
   }
   return self;
 }

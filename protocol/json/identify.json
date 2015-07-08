@@ -295,6 +295,9 @@
       }, {
         "name" : "trackStatement",
         "type" : "boolean"
+      }, {
+        "name" : "forceRemoteCheck",
+        "type" : "boolean"
       } ],
       "response" : "IdentifyRes"
     },
@@ -305,6 +308,9 @@
       }, {
         "name" : "userAssertion",
         "type" : "string"
+      }, {
+        "name" : "forceRemoteCheck",
+        "type" : "boolean"
       } ],
       "response" : "IdentifyRes"
     }

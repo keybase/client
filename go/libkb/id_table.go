@@ -1072,13 +1072,13 @@ func (idt *IdentityTable) Len() int {
 	return len(idt.Order)
 }
 
-func (idt *IdentityTable) Identify(is IdentifyState, ui IdentifyUI) {
+func (idt *IdentityTable) Identify(is IdentifyState, forceRemoteCheck bool, ui IdentifyUI) {
 	var wg sync.WaitGroup
 	for _, lcr := range is.res.ProofChecks {
 		wg.Add(1)
 		go func(l *LinkCheckResult) {
 			defer wg.Done()
-			idt.identifyActiveProof(l, is, ui)
+			idt.identifyActiveProof(l, is, forceRemoteCheck, ui)
 		}(lcr)
 	}
 
@@ -1092,8 +1092,8 @@ func (idt *IdentityTable) Identify(is IdentifyState, ui IdentifyUI) {
 
 //=========================================================================
 
-func (idt *IdentityTable) identifyActiveProof(lcr *LinkCheckResult, is IdentifyState, ui IdentifyUI) {
-	idt.proofRemoteCheck(is.HasPreviousTrack(), lcr)
+func (idt *IdentityTable) identifyActiveProof(lcr *LinkCheckResult, is IdentifyState, forceRemoteCheck bool, ui IdentifyUI) {
+	idt.proofRemoteCheck(is.HasPreviousTrack(), forceRemoteCheck, lcr)
 	lcr.link.DisplayCheck(ui, *lcr)
 }
 
@@ -1125,7 +1125,7 @@ func ComputeRemoteDiff(tracked, observed keybase1.ProofState) TrackDiff {
 	return TrackDiffRemoteChanged{tracked, observed}
 }
 
-func (idt *IdentityTable) proofRemoteCheck(hasPreviousTrack bool, res *LinkCheckResult) {
+func (idt *IdentityTable) proofRemoteCheck(hasPreviousTrack, forceRemoteCheck bool, res *LinkCheckResult) {
 	p := res.link
 
 	G.Log.Debug("+ RemoteCheckProof %s", p.ToDebugString())
@@ -1144,9 +1144,11 @@ func (idt *IdentityTable) proofRemoteCheck(hasPreviousTrack bool, res *LinkCheck
 		return
 	}
 
-	if res.cached = G.ProofCache.Get(sid); res.cached != nil {
-		res.err = res.cached.Status
-		return
+	if !forceRemoteCheck {
+		if res.cached = G.ProofCache.Get(sid); res.cached != nil {
+			res.err = res.cached.Status
+			return
+		}
 	}
 
 	var pc ProofChecker

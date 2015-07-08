@@ -156,7 +156,7 @@ func (e *PGPKeyfinder) trackUser(ctx *Context, user string) error {
 // context...so that this one can use an IdentifyUI and trackUser
 // can use a TrackUI...
 func (e *PGPKeyfinder) identifyUser(ctx *Context, user string) error {
-	arg := NewIdentifyArg(user, false)
+	arg := NewIdentifyArg(user, false, false)
 	eng := NewIdentify(arg, e.G())
 	if err := RunEngine(eng, ctx); err != nil {
 		return err
