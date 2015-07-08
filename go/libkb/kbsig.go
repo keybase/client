@@ -378,7 +378,7 @@ func (u *User) AuthenticationProof(key GenericKey, session string, ei int) (ret 
 	return
 }
 
-func (u *User) RevokeKeysProof(key GenericKey, kidsToRevoke []KID, deviceToDisable string) (*jsonw.Wrapper, error) {
+func (u *User) RevokeKeysProof(key GenericKey, kidsToRevoke []KID, deviceToDisable keybase1.DeviceID) (*jsonw.Wrapper, error) {
 	ret, err := u.ProofMetadata(0 /* ei */, GenericKeyToFOKID(key), nil, 0)
 	if err != nil {
 		return nil, err
@@ -389,13 +389,13 @@ func (u *User) RevokeKeysProof(key GenericKey, kidsToRevoke []KID, deviceToDisab
 	revokeSection := jsonw.NewDictionary()
 	revokeSection.SetKey("kids", jsonw.NewWrapper(kidsToRevoke))
 	body.SetKey("revoke", revokeSection)
-	if deviceToDisable != "" {
+	if deviceToDisable.Exists() {
 		device, err := u.GetDevice(deviceToDisable)
 		if err != nil {
 			return nil, err
 		}
 		deviceSection := jsonw.NewDictionary()
-		deviceSection.SetKey("id", jsonw.NewString(deviceToDisable))
+		deviceSection.SetKey("id", jsonw.NewString(deviceToDisable.String()))
 		deviceSection.SetKey("type", jsonw.NewString(device.Type))
 		deviceSection.SetKey("status", jsonw.NewInt(DeviceStatusDefunct))
 		body.SetKey("device", deviceSection)

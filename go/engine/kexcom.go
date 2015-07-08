@@ -14,7 +14,7 @@ import (
 type KexCom struct {
 	libkb.Contextified
 	user      *libkb.User
-	deviceID  libkb.DeviceID
+	deviceID  keybase1.DeviceID
 	debugName string
 	wg        sync.WaitGroup
 	recMu     sync.Mutex

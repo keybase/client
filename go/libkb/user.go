@@ -154,11 +154,11 @@ func (u *User) GetDeviceSubkey() (subkey GenericKey, err error) {
 		return
 	}
 	did := u.G().Env.GetDeviceID()
-	if did == nil {
+	if did.IsNil() {
 		err = NotProvisionedError{}
 		return
 	}
-	return ckf.GetEncryptionSubkeyForDevice(*did)
+	return ckf.GetEncryptionSubkeyForDevice(did)
 }
 
 func (u *User) GetServerSeqno() (i int, err error) {
@@ -475,7 +475,7 @@ func (u *User) SigChainBumpMT(mt MerkleTriple) {
 	u.sigChain().Bump(mt)
 }
 
-func (u *User) GetDevice(id string) (*Device, error) {
+func (u *User) GetDevice(id keybase1.DeviceID) (*Device, error) {
 	if u.GetComputedKeyFamily() == nil {
 		return nil, fmt.Errorf("no computed key family")
 	}
@@ -494,10 +494,10 @@ func (u *User) HasDeviceInCurrentInstall() bool {
 		return false
 	}
 	did := u.G().Env.GetDeviceID()
-	if did == nil {
+	if did.IsNil() {
 		return false
 	}
-	_, err := ckf.GetSibkeyForDevice(*did)
+	_, err := ckf.GetSibkeyForDevice(did)
 	if err != nil {
 		return false
 	}

@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	"github.com/keybase/client/go/libkb"
+	keybase1 "github.com/keybase/client/protocol/go"
 )
 
 func getActiveDevicesAndKeys(t *testing.T, u *FakeUser) ([]*libkb.Device, []libkb.GenericKey) {
@@ -23,8 +24,21 @@ func getActiveDevicesAndKeys(t *testing.T, u *FakeUser) ([]*libkb.Device, []libk
 	return activeDevices, append(sibkeys, subkeys...)
 }
 
-func doRevoke(tc libkb.TestContext, u *FakeUser, id string, mode RevokeMode) {
-	revokeEngine := NewRevokeEngine(id, mode, tc.G)
+func doRevokeKey(tc libkb.TestContext, u *FakeUser, id string) {
+	revokeEngine := NewRevokeKeyEngine(id, tc.G)
+	secui := libkb.TestSecretUI{Passphrase: u.Passphrase}
+	ctx := &Context{
+		LogUI:    tc.G.UI.GetLogUI(),
+		SecretUI: secui,
+	}
+	err := RunEngine(revokeEngine, ctx)
+	if err != nil {
+		tc.T.Fatal(err)
+	}
+}
+
+func doRevokeDevice(tc libkb.TestContext, u *FakeUser, id keybase1.DeviceID) {
+	revokeEngine := NewRevokeDeviceEngine(id, tc.G)
 	secui := libkb.TestSecretUI{Passphrase: u.Passphrase}
 	ctx := &Context{
 		LogUI:    tc.G.UI.GetLogUI(),
@@ -66,7 +80,7 @@ func TestRevokeDevice(t *testing.T) {
 		t.Fatal("Expected to find a web device.")
 	}
 
-	doRevoke(tc, u, webDevice.ID, RevokeDevice)
+	doRevokeDevice(tc, u, webDevice.ID)
 
 	assertNumDevicesAndKeys(t, u, 1, 2)
 }
@@ -93,7 +107,7 @@ func TestRevokeKey(t *testing.T) {
 		t.Fatal("Expected to find PGP key")
 	}
 
-	doRevoke(tc, u, (*pgpKey).GetKid().String(), RevokeKey)
+	doRevokeKey(tc, u, (*pgpKey).GetKid().String())
 
 	assertNumDevicesAndKeys(t, u, 2, 4)
 }

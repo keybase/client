@@ -17,11 +17,11 @@ func (sp *SelfProvisioner) LoadMe() (err error) {
 // private key.
 func (sp *SelfProvisioner) CheckKeyProvisioned() error {
 	did := G.Env.GetDeviceID()
-	if did == nil {
+	if did.IsNil() {
 		return NotProvisionedError{}
 	}
 
-	key, err := sp.me.GetComputedKeyFamily().GetSibkeyForDevice(*did)
+	key, err := sp.me.GetComputedKeyFamily().GetSibkeyForDevice(did)
 	if err != nil {
 		return err
 	}

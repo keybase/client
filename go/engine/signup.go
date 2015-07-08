@@ -179,7 +179,7 @@ func (s *SignupEngine) registerDevice(a libkb.LoginContext, ctx *Context, device
 	}
 	s.signingKey = eng.SigningKey()
 
-	ctx.LoginContext.LocalSession().SetDeviceProvisioned(s.G().Env.GetDeviceID().String())
+	ctx.LoginContext.LocalSession().SetDeviceProvisioned(s.G().Env.GetDeviceID())
 
 	if s.arg.StoreSecret {
 		// Create the secret store as late as possible here

@@ -33,6 +33,9 @@ protocol Common {
 		string email;
 	}
 
+	@typedef("string")
+	record DeviceID {}
+
 	record PublicKey {
 		string KID;
 		string PGPFingerprint; // empty for non-PGP keys
@@ -41,7 +44,7 @@ protocol Common {
 		boolean isEldest;
 		boolean isWeb;
 		string parentID;
-		string deviceID;
+		DeviceID deviceID;
 		string deviceDescription;
 		long cTime;
 		long eTime;
@@ -56,7 +59,7 @@ protocol Common {
 	record Device {
 		string type;
 		string name;
-		string deviceID;
+		DeviceID deviceID;
 		long cTime;
 		long mTime;
 	}

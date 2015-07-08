@@ -9,6 +9,7 @@ import (
 	"fmt"
 
 	"github.com/keybase/client/go/libkb"
+	keybase1 "github.com/keybase/client/protocol/go"
 	"github.com/ugorji/go/codec"
 )
 
@@ -113,7 +114,7 @@ func (m MsgList) Swap(a, b int)      { m[a], m[b] = m[b], m[a] }
 // on the message.
 type MsgArgs struct {
 	StrongID   StrongID
-	DeviceID   libkb.DeviceID
+	DeviceID   keybase1.DeviceID
 	DevKeyID   libkb.KID
 	SigningKey libkb.NaclSigningKeyPublic
 	Sig        string

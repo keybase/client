@@ -70,13 +70,13 @@ type ComputedKeyInfos struct {
 	Sigs map[keybase1.SigID]*ComputedKeyInfo
 
 	// Map of DeviceID (in hex) to the most current device object
-	Devices map[string]*Device
+	Devices map[keybase1.DeviceID]*Device
 
 	// Map of KID -> DeviceID (in hex)
-	KIDToDeviceID map[KIDMapKey]string
+	KIDToDeviceID map[KIDMapKey]keybase1.DeviceID
 
 	// The last-added Web device, to figure out where the DetKey is.
-	WebDeviceID string
+	WebDeviceID keybase1.DeviceID
 }
 
 // As returned by user/lookup.json
@@ -126,8 +126,8 @@ func (cki ComputedKeyInfos) ShallowCopy() *ComputedKeyInfos {
 		dirty:         cki.dirty,
 		Infos:         make(map[FOKIDMapKey]*ComputedKeyInfo, len(cki.Infos)),
 		Sigs:          make(map[keybase1.SigID]*ComputedKeyInfo, len(cki.Sigs)),
-		Devices:       make(map[string]*Device, len(cki.Devices)),
-		KIDToDeviceID: make(map[KIDMapKey]string, len(cki.KIDToDeviceID)),
+		Devices:       make(map[keybase1.DeviceID]*Device, len(cki.Devices)),
+		KIDToDeviceID: make(map[KIDMapKey]keybase1.DeviceID, len(cki.KIDToDeviceID)),
 	}
 	for k, v := range cki.Infos {
 		ret.Infos[k] = v
@@ -152,8 +152,8 @@ func NewComputedKeyInfos() *ComputedKeyInfos {
 	return &ComputedKeyInfos{
 		Infos:         make(map[FOKIDMapKey]*ComputedKeyInfo),
 		Sigs:          make(map[keybase1.SigID]*ComputedKeyInfo),
-		Devices:       make(map[string]*Device),
-		KIDToDeviceID: make(map[KIDMapKey]string),
+		Devices:       make(map[keybase1.DeviceID]*Device),
+		KIDToDeviceID: make(map[KIDMapKey]keybase1.DeviceID),
 	}
 }
 
@@ -623,7 +623,7 @@ func (ckf ComputedKeyFamily) GetAllActiveSubkeys() (ret []GenericKey) {
 	return ckf.GetAllActiveSubkeysAtTime(time.Now())
 }
 
-func (ckf ComputedKeyFamily) GetAllActiveKeysForDevice(deviceID string) ([]KID, error) {
+func (ckf ComputedKeyFamily) GetAllActiveKeysForDevice(deviceID keybase1.DeviceID) ([]KID, error) {
 	_, deviceExists := ckf.cki.Devices[deviceID]
 	if !deviceExists {
 		return nil, fmt.Errorf("Device %s does not exist.", deviceID)
@@ -726,12 +726,12 @@ func (ckf *ComputedKeyFamily) UpdateDevices(tcl TypedChainLink) (err error) {
 	return
 }
 
-func (ckf *ComputedKeyFamily) getSibkeyKidForDevice(did DeviceID) (KID, error) {
+func (ckf *ComputedKeyFamily) getSibkeyKidForDevice(did keybase1.DeviceID) (KID, error) {
 	G.Log.Debug("+ getSibkeyKidForDevice(%v)", did)
 	G.Log.Debug("| Devices map: %+v", ckf.cki.Devices)
 
 	var kid KID
-	device, found := ckf.cki.Devices[did.String()]
+	device, found := ckf.cki.Devices[did]
 	if !found {
 		G.Log.Debug("device %s not found in cki.Devices", did)
 		return kid, ErrNoDevice
@@ -748,7 +748,7 @@ func (ckf *ComputedKeyFamily) getSibkeyKidForDevice(did DeviceID) (KID, error) {
 // GetSibkeyForDevice gets the current per-device key for the given Device. Will
 // return nil if one isn't found, and set err for a real error. The sibkey should
 // be a signing key, not an encryption key of course.
-func (ckf *ComputedKeyFamily) GetSibkeyForDevice(did DeviceID) (key GenericKey, err error) {
+func (ckf *ComputedKeyFamily) GetSibkeyForDevice(did keybase1.DeviceID) (key GenericKey, err error) {
 	var kid KID
 	kid, err = ckf.getSibkeyKidForDevice(did)
 	if kid != nil {
@@ -763,11 +763,11 @@ func (ckf *ComputedKeyFamily) GetCurrentDevice(g *GlobalContext) (*Device, error
 		g = G
 	}
 	did := g.Env.GetDeviceID()
-	if did == nil {
+	if did.IsNil() {
 		return nil, NotProvisionedError{}
 	}
 
-	dev, ok := ckf.cki.Devices[did.String()]
+	dev, ok := ckf.cki.Devices[did]
 	if !ok {
 		return nil, NotFoundError{}
 	}
@@ -778,7 +778,7 @@ func (ckf *ComputedKeyFamily) GetCurrentDevice(g *GlobalContext) (*Device, error
 // GetEncryptionSubkeyForDevice gets the current encryption subkey for the given
 // device.  Note that many devices might share an encryption public key but
 // might have different secret keys.
-func (ckf *ComputedKeyFamily) GetEncryptionSubkeyForDevice(did DeviceID) (key GenericKey, err error) {
+func (ckf *ComputedKeyFamily) GetEncryptionSubkeyForDevice(did keybase1.DeviceID) (key GenericKey, err error) {
 	var kid KID
 	if kid, err = ckf.getSibkeyKidForDevice(did); err != nil {
 		return

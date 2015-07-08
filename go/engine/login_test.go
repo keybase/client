@@ -400,8 +400,7 @@ func (l *lockui) SelectSigner(arg keybase1.SelectSignerArg) (res keybase1.Select
 	if err != nil {
 		return
 	}
-	sdev := devid.String()
-	res.Signer = &keybase1.DeviceSigner{Kind: keybase1.DeviceSignerKind_DEVICE, DeviceID: &sdev}
+	res.Signer = &keybase1.DeviceSigner{Kind: keybase1.DeviceSignerKind_DEVICE, DeviceID: &devid}
 	return
 }
 

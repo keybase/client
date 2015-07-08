@@ -19,11 +19,11 @@ type KexFwd struct {
 }
 
 type KexFwdArgs struct {
-	User    *libkb.User    // the user who owns device Y and device X
-	DevType string         // type of this new device Y (e.g. desktop, mobile)
-	DevDesc string         // description of this new device Y
-	Dst     libkb.DeviceID // device ID of existing provisioned device (device X)
-	DstName string         // device name of the existing provisioned device (device X)
+	User    *libkb.User       // the user who owns device Y and device X
+	DevType string            // type of this new device Y (e.g. desktop, mobile)
+	DevDesc string            // description of this new device Y
+	Dst     keybase1.DeviceID // device ID of existing provisioned device (device X)
+	DstName string            // device name of the existing provisioned device (device X)
 }
 
 // NewKexFwd creates a KexFwd engine.
@@ -220,7 +220,7 @@ func (k *KexFwd) revSig(eddsa libkb.NaclKeyPair) (sig string, err error) {
 func (k *KexFwd) GetDevice() *libkb.Device {
 	s := libkb.DeviceStatusActive
 	return &libkb.Device{
-		ID:          k.deviceID.String(),
+		ID:          k.deviceID,
 		Type:        k.args.DevType,
 		Description: &k.args.DevDesc,
 		Status:      &s,

@@ -26,12 +26,54 @@ const (
 	SIG_SHORT_ID_BYTES = 27
 )
 
+const (
+	DeviceIDLen       = 16
+	DeviceIDSuffix    = 0x18
+	DeviceIDSuffixHex = "18"
+)
+
 func Unquote(data []byte) string {
 	return strings.Trim(string(data), "\"")
 }
 
 func Quote(s string) []byte {
 	return []byte("\"" + s + "\"")
+}
+
+func DeviceIDFromBytes(b [DeviceIDLen]byte) DeviceID {
+	return DeviceID(hex.EncodeToString(b[:]))
+}
+
+func DeviceIDFromSlice(b []byte) (DeviceID, error) {
+	if len(b) != DeviceIDLen {
+		return "", fmt.Errorf("invalid byte slice for DeviceID: len == %d, expected %d", len(b), DeviceIDLen)
+	}
+	var x [DeviceIDLen]byte
+	copy(x[:], b)
+	return DeviceIDFromBytes(x), nil
+}
+
+func DeviceIDFromString(s string) (DeviceID, error) {
+	if len(s) != hex.EncodedLen(DeviceIDLen) {
+		return "", fmt.Errorf("Bad Device ID length: %d", len(s))
+	}
+	suffix := s[len(s)-2:]
+	if suffix != DeviceIDSuffixHex {
+		return "", fmt.Errorf("Bad suffix byte: %s", suffix)
+	}
+	return DeviceID(s), nil
+}
+
+func (d DeviceID) String() string {
+	return string(d)
+}
+
+func (d DeviceID) IsNil() bool {
+	return len(d) == 0
+}
+
+func (d DeviceID) Exists() bool {
+	return !d.IsNil()
 }
 
 func UIDFromString(s string) (UID, error) {

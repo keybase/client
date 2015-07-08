@@ -4,6 +4,7 @@ import (
 	"errors"
 
 	"github.com/keybase/client/go/libkb"
+	keybase1 "github.com/keybase/client/protocol/go"
 )
 
 type DeviceRegisterArgs struct {
@@ -14,7 +15,7 @@ type DeviceRegisterArgs struct {
 
 type DeviceRegister struct {
 	args     *DeviceRegisterArgs
-	deviceID libkb.DeviceID
+	deviceID keybase1.DeviceID
 	libkb.Contextified
 }
 
@@ -59,7 +60,7 @@ func (d *DeviceRegister) Run(ctx *Context) error {
 	d.G().Log.Debug("Device ID:     %s", d.deviceID)
 
 	if wr := d.G().Env.GetConfigWriter(); wr != nil {
-		if err := wr.SetDeviceID(&d.deviceID); err != nil {
+		if err := wr.SetDeviceID(d.deviceID); err != nil {
 			return err
 		}
 		if err := wr.Write(); err != nil {
@@ -71,6 +72,6 @@ func (d *DeviceRegister) Run(ctx *Context) error {
 	return nil
 }
 
-func (d *DeviceRegister) DeviceID() libkb.DeviceID {
+func (d *DeviceRegister) DeviceID() keybase1.DeviceID {
 	return d.deviceID
 }

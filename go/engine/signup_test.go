@@ -8,7 +8,7 @@ import (
 )
 
 func AssertDeviceID(g *libkb.GlobalContext) (err error) {
-	if g.Env.GetDeviceID() == nil {
+	if g.Env.GetDeviceID().IsNil() {
 		err = fmt.Errorf("Device ID should not have been reset!")
 	}
 	return

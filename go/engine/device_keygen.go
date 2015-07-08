@@ -4,11 +4,12 @@ import (
 	"fmt"
 
 	"github.com/keybase/client/go/libkb"
+	keybase1 "github.com/keybase/client/protocol/go"
 )
 
 type DeviceKeygenArgs struct {
 	Me         *libkb.User
-	DeviceID   libkb.DeviceID
+	DeviceID   keybase1.DeviceID
 	DeviceName string
 	Lks        *libkb.LKSec
 }
@@ -235,7 +236,7 @@ func (e *DeviceKeygen) pushLKS(ctx *Context) {
 	}
 
 	// send it to api server
-	e.pushErr = libkb.PostDeviceLKS(ctx.LoginContext, e.args.DeviceID.String(), libkb.DeviceTypeDesktop, serverHalf, e.args.Lks.Generation(), chr, chrk)
+	e.pushErr = libkb.PostDeviceLKS(ctx.LoginContext, e.args.DeviceID, libkb.DeviceTypeDesktop, serverHalf, e.args.Lks.Generation(), chr, chrk)
 	if e.pushErr != nil {
 		return
 	}
@@ -262,7 +263,7 @@ func (e *DeviceKeygen) newNaclArg(ctx *Context, gen libkb.NaclGenerator, expire 
 func (e *DeviceKeygen) device() *libkb.Device {
 	s := libkb.DeviceStatusActive
 	return &libkb.Device{
-		ID:          e.args.DeviceID.String(),
+		ID:          e.args.DeviceID,
 		Description: &e.args.DeviceName,
 		Type:        libkb.DeviceTypeDesktop,
 		Status:      &s,

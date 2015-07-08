@@ -111,7 +111,7 @@ func (e *LoginEngine) postLogin(ctx *Context, lctx libkb.LoginContext) error {
 		return err
 	}
 
-	lctx.LocalSession().SetDeviceProvisioned(e.G().Env.GetDeviceID().String())
+	lctx.LocalSession().SetDeviceProvisioned(e.G().Env.GetDeviceID())
 
 	return nil
 

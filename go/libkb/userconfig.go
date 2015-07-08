@@ -17,21 +17,19 @@ type UserConfig struct {
 
 	importedID       keybase1.UID
 	importedSalt     []byte
-	importedDeviceID *DeviceID
+	importedDeviceID keybase1.DeviceID
 }
 
 //==================================================================
 
-func (u UserConfig) GetUID() keybase1.UID { return u.importedID }
-func (u UserConfig) GetUsername() string  { return u.Name }
-func (u UserConfig) GetSalt() []byte      { return u.importedSalt }
-func (u UserConfig) GetDeviceID() (ret *DeviceID) {
-	return u.importedDeviceID
-}
+func (u UserConfig) GetUID() keybase1.UID           { return u.importedID }
+func (u UserConfig) GetUsername() string            { return u.Name }
+func (u UserConfig) GetSalt() []byte                { return u.importedSalt }
+func (u UserConfig) GetDeviceID() keybase1.DeviceID { return u.importedDeviceID }
 
 //==================================================================
 
-func NewUserConfig(id keybase1.UID, name string, salt []byte, dev *DeviceID) *UserConfig {
+func NewUserConfig(id keybase1.UID, name string, salt []byte, dev keybase1.DeviceID) *UserConfig {
 	ret := &UserConfig{
 		ID:               id.String(),
 		Name:             name,
@@ -41,7 +39,7 @@ func NewUserConfig(id keybase1.UID, name string, salt []byte, dev *DeviceID) *Us
 		importedSalt:     salt,
 		importedDeviceID: dev,
 	}
-	if dev != nil {
+	if dev.Exists() {
 		tmp := dev.String()
 		ret.Device = &tmp
 	}
@@ -60,7 +58,7 @@ func (u *UserConfig) Import() (err error) {
 		return
 	}
 	if u.Device != nil {
-		if u.importedDeviceID, err = ImportDeviceID(*u.Device); err != nil {
+		if u.importedDeviceID, err = keybase1.DeviceIDFromString(*u.Device); err != nil {
 			return
 		}
 	}
@@ -86,10 +84,10 @@ func ImportUserConfigFromJSONWrapper(jw *jsonw.Wrapper) (ret *UserConfig, err er
 
 //==================================================================
 
-func (u *UserConfig) SetDevice(d *DeviceID) {
+func (u *UserConfig) SetDevice(d keybase1.DeviceID) {
 	u.importedDeviceID = d
 	var s *string
-	if d != nil {
+	if d.Exists() {
 		tmp := d.String()
 		s = &tmp
 	}

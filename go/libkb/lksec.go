@@ -85,7 +85,7 @@ func (s *LKSec) Load(lctx LoginContext) error {
 	if len(s.serverHalf) == 0 {
 		s.G().Log.Debug("| Fetching secret key")
 		devid := s.G().Env.GetDeviceID()
-		if devid == nil {
+		if devid.IsNil() {
 			return fmt.Errorf("no device id set")
 		}
 
@@ -172,7 +172,7 @@ func (s *LKSec) fsecret() (res [32]byte) {
 	return res
 }
 
-func (s *LKSec) apiServerHalf(lctx LoginContext, devid *DeviceID) error {
+func (s *LKSec) apiServerHalf(lctx LoginContext, devid keybase1.DeviceID) error {
 	var err error
 	var dev DeviceKey
 	if lctx != nil {

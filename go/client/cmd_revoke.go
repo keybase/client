@@ -17,7 +17,7 @@ type CmdRevoke struct {
 
 func (c *CmdRevoke) ParseArgv(ctx *cli.Context) error {
 	if len(ctx.Args()) != 1 {
-		return fmt.Errorf("revoke takes exactly one key or device ID")
+		return fmt.Errorf("revoke takes exactly one key ID")
 	}
 	c.id = ctx.Args()[0]
 	return nil
@@ -43,7 +43,7 @@ func (c *CmdRevoke) RunClient() (err error) {
 }
 
 func (c *CmdRevoke) Run() error {
-	eng := engine.NewRevokeEngine(c.id, engine.RevokeKey, G)
+	eng := engine.NewRevokeKeyEngine(c.id, G)
 	ctx := engine.Context{
 		LogUI:    GlobUI.GetLogUI(),
 		SecretUI: GlobUI.GetSecretUI(),

@@ -58,7 +58,8 @@ func TestCreateIds(t *testing.T) {
 	// fake an entire UserConfig. Most of these fields won't be used in this test, so it's
 	// ok to give empty UIDs/Salts.
 	uid, _ := keybase1.UIDFromString("00000000000000000000000000000019")
-	G.Env.GetConfigWriter().SetUserConfig(NewUserConfig(uid, "foo", []byte{}, nil), true)
+	var nilDeviceID keybase1.DeviceID
+	G.Env.GetConfigWriter().SetUserConfig(NewUserConfig(uid, "foo", []byte{}, nilDeviceID), true)
 
 	for _, test := range cidTests {
 		arg := &PGPGenArg{PrimaryBits: 1024, SubkeyBits: 1024, PGPUids: test.pgpUIDArg, NoDefPGPUid: test.noDefArg}

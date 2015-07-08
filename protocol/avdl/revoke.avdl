@@ -4,6 +4,6 @@ protocol revoke {
 	import idl "common.avdl";
 
 	void revokeKey(int sessionID, string id);
-	void revokeDevice(int sessionID, string id);
+	void revokeDevice(int sessionID, DeviceID id);
 	void revokeSigs(int sessionID, array<SigID> ids, array<int> seqnos);
 }

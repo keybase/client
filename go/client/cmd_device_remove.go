@@ -12,14 +12,18 @@ import (
 )
 
 type CmdDeviceRemove struct {
-	id string
+	id keybase1.DeviceID
 }
 
 func (c *CmdDeviceRemove) ParseArgv(ctx *cli.Context) error {
 	if len(ctx.Args()) != 1 {
 		return fmt.Errorf("device remove takes exactly one key or device ID")
 	}
-	c.id = ctx.Args()[0]
+	id, err := keybase1.DeviceIDFromString(ctx.Args()[0])
+	if err != nil {
+		return err
+	}
+	c.id = id
 	return nil
 }
 
@@ -43,7 +47,7 @@ func (c *CmdDeviceRemove) RunClient() (err error) {
 }
 
 func (c *CmdDeviceRemove) Run() error {
-	eng := engine.NewRevokeEngine(c.id, engine.RevokeDevice, G)
+	eng := engine.NewRevokeDeviceEngine(c.id, G)
 	ctx := engine.Context{
 		LogUI:    GlobUI.GetLogUI(),
 		SecretUI: GlobUI.GetSecretUI(),

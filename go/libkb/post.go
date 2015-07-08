@@ -168,7 +168,7 @@ func CheckPostedViaSigID(sigID keybase1.SigID) (found bool, status keybase1.Proo
 	return rfound, keybase1.ProofStatus(rstatus), rerr
 }
 
-func PostDeviceLKS(lctx LoginContext, deviceID, deviceType string, serverHalf []byte,
+func PostDeviceLKS(lctx LoginContext, deviceID keybase1.DeviceID, deviceType string, serverHalf []byte,
 	ppGen PassphraseGeneration,
 	clientHalfRecovery string, clientHalfRecoveryKID KID) error {
 	if len(serverHalf) == 0 {
@@ -178,7 +178,7 @@ func PostDeviceLKS(lctx LoginContext, deviceID, deviceType string, serverHalf []
 		Endpoint:    "device/update",
 		NeedSession: true,
 		Args: HTTPArgs{
-			"device_id":       S{Val: deviceID},
+			"device_id":       S{Val: deviceID.String()},
 			"type":            S{Val: deviceType},
 			"lks_server_half": S{Val: hex.EncodeToString(serverHalf)},
 			"ppgen":           I{Val: int(ppGen)},

@@ -43,7 +43,7 @@ func (n NullConfiguration) GetDaemonPort() (int, bool)                    { retu
 func (n NullConfiguration) GetStandalone() (bool, bool)                   { return false, false }
 func (n NullConfiguration) GetLocalRPCDebug() string                      { return "" }
 func (n NullConfiguration) GetTimers() string                             { return "" }
-func (n NullConfiguration) GetDeviceID() *DeviceID                        { return nil }
+func (n NullConfiguration) GetDeviceID() keybase1.DeviceID                { return "" }
 func (n NullConfiguration) GetProxyCACerts() ([]string, error)            { return nil, nil }
 func (n NullConfiguration) GetAutoFork() (bool, bool)                     { return false, false }
 func (n NullConfiguration) GetDevelMode() (bool, bool)                    { return false, false }
@@ -639,7 +639,7 @@ func (e *Env) GetTimers() string {
 	)
 }
 
-func (e *Env) GetDeviceID() (ret *DeviceID) {
+func (e *Env) GetDeviceID() keybase1.DeviceID {
 	return e.config.GetDeviceID()
 }
 

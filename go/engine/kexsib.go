@@ -15,7 +15,7 @@ type KexSib struct {
 	engctx       *Context
 	deviceSibkey libkb.GenericKey
 	sigKey       libkb.GenericKey
-	devidY       libkb.DeviceID
+	devidY       keybase1.DeviceID
 	sec          *kex.Secret
 }
 
@@ -62,10 +62,10 @@ func (k *KexSib) Run(ctx *Context) error {
 	}
 
 	dp := k.G().Env.GetDeviceID()
-	if dp == nil {
+	if dp.IsNil() {
 		return libkb.ErrNoDevice
 	}
-	k.deviceID = *dp
+	k.deviceID = dp
 	k.G().Log.Debug("device id: %s", k.deviceID)
 
 	if k.user.GetComputedKeyFamily() == nil {
@@ -99,7 +99,8 @@ func (k *KexSib) Run(ctx *Context) error {
 	}
 
 	k.G().Log.Debug("KexSib: starting receive loop")
-	m := kex.NewMeta(k.user.GetUID(), k.sec.StrongID(), libkb.DeviceID{}, k.deviceID, kex.DirectionYtoX)
+	var nilDeviceID keybase1.DeviceID
+	m := kex.NewMeta(k.user.GetUID(), k.sec.StrongID(), nilDeviceID, k.deviceID, kex.DirectionYtoX)
 	err = k.loopReceives(ctx, m, k.sec)
 	if err != nil {
 		k.G().Log.Warning("Error in KEX receive: %s", err)
@@ -108,7 +109,8 @@ func (k *KexSib) Run(ctx *Context) error {
 }
 
 func (k *KexSib) Cancel() error {
-	m := kex.NewMeta(k.user.GetUID(), k.sec.StrongID(), libkb.DeviceID{}, k.deviceID, kex.DirectionYtoX)
+	var nilDeviceID keybase1.DeviceID
+	m := kex.NewMeta(k.user.GetUID(), k.sec.StrongID(), nilDeviceID, k.deviceID, kex.DirectionYtoX)
 	return k.cancel(m)
 }
 

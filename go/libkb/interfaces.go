@@ -113,7 +113,7 @@ type ConfigReader interface {
 	GetStandalone() (bool, bool)
 	GetLocalRPCDebug() string
 	GetTimers() string
-	GetDeviceID() *DeviceID
+	GetDeviceID() keybase1.DeviceID
 	GetUsername() string
 	GetAllUsernames() (current string, others []string, err error)
 	GetUID() keybase1.UID
@@ -126,7 +126,7 @@ type ConfigReader interface {
 type ConfigWriter interface {
 	SetUserConfig(cfg *UserConfig, overwrite bool) error
 	SwitchUser(un string) error
-	SetDeviceID(*DeviceID) error
+	SetDeviceID(keybase1.DeviceID) error
 	SetStringAtPath(string, string) error
 	SetBoolAtPath(string, bool) error
 	SetIntAtPath(string, int) error

@@ -227,7 +227,7 @@ func (f JSONConfigFile) GetAllUsernames() (current string, others []string, err 
 }
 
 // SetDeviceID sets the device field of the UserConfig object
-func (f *JSONConfigFile) SetDeviceID(did *DeviceID) (err error) {
+func (f *JSONConfigFile) SetDeviceID(did keybase1.DeviceID) (err error) {
 	f.userConfigWrapper.Lock()
 	defer f.userConfigWrapper.Unlock()
 
@@ -382,7 +382,7 @@ func (f JSONConfigFile) GetUID() (ret keybase1.UID) {
 	}
 	return ret
 }
-func (f JSONConfigFile) GetDeviceID() (ret *DeviceID) {
+func (f JSONConfigFile) GetDeviceID() (ret keybase1.DeviceID) {
 	if uc, _ := f.GetUserConfig(); uc != nil {
 		ret = uc.GetDeviceID()
 	}

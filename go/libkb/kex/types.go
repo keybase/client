@@ -63,15 +63,15 @@ type Meta struct {
 	UID       keybase1.UID
 	WeakID    WeakID   `json:"w"` // `w` in doc
 	StrongID  StrongID `json:"I"` // `I` in doc
-	Sender    libkb.DeviceID
-	Receiver  libkb.DeviceID
+	Sender    keybase1.DeviceID
+	Receiver  keybase1.DeviceID
 	Seqno     int
 	Direction Direction `json:"dir"`
 }
 
 // NewMeta creates a new Meta object.  Its main utility is
 // creating the WeakID based off of the StrongID.
-func NewMeta(uid keybase1.UID, strong StrongID, sender, receiver libkb.DeviceID, dir Direction) *Meta {
+func NewMeta(uid keybase1.UID, strong StrongID, sender, receiver keybase1.DeviceID, dir Direction) *Meta {
 	m := &Meta{
 		UID:       uid,
 		StrongID:  strong,
@@ -94,7 +94,7 @@ func (m *Meta) Swap() {
 type Handler interface {
 	StartKexSession(m *Meta, id StrongID) error
 	StartReverseKexSession(m *Meta) error
-	Hello(m *Meta, devID libkb.DeviceID, devKeyID libkb.KID) error
+	Hello(m *Meta, devID keybase1.DeviceID, devKeyID libkb.KID) error
 	PleaseSign(m *Meta, eddsa libkb.NaclSigningKeyPublic, sig, devType, devDesc string) error
 	Done(m *Meta) error
 	Cancel(m *Meta) error

@@ -31,7 +31,7 @@ type DeviceKey struct {
 	LksServerHalf string `json:"lks_server_half"`
 }
 
-type DeviceKeyMap map[string]DeviceKey
+type DeviceKeyMap map[keybase1.DeviceID]DeviceKey
 
 type ServerPrivateKeys struct {
 	Status      APIStatus           `json:"status"`
@@ -155,11 +155,11 @@ func (k *ServerPrivateKey) FindActiveKey(ckf *ComputedKeyFamily) (ret *SKB, err 
 	return packet.ToSKB()
 }
 
-func (ss *SecretSyncer) FindDevice(id *DeviceID) (DeviceKey, error) {
+func (ss *SecretSyncer) FindDevice(id keybase1.DeviceID) (DeviceKey, error) {
 	if ss.keys == nil {
 		return DeviceKey{}, fmt.Errorf("No device found for ID = %s", id)
 	}
-	dev, ok := ss.keys.Devices[id.String()]
+	dev, ok := ss.keys.Devices[id]
 	if !ok {
 		return DeviceKey{}, fmt.Errorf("No device found for ID = %s", id)
 	}

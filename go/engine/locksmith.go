@@ -500,14 +500,9 @@ func (d *Locksmith) deviceSignPGPNext(ctx *Context, pgpk libkb.GenericKey) error
 	return nil
 }
 
-func (d *Locksmith) deviceSignExistingDevice(ctx *Context, existingID, existingName, newDevName, newDevType string) error {
+func (d *Locksmith) deviceSignExistingDevice(ctx *Context, existingID keybase1.DeviceID, existingName, newDevName, newDevType string) error {
 	ctx.LogUI.Debug("device sign with existing device [%s]", existingID)
 	ctx.LogUI.Debug("new device name: %s", newDevName)
-
-	dst, err := libkb.ImportDeviceID(existingID)
-	if err != nil {
-		return err
-	}
 
 	tk, err := d.ppStream(ctx)
 	if err != nil {
@@ -516,7 +511,7 @@ func (d *Locksmith) deviceSignExistingDevice(ctx *Context, existingID, existingN
 
 	kargs := &KexFwdArgs{
 		User:    d.user,
-		Dst:     *dst,
+		Dst:     existingID,
 		DstName: existingName,
 		DevType: newDevType,
 		DevDesc: newDevName,

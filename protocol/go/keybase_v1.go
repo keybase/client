@@ -37,6 +37,7 @@ type PGPIdentity struct {
 	Email    string `codec:"email" json:"email"`
 }
 
+type DeviceID string
 type PublicKey struct {
 	KID               string        `codec:"KID" json:"KID"`
 	PGPFingerprint    string        `codec:"PGPFingerprint" json:"PGPFingerprint"`
@@ -45,7 +46,7 @@ type PublicKey struct {
 	IsEldest          bool          `codec:"isEldest" json:"isEldest"`
 	IsWeb             bool          `codec:"isWeb" json:"isWeb"`
 	ParentID          string        `codec:"parentID" json:"parentID"`
-	DeviceID          string        `codec:"deviceID" json:"deviceID"`
+	DeviceID          DeviceID      `codec:"deviceID" json:"deviceID"`
 	DeviceDescription string        `codec:"deviceDescription" json:"deviceDescription"`
 	CTime             int64         `codec:"cTime" json:"cTime"`
 	ETime             int64         `codec:"eTime" json:"eTime"`
@@ -58,11 +59,11 @@ type User struct {
 }
 
 type Device struct {
-	Type     string `codec:"type" json:"type"`
-	Name     string `codec:"name" json:"name"`
-	DeviceID string `codec:"deviceID" json:"deviceID"`
-	CTime    int64  `codec:"cTime" json:"cTime"`
-	MTime    int64  `codec:"mTime" json:"mTime"`
+	Type     string   `codec:"type" json:"type"`
+	Name     string   `codec:"name" json:"name"`
+	DeviceID DeviceID `codec:"deviceID" json:"deviceID"`
+	CTime    int64    `codec:"cTime" json:"cTime"`
+	MTime    int64    `codec:"mTime" json:"mTime"`
 }
 
 type Stream struct {
@@ -1157,7 +1158,7 @@ const (
 
 type DeviceSigner struct {
 	Kind       DeviceSignerKind `codec:"kind" json:"kind"`
-	DeviceID   *string          `codec:"deviceID,omitempty" json:"deviceID,omitempty"`
+	DeviceID   *DeviceID        `codec:"deviceID,omitempty" json:"deviceID,omitempty"`
 	DeviceName *string          `codec:"deviceName,omitempty" json:"deviceName,omitempty"`
 }
 
@@ -2155,8 +2156,8 @@ type RevokeKeyArg struct {
 }
 
 type RevokeDeviceArg struct {
-	SessionID int    `codec:"sessionID" json:"sessionID"`
-	Id        string `codec:"id" json:"id"`
+	SessionID int      `codec:"sessionID" json:"sessionID"`
+	Id        DeviceID `codec:"id" json:"id"`
 }
 
 type RevokeSigsArg struct {

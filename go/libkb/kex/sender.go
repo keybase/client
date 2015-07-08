@@ -4,6 +4,7 @@ import (
 	"encoding/hex"
 
 	"github.com/keybase/client/go/libkb"
+	keybase1 "github.com/keybase/client/protocol/go"
 )
 
 // Sender is an implementation of the kex Handler interface that
@@ -36,7 +37,7 @@ func (s *Sender) StartReverseKexSession(m *Meta) error {
 }
 
 // Hello sends the Hello message to the server.
-func (s *Sender) Hello(m *Meta, devID libkb.DeviceID, devKeyID libkb.KID) error {
+func (s *Sender) Hello(m *Meta, devID keybase1.DeviceID, devKeyID libkb.KID) error {
 	mb := &Body{Name: HelloMsg, Args: MsgArgs{DeviceID: devID, DevKeyID: devKeyID}}
 	return s.send(m, mb)
 }

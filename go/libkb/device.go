@@ -1,9 +1,7 @@
 package libkb
 
 import (
-	"encoding/hex"
-	"fmt"
-
+	keybase1 "github.com/keybase/client/protocol/go"
 	jsonw "github.com/keybase/go-jsonw"
 )
 
@@ -12,53 +10,14 @@ const (
 	DeviceIDSuffix = 0x18
 )
 
-type DeviceID [DeviceIDLen]byte
-
-func (d DeviceID) String() string {
-	return hex.EncodeToString(d[:])
-}
-
-func NewDeviceID() (id DeviceID, err error) {
+func NewDeviceID() (keybase1.DeviceID, error) {
 	var b []byte
-	b, err = RandBytes(DeviceIDLen)
+	b, err := RandBytes(DeviceIDLen)
 	if err != nil {
-		return id, err
+		return "", err
 	}
 	b[DeviceIDLen-1] = DeviceIDSuffix
-	copy(id[:], b)
-	return id, nil
-}
-
-func ImportDeviceID(s string) (d *DeviceID, err error) {
-	if len(s) != 2*DeviceIDLen {
-		err = fmt.Errorf("Bad Device ID length: %d", len(s))
-		return
-	}
-	var tmp []byte
-	tmp, err = hex.DecodeString(s)
-	if err != nil {
-		return
-	}
-
-	if c := tmp[DeviceIDLen-1]; c != DeviceIDSuffix {
-		err = fmt.Errorf("Bad suffix byte: %02x", c)
-		return
-	}
-
-	var ret DeviceID
-	copy(ret[:], tmp)
-	d = &ret
-	return
-}
-
-// UnmarshalJSON implements the json.Unmarshaler interface.
-func (d *DeviceID) UnmarshalJSON(b []byte) error {
-	v, err := ImportDeviceID(Unquote(b))
-	if err != nil {
-		return err
-	}
-	*d = *v
-	return nil
+	return keybase1.DeviceIDFromSlice(b)
 }
 
 type DeviceStatus struct {
@@ -68,12 +27,11 @@ type DeviceStatus struct {
 }
 
 type Device struct {
-	// TODO: Store this as a DeviceID instead.
-	ID          string  `json:"id"`
-	Type        string  `json:"type"`
-	Kid         KID     `json:"kid,omitempty"`
-	Description *string `json:"description,omitempty"`
-	Status      *int    `json:"status,omitempty"`
+	ID          keybase1.DeviceID `json:"id"`
+	Type        string            `json:"type"`
+	Kid         KID               `json:"kid,omitempty"`
+	Description *string           `json:"description,omitempty"`
+	Status      *int              `json:"status,omitempty"`
 }
 
 // IsWeb returns true if the device is a Web pseudo-device
@@ -87,7 +45,7 @@ func NewWebDevice() (ret *Device) {
 	} else {
 		s := DeviceStatusActive
 		ret = &Device{
-			ID:     did.String(),
+			ID:     did,
 			Type:   DeviceTypeWeb,
 			Status: &s,
 		}

@@ -21,7 +21,7 @@ type Session struct {
 	inFile   bool
 	loaded   bool
 	checked  bool
-	deviceID string
+	deviceID keybase1.DeviceID
 	valid    bool
 	uid      keybase1.UID
 	username *string
@@ -53,10 +53,10 @@ func (s *Session) IsLoggedInAndProvisioned() bool {
 		return false
 	}
 	envid := s.G().Env.GetDeviceID()
-	if envid == nil {
+	if envid.IsNil() {
 		return false
 	}
-	if s.deviceID != envid.String() {
+	if s.deviceID != envid {
 		return false
 	}
 	return true
@@ -122,19 +122,19 @@ func (s *Session) SetCsrf(t string) {
 	s.SetDirty()
 }
 
-func (s *Session) SetDeviceProvisioned(devid string) {
+func (s *Session) SetDeviceProvisioned(devid keybase1.DeviceID) {
 	s.G().Log.Debug("Local Session:  setting provisioned device id: %s", devid)
 	s.deviceID = devid
 	if s.file == nil {
 		return
 	}
-	s.GetDictionary().SetKey("device_provisioned", jsonw.NewString(devid))
+	s.GetDictionary().SetKey("device_provisioned", jsonw.NewString(devid.String()))
 	s.SetDirty()
 }
 
 func (s *Session) isConfigLoggedIn() bool {
 	reader := s.G().Env.GetConfig()
-	return reader.GetUsername() != "" && reader.GetDeviceID() != nil && reader.GetUID().Exists()
+	return reader.GetUsername() != "" && reader.GetDeviceID().Exists() && reader.GetUID().Exists()
 }
 
 // The session file can be out of sync with the config file, particularly when
@@ -187,18 +187,27 @@ func (s *Session) Load() error {
 				s.file.filename, tmp)
 			ok = false
 		}
+		var did keybase1.DeviceID
 		s.file.jw.AtKey("device_provisioned").GetStringVoid(&devid, &tmp)
 		if tmp != nil {
 			s.G().Log.Warning("Bad 'device_provisioned' value in session file %s: %s",
 				s.file.filename, tmp)
 			ok = false
+		} else {
+			var err error
+			did, err = keybase1.DeviceIDFromString(devid)
+			if err != nil {
+				s.G().Log.Warning("Bad 'device_provisioned' value in session file %s: %s (%s)", s.file.filename, err, devid)
+				ok = false
+
+			}
 		}
 		mtime, _ := s.file.jw.AtKey("mtime").GetInt64()
 		if ok {
 			s.token = token
 			s.csrf = csrf
 			s.inFile = true
-			s.deviceID = devid
+			s.deviceID = did
 			s.mtime = mtime
 		}
 	}

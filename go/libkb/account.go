@@ -206,15 +206,15 @@ func (a *Account) Keyring() (*SKBKeyringFile, error) {
 
 func (a *Account) getDeviceKey(ckf *ComputedKeyFamily, secretKeyType SecretKeyType) (GenericKey, error) {
 	did := a.G().Env.GetDeviceID()
-	if did == nil {
+	if did.IsNil() {
 		return nil, errors.New("Could not get device id")
 	}
 
 	switch secretKeyType {
 	case DeviceSigningKeyType:
-		return ckf.GetSibkeyForDevice(*did)
+		return ckf.GetSibkeyForDevice(did)
 	case DeviceEncryptionKeyType:
-		return ckf.GetEncryptionSubkeyForDevice(*did)
+		return ckf.GetEncryptionSubkeyForDevice(did)
 	default:
 		return nil, fmt.Errorf("Invalid type %v", secretKeyType)
 	}
@@ -324,7 +324,8 @@ func (a *Account) SaveState(sessionID, csrf, username string, uid keybase1.UID) 
 	if err != nil {
 		return err
 	}
-	if err := cw.SetUserConfig(NewUserConfig(uid, username, salt, nil), false); err != nil {
+	var nilDeviceID keybase1.DeviceID
+	if err := cw.SetUserConfig(NewUserConfig(uid, username, salt, nilDeviceID), false); err != nil {
 		return err
 	}
 	if err := cw.Write(); err != nil {
