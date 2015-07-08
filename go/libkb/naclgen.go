@@ -1,5 +1,9 @@
 package libkb
 
+import (
+	keybase1 "github.com/keybase/client/protocol/go"
+)
+
 type NaclKeyPair interface {
 	GenericKey
 }
@@ -12,8 +16,8 @@ type NaclKeyGenArg struct {
 	Generator   NaclGenerator
 	Me          *User
 	Sibkey      bool
-	ExpireIn    int // how long it lasts
-	EldestKeyID KID // the eldest KID for this epoch
+	ExpireIn    int          // how long it lasts
+	EldestKeyID keybase1.KID // the eldest KID for this epoch
 	LogUI       LogUI
 	Device      *Device
 	RevSig      string // optional reverse sig.  set to nil for autogenerate.
@@ -59,7 +63,7 @@ func (g *NaclKeyGen) GetKeyPair() NaclKeyPair {
 	return g.pair
 }
 
-func (g *NaclKeyGen) UpdateArg(signer GenericKey, eldestKID KID, sibkey bool, user *User) {
+func (g *NaclKeyGen) UpdateArg(signer GenericKey, eldestKID keybase1.KID, sibkey bool, user *User) {
 	g.arg.Signer = signer
 	g.arg.EldestKeyID = eldestKID
 	g.arg.Sibkey = sibkey

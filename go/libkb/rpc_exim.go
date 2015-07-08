@@ -290,9 +290,8 @@ func (f *FOKID) Export() (ret keybase1.FOKID) {
 		slc := (*f.Fp)[:]
 		ret.PGPFingerprint = &slc
 	}
-	if f != nil && f.Kid != nil {
-		tmp := []byte(f.Kid)
-		ret.Kid = &tmp
+	if f != nil && f.Kid.Exists() {
+		ret.Kid = &f.Kid
 	}
 	return
 }
@@ -539,7 +538,7 @@ func ExportPGPIdentity(identity *openpgp.Identity) keybase1.PGPIdentity {
 }
 
 func (bundle *PGPKeyBundle) Export() keybase1.PublicKey {
-	kid := bundle.GetKid().String()
+	kid := bundle.GetKid()
 	fingerprintStr := ""
 	identities := []keybase1.PGPIdentity{}
 	fingerprintStr = bundle.GetFingerprint().String()
@@ -565,8 +564,8 @@ func (ckf ComputedKeyFamily) Export() []keybase1.PublicKey {
 				identities = append(identities, ExportPGPIdentity(identity))
 			}
 		}
-		cki := ckf.cki.Infos[kid.ToFOKIDMapKey()]
-		deviceID := ckf.cki.KIDToDeviceID[kid.ToMapKey()]
+		cki := ckf.cki.Infos[KIDToFOKIDMapKey(kid)]
+		deviceID := ckf.cki.KIDToDeviceID[kid]
 		device := ckf.cki.Devices[deviceID]
 		deviceDescription := ""
 		if device != nil {
@@ -579,7 +578,7 @@ func (ckf ComputedKeyFamily) Export() []keybase1.PublicKey {
 			parentID = cki.Parent.String()
 		}
 		exportedKeys = append(exportedKeys, keybase1.PublicKey{
-			KID:               kid.String(),
+			KID:               kid,
 			PGPFingerprint:    fingerprintStr,
 			PGPIdentities:     identities,
 			IsSibkey:          cki.Sibkey,

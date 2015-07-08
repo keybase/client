@@ -15,7 +15,7 @@ type KexFwd struct {
 	args      *KexFwdArgs
 	secret    *kex.Secret
 	lks       *libkb.LKSec
-	xDevKeyID libkb.KID
+	xDevKeyID keybase1.KID
 }
 
 type KexFwdArgs struct {

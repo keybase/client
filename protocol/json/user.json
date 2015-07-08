@@ -37,13 +37,28 @@
     "typedef" : "string"
   }, {
     "type" : "record",
+    "name" : "DeviceID",
+    "fields" : [ ],
+    "typedef" : "string"
+  }, {
+    "type" : "record",
+    "name" : "SigID",
+    "fields" : [ ],
+    "typedef" : "string"
+  }, {
+    "type" : "record",
+    "name" : "KID",
+    "fields" : [ ],
+    "typedef" : "string"
+  }, {
+    "type" : "record",
     "name" : "FOKID",
     "fields" : [ {
       "name" : "pgpFingerprint",
       "type" : [ "null", "bytes" ]
     }, {
       "name" : "kid",
-      "type" : [ "null", "bytes" ]
+      "type" : [ "null", "KID" ]
     } ]
   }, {
     "type" : "record",
@@ -70,15 +85,10 @@
     } ]
   }, {
     "type" : "record",
-    "name" : "DeviceID",
-    "fields" : [ ],
-    "typedef" : "string"
-  }, {
-    "type" : "record",
     "name" : "PublicKey",
     "fields" : [ {
       "name" : "KID",
-      "type" : "string"
+      "type" : "KID"
     }, {
       "name" : "PGPFingerprint",
       "type" : "string"
@@ -155,11 +165,6 @@
       "name" : "fd",
       "type" : "int"
     } ]
-  }, {
-    "type" : "record",
-    "name" : "SigID",
-    "fields" : [ ],
-    "typedef" : "string"
   }, {
     "type" : "record",
     "name" : "Tracker",

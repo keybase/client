@@ -17,7 +17,7 @@
 
 @interface KBRFOKID : KBRObject
 @property NSData *pgpFingerprint;
-@property NSData *kid;
+@property NSString *kid;
 @end
 
 @interface KBRText : KBRObject
@@ -346,7 +346,7 @@ typedef NS_ENUM (NSInteger, KBRTrackStatus) {
 
 @interface KBRIdentifyKey : KBRObject
 @property NSData *pgpFingerprint;
-@property NSData *KID;
+@property NSString *KID;
 @property KBRTrackDiff *trackDiff;
 @end
 

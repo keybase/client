@@ -11,7 +11,7 @@ import (
 type AlgoType int
 
 type GenericKey interface {
-	GetKid() KID
+	GetKid() keybase1.KID
 	GetFingerprintP() *PGPFingerprint
 	GetAlgoType() AlgoType
 
@@ -34,7 +34,7 @@ type GenericKey interface {
 
 	// Decrypt the output of Encrypt above; provide the plaintext and also
 	// the KID of the key that sent the message (if applicable).
-	DecryptFromString(ciphertext string) (msg []byte, sender KID, err error)
+	DecryptFromString(ciphertext string) (msg []byte, sender keybase1.KID, err error)
 
 	ToSKB(gc *GlobalContext, ts *triplesec.Cipher) (*SKB, error)
 	ToLksSKB(lks *LKSec) (*SKB, error)
@@ -113,11 +113,7 @@ func ParseGenericKey(bundle string) (GenericKey, error) {
 		return ReadOneKeyFromString(bundle)
 	}
 	// NaCl key
-	kid, err := ImportKID(bundle)
-	if err != nil {
-		return nil, err
-	}
-	return ImportKeypairFromKID(kid)
+	return ImportKeypairFromKID(keybase1.KIDFromString(bundle))
 }
 
 func isPGPBundle(armored string) bool {

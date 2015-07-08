@@ -6,6 +6,7 @@ import (
 
 	"github.com/agl/ed25519"
 	"github.com/keybase/client/go/libkb"
+	keybase1 "github.com/keybase/client/protocol/go"
 	"golang.org/x/crypto/nacl/box"
 )
 
@@ -18,7 +19,7 @@ type DetKeyArgs struct {
 	SelfProof   bool
 	Me          *libkb.User
 	SigningKey  libkb.GenericKey
-	EldestKeyID libkb.KID
+	EldestKeyID keybase1.KID
 }
 
 type DetKeyEngine struct {

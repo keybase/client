@@ -12,7 +12,7 @@ import (
 
 type TypedChainLink interface {
 	GetRevocations() []keybase1.SigID
-	GetRevokeKids() []KID
+	GetRevokeKids() []keybase1.KID
 	insertIntoTable(tab *IdentityTable)
 	GetSigID() keybase1.SigID
 	GetArmoredSig() string
@@ -27,13 +27,13 @@ type TypedChainLink interface {
 	GetCTime() time.Time
 	GetETime() time.Time
 	GetPGPFingerprint() *PGPFingerprint
-	GetKid() KID
+	GetKid() keybase1.KID
 	GetFOKID() FOKID
 	IsInCurrentFamily(u *User) bool
 	GetUsername() string
 	GetUID() keybase1.UID
-	GetDelegatedKid() KID
-	GetParentKid() KID
+	GetDelegatedKid() keybase1.KID
+	GetParentKid() keybase1.KID
 	VerifyReverseSig(kf *KeyFamily) error
 	GetMerkleSeqno() int
 	GetDevice() *Device
@@ -62,8 +62,8 @@ func (g *GenericChainLink) ToDebugString() string {
 	return fmt.Sprintf("uid=%s, seq=%d, link=%s", g.Parent().uid, g.unpacked.seqno, g.id)
 }
 
-func (g *GenericChainLink) GetDelegatedKid() KID                 { return nil }
-func (g *GenericChainLink) GetParentKid() KID                    { return nil }
+func (g *GenericChainLink) GetDelegatedKid() (kid keybase1.KID)  { return }
+func (g *GenericChainLink) GetParentKid() (kid keybase1.KID)     { return }
 func (g *GenericChainLink) VerifyReverseSig(kf *KeyFamily) error { return nil }
 func (g *GenericChainLink) IsRevocationIsh() bool                { return false }
 func (g *GenericChainLink) GetRole() KeyRole                     { return DLGNone }
@@ -527,13 +527,13 @@ func (l *TrackChainLink) ToServiceBlocks() (ret []*ServiceBlock) {
 
 type SibkeyChainLink struct {
 	GenericChainLink
-	kid        KID
+	kid        keybase1.KID
 	device     *Device
 	reverseSig string
 }
 
 func ParseSibkeyChainLink(b GenericChainLink) (ret *SibkeyChainLink, err error) {
-	var kid KID
+	var kid keybase1.KID
 	var device *Device
 
 	if kid, err = GetKID(b.payloadJSON.AtPath("body.sibkey.kid")); err != nil {
@@ -558,11 +558,11 @@ func ParseSibkeyChainLink(b GenericChainLink) (ret *SibkeyChainLink, err error) 
 	return
 }
 
-func (s *SibkeyChainLink) GetDelegatedKid() KID    { return s.kid }
-func (s *SibkeyChainLink) GetRole() KeyRole        { return DLGSibkey }
-func (s *SibkeyChainLink) Type() string            { return SibkeyType }
-func (s *SibkeyChainLink) ToDisplayString() string { return s.kid.String() }
-func (s *SibkeyChainLink) GetDevice() *Device      { return s.device }
+func (s *SibkeyChainLink) GetDelegatedKid() keybase1.KID { return s.kid }
+func (s *SibkeyChainLink) GetRole() KeyRole              { return DLGSibkey }
+func (s *SibkeyChainLink) Type() string                  { return SibkeyType }
+func (s *SibkeyChainLink) ToDisplayString() string       { return s.kid.String() }
+func (s *SibkeyChainLink) GetDevice() *Device            { return s.device }
 func (s *SibkeyChainLink) insertIntoTable(tab *IdentityTable) {
 	tab.insertLink(s)
 }
@@ -619,12 +619,12 @@ func (s *SibkeyChainLink) VerifyReverseSig(kf *KeyFamily) (err error) {
 
 type SubkeyChainLink struct {
 	GenericChainLink
-	kid       KID
-	parentKid KID
+	kid       keybase1.KID
+	parentKid keybase1.KID
 }
 
 func ParseSubkeyChainLink(b GenericChainLink) (ret *SubkeyChainLink, err error) {
-	var kid, pkid KID
+	var kid, pkid keybase1.KID
 	if kid, err = GetKID(b.payloadJSON.AtPath("body.subkey.kid")); err != nil {
 		err = ChainLinkError{fmt.Sprintf("Can't get KID for subkey @%s: %s", b.ToDebugString(), err)}
 	} else if pkid, err = GetKID(b.payloadJSON.AtPath("body.subkey.parent_kid")); err != nil {
@@ -635,11 +635,11 @@ func ParseSubkeyChainLink(b GenericChainLink) (ret *SubkeyChainLink, err error) 
 	return
 }
 
-func (s *SubkeyChainLink) Type() string            { return SubkeyType }
-func (s *SubkeyChainLink) ToDisplayString() string { return s.kid.String() }
-func (s *SubkeyChainLink) GetRole() KeyRole        { return DLGSubkey }
-func (s *SubkeyChainLink) GetDelegatedKid() KID    { return s.kid }
-func (s *SubkeyChainLink) GetParentKid() KID       { return s.parentKid }
+func (s *SubkeyChainLink) Type() string                  { return SubkeyType }
+func (s *SubkeyChainLink) ToDisplayString() string       { return s.kid.String() }
+func (s *SubkeyChainLink) GetRole() KeyRole              { return DLGSubkey }
+func (s *SubkeyChainLink) GetDelegatedKid() keybase1.KID { return s.kid }
+func (s *SubkeyChainLink) GetParentKid() keybase1.KID    { return s.parentKid }
 func (s *SubkeyChainLink) insertIntoTable(tab *IdentityTable) {
 	tab.insertLink(s)
 }

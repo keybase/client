@@ -137,7 +137,7 @@ func NewNeedInputError(s string, a ...interface{}) AssertionParseError {
 //=============================================================================
 
 type WrongKidError struct {
-	wanted, got KID
+	wanted, got keybase1.KID
 }
 
 func (w WrongKidError) Error() string {
@@ -828,7 +828,7 @@ func (n NoUserConfigError) Error() string {
 //=============================================================================
 
 type InactiveKeyError struct {
-	kid KID
+	kid keybase1.KID
 }
 
 func (i InactiveKeyError) Error() string {
@@ -993,7 +993,7 @@ func (e ChainLinkKIDMismatchError) Error() string {
 //=============================================================================
 
 type UnknownSpecialKIDError struct {
-	k KID
+	k keybase1.KID
 }
 
 func (u UnknownSpecialKIDError) Error() string {

@@ -120,7 +120,7 @@ func TestIssue454(t *testing.T) {
 	}
 }
 
-func armorKey(t *testing.T, tc libkb.TestContext, email string) (libkb.PGPFingerprint, libkb.KID, string) {
+func armorKey(t *testing.T, tc libkb.TestContext, email string) (libkb.PGPFingerprint, keybase1.KID, string) {
 	bundle, err := tc.MakePGPKey(email)
 	if err != nil {
 		t.Fatal(err)

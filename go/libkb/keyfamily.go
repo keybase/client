@@ -35,13 +35,13 @@ type ComputedKeyInfo struct {
 	ETime int64 // In Seconds since the Epoch or 0 if none
 
 	// For subkeys, the KID of our parent (if valid)
-	Parent KID
+	Parent keybase1.KID
 
 	// For sibkeys, the KID of last-added subkey (if valid)
-	Subkey KID
+	Subkey keybase1.KID
 
-	// Map of SigID (as hex) -> KID
-	Delegations map[keybase1.SigID]KID
+	// Map of SigID -> KID
+	Delegations map[keybase1.SigID]keybase1.KID
 	DelegatedAt *KeybaseTime
 	RevokedAt   *KeybaseTime
 
@@ -73,7 +73,7 @@ type ComputedKeyInfos struct {
 	Devices map[keybase1.DeviceID]*Device
 
 	// Map of KID -> DeviceID (in hex)
-	KIDToDeviceID map[KIDMapKey]keybase1.DeviceID
+	KIDToDeviceID map[keybase1.KID]keybase1.DeviceID
 
 	// The last-added Web device, to figure out where the DetKey is.
 	WebDeviceID keybase1.DeviceID
@@ -90,10 +90,10 @@ type KeyFamily struct {
 	pgps []*PGPKeyBundle
 
 	// These fields are computed on the client side, so they can be trusted.
-	pgp2kid map[PGPFingerprintMapKey]KID
-	kid2pgp map[KIDMapKey]PGPFingerprint
+	pgp2kid map[PGPFingerprintMapKey]keybase1.KID
+	kid2pgp map[keybase1.KID]PGPFingerprint
 
-	AllKeys map[KIDMapKey]GenericKey
+	AllKeys map[keybase1.KID]GenericKey
 
 	Contextified
 }
@@ -127,7 +127,7 @@ func (cki ComputedKeyInfos) ShallowCopy() *ComputedKeyInfos {
 		Infos:         make(map[FOKIDMapKey]*ComputedKeyInfo, len(cki.Infos)),
 		Sigs:          make(map[keybase1.SigID]*ComputedKeyInfo, len(cki.Sigs)),
 		Devices:       make(map[keybase1.DeviceID]*Device, len(cki.Devices)),
-		KIDToDeviceID: make(map[KIDMapKey]keybase1.DeviceID, len(cki.KIDToDeviceID)),
+		KIDToDeviceID: make(map[keybase1.KID]keybase1.DeviceID, len(cki.KIDToDeviceID)),
 	}
 	for k, v := range cki.Infos {
 		ret.Infos[k] = v
@@ -153,7 +153,7 @@ func NewComputedKeyInfos() *ComputedKeyInfos {
 		Infos:         make(map[FOKIDMapKey]*ComputedKeyInfo),
 		Sigs:          make(map[keybase1.SigID]*ComputedKeyInfo),
 		Devices:       make(map[keybase1.DeviceID]*Device),
-		KIDToDeviceID: make(map[KIDMapKey]keybase1.DeviceID),
+		KIDToDeviceID: make(map[keybase1.KID]keybase1.DeviceID),
 	}
 }
 
@@ -164,7 +164,7 @@ func NewComputedKeyInfo(eldest, sibkey bool, status KeyStatus, ctime, etime int6
 		Status:      status,
 		CTime:       ctime,
 		ETime:       etime,
-		Delegations: make(map[keybase1.SigID]KID),
+		Delegations: make(map[keybase1.SigID]keybase1.KID),
 	}
 }
 
@@ -268,8 +268,8 @@ func ParseKeyFamily(jw *jsonw.Wrapper) (ret *KeyFamily, err error) {
 	}
 
 	kf := KeyFamily{
-		pgp2kid:      make(map[PGPFingerprintMapKey]KID),
-		kid2pgp:      make(map[KIDMapKey]PGPFingerprint),
+		pgp2kid:      make(map[PGPFingerprintMapKey]keybase1.KID),
+		kid2pgp:      make(map[keybase1.KID]PGPFingerprint),
 		Contextified: NewContextified(G),
 	}
 
@@ -281,13 +281,13 @@ func ParseKeyFamily(jw *jsonw.Wrapper) (ret *KeyFamily, err error) {
 	}
 
 	// Parse the keys, and collect the PGP keys to map their fingerprints.
-	kf.AllKeys = make(map[KIDMapKey]GenericKey)
+	kf.AllKeys = make(map[keybase1.KID]GenericKey)
 	for _, bundle := range rkf.AllBundles {
 		key, err := ParseGenericKey(bundle)
 		if err != nil {
 			return nil, err
 		}
-		kf.AllKeys[key.GetKid().ToMapKey()] = key
+		kf.AllKeys[key.GetKid()] = key
 		// Collect the PGP keys.
 		pgp, isPGP := key.(*PGPKeyBundle)
 		if isPGP {
@@ -300,7 +300,7 @@ func ParseKeyFamily(jw *jsonw.Wrapper) (ret *KeyFamily, err error) {
 		fp := p.GetFingerprint()
 		kid := p.GetKid()
 		kf.pgp2kid[fp.ToMapKey()] = kid
-		kf.kid2pgp[kid.ToMapKey()] = fp
+		kf.kid2pgp[kid] = fp
 	}
 
 	ret = &kf
@@ -313,22 +313,22 @@ func ParseKeyFamily(jw *jsonw.Wrapper) (ret *KeyFamily, err error) {
 func (kf KeyFamily) FindKeyWithFOKIDUnsafe(f FOKID) (key GenericKey, err error) {
 	var found bool
 	kid := f.Kid
-	if kid == nil && f.Fp != nil {
+	if kid.IsNil() && f.Fp != nil {
 		if kid, found = kf.pgp2kid[f.Fp.ToMapKey()]; !found {
 			err = KeyFamilyError{fmt.Sprintf("No KID for PGP fingerprint %s found", f.Fp.String())}
 			return
 		}
 	}
-	if kid == nil {
+	if kid.IsNil() {
 		err = KeyFamilyError{"Can't lookup key without a KID"}
 		return
 	}
 	return kf.FindKeyWithKIDUnsafe(kid)
 }
 
-func (kf KeyFamily) KIDToFOKID(k KID) FOKID {
+func (kf KeyFamily) KIDToFOKID(k keybase1.KID) FOKID {
 	ret := FOKID{Kid: k}
-	if fingerprint, ok := kf.kid2pgp[k.ToMapKey()]; ok {
+	if fingerprint, ok := kf.kid2pgp[k]; ok {
 		ret.Fp = &fingerprint
 	}
 	return ret
@@ -337,10 +337,10 @@ func (kf KeyFamily) KIDToFOKID(k KID) FOKID {
 // This function doesn't validate anything about the key it returns -- that key
 // could be expired or revoked. Most callers should prefer the FindActive*
 // methods on the ComputedKeyFamily.
-func (kf KeyFamily) FindKeyWithKIDUnsafe(kid KID) (GenericKey, error) {
-	key, ok := kf.AllKeys[kid.ToMapKey()]
+func (kf KeyFamily) FindKeyWithKIDUnsafe(kid keybase1.KID) (GenericKey, error) {
+	key, ok := kf.AllKeys[kid]
 	if !ok {
-		return nil, KeyFamilyError{fmt.Sprintf("No key found for %s", kid.String())}
+		return nil, KeyFamilyError{fmt.Sprintf("No key found for %s", kid)}
 	}
 	return key, nil
 }
@@ -394,8 +394,8 @@ func (ckf ComputedKeyFamily) FindActiveSibkeyAtTime(f FOKID, t time.Time) (key G
 // and finds the corresponding active encryption subkey in the current key family.  If for any reason
 // it cannot find the key, it will return an error saying why.  Otherwise, it will return
 // the key.  In this case either key is non-nil, or err is non-nil.
-func (ckf ComputedKeyFamily) FindActiveEncryptionSubkey(kid KID) (GenericKey, error) {
-	ki, err := ckf.getCkiIfActiveNow(kid.ToFOKID())
+func (ckf ComputedKeyFamily) FindActiveEncryptionSubkey(kid keybase1.KID) (GenericKey, error) {
+	ki, err := ckf.getCkiIfActiveNow(KIDToFOKID(kid))
 	if err != nil {
 		return nil, err
 	}
@@ -436,9 +436,9 @@ func (ckf *ComputedKeyFamily) Delegate(tcl TypedChainLink) (err error) {
 	kid := tcl.GetDelegatedKid()
 	sigid := tcl.GetSigID()
 	tm := TclToKeybaseTime(tcl)
-	fp := ckf.kf.kid2pgp[kid.ToMapKey()]
+	fp := ckf.kf.kid2pgp[kid]
 
-	if _, ok := ckf.kf.AllKeys[kid.ToMapKey()]; !ok {
+	if _, ok := ckf.kf.AllKeys[kid]; !ok {
 		return KeyFamilyError{fmt.Sprintf("Delegated KID %s is not in the key family", kid.String())}
 	}
 
@@ -448,9 +448,9 @@ func (ckf *ComputedKeyFamily) Delegate(tcl TypedChainLink) (err error) {
 
 // Delegate marks the given ComputedKeyInfos object that the given kid is now
 // delegated, as of time tm, in sigid, as signed by signingKid, etc.
-func (cki *ComputedKeyInfos) Delegate(kid KID, fingerprint *PGPFingerprint, tm *KeybaseTime, sigid keybase1.SigID, signingKid, parentKid KID, isSibkey bool, ctime, etime time.Time) (err error) {
+func (cki *ComputedKeyInfos) Delegate(kid keybase1.KID, fingerprint *PGPFingerprint, tm *KeybaseTime, sigid keybase1.SigID, signingKid, parentKid keybase1.KID, isSibkey bool, ctime, etime time.Time) (err error) {
 	G.Log.Debug("ComputeKeyInfos::Delegate To %s with %s at sig %s", kid.String(), signingKid, sigid.ToDisplayString(true))
-	key := kid.ToFOKIDMapKey()
+	key := KIDToFOKIDMapKey(kid)
 	info, found := cki.Infos[key]
 	if !found {
 		newInfo := NewComputedKeyInfo(false, false, KeyUncancelled, ctime.Unix(), etime.Unix())
@@ -471,9 +471,9 @@ func (cki *ComputedKeyInfos) Delegate(kid KID, fingerprint *PGPFingerprint, tm *
 
 	// If it's a subkey, make a pointer from it to its parent,
 	// and also from its parent to it.
-	if parentKid != nil {
+	if parentKid.Exists() {
 		info.Parent = parentKid
-		if parent, found := cki.Infos[parentKid.ToFOKIDMapKey()]; found {
+		if parent, found := cki.Infos[KIDToFOKIDMapKey(parentKid)]; found {
 			parent.Subkey = kid
 		}
 	}
@@ -507,9 +507,9 @@ func (ckf *ComputedKeyFamily) revokeSigs(sigs []keybase1.SigID, tcl TypedChainLi
 
 // revokeKids operates on the per-kid revocations in the given
 // TypedChainLink and applies them accordingly.
-func (ckf *ComputedKeyFamily) revokeKids(kids []KID, tcl TypedChainLink) (err error) {
+func (ckf *ComputedKeyFamily) revokeKids(kids []keybase1.KID, tcl TypedChainLink) (err error) {
 	for _, k := range kids {
-		if k != nil {
+		if k.Exists() {
 			if err = ckf.RevokeKid(k, tcl); err != nil {
 				return
 			}
@@ -529,8 +529,8 @@ func (ckf *ComputedKeyFamily) RevokeSig(sig keybase1.SigID, tcl TypedChainLink) 
 	return
 }
 
-func (ckf *ComputedKeyFamily) RevokeKid(kid KID, tcl TypedChainLink) (err error) {
-	if info, found := ckf.cki.Infos[kid.ToFOKIDMapKey()]; found {
+func (ckf *ComputedKeyFamily) RevokeKid(kid keybase1.KID, tcl TypedChainLink) (err error) {
+	if info, found := ckf.cki.Infos[KIDToFOKIDMapKey(kid)]; found {
 		info.Status = KeyRevoked
 		info.RevokedAt = TclToKeybaseTime(tcl)
 	}
@@ -544,7 +544,7 @@ func (ckf ComputedKeyFamily) FindKeybaseName(s string) bool {
 	kem := KeybaseEmailAddress(s)
 	for _, pgp := range ckf.kf.pgps {
 		kid := pgp.GetKid()
-		if info, found := ckf.cki.Infos[kid.ToFOKIDMapKey()]; !found {
+		if info, found := ckf.cki.Infos[KIDToFOKIDMapKey(kid)]; !found {
 			continue
 		} else if info.Status != KeyUncancelled || !info.Sibkey {
 			continue
@@ -564,14 +564,14 @@ func (kf *KeyFamily) LocalDelegate(key GenericKey) (err error) {
 		kf.pgp2kid[pgp.GetFingerprint().ToMapKey()] = pgp.GetKid()
 		kf.pgps = append(kf.pgps, pgp)
 	}
-	kf.AllKeys[key.GetKid().ToMapKey()] = key
+	kf.AllKeys[key.GetKid()] = key
 	return
 }
 
 // GetKeyRoleAtTime returns the KeyRole (sibkey/subkey/none), taking into
 // account whether the key has been cancelled at time t.
-func (ckf ComputedKeyFamily) GetKeyRoleAtTime(kid KID, t time.Time) (ret KeyRole) {
-	if info, err := ckf.getCkiIfActiveAtTime(kid.ToFOKID(), t); err != nil {
+func (ckf ComputedKeyFamily) GetKeyRoleAtTime(kid keybase1.KID, t time.Time) (ret KeyRole) {
+	if info, err := ckf.getCkiIfActiveAtTime(KIDToFOKID(kid), t); err != nil {
 		ret = DLGNone
 	} else if info.Sibkey {
 		ret = DLGSibkey
@@ -583,17 +583,13 @@ func (ckf ComputedKeyFamily) GetKeyRoleAtTime(kid KID, t time.Time) (ret KeyRole
 
 // GetKeyRole returns the KeyRole (sibkey/subkey/none), taking into account
 // whether the key has been cancelled.
-func (ckf ComputedKeyFamily) GetKeyRole(kid KID) (ret KeyRole) {
+func (ckf ComputedKeyFamily) GetKeyRole(kid keybase1.KID) (ret KeyRole) {
 	return ckf.GetKeyRoleAtTime(kid, time.Now())
 }
 
 // GetAllActiveSibkeys gets all active Sibkeys from given ComputedKeyFamily.
 func (ckf ComputedKeyFamily) GetAllActiveSibkeysAtTime(t time.Time) (ret []GenericKey) {
-	for mapKey, key := range ckf.kf.AllKeys {
-		kid, err := mapKey.ToKID()
-		if err != nil {
-			continue
-		}
+	for kid, key := range ckf.kf.AllKeys {
 		if ckf.GetKeyRoleAtTime(kid, t) == DLGSibkey && key != nil {
 			ret = append(ret, key)
 		}
@@ -607,11 +603,7 @@ func (ckf ComputedKeyFamily) GetAllActiveSibkeys() (ret []GenericKey) {
 }
 
 func (ckf ComputedKeyFamily) GetAllActiveSubkeysAtTime(t time.Time) (ret []GenericKey) {
-	for mapKey, key := range ckf.kf.AllKeys {
-		kid, err := mapKey.ToKID()
-		if err != nil {
-			continue
-		}
+	for kid, key := range ckf.kf.AllKeys {
 		if ckf.GetKeyRoleAtTime(kid, t) == DLGSubkey && key != nil {
 			ret = append(ret, key)
 		}
@@ -623,21 +615,21 @@ func (ckf ComputedKeyFamily) GetAllActiveSubkeys() (ret []GenericKey) {
 	return ckf.GetAllActiveSubkeysAtTime(time.Now())
 }
 
-func (ckf ComputedKeyFamily) GetAllActiveKeysForDevice(deviceID keybase1.DeviceID) ([]KID, error) {
+func (ckf ComputedKeyFamily) GetAllActiveKeysForDevice(deviceID keybase1.DeviceID) ([]keybase1.KID, error) {
 	_, deviceExists := ckf.cki.Devices[deviceID]
 	if !deviceExists {
 		return nil, fmt.Errorf("Device %s does not exist.", deviceID)
 	}
-	ret := []KID{}
+	var ret []keybase1.KID
 	// Find the sibkey(s) that belong to this device.
 	for _, sibkey := range ckf.GetAllActiveSibkeys() {
 		sibkeyKID := sibkey.GetKid()
-		if ckf.cki.KIDToDeviceID[sibkeyKID.ToMapKey()] == deviceID {
+		if ckf.cki.KIDToDeviceID[sibkeyKID] == deviceID {
 			ret = append(ret, sibkeyKID)
 			// For each sibkey we find, get all its subkeys too.
 			for _, subkey := range ckf.GetAllActiveSubkeys() {
 				subkeyKID := subkey.GetKid()
-				if ckf.cki.Infos[subkeyKID.ToFOKIDMapKey()].Parent.Eq(sibkeyKID) {
+				if ckf.cki.Infos[KIDToFOKIDMapKey(subkeyKID)].Parent.Equal(sibkeyKID) {
 					ret = append(ret, subkeyKID)
 				}
 			}
@@ -650,11 +642,7 @@ func (ckf ComputedKeyFamily) GetAllActiveKeysForDevice(deviceID keybase1.DeviceI
 // The key has to be in the server-given KeyFamily and also in our ComputedKeyFamily.
 // The former check is so that we can handle the case nuked sigchains.
 func (ckf ComputedKeyFamily) HasActiveKey() bool {
-	for k := range ckf.kf.AllKeys {
-		kid, err := k.ToKID()
-		if err != nil {
-			continue
-		}
+	for kid := range ckf.kf.AllKeys {
 		if ckf.GetKeyRole(kid) == DLGSibkey {
 			return true
 		}
@@ -694,7 +682,7 @@ func (ckf *ComputedKeyFamily) UpdateDevices(tcl TypedChainLink) (err error) {
 
 	G.Log.Debug("| Device ID=%s; KID=%s", did, kid.String())
 
-	var prevKid KID
+	var prevKid keybase1.KID
 	if existing, found := ckf.cki.Devices[did]; found {
 		G.Log.Debug("| merge with existing")
 		prevKid = existing.Kid
@@ -710,11 +698,11 @@ func (ckf *ComputedKeyFamily) UpdateDevices(tcl TypedChainLink) (err error) {
 	// that's fine for now.
 	if prevKid.IsValid() {
 		G.Log.Debug("| Clear out old key")
-		delete(ckf.cki.KIDToDeviceID, prevKid.ToMapKey())
+		delete(ckf.cki.KIDToDeviceID, prevKid)
 	}
 
 	if kid.IsValid() {
-		ckf.cki.KIDToDeviceID[kid.ToMapKey()] = did
+		ckf.cki.KIDToDeviceID[kid] = did
 	}
 
 	// Last-writer wins on the Web device
@@ -726,11 +714,11 @@ func (ckf *ComputedKeyFamily) UpdateDevices(tcl TypedChainLink) (err error) {
 	return
 }
 
-func (ckf *ComputedKeyFamily) getSibkeyKidForDevice(did keybase1.DeviceID) (KID, error) {
+func (ckf *ComputedKeyFamily) getSibkeyKidForDevice(did keybase1.DeviceID) (keybase1.KID, error) {
 	G.Log.Debug("+ getSibkeyKidForDevice(%v)", did)
 	G.Log.Debug("| Devices map: %+v", ckf.cki.Devices)
 
-	var kid KID
+	var kid keybase1.KID
 	device, found := ckf.cki.Devices[did]
 	if !found {
 		G.Log.Debug("device %s not found in cki.Devices", did)
@@ -749,9 +737,9 @@ func (ckf *ComputedKeyFamily) getSibkeyKidForDevice(did keybase1.DeviceID) (KID,
 // return nil if one isn't found, and set err for a real error. The sibkey should
 // be a signing key, not an encryption key of course.
 func (ckf *ComputedKeyFamily) GetSibkeyForDevice(did keybase1.DeviceID) (key GenericKey, err error) {
-	var kid KID
+	var kid keybase1.KID
 	kid, err = ckf.getSibkeyKidForDevice(did)
-	if kid != nil {
+	if kid.Exists() {
 		key, _, err = ckf.FindActiveSibkey(FOKID{Kid: kid})
 	}
 	return
@@ -779,14 +767,14 @@ func (ckf *ComputedKeyFamily) GetCurrentDevice(g *GlobalContext) (*Device, error
 // device.  Note that many devices might share an encryption public key but
 // might have different secret keys.
 func (ckf *ComputedKeyFamily) GetEncryptionSubkeyForDevice(did keybase1.DeviceID) (key GenericKey, err error) {
-	var kid KID
+	var kid keybase1.KID
 	if kid, err = ckf.getSibkeyKidForDevice(did); err != nil {
 		return
 	}
-	if kid == nil {
+	if kid.IsNil() {
 		return
 	}
-	if cki, found := ckf.cki.Infos[kid.ToFOKIDMapKey()]; !found {
+	if cki, found := ckf.cki.Infos[KIDToFOKIDMapKey(kid)]; !found {
 		return
 	} else if !cki.Subkey.IsValid() {
 		return
@@ -801,8 +789,8 @@ func (ckf *ComputedKeyFamily) GetDeviceForKey(key GenericKey) (ret *Device, err 
 	return ckf.getDeviceForKid(key.GetKid())
 }
 
-func (ckf *ComputedKeyFamily) getDeviceForKid(kid KID) (ret *Device, err error) {
-	if didString, found := ckf.cki.KIDToDeviceID[kid.ToMapKey()]; found {
+func (ckf *ComputedKeyFamily) getDeviceForKid(kid keybase1.KID) (ret *Device, err error) {
+	if didString, found := ckf.cki.KIDToDeviceID[kid]; found {
 		ret = ckf.cki.Devices[didString]
 	}
 	return
@@ -818,7 +806,7 @@ func (ckf *ComputedKeyFamily) IsDetKey(key GenericKey) (ret bool, err error) {
 	}
 
 	// Then see if the parent is a detkey and we're a subkey of it.
-	if info, found := ckf.cki.Infos[key.GetKid().ToFOKIDMapKey()]; found && info.Parent.IsValid() && !info.Sibkey {
+	if info, found := ckf.cki.Infos[KIDToFOKIDMapKey(key.GetKid())]; found && info.Parent.IsValid() && !info.Sibkey {
 		ret, err = ckf.isDetKeyHelper(info.Parent)
 	}
 	return
@@ -827,7 +815,7 @@ func (ckf *ComputedKeyFamily) IsDetKey(key GenericKey) (ret bool, err error) {
 // isDetKeyHelper looks at the given KID (in hex) and sees if it is marked as a
 // deterministic Key (if the IsWeb() flag is on).  It won't look up or down the
 // key graph.
-func (ckf *ComputedKeyFamily) isDetKeyHelper(kid KID) (ret bool, err error) {
+func (ckf *ComputedKeyFamily) isDetKeyHelper(kid keybase1.KID) (ret bool, err error) {
 	var dev *Device
 	if dev, err = ckf.getDeviceForKid(kid); err != nil {
 		return

@@ -328,8 +328,8 @@ func keyToProofJSON(newkey GenericKey, typ string, signingKey FOKID, revSig stri
 
 	// For subkeys let's say who our parent is.  In this case it's the signing key,
 	// though that can change in the future.
-	if typ == SubkeyType && signingKey.Kid != nil {
-		ret.SetKey("parent_kid", jsonw.NewString(signingKey.Kid.String()))
+	if typ == SubkeyType && signingKey.Kid.Exists() {
+		ret.SetKey("parent_kid", signingKey.Kid.ToJsonw())
 	}
 
 	ret.SetKey("kid", jsonw.NewString(newkey.GetKid().String()))
@@ -378,7 +378,7 @@ func (u *User) AuthenticationProof(key GenericKey, session string, ei int) (ret 
 	return
 }
 
-func (u *User) RevokeKeysProof(key GenericKey, kidsToRevoke []KID, deviceToDisable keybase1.DeviceID) (*jsonw.Wrapper, error) {
+func (u *User) RevokeKeysProof(key GenericKey, kidsToRevoke []keybase1.KID, deviceToDisable keybase1.DeviceID) (*jsonw.Wrapper, error) {
 	ret, err := u.ProofMetadata(0 /* ei */, GenericKeyToFOKID(key), nil, 0)
 	if err != nil {
 		return nil, err

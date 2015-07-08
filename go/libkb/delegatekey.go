@@ -20,7 +20,7 @@ type Delegator struct {
 	NewKey            GenericKey
 	ExistingKey       GenericKey
 	ExistingFOKID     *FOKID
-	EldestKID         KID
+	EldestKID         keybase1.KID
 	Me                *User
 	Sibkey            bool
 	Expire            int
@@ -39,11 +39,11 @@ type Delegator struct {
 	merkleTriple MerkleTriple
 }
 
-func (d Delegator) getSigningKID() KID { return d.signingKey.GetKid() }
+func (d Delegator) getSigningKID() keybase1.KID { return d.signingKey.GetKid() }
 
-func (d Delegator) getExistingKID() KID {
+func (d Delegator) getExistingKID() (kid keybase1.KID) {
 	if d.ExistingKey == nil {
-		return nil
+		return
 	}
 	return d.ExistingKey.GetKid()
 }
@@ -82,8 +82,8 @@ func (d *Delegator) CheckArgs() (err error) {
 		d.isEldest = true
 	}
 
-	if d.EldestKID != nil || d.isEldest {
-	} else if fokid := d.Me.GetEldestFOKID(); fokid == nil || fokid.Kid == nil {
+	if d.EldestKID.Exists() || d.isEldest {
+	} else if fokid := d.Me.GetEldestFOKID(); fokid == nil || fokid.Kid.IsNil() {
 		err = NoEldestKeyError{}
 		return err
 	} else {

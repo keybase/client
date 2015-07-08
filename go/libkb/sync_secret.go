@@ -140,15 +140,11 @@ func (ss *SecretSyncer) FindPrivateKey(kid string) (ServerPrivateKey, bool) {
 }
 
 func (k *ServerPrivateKey) FindActiveKey(ckf *ComputedKeyFamily) (ret *SKB, err error) {
-	var kid KID
-	var packet *KeybasePacket
-
-	if kid, err = ImportKID(k.Kid); err != nil {
-		return
-	}
+	kid := keybase1.KIDFromString(k.Kid)
 	if ckf.GetKeyRole(kid) != DLGSibkey {
 		return
 	}
+	var packet *KeybasePacket
 	if packet, err = DecodeArmoredPacket(k.Bundle); err != nil && packet == nil {
 		return
 	}

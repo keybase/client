@@ -1,10 +1,14 @@
 package libkb
 
+import (
+	keybase1 "github.com/keybase/client/protocol/go"
+)
+
 // FOKID is a "Fingerprint Or a KID" or both, or neither.
 // We have different things in different sigchains, so we
 // have this layer to abstract away the differences.
 type FOKID struct {
-	Kid KID
+	Kid keybase1.KID
 	Fp  *PGPFingerprint
 }
 
@@ -13,16 +17,16 @@ type FOKIDMapKey string
 
 // EqKid checks if the KID portion of the FOKID is equal
 // to the given KID
-func (f FOKID) EqKid(k2 KID) bool {
-	return (f.Kid == nil && k2 == nil) || (f.Kid != nil && k2 != nil && f.Kid.Eq(k2))
+func (f FOKID) EqKid(k2 keybase1.KID) bool {
+	return (f.Kid.IsNil() && k2.IsNil()) || (f.Kid.Exists() && k2.Exists() && f.Kid.Equal(k2))
 }
 
 // Eq checks that two FOKIDs are equal. Two FOKIDs are equal if
 // (their KIDs match OR the Fingerprints match) AND they don't have
 // any mismatches.
 func (f FOKID) Eq(f2 FOKID) (ret bool) {
-	if f.Kid == nil || f2.Kid == nil {
-	} else if f.Kid.Eq(f2.Kid) {
+	if f.Kid.IsNil() || f2.Kid.IsNil() {
+	} else if f.Kid.Equal(f2.Kid) {
 		ret = true
 	} else {
 		return false
@@ -38,7 +42,7 @@ func (f FOKID) Eq(f2 FOKID) (ret bool) {
 }
 
 func (f FOKID) String() string {
-	if f.Kid != nil {
+	if f.Kid.Exists() {
 		return f.Kid.String()
 	} else if f.Fp != nil {
 		return f.Fp.String()
@@ -48,8 +52,8 @@ func (f FOKID) String() string {
 }
 
 func (f FOKID) ToFirstMapKey() FOKIDMapKey {
-	if f.Kid != nil {
-		return f.Kid.ToFOKIDMapKey()
+	if f.Kid.Exists() {
+		return KIDToFOKIDMapKey(f.Kid)
 	} else if f.Fp != nil {
 		return f.Fp.ToFOKIDMapKey()
 	} else {
@@ -58,8 +62,8 @@ func (f FOKID) ToFirstMapKey() FOKIDMapKey {
 }
 
 func (f FOKID) ToMapKeys() (ret []FOKIDMapKey) {
-	if f.Kid != nil {
-		ret = append(ret, f.Kid.ToFOKIDMapKey())
+	if f.Kid.Exists() {
+		ret = append(ret, KIDToFOKIDMapKey(f.Kid))
 	}
 	if f.Fp != nil {
 		ret = append(ret, f.Fp.ToFOKIDMapKey())

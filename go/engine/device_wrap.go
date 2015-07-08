@@ -2,6 +2,7 @@ package engine
 
 import (
 	"github.com/keybase/client/go/libkb"
+	keybase1 "github.com/keybase/client/protocol/go"
 )
 
 // DeviceWrap is an engine that wraps DeviceRegister and
@@ -19,7 +20,7 @@ type DeviceWrapArgs struct {
 	Lks        *libkb.LKSec
 	IsEldest   bool
 	Signer     libkb.GenericKey
-	EldestKID  libkb.KID
+	EldestKID  keybase1.KID
 }
 
 // NewDeviceWrap creates a DeviceWrap engine.

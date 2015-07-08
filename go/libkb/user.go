@@ -329,7 +329,7 @@ func (u *User) GetEldestFOKID() (ret *FOKID) {
 		return nil
 	}
 	var fp *PGPFingerprint
-	if fingerprint, ok := u.keyFamily.kid2pgp[u.leaf.eldest.ToMapKey()]; ok {
+	if fingerprint, ok := u.keyFamily.kid2pgp[*(u.leaf.eldest)]; ok {
 		fp = &fingerprint
 	}
 	return &FOKID{Kid: *u.leaf.eldest, Fp: fp}
@@ -451,7 +451,7 @@ func (u *User) BaseProofSet() *ProofSet {
 // localDelegateKey takes the given GenericKey and provisions it locally so that
 // we can use the key without needing a refresh from the server.  The eventual
 // refresh we do get from the server will clobber our work here.
-func (u *User) localDelegateKey(key GenericKey, sigID keybase1.SigID, kid KID, isSibkey bool, isEldest bool) (err error) {
+func (u *User) localDelegateKey(key GenericKey, sigID keybase1.SigID, kid keybase1.KID, isSibkey bool, isEldest bool) (err error) {
 	if err = u.keyFamily.LocalDelegate(key); err != nil {
 		return
 	}

@@ -115,7 +115,7 @@ func (m MsgList) Swap(a, b int)      { m[a], m[b] = m[b], m[a] }
 type MsgArgs struct {
 	StrongID   StrongID
 	DeviceID   keybase1.DeviceID
-	DevKeyID   libkb.KID
+	DevKeyID   keybase1.KID
 	SigningKey libkb.NaclSigningKeyPublic
 	Sig        string
 	DevType    string

@@ -83,8 +83,8 @@ type ChainLinkUnpacked struct {
 	payloadJSONStr string
 	ctime, etime   int64
 	pgpFingerprint *PGPFingerprint
-	kid            KID
-	eldestKid      KID
+	kid            keybase1.KID
+	eldestKid      keybase1.KID
 	sig            string
 	sigID          keybase1.SigID
 	uid            keybase1.UID
@@ -151,7 +151,7 @@ func (c *ChainLink) Pack() error {
 	p.SetKey("payload_json", jsonw.NewString(c.unpacked.payloadJSONStr))
 	p.SetKey("sig", jsonw.NewString(c.unpacked.sig))
 	p.SetKey("sig_id", jsonw.NewString(string(c.unpacked.sigID)))
-	p.SetKey("kid", jsonw.NewString(c.unpacked.kid.String()))
+	p.SetKey("kid", c.unpacked.kid.ToJsonw())
 	p.SetKey("ctime", jsonw.NewInt64(c.unpacked.ctime))
 	if c.unpacked.pgpFingerprint != nil {
 		p.SetKey("fingerprint", jsonw.NewString(c.unpacked.pgpFingerprint.String()))
@@ -196,8 +196,8 @@ func (c *ChainLink) GetRevocations() []keybase1.SigID {
 	return ret
 }
 
-func (c *ChainLink) GetRevokeKids() []KID {
-	var ret []KID
+func (c *ChainLink) GetRevokeKids() []keybase1.KID {
+	var ret []keybase1.KID
 	jw := c.payloadJSON.AtKey("body").AtKey("revoke")
 	if jw.IsNil() {
 		return nil
@@ -314,7 +314,7 @@ func (c *ChainLink) Unpack(trusted bool, selfUID keybase1.UID) (err error) {
 		return err
 	}
 
-	if tmp.kid == nil {
+	if tmp.kid.IsNil() {
 		tmp.kid, err = GetKID(c.packed.AtKey("kid"))
 		if err != nil {
 			return err
@@ -535,10 +535,10 @@ func (c *ChainLink) checkServerSignatureMetadata(kf *KeyFamily) error {
 		return err
 	}
 	// Check the KID.
-	if c.unpacked.kid != nil && !c.unpacked.kid.Eq(serverKID) {
+	if c.unpacked.kid.Exists() && c.unpacked.kid.NotEqual(serverKID) {
 		return ChainLinkKIDMismatchError{
 			fmt.Sprintf("chain link KID (%s) doesn't match server KID (%s)",
-				c.unpacked.kid.String(), serverKID.String()),
+				c.unpacked.kid, serverKID),
 		}
 	}
 	// Check the fingerprint.
@@ -605,7 +605,7 @@ func (c *ChainLink) ToFOKID() (ret FOKID) {
 // ToEldestFOKID takes the current chain link and extracts the eldest
 // FOKID from it. Legacy links don't specify it, so we'll have to infer
 func (c *ChainLink) ToEldestFOKID() (ret FOKID) {
-	if c.unpacked.eldestKid != nil {
+	if c.unpacked.eldestKid.Exists() {
 		ret = FOKID{Kid: c.unpacked.eldestKid}
 	} else {
 		ret = c.ToFOKID()
@@ -620,7 +620,7 @@ func (c *ChainLink) MatchEldestFOKID(fokid FOKID) bool {
 }
 
 func (c *ChainLink) GetPGPFingerprint() *PGPFingerprint { return c.unpacked.pgpFingerprint }
-func (c *ChainLink) GetKid() KID                        { return c.unpacked.kid }
+func (c *ChainLink) GetKid() keybase1.KID               { return c.unpacked.kid }
 
 func (c *ChainLink) GetFOKID() FOKID {
 	return FOKID{Kid: c.GetKid(), Fp: c.GetPGPFingerprint()}

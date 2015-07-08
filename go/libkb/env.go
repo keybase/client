@@ -563,7 +563,7 @@ func (e *Env) GetStringList(list ...(func() []string)) []string {
 	return []string{}
 }
 
-func (e *Env) GetMerkleKIDs() []KID {
+func (e *Env) GetMerkleKIDs() []keybase1.KID {
 	slist := e.GetStringList(
 		func() []string { return e.cmd.GetMerkleKIDs() },
 		func() []string { return e.getEnvPath("KEYBASE_MERKLE_KIDS") },
@@ -580,15 +580,9 @@ func (e *Env) GetMerkleKIDs() []KID {
 	if slist == nil {
 		return nil
 	}
-	var ret []KID
+	var ret []keybase1.KID
 	for _, s := range slist {
-		kid, err := ImportKID(s)
-		if err != nil {
-			G.Log.Warning("Skipping bad Merkle KID: %s", s)
-			continue
-		}
-
-		ret = append(ret, kid)
+		ret = append(ret, keybase1.KIDFromString(s))
 	}
 
 	return ret

@@ -69,10 +69,10 @@ func (v *CmdStatus) Run() error {
 	return err
 }
 
-func findSubkeys(parentID string, allKeys []keybase1.PublicKey) []keybase1.PublicKey {
+func findSubkeys(parentID keybase1.KID, allKeys []keybase1.PublicKey) []keybase1.PublicKey {
 	ret := []keybase1.PublicKey{}
 	for _, key := range allKeys {
-		if key.ParentID == parentID {
+		if keybase1.KIDFromString(key.ParentID).Equal(parentID) {
 			ret = append(ret, key)
 		}
 	}
@@ -90,7 +90,7 @@ func (v *CmdStatus) printExportedMe(me keybase1.User) error {
 	fmt.Printf("Public keys:\n")
 	// Keep track of subkeys we print, so that if e.g. a subkey's parent is
 	// nonexistent, we can notice that we skipped it.
-	subkeysShown := make(map[string]bool)
+	subkeysShown := make(map[keybase1.KID]bool)
 	for _, key := range me.PublicKeys {
 		if !key.IsSibkey {
 			// Subkeys will be printed under their respective sibkeys.

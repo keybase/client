@@ -34,7 +34,7 @@ func (sc SigChain) Len() int {
 	return len(sc.chainLinks)
 }
 
-func (sc *SigChain) LocalDelegate(kf *KeyFamily, key GenericKey, sigID keybase1.SigID, signingKid KID, isSibkey bool) (err error) {
+func (sc *SigChain) LocalDelegate(kf *KeyFamily, key GenericKey, sigID keybase1.SigID, signingKid keybase1.KID, isSibkey bool) (err error) {
 
 	cki := sc.localCki
 	l := sc.GetLastLink()
@@ -426,7 +426,7 @@ func (sc *SigChain) verifySubchain(kf KeyFamily, links []*ChainLink) (cached boo
 	return
 }
 
-func (sc *SigChain) VerifySigsAndComputeKeys(eldest *KID, ckf *ComputedKeyFamily) (cached bool, err error) {
+func (sc *SigChain) VerifySigsAndComputeKeys(eldest *keybase1.KID, ckf *ComputedKeyFamily) (cached bool, err error) {
 
 	cached = false
 	G.Log.Debug("+ VerifySigsAndComputeKeys for user %s", sc.uid)
@@ -449,8 +449,8 @@ func (sc *SigChain) VerifySigsAndComputeKeys(eldest *KID, ckf *ComputedKeyFamily
 	}
 
 	if links == nil || len(links) == 0 {
-		G.Log.Debug("| Empty chain after we limited to eldest %s", eldest.String())
-		eldestKey := ckf.kf.AllKeys[eldest.ToMapKey()]
+		G.Log.Debug("| Empty chain after we limited to eldest %s", *eldest)
+		eldestKey := ckf.kf.AllKeys[*eldest]
 		sc.localCki = NewComputedKeyInfos()
 		err = sc.localCki.InsertServerEldestKey(eldestKey, sc.username)
 		ckf.cki = sc.localCki

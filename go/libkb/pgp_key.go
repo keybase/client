@@ -377,7 +377,7 @@ func (k *PGPKeyBundle) CanSign() bool {
 	return k.PrivateKey != nil && !k.PrivateKey.Encrypted
 }
 
-func (k *PGPKeyBundle) GetKid() KID {
+func (k *PGPKeyBundle) GetKid() keybase1.KID {
 
 	prefix := []byte{
 		byte(KeybaseKIDV1),
@@ -403,7 +403,7 @@ func (k *PGPKeyBundle) GetKid() KID {
 	out := append(prefix, sum[:]...)
 	out = append(out, byte(IDSuffixKID))
 
-	return KID(out)
+	return keybase1.KIDFromSlice(out)
 }
 
 func (k PGPKeyBundle) GetAlgoType() AlgoType {
@@ -521,14 +521,13 @@ func (k PGPKeyBundle) VerifyString(sig string, msg []byte) (id keybase1.SigID, e
 	return
 }
 
-func ExportAsFOKID(fp *PGPFingerprint, kid KID) (ret keybase1.FOKID) {
+func ExportAsFOKID(fp *PGPFingerprint, kid keybase1.KID) (ret keybase1.FOKID) {
 	if fp != nil {
 		b := (*fp)[:]
 		ret.PGPFingerprint = &b
 	}
-	if kid != nil {
-		b := []byte(kid)
-		ret.Kid = &b
+	if kid.Exists() {
+		ret.Kid = &kid
 	}
 	return
 }
@@ -594,7 +593,7 @@ func (k *PGPKeyBundle) EncryptToString(plaintext []byte, sender GenericKey) (cip
 }
 
 // DecryptFromString fails for this type of key, since we haven't implemented it yet
-func (k *PGPKeyBundle) DecryptFromString(ciphertext string) (msg []byte, sender KID, err error) {
+func (k *PGPKeyBundle) DecryptFromString(ciphertext string) (msg []byte, sender keybase1.KID, err error) {
 	err = KeyCannotDecryptError{}
 	return
 }

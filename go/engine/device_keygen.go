@@ -37,7 +37,7 @@ type DeviceKeygenPushArgs struct {
 	IsEldest       bool
 	SkipSignerPush bool
 	Signer         libkb.GenericKey
-	EldestKID      libkb.KID
+	EldestKID      keybase1.KID
 	User           *libkb.User // optional
 }
 
@@ -198,7 +198,7 @@ func (e *DeviceKeygen) pushSibkey(ctx *Context, pargs *DeviceKeygenPushArgs) {
 	_, e.pushErr = e.naclSignGen.Push(ctx.LoginContext)
 }
 
-func (e *DeviceKeygen) pushEncKey(ctx *Context, signer libkb.GenericKey, eldestKID libkb.KID, user *libkb.User) {
+func (e *DeviceKeygen) pushEncKey(ctx *Context, signer libkb.GenericKey, eldestKID keybase1.KID, user *libkb.User) {
 	if e.pushErr != nil {
 		return
 	}
@@ -206,7 +206,7 @@ func (e *DeviceKeygen) pushEncKey(ctx *Context, signer libkb.GenericKey, eldestK
 	_, e.pushErr = e.naclEncGen.Push(ctx.LoginContext)
 }
 
-func (e *DeviceKeygen) generateClientHalfRecovery() (string, libkb.KID, error) {
+func (e *DeviceKeygen) generateClientHalfRecovery() (string, keybase1.KID, error) {
 	key := e.naclEncGen.GetKeyPair()
 	kid := key.GetKid()
 	ctext, err := e.args.Lks.EncryptClientHalfRecovery(key)
@@ -230,7 +230,7 @@ func (e *DeviceKeygen) pushLKS(ctx *Context) {
 	}
 
 	var chr string
-	var chrk libkb.KID
+	var chrk keybase1.KID
 	if chr, chrk, e.pushErr = e.generateClientHalfRecovery(); e.pushErr != nil {
 		return
 	}

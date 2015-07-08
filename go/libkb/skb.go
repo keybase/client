@@ -354,7 +354,7 @@ type SKBKeyringFile struct {
 	filename string
 	Blocks   []*SKB
 	fpIndex  map[PGPFingerprint]*SKB
-	kidIndex map[KIDMapKey]*SKB
+	kidIndex map[keybase1.KID]*SKB
 	dirty    bool
 }
 
@@ -362,7 +362,7 @@ func NewSKBKeyringFile(n string) *SKBKeyringFile {
 	return &SKBKeyringFile{
 		filename: n,
 		fpIndex:  make(map[PGPFingerprint]*SKB),
-		kidIndex: make(map[KIDMapKey]*SKB),
+		kidIndex: make(map[keybase1.KID]*SKB),
 		dirty:    false,
 	}
 }
@@ -402,7 +402,7 @@ func (k *SKBKeyringFile) addToIndex(g GenericKey, b *SKB) {
 	if fp := g.GetFingerprintP(); fp != nil {
 		k.fpIndex[*fp] = b
 	}
-	k.kidIndex[g.GetKid().ToMapKey()] = b
+	k.kidIndex[g.GetKid()] = b
 }
 
 func (k *SKBKeyringFile) Index() (err error) {
@@ -420,11 +420,11 @@ func (k *SKBKeyringFile) Index() (err error) {
 }
 
 func (k SKBKeyringFile) SearchWithComputedKeyFamily(ckf *ComputedKeyFamily, ska SecretKeyArg) *SKB {
-	var kid KID
+	var kid keybase1.KID
 	G.Log.Debug("+ SKBKeyringFile.SearchWithComputedKeyFamily")
 	defer func() {
 		var res string
-		if kid != nil {
+		if kid.Exists() {
 			res = kid.String()
 		} else {
 			res = "<nil>"
@@ -465,7 +465,7 @@ func (k SKBKeyringFile) LookupByFingerprint(fp PGPFingerprint) *SKB {
 
 // FindSecretKey will, given a list of KIDs, find the first one in the
 // list that has a corresponding secret key in the keyring file.
-func (k SKBKeyringFile) FindSecretKey(kids []KID) (ret *SKB) {
+func (k SKBKeyringFile) FindSecretKey(kids []keybase1.KID) (ret *SKB) {
 	for _, kid := range kids {
 		if ret = k.LookupByKid(kid); ret != nil {
 			return
@@ -474,8 +474,8 @@ func (k SKBKeyringFile) FindSecretKey(kids []KID) (ret *SKB) {
 	return
 }
 
-func (k SKBKeyringFile) LookupByKid(kid KID) *SKB {
-	ret, ok := k.kidIndex[kid.ToMapKey()]
+func (k SKBKeyringFile) LookupByKid(kid keybase1.KID) *SKB {
+	ret, ok := k.kidIndex[kid]
 	if !ok {
 		ret = nil
 	}

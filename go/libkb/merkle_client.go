@@ -81,7 +81,7 @@ type MerkleUserLeaf struct {
 	idVersion int64
 	username  string
 	uid       keybase1.UID
-	eldest    *KID
+	eldest    *keybase1.KID
 }
 
 type PathSteps []*PathStep
@@ -345,19 +345,19 @@ func (mc *MerkleClient) LastSeqno() Seqno {
 	return -1
 }
 
-func (mc *MerkleClient) findValidKIDAndSig(root *MerkleRoot) (KID, string, error) {
+func (mc *MerkleClient) findValidKIDAndSig(root *MerkleRoot) (keybase1.KID, string, error) {
 	if v, err := root.sigs.Keys(); err == nil {
 		for _, s := range v {
-			if kid, err := ImportKID(s); err != nil {
-				continue
-			} else if !mc.keyring.IsValidKID(kid) {
+			kid := keybase1.KIDFromString(s)
+			if !mc.keyring.IsValidKID(kid) {
 				continue
 			} else if sig, err := root.sigs.AtKey(s).AtKey("sig").GetString(); err == nil {
 				return kid, sig, nil
 			}
 		}
 	}
-	return nil, "", MerkleClientError{"no known verifying key"}
+	var nilKID keybase1.KID
+	return nilKID, "", MerkleClientError{"no known verifying key"}
 }
 
 func (mc *MerkleClient) VerifyRoot(root *MerkleRoot) error {

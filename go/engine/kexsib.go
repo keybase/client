@@ -167,7 +167,7 @@ func (k *KexSib) handleStart(ctx *Context, m *kex.Msg) error {
 	return nil
 }
 
-func (k *KexSib) verifyPleaseSign(jw *jsonw.Wrapper, newKID libkb.KID) (err error) {
+func (k *KexSib) verifyPleaseSign(jw *jsonw.Wrapper, newKID keybase1.KID) (err error) {
 	jw.AssertEqAtPath("body.key.kid", k.sigKey.GetKid().ToJsonw(), &err)
 	jw.AssertEqAtPath("body.key.uid", libkb.UIDWrapper(k.user.GetUID()), &err)
 	jw.AssertEqAtPath("body.key.eldest_kid", k.user.GetEldestFOKID().Kid.ToJsonw(), &err)
@@ -207,7 +207,7 @@ func (k *KexSib) handlePleaseSign(ctx *Context, m *kex.Msg) error {
 		return err
 	}
 
-	var newKID libkb.KID
+	var newKID keybase1.KID
 	var newKey libkb.GenericKey
 
 	if newKID, err = libkb.GetKID(jw.AtPath("body.sibkey.kid")); err != nil {

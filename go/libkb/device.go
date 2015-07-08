@@ -29,7 +29,7 @@ type DeviceStatus struct {
 type Device struct {
 	ID          keybase1.DeviceID `json:"id"`
 	Type        string            `json:"type"`
-	Kid         KID               `json:"kid,omitempty"`
+	Kid         keybase1.KID      `json:"kid,omitempty"`
 	Description *string           `json:"description,omitempty"`
 	Status      *int              `json:"status,omitempty"`
 }
@@ -63,7 +63,7 @@ func ParseDevice(jw *jsonw.Wrapper) (ret *Device, err error) {
 
 func (d *Device) Merge(d2 *Device) {
 	d.Type = d2.Type
-	if d2.Kid != nil {
+	if d2.Kid.Exists() {
 		d.Kid = d2.Kid
 	}
 	if d2.Description != nil {

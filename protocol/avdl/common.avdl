@@ -16,10 +16,19 @@ protocol Common {
 
 	@typedef("string")
 	record UID {}
+	
+	@typedef("string")
+	record DeviceID {}
+
+	@typedef("string")
+	record SigID {}
+
+	@typedef("string")
+	record KID {}
 
 	record FOKID {
 		union { null, bytes } pgpFingerprint;
-		union { null, bytes } kid;
+		union { null, KID } kid;
 	}
 
 	record Text {
@@ -33,11 +42,8 @@ protocol Common {
 		string email;
 	}
 
-	@typedef("string")
-	record DeviceID {}
-
 	record PublicKey {
-		string KID;
+		KID KID;
 		string PGPFingerprint; // empty for non-PGP keys
 		array<PGPIdentity> PGPIdentities; // same
 		boolean isSibkey;
@@ -67,7 +73,4 @@ protocol Common {
 	record Stream {
 		int fd;
 	}
-
-	@typedef("string")
-	record SigID {}
 }

@@ -170,7 +170,7 @@ func CheckPostedViaSigID(sigID keybase1.SigID) (found bool, status keybase1.Proo
 
 func PostDeviceLKS(lctx LoginContext, deviceID keybase1.DeviceID, deviceType string, serverHalf []byte,
 	ppGen PassphraseGeneration,
-	clientHalfRecovery string, clientHalfRecoveryKID KID) error {
+	clientHalfRecovery string, clientHalfRecoveryKID keybase1.KID) error {
 	if len(serverHalf) == 0 {
 		return fmt.Errorf("PostDeviceLKS: called with empty serverHalf")
 	}

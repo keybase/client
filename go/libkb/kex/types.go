@@ -94,7 +94,7 @@ func (m *Meta) Swap() {
 type Handler interface {
 	StartKexSession(m *Meta, id StrongID) error
 	StartReverseKexSession(m *Meta) error
-	Hello(m *Meta, devID keybase1.DeviceID, devKeyID libkb.KID) error
+	Hello(m *Meta, devID keybase1.DeviceID, devKeyID keybase1.KID) error
 	PleaseSign(m *Meta, eddsa libkb.NaclSigningKeyPublic, sig, devType, devDesc string) error
 	Done(m *Meta) error
 	Cancel(m *Meta) error

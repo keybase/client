@@ -259,7 +259,7 @@ func (d *Locksmith) addDeviceKey(ctx *Context) error {
 	return nil
 }
 
-func (d *Locksmith) addDeviceKeyWithSigner(ctx *Context, signer libkb.GenericKey, eldestKID libkb.KID) error {
+func (d *Locksmith) addDeviceKeyWithSigner(ctx *Context, signer libkb.GenericKey, eldestKID keybase1.KID) error {
 	devname, err := d.deviceName(ctx)
 	if err != nil {
 		return err
@@ -286,7 +286,7 @@ func (d *Locksmith) addDeviceKeyWithSigner(ctx *Context, signer libkb.GenericKey
 	return nil
 }
 
-func (d *Locksmith) addDetKey(ctx *Context, eldest libkb.KID) error {
+func (d *Locksmith) addDetKey(ctx *Context, eldest keybase1.KID) error {
 	if d.signingKey == nil {
 		return fmt.Errorf("addDetKey called, but d.signingKey is nil")
 	}

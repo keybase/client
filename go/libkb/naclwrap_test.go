@@ -13,11 +13,15 @@ func TestVerifyStringAccept(t *testing.T) {
 		t.Fatal(err)
 	}
 
+	t.Logf("keyPair: Public: %+v, Private: %+v", keyPair.Public, keyPair.Private)
+
 	msg := []byte("test message")
 	sig, _, err := keyPair.SignToString(msg)
 	if err != nil {
 		t.Fatal(err)
 	}
+
+	t.Logf("sig: %+v", sig)
 
 	_, err = keyPair.VerifyString(sig, msg)
 	if err != nil {
@@ -150,16 +154,16 @@ func TestNaclEncryptEphemeral(t *testing.T) {
 	msg := []byte("Man hands on misery to man. It deepens like a coastal shelf.")
 	ctext, err := keyPair.EncryptToString(msg, nil)
 	if err != nil {
-		t.Fatal(err)
+		t.Fatalf("encrypt error: %s", err)
 	}
 	out, kid, err := keyPair.DecryptFromString(ctext)
 	if err != nil {
-		t.Fatal(err)
+		t.Fatalf("decrypt error: %s", err)
 	}
 	if !FastByteArrayEq(out, msg) {
 		t.Errorf("Message mismatch: %s != %s", msg, out)
 	}
-	if kid.Eq(keyPair.GetKid()) {
+	if kid.Equal(keyPair.GetKid()) {
 		t.Error("KID should be an ephemeral key, not ours")
 	}
 }
@@ -185,7 +189,7 @@ func TestNaclEncryptKnown(t *testing.T) {
 	if !FastByteArrayEq(out, msg) {
 		t.Errorf("Message mismatch: %s != %s", msg, out)
 	}
-	if !kid.Eq(sender.GetKid()) {
+	if kid.NotEqual(sender.GetKid()) {
 		t.Error("KID mismatch for sender")
 	}
 }

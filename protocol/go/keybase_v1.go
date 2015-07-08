@@ -21,9 +21,12 @@ type Status struct {
 }
 
 type UID string
+type DeviceID string
+type SigID string
+type KID string
 type FOKID struct {
 	PGPFingerprint *[]byte `codec:"pgpFingerprint,omitempty" json:"pgpFingerprint,omitempty"`
-	Kid            *[]byte `codec:"kid,omitempty" json:"kid,omitempty"`
+	Kid            *KID    `codec:"kid,omitempty" json:"kid,omitempty"`
 }
 
 type Text struct {
@@ -37,9 +40,8 @@ type PGPIdentity struct {
 	Email    string `codec:"email" json:"email"`
 }
 
-type DeviceID string
 type PublicKey struct {
-	KID               string        `codec:"KID" json:"KID"`
+	KID               KID           `codec:"KID" json:"KID"`
 	PGPFingerprint    string        `codec:"PGPFingerprint" json:"PGPFingerprint"`
 	PGPIdentities     []PGPIdentity `codec:"PGPIdentities" json:"PGPIdentities"`
 	IsSibkey          bool          `codec:"isSibkey" json:"isSibkey"`
@@ -70,7 +72,6 @@ type Stream struct {
 	Fd int `codec:"fd" json:"fd"`
 }
 
-type SigID string
 type BlockIdCombo struct {
 	BlockHash string `codec:"blockHash" json:"blockHash"`
 	ChargedTo UID    `codec:"chargedTo" json:"chargedTo"`
@@ -897,7 +898,7 @@ type IdentifyRow struct {
 
 type IdentifyKey struct {
 	PGPFingerprint []byte     `codec:"pgpFingerprint" json:"pgpFingerprint"`
-	KID            []byte     `codec:"KID" json:"KID"`
+	KID            KID        `codec:"KID" json:"KID"`
 	TrackDiff      *TrackDiff `codec:"trackDiff,omitempty" json:"trackDiff,omitempty"`
 }
 
@@ -2321,7 +2322,7 @@ type Session struct {
 	Uid             UID    `codec:"uid" json:"uid"`
 	Username        string `codec:"username" json:"username"`
 	Token           string `codec:"token" json:"token"`
-	DeviceSubkeyKid string `codec:"deviceSubkeyKid" json:"deviceSubkeyKid"`
+	DeviceSubkeyKid KID    `codec:"deviceSubkeyKid" json:"deviceSubkeyKid"`
 }
 
 type CurrentSessionArg struct {

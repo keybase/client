@@ -76,6 +76,7 @@ func Cicmp(s1, s2 string) bool {
 	return strings.ToLower(s1) == strings.ToLower(s2)
 }
 
+// XXX use strings.TrimRight(s, "=") instead
 func depad(s string) string {
 	b := []byte(s)
 	i := len(b) - 1

@@ -37,7 +37,7 @@ func (s *Sender) StartReverseKexSession(m *Meta) error {
 }
 
 // Hello sends the Hello message to the server.
-func (s *Sender) Hello(m *Meta, devID keybase1.DeviceID, devKeyID libkb.KID) error {
+func (s *Sender) Hello(m *Meta, devID keybase1.DeviceID, devKeyID keybase1.KID) error {
 	mb := &Body{Name: HelloMsg, Args: MsgArgs{DeviceID: devID, DevKeyID: devKeyID}}
 	return s.send(m, mb)
 }

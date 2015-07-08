@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/keybase/client/go/libkb"
+	keybase1 "github.com/keybase/client/protocol/go"
 )
 
 func testKexMeta(t *testing.T, username string) *Meta {
@@ -29,7 +30,7 @@ func testBody(t *testing.T) *Body {
 	}
 	a := MsgArgs{
 		DeviceID: did,
-		DevKeyID: libkb.KID([]byte{1, 2, 3, 4, 5}),
+		DevKeyID: keybase1.KIDFromString("123456"),
 	}
 
 	return &Body{

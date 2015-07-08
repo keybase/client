@@ -6,6 +6,8 @@ import (
 	"encoding/hex"
 	"fmt"
 	"strings"
+
+	jsonw "github.com/keybase/go-jsonw"
 )
 
 const (
@@ -38,6 +40,76 @@ func Unquote(data []byte) string {
 
 func Quote(s string) []byte {
 	return []byte("\"" + s + "\"")
+}
+
+func KIDFromSlice(b []byte) KID {
+	return KID(hex.EncodeToString(b))
+}
+
+func KIDFromString(s string) KID {
+	// there are no validations for KIDs (length, suffixes)
+	return KID(s)
+}
+
+func (k KID) IsValid() bool {
+	return len(k) > 0
+}
+
+func (k KID) String() string {
+	return string(k)
+}
+
+func (k KID) IsNil() bool {
+	return len(k) == 0
+}
+
+func (k KID) Exists() bool {
+	return !k.IsNil()
+}
+
+func (k KID) Equal(v KID) bool {
+	return k == v
+}
+
+func (k KID) NotEqual(v KID) bool {
+	return !k.Equal(v)
+}
+
+func (k KID) Match(q string, exact bool) bool {
+	if k.IsNil() {
+		return false
+	}
+
+	if exact {
+		return strings.ToLower(k.String()) == strings.ToLower(q)
+	}
+
+	if strings.HasPrefix(k.String(), strings.ToLower(q)) {
+		return true
+	}
+	if strings.HasPrefix(k.ToShortIDString(), q) {
+		return true
+	}
+	return false
+}
+
+func (k KID) ToBytes() []byte {
+	b, err := hex.DecodeString(string(k))
+	if err != nil {
+		return nil
+	}
+	return b
+}
+
+func (k KID) ToShortIDString() string {
+	return encode(k.ToBytes()[0:12])
+}
+
+func (k KID) ToJsonw() *jsonw.Wrapper {
+	if k.IsNil() {
+		return jsonw.NewNil()
+	}
+	return jsonw.NewString(string(k))
 }
 
 func DeviceIDFromBytes(b [DeviceIDLen]byte) DeviceID {
@@ -118,7 +190,7 @@ func (u UID) Equal(v UID) bool {
 }
 
 func (u UID) NotEqual(v UID) bool {
-	return u != v
+	return !u.Equal(v)
 }
 
 func (u UID) Less(v UID) bool {
@@ -149,7 +221,7 @@ func (s SigID) Equal(t SigID) bool {
 }
 
 func (s SigID) NotEqual(t SigID) bool {
-	return s != t
+	return !s.Equal(t)
 }
 
 func (s SigID) ToDisplayString(verbose bool) string {
@@ -206,23 +278,13 @@ func (s SigID) toBytes() []byte {
 }
 
 func (s SigID) ToMediumID() string {
-	return depad(base64.URLEncoding.EncodeToString(s.toBytes()))
+	return encode(s.toBytes())
 }
 
 func (s SigID) ToShortID() string {
-	return depad(base64.URLEncoding.EncodeToString(s.toBytes()[0:SIG_SHORT_ID_BYTES]))
+	return encode(s.toBytes()[0:SIG_SHORT_ID_BYTES])
 }
 
-// copied from libkb/util.go
-func depad(s string) string {
-	b := []byte(s)
-	i := len(b) - 1
-	for ; i >= 0; i-- {
-		if b[i] != '=' {
-			i++
-			break
-		}
-	}
-	ret := string(b[0:i])
-	return ret
+func encode(b []byte) string {
+	return strings.TrimRight(base64.URLEncoding.EncodeToString(b), "=")
 }

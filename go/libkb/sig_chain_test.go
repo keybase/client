@@ -8,8 +8,8 @@ import (
 	"testing"
 	"time"
 
+	keybase1 "github.com/keybase/client/protocol/go"
 	jsonw "github.com/keybase/go-jsonw"
-
 	testvectors "github.com/keybase/keybase-test-vectors/go"
 )
 
@@ -146,7 +146,7 @@ func doChainTest(t *testing.T, testCase TestCase) {
 	// Get the eldest key. This is assumed to be the first key in the list of
 	// bundles, unless the "eldest" field is given in the test description, in
 	// which case the eldest key is specified by name.
-	var eldestKID KID
+	var eldestKID keybase1.KID
 	if testCase.Eldest == "" {
 		eldestKey, err := ParseGenericKey(input.Keys[0])
 		if err != nil {
@@ -158,10 +158,7 @@ func doChainTest(t *testing.T, testCase TestCase) {
 		if !found {
 			t.Fatalf("No KID found for label %s", testCase.Eldest)
 		}
-		eldestKID, err = ImportKID(eldestKIDStr)
-		if err != nil {
-			t.Fatal(err)
-		}
+		eldestKID = keybase1.KIDFromString(eldestKIDStr)
 	}
 
 	// Parse all the bundles.
