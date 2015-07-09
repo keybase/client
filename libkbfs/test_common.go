@@ -8,7 +8,7 @@ import (
 )
 
 // NewRootMetadataForTest returns a new initialized RootMetadata object for testing.
-func NewRootMetadataForTest(d *DirHandle, id DirID) *RootMetadata {
+func NewRootMetadataForTest(d *TlfHandle, id TlfID) *RootMetadata {
 	rmd := NewRootMetadata(d, id)
 	var keyGen KeyGen
 	if id.IsPublic() {
@@ -107,15 +107,15 @@ func ConfigAsUser(config *ConfigLocal, loggedInUser string) *ConfigLocal {
 
 // NewFolder returns a new RootMetadataSigned for testing.
 func NewFolder(t *testing.T, x byte, revision uint64, share bool, public bool) (
-	DirID, *DirHandle, *RootMetadataSigned) {
-	id := DirID{0}
+	TlfID, *TlfHandle, *RootMetadataSigned) {
+	id := TlfID{0}
 	id[0] = x
 	if public {
-		id[DirIDLen-1] = PubDirIDSuffix
+		id[TlfIDLen-1] = PubTlfIDSuffix
 	} else {
-		id[DirIDLen-1] = DirIDSuffix
+		id[TlfIDLen-1] = TlfIDSuffix
 	}
-	h := NewDirHandle()
+	h := NewTlfHandle()
 	if public {
 		h.Readers = []keybase1.UID{keybase1.PublicUID}
 	}

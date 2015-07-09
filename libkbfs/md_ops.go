@@ -14,7 +14,7 @@ type MDOpsStandard struct {
 }
 
 func (md *MDOpsStandard) processMetadata(
-	handle *DirHandle, rmds *RootMetadataSigned) error {
+	handle *TlfHandle, rmds *RootMetadataSigned) error {
 	crypto := md.config.Crypto()
 	codec := md.config.Codec()
 	// verify signature and deserialize root data, if the sig is not blank.
@@ -111,7 +111,7 @@ func (md *MDOpsStandard) processMetadata(
 }
 
 // GetForHandle implements the MDOps interface for MDOpsStandard.
-func (md *MDOpsStandard) GetForHandle(handle *DirHandle) (
+func (md *MDOpsStandard) GetForHandle(handle *TlfHandle) (
 	*RootMetadata, error) {
 	mdserv := md.config.MDServer()
 	if rmds, err := mdserv.GetForHandle(handle); err != nil {
@@ -122,7 +122,7 @@ func (md *MDOpsStandard) GetForHandle(handle *DirHandle) (
 		if rmds.IsInitialized() {
 			// Make the the signed-over UIDs in the latest Keys match the handle
 			handleString := handle.ToString(md.config)
-			fetchedHandleString := rmds.MD.GetDirHandle().ToString(md.config)
+			fetchedHandleString := rmds.MD.GetTlfHandle().ToString(md.config)
 			if fetchedHandleString != handleString {
 				return nil, MDMismatchError{
 					handleString,
@@ -135,7 +135,7 @@ func (md *MDOpsStandard) GetForHandle(handle *DirHandle) (
 }
 
 func (md *MDOpsStandard) processMetadataWithID(
-	id DirID, rmds *RootMetadataSigned) error {
+	id TlfID, rmds *RootMetadataSigned) error {
 	// Make sure the signed-over ID matches
 	if id != rmds.MD.ID {
 		return MDMismatchError{
@@ -144,11 +144,11 @@ func (md *MDOpsStandard) processMetadataWithID(
 				rmds.MD.ID.String()),
 		}
 	}
-	return md.processMetadata(rmds.MD.GetDirHandle(), rmds)
+	return md.processMetadata(rmds.MD.GetTlfHandle(), rmds)
 }
 
 // GetForTLF implements the MDOps interface for MDOpsStandard.
-func (md *MDOpsStandard) GetForTLF(id DirID) (*RootMetadata, error) {
+func (md *MDOpsStandard) GetForTLF(id TlfID) (*RootMetadata, error) {
 	rmds, err := md.config.MDServer().GetForTLF(id)
 	if err != nil {
 		return nil, err
@@ -168,7 +168,7 @@ func (md *MDOpsStandard) Get(mdID MdID) (
 	if err != nil {
 		return nil, err
 	}
-	err = md.processMetadata(rmds.MD.GetDirHandle(), rmds)
+	err = md.processMetadata(rmds.MD.GetTlfHandle(), rmds)
 	if err != nil {
 		return nil, err
 	}
@@ -179,7 +179,7 @@ func (md *MDOpsStandard) Get(mdID MdID) (
 	}
 	if mdID != realMdID {
 		return nil, MDMismatchError{
-			rmds.MD.GetDirHandle().ToString(md.config),
+			rmds.MD.GetTlfHandle().ToString(md.config),
 			fmt.Sprintf("MD returned for MdID %v really has an ID of %v",
 				mdID, realMdID),
 		}
@@ -187,7 +187,7 @@ func (md *MDOpsStandard) Get(mdID MdID) (
 	return &rmds.MD, nil
 }
 
-func (md *MDOpsStandard) processRange(id DirID, startRoot MdID,
+func (md *MDOpsStandard) processRange(id TlfID, startRoot MdID,
 	sinceRmds []*RootMetadataSigned) ([]*RootMetadata, error) {
 	if sinceRmds == nil {
 		return nil, nil
@@ -206,7 +206,7 @@ func (md *MDOpsStandard) processRange(id DirID, startRoot MdID,
 		// make sure the chain is correct
 		if rmds.MD.PrevRoot != lastRoot && lastRoot != NullMdID {
 			return nil, MDMismatchError{
-				rmds.MD.GetDirHandle().ToString(md.config),
+				rmds.MD.GetTlfHandle().ToString(md.config),
 				fmt.Sprintf("MD (id=%v) points to an unexpected root (%v) "+
 					"instead of %v", currRoot, rmds.MD.PrevRoot, lastRoot),
 			}
@@ -230,7 +230,7 @@ func (md *MDOpsStandard) processRange(id DirID, startRoot MdID,
 }
 
 // GetSince implements the MDOps interface for MDOpsStandard.
-func (md *MDOpsStandard) GetSince(id DirID, mdID MdID, max int) (
+func (md *MDOpsStandard) GetSince(id TlfID, mdID MdID, max int) (
 	[]*RootMetadata, bool, error) {
 	sinceRmds, more, err := md.config.MDServer().GetSince(id, mdID, max)
 	if err != nil {
@@ -243,7 +243,7 @@ func (md *MDOpsStandard) GetSince(id DirID, mdID MdID, max int) (
 	return sinceRmd, more, nil
 }
 
-func (md *MDOpsStandard) readyMD(id DirID, rmd *RootMetadata) (
+func (md *MDOpsStandard) readyMD(id TlfID, rmd *RootMetadata) (
 	MdID, *RootMetadataSigned, error) {
 	me, err := md.config.KBPKI().GetLoggedInUser()
 	if err != nil {
@@ -284,7 +284,7 @@ func (md *MDOpsStandard) readyMD(id DirID, rmd *RootMetadata) (
 		return NullMdID, nil, err
 	}
 
-	handle := rmd.GetDirHandle()
+	handle := rmd.GetTlfHandle()
 	rmds := &RootMetadataSigned{}
 	rmds.MD = *rmd
 	if handle.IsPrivateShare() {
@@ -335,7 +335,7 @@ func (md *MDOpsStandard) readyMD(id DirID, rmd *RootMetadata) (
 }
 
 // Put implements the MDOps interface for MDOpsStandard.
-func (md *MDOpsStandard) Put(id DirID, rmd *RootMetadata, deviceKID keybase1.KID,
+func (md *MDOpsStandard) Put(id TlfID, rmd *RootMetadata, deviceKID keybase1.KID,
 	unmergedBase MdID) error {
 	mdID, rmds, err := md.readyMD(id, rmd)
 	if err != nil {
@@ -345,7 +345,7 @@ func (md *MDOpsStandard) Put(id DirID, rmd *RootMetadata, deviceKID keybase1.KID
 }
 
 // PutUnmerged implements the MDOps interface for MDOpsStandard.
-func (md *MDOpsStandard) PutUnmerged(id DirID, rmd *RootMetadata,
+func (md *MDOpsStandard) PutUnmerged(id TlfID, rmd *RootMetadata,
 	deviceKID keybase1.KID) error {
 	// TODO: set unmerged bit in rmd.
 	mdID, rmds, err := md.readyMD(id, rmd)
@@ -356,7 +356,7 @@ func (md *MDOpsStandard) PutUnmerged(id DirID, rmd *RootMetadata,
 }
 
 // GetUnmergedSince implements the MDOps interface for MDOpsStandard.
-func (md *MDOpsStandard) GetUnmergedSince(id DirID, deviceKID keybase1.KID,
+func (md *MDOpsStandard) GetUnmergedSince(id TlfID, deviceKID keybase1.KID,
 	mdID MdID, max int) ([]*RootMetadata, bool, error) {
 	sinceRmds, more, err :=
 		md.config.MDServer().GetUnmergedSince(id, deviceKID, mdID, max)
@@ -371,7 +371,7 @@ func (md *MDOpsStandard) GetUnmergedSince(id DirID, deviceKID keybase1.KID,
 }
 
 // GetFavorites implements the MDOps interface for MDOpsStandard.
-func (md *MDOpsStandard) GetFavorites() ([]DirID, error) {
+func (md *MDOpsStandard) GetFavorites() ([]TlfID, error) {
 	mdserv := md.config.MDServer()
 	return mdserv.GetFavorites()
 }

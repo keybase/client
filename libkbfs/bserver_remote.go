@@ -187,7 +187,7 @@ func (b *BlockServerRemote) Get(id BlockID, context BlockContext) (
 
 // Put implements the BlockServer interface for BlockServerRemote.
 // TODO: store the server-half of the block key
-func (b *BlockServerRemote) Put(id BlockID, tlfID DirID, context BlockContext,
+func (b *BlockServerRemote) Put(id BlockID, tlfID TlfID, context BlockContext,
 	buf []byte, serverHalf BlockCryptKeyServerHalf) error {
 	if !b.connected {
 		if err := b.WaitForReconnect(); err != nil {

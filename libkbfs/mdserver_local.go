@@ -94,17 +94,17 @@ func NewMDServerMemory(config Config) (*MDServerLocal, error) {
 }
 
 // GetForHandle implements the MDServer interface for MDServerLocal.
-func (md *MDServerLocal) GetForHandle(handle *DirHandle) (
+func (md *MDServerLocal) GetForHandle(handle *TlfHandle) (
 	*RootMetadataSigned, error) {
 	buf, err := md.handleDb.Get(handle.ToBytes(md.config), nil)
-	var id DirID
+	var id TlfID
 	if err != leveldb.ErrNotFound {
 		copy(id[:], buf[:len(id)])
 		return md.GetForTLF(id)
 	}
 
 	// Make a new one.
-	id, err = md.config.Crypto().MakeRandomDirID(handle.IsPublic())
+	id, err = md.config.Crypto().MakeRandomTlfID(handle.IsPublic())
 	if err != nil {
 		return nil, err
 	}
@@ -138,7 +138,7 @@ func (md *MDServerLocal) getHeadForTLF(id DirID) (
 }
 
 // GetForTLF implements the MDServer interface for MDServerLocal.
-func (md *MDServerLocal) GetForTLF(id DirID) (*RootMetadataSigned, error) {
+func (md *MDServerLocal) GetForTLF(id TlfID) (*RootMetadataSigned, error) {
 	mdID, err := md.getHeadForTLF(id)
 	if err != nil {
 		return nil, err
@@ -160,7 +160,7 @@ func (md *MDServerLocal) Get(mdID MdID) (
 
 // getRange returns the consecutive (at most 'max') MD objects that
 // begin just after 'start' and lead forward to (and including) 'end'.
-func (md *MDServerLocal) getRange(id DirID, start MdID, end MdID, max int) (
+func (md *MDServerLocal) getRange(id TlfID, start MdID, end MdID, max int) (
 	sinceRmds []*RootMetadataSigned, hasMore bool, err error) {
 	// Make sure start exists in the db first
 	_, err = md.Get(start)
@@ -202,7 +202,7 @@ func (md *MDServerLocal) getRange(id DirID, start MdID, end MdID, max int) (
 }
 
 // GetSince implements the MDServer interface for MDServerLocal.
-func (md *MDServerLocal) GetSince(id DirID, mdID MdID, max int) (
+func (md *MDServerLocal) GetSince(id TlfID, mdID MdID, max int) (
 	[]*RootMetadataSigned, bool, error) {
 	rmds, err := md.GetForTLF(id)
 	if err != nil {
@@ -216,7 +216,7 @@ func (md *MDServerLocal) GetSince(id DirID, mdID MdID, max int) (
 	return md.getRange(id, mdID, end, max)
 }
 
-func (md *MDServerLocal) put(id DirID, mdID MdID, rmds *RootMetadataSigned,
+func (md *MDServerLocal) put(id TlfID, mdID MdID, rmds *RootMetadataSigned,
 	iddb *leveldb.DB, idval []byte) error {
 	buf, err := md.config.Codec().Encode(rmds)
 	if err != nil {
@@ -232,7 +232,7 @@ func (md *MDServerLocal) put(id DirID, mdID MdID, rmds *RootMetadataSigned,
 	return iddb.Put(id[:], idval, nil)
 }
 
-func (md *MDServerLocal) getUnmergedInfo(id DirID) (
+func (md *MDServerLocal) getUnmergedInfo(id TlfID) (
 	exists bool, u unmergedInfo, err error) {
 	var ubytes []byte
 	ubytes, err = md.devDb.Get(id[:], nil)
@@ -253,7 +253,7 @@ func (md *MDServerLocal) getUnmergedInfo(id DirID) (
 // not check that unmergedBase is part of the unmerged history; it
 // simply updates the unmerged base to that MdID without any
 // verification.
-func (md *MDServerLocal) Put(id DirID, mdID MdID, rmds *RootMetadataSigned,
+func (md *MDServerLocal) Put(id TlfID, mdID MdID, rmds *RootMetadataSigned,
 	deviceKID keybase1.KID, unmergedBase MdID) error {
 	// First check to see that this MD is consistent with the current MD.
 	currHead, err := md.getHeadForTLF(id)
@@ -271,7 +271,7 @@ func (md *MDServerLocal) Put(id DirID, mdID MdID, rmds *RootMetadataSigned,
 	if err != nil {
 		return err
 	}
-	handleBytes := rmds.MD.GetDirHandle().ToBytes(md.config)
+	handleBytes := rmds.MD.GetTlfHandle().ToBytes(md.config)
 	err = md.handleDb.Put(handleBytes, id[:], nil)
 	if err != nil {
 		return err
@@ -317,7 +317,7 @@ func (md *MDServerLocal) Put(id DirID, mdID MdID, rmds *RootMetadataSigned,
 }
 
 // PutUnmerged implements the MDServer interface for MDServerLocal.
-func (md *MDServerLocal) PutUnmerged(id DirID, mdID MdID,
+func (md *MDServerLocal) PutUnmerged(id TlfID, mdID MdID,
 	rmds *RootMetadataSigned, deviceKID keybase1.KID) error {
 	// First update the per-device unmerged info
 	exists, u, err := md.getUnmergedInfo(id)
@@ -344,7 +344,7 @@ func (md *MDServerLocal) PutUnmerged(id DirID, mdID MdID,
 }
 
 // GetUnmergedSince implements the MDServer interface for MDServerLocal.
-func (md *MDServerLocal) GetUnmergedSince(id DirID, deviceKID keybase1.KID,
+func (md *MDServerLocal) GetUnmergedSince(id TlfID, deviceKID keybase1.KID,
 	mdID MdID, max int) ([]*RootMetadataSigned, bool, error) {
 	exists, u, err := md.getUnmergedInfo(id)
 	if err != nil || !exists {
@@ -366,12 +366,12 @@ func (md *MDServerLocal) GetUnmergedSince(id DirID, deviceKID keybase1.KID,
 }
 
 // GetFavorites implements the MDServer interface for MDServerLocal.
-func (md *MDServerLocal) GetFavorites() ([]DirID, error) {
+func (md *MDServerLocal) GetFavorites() ([]TlfID, error) {
 	iter := md.idDb.NewIterator(nil, nil)
-	output := make([]DirID, 0, 1)
+	output := make([]TlfID, 0, 1)
 	for i := 0; iter.Next(); i++ {
 		key := iter.Key()
-		var id DirID
+		var id TlfID
 		copy(id[:], key[:len(id)])
 		if !id.IsPublic() {
 			output = append(output, id)

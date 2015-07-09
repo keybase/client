@@ -60,7 +60,7 @@ func TestKBFSOpsConcurDoubleMDGet(t *testing.T) {
 
 	n := 10
 	c := make(chan error, n)
-	dir := DirID{0}
+	dir := TlfID{0}
 	cl := &CounterLock{}
 
 	ops := getOps(config, dir)
@@ -100,7 +100,7 @@ func TestKBFSOpsConcurReadDuringSync(t *testing.T) {
 
 	// create and write to a file
 	kbfsOps := config.KBFSOps()
-	h := NewDirHandle()
+	h := NewTlfHandle()
 	uid, err := config.KBPKI().GetLoggedInUser()
 	if err != nil {
 		t.Errorf("Couldn't get logged in user: %v", err)
@@ -158,7 +158,7 @@ func TestKBFSOpsConcurWriteDuringSync(t *testing.T) {
 
 	// create and write to a file
 	kbfsOps := config.KBFSOps()
-	h := NewDirHandle()
+	h := NewTlfHandle()
 	uid, err := config.KBPKI().GetLoggedInUser()
 	if err != nil {
 		t.Errorf("Couldn't get logged in user: %v", err)
@@ -248,7 +248,7 @@ func TestKBFSOpsConcurWriteDuringSyncMultiBlocks(t *testing.T) {
 
 	// create and write to a file
 	kbfsOps := config.KBFSOps()
-	h := NewDirHandle()
+	h := NewTlfHandle()
 	uid, err := config.KBPKI().GetLoggedInUser()
 	if err != nil {
 		t.Errorf("Couldn't get logged in user: %v", err)

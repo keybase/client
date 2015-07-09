@@ -29,6 +29,6 @@ func (n *nodeStandard) Forget() {
 	n.cache.forget(n)
 }
 
-func (n *nodeStandard) GetFolderBranch() (DirID, BranchName) {
+func (n *nodeStandard) GetFolderBranch() (TlfID, BranchName) {
 	return n.cache.id, n.cache.branch
 }

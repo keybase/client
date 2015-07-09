@@ -155,7 +155,7 @@ func TestReaddirRoot(t *testing.T) {
 		// Force FakeMDServer to have some DirIds it can present to us
 		// as favorites. Don't go through VFS to avoid caching causing
 		// false positives.
-		dh, err := libkbfs.ParseDirHandle(context.Background(), config, "jdoe")
+		dh, err := libkbfs.ParseTlfHandle(context.Background(), config, "jdoe")
 		if err != nil {
 			t.Fatalf("cannot parse jdoe as folder: %v", err)
 		}

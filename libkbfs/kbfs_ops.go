@@ -10,7 +10,7 @@ import (
 // opID is a key for a particular Ops data structure, corresponding to
 // a TLF ID and a branch name in that folder.
 type opID struct {
-	tlf    DirID
+	tlf    TlfID
 	branch BranchName
 }
 
@@ -42,7 +42,7 @@ func (fs *KBFSOpsStandard) Shutdown() {
 }
 
 // GetFavDirs implements the KBFSOps interface for KBFSOpsStandard
-func (fs *KBFSOpsStandard) GetFavDirs(ctx context.Context) ([]DirID, error) {
+func (fs *KBFSOpsStandard) GetFavDirs(ctx context.Context) ([]TlfID, error) {
 	mdops := fs.config.MDOps()
 	return mdops.GetFavorites()
 }
@@ -77,7 +77,7 @@ func (fs *KBFSOpsStandard) getOpsByNode(node Node) *FolderBranchOps {
 // GetOrCreateRootNodeForHandle implements the KBFSOps interface for
 // KBFSOpsStandard
 func (fs *KBFSOpsStandard) GetOrCreateRootNodeForHandle(
-	ctx context.Context, handle *DirHandle) (
+	ctx context.Context, handle *TlfHandle) (
 	node Node, de DirEntry, err error) {
 	// Do GetForHandle() unlocked -- no cache lookups, should be fine
 	mdops := fs.config.MDOps()
@@ -99,11 +99,11 @@ func (fs *KBFSOpsStandard) GetOrCreateRootNodeForHandle(
 }
 
 // GetRootNode implements the KBFSOps interface for KBFSOpsStandard
-func (fs *KBFSOpsStandard) GetRootNode(ctx context.Context, dir DirID) (
-	node Node, de DirEntry, handle *DirHandle, err error) {
+func (fs *KBFSOpsStandard) GetRootNode(ctx context.Context, tlfID TlfID) (
+	node Node, de DirEntry, handle *TlfHandle, err error) {
 	// TODO: add a 'branch' parameter
-	ops := fs.getOps(opID{tlf: dir, branch: MasterBranch})
-	return ops.GetRootNode(ctx, dir)
+	ops := fs.getOps(opID{tlf: tlfID, branch: MasterBranch})
+	return ops.GetRootNode(ctx, tlfID)
 }
 
 // GetDirChildren implements the KBFSOps interface for KBFSOpsStandard
@@ -227,7 +227,7 @@ var _ Notifier = (*KBFSOpsStandard)(nil)
 
 // RegisterForChanges implements the Notifer interface for KBFSOpsStandard
 func (fs *KBFSOpsStandard) RegisterForChanges(
-	dirs []DirID, obs Observer) error {
+	dirs []TlfID, obs Observer) error {
 	for _, dir := range dirs {
 		// TODO: add branch parameter to notifier interface
 		ops := fs.getOps(opID{tlf: dir, branch: MasterBranch})
@@ -238,7 +238,7 @@ func (fs *KBFSOpsStandard) RegisterForChanges(
 
 // UnregisterFromChanges implements the Notifer interface for KBFSOpsStandard
 func (fs *KBFSOpsStandard) UnregisterFromChanges(
-	dirs []DirID, obs Observer) error {
+	dirs []TlfID, obs Observer) error {
 	for _, dir := range dirs {
 		// TODO: add branch parameter to notifier interface
 		ops := fs.getOps(opID{tlf: dir, branch: MasterBranch})

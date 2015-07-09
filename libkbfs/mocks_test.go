@@ -104,9 +104,9 @@ func (_mr *_MockNodeRecorder) Forget() *gomock.Call {
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "Forget")
 }
 
-func (_m *MockNode) GetFolderBranch() (DirID, BranchName) {
+func (_m *MockNode) GetFolderBranch() (TlfID, BranchName) {
 	ret := _m.ctrl.Call(_m, "GetFolderBranch")
-	ret0, _ := ret[0].(DirID)
+	ret0, _ := ret[0].(TlfID)
 	ret1, _ := ret[1].(BranchName)
 	return ret0, ret1
 }
@@ -136,9 +136,9 @@ func (_m *MockKBFSOps) EXPECT() *_MockKBFSOpsRecorder {
 	return _m.recorder
 }
 
-func (_m *MockKBFSOps) GetFavDirs(ctx context.Context) ([]DirID, error) {
+func (_m *MockKBFSOps) GetFavDirs(ctx context.Context) ([]TlfID, error) {
 	ret := _m.ctrl.Call(_m, "GetFavDirs", ctx)
-	ret0, _ := ret[0].([]DirID)
+	ret0, _ := ret[0].([]TlfID)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -147,7 +147,7 @@ func (_mr *_MockKBFSOpsRecorder) GetFavDirs(arg0 interface{}) *gomock.Call {
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "GetFavDirs", arg0)
 }
 
-func (_m *MockKBFSOps) GetOrCreateRootNodeForHandle(ctx context.Context, handle *DirHandle) (Node, DirEntry, error) {
+func (_m *MockKBFSOps) GetOrCreateRootNodeForHandle(ctx context.Context, handle *TlfHandle) (Node, DirEntry, error) {
 	ret := _m.ctrl.Call(_m, "GetOrCreateRootNodeForHandle", ctx, handle)
 	ret0, _ := ret[0].(Node)
 	ret1, _ := ret[1].(DirEntry)
@@ -159,11 +159,11 @@ func (_mr *_MockKBFSOpsRecorder) GetOrCreateRootNodeForHandle(arg0, arg1 interfa
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "GetOrCreateRootNodeForHandle", arg0, arg1)
 }
 
-func (_m *MockKBFSOps) GetRootNode(ctx context.Context, dir DirID) (Node, DirEntry, *DirHandle, error) {
+func (_m *MockKBFSOps) GetRootNode(ctx context.Context, dir TlfID) (Node, DirEntry, *TlfHandle, error) {
 	ret := _m.ctrl.Call(_m, "GetRootNode", ctx, dir)
 	ret0, _ := ret[0].(Node)
 	ret1, _ := ret[1].(DirEntry)
-	ret2, _ := ret[2].(*DirHandle)
+	ret2, _ := ret[2].(*TlfHandle)
 	ret3, _ := ret[3].(error)
 	return ret0, ret1, ret2, ret3
 }
@@ -596,7 +596,7 @@ func (_m *MockKeyCache) EXPECT() *_MockKeyCacheRecorder {
 	return _m.recorder
 }
 
-func (_m *MockKeyCache) GetTLFCryptKey(_param0 DirID, _param1 KeyGen) (TLFCryptKey, error) {
+func (_m *MockKeyCache) GetTLFCryptKey(_param0 TlfID, _param1 KeyGen) (TLFCryptKey, error) {
 	ret := _m.ctrl.Call(_m, "GetTLFCryptKey", _param0, _param1)
 	ret0, _ := ret[0].(TLFCryptKey)
 	ret1, _ := ret[1].(error)
@@ -607,7 +607,7 @@ func (_mr *_MockKeyCacheRecorder) GetTLFCryptKey(arg0, arg1 interface{}) *gomock
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "GetTLFCryptKey", arg0, arg1)
 }
 
-func (_m *MockKeyCache) PutTLFCryptKey(_param0 DirID, _param1 KeyGen, _param2 TLFCryptKey) error {
+func (_m *MockKeyCache) PutTLFCryptKey(_param0 TlfID, _param1 KeyGen, _param2 TLFCryptKey) error {
 	ret := _m.ctrl.Call(_m, "PutTLFCryptKey", _param0, _param1, _param2)
 	ret0, _ := ret[0].(error)
 	return ret0
@@ -720,15 +720,15 @@ func (_m *MockCrypto) EXPECT() *_MockCryptoRecorder {
 	return _m.recorder
 }
 
-func (_m *MockCrypto) MakeRandomDirID(isPublic bool) (DirID, error) {
-	ret := _m.ctrl.Call(_m, "MakeRandomDirID", isPublic)
-	ret0, _ := ret[0].(DirID)
+func (_m *MockCrypto) MakeRandomTlfID(isPublic bool) (TlfID, error) {
+	ret := _m.ctrl.Call(_m, "MakeRandomTlfID", isPublic)
+	ret0, _ := ret[0].(TlfID)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-func (_mr *_MockCryptoRecorder) MakeRandomDirID(arg0 interface{}) *gomock.Call {
-	return _mr.mock.ctrl.RecordCall(_mr.mock, "MakeRandomDirID", arg0)
+func (_mr *_MockCryptoRecorder) MakeRandomTlfID(arg0 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "MakeRandomTlfID", arg0)
 }
 
 func (_m *MockCrypto) MakeTemporaryBlockID() (BlockID, error) {
@@ -1023,7 +1023,7 @@ func (_m *MockMDOps) EXPECT() *_MockMDOpsRecorder {
 	return _m.recorder
 }
 
-func (_m *MockMDOps) GetForHandle(handle *DirHandle) (*RootMetadata, error) {
+func (_m *MockMDOps) GetForHandle(handle *TlfHandle) (*RootMetadata, error) {
 	ret := _m.ctrl.Call(_m, "GetForHandle", handle)
 	ret0, _ := ret[0].(*RootMetadata)
 	ret1, _ := ret[1].(error)
@@ -1034,7 +1034,7 @@ func (_mr *_MockMDOpsRecorder) GetForHandle(arg0 interface{}) *gomock.Call {
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "GetForHandle", arg0)
 }
 
-func (_m *MockMDOps) GetForTLF(id DirID) (*RootMetadata, error) {
+func (_m *MockMDOps) GetForTLF(id TlfID) (*RootMetadata, error) {
 	ret := _m.ctrl.Call(_m, "GetForTLF", id)
 	ret0, _ := ret[0].(*RootMetadata)
 	ret1, _ := ret[1].(error)
@@ -1056,7 +1056,7 @@ func (_mr *_MockMDOpsRecorder) Get(arg0 interface{}) *gomock.Call {
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "Get", arg0)
 }
 
-func (_m *MockMDOps) Put(id DirID, rmd *RootMetadata, deviceKID go0.KID, unmergedBase MdID) error {
+func (_m *MockMDOps) Put(id TlfID, rmd *RootMetadata, deviceKID go0.KID, unmergedBase MdID) error {
 	ret := _m.ctrl.Call(_m, "Put", id, rmd, deviceKID, unmergedBase)
 	ret0, _ := ret[0].(error)
 	return ret0
@@ -1066,7 +1066,7 @@ func (_mr *_MockMDOpsRecorder) Put(arg0, arg1, arg2, arg3 interface{}) *gomock.C
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "Put", arg0, arg1, arg2, arg3)
 }
 
-func (_m *MockMDOps) GetSince(id DirID, mdID MdID, max int) ([]*RootMetadata, bool, error) {
+func (_m *MockMDOps) GetSince(id TlfID, mdID MdID, max int) ([]*RootMetadata, bool, error) {
 	ret := _m.ctrl.Call(_m, "GetSince", id, mdID, max)
 	ret0, _ := ret[0].([]*RootMetadata)
 	ret1, _ := ret[1].(bool)
@@ -1078,7 +1078,7 @@ func (_mr *_MockMDOpsRecorder) GetSince(arg0, arg1, arg2 interface{}) *gomock.Ca
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "GetSince", arg0, arg1, arg2)
 }
 
-func (_m *MockMDOps) PutUnmerged(id DirID, rmd *RootMetadata, deviceKID go0.KID) error {
+func (_m *MockMDOps) PutUnmerged(id TlfID, rmd *RootMetadata, deviceKID go0.KID) error {
 	ret := _m.ctrl.Call(_m, "PutUnmerged", id, rmd, deviceKID)
 	ret0, _ := ret[0].(error)
 	return ret0
@@ -1088,7 +1088,7 @@ func (_mr *_MockMDOpsRecorder) PutUnmerged(arg0, arg1, arg2 interface{}) *gomock
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "PutUnmerged", arg0, arg1, arg2)
 }
 
-func (_m *MockMDOps) GetUnmergedSince(id DirID, deviceKID go0.KID, mdID MdID, max int) ([]*RootMetadata, bool, error) {
+func (_m *MockMDOps) GetUnmergedSince(id TlfID, deviceKID go0.KID, mdID MdID, max int) ([]*RootMetadata, bool, error) {
 	ret := _m.ctrl.Call(_m, "GetUnmergedSince", id, deviceKID, mdID, max)
 	ret0, _ := ret[0].([]*RootMetadata)
 	ret1, _ := ret[1].(bool)
@@ -1100,9 +1100,9 @@ func (_mr *_MockMDOpsRecorder) GetUnmergedSince(arg0, arg1, arg2, arg3 interface
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "GetUnmergedSince", arg0, arg1, arg2, arg3)
 }
 
-func (_m *MockMDOps) GetFavorites() ([]DirID, error) {
+func (_m *MockMDOps) GetFavorites() ([]TlfID, error) {
 	ret := _m.ctrl.Call(_m, "GetFavorites")
-	ret0, _ := ret[0].([]DirID)
+	ret0, _ := ret[0].([]TlfID)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -1132,7 +1132,7 @@ func (_m *MockKeyOps) EXPECT() *_MockKeyOpsRecorder {
 	return _m.recorder
 }
 
-func (_m *MockKeyOps) GetTLFCryptKeyServerHalf(id DirID, keyGen KeyGen, cryptPublicKey CryptPublicKey) (TLFCryptKeyServerHalf, error) {
+func (_m *MockKeyOps) GetTLFCryptKeyServerHalf(id TlfID, keyGen KeyGen, cryptPublicKey CryptPublicKey) (TLFCryptKeyServerHalf, error) {
 	ret := _m.ctrl.Call(_m, "GetTLFCryptKeyServerHalf", id, keyGen, cryptPublicKey)
 	ret0, _ := ret[0].(TLFCryptKeyServerHalf)
 	ret1, _ := ret[1].(error)
@@ -1143,7 +1143,7 @@ func (_mr *_MockKeyOpsRecorder) GetTLFCryptKeyServerHalf(arg0, arg1, arg2 interf
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "GetTLFCryptKeyServerHalf", arg0, arg1, arg2)
 }
 
-func (_m *MockKeyOps) PutTLFCryptKeyServerHalf(id DirID, keyGen KeyGen, cryptPublicKey CryptPublicKey, serverHalf TLFCryptKeyServerHalf) error {
+func (_m *MockKeyOps) PutTLFCryptKeyServerHalf(id TlfID, keyGen KeyGen, cryptPublicKey CryptPublicKey, serverHalf TLFCryptKeyServerHalf) error {
 	ret := _m.ctrl.Call(_m, "PutTLFCryptKeyServerHalf", id, keyGen, cryptPublicKey, serverHalf)
 	ret0, _ := ret[0].(error)
 	return ret0
@@ -1249,7 +1249,7 @@ func (_m *MockMDServer) EXPECT() *_MockMDServerRecorder {
 	return _m.recorder
 }
 
-func (_m *MockMDServer) GetForHandle(handle *DirHandle) (*RootMetadataSigned, error) {
+func (_m *MockMDServer) GetForHandle(handle *TlfHandle) (*RootMetadataSigned, error) {
 	ret := _m.ctrl.Call(_m, "GetForHandle", handle)
 	ret0, _ := ret[0].(*RootMetadataSigned)
 	ret1, _ := ret[1].(error)
@@ -1260,7 +1260,7 @@ func (_mr *_MockMDServerRecorder) GetForHandle(arg0 interface{}) *gomock.Call {
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "GetForHandle", arg0)
 }
 
-func (_m *MockMDServer) GetForTLF(id DirID) (*RootMetadataSigned, error) {
+func (_m *MockMDServer) GetForTLF(id TlfID) (*RootMetadataSigned, error) {
 	ret := _m.ctrl.Call(_m, "GetForTLF", id)
 	ret0, _ := ret[0].(*RootMetadataSigned)
 	ret1, _ := ret[1].(error)
@@ -1282,7 +1282,7 @@ func (_mr *_MockMDServerRecorder) Get(arg0 interface{}) *gomock.Call {
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "Get", arg0)
 }
 
-func (_m *MockMDServer) GetSince(id DirID, mdID MdID, max int) ([]*RootMetadataSigned, bool, error) {
+func (_m *MockMDServer) GetSince(id TlfID, mdID MdID, max int) ([]*RootMetadataSigned, bool, error) {
 	ret := _m.ctrl.Call(_m, "GetSince", id, mdID, max)
 	ret0, _ := ret[0].([]*RootMetadataSigned)
 	ret1, _ := ret[1].(bool)
@@ -1294,7 +1294,7 @@ func (_mr *_MockMDServerRecorder) GetSince(arg0, arg1, arg2 interface{}) *gomock
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "GetSince", arg0, arg1, arg2)
 }
 
-func (_m *MockMDServer) Put(id DirID, mdID MdID, rmds *RootMetadataSigned, deviceKID go0.KID, unmergedBase MdID) error {
+func (_m *MockMDServer) Put(id TlfID, mdID MdID, rmds *RootMetadataSigned, deviceKID go0.KID, unmergedBase MdID) error {
 	ret := _m.ctrl.Call(_m, "Put", id, mdID, rmds, deviceKID, unmergedBase)
 	ret0, _ := ret[0].(error)
 	return ret0
@@ -1304,7 +1304,7 @@ func (_mr *_MockMDServerRecorder) Put(arg0, arg1, arg2, arg3, arg4 interface{}) 
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "Put", arg0, arg1, arg2, arg3, arg4)
 }
 
-func (_m *MockMDServer) PutUnmerged(id DirID, mdID MdID, rmds *RootMetadataSigned, deviceKID go0.KID) error {
+func (_m *MockMDServer) PutUnmerged(id TlfID, mdID MdID, rmds *RootMetadataSigned, deviceKID go0.KID) error {
 	ret := _m.ctrl.Call(_m, "PutUnmerged", id, mdID, rmds, deviceKID)
 	ret0, _ := ret[0].(error)
 	return ret0
@@ -1314,7 +1314,7 @@ func (_mr *_MockMDServerRecorder) PutUnmerged(arg0, arg1, arg2, arg3 interface{}
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "PutUnmerged", arg0, arg1, arg2, arg3)
 }
 
-func (_m *MockMDServer) GetUnmergedSince(id DirID, deviceKID go0.KID, mdID MdID, max int) ([]*RootMetadataSigned, bool, error) {
+func (_m *MockMDServer) GetUnmergedSince(id TlfID, deviceKID go0.KID, mdID MdID, max int) ([]*RootMetadataSigned, bool, error) {
 	ret := _m.ctrl.Call(_m, "GetUnmergedSince", id, deviceKID, mdID, max)
 	ret0, _ := ret[0].([]*RootMetadataSigned)
 	ret1, _ := ret[1].(bool)
@@ -1326,9 +1326,9 @@ func (_mr *_MockMDServerRecorder) GetUnmergedSince(arg0, arg1, arg2, arg3 interf
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "GetUnmergedSince", arg0, arg1, arg2, arg3)
 }
 
-func (_m *MockMDServer) GetFavorites() ([]DirID, error) {
+func (_m *MockMDServer) GetFavorites() ([]TlfID, error) {
 	ret := _m.ctrl.Call(_m, "GetFavorites")
-	ret0, _ := ret[0].([]DirID)
+	ret0, _ := ret[0].([]TlfID)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -1370,7 +1370,7 @@ func (_mr *_MockBlockServerRecorder) Get(arg0, arg1 interface{}) *gomock.Call {
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "Get", arg0, arg1)
 }
 
-func (_m *MockBlockServer) Put(id BlockID, tlfID DirID, context BlockContext, buf []byte, serverHalf BlockCryptKeyServerHalf) error {
+func (_m *MockBlockServer) Put(id BlockID, tlfID TlfID, context BlockContext, buf []byte, serverHalf BlockCryptKeyServerHalf) error {
 	ret := _m.ctrl.Call(_m, "Put", id, tlfID, context, buf, serverHalf)
 	ret0, _ := ret[0].(error)
 	return ret0
@@ -1470,7 +1470,7 @@ func (_mr *_MockObserverRecorder) LocalChange(arg0, arg1, arg2 interface{}) *gom
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "LocalChange", arg0, arg1, arg2)
 }
 
-func (_m *MockObserver) BatchChanges(ctx context.Context, dir DirID, changes []NodeChange) {
+func (_m *MockObserver) BatchChanges(ctx context.Context, dir TlfID, changes []NodeChange) {
 	_m.ctrl.Call(_m, "BatchChanges", ctx, dir, changes)
 }
 
@@ -1499,7 +1499,7 @@ func (_m *MockNotifier) EXPECT() *_MockNotifierRecorder {
 	return _m.recorder
 }
 
-func (_m *MockNotifier) RegisterForChanges(dirs []DirID, obs Observer) error {
+func (_m *MockNotifier) RegisterForChanges(dirs []TlfID, obs Observer) error {
 	ret := _m.ctrl.Call(_m, "RegisterForChanges", dirs, obs)
 	ret0, _ := ret[0].(error)
 	return ret0
@@ -1509,7 +1509,7 @@ func (_mr *_MockNotifierRecorder) RegisterForChanges(arg0, arg1 interface{}) *go
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "RegisterForChanges", arg0, arg1)
 }
 
-func (_m *MockNotifier) UnregisterFromChanges(dirs []DirID, obs Observer) error {
+func (_m *MockNotifier) UnregisterFromChanges(dirs []TlfID, obs Observer) error {
 	ret := _m.ctrl.Call(_m, "UnregisterFromChanges", dirs, obs)
 	ret0, _ := ret[0].(error)
 	return ret0

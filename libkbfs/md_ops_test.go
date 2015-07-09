@@ -24,7 +24,7 @@ func mdOpsShutdown(mockCtrl *gomock.Controller, config *ConfigMock) {
 }
 
 func newDir(t *testing.T, config *ConfigMock, x byte, share bool, public bool) (
-	DirID, *DirHandle, *RootMetadataSigned) {
+	TlfID, *TlfHandle, *RootMetadataSigned) {
 	revision := uint64(1) // hardcoded as it's unused for now.
 	id, h, rmds := NewFolder(t, x, revision, share, public)
 	expectUserCalls(h, config)
@@ -34,7 +34,7 @@ func newDir(t *testing.T, config *ConfigMock, x byte, share bool, public bool) (
 }
 
 func verifyMDForPublic(config *ConfigMock, rmds *RootMetadataSigned,
-	id DirID, hasVerifyingKeyErr error, verifyErr error) {
+	id TlfID, hasVerifyingKeyErr error, verifyErr error) {
 	config.mockCodec.EXPECT().Decode(rmds.MD.SerializedPrivateMetadata, &rmds.MD.data).
 		Return(nil)
 
@@ -47,7 +47,7 @@ func verifyMDForPublic(config *ConfigMock, rmds *RootMetadataSigned,
 }
 
 func verifyMDForPrivateShare(config *ConfigMock, rmds *RootMetadataSigned,
-	id DirID) {
+	id TlfID) {
 	config.mockCodec.EXPECT().Decode(rmds.MD.SerializedPrivateMetadata, gomock.Any()).
 		Return(nil)
 	expectGetTLFCryptKeyForMDDecryption(config, &rmds.MD)
@@ -63,7 +63,7 @@ func verifyMDForPrivateShare(config *ConfigMock, rmds *RootMetadataSigned,
 }
 
 func putMDForPublic(config *ConfigMock, rmds *RootMetadataSigned,
-	id DirID) {
+	id TlfID) {
 	packedData := []byte{4, 3, 2, 1}
 	config.mockCodec.EXPECT().Encode(rmds.MD.data).Return(packedData, nil)
 	config.mockCodec.EXPECT().Encode(gomock.Any()).AnyTimes().
@@ -77,7 +77,7 @@ func putMDForPublic(config *ConfigMock, rmds *RootMetadataSigned,
 }
 
 func putMDForPrivateShare(config *ConfigMock, rmds *RootMetadataSigned,
-	id DirID) {
+	id TlfID) {
 	expectGetTLFCryptKeyForEncryption(config, &rmds.MD)
 	config.mockCrypto.EXPECT().EncryptPrivateMetadata(
 		&rmds.MD.data, TLFCryptKey{}).Return(EncryptedPrivateMetadata{}, nil)
@@ -190,7 +190,7 @@ func TestMDOpsGetForHandleFailHandleCheck(t *testing.T) {
 
 	// expect one call to fetch MD, and one to verify it, and fail that one
 	id, h, rmds := newDir(t, config, 1, true, false)
-	rmds.MD.cachedDirHandle = NewDirHandle()
+	rmds.MD.cachedTlfHandle = NewTlfHandle()
 
 	// add a new writer after the MD was made, to force a failure
 	newWriter := keybase1.MakeTestUID(100)
@@ -492,7 +492,7 @@ func TestMDOpsGetFavoritesSuccess(t *testing.T) {
 	// expect one call to fetch favorites
 	id1, _, _ := newDir(t, config, 1, true, false)
 	id2, _, _ := newDir(t, config, 2, true, false)
-	ids := []DirID{id1, id2}
+	ids := []TlfID{id1, id2}
 
 	config.mockMdserv.EXPECT().GetFavorites().Return(ids, nil)
 

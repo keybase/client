@@ -16,8 +16,8 @@ import (
 // Folder represents KBFS top-level folders
 type Folder struct {
 	fs *FS
-	id libkbfs.DirID
-	dh *libkbfs.DirHandle
+	id libkbfs.TlfID
+	dh *libkbfs.TlfHandle
 
 	// Protects all Dir.pathNode and File.pathNode instances.
 	mu sync.RWMutex
@@ -42,7 +42,7 @@ func (d *Dir) Attr(ctx context.Context, a *fuse.Attr) error {
 	defer d.folder.mu.RUnlock()
 
 	switch {
-	case d.folder.id == libkbfs.NullDirID:
+	case d.folder.id == libkbfs.NullTlfID:
 		// It's a made-up folder, e.g. to show u/public when caller
 		// has no access to u; no DirEntry.
 
@@ -88,7 +88,7 @@ func (d *Dir) Lookup(ctx context.Context, req *fuse.LookupRequest, resp *fuse.Lo
 	if req.Name == libkbfs.PublicName &&
 		d.parent == nil &&
 		d.folder.dh.HasPublic() {
-		dhPub := &libkbfs.DirHandle{
+		dhPub := &libkbfs.TlfHandle{
 			Writers: d.folder.dh.Writers,
 			Readers: []keybase1.UID{keybase1.PublicUID},
 		}
@@ -294,7 +294,7 @@ func (d *Dir) ReadDirAll(ctx context.Context) ([]fuse.Dirent, error) {
 		})
 	}
 
-	if d.folder.id == libkbfs.NullDirID {
+	if d.folder.id == libkbfs.NullTlfID {
 		// It's a dummy folder for the purposes of exposing public.
 		return res, nil
 	}

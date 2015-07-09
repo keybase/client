@@ -27,9 +27,9 @@ type ErrorNode struct {
 type FuseOps struct {
 	config       libkbfs.Config
 	topNodes     map[string]*FuseNode
-	topNodesByID map[libkbfs.DirID]*FuseNode
+	topNodesByID map[libkbfs.TlfID]*FuseNode
 	topLock      sync.RWMutex
-	dirRWChans   *libkbfs.DirRWSchedulers
+	tlfRWChans   *libkbfs.TlfRWSchedulers
 	ctx          context.Context
 
 	// naturally protected by the dirRWChans
@@ -41,8 +41,8 @@ func NewFuseRoot(ctx context.Context, config libkbfs.Config) *FuseNode {
 	f := &FuseOps{
 		config:       config,
 		topNodes:     make(map[string]*FuseNode),
-		topNodesByID: make(map[libkbfs.DirID]*FuseNode),
-		dirRWChans:   libkbfs.NewDirRWSchedulers(config),
+		topNodesByID: make(map[libkbfs.TlfID]*FuseNode),
+		tlfRWChans:   libkbfs.NewTlfRWSchedulers(config),
 		fuseNodeMap:  make(map[libkbfs.Node]*FuseNode),
 	}
 	f.ctx = context.WithValue(ctx, ctxAppIDKey, f)
@@ -68,7 +68,7 @@ type FuseNode struct {
 	PrevNode   *FuseNode
 	Entry      libkbfs.DirEntry
 	NeedUpdate bool               // Whether Entry needs to be updated.
-	DirHandle  *libkbfs.DirHandle // only set if this is a root node
+	TlfHandle  *libkbfs.TlfHandle // only set if this is a root node
 	File       *FuseFile
 	Ops        *FuseOps
 }
@@ -107,22 +107,22 @@ func (n *ErrorNode) Read(
 	return fuse.ReadResultData(dest[:size]), fuse.OK
 }
 
-func (n *FuseNode) getTopDir() libkbfs.DirID {
+func (n *FuseNode) getTlf() libkbfs.TlfID {
 	if n.fsNode != nil {
 		id, _ := n.fsNode.GetFolderBranch()
 		return id
 	}
 	// used for the root directory
-	return libkbfs.DirID{0}
+	return libkbfs.TlfID{0}
 }
 
 func (n *FuseNode) getChan() util.RWScheduler {
-	return n.Ops.dirRWChans.GetDirChan(n.getTopDir())
+	return n.Ops.tlfRWChans.GetTlfChan(n.getTlf())
 }
 
 // Shutdown cleanly stops any goroutines started by this FuseOps.
 func (f *FuseOps) Shutdown() {
-	f.dirRWChans.Shutdown()
+	f.tlfRWChans.Shutdown()
 }
 
 // LookupInDir finds a directory entry in a given subdirectory.
@@ -139,9 +139,9 @@ func (f *FuseOps) LookupInDir(dNode *FuseNode, name string) (
 
 		// is this the public top-level directory?
 		if name == libkbfs.PublicName && dNode.PrevNode == nil &&
-			dNode.DirHandle.HasPublic() {
-			dirHandle := &libkbfs.DirHandle{
-				Writers: dNode.DirHandle.Writers,
+			dNode.TlfHandle.HasPublic() {
+			dirHandle := &libkbfs.TlfHandle{
+				Writers: dNode.TlfHandle.Writers,
 				Readers: []keybase1.UID{keybase1.PublicUID},
 			}
 			rootNode, rootDe, err :=
@@ -152,7 +152,7 @@ func (f *FuseOps) LookupInDir(dNode *FuseNode, name string) (
 			}
 			fNode := &FuseNode{
 				Node:      nodefs.NewDefaultNode(),
-				DirHandle: dirHandle,
+				TlfHandle: dirHandle,
 				Entry:     rootDe,
 				fsNode:    rootNode,
 				Ops:       f,
@@ -164,13 +164,13 @@ func (f *FuseOps) LookupInDir(dNode *FuseNode, name string) (
 			defer f.topLock.Unlock()
 			f.addTopNodeLocked(dirHandle.ToString(f.config), fNode)
 			return node, fuse.OK
-		} else if dNode.getTopDir() == libkbfs.NullDirID {
+		} else if dNode.getTlf() == libkbfs.NullTlfID {
 			uid, err := f.config.KBPKI().GetLoggedInUser()
 			if err != nil {
 				return nil, f.translateError(err)
 			}
 			return nil, f.translateError(libkbfs.NewReadAccessError(
-				f.config, dNode.DirHandle, uid))
+				f.config, dNode.TlfHandle, uid))
 		}
 
 		newNode, de, err := f.config.KBFSOps().Lookup(f.ctx, dNode.fsNode, name)
@@ -223,7 +223,7 @@ func (f *FuseOps) LocalChange(
 
 // BatchChanges sets NeedUpdate for all relevant nodes.
 func (f *FuseOps) BatchChanges(
-	ctx context.Context, dir libkbfs.DirID, changes []libkbfs.NodeChange) {
+	ctx context.Context, tlfID libkbfs.TlfID, changes []libkbfs.NodeChange) {
 	if len(changes) == 0 {
 		return
 	}
@@ -231,7 +231,7 @@ func (f *FuseOps) BatchChanges(
 	f.topLock.RLock()
 	defer f.topLock.RUnlock()
 
-	topNode := f.topNodesByID[dir]
+	topNode := f.topNodesByID[tlfID]
 	if topNode == nil {
 		return
 	}
@@ -253,9 +253,9 @@ func (f *FuseOps) BatchChanges(
 
 func (f *FuseOps) addTopNodeLocked(name string, fNode *FuseNode) {
 	f.topNodes[name] = fNode
-	id := fNode.getTopDir()
+	id := fNode.getTlf()
 	if _, ok := f.topNodesByID[id]; !ok {
-		f.config.Notifier().RegisterForChanges([]libkbfs.DirID{id}, f)
+		f.config.Notifier().RegisterForChanges([]libkbfs.TlfID{id}, f)
 		f.topNodesByID[id] = fNode
 	}
 }
@@ -275,7 +275,7 @@ func (f *FuseOps) LookupInRootByName(rNode *FuseNode, name string) (
 
 		// try to resolve the user name; if it works create a node
 		ctx := context.TODO()
-		dirHandle, err := libkbfs.ParseDirHandle(ctx, f.config, name)
+		dirHandle, err := libkbfs.ParseTlfHandle(ctx, f.config, name)
 		if err != nil {
 			return nil, f.translateError(err)
 		} else if dirHandle.IsPublic() {
@@ -294,13 +294,13 @@ func (f *FuseOps) LookupInRootByName(rNode *FuseNode, name string) (
 			var fNode *FuseNode
 			if _, ok :=
 				err.(libkbfs.ReadAccessError); ok && dirHandle.HasPublic() {
-				// This user cannot get the metadata for the directory.
-				// But, if it has a public directory, we should still be
-				// able to list that public directory, right?  Make a fake
+				// This user cannot get the metadata for the folder.
+				// But, if it has a public folder, we should still be
+				// able to list that public folder, right?  Make a fake
 				// node for it.
 				fNode = &FuseNode{
 					Node:      nodefs.NewDefaultNode(),
-					DirHandle: dirHandle,
+					TlfHandle: dirHandle,
 					fsNode:    nil,
 					Entry:     libkbfs.DirEntry{Type: libkbfs.Dir},
 					Ops:       f,
@@ -313,7 +313,7 @@ func (f *FuseOps) LookupInRootByName(rNode *FuseNode, name string) (
 				}
 				fNode = &FuseNode{
 					Node:      nodefs.NewDefaultNode(),
-					DirHandle: dirHandle,
+					TlfHandle: dirHandle,
 					Entry:     rootDe,
 					fsNode:    rootNode,
 					Ops:       f,
@@ -332,7 +332,7 @@ func (f *FuseOps) LookupInRootByName(rNode *FuseNode, name string) (
 
 // LookupInRootByID find a top-level folder node in the root KBFS
 // mount, given a top-level folder ID.
-func (f *FuseOps) LookupInRootByID(rNode *FuseNode, id libkbfs.DirID) (
+func (f *FuseOps) LookupInRootByID(rNode *FuseNode, id libkbfs.TlfID) (
 	node *nodefs.Inode, code fuse.Status) {
 	rootNode, rootDe, dirHandle, err := f.config.KBFSOps().
 		GetRootNode(f.ctx, id)
@@ -352,7 +352,7 @@ func (f *FuseOps) LookupInRootByID(rNode *FuseNode, id libkbfs.DirID) (
 		} else {
 			fNode := &FuseNode{
 				Node:      nodefs.NewDefaultNode(),
-				DirHandle: dirHandle,
+				TlfHandle: dirHandle,
 				Entry:     rootDe,
 				fsNode:    rootNode,
 				Ops:       f,
@@ -368,7 +368,7 @@ func (f *FuseOps) LookupInRootByID(rNode *FuseNode, id libkbfs.DirID) (
 
 // GetAttr returns the attributes for a given KBFS node.
 func (f *FuseOps) GetAttr(n *FuseNode, out *fuse.Attr) fuse.Status {
-	if n.PrevNode != nil || n.DirHandle != nil {
+	if n.PrevNode != nil || n.TlfHandle != nil {
 		if n.NeedUpdate {
 			var de libkbfs.DirEntry
 			var err error
@@ -382,7 +382,7 @@ func (f *FuseOps) GetAttr(n *FuseNode, out *fuse.Attr) fuse.Status {
 				var rootNode libkbfs.Node
 				rootNode, de, err =
 					f.config.KBFSOps().GetOrCreateRootNodeForHandle(
-						f.ctx, n.DirHandle)
+						f.ctx, n.TlfHandle)
 				if err != nil {
 					return f.translateError(err)
 				}
@@ -394,7 +394,7 @@ func (f *FuseOps) GetAttr(n *FuseNode, out *fuse.Attr) fuse.Status {
 		}
 
 		out.Size = n.Entry.Size
-		out.Mode = fuseModeFromEntry(n.getTopDir(), n.Entry.Type)
+		out.Mode = fuseModeFromEntry(n.getTlf(), n.Entry.Type)
 		mtime := time.Unix(0, n.Entry.Mtime)
 		ctime := time.Unix(0, n.Entry.Ctime)
 		out.SetTimes(nil, &mtime, &ctime)
@@ -406,9 +406,9 @@ func (f *FuseOps) GetAttr(n *FuseNode, out *fuse.Attr) fuse.Status {
 	return fuse.OK
 }
 
-func fuseModeFromEntry(dir libkbfs.DirID, et libkbfs.EntryType) uint32 {
+func fuseModeFromEntry(tlfID libkbfs.TlfID, et libkbfs.EntryType) uint32 {
 	var pubModeFile, pubModeExec, pubModeDir, pubModeSym uint32
-	if dir.IsPublic() {
+	if tlfID.IsPublic() {
 		pubModeFile = 0044
 		pubModeExec = 0055
 		pubModeDir = 0055
@@ -432,9 +432,9 @@ func fuseModeFromEntry(dir libkbfs.DirID, et libkbfs.EntryType) uint32 {
 // ListDir returns all directory entries for the given subdirectory.
 func (f *FuseOps) ListDir(n *FuseNode) (
 	stream []fuse.DirEntry, code fuse.Status) {
-	// If this is the top-level directory, then list the public
-	// directory as well (if there are no readers)
-	hasPublic := n.PrevNode == nil && n.DirHandle.HasPublic()
+	// If this is the top-level folder, then list the public
+	// folder as well (if there are no readers)
+	hasPublic := n.PrevNode == nil && n.TlfHandle.HasPublic()
 	if hasPublic {
 		stream = append(stream, fuse.DirEntry{
 			Name: libkbfs.PublicName,
@@ -454,7 +454,7 @@ func (f *FuseOps) ListDir(n *FuseNode) (
 			return
 		}
 	} else {
-		id := n.getTopDir()
+		id := n.getTlf()
 		for name, et := range children {
 			stream = append(stream, fuse.DirEntry{
 				Name: name,
@@ -473,7 +473,7 @@ func (f *FuseOps) ListRoot() (stream []fuse.DirEntry, code fuse.Status) {
 	stream = make([]fuse.DirEntry, 0, len(f.topNodes))
 	for tn, fNode := range f.topNodes {
 		// don't list public directories
-		if fNode.getTopDir().IsPublic() {
+		if fNode.getTlf().IsPublic() {
 			continue
 		}
 		stream = append(stream, fuse.DirEntry{
@@ -547,7 +547,7 @@ func (f *FuseOps) Mknod(n *FuseNode, name string, mode uint32) (
 		return nil, f.translateError(err)
 	}
 
-	// create a new inode for the new directory
+	// create a new inode for the new file
 	fNode := &FuseNode{
 		Node:     nodefs.NewDefaultNode(),
 		fsNode:   fsNode,
@@ -632,9 +632,9 @@ func (f *FuseOps) RmEntry(n *FuseNode, name string, isDir bool) (
 
 	// Can't remove public directories
 	if name == libkbfs.PublicName {
-		if n.PrevNode == nil && !n.getTopDir().IsPublic() {
+		if n.PrevNode == nil && !n.getTlf().IsPublic() {
 			return f.translateError(
-				libkbfs.TopDirAccessError{ID: n.getTopDir()})
+				libkbfs.TlfAccessError{ID: n.getTlf()})
 		}
 	}
 
@@ -663,7 +663,7 @@ func (f *FuseOps) Rename(
 		return f.translateError(libkbfs.ErrorFileAccessError{})
 	}
 
-	if oldParent.getTopDir() != newParent.getTopDir() {
+	if oldParent.getTlf() != newParent.getTlf() {
 		return f.translateError(libkbfs.RenameAcrossDirsError{})
 	}
 
@@ -711,7 +711,7 @@ func (f *FuseOps) translateError(err error) fuse.Status {
 		return fuse.EACCES
 	case libkbfs.WriteAccessError:
 		return fuse.EACCES
-	case libkbfs.TopDirAccessError:
+	case libkbfs.TlfAccessError:
 		return fuse.EACCES
 	case libkbfs.NotDirError:
 		return fuse.ENOTDIR
@@ -738,7 +738,7 @@ func (n *FuseNode) OnMount(conn *nodefs.FileSystemConnector) {
 	// at once?
 	c := make(chan int, len(favs))
 	for _, name := range favs {
-		go func(fav libkbfs.DirID) {
+		go func(fav libkbfs.TlfID) {
 			n.Ops.LookupInRootByID(n, fav)
 			c <- 1
 		}(name)
@@ -800,7 +800,7 @@ func (n *FuseNode) Utimens(file nodefs.File, atime *time.Time,
 // Lookup implements the go-fuse Node interface for FuseNode
 func (n *FuseNode) Lookup(out *fuse.Attr, name string, context *fuse.Context) (
 	node *nodefs.Inode, code fuse.Status) {
-	if n.PrevNode != nil || n.DirHandle != nil {
+	if n.PrevNode != nil || n.TlfHandle != nil {
 		rwchan, statchan := n.getChans()
 		rwchan.QueueReadReq(func() {
 			node, code = n.Ops.LookupInDir(n, name)
@@ -821,7 +821,7 @@ func (n *FuseNode) OpenDir(context *fuse.Context) (
 	stream []fuse.DirEntry, code fuse.Status) {
 	if n.File != nil {
 		return nil, fuse.EINVAL
-	} else if n.PrevNode != nil || n.DirHandle != nil {
+	} else if n.PrevNode != nil || n.TlfHandle != nil {
 		rwchan, statchan := n.getChans()
 		rwchan.QueueReadReq(func() {
 			stream, code = n.Ops.ListDir(n)
@@ -836,7 +836,7 @@ func (n *FuseNode) OpenDir(context *fuse.Context) (
 // Mkdir implements the go-fuse Node interface for FuseNode
 func (n *FuseNode) Mkdir(name string, mode uint32, context *fuse.Context) (
 	newNode *nodefs.Inode, code fuse.Status) {
-	if n.PrevNode != nil || n.DirHandle != nil {
+	if n.PrevNode != nil || n.TlfHandle != nil {
 		rwchan, statchan := n.getChans()
 		rwchan.QueueWriteReq(func() {
 			newNode, code = n.Ops.Mkdir(n, name)
@@ -852,7 +852,7 @@ func (n *FuseNode) Mkdir(name string, mode uint32, context *fuse.Context) (
 func (n *FuseNode) Mknod(
 	name string, mode uint32, dev uint32, context *fuse.Context) (
 	newNode *nodefs.Inode, code fuse.Status) {
-	if n.PrevNode != nil || n.DirHandle != nil {
+	if n.PrevNode != nil || n.TlfHandle != nil {
 		rwchan, statchan := n.getChans()
 		rwchan.QueueWriteReq(func() {
 			newNode, code = n.Ops.Mknod(n, name, mode)

@@ -6,15 +6,15 @@ import (
 	"github.com/keybase/client/protocol/go"
 )
 
-// Test that GetDirHandle() generates a DirHandle properly for public
-// TLFs if there is no cached DirHandle.
-func TestRootMetadataGetDirHandlePublic(t *testing.T) {
-	var tlfID DirID
-	tlfID[len(tlfID)-1] = PubDirIDSuffix
+// Test that GetTlfHandle() generates a TlfHandle properly for public
+// TLFs if there is no cached TlfHandle.
+func TestRootMetadataGetTlfHandlePublic(t *testing.T) {
+	var tlfID TlfID
+	tlfID[len(tlfID)-1] = PubTlfIDSuffix
 	rmd := NewRootMetadata(nil, tlfID)
-	dirHandle := rmd.GetDirHandle()
+	dirHandle := rmd.GetTlfHandle()
 	if dirHandle == nil {
-		t.Fatal("nil DirHandle")
+		t.Fatal("nil TlfHandle")
 	}
 	if len(dirHandle.Readers) != 1 || dirHandle.Readers[0] != keybase1.PublicUID {
 		t.Errorf("Invalid reader list %v", dirHandle.Readers)
@@ -24,16 +24,16 @@ func TestRootMetadataGetDirHandlePublic(t *testing.T) {
 	}
 }
 
-// Test that GetDirHandle() generates a DirHandle properly for
-// non-public TLFs if there is no cached DirHandle.
-func TestRootMetadataGetDirHandlePrivate(t *testing.T) {
-	var tlfID DirID
-	tlfID[len(tlfID)-1] = DirIDSuffix
+// Test that GetTlfHandle() generates a TlfHandle properly for
+// non-public TLFs if there is no cached TlfHandle.
+func TestRootMetadataGetTlfHandlePrivate(t *testing.T) {
+	var tlfID TlfID
+	tlfID[len(tlfID)-1] = TlfIDSuffix
 	rmd := NewRootMetadata(nil, tlfID)
 	AddNewKeysOrBust(t, rmd, DirKeyBundle{})
-	dirHandle := rmd.GetDirHandle()
+	dirHandle := rmd.GetTlfHandle()
 	if dirHandle == nil {
-		t.Fatal("nil DirHandle")
+		t.Fatal("nil TlfHandle")
 	}
 	if len(dirHandle.Readers) != 0 {
 		t.Errorf("Invalid reader list %v", dirHandle.Readers)

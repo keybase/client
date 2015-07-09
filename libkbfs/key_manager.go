@@ -38,14 +38,14 @@ func (km *KeyManagerStandard) getTLFCryptKey(md *RootMetadata, keyGen KeyGen) (
 	}
 
 	if keyGen < FirstValidKeyGen {
-		err = InvalidKeyGenerationError{*md.GetDirHandle(), keyGen}
+		err = InvalidKeyGenerationError{*md.GetTlfHandle(), keyGen}
 		return
 	}
 	// Is this some key we don't know yet?  Shouldn't really ever happen,
 	// since we must have seen the MD that led us to this block, which
 	// should include all the latest keys.  Consider this a failsafe.
 	if keyGen > md.LatestKeyGeneration() {
-		err = NewKeyGenerationError{*md.GetDirHandle(), keyGen}
+		err = NewKeyGenerationError{*md.GetTlfHandle(), keyGen}
 		return
 	}
 
@@ -72,7 +72,7 @@ func (km *KeyManagerStandard) getTLFCryptKey(md *RootMetadata, keyGen KeyGen) (
 		return
 	}
 	if !ok {
-		err = NewReadAccessError(km.config, md.GetDirHandle(), user)
+		err = NewReadAccessError(km.config, md.GetTlfHandle(), user)
 		return
 	}
 
@@ -183,7 +183,7 @@ func (km *KeyManagerStandard) Rekey(md *RootMetadata) error {
 		return err
 	}
 
-	handle := md.GetDirHandle()
+	handle := md.GetTlfHandle()
 	newKeys := DirKeyBundle{
 		WKeys:                 make(map[keybase1.UID]map[keybase1.KID]EncryptedTLFCryptKeyClientHalf),
 		RKeys:                 make(map[keybase1.UID]map[keybase1.KID]EncryptedTLFCryptKeyClientHalf),

@@ -88,7 +88,7 @@ var _ fs.NodeRequestLookuper = (*Root)(nil)
 
 // getMD is a wrapper over KBFSOps.GetOrCreateRootNodeForHandle that gives
 // useful results for home folders with public subdirectories.
-func (r *Root) getMD(ctx context.Context, dh *libkbfs.DirHandle) (libkbfs.Node, error) {
+func (r *Root) getMD(ctx context.Context, dh *libkbfs.TlfHandle) (libkbfs.Node, error) {
 	rootNode, _, err :=
 		r.fs.config.KBFSOps().GetOrCreateRootNodeForHandle(ctx, dh)
 	if err != nil {
@@ -114,7 +114,7 @@ func (r *Root) Lookup(ctx context.Context, req *fuse.LookupRequest, resp *fuse.L
 		return child, nil
 	}
 
-	dh, err := libkbfs.ParseDirHandle(ctx, r.fs.config, req.Name)
+	dh, err := libkbfs.ParseTlfHandle(ctx, r.fs.config, req.Name)
 	if err != nil {
 		return nil, err
 	}
@@ -136,7 +136,7 @@ func (r *Root) Lookup(ctx context.Context, req *fuse.LookupRequest, resp *fuse.L
 		return nil, err
 	}
 
-	mdID := libkbfs.NullDirID
+	mdID := libkbfs.NullTlfID
 	if rootNode != nil {
 		mdID, _ = rootNode.GetFolderBranch()
 	}
@@ -157,14 +157,14 @@ var _ fs.Handle = (*Root)(nil)
 
 var _ fs.HandleReadDirAller = (*Root)(nil)
 
-func (r *Root) getDirent(ctx context.Context, work <-chan libkbfs.DirID, results chan<- fuse.Dirent) error {
+func (r *Root) getDirent(ctx context.Context, work <-chan libkbfs.TlfID, results chan<- fuse.Dirent) error {
 	for {
 		select {
-		case dirID, ok := <-work:
+		case tlfID, ok := <-work:
 			if !ok {
 				return nil
 			}
-			_, _, dh, err := r.fs.config.KBFSOps().GetRootNode(ctx, dirID)
+			_, _, dh, err := r.fs.config.KBFSOps().GetRootNode(ctx, tlfID)
 			if err != nil {
 				return err
 			}
@@ -186,7 +186,7 @@ func (r *Root) ReadDirAll(ctx context.Context) ([]fuse.Dirent, error) {
 	if err != nil {
 		return nil, err
 	}
-	work := make(chan libkbfs.DirID)
+	work := make(chan libkbfs.TlfID)
 	results := make(chan fuse.Dirent)
 	errCh := make(chan error, 1)
 	const workers = 10
@@ -208,8 +208,8 @@ func (r *Root) ReadDirAll(ctx context.Context) ([]fuse.Dirent, error) {
 
 	go func() {
 		// feed work
-		for _, dirID := range favs {
-			work <- dirID
+		for _, tlfID := range favs {
+			work <- tlfID
 		}
 		close(work)
 		wg.Wait()

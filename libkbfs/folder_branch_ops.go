@@ -99,7 +99,7 @@ type syncInfo struct {
 // the sync.)
 type FolderBranchOps struct {
 	config           Config
-	id               DirID
+	id               TlfID
 	branch           BranchName
 	bType            branchType
 	head             *RootMetadata
@@ -152,7 +152,7 @@ type FolderBranchOps struct {
 var _ KBFSOps = (*FolderBranchOps)(nil)
 
 // NewFolderBranchOps constructs a new FolderBranchOps object.
-func NewFolderBranchOps(config Config, id DirID, branch BranchName,
+func NewFolderBranchOps(config Config, id TlfID, branch BranchName,
 	bType branchType) *FolderBranchOps {
 	return &FolderBranchOps{
 		config:         config,
@@ -178,7 +178,7 @@ func (fbo *FolderBranchOps) Shutdown() {
 }
 
 // GetFavDirs implements the KBFSOps interface for FolderBranchOps
-func (fbo *FolderBranchOps) GetFavDirs(ctx context.Context) ([]DirID, error) {
+func (fbo *FolderBranchOps) GetFavDirs(ctx context.Context) ([]TlfID, error) {
 	return nil, fmt.Errorf("GetFavDirs is not supported by FolderBranchOps")
 }
 
@@ -314,8 +314,8 @@ func (fbo *FolderBranchOps) getMDForReadLocked(rtype reqType) (
 	if err != nil {
 		return nil, err
 	}
-	if !md.GetDirHandle().IsReader(user) {
-		return nil, NewReadAccessError(fbo.config, md.GetDirHandle(), user)
+	if !md.GetTlfHandle().IsReader(user) {
+		return nil, NewReadAccessError(fbo.config, md.GetTlfHandle(), user)
 	}
 	return md, nil
 }
@@ -332,8 +332,8 @@ func (fbo *FolderBranchOps) getMDForWriteLocked() (
 	if err != nil {
 		return nil, err
 	}
-	if !md.GetDirHandle().IsWriter(user) {
-		return nil, NewWriteAccessError(fbo.config, md.GetDirHandle(), user)
+	if !md.GetTlfHandle().IsWriter(user) {
+		return nil, NewWriteAccessError(fbo.config, md.GetTlfHandle(), user)
 	}
 
 	// Make a copy of the MD for changing.  The caller must pass this
@@ -350,7 +350,7 @@ func (fbo *FolderBranchOps) initMDLocked(md *RootMetadata) error {
 		return err
 	}
 
-	handle := md.GetDirHandle()
+	handle := md.GetTlfHandle()
 
 	if !handle.IsWriter(user) {
 		return NewWriteAccessError(fbo.config, handle, user)
@@ -434,7 +434,7 @@ func (fbo *FolderBranchOps) initMDLocked(md *RootMetadata) error {
 // GetOrCreateRootNodeForHandle implements the KBFSOps interface for
 // FolderBranchOps
 func (fbo *FolderBranchOps) GetOrCreateRootNodeForHandle(
-	ctx context.Context, handle *DirHandle) (
+	ctx context.Context, handle *TlfHandle) (
 	node Node, de DirEntry, err error) {
 	err = fmt.Errorf("GetOrCreateRootNodeForHandle is not supported by " +
 		"FolderBranchOps")
@@ -485,10 +485,10 @@ func (fbo *FolderBranchOps) execReadThenWrite(f func(reqType) error) error {
 }
 
 // GetRootNode implements the KBFSOps interface for FolderBranchOps
-func (fbo *FolderBranchOps) GetRootNode(ctx context.Context, dir DirID) (
-	node Node, de DirEntry, handle *DirHandle, err error) {
-	if dir != fbo.id {
-		err = WrongOpsError{fbo.id, fbo.branch, dir, MasterBranch}
+func (fbo *FolderBranchOps) GetRootNode(ctx context.Context, tlfID TlfID) (
+	node Node, de DirEntry, handle *TlfHandle, err error) {
+	if tlfID != fbo.id {
+		err = WrongOpsError{fbo.id, fbo.branch, tlfID, MasterBranch}
 		return
 	}
 
@@ -503,7 +503,7 @@ func (fbo *FolderBranchOps) GetRootNode(ctx context.Context, dir DirID) (
 		return
 	}
 
-	handle = md.GetDirHandle()
+	handle = md.GetTlfHandle()
 	node, err = fbo.nodeCache.GetOrCreate(stripBP(md.data.Dir.BlockPointer),
 		handle.ToString(fbo.config), nil)
 	if err != nil {
@@ -916,7 +916,7 @@ func (fbo *FolderBranchOps) syncBlockLocked(md *RootMetadata,
 	currBlock := newBlock
 	currName := name
 	newPath := path{
-		topDir: dir.topDir,
+		tlf:    dir.tlf,
 		branch: dir.branch,
 		path:   make([]pathNode, 0, len(dir.path)),
 	}
@@ -952,7 +952,7 @@ func (fbo *FolderBranchOps) syncBlockLocked(md *RootMetadata,
 			}
 		} else {
 			prevDir := path{
-				topDir: dir.topDir,
+				tlf:    dir.tlf,
 				branch: dir.branch,
 				path:   dir.path[:prevIdx+1],
 			}
@@ -1137,7 +1137,7 @@ func (fbo *FolderBranchOps) finalizeWriteLocked(ctx context.Context,
 	doUnmergedPut := true
 	if !fbo.staged {
 		// only do a normal Put if we're not already staged.
-		err = mdops.Put(newPaths[0].topDir, md, nilKID, NullMdID)
+		err = mdops.Put(newPaths[0].tlf, md, nilKID, NullMdID)
 		_, doUnmergedPut = err.(OutOfDateMDError)
 		if err != nil && !doUnmergedPut {
 			return err
@@ -1150,7 +1150,7 @@ func (fbo *FolderBranchOps) finalizeWriteLocked(ctx context.Context,
 		if err != nil {
 			return nil
 		}
-		err = mdops.PutUnmerged(newPaths[0].topDir, md, cpk.KID)
+		err = mdops.PutUnmerged(newPaths[0].tlf, md, cpk.KID)
 		if err != nil {
 			return nil
 		}
@@ -1607,7 +1607,7 @@ func (fbo *FolderBranchOps) renameLocked(
 	oldIsCommon := oldParent.tailPointer() == commonAncestor
 	newIsCommon := newParent.tailPointer() == commonAncestor
 
-	newOldPath := path{topDir: oldParent.topDir}
+	newOldPath := path{tlf: oldParent.tlf}
 	var oldBps *blockPutState
 	if oldIsCommon {
 		if newIsCommon {
@@ -1677,7 +1677,7 @@ func (fbo *FolderBranchOps) Rename(
 	newParentPath := fbo.nodeCache.PathFromNode(newParent)
 
 	// only works for paths within the same topdir
-	if (oldParentPath.topDir != newParentPath.topDir) ||
+	if (oldParentPath.tlf != newParentPath.tlf) ||
 		(oldParentPath.branch != newParentPath.branch) ||
 		(oldParentPath.path[0].ID != newParentPath.path[0].ID) {
 		return RenameAcrossDirsError{}
@@ -1858,8 +1858,8 @@ func (fbo *FolderBranchOps) writeDataLocked(
 	if err != nil {
 		return err
 	}
-	if !md.GetDirHandle().IsWriter(user) {
-		return NewWriteAccessError(fbo.config, md.GetDirHandle(), user)
+	if !md.GetTlfHandle().IsWriter(user) {
+		return NewWriteAccessError(fbo.config, md.GetTlfHandle(), user)
 	}
 
 	fblock, err := fbo.getFileLocked(md, file, write)
@@ -2055,8 +2055,8 @@ func (fbo *FolderBranchOps) truncateLocked(
 	if err != nil {
 		return err
 	}
-	if !md.GetDirHandle().IsWriter(user) {
-		return NewWriteAccessError(fbo.config, md.GetDirHandle(), user)
+	if !md.GetTlfHandle().IsWriter(user) {
+		return NewWriteAccessError(fbo.config, md.GetTlfHandle(), user)
 	}
 
 	fblock, err := fbo.getFileLocked(md, file, write)

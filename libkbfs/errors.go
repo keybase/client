@@ -76,14 +76,14 @@ func (e DirNotEmptyError) Errno() fuse.Errno {
 	return fuse.Errno(syscall.ENOTEMPTY)
 }
 
-// TopDirAccessError that the user tried to perform an unpermitted
+// TlfAccessError that the user tried to perform an unpermitted
 // operation on a top-level folder.
-type TopDirAccessError struct {
-	ID DirID
+type TlfAccessError struct {
+	ID TlfID
 }
 
-// Error implements the error interface for TopDirAccessError
-func (e TopDirAccessError) Error() string {
+// Error implements the error interface for TlfAccessError
+func (e TlfAccessError) Error() string {
 	return fmt.Sprintf("Operation not permitted on folder %s", e.ID)
 }
 
@@ -135,7 +135,7 @@ func (e WriteAccessError) Error() string {
 
 // NewReadAccessError constructs a ReadAccessError for the given
 // directory and user.
-func NewReadAccessError(config Config, dir *DirHandle, uid keybase1.UID) error {
+func NewReadAccessError(config Config, dir *TlfHandle, uid keybase1.UID) error {
 	dirname := dir.ToString(config)
 	if u, err2 := config.KBPKI().GetUser(uid); err2 == nil {
 		return ReadAccessError{u.GetName(), dirname}
@@ -145,7 +145,7 @@ func NewReadAccessError(config Config, dir *DirHandle, uid keybase1.UID) error {
 
 // NewWriteAccessError constructs a WriteAccessError for the given
 // directory and user.
-func NewWriteAccessError(config Config, dir *DirHandle,
+func NewWriteAccessError(config Config, dir *TlfHandle,
 	uid keybase1.UID) error {
 	dirname := dir.ToString(config)
 	if u, err2 := config.KBPKI().GetUser(uid); err2 == nil {
@@ -164,7 +164,7 @@ type NotDirError struct {
 // Error implements the error interface for NotDirError
 func (e NotDirError) Error() string {
 	return fmt.Sprintf("%s is not a directory (in folder %s)",
-		&e.path, e.path.topDir)
+		&e.path, e.path.tlf)
 }
 
 // NotFileError indicates that the user tried to perform a
@@ -175,7 +175,7 @@ type NotFileError struct {
 
 // Error implements the error interface for NotFileError
 func (e NotFileError) Error() string {
-	return fmt.Sprintf("%s is not a file (folder %s)", e.path, e.path.topDir)
+	return fmt.Sprintf("%s is not a file (folder %s)", e.path, e.path.tlf)
 }
 
 // BadDataError indicates that KBFS is storing corrupt data for a block.
@@ -211,7 +211,7 @@ func (e BadCryptoError) Error() string {
 // BadCryptoMDError indicates that KBFS performed a bad crypto
 // operation, specifically on a MD object.
 type BadCryptoMDError struct {
-	ID DirID
+	ID TlfID
 }
 
 // Error implements the error interface for BadCryptoMDError
@@ -233,7 +233,7 @@ func (e BadMDError) Error() string {
 // MDMissingDataError indicates that we are trying to take get the
 // metadata ID of a MD object with no serialized data field.
 type MDMissingDataError struct {
-	ID DirID
+	ID TlfID
 }
 
 // Error implements the error interface for MDMissingDataError
@@ -289,25 +289,25 @@ func (e NewDataVersionError) Error() string {
 	return fmt.Sprintf(
 		"The data at path %s is of a version (%d) that we can't read "+
 			"(in folder %s)",
-		e.path, e.DataVer, e.path.topDir)
+		e.path, e.DataVer, e.path.tlf)
 }
 
 // InvalidKeyGenerationError indicates that an invalid key generation
 // was used.
 type InvalidKeyGenerationError struct {
-	DirHandle DirHandle
+	TlfHandle TlfHandle
 	KeyGen    KeyGen
 }
 
 // Error implements the error interface for InvalidKeyGenerationError.
 func (e InvalidKeyGenerationError) Error() string {
-	return fmt.Sprintf("Invalid key generation %d for %v", int(e.KeyGen), e.DirHandle)
+	return fmt.Sprintf("Invalid key generation %d for %v", int(e.KeyGen), e.TlfHandle)
 }
 
 // NewKeyGenerationError indicates that the data at the given path has
 // been written using keys that our client doesn't have.
 type NewKeyGenerationError struct {
-	DirHandle DirHandle
+	TlfHandle TlfHandle
 	KeyGen    KeyGen
 }
 
@@ -315,7 +315,7 @@ type NewKeyGenerationError struct {
 func (e NewKeyGenerationError) Error() string {
 	return fmt.Sprintf(
 		"The data for %v is keyed with a key generation (%d) that "+
-			"we don't know", e.DirHandle, e.KeyGen)
+			"we don't know", e.TlfHandle, e.KeyGen)
 }
 
 // BadSplitError indicates that the BlockSplitter has an error.
@@ -420,7 +420,7 @@ func (e InvalidNonceError) Error() string {
 // InvalidPublicTLFOperation indicates that an invalid operation was
 // attempted on a public TLF.
 type InvalidPublicTLFOperation struct {
-	id     DirID
+	id     TlfID
 	opName string
 }
 
@@ -433,9 +433,9 @@ func (e InvalidPublicTLFOperation) Error() string {
 // WrongOpsError indicates that an unexpected path got passed into a
 // FolderBranchOps instance
 type WrongOpsError struct {
-	nodeID     DirID
+	nodeID     TlfID
 	nodeBranch BranchName
-	opsID      DirID
+	opsID      TlfID
 	opsBranch  BranchName
 }
 

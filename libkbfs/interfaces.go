@@ -33,7 +33,7 @@ type Node interface {
 	// Forget must be called whenever the user of a Node is done with it.
 	Forget()
 	// GetFolderBranch returns the folder ID and branch for this Node.
-	GetFolderBranch() (DirID, BranchName)
+	GetFolderBranch() (TlfID, BranchName)
 }
 
 // KBFSOps handles all file system operations.  Expands all indirect
@@ -75,20 +75,20 @@ type Node interface {
 type KBFSOps interface {
 	// GetFavDirs returns the logged-in user's list of favorite
 	// top-level folders.  This is a remote-access operation.
-	GetFavDirs(ctx context.Context) ([]DirID, error)
+	GetFavDirs(ctx context.Context) ([]TlfID, error)
 	// GetOrCreateRootNodeByHandle returns the root node, and root
-	// directory entry associated with the given DirHandle, if the
+	// directory entry associated with the given TlfHandle, if the
 	// logged-in user has read permissions to the top-level folder.
 	// It creates the folder if one doesn't exist yet, and the
 	// logged-in user has write permissions to the top-level folder.
 	// This is a remote-access operation.
-	GetOrCreateRootNodeForHandle(ctx context.Context, handle *DirHandle) (
+	GetOrCreateRootNodeForHandle(ctx context.Context, handle *TlfHandle) (
 		Node, DirEntry, error)
 	// GetRootNode returns the root node, root directory entry, and
-	// handle associated with the given DirID, if the logged-in user
+	// handle associated with the given TlfID, if the logged-in user
 	// has read permissions to the top-level folder.  This is a
 	// remote-access operation.
-	GetRootNode(ctx context.Context, dir DirID) (Node, DirEntry, *DirHandle,
+	GetRootNode(ctx context.Context, tlfID TlfID) (Node, DirEntry, *TlfHandle,
 		error)
 	// GetDirChildren returns a map of children in the directory,
 	// mapped to their EntryType, if the logged-in user has read
@@ -275,9 +275,9 @@ type MDCache interface {
 // KeyCache handles caching for both TLFCryptKeys and BlockCryptKeys.
 type KeyCache interface {
 	// GetTLFCryptKey gets the crypt key for the given TLF.
-	GetTLFCryptKey(DirID, KeyGen) (TLFCryptKey, error)
+	GetTLFCryptKey(TlfID, KeyGen) (TLFCryptKey, error)
 	// PutTLFCryptKey stores the crypt key for the given TLF.
-	PutTLFCryptKey(DirID, KeyGen, TLFCryptKey) error
+	PutTLFCryptKey(TlfID, KeyGen, TLFCryptKey) error
 }
 
 // BlockCache gets and puts plaintext dir blocks and file blocks into
@@ -307,8 +307,8 @@ type BlockCache interface {
 
 // Crypto signs, verifies, encrypts, and decrypts stuff.
 type Crypto interface {
-	// MakeRandomDirID generates a dir ID using a CSPRNG.
-	MakeRandomDirID(isPublic bool) (DirID, error)
+	// MakeRandomTlfID generates a dir ID using a CSPRNG.
+	MakeRandomTlfID(isPublic bool) (TlfID, error)
 
 	// MakeTemporaryBlockID generates a temporary block ID using a
 	// CSPRNG. This is used for indirect blocks before they're
@@ -412,11 +412,11 @@ type MDOps interface {
 	// has read permission on the folder.  It creates the folder if
 	// one doesn't exist yet, and the logged-in user has write
 	// permissions to the top-level folder.
-	GetForHandle(handle *DirHandle) (*RootMetadata, error)
+	GetForHandle(handle *TlfHandle) (*RootMetadata, error)
 	// GetForTLF returns the current metadata object corresponding to the
 	// given top-level folder, if the logged-in user has read
 	// permission on the folder.
-	GetForTLF(id DirID) (*RootMetadata, error)
+	GetForTLF(id TlfID) (*RootMetadata, error)
 	// Get returns the metadata object corresponding that matches the
 	// provided MD ID, if one exists and the logged-in user has read
 	// permissions on the corresponding top-level folder.
@@ -432,20 +432,20 @@ type MDOps interface {
 	// writer, it will return a specific error (TODO: make one) and
 	// the caller is expected to call PutUnmerged if it wants
 	// durability over consistency.
-	Put(id DirID, rmd *RootMetadata, deviceKID keybase1.KID,
+	Put(id TlfID, rmd *RootMetadata, deviceKID keybase1.KID,
 		unmergedBase MdID) error
 	// GetSince returns all the MD objects that have been committed
 	// since (not including) the stated mdID, up to a client-imposed
 	// maximum.  The server may return fewer, and should also indicate
 	// whether there are more that could be returned.
-	GetSince(id DirID, mdID MdID, max int) (
+	GetSince(id TlfID, mdID MdID, max int) (
 		sinceRmds []*RootMetadata, hasMore bool, err error)
 
 	// PutUnmerged gives each device (identified by the device subkey
 	// KID) the ability to store its own unmerged version of the
 	// metadata, in order to provide per-device durability when
 	// consistency can't be quickly guaranteed.
-	PutUnmerged(id DirID, rmd *RootMetadata, deviceKID keybase1.KID) error
+	PutUnmerged(id TlfID, rmd *RootMetadata, deviceKID keybase1.KID) error
 	// GetUnmergedSince returns all the MD objects that have been
 	// saved to the unmerged linear history for this device since (not
 	// including) the stated mdID, up to a client-imposed maximum.
@@ -453,12 +453,12 @@ type MDOps interface {
 	// there are more that could be returned.   If mdID is the nil
 	// value, it returns the list of MD objects from the beginning of
 	// the unmerged history for this device.
-	GetUnmergedSince(id DirID, deviceKID keybase1.KID, mdID MdID, max int) (
+	GetUnmergedSince(id TlfID, deviceKID keybase1.KID, mdID MdID, max int) (
 		sinceRmds []*RootMetadata, hasMore bool, err error)
 
 	// GetFavorites returns the logged-in user's list of favorite
 	// top-level folders.
-	GetFavorites() ([]DirID, error)
+	GetFavorites() ([]TlfID, error)
 }
 
 // KeyOps fetches server-side key halves and MAC public keys from the
@@ -466,11 +466,11 @@ type MDOps interface {
 type KeyOps interface {
 	// GetTLFCryptKeyServerHalf gets the server-side key half for a
 	// device (identified by its CryptPublicKey) for a given TLF.
-	GetTLFCryptKeyServerHalf(id DirID, keyGen KeyGen,
+	GetTLFCryptKeyServerHalf(id TlfID, keyGen KeyGen,
 		cryptPublicKey CryptPublicKey) (TLFCryptKeyServerHalf, error)
 	// PutTLFCryptKeyServerHalf puts the server-side key half for a
 	// device (identified by its CryptPublicKey) for a given TLF.
-	PutTLFCryptKeyServerHalf(id DirID, keyGen KeyGen,
+	PutTLFCryptKeyServerHalf(id TlfID, keyGen KeyGen,
 		cryptPublicKey CryptPublicKey, serverHalf TLFCryptKeyServerHalf) error
 
 	// GetMacPublicKey gets the public MAC key for a given user.
@@ -521,11 +521,11 @@ type MDServer interface {
 	// the logged-in user has read permission on the folder.  It
 	// creates the folder if one doesn't exist yet, and the logged-in
 	// user has permission to do so.
-	GetForHandle(handle *DirHandle) (*RootMetadataSigned, error)
+	GetForHandle(handle *TlfHandle) (*RootMetadataSigned, error)
 	// GetForTLF returns the current (signed/encrypted) metadata object
 	// corresponding to the given top-level folder, if the logged-in
 	// user has read permission on the folder.
-	GetForTLF(id DirID) (*RootMetadataSigned, error)
+	GetForTLF(id TlfID) (*RootMetadataSigned, error)
 	// Get returns the (signed/encrypted) metadata object that matches
 	// the provided MD ID, if one exists and the logged-in user has
 	// read permission on the corresponding top-level folder.
@@ -534,7 +534,7 @@ type MDServer interface {
 	// since (not including) the stated mdID, up to a client-imposed
 	// maximum.  The server may return fewer, and should also indicate
 	// whether there are more that could be returned.
-	GetSince(id DirID, mdID MdID, max int) (
+	GetSince(id TlfID, mdID MdID, max int) (
 		sinceRmds []*RootMetadataSigned, hasMore bool, err error)
 	// Put stores the (signed/encrypted) metadata object for the given
 	// top-level folder, under the given MD ID.  If deviceID is
@@ -546,14 +546,14 @@ type MDServer interface {
 	// for the folder due to another concurrent writer, it will return
 	// a specific error (TODO: make one) and the caller is expected to
 	// call PutUnmerged if it wants durability over consistency.
-	Put(id DirID, mdID MdID, rmds *RootMetadataSigned, deviceKID keybase1.KID,
+	Put(id TlfID, mdID MdID, rmds *RootMetadataSigned, deviceKID keybase1.KID,
 		unmergedBase MdID) error
 
 	// PutUnmerged gives each device (identified by the device subkey
 	// KID) the ability to store its own unmerged version of the
 	// metadata, in order to provide per-device durability when
 	// consistency can't be quickly guaranteed.
-	PutUnmerged(id DirID, mdID MdID, rmds *RootMetadataSigned,
+	PutUnmerged(id TlfID, mdID MdID, rmds *RootMetadataSigned,
 		deviceKID keybase1.KID) error
 	// GetUnmergedSince returns all the MD objects that have been
 	// saved to the unmerged linear history for this device since (not
@@ -562,13 +562,13 @@ type MDServer interface {
 	// there are more that could be returned.  If mdID is the nil
 	// value, it returns the list of MD objects from the beginning of
 	// the unmerged history for this device.
-	GetUnmergedSince(id DirID, deviceKID keybase1.KID, mdID MdID, max int) (
+	GetUnmergedSince(id TlfID, deviceKID keybase1.KID, mdID MdID, max int) (
 		sinceRmds []*RootMetadataSigned, hasMore bool, err error)
 
 	// GetFavorites returns the logged-in user's list of favorite
 	// top-level folders.
 	// TODO: this data should be at least signed.
-	GetFavorites() ([]DirID, error)
+	GetFavorites() ([]TlfID, error)
 }
 
 // BlockServer gets and puts opaque data blocks.  The instantiation
@@ -586,7 +586,7 @@ type BlockServer interface {
 	// Put stores the (encrypted) block data under the given ID and
 	// context on the server, along with the server half of the block
 	// key.
-	Put(id BlockID, tlfID DirID, context BlockContext, buf []byte,
+	Put(id BlockID, tlfID TlfID, context BlockContext, buf []byte,
 		serverHalf BlockCryptKeyServerHalf) error
 	// Delete instructs the server to delete the block data
 	// associated with the given ID. No error is returned if no
@@ -636,7 +636,7 @@ type Observer interface {
 	LocalChange(ctx context.Context, node Node, write WriteRange)
 	// BatchChanges announces that the nodes have all been updated
 	// together atomically.
-	BatchChanges(ctx context.Context, dir DirID, changes []NodeChange)
+	BatchChanges(ctx context.Context, tlfID TlfID, changes []NodeChange)
 	// TODO: Notify about changes in favorites list
 }
 
@@ -644,11 +644,11 @@ type Observer interface {
 type Notifier interface {
 	// RegisterForChanges declares that the given Observer wants to
 	// subscribe to updates for the given top-level folders.
-	RegisterForChanges(dirs []DirID, obs Observer) error
+	RegisterForChanges(dirs []TlfID, obs Observer) error
 	// UnregisterFromChanges declares that the given Observer no
 	// longer wants to subscribe to updates for the given top-level
 	// folders.
-	UnregisterFromChanges(dirs []DirID, obs Observer) error
+	UnregisterFromChanges(dirs []TlfID, obs Observer) error
 }
 
 // Config collects all the singleton instance instantiations needed to

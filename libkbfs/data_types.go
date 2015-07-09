@@ -13,29 +13,29 @@ import (
 )
 
 const (
-	// DirIDLen is the number of bytes in a top-level folder ID
-	DirIDLen = 16
-	// DirIDSuffix is the last byte of a private top-level folder ID
-	DirIDSuffix = 0x16
-	// PubDirIDSuffix is the last byte of a public top-level folder ID
-	PubDirIDSuffix = 0x17
+	// TlfIDLen is the number of bytes in a top-level folder ID
+	TlfIDLen = 16
+	// TlfIDSuffix is the last byte of a private top-level folder ID
+	TlfIDSuffix = 0x16
+	// PubTlfIDSuffix is the last byte of a public top-level folder ID
+	PubTlfIDSuffix = 0x17
 )
 
-// DirID is a top-level folder ID
-type DirID [DirIDLen]byte
+// TlfID is a top-level folder ID
+type TlfID [TlfIDLen]byte
 
-// String implements the fmt.Stringer interface for DirID
-func (d DirID) String() string {
-	return hex.EncodeToString(d[:])
+// String implements the fmt.Stringer interface for TlfID
+func (t TlfID) String() string {
+	return hex.EncodeToString(t[:])
 }
 
-// IsPublic returns true if this DirID is for a public top-level folder
-func (d DirID) IsPublic() bool {
-	return d[DirIDLen-1] == PubDirIDSuffix
+// IsPublic returns true if this TlfID is for a public top-level folder
+func (t TlfID) IsPublic() bool {
+	return t[TlfIDLen-1] == PubTlfIDSuffix
 }
 
 // ReaderSep is the string that separates readers from writers in a
-// DirHandle string representation.
+// TlfHandle string representation.
 var ReaderSep = "#"
 
 // PublicName is the reserved name of a public top-level folder.
@@ -301,8 +301,8 @@ type MdID libkb.NodeHashShort
 // NullMdID is an empty MdID
 var NullMdID = MdID{0}
 
-// NullDirID is an empty DirID
-var NullDirID = DirID{0}
+// NullTlfID is an empty TlfID
+var NullTlfID = TlfID{0}
 
 // KeyGen is the type of a key generation for a top-level folder.
 type KeyGen int
@@ -398,9 +398,9 @@ func (r ReadyBlockData) GetEncodedSize() int {
 	return len(r.buf)
 }
 
-// DirHandle uniquely identifies top-level directories by readers and
+// TlfHandle uniquely identifies top-level folders by readers and
 // writers.  It is go-routine-safe.
-type DirHandle struct {
+type TlfHandle struct {
 	Readers     []keybase1.UID `codec:"r,omitempty"`
 	Writers     []keybase1.UID `codec:"w,omitempty"`
 	cachedName  string
@@ -408,9 +408,9 @@ type DirHandle struct {
 	cacheMutex  sync.Mutex // control access to the "cached" values
 }
 
-// NewDirHandle constructs a new, blank DirHandle.
-func NewDirHandle() *DirHandle {
-	return &DirHandle{
+// NewTlfHandle constructs a new, blank TlfHandle.
+func NewTlfHandle() *TlfHandle {
+	return &TlfHandle{
 		Readers: make([]keybase1.UID, 0, 1),
 		Writers: make([]keybase1.UID, 0, 1),
 	}
@@ -453,10 +453,10 @@ func sortUIDS(m map[keybase1.UID]struct{}) []keybase1.UID {
 	return s
 }
 
-// ParseDirHandle parses a DirHandle from an encoded string. See
+// ParseTlfHandle parses a TlfHandle from an encoded string. See
 // ToString for the opposite direction.
-func ParseDirHandle(ctx context.Context, config Config, name string) (
-	*DirHandle, error) {
+func ParseTlfHandle(ctx context.Context, config Config, name string) (
+	*TlfHandle, error) {
 	splitNames := strings.SplitN(name, ReaderSep, 3)
 	if len(splitNames) > 2 {
 		return nil, BadPathError{name}
@@ -497,32 +497,32 @@ func ParseDirHandle(ctx context.Context, config Config, name string) (
 		delete(usedRNames, uid)
 	}
 
-	d := &DirHandle{
+	d := &TlfHandle{
 		Writers: sortUIDS(usedWNames),
 		Readers: sortUIDS(usedRNames),
 	}
 	return d, nil
 }
 
-// IsPublic returns whether or not this DirHandle represents a public
+// IsPublic returns whether or not this TlfHandle represents a public
 // top-level folder.
-func (d *DirHandle) IsPublic() bool {
-	return len(d.Readers) == 1 && d.Readers[0].Equal(keybase1.PublicUID)
+func (h *TlfHandle) IsPublic() bool {
+	return len(h.Readers) == 1 && h.Readers[0].Equal(keybase1.PublicUID)
 }
 
-// IsPrivateShare returns whether or not this DirHandle represents a
+// IsPrivateShare returns whether or not this TlfHandle represents a
 // private share (some non-public directory with more than one writer).
-func (d *DirHandle) IsPrivateShare() bool {
-	return !d.IsPublic() && len(d.Writers) > 1
+func (h *TlfHandle) IsPrivateShare() bool {
+	return !h.IsPublic() && len(h.Writers) > 1
 }
 
 // HasPublic represents whether this top-level folder should have a
 // corresponding public top-level folder.
-func (d *DirHandle) HasPublic() bool {
-	return len(d.Readers) == 0
+func (h *TlfHandle) HasPublic() bool {
+	return len(h.Readers) == 0
 }
 
-func (d *DirHandle) findUserInList(user keybase1.UID,
+func (h *TlfHandle) findUserInList(user keybase1.UID,
 	users []keybase1.UID) bool {
 	// TODO: this could be more efficient with a cached map/set
 	for _, u := range users {
@@ -534,15 +534,15 @@ func (d *DirHandle) findUserInList(user keybase1.UID,
 }
 
 // IsWriter returns whether or not the given user is a writer for the
-// top-level folder represented by this DirHandle.
-func (d *DirHandle) IsWriter(user keybase1.UID) bool {
-	return d.findUserInList(user, d.Writers)
+// top-level folder represented by this TlfHandle.
+func (h *TlfHandle) IsWriter(user keybase1.UID) bool {
+	return h.findUserInList(user, h.Writers)
 }
 
 // IsReader returns whether or not the given user is a reader for the
-// top-level folder represented by this DirHandle.
-func (d *DirHandle) IsReader(user keybase1.UID) bool {
-	return d.IsPublic() || d.findUserInList(user, d.Readers) || d.IsWriter(user)
+// top-level folder represented by this TlfHandle.
+func (h *TlfHandle) IsReader(user keybase1.UID) bool {
+	return h.IsPublic() || h.findUserInList(user, h.Readers) || h.IsWriter(user)
 }
 
 func resolveUids(config Config, uids []keybase1.UID) string {
@@ -563,38 +563,38 @@ func resolveUids(config Config, uids []keybase1.UID) string {
 	return strings.Join(names, ",")
 }
 
-// ToString returns a string representation of this DirHandle
-func (d *DirHandle) ToString(config Config) string {
-	d.cacheMutex.Lock()
-	defer d.cacheMutex.Unlock()
-	if d.cachedName != "" {
+// ToString returns a string representation of this TlfHandle
+func (h *TlfHandle) ToString(config Config) string {
+	h.cacheMutex.Lock()
+	defer h.cacheMutex.Unlock()
+	if h.cachedName != "" {
 		// TODO: we should expire this cache periodically
-		return d.cachedName
+		return h.cachedName
 	}
 
 	// resolve every uid to a name
-	d.cachedName = resolveUids(config, d.Writers)
+	h.cachedName = resolveUids(config, h.Writers)
 
 	// assume only additional readers are listed
-	if len(d.Readers) > 0 {
-		d.cachedName += ReaderSep + resolveUids(config, d.Readers)
+	if len(h.Readers) > 0 {
+		h.cachedName += ReaderSep + resolveUids(config, h.Readers)
 	}
 
 	// TODO: don't cache if there were errors?
-	return d.cachedName
+	return h.cachedName
 }
 
-// ToBytes marshals this DirHandle.
-func (d *DirHandle) ToBytes(config Config) (out []byte) {
-	d.cacheMutex.Lock()
-	defer d.cacheMutex.Unlock()
-	if len(d.cachedBytes) > 0 {
-		return d.cachedBytes
+// ToBytes marshals this TlfHandle.
+func (h *TlfHandle) ToBytes(config Config) (out []byte) {
+	h.cacheMutex.Lock()
+	defer h.cacheMutex.Unlock()
+	if len(h.cachedBytes) > 0 {
+		return h.cachedBytes
 	}
 
 	var err error
-	if out, err = config.Codec().Encode(d); err != nil {
-		d.cachedBytes = out
+	if out, err = config.Codec().Encode(h); err != nil {
+		h.cachedBytes = out
 	}
 	return
 }
@@ -623,7 +623,7 @@ const (
 // path represents the full KBFS path to a particular location, so
 // that a flush can traverse backwards and fix up ids along the way.
 type path struct {
-	topDir DirID
+	tlf    TlfID
 	branch BranchName // master branch, by default
 	path   []pathNode
 }
@@ -650,14 +650,14 @@ func (p path) String() string {
 // ParentPath returns a new Path representing the parent subdirectory
 // of this Path.  Should not be called with a path of length 1.
 func (p path) parentPath() *path {
-	return &path{topDir: p.topDir, path: p.path[:len(p.path)-1]}
+	return &path{tlf: p.tlf, path: p.path[:len(p.path)-1]}
 }
 
 // ChildPathNoPtr returns a new Path with the addition of a new entry
 // with the given name.  That final PathNode will have no BlockPointer.
 func (p path) ChildPathNoPtr(name string) *path {
 	child := &path{
-		topDir: p.topDir,
+		tlf:    p.tlf,
 		branch: p.branch,
 		path:   make([]pathNode, len(p.path), len(p.path)+1),
 	}
@@ -674,7 +674,7 @@ func (p path) hasPublic() bool {
 	// already public TODO: Ideally, we'd also check if there are no
 	// explicit readers, but for now we expect the caller to check
 	// that.
-	return len(p.path) == 1 && !p.topDir.IsPublic()
+	return len(p.path) == 1 && !p.tlf.IsPublic()
 }
 
 // DirKeyBundle is a bundle of all the keys for a directory

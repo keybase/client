@@ -2,7 +2,7 @@ package libkbfs
 
 import "testing"
 
-func setupNodeCache(t *testing.T, id DirID, branch BranchName, flat bool) (
+func setupNodeCache(t *testing.T, id TlfID, branch BranchName, flat bool) (
 	ncs *nodeCacheStandard, parentNode Node, childNode1 Node, childNode2 Node,
 	childPath1 []pathNode, childPath2 []pathNode) {
 	ncs = newNodeCacheStandard(id, branch)
@@ -75,7 +75,7 @@ func setupNodeCache(t *testing.T, id DirID, branch BranchName, flat bool) (
 // Tests for simple GetOrCreate successes (with and without a parent)
 func TestNodeCacheGetOrCreateSuccess(t *testing.T) {
 	ncs, parentNode, childNode1A, _, path1, path2 :=
-		setupNodeCache(t, DirID{0}, "", true)
+		setupNodeCache(t, TlfID{0}, "", true)
 	parentPtr := path1[0].BlockPointer
 	childPtr1 := path1[1].BlockPointer
 	childPtr2 := path2[1].BlockPointer
@@ -105,7 +105,7 @@ func TestNodeCacheGetOrCreateSuccess(t *testing.T) {
 // Tests that a child can't be created with an unknown parent (and
 // that forget() works)
 func TestNodeCacheGetOrCreateNoParent(t *testing.T) {
-	ncs := newNodeCacheStandard(DirID{0}, "")
+	ncs := newNodeCacheStandard(TlfID{0}, "")
 
 	parentPtr := BlockPointer{ID: BlockID{0}}
 	parentNode, err := ncs.GetOrCreate(parentPtr, "", nil)
@@ -125,7 +125,7 @@ func TestNodeCacheGetOrCreateNoParent(t *testing.T) {
 
 // Tests that UpdatePointer works
 func TestNodeCacheUpdatePointer(t *testing.T) {
-	ncs := newNodeCacheStandard(DirID{0}, "")
+	ncs := newNodeCacheStandard(TlfID{0}, "")
 
 	parentPtr := BlockPointer{ID: BlockID{0}}
 	parentNode, err := ncs.GetOrCreate(parentPtr, "", nil)
@@ -144,7 +144,7 @@ func TestNodeCacheUpdatePointer(t *testing.T) {
 // Tests that Move works as expected
 func TestNodeCacheMoveSuccess(t *testing.T) {
 	ncs, _, childNode1, childNode2, path1, path2 :=
-		setupNodeCache(t, DirID{0}, "", true)
+		setupNodeCache(t, TlfID{0}, "", true)
 	parentPtr := path1[0].BlockPointer
 	childPtr1 := path1[1].BlockPointer
 	childPtr2 := path2[1].BlockPointer
@@ -180,7 +180,7 @@ func TestNodeCacheMoveSuccess(t *testing.T) {
 // that forget() works)
 func TestNodeCacheMoveNoParent(t *testing.T) {
 	ncs, _, childNode1, _, path1, path2 :=
-		setupNodeCache(t, DirID{0}, "", true)
+		setupNodeCache(t, TlfID{0}, "", true)
 	childPtr1 := path1[1].BlockPointer
 	childPtr2 := path2[1].BlockPointer
 
@@ -195,7 +195,7 @@ func TestNodeCacheMoveNoParent(t *testing.T) {
 	}
 }
 
-func checkNodeCachePath(t *testing.T, id DirID, branch BranchName,
+func checkNodeCachePath(t *testing.T, id TlfID, branch BranchName,
 	path path, expectedPath []pathNode) {
 	if len(path.path) != len(expectedPath) {
 		t.Errorf("Bad path length: %v vs %v", len(path.path), len(expectedPath))
@@ -206,8 +206,8 @@ func checkNodeCachePath(t *testing.T, id DirID, branch BranchName,
 			t.Errorf("Bad node on path, index %d: %v vs %v", i, path.path[i], n)
 		}
 	}
-	if path.topDir != id {
-		t.Errorf("Wrong top dir: %v vs %v", path.topDir, id)
+	if path.tlf != id {
+		t.Errorf("Wrong top dir: %v vs %v", path.tlf, id)
 	}
 	if path.branch != BranchName(branch) {
 		t.Errorf("Wrong branch: %s vs %s", path.branch, branch)
@@ -217,7 +217,7 @@ func checkNodeCachePath(t *testing.T, id DirID, branch BranchName,
 // Tests that a child can be unlinked completely from the parent, and
 // still have a path
 func TestNodeCacheUnlink(t *testing.T) {
-	id := DirID{42}
+	id := TlfID{42}
 	branch := BranchName("testBranch")
 	ncs, _, _, childNode2, _, path2 :=
 		setupNodeCache(t, id, branch, false)
@@ -233,7 +233,7 @@ func TestNodeCacheUnlink(t *testing.T) {
 // Tests that a child can be unlinked completely from the parent, and
 // still have a path
 func TestNodeCacheUnlinkParent(t *testing.T) {
-	id := DirID{42}
+	id := TlfID{42}
 	branch := BranchName("testBranch")
 	ncs, _, childNode1, childNode2, _, path2 :=
 		setupNodeCache(t, id, branch, false)
@@ -248,7 +248,7 @@ func TestNodeCacheUnlinkParent(t *testing.T) {
 
 // Tests that PathFromNode works correctly
 func TestNodeCachePathFromNode(t *testing.T) {
-	id := DirID{42}
+	id := TlfID{42}
 	branch := BranchName("testBranch")
 	ncs, _, _, childNode2, _, path2 :=
 		setupNodeCache(t, id, branch, false)

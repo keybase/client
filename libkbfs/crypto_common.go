@@ -29,17 +29,17 @@ type CryptoCommon struct {
 	codec Codec
 }
 
-// MakeRandomDirID implements the Crypto interface for CryptoCommon.
-func (c *CryptoCommon) MakeRandomDirID(isPublic bool) (DirID, error) {
-	var id DirID
+// MakeRandomTlfID implements the Crypto interface for CryptoCommon.
+func (c *CryptoCommon) MakeRandomTlfID(isPublic bool) (TlfID, error) {
+	var id TlfID
 	err := cryptoRandRead(id[:])
 	if err != nil {
-		return DirID{}, err
+		return TlfID{}, err
 	}
 	if isPublic {
-		id[len(id)-1] = PubDirIDSuffix
+		id[len(id)-1] = PubTlfIDSuffix
 	} else {
-		id[len(id)-1] = DirIDSuffix
+		id[len(id)-1] = TlfIDSuffix
 	}
 	return id, nil
 }

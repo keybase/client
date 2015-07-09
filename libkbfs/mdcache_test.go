@@ -29,7 +29,7 @@ func expectUserCall(u keybase1.UID, config *ConfigMock) {
 	config.mockKbpki.EXPECT().GetUser(u).AnyTimes().Return(user, nil)
 }
 
-func expectUserCalls(handle *DirHandle, config *ConfigMock) {
+func expectUserCalls(handle *TlfHandle, config *ConfigMock) {
 	for _, u := range handle.Writers {
 		expectUserCall(u, config)
 	}
@@ -38,7 +38,7 @@ func expectUserCalls(handle *DirHandle, config *ConfigMock) {
 	}
 }
 
-func testMdcachePut(t *testing.T, id MdID, h *DirHandle, config *ConfigMock) {
+func testMdcachePut(t *testing.T, id MdID, h *TlfHandle, config *ConfigMock) {
 	rmd := &RootMetadata{
 		Keys: make([]DirKeyBundle, 1, 1),
 	}

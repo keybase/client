@@ -79,7 +79,7 @@ func (ks *KeyServerLocal) DeleteBlockCryptKeyServerHalf(id BlockID) error {
 }
 
 type serverHalfID struct {
-	ID             DirID
+	ID             TlfID
 	KeyGen         KeyGen
 	CryptPublicKey CryptPublicKey
 }
@@ -87,7 +87,7 @@ type serverHalfID struct {
 // GetTLFCryptKeyServerHalf implements the KeyOps interface for
 // KeyServerLocal.
 func (ks *KeyServerLocal) GetTLFCryptKeyServerHalf(
-	id DirID, keyGen KeyGen, cryptPublicKey CryptPublicKey) (serverHalf TLFCryptKeyServerHalf, err error) {
+	id TlfID, keyGen KeyGen, cryptPublicKey CryptPublicKey) (serverHalf TLFCryptKeyServerHalf, err error) {
 	idData, err := ks.codec.Encode(serverHalfID{id, keyGen, cryptPublicKey})
 	if err != nil {
 		return
@@ -108,7 +108,7 @@ func (ks *KeyServerLocal) GetTLFCryptKeyServerHalf(
 // PutTLFCryptKeyServerHalf implements the KeyOps interface for
 // KeyServerLocal.
 func (ks *KeyServerLocal) PutTLFCryptKeyServerHalf(
-	id DirID, keyGen KeyGen, cryptPublicKey CryptPublicKey, serverHalf TLFCryptKeyServerHalf) error {
+	id TlfID, keyGen KeyGen, cryptPublicKey CryptPublicKey, serverHalf TLFCryptKeyServerHalf) error {
 	idData, err := ks.codec.Encode(serverHalfID{id, keyGen, cryptPublicKey})
 	if err != nil {
 		return err

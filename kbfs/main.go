@@ -59,7 +59,7 @@ func openNode(ctx context.Context, config libkbfs.Config, path string, component
 		return
 	}
 
-	dh, err := libkbfs.ParseDirHandle(ctx, config, components[1])
+	dh, err := libkbfs.ParseTlfHandle(ctx, config, components[1])
 	if err != nil {
 		return
 	}

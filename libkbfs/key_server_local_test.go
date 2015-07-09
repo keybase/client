@@ -74,11 +74,11 @@ func TestKeyServerLocalTLFCryptKeyServerHalves(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	id1 := DirID{1}
+	id1 := TlfID{1}
 	keyGen1 := KeyGen(1)
 	publicKey1 := MakeFakeCryptPublicKeyOrBust("public key 1")
 
-	id2 := DirID{2}
+	id2 := TlfID{2}
 	keyGen2 := KeyGen(2)
 	publicKey2 := MakeFakeCryptPublicKeyOrBust("public key 2")
 

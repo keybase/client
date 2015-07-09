@@ -46,7 +46,7 @@ type RootMetadata struct {
 	// Pointer to the previous root block ID
 	PrevRoot MdID
 	// The directory ID, signed over to make verification easier
-	ID DirID
+	ID TlfID
 	// The revision number
 	Revision uint64
 
@@ -58,7 +58,7 @@ type RootMetadata struct {
 	// The plaintext, deserialized PrivateMetadata
 	data PrivateMetadata
 	// A cached copy of the directory handle calculated for this MD.
-	cachedDirHandle *DirHandle
+	cachedTlfHandle *TlfHandle
 	// The cached ID for this MD structure (hash)
 	mdID MdID
 }
@@ -70,7 +70,7 @@ func (md *RootMetadata) GetKeyGeneration() int {
 
 // NewRootMetadata constructs a new RootMetadata object with the given
 // handle and ID.
-func NewRootMetadata(d *DirHandle, id DirID) *RootMetadata {
+func NewRootMetadata(d *TlfHandle, id TlfID) *RootMetadata {
 	var writers []keybase1.UID
 	if id.IsPublic() {
 		writers = make([]keybase1.UID, 0, 1)
@@ -87,7 +87,7 @@ func NewRootMetadata(d *DirHandle, id DirID) *RootMetadata {
 		// need to keep the dir handle around long
 		// enough to rekey the metadata for the first
 		// time
-		cachedDirHandle: d,
+		cachedTlfHandle: d,
 	}
 	return &md
 }
@@ -122,11 +122,11 @@ func (md RootMetadata) getDirKeyBundle(keyGen KeyGen) (*DirKeyBundle, error) {
 	}
 
 	if keyGen < FirstValidKeyGen {
-		return nil, InvalidKeyGenerationError{*md.GetDirHandle(), keyGen}
+		return nil, InvalidKeyGenerationError{*md.GetTlfHandle(), keyGen}
 	}
 	i := int(keyGen - FirstValidKeyGen)
 	if i >= len(md.Keys) {
-		return nil, NewKeyGenerationError{*md.GetDirHandle(), keyGen}
+		return nil, NewKeyGenerationError{*md.GetTlfHandle(), keyGen}
 	}
 	return &md.Keys[i], nil
 }
@@ -183,14 +183,14 @@ func (md *RootMetadata) AddNewKeys(keys DirKeyBundle) error {
 	return nil
 }
 
-// GetDirHandle computes and returns the DirHandle for this
+// GetTlfHandle computes and returns the TlfHandle for this
 // RootMetadata, caching it in the process.
-func (md *RootMetadata) GetDirHandle() *DirHandle {
-	if md.cachedDirHandle != nil {
-		return md.cachedDirHandle
+func (md *RootMetadata) GetTlfHandle() *TlfHandle {
+	if md.cachedTlfHandle != nil {
+		return md.cachedTlfHandle
 	}
 
-	h := &DirHandle{}
+	h := &TlfHandle{}
 	if md.ID.IsPublic() {
 		h.Readers = []keybase1.UID{keybase1.PublicUID}
 		h.Writers = make([]keybase1.UID, len(md.Writers))
@@ -212,7 +212,7 @@ func (md *RootMetadata) GetDirHandle() *DirHandle {
 	}
 	sort.Sort(uidList(h.Writers))
 	sort.Sort(uidList(h.Readers))
-	md.cachedDirHandle = h
+	md.cachedTlfHandle = h
 	return h
 }
 

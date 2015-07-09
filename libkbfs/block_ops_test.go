@@ -100,8 +100,8 @@ func expectBlockDecrypt(config *ConfigMock, rmd *RootMetadata, blockPtr BlockPoi
 }
 
 func makeRMD() *RootMetadata {
-	var tlfID DirID
-	tlfID[len(tlfID)-1] = DirIDSuffix
+	var tlfID TlfID
+	tlfID[len(tlfID)-1] = TlfIDSuffix
 	return &RootMetadata{ID: tlfID}
 }
 
