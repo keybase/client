@@ -15,7 +15,7 @@ func logMsg(msg interface{}) {
 	log.Printf("FUSE: %s\n", msg)
 }
 
-func runNewFUSE(config *libkbfs.ConfigLocal, debug bool,
+func runNewFUSE(config libkbfs.Config, debug bool,
 	mountpoint string) error {
 	if debug {
 		fuse.Debug = logMsg
@@ -46,7 +46,7 @@ func runNewFUSE(config *libkbfs.ConfigLocal, debug bool,
 
 // FS implements the newfuse FS interface for KBFS.
 type FS struct {
-	config *libkbfs.ConfigLocal
+	config libkbfs.Config
 }
 
 // context wraps the given Context with a specific value for this FS

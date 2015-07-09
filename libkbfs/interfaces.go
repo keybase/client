@@ -146,7 +146,8 @@ type KBFSOps interface {
 	// Read returns all of the requested data; it will return the
 	// number of bytes that it wrote to the dest buffer.  Reads on an
 	// unlinked file may or may not succeed, depending on whether or
-	// not the data has been cached locally.  This is a remote-access
+	// not the data has been cached locally.  If (0, nil) is returned,
+	// that means EOF has been reached. This is a remote-access
 	// operation.
 	Read(ctx context.Context, file Node, dest []byte, off int64) (int64, error)
 	// Write modifies the file at the given node, by writing the given

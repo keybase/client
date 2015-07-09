@@ -1030,7 +1030,7 @@ func (f *FuseFile) Flush() fuse.Status {
 	return <-statchan
 }
 
-func runHanwenFUSE(ctx context.Context, config *libkbfs.ConfigLocal, debug bool,
+func runHanwenFUSE(ctx context.Context, config libkbfs.Config, debug bool,
 	mountpoint string) error {
 	root := NewFuseRoot(ctx, config)
 
