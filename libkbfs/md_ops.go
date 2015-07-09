@@ -335,31 +335,31 @@ func (md *MDOpsStandard) readyMD(id DirID, rmd *RootMetadata) (
 }
 
 // Put implements the MDOps interface for MDOpsStandard.
-func (md *MDOpsStandard) Put(id DirID, rmd *RootMetadata, deviceID keybase1.KID,
+func (md *MDOpsStandard) Put(id DirID, rmd *RootMetadata, deviceKID keybase1.KID,
 	unmergedBase MdID) error {
 	mdID, rmds, err := md.readyMD(id, rmd)
 	if err != nil {
 		return err
 	}
-	return md.config.MDServer().Put(id, mdID, rmds, deviceID, unmergedBase)
+	return md.config.MDServer().Put(id, mdID, rmds, deviceKID, unmergedBase)
 }
 
 // PutUnmerged implements the MDOps interface for MDOpsStandard.
 func (md *MDOpsStandard) PutUnmerged(id DirID, rmd *RootMetadata,
-	deviceID keybase1.KID) error {
+	deviceKID keybase1.KID) error {
 	// TODO: set unmerged bit in rmd.
 	mdID, rmds, err := md.readyMD(id, rmd)
 	if err != nil {
 		return err
 	}
-	return md.config.MDServer().PutUnmerged(id, mdID, rmds, deviceID)
+	return md.config.MDServer().PutUnmerged(id, mdID, rmds, deviceKID)
 }
 
 // GetUnmergedSince implements the MDOps interface for MDOpsStandard.
-func (md *MDOpsStandard) GetUnmergedSince(id DirID, deviceID keybase1.KID,
+func (md *MDOpsStandard) GetUnmergedSince(id DirID, deviceKID keybase1.KID,
 	mdID MdID, max int) ([]*RootMetadata, bool, error) {
 	sinceRmds, more, err :=
-		md.config.MDServer().GetUnmergedSince(id, deviceID, mdID, max)
+		md.config.MDServer().GetUnmergedSince(id, deviceKID, mdID, max)
 	if err != nil {
 		return nil, false, err
 	}

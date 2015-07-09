@@ -254,7 +254,7 @@ func (md *MDServerLocal) getUnmergedInfo(id DirID) (
 // simply updates the unmerged base to that MdID without any
 // verification.
 func (md *MDServerLocal) Put(id DirID, mdID MdID, rmds *RootMetadataSigned,
-	deviceID keybase1.KID, unmergedBase MdID) error {
+	deviceKID keybase1.KID, unmergedBase MdID) error {
 	// First check to see that this MD is consistent with the current MD.
 	currHead, err := md.getHeadForTLF(id)
 	if err != nil && err != leveldb.ErrNotFound {
@@ -277,7 +277,7 @@ func (md *MDServerLocal) Put(id DirID, mdID MdID, rmds *RootMetadataSigned,
 		return err
 	}
 
-	if deviceID.IsNil() {
+	if deviceKID.IsNil() {
 		// nothing to do if no unmerged device is specified
 		return nil
 	}
@@ -288,17 +288,17 @@ func (md *MDServerLocal) Put(id DirID, mdID MdID, rmds *RootMetadataSigned,
 		// when no unmerged info exists for this folder, return err == nil
 		return err
 	}
-	devInfo, ok := u.Devices[deviceID]
+	devInfo, ok := u.Devices[deviceKID]
 	if !ok {
 		// Technically could return nil here, but since this is a
 		// local server that only supports one device, we should never
 		// hit that case.
 		return fmt.Errorf("Missing unmerged info for device %v for folder %v",
-			deviceID, id)
+			deviceKID, id)
 	}
 	if devInfo.Head == unmergedBase {
 		// deleting the whole history
-		delete(u.Devices, deviceID)
+		delete(u.Devices, deviceKID)
 	} else {
 		devInfo.Base = unmergedBase
 		// at this point, the earliest link in the unmerged chain will
@@ -306,7 +306,7 @@ func (md *MDServerLocal) Put(id DirID, mdID MdID, rmds *RootMetadataSigned,
 		// to got fixed up in the merge and removed from the unmerged
 		// list).  That's unfortunate, but we can't clear the PrevRoot
 		// because its included in the signature.
-		u.Devices[deviceID] = devInfo
+		u.Devices[deviceKID] = devInfo
 	}
 
 	ubytes, err := md.config.Codec().Encode(&u)
@@ -318,7 +318,7 @@ func (md *MDServerLocal) Put(id DirID, mdID MdID, rmds *RootMetadataSigned,
 
 // PutUnmerged implements the MDServer interface for MDServerLocal.
 func (md *MDServerLocal) PutUnmerged(id DirID, mdID MdID,
-	rmds *RootMetadataSigned, deviceID keybase1.KID) error {
+	rmds *RootMetadataSigned, deviceKID keybase1.KID) error {
 	// First update the per-device unmerged info
 	exists, u, err := md.getUnmergedInfo(id)
 	if err != nil {
@@ -326,7 +326,7 @@ func (md *MDServerLocal) PutUnmerged(id DirID, mdID MdID,
 	} else if !exists {
 		u = unmergedInfo{Devices: make(map[keybase1.KID]unmergedDevInfo)}
 	}
-	udev, ok := u.Devices[deviceID]
+	udev, ok := u.Devices[deviceKID]
 	if !ok {
 		// this must be the first branch from committed data
 		udev = unmergedDevInfo{Base: rmds.MD.PrevRoot}
@@ -335,7 +335,7 @@ func (md *MDServerLocal) PutUnmerged(id DirID, mdID MdID,
 	}
 
 	udev.Head = mdID
-	u.Devices[deviceID] = udev
+	u.Devices[deviceKID] = udev
 	ubytes, err := md.config.Codec().Encode(&u)
 	if err != nil {
 		return err
@@ -344,14 +344,14 @@ func (md *MDServerLocal) PutUnmerged(id DirID, mdID MdID,
 }
 
 // GetUnmergedSince implements the MDServer interface for MDServerLocal.
-func (md *MDServerLocal) GetUnmergedSince(id DirID, deviceID keybase1.KID,
+func (md *MDServerLocal) GetUnmergedSince(id DirID, deviceKID keybase1.KID,
 	mdID MdID, max int) ([]*RootMetadataSigned, bool, error) {
 	exists, u, err := md.getUnmergedInfo(id)
 	if err != nil || !exists {
 		// if there's no unmerged info, just return err == nil
 		return nil, false, err
 	}
-	udev, ok := u.Devices[deviceID]
+	udev, ok := u.Devices[deviceKID]
 	if !ok {
 		return nil, false, nil
 	}

@@ -852,13 +852,13 @@ func expectSyncBlockHelper(
 				Return(nilCpk, nil)
 
 			config.mockMdops.EXPECT().PutUnmerged(id, gomock.Any(), nilKID).
-				Do(func(id DirID, rmd *RootMetadata, deviceID keybase1.KID) {
+				Do(func(id DirID, rmd *RootMetadata, deviceKID keybase1.KID) {
 				// add some serialized metadata to satisfy the check
 				rmd.SerializedPrivateMetadata = make([]byte, 1)
 			}).Return(nil)
 		} else {
 			config.mockMdops.EXPECT().Put(id, gomock.Any(), nilKID, NullMdID).
-				Do(func(id DirID, rmd *RootMetadata, deviceID keybase1.KID,
+				Do(func(id DirID, rmd *RootMetadata, deviceKID keybase1.KID,
 				unmergedID MdID) {
 				// add some serialized metadata to satisfy the check
 				rmd.SerializedPrivateMetadata = make([]byte, 1)
