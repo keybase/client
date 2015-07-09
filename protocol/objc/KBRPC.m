@@ -157,6 +157,9 @@
 
 @end
 
+@implementation KBRServiceStatusRes
+@end
+
 @implementation KBRCtlRequest
 
 - (void)stop:(void (^)(NSError *error))completion {
@@ -170,6 +173,25 @@
   NSDictionary *params = @{};
   [self.client sendRequestWithMethod:@"keybase.1.ctl.logRotate" params:params sessionId:self.sessionId completion:^(NSError *error, id retval) {
     completion(error);
+  }];
+}
+
+- (void)panicWithMessage:(NSString *)message completion:(void (^)(NSError *error))completion {
+  NSDictionary *params = @{@"message": KBRValue(message)};
+  [self.client sendRequestWithMethod:@"keybase.1.ctl.panic" params:params sessionId:self.sessionId completion:^(NSError *error, id retval) {
+    completion(error);
+  }];
+}
+
+- (void)status:(void (^)(NSError *error, KBRServiceStatusRes *serviceStatusRes))completion {
+  NSDictionary *params = @{};
+  [self.client sendRequestWithMethod:@"keybase.1.ctl.status" params:params sessionId:self.sessionId completion:^(NSError *error, id retval) {
+    if (error) {
+        completion(error, nil);
+        return;
+      }
+      KBRServiceStatusRes *result = retval ? [MTLJSONAdapter modelOfClass:KBRServiceStatusRes.class fromJSONDictionary:retval error:&error] : nil;
+      completion(error, result);
   }];
 }
 
@@ -1329,6 +1351,17 @@
     self.nonce = params[0][@"nonce"];
     self.peersPublicKey = params[0][@"peersPublicKey"];
     self.reason = params[0][@"reason"];
+  }
+  return self;
+}
+
+@end
+
+@implementation KBRPanicRequestParams
+
+- (instancetype)initWithParams:(NSArray *)params {
+  if ((self = [super initWithParams:params])) {
+    self.message = params[0][@"message"];
   }
   return self;
 }

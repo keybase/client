@@ -366,15 +366,28 @@ func (c CryptoClient) UnboxBytes32(__arg UnboxBytes32Arg) (res Bytes32, err erro
 	return
 }
 
+type ServiceStatusRes struct {
+	Time Time `codec:"time" json:"time"`
+}
+
 type StopArg struct {
 }
 
 type LogRotateArg struct {
 }
 
+type PanicArg struct {
+	Message string `codec:"message" json:"message"`
+}
+
+type StatusArg struct {
+}
+
 type CtlInterface interface {
 	Stop() error
 	LogRotate() error
+	Panic(string) error
+	Status() (ServiceStatusRes, error)
 }
 
 func CtlProtocol(i CtlInterface) rpc2.Protocol {
@@ -395,6 +408,20 @@ func CtlProtocol(i CtlInterface) rpc2.Protocol {
 				}
 				return
 			},
+			"panic": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
+				args := make([]PanicArg, 1)
+				if err = nxt(&args); err == nil {
+					err = i.Panic(args[0].Message)
+				}
+				return
+			},
+			"status": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
+				args := make([]StatusArg, 1)
+				if err = nxt(&args); err == nil {
+					ret, err = i.Status()
+				}
+				return
+			},
 		},
 	}
 
@@ -411,6 +438,17 @@ func (c CtlClient) Stop() (err error) {
 
 func (c CtlClient) LogRotate() (err error) {
 	err = c.Cli.Call("keybase.1.ctl.logRotate", []interface{}{LogRotateArg{}}, nil)
+	return
+}
+
+func (c CtlClient) Panic(message string) (err error) {
+	__arg := PanicArg{Message: message}
+	err = c.Cli.Call("keybase.1.ctl.panic", []interface{}{__arg}, nil)
+	return
+}
+
+func (c CtlClient) Status() (res ServiceStatusRes, err error) {
+	err = c.Cli.Call("keybase.1.ctl.status", []interface{}{StatusArg{}}, &res)
 	return
 }
 

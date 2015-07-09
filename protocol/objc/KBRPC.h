@@ -127,10 +127,18 @@
 
 @end
 
+@interface KBRServiceStatusRes : KBRObject
+@property long time;
+@end
+
 @interface KBRCtlRequest : KBRRequest
 - (void)stop:(void (^)(NSError *error))completion;
 
 - (void)logRotate:(void (^)(NSError *error))completion;
+
+- (void)panicWithMessage:(NSString *)message completion:(void (^)(NSError *error))completion;
+
+- (void)status:(void (^)(NSError *error, KBRServiceStatusRes *serviceStatusRes))completion;
 
 @end
 
@@ -875,6 +883,9 @@ typedef NS_ENUM (NSInteger, KBRPromptOverwriteType) {
 @property NSData *nonce;
 @property NSData *peersPublicKey;
 @property NSString *reason;
+@end
+@interface KBRPanicRequestParams : KBRRequestParams
+@property NSString *message;
 @end
 @interface KBRDeviceListRequestParams : KBRRequestParams
 @property NSInteger sessionID;

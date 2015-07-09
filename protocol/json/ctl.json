@@ -1,7 +1,183 @@
 {
   "protocol" : "ctl",
   "namespace" : "keybase.1",
-  "types" : [ ],
+  "types" : [ {
+    "type" : "record",
+    "name" : "Time",
+    "fields" : [ ],
+    "typedef" : "long"
+  }, {
+    "type" : "record",
+    "name" : "StringKVPair",
+    "fields" : [ {
+      "name" : "key",
+      "type" : "string"
+    }, {
+      "name" : "value",
+      "type" : "string"
+    } ]
+  }, {
+    "type" : "record",
+    "name" : "Status",
+    "fields" : [ {
+      "name" : "code",
+      "type" : "int"
+    }, {
+      "name" : "name",
+      "type" : "string"
+    }, {
+      "name" : "desc",
+      "type" : "string"
+    }, {
+      "name" : "fields",
+      "type" : {
+        "type" : "array",
+        "items" : "StringKVPair"
+      }
+    } ]
+  }, {
+    "type" : "record",
+    "name" : "UID",
+    "fields" : [ ],
+    "typedef" : "string"
+  }, {
+    "type" : "record",
+    "name" : "DeviceID",
+    "fields" : [ ],
+    "typedef" : "string"
+  }, {
+    "type" : "record",
+    "name" : "SigID",
+    "fields" : [ ],
+    "typedef" : "string"
+  }, {
+    "type" : "record",
+    "name" : "KID",
+    "fields" : [ ],
+    "typedef" : "string"
+  }, {
+    "type" : "record",
+    "name" : "FOKID",
+    "fields" : [ {
+      "name" : "pgpFingerprint",
+      "type" : [ "null", "bytes" ]
+    }, {
+      "name" : "kid",
+      "type" : [ "null", "KID" ]
+    } ]
+  }, {
+    "type" : "record",
+    "name" : "Text",
+    "fields" : [ {
+      "name" : "data",
+      "type" : "string"
+    }, {
+      "name" : "markup",
+      "type" : "boolean"
+    } ]
+  }, {
+    "type" : "record",
+    "name" : "PGPIdentity",
+    "fields" : [ {
+      "name" : "username",
+      "type" : "string"
+    }, {
+      "name" : "comment",
+      "type" : "string"
+    }, {
+      "name" : "email",
+      "type" : "string"
+    } ]
+  }, {
+    "type" : "record",
+    "name" : "PublicKey",
+    "fields" : [ {
+      "name" : "KID",
+      "type" : "KID"
+    }, {
+      "name" : "PGPFingerprint",
+      "type" : "string"
+    }, {
+      "name" : "PGPIdentities",
+      "type" : {
+        "type" : "array",
+        "items" : "PGPIdentity"
+      }
+    }, {
+      "name" : "isSibkey",
+      "type" : "boolean"
+    }, {
+      "name" : "isEldest",
+      "type" : "boolean"
+    }, {
+      "name" : "isWeb",
+      "type" : "boolean"
+    }, {
+      "name" : "parentID",
+      "type" : "string"
+    }, {
+      "name" : "deviceID",
+      "type" : "DeviceID"
+    }, {
+      "name" : "deviceDescription",
+      "type" : "string"
+    }, {
+      "name" : "cTime",
+      "type" : "Time"
+    }, {
+      "name" : "eTime",
+      "type" : "Time"
+    } ]
+  }, {
+    "type" : "record",
+    "name" : "User",
+    "fields" : [ {
+      "name" : "uid",
+      "type" : "UID"
+    }, {
+      "name" : "username",
+      "type" : "string"
+    }, {
+      "name" : "publicKeys",
+      "type" : {
+        "type" : "array",
+        "items" : "PublicKey"
+      }
+    } ]
+  }, {
+    "type" : "record",
+    "name" : "Device",
+    "fields" : [ {
+      "name" : "type",
+      "type" : "string"
+    }, {
+      "name" : "name",
+      "type" : "string"
+    }, {
+      "name" : "deviceID",
+      "type" : "DeviceID"
+    }, {
+      "name" : "cTime",
+      "type" : "Time"
+    }, {
+      "name" : "mTime",
+      "type" : "Time"
+    } ]
+  }, {
+    "type" : "record",
+    "name" : "Stream",
+    "fields" : [ {
+      "name" : "fd",
+      "type" : "int"
+    } ]
+  }, {
+    "type" : "record",
+    "name" : "ServiceStatusRes",
+    "fields" : [ {
+      "name" : "time",
+      "type" : "Time"
+    } ]
+  } ],
   "messages" : {
     "stop" : {
       "request" : [ ],
@@ -10,6 +186,17 @@
     "logRotate" : {
       "request" : [ ],
       "response" : "null"
+    },
+    "panic" : {
+      "request" : [ {
+        "name" : "message",
+        "type" : "string"
+      } ],
+      "response" : "null"
+    },
+    "status" : {
+      "request" : [ ],
+      "response" : "ServiceStatusRes"
     }
   }
 }

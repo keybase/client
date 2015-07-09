@@ -2,6 +2,17 @@
 
 protocol ctl {
 
+  import idl "common.avdl";
+
 	void stop();
 	void logRotate();
+
+  record ServiceStatusRes {
+    Time time;
+  }
+
+  // For testing
+  void panic(string message);
+  ServiceStatusRes status();
+
 }
