@@ -14,12 +14,16 @@ import (
 // the signing key.  This is currently only used for testing to
 // generate a fake users who only has a detkey, but perhaps it
 // will be useful for something else...
+// Device can be passed in to generate DetKey for a different
+// device.  Currently used by BackupKeygen to generate backup
+// keys.
 type DetKeyArgs struct {
 	Tsp         *libkb.PassphraseStream
 	SelfProof   bool
 	Me          *libkb.User
 	SigningKey  libkb.GenericKey
 	EldestKeyID keybase1.KID
+	Device      *libkb.Device // nil to generate standard detkey (with web device)
 }
 
 type DetKeyEngine struct {
@@ -52,8 +56,11 @@ func (d *DetKeyEngine) Prereqs() Prereqs { return Prereqs{} }
 
 // Run runs the detkey engine.
 func (d *DetKeyEngine) Run(ctx *Context) error {
-
-	d.dev = libkb.NewWebDevice()
+	if d.arg.Device != nil {
+		d.dev = d.arg.Device
+	} else {
+		d.dev = libkb.NewWebDevice()
+	}
 
 	if err := d.eddsa(ctx, d.arg.Tsp); err != nil {
 		return fmt.Errorf("eddsa error: %s", err)

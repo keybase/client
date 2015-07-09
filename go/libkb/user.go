@@ -27,9 +27,6 @@ type User struct {
 	// Loaded from publicKeys
 	keyFamily *KeyFamily
 
-	// Computed as a result of sigchain traversal
-	cki *ComputedKeyInfos
-
 	dirty bool
 	Contextified
 }
@@ -94,6 +91,13 @@ func (u *User) GetSeqno() Seqno {
 
 func (u *User) GetKeyFamily() *KeyFamily {
 	return u.keyFamily
+}
+
+func (u *User) GetComputedKeyInfos() *ComputedKeyInfos {
+	if u.sigChain() == nil {
+		return nil
+	}
+	return u.sigChain().GetComputedKeyInfos()
 }
 
 func (u *User) GetComputedKeyFamily() (ret *ComputedKeyFamily) {

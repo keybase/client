@@ -53,6 +53,20 @@ func NewWebDevice() (ret *Device) {
 	return
 }
 
+func NewBackupDevice() (*Device, error) {
+	did, err := NewDeviceID()
+	if err != nil {
+		return nil, err
+	}
+	s := DeviceStatusActive
+	d := &Device{
+		ID:     did,
+		Type:   DeviceTypeBackup,
+		Status: &s,
+	}
+	return d, nil
+}
+
 func ParseDevice(jw *jsonw.Wrapper) (ret *Device, err error) {
 	var obj Device
 	if err = jw.UnmarshalAgain(&obj); err == nil {

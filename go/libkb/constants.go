@@ -141,10 +141,14 @@ const (
 	DeviceStatusDefunct = 2
 )
 
+// these strings need to match the keys in
+// keybase/lib_public/public_constants.iced ->
+// public_constants.device.type
 const (
 	DeviceTypeDesktop = "desktop"
 	DeviceTypeMobile  = "mobile"
 	DeviceTypeWeb     = "web"
+	DeviceTypeBackup  = "backup"
 )
 
 const DownloadURL = "https://keybase.io/download"
@@ -249,12 +253,19 @@ const (
 )
 
 const (
-	KexScryptCost   = 32768
-	KexScryptR      = 8
-	KexScryptP      = 1
-	KexScryptKeylen = 32
+	KexScryptCost       = 32768
+	KexScryptR          = 8
+	KexScryptP          = 1
+	KexScryptKeylen     = 32
+	KexSessionIDEntropy = 65 // kex doc specifies 65 bits of entropy
 )
 
-const KexSessionIDEntropy = 65 // kex doc specifies 65 bits of entropy
+const (
+	BackupKeyScryptCost    = 32768
+	BackupKeyScryptR       = 8
+	BackupKeyScryptP       = 1
+	BackupKeyScryptKeylen  = 96
+	BackupKeyPhraseEntropy = 128
+)
 
 const UserSummaryLimit = 500 // max number of user summaries in one request
