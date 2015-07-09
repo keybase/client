@@ -120,7 +120,7 @@
 
     y += [layout setFrame:CGRectMake(10, y, col - 21, 22) view:yself.searchField].size.height + 9;
 
-    [layout setFrame:CGRectMake(0, y, col, size.height) view:yself.searchView];
+    [layout setFrame:CGRectMake(0, y, col, size.height - y) view:yself.searchView];
 
     [layout setFrame:CGRectMake(7, y + 5, 14, 14) view:yself.listProgressView];
     y += [layout setFrame:CGRectMake(13, y, col - 21, 23) view:yself.menuButton].size.height + 4;

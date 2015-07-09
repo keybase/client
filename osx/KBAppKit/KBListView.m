@@ -12,6 +12,8 @@
 #import "KBTitleView.h"
 #import "KBBox.h"
 
+#define GROUP_ROW_HEIGHT (24) // TODO Hardcoded height
+
 @interface KBListView ()
 @property Class prototypeClass;
 @property YOView *prototypeView;
@@ -54,7 +56,7 @@
   if ([object isKindOfClass:KBTableViewHeader.class]) {
     KBTitleView *titleView = [[KBTitleView alloc] init];
     [titleView.label setText:[[object title] uppercaseString] style:KBTextStyleDefault alignment:NSLeftTextAlignment lineBreakMode:NSLineBreakByTruncatingTail];
-    titleView.height = 24;
+    titleView.height = GROUP_ROW_HEIGHT;
     return titleView;
   }
 
@@ -95,13 +97,12 @@
 }
 
 - (CGFloat)tableView:(NSTableView *)tableView heightOfRow:(NSInteger)row {
+  if ([self tableView:tableView isGroupRow:row]) {
+    return GROUP_ROW_HEIGHT;
+  }
+
   if (_rowHeight > 0) {
-    id obj = [self.dataSource objectAtIndexPath:[NSIndexPath indexPathForItem:row inSection:0]];
-    if ([obj isKindOfClass:KBTableViewHeader.class]) {
-      return 24;
-    } else {
-      return _rowHeight;
-    }
+    return _rowHeight;
   } else {
     if (!self.prototypeView) self.prototypeView = [[self.prototypeClass alloc] init];
     id object = [self.dataSource objectAtIndexPath:[NSIndexPath indexPathForItem:row inSection:0]];
