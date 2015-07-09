@@ -257,7 +257,7 @@
       "type" : "string"
     }, {
       "name" : "trackTime",
-      "type" : "long"
+      "type" : "Time"
     } ]
   } ],
   "messages" : {

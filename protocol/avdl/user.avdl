@@ -37,7 +37,7 @@ protocol user {
 		string bio;
 		Proofs proofs;
 		string sigIDDisplay;
-		long trackTime;
+		Time trackTime;
 	}
 
 	// load user summaries for the supplied uids.

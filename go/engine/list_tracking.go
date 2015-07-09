@@ -170,7 +170,7 @@ func (e *ListTrackingEngine) runTable(trackList TrackList) error {
 		entry := keybase1.UserSummary{
 			Username:     link.ToDisplayString(),
 			SigIDDisplay: link.GetSigID().ToDisplayString(true),
-			TrackTime:    link.GetCTime().Unix(),
+			TrackTime:    keybase1.ToTime(link.GetCTime()),
 			Uid:          keybase1.UID(uid),
 		}
 		entry.Proofs.PublicKeys = e.linkPGPKeys(link)

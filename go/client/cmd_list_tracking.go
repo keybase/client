@@ -5,7 +5,6 @@ import (
 	"io"
 	"os"
 	"strings"
-	"time"
 
 	"github.com/keybase/cli"
 	"github.com/keybase/client/go/engine"
@@ -86,7 +85,7 @@ func displayTable(entries []keybase1.UserSummary, verbose bool, headers bool) (e
 			entry.Username,
 			entry.SigIDDisplay,
 			strings.Join(fps, ", "),
-			libkb.FormatTime(time.Unix(entry.TrackTime, 0)),
+			keybase1.FormatTime(entry.TrackTime),
 		}
 		for _, proof := range entry.Proofs.Social {
 			row = append(row, proof.IdString)

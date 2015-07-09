@@ -2774,7 +2774,7 @@ type UserSummary struct {
 	Bio          string `codec:"bio" json:"bio"`
 	Proofs       Proofs `codec:"proofs" json:"proofs"`
 	SigIDDisplay string `codec:"sigIDDisplay" json:"sigIDDisplay"`
-	TrackTime    int64  `codec:"trackTime" json:"trackTime"`
+	TrackTime    Time   `codec:"trackTime" json:"trackTime"`
 }
 
 type ListTrackersArg struct {
