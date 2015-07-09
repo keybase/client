@@ -16,6 +16,9 @@
 @interface KBConsoleView () <KBComponent>
 @property KBListView *logView;
 @property KBTextView *textView;
+
+@property NSMutableArray *buffer;
+@property dispatch_queue_t bufferQueue;
 @end
 
 @implementation KBConsoleView
@@ -23,6 +26,9 @@
 - (void)viewInit {
   [super viewInit];
   [self kb_setBackgroundColor:NSColor.whiteColor];
+
+  _buffer = [NSMutableArray array];
+  _bufferQueue = dispatch_queue_create("KBConsoleLogBufferQueue", NULL);
 
   _logFormatter = [[KBLogConsoleFormatter alloc] init];
 
@@ -85,10 +91,29 @@
 
 - (void)logMessage:(DDLogMessage *)logMessage {
   GHWeakSelf gself = self;
-  dispatch_async(dispatch_get_main_queue(), ^{
-    [gself.logView addObjects:@[logMessage] animation:NSTableViewAnimationEffectNone];
-    if ([gself.logView isAtBottom]) [gself.logView scrollToBottom:YES];
+  dispatch_async(_bufferQueue, ^{
+    [gself.buffer addObject:logMessage];
+    dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.5 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
+      [gself flush];
+    });
   });
+}
+
+- (void)flush {
+  GHWeakSelf gself = self;
+  dispatch_async(_bufferQueue, ^{
+    NSArray *messages = [gself.buffer copy];
+    [gself.buffer removeAllObjects];
+    dispatch_async(dispatch_get_main_queue(), ^{
+      [gself addMessages:messages];
+    });
+  });
+}
+
+- (void)addMessages:(NSArray *)messages {
+  BOOL atBottom = [self.logView isAtBottom];
+  [self.logView addObjects:messages animation:NSTableViewAnimationEffectNone];
+  if (atBottom) [self.logView scrollToBottom:NO];
 }
 
 - (NSString *)name { return @"Console"; }
