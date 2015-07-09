@@ -21,6 +21,7 @@
 #import "KBPGPKeyGenView.h"
 #import "KBProgressView.h"
 #import "KBKeyView.h"
+#import "KBUserKeyView.h"
 #import "KBKeyImportView.h"
 
 #import "KBAlertView.h"
@@ -399,13 +400,22 @@
 }
 
 - (void)openKey:(KBRIdentifyKey *)key {
-  KBKeyView *keyView = [[KBKeyView alloc] init];
-  keyView.client = self.client;
   BOOL isSelf = [[KBApp.app currentUsername] isEqual:self.username];
-  [keyView setKey:key editable:isSelf];
-  keyView.cancelButton.dispatchBlock = ^(KBButton *button, dispatch_block_t completion) { [[button window] close]; completion(); };
 
-  [self.window kb_addChildWindowForView:keyView rect:CGRectMake(0, 0, 500, 400) position:KBWindowPositionCenter title:@"Key" fixed:NO makeKey:YES];
+  if (isSelf) {
+    KBKeyView *keyView = [[KBKeyView alloc] init];
+    keyView.client = self.client;
+    [keyView setIdentifyKey:key];
+    keyView.cancelButton.dispatchBlock = ^(KBButton *button, dispatch_block_t completion) { [[button window] close]; completion(); };
+    [self.window kb_addChildWindowForView:keyView rect:CGRectMake(0, 0, 500, 400) position:KBWindowPositionCenter title:@"Key" fixed:NO makeKey:YES];
+  } else {
+    KBUserKeyView *keyView = [[KBUserKeyView alloc] init];
+    keyView.client = self.client;
+    [keyView setIdentifyKey:key];
+    keyView.cancelButton.dispatchBlock = ^(KBButton *button, dispatch_block_t completion) { [[button window] close]; completion(); };
+    [self.window kb_addChildWindowForView:keyView rect:CGRectMake(0, 0, 500, 400) position:KBWindowPositionCenter title:@"Key" fixed:NO makeKey:YES];
+
+  }
 }
 
 - (void)generatePGPKey {

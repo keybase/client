@@ -12,12 +12,13 @@
 #import "KBFormatter.h"
 #import "KBNotifications.h"
 #import "KBPGPTextView.h"
+#import "KBDefines.h"
 
 @interface KBKeyView ()
 @property YOVBox *labels;
 @property KBPGPTextView *textView;
 
-@property KBRIdentifyKey *key;
+@property (nonatomic) KBRIdentifyKey *identifyKey;
 @end
 
 @implementation KBKeyView
@@ -26,59 +27,70 @@
   [super viewInit];
   [self kb_setBackgroundColor:KBAppearance.currentAppearance.backgroundColor];
 
-  _labels = [YOVBox box:@{@"insets": @(20), @"spacing": @(4)}];
-  [self addSubview:_labels];
+  YOVBox *topView = [YOVBox box];
+  {
+    _labels = [YOVBox box:@{@"insets": @(20), @"spacing": @(4)}];
+    [topView addSubview:_labels];
+    [topView addSubview:[KBBox horizontalLine]];
+  }
+  [self addSubview:topView];
 
   _textView = [[KBPGPTextView alloc] init];
   _textView.editable = NO;
-  _textView.borderType = NSBezelBorder;
   [self addSubview:_textView];
 
-  YOHBox *buttons = [YOHBox box:@{@"insets": @(20), @"spacing": @(20), @"minSize": @"90,0"}];
-  [self addSubview:buttons];
+  YOVBox *bottomView = [YOVBox box];
+  [bottomView kb_setBackgroundColor:KBAppearance.currentAppearance.secondaryBackgroundColor];
+  {
+    [bottomView addSubview:[KBBox horizontalLine]];
+    YOHBox *buttons = [YOHBox box:@{@"insets": @(15), @"spacing": @(10), @"minSize": @"90,0"}];
+    {
+      KBButton *exportButton = [KBButton buttonWithText:@"Show Secret" style:KBButtonStyleDefault options:KBButtonOptionsToolbar|KBButtonOptionsToggle];
+      exportButton.dispatchBlock = ^(KBButton *button, dispatch_block_t completion) {
+        if (button.state == NSOnState) {
+          [self showSecret:^(NSError *error, KBRKeyInfo *keyInfo) {
+            if (error) {
+              [KBActivity setError:error sender:self];
+              button.state = NSOffState;
+              completion();
+            } else {
+              [button changeText:@"Hide Secret" style:KBButtonStyleDefault];
+              completion();
+            }
+          }];
+        } else {
+          [self showPublic:^(NSError *error, KBRKeyInfo *keyInfo) {
+            if (error) {
+              [KBActivity setError:error sender:self];
+              button.state = NSOnState;
+              completion();
+            } else {
+              [button changeText:@"Show Secret" style:KBButtonStyleDefault];
+              completion();
+            }
+          }];
+        }
+      };
+      [buttons addSubview:exportButton];
 
-  KBButton *exportButton = [KBButton buttonWithText:@"Show Secret" style:KBButtonStyleDefault options:KBButtonOptionsToolbar|KBButtonOptionsToggle];
-  exportButton.dispatchBlock = ^(KBButton *button, dispatch_block_t completion) {
-    if (button.state == NSOnState) {
-      [self showSecret:^(NSError *error, KBRKeyInfo *keyInfo) {
-        if (error) {
-          [KBActivity setError:error sender:self];
-          button.state = NSOffState;
-          completion();
-        } else {
-          [button changeText:@"Hide Secret" style:KBButtonStyleDefault];
-          completion();
-        }
-      }];
-    } else {
-      [self showPublic:^(NSError *error, KBRKeyInfo *keyInfo) {
-        if (error) {
-          [KBActivity setError:error sender:self];
-          button.state = NSOnState;
-          completion();
-        } else {
-          [button changeText:@"Show Secret" style:KBButtonStyleDefault];
-          completion();
-        }
-      }];
+      KBButton *removeButton = [KBButton buttonWithText:@"Remove" style:KBButtonStyleDanger options:KBButtonOptionsToolbar];
+      removeButton.dispatchBlock = ^(KBButton *button, dispatch_block_t completion) { [self removePGPKey:completion]; };
+      [buttons addSubview:removeButton];
+
+      YOHBox *rightButtons = [YOHBox box:@{@"spacing": @(10), @"horizontalAlignment": @"right", @"minSize": @"90,0"}];
+      _cancelButton = [KBButton buttonWithText:@"Close" style:KBButtonStyleDefault options:KBButtonOptionsToolbar];
+      [rightButtons addSubview:_cancelButton];
+      [buttons addSubview:rightButtons];
     }
-  };
-  [buttons addSubview:exportButton];
+    [bottomView addSubview:buttons];
+  }
+  [self addSubview:bottomView];
 
-  KBButton *removeButton = [KBButton buttonWithText:@"Remove" style:KBButtonStyleDanger options:KBButtonOptionsToolbar];
-  removeButton.dispatchBlock = ^(KBButton *button, dispatch_block_t completion) { [self removePGPKey:completion]; };
-  [buttons addSubview:removeButton];
-
-  YOHBox *rightButtons = [YOHBox box:@{@"spacing": @(10), @"horizontalAlignment": @"right", @"minSize": @"90,0"}];
-  _cancelButton = [KBButton buttonWithText:@"Close" style:KBButtonStyleDefault options:KBButtonOptionsToolbar];
-  [rightButtons addSubview:_cancelButton];
-  [buttons addSubview:rightButtons];
-
-  self.viewLayout = [YOBorderLayout layoutWithCenter:_textView top:@[_labels] bottom:@[buttons]];
+  self.viewLayout = [YOBorderLayout layoutWithCenter:_textView top:@[topView] bottom:@[bottomView]];
 }
 
-- (void)setKey:(KBRIdentifyKey *)key editable:(BOOL)editable {
-  _key = key;
+- (void)setIdentifyKey:(KBRIdentifyKey *)identifyKey {
+  _identifyKey = identifyKey;
 
   [_labels kb_removeAllSubviews];
 
@@ -86,16 +98,13 @@
   KBHeaderLabelView *keyLabel = [[KBHeaderLabelView alloc] init];
   keyLabel.columnWidth = 140;
   [keyLabel setHeader:@"Key ID"];
-  if (_keyId.kid) [keyLabel addText:[KBHexString(_keyId.kid, @"") uppercaseString] style:KBTextStyleDefault options:KBTextOptionsMonospace lineBreakMode:NSLineBreakByCharWrapping targetBlock:nil];
+  if (_identifyKeyId.kid) [keyLabel addText:[KBHexString(_identifyKeyId.kid, @"") uppercaseString] style:KBTextStyleDefault options:KBTextOptionsMonospace lineBreakMode:NSLineBreakByCharWrapping targetBlock:nil];
   [_labels addSubview:keyLabel];
    */
 
-  if (_key.pgpFingerprint) {
-    KBHeaderLabelView *pgpLabel = [[KBHeaderLabelView alloc] init];
-    pgpLabel.columnWidth = 140;
-    [pgpLabel setHeader:@"PGP Fingerprint"];
-    if (_key.pgpFingerprint) [pgpLabel addText:[KBHexString(_key.pgpFingerprint, @"") uppercaseString] style:KBTextStyleDefault options:KBTextOptionsMonospace lineBreakMode:NSLineBreakByCharWrapping targetBlock:nil];
-    [_labels addSubview:pgpLabel];
+  if (_identifyKey.pgpFingerprint) {
+    NSString *description = KBDescriptionForFingerprint(KBHexString(_identifyKey.pgpFingerprint, @""), 20);
+    [self addText:description header:@"PGP Fingerprint"];
   }
 
   _textView.attributedText = nil;
@@ -105,7 +114,7 @@
   [self showPublic:^(NSError *error, KBRKeyInfo *keyInfo) {
     [KBActivity setProgressEnabled:NO sender:self];
     if (error) [KBActivity setError:error sender:self];
-    if (keyInfo.desc.length > 0) [self addDescription:keyInfo.desc];
+    if (keyInfo.desc.length > 0) [self addText:keyInfo.desc header:@"Info"];
   }];
 }
 
@@ -113,11 +122,12 @@
   _cancelButton.targetBlock();
 }
 
-- (void)addDescription:(NSString *)desc {
+- (void)addText:(NSString *)text header:(NSString *)header {
   KBHeaderLabelView *label = [[KBHeaderLabelView alloc] init];
   label.columnWidth = 140;
-  [label setHeader:@"Description"];
-  if (_key.pgpFingerprint) [label addText:desc style:KBTextStyleDefault options:KBTextOptionsMonospace lineBreakMode:NSLineBreakByWordWrapping targetBlock:nil];
+  label.labelPaddingTop = 2;
+  [label setHeader:header];
+  if (_identifyKey.pgpFingerprint) [label addText:text style:KBTextStyleDefault options:KBTextOptionsMonospace lineBreakMode:NSLineBreakByWordWrapping targetBlock:nil];
   [_labels addSubview:label];
   [self setNeedsLayout];
 }
@@ -126,7 +136,7 @@
   GHWeakSelf gself = self;
   KBRPgpRequest *request = [[KBRPgpRequest alloc] initWithClient:self.client];
   KBRPGPQuery *options = [[KBRPGPQuery alloc] init];
-  options.query = KBHexString(_key.KID, nil);
+  options.query = _identifyKey.KID;
   options.exactMatch = YES;
   [request pgpExportWithSessionID:request.sessionId options:options completion:^(NSError *error, NSArray *keys) {
     // TODO This only works when we are the user being key exported
@@ -139,7 +149,7 @@
 - (void)showSecret:(void (^)(NSError *error, KBRKeyInfo *keyInfo))completion {
   KBRPgpRequest *request = [[KBRPgpRequest alloc] initWithClient:self.client];
   KBRPGPQuery *options = [[KBRPGPQuery alloc] init];
-  options.query = KBHexString(_key.KID, nil);
+  options.query = _identifyKey.KID;
   options.exactMatch = YES;
   options.secret = YES;
   GHWeakSelf gself = self;
@@ -153,11 +163,11 @@
 }
 
 - (void)removePGPKey:(dispatch_block_t)completion {
-  NSData *kid = _key.KID;
+  NSString *kid = _identifyKey.KID;
   [KBAlert yesNoWithTitle:@"Delete PGP Key" description:@"Are you sure you want to remove this PGP Key?" yes:@"Delete" view:self completion:^(BOOL yes) {
     if (yes) {
       KBRRevokeRequest *request = [[KBRRevokeRequest alloc] initWithClient:self.client];
-      [request revokeKeyWithSessionID:request.sessionId idKb:KBHexString(kid, nil) completion:^(NSError *error) {
+      [request revokeKeyWithSessionID:request.sessionId idKb:kid completion:^(NSError *error) {
         [NSNotificationCenter.defaultCenter postNotificationName:KBUserDidChangeNotification object:nil userInfo:nil];
         [self close];
       }];

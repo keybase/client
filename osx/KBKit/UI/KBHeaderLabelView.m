@@ -38,6 +38,7 @@
       [layout setFrame:CGRectMake(x - headerLabelSize.width - 10, y, headerLabelSize.width, headerLabelSize.height) view:yself.headerLabel];
     }
 
+    y += yself.labelPaddingTop;
     for (NSView *view in yself.labels) {
       y += [layout sizeToFitVerticalInFrame:CGRectMake(col, y, size.width - col - 5, 0) view:view].size.height;
     }

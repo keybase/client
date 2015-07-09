@@ -66,9 +66,12 @@
   if ([dict count] == 0) return @"{}";
   NSString *prefix = [@"" stringByPaddingToLength:(level+1)*2 withString:@" " startingAtIndex:0];
   NSString *endPrefix = [@"" stringByPaddingToLength:level*2 withString:@" " startingAtIndex:0];
-  NSString *str = NSStringWithFormat(@"{\n%@%@\n%@}", prefix, [[dict map:^id(id key, id value) {
+
+  NSArray *dictStr = [dict map:^id(id key, id value) {
     return NSStringWithFormat(@"%@: %@", [self format:key level:level], [self format:value level:level]);
-  }] join:NSStringWithFormat(@",\n%@", prefix)], endPrefix);
+  }];
+
+  NSString *str = NSStringWithFormat(@"{\n%@%@\n%@}", prefix, [dictStr join:NSStringWithFormat(@",\n%@", prefix)], endPrefix);
   return str;
 }
 

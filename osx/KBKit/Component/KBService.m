@@ -61,7 +61,12 @@
 
   if (self.config.installEnabled) {
     info[@"Launchd Plist"] = KBPath([self plistDestination], YES, NO);
-    info[@"Program"] = [self.config commandLineForService:YES escape:NO tilde:NO options:@[@"-L", @"service"]];
+  }
+
+  if (!self.config.installEnabled) {
+    info[@"Command"] = [self.config commandLineForService:NO escape:YES tilde:YES options:@[@"service"]];
+  } else {
+    info[@"Command"] = [self.config commandLineForService:YES escape:NO tilde:NO options:@[@"-L", @"service"]];
   }
 
   YOView *view = [[YOView alloc] init];

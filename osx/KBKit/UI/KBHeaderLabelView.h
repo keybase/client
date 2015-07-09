@@ -14,6 +14,9 @@
 
 @property float columnRatio; // For header width based on ratio
 @property CGFloat columnWidth; // For fixed header width
+@property CGFloat labelPaddingTop;
+
+// TODO Instead of manual top padding, estimate the font height difference between header and text and adjust automatically
 
 + (instancetype)headerLabelViewWithHeader:(NSString *)header headerOptions:(KBTextOptions)headerOptions text:(NSString *)text style:(KBTextStyle)style options:(KBTextOptions)options lineBreakMode:(NSLineBreakMode)lineBreakMode;
 
