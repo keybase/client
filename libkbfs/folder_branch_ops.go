@@ -27,6 +27,16 @@ const (
 	archiveOffline            = iota // an offline, read-only branch
 )
 
+type state int
+
+const (
+	// cleanState: no outstanding local writes.
+	cleanState state = iota
+	// dirtyState: there are outstanding local writes that haven't yet been
+	// synced.
+	dirtyState
+)
+
 type syncInfo struct {
 	oldInfo BlockInfo
 	op      *syncOp
@@ -128,6 +138,15 @@ type FolderBranchOps struct {
 	cacheLock sync.Mutex   // protects unrefCache and deCache
 
 	nodeCache NodeCache
+
+	// Set to true when we have staged, unmerged commits for this
+	// device.  This means the device has forked from the main branch
+	// seen by other devices.  Protected by writerLock.
+	staged bool
+
+	// The current state of this folder-branch.
+	state     state
+	stateLock sync.Mutex
 }
 
 var _ KBFSOps = (*FolderBranchOps)(nil)
@@ -148,6 +167,7 @@ func NewFolderBranchOps(config Config, id DirID, branch BranchName,
 		deCache:    make(map[BlockPointer]map[BlockPointer]DirEntry),
 		writerLock: &sync.Mutex{},
 		nodeCache:  newNodeCacheStandard(id, branch),
+		state:      cleanState,
 	}
 }
 
@@ -160,6 +180,29 @@ func (fbo *FolderBranchOps) Shutdown() {
 // GetFavDirs implements the KBFSOps interface for FolderBranchOps
 func (fbo *FolderBranchOps) GetFavDirs(ctx context.Context) ([]DirID, error) {
 	return nil, fmt.Errorf("GetFavDirs is not supported by FolderBranchOps")
+}
+
+func (fbo *FolderBranchOps) transitionState(newState state) {
+	fbo.stateLock.Lock()
+	defer fbo.stateLock.Unlock()
+	switch newState {
+	case cleanState:
+		if len(fbo.deCache) > 0 {
+			// if we still have writes outstanding, don't allow the
+			// transition into the clean state
+			return
+		}
+	default:
+		// no specific checks needed
+	}
+	fbo.state = newState
+}
+
+// The caller must hold writerLock.
+func (fbo *FolderBranchOps) transitionStagedLocked(staged bool) {
+	fbo.staged = staged
+	// TODO: add transitions, such as kicking off conflict resolution
+	// when moving into to 'staged'.
 }
 
 func (fbo *FolderBranchOps) checkDataVersion(p path, ptr BlockPointer) error {
@@ -188,11 +231,57 @@ func (fbo *FolderBranchOps) getMDLocked(rtype reqType) (
 		return nil, WriteNeededInReadRequest{}
 	}
 
-	// not in cache, fetch from server and add to cache
+	// Not in cache, fetch from server and add to cache.  First, see
+	// if this device has any unmerged commits -- take the latest one.
 	mdops := fbo.config.MDOps()
-	md, err := mdops.GetForTLF(fbo.id)
+
+	cpk, err := fbo.config.KBPKI().GetCurrentCryptPublicKey()
 	if err != nil {
 		return nil, err
+	}
+	maxAtATime := 100 // TODO: put in config somewhere?
+	var unmergedMDs []*RootMetadata
+	more := true
+	lastMdID := NullMdID
+	for more {
+		// TODO: it might make sense to persist our last-known
+		// unmerged ID, so we can avoid most or all of these fetches.
+		unmergedMDs, more, err =
+			mdops.GetUnmergedSince(fbo.id, cpk.KID, lastMdID, maxAtATime)
+		if err != nil {
+			return nil, err
+		}
+		func() {
+			fbo.headLock.Lock()
+			defer fbo.headLock.Unlock()
+			// might as well cache each one
+			for _, umd := range unmergedMDs {
+				lastMdID, err = umd.MetadataID(fbo.config)
+				if err != nil {
+					return
+				}
+
+				err = fbo.config.MDCache().Put(lastMdID, umd)
+				if err != nil {
+					return
+				}
+			}
+		}()
+		if err != nil {
+			return nil, err
+		}
+	}
+	var md *RootMetadata
+	if unmergedMDs != nil {
+		// The most recent one is the last one in the list
+		md = unmergedMDs[len(unmergedMDs)-1]
+		fbo.transitionStagedLocked(true)
+	} else {
+		// no unmerged MDs for this device, so just get the current head
+		md, err = mdops.GetForTLF(fbo.id)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	if md.data.Dir.Type != Dir {
@@ -1043,11 +1132,33 @@ func (fbo *FolderBranchOps) finalizeWriteLocked(ctx context.Context,
 	// finally, write out the new metadata
 	md.data.LastWriter = user
 	var nilKID keybase1.KID
-	if err = fbo.config.MDOps().Put(
-		newPaths[0].topDir, md, nilKID, NullMdID); err != nil {
-		return err
+	mdops := fbo.config.MDOps()
+
+	doUnmergedPut := true
+	if !fbo.staged {
+		// only do a normal Put if we're not already staged.
+		err = mdops.Put(newPaths[0].topDir, md, nilKID, NullMdID)
+		_, doUnmergedPut = err.(OutOfDateMDError)
+		if err != nil && !doUnmergedPut {
+			return err
+		}
 	}
-	// TODO: PutUnmerged if necessary
+
+	if doUnmergedPut {
+		// We're out of date, so put it as an unmerged MD.
+		cpk, err := fbo.config.KBPKI().GetCurrentCryptPublicKey()
+		if err != nil {
+			return nil
+		}
+		err = mdops.PutUnmerged(newPaths[0].topDir, md, cpk.KID)
+		if err != nil {
+			return nil
+		}
+		fbo.transitionStagedLocked(true)
+	} else {
+		fbo.transitionStagedLocked(false)
+	}
+	fbo.transitionState(cleanState)
 
 	fbo.headLock.Lock()
 	defer fbo.headLock.Unlock()
@@ -1880,6 +1991,7 @@ func (fbo *FolderBranchOps) writeDataLocked(
 	if doNotify {
 		fbo.notifyLocal(ctx, file, si.op)
 	}
+	fbo.transitionState(dirtyState)
 	return nil
 }
 
@@ -2042,6 +2154,7 @@ func (fbo *FolderBranchOps) truncateLocked(
 	if doNotify {
 		fbo.notifyLocal(ctx, file, si.op)
 	}
+	fbo.transitionState(dirtyState)
 	return nil
 }
 

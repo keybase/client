@@ -464,3 +464,15 @@ type ParentNodeNotFoundError struct {
 func (e ParentNodeNotFoundError) Error() string {
 	return fmt.Sprintf("No such parent node found for pointer %v", e.parent)
 }
+
+// OutOfDateMDError indicates that the MD server rejected our MD
+// update because it is out of date with respect to the current head.
+type OutOfDateMDError struct {
+	PrevRoot MdID
+}
+
+// Error implements the error interface for OutOfDateError.
+func (e OutOfDateMDError) Error() string {
+	return fmt.Sprintf("MD rejected because its previous root was %v, "+
+		"but that is not the current MD root", e.PrevRoot)
+}

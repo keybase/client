@@ -126,15 +126,24 @@ func (md *MDServerLocal) GetForHandle(handle *DirHandle) (
 	return &RootMetadataSigned{MD: *rmd}, nil
 }
 
+func (md *MDServerLocal) getHeadForTLF(id DirID) (
+	mdID MdID, err error) {
+	buf, err := md.idDb.Get(id[:], nil)
+	if err != nil {
+		return
+	}
+
+	copy(mdID[:], buf[:len(mdID)])
+	return
+}
+
 // GetForTLF implements the MDServer interface for MDServerLocal.
 func (md *MDServerLocal) GetForTLF(id DirID) (*RootMetadataSigned, error) {
-	buf, err := md.idDb.Get(id[:], nil)
-	var mdID MdID
-	if err != leveldb.ErrNotFound {
-		copy(mdID[:], buf[:len(mdID)])
-		return md.Get(mdID)
+	mdID, err := md.getHeadForTLF(id)
+	if err != nil {
+		return nil, err
 	}
-	return nil, err
+	return md.Get(mdID)
 }
 
 // Get implements the MDServer interface for MDServerLocal.
@@ -246,7 +255,19 @@ func (md *MDServerLocal) getUnmergedInfo(id DirID) (
 // verification.
 func (md *MDServerLocal) Put(id DirID, mdID MdID, rmds *RootMetadataSigned,
 	deviceID keybase1.KID, unmergedBase MdID) error {
-	err := md.put(id, mdID, rmds, md.idDb, mdID[:])
+	// First check to see that this MD is consistent with the current MD.
+	currHead, err := md.getHeadForTLF(id)
+	if err != nil && err != leveldb.ErrNotFound {
+		return err
+	} else if err == leveldb.ErrNotFound {
+		currHead = NullMdID
+	}
+
+	if rmds.MD.PrevRoot != currHead {
+		return OutOfDateMDError{rmds.MD.PrevRoot}
+	}
+
+	err = md.put(id, mdID, rmds, md.idDb, mdID[:])
 	if err != nil {
 		return err
 	}
@@ -309,7 +330,10 @@ func (md *MDServerLocal) PutUnmerged(id DirID, mdID MdID,
 	if !ok {
 		// this must be the first branch from committed data
 		udev = unmergedDevInfo{Base: rmds.MD.PrevRoot}
+	} else if rmds.MD.PrevRoot != udev.Head {
+		return OutOfDateMDError{rmds.MD.PrevRoot}
 	}
+
 	udev.Head = mdID
 	u.Devices[deviceID] = udev
 	ubytes, err := md.config.Codec().Encode(&u)

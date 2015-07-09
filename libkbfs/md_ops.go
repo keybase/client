@@ -189,6 +189,10 @@ func (md *MDOpsStandard) Get(mdID MdID) (
 
 func (md *MDOpsStandard) processRange(id DirID, startRoot MdID,
 	sinceRmds []*RootMetadataSigned) ([]*RootMetadata, error) {
+	if sinceRmds == nil {
+		return nil, nil
+	}
+
 	// verify each of the MD objects, and verify the PrevRoot pointers
 	// are correct
 	lastRoot := startRoot
@@ -343,6 +347,7 @@ func (md *MDOpsStandard) Put(id DirID, rmd *RootMetadata, deviceID keybase1.KID,
 // PutUnmerged implements the MDOps interface for MDOpsStandard.
 func (md *MDOpsStandard) PutUnmerged(id DirID, rmd *RootMetadata,
 	deviceID keybase1.KID) error {
+	// TODO: set unmerged bit in rmd.
 	mdID, rmds, err := md.readyMD(id, rmd)
 	if err != nil {
 		return err

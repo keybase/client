@@ -275,13 +275,20 @@ func testKBFSOpsGetRootNodeCreateNewSuccess(t *testing.T, public bool) {
 	_, id, h := makeID(t, config, public)
 	rmd := NewRootMetadataForTest(h, id)
 
+	var nilCpk CryptPublicKey
+	config.mockKbpki.EXPECT().GetCurrentCryptPublicKey().
+		Return(nilCpk, nil)
+
 	// create a new MD
+	var nilKID keybase1.KID
+	config.mockMdops.EXPECT().
+		GetUnmergedSince(id, nilKID, NullMdID, gomock.Any()).
+		Return(nil, false, nil)
 	config.mockMdops.EXPECT().GetForTLF(id).Return(rmd, nil)
 	// now KBFS will fill it in:
 	rootPtr, plainSize, readyBlockData := fillInNewMD(t, config, rmd)
 	// now cache and put everything
 	config.mockBops.EXPECT().Put(rmd, ptrMatcher{rootPtr}, readyBlockData).Return(nil)
-	var nilKID keybase1.KID
 	config.mockMdops.EXPECT().Put(id, rmd, nilKID, NullMdID).Return(nil)
 	config.mockMdcache.EXPECT().Put(rmd.mdID, rmd).Return(nil)
 
@@ -332,6 +339,10 @@ func TestKBFSOpsGetRootMDCreateNewFailNonWriter(t *testing.T) {
 	h.Readers = []keybase1.UID{userID}
 	h.Writers = []keybase1.UID{ownerID}
 
+	var nilCpk CryptPublicKey
+	config.mockKbpki.EXPECT().GetCurrentCryptPublicKey().
+		Return(nilCpk, nil)
+
 	rmd := NewRootMetadataForTest(h, id)
 
 	// create a new MD
@@ -339,6 +350,10 @@ func TestKBFSOpsGetRootMDCreateNewFailNonWriter(t *testing.T) {
 	// in reality, createNewMD should fail early because the MD server
 	// will refuse to create the new MD for this user.  But for this test,
 	// we won't bother
+	var nilKID keybase1.KID
+	config.mockMdops.EXPECT().
+		GetUnmergedSince(id, nilKID, NullMdID, gomock.Any()).
+		Return(nil, false, nil)
 	config.mockMdops.EXPECT().GetForTLF(id).Return(rmd, nil)
 	// try to get the MD for writing, but fail (no puts should happen)
 	config.mockKbpki.EXPECT().GetLoggedInUser().AnyTimes().Return(userID, nil)
@@ -780,12 +795,12 @@ func TestKBFSOpsStatSuccess(t *testing.T) {
 	}
 }
 
-func expectSyncBlock(
+func expectSyncBlockHelper(
 	t *testing.T, config *ConfigMock, lastCall *gomock.Call,
 	userID keybase1.UID, id DirID, name string, p path, rmd *RootMetadata,
 	newEntry bool, skipSync int, refBytes uint64, unrefBytes uint64,
-	newRmd **RootMetadata, newBlockIDs []BlockID) (path, *gomock.Call) {
-
+	newRmd **RootMetadata, newBlockIDs []BlockID, unmerged bool) (
+	path, *gomock.Call) {
 	// construct new path
 	newPath := path{
 		topDir: id,
@@ -829,12 +844,26 @@ func expectSyncBlock(
 	if skipSync == 0 {
 		// sign the MD and put it
 		var nilKID keybase1.KID
-		config.mockMdops.EXPECT().Put(id, gomock.Any(), nilKID, NullMdID).
-			Do(func(id DirID, rmd *RootMetadata, deviceID keybase1.KID,
-			unmergedID MdID) {
-			// add some serialized metadata to satisfy the check
-			rmd.SerializedPrivateMetadata = make([]byte, 1)
-		}).Return(nil)
+		if unmerged {
+			config.mockMdops.EXPECT().Put(id, gomock.Any(), nilKID, NullMdID).
+				Return(OutOfDateMDError{})
+			var nilCpk CryptPublicKey
+			config.mockKbpki.EXPECT().GetCurrentCryptPublicKey().
+				Return(nilCpk, nil)
+
+			config.mockMdops.EXPECT().PutUnmerged(id, gomock.Any(), nilKID).
+				Do(func(id DirID, rmd *RootMetadata, deviceID keybase1.KID) {
+				// add some serialized metadata to satisfy the check
+				rmd.SerializedPrivateMetadata = make([]byte, 1)
+			}).Return(nil)
+		} else {
+			config.mockMdops.EXPECT().Put(id, gomock.Any(), nilKID, NullMdID).
+				Do(func(id DirID, rmd *RootMetadata, deviceID keybase1.KID,
+				unmergedID MdID) {
+				// add some serialized metadata to satisfy the check
+				rmd.SerializedPrivateMetadata = make([]byte, 1)
+			}).Return(nil)
+		}
 		config.mockMdcache.EXPECT().Put(gomock.Any(), gomock.Any()).
 			Do(func(id MdID, rmd *RootMetadata) {
 			*newRmd = rmd
@@ -850,6 +879,24 @@ func expectSyncBlock(
 		}).Return(nil)
 	}
 	return newPath, lastCall
+}
+
+func expectSyncBlock(
+	t *testing.T, config *ConfigMock, lastCall *gomock.Call,
+	userID keybase1.UID, id DirID, name string, p path, rmd *RootMetadata,
+	newEntry bool, skipSync int, refBytes uint64, unrefBytes uint64,
+	newRmd **RootMetadata, newBlockIDs []BlockID) (path, *gomock.Call) {
+	return expectSyncBlockHelper(t, config, lastCall, userID, id, name, p, rmd,
+		newEntry, skipSync, refBytes, unrefBytes, newRmd, newBlockIDs, false)
+}
+
+func expectSyncBlockUnmerged(
+	t *testing.T, config *ConfigMock, lastCall *gomock.Call,
+	userID keybase1.UID, id DirID, name string, p path, rmd *RootMetadata,
+	newEntry bool, skipSync int, refBytes uint64, unrefBytes uint64,
+	newRmd **RootMetadata, newBlockIDs []BlockID) (path, *gomock.Call) {
+	return expectSyncBlockHelper(t, config, lastCall, userID, id, name, p, rmd,
+		newEntry, skipSync, refBytes, unrefBytes, newRmd, newBlockIDs, true)
 }
 
 func getBlockFromCache(t *testing.T, config Config, ptr BlockPointer,
@@ -3286,7 +3333,7 @@ func TestMtimeFailNoSuchName(t *testing.T) {
 
 // SetMtime failure cases are all the same as any other block sync
 
-func TestSyncDirtySuccess(t *testing.T) {
+func testSyncDirtySuccess(t *testing.T, unmerged bool) {
 	mockCtrl, config, ctx := kbfsOpsInit(t, true)
 	defer kbfsTestShutdown(mockCtrl, config)
 
@@ -3319,8 +3366,14 @@ func TestSyncDirtySuccess(t *testing.T) {
 	// sync block
 	var newRmd *RootMetadata
 	blocks := make([]BlockID, 2)
-	expectedPath, _ := expectSyncBlock(t, config, nil, userID, id, "", p,
-		rmd, false, 0, 0, 0, &newRmd, blocks)
+	var expectedPath path
+	if unmerged {
+		expectedPath, _ = expectSyncBlockUnmerged(t, config, nil, userID, id,
+			"", p, rmd, false, 0, 0, 0, &newRmd, blocks)
+	} else {
+		expectedPath, _ = expectSyncBlock(t, config, nil, userID, id, "", p,
+			rmd, false, 0, 0, 0, &newRmd, blocks)
+	}
 
 	err := config.KBFSOps().Sync(ctx, n)
 	if err != nil {
@@ -3350,6 +3403,14 @@ func TestSyncDirtySuccess(t *testing.T) {
 	// make sure the write is propagated
 	checkSyncOp(t, so, stripBP(aNode.BlockPointer),
 		[]WriteRange{WriteRange{0, 10}})
+}
+
+func TestSyncDirtySuccess(t *testing.T) {
+	testSyncDirtySuccess(t, false)
+}
+
+func TestSyncDirtyUnmergedSuccess(t *testing.T) {
+	testSyncDirtySuccess(t, true)
 }
 
 func TestSyncCleanSuccess(t *testing.T) {
