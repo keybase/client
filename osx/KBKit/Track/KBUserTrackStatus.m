@@ -34,7 +34,7 @@
   BOOL tracked = !!identifyOutcome.trackUsed;
   //BOOL isRemote = tracked ? identifyOutcome.trackUsed.isRemote : NO;
 
-  if (identifyOutcome.numTrackFailures > 0 || identifyOutcome.numDeleted > 0) {
+  if (identifyOutcome.numTrackFailures > 0 || identifyOutcome.numRevoked > 0) {
     _status = KBTrackStatusBroken;
   } else if (identifyOutcome.numTrackChanges > 0) {
     _status = KBTrackStatusNeedsUpdate;

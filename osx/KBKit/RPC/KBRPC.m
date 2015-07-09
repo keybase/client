@@ -17,9 +17,6 @@
 @implementation KBRPGPIdentity
 @end
 
-@implementation KBRImage
-@end
-
 @implementation KBRPublicKey
 + (NSValueTransformer *)PGPIdentitiesJSONTransformer { return [MTLJSONAdapter arrayTransformerWithModelClass:KBRPGPIdentity.class]; }
 @end
@@ -42,8 +39,8 @@
 
 @implementation KBRBlockRequest
 
-- (void)establishSessionWithSid:(NSString *)sid completion:(void (^)(NSError *error))completion {
-  NSDictionary *params = @{@"sid": KBRValue(sid)};
+- (void)establishSessionWithUser:(NSString *)user sid:(NSString *)sid completion:(void (^)(NSError *error))completion {
+  NSDictionary *params = @{@"user": KBRValue(user), @"sid": KBRValue(sid)};
   [self.client sendRequestWithMethod:@"keybase.1.block.establishSession" params:params sessionId:self.sessionId completion:^(NSError *error, id retval) {
     completion(error);
   }];
@@ -305,7 +302,7 @@
 @end
 
 @implementation KBRIdentifyOutcome
-+ (NSValueTransformer *)deletedJSONTransformer { return [MTLJSONAdapter arrayTransformerWithModelClass:KBRTrackDiff.class]; }
++ (NSValueTransformer *)revokedJSONTransformer { return [MTLJSONAdapter arrayTransformerWithModelClass:KBRTrackDiff.class]; }
 @end
 
 @implementation KBRIdentifyRes
@@ -316,8 +313,8 @@
 
 @implementation KBRIdentifyRequest
 
-- (void)identifyWithSessionID:(NSInteger)sessionID userAssertion:(NSString *)userAssertion trackStatement:(BOOL)trackStatement completion:(void (^)(NSError *error, KBRIdentifyRes *identifyRes))completion {
-  NSDictionary *params = @{@"sessionID": @(sessionID), @"userAssertion": KBRValue(userAssertion), @"trackStatement": @(trackStatement)};
+- (void)identifyWithSessionID:(NSInteger)sessionID userAssertion:(NSString *)userAssertion trackStatement:(BOOL)trackStatement forceRemoteCheck:(BOOL)forceRemoteCheck completion:(void (^)(NSError *error, KBRIdentifyRes *identifyRes))completion {
+  NSDictionary *params = @{@"sessionID": @(sessionID), @"userAssertion": KBRValue(userAssertion), @"trackStatement": @(trackStatement), @"forceRemoteCheck": @(forceRemoteCheck)};
   [self.client sendRequestWithMethod:@"keybase.1.identify.identify" params:params sessionId:self.sessionId completion:^(NSError *error, id retval) {
     if (error) {
         completion(error, nil);
@@ -328,8 +325,8 @@
   }];
 }
 
-- (void)identifyDefaultWithSessionID:(NSInteger)sessionID userAssertion:(NSString *)userAssertion completion:(void (^)(NSError *error, KBRIdentifyRes *identifyRes))completion {
-  NSDictionary *params = @{@"sessionID": @(sessionID), @"userAssertion": KBRValue(userAssertion)};
+- (void)identifyDefaultWithSessionID:(NSInteger)sessionID userAssertion:(NSString *)userAssertion forceRemoteCheck:(BOOL)forceRemoteCheck completion:(void (^)(NSError *error, KBRIdentifyRes *identifyRes))completion {
+  NSDictionary *params = @{@"sessionID": @(sessionID), @"userAssertion": KBRValue(userAssertion), @"forceRemoteCheck": @(forceRemoteCheck)};
   [self.client sendRequestWithMethod:@"keybase.1.identify.identifyDefault" params:params sessionId:self.sessionId completion:^(NSError *error, id retval) {
     if (error) {
         completion(error, nil);
@@ -357,7 +354,7 @@
 @implementation KBRIdentity
 + (NSValueTransformer *)proofsJSONTransformer { return [MTLJSONAdapter arrayTransformerWithModelClass:KBRIdentifyRow.class]; }
 + (NSValueTransformer *)cryptocurrencyJSONTransformer { return [MTLJSONAdapter arrayTransformerWithModelClass:KBRCryptocurrency.class]; }
-+ (NSValueTransformer *)deletedJSONTransformer { return [MTLJSONAdapter arrayTransformerWithModelClass:KBRTrackDiff.class]; }
++ (NSValueTransformer *)revokedJSONTransformer { return [MTLJSONAdapter arrayTransformerWithModelClass:KBRTrackDiff.class]; }
 @end
 
 @implementation KBRSigHint
@@ -895,6 +892,9 @@
 @implementation KBRSecretEntryRes
 @end
 
+@implementation KBRGetNewPassphraseRes
+@end
+
 @implementation KBRSecretUiRequest
 
 - (void)getSecretWithSessionID:(NSInteger)sessionID pinentry:(KBRSecretEntryArg *)pinentry terminal:(KBRSecretEntryArg *)terminal completion:(void (^)(NSError *error, KBRSecretEntryRes *secretEntryRes))completion {
@@ -909,14 +909,14 @@
   }];
 }
 
-- (void)getNewPassphraseWithSessionID:(NSInteger)sessionID terminalPrompt:(NSString *)terminalPrompt pinentryDesc:(NSString *)pinentryDesc pinentryPrompt:(NSString *)pinentryPrompt retryMessage:(NSString *)retryMessage completion:(void (^)(NSError *error, NSString *str))completion {
-  NSDictionary *params = @{@"sessionID": @(sessionID), @"terminalPrompt": KBRValue(terminalPrompt), @"pinentryDesc": KBRValue(pinentryDesc), @"pinentryPrompt": KBRValue(pinentryPrompt), @"retryMessage": KBRValue(retryMessage)};
+- (void)getNewPassphraseWithSessionID:(NSInteger)sessionID terminalPrompt:(NSString *)terminalPrompt pinentryDesc:(NSString *)pinentryDesc pinentryPrompt:(NSString *)pinentryPrompt retryMessage:(NSString *)retryMessage useSecretStore:(BOOL)useSecretStore completion:(void (^)(NSError *error, KBRGetNewPassphraseRes *getNewPassphraseRes))completion {
+  NSDictionary *params = @{@"sessionID": @(sessionID), @"terminalPrompt": KBRValue(terminalPrompt), @"pinentryDesc": KBRValue(pinentryDesc), @"pinentryPrompt": KBRValue(pinentryPrompt), @"retryMessage": KBRValue(retryMessage), @"useSecretStore": @(useSecretStore)};
   [self.client sendRequestWithMethod:@"keybase.1.secretUi.getNewPassphrase" params:params sessionId:self.sessionId completion:^(NSError *error, id retval) {
     if (error) {
         completion(error, nil);
         return;
       }
-      NSString *result = retval ? [MTLJSONAdapter modelOfClass:NSString.class fromJSONDictionary:retval error:&error] : nil;
+      KBRGetNewPassphraseRes *result = retval ? [MTLJSONAdapter modelOfClass:KBRGetNewPassphraseRes.class fromJSONDictionary:retval error:&error] : nil;
       completion(error, result);
   }];
 }
@@ -1056,8 +1056,8 @@
 
 @implementation KBRTrackRequest
 
-- (void)trackWithSessionID:(NSInteger)sessionID theirName:(NSString *)theirName localOnly:(BOOL)localOnly approveRemote:(BOOL)approveRemote completion:(void (^)(NSError *error))completion {
-  NSDictionary *params = @{@"sessionID": @(sessionID), @"theirName": KBRValue(theirName), @"localOnly": @(localOnly), @"approveRemote": @(approveRemote)};
+- (void)trackWithSessionID:(NSInteger)sessionID theirName:(NSString *)theirName localOnly:(BOOL)localOnly approveRemote:(BOOL)approveRemote forceRemoteCheck:(BOOL)forceRemoteCheck completion:(void (^)(NSError *error))completion {
+  NSDictionary *params = @{@"sessionID": @(sessionID), @"theirName": KBRValue(theirName), @"localOnly": @(localOnly), @"approveRemote": @(approveRemote), @"forceRemoteCheck": @(forceRemoteCheck)};
   [self.client sendRequestWithMethod:@"keybase.1.track.track" params:params sessionId:self.sessionId completion:^(NSError *error, id retval) {
     completion(error);
   }];
@@ -1211,6 +1211,7 @@
 
 - (instancetype)initWithParams:(NSArray *)params {
   if ((self = [super initWithParams:params])) {
+    self.user = params[0][@"user"];
     self.sid = params[0][@"sid"];
   }
   return self;
@@ -1459,6 +1460,7 @@
     self.sessionID = [params[0][@"sessionID"] integerValue];
     self.userAssertion = params[0][@"userAssertion"];
     self.trackStatement = [params[0][@"trackStatement"] boolValue];
+    self.forceRemoteCheck = [params[0][@"forceRemoteCheck"] boolValue];
   }
   return self;
 }
@@ -1471,6 +1473,7 @@
   if ((self = [super initWithParams:params])) {
     self.sessionID = [params[0][@"sessionID"] integerValue];
     self.userAssertion = params[0][@"userAssertion"];
+    self.forceRemoteCheck = [params[0][@"forceRemoteCheck"] boolValue];
   }
   return self;
 }
@@ -1782,7 +1785,7 @@
 
 @end
 
-@implementation KBRPGPSignRequestParams
+@implementation KBRPgpSignRequestParams
 
 - (instancetype)initWithParams:(NSArray *)params {
   if ((self = [super initWithParams:params])) {
@@ -1796,7 +1799,7 @@
 
 @end
 
-@implementation KBRPGPPullRequestParams
+@implementation KBRPgpPullRequestParams
 
 - (instancetype)initWithParams:(NSArray *)params {
   if ((self = [super initWithParams:params])) {
@@ -1808,7 +1811,7 @@
 
 @end
 
-@implementation KBRPGPEncryptRequestParams
+@implementation KBRPgpEncryptRequestParams
 
 - (instancetype)initWithParams:(NSArray *)params {
   if ((self = [super initWithParams:params])) {
@@ -1822,7 +1825,7 @@
 
 @end
 
-@implementation KBRPGPDecryptRequestParams
+@implementation KBRPgpDecryptRequestParams
 
 - (instancetype)initWithParams:(NSArray *)params {
   if ((self = [super initWithParams:params])) {
@@ -1836,7 +1839,7 @@
 
 @end
 
-@implementation KBRPGPVerifyRequestParams
+@implementation KBRPgpVerifyRequestParams
 
 - (instancetype)initWithParams:(NSArray *)params {
   if ((self = [super initWithParams:params])) {
@@ -1849,7 +1852,7 @@
 
 @end
 
-@implementation KBRPGPImportRequestParams
+@implementation KBRPgpImportRequestParams
 
 - (instancetype)initWithParams:(NSArray *)params {
   if ((self = [super initWithParams:params])) {
@@ -1862,7 +1865,7 @@
 
 @end
 
-@implementation KBRPGPExportRequestParams
+@implementation KBRPgpExportRequestParams
 
 - (instancetype)initWithParams:(NSArray *)params {
   if ((self = [super initWithParams:params])) {
@@ -1874,7 +1877,7 @@
 
 @end
 
-@implementation KBRPGPExportByFingerprintRequestParams
+@implementation KBRPgpExportByFingerprintRequestParams
 
 - (instancetype)initWithParams:(NSArray *)params {
   if ((self = [super initWithParams:params])) {
@@ -1886,7 +1889,7 @@
 
 @end
 
-@implementation KBRPGPExportByKIDRequestParams
+@implementation KBRPgpExportByKIDRequestParams
 
 - (instancetype)initWithParams:(NSArray *)params {
   if ((self = [super initWithParams:params])) {
@@ -1898,7 +1901,7 @@
 
 @end
 
-@implementation KBRPGPKeyGenRequestParams
+@implementation KBRPgpKeyGenRequestParams
 
 - (instancetype)initWithParams:(NSArray *)params {
   if ((self = [super initWithParams:params])) {
@@ -1914,7 +1917,7 @@
 
 @end
 
-@implementation KBRPGPKeyGenDefaultRequestParams
+@implementation KBRPgpKeyGenDefaultRequestParams
 
 - (instancetype)initWithParams:(NSArray *)params {
   if ((self = [super initWithParams:params])) {
@@ -1926,7 +1929,7 @@
 
 @end
 
-@implementation KBRPGPDeletePrimaryRequestParams
+@implementation KBRPgpDeletePrimaryRequestParams
 
 - (instancetype)initWithParams:(NSArray *)params {
   if ((self = [super initWithParams:params])) {
@@ -1937,7 +1940,7 @@
 
 @end
 
-@implementation KBRPGPSelectRequestParams
+@implementation KBRPgpSelectRequestParams
 
 - (instancetype)initWithParams:(NSArray *)params {
   if ((self = [super initWithParams:params])) {
@@ -1951,7 +1954,7 @@
 
 @end
 
-@implementation KBRPGPUpdateRequestParams
+@implementation KBRPgpUpdateRequestParams
 
 - (instancetype)initWithParams:(NSArray *)params {
   if ((self = [super initWithParams:params])) {
@@ -2149,6 +2152,7 @@
     self.pinentryDesc = params[0][@"pinentryDesc"];
     self.pinentryPrompt = params[0][@"pinentryPrompt"];
     self.retryMessage = params[0][@"retryMessage"];
+    self.useSecretStore = [params[0][@"useSecretStore"] boolValue];
   }
   return self;
 }
@@ -2291,6 +2295,7 @@
     self.theirName = params[0][@"theirName"];
     self.localOnly = [params[0][@"localOnly"] boolValue];
     self.approveRemote = [params[0][@"approveRemote"] boolValue];
+    self.forceRemoteCheck = [params[0][@"forceRemoteCheck"] boolValue];
   }
   return self;
 }

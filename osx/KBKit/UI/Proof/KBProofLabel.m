@@ -38,7 +38,7 @@
           break;
         case KBRTrackDiffTypeError:
         case KBRTrackDiffTypeClash:
-        case KBRTrackDiffTypeDeleted:
+        case KBRTrackDiffTypeRevoked:
           label = diff.displayMarkup;
           color = KBAppearance.currentAppearance.dangerColor;
           erroredTrack = YES;
