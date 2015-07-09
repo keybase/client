@@ -62,6 +62,9 @@ func (log *Logger) Configure(plain, debug bool, filename string) {
 		fmt = plainFormat
 	} else if debug {
 		fmt = fancyFormat
+	}
+
+	if debug {
 		logging.SetLevel(logging.DEBUG, "keybase")
 	}
 
