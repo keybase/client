@@ -8,7 +8,7 @@
 
 #import "KBHelperTool.h"
 
-#import "KBInfoView.h"
+#import "KBDebugPropertiesView.h"
 #import "KBPrivilegedTask.h"
 
 #import <ObjectiveSugar/ObjectiveSugar.h>
@@ -19,7 +19,7 @@
 #define HELPER_LOCATION (@"/Library/PrivilegedHelperTools/keybase.Helper")
 
 @interface KBHelperTool ()
-@property KBInfoView *infoView;
+@property KBDebugPropertiesView *infoView;
 @property NSString *version;
 @end
 
@@ -56,7 +56,7 @@
 
   info[@"Plist"] = PLIST_DEST;
 
-  if (!_infoView) _infoView = [[KBInfoView alloc] init];
+  if (!_infoView) _infoView = [[KBDebugPropertiesView alloc] init];
   [_infoView setProperties:info];
 }
 

@@ -7,14 +7,14 @@
 //
 
 #import "KBCLIInstall.h"
-#import "KBInfoView.h"
+#import "KBDebugPropertiesView.h"
 #import "KBIcons.h"
 #import "KBDefines.h"
 
 #import <MPMessagePack/MPXPCClient.h>
 
 @interface KBCLIInstall ()
-@property KBInfoView *infoView;
+@property KBDebugPropertiesView *infoView;
 @end
 
 @implementation KBCLIInstall
@@ -42,7 +42,7 @@
   GHODictionary *statusInfo = [self componentStatusInfo];
   if (statusInfo) [info addEntriesFromOrderedDictionary:statusInfo];
 
-  if (!_infoView) _infoView = [[KBInfoView alloc] init];
+  if (!_infoView) _infoView = [[KBDebugPropertiesView alloc] init];
   [_infoView setProperties:info];
 }
 

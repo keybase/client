@@ -7,10 +7,10 @@
 //
 
 #import "KBFSService.h"
-#import "KBInfoView.h"
+#import "KBDebugPropertiesView.h"
 
 @interface KBFSService ()
-@property KBInfoView *infoView;
+@property KBDebugPropertiesView *infoView;
 @end
 
 @implementation KBFSService
@@ -38,10 +38,10 @@
 
   if (self.config.installEnabled) {
     info[@"Launchd Plist"] = KBPath([self plistDestination], YES, NO);
-    info[@"Program"] = [self.config commandLineForKBFS:YES escape:NO tilde:NO];
+    info[@"Program"] = [self.config commandLineForKBFS:YES escape:NO tilde:NO options:@[@"-L", @"service"]];
   }
 
-  if (!_infoView) _infoView = [[KBInfoView alloc] init];
+  if (!_infoView) _infoView = [[KBDebugPropertiesView alloc] init];
   [_infoView setProperties:info];
 }
 

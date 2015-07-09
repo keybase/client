@@ -11,7 +11,7 @@
 #import "KBButtonView.h"
 #import "KBEnvironment.h"
 #import "KBHeaderLabelView.h"
-#import "KBInfoView.h"
+#import "KBDebugPropertiesView.h"
 #import "KBInstallable.h"
 
 @interface KBControlPanel ()
@@ -59,12 +59,8 @@
   [_splitView setRightView:nil];
   GHWeakSelf gself = self;
   [self viewForComponent:component completion:^(NSView *view) {
-    if (view && ![view isKindOfClass:KBScrollView.class]) {
-      KBScrollView *scrollView = [KBScrollView scrollViewWithDocumentView:view];
-      [gself setContentView:scrollView component:component];
-    } else {
-      [gself setContentView:view component:component];
-    }
+    [view removeFromSuperview];
+    [gself setContentView:view component:component];
   }];
 }
 

@@ -56,6 +56,12 @@
   return button;
 }
 
++ (instancetype)buttonWithText:(NSString *)text style:(KBButtonStyle)style options:(KBButtonOptions)options dispatchBlock:(KBButtonDispatchBlock)dispatchBlock {
+  KBButton *button = [self buttonWithText:text style:style options:options alignment:NSCenterTextAlignment lineBreakMode:NSLineBreakByTruncatingTail];
+  button.dispatchBlock = dispatchBlock;
+  return button;
+}
+
 + (instancetype)buttonWithText:(NSString *)text style:(KBButtonStyle)style alignment:(NSTextAlignment)alignment lineBreakMode:(NSLineBreakMode)lineBreakMode {
   return [self buttonWithText:text style:style options:0 alignment:alignment lineBreakMode:lineBreakMode];
 }

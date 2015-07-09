@@ -66,7 +66,7 @@
 
 - (void)fileStatusForPath:(NSString *)path completion:(void (^)(KBFSFileStatus fileStatus))completion {
   // Mock
-  [self.service ping:^(NSError *error) {
+  dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(1 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
     KBFSFileStatus status = KBFSFileStatusUnknown;
     if ([path.pathExtension isEqualToString:@"ok"]) status = KBFSFileStatusAvailable;
     else if ([path.pathExtension isEqualToString:@"unavail"]) status = KBFSFileStatusUnavailable;
@@ -74,7 +74,7 @@
     else if ([path.pathExtension isEqualToString:@"none"]) status = KBFSFileStatusNone;
 
     completion(status);
-  }];
+  });
 }
 
 - (NSImage *)imageForFileStatus:(KBFSFileStatus)fileStatus {

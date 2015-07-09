@@ -159,7 +159,7 @@
   return self;
 }
 
-- (NSArray *)programArgumentsForKeybase:(BOOL)useBundle escape:(BOOL)escape tilde:(BOOL)tilde service:(BOOL)service {
+- (NSArray *)programArgumentsForKeybase:(BOOL)useBundle escape:(BOOL)escape tilde:(BOOL)tilde options:(NSArray *)options {
   NSMutableArray *args = [NSMutableArray array];
   if (useBundle) {
     [args addObject:NSStringWithFormat(@"%@/bin/keybase", self.bundle.sharedSupportPath)];
@@ -182,10 +182,8 @@
     [args addObject:NSStringWithFormat(@"--socket-file=%@", KBPath(_sockFile, tilde, escape))];
   }
 
-  if (service) {
-    [args addObject:@"-L"]; // Plain logging
-    // Run service (this should be the last arg)
-    [args addObject:@"service"];
+  if (options) {
+    [args addObjectsFromArray:options];
   }
 
   return args;
@@ -194,7 +192,7 @@
 - (NSDictionary *)launchdPlistDictionaryForService {
   if (!self.launchdLabelService) return nil;
 
-  NSArray *args = [self programArgumentsForKeybase:YES escape:NO tilde:NO service:YES];
+  NSArray *args = [self programArgumentsForKeybase:YES escape:NO tilde:NO options:@[@"-L", @"service"]];
 
   // Logging
   NSString *logDir = KBPath(@"~/Library/Logs/Keybase", NO, NO);
@@ -219,7 +217,7 @@
 #endif
 }
 
-- (NSArray *)programArgumentsForKBFS:(BOOL)useBundle escape:(BOOL)escape tilde:(BOOL)tilde {
+- (NSArray *)programArgumentsForKBFS:(BOOL)useBundle escape:(BOOL)escape tilde:(BOOL)tilde options:(NSArray *)options {
   NSMutableArray *args = [NSMutableArray array];
 
   if (useBundle) {
@@ -231,11 +229,15 @@
   [args addObject:@"-client"];
   if (self.mountDir) [args addObject:KBPath(self.mountDir, tilde, escape)];
 
+  if (options) {
+    [args addObjectsFromArray:options];
+  }
+
   return args;
 }
 
-- (NSString *)commandLineForService:(BOOL)useBundle escape:(BOOL)escape tilde:(BOOL)tilde {
-  return [[self programArgumentsForKeybase:useBundle escape:escape tilde:tilde service:YES] join:@" "];
+- (NSString *)commandLineForService:(BOOL)useBundle escape:(BOOL)escape tilde:(BOOL)tilde options:(NSArray *)options {
+  return [[self programArgumentsForKeybase:useBundle escape:escape tilde:tilde options:options] join:@" "];
 }
 
 - (GHODictionary *)envsForKBS:(BOOL)tilde escape:(BOOL)escape {
@@ -249,7 +251,7 @@
 - (NSDictionary *)launchdPlistDictionaryForKBFS {
   if (!self.launchdLabelKBFS) return nil;
 
-  NSArray *args = [self programArgumentsForKBFS:YES escape:NO tilde:NO];
+  NSArray *args = [self programArgumentsForKBFS:YES escape:NO tilde:NO options:nil];
   GHODictionary *envs = [self envsForKBS:NO escape:NO];
 
   // Logging
@@ -268,9 +270,9 @@
            };
 }
 
-- (NSString *)commandLineForKBFS:(BOOL)useBundle escape:(BOOL)escape tilde:(BOOL)tilde {
+- (NSString *)commandLineForKBFS:(BOOL)useBundle escape:(BOOL)escape tilde:(BOOL)tilde options:(NSArray *)options {
   NSString *envs = [[[self envsForKBS:tilde escape:escape] map:^(id key, id value) { return NSStringWithFormat(@"%@=%@", key, value); }] join:@" "];
-  NSString *args = [[self programArgumentsForKBFS:useBundle escape:escape tilde:tilde] join:@" "];
+  NSString *args = [[self programArgumentsForKBFS:useBundle escape:escape tilde:tilde options:options] join:@" "];
   return NSStringWithFormat(@"%@ %@", envs, args);
 }
 

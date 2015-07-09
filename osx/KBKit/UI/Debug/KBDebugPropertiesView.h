@@ -1,5 +1,5 @@
 //
-//  KBInfoView.h
+//  KBDebugPropertiesView.h
 //  Keybase
 //
 //  Created by Gabriel on 5/18/15.
@@ -11,7 +11,7 @@
 #import <KBAppKit/KBAppKit.h>
 #import <GHODictionary/GHODictionary.h>
 
-@interface KBInfoView : YOView
+@interface KBDebugPropertiesView : YOView
 
 - (void)setProperties:(GHODictionary *)properties;
 

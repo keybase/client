@@ -10,11 +10,11 @@
 
 
 #import <MPMessagePack/MPXPCClient.h>
-#import "KBInfoView.h"
+#import "KBDebugPropertiesView.h"
 #import "KBFS.h"
 
 @interface KBFuseComponent ()
-@property KBInfoView *infoView;
+@property KBDebugPropertiesView *infoView;
 @property NSString *version;
 @end
 
@@ -48,7 +48,7 @@
 
   info[@"Location"] = KBFUSE_BUNDLE;
 
-  if (!_infoView) _infoView = [[KBInfoView alloc] init];
+  if (!_infoView) _infoView = [[KBDebugPropertiesView alloc] init];
   [_infoView setProperties:info];
 }
 

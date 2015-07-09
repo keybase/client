@@ -20,6 +20,4 @@
 
 - (void)checkStatus:(void (^)(NSError *error, KBRGetCurrentStatusRes *userStatus, KBRConfig *userConfig))completion;
 
-- (void)ping:(KBCompletion)completion;
-
 @end

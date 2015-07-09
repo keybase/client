@@ -146,8 +146,8 @@
     [labels addSubview:createView(@"Other", @"Installer Disabled")];
   }
 
-  [labels addSubview:createView(@"Service (cmd)", [config commandLineForService:NO escape:YES tilde:NO])];
-  [labels addSubview:createView(@"KBFS (cmd)", [config commandLineForKBFS:YES escape:YES tilde:NO])];
+  [labels addSubview:createView(@"Service (cmd)", [config commandLineForService:NO escape:YES tilde:NO options:@[@"-L", @"service"]])];
+  [labels addSubview:createView(@"KBFS (cmd)", [config commandLineForKBFS:YES escape:YES tilde:NO options:nil])];
 
   GHWeakSelf gself = self;
   YOHBox *buttons = [YOHBox box];
