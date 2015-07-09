@@ -61,8 +61,8 @@ func (d *DevList) Run(ctx *Context) error {
 			Type:     v.Type,
 			Name:     v.Description,
 			DeviceID: k,
-			CTime:    v.CTime,
-			MTime:    v.MTime,
+			CTime:    keybase1.TimeFromSeconds(v.CTime),
+			MTime:    keybase1.TimeFromSeconds(v.MTime),
 		})
 	}
 	sort.Sort(dname(pdevs))

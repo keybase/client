@@ -3,7 +3,6 @@ package client
 import (
 	"fmt"
 	"strings"
-	"time"
 
 	"github.com/keybase/cli"
 	"github.com/keybase/client/go/libcmdline"
@@ -149,8 +148,8 @@ func printKey(key keybase1.PublicKey, subkeys []keybase1.PublicKey, indent int) 
 	if key.DeviceDescription != "" {
 		fmt.Printf("%sDevice Description: %s\n", indentSpace(indent+1), key.DeviceDescription)
 	}
-	fmt.Printf("%sCreated: %s\n", indentSpace(indent+1), time.Unix(key.CTime, 0))
-	fmt.Printf("%sExpires: %s\n", indentSpace(indent+1), time.Unix(key.ETime, 0))
+	fmt.Printf("%sCreated: %s\n", indentSpace(indent+1), keybase1.FromTime(key.CTime))
+	fmt.Printf("%sExpires: %s\n", indentSpace(indent+1), keybase1.FromTime(key.ETime))
 
 	if subkeys != nil && len(subkeys) > 0 {
 		fmt.Printf("%sSubkeys:\n", indentSpace(indent+1))

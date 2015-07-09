@@ -6,6 +6,7 @@ import (
 	"encoding/hex"
 	"fmt"
 	"strings"
+	"time"
 
 	jsonw "github.com/keybase/go-jsonw"
 )
@@ -287,4 +288,21 @@ func (s SigID) ToShortID() string {
 
 func encode(b []byte) string {
 	return strings.TrimRight(base64.URLEncoding.EncodeToString(b), "=")
+}
+
+func FromTime(t Time) time.Time {
+	return time.Unix(0, int64(t)*1000000)
+}
+
+func ToTime(t time.Time) Time {
+	return Time(t.UnixNano() / 1000000)
+}
+
+func TimeFromSeconds(seconds int64) Time {
+	return Time(seconds * 1000)
+}
+
+func FormatTime(t Time) string {
+	layout := "2006-01-02 15:04:05 MST"
+	return FromTime(t).Format(layout)
 }

@@ -55,6 +55,7 @@ func RegisterProtocols(srv *rpc2.Server, xp *rpc2.Transport) error {
 
 func (d *Service) Handle(c net.Conn) {
 	xp := rpc2.NewTransport(c, libkb.NewRPCLogFactory(), libkb.WrapError)
+
 	server := rpc2.NewServer(xp, libkb.WrapError)
 	if err := RegisterProtocols(server, xp); err != nil {
 		G.Log.Warning("RegisterProtocols error: %s", err)

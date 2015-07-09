@@ -20,6 +20,7 @@ def classname(type, aliases)
 
   case type
   when "int" then "NSNumber"
+  when "long" then "NSNumber"
   when "string" then "NSString"
   when "bytes" then "NSData"
   else
@@ -111,8 +112,8 @@ def value_for_type(type, name, enums, aliases)
 
   case type
   when "int" then "[#{varname} integerValue]"
+  when "long" then "[#{varname} longValue]"
   when "boolean" then "[#{varname} boolValue]"
-
   when "string" then varname
   when "array" then varname
   when "bytes" then varname

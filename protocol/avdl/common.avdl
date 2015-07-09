@@ -2,6 +2,9 @@
 @namespace("keybase.1")
 protocol Common {
 
+	@typedef("long")
+	record Time {}
+
 	record StringKVPair {
 		string key;
 		string value;
@@ -16,7 +19,7 @@ protocol Common {
 
 	@typedef("string")
 	record UID {}
-	
+
 	@typedef("string")
 	record DeviceID {}
 
@@ -52,8 +55,8 @@ protocol Common {
 		string parentID;
 		DeviceID deviceID;
 		string deviceDescription;
-		long cTime;
-		long eTime;
+		Time cTime;
+		Time eTime;
 	}
 
 	record User {
@@ -66,8 +69,8 @@ protocol Common {
 		string type;
 		string name;
 		DeviceID deviceID;
-		long cTime;
-		long mTime;
+		Time cTime;
+		Time mTime;
 	}
 
 	record Stream {

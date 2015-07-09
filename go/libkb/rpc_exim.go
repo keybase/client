@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"io"
 	"sort"
-	"time"
 
 	keybase1 "github.com/keybase/client/protocol/go"
 	"github.com/maxtaco/go-framed-msgpack-rpc/rpc2"
@@ -54,7 +53,7 @@ func (l LinkCheckResult) Export() keybase1.LinkCheckResult {
 func (cr CheckResult) Export() *keybase1.CheckResult {
 	return &keybase1.CheckResult{
 		ProofResult:   ExportProofError(cr.Status),
-		Timestamp:     int(cr.Time.Unix()),
+		Time:          keybase1.ToTime(cr.Time),
 		DisplayMarkup: cr.ToDisplayString(),
 	}
 }
@@ -67,7 +66,7 @@ func ExportRemoteProof(p RemoteProofChainLink) keybase1.RemoteProof {
 		Value:         v,
 		DisplayMarkup: v,
 		SigID:         p.GetSigID(),
-		Mtime:         int(p.GetCTime().Unix()),
+		MTime:         keybase1.ToTime(p.GetCTime()),
 	}
 }
 
@@ -299,7 +298,7 @@ func (f *FOKID) Export() (ret keybase1.FOKID) {
 //=============================================================================
 
 func (s TrackSummary) Export(username string) (ret keybase1.TrackSummary) {
-	ret.Time = int(s.time.Unix())
+	ret.Time = keybase1.ToTime(s.time)
 	ret.IsRemote = s.isRemote
 	ret.Username = username
 	return
@@ -311,7 +310,7 @@ func ImportTrackSummary(s *keybase1.TrackSummary) *TrackSummary {
 	}
 
 	return &TrackSummary{
-		time:     time.Unix(int64(s.Time), 0),
+		time:     keybase1.FromTime(s.Time),
 		isRemote: s.IsRemote,
 		username: s.Username,
 	}
@@ -587,8 +586,8 @@ func (ckf ComputedKeyFamily) Export() []keybase1.PublicKey {
 			ParentID:          parentID,
 			DeviceID:          deviceID,
 			DeviceDescription: deviceDescription,
-			CTime:             cki.CTime,
-			ETime:             cki.ETime,
+			CTime:             keybase1.TimeFromSeconds(cki.CTime),
+			ETime:             keybase1.TimeFromSeconds(cki.ETime),
 		})
 	}
 	for _, sibkey := range ckf.GetAllActiveSibkeys() {

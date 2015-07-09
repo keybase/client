@@ -8,6 +8,7 @@ type GenericClient interface {
 	Call(s string, args interface{}, res interface{}) error
 }
 
+type Time int64
 type StringKVPair struct {
 	Key   string `codec:"key" json:"key"`
 	Value string `codec:"value" json:"value"`
@@ -50,8 +51,8 @@ type PublicKey struct {
 	ParentID          string        `codec:"parentID" json:"parentID"`
 	DeviceID          DeviceID      `codec:"deviceID" json:"deviceID"`
 	DeviceDescription string        `codec:"deviceDescription" json:"deviceDescription"`
-	CTime             int64         `codec:"cTime" json:"cTime"`
-	ETime             int64         `codec:"eTime" json:"eTime"`
+	CTime             Time          `codec:"cTime" json:"cTime"`
+	ETime             Time          `codec:"eTime" json:"eTime"`
 }
 
 type User struct {
@@ -64,8 +65,8 @@ type Device struct {
 	Type     string   `codec:"type" json:"type"`
 	Name     string   `codec:"name" json:"name"`
 	DeviceID DeviceID `codec:"deviceID" json:"deviceID"`
-	CTime    int64    `codec:"cTime" json:"cTime"`
-	MTime    int64    `codec:"mTime" json:"mTime"`
+	CTime    Time     `codec:"cTime" json:"cTime"`
+	MTime    Time     `codec:"mTime" json:"mTime"`
 }
 
 type Stream struct {
@@ -783,7 +784,7 @@ type TrackDiff struct {
 
 type TrackSummary struct {
 	Username string `codec:"username" json:"username"`
-	Time     int    `codec:"time" json:"time"`
+	Time     Time   `codec:"time" json:"time"`
 	IsRemote bool   `codec:"isRemote" json:"isRemote"`
 }
 
@@ -826,7 +827,7 @@ type RemoteProof struct {
 	Value         string    `codec:"value" json:"value"`
 	DisplayMarkup string    `codec:"displayMarkup" json:"displayMarkup"`
 	SigID         SigID     `codec:"sigID" json:"sigID"`
-	Mtime         int       `codec:"mtime" json:"mtime"`
+	MTime         Time      `codec:"mTime" json:"mTime"`
 }
 
 type IdentifyArg struct {
@@ -925,7 +926,7 @@ type SigHint struct {
 
 type CheckResult struct {
 	ProofResult   ProofResult `codec:"proofResult" json:"proofResult"`
-	Timestamp     int         `codec:"timestamp" json:"timestamp"`
+	Time          Time        `codec:"time" json:"time"`
 	DisplayMarkup string      `codec:"displayMarkup" json:"displayMarkup"`
 }
 
@@ -2446,7 +2447,7 @@ type Sig struct {
 	SigID        SigID  `codec:"sigID" json:"sigID"`
 	SigIDDisplay string `codec:"sigIDDisplay" json:"sigIDDisplay"`
 	Type         string `codec:"type" json:"type"`
-	Ctime        int    `codec:"ctime" json:"ctime"`
+	CTime        Time   `codec:"cTime" json:"cTime"`
 	Revoked      bool   `codec:"revoked" json:"revoked"`
 	Active       bool   `codec:"active" json:"active"`
 	Key          string `codec:"key" json:"key"`
@@ -2705,9 +2706,9 @@ func (c UiClient) PromptYesNo(__arg PromptYesNoArg) (res bool, err error) {
 }
 
 type Tracker struct {
-	Tracker UID `codec:"tracker" json:"tracker"`
-	Status  int `codec:"status" json:"status"`
-	Mtime   int `codec:"mtime" json:"mtime"`
+	Tracker UID  `codec:"tracker" json:"tracker"`
+	Status  int  `codec:"status" json:"status"`
+	MTime   Time `codec:"mTime" json:"mTime"`
 }
 
 type TrackProof struct {

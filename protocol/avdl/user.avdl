@@ -5,7 +5,7 @@ protocol user {
 	record Tracker {
 		UID tracker;
 		int status; // 0 == none, 1 == tracking
-		int mtime;
+		Time mTime;
 	}
 
 	array<Tracker> listTrackers(int sessionID, UID uid);

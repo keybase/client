@@ -45,7 +45,7 @@ protocol identifyUi {
 
 	record CheckResult {
 		ProofResult proofResult;
-		int timestamp;
+		Time time;
 		string displayMarkup;
 	}
 

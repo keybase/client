@@ -23,7 +23,7 @@ protocol identifyCommon {
 
 	record TrackSummary {
 		string username;
-		int time;
+		Time time;
 		boolean isRemote;
 	}
 
@@ -73,6 +73,6 @@ protocol identifyCommon {
 		string value;
 		string displayMarkup;
 		SigID sigID;
-		int mtime;
+		Time mTime;
 	}
 }

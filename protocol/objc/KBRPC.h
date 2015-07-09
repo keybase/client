@@ -281,7 +281,7 @@ typedef NS_ENUM (NSInteger, KBRTrackDiffType) {
 
 @interface KBRTrackSummary : KBRObject
 @property NSString *username;
-@property NSInteger time;
+@property long time;
 @property BOOL isRemote;
 @end
 
@@ -322,7 +322,7 @@ typedef NS_ENUM (NSInteger, KBRTrackStatus) {
 @property NSString *value;
 @property NSString *displayMarkup;
 @property NSString *sigID;
-@property NSInteger mtime;
+@property long mTime;
 @end
 
 @interface KBRIdentifyRequest : KBRRequest
@@ -373,7 +373,7 @@ typedef NS_ENUM (NSInteger, KBRTrackStatus) {
 
 @interface KBRCheckResult : KBRObject
 @property KBRProofResult *proofResult;
-@property NSInteger timestamp;
+@property long time;
 @property NSString *displayMarkup;
 @end
 
@@ -722,7 +722,7 @@ typedef NS_ENUM (NSInteger, KBRPromptOverwriteType) {
 @property NSString *sigID;
 @property NSString *sigIDDisplay;
 @property NSString *type;
-@property NSInteger ctime;
+@property long cTime;
 @property BOOL revoked;
 @property BOOL active;
 @property NSString *key;
@@ -779,7 +779,7 @@ typedef NS_ENUM (NSInteger, KBRPromptOverwriteType) {
 @interface KBRTracker : KBRObject
 @property NSString *tracker;
 @property NSInteger status;
-@property NSInteger mtime;
+@property long mTime;
 @end
 
 @interface KBRTrackProof : KBRObject

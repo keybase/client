@@ -7,7 +7,7 @@ protocol sigs {
 		SigID sigID;
 		string sigIDDisplay;
 		string type;
-		int ctime;
+		Time cTime;
 		boolean revoked;
 		boolean active;
 		string key;

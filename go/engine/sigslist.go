@@ -87,7 +87,7 @@ func (e *SigsList) Sigs() []keybase1.Sig {
 			Seqno:        int(s.GetSeqno()),
 			SigIDDisplay: s.GetSigID().ToDisplayString(e.Verbose),
 			Type:         s.Type(),
-			Ctime:        int(s.GetCTime().Unix()),
+			CTime:        keybase1.ToTime(s.GetCTime()),
 			Revoked:      s.IsRevoked(),
 			Active:       e.isActiveKey(s),
 			Key:          key,

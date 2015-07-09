@@ -41,7 +41,7 @@ func TestListTrackers(t *testing.T) {
 		t.Errorf("fake user %q (%s) not included in list of t_alice trackers.", fu.Username, buid)
 		t.Logf("tracker list:")
 		for i, x := range trackers {
-			t.Logf("%d: %s, %d, %d", i, x.Tracker, x.Status, x.Mtime)
+			t.Logf("%d: %s, %d, %d", i, x.Tracker, x.Status, x.MTime)
 		}
 	}
 }

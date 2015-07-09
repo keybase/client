@@ -3,6 +3,11 @@
   "namespace" : "keybase.1",
   "types" : [ {
     "type" : "record",
+    "name" : "Time",
+    "fields" : [ ],
+    "typedef" : "long"
+  }, {
+    "type" : "record",
     "name" : "StringKVPair",
     "fields" : [ {
       "name" : "key",
@@ -118,10 +123,10 @@
       "type" : "string"
     }, {
       "name" : "cTime",
-      "type" : "long"
+      "type" : "Time"
     }, {
       "name" : "eTime",
-      "type" : "long"
+      "type" : "Time"
     } ]
   }, {
     "type" : "record",
@@ -153,10 +158,10 @@
       "type" : "DeviceID"
     }, {
       "name" : "cTime",
-      "type" : "long"
+      "type" : "Time"
     }, {
       "name" : "mTime",
-      "type" : "long"
+      "type" : "Time"
     } ]
   }, {
     "type" : "record",

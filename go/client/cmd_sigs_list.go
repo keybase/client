@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"os"
 	"strings"
-	"time"
 
 	"github.com/keybase/cli"
 	"github.com/keybase/client/go/engine"
@@ -112,7 +111,7 @@ func (s *CmdSigsList) DisplayKTable(sigs []keybase1.Sig) (err error) {
 				fmt.Sprintf("%d", link.Seqno),
 				link.SigIDDisplay,
 				link.Type,
-				libkb.FormatTime(time.Unix(int64(link.Ctime), 0)),
+				keybase1.FormatTime(link.CTime),
 			}
 			if s.revoked {
 				var ch string
