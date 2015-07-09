@@ -42,6 +42,7 @@
 }
 
 - (void)setClient:(KBRPClient *)client {
+  _client = client;
   _encryptView.client = client;
 }
 

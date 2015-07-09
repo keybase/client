@@ -45,7 +45,6 @@
   }
   [self addSubview:contentView];
 
-
   YOVBox *bottomView = [YOVBox box];
   [bottomView kb_setBackgroundColor:KBAppearance.currentAppearance.secondaryBackgroundColor];
   {

@@ -96,6 +96,7 @@
 }
 
 - (void)setClient:(KBRPClient *)client {
+  _client = client;
   _encryptView.client = client;
   _decryptView.client = client;
   _signView.client = client;

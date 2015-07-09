@@ -49,6 +49,7 @@
 }
 
 - (void)setClient:(KBRPClient *)client {
+  _client = client;
   _signView.client = client;
 }
 

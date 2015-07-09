@@ -52,6 +52,7 @@
 }
 
 - (void)setClient:(KBRPClient *)client {
+  _client = client;
   _verifyView.client = client;
 }
 

@@ -234,7 +234,7 @@
   if (lastRowIndex < 0) return YES;
   NSRect lastRowRect = [_view rectOfRow:lastRowIndex];
   
-  if (_scrollView.contentSize.height <= _scrollView.frame.size.height) return YES;
+  if (_scrollView.contentSize.height <= (_scrollView.frame.size.height - 5)) return YES;
 
   CGFloat bottom = _scrollView.documentVisibleRect.origin.y + _scrollView.documentVisibleRect.size.height;
   return (bottom >= lastRowRect.origin.y);

@@ -114,7 +114,6 @@ static const int ddLogLevel = DDLogLevelDebug;
 static NSString *const KBActivityIndicatorViewSpinAnimationKey = @"KBActivityIndicatorViewSpinAnimationKey";
 
 - (void)addAnimation {
-  DDLogDebug(@"Add animation");
   CABasicAnimation *spinAnimation = [CABasicAnimation animationWithKeyPath:@"transform.rotation"];
   spinAnimation.toValue = @(1*2*M_PI);
   spinAnimation.timingFunction = [CAMediaTimingFunction functionWithName:kCAMediaTimingFunctionLinear];

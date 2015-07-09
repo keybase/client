@@ -76,6 +76,7 @@
 }
 
 - (void)setClient:(KBRPClient *)client {
+  _client = client;
   _userPickerView.client = client;
 }
 

@@ -27,42 +27,45 @@
   //_webView = [[KBWebView alloc] init];
   //[self addSubview:_webView];
 
-  YOVBox *linkView = [YOVBox box:@{@"insets": @(40)}];
+  YOVBox *contentView = [YOVBox box:@{@"insets": @(40), @"spacing": @(20)}];
   {
-    _link = [KBButton button];
-    _link.targetBlock = ^{ gself.completion(gself, KBProofActionOpen); };
-    [linkView addSubview:_link];
+    YOVBox *openView = [YOVBox box:@{@"spacing": @(10)}];
+    {
+      _link = [KBButton button];
+      _link.targetBlock = ^{ gself.completion(gself, KBProofActionOpen); };
+      [openView addSubview:_link];
+    }
+    [contentView addSubview:openView];
+
+    YOHBox *buttonsView = [YOHBox box:@{@"spacing": @(10), @"horizontalAlignment": @"center"}];
+    {
+      KBButton *replaceButton = [KBButton buttonWithText:@"Replace" style:KBButtonStyleDefault options:KBButtonOptionsToolbar];
+      replaceButton.targetBlock = ^{ self.completion(gself, KBProofActionReplace); };
+      [buttonsView addSubview:replaceButton];
+
+      KBButton *revokeButton = [KBButton buttonWithText:@"Revoke" style:KBButtonStyleDanger options:KBButtonOptionsToolbar];
+      revokeButton.targetBlock = ^{ self.completion(gself, KBProofActionRevoke); };
+      [buttonsView addSubview:revokeButton];
+    }
+    [contentView addSubview:buttonsView];
   }
-  [self addSubview:linkView];
+  [self addSubview:contentView];
 
   YOVBox *bottomView = [YOVBox box];
   [bottomView kb_setBackgroundColor:KBAppearance.currentAppearance.secondaryBackgroundColor];
   {
     [bottomView addSubview:[KBBox horizontalLine]];
-
-    YOHBox *buttons = [YOHBox box:@{@"spacing": @(10), @"insets": @"10,20,10,20"}];
+    YOHBox *rightButtons = [YOHBox box:@{@"spacing": @(10), @"insets": @"10,20,10,20", @"horizontalAlignment": @"right", @"minSize": @"90,0"}];
     {
-      KBButton *replaceButton = [KBButton buttonWithText:@"Replace" style:KBButtonStyleDefault options:KBButtonOptionsToolbar];
-      replaceButton.targetBlock = ^{ self.completion(gself, KBProofActionReplace); };
-      [buttons addSubview:replaceButton];
-
-      KBButton *revokeButton = [KBButton buttonWithText:@"Revoke" style:KBButtonStyleDanger options:KBButtonOptionsToolbar];
-      revokeButton.targetBlock = ^{ self.completion(gself, KBProofActionRevoke); };
-      [buttons addSubview:revokeButton];
-
-      YOHBox *rightButtons = [YOHBox box:@{@"spacing": @(10), @"horizontalAlignment": @"right", @"minSize": @"90,0"}];
-      {
-        KBButton *cancelButton = [KBButton buttonWithText:@"Close" style:KBButtonStyleDefault options:KBButtonOptionsToolbar];
-        cancelButton.targetBlock = ^{ gself.completion(gself, KBProofActionCancel); };
-        [rightButtons addSubview:cancelButton];
-      }
-      [buttons addSubview:rightButtons];
+      KBButton *cancelButton = [KBButton buttonWithText:@"Close" style:KBButtonStyleDefault options:KBButtonOptionsToolbar];
+      cancelButton.targetBlock = ^{ gself.completion(gself, KBProofActionCancel); };
+      [rightButtons addSubview:cancelButton];
     }
-    [bottomView addSubview:buttons];
+    [bottomView addSubview:rightButtons];
   }
   [self addSubview:bottomView];
 
-  self.viewLayout = [YOBorderLayout layoutWithCenter:linkView top:nil bottom:@[bottomView]];
+  self.viewLayout = [YOBorderLayout layoutWithCenter:contentView top:nil bottom:@[bottomView]];
 }
 
 - (void)setProofResult:(KBProofResult *)proofResult {
