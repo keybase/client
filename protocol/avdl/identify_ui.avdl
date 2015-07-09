@@ -16,6 +16,7 @@ protocol identifyUi {
 		union { null, TrackDiff } trackDiff;
 	}
 
+	// XXX when FOKID goes away, remove pgpFingerprint from this
 	record IdentifyKey {
 		bytes pgpFingerprint;
 		KID KID;
