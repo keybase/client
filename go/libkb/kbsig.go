@@ -12,6 +12,7 @@ import (
 
 	keybase1 "github.com/keybase/client/protocol/go"
 	jsonw "github.com/keybase/go-jsonw"
+	triplesec "github.com/keybase/go-triplesec"
 )
 
 func clientInfo() *jsonw.Wrapper {
@@ -438,5 +439,21 @@ func (u *User) CryptocurrencySig(key GenericKey, address string, sigToRevoke key
 		revokeSection.SetKey("sig_id", jsonw.NewString(sigToRevoke.ToString(true /* suffix */)))
 		body.SetKey("revoke", revokeSection)
 	}
+	return ret, nil
+}
+
+func (u *User) UpdatePassphraseProof(key GenericKey, pwh string, ppGen int) (*jsonw.Wrapper, error) {
+	ret, err := u.ProofMetadata(0, GenericKeyToFOKID(key), nil, 0)
+	if err != nil {
+		return nil, err
+	}
+	body := ret.AtKey("body")
+	body.SetKey("version", jsonw.NewInt(KeybaseSignatureV1))
+	body.SetKey("type", jsonw.NewString("update_passphrase_hash"))
+	pp := jsonw.NewDictionary()
+	pp.SetKey("hash", jsonw.NewString(pwh))
+	pp.SetKey("version", jsonw.NewInt(int(triplesec.Version)))
+	pp.SetKey("passphrase_generation", jsonw.NewInt(int(ppGen)))
+	body.SetKey("update_passphrase_hash", pp)
 	return ret, nil
 }

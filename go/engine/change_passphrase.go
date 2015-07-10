@@ -2,6 +2,7 @@ package engine
 
 import (
 	"encoding/json"
+	"fmt"
 
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/protocol/go"
@@ -67,9 +68,109 @@ func (c *ChangePassphrase) Run(ctx *Context) (err error) {
 	return
 }
 
+// Strategy:
+//  1. Get unlocked device for decryption and signing
 func (c *ChangePassphrase) runForcedUpdate(ctx *Context) (err error) {
-	// Strategy:
-	//  1. Get unlocked device for decryption and signing
+	c.G().Log.Debug("+ ChangePassphrase.runForcedUpdate")
+	defer func() {
+		c.G().Log.Debug("- ChangePassphrase.runForcedUpdate -> %s", libkb.ErrToOk(err))
+	}()
+
+	// Get unlocked device for decryption and signing
+	ska := libkb.SecretKeyArg{
+		Me:      c.me,
+		KeyType: libkb.DeviceEncryptionKeyType,
+	}
+	// passing in nil SecretUI since we don't know the passphrase.
+	encKey, _, err := c.G().Keyrings.GetSecretKeyWithPrompt(ctx.LoginContext, ska, nil, "change passphrase")
+	if err != nil {
+		return err
+	}
+	ska.KeyType = libkb.DeviceSigningKeyType
+	sigKey, _, err := c.G().Keyrings.GetSecretKeyWithPrompt(ctx.LoginContext, ska, nil, "change passphrase")
+	if err != nil {
+		return err
+	}
+
+	// First fetch the encrypted LKS client half from the server. Use current device to
+	// recover..
+	res, err := c.G().API.Get(
+		libkb.APIArg{
+			Endpoint:    "passphrase/recover",
+			NeedSession: true,
+			Args: libkb.HTTPArgs{
+				"kid": encKey.GetKid(),
+			},
+		})
+	if err != nil {
+		return
+	}
+	ctext, err := res.Body.AtKey("ctext").GetString()
+	if err != nil {
+		return
+	}
+	ppGen, err := res.Body.AtKey("passphrase_generation").GetInt()
+	if err != nil {
+		return
+	}
+
+	//  Now try to decrypt with the unlocked device key
+	msg, _, err := encKey.DecryptFromString(ctext)
+	if err != nil {
+		return
+	}
+
+	oldClientHalf := msg
+
+	var acctErr error
+	c.G().LoginState().Account(func(a *libkb.Account) {
+		// Ready the update argument; almost done, but we need some more stuff.
+		args, err := c.commonArgs(a, oldClientHalf)
+		if err != nil {
+			acctErr = err
+			return
+		}
+
+		// get the new passphrase hash out of the args
+		pwh, ok := (*args)["pwh"]
+		if !ok {
+			acctErr = fmt.Errorf("no pwh found in common args")
+			return
+		}
+
+		// Generate a signature with our unlocked sibling key from device.
+		proof, err := c.me.UpdatePassphraseProof(sigKey, pwh.String(), ppGen)
+		if err != nil {
+			acctErr = err
+			return
+		}
+
+		sig, _, _, err := libkb.SignJSON(proof, sigKey)
+		if err != nil {
+			acctErr = err
+			return
+		}
+		args.Add("sig", libkb.S{Val: sig})
+		args.Add("signing_kid", sigKey.GetKid())
+
+		postArg := libkb.APIArg{
+			Endpoint:    "passphrase/sign",
+			NeedSession: true,
+			Args:        *args,
+			SessionR:    a.LocalSession(),
+		}
+
+		_, err = c.G().API.Post(postArg)
+		if err != nil {
+			acctErr = fmt.Errorf("api post to passphrase/sign error: %s", err)
+			return
+		}
+	}, "ChangePassphrase.runForcedUpdate")
+	if acctErr != nil {
+		err = acctErr
+		return
+	}
+
 	return
 }
 
@@ -94,62 +195,22 @@ func (c *ChangePassphrase) runStandardUpdate(ctx *Context) (err error) {
 
 	var acctErr error
 	c.G().LoginState().Account(func(a *libkb.Account) {
-		salt, err := a.LoginSession().Salt()
-		if err != nil {
-			acctErr = err
-			return
-		}
-
-		_, newPPStream, err := libkb.StretchPassphrase(c.arg.NewPassphrase, salt)
-		if err != nil {
-			acctErr = err
-			return
-		}
-
 		gen := a.PassphraseStreamCache().PassphraseStream().Generation()
 		oldPWH := a.PassphraseStreamCache().PassphraseStream().PWHash()
 		oldClientHalf := a.PassphraseStreamCache().PassphraseStream().LksClientHalf()
-		newPWH := newPPStream.PWHash()
-		newClientHalf := newPPStream.LksClientHalf()
 
-		mask := make([]byte, len(oldClientHalf))
-		libkb.XORBytes(mask, oldClientHalf, newClientHalf)
-
-		c.G().Log.Debug("pp gen: %d, mask: %x", gen, mask)
-
-		lksch := make(map[keybase1.KID]string)
-		devices := c.me.GetComputedKeyFamily().GetAllDevices()
-		for _, dev := range devices {
-			key, err := c.me.GetComputedKeyFamily().GetEncryptionSubkeyForDevice(dev.ID)
-			if err != nil {
-				acctErr = err
-				return
-			}
-			ctext, err := key.EncryptToString(newClientHalf, nil)
-			if err != nil {
-				acctErr = err
-				return
-			}
-			lksch[key.GetKid()] = ctext
-		}
-		lkschJSON, err := json.Marshal(lksch)
+		args, err := c.commonArgs(a, oldClientHalf)
 		if err != nil {
 			acctErr = err
 			return
 		}
-
+		args.Add("oldpwh", libkb.HexArg(oldPWH))
+		args.Add("ppgen", libkb.I{Val: int(gen)})
 		postArg := libkb.APIArg{
 			Endpoint:    "passphrase/replace",
 			NeedSession: true,
-			Args: libkb.HTTPArgs{
-				"oldpwh":            libkb.HexArg(oldPWH),
-				"pwh":               libkb.HexArg(newPWH),
-				"pwh_version":       libkb.I{Val: int(triplesec.Version)},
-				"ppgen":             libkb.I{Val: int(gen)},
-				"lks_mask":          libkb.HexArg(mask),
-				"lks_client_halves": libkb.S{Val: string(lkschJSON)},
-			},
-			SessionR: a.LocalSession(),
+			Args:        *args,
+			SessionR:    a.LocalSession(),
 		}
 
 		_, err = c.G().API.Post(postArg)
@@ -164,6 +225,51 @@ func (c *ChangePassphrase) runStandardUpdate(ctx *Context) (err error) {
 	}
 
 	return nil
+}
+
+// commonArgs must be called inside a LoginState().Account(...)
+// closure
+func (c *ChangePassphrase) commonArgs(a *libkb.Account, oldClientHalf []byte) (*libkb.HTTPArgs, error) {
+	salt, err := a.LoginSession().Salt()
+	if err != nil {
+		return nil, err
+	}
+
+	_, newPPStream, err := libkb.StretchPassphrase(c.arg.NewPassphrase, salt)
+	if err != nil {
+		return nil, err
+	}
+	newPWH := newPPStream.PWHash()
+	newClientHalf := newPPStream.LksClientHalf()
+
+	mask := make([]byte, len(oldClientHalf))
+	libkb.XORBytes(mask, oldClientHalf, newClientHalf)
+
+	lksch := make(map[keybase1.KID]string)
+	devices := c.me.GetComputedKeyFamily().GetAllDevices()
+	for _, dev := range devices {
+		key, err := c.me.GetComputedKeyFamily().GetEncryptionSubkeyForDevice(dev.ID)
+		if err != nil {
+			return nil, err
+		}
+		ctext, err := key.EncryptToString(newClientHalf, nil)
+		if err != nil {
+			return nil, err
+		}
+		lksch[key.GetKid()] = ctext
+	}
+	lkschJSON, err := json.Marshal(lksch)
+	if err != nil {
+		return nil, err
+	}
+
+	return &libkb.HTTPArgs{
+		"pwh":               libkb.HexArg(newPWH),
+		"pwh_version":       libkb.I{Val: int(triplesec.Version)},
+		"lks_mask":          libkb.HexArg(mask),
+		"lks_client_halves": libkb.S{Val: string(lkschJSON)},
+	}, nil
+
 }
 
 func (c *ChangePassphrase) loadMe() (err error) {

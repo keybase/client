@@ -77,8 +77,8 @@ func TestChangePassphraseUnknown(t *testing.T) {
 	defer tc.Cleanup()
 
 	u := CreateAndSignupFakeUser(tc, "login")
-	_ = u // will need this when test gets flushed out...
 
+	newPassphrase := "password"
 	arg := &keybase1.ChangePassphraseArg{
 		NewPassphrase: "password",
 		Force:         true,
@@ -89,5 +89,15 @@ func TestChangePassphraseUnknown(t *testing.T) {
 	eng := NewChangePassphrase(arg, tc.G)
 	if err := RunEngine(eng, ctx); err != nil {
 		t.Fatal(err)
+	}
+
+	_, err := tc.G.LoginState().VerifyPlaintextPassphrase(newPassphrase)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	_, err = tc.G.LoginState().VerifyPlaintextPassphrase(u.Passphrase)
+	if err == nil {
+		t.Fatal("old passphrase passed verification")
 	}
 }
