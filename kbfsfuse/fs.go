@@ -90,7 +90,8 @@ var _ fs.NodeRequestLookuper = (*Root)(nil)
 // useful results for home folders with public subdirectories.
 func (r *Root) getMD(ctx context.Context, dh *libkbfs.TlfHandle) (libkbfs.Node, error) {
 	rootNode, _, err :=
-		r.fs.config.KBFSOps().GetOrCreateRootNodeForHandle(ctx, dh)
+		r.fs.config.KBFSOps().
+			GetOrCreateRootNodeForHandle(ctx, dh, libkbfs.MasterBranch)
 	if err != nil {
 		if _, ok := err.(libkbfs.ReadAccessError); ok && dh.HasPublic() {
 			// This user cannot get the metadata for the folder, but
@@ -164,7 +165,8 @@ func (r *Root) getDirent(ctx context.Context, work <-chan libkbfs.TlfID, results
 			if !ok {
 				return nil
 			}
-			_, _, dh, err := r.fs.config.KBFSOps().GetRootNode(ctx, tlfID)
+			_, _, dh, err := r.fs.config.KBFSOps().GetRootNode(
+				ctx, tlfID, libkbfs.MasterBranch)
 			if err != nil {
 				return err
 			}

@@ -434,7 +434,7 @@ func (fbo *FolderBranchOps) initMDLocked(md *RootMetadata) error {
 // GetOrCreateRootNodeForHandle implements the KBFSOps interface for
 // FolderBranchOps
 func (fbo *FolderBranchOps) GetOrCreateRootNodeForHandle(
-	ctx context.Context, handle *TlfHandle) (
+	ctx context.Context, handle *TlfHandle, branch BranchName) (
 	node Node, de DirEntry, err error) {
 	err = fmt.Errorf("GetOrCreateRootNodeForHandle is not supported by " +
 		"FolderBranchOps")
@@ -485,10 +485,10 @@ func (fbo *FolderBranchOps) execReadThenWrite(f func(reqType) error) error {
 }
 
 // GetRootNode implements the KBFSOps interface for FolderBranchOps
-func (fbo *FolderBranchOps) GetRootNode(ctx context.Context, tlfID TlfID) (
-	node Node, de DirEntry, handle *TlfHandle, err error) {
-	if tlfID != fbo.id {
-		err = WrongOpsError{fbo.id, fbo.branch, tlfID, MasterBranch}
+func (fbo *FolderBranchOps) GetRootNode(ctx context.Context, tlfID TlfID,
+	branch BranchName) (node Node, de DirEntry, handle *TlfHandle, err error) {
+	if tlfID != fbo.id || branch != fbo.branch {
+		err = WrongOpsError{fbo.id, fbo.branch, tlfID, branch}
 		return
 	}
 

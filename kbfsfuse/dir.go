@@ -50,7 +50,7 @@ func (d *Dir) Attr(ctx context.Context, a *fuse.Attr) error {
 		// Top-level folder
 		_, rootDe, err :=
 			d.folder.fs.config.KBFSOps().GetOrCreateRootNodeForHandle(
-				ctx, d.folder.dh)
+				ctx, d.folder.dh, libkbfs.MasterBranch)
 		if err != nil {
 			return err
 		}
@@ -93,7 +93,7 @@ func (d *Dir) Lookup(ctx context.Context, req *fuse.LookupRequest, resp *fuse.Lo
 		}
 		rootNode, _, err :=
 			d.folder.fs.config.KBFSOps().
-				GetOrCreateRootNodeForHandle(ctx, dhPub)
+				GetOrCreateRootNodeForHandle(ctx, dhPub, libkbfs.MasterBranch)
 		if err != nil {
 			return nil, err
 		}

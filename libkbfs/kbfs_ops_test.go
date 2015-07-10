@@ -192,7 +192,7 @@ func TestKBFSOpsGetRootNodeCacheSuccess(t *testing.T) {
 	_, id, rmd := makeIDAndRMD(t, config)
 	rmd.data.Dir.Type = Dir
 
-	n, de, h, err := config.KBFSOps().GetRootNode(ctx, id)
+	n, de, h, err := config.KBFSOps().GetRootNode(ctx, id, MasterBranch)
 	if err != nil {
 		t.Errorf("Got error on root MD: %v", err)
 	}
@@ -292,7 +292,7 @@ func testKBFSOpsGetRootNodeCreateNewSuccess(t *testing.T, public bool) {
 	config.mockMdops.EXPECT().Put(id, rmd, nilKID, NullMdID).Return(nil)
 	config.mockMdcache.EXPECT().Put(rmd.mdID, rmd).Return(nil)
 
-	n, de, h, err := config.KBFSOps().GetRootNode(ctx, id)
+	n, de, h, err := config.KBFSOps().GetRootNode(ctx, id, MasterBranch)
 
 	if err != nil {
 		t.Errorf("Got error on root MD: %v", err)
@@ -360,7 +360,8 @@ func TestKBFSOpsGetRootMDCreateNewFailNonWriter(t *testing.T) {
 	expectedErr := WriteAccessError{
 		fmt.Sprintf("user_%s", userID), h.ToString(config)}
 
-	if _, _, _, err := config.KBFSOps().GetRootNode(ctx, id); err == nil {
+	if _, _, _, err :=
+		config.KBFSOps().GetRootNode(ctx, id, MasterBranch); err == nil {
 		t.Errorf("Got no expected error on root MD")
 	} else if err.Error() != expectedErr.Error() {
 		t.Errorf("Got unexpected error on root MD: %v", err)
@@ -388,7 +389,7 @@ func TestKBFSOpsGetRootMDForHandleExisting(t *testing.T) {
 	ops.head = rmd
 
 	n, de, err :=
-		config.KBFSOps().GetOrCreateRootNodeForHandle(ctx, h)
+		config.KBFSOps().GetOrCreateRootNodeForHandle(ctx, h, MasterBranch)
 	if err != nil {
 		t.Errorf("Got error on root MD for handle: %v", err)
 	}

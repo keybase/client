@@ -146,7 +146,7 @@ func (f *FuseOps) LookupInDir(dNode *FuseNode, name string) (
 			}
 			rootNode, rootDe, err :=
 				f.config.KBFSOps().GetOrCreateRootNodeForHandle(
-					f.ctx, dirHandle)
+					f.ctx, dirHandle, libkbfs.MasterBranch)
 			if err != nil {
 				return nil, f.translateError(err)
 			}
@@ -290,7 +290,7 @@ func (f *FuseOps) LookupInRootByName(rNode *FuseNode, name string) (
 		} else {
 			rootNode, rootDe, err :=
 				f.config.KBFSOps().GetOrCreateRootNodeForHandle(
-					f.ctx, dirHandle)
+					f.ctx, dirHandle, libkbfs.MasterBranch)
 			var fNode *FuseNode
 			if _, ok :=
 				err.(libkbfs.ReadAccessError); ok && dirHandle.HasPublic() {
@@ -335,7 +335,7 @@ func (f *FuseOps) LookupInRootByName(rNode *FuseNode, name string) (
 func (f *FuseOps) LookupInRootByID(rNode *FuseNode, id libkbfs.TlfID) (
 	node *nodefs.Inode, code fuse.Status) {
 	rootNode, rootDe, dirHandle, err := f.config.KBFSOps().
-		GetRootNode(f.ctx, id)
+		GetRootNode(f.ctx, id, libkbfs.MasterBranch)
 	if err != nil {
 		return nil, f.translateError(err)
 	}
@@ -381,7 +381,7 @@ func (f *FuseOps) GetAttr(n *FuseNode, out *fuse.Attr) fuse.Status {
 			} else {
 				_, de, err =
 					f.config.KBFSOps().GetOrCreateRootNodeForHandle(
-						f.ctx, n.TlfHandle)
+						f.ctx, n.TlfHandle, libkbfs.MasterBranch)
 				if err != nil {
 					return f.translateError(err)
 				}

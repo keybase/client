@@ -77,7 +77,7 @@ func (fs *KBFSOpsStandard) getOpsByNode(node Node) *FolderBranchOps {
 // GetOrCreateRootNodeForHandle implements the KBFSOps interface for
 // KBFSOpsStandard
 func (fs *KBFSOpsStandard) GetOrCreateRootNodeForHandle(
-	ctx context.Context, handle *TlfHandle) (
+	ctx context.Context, handle *TlfHandle, branch BranchName) (
 	node Node, de DirEntry, err error) {
 	// Do GetForHandle() unlocked -- no cache lookups, should be fine
 	mdops := fs.config.MDOps()
@@ -87,23 +87,25 @@ func (fs *KBFSOpsStandard) GetOrCreateRootNodeForHandle(
 		return
 	}
 
-	// TODO: add a 'branch' parameter
-	ops := fs.getOps(opID{tlf: md.ID, branch: MasterBranch})
-	err = ops.CheckForNewMDAndInit(ctx, md)
-	if err != nil {
-		return
+	ops := fs.getOps(opID{tlf: md.ID, branch: branch})
+	if branch == MasterBranch {
+		// For now, only the master branch can be initialized with a
+		// branch new MD object.
+		err = ops.CheckForNewMDAndInit(ctx, md)
+		if err != nil {
+			return
+		}
 	}
 
-	node, de, _, err = ops.GetRootNode(ctx, md.ID)
+	node, de, _, err = ops.GetRootNode(ctx, md.ID, branch)
 	return
 }
 
 // GetRootNode implements the KBFSOps interface for KBFSOpsStandard
-func (fs *KBFSOpsStandard) GetRootNode(ctx context.Context, tlfID TlfID) (
-	node Node, de DirEntry, handle *TlfHandle, err error) {
-	// TODO: add a 'branch' parameter
-	ops := fs.getOps(opID{tlf: tlfID, branch: MasterBranch})
-	return ops.GetRootNode(ctx, tlfID)
+func (fs *KBFSOpsStandard) GetRootNode(ctx context.Context, tlfID TlfID,
+	branch BranchName) (Node, DirEntry, *TlfHandle, error) {
+	ops := fs.getOps(opID{tlf: tlfID, branch: branch})
+	return ops.GetRootNode(ctx, tlfID, branch)
 }
 
 // GetDirChildren implements the KBFSOps interface for KBFSOpsStandard

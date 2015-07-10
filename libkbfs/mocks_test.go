@@ -148,20 +148,20 @@ func (_mr *_MockKBFSOpsRecorder) GetFavDirs(arg0 interface{}) *gomock.Call {
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "GetFavDirs", arg0)
 }
 
-func (_m *MockKBFSOps) GetOrCreateRootNodeForHandle(ctx context.Context, handle *TlfHandle) (Node, DirEntry, error) {
-	ret := _m.ctrl.Call(_m, "GetOrCreateRootNodeForHandle", ctx, handle)
+func (_m *MockKBFSOps) GetOrCreateRootNodeForHandle(ctx context.Context, handle *TlfHandle, branch BranchName) (Node, DirEntry, error) {
+	ret := _m.ctrl.Call(_m, "GetOrCreateRootNodeForHandle", ctx, handle, branch)
 	ret0, _ := ret[0].(Node)
 	ret1, _ := ret[1].(DirEntry)
 	ret2, _ := ret[2].(error)
 	return ret0, ret1, ret2
 }
 
-func (_mr *_MockKBFSOpsRecorder) GetOrCreateRootNodeForHandle(arg0, arg1 interface{}) *gomock.Call {
-	return _mr.mock.ctrl.RecordCall(_mr.mock, "GetOrCreateRootNodeForHandle", arg0, arg1)
+func (_mr *_MockKBFSOpsRecorder) GetOrCreateRootNodeForHandle(arg0, arg1, arg2 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "GetOrCreateRootNodeForHandle", arg0, arg1, arg2)
 }
 
-func (_m *MockKBFSOps) GetRootNode(ctx context.Context, dir TlfID) (Node, DirEntry, *TlfHandle, error) {
-	ret := _m.ctrl.Call(_m, "GetRootNode", ctx, dir)
+func (_m *MockKBFSOps) GetRootNode(ctx context.Context, tlfID TlfID, branch BranchName) (Node, DirEntry, *TlfHandle, error) {
+	ret := _m.ctrl.Call(_m, "GetRootNode", ctx, tlfID, branch)
 	ret0, _ := ret[0].(Node)
 	ret1, _ := ret[1].(DirEntry)
 	ret2, _ := ret[2].(*TlfHandle)
@@ -169,8 +169,8 @@ func (_m *MockKBFSOps) GetRootNode(ctx context.Context, dir TlfID) (Node, DirEnt
 	return ret0, ret1, ret2, ret3
 }
 
-func (_mr *_MockKBFSOpsRecorder) GetRootNode(arg0, arg1 interface{}) *gomock.Call {
-	return _mr.mock.ctrl.RecordCall(_mr.mock, "GetRootNode", arg0, arg1)
+func (_mr *_MockKBFSOpsRecorder) GetRootNode(arg0, arg1, arg2 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "GetRootNode", arg0, arg1, arg2)
 }
 
 func (_m *MockKBFSOps) GetDirChildren(ctx context.Context, dir Node) (map[string]EntryType, error) {
@@ -1471,8 +1471,8 @@ func (_mr *_MockObserverRecorder) LocalChange(arg0, arg1, arg2 interface{}) *gom
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "LocalChange", arg0, arg1, arg2)
 }
 
-func (_m *MockObserver) BatchChanges(ctx context.Context, dir TlfID, changes []NodeChange) {
-	_m.ctrl.Call(_m, "BatchChanges", ctx, dir, changes)
+func (_m *MockObserver) BatchChanges(ctx context.Context, tlfID TlfID, changes []NodeChange) {
+	_m.ctrl.Call(_m, "BatchChanges", ctx, tlfID, changes)
 }
 
 func (_mr *_MockObserverRecorder) BatchChanges(arg0, arg1, arg2 interface{}) *gomock.Call {

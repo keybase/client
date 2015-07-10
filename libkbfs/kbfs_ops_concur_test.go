@@ -67,7 +67,7 @@ func TestKBFSOpsConcurDoubleMDGet(t *testing.T) {
 	ops.writerLock = cl
 	for i := 0; i < n; i++ {
 		go func() {
-			_, _, _, err := config.KBFSOps().GetRootNode(ctx, dir)
+			_, _, _, err := config.KBFSOps().GetRootNode(ctx, dir, MasterBranch)
 			c <- err
 		}()
 	}
@@ -106,7 +106,8 @@ func TestKBFSOpsConcurReadDuringSync(t *testing.T) {
 		t.Errorf("Couldn't get logged in user: %v", err)
 	}
 	h.Writers = append(h.Writers, uid)
-	rootNode, _, err := kbfsOps.GetOrCreateRootNodeForHandle(ctx, h)
+	rootNode, _, err :=
+		kbfsOps.GetOrCreateRootNodeForHandle(ctx, h, MasterBranch)
 	if err != nil {
 		t.Errorf("Couldn't create folder: %v", err)
 	}
@@ -164,7 +165,8 @@ func TestKBFSOpsConcurWriteDuringSync(t *testing.T) {
 		t.Errorf("Couldn't get logged in user: %v", err)
 	}
 	h.Writers = append(h.Writers, uid)
-	rootNode, _, err := kbfsOps.GetOrCreateRootNodeForHandle(ctx, h)
+	rootNode, _, err :=
+		kbfsOps.GetOrCreateRootNodeForHandle(ctx, h, MasterBranch)
 	if err != nil {
 		t.Errorf("Couldn't create folder: %v", err)
 	}
@@ -254,7 +256,8 @@ func TestKBFSOpsConcurWriteDuringSyncMultiBlocks(t *testing.T) {
 		t.Errorf("Couldn't get logged in user: %v", err)
 	}
 	h.Writers = append(h.Writers, uid)
-	rootNode, _, err := kbfsOps.GetOrCreateRootNodeForHandle(ctx, h)
+	rootNode, _, err :=
+		kbfsOps.GetOrCreateRootNodeForHandle(ctx, h, MasterBranch)
 	if err != nil {
 		t.Errorf("Couldn't create folder: %v", err)
 	}

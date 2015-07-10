@@ -79,20 +79,21 @@ type KBFSOps interface {
 	// GetFavDirs returns the logged-in user's list of favorite
 	// top-level folders.  This is a remote-access operation.
 	GetFavDirs(ctx context.Context) ([]TlfID, error)
-	// GetOrCreateRootNodeByHandle returns the root node, and root
-	// directory entry associated with the given TlfHandle, if the
-	// logged-in user has read permissions to the top-level folder.
-	// It creates the folder if one doesn't exist yet, and the
-	// logged-in user has write permissions to the top-level folder.
-	// This is a remote-access operation.
-	GetOrCreateRootNodeForHandle(ctx context.Context, handle *TlfHandle) (
-		Node, DirEntry, error)
+	// GetOrCreateRootNodeByHandle returns the root node and root
+	// directory entry associated with the given TlfHandle and branch,
+	// if the logged-in user has read permissions to the top-level
+	// folder.  It creates the folder if one doesn't exist yet (and
+	// branch == MasterBranch), and the logged-in user has write
+	// permissions to the top-level folder.  This is a remote-access
+	// operation.
+	GetOrCreateRootNodeForHandle(ctx context.Context, handle *TlfHandle,
+		branch BranchName) (Node, DirEntry, error)
 	// GetRootNode returns the root node, root directory entry, and
-	// handle associated with the given TlfID, if the logged-in user
-	// has read permissions to the top-level folder.  This is a
-	// remote-access operation.
-	GetRootNode(ctx context.Context, tlfID TlfID) (Node, DirEntry, *TlfHandle,
-		error)
+	// handle associated with the given TlfID and branch, if the
+	// logged-in user has read permissions to the top-level folder.
+	// This is a remote-access operation.
+	GetRootNode(ctx context.Context, tlfID TlfID, branch BranchName) (
+		Node, DirEntry, *TlfHandle, error)
 	// GetDirChildren returns a map of children in the directory,
 	// mapped to their EntryType, if the logged-in user has read
 	// permission for the top-level folder.  This is a remote-access

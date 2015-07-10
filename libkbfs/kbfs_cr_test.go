@@ -9,7 +9,8 @@ import (
 func readAndCompareData(t *testing.T, config Config, ctx context.Context,
 	h *TlfHandle, expectedData []byte, user string) {
 	kbfsOps := config.KBFSOps()
-	rootNode, _, err := kbfsOps.GetOrCreateRootNodeForHandle(ctx, h)
+	rootNode, _, err :=
+		kbfsOps.GetOrCreateRootNodeForHandle(ctx, h, MasterBranch)
 	if err != nil {
 		t.Errorf("Couldn't get folder: %v", err)
 	}
@@ -49,7 +50,8 @@ func TestUnmergedAfterRestart(t *testing.T) {
 
 	// user1 creates a file in a shared dir
 	kbfsOps1 := config1.KBFSOps()
-	rootNode1, _, err := kbfsOps1.GetOrCreateRootNodeForHandle(ctx, h)
+	rootNode1, _, err :=
+		kbfsOps1.GetOrCreateRootNodeForHandle(ctx, h, MasterBranch)
 	if err != nil {
 		t.Errorf("Couldn't create folder: %v", err)
 	}
@@ -60,7 +62,8 @@ func TestUnmergedAfterRestart(t *testing.T) {
 
 	// then user2 write to the file
 	kbfsOps2 := config2.KBFSOps()
-	rootNode2, _, err := kbfsOps2.GetOrCreateRootNodeForHandle(ctx, h)
+	rootNode2, _, err :=
+		kbfsOps2.GetOrCreateRootNodeForHandle(ctx, h, MasterBranch)
 	if err != nil {
 		t.Errorf("Couldn't create folder: %v", err)
 	}
