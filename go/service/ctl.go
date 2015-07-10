@@ -27,9 +27,9 @@ func (c CtlHandler) LogRotate() error {
 func (c CtlHandler) Panic(message string) error {
 	G.Log.Info("Received panic() RPC")
 	go func() {
-  	panic(message)
-  }()
-  return nil
+		panic(message)
+	}()
+	return nil
 }
 
 func (c CtlHandler) Status() (keybase1.ServiceStatusRes, error) {
