@@ -33,10 +33,6 @@ func (c *ChangePassphrase) Name() string {
 
 // Prereqs returns engine prereqs
 func (c *ChangePassphrase) Prereqs() Prereqs {
-	if c.arg.Force {
-		return Prereqs{}
-	}
-
 	return Prereqs{Session: true}
 }
 

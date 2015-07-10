@@ -78,7 +78,6 @@ func TestChangePassphraseUnknown(t *testing.T) {
 
 	u := CreateAndSignupFakeUser(tc, "login")
 	_ = u // will need this when test gets flushed out...
-	Logout(tc)
 
 	arg := &keybase1.ChangePassphraseArg{
 		NewPassphrase: "password",
