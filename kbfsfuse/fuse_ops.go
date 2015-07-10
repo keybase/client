@@ -109,7 +109,7 @@ func (n *ErrorNode) Read(
 
 func (n *FuseNode) getTlf() libkbfs.TlfID {
 	if n.fsNode != nil {
-		id, _ := n.fsNode.GetFolderBranch()
+		id := n.fsNode.GetFolderBranch().Tlf
 		return id
 	}
 	// used for the root directory
@@ -204,7 +204,7 @@ func (f *FuseOps) LocalChange(
 	f.topLock.RLock()
 	defer f.topLock.RUnlock()
 
-	dir, _ := node.GetFolderBranch()
+	dir := node.GetFolderBranch().Tlf
 	topNode := f.topNodesByID[dir]
 	if topNode == nil {
 		return
@@ -223,7 +223,7 @@ func (f *FuseOps) LocalChange(
 
 // BatchChanges sets NeedUpdate for all relevant nodes.
 func (f *FuseOps) BatchChanges(
-	ctx context.Context, tlfID libkbfs.TlfID, changes []libkbfs.NodeChange) {
+	ctx context.Context, changes []libkbfs.NodeChange) {
 	if len(changes) == 0 {
 		return
 	}
@@ -231,6 +231,7 @@ func (f *FuseOps) BatchChanges(
 	f.topLock.RLock()
 	defer f.topLock.RUnlock()
 
+	tlfID := changes[0].Node.GetFolderBranch().Tlf
 	topNode := f.topNodesByID[tlfID]
 	if topNode == nil {
 		return
@@ -255,7 +256,8 @@ func (f *FuseOps) addTopNodeLocked(name string, fNode *FuseNode) {
 	f.topNodes[name] = fNode
 	id := fNode.getTlf()
 	if _, ok := f.topNodesByID[id]; !ok {
-		f.config.Notifier().RegisterForChanges([]libkbfs.TlfID{id}, f)
+		f.config.Notifier().RegisterForChanges([]libkbfs.FolderBranch{
+			libkbfs.FolderBranch{id, libkbfs.MasterBranch}}, f)
 		f.topNodesByID[id] = fNode
 	}
 }
@@ -335,7 +337,7 @@ func (f *FuseOps) LookupInRootByName(rNode *FuseNode, name string) (
 func (f *FuseOps) LookupInRootByID(rNode *FuseNode, id libkbfs.TlfID) (
 	node *nodefs.Inode, code fuse.Status) {
 	rootNode, rootDe, dirHandle, err := f.config.KBFSOps().
-		GetRootNode(f.ctx, id, libkbfs.MasterBranch)
+		GetRootNode(f.ctx, libkbfs.FolderBranch{id, libkbfs.MasterBranch})
 	if err != nil {
 		return nil, f.translateError(err)
 	}

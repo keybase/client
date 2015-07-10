@@ -39,7 +39,7 @@ type Node interface {
 	// map key instead of the Node itself.
 	GetID() NodeID
 	// GetFolderBranch returns the folder ID and branch for this Node.
-	GetFolderBranch() (TlfID, BranchName)
+	GetFolderBranch() FolderBranch
 }
 
 // KBFSOps handles all file system operations.  Expands all indirect
@@ -92,7 +92,7 @@ type KBFSOps interface {
 	// handle associated with the given TlfID and branch, if the
 	// logged-in user has read permissions to the top-level folder.
 	// This is a remote-access operation.
-	GetRootNode(ctx context.Context, tlfID TlfID, branch BranchName) (
+	GetRootNode(ctx context.Context, folderBranch FolderBranch) (
 		Node, DirEntry, *TlfHandle, error)
 	// GetDirChildren returns a map of children in the directory,
 	// mapped to their EntryType, if the logged-in user has read
@@ -639,8 +639,9 @@ type Observer interface {
 	// updated locally, but not yet saved at the server.
 	LocalChange(ctx context.Context, node Node, write WriteRange)
 	// BatchChanges announces that the nodes have all been updated
-	// together atomically.
-	BatchChanges(ctx context.Context, tlfID TlfID, changes []NodeChange)
+	// together atomically.  Each NodeChange in changes affects the
+	// same top-level folder and branch.
+	BatchChanges(ctx context.Context, changes []NodeChange)
 	// TODO: Notify about changes in favorites list
 }
 
@@ -648,11 +649,11 @@ type Observer interface {
 type Notifier interface {
 	// RegisterForChanges declares that the given Observer wants to
 	// subscribe to updates for the given top-level folders.
-	RegisterForChanges(dirs []TlfID, obs Observer) error
+	RegisterForChanges(folderBranches []FolderBranch, obs Observer) error
 	// UnregisterFromChanges declares that the given Observer no
 	// longer wants to subscribe to updates for the given top-level
 	// folders.
-	UnregisterFromChanges(dirs []TlfID, obs Observer) error
+	UnregisterFromChanges(folderBranches []FolderBranch, obs Observer) error
 }
 
 // Config collects all the singleton instance instantiations needed to

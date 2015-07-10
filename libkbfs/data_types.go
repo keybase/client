@@ -620,12 +620,18 @@ const (
 	MasterBranch BranchName = ""
 )
 
+// FolderBranch represents a unique pair of top-level folder and a
+// branch of that folder.
+type FolderBranch struct {
+	Tlf    TlfID
+	Branch BranchName // master branch, by default
+}
+
 // path represents the full KBFS path to a particular location, so
 // that a flush can traverse backwards and fix up ids along the way.
 type path struct {
-	tlf    TlfID
-	branch BranchName // master branch, by default
-	path   []pathNode
+	FolderBranch
+	path []pathNode
 }
 
 // TailName returns the name of the final node in the Path.
@@ -650,16 +656,15 @@ func (p path) String() string {
 // ParentPath returns a new Path representing the parent subdirectory
 // of this Path.  Should not be called with a path of length 1.
 func (p path) parentPath() *path {
-	return &path{tlf: p.tlf, path: p.path[:len(p.path)-1]}
+	return &path{p.FolderBranch, p.path[:len(p.path)-1]}
 }
 
 // ChildPathNoPtr returns a new Path with the addition of a new entry
 // with the given name.  That final PathNode will have no BlockPointer.
 func (p path) ChildPathNoPtr(name string) *path {
 	child := &path{
-		tlf:    p.tlf,
-		branch: p.branch,
-		path:   make([]pathNode, len(p.path), len(p.path)+1),
+		FolderBranch: p.FolderBranch,
+		path:         make([]pathNode, len(p.path), len(p.path)+1),
 	}
 	copy(child.path, p.path)
 	child.path = append(child.path, pathNode{Name: name})
@@ -674,7 +679,7 @@ func (p path) hasPublic() bool {
 	// already public TODO: Ideally, we'd also check if there are no
 	// explicit readers, but for now we expect the caller to check
 	// that.
-	return len(p.path) == 1 && !p.tlf.IsPublic()
+	return len(p.path) == 1 && !p.Tlf.IsPublic()
 }
 
 // DirKeyBundle is a bundle of all the keys for a directory

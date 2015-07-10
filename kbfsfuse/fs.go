@@ -139,7 +139,7 @@ func (r *Root) Lookup(ctx context.Context, req *fuse.LookupRequest, resp *fuse.L
 
 	mdID := libkbfs.NullTlfID
 	if rootNode != nil {
-		mdID, _ = rootNode.GetFolderBranch()
+		mdID = rootNode.GetFolderBranch().Tlf
 	}
 	folder := &Folder{
 		fs: r.fs,
@@ -166,7 +166,7 @@ func (r *Root) getDirent(ctx context.Context, work <-chan libkbfs.TlfID, results
 				return nil
 			}
 			_, _, dh, err := r.fs.config.KBFSOps().GetRootNode(
-				ctx, tlfID, libkbfs.MasterBranch)
+				ctx, libkbfs.FolderBranch{tlfID, libkbfs.MasterBranch})
 			if err != nil {
 				return err
 			}

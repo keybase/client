@@ -18,7 +18,7 @@ func (fn *FakeObserver) LocalChange(ctx context.Context,
 }
 
 func (fn *FakeObserver) BatchChanges(
-	ctx context.Context, tlfID TlfID, nodeChanges []NodeChange) {
+	ctx context.Context, nodeChanges []NodeChange) {
 	fn.batchChanges = nodeChanges
 	fn.ctx = ctx
 }

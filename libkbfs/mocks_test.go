@@ -5,13 +5,12 @@ package libkbfs
 
 import (
 	fmt "fmt"
-	reflect "reflect"
-	time "time"
-
 	gomock "github.com/golang/mock/gomock"
 	libkb "github.com/keybase/client/go/libkb"
 	go0 "github.com/keybase/client/protocol/go"
 	context "golang.org/x/net/context"
+	reflect "reflect"
+	time "time"
 )
 
 // Mock of Block interface
@@ -76,6 +75,37 @@ func (_mr *_MockBlockContextRecorder) GetRefNonce() *gomock.Call {
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "GetRefNonce")
 }
 
+// Mock of NodeID interface
+type MockNodeID struct {
+	ctrl     *gomock.Controller
+	recorder *_MockNodeIDRecorder
+}
+
+// Recorder for MockNodeID (not exported)
+type _MockNodeIDRecorder struct {
+	mock *MockNodeID
+}
+
+func NewMockNodeID(ctrl *gomock.Controller) *MockNodeID {
+	mock := &MockNodeID{ctrl: ctrl}
+	mock.recorder = &_MockNodeIDRecorder{mock}
+	return mock
+}
+
+func (_m *MockNodeID) EXPECT() *_MockNodeIDRecorder {
+	return _m.recorder
+}
+
+func (_m *MockNodeID) ParentID() NodeID {
+	ret := _m.ctrl.Call(_m, "ParentID")
+	ret0, _ := ret[0].(NodeID)
+	return ret0
+}
+
+func (_mr *_MockNodeIDRecorder) ParentID() *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "ParentID")
+}
+
 // Mock of Node interface
 type MockNode struct {
 	ctrl     *gomock.Controller
@@ -97,19 +127,20 @@ func (_m *MockNode) EXPECT() *_MockNodeRecorder {
 	return _m.recorder
 }
 
-func (_m *MockNode) Forget() {
-	_m.ctrl.Call(_m, "Forget")
+func (_m *MockNode) GetID() NodeID {
+	ret := _m.ctrl.Call(_m, "GetID")
+	ret0, _ := ret[0].(NodeID)
+	return ret0
 }
 
-func (_mr *_MockNodeRecorder) Forget() *gomock.Call {
-	return _mr.mock.ctrl.RecordCall(_mr.mock, "Forget")
+func (_mr *_MockNodeRecorder) GetID() *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "GetID")
 }
 
-func (_m *MockNode) GetFolderBranch() (TlfID, BranchName) {
+func (_m *MockNode) GetFolderBranch() FolderBranch {
 	ret := _m.ctrl.Call(_m, "GetFolderBranch")
-	ret0, _ := ret[0].(TlfID)
-	ret1, _ := ret[1].(BranchName)
-	return ret0, ret1
+	ret0, _ := ret[0].(FolderBranch)
+	return ret0
 }
 
 func (_mr *_MockNodeRecorder) GetFolderBranch() *gomock.Call {
@@ -160,8 +191,8 @@ func (_mr *_MockKBFSOpsRecorder) GetOrCreateRootNodeForHandle(arg0, arg1, arg2 i
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "GetOrCreateRootNodeForHandle", arg0, arg1, arg2)
 }
 
-func (_m *MockKBFSOps) GetRootNode(ctx context.Context, tlfID TlfID, branch BranchName) (Node, DirEntry, *TlfHandle, error) {
-	ret := _m.ctrl.Call(_m, "GetRootNode", ctx, tlfID, branch)
+func (_m *MockKBFSOps) GetRootNode(ctx context.Context, folderBranch FolderBranch) (Node, DirEntry, *TlfHandle, error) {
+	ret := _m.ctrl.Call(_m, "GetRootNode", ctx, folderBranch)
 	ret0, _ := ret[0].(Node)
 	ret1, _ := ret[1].(DirEntry)
 	ret2, _ := ret[2].(*TlfHandle)
@@ -169,8 +200,8 @@ func (_m *MockKBFSOps) GetRootNode(ctx context.Context, tlfID TlfID, branch Bran
 	return ret0, ret1, ret2, ret3
 }
 
-func (_mr *_MockKBFSOpsRecorder) GetRootNode(arg0, arg1, arg2 interface{}) *gomock.Call {
-	return _mr.mock.ctrl.RecordCall(_mr.mock, "GetRootNode", arg0, arg1, arg2)
+func (_mr *_MockKBFSOpsRecorder) GetRootNode(arg0, arg1 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "GetRootNode", arg0, arg1)
 }
 
 func (_m *MockKBFSOps) GetDirChildren(ctx context.Context, dir Node) (map[string]EntryType, error) {
@@ -1471,12 +1502,12 @@ func (_mr *_MockObserverRecorder) LocalChange(arg0, arg1, arg2 interface{}) *gom
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "LocalChange", arg0, arg1, arg2)
 }
 
-func (_m *MockObserver) BatchChanges(ctx context.Context, tlfID TlfID, changes []NodeChange) {
-	_m.ctrl.Call(_m, "BatchChanges", ctx, tlfID, changes)
+func (_m *MockObserver) BatchChanges(ctx context.Context, changes []NodeChange) {
+	_m.ctrl.Call(_m, "BatchChanges", ctx, changes)
 }
 
-func (_mr *_MockObserverRecorder) BatchChanges(arg0, arg1, arg2 interface{}) *gomock.Call {
-	return _mr.mock.ctrl.RecordCall(_mr.mock, "BatchChanges", arg0, arg1, arg2)
+func (_mr *_MockObserverRecorder) BatchChanges(arg0, arg1 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "BatchChanges", arg0, arg1)
 }
 
 // Mock of Notifier interface
@@ -1500,8 +1531,8 @@ func (_m *MockNotifier) EXPECT() *_MockNotifierRecorder {
 	return _m.recorder
 }
 
-func (_m *MockNotifier) RegisterForChanges(dirs []TlfID, obs Observer) error {
-	ret := _m.ctrl.Call(_m, "RegisterForChanges", dirs, obs)
+func (_m *MockNotifier) RegisterForChanges(folderBranches []FolderBranch, obs Observer) error {
+	ret := _m.ctrl.Call(_m, "RegisterForChanges", folderBranches, obs)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
@@ -1510,8 +1541,8 @@ func (_mr *_MockNotifierRecorder) RegisterForChanges(arg0, arg1 interface{}) *go
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "RegisterForChanges", arg0, arg1)
 }
 
-func (_m *MockNotifier) UnregisterFromChanges(dirs []TlfID, obs Observer) error {
-	ret := _m.ctrl.Call(_m, "UnregisterFromChanges", dirs, obs)
+func (_m *MockNotifier) UnregisterFromChanges(folderBranches []FolderBranch, obs Observer) error {
+	ret := _m.ctrl.Call(_m, "UnregisterFromChanges", folderBranches, obs)
 	ret0, _ := ret[0].(error)
 	return ret0
 }

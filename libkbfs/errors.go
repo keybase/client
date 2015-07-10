@@ -164,7 +164,7 @@ type NotDirError struct {
 // Error implements the error interface for NotDirError
 func (e NotDirError) Error() string {
 	return fmt.Sprintf("%s is not a directory (in folder %s)",
-		&e.path, e.path.tlf)
+		&e.path, e.path.Tlf)
 }
 
 // NotFileError indicates that the user tried to perform a
@@ -175,7 +175,7 @@ type NotFileError struct {
 
 // Error implements the error interface for NotFileError
 func (e NotFileError) Error() string {
-	return fmt.Sprintf("%s is not a file (folder %s)", e.path, e.path.tlf)
+	return fmt.Sprintf("%s is not a file (folder %s)", e.path, e.path.Tlf)
 }
 
 // BadDataError indicates that KBFS is storing corrupt data for a block.
@@ -289,7 +289,7 @@ func (e NewDataVersionError) Error() string {
 	return fmt.Sprintf(
 		"The data at path %s is of a version (%d) that we can't read "+
 			"(in folder %s)",
-		e.path, e.DataVer, e.path.tlf)
+		e.path, e.DataVer, e.path.Tlf)
 }
 
 // InvalidKeyGenerationError indicates that an invalid key generation
@@ -433,16 +433,14 @@ func (e InvalidPublicTLFOperation) Error() string {
 // WrongOpsError indicates that an unexpected path got passed into a
 // FolderBranchOps instance
 type WrongOpsError struct {
-	nodeID     TlfID
-	nodeBranch BranchName
-	opsID      TlfID
-	opsBranch  BranchName
+	nodeFB FolderBranch
+	opsFB  FolderBranch
 }
 
 // Error implements the error interface for WrongOpsError.
 func (e WrongOpsError) Error() string {
 	return fmt.Sprintf("Ops for folder %v, branch %s, was given path %s, "+
-		"branch %s", e.opsID, e.opsBranch, e.nodeID, e.nodeBranch)
+		"branch %s", e.opsFB.Tlf, e.opsFB.Branch, e.nodeFB.Tlf, e.nodeFB.Branch)
 }
 
 // CanceledError indicates that the operation was canceled.

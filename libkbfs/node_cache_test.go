@@ -8,7 +8,7 @@ import (
 func setupNodeCache(t *testing.T, id TlfID, branch BranchName, flat bool) (
 	ncs *nodeCacheStandard, parentNode Node, childNode1 Node, childNode2 Node,
 	childPath1 []pathNode, childPath2 []pathNode) {
-	ncs = newNodeCacheStandard(id, branch)
+	ncs = newNodeCacheStandard(FolderBranch{id, branch})
 
 	parentPtr := BlockPointer{ID: BlockID{0}}
 	var err error
@@ -140,7 +140,7 @@ func TestNodeCacheGetOrCreateSuccess(t *testing.T) {
 
 // Tests that a child can't be created with an unknown parent.
 func TestNodeCacheGetOrCreateNoParent(t *testing.T) {
-	ncs := newNodeCacheStandard(TlfID{0}, "")
+	ncs := newNodeCacheStandard(FolderBranch{TlfID{0}, ""})
 
 	parentPtr := BlockPointer{ID: BlockID{0}}
 	parentNode, err := ncs.GetOrCreate(parentPtr, "", nil)
@@ -161,7 +161,7 @@ func TestNodeCacheGetOrCreateNoParent(t *testing.T) {
 
 // Tests that UpdatePointer works
 func TestNodeCacheUpdatePointer(t *testing.T) {
-	ncs := newNodeCacheStandard(TlfID{0}, "")
+	ncs := newNodeCacheStandard(FolderBranch{TlfID{0}, ""})
 
 	parentPtr := BlockPointer{ID: BlockID{0}}
 	parentNode, err := ncs.GetOrCreate(parentPtr, "", nil)
@@ -241,11 +241,11 @@ func checkNodeCachePath(t *testing.T, id TlfID, branch BranchName,
 			t.Errorf("Bad node on path, index %d: %v vs %v", i, path.path[i], n)
 		}
 	}
-	if path.tlf != id {
-		t.Errorf("Wrong top dir: %v vs %v", path.tlf, id)
+	if path.Tlf != id {
+		t.Errorf("Wrong top dir: %v vs %v", path.Tlf, id)
 	}
-	if path.branch != BranchName(branch) {
-		t.Errorf("Wrong branch: %s vs %s", path.branch, branch)
+	if path.Branch != BranchName(branch) {
+		t.Errorf("Wrong branch: %s vs %s", path.Branch, branch)
 	}
 }
 

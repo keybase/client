@@ -67,7 +67,8 @@ func TestKBFSOpsConcurDoubleMDGet(t *testing.T) {
 	ops.writerLock = cl
 	for i := 0; i < n; i++ {
 		go func() {
-			_, _, _, err := config.KBFSOps().GetRootNode(ctx, dir, MasterBranch)
+			_, _, _, err := config.KBFSOps().
+				GetRootNode(ctx, FolderBranch{dir, MasterBranch})
 			c <- err
 		}()
 	}

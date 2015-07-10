@@ -50,6 +50,6 @@ func (n *nodeStandard) GetID() NodeID {
 	return n.core
 }
 
-func (n *nodeStandard) GetFolderBranch() (TlfID, BranchName) {
-	return n.core.cache.id, n.core.cache.branch
+func (n *nodeStandard) GetFolderBranch() FolderBranch {
+	return n.core.cache.folderBranch
 }

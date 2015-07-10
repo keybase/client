@@ -7,19 +7,12 @@ import (
 	"golang.org/x/net/context"
 )
 
-// opID is a key for a particular Ops data structure, corresponding to
-// a TLF ID and a branch name in that folder.
-type opID struct {
-	tlf    TlfID
-	branch BranchName
-}
-
 // KBFSOpsStandard implements the KBFSOps interface, and is go-routine
 // safe by forwarding requests to individual per-folder-branch
 // handlers that are go-routine-safe.
 type KBFSOpsStandard struct {
 	config  Config
-	ops     map[opID]*FolderBranchOps
+	ops     map[FolderBranch]*FolderBranchOps
 	opsLock sync.RWMutex
 }
 
@@ -29,7 +22,7 @@ var _ KBFSOps = (*KBFSOpsStandard)(nil)
 func NewKBFSOpsStandard(config Config) *KBFSOpsStandard {
 	return &KBFSOpsStandard{
 		config: config,
-		ops:    make(map[opID]*FolderBranchOps),
+		ops:    make(map[FolderBranch]*FolderBranchOps),
 	}
 }
 
@@ -47,9 +40,9 @@ func (fs *KBFSOpsStandard) GetFavDirs(ctx context.Context) ([]TlfID, error) {
 	return mdops.GetFavorites()
 }
 
-func (fs *KBFSOpsStandard) getOps(id opID) *FolderBranchOps {
+func (fs *KBFSOpsStandard) getOps(fb FolderBranch) *FolderBranchOps {
 	fs.opsLock.RLock()
-	if ops, ok := fs.ops[id]; ok {
+	if ops, ok := fs.ops[fb]; ok {
 		fs.opsLock.RUnlock()
 		return ops
 	}
@@ -58,20 +51,18 @@ func (fs *KBFSOpsStandard) getOps(id opID) *FolderBranchOps {
 	fs.opsLock.Lock()
 	defer fs.opsLock.Unlock()
 	// look it up again in case someone else got the lock
-	ops, ok := fs.ops[id]
+	ops, ok := fs.ops[fb]
 	if !ok {
 		// TODO: add some interface for specifying the type of the
 		// branch; for now assume online and read-write.
-		ops = NewFolderBranchOps(fs.config, id.tlf, id.branch, standard)
-		fs.ops[id] = ops
+		ops = NewFolderBranchOps(fs.config, fb, standard)
+		fs.ops[fb] = ops
 	}
 	return ops
 }
 
 func (fs *KBFSOpsStandard) getOpsByNode(node Node) *FolderBranchOps {
-	id, branch := node.GetFolderBranch()
-	opID := opID{id, branch}
-	return fs.getOps(opID)
+	return fs.getOps(node.GetFolderBranch())
 }
 
 // GetOrCreateRootNodeForHandle implements the KBFSOps interface for
@@ -87,7 +78,8 @@ func (fs *KBFSOpsStandard) GetOrCreateRootNodeForHandle(
 		return
 	}
 
-	ops := fs.getOps(opID{tlf: md.ID, branch: branch})
+	fb := FolderBranch{Tlf: md.ID, Branch: branch}
+	ops := fs.getOps(fb)
 	if branch == MasterBranch {
 		// For now, only the master branch can be initialized with a
 		// branch new MD object.
@@ -97,15 +89,15 @@ func (fs *KBFSOpsStandard) GetOrCreateRootNodeForHandle(
 		}
 	}
 
-	node, de, _, err = ops.GetRootNode(ctx, md.ID, branch)
+	node, de, _, err = ops.GetRootNode(ctx, fb)
 	return
 }
 
 // GetRootNode implements the KBFSOps interface for KBFSOpsStandard
-func (fs *KBFSOpsStandard) GetRootNode(ctx context.Context, tlfID TlfID,
-	branch BranchName) (Node, DirEntry, *TlfHandle, error) {
-	ops := fs.getOps(opID{tlf: tlfID, branch: branch})
-	return ops.GetRootNode(ctx, tlfID, branch)
+func (fs *KBFSOpsStandard) GetRootNode(ctx context.Context,
+	folderBranch FolderBranch) (Node, DirEntry, *TlfHandle, error) {
+	ops := fs.getOps(folderBranch)
+	return ops.GetRootNode(ctx, folderBranch)
 }
 
 // GetDirChildren implements the KBFSOps interface for KBFSOpsStandard
@@ -170,11 +162,11 @@ func (fs *KBFSOpsStandard) RemoveEntry(
 func (fs *KBFSOpsStandard) Rename(
 	ctx context.Context, oldParent Node, oldName string, newParent Node,
 	newName string) error {
-	oldID, oldBranch := oldParent.GetFolderBranch()
-	newID, newBranch := newParent.GetFolderBranch()
+	oldFB := oldParent.GetFolderBranch()
+	newFB := newParent.GetFolderBranch()
 
 	// only works for nodes within the same topdir
-	if (oldID != newID) || (oldBranch != newBranch) {
+	if oldFB != newFB {
 		return RenameAcrossDirsError{}
 	}
 
@@ -229,10 +221,10 @@ var _ Notifier = (*KBFSOpsStandard)(nil)
 
 // RegisterForChanges implements the Notifer interface for KBFSOpsStandard
 func (fs *KBFSOpsStandard) RegisterForChanges(
-	dirs []TlfID, obs Observer) error {
-	for _, dir := range dirs {
+	folderBranches []FolderBranch, obs Observer) error {
+	for _, fb := range folderBranches {
 		// TODO: add branch parameter to notifier interface
-		ops := fs.getOps(opID{tlf: dir, branch: MasterBranch})
+		ops := fs.getOps(fb)
 		return ops.RegisterForChanges(obs)
 	}
 	return nil
@@ -240,10 +232,10 @@ func (fs *KBFSOpsStandard) RegisterForChanges(
 
 // UnregisterFromChanges implements the Notifer interface for KBFSOpsStandard
 func (fs *KBFSOpsStandard) UnregisterFromChanges(
-	dirs []TlfID, obs Observer) error {
-	for _, dir := range dirs {
+	folderBranches []FolderBranch, obs Observer) error {
+	for _, fb := range folderBranches {
 		// TODO: add branch parameter to notifier interface
-		ops := fs.getOps(opID{tlf: dir, branch: MasterBranch})
+		ops := fs.getOps(fb)
 		return ops.UnregisterFromChanges(obs)
 	}
 	return nil

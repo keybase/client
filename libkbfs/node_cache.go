@@ -11,19 +11,17 @@ type nodeCacheEntry struct {
 // the reference counts of nodeStandard Nodes, and using their member
 // fields to construct paths.
 type nodeCacheStandard struct {
-	id     TlfID
-	branch BranchName
-	nodes  map[BlockPointer]*nodeCacheEntry
-	lock   sync.RWMutex
+	folderBranch FolderBranch
+	nodes        map[BlockPointer]*nodeCacheEntry
+	lock         sync.RWMutex
 }
 
 var _ NodeCache = (*nodeCacheStandard)(nil)
 
-func newNodeCacheStandard(id TlfID, branch BranchName) *nodeCacheStandard {
+func newNodeCacheStandard(fb FolderBranch) *nodeCacheStandard {
 	return &nodeCacheStandard{
-		id:     id,
-		branch: branch,
-		nodes:  make(map[BlockPointer]*nodeCacheEntry),
+		folderBranch: fb,
+		nodes:        make(map[BlockPointer]*nodeCacheEntry),
 	}
 }
 
@@ -201,7 +199,6 @@ func (ncs *nodeCacheStandard) PathFromNode(node Node) (p path) {
 	}
 
 	// TODO: would it make any sense to cache the constructed path?
-	p.tlf = ncs.id
-	p.branch = ncs.branch
+	p.FolderBranch = ncs.folderBranch
 	return
 }

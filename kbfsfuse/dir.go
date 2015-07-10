@@ -97,7 +97,7 @@ func (d *Dir) Lookup(ctx context.Context, req *fuse.LookupRequest, resp *fuse.Lo
 		if err != nil {
 			return nil, err
 		}
-		id, _ := rootNode.GetFolderBranch()
+		id := rootNode.GetFolderBranch().Tlf
 		pubFolder := &Folder{
 			fs: d.folder.fs,
 			id: id,

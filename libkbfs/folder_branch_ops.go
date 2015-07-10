@@ -99,8 +99,7 @@ type syncInfo struct {
 // the sync.)
 type FolderBranchOps struct {
 	config           Config
-	id               TlfID
-	branch           BranchName
+	folderBranch     FolderBranch
 	bType            branchType
 	head             *RootMetadata
 	observers        []Observer
@@ -152,12 +151,11 @@ type FolderBranchOps struct {
 var _ KBFSOps = (*FolderBranchOps)(nil)
 
 // NewFolderBranchOps constructs a new FolderBranchOps object.
-func NewFolderBranchOps(config Config, id TlfID, branch BranchName,
+func NewFolderBranchOps(config Config, fb FolderBranch,
 	bType branchType) *FolderBranchOps {
 	return &FolderBranchOps{
 		config:         config,
-		id:             id,
-		branch:         branch,
+		folderBranch:   fb,
 		bType:          bType,
 		observers:      make([]Observer, 0),
 		copyFileBlocks: make(map[BlockPointer]bool),
@@ -166,7 +164,7 @@ func NewFolderBranchOps(config Config, id TlfID, branch BranchName,
 		unrefCache: make(map[BlockPointer]*syncInfo),
 		deCache:    make(map[BlockPointer]map[BlockPointer]DirEntry),
 		writerLock: &sync.Mutex{},
-		nodeCache:  newNodeCacheStandard(id, branch),
+		nodeCache:  newNodeCacheStandard(fb),
 		state:      cleanState,
 	}
 }
@@ -175,6 +173,14 @@ func NewFolderBranchOps(config Config, id TlfID, branch BranchName,
 // been launched by FolderBranchOps.
 func (fbo *FolderBranchOps) Shutdown() {
 	// Nothing to do right now
+}
+
+func (fbo *FolderBranchOps) id() TlfID {
+	return fbo.folderBranch.Tlf
+}
+
+func (fbo *FolderBranchOps) branch() BranchName {
+	return fbo.folderBranch.Branch
 }
 
 // GetFavDirs implements the KBFSOps interface for FolderBranchOps
@@ -247,7 +253,7 @@ func (fbo *FolderBranchOps) getMDLocked(rtype reqType) (
 		// TODO: it might make sense to persist our last-known
 		// unmerged ID, so we can avoid most or all of these fetches.
 		unmergedMDs, more, err =
-			mdops.GetUnmergedSince(fbo.id, cpk.KID, lastMdID, maxAtATime)
+			mdops.GetUnmergedSince(fbo.id(), cpk.KID, lastMdID, maxAtATime)
 		if err != nil {
 			return nil, err
 		}
@@ -278,7 +284,7 @@ func (fbo *FolderBranchOps) getMDLocked(rtype reqType) (
 		fbo.transitionStagedLocked(true)
 	} else {
 		// no unmerged MDs for this device, so just get the current head
-		md, err = mdops.GetForTLF(fbo.id)
+		md, err = mdops.GetForTLF(fbo.id())
 		if err != nil {
 			return nil, err
 		}
@@ -442,9 +448,9 @@ func (fbo *FolderBranchOps) GetOrCreateRootNodeForHandle(
 }
 
 func (fbo *FolderBranchOps) checkNode(node Node) error {
-	id, branch := node.GetFolderBranch()
-	if id != fbo.id || branch != fbo.branch {
-		return WrongOpsError{fbo.id, fbo.branch, id, branch}
+	fb := node.GetFolderBranch()
+	if fb != fbo.folderBranch {
+		return WrongOpsError{fbo.folderBranch, fb}
 	}
 	return nil
 }
@@ -453,8 +459,9 @@ func (fbo *FolderBranchOps) checkNode(node Node) error {
 // initialized yet; if not, it does so.
 func (fbo *FolderBranchOps) CheckForNewMDAndInit(
 	ctx context.Context, md *RootMetadata) error {
-	if md.ID != fbo.id {
-		return WrongOpsError{fbo.id, fbo.branch, md.ID, MasterBranch}
+	fb := FolderBranch{md.ID, MasterBranch}
+	if fb != fbo.folderBranch {
+		return WrongOpsError{fbo.folderBranch, fb}
 	}
 
 	if md.data.Dir.Type == Dir {
@@ -485,10 +492,11 @@ func (fbo *FolderBranchOps) execReadThenWrite(f func(reqType) error) error {
 }
 
 // GetRootNode implements the KBFSOps interface for FolderBranchOps
-func (fbo *FolderBranchOps) GetRootNode(ctx context.Context, tlfID TlfID,
-	branch BranchName) (node Node, de DirEntry, handle *TlfHandle, err error) {
-	if tlfID != fbo.id || branch != fbo.branch {
-		err = WrongOpsError{fbo.id, fbo.branch, tlfID, branch}
+func (fbo *FolderBranchOps) GetRootNode(ctx context.Context,
+	folderBranch FolderBranch) (
+	node Node, de DirEntry, handle *TlfHandle, err error) {
+	if folderBranch != fbo.folderBranch {
+		err = WrongOpsError{fbo.folderBranch, folderBranch}
 		return
 	}
 
@@ -520,7 +528,7 @@ type makeNewBlock func() Block
 func (fbo *FolderBranchOps) getBlockLocked(md *RootMetadata,
 	dir path, newBlock makeNewBlock, rtype reqType) (Block, error) {
 	bcache := fbo.config.BlockCache()
-	if block, err := bcache.Get(dir.tailPointer(), dir.branch); err == nil {
+	if block, err := bcache.Get(dir.tailPointer(), dir.Branch); err == nil {
 		return block, nil
 	}
 
@@ -580,7 +588,7 @@ func (fbo *FolderBranchOps) getDirLocked(
 		return nil, NotDirError{dir}
 	}
 	if rtype == write && !fbo.config.BlockCache().IsDirty(
-		dir.tailPointer(), dir.branch) {
+		dir.tailPointer(), dir.Branch) {
 		// copy the block if it's for writing
 		dblock = dblock.DeepCopy()
 	}
@@ -612,7 +620,7 @@ func (fbo *FolderBranchOps) getFileLocked(
 		// copy the block if it's for writing, and either the block is
 		// not yet dirty or the block is currently being sync'd and
 		// needs a copy even though it's already dirty
-		if !fbo.config.BlockCache().IsDirty(ptr, file.branch) ||
+		if !fbo.config.BlockCache().IsDirty(ptr, file.Branch) ||
 			fbo.copyFileBlocks[ptr] {
 			fblock = fblock.DeepCopy()
 		}
@@ -916,9 +924,8 @@ func (fbo *FolderBranchOps) syncBlockLocked(md *RootMetadata,
 	currBlock := newBlock
 	currName := name
 	newPath := path{
-		tlf:    dir.tlf,
-		branch: dir.branch,
-		path:   make([]pathNode, 0, len(dir.path)),
+		FolderBranch: dir.FolderBranch,
+		path:         make([]pathNode, 0, len(dir.path)),
 	}
 	bps := newBlockPutState(len(dir.path))
 	refPath := *dir.ChildPathNoPtr(name)
@@ -952,9 +959,8 @@ func (fbo *FolderBranchOps) syncBlockLocked(md *RootMetadata,
 			}
 		} else {
 			prevDir := path{
-				tlf:    dir.tlf,
-				branch: dir.branch,
-				path:   dir.path[:prevIdx+1],
+				FolderBranch: dir.FolderBranch,
+				path:         dir.path[:prevIdx+1],
 			}
 
 			// first, check the localBcache, which could contain
@@ -1137,7 +1143,7 @@ func (fbo *FolderBranchOps) finalizeWriteLocked(ctx context.Context,
 	doUnmergedPut := true
 	if !fbo.staged {
 		// only do a normal Put if we're not already staged.
-		err = mdops.Put(newPaths[0].tlf, md, nilKID, NullMdID)
+		err = mdops.Put(newPaths[0].Tlf, md, nilKID, NullMdID)
 		_, doUnmergedPut = err.(OutOfDateMDError)
 		if err != nil && !doUnmergedPut {
 			return err
@@ -1150,7 +1156,7 @@ func (fbo *FolderBranchOps) finalizeWriteLocked(ctx context.Context,
 		if err != nil {
 			return nil
 		}
-		err = mdops.PutUnmerged(newPaths[0].tlf, md, cpk.KID)
+		err = mdops.PutUnmerged(newPaths[0].Tlf, md, cpk.KID)
 		if err != nil {
 			return nil
 		}
@@ -1607,7 +1613,7 @@ func (fbo *FolderBranchOps) renameLocked(
 	oldIsCommon := oldParent.tailPointer() == commonAncestor
 	newIsCommon := newParent.tailPointer() == commonAncestor
 
-	newOldPath := path{tlf: oldParent.tlf}
+	newOldPath := path{FolderBranch: oldParent.FolderBranch}
 	var oldBps *blockPutState
 	if oldIsCommon {
 		if newIsCommon {
@@ -1677,9 +1683,7 @@ func (fbo *FolderBranchOps) Rename(
 	newParentPath := fbo.nodeCache.PathFromNode(newParent)
 
 	// only works for paths within the same topdir
-	if (oldParentPath.tlf != newParentPath.tlf) ||
-		(oldParentPath.branch != newParentPath.branch) ||
-		(oldParentPath.path[0].ID != newParentPath.path[0].ID) {
+	if oldParentPath.FolderBranch != newParentPath.FolderBranch {
 		return RenameAcrossDirsError{}
 	}
 
@@ -1934,7 +1938,7 @@ func (fbo *FolderBranchOps) writeDataLocked(
 					},
 				}
 				if err := bcache.PutDirty(
-					file.tailPointer(), file.branch, fblock); err != nil {
+					file.tailPointer(), file.Branch, fblock); err != nil {
 					return err
 				}
 				ptr = fblock.IPtrs[0].BlockPointer
@@ -1943,7 +1947,7 @@ func (fbo *FolderBranchOps) writeDataLocked(
 			// Make a new right block and update the parent's
 			// indirect block list
 			if err := fbo.newRightBlockLocked(file.tailPointer(),
-				file.branch, fblock,
+				file.Branch, fblock,
 				startOff+int64(len(block.Contents)), md); err != nil {
 				return err
 			}
@@ -1968,7 +1972,7 @@ func (fbo *FolderBranchOps) writeDataLocked(
 			parentBlock.IPtrs[indexInParent].EncodedSize = 0
 		}
 		// keep the old block ID while it's dirty
-		if err = fbo.cacheBlockIfNotYetDirtyLocked(ptr, file.branch,
+		if err = fbo.cacheBlockIfNotYetDirtyLocked(ptr, file.Branch,
 			block); err != nil {
 			return err
 		}
@@ -1982,7 +1986,7 @@ func (fbo *FolderBranchOps) writeDataLocked(
 		// being sync'd, since this top-most block will always be in
 		// the copyFileBlocks set.
 		if err = fbo.cacheBlockIfNotYetDirtyLocked(
-			file.tailPointer(), file.branch, fblock); err != nil {
+			file.tailPointer(), file.Branch, fblock); err != nil {
 			return err
 		}
 	}
@@ -2105,7 +2109,7 @@ func (fbo *FolderBranchOps) truncateLocked(
 		parentBlock.IPtrs = parentBlock.IPtrs[:indexInParent+1]
 		// always make the parent block dirty, so we will sync it
 		if err = fbo.cacheBlockIfNotYetDirtyLocked(
-			file.tailPointer(), file.branch, parentBlock); err != nil {
+			file.tailPointer(), file.Branch, parentBlock); err != nil {
 			return err
 		}
 	}
@@ -2118,7 +2122,7 @@ func (fbo *FolderBranchOps) truncateLocked(
 		// being sync'd, since this top-most block will always be in
 		// the copyFileBlocks set.
 		if err = fbo.cacheBlockIfNotYetDirtyLocked(
-			file.tailPointer(), file.branch, fblock); err != nil {
+			file.tailPointer(), file.Branch, fblock); err != nil {
 			return err
 		}
 	}
@@ -2147,7 +2151,7 @@ func (fbo *FolderBranchOps) truncateLocked(
 
 	// Keep the old block ID while it's dirty.
 	if err = fbo.cacheBlockIfNotYetDirtyLocked(
-		ptr, file.branch, block); err != nil {
+		ptr, file.Branch, block); err != nil {
 		return err
 	}
 
@@ -2322,7 +2326,7 @@ func (fbo *FolderBranchOps) syncLocked(ctx context.Context, file path) error {
 	// if the cache for this file isn't dirty, we're done
 	fbo.blockLock.RLock()
 	bcache := fbo.config.BlockCache()
-	if !bcache.IsDirty(file.tailPointer(), file.branch) {
+	if !bcache.IsDirty(file.tailPointer(), file.Branch) {
 		fbo.blockLock.RUnlock()
 		return nil
 	}
@@ -2386,7 +2390,7 @@ func (fbo *FolderBranchOps) syncLocked(ctx context.Context, file path) error {
 	if fblock.IsInd {
 		for i := 0; i < len(fblock.IPtrs); i++ {
 			ptr := fblock.IPtrs[i]
-			isDirty := bcache.IsDirty(ptr.BlockPointer, file.branch)
+			isDirty := bcache.IsDirty(ptr.BlockPointer, file.Branch)
 			if (ptr.EncodedSize > 0) && isDirty {
 				return InconsistentEncodedSizeError{ptr.BlockInfo}
 			}
@@ -2410,7 +2414,7 @@ func (fbo *FolderBranchOps) syncLocked(ctx context.Context, file path) error {
 					if !more {
 						// need to make a new block
 						if err := fbo.newRightBlockLocked(
-							file.tailPointer(), file.branch, fblock,
+							file.tailPointer(), file.Branch, fblock,
 							endOfBlock, md); err != nil {
 							return err
 						}
@@ -2423,7 +2427,7 @@ func (fbo *FolderBranchOps) syncLocked(ctx context.Context, file path) error {
 					}
 					rblock.Contents = append(extraBytes, rblock.Contents...)
 					if err = fbo.cacheBlockIfNotYetDirtyLocked(
-						rPtr, file.branch, rblock); err != nil {
+						rPtr, file.Branch, rblock); err != nil {
 						return err
 					}
 					fblock.IPtrs[i+1].Off = ptr.Off + int64(len(block.Contents))
@@ -2448,7 +2452,7 @@ func (fbo *FolderBranchOps) syncLocked(ctx context.Context, file path) error {
 					rblock.Contents = rblock.Contents[nCopied:]
 					if len(rblock.Contents) > 0 {
 						if err = fbo.cacheBlockIfNotYetDirtyLocked(
-							rPtr, file.branch, rblock); err != nil {
+							rPtr, file.Branch, rblock); err != nil {
 							return err
 						}
 						fblock.IPtrs[i+1].Off =
@@ -2474,7 +2478,7 @@ func (fbo *FolderBranchOps) syncLocked(ctx context.Context, file path) error {
 
 		for i, ptr := range fblock.IPtrs {
 			// TODO: parallelize these?
-			isDirty := bcache.IsDirty(ptr.BlockPointer, file.branch)
+			isDirty := bcache.IsDirty(ptr.BlockPointer, file.Branch)
 			if (ptr.EncodedSize > 0) && isDirty {
 				return &InconsistentEncodedSizeError{ptr.BlockInfo}
 			}
@@ -2499,7 +2503,7 @@ func (fbo *FolderBranchOps) syncLocked(ctx context.Context, file path) error {
 				localPtr := ptr.BlockPointer
 				deferredDirtyDeletes =
 					append(deferredDirtyDeletes, func() error {
-						return bcache.DeleteDirty(localPtr, file.branch)
+						return bcache.DeleteDirty(localPtr, file.Branch)
 					})
 
 				fblock.IPtrs[i].BlockInfo = newInfo
@@ -2573,7 +2577,7 @@ func (fbo *FolderBranchOps) syncLocked(ctx context.Context, file path) error {
 			return err
 		}
 		deferredDirtyDeletes = append(deferredDirtyDeletes, func() error {
-			return bcache.DeleteDirty(file.tailPointer(), file.branch)
+			return bcache.DeleteDirty(file.tailPointer(), file.Branch)
 		})
 		return nil
 	}()
@@ -2794,6 +2798,6 @@ func (fbo *FolderBranchOps) notifyBatch(ctx context.Context, md *RootMetadata) {
 	fbo.obsLock.RLock()
 	defer fbo.obsLock.RUnlock()
 	for _, obs := range fbo.observers {
-		obs.BatchChanges(ctx, fbo.id, changes)
+		obs.BatchChanges(ctx, changes)
 	}
 }

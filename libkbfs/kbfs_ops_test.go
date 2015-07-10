@@ -168,7 +168,8 @@ func makeID(t *testing.T, config *ConfigMock, public bool) (keybase1.UID, TlfID,
 }
 
 func getOps(config Config, id TlfID) *FolderBranchOps {
-	return config.KBFSOps().(*KBFSOpsStandard).getOps(opID{id, MasterBranch})
+	return config.KBFSOps().(*KBFSOpsStandard).
+		getOps(FolderBranch{id, MasterBranch})
 }
 
 func makeIDAndRMD(t *testing.T, config *ConfigMock) (
@@ -181,7 +182,8 @@ func makeIDAndRMD(t *testing.T, config *ConfigMock) (
 	ops.head = rmd
 	rmd.SerializedPrivateMetadata = make([]byte, 1)
 	config.mockMdcache.EXPECT().Get(rmd.mdID).AnyTimes().Return(rmd, nil)
-	config.Notifier().RegisterForChanges([]TlfID{id}, config.observer)
+	config.Notifier().RegisterForChanges(
+		[]FolderBranch{FolderBranch{id, MasterBranch}}, config.observer)
 	return userID, id, rmd
 }
 
@@ -192,15 +194,16 @@ func TestKBFSOpsGetRootNodeCacheSuccess(t *testing.T) {
 	_, id, rmd := makeIDAndRMD(t, config)
 	rmd.data.Dir.Type = Dir
 
-	n, de, h, err := config.KBFSOps().GetRootNode(ctx, id, MasterBranch)
+	n, de, h, err := config.KBFSOps().
+		GetRootNode(ctx, FolderBranch{id, MasterBranch})
 	if err != nil {
 		t.Errorf("Got error on root MD: %v", err)
 	}
 	ops := getOps(config, id)
 	p := ops.nodeCache.PathFromNode(n)
 
-	if p.tlf != id {
-		t.Errorf("Got bad MD back: directory %v", p.tlf)
+	if p.Tlf != id {
+		t.Errorf("Got bad MD back: directory %v", p.Tlf)
 	} else if len(p.path) != 1 {
 		t.Errorf("Got bad MD back: path size %d", len(p.path))
 	} else if p.path[0].ID != rmd.data.Dir.ID {
@@ -292,7 +295,8 @@ func testKBFSOpsGetRootNodeCreateNewSuccess(t *testing.T, public bool) {
 	config.mockMdops.EXPECT().Put(id, rmd, nilKID, NullMdID).Return(nil)
 	config.mockMdcache.EXPECT().Put(rmd.mdID, rmd).Return(nil)
 
-	n, de, h, err := config.KBFSOps().GetRootNode(ctx, id, MasterBranch)
+	n, de, h, err := config.KBFSOps().
+		GetRootNode(ctx, FolderBranch{id, MasterBranch})
 
 	if err != nil {
 		t.Errorf("Got error on root MD: %v", err)
@@ -300,8 +304,8 @@ func testKBFSOpsGetRootNodeCreateNewSuccess(t *testing.T, public bool) {
 	ops := getOps(config, id)
 	p := ops.nodeCache.PathFromNode(n)
 
-	if p.tlf != id {
-		t.Errorf("Got bad MD back: directory %v", p.tlf)
+	if p.Tlf != id {
+		t.Errorf("Got bad MD back: directory %v", p.Tlf)
 	} else if len(p.path) != 1 {
 		t.Errorf("Got bad MD back: path size %d", len(p.path))
 	} else if p.path[0].ID != rootPtr.ID {
@@ -361,7 +365,8 @@ func TestKBFSOpsGetRootMDCreateNewFailNonWriter(t *testing.T) {
 		fmt.Sprintf("user_%s", userID), h.ToString(config)}
 
 	if _, _, _, err :=
-		config.KBFSOps().GetRootNode(ctx, id, MasterBranch); err == nil {
+		config.KBFSOps().
+			GetRootNode(ctx, FolderBranch{id, MasterBranch}); err == nil {
 		t.Errorf("Got no expected error on root MD")
 	} else if err.Error() != expectedErr.Error() {
 		t.Errorf("Got unexpected error on root MD: %v", err)
@@ -394,8 +399,8 @@ func TestKBFSOpsGetRootMDForHandleExisting(t *testing.T) {
 		t.Errorf("Got error on root MD for handle: %v", err)
 	}
 	p := ops.nodeCache.PathFromNode(n)
-	if p.tlf != id {
-		t.Errorf("Got bad dir id back: %v", p.tlf)
+	if p.Tlf != id {
+		t.Errorf("Got bad dir id back: %v", p.Tlf)
 	} else if len(p.path) != 1 {
 		t.Errorf("Got bad MD back: path size %d", len(p.path))
 	} else if p.path[0].ID != rmd.data.Dir.ID {
@@ -470,7 +475,7 @@ func TestKBFSOpsGetBaseDirChildrenCacheSuccess(t *testing.T) {
 	dirBlock.Children["a"] = DirEntry{Type: File}
 	dirBlock.Children["b"] = DirEntry{Type: Dir}
 	node := pathNode{makeBP(rootID, rmd, config, u), ""}
-	p := path{tlf: id, path: []pathNode{node}}
+	p := path{FolderBranch{Tlf: id}, []pathNode{node}}
 	config.BlockCache().Put(rootID, dirBlock)
 	ops := getOps(config, id)
 	n := nodeFromPath(ops, p)
@@ -500,7 +505,7 @@ func TestKBFSOpsGetBaseDirChildrenUncachedSuccess(t *testing.T) {
 	dirBlock := NewDirBlock().(*DirBlock)
 	blockPtr := makeBP(rootID, rmd, config, u)
 	node := pathNode{blockPtr, ""}
-	p := path{tlf: id, path: []pathNode{node}}
+	p := path{FolderBranch{Tlf: id}, []pathNode{node}}
 	ops := getOps(config, id)
 	n := nodeFromPath(ops, p)
 
@@ -526,7 +531,7 @@ func TestKBFSOpsGetBaseDirChildrenUncachedFailNonReader(t *testing.T) {
 
 	rootID := BlockID{42}
 	node := pathNode{makeBP(rootID, rmd, config, userID), ""}
-	p := path{tlf: id, path: []pathNode{node}}
+	p := path{FolderBranch{Tlf: id}, []pathNode{node}}
 	ops := getOps(config, id)
 	n := nodeFromPath(ops, p)
 
@@ -554,7 +559,7 @@ func TestKBFSOpsGetBaseDirChildrenUncachedFailMissingBlock(t *testing.T) {
 	dirBlock := NewDirBlock().(*DirBlock)
 	blockPtr := makeBP(rootID, rmd, config, u)
 	node := pathNode{blockPtr, ""}
-	p := path{tlf: id, path: []pathNode{node}}
+	p := path{FolderBranch{Tlf: id}, []pathNode{node}}
 	ops := getOps(config, id)
 	n := nodeFromPath(ops, p)
 
@@ -589,7 +594,7 @@ func TestKBFSOpsGetNestedDirChildrenCacheSuccess(t *testing.T) {
 	node := pathNode{makeBP(rootID, rmd, config, u), ""}
 	aNode := pathNode{makeBP(aID, rmd, config, u), "a"}
 	bNode := pathNode{makeBP(bID, rmd, config, u), "b"}
-	p := path{tlf: id, path: []pathNode{node, aNode, bNode}}
+	p := path{FolderBranch{Tlf: id}, []pathNode{node, aNode, bNode}}
 	n := nodeFromPath(ops, p)
 
 	config.BlockCache().Put(bID, dirBlock)
@@ -630,7 +635,7 @@ func TestKBFSOpsLookupSuccess(t *testing.T) {
 	}
 	node := pathNode{makeBP(rootID, rmd, config, u), ""}
 	aNode := pathNode{makeBP(aID, rmd, config, u), "a"}
-	p := path{tlf: id, path: []pathNode{node, aNode}}
+	p := path{FolderBranch{Tlf: id}, []pathNode{node, aNode}}
 	n := nodeFromPath(ops, p)
 
 	config.BlockCache().Put(aID, dirBlock)
@@ -671,7 +676,7 @@ func TestKBFSOpsLookupSymlinkSuccess(t *testing.T) {
 	}
 	node := pathNode{makeBP(rootID, rmd, config, u), ""}
 	aNode := pathNode{makeBP(aID, rmd, config, u), "a"}
-	p := path{tlf: id, path: []pathNode{node, aNode}}
+	p := path{FolderBranch{Tlf: id}, []pathNode{node, aNode}}
 	n := nodeFromPath(ops, p)
 
 	config.BlockCache().Put(aID, dirBlock)
@@ -708,7 +713,7 @@ func TestKBFSOpsLookupNoSuchNameFail(t *testing.T) {
 	}
 	node := pathNode{makeBP(rootID, rmd, config, u), ""}
 	aNode := pathNode{makeBP(aID, rmd, config, u), "a"}
-	p := path{tlf: id, path: []pathNode{node, aNode}}
+	p := path{FolderBranch{Tlf: id}, []pathNode{node, aNode}}
 	n := nodeFromPath(ops, p)
 
 	config.BlockCache().Put(aID, dirBlock)
@@ -745,12 +750,14 @@ func TestKBFSOpsLookupNewDataVersionFail(t *testing.T) {
 	node := pathNode{makeBP(rootID, rmd, config, u), ""}
 	aNode := pathNode{makeBP(aID, rmd, config, u), "a"}
 	bNode := pathNode{makeBP(bID, rmd, config, u), "b"}
-	p := path{tlf: id, path: []pathNode{node, aNode}}
+	p := path{FolderBranch{Tlf: id}, []pathNode{node, aNode}}
 	n := nodeFromPath(ops, p)
 
 	config.BlockCache().Put(aID, dirBlock)
 	expectedErr := &NewDataVersionError{
-		path{tlf: id, path: []pathNode{node, aNode, bNode}}, bInfo.DataVer}
+		path{FolderBranch{Tlf: id}, []pathNode{node, aNode, bNode}},
+		bInfo.DataVer,
+	}
 
 	_, _, err := config.KBFSOps().Lookup(ctx, n, "b")
 	if err == nil {
@@ -781,7 +788,7 @@ func TestKBFSOpsStatSuccess(t *testing.T) {
 	node := pathNode{makeBP(rootID, rmd, config, u), ""}
 	aNode := pathNode{makeBP(aID, rmd, config, u), "a"}
 	bNode := pathNode{makeBP(bID, rmd, config, u), "b"}
-	p := path{tlf: id, path: []pathNode{node, aNode, bNode}}
+	p := path{FolderBranch{Tlf: id}, []pathNode{node, aNode, bNode}}
 	n := nodeFromPath(ops, p)
 
 	config.BlockCache().Put(aID, dirBlock)
@@ -804,8 +811,8 @@ func expectSyncBlockHelper(
 	path, *gomock.Call) {
 	// construct new path
 	newPath := path{
-		tlf:  id,
-		path: make([]pathNode, 0, len(p.path)+1),
+		FolderBranch{Tlf: id},
+		make([]pathNode, 0, len(p.path)+1),
 	}
 	for _, node := range p.path {
 		newPath.path = append(newPath.path, pathNode{Name: node.Name})
@@ -950,9 +957,9 @@ func checkNewPath(t *testing.T, ctx context.Context, config Config,
 		t.Errorf("Unexpected new path length: %d", len(newPath.path))
 		return
 	}
-	if newPath.tlf != expectedPath.tlf {
+	if newPath.Tlf != expectedPath.Tlf {
 		t.Errorf("Unexpected topdir in new path: %s",
-			newPath.tlf)
+			newPath.Tlf)
 	}
 	// check all names and IDs
 	for i, node := range newPath.path {
@@ -1002,7 +1009,7 @@ func checkNewPath(t *testing.T, ctx context.Context, config Config,
 			}
 			// TODO: update BlockPointer for refnonces when we start deduping
 			dblock := getDirBlockFromCache(
-				t, config, makeBPNoUser(id, rmd, config), newPath.branch)
+				t, config, makeBPNoUser(id, rmd, config), newPath.Branch)
 			nextDe, ok := dblock.Children[nextName]
 			if !ok {
 				t.Errorf("No entry (%d) for %s", i, nextName)
@@ -1082,7 +1089,7 @@ func testCreateEntrySuccess(t *testing.T, entryType EntryType) {
 	aBlock := NewDirBlock().(*DirBlock)
 	node := pathNode{makeBP(rootID, rmd, config, userID), ""}
 	aNode := pathNode{makeBP(aID, rmd, config, userID), "a"}
-	p := path{tlf: id, path: []pathNode{node, aNode}}
+	p := path{FolderBranch{Tlf: id}, []pathNode{node, aNode}}
 	ops := getOps(config, id)
 	n := nodeFromPath(ops, p)
 
@@ -1117,7 +1124,7 @@ func testCreateEntrySuccess(t *testing.T, entryType EntryType) {
 	checkNewPath(t, ctx, config, newP, expectedPath, newRmd, blocks,
 		entryType, "b", false)
 	b1 :=
-		getDirBlockFromCache(t, config, newP.path[1].BlockPointer, newP.branch)
+		getDirBlockFromCache(t, config, newP.path[1].BlockPointer, newP.Branch)
 	if entryType == Sym {
 		de := b1.Children["b"]
 		if de.Type != Sym {
@@ -1188,7 +1195,7 @@ func testCreateEntryFailDupName(t *testing.T, isDir bool) {
 		Type:      Dir,
 	}
 	node := pathNode{makeBP(rootID, rmd, config, u), ""}
-	p := path{tlf: id, path: []pathNode{node}}
+	p := path{FolderBranch{Tlf: id}, []pathNode{node}}
 	ops := getOps(config, id)
 	n := nodeFromPath(ops, p)
 
@@ -1245,7 +1252,7 @@ func testRemoveEntrySuccess(t *testing.T, entryType EntryType) {
 	node := pathNode{makeBP(rootID, rmd, config, userID), ""}
 	aNode := pathNode{makeBP(aID, rmd, config, userID), "a"}
 	bNode := pathNode{makeBP(bID, rmd, config, userID), "b"}
-	p := path{tlf: id, path: []pathNode{node, aNode}}
+	p := path{FolderBranch{Tlf: id}, []pathNode{node, aNode}}
 	ops := getOps(config, id)
 	n := nodeFromPath(ops, p)
 
@@ -1276,7 +1283,7 @@ func testRemoveEntrySuccess(t *testing.T, entryType EntryType) {
 	checkNewPath(t, ctx, config, newP, expectedPath, newRmd, blocks,
 		entryType, "", false)
 	b1 :=
-		getDirBlockFromCache(t, config, newP.path[1].BlockPointer, newP.branch)
+		getDirBlockFromCache(t, config, newP.path[1].BlockPointer, newP.Branch)
 	if _, ok := b1.Children["b"]; ok {
 		t.Errorf("entry for b is still around after removal")
 	}
@@ -1357,7 +1364,7 @@ func TestKBFSOpRemoveMultiBlockFileSuccess(t *testing.T) {
 	block4.Contents = []byte{20, 19, 18, 17, 16}
 	node := pathNode{makeBP(rootID, rmd, config, userID), ""}
 	fileNode := pathNode{makeBP(fileID, rmd, config, userID), "a"}
-	p := path{tlf: id, path: []pathNode{node}}
+	p := path{FolderBranch{Tlf: id}, []pathNode{node}}
 	ops := getOps(config, id)
 	n := nodeFromPath(ops, p)
 
@@ -1383,7 +1390,7 @@ func TestKBFSOpRemoveMultiBlockFileSuccess(t *testing.T) {
 	checkNewPath(t, ctx, config, newP, expectedPath, newRmd, blocks,
 		File, "", false)
 	b0 :=
-		getDirBlockFromCache(t, config, newP.path[0].BlockPointer, newP.branch)
+		getDirBlockFromCache(t, config, newP.path[0].BlockPointer, newP.Branch)
 	if _, ok := b0.Children["a"]; ok {
 		t.Errorf("entry for a is still around after removal")
 	}
@@ -1440,7 +1447,7 @@ func TestRemoveDirFailNonEmpty(t *testing.T) {
 	node := pathNode{makeBP(rootID, rmd, config, u), ""}
 	aNode := pathNode{makeBP(aID, rmd, config, u), "a"}
 	bNode := pathNode{makeBP(bID, rmd, config, u), "b"}
-	p := path{tlf: id, path: []pathNode{node, aNode}}
+	p := path{FolderBranch{Tlf: id}, []pathNode{node, aNode}}
 	ops := getOps(config, id)
 	n := nodeFromPath(ops, p)
 
@@ -1474,7 +1481,7 @@ func TestRemoveDirFailNoSuchName(t *testing.T) {
 	node := pathNode{makeBP(rootID, rmd, config, u), ""}
 	aNode := pathNode{makeBP(aID, rmd, config, u), "a"}
 	bNode := pathNode{makeBP(bID, rmd, config, u), "b"}
-	p := path{tlf: id, path: []pathNode{node, aNode}}
+	p := path{FolderBranch{Tlf: id}, []pathNode{node, aNode}}
 	ops := getOps(config, id)
 	n := nodeFromPath(ops, p)
 
@@ -1511,7 +1518,7 @@ func TestRenameInDirSuccess(t *testing.T) {
 	}
 	node := pathNode{makeBP(rootID, rmd, config, userID), ""}
 	aNode := pathNode{makeBP(aID, rmd, config, userID), "a"}
-	p := path{tlf: id, path: []pathNode{node, aNode}}
+	p := path{FolderBranch{Tlf: id}, []pathNode{node, aNode}}
 	ops := getOps(config, id)
 	n := nodeFromPath(ops, p)
 
@@ -1534,7 +1541,7 @@ func TestRenameInDirSuccess(t *testing.T) {
 	checkNewPath(t, ctx, config, newP, expectedPath, newRmd, blocks,
 		File, "c", true)
 	b1 := getDirBlockFromCache(
-		t, config, newP.path[1].BlockPointer, newP.branch)
+		t, config, newP.path[1].BlockPointer, newP.Branch)
 	if _, ok := b1.Children["b"]; ok {
 		t.Errorf("entry for b is still around after rename")
 	} else if len(config.observer.batchChanges) != 1 {
@@ -1585,7 +1592,7 @@ func TestRenameInRootSuccess(t *testing.T) {
 		Type:      File,
 	}
 	node := pathNode{makeBP(rootID, rmd, config, userID), ""}
-	p := path{tlf: id, path: []pathNode{node}}
+	p := path{FolderBranch{Tlf: id}, []pathNode{node}}
 	ops := getOps(config, id)
 	n := nodeFromPath(ops, p)
 
@@ -1607,7 +1614,7 @@ func TestRenameInRootSuccess(t *testing.T) {
 	checkNewPath(t, ctx, config, newP, expectedPath, newRmd, blocks,
 		File, "b", true)
 	b0 := getDirBlockFromCache(
-		t, config, newP.path[0].BlockPointer, newP.branch)
+		t, config, newP.path[0].BlockPointer, newP.Branch)
 	if _, ok := b0.Children["a"]; ok {
 		t.Errorf("entry for a is still around after rename")
 	} else if len(config.observer.batchChanges) != 1 {
@@ -1663,7 +1670,7 @@ func TestRenameAcrossDirsSuccess(t *testing.T) {
 	}
 	node := pathNode{makeBP(rootID, rmd, config, userID), ""}
 	aNode := pathNode{makeBP(aID, rmd, config, userID), "a"}
-	p1 := path{tlf: id, path: []pathNode{node, aNode}}
+	p1 := path{FolderBranch{Tlf: id}, []pathNode{node, aNode}}
 	ops := getOps(config, id)
 	n1 := nodeFromPath(ops, p1)
 
@@ -1674,7 +1681,7 @@ func TestRenameAcrossDirsSuccess(t *testing.T) {
 	}
 	dBlock := NewDirBlock().(*DirBlock)
 	dNode := pathNode{makeBP(dID, rmd, config, userID), "d"}
-	p2 := path{tlf: id, path: []pathNode{node, dNode}}
+	p2 := path{FolderBranch{Tlf: id}, []pathNode{node, dNode}}
 	n2 := nodeFromPath(ops, p2)
 
 	// renaming "a/b" to "d/c"
@@ -1712,7 +1719,7 @@ func TestRenameAcrossDirsSuccess(t *testing.T) {
 	checkNewPath(t, ctx, config, newP2, expectedPath2, newRmd, blocks2,
 		File, "c", true)
 	b0 := getDirBlockFromCache(
-		t, config, newP1.path[0].BlockPointer, newP1.branch)
+		t, config, newP1.path[0].BlockPointer, newP1.Branch)
 	if _, ok := b0.Children["b"]; ok {
 		t.Errorf("entry for b is still around after rename")
 	} else if len(config.observer.batchChanges) != 2 {
@@ -1781,8 +1788,8 @@ func TestRenameAcrossPrefixSuccess(t *testing.T) {
 	node := pathNode{makeBP(rootID, rmd, config, userID), ""}
 	aNode := pathNode{makeBP(aID, rmd, config, userID), "a"}
 	dNode := pathNode{makeBP(dID, rmd, config, userID), "d"}
-	p1 := path{tlf: id, path: []pathNode{node, aNode}}
-	p2 := path{tlf: id, path: []pathNode{node, aNode, dNode}}
+	p1 := path{FolderBranch{Tlf: id}, []pathNode{node, aNode}}
+	p2 := path{FolderBranch{Tlf: id}, []pathNode{node, aNode, dNode}}
 	ops := getOps(config, id)
 	n1 := nodeFromPath(ops, p1)
 	n2 := nodeFromPath(ops, p2)
@@ -1814,7 +1821,7 @@ func TestRenameAcrossPrefixSuccess(t *testing.T) {
 		t.Errorf("New old path not a prefix of new new path")
 	}
 	b0 := getDirBlockFromCache(
-		t, config, newP1.path[0].BlockPointer, newP1.branch)
+		t, config, newP1.path[0].BlockPointer, newP1.Branch)
 
 	if b0.Children["a"].Mtime == 0 {
 		t.Errorf("a's mtime didn't change")
@@ -1831,7 +1838,7 @@ func TestRenameAcrossPrefixSuccess(t *testing.T) {
 	checkNewPath(t, ctx, config, newP2, expectedPath2, newRmd, blocks,
 		File, "c", true)
 	b1 := getDirBlockFromCache(
-		t, config, newP1.path[1].BlockPointer, newP1.branch)
+		t, config, newP1.path[1].BlockPointer, newP1.Branch)
 	if _, ok := b1.Children["b"]; ok {
 		t.Errorf("entry for b is still around after rename")
 	} else if len(config.observer.batchChanges) != 2 {
@@ -1874,8 +1881,8 @@ func TestRenameAcrossOtherPrefixSuccess(t *testing.T) {
 	node := pathNode{makeBP(rootID, rmd, config, userID), ""}
 	aNode := pathNode{makeBP(aID, rmd, config, userID), "a"}
 	dNode := pathNode{makeBP(dID, rmd, config, userID), "d"}
-	p1 := path{tlf: id, path: []pathNode{node, aNode, dNode}}
-	p2 := path{tlf: id, path: []pathNode{node, aNode}}
+	p1 := path{FolderBranch{Tlf: id}, []pathNode{node, aNode, dNode}}
+	p2 := path{FolderBranch{Tlf: id}, []pathNode{node, aNode}}
 	ops := getOps(config, id)
 	n1 := nodeFromPath(ops, p1)
 	n2 := nodeFromPath(ops, p2)
@@ -1915,7 +1922,7 @@ func TestRenameAcrossOtherPrefixSuccess(t *testing.T) {
 		t.Errorf("New old path not a prefix of new new path")
 	}
 	b1 := getDirBlockFromCache(
-		t, config, newP1.path[1].BlockPointer, newP1.branch)
+		t, config, newP1.path[1].BlockPointer, newP1.Branch)
 	if b1.Children["d"].Mtime == 0 {
 		t.Errorf("d's mtime didn't change")
 	}
@@ -1923,7 +1930,7 @@ func TestRenameAcrossOtherPrefixSuccess(t *testing.T) {
 		t.Errorf("d's ctime didn't change")
 	}
 	b0 := getDirBlockFromCache(
-		t, config, newP1.path[0].BlockPointer, newP1.branch)
+		t, config, newP1.path[0].BlockPointer, newP1.Branch)
 	if b0.Children["a"].Mtime == 0 {
 		t.Errorf("d's mtime didn't change")
 	}
@@ -1934,7 +1941,7 @@ func TestRenameAcrossOtherPrefixSuccess(t *testing.T) {
 	checkNewPath(t, ctx, config, newP1, expectedPath1, newRmd, blocks2,
 		File, "c", true)
 	b2 := getDirBlockFromCache(
-		t, config, newP1.path[2].BlockPointer, newP1.branch)
+		t, config, newP1.path[2].BlockPointer, newP1.Branch)
 	if _, ok := b2.Children["b"]; ok {
 		t.Errorf("entry for b is still around after rename")
 	} else if len(config.observer.batchChanges) != 2 {
@@ -1964,7 +1971,7 @@ func TestRenameFailAcrossTopLevelFolders(t *testing.T) {
 	aID1 := BlockID{42}
 	node1 := pathNode{makeBP(rootID1, &rmd1.MD, config, userID1), ""}
 	aNode1 := pathNode{makeBP(aID1, &rmd1.MD, config, userID1), "a"}
-	p1 := path{tlf: id1, path: []pathNode{node1, aNode1}}
+	p1 := path{FolderBranch{Tlf: id1}, []pathNode{node1, aNode1}}
 	ops1 := getOps(config, id1)
 	n1 := nodeFromPath(ops1, p1)
 
@@ -1972,7 +1979,7 @@ func TestRenameFailAcrossTopLevelFolders(t *testing.T) {
 	aID2 := BlockID{39}
 	node2 := pathNode{makeBP(rootID2, &rmd2.MD, config, userID2), ""}
 	aNode2 := pathNode{makeBP(aID2, &rmd2.MD, config, userID2), "a"}
-	p2 := path{tlf: id2, path: []pathNode{node2, aNode2}}
+	p2 := path{FolderBranch{Tlf: id2}, []pathNode{node2, aNode2}}
 	ops2 := getOps(config, id2)
 	n2 := nodeFromPath(ops2, p2)
 
@@ -1998,11 +2005,12 @@ func TestRenameFailAcrossBranches(t *testing.T) {
 	aID1 := BlockID{42}
 	node1 := pathNode{makeBP(rootID1, &rmd1.MD, config, userID1), ""}
 	aNode1 := pathNode{makeBP(aID1, &rmd1.MD, config, userID1), "a"}
-	p1 := path{tlf: id1, path: []pathNode{node1, aNode1}}
-	p2 := path{tlf: id1, branch: "test", path: []pathNode{node1, aNode1}}
+	p1 := path{FolderBranch{Tlf: id1}, []pathNode{node1, aNode1}}
+	p2 := path{FolderBranch{id1, "test"}, []pathNode{node1, aNode1}}
 	ops1 := getOps(config, id1)
 	n1 := nodeFromPath(ops1, p1)
-	ops2 := config.KBFSOps().(*KBFSOpsStandard).getOps(opID{id1, "test"})
+	ops2 := config.KBFSOps().(*KBFSOpsStandard).getOps(
+		FolderBranch{id1, "test"})
 	n2 := nodeFromPath(ops2, p2)
 
 	expectedErr := RenameAcrossDirsError{}
@@ -2038,7 +2046,7 @@ func TestKBFSOpsCacheReadFullSuccess(t *testing.T) {
 	fileBlock.Contents = []byte{1, 2, 3, 4, 5, 6, 7, 8, 9, 10}
 	node := pathNode{makeBP(rootID, rmd, config, u), ""}
 	fileNode := pathNode{makeBP(fileID, rmd, config, u), "f"}
-	p := path{tlf: id, path: []pathNode{node, fileNode}}
+	p := path{FolderBranch{Tlf: id}, []pathNode{node, fileNode}}
 	ops := getOps(config, id)
 	pNode := nodeFromPath(ops, p)
 
@@ -2067,7 +2075,7 @@ func TestKBFSOpsCacheReadPartialSuccess(t *testing.T) {
 	fileBlock.Contents = []byte{1, 2, 3, 4, 5, 6, 7, 8, 9, 10}
 	node := pathNode{makeBP(rootID, rmd, config, u), ""}
 	fileNode := pathNode{makeBP(fileID, rmd, config, u), "f"}
-	p := path{tlf: id, path: []pathNode{node, fileNode}}
+	p := path{FolderBranch{Tlf: id}, []pathNode{node, fileNode}}
 	ops := getOps(config, id)
 	pNode := nodeFromPath(ops, p)
 
@@ -2113,7 +2121,7 @@ func TestKBFSOpsCacheReadFullMultiBlockSuccess(t *testing.T) {
 	block4.Contents = []byte{20, 19, 18, 17, 16}
 	node := pathNode{makeBP(rootID, rmd, config, u), ""}
 	fileNode := pathNode{makeBP(fileID, rmd, config, u), "a"}
-	p := path{tlf: id, path: []pathNode{node, fileNode}}
+	p := path{FolderBranch{Tlf: id}, []pathNode{node, fileNode}}
 	ops := getOps(config, id)
 	pNode := nodeFromPath(ops, p)
 
@@ -2167,7 +2175,7 @@ func TestKBFSOpsCacheReadPartialMultiBlockSuccess(t *testing.T) {
 	block4.Contents = []byte{20, 19, 18, 17, 16}
 	node := pathNode{makeBP(rootID, rmd, config, u), ""}
 	fileNode := pathNode{makeBP(fileID, rmd, config, u), "a"}
-	p := path{tlf: id, path: []pathNode{node, fileNode}}
+	p := path{FolderBranch{Tlf: id}, []pathNode{node, fileNode}}
 	ops := getOps(config, id)
 	pNode := nodeFromPath(ops, p)
 
@@ -2201,7 +2209,7 @@ func TestKBFSOpsCacheReadFailPastEnd(t *testing.T) {
 	fileBlock.Contents = []byte{1, 2, 3, 4, 5, 6, 7, 8, 9, 10}
 	node := pathNode{makeBP(rootID, rmd, config, u), ""}
 	fileNode := pathNode{makeBP(fileID, rmd, config, u), "f"}
-	p := path{tlf: id, path: []pathNode{node, fileNode}}
+	p := path{FolderBranch{Tlf: id}, []pathNode{node, fileNode}}
 	ops := getOps(config, id)
 	pNode := nodeFromPath(ops, p)
 
@@ -2228,7 +2236,7 @@ func TestKBFSOpsServerReadFullSuccess(t *testing.T) {
 	node := pathNode{makeBP(rootID, rmd, config, u), ""}
 	fileBlockPtr := makeBP(fileID, rmd, config, u)
 	fileNode := pathNode{fileBlockPtr, "f"}
-	p := path{tlf: id, path: []pathNode{node, fileNode}}
+	p := path{FolderBranch{Tlf: id}, []pathNode{node, fileNode}}
 	ops := getOps(config, id)
 	pNode := nodeFromPath(ops, p)
 
@@ -2259,7 +2267,7 @@ func TestKBFSOpsServerReadFailNoSuchBlock(t *testing.T) {
 	node := pathNode{makeBP(rootID, rmd, config, u), ""}
 	fileBlockPtr := makeBP(fileID, rmd, config, u)
 	fileNode := pathNode{fileBlockPtr, "f"}
-	p := path{tlf: id, path: []pathNode{node, fileNode}}
+	p := path{FolderBranch{Tlf: id}, []pathNode{node, fileNode}}
 	ops := getOps(config, id)
 	pNode := nodeFromPath(ops, p)
 
@@ -2325,7 +2333,7 @@ func TestKBFSOpsWriteNewBlockSuccess(t *testing.T) {
 	fileBlock := NewFileBlock().(*FileBlock)
 	node := pathNode{makeBP(rootID, rmd, config, userID), ""}
 	fileNode := pathNode{makeBP(fileID, rmd, config, userID), "f"}
-	p := path{tlf: id, path: []pathNode{node, fileNode}}
+	p := path{FolderBranch{Tlf: id}, []pathNode{node, fileNode}}
 	ops := getOps(config, id)
 	n := nodeFromPath(ops, p)
 	data := []byte{1, 2, 3, 4, 5, 6, 7, 8, 9, 10}
@@ -2343,10 +2351,10 @@ func TestKBFSOpsWriteNewBlockSuccess(t *testing.T) {
 	}
 
 	newFileBlock := getFileBlockFromCache(t, config, fileNode.BlockPointer,
-		p.branch)
-	newRootBlock := getDirBlockFromCache(t, config, node.BlockPointer, p.branch)
+		p.Branch)
+	newRootBlock := getDirBlockFromCache(t, config, node.BlockPointer, p.Branch)
 	newRootBlock = ops.updateDirBlock(
-		path{tlf: id, path: []pathNode{node}}, newRootBlock)
+		path{FolderBranch{Tlf: id}, []pathNode{node}}, newRootBlock)
 
 	if len(ops.nodeCache.PathFromNode(config.observer.localChange).path) !=
 		len(p.path) {
@@ -2365,7 +2373,7 @@ func TestKBFSOpsWriteNewBlockSuccess(t *testing.T) {
 	}
 	checkBlockCache(t, config, []BlockID{rootID, fileID},
 		map[BlockPointer]BranchName{
-			fileNode.BlockPointer: p.branch,
+			fileNode.BlockPointer: p.Branch,
 		})
 	checkSyncOpInCache(t, ops, stripBP(fileNode.BlockPointer),
 		[]WriteRange{WriteRange{0, uint64(len(data))}})
@@ -2391,7 +2399,7 @@ func TestKBFSOpsWriteExtendSuccess(t *testing.T) {
 	fileBlock.Contents = []byte{1, 2, 3, 4, 5}
 	node := pathNode{makeBP(rootID, rmd, config, userID), ""}
 	fileNode := pathNode{makeBP(fileID, rmd, config, userID), "f"}
-	p := path{tlf: id, path: []pathNode{node, fileNode}}
+	p := path{FolderBranch{Tlf: id}, []pathNode{node, fileNode}}
 	ops := getOps(config, id)
 	n := nodeFromPath(ops, p)
 	data := []byte{6, 7, 8, 9, 10}
@@ -2410,7 +2418,7 @@ func TestKBFSOpsWriteExtendSuccess(t *testing.T) {
 	}
 
 	newFileBlock := getFileBlockFromCache(t, config, fileNode.BlockPointer,
-		p.branch)
+		p.Branch)
 
 	if len(ops.nodeCache.PathFromNode(config.observer.localChange).path) !=
 		len(p.path) {
@@ -2424,7 +2432,7 @@ func TestKBFSOpsWriteExtendSuccess(t *testing.T) {
 	}
 	checkBlockCache(t, config, []BlockID{rootID, fileID},
 		map[BlockPointer]BranchName{
-			fileNode.BlockPointer: p.branch,
+			fileNode.BlockPointer: p.Branch,
 		})
 	checkSyncOpInCache(t, ops, stripBP(fileNode.BlockPointer),
 		[]WriteRange{WriteRange{5, uint64(len(data))}})
@@ -2450,7 +2458,7 @@ func TestKBFSOpsWritePastEndSuccess(t *testing.T) {
 	fileBlock.Contents = []byte{1, 2, 3, 4, 5}
 	node := pathNode{makeBP(rootID, rmd, config, userID), ""}
 	fileNode := pathNode{makeBP(fileID, rmd, config, userID), "f"}
-	p := path{tlf: id, path: []pathNode{node, fileNode}}
+	p := path{FolderBranch{Tlf: id}, []pathNode{node, fileNode}}
 	ops := getOps(config, id)
 	n := nodeFromPath(ops, p)
 	data := []byte{6, 7, 8, 9, 10}
@@ -2469,7 +2477,7 @@ func TestKBFSOpsWritePastEndSuccess(t *testing.T) {
 	}
 
 	newFileBlock := getFileBlockFromCache(t, config, fileNode.BlockPointer,
-		p.branch)
+		p.Branch)
 
 	if len(ops.nodeCache.PathFromNode(config.observer.localChange).path) !=
 		len(p.path) {
@@ -2483,7 +2491,7 @@ func TestKBFSOpsWritePastEndSuccess(t *testing.T) {
 	}
 	checkBlockCache(t, config, []BlockID{rootID, fileID},
 		map[BlockPointer]BranchName{
-			fileNode.BlockPointer: p.branch,
+			fileNode.BlockPointer: p.Branch,
 		})
 	checkSyncOpInCache(t, ops, stripBP(fileNode.BlockPointer),
 		[]WriteRange{WriteRange{7, uint64(len(data))}})
@@ -2509,7 +2517,7 @@ func TestKBFSOpsWriteCauseSplit(t *testing.T) {
 	fileBlock.Contents = []byte{}
 	node := pathNode{makeBP(rootID, rmd, config, userID), ""}
 	fileNode := pathNode{makeBP(fileID, rmd, config, userID), "f"}
-	p := path{tlf: id, path: []pathNode{node, fileNode}}
+	p := path{FolderBranch{Tlf: id}, []pathNode{node, fileNode}}
 	ops := getOps(config, id)
 	n := nodeFromPath(ops, p)
 	newData := []byte{1, 2, 3, 4, 5, 6, 7, 8, 9, 10}
@@ -2543,16 +2551,16 @@ func TestKBFSOpsWriteCauseSplit(t *testing.T) {
 	if err := config.KBFSOps().Write(ctx, n, newData, 1); err != nil {
 		t.Errorf("Got error on write: %v", err)
 	}
-	b, _ := config.BlockCache().Get(node.BlockPointer, p.branch)
+	b, _ := config.BlockCache().Get(node.BlockPointer, p.Branch)
 	newRootBlock := b.(*DirBlock)
 	newRootBlock = ops.updateDirBlock(
-		path{tlf: id, path: []pathNode{node}}, newRootBlock)
+		path{FolderBranch{Tlf: id}, []pathNode{node}}, newRootBlock)
 
-	b, _ = config.BlockCache().Get(fileNode.BlockPointer, p.branch)
+	b, _ = config.BlockCache().Get(fileNode.BlockPointer, p.Branch)
 	pblock := b.(*FileBlock)
-	b, _ = config.BlockCache().Get(makeBPNoUser(id1, rmd, config), p.branch)
+	b, _ = config.BlockCache().Get(makeBPNoUser(id1, rmd, config), p.Branch)
 	block1 := b.(*FileBlock)
-	b, _ = config.BlockCache().Get(makeBPNoUser(id2, rmd, config), p.branch)
+	b, _ = config.BlockCache().Get(makeBPNoUser(id2, rmd, config), p.Branch)
 	block2 := b.(*FileBlock)
 
 	if len(ops.nodeCache.PathFromNode(config.observer.localChange).path) !=
@@ -2589,9 +2597,9 @@ func TestKBFSOpsWriteCauseSplit(t *testing.T) {
 
 	checkBlockCache(t, config, []BlockID{rootID, fileID},
 		map[BlockPointer]BranchName{
-			fileNode.BlockPointer:        p.branch,
-			pblock.IPtrs[0].BlockPointer: p.branch,
-			pblock.IPtrs[1].BlockPointer: p.branch,
+			fileNode.BlockPointer:        p.Branch,
+			pblock.IPtrs[0].BlockPointer: p.Branch,
+			pblock.IPtrs[1].BlockPointer: p.Branch,
 		})
 	checkSyncOpInCache(t, ops, stripBP(fileNode.BlockPointer),
 		[]WriteRange{WriteRange{1, uint64(len(newData))}})
@@ -2627,7 +2635,7 @@ func TestKBFSOpsWriteOverMultipleBlocks(t *testing.T) {
 	block2.Contents = []byte{10, 9, 8, 7, 6}
 	node := pathNode{makeBP(rootID, rmd, config, userID), ""}
 	fileNode := pathNode{makeBP(fileID, rmd, config, userID), "f"}
-	p := path{tlf: id, path: []pathNode{node, fileNode}}
+	p := path{FolderBranch{Tlf: id}, []pathNode{node, fileNode}}
 	ops := getOps(config, id)
 	n := nodeFromPath(ops, p)
 	data := []byte{1, 2, 3, 4, 5}
@@ -2657,9 +2665,9 @@ func TestKBFSOpsWriteOverMultipleBlocks(t *testing.T) {
 	}
 
 	newBlock1 := getFileBlockFromCache(t, config,
-		fileBlock.IPtrs[0].BlockPointer, p.branch)
+		fileBlock.IPtrs[0].BlockPointer, p.Branch)
 	newBlock2 := getFileBlockFromCache(t, config,
-		fileBlock.IPtrs[1].BlockPointer, p.branch)
+		fileBlock.IPtrs[1].BlockPointer, p.Branch)
 
 	if len(ops.nodeCache.PathFromNode(config.observer.localChange).path) !=
 		len(p.path) {
@@ -2680,9 +2688,9 @@ func TestKBFSOpsWriteOverMultipleBlocks(t *testing.T) {
 	ops.mergeUnrefCacheLocked(p, rmd) // no need to lock in test
 	checkBlockCache(t, config, []BlockID{rootID, fileID, id1, id2},
 		map[BlockPointer]BranchName{
-			fileNode.BlockPointer:           p.branch,
-			fileBlock.IPtrs[0].BlockPointer: p.branch,
-			fileBlock.IPtrs[1].BlockPointer: p.branch,
+			fileNode.BlockPointer:           p.Branch,
+			fileBlock.IPtrs[0].BlockPointer: p.Branch,
+			fileBlock.IPtrs[1].BlockPointer: p.Branch,
 		})
 }
 
@@ -2709,7 +2717,7 @@ func TestKBFSOpsTruncateToZeroSuccess(t *testing.T) {
 	fileBlock.Contents = []byte{1, 2, 3, 4, 5, 6, 7, 8, 9, 10}
 	node := pathNode{makeBP(rootID, rmd, config, userID), ""}
 	fileNode := pathNode{makeBP(fileID, rmd, config, userID), "f"}
-	p := path{tlf: id, path: []pathNode{node, fileNode}}
+	p := path{FolderBranch{Tlf: id}, []pathNode{node, fileNode}}
 	ops := getOps(config, id)
 	n := nodeFromPath(ops, p)
 
@@ -2722,10 +2730,10 @@ func TestKBFSOpsTruncateToZeroSuccess(t *testing.T) {
 	}
 
 	newFileBlock := getFileBlockFromCache(t, config, fileNode.BlockPointer,
-		p.branch)
-	newRootBlock := getDirBlockFromCache(t, config, node.BlockPointer, p.branch)
+		p.Branch)
+	newRootBlock := getDirBlockFromCache(t, config, node.BlockPointer, p.Branch)
 	newRootBlock = ops.updateDirBlock(
-		path{tlf: id, path: []pathNode{node}}, newRootBlock)
+		path{FolderBranch{Tlf: id}, []pathNode{node}}, newRootBlock)
 
 	if len(ops.nodeCache.PathFromNode(config.observer.localChange).path) !=
 		len(p.path) {
@@ -2744,7 +2752,7 @@ func TestKBFSOpsTruncateToZeroSuccess(t *testing.T) {
 	}
 	checkBlockCache(t, config, []BlockID{rootID, fileID},
 		map[BlockPointer]BranchName{
-			fileNode.BlockPointer: p.branch,
+			fileNode.BlockPointer: p.Branch,
 		})
 	checkSyncOpInCache(t, ops, stripBP(fileNode.BlockPointer),
 		[]WriteRange{WriteRange{0, 0}})
@@ -2767,7 +2775,7 @@ func TestKBFSOpsTruncateSameSize(t *testing.T) {
 	fileBlock.Contents = []byte{1, 2, 3, 4, 5, 6, 7, 8, 9, 10}
 	node := pathNode{makeBP(rootID, rmd, config, u), ""}
 	fileNode := pathNode{makeBP(fileID, rmd, config, u), "f"}
-	p := path{tlf: id, path: []pathNode{node, fileNode}}
+	p := path{FolderBranch{Tlf: id}, []pathNode{node, fileNode}}
 	ops := getOps(config, id)
 	n := nodeFromPath(ops, p)
 
@@ -2806,7 +2814,7 @@ func TestKBFSOpsTruncateSmallerSuccess(t *testing.T) {
 	fileBlock.Contents = []byte{1, 2, 3, 4, 5, 6, 7, 8, 9, 10}
 	node := pathNode{makeBP(rootID, rmd, config, userID), ""}
 	fileNode := pathNode{makeBP(fileID, rmd, config, userID), "f"}
-	p := path{tlf: id, path: []pathNode{node, fileNode}}
+	p := path{FolderBranch{Tlf: id}, []pathNode{node, fileNode}}
 	ops := getOps(config, id)
 	n := nodeFromPath(ops, p)
 
@@ -2819,7 +2827,7 @@ func TestKBFSOpsTruncateSmallerSuccess(t *testing.T) {
 	}
 
 	newFileBlock := getFileBlockFromCache(t, config, fileNode.BlockPointer,
-		p.branch)
+		p.Branch)
 
 	if len(ops.nodeCache.PathFromNode(config.observer.localChange).path) !=
 		len(p.path) {
@@ -2833,7 +2841,7 @@ func TestKBFSOpsTruncateSmallerSuccess(t *testing.T) {
 	}
 	checkBlockCache(t, config, []BlockID{rootID, fileID},
 		map[BlockPointer]BranchName{
-			fileNode.BlockPointer: p.branch,
+			fileNode.BlockPointer: p.Branch,
 		})
 	checkSyncOpInCache(t, ops, stripBP(fileNode.BlockPointer),
 		[]WriteRange{WriteRange{5, 0}})
@@ -2867,7 +2875,7 @@ func TestKBFSOpsTruncateShortensLastBlock(t *testing.T) {
 	block2.Contents = []byte{10, 9, 8, 7, 6}
 	node := pathNode{makeBP(rootID, rmd, config, userID), ""}
 	fileNode := pathNode{makeBP(fileID, rmd, config, userID), "f"}
-	p := path{tlf: id, path: []pathNode{node, fileNode}}
+	p := path{FolderBranch{Tlf: id}, []pathNode{node, fileNode}}
 	ops := getOps(config, id)
 	n := nodeFromPath(ops, p)
 	rmd.AddOp(newSyncOp(fileInfo.BlockPointer))
@@ -2883,11 +2891,11 @@ func TestKBFSOpsTruncateShortensLastBlock(t *testing.T) {
 	}
 
 	newPBlock := getFileBlockFromCache(t, config, fileNode.BlockPointer,
-		p.branch)
+		p.Branch)
 	newBlock1 := getFileBlockFromCache(t, config,
-		fileBlock.IPtrs[0].BlockPointer, p.branch)
+		fileBlock.IPtrs[0].BlockPointer, p.Branch)
 	newBlock2 := getFileBlockFromCache(t, config,
-		fileBlock.IPtrs[1].BlockPointer, p.branch)
+		fileBlock.IPtrs[1].BlockPointer, p.Branch)
 
 	// merge unref changes so we can easily check the block changes
 	checkSyncOpInCache(t, ops, stripBP(fileNode.BlockPointer),
@@ -2914,8 +2922,8 @@ func TestKBFSOpsTruncateShortensLastBlock(t *testing.T) {
 	}
 	checkBlockCache(t, config, []BlockID{rootID, fileID, id1, id2},
 		map[BlockPointer]BranchName{
-			fileNode.BlockPointer:           p.branch,
-			fileBlock.IPtrs[1].BlockPointer: p.branch,
+			fileNode.BlockPointer:           p.Branch,
+			fileBlock.IPtrs[1].BlockPointer: p.Branch,
 		})
 }
 
@@ -2947,7 +2955,7 @@ func TestKBFSOpsTruncateRemovesABlock(t *testing.T) {
 	block2.Contents = []byte{10, 9, 8, 7, 6}
 	node := pathNode{makeBP(rootID, rmd, config, userID), ""}
 	fileNode := pathNode{makeBP(fileID, rmd, config, userID), "f"}
-	p := path{tlf: id, path: []pathNode{node, fileNode}}
+	p := path{FolderBranch{Tlf: id}, []pathNode{node, fileNode}}
 	ops := getOps(config, id)
 	n := nodeFromPath(ops, p)
 	rmd.AddOp(newSyncOp(fileInfo.BlockPointer))
@@ -2962,9 +2970,9 @@ func TestKBFSOpsTruncateRemovesABlock(t *testing.T) {
 	}
 
 	newPBlock := getFileBlockFromCache(t, config, fileNode.BlockPointer,
-		p.branch)
+		p.Branch)
 	newBlock1 := getFileBlockFromCache(t, config,
-		fileBlock.IPtrs[0].BlockPointer, p.branch)
+		fileBlock.IPtrs[0].BlockPointer, p.Branch)
 
 	// merge unref changes so we can easily check the block changes
 	checkSyncOpInCache(t, ops, stripBP(fileNode.BlockPointer),
@@ -2989,8 +2997,8 @@ func TestKBFSOpsTruncateRemovesABlock(t *testing.T) {
 	}
 	checkBlockCache(t, config, []BlockID{rootID, fileID, id1},
 		map[BlockPointer]BranchName{
-			fileNode.BlockPointer:           p.branch,
-			fileBlock.IPtrs[0].BlockPointer: p.branch,
+			fileNode.BlockPointer:           p.Branch,
+			fileBlock.IPtrs[0].BlockPointer: p.Branch,
 		})
 }
 
@@ -3014,7 +3022,7 @@ func TestKBFSOpsTruncateBiggerSuccess(t *testing.T) {
 	fileBlock.Contents = []byte{1, 2, 3, 4, 5}
 	node := pathNode{makeBP(rootID, rmd, config, userID), ""}
 	fileNode := pathNode{makeBP(fileID, rmd, config, userID), "f"}
-	p := path{tlf: id, path: []pathNode{node, fileNode}}
+	p := path{FolderBranch{Tlf: id}, []pathNode{node, fileNode}}
 	ops := getOps(config, id)
 	n := nodeFromPath(ops, p)
 
@@ -3032,7 +3040,7 @@ func TestKBFSOpsTruncateBiggerSuccess(t *testing.T) {
 	}
 
 	newFileBlock := getFileBlockFromCache(t, config, fileNode.BlockPointer,
-		p.branch)
+		p.Branch)
 
 	if len(ops.nodeCache.PathFromNode(config.observer.localChange).path) !=
 		len(p.path) {
@@ -3046,7 +3054,7 @@ func TestKBFSOpsTruncateBiggerSuccess(t *testing.T) {
 	}
 	checkBlockCache(t, config, []BlockID{rootID, fileID},
 		map[BlockPointer]BranchName{
-			fileNode.BlockPointer: p.branch,
+			fileNode.BlockPointer: p.Branch,
 		})
 	// A truncate past the end of the file actually translates into a
 	// write for the difference
@@ -3071,7 +3079,7 @@ func testSetExSuccess(t *testing.T, entryType EntryType, ex bool) {
 	}
 	node := pathNode{makeBP(rootID, rmd, config, userID), ""}
 	aNode := pathNode{makeBP(aID, rmd, config, userID), "a"}
-	p := path{tlf: id, path: []pathNode{node, aNode}}
+	p := path{FolderBranch{Tlf: id}, []pathNode{node, aNode}}
 	ops := getOps(config, id)
 	n := nodeFromPath(ops, p)
 
@@ -3116,7 +3124,7 @@ func testSetExSuccess(t *testing.T, entryType EntryType, ex bool) {
 	} else {
 		if blocks != nil {
 			rootBlock = getDirBlockFromCache(
-				t, config, newP.path[0].BlockPointer, newP.branch)
+				t, config, newP.path[0].BlockPointer, newP.Branch)
 		}
 		if rootBlock.Children["a"].Type != expectedType {
 			t.Errorf("a has type %s, expected %s",
@@ -3195,7 +3203,7 @@ func TestSetExFailNoSuchName(t *testing.T) {
 	rootBlock := NewDirBlock().(*DirBlock)
 	node := pathNode{makeBP(rootID, rmd, config, u), ""}
 	aNode := pathNode{makeBP(aID, rmd, config, u), "a"}
-	p := path{tlf: id, path: []pathNode{node, aNode}}
+	p := path{FolderBranch{Tlf: id}, []pathNode{node, aNode}}
 	ops := getOps(config, id)
 	n := nodeFromPath(ops, p)
 
@@ -3228,7 +3236,7 @@ func TestSetMtimeSuccess(t *testing.T) {
 	}
 	node := pathNode{makeBP(rootID, rmd, config, userID), ""}
 	aNode := pathNode{makeBP(aID, rmd, config, userID), "a"}
-	p := path{tlf: id, path: []pathNode{node, aNode}}
+	p := path{FolderBranch{Tlf: id}, []pathNode{node, aNode}}
 	ops := getOps(config, id)
 	n := nodeFromPath(ops, p)
 
@@ -3247,7 +3255,7 @@ func TestSetMtimeSuccess(t *testing.T) {
 	}
 	newP := ops.nodeCache.PathFromNode(n)
 	b0 := getDirBlockFromCache(
-		t, config, newP.path[0].BlockPointer, newP.branch)
+		t, config, newP.path[0].BlockPointer, newP.Branch)
 	if b0.Children["a"].Mtime != newMtime.UnixNano() {
 		t.Errorf("a has wrong mtime: %v", b0.Children["a"].Mtime)
 	} else {
@@ -3290,7 +3298,7 @@ func TestSetMtimeNull(t *testing.T) {
 	}
 	node := pathNode{makeBP(rootID, rmd, config, u), ""}
 	aNode := pathNode{makeBP(aID, rmd, config, u), "a"}
-	p := path{tlf: id, path: []pathNode{node, aNode}}
+	p := path{FolderBranch{Tlf: id}, []pathNode{node, aNode}}
 	ops := getOps(config, id)
 	n := nodeFromPath(ops, p)
 
@@ -3317,7 +3325,7 @@ func TestMtimeFailNoSuchName(t *testing.T) {
 	rootBlock := NewDirBlock().(*DirBlock)
 	node := pathNode{makeBP(rootID, rmd, config, u), ""}
 	aNode := pathNode{makeBP(aID, rmd, config, u), "a"}
-	p := path{tlf: id, path: []pathNode{node, aNode}}
+	p := path{FolderBranch{Tlf: id}, []pathNode{node, aNode}}
 	ops := getOps(config, id)
 	n := nodeFromPath(ops, p)
 
@@ -3351,7 +3359,7 @@ func testSyncDirtySuccess(t *testing.T, unmerged bool) {
 	aBlock := NewFileBlock().(*FileBlock)
 	node := pathNode{makeBP(rootID, rmd, config, userID), ""}
 	aNode := pathNode{makeBP(aID, rmd, config, userID), "a"}
-	p := path{tlf: id, path: []pathNode{node, aNode}}
+	p := path{FolderBranch{Tlf: id}, []pathNode{node, aNode}}
 	ops := getOps(config, id)
 	n := nodeFromPath(ops, p)
 
@@ -3359,7 +3367,7 @@ func testSyncDirtySuccess(t *testing.T, unmerged bool) {
 	si.op.addWrite(0, 10)
 
 	// fsync a
-	config.BlockCache().PutDirty(aNode.BlockPointer, p.branch, aBlock)
+	config.BlockCache().PutDirty(aNode.BlockPointer, p.Branch, aBlock)
 	config.BlockCache().Put(node.BlockPointer.ID, rootBlock)
 	// TODO: put a dirty DE entry in the cache, to test that the new
 	// root block has the correct file size.
@@ -3425,7 +3433,7 @@ func TestSyncCleanSuccess(t *testing.T) {
 	aID := BlockID{43}
 	node := pathNode{stripBP(makeBP(rootID, rmd, config, u)), ""}
 	aNode := pathNode{stripBP(makeBP(aID, rmd, config, u)), "a"}
-	p := path{tlf: id, path: []pathNode{node, aNode}}
+	p := path{FolderBranch{Tlf: id}, []pathNode{node, aNode}}
 	ops := getOps(config, id)
 	n := nodeFromPath(ops, p)
 
@@ -3511,7 +3519,7 @@ func TestSyncDirtyMultiBlocksSuccess(t *testing.T) {
 	block4.Contents = []byte{10, 9, 8, 7, 6}
 	node := pathNode{makeBP(rootID, rmd, config, userID), ""}
 	fileNode := pathNode{makeBP(fileID, rmd, config, userID), "a"}
-	p := path{tlf: id, path: []pathNode{node, fileNode}}
+	p := path{FolderBranch{Tlf: id}, []pathNode{node, fileNode}}
 	ops := getOps(config, id)
 	n := nodeFromPath(ops, p)
 
@@ -3524,7 +3532,7 @@ func TestSyncDirtyMultiBlocksSuccess(t *testing.T) {
 		makeBI(id4, rmd, config, keybase1.MakeTestUID(0), 5))
 
 	// fsync a, only block 2 is dirty
-	config.BlockCache().PutDirty(fileNode.BlockPointer, p.branch, fileBlock)
+	config.BlockCache().PutDirty(fileNode.BlockPointer, p.Branch, fileBlock)
 	config.BlockCache().Put(node.BlockPointer.ID, rootBlock)
 
 	// the split is good
@@ -3594,10 +3602,10 @@ func putAndCleanAnyBlock(config *ConfigMock, p path) {
 	config.mockBcache.EXPECT().Put(gomock.Any(), gomock.Any()).
 		Do(func(id BlockID, block Block) {
 		config.mockBcache.EXPECT().Get(
-			ptrMatcher{BlockPointer{ID: id}}, p.branch).
+			ptrMatcher{BlockPointer{ID: id}}, p.Branch).
 			AnyTimes().Return(block, nil)
 	}).AnyTimes().Return(nil)
-	config.mockBcache.EXPECT().DeleteDirty(gomock.Any(), p.branch).
+	config.mockBcache.EXPECT().DeleteDirty(gomock.Any(), p.Branch).
 		AnyTimes().Return(nil)
 }
 
@@ -3643,31 +3651,31 @@ func TestSyncDirtyMultiBlocksSplitInBlockSuccess(t *testing.T) {
 	block4.Contents = []byte{20, 19, 18, 17, 16}
 	node := pathNode{makeBP(rootID, rmd, config, userID), ""}
 	fileNode := pathNode{makeBP(fileID, rmd, config, userID), "a"}
-	p := path{tlf: id, path: []pathNode{node, fileNode}}
+	p := path{FolderBranch{Tlf: id}, []pathNode{node, fileNode}}
 	ops := getOps(config, id)
 	n := nodeFromPath(ops, p)
 	ops.getOrCreateSyncInfoLocked(rootBlock.Children["a"])
 
 	// fsync a, only block 2 is dirty
 	config.mockBcache.EXPECT().IsDirty(ptrMatcher{fileNode.BlockPointer},
-		p.branch).AnyTimes().Return(true)
+		p.Branch).AnyTimes().Return(true)
 	config.mockBcache.EXPECT().IsDirty(
 		ptrMatcher{fileBlock.IPtrs[0].BlockPointer},
-		p.branch).AnyTimes().Return(false)
+		p.Branch).AnyTimes().Return(false)
 	config.mockBcache.EXPECT().IsDirty(
 		ptrMatcher{fileBlock.IPtrs[2].BlockPointer},
-		p.branch).Times(2).Return(false)
+		p.Branch).Times(2).Return(false)
 	config.mockBcache.EXPECT().IsDirty(
 		ptrMatcher{fileBlock.IPtrs[3].BlockPointer},
-		p.branch).AnyTimes().Return(false)
-	config.mockBcache.EXPECT().IsDirty(ptrMatcher{node.BlockPointer}, p.branch).
+		p.Branch).AnyTimes().Return(false)
+	config.mockBcache.EXPECT().IsDirty(ptrMatcher{node.BlockPointer}, p.Branch).
 		AnyTimes().Return(true)
-	config.mockBcache.EXPECT().Get(ptrMatcher{node.BlockPointer}, p.branch).
+	config.mockBcache.EXPECT().Get(ptrMatcher{node.BlockPointer}, p.Branch).
 		AnyTimes().Return(rootBlock, nil)
-	config.mockBcache.EXPECT().Get(ptrMatcher{fileNode.BlockPointer}, p.branch).
+	config.mockBcache.EXPECT().Get(ptrMatcher{fileNode.BlockPointer}, p.Branch).
 		AnyTimes().Return(fileBlock, nil)
 	config.mockBcache.EXPECT().Get(ptrMatcher{fileBlock.IPtrs[2].BlockPointer},
-		p.branch).Return(block3, nil)
+		p.Branch).Return(block3, nil)
 
 	// the split is in the middle
 	pad2 := 0
@@ -3678,7 +3686,7 @@ func TestSyncDirtyMultiBlocksSplitInBlockSuccess(t *testing.T) {
 	// this causes block 3 to be updated
 	var newBlock3 *FileBlock
 	config.mockBcache.EXPECT().PutDirty(fileBlock.IPtrs[2].BlockPointer,
-		p.branch, gomock.Any()).
+		p.Branch, gomock.Any()).
 		Do(func(ptr BlockPointer, branch BranchName, block Block) {
 		newBlock3 = block.(*FileBlock)
 		// id3 syncs just fine
@@ -3697,7 +3705,7 @@ func TestSyncDirtyMultiBlocksSplitInBlockSuccess(t *testing.T) {
 	id5 := BlockID{48}
 	config.mockCrypto.EXPECT().MakeTemporaryBlockID().Return(id5, nil)
 	config.mockBcache.EXPECT().PutDirty(ptrMatcher{BlockPointer{ID: id5}},
-		p.branch, gomock.Any()).
+		p.Branch, gomock.Any()).
 		Do(func(ptr BlockPointer, branch BranchName, block Block) {
 		newID5 = ptr.ID
 		newBlock5 = block.(*FileBlock)
@@ -3708,7 +3716,7 @@ func TestSyncDirtyMultiBlocksSplitInBlockSuccess(t *testing.T) {
 	}).Return(nil)
 
 	// The parent is dirtied too since the pointers changed
-	config.mockBcache.EXPECT().PutDirty(fileNode.BlockPointer, p.branch,
+	config.mockBcache.EXPECT().PutDirty(fileNode.BlockPointer, p.Branch,
 		gomock.Any()).AnyTimes().Return(nil)
 
 	// sync block contents and their padding sizes
@@ -3820,30 +3828,30 @@ func TestSyncDirtyMultiBlocksCopyNextBlockSuccess(t *testing.T) {
 	block4.Contents = []byte{20, 19, 18, 17, 16}
 	node := pathNode{makeBP(rootID, rmd, config, userID), ""}
 	fileNode := pathNode{makeBP(fileID, rmd, config, userID), "a"}
-	p := path{tlf: id, path: []pathNode{node, fileNode}}
+	p := path{FolderBranch{Tlf: id}, []pathNode{node, fileNode}}
 	ops := getOps(config, id)
 	n := nodeFromPath(ops, p)
 	ops.getOrCreateSyncInfoLocked(rootBlock.Children["a"])
 
 	// fsync a, only block 2 is dirty
 	config.mockBcache.EXPECT().IsDirty(ptrMatcher{fileNode.BlockPointer},
-		p.branch).AnyTimes().Return(true)
-	config.mockBcache.EXPECT().IsDirty(ptrMatcher{node.BlockPointer}, p.branch).
+		p.Branch).AnyTimes().Return(true)
+	config.mockBcache.EXPECT().IsDirty(ptrMatcher{node.BlockPointer}, p.Branch).
 		AnyTimes().Return(true)
-	config.mockBcache.EXPECT().Get(ptrMatcher{node.BlockPointer}, p.branch).
+	config.mockBcache.EXPECT().Get(ptrMatcher{node.BlockPointer}, p.Branch).
 		AnyTimes().Return(rootBlock, nil)
-	config.mockBcache.EXPECT().Get(ptrMatcher{fileNode.BlockPointer}, p.branch).
+	config.mockBcache.EXPECT().Get(ptrMatcher{fileNode.BlockPointer}, p.Branch).
 		AnyTimes().Return(fileBlock, nil)
 	config.mockBcache.EXPECT().Get(ptrMatcher{fileBlock.IPtrs[1].BlockPointer},
-		p.branch).Return(block2, nil)
+		p.Branch).Return(block2, nil)
 	config.mockBcache.EXPECT().IsDirty(
 		ptrMatcher{fileBlock.IPtrs[1].BlockPointer},
-		p.branch).AnyTimes().Return(false)
+		p.Branch).AnyTimes().Return(false)
 	config.mockBcache.EXPECT().Get(ptrMatcher{fileBlock.IPtrs[3].BlockPointer},
-		p.branch).Return(block4, nil)
+		p.Branch).Return(block4, nil)
 	config.mockBcache.EXPECT().IsDirty(
 		ptrMatcher{fileBlock.IPtrs[3].BlockPointer},
-		p.branch).Times(2).Return(false)
+		p.Branch).Times(2).Return(false)
 
 	// the split is in the middle
 	pad1 := 14
@@ -3870,7 +3878,7 @@ func TestSyncDirtyMultiBlocksCopyNextBlockSuccess(t *testing.T) {
 	}).Return(split4At)
 	var newBlock4 *FileBlock
 	config.mockBcache.EXPECT().PutDirty(fileBlock.IPtrs[3].BlockPointer,
-		p.branch, gomock.Any()).
+		p.Branch, gomock.Any()).
 		Do(func(ptr BlockPointer, branch BranchName, block Block) {
 		newBlock4 = block.(*FileBlock)
 		// now block 4 is dirty, but it's the end of the line,
@@ -3881,7 +3889,7 @@ func TestSyncDirtyMultiBlocksCopyNextBlockSuccess(t *testing.T) {
 	}).Return(nil)
 
 	// The parent is dirtied too since the pointers changed
-	config.mockBcache.EXPECT().PutDirty(fileNode.BlockPointer, p.branch,
+	config.mockBcache.EXPECT().PutDirty(fileNode.BlockPointer, p.Branch,
 		gomock.Any()).AnyTimes().Return(nil)
 
 	// sync block
@@ -3955,13 +3963,13 @@ func TestSyncDirtyWithBlockChangePointerSuccess(t *testing.T) {
 	aBlock := NewFileBlock().(*FileBlock)
 	node := pathNode{makeBP(rootID, rmd, config, userID), ""}
 	aNode := pathNode{makeBP(aID, rmd, config, userID), "a"}
-	p := path{tlf: id, path: []pathNode{node, aNode}}
+	p := path{FolderBranch{Tlf: id}, []pathNode{node, aNode}}
 	ops := getOps(config, id)
 	n := nodeFromPath(ops, p)
 	ops.getOrCreateSyncInfoLocked(rootBlock.Children["a"])
 
 	// fsync a
-	config.BlockCache().PutDirty(aNode.BlockPointer, p.branch, aBlock)
+	config.BlockCache().PutDirty(aNode.BlockPointer, p.Branch, aBlock)
 	config.BlockCache().Put(node.BlockPointer.ID, rootBlock)
 
 	// override the AnyTimes expect call done by default in expectSyncBlock()
