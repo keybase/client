@@ -88,6 +88,18 @@ func (h *LoginHandler) CancelLogin(sessionID int) error {
 	return c.Cancel()
 }
 
+func (h *LoginHandler) Backup(sessionID int) (string, error) {
+	ctx := &engine.Context{
+		SecretUI: h.getSecretUI(sessionID),
+	}
+	eng := engine.NewBackupKeygen(G)
+	err := engine.RunEngine(eng, ctx)
+	if err != nil {
+		return "", err
+	}
+	return eng.Passphrase(), nil
+}
+
 type RemoteLocksmithUI struct {
 	sessionID int
 	uicli     keybase1.LocksmithUiClient

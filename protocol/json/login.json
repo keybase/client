@@ -258,6 +258,13 @@
         "type" : "int"
       } ],
       "response" : "null"
+    },
+    "backup" : {
+      "request" : [ {
+        "name" : "sessionID",
+        "type" : "int"
+      } ],
+      "response" : "string"
     }
   }
 }

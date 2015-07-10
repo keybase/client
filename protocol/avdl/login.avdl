@@ -38,4 +38,8 @@ protocol login {
 
 	void logout(int sessionID);
 	void reset(int sessionID);
+
+	// backup generates backup keys for restoring an account.
+	// It returns a secret phrase the user needs to store for recovery.
+	string backup(int sessionID);
 }

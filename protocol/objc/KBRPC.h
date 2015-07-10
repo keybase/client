@@ -515,6 +515,8 @@ typedef NS_ENUM (NSInteger, KBRLogLevel) {
 
 - (void)resetWithSessionID:(NSInteger)sessionID completion:(void (^)(NSError *error))completion;
 
+- (void)backupWithSessionID:(NSInteger)sessionID completion:(void (^)(NSError *error, NSString *str))completion;
+
 @end
 
 @interface KBRLoginUiRequest : KBRRequest
@@ -1047,6 +1049,9 @@ typedef NS_ENUM (NSInteger, KBRPromptOverwriteType) {
 @property NSInteger sessionID;
 @end
 @interface KBRResetRequestParams : KBRRequestParams
+@property NSInteger sessionID;
+@end
+@interface KBRBackupRequestParams : KBRRequestParams
 @property NSInteger sessionID;
 @end
 @interface KBRGetEmailOrUsernameRequestParams : KBRRequestParams

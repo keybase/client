@@ -613,6 +613,18 @@
   }];
 }
 
+- (void)backupWithSessionID:(NSInteger)sessionID completion:(void (^)(NSError *error, NSString *str))completion {
+  NSDictionary *params = @{@"sessionID": @(sessionID)};
+  [self.client sendRequestWithMethod:@"keybase.1.login.backup" params:params sessionId:self.sessionId completion:^(NSError *error, id retval) {
+    if (error) {
+        completion(error, nil);
+        return;
+      }
+      NSString *result = retval ? [MTLJSONAdapter modelOfClass:NSString.class fromJSONDictionary:retval error:&error] : nil;
+      completion(error, result);
+  }];
+}
+
 @end
 
 @implementation KBRLoginUiRequest
@@ -1822,6 +1834,17 @@
 @end
 
 @implementation KBRResetRequestParams
+
+- (instancetype)initWithParams:(NSArray *)params {
+  if ((self = [super initWithParams:params])) {
+    self.sessionID = [params[0][@"sessionID"] integerValue];
+  }
+  return self;
+}
+
+@end
+
+@implementation KBRBackupRequestParams
 
 - (instancetype)initWithParams:(NSArray *)params {
   if ((self = [super initWithParams:params])) {

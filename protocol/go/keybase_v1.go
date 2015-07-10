@@ -1463,6 +1463,10 @@ type ResetArg struct {
 	SessionID int `codec:"sessionID" json:"sessionID"`
 }
 
+type BackupArg struct {
+	SessionID int `codec:"sessionID" json:"sessionID"`
+}
+
 type LoginInterface interface {
 	GetConfiguredAccounts(int) ([]ConfiguredAccount, error)
 	LoginWithPrompt(LoginWithPromptArg) error
@@ -1472,6 +1476,7 @@ type LoginInterface interface {
 	CancelLogin(int) error
 	Logout(int) error
 	Reset(int) error
+	Backup(int) (string, error)
 }
 
 func LoginProtocol(i LoginInterface) rpc2.Protocol {
@@ -1534,6 +1539,13 @@ func LoginProtocol(i LoginInterface) rpc2.Protocol {
 				}
 				return
 			},
+			"backup": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
+				args := make([]BackupArg, 1)
+				if err = nxt(&args); err == nil {
+					ret, err = i.Backup(args[0].SessionID)
+				}
+				return
+			},
 		},
 	}
 
@@ -1584,6 +1596,12 @@ func (c LoginClient) Logout(sessionID int) (err error) {
 func (c LoginClient) Reset(sessionID int) (err error) {
 	__arg := ResetArg{SessionID: sessionID}
 	err = c.Cli.Call("keybase.1.login.reset", []interface{}{__arg}, nil)
+	return
+}
+
+func (c LoginClient) Backup(sessionID int) (res string, err error) {
+	__arg := BackupArg{SessionID: sessionID}
+	err = c.Cli.Call("keybase.1.login.backup", []interface{}{__arg}, &res)
 	return
 }
 
