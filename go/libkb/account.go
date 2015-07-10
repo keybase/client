@@ -133,8 +133,8 @@ func (a *Account) SetStreamGeneration(gen PassphraseGeneration) {
 func (a *Account) GetStreamGeneration() (ret PassphraseGeneration) {
 	if ps := a.PassphraseStream(); ps != nil {
 		ret = ps.Generation()
-	}	
-	return 
+	}
+	return
 }
 
 func (a *Account) CreateStreamCacheViaStretch(passphrase string) error {

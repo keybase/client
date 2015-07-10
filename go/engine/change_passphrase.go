@@ -91,6 +91,35 @@ func (c *ChangePassphrase) runStandardUpdate(ctx *Context) (err error) {
 		return err
 	}
 
+	var acctErr error
+	c.G().LoginState().Account(func(a *libkb.Account) {
+		salt, err := a.LoginSession().Salt()
+		if err != nil {
+			acctErr = err
+			return
+		}
+
+		_, newPPStream, err := libkb.StretchPassphrase(c.arg.NewPassphrase, salt)
+		if err != nil {
+			acctErr = err
+			return
+		}
+
+		gen := a.PassphraseStreamCache().PassphraseStream().Generation()
+
+		oldClientHalf := a.PassphraseStreamCache().PassphraseStream().LksClientHalf()
+		newClientHalf := newPPStream.LksClientHalf()
+		mask := make([]byte, len(oldClientHalf))
+		libkb.XORBytes(mask, oldClientHalf, newClientHalf)
+
+		c.G().Log.Debug("pp gen: %d, mask: %x", gen, mask)
+
+	}, "ChangePassphrase.runStandardUpdate")
+	if acctErr != nil {
+		err = acctErr
+		return err
+	}
+
 	return nil
 }
 

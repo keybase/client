@@ -18,8 +18,10 @@ func TestChangePassphraseKnown(t *testing.T) {
 		OldPassphrase: u.Passphrase,
 		NewPassphrase: "password",
 	}
+
+	// using an empty secret ui to make sure existing pp doesn't come from ui prompt:
 	ctx := &Context{
-		SecretUI: u.NewSecretUI(),
+		SecretUI: libkb.TestSecretUI{},
 	}
 	eng := NewChangePassphrase(arg, tc.G)
 	if err := RunEngine(eng, ctx); err != nil {
