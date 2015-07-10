@@ -21,11 +21,23 @@ type BlockContext interface {
 	GetRefNonce() BlockRefNonce
 }
 
+// NodeID is a unique but transient ID for a Node. That is, two Node
+// objects in memory at the same time represent the same file or
+// directory if and only if their NodeIDs are equal (by pointer).
+type NodeID interface {
+	// ParentID returns the NodeID of the directory containing the
+	// pointed-to file or directory, or nil if none exists.
+	ParentID() NodeID
+}
+
 // Node represents a direct pointer to a file or directory in KBFS.
 // It is somewhat like an inode in a regular file system.  Users of
 // KBFS can use Node as a handle when accessing files or directories
 // they have previously looked up.
 type Node interface {
+	// GetID returns the ID of this Node. This should be used as a
+	// map key instead of the Node itself.
+	GetID() NodeID
 	// GetFolderBranch returns the folder ID and branch for this Node.
 	GetFolderBranch() (TlfID, BranchName)
 }

@@ -33,7 +33,7 @@ type FuseOps struct {
 	ctx          context.Context
 
 	// naturally protected by the dirRWChans
-	fuseNodeMap map[libkbfs.Node]*FuseNode
+	fuseNodeMap map[libkbfs.NodeID]*FuseNode
 }
 
 // NewFuseRoot constructs a new root FUSE node for KBFS.
@@ -43,7 +43,7 @@ func NewFuseRoot(ctx context.Context, config libkbfs.Config) *FuseNode {
 		topNodes:     make(map[string]*FuseNode),
 		topNodesByID: make(map[libkbfs.TlfID]*FuseNode),
 		tlfRWChans:   libkbfs.NewTlfRWSchedulers(config),
-		fuseNodeMap:  make(map[libkbfs.Node]*FuseNode),
+		fuseNodeMap:  make(map[libkbfs.NodeID]*FuseNode),
 	}
 	f.ctx = context.WithValue(ctx, ctxAppIDKey, f)
 	return &FuseNode{
@@ -157,7 +157,7 @@ func (f *FuseOps) LookupInDir(dNode *FuseNode, name string) (
 				fsNode:    rootNode,
 				Ops:       f,
 			}
-			f.fuseNodeMap[rootNode] = fNode
+			f.fuseNodeMap[rootNode.GetID()] = fNode
 
 			node = dNode.Inode().NewChild(name, true, fNode)
 			f.topLock.Lock()
@@ -185,7 +185,7 @@ func (f *FuseOps) LookupInDir(dNode *FuseNode, name string) (
 			Ops:      f,
 			Entry:    de,
 		}
-		f.fuseNodeMap[newNode] = fNode
+		f.fuseNodeMap[newNode.GetID()] = fNode
 		if de.Type != libkbfs.Dir {
 			fNode.File = &FuseFile{
 				File: nodefs.NewDefaultFile(),
@@ -212,7 +212,7 @@ func (f *FuseOps) LocalChange(
 
 	rwchan := topNode.getChan()
 	rwchan.QueueWriteReq(func() {
-		fNode := f.fuseNodeMap[node]
+		fNode := f.fuseNodeMap[node.GetID()]
 		if fNode == nil {
 			return
 		}
@@ -242,7 +242,7 @@ func (f *FuseOps) BatchChanges(
 			if !change.AttrUpdated {
 				continue
 			}
-			fNode := f.fuseNodeMap[change.Node]
+			fNode := f.fuseNodeMap[change.Node.GetID()]
 			if fNode == nil {
 				continue
 			}
@@ -318,7 +318,7 @@ func (f *FuseOps) LookupInRootByName(rNode *FuseNode, name string) (
 					fsNode:    rootNode,
 					Ops:       f,
 				}
-				f.fuseNodeMap[rootNode] = fNode
+				f.fuseNodeMap[rootNode.GetID()] = fNode
 			}
 
 			node = rNode.Inode().NewChild(name, true, fNode)
@@ -357,7 +357,7 @@ func (f *FuseOps) LookupInRootByID(rNode *FuseNode, id libkbfs.TlfID) (
 				fsNode:    rootNode,
 				Ops:       f,
 			}
-			f.fuseNodeMap[rootNode] = fNode
+			f.fuseNodeMap[rootNode.GetID()] = fNode
 
 			node = rNode.Inode().NewChild(name, true, fNode)
 			f.addTopNodeLocked(name, fNode)
@@ -525,7 +525,7 @@ func (f *FuseOps) Mkdir(n *FuseNode, name string) (
 		Entry:    de,
 		Ops:      f,
 	}
-	f.fuseNodeMap[fsNode] = fNode
+	f.fuseNodeMap[fsNode.GetID()] = fNode
 	newNode = n.Inode().NewChild(name, true, fNode)
 
 	code = fuse.OK
@@ -554,7 +554,7 @@ func (f *FuseOps) Mknod(n *FuseNode, name string, mode uint32) (
 		File:     &FuseFile{File: nodefs.NewDefaultFile()},
 		Ops:      f,
 	}
-	f.fuseNodeMap[fsNode] = fNode
+	f.fuseNodeMap[fsNode.GetID()] = fNode
 	fNode.File.Node = fNode
 	newNode = n.Inode().NewChild(name, true, fNode)
 
@@ -750,7 +750,7 @@ func (n *FuseNode) OnMount(conn *nodefs.FileSystemConnector) {
 func (n *FuseNode) OnForget() {
 	rwchan := n.getChan()
 	rwchan.QueueWriteReq(func() {
-		delete(n.Ops.fuseNodeMap, n.fsNode)
+		delete(n.Ops.fuseNodeMap, n.fsNode.GetID())
 		n.fsNode = nil
 	})
 }

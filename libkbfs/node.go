@@ -23,6 +23,13 @@ func newNodeCore(ptr BlockPointer, name string, parent *nodeStandard,
 	}
 }
 
+func (c *nodeCore) ParentID() NodeID {
+	if c.parent == nil {
+		return nil
+	}
+	return c.parent.GetID()
+}
+
 type nodeStandard struct {
 	core *nodeCore
 }
@@ -37,6 +44,10 @@ func makeNodeStandard(core *nodeCore) *nodeStandard {
 	n := &nodeStandard{core}
 	runtime.SetFinalizer(n, nodeStandardFinalizer)
 	return n
+}
+
+func (n *nodeStandard) GetID() NodeID {
+	return n.core
 }
 
 func (n *nodeStandard) GetFolderBranch() (TlfID, BranchName) {
