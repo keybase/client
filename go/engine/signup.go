@@ -203,7 +203,7 @@ func (s *SignupEngine) registerDevice(a libkb.LoginContext, ctx *Context, device
 
 func (s *SignupEngine) genDetKeys(ctx *Context) error {
 	arg := &DetKeyArgs{
-		Tsp:         s.ppStream,
+		PPStream:    s.ppStream,
 		Me:          s.me,
 		SigningKey:  s.signingKey,
 		EldestKeyID: s.signingKey.GetKid(),

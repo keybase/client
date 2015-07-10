@@ -295,7 +295,7 @@ func (d *Locksmith) addDetKey(ctx *Context, eldest keybase1.KID) error {
 		return err
 	}
 	arg := &DetKeyArgs{
-		Tsp:         tk,
+		PPStream:    tk,
 		Me:          d.user,
 		SigningKey:  d.signingKey,
 		EldestKeyID: eldest,

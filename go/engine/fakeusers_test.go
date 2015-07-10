@@ -54,7 +54,7 @@ func createFakeUserWithDetKey(tc libkb.TestContext) (username, passphrase string
 	// generate the detkey only, using SelfProof
 	arg := &DetKeyArgs{
 		Me:        s.me,
-		Tsp:       s.ppStream,
+		PPStream:  s.ppStream,
 		SelfProof: true,
 	}
 	eng := NewDetKeyEngine(arg, tc.G)

@@ -18,7 +18,7 @@ import (
 // device.  Currently used by BackupKeygen to generate backup
 // keys.
 type DetKeyArgs struct {
-	Tsp         *libkb.PassphraseStream
+	PPStream    *libkb.PassphraseStream
 	SelfProof   bool
 	Me          *libkb.User
 	SigningKey  libkb.GenericKey
@@ -62,14 +62,14 @@ func (d *DetKeyEngine) Run(ctx *Context) error {
 		d.dev = libkb.NewWebDevice()
 	}
 
-	if err := d.eddsa(ctx, d.arg.Tsp); err != nil {
+	if err := d.eddsa(ctx, d.arg.PPStream); err != nil {
 		return fmt.Errorf("eddsa error: %s", err)
 	}
 
 	// turn off self proof
 	d.arg.SelfProof = false
 
-	if err := d.dh(ctx, d.arg.Tsp.DHSeed()); err != nil {
+	if err := d.dh(ctx, d.arg.PPStream.DHSeed()); err != nil {
 		return fmt.Errorf("dh error: %s", err)
 	}
 	return nil

@@ -96,7 +96,7 @@ func (e *BackupKeygen) Run(ctx *Context) error {
 	}
 
 	dkarg := &DetKeyArgs{
-		Tsp:         ppStream,
+		PPStream:    ppStream,
 		Me:          me,
 		SigningKey:  signingKey,
 		EldestKeyID: eldestKID,
