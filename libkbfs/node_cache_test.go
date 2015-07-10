@@ -342,7 +342,7 @@ func TestNodeCacheGCParent(t *testing.T) {
 	}
 }
 
-var finalizerChan chan struct{} = make(chan struct{})
+var finalizerChan = make(chan struct{})
 
 // Like nodeStandardFinalizer(), but sends on finalizerChan
 // afterwards.
