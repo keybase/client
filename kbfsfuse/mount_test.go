@@ -559,6 +559,10 @@ func TestRenameCrossFolder(t *testing.T) {
 }
 
 func TestWriteThenRename(t *testing.T) {
+	if runtime.GOOS == "darwin" {
+		t.Skip("see https://github.com/keybase/kbfs/issues/148")
+	}
+
 	config := libkbfs.MakeTestConfigOrBust(t, *BServerRemote, "jdoe")
 	mnt := makeFS(t, config)
 	defer mnt.Close()
