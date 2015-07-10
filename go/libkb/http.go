@@ -1,6 +1,7 @@
 package libkb
 
 import (
+	"encoding/hex"
 	"fmt"
 	"net/url"
 	"strconv"
@@ -14,6 +15,10 @@ type HTTPArgs map[string]HTTPValue
 
 type S struct {
 	Val string
+}
+
+func HexArg(b []byte) S {
+	return S{Val: hex.EncodeToString(b)}
 }
 
 type I struct {

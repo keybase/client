@@ -1,8 +1,11 @@
 package engine
 
 import (
+	"encoding/json"
+
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/protocol/go"
+	triplesec "github.com/keybase/go-triplesec"
 )
 
 // ChangePassphrase engine is used for changing the user's passphrase, either
@@ -74,6 +77,8 @@ func (c *ChangePassphrase) runForcedUpdate(ctx *Context) (err error) {
 	return
 }
 
+// runStandardUpdate is for when the user knows the current
+// password.
 func (c *ChangePassphrase) runStandardUpdate(ctx *Context) (err error) {
 
 	c.G().Log.Debug("+ ChangePassphrase.runStandardUpdate")
@@ -106,14 +111,56 @@ func (c *ChangePassphrase) runStandardUpdate(ctx *Context) (err error) {
 		}
 
 		gen := a.PassphraseStreamCache().PassphraseStream().Generation()
-
+		oldPWH := a.PassphraseStreamCache().PassphraseStream().PWHash()
 		oldClientHalf := a.PassphraseStreamCache().PassphraseStream().LksClientHalf()
+		newPWH := newPPStream.PWHash()
 		newClientHalf := newPPStream.LksClientHalf()
+
 		mask := make([]byte, len(oldClientHalf))
 		libkb.XORBytes(mask, oldClientHalf, newClientHalf)
 
 		c.G().Log.Debug("pp gen: %d, mask: %x", gen, mask)
 
+		lksch := make(map[keybase1.KID]string)
+		devices := c.me.GetComputedKeyFamily().GetAllDevices()
+		for _, dev := range devices {
+			key, err := c.me.GetComputedKeyFamily().GetEncryptionSubkeyForDevice(dev.ID)
+			if err != nil {
+				acctErr = err
+				return
+			}
+			ctext, err := key.EncryptToString(newClientHalf, nil)
+			if err != nil {
+				acctErr = err
+				return
+			}
+			lksch[key.GetKid()] = ctext
+		}
+		lkschJSON, err := json.Marshal(lksch)
+		if err != nil {
+			acctErr = err
+			return
+		}
+
+		postArg := libkb.APIArg{
+			Endpoint:    "passphrase/replace",
+			NeedSession: true,
+			Args: libkb.HTTPArgs{
+				"oldpwh":            libkb.HexArg(oldPWH),
+				"pwh":               libkb.HexArg(newPWH),
+				"pwh_version":       libkb.I{Val: int(triplesec.Version)},
+				"ppgen":             libkb.I{Val: int(gen)},
+				"lks_mask":          libkb.HexArg(mask),
+				"lks_client_halves": libkb.S{Val: string(lkschJSON)},
+			},
+			SessionR: a.LocalSession(),
+		}
+
+		_, err = c.G().API.Post(postArg)
+		if err != nil {
+			acctErr = err
+			return
+		}
 	}, "ChangePassphrase.runStandardUpdate")
 	if acctErr != nil {
 		err = acctErr

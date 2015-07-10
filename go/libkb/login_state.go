@@ -48,7 +48,7 @@ type LoginContext interface {
 	CreateLoginSessionWithSalt(emailOrUsername string, salt []byte) error
 	LoadLoginSession(emailOrUsername string) error
 	LoginSession() *LoginSession
-	ClearLoginSession() 
+	ClearLoginSession()
 
 	LocalSession() *Session
 	EnsureUsername(username string)
@@ -498,7 +498,7 @@ func (s *LoginState) getEmailOrUsername(lctx LoginContext, username *string, log
 }
 
 func (s *LoginState) verifyPlaintextPassphraseForLoggedInUser(lctx LoginContext, passphrase string) (err error) {
-	s.G().Log.Debug("+ LoginState.verifyPlaintextPassphraseForLoggedInUser", )
+	s.G().Log.Debug("+ LoginState.verifyPlaintextPassphraseForLoggedInUser")
 	defer func() {
 		s.G().Log.Debug("- LoginState.verifyPlaintextPassphraseForLoggedInUser -> %s", ErrToOk(err))
 	}()
@@ -518,7 +518,7 @@ func (s *LoginState) verifyPlaintextPassphraseForLoggedInUser(lctx LoginContext,
 	// and also no retry message.
 	err = s.passphraseLogin(lctx, username, passphrase, nil, "")
 
-	return 
+	return
 }
 
 func (s *LoginState) passphraseLogin(lctx LoginContext, username, passphrase string, secretUI SecretUI, retryMsg string) (err error) {

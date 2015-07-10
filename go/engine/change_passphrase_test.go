@@ -14,9 +14,10 @@ func TestChangePassphraseKnown(t *testing.T) {
 	defer tc.Cleanup()
 
 	u := CreateAndSignupFakeUser(tc, "login")
+	newPassphrase := "password"
 	arg := &keybase1.ChangePassphraseArg{
 		OldPassphrase: u.Passphrase,
-		NewPassphrase: "password",
+		NewPassphrase: newPassphrase,
 	}
 
 	// using an empty secret ui to make sure existing pp doesn't come from ui prompt:
@@ -27,6 +28,16 @@ func TestChangePassphraseKnown(t *testing.T) {
 	if err := RunEngine(eng, ctx); err != nil {
 		t.Fatal(err)
 	}
+
+	_, err := tc.G.LoginState().VerifyPlaintextPassphrase(newPassphrase)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	_, err = tc.G.LoginState().VerifyPlaintextPassphrase(u.Passphrase)
+	if err == nil {
+		t.Fatal("old passphrase passed verification")
+	}
 }
 
 // Test changing the passphrase when user knows current
@@ -36,8 +47,9 @@ func TestChangePassphraseKnownPrompt(t *testing.T) {
 	defer tc.Cleanup()
 
 	u := CreateAndSignupFakeUser(tc, "login")
+	newPassphrase := "password"
 	arg := &keybase1.ChangePassphraseArg{
-		NewPassphrase: "password",
+		NewPassphrase: newPassphrase,
 	}
 	ctx := &Context{
 		SecretUI: u.NewSecretUI(),
@@ -45,6 +57,16 @@ func TestChangePassphraseKnownPrompt(t *testing.T) {
 	eng := NewChangePassphrase(arg, tc.G)
 	if err := RunEngine(eng, ctx); err != nil {
 		t.Fatal(err)
+	}
+
+	_, err := tc.G.LoginState().VerifyPlaintextPassphrase(newPassphrase)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	_, err = tc.G.LoginState().VerifyPlaintextPassphrase(u.Passphrase)
+	if err == nil {
+		t.Fatal("old passphrase passed verification")
 	}
 }
 
