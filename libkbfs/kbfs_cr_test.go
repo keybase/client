@@ -7,7 +7,7 @@ import (
 )
 
 func readAndCompareData(t *testing.T, config Config, ctx context.Context,
-	h *DirHandle, expectedData []byte, user string) {
+	h *TlfHandle, expectedData []byte, user string) {
 	kbfsOps := config.KBFSOps()
 	rootNode, _, err := kbfsOps.GetOrCreateRootNodeForHandle(ctx, h)
 	if err != nil {
@@ -43,7 +43,7 @@ func TestUnmergedAfterRestart(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	h := NewDirHandle()
+	h := NewTlfHandle()
 	h.Writers = append(h.Writers, uid1)
 	h.Writers = append(h.Writers, uid2)
 

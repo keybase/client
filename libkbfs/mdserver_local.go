@@ -126,7 +126,7 @@ func (md *MDServerLocal) GetForHandle(handle *TlfHandle) (
 	return &RootMetadataSigned{MD: *rmd}, nil
 }
 
-func (md *MDServerLocal) getHeadForTLF(id DirID) (
+func (md *MDServerLocal) getHeadForTLF(id TlfID) (
 	mdID MdID, err error) {
 	buf, err := md.idDb.Get(id[:], nil)
 	if err != nil {
