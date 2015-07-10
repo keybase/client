@@ -2684,7 +2684,7 @@ func (fbo *FolderBranchOps) UnregisterFromChanges(obs Observer) error {
 
 func (fbo *FolderBranchOps) notifyLocal(ctx context.Context,
 	file path, so *syncOp) {
-	node := fbo.nodeCache.GetWithoutReference(stripBP(file.tailPointer()))
+	node := fbo.nodeCache.Get(stripBP(file.tailPointer()))
 	if node == nil {
 		return
 	}
@@ -2700,7 +2700,7 @@ func (fbo *FolderBranchOps) notifyLocal(ctx context.Context,
 
 func (fbo *FolderBranchOps) addChangeForUpdatedDir(
 	ptr BlockPointer, changes []NodeChange) []NodeChange {
-	node := fbo.nodeCache.GetWithoutReference(stripBP(ptr))
+	node := fbo.nodeCache.Get(stripBP(ptr))
 	if node == nil {
 		return changes
 	}
@@ -2749,7 +2749,7 @@ func (fbo *FolderBranchOps) notifyBatch(ctx context.Context, md *RootMetadata) {
 			return
 		}
 	case *syncOp:
-		node := fbo.nodeCache.GetWithoutReference(stripBP(realOp.File.Ref))
+		node := fbo.nodeCache.Get(stripBP(realOp.File.Ref))
 		if node == nil {
 			return
 		}
@@ -2760,7 +2760,7 @@ func (fbo *FolderBranchOps) notifyBatch(ctx context.Context, md *RootMetadata) {
 			FileUpdated: realOp.Writes,
 		})
 	case *setAttrOp:
-		node := fbo.nodeCache.GetWithoutReference(stripBP(realOp.Dir.Ref))
+		node := fbo.nodeCache.Get(stripBP(realOp.Dir.Ref))
 		if node == nil {
 			return
 		}
@@ -2780,7 +2780,7 @@ func (fbo *FolderBranchOps) notifyBatch(ctx context.Context, md *RootMetadata) {
 			return
 		}
 
-		childNode := fbo.nodeCache.GetWithoutReference(stripBP(de.BlockPointer))
+		childNode := fbo.nodeCache.Get(stripBP(de.BlockPointer))
 		if childNode == nil {
 			return
 		}

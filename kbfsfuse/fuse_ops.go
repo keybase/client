@@ -379,14 +379,12 @@ func (f *FuseOps) GetAttr(n *FuseNode, out *fuse.Attr) fuse.Status {
 					return f.translateError(err)
 				}
 			} else {
-				var rootNode libkbfs.Node
-				rootNode, de, err =
+				_, de, err =
 					f.config.KBFSOps().GetOrCreateRootNodeForHandle(
 						f.ctx, n.TlfHandle)
 				if err != nil {
 					return f.translateError(err)
 				}
-				defer rootNode.Forget()
 			}
 
 			n.Entry = de
@@ -750,9 +748,11 @@ func (n *FuseNode) OnMount(conn *nodefs.FileSystemConnector) {
 
 // OnForget implements go-fuse Node interface for FuseNode
 func (n *FuseNode) OnForget() {
-	n.fsNode.Forget()
 	rwchan := n.getChan()
-	rwchan.QueueWriteReq(func() { delete(n.Ops.fuseNodeMap, n.fsNode) })
+	rwchan.QueueWriteReq(func() {
+		delete(n.Ops.fuseNodeMap, n.fsNode)
+		n.fsNode = nil
+	})
 }
 
 func (n *FuseNode) getChans() (rwchan util.RWScheduler, statchan statusChan) {

@@ -46,9 +46,6 @@ func split(pathStr string) ([]string, error) {
 func openNode(ctx context.Context, config libkbfs.Config, path string, components []string) (n libkbfs.Node, de libkbfs.DirEntry, err error) {
 	defer func() {
 		if err != nil {
-			if n != nil {
-				n.Forget()
-			}
 			n = nil
 			de = libkbfs.DirEntry{}
 		}
@@ -74,7 +71,6 @@ func openNode(ctx context.Context, config libkbfs.Config, path string, component
 		if err != nil {
 			return nil, libkbfs.DirEntry{}, err
 		}
-		n.Forget()
 		n = cn
 		de = cde
 	}
@@ -118,12 +114,10 @@ func stat(ctx context.Context, config libkbfs.Config, nodePath string) error {
 		return err
 	}
 
-	n, de, err := openNode(ctx, config, nodePath, components)
+	_, de, err := openNode(ctx, config, nodePath, components)
 	if err != nil {
 		return err
 	}
-
-	defer n.Forget()
 
 	var symPathStr string
 	if de.Type == libkbfs.Sym {
@@ -154,8 +148,6 @@ func dir(ctx context.Context, config libkbfs.Config, filePath string) error {
 		return err
 	}
 
-	defer dirNode.Forget()
-
 	children, err := config.KBFSOps().GetDirChildren(ctx, dirNode)
 	if err != nil {
 		return err
@@ -183,18 +175,14 @@ func mkdir(ctx context.Context, config libkbfs.Config, dirPath string) error {
 		return err
 	}
 
-	defer parentNode.Forget()
-
 	kbfsOps := config.KBFSOps()
 
 	dirname := components[len(components)-1]
 
-	dirNode, _, err := kbfsOps.CreateDir(ctx, parentNode, dirname)
+	_, _, err = kbfsOps.CreateDir(ctx, parentNode, dirname)
 	if err != nil {
 		return err
 	}
-
-	defer dirNode.Forget()
 
 	return nil
 }
@@ -209,8 +197,6 @@ func read(ctx context.Context, config libkbfs.Config, filePath string) error {
 	if err != nil {
 		return err
 	}
-
-	defer fileNode.Forget()
 
 	var buf [4096]byte
 	var off int64
@@ -248,8 +234,6 @@ func write(ctx context.Context, config libkbfs.Config, filePath string) error {
 		return err
 	}
 
-	defer parentNode.Forget()
-
 	kbfsOps := config.KBFSOps()
 
 	filename := components[len(components)-1]
@@ -268,11 +252,7 @@ func write(ctx context.Context, config libkbfs.Config, filePath string) error {
 		if err != nil {
 			return err
 		}
-
-		defer fileNode.Forget()
 	} else {
-		defer fileNode.Forget()
-
 		err = kbfsOps.Truncate(ctx, fileNode, 0)
 		if err != nil {
 			return err

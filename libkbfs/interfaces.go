@@ -25,13 +25,7 @@ type BlockContext interface {
 // It is somewhat like an inode in a regular file system.  Users of
 // KBFS can use Node as a handle when accessing files or directories
 // they have previously looked up.
-//
-// Nodes are reference-counted.  When the caller is done with a
-// particular Node, they must call Forget() on the node before
-// dropping the reference.
 type Node interface {
-	// Forget must be called whenever the user of a Node is done with it.
-	Forget()
 	// GetFolderBranch returns the folder ID and branch for this Node.
 	GetFolderBranch() (TlfID, BranchName)
 }
@@ -698,15 +692,15 @@ type Config interface {
 // most useful to instantiate this on a per-folder-branch basis, so
 // that it can create a Path with the correct DirId and Branch name.
 type NodeCache interface {
-	// GetOrCreate either makes a new Node for the given BlockPointer,
-	// or returns an existing one. It increments the refcount for the
-	// returned Node.  TODO: If we ever support hard links, we will
-	// have to revisit the "name" and "parent" parameters here.
-	// Returns an error if parent cannot be found.
+	// GetOrCreate either makes a new Node for the given
+	// BlockPointer, or returns an existing one. TODO: If we ever
+	// support hard links, we will have to revisit the "name" and
+	// "parent" parameters here.  Returns an error if parent
+	// cannot be found.
 	GetOrCreate(ptr BlockPointer, name string, parent Node) (Node, error)
-	// GetWithoutReference returns the Node associated with the given
-	// ptr if one already exists.  Otherwise, it returns nil.
-	GetWithoutReference(ptr BlockPointer) Node
+	// Get returns the Node associated with the given ptr if one
+	// already exists.  Otherwise, it returns nil.
+	Get(ptr BlockPointer) Node
 	// UpdatePointer swaps the BlockPointer for the corresponding
 	// Node.  NodeCache ignores this call when oldPtr is not cached in
 	// any Node.

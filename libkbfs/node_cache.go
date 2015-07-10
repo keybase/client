@@ -3,7 +3,7 @@ package libkbfs
 import "sync"
 
 type nodeCacheEntry struct {
-	node     *nodeStandard
+	core     *nodeCore
 	refCount int
 }
 
@@ -28,18 +28,14 @@ func newNodeCacheStandard(id TlfID, branch BranchName) *nodeCacheStandard {
 }
 
 // lock must be locked for writing by the caller
-func (ncs *nodeCacheStandard) forgetLocked(node Node) {
-	nodeStandard, ok := node.(*nodeStandard)
-	if !ok {
-		return
-	}
-	ptr := nodeStandard.pathNode.BlockPointer
+func (ncs *nodeCacheStandard) forgetLocked(core *nodeCore) {
+	ptr := core.pathNode.BlockPointer
 
 	entry, ok := ncs.nodes[ptr]
 	if !ok {
 		return
 	}
-	if entry.node != node {
+	if entry.core != core {
 		return
 	}
 
@@ -49,78 +45,71 @@ func (ncs *nodeCacheStandard) forgetLocked(node Node) {
 	}
 }
 
-// Forget implements the NodeCache interface for nodeCacheStandard.
-func (ncs *nodeCacheStandard) forget(node Node) {
+// should be called only by nodeStandardFinalizer().
+func (ncs *nodeCacheStandard) forget(core *nodeCore) {
 	ncs.lock.Lock()
 	defer ncs.lock.Unlock()
-	ncs.forgetLocked(node)
+	ncs.forgetLocked(core)
 }
 
 // lock must be held for writing by the caller
-func (ncs *nodeCacheStandard) newChildForParentLocked(parent Node) error {
-	pNodeStandard, ok := parent.(*nodeStandard)
+func (ncs *nodeCacheStandard) newChildForParentLocked(parent Node) (*nodeStandard, error) {
+	nodeStandard, ok := parent.(*nodeStandard)
 	if !ok {
-		return ParentNodeNotFoundError{BlockPointer{}}
+		return nil, ParentNodeNotFoundError{BlockPointer{}}
 	}
 
-	ptr := pNodeStandard.pathNode.BlockPointer
-	pEntry, ok := ncs.nodes[ptr]
+	ptr := nodeStandard.core.pathNode.BlockPointer
+	entry, ok := ncs.nodes[ptr]
 	if !ok {
-		return ParentNodeNotFoundError{ptr}
+		return nil, ParentNodeNotFoundError{ptr}
 	}
-	if parent != pNodeStandard {
-		return ParentNodeNotFoundError{ptr}
+	if nodeStandard.core != entry.core {
+		return nil, ParentNodeNotFoundError{ptr}
 	}
-	pEntry.refCount++
-	return nil
+	return nodeStandard, nil
+}
+
+func makeNodeStandardForEntry(entry *nodeCacheEntry) *nodeStandard {
+	entry.refCount++
+	return makeNodeStandard(entry.core)
 }
 
 // GetOrCreate implements the NodeCache interface for nodeCacheStandard.
 func (ncs *nodeCacheStandard) GetOrCreate(
 	ptr BlockPointer, name string, parent Node) (Node, error) {
-	ncs.lock.RLock()
-	entry, ok := ncs.nodes[ptr]
-	if ok {
-		entry.refCount++
-		ncs.lock.RUnlock()
-		return entry.node, nil
-	}
-	ncs.lock.RUnlock()
-
 	ncs.lock.Lock()
 	defer ncs.lock.Unlock()
-	// check again to make sure
-	entry, ok = ncs.nodes[ptr]
+	entry, ok := ncs.nodes[ptr]
 	if ok {
-		entry.refCount++
-		return entry.node, nil
+		return makeNodeStandardForEntry(entry), nil
 	}
 
-	// increment the parent's refcount when a child points to it
+	var parentNS *nodeStandard
 	if parent != nil {
-		err := ncs.newChildForParentLocked(parent)
+		var err error
+		parentNS, err = ncs.newChildForParentLocked(parent)
 		if err != nil {
 			return nil, err
 		}
 	}
 
 	entry = &nodeCacheEntry{
-		node:     newNodeStandard(ptr, name, parent, ncs),
-		refCount: 1,
+		core: newNodeCore(ptr, name, parentNS, ncs),
 	}
 	ncs.nodes[ptr] = entry
-	return entry.node, nil
+	return makeNodeStandardForEntry(entry), nil
 }
 
-// GetWithoutReference implements the NodeCache interface for nodeCacheStandard.
-func (ncs *nodeCacheStandard) GetWithoutReference(ptr BlockPointer) Node {
-	ncs.lock.RLock()
-	defer ncs.lock.RUnlock()
-	entry := ncs.nodes[ptr]
-	if entry == nil {
+// Get implements the NodeCache interface for nodeCacheStandard.
+func (ncs *nodeCacheStandard) Get(ptr BlockPointer) Node {
+	ncs.lock.Lock()
+	defer ncs.lock.Unlock()
+	entry, ok := ncs.nodes[ptr]
+	if !ok {
 		return nil
 	}
-	return entry.node
+	return makeNodeStandardForEntry(entry)
 }
 
 // UpdatePointer implements the NodeCache interface for nodeCacheStandard.
@@ -133,7 +122,7 @@ func (ncs *nodeCacheStandard) UpdatePointer(
 		return
 	}
 
-	entry.node.pathNode.BlockPointer = newPtr
+	entry.core.pathNode.BlockPointer = newPtr
 	delete(ncs.nodes, oldPtr)
 	ncs.nodes[newPtr] = entry
 }
@@ -148,17 +137,13 @@ func (ncs *nodeCacheStandard) Move(
 		return nil
 	}
 
-	err := ncs.newChildForParentLocked(newParent)
+	newParentNS, err := ncs.newChildForParentLocked(newParent)
 	if err != nil {
 		return err
 	}
-	oldParent := entry.node.parent
-	if oldParent != nil {
-		ncs.forgetLocked(oldParent)
-	}
 
-	entry.node.parent = newParent
-	entry.node.pathNode.Name = newName
+	entry.core.parent = newParentNS
+	entry.core.pathNode.Name = newName
 	return nil
 }
 
@@ -171,14 +156,9 @@ func (ncs *nodeCacheStandard) Unlink(ptr BlockPointer, oldPath path) {
 		return
 	}
 
-	entry.node.cachedPath = oldPath
-	oldParent := entry.node.parent
-	if oldParent != nil {
-		ncs.forgetLocked(oldParent)
-	}
-
-	entry.node.parent = nil
-	entry.node.pathNode.Name = ""
+	entry.core.cachedPath = oldPath
+	entry.core.parent = nil
+	entry.core.pathNode.Name = ""
 	return
 }
 
@@ -187,31 +167,31 @@ func (ncs *nodeCacheStandard) PathFromNode(node Node) (p path) {
 	ncs.lock.RLock()
 	defer ncs.lock.RUnlock()
 
-	currNode := node
-	for currNode != nil {
-		ns, ok := currNode.(*nodeStandard)
-		if !ok {
-			p.path = nil
-			return
-		}
+	ns, ok := node.(*nodeStandard)
+	if !ok {
+		p.path = nil
+		return
+	}
 
-		if ns.parent == nil && len(ns.cachedPath.path) > 0 {
+	for ns != nil {
+		core := ns.core
+		if core.parent == nil && len(core.cachedPath.path) > 0 {
 			// The node was unlinked, but is still in use, so use its
 			// cached path.  The path is already reversed, so append
 			// it backwards one-by-one to the existing path.  If this
 			// is the first node, we can just optimize by returning
 			// the complete cached path.
 			if len(p.path) == 0 {
-				return ns.cachedPath
+				return core.cachedPath
 			}
-			for i := len(ns.cachedPath.path) - 1; i >= 0; i-- {
-				p.path = append(p.path, ns.cachedPath.path[i])
+			for i := len(core.cachedPath.path) - 1; i >= 0; i-- {
+				p.path = append(p.path, core.cachedPath.path[i])
 			}
 			break
 		}
 
-		p.path = append(p.path, *ns.pathNode)
-		currNode = ns.parent
+		p.path = append(p.path, *core.pathNode)
+		ns = core.parent
 	}
 
 	// need to reverse the path nodes

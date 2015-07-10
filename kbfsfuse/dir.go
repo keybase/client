@@ -48,13 +48,12 @@ func (d *Dir) Attr(ctx context.Context, a *fuse.Attr) error {
 
 	case d.parent == nil:
 		// Top-level folder
-		rootNode, rootDe, err :=
+		_, rootDe, err :=
 			d.folder.fs.config.KBFSOps().GetOrCreateRootNodeForHandle(
 				ctx, d.folder.dh)
 		if err != nil {
 			return err
 		}
-		defer rootNode.Forget()
 		fillAttr(&rootDe, a)
 
 	default:

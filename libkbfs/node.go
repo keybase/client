@@ -1,20 +1,19 @@
 package libkbfs
 
-// NodeStandard implements the Node interface using a very simple data
-// structure that tracks its own PathNode and parent.
-type nodeStandard struct {
+import "runtime"
+
+// nodeCore holds info shared among one or more nodeStandard objects.
+type nodeCore struct {
 	pathNode *pathNode
-	parent   Node
+	parent   *nodeStandard
 	cache    *nodeCacheStandard
-	// used only when parent is nil (the node has been unlinked)
+	// used only when parent is nil (the object has been unlinked)
 	cachedPath path
 }
 
-var _ Node = (*nodeStandard)(nil)
-
-func newNodeStandard(ptr BlockPointer, name string, parent Node,
-	cache *nodeCacheStandard) *nodeStandard {
-	return &nodeStandard{
+func newNodeCore(ptr BlockPointer, name string, parent *nodeStandard,
+	cache *nodeCacheStandard) *nodeCore {
+	return &nodeCore{
 		pathNode: &pathNode{
 			BlockPointer: ptr,
 			Name:         name,
@@ -24,11 +23,22 @@ func newNodeStandard(ptr BlockPointer, name string, parent Node,
 	}
 }
 
-// Forget implements the Node interface for NodeStandard
-func (n *nodeStandard) Forget() {
-	n.cache.forget(n)
+type nodeStandard struct {
+	core *nodeCore
+}
+
+var _ Node = (*nodeStandard)(nil)
+
+func nodeStandardFinalizer(n *nodeStandard) {
+	n.core.cache.forget(n.core)
+}
+
+func makeNodeStandard(core *nodeCore) *nodeStandard {
+	n := &nodeStandard{core}
+	runtime.SetFinalizer(n, nodeStandardFinalizer)
+	return n
 }
 
 func (n *nodeStandard) GetFolderBranch() (TlfID, BranchName) {
-	return n.cache.id, n.cache.branch
+	return n.core.cache.id, n.core.cache.branch
 }

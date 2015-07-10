@@ -5,12 +5,13 @@ package libkbfs
 
 import (
 	fmt "fmt"
+	reflect "reflect"
+	time "time"
+
 	gomock "github.com/golang/mock/gomock"
 	libkb "github.com/keybase/client/go/libkb"
 	go0 "github.com/keybase/client/protocol/go"
 	context "golang.org/x/net/context"
-	reflect "reflect"
-	time "time"
 )
 
 // Mock of Block interface
@@ -1880,14 +1881,14 @@ func (_mr *_MockNodeCacheRecorder) GetOrCreate(arg0, arg1, arg2 interface{}) *go
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "GetOrCreate", arg0, arg1, arg2)
 }
 
-func (_m *MockNodeCache) GetWithoutReference(ptr BlockPointer) Node {
-	ret := _m.ctrl.Call(_m, "GetWithoutReference", ptr)
+func (_m *MockNodeCache) Get(ptr BlockPointer) Node {
+	ret := _m.ctrl.Call(_m, "Get", ptr)
 	ret0, _ := ret[0].(Node)
 	return ret0
 }
 
-func (_mr *_MockNodeCacheRecorder) GetWithoutReference(arg0 interface{}) *gomock.Call {
-	return _mr.mock.ctrl.RecordCall(_mr.mock, "GetWithoutReference", arg0)
+func (_mr *_MockNodeCacheRecorder) Get(arg0 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "Get", arg0)
 }
 
 func (_m *MockNodeCache) UpdatePointer(oldPtr BlockPointer, newPtr BlockPointer) {

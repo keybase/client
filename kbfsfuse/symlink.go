@@ -25,15 +25,9 @@ func (s *Symlink) Attr(ctx context.Context, a *fuse.Attr) error {
 	s.parent.folder.mu.RLock()
 	defer s.parent.folder.mu.RUnlock()
 
-	node, de, err := s.parent.folder.fs.config.KBFSOps().Lookup(ctx, s.parent.node, s.name)
+	_, de, err := s.parent.folder.fs.config.KBFSOps().Lookup(ctx, s.parent.node, s.name)
 	if err != nil {
 		return err
-	}
-
-	// TODO: There shouldn't be any node for a Symlink, so maybe return
-	// an error here?
-	if node != nil {
-		defer node.Forget()
 	}
 
 	fillAttr(&de, a)
@@ -48,15 +42,9 @@ func (s *Symlink) Readlink(ctx context.Context, req *fuse.ReadlinkRequest) (stri
 	s.parent.folder.mu.RLock()
 	defer s.parent.folder.mu.RUnlock()
 
-	node, de, err := s.parent.folder.fs.config.KBFSOps().Lookup(ctx, s.parent.node, s.name)
+	_, de, err := s.parent.folder.fs.config.KBFSOps().Lookup(ctx, s.parent.node, s.name)
 	if err != nil {
 		return "", err
-	}
-
-	// TODO: There shouldn't be any node for a Symlink, so maybe return
-	// an error here?
-	if node != nil {
-		defer node.Forget()
 	}
 
 	if de.Type != libkbfs.Sym {
