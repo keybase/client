@@ -3,12 +3,14 @@ package main
 import (
 	"flag"
 	"fmt"
-	"github.com/keybase/client/go/libkb"
-	bserver "github.com/keybase/kbfs/bserver"
 	"log"
 	"math/rand"
+	"os"
 	"testing"
 	"time"
+
+	"github.com/keybase/client/go/libkb"
+	bserver "github.com/keybase/kbfs/bserver"
 )
 
 var (
@@ -37,5 +39,5 @@ func TestMain(m *testing.M) {
 		bserver.StartBServer()
 	}
 
-	m.Run()
+	os.Exit(m.Run())
 }
