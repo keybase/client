@@ -30,6 +30,10 @@ func (c *ChangePassphrase) Name() string {
 
 // Prereqs returns engine prereqs
 func (c *ChangePassphrase) Prereqs() Prereqs {
+	if c.arg.Force {
+		return Prereqs{}
+	}
+
 	return Prereqs{Session: true}
 }
 
@@ -61,13 +65,13 @@ func (c *ChangePassphrase) Run(ctx *Context) (err error) {
 	} else {
 		err = c.runStandardUpdate(ctx)
 	}
-	return 
+	return
 }
 
 func (c *ChangePassphrase) runForcedUpdate(ctx *Context) (err error) {
 	// Strategy:
 	//  1. Get unlocked device for decryption and signing
-	return	
+	return
 }
 
 func (c *ChangePassphrase) runStandardUpdate(ctx *Context) (err error) {
