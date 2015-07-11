@@ -37,7 +37,7 @@ func (fs *KBFSOpsStandard) Shutdown() {
 // GetFavDirs implements the KBFSOps interface for KBFSOpsStandard
 func (fs *KBFSOpsStandard) GetFavDirs(ctx context.Context) ([]TlfID, error) {
 	mdops := fs.config.MDOps()
-	return mdops.GetFavorites()
+	return mdops.GetFavorites(ctx)
 }
 
 func (fs *KBFSOpsStandard) getOps(fb FolderBranch) *FolderBranchOps {
@@ -73,7 +73,7 @@ func (fs *KBFSOpsStandard) GetOrCreateRootNodeForHandle(
 	// Do GetForHandle() unlocked -- no cache lookups, should be fine
 	mdops := fs.config.MDOps()
 	// TODO: only do this the first time, cache the folder ID after that
-	md, err := mdops.GetForHandle(handle)
+	md, err := mdops.GetForHandle(ctx, handle)
 	if err != nil {
 		return
 	}

@@ -133,7 +133,7 @@ func TestKBFSOpsGetFavDirsSuccess(t *testing.T) {
 	id2, _, _ := newDir(t, config, 2, true, false)
 	ids := []TlfID{id1, id2}
 
-	config.mockMdops.EXPECT().GetFavorites().Return(ids, nil)
+	config.mockMdops.EXPECT().GetFavorites(gomock.Any()).Return(ids, nil)
 
 	if ids2, err := config.KBFSOps().GetFavDirs(ctx); err != nil {
 		t.Errorf("Got error on favorites: %v", err)
@@ -148,7 +148,7 @@ func TestKBFSOpsGetFavDirsFail(t *testing.T) {
 
 	err := errors.New("Fake fail")
 	// expect one call to favorites, and fail it
-	config.mockMdops.EXPECT().GetFavorites().Return(nil, err)
+	config.mockMdops.EXPECT().GetFavorites(gomock.Any()).Return(nil, err)
 
 	if _, err2 := config.KBFSOps().GetFavDirs(ctx); err2 != err {
 		t.Errorf("Got bad error on favorites: %v", err2)
@@ -286,14 +286,16 @@ func testKBFSOpsGetRootNodeCreateNewSuccess(t *testing.T, public bool) {
 	// create a new MD
 	var nilKID keybase1.KID
 	config.mockMdops.EXPECT().
-		GetUnmergedSince(id, nilKID, NullMdID, gomock.Any()).
+		GetUnmergedSince(gomock.Any(), id, nilKID, NullMdID, gomock.Any()).
 		Return(nil, false, nil)
-	config.mockMdops.EXPECT().GetForTLF(id).Return(rmd, nil)
+	config.mockMdops.EXPECT().GetForTLF(gomock.Any(), id).Return(rmd, nil)
 	// now KBFS will fill it in:
 	rootPtr, plainSize, readyBlockData := fillInNewMD(t, config, rmd)
 	// now cache and put everything
-	config.mockBops.EXPECT().Put(rmd, ptrMatcher{rootPtr}, readyBlockData).Return(nil)
-	config.mockMdops.EXPECT().Put(id, rmd, nilKID, NullMdID).Return(nil)
+	config.mockBops.EXPECT().Put(rmd, ptrMatcher{rootPtr}, readyBlockData).
+		Return(nil)
+	config.mockMdops.EXPECT().Put(gomock.Any(), id, rmd, nilKID, NullMdID).
+		Return(nil)
 	config.mockMdcache.EXPECT().Put(rmd.mdID, rmd).Return(nil)
 
 	n, de, h, err := config.KBFSOps().
@@ -357,9 +359,9 @@ func TestKBFSOpsGetRootMDCreateNewFailNonWriter(t *testing.T) {
 	// we won't bother
 	var nilKID keybase1.KID
 	config.mockMdops.EXPECT().
-		GetUnmergedSince(id, nilKID, NullMdID, gomock.Any()).
+		GetUnmergedSince(gomock.Any(), id, nilKID, NullMdID, gomock.Any()).
 		Return(nil, false, nil)
-	config.mockMdops.EXPECT().GetForTLF(id).Return(rmd, nil)
+	config.mockMdops.EXPECT().GetForTLF(gomock.Any(), id).Return(rmd, nil)
 	// try to get the MD for writing, but fail (no puts should happen)
 	config.mockKbpki.EXPECT().GetLoggedInUser().AnyTimes().Return(userID, nil)
 	expectedErr := WriteAccessError{
@@ -390,7 +392,7 @@ func TestKBFSOpsGetRootMDForHandleExisting(t *testing.T) {
 		Ctime: 2,
 	}
 
-	config.mockMdops.EXPECT().GetForHandle(h).Return(rmd, nil)
+	config.mockMdops.EXPECT().GetForHandle(gomock.Any(), h).Return(rmd, nil)
 	ops := getOps(config, id)
 	ops.head = rmd
 
@@ -848,21 +850,24 @@ func expectSyncBlockHelper(
 		// sign the MD and put it
 		var nilKID keybase1.KID
 		if unmerged {
-			config.mockMdops.EXPECT().Put(id, gomock.Any(), nilKID, NullMdID).
-				Return(OutOfDateMDError{})
+			config.mockMdops.EXPECT().Put(gomock.Any(), id, gomock.Any(),
+				nilKID, NullMdID).Return(OutOfDateMDError{})
 			var nilCpk CryptPublicKey
 			config.mockKbpki.EXPECT().GetCurrentCryptPublicKey().
 				Return(nilCpk, nil)
 
-			config.mockMdops.EXPECT().PutUnmerged(id, gomock.Any(), nilKID).
-				Do(func(id TlfID, rmd *RootMetadata, deviceKID keybase1.KID) {
+			config.mockMdops.EXPECT().PutUnmerged(
+				gomock.Any(), id, gomock.Any(), nilKID).
+				Do(func(ctx context.Context, id TlfID, rmd *RootMetadata,
+				deviceKID keybase1.KID) {
 				// add some serialized metadata to satisfy the check
 				rmd.SerializedPrivateMetadata = make([]byte, 1)
 			}).Return(nil)
 		} else {
-			config.mockMdops.EXPECT().Put(id, gomock.Any(), nilKID, NullMdID).
-				Do(func(id TlfID, rmd *RootMetadata, deviceKID keybase1.KID,
-				unmergedID MdID) {
+			config.mockMdops.EXPECT().Put(
+				gomock.Any(), id, gomock.Any(), nilKID, NullMdID).
+				Do(func(ctx context.Context, id TlfID, rmd *RootMetadata,
+				deviceKID keybase1.KID, unmergedID MdID) {
 				// add some serialized metadata to satisfy the check
 				rmd.SerializedPrivateMetadata = make([]byte, 1)
 			}).Return(nil)

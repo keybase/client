@@ -419,15 +419,15 @@ type MDOps interface {
 	// has read permission on the folder.  It creates the folder if
 	// one doesn't exist yet, and the logged-in user has write
 	// permissions to the top-level folder.
-	GetForHandle(handle *TlfHandle) (*RootMetadata, error)
+	GetForHandle(ctx context.Context, handle *TlfHandle) (*RootMetadata, error)
 	// GetForTLF returns the current metadata object corresponding to the
 	// given top-level folder, if the logged-in user has read
 	// permission on the folder.
-	GetForTLF(id TlfID) (*RootMetadata, error)
+	GetForTLF(ctx context.Context, id TlfID) (*RootMetadata, error)
 	// Get returns the metadata object corresponding that matches the
 	// provided MD ID, if one exists and the logged-in user has read
 	// permissions on the corresponding top-level folder.
-	Get(mdID MdID) (*RootMetadata, error)
+	Get(ctx context.Context, mdID MdID) (*RootMetadata, error)
 	// Put stores the given metadata object for the top-level folder
 	// on the server, if the logged-in user has write permission on
 	// the folder.  If deviceID is non-nil, the unmerged history for
@@ -439,20 +439,21 @@ type MDOps interface {
 	// writer, it will return a specific error (TODO: make one) and
 	// the caller is expected to call PutUnmerged if it wants
 	// durability over consistency.
-	Put(id TlfID, rmd *RootMetadata, deviceKID keybase1.KID,
-		unmergedBase MdID) error
+	Put(ctx context.Context, id TlfID, rmd *RootMetadata,
+		deviceKID keybase1.KID, unmergedBase MdID) error
 	// GetSince returns all the MD objects that have been committed
 	// since (not including) the stated mdID, up to a client-imposed
 	// maximum.  The server may return fewer, and should also indicate
 	// whether there are more that could be returned.
-	GetSince(id TlfID, mdID MdID, max int) (
+	GetSince(ctx context.Context, id TlfID, mdID MdID, max int) (
 		sinceRmds []*RootMetadata, hasMore bool, err error)
 
 	// PutUnmerged gives each device (identified by the device subkey
 	// KID) the ability to store its own unmerged version of the
 	// metadata, in order to provide per-device durability when
 	// consistency can't be quickly guaranteed.
-	PutUnmerged(id TlfID, rmd *RootMetadata, deviceKID keybase1.KID) error
+	PutUnmerged(ctx context.Context, id TlfID, rmd *RootMetadata,
+		deviceKID keybase1.KID) error
 	// GetUnmergedSince returns all the MD objects that have been
 	// saved to the unmerged linear history for this device since (not
 	// including) the stated mdID, up to a client-imposed maximum.
@@ -460,12 +461,12 @@ type MDOps interface {
 	// there are more that could be returned.   If mdID is the nil
 	// value, it returns the list of MD objects from the beginning of
 	// the unmerged history for this device.
-	GetUnmergedSince(id TlfID, deviceKID keybase1.KID, mdID MdID, max int) (
-		sinceRmds []*RootMetadata, hasMore bool, err error)
+	GetUnmergedSince(ctx context.Context, id TlfID, deviceKID keybase1.KID,
+		mdID MdID, max int) (sinceRmds []*RootMetadata, hasMore bool, err error)
 
 	// GetFavorites returns the logged-in user's list of favorite
 	// top-level folders.
-	GetFavorites() ([]TlfID, error)
+	GetFavorites(ctx context.Context) ([]TlfID, error)
 }
 
 // KeyOps fetches server-side key halves and MAC public keys from the

@@ -1065,92 +1065,92 @@ func (_m *MockMDOps) EXPECT() *_MockMDOpsRecorder {
 	return _m.recorder
 }
 
-func (_m *MockMDOps) GetForHandle(handle *TlfHandle) (*RootMetadata, error) {
-	ret := _m.ctrl.Call(_m, "GetForHandle", handle)
+func (_m *MockMDOps) GetForHandle(ctx context.Context, handle *TlfHandle) (*RootMetadata, error) {
+	ret := _m.ctrl.Call(_m, "GetForHandle", ctx, handle)
 	ret0, _ := ret[0].(*RootMetadata)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-func (_mr *_MockMDOpsRecorder) GetForHandle(arg0 interface{}) *gomock.Call {
-	return _mr.mock.ctrl.RecordCall(_mr.mock, "GetForHandle", arg0)
+func (_mr *_MockMDOpsRecorder) GetForHandle(arg0, arg1 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "GetForHandle", arg0, arg1)
 }
 
-func (_m *MockMDOps) GetForTLF(id TlfID) (*RootMetadata, error) {
-	ret := _m.ctrl.Call(_m, "GetForTLF", id)
+func (_m *MockMDOps) GetForTLF(ctx context.Context, id TlfID) (*RootMetadata, error) {
+	ret := _m.ctrl.Call(_m, "GetForTLF", ctx, id)
 	ret0, _ := ret[0].(*RootMetadata)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-func (_mr *_MockMDOpsRecorder) GetForTLF(arg0 interface{}) *gomock.Call {
-	return _mr.mock.ctrl.RecordCall(_mr.mock, "GetForTLF", arg0)
+func (_mr *_MockMDOpsRecorder) GetForTLF(arg0, arg1 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "GetForTLF", arg0, arg1)
 }
 
-func (_m *MockMDOps) Get(mdID MdID) (*RootMetadata, error) {
-	ret := _m.ctrl.Call(_m, "Get", mdID)
+func (_m *MockMDOps) Get(ctx context.Context, mdID MdID) (*RootMetadata, error) {
+	ret := _m.ctrl.Call(_m, "Get", ctx, mdID)
 	ret0, _ := ret[0].(*RootMetadata)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-func (_mr *_MockMDOpsRecorder) Get(arg0 interface{}) *gomock.Call {
-	return _mr.mock.ctrl.RecordCall(_mr.mock, "Get", arg0)
+func (_mr *_MockMDOpsRecorder) Get(arg0, arg1 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "Get", arg0, arg1)
 }
 
-func (_m *MockMDOps) Put(id TlfID, rmd *RootMetadata, deviceKID go0.KID, unmergedBase MdID) error {
-	ret := _m.ctrl.Call(_m, "Put", id, rmd, deviceKID, unmergedBase)
+func (_m *MockMDOps) Put(ctx context.Context, id TlfID, rmd *RootMetadata, deviceKID go0.KID, unmergedBase MdID) error {
+	ret := _m.ctrl.Call(_m, "Put", ctx, id, rmd, deviceKID, unmergedBase)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
-func (_mr *_MockMDOpsRecorder) Put(arg0, arg1, arg2, arg3 interface{}) *gomock.Call {
-	return _mr.mock.ctrl.RecordCall(_mr.mock, "Put", arg0, arg1, arg2, arg3)
+func (_mr *_MockMDOpsRecorder) Put(arg0, arg1, arg2, arg3, arg4 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "Put", arg0, arg1, arg2, arg3, arg4)
 }
 
-func (_m *MockMDOps) GetSince(id TlfID, mdID MdID, max int) ([]*RootMetadata, bool, error) {
-	ret := _m.ctrl.Call(_m, "GetSince", id, mdID, max)
+func (_m *MockMDOps) GetSince(ctx context.Context, id TlfID, mdID MdID, max int) ([]*RootMetadata, bool, error) {
+	ret := _m.ctrl.Call(_m, "GetSince", ctx, id, mdID, max)
 	ret0, _ := ret[0].([]*RootMetadata)
 	ret1, _ := ret[1].(bool)
 	ret2, _ := ret[2].(error)
 	return ret0, ret1, ret2
 }
 
-func (_mr *_MockMDOpsRecorder) GetSince(arg0, arg1, arg2 interface{}) *gomock.Call {
-	return _mr.mock.ctrl.RecordCall(_mr.mock, "GetSince", arg0, arg1, arg2)
+func (_mr *_MockMDOpsRecorder) GetSince(arg0, arg1, arg2, arg3 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "GetSince", arg0, arg1, arg2, arg3)
 }
 
-func (_m *MockMDOps) PutUnmerged(id TlfID, rmd *RootMetadata, deviceKID go0.KID) error {
-	ret := _m.ctrl.Call(_m, "PutUnmerged", id, rmd, deviceKID)
+func (_m *MockMDOps) PutUnmerged(ctx context.Context, id TlfID, rmd *RootMetadata, deviceKID go0.KID) error {
+	ret := _m.ctrl.Call(_m, "PutUnmerged", ctx, id, rmd, deviceKID)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
-func (_mr *_MockMDOpsRecorder) PutUnmerged(arg0, arg1, arg2 interface{}) *gomock.Call {
-	return _mr.mock.ctrl.RecordCall(_mr.mock, "PutUnmerged", arg0, arg1, arg2)
+func (_mr *_MockMDOpsRecorder) PutUnmerged(arg0, arg1, arg2, arg3 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "PutUnmerged", arg0, arg1, arg2, arg3)
 }
 
-func (_m *MockMDOps) GetUnmergedSince(id TlfID, deviceKID go0.KID, mdID MdID, max int) ([]*RootMetadata, bool, error) {
-	ret := _m.ctrl.Call(_m, "GetUnmergedSince", id, deviceKID, mdID, max)
+func (_m *MockMDOps) GetUnmergedSince(ctx context.Context, id TlfID, deviceKID go0.KID, mdID MdID, max int) ([]*RootMetadata, bool, error) {
+	ret := _m.ctrl.Call(_m, "GetUnmergedSince", ctx, id, deviceKID, mdID, max)
 	ret0, _ := ret[0].([]*RootMetadata)
 	ret1, _ := ret[1].(bool)
 	ret2, _ := ret[2].(error)
 	return ret0, ret1, ret2
 }
 
-func (_mr *_MockMDOpsRecorder) GetUnmergedSince(arg0, arg1, arg2, arg3 interface{}) *gomock.Call {
-	return _mr.mock.ctrl.RecordCall(_mr.mock, "GetUnmergedSince", arg0, arg1, arg2, arg3)
+func (_mr *_MockMDOpsRecorder) GetUnmergedSince(arg0, arg1, arg2, arg3, arg4 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "GetUnmergedSince", arg0, arg1, arg2, arg3, arg4)
 }
 
-func (_m *MockMDOps) GetFavorites() ([]TlfID, error) {
-	ret := _m.ctrl.Call(_m, "GetFavorites")
+func (_m *MockMDOps) GetFavorites(ctx context.Context) ([]TlfID, error) {
+	ret := _m.ctrl.Call(_m, "GetFavorites", ctx)
 	ret0, _ := ret[0].([]TlfID)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-func (_mr *_MockMDOpsRecorder) GetFavorites() *gomock.Call {
-	return _mr.mock.ctrl.RecordCall(_mr.mock, "GetFavorites")
+func (_mr *_MockMDOpsRecorder) GetFavorites(arg0 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "GetFavorites", arg0)
 }
 
 // Mock of KeyOps interface

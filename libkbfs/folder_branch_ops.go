@@ -224,7 +224,7 @@ func (fbo *FolderBranchOps) checkDataVersion(p path, ptr BlockPointer) error {
 }
 
 // if rtype == write, then writerLock must be taken
-func (fbo *FolderBranchOps) getMDLocked(rtype reqType) (
+func (fbo *FolderBranchOps) getMDLocked(ctx context.Context, rtype reqType) (
 	*RootMetadata, error) {
 	fbo.headLock.RLock()
 	if fbo.head != nil {
@@ -255,7 +255,7 @@ func (fbo *FolderBranchOps) getMDLocked(rtype reqType) (
 		// TODO: it might make sense to persist our last-known
 		// unmerged ID, so we can avoid most or all of these fetches.
 		unmergedMDs, more, err =
-			mdops.GetUnmergedSince(fbo.id(), cpk.KID, lastMdID, maxAtATime)
+			mdops.GetUnmergedSince(ctx, fbo.id(), cpk.KID, lastMdID, maxAtATime)
 		if err != nil {
 			return nil, err
 		}
@@ -286,14 +286,14 @@ func (fbo *FolderBranchOps) getMDLocked(rtype reqType) (
 		fbo.transitionStagedLocked(true)
 	} else {
 		// no unmerged MDs for this device, so just get the current head
-		md, err = mdops.GetForTLF(fbo.id())
+		md, err = mdops.GetForTLF(ctx, fbo.id())
 		if err != nil {
 			return nil, err
 		}
 	}
 
 	if md.data.Dir.Type != Dir {
-		err = fbo.initMDLocked(md)
+		err = fbo.initMDLocked(ctx, md)
 	} else {
 		// if already initialized, store directly in cache
 		mdID, err := md.MetadataID(fbo.config)
@@ -311,9 +311,9 @@ func (fbo *FolderBranchOps) getMDLocked(rtype reqType) (
 }
 
 // if rtype == write, then writerLock must be taken
-func (fbo *FolderBranchOps) getMDForReadLocked(rtype reqType) (
-	*RootMetadata, error) {
-	md, err := fbo.getMDLocked(rtype)
+func (fbo *FolderBranchOps) getMDForReadLocked(
+	ctx context.Context, rtype reqType) (*RootMetadata, error) {
+	md, err := fbo.getMDLocked(ctx, rtype)
 	if err != nil {
 		return nil, err
 	}
@@ -329,9 +329,9 @@ func (fbo *FolderBranchOps) getMDForReadLocked(rtype reqType) (
 }
 
 // writerLock must be taken by the caller.
-func (fbo *FolderBranchOps) getMDForWriteLocked() (
+func (fbo *FolderBranchOps) getMDForWriteLocked(ctx context.Context) (
 	*RootMetadata, error) {
-	md, err := fbo.getMDLocked(write)
+	md, err := fbo.getMDLocked(ctx, write)
 	if err != nil {
 		return nil, err
 	}
@@ -351,7 +351,8 @@ func (fbo *FolderBranchOps) getMDForWriteLocked() (
 }
 
 // writerLock must be taken
-func (fbo *FolderBranchOps) initMDLocked(md *RootMetadata) error {
+func (fbo *FolderBranchOps) initMDLocked(
+	ctx context.Context, md *RootMetadata) error {
 	// create a dblock since one doesn't exist yet
 	user, err := fbo.config.KBPKI().GetLoggedInUser()
 	if err != nil {
@@ -418,7 +419,8 @@ func (fbo *FolderBranchOps) initMDLocked(md *RootMetadata) error {
 	// finally, write out the new metadata
 	md.data.LastWriter = user
 	var nilKID keybase1.KID
-	if err = fbo.config.MDOps().Put(md.ID, md, nilKID, NullMdID); err != nil {
+	if err = fbo.config.MDOps().Put(
+		ctx, md.ID, md, nilKID, NullMdID); err != nil {
 		return err
 	}
 	if mdID, err := md.MetadataID(fbo.config); err != nil {
@@ -474,7 +476,7 @@ func (fbo *FolderBranchOps) CheckForNewMDAndInit(
 	// otherwise, intialize
 	fbo.writerLock.Lock()
 	defer fbo.writerLock.Unlock()
-	return fbo.initMDLocked(md)
+	return fbo.initMDLocked(ctx, md)
 }
 
 // execReadThenWrite first tries to execute the passed-in method in
@@ -506,7 +508,7 @@ func (fbo *FolderBranchOps) GetRootNode(ctx context.Context,
 	// the MD to determine whether there's a public subdir or not
 	var md *RootMetadata
 	err = fbo.execReadThenWrite(func(rtype reqType) error {
-		md, err = fbo.getMDLocked(rtype)
+		md, err = fbo.getMDLocked(ctx, rtype)
 		return err
 	})
 	if err != nil {
@@ -678,7 +680,7 @@ func (fbo *FolderBranchOps) GetDirChildren(ctx context.Context, dir Node) (
 		return
 	}
 
-	md, err := fbo.getMDForReadLocked(read)
+	md, err := fbo.getMDForReadLocked(ctx, read)
 	if err != nil {
 		return nil, err
 	}
@@ -736,7 +738,7 @@ func (fbo *FolderBranchOps) Lookup(ctx context.Context, dir Node, name string) (
 		return
 	}
 
-	md, err := fbo.getMDForReadLocked(read)
+	md, err := fbo.getMDForReadLocked(ctx, read)
 	if err != nil {
 		return
 	}
@@ -771,7 +773,7 @@ func (fbo *FolderBranchOps) Stat(ctx context.Context, node Node) (
 		return
 	}
 
-	md, err := fbo.getMDForReadLocked(read)
+	md, err := fbo.getMDForReadLocked(ctx, read)
 	if err != nil {
 		return
 	}
@@ -1164,7 +1166,7 @@ func (fbo *FolderBranchOps) finalizeWriteLocked(ctx context.Context,
 	doUnmergedPut := true
 	if !fbo.staged {
 		// only do a normal Put if we're not already staged.
-		err = mdops.Put(newPaths[0].Tlf, md, nilKID, NullMdID)
+		err = mdops.Put(ctx, newPaths[0].Tlf, md, nilKID, NullMdID)
 		_, doUnmergedPut = err.(OutOfDateMDError)
 		if err != nil && !doUnmergedPut {
 			return err
@@ -1177,7 +1179,7 @@ func (fbo *FolderBranchOps) finalizeWriteLocked(ctx context.Context,
 		if err != nil {
 			return nil
 		}
-		err = mdops.PutUnmerged(newPaths[0].Tlf, md, cpk.KID)
+		err = mdops.PutUnmerged(ctx, newPaths[0].Tlf, md, cpk.KID)
 		if err != nil {
 			return nil
 		}
@@ -1233,7 +1235,7 @@ func (fbo *FolderBranchOps) createEntryLocked(
 	ctx context.Context, dir Node, name string, entryType EntryType) (
 	Node, DirEntry, error) {
 	// verify we have permission to write
-	md, err := fbo.getMDForWriteLocked()
+	md, err := fbo.getMDForWriteLocked(ctx)
 	if err != nil {
 		return nil, DirEntry{}, err
 	}
@@ -1323,7 +1325,7 @@ func (fbo *FolderBranchOps) createLinkLocked(
 	ctx context.Context, dir Node, fromName string, toPath string) (
 	DirEntry, error) {
 	// verify we have permission to write
-	md, err := fbo.getMDForWriteLocked()
+	md, err := fbo.getMDForWriteLocked(ctx)
 	if err != nil {
 		return DirEntry{}, err
 	}
@@ -1447,7 +1449,7 @@ func (fbo *FolderBranchOps) RemoveDir(
 	defer fbo.writerLock.Unlock()
 
 	// verify we have permission to write
-	md, err := fbo.getMDForWriteLocked()
+	md, err := fbo.getMDForWriteLocked(ctx)
 	if err != nil {
 		return err
 	}
@@ -1495,7 +1497,7 @@ func (fbo *FolderBranchOps) RemoveEntry(ctx context.Context, dir Node,
 	defer fbo.writerLock.Unlock()
 
 	// verify we have permission to write
-	md, err := fbo.getMDForWriteLocked()
+	md, err := fbo.getMDForWriteLocked(ctx)
 	if err != nil {
 		return err
 	}
@@ -1509,7 +1511,7 @@ func (fbo *FolderBranchOps) renameLocked(
 	ctx context.Context, oldParent path, oldName string, newParent path,
 	newName string, newParentNode Node) error {
 	// verify we have permission to write
-	md, err := fbo.getMDForWriteLocked()
+	md, err := fbo.getMDForWriteLocked(ctx)
 	if err != nil {
 		return err
 	}
@@ -1757,10 +1759,10 @@ func (fbo *FolderBranchOps) getFileBlockAtOffsetLocked(
 }
 
 // blockLock must be taken for reading by the caller
-func (fbo *FolderBranchOps) readLocked(file path, dest []byte, off int64) (
-	int64, error) {
+func (fbo *FolderBranchOps) readLocked(
+	ctx context.Context, file path, dest []byte, off int64) (int64, error) {
 	// verify we have permission to read
-	md, err := fbo.getMDForReadLocked(read)
+	md, err := fbo.getMDForReadLocked(ctx, read)
 	if err != nil {
 		return 0, err
 	}
@@ -1811,7 +1813,7 @@ func (fbo *FolderBranchOps) Read(
 	fbo.blockLock.RLock()
 	defer fbo.blockLock.RUnlock()
 	filePath := fbo.nodeCache.PathFromNode(file)
-	return fbo.readLocked(filePath, dest, off)
+	return fbo.readLocked(ctx, filePath, dest, off)
 }
 
 // blockLock must be taken by the caller.
@@ -2030,7 +2032,7 @@ func (fbo *FolderBranchOps) Write(
 	// Get the MD for reading.  We won't modify it; we'll track the
 	// unref changes on the side, and put them into the MD during the
 	// sync.
-	md, err := fbo.getMDLocked(read)
+	md, err := fbo.getMDLocked(ctx, read)
 	if err != nil {
 		return err
 	}
@@ -2193,7 +2195,7 @@ func (fbo *FolderBranchOps) Truncate(
 	// Get the MD for reading.  We won't modify it; we'll track the
 	// unref changes on the side, and put them into the MD during the
 	// sync.
-	md, err := fbo.getMDLocked(read)
+	md, err := fbo.getMDLocked(ctx, read)
 	if err != nil {
 		return err
 	}
@@ -2229,7 +2231,7 @@ func (fbo *FolderBranchOps) Truncate(
 func (fbo *FolderBranchOps) setExLocked(
 	ctx context.Context, file path, ex bool) (err error) {
 	// verify we have permission to write
-	md, err := fbo.getMDForWriteLocked()
+	md, err := fbo.getMDForWriteLocked(ctx)
 	if err != nil {
 		return
 	}
@@ -2285,7 +2287,7 @@ func (fbo *FolderBranchOps) SetEx(
 func (fbo *FolderBranchOps) setMtimeLocked(
 	ctx context.Context, file path, mtime *time.Time) error {
 	// verify we have permission to write
-	md, err := fbo.getMDForWriteLocked()
+	md, err := fbo.getMDForWriteLocked(ctx)
 	if err != nil {
 		return err
 	}
@@ -2353,7 +2355,7 @@ func (fbo *FolderBranchOps) syncLocked(ctx context.Context, file path) error {
 	fbo.blockLock.RUnlock()
 
 	// verify we have permission to write
-	md, err := fbo.getMDForWriteLocked()
+	md, err := fbo.getMDForWriteLocked(ctx)
 	if err != nil {
 		return err
 	}

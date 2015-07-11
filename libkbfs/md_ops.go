@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	keybase1 "github.com/keybase/client/protocol/go"
+	"golang.org/x/net/context"
 )
 
 // MDOpsStandard provides plaintext RootMetadata objects to upper
@@ -111,7 +112,7 @@ func (md *MDOpsStandard) processMetadata(
 }
 
 // GetForHandle implements the MDOps interface for MDOpsStandard.
-func (md *MDOpsStandard) GetForHandle(handle *TlfHandle) (
+func (md *MDOpsStandard) GetForHandle(ctx context.Context, handle *TlfHandle) (
 	*RootMetadata, error) {
 	mdserv := md.config.MDServer()
 	if rmds, err := mdserv.GetForHandle(handle); err != nil {
@@ -148,7 +149,8 @@ func (md *MDOpsStandard) processMetadataWithID(
 }
 
 // GetForTLF implements the MDOps interface for MDOpsStandard.
-func (md *MDOpsStandard) GetForTLF(id TlfID) (*RootMetadata, error) {
+func (md *MDOpsStandard) GetForTLF(ctx context.Context, id TlfID) (
+	*RootMetadata, error) {
 	rmds, err := md.config.MDServer().GetForTLF(id)
 	if err != nil {
 		return nil, err
@@ -161,7 +163,7 @@ func (md *MDOpsStandard) GetForTLF(id TlfID) (*RootMetadata, error) {
 }
 
 // Get implements the MDOps interface for MDOpsStandard.
-func (md *MDOpsStandard) Get(mdID MdID) (
+func (md *MDOpsStandard) Get(ctx context.Context, mdID MdID) (
 	*RootMetadata, error) {
 	// TODO: implement a cache for non-current MD
 	rmds, err := md.config.MDServer().Get(mdID)
@@ -230,8 +232,8 @@ func (md *MDOpsStandard) processRange(id TlfID, startRoot MdID,
 }
 
 // GetSince implements the MDOps interface for MDOpsStandard.
-func (md *MDOpsStandard) GetSince(id TlfID, mdID MdID, max int) (
-	[]*RootMetadata, bool, error) {
+func (md *MDOpsStandard) GetSince(ctx context.Context, id TlfID, mdID MdID,
+	max int) ([]*RootMetadata, bool, error) {
 	sinceRmds, more, err := md.config.MDServer().GetSince(id, mdID, max)
 	if err != nil {
 		return nil, false, err
@@ -335,8 +337,8 @@ func (md *MDOpsStandard) readyMD(id TlfID, rmd *RootMetadata) (
 }
 
 // Put implements the MDOps interface for MDOpsStandard.
-func (md *MDOpsStandard) Put(id TlfID, rmd *RootMetadata, deviceKID keybase1.KID,
-	unmergedBase MdID) error {
+func (md *MDOpsStandard) Put(ctx context.Context, id TlfID, rmd *RootMetadata,
+	deviceKID keybase1.KID, unmergedBase MdID) error {
 	mdID, rmds, err := md.readyMD(id, rmd)
 	if err != nil {
 		return err
@@ -345,8 +347,8 @@ func (md *MDOpsStandard) Put(id TlfID, rmd *RootMetadata, deviceKID keybase1.KID
 }
 
 // PutUnmerged implements the MDOps interface for MDOpsStandard.
-func (md *MDOpsStandard) PutUnmerged(id TlfID, rmd *RootMetadata,
-	deviceKID keybase1.KID) error {
+func (md *MDOpsStandard) PutUnmerged(ctx context.Context, id TlfID,
+	rmd *RootMetadata, deviceKID keybase1.KID) error {
 	// TODO: set unmerged bit in rmd.
 	mdID, rmds, err := md.readyMD(id, rmd)
 	if err != nil {
@@ -356,8 +358,8 @@ func (md *MDOpsStandard) PutUnmerged(id TlfID, rmd *RootMetadata,
 }
 
 // GetUnmergedSince implements the MDOps interface for MDOpsStandard.
-func (md *MDOpsStandard) GetUnmergedSince(id TlfID, deviceKID keybase1.KID,
-	mdID MdID, max int) ([]*RootMetadata, bool, error) {
+func (md *MDOpsStandard) GetUnmergedSince(ctx context.Context, id TlfID,
+	deviceKID keybase1.KID, mdID MdID, max int) ([]*RootMetadata, bool, error) {
 	sinceRmds, more, err :=
 		md.config.MDServer().GetUnmergedSince(id, deviceKID, mdID, max)
 	if err != nil {
@@ -371,7 +373,7 @@ func (md *MDOpsStandard) GetUnmergedSince(id TlfID, deviceKID keybase1.KID,
 }
 
 // GetFavorites implements the MDOps interface for MDOpsStandard.
-func (md *MDOpsStandard) GetFavorites() ([]TlfID, error) {
+func (md *MDOpsStandard) GetFavorites(ctx context.Context) ([]TlfID, error) {
 	mdserv := md.config.MDServer()
 	return mdserv.GetFavorites()
 }

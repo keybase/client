@@ -728,7 +728,7 @@ func (f *FuseOps) translateError(err error) fuse.Status {
 // OnMount implements the go-fuse Node interface for FuseNode
 func (n *FuseNode) OnMount(conn *nodefs.FileSystemConnector) {
 	// TODO: check a signature of the favorites
-	favs, err := n.Ops.config.MDOps().GetFavorites()
+	favs, err := n.Ops.config.KBFSOps().GetFavDirs(n.Ops.ctx)
 	if err != nil {
 		return
 	}
