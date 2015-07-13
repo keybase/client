@@ -59,10 +59,12 @@ func NewBackupDevice() (*Device, error) {
 		return nil, err
 	}
 	s := DeviceStatusActive
+	desc := "Account Recover Keys"
 	d := &Device{
-		ID:     did,
-		Type:   DeviceTypeBackup,
-		Status: &s,
+		ID:          did,
+		Type:        DeviceTypeBackup,
+		Status:      &s,
+		Description: &desc,
 	}
 	return d, nil
 }
