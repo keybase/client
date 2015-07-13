@@ -115,7 +115,7 @@ func TestBlockOpsGetSuccess(t *testing.T) {
 	id := BlockID{1}
 	encData := []byte{1, 2, 3, 4}
 	blockPtr := BlockPointer{ID: id}
-	config.mockBserv.EXPECT().Get(id, blockPtr).Return(
+	config.mockBserv.EXPECT().Get(ctx, id, blockPtr).Return(
 		encData, BlockCryptKeyServerHalf{}, nil)
 	decData := TestBlock{42}
 
@@ -142,7 +142,7 @@ func TestBlockOpsGetFailGet(t *testing.T) {
 	id := BlockID{1}
 	err := errors.New("Fake fail")
 	blockPtr := BlockPointer{ID: id}
-	config.mockBserv.EXPECT().Get(id, blockPtr).Return(
+	config.mockBserv.EXPECT().Get(ctx, id, blockPtr).Return(
 		nil, BlockCryptKeyServerHalf{}, err)
 
 	rmd := makeRMD()
@@ -160,7 +160,7 @@ func TestBlockOpsGetFailDecryptBlockData(t *testing.T) {
 	id := BlockID{1}
 	encData := []byte{1, 2, 3, 4}
 	blockPtr := BlockPointer{ID: id}
-	config.mockBserv.EXPECT().Get(id, blockPtr).Return(
+	config.mockBserv.EXPECT().Get(ctx, id, blockPtr).Return(
 		encData, BlockCryptKeyServerHalf{}, nil)
 	err := errors.New("Fake fail")
 
@@ -294,7 +294,8 @@ func TestBlockOpsPutSuccess(t *testing.T) {
 		buf: encData,
 	}
 
-	config.mockBserv.EXPECT().Put(id, rmd.ID, blockPtr, readyBlockData.buf, readyBlockData.serverHalf).Return(nil)
+	config.mockBserv.EXPECT().Put(ctx, id, rmd.ID, blockPtr,
+		readyBlockData.buf, readyBlockData.serverHalf).Return(nil)
 
 	if err := config.BlockOps().
 		Put(ctx, rmd, blockPtr, readyBlockData); err != nil {
@@ -319,7 +320,8 @@ func TestBlockOpsPutFail(t *testing.T) {
 		buf: encData,
 	}
 
-	config.mockBserv.EXPECT().Put(id, rmd.ID, blockPtr, readyBlockData.buf, readyBlockData.serverHalf).Return(err)
+	config.mockBserv.EXPECT().Put(ctx, id, rmd.ID, blockPtr,
+		readyBlockData.buf, readyBlockData.serverHalf).Return(err)
 
 	if err2 := config.BlockOps().
 		Put(ctx, rmd, blockPtr, readyBlockData); err2 != err {
@@ -336,7 +338,7 @@ func TestBlockOpsDeleteSuccess(t *testing.T) {
 
 	id := BlockID{1}
 	blockPtr := BlockPointer{ID: id}
-	config.mockBserv.EXPECT().Delete(id, rmd.ID, blockPtr).Return(nil)
+	config.mockBserv.EXPECT().Delete(ctx, id, rmd.ID, blockPtr).Return(nil)
 
 	if err := config.BlockOps().Delete(ctx, rmd, id, blockPtr); err != nil {
 		t.Errorf("Got error on put: %v", err)
@@ -353,7 +355,7 @@ func TestBlockOpsDeleteFail(t *testing.T) {
 	id := BlockID{1}
 	err := errors.New("Fake fail")
 	blockPtr := BlockPointer{ID: id}
-	config.mockBserv.EXPECT().Delete(id, rmd.ID, blockPtr).Return(err)
+	config.mockBserv.EXPECT().Delete(ctx, id, rmd.ID, blockPtr).Return(err)
 
 	if err2 := config.BlockOps().Delete(ctx, rmd, id, blockPtr); err2 != err {
 		t.Errorf("Got bad error on put: %v", err2)

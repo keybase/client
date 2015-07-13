@@ -6,6 +6,7 @@ import (
 	"github.com/syndtr/goleveldb/leveldb"
 	"github.com/syndtr/goleveldb/leveldb/opt"
 	"github.com/syndtr/goleveldb/leveldb/storage"
+	"golang.org/x/net/context"
 )
 
 type blockEntry struct {
@@ -55,8 +56,8 @@ func NewBlockServerMemory(config Config) (*BlockServerLocal, error) {
 }
 
 // Get implements the BlockServer interface for BlockServerLocal
-func (b *BlockServerLocal) Get(
-	id BlockID, context BlockContext) ([]byte, BlockCryptKeyServerHalf, error) {
+func (b *BlockServerLocal) Get(ctx context.Context, id BlockID,
+	context BlockContext) ([]byte, BlockCryptKeyServerHalf, error) {
 	libkb.G.Log.Debug("BlockServerLocal::Get id=%s uid=%s\n", hex.EncodeToString(id[:]), context.GetWriter().String())
 	buf, err := b.db.Get(id[:], nil)
 	if err != nil {
@@ -72,8 +73,9 @@ func (b *BlockServerLocal) Get(
 }
 
 // Put implements the BlockServer interface for BlockServerLocal
-func (b *BlockServerLocal) Put(id BlockID, tlfID TlfID, context BlockContext,
-	buf []byte, serverHalf BlockCryptKeyServerHalf) error {
+func (b *BlockServerLocal) Put(ctx context.Context, id BlockID, tlfID TlfID,
+	context BlockContext, buf []byte,
+	serverHalf BlockCryptKeyServerHalf) error {
 	libkb.G.Log.Debug("BlockServerLocal::Put id=%s uid=%s\n", hex.EncodeToString(id[:]), context.GetWriter().String())
 	entry := blockEntry{BlockData: buf, KeyServerHalf: serverHalf}
 	entryBuf, err := b.config.Codec().Encode(entry)
@@ -85,7 +87,8 @@ func (b *BlockServerLocal) Put(id BlockID, tlfID TlfID, context BlockContext,
 }
 
 // Delete implements the BlockServer interface for BlockServerLocal
-func (b *BlockServerLocal) Delete(id BlockID, tlfID TlfID, context BlockContext) error {
+func (b *BlockServerLocal) Delete(ctx context.Context, id BlockID, tlfID TlfID,
+	context BlockContext) error {
 	libkb.G.Log.Debug("BlockServerLocal::Delete id=%s uid=%s\n", hex.EncodeToString(id[:]), context.GetWriter().String())
 	return b.db.Delete(id[:], nil)
 }

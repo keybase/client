@@ -13,6 +13,7 @@ import (
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/protocol/go"
 	"github.com/maxtaco/go-framed-msgpack-rpc/rpc2"
+	"golang.org/x/net/context"
 )
 
 var (
@@ -160,8 +161,8 @@ func (b *BlockServerRemote) Shutdown() {
 }
 
 // Get implements the BlockServer interface for BlockServerRemote.
-func (b *BlockServerRemote) Get(id BlockID, context BlockContext) (
-	[]byte, BlockCryptKeyServerHalf, error) {
+func (b *BlockServerRemote) Get(ctx context.Context, id BlockID,
+	context BlockContext) ([]byte, BlockCryptKeyServerHalf, error) {
 	libkb.G.Log.Debug("BlockServerRemote::Get id=%s uid=%s\n", hex.EncodeToString(id[:]), context.GetWriter().String())
 	if !b.connected {
 		if err := b.WaitForReconnect(); err != nil {
@@ -188,9 +189,9 @@ func (b *BlockServerRemote) Get(id BlockID, context BlockContext) (
 
 // Put implements the BlockServer interface for BlockServerRemote.
 // TODO: store the server-half of the block key
-func (b *BlockServerRemote) Put(id BlockID, tlfID TlfID, context BlockContext,
-	buf []byte, serverHalf BlockCryptKeyServerHalf) error {
-
+func (b *BlockServerRemote) Put(ctx context.Context, id BlockID, tlfID TlfID,
+	context BlockContext, buf []byte,
+	serverHalf BlockCryptKeyServerHalf) error {
 	libkb.G.Log.Debug("BlockServerRemote::Put id=%s uid=%s\n", hex.EncodeToString(id[:]), context.GetWriter().String())
 	if !b.connected {
 		if err := b.WaitForReconnect(); err != nil {
@@ -214,8 +215,8 @@ func (b *BlockServerRemote) Put(id BlockID, tlfID TlfID, context BlockContext,
 }
 
 // Delete implements the BlockServer interface for BlockServerRemote.
-func (b *BlockServerRemote) Delete(id BlockID, tlfID TlfID, context BlockContext) error {
-
+func (b *BlockServerRemote) Delete(ctx context.Context, id BlockID,
+	tlfID TlfID, context BlockContext) error {
 	libkb.G.Log.Debug("BlockServerRemote::Delete id=%s uid=%s\n", hex.EncodeToString(id[:]), context.GetWriter().String())
 	arg := keybase1.DecBlockReferenceArg{
 		Bid: keybase1.BlockIdCombo{

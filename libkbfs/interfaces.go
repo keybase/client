@@ -595,17 +595,18 @@ type BlockServer interface {
 	// the block, and fills in the provided block object with its
 	// contents, if the logged-in user has read permission for that
 	// block.
-	Get(id BlockID, context BlockContext) (
+	Get(ctx context.Context, id BlockID, context BlockContext) (
 		[]byte, BlockCryptKeyServerHalf, error)
 	// Put stores the (encrypted) block data under the given ID and
 	// context on the server, along with the server half of the block
 	// key.
-	Put(id BlockID, tlfID TlfID, context BlockContext, buf []byte,
-		serverHalf BlockCryptKeyServerHalf) error
+	Put(ctx context.Context, id BlockID, tlfID TlfID, context BlockContext,
+		buf []byte, serverHalf BlockCryptKeyServerHalf) error
 	// Delete instructs the server to delete the block data
 	// associated with the given ID. No error is returned if no
 	// data exists for the given ID.
-	Delete(id BlockID, tlfID TlfID, context BlockContext) error
+	Delete(ctx context.Context, id BlockID, tlfID TlfID,
+		context BlockContext) error
 }
 
 // BlockSplitter decides when a file or directory block needs to be split

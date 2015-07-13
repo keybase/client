@@ -17,7 +17,7 @@ var _ BlockOps = (*BlockOpsStandard)(nil)
 func (b *BlockOpsStandard) Get(ctx context.Context, md *RootMetadata,
 	blockPtr BlockPointer, block Block) error {
 	bserv := b.config.BlockServer()
-	buf, blockServerHalf, err := bserv.Get(blockPtr.ID, blockPtr)
+	buf, blockServerHalf, err := bserv.Get(ctx, blockPtr.ID, blockPtr)
 	if err != nil {
 		return err
 	}
@@ -118,7 +118,7 @@ func (b *BlockOpsStandard) Ready(md *RootMetadata, block Block) (
 func (b *BlockOpsStandard) Put(ctx context.Context, md *RootMetadata,
 	blockPtr BlockPointer, readyBlockData ReadyBlockData) error {
 	bserv := b.config.BlockServer()
-	return bserv.Put(blockPtr.ID, md.ID, blockPtr, readyBlockData.buf,
+	return bserv.Put(ctx, blockPtr.ID, md.ID, blockPtr, readyBlockData.buf,
 		readyBlockData.serverHalf)
 }
 
@@ -126,6 +126,6 @@ func (b *BlockOpsStandard) Put(ctx context.Context, md *RootMetadata,
 func (b *BlockOpsStandard) Delete(ctx context.Context, md *RootMetadata,
 	id BlockID, context BlockContext) error {
 	bserv := b.config.BlockServer()
-	err := bserv.Delete(id, md.ID, context)
+	err := bserv.Delete(ctx, id, md.ID, context)
 	return err
 }
