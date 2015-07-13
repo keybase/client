@@ -60,7 +60,7 @@ func openNode(ctx context.Context, config libkbfs.Config, components []string) (
 		return
 	}
 
-	n, de, err = config.KBFSOps().GetOrCreateRootNodeForHandle(ctx, dh)
+	n, de, err = config.KBFSOps().GetOrCreateRootNodeForHandle(ctx, dh, libkbfs.MasterBranch)
 	if err != nil {
 		return
 	}
