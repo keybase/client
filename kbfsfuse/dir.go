@@ -231,7 +231,7 @@ func (d *Dir) Rename(ctx context.Context, req *fuse.RenameRequest, newDir fs.Nod
 		//
 		// We have no cheap atomic rename across folders, so we can't
 		// serve this. EXDEV makes `mv` do a copy+delete, and the
-		// Lookup on the destination path will decide whether the it's
+		// Lookup on the destination path will decide whether it's
 		// legal.
 		return fuse.Errno(syscall.EXDEV)
 	}
