@@ -252,13 +252,6 @@ func BTCProtocol(i BTCInterface) rpc2.Protocol {
 				}
 				return
 			},
-			"setUserConfig": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
-				args := make([]SetUserConfigArg, 1)
-				if err = nxt(&args); err == nil {
-					err = i.SetUserConfig(args[0])
-				}
-				return
-			},
 		},
 	}
 
@@ -326,6 +319,13 @@ func ConfigProtocol(i ConfigInterface) rpc2.Protocol {
 				args := make([]GetConfigArg, 1)
 				if err = nxt(&args); err == nil {
 					ret, err = i.GetConfig(args[0].SessionID)
+				}
+				return
+			},
+			"setUserConfig": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
+				args := make([]SetUserConfigArg, 1)
+				if err = nxt(&args); err == nil {
+					err = i.SetUserConfig(args[0])
 				}
 				return
 			},

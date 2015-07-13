@@ -2,8 +2,6 @@ package engine
 
 import (
 	"testing"
-
-	"github.com/keybase/client/go/libkb"
 )
 
 func TestSetPrimaryPictureSource(t *testing.T) {
