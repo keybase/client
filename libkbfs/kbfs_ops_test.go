@@ -124,7 +124,7 @@ func checkBlockCache(t *testing.T, config *ConfigMock,
 	}
 }
 
-func TestKBFSOpsGetFavDirsSuccess(t *testing.T) {
+func TestKBFSOpsGetFavoritesSuccess(t *testing.T) {
 	mockCtrl, config, ctx := kbfsOpsInit(t, false)
 	defer kbfsTestShutdown(mockCtrl, config)
 
@@ -135,14 +135,14 @@ func TestKBFSOpsGetFavDirsSuccess(t *testing.T) {
 
 	config.mockMdops.EXPECT().GetFavorites(gomock.Any()).Return(ids, nil)
 
-	if ids2, err := config.KBFSOps().GetFavDirs(ctx); err != nil {
+	if ids2, err := config.KBFSOps().GetFavorites(ctx); err != nil {
 		t.Errorf("Got error on favorites: %v", err)
 	} else if len(ids2) != len(ids) {
 		t.Errorf("Got bad ids back: %v", ids2)
 	}
 }
 
-func TestKBFSOpsGetFavDirsFail(t *testing.T) {
+func TestKBFSOpsGetFavoritesFail(t *testing.T) {
 	mockCtrl, config, ctx := kbfsOpsInit(t, false)
 	defer kbfsTestShutdown(mockCtrl, config)
 
@@ -150,7 +150,7 @@ func TestKBFSOpsGetFavDirsFail(t *testing.T) {
 	// expect one call to favorites, and fail it
 	config.mockMdops.EXPECT().GetFavorites(gomock.Any()).Return(nil, err)
 
-	if _, err2 := config.KBFSOps().GetFavDirs(ctx); err2 != err {
+	if _, err2 := config.KBFSOps().GetFavorites(ctx); err2 != err {
 		t.Errorf("Got bad error on favorites: %v", err2)
 	}
 }

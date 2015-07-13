@@ -79,9 +79,9 @@ type Node interface {
 // caller to determine whether the notification is a result of their
 // own action or an external action.
 type KBFSOps interface {
-	// GetFavDirs returns the logged-in user's list of favorite
+	// GetFavorites returns the logged-in user's list of favorite
 	// top-level folders.  This is a remote-access operation.
-	GetFavDirs(ctx context.Context) ([]TlfID, error)
+	GetFavorites(ctx context.Context) ([]TlfID, error)
 	// GetOrCreateRootNodeByHandle returns the root node and root
 	// directory entry associated with the given TlfHandle and branch,
 	// if the logged-in user has read permissions to the top-level

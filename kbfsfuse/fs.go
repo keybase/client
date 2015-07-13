@@ -208,7 +208,7 @@ func (r *Root) getDirent(ctx context.Context, work <-chan libkbfs.TlfID, results
 
 // ReadDirAll implements the ReadDirAll interface for Root.
 func (r *Root) ReadDirAll(ctx context.Context) ([]fuse.Dirent, error) {
-	favs, err := r.fs.config.KBFSOps().GetFavDirs(ctx)
+	favs, err := r.fs.config.KBFSOps().GetFavorites(ctx)
 	if err != nil {
 		return nil, err
 	}

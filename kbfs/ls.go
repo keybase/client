@@ -85,7 +85,7 @@ func lsHelper(ctx context.Context, config libkbfs.Config, components []string, h
 	kbfsOps := config.KBFSOps()
 
 	if len(components) == 1 {
-		tlfIDs, err := kbfsOps.GetFavDirs(ctx)
+		tlfIDs, err := kbfsOps.GetFavorites(ctx)
 		if err != nil {
 			return err
 		}

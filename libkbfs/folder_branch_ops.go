@@ -185,9 +185,9 @@ func (fbo *FolderBranchOps) branch() BranchName {
 	return fbo.folderBranch.Branch
 }
 
-// GetFavDirs implements the KBFSOps interface for FolderBranchOps
-func (fbo *FolderBranchOps) GetFavDirs(ctx context.Context) ([]TlfID, error) {
-	return nil, fmt.Errorf("GetFavDirs is not supported by FolderBranchOps")
+// GetFavorites implements the KBFSOps interface for FolderBranchOps
+func (fbo *FolderBranchOps) GetFavorites(ctx context.Context) ([]TlfID, error) {
+	return nil, fmt.Errorf("GetFavorites is not supported by FolderBranchOps")
 }
 
 func (fbo *FolderBranchOps) transitionState(newState state) {

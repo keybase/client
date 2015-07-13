@@ -178,15 +178,15 @@ func (_m *MockKBFSOps) EXPECT() *_MockKBFSOpsRecorder {
 	return _m.recorder
 }
 
-func (_m *MockKBFSOps) GetFavDirs(ctx context.Context) ([]TlfID, error) {
-	ret := _m.ctrl.Call(_m, "GetFavDirs", ctx)
+func (_m *MockKBFSOps) GetFavorites(ctx context.Context) ([]TlfID, error) {
+	ret := _m.ctrl.Call(_m, "GetFavorites", ctx)
 	ret0, _ := ret[0].([]TlfID)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-func (_mr *_MockKBFSOpsRecorder) GetFavDirs(arg0 interface{}) *gomock.Call {
-	return _mr.mock.ctrl.RecordCall(_mr.mock, "GetFavDirs", arg0)
+func (_mr *_MockKBFSOpsRecorder) GetFavorites(arg0 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "GetFavorites", arg0)
 }
 
 func (_m *MockKBFSOps) GetOrCreateRootNodeForHandle(ctx context.Context, handle *TlfHandle, branch BranchName) (Node, DirEntry, error) {

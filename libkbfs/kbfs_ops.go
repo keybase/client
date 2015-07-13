@@ -34,8 +34,8 @@ func (fs *KBFSOpsStandard) Shutdown() {
 	}
 }
 
-// GetFavDirs implements the KBFSOps interface for KBFSOpsStandard
-func (fs *KBFSOpsStandard) GetFavDirs(ctx context.Context) ([]TlfID, error) {
+// GetFavorites implements the KBFSOps interface for KBFSOpsStandard
+func (fs *KBFSOpsStandard) GetFavorites(ctx context.Context) ([]TlfID, error) {
 	mdops := fs.config.MDOps()
 	return mdops.GetFavorites(ctx)
 }
