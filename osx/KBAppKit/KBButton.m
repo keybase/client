@@ -121,9 +121,11 @@
   switch (self.style) {
     case KBButtonStyleCheckbox:
     case KBButtonStyleText:
-    case KBButtonStyleLink:
     case KBButtonStyleEmpty:
       return CGSizeMake(2, 0);
+
+    case KBButtonStyleLink:
+      return CGSizeMake(4, 0);
 
     case KBButtonStyleDefault:
     case KBButtonStylePrimary:

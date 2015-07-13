@@ -113,6 +113,8 @@
 
 - (void)getConfigWithSessionID:(NSInteger)sessionID completion:(void (^)(NSError *error, KBRConfig *config))completion;
 
+- (void)setUserConfigWithSessionID:(NSInteger)sessionID username:(NSString *)username key:(NSString *)key value:(NSString *)value completion:(void (^)(NSError *error))completion;
+
 @end
 
 @interface KBRED25519SignatureInfo : KBRObject
@@ -871,6 +873,12 @@ typedef NS_ENUM (NSInteger, KBRPromptOverwriteType) {
 @end
 @interface KBRGetConfigRequestParams : KBRRequestParams
 @property NSInteger sessionID;
+@end
+@interface KBRSetUserConfigRequestParams : KBRRequestParams
+@property NSInteger sessionID;
+@property NSString *username;
+@property NSString *key;
+@property NSString *value;
 @end
 @interface KBRSignED25519RequestParams : KBRRequestParams
 @property NSInteger sessionID;

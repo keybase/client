@@ -10,9 +10,14 @@
 #import <AppKit/AppKit.h>
 #import "NSImageView+AFNetworking.h"
 
+@class KBImageView;
+
+typedef void (^KBImageViewDispatchBlock)(KBImageView *imageView, dispatch_block_t completion);
+
 @interface KBImageView : NSImageView
 
 @property float roundedRatio;
+@property (nonatomic, copy) KBImageViewDispatchBlock dispatchBlock;
 
 - (void)viewInit;
 

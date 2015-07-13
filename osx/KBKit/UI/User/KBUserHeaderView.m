@@ -85,7 +85,8 @@
     _name1Label.attributedText = nil;
     _imageView.hidden = YES;
     _imageView.image = nil;
-    _name2View.hidden = YES;    
+    _name2View.hidden = YES;
+    [self setNeedsLayout];
     return;
   }
 
@@ -98,7 +99,7 @@
 
   _imageView.hidden = NO;
   self.imageView.username = _username;
-  [self layoutView];
+  [self setNeedsLayout];
 }
 
 @end

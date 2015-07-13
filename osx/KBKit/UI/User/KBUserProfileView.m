@@ -49,6 +49,10 @@
   [super viewInit];
   
   _headerView = [[KBUserHeaderView alloc] init];
+  _headerView.imageView.dispatchBlock = ^(KBImageView *imageView, dispatch_block_t completion) {
+    [self selectPicture];
+    completion();
+  };
   _userInfoView = [[KBUserInfoView alloc] init];
   _trackView = [[KBTrackView alloc] init];
   _trackView.untrackButton.targetBlock = ^{ [self untrack]; };
@@ -482,6 +486,17 @@
     if (error) [KBActivity setError:error sender:self];
     [self refresh];
   }];
+}
+
+- (void)selectPicture {
+  // Just testing in progress
+  /*
+  KBRConfigRequest *request = [[KBRConfigRequest alloc] initWithClient:self.client];
+  [request setUserConfigWithSessionID:request.sessionId username:self.username key:@"picture.source" value:@"github" completion:^(NSError *error) {
+    if (error) [KBActivity setError:error sender:self];
+    //[self refresh];
+  }];
+   */
 }
 
 @end

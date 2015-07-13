@@ -19,10 +19,14 @@
 
 @implementation KBImageView
 
-- (void)viewInit { }
+- (void)_viewInit {
+}
+
+- (void)viewInit { } // Don't put anything in here in case subclasses forget to call super
 
 - (instancetype)initWithFrame:(NSRect)frame {
   if ((self = [super initWithFrame:frame])) {
+    [self _viewInit];
     [self viewInit];
   }
   return self;
@@ -30,13 +34,10 @@
 
 - (instancetype)initWithCoder:(NSCoder *)coder {
   if ((self = [super initWithCoder:coder])) {
+    [self _viewInit];
     [self viewInit];
   }
   return self;
-}
-
-- (BOOL)mouseDownCanMoveWindow {
-  return YES;
 }
 
 - (void)setFrame:(NSRect)frame {
@@ -85,6 +86,24 @@
       [gself setNeedsDisplay:YES];
     });
   });
+}
+
+- (void)mouseDown:(NSEvent *)event {
+  if (!self.dispatchBlock || event.type != NSLeftMouseDown) {
+    [super mouseDown:event];
+  }
+}
+
+- (void)mouseUp:(NSEvent *)event {
+  if (self.dispatchBlock && event.type == NSLeftMouseUp) {
+    self.dispatchBlock(self, ^{});
+  } else {
+    [super mouseUp:event];
+  }
+}
+
+- (BOOL)mouseDownCanMoveWindow {
+  return !self.dispatchBlock;
 }
 
 @end

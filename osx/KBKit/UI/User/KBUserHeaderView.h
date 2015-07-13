@@ -10,8 +10,11 @@
 
 #import <KBAppKit/KBAppKit.h>
 #import "KBRPC.h"
+#import "KBUserImageView.h"
 
 @interface KBUserHeaderView : YOView
+
+@property (readonly) KBUserImageView *imageView;
 
 - (void)setUsername:(NSString *)username;
 
