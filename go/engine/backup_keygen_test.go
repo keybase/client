@@ -13,6 +13,8 @@ func TestBackupKeygen(t *testing.T) {
 
 	fu := CreateAndSignupFakeUser(tc, "login")
 
+	userDeviceID := tc.G.Env.GetDeviceID()
+
 	ctx := &Context{}
 	eng := NewBackupKeygen(tc.G)
 	if err := RunEngine(eng, ctx); err != nil {
@@ -57,8 +59,6 @@ func TestBackupKeygen(t *testing.T) {
 		t.Fatal("nil backup enckey")
 	}
 
-	// make sure the passphrase authentication didn't change:
-
 	// ok, just log in again:
 	if err := fu.Login(tc.G); err != nil {
 		t.Errorf("after backup key gen, login failed: %s", err)
@@ -75,5 +75,23 @@ func TestBackupKeygen(t *testing.T) {
 	}
 	if err := RunEngine(leng, lctx); err != nil {
 		t.Errorf("after backup key gen, login with passphrase failed: %s", err)
+	}
+
+	_, err = tc.G.LoginState().VerifyPlaintextPassphrase(fu.Passphrase)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	// make sure the backup key device id is different than the actual device id
+	// and that the actual device id didn't change.
+	// (investigating bug theory)
+	if userDeviceID == devid {
+		t.Errorf("user's device id before backup key gen (%s) matches backup key device id (%s).  They shouuld be different.", userDeviceID, devid)
+	}
+	if userDeviceID != tc.G.Env.GetDeviceID() {
+		t.Errorf("user device id changed.  start = %s, post-backup = %s", userDeviceID, tc.G.Env.GetDeviceID())
+	}
+	if tc.G.Env.GetDeviceID() == devid {
+		t.Errorf("current device id (%s) matches backup key device id (%s).  They should be different.", tc.G.Env.GetDeviceID(), devid)
 	}
 }
