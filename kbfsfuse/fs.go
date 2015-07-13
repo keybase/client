@@ -37,6 +37,7 @@ func runNewFUSE(ctx context.Context, config libkbfs.Config, debug bool,
 			return ctx
 		},
 	})
+	filesys.fuse = srv
 
 	if err := srv.Serve(filesys); err != nil {
 		return err
@@ -54,6 +55,7 @@ func runNewFUSE(ctx context.Context, config libkbfs.Config, debug bool,
 // FS implements the newfuse FS interface for KBFS.
 type FS struct {
 	config libkbfs.Config
+	fuse   *fs.Server
 }
 
 var _ fs.FS = (*FS)(nil)
@@ -135,15 +137,26 @@ func (r *Root) Lookup(ctx context.Context, req *fuse.LookupRequest, resp *fuse.L
 		return nil, err
 	}
 
-	mdID := libkbfs.NullTlfID
+	folderBranch := libkbfs.FolderBranch{
+		Tlf:    libkbfs.NullTlfID,
+		Branch: libkbfs.MasterBranch,
+	}
 	if rootNode != nil {
-		mdID = rootNode.GetFolderBranch().Tlf
+		folderBranch = rootNode.GetFolderBranch()
 	}
+
 	folder := &Folder{
-		fs: r.fs,
-		id: mdID,
-		dh: dh,
+		fs:    r.fs,
+		id:    folderBranch.Tlf,
+		dh:    dh,
+		nodes: map[libkbfs.NodeID]folderNode{},
 	}
+
+	// TODO we never unregister; we also never remove entries from r.folders
+	if err := r.fs.config.Notifier().RegisterForChanges([]libkbfs.FolderBranch{folderBranch}, folder); err != nil {
+		return nil, err
+	}
+
 	child := newDir(folder, rootNode, nil)
 	r.folders[req.Name] = child
 	return child, nil

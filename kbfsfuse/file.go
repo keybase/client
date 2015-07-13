@@ -162,3 +162,11 @@ func (f *File) Forget() {
 	}
 	f.parent.forgetChildLocked(f, name)
 }
+
+var _ folderNode = (*File)(nil)
+
+// KBFSNodeID returns the libkbfs.NodeID for this node, for use in
+// libkbfs change notification callbacks.
+func (f *File) KBFSNodeID() libkbfs.NodeID {
+	return f.node.GetID()
+}

@@ -2,6 +2,8 @@ package main
 
 import (
 	"fmt"
+	"log"
+	"math"
 	"os"
 	"sync"
 	"syscall"
@@ -21,6 +23,104 @@ type Folder struct {
 
 	// Protects fields for all Dir and File instances.
 	mu sync.Mutex
+	// Map KBFS nodes to FUSE nodes, to be able to handle incoming
+	// change notifications.
+	//
+	// If we ever support hardlinks, this would need refcounts.
+	nodes map[libkbfs.NodeID]folderNode
+}
+
+// folderNode is an interface that needs to be implemented by all
+// fs.Node values we wish to receive change notifications for.
+type folderNode interface {
+	fs.Node
+	KBFSNodeID() libkbfs.NodeID
+}
+
+var _ libkbfs.Observer = (*Folder)(nil)
+
+// LocalChange is called for changes originating within in this process.
+func (f *Folder) LocalChange(ctx context.Context, node libkbfs.Node, write libkbfs.WriteRange) {
+	if origin, ok := ctx.Value(ctxAppIDKey).(*FS); ok && origin == f.fs {
+		return
+	}
+
+	f.mu.Lock()
+	defer f.mu.Unlock()
+	n, ok := f.nodes[node.GetID()]
+	if !ok {
+		return
+	}
+
+	// Off=0 Len=0 is the same as calling InvalidateNodeDataAttr; we
+	// can just let that go through InvalidateNodeDataRange.
+	off := int64(write.Off)
+	size := int64(write.Len)
+	if write.Off > math.MaxInt64 || write.Len > math.MaxInt64 {
+		// out of bounds, just forget all data
+		off = 0
+		size = -1
+	}
+	if err := f.fs.fuse.InvalidateNodeDataRange(n, off, size); err != nil && err != fuse.ErrNotCached {
+		// TODO we have no mechanism to do anything about this
+		log.Printf("FUSE invalidate error: %v", err)
+	}
+}
+
+// BatchChanges is called for changes originating anywhere, including
+// other hosts.
+func (f *Folder) BatchChanges(ctx context.Context, changes []libkbfs.NodeChange) {
+	if origin, ok := ctx.Value(ctxAppIDKey).(*FS); ok && origin == f.fs {
+		return
+	}
+
+	f.mu.Lock()
+	defer f.mu.Unlock()
+
+	for _, v := range changes {
+		n, ok := f.nodes[v.Node.GetID()]
+		if !ok {
+			continue
+		}
+
+		switch {
+		case len(v.DirUpdated) > 0:
+			// invalidate potentially cached Readdir contents
+			if err := f.fs.fuse.InvalidateNodeData(n); err != nil && err != fuse.ErrNotCached {
+				// TODO we have no mechanism to do anything about this
+				log.Printf("FUSE invalidate error: %v", err)
+			}
+			for _, name := range v.DirUpdated {
+				// invalidate the dentry cache
+				if err := f.fs.fuse.InvalidateEntry(n, name); err != nil && err != fuse.ErrNotCached {
+					// TODO we have no mechanism to do anything about this
+					log.Printf("FUSE invalidate error: %v", err)
+				}
+			}
+
+		case len(v.FileUpdated) > 0:
+			for _, write := range v.FileUpdated {
+				off := int64(write.Off)
+				size := int64(write.Len)
+				if write.Off > math.MaxInt64 || write.Len > math.MaxInt64 {
+					// out of bounds, just invalidate all data
+					off = 0
+					size = -1
+				}
+				if err := f.fs.fuse.InvalidateNodeDataRange(n, off, size); err != nil && err != fuse.ErrNotCached {
+					// TODO we have no mechanism to do anything about this
+					log.Printf("FUSE invalidate error: %v", err)
+				}
+			}
+
+		default:
+			// just the attributes
+			if err := f.fs.fuse.InvalidateNodeAttr(n); err != nil && err != fuse.ErrNotCached {
+				// TODO we have no mechanism to do anything about this
+				log.Printf("FUSE invalidate error: %v", err)
+			}
+		}
+	}
 }
 
 // Dir represents KBFS subdirectories.
@@ -39,7 +139,10 @@ type Dir struct {
 	//
 	// Children must call parent.forgetChildLocked on receiving the
 	// FUSE Forget request, if they are not unlinked.
-	active map[string]fs.Node
+	//
+	// Entries in this map are also expected to be found in
+	// Folder.nodes.
+	active map[string]folderNode
 }
 
 func newDir(folder *Folder, node libkbfs.Node, parent *Dir) *Dir {
@@ -47,7 +150,7 @@ func newDir(folder *Folder, node libkbfs.Node, parent *Dir) *Dir {
 		folder: folder,
 		parent: parent,
 		node:   node,
-		active: map[string]fs.Node{},
+		active: map[string]folderNode{},
 	}
 	return d
 }
@@ -119,9 +222,10 @@ func (d *Dir) Lookup(ctx context.Context, req *fuse.LookupRequest, resp *fuse.Lo
 		}
 		id := rootNode.GetFolderBranch().Tlf
 		pubFolder := &Folder{
-			fs: d.folder.fs,
-			id: id,
-			dh: dhPub,
+			fs:    d.folder.fs,
+			id:    id,
+			dh:    dhPub,
+			nodes: map[libkbfs.NodeID]folderNode{},
 		}
 		child := newDir(pubFolder, rootNode, nil)
 		// not storing in active, as child.parent is nil and it would
@@ -147,11 +251,13 @@ func (d *Dir) Lookup(ctx context.Context, req *fuse.LookupRequest, resp *fuse.Lo
 			node:   newNode,
 		}
 		d.active[req.Name] = child
+		d.folder.nodes[newNode.GetID()] = child
 		return child, nil
 
 	case libkbfs.Dir:
 		child := newDir(d.folder, newNode, d)
 		d.active[req.Name] = child
+		d.folder.nodes[newNode.GetID()] = child
 		return child, nil
 
 	case libkbfs.Sym:
@@ -184,6 +290,7 @@ func (d *Dir) Create(ctx context.Context, req *fuse.CreateRequest, resp *fuse.Cr
 		node:   newNode,
 	}
 	d.active[req.Name] = child
+	d.folder.nodes[newNode.GetID()] = child
 	return child, child, nil
 }
 
@@ -202,6 +309,7 @@ func (d *Dir) Mkdir(ctx context.Context, req *fuse.MkdirRequest) (fs.Node, error
 
 	child := newDir(d.folder, newNode, d)
 	d.active[req.Name] = child
+	d.folder.nodes[newNode.GetID()] = child
 	return child, nil
 }
 
@@ -260,11 +368,17 @@ func (d *Dir) Rename(ctx context.Context, req *fuse.RenameRequest, newDir fs.Nod
 	if nodeOld, ok := d.active[req.OldName]; ok {
 		// if the old node is active, move it to the new name
 		delete(d.active, req.OldName)
+		if n, ok := newDir2.active[req.NewName]; ok {
+			delete(d.folder.nodes, n.KBFSNodeID())
+		}
 		newDir2.active[req.NewName] = nodeOld
 	} else {
 		// just make sure there's no previous active entry for new
 		// name
-		delete(newDir2.active, req.NewName)
+		if n, ok := newDir2.active[req.NewName]; ok {
+			delete(d.folder.nodes, n.KBFSNodeID())
+			delete(newDir2.active, req.NewName)
+		}
 	}
 
 	return nil
@@ -287,7 +401,10 @@ func (d *Dir) Remove(ctx context.Context, req *fuse.RemoveRequest) error {
 		return err
 	}
 
-	delete(d.active, req.Name)
+	if n, ok := d.active[req.Name]; ok {
+		delete(d.folder.nodes, n.KBFSNodeID())
+		delete(d.active, req.Name)
+	}
 
 	return nil
 }
@@ -361,5 +478,16 @@ func (d *Dir) Forget() {
 //
 // Caller must hold Folder.mu.
 func (d *Dir) forgetChildLocked(child fs.Node, name string) {
-	delete(d.active, name)
+	if n, ok := d.active[name]; ok {
+		delete(d.folder.nodes, n.KBFSNodeID())
+		delete(d.active, name)
+	}
+}
+
+var _ folderNode = (*Dir)(nil)
+
+// KBFSNodeID returns the libkbfs.NodeID for this node, for use in
+// libkbfs change notification callbacks.
+func (d *Dir) KBFSNodeID() libkbfs.NodeID {
+	return d.node.GetID()
 }
