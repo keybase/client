@@ -20,8 +20,9 @@ type CheckBlockOps struct {
 
 var _ BlockOps = (*CheckBlockOps)(nil)
 
-func (cbo *CheckBlockOps) Get(md *RootMetadata, blockPtr BlockPointer, block Block) error {
-	return cbo.delegate.Get(md, blockPtr, block)
+func (cbo *CheckBlockOps) Get(ctx context.Context, md *RootMetadata,
+	blockPtr BlockPointer, block Block) error {
+	return cbo.delegate.Get(ctx, md, blockPtr, block)
 }
 
 func (cbo *CheckBlockOps) Ready(md *RootMetadata, block Block) (
@@ -35,12 +36,14 @@ func (cbo *CheckBlockOps) Ready(md *RootMetadata, block Block) (
 	return
 }
 
-func (cbo *CheckBlockOps) Put(md *RootMetadata, blockPtr BlockPointer, readyBlockData ReadyBlockData) error {
-	return cbo.delegate.Put(md, blockPtr, readyBlockData)
+func (cbo *CheckBlockOps) Put(ctx context.Context, md *RootMetadata,
+	blockPtr BlockPointer, readyBlockData ReadyBlockData) error {
+	return cbo.delegate.Put(ctx, md, blockPtr, readyBlockData)
 }
 
-func (cbo *CheckBlockOps) Delete(md *RootMetadata, id BlockID, context BlockContext) error {
-	return cbo.delegate.Delete(md, id, context)
+func (cbo *CheckBlockOps) Delete(ctx context.Context, md *RootMetadata,
+	id BlockID, context BlockContext) error {
+	return cbo.delegate.Delete(ctx, md, id, context)
 }
 
 var tCtxID = "kbfs-ops-test-id"
@@ -217,8 +220,10 @@ func TestKBFSOpsGetRootNodeCacheSuccess(t *testing.T) {
 }
 
 func expectBlock(config *ConfigMock, rmd *RootMetadata, blockPtr BlockPointer, block Block, err error) {
-	config.mockBops.EXPECT().Get(rmdMatcher{rmd}, ptrMatcher{blockPtr}, gomock.Any()).
-		Do(func(md *RootMetadata, blockPtr BlockPointer, getBlock Block) {
+	config.mockBops.EXPECT().Get(gomock.Any(), rmdMatcher{rmd},
+		ptrMatcher{blockPtr}, gomock.Any()).
+		Do(func(ctx context.Context, md *RootMetadata,
+		blockPtr BlockPointer, getBlock Block) {
 		switch v := getBlock.(type) {
 		case *FileBlock:
 			*v = *block.(*FileBlock)
@@ -292,7 +297,7 @@ func testKBFSOpsGetRootNodeCreateNewSuccess(t *testing.T, public bool) {
 	// now KBFS will fill it in:
 	rootPtr, plainSize, readyBlockData := fillInNewMD(t, config, rmd)
 	// now cache and put everything
-	config.mockBops.EXPECT().Put(rmd, ptrMatcher{rootPtr}, readyBlockData).
+	config.mockBops.EXPECT().Put(ctx, rmd, ptrMatcher{rootPtr}, readyBlockData).
 		Return(nil)
 	config.mockMdops.EXPECT().Put(gomock.Any(), id, rmd, nilKID, NullMdID).
 		Return(nil)
@@ -844,7 +849,9 @@ func expectSyncBlockHelper(
 		lastCall = call
 		newPath.path[i].ID = newID
 		newBlockIDs[i] = newID
-		config.mockBops.EXPECT().Put(rmdMatcher{rmd}, ptrMatcher{newPath.path[i].BlockPointer}, readyBlockData).Return(nil)
+		config.mockBops.EXPECT().Put(gomock.Any(), rmdMatcher{rmd},
+			ptrMatcher{newPath.path[i].BlockPointer}, readyBlockData).
+			Return(nil)
 	}
 	if skipSync == 0 {
 		// sign the MD and put it
@@ -3468,7 +3475,8 @@ func expectSyncDirtyBlock(config *ConfigMock, rmd *RootMetadata, ptr BlockPointe
 	}
 	c2 := config.mockBops.EXPECT().Ready(rmdMatcher{rmd}, block).
 		After(c1).Return(newID, len(block.Contents), readyBlockData, nil)
-	config.mockBops.EXPECT().Put(rmdMatcher{rmd}, ptrMatcher{BlockPointer{ID: newID}}, readyBlockData).Return(nil)
+	config.mockBops.EXPECT().Put(gomock.Any(), rmdMatcher{rmd},
+		ptrMatcher{BlockPointer{ID: newID}}, readyBlockData).Return(nil)
 	return c2
 }
 
@@ -3982,7 +3990,9 @@ func TestSyncDirtyWithBlockChangePointerSuccess(t *testing.T) {
 	}
 	lastCall = config.mockBops.EXPECT().Ready(rmdMatcher{rmd}, gomock.Any()).Return(
 		changeBlockID, changePlainSize, changeReadyBlockData, nil).After(lastCall)
-	config.mockBops.EXPECT().Put(rmdMatcher{rmd}, ptrMatcher{BlockPointer{ID: changeBlockID}}, changeReadyBlockData).Return(nil)
+	config.mockBops.EXPECT().Put(ctx, rmdMatcher{rmd},
+		ptrMatcher{BlockPointer{ID: changeBlockID}}, changeReadyBlockData).
+		Return(nil)
 
 	if err := config.KBFSOps().Sync(ctx, n); err != nil {
 		t.Errorf("Got unexpected error on sync: %v", err)

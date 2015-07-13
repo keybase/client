@@ -493,23 +493,27 @@ type BlockOps interface {
 	// decrypts it if necessary, and fills in the provided block
 	// object with its contents, if the logged-in user has read
 	// permission for that block.
-	Get(md *RootMetadata, blockPtr BlockPointer, block Block) error
+	Get(ctx context.Context, md *RootMetadata, blockPtr BlockPointer,
+		block Block) error
 
 	// Ready turns the given block (which belongs to the TLF with
 	// the given metadata) into encoded (and encrypted) data, and
 	// calculates its ID and size, so that we can do a bunch of
 	// block puts in parallel for every write. Ready() must
 	// guarantee that plainSize <= readyBlockData.QuotaSize().
-	Ready(md *RootMetadata, block Block) (id BlockID, plainSize int, readyBlockData ReadyBlockData, err error)
+	Ready(md *RootMetadata, block Block) (
+		id BlockID, plainSize int, readyBlockData ReadyBlockData, err error)
 
 	// Put stores the readied block data under the given block
 	// pointer (which belongs to the TLF with the given metadata)
 	// on the server.
-	Put(md *RootMetadata, blockPtr BlockPointer, readyBlockData ReadyBlockData) error
+	Put(ctx context.Context, md *RootMetadata, blockPtr BlockPointer,
+		readyBlockData ReadyBlockData) error
 
 	// Delete instructs the server to delete the block data associated
 	// with the given ID and context.
-	Delete(md *RootMetadata, id BlockID, context BlockContext) error
+	Delete(ctx context.Context, md *RootMetadata, id BlockID,
+		context BlockContext) error
 }
 
 // MDServer gets and puts metadata for each top-level directory.  The

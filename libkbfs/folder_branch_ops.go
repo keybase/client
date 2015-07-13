@@ -409,7 +409,8 @@ func (fbo *FolderBranchOps) initMDLocked(
 		return NewWriteAccessError(fbo.config, handle, user)
 	}
 
-	if err = fbo.config.BlockOps().Put(md, info.BlockPointer, readyBlockData); err != nil {
+	if err = fbo.config.BlockOps().Put(ctx, md, info.BlockPointer,
+		readyBlockData); err != nil {
 		return err
 	}
 	if err = fbo.config.BlockCache().Put(info.ID, newDblock); err != nil {
@@ -530,8 +531,9 @@ type makeNewBlock func() Block
 
 // blockLock should be taken for reading by the caller. dir must be
 // valid.
-func (fbo *FolderBranchOps) getBlockLocked(md *RootMetadata,
-	dir path, newBlock makeNewBlock, rtype reqType) (Block, error) {
+func (fbo *FolderBranchOps) getBlockLocked(ctx context.Context,
+	md *RootMetadata, dir path, newBlock makeNewBlock, rtype reqType) (
+	Block, error) {
 	if !dir.isValid() {
 		return nil, InvalidPathError{}
 	}
@@ -560,7 +562,7 @@ func (fbo *FolderBranchOps) getBlockLocked(md *RootMetadata,
 	// fetch the block, and add to cache
 	block := newBlock()
 	bops := fbo.config.BlockOps()
-	if err := bops.Get(md, dir.tailPointer(), block); err != nil {
+	if err := bops.Get(ctx, md, dir.tailPointer(), block); err != nil {
 		return nil, err
 	}
 
@@ -584,10 +586,10 @@ func (fbo *FolderBranchOps) getBlockLocked(md *RootMetadata,
 //
 // blockLock should be taken for reading by the caller, and writerLock
 // too if rtype == write.
-func (fbo *FolderBranchOps) getDirLocked(
-	md *RootMetadata, dir path, rtype reqType) (*DirBlock, error) {
+func (fbo *FolderBranchOps) getDirLocked(ctx context.Context, md *RootMetadata,
+	dir path, rtype reqType) (*DirBlock, error) {
 	// get the directory for the last element in the path
-	block, err := fbo.getBlockLocked(md, dir, NewDirBlock, rtype)
+	block, err := fbo.getBlockLocked(ctx, md, dir, NewDirBlock, rtype)
 	if err != nil {
 		return nil, err
 	}
@@ -612,10 +614,10 @@ func (fbo *FolderBranchOps) getDirLocked(
 //
 // blockLock should be taken for reading by the caller, and writerLock
 // too if rtype == write.
-func (fbo *FolderBranchOps) getFileLocked(
+func (fbo *FolderBranchOps) getFileLocked(ctx context.Context,
 	md *RootMetadata, file path, rtype reqType) (*FileBlock, error) {
 	// get the file for the last element in the path
-	block, err := fbo.getBlockLocked(md, file, NewFileBlock, rtype)
+	block, err := fbo.getBlockLocked(ctx, md, file, NewFileBlock, rtype)
 	if err != nil {
 		return nil, err
 	}
@@ -690,7 +692,7 @@ func (fbo *FolderBranchOps) GetDirChildren(ctx context.Context, dir Node) (
 	dirPath := fbo.nodeCache.PathFromNode(dir)
 	var block *DirBlock
 	fbo.execReadThenWrite(func(rtype reqType) error {
-		block, err = fbo.getDirLocked(md, dirPath, rtype)
+		block, err = fbo.getDirLocked(ctx, md, dirPath, rtype)
 		return err
 	})
 	if err != nil {
@@ -706,14 +708,14 @@ func (fbo *FolderBranchOps) GetDirChildren(ctx context.Context, dir Node) (
 
 // blockLocked must be taken for reading by the caller. file must have
 // a valid parent.
-func (fbo *FolderBranchOps) getEntryLocked(md *RootMetadata, file path) (
-	*DirBlock, DirEntry, error) {
+func (fbo *FolderBranchOps) getEntryLocked(ctx context.Context,
+	md *RootMetadata, file path) (*DirBlock, DirEntry, error) {
 	if !file.hasValidParent() {
 		return nil, DirEntry{}, InvalidPathError{}
 	}
 
 	parentPath := file.parentPath()
-	dblock, err := fbo.getDirLocked(md, *parentPath, write)
+	dblock, err := fbo.getDirLocked(ctx, md, *parentPath, write)
 	if err != nil {
 		return nil, DirEntry{}, err
 	}
@@ -747,7 +749,7 @@ func (fbo *FolderBranchOps) Lookup(ctx context.Context, dir Node, name string) (
 	defer fbo.blockLock.RUnlock()
 	dirPath := fbo.nodeCache.PathFromNode(dir)
 	childPath := *dirPath.ChildPathNoPtr(name)
-	_, de, err = fbo.getEntryLocked(md, childPath)
+	_, de, err = fbo.getEntryLocked(ctx, md, childPath)
 	if err != nil {
 		return
 	}
@@ -787,7 +789,7 @@ func (fbo *FolderBranchOps) Stat(ctx context.Context, node Node) (
 	}
 
 	if nodePath.hasValidParent() {
-		_, de, err = fbo.getEntryLocked(md, nodePath)
+		_, de, err = fbo.getEntryLocked(ctx, md, nodePath)
 	} else {
 		// nodePath is just the root.
 		de = md.data.Dir
@@ -933,10 +935,10 @@ type localBcache map[BlockPointer]*DirBlock
 // TODO: deal with multiple nodes for indirect blocks
 //
 // entryType must not be Sym.  writerLock must be taken by caller.
-func (fbo *FolderBranchOps) syncBlockLocked(md *RootMetadata,
-	newBlock Block, dir path, name string, entryType EntryType,
-	mtime bool, ctime bool, stopAt BlockPointer, lbc localBcache) (
-	path, DirEntry, *blockPutState, error) {
+func (fbo *FolderBranchOps) syncBlockLocked(ctx context.Context,
+	md *RootMetadata, newBlock Block, dir path, name string,
+	entryType EntryType, mtime bool, ctime bool, stopAt BlockPointer,
+	lbc localBcache) (path, DirEntry, *blockPutState, error) {
 	user, err := fbo.config.KBPKI().GetLoggedInUser()
 	if err != nil {
 		return path{}, DirEntry{}, nil, err
@@ -1001,7 +1003,7 @@ func (fbo *FolderBranchOps) syncBlockLocked(md *RootMetadata,
 				// holding writerLock, so it's safe to release the
 				// blockLock in between fetches.
 				fbo.blockLock.RLock()
-				prevDblock, err = fbo.getDirLocked(md, prevDir, write)
+				prevDblock, err = fbo.getDirLocked(ctx, md, prevDir, write)
 				if err != nil {
 					fbo.blockLock.RUnlock()
 					return path{}, DirEntry{}, nil, err
@@ -1111,7 +1113,7 @@ func (fbo *FolderBranchOps) syncBlockLocked(md *RootMetadata,
 	// TODO: parallelize me
 	bops := fbo.config.BlockOps()
 	for _, blockState := range bps.blockStates {
-		if err = bops.Put(md, blockState.blockPtr,
+		if err = bops.Put(ctx, md, blockState.blockPtr,
 			blockState.readyBlockData); err != nil {
 			return path{}, DirEntry{}, nil, err
 		}
@@ -1218,8 +1220,8 @@ func (fbo *FolderBranchOps) syncBlockAndFinalizeLocked(ctx context.Context,
 	md *RootMetadata, newBlock Block, dir path, name string,
 	entryType EntryType, mtime bool, ctime bool, stopAt BlockPointer) (
 	DirEntry, error) {
-	p, de, bps, err := fbo.syncBlockLocked(md, newBlock, dir, name, entryType,
-		mtime, ctime, zeroPtr, nil)
+	p, de, bps, err := fbo.syncBlockLocked(ctx, md, newBlock, dir, name,
+		entryType, mtime, ctime, zeroPtr, nil)
 	if err != nil {
 		return DirEntry{}, err
 	}
@@ -1242,7 +1244,7 @@ func (fbo *FolderBranchOps) createEntryLocked(
 
 	fbo.blockLock.RLock()
 	dirPath := fbo.nodeCache.PathFromNode(dir)
-	dblock, err := fbo.getDirLocked(md, dirPath, write)
+	dblock, err := fbo.getDirLocked(ctx, md, dirPath, write)
 	if err != nil {
 		fbo.blockLock.RUnlock()
 		return nil, DirEntry{}, err
@@ -1332,7 +1334,7 @@ func (fbo *FolderBranchOps) createLinkLocked(
 
 	fbo.blockLock.RLock()
 	dirPath := fbo.nodeCache.PathFromNode(dir)
-	dblock, err := fbo.getDirLocked(md, dirPath, write)
+	dblock, err := fbo.getDirLocked(ctx, md, dirPath, write)
 	if err != nil {
 		fbo.blockLock.RUnlock()
 		return DirEntry{}, err
@@ -1384,7 +1386,7 @@ func (fbo *FolderBranchOps) CreateLink(
 func (fbo *FolderBranchOps) removeEntryLocked(ctx context.Context,
 	md *RootMetadata, dir path, name string) error {
 	fbo.blockLock.RLock()
-	pblock, err := fbo.getDirLocked(md, dir, write)
+	pblock, err := fbo.getDirLocked(ctx, md, dir, write)
 	if err != nil {
 		fbo.blockLock.RUnlock()
 		return err
@@ -1408,7 +1410,8 @@ func (fbo *FolderBranchOps) removeEntryLocked(ctx context.Context,
 	// indirection.)  NOTE: non-empty directories can't be removed, so
 	// no need to check for indirect directory blocks here.
 	if de.Type == File || de.Type == Exec {
-		block, err := fbo.getBlockLocked(md, childPath, NewFileBlock, write)
+		block, err :=
+			fbo.getBlockLocked(ctx, md, childPath, NewFileBlock, write)
 		if err != nil {
 			return NoSuchBlockError{de.ID}
 		}
@@ -1458,7 +1461,7 @@ func (fbo *FolderBranchOps) RemoveDir(
 	err = func() error {
 		fbo.blockLock.RLock()
 		defer fbo.blockLock.RUnlock()
-		pblock, err := fbo.getDirLocked(md, dirPath, read)
+		pblock, err := fbo.getDirLocked(ctx, md, dirPath, read)
 		de, ok := pblock.Children[dirName]
 		if !ok {
 			return NoSuchNameError{dirName}
@@ -1468,7 +1471,7 @@ func (fbo *FolderBranchOps) RemoveDir(
 		childPath := *dirPath.ChildPathNoPtr(dirName)
 		childPath.path[len(childPath.path)-1].BlockPointer = de.BlockPointer
 
-		childBlock, err := fbo.getDirLocked(md, childPath, read)
+		childBlock, err := fbo.getDirLocked(ctx, md, childPath, read)
 		if err != nil {
 			return err
 		}
@@ -1525,7 +1528,7 @@ func (fbo *FolderBranchOps) renameLocked(
 	}()
 
 	// look up in the old path
-	oldPBlock, err := fbo.getDirLocked(md, oldParent, write)
+	oldPBlock, err := fbo.getDirLocked(ctx, md, oldParent, write)
 	if err != nil {
 		return err
 	}
@@ -1545,7 +1548,7 @@ func (fbo *FolderBranchOps) renameLocked(
 	if oldParent.tailPointer().ID == newParent.tailPointer().ID {
 		newPBlock = oldPBlock
 	} else {
-		newPBlock, err = fbo.getDirLocked(md, newParent, write)
+		newPBlock, err = fbo.getDirLocked(ctx, md, newParent, write)
 		if err != nil {
 			return err
 		}
@@ -1557,7 +1560,7 @@ func (fbo *FolderBranchOps) renameLocked(
 			// oldGrandparent is the same as newParent (in which case, the
 			// syncBlockLocked call will take care of it).
 			if oldGrandparent.tailPointer().ID != newParent.tailPointer().ID {
-				b, err := fbo.getDirLocked(md, oldGrandparent, write)
+				b, err := fbo.getDirLocked(ctx, md, oldGrandparent, write)
 				if err != nil {
 					return err
 				}
@@ -1658,7 +1661,7 @@ func (fbo *FolderBranchOps) renameLocked(
 		// The old one is not the common ancestor, so we need to sync it.
 		// TODO: optimize by pushing blocks from both paths in parallel
 		newOldPath, _, oldBps, err = fbo.syncBlockLocked(
-			md, oldPBlock, *oldParent.parentPath(), oldParent.tailName(),
+			ctx, md, oldPBlock, *oldParent.parentPath(), oldParent.tailName(),
 			Dir, true, true, commonAncestor, lbc)
 		if err != nil {
 			return err
@@ -1666,7 +1669,7 @@ func (fbo *FolderBranchOps) renameLocked(
 	}
 
 	newNewPath, _, newBps, err := fbo.syncBlockLocked(
-		md, newPBlock, *newParent.parentPath(), newParent.tailName(),
+		ctx, md, newPBlock, *newParent.parentPath(), newParent.tailName(),
 		Dir, true, true, zeroPtr, lbc)
 	if err != nil {
 		return err
@@ -1714,7 +1717,7 @@ func (fbo *FolderBranchOps) Rename(
 }
 
 // blockLock must be taken for reading by caller.
-func (fbo *FolderBranchOps) getFileBlockAtOffsetLocked(
+func (fbo *FolderBranchOps) getFileBlockAtOffsetLocked(ctx context.Context,
 	md *RootMetadata, file path, topBlock *FileBlock, off int64,
 	rtype reqType) (ptr BlockPointer, parentBlock *FileBlock, indexInParent int,
 	block *FileBlock, more bool, startOff int64, err error) {
@@ -1750,7 +1753,7 @@ func (fbo *FolderBranchOps) getFileBlockAtOffsetLocked(
 		newPath.path = append(newPath.path, pathNode{
 			nextPtr.BlockPointer, file.tailName(),
 		})
-		if block, err = fbo.getFileLocked(md, newPath, rtype); err != nil {
+		if block, err = fbo.getFileLocked(ctx, md, newPath, rtype); err != nil {
 			return
 		}
 	}
@@ -1768,7 +1771,7 @@ func (fbo *FolderBranchOps) readLocked(
 	}
 
 	// getFileLocked already checks read permissions
-	fblock, err := fbo.getFileLocked(md, file, read)
+	fblock, err := fbo.getFileLocked(ctx, md, file, read)
 	if err != nil {
 		return 0, err
 	}
@@ -1779,8 +1782,8 @@ func (fbo *FolderBranchOps) readLocked(
 	for nRead < n {
 		nextByte := nRead + off
 		toRead := n - nRead
-		_, _, _, block, _, startOff, err :=
-			fbo.getFileBlockAtOffsetLocked(md, file, fblock, nextByte, read)
+		_, _, _, block, _, startOff, err := fbo.getFileBlockAtOffsetLocked(
+			ctx, md, file, fblock, nextByte, read)
 		if err != nil {
 			return 0, err
 		}
@@ -1888,7 +1891,7 @@ func (fbo *FolderBranchOps) writeDataLocked(
 		return NewWriteAccessError(fbo.config, md.GetTlfHandle(), user)
 	}
 
-	fblock, err := fbo.getFileLocked(md, file, write)
+	fblock, err := fbo.getFileLocked(ctx, md, file, write)
 	if err != nil {
 		return err
 	}
@@ -1898,7 +1901,7 @@ func (fbo *FolderBranchOps) writeDataLocked(
 	n := int64(len(data))
 	nCopied := int64(0)
 
-	_, de, err := fbo.getEntryLocked(md, file)
+	_, de, err := fbo.getEntryLocked(ctx, md, file)
 	if err != nil {
 		return err
 	}
@@ -1908,7 +1911,8 @@ func (fbo *FolderBranchOps) writeDataLocked(
 	si := fbo.getOrCreateSyncInfoLocked(de)
 	for nCopied < n {
 		ptr, parentBlock, indexInParent, block, more, startOff, err :=
-			fbo.getFileBlockAtOffsetLocked(md, file, fblock, off+nCopied, write)
+			fbo.getFileBlockAtOffsetLocked(ctx, md, file, fblock,
+				off+nCopied, write)
 		if err != nil {
 			return err
 		}
@@ -2085,7 +2089,7 @@ func (fbo *FolderBranchOps) truncateLocked(
 		return NewWriteAccessError(fbo.config, md.GetTlfHandle(), user)
 	}
 
-	fblock, err := fbo.getFileLocked(md, file, write)
+	fblock, err := fbo.getFileLocked(ctx, md, file, write)
 	if err != nil {
 		return err
 	}
@@ -2093,7 +2097,7 @@ func (fbo *FolderBranchOps) truncateLocked(
 	// find the block where the file should now end
 	iSize := int64(size) // TODO: deal with overflow
 	ptr, parentBlock, indexInParent, block, more, startOff, err :=
-		fbo.getFileBlockAtOffsetLocked(md, file, fblock, iSize, write)
+		fbo.getFileBlockAtOffsetLocked(ctx, md, file, fblock, iSize, write)
 
 	currLen := int64(startOff) + int64(len(block.Contents))
 	if currLen < iSize {
@@ -2107,7 +2111,7 @@ func (fbo *FolderBranchOps) truncateLocked(
 	}
 
 	// update the local entry size
-	_, de, err := fbo.getEntryLocked(md, file)
+	_, de, err := fbo.getEntryLocked(ctx, md, file)
 	if err != nil {
 		return err
 	}
@@ -2237,7 +2241,7 @@ func (fbo *FolderBranchOps) setExLocked(
 	}
 
 	fbo.blockLock.RLock()
-	dblock, de, err := fbo.getEntryLocked(md, file)
+	dblock, de, err := fbo.getEntryLocked(ctx, md, file)
 	if err != nil {
 		fbo.blockLock.RUnlock()
 		return
@@ -2293,7 +2297,7 @@ func (fbo *FolderBranchOps) setMtimeLocked(
 	}
 
 	fbo.blockLock.RLock()
-	dblock, de, err := fbo.getEntryLocked(md, file)
+	dblock, de, err := fbo.getEntryLocked(ctx, md, file)
 	if err != nil {
 		fbo.blockLock.RUnlock()
 		return err
@@ -2377,7 +2381,7 @@ func (fbo *FolderBranchOps) syncLocked(ctx context.Context, file path) error {
 
 	// update the parent directories, and write all the new blocks out
 	// to disk
-	fblock, err := fbo.getFileLocked(md, file, write)
+	fblock, err := fbo.getFileLocked(ctx, md, file, write)
 	if err != nil {
 		return err
 	}
@@ -2418,7 +2422,7 @@ func (fbo *FolderBranchOps) syncLocked(ctx context.Context, file path) error {
 			}
 			if isDirty {
 				_, _, _, block, more, _, err :=
-					fbo.getFileBlockAtOffsetLocked(md, file, fblock,
+					fbo.getFileBlockAtOffsetLocked(ctx, md, file, fblock,
 						ptr.Off, write)
 				if err != nil {
 					return err
@@ -2442,7 +2446,7 @@ func (fbo *FolderBranchOps) syncLocked(ctx context.Context, file path) error {
 						}
 					}
 					rPtr, _, _, rblock, _, _, err :=
-						fbo.getFileBlockAtOffsetLocked(md, file, fblock,
+						fbo.getFileBlockAtOffsetLocked(ctx, md, file, fblock,
 							endOfBlock, write)
 					if err != nil {
 						return err
@@ -2463,7 +2467,7 @@ func (fbo *FolderBranchOps) syncLocked(ctx context.Context, file path) error {
 
 					endOfBlock := ptr.Off + int64(len(block.Contents))
 					rPtr, _, _, rblock, _, _, err :=
-						fbo.getFileBlockAtOffsetLocked(md, file, fblock,
+						fbo.getFileBlockAtOffsetLocked(ctx, md, file, fblock,
 							endOfBlock, write)
 					if err != nil {
 						return err
@@ -2506,7 +2510,7 @@ func (fbo *FolderBranchOps) syncLocked(ctx context.Context, file path) error {
 			}
 			if isDirty {
 				_, _, _, block, _, _, err := fbo.getFileBlockAtOffsetLocked(
-					md, file, fblock, ptr.Off, write)
+					ctx, md, file, fblock, ptr.Off, write)
 				if err != nil {
 					return err
 				}
@@ -2539,7 +2543,7 @@ func (fbo *FolderBranchOps) syncLocked(ctx context.Context, file path) error {
 	fbo.copyFileBlocks[file.tailPointer()] = true
 
 	parentPath := file.parentPath()
-	dblock, err := fbo.getDirLocked(md, *parentPath, write)
+	dblock, err := fbo.getDirLocked(ctx, md, *parentPath, write)
 	if err != nil {
 		return err
 	}
@@ -2575,14 +2579,14 @@ func (fbo *FolderBranchOps) syncLocked(ctx context.Context, file path) error {
 	// TODO: parallelize me
 	bops := fbo.config.BlockOps()
 	for _, blockState := range bps.blockStates {
-		if err = bops.Put(md, blockState.blockPtr,
+		if err = bops.Put(ctx, md, blockState.blockPtr,
 			blockState.readyBlockData); err != nil {
 			return err
 		}
 	}
 
 	newPath, _, bps, err :=
-		fbo.syncBlockLocked(md, fblock, *parentPath, file.tailName(),
+		fbo.syncBlockLocked(ctx, md, fblock, *parentPath, file.tailName(),
 			File, true, true, zeroPtr, lbc)
 	if err != nil {
 		return err
@@ -2802,7 +2806,7 @@ func (fbo *FolderBranchOps) notifyBatch(ctx context.Context, md *RootMetadata) {
 		func() {
 			fbo.blockLock.RLock()
 			defer fbo.blockLock.RUnlock()
-			_, de, err = fbo.getEntryLocked(md, childPath)
+			_, de, err = fbo.getEntryLocked(ctx, md, childPath)
 		}()
 		if err != nil {
 			return

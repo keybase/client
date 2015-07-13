@@ -7,6 +7,7 @@ import (
 
 	"github.com/golang/mock/gomock"
 	"github.com/keybase/client/go/libkb"
+	"golang.org/x/net/context"
 )
 
 // rmdMatcher implements the gomock.Matcher interface to compare
@@ -55,12 +56,13 @@ type TestBlock struct {
 }
 
 func blockOpsInit(t *testing.T) (mockCtrl *gomock.Controller,
-	config *ConfigMock) {
+	config *ConfigMock, ctx context.Context) {
 	ctr := NewSafeTestReporter(t)
 	mockCtrl = gomock.NewController(ctr)
 	config = NewConfigMock(mockCtrl, ctr)
 	bops := &BlockOpsStandard{config}
 	config.SetBlockOps(bops)
+	ctx = context.Background()
 	return
 }
 
@@ -106,7 +108,7 @@ func makeRMD() *RootMetadata {
 }
 
 func TestBlockOpsGetSuccess(t *testing.T) {
-	mockCtrl, config := blockOpsInit(t)
+	mockCtrl, config, ctx := blockOpsInit(t)
 	defer blockOpsShutdown(mockCtrl, config)
 
 	// expect one call to fetch a block, and one to decrypt it
@@ -122,7 +124,7 @@ func TestBlockOpsGetSuccess(t *testing.T) {
 	expectBlockDecrypt(config, rmd, blockPtr, encData, decData, nil)
 
 	var gotBlock TestBlock
-	err := config.BlockOps().Get(rmd, blockPtr, &gotBlock)
+	err := config.BlockOps().Get(ctx, rmd, blockPtr, &gotBlock)
 	if err != nil {
 		t.Fatalf("Got error on get: %v", err)
 	}
@@ -133,7 +135,7 @@ func TestBlockOpsGetSuccess(t *testing.T) {
 }
 
 func TestBlockOpsGetFailGet(t *testing.T) {
-	mockCtrl, config := blockOpsInit(t)
+	mockCtrl, config, ctx := blockOpsInit(t)
 	defer blockOpsShutdown(mockCtrl, config)
 
 	// fail the fetch call
@@ -145,13 +147,13 @@ func TestBlockOpsGetFailGet(t *testing.T) {
 
 	rmd := makeRMD()
 
-	if err2 := config.BlockOps().Get(rmd, blockPtr, nil); err2 != err {
+	if err2 := config.BlockOps().Get(ctx, rmd, blockPtr, nil); err2 != err {
 		t.Errorf("Got bad error: %v", err2)
 	}
 }
 
 func TestBlockOpsGetFailDecryptBlockData(t *testing.T) {
-	mockCtrl, config := blockOpsInit(t)
+	mockCtrl, config, ctx := blockOpsInit(t)
 	defer blockOpsShutdown(mockCtrl, config)
 
 	// expect one call to fetch a block, then fail to decrypt i
@@ -166,13 +168,13 @@ func TestBlockOpsGetFailDecryptBlockData(t *testing.T) {
 
 	expectBlockDecrypt(config, rmd, blockPtr, encData, TestBlock{}, err)
 
-	if err2 := config.BlockOps().Get(rmd, blockPtr, nil); err2 != err {
+	if err2 := config.BlockOps().Get(ctx, rmd, blockPtr, nil); err2 != err {
 		t.Errorf("Got bad error: %v", err2)
 	}
 }
 
 func TestBlockOpsReadySuccess(t *testing.T) {
-	mockCtrl, config := blockOpsInit(t)
+	mockCtrl, config, _ := blockOpsInit(t)
 	defer blockOpsShutdown(mockCtrl, config)
 
 	// expect one call to encrypt a block, one to hash it
@@ -200,7 +202,7 @@ func TestBlockOpsReadySuccess(t *testing.T) {
 }
 
 func TestBlockOpsReadyFailTooLowByteCount(t *testing.T) {
-	mockCtrl, config := blockOpsInit(t)
+	mockCtrl, config, _ := blockOpsInit(t)
 	defer blockOpsShutdown(mockCtrl, config)
 
 	// expect just one call to encrypt a block
@@ -219,7 +221,7 @@ func TestBlockOpsReadyFailTooLowByteCount(t *testing.T) {
 }
 
 func TestBlockOpsReadyFailEncryptBlockData(t *testing.T) {
-	mockCtrl, config := blockOpsInit(t)
+	mockCtrl, config, _ := blockOpsInit(t)
 	defer blockOpsShutdown(mockCtrl, config)
 
 	// expect one call to encrypt a block, one to hash it
@@ -236,7 +238,7 @@ func TestBlockOpsReadyFailEncryptBlockData(t *testing.T) {
 }
 
 func TestBlockOpsReadyFailHash(t *testing.T) {
-	mockCtrl, config := blockOpsInit(t)
+	mockCtrl, config, _ := blockOpsInit(t)
 	defer blockOpsShutdown(mockCtrl, config)
 
 	// expect one call to encrypt a block, one to hash it
@@ -256,7 +258,7 @@ func TestBlockOpsReadyFailHash(t *testing.T) {
 }
 
 func TestBlockOpsReadyFailCast(t *testing.T) {
-	mockCtrl, config := blockOpsInit(t)
+	mockCtrl, config, _ := blockOpsInit(t)
 	defer blockOpsShutdown(mockCtrl, config)
 
 	// expect one call to encrypt a block, one to hash it
@@ -278,7 +280,7 @@ func TestBlockOpsReadyFailCast(t *testing.T) {
 }
 
 func TestBlockOpsPutSuccess(t *testing.T) {
-	mockCtrl, config := blockOpsInit(t)
+	mockCtrl, config, ctx := blockOpsInit(t)
 	defer blockOpsShutdown(mockCtrl, config)
 
 	// expect one call to put a block
@@ -294,13 +296,14 @@ func TestBlockOpsPutSuccess(t *testing.T) {
 
 	config.mockBserv.EXPECT().Put(id, rmd.ID, blockPtr, readyBlockData.buf, readyBlockData.serverHalf).Return(nil)
 
-	if err := config.BlockOps().Put(rmd, blockPtr, readyBlockData); err != nil {
+	if err := config.BlockOps().
+		Put(ctx, rmd, blockPtr, readyBlockData); err != nil {
 		t.Errorf("Got error on put: %v", err)
 	}
 }
 
 func TestBlockOpsPutFail(t *testing.T) {
-	mockCtrl, config := blockOpsInit(t)
+	mockCtrl, config, ctx := blockOpsInit(t)
 	defer blockOpsShutdown(mockCtrl, config)
 
 	// fail the put call
@@ -318,13 +321,14 @@ func TestBlockOpsPutFail(t *testing.T) {
 
 	config.mockBserv.EXPECT().Put(id, rmd.ID, blockPtr, readyBlockData.buf, readyBlockData.serverHalf).Return(err)
 
-	if err2 := config.BlockOps().Put(rmd, blockPtr, readyBlockData); err2 != err {
+	if err2 := config.BlockOps().
+		Put(ctx, rmd, blockPtr, readyBlockData); err2 != err {
 		t.Errorf("Got bad error on put: %v", err2)
 	}
 }
 
 func TestBlockOpsDeleteSuccess(t *testing.T) {
-	mockCtrl, config := blockOpsInit(t)
+	mockCtrl, config, ctx := blockOpsInit(t)
 	defer blockOpsShutdown(mockCtrl, config)
 
 	// expect one call to delete a block
@@ -334,13 +338,13 @@ func TestBlockOpsDeleteSuccess(t *testing.T) {
 	blockPtr := BlockPointer{ID: id}
 	config.mockBserv.EXPECT().Delete(id, rmd.ID, blockPtr).Return(nil)
 
-	if err := config.BlockOps().Delete(rmd, id, blockPtr); err != nil {
+	if err := config.BlockOps().Delete(ctx, rmd, id, blockPtr); err != nil {
 		t.Errorf("Got error on put: %v", err)
 	}
 }
 
 func TestBlockOpsDeleteFail(t *testing.T) {
-	mockCtrl, config := blockOpsInit(t)
+	mockCtrl, config, ctx := blockOpsInit(t)
 	defer blockOpsShutdown(mockCtrl, config)
 
 	// fail the delete call
@@ -351,7 +355,7 @@ func TestBlockOpsDeleteFail(t *testing.T) {
 	blockPtr := BlockPointer{ID: id}
 	config.mockBserv.EXPECT().Delete(id, rmd.ID, blockPtr).Return(err)
 
-	if err2 := config.BlockOps().Delete(rmd, id, blockPtr); err2 != err {
+	if err2 := config.BlockOps().Delete(ctx, rmd, id, blockPtr); err2 != err {
 		t.Errorf("Got bad error on put: %v", err2)
 	}
 }

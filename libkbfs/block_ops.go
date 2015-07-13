@@ -2,6 +2,7 @@ package libkbfs
 
 import (
 	"github.com/keybase/client/go/libkb"
+	"golang.org/x/net/context"
 )
 
 // BlockOpsStandard implements the BlockOps interface by relaying
@@ -13,7 +14,8 @@ type BlockOpsStandard struct {
 var _ BlockOps = (*BlockOpsStandard)(nil)
 
 // Get implements the BlockOps interface for BlockOpsStandard.
-func (b *BlockOpsStandard) Get(md *RootMetadata, blockPtr BlockPointer, block Block) error {
+func (b *BlockOpsStandard) Get(ctx context.Context, md *RootMetadata,
+	blockPtr BlockPointer, block Block) error {
 	bserv := b.config.BlockServer()
 	buf, blockServerHalf, err := bserv.Get(blockPtr.ID, blockPtr)
 	if err != nil {
@@ -43,7 +45,8 @@ func (b *BlockOpsStandard) Get(md *RootMetadata, blockPtr BlockPointer, block Bl
 }
 
 // Ready implements the BlockOps interface for BlockOpsStandard.
-func (b *BlockOpsStandard) Ready(md *RootMetadata, block Block) (id BlockID, plainSize int, readyBlockData ReadyBlockData, err error) {
+func (b *BlockOpsStandard) Ready(md *RootMetadata, block Block) (
+	id BlockID, plainSize int, readyBlockData ReadyBlockData, err error) {
 	defer func() {
 		if err != nil {
 			id = BlockID{}
@@ -112,13 +115,16 @@ func (b *BlockOpsStandard) Ready(md *RootMetadata, block Block) (id BlockID, pla
 }
 
 // Put implements the BlockOps interface for BlockOpsStandard.
-func (b *BlockOpsStandard) Put(md *RootMetadata, blockPtr BlockPointer, readyBlockData ReadyBlockData) error {
+func (b *BlockOpsStandard) Put(ctx context.Context, md *RootMetadata,
+	blockPtr BlockPointer, readyBlockData ReadyBlockData) error {
 	bserv := b.config.BlockServer()
-	return bserv.Put(blockPtr.ID, md.ID, blockPtr, readyBlockData.buf, readyBlockData.serverHalf)
+	return bserv.Put(blockPtr.ID, md.ID, blockPtr, readyBlockData.buf,
+		readyBlockData.serverHalf)
 }
 
 // Delete implements the BlockOps interface for BlockOpsStandard.
-func (b *BlockOpsStandard) Delete(md *RootMetadata, id BlockID, context BlockContext) error {
+func (b *BlockOpsStandard) Delete(ctx context.Context, md *RootMetadata,
+	id BlockID, context BlockContext) error {
 	bserv := b.config.BlockServer()
 	err := bserv.Delete(id, md.ID, context)
 	return err

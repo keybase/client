@@ -1227,14 +1227,14 @@ func (_m *MockBlockOps) EXPECT() *_MockBlockOpsRecorder {
 	return _m.recorder
 }
 
-func (_m *MockBlockOps) Get(md *RootMetadata, blockPtr BlockPointer, block Block) error {
-	ret := _m.ctrl.Call(_m, "Get", md, blockPtr, block)
+func (_m *MockBlockOps) Get(ctx context.Context, md *RootMetadata, blockPtr BlockPointer, block Block) error {
+	ret := _m.ctrl.Call(_m, "Get", ctx, md, blockPtr, block)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
-func (_mr *_MockBlockOpsRecorder) Get(arg0, arg1, arg2 interface{}) *gomock.Call {
-	return _mr.mock.ctrl.RecordCall(_mr.mock, "Get", arg0, arg1, arg2)
+func (_mr *_MockBlockOpsRecorder) Get(arg0, arg1, arg2, arg3 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "Get", arg0, arg1, arg2, arg3)
 }
 
 func (_m *MockBlockOps) Ready(md *RootMetadata, block Block) (BlockID, int, ReadyBlockData, error) {
@@ -1250,24 +1250,24 @@ func (_mr *_MockBlockOpsRecorder) Ready(arg0, arg1 interface{}) *gomock.Call {
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "Ready", arg0, arg1)
 }
 
-func (_m *MockBlockOps) Put(md *RootMetadata, blockPtr BlockPointer, readyBlockData ReadyBlockData) error {
-	ret := _m.ctrl.Call(_m, "Put", md, blockPtr, readyBlockData)
+func (_m *MockBlockOps) Put(ctx context.Context, md *RootMetadata, blockPtr BlockPointer, readyBlockData ReadyBlockData) error {
+	ret := _m.ctrl.Call(_m, "Put", ctx, md, blockPtr, readyBlockData)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
-func (_mr *_MockBlockOpsRecorder) Put(arg0, arg1, arg2 interface{}) *gomock.Call {
-	return _mr.mock.ctrl.RecordCall(_mr.mock, "Put", arg0, arg1, arg2)
+func (_mr *_MockBlockOpsRecorder) Put(arg0, arg1, arg2, arg3 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "Put", arg0, arg1, arg2, arg3)
 }
 
-func (_m *MockBlockOps) Delete(md *RootMetadata, id BlockID, context BlockContext) error {
-	ret := _m.ctrl.Call(_m, "Delete", md, id, context)
+func (_m *MockBlockOps) Delete(ctx context.Context, md *RootMetadata, id BlockID, context BlockContext) error {
+	ret := _m.ctrl.Call(_m, "Delete", ctx, md, id, context)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
-func (_mr *_MockBlockOpsRecorder) Delete(arg0, arg1, arg2 interface{}) *gomock.Call {
-	return _mr.mock.ctrl.RecordCall(_mr.mock, "Delete", arg0, arg1, arg2)
+func (_mr *_MockBlockOpsRecorder) Delete(arg0, arg1, arg2, arg3 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "Delete", arg0, arg1, arg2, arg3)
 }
 
 // Mock of MDServer interface
