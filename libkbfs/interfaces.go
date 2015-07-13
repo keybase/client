@@ -75,9 +75,6 @@ type Node interface {
 // also include this ctx (or a Context derived from it), allowing the
 // caller to determine whether the notification is a result of their
 // own action or an external action.
-//
-// Any caller MUST call Node.Forget() whenever it is done using any
-// Node returned from a KBFSOps API call.
 type KBFSOps interface {
 	// GetFavDirs returns the logged-in user's list of favorite
 	// top-level folders.  This is a remote-access operation.
