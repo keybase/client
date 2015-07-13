@@ -53,7 +53,7 @@ func (h ConfigHandler) GetConfig(sessionID int) (keybase1.Config, error) {
 
 func (h ConfigHandler) SetUserConfig(arg keybase1.SetUserConfigArg) (err error) {
 	eng := engine.NewUserConfigEngine(&engine.UserConfigEngineArg{
-		Key: arg.Key,
+		Key:   arg.Key,
 		Value: arg.Value,
 	}, G)
 

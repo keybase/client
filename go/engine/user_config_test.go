@@ -1,30 +1,30 @@
 package engine
 
 import (
-   "testing"
+	"testing"
 
-   "github.com/keybase/client/go/libkb"
+	"github.com/keybase/client/go/libkb"
 )
 
 func TestSetPrimaryPictureSource(t *testing.T) {
-   tc := SetupEngineTest(t, "user config")
-   defer tc.Cleanup()
-   CreateAndSignupFakeUser(tc, "cfg")
+	tc := SetupEngineTest(t, "user config")
+	defer tc.Cleanup()
+	CreateAndSignupFakeUser(tc, "cfg")
 
-   // TODO Setup pictures with multiple sources
+	// TODO Setup pictures with multiple sources
 
-   ctx := &Context{
-      LogUI: tc.G.UI.GetLogUI(),
-   }
+	ctx := &Context{
+		LogUI: tc.G.UI.GetLogUI(),
+	}
 
-   eng := NewUserConfigEngine(&UserConfigEngineArg{
-      Key: "picture.source",
-      Value: "github",
-   }, tc.G)
-   err := RunEngine(eng, ctx)
-   if err == nil {
-      t.Fatal(err)
-   }
+	eng := NewUserConfigEngine(&UserConfigEngineArg{
+		Key:   "picture.source",
+		Value: "github",
+	}, tc.G)
+	err := RunEngine(eng, ctx)
+	if err == nil {
+		t.Fatal(err)
+	}
 
-   // TODO Check that the primary picture source was changed
+	// TODO Check that the primary picture source was changed
 }
