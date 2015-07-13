@@ -146,10 +146,7 @@ func (r *Root) Lookup(ctx context.Context, req *fuse.LookupRequest, resp *fuse.L
 		id: mdID,
 		dh: dh,
 	}
-	child := &Dir{
-		folder: folder,
-		node:   rootNode,
-	}
+	child := newDir(folder, rootNode, nil)
 	r.folders[req.Name] = child
 	return child, nil
 }

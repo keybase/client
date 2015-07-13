@@ -32,6 +32,15 @@ type Dir struct {
 	node   libkbfs.Node
 }
 
+func newDir(folder *Folder, node libkbfs.Node, parent *Dir) *Dir {
+	d := &Dir{
+		folder: folder,
+		parent: parent,
+		node:   node,
+	}
+	return d
+}
+
 var _ fs.Node = (*Dir)(nil)
 
 // Attr implements the fs.Node interface for Dir.
@@ -103,10 +112,7 @@ func (d *Dir) Lookup(ctx context.Context, req *fuse.LookupRequest, resp *fuse.Lo
 			id: id,
 			dh: dhPub,
 		}
-		child := &Dir{
-			folder: pubFolder,
-			node:   rootNode,
-		}
+		child := newDir(pubFolder, rootNode, nil)
 		return child, nil
 	}
 
@@ -130,11 +136,7 @@ func (d *Dir) Lookup(ctx context.Context, req *fuse.LookupRequest, resp *fuse.Lo
 		return child, nil
 
 	case libkbfs.Dir:
-		child := &Dir{
-			folder: d.folder,
-			parent: d,
-			node:   newNode,
-		}
+		child := newDir(d.folder, newNode, d)
 		return child, nil
 
 	case libkbfs.Sym:
@@ -184,11 +186,7 @@ func (d *Dir) Mkdir(ctx context.Context, req *fuse.MkdirRequest) (fs.Node, error
 		return nil, err
 	}
 
-	child := &Dir{
-		folder: d.folder,
-		parent: d,
-		node:   newNode,
-	}
+	child := newDir(d.folder, newNode, d)
 	return child, nil
 }
 
