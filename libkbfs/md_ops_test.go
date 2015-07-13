@@ -75,8 +75,8 @@ func putMDForPublic(config *ConfigMock, rmds *RootMetadataSigned,
 	config.mockCrypto.EXPECT().Sign(gomock.Any()).Return(SignatureInfo{}, nil)
 
 	var nilKID keybase1.KID
-	config.mockMdserv.EXPECT().Put(id, rmds.MD.mdID, gomock.Any(), nilKID,
-		NullMdID).Return(nil)
+	config.mockMdserv.EXPECT().Put(gomock.Any(), id, rmds.MD.mdID,
+		gomock.Any(), nilKID, NullMdID).Return(nil)
 }
 
 func putMDForPrivateShare(config *ConfigMock, rmds *RootMetadataSigned,
@@ -95,8 +95,8 @@ func putMDForPrivateShare(config *ConfigMock, rmds *RootMetadataSigned,
 		Times(2).Return(packedData, nil)
 
 	var nilKID keybase1.KID
-	config.mockMdserv.EXPECT().Put(id, rmds.MD.mdID, gomock.Any(), nilKID,
-		NullMdID).Return(nil)
+	config.mockMdserv.EXPECT().Put(gomock.Any(), id, rmds.MD.mdID,
+		gomock.Any(), nilKID, NullMdID).Return(nil)
 }
 
 func TestMDOpsGetForHandlePublicSuccess(t *testing.T) {
@@ -106,7 +106,7 @@ func TestMDOpsGetForHandlePublicSuccess(t *testing.T) {
 	// expect one call to fetch MD, and one to verify it
 	id, h, rmds := newDir(t, config, 1, false, true)
 
-	config.mockMdserv.EXPECT().GetForHandle(h).Return(rmds, nil)
+	config.mockMdserv.EXPECT().GetForHandle(ctx, h).Return(rmds, nil)
 	verifyMDForPublic(config, rmds, id, nil, nil)
 
 	if rmd2, err := config.MDOps().GetForHandle(ctx, h); err != nil {
@@ -125,7 +125,7 @@ func TestMDOpsGetForHandlePrivateSuccess(t *testing.T) {
 	// expect one call to fetch MD, and one to verify it
 	id, h, rmds := newDir(t, config, 1, true, false)
 
-	config.mockMdserv.EXPECT().GetForHandle(h).Return(rmds, nil)
+	config.mockMdserv.EXPECT().GetForHandle(ctx, h).Return(rmds, nil)
 	verifyMDForPrivateShare(config, rmds, id)
 
 	if rmd2, err := config.MDOps().GetForHandle(ctx, h); err != nil {
@@ -144,7 +144,7 @@ func TestMDOpsGetForHandlePublicFailFindKey(t *testing.T) {
 	// expect one call to fetch MD, and one to verify it
 	id, h, rmds := newDir(t, config, 1, false, true)
 
-	config.mockMdserv.EXPECT().GetForHandle(h).Return(rmds, nil)
+	config.mockMdserv.EXPECT().GetForHandle(ctx, h).Return(rmds, nil)
 
 	verifyMDForPublic(config, rmds, id, KeyNotFoundError{}, nil)
 
@@ -161,7 +161,7 @@ func TestMDOpsGetForHandlePublicFailVerify(t *testing.T) {
 	// expect one call to fetch MD, and one to verify it
 	id, h, rmds := newDir(t, config, 1, false, true)
 
-	config.mockMdserv.EXPECT().GetForHandle(h).Return(rmds, nil)
+	config.mockMdserv.EXPECT().GetForHandle(ctx, h).Return(rmds, nil)
 
 	expectedErr := libkb.VerificationError{}
 	verifyMDForPublic(config, rmds, id, nil, expectedErr)
@@ -180,7 +180,7 @@ func TestMDOpsGetForHandleFailGet(t *testing.T) {
 	err := errors.New("Fake fail")
 
 	// only the get happens, no verify needed with a blank sig
-	config.mockMdserv.EXPECT().GetForHandle(h).Return(nil, err)
+	config.mockMdserv.EXPECT().GetForHandle(ctx, h).Return(nil, err)
 
 	if _, err2 := config.MDOps().GetForHandle(ctx, h); err2 != err {
 		t.Errorf("Got bad error on get: %v", err2)
@@ -199,7 +199,7 @@ func TestMDOpsGetForHandleFailHandleCheck(t *testing.T) {
 	newWriter := keybase1.MakeTestUID(100)
 	h.Writers = append(h.Writers, newWriter)
 	expectUserCall(newWriter, config)
-	config.mockMdserv.EXPECT().GetForHandle(h).Return(rmds, nil)
+	config.mockMdserv.EXPECT().GetForHandle(ctx, h).Return(rmds, nil)
 	verifyMDForPrivateShare(config, rmds, id)
 
 	if _, err := config.MDOps().GetForHandle(ctx, h); err == nil {
@@ -216,7 +216,7 @@ func TestMDOpsGetSuccess(t *testing.T) {
 	// expect one call to fetch MD, and one to verify it
 	id, _, rmds := newDir(t, config, 1, true, false)
 
-	config.mockMdserv.EXPECT().GetForTLF(id).Return(rmds, nil)
+	config.mockMdserv.EXPECT().GetForTLF(ctx, id).Return(rmds, nil)
 	verifyMDForPrivateShare(config, rmds, id)
 
 	if rmd2, err := config.MDOps().GetForTLF(ctx, id); err != nil {
@@ -239,7 +239,7 @@ func TestMDOpsGetBlankSigSuccess(t *testing.T) {
 	}
 
 	// only the get happens, no verify needed with a blank sig
-	config.mockMdserv.EXPECT().GetForTLF(id).Return(rmds, nil)
+	config.mockMdserv.EXPECT().GetForTLF(ctx, id).Return(rmds, nil)
 
 	if rmd2, err := config.MDOps().GetForTLF(ctx, id); err != nil {
 		t.Errorf("Got error on get: %v", err)
@@ -257,7 +257,7 @@ func TestMDOpsGetFailGet(t *testing.T) {
 	err := errors.New("Fake fail")
 
 	// only the get happens, no verify needed with a blank sig
-	config.mockMdserv.EXPECT().GetForTLF(id).Return(nil, err)
+	config.mockMdserv.EXPECT().GetForTLF(ctx, id).Return(nil, err)
 
 	if _, err2 := config.MDOps().GetForTLF(ctx, id); err2 != err {
 		t.Errorf("Got bad error on get: %v", err2)
@@ -272,7 +272,7 @@ func TestMDOpsGetFailIdCheck(t *testing.T) {
 	_, _, rmds := newDir(t, config, 1, true, false)
 	id2, _, _ := newDir(t, config, 2, true, false)
 
-	config.mockMdserv.EXPECT().GetForTLF(id2).Return(rmds, nil)
+	config.mockMdserv.EXPECT().GetForTLF(ctx, id2).Return(rmds, nil)
 
 	if _, err := config.MDOps().GetForTLF(ctx, id2); err == nil {
 		t.Errorf("Got no error on bad id check test")
@@ -289,7 +289,7 @@ func TestMDOpsGetAtIDSuccess(t *testing.T) {
 	id, _, rmds := newDir(t, config, 1, true, false)
 
 	mdID := rmds.MD.mdID
-	config.mockMdserv.EXPECT().Get(mdID).Return(rmds, nil)
+	config.mockMdserv.EXPECT().Get(ctx, mdID).Return(rmds, nil)
 	verifyMDForPrivateShare(config, rmds, id)
 
 	if rmd2, err := config.MDOps().Get(ctx, mdID); err != nil {
@@ -306,7 +306,7 @@ func TestMDOpsGetAtIDFail(t *testing.T) {
 	mdID := MdID{0}
 	err := errors.New("Fake fail")
 	// only the get happens, no verify needed with a blank sig
-	config.mockMdserv.EXPECT().Get(mdID).Return(nil, err)
+	config.mockMdserv.EXPECT().Get(ctx, mdID).Return(nil, err)
 
 	if _, err2 := config.MDOps().Get(ctx, mdID); err2 != err {
 		t.Errorf("Got bad error on get: %v", err2)
@@ -320,7 +320,7 @@ func TestMDOpsGetAtIDWrongMdID(t *testing.T) {
 	// expect one call to fetch MD, and fail it
 	id, _, rmds := newDir(t, config, 1, true, false)
 	mdID := MdID{42}
-	config.mockMdserv.EXPECT().Get(mdID).Return(rmds, nil)
+	config.mockMdserv.EXPECT().Get(ctx, mdID).Return(rmds, nil)
 	verifyMDForPrivateShare(config, rmds, id)
 
 	_, err := config.MDOps().Get(ctx, mdID)
@@ -352,7 +352,7 @@ func testMDOpsGetSinceSuccess(t *testing.T, fromStart bool) {
 	allRMDSs := []*RootMetadataSigned{rmds3, rmds2, rmds1}
 
 	max := 10
-	config.mockMdserv.EXPECT().GetSince(id, start, max).
+	config.mockMdserv.EXPECT().GetSince(ctx, id, start, max).
 		Return(allRMDSs, false, nil)
 	verifyMDForPrivateShare(config, rmds3, id)
 	verifyMDForPrivateShare(config, rmds2, id)
@@ -394,7 +394,7 @@ func TestMDOpsGetSinceFailBadPrevRoot(t *testing.T) {
 	allRMDSs := []*RootMetadataSigned{rmds3, rmds2, rmds1}
 
 	max := 10
-	config.mockMdserv.EXPECT().GetSince(id, mdID4, max).
+	config.mockMdserv.EXPECT().GetSince(ctx, id, mdID4, max).
 		Return(allRMDSs, false, nil)
 	verifyMDForPrivateShare(config, rmds3, id)
 	verifyMDForPrivateShare(config, rmds2, id)
@@ -427,7 +427,7 @@ func TestMDOpsGetSinceFailBadStart(t *testing.T) {
 	allRMDSs := []*RootMetadataSigned{rmds3, rmds2, rmds1}
 
 	max := 10
-	config.mockMdserv.EXPECT().GetSince(id, badStart, max).
+	config.mockMdserv.EXPECT().GetSince(ctx, id, badStart, max).
 		Return(allRMDSs, false, nil)
 
 	_, _, err := config.MDOps().GetSince(ctx, id, badStart, max)
@@ -499,7 +499,7 @@ func TestMDOpsGetFavoritesSuccess(t *testing.T) {
 	id2, _, _ := newDir(t, config, 2, true, false)
 	ids := []TlfID{id1, id2}
 
-	config.mockMdserv.EXPECT().GetFavorites().Return(ids, nil)
+	config.mockMdserv.EXPECT().GetFavorites(gomock.Any()).Return(ids, nil)
 
 	if ids2, err := config.MDOps().GetFavorites(ctx); err != nil {
 		t.Errorf("Got error on favorites: %v", err)
@@ -514,7 +514,7 @@ func TestMDOpsGetFavoritesFail(t *testing.T) {
 
 	err := errors.New("Fake fail")
 	// expect one call to favorites, and fail it
-	config.mockMdserv.EXPECT().GetFavorites().Return(nil, err)
+	config.mockMdserv.EXPECT().GetFavorites(ctx).Return(nil, err)
 
 	if _, err2 := config.MDOps().GetFavorites(ctx); err2 != err {
 		t.Errorf("Got bad error on favorites: %v", err2)

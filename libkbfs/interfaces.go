@@ -529,20 +529,21 @@ type MDServer interface {
 	// the logged-in user has read permission on the folder.  It
 	// creates the folder if one doesn't exist yet, and the logged-in
 	// user has permission to do so.
-	GetForHandle(handle *TlfHandle) (*RootMetadataSigned, error)
+	GetForHandle(ctx context.Context, handle *TlfHandle) (
+		*RootMetadataSigned, error)
 	// GetForTLF returns the current (signed/encrypted) metadata object
 	// corresponding to the given top-level folder, if the logged-in
 	// user has read permission on the folder.
-	GetForTLF(id TlfID) (*RootMetadataSigned, error)
+	GetForTLF(ctx context.Context, id TlfID) (*RootMetadataSigned, error)
 	// Get returns the (signed/encrypted) metadata object that matches
 	// the provided MD ID, if one exists and the logged-in user has
 	// read permission on the corresponding top-level folder.
-	Get(mdID MdID) (*RootMetadataSigned, error)
+	Get(ctx context.Context, mdID MdID) (*RootMetadataSigned, error)
 	// GetSince returns all the MD objects that have been committed
 	// since (not including) the stated mdID, up to a client-imposed
 	// maximum.  The server may return fewer, and should also indicate
 	// whether there are more that could be returned.
-	GetSince(id TlfID, mdID MdID, max int) (
+	GetSince(ctx context.Context, id TlfID, mdID MdID, max int) (
 		sinceRmds []*RootMetadataSigned, hasMore bool, err error)
 	// Put stores the (signed/encrypted) metadata object for the given
 	// top-level folder, under the given MD ID.  If deviceID is
@@ -554,15 +555,15 @@ type MDServer interface {
 	// for the folder due to another concurrent writer, it will return
 	// a specific error (TODO: make one) and the caller is expected to
 	// call PutUnmerged if it wants durability over consistency.
-	Put(id TlfID, mdID MdID, rmds *RootMetadataSigned, deviceKID keybase1.KID,
-		unmergedBase MdID) error
+	Put(ctx context.Context, id TlfID, mdID MdID, rmds *RootMetadataSigned,
+		deviceKID keybase1.KID, unmergedBase MdID) error
 
 	// PutUnmerged gives each device (identified by the device subkey
 	// KID) the ability to store its own unmerged version of the
 	// metadata, in order to provide per-device durability when
 	// consistency can't be quickly guaranteed.
-	PutUnmerged(id TlfID, mdID MdID, rmds *RootMetadataSigned,
-		deviceKID keybase1.KID) error
+	PutUnmerged(ctx context.Context, id TlfID, mdID MdID,
+		rmds *RootMetadataSigned, deviceKID keybase1.KID) error
 	// GetUnmergedSince returns all the MD objects that have been
 	// saved to the unmerged linear history for this device since (not
 	// including) the stated mdID, up to a client-imposed maximum.
@@ -570,13 +571,14 @@ type MDServer interface {
 	// there are more that could be returned.  If mdID is the nil
 	// value, it returns the list of MD objects from the beginning of
 	// the unmerged history for this device.
-	GetUnmergedSince(id TlfID, deviceKID keybase1.KID, mdID MdID, max int) (
+	GetUnmergedSince(ctx context.Context, id TlfID, deviceKID keybase1.KID,
+		mdID MdID, max int) (
 		sinceRmds []*RootMetadataSigned, hasMore bool, err error)
 
 	// GetFavorites returns the logged-in user's list of favorite
 	// top-level folders.
 	// TODO: this data should be at least signed.
-	GetFavorites() ([]TlfID, error)
+	GetFavorites(ctx context.Context) ([]TlfID, error)
 }
 
 // BlockServer gets and puts opaque data blocks.  The instantiation

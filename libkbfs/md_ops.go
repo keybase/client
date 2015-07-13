@@ -115,7 +115,7 @@ func (md *MDOpsStandard) processMetadata(
 func (md *MDOpsStandard) GetForHandle(ctx context.Context, handle *TlfHandle) (
 	*RootMetadata, error) {
 	mdserv := md.config.MDServer()
-	if rmds, err := mdserv.GetForHandle(handle); err != nil {
+	if rmds, err := mdserv.GetForHandle(ctx, handle); err != nil {
 		return nil, err
 	} else if err := md.processMetadata(handle, rmds); err != nil {
 		return nil, err
@@ -151,7 +151,7 @@ func (md *MDOpsStandard) processMetadataWithID(
 // GetForTLF implements the MDOps interface for MDOpsStandard.
 func (md *MDOpsStandard) GetForTLF(ctx context.Context, id TlfID) (
 	*RootMetadata, error) {
-	rmds, err := md.config.MDServer().GetForTLF(id)
+	rmds, err := md.config.MDServer().GetForTLF(ctx, id)
 	if err != nil {
 		return nil, err
 	}
@@ -166,7 +166,7 @@ func (md *MDOpsStandard) GetForTLF(ctx context.Context, id TlfID) (
 func (md *MDOpsStandard) Get(ctx context.Context, mdID MdID) (
 	*RootMetadata, error) {
 	// TODO: implement a cache for non-current MD
-	rmds, err := md.config.MDServer().Get(mdID)
+	rmds, err := md.config.MDServer().Get(ctx, mdID)
 	if err != nil {
 		return nil, err
 	}
@@ -234,7 +234,7 @@ func (md *MDOpsStandard) processRange(id TlfID, startRoot MdID,
 // GetSince implements the MDOps interface for MDOpsStandard.
 func (md *MDOpsStandard) GetSince(ctx context.Context, id TlfID, mdID MdID,
 	max int) ([]*RootMetadata, bool, error) {
-	sinceRmds, more, err := md.config.MDServer().GetSince(id, mdID, max)
+	sinceRmds, more, err := md.config.MDServer().GetSince(ctx, id, mdID, max)
 	if err != nil {
 		return nil, false, err
 	}
@@ -343,7 +343,8 @@ func (md *MDOpsStandard) Put(ctx context.Context, id TlfID, rmd *RootMetadata,
 	if err != nil {
 		return err
 	}
-	return md.config.MDServer().Put(id, mdID, rmds, deviceKID, unmergedBase)
+	return md.config.MDServer().
+		Put(ctx, id, mdID, rmds, deviceKID, unmergedBase)
 }
 
 // PutUnmerged implements the MDOps interface for MDOpsStandard.
@@ -354,14 +355,14 @@ func (md *MDOpsStandard) PutUnmerged(ctx context.Context, id TlfID,
 	if err != nil {
 		return err
 	}
-	return md.config.MDServer().PutUnmerged(id, mdID, rmds, deviceKID)
+	return md.config.MDServer().PutUnmerged(ctx, id, mdID, rmds, deviceKID)
 }
 
 // GetUnmergedSince implements the MDOps interface for MDOpsStandard.
 func (md *MDOpsStandard) GetUnmergedSince(ctx context.Context, id TlfID,
 	deviceKID keybase1.KID, mdID MdID, max int) ([]*RootMetadata, bool, error) {
 	sinceRmds, more, err :=
-		md.config.MDServer().GetUnmergedSince(id, deviceKID, mdID, max)
+		md.config.MDServer().GetUnmergedSince(ctx, id, deviceKID, mdID, max)
 	if err != nil {
 		return nil, false, err
 	}
@@ -374,6 +375,5 @@ func (md *MDOpsStandard) GetUnmergedSince(ctx context.Context, id TlfID,
 
 // GetFavorites implements the MDOps interface for MDOpsStandard.
 func (md *MDOpsStandard) GetFavorites(ctx context.Context) ([]TlfID, error) {
-	mdserv := md.config.MDServer()
-	return mdserv.GetFavorites()
+	return md.config.MDServer().GetFavorites(ctx)
 }

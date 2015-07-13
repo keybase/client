@@ -94,7 +94,7 @@ func lsHelper(ctx context.Context, config libkbfs.Config, components []string, h
 			printHeader(components)
 		}
 		for _, tlfID := range tlfIDs {
-			rmds, err := config.MDServer().GetForTLF(tlfID)
+			rmds, err := config.MDServer().GetForTLF(ctx, tlfID)
 			if err != nil {
 				return err
 			}
