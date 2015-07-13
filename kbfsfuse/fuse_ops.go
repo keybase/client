@@ -932,7 +932,7 @@ func (n *FuseNode) Symlink(name string, content string, context *fuse.Context) (
 
 // Readlink implements the go-fuse Node interface for FuseNode
 func (n *FuseNode) Readlink(c *fuse.Context) (link []byte, code fuse.Status) {
-	if n.Inode != nil && n.PrevNode != nil {
+	if n.fsNode != nil && n.PrevNode != nil {
 		rwchan, statchan := n.getChans()
 		rwchan.QueueWriteReq(func() {
 			link, code = n.Ops.Readlink(n)

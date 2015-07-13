@@ -122,11 +122,11 @@ func (md RootMetadata) getDirKeyBundle(keyGen KeyGen) (*DirKeyBundle, error) {
 	}
 
 	if keyGen < FirstValidKeyGen {
-		return nil, InvalidKeyGenerationError{*md.GetTlfHandle(), keyGen}
+		return nil, InvalidKeyGenerationError{md.GetTlfHandle(), keyGen}
 	}
 	i := int(keyGen - FirstValidKeyGen)
 	if i >= len(md.Keys) {
-		return nil, NewKeyGenerationError{*md.GetTlfHandle(), keyGen}
+		return nil, NewKeyGenerationError{md.GetTlfHandle(), keyGen}
 	}
 	return &md.Keys[i], nil
 }

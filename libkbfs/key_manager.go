@@ -38,14 +38,14 @@ func (km *KeyManagerStandard) getTLFCryptKey(md *RootMetadata, keyGen KeyGen) (
 	}
 
 	if keyGen < FirstValidKeyGen {
-		err = InvalidKeyGenerationError{*md.GetTlfHandle(), keyGen}
+		err = InvalidKeyGenerationError{md.GetTlfHandle(), keyGen}
 		return
 	}
 	// Is this some key we don't know yet?  Shouldn't really ever happen,
 	// since we must have seen the MD that led us to this block, which
 	// should include all the latest keys.  Consider this a failsafe.
 	if keyGen > md.LatestKeyGeneration() {
-		err = NewKeyGenerationError{*md.GetTlfHandle(), keyGen}
+		err = NewKeyGenerationError{md.GetTlfHandle(), keyGen}
 		return
 	}
 

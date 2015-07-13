@@ -237,7 +237,7 @@ func write(ctx context.Context, config libkbfs.Config, filePath string) error {
 	kbfsOps := config.KBFSOps()
 
 	filename := components[len(components)-1]
-	fileExistErr := libkbfs.NoSuchNameError{filename}
+	fileExistErr := libkbfs.NoSuchNameError{Name: filename}
 
 	// The operations below are racy, but that is inherent to a
 	// distributed FS.

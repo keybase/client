@@ -742,7 +742,6 @@ func TestDecryptBlockFailures(t *testing.T) {
 		func(encryptedData encryptedData, key interface{}) error {
 			var dummy int
 			return c.DecryptBlock(EncryptedBlock(encryptedData), key.(BlockCryptKey), &dummy)
-			return err
 		},
 		func(key interface{}) interface{} {
 			cryptKey := key.(BlockCryptKey)

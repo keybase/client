@@ -295,7 +295,7 @@ func (e NewDataVersionError) Error() string {
 // InvalidKeyGenerationError indicates that an invalid key generation
 // was used.
 type InvalidKeyGenerationError struct {
-	TlfHandle TlfHandle
+	TlfHandle *TlfHandle
 	KeyGen    KeyGen
 }
 
@@ -307,7 +307,7 @@ func (e InvalidKeyGenerationError) Error() string {
 // NewKeyGenerationError indicates that the data at the given path has
 // been written using keys that our client doesn't have.
 type NewKeyGenerationError struct {
-	TlfHandle TlfHandle
+	TlfHandle *TlfHandle
 	KeyGen    KeyGen
 }
 

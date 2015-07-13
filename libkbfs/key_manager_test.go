@@ -77,7 +77,7 @@ func TestKeyManagerPublicTLFCryptKey(t *testing.T) {
 	}
 
 	if tlfCryptKey != PublicTLFCryptKey {
-		t.Error("got %v, expected %v", tlfCryptKey, PublicTLFCryptKey)
+		t.Errorf("got %v, expected %v", tlfCryptKey, PublicTLFCryptKey)
 	}
 
 	tlfCryptKey, err = config.KeyManager().GetTLFCryptKeyForMDDecryption(rmd)
@@ -86,7 +86,7 @@ func TestKeyManagerPublicTLFCryptKey(t *testing.T) {
 	}
 
 	if tlfCryptKey != PublicTLFCryptKey {
-		t.Error("got %v, expected %v", tlfCryptKey, PublicTLFCryptKey)
+		t.Errorf("got %v, expected %v", tlfCryptKey, PublicTLFCryptKey)
 	}
 
 	tlfCryptKey, err = config.KeyManager().GetTLFCryptKeyForBlockDecryption(rmd, BlockPointer{})
@@ -95,7 +95,7 @@ func TestKeyManagerPublicTLFCryptKey(t *testing.T) {
 	}
 
 	if tlfCryptKey != PublicTLFCryptKey {
-		t.Error("got %v, expected %v", tlfCryptKey, PublicTLFCryptKey)
+		t.Errorf("got %v, expected %v", tlfCryptKey, PublicTLFCryptKey)
 	}
 }
 
