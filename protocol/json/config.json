@@ -226,6 +226,22 @@
         "type" : "int"
       } ],
       "response" : "Config"
+    },
+    "setUserConfig" : {
+      "request" : [ {
+        "name" : "sessionID",
+        "type" : "int"
+      }, {
+        "name" : "username",
+        "type" : "string"
+      }, {
+        "name" : "key",
+        "type" : "string"
+      }, {
+        "name" : "value",
+        "type" : "string"
+      } ],
+      "response" : "null"
     }
   }
 }

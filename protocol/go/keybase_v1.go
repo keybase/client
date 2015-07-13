@@ -252,6 +252,13 @@ func BTCProtocol(i BTCInterface) rpc2.Protocol {
 				}
 				return
 			},
+			"setUserConfig": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
+				args := make([]SetUserConfigArg, 1)
+				if err = nxt(&args); err == nil {
+					err = i.SetUserConfig(args[0])
+				}
+				return
+			},
 		},
 	}
 
@@ -291,9 +298,17 @@ type GetConfigArg struct {
 	SessionID int `codec:"sessionID" json:"sessionID"`
 }
 
+type SetUserConfigArg struct {
+	SessionID int    `codec:"sessionID" json:"sessionID"`
+	Username  string `codec:"username" json:"username"`
+	Key       string `codec:"key" json:"key"`
+	Value     string `codec:"value" json:"value"`
+}
+
 type ConfigInterface interface {
 	GetCurrentStatus(int) (GetCurrentStatusRes, error)
 	GetConfig(int) (Config, error)
+	SetUserConfig(SetUserConfigArg) error
 }
 
 func ConfigProtocol(i ConfigInterface) rpc2.Protocol {
@@ -332,6 +347,11 @@ func (c ConfigClient) GetCurrentStatus(sessionID int) (res GetCurrentStatusRes, 
 func (c ConfigClient) GetConfig(sessionID int) (res Config, err error) {
 	__arg := GetConfigArg{SessionID: sessionID}
 	err = c.Cli.Call("keybase.1.config.getConfig", []interface{}{__arg}, &res)
+	return
+}
+
+func (c ConfigClient) SetUserConfig(__arg SetUserConfigArg) (err error) {
+	err = c.Cli.Call("keybase.1.config.setUserConfig", []interface{}{__arg}, nil)
 	return
 }
 

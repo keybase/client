@@ -135,6 +135,13 @@
   }];
 }
 
+- (void)setUserConfigWithSessionID:(NSInteger)sessionID username:(NSString *)username key:(NSString *)key value:(NSString *)value completion:(void (^)(NSError *error))completion {
+  NSDictionary *params = @{@"sessionID": @(sessionID), @"username": KBRValue(username), @"key": KBRValue(key), @"value": KBRValue(value)};
+  [self.client sendRequestWithMethod:@"keybase.1.config.setUserConfig" params:params sessionId:self.sessionId completion:^(NSError *error, id retval) {
+    completion(error);
+  }];
+}
+
 @end
 
 @implementation KBRED25519SignatureInfo
@@ -1367,6 +1374,20 @@
 - (instancetype)initWithParams:(NSArray *)params {
   if ((self = [super initWithParams:params])) {
     self.sessionID = [params[0][@"sessionID"] integerValue];
+  }
+  return self;
+}
+
+@end
+
+@implementation KBRSetUserConfigRequestParams
+
+- (instancetype)initWithParams:(NSArray *)params {
+  if ((self = [super initWithParams:params])) {
+    self.sessionID = [params[0][@"sessionID"] integerValue];
+    self.username = params[0][@"username"];
+    self.key = params[0][@"key"];
+    self.value = params[0][@"value"];
   }
   return self;
 }

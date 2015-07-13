@@ -4,6 +4,7 @@ import (
 	"os"
 	"path/filepath"
 
+	"github.com/keybase/client/go/engine"
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/protocol/go"
 	"github.com/maxtaco/go-framed-msgpack-rpc/rpc2"
@@ -48,4 +49,18 @@ func (h ConfigHandler) GetConfig(sessionID int) (keybase1.Config, error) {
 	c.ConfigPath = G.Env.GetConfigFilename()
 
 	return c, nil
+}
+
+func (h ConfigHandler) SetUserConfig(arg keybase1.SetUserConfigArg) (err error) {
+	eng := engine.NewUserConfigEngine(&engine.UserConfigEngineArg{
+		Key: arg.Key,
+		Value: arg.Value,
+	}, G)
+
+	ctx := &engine.Context{}
+	err = engine.RunEngine(eng, ctx)
+	if err != nil {
+		return err
+	}
+	return nil
 }
