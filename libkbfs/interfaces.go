@@ -122,8 +122,8 @@ type KBFSOps interface {
 		Node, DirEntry, error)
 	// CreateLink creates a new symlink under the given node, if the
 	// logged-in user has write permission to the top-level folder.
-	// Returns the new Node for the created symlink, and its new
-	// directory entry.  This is a remote-sync operation.
+	// Returns the new directory entry for the created symlink.  This
+	// is a remote-sync operation.
 	CreateLink(ctx context.Context, dir Node, fromName string, toPath string) (
 		DirEntry, error)
 	// RemoveDir removes the subdirectory represented by the given
