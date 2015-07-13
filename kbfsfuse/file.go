@@ -23,8 +23,8 @@ var _ fs.Node = (*File)(nil)
 func (f *File) Attr(ctx context.Context, a *fuse.Attr) error {
 	ctx = f.parent.folder.fs.context(ctx)
 
-	f.parent.folder.mu.RLock()
-	defer f.parent.folder.mu.RUnlock()
+	f.parent.folder.mu.Lock()
+	defer f.parent.folder.mu.Unlock()
 
 	de, err := f.parent.folder.fs.config.KBFSOps().Stat(ctx, f.node)
 	if err != nil {
@@ -70,8 +70,8 @@ var _ fs.HandleReader = (*File)(nil)
 func (f *File) Read(ctx context.Context, req *fuse.ReadRequest, resp *fuse.ReadResponse) error {
 	ctx = f.parent.folder.fs.context(ctx)
 
-	f.parent.folder.mu.RLock()
-	defer f.parent.folder.mu.RUnlock()
+	f.parent.folder.mu.Lock()
+	defer f.parent.folder.mu.Unlock()
 
 	n, err := f.parent.folder.fs.config.KBFSOps().Read(
 		ctx, f.node, resp.Data[:cap(resp.Data)], req.Offset)

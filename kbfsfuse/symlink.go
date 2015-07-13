@@ -22,8 +22,8 @@ var _ fs.Node = (*Symlink)(nil)
 
 // Attr implements the fs.Node interface for Symlink
 func (s *Symlink) Attr(ctx context.Context, a *fuse.Attr) error {
-	s.parent.folder.mu.RLock()
-	defer s.parent.folder.mu.RUnlock()
+	s.parent.folder.mu.Lock()
+	defer s.parent.folder.mu.Unlock()
 
 	_, de, err := s.parent.folder.fs.config.KBFSOps().Lookup(ctx, s.parent.node, s.name)
 	if err != nil {
@@ -39,8 +39,8 @@ var _ fs.NodeReadlinker = (*Symlink)(nil)
 
 // Readlink implements the fs.NodeReadlinker interface for Symlink
 func (s *Symlink) Readlink(ctx context.Context, req *fuse.ReadlinkRequest) (string, error) {
-	s.parent.folder.mu.RLock()
-	defer s.parent.folder.mu.RUnlock()
+	s.parent.folder.mu.Lock()
+	defer s.parent.folder.mu.Unlock()
 
 	_, de, err := s.parent.folder.fs.config.KBFSOps().Lookup(ctx, s.parent.node, s.name)
 	if err != nil {

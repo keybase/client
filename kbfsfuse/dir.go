@@ -19,8 +19,8 @@ type Folder struct {
 	id libkbfs.TlfID
 	dh *libkbfs.TlfHandle
 
-	// Protects all Dir.pathNode and File.pathNode instances.
-	mu sync.RWMutex
+	// Protects fields for all Dir and File instances.
+	mu sync.Mutex
 }
 
 // Dir represents KBFS subdirectories.
@@ -47,8 +47,8 @@ var _ fs.Node = (*Dir)(nil)
 func (d *Dir) Attr(ctx context.Context, a *fuse.Attr) error {
 	ctx = d.folder.fs.context(ctx)
 
-	d.folder.mu.RLock()
-	defer d.folder.mu.RUnlock()
+	d.folder.mu.Lock()
+	defer d.folder.mu.Unlock()
 
 	switch {
 	case d.folder.id == libkbfs.NullTlfID:
@@ -90,8 +90,8 @@ var _ fs.NodeRequestLookuper = (*Dir)(nil)
 func (d *Dir) Lookup(ctx context.Context, req *fuse.LookupRequest, resp *fuse.LookupResponse) (fs.Node, error) {
 	ctx = d.folder.fs.context(ctx)
 
-	d.folder.mu.RLock()
-	defer d.folder.mu.RUnlock()
+	d.folder.mu.Lock()
+	defer d.folder.mu.Unlock()
 
 	if req.Name == libkbfs.PublicName &&
 		d.parent == nil &&
@@ -279,8 +279,8 @@ var _ fs.HandleReadDirAller = (*Dir)(nil)
 func (d *Dir) ReadDirAll(ctx context.Context) ([]fuse.Dirent, error) {
 	ctx = d.folder.fs.context(ctx)
 
-	d.folder.mu.RLock()
-	defer d.folder.mu.RUnlock()
+	d.folder.mu.Lock()
+	defer d.folder.mu.Unlock()
 
 	var res []fuse.Dirent
 	hasPublic := d.parent == nil && d.folder.dh.HasPublic()
