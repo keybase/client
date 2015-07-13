@@ -559,10 +559,6 @@ func TestRenameCrossFolder(t *testing.T) {
 }
 
 func TestWriteThenRename(t *testing.T) {
-	if runtime.GOOS == "darwin" {
-		t.Skip("see https://github.com/keybase/kbfs/issues/148")
-	}
-
 	config := libkbfs.MakeTestConfigOrBust(t, *BServerRemote, "jdoe")
 	mnt := makeFS(t, config)
 	defer mnt.Close()
@@ -590,6 +586,66 @@ func TestWriteThenRename(t *testing.T) {
 	// check that the new path has the right length still
 	checkDir(t, path.Join(mnt.Dir, "jdoe"), map[string]fileInfoCheck{
 		"public": nil,
+		"new": func(fi os.FileInfo) error {
+			if fi.Size() != int64(len(input)) {
+				return fmt.Errorf("Bad file size: %d", fi.Size())
+			}
+			return nil
+		},
+	})
+
+	// write again to the same file
+	const input2 = "goodbye, world\n"
+	if _, err := f.Write([]byte(input2)); err != nil {
+		t.Fatalf("cannot write after rename: %v", err)
+	}
+
+	buf, err := ioutil.ReadFile(p2)
+	if err != nil {
+		t.Errorf("read error: %v", err)
+	}
+	if g, e := string(buf), input+input2; g != e {
+		t.Errorf("bad file contents: %q != %q", g, e)
+	}
+
+	if _, err := ioutil.ReadFile(p1); !os.IsNotExist(err) {
+		t.Errorf("old name still exists: %v", err)
+	}
+}
+
+func TestWriteThenRenameCrossDir(t *testing.T) {
+	config := libkbfs.MakeTestConfigOrBust(t, *BServerRemote, "jdoe")
+	mnt := makeFS(t, config)
+	defer mnt.Close()
+
+	if err := os.Mkdir(path.Join(mnt.Dir, "jdoe", "one"), 0755); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.Mkdir(path.Join(mnt.Dir, "jdoe", "two"), 0755); err != nil {
+		t.Fatal(err)
+	}
+	p1 := path.Join(mnt.Dir, "jdoe", "one", "old")
+	p2 := path.Join(mnt.Dir, "jdoe", "two", "new")
+
+	f, err := os.Create(p1)
+	if err != nil {
+		t.Fatalf("cannot create file: %v", err)
+	}
+	defer f.Close()
+
+	// write to the file
+	const input = "hello, world\n"
+	if _, err := f.Write([]byte(input)); err != nil {
+		t.Fatalf("cannot write: %v", err)
+	}
+
+	// now rename the file while it's still open
+	if err := os.Rename(p1, p2); err != nil {
+		t.Fatal(err)
+	}
+
+	// check that the new path has the right length still
+	checkDir(t, path.Join(mnt.Dir, "jdoe", "two"), map[string]fileInfoCheck{
 		"new": func(fi os.FileInfo) error {
 			if fi.Size() != int64(len(input)) {
 				return fmt.Errorf("Bad file size: %d", fi.Size())

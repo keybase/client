@@ -30,6 +30,16 @@ type Dir struct {
 	folder *Folder
 	parent *Dir
 	node   libkbfs.Node
+
+	// Active child nodes of this directory. A node is present here if
+	// the kernel holds a reference to it.
+	//
+	// Children are responsible for tracking their basename and
+	// whether they are unlinked, with libkbfs.Node.
+	//
+	// Children must call parent.forgetChildLocked on receiving the
+	// FUSE Forget request, if they are not unlinked.
+	active map[string]fs.Node
 }
 
 func newDir(folder *Folder, node libkbfs.Node, parent *Dir) *Dir {
@@ -37,6 +47,7 @@ func newDir(folder *Folder, node libkbfs.Node, parent *Dir) *Dir {
 		folder: folder,
 		parent: parent,
 		node:   node,
+		active: map[string]fs.Node{},
 	}
 	return d
 }
@@ -93,6 +104,10 @@ func (d *Dir) Lookup(ctx context.Context, req *fuse.LookupRequest, resp *fuse.Lo
 	d.folder.mu.Lock()
 	defer d.folder.mu.Unlock()
 
+	if child, ok := d.active[req.Name]; ok {
+		return child, nil
+	}
+
 	if req.Name == libkbfs.PublicName &&
 		d.parent == nil &&
 		d.folder.dh.HasPublic() {
@@ -113,6 +128,8 @@ func (d *Dir) Lookup(ctx context.Context, req *fuse.LookupRequest, resp *fuse.Lo
 			dh: dhPub,
 		}
 		child := newDir(pubFolder, rootNode, nil)
+		// not storing in active, as child.parent is nil and it would
+		// never notify us of Forget
 		return child, nil
 	}
 
@@ -133,10 +150,12 @@ func (d *Dir) Lookup(ctx context.Context, req *fuse.LookupRequest, resp *fuse.Lo
 			parent: d,
 			node:   newNode,
 		}
+		d.active[req.Name] = child
 		return child, nil
 
 	case libkbfs.Dir:
 		child := newDir(d.folder, newNode, d)
+		d.active[req.Name] = child
 		return child, nil
 
 	case libkbfs.Sym:
@@ -144,6 +163,8 @@ func (d *Dir) Lookup(ctx context.Context, req *fuse.LookupRequest, resp *fuse.Lo
 			parent: d,
 			name:   req.Name,
 		}
+		// a Symlink is never included in Dir.active, as it doesn't
+		// have a libkbfs.Node to keep track of renames.
 		return child, nil
 	}
 }
@@ -168,6 +189,7 @@ func (d *Dir) Create(ctx context.Context, req *fuse.CreateRequest, resp *fuse.Cr
 		parent: d,
 		node:   newNode,
 	}
+	d.active[req.Name] = child
 	return child, child, nil
 }
 
@@ -187,6 +209,7 @@ func (d *Dir) Mkdir(ctx context.Context, req *fuse.MkdirRequest) (fs.Node, error
 	}
 
 	child := newDir(d.folder, newNode, d)
+	d.active[req.Name] = child
 	return child, nil
 }
 
@@ -246,6 +269,16 @@ func (d *Dir) Rename(ctx context.Context, req *fuse.RenameRequest, newDir fs.Nod
 		return err
 	}
 
+	if nodeOld, ok := d.active[req.OldName]; ok {
+		// if the old node is active, move it to the new name
+		delete(d.active, req.OldName)
+		newDir2.active[req.NewName] = nodeOld
+	} else {
+		// just make sure there's no previous active entry for new
+		// name
+		delete(newDir2.active, req.NewName)
+	}
+
 	return nil
 }
 
@@ -267,6 +300,8 @@ func (d *Dir) Remove(ctx context.Context, req *fuse.RemoveRequest) error {
 	if err != nil {
 		return err
 	}
+
+	delete(d.active, req.Name)
 
 	return nil
 }
@@ -316,4 +351,30 @@ func (d *Dir) ReadDirAll(ctx context.Context) ([]fuse.Dirent, error) {
 		res = append(res, fde)
 	}
 	return res, nil
+}
+
+var _ fs.NodeForgetter = (*Dir)(nil)
+
+func (d *Dir) Forget() {
+	d.folder.mu.Lock()
+	defer d.folder.mu.Unlock()
+
+	if d.parent == nil {
+		// Top-level directory of a folder, or the "public" folder.
+		return
+	}
+	name := d.node.GetBasename()
+	if name == "" {
+		// unlinked
+		return
+	}
+	d.parent.forgetChildLocked(d, name)
+}
+
+// forgetChildLocked forgets a formerly active child with basename
+// name.
+//
+// Caller must hold Folder.mu.
+func (d *Dir) forgetChildLocked(child fs.Node, name string) {
+	delete(d.active, name)
 }

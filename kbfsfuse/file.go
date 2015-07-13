@@ -157,3 +157,17 @@ func (f *File) Setattr(ctx context.Context, req *fuse.SetattrRequest, resp *fuse
 	}
 	return nil
 }
+
+var _ fs.NodeForgetter = (*File)(nil)
+
+func (f *File) Forget() {
+	f.parent.folder.mu.Lock()
+	defer f.parent.folder.mu.Unlock()
+
+	name := f.node.GetBasename()
+	if name == "" {
+		// unlinked
+		return
+	}
+	f.parent.forgetChildLocked(f, name)
+}
