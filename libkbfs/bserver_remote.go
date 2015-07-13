@@ -35,21 +35,27 @@ type BlockServerRemote struct {
 	srvAddr  string
 	certFile string
 
-	conn      net.Conn
-	clt       keybase1.BlockClient
-	connected bool
+	conn net.Conn
+	clt  keybase1.BlockClient
+
+	// connectionChan is closed when connected goes from false to
+	// true.  We'd need to create a new connctedChan if connected ever
+	// transitions from true to false.
+	connectedMu   sync.Mutex
+	connected     bool
+	connectedChan chan struct{}
 
 	lastTried time.Time
-	retryMu   sync.Mutex
 }
 
 // NewBlockServerRemote constructs a new BlockServerRemote for the
 // given address.
 func NewBlockServerRemote(config Config, blkSrvAddr string) *BlockServerRemote {
 	b := &BlockServerRemote{
-		config:   config,
-		srvAddr:  blkSrvAddr,
-		certFile: "./cert.pem",
+		config:        config,
+		srvAddr:       blkSrvAddr,
+		certFile:      "./cert.pem",
+		connectedChan: make(chan struct{}),
 	}
 
 	if err := b.ConnectOnce(); err != nil {
@@ -118,39 +124,54 @@ func (b *BlockServerRemote) ConnectOnce() error {
 		return err
 	}
 
+	b.connectedMu.Lock()
+	defer b.connectedMu.Unlock()
 	b.connected = true
-
+	close(b.connectedChan)
 	return nil
 }
 
 // WaitForReconnect waits for the timeout period to reconnect to the
 // server.
-func (b *BlockServerRemote) WaitForReconnect() error {
-	timeout := time.Now().Add(BServerTimeout)
+func (b *BlockServerRemote) WaitForReconnect(parent context.Context) error {
+	c := func() chan struct{} {
+		b.connectedMu.Lock()
+		defer b.connectedMu.Unlock()
+		if b.connected {
+			return nil
+		}
+		return b.connectedChan
+	}()
 
-	b.retryMu.Lock()
-	defer b.retryMu.Unlock()
+	if c == nil {
+		// we're already connected
+		return nil
+	}
 
-	for !b.connected {
-		b.retryMu.Unlock()
-		if time.Now().After(timeout) {
+	ctx, cancel := context.WithTimeout(parent, BServerTimeout)
+	defer cancel()
+
+	// Wait either for the timeout, or for the connection to come up
+	// (c will be closed).
+	select {
+	case <-ctx.Done():
+		err := ctx.Err()
+		if err == context.DeadlineExceeded {
 			return ErrConnTimeout
 		}
-		time.Sleep(1 * time.Second)
-		b.retryMu.Lock()
+		return err
+	case <-c:
+		// Note: if we ever transition b.connected from true to false
+		// again, we should probably put this whole method in a loop
+		// so that we check connected again after the channel closes.
+		return nil
 	}
-	return nil
 }
 
 // Reconnect reconnects to block server.
 func (b *BlockServerRemote) Reconnect() {
-	b.retryMu.Lock()
-	defer b.retryMu.Unlock()
-
 	for b.ConnectOnce() != nil {
-		b.retryMu.Unlock()
 		time.Sleep(1 * time.Second)
-		b.retryMu.Lock()
 	}
 	return
 }
@@ -165,7 +186,7 @@ func (b *BlockServerRemote) Get(ctx context.Context, id BlockID,
 	context BlockContext) ([]byte, BlockCryptKeyServerHalf, error) {
 	libkb.G.Log.Debug("BlockServerRemote::Get id=%s uid=%s\n", hex.EncodeToString(id[:]), context.GetWriter().String())
 	if !b.connected {
-		if err := b.WaitForReconnect(); err != nil {
+		if err := b.WaitForReconnect(ctx); err != nil {
 			return nil, BlockCryptKeyServerHalf{}, err
 		}
 	}
@@ -194,7 +215,7 @@ func (b *BlockServerRemote) Put(ctx context.Context, id BlockID, tlfID TlfID,
 	serverHalf BlockCryptKeyServerHalf) error {
 	libkb.G.Log.Debug("BlockServerRemote::Put id=%s uid=%s\n", hex.EncodeToString(id[:]), context.GetWriter().String())
 	if !b.connected {
-		if err := b.WaitForReconnect(); err != nil {
+		if err := b.WaitForReconnect(ctx); err != nil {
 			return err
 		}
 	}
