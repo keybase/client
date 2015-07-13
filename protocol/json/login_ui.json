@@ -178,6 +178,16 @@
         "type" : "int"
       } ],
       "response" : "string"
+    },
+    "promptRevokeBackupDeviceKeys" : {
+      "request" : [ {
+        "name" : "sessionID",
+        "type" : "int"
+      }, {
+        "name" : "device",
+        "type" : "Device"
+      } ],
+      "response" : "boolean"
     }
   }
 }

@@ -641,6 +641,13 @@
   }];
 }
 
+- (void)promptRevokeBackupDeviceKeysWithSessionID:(NSInteger)sessionID device:(KBRDevice *)device completion:(void (^)(NSError *error, BOOL b))completion {
+  NSDictionary *params = @{@"sessionID": @(sessionID), @"device": KBRValue(device)};
+  [self.client sendRequestWithMethod:@"keybase.1.loginUi.promptRevokeBackupDeviceKeys" params:params sessionId:self.sessionId completion:^(NSError *error, id retval) {
+    completion(error, 0);
+  }];
+}
+
 @end
 
 @implementation KBRPGPSignOptions
@@ -1860,6 +1867,18 @@
 - (instancetype)initWithParams:(NSArray *)params {
   if ((self = [super initWithParams:params])) {
     self.sessionID = [params[0][@"sessionID"] integerValue];
+  }
+  return self;
+}
+
+@end
+
+@implementation KBRPromptRevokeBackupDeviceKeysRequestParams
+
+- (instancetype)initWithParams:(NSArray *)params {
+  if ((self = [super initWithParams:params])) {
+    self.sessionID = [params[0][@"sessionID"] integerValue];
+    self.device = [MTLJSONAdapter modelOfClass:KBRDevice.class fromJSONDictionary:params[0][@"device"] error:nil];
   }
   return self;
 }

@@ -90,6 +90,8 @@ func (h *LoginHandler) CancelLogin(sessionID int) error {
 
 func (h *LoginHandler) Backup(sessionID int) (string, error) {
 	ctx := &engine.Context{
+		LogUI:    h.getLogUI(sessionID),
+		LoginUI:  h.getLoginUI(sessionID),
 		SecretUI: h.getSecretUI(sessionID),
 	}
 	eng := engine.NewBackupKeygen(G)

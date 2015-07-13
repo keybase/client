@@ -268,9 +268,14 @@ func (t TestSecretUI) GetKeybasePassphrase(keybase1.GetKeybasePassphraseArg) (st
 }
 
 type TestLoginUI struct {
-	Username string
+	Username     string
+	RevokeBackup bool
 }
 
 func (t TestLoginUI) GetEmailOrUsername(dummy int) (string, error) {
 	return t.Username, nil
+}
+
+func (t TestLoginUI) PromptRevokeBackupDeviceKeys(arg keybase1.PromptRevokeBackupDeviceKeysArg) (bool, error) {
+	return t.RevokeBackup, nil
 }

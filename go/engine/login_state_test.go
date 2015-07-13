@@ -208,6 +208,10 @@ func (m *GetUsernameMock) GetEmailOrUsername(int) (string, error) {
 	return m.Username, nil
 }
 
+func (m *GetUsernameMock) PromptRevokeBackupDeviceKeys(arg keybase1.PromptRevokeBackupDeviceKeysArg) (bool, error) {
+	return false, nil
+}
+
 func (m *GetUsernameMock) CheckLastErr(t *testing.T) {
 	if m.LastErr != nil {
 		t.Fatal(m.LastErr)

@@ -69,10 +69,10 @@ type ComputedKeyInfos struct {
 	// delegated.
 	Sigs map[keybase1.SigID]*ComputedKeyInfo
 
-	// Map of DeviceID (in hex) to the most current device object
+	// Map of DeviceID to the most current device object
 	Devices map[keybase1.DeviceID]*Device
 
-	// Map of KID -> DeviceID (in hex)
+	// Map of KID -> DeviceID
 	KIDToDeviceID map[keybase1.KID]keybase1.DeviceID
 
 	// The last-added Web device, to figure out where the DetKey is.
@@ -117,6 +117,24 @@ func (cki *ComputedKeyInfos) Insert(f *FOKID, i *ComputedKeyInfo) {
 		}
 		cki.dirty = true
 	}
+}
+
+// BackupDevices returns a list of all the backup devices.
+func (cki *ComputedKeyInfos) BackupDevices() []*Device {
+	var d []*Device
+	for _, v := range cki.Devices {
+		if v.Status == nil {
+			continue
+		}
+		if *v.Status != DeviceStatusActive {
+			continue
+		}
+		if v.Type != DeviceTypeBackup {
+			continue
+		}
+		d = append(d, v)
+	}
+	return d
 }
 
 // TODO: Figure out whether this needs to be a deep copy. See

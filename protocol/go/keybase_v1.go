@@ -1609,8 +1609,14 @@ type GetEmailOrUsernameArg struct {
 	SessionID int `codec:"sessionID" json:"sessionID"`
 }
 
+type PromptRevokeBackupDeviceKeysArg struct {
+	SessionID int    `codec:"sessionID" json:"sessionID"`
+	Device    Device `codec:"device" json:"device"`
+}
+
 type LoginUiInterface interface {
 	GetEmailOrUsername(int) (string, error)
+	PromptRevokeBackupDeviceKeys(PromptRevokeBackupDeviceKeysArg) (bool, error)
 }
 
 func LoginUiProtocol(i LoginUiInterface) rpc2.Protocol {
@@ -1621,6 +1627,13 @@ func LoginUiProtocol(i LoginUiInterface) rpc2.Protocol {
 				args := make([]GetEmailOrUsernameArg, 1)
 				if err = nxt(&args); err == nil {
 					ret, err = i.GetEmailOrUsername(args[0].SessionID)
+				}
+				return
+			},
+			"promptRevokeBackupDeviceKeys": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
+				args := make([]PromptRevokeBackupDeviceKeysArg, 1)
+				if err = nxt(&args); err == nil {
+					ret, err = i.PromptRevokeBackupDeviceKeys(args[0])
 				}
 				return
 			},
@@ -1636,6 +1649,11 @@ type LoginUiClient struct {
 func (c LoginUiClient) GetEmailOrUsername(sessionID int) (res string, err error) {
 	__arg := GetEmailOrUsernameArg{SessionID: sessionID}
 	err = c.Cli.Call("keybase.1.loginUi.getEmailOrUsername", []interface{}{__arg}, &res)
+	return
+}
+
+func (c LoginUiClient) PromptRevokeBackupDeviceKeys(__arg PromptRevokeBackupDeviceKeysArg) (res bool, err error) {
+	err = c.Cli.Call("keybase.1.loginUi.promptRevokeBackupDeviceKeys", []interface{}{__arg}, &res)
 	return
 }
 

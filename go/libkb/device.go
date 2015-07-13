@@ -93,3 +93,14 @@ func (d *Device) Merge(d2 *Device) {
 func (d *Device) Export() *jsonw.Wrapper {
 	return jsonw.NewWrapper(d)
 }
+
+func (d *Device) ProtExport() *keybase1.Device {
+	ex := &keybase1.Device{
+		Type:     d.Type,
+		DeviceID: d.ID,
+	}
+	if d.Description != nil {
+		ex.Name = *d.Description
+	}
+	return ex
+}

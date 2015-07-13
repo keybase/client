@@ -4,8 +4,19 @@ import (
 	"testing"
 
 	"github.com/keybase/client/go/libkb"
-	keybase1 "github.com/keybase/client/protocol/go"
 )
+
+func backupDevs(t *testing.T, fu *FakeUser) (*libkb.User, []*libkb.Device) {
+	u, err := libkb.LoadUser(libkb.LoadUserArg{Name: fu.Username, ForceReload: true})
+	if err != nil {
+		t.Fatal(err)
+	}
+	cki := u.GetComputedKeyInfos()
+	if cki == nil {
+		t.Fatal("no computed key infos")
+	}
+	return u, cki.BackupDevices()
+}
 
 func TestBackupKeygen(t *testing.T) {
 	tc := SetupEngineTest(t, "backup")
@@ -15,7 +26,11 @@ func TestBackupKeygen(t *testing.T) {
 
 	userDeviceID := tc.G.Env.GetDeviceID()
 
-	ctx := &Context{}
+	ctx := &Context{
+		LogUI:    tc.G.UI.GetLogUI(),
+		LoginUI:  libkb.TestLoginUI{},
+		SecretUI: libkb.TestSecretUI{},
+	}
 	eng := NewBackupKeygen(tc.G)
 	if err := RunEngine(eng, ctx); err != nil {
 		t.Fatal(err)
@@ -26,24 +41,11 @@ func TestBackupKeygen(t *testing.T) {
 	Logout(tc)
 
 	// check for the backup key
-	u, err := libkb.LoadUser(libkb.LoadUserArg{Name: fu.Username, ForceReload: true})
-	if err != nil {
-		t.Fatal(err)
+	u, bdevs := backupDevs(t, fu)
+	if len(bdevs) != 1 {
+		t.Errorf("num backup devices: %d, expected 1", len(bdevs))
 	}
-	cki := u.GetComputedKeyInfos()
-	if cki == nil {
-		t.Fatal("no computed key infos")
-	}
-	var devid keybase1.DeviceID
-	for k, v := range cki.Devices {
-		if v.Type == libkb.DeviceTypeBackup {
-			devid = k
-			break
-		}
-	}
-	if devid.IsNil() {
-		t.Fatal("no backup device found")
-	}
+	devid := bdevs[0].ID
 	sibkey, err := u.GetComputedKeyFamily().GetSibkeyForDevice(devid)
 	if err != nil {
 		t.Fatal(err)
@@ -93,5 +95,91 @@ func TestBackupKeygen(t *testing.T) {
 	}
 	if tc.G.Env.GetDeviceID() == devid {
 		t.Errorf("current device id (%s) matches backup key device id (%s).  They should be different.", tc.G.Env.GetDeviceID(), devid)
+	}
+}
+
+// tests revoking of existing backup keys
+func TestBackupKeygenRevoke(t *testing.T) {
+	tc := SetupEngineTest(t, "backup")
+	defer tc.Cleanup()
+
+	fu := CreateAndSignupFakeUser(tc, "login")
+
+	ctx := &Context{
+		LogUI:    tc.G.UI.GetLogUI(),
+		LoginUI:  libkb.TestLoginUI{RevokeBackup: true},
+		SecretUI: libkb.TestSecretUI{},
+	}
+
+	eng := NewBackupKeygen(tc.G)
+	if err := RunEngine(eng, ctx); err != nil {
+		t.Fatal(err)
+	}
+	if len(eng.Passphrase()) == 0 {
+		t.Fatal("empty passphrase")
+	}
+
+	// check for the backup key
+	_, bdevs := backupDevs(t, fu)
+	if len(bdevs) != 1 {
+		t.Errorf("num backup devices: %d, expected 1", len(bdevs))
+	}
+
+	// generate another one, first should be revoked
+	eng = NewBackupKeygen(tc.G)
+	if err := RunEngine(eng, ctx); err != nil {
+		t.Fatal(err)
+	}
+	if len(eng.Passphrase()) == 0 {
+		t.Fatal("empty passphrase")
+	}
+
+	// check for the backup key
+	_, bdevs = backupDevs(t, fu)
+	if len(bdevs) != 1 {
+		t.Errorf("num backup devices: %d, expected 1", len(bdevs))
+	}
+}
+
+// tests not revoking existing backup keys
+func TestBackupKeygenNoRevoke(t *testing.T) {
+	tc := SetupEngineTest(t, "backup")
+	defer tc.Cleanup()
+
+	fu := CreateAndSignupFakeUser(tc, "login")
+
+	ctx := &Context{
+		LogUI:    tc.G.UI.GetLogUI(),
+		LoginUI:  libkb.TestLoginUI{RevokeBackup: false},
+		SecretUI: libkb.TestSecretUI{},
+	}
+
+	eng := NewBackupKeygen(tc.G)
+	if err := RunEngine(eng, ctx); err != nil {
+		t.Fatal(err)
+	}
+	if len(eng.Passphrase()) == 0 {
+		t.Fatal("empty passphrase")
+	}
+
+	// check for the backup key
+	_, bdevs := backupDevs(t, fu)
+	if len(bdevs) != 1 {
+		t.Errorf("num backup devices: %d, expected 1", len(bdevs))
+	}
+
+	// generate another one, first should be left alone
+	eng = NewBackupKeygen(tc.G)
+	if err := RunEngine(eng, ctx); err != nil {
+		t.Fatal(err)
+	}
+	if len(eng.Passphrase()) == 0 {
+		t.Fatal("empty passphrase")
+	}
+
+	// check for the backup key
+	_, bdevs = backupDevs(t, fu)
+	if len(bdevs) != 2 {
+		t.Errorf("num backup devices: %d, expected 2", len(bdevs))
 	}
 }

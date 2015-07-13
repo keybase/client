@@ -29,8 +29,12 @@ type LoginUI struct {
 	cli       *keybase1.LoginUiClient
 }
 
-func (u *LoginUI) GetEmailOrUsername(dummy int) (ret string, err error) {
+func (u *LoginUI) GetEmailOrUsername(dummy int) (string, error) {
 	return u.cli.GetEmailOrUsername(u.sessionID)
+}
+
+func (u *LoginUI) PromptRevokeBackupDeviceKeys(arg keybase1.PromptRevokeBackupDeviceKeysArg) (bool, error) {
+	return u.cli.PromptRevokeBackupDeviceKeys(arg)
 }
 
 type SecretUI struct {

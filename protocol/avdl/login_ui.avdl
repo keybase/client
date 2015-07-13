@@ -4,4 +4,5 @@ protocol loginUi {
 	import idl "common.avdl";
 
 	string getEmailOrUsername(int sessionID);
+	boolean promptRevokeBackupDeviceKeys(int sessionID, Device device);
 }

@@ -560,6 +560,10 @@ func (l LoginUI) GetEmailOrUsername(dummy int) (string, error) {
 		libkb.CheckEmailOrUsername)
 }
 
+func (l LoginUI) PromptRevokeBackupDeviceKeys(arg keybase1.PromptRevokeBackupDeviceKeysArg) (bool, error) {
+	return l.parent.PromptYesNo(fmt.Sprintf("Revoke existing backup keys (%s)?", arg.Device.DeviceID), PromptDefaultYes)
+}
+
 type SecretUI struct {
 	parent *UI
 }

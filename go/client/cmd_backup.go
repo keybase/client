@@ -26,6 +26,8 @@ type CmdBackup struct {
 
 func (c *CmdBackup) Run() error {
 	ctx := &engine.Context{
+		LogUI:    G.UI.GetLogUI(),
+		LoginUI:  G.UI.GetLoginUI(),
 		SecretUI: G.UI.GetSecretUI(),
 	}
 	eng := engine.NewBackupKeygen(G)
@@ -43,6 +45,8 @@ func (c *CmdBackup) RunClient() error {
 		return err
 	}
 	protocols := []rpc2.Protocol{
+		NewLogUIProtocol(),
+		NewLoginUIProtocol(),
 		NewSecretUIProtocol(),
 	}
 	if err := RegisterProtocols(protocols); err != nil {
