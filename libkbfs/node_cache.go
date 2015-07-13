@@ -76,6 +76,10 @@ func makeNodeStandardForEntry(entry *nodeCacheEntry) *nodeStandard {
 // GetOrCreate implements the NodeCache interface for nodeCacheStandard.
 func (ncs *nodeCacheStandard) GetOrCreate(
 	ptr BlockPointer, name string, parent Node) (Node, error) {
+	if name == "" {
+		return nil, EmptyNameError{ptr}
+	}
+
 	ncs.lock.Lock()
 	defer ncs.lock.Unlock()
 	entry, ok := ncs.nodes[ptr]
@@ -128,6 +132,10 @@ func (ncs *nodeCacheStandard) UpdatePointer(
 // Move implements the NodeCache interface for nodeCacheStandard.
 func (ncs *nodeCacheStandard) Move(
 	ptr BlockPointer, newParent Node, newName string) error {
+	if newName == "" {
+		return EmptyNameError{ptr}
+	}
+
 	ncs.lock.Lock()
 	defer ncs.lock.Unlock()
 	entry, ok := ncs.nodes[ptr]

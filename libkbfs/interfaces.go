@@ -40,6 +40,9 @@ type Node interface {
 	GetID() NodeID
 	// GetFolderBranch returns the folder ID and branch for this Node.
 	GetFolderBranch() FolderBranch
+	// GetBasename returns the current basename of the node, or ""
+	// if the node has been unlinked.
+	GetBasename() string
 }
 
 // KBFSOps handles all file system operations.  Expands all indirect
@@ -706,8 +709,8 @@ type NodeCache interface {
 	// GetOrCreate either makes a new Node for the given
 	// BlockPointer, or returns an existing one. TODO: If we ever
 	// support hard links, we will have to revisit the "name" and
-	// "parent" parameters here.  Returns an error if parent
-	// cannot be found.
+	// "parent" parameters here.  name must not be empty. Returns
+	// an error if parent cannot be found.
 	GetOrCreate(ptr BlockPointer, name string, parent Node) (Node, error)
 	// Get returns the Node associated with the given ptr if one
 	// already exists.  Otherwise, it returns nil.

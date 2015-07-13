@@ -53,3 +53,11 @@ func (n *nodeStandard) GetID() NodeID {
 func (n *nodeStandard) GetFolderBranch() FolderBranch {
 	return n.core.cache.folderBranch
 }
+
+func (n *nodeStandard) GetBasename() string {
+	if len(n.core.cachedPath.path) > 0 {
+		// Must be unlinked.
+		return ""
+	}
+	return n.core.pathNode.Name
+}

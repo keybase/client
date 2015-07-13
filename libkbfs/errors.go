@@ -463,6 +463,17 @@ func (e ParentNodeNotFoundError) Error() string {
 	return fmt.Sprintf("No such parent node found for pointer %v", e.parent)
 }
 
+// EmptyNameError indicates that the user tried to use an empty name
+// for the given BlockPointer.
+type EmptyNameError struct {
+	ptr BlockPointer
+}
+
+// Error implements the error interface for EmptyNameError.
+func (e EmptyNameError) Error() string {
+	return fmt.Sprintf("Cannot use empty name for pointer %v", e.ptr)
+}
+
 // OutOfDateMDError indicates that the MD server rejected our MD
 // update because it is out of date with respect to the current head.
 type OutOfDateMDError struct {
