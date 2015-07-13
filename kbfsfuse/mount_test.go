@@ -12,17 +12,24 @@ import (
 	"testing"
 	"time"
 
+	"bazil.org/fuse/fs"
 	"bazil.org/fuse/fs/fstestutil"
-
 	"github.com/keybase/kbfs/libkbfs"
 	"golang.org/x/net/context"
 )
 
 func makeFS(t testing.TB, config *libkbfs.ConfigLocal) *fstestutil.Mount {
+	// TODO duplicates runNewFUSE too much
 	filesys := &FS{
 		config: config,
 	}
-	mnt, err := fstestutil.MountedT(t, filesys, nil)
+	ctx := context.Background()
+	ctx = context.WithValue(ctx, ctxAppIDKey, filesys)
+	mnt, err := fstestutil.MountedT(t, filesys, &fs.Config{
+		GetContext: func() context.Context {
+			return ctx
+		},
+	})
 	if err != nil {
 		t.Fatal(err)
 	}

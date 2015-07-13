@@ -48,7 +48,7 @@ func main() {
 
 	ctx := context.Background()
 	if *newFUSE {
-		if err := runNewFUSE(config, *debug, flag.Arg(0)); err != nil {
+		if err := runNewFUSE(ctx, config, *debug, flag.Arg(0)); err != nil {
 			log.Fatalf("error serving filesystem: %v", err)
 		}
 	} else {

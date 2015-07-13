@@ -15,7 +15,7 @@ func logMsg(msg interface{}) {
 	log.Printf("FUSE: %s\n", msg)
 }
 
-func runNewFUSE(config libkbfs.Config, debug bool,
+func runNewFUSE(ctx context.Context, config libkbfs.Config, debug bool,
 	mountpoint string) error {
 	if debug {
 		fuse.Debug = logMsg
@@ -30,8 +30,15 @@ func runNewFUSE(config libkbfs.Config, debug bool,
 	filesys := &FS{
 		config: config,
 	}
-	// TODO: pass in context.WithValue(ctx, ctxAppIDKey, filesys) to Serve
-	if err := fs.Serve(c, filesys); err != nil {
+	ctx = context.WithValue(ctx, ctxAppIDKey, filesys)
+
+	srv := fs.New(c, &fs.Config{
+		GetContext: func() context.Context {
+			return ctx
+		},
+	})
+
+	if err := srv.Serve(filesys); err != nil {
 		return err
 	}
 
@@ -47,14 +54,6 @@ func runNewFUSE(config libkbfs.Config, debug bool,
 // FS implements the newfuse FS interface for KBFS.
 type FS struct {
 	config libkbfs.Config
-}
-
-// context wraps the given Context with a specific value for this FS
-// instance.
-//
-// TODO: get rid of this once fs.Serve() takes a Context.
-func (f *FS) context(ctx context.Context) context.Context {
-	return context.WithValue(ctx, ctxAppIDKey, f)
 }
 
 var _ fs.FS = (*FS)(nil)
@@ -107,7 +106,6 @@ func (r *Root) getMD(ctx context.Context, dh *libkbfs.TlfHandle) (libkbfs.Node, 
 
 // Lookup implements the fs.NodeRequestLookuper interface for Root.
 func (r *Root) Lookup(ctx context.Context, req *fuse.LookupRequest, resp *fuse.LookupResponse) (fs.Node, error) {
-	ctx = r.fs.context(ctx)
 	r.mu.Lock()
 	defer r.mu.Unlock()
 
@@ -180,7 +178,6 @@ func (r *Root) getDirent(ctx context.Context, work <-chan libkbfs.TlfID, results
 
 // ReadDirAll implements the ReadDirAll interface for Root.
 func (r *Root) ReadDirAll(ctx context.Context) ([]fuse.Dirent, error) {
-	ctx = r.fs.context(ctx)
 	favs, err := r.fs.config.KBFSOps().GetFavDirs(ctx)
 	if err != nil {
 		return nil, err
