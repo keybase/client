@@ -257,7 +257,7 @@ func (f *FuseOps) addTopNodeLocked(name string, fNode *FuseNode) {
 	id := fNode.getTlf()
 	if _, ok := f.topNodesByID[id]; !ok {
 		f.config.Notifier().RegisterForChanges([]libkbfs.FolderBranch{
-			libkbfs.FolderBranch{id, libkbfs.MasterBranch}}, f)
+			libkbfs.FolderBranch{Tlf: id, Branch: libkbfs.MasterBranch}}, f)
 		f.topNodesByID[id] = fNode
 	}
 }
@@ -336,8 +336,8 @@ func (f *FuseOps) LookupInRootByName(rNode *FuseNode, name string) (
 // mount, given a top-level folder ID.
 func (f *FuseOps) LookupInRootByID(rNode *FuseNode, id libkbfs.TlfID) (
 	node *nodefs.Inode, code fuse.Status) {
-	rootNode, rootDe, dirHandle, err := f.config.KBFSOps().
-		GetRootNode(f.ctx, libkbfs.FolderBranch{id, libkbfs.MasterBranch})
+	rootNode, rootDe, dirHandle, err := f.config.KBFSOps().GetRootNode(f.ctx,
+		libkbfs.FolderBranch{Tlf: id, Branch: libkbfs.MasterBranch})
 	if err != nil {
 		return nil, f.translateError(err)
 	}

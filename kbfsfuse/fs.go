@@ -165,8 +165,8 @@ func (r *Root) getDirent(ctx context.Context, work <-chan libkbfs.TlfID, results
 			if !ok {
 				return nil
 			}
-			_, _, dh, err := r.fs.config.KBFSOps().GetRootNode(
-				ctx, libkbfs.FolderBranch{tlfID, libkbfs.MasterBranch})
+			_, _, dh, err := r.fs.config.KBFSOps().GetRootNode(ctx,
+				libkbfs.FolderBranch{Tlf: tlfID, Branch: libkbfs.MasterBranch})
 			if err != nil {
 				return err
 			}
