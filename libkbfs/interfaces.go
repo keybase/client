@@ -73,11 +73,11 @@ type Node interface {
 //
 // All methods take a Context (see https://blog.golang.org/context),
 // and if that context is cancelled during the operation, KBFSOps will
-// abort any blocking calls and fail the operation with a
-// CanceledError.  Any notifications resulting from an operation will
-// also include this ctx (or a Context derived from it), allowing the
-// caller to determine whether the notification is a result of their
-// own action or an external action.
+// abort any blocking calls and return ctx.Err(). Any notifications
+// resulting from an operation will also include this ctx (or a
+// Context derived from it), allowing the caller to determine whether
+// the notification is a result of their own action or an external
+// action.
 type KBFSOps interface {
 	// GetFavorites returns the logged-in user's list of favorite
 	// top-level folders.  This is a remote-access operation.

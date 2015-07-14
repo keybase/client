@@ -20,9 +20,6 @@ var (
 	// ErrNoActiveConn is an error returned when this component
 	// is not yet connected to the block server.
 	ErrNoActiveConn = errors.New("Not connected to block server")
-	// ErrConnTimeout is an error returned timed out (repeatedly)
-	// while trying to connect to the block server.
-	ErrConnTimeout = errors.New("Repeatedly failed to connect to block server")
 	// BServerTimeout is the timeout for communications with block server.
 	BServerTimeout = 60 * time.Second
 )
@@ -155,11 +152,7 @@ func (b *BlockServerRemote) WaitForReconnect(parent context.Context) error {
 	// (c will be closed).
 	select {
 	case <-ctx.Done():
-		err := ctx.Err()
-		if err == context.DeadlineExceeded {
-			return ErrConnTimeout
-		}
-		return err
+		return ctx.Err()
 	case <-c:
 		// Note: if we ever transition b.connected from true to false
 		// again, we should probably put this whole method in a loop
@@ -206,7 +199,7 @@ func (b *BlockServerRemote) Get(ctx context.Context, id BlockID,
 
 	select {
 	case <-ctx.Done():
-		return nil, BlockCryptKeyServerHalf{}, CanceledError{}
+		return nil, BlockCryptKeyServerHalf{}, ctx.Err()
 	case err := <-c:
 		if err != nil {
 			libkb.G.Log.Debug("BlockServerRemote::Get id=%s err=%v\n",
@@ -253,7 +246,7 @@ func (b *BlockServerRemote) Put(ctx context.Context, id BlockID, tlfID TlfID,
 
 	select {
 	case <-ctx.Done():
-		return CanceledError{}
+		return ctx.Err()
 	case err := <-c:
 		if err != nil {
 			libkb.G.Log.Warning("BlockServerRemote::Put id=%s err=%v\n",
@@ -286,7 +279,7 @@ func (b *BlockServerRemote) Delete(ctx context.Context, id BlockID,
 
 	select {
 	case <-ctx.Done():
-		return CanceledError{}
+		return ctx.Err()
 	case err := <-c:
 		if err != nil {
 			libkb.G.Log.Warning("Delete to backend err : %q", err)

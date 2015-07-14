@@ -451,15 +451,6 @@ func (e WrongOpsError) Error() string {
 		"branch %s", e.opsFB.Tlf, e.opsFB.Branch, e.nodeFB.Tlf, e.nodeFB.Branch)
 }
 
-// CanceledError indicates that the operation was canceled.
-type CanceledError struct {
-}
-
-// Error implements the error interface for CanceledError.
-func (e CanceledError) Error() string {
-	return "The operation was canceled."
-}
-
 // ParentNodeNotFoundError indicates that we tried to update a Node's
 // parent with a BlockPointer that we don't yet know about.
 type ParentNodeNotFoundError struct {
