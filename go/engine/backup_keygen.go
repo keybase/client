@@ -119,7 +119,7 @@ func (e *BackupKeygen) Run(ctx *Context) error {
 	}
 	e.passphrase = strings.Join(words, " ")
 
-	key, err := scrypt.Key([]byte(e.passphrase), []byte(me.GetName()),
+	key, err := scrypt.Key([]byte(e.passphrase), nil,
 		libkb.BackupKeyScryptCost, libkb.BackupKeyScryptR, libkb.BackupKeyScryptP, libkb.BackupKeyScryptKeylen)
 	if err != nil {
 		return err
