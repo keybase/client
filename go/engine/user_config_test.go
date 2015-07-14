@@ -20,7 +20,7 @@ func TestSetPrimaryPictureSource(t *testing.T) {
 		Value: "github",
 	}, tc.G)
 	err := RunEngine(eng, ctx)
-	if err == nil {
+	if err != nil {
 		t.Fatal(err)
 	}
 
