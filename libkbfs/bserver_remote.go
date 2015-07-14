@@ -194,18 +194,35 @@ func (b *BlockServerRemote) Get(ctx context.Context, id BlockID,
 		BlockHash: hex.EncodeToString(id[:]),
 		ChargedTo: context.GetWriter(),
 	}
-	//XXX: if fails due to connection problem, should reconnect
-	res, err := b.clt.GetBlock(bid)
-	if err != nil {
-		libkb.G.Log.Debug("BlockServerRemote::Get id=%s err=%v\n", hex.EncodeToString(id[:]), err)
-		return nil, BlockCryptKeyServerHalf{}, err
+
+	var res keybase1.GetBlockRes
+	c := make(chan error, 1) // buffered, in case the request is canceled
+	go func() {
+		var err error
+		//XXX: if fails due to connection problem, should reconnect
+		res, err = b.clt.GetBlock(bid)
+		c <- err
+	}()
+
+	select {
+	case <-ctx.Done():
+		return nil, BlockCryptKeyServerHalf{}, CanceledError{}
+	case err := <-c:
+		if err != nil {
+			libkb.G.Log.Debug("BlockServerRemote::Get id=%s err=%v\n",
+				hex.EncodeToString(id[:]), err)
+			return nil, BlockCryptKeyServerHalf{}, err
+		}
 	}
 
 	bk := BlockCryptKeyServerHalf{}
-	if kbuf, err := hex.DecodeString(res.BlockKey); err == nil {
-		copy(bk.ServerHalf[:], kbuf)
+	kbuf, err := hex.DecodeString(res.BlockKey)
+	if err != nil {
+		return nil, BlockCryptKeyServerHalf{}, err
 	}
-	return res.Buf, bk, err
+
+	copy(bk.ServerHalf[:], kbuf)
+	return res.Buf, bk, nil
 }
 
 // Put implements the BlockServer interface for BlockServerRemote.
@@ -228,11 +245,24 @@ func (b *BlockServerRemote) Put(ctx context.Context, id BlockID, tlfID TlfID,
 		Folder:   hex.EncodeToString(tlfID[:]),
 		Buf:      buf,
 	}
-	err := b.clt.PutBlock(arg)
-	if err != nil {
-		libkb.G.Log.Warning("BlockServerRemote::Put id=%s err=%v\n", hex.EncodeToString(id[:]), err)
+
+	c := make(chan error, 1) // buffered, in case the request is canceled
+	go func() {
+		c <- b.clt.PutBlock(arg)
+	}()
+
+	select {
+	case <-ctx.Done():
+		return CanceledError{}
+	case err := <-c:
+		if err != nil {
+			libkb.G.Log.Warning("BlockServerRemote::Put id=%s err=%v\n",
+				hex.EncodeToString(id[:]), err)
+			return err
+		}
 	}
-	return err
+
+	return nil
 }
 
 // Delete implements the BlockServer interface for BlockServerRemote.
@@ -248,9 +278,21 @@ func (b *BlockServerRemote) Delete(ctx context.Context, id BlockID,
 		Folder:    hex.EncodeToString(tlfID[:]),
 		ChargedTo: context.GetWriter(), //the actual writer to decrement quota from
 	}
-	err := b.clt.DecBlockReference(arg)
-	if err != nil {
-		libkb.G.Log.Debug("Delete to backend err : %q", err)
+
+	c := make(chan error, 1) // buffered, in case the request is canceled
+	go func() {
+		c <- b.clt.DecBlockReference(arg)
+	}()
+
+	select {
+	case <-ctx.Done():
+		return CanceledError{}
+	case err := <-c:
+		if err != nil {
+			libkb.G.Log.Warning("Delete to backend err : %q", err)
+			return err
+		}
 	}
-	return err
+
+	return nil
 }
