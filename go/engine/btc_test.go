@@ -26,10 +26,9 @@ func TestBTC(t *testing.T) {
 
 	u := CreateAndSignupFakeUser(tc, "btc")
 
-	secui := libkb.TestSecretUI{Passphrase: u.Passphrase}
 	ctx := &Context{
 		LogUI:    tc.G.UI.GetLogUI(),
-		SecretUI: secui,
+		SecretUI: u.NewSecretUI(),
 	}
 
 	// First test setting a bad address; this should fail.

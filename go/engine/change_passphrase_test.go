@@ -22,7 +22,7 @@ func TestChangePassphraseKnown(t *testing.T) {
 
 	// using an empty secret ui to make sure existing pp doesn't come from ui prompt:
 	ctx := &Context{
-		SecretUI: libkb.TestSecretUI{},
+		SecretUI: &libkb.TestSecretUI{},
 	}
 	eng := NewChangePassphrase(arg, tc.G)
 	if err := RunEngine(eng, ctx); err != nil {
@@ -47,12 +47,20 @@ func TestChangePassphraseKnownPrompt(t *testing.T) {
 	defer tc.Cleanup()
 
 	u := CreateAndSignupFakeUser(tc, "login")
+
+	// clear the passphrase stream cache to force a prompt
+	// for the existing passphrase.
+	tc.G.LoginState().Account(func(a *libkb.Account) {
+		a.ClearStreamCache()
+	}, "clear stream cache")
+
 	newPassphrase := "password"
 	arg := &keybase1.ChangePassphraseArg{
 		NewPassphrase: newPassphrase,
 	}
+	secui := u.NewSecretUI()
 	ctx := &Context{
-		SecretUI: u.NewSecretUI(),
+		SecretUI: secui,
 	}
 	eng := NewChangePassphrase(arg, tc.G)
 	if err := RunEngine(eng, ctx); err != nil {
@@ -67,6 +75,44 @@ func TestChangePassphraseKnownPrompt(t *testing.T) {
 	_, err = tc.G.LoginState().VerifyPlaintextPassphrase(u.Passphrase)
 	if err == nil {
 		t.Fatal("old passphrase passed verification")
+	}
+
+	if !secui.CalledGetKBPassphrase {
+		t.Errorf("get kb passphrase not called")
+	}
+}
+
+// Test changing the passphrase when previous pp stream available.
+func TestChangePassphraseKnownNotSupplied(t *testing.T) {
+	tc := SetupEngineTest(t, "ChangePassphrase")
+	defer tc.Cleanup()
+
+	u := CreateAndSignupFakeUser(tc, "login")
+	newPassphrase := "password"
+	arg := &keybase1.ChangePassphraseArg{
+		NewPassphrase: newPassphrase,
+	}
+	secui := &libkb.TestSecretUI{}
+	ctx := &Context{
+		SecretUI: secui,
+	}
+	eng := NewChangePassphrase(arg, tc.G)
+	if err := RunEngine(eng, ctx); err != nil {
+		t.Fatal(err)
+	}
+
+	_, err := tc.G.LoginState().VerifyPlaintextPassphrase(newPassphrase)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	_, err = tc.G.LoginState().VerifyPlaintextPassphrase(u.Passphrase)
+	if err == nil {
+		t.Fatal("old passphrase passed verification")
+	}
+
+	if secui.CalledGetKBPassphrase {
+		t.Errorf("get kb passphrase called")
 	}
 }
 
@@ -84,7 +130,7 @@ func TestChangePassphraseUnknown(t *testing.T) {
 		Force:         true,
 	}
 	ctx := &Context{
-		SecretUI: libkb.TestSecretUI{},
+		SecretUI: &libkb.TestSecretUI{},
 	}
 	eng := NewChangePassphrase(arg, tc.G)
 	if err := RunEngine(eng, ctx); err != nil {

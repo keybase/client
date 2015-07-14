@@ -72,7 +72,7 @@ func createFakeUserWithDetKey(tc libkb.TestContext) (username, passphrase string
 func createFakeUserWithPGPOnly(t *testing.T, tc libkb.TestContext) *FakeUser {
 	fu := NewFakeUserOrBust(tc.T, "login")
 
-	secui := libkb.TestSecretUI{Passphrase: fu.Passphrase}
+	secui := &libkb.TestSecretUI{Passphrase: fu.Passphrase}
 	ctx := &Context{
 		GPGUI:    &gpgtestui{},
 		SecretUI: secui,
@@ -130,7 +130,7 @@ func createFakeUserWithPGPPubOnly(t *testing.T, tc libkb.TestContext) *FakeUser 
 		t.Fatal(err)
 	}
 
-	secui := libkb.TestSecretUI{Passphrase: fu.Passphrase}
+	secui := &libkb.TestSecretUI{Passphrase: fu.Passphrase}
 	s := NewSignupEngine(nil, tc.G)
 	ctx := &Context{
 		GPGUI:    &gpgPubOnlyTestUI{},
@@ -171,7 +171,7 @@ func createFakeUserWithPGPMult(t *testing.T, tc libkb.TestContext) *FakeUser {
 		t.Fatal(err)
 	}
 
-	secui := libkb.TestSecretUI{Passphrase: fu.Passphrase}
+	secui := &libkb.TestSecretUI{Passphrase: fu.Passphrase}
 	s := NewSignupEngine(nil, tc.G)
 	ctx := &Context{
 		GPGUI:    &gpgtestui{},
@@ -219,7 +219,6 @@ func createFakeUserWithPGPMult(t *testing.T, tc libkb.TestContext) *FakeUser {
 
 func createFakeUserWithPGPSibkey(tc libkb.TestContext) *FakeUser {
 	fu := CreateAndSignupFakeUser(tc, "pgp")
-	secui := libkb.TestSecretUI{Passphrase: fu.Passphrase}
 	arg := PGPKeyImportEngineArg{
 		Gen: &libkb.PGPGenArg{
 			PrimaryBits: 768,
@@ -229,7 +228,7 @@ func createFakeUserWithPGPSibkey(tc libkb.TestContext) *FakeUser {
 	arg.Gen.MakeAllIds()
 	ctx := Context{
 		LogUI:    tc.G.UI.GetLogUI(),
-		SecretUI: secui,
+		SecretUI: fu.NewSecretUI(),
 	}
 	eng := NewPGPKeyImportEngine(arg)
 	err := RunEngine(eng, &ctx)

@@ -54,7 +54,7 @@ func TestPGPKeyfinderLoggedOut(t *testing.T) {
 		Fapr:   keybase1.FinishAndPromptRes{TrackRemote: true},
 	}
 
-	ctx := &Context{IdentifyUI: trackUI, SecretUI: libkb.TestSecretUI{}}
+	ctx := &Context{IdentifyUI: trackUI, SecretUI: &libkb.TestSecretUI{}}
 	arg := &PGPKeyfinderArg{
 		Users: []string{"t_alice", "t_bob+kbtester1@twitter", "t_charlie+tacovontaco@twitter"},
 	}

@@ -29,7 +29,7 @@ func TestBackupKeygen(t *testing.T) {
 	ctx := &Context{
 		LogUI:    tc.G.UI.GetLogUI(),
 		LoginUI:  libkb.TestLoginUI{},
-		SecretUI: libkb.TestSecretUI{},
+		SecretUI: &libkb.TestSecretUI{},
 	}
 	eng := NewBackupKeygen(tc.G)
 	if err := RunEngine(eng, ctx); err != nil {
@@ -73,7 +73,7 @@ func TestBackupKeygen(t *testing.T) {
 		LogUI:       tc.G.UI.GetLogUI(),
 		LocksmithUI: &lockui{},
 		GPGUI:       &gpgtestui{},
-		SecretUI:    libkb.TestSecretUI{},
+		SecretUI:    &libkb.TestSecretUI{},
 	}
 	if err := RunEngine(leng, lctx); err != nil {
 		t.Errorf("after backup key gen, login with passphrase failed: %s", err)
@@ -108,7 +108,7 @@ func TestBackupKeygenRevoke(t *testing.T) {
 	ctx := &Context{
 		LogUI:    tc.G.UI.GetLogUI(),
 		LoginUI:  libkb.TestLoginUI{RevokeBackup: true},
-		SecretUI: libkb.TestSecretUI{},
+		SecretUI: &libkb.TestSecretUI{},
 	}
 
 	eng := NewBackupKeygen(tc.G)
@@ -151,7 +151,7 @@ func TestBackupKeygenNoRevoke(t *testing.T) {
 	ctx := &Context{
 		LogUI:    tc.G.UI.GetLogUI(),
 		LoginUI:  libkb.TestLoginUI{RevokeBackup: false},
-		SecretUI: libkb.TestSecretUI{},
+		SecretUI: &libkb.TestSecretUI{},
 	}
 
 	eng := NewBackupKeygen(tc.G)

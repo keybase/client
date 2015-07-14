@@ -95,7 +95,7 @@ func TestLoginAddsKeys(t *testing.T) {
 	Logout(tc)
 
 	li := NewLoginWithPromptEngine(username, tc.G)
-	secui := libkb.TestSecretUI{Passphrase: passphrase}
+	secui := &libkb.TestSecretUI{Passphrase: passphrase}
 	ctx := &Context{LogUI: tc.G.UI.GetLogUI(), LocksmithUI: &lockui{}, GPGUI: &gpgtestui{}, SecretUI: secui, LoginUI: &libkb.TestLoginUI{}}
 	if err := RunEngine(li, ctx); err != nil {
 		t.Fatal(err)
@@ -117,7 +117,7 @@ func TestLoginDetKeyOnly(t *testing.T) {
 	Logout(tc)
 
 	li := NewLoginWithPromptEngine(username, tc.G)
-	secui := libkb.TestSecretUI{Passphrase: passphrase}
+	secui := &libkb.TestSecretUI{Passphrase: passphrase}
 	ctx := &Context{LogUI: tc.G.UI.GetLogUI(), LocksmithUI: &lockui{}, SecretUI: secui, GPGUI: &gpgtestui{}, LoginUI: &libkb.TestLoginUI{}}
 	if err := RunEngine(li, ctx); err != nil {
 		t.Fatal(err)
@@ -152,7 +152,7 @@ func TestLoginPGPSignNewDevice(t *testing.T) {
 	before := docui.selectSignerCount
 
 	li := NewLoginWithPromptEngine(u1.Username, tc2.G)
-	secui := libkb.TestSecretUI{Passphrase: u1.Passphrase}
+	secui := &libkb.TestSecretUI{Passphrase: u1.Passphrase}
 	ctx := &Context{
 		LogUI:       tc.G.UI.GetLogUI(),
 		LocksmithUI: docui,
@@ -194,7 +194,7 @@ func TestLoginPGPPubOnlySignNewDevice(t *testing.T) {
 	before := docui.selectSignerCount
 
 	li := NewLoginWithPromptEngine(u1.Username, tc2.G)
-	secui := libkb.TestSecretUI{Passphrase: u1.Passphrase}
+	secui := &libkb.TestSecretUI{Passphrase: u1.Passphrase}
 	ctx := &Context{
 		LogUI:       tc2.G.UI.GetLogUI(),
 		LocksmithUI: docui,
@@ -234,7 +234,7 @@ func TestLoginPGPMultSignNewDevice(t *testing.T) {
 	before := docui.selectSignerCount
 
 	li := NewLoginWithPromptEngine(u1.Username, tc2.G)
-	secui := libkb.TestSecretUI{Passphrase: u1.Passphrase}
+	secui := &libkb.TestSecretUI{Passphrase: u1.Passphrase}
 	ctx := &Context{
 		LogUI:       tc2.G.UI.GetLogUI(),
 		LocksmithUI: docui,
@@ -270,7 +270,7 @@ func TestLoginInterruptDeviceRegister(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	secui := libkb.TestSecretUI{Passphrase: passphrase}
+	secui := &libkb.TestSecretUI{Passphrase: passphrase}
 	tk, err := tc.G.LoginState().GetPassphraseStream(secui)
 	if err != nil {
 		t.Fatal(err)
@@ -317,7 +317,7 @@ func TestLoginInterruptDevicePush(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	secui := libkb.TestSecretUI{Passphrase: passphrase}
+	secui := &libkb.TestSecretUI{Passphrase: passphrase}
 	tk, err := tc.G.LoginState().GetPassphraseStream(secui)
 	if err != nil {
 		t.Fatal(err)

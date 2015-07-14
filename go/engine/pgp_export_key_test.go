@@ -12,7 +12,7 @@ func TestPGPExportOptions(t *testing.T) {
 	defer tc.Cleanup()
 
 	u := CreateAndSignupFakeUser(tc, "login")
-	secui := libkb.TestSecretUI{Passphrase: u.Passphrase}
+	secui := &libkb.TestSecretUI{Passphrase: u.Passphrase}
 	ctx := &Context{LogUI: tc.G.UI.GetLogUI(), SecretUI: secui}
 
 	fp, kid, key := armorKey(t, tc, u.Email)

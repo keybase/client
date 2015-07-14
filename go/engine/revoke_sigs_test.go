@@ -15,7 +15,7 @@ func TestRevokeSig(t *testing.T) {
 	u := createFakeUserWithPGPSibkey(tc)
 	assertNumDevicesAndKeys(t, u, 2, 5)
 
-	secui := libkb.TestSecretUI{Passphrase: u.Passphrase}
+	secui := &libkb.TestSecretUI{Passphrase: u.Passphrase}
 	ctx := &Context{
 		LogUI:    tc.G.UI.GetLogUI(),
 		SecretUI: secui,

@@ -98,14 +98,13 @@ func TestSignupWithGPG(t *testing.T) {
 	if err := tc.GenerateGPGKeyring(fu.Email); err != nil {
 		t.Fatal(err)
 	}
-	secui := libkb.TestSecretUI{Passphrase: fu.Passphrase}
 	arg := MakeTestSignupEngineRunArg(fu)
 	arg.SkipGPG = false
 	s := NewSignupEngine(&arg, tc.G)
 	ctx := &Context{
 		LogUI:    tc.G.UI.GetLogUI(),
 		GPGUI:    &gpgtestui{},
-		SecretUI: secui,
+		SecretUI: fu.NewSecretUI(),
 		LoginUI:  &libkb.TestLoginUI{Username: fu.Username},
 	}
 	if err := RunEngine(s, ctx); err != nil {
@@ -117,13 +116,12 @@ func TestLocalKeySecurity(t *testing.T) {
 	tc := SetupEngineTest(t, "signup")
 	defer tc.Cleanup()
 	fu := NewFakeUserOrBust(t, "se")
-	secui := libkb.TestSecretUI{Passphrase: fu.Passphrase}
 	arg := MakeTestSignupEngineRunArg(fu)
 	s := NewSignupEngine(&arg, tc.G)
 	ctx := &Context{
 		LogUI:    tc.G.UI.GetLogUI(),
 		GPGUI:    &gpgtestui{},
-		SecretUI: secui,
+		SecretUI: fu.NewSecretUI(),
 		LoginUI:  &libkb.TestLoginUI{Username: fu.Username},
 	}
 	if err := RunEngine(s, ctx); err != nil {
@@ -169,14 +167,13 @@ func TestLocalKeySecurityStoreSecret(t *testing.T) {
 		t.Fatal("User unexpectedly has secret")
 	}
 
-	secui := libkb.TestSecretUI{Passphrase: fu.Passphrase}
 	arg := MakeTestSignupEngineRunArg(fu)
 	arg.StoreSecret = true
 	s := NewSignupEngine(&arg, tc.G)
 	ctx := &Context{
 		LogUI:    tc.G.UI.GetLogUI(),
 		GPGUI:    &gpgtestui{},
-		SecretUI: secui,
+		SecretUI: fu.NewSecretUI(),
 		LoginUI:  &libkb.TestLoginUI{Username: fu.Username},
 	}
 	if err := RunEngine(s, ctx); err != nil {

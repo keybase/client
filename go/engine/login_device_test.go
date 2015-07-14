@@ -28,7 +28,7 @@ func TestLoginNewDeviceKex(t *testing.T) {
 	// G = tcX.G
 	u := CreateAndSignupFakeUser(tcX, "login")
 	docui := &lockuiDevice{lockui: &lockui{}}
-	secui := libkb.TestSecretUI{Passphrase: u.Passphrase}
+	secui := &libkb.TestSecretUI{Passphrase: u.Passphrase}
 
 	// test that we can get the secret key:
 	// XXX this is necessary for the test to pass once the goroutine starts
@@ -94,7 +94,6 @@ func TestLoginNewDeviceCancel(t *testing.T) {
 	u := CreateAndSignupFakeUser(tcX, "login")
 
 	docui := &lockuiCancel{lockui: &lockui{}}
-	secui := libkb.TestSecretUI{Passphrase: u.Passphrase}
 
 	// test context for device Y
 	tcY := SetupEngineTest(t, "loginY")
@@ -106,7 +105,7 @@ func TestLoginNewDeviceCancel(t *testing.T) {
 		LogUI:       tcY.G.UI.GetLogUI(),
 		LocksmithUI: docui,
 		GPGUI:       &gpgtestui{},
-		SecretUI:    secui,
+		SecretUI:    u.NewSecretUI(),
 		LoginUI:     &libkb.TestLoginUI{},
 	}
 	err := RunEngine(li, ctx)
@@ -149,7 +148,7 @@ func TestLoginNewDeviceKexBadPhrase(t *testing.T) {
 	// sign up with device X
 	u := CreateAndSignupFakeUser(tcX, "login")
 	docui := &lockuiDevice{lockui: &lockui{}}
-	secui := libkb.TestSecretUI{Passphrase: u.Passphrase}
+	secui := &libkb.TestSecretUI{Passphrase: u.Passphrase}
 
 	// test that we can get the secret key:
 	// XXX this is necessary for the test to pass once the goroutine starts
@@ -237,7 +236,7 @@ func TestLoginNewDeviceKexRetryPhrase(t *testing.T) {
 	// G = tcX.G
 	u := CreateAndSignupFakeUser(tcX, "login")
 	docui := &lockuiDevice{lockui: &lockui{}}
-	secui := libkb.TestSecretUI{Passphrase: u.Passphrase}
+	secui := &libkb.TestSecretUI{Passphrase: u.Passphrase}
 
 	// test that we can get the secret key:
 	// XXX this is necessary for the test to pass once the goroutine starts
@@ -317,7 +316,7 @@ func TestLoginNewDeviceKexCancelOnY(t *testing.T) {
 	// sign up with device X
 	u := CreateAndSignupFakeUser(tcX, "login")
 	docui := &lockuiDevice{lockui: &lockui{}}
-	secui := libkb.TestSecretUI{Passphrase: u.Passphrase}
+	secui := &libkb.TestSecretUI{Passphrase: u.Passphrase}
 
 	// test that we can get the secret key:
 	// XXX this is necessary for the test to pass once the goroutine starts

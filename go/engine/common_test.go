@@ -122,8 +122,8 @@ func (fu *FakeUser) LoginOrBust(tc libkb.TestContext) {
 	}
 }
 
-func (fu *FakeUser) NewSecretUI() libkb.TestSecretUI {
-	return libkb.TestSecretUI{Passphrase: fu.Passphrase}
+func (fu *FakeUser) NewSecretUI() *libkb.TestSecretUI {
+	return &libkb.TestSecretUI{Passphrase: fu.Passphrase}
 }
 
 func AssertLoggedIn(tc libkb.TestContext) error {

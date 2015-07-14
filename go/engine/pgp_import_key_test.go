@@ -17,7 +17,7 @@ func TestPGPImportAndExport(t *testing.T) {
 	defer tc.Cleanup()
 
 	u := CreateAndSignupFakeUser(tc, "login")
-	secui := libkb.TestSecretUI{Passphrase: u.Passphrase}
+	secui := &libkb.TestSecretUI{Passphrase: u.Passphrase}
 	ctx := &Context{LogUI: tc.G.UI.GetLogUI(), SecretUI: secui}
 
 	// try all four permutations of push options:
@@ -108,7 +108,7 @@ func TestIssue454(t *testing.T) {
 	defer tc.Cleanup()
 
 	CreateAndSignupFakeUser(tc, "login")
-	secui := libkb.TestSecretUI{Passphrase: "test"}
+	secui := &libkb.TestSecretUI{Passphrase: "test"}
 	ctx := &Context{LogUI: tc.G.UI.GetLogUI(), SecretUI: secui}
 	eng, err := NewPGPKeyImportEngineFromBytes([]byte(keyIssue454), false, tc.G)
 	if err != nil {
