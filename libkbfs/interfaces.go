@@ -626,8 +626,9 @@ type BlockSplitter interface {
 // NodeChange represents a change made to a node as part of an atomic
 // file system operation.
 type NodeChange struct {
-	Node        Node
-	DirUpdated  bool
+	Node Node
+	// Basenames of entries added/removed.
+	DirUpdated  []string
 	FileUpdated []WriteRange
 }
 

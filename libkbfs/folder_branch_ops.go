@@ -2722,19 +2722,6 @@ func (fbo *FolderBranchOps) notifyLocal(ctx context.Context,
 	}
 }
 
-func (fbo *FolderBranchOps) addChangeForUpdatedDir(
-	ptr BlockPointer, changes []NodeChange) []NodeChange {
-	node := fbo.nodeCache.Get(ptr)
-	if node == nil {
-		return changes
-	}
-
-	return append(changes, NodeChange{
-		Node:       node,
-		DirUpdated: true,
-	})
-}
-
 // notifyBatch sends out a notification for the most recent op in md
 func (fbo *FolderBranchOps) notifyBatch(ctx context.Context, md *RootMetadata) {
 	var op interface{}
@@ -2752,24 +2739,41 @@ func (fbo *FolderBranchOps) notifyBatch(ctx context.Context, md *RootMetadata) {
 	default:
 		return
 	case *createOp:
-		changes = fbo.addChangeForUpdatedDir(realOp.Dir.Ref, changes)
-		if len(changes) != 1 {
+		node := fbo.nodeCache.Get(realOp.Dir.Ref)
+		if node == nil {
 			return
 		}
+		changes = append(changes, NodeChange{
+			Node:       node,
+			DirUpdated: []string{realOp.NewName},
+		})
 	case *rmOp:
-		changes = fbo.addChangeForUpdatedDir(realOp.Dir.Ref, changes)
-		if len(changes) != 1 {
+		node := fbo.nodeCache.Get(realOp.Dir.Ref)
+		if node == nil {
 			return
 		}
+		changes = append(changes, NodeChange{
+			Node:       node,
+			DirUpdated: []string{realOp.OldName},
+		})
 	case *renameOp:
-		changes = fbo.addChangeForUpdatedDir(realOp.OldDir.Ref, changes)
-		desiredLen := 1
-		if realOp.NewDir.Ref != zeroPtr {
-			changes = fbo.addChangeForUpdatedDir(realOp.NewDir.Ref, changes)
-			desiredLen = 2
-		}
-		if len(changes) != desiredLen {
+		oldNode := fbo.nodeCache.Get(realOp.OldDir.Ref)
+		if oldNode == nil {
 			return
+		}
+		changes = append(changes, NodeChange{
+			Node:       oldNode,
+			DirUpdated: []string{realOp.OldName},
+		})
+		if realOp.NewDir.Ref != zeroPtr {
+			newNode := fbo.nodeCache.Get(realOp.NewDir.Ref)
+			if newNode == nil {
+				return
+			}
+			changes = append(changes, NodeChange{
+				Node:       newNode,
+				DirUpdated: []string{realOp.NewName},
+			})
 		}
 	case *syncOp:
 		node := fbo.nodeCache.Get(realOp.File.Ref)
