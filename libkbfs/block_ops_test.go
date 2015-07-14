@@ -328,11 +328,13 @@ func TestBlockOpsDeleteSuccess(t *testing.T) {
 	defer blockOpsShutdown(mockCtrl, config)
 
 	// expect one call to delete a block
+	rmd := makeRMD()
+
 	id := BlockID{1}
 	blockPtr := BlockPointer{ID: id}
-	config.mockBserv.EXPECT().Delete(id, blockPtr).Return(nil)
+	config.mockBserv.EXPECT().Delete(id, rmd.ID, blockPtr).Return(nil)
 
-	if err := config.BlockOps().Delete(id, blockPtr); err != nil {
+	if err := config.BlockOps().Delete(rmd, id, blockPtr); err != nil {
 		t.Errorf("Got error on put: %v", err)
 	}
 }
@@ -342,12 +344,14 @@ func TestBlockOpsDeleteFail(t *testing.T) {
 	defer blockOpsShutdown(mockCtrl, config)
 
 	// fail the delete call
+	rmd := makeRMD()
+
 	id := BlockID{1}
 	err := errors.New("Fake fail")
 	blockPtr := BlockPointer{ID: id}
-	config.mockBserv.EXPECT().Delete(id, blockPtr).Return(err)
+	config.mockBserv.EXPECT().Delete(id, rmd.ID, blockPtr).Return(err)
 
-	if err2 := config.BlockOps().Delete(id, blockPtr); err2 != err {
+	if err2 := config.BlockOps().Delete(rmd, id, blockPtr); err2 != err {
 		t.Errorf("Got bad error on put: %v", err2)
 	}
 }

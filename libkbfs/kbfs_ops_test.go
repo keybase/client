@@ -39,8 +39,8 @@ func (cbo *CheckBlockOps) Put(md *RootMetadata, blockPtr BlockPointer, readyBloc
 	return cbo.delegate.Put(md, blockPtr, readyBlockData)
 }
 
-func (cbo *CheckBlockOps) Delete(id BlockID, context BlockContext) error {
-	return cbo.delegate.Delete(id, context)
+func (cbo *CheckBlockOps) Delete(md *RootMetadata, id BlockID, context BlockContext) error {
+	return cbo.delegate.Delete(md, id, context)
 }
 
 var tCtxID = "kbfs-ops-test-id"

@@ -508,7 +508,7 @@ type BlockOps interface {
 
 	// Delete instructs the server to delete the block data associated
 	// with the given ID and context.
-	Delete(id BlockID, context BlockContext) error
+	Delete(md *RootMetadata, id BlockID, context BlockContext) error
 }
 
 // MDServer gets and puts metadata for each top-level directory.  The
@@ -598,7 +598,7 @@ type BlockServer interface {
 	// Delete instructs the server to delete the block data
 	// associated with the given ID. No error is returned if no
 	// data exists for the given ID.
-	Delete(id BlockID, context BlockContext) error
+	Delete(id BlockID, tlfID TlfID, context BlockContext) error
 }
 
 // BlockSplitter decides when a file or directory block needs to be split

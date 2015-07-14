@@ -118,8 +118,8 @@ func (b *BlockOpsStandard) Put(md *RootMetadata, blockPtr BlockPointer, readyBlo
 }
 
 // Delete implements the BlockOps interface for BlockOpsStandard.
-func (b *BlockOpsStandard) Delete(id BlockID, context BlockContext) error {
+func (b *BlockOpsStandard) Delete(md *RootMetadata, id BlockID, context BlockContext) error {
 	bserv := b.config.BlockServer()
-	err := bserv.Delete(id, context)
+	err := bserv.Delete(id, md.ID, context)
 	return err
 }

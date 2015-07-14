@@ -147,6 +147,16 @@ func (_mr *_MockNodeRecorder) GetFolderBranch() *gomock.Call {
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "GetFolderBranch")
 }
 
+func (_m *MockNode) GetBasename() string {
+	ret := _m.ctrl.Call(_m, "GetBasename")
+	ret0, _ := ret[0].(string)
+	return ret0
+}
+
+func (_mr *_MockNodeRecorder) GetBasename() *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "GetBasename")
+}
+
 // Mock of KBFSOps interface
 type MockKBFSOps struct {
 	ctrl     *gomock.Controller
@@ -1250,14 +1260,14 @@ func (_mr *_MockBlockOpsRecorder) Put(arg0, arg1, arg2 interface{}) *gomock.Call
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "Put", arg0, arg1, arg2)
 }
 
-func (_m *MockBlockOps) Delete(id BlockID, context BlockContext) error {
-	ret := _m.ctrl.Call(_m, "Delete", id, context)
+func (_m *MockBlockOps) Delete(md *RootMetadata, id BlockID, context BlockContext) error {
+	ret := _m.ctrl.Call(_m, "Delete", md, id, context)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
-func (_mr *_MockBlockOpsRecorder) Delete(arg0, arg1 interface{}) *gomock.Call {
-	return _mr.mock.ctrl.RecordCall(_mr.mock, "Delete", arg0, arg1)
+func (_mr *_MockBlockOpsRecorder) Delete(arg0, arg1, arg2 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "Delete", arg0, arg1, arg2)
 }
 
 // Mock of MDServer interface
@@ -1412,14 +1422,14 @@ func (_mr *_MockBlockServerRecorder) Put(arg0, arg1, arg2, arg3, arg4 interface{
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "Put", arg0, arg1, arg2, arg3, arg4)
 }
 
-func (_m *MockBlockServer) Delete(id BlockID, context BlockContext) error {
-	ret := _m.ctrl.Call(_m, "Delete", id, context)
+func (_m *MockBlockServer) Delete(id BlockID, tlfID TlfID, context BlockContext) error {
+	ret := _m.ctrl.Call(_m, "Delete", id, tlfID, context)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
-func (_mr *_MockBlockServerRecorder) Delete(arg0, arg1 interface{}) *gomock.Call {
-	return _mr.mock.ctrl.RecordCall(_mr.mock, "Delete", arg0, arg1)
+func (_mr *_MockBlockServerRecorder) Delete(arg0, arg1, arg2 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "Delete", arg0, arg1, arg2)
 }
 
 // Mock of BlockSplitter interface

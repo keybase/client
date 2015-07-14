@@ -79,6 +79,6 @@ func (b *BlockServerLocal) Put(id BlockID, tlfID TlfID, context BlockContext,
 }
 
 // Delete implements the BlockServer interface for BlockServerLocal
-func (b *BlockServerLocal) Delete(id BlockID, context BlockContext) error {
+func (b *BlockServerLocal) Delete(id BlockID, tlfID TlfID, context BlockContext) error {
 	return b.db.Delete(id[:], nil)
 }

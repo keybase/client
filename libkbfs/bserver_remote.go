@@ -211,19 +211,19 @@ func (b *BlockServerRemote) Put(id BlockID, tlfID TlfID, context BlockContext,
 }
 
 // Delete implements the BlockServer interface for BlockServerRemote.
-func (b *BlockServerRemote) Delete(id BlockID, context BlockContext) error {
+func (b *BlockServerRemote) Delete(id BlockID, tlfID TlfID, context BlockContext) error {
 	arg := keybase1.DecBlockReferenceArg{
 		Bid: keybase1.BlockIdCombo{
 			ChargedTo: context.GetWriter(), //should be the original chargedto
 			BlockHash: hex.EncodeToString(id[:]),
 		},
 		Nonce:     "0000",
-		Folder:    "",
+		Folder:    hex.EncodeToString(tlfID[:]),
 		ChargedTo: context.GetWriter(), //the actual writer to decrement quota from
 	}
 	err := b.clt.DecBlockReference(arg)
 	if err != nil {
-		libkb.G.Log.Warning("Delete to backend err : %q", err)
+		libkb.G.Log.Debug("Delete to backend err : %q", err)
 	}
 	return err
 }
