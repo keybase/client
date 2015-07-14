@@ -196,25 +196,27 @@ type KBFSOps interface {
 // KBPKI interacts with kbpkid to fetch info from keybase
 type KBPKI interface {
 	// ResolveAssertion loads a user by assertion (could also be a username)
-	ResolveAssertion(input string) (*libkb.User, error)
+	ResolveAssertion(ctx context.Context, input string) (*libkb.User, error)
 	// GetUser loads user by UID and checks assumptions via identify
-	GetUser(uid keybase1.UID) (*libkb.User, error)
+	GetUser(ctx context.Context, uid keybase1.UID) (*libkb.User, error)
 	// GetSession gets the current keybase session
-	GetSession() (*libkb.Session, error)
+	GetSession(ctx context.Context) (*libkb.Session, error)
 	// GetLoggedInUser gets the UID of the current logged-in user
-	GetLoggedInUser() (keybase1.UID, error)
+	GetLoggedInUser(ctx context.Context) (keybase1.UID, error)
 	// HasVerifyingKey returns nil if the given user has the given
 	// VerifyingKey, and an error otherwise.
 	//
 	// TODO: Add a timestamp argument (or similar) so that we can
 	// check for revocation.
-	HasVerifyingKey(uid keybase1.UID, verifyingKey VerifyingKey) error
+	HasVerifyingKey(ctx context.Context, uid keybase1.UID,
+		verifyingKey VerifyingKey) error
 	// GetCryptPublicKeys gets all of a user's crypt public keys (one
 	// per device).
-	GetCryptPublicKeys(uid keybase1.UID) ([]CryptPublicKey, error)
+	GetCryptPublicKeys(ctx context.Context, uid keybase1.UID) (
+		[]CryptPublicKey, error)
 	// GetCurrentCryptPublicKey gets the crypt public key for the
 	// currently-active device.
-	GetCurrentCryptPublicKey() (CryptPublicKey, error)
+	GetCurrentCryptPublicKey(ctx context.Context) (CryptPublicKey, error)
 }
 
 // KeyManager fetches and constructs the keys needed for KBFS file

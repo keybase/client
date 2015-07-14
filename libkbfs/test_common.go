@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	keybase1 "github.com/keybase/client/protocol/go"
+	"golang.org/x/net/context"
 )
 
 // NewRootMetadataForTest returns a new initialized RootMetadata object for testing.
@@ -48,7 +49,8 @@ func MakeTestConfigOrBust(t *testing.T, blockServerRemoteAddr *string, users ...
 	config.SetCrypto(crypto)
 
 	if blockServerRemoteAddr != nil {
-		blockServer := NewBlockServerRemote(config, *blockServerRemoteAddr)
+		blockServer :=
+			NewBlockServerRemote(context.TODO(), config, *blockServerRemoteAddr)
 		config.SetBlockServer(blockServer)
 	} else {
 		blockServer, err := NewBlockServerMemory(config)

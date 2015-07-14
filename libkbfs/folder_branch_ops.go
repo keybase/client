@@ -243,7 +243,7 @@ func (fbo *FolderBranchOps) getMDLocked(ctx context.Context, rtype reqType) (
 	// if this device has any unmerged commits -- take the latest one.
 	mdops := fbo.config.MDOps()
 
-	cpk, err := fbo.config.KBPKI().GetCurrentCryptPublicKey()
+	cpk, err := fbo.config.KBPKI().GetCurrentCryptPublicKey(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -318,12 +318,12 @@ func (fbo *FolderBranchOps) getMDForReadLocked(
 		return nil, err
 	}
 
-	user, err := fbo.config.KBPKI().GetLoggedInUser()
+	user, err := fbo.config.KBPKI().GetLoggedInUser(ctx)
 	if err != nil {
 		return nil, err
 	}
 	if !md.GetTlfHandle().IsReader(user) {
-		return nil, NewReadAccessError(fbo.config, md.GetTlfHandle(), user)
+		return nil, NewReadAccessError(ctx, fbo.config, md.GetTlfHandle(), user)
 	}
 	return md, nil
 }
@@ -336,12 +336,13 @@ func (fbo *FolderBranchOps) getMDForWriteLocked(ctx context.Context) (
 		return nil, err
 	}
 
-	user, err := fbo.config.KBPKI().GetLoggedInUser()
+	user, err := fbo.config.KBPKI().GetLoggedInUser(ctx)
 	if err != nil {
 		return nil, err
 	}
 	if !md.GetTlfHandle().IsWriter(user) {
-		return nil, NewWriteAccessError(fbo.config, md.GetTlfHandle(), user)
+		return nil,
+			NewWriteAccessError(ctx, fbo.config, md.GetTlfHandle(), user)
 	}
 
 	// Make a copy of the MD for changing.  The caller must pass this
@@ -354,7 +355,7 @@ func (fbo *FolderBranchOps) getMDForWriteLocked(ctx context.Context) (
 func (fbo *FolderBranchOps) initMDLocked(
 	ctx context.Context, md *RootMetadata) error {
 	// create a dblock since one doesn't exist yet
-	user, err := fbo.config.KBPKI().GetLoggedInUser()
+	user, err := fbo.config.KBPKI().GetLoggedInUser(ctx)
 	if err != nil {
 		return err
 	}
@@ -362,7 +363,7 @@ func (fbo *FolderBranchOps) initMDLocked(
 	handle := md.GetTlfHandle()
 
 	if !handle.IsWriter(user) {
-		return NewWriteAccessError(fbo.config, handle, user)
+		return NewWriteAccessError(ctx, fbo.config, handle, user)
 	}
 
 	newDblock := &DirBlock{
@@ -407,7 +408,7 @@ func (fbo *FolderBranchOps) initMDLocked(
 
 	// make sure we're a writer before putting any blocks
 	if !handle.IsWriter(user) {
-		return NewWriteAccessError(fbo.config, handle, user)
+		return NewWriteAccessError(ctx, fbo.config, handle, user)
 	}
 
 	if err = fbo.config.BlockOps().Put(ctx, md, info.BlockPointer,
@@ -519,7 +520,7 @@ func (fbo *FolderBranchOps) GetRootNode(ctx context.Context,
 
 	handle = md.GetTlfHandle()
 	node, err = fbo.nodeCache.GetOrCreate(md.data.Dir.BlockPointer,
-		handle.ToString(fbo.config), nil)
+		handle.ToString(ctx, fbo.config), nil)
 	if err != nil {
 		node = nil
 		return
@@ -943,7 +944,7 @@ func (fbo *FolderBranchOps) syncBlockLocked(ctx context.Context,
 	md *RootMetadata, newBlock Block, dir path, name string,
 	entryType EntryType, mtime bool, ctime bool, stopAt BlockPointer,
 	lbc localBcache) (path, DirEntry, *blockPutState, error) {
-	user, err := fbo.config.KBPKI().GetLoggedInUser()
+	user, err := fbo.config.KBPKI().GetLoggedInUser(ctx)
 	if err != nil {
 		return path{}, DirEntry{}, nil, err
 	}
@@ -1160,7 +1161,7 @@ func (fbo *FolderBranchOps) finalizeWriteLocked(ctx context.Context,
 		return fmt.Errorf("Can't finalize 0 paths")
 	}
 
-	user, err := fbo.config.KBPKI().GetLoggedInUser()
+	user, err := fbo.config.KBPKI().GetLoggedInUser(ctx)
 	if err != nil {
 		return err
 	}
@@ -1182,7 +1183,7 @@ func (fbo *FolderBranchOps) finalizeWriteLocked(ctx context.Context,
 
 	if doUnmergedPut {
 		// We're out of date, so put it as an unmerged MD.
-		cpk, err := fbo.config.KBPKI().GetCurrentCryptPublicKey()
+		cpk, err := fbo.config.KBPKI().GetCurrentCryptPublicKey(ctx)
 		if err != nil {
 			return nil
 		}
@@ -1826,13 +1827,13 @@ func (fbo *FolderBranchOps) Read(
 
 // blockLock must be taken by the caller.
 func (fbo *FolderBranchOps) newRightBlockLocked(
-	ptr BlockPointer, branch BranchName, pblock *FileBlock,
+	ctx context.Context, ptr BlockPointer, branch BranchName, pblock *FileBlock,
 	off int64, md *RootMetadata) error {
 	newRID, err := fbo.config.Crypto().MakeTemporaryBlockID()
 	if err != nil {
 		return err
 	}
-	user, err := fbo.config.KBPKI().GetLoggedInUser()
+	user, err := fbo.config.KBPKI().GetLoggedInUser(ctx)
 	if err != nil {
 		return err
 	}
@@ -1888,12 +1889,12 @@ func (fbo *FolderBranchOps) writeDataLocked(
 	ctx context.Context, md *RootMetadata, file path, data []byte,
 	off int64, doNotify bool) error {
 	// check writer status explicitly
-	user, err := fbo.config.KBPKI().GetLoggedInUser()
+	user, err := fbo.config.KBPKI().GetLoggedInUser(ctx)
 	if err != nil {
 		return err
 	}
 	if !md.GetTlfHandle().IsWriter(user) {
-		return NewWriteAccessError(fbo.config, md.GetTlfHandle(), user)
+		return NewWriteAccessError(ctx, fbo.config, md.GetTlfHandle(), user)
 	}
 
 	fblock, err := fbo.getFileLocked(ctx, md, file, write)
@@ -1977,7 +1978,7 @@ func (fbo *FolderBranchOps) writeDataLocked(
 
 			// Make a new right block and update the parent's
 			// indirect block list
-			if err := fbo.newRightBlockLocked(file.tailPointer(),
+			if err := fbo.newRightBlockLocked(ctx, file.tailPointer(),
 				file.Branch, fblock,
 				startOff+int64(len(block.Contents)), md); err != nil {
 				return err
@@ -2086,12 +2087,12 @@ func (fbo *FolderBranchOps) truncateLocked(
 	ctx context.Context, md *RootMetadata, file path, size uint64,
 	doNotify bool) error {
 	// check writer status explicitly
-	user, err := fbo.config.KBPKI().GetLoggedInUser()
+	user, err := fbo.config.KBPKI().GetLoggedInUser(ctx)
 	if err != nil {
 		return err
 	}
 	if !md.GetTlfHandle().IsWriter(user) {
-		return NewWriteAccessError(fbo.config, md.GetTlfHandle(), user)
+		return NewWriteAccessError(ctx, fbo.config, md.GetTlfHandle(), user)
 	}
 
 	fblock, err := fbo.getFileLocked(ctx, md, file, write)
@@ -2391,7 +2392,7 @@ func (fbo *FolderBranchOps) syncLocked(ctx context.Context, file path) error {
 		return err
 	}
 
-	user, err := fbo.config.KBPKI().GetLoggedInUser()
+	user, err := fbo.config.KBPKI().GetLoggedInUser(ctx)
 	if err != nil {
 		return err
 	}
@@ -2445,7 +2446,7 @@ func (fbo *FolderBranchOps) syncLocked(ctx context.Context, file path) error {
 					if !more {
 						// need to make a new block
 						if err := fbo.newRightBlockLocked(
-							file.tailPointer(), file.Branch, fblock,
+							ctx, file.tailPointer(), file.Branch, fblock,
 							endOfBlock, md); err != nil {
 							return err
 						}

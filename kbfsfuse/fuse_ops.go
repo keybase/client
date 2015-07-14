@@ -162,15 +162,15 @@ func (f *FuseOps) LookupInDir(dNode *FuseNode, name string) (
 			node = dNode.Inode().NewChild(name, true, fNode)
 			f.topLock.Lock()
 			defer f.topLock.Unlock()
-			f.addTopNodeLocked(dirHandle.ToString(f.config), fNode)
+			f.addTopNodeLocked(dirHandle.ToString(f.ctx, f.config), fNode)
 			return node, fuse.OK
 		} else if dNode.getTlf() == libkbfs.NullTlfID {
-			uid, err := f.config.KBPKI().GetLoggedInUser()
+			uid, err := f.config.KBPKI().GetLoggedInUser(f.ctx)
 			if err != nil {
 				return nil, f.translateError(err)
 			}
 			return nil, f.translateError(libkbfs.NewReadAccessError(
-				f.config, dNode.TlfHandle, uid))
+				f.ctx, f.config, dNode.TlfHandle, uid))
 		}
 
 		newNode, de, err := f.config.KBFSOps().Lookup(f.ctx, dNode.fsNode, name)
@@ -283,7 +283,7 @@ func (f *FuseOps) LookupInRootByName(rNode *FuseNode, name string) (
 		}
 		f.topLock.Lock()
 		defer f.topLock.Unlock()
-		dirString := dirHandle.ToString(f.config)
+		dirString := dirHandle.ToString(f.ctx, f.config)
 		if fNode, ok := f.topNodes[dirString]; ok {
 			node = rNode.Inode().NewChild(name, true, fNode)
 		} else {
@@ -339,7 +339,7 @@ func (f *FuseOps) LookupInRootByID(rNode *FuseNode, id libkbfs.TlfID) (
 		return nil, f.translateError(err)
 	}
 
-	name := dirHandle.ToString(f.config)
+	name := dirHandle.ToString(f.ctx, f.config)
 
 	node = rNode.Inode().GetChild(name)
 	if node == nil {

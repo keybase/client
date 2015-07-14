@@ -38,7 +38,7 @@ func kbfsOpsConcurInit(t *testing.T, users ...string) (
 	Config, keybase1.UID, context.Context) {
 	config := MakeTestConfigOrBust(t, nil, users...)
 
-	loggedInUser, err := config.KBPKI().GetLoggedInUser()
+	loggedInUser, err := config.KBPKI().GetLoggedInUser(context.Background())
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -102,7 +102,7 @@ func TestKBFSOpsConcurReadDuringSync(t *testing.T) {
 	// create and write to a file
 	kbfsOps := config.KBFSOps()
 	h := NewTlfHandle()
-	uid, err := config.KBPKI().GetLoggedInUser()
+	uid, err := config.KBPKI().GetLoggedInUser(context.Background())
 	if err != nil {
 		t.Errorf("Couldn't get logged in user: %v", err)
 	}
@@ -161,7 +161,7 @@ func TestKBFSOpsConcurWriteDuringSync(t *testing.T) {
 	// create and write to a file
 	kbfsOps := config.KBFSOps()
 	h := NewTlfHandle()
-	uid, err := config.KBPKI().GetLoggedInUser()
+	uid, err := config.KBPKI().GetLoggedInUser(context.Background())
 	if err != nil {
 		t.Errorf("Couldn't get logged in user: %v", err)
 	}
@@ -252,7 +252,7 @@ func TestKBFSOpsConcurWriteDuringSyncMultiBlocks(t *testing.T) {
 	// create and write to a file
 	kbfsOps := config.KBFSOps()
 	h := NewTlfHandle()
-	uid, err := config.KBPKI().GetLoggedInUser()
+	uid, err := config.KBPKI().GetLoggedInUser(context.Background())
 	if err != nil {
 		t.Errorf("Couldn't get logged in user: %v", err)
 	}

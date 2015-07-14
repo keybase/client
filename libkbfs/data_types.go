@@ -418,8 +418,7 @@ func NewTlfHandle() *TlfHandle {
 
 func resolveUser(ctx context.Context, config Config, name string,
 	errCh chan<- error, results chan<- keybase1.UID) {
-	// TODO ResolveAssertion should take ctx
-	user, err := config.KBPKI().ResolveAssertion(name)
+	user, err := config.KBPKI().ResolveAssertion(ctx, name)
 	if err != nil {
 		errCh <- err
 		return
@@ -545,13 +544,14 @@ func (h *TlfHandle) IsReader(user keybase1.UID) bool {
 	return h.IsPublic() || h.findUserInList(user, h.Readers) || h.IsWriter(user)
 }
 
-func resolveUids(config Config, uids []keybase1.UID) string {
+func resolveUids(ctx context.Context, config Config,
+	uids []keybase1.UID) string {
 	names := make([]string, 0, len(uids))
 	// TODO: parallelize?
 	for _, uid := range uids {
 		if uid.Equal(keybase1.PublicUID) {
 			names = append(names, PublicName)
-		} else if user, err := config.KBPKI().GetUser(uid); err == nil {
+		} else if user, err := config.KBPKI().GetUser(ctx, uid); err == nil {
 			names = append(names, user.GetName())
 		} else {
 			config.Reporter().Report(RptE, WrapError{err})
@@ -564,7 +564,7 @@ func resolveUids(config Config, uids []keybase1.UID) string {
 }
 
 // ToString returns a string representation of this TlfHandle
-func (h *TlfHandle) ToString(config Config) string {
+func (h *TlfHandle) ToString(ctx context.Context, config Config) string {
 	h.cacheMutex.Lock()
 	defer h.cacheMutex.Unlock()
 	if h.cachedName != "" {
@@ -573,11 +573,11 @@ func (h *TlfHandle) ToString(config Config) string {
 	}
 
 	// resolve every uid to a name
-	h.cachedName = resolveUids(config, h.Writers)
+	h.cachedName = resolveUids(ctx, config, h.Writers)
 
 	// assume only additional readers are listed
 	if len(h.Readers) > 0 {
-		h.cachedName += ReaderSep + resolveUids(config, h.Readers)
+		h.cachedName += ReaderSep + resolveUids(ctx, config, h.Readers)
 	}
 
 	// TODO: don't cache if there were errors?

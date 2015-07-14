@@ -62,12 +62,12 @@ func (km *KeyManagerStandard) getTLFCryptKey(ctx context.Context,
 
 	// Get the encrypted version of this secret key for this device
 	kbpki := km.config.KBPKI()
-	user, err := kbpki.GetLoggedInUser()
+	user, err := kbpki.GetLoggedInUser(ctx)
 	if err != nil {
 		return
 	}
 
-	currentCryptPublicKey, err := kbpki.GetCurrentCryptPublicKey()
+	currentCryptPublicKey, err := kbpki.GetCurrentCryptPublicKey(ctx)
 	if err != nil {
 		return
 	}
@@ -77,7 +77,7 @@ func (km *KeyManagerStandard) getTLFCryptKey(ctx context.Context,
 		return
 	}
 	if !ok {
-		err = NewReadAccessError(km.config, md.GetTlfHandle(), user)
+		err = NewReadAccessError(ctx, km.config, md.GetTlfHandle(), user)
 		return
 	}
 
@@ -113,8 +113,10 @@ func (km *KeyManagerStandard) getTLFCryptKey(ctx context.Context,
 	return
 }
 
-func (km *KeyManagerStandard) secretKeysForUser(md *RootMetadata, uid keybase1.UID,
-	tlfCryptKey TLFCryptKey, ePrivKey TLFEphemeralPrivateKey) (uMap map[keybase1.KID]EncryptedTLFCryptKeyClientHalf, err error) {
+func (km *KeyManagerStandard) secretKeysForUser(ctx context.Context,
+	md *RootMetadata, uid keybase1.UID, tlfCryptKey TLFCryptKey,
+	ePrivKey TLFEphemeralPrivateKey) (
+	uMap map[keybase1.KID]EncryptedTLFCryptKeyClientHalf, err error) {
 	defer func() {
 		if err != nil {
 			uMap = nil
@@ -129,12 +131,11 @@ func (km *KeyManagerStandard) secretKeysForUser(md *RootMetadata, uid keybase1.U
 		return
 	}
 
-	kbpki := km.config.KBPKI()
 	crypto := km.config.Crypto()
 	kops := km.config.KeyOps()
 	newKeyGen := md.LatestKeyGeneration() + 1
 
-	publicKeys, err := kbpki.GetCryptPublicKeys(uid)
+	publicKeys, err := km.config.KBPKI().GetCryptPublicKeys(ctx, uid)
 	if err != nil {
 		return
 	}
@@ -198,14 +199,14 @@ func (km *KeyManagerStandard) Rekey(ctx context.Context,
 	}
 	// TODO: parallelize
 	for _, w := range handle.Writers {
-		uMap, err := km.secretKeysForUser(md, w, tlfCryptKey, ePrivKey)
+		uMap, err := km.secretKeysForUser(ctx, md, w, tlfCryptKey, ePrivKey)
 		if err != nil {
 			return err
 		}
 		newKeys.WKeys[w] = uMap
 	}
 	for _, r := range handle.Readers {
-		uMap, err := km.secretKeysForUser(md, r, tlfCryptKey, ePrivKey)
+		uMap, err := km.secretKeysForUser(ctx, md, r, tlfCryptKey, ePrivKey)
 		if err != nil {
 			return err
 		}

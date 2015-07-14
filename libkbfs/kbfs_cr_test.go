@@ -39,7 +39,7 @@ func TestUnmergedAfterRestart(t *testing.T) {
 
 	config2 := ConfigAsUser(config1.(*ConfigLocal), userName2)
 	defer config2.KBFSOps().(*KBFSOpsStandard).Shutdown()
-	uid2, err := config2.KBPKI().GetLoggedInUser()
+	uid2, err := config2.KBPKI().GetLoggedInUser(context.Background())
 	if err != nil {
 		t.Fatal(err)
 	}

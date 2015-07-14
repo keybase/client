@@ -7,6 +7,7 @@ import (
 	"bazil.org/fuse"
 
 	keybase1 "github.com/keybase/client/protocol/go"
+	"golang.org/x/net/context"
 )
 
 // ErrorFile is the name of the virtual file in KBFS that should
@@ -143,9 +144,10 @@ func (e WriteAccessError) Error() string {
 
 // NewReadAccessError constructs a ReadAccessError for the given
 // directory and user.
-func NewReadAccessError(config Config, dir *TlfHandle, uid keybase1.UID) error {
-	dirname := dir.ToString(config)
-	if u, err2 := config.KBPKI().GetUser(uid); err2 == nil {
+func NewReadAccessError(ctx context.Context, config Config, dir *TlfHandle,
+	uid keybase1.UID) error {
+	dirname := dir.ToString(ctx, config)
+	if u, err2 := config.KBPKI().GetUser(ctx, uid); err2 == nil {
 		return ReadAccessError{u.GetName(), dirname}
 	}
 	return ReadAccessError{uid.String(), dirname}
@@ -153,10 +155,10 @@ func NewReadAccessError(config Config, dir *TlfHandle, uid keybase1.UID) error {
 
 // NewWriteAccessError constructs a WriteAccessError for the given
 // directory and user.
-func NewWriteAccessError(config Config, dir *TlfHandle,
+func NewWriteAccessError(ctx context.Context, config Config, dir *TlfHandle,
 	uid keybase1.UID) error {
-	dirname := dir.ToString(config)
-	if u, err2 := config.KBPKI().GetUser(uid); err2 == nil {
+	dirname := dir.ToString(ctx, config)
+	if u, err2 := config.KBPKI().GetUser(ctx, uid); err2 == nil {
 		return WriteAccessError{u.GetName(), dirname}
 	}
 	return WriteAccessError{uid.String(), dirname}

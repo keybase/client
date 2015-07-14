@@ -31,7 +31,7 @@ func newDir(t *testing.T, config *ConfigMock, x byte, share bool, public bool) (
 	revision := uint64(1) // hardcoded as it's unused for now.
 	id, h, rmds := NewFolder(t, x, revision, share, public)
 	expectUserCalls(h, config)
-	config.mockKbpki.EXPECT().GetLoggedInUser().AnyTimes().
+	config.mockKbpki.EXPECT().GetLoggedInUser(gomock.Any()).AnyTimes().
 		Return(h.Writers[0], nil)
 	return id, h, rmds
 }
@@ -43,7 +43,8 @@ func verifyMDForPublic(config *ConfigMock, rmds *RootMetadataSigned,
 
 	packedData := []byte{4, 3, 2, 1}
 	config.mockCodec.EXPECT().Encode(rmds.MD).Return(packedData, nil)
-	config.mockKbpki.EXPECT().HasVerifyingKey(gomock.Any(), gomock.Any()).AnyTimes().Return(hasVerifyingKeyErr)
+	config.mockKbpki.EXPECT().HasVerifyingKey(gomock.Any(), gomock.Any(),
+		gomock.Any()).AnyTimes().Return(hasVerifyingKeyErr)
 	if hasVerifyingKeyErr == nil {
 		config.mockCrypto.EXPECT().Verify(packedData, rmds.SigInfo).Return(verifyErr)
 	}

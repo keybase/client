@@ -8,6 +8,7 @@ import (
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/protocol/go"
 	"github.com/maxtaco/go-framed-msgpack-rpc/rpc2"
+	"golang.org/x/net/context"
 )
 
 // KBPKIClient uses rpc calls to daemon
@@ -50,7 +51,8 @@ func newKBPKIClientWithClient(ctx *libkb.GlobalContext, client keybase1.GenericC
 }
 
 // ResolveAssertion implements the KBPKI interface for KBPKIClient.
-func (k *KBPKIClient) ResolveAssertion(username string) (*libkb.User, error) {
+func (k *KBPKIClient) ResolveAssertion(ctx context.Context, username string) (
+	*libkb.User, error) {
 	arg := &engine.IDEngineArg{UserAssertion: username}
 	// TODO: Consider caching the returned public key info from
 	// identify instead of dropping them.
@@ -59,13 +61,14 @@ func (k *KBPKIClient) ResolveAssertion(username string) (*libkb.User, error) {
 }
 
 // GetUser implements the KBPKI interface for KBPKIClient.
-func (k *KBPKIClient) GetUser(uid keybase1.UID) (user *libkb.User, err error) {
+func (k *KBPKIClient) GetUser(ctx context.Context, uid keybase1.UID) (
+	user *libkb.User, err error) {
 	user, _, err = k.identifyByUID(uid)
 	return user, err
 }
 
 // GetSession implements the KBPKI interface for KBPKIClient.
-func (k *KBPKIClient) GetSession() (*libkb.Session, error) {
+func (k *KBPKIClient) GetSession(ctx context.Context) (*libkb.Session, error) {
 	s, _, err := k.session()
 	if err != nil {
 		// XXX shouldn't ignore this...
@@ -76,7 +79,8 @@ func (k *KBPKIClient) GetSession() (*libkb.Session, error) {
 }
 
 // GetLoggedInUser implements the KBPKI interface for KBPKIClient.
-func (k *KBPKIClient) GetLoggedInUser() (uid keybase1.UID, error error) {
+func (k *KBPKIClient) GetLoggedInUser(ctx context.Context) (
+	uid keybase1.UID, error error) {
 	s, _, err := k.session()
 	if err != nil {
 		// TODO: something more intelligent; maybe just shut down
@@ -89,7 +93,8 @@ func (k *KBPKIClient) GetLoggedInUser() (uid keybase1.UID, error error) {
 }
 
 // HasVerifyingKey implements the KBPKI interface for KBPKIClient.
-func (k *KBPKIClient) HasVerifyingKey(uid keybase1.UID, verifyingKey VerifyingKey) error {
+func (k *KBPKIClient) HasVerifyingKey(ctx context.Context, uid keybase1.UID,
+	verifyingKey VerifyingKey) error {
 	_, publicKeys, err := k.identifyByUID(uid)
 	if err != nil {
 		return err
@@ -109,8 +114,8 @@ func (k *KBPKIClient) HasVerifyingKey(uid keybase1.UID, verifyingKey VerifyingKe
 }
 
 // GetCryptPublicKeys implements the KBPKI interface for KBPKIClient.
-func (k *KBPKIClient) GetCryptPublicKeys(uid keybase1.UID) (
-	keys []CryptPublicKey, err error) {
+func (k *KBPKIClient) GetCryptPublicKeys(ctx context.Context,
+	uid keybase1.UID) (keys []CryptPublicKey, err error) {
 	_, publicKeys, err := k.identifyByUID(uid)
 	if err != nil {
 		return nil, err
@@ -133,7 +138,8 @@ func (k *KBPKIClient) GetCryptPublicKeys(uid keybase1.UID) (
 }
 
 // GetCurrentCryptPublicKey implements the KBPKI interface for KBPKIClient.
-func (k *KBPKIClient) GetCurrentCryptPublicKey() (CryptPublicKey, error) {
+func (k *KBPKIClient) GetCurrentCryptPublicKey(ctx context.Context) (
+	CryptPublicKey, error) {
 	_, deviceSubkey, err := k.session()
 	if err != nil {
 		return CryptPublicKey{}, err

@@ -167,7 +167,8 @@ func makeID(t *testing.T, config *ConfigMock, public bool) (keybase1.UID, TlfID,
 	}
 	h.Writers = []keybase1.UID{userID}
 	expectUserCalls(h, config)
-	config.mockKbpki.EXPECT().GetLoggedInUser().AnyTimes().Return(userID, nil)
+	config.mockKbpki.EXPECT().GetLoggedInUser(gomock.Any()).AnyTimes().
+		Return(userID, nil)
 	return userID, id, h
 }
 
@@ -287,7 +288,7 @@ func testKBFSOpsGetRootNodeCreateNewSuccess(t *testing.T, public bool) {
 	rmd := NewRootMetadataForTest(h, id)
 
 	var nilCpk CryptPublicKey
-	config.mockKbpki.EXPECT().GetCurrentCryptPublicKey().
+	config.mockKbpki.EXPECT().GetCurrentCryptPublicKey(ctx).
 		Return(nilCpk, nil)
 
 	// create a new MD
@@ -354,7 +355,7 @@ func TestKBFSOpsGetRootMDCreateNewFailNonWriter(t *testing.T) {
 	h.Writers = []keybase1.UID{ownerID}
 
 	var nilCpk CryptPublicKey
-	config.mockKbpki.EXPECT().GetCurrentCryptPublicKey().
+	config.mockKbpki.EXPECT().GetCurrentCryptPublicKey(ctx).
 		Return(nilCpk, nil)
 
 	rmd := NewRootMetadataForTest(h, id)
@@ -370,9 +371,10 @@ func TestKBFSOpsGetRootMDCreateNewFailNonWriter(t *testing.T) {
 		Return(nil, false, nil)
 	config.mockMdops.EXPECT().GetForTLF(gomock.Any(), id).Return(rmd, nil)
 	// try to get the MD for writing, but fail (no puts should happen)
-	config.mockKbpki.EXPECT().GetLoggedInUser().AnyTimes().Return(userID, nil)
+	config.mockKbpki.EXPECT().GetLoggedInUser(ctx).AnyTimes().
+		Return(userID, nil)
 	expectedErr := WriteAccessError{
-		fmt.Sprintf("user_%s", userID), h.ToString(config)}
+		fmt.Sprintf("user_%s", userID), h.ToString(ctx, config)}
 
 	if _, _, _, err :=
 		config.KBFSOps().
@@ -541,10 +543,11 @@ func TestKBFSOpsGetBaseDirChildrenUncachedFailNonReader(t *testing.T) {
 
 	// won't even try getting the block if the user isn't a reader
 	ops.head = rmd
-	config.mockKbpki.EXPECT().GetLoggedInUser().AnyTimes().Return(userID, nil)
+	config.mockKbpki.EXPECT().GetLoggedInUser(ctx).AnyTimes().
+		Return(userID, nil)
 	expectUserCall(userID, config)
 	expectedErr := ReadAccessError{
-		fmt.Sprintf("user_%s", userID), h.ToString(config)}
+		fmt.Sprintf("user_%s", userID), h.ToString(ctx, config)}
 
 	if _, err := config.KBFSOps().GetDirChildren(ctx, n); err == nil {
 		t.Errorf("Got no expected error on getdir")
@@ -862,7 +865,7 @@ func expectSyncBlockHelper(
 			config.mockMdops.EXPECT().Put(gomock.Any(), id, gomock.Any(),
 				nilKID, NullMdID).Return(OutOfDateMDError{})
 			var nilCpk CryptPublicKey
-			config.mockKbpki.EXPECT().GetCurrentCryptPublicKey().
+			config.mockKbpki.EXPECT().GetCurrentCryptPublicKey(gomock.Any()).
 				Return(nilCpk, nil)
 
 			config.mockMdops.EXPECT().PutUnmerged(

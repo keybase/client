@@ -47,7 +47,8 @@ type BlockServerRemote struct {
 
 // NewBlockServerRemote constructs a new BlockServerRemote for the
 // given address.
-func NewBlockServerRemote(config Config, blkSrvAddr string) *BlockServerRemote {
+func NewBlockServerRemote(ctx context.Context, config Config,
+	blkSrvAddr string) *BlockServerRemote {
 	b := &BlockServerRemote{
 		config:        config,
 		srvAddr:       blkSrvAddr,
@@ -55,9 +56,9 @@ func NewBlockServerRemote(config Config, blkSrvAddr string) *BlockServerRemote {
 		connectedChan: make(chan struct{}),
 	}
 
-	if err := b.ConnectOnce(); err != nil {
+	if err := b.ConnectOnce(ctx); err != nil {
 		libkb.G.Log.Warning("NewBlockServerRemote: cannot connect to backend err : %v", err)
-		go b.Reconnect()
+		go b.Reconnect(ctx)
 	}
 
 	return b
@@ -88,7 +89,7 @@ func (b *BlockServerRemote) Config() Config {
 }
 
 // ConnectOnce tries once to connect to the remote block server.
-func (b *BlockServerRemote) ConnectOnce() error {
+func (b *BlockServerRemote) ConnectOnce(ctx context.Context) error {
 	var err error
 	if b.conn, err = TLSConnect(b.certFile, b.srvAddr); err != nil {
 		return err
@@ -99,7 +100,7 @@ func (b *BlockServerRemote) ConnectOnce() error {
 
 	var token string
 	var session *libkb.Session
-	if session, err = b.config.KBPKI().GetSession(); err != nil {
+	if session, err = b.config.KBPKI().GetSession(ctx); err != nil {
 		libkb.G.Log.Warning("BlockServerRemote: error getting session %q", err)
 		return err
 	} else if session != nil {
@@ -107,7 +108,7 @@ func (b *BlockServerRemote) ConnectOnce() error {
 	}
 
 	var user keybase1.UID
-	user, err = b.config.KBPKI().GetLoggedInUser()
+	user, err = b.config.KBPKI().GetLoggedInUser(ctx)
 	if err != nil {
 		return err
 	}
@@ -162,8 +163,8 @@ func (b *BlockServerRemote) WaitForReconnect(parent context.Context) error {
 }
 
 // Reconnect reconnects to block server.
-func (b *BlockServerRemote) Reconnect() {
-	for b.ConnectOnce() != nil {
+func (b *BlockServerRemote) Reconnect(ctx context.Context) {
+	for b.ConnectOnce(ctx) != nil {
 		time.Sleep(1 * time.Second)
 	}
 	return

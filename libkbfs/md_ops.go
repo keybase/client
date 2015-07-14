@@ -51,7 +51,7 @@ func (md *MDOpsStandard) processMetadata(ctx context.Context,
 		writer := rmds.MD.data.LastWriter
 		if !handle.IsWriter(writer) {
 			return MDMismatchError{
-				handle.ToString(md.config),
+				handle.ToString(ctx, md.config),
 				fmt.Sprintf("MD (id=%s) was written by a non-writer %s",
 					rmds.MD.ID, writer)}
 		}
@@ -60,7 +60,7 @@ func (md *MDOpsStandard) processMetadata(ctx context.Context,
 		// Both of these have to happen after decryption so
 		// we can see who the last writer was.
 		kbpki := md.config.KBPKI()
-		me, err := kbpki.GetLoggedInUser()
+		me, err := kbpki.GetLoggedInUser(ctx)
 		if err != nil {
 			return err
 		}
@@ -80,7 +80,7 @@ func (md *MDOpsStandard) processMetadata(ctx context.Context,
 			//   * Verify using MAC
 			if mac, ok := rmds.Macs[me]; !ok {
 				return MDMismatchError{
-					handle.ToString(md.config),
+					handle.ToString(ctx, md.config),
 					fmt.Sprintf("MD (id=%s) is a private share but doesn't "+
 						"contain a key for my logged in user (%s)",
 						rmds.MD.ID, me)}
@@ -98,7 +98,7 @@ func (md *MDOpsStandard) processMetadata(ctx context.Context,
 			//     the verifying key KID.
 			// TODO: what do we do if the signature is from a revoked
 			// key?
-			err = kbpki.HasVerifyingKey(writer, rmds.SigInfo.VerifyingKey)
+			err = kbpki.HasVerifyingKey(ctx, writer, rmds.SigInfo.VerifyingKey)
 			if err != nil {
 				return err
 			}
@@ -123,8 +123,9 @@ func (md *MDOpsStandard) GetForHandle(ctx context.Context, handle *TlfHandle) (
 	} else {
 		if rmds.IsInitialized() {
 			// Make the the signed-over UIDs in the latest Keys match the handle
-			handleString := handle.ToString(md.config)
-			fetchedHandleString := rmds.MD.GetTlfHandle().ToString(md.config)
+			handleString := handle.ToString(ctx, md.config)
+			fetchedHandleString := rmds.MD.GetTlfHandle().
+				ToString(ctx, md.config)
 			if fetchedHandleString != handleString {
 				return nil, MDMismatchError{
 					handleString,
@@ -182,7 +183,7 @@ func (md *MDOpsStandard) Get(ctx context.Context, mdID MdID) (
 	}
 	if mdID != realMdID {
 		return nil, MDMismatchError{
-			rmds.MD.GetTlfHandle().ToString(md.config),
+			rmds.MD.GetTlfHandle().ToString(ctx, md.config),
 			fmt.Sprintf("MD returned for MdID %v really has an ID of %v",
 				mdID, realMdID),
 		}
@@ -209,7 +210,7 @@ func (md *MDOpsStandard) processRange(ctx context.Context, id TlfID,
 		// make sure the chain is correct
 		if rmds.MD.PrevRoot != lastRoot && lastRoot != NullMdID {
 			return nil, MDMismatchError{
-				rmds.MD.GetTlfHandle().ToString(md.config),
+				rmds.MD.GetTlfHandle().ToString(ctx, md.config),
 				fmt.Sprintf("MD (id=%v) points to an unexpected root (%v) "+
 					"instead of %v", currRoot, rmds.MD.PrevRoot, lastRoot),
 			}
@@ -248,7 +249,7 @@ func (md *MDOpsStandard) GetSince(ctx context.Context, id TlfID, mdID MdID,
 
 func (md *MDOpsStandard) readyMD(ctx context.Context, id TlfID,
 	rmd *RootMetadata) (MdID, *RootMetadataSigned, error) {
-	me, err := md.config.KBPKI().GetLoggedInUser()
+	me, err := md.config.KBPKI().GetLoggedInUser(ctx)
 	if err != nil {
 		return NullMdID, nil, err
 	}

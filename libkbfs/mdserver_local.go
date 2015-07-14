@@ -112,13 +112,13 @@ func (md *MDServerLocal) GetForHandle(ctx context.Context, handle *TlfHandle) (
 	rmd := NewRootMetadata(handle, id)
 
 	// only users with write permissions should be creating a new one
-	user, err := md.config.KBPKI().GetLoggedInUser()
+	user, err := md.config.KBPKI().GetLoggedInUser(ctx)
 	if err != nil {
 		return nil, err
 	}
 	if !handle.IsWriter(user) {
-		dirstring := handle.ToString(md.config)
-		if u, err2 := md.config.KBPKI().GetUser(user); err2 == nil {
+		dirstring := handle.ToString(ctx, md.config)
+		if u, err2 := md.config.KBPKI().GetUser(ctx, user); err2 == nil {
 			return nil, WriteAccessError{u.GetName(), dirstring}
 		}
 		return nil, WriteAccessError{user.String(), dirstring}

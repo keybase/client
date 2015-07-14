@@ -5,6 +5,7 @@ import (
 
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/protocol/go"
+	"golang.org/x/net/context"
 )
 
 // KBPKILocal just serves users from a static map in memory
@@ -36,16 +37,18 @@ func NewKBPKILocal(loggedIn keybase1.UID, users []LocalUser) *KBPKILocal {
 }
 
 // ResolveAssertion implements the KBPKI interface for KBPKILocal
-func (k *KBPKILocal) ResolveAssertion(input string) (*libkb.User, error) {
+func (k *KBPKILocal) ResolveAssertion(ctx context.Context, input string) (
+	*libkb.User, error) {
 	uid, ok := k.Asserts[input]
 	if !ok {
 		return nil, fmt.Errorf("No such user matching %s", input)
 	}
-	return k.GetUser(uid)
+	return k.GetUser(ctx, uid)
 }
 
 // GetUser implements the KBPKI interface for KBPKILocal
-func (k *KBPKILocal) GetUser(uid keybase1.UID) (*libkb.User, error) {
+func (k *KBPKILocal) GetUser(ctx context.Context, uid keybase1.UID) (
+	*libkb.User, error) {
 	u, err := k.getLocalUser(uid)
 	if err != nil {
 		return nil, err
@@ -54,17 +57,19 @@ func (k *KBPKILocal) GetUser(uid keybase1.UID) (*libkb.User, error) {
 }
 
 // GetSession implements the KBPKI interface for KBPKILocal
-func (k *KBPKILocal) GetSession() (*libkb.Session, error) {
+func (k *KBPKILocal) GetSession(ctx context.Context) (*libkb.Session, error) {
 	return nil, nil
 }
 
 // GetLoggedInUser implements the KBPKI interface for KBPKILocal
-func (k *KBPKILocal) GetLoggedInUser() (keybase1.UID, error) {
+func (k *KBPKILocal) GetLoggedInUser(ctx context.Context) (
+	keybase1.UID, error) {
 	return k.LoggedIn, nil
 }
 
 // HasVerifyingKey implements the KBPKI interface for KBPKILocal
-func (k *KBPKILocal) HasVerifyingKey(uid keybase1.UID, verifyingKey VerifyingKey) error {
+func (k *KBPKILocal) HasVerifyingKey(ctx context.Context, uid keybase1.UID,
+	verifyingKey VerifyingKey) error {
 	u, err := k.getLocalUser(uid)
 	if err != nil {
 		return err
@@ -79,7 +84,7 @@ func (k *KBPKILocal) HasVerifyingKey(uid keybase1.UID, verifyingKey VerifyingKey
 }
 
 // GetCryptPublicKeys implements the KBPKI interface for KBPKILocal
-func (k *KBPKILocal) GetCryptPublicKeys(uid keybase1.UID) (
+func (k *KBPKILocal) GetCryptPublicKeys(ctx context.Context, uid keybase1.UID) (
 	keys []CryptPublicKey, err error) {
 	u, err := k.getLocalUser(uid)
 	if err != nil {
@@ -89,7 +94,8 @@ func (k *KBPKILocal) GetCryptPublicKeys(uid keybase1.UID) (
 }
 
 // GetCurrentCryptPublicKey implements the KBPKI interface for KBPKILocal
-func (k *KBPKILocal) GetCurrentCryptPublicKey() (CryptPublicKey, error) {
+func (k *KBPKILocal) GetCurrentCryptPublicKey(ctx context.Context) (
+	CryptPublicKey, error) {
 	u, err := k.getLocalUser(k.LoggedIn)
 	if err != nil {
 		return CryptPublicKey{}, err

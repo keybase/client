@@ -26,7 +26,8 @@ func mdCacheShutdown(mockCtrl *gomock.Controller, config *ConfigMock) {
 
 func expectUserCall(u keybase1.UID, config *ConfigMock) {
 	user := libkb.NewUserThin(fmt.Sprintf("user_%s", u), u)
-	config.mockKbpki.EXPECT().GetUser(u).AnyTimes().Return(user, nil)
+	config.mockKbpki.EXPECT().GetUser(gomock.Any(), u).AnyTimes().
+		Return(user, nil)
 }
 
 func expectUserCalls(handle *TlfHandle, config *ConfigMock) {

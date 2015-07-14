@@ -99,7 +99,7 @@ func lsHelper(ctx context.Context, config libkbfs.Config, components []string, h
 				return err
 			}
 			th := rmds.MD.GetTlfHandle()
-			handleEntry(th.ToString(config), libkbfs.Dir)
+			handleEntry(th.ToString(ctx, config), libkbfs.Dir)
 		}
 
 		return err

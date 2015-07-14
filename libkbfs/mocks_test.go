@@ -395,80 +395,80 @@ func (_m *MockKBPKI) EXPECT() *_MockKBPKIRecorder {
 	return _m.recorder
 }
 
-func (_m *MockKBPKI) ResolveAssertion(input string) (*libkb.User, error) {
-	ret := _m.ctrl.Call(_m, "ResolveAssertion", input)
+func (_m *MockKBPKI) ResolveAssertion(ctx context.Context, input string) (*libkb.User, error) {
+	ret := _m.ctrl.Call(_m, "ResolveAssertion", ctx, input)
 	ret0, _ := ret[0].(*libkb.User)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-func (_mr *_MockKBPKIRecorder) ResolveAssertion(arg0 interface{}) *gomock.Call {
-	return _mr.mock.ctrl.RecordCall(_mr.mock, "ResolveAssertion", arg0)
+func (_mr *_MockKBPKIRecorder) ResolveAssertion(arg0, arg1 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "ResolveAssertion", arg0, arg1)
 }
 
-func (_m *MockKBPKI) GetUser(uid go0.UID) (*libkb.User, error) {
-	ret := _m.ctrl.Call(_m, "GetUser", uid)
+func (_m *MockKBPKI) GetUser(ctx context.Context, uid go0.UID) (*libkb.User, error) {
+	ret := _m.ctrl.Call(_m, "GetUser", ctx, uid)
 	ret0, _ := ret[0].(*libkb.User)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-func (_mr *_MockKBPKIRecorder) GetUser(arg0 interface{}) *gomock.Call {
-	return _mr.mock.ctrl.RecordCall(_mr.mock, "GetUser", arg0)
+func (_mr *_MockKBPKIRecorder) GetUser(arg0, arg1 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "GetUser", arg0, arg1)
 }
 
-func (_m *MockKBPKI) GetSession() (*libkb.Session, error) {
-	ret := _m.ctrl.Call(_m, "GetSession")
+func (_m *MockKBPKI) GetSession(ctx context.Context) (*libkb.Session, error) {
+	ret := _m.ctrl.Call(_m, "GetSession", ctx)
 	ret0, _ := ret[0].(*libkb.Session)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-func (_mr *_MockKBPKIRecorder) GetSession() *gomock.Call {
-	return _mr.mock.ctrl.RecordCall(_mr.mock, "GetSession")
+func (_mr *_MockKBPKIRecorder) GetSession(arg0 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "GetSession", arg0)
 }
 
-func (_m *MockKBPKI) GetLoggedInUser() (go0.UID, error) {
-	ret := _m.ctrl.Call(_m, "GetLoggedInUser")
+func (_m *MockKBPKI) GetLoggedInUser(ctx context.Context) (go0.UID, error) {
+	ret := _m.ctrl.Call(_m, "GetLoggedInUser", ctx)
 	ret0, _ := ret[0].(go0.UID)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-func (_mr *_MockKBPKIRecorder) GetLoggedInUser() *gomock.Call {
-	return _mr.mock.ctrl.RecordCall(_mr.mock, "GetLoggedInUser")
+func (_mr *_MockKBPKIRecorder) GetLoggedInUser(arg0 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "GetLoggedInUser", arg0)
 }
 
-func (_m *MockKBPKI) HasVerifyingKey(uid go0.UID, verifyingKey VerifyingKey) error {
-	ret := _m.ctrl.Call(_m, "HasVerifyingKey", uid, verifyingKey)
+func (_m *MockKBPKI) HasVerifyingKey(ctx context.Context, uid go0.UID, verifyingKey VerifyingKey) error {
+	ret := _m.ctrl.Call(_m, "HasVerifyingKey", ctx, uid, verifyingKey)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
-func (_mr *_MockKBPKIRecorder) HasVerifyingKey(arg0, arg1 interface{}) *gomock.Call {
-	return _mr.mock.ctrl.RecordCall(_mr.mock, "HasVerifyingKey", arg0, arg1)
+func (_mr *_MockKBPKIRecorder) HasVerifyingKey(arg0, arg1, arg2 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "HasVerifyingKey", arg0, arg1, arg2)
 }
 
-func (_m *MockKBPKI) GetCryptPublicKeys(uid go0.UID) ([]CryptPublicKey, error) {
-	ret := _m.ctrl.Call(_m, "GetCryptPublicKeys", uid)
+func (_m *MockKBPKI) GetCryptPublicKeys(ctx context.Context, uid go0.UID) ([]CryptPublicKey, error) {
+	ret := _m.ctrl.Call(_m, "GetCryptPublicKeys", ctx, uid)
 	ret0, _ := ret[0].([]CryptPublicKey)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-func (_mr *_MockKBPKIRecorder) GetCryptPublicKeys(arg0 interface{}) *gomock.Call {
-	return _mr.mock.ctrl.RecordCall(_mr.mock, "GetCryptPublicKeys", arg0)
+func (_mr *_MockKBPKIRecorder) GetCryptPublicKeys(arg0, arg1 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "GetCryptPublicKeys", arg0, arg1)
 }
 
-func (_m *MockKBPKI) GetCurrentCryptPublicKey() (CryptPublicKey, error) {
-	ret := _m.ctrl.Call(_m, "GetCurrentCryptPublicKey")
+func (_m *MockKBPKI) GetCurrentCryptPublicKey(ctx context.Context) (CryptPublicKey, error) {
+	ret := _m.ctrl.Call(_m, "GetCurrentCryptPublicKey", ctx)
 	ret0, _ := ret[0].(CryptPublicKey)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-func (_mr *_MockKBPKIRecorder) GetCurrentCryptPublicKey() *gomock.Call {
-	return _mr.mock.ctrl.RecordCall(_mr.mock, "GetCurrentCryptPublicKey")
+func (_mr *_MockKBPKIRecorder) GetCurrentCryptPublicKey(arg0 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "GetCurrentCryptPublicKey", arg0)
 }
 
 // Mock of KeyManager interface

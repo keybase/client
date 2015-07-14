@@ -126,7 +126,7 @@ func (r *Root) Lookup(ctx context.Context, req *fuse.LookupRequest, resp *fuse.L
 		return nil, fuse.ENOENT
 	}
 
-	if canon := dh.ToString(r.fs.config); canon != req.Name {
+	if canon := dh.ToString(ctx, r.fs.config); canon != req.Name {
 		n := &Alias{
 			canon: canon,
 		}
@@ -195,7 +195,7 @@ func (r *Root) getDirent(ctx context.Context, work <-chan libkbfs.TlfID, results
 			if err != nil {
 				return err
 			}
-			name := dh.ToString(r.fs.config)
+			name := dh.ToString(ctx, r.fs.config)
 			results <- fuse.Dirent{
 				Type: fuse.DT_Dir,
 				Name: name,

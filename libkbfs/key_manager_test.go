@@ -34,7 +34,8 @@ func expectUncachedGetTLFCryptKey(config *ConfigMock, rmd *RootMetadata, keyGen 
 		Return(TLFCryptKey{}, errors.New("NONE"))
 
 	// get the xor'd key out of the metadata
-	config.mockKbpki.EXPECT().GetCurrentCryptPublicKey().Return(subkey, nil)
+	config.mockKbpki.EXPECT().GetCurrentCryptPublicKey(gomock.Any()).
+		Return(subkey, nil)
 	config.mockCrypto.EXPECT().DecryptTLFCryptKeyClientHalf(gomock.Any(),
 		TLFEphemeralPublicKey{}, gomock.Any()).
 		Return(TLFCryptKeyClientHalf{}, nil)
@@ -55,7 +56,7 @@ func expectRekey(config *ConfigMock, rmd *RootMetadata) {
 	config.mockCrypto.EXPECT().MakeRandomTLFCryptKeyServerHalf().Return(TLFCryptKeyServerHalf{}, nil)
 
 	subkey := MakeFakeCryptPublicKeyOrBust("crypt public key")
-	config.mockKbpki.EXPECT().GetCryptPublicKeys(gomock.Any()).
+	config.mockKbpki.EXPECT().GetCryptPublicKeys(gomock.Any(), gomock.Any()).
 		Return([]CryptPublicKey{subkey}, nil)
 
 	// make keys for the one device

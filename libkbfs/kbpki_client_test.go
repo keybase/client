@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	keybase1 "github.com/keybase/client/protocol/go"
+	"golang.org/x/net/context"
 )
 
 type FakeKBPKIClient struct {
@@ -35,12 +36,13 @@ func (fc FakeKBPKIClient) Call(s string, args interface{}, res interface{}) erro
 		return nil
 
 	case "keybase.1.session.currentSession":
-		user, err := fc.Local.GetUser(fc.Local.LoggedIn)
+		ctx := context.Background()
+		user, err := fc.Local.GetUser(ctx, fc.Local.LoggedIn)
 		if err != nil {
 			return err
 		}
 
-		deviceSubkey, err := fc.Local.GetCurrentCryptPublicKey()
+		deviceSubkey, err := fc.Local.GetCurrentCryptPublicKey(ctx)
 		if err != nil {
 			return err
 		}
@@ -62,7 +64,7 @@ func TestKBPKIClientResolveAssertion(t *testing.T) {
 	fc := NewFakeKBPKIClient(expectedUID, MakeLocalUsers(users))
 	c := newKBPKIClientWithClient(nil, fc)
 
-	u, err := c.ResolveAssertion("pc")
+	u, err := c.ResolveAssertion(context.Background(), "pc")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -76,7 +78,7 @@ func TestKBPKIClientGetUser(t *testing.T) {
 	fc := NewFakeKBPKIClient(keybase1.MakeTestUID(1), MakeLocalUsers(users))
 	c := newKBPKIClientWithClient(nil, fc)
 
-	u, err := c.GetUser(keybase1.MakeTestUID(1))
+	u, err := c.GetUser(context.Background(), keybase1.MakeTestUID(1))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -91,12 +93,14 @@ func TestKBPKIClientHasVerifyingKey(t *testing.T) {
 	fc := NewFakeKBPKIClient(keybase1.MakeTestUID(1), localUsers)
 	c := newKBPKIClientWithClient(nil, fc)
 
-	err := c.HasVerifyingKey(keybase1.MakeTestUID(1), localUsers[0].VerifyingKeys[0])
+	err := c.HasVerifyingKey(context.Background(), keybase1.MakeTestUID(1),
+		localUsers[0].VerifyingKeys[0])
 	if err != nil {
 		t.Error(err)
 	}
 
-	err = c.HasVerifyingKey(keybase1.MakeTestUID(1), VerifyingKey{})
+	err = c.HasVerifyingKey(context.Background(), keybase1.MakeTestUID(1),
+		VerifyingKey{})
 	if err == nil {
 		t.Error("HasVerifyingKey unexpectedly succeeded")
 	}
@@ -108,7 +112,8 @@ func TestKBPKIClientGetCryptPublicKeys(t *testing.T) {
 	fc := NewFakeKBPKIClient(keybase1.MakeTestUID(1), localUsers)
 	c := newKBPKIClientWithClient(nil, fc)
 
-	cryptPublicKeys, err := c.GetCryptPublicKeys(keybase1.MakeTestUID(1))
+	cryptPublicKeys, err := c.GetCryptPublicKeys(context.Background(),
+		keybase1.MakeTestUID(1))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -130,7 +135,7 @@ func TestKBPKIClientGetCurrentCryptPublicKey(t *testing.T) {
 	fc := NewFakeKBPKIClient(keybase1.MakeTestUID(2), localUsers)
 	c := newKBPKIClientWithClient(nil, fc)
 
-	currPublicKey, err := c.GetCurrentCryptPublicKey()
+	currPublicKey, err := c.GetCurrentCryptPublicKey(context.Background())
 	if err != nil {
 		t.Fatal(err)
 	}
