@@ -160,6 +160,7 @@ func (f *File) Setattr(ctx context.Context, req *fuse.SetattrRequest, resp *fuse
 
 var _ fs.NodeForgetter = (*File)(nil)
 
+// Forget kernel reference to this node.
 func (f *File) Forget() {
 	f.parent.folder.mu.Lock()
 	defer f.parent.folder.mu.Unlock()

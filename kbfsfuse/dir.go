@@ -355,6 +355,7 @@ func (d *Dir) ReadDirAll(ctx context.Context) ([]fuse.Dirent, error) {
 
 var _ fs.NodeForgetter = (*Dir)(nil)
 
+// Forget kernel reference to this node.
 func (d *Dir) Forget() {
 	d.folder.mu.Lock()
 	defer d.folder.mu.Unlock()
