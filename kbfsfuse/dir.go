@@ -220,16 +220,28 @@ func (d *Dir) Lookup(ctx context.Context, req *fuse.LookupRequest, resp *fuse.Lo
 		if err != nil {
 			return nil, err
 		}
-		id := rootNode.GetFolderBranch().Tlf
+		folderBranch := rootNode.GetFolderBranch()
 		pubFolder := &Folder{
 			fs:    d.folder.fs,
-			id:    id,
+			id:    folderBranch.Tlf,
 			dh:    dhPub,
 			nodes: map[libkbfs.NodeID]folderNode{},
 		}
 		child := newDir(pubFolder, rootNode, nil)
-		// not storing in active, as child.parent is nil and it would
-		// never notify us of Forget
+		// we store this in active for later lookups, but note that it
+		// really doesn't play along the normal rules; as
+		// child.parent==nil, Forget will never make it unregister
+		// from active
+		//
+		// TODO later refactoring to use /public/jdoe and
+		// /private/jdoe paths will change all of this
+		d.active[req.Name] = child
+
+		// TODO we never unregister
+		if err := d.folder.fs.config.Notifier().RegisterForChanges([]libkbfs.FolderBranch{folderBranch}, pubFolder); err != nil {
+			return nil, err
+		}
+
 		return child, nil
 	}
 
