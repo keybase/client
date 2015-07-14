@@ -22,7 +22,8 @@ func (b *BlockOpsStandard) Get(ctx context.Context, md *RootMetadata,
 		return err
 	}
 
-	tlfCryptKey, err := b.config.KeyManager().GetTLFCryptKeyForBlockDecryption(md, blockPtr)
+	tlfCryptKey, err := b.config.KeyManager().
+		GetTLFCryptKeyForBlockDecryption(ctx, md, blockPtr)
 	if err != nil {
 		return err
 	}
@@ -45,8 +46,9 @@ func (b *BlockOpsStandard) Get(ctx context.Context, md *RootMetadata,
 }
 
 // Ready implements the BlockOps interface for BlockOpsStandard.
-func (b *BlockOpsStandard) Ready(md *RootMetadata, block Block) (
-	id BlockID, plainSize int, readyBlockData ReadyBlockData, err error) {
+func (b *BlockOpsStandard) Ready(ctx context.Context, md *RootMetadata,
+	block Block) (id BlockID, plainSize int, readyBlockData ReadyBlockData,
+	err error) {
 	defer func() {
 		if err != nil {
 			id = BlockID{}
@@ -57,7 +59,8 @@ func (b *BlockOpsStandard) Ready(md *RootMetadata, block Block) (
 
 	crypto := b.config.Crypto()
 
-	tlfCryptKey, err := b.config.KeyManager().GetTLFCryptKeyForEncryption(md)
+	tlfCryptKey, err := b.config.KeyManager().
+		GetTLFCryptKeyForEncryption(ctx, md)
 	if err != nil {
 		return
 	}

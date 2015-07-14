@@ -25,9 +25,10 @@ func (cbo *CheckBlockOps) Get(ctx context.Context, md *RootMetadata,
 	return cbo.delegate.Get(ctx, md, blockPtr, block)
 }
 
-func (cbo *CheckBlockOps) Ready(md *RootMetadata, block Block) (
-	id BlockID, plainSize int, readyBlockData ReadyBlockData, err error) {
-	id, plainSize, readyBlockData, err = cbo.delegate.Ready(md, block)
+func (cbo *CheckBlockOps) Ready(ctx context.Context, md *RootMetadata,
+	block Block) (id BlockID, plainSize int, readyBlockData ReadyBlockData,
+	err error) {
+	id, plainSize, readyBlockData, err = cbo.delegate.Ready(ctx, md, block)
 	encodedSize := readyBlockData.GetEncodedSize()
 	if plainSize > encodedSize {
 		cbo.tr.Errorf("expected plainSize <= encodedSize, got plainSize = %d, "+
@@ -258,7 +259,8 @@ func (p ptrMatcher) String() string {
 func fillInNewMD(t *testing.T, config *ConfigMock, rmd *RootMetadata) (
 	rootPtr BlockPointer, plainSize int, readyBlockData ReadyBlockData) {
 	if !rmd.ID.IsPublic() {
-		config.mockKeyman.EXPECT().Rekey(rmd).Do(func(rmd *RootMetadata) {
+		config.mockKeyman.EXPECT().Rekey(gomock.Any(), rmd).
+			Do(func(ctx context.Context, rmd *RootMetadata) {
 			AddNewKeysOrBust(t, rmd, DirKeyBundle{})
 		}).Return(nil)
 	}
@@ -272,8 +274,8 @@ func fillInNewMD(t *testing.T, config *ConfigMock, rmd *RootMetadata) (
 		buf: []byte{1, 2, 3, 4},
 	}
 
-	config.mockBops.EXPECT().Ready(rmdMatcher{rmd}, gomock.Any()).Return(
-		rootPtr.ID, plainSize, readyBlockData, nil)
+	config.mockBops.EXPECT().Ready(gomock.Any(), rmdMatcher{rmd},
+		gomock.Any()).Return(rootPtr.ID, plainSize, readyBlockData, nil)
 	return
 }
 
@@ -841,8 +843,8 @@ func expectSyncBlockHelper(
 		readyBlockData := ReadyBlockData{
 			buf: newBuf,
 		}
-		call := config.mockBops.EXPECT().Ready(rmdMatcher{rmd}, gomock.Any()).Return(
-			newID, len(newBuf), readyBlockData, nil)
+		call := config.mockBops.EXPECT().Ready(gomock.Any(), rmdMatcher{rmd},
+			gomock.Any()).Return(newID, len(newBuf), readyBlockData, nil)
 		if lastCall != nil {
 			call = call.After(lastCall)
 		}
@@ -3473,7 +3475,7 @@ func expectSyncDirtyBlock(config *ConfigMock, rmd *RootMetadata, ptr BlockPointe
 	readyBlockData := ReadyBlockData{
 		buf: newEncBuf,
 	}
-	c2 := config.mockBops.EXPECT().Ready(rmdMatcher{rmd}, block).
+	c2 := config.mockBops.EXPECT().Ready(gomock.Any(), rmdMatcher{rmd}, block).
 		After(c1).Return(newID, len(block.Contents), readyBlockData, nil)
 	config.mockBops.EXPECT().Put(gomock.Any(), rmdMatcher{rmd},
 		ptrMatcher{BlockPointer{ID: newID}}, readyBlockData).Return(nil)
@@ -3988,8 +3990,9 @@ func TestSyncDirtyWithBlockChangePointerSuccess(t *testing.T) {
 	changeReadyBlockData := ReadyBlockData{
 		buf: changeBuf,
 	}
-	lastCall = config.mockBops.EXPECT().Ready(rmdMatcher{rmd}, gomock.Any()).Return(
-		changeBlockID, changePlainSize, changeReadyBlockData, nil).After(lastCall)
+	lastCall = config.mockBops.EXPECT().Ready(gomock.Any(), rmdMatcher{rmd},
+		gomock.Any()).Return(changeBlockID, changePlainSize,
+		changeReadyBlockData, nil).After(lastCall)
 	config.mockBops.EXPECT().Put(ctx, rmdMatcher{rmd},
 		ptrMatcher{BlockPointer{ID: changeBlockID}}, changeReadyBlockData).
 		Return(nil)

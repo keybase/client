@@ -379,7 +379,7 @@ func (fbo *FolderBranchOps) initMDLocked(
 		expectedKeyGen = PublicKeyGen
 	} else {
 		// create a new set of keys for this metadata
-		if err := fbo.config.KeyManager().Rekey(md); err != nil {
+		if err := fbo.config.KeyManager().Rekey(ctx, md); err != nil {
 			return err
 		}
 		expectedKeyGen = FirstValidKeyGen
@@ -388,7 +388,8 @@ func (fbo *FolderBranchOps) initMDLocked(
 	if keyGen != expectedKeyGen {
 		return InvalidKeyGenerationError{handle, keyGen}
 	}
-	info, plainSize, readyBlockData, err := fbo.readyBlock(md, newDblock, user)
+	info, plainSize, readyBlockData, err :=
+		fbo.readyBlock(ctx, md, newDblock, user)
 	if err != nil {
 		return err
 	}
@@ -831,10 +832,11 @@ func (bps *blockPutState) mergeOtherBps(other *blockPutState) {
 	bps.blockStates = append(bps.blockStates, other.blockStates...)
 }
 
-func (fbo *FolderBranchOps) readyBlock(md *RootMetadata, block Block,
-	user keybase1.UID) (
+func (fbo *FolderBranchOps) readyBlock(ctx context.Context, md *RootMetadata,
+	block Block, user keybase1.UID) (
 	info BlockInfo, plainSize int, readyBlockData ReadyBlockData, err error) {
-	id, plainSize, readyBlockData, err := fbo.config.BlockOps().Ready(md, block)
+	id, plainSize, readyBlockData, err :=
+		fbo.config.BlockOps().Ready(ctx, md, block)
 	if err != nil {
 		return
 	}
@@ -855,10 +857,11 @@ func (fbo *FolderBranchOps) readyBlock(md *RootMetadata, block Block,
 	return
 }
 
-func (fbo *FolderBranchOps) readyBlockMultiple(md *RootMetadata,
-	currBlock Block, user keybase1.UID, bps *blockPutState) (
+func (fbo *FolderBranchOps) readyBlockMultiple(ctx context.Context,
+	md *RootMetadata, currBlock Block, user keybase1.UID, bps *blockPutState) (
 	info BlockInfo, plainSize int, err error) {
-	info, plainSize, readyBlockData, err := fbo.readyBlock(md, currBlock, user)
+	info, plainSize, readyBlockData, err :=
+		fbo.readyBlock(ctx, md, currBlock, user)
 	if err != nil {
 		return
 	}
@@ -867,15 +870,16 @@ func (fbo *FolderBranchOps) readyBlockMultiple(md *RootMetadata,
 	return
 }
 
-func (fbo *FolderBranchOps) unembedBlockChanges(bps *blockPutState,
-	md *RootMetadata, changes *BlockChanges, user keybase1.UID) (err error) {
+func (fbo *FolderBranchOps) unembedBlockChanges(
+	ctx context.Context, bps *blockPutState, md *RootMetadata,
+	changes *BlockChanges, user keybase1.UID) (err error) {
 	buf, err := fbo.config.Codec().Encode(changes)
 	if err != nil {
 		return
 	}
 	block := NewFileBlock().(*FileBlock)
 	block.Contents = buf
-	info, _, err := fbo.readyBlockMultiple(md, block, user, bps)
+	info, _, err := fbo.readyBlockMultiple(ctx, md, block, user, bps)
 	if err != nil {
 		return
 	}
@@ -958,7 +962,8 @@ func (fbo *FolderBranchOps) syncBlockLocked(ctx context.Context,
 	doSetTime := true
 	now := time.Now().UnixNano()
 	for len(newPath.path) < len(dir.path)+1 {
-		info, plainSize, err := fbo.readyBlockMultiple(md, currBlock, user, bps)
+		info, plainSize, err :=
+			fbo.readyBlockMultiple(ctx, md, currBlock, user, bps)
 		if err != nil {
 			return path{}, DirEntry{}, nil, err
 		}
@@ -1102,7 +1107,7 @@ func (fbo *FolderBranchOps) syncBlockLocked(ctx context.Context,
 	// do the block changes need their own blocks?
 	bsplit := fbo.config.BlockSplitter()
 	if !bsplit.ShouldEmbedBlockChanges(&md.data.Changes) {
-		err = fbo.unembedBlockChanges(bps, md, &md.data.Changes,
+		err = fbo.unembedBlockChanges(ctx, bps, md, &md.data.Changes,
 			user)
 		if err != nil {
 			return path{}, DirEntry{}, nil, err
@@ -2516,7 +2521,7 @@ func (fbo *FolderBranchOps) syncLocked(ctx context.Context, file path) error {
 				}
 
 				newInfo, _, readyBlockData, err :=
-					fbo.readyBlock(md, block, user)
+					fbo.readyBlock(ctx, md, block, user)
 				if err != nil {
 					return err
 				}

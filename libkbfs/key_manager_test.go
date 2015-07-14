@@ -6,15 +6,17 @@ import (
 
 	"github.com/golang/mock/gomock"
 	keybase1 "github.com/keybase/client/protocol/go"
+	"golang.org/x/net/context"
 )
 
 func keyManagerInit(t *testing.T) (mockCtrl *gomock.Controller,
-	config *ConfigMock) {
+	config *ConfigMock, ctx context.Context) {
 	ctr := NewSafeTestReporter(t)
 	mockCtrl = gomock.NewController(ctr)
 	config = NewConfigMock(mockCtrl, ctr)
 	keyman := &KeyManagerStandard{config}
 	config.SetKeyManager(keyman)
+	ctx = context.Background()
 	return
 }
 
@@ -65,13 +67,14 @@ func expectRekey(config *ConfigMock, rmd *RootMetadata) {
 }
 
 func TestKeyManagerPublicTLFCryptKey(t *testing.T) {
-	mockCtrl, config := keyManagerInit(t)
+	mockCtrl, config, ctx := keyManagerInit(t)
 	defer keyManagerShutdown(mockCtrl, config)
 
 	id, h, _ := newDir(t, config, 1, false, true)
 	rmd := NewRootMetadataForTest(h, id)
 
-	tlfCryptKey, err := config.KeyManager().GetTLFCryptKeyForEncryption(rmd)
+	tlfCryptKey, err := config.KeyManager().
+		GetTLFCryptKeyForEncryption(ctx, rmd)
 	if err != nil {
 		t.Error(err)
 	}
@@ -80,7 +83,8 @@ func TestKeyManagerPublicTLFCryptKey(t *testing.T) {
 		t.Errorf("got %v, expected %v", tlfCryptKey, PublicTLFCryptKey)
 	}
 
-	tlfCryptKey, err = config.KeyManager().GetTLFCryptKeyForMDDecryption(rmd)
+	tlfCryptKey, err = config.KeyManager().
+		GetTLFCryptKeyForMDDecryption(ctx, rmd)
 	if err != nil {
 		t.Error(err)
 	}
@@ -89,7 +93,8 @@ func TestKeyManagerPublicTLFCryptKey(t *testing.T) {
 		t.Errorf("got %v, expected %v", tlfCryptKey, PublicTLFCryptKey)
 	}
 
-	tlfCryptKey, err = config.KeyManager().GetTLFCryptKeyForBlockDecryption(rmd, BlockPointer{})
+	tlfCryptKey, err = config.KeyManager().
+		GetTLFCryptKeyForBlockDecryption(ctx, rmd, BlockPointer{})
 	if err != nil {
 		t.Error(err)
 	}
@@ -100,7 +105,7 @@ func TestKeyManagerPublicTLFCryptKey(t *testing.T) {
 }
 
 func TestKeyManagerCachedSecretKeyForEncryptionSuccess(t *testing.T) {
-	mockCtrl, config := keyManagerInit(t)
+	mockCtrl, config, ctx := keyManagerInit(t)
 	defer keyManagerShutdown(mockCtrl, config)
 
 	_, id, h := makeID(t, config, false)
@@ -109,13 +114,14 @@ func TestKeyManagerCachedSecretKeyForEncryptionSuccess(t *testing.T) {
 
 	expectCachedGetTLFCryptKey(config, rmd, rmd.LatestKeyGeneration())
 
-	if _, err := config.KeyManager().GetTLFCryptKeyForEncryption(rmd); err != nil {
+	if _, err := config.KeyManager().
+		GetTLFCryptKeyForEncryption(ctx, rmd); err != nil {
 		t.Errorf("Got error on GetTLFCryptKeyForEncryption: %v", err)
 	}
 }
 
 func TestKeyManagerCachedSecretKeyForMDDecryptionSuccess(t *testing.T) {
-	mockCtrl, config := keyManagerInit(t)
+	mockCtrl, config, ctx := keyManagerInit(t)
 	defer keyManagerShutdown(mockCtrl, config)
 
 	_, id, h := makeID(t, config, false)
@@ -124,13 +130,14 @@ func TestKeyManagerCachedSecretKeyForMDDecryptionSuccess(t *testing.T) {
 
 	expectCachedGetTLFCryptKey(config, rmd, rmd.LatestKeyGeneration())
 
-	if _, err := config.KeyManager().GetTLFCryptKeyForMDDecryption(rmd); err != nil {
+	if _, err := config.KeyManager().
+		GetTLFCryptKeyForMDDecryption(ctx, rmd); err != nil {
 		t.Errorf("Got error on GetTLFCryptKeyForMDDecryption: %v", err)
 	}
 }
 
 func TestKeyManagerCachedSecretKeyForBlockDecryptionSuccess(t *testing.T) {
-	mockCtrl, config := keyManagerInit(t)
+	mockCtrl, config, ctx := keyManagerInit(t)
 	defer keyManagerShutdown(mockCtrl, config)
 
 	_, id, h := makeID(t, config, false)
@@ -141,7 +148,8 @@ func TestKeyManagerCachedSecretKeyForBlockDecryptionSuccess(t *testing.T) {
 	keyGen := rmd.LatestKeyGeneration() - 1
 	expectCachedGetTLFCryptKey(config, rmd, keyGen)
 
-	if _, err := config.KeyManager().GetTLFCryptKeyForBlockDecryption(rmd, BlockPointer{KeyGen: keyGen}); err != nil {
+	if _, err := config.KeyManager().GetTLFCryptKeyForBlockDecryption(
+		ctx, rmd, BlockPointer{KeyGen: keyGen}); err != nil {
 		t.Errorf("Got error on GetTLFCryptKeyForBlockDecryption: %v", err)
 	}
 }
@@ -157,7 +165,7 @@ func makeDirKeyBundle(uid keybase1.UID, cryptPublicKey CryptPublicKey) DirKeyBun
 }
 
 func TestKeyManagerUncachedSecretKeyForEncryptionSuccess(t *testing.T) {
-	mockCtrl, config := keyManagerInit(t)
+	mockCtrl, config, ctx := keyManagerInit(t)
 	defer keyManagerShutdown(mockCtrl, config)
 
 	uid, id, h := makeID(t, config, false)
@@ -168,13 +176,14 @@ func TestKeyManagerUncachedSecretKeyForEncryptionSuccess(t *testing.T) {
 
 	expectUncachedGetTLFCryptKey(config, rmd, rmd.LatestKeyGeneration(), uid, subkey)
 
-	if _, err := config.KeyManager().GetTLFCryptKeyForEncryption(rmd); err != nil {
+	if _, err := config.KeyManager().
+		GetTLFCryptKeyForEncryption(ctx, rmd); err != nil {
 		t.Errorf("Got error on GetTLFCryptKeyForEncryption: %v", err)
 	}
 }
 
 func TestKeyManagerUncachedSecretKeyForMDDecryptionSuccess(t *testing.T) {
-	mockCtrl, config := keyManagerInit(t)
+	mockCtrl, config, ctx := keyManagerInit(t)
 	defer keyManagerShutdown(mockCtrl, config)
 
 	uid, id, h := makeID(t, config, false)
@@ -185,13 +194,14 @@ func TestKeyManagerUncachedSecretKeyForMDDecryptionSuccess(t *testing.T) {
 
 	expectUncachedGetTLFCryptKey(config, rmd, rmd.LatestKeyGeneration(), uid, subkey)
 
-	if _, err := config.KeyManager().GetTLFCryptKeyForMDDecryption(rmd); err != nil {
+	if _, err := config.KeyManager().
+		GetTLFCryptKeyForMDDecryption(ctx, rmd); err != nil {
 		t.Errorf("Got error on GetTLFCryptKeyForMDDecryption: %v", err)
 	}
 }
 
 func TestKeyManagerUncachedSecretKeyForBlockDecryptionSuccess(t *testing.T) {
-	mockCtrl, config := keyManagerInit(t)
+	mockCtrl, config, ctx := keyManagerInit(t)
 	defer keyManagerShutdown(mockCtrl, config)
 
 	uid, id, h := makeID(t, config, false)
@@ -204,13 +214,14 @@ func TestKeyManagerUncachedSecretKeyForBlockDecryptionSuccess(t *testing.T) {
 	keyGen := rmd.LatestKeyGeneration() - 1
 	expectUncachedGetTLFCryptKey(config, rmd, keyGen, uid, subkey)
 
-	if _, err := config.KeyManager().GetTLFCryptKeyForBlockDecryption(rmd, BlockPointer{KeyGen: keyGen}); err != nil {
+	if _, err := config.KeyManager().GetTLFCryptKeyForBlockDecryption(
+		ctx, rmd, BlockPointer{KeyGen: keyGen}); err != nil {
 		t.Errorf("Got error on GetTLFCryptKeyForBlockDecryption: %v", err)
 	}
 }
 
 func TestKeyManagerRekeySuccessPublic(t *testing.T) {
-	mockCtrl, config := keyManagerInit(t)
+	mockCtrl, config, ctx := keyManagerInit(t)
 	defer keyManagerShutdown(mockCtrl, config)
 
 	_, id, h := makeID(t, config, true)
@@ -219,7 +230,8 @@ func TestKeyManagerRekeySuccessPublic(t *testing.T) {
 		t.Errorf("Expected %d, got %d", rmd.LatestKeyGeneration(), PublicKeyGen)
 	}
 
-	if err := config.KeyManager().Rekey(rmd); err != (InvalidPublicTLFOperation{id, "rekey"}) {
+	if err := config.KeyManager().
+		Rekey(ctx, rmd); err != (InvalidPublicTLFOperation{id, "rekey"}) {
 		t.Errorf("Got unexpected error on rekey: %v", err)
 	}
 
@@ -229,7 +241,7 @@ func TestKeyManagerRekeySuccessPublic(t *testing.T) {
 }
 
 func TestKeyManagerRekeySuccessPrivate(t *testing.T) {
-	mockCtrl, config := keyManagerInit(t)
+	mockCtrl, config, ctx := keyManagerInit(t)
 	defer keyManagerShutdown(mockCtrl, config)
 
 	_, id, h := makeID(t, config, false)
@@ -238,7 +250,7 @@ func TestKeyManagerRekeySuccessPrivate(t *testing.T) {
 
 	expectRekey(config, rmd)
 
-	if err := config.KeyManager().Rekey(rmd); err != nil {
+	if err := config.KeyManager().Rekey(ctx, rmd); err != nil {
 		t.Errorf("Got error on rekey: %v", err)
 	} else if rmd.LatestKeyGeneration() != oldKeyGen+1 {
 		t.Errorf("Bad key generation after rekey: %d", rmd.LatestKeyGeneration())

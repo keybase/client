@@ -33,12 +33,12 @@ func (m rmdMatcher) String() string {
 }
 
 func expectGetTLFCryptKeyForEncryption(config *ConfigMock, rmd *RootMetadata) {
-	config.mockKeyman.EXPECT().GetTLFCryptKeyForEncryption(
+	config.mockKeyman.EXPECT().GetTLFCryptKeyForEncryption(gomock.Any(),
 		rmdMatcher{rmd}).Return(TLFCryptKey{}, nil)
 }
 
 func expectGetTLFCryptKeyForMDDecryption(config *ConfigMock, rmd *RootMetadata) {
-	config.mockKeyman.EXPECT().GetTLFCryptKeyForMDDecryption(
+	config.mockKeyman.EXPECT().GetTLFCryptKeyForMDDecryption(gomock.Any(),
 		rmdMatcher{rmd}).Return(TLFCryptKey{}, nil)
 }
 
@@ -47,7 +47,7 @@ func expectGetTLFCryptKeyForMDDecryption(config *ConfigMock, rmd *RootMetadata) 
 
 func expectGetTLFCryptKeyForBlockDecryption(
 	config *ConfigMock, rmd *RootMetadata, blockPtr BlockPointer) {
-	config.mockKeyman.EXPECT().GetTLFCryptKeyForBlockDecryption(
+	config.mockKeyman.EXPECT().GetTLFCryptKeyForBlockDecryption(gomock.Any(),
 		rmdMatcher{rmd}, blockPtr).Return(TLFCryptKey{}, nil)
 }
 
@@ -174,7 +174,7 @@ func TestBlockOpsGetFailDecryptBlockData(t *testing.T) {
 }
 
 func TestBlockOpsReadySuccess(t *testing.T) {
-	mockCtrl, config, _ := blockOpsInit(t)
+	mockCtrl, config, ctx := blockOpsInit(t)
 	defer blockOpsShutdown(mockCtrl, config)
 
 	// expect one call to encrypt a block, one to hash it
@@ -189,7 +189,8 @@ func TestBlockOpsReadySuccess(t *testing.T) {
 	config.mockCrypto.EXPECT().Hash(encData).Return(
 		libkb.NodeHashShort(id), nil)
 
-	id2, plainSize, readyBlockData, err := config.BlockOps().Ready(rmd, decData)
+	id2, plainSize, readyBlockData, err :=
+		config.BlockOps().Ready(ctx, rmd, decData)
 	if err != nil {
 		t.Errorf("Got error on ready: %v", err)
 	} else if id2 != id {
@@ -202,7 +203,7 @@ func TestBlockOpsReadySuccess(t *testing.T) {
 }
 
 func TestBlockOpsReadyFailTooLowByteCount(t *testing.T) {
-	mockCtrl, config, _ := blockOpsInit(t)
+	mockCtrl, config, ctx := blockOpsInit(t)
 	defer blockOpsShutdown(mockCtrl, config)
 
 	// expect just one call to encrypt a block
@@ -213,7 +214,7 @@ func TestBlockOpsReadyFailTooLowByteCount(t *testing.T) {
 
 	expectBlockEncrypt(config, rmd, decData, 4, encData, nil)
 
-	_, _, _, err := config.BlockOps().Ready(rmd, decData)
+	_, _, _, err := config.BlockOps().Ready(ctx, rmd, decData)
 	if _, ok := err.(TooLowByteCountError); !ok {
 		t.Errorf("Unexpectedly did not get TooLowByteCountError; "+
 			"instead got %v", err)
@@ -221,7 +222,7 @@ func TestBlockOpsReadyFailTooLowByteCount(t *testing.T) {
 }
 
 func TestBlockOpsReadyFailEncryptBlockData(t *testing.T) {
-	mockCtrl, config, _ := blockOpsInit(t)
+	mockCtrl, config, ctx := blockOpsInit(t)
 	defer blockOpsShutdown(mockCtrl, config)
 
 	// expect one call to encrypt a block, one to hash it
@@ -232,13 +233,14 @@ func TestBlockOpsReadyFailEncryptBlockData(t *testing.T) {
 
 	expectBlockEncrypt(config, rmd, decData, 0, nil, err)
 
-	if _, _, _, err2 := config.BlockOps().Ready(rmd, decData); err2 != err {
+	if _, _, _, err2 := config.BlockOps().
+		Ready(ctx, rmd, decData); err2 != err {
 		t.Errorf("Got bad error on ready: %v", err2)
 	}
 }
 
 func TestBlockOpsReadyFailHash(t *testing.T) {
-	mockCtrl, config, _ := blockOpsInit(t)
+	mockCtrl, config, ctx := blockOpsInit(t)
 	defer blockOpsShutdown(mockCtrl, config)
 
 	// expect one call to encrypt a block, one to hash it
@@ -252,13 +254,14 @@ func TestBlockOpsReadyFailHash(t *testing.T) {
 
 	config.mockCrypto.EXPECT().Hash(encData).Return(nil, err)
 
-	if _, _, _, err2 := config.BlockOps().Ready(rmd, decData); err2 != err {
+	if _, _, _, err2 := config.BlockOps().
+		Ready(ctx, rmd, decData); err2 != err {
 		t.Errorf("Got bad error on ready: %v", err2)
 	}
 }
 
 func TestBlockOpsReadyFailCast(t *testing.T) {
-	mockCtrl, config, _ := blockOpsInit(t)
+	mockCtrl, config, ctx := blockOpsInit(t)
 	defer blockOpsShutdown(mockCtrl, config)
 
 	// expect one call to encrypt a block, one to hash it
@@ -274,7 +277,7 @@ func TestBlockOpsReadyFailCast(t *testing.T) {
 
 	err := BadCryptoError{BlockID{0}}
 	if _, _, _, err2 :=
-		config.BlockOps().Ready(rmd, decData); err2 != err {
+		config.BlockOps().Ready(ctx, rmd, decData); err2 != err {
 		t.Errorf("Got bad error on ready: %v (expected %v)", err2, err)
 	}
 }

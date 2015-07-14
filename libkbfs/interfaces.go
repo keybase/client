@@ -223,21 +223,24 @@ type KeyManager interface {
 	// GetTLFCryptKeyForEncryption gets the crypt key to use for
 	// encryption (i.e., with the latest key generation) for the
 	// TLF with the given metadata.
-	GetTLFCryptKeyForEncryption(md *RootMetadata) (TLFCryptKey, error)
+	GetTLFCryptKeyForEncryption(ctx context.Context, md *RootMetadata) (
+		TLFCryptKey, error)
 
 	// GetTLFCryptKeyForMDDecryption gets the crypt key to use for
 	// the TLF with the given metadata to decrypt the private
 	// portion of the metadata.
-	GetTLFCryptKeyForMDDecryption(md *RootMetadata) (TLFCryptKey, error)
+	GetTLFCryptKeyForMDDecryption(ctx context.Context, md *RootMetadata) (
+		TLFCryptKey, error)
 
 	// GetTLFCryptKeyForBlockDecryption gets the crypt key to use
 	// for the TLF with the given metadata to decrypt the block
 	// pointed to by the given pointer.
-	GetTLFCryptKeyForBlockDecryption(md *RootMetadata, blockPtr BlockPointer) (TLFCryptKey, error)
+	GetTLFCryptKeyForBlockDecryption(ctx context.Context, md *RootMetadata,
+		blockPtr BlockPointer) (TLFCryptKey, error)
 
 	// Rekey creates a new epoch of keys for the given TLF, which
 	// must not be public.
-	Rekey(md *RootMetadata) error
+	Rekey(ctx context.Context, md *RootMetadata) error
 }
 
 // ReportingLevel indicate the severity of a reported event.
@@ -501,7 +504,7 @@ type BlockOps interface {
 	// calculates its ID and size, so that we can do a bunch of
 	// block puts in parallel for every write. Ready() must
 	// guarantee that plainSize <= readyBlockData.QuotaSize().
-	Ready(md *RootMetadata, block Block) (
+	Ready(ctx context.Context, md *RootMetadata, block Block) (
 		id BlockID, plainSize int, readyBlockData ReadyBlockData, err error)
 
 	// Put stores the readied block data under the given block

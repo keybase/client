@@ -492,47 +492,47 @@ func (_m *MockKeyManager) EXPECT() *_MockKeyManagerRecorder {
 	return _m.recorder
 }
 
-func (_m *MockKeyManager) GetTLFCryptKeyForEncryption(md *RootMetadata) (TLFCryptKey, error) {
-	ret := _m.ctrl.Call(_m, "GetTLFCryptKeyForEncryption", md)
+func (_m *MockKeyManager) GetTLFCryptKeyForEncryption(ctx context.Context, md *RootMetadata) (TLFCryptKey, error) {
+	ret := _m.ctrl.Call(_m, "GetTLFCryptKeyForEncryption", ctx, md)
 	ret0, _ := ret[0].(TLFCryptKey)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-func (_mr *_MockKeyManagerRecorder) GetTLFCryptKeyForEncryption(arg0 interface{}) *gomock.Call {
-	return _mr.mock.ctrl.RecordCall(_mr.mock, "GetTLFCryptKeyForEncryption", arg0)
+func (_mr *_MockKeyManagerRecorder) GetTLFCryptKeyForEncryption(arg0, arg1 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "GetTLFCryptKeyForEncryption", arg0, arg1)
 }
 
-func (_m *MockKeyManager) GetTLFCryptKeyForMDDecryption(md *RootMetadata) (TLFCryptKey, error) {
-	ret := _m.ctrl.Call(_m, "GetTLFCryptKeyForMDDecryption", md)
+func (_m *MockKeyManager) GetTLFCryptKeyForMDDecryption(ctx context.Context, md *RootMetadata) (TLFCryptKey, error) {
+	ret := _m.ctrl.Call(_m, "GetTLFCryptKeyForMDDecryption", ctx, md)
 	ret0, _ := ret[0].(TLFCryptKey)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-func (_mr *_MockKeyManagerRecorder) GetTLFCryptKeyForMDDecryption(arg0 interface{}) *gomock.Call {
-	return _mr.mock.ctrl.RecordCall(_mr.mock, "GetTLFCryptKeyForMDDecryption", arg0)
+func (_mr *_MockKeyManagerRecorder) GetTLFCryptKeyForMDDecryption(arg0, arg1 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "GetTLFCryptKeyForMDDecryption", arg0, arg1)
 }
 
-func (_m *MockKeyManager) GetTLFCryptKeyForBlockDecryption(md *RootMetadata, blockPtr BlockPointer) (TLFCryptKey, error) {
-	ret := _m.ctrl.Call(_m, "GetTLFCryptKeyForBlockDecryption", md, blockPtr)
+func (_m *MockKeyManager) GetTLFCryptKeyForBlockDecryption(ctx context.Context, md *RootMetadata, blockPtr BlockPointer) (TLFCryptKey, error) {
+	ret := _m.ctrl.Call(_m, "GetTLFCryptKeyForBlockDecryption", ctx, md, blockPtr)
 	ret0, _ := ret[0].(TLFCryptKey)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-func (_mr *_MockKeyManagerRecorder) GetTLFCryptKeyForBlockDecryption(arg0, arg1 interface{}) *gomock.Call {
-	return _mr.mock.ctrl.RecordCall(_mr.mock, "GetTLFCryptKeyForBlockDecryption", arg0, arg1)
+func (_mr *_MockKeyManagerRecorder) GetTLFCryptKeyForBlockDecryption(arg0, arg1, arg2 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "GetTLFCryptKeyForBlockDecryption", arg0, arg1, arg2)
 }
 
-func (_m *MockKeyManager) Rekey(md *RootMetadata) error {
-	ret := _m.ctrl.Call(_m, "Rekey", md)
+func (_m *MockKeyManager) Rekey(ctx context.Context, md *RootMetadata) error {
+	ret := _m.ctrl.Call(_m, "Rekey", ctx, md)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
-func (_mr *_MockKeyManagerRecorder) Rekey(arg0 interface{}) *gomock.Call {
-	return _mr.mock.ctrl.RecordCall(_mr.mock, "Rekey", arg0)
+func (_mr *_MockKeyManagerRecorder) Rekey(arg0, arg1 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "Rekey", arg0, arg1)
 }
 
 // Mock of Reporter interface
@@ -1237,8 +1237,8 @@ func (_mr *_MockBlockOpsRecorder) Get(arg0, arg1, arg2, arg3 interface{}) *gomoc
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "Get", arg0, arg1, arg2, arg3)
 }
 
-func (_m *MockBlockOps) Ready(md *RootMetadata, block Block) (BlockID, int, ReadyBlockData, error) {
-	ret := _m.ctrl.Call(_m, "Ready", md, block)
+func (_m *MockBlockOps) Ready(ctx context.Context, md *RootMetadata, block Block) (BlockID, int, ReadyBlockData, error) {
+	ret := _m.ctrl.Call(_m, "Ready", ctx, md, block)
 	ret0, _ := ret[0].(BlockID)
 	ret1, _ := ret[1].(int)
 	ret2, _ := ret[2].(ReadyBlockData)
@@ -1246,8 +1246,8 @@ func (_m *MockBlockOps) Ready(md *RootMetadata, block Block) (BlockID, int, Read
 	return ret0, ret1, ret2, ret3
 }
 
-func (_mr *_MockBlockOpsRecorder) Ready(arg0, arg1 interface{}) *gomock.Call {
-	return _mr.mock.ctrl.RecordCall(_mr.mock, "Ready", arg0, arg1)
+func (_mr *_MockBlockOpsRecorder) Ready(arg0, arg1, arg2 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "Ready", arg0, arg1, arg2)
 }
 
 func (_m *MockBlockOps) Put(ctx context.Context, md *RootMetadata, blockPtr BlockPointer, readyBlockData ReadyBlockData) error {

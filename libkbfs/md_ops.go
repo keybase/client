@@ -14,7 +14,7 @@ type MDOpsStandard struct {
 	config Config
 }
 
-func (md *MDOpsStandard) processMetadata(
+func (md *MDOpsStandard) processMetadata(ctx context.Context,
 	handle *TlfHandle, rmds *RootMetadataSigned) error {
 	crypto := md.config.Crypto()
 	codec := md.config.Codec()
@@ -32,7 +32,8 @@ func (md *MDOpsStandard) processMetadata(
 				return err
 			}
 
-			k, err := md.config.KeyManager().GetTLFCryptKeyForMDDecryption(&rmds.MD)
+			k, err := md.config.KeyManager().
+				GetTLFCryptKeyForMDDecryption(ctx, &rmds.MD)
 
 			if err != nil {
 				return err
@@ -117,7 +118,7 @@ func (md *MDOpsStandard) GetForHandle(ctx context.Context, handle *TlfHandle) (
 	mdserv := md.config.MDServer()
 	if rmds, err := mdserv.GetForHandle(ctx, handle); err != nil {
 		return nil, err
-	} else if err := md.processMetadata(handle, rmds); err != nil {
+	} else if err := md.processMetadata(ctx, handle, rmds); err != nil {
 		return nil, err
 	} else {
 		if rmds.IsInitialized() {
@@ -135,7 +136,7 @@ func (md *MDOpsStandard) GetForHandle(ctx context.Context, handle *TlfHandle) (
 	}
 }
 
-func (md *MDOpsStandard) processMetadataWithID(
+func (md *MDOpsStandard) processMetadataWithID(ctx context.Context,
 	id TlfID, rmds *RootMetadataSigned) error {
 	// Make sure the signed-over ID matches
 	if id != rmds.MD.ID {
@@ -145,7 +146,7 @@ func (md *MDOpsStandard) processMetadataWithID(
 				rmds.MD.ID.String()),
 		}
 	}
-	return md.processMetadata(rmds.MD.GetTlfHandle(), rmds)
+	return md.processMetadata(ctx, rmds.MD.GetTlfHandle(), rmds)
 }
 
 // GetForTLF implements the MDOps interface for MDOpsStandard.
@@ -155,7 +156,7 @@ func (md *MDOpsStandard) GetForTLF(ctx context.Context, id TlfID) (
 	if err != nil {
 		return nil, err
 	}
-	err = md.processMetadataWithID(id, rmds)
+	err = md.processMetadataWithID(ctx, id, rmds)
 	if err != nil {
 		return nil, err
 	}
@@ -170,7 +171,7 @@ func (md *MDOpsStandard) Get(ctx context.Context, mdID MdID) (
 	if err != nil {
 		return nil, err
 	}
-	err = md.processMetadata(rmds.MD.GetTlfHandle(), rmds)
+	err = md.processMetadata(ctx, rmds.MD.GetTlfHandle(), rmds)
 	if err != nil {
 		return nil, err
 	}
@@ -189,8 +190,8 @@ func (md *MDOpsStandard) Get(ctx context.Context, mdID MdID) (
 	return &rmds.MD, nil
 }
 
-func (md *MDOpsStandard) processRange(id TlfID, startRoot MdID,
-	sinceRmds []*RootMetadataSigned) ([]*RootMetadata, error) {
+func (md *MDOpsStandard) processRange(ctx context.Context, id TlfID,
+	startRoot MdID, sinceRmds []*RootMetadataSigned) ([]*RootMetadata, error) {
 	if sinceRmds == nil {
 		return nil, nil
 	}
@@ -214,7 +215,7 @@ func (md *MDOpsStandard) processRange(id TlfID, startRoot MdID,
 			}
 		}
 
-		err = md.processMetadataWithID(id, rmds)
+		err = md.processMetadataWithID(ctx, id, rmds)
 		if err != nil {
 			return nil, err
 		}
@@ -238,15 +239,15 @@ func (md *MDOpsStandard) GetSince(ctx context.Context, id TlfID, mdID MdID,
 	if err != nil {
 		return nil, false, err
 	}
-	sinceRmd, err := md.processRange(id, mdID, sinceRmds)
+	sinceRmd, err := md.processRange(ctx, id, mdID, sinceRmds)
 	if err != nil {
 		return nil, false, err
 	}
 	return sinceRmd, more, nil
 }
 
-func (md *MDOpsStandard) readyMD(id TlfID, rmd *RootMetadata) (
-	MdID, *RootMetadataSigned, error) {
+func (md *MDOpsStandard) readyMD(ctx context.Context, id TlfID,
+	rmd *RootMetadata) (MdID, *RootMetadataSigned, error) {
 	me, err := md.config.KBPKI().GetLoggedInUser()
 	if err != nil {
 		return NullMdID, nil, err
@@ -263,7 +264,7 @@ func (md *MDOpsStandard) readyMD(id TlfID, rmd *RootMetadata) (
 		}
 		rmd.SerializedPrivateMetadata = encodedPrivateMetadata
 	} else {
-		k, err := md.config.KeyManager().GetTLFCryptKeyForEncryption(rmd)
+		k, err := md.config.KeyManager().GetTLFCryptKeyForEncryption(ctx, rmd)
 		if err != nil {
 			return NullMdID, nil, err
 		}
@@ -339,7 +340,7 @@ func (md *MDOpsStandard) readyMD(id TlfID, rmd *RootMetadata) (
 // Put implements the MDOps interface for MDOpsStandard.
 func (md *MDOpsStandard) Put(ctx context.Context, id TlfID, rmd *RootMetadata,
 	deviceKID keybase1.KID, unmergedBase MdID) error {
-	mdID, rmds, err := md.readyMD(id, rmd)
+	mdID, rmds, err := md.readyMD(ctx, id, rmd)
 	if err != nil {
 		return err
 	}
@@ -351,7 +352,7 @@ func (md *MDOpsStandard) Put(ctx context.Context, id TlfID, rmd *RootMetadata,
 func (md *MDOpsStandard) PutUnmerged(ctx context.Context, id TlfID,
 	rmd *RootMetadata, deviceKID keybase1.KID) error {
 	// TODO: set unmerged bit in rmd.
-	mdID, rmds, err := md.readyMD(id, rmd)
+	mdID, rmds, err := md.readyMD(ctx, id, rmd)
 	if err != nil {
 		return err
 	}
@@ -366,7 +367,7 @@ func (md *MDOpsStandard) GetUnmergedSince(ctx context.Context, id TlfID,
 	if err != nil {
 		return nil, false, err
 	}
-	sinceRmd, err := md.processRange(id, mdID, sinceRmds)
+	sinceRmd, err := md.processRange(ctx, id, mdID, sinceRmds)
 	if err != nil {
 		return nil, false, err
 	}

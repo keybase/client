@@ -1,6 +1,9 @@
 package libkbfs
 
-import keybase1 "github.com/keybase/client/protocol/go"
+import (
+	keybase1 "github.com/keybase/client/protocol/go"
+	"golang.org/x/net/context"
+)
 
 // KeyManagerStandard implements the KeyManager interface by fetching
 // keys from KeyOps and KBPKI, and computing the complete keys
@@ -11,27 +14,29 @@ type KeyManagerStandard struct {
 
 // GetTLFCryptKeyForEncryption implements the KeyManager interface for
 // KeyManagerStandard.
-func (km *KeyManagerStandard) GetTLFCryptKeyForEncryption(md *RootMetadata) (
-	tlfCryptKey TLFCryptKey, err error) {
-	return km.getTLFCryptKey(md, md.LatestKeyGeneration())
+func (km *KeyManagerStandard) GetTLFCryptKeyForEncryption(ctx context.Context,
+	md *RootMetadata) (tlfCryptKey TLFCryptKey, err error) {
+	return km.getTLFCryptKey(ctx, md, md.LatestKeyGeneration())
 }
 
 // GetTLFCryptKeyForMDDecryption implements the KeyManager interface
 // for KeyManagerStandard.
-func (km *KeyManagerStandard) GetTLFCryptKeyForMDDecryption(md *RootMetadata) (
+func (km *KeyManagerStandard) GetTLFCryptKeyForMDDecryption(
+	ctx context.Context, md *RootMetadata) (
 	tlfCryptKey TLFCryptKey, err error) {
-	return km.getTLFCryptKey(md, md.LatestKeyGeneration())
+	return km.getTLFCryptKey(ctx, md, md.LatestKeyGeneration())
 }
 
 // GetTLFCryptKeyForBlockDecryption implements the KeyManager interface for
 // KeyManagerStandard.
-func (km *KeyManagerStandard) GetTLFCryptKeyForBlockDecryption(md *RootMetadata, blockPtr BlockPointer) (
+func (km *KeyManagerStandard) GetTLFCryptKeyForBlockDecryption(
+	ctx context.Context, md *RootMetadata, blockPtr BlockPointer) (
 	tlfCryptKey TLFCryptKey, err error) {
-	return km.getTLFCryptKey(md, blockPtr.KeyGen)
+	return km.getTLFCryptKey(ctx, md, blockPtr.KeyGen)
 }
 
-func (km *KeyManagerStandard) getTLFCryptKey(md *RootMetadata, keyGen KeyGen) (
-	tlfCryptKey TLFCryptKey, err error) {
+func (km *KeyManagerStandard) getTLFCryptKey(ctx context.Context,
+	md *RootMetadata, keyGen KeyGen) (tlfCryptKey TLFCryptKey, err error) {
 	if md.ID.IsPublic() {
 		tlfCryptKey = PublicTLFCryptKey
 		return
@@ -172,7 +177,8 @@ func (km *KeyManagerStandard) secretKeysForUser(md *RootMetadata, uid keybase1.U
 }
 
 // Rekey implements the KeyManager interface for KeyManagerStandard.
-func (km *KeyManagerStandard) Rekey(md *RootMetadata) error {
+func (km *KeyManagerStandard) Rekey(ctx context.Context,
+	md *RootMetadata) error {
 	if md.ID.IsPublic() {
 		return InvalidPublicTLFOperation{md.ID, "rekey"}
 	}
