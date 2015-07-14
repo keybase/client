@@ -41,7 +41,7 @@ func expectUncachedGetTLFCryptKey(config *ConfigMock, rmd *RootMetadata, keyGen 
 		Return(TLFCryptKeyClientHalf{}, nil)
 
 	// get the server-side half and retrieve the real secret key
-	config.mockKops.EXPECT().GetTLFCryptKeyServerHalf(
+	config.mockKops.EXPECT().GetTLFCryptKeyServerHalf(gomock.Any(),
 		rmd.ID, keyGen, subkey).Return(TLFCryptKeyServerHalf{}, nil)
 	config.mockCrypto.EXPECT().UnmaskTLFCryptKey(TLFCryptKeyServerHalf{}, TLFCryptKeyClientHalf{}).Return(TLFCryptKey{}, nil)
 
@@ -63,7 +63,7 @@ func expectRekey(config *ConfigMock, rmd *RootMetadata) {
 	config.mockCrypto.EXPECT().MaskTLFCryptKey(TLFCryptKeyServerHalf{}, TLFCryptKey{}).Return(TLFCryptKeyClientHalf{}, nil)
 	config.mockCrypto.EXPECT().EncryptTLFCryptKeyClientHalf(TLFEphemeralPrivateKey{}, subkey, TLFCryptKeyClientHalf{}).Return(EncryptedTLFCryptKeyClientHalf{}, nil)
 	newKeyGen := rmd.LatestKeyGeneration() + 1
-	config.mockKops.EXPECT().PutTLFCryptKeyServerHalf(
+	config.mockKops.EXPECT().PutTLFCryptKeyServerHalf(gomock.Any(),
 		rmd.ID, newKeyGen, subkey, TLFCryptKeyServerHalf{}).Return(nil)
 	// now put the key into the cache
 	config.mockKcache.EXPECT().PutTLFCryptKey(rmd.ID, newKeyGen, TLFCryptKey{}).Return(nil)

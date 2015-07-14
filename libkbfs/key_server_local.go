@@ -7,6 +7,7 @@ import (
 	"github.com/syndtr/goleveldb/leveldb"
 	"github.com/syndtr/goleveldb/leveldb/opt"
 	"github.com/syndtr/goleveldb/leveldb/storage"
+	"golang.org/x/net/context"
 )
 
 // KeyServerLocal just stores key server halves in a local leveldb
@@ -51,27 +52,6 @@ func NewKeyServerMemory(codec Codec) (*KeyServerLocal, error) {
 	return newKeyServerLocalWithStorage(codec, storage.NewMemStorage())
 }
 
-// GetBlockCryptKeyServerHalf implements the KeyOps interface for
-// KeyServerLocal.
-func (ks *KeyServerLocal) GetBlockCryptKeyServerHalf(id BlockID) (serverHalf BlockCryptKeyServerHalf, err error) {
-	data, err := ks.db.Get(id[:], nil)
-	if err != nil {
-		return
-	}
-	if len(data) != len(serverHalf.ServerHalf) {
-		err = fmt.Errorf("Expected length %d, got %d", len(serverHalf.ServerHalf), len(data))
-		return
-	}
-	copy(serverHalf.ServerHalf[:], data)
-	return
-}
-
-// PutBlockCryptKeyServerHalf implements the KeyOps interface for
-// KeyServerLocal.
-func (ks *KeyServerLocal) PutBlockCryptKeyServerHalf(id BlockID, serverHalf BlockCryptKeyServerHalf) error {
-	return ks.db.Put(id[:], serverHalf.ServerHalf[:], nil)
-}
-
 // DeleteBlockCryptKeyServerHalf implements the KeyOps interface for
 // KeyServerLocal.
 func (ks *KeyServerLocal) DeleteBlockCryptKeyServerHalf(id BlockID) error {
@@ -86,8 +66,9 @@ type serverHalfID struct {
 
 // GetTLFCryptKeyServerHalf implements the KeyOps interface for
 // KeyServerLocal.
-func (ks *KeyServerLocal) GetTLFCryptKeyServerHalf(
-	id TlfID, keyGen KeyGen, cryptPublicKey CryptPublicKey) (serverHalf TLFCryptKeyServerHalf, err error) {
+func (ks *KeyServerLocal) GetTLFCryptKeyServerHalf(ctx context.Context,
+	id TlfID, keyGen KeyGen, cryptPublicKey CryptPublicKey) (
+	serverHalf TLFCryptKeyServerHalf, err error) {
 	idData, err := ks.codec.Encode(serverHalfID{id, keyGen, cryptPublicKey})
 	if err != nil {
 		return
@@ -107,7 +88,7 @@ func (ks *KeyServerLocal) GetTLFCryptKeyServerHalf(
 
 // PutTLFCryptKeyServerHalf implements the KeyOps interface for
 // KeyServerLocal.
-func (ks *KeyServerLocal) PutTLFCryptKeyServerHalf(
+func (ks *KeyServerLocal) PutTLFCryptKeyServerHalf(ctx context.Context,
 	id TlfID, keyGen KeyGen, cryptPublicKey CryptPublicKey, serverHalf TLFCryptKeyServerHalf) error {
 	idData, err := ks.codec.Encode(serverHalfID{id, keyGen, cryptPublicKey})
 	if err != nil {
@@ -118,6 +99,7 @@ func (ks *KeyServerLocal) PutTLFCryptKeyServerHalf(
 }
 
 // GetMacPublicKey implements the KeyOps interface for KeyServerLocal.
-func (ks *KeyServerLocal) GetMacPublicKey(uid keybase1.UID) (MacPublicKey, error) {
+func (ks *KeyServerLocal) GetMacPublicKey(ctx context.Context,
+	uid keybase1.UID) (MacPublicKey, error) {
 	return MacPublicKey{}, nil
 }

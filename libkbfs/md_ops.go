@@ -87,7 +87,7 @@ func (md *MDOpsStandard) processMetadata(ctx context.Context,
 				// TODO: figure out the right kid for the writer, should
 				// be in the mac somewhere
 			} else if pubKey, err := md.config.KeyOps().GetMacPublicKey(
-				writer); err != nil {
+				ctx, writer); err != nil {
 				return err
 			} else if err := crypto.VerifyMAC(pubKey, buf, mac); err != nil {
 				return err
@@ -301,7 +301,7 @@ func (md *MDOpsStandard) readyMD(ctx context.Context, id TlfID,
 		macFunc := func(user keybase1.UID) error {
 			// use the latest mac keys
 			if pubKey, err :=
-				md.config.KeyOps().GetMacPublicKey(user); err != nil {
+				md.config.KeyOps().GetMacPublicKey(ctx, user); err != nil {
 				return err
 			} else if mac, err := crypto.MAC(pubKey, buf); err != nil {
 				return err

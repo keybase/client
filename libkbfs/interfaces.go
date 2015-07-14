@@ -480,15 +480,15 @@ type MDOps interface {
 type KeyOps interface {
 	// GetTLFCryptKeyServerHalf gets the server-side key half for a
 	// device (identified by its CryptPublicKey) for a given TLF.
-	GetTLFCryptKeyServerHalf(id TlfID, keyGen KeyGen,
+	GetTLFCryptKeyServerHalf(ctx context.Context, id TlfID, keyGen KeyGen,
 		cryptPublicKey CryptPublicKey) (TLFCryptKeyServerHalf, error)
 	// PutTLFCryptKeyServerHalf puts the server-side key half for a
 	// device (identified by its CryptPublicKey) for a given TLF.
-	PutTLFCryptKeyServerHalf(id TlfID, keyGen KeyGen,
+	PutTLFCryptKeyServerHalf(ctx context.Context, id TlfID, keyGen KeyGen,
 		cryptPublicKey CryptPublicKey, serverHalf TLFCryptKeyServerHalf) error
 
 	// GetMacPublicKey gets the public MAC key for a given user.
-	GetMacPublicKey(uid keybase1.UID) (MacPublicKey, error)
+	GetMacPublicKey(ctx context.Context, uid keybase1.UID) (MacPublicKey, error)
 }
 
 // BlockOps gets and puts data blocks to a BlockServer. It performs

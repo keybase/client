@@ -1174,36 +1174,36 @@ func (_m *MockKeyOps) EXPECT() *_MockKeyOpsRecorder {
 	return _m.recorder
 }
 
-func (_m *MockKeyOps) GetTLFCryptKeyServerHalf(id TlfID, keyGen KeyGen, cryptPublicKey CryptPublicKey) (TLFCryptKeyServerHalf, error) {
-	ret := _m.ctrl.Call(_m, "GetTLFCryptKeyServerHalf", id, keyGen, cryptPublicKey)
+func (_m *MockKeyOps) GetTLFCryptKeyServerHalf(ctx context.Context, id TlfID, keyGen KeyGen, cryptPublicKey CryptPublicKey) (TLFCryptKeyServerHalf, error) {
+	ret := _m.ctrl.Call(_m, "GetTLFCryptKeyServerHalf", ctx, id, keyGen, cryptPublicKey)
 	ret0, _ := ret[0].(TLFCryptKeyServerHalf)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-func (_mr *_MockKeyOpsRecorder) GetTLFCryptKeyServerHalf(arg0, arg1, arg2 interface{}) *gomock.Call {
-	return _mr.mock.ctrl.RecordCall(_mr.mock, "GetTLFCryptKeyServerHalf", arg0, arg1, arg2)
+func (_mr *_MockKeyOpsRecorder) GetTLFCryptKeyServerHalf(arg0, arg1, arg2, arg3 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "GetTLFCryptKeyServerHalf", arg0, arg1, arg2, arg3)
 }
 
-func (_m *MockKeyOps) PutTLFCryptKeyServerHalf(id TlfID, keyGen KeyGen, cryptPublicKey CryptPublicKey, serverHalf TLFCryptKeyServerHalf) error {
-	ret := _m.ctrl.Call(_m, "PutTLFCryptKeyServerHalf", id, keyGen, cryptPublicKey, serverHalf)
+func (_m *MockKeyOps) PutTLFCryptKeyServerHalf(ctx context.Context, id TlfID, keyGen KeyGen, cryptPublicKey CryptPublicKey, serverHalf TLFCryptKeyServerHalf) error {
+	ret := _m.ctrl.Call(_m, "PutTLFCryptKeyServerHalf", ctx, id, keyGen, cryptPublicKey, serverHalf)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
-func (_mr *_MockKeyOpsRecorder) PutTLFCryptKeyServerHalf(arg0, arg1, arg2, arg3 interface{}) *gomock.Call {
-	return _mr.mock.ctrl.RecordCall(_mr.mock, "PutTLFCryptKeyServerHalf", arg0, arg1, arg2, arg3)
+func (_mr *_MockKeyOpsRecorder) PutTLFCryptKeyServerHalf(arg0, arg1, arg2, arg3, arg4 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "PutTLFCryptKeyServerHalf", arg0, arg1, arg2, arg3, arg4)
 }
 
-func (_m *MockKeyOps) GetMacPublicKey(uid go0.UID) (MacPublicKey, error) {
-	ret := _m.ctrl.Call(_m, "GetMacPublicKey", uid)
+func (_m *MockKeyOps) GetMacPublicKey(ctx context.Context, uid go0.UID) (MacPublicKey, error) {
+	ret := _m.ctrl.Call(_m, "GetMacPublicKey", ctx, uid)
 	ret0, _ := ret[0].(MacPublicKey)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-func (_mr *_MockKeyOpsRecorder) GetMacPublicKey(arg0 interface{}) *gomock.Call {
-	return _mr.mock.ctrl.RecordCall(_mr.mock, "GetMacPublicKey", arg0)
+func (_mr *_MockKeyOpsRecorder) GetMacPublicKey(arg0, arg1 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "GetMacPublicKey", arg0, arg1)
 }
 
 // Mock of BlockOps interface

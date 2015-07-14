@@ -60,8 +60,8 @@ func verifyMDForPrivateShare(config *ConfigMock, rmds *RootMetadataSigned,
 
 	packedData := []byte{4, 3, 2, 1}
 	config.mockCodec.EXPECT().Encode(rmds.MD).Return(packedData, nil)
-	config.mockKops.EXPECT().GetMacPublicKey(rmds.MD.data.LastWriter).
-		Return(MacPublicKey{}, nil)
+	config.mockKops.EXPECT().GetMacPublicKey(gomock.Any(),
+		rmds.MD.data.LastWriter).Return(MacPublicKey{}, nil)
 	config.mockCrypto.EXPECT().VerifyMAC(
 		MacPublicKey{}, packedData, gomock.Any()).Return(nil)
 }
@@ -91,7 +91,7 @@ func putMDForPrivateShare(config *ConfigMock, rmds *RootMetadataSigned,
 	config.mockCodec.EXPECT().Encode(gomock.Any()).Return(packedData, nil).Times(2)
 
 	// Make a MAC for each writer
-	config.mockKops.EXPECT().GetMacPublicKey(gomock.Any()).
+	config.mockKops.EXPECT().GetMacPublicKey(gomock.Any(), gomock.Any()).
 		Times(2).Return(MacPublicKey{}, nil)
 	config.mockCrypto.EXPECT().MAC(MacPublicKey{}, packedData).
 		Times(2).Return(packedData, nil)

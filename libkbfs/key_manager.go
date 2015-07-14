@@ -96,7 +96,8 @@ func (km *KeyManagerStandard) getTLFCryptKey(ctx context.Context,
 	// now get the server-side key-half, do the unmasking, cache the result, return
 	// TODO: can parallelize the get() with decryption
 	kops := km.config.KeyOps()
-	serverHalf, err := kops.GetTLFCryptKeyServerHalf(md.ID, keyGen, currentCryptPublicKey)
+	serverHalf, err :=
+		kops.GetTLFCryptKeyServerHalf(ctx, md.ID, keyGen, currentCryptPublicKey)
 	if err != nil {
 		return
 	}
@@ -167,7 +168,7 @@ func (km *KeyManagerStandard) secretKeysForUser(ctx context.Context,
 		}
 
 		if err = kops.PutTLFCryptKeyServerHalf(
-			md.ID, newKeyGen, k, serverHalf); err != nil {
+			ctx, md.ID, newKeyGen, k, serverHalf); err != nil {
 			return
 		}
 

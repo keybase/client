@@ -1,74 +1,15 @@
 package libkbfs
 
-import "testing"
+import (
+	"testing"
 
-// Test that Put/Get/Delete works for block crypt key server halves.
-func TestKeyServerLocalBlockCryptKeyServerHalves(t *testing.T) {
-	codec := NewCodecMsgpack()
-	keyServer, err := NewKeyServerMemory(codec)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	id1 := BlockID{1}
-	serverHalf1 := BlockCryptKeyServerHalf{ServerHalf: [32]byte{1}}
-	err = keyServer.PutBlockCryptKeyServerHalf(id1, serverHalf1)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	id2 := BlockID{2}
-	serverHalf2 := BlockCryptKeyServerHalf{ServerHalf: [32]byte{2}}
-	err = keyServer.PutBlockCryptKeyServerHalf(id2, serverHalf2)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	half1, err := keyServer.GetBlockCryptKeyServerHalf(id1)
-	if err != nil {
-		t.Error(err)
-	}
-
-	if half1 != serverHalf1 {
-		t.Errorf("Expected %v, got %v", serverHalf1, half1)
-	}
-
-	half2, err := keyServer.GetBlockCryptKeyServerHalf(id2)
-	if err != nil {
-		t.Error(err)
-	}
-
-	if half2 != serverHalf2 {
-		t.Errorf("Expected %v, got %v", serverHalf2, half2)
-	}
-
-	id3 := BlockID{3}
-	_, err = keyServer.GetBlockCryptKeyServerHalf(id3)
-	if err == nil {
-		t.Error("GetBlockCryptKeyServerHalf(id3) unexpectedly succeeded")
-	}
-
-	for i := 0; i < 2; i++ {
-		err = keyServer.DeleteBlockCryptKeyServerHalf(id1)
-		if err != nil {
-			t.Error(err)
-		}
-
-		err = keyServer.DeleteBlockCryptKeyServerHalf(id2)
-		if err != nil {
-			t.Error(err)
-		}
-
-		err = keyServer.DeleteBlockCryptKeyServerHalf(id3)
-		if err != nil {
-			t.Error(err)
-		}
-	}
-}
+	"golang.org/x/net/context"
+)
 
 // Test that Put/Get works for TLF crypt key server halves.
 func TestKeyServerLocalTLFCryptKeyServerHalves(t *testing.T) {
 	codec := NewCodecMsgpack()
+	ctx := context.Background()
 	keyServer, err := NewKeyServerMemory(codec)
 	if err != nil {
 		t.Fatal(err)
@@ -87,27 +28,32 @@ func TestKeyServerLocalTLFCryptKeyServerHalves(t *testing.T) {
 	serverHalf3 := TLFCryptKeyServerHalf{ServerHalf: [32]byte{3}}
 	serverHalf4 := TLFCryptKeyServerHalf{ServerHalf: [32]byte{4}}
 
-	err = keyServer.PutTLFCryptKeyServerHalf(id1, keyGen1, publicKey1, serverHalf1)
+	err = keyServer.PutTLFCryptKeyServerHalf(
+		ctx, id1, keyGen1, publicKey1, serverHalf1)
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	err = keyServer.PutTLFCryptKeyServerHalf(id2, keyGen1, publicKey1, serverHalf2)
+	err = keyServer.PutTLFCryptKeyServerHalf(
+		ctx, id2, keyGen1, publicKey1, serverHalf2)
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	err = keyServer.PutTLFCryptKeyServerHalf(id1, keyGen2, publicKey1, serverHalf3)
+	err = keyServer.PutTLFCryptKeyServerHalf(
+		ctx, id1, keyGen2, publicKey1, serverHalf3)
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	err = keyServer.PutTLFCryptKeyServerHalf(id1, keyGen1, publicKey2, serverHalf4)
+	err = keyServer.PutTLFCryptKeyServerHalf(
+		ctx, id1, keyGen1, publicKey2, serverHalf4)
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	half1, err := keyServer.GetTLFCryptKeyServerHalf(id1, keyGen1, publicKey1)
+	half1, err := keyServer.GetTLFCryptKeyServerHalf(
+		ctx, id1, keyGen1, publicKey1)
 	if err != nil {
 		t.Error(err)
 	}
@@ -116,7 +62,8 @@ func TestKeyServerLocalTLFCryptKeyServerHalves(t *testing.T) {
 		t.Errorf("Expected %v, got %v", serverHalf1, half1)
 	}
 
-	half2, err := keyServer.GetTLFCryptKeyServerHalf(id2, keyGen1, publicKey1)
+	half2, err := keyServer.GetTLFCryptKeyServerHalf(
+		ctx, id2, keyGen1, publicKey1)
 	if err != nil {
 		t.Error(err)
 	}
@@ -125,7 +72,8 @@ func TestKeyServerLocalTLFCryptKeyServerHalves(t *testing.T) {
 		t.Errorf("Expected %v, got %v", serverHalf2, half2)
 	}
 
-	half3, err := keyServer.GetTLFCryptKeyServerHalf(id1, keyGen2, publicKey1)
+	half3, err := keyServer.GetTLFCryptKeyServerHalf(
+		ctx, id1, keyGen2, publicKey1)
 	if err != nil {
 		t.Error(err)
 	}
@@ -134,7 +82,8 @@ func TestKeyServerLocalTLFCryptKeyServerHalves(t *testing.T) {
 		t.Errorf("Expected %v, got %v", serverHalf3, half3)
 	}
 
-	half4, err := keyServer.GetTLFCryptKeyServerHalf(id1, keyGen1, publicKey2)
+	half4, err := keyServer.GetTLFCryptKeyServerHalf(
+		ctx, id1, keyGen1, publicKey2)
 	if err != nil {
 		t.Error(err)
 	}
@@ -143,7 +92,7 @@ func TestKeyServerLocalTLFCryptKeyServerHalves(t *testing.T) {
 		t.Errorf("Expected %v, got %v", serverHalf4, half4)
 	}
 
-	_, err = keyServer.GetTLFCryptKeyServerHalf(id2, keyGen2, publicKey2)
+	_, err = keyServer.GetTLFCryptKeyServerHalf(ctx, id2, keyGen2, publicKey2)
 	if err == nil {
 		t.Error("GetTLFCryptKeyServerHalf(id2, keyGen2, publicKey2) unexpectedly succeeded")
 	}
