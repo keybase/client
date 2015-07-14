@@ -56,20 +56,20 @@ func (k *KBPKIClient) ResolveAssertion(ctx context.Context, username string) (
 	arg := &engine.IDEngineArg{UserAssertion: username}
 	// TODO: Consider caching the returned public key info from
 	// identify instead of dropping them.
-	user, _, err := k.identify(arg)
+	user, _, err := k.identify(ctx, arg)
 	return user, err
 }
 
 // GetUser implements the KBPKI interface for KBPKIClient.
 func (k *KBPKIClient) GetUser(ctx context.Context, uid keybase1.UID) (
 	user *libkb.User, err error) {
-	user, _, err = k.identifyByUID(uid)
+	user, _, err = k.identifyByUID(ctx, uid)
 	return user, err
 }
 
 // GetSession implements the KBPKI interface for KBPKIClient.
 func (k *KBPKIClient) GetSession(ctx context.Context) (*libkb.Session, error) {
-	s, _, err := k.session()
+	s, _, err := k.session(ctx)
 	if err != nil {
 		// XXX shouldn't ignore this...
 		libkb.G.Log.Warning("error getting session: %q", err)
@@ -81,7 +81,7 @@ func (k *KBPKIClient) GetSession(ctx context.Context) (*libkb.Session, error) {
 // GetLoggedInUser implements the KBPKI interface for KBPKIClient.
 func (k *KBPKIClient) GetLoggedInUser(ctx context.Context) (
 	uid keybase1.UID, error error) {
-	s, _, err := k.session()
+	s, _, err := k.session(ctx)
 	if err != nil {
 		// TODO: something more intelligent; maybe just shut down
 		// unless we want anonymous browsing of public data
@@ -95,7 +95,7 @@ func (k *KBPKIClient) GetLoggedInUser(ctx context.Context) (
 // HasVerifyingKey implements the KBPKI interface for KBPKIClient.
 func (k *KBPKIClient) HasVerifyingKey(ctx context.Context, uid keybase1.UID,
 	verifyingKey VerifyingKey) error {
-	_, publicKeys, err := k.identifyByUID(uid)
+	_, publicKeys, err := k.identifyByUID(ctx, uid)
 	if err != nil {
 		return err
 	}
@@ -116,7 +116,7 @@ func (k *KBPKIClient) HasVerifyingKey(ctx context.Context, uid keybase1.UID,
 // GetCryptPublicKeys implements the KBPKI interface for KBPKIClient.
 func (k *KBPKIClient) GetCryptPublicKeys(ctx context.Context,
 	uid keybase1.UID) (keys []CryptPublicKey, err error) {
-	_, publicKeys, err := k.identifyByUID(uid)
+	_, publicKeys, err := k.identifyByUID(ctx, uid)
 	if err != nil {
 		return nil, err
 	}
@@ -140,7 +140,7 @@ func (k *KBPKIClient) GetCryptPublicKeys(ctx context.Context,
 // GetCurrentCryptPublicKey implements the KBPKI interface for KBPKIClient.
 func (k *KBPKIClient) GetCurrentCryptPublicKey(ctx context.Context) (
 	CryptPublicKey, error) {
-	_, deviceSubkey, err := k.session()
+	_, deviceSubkey, err := k.session(ctx)
 	if err != nil {
 		return CryptPublicKey{}, err
 	}
@@ -148,28 +148,57 @@ func (k *KBPKIClient) GetCurrentCryptPublicKey(ctx context.Context) (
 	return CryptPublicKey{deviceSubkey.GetKID()}, nil
 }
 
-func (k *KBPKIClient) identify(arg *engine.IDEngineArg) (*libkb.User, []keybase1.PublicKey, error) {
-	c := keybase1.IdentifyClient{Cli: k.client}
+func (k *KBPKIClient) identify(ctx context.Context, arg *engine.IDEngineArg) (
+	*libkb.User, []keybase1.PublicKey, error) {
 
-	res, err := c.Identify(arg.Export())
-	if err != nil {
-		return nil, nil, err
+	ch := make(chan error, 1) // buffered, in case the request is canceled
+	var res keybase1.IdentifyRes
+	go func() {
+		c := keybase1.IdentifyClient{Cli: k.client}
+		var err error
+		res, err = c.Identify(arg.Export())
+		ch <- err
+	}()
+
+	select {
+	case <-ctx.Done():
+		return nil, nil, ctx.Err()
+	case err := <-ch:
+		if err != nil {
+			return nil, nil, err
+		}
 	}
 
 	return libkb.NewUserThin(res.User.Username, keybase1.UID(res.User.Uid)), res.User.PublicKeys, nil
 }
 
-func (k *KBPKIClient) identifyByUID(uid keybase1.UID) (*libkb.User, []keybase1.PublicKey, error) {
+func (k *KBPKIClient) identifyByUID(ctx context.Context, uid keybase1.UID) (
+	*libkb.User, []keybase1.PublicKey, error) {
 	arg := &engine.IDEngineArg{UserAssertion: fmt.Sprintf("uid:%s", uid)}
-	return k.identify(arg)
+	return k.identify(ctx, arg)
 }
 
-func (k *KBPKIClient) session() (session *libkb.Session, deviceSubkey libkb.GenericKey, err error) {
-	c := keybase1.SessionClient{Cli: k.client}
-	const sessionID = 0
-	res, err := c.CurrentSession(sessionID)
-	if err != nil {
+func (k *KBPKIClient) session(ctx context.Context) (
+	session *libkb.Session, deviceSubkey libkb.GenericKey, err error) {
+	ch := make(chan error, 1) // buffered, in case the request is canceled
+	var res keybase1.Session
+
+	go func() {
+		c := keybase1.SessionClient{Cli: k.client}
+		const sessionID = 0
+		var err error
+		res, err = c.CurrentSession(sessionID)
+		ch <- err
+	}()
+
+	select {
+	case <-ctx.Done():
+		err = ctx.Err()
 		return
+	case err = <-ch:
+		if err != nil {
+			return
+		}
 	}
 
 	deviceSubkey, err = libkb.ImportKeypairFromKID(res.DeviceSubkeyKid)
