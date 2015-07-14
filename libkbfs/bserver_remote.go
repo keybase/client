@@ -162,6 +162,7 @@ func (b *BlockServerRemote) Shutdown() {
 // Get implements the BlockServer interface for BlockServerRemote.
 func (b *BlockServerRemote) Get(id BlockID, context BlockContext) (
 	[]byte, BlockCryptKeyServerHalf, error) {
+	libkb.G.Log.Debug("BlockServerRemote::Get id=%s uid=%s\n", hex.EncodeToString(id[:]), context.GetWriter().String())
 	if !b.connected {
 		if err := b.WaitForReconnect(); err != nil {
 			return nil, BlockCryptKeyServerHalf{}, err
@@ -174,10 +175,10 @@ func (b *BlockServerRemote) Get(id BlockID, context BlockContext) (
 	//XXX: if fails due to connection problem, should reconnect
 	res, err := b.clt.GetBlock(bid)
 	if err != nil {
+		libkb.G.Log.Debug("BlockServerRemote::Get id=%s err=%v\n", hex.EncodeToString(id[:]), err)
 		return nil, BlockCryptKeyServerHalf{}, err
 	}
 
-	// TODO: return the server-half of the block key
 	bk := BlockCryptKeyServerHalf{}
 	if kbuf, err := hex.DecodeString(res.BlockKey); err == nil {
 		copy(bk.ServerHalf[:], kbuf)
@@ -189,6 +190,8 @@ func (b *BlockServerRemote) Get(id BlockID, context BlockContext) (
 // TODO: store the server-half of the block key
 func (b *BlockServerRemote) Put(id BlockID, tlfID TlfID, context BlockContext,
 	buf []byte, serverHalf BlockCryptKeyServerHalf) error {
+
+	libkb.G.Log.Debug("BlockServerRemote::Put id=%s uid=%s\n", hex.EncodeToString(id[:]), context.GetWriter().String())
 	if !b.connected {
 		if err := b.WaitForReconnect(); err != nil {
 			return err
@@ -205,13 +208,15 @@ func (b *BlockServerRemote) Put(id BlockID, tlfID TlfID, context BlockContext,
 	}
 	err := b.clt.PutBlock(arg)
 	if err != nil {
-		libkb.G.Log.Warning("PUT to backend err : %q", err)
+		libkb.G.Log.Warning("BlockServerRemote::Put id=%s err=%v\n", hex.EncodeToString(id[:]), err)
 	}
 	return err
 }
 
 // Delete implements the BlockServer interface for BlockServerRemote.
 func (b *BlockServerRemote) Delete(id BlockID, tlfID TlfID, context BlockContext) error {
+
+	libkb.G.Log.Debug("BlockServerRemote::Delete id=%s uid=%s\n", hex.EncodeToString(id[:]), context.GetWriter().String())
 	arg := keybase1.DecBlockReferenceArg{
 		Bid: keybase1.BlockIdCombo{
 			ChargedTo: context.GetWriter(), //should be the original chargedto

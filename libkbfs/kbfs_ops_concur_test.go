@@ -36,7 +36,7 @@ func (cl *CounterLock) GetCount() int {
 
 func kbfsOpsConcurInit(t *testing.T, users ...string) (
 	Config, keybase1.UID, context.Context) {
-	config := MakeTestConfigOrBust(t, false, users...)
+	config := MakeTestConfigOrBust(t, nil, users...)
 
 	loggedInUser, err := config.KBPKI().GetLoggedInUser()
 	if err != nil {

@@ -13,13 +13,7 @@ import (
 	bserver "github.com/keybase/kbfs/bserver"
 )
 
-var (
-	BServerRemote = flag.Bool("kbfs.bserverRemote", false, "which bserver to use, local or remote")
-)
-
-func init() {
-	flag.Parse()
-}
+var BServerRemoteAddr *string
 
 func TestMain(m *testing.M) {
 
@@ -32,7 +26,11 @@ func TestMain(m *testing.M) {
 
 	rand.Seed(time.Now().UnixNano())
 
-	if *BServerRemote == true {
+	useRemote := flag.Bool("kbfs.bserverRemote", false, "which bserver to use, local or remote")
+	flag.Parse()
+
+	if *useRemote {
+		BServerRemoteAddr = &bserver.Config.BServerAddr
 		fmt.Printf("Testing Using Remote Backend: %s\n", bserver.Config.BServerAddr)
 		bserver.InitConfig("../bserver/testconfig.json")
 		bserver.Config.TestNoSession = true

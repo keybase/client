@@ -4,7 +4,6 @@ import (
 	"testing"
 
 	keybase1 "github.com/keybase/client/protocol/go"
-	bserver "github.com/keybase/kbfs/bserver"
 )
 
 // NewRootMetadataForTest returns a new initialized RootMetadata object for testing.
@@ -32,7 +31,7 @@ func NewRootMetadataForTest(d *TlfHandle, id TlfID) *RootMetadata {
 
 // MakeTestConfigOrBust creates and returns a config suitable for
 // unit-testing with the given list of users.
-func MakeTestConfigOrBust(t *testing.T, blockServerRemote bool, users ...string) *ConfigLocal {
+func MakeTestConfigOrBust(t *testing.T, blockServerRemoteAddr *string, users ...string) *ConfigLocal {
 	config := NewConfigLocal()
 
 	localUsers := MakeLocalUsers(users)
@@ -48,8 +47,8 @@ func MakeTestConfigOrBust(t *testing.T, blockServerRemote bool, users ...string)
 	crypto := NewCryptoLocal(config.Codec(), signingKey, cryptPrivateKey)
 	config.SetCrypto(crypto)
 
-	if blockServerRemote {
-		blockServer := NewBlockServerRemote(config, bserver.Config.BServerAddr)
+	if blockServerRemoteAddr != nil {
+		blockServer := NewBlockServerRemote(config, *blockServerRemoteAddr)
 		config.SetBlockServer(blockServer)
 	} else {
 		blockServer, err := NewBlockServerMemory(config)
