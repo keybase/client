@@ -627,7 +627,6 @@ type BlockSplitter interface {
 // file system operation.
 type NodeChange struct {
 	Node        Node
-	AttrUpdated bool
 	DirUpdated  bool
 	FileUpdated []WriteRange
 }

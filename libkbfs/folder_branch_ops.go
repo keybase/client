@@ -2730,9 +2730,8 @@ func (fbo *FolderBranchOps) addChangeForUpdatedDir(
 	}
 
 	return append(changes, NodeChange{
-		Node:        node,
-		AttrUpdated: true, // times changed at least
-		DirUpdated:  true,
+		Node:       node,
+		DirUpdated: true,
 	})
 }
 
@@ -2780,7 +2779,6 @@ func (fbo *FolderBranchOps) notifyBatch(ctx context.Context, md *RootMetadata) {
 
 		changes = append(changes, NodeChange{
 			Node:        node,
-			AttrUpdated: true, // times changed at least
 			FileUpdated: realOp.Writes,
 		})
 	case *setAttrOp:
@@ -2810,8 +2808,7 @@ func (fbo *FolderBranchOps) notifyBatch(ctx context.Context, md *RootMetadata) {
 		}
 
 		changes = append(changes, NodeChange{
-			Node:        childNode,
-			AttrUpdated: true,
+			Node: childNode,
 		})
 	}
 

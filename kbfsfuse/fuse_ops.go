@@ -240,9 +240,6 @@ func (f *FuseOps) BatchChanges(
 	rwchan := topNode.getChan()
 	rwchan.QueueWriteReq(func() {
 		for _, change := range changes {
-			if !change.AttrUpdated {
-				continue
-			}
 			fNode := f.fuseNodeMap[change.Node.GetID()]
 			if fNode == nil {
 				continue
