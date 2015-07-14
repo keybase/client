@@ -116,12 +116,14 @@ type FolderBranchOps struct {
 	// set to true if this write or truncate should be deferred
 	doDeferWrite bool
 	// For writes and truncates, track the unsynced to-be-unref'd
-	// block infos, per-path
+	// block infos, per-path.  Uses a stripped BlockPointer in case
+	// the Writer has changed during the operation.
 	unrefCache map[BlockPointer]*syncInfo
 	// For writes and truncates, track the modified (but not yet
 	// committed) directory entries.  The outer map maps the parent
 	// BlockPointer to the inner map, which maps the entry
-	// BlockPointer to a modified entry.
+	// BlockPointer to a modified entry.  Uses stripped BlockPointers
+	// in case the Writer changed during the operation.
 	deCache map[BlockPointer]map[BlockPointer]DirEntry
 
 	// these locks, when locked concurrently by the same goroutine,
@@ -512,7 +514,7 @@ func (fbo *FolderBranchOps) GetRootNode(ctx context.Context,
 	}
 
 	handle = md.GetTlfHandle()
-	node, err = fbo.nodeCache.GetOrCreate(stripBP(md.data.Dir.BlockPointer),
+	node, err = fbo.nodeCache.GetOrCreate(md.data.Dir.BlockPointer,
 		handle.ToString(fbo.config), nil)
 	if err != nil {
 		node = nil
@@ -628,8 +630,9 @@ func (fbo *FolderBranchOps) getFileLocked(
 	return fblock, nil
 }
 
-// TODO: get rid of this function once we move the other extraneous
-// pointer fields into BlockInfo
+// stripBP removes the Writer from the BlockPointer, in case it
+// changes as part of a write/truncate operation before the blocks are
+// sync'd.
 func stripBP(ptr BlockPointer) BlockPointer {
 	return BlockPointer{
 		ID:       ptr.ID,
@@ -746,8 +749,7 @@ func (fbo *FolderBranchOps) Lookup(ctx context.Context, dir Node, name string) (
 			return
 		}
 
-		node, err =
-			fbo.nodeCache.GetOrCreate(stripBP(de.BlockPointer), name, dir)
+		node, err = fbo.nodeCache.GetOrCreate(de.BlockPointer, name, dir)
 	}
 	return
 }
@@ -1118,7 +1120,7 @@ func (fbo *FolderBranchOps) finalizeBlocksLocked(bps *blockPutState,
 		}
 	}
 	for newPtr, oldPtr := range bps.oldPtrs {
-		fbo.nodeCache.UpdatePointer(stripBP(oldPtr), stripBP(newPtr))
+		fbo.nodeCache.UpdatePointer(oldPtr, newPtr)
 	}
 	return nil
 }
@@ -1231,7 +1233,7 @@ func (fbo *FolderBranchOps) createEntryLocked(
 		return nil, DirEntry{}, NameExistsError{name}
 	}
 
-	md.AddOp(newCreateOp(name, stripBP(dirPath.tailPointer())))
+	md.AddOp(newCreateOp(name, dirPath.tailPointer()))
 	// create new data block
 	var newBlock Block
 	// XXX: for now, put a unique ID in every new block, to make sure it
@@ -1256,7 +1258,7 @@ func (fbo *FolderBranchOps) createEntryLocked(
 	if err != nil {
 		return nil, DirEntry{}, err
 	}
-	node, err := fbo.nodeCache.GetOrCreate(stripBP(de.BlockPointer), name, dir)
+	node, err := fbo.nodeCache.GetOrCreate(de.BlockPointer, name, dir)
 	if err != nil {
 		return nil, DirEntry{}, err
 	}
@@ -1323,7 +1325,7 @@ func (fbo *FolderBranchOps) createLinkLocked(
 		return DirEntry{}, NameExistsError{fromName}
 	}
 
-	md.AddOp(newCreateOp(fromName, stripBP(dirPath.tailPointer())))
+	md.AddOp(newCreateOp(fromName, dirPath.tailPointer()))
 
 	// Create a direntry for the link, and then sync
 	dblock.Children[fromName] = DirEntry{
@@ -1374,7 +1376,7 @@ func (fbo *FolderBranchOps) removeEntryLocked(ctx context.Context,
 		return NoSuchNameError{name}
 	}
 
-	md.AddOp(newRmOp(name, stripBP(dir.tailPointer())))
+	md.AddOp(newRmOp(name, dir.tailPointer()))
 	md.AddUnrefBlock(de.BlockInfo)
 	// construct a path for the child so we can unlink with it.
 	childPath := *dir.ChildPathNoPtr(name)
@@ -1410,7 +1412,7 @@ func (fbo *FolderBranchOps) removeEntryLocked(ctx context.Context,
 	if err != nil {
 		return err
 	}
-	fbo.nodeCache.Unlink(stripBP(de.BlockPointer), childPath)
+	fbo.nodeCache.Unlink(de.BlockPointer, childPath)
 	return nil
 }
 
@@ -1511,8 +1513,8 @@ func (fbo *FolderBranchOps) renameLocked(
 		return NoSuchNameError{oldName}
 	}
 
-	md.AddOp(newRenameOp(oldName, stripBP(oldParent.tailPointer()),
-		newName, stripBP(newParent.tailPointer())))
+	md.AddOp(newRenameOp(oldName, oldParent.tailPointer(), newName,
+		newParent.tailPointer()))
 
 	lbc := make(localBcache)
 	// look up in the old path
@@ -1658,8 +1660,7 @@ func (fbo *FolderBranchOps) renameLocked(
 	if oldBps != nil {
 		newBps.mergeOtherBps(oldBps)
 	}
-	err = fbo.nodeCache.Move(stripBP(newDe.BlockPointer),
-		newParentNode, newName)
+	err = fbo.nodeCache.Move(newDe.BlockPointer, newParentNode, newName)
 	if err != nil {
 		return err
 	}
@@ -1846,7 +1847,7 @@ func (fbo *FolderBranchOps) getOrCreateSyncInfoLocked(de DirEntry) *syncInfo {
 	if !ok {
 		si = &syncInfo{
 			oldInfo: de.BlockInfo,
-			op:      newSyncOp(ptr),
+			op:      newSyncOp(de.BlockPointer),
 		}
 		fbo.unrefCache[ptr] = si
 	}
@@ -2235,7 +2236,7 @@ func (fbo *FolderBranchOps) setExLocked(
 	}
 
 	parentPath := file.parentPath()
-	md.AddOp(newSetAttrOp(file.tailName(), stripBP(parentPath.tailPointer())))
+	md.AddOp(newSetAttrOp(file.tailName(), parentPath.tailPointer()))
 
 	// If the type isn't File or Exec, there's nothing to do, but
 	// change the ctime anyway (to match ext4 behavior).
@@ -2279,7 +2280,7 @@ func (fbo *FolderBranchOps) setMtimeLocked(
 	fbo.blockLock.RUnlock()
 
 	parentPath := file.parentPath()
-	md.AddOp(newSetAttrOp(file.tailName(), stripBP(parentPath.tailPointer())))
+	md.AddOp(newSetAttrOp(file.tailName(), parentPath.tailPointer()))
 
 	de.Mtime = mtime.UnixNano()
 	// setting the mtime counts as changing the file MD, so must set ctime too
@@ -2341,7 +2342,7 @@ func (fbo *FolderBranchOps) syncLocked(ctx context.Context, file path) error {
 	// If the MD doesn't match the MD expected by the path, that
 	// implies we are using a cached path, which implies the node has
 	// been unlinked.  In that case, we can safely ignore this sync.
-	if stripBP(md.data.Dir.BlockPointer) != stripBP(file.path[0].BlockPointer) {
+	if md.data.Dir.BlockPointer != file.path[0].BlockPointer {
 		return nil
 	}
 
@@ -2688,7 +2689,7 @@ func (fbo *FolderBranchOps) UnregisterFromChanges(obs Observer) error {
 
 func (fbo *FolderBranchOps) notifyLocal(ctx context.Context,
 	file path, so *syncOp) {
-	node := fbo.nodeCache.Get(stripBP(file.tailPointer()))
+	node := fbo.nodeCache.Get(file.tailPointer())
 	if node == nil {
 		return
 	}
@@ -2704,7 +2705,7 @@ func (fbo *FolderBranchOps) notifyLocal(ctx context.Context,
 
 func (fbo *FolderBranchOps) addChangeForUpdatedDir(
 	ptr BlockPointer, changes []NodeChange) []NodeChange {
-	node := fbo.nodeCache.Get(stripBP(ptr))
+	node := fbo.nodeCache.Get(ptr)
 	if node == nil {
 		return changes
 	}
@@ -2753,7 +2754,7 @@ func (fbo *FolderBranchOps) notifyBatch(ctx context.Context, md *RootMetadata) {
 			return
 		}
 	case *syncOp:
-		node := fbo.nodeCache.Get(stripBP(realOp.File.Ref))
+		node := fbo.nodeCache.Get(realOp.File.Ref)
 		if node == nil {
 			return
 		}
@@ -2764,7 +2765,7 @@ func (fbo *FolderBranchOps) notifyBatch(ctx context.Context, md *RootMetadata) {
 			FileUpdated: realOp.Writes,
 		})
 	case *setAttrOp:
-		node := fbo.nodeCache.Get(stripBP(realOp.Dir.Ref))
+		node := fbo.nodeCache.Get(realOp.Dir.Ref)
 		if node == nil {
 			return
 		}
@@ -2784,7 +2785,7 @@ func (fbo *FolderBranchOps) notifyBatch(ctx context.Context, md *RootMetadata) {
 			return
 		}
 
-		childNode := fbo.nodeCache.Get(stripBP(de.BlockPointer))
+		childNode := fbo.nodeCache.Get(de.BlockPointer)
 		if childNode == nil {
 			return
 		}
