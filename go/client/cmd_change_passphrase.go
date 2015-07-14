@@ -52,11 +52,11 @@ func (c *changerClient) change(newPassphrase string, force bool) error {
 
 func NewCmdChangePassphrase(cl *libcmdline.CommandLine) cli.Command {
 	return cli.Command{
-		Name:        "change_passphrase",
-		Usage:       "keybase change_passphrase",
+		Name:        "change-passphrase",
+		Usage:       "keybase change-passphrase",
 		Description: "Change your keybase account passphrase",
 		Action: func(c *cli.Context) {
-			cl.ChooseCommand(&CmdChangePassphrase{}, "change_passphrase", c)
+			cl.ChooseCommand(&CmdChangePassphrase{}, "change-passphrase", c)
 		},
 	}
 }
