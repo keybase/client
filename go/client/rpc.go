@@ -147,3 +147,11 @@ func GetCtlClient() (cli keybase1.CtlClient, err error) {
 	}
 	return
 }
+
+func GetAccountClient() (cli keybase1.AccountClient, err error) {
+	var rcli *rpc2.Client
+	if rcli, _, err = GetRPCClient(); err == nil {
+		cli = keybase1.AccountClient{Cli: rcli}
+	}
+	return
+}

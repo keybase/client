@@ -28,6 +28,7 @@ func NewService(d bool) *Service {
 
 func RegisterProtocols(srv *rpc2.Server, xp *rpc2.Transport) error {
 	protocols := []rpc2.Protocol{
+		keybase1.AccountProtocol(NewAccountHandler(xp)),
 		keybase1.BTCProtocol(NewBTCHandler(xp)),
 		keybase1.ConfigProtocol(ConfigHandler{xp}),
 		keybase1.CryptoProtocol(NewCryptoHandler(xp)),

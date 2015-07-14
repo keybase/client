@@ -104,3 +104,10 @@ func (d *Device) ProtExport() *keybase1.Device {
 	}
 	return ex
 }
+
+func (d *Device) IsActive() bool {
+	if d.Status == nil {
+		return false
+	}
+	return *d.Status == DeviceStatusActive
+}

@@ -14,6 +14,7 @@ func GetCommands(cl *libcmdline.CommandLine) []cli.Command {
 		NewCmdBackup(cl),
 		NewCmdBTC(cl),
 		NewCmdCert(cl),
+		NewCmdChangePassphrase(cl),
 		NewCmdConfig(cl),
 		NewCmdCtl(cl),
 		NewCmdDb(cl),

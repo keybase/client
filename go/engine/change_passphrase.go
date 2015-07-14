@@ -65,6 +65,11 @@ func (c *ChangePassphrase) Run(ctx *Context) (err error) {
 	} else {
 		err = c.runStandardUpdate(ctx)
 	}
+
+	if err == nil {
+		c.G().LoginState().RunSecretSyncer(c.me.GetUID())
+	}
+
 	return
 }
 
@@ -248,6 +253,9 @@ func (c *ChangePassphrase) commonArgs(a *libkb.Account, oldClientHalf []byte) (*
 	lksch := make(map[keybase1.KID]string)
 	devices := c.me.GetComputedKeyFamily().GetAllDevices()
 	for _, dev := range devices {
+		if !dev.IsActive() {
+			continue
+		}
 		key, err := c.me.GetComputedKeyFamily().GetEncryptionSubkeyForDevice(dev.ID)
 		if err != nil {
 			return nil, err
