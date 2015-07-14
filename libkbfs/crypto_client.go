@@ -5,6 +5,7 @@ import (
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/protocol/go"
 	"github.com/maxtaco/go-framed-msgpack-rpc/rpc2"
+	"golang.org/x/net/context"
 )
 
 // CryptoClient implements the Crypto interface by sending RPCs to the
@@ -49,18 +50,33 @@ func newCryptoClientWithClient(codec Codec, ctx *libkb.GlobalContext, client key
 }
 
 // Sign implements the Crypto interface for CryptoClient.
-func (c *CryptoClient) Sign(msg []byte) (sigInfo SignatureInfo, err error) {
+func (c *CryptoClient) Sign(ctx context.Context, msg []byte) (
+	sigInfo SignatureInfo, err error) {
 	defer func() {
 		libkb.G.Log.Debug("Signed %d-byte message with %s: err=%v", len(msg), sigInfo, err)
 	}()
-	cc := keybase1.CryptoClient{Cli: c.client}
-	ed25519SigInfo, err := cc.SignED25519(keybase1.SignED25519Arg{
-		SessionID: 0,
-		Msg:       msg,
-		Reason:    "to use kbfs",
-	})
-	if err != nil {
+
+	ch := make(chan error, 1) // buffered, in case the request is canceled
+	var ed25519SigInfo keybase1.ED25519SignatureInfo
+	go func() {
+		cc := keybase1.CryptoClient{Cli: c.client}
+		var err error
+		ed25519SigInfo, err = cc.SignED25519(keybase1.SignED25519Arg{
+			SessionID: 0,
+			Msg:       msg,
+			Reason:    "to use kbfs",
+		})
+		ch <- err
+	}()
+
+	select {
+	case <-ctx.Done():
+		err = ctx.Err()
 		return
+	case err = <-ch:
+		if err != nil {
+			return
+		}
 	}
 
 	sigInfo = SignatureInfo{
@@ -73,7 +89,10 @@ func (c *CryptoClient) Sign(msg []byte) (sigInfo SignatureInfo, err error) {
 
 // DecryptTLFCryptKeyClientHalf implements the Crypto interface for
 // CryptoClient.
-func (c *CryptoClient) DecryptTLFCryptKeyClientHalf(publicKey TLFEphemeralPublicKey, encryptedClientHalf EncryptedTLFCryptKeyClientHalf) (clientHalf TLFCryptKeyClientHalf, err error) {
+func (c *CryptoClient) DecryptTLFCryptKeyClientHalf(ctx context.Context,
+	publicKey TLFEphemeralPublicKey,
+	encryptedClientHalf EncryptedTLFCryptKeyClientHalf) (
+	clientHalf TLFCryptKeyClientHalf, err error) {
 	if encryptedClientHalf.Version != EncryptionSecretbox {
 		err = UnknownEncryptionVer{encryptedClientHalf.Version}
 		return
@@ -93,16 +112,29 @@ func (c *CryptoClient) DecryptTLFCryptKeyClientHalf(publicKey TLFEphemeralPublic
 	}
 	copy(nonce[:], encryptedClientHalf.Nonce)
 
-	cc := keybase1.CryptoClient{Cli: c.client}
-	decryptedClientHalf, err := cc.UnboxBytes32(keybase1.UnboxBytes32Arg{
-		SessionID:        0,
-		EncryptedBytes32: encryptedData,
-		Nonce:            nonce,
-		PeersPublicKey:   keybase1.BoxPublicKey(publicKey.PublicKey),
-		Reason:           "to use kbfs",
-	})
-	if err != nil {
+	ch := make(chan error, 1) // buffered, in case the request is canceled
+	var decryptedClientHalf keybase1.Bytes32
+	go func() {
+		cc := keybase1.CryptoClient{Cli: c.client}
+		var err error
+		decryptedClientHalf, err = cc.UnboxBytes32(keybase1.UnboxBytes32Arg{
+			SessionID:        0,
+			EncryptedBytes32: encryptedData,
+			Nonce:            nonce,
+			PeersPublicKey:   keybase1.BoxPublicKey(publicKey.PublicKey),
+			Reason:           "to use kbfs",
+		})
+		ch <- err
+	}()
+
+	select {
+	case <-ctx.Done():
+		err = ctx.Err()
 		return
+	case err = <-ch:
+		if err != nil {
+			return
+		}
 	}
 
 	clientHalf = TLFCryptKeyClientHalf{decryptedClientHalf}

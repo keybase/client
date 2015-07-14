@@ -865,15 +865,15 @@ func (_mr *_MockCryptoRecorder) UnmaskBlockCryptKey(arg0, arg1 interface{}) *gom
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "UnmaskBlockCryptKey", arg0, arg1)
 }
 
-func (_m *MockCrypto) Sign(msg []byte) (SignatureInfo, error) {
-	ret := _m.ctrl.Call(_m, "Sign", msg)
+func (_m *MockCrypto) Sign(ctx context.Context, msg []byte) (SignatureInfo, error) {
+	ret := _m.ctrl.Call(_m, "Sign", ctx, msg)
 	ret0, _ := ret[0].(SignatureInfo)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-func (_mr *_MockCryptoRecorder) Sign(arg0 interface{}) *gomock.Call {
-	return _mr.mock.ctrl.RecordCall(_mr.mock, "Sign", arg0)
+func (_mr *_MockCryptoRecorder) Sign(arg0, arg1 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "Sign", arg0, arg1)
 }
 
 func (_m *MockCrypto) Verify(msg []byte, sigInfo SignatureInfo) error {
@@ -897,15 +897,15 @@ func (_mr *_MockCryptoRecorder) EncryptTLFCryptKeyClientHalf(arg0, arg1, arg2 in
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "EncryptTLFCryptKeyClientHalf", arg0, arg1, arg2)
 }
 
-func (_m *MockCrypto) DecryptTLFCryptKeyClientHalf(publicKey TLFEphemeralPublicKey, encryptedClientHalf EncryptedTLFCryptKeyClientHalf) (TLFCryptKeyClientHalf, error) {
-	ret := _m.ctrl.Call(_m, "DecryptTLFCryptKeyClientHalf", publicKey, encryptedClientHalf)
+func (_m *MockCrypto) DecryptTLFCryptKeyClientHalf(ctx context.Context, publicKey TLFEphemeralPublicKey, encryptedClientHalf EncryptedTLFCryptKeyClientHalf) (TLFCryptKeyClientHalf, error) {
+	ret := _m.ctrl.Call(_m, "DecryptTLFCryptKeyClientHalf", ctx, publicKey, encryptedClientHalf)
 	ret0, _ := ret[0].(TLFCryptKeyClientHalf)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-func (_mr *_MockCryptoRecorder) DecryptTLFCryptKeyClientHalf(arg0, arg1 interface{}) *gomock.Call {
-	return _mr.mock.ctrl.RecordCall(_mr.mock, "DecryptTLFCryptKeyClientHalf", arg0, arg1)
+func (_mr *_MockCryptoRecorder) DecryptTLFCryptKeyClientHalf(arg0, arg1, arg2 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "DecryptTLFCryptKeyClientHalf", arg0, arg1, arg2)
 }
 
 func (_m *MockCrypto) EncryptPrivateMetadata(pmd *PrivateMetadata, key TLFCryptKey) (EncryptedPrivateMetadata, error) {

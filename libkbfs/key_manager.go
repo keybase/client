@@ -88,7 +88,7 @@ func (km *KeyManagerStandard) getTLFCryptKey(ctx context.Context,
 
 	crypto := km.config.Crypto()
 	clientHalf, err :=
-		crypto.DecryptTLFCryptKeyClientHalf(ePublicKey, clientHalfData)
+		crypto.DecryptTLFCryptKeyClientHalf(ctx, ePublicKey, clientHalfData)
 	if err != nil {
 		return
 	}

@@ -35,7 +35,9 @@ func expectUncachedGetTLFCryptKey(config *ConfigMock, rmd *RootMetadata, keyGen 
 
 	// get the xor'd key out of the metadata
 	config.mockKbpki.EXPECT().GetCurrentCryptPublicKey().Return(subkey, nil)
-	config.mockCrypto.EXPECT().DecryptTLFCryptKeyClientHalf(TLFEphemeralPublicKey{}, gomock.Any()).Return(TLFCryptKeyClientHalf{}, nil)
+	config.mockCrypto.EXPECT().DecryptTLFCryptKeyClientHalf(gomock.Any(),
+		TLFEphemeralPublicKey{}, gomock.Any()).
+		Return(TLFCryptKeyClientHalf{}, nil)
 
 	// get the server-side half and retrieve the real secret key
 	config.mockKops.EXPECT().GetTLFCryptKeyServerHalf(

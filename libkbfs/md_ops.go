@@ -323,7 +323,7 @@ func (md *MDOpsStandard) readyMD(ctx context.Context, id TlfID,
 	} else {
 		// For our home and public directory:
 		//   * Sign normally using the local device private key
-		sigInfo, err := crypto.Sign(buf)
+		sigInfo, err := crypto.Sign(ctx, buf)
 		if err != nil {
 			return NullMdID, nil, err
 		}

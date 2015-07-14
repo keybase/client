@@ -8,6 +8,7 @@ import (
 
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/protocol/go"
+	"golang.org/x/net/context"
 )
 
 type FakeCryptoClient struct {
@@ -24,7 +25,7 @@ func (fc FakeCryptoClient) Call(s string, args interface{}, res interface{}) err
 	switch s {
 	case "keybase.1.crypto.signED25519":
 		arg := args.([]interface{})[0].(keybase1.SignED25519Arg)
-		sigInfo, err := fc.Local.Sign(arg.Msg)
+		sigInfo, err := fc.Local.Sign(context.Background(), arg.Msg)
 		if err != nil {
 			return err
 		}
@@ -50,7 +51,8 @@ func (fc FakeCryptoClient) Call(s string, args interface{}, res interface{}) err
 			EncryptedData: arg.EncryptedBytes32[:],
 			Nonce:         arg.Nonce[:],
 		}
-		clientHalf, err := fc.Local.DecryptTLFCryptKeyClientHalf(publicKey, encryptedClientHalf)
+		clientHalf, err := fc.Local.DecryptTLFCryptKeyClientHalf(
+			context.Background(), publicKey, encryptedClientHalf)
 		if err != nil {
 			return err
 		}
@@ -72,7 +74,7 @@ func TestCryptoClientSignAndVerify(t *testing.T) {
 	c := newCryptoClientWithClient(codec, nil, fc)
 
 	msg := []byte("message")
-	sigInfo, err := c.Sign(msg)
+	sigInfo, err := c.Sign(context.Background(), msg)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -130,7 +132,8 @@ func TestCryptoClientDecryptTLFCryptKeyClientHalfBoxSeal(t *testing.T) {
 		EncryptedData: encryptedData,
 	}
 
-	decryptedClientHalf, err := c.DecryptTLFCryptKeyClientHalf(ephPublicKey, encryptedClientHalf)
+	decryptedClientHalf, err := c.DecryptTLFCryptKeyClientHalf(
+		context.Background(), ephPublicKey, encryptedClientHalf)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -175,7 +178,8 @@ func TestCryptoClientDecryptEncryptedTLFCryptKeyClientHalf(t *testing.T) {
 		t.Fatalf("Unexpected encryption version %d", encryptedClientHalf.Version)
 	}
 
-	decryptedClientHalf, err := c.DecryptTLFCryptKeyClientHalf(ephPublicKey, encryptedClientHalf)
+	decryptedClientHalf, err := c.DecryptTLFCryptKeyClientHalf(
+		context.Background(), ephPublicKey, encryptedClientHalf)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -220,7 +224,9 @@ func TestCryptoClientDecryptTLFCryptKeyClientHalfFailures(t *testing.T) {
 	encryptedClientHalfWrongVersion := encryptedClientHalf
 	encryptedClientHalfWrongVersion.Version++
 	expectedErr = UnknownEncryptionVer{encryptedClientHalfWrongVersion.Version}
-	_, err = c.DecryptTLFCryptKeyClientHalf(ephPublicKey, encryptedClientHalfWrongVersion)
+	ctx := context.Background()
+	_, err = c.DecryptTLFCryptKeyClientHalf(ctx, ephPublicKey,
+		encryptedClientHalfWrongVersion)
 	if err != expectedErr {
 		t.Errorf("Expected %v, got %v", expectedErr, err)
 	}
@@ -230,7 +236,8 @@ func TestCryptoClientDecryptTLFCryptKeyClientHalfFailures(t *testing.T) {
 	encryptedClientHalfWrongSize := encryptedClientHalf
 	encryptedClientHalfWrongSize.EncryptedData = encryptedClientHalfWrongSize.EncryptedData[:len(encryptedClientHalfWrongSize.EncryptedData)-1]
 	expectedErr = libkb.DecryptionError{}
-	_, err = c.DecryptTLFCryptKeyClientHalf(ephPublicKey, encryptedClientHalfWrongSize)
+	_, err = c.DecryptTLFCryptKeyClientHalf(ctx, ephPublicKey,
+		encryptedClientHalfWrongSize)
 	if err != expectedErr {
 		t.Errorf("Expected %v, got %v", expectedErr, err)
 	}
@@ -238,7 +245,8 @@ func TestCryptoClientDecryptTLFCryptKeyClientHalfFailures(t *testing.T) {
 	encryptedClientHalfWrongNonceSize := encryptedClientHalf
 	encryptedClientHalfWrongNonceSize.Nonce = encryptedClientHalfWrongNonceSize.Nonce[:len(encryptedClientHalfWrongNonceSize.Nonce)-1]
 	expectedErr = InvalidNonceError{encryptedClientHalfWrongNonceSize.Nonce}
-	_, err = c.DecryptTLFCryptKeyClientHalf(ephPublicKey, encryptedClientHalfWrongNonceSize)
+	_, err = c.DecryptTLFCryptKeyClientHalf(ctx, ephPublicKey,
+		encryptedClientHalfWrongNonceSize)
 	if err.Error() != expectedErr.Error() {
 		t.Errorf("Expected %v, got %v", expectedErr, err)
 	}
@@ -248,7 +256,8 @@ func TestCryptoClientDecryptTLFCryptKeyClientHalfFailures(t *testing.T) {
 	ephPublicKeyCorrupt := ephPublicKey
 	ephPublicKeyCorrupt.PublicKey[0] = ^ephPublicKeyCorrupt.PublicKey[0]
 	expectedErr = libkb.DecryptionError{}
-	_, err = c.DecryptTLFCryptKeyClientHalf(ephPublicKeyCorrupt, encryptedClientHalf)
+	_, err = c.DecryptTLFCryptKeyClientHalf(ctx, ephPublicKeyCorrupt,
+		encryptedClientHalf)
 	if err != expectedErr {
 		t.Errorf("Expected %v, got %v", expectedErr, err)
 	}
@@ -258,7 +267,8 @@ func TestCryptoClientDecryptTLFCryptKeyClientHalfFailures(t *testing.T) {
 	encryptedClientHalfCorruptData := encryptedClientHalf
 	encryptedClientHalfCorruptData.EncryptedData[0] = ^encryptedClientHalfCorruptData.EncryptedData[0]
 	expectedErr = libkb.DecryptionError{}
-	_, err = c.DecryptTLFCryptKeyClientHalf(ephPublicKey, encryptedClientHalfCorruptData)
+	_, err = c.DecryptTLFCryptKeyClientHalf(ctx, ephPublicKey,
+		encryptedClientHalfCorruptData)
 	if err != expectedErr {
 		t.Errorf("Expected %v, got %v", expectedErr, err)
 	}

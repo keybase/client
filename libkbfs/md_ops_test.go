@@ -72,7 +72,8 @@ func putMDForPublic(config *ConfigMock, rmds *RootMetadataSigned,
 	config.mockCodec.EXPECT().Encode(gomock.Any()).AnyTimes().
 		Return([]byte{0}, nil)
 
-	config.mockCrypto.EXPECT().Sign(gomock.Any()).Return(SignatureInfo{}, nil)
+	config.mockCrypto.EXPECT().Sign(gomock.Any(), gomock.Any()).
+		Return(SignatureInfo{}, nil)
 
 	var nilKID keybase1.KID
 	config.mockMdserv.EXPECT().Put(gomock.Any(), id, rmds.MD.mdID,

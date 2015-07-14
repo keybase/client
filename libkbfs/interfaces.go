@@ -351,7 +351,7 @@ type Crypto interface {
 		tlfCryptKey TLFCryptKey) (BlockCryptKey, error)
 
 	// Sign signs the msg with the current device's private key.
-	Sign(msg []byte) (sigInfo SignatureInfo, err error)
+	Sign(ctx context.Context, msg []byte) (sigInfo SignatureInfo, err error)
 	// Verify verifies that sig matches msg being signed with the
 	// private key that corresponds to verifyingKey.
 	Verify(msg []byte, sigInfo SignatureInfo) error
@@ -365,7 +365,8 @@ type Crypto interface {
 	// DecryptTLFCryptKeyClientHalf decrypts a TLFCryptKeyClientHalf
 	// using the current device's private key and the TLF's ephemeral
 	// public key.
-	DecryptTLFCryptKeyClientHalf(publicKey TLFEphemeralPublicKey,
+	DecryptTLFCryptKeyClientHalf(ctx context.Context,
+		publicKey TLFEphemeralPublicKey,
 		encryptedClientHalf EncryptedTLFCryptKeyClientHalf) (
 		TLFCryptKeyClientHalf, error)
 

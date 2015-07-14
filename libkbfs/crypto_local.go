@@ -3,6 +3,7 @@ package libkbfs
 import (
 	"github.com/keybase/client/go/libkb"
 	"golang.org/x/crypto/nacl/box"
+	"golang.org/x/net/context"
 )
 
 // SigningKeySecretSize is the size of a SigningKeySecret.
@@ -81,7 +82,8 @@ func NewCryptoLocal(codec Codec, signingKey SigningKey, cryptPrivateKey CryptPri
 }
 
 // Sign implements the Crypto interface for CryptoLocal.
-func (c *CryptoLocal) Sign(msg []byte) (sigInfo SignatureInfo, err error) {
+func (c *CryptoLocal) Sign(ctx context.Context, msg []byte) (
+	sigInfo SignatureInfo, err error) {
 	sigInfo = SignatureInfo{
 		Version:      SigED25519,
 		Signature:    c.signingKey.kp.Private.Sign(msg)[:],
@@ -92,7 +94,10 @@ func (c *CryptoLocal) Sign(msg []byte) (sigInfo SignatureInfo, err error) {
 
 // DecryptTLFCryptKeyClientHalf implements the Crypto interface for
 // CryptoLocal.
-func (c *CryptoLocal) DecryptTLFCryptKeyClientHalf(publicKey TLFEphemeralPublicKey, encryptedClientHalf EncryptedTLFCryptKeyClientHalf) (clientHalf TLFCryptKeyClientHalf, err error) {
+func (c *CryptoLocal) DecryptTLFCryptKeyClientHalf(ctx context.Context,
+	publicKey TLFEphemeralPublicKey,
+	encryptedClientHalf EncryptedTLFCryptKeyClientHalf) (
+	clientHalf TLFCryptKeyClientHalf, err error) {
 	if encryptedClientHalf.Version != EncryptionSecretbox {
 		err = UnknownEncryptionVer{encryptedClientHalf.Version}
 		return
