@@ -61,11 +61,11 @@ func (e *BackupKeygen) Run(ctx *Context) error {
 
 	eldest := me.GetEldestFOKID()
 	if eldest == nil {
-		return fmt.Errorf("no eldest key found.  cannot generate backup keys.")
+		return fmt.Errorf("no eldest key found; cannot generate backup keys")
 	}
 	eldestKID := eldest.Kid
 	if eldestKID.IsNil() {
-		return fmt.Errorf("no eldest kid found.  cannot generate backup keys.")
+		return fmt.Errorf("no eldest kid found; cannot generate backup keys")
 	}
 
 	// check for existing backup keys
