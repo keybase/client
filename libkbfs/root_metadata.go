@@ -262,14 +262,14 @@ func (md *RootMetadata) ClearMetadataID() {
 // AddRefBlock adds the newly-referenced block to the add block change list.
 func (md *RootMetadata) AddRefBlock(info BlockInfo) {
 	md.RefBytes += uint64(info.EncodedSize)
-	md.data.Changes.AddRefBlock(stripBP(info.BlockPointer))
+	md.data.Changes.AddRefBlock(info.BlockPointer)
 }
 
 // AddUnrefBlock adds the newly-unreferenced block to the add block change list.
 func (md *RootMetadata) AddUnrefBlock(info BlockInfo) {
 	if info.EncodedSize > 0 {
 		md.UnrefBytes += uint64(info.EncodedSize)
-		md.data.Changes.AddUnrefBlock(stripBP(info.BlockPointer))
+		md.data.Changes.AddUnrefBlock(info.BlockPointer)
 	}
 }
 
@@ -278,8 +278,7 @@ func (md *RootMetadata) AddUpdate(oldInfo BlockInfo, newInfo BlockInfo) {
 	if oldInfo.EncodedSize > 0 {
 		md.UnrefBytes += uint64(oldInfo.EncodedSize)
 		md.RefBytes += uint64(newInfo.EncodedSize)
-		md.data.Changes.AddUpdate(stripBP(oldInfo.BlockPointer),
-			stripBP(newInfo.BlockPointer))
+		md.data.Changes.AddUpdate(oldInfo.BlockPointer, newInfo.BlockPointer)
 	}
 }
 
