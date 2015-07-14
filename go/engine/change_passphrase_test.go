@@ -82,6 +82,46 @@ func TestChangePassphraseKnownPrompt(t *testing.T) {
 	}
 }
 
+// Test changing the passphrase after logging in via pubkey.
+func TestChangePassphraseAfterPubkeyLogin(t *testing.T) {
+	tc := SetupEngineTest(t, "ChangePassphrase")
+	defer tc.Cleanup()
+
+	u := CreateAndSignupFakeUser(tc, "login")
+
+	// this should do a pubkey login
+	Logout(tc)
+
+	secui := u.NewSecretUI()
+	u.LoginWithSecretUI(secui, tc.G)
+	if !secui.CalledGetSecret {
+		t.Errorf("get secret not called")
+	}
+
+	newPassphrase := "password"
+	arg := &keybase1.ChangePassphraseArg{
+		NewPassphrase: newPassphrase,
+	}
+	ctx := &Context{
+		SecretUI: secui,
+	}
+	eng := NewChangePassphrase(arg, tc.G)
+	if err := RunEngine(eng, ctx); err != nil {
+		t.Fatal(err)
+	}
+
+	_, err := tc.G.LoginState().VerifyPlaintextPassphrase(newPassphrase)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	_, err = tc.G.LoginState().VerifyPlaintextPassphrase(u.Passphrase)
+	if err == nil {
+		t.Fatal("old passphrase passed verification")
+	}
+
+}
+
 // Test changing the passphrase when previous pp stream available.
 func TestChangePassphraseKnownNotSupplied(t *testing.T) {
 	tc := SetupEngineTest(t, "ChangePassphrase")

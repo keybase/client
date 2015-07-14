@@ -298,6 +298,7 @@ func (s *LoginState) postLoginToServer(lctx LoginContext, eOu string, lgpw []byt
 }
 
 func (s *LoginState) saveLoginState(lctx LoginContext, res *loginAPIResult) error {
+	lctx.SetStreamGeneration(res.ppGen)
 	return lctx.SaveState(res.sessionID, res.csrfToken, res.username, res.uid)
 }
 
@@ -311,6 +312,7 @@ func (r PostAuthProofRes) loginResult() (*loginAPIResult, error) {
 		csrfToken: r.CSRFToken,
 		uid:       uid,
 		username:  r.Username,
+		ppGen:     PassphraseGeneration(r.PPGen),
 	}
 	return ret, nil
 }
@@ -545,8 +547,6 @@ func (s *LoginState) passphraseLogin(lctx LoginContext, username, passphrase str
 		lctx.ClearStreamCache()
 		return err
 	}
-
-	lctx.SetStreamGeneration(res.ppGen)
 
 	if err := s.saveLoginState(lctx, res); err != nil {
 		return err

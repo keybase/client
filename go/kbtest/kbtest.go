@@ -33,8 +33,8 @@ func NewFakeUser(prefix string) (*FakeUser, error) {
 	return &FakeUser{username, email, passphrase, nil}, nil
 }
 
-func (fu *FakeUser) NewSecretUI() libkb.TestSecretUI {
-	return libkb.TestSecretUI{Passphrase: fu.Passphrase}
+func (fu *FakeUser) NewSecretUI() *libkb.TestSecretUI {
+	return &libkb.TestSecretUI{Passphrase: fu.Passphrase}
 }
 
 func CreateAndSignupFakeUser(prefix string, g *libkb.GlobalContext) (*FakeUser, error) {

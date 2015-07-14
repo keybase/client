@@ -138,7 +138,6 @@ func (a *Account) GetStreamGeneration() (ret PassphraseGeneration) {
 }
 
 func (a *Account) CreateStreamCacheViaStretch(passphrase string) error {
-
 	if a.streamCache.Valid() {
 		return nil
 	}

@@ -69,6 +69,7 @@ type PostAuthProofRes struct {
 	CSRFToken string `json:"csrf_token"`
 	UIDHex    string `json:"uid"`
 	Username  string `json:"username"`
+	PPGen     int    `json:"passphrase_generation"`
 }
 
 func PostAuthProof(arg PostAuthProofArg) (*PostAuthProofRes, error) {
