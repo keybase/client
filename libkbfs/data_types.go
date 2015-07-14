@@ -1,6 +1,7 @@
 package libkbfs
 
 import (
+	"bytes"
 	"encoding/hex"
 	"fmt"
 	"sort"
@@ -32,6 +33,27 @@ func (t TlfID) String() string {
 // IsPublic returns true if this TlfID is for a public top-level folder
 func (t TlfID) IsPublic() bool {
 	return t[TlfIDLen-1] == PubTlfIDSuffix
+}
+
+// ParseTlfID parses a hex encoded TlfID. Returns NullTlfID on failure.
+func ParseTlfID(s string) TlfID {
+	if len(s) != 2*TlfIDLen {
+		return NullTlfID
+	}
+	bytes, err := hex.DecodeString(s)
+	if err != nil {
+		return NullTlfID
+	}
+	if len(bytes) != TlfIDLen {
+		return NullTlfID
+	}
+	suffix := bytes[TlfIDLen-1]
+	if suffix != TlfIDSuffix && suffix != PubTlfIDSuffix {
+		return NullTlfID
+	}
+	var tlfID TlfID
+	copy(tlfID[:], bytes[:TlfIDLen])
+	return tlfID
 }
 
 // ReaderSep is the string that separates readers from writers in a
@@ -591,6 +613,11 @@ func (h *TlfHandle) ToBytes(config Config) (out []byte) {
 	return
 }
 
+// Equal returns true if two TlfHandles are equal.
+func (h *TlfHandle) Equal(rhs *TlfHandle, config Config) bool {
+	return bytes.Equal(h.ToBytes(config), rhs.ToBytes(config))
+}
+
 // PathNode is a single node along an KBFS path, pointing to the top
 // block for that node of the path.
 type pathNode struct {
@@ -732,6 +759,18 @@ func (dkb DirKeyBundle) DeepCopy() DirKeyBundle {
 	newDkb.TLFPublicKey = dkb.TLFPublicKey.DeepCopy()
 	newDkb.TLFEphemeralPublicKey = dkb.TLFEphemeralPublicKey.DeepCopy()
 	return newDkb
+}
+
+// IsWriter returns true if the given user device is in the writer set.
+func (dkb *DirKeyBundle) IsWriter(user keybase1.UID, deviceKID keybase1.KID) bool {
+	_, ok := dkb.WKeys[user][deviceKID]
+	return ok
+}
+
+// IsReader returns true if the given user device is in the reader set.
+func (dkb *DirKeyBundle) IsReader(user keybase1.UID, deviceKID keybase1.KID) bool {
+	_, ok := dkb.RKeys[user][deviceKID]
+	return ok
 }
 
 // BlockChanges tracks the set of blocks that changed in a commit, and

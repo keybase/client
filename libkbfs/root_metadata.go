@@ -34,6 +34,15 @@ func (pm PrivateMetadata) Equals(other PrivateMetadata) bool {
 		pm.Changes.Equals(other.Changes)
 }
 
+// MetadataFlags bitmask.
+type MetadataFlags byte
+
+// Possible flags set in the MetdataFlags bitmask.
+const (
+	Rekey MetadataFlags = 1 << iota
+	Unmerged
+)
+
 // RootMetadata is the MD that is signed by the writer.
 type RootMetadata struct {
 	// Serialized, possibly encrypted, version of the PrivateMetadata
@@ -49,6 +58,10 @@ type RootMetadata struct {
 	ID TlfID
 	// The revision number
 	Revision uint64
+	// Flags
+	Flags MetadataFlags
+	// Estimated disk usage at this revision
+	DiskUsage uint64
 
 	// The total number of bytes in new blocks
 	RefBytes uint64
@@ -66,6 +79,45 @@ type RootMetadata struct {
 // GetKeyGeneration returns the current key generation for the current block.
 func (md *RootMetadata) GetKeyGeneration() int {
 	return len(md.Keys)
+}
+
+// IsUnmergedSet returns true if the unmerged bit is set.
+func (md *RootMetadata) IsUnmergedSet() bool {
+	return md.Flags&Unmerged != 0
+}
+
+// IsRekeySet returns true if the rekey bit is set.
+func (md *RootMetadata) IsRekeySet() bool {
+	return md.Flags&Rekey != 0
+}
+
+// IsWriter returns whether or not the user+device is an authorized writer.
+func (md *RootMetadata) IsWriter(user keybase1.UID, deviceKID keybase1.KID) bool {
+	if md.ID.IsPublic() {
+		for _, w := range md.Writers {
+			if w == user {
+				return true
+			}
+		}
+		return false
+	}
+	keyGen := md.GetKeyGeneration()
+	if keyGen < 1 {
+		return false
+	}
+	return md.Keys[keyGen-1].IsWriter(user, deviceKID)
+}
+
+// IsReader returns whether or not the user+device is an authorized reader.
+func (md *RootMetadata) IsReader(user keybase1.UID, deviceKID keybase1.KID) bool {
+	if md.ID.IsPublic() {
+		return true
+	}
+	keyGen := md.GetKeyGeneration()
+	if keyGen < 1 {
+		return false
+	}
+	return md.Keys[keyGen-1].IsReader(user, deviceKID)
 }
 
 // NewRootMetadata constructs a new RootMetadata object with the given

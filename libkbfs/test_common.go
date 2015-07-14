@@ -116,6 +116,13 @@ func NewFolder(t *testing.T, x byte, revision uint64, share bool, public bool) (
 	} else {
 		id[TlfIDLen-1] = TlfIDSuffix
 	}
+	h, rmds := NewFolderWithID(t, id, revision, share, public)
+	return id, h, rmds
+}
+
+// NewFolderWithID returns a new RootMetadataSigned for testing.
+func NewFolderWithID(t *testing.T, id TlfID, revision uint64, share bool, public bool) (
+	*TlfHandle, *RootMetadataSigned) {
 	h := NewTlfHandle()
 	if public {
 		h.Readers = []keybase1.UID{keybase1.PublicUID}
@@ -139,7 +146,7 @@ func NewFolder(t *testing.T, x byte, revision uint64, share bool, public bool) (
 		VerifyingKey: MakeFakeVerifyingKeyOrBust("fake key"),
 	}
 	rmds.MD = *rmd
-	return id, h, rmds
+	return h, rmds
 }
 
 // AddNewKeysOrBust adds new keys to root metadata and blows up on error.

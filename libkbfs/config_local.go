@@ -300,3 +300,13 @@ func (c *ConfigLocal) DataVersion() DataVer {
 func (c *ConfigLocal) ReqsBufSize() int {
 	return 20
 }
+
+// NewConfigLocalWithCrypto initializes a local crypto config w/a crypto interface that can be used for non-PKI crypto.
+func NewConfigLocalWithCrypto() *ConfigLocal {
+	config := NewConfigLocal()
+	signingKey := MakeLocalUserSigningKeyOrBust("nobody")
+	cryptPrivateKey := MakeLocalUserCryptPrivateKeyOrBust("nobody")
+	crypto := NewCryptoLocal(config.Codec(), signingKey, cryptPrivateKey)
+	config.SetCrypto(crypto)
+	return config
+}
