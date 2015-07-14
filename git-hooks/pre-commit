@@ -30,7 +30,7 @@ check_go_fmt() {
 check_go_vet() {
 	gofiles=$(git diff --cached --name-only --diff-filter=ACM | grep '.go$')
 	[ -z "$gofiles" ] && return 0
-	
+
 	warnings=$(go vet ./... 2>&1)
 	[ -z "$warnings" ] && return 0
 
@@ -40,6 +40,21 @@ check_go_vet() {
 	echo >&2 $warnings
 
 	exit 1
+}
+
+check_make_lint() {
+    # Try the root dir.  If that doesn't work, see if there's a go subdir.
+    lint=$(make -s lint 2> /dev/null)
+    if [ $? -eq 2 ] ; then
+        lint=$(make -s -C go lint 2> /dev/null)
+    fi
+    [ -z "$lint" -o "$lint" = "Lint-free!" ] && return 0
+
+    # make lint found issues
+    echo >&2 "go lint found issues:"
+    echo >&2 "$lint"
+
+    exit 1
 }
 
 #
@@ -135,3 +150,4 @@ fi
 # checkLineLength
 check_go_fmt
 check_go_vet
+check_make_lint
