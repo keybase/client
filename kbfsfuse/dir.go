@@ -377,18 +377,24 @@ func (d *Dir) Rename(ctx context.Context, req *fuse.RenameRequest, newDir fs.Nod
 		return err
 	}
 
-	if nodeOld, ok := d.active[req.OldName]; ok {
+	// winner is being moved on top of loser
+	if winner, ok := d.active[req.OldName]; ok {
 		// if the old node is active, move it to the new name
 		delete(d.active, req.OldName)
-		if n, ok := newDir2.active[req.NewName]; ok {
-			delete(d.folder.nodes, n.KBFSNodeID())
+		if loser, ok := newDir2.active[req.NewName]; ok {
+			// node being overwritten is active (and thus in
+			// Folder.nodes), it's active entry will be overwritten
+			// next; remove it from Folder.nodes.
+			delete(d.folder.nodes, loser.KBFSNodeID())
 		}
-		newDir2.active[req.NewName] = nodeOld
+		newDir2.active[req.NewName] = winner
 	} else {
 		// just make sure there's no previous active entry for new
 		// name
-		if n, ok := newDir2.active[req.NewName]; ok {
-			delete(d.folder.nodes, n.KBFSNodeID())
+		if loser, ok := newDir2.active[req.NewName]; ok {
+			// node being overwritten is active (and thus in
+			// Folder.nodes), remove from both.
+			delete(d.folder.nodes, loser.KBFSNodeID())
 			delete(newDir2.active, req.NewName)
 		}
 	}
