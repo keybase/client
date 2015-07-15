@@ -33,7 +33,7 @@ typedef NS_ENUM (NSInteger, KBEnv) {
 
 - (instancetype)initWithEnv:(KBEnv)env;
 
-- (instancetype)initWithHomeDir:(NSString *)homeDir sockFile:(NSString *)sockFile mountDir:(NSString *)mountDir;
+- (instancetype)initWithHomeDir:(NSString *)homeDir sockFile:(NSString *)sockFile mountDir:(NSString *)mountDir develMode:(BOOL)develMode;
 
 + (instancetype)env:(KBEnv)env;
 

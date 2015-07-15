@@ -15,7 +15,6 @@
 #define GROUP_ROW_HEIGHT (24) // TODO Hardcoded height
 
 @interface KBListView ()
-@property Class prototypeClass;
 @property YOView *prototypeView;
 
 @property KBProgressOverlayView *progressView;
@@ -35,16 +34,30 @@
   _progressView.frame = self.bounds;
 }
 
++ (instancetype)listViewWithRowHeight:(CGFloat)rowHeight {
+  return [self listViewWithPrototypeClass:nil rowHeight:rowHeight];
+}
+
 + (instancetype)listViewWithPrototypeClass:(Class)prototypeClass rowHeight:(CGFloat)rowHeight {
   KBListView *listView = [[KBListView alloc] init];
 
   listView.view.intercellSpacing = CGSizeZero;
 
+  if (prototypeClass) {
+    listView.onIdentifier = ^(NSIndexPath *indexPath, NSTableColumn *tableColumn, KBListView *listView) {
+      return NSStringFromClass(prototypeClass);
+    };
+    listView.onCreate = ^(NSIndexPath *indexPath, NSTableColumn *tableColumn, KBListView *listView) {
+      NSView *view = [[prototypeClass alloc] init];
+      view.identifier = NSStringFromClass(prototypeClass);
+      return view;
+    };
+  }
+
   NSTableColumn *column1 = [[NSTableColumn alloc] initWithIdentifier:@""];
   [listView.view addTableColumn:column1];
   [listView.view setHeaderView:nil];
 
-  listView.prototypeClass = prototypeClass;
   listView.rowHeight = rowHeight;
   return listView;
 }
@@ -60,33 +73,16 @@
     return titleView;
   }
 
-  /*
-  KBCellView *cellView = [self.view makeViewWithIdentifier:NSStringFromClass(self.prototypeClass) owner:self];
-  BOOL dequeued = NO;
-  id view;
-  if (!cellView) {
-    dequeued = YES;
-    view = [[_prototypeClass alloc] init];
-    cellView = [[KBCellView alloc] init];
-    cellView.identifier = NSStringFromClass(_prototypeClass);
-    [cellView setView:view];
-  } else {
-    view = cellView.view;
-  }
+  NSIndexPath *indexPath = [NSIndexPath indexPathForItem:row inSection:0];
+  NSString *identifier = self.onIdentifier(indexPath, tableColumn, self);
 
-  self.cellSetBlock(view, object, [NSIndexPath indexPathForItem:row], tableColumn, self, dequeued);
-  if ([view respondsToSelector:@selector(setNeedsLayout)]) [view setNeedsLayout];
-  return cellView;
-   */
-
-  NSView *view = [self.view makeViewWithIdentifier:NSStringFromClass(self.prototypeClass) owner:self];
+  NSView *view = [self.view makeViewWithIdentifier:identifier owner:self];
   BOOL dequeued = NO;
   if (!view) {
     dequeued = YES;
-    view = [[_prototypeClass alloc] init];
-    view.identifier = NSStringFromClass(_prototypeClass);
+    view = self.onCreate(indexPath, tableColumn, self);
   }
-  self.cellSetBlock(view, object, [NSIndexPath indexPathForItem:row inSection:0], tableColumn, self, dequeued);
+  self.onSet(view, object, indexPath, tableColumn, self, dequeued);
   if ([view respondsToSelector:@selector(setNeedsLayout)]) [(id)view setNeedsLayout];
   return view;
 }
@@ -104,10 +100,12 @@
   if (_rowHeight > 0) {
     return _rowHeight;
   } else {
-    if (!self.prototypeView) self.prototypeView = [[self.prototypeClass alloc] init];
-    id object = [self.dataSource objectAtIndexPath:[NSIndexPath indexPathForItem:row inSection:0]];
-
-    self.cellSetBlock(self.prototypeView, object, [NSIndexPath indexPathForItem:row inSection:0], nil, self, NO);
+    NSIndexPath *indexPath = [NSIndexPath indexPathForItem:row inSection:0];
+    if (!self.prototypeView) {
+      self.prototypeView = self.onCreate(indexPath, nil, self);
+    }
+    id object = [self.dataSource objectAtIndexPath:indexPath];
+    self.onSet(self.prototypeView, object, indexPath, nil, self, NO);
     [self.prototypeView setNeedsLayout:NO];
 
     CGFloat width = tableView.frame.size.width;

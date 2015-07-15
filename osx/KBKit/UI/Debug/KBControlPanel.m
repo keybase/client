@@ -36,7 +36,7 @@
   GHWeakSelf gself = self;
   _listView = [KBListView listViewWithPrototypeClass:KBImageTextCell.class rowHeight:0];
   _listView.scrollView.borderType = NSBezelBorder;
-  _listView.cellSetBlock = ^(KBImageTextView *label, id<KBComponent> component, NSIndexPath *indexPath, NSTableColumn *tableColumn, KBListView *listView, BOOL dequeued) {
+  _listView.onSet = ^(KBImageTextView *label, id<KBComponent> component, NSIndexPath *indexPath, NSTableColumn *tableColumn, KBListView *listView, BOOL dequeued) {
     [label setTitle:component.name info:component.info image:component.image];
   };
   _listView.onSelect = ^(KBTableView *tableView, KBTableSelection *selection) {
@@ -108,13 +108,13 @@
 
 - (void)viewForComponent:(id<KBComponent>)component completion:(void (^)(NSView *view))completion {
   _selectedComponent = component;
+
   GHWeakSelf gself = self;
   [KBActivity setProgressEnabled:YES sender:self];
   [component refreshComponent:^(NSError *error) {
+    if (error) [KBActivity setError:error sender:self];
     [KBActivity setProgressEnabled:NO sender:self];
-    if (gself.selectedComponent == component) {
-      completion([component componentView]);
-    }
+      completion([gself.selectedComponent componentView]);
   }];
 }
 

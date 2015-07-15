@@ -36,7 +36,12 @@
   self.viewLayout = [YOLayout layoutWithLayoutBlock:^(id<YOLayout> layout, CGSize size) {
     
     UIEdgeInsets insets = self.allInsets;
-    CGSize sizeThatFits = [KBText sizeThatFits:CGSizeMake(size.width - insets.left - insets.right, 0) textView:self.textView];
+    CGSize sizeThatFits;
+    if (yself.fixedHeight > 0) {
+      sizeThatFits = CGSizeMake(size.width - insets.left - insets.right, yself.fixedHeight);
+    } else {
+      sizeThatFits = [KBText sizeThatFits:CGSizeMake(size.width - insets.left - insets.right, 0) textView:self.textView];
+    }
 
     CGSize sizeWithInsets = CGSizeMake(sizeThatFits.width + insets.left + insets.right, sizeThatFits.height + insets.top + insets.bottom);
 
@@ -60,7 +65,12 @@
 
 - (CGSize)sizeThatFits:(CGSize)size {
   UIEdgeInsets insets = self.allInsets;
-  CGSize sizeThatFits = [KBText sizeThatFits:CGSizeMake(size.width - insets.left - insets.right, 0) textView:self.textView];
+  CGSize sizeThatFits;
+  if (self.fixedHeight > 0) {
+    sizeThatFits = CGSizeMake(size.width - insets.left - insets.right, self.fixedHeight);
+  } else {
+    sizeThatFits = [KBText sizeThatFits:CGSizeMake(size.width - insets.left - insets.right, 0) textView:self.textView];
+  }
   CGSize sizeWithInsets = CGSizeMake(sizeThatFits.width + insets.left + insets.right, sizeThatFits.height + insets.top + insets.bottom);
   if (self.verticalAlignment == KBVerticalAlignmentMiddle) {
     sizeWithInsets.height = MAX(size.height, sizeWithInsets.height);
@@ -156,10 +166,7 @@
 - (void)setText:(NSString *)text style:(KBTextStyle)style options:(KBTextOptions)options alignment:(NSTextAlignment)alignment lineBreakMode:(NSLineBreakMode)lineBreakMode {
   _style = style;
   _options = options;
-  id<KBAppearance> appearance = KBAppearance.currentAppearance;
-  NSColor *color = [appearance textColorForStyle:style options:options];
-  NSFont *font = [appearance fontForStyle:style options:options];
-  [self setText:text font:font color:color alignment:alignment lineBreakMode:lineBreakMode];
+  self.attributedText = [KBText attributedStringForText:text style:style options:options alignment:alignment lineBreakMode:lineBreakMode];
 }
 
 - (void)setText:(NSString *)text font:(NSFont *)font color:(NSColor *)color alignment:(NSTextAlignment)alignment {
@@ -167,19 +174,7 @@
 }
 
 - (void)setText:(NSString *)text font:(NSFont *)font color:(NSColor *)color alignment:(NSTextAlignment)alignment lineBreakMode:(NSLineBreakMode)lineBreakMode {
-  NSParameterAssert(font);
-  NSParameterAssert(color);
-  if (!text) {
-    self.attributedText = nil;
-    return;
-  }
-  NSMutableParagraphStyle *paragraphStyle = [[NSMutableParagraphStyle alloc] init];
-  paragraphStyle.alignment = alignment;
-  paragraphStyle.lineBreakMode = lineBreakMode;
-
-  NSDictionary *attributes = @{NSForegroundColorAttributeName:color, NSFontAttributeName:font, NSParagraphStyleAttributeName:paragraphStyle};
-
-  self.attributedText = [[NSMutableAttributedString alloc] initWithString:text attributes:attributes];
+  self.attributedText = [KBText attributedStringForText:text font:font color:color alignment:alignment lineBreakMode:lineBreakMode];
 }
 
 - (void)setMarkup:(NSString *)markup {
@@ -213,16 +208,19 @@
   NSMutableAttributedString *str = [_attributedText mutableCopy];
   [str removeAttribute:NSForegroundColorAttributeName range:NSMakeRange(0, str.length)];
   [str addAttribute:NSForegroundColorAttributeName value:color range:NSMakeRange(0, str.length)];
-  [self setAttributedText:str];
+  [self setAttributedText:str needsLayout:NO];
 }
 
 - (void)setAttributedText:(NSAttributedString *)attributedText {
+  [self setAttributedText:attributedText needsLayout:YES];
+}
+
+- (void)setAttributedText:(NSAttributedString *)attributedText needsLayout:(BOOL)needsLayout {
   if (!attributedText) attributedText = [[NSAttributedString alloc] init];
   _attributedText = attributedText;
   NSAssert(_textView.textStorage, @"No text storage");
   [_textView.textStorage setAttributedString:_attributedText];
-  _textView.needsDisplay = YES;
-  [self setNeedsLayout];
+  if (needsLayout) [self setNeedsLayout];
 }
 
 - (void)setBackgroundStyle:(NSBackgroundStyle)backgroundStyle {
@@ -230,7 +228,16 @@
   id<KBAppearance> appearance = (backgroundStyle == NSBackgroundStyleDark ? KBAppearance.darkAppearance : KBAppearance.lightAppearance);
   NSColor *color = [appearance textColorForStyle:_style options:_options];
   [self setColor:color];
-  [self setNeedsLayout];
+  [self.textView display];
+}
+
+@end
+
+
+@implementation KBLabelCell
+
+- (void)setAttributedText:(NSAttributedString *)attributedText {
+  [self setAttributedText:attributedText needsLayout:NO];
 }
 
 @end

@@ -9,6 +9,7 @@
 #import <Foundation/Foundation.h>
 
 #import "KBAppKitDefines.h"
+#import "KBAppearance.h"
 
 @interface KBText : NSObject
 
@@ -18,5 +19,9 @@
 
 + (NSAttributedString *)parseMarkup:(NSString *)markup options:(NSDictionary *)options;
 + (NSAttributedString *)parseMarkup:(NSString *)markup font:(NSFont *)font color:(NSColor *)color alignment:(NSTextAlignment)alignment lineBreakMode:(NSLineBreakMode)lineBreakMode;
+
++ (NSAttributedString *)attributedStringForText:(NSString *)text style:(KBTextStyle)style options:(KBTextOptions)options alignment:(NSTextAlignment)alignment lineBreakMode:(NSLineBreakMode)lineBreakMode;
+
++ (NSAttributedString *)attributedStringForText:(NSString *)text font:(NSFont *)font color:(NSColor *)color alignment:(NSTextAlignment)alignment lineBreakMode:(NSLineBreakMode)lineBreakMode;
 
 @end

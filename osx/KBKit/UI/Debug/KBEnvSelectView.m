@@ -41,7 +41,7 @@
   GHWeakSelf gself = self;
   _listView = [KBListView listViewWithPrototypeClass:KBImageTextCell.class rowHeight:0];
   _listView.scrollView.borderType = NSBezelBorder;
-  _listView.cellSetBlock = ^(KBImageTextView *label, KBEnvironment *env, NSIndexPath *indexPath, NSTableColumn *tableColumn, KBListView *listView, BOOL dequeued) {
+  _listView.onSet = ^(KBImageTextView *label, KBEnvironment *env, NSIndexPath *indexPath, NSTableColumn *tableColumn, KBListView *listView, BOOL dequeued) {
     [label setTitle:env.config.title info:env.config.info image:env.config.image];
   };
   _listView.onSelect = ^(KBTableView *tableView, KBTableSelection *selection) {

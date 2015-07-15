@@ -86,7 +86,8 @@
       [self.imageView revert];
     }
   }
-  [self setNeedsLayout];
+  [self.titleLabel.textView display];
+  [self.infoLabel.textView display];
 }
 
 @end

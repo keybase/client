@@ -16,7 +16,7 @@
 @property NSString *homeDir;
 @property NSString *host;
 @property (getter=isDebugEnabled) BOOL debugEnabled;
-@property (getter=isDebugEnabled) BOOL develMode;
+@property (getter=isDevelMode) BOOL develMode;
 @property NSString *mountDir;
 @property NSString *sockFile;
 @property NSString *identifier;
@@ -52,7 +52,7 @@
         self.identifier = @"localhost";
         self.host = @"http://localhost:3000";
         self.develMode = YES;
-        self.mountDir = KBPath(@"~/Keybase.local", NO, NO);
+        self.mountDir = KBPath(@"~/Keybase.dev", NO, NO);
         self.debugEnabled = YES;
         self.info = @"Uses the localhost web server";
         self.image = [NSImage imageNamed:NSImageNameComputer];
@@ -89,16 +89,18 @@
 + (instancetype)loadFromUserDefaults:(NSUserDefaults *)userDefaults {
   NSString *homeDir = [userDefaults stringForKey:@"HomeDir"];
   NSString *mountDir = [userDefaults stringForKey:@"MountDir"];
+  BOOL develMode = [userDefaults boolForKey:@"Devel"];
 
   //if (!homeDir) homeDir = [KBEnvConfig groupContainer:@"dev"];
   if (!mountDir) mountDir = KBPath(@"~/Keybase.dev", NO, NO);
 
-  return [[KBEnvConfig alloc] initWithHomeDir:homeDir sockFile:nil mountDir:mountDir];
+  return [[KBEnvConfig alloc] initWithHomeDir:homeDir sockFile:nil mountDir:mountDir develMode:develMode];
 }
 
 - (void)saveToUserDefaults:(NSUserDefaults *)userDefaults {
   [userDefaults setObject:KBPath(self.homeDir, NO, NO) forKey:@"HomeDir"];
   [userDefaults setObject:KBPath(self.mountDir, NO, NO) forKey:@"MountDir"];
+  [userDefaults setBool:self.isDevelMode forKey:@"Devel"];
   [userDefaults synchronize];
 }
 
@@ -116,7 +118,7 @@
 }
 
 - (NSString *)appName {
-  return self.develMode ? @"KeybaseDev" : @"Keybase";
+  return self.isDevelMode ? @"KeybaseDev" : @"Keybase";
 }
 
 - (NSString *)configDir {
@@ -143,7 +145,7 @@
   return [[self.class alloc] initWithEnv:env];
 }
 
-- (instancetype)initWithHomeDir:(NSString *)homeDir sockFile:(NSString *)sockFile mountDir:(NSString *)mountDir {
+- (instancetype)initWithHomeDir:(NSString *)homeDir sockFile:(NSString *)sockFile mountDir:(NSString *)mountDir develMode:(BOOL)develMode {
   if ((self = [super init])) {
     self.identifier = @"custom";
     self.title = @"Custom";
@@ -155,6 +157,7 @@
     self.launchdEnabled = NO;
     self.installEnabled = NO;
     self.debugEnabled = YES;
+    self.develMode = develMode;
   }
   return self;
 }
@@ -226,6 +229,11 @@
     [args addObject:@"./kbfsfuse"];
   }
 
+  if (self.debugEnabled) {
+    [args addObject:@"-debug"];
+  }
+
+  [args addObject:@"-new-fuse"];
   [args addObject:@"-client"];
   if (self.mountDir) [args addObject:KBPath(self.mountDir, tilde, escape)];
 

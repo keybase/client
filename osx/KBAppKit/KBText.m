@@ -105,4 +105,28 @@
   return str;
 }
 
+
++ (NSAttributedString *)attributedStringForText:(NSString *)text style:(KBTextStyle)style options:(KBTextOptions)options alignment:(NSTextAlignment)alignment lineBreakMode:(NSLineBreakMode)lineBreakMode {
+  id<KBAppearance> appearance = KBAppearance.currentAppearance;
+  NSColor *color = [appearance textColorForStyle:style options:options];
+  NSFont *font = [appearance fontForStyle:style options:options];
+  return [self attributedStringForText:text font:font color:color alignment:alignment lineBreakMode:lineBreakMode];
+}
+
++ (NSAttributedString *)attributedStringForText:(NSString *)text font:(NSFont *)font color:(NSColor *)color alignment:(NSTextAlignment)alignment lineBreakMode:(NSLineBreakMode)lineBreakMode {
+  NSParameterAssert(font);
+  NSParameterAssert(color);
+  if (!text) {
+    return nil;
+  }
+  NSMutableParagraphStyle *paragraphStyle = [[NSMutableParagraphStyle alloc] init];
+  paragraphStyle.alignment = alignment;
+  paragraphStyle.lineBreakMode = lineBreakMode;
+
+  NSDictionary *attributes = @{NSForegroundColorAttributeName:color, NSFontAttributeName:font, NSParagraphStyleAttributeName:paragraphStyle};
+
+  return [[NSMutableAttributedString alloc] initWithString:text attributes:attributes];
+}
+
+
 @end

@@ -67,6 +67,8 @@
 
 - (id)findObject:(id)object section:(NSInteger)section;
 
+- (void)truncateBeginning:(NSInteger)removeLength max:(NSInteger)max section:(NSInteger)section;
+
 @end
 
 @interface NSIndexPath (KBCellDataSource)

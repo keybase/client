@@ -350,15 +350,20 @@ static id<KBAppearance> gCurrentAppearance = NULL;
 @implementation KBAppearanceDark
 
 - (NSColor *)textColor {
-  return KBColorFromRGBA(0xFFFFFF, 1.0, NSBackgroundStyleLight);
+  return KBColorFromRGBA(0xFFFFFF, 1.0, NSBackgroundStyleDark);
+}
+
+- (NSColor *)textColorForStyle:(KBTextStyle)style options:(KBTextOptions)options {
+  // TODO: Handle style/options
+  return KBColorFromRGBA(0xFFFFFF, 1.0, NSBackgroundStyleDark);
 }
 
 - (NSColor *)secondaryTextColor {
-  return KBColorFromRGBA(0xEEEEEE, 1.0, NSBackgroundStyleLight);
+  return KBColorFromRGBA(0xEEEEEE, 1.0, NSBackgroundStyleDark);
 }
 
 - (NSColor *)disabledTextColor {
-  return KBColorFromRGBA(0x666666, 1.0, NSBackgroundStyleLight);
+  return KBColorFromRGBA(0x666666, 1.0, NSBackgroundStyleDark);
 }
 
 - (NSColor *)backgroundColor {

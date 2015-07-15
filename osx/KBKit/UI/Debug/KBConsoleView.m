@@ -21,6 +21,25 @@
 @property dispatch_queue_t bufferQueue;
 @end
 
+@interface KBConsoleItem : NSObject
+@property NSAttributedString *attributedText;
+@property DDLogMessage *logMessage;
+- (void)setLogMessage:(DDLogMessage *)logMessage logFormatter:(id<DDLogFormatter>)logFormatter;
+@end
+
+@implementation KBConsoleItem
+
+- (void)setLogMessage:(DDLogMessage *)logMessage logFormatter:(id<DDLogFormatter>)logFormatter {
+  _logMessage = logMessage;
+  NSString *message = [logFormatter formatLogMessage:logMessage];
+  KBTextOptions options = KBTextOptionsMonospace|KBTextOptionsSmall;
+  if (logMessage.flag & DDLogFlagError) options |= KBTextOptionsDanger;
+  if (logMessage.flag & DDLogFlagWarning) options |= KBTextOptionsWarning;
+  self.attributedText = [KBText attributedStringForText:message style:KBTextStyleDefault options:options alignment:NSLeftTextAlignment lineBreakMode:NSLineBreakByClipping];
+}
+
+@end
+
 @implementation KBConsoleView
 
 - (void)viewInit {
@@ -37,25 +56,26 @@
 
   GHWeakSelf gself = self;
   // TODO logging grows forever
-  _logView = [KBListView listViewWithPrototypeClass:KBLabel.class rowHeight:16];
+  _logView = [KBListView listViewWithRowHeight:16];
   _logView.identifier = @"log";
   _logView.scrollView.borderType = NSBezelBorder;
   _logView.view.intercellSpacing = CGSizeMake(10, 10);
   _logView.view.usesAlternatingRowBackgroundColors = YES;
   _logView.view.allowsMultipleSelection = YES;
   _logView.view.allowsEmptySelection = YES;
-  _logView.cellSetBlock = ^(KBLabel *label, DDLogMessage *logMessage, NSIndexPath *indexPath, NSTableColumn *tableColumn, KBListView *listView, BOOL dequeued) {
-
-    NSString *message = [gself.logFormatter formatLogMessage:logMessage];
-
-    KBTextOptions options = KBTextOptionsMonospace|KBTextOptionsSmall;
-    if (logMessage.flag & DDLogFlagError) options |= KBTextOptionsDanger;
-    if (logMessage.flag & DDLogFlagWarning) options |= KBTextOptionsWarning;
-
-    [label setText:message style:KBTextStyleDefault options:options alignment:NSLeftTextAlignment lineBreakMode:NSLineBreakByClipping];
+  _logView.onIdentifier = ^(NSIndexPath *indexPath, NSTableColumn *tableColumn, KBListView *listView) {
+    return @"KBLabelCell";
+  };
+  _logView.onCreate = ^(NSIndexPath *indexPath, NSTableColumn *tableColumn, KBListView *listView) {
+    KBLabelCell *labelCell = [[KBLabelCell alloc] init];
+    labelCell.fixedHeight = 16;
+    return labelCell;
+  };
+  _logView.onSet = ^(KBLabelCell *label, KBConsoleItem *consoleItem, NSIndexPath *indexPath, NSTableColumn *tableColumn, KBListView *listView, BOOL dequeued) {
+    label.attributedText = consoleItem.attributedText;
   };
   _logView.onSelect = ^(KBTableView *tableView, KBTableSelection *selection) {
-    NSArray *messages = [selection.objects map:^(DDLogMessage *m) { return m.message; }];
+    NSArray *messages = [selection.objects map:^(KBConsoleItem * c) { return c.logMessage.message; }];
     [gself.textView setText:[messages join:@"\n\n"] style:KBTextStyleDefault options:KBTextOptionsMonospace|KBTextOptionsSmall alignment:NSLeftTextAlignment lineBreakMode:NSLineBreakByCharWrapping];
   };
   [logView addSubview:_logView];
@@ -92,7 +112,9 @@
 - (void)logMessage:(DDLogMessage *)logMessage {
   GHWeakSelf gself = self;
   dispatch_async(_bufferQueue, ^{
-    [gself.buffer addObject:logMessage];
+    KBConsoleItem *consoleItem = [[KBConsoleItem alloc] init];
+    [consoleItem setLogMessage:logMessage logFormatter:gself.logFormatter];
+    [gself.buffer addObject:consoleItem];
     dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.5 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
       [gself flush];
     });
@@ -112,7 +134,9 @@
 
 - (void)addMessages:(NSArray *)messages {
   BOOL atBottom = [self.logView isAtBottom];
-  [self.logView addObjects:messages animation:NSTableViewAnimationEffectNone];
+  [self.logView.dataSource addObjects:messages];
+  [self.logView.dataSource truncateBeginning:100 max:5000 section:0];
+  [self.logView.view noteNumberOfRowsChanged];
   if (atBottom) [self.logView scrollToBottom:NO];
 }
 

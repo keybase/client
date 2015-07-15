@@ -12,6 +12,10 @@
 #import "KBStyleGuideView.h"
 #import "KBDefines.h"
 
+@interface KBAppDebug ()
+@property BOOL running;
+@end
+
 @implementation KBAppDebug
 
 - (void)viewInit {
@@ -29,13 +33,22 @@
     [debugViews open:self];
   }]];
 
-  [topView addSubview:[KBButton buttonWithText:@"Log (Error)" style:KBButtonStyleDefault options:KBButtonOptionsToolbar targetBlock:^{
-    DDLogError(@"%@", KBMakeError(-1, @"Test error message"));
+  GHWeakSelf gself = self;
+  [topView addSubview:[KBButton buttonWithText:@"Test Log" style:KBButtonStyleDefault options:KBButtonOptionsToolbar targetBlock:^{
+    gself.running = !gself.running;
+    [gself _logDebug:0];
   }]];
+}
 
-  [topView addSubview:[KBButton buttonWithText:@"Log (Warn)" style:KBButtonStyleDefault options:KBButtonOptionsToolbar targetBlock:^{
-    DDLogWarn(@"Warning message");
-  }]];
+- (void)_logDebug:(NSTimeInterval)delay {
+  GHWeakSelf gself = self;
+  dispatch_after(dispatch_time(DISPATCH_TIME_NOW, delay * NSEC_PER_SEC), dispatch_get_main_queue(), ^{
+    DDLogDebug(@"%@", @"Tote bag XOXO cred, whatever retro Etsy American Apparel single-origin coffee sustainable Pitchfork mlkshk quinoa meh. Kale chips plaid crucifix migas, sriracha brunch American Apparel twee. Cray you probably haven't heard of them mustache flannel health goth fingerstache. Beard mlkshk lumbersexual narwhal. Flexitarian art party four dollar toast cred, brunch fixie distillery.");
+
+    if (gself.running) {
+      [gself _logDebug:0.5];
+    }
+  });
 }
 
 @end

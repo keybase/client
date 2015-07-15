@@ -14,16 +14,20 @@
 
 @class KBListView;
 
-typedef void (^KBCellSetBlock)(id cell, id object, NSIndexPath *indexPath, NSTableColumn *tableColumn, KBListView *listView, BOOL dequeued);
+typedef NSString *(^KBListViewCellIdentifier)(NSIndexPath *indexPath, NSTableColumn *tableColumn, KBListView *listView);
+typedef id (^KBListViewCellCreate)(NSIndexPath *indexPath, NSTableColumn *tableColumn, KBListView *listView);
+typedef void (^KBListViewCellSet)(id cell, id object, NSIndexPath *indexPath, NSTableColumn *tableColumn, KBListView *listView, BOOL dequeued);
 
 // Simple table view with 1 column
 @interface KBListView : KBTableView
 
-@property (copy) KBCellSetBlock cellSetBlock;
-@property (readonly) Class prototypeClass;
+@property (copy) KBListViewCellIdentifier onIdentifier;
+@property (copy) KBListViewCellCreate onCreate;
+@property (copy) KBListViewCellSet onSet;
 
 @property (readonly) KBProgressOverlayView *progressView;
 
++ (instancetype)listViewWithRowHeight:(CGFloat)rowHeight;
 + (instancetype)listViewWithPrototypeClass:(Class)prototypeClass rowHeight:(CGFloat)rowHeight;
 
 @end

@@ -24,6 +24,8 @@
 @property UIEdgeInsets insets;
 @property (readonly) NSTextView *textView;
 
+@property CGFloat fixedHeight; // For table view cells
+
 + (instancetype)label;
 + (instancetype)labelWithText:(NSString *)text style:(KBTextStyle)style;
 + (instancetype)labelWithText:(NSString *)text style:(KBTextStyle)style alignment:(NSTextAlignment)alignment lineBreakMode:(NSLineBreakMode)lineBreakMode;
@@ -42,6 +44,7 @@
 - (void)setMarkup:(NSString *)markup options:(NSDictionary *)options;
 
 - (void)setAttributedText:(NSMutableAttributedString *)attributedText alignment:(NSTextAlignment)alignment lineBreakMode:(NSLineBreakMode)lineBreakMode;
+- (void)setAttributedText:(NSAttributedString *)attributedText needsLayout:(BOOL)needsLayout;
 
 - (void)setBorderWithColor:(NSColor *)color width:(CGFloat)width;
 
@@ -53,3 +56,7 @@
 
 @end
 
+
+@interface KBLabelCell : KBLabel
+
+@end

@@ -99,27 +99,21 @@
       completion(error);
       return;
     }
-    [self checkUserAndLaunchStatus:completion];
+    [self refreshLaunchStatus:completion];
   }];
 }
 
-- (void)checkUserAndLaunchStatus:(KBCompletion)completion {
+- (void)refreshLaunchStatus:(KBCompletion)completion {
   GHWeakSelf gself = self;
-  [self checkStatus:^(NSError *error, KBRGetCurrentStatusRes *userStatus, KBRConfig *userConfig) {
-    gself.statusError = error;
-    gself.userStatus = userStatus;
-    gself.userConfig = userConfig;
-
-    if (gself.label) {
-      [KBLaunchCtl status:gself.label completion:^(KBServiceStatus *serviceStatus) {
-        [self componentDidUpdate];
-        completion(error);
-      }];
-    } else {
+  if (gself.label) {
+    [KBLaunchCtl status:gself.label completion:^(KBServiceStatus *serviceStatus) {
       [self componentDidUpdate];
-      completion(error);
-    }
-  }];
+      completion(nil);
+    }];
+  } else {
+    [self componentDidUpdate];
+    completion(nil);
+  }
 }
 
 - (KBRPClient *)client {
