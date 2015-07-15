@@ -305,8 +305,13 @@ func ParseKeyFamily(jw *jsonw.Wrapper) (ret *KeyFamily, err error) {
 		if err != nil {
 			return nil, err
 		}
+		// TODO: Merge PGP keys with the same KID.
 		kf.AllKeys[key.GetKid()] = key
-		// Collect the PGP keys.
+	}
+
+	// Collect the PGP keys. (Do this with the AllKeys map instead of the
+	// AllBundles response, because the latter can contain duplicates.)
+	for _, key := range kf.AllKeys {
 		pgp, isPGP := key.(*PGPKeyBundle)
 		if isPGP {
 			kf.pgps = append(kf.pgps, pgp)
