@@ -133,7 +133,7 @@
   size.height += 32; // TODO
 
   KBWindow *window = [KBWindow windowWithContentView:navigation size:size retain:YES];
-  window.sheetPosition = 33;
+  window.sheetPosition = 32;
   if (fixed) {
     [window setMovable:NO];
   } else {

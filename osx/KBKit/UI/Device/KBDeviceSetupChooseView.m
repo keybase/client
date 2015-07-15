@@ -33,7 +33,7 @@
   _deviceSignerView = [KBListView listViewWithPrototypeClass:KBImageTextCell.class rowHeight:0];
   _deviceSignerView.scrollView.borderType = NSBezelBorder;
 
-  _deviceSignerView.cellSetBlock = ^(KBImageTextView *view, KBDeviceSignerOption *option, NSIndexPath *indexPath, NSTableColumn *tableColumn, KBListView *listView, BOOL dequeued) {
+  _deviceSignerView.onSet = ^(KBImageTextView *view, KBDeviceSignerOption *option, NSIndexPath *indexPath, NSTableColumn *tableColumn, KBListView *listView, BOOL dequeued) {
     view.tintImageForStyle = YES;
     [view setTitle:option.title info:option.info image:option.image];
   };

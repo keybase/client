@@ -22,7 +22,7 @@
   [super viewInit];
 
   _listView = [KBListView listViewWithPrototypeClass:KBUserCell.class rowHeight:56];
-  _listView.cellSetBlock = ^(KBUserView *view, KBRUserSummary *userSummary, NSIndexPath *indexPath, NSTableColumn *tableColumn, KBListView *listView, BOOL dequeued) {
+  _listView.onSet = ^(KBUserView *view, KBRUserSummary *userSummary, NSIndexPath *indexPath, NSTableColumn *tableColumn, KBListView *listView, BOOL dequeued) {
     [view setUserSummary:userSummary];
   };  
   [self addSubview:_listView];

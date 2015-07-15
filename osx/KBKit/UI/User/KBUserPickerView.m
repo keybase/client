@@ -80,7 +80,7 @@
   GHWeakSelf gself = self;
   _searchResultsView = [KBListView listViewWithPrototypeClass:KBUserCell.class rowHeight:56];
   //_searchResultsView.scrollView.borderType = NSBezelBorder;
-  _searchResultsView.cellSetBlock = ^(KBUserView *view, KBRUserSummary *userSummary, NSIndexPath *indexPath, NSTableColumn *tableColumn, KBListView *listView, BOOL dequeued) {
+  _searchResultsView.onSet = ^(KBUserView *view, KBRUserSummary *userSummary, NSIndexPath *indexPath, NSTableColumn *tableColumn, KBListView *listView, BOOL dequeued) {
     [view setUserSummary:userSummary];
   };
   _searchResultsView.onSelect = ^(KBTableView *tableView, KBTableSelection *selection) {

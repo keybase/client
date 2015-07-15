@@ -36,7 +36,7 @@
   [devicesView addSubview:addButton];
 
   _devicesView = [KBListView listViewWithPrototypeClass:KBDeviceCell.class rowHeight:56];
-  _devicesView.cellSetBlock = ^(KBDeviceView *view, KBRDevice *device, NSIndexPath *indexPath, NSTableColumn *tableColumn, KBListView *listView, BOOL dequeued) {
+  _devicesView.onSet = ^(KBDeviceView *view, KBRDevice *device, NSIndexPath *indexPath, NSTableColumn *tableColumn, KBListView *listView, BOOL dequeued) {
     [view setDevice:device];
   };
   _devicesView.onSelect = ^(id sender, KBTableSelection *selection) {

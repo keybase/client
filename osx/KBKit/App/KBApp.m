@@ -17,6 +17,8 @@
 #import "KBEnvSelectView.h"
 #import "KBUninstaller.h"
 
+#import "KBStyleGuideView.h"
+
 #import "KBPGPEncryptView.h"
 #import "KBPGPEncryptFilesView.h"
 #import "KBPGPDecryptView.h"
@@ -110,6 +112,9 @@
 
   NSMutableArray *componentsForControlPanel = [environment.componentsForControlPanel mutableCopy];
   [componentsForControlPanel addObject:_appView];
+
+  [componentsForControlPanel addObject:[[KBStyleGuideView alloc] init]];
+
   [_controlPanel addComponents:componentsForControlPanel];
   [_controlPanel open:_appView];
 

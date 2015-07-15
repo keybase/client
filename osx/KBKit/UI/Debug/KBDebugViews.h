@@ -11,7 +11,7 @@
 #import <KBAppKit/KBAppKit.h>
 #import "KBRPC.h"
 
-@interface KBDebugViews : KBScrollView
+@interface KBDebugViews : YOView
 
 @property KBRPClient *client;
 

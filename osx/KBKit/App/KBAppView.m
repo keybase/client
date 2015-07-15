@@ -100,12 +100,6 @@ typedef NS_ENUM (NSInteger, KBAppViewMode) {
 - (void)openWithEnvironment:(KBEnvironment *)environment {
   _environment = environment;
 
-#ifdef DEBUG
-  KBDebugViews *mockViews = [[KBDebugViews alloc] init];
-  mockViews.client = _environment.service.client;
-  [mockViews open:self];
-#endif
-
   NSDictionary *info = [[NSBundle mainBundle] infoDictionary];
   DDLogInfo(@"Keybase.app Version: %@", info[@"CFBundleShortVersionString"]);
 

@@ -45,8 +45,10 @@
   [super viewInit];
   [self kb_setBackgroundColor:NSColor.whiteColor];
 
-  YOVBox *contentView = [YOVBox box:@{@"spacing": @"4", @"insets": @"20"}];
-  [contentView addSubview:[KBLabel labelWithText:@"These views may use mock data." style:KBTextStyleDefault]];
+  YOVBox *contentView = [YOVBox box];
+
+  [contentView addSubview:[KBButton linkWithText:@"Components" targetBlock:^{ [self showComponents]; }]];
+
   [contentView addSubview:[KBBox lineWithInsets:UIEdgeInsetsMake(10, 10, 10, 10)]];
 
   [contentView addSubview:[KBButton linkWithText:@"Login" targetBlock:^{ [self showLogin]; }]];
@@ -103,11 +105,17 @@
 
   [contentView addSubview:[KBButton linkWithText:@"PGP Encrypt (Action)" targetBlock:^{ [self showPGPEncryptAction]; }]];
 
-  [self setDocumentView:contentView];
+  [self addSubview:contentView];
+  self.viewLayout = [YOLayout fitVertical:contentView];
 }
 
 - (void)open:(id)sender {
   [[sender window] kb_addChildWindowForView:self rect:CGRectMake(0, 40, 400, 600) position:KBWindowPositionLeft title:@"Debug" fixed:NO makeKey:NO];
+}
+
+- (void)showComponents {
+  KBStyleGuideView *view = [[KBStyleGuideView alloc] init];
+  [self openInWindow:[KBScrollView scrollViewWithDocumentView:view] size:CGSizeMake(500, 400) title:@"Components"];
 }
 
 - (void)showProgressView:(NSTimeInterval)delay error:(BOOL)error {
@@ -182,7 +190,7 @@
 - (void)showImportKey {
   KBKeyImportView *keyImportView = [[KBKeyImportView alloc] init];
   keyImportView.completion = ^(id sender, BOOL imported) { [[sender window] close]; };
-  [self openInWindow:keyImportView size:CGSizeMake(600, 400) title:nil];
+  [self openInWindow:keyImportView size:CGSizeMake(600, 400) title:@"Import Key"];
 }
 
 - (void)showDeviceSetupDisplay {

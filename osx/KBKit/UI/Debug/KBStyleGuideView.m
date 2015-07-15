@@ -9,6 +9,9 @@
 #import "KBStyleGuideView.h"
 
 #import "KBFileIcon.h"
+#import "KBComponent.h"
+#import "KBDebugViews.h"
+#import "KBRMockClient.h"
 
 @interface KBStyleGuideView ()
 @property KBProgressOverlayView *progressView;
@@ -149,10 +152,8 @@
 
   [fontAwesomeLabel setAttributedText:icons];
 
-  KBScrollView *scrollView = [[KBScrollView alloc] init];
-  [scrollView setDocumentView:contentView];
-  [self addSubview:scrollView];
-  self.viewLayout = [YOLayout fill:scrollView];
+  [self addSubview:contentView];
+  self.viewLayout = [YOLayout fitVertical:contentView];
 }
 
 - (void)open:(id)sender {
@@ -165,6 +166,33 @@
 
 - (void)toggleActivityTitleBar {
   self.navigation.titleView.progressEnabled = !self.navigation.titleView.progressEnabled;
+}
+
+#pragma mark KBComponent
+
+- (NSString *)name {
+  return @"Style Guide";
+}
+
+- (NSString *)info {
+  return @"UI Components and mocks";
+}
+
+- (NSImage *)image {
+  return [KBIcons imageForIcon:KBIconColors];
+}
+
+- (NSView *)componentView {
+  YOVBox *view = [YOVBox box];
+  KBDebugViews *debugViews = [[KBDebugViews alloc] init];
+  debugViews.client = [[KBRMockClient alloc] init];
+  [view addSubview:debugViews];
+  KBScrollView *scrollView = [KBScrollView scrollViewWithDocumentView:view];
+  return scrollView;
+}
+
+- (void)refreshComponent:(KBCompletion)completion {
+  completion(nil);
 }
 
 @end
