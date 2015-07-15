@@ -206,7 +206,7 @@ func (u UID) GetShard(shardCount int) (int, error) {
 		return 0, err
 	}
 	n := binary.LittleEndian.Uint32(bytes)
-	return int(n) % shardCount, nil
+	return int(n % uint32(shardCount)), nil
 }
 
 func (s SigID) IsNil() bool {
