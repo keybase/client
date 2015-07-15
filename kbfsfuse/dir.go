@@ -39,6 +39,37 @@ type folderNode interface {
 
 var _ libkbfs.Observer = (*Folder)(nil)
 
+// invalidateNodeDataRange notifies the kernel to invalidate cached data for node.
+//
+// The arguments follow KBFS semantics:
+//
+//     - Len > 0: "bytes Off..Off+Len were mutated"
+//     - Len == 0: "new file Len is Off"
+//
+// For comparison, the FUSE semantics are:
+//
+//     - Len < 0: "forget data in range Off..infinity"
+//     - Len > 0: "forget data in range Off..Off+Len"
+func (f *Folder) invalidateNodeDataRange(node fs.Node, write libkbfs.WriteRange) error {
+	off := int64(write.Off)
+	size := int64(write.Len)
+	if write.Off > math.MaxInt64 || write.Len > math.MaxInt64 {
+		// out of bounds, just invalidate all data
+		off = 0
+		size = -1
+	}
+	if write.Len == 0 {
+		// truncate, invalidate all data in the now-lost tail
+		size = -1
+	}
+	// Off=0 Len=0 is the same as calling InvalidateNodeDataAttr; we
+	// can just let that go through InvalidateNodeDataRange.
+	if err := f.fs.fuse.InvalidateNodeDataRange(node, off, size); err != nil {
+		return err
+	}
+	return nil
+}
+
 // LocalChange is called for changes originating within in this process.
 func (f *Folder) LocalChange(ctx context.Context, node libkbfs.Node, write libkbfs.WriteRange) {
 	if origin, ok := ctx.Value(ctxAppIDKey).(*FS); ok && origin == f.fs {
@@ -46,22 +77,13 @@ func (f *Folder) LocalChange(ctx context.Context, node libkbfs.Node, write libkb
 	}
 
 	f.mu.Lock()
-	defer f.mu.Unlock()
 	n, ok := f.nodes[node.GetID()]
+	f.mu.Unlock()
 	if !ok {
 		return
 	}
 
-	// Off=0 Len=0 is the same as calling InvalidateNodeDataAttr; we
-	// can just let that go through InvalidateNodeDataRange.
-	off := int64(write.Off)
-	size := int64(write.Len)
-	if write.Off > math.MaxInt64 || write.Len > math.MaxInt64 {
-		// out of bounds, just forget all data
-		off = 0
-		size = -1
-	}
-	if err := f.fs.fuse.InvalidateNodeDataRange(n, off, size); err != nil && err != fuse.ErrNotCached {
+	if err := f.invalidateNodeDataRange(n, write); err != nil && err != fuse.ErrNotCached {
 		// TODO we have no mechanism to do anything about this
 		log.Printf("FUSE invalidate error: %v", err)
 	}
@@ -74,11 +96,10 @@ func (f *Folder) BatchChanges(ctx context.Context, changes []libkbfs.NodeChange)
 		return
 	}
 
-	f.mu.Lock()
-	defer f.mu.Unlock()
-
 	for _, v := range changes {
+		f.mu.Lock()
 		n, ok := f.nodes[v.Node.GetID()]
+		f.mu.Unlock()
 		if !ok {
 			continue
 		}
@@ -100,14 +121,7 @@ func (f *Folder) BatchChanges(ctx context.Context, changes []libkbfs.NodeChange)
 
 		case len(v.FileUpdated) > 0:
 			for _, write := range v.FileUpdated {
-				off := int64(write.Off)
-				size := int64(write.Len)
-				if write.Off > math.MaxInt64 || write.Len > math.MaxInt64 {
-					// out of bounds, just invalidate all data
-					off = 0
-					size = -1
-				}
-				if err := f.fs.fuse.InvalidateNodeDataRange(n, off, size); err != nil && err != fuse.ErrNotCached {
+				if err := f.invalidateNodeDataRange(n, write); err != nil && err != fuse.ErrNotCached {
 					// TODO we have no mechanism to do anything about this
 					log.Printf("FUSE invalidate error: %v", err)
 				}

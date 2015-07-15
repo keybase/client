@@ -1248,3 +1248,49 @@ func TestInvalidatePublicDataOnWrite(t *testing.T) {
 		}
 	}
 }
+
+func TestInvalidateDataOnTruncate(t *testing.T) {
+	config := libkbfs.MakeTestConfigOrBust(t, BServerRemoteAddr, "jdoe", "wsmith")
+	mnt1 := makeFS(t, config)
+	defer mnt1.Close()
+	mnt2 := makeFS(t, config)
+	defer mnt2.Close()
+
+	const input1 = "input round one"
+	if err := ioutil.WriteFile(path.Join(mnt1.Dir, "jdoe", "myfile"), []byte(input1), 0644); err != nil {
+		t.Fatal(err)
+	}
+
+	f, err := os.Open(path.Join(mnt2.Dir, "jdoe", "myfile"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer f.Close()
+
+	{
+		buf := make([]byte, 4096)
+		n, err := f.ReadAt(buf, 0)
+		if err != nil && err != io.EOF {
+			t.Fatal(err)
+		}
+		if g, e := string(buf[:n]), input1; g != e {
+			t.Errorf("wrong content: %q != %q", g, e)
+		}
+	}
+
+	const newSize = 3
+	if err := os.Truncate(path.Join(mnt1.Dir, "jdoe", "myfile"), newSize); err != nil {
+		t.Fatal(err)
+	}
+
+	{
+		buf := make([]byte, 4096)
+		n, err := f.ReadAt(buf, 0)
+		if err != nil && err != io.EOF {
+			t.Fatal(err)
+		}
+		if g, e := string(buf[:n]), input1[:newSize]; g != e {
+			t.Errorf("wrong content: %q != %q", g, e)
+		}
+	}
+}
