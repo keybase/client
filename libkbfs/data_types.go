@@ -509,6 +509,8 @@ func ParseTlfHandle(ctx context.Context, config Config, name string) (
 			usedWNames[uid] = struct{}{}
 		case uid := <-rc:
 			usedRNames[uid] = struct{}{}
+		case <-ctx.Done():
+			return nil, ctx.Err()
 		}
 	}
 
