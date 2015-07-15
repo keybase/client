@@ -12,6 +12,7 @@ typedef NS_ENUM(NSInteger, KBHelperError) {
   KBHelperErrorKBFS = -1000,
 };
 
+typedef void (^KBCompletion)(NSError *error);
 typedef void (^KBOnCompletion)(NSError *error, id value);
 
 #define KBMakeError(CODE, MSG, ...) [NSError errorWithDomain:@"Keybase" code:CODE userInfo:@{NSLocalizedDescriptionKey:[NSString stringWithFormat:MSG, ##__VA_ARGS__], NSLocalizedRecoveryOptionsErrorKey: @[@"OK"]}]

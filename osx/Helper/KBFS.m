@@ -69,17 +69,31 @@
   attributes[NSFileOwnerAccountID] = @(0);
   attributes[NSFileGroupOwnerAccountID] = @(0);
 
-  NSDirectoryEnumerator *dirEnum = [NSFileManager.defaultManager enumeratorAtPath:_destination];
+  [self updateAttributes:attributes path:_destination completion:^(NSError *error) {
+    if (error) completion(error, @(0));
+    else [self load:completion];
+  }];
+}
+
+- (void)updateAttributes:(NSDictionary *)attributes path:(NSString *)path completion:(KBCompletion)completion {
+  NSError *error = nil;
+  if (![NSFileManager.defaultManager setAttributes:attributes ofItemAtPath:path error:&error]) {
+    if (!error) error = KBMakeError(KBHelperErrorKBFS, @"Failed to set attributes");
+    completion(error);
+    return;
+  }
+
+  NSDirectoryEnumerator *dirEnum = [NSFileManager.defaultManager enumeratorAtPath:path];
   NSString *file;
   while ((file = [dirEnum nextObject])) {
-    if (![NSFileManager.defaultManager setAttributes:attributes ofItemAtPath:[_destination stringByAppendingPathComponent:file] error:&error]) {
+    if (![NSFileManager.defaultManager setAttributes:attributes ofItemAtPath:[path stringByAppendingPathComponent:file] error:&error]) {
       if (!error) error = KBMakeError(KBHelperErrorKBFS, @"Failed to set attributes");
-      completion(error, @(0));
+      completion(error);
       return;
     }
   }
 
-  [self load:completion];
+  completion(nil);
 }
 
 - (void)update:(KBOnCompletion)completion {
