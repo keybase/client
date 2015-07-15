@@ -1294,3 +1294,63 @@ func TestInvalidateDataOnTruncate(t *testing.T) {
 		}
 	}
 }
+
+func TestInvalidateDataOnLocalWrite(t *testing.T) {
+	config := libkbfs.MakeTestConfigOrBust(t, BServerRemoteAddr, "jdoe", "wsmith")
+	mnt := makeFS(t, config)
+	defer mnt.Close()
+
+	const input1 = "input round one"
+	if err := ioutil.WriteFile(path.Join(mnt.Dir, "jdoe", "myfile"), []byte(input1), 0644); err != nil {
+		t.Fatal(err)
+	}
+
+	f, err := os.Open(path.Join(mnt.Dir, "jdoe", "myfile"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer f.Close()
+
+	{
+		buf := make([]byte, 4096)
+		n, err := f.ReadAt(buf, 0)
+		if err != nil && err != io.EOF {
+			t.Fatal(err)
+		}
+		if g, e := string(buf[:n]), input1; g != e {
+			t.Errorf("wrong content: %q != %q", g, e)
+		}
+	}
+
+	const input2 = "second round of content"
+	{
+		ctx := context.Background()
+		dh, err := libkbfs.ParseTlfHandle(ctx, config, "jdoe")
+		if err != nil {
+			t.Fatalf("cannot parse folder for jdoe: %v", err)
+		}
+		ops := config.KBFSOps()
+		jdoe, _, err := ops.GetOrCreateRootNodeForHandle(ctx, dh, libkbfs.MasterBranch)
+		if err != nil {
+			t.Fatal(err)
+		}
+		myfile, _, err := ops.Lookup(ctx, jdoe, "myfile")
+		if err != nil {
+			t.Fatal(err)
+		}
+		if err := ops.Write(ctx, myfile, []byte(input2), 0); err != nil {
+			t.Fatal(err)
+		}
+	}
+
+	{
+		buf := make([]byte, 4096)
+		n, err := f.ReadAt(buf, 0)
+		if err != nil && err != io.EOF {
+			t.Fatal(err)
+		}
+		if g, e := string(buf[:n]), input2; g != e {
+			t.Errorf("wrong content: %q != %q", g, e)
+		}
+	}
+}
