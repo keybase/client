@@ -1,11 +1,13 @@
 package libkbfs
 
 import (
+	"fmt"
 	"math/rand"
 	"runtime"
 	"sync"
 	"testing"
 
+	"github.com/golang/mock/gomock"
 	keybase1 "github.com/keybase/client/protocol/go"
 	"golang.org/x/net/context"
 )
@@ -343,5 +345,172 @@ func TestKBFSOpsConcurWriteDuringSyncMultiBlocks(t *testing.T) {
 	}
 	if nr != 10 || !bytesEqual(expectedData, buf2) {
 		t.Errorf("2nd read: Got wrong data %v; expected %v", buf2, expectedData)
+	}
+}
+
+// Test that a write consisting of multiple blocks can be canceled
+// before all blocks have been written.
+func TestKBFSOpsConcurWriteParallelBlocksCanceled(t *testing.T) {
+	config, uid, ctx := kbfsOpsConcurInit(t, "test_user")
+	defer config.KBFSOps().(*KBFSOpsStandard).Shutdown()
+
+	// give it a remote block server with a fake client
+	fc := NewFakeBServerClient(nil, nil)
+	b := newBlockServerRemoteWithClient(ctx, config, fc)
+	config.SetBlockServer(b)
+
+	// make blocks small
+	blockSize := int64(5)
+	config.BlockSplitter().(*BlockSplitterSimple).maxSize = blockSize
+
+	// create and write to a file
+	kbfsOps := config.KBFSOps()
+	h := NewTlfHandle()
+	uid, err := config.KBPKI().GetLoggedInUser(context.Background())
+	if err != nil {
+		t.Errorf("Couldn't get logged in user: %v", err)
+	}
+	h.Writers = append(h.Writers, uid)
+	rootNode, _, err :=
+		kbfsOps.GetOrCreateRootNodeForHandle(ctx, h, MasterBranch)
+	if err != nil {
+		t.Errorf("Couldn't create folder: %v", err)
+	}
+	fileNode, _, err := kbfsOps.CreateFile(ctx, rootNode, "a", false)
+	if err != nil {
+		t.Fatalf("Couldn't create file: %v", err)
+	}
+	// 15 blocks
+	var data []byte
+	fileBlocks := int64(15)
+	for i := int64(0); i < blockSize*fileBlocks; i++ {
+		data = append(data, byte(i))
+	}
+	err = kbfsOps.Write(ctx, fileNode, data, 0)
+	if err != nil {
+		t.Errorf("Couldn't write file: %v", err)
+	}
+
+	// now set a control channel, let a couple blocks go in, and then
+	// cancel the context
+	readyChan := make(chan struct{})
+	goChan := make(chan struct{})
+	fc.readyChan = readyChan
+	fc.goChan = goChan
+
+	prevNBlocks := len(fc.blocks)
+	ctx, cancel := context.WithCancel(ctx)
+	go func() {
+		// let the first two blocks through.
+		<-readyChan
+		goChan <- struct{}{}
+		<-readyChan
+		goChan <- struct{}{}
+
+		cancel()
+	}()
+
+	err = kbfsOps.Sync(ctx, fileNode)
+	if err != context.Canceled {
+		t.Errorf("Sync did not get canceled error: %v", err)
+	}
+	nowNBlocks := len(fc.blocks)
+	if nowNBlocks != prevNBlocks+2 {
+		t.Errorf("Unexpected number of blocks; prev = %d, now = %d",
+			prevNBlocks, nowNBlocks)
+	}
+
+	// now clean up by letting the rest of the blocks through.
+	for i := 0; i < maxParallelBlockPuts; i++ {
+		select {
+		case <-readyChan:
+			goChan <- struct{}{}
+		default:
+			continue
+		}
+	}
+
+}
+
+// Test that, when writing multiple blocks in parallel, one error will
+// cancel the remaining puts.
+func TestKBFSOpsConcurWriteParallelBlocksError(t *testing.T) {
+	config, uid, ctx := kbfsOpsConcurInit(t, "test_user")
+	defer config.KBFSOps().(*KBFSOpsStandard).Shutdown()
+
+	// give it a mock'd block server
+	ctr := NewSafeTestReporter(t)
+	mockCtrl := gomock.NewController(ctr)
+	defer mockCtrl.Finish()
+	defer ctr.CheckForFailures()
+	b := NewMockBlockServer(mockCtrl)
+	config.SetBlockServer(b)
+
+	// from the folder creation, then 2 for file creation
+	c := b.EXPECT().Put(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(),
+		gomock.Any(), gomock.Any()).Times(3).Return(nil)
+
+	// make blocks small
+	blockSize := int64(5)
+	config.BlockSplitter().(*BlockSplitterSimple).maxSize = blockSize
+
+	// create and write to a file
+	kbfsOps := config.KBFSOps()
+	h := NewTlfHandle()
+	uid, err := config.KBPKI().GetLoggedInUser(context.Background())
+	if err != nil {
+		t.Errorf("Couldn't get logged in user: %v", err)
+	}
+	h.Writers = append(h.Writers, uid)
+	rootNode, _, err :=
+		kbfsOps.GetOrCreateRootNodeForHandle(ctx, h, MasterBranch)
+	if err != nil {
+		t.Errorf("Couldn't create folder: %v", err)
+	}
+	fileNode, _, err := kbfsOps.CreateFile(ctx, rootNode, "a", false)
+	if err != nil {
+		t.Fatalf("Couldn't create file: %v", err)
+	}
+	// 15 blocks
+	var data []byte
+	fileBlocks := int64(15)
+	for i := int64(0); i < blockSize*fileBlocks; i++ {
+		data = append(data, byte(i))
+	}
+	err = kbfsOps.Write(ctx, fileNode, data, 0)
+	if err != nil {
+		t.Errorf("Couldn't write file: %v", err)
+	}
+
+	// let two blocks through and fail the third:
+	c = b.EXPECT().Put(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(),
+		gomock.Any(), gomock.Any()).Times(2).After(c).Return(nil)
+	putErr := fmt.Errorf("This is a forced error on put")
+	errChan := make(chan struct{})
+	c = b.EXPECT().Put(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(),
+		gomock.Any(), gomock.Any()).
+		Do(func(ctx context.Context, id BlockID, tlfID TlfID,
+		context BlockContext, buf []byte,
+		serverHalf BlockCryptKeyServerHalf) {
+		errChan <- struct{}{}
+	}).After(c).Return(putErr)
+	// let the rest through
+	proceedChan := make(chan struct{})
+	b.EXPECT().Put(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(),
+		gomock.Any(), gomock.Any()).AnyTimes().
+		Do(func(ctx context.Context, id BlockID, tlfID TlfID,
+		context BlockContext, buf []byte,
+		serverHalf BlockCryptKeyServerHalf) {
+		<-proceedChan
+	}).After(c).Return(nil)
+
+	go func() {
+		<-errChan
+		close(proceedChan)
+	}()
+
+	err = kbfsOps.Sync(ctx, fileNode)
+	if err != putErr {
+		t.Errorf("Sync did not get the expected error: %v", err)
 	}
 }

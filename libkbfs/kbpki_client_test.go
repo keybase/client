@@ -113,7 +113,7 @@ func TestKBPKIClientGetUserCanceled(t *testing.T) {
 		_, err := c.GetUser(ctx, keybase1.MakeTestUID(1))
 		return err
 	}
-	testWithCanceledContext(t, context.Background(), ctlChan, f)
+	testWithCanceledContext(t, context.Background(), ctlChan, ctlChan, f)
 }
 
 func TestKBPKIClientHasVerifyingKey(t *testing.T) {
@@ -188,5 +188,5 @@ func TestKBPKIClientGetCurrentCryptPublicKeyCanceled(t *testing.T) {
 		_, err := c.GetCurrentCryptPublicKey(ctx)
 		return err
 	}
-	testWithCanceledContext(t, context.Background(), ctlChan, f)
+	testWithCanceledContext(t, context.Background(), ctlChan, ctlChan, f)
 }

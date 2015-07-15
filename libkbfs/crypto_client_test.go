@@ -112,7 +112,7 @@ func TestCryptoClientSignCanceled(t *testing.T) {
 		_, err := c.Sign(ctx, msg)
 		return err
 	}
-	testWithCanceledContext(t, context.Background(), ctlChan, f)
+	testWithCanceledContext(t, context.Background(), ctlChan, ctlChan, f)
 }
 
 // Test that decrypting an TLF crypt key client half encrypted with
@@ -338,5 +338,5 @@ func TestCryptoClientDecryptTLFCryptKeyClientHalfCanceled(t *testing.T) {
 			encryptedClientHalf)
 		return err
 	}
-	testWithCanceledContext(t, context.Background(), ctlChan, f)
+	testWithCanceledContext(t, context.Background(), ctlChan, ctlChan, f)
 }

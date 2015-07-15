@@ -10,22 +10,25 @@ import (
 )
 
 type FakeBServerClient struct {
-	blocks  map[keybase1.GetBlockArg]keybase1.GetBlockRes
-	ctlChan chan struct{}
+	blocks    map[keybase1.GetBlockArg]keybase1.GetBlockRes
+	readyChan chan<- struct{}
+	goChan    <-chan struct{}
 }
 
-func NewFakeBServerClient(ctlChan chan struct{}) *FakeBServerClient {
+func NewFakeBServerClient(readyChan chan<- struct{},
+	goChan <-chan struct{}) *FakeBServerClient {
 	return &FakeBServerClient{
-		blocks:  make(map[keybase1.GetBlockArg]keybase1.GetBlockRes),
-		ctlChan: ctlChan,
+		blocks:    make(map[keybase1.GetBlockArg]keybase1.GetBlockRes),
+		readyChan: readyChan,
+		goChan:    goChan,
 	}
 }
 
 func (fc FakeBServerClient) maybeWaitOnChannel() {
-	if fc.ctlChan != nil {
+	if fc.readyChan != nil {
 		// say we're ready, and wait for the signal to proceed
-		fc.ctlChan <- struct{}{}
-		<-fc.ctlChan
+		fc.readyChan <- struct{}{}
+		<-fc.goChan
 	}
 }
 
@@ -65,7 +68,7 @@ func TestBServerRemotePutAndGet(t *testing.T) {
 	loggedInUser := localUsers[0]
 	kbpki := NewKBPKILocal(loggedInUser.UID, localUsers)
 	config := &ConfigLocal{codec: codec, kbpki: kbpki}
-	fc := NewFakeBServerClient(nil)
+	fc := NewFakeBServerClient(nil, nil)
 	ctx := context.Background()
 	b := newBlockServerRemoteWithClient(ctx, config, fc)
 
@@ -109,8 +112,9 @@ func TestBServerRemotePutCanceled(t *testing.T) {
 	loggedInUser := localUsers[0]
 	kbpki := NewKBPKILocal(loggedInUser.UID, localUsers)
 	config := &ConfigLocal{codec: codec, kbpki: kbpki}
-	ctlChan := make(chan struct{})
-	fc := NewFakeBServerClient(ctlChan)
+	readyChan := make(chan struct{})
+	goChan := make(chan struct{})
+	fc := NewFakeBServerClient(readyChan, goChan)
 
 	f := func(ctx context.Context) error {
 		b := newBlockServerRemoteWithClient(ctx, config, fc)
@@ -127,7 +131,7 @@ func TestBServerRemotePutCanceled(t *testing.T) {
 		err = b.Put(ctx, bID, tlfID, bCtx, data, serverHalf)
 		return err
 	}
-	testWithCanceledContext(t, context.Background(), ctlChan, f)
+	testWithCanceledContext(t, context.Background(), readyChan, goChan, f)
 }
 
 // Test that RPCs wait for the bserver to connect to the backend
@@ -137,7 +141,7 @@ func TestBServerRemoteWaitForReconnect(t *testing.T) {
 	loggedInUser := localUsers[0]
 	kbpki := NewKBPKILocal(loggedInUser.UID, localUsers)
 	config := &ConfigLocal{codec: codec, kbpki: kbpki}
-	fc := NewFakeBServerClient(nil)
+	fc := NewFakeBServerClient(nil, nil)
 	ctx := context.Background()
 
 	// make a new bserver, but don't connect it yes

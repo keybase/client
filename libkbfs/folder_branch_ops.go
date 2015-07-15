@@ -43,6 +43,12 @@ type syncInfo struct {
 	unrefs  []BlockInfo
 }
 
+// Constants used in this file.  TODO: Make these configurable?
+const (
+	maxParallelBlockPuts = 10
+	maxMDsAtATime        = 100
+)
+
 // FolderBranchOps implements the KBFSOps interface for a specific
 // branch of a specific folder.  It is go-routine safe for operations
 // within the folder.
@@ -247,15 +253,14 @@ func (fbo *FolderBranchOps) getMDLocked(ctx context.Context, rtype reqType) (
 	if err != nil {
 		return nil, err
 	}
-	maxAtATime := 100 // TODO: put in config somewhere?
 	var unmergedMDs []*RootMetadata
 	more := true
 	lastMdID := NullMdID
 	for more {
 		// TODO: it might make sense to persist our last-known
 		// unmerged ID, so we can avoid most or all of these fetches.
-		unmergedMDs, more, err =
-			mdops.GetUnmergedSince(ctx, fbo.id(), cpk.KID, lastMdID, maxAtATime)
+		unmergedMDs, more, err = mdops.GetUnmergedSince(ctx, fbo.id(),
+			cpk.KID, lastMdID, maxMDsAtATime)
 		if err != nil {
 			return nil, err
 		}
@@ -1115,17 +1120,66 @@ func (fbo *FolderBranchOps) syncBlockLocked(ctx context.Context,
 		}
 	}
 
-	// now write all the dirblocks to the cache and server
-	// TODO: parallelize me
-	bops := fbo.config.BlockOps()
-	for _, blockState := range bps.blockStates {
-		if err = bops.Put(ctx, md, blockState.blockPtr,
-			blockState.readyBlockData); err != nil {
-			return path{}, DirEntry{}, nil, err
+	return newPath, newDe, bps, nil
+}
+
+func (fbo *FolderBranchOps) doOneBlockPut(ctx context.Context,
+	md *RootMetadata, blockState blockState,
+	errChan chan error) {
+	err := fbo.config.BlockOps().
+		Put(ctx, md, blockState.blockPtr, blockState.readyBlockData)
+	if err != nil {
+		// one error causes everything else to cancel
+		select {
+		case errChan <- err:
+		default:
+			return
 		}
 	}
+}
 
-	return newPath, newDe, bps, nil
+// doBlockPuts writes all the pending block puts to the cache and
+// server.
+func (fbo *FolderBranchOps) doBlockPuts(ctx context.Context,
+	md *RootMetadata, bps blockPutState) error {
+	errChan := make(chan error, 1)
+	ctx, cancel := context.WithCancel(ctx)
+	defer cancel()
+	blocks := make(chan blockState, len(bps.blockStates))
+	var wg sync.WaitGroup
+
+	numWorkers := len(bps.blockStates)
+	if numWorkers > maxParallelBlockPuts {
+		numWorkers = maxParallelBlockPuts
+	}
+	wg.Add(numWorkers)
+
+	worker := func() {
+		defer wg.Done()
+		for blockState := range blocks {
+			fbo.doOneBlockPut(ctx, md, blockState, errChan)
+			select {
+			// return early if the context has been canceled
+			case <-ctx.Done():
+				return
+			default:
+			}
+		}
+	}
+	for i := 0; i < numWorkers; i++ {
+		go worker()
+	}
+
+	for _, blockState := range bps.blockStates {
+		blocks <- blockState
+	}
+	close(blocks)
+
+	go func() {
+		wg.Wait()
+		close(errChan)
+	}()
+	return <-errChan
 }
 
 // both writerLock and blockLocked should be taken by the caller
@@ -1228,6 +1282,10 @@ func (fbo *FolderBranchOps) syncBlockAndFinalizeLocked(ctx context.Context,
 	DirEntry, error) {
 	p, de, bps, err := fbo.syncBlockLocked(ctx, md, newBlock, dir, name,
 		entryType, mtime, ctime, zeroPtr, nil)
+	if err != nil {
+		return DirEntry{}, err
+	}
+	err = fbo.doBlockPuts(ctx, md, *bps)
 	if err != nil {
 		return DirEntry{}, err
 	}
@@ -1694,6 +1752,12 @@ func (fbo *FolderBranchOps) renameLocked(
 	if oldBps != nil {
 		newBps.mergeOtherBps(oldBps)
 	}
+
+	err = fbo.doBlockPuts(ctx, md, *newBps)
+	if err != nil {
+		return err
+	}
+
 	err = fbo.nodeCache.Move(newDe.BlockPointer, newParentNode, newName)
 	if err != nil {
 		return err
@@ -2513,7 +2577,6 @@ func (fbo *FolderBranchOps) syncLocked(ctx context.Context, file path) error {
 		}
 
 		for i, ptr := range fblock.IPtrs {
-			// TODO: parallelize these?
 			isDirty := bcache.IsDirty(ptr.BlockPointer, file.Branch)
 			if (ptr.EncodedSize > 0) && isDirty {
 				return &InconsistentEncodedSizeError{ptr.BlockInfo}
@@ -2586,18 +2649,15 @@ func (fbo *FolderBranchOps) syncLocked(ctx context.Context, file path) error {
 	doUnlock = false
 	fbo.blockLock.RUnlock()
 
-	// TODO: parallelize me
-	bops := fbo.config.BlockOps()
-	for _, blockState := range bps.blockStates {
-		if err = bops.Put(ctx, md, blockState.blockPtr,
-			blockState.readyBlockData); err != nil {
-			return err
-		}
-	}
-
-	newPath, _, bps, err :=
+	newPath, _, newBps, err :=
 		fbo.syncBlockLocked(ctx, md, fblock, *parentPath, file.tailName(),
 			File, true, true, zeroPtr, lbc)
+	if err != nil {
+		return err
+	}
+	newBps.mergeOtherBps(bps)
+
+	err = fbo.doBlockPuts(ctx, md, *newBps)
 	if err != nil {
 		return err
 	}
@@ -2621,7 +2681,7 @@ func (fbo *FolderBranchOps) syncLocked(ctx context.Context, file path) error {
 		return err
 	}
 
-	err = fbo.finalizeWriteLocked(ctx, md, bps, []path{newPath})
+	err = fbo.finalizeWriteLocked(ctx, md, newBps, []path{newPath})
 	if err != nil {
 		return err
 	}
