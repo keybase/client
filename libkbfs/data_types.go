@@ -61,8 +61,8 @@ const (
 	// TlfHandle string representation.
 	ReaderSep = "#"
 
-	// PublicName is the reserved name of a public top-level folder.
-	PublicName = "public"
+	// PublicUIDName is the name given to keybase1.PublicUID.
+	PublicUIDName = "public"
 )
 
 // All section references below are to https://keybase.io/blog/crypto
@@ -570,7 +570,7 @@ func resolveUids(ctx context.Context, config Config,
 	// TODO: parallelize?
 	for _, uid := range uids {
 		if uid.Equal(keybase1.PublicUID) {
-			names = append(names, PublicName)
+			names = append(names, PublicUIDName)
 		} else if user, err := config.KBPKI().GetUser(ctx, uid); err == nil {
 			names = append(names, user.GetName())
 		} else {

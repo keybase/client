@@ -208,7 +208,7 @@ func (d *Dir) Lookup(ctx context.Context, req *fuse.LookupRequest, resp *fuse.Lo
 
 	// TODO later refactoring to use /public/jdoe and
 	// /private/jdoe paths will change all of this
-	if req.Name == libkbfs.PublicName && d.hasPublic {
+	if req.Name == PublicName && d.hasPublic {
 		dhPub := &libkbfs.TlfHandle{
 			Writers: d.folder.dh.Writers,
 			Readers: []keybase1.UID{keybase1.PublicUID},
@@ -432,7 +432,7 @@ func (d *Dir) ReadDirAll(ctx context.Context) (res []fuse.Dirent, err error) {
 
 	if d.hasPublic {
 		res = append(res, fuse.Dirent{
-			Name: libkbfs.PublicName,
+			Name: PublicName,
 			Type: fuse.DT_Dir,
 		})
 	}

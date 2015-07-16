@@ -7,6 +7,9 @@ import (
 	"github.com/keybase/kbfs/libkbfs"
 )
 
+// PublicName is the reserved name of a public top-level folder.
+const PublicName = "public"
+
 var ctxAppIDKey = "kbfsfuse-app-id"
 
 // fillAttr sets attributes based on the dir entry. It only handles fields
