@@ -155,18 +155,5 @@ func (f *File) Forget() {
 	f.parent.folder.mu.Lock()
 	defer f.parent.folder.mu.Unlock()
 
-	name := f.node.GetBasename()
-	if name == "" {
-		// unlinked
-		return
-	}
-	f.parent.forgetChildLocked(f, name)
-}
-
-var _ folderNode = (*File)(nil)
-
-// KBFSNodeID returns the libkbfs.NodeID for this node, for use in
-// libkbfs change notification callbacks.
-func (f *File) KBFSNodeID() libkbfs.NodeID {
-	return f.node.GetID()
+	f.parent.folder.forgetNodeLocked(f.node)
 }

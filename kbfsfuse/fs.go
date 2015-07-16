@@ -149,7 +149,7 @@ func (r *Root) Lookup(ctx context.Context, req *fuse.LookupRequest, resp *fuse.L
 		fs:    r.fs,
 		id:    folderBranch.Tlf,
 		dh:    dh,
-		nodes: map[libkbfs.NodeID]folderNode{},
+		nodes: map[libkbfs.NodeID]fs.Node{},
 	}
 
 	// TODO we never unregister; we also never remove entries from r.folders
@@ -158,6 +158,13 @@ func (r *Root) Lookup(ctx context.Context, req *fuse.LookupRequest, resp *fuse.L
 	}
 
 	child := newDir(folder, rootNode, nil)
+	if rootNode != nil {
+		// rootNode can be nil if this was a made-up entry just to
+		// expose a "public" subfolder. That case avoids aliasing
+		// purely because we keep a separate name-based map in
+		// r.folders
+		folder.nodes[rootNode.GetID()] = child
+	}
 	r.folders[req.Name] = child
 	return child, nil
 }

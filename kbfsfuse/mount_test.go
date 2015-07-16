@@ -1354,3 +1354,32 @@ func TestInvalidateDataOnLocalWrite(t *testing.T) {
 		}
 	}
 }
+
+func TestInvalidateEntryOnDelete(t *testing.T) {
+	config := libkbfs.MakeTestConfigOrBust(t, BServerRemoteAddr, "jdoe", "wsmith")
+	mnt1 := makeFS(t, config)
+	defer mnt1.Close()
+	mnt2 := makeFS(t, config)
+	defer mnt2.Close()
+
+	const input1 = "input round one"
+	if err := ioutil.WriteFile(path.Join(mnt1.Dir, "jdoe", "myfile"), []byte(input1), 0644); err != nil {
+		t.Fatal(err)
+	}
+
+	buf, err := ioutil.ReadFile(path.Join(mnt2.Dir, "jdoe", "myfile"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if g, e := string(buf), input1; g != e {
+		t.Errorf("wrong content: %q != %q", g, e)
+	}
+
+	if err := os.Remove(path.Join(mnt1.Dir, "jdoe", "myfile")); err != nil {
+		t.Fatal(err)
+	}
+
+	if buf, err := ioutil.ReadFile(path.Join(mnt2.Dir, "jdoe", "myfile")); !os.IsNotExist(err) {
+		t.Fatalf("expected ENOENT: %v: %q", err, buf)
+	}
+}

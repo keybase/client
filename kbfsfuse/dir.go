@@ -23,18 +23,23 @@ type Folder struct {
 
 	// Protects fields for all Dir and File instances.
 	mu sync.Mutex
-	// Map KBFS nodes to FUSE nodes, to be able to handle incoming
-	// change notifications.
+	// Map KBFS nodes to FUSE nodes, to be able to handle multiple
+	// lookups and incoming change notifications. A node is present
+	// here if the kernel holds a reference to it.
 	//
 	// If we ever support hardlinks, this would need refcounts.
-	nodes map[libkbfs.NodeID]folderNode
+	//
+	// Children must call folder.forgetChildLocked on receiving the
+	// FUSE Forget request.
+	nodes map[libkbfs.NodeID]fs.Node
 }
 
-// folderNode is an interface that needs to be implemented by all
-// fs.Node values we wish to receive change notifications for.
-type folderNode interface {
-	fs.Node
-	KBFSNodeID() libkbfs.NodeID
+// forgetNodeLocked forgets a formerly active child with basename
+// name.
+//
+// Caller must hold Folder.mu.
+func (f *Folder) forgetNodeLocked(node libkbfs.Node) {
+	delete(f.nodes, node.GetID())
 }
 
 var _ libkbfs.Observer = (*Folder)(nil)
@@ -144,19 +149,6 @@ type Dir struct {
 	folder *Folder
 	parent *Dir
 	node   libkbfs.Node
-
-	// Active child nodes of this directory. A node is present here if
-	// the kernel holds a reference to it.
-	//
-	// Children are responsible for tracking their basename and
-	// whether they are unlinked, with libkbfs.Node.
-	//
-	// Children must call parent.forgetChildLocked on receiving the
-	// FUSE Forget request, if they are not unlinked.
-	//
-	// Entries in this map are also expected to be found in
-	// Folder.nodes.
-	active map[string]folderNode
 }
 
 func newDir(folder *Folder, node libkbfs.Node, parent *Dir) *Dir {
@@ -164,7 +156,6 @@ func newDir(folder *Folder, node libkbfs.Node, parent *Dir) *Dir {
 		folder: folder,
 		parent: parent,
 		node:   node,
-		active: map[string]folderNode{},
 	}
 	return d
 }
@@ -217,10 +208,8 @@ func (d *Dir) Lookup(ctx context.Context, req *fuse.LookupRequest, resp *fuse.Lo
 	d.folder.mu.Lock()
 	defer d.folder.mu.Unlock()
 
-	if child, ok := d.active[req.Name]; ok {
-		return child, nil
-	}
-
+	// TODO later refactoring to use /public/jdoe and
+	// /private/jdoe paths will change all of this
 	if req.Name == libkbfs.PublicName &&
 		d.parent == nil &&
 		d.folder.dh.HasPublic() {
@@ -234,22 +223,19 @@ func (d *Dir) Lookup(ctx context.Context, req *fuse.LookupRequest, resp *fuse.Lo
 		if err != nil {
 			return nil, err
 		}
+		if n, ok := d.folder.nodes[rootNode.GetID()]; ok {
+			return n, nil
+		}
+
 		folderBranch := rootNode.GetFolderBranch()
 		pubFolder := &Folder{
 			fs:    d.folder.fs,
 			id:    folderBranch.Tlf,
 			dh:    dhPub,
-			nodes: map[libkbfs.NodeID]folderNode{},
+			nodes: map[libkbfs.NodeID]fs.Node{},
 		}
 		child := newDir(pubFolder, rootNode, nil)
-		// we store this in active for later lookups, but note that it
-		// really doesn't play along the normal rules; as
-		// child.parent==nil, Forget will never make it unregister
-		// from active
-		//
-		// TODO later refactoring to use /public/jdoe and
-		// /private/jdoe paths will change all of this
-		d.active[req.Name] = child
+		d.folder.nodes[rootNode.GetID()] = child
 
 		// TODO we never unregister
 		if err := d.folder.fs.config.Notifier().RegisterForChanges([]libkbfs.FolderBranch{folderBranch}, pubFolder); err != nil {
@@ -267,6 +253,15 @@ func (d *Dir) Lookup(ctx context.Context, req *fuse.LookupRequest, resp *fuse.Lo
 		return nil, err
 	}
 
+	// newNode can be nil even without errors when the KBFS direntry
+	// is of a type that doesn't get its own node (is fully contained
+	// in the directory); Symlink does this.
+	if newNode != nil {
+		if n, ok := d.folder.nodes[newNode.GetID()]; ok {
+			return n, nil
+		}
+	}
+
 	switch de.Type {
 	default:
 		return nil, fmt.Errorf("unhandled entry type: %v", de.Type)
@@ -276,13 +271,11 @@ func (d *Dir) Lookup(ctx context.Context, req *fuse.LookupRequest, resp *fuse.Lo
 			parent: d,
 			node:   newNode,
 		}
-		d.active[req.Name] = child
 		d.folder.nodes[newNode.GetID()] = child
 		return child, nil
 
 	case libkbfs.Dir:
 		child := newDir(d.folder, newNode, d)
-		d.active[req.Name] = child
 		d.folder.nodes[newNode.GetID()] = child
 		return child, nil
 
@@ -291,7 +284,7 @@ func (d *Dir) Lookup(ctx context.Context, req *fuse.LookupRequest, resp *fuse.Lo
 			parent: d,
 			name:   req.Name,
 		}
-		// a Symlink is never included in Dir.active, as it doesn't
+		// a Symlink is never included in Folder.nodes, as it doesn't
 		// have a libkbfs.Node to keep track of renames.
 		return child, nil
 	}
@@ -315,7 +308,6 @@ func (d *Dir) Create(ctx context.Context, req *fuse.CreateRequest, resp *fuse.Cr
 		parent: d,
 		node:   newNode,
 	}
-	d.active[req.Name] = child
 	d.folder.nodes[newNode.GetID()] = child
 	return child, child, nil
 }
@@ -334,7 +326,6 @@ func (d *Dir) Mkdir(ctx context.Context, req *fuse.MkdirRequest) (fs.Node, error
 	}
 
 	child := newDir(d.folder, newNode, d)
-	d.active[req.Name] = child
 	d.folder.nodes[newNode.GetID()] = child
 	return child, nil
 }
@@ -385,32 +376,12 @@ func (d *Dir) Rename(ctx context.Context, req *fuse.RenameRequest, newDir fs.Nod
 		return fuse.Errno(syscall.EXDEV)
 	}
 
-	err := d.folder.fs.config.KBFSOps().Rename(
-		ctx, d.node, req.OldName, newDir2.node, req.NewName)
-	if err != nil {
-		return err
-	}
+	// overwritten node, if any, will be removed from Folder.nodes, if
+	// it is there in the first place, by its Forget
 
-	// winner is being moved on top of loser
-	if winner, ok := d.active[req.OldName]; ok {
-		// if the old node is active, move it to the new name
-		delete(d.active, req.OldName)
-		if loser, ok := newDir2.active[req.NewName]; ok {
-			// node being overwritten is active (and thus in
-			// Folder.nodes), it's active entry will be overwritten
-			// next; remove it from Folder.nodes.
-			delete(d.folder.nodes, loser.KBFSNodeID())
-		}
-		newDir2.active[req.NewName] = winner
-	} else {
-		// just make sure there's no previous active entry for new
-		// name
-		if loser, ok := newDir2.active[req.NewName]; ok {
-			// node being overwritten is active (and thus in
-			// Folder.nodes), remove from both.
-			delete(d.folder.nodes, loser.KBFSNodeID())
-			delete(newDir2.active, req.NewName)
-		}
+	if err := d.folder.fs.config.KBFSOps().Rename(
+		ctx, d.node, req.OldName, newDir2.node, req.NewName); err != nil {
+		return err
 	}
 
 	return nil
@@ -423,6 +394,9 @@ func (d *Dir) Remove(ctx context.Context, req *fuse.RemoveRequest) error {
 	d.folder.mu.Lock()
 	defer d.folder.mu.Unlock()
 
+	// node will be removed from Folder.nodes, if it is there in the
+	// first place, by its Forget
+
 	var err error
 	if req.Dir {
 		err = d.folder.fs.config.KBFSOps().RemoveDir(ctx, d.node, req.Name)
@@ -431,11 +405,6 @@ func (d *Dir) Remove(ctx context.Context, req *fuse.RemoveRequest) error {
 	}
 	if err != nil {
 		return err
-	}
-
-	if n, ok := d.active[req.Name]; ok {
-		delete(d.folder.nodes, n.KBFSNodeID())
-		delete(d.active, req.Name)
 	}
 
 	return nil
@@ -490,36 +459,16 @@ var _ fs.NodeForgetter = (*Dir)(nil)
 
 // Forget kernel reference to this node.
 func (d *Dir) Forget() {
+	if d.node == nil {
+		// Dir.node can be nil for made-up entries to expose a
+		// "public" subfolder
+		//
+		// TODO unregister, clean up Root.folders
+		return
+	}
+
 	d.folder.mu.Lock()
 	defer d.folder.mu.Unlock()
 
-	if d.parent == nil {
-		// Top-level directory of a folder, or the "public" folder.
-		return
-	}
-	name := d.node.GetBasename()
-	if name == "" {
-		// unlinked
-		return
-	}
-	d.parent.forgetChildLocked(d, name)
-}
-
-// forgetChildLocked forgets a formerly active child with basename
-// name.
-//
-// Caller must hold Folder.mu.
-func (d *Dir) forgetChildLocked(child fs.Node, name string) {
-	if n, ok := d.active[name]; ok {
-		delete(d.folder.nodes, n.KBFSNodeID())
-		delete(d.active, name)
-	}
-}
-
-var _ folderNode = (*Dir)(nil)
-
-// KBFSNodeID returns the libkbfs.NodeID for this node, for use in
-// libkbfs change notification callbacks.
-func (d *Dir) KBFSNodeID() libkbfs.NodeID {
-	return d.node.GetID()
+	d.folder.forgetNodeLocked(d.node)
 }
