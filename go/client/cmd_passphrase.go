@@ -12,6 +12,7 @@ func NewCmdPassphrase(cl *libcmdline.CommandLine) cli.Command {
 		Description: "Change or recover your keybase passphrase",
 		Subcommands: []cli.Command{
 			NewCmdPassphraseChange(cl),
+			NewCmdPassphraseRecover(cl),
 		},
 	}
 }
