@@ -56,12 +56,14 @@ func ParseTlfID(s string) TlfID {
 	return tlfID
 }
 
-// ReaderSep is the string that separates readers from writers in a
-// TlfHandle string representation.
-var ReaderSep = "#"
+const (
+	// ReaderSep is the string that separates readers from writers in a
+	// TlfHandle string representation.
+	ReaderSep = "#"
 
-// PublicName is the reserved name of a public top-level folder.
-var PublicName = "public"
+	// PublicName is the reserved name of a public top-level folder.
+	PublicName = "public"
+)
 
 // All section references below are to https://keybase.io/blog/crypto
 // (version 1.3).
