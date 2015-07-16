@@ -50,6 +50,10 @@ func (c *changerClient) change(newPassphrase string, force bool) error {
 	return cli.ChangePassphrase(arg)
 }
 
+type CmdChangePassphrase struct {
+	force bool
+}
+
 func NewCmdChangePassphrase(cl *libcmdline.CommandLine) cli.Command {
 	return cli.Command{
 		Name:        "change-passphrase",
@@ -58,10 +62,13 @@ func NewCmdChangePassphrase(cl *libcmdline.CommandLine) cli.Command {
 		Action: func(c *cli.Context) {
 			cl.ChooseCommand(&CmdChangePassphrase{}, "change-passphrase", c)
 		},
+		Flags: []cli.Flag{
+			cli.BoolFlag{
+				Name:  "f, force",
+				Usage: "force passphrase change",
+			},
+		},
 	}
-}
-
-type CmdChangePassphrase struct {
 }
 
 func (c *CmdChangePassphrase) promptNewPassphrase() (string, error) {
@@ -78,21 +85,46 @@ func (c *CmdChangePassphrase) promptNewPassphrase() (string, error) {
 }
 
 func (c *CmdChangePassphrase) run(ch changer) error {
+	if c.force {
+		fmt.Println("Keybase can forcefully update your passphrase without your")
+		fmt.Println("current passphrase.  However, your account will be placed on")
+		fmt.Println("probation for 5 days for your protection.")
+		fmt.Println()
+		err := GlobUI.PromptForConfirmation("Are you sure you want to force-update your passphrase?")
+		if err != nil {
+			return err
+		}
+	}
+
 	pp, err := c.promptNewPassphrase()
 	if err != nil {
 		return err
 	}
 
+	if c.force {
+		return ch.change(pp, true)
+	}
+
+	// standard update:
 	err = ch.change(pp, false)
 	if err == nil {
+		G.Log.Info("Passphrase changed.")
 		return nil
 	}
 
-	fmt.Printf("error with standard password replace: %s\n", err)
+	// originally, this was automatically trying a force update of the
+	// passphrase if a (known) error occurred in the standard update.
+	// But since we want to *strongly* encorage standard updates, I think
+	// requiring users to run the command with a flag to force is ok.
+	// The user will still need to confirm they want to do that.
 
-	// TODO prompt user here to make sure they want to do this:
-	fmt.Printf("force changing password\n")
-	return ch.change(pp, true)
+	fmt.Println()
+	fmt.Println("There was a problem during the standard update of your passphrase.")
+	fmt.Println("If you have forgotten your existing passphrase, you can force")
+	fmt.Println("a passphrase update with the -f flag to this command.")
+	fmt.Println()
+
+	return err
 }
 
 func (c *CmdChangePassphrase) Run() error {
@@ -104,6 +136,7 @@ func (c *CmdChangePassphrase) RunClient() error {
 }
 
 func (c *CmdChangePassphrase) ParseArgv(ctx *cli.Context) error {
+	c.force = ctx.Bool("force")
 	return nil
 }
 

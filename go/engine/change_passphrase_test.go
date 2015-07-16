@@ -164,6 +164,47 @@ func TestChangePassphraseUnknown(t *testing.T) {
 
 	u := CreateAndSignupFakeUser(tc, "login")
 
+	// this has a flaw:  the passphrase stream cache is available.
+	// it is being used to unlock the secret key to generate the
+	// change passphrase proof.
+	//
+
+	newPassphrase := "password"
+	arg := &keybase1.ChangePassphraseArg{
+		NewPassphrase: "password",
+		Force:         true,
+	}
+	ctx := &Context{
+		SecretUI: &libkb.TestSecretUI{},
+	}
+	eng := NewChangePassphrase(arg, tc.G)
+	if err := RunEngine(eng, ctx); err != nil {
+		t.Fatal(err)
+	}
+
+	_, err := tc.G.LoginState().VerifyPlaintextPassphrase(newPassphrase)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	_, err = tc.G.LoginState().VerifyPlaintextPassphrase(u.Passphrase)
+	if err == nil {
+		t.Fatal("old passphrase passed verification")
+	}
+}
+
+// Test changing the passphrase when user forgets current
+// passphrase and there's no passphrase stream cache.
+func TestChangePassphraseUnknownNoPSCache(t *testing.T) {
+	tc := SetupEngineTest(t, "ChangePassphrase")
+	defer tc.Cleanup()
+
+	u := CreateAndSignupFakeUser(tc, "login")
+
+	tc.G.LoginState().Account(func(a *libkb.Account) {
+		a.ClearStreamCache()
+	}, "clear stream cache")
+
 	newPassphrase := "password"
 	arg := &keybase1.ChangePassphraseArg{
 		Passphrase: "password",

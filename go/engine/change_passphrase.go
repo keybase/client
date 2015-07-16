@@ -60,6 +60,11 @@ func (c *ChangePassphrase) Run(ctx *Context) (err error) {
 	if err = c.loadMe(); err != nil {
 		return
 	}
+
+	if err == nil {
+		c.G().LoginState().RunSecretSyncer(c.me.GetUID())
+	}
+
 	if c.arg.Force {
 		err = c.runForcedUpdate(ctx)
 	} else {
@@ -87,15 +92,19 @@ func (c *ChangePassphrase) runForcedUpdate(ctx *Context) (err error) {
 		KeyType: libkb.DeviceEncryptionKeyType,
 	}
 	// passing in nil SecretUI since we don't know the passphrase.
+	c.G().Log.Debug("runForcedUpdate: getting device encryption key")
 	encKey, _, err := c.G().Keyrings.GetSecretKeyWithPrompt(ctx.LoginContext, ska, nil, "change passphrase")
 	if err != nil {
 		return err
 	}
+	c.G().Log.Debug("runForcedUpdate: got device encryption key")
+	c.G().Log.Debug("runForcedUpdate: getting device signing key")
 	ska.KeyType = libkb.DeviceSigningKeyType
 	sigKey, _, err := c.G().Keyrings.GetSecretKeyWithPrompt(ctx.LoginContext, ska, nil, "change passphrase")
 	if err != nil {
 		return err
 	}
+	c.G().Log.Debug("runForcedUpdate: got device signing key")
 
 	// First fetch the encrypted LKS client half from the server. Use current device to
 	// recover..
