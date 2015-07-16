@@ -172,18 +172,7 @@ func (d *Dir) Attr(ctx context.Context, a *fuse.Attr) error {
 		// It's a made-up folder, e.g. to show u/public when caller
 		// has no access to u; no DirEntry.
 
-	case d.parent == nil:
-		// Top-level folder
-		_, rootDe, err :=
-			d.folder.fs.config.KBFSOps().GetOrCreateRootNodeForHandle(
-				ctx, d.folder.dh, libkbfs.MasterBranch)
-		if err != nil {
-			return err
-		}
-		fillAttr(&rootDe, a)
-
 	default:
-		// Not a top-level folder => Stat is safe.
 		de, err := d.folder.fs.config.KBFSOps().Stat(ctx, d.node)
 		if err != nil {
 			if _, ok := err.(libkbfs.NoSuchNameError); ok {
