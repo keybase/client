@@ -434,7 +434,11 @@ func resolveUser(ctx context.Context, config Config, name string,
 	errCh chan<- error, results chan<- keybase1.UID) {
 	user, err := config.KBPKI().ResolveAssertion(ctx, name)
 	if err != nil {
-		errCh <- err
+		select {
+		case errCh <- err:
+		default:
+			// another worker reported an error before us; first one wins
+		}
 		return
 	}
 	uid := user.GetUID()
