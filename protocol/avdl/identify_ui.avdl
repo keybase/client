@@ -70,7 +70,7 @@ protocol identifyUi {
 	void displayCryptocurrency(int sessionID, Cryptocurrency c);
 	void displayKey(int sessionID, IdentifyKey key);
 	void reportLastTrack(int sessionID, union { null, TrackSummary } track);
-	void launchNetworkChecks(int sessionID, Identity id, User user);
+	void launchNetworkChecks(int sessionID, Identity identity, User user);
 	void displayTrackStatement(int sessionID, string stmt);
 	void start(int sessionID, string username);
 	void finish(int sessionID);

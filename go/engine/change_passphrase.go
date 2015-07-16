@@ -240,7 +240,7 @@ func (c *ChangePassphrase) commonArgs(a *libkb.Account, oldClientHalf []byte) (*
 		return nil, err
 	}
 
-	_, newPPStream, err := libkb.StretchPassphrase(c.arg.NewPassphrase, salt)
+	_, newPPStream, err := libkb.StretchPassphrase(c.arg.Passphrase, salt)
 	if err != nil {
 		return nil, err
 	}

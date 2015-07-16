@@ -42,7 +42,7 @@ func (c *CmdDeviceRemove) RunClient() (err error) {
 	}
 
 	return cli.RevokeDevice(keybase1.RevokeDeviceArg{
-		Id: c.id,
+		DeviceID: c.id,
 	})
 }
 

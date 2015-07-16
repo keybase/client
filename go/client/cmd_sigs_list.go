@@ -152,7 +152,7 @@ func (s *CmdSigsList) RunClient() error {
 			Track:          s.types["track"],
 			Proof:          s.types["proof"],
 			Cryptocurrency: s.types["cryptocurrency"],
-			Self:           s.types["self"],
+			IsSelf:         s.types["self"],
 		}
 	}
 	args := keybase1.SigListArgs{

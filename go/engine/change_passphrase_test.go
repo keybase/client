@@ -17,7 +17,7 @@ func TestChangePassphraseKnown(t *testing.T) {
 	newPassphrase := "password"
 	arg := &keybase1.ChangePassphraseArg{
 		OldPassphrase: u.Passphrase,
-		NewPassphrase: newPassphrase,
+		Passphrase:    newPassphrase,
 	}
 
 	// using an empty secret ui to make sure existing pp doesn't come from ui prompt:
@@ -56,7 +56,7 @@ func TestChangePassphraseKnownPrompt(t *testing.T) {
 
 	newPassphrase := "password"
 	arg := &keybase1.ChangePassphraseArg{
-		NewPassphrase: newPassphrase,
+		Passphrase: newPassphrase,
 	}
 	secui := u.NewSecretUI()
 	ctx := &Context{
@@ -100,7 +100,7 @@ func TestChangePassphraseAfterPubkeyLogin(t *testing.T) {
 
 	newPassphrase := "password"
 	arg := &keybase1.ChangePassphraseArg{
-		NewPassphrase: newPassphrase,
+		Passphrase: newPassphrase,
 	}
 	ctx := &Context{
 		SecretUI: secui,
@@ -130,7 +130,7 @@ func TestChangePassphraseKnownNotSupplied(t *testing.T) {
 	u := CreateAndSignupFakeUser(tc, "login")
 	newPassphrase := "password"
 	arg := &keybase1.ChangePassphraseArg{
-		NewPassphrase: newPassphrase,
+		Passphrase: newPassphrase,
 	}
 	secui := &libkb.TestSecretUI{}
 	ctx := &Context{
@@ -166,8 +166,8 @@ func TestChangePassphraseUnknown(t *testing.T) {
 
 	newPassphrase := "password"
 	arg := &keybase1.ChangePassphraseArg{
-		NewPassphrase: "password",
-		Force:         true,
+		Passphrase: "password",
+		Force:      true,
 	}
 	ctx := &Context{
 		SecretUI: &libkb.TestSecretUI{},

@@ -502,7 +502,7 @@
         "name" : "sessionID",
         "type" : "int"
       }, {
-        "name" : "id",
+        "name" : "identity",
         "type" : "Identity"
       }, {
         "name" : "user",

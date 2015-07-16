@@ -110,7 +110,7 @@ func (u *RemoteBaseIdentifyUI) DisplayTrackStatement(s string) error {
 func (u *RemoteBaseIdentifyUI) LaunchNetworkChecks(id *keybase1.Identity, user *keybase1.User) {
 	u.uicli.LaunchNetworkChecks(keybase1.LaunchNetworkChecksArg{
 		SessionID: u.sessionID,
-		Id:        *id,
+		Identity:  *id,
 		User:      *user,
 	})
 	return

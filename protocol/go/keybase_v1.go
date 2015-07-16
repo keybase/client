@@ -11,7 +11,7 @@ type GenericClient interface {
 type ChangePassphraseArg struct {
 	SessionID     int    `codec:"sessionID" json:"sessionID"`
 	OldPassphrase string `codec:"oldPassphrase" json:"oldPassphrase"`
-	NewPassphrase string `codec:"newPassphrase" json:"newPassphrase"`
+	Passphrase    string `codec:"passphrase" json:"passphrase"`
 	Force         bool   `codec:"force" json:"force"`
 }
 
@@ -1067,7 +1067,7 @@ type ReportLastTrackArg struct {
 
 type LaunchNetworkChecksArg struct {
 	SessionID int      `codec:"sessionID" json:"sessionID"`
-	Id        Identity `codec:"id" json:"id"`
+	Identity  Identity `codec:"identity" json:"identity"`
 	User      User     `codec:"user" json:"user"`
 }
 
@@ -2279,17 +2279,17 @@ func (c QuotaClient) VerifySession(session string) (res SessionToken, err error)
 
 type RevokeKeyArg struct {
 	SessionID int    `codec:"sessionID" json:"sessionID"`
-	Id        string `codec:"id" json:"id"`
+	KeyID     string `codec:"keyID" json:"keyID"`
 }
 
 type RevokeDeviceArg struct {
 	SessionID int      `codec:"sessionID" json:"sessionID"`
-	Id        DeviceID `codec:"id" json:"id"`
+	DeviceID  DeviceID `codec:"deviceID" json:"deviceID"`
 }
 
 type RevokeSigsArg struct {
 	SessionID int     `codec:"sessionID" json:"sessionID"`
-	Ids       []SigID `codec:"ids" json:"ids"`
+	SigIDs    []SigID `codec:"sigIDs" json:"sigIDs"`
 	Seqnos    []int   `codec:"seqnos" json:"seqnos"`
 }
 
@@ -2583,7 +2583,7 @@ type SigTypes struct {
 	Track          bool `codec:"track" json:"track"`
 	Proof          bool `codec:"proof" json:"proof"`
 	Cryptocurrency bool `codec:"cryptocurrency" json:"cryptocurrency"`
-	Self           bool `codec:"self" json:"self"`
+	IsSelf         bool `codec:"isSelf" json:"isSelf"`
 }
 
 type SigListArgs struct {
@@ -2887,7 +2887,7 @@ type LoadUserArg struct {
 	SessionID int    `codec:"sessionID" json:"sessionID"`
 	Uid       *UID   `codec:"uid,omitempty" json:"uid,omitempty"`
 	Username  string `codec:"username" json:"username"`
-	Self      bool   `codec:"self" json:"self"`
+	IsSelf    bool   `codec:"isSelf" json:"isSelf"`
 }
 
 type ListTrackingArg struct {

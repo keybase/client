@@ -53,7 +53,7 @@ func (c *CmdSigsRevoke) RunClient() error {
 	}
 
 	return cli.RevokeSigs(keybase1.RevokeSigsArg{
-		Ids:    c.sigIDs,
+		SigIDs: c.sigIDs,
 		Seqnos: c.seqnos,
 	})
 }

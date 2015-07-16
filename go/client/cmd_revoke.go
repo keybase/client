@@ -38,7 +38,7 @@ func (c *CmdRevoke) RunClient() (err error) {
 	}
 
 	return cli.RevokeKey(keybase1.RevokeKeyArg{
-		Id: c.id,
+		KeyID: c.id,
 	})
 }
 

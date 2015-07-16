@@ -167,7 +167,7 @@
         "name" : "sessionID",
         "type" : "int"
       }, {
-        "name" : "id",
+        "name" : "keyID",
         "type" : "string"
       } ],
       "response" : "null"
@@ -177,7 +177,7 @@
         "name" : "sessionID",
         "type" : "int"
       }, {
-        "name" : "id",
+        "name" : "deviceID",
         "type" : "DeviceID"
       } ],
       "response" : "null"
@@ -187,7 +187,7 @@
         "name" : "sessionID",
         "type" : "int"
       }, {
-        "name" : "ids",
+        "name" : "sigIDs",
         "type" : {
           "type" : "array",
           "items" : "SigID"

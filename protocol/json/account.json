@@ -11,7 +11,7 @@
         "name" : "oldPassphrase",
         "type" : "string"
       }, {
-        "name" : "newPassphrase",
+        "name" : "passphrase",
         "type" : "string"
       }, {
         "name" : "force",

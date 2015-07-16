@@ -314,7 +314,7 @@
         "name" : "username",
         "type" : "string"
       }, {
-        "name" : "self",
+        "name" : "isSelf",
         "type" : "boolean"
       } ],
       "response" : "User"

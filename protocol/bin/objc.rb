@@ -66,13 +66,15 @@ def is_primitive_type(type)
   ["int", "long", "boolean", "null"].include?(type)
 end
 
+# Deprecated
 def alias_name(name)
-  case name
-  when "id" then "idKb"
-  when "self" then "selfKb"
-  else
-    name
-  end
+  name
+end
+
+def validate_name(name, source)
+  raise "Invalid name: #{name} in #{source}. In Objective-C you can't start a property name with \"new\"" if name.start_with?("new")
+  raise "Invalid name: #{name} in #{source}. In Objective-C you can't have a property name \"id\"" if name == "id"
+  raise "Invalid name: #{name} in #{source}. In Objective-C you can't have a property name \"self\"" if name == "self"
 end
 
 def default_name_for_type(type)
@@ -173,19 +175,21 @@ paths.each do |path|
       transformers = []
       header << "@interface #{classname(type["name"], aliases)} : KBRObject"
       type["fields"].each do |field|
+        name = field["name"]
+        validate_name(name, type["name"])
         if field["type"].kind_of?(Hash)
           subtype = field["type"]
           if subtype["type"] == "array"
 
             if is_native_type(subtype["items"])
-              header << "@property NSArray *#{field["name"]}; /*of #{subtype["items"]}*/"
+              header << "@property NSArray *#{name}; /*of #{subtype["items"]}*/"
             else
-              header << "@property NSArray *#{field["name"]}; /*of #{classname(subtype["items"], aliases)}*/"
-              transformers << "+ (NSValueTransformer *)#{field["name"]}JSONTransformer { return [MTLJSONAdapter arrayTransformerWithModelClass:#{classname(subtype["items"], aliases)}.class]; }"
+              header << "@property NSArray *#{name}; /*of #{classname(subtype["items"], aliases)}*/"
+              transformers << "+ (NSValueTransformer *)#{name}JSONTransformer { return [MTLJSONAdapter arrayTransformerWithModelClass:#{classname(subtype["items"], aliases)}.class]; }"
             end
           end
         else
-          header << "@property #{objc_for_type(field["type"], enums, aliases, true)}#{field["name"]};"
+          header << "@property #{objc_for_type(field["type"], enums, aliases, true)}#{name};"
         end
       end
       header << "@end\n"
@@ -223,6 +227,7 @@ paths.each do |path|
 
     params_str = request_params.each_with_index.collect do |param, index|
       name = alias_name(param["name"])
+      validate_name(name, protocol)
       name = "With#{name.camelize}" if index == 0
       name = "" if request_params.length == 1
 

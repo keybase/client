@@ -3,6 +3,11 @@
 #import "KBRRequest.h"
 #import "KBRRequestParams.h"
 
+@interface KBRAccountRequest : KBRRequest
+- (void)changePassphraseWithSessionID:(NSInteger)sessionID oldPassphrase:(NSString *)oldPassphrase newPassphrase:(NSString *)newPassphrase force:(BOOL)force completion:(void (^)(NSError *error))completion;
+
+@end
+
 @interface KBRStringKVPair : KBRObject
 @property NSString *key;
 @property NSString *value;
@@ -13,11 +18,6 @@
 @property NSString *name;
 @property NSString *desc;
 @property NSArray *fields; /*of KBRStringKVPair*/
-@end
-
-@interface KBRFOKID : KBRObject
-@property NSData *pgpFingerprint;
-@property NSString *kid;
 @end
 
 @interface KBRText : KBRObject
@@ -512,10 +512,14 @@ typedef NS_ENUM (NSInteger, KBRLogLevel) {
 
 - (void)resetWithSessionID:(NSInteger)sessionID completion:(void (^)(NSError *error))completion;
 
+- (void)backupWithSessionID:(NSInteger)sessionID completion:(void (^)(NSError *error, NSString *str))completion;
+
 @end
 
 @interface KBRLoginUiRequest : KBRRequest
 - (void)getEmailOrUsernameWithSessionID:(NSInteger)sessionID completion:(void (^)(NSError *error, NSString *str))completion;
+
+- (void)promptRevokeBackupDeviceKeysWithSessionID:(NSInteger)sessionID device:(KBRDevice *)device completion:(void (^)(NSError *error, BOOL b))completion;
 
 @end
 
@@ -838,6 +842,12 @@ typedef NS_ENUM (NSInteger, KBRPromptOverwriteType) {
 - (void)searchWithSessionID:(NSInteger)sessionID query:(NSString *)query completion:(void (^)(NSError *error, NSArray *items))completion;
 
 @end
+@interface KBRChangePassphraseRequestParams : KBRRequestParams
+@property NSInteger sessionID;
+@property NSString *oldPassphrase;
+@property NSString *newPassphrase;
+@property BOOL force;
+@end
 @interface KBREstablishSessionRequestParams : KBRRequestParams
 @property NSString *user;
 @property NSString *sid;
@@ -1046,8 +1056,15 @@ typedef NS_ENUM (NSInteger, KBRPromptOverwriteType) {
 @interface KBRResetRequestParams : KBRRequestParams
 @property NSInteger sessionID;
 @end
+@interface KBRBackupRequestParams : KBRRequestParams
+@property NSInteger sessionID;
+@end
 @interface KBRGetEmailOrUsernameRequestParams : KBRRequestParams
 @property NSInteger sessionID;
+@end
+@interface KBRPromptRevokeBackupDeviceKeysRequestParams : KBRRequestParams
+@property NSInteger sessionID;
+@property KBRDevice *device;
 @end
 @interface KBRPgpSignRequestParams : KBRRequestParams
 @property NSInteger sessionID;

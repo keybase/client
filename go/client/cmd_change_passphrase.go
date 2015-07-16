@@ -13,8 +13,8 @@ import (
 
 func newChangeArg(newPassphrase string, force bool) keybase1.ChangePassphraseArg {
 	return keybase1.ChangePassphraseArg{
-		NewPassphrase: newPassphrase,
-		Force:         force,
+		Passphrase: newPassphrase,
+		Force:      force,
 	}
 }
 

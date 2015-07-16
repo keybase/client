@@ -53,7 +53,7 @@ func (h *SigsHandler) run(args keybase1.SigListArgs) (*engine.SigsList, error) {
 		f(args.Types.Track, "track")
 		f(args.Types.Proof, "proof")
 		f(args.Types.Cryptocurrency, "cryptocurrency")
-		f(args.Types.Self, "self")
+		f(args.Types.IsSelf, "self")
 		ea.Types = t
 	}
 	eng := engine.NewSigsList(ea, G)
