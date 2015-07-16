@@ -7,8 +7,13 @@ import (
 	"github.com/keybase/kbfs/libkbfs"
 )
 
-// PublicName is the reserved name of a public top-level folder.
-const PublicName = "public"
+const (
+	// PublicName is the name of the parent of all public top-level folders.
+	PublicName = "public"
+
+	// PrivateName is the name of the parent of all private top-level folders.
+	PrivateName = "private"
+)
 
 var ctxAppIDKey = "kbfsfuse-app-id"
 

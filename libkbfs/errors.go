@@ -139,6 +139,14 @@ func (e ReadAccessError) Error() string {
 		e.User, e.Dir)
 }
 
+var _ fuse.ErrorNumber = ReadAccessError{}
+
+// Errno implements the fuse.ErrorNumber interface for
+// ReadAccessError.
+func (e ReadAccessError) Errno() fuse.Errno {
+	return fuse.Errno(syscall.EACCES)
+}
+
 // WriteAccessError indicates that the user tried to read from a
 // top-level folder without read permission.
 type WriteAccessError struct {

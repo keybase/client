@@ -10,7 +10,6 @@ import (
 
 	"bazil.org/fuse"
 	"bazil.org/fuse/fs"
-	keybase1 "github.com/keybase/client/protocol/go"
 	"github.com/keybase/kbfs/libkbfs"
 	"golang.org/x/net/context"
 )
@@ -154,9 +153,8 @@ func (f *Folder) BatchChanges(ctx context.Context, changes []libkbfs.NodeChange)
 type Dir struct {
 	fs.NodeRef
 
-	folder    *Folder
-	node      libkbfs.Node
-	hasPublic bool
+	folder *Folder
+	node   libkbfs.Node
 }
 
 func newDir(folder *Folder, node libkbfs.Node) *Dir {
@@ -175,21 +173,14 @@ func (d *Dir) Attr(ctx context.Context, a *fuse.Attr) (err error) {
 	d.folder.mu.Lock()
 	defer d.folder.mu.Unlock()
 
-	switch {
-	case d.folder.id == libkbfs.NullTlfID:
-		// It's a made-up folder, e.g. to show u/public when caller
-		// has no access to u; no DirEntry.
-
-	default:
-		de, err := d.folder.fs.config.KBFSOps().Stat(ctx, d.node)
-		if err != nil {
-			if _, ok := err.(libkbfs.NoSuchNameError); ok {
-				return fuse.ESTALE
-			}
-			return err
+	de, err := d.folder.fs.config.KBFSOps().Stat(ctx, d.node)
+	if err != nil {
+		if _, ok := err.(libkbfs.NoSuchNameError); ok {
+			return fuse.ESTALE
 		}
-		fillAttr(&de, a)
+		return err
 	}
+	fillAttr(&de, a)
 
 	a.Mode = os.ModeDir | 0700
 	if d.folder.id.IsPublic() || d.folder.dh.IsPublic() {
@@ -205,41 +196,6 @@ func (d *Dir) Lookup(ctx context.Context, req *fuse.LookupRequest, resp *fuse.Lo
 	defer func() { d.folder.fs.reportErr(err) }()
 	d.folder.mu.Lock()
 	defer d.folder.mu.Unlock()
-
-	// TODO later refactoring to use /public/jdoe and
-	// /private/jdoe paths will change all of this
-	if req.Name == PublicName && d.hasPublic {
-		dhPub := &libkbfs.TlfHandle{
-			Writers: d.folder.dh.Writers,
-			Readers: []keybase1.UID{keybase1.PublicUID},
-		}
-		rootNode, _, err :=
-			d.folder.fs.config.KBFSOps().
-				GetOrCreateRootNodeForHandle(ctx, dhPub, libkbfs.MasterBranch)
-		if err != nil {
-			return nil, err
-		}
-		if n, ok := d.folder.nodes[rootNode.GetID()]; ok {
-			return n, nil
-		}
-
-		folderBranch := rootNode.GetFolderBranch()
-		pubFolder := &Folder{
-			fs:    d.folder.fs,
-			id:    folderBranch.Tlf,
-			dh:    dhPub,
-			nodes: map[libkbfs.NodeID]fs.Node{},
-		}
-		child := newDir(pubFolder, rootNode)
-		d.folder.nodes[rootNode.GetID()] = child
-
-		// TODO we never unregister
-		if err := d.folder.fs.config.Notifier().RegisterForChanges([]libkbfs.FolderBranch{folderBranch}, pubFolder); err != nil {
-			return nil, err
-		}
-
-		return child, nil
-	}
 
 	if req.Name == libkbfs.ErrorFile {
 		resp.EntryValid = 0
@@ -430,18 +386,6 @@ func (d *Dir) ReadDirAll(ctx context.Context) (res []fuse.Dirent, err error) {
 	d.folder.mu.Lock()
 	defer d.folder.mu.Unlock()
 
-	if d.hasPublic {
-		res = append(res, fuse.Dirent{
-			Name: PublicName,
-			Type: fuse.DT_Dir,
-		})
-	}
-
-	if d.folder.id == libkbfs.NullTlfID {
-		// It's a dummy folder for the purposes of exposing public.
-		return res, nil
-	}
-
 	children, err := d.folder.fs.config.KBFSOps().GetDirChildren(ctx, d.node)
 	if err != nil {
 		return nil, err
@@ -468,14 +412,6 @@ var _ fs.NodeForgetter = (*Dir)(nil)
 
 // Forget kernel reference to this node.
 func (d *Dir) Forget() {
-	if d.node == nil {
-		// Dir.node can be nil for made-up entries to expose a
-		// "public" subfolder
-		//
-		// TODO unregister, clean up Root.folders
-		return
-	}
-
 	d.folder.mu.Lock()
 	defer d.folder.mu.Unlock()
 
