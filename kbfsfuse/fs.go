@@ -89,7 +89,7 @@ type Root struct {
 
 var _ fs.Node = (*Root)(nil)
 
-// Attr implements the fs.Root interface for Root.
+// Attr implements the fs.Node interface for Root.
 func (*Root) Attr(ctx context.Context, a *fuse.Attr) error {
 	a.Mode = os.ModeDir | 0755
 	return nil
