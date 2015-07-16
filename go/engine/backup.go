@@ -93,14 +93,13 @@ func (e *Backup) Run(ctx *Context) error {
 		}
 	}
 
-	locked, which, err := e.G().Keyrings.GetSecretKeyLocked(ctx.LoginContext, libkb.SecretKeyArg{
+	ska := libkb.SecretKeyArg{
 		Me:      me,
 		KeyType: libkb.DeviceSigningKeyType,
-	})
-	if err != nil {
-		return err
 	}
-	signingKey, err := locked.PromptAndUnlock(ctx.LoginContext, "backup key signature", which, nil, ctx.SecretUI, nil)
+
+	signingKey, _, err := e.G().Keyrings.GetSecretKeyWithPrompt(
+		ctx.LoginContext, ska, ctx.SecretUI, "backup key signature")
 	if err != nil {
 		return err
 	}
