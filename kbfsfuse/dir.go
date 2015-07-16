@@ -146,15 +146,14 @@ func (f *Folder) BatchChanges(ctx context.Context, changes []libkbfs.NodeChange)
 type Dir struct {
 	fs.NodeRef
 
-	folder *Folder
-	parent *Dir
-	node   libkbfs.Node
+	folder    *Folder
+	node      libkbfs.Node
+	hasPublic bool
 }
 
-func newDir(folder *Folder, node libkbfs.Node, parent *Dir) *Dir {
+func newDir(folder *Folder, node libkbfs.Node) *Dir {
 	d := &Dir{
 		folder: folder,
-		parent: parent,
 		node:   node,
 	}
 	return d
@@ -199,9 +198,7 @@ func (d *Dir) Lookup(ctx context.Context, req *fuse.LookupRequest, resp *fuse.Lo
 
 	// TODO later refactoring to use /public/jdoe and
 	// /private/jdoe paths will change all of this
-	if req.Name == libkbfs.PublicName &&
-		d.parent == nil &&
-		d.folder.dh.HasPublic() {
+	if req.Name == libkbfs.PublicName && d.hasPublic {
 		dhPub := &libkbfs.TlfHandle{
 			Writers: d.folder.dh.Writers,
 			Readers: []keybase1.UID{keybase1.PublicUID},
@@ -223,7 +220,7 @@ func (d *Dir) Lookup(ctx context.Context, req *fuse.LookupRequest, resp *fuse.Lo
 			dh:    dhPub,
 			nodes: map[libkbfs.NodeID]fs.Node{},
 		}
-		child := newDir(pubFolder, rootNode, nil)
+		child := newDir(pubFolder, rootNode)
 		d.folder.nodes[rootNode.GetID()] = child
 
 		// TODO we never unregister
@@ -264,7 +261,7 @@ func (d *Dir) Lookup(ctx context.Context, req *fuse.LookupRequest, resp *fuse.Lo
 		return child, nil
 
 	case libkbfs.Dir:
-		child := newDir(d.folder, newNode, d)
+		child := newDir(d.folder, newNode)
 		d.folder.nodes[newNode.GetID()] = child
 		return child, nil
 
@@ -314,7 +311,7 @@ func (d *Dir) Mkdir(ctx context.Context, req *fuse.MkdirRequest) (fs.Node, error
 		return nil, err
 	}
 
-	child := newDir(d.folder, newNode, d)
+	child := newDir(d.folder, newNode)
 	d.folder.nodes[newNode.GetID()] = child
 	return child, nil
 }
@@ -409,8 +406,7 @@ func (d *Dir) ReadDirAll(ctx context.Context) ([]fuse.Dirent, error) {
 	defer d.folder.mu.Unlock()
 
 	var res []fuse.Dirent
-	hasPublic := d.parent == nil && d.folder.dh.HasPublic()
-	if hasPublic {
+	if d.hasPublic {
 		res = append(res, fuse.Dirent{
 			Name: libkbfs.PublicName,
 			Type: fuse.DT_Dir,

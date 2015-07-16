@@ -157,7 +157,7 @@ func (r *Root) Lookup(ctx context.Context, req *fuse.LookupRequest, resp *fuse.L
 		return nil, err
 	}
 
-	child := newDir(folder, rootNode, nil)
+	child := newDir(folder, rootNode)
 	if rootNode != nil {
 		// rootNode can be nil if this was a made-up entry just to
 		// expose a "public" subfolder. That case avoids aliasing
@@ -165,6 +165,14 @@ func (r *Root) Lookup(ctx context.Context, req *fuse.LookupRequest, resp *fuse.L
 		// r.folders
 		folder.nodes[rootNode.GetID()] = child
 	}
+
+	if dh.HasPublic() {
+		// The folder has a "public" subfolder, and this directory is
+		// the top-level directory of the folder, so it should contain
+		// a "public" entry.
+		child.hasPublic = true
+	}
+
 	r.folders[req.Name] = child
 	return child, nil
 }
