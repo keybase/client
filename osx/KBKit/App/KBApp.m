@@ -79,8 +79,7 @@
   }];
   [AFNetworkReachabilityManager.sharedManager startMonitoring];
 
-  // Cleanup old stuff
-  DDLogInfo(@"Removing old services and files");
+  // Cleanup old stuff  
   [KBUninstaller uninstall:@"keybase" completion:^(NSError *error) {}];
 
   // Save installed version in case a later upgrade needs this info

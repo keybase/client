@@ -4,7 +4,7 @@
 #import "KBRRequestParams.h"
 
 @interface KBRAccountRequest : KBRRequest
-- (void)changePassphraseWithSessionID:(NSInteger)sessionID oldPassphrase:(NSString *)oldPassphrase newPassphrase:(NSString *)newPassphrase force:(BOOL)force completion:(void (^)(NSError *error))completion;
+- (void)changePassphraseWithSessionID:(NSInteger)sessionID oldPassphrase:(NSString *)oldPassphrase passphrase:(NSString *)passphrase force:(BOOL)force completion:(void (^)(NSError *error))completion;
 
 @end
 
@@ -414,7 +414,7 @@ typedef NS_ENUM (NSInteger, KBRTrackStatus) {
 
 - (void)reportLastTrackWithSessionID:(NSInteger)sessionID track:(KBRTrackSummary *)track completion:(void (^)(NSError *error))completion;
 
-- (void)launchNetworkChecksWithSessionID:(NSInteger)sessionID idKb:(KBRIdentity *)idKb user:(KBRUser *)user completion:(void (^)(NSError *error))completion;
+- (void)launchNetworkChecksWithSessionID:(NSInteger)sessionID identity:(KBRIdentity *)identity user:(KBRUser *)user completion:(void (^)(NSError *error))completion;
 
 - (void)displayTrackStatementWithSessionID:(NSInteger)sessionID stmt:(NSString *)stmt completion:(void (^)(NSError *error))completion;
 
@@ -667,11 +667,11 @@ typedef NS_ENUM (NSInteger, KBRPromptOverwriteType) {
 @end
 
 @interface KBRRevokeRequest : KBRRequest
-- (void)revokeKeyWithSessionID:(NSInteger)sessionID idKb:(NSString *)idKb completion:(void (^)(NSError *error))completion;
+- (void)revokeKeyWithSessionID:(NSInteger)sessionID keyID:(NSString *)keyID completion:(void (^)(NSError *error))completion;
 
-- (void)revokeDeviceWithSessionID:(NSInteger)sessionID idKb:(NSString *)idKb completion:(void (^)(NSError *error))completion;
+- (void)revokeDeviceWithSessionID:(NSInteger)sessionID deviceID:(NSString *)deviceID completion:(void (^)(NSError *error))completion;
 
-- (void)revokeSigsWithSessionID:(NSInteger)sessionID ids:(NSArray *)ids seqnos:(NSArray *)seqnos completion:(void (^)(NSError *error))completion;
+- (void)revokeSigsWithSessionID:(NSInteger)sessionID sigIDs:(NSArray *)sigIDs seqnos:(NSArray *)seqnos completion:(void (^)(NSError *error))completion;
 
 @end
 
@@ -747,7 +747,7 @@ typedef NS_ENUM (NSInteger, KBRPromptOverwriteType) {
 @property BOOL track;
 @property BOOL proof;
 @property BOOL cryptocurrency;
-@property BOOL self;
+@property BOOL isSelf;
 @end
 
 @interface KBRSigListArgs : KBRObject
@@ -833,7 +833,7 @@ typedef NS_ENUM (NSInteger, KBRPromptOverwriteType) {
 
 - (void)loadUncheckedUserSummariesWithSessionID:(NSInteger)sessionID uids:(NSArray *)uids completion:(void (^)(NSError *error, NSArray *items))completion;
 
-- (void)loadUserWithSessionID:(NSInteger)sessionID uid:(NSString *)uid username:(NSString *)username selfKb:(BOOL)selfKb completion:(void (^)(NSError *error, KBRUser *user))completion;
+- (void)loadUserWithSessionID:(NSInteger)sessionID uid:(NSString *)uid username:(NSString *)username isSelf:(BOOL)isSelf completion:(void (^)(NSError *error, KBRUser *user))completion;
 
 - (void)listTrackingWithSessionID:(NSInteger)sessionID filter:(NSString *)filter completion:(void (^)(NSError *error, NSArray *items))completion;
 
@@ -845,7 +845,7 @@ typedef NS_ENUM (NSInteger, KBRPromptOverwriteType) {
 @interface KBRChangePassphraseRequestParams : KBRRequestParams
 @property NSInteger sessionID;
 @property NSString *oldPassphrase;
-@property NSString *newPassphrase;
+@property NSString *passphrase;
 @property BOOL force;
 @end
 @interface KBREstablishSessionRequestParams : KBRRequestParams
@@ -982,7 +982,7 @@ typedef NS_ENUM (NSInteger, KBRPromptOverwriteType) {
 @end
 @interface KBRLaunchNetworkChecksRequestParams : KBRRequestParams
 @property NSInteger sessionID;
-@property KBRIdentity *id;
+@property KBRIdentity *identity;
 @property KBRUser *user;
 @end
 @interface KBRDisplayTrackStatementRequestParams : KBRRequestParams
@@ -1184,15 +1184,15 @@ typedef NS_ENUM (NSInteger, KBRPromptOverwriteType) {
 @end
 @interface KBRRevokeKeyRequestParams : KBRRequestParams
 @property NSInteger sessionID;
-@property NSString *id;
+@property NSString *keyID;
 @end
 @interface KBRRevokeDeviceRequestParams : KBRRequestParams
 @property NSInteger sessionID;
-@property NSString *id;
+@property NSString *deviceID;
 @end
 @interface KBRRevokeSigsRequestParams : KBRRequestParams
 @property NSInteger sessionID;
-@property NSArray *ids;
+@property NSArray *sigIDs;
 @property NSArray *seqnos;
 @end
 @interface KBRGetSecretRequestParams : KBRRequestParams
@@ -1297,7 +1297,7 @@ typedef NS_ENUM (NSInteger, KBRPromptOverwriteType) {
 @property NSInteger sessionID;
 @property NSString *uid;
 @property NSString *username;
-@property BOOL self;
+@property BOOL isSelf;
 @end
 @interface KBRListTrackingRequestParams : KBRRequestParams
 @property NSInteger sessionID;

@@ -135,7 +135,7 @@
   [client registerMethod:@"keybase.1.identifyUi.launchNetworkChecks" sessionId:sessionId requestHandler:^(NSNumber *messageId, NSString *method, NSArray *params, MPRequestCompletion completion) {
     KBRLaunchNetworkChecksRequestParams *requestParams = [[KBRLaunchNetworkChecksRequestParams alloc] initWithParams:params];
     BOOL isSelf = [[KBApp.app currentUsername] isEqual:self.username];
-    [gself.userInfoView addProofs:requestParams.id.proofs editable:isSelf targetBlock:^(KBProofLabel *proofLabel) {
+    [gself.userInfoView addProofs:requestParams.identity.proofs editable:isSelf targetBlock:^(KBProofLabel *proofLabel) {
       if (proofLabel.proofResult.result.proofResult.status != 1) {
         [self proofAction:KBProofActionRepair proofResult:proofLabel.proofResult];
       } else if (proofLabel.proofResult.result.hint.humanUrl) {

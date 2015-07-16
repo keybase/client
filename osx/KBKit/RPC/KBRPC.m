@@ -3,8 +3,8 @@
 
 @implementation KBRAccountRequest
 
-- (void)changePassphraseWithSessionID:(NSInteger)sessionID oldPassphrase:(NSString *)oldPassphrase newPassphrase:(NSString *)newPassphrase force:(BOOL)force completion:(void (^)(NSError *error))completion {
-  NSDictionary *params = @{@"sessionID": @(sessionID), @"oldPassphrase": KBRValue(oldPassphrase), @"newPassphrase": KBRValue(newPassphrase), @"force": @(force)};
+- (void)changePassphraseWithSessionID:(NSInteger)sessionID oldPassphrase:(NSString *)oldPassphrase passphrase:(NSString *)passphrase force:(BOOL)force completion:(void (^)(NSError *error))completion {
+  NSDictionary *params = @{@"sessionID": @(sessionID), @"oldPassphrase": KBRValue(oldPassphrase), @"passphrase": KBRValue(passphrase), @"force": @(force)};
   [self.client sendRequestWithMethod:@"keybase.1.account.changePassphrase" params:params sessionId:self.sessionId completion:^(NSError *error, id retval) {
     completion(error);
   }];
@@ -455,8 +455,8 @@
   }];
 }
 
-- (void)launchNetworkChecksWithSessionID:(NSInteger)sessionID idKb:(KBRIdentity *)idKb user:(KBRUser *)user completion:(void (^)(NSError *error))completion {
-  NSDictionary *params = @{@"sessionID": @(sessionID), @"id": KBRValue(idKb), @"user": KBRValue(user)};
+- (void)launchNetworkChecksWithSessionID:(NSInteger)sessionID identity:(KBRIdentity *)identity user:(KBRUser *)user completion:(void (^)(NSError *error))completion {
+  NSDictionary *params = @{@"sessionID": @(sessionID), @"identity": KBRValue(identity), @"user": KBRValue(user)};
   [self.client sendRequestWithMethod:@"keybase.1.identifyUi.launchNetworkChecks" params:params sessionId:self.sessionId completion:^(NSError *error, id retval) {
     completion(error);
   }];
@@ -919,22 +919,22 @@
 
 @implementation KBRRevokeRequest
 
-- (void)revokeKeyWithSessionID:(NSInteger)sessionID idKb:(NSString *)idKb completion:(void (^)(NSError *error))completion {
-  NSDictionary *params = @{@"sessionID": @(sessionID), @"id": KBRValue(idKb)};
+- (void)revokeKeyWithSessionID:(NSInteger)sessionID keyID:(NSString *)keyID completion:(void (^)(NSError *error))completion {
+  NSDictionary *params = @{@"sessionID": @(sessionID), @"keyID": KBRValue(keyID)};
   [self.client sendRequestWithMethod:@"keybase.1.revoke.revokeKey" params:params sessionId:self.sessionId completion:^(NSError *error, id retval) {
     completion(error);
   }];
 }
 
-- (void)revokeDeviceWithSessionID:(NSInteger)sessionID idKb:(NSString *)idKb completion:(void (^)(NSError *error))completion {
-  NSDictionary *params = @{@"sessionID": @(sessionID), @"id": KBRValue(idKb)};
+- (void)revokeDeviceWithSessionID:(NSInteger)sessionID deviceID:(NSString *)deviceID completion:(void (^)(NSError *error))completion {
+  NSDictionary *params = @{@"sessionID": @(sessionID), @"deviceID": KBRValue(deviceID)};
   [self.client sendRequestWithMethod:@"keybase.1.revoke.revokeDevice" params:params sessionId:self.sessionId completion:^(NSError *error, id retval) {
     completion(error);
   }];
 }
 
-- (void)revokeSigsWithSessionID:(NSInteger)sessionID ids:(NSArray *)ids seqnos:(NSArray *)seqnos completion:(void (^)(NSError *error))completion {
-  NSDictionary *params = @{@"sessionID": @(sessionID), @"ids": KBRValue(ids), @"seqnos": KBRValue(seqnos)};
+- (void)revokeSigsWithSessionID:(NSInteger)sessionID sigIDs:(NSArray *)sigIDs seqnos:(NSArray *)seqnos completion:(void (^)(NSError *error))completion {
+  NSDictionary *params = @{@"sessionID": @(sessionID), @"sigIDs": KBRValue(sigIDs), @"seqnos": KBRValue(seqnos)};
   [self.client sendRequestWithMethod:@"keybase.1.revoke.revokeSigs" params:params sessionId:self.sessionId completion:^(NSError *error, id retval) {
     completion(error);
   }];
@@ -1214,8 +1214,8 @@
   }];
 }
 
-- (void)loadUserWithSessionID:(NSInteger)sessionID uid:(NSString *)uid username:(NSString *)username selfKb:(BOOL)selfKb completion:(void (^)(NSError *error, KBRUser *user))completion {
-  NSDictionary *params = @{@"sessionID": @(sessionID), @"uid": KBRValue(uid), @"username": KBRValue(username), @"self": @(selfKb)};
+- (void)loadUserWithSessionID:(NSInteger)sessionID uid:(NSString *)uid username:(NSString *)username isSelf:(BOOL)isSelf completion:(void (^)(NSError *error, KBRUser *user))completion {
+  NSDictionary *params = @{@"sessionID": @(sessionID), @"uid": KBRValue(uid), @"username": KBRValue(username), @"isSelf": @(isSelf)};
   [self.client sendRequestWithMethod:@"keybase.1.user.loadUser" params:params sessionId:self.sessionId completion:^(NSError *error, id retval) {
     if (error) {
         completion(error, nil);
@@ -1269,7 +1269,7 @@
   if ((self = [super initWithParams:params])) {
     self.sessionID = [params[0][@"sessionID"] integerValue];
     self.oldPassphrase = params[0][@"oldPassphrase"];
-    self.newPassphrase = params[0][@"newPassphrase"];
+    self.passphrase = params[0][@"passphrase"];
     self.force = [params[0][@"force"] boolValue];
   }
   return self;
@@ -1654,7 +1654,7 @@
 - (instancetype)initWithParams:(NSArray *)params {
   if ((self = [super initWithParams:params])) {
     self.sessionID = [params[0][@"sessionID"] integerValue];
-    self.id = [MTLJSONAdapter modelOfClass:KBRIdentity.class fromJSONDictionary:params[0][@"id"] error:nil];
+    self.identity = [MTLJSONAdapter modelOfClass:KBRIdentity.class fromJSONDictionary:params[0][@"identity"] error:nil];
     self.user = [MTLJSONAdapter modelOfClass:KBRUser.class fromJSONDictionary:params[0][@"user"] error:nil];
   }
   return self;
@@ -2216,7 +2216,7 @@
 - (instancetype)initWithParams:(NSArray *)params {
   if ((self = [super initWithParams:params])) {
     self.sessionID = [params[0][@"sessionID"] integerValue];
-    self.id = params[0][@"id"];
+    self.keyID = params[0][@"keyID"];
   }
   return self;
 }
@@ -2228,7 +2228,7 @@
 - (instancetype)initWithParams:(NSArray *)params {
   if ((self = [super initWithParams:params])) {
     self.sessionID = [params[0][@"sessionID"] integerValue];
-    self.id = params[0][@"id"];
+    self.deviceID = params[0][@"deviceID"];
   }
   return self;
 }
@@ -2240,7 +2240,7 @@
 - (instancetype)initWithParams:(NSArray *)params {
   if ((self = [super initWithParams:params])) {
     self.sessionID = [params[0][@"sessionID"] integerValue];
-    self.ids = KBRValidateArray(params[0][@"ids"], NSString.class);
+    self.sigIDs = KBRValidateArray(params[0][@"sigIDs"], NSString.class);
     self.seqnos = KBRValidateArray(params[0][@"seqnos"], NSNumber.class);
   }
   return self;
@@ -2513,7 +2513,7 @@
     self.sessionID = [params[0][@"sessionID"] integerValue];
     self.uid = params[0][@"uid"];
     self.username = params[0][@"username"];
-    self.self = [params[0][@"self"] boolValue];
+    self.isSelf = [params[0][@"isSelf"] boolValue];
   }
   return self;
 }

@@ -119,7 +119,9 @@ typedef NS_ENUM (NSInteger, KBAppViewMode) {
 - (void)connect {
   KBRPClient *client = _environment.service.client;
   client.delegate = self;
-  [client open];
+  [client open:^(NSError *error) {
+    NSLog(@"Connect failure");
+  }];
 }
 
 // If we errored while checking status

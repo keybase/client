@@ -10,6 +10,7 @@
 
 #import <MPMessagePack/MPMessagePackClient.h>
 #import "KBEnvConfig.h"
+#import "KBDefines.h"
 
 typedef NS_ENUM (NSInteger, KBRPClientStatus) {
   KBRPClientStatusClosed,
@@ -49,9 +50,7 @@ typedef void (^KBRPClientOnSecret)(NSString *secret);
 - (void)unregister:(NSInteger)sessionId;
 - (NSInteger)nextSessionId;
 
-- (void)open;
-
-- (void)open:(void (^)(NSError *error))completion;
+- (void)open:(KBCompletion)completion;
 
 - (void)close;
 

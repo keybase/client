@@ -316,14 +316,12 @@
 
 - (void)showSearch {
   if (!self.popover.isShowing && [KBTextField isFocused:_tokensField]) {
-    DDLogDebug(@"Show search");
     [self.popover showAboveView:_popoverInView options:KBPopoverOptionsShadow];
     [self.delegate userPickerView:self didUpdateSearch:YES];
   }
 }
 
 - (void)hideSearch {
-  DDLogDebug(@"Hide search");
   [self.popover hide];
   _progressView.animating = NO;
   [self.delegate userPickerView:self didUpdateSearch:NO];

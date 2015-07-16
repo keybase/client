@@ -167,7 +167,7 @@
   [KBAlert yesNoWithTitle:@"Delete PGP Key" description:@"Are you sure you want to remove this PGP Key?" yes:@"Delete" view:self completion:^(BOOL yes) {
     if (yes) {
       KBRRevokeRequest *request = [[KBRRevokeRequest alloc] initWithClient:self.client];
-      [request revokeKeyWithSessionID:request.sessionId idKb:kid completion:^(NSError *error) {
+      [request revokeKeyWithSessionID:request.sessionId keyID:kid completion:^(NSError *error) {
         [NSNotificationCenter.defaultCenter postNotificationName:KBUserDidChangeNotification object:nil userInfo:nil];
         [self close];
       }];

@@ -77,13 +77,15 @@
   NSString *identifier = self.onIdentifier(indexPath, tableColumn, self);
 
   NSView *view = [self.view makeViewWithIdentifier:identifier owner:self];
-  BOOL dequeued = NO;
+  BOOL dequeued;
   if (!view) {
-    dequeued = YES;
+    dequeued = NO;
     view = self.onCreate(indexPath, tableColumn, self);
+    view.identifier = identifier;
+  } else {
+    dequeued = YES;
   }
   self.onSet(view, object, indexPath, tableColumn, self, dequeued);
-  if ([view respondsToSelector:@selector(setNeedsLayout)]) [(id)view setNeedsLayout];
   return view;
 }
 
@@ -103,10 +105,11 @@
     NSIndexPath *indexPath = [NSIndexPath indexPathForItem:row inSection:0];
     if (!self.prototypeView) {
       self.prototypeView = self.onCreate(indexPath, nil, self);
+      NSAssert(self.prototypeView, @"No prototype view");
     }
     id object = [self.dataSource objectAtIndexPath:indexPath];
     self.onSet(self.prototypeView, object, indexPath, nil, self, NO);
-    [self.prototypeView setNeedsLayout:NO];
+    [self.prototypeView setNeedsLayout];
 
     CGFloat width = tableView.frame.size.width;
 

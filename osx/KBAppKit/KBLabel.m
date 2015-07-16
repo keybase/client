@@ -35,12 +35,12 @@
   YOSelf yself = self;
   self.viewLayout = [YOLayout layoutWithLayoutBlock:^(id<YOLayout> layout, CGSize size) {
     
-    UIEdgeInsets insets = self.allInsets;
+    UIEdgeInsets insets = yself.allInsets;
     CGSize sizeThatFits;
     if (yself.fixedHeight > 0) {
       sizeThatFits = CGSizeMake(size.width - insets.left - insets.right, yself.fixedHeight);
     } else {
-      sizeThatFits = [KBText sizeThatFits:CGSizeMake(size.width - insets.left - insets.right, 0) textView:self.textView];
+      sizeThatFits = [KBText sizeThatFits:CGSizeMake(size.width - insets.left - insets.right, 0) textView:yself.textView];
     }
 
     CGSize sizeWithInsets = CGSizeMake(sizeThatFits.width + insets.left + insets.right, sizeThatFits.height + insets.top + insets.bottom);
@@ -50,7 +50,7 @@
     CGRect textFrame = CGRectMake(insets.left, insets.top, size.width - insets.left - insets.right, sizeThatFits.height);
     CGSize borderSize = size;
 
-    if (self.verticalAlignment == KBVerticalAlignmentMiddle) {
+    if (yself.verticalAlignment == KBVerticalAlignmentMiddle) {
       textFrame.origin.y = ceilf(size.height/2.0 - sizeThatFits.height/2.0);
       textFrame.size.height = MAX(sizeThatFits.height, textFrame.size.height);
       borderSize.height = MAX(size.height, borderSize.height);
@@ -237,7 +237,7 @@
 @implementation KBLabelCell
 
 - (void)setAttributedText:(NSAttributedString *)attributedText {
-  [self setAttributedText:attributedText needsLayout:NO];
+  [self setAttributedText:attributedText needsLayout:NO]; // The table view handles layout
 }
 
 @end

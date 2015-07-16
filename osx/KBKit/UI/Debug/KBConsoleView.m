@@ -22,20 +22,22 @@
 @end
 
 @interface KBConsoleItem : NSObject
-@property NSAttributedString *attributedText;
-@property DDLogMessage *logMessage;
-- (void)setLogMessage:(DDLogMessage *)logMessage logFormatter:(id<DDLogFormatter>)logFormatter;
+@property KBTextOptions options;
+@property NSString *message;
+- (void)setMessage:(NSString *)message flag:(DDLogFlag)flag;
 @end
 
 @implementation KBConsoleItem
 
-- (void)setLogMessage:(DDLogMessage *)logMessage logFormatter:(id<DDLogFormatter>)logFormatter {
-  _logMessage = logMessage;
-  NSString *message = [logFormatter formatLogMessage:logMessage];
-  KBTextOptions options = KBTextOptionsMonospace|KBTextOptionsSmall;
-  if (logMessage.flag & DDLogFlagError) options |= KBTextOptionsDanger;
-  if (logMessage.flag & DDLogFlagWarning) options |= KBTextOptionsWarning;
-  self.attributedText = [KBText attributedStringForText:message style:KBTextStyleDefault options:options alignment:NSLeftTextAlignment lineBreakMode:NSLineBreakByClipping];
+- (void)setMessage:(NSString *)message flag:(DDLogFlag)flag {
+  _message = message;
+  _options = KBTextOptionsMonospace|KBTextOptionsSmall;
+  if (_options & DDLogFlagError) _options |= KBTextOptionsDanger;
+  if (_options & DDLogFlagWarning) _options |= KBTextOptionsWarning;
+}
+
+- (NSAttributedString *)attributedString {
+  return [KBText attributedStringForText:_message style:KBTextStyleDefault options:_options alignment:NSLeftTextAlignment lineBreakMode:NSLineBreakByClipping];
 }
 
 @end
@@ -72,10 +74,10 @@
     return labelCell;
   };
   _logView.onSet = ^(KBLabelCell *label, KBConsoleItem *consoleItem, NSIndexPath *indexPath, NSTableColumn *tableColumn, KBListView *listView, BOOL dequeued) {
-    label.attributedText = consoleItem.attributedText;
+    label.attributedText = [consoleItem attributedString];
   };
   _logView.onSelect = ^(KBTableView *tableView, KBTableSelection *selection) {
-    NSArray *messages = [selection.objects map:^(KBConsoleItem * c) { return c.logMessage.message; }];
+    NSArray *messages = [selection.objects map:^(KBConsoleItem * c) { return c.message; }];
     [gself.textView setText:[messages join:@"\n\n"] style:KBTextStyleDefault options:KBTextOptionsMonospace|KBTextOptionsSmall alignment:NSLeftTextAlignment lineBreakMode:NSLineBreakByCharWrapping];
   };
   [logView addSubview:_logView];
@@ -113,7 +115,8 @@
   GHWeakSelf gself = self;
   dispatch_async(_bufferQueue, ^{
     KBConsoleItem *consoleItem = [[KBConsoleItem alloc] init];
-    [consoleItem setLogMessage:logMessage logFormatter:gself.logFormatter];
+    NSString *message = [gself.logFormatter formatLogMessage:logMessage];
+    [consoleItem setMessage:message flag:logMessage.flag];
     [gself.buffer addObject:consoleItem];
     dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.5 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
       [gself flush];
@@ -135,8 +138,10 @@
 - (void)addMessages:(NSArray *)messages {
   BOOL atBottom = [self.logView isAtBottom];
   [self.logView.dataSource addObjects:messages];
-  [self.logView.dataSource truncateBeginning:100 max:5000 section:0];
   [self.logView.view noteNumberOfRowsChanged];
+  if ([self.logView.dataSource truncateBeginning:300 max:1000 section:0]) {
+    [self.logView reloadData];
+  }
   if (atBottom) [self.logView scrollToBottom:NO];
 }
 

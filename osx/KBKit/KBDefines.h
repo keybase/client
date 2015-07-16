@@ -18,9 +18,13 @@ typedef void (^KBOnExtension)(id sender, NSExtensionItem *outputItem);
 typedef NS_ENUM (NSInteger, KBErrorCode) {
   KBErrorCodeUnsupported = -10,
   KBErrorCodePermissionDenied = -11,
-  KBErrorCodeTimeout = -12,
-  KBErrorCodeInstallError = -13,
-  KBErrorCodePathNotFound = -14,
+
+  KBErrorCodeInstallError = -101,
+  KBErrorCodePathNotFound = -102,
+
+  KBErrorCodeAlreadyOpening = -201,
+  KBErrorCodeAlreadyOpen = -202,
+  KBErrorCodeTimeout = -210,
 };
 
 #define KBMakeError(CODE, MSG, ...) [NSError errorWithDomain:@"Keybase" code:CODE userInfo:@{NSLocalizedDescriptionKey:[NSString stringWithFormat:MSG, ##__VA_ARGS__], NSLocalizedRecoveryOptionsErrorKey: @[@"OK"]}]
@@ -82,3 +86,17 @@ NSString *KBImageNameForServiceName(NSString *serviceName);
 NSString *KBShortNameForServiceName(NSString *serviceName);
 
 NSString *KBNameForServiceName(NSString *serviceName);
+
+typedef NS_OPTIONS (NSUInteger, KBLogFlag) {
+  KBLogError = DDLogFlagError,
+  KBLogWarn = DDLogFlagWarning,
+  KBLogInfo = DDLogFlagInfo,
+  KBLogDebug = DDLogFlagDebug,
+  KBLogVerbose = DDLogFlagVerbose,
+
+  // Custom categories
+  KBLogRPC = (1 << 5),
+};
+
+#define KBLog(options, frmt, ...) LOG_MAYBE(LOG_ASYNC_ENABLED, LOG_LEVEL_DEF, options, 0, nil, __PRETTY_FUNCTION__, frmt, ##__VA_ARGS__)
+

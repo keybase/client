@@ -41,28 +41,31 @@
   return self;
 }
 
-- (void)open {
-  [self open:nil];
-}
-
-- (void)open:(void (^)(NSError *error))completion {
-  //NSAssert(self.status == KBRPClientStatusClosed, @"Not closed");
+- (void)open:(KBCompletion)completion {
   if (self.status != KBRPClientStatusClosed) {
-    // Already open
-    if (completion) completion(nil);
+    completion(KBMakeError(KBErrorCodeAlreadyOpen, @"Already open"));
     return;
   }
+
+  if (self.status == KBRPClientStatusOpening) {
+    completion(KBMakeError(KBErrorCodeAlreadyOpening, @"Already opening"));
+    return;
+  }
+
+  _client.delegate = nil;
+  [_client close];
 
   _status = KBRPClientStatusOpening;
 
   _client = [[MPMessagePackClient alloc] initWithName:@"KBRPClient" options:MPMessagePackOptionsFramed];
   _client.delegate = self;
+  _client.coder = [[KBRPCCoder alloc] init];
 
-  _recorder = [[KBRPCRecord alloc] init];
+//  _recorder = [[KBRPCRecord alloc] init];
   
   GHWeakSelf gself = self;
   _client.requestHandler = ^(NSNumber *messageId, NSString *method, NSArray *params, MPRequestCompletion completion) {
-    DDLogDebug(@"Service requested: %@(%@)", method, KBDescription(params));
+    KBLog(KBLogRPC|KBLogDebug, @"Service requested: %@(%@)", method, KBDescription(params));
 
 //    if ([KBWorkspace userDefaults] boolForKey:@"Preferences.Advanced.Record"]) {
 //      [gself.recorder recordRequest:method params:params sessionId:[sessionId integerValue] callback:YES];
@@ -74,7 +77,7 @@
       completion(nil, nil);
       return;
     } else if ([method isEqualToString:@"keybase.1.secretUi.getSecret"]) {
-      DDLogDebug(@"Password prompt: %@", KBDescription(params));
+      KBLog(KBLogRPC|KBLogDebug, @"Password prompt: %@", KBDescription(params));
       KBRGetSecretRequestParams *requestParams = [[KBRGetSecretRequestParams alloc] initWithParams:params];
       [gself.delegate RPClient:gself didRequestSecretForPrompt:requestParams.pinentry.prompt info:@"" details:requestParams.pinentry.desc previousError:requestParams.pinentry.err completion:^(NSString *secret) {
         KBRSecretEntryRes *entry = [[KBRSecretEntryRes alloc] init];
@@ -84,7 +87,7 @@
       }];
       return;
     } else if ([method isEqualToString:@"keybase.1.secretUi.getKeybasePassphrase"]) {
-      DDLogDebug(@"Password prompt: %@", KBDescription(params));
+      KBLog(KBLogRPC|KBLogDebug, @"Password prompt: %@", KBDescription(params));
       KBRGetKeybasePassphraseRequestParams *requestParams = [[KBRGetKeybasePassphraseRequestParams alloc] initWithParams:params];
       [gself.delegate RPClient:gself didRequestKeybasePassphraseForUsername:requestParams.username completion:^(NSString *passphrase) {
         completion(nil, passphrase);
@@ -99,43 +102,53 @@
       requestHandler = [registration requestHandlerForMethod:method];
     }
     if (!requestHandler) {
-      DDLogWarn(@"Received a callback with no sessionID; messageId=%@, method=%@", messageId, method);
+      KBLog(KBLogRPC|KBLogWarn, @"Received a callback with no sessionID; messageId=%@, method=%@", messageId, method);
       requestHandler = [gself _requestHandlerForMethod:method]; // TODO: Remove when we have session id in all requests
     }
     if (requestHandler) {
       requestHandler(messageId, method, params, completion);
     } else {
-      DDLogDebug(@"No handler for request: %@", method);
+      KBLog(KBLogRPC|KBLogDebug, @"No handler for request: %@", method);
       completion(KBMakeError(KBErrorCodeUnsupported, @"Method not found: %@", method), nil);
     }
   };
 
-  _client.coder = [[KBRPCCoder alloc] init];
+  [self _open:completion];
+}
 
-  DDLogDebug(@"Connecting: %@", [self.config sockFile]);
+- (void)_open:(KBCompletion)completion {
+  KBLog(KBLogRPC|KBLogDebug, @"Connecting (%@): %@", @(_connectAttempt), [self.config sockFile]);
   _connectAttempt++;
+  GHWeakSelf gself = self;
   [self.delegate RPClientWillConnect:self];
   [_client openWithSocket:[self.config sockFile] completion:^(NSError *error) {
     if (error) {
       gself.status = KBRPClientStatusClosed;
 
-      DDLogDebug(@"Error connecting: %@", error);
+      KBLog(KBLogRPC|KBLogDebug, @"Error connecting: %@", error);
+      [gself.delegate RPClient:gself didErrorOnConnect:error connectAttempt:gself.connectAttempt];
+
       if (!gself.autoRetryDisabled) {
-        // Retry
-        [self openAfterDelay:2];
+        [gself openAfterDelay:2 completion:completion];
       } else {
-        if (completion) completion(error);
+        completion(error);
       }
-      [self.delegate RPClient:self didErrorOnConnect:error connectAttempt:gself.connectAttempt];
       return;
     }
 
-    DDLogDebug(@"Connected.");
+    KBLog(KBLogRPC|KBLogDebug, @"Connected.");
     gself.connectAttempt = 1;
     gself.status = KBRPClientStatusOpen;
     [self.delegate RPClientDidConnect:self];
-    if (completion) completion(nil);
+    completion(nil);
   }];
+}
+
+- (void)openAfterDelay:(NSTimeInterval)delay completion:(KBCompletion)completion {
+  GHWeakSelf gself = self;
+  dispatch_after(dispatch_time(DISPATCH_TIME_NOW, delay * NSEC_PER_SEC), dispatch_get_main_queue(), ^{
+    [gself open:completion];
+  });
 }
 
 // Request handler for method of any session (Will be deprecated)
@@ -165,15 +178,6 @@
   [self.delegate RPClientDidDisconnect:self];
 }
 
-- (void)openAfterDelay:(NSTimeInterval)delay {
-  GHWeakSelf gself = self;
-  dispatch_after(dispatch_time(DISPATCH_TIME_NOW, 2 * NSEC_PER_SEC), dispatch_get_main_queue(), ^{
-    if (gself.status != KBRPClientStatusOpening) {
-      [self open:nil];
-    }
-  });
-}
-
 - (void)sendRequestWithMethod:(NSString *)method params:(NSDictionary *)params sessionId:(NSInteger)sessionId completion:(MPRequestCompletion)completion {
   NSTimeInterval delay = 0;
 #ifdef DEBUG
@@ -199,12 +203,12 @@
   NSMutableDictionary *mparams = [params mutableCopy];
   [mparams gh_mutableCompact];
 
-  DDLogDebug(@"Requesting: %@(%@)", method, KBDescription(KBScrubSensitive(mparams)));
+  KBLog(KBLogRPC|KBLogDebug, @"Requesting: %@(%@)", method, KBDescription(KBScrubSensitive(mparams)));
 
   [_client sendRequestWithMethod:method params:@[mparams] messageId:sessionId completion:^(NSError *error, id result) {
     [self unregister:sessionId];
     if (error) {
-      DDLogError(@"%@", error);
+      KBLog(KBLogRPC|KBLogError, @"%@", error);
       NSDictionary *errorInfo = error.userInfo[MPErrorInfoKey];
 
       NSString *name = errorInfo[@"name"];
@@ -220,7 +224,7 @@
     if ([[KBWorkspace userDefaults] boolForKey:@"Preferences.Advanced.Record"]) {
       if (result) [self.recorder recordResponse:method response:result sessionId:sessionId];
     }
-    DDLogDebug(@"Replied: %@: %@", method, result ? KBDescription(result) : @"");
+    KBLog(KBLogRPC|KBLogDebug, @"Replied (%@): %@", method, result ? KBDescription(result) : @"{}");
     completion(error, result);
   }];
   
@@ -272,21 +276,21 @@ NSDictionary *KBScrubSensitive(NSDictionary *dict) {
 #pragma mark -
 
 - (void)client:(MPMessagePackClient *)client didError:(NSError *)error fatal:(BOOL)fatal {
-  DDLogError(@"Error (fatal=%d): %@", fatal, error);
+  KBLog(KBLogRPC|KBLogError, @"Error (fatal=%d): %@", fatal, error);
 }
 
 - (void)client:(MPMessagePackClient *)client didChangeStatus:(MPMessagePackClientStatus)status {
   if (status == MPMessagePackClientStatusClosed) {
     // TODO: What if we have open requests?
     [self _didClose];
-    if (!_autoRetryDisabled) [self openAfterDelay:2];
+    if (!_autoRetryDisabled) [self openAfterDelay:2 completion:nil];
   } else if (status == MPMessagePackClientStatusOpen) {
 
   }
 }
 
 - (void)client:(MPMessagePackClient *)client didReceiveNotificationWithMethod:(NSString *)method params:(id)params {
-  DDLogDebug(@"Notification: %@(%@)", method, KBDescription(params));
+  KBLog(KBLogRPC|KBLogDebug, @"Notification: %@(%@)", method, KBDescription(params));
 }
 
 @end

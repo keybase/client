@@ -120,7 +120,6 @@
   if (!_client) {
     _client = [[KBRPClient alloc] initWithConfig:self.config];
   }
-  if (_client.status == KBRPClientStatusClosed) [_client open];
   return _client;
 }
 

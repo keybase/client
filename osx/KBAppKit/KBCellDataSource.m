@@ -266,12 +266,13 @@
   return indexPath;
 }
 
-- (void)truncateBeginning:(NSInteger)removeLength max:(NSInteger)max section:(NSInteger)section {
+- (BOOL)truncateBeginning:(NSInteger)removeLength max:(NSInteger)max section:(NSInteger)section {
   NSMutableArray *objects = [self objectsForSection:section];
-  if ([objects count] > max) {
-    if (removeLength > [objects count]) removeLength = [objects count];
-    [objects removeObjectsInRange:NSMakeRange(0, removeLength)];
-  }
+  if ([objects count] <= max) return NO;
+
+  if (removeLength > [objects count]) removeLength = [objects count];
+  [objects removeObjectsInRange:NSMakeRange(0, removeLength)];
+  return YES;
 }
 
 @end

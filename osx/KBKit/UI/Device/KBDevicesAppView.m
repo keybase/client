@@ -94,7 +94,7 @@
 
   KBRRevokeRequest *request = [[KBRRevokeRequest alloc] initWithClient:self.client];
   GHWeakSelf gself = self;
-  [request revokeDeviceWithSessionID:request.sessionId idKb:device.deviceID completion:^(NSError *error) {
+  [request revokeDeviceWithSessionID:request.sessionId deviceID:device.deviceID completion:^(NSError *error) {
     if ([KBActivity setError:error sender:self]) return;
 
     [gself.devicesView.dataSource removeObjectAtIndexPath:indexPathToRemove];
