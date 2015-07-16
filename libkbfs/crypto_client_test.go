@@ -12,18 +12,30 @@ import (
 )
 
 type FakeCryptoClient struct {
-	Local *CryptoLocal
+	Local   *CryptoLocal
+	ctlChan chan struct{}
 }
 
-func NewFakeCryptoClient(codec Codec, signingKey SigningKey, cryptPrivateKey CryptPrivateKey) *FakeCryptoClient {
+func NewFakeCryptoClient(codec Codec, signingKey SigningKey,
+	cryptPrivateKey CryptPrivateKey, ctlChan chan struct{}) *FakeCryptoClient {
 	return &FakeCryptoClient{
-		Local: NewCryptoLocal(codec, signingKey, cryptPrivateKey),
+		Local:   NewCryptoLocal(codec, signingKey, cryptPrivateKey),
+		ctlChan: ctlChan,
+	}
+}
+
+func (fc FakeCryptoClient) maybeWaitOnChannel() {
+	if fc.ctlChan != nil {
+		// say we're ready, and wait for the signal to proceed
+		fc.ctlChan <- struct{}{}
+		<-fc.ctlChan
 	}
 }
 
 func (fc FakeCryptoClient) Call(s string, args interface{}, res interface{}) error {
 	switch s {
 	case "keybase.1.crypto.signED25519":
+		fc.maybeWaitOnChannel()
 		arg := args.([]interface{})[0].(keybase1.SignED25519Arg)
 		sigInfo, err := fc.Local.Sign(context.Background(), arg.Msg)
 		if err != nil {
@@ -44,6 +56,7 @@ func (fc FakeCryptoClient) Call(s string, args interface{}, res interface{}) err
 		return nil
 
 	case "keybase.1.crypto.unboxBytes32":
+		fc.maybeWaitOnChannel()
 		arg := args.([]interface{})[0].(keybase1.UnboxBytes32Arg)
 		publicKey := TLFEphemeralPublicKey{libkb.NaclDHKeyPublic(arg.PeersPublicKey)}
 		encryptedClientHalf := EncryptedTLFCryptKeyClientHalf{
@@ -70,7 +83,7 @@ func TestCryptoClientSignAndVerify(t *testing.T) {
 	signingKey := MakeFakeSigningKeyOrBust("client sign")
 	cryptPrivateKey := MakeFakeCryptPrivateKeyOrBust("client crypt private")
 	codec := NewCodecMsgpack()
-	fc := NewFakeCryptoClient(codec, signingKey, cryptPrivateKey)
+	fc := NewFakeCryptoClient(codec, signingKey, cryptPrivateKey, nil)
 	c := newCryptoClientWithClient(codec, nil, fc)
 
 	msg := []byte("message")
@@ -85,13 +98,38 @@ func TestCryptoClientSignAndVerify(t *testing.T) {
 	}
 }
 
+// Test that canceling a signing RPC returns the correct error
+func TestCryptoClientSignCanceled(t *testing.T) {
+	signingKey := MakeFakeSigningKeyOrBust("client sign")
+	cryptPrivateKey := MakeFakeCryptPrivateKeyOrBust("client crypt private")
+	codec := NewCodecMsgpack()
+	ctlChan := make(chan struct{})
+	fc := NewFakeCryptoClient(codec, signingKey, cryptPrivateKey, ctlChan)
+	c := newCryptoClientWithClient(codec, nil, fc)
+
+	ctx, cancel := context.WithCancel(context.Background())
+	go func() {
+		// wait for the RPC, then cancel the context
+		<-ctlChan
+		cancel()
+	}()
+
+	msg := []byte("message")
+	_, err := c.Sign(ctx, msg)
+	if err != context.Canceled {
+		t.Fatalf("Sign did not return a canceled error: %v", err)
+	}
+	// let the RPC complete, which shouldn't hurt anything
+	ctlChan <- struct{}{}
+}
+
 // Test that decrypting an TLF crypt key client half encrypted with
 // box.Seal works.
 func TestCryptoClientDecryptTLFCryptKeyClientHalfBoxSeal(t *testing.T) {
 	signingKey := MakeFakeSigningKeyOrBust("client sign")
 	cryptPrivateKey := MakeFakeCryptPrivateKeyOrBust("client crypt private")
 	codec := NewCodecMsgpack()
-	fc := NewFakeCryptoClient(codec, signingKey, cryptPrivateKey)
+	fc := NewFakeCryptoClient(codec, signingKey, cryptPrivateKey, nil)
 	c := newCryptoClientWithClient(codec, nil, fc)
 
 	_, _, ephPublicKey, ephPrivateKey, cryptKey, err := c.MakeRandomTLFKeys()
@@ -149,7 +187,7 @@ func TestCryptoClientDecryptEncryptedTLFCryptKeyClientHalf(t *testing.T) {
 	signingKey := MakeFakeSigningKeyOrBust("client sign")
 	cryptPrivateKey := MakeFakeCryptPrivateKeyOrBust("client crypt private")
 	codec := NewCodecMsgpack()
-	fc := NewFakeCryptoClient(codec, signingKey, cryptPrivateKey)
+	fc := NewFakeCryptoClient(codec, signingKey, cryptPrivateKey, nil)
 	c := newCryptoClientWithClient(codec, nil, fc)
 
 	_, _, ephPublicKey, ephPrivateKey, cryptKey, err := c.MakeRandomTLFKeys()
@@ -194,7 +232,7 @@ func TestCryptoClientDecryptTLFCryptKeyClientHalfFailures(t *testing.T) {
 	signingKey := MakeFakeSigningKeyOrBust("client sign")
 	cryptPrivateKey := MakeFakeCryptPrivateKeyOrBust("client crypt private")
 	codec := NewCodecMsgpack()
-	fc := NewFakeCryptoClient(codec, signingKey, cryptPrivateKey)
+	fc := NewFakeCryptoClient(codec, signingKey, cryptPrivateKey, nil)
 	c := newCryptoClientWithClient(codec, nil, fc)
 
 	_, _, ephPublicKey, ephPrivateKey, cryptKey, err := c.MakeRandomTLFKeys()
@@ -272,4 +310,50 @@ func TestCryptoClientDecryptTLFCryptKeyClientHalfFailures(t *testing.T) {
 	if err != expectedErr {
 		t.Errorf("Expected %v, got %v", expectedErr, err)
 	}
+}
+
+// Test various failure cases for DecryptTLFCryptKeyClientHalf.
+func TestCryptoClientDecryptTLFCryptKeyClientHalfCanceled(t *testing.T) {
+	signingKey := MakeFakeSigningKeyOrBust("client sign")
+	cryptPrivateKey := MakeFakeCryptPrivateKeyOrBust("client crypt private")
+	codec := NewCodecMsgpack()
+	ctlChan := make(chan struct{})
+	fc := NewFakeCryptoClient(codec, signingKey, cryptPrivateKey, ctlChan)
+	c := newCryptoClientWithClient(codec, nil, fc)
+
+	_, _, ephPublicKey, ephPrivateKey, cryptKey, err := c.MakeRandomTLFKeys()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	serverHalf, err := c.MakeRandomTLFCryptKeyServerHalf()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	clientHalf, err := c.MaskTLFCryptKey(serverHalf, cryptKey)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	encryptedClientHalf, err := c.EncryptTLFCryptKeyClientHalf(ephPrivateKey, cryptPrivateKey.getPublicKey(), clientHalf)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	ctx, cancel := context.WithCancel(context.Background())
+	go func() {
+		// wait for the RPC, then cancel the context
+		<-ctlChan
+		cancel()
+	}()
+
+	_, err = c.DecryptTLFCryptKeyClientHalf(ctx, ephPublicKey,
+		encryptedClientHalf)
+	if err != context.Canceled {
+		t.Fatalf("DecryptTLFCryptKeyClientHalf did not return a canceled "+
+			"error: %v", err)
+	}
+	// let the RPC complete, which shouldn't hurt anything
+	ctlChan <- struct{}{}
 }
