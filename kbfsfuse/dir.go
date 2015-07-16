@@ -268,7 +268,7 @@ func (d *Dir) Lookup(ctx context.Context, req *fuse.LookupRequest, resp *fuse.Lo
 
 	case libkbfs.File, libkbfs.Exec:
 		child := &File{
-			parent: d,
+			folder: d.folder,
 			node:   newNode,
 		}
 		d.folder.nodes[newNode.GetID()] = child
@@ -305,7 +305,7 @@ func (d *Dir) Create(ctx context.Context, req *fuse.CreateRequest, resp *fuse.Cr
 	}
 
 	child := &File{
-		parent: d,
+		folder: d.folder,
 		node:   newNode,
 	}
 	d.folder.nodes[newNode.GetID()] = child

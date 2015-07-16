@@ -13,7 +13,7 @@ import (
 type File struct {
 	fs.NodeRef
 
-	parent *Dir
+	folder *Folder
 	node   libkbfs.Node
 }
 
@@ -21,10 +21,10 @@ var _ fs.Node = (*File)(nil)
 
 // Attr implements the fs.Node interface for File.
 func (f *File) Attr(ctx context.Context, a *fuse.Attr) error {
-	f.parent.folder.mu.Lock()
-	defer f.parent.folder.mu.Unlock()
+	f.folder.mu.Lock()
+	defer f.folder.mu.Unlock()
 
-	de, err := f.parent.folder.fs.config.KBFSOps().Stat(ctx, f.node)
+	de, err := f.folder.fs.config.KBFSOps().Stat(ctx, f.node)
 	if err != nil {
 		if _, ok := err.(libkbfs.NoSuchNameError); ok {
 			return fuse.ESTALE
@@ -43,10 +43,10 @@ func (f *File) Attr(ctx context.Context, a *fuse.Attr) error {
 var _ fs.NodeFsyncer = (*File)(nil)
 
 func (f *File) sync(ctx context.Context) error {
-	f.parent.folder.mu.Lock()
-	defer f.parent.folder.mu.Unlock()
+	f.folder.mu.Lock()
+	defer f.folder.mu.Unlock()
 
-	err := f.parent.folder.fs.config.KBFSOps().Sync(ctx, f.node)
+	err := f.folder.fs.config.KBFSOps().Sync(ctx, f.node)
 	if err != nil {
 		return err
 	}
@@ -65,10 +65,10 @@ var _ fs.HandleReader = (*File)(nil)
 
 // Read implements the fs.HandleReader interface for File.
 func (f *File) Read(ctx context.Context, req *fuse.ReadRequest, resp *fuse.ReadResponse) error {
-	f.parent.folder.mu.Lock()
-	defer f.parent.folder.mu.Unlock()
+	f.folder.mu.Lock()
+	defer f.folder.mu.Unlock()
 
-	n, err := f.parent.folder.fs.config.KBFSOps().Read(
+	n, err := f.folder.fs.config.KBFSOps().Read(
 		ctx, f.node, resp.Data[:cap(resp.Data)], req.Offset)
 	resp.Data = resp.Data[:n]
 	return err
@@ -78,10 +78,10 @@ var _ fs.HandleWriter = (*File)(nil)
 
 // Write implements the fs.HandleWriter interface for File.
 func (f *File) Write(ctx context.Context, req *fuse.WriteRequest, resp *fuse.WriteResponse) error {
-	f.parent.folder.mu.Lock()
-	defer f.parent.folder.mu.Unlock()
+	f.folder.mu.Lock()
+	defer f.folder.mu.Unlock()
 
-	if err := f.parent.folder.fs.config.KBFSOps().Write(
+	if err := f.folder.fs.config.KBFSOps().Write(
 		ctx, f.node, req.Data, req.Offset); err != nil {
 		return err
 	}
@@ -102,12 +102,12 @@ var _ fs.NodeSetattrer = (*File)(nil)
 
 // Setattr implements the fs.NodeSetattrer interface for File.
 func (f *File) Setattr(ctx context.Context, req *fuse.SetattrRequest, resp *fuse.SetattrResponse) error {
-	f.parent.folder.mu.Lock()
-	defer f.parent.folder.mu.Unlock()
+	f.folder.mu.Lock()
+	defer f.folder.mu.Unlock()
 
 	valid := req.Valid
 	if valid.Size() {
-		if err := f.parent.folder.fs.config.KBFSOps().Truncate(
+		if err := f.folder.fs.config.KBFSOps().Truncate(
 			ctx, f.node, req.Size); err != nil {
 			return err
 		}
@@ -117,7 +117,7 @@ func (f *File) Setattr(ctx context.Context, req *fuse.SetattrRequest, resp *fuse
 	if valid.Mode() {
 		// Unix has 3 exec bits, KBFS has one; we follow the user-exec bit.
 		exec := req.Mode&0100 != 0
-		err := f.parent.folder.fs.config.KBFSOps().SetEx(
+		err := f.folder.fs.config.KBFSOps().SetEx(
 			ctx, f.node, exec)
 		if err != nil {
 			return err
@@ -126,7 +126,7 @@ func (f *File) Setattr(ctx context.Context, req *fuse.SetattrRequest, resp *fuse
 	}
 
 	if valid.Mtime() {
-		err := f.parent.folder.fs.config.KBFSOps().SetMtime(
+		err := f.folder.fs.config.KBFSOps().SetMtime(
 			ctx, f.node, &req.Mtime)
 		if err != nil {
 			return err
@@ -152,8 +152,8 @@ var _ fs.NodeForgetter = (*File)(nil)
 
 // Forget kernel reference to this node.
 func (f *File) Forget() {
-	f.parent.folder.mu.Lock()
-	defer f.parent.folder.mu.Unlock()
+	f.folder.mu.Lock()
+	defer f.folder.mu.Unlock()
 
-	f.parent.folder.forgetNodeLocked(f.node)
+	f.folder.forgetNodeLocked(f.node)
 }
