@@ -22,7 +22,7 @@ func makeFS(t testing.TB, config *libkbfs.ConfigLocal) *fstestutil.Mount {
 	filesys := &FS{
 		config: config,
 	}
-	mnt, err := fstestutil.MountedT(t, filesys)
+	mnt, err := fstestutil.MountedT(t, filesys, nil)
 	if err != nil {
 		t.Fatal(err)
 	}
