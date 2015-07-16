@@ -14,6 +14,12 @@ import (
 type Symlink struct {
 	fs.NodeRef
 
+	// The directory this symlink is in. This should be safe to store
+	// here, without fear of Renames etc making it stale, because we
+	// never persist a Symlink into Folder.nodes; it has no
+	// libkbfs.Node, so that's impossible. This should make FUSE
+	// Lookup etc always get new nodes, limiting the lifetime of a
+	// single Symlink value.
 	parent *Dir
 	name   string
 }
