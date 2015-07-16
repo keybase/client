@@ -91,11 +91,11 @@
 }
 
 - (void)start:(KBCompletion)completion {
-  completion(KBMakeError(-1, @"Unsupported"));
+  completion(KBMakeError(KBErrorCodeUnsupported, @"Unsupported"));
 }
 
 - (void)stop:(KBCompletion)completion {
-  completion(KBMakeError(-1, @"Unsupported"));
+  completion(KBMakeError(KBErrorCodeUnsupported, @"Unsupported"));
 }
 
 @end

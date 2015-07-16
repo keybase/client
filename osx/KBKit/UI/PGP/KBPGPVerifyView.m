@@ -89,7 +89,7 @@
     NSString *description = NSStringWithFormat(@"Verified from %@ with PGP key fingerprint %@", pgpSigVerification.signer.username, pgpSigVerification.signKey.PGPFingerprint);
     [KBAlert promptWithTitle:title description:description style:NSInformationalAlertStyle buttonTitles:@[@"OK"] view:self completion:^(NSModalResponse returnCode) { }];
   } else {
-    [KBActivity setError:KBMakeError(-1, @"Unable to verify") sender:self];
+    [KBActivity setError:KBErrorAlert(@"Unable to verify") sender:self];
   }
 }
 

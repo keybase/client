@@ -98,7 +98,7 @@
   if ([self installPrivilegedServiceWithName:@"keybase.Helper" error:&error]) {
     completion(nil);
   } else {
-    if (!error) error = KBMakeError(-1, @"Failed to install privileged helper");
+    if (!error) error = KBMakeError(KBErrorCodeInstallError, @"Failed to install privileged helper");
     completion(error);
   }
 }
@@ -162,11 +162,11 @@
 }
 
 - (void)start:(KBCompletion)completion {
-  completion(KBMakeError(-1, @"Unsupported"));
+  completion(KBMakeError(KBErrorCodeUnsupported, @"Unsupported"));
 }
 
 - (void)stop:(KBCompletion)completion {
-  completion(KBMakeError(-1, @"Unsupported"));
+  completion(KBMakeError(KBErrorCodeUnsupported, @"Unsupported"));
 }
 
 @end

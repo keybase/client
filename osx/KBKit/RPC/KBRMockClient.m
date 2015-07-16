@@ -47,7 +47,7 @@
     completion(nil, response);
   } else {
     if (![self replayMethod:method completion:completion]) {
-      completion(KBMakeError(-1, @"No mock for method: %@", method), nil);
+      completion(KBMakeError(KBErrorCodeUnsupported, @"No mock for method: %@", method), nil);
     }
   }
 }

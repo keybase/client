@@ -99,7 +99,7 @@
   } else if ([env.config.identifier isEqualToString:@"brew"]) {
     self.onSelect(env);
   } else {
-    [KBActivity setError:KBMakeError(-1, @"Only supporting custom and brew envs for the moment") sender:self];
+    [KBActivity setError:KBMakeError(KBErrorCodeUnsupported, @"Only supporting custom and brew envs for the moment") sender:self];
   }
 }
 

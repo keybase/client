@@ -21,7 +21,7 @@
   [request pgpVerifyWithSessionID:request.sessionId source:source opts:options completion:^(NSError *error, KBRPGPSigVerification *pgpSigVerification) {
 
     if (error && error.code == 1504) {
-      error = KBMakeError(-1, @"This appears to be a detached signature. You need to specify both the signature and the file to verify against.");
+      error = KBErrorAlert(@"This appears to be a detached signature. You need to specify both the signature and the file to verify against.");
     }
 
     completion(error, stream, pgpSigVerification);

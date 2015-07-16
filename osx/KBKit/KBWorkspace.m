@@ -40,7 +40,7 @@
 + (NSString *)applicationSupport:(NSArray *)subdirs create:(BOOL)create error:(NSError **)error {
   NSString *directory = [NSSearchPathForDirectoriesInDomains(NSApplicationSupportDirectory, NSUserDomainMask, YES) firstObject];
   if (!directory) {
-    if (error) *error = KBMakeError(-1, @"No application support directory");
+    if (error) *error = KBMakeError(KBErrorCodePathNotFound, @"No application support directory");
     return nil;
   }
   directory = [directory stringByAppendingPathComponent:@"Keybase"];

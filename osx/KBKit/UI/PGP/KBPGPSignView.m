@@ -57,13 +57,13 @@
   NSString *str = _textView.text;
 
   if (str.length == 0) {
-    [KBActivity setError:KBMakeError(-1, @"Nothing to sign") sender:self];
+    [KBActivity setError:KBErrorAlert(@"Nothing to sign") sender:self];
     return;
   }
 
   NSData *data = [str dataUsingEncoding:NSUTF8StringEncoding];
   if (!data) {
-    [KBActivity setError:KBMakeError(-1, @"We had a problem trying to encode the text into data") sender:self];
+    [KBActivity setError:KBErrorAlert(@"We had a problem trying to encode the text into data") sender:self];
     return;
   }
   KBReader *reader = [KBReader readerWithData:data];

@@ -12,7 +12,7 @@
 
 - (NSView *)componentView { return nil; }
 
-- (void)install:(KBCompletion)completion { completion(KBMakeError(-1, @"Nothing to install")); }
+- (void)install:(KBCompletion)completion { completion(KBMakeError(KBErrorCodeUnsupported, @"Unsupported")); }
 
 - (void)refreshComponent:(KBCompletion)completion { completion(nil); }
 

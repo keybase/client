@@ -88,7 +88,7 @@
       completion(nil);
     } else {
       if ((attempt + 1) >= 10) {
-        completion(KBMakeError(-1, @"Wait unload timeout (launchctl)"));
+        completion(KBMakeError(KBErrorCodeTimeout, @"Wait unload timeout (launchctl)"));
       } else {
         DDLogDebug(@"Waiting for unload (#%@)", @(attempt));
         dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.5 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
@@ -106,7 +106,7 @@
       completion(nil);
     } else {
       if ((attempt + 1) >= 10) {
-        completion(KBMakeError(-1, @"Wait load timeout (launchctl)"));
+        completion(KBMakeError(KBErrorCodeTimeout, @"Wait load timeout (launchctl)"));
       } else {
         DDLogDebug(@"Waiting for load (#%@)", @(attempt));
         dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.5 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{

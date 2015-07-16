@@ -288,7 +288,7 @@
   deviceSetupView.selectButton.targetBlock = ^{
     KBDeviceSignerOption *option = [gdeviceSetupView.deviceSignerView selectedObject];
     if (!option) {
-      [KBActivity setError:KBMakeError(-1, @"You need to select an option or cancel.") sender:self];
+      [KBActivity setError:KBErrorAlert(@"You need to select an option or cancel.") sender:self];
       return;
     }
 

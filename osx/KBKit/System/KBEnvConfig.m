@@ -286,15 +286,15 @@
 
 - (BOOL)validate:(NSError **)error {
   if (_homeDir && ![NSFileManager.defaultManager fileExistsAtPath:KBPath(_homeDir, NO, NO) isDirectory:nil]) {
-    if (error) *error = KBMakeError(-1, @"%@ doesn't exist", _homeDir);
+    if (error) *error = KBMakeError(KBErrorCodePathNotFound, @"%@ doesn't exist (homeDir)", _homeDir);
     return NO;
   }
   if (_sockFile && ![NSFileManager.defaultManager fileExistsAtPath:KBPath(_sockFile, NO, NO) isDirectory:nil]) {
-    if (error) *error = KBMakeError(-1, @"%@ doesn't exist", _sockFile);
+    if (error) *error = KBMakeError(KBErrorCodePathNotFound, @"%@ doesn't exist (sockFile)", _sockFile);
     return NO;
   }
   if (_mountDir && ![NSFileManager.defaultManager fileExistsAtPath:KBPath(_mountDir, NO, NO) isDirectory:nil]) {
-    if (error) *error = KBMakeError(-1, @"%@ doesn't exist", _mountDir);
+    if (error) *error = KBMakeError(KBErrorCodePathNotFound, @"%@ doesn't exist (mountDir)", _mountDir);
     return NO;
   }
   return YES;

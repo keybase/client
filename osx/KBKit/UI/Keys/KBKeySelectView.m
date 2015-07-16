@@ -44,7 +44,7 @@
   _selectButton.targetBlock = ^{
     NSString *keyId = [[gself.keysView selectedGPGKey] keyID];
     if (!keyId) {
-      [KBActivity setError:KBMakeError(-1, @"You need to select a key or cancel.") sender:gself];
+      [KBActivity setError:KBErrorAlert(@"You need to select a key or cancel.") sender:gself];
       return;
     }
     //BOOL pushSecret = gself.pushCheckbox.state == NSOnState;

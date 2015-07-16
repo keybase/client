@@ -15,6 +15,14 @@ typedef void (^KBCompletion)(NSError *error);
 typedef void (^KBOnCompletion)(NSError *error, id value);
 typedef void (^KBOnExtension)(id sender, NSExtensionItem *outputItem);
 
+typedef NS_ENUM (NSInteger, KBErrorCode) {
+  KBErrorCodeUnsupported = -10,
+  KBErrorCodePermissionDenied = -11,
+  KBErrorCodeTimeout = -12,
+  KBErrorCodeInstallError = -13,
+  KBErrorCodePathNotFound = -14,
+};
+
 #define KBMakeError(CODE, MSG, ...) [NSError errorWithDomain:@"Keybase" code:CODE userInfo:@{NSLocalizedDescriptionKey:[NSString stringWithFormat:MSG, ##__VA_ARGS__], NSLocalizedRecoveryOptionsErrorKey: @[@"OK"]}]
 
 #define KBMakeErrorWithRecovery(CODE, MSG, RECOVERY, ...) [NSError errorWithDomain:@"Keybase" code:CODE userInfo:@{NSLocalizedDescriptionKey: MSG, NSLocalizedRecoveryOptionsErrorKey: @[@"OK"], NSLocalizedRecoverySuggestionErrorKey:[NSString stringWithFormat:RECOVERY, ##__VA_ARGS__]}]

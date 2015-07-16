@@ -106,7 +106,7 @@
       requestHandler(messageId, method, params, completion);
     } else {
       DDLogDebug(@"No handler for request: %@", method);
-      completion(KBMakeError(-1, @"Method not found: %@", method), nil);
+      completion(KBMakeError(KBErrorCodeUnsupported, @"Method not found: %@", method), nil);
     }
   };
 

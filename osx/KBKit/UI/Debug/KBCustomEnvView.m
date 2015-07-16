@@ -50,7 +50,7 @@
   _mountDirField.onChange = ^{ [gself update]; };
   [self addSubview:_mountDirField];
 
-  _develButton = [KBButton buttonWithText:@"Dev Mode" style:KBButtonStyleCheckbox];
+  _develButton = [KBButton buttonWithText:@"Dev Mode (Localhost)" style:KBButtonStyleCheckbox];
   _develButton.state = NSOnState;
   [self addSubview:_develButton];
 
