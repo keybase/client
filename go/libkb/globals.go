@@ -103,6 +103,11 @@ func (g *GlobalContext) Logout() error {
 	return nil
 }
 
+func (g *GlobalContext) ResetLoginState() {
+	g.loginState.Shutdown()
+	g.createLoginState()
+}
+
 func (g *GlobalContext) ConfigureLogging() error {
 	g.Log.Configure(g.Env.GetPlainLogging(), g.Env.GetDebug(), g.Env.GetLogFile())
 	g.Output = os.Stdout

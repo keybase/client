@@ -183,3 +183,34 @@ func TestBackupNoRevoke(t *testing.T) {
 		t.Errorf("num backup devices: %d, expected 2", len(bdevs))
 	}
 }
+
+func TestBackupKeygenSecretStore(t *testing.T) {
+	tc := SetupEngineTest(t, "backup")
+	defer tc.Cleanup()
+
+	fu := CreateAndSignupFakeUser(tc, "login")
+	tc.G.LoginState().Account(func(a *libkb.Account) {
+		a.ClearStreamCache()
+	}, "TestBackupKeygenSecretStore")
+
+	ctx := &Context{
+		LogUI:   tc.G.UI.GetLogUI(),
+		LoginUI: libkb.TestLoginUI{},
+		SecretUI: &libkb.TestSecretUI{
+			Passphrase:  fu.Passphrase,
+			StoreSecret: true,
+		},
+	}
+	eng := NewBackupKeygen(tc.G)
+	if err := RunEngine(eng, ctx); err != nil {
+		t.Fatal(err)
+	}
+
+	ctx.SecretUI = &libkb.TestSecretUI{}
+	tc.G.ResetLoginState()
+
+	eng = NewBackupKeygen(tc.G)
+	if err := RunEngine(eng, ctx); err != nil {
+		t.Fatal(err)
+	}
+}
