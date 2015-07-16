@@ -147,7 +147,7 @@ func TestStatMyPublic(t *testing.T) {
 	mnt := makeFS(t, config)
 	defer mnt.Close()
 
-	fi, err := os.Lstat(path.Join(mnt.Dir, "jdoe", "public"))
+	fi, err := os.Lstat(path.Join(mnt.Dir, "jdoe", PublicName))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -186,7 +186,7 @@ func TestReaddirMyFolderEmpty(t *testing.T) {
 	defer mnt.Close()
 
 	checkDir(t, path.Join(mnt.Dir, "jdoe"), map[string]fileInfoCheck{
-		"public": mustBeDir,
+		PublicName: mustBeDir,
 	})
 }
 
@@ -196,9 +196,9 @@ func TestReaddirMyFolderWithFiles(t *testing.T) {
 	defer mnt.Close()
 
 	files := map[string]fileInfoCheck{
-		"public": mustBeDir,
-		"one":    nil,
-		"two":    nil,
+		PublicName: mustBeDir,
+		"one":      nil,
+		"two":      nil,
 	}
 	for filename, check := range files {
 		if check != nil {
@@ -415,7 +415,7 @@ func TestRename(t *testing.T) {
 	}
 
 	checkDir(t, path.Join(mnt.Dir, "jdoe"), map[string]fileInfoCheck{
-		"public": nil,
+		PublicName: nil,
 		"new": func(fi os.FileInfo) error {
 			if fi.Size() != int64(len(input)) {
 				return fmt.Errorf("Bad file size: %d", fi.Size())
@@ -457,8 +457,8 @@ func TestRenameOverwrite(t *testing.T) {
 	}
 
 	checkDir(t, path.Join(mnt.Dir, "jdoe"), map[string]fileInfoCheck{
-		"public": nil,
-		"new":    nil,
+		PublicName: nil,
+		"new":      nil,
 	})
 
 	buf, err := ioutil.ReadFile(p2)
@@ -548,11 +548,11 @@ func TestRenameCrossFolder(t *testing.T) {
 	}
 
 	checkDir(t, path.Join(mnt.Dir, "jdoe"), map[string]fileInfoCheck{
-		"public": nil,
-		"old":    nil,
+		PublicName: nil,
+		"old":      nil,
 	})
 	checkDir(t, path.Join(mnt.Dir, "wsmith,jdoe"), map[string]fileInfoCheck{
-		"public": nil,
+		PublicName: nil,
 	})
 
 	buf, err := ioutil.ReadFile(p1)
@@ -595,7 +595,7 @@ func TestWriteThenRename(t *testing.T) {
 
 	// check that the new path has the right length still
 	checkDir(t, path.Join(mnt.Dir, "jdoe"), map[string]fileInfoCheck{
-		"public": nil,
+		PublicName: nil,
 		"new": func(fi os.FileInfo) error {
 			if fi.Size() != int64(len(input)) {
 				return fmt.Errorf("Bad file size: %d", fi.Size())
@@ -699,7 +699,7 @@ func TestRemoveFile(t *testing.T) {
 	}
 
 	checkDir(t, path.Join(mnt.Dir, "jdoe"), map[string]fileInfoCheck{
-		"public": nil,
+		PublicName: nil,
 	})
 
 	if _, err := ioutil.ReadFile(p); !os.IsNotExist(err) {
@@ -722,7 +722,7 @@ func TestRemoveDir(t *testing.T) {
 	}
 
 	checkDir(t, path.Join(mnt.Dir, "jdoe"), map[string]fileInfoCheck{
-		"public": nil,
+		PublicName: nil,
 	})
 
 	if _, err := os.Stat(p); !os.IsNotExist(err) {
@@ -780,7 +780,7 @@ func TestRemoveFileWhileOpenWriting(t *testing.T) {
 	}
 
 	checkDir(t, path.Join(mnt.Dir, "jdoe"), map[string]fileInfoCheck{
-		"public": nil,
+		PublicName: nil,
 	})
 
 	if _, err := ioutil.ReadFile(p); !os.IsNotExist(err) {
@@ -822,7 +822,7 @@ func TestRemoveFileWhileOpenReading(t *testing.T) {
 	}
 
 	checkDir(t, path.Join(mnt.Dir, "jdoe"), map[string]fileInfoCheck{
-		"public": nil,
+		PublicName: nil,
 	})
 
 	if _, err := ioutil.ReadFile(p); !os.IsNotExist(err) {
@@ -1005,12 +1005,12 @@ func TestReaddirMyPublic(t *testing.T) {
 		"two": nil,
 	}
 	for filename := range files {
-		if err := ioutil.WriteFile(path.Join(mnt.Dir, "jdoe", "public", filename), []byte("data for "+filename), 0644); err != nil {
+		if err := ioutil.WriteFile(path.Join(mnt.Dir, "jdoe", PublicName, filename), []byte("data for "+filename), 0644); err != nil {
 			t.Fatal(err)
 		}
 	}
 
-	checkDir(t, path.Join(mnt.Dir, "jdoe", "public"), files)
+	checkDir(t, path.Join(mnt.Dir, "jdoe", PublicName), files)
 }
 
 func TestReaddirOtherFolderAsReader(t *testing.T) {
@@ -1070,7 +1070,7 @@ func TestStatOtherFolderPublic(t *testing.T) {
 		defer mnt.Close()
 
 		// cause the folder to exist
-		if err := ioutil.WriteFile(path.Join(mnt.Dir, "jdoe", "public", "myfile"), []byte("data for myfile"), 0644); err != nil {
+		if err := ioutil.WriteFile(path.Join(mnt.Dir, "jdoe", PublicName, "myfile"), []byte("data for myfile"), 0644); err != nil {
 			t.Fatal(err)
 		}
 	}()
@@ -1079,7 +1079,7 @@ func TestStatOtherFolderPublic(t *testing.T) {
 	mnt := makeFS(t, c2)
 	defer mnt.Close()
 
-	fi, err := os.Lstat(path.Join(mnt.Dir, "jdoe", "public"))
+	fi, err := os.Lstat(path.Join(mnt.Dir, "jdoe", PublicName))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -1098,7 +1098,7 @@ func TestReadPublicFile(t *testing.T) {
 		defer mnt.Close()
 
 		// cause the folder to exist
-		if err := ioutil.WriteFile(path.Join(mnt.Dir, "jdoe", "public", "myfile"), []byte(input), 0644); err != nil {
+		if err := ioutil.WriteFile(path.Join(mnt.Dir, "jdoe", PublicName, "myfile"), []byte(input), 0644); err != nil {
 			t.Fatal(err)
 		}
 	}()
@@ -1107,7 +1107,7 @@ func TestReadPublicFile(t *testing.T) {
 	mnt := makeFS(t, c2)
 	defer mnt.Close()
 
-	buf, err := ioutil.ReadFile(path.Join(mnt.Dir, "jdoe", "public", "myfile"))
+	buf, err := ioutil.ReadFile(path.Join(mnt.Dir, "jdoe", PublicName, "myfile"))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -1123,7 +1123,7 @@ func TestReaddirOtherFolderPublicAsAnyone(t *testing.T) {
 		defer mnt.Close()
 
 		// cause the folder to exist
-		if err := ioutil.WriteFile(path.Join(mnt.Dir, "jdoe", "public", "myfile"), []byte("data for myfile"), 0644); err != nil {
+		if err := ioutil.WriteFile(path.Join(mnt.Dir, "jdoe", PublicName, "myfile"), []byte("data for myfile"), 0644); err != nil {
 			t.Fatal(err)
 		}
 	}()
@@ -1132,7 +1132,7 @@ func TestReaddirOtherFolderPublicAsAnyone(t *testing.T) {
 	mnt := makeFS(t, c2)
 	defer mnt.Close()
 
-	checkDir(t, path.Join(mnt.Dir, "jdoe", "public"), map[string]fileInfoCheck{
+	checkDir(t, path.Join(mnt.Dir, "jdoe", PublicName), map[string]fileInfoCheck{
 		"myfile": nil,
 	})
 }
@@ -1144,7 +1144,7 @@ func TestReaddirOtherFolderAsAnyone(t *testing.T) {
 		defer mnt.Close()
 
 		// cause the folder to exist
-		if err := ioutil.WriteFile(path.Join(mnt.Dir, "jdoe", "public", "myfile"), []byte("data for myfile"), 0644); err != nil {
+		if err := ioutil.WriteFile(path.Join(mnt.Dir, "jdoe", PublicName, "myfile"), []byte("data for myfile"), 0644); err != nil {
 			t.Fatal(err)
 		}
 	}()
@@ -1154,7 +1154,7 @@ func TestReaddirOtherFolderAsAnyone(t *testing.T) {
 	defer mnt.Close()
 
 	checkDir(t, path.Join(mnt.Dir, "jdoe"), map[string]fileInfoCheck{
-		"public": mustBeDir,
+		PublicName: mustBeDir,
 	})
 }
 
@@ -1220,11 +1220,11 @@ func TestInvalidatePublicDataOnWrite(t *testing.T) {
 	}
 
 	const input1 = "input round one"
-	if err := ioutil.WriteFile(path.Join(mnt1.Dir, "jdoe", "public", "myfile"), []byte(input1), 0644); err != nil {
+	if err := ioutil.WriteFile(path.Join(mnt1.Dir, "jdoe", PublicName, "myfile"), []byte(input1), 0644); err != nil {
 		t.Fatal(err)
 	}
 
-	f, err := os.Open(path.Join(mnt2.Dir, "jdoe", "public", "myfile"))
+	f, err := os.Open(path.Join(mnt2.Dir, "jdoe", PublicName, "myfile"))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -1242,7 +1242,7 @@ func TestInvalidatePublicDataOnWrite(t *testing.T) {
 	}
 
 	const input2 = "second round of content"
-	if err := ioutil.WriteFile(path.Join(mnt1.Dir, "jdoe", "public", "myfile"), []byte(input2), 0644); err != nil {
+	if err := ioutil.WriteFile(path.Join(mnt1.Dir, "jdoe", PublicName, "myfile"), []byte(input2), 0644); err != nil {
 		t.Fatal(err)
 	}
 
