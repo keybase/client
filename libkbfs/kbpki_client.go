@@ -126,7 +126,7 @@ func (k *KBPKIClient) GetCryptPublicKeys(uid keybase1.UID) (
 			return nil, err
 		}
 		libkb.G.Log.Debug("got crypt public key %s for user %s", key.VerboseDescription(), uid)
-		keys = append(keys, CryptPublicKey{key.GetKid()})
+		keys = append(keys, CryptPublicKey{key.GetKID()})
 	}
 
 	return keys, nil
@@ -138,8 +138,8 @@ func (k *KBPKIClient) GetCurrentCryptPublicKey() (CryptPublicKey, error) {
 	if err != nil {
 		return CryptPublicKey{}, err
 	}
-	libkb.G.Log.Debug("got device subkey %s", deviceSubkey.GetKid().ToShortIDString())
-	return CryptPublicKey{deviceSubkey.GetKid()}, nil
+	libkb.G.Log.Debug("got device subkey %s", deviceSubkey.GetKID().ToShortIDString())
+	return CryptPublicKey{deviceSubkey.GetKID()}, nil
 }
 
 func (k *KBPKIClient) identify(arg *engine.IDEngineArg) (*libkb.User, []keybase1.PublicKey, error) {

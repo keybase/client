@@ -30,7 +30,7 @@ func makeSigningKey(secret SigningKeySecret) (SigningKey, error) {
 
 // getVerifyingKey returns the public key half of this signing key.
 func (k SigningKey) getVerifyingKey() VerifyingKey {
-	return VerifyingKey{k.kp.Public.GetKid()}
+	return VerifyingKey{k.kp.Public.GetKID()}
 }
 
 // CryptPrivateKeySecretSize is the size of a CryptPrivateKeySecret.
@@ -61,7 +61,7 @@ func makeCryptPrivateKey(secret CryptPrivateKeySecret) (CryptPrivateKey, error) 
 // GetPublicKey returns the public key corresponding to this private
 // key.
 func (k CryptPrivateKey) getPublicKey() CryptPublicKey {
-	return CryptPublicKey{k.kp.Public.GetKid()}
+	return CryptPublicKey{k.kp.Public.GetKID()}
 }
 
 // CryptoLocal implements the Crypto interface by using a local

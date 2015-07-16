@@ -66,7 +66,7 @@ func (c *CryptoClient) Sign(msg []byte) (sigInfo SignatureInfo, err error) {
 	sigInfo = SignatureInfo{
 		Version:      SigED25519,
 		Signature:    ed25519SigInfo.Sig[:],
-		VerifyingKey: VerifyingKey{libkb.NaclSigningKeyPublic(ed25519SigInfo.PublicKey).GetKid()},
+		VerifyingKey: VerifyingKey{libkb.NaclSigningKeyPublic(ed25519SigInfo.PublicKey).GetKID()},
 	}
 	return
 }
