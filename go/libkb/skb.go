@@ -11,6 +11,7 @@ package libkb
 import (
 	"bytes"
 	"encoding/base64"
+	"errors"
 	"fmt"
 	"io"
 	"os"
@@ -571,27 +572,25 @@ func (s *SKB) UnlockWithStoredSecret(secretRetriever SecretRetriever) (ret Gener
 	return s.unlockSecretKeyFromSecretRetriever(secretRetriever)
 }
 
-func (s *SKB) PromptAndUnlock(lctx LoginContext, reason, which string, secretStore SecretStore, ui SecretUI, lksPreload *LKSec) (ret GenericKey, err error) {
-	s.G().Log.Debug("+ PromptAndUnlock(%s,%s)", reason, which)
-	defer func() {
-		s.G().Log.Debug("- PromptAndUnlock -> %s", ErrToOk(err))
-	}()
+var errUnlockNotPossible = errors.New("unlock not possible")
 
-	if ret = s.decryptedSecret; ret != nil {
-		return
+func (s *SKB) UnlockNoPrompt(lctx LoginContext, secretStore SecretStore, lksPreload *LKSec) (GenericKey, error) {
+	// already have decrypted secret?
+	if s.decryptedSecret != nil {
+		return s.decryptedSecret, nil
 	}
 
+	// try using the secret store:
 	if secretStore != nil {
-		ret, err = s.unlockSecretKeyFromSecretRetriever(secretStore)
+		key, err := s.unlockSecretKeyFromSecretRetriever(secretStore)
 		s.G().Log.Debug("| unlockSecretKeyFromSecretRetriever -> %s", ErrToOk(err))
 		if err == nil {
-			return
+			return key, nil
 		}
-		// Just fall through if we failed to unlock with
-		// retrieved secret.
-		err = nil
+		// fall through if we failed to unlock with retrieved secret...
 	}
 
+	// try using the passphrase stream cache
 	var tsec *triplesec.Cipher
 	var pps *PassphraseStream
 	if lctx != nil {
@@ -603,23 +602,30 @@ func (s *SKB) PromptAndUnlock(lctx LoginContext, reason, which string, secretSto
 			pps = sc.PassphraseStream()
 		}, "skb - PromptAndUnlock - tsec, pps")
 	}
+
 	if tsec != nil || pps != nil {
-		ret, err = s.UnlockSecretKey(lctx, "", tsec, pps, nil, lksPreload)
+		key, err := s.UnlockSecretKey(lctx, "", tsec, pps, nil, lksPreload)
 		if err == nil {
 			s.G().Log.Debug("| Unlocked key with cached 3Sec and passphrase stream")
-			return
+			return key, nil
 		}
 		if _, ok := err.(PassphraseError); !ok {
-			return
+			// not a passphrase error
+			return nil, err
 		}
-		// if it's a passphrase error, fall through...
+		// fall through if it's a passphrase error
 	} else {
 		s.G().Log.Debug("| No 3Sec or PassphraseStream in PromptAndUnlock")
 	}
 
-	var desc string
-	if desc, err = s.VerboseDescription(); err != nil {
-		return
+	// failed to unlock without prompting user for passphrase
+	return nil, errUnlockNotPossible
+}
+
+func (s *SKB) UnlockPrompt(lctx LoginContext, reason, which string, secretStore SecretStore, ui SecretUI) (GenericKey, error) {
+	desc, err := s.VerboseDescription()
+	if err != nil {
+		return nil, err
 	}
 
 	unlocker := func(pw string, storeSecret bool) (ret GenericKey, err error) {
@@ -639,6 +645,26 @@ func (s *SKB) PromptAndUnlock(lctx LoginContext, reason, which string, secretSto
 		Unlocker:       unlocker,
 		UI:             ui,
 	}.Run()
+}
+
+func (s *SKB) PromptAndUnlock(lctx LoginContext, reason, which string, secretStore SecretStore, ui SecretUI, lksPreload *LKSec) (ret GenericKey, err error) {
+	s.G().Log.Debug("+ PromptAndUnlock(%s,%s)", reason, which)
+	defer func() {
+		s.G().Log.Debug("- PromptAndUnlock -> %s", ErrToOk(err))
+	}()
+
+	// First try to unlock without prompting the user.
+	ret, err = s.UnlockNoPrompt(lctx, secretStore, lksPreload)
+	if err == nil {
+		return
+	}
+	if err != errUnlockNotPossible {
+		return
+	}
+
+	// Prompt necessary:
+	ret, err = s.UnlockPrompt(lctx, reason, which, secretStore, ui)
+	return
 }
 
 func (k *SKBKeyringFile) PushAndSave(skb *SKB, lui LogUI) error {
