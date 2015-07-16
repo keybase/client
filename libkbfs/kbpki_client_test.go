@@ -9,18 +9,30 @@ import (
 )
 
 type FakeKBPKIClient struct {
-	Local *KBPKILocal
+	Local   *KBPKILocal
+	ctlChan chan struct{}
 }
 
-func NewFakeKBPKIClient(loggedIn keybase1.UID, users []LocalUser) *FakeKBPKIClient {
+func NewFakeKBPKIClient(loggedIn keybase1.UID, users []LocalUser,
+	ctlChan chan struct{}) *FakeKBPKIClient {
 	return &FakeKBPKIClient{
-		Local: NewKBPKILocal(loggedIn, users),
+		Local:   NewKBPKILocal(loggedIn, users),
+		ctlChan: ctlChan,
+	}
+}
+
+func (fc FakeKBPKIClient) maybeWaitOnChannel() {
+	if fc.ctlChan != nil {
+		// say we're ready, and wait for the signal to proceed
+		fc.ctlChan <- struct{}{}
+		<-fc.ctlChan
 	}
 }
 
 func (fc FakeKBPKIClient) Call(s string, args interface{}, res interface{}) error {
 	switch s {
 	case "keybase.1.identify.identify":
+		fc.maybeWaitOnChannel()
 		identifyArgs := args.([]interface{})[0].(keybase1.IdentifyArg)
 		uid, ok := fc.Local.Asserts[identifyArgs.UserAssertion]
 		if !ok {
@@ -36,6 +48,7 @@ func (fc FakeKBPKIClient) Call(s string, args interface{}, res interface{}) erro
 		return nil
 
 	case "keybase.1.session.currentSession":
+		fc.maybeWaitOnChannel()
 		ctx := context.Background()
 		user, err := fc.Local.GetUser(ctx, fc.Local.LoggedIn)
 		if err != nil {
@@ -61,7 +74,7 @@ func (fc FakeKBPKIClient) Call(s string, args interface{}, res interface{}) erro
 func TestKBPKIClientResolveAssertion(t *testing.T) {
 	users := []string{"pc"}
 	expectedUID := keybase1.MakeTestUID(1)
-	fc := NewFakeKBPKIClient(expectedUID, MakeLocalUsers(users))
+	fc := NewFakeKBPKIClient(expectedUID, MakeLocalUsers(users), nil)
 	c := newKBPKIClientWithClient(nil, fc)
 
 	u, err := c.ResolveAssertion(context.Background(), "pc")
@@ -75,7 +88,8 @@ func TestKBPKIClientResolveAssertion(t *testing.T) {
 
 func TestKBPKIClientGetUser(t *testing.T) {
 	users := []string{"test_name"}
-	fc := NewFakeKBPKIClient(keybase1.MakeTestUID(1), MakeLocalUsers(users))
+	fc := NewFakeKBPKIClient(keybase1.MakeTestUID(1),
+		MakeLocalUsers(users), nil)
 	c := newKBPKIClientWithClient(nil, fc)
 
 	u, err := c.GetUser(context.Background(), keybase1.MakeTestUID(1))
@@ -87,10 +101,32 @@ func TestKBPKIClientGetUser(t *testing.T) {
 	}
 }
 
+// If we cancel the RPC before the RPC returns, the call should error quickly.
+func TestKBPKIClientGetUserCanceled(t *testing.T) {
+	users := []string{"test_name"}
+	ctlChan := make(chan struct{})
+	fc := NewFakeKBPKIClient(keybase1.MakeTestUID(1),
+		MakeLocalUsers(users), ctlChan)
+	c := newKBPKIClientWithClient(nil, fc)
+
+	ctx, cancel := context.WithCancel(context.Background())
+	go func() {
+		// wait for the RPC, then cancel the context
+		<-ctlChan
+		cancel()
+	}()
+	_, err := c.GetUser(ctx, keybase1.MakeTestUID(1))
+	if err != context.Canceled {
+		t.Fatalf("GetUser did not return a canceled error: %v", err)
+	}
+	// let the RPC complete, which shouldn't hurt anything
+	ctlChan <- struct{}{}
+}
+
 func TestKBPKIClientHasVerifyingKey(t *testing.T) {
 	users := []string{"test_name"}
 	localUsers := MakeLocalUsers(users)
-	fc := NewFakeKBPKIClient(keybase1.MakeTestUID(1), localUsers)
+	fc := NewFakeKBPKIClient(keybase1.MakeTestUID(1), localUsers, nil)
 	c := newKBPKIClientWithClient(nil, fc)
 
 	err := c.HasVerifyingKey(context.Background(), keybase1.MakeTestUID(1),
@@ -109,7 +145,7 @@ func TestKBPKIClientHasVerifyingKey(t *testing.T) {
 func TestKBPKIClientGetCryptPublicKeys(t *testing.T) {
 	users := []string{"test_name"}
 	localUsers := MakeLocalUsers(users)
-	fc := NewFakeKBPKIClient(keybase1.MakeTestUID(1), localUsers)
+	fc := NewFakeKBPKIClient(keybase1.MakeTestUID(1), localUsers, nil)
 	c := newKBPKIClientWithClient(nil, fc)
 
 	cryptPublicKeys, err := c.GetCryptPublicKeys(context.Background(),
@@ -132,7 +168,7 @@ func TestKBPKIClientGetCryptPublicKeys(t *testing.T) {
 func TestKBPKIClientGetCurrentCryptPublicKey(t *testing.T) {
 	users := []string{"test_name1", "test_name2"}
 	localUsers := MakeLocalUsers(users)
-	fc := NewFakeKBPKIClient(keybase1.MakeTestUID(2), localUsers)
+	fc := NewFakeKBPKIClient(keybase1.MakeTestUID(2), localUsers, nil)
 	c := newKBPKIClientWithClient(nil, fc)
 
 	currPublicKey, err := c.GetCurrentCryptPublicKey(context.Background())
@@ -145,4 +181,28 @@ func TestKBPKIClientGetCurrentCryptPublicKey(t *testing.T) {
 	if kid != expectedKID {
 		t.Errorf("Expected %s, got %s", expectedKID, kid)
 	}
+}
+
+// If we cancel the RPC before the RPC returns, the call should error quickly.
+func TestKBPKIClientGetCurrentCryptPublicKeyCanceled(t *testing.T) {
+	users := []string{"test_name1", "test_name2"}
+	localUsers := MakeLocalUsers(users)
+	ctlChan := make(chan struct{})
+	fc := NewFakeKBPKIClient(keybase1.MakeTestUID(2), localUsers, ctlChan)
+	c := newKBPKIClientWithClient(nil, fc)
+
+	ctx, cancel := context.WithCancel(context.Background())
+	go func() {
+		// wait for the RPC, then cancel the context
+		<-ctlChan
+		cancel()
+	}()
+
+	_, err := c.GetCurrentCryptPublicKey(ctx)
+	if err != context.Canceled {
+		t.Fatalf("GetCurrentCryptPublicKey did not return a canceled error: %v",
+			err)
+	}
+	// let the RPC complete, which shouldn't hurt anything
+	ctlChan <- struct{}{}
 }
