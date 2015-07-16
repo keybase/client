@@ -33,7 +33,7 @@ type BlockServerRemote struct {
 	certFile string
 
 	conn net.Conn
-	clt  keybase1.BlockClient
+	clt  keybase1.GenericClient
 
 	// connectionChan is closed when connected goes from false to
 	// true.  We'd need to create a new connctedChan if connected ever
@@ -56,9 +56,33 @@ func NewBlockServerRemote(ctx context.Context, config Config,
 		connectedChan: make(chan struct{}),
 	}
 
-	if err := b.ConnectOnce(ctx); err != nil {
-		libkb.G.Log.Warning("NewBlockServerRemote: cannot connect to backend err : %v", err)
+	if err := b.initClient(); err != nil {
+		libkb.G.Log.Warning("NewBlockServerRemote: cannot connect to backend "+
+			"err : %v", err)
 		go b.Reconnect(ctx)
+		return b
+	}
+
+	if err := b.ConnectOnce(ctx); err != nil {
+		libkb.G.Log.Warning("NewBlockServerRemote: cannot connect to backend "+
+			"err : %v", err)
+		go b.Reconnect(ctx)
+	}
+
+	return b
+}
+
+// newCryptoClientWithClient should only be used for testing.
+func newBlockServerRemoteWithClient(ctx context.Context, config Config,
+	client keybase1.GenericClient) *BlockServerRemote {
+	b := &BlockServerRemote{
+		config:        config,
+		connectedChan: make(chan struct{}),
+		clt:           client,
+	}
+
+	if err := b.ConnectOnce(ctx); err != nil {
+		panic("Failed to connect to a provided client.")
 	}
 
 	return b
@@ -83,6 +107,19 @@ func TLSConnect(cFile string, Addr string) (conn net.Conn, err error) {
 	return
 }
 
+func (b *BlockServerRemote) initClient() error {
+	var err error
+	if b.conn, err = TLSConnect(b.certFile, b.srvAddr); err != nil {
+		libkb.G.Log.Warning("NewBlockServerRemote: cannot connect to backend "+
+			"err : %v", err)
+		return err
+	}
+
+	b.clt = rpc2.NewClient(rpc2.NewTransport(b.conn, libkb.NewRPCLogFactory(),
+		libkb.WrapError), libkb.UnwrapError)
+	return nil
+}
+
 // Config returns the configuration object
 func (b *BlockServerRemote) Config() Config {
 	return b.config
@@ -90,16 +127,9 @@ func (b *BlockServerRemote) Config() Config {
 
 // ConnectOnce tries once to connect to the remote block server.
 func (b *BlockServerRemote) ConnectOnce(ctx context.Context) error {
-	var err error
-	if b.conn, err = TLSConnect(b.certFile, b.srvAddr); err != nil {
-		return err
-	}
-
-	b.clt = keybase1.BlockClient{Cli: rpc2.NewClient(
-		rpc2.NewTransport(b.conn, libkb.NewRPCLogFactory(), libkb.WrapError), libkb.UnwrapError)}
-
 	var token string
 	var session *libkb.Session
+	var err error
 	if session, err = b.config.KBPKI().GetSession(ctx); err != nil {
 		libkb.G.Log.Warning("BlockServerRemote: error getting session %q", err)
 		return err
@@ -117,7 +147,8 @@ func (b *BlockServerRemote) ConnectOnce(ctx context.Context) error {
 		User: user,
 		Sid:  token,
 	}
-	if err = b.clt.EstablishSession(arg); err != nil {
+	clt := keybase1.BlockClient{Cli: b.clt}
+	if err = clt.EstablishSession(arg); err != nil {
 		libkb.G.Log.Warning("BlockServerRemote: error getting session token %q", err)
 		return err
 	}
@@ -164,6 +195,10 @@ func (b *BlockServerRemote) WaitForReconnect(parent context.Context) error {
 
 // Reconnect reconnects to block server.
 func (b *BlockServerRemote) Reconnect(ctx context.Context) {
+	for b.initClient() != nil {
+		time.Sleep(1 * time.Second)
+	}
+
 	for b.ConnectOnce(ctx) != nil {
 		time.Sleep(1 * time.Second)
 	}
@@ -194,7 +229,8 @@ func (b *BlockServerRemote) Get(ctx context.Context, id BlockID,
 	go func() {
 		var err error
 		//XXX: if fails due to connection problem, should reconnect
-		res, err = b.clt.GetBlock(bid)
+		clt := keybase1.BlockClient{Cli: b.clt}
+		res, err = clt.GetBlock(bid)
 		c <- err
 	}()
 
@@ -242,7 +278,8 @@ func (b *BlockServerRemote) Put(ctx context.Context, id BlockID, tlfID TlfID,
 
 	c := make(chan error, 1) // buffered, in case the request is canceled
 	go func() {
-		c <- b.clt.PutBlock(arg)
+		clt := keybase1.BlockClient{Cli: b.clt}
+		c <- clt.PutBlock(arg)
 	}()
 
 	select {
@@ -275,7 +312,8 @@ func (b *BlockServerRemote) Delete(ctx context.Context, id BlockID,
 
 	c := make(chan error, 1) // buffered, in case the request is canceled
 	go func() {
-		c <- b.clt.DecBlockReference(arg)
+		clt := keybase1.BlockClient{Cli: b.clt}
+		c <- clt.DecBlockReference(arg)
 	}()
 
 	select {
