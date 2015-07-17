@@ -10,7 +10,6 @@ import (
 
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/protocol/go"
-	"golang.org/x/crypto/scrypt"
 )
 
 // BackupKeypush is an engine.
@@ -116,30 +115,42 @@ func (e *BackupKeypush) Run(ctx *Context) error {
 	}
 	e.passphrase = strings.Join(words, " ")
 
-	key, err := scrypt.Key([]byte(e.passphrase), nil,
-		libkb.BackupKeyScryptCost, libkb.BackupKeyScryptR, libkb.BackupKeyScryptP, libkb.BackupKeyScryptKeylen)
-	if err != nil {
-		return err
-	}
+	/*
+		key, err := scrypt.Key([]byte(e.passphrase), nil,
+			libkb.BackupKeyScryptCost, libkb.BackupKeyScryptR, libkb.BackupKeyScryptP, libkb.BackupKeyScryptKeylen)
+		if err != nil {
+			return err
+		}
 
-	ppStream := libkb.NewPassphraseStream(key)
+		ppStream := libkb.NewPassphraseStream(key)
 
-	dev, err := libkb.NewBackupDevice()
-	if err != nil {
-		return err
-	}
+		dev, err := libkb.NewBackupDevice()
+		if err != nil {
+			return err
+		}
 
-	dkarg := &DetKeyArgs{
-		PPStream:    ppStream,
+		dkarg := &DetKeyArgs{
+			PPStream:    ppStream,
+			Me:          me,
+			SigningKey:  signingKey,
+			EldestKeyID: *eldest,
+			Device:      dev,
+		}
+
+		dkeng := NewDetKeyEngine(dkarg, e.G())
+		err = RunEngine(dkeng, ctx)
+		if err != nil {
+			return err
+		}
+	*/
+	kgarg := &BackupKeygenArg{
+		Passphrase:  e.passphrase,
 		Me:          me,
 		SigningKey:  signingKey,
 		EldestKeyID: *eldest,
-		Device:      dev,
 	}
-
-	dkeng := NewDetKeyEngine(dkarg, e.G())
-	err = RunEngine(dkeng, ctx)
-	if err != nil {
+	kgeng := NewBackupKeygen(kgarg, e.G())
+	if err := RunEngine(kgeng, ctx); err != nil {
 		return err
 	}
 

@@ -296,13 +296,13 @@ func (k KeyExistsError) Error() string {
 //=============================================================================
 
 type PassphraseError struct {
-	msg string
+	Msg string
 }
 
 func (p PassphraseError) Error() string {
 	msg := "Bad passphrase"
-	if len(p.msg) != 0 {
-		msg = msg + ": " + p.msg
+	if len(p.Msg) != 0 {
+		msg = msg + ": " + p.Msg
 	}
 	return msg
 }

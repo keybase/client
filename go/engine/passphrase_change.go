@@ -50,7 +50,9 @@ func (c *PassphraseChange) RequiredUIs() []libkb.UIKind {
 
 // SubConsumers requires the other UI consumers of this engine
 func (c *PassphraseChange) SubConsumers() []libkb.UIConsumer {
-	return nil
+	return []libkb.UIConsumer{
+		&BackupKeygen{},
+	}
 }
 
 // Run the engine
@@ -140,7 +142,46 @@ func (c *PassphraseChange) findBackupKeys(ctx *Context) (*keypair, error) {
 		return nil, err
 	}
 
-	_ = passphrase
+	bkarg := &BackupKeygenArg{
+		Passphrase: passphrase,
+		SkipPush:   true,
+		Me:         c.me,
+	}
+	bkeng := NewBackupKeygen(bkarg, c.G())
+	if err := RunEngine(bkeng, ctx); err != nil {
+		return nil, err
+	}
+
+	sigKey := bkeng.SigKey()
+	encKey := bkeng.EncKey()
+
+	fmt.Printf("generated sigKey kid: %s\n", sigKey.GetKID())
+	fmt.Printf("generated encKey kid: %s\n", encKey.GetKID())
+
+	var match bool
+	ckf := c.me.GetComputedKeyFamily()
+	for _, bdev := range bdevs {
+		sk, err := ckf.GetSibkeyForDevice(bdev.ID)
+		if err != nil {
+			continue
+		}
+		ek, err := ckf.GetEncryptionSubkeyForDevice(bdev.ID)
+		if err != nil {
+			continue
+		}
+
+		fmt.Printf("existing sigKey kid: %s\n", sk.GetKID())
+		fmt.Printf("existing encKey kid: %s\n", ek.GetKID())
+
+		if sk.GetKID().Equal(sigKey.GetKID()) && ek.GetKID().Equal(encKey.GetKID()) {
+			match = true
+			break
+		}
+	}
+
+	if !match {
+		return nil, libkb.PassphraseError{Msg: "no matching backup keys found"}
+	}
 
 	return nil, nil
 }

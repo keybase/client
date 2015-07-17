@@ -370,7 +370,7 @@ func (c CurrentStatus) Export() (ret keybase1.GetCurrentStatusRes) {
 func (p PassphraseError) ToStatus() (s keybase1.Status) {
 	s.Code = SCBadLoginPassword
 	s.Name = "BAD_LOGIN_PASSWORD"
-	s.Desc = p.msg
+	s.Desc = p.Msg
 	return
 }
 
