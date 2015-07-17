@@ -52,6 +52,10 @@ func (p *ProveUIMock) DisplayRecheckWarning(arg keybase1.DisplayRecheckWarningAr
 }
 
 func proveRooter(g *libkb.GlobalContext, fu *FakeUser) (*ProveUIMock, keybase1.SigID, error) {
+	return proveRooterWithSecretUI(g, fu, fu.NewSecretUI())
+}
+
+func proveRooterWithSecretUI(g *libkb.GlobalContext, fu *FakeUser, secretUI libkb.SecretUI) (*ProveUIMock, keybase1.SigID, error) {
 	arg := keybase1.StartProofArg{
 		Service:      "rooter",
 		Username:     fu.Username,
@@ -89,7 +93,7 @@ func proveRooter(g *libkb.GlobalContext, fu *FakeUser) (*ProveUIMock, keybase1.S
 
 	ctx := Context{
 		LogUI:    g.UI.GetLogUI(),
-		SecretUI: fu.NewSecretUI(),
+		SecretUI: secretUI,
 		ProveUI:  proveUI,
 	}
 

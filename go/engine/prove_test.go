@@ -1,6 +1,10 @@
 package engine
 
-import "testing"
+import (
+	"testing"
+
+	"github.com/keybase/client/go/libkb"
+)
 
 func TestProveRooter(t *testing.T) {
 	tc := SetupEngineTest(t, "prove")
@@ -24,5 +28,44 @@ func TestProveRooter(t *testing.T) {
 	}
 	if !proveUI.checked {
 		t.Error("OkToCheck never called")
+	}
+}
+
+func TestProveRooterWithSecretStore(t *testing.T) {
+	// TODO: Get this working on non-OS X platforms (by mocking
+	// out the SecretStore).
+	if !libkb.HasSecretStore() {
+		t.Skip("Skipping test since there is no secret store")
+	}
+
+	tc := SetupEngineTest(t, "prove")
+	defer tc.Cleanup()
+
+	fu := CreateAndSignupFakeUser(tc, "prove")
+	tc.G.ResetLoginStateForTest()
+
+	testSecretUI := libkb.TestSecretUI{
+		Passphrase:  fu.Passphrase,
+		StoreSecret: true,
+	}
+	_, _, err := proveRooterWithSecretUI(tc.G, fu, &testSecretUI)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if !testSecretUI.CalledGetSecret {
+		t.Fatal("GetSecret() unexpectedly not called")
+	}
+
+	tc.G.ResetLoginStateForTest()
+
+	testSecretUI = libkb.TestSecretUI{}
+	_, _, err = proveRooterWithSecretUI(tc.G, fu, &testSecretUI)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if testSecretUI.CalledGetSecret {
+		t.Fatal("GetSecret() unexpectedly called")
 	}
 }
