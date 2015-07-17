@@ -251,6 +251,15 @@ func (u NoSecretKeyError) Error() string {
 
 //=============================================================================
 
+type NoBackupKeysError struct {
+}
+
+func (u NoBackupKeysError) Error() string {
+	return "No backup keys available"
+}
+
+//=============================================================================
+
 type TooManyKeysError struct {
 	n  int
 	fp PGPFingerprint

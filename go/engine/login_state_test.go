@@ -2,7 +2,6 @@ package engine
 
 import (
 	"errors"
-	"runtime/debug"
 	"testing"
 
 	"github.com/keybase/client/go/libkb"
@@ -97,8 +96,12 @@ func (m *GetSecretMock) GetNewPassphrase(keybase1.GetNewPassphraseArg) (keybase1
 }
 
 func (m *GetSecretMock) GetKeybasePassphrase(keybase1.GetKeybasePassphraseArg) (string, error) {
-	debug.PrintStack()
 	m.LastErr = errors.New("GetKeybasePassphrase unexpectedly called")
+	return "invalid passphrase", m.LastErr
+}
+
+func (m *GetSecretMock) GetBackupPassphrase(keybase1.GetBackupPassphraseArg) (string, error) {
+	m.LastErr = errors.New("GetBackupPassphrase unexpectedly called")
 	return "invalid passphrase", m.LastErr
 }
 
@@ -240,6 +243,11 @@ func (m *GetKeybasePassphraseMock) GetKeybasePassphrase(keybase1.GetKeybasePassp
 	}
 	m.Called = true
 	return m.Passphrase, nil
+}
+
+func (m *GetKeybasePassphraseMock) GetBackupPassphrase(keybase1.GetBackupPassphraseArg) (string, error) {
+	m.LastErr = errors.New("GetBackupPassphrase unexpectedly called")
+	return "invalid passphrase", m.LastErr
 }
 
 func (m *GetKeybasePassphraseMock) CheckLastErr(t *testing.T) {

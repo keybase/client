@@ -1053,6 +1053,18 @@
   }];
 }
 
+- (void)getBackupPassphraseWithSessionID:(NSInteger)sessionID username:(NSString *)username completion:(void (^)(NSError *error, NSString *str))completion {
+  NSDictionary *params = @{@"sessionID": @(sessionID), @"username": KBRValue(username)};
+  [self.client sendRequestWithMethod:@"keybase.1.secretUi.getBackupPassphrase" params:params sessionId:self.sessionId completion:^(NSError *error, id retval) {
+    if (error) {
+        completion(error, nil);
+        return;
+      }
+      NSString *result = retval ? [MTLJSONAdapter modelOfClass:NSString.class fromJSONDictionary:retval error:&error] : nil;
+      completion(error, result);
+  }];
+}
+
 @end
 
 @implementation KBRSession
@@ -2429,6 +2441,18 @@
     self.sessionID = [params[0][@"sessionID"] integerValue];
     self.username = params[0][@"username"];
     self.retry = params[0][@"retry"];
+  }
+  return self;
+}
+
+@end
+
+@implementation KBRGetBackupPassphraseRequestParams
+
+- (instancetype)initWithParams:(NSArray *)params {
+  if ((self = [super initWithParams:params])) {
+    self.sessionID = [params[0][@"sessionID"] integerValue];
+    self.username = params[0][@"username"];
   }
   return self;
 }

@@ -355,6 +355,10 @@ func (c *CmdStress) GetKeybasePassphrase(arg keybase1.GetKeybasePassphraseArg) (
 	return c.passphrase, nil
 }
 
+func (c *CmdStress) GetBackupPassphrase(arg keybase1.GetBackupPassphraseArg) (string, error) {
+	return "", nil
+}
+
 func (c *CmdStress) GetNewPassphrase(arg keybase1.GetNewPassphraseArg) (keybase1.GetNewPassphraseRes, error) {
 	return keybase1.GetNewPassphraseRes{Passphrase: c.passphrase}, nil
 }

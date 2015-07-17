@@ -669,6 +669,19 @@ func (ui SecretUI) GetKeybasePassphrase(arg keybase1.GetKeybasePassphraseArg) (t
 	return
 }
 
+func (ui SecretUI) GetBackupPassphrase(arg keybase1.GetBackupPassphraseArg) (text string, err error) {
+	desc := fmt.Sprintf("Please enter a backup passphrase for %s", arg.Username)
+	text, _, err = ui.ppprompt(libkb.PromptArg{
+		TerminalPrompt: "backup passphrase",
+		PinentryPrompt: "Backup passphrase",
+		PinentryDesc:   desc,
+		Checker:        &libkb.CheckPassphraseSimple,
+		RetryMessage:   "",
+		UseSecretStore: false,
+	})
+	return
+}
+
 func (ui SecretUI) ppprompt(arg libkb.PromptArg) (text string, storeSecret bool, err error) {
 
 	first := true

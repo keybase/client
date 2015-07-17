@@ -18,12 +18,6 @@ type PassphraseChange struct {
 	libkb.Contextified
 }
 
-type PassphraseChangeArg struct {
-	OldPassphrase string
-	NewPassphrase string
-	Force         bool
-}
-
 // NewPassphraseChange creates a new engine for changing user passphrases,
 // either if the current passphrase is known, or in "force" mode
 func NewPassphraseChange(a *keybase1.PassphraseChangeArg, g *libkb.GlobalContext) *PassphraseChange {
@@ -40,6 +34,10 @@ func (c *PassphraseChange) Name() string {
 
 // Prereqs returns engine prereqs
 func (c *PassphraseChange) Prereqs() Prereqs {
+	if c.arg.Force {
+		return Prereqs{}
+	}
+
 	return Prereqs{Session: true}
 }
 
@@ -91,6 +89,15 @@ type keypair struct {
 
 // findDeviceKeys looks for device keys and unlocks them.
 func (c *PassphraseChange) findDeviceKeys(ctx *Context) (*keypair, error) {
+	// need to be logged in to get a device key (unlocked)
+	lin, err := IsLoggedIn(c, ctx)
+	if err != nil {
+		return nil, err
+	}
+	if !lin {
+		return nil, libkb.LoginRequiredError{}
+	}
+
 	// Get unlocked device for decryption and signing
 	ska := libkb.SecretKeyArg{
 		Me:      c.me,
@@ -119,6 +126,14 @@ func (c *PassphraseChange) findDeviceKeys(ctx *Context) (*keypair, error) {
 // regenerate backup keys, which are then matched against the
 // backup keys found in the keyfamily.
 func (c *PassphraseChange) findBackupKeys(ctx *Context) (*keypair, error) {
+	cki := c.me.GetComputedKeyInfos()
+	if cki == nil {
+		return nil, fmt.Errorf("no computed key infos")
+	}
+	bdevs := cki.BackupDevices()
+	if len(bdevs) == 0 {
+		return nil, libkb.NoBackupKeysError{}
+	}
 	return nil, nil
 }
 

@@ -248,9 +248,11 @@ func (n *nullui) Shutdown() error {
 
 type TestSecretUI struct {
 	Passphrase             string
+	BackupPassphrase       string
 	StoreSecret            bool
 	CalledGetSecret        bool
 	CalledGetKBPassphrase  bool
+	CalledGetBUPassphrase  bool
 	CalledGetNewPassphrase bool
 }
 
@@ -271,6 +273,11 @@ func (t *TestSecretUI) GetNewPassphrase(keybase1.GetNewPassphraseArg) (keybase1.
 func (t *TestSecretUI) GetKeybasePassphrase(keybase1.GetKeybasePassphraseArg) (string, error) {
 	t.CalledGetKBPassphrase = true
 	return t.Passphrase, nil
+}
+
+func (t *TestSecretUI) GetBackupPassphrase(keybase1.GetBackupPassphraseArg) (string, error) {
+	t.CalledGetBUPassphrase = true
+	return t.BackupPassphrase, nil
 }
 
 type TestLoginUI struct {
