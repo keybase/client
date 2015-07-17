@@ -170,8 +170,12 @@ func (c *PassphraseChange) findBackupKeys(ctx *Context) (*keypair, error) {
 			continue
 		}
 
-		fmt.Printf("existing sigKey kid: %s\n", sk.GetKID())
-		fmt.Printf("existing encKey kid: %s\n", ek.GetKID())
+		if sk != nil {
+			fmt.Printf("existing sigKey kid: %s\n", sk.GetKID())
+		}
+		if ek != nil {
+			fmt.Printf("existing encKey kid: %s\n", ek.GetKID())
+		}
 
 		if sk.GetKID().Equal(sigKey.GetKID()) && ek.GetKID().Equal(encKey.GetKID()) {
 			match = true

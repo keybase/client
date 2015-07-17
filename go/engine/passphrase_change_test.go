@@ -243,7 +243,7 @@ func TestPassphraseChangeUnknownBackupKey(t *testing.T) {
 		t.Fatal(err)
 	}
 	backupPassphrase := beng.Passphrase()
-	_ = backupPassphrase // this will be needed later...
+	ctx.SecretUI = &libkb.TestSecretUI{BackupPassphrase: backupPassphrase}
 
 	tc.G.LoginState().Account(func(a *libkb.Account) {
 		a.ClearStreamCache()
@@ -288,7 +288,7 @@ func TestPassphraseChangeLoggedOutBackupKey(t *testing.T) {
 		t.Fatal(err)
 	}
 	backupPassphrase := beng.Passphrase()
-	_ = backupPassphrase // this will be needed later...
+	ctx.SecretUI = &libkb.TestSecretUI{BackupPassphrase: backupPassphrase}
 
 	Logout(tc)
 

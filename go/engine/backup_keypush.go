@@ -59,11 +59,6 @@ func (e *BackupKeypush) Run(ctx *Context) error {
 		return err
 	}
 
-	eldest := me.GetEldestKID()
-	if eldest == nil {
-		return fmt.Errorf("no eldest key found; cannot generate backup keys")
-	}
-
 	// check for existing backup keys
 	cki := me.GetComputedKeyInfos()
 	if cki == nil {
@@ -144,10 +139,9 @@ func (e *BackupKeypush) Run(ctx *Context) error {
 		}
 	*/
 	kgarg := &BackupKeygenArg{
-		Passphrase:  e.passphrase,
-		Me:          me,
-		SigningKey:  signingKey,
-		EldestKeyID: *eldest,
+		Passphrase: e.passphrase,
+		Me:         me,
+		SigningKey: signingKey,
 	}
 	kgeng := NewBackupKeygen(kgarg, e.G())
 	if err := RunEngine(kgeng, ctx); err != nil {
