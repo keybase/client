@@ -42,7 +42,7 @@ func TestProveRooterWithSecretStore(t *testing.T) {
 	tc := SetupEngineTest(t, "prove")
 	defer tc.Cleanup()
 
-	fu := CreateAndSignupFakeUser(tc, "prove")
+	fu := CreateAndSignupFakeUser(tc, "pwss")
 	tc.G.ResetLoginStateForTest()
 
 	testSecretUI := libkb.TestSecretUI{
