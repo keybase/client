@@ -20,6 +20,11 @@ func getCurrentBTCAddr(t *testing.T, username string) string {
 	return cryptoLink.ToDisplayString()
 }
 
+const (
+	firstAddress  = "17JyYCvn37BodyLbZdKQrW3WNbW7JcsvAJ"
+	secondAddress = "1kwg3FnLysQAi8Wqu37KqBwTUaUGiL7t1"
+)
+
 func TestBTC(t *testing.T) {
 	tc := SetupEngineTest(t, "btc")
 	defer tc.Cleanup()
@@ -43,7 +48,6 @@ func TestBTC(t *testing.T) {
 	}
 
 	// Now set a real address; this should succeed.
-	firstAddress := "17JyYCvn37BodyLbZdKQrW3WNbW7JcsvAJ"
 	e = NewBTCEngine(firstAddress, false /* force */, tc.G)
 	err = RunEngine(e, ctx)
 	if err != nil {
@@ -53,8 +57,6 @@ func TestBTC(t *testing.T) {
 	if current != firstAddress {
 		t.Fatalf("Expected btc address '%s'. Found '%s'.", firstAddress, current)
 	}
-
-	secondAddress := "1kwg3FnLysQAi8Wqu37KqBwTUaUGiL7t1"
 
 	// Test overwriting it without --force; should fail.
 	e = NewBTCEngine(secondAddress, false /* force */, tc.G)
@@ -91,4 +93,20 @@ func TestBTC(t *testing.T) {
 	} else if revoked[0].ToDisplayString() != firstAddress {
 		t.Fatal("Revoked link should correspond to the first address.")
 	}
+}
+
+// Make sure the btc engine uses the secret store.
+func TestBTCWithSecretStore(t *testing.T) {
+	testEngineWithSecretStore(t, func(
+		tc libkb.TestContext, fu *FakeUser, secretUI libkb.SecretUI) {
+		e := NewBTCEngine(firstAddress, true /* force */, tc.G)
+		ctx := &Context{
+			LogUI:    tc.G.UI.GetLogUI(),
+			SecretUI: secretUI,
+		}
+		err := RunEngine(e, ctx)
+		if err != nil {
+			t.Fatal(err)
+		}
+	})
 }
