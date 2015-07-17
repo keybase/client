@@ -29,6 +29,10 @@ func NewCmdPGPEncrypt(cl *libcmdline.CommandLine) cli.Command {
 				Usage: "approve remote tracking without prompting",
 			},
 			cli.BoolFlag{
+				Name:  "skip-track",
+				Usage: "Don't track",
+			},
+			cli.BoolFlag{
 				Name:  "no-self",
 				Usage: "don't encrypt for self",
 			},
@@ -62,13 +66,13 @@ func NewCmdPGPEncrypt(cl *libcmdline.CommandLine) cli.Command {
 
 type CmdPGPEncrypt struct {
 	UnixFilter
-	recipients    []string
-	localOnly     bool
-	approveRemote bool
-	sign          bool
-	noSelf        bool
-	keyQuery      string
-	binaryOut     bool
+	recipients   []string
+	skipTrack    bool
+	trackOptions keybase1.TrackOptions
+	sign         bool
+	noSelf       bool
+	keyQuery     string
+	binaryOut    bool
 }
 
 func (c *CmdPGPEncrypt) Run() error {
@@ -84,10 +88,7 @@ func (c *CmdPGPEncrypt) Run() error {
 		NoSelf:       c.noSelf,
 		BinaryOutput: c.binaryOut,
 		KeyQuery:     c.keyQuery,
-		TrackOptions: engine.TrackOptions{
-			TrackLocalOnly: c.localOnly,
-			TrackApprove:   c.approveRemote,
-		},
+		TrackOptions: c.trackOptions,
 	}
 	ctx := &engine.Context{
 		IdentifyUI: G.UI.GetIdentifyTrackUI(true),
@@ -118,13 +119,13 @@ func (c *CmdPGPEncrypt) RunClient() error {
 		return err
 	}
 	opts := keybase1.PGPEncryptOptions{
-		Recipients:    c.recipients,
-		NoSign:        !c.sign,
-		NoSelf:        c.noSelf,
-		BinaryOut:     c.binaryOut,
-		KeyQuery:      c.keyQuery,
-		LocalOnly:     c.localOnly,
-		ApproveRemote: c.approveRemote,
+		Recipients:   c.recipients,
+		NoSign:       !c.sign,
+		NoSelf:       c.noSelf,
+		BinaryOut:    c.binaryOut,
+		KeyQuery:     c.keyQuery,
+		SkipTrack:    c.skipTrack,
+		TrackOptions: c.trackOptions,
 	}
 	arg := keybase1.PGPEncryptArg{Source: src, Sink: snk, Opts: opts}
 	err = cli.PGPEncrypt(arg)
@@ -145,8 +146,11 @@ func (c *CmdPGPEncrypt) ParseArgv(ctx *cli.Context) error {
 		return err
 	}
 	c.recipients = ctx.Args()
-	c.localOnly = ctx.Bool("local")
-	c.approveRemote = ctx.Bool("y")
+	c.trackOptions = keybase1.TrackOptions{
+		LocalOnly:     ctx.Bool("local"),
+		BypassConfirm: ctx.Bool("y"),
+	}
+	c.skipTrack = ctx.Bool("skip-track")
 	c.sign = ctx.Bool("sign")
 	c.keyQuery = ctx.String("key")
 	c.binaryOut = ctx.Bool("binary")

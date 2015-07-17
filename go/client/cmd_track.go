@@ -12,9 +12,8 @@ import (
 )
 
 type CmdTrack struct {
-	user          string
-	localOnly     bool
-	approveRemote bool
+	user    string
+	options keybase1.TrackOptions
 }
 
 func NewCmdTrack(cl *libcmdline.CommandLine) cli.Command {
@@ -43,8 +42,7 @@ func (v *CmdTrack) ParseArgv(ctx *cli.Context) error {
 		return fmt.Errorf("track takes one arg -- the user to track")
 	}
 	v.user = ctx.Args()[0]
-	v.localOnly = ctx.Bool("local")
-	v.approveRemote = ctx.Bool("y")
+	v.options = keybase1.TrackOptions{LocalOnly: ctx.Bool("local"), BypassConfirm: ctx.Bool("y")}
 	return nil
 }
 
@@ -64,19 +62,15 @@ func (v *CmdTrack) RunClient() error {
 	}
 
 	return cli.Track(keybase1.TrackArg{
-		TheirName:     v.user,
-		LocalOnly:     v.localOnly,
-		ApproveRemote: v.approveRemote,
+		UserAssertion: v.user,
+		Options:       v.options,
 	})
 }
 
 func (v *CmdTrack) Run() error {
 	arg := engine.TrackEngineArg{
-		TheirName: v.user,
-		Options: engine.TrackOptions{
-			TrackLocalOnly: v.localOnly,
-			TrackApprove:   v.approveRemote,
-		},
+		UserAssertion: v.user,
+		Options:       v.options,
 	}
 	eng := engine.NewTrackEngine(&arg, G)
 	ctx := engine.Context{

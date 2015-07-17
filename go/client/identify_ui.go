@@ -19,9 +19,8 @@ func NewIdentifyTrackUIProtocol() rpc2.Protocol {
 	return keybase1.IdentifyUiProtocol(&IdentifyUIServer{ui})
 }
 
-func (i *IdentifyUIServer) FinishAndPrompt(arg keybase1.FinishAndPromptArg) (res keybase1.FinishAndPromptRes, err error) {
-	res, err = i.ui.FinishAndPrompt(&arg.Outcome)
-	return
+func (i *IdentifyUIServer) Confirm(arg keybase1.ConfirmArg) error {
+	return i.ui.Confirm(&arg.Outcome)
 }
 
 func (i *IdentifyUIServer) FinishWebProofCheck(arg keybase1.FinishWebProofCheckArg) error {

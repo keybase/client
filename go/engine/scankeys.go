@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/keybase/client/go/libkb"
+	keybase1 "github.com/keybase/client/protocol/go"
 	"golang.org/x/crypto/openpgp"
 )
 
@@ -19,7 +20,7 @@ type ScanKeys struct {
 	keys  openpgp.EntityList
 	secui libkb.SecretUI
 	idui  libkb.IdentifyUI
-	opts  *TrackOptions
+	opts  *keybase1.TrackOptions
 	owner *libkb.User // the owner of the found key(s).  Can be `me` or any other keybase user.
 	me    *libkb.User
 	libkb.Contextified
@@ -30,7 +31,7 @@ var _ openpgp.KeyRing = &ScanKeys{}
 
 // NewScanKeys creates a ScanKeys type.  If there is a login
 // session, it will load the pgp keys for that user.
-func NewScanKeys(secui libkb.SecretUI, idui libkb.IdentifyUI, opts *TrackOptions, g *libkb.GlobalContext) (*ScanKeys, error) {
+func NewScanKeys(secui libkb.SecretUI, idui libkb.IdentifyUI, opts *keybase1.TrackOptions, g *libkb.GlobalContext) (*ScanKeys, error) {
 	sk := &ScanKeys{
 		secui:        secui,
 		idui:         idui,

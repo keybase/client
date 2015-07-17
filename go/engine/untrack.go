@@ -6,8 +6,8 @@ import (
 )
 
 type UntrackEngineArg struct {
-	TheirName string
-	Me        *libkb.User
+	Username string
+	Me       *libkb.User
 }
 
 type UntrackEngine struct {
@@ -92,7 +92,7 @@ func (e *UntrackEngine) Run(ctx *Context) (err error) {
 	}
 
 	if !didUntrack {
-		err = libkb.NewUntrackError("User @%s is already untracked", e.arg.TheirName)
+		err = libkb.NewUntrackError("User %s is already untracked", e.arg.Username)
 		return
 	}
 
@@ -106,7 +106,7 @@ func (e *UntrackEngine) loadMe() (me *libkb.User, err error) {
 func (e *UntrackEngine) loadThem() (them *libkb.User, remoteLink, localLink *libkb.TrackChainLink, err error) {
 	var rLink *libkb.TrackChainLink
 	trackMap := e.arg.Me.IDTable().GetTrackMap()
-	if links, ok := trackMap[e.arg.TheirName]; ok && (len(links) > 0) {
+	if links, ok := trackMap[e.arg.Username]; ok && (len(links) > 0) {
 		rLink = links[len(links)-1]
 	}
 
@@ -120,7 +120,7 @@ func (e *UntrackEngine) loadThem() (them *libkb.User, remoteLink, localLink *lib
 	}
 
 	if uid.IsNil() {
-		res := libkb.ResolveUID(e.arg.TheirName)
+		res := libkb.ResolveUID(e.arg.Username)
 		if err = res.GetError(); err != nil {
 			return
 		}
@@ -128,7 +128,7 @@ func (e *UntrackEngine) loadThem() (them *libkb.User, remoteLink, localLink *lib
 		// This is an untrusted uid.
 		uid = res.GetUID()
 		if uid.IsNil() {
-			err = libkb.NewUntrackError("Could not resolve uid for @%s", e.arg.TheirName)
+			err = libkb.NewUntrackError("Could not resolve uid for @%s", e.arg.Username)
 			return
 		}
 	}
@@ -139,13 +139,13 @@ func (e *UntrackEngine) loadThem() (them *libkb.User, remoteLink, localLink *lib
 	}
 
 	if rLink == nil && lLink == nil {
-		err = libkb.NewUntrackError("You are not tracking %s", e.arg.TheirName)
+		err = libkb.NewUntrackError("You are not tracking %s", e.arg.Username)
 		return
 	}
 
 	if !uidTrusted {
 		if lLink == nil {
-			err = libkb.NewUntrackError("Could not verify resolved uid for @%s", e.arg.TheirName)
+			err = libkb.NewUntrackError("Could not verify resolved uid for @%s", e.arg.Username)
 			return
 		}
 
@@ -155,15 +155,15 @@ func (e *UntrackEngine) loadThem() (them *libkb.User, remoteLink, localLink *lib
 			return
 		}
 
-		if e.arg.TheirName != trackedUsername {
-			err = libkb.NewUntrackError("Username mismatch: expected @%s, got @%s", e.arg.TheirName, trackedUsername)
+		if e.arg.Username != trackedUsername {
+			err = libkb.NewUntrackError("Username mismatch: expected @%s, got @%s", e.arg.Username, trackedUsername)
 			return
 		}
 
 		uidTrusted = true
 	}
 
-	them = libkb.NewUserThin(e.arg.TheirName, uid)
+	them = libkb.NewUserThin(e.arg.Username, uid)
 	remoteLink = rLink
 	localLink = lLink
 	return

@@ -320,8 +320,7 @@ func (ir *IdentifyOutcome) Export() *keybase1.IdentifyOutcome {
 		NumRevoked:        ir.NumRevoked(),
 		NumProofSuccesses: ir.NumProofSuccesses(),
 		Revoked:           del,
-		LocalOnly:         ir.LocalOnly,
-		ApproveRemote:     ir.ApproveRemote,
+		TrackOptions:      ir.TrackOptions,
 	}
 	return ret
 }
@@ -333,14 +332,6 @@ func DisplayTrackArg(sessionID int, stmt string) *keybase1.DisplayTrackStatement
 		SessionID: sessionID,
 		Stmt:      stmt,
 	}
-}
-
-//=============================================================================
-
-func ImportFinishAndPromptRes(f keybase1.FinishAndPromptRes) (ti TrackInstructions) {
-	ti.Local = f.TrackLocal
-	ti.Remote = f.TrackRemote
-	return
 }
 
 //=============================================================================

@@ -48,10 +48,7 @@ func (h *PGPHandler) PGPEncrypt(arg keybase1.PGPEncryptArg) error {
 		NoSelf:       arg.Opts.NoSelf,
 		BinaryOutput: arg.Opts.BinaryOut,
 		KeyQuery:     arg.Opts.KeyQuery,
-		TrackOptions: engine.TrackOptions{
-			TrackLocalOnly: arg.Opts.LocalOnly,
-			TrackApprove:   arg.Opts.ApproveRemote,
-		},
+		TrackOptions: arg.Opts.TrackOptions,
 	}
 	ctx := &engine.Context{
 		IdentifyUI: h.NewRemoteIdentifyUI(arg.SessionID),
@@ -70,10 +67,7 @@ func (h *PGPHandler) PGPDecrypt(arg keybase1.PGPDecryptArg) (keybase1.PGPSigVeri
 		Source:       src,
 		AssertSigned: arg.Opts.AssertSigned,
 		SignedBy:     arg.Opts.SignedBy,
-		TrackOptions: engine.TrackOptions{
-			TrackLocalOnly: arg.Opts.LocalOnly,
-			TrackApprove:   arg.Opts.ApproveRemote,
-		},
+		TrackOptions: arg.Opts.TrackOptions,
 	}
 	ctx := &engine.Context{
 		SecretUI:   h.getSecretUI(arg.SessionID),
@@ -93,13 +87,10 @@ func (h *PGPHandler) PGPVerify(arg keybase1.PGPVerifyArg) (keybase1.PGPSigVerifi
 	cli := h.getStreamUICli()
 	src := libkb.NewRemoteStreamBuffered(arg.Source, cli, arg.SessionID)
 	earg := &engine.PGPVerifyArg{
-		Source:    src,
-		Signature: arg.Opts.Signature,
-		SignedBy:  arg.Opts.SignedBy,
-		TrackOptions: engine.TrackOptions{
-			TrackLocalOnly: arg.Opts.LocalOnly,
-			TrackApprove:   arg.Opts.ApproveRemote,
-		},
+		Source:       src,
+		Signature:    arg.Opts.Signature,
+		SignedBy:     arg.Opts.SignedBy,
+		TrackOptions: arg.Opts.TrackOptions,
 	}
 	ctx := &engine.Context{
 		SecretUI:   h.getSecretUI(arg.SessionID),

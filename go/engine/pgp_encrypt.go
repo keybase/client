@@ -5,6 +5,7 @@ import (
 	"io"
 
 	"github.com/keybase/client/go/libkb"
+	keybase1 "github.com/keybase/client/protocol/go"
 	"golang.org/x/crypto/openpgp/armor"
 )
 
@@ -16,7 +17,8 @@ type PGPEncryptArg struct {
 	NoSelf       bool
 	BinaryOutput bool
 	KeyQuery     string
-	TrackOptions TrackOptions
+	SkipTrack    bool
+	TrackOptions keybase1.TrackOptions
 }
 
 // PGPEncrypt encrypts data read from a source into a sink
@@ -104,6 +106,7 @@ func (e *PGPEncrypt) Run(ctx *Context) error {
 
 	kfarg := &PGPKeyfinderArg{
 		Users:        e.arg.Recips,
+		SkipTrack:    e.arg.SkipTrack,
 		TrackOptions: e.arg.TrackOptions,
 	}
 

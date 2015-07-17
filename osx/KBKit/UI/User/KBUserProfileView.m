@@ -184,18 +184,15 @@
     [gself updatePopupWindow];
   }];
 
-  [client registerMethod:@"keybase.1.identifyUi.finishAndPrompt" sessionId:sessionId requestHandler:^(NSNumber *messageId, NSString *method, NSArray *params, MPRequestCompletion completion) {
-    KBRFinishAndPromptRequestParams *requestParams = [[KBRFinishAndPromptRequestParams alloc] initWithParams:params];
+  [client registerMethod:@"keybase.1.identifyUi.confirm" sessionId:sessionId requestHandler:^(NSNumber *messageId, NSString *method, NSArray *params, MPRequestCompletion completion) {
+    KBRConfirmRequestParams *requestParams = [[KBRConfirmRequestParams alloc] initWithParams:params];
 
     KBUserTrackStatus *trackStatus = [[KBUserTrackStatus alloc] initWithUsername:gself.username identifyOutcome:requestParams.outcome];
     [self showTrackPrompt:trackStatus completion:^(BOOL track) {
-      // There is a daemon bug where keybase generates local track statement anyway
       if (track) {
-        KBRFinishAndPromptRes *response = [[KBRFinishAndPromptRes alloc] init];
-        response.trackRemote = YES;
-        completion(nil, response);
-      } else {
         completion(nil, nil);
+      } else {
+        completion(KBMakeError(-1, @"Skipped track"), nil);
       }
     }];
     [gself setNeedsLayout];
@@ -259,7 +256,9 @@
   GHWeakSelf gself = self;
   [KBActivity setProgressEnabled:YES sender:self];
   [self registerClient:self.client sessionId:request.sessionId];
-  [request trackWithTokenWithSessionID:request.sessionId trackToken:self.trackToken localOnly:NO approveRemote:YES completion:^(NSError *error) {
+  KBRTrackOptions *options = [[KBRTrackOptions alloc] init];
+  options.localOnly = NO;
+  [request trackWithTokenWithSessionID:request.sessionId trackToken:self.trackToken options:options completion:^(NSError *error) {
     [KBActivity setProgressEnabled:NO sender:self];
     if (error) {
       [gself showTrackAction:KBTrackActionErrored username:username error:error];
@@ -368,7 +367,7 @@
   KBRTrackRequest *request = [[KBRTrackRequest alloc] initWithClient:self.client];
   GHWeakSelf gself = self;
   NSString *username = _username;
-  [request untrackWithSessionID:request.sessionId theirName:username completion:^(NSError *error) {
+  [request untrackWithSessionID:request.sessionId username:username completion:^(NSError *error) {
     [self.headerView setProgressEnabled:NO];
     if (error) {
       [gself showTrackAction:KBTrackActionErrored username:username error:error];

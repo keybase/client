@@ -42,6 +42,7 @@
 }
 
 - (void)open:(KBCompletion)completion {
+  NSParameterAssert(completion);
   if (self.status != KBRPClientStatusClosed) {
     completion(KBMakeError(KBErrorCodeAlreadyOpen, @"Already open"));
     return;
@@ -117,6 +118,7 @@
 }
 
 - (void)_open:(KBCompletion)completion {
+  NSParameterAssert(completion);
   KBLog(KBLogRPC|KBLogDebug, @"Connecting (%@): %@", @(_connectAttempt), [self.config sockFile]);
   _connectAttempt++;
   GHWeakSelf gself = self;
@@ -145,6 +147,7 @@
 }
 
 - (void)openAfterDelay:(NSTimeInterval)delay completion:(KBCompletion)completion {
+  NSParameterAssert(completion);
   GHWeakSelf gself = self;
   dispatch_after(dispatch_time(DISPATCH_TIME_NOW, delay * NSEC_PER_SEC), dispatch_get_main_queue(), ^{
     [gself open:completion];
@@ -283,9 +286,9 @@ NSDictionary *KBScrubSensitive(NSDictionary *dict) {
   if (status == MPMessagePackClientStatusClosed) {
     // TODO: What if we have open requests?
     [self _didClose];
-    if (!_autoRetryDisabled) [self openAfterDelay:2 completion:nil];
+    if (!_autoRetryDisabled) [self openAfterDelay:2 completion:^(NSError *error) {}];
   } else if (status == MPMessagePackClientStatusOpen) {
-
+    // Awesome
   }
 }
 

@@ -49,13 +49,13 @@ func (v *CmdUntrack) RunClient() error {
 	}
 
 	return cli.Untrack(keybase1.UntrackArg{
-		TheirName: v.user,
+		Username: v.user,
 	})
 }
 
 func (v *CmdUntrack) Run() error {
 	arg := engine.UntrackEngineArg{
-		TheirName: v.user,
+		Username: v.user,
 	}
 	eng := engine.NewUntrackEngine(&arg, G)
 	ctx := engine.Context{

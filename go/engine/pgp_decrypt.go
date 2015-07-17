@@ -5,6 +5,7 @@ import (
 	"io"
 
 	"github.com/keybase/client/go/libkb"
+	keybase1 "github.com/keybase/client/protocol/go"
 )
 
 type PGPDecryptArg struct {
@@ -12,7 +13,7 @@ type PGPDecryptArg struct {
 	Sink         io.WriteCloser
 	AssertSigned bool
 	SignedBy     string
-	TrackOptions TrackOptions
+	TrackOptions keybase1.TrackOptions
 }
 
 // PGPDecrypt decrypts data read from source into sink for the

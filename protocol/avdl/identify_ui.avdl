@@ -59,19 +59,15 @@ protocol identifyUi {
 		union { null, SigHint } hint;
 	}
 
-	record FinishAndPromptRes {
-		boolean trackLocal;
-		boolean trackRemote;
-	}
-
-	FinishAndPromptRes finishAndPrompt(int sessionID, IdentifyOutcome outcome);
-	void finishWebProofCheck(int sessionID, RemoteProof rp, LinkCheckResult lcr);
-	void finishSocialProofCheck(int sessionID, RemoteProof rp, LinkCheckResult lcr);
-	void displayCryptocurrency(int sessionID, Cryptocurrency c);
+	void start(int sessionID, string username);
 	void displayKey(int sessionID, IdentifyKey key);
 	void reportLastTrack(int sessionID, union { null, TrackSummary } track);
 	void launchNetworkChecks(int sessionID, Identity identity, User user);
 	void displayTrackStatement(int sessionID, string stmt);
-	void start(int sessionID, string username);
+
+	void finishWebProofCheck(int sessionID, RemoteProof rp, LinkCheckResult lcr);
+	void finishSocialProofCheck(int sessionID, RemoteProof rp, LinkCheckResult lcr);
+	void displayCryptocurrency(int sessionID, Cryptocurrency c);
+	void confirm(int sessionID, IdentifyOutcome outcome);
 	void finish(int sessionID);
 }

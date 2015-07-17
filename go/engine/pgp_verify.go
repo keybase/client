@@ -8,6 +8,7 @@ import (
 	"io/ioutil"
 
 	"github.com/keybase/client/go/libkb"
+	keybase1 "github.com/keybase/client/protocol/go"
 	"golang.org/x/crypto/openpgp"
 	"golang.org/x/crypto/openpgp/clearsign"
 )
@@ -16,7 +17,7 @@ type PGPVerifyArg struct {
 	Source       io.Reader
 	Signature    []byte
 	SignedBy     string
-	TrackOptions TrackOptions
+	TrackOptions keybase1.TrackOptions
 }
 
 // PGPVerify is an engine.

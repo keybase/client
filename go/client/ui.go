@@ -42,7 +42,7 @@ func (ui BaseIdentifyUI) DisplayTrackStatement(stmt string) error {
 func (ui BaseIdentifyUI) Finish() {
 }
 
-func (ui BaseIdentifyUI) baseFinishAndPrompt(o *keybase1.IdentifyOutcome) (ret keybase1.FinishAndPromptRes, err error) {
+func (ui BaseIdentifyUI) baseConfirm(o *keybase1.IdentifyOutcome) (err error) {
 	warnings := libkb.ImportWarnings(o.Warnings)
 	if !warnings.IsEmpty() {
 		ui.ShowWarnings(warnings)
@@ -54,8 +54,8 @@ func (ui BaseIdentifyUI) LaunchNetworkChecks(i *keybase1.Identity, u *keybase1.U
 	return
 }
 
-func (ui IdentifyUI) FinishAndPrompt(o *keybase1.IdentifyOutcome) (keybase1.FinishAndPromptRes, error) {
-	return ui.baseFinishAndPrompt(o)
+func (ui IdentifyUI) Confirm(o *keybase1.IdentifyOutcome) error {
+	return ui.baseConfirm(o)
 }
 
 type IdentifyTrackUI struct {
@@ -76,67 +76,77 @@ func (ui IdentifyTrackUI) ReportRevoked(del []keybase1.TrackDiff) {
 	}
 }
 
-func (ui IdentifyTrackUI) FinishAndPrompt(o *keybase1.IdentifyOutcome) (ret keybase1.FinishAndPromptRes, err error) {
+func (ui IdentifyTrackUI) Confirm(o *keybase1.IdentifyOutcome) (err error) {
 	var prompt string
-	un := o.Username
+	username := o.Username
 
 	// Whether we used a tracking statement when checking the identity
 	// this time...
 	tracked := o.TrackUsed != nil
-	isRemote := false
-	if tracked {
-		isRemote = o.TrackUsed.IsRemote
+	trackedRemote := tracked && o.TrackUsed.IsRemote
+
+	// If we are tracking remotely, and we we're asked to track local only then error.
+	if trackedRemote && o.TrackOptions.LocalOnly {
+		err = fmt.Errorf("Can't locally track if you are already tracking remotely")
+		return
 	}
 
 	ui.ReportRevoked(o.Revoked)
 
-	def := PromptDefaultYes
-	isEqual := false
+	promptDefault := PromptDefaultYes
+	trackChanged := true
 	switch o.TrackStatus {
 	case keybase1.TrackStatus_UPDATE_BROKEN:
-		prompt = "Your tracking statement of " + un + " is broken; fix it?"
-		def = PromptDefaultNo
+		prompt = "Your tracking statement of " + username + " is broken; fix it?"
+		promptDefault = PromptDefaultNo
 	case keybase1.TrackStatus_UPDATE_NEW_PROOFS:
-		prompt = "Your tracking statement of " + un +
+		prompt = "Your tracking statement of " + username +
 			" is still valid; update it to reflect new proofs?"
-		def = PromptDefaultYes
+		promptDefault = PromptDefaultYes
 	case keybase1.TrackStatus_UPDATE_OK:
 		G.Log.Info("Your tracking statement is up-to-date")
-		isEqual = true
+		trackChanged = false
 	case keybase1.TrackStatus_NEW_ZERO_PROOFS:
-		prompt = "We found an account for " + un +
+		prompt = "We found an account for " + username +
 			", but they haven't proven their identity. Still track them?"
-		def = PromptDefaultNo
+		promptDefault = PromptDefaultNo
 	case keybase1.TrackStatus_NEW_FAIL_PROOFS:
-		prompt = "Some proofs failed; still track " + un + "?"
-		def = PromptDefaultNo
+		prompt = "Some proofs failed; still track " + username + "?"
+		promptDefault = PromptDefaultNo
 	default:
-		prompt = "Is this the " + ColorString("bold", un) + " you wanted?"
-		def = PromptDefaultYes
+		prompt = "Is this the " + ColorString("bold", username) + " you wanted?"
+		promptDefault = PromptDefaultYes
 	}
 
-	if !isEqual {
-		var ok bool
-		if ok, err = ui.parent.PromptYesNo(prompt, def); err != nil {
-		} else if !ok {
-			err = NotConfirmedError{}
-		}
-		ret.TrackLocal = true
-	} else if isRemote {
-		ret.TrackLocal = false
+	// Tracking statement exists and is unchanged, nothing to do
+	if !trackChanged {
+		return
 	}
 
-	if err == nil && (!isEqual || !isRemote) {
-		// check Outcome flags to see if we should show this statement
-		if o.LocalOnly {
+	// Tracking statement doesn't exist or changed, lets prompt them with the details
+	var ok bool
+	if ok, err = ui.parent.PromptYesNo(prompt, promptDefault); err != nil {
+		return
+	}
+	if !ok {
+		err = NotConfirmedError{}
+		return
+	}
+
+	// If we want to track remote, lets confirm (unless bypassing)
+	if !o.TrackOptions.LocalOnly {
+		if o.TrackOptions.BypassConfirm {
 			return
 		}
-		if o.ApproveRemote {
-			ret.TrackRemote = true
+		prompt = "Publicly write tracking statement to server?"
+		if ok, err = ui.parent.PromptYesNo(prompt, promptDefault); err != nil {
 			return
 		}
-		prompt = "publicly write tracking statement to server?"
-		ret.TrackRemote, err = ui.parent.PromptYesNo(prompt, PromptDefaultYes)
+		if !ok {
+			err = fmt.Errorf("If you want to track locally, use the -l option")
+			//err = NotConfirmedError{}
+			return
+		}
 	}
 	return
 }

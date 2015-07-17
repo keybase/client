@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/keybase/client/go/libkb"
+	keybase1 "github.com/keybase/client/protocol/go"
 )
 
 // PGPKeyfinder is an engine to find PGP Keys for users (loaded by
@@ -18,8 +19,9 @@ type PGPKeyfinder struct {
 }
 
 type PGPKeyfinderArg struct {
-	Users []string
-	TrackOptions
+	Users        []string
+	SkipTrack    bool
+	TrackOptions keybase1.TrackOptions
 }
 
 // NewPGPKeyfinder creates a PGPKeyfinder engine.
@@ -85,7 +87,7 @@ func (e *PGPKeyfinder) verifyUsers(ctx *Context) {
 		return
 	}
 
-	if e.loggedIn {
+	if e.loggedIn && !e.arg.SkipTrack {
 		e.loadMe()
 		e.trackUsers(ctx)
 	} else {
@@ -137,12 +139,12 @@ func (e *PGPKeyfinder) loadKeys(ctx *Context) {
 	}
 }
 
-func (e *PGPKeyfinder) trackUser(ctx *Context, user string) error {
-	e.G().Log.Debug("tracking user %q", user)
+func (e *PGPKeyfinder) trackUser(ctx *Context, username string) error {
+	e.G().Log.Debug("tracking user %q", username)
 	arg := &TrackEngineArg{
-		Me:        e.me,
-		TheirName: user,
-		Options:   e.arg.TrackOptions,
+		Me:            e.me,
+		UserAssertion: username,
+		Options:       e.arg.TrackOptions,
 	}
 	eng := NewTrackEngine(arg, e.G())
 	if err := RunEngine(eng, ctx); err != nil {

@@ -4,11 +4,12 @@ import (
 	"testing"
 
 	"github.com/keybase/client/go/libkb"
+	keybase1 "github.com/keybase/client/protocol/go"
 )
 
 func runUntrack(g *libkb.GlobalContext, fu *FakeUser, username string) error {
 	arg := UntrackEngineArg{
-		TheirName: username,
+		Username: username,
 	}
 	ctx := Context{
 		LogUI:    g.UI.GetLogUI(),
@@ -18,12 +19,12 @@ func runUntrack(g *libkb.GlobalContext, fu *FakeUser, username string) error {
 	return RunEngine(eng, &ctx)
 }
 
-func assertUntracked(t *testing.T, theirName string) {
+func assertUntracked(t *testing.T, username string) {
 	me, err := libkb.LoadMe(libkb.LoadUserArg{})
 	if err != nil {
 		t.Fatal(err)
 	}
-	them, err := libkb.LoadUser(libkb.LoadUserArg{Name: theirName})
+	them, err := libkb.LoadUser(libkb.LoadUserArg{Name: username})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -67,19 +68,19 @@ func TestUntrack(t *testing.T) {
 	fu := CreateAndSignupFakeUser(tc, "untrk")
 
 	// Local-tracked only.
-	trackAliceWithOptions(tc, fu, TrackOptions{TrackLocalOnly: true})
+	trackAliceWithOptions(tc, fu, keybase1.TrackOptions{LocalOnly: true})
 	assertTracking(t, "t_alice")
 	untrackAlice(tc, fu)
 	assertUntracked(t, "t_alice")
 
 	// Remote-tracked only.
-	trackAliceWithOptions(tc, fu, TrackOptions{TrackLocalOnly: false})
+	trackAliceWithOptions(tc, fu, keybase1.TrackOptions{LocalOnly: false})
 	untrackAlice(tc, fu)
 	assertUntracked(t, "t_alice")
 
 	// Both local- and remote-tracked.
-	trackAliceWithOptions(tc, fu, TrackOptions{TrackLocalOnly: true})
-	trackAliceWithOptions(tc, fu, TrackOptions{TrackLocalOnly: false})
+	trackAliceWithOptions(tc, fu, keybase1.TrackOptions{LocalOnly: true})
+	trackAliceWithOptions(tc, fu, keybase1.TrackOptions{LocalOnly: false})
 	untrackAlice(tc, fu)
 	assertUntracked(t, "t_alice")
 
@@ -105,7 +106,7 @@ func TestUntrackRemoteOnly(t *testing.T) {
 	defer tc.Cleanup()
 	fu := CreateAndSignupFakeUser(tc, "untrk")
 
-	trackAliceWithOptions(tc, fu, TrackOptions{TrackLocalOnly: false})
+	trackAliceWithOptions(tc, fu, keybase1.TrackOptions{LocalOnly: false})
 	untrackAlice(tc, fu)
 	assertUntracked(t, "t_alice")
 }

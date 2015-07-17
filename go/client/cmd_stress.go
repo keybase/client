@@ -194,21 +194,22 @@ func (c *CmdStress) trackSomeone() {
 		return
 	}
 
-	users := []string{"t_alice", "t_bob", "t_charlie", "t_doug"}
-	user := users[libkb.RandIntn(len(users))]
+	usernames := []string{"t_alice", "t_bob", "t_charlie", "t_doug"}
+	username := usernames[libkb.RandIntn(len(usernames))]
 
 	tcli := keybase1.TrackClient{Cli: cli}
-	err = tcli.Track(keybase1.TrackArg{TheirName: user, ApproveRemote: true})
+	options := keybase1.TrackOptions{LocalOnly: false, BypassConfirm: true}
+	err = tcli.Track(keybase1.TrackArg{UserAssertion: username, Options: options})
 	if err != nil {
-		G.Log.Warning("track %s error: %s", user, err)
-	}
+		G.Log.Warning("track %s error: %s", username, err)
 
+	}
 	if libkb.RandIntn(2) == 0 {
 		return
 	}
-	err = tcli.Untrack(keybase1.UntrackArg{TheirName: user})
+	err = tcli.Untrack(keybase1.UntrackArg{Username: username})
 	if err != nil {
-		G.Log.Warning("untrack %s error: %s", user, err)
+		G.Log.Warning("untrack %s error: %s", username, err)
 	}
 }
 

@@ -20,7 +20,6 @@ func TestPGPKeyfinder(t *testing.T) {
 
 	trackUI := &FakeIdentifyUI{
 		Proofs: make(map[string]string),
-		Fapr:   keybase1.FinishAndPromptRes{TrackRemote: true},
 	}
 
 	ctx := &Context{IdentifyUI: trackUI, SecretUI: u.NewSecretUI()}
@@ -51,7 +50,6 @@ func TestPGPKeyfinderLoggedOut(t *testing.T) {
 
 	trackUI := &FakeIdentifyUI{
 		Proofs: make(map[string]string),
-		Fapr:   keybase1.FinishAndPromptRes{TrackRemote: true},
 	}
 
 	ctx := &Context{IdentifyUI: trackUI, SecretUI: &libkb.TestSecretUI{}}
@@ -73,12 +71,10 @@ type idLubaUI struct{}
 
 func (u *idLubaUI) FinishWebProofCheck(keybase1.RemoteProof, keybase1.LinkCheckResult)    {}
 func (u *idLubaUI) FinishSocialProofCheck(keybase1.RemoteProof, keybase1.LinkCheckResult) {}
-func (u *idLubaUI) FinishAndPrompt(*keybase1.IdentifyOutcome) (res keybase1.FinishAndPromptRes, err error) {
-	return
-}
-func (u *idLubaUI) DisplayCryptocurrency(keybase1.Cryptocurrency)          {}
-func (u *idLubaUI) ReportLastTrack(*keybase1.TrackSummary)                 {}
-func (u *idLubaUI) Start(string)                                           {}
-func (u *idLubaUI) LaunchNetworkChecks(*keybase1.Identity, *keybase1.User) {}
-func (u *idLubaUI) DisplayTrackStatement(string) error                     { return nil }
-func (u *idLubaUI) SetStrict(b bool)                                       {}
+func (u *idLubaUI) Confirm(*keybase1.IdentifyOutcome) error                               { return nil }
+func (u *idLubaUI) DisplayCryptocurrency(keybase1.Cryptocurrency)                         {}
+func (u *idLubaUI) ReportLastTrack(*keybase1.TrackSummary)                                {}
+func (u *idLubaUI) Start(string)                                                          {}
+func (u *idLubaUI) LaunchNetworkChecks(*keybase1.Identity, *keybase1.User)                {}
+func (u *idLubaUI) DisplayTrackStatement(string) error                                    { return nil }
+func (u *idLubaUI) SetStrict(b bool)                                                      {}

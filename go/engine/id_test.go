@@ -166,7 +166,7 @@ func TestIdPGPNotEldest(t *testing.T) {
 type FakeIdentifyUI struct {
 	Proofs          map[string]string
 	User            *keybase1.User
-	Fapr            keybase1.FinishAndPromptRes
+	Confirmed       bool
 	Keys            map[libkb.PGPFingerprint]*keybase1.TrackDiff
 	DisplayKeyCalls int
 	Outcome         *keybase1.IdentifyOutcome
@@ -184,8 +184,7 @@ func (ui *FakeIdentifyUI) FinishSocialProofCheck(proof keybase1.RemoteProof, res
 	}
 	ui.Proofs[proof.Key] = proof.Value
 }
-func (ui *FakeIdentifyUI) FinishAndPrompt(outcome *keybase1.IdentifyOutcome) (res keybase1.FinishAndPromptRes, err error) {
-	res = ui.Fapr
+func (ui *FakeIdentifyUI) Confirm(outcome *keybase1.IdentifyOutcome) (err error) {
 	ui.Outcome = outcome
 	return
 }

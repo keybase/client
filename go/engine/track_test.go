@@ -8,19 +8,14 @@ import (
 )
 
 func runTrack(tc libkb.TestContext, fu *FakeUser, username string) (idUI *FakeIdentifyUI, them *libkb.User, err error) {
-	return runTrackWithOptions(tc, fu, username, TrackOptions{}, false)
+	return runTrackWithOptions(tc, fu, username, keybase1.TrackOptions{}, false)
 }
 
-func runTrackWithOptions(tc libkb.TestContext, fu *FakeUser, username string, options TrackOptions, forceRemoteCheck bool) (idUI *FakeIdentifyUI, them *libkb.User, err error) {
-	idUI = &FakeIdentifyUI{
-		Fapr: keybase1.FinishAndPromptRes{
-			TrackLocal:  options.TrackLocalOnly,
-			TrackRemote: !options.TrackLocalOnly,
-		},
-	}
+func runTrackWithOptions(tc libkb.TestContext, fu *FakeUser, username string, options keybase1.TrackOptions, forceRemoteCheck bool) (idUI *FakeIdentifyUI, them *libkb.User, err error) {
+	idUI = &FakeIdentifyUI{}
 
 	arg := &TrackEngineArg{
-		TheirName:        username,
+		UserAssertion:    username,
 		Options:          options,
 		ForceRemoteCheck: forceRemoteCheck,
 	}
@@ -36,12 +31,12 @@ func runTrackWithOptions(tc libkb.TestContext, fu *FakeUser, username string, op
 	return
 }
 
-func assertTracking(t *testing.T, theirName string) {
+func assertTracking(t *testing.T, username string) {
 	me, err := libkb.LoadMe(libkb.LoadUserArg{})
 	if err != nil {
 		t.Fatal(err)
 	}
-	them, err := libkb.LoadUser(libkb.LoadUserArg{Name: theirName})
+	them, err := libkb.LoadUser(libkb.LoadUserArg{Name: username})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -54,12 +49,12 @@ func assertTracking(t *testing.T, theirName string) {
 	}
 }
 
-func assertNotTracking(t *testing.T, theirName string) {
+func assertNotTracking(t *testing.T, username string) {
 	me, err := libkb.LoadMe(libkb.LoadUserArg{})
 	if err != nil {
 		t.Fatal(err)
 	}
-	them, err := libkb.LoadUser(libkb.LoadUserArg{Name: theirName})
+	them, err := libkb.LoadUser(libkb.LoadUserArg{Name: username})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -73,10 +68,10 @@ func assertNotTracking(t *testing.T, theirName string) {
 }
 
 func trackAlice(tc libkb.TestContext, fu *FakeUser) {
-	trackAliceWithOptions(tc, fu, TrackOptions{})
+	trackAliceWithOptions(tc, fu, keybase1.TrackOptions{})
 }
 
-func trackAliceWithOptions(tc libkb.TestContext, fu *FakeUser, options TrackOptions) {
+func trackAliceWithOptions(tc libkb.TestContext, fu *FakeUser, options keybase1.TrackOptions) {
 	idUI, res, err := runTrackWithOptions(tc, fu, "t_alice", options, false)
 	if err != nil {
 		tc.T.Fatal(err)
@@ -87,10 +82,10 @@ func trackAliceWithOptions(tc libkb.TestContext, fu *FakeUser, options TrackOpti
 }
 
 func trackBob(tc libkb.TestContext, fu *FakeUser) {
-	trackBobWithOptions(tc, fu, TrackOptions{})
+	trackBobWithOptions(tc, fu, keybase1.TrackOptions{})
 }
 
-func trackBobWithOptions(tc libkb.TestContext, fu *FakeUser, options TrackOptions) {
+func trackBobWithOptions(tc libkb.TestContext, fu *FakeUser, options keybase1.TrackOptions) {
 	idUI, res, err := runTrackWithOptions(tc, fu, "t_bob", options, false)
 	if err != nil {
 		tc.T.Fatal(err)
@@ -158,7 +153,7 @@ func TestTrackLocal(t *testing.T) {
 	defer tc.Cleanup()
 	fu := CreateAndSignupFakeUser(tc, "track")
 
-	_, them, err := runTrackWithOptions(tc, fu, "t_alice", TrackOptions{TrackLocalOnly: true}, false)
+	_, them, err := runTrackWithOptions(tc, fu, "t_alice", keybase1.TrackOptions{LocalOnly: true}, false)
 	if err != nil {
 		t.Fatal(err)
 	}

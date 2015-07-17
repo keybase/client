@@ -3,6 +3,7 @@ package engine
 import (
 	"testing"
 
+	keybase1 "github.com/keybase/client/protocol/go"
 	jsonw "github.com/keybase/go-jsonw"
 )
 
@@ -89,7 +90,7 @@ func TestListTrackingLocal(t *testing.T) {
 	trackAlice(tc, fu)
 	defer untrackAlice(tc, fu)
 
-	trackBobWithOptions(tc, fu, TrackOptions{TrackLocalOnly: true})
+	trackBobWithOptions(tc, fu, keybase1.TrackOptions{LocalOnly: true})
 	defer untrackBob(tc, fu)
 
 	arg := ListTrackingEngineArg{}

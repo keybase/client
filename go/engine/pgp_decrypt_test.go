@@ -179,9 +179,7 @@ func TestPGPDecryptSignedOther(t *testing.T) {
 	t.Logf("recipient (%q) logging in", recipient.Username)
 	recipient.LoginOrBust(tcRecipient)
 
-	rtrackUI := &FakeIdentifyUI{
-		Fapr: keybase1.FinishAndPromptRes{TrackRemote: true},
-	}
+	rtrackUI := &FakeIdentifyUI{}
 	ctx = &Context{IdentifyUI: rtrackUI, SecretUI: recipient.NewSecretUI(), LogUI: tcRecipient.G.UI.GetLogUI()}
 
 	// decrypt it

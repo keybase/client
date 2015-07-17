@@ -10,17 +10,16 @@ import (
 )
 
 type IdentifyOutcome struct {
-	Username      string
-	Error         error
-	KeyDiffs      []TrackDiff
-	Revoked       []TrackDiffRevoked
-	ProofChecks   []*LinkCheckResult
-	Warnings      []Warning
-	TrackUsed     *TrackLookup
-	TrackEqual    bool // Whether the track statement was equal to what we saw
-	MeSet         bool // whether me was set at the time
-	LocalOnly     bool
-	ApproveRemote bool
+	Username     string
+	Error        error
+	KeyDiffs     []TrackDiff
+	Revoked      []TrackDiffRevoked
+	ProofChecks  []*LinkCheckResult
+	Warnings     []Warning
+	TrackUsed    *TrackLookup
+	TrackEqual   bool // Whether the track statement was equal to what we saw
+	MeSet        bool // whether me was set at the time
+	TrackOptions keybase1.TrackOptions
 }
 
 func NewIdentifyOutcome(m bool) *IdentifyOutcome {

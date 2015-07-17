@@ -2,6 +2,7 @@
 
 protocol pgp {
 	import idl "common.avdl";
+	import idl "identify_common.avdl";
 
 	enum SignMode {
 		ATTACHED_0,
@@ -29,8 +30,8 @@ protocol pgp {
 		boolean noSelf;
 		boolean binaryOut;
 		string keyQuery;
-		boolean localOnly; // store track locally only
-		boolean approveRemote;  // approve remote track without prompt
+		boolean skipTrack;
+		TrackOptions trackOptions;
 	}
 
 	void pgpEncrypt(int sessionID, Stream source, Stream sink, PGPEncryptOptions opts);
@@ -48,16 +49,14 @@ protocol pgp {
 	record PGPDecryptOptions {
 		boolean assertSigned;
 		string signedBy; // assert that signature made by this user
-		boolean localOnly; // store track locally only
-		boolean approveRemote;  // approve remote track without prompt
+		TrackOptions trackOptions;
 	}
 
 	PGPSigVerification pgpDecrypt(int sessionID, Stream source, Stream sink, PGPDecryptOptions opts);
 
 	record PGPVerifyOptions {
 		string signedBy; // assert that signature made by this user
-		boolean localOnly; // store track locally only
-		boolean approveRemote;  // approve remote track without prompt
+		TrackOptions trackOptions;
 		bytes signature; // detached signature data (binary or armored), can be empty
 	}
 

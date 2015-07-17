@@ -206,6 +206,16 @@
     "symbols" : [ "NEW_OK_1", "NEW_ZERO_PROOFS_2", "NEW_FAIL_PROOFS_3", "UPDATE_BROKEN_4", "UPDATE_NEW_PROOFS_5", "UPDATE_OK_6" ]
   }, {
     "type" : "record",
+    "name" : "TrackOptions",
+    "fields" : [ {
+      "name" : "localOnly",
+      "type" : "boolean"
+    }, {
+      "name" : "bypassConfirm",
+      "type" : "boolean"
+    } ]
+  }, {
+    "type" : "record",
     "name" : "IdentifyOutcome",
     "fields" : [ {
       "name" : "username",
@@ -247,11 +257,8 @@
         "items" : "TrackDiff"
       }
     }, {
-      "name" : "localOnly",
-      "type" : "boolean"
-    }, {
-      "name" : "approveRemote",
-      "type" : "boolean"
+      "name" : "trackOptions",
+      "type" : "TrackOptions"
     } ]
   }, {
     "type" : "record",
@@ -419,61 +426,15 @@
       "name" : "hint",
       "type" : [ "null", "SigHint" ]
     } ]
-  }, {
-    "type" : "record",
-    "name" : "FinishAndPromptRes",
-    "fields" : [ {
-      "name" : "trackLocal",
-      "type" : "boolean"
-    }, {
-      "name" : "trackRemote",
-      "type" : "boolean"
-    } ]
   } ],
   "messages" : {
-    "finishAndPrompt" : {
+    "start" : {
       "request" : [ {
         "name" : "sessionID",
         "type" : "int"
       }, {
-        "name" : "outcome",
-        "type" : "IdentifyOutcome"
-      } ],
-      "response" : "FinishAndPromptRes"
-    },
-    "finishWebProofCheck" : {
-      "request" : [ {
-        "name" : "sessionID",
-        "type" : "int"
-      }, {
-        "name" : "rp",
-        "type" : "RemoteProof"
-      }, {
-        "name" : "lcr",
-        "type" : "LinkCheckResult"
-      } ],
-      "response" : "null"
-    },
-    "finishSocialProofCheck" : {
-      "request" : [ {
-        "name" : "sessionID",
-        "type" : "int"
-      }, {
-        "name" : "rp",
-        "type" : "RemoteProof"
-      }, {
-        "name" : "lcr",
-        "type" : "LinkCheckResult"
-      } ],
-      "response" : "null"
-    },
-    "displayCryptocurrency" : {
-      "request" : [ {
-        "name" : "sessionID",
-        "type" : "int"
-      }, {
-        "name" : "c",
-        "type" : "Cryptocurrency"
+        "name" : "username",
+        "type" : "string"
       } ],
       "response" : "null"
     },
@@ -520,13 +481,49 @@
       } ],
       "response" : "null"
     },
-    "start" : {
+    "finishWebProofCheck" : {
       "request" : [ {
         "name" : "sessionID",
         "type" : "int"
       }, {
-        "name" : "username",
-        "type" : "string"
+        "name" : "rp",
+        "type" : "RemoteProof"
+      }, {
+        "name" : "lcr",
+        "type" : "LinkCheckResult"
+      } ],
+      "response" : "null"
+    },
+    "finishSocialProofCheck" : {
+      "request" : [ {
+        "name" : "sessionID",
+        "type" : "int"
+      }, {
+        "name" : "rp",
+        "type" : "RemoteProof"
+      }, {
+        "name" : "lcr",
+        "type" : "LinkCheckResult"
+      } ],
+      "response" : "null"
+    },
+    "displayCryptocurrency" : {
+      "request" : [ {
+        "name" : "sessionID",
+        "type" : "int"
+      }, {
+        "name" : "c",
+        "type" : "Cryptocurrency"
+      } ],
+      "response" : "null"
+    },
+    "confirm" : {
+      "request" : [ {
+        "name" : "sessionID",
+        "type" : "int"
+      }, {
+        "name" : "outcome",
+        "type" : "IdentifyOutcome"
       } ],
       "response" : "null"
     },

@@ -888,6 +888,11 @@ const (
 	TrackStatus_UPDATE_OK         TrackStatus = 6
 )
 
+type TrackOptions struct {
+	LocalOnly     bool `codec:"localOnly" json:"localOnly"`
+	BypassConfirm bool `codec:"bypassConfirm" json:"bypassConfirm"`
+}
+
 type IdentifyOutcome struct {
 	Username          string        `codec:"username" json:"username"`
 	Status            *Status       `codec:"status,omitempty" json:"status,omitempty"`
@@ -900,8 +905,7 @@ type IdentifyOutcome struct {
 	NumRevoked        int           `codec:"numRevoked" json:"numRevoked"`
 	NumProofSuccesses int           `codec:"numProofSuccesses" json:"numProofSuccesses"`
 	Revoked           []TrackDiff   `codec:"revoked" json:"revoked"`
-	LocalOnly         bool          `codec:"localOnly" json:"localOnly"`
-	ApproveRemote     bool          `codec:"approveRemote" json:"approveRemote"`
+	TrackOptions      TrackOptions  `codec:"trackOptions" json:"trackOptions"`
 }
 
 type IdentifyRes struct {
@@ -1028,31 +1032,9 @@ type LinkCheckResult struct {
 	Hint        *SigHint     `codec:"hint,omitempty" json:"hint,omitempty"`
 }
 
-type FinishAndPromptRes struct {
-	TrackLocal  bool `codec:"trackLocal" json:"trackLocal"`
-	TrackRemote bool `codec:"trackRemote" json:"trackRemote"`
-}
-
-type FinishAndPromptArg struct {
-	SessionID int             `codec:"sessionID" json:"sessionID"`
-	Outcome   IdentifyOutcome `codec:"outcome" json:"outcome"`
-}
-
-type FinishWebProofCheckArg struct {
-	SessionID int             `codec:"sessionID" json:"sessionID"`
-	Rp        RemoteProof     `codec:"rp" json:"rp"`
-	Lcr       LinkCheckResult `codec:"lcr" json:"lcr"`
-}
-
-type FinishSocialProofCheckArg struct {
-	SessionID int             `codec:"sessionID" json:"sessionID"`
-	Rp        RemoteProof     `codec:"rp" json:"rp"`
-	Lcr       LinkCheckResult `codec:"lcr" json:"lcr"`
-}
-
-type DisplayCryptocurrencyArg struct {
-	SessionID int            `codec:"sessionID" json:"sessionID"`
-	C         Cryptocurrency `codec:"c" json:"c"`
+type StartArg struct {
+	SessionID int    `codec:"sessionID" json:"sessionID"`
+	Username  string `codec:"username" json:"username"`
 }
 
 type DisplayKeyArg struct {
@@ -1076,9 +1058,26 @@ type DisplayTrackStatementArg struct {
 	Stmt      string `codec:"stmt" json:"stmt"`
 }
 
-type StartArg struct {
-	SessionID int    `codec:"sessionID" json:"sessionID"`
-	Username  string `codec:"username" json:"username"`
+type FinishWebProofCheckArg struct {
+	SessionID int             `codec:"sessionID" json:"sessionID"`
+	Rp        RemoteProof     `codec:"rp" json:"rp"`
+	Lcr       LinkCheckResult `codec:"lcr" json:"lcr"`
+}
+
+type FinishSocialProofCheckArg struct {
+	SessionID int             `codec:"sessionID" json:"sessionID"`
+	Rp        RemoteProof     `codec:"rp" json:"rp"`
+	Lcr       LinkCheckResult `codec:"lcr" json:"lcr"`
+}
+
+type DisplayCryptocurrencyArg struct {
+	SessionID int            `codec:"sessionID" json:"sessionID"`
+	C         Cryptocurrency `codec:"c" json:"c"`
+}
+
+type ConfirmArg struct {
+	SessionID int             `codec:"sessionID" json:"sessionID"`
+	Outcome   IdentifyOutcome `codec:"outcome" json:"outcome"`
 }
 
 type FinishArg struct {
@@ -1086,15 +1085,15 @@ type FinishArg struct {
 }
 
 type IdentifyUiInterface interface {
-	FinishAndPrompt(FinishAndPromptArg) (FinishAndPromptRes, error)
-	FinishWebProofCheck(FinishWebProofCheckArg) error
-	FinishSocialProofCheck(FinishSocialProofCheckArg) error
-	DisplayCryptocurrency(DisplayCryptocurrencyArg) error
+	Start(StartArg) error
 	DisplayKey(DisplayKeyArg) error
 	ReportLastTrack(ReportLastTrackArg) error
 	LaunchNetworkChecks(LaunchNetworkChecksArg) error
 	DisplayTrackStatement(DisplayTrackStatementArg) error
-	Start(StartArg) error
+	FinishWebProofCheck(FinishWebProofCheckArg) error
+	FinishSocialProofCheck(FinishSocialProofCheckArg) error
+	DisplayCryptocurrency(DisplayCryptocurrencyArg) error
+	Confirm(ConfirmArg) error
 	Finish(int) error
 }
 
@@ -1102,31 +1101,10 @@ func IdentifyUiProtocol(i IdentifyUiInterface) rpc2.Protocol {
 	return rpc2.Protocol{
 		Name: "keybase.1.identifyUi",
 		Methods: map[string]rpc2.ServeHook{
-			"finishAndPrompt": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
-				args := make([]FinishAndPromptArg, 1)
+			"start": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
+				args := make([]StartArg, 1)
 				if err = nxt(&args); err == nil {
-					ret, err = i.FinishAndPrompt(args[0])
-				}
-				return
-			},
-			"finishWebProofCheck": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
-				args := make([]FinishWebProofCheckArg, 1)
-				if err = nxt(&args); err == nil {
-					err = i.FinishWebProofCheck(args[0])
-				}
-				return
-			},
-			"finishSocialProofCheck": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
-				args := make([]FinishSocialProofCheckArg, 1)
-				if err = nxt(&args); err == nil {
-					err = i.FinishSocialProofCheck(args[0])
-				}
-				return
-			},
-			"displayCryptocurrency": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
-				args := make([]DisplayCryptocurrencyArg, 1)
-				if err = nxt(&args); err == nil {
-					err = i.DisplayCryptocurrency(args[0])
+					err = i.Start(args[0])
 				}
 				return
 			},
@@ -1158,10 +1136,31 @@ func IdentifyUiProtocol(i IdentifyUiInterface) rpc2.Protocol {
 				}
 				return
 			},
-			"start": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
-				args := make([]StartArg, 1)
+			"finishWebProofCheck": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
+				args := make([]FinishWebProofCheckArg, 1)
 				if err = nxt(&args); err == nil {
-					err = i.Start(args[0])
+					err = i.FinishWebProofCheck(args[0])
+				}
+				return
+			},
+			"finishSocialProofCheck": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
+				args := make([]FinishSocialProofCheckArg, 1)
+				if err = nxt(&args); err == nil {
+					err = i.FinishSocialProofCheck(args[0])
+				}
+				return
+			},
+			"displayCryptocurrency": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
+				args := make([]DisplayCryptocurrencyArg, 1)
+				if err = nxt(&args); err == nil {
+					err = i.DisplayCryptocurrency(args[0])
+				}
+				return
+			},
+			"confirm": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
+				args := make([]ConfirmArg, 1)
+				if err = nxt(&args); err == nil {
+					err = i.Confirm(args[0])
 				}
 				return
 			},
@@ -1181,23 +1180,8 @@ type IdentifyUiClient struct {
 	Cli GenericClient
 }
 
-func (c IdentifyUiClient) FinishAndPrompt(__arg FinishAndPromptArg) (res FinishAndPromptRes, err error) {
-	err = c.Cli.Call("keybase.1.identifyUi.finishAndPrompt", []interface{}{__arg}, &res)
-	return
-}
-
-func (c IdentifyUiClient) FinishWebProofCheck(__arg FinishWebProofCheckArg) (err error) {
-	err = c.Cli.Call("keybase.1.identifyUi.finishWebProofCheck", []interface{}{__arg}, nil)
-	return
-}
-
-func (c IdentifyUiClient) FinishSocialProofCheck(__arg FinishSocialProofCheckArg) (err error) {
-	err = c.Cli.Call("keybase.1.identifyUi.finishSocialProofCheck", []interface{}{__arg}, nil)
-	return
-}
-
-func (c IdentifyUiClient) DisplayCryptocurrency(__arg DisplayCryptocurrencyArg) (err error) {
-	err = c.Cli.Call("keybase.1.identifyUi.displayCryptocurrency", []interface{}{__arg}, nil)
+func (c IdentifyUiClient) Start(__arg StartArg) (err error) {
+	err = c.Cli.Call("keybase.1.identifyUi.start", []interface{}{__arg}, nil)
 	return
 }
 
@@ -1221,8 +1205,23 @@ func (c IdentifyUiClient) DisplayTrackStatement(__arg DisplayTrackStatementArg) 
 	return
 }
 
-func (c IdentifyUiClient) Start(__arg StartArg) (err error) {
-	err = c.Cli.Call("keybase.1.identifyUi.start", []interface{}{__arg}, nil)
+func (c IdentifyUiClient) FinishWebProofCheck(__arg FinishWebProofCheckArg) (err error) {
+	err = c.Cli.Call("keybase.1.identifyUi.finishWebProofCheck", []interface{}{__arg}, nil)
+	return
+}
+
+func (c IdentifyUiClient) FinishSocialProofCheck(__arg FinishSocialProofCheckArg) (err error) {
+	err = c.Cli.Call("keybase.1.identifyUi.finishSocialProofCheck", []interface{}{__arg}, nil)
+	return
+}
+
+func (c IdentifyUiClient) DisplayCryptocurrency(__arg DisplayCryptocurrencyArg) (err error) {
+	err = c.Cli.Call("keybase.1.identifyUi.displayCryptocurrency", []interface{}{__arg}, nil)
+	return
+}
+
+func (c IdentifyUiClient) Confirm(__arg ConfirmArg) (err error) {
+	err = c.Cli.Call("keybase.1.identifyUi.confirm", []interface{}{__arg}, nil)
 	return
 }
 
@@ -1688,13 +1687,13 @@ type PGPSignOptions struct {
 }
 
 type PGPEncryptOptions struct {
-	Recipients    []string `codec:"recipients" json:"recipients"`
-	NoSign        bool     `codec:"noSign" json:"noSign"`
-	NoSelf        bool     `codec:"noSelf" json:"noSelf"`
-	BinaryOut     bool     `codec:"binaryOut" json:"binaryOut"`
-	KeyQuery      string   `codec:"keyQuery" json:"keyQuery"`
-	LocalOnly     bool     `codec:"localOnly" json:"localOnly"`
-	ApproveRemote bool     `codec:"approveRemote" json:"approveRemote"`
+	Recipients   []string     `codec:"recipients" json:"recipients"`
+	NoSign       bool         `codec:"noSign" json:"noSign"`
+	NoSelf       bool         `codec:"noSelf" json:"noSelf"`
+	BinaryOut    bool         `codec:"binaryOut" json:"binaryOut"`
+	KeyQuery     string       `codec:"keyQuery" json:"keyQuery"`
+	SkipTrack    bool         `codec:"skipTrack" json:"skipTrack"`
+	TrackOptions TrackOptions `codec:"trackOptions" json:"trackOptions"`
 }
 
 type PGPSigVerification struct {
@@ -1705,17 +1704,15 @@ type PGPSigVerification struct {
 }
 
 type PGPDecryptOptions struct {
-	AssertSigned  bool   `codec:"assertSigned" json:"assertSigned"`
-	SignedBy      string `codec:"signedBy" json:"signedBy"`
-	LocalOnly     bool   `codec:"localOnly" json:"localOnly"`
-	ApproveRemote bool   `codec:"approveRemote" json:"approveRemote"`
+	AssertSigned bool         `codec:"assertSigned" json:"assertSigned"`
+	SignedBy     string       `codec:"signedBy" json:"signedBy"`
+	TrackOptions TrackOptions `codec:"trackOptions" json:"trackOptions"`
 }
 
 type PGPVerifyOptions struct {
-	SignedBy      string `codec:"signedBy" json:"signedBy"`
-	LocalOnly     bool   `codec:"localOnly" json:"localOnly"`
-	ApproveRemote bool   `codec:"approveRemote" json:"approveRemote"`
-	Signature     []byte `codec:"signature" json:"signature"`
+	SignedBy     string       `codec:"signedBy" json:"signedBy"`
+	TrackOptions TrackOptions `codec:"trackOptions" json:"trackOptions"`
+	Signature    []byte       `codec:"signature" json:"signature"`
 }
 
 type KeyInfo struct {
@@ -2721,23 +2718,21 @@ func (c StreamUiClient) Write(__arg WriteArg) (res int, err error) {
 }
 
 type TrackArg struct {
-	SessionID        int    `codec:"sessionID" json:"sessionID"`
-	TheirName        string `codec:"theirName" json:"theirName"`
-	LocalOnly        bool   `codec:"localOnly" json:"localOnly"`
-	ApproveRemote    bool   `codec:"approveRemote" json:"approveRemote"`
-	ForceRemoteCheck bool   `codec:"forceRemoteCheck" json:"forceRemoteCheck"`
+	SessionID        int          `codec:"sessionID" json:"sessionID"`
+	UserAssertion    string       `codec:"userAssertion" json:"userAssertion"`
+	Options          TrackOptions `codec:"options" json:"options"`
+	ForceRemoteCheck bool         `codec:"forceRemoteCheck" json:"forceRemoteCheck"`
 }
 
 type TrackWithTokenArg struct {
-	SessionID     int    `codec:"sessionID" json:"sessionID"`
-	TrackToken    string `codec:"trackToken" json:"trackToken"`
-	LocalOnly     bool   `codec:"localOnly" json:"localOnly"`
-	ApproveRemote bool   `codec:"approveRemote" json:"approveRemote"`
+	SessionID  int          `codec:"sessionID" json:"sessionID"`
+	TrackToken string       `codec:"trackToken" json:"trackToken"`
+	Options    TrackOptions `codec:"options" json:"options"`
 }
 
 type UntrackArg struct {
 	SessionID int    `codec:"sessionID" json:"sessionID"`
-	TheirName string `codec:"theirName" json:"theirName"`
+	Username  string `codec:"username" json:"username"`
 }
 
 type TrackInterface interface {
@@ -2795,10 +2790,18 @@ func (c TrackClient) Untrack(__arg UntrackArg) (err error) {
 	return
 }
 
+type PromptDefault int
+
+const (
+	PromptDefault_NONE PromptDefault = 0
+	PromptDefault_YES  PromptDefault = 1
+	PromptDefault_NO   PromptDefault = 2
+)
+
 type PromptYesNoArg struct {
-	SessionID int   `codec:"sessionID" json:"sessionID"`
-	Text      Text  `codec:"text" json:"text"`
-	Def       *bool `codec:"def,omitempty" json:"def,omitempty"`
+	SessionID     int           `codec:"sessionID" json:"sessionID"`
+	Text          Text          `codec:"text" json:"text"`
+	PromptDefault PromptDefault `codec:"promptDefault" json:"promptDefault"`
 }
 
 type UiInterface interface {

@@ -210,7 +210,7 @@ type IdentifyUI interface {
 	Start(string)
 	FinishWebProofCheck(keybase1.RemoteProof, keybase1.LinkCheckResult)
 	FinishSocialProofCheck(keybase1.RemoteProof, keybase1.LinkCheckResult)
-	FinishAndPrompt(*keybase1.IdentifyOutcome) (keybase1.FinishAndPromptRes, error)
+	Confirm(*keybase1.IdentifyOutcome) error
 	DisplayCryptocurrency(keybase1.Cryptocurrency)
 	DisplayKey(keybase1.IdentifyKey)
 	ReportLastTrack(*keybase1.TrackSummary)

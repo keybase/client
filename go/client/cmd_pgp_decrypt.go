@@ -52,10 +52,9 @@ func NewCmdPGPDecrypt(cl *libcmdline.CommandLine) cli.Command {
 
 type CmdPGPDecrypt struct {
 	UnixFilter
-	localOnly     bool
-	approveRemote bool
-	signed        bool
-	signedBy      string
+	trackOptions keybase1.TrackOptions
+	signed       bool
+	signedBy     string
 }
 
 func (c *CmdPGPDecrypt) Run() error {
@@ -67,10 +66,7 @@ func (c *CmdPGPDecrypt) Run() error {
 		Sink:         c.sink,
 		AssertSigned: c.signed,
 		SignedBy:     c.signedBy,
-		TrackOptions: engine.TrackOptions{
-			TrackLocalOnly: c.localOnly,
-			TrackApprove:   c.approveRemote,
-		},
+		TrackOptions: c.trackOptions,
 	}
 	ctx := &engine.Context{
 		SecretUI:   G.UI.GetSecretUI(),
@@ -104,10 +100,9 @@ func (c *CmdPGPDecrypt) RunClient() error {
 		return err
 	}
 	opts := keybase1.PGPDecryptOptions{
-		AssertSigned:  c.signed,
-		SignedBy:      c.signedBy,
-		LocalOnly:     c.localOnly,
-		ApproveRemote: c.approveRemote,
+		AssertSigned: c.signed,
+		SignedBy:     c.signedBy,
+		TrackOptions: c.trackOptions,
 	}
 	arg := keybase1.PGPDecryptArg{Source: src, Sink: snk, Opts: opts}
 	_, err = cli.PGPDecrypt(arg)
@@ -124,8 +119,10 @@ func (c *CmdPGPDecrypt) ParseArgv(ctx *cli.Context) error {
 	if err := c.FilterInit(msg, infile, outfile); err != nil {
 		return err
 	}
-	c.localOnly = ctx.Bool("local")
-	c.approveRemote = ctx.Bool("y")
+	c.trackOptions = keybase1.TrackOptions{
+		LocalOnly:     ctx.Bool("local"),
+		BypassConfirm: ctx.Bool("y"),
+	}
 	c.signed = ctx.Bool("signed")
 	c.signedBy = ctx.String("signed-by")
 	return nil

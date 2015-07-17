@@ -79,12 +79,12 @@ func (u *RemoteBaseIdentifyUI) FinishSocialProofCheck(p keybase1.RemoteProof, lc
 	return
 }
 
-func (u *RemoteBaseIdentifyUI) FinishAndPrompt(io *keybase1.IdentifyOutcome) (keybase1.FinishAndPromptRes, error) {
+func (u *RemoteBaseIdentifyUI) Confirm(io *keybase1.IdentifyOutcome) error {
 	if u.skipPrompt {
-		G.Log.Debug("skipping FinishAndPrompt for %q", io.Username)
-		return keybase1.FinishAndPromptRes{}, nil
+		G.Log.Debug("skipping Confirm for %q", io.Username)
+		return nil
 	}
-	return u.uicli.FinishAndPrompt(keybase1.FinishAndPromptArg{SessionID: u.sessionID, Outcome: *io})
+	return u.uicli.Confirm(keybase1.ConfirmArg{SessionID: u.sessionID, Outcome: *io})
 }
 
 func (u *RemoteBaseIdentifyUI) DisplayCryptocurrency(c keybase1.Cryptocurrency) {

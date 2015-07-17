@@ -20,11 +20,8 @@ func NewTrackHandler(xp *rpc2.Transport) *TrackHandler {
 // Track creates a TrackEngine and runs it.
 func (h *TrackHandler) Track(arg keybase1.TrackArg) error {
 	earg := engine.TrackEngineArg{
-		TheirName: arg.TheirName,
-		Options: engine.TrackOptions{
-			TrackLocalOnly: arg.LocalOnly,
-			TrackApprove:   arg.ApproveRemote,
-		},
+		UserAssertion:    arg.UserAssertion,
+		Options:          arg.Options,
 		ForceRemoteCheck: arg.ForceRemoteCheck,
 	}
 	ctx := engine.Context{
@@ -37,11 +34,8 @@ func (h *TrackHandler) Track(arg keybase1.TrackArg) error {
 
 func (h *TrackHandler) TrackWithToken(arg keybase1.TrackWithTokenArg) error {
 	earg := engine.TrackTokenArg{
-		Token: libkb.ImportIdentifyCacheToken(arg.TrackToken),
-		Options: engine.TrackOptions{
-			TrackLocalOnly: arg.LocalOnly,
-			TrackApprove:   arg.ApproveRemote,
-		},
+		Token:   libkb.ImportIdentifyCacheToken(arg.TrackToken),
+		Options: arg.Options,
 	}
 	ctx := engine.Context{
 		IdentifyUI: h.NewRemoteIdentifyUI(arg.SessionID),
@@ -54,7 +48,7 @@ func (h *TrackHandler) TrackWithToken(arg keybase1.TrackWithTokenArg) error {
 // Untrack creates an UntrackEngine and runs it.
 func (h *TrackHandler) Untrack(arg keybase1.UntrackArg) error {
 	earg := engine.UntrackEngineArg{
-		TheirName: arg.TheirName,
+		Username: arg.Username,
 	}
 	ctx := engine.Context{
 		SecretUI: h.getSecretUI(arg.SessionID),

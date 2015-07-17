@@ -5,7 +5,6 @@ import (
 	"testing"
 
 	"github.com/keybase/client/go/libkb"
-	keybase1 "github.com/keybase/client/protocol/go"
 )
 
 func TestPGPEncrypt(t *testing.T) {
@@ -15,7 +14,6 @@ func TestPGPEncrypt(t *testing.T) {
 	u := createFakeUserWithPGPSibkey(tc)
 	trackUI := &FakeIdentifyUI{
 		Proofs: make(map[string]string),
-		Fapr:   keybase1.FinishAndPromptRes{TrackRemote: true},
 	}
 	ctx := &Context{IdentifyUI: trackUI, SecretUI: u.NewSecretUI()}
 
@@ -55,7 +53,6 @@ func TestPGPEncryptSelfNoKey(t *testing.T) {
 	u := CreateAndSignupFakeUser(tc, "login")
 	trackUI := &FakeIdentifyUI{
 		Proofs: make(map[string]string),
-		Fapr:   keybase1.FinishAndPromptRes{TrackRemote: true},
 	}
 	ctx := &Context{IdentifyUI: trackUI, SecretUI: u.NewSecretUI()}
 
@@ -84,16 +81,16 @@ func TestPGPEncryptNoTrack(t *testing.T) {
 	u := createFakeUserWithPGPSibkey(tc)
 	trackUI := &FakeIdentifyUI{
 		Proofs: make(map[string]string),
-		Fapr:   keybase1.FinishAndPromptRes{},
 	}
 	ctx := &Context{IdentifyUI: trackUI, SecretUI: u.NewSecretUI()}
 
 	sink := libkb.NewBufferCloser()
 	arg := &PGPEncryptArg{
-		Recips: []string{"t_alice", "t_bob+kbtester1@twitter", "t_charlie+tacovontaco@twitter"},
-		Source: strings.NewReader("identify and encrypt, identify and encrypt"),
-		Sink:   sink,
-		NoSign: true,
+		Recips:    []string{"t_alice", "t_bob+kbtester1@twitter", "t_charlie+tacovontaco@twitter"},
+		Source:    strings.NewReader("identify and encrypt, identify and encrypt"),
+		Sink:      sink,
+		NoSign:    true,
+		SkipTrack: true,
 	}
 
 	eng := NewPGPEncrypt(arg, tc.G)

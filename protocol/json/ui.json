@@ -160,6 +160,10 @@
       "name" : "fd",
       "type" : "int"
     } ]
+  }, {
+    "type" : "enum",
+    "name" : "PromptDefault",
+    "symbols" : [ "NONE_0", "YES_1", "NO_2" ]
   } ],
   "messages" : {
     "promptYesNo" : {
@@ -170,8 +174,8 @@
         "name" : "text",
         "type" : "Text"
       }, {
-        "name" : "def",
-        "type" : [ "null", "boolean" ]
+        "name" : "promptDefault",
+        "type" : "PromptDefault"
       } ],
       "response" : "boolean"
     }

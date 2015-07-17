@@ -162,6 +162,141 @@
     } ]
   }, {
     "type" : "enum",
+    "name" : "ProofState",
+    "symbols" : [ "NONE_0", "OK_1", "TEMP_FAILURE_2", "PERM_FAILURE_3", "LOOKING_4", "SUPERSEDED_5", "POSTED_6", "REVOKED_7" ]
+  }, {
+    "type" : "enum",
+    "name" : "ProofStatus",
+    "doc" : "3: It's been found in the hunt, but not proven yet\n    1xx: Retryable soft errors\n    2xx: Will likely result in a hard error, if repeated enough\n    3xx: Hard final errors",
+    "symbols" : [ "NONE_0", "OK_1", "LOCAL_2", "FOUND_3", "BASE_ERROR_100", "HOST_UNREACHABLE_101", "PERMISSION_DENIED_103", "FAILED_PARSE_106", "DNS_ERROR_107", "AUTH_FAILED_108", "HTTP_500_150", "TIMEOUT_160", "INTERNAL_ERROR_170", "BASE_HARD_ERROR_200", "NOT_FOUND_201", "CONTENT_FAILURE_202", "BAD_USERNAME_203", "BAD_REMOTE_ID_204", "TEXT_NOT_FOUND_205", "BAD_ARGS_206", "CONTENT_MISSING_207", "TITLE_NOT_FOUND_208", "SERVICE_ERROR_209", "TOR_SKIPPED_210", "TOR_INCOMPATIBLE_211", "HTTP_300_230", "HTTP_400_240", "HTTP_OTHER_260", "EMPTY_JSON_270", "DELETED_301", "SERVICE_DEAD_302", "BAD_SIGNATURE_303", "BAD_API_URL_304", "UNKNOWN_TYPE_305", "NO_HINT_306", "BAD_HINT_TEXT_307" ]
+  }, {
+    "type" : "enum",
+    "name" : "ProofType",
+    "symbols" : [ "NONE_0", "KEYBASE_1", "TWITTER_2", "GITHUB_3", "REDDIT_4", "COINBASE_5", "HACKERNEWS_6", "GENERIC_WEB_SITE_1000", "DNS_1001", "ROOTER_100001" ]
+  }, {
+    "type" : "enum",
+    "name" : "TrackDiffType",
+    "symbols" : [ "NONE_0", "ERROR_1", "CLASH_2", "REVOKED_3", "UPGRADED_4", "NEW_5", "REMOTE_FAIL_6", "REMOTE_WORKING_7", "REMOTE_CHANGED_8" ]
+  }, {
+    "type" : "record",
+    "name" : "TrackDiff",
+    "fields" : [ {
+      "name" : "type",
+      "type" : "TrackDiffType"
+    }, {
+      "name" : "displayMarkup",
+      "type" : "string"
+    } ]
+  }, {
+    "type" : "record",
+    "name" : "TrackSummary",
+    "fields" : [ {
+      "name" : "username",
+      "type" : "string"
+    }, {
+      "name" : "time",
+      "type" : "Time"
+    }, {
+      "name" : "isRemote",
+      "type" : "boolean"
+    } ]
+  }, {
+    "type" : "enum",
+    "name" : "TrackStatus",
+    "symbols" : [ "NEW_OK_1", "NEW_ZERO_PROOFS_2", "NEW_FAIL_PROOFS_3", "UPDATE_BROKEN_4", "UPDATE_NEW_PROOFS_5", "UPDATE_OK_6" ]
+  }, {
+    "type" : "record",
+    "name" : "TrackOptions",
+    "fields" : [ {
+      "name" : "localOnly",
+      "type" : "boolean"
+    }, {
+      "name" : "bypassConfirm",
+      "type" : "boolean"
+    } ]
+  }, {
+    "type" : "record",
+    "name" : "IdentifyOutcome",
+    "fields" : [ {
+      "name" : "username",
+      "type" : "string"
+    }, {
+      "name" : "status",
+      "type" : [ "null", "Status" ]
+    }, {
+      "name" : "warnings",
+      "type" : {
+        "type" : "array",
+        "items" : "string"
+      }
+    }, {
+      "name" : "trackUsed",
+      "type" : [ "null", "TrackSummary" ]
+    }, {
+      "name" : "trackStatus",
+      "type" : "TrackStatus"
+    }, {
+      "name" : "numTrackFailures",
+      "type" : "int"
+    }, {
+      "name" : "numTrackChanges",
+      "type" : "int"
+    }, {
+      "name" : "numProofFailures",
+      "type" : "int"
+    }, {
+      "name" : "numRevoked",
+      "type" : "int"
+    }, {
+      "name" : "numProofSuccesses",
+      "type" : "int"
+    }, {
+      "name" : "revoked",
+      "type" : {
+        "type" : "array",
+        "items" : "TrackDiff"
+      }
+    }, {
+      "name" : "trackOptions",
+      "type" : "TrackOptions"
+    } ]
+  }, {
+    "type" : "record",
+    "name" : "IdentifyRes",
+    "fields" : [ {
+      "name" : "user",
+      "type" : [ "null", "User" ]
+    }, {
+      "name" : "outcome",
+      "type" : "IdentifyOutcome"
+    }, {
+      "name" : "trackToken",
+      "type" : "string"
+    } ]
+  }, {
+    "type" : "record",
+    "name" : "RemoteProof",
+    "fields" : [ {
+      "name" : "proofType",
+      "type" : "ProofType"
+    }, {
+      "name" : "key",
+      "type" : "string"
+    }, {
+      "name" : "value",
+      "type" : "string"
+    }, {
+      "name" : "displayMarkup",
+      "type" : "string"
+    }, {
+      "name" : "sigID",
+      "type" : "SigID"
+    }, {
+      "name" : "mTime",
+      "type" : "Time"
+    } ]
+  }, {
+    "type" : "enum",
     "name" : "SignMode",
     "symbols" : [ "ATTACHED_0", "DETACHED_1", "CLEAR_2" ]
   }, {
@@ -202,11 +337,11 @@
       "name" : "keyQuery",
       "type" : "string"
     }, {
-      "name" : "localOnly",
+      "name" : "skipTrack",
       "type" : "boolean"
     }, {
-      "name" : "approveRemote",
-      "type" : "boolean"
+      "name" : "trackOptions",
+      "type" : "TrackOptions"
     } ]
   }, {
     "type" : "record",
@@ -234,11 +369,8 @@
       "name" : "signedBy",
       "type" : "string"
     }, {
-      "name" : "localOnly",
-      "type" : "boolean"
-    }, {
-      "name" : "approveRemote",
-      "type" : "boolean"
+      "name" : "trackOptions",
+      "type" : "TrackOptions"
     } ]
   }, {
     "type" : "record",
@@ -247,11 +379,8 @@
       "name" : "signedBy",
       "type" : "string"
     }, {
-      "name" : "localOnly",
-      "type" : "boolean"
-    }, {
-      "name" : "approveRemote",
-      "type" : "boolean"
+      "name" : "trackOptions",
+      "type" : "TrackOptions"
     }, {
       "name" : "signature",
       "type" : "bytes"

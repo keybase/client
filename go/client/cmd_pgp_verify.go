@@ -50,8 +50,7 @@ func NewCmdPGPVerify(cl *libcmdline.CommandLine) cli.Command {
 
 type CmdPGPVerify struct {
 	UnixFilter
-	localOnly        bool
-	approveRemote    bool
+	trackOptions     keybase1.TrackOptions
 	detachedFilename string
 	detachedData     []byte
 	signedBy         string
@@ -63,13 +62,10 @@ func (c *CmdPGPVerify) Run() error {
 	}
 
 	arg := &engine.PGPVerifyArg{
-		Source:    c.source,
-		Signature: c.detachedData,
-		SignedBy:  c.signedBy,
-		TrackOptions: engine.TrackOptions{
-			TrackLocalOnly: c.localOnly,
-			TrackApprove:   c.approveRemote,
-		},
+		Source:       c.source,
+		Signature:    c.detachedData,
+		SignedBy:     c.signedBy,
+		TrackOptions: c.trackOptions,
 	}
 	ctx := &engine.Context{
 		SecretUI:   G.UI.GetSecretUI(),
@@ -104,10 +100,9 @@ func (c *CmdPGPVerify) RunClient() error {
 	arg := keybase1.PGPVerifyArg{
 		Source: src,
 		Opts: keybase1.PGPVerifyOptions{
-			LocalOnly:     c.localOnly,
-			ApproveRemote: c.approveRemote,
-			Signature:     c.detachedData,
-			SignedBy:      c.signedBy,
+			TrackOptions: c.trackOptions,
+			Signature:    c.detachedData,
+			SignedBy:     c.signedBy,
 		},
 	}
 	_, err = cli.PGPVerify(arg)
@@ -126,8 +121,10 @@ func (c *CmdPGPVerify) ParseArgv(ctx *cli.Context) error {
 	if err := c.FilterInit(msg, infile, "/dev/null"); err != nil {
 		return err
 	}
-	c.localOnly = ctx.Bool("local")
-	c.approveRemote = ctx.Bool("y")
+	c.trackOptions = keybase1.TrackOptions{
+		LocalOnly:     ctx.Bool("local"),
+		BypassConfirm: ctx.Bool("y"),
+	}
 	c.signedBy = ctx.String("signed-by")
 	c.detachedFilename = ctx.String("detached")
 

@@ -3,5 +3,12 @@ protocol ui {
 
 	import idl "common.avdl";
 
-	boolean promptYesNo(int sessionID, Text text, union{ null, boolean} def);
+  enum PromptDefault {
+    NONE_0,
+    YES_1,
+    NO_2
+  }
+
+	boolean promptYesNo(int sessionID, Text text, PromptDefault promptDefault);
+
 }

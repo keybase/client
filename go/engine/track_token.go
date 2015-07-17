@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/keybase/client/go/libkb"
+	keybase1 "github.com/keybase/client/protocol/go"
 	jsonw "github.com/keybase/go-jsonw"
 )
 
@@ -23,7 +24,7 @@ type TrackToken struct {
 type TrackTokenArg struct {
 	Token   libkb.IdentifyCacheToken
 	Me      *libkb.User
-	Options TrackOptions
+	Options keybase1.TrackOptions
 }
 
 // NewTrackToken creates a TrackToken engine.
@@ -102,7 +103,7 @@ func (e *TrackToken) Run(ctx *Context) error {
 
 	e.G().Log.Debug("| Tracking statement: %s", string(e.trackStatementBytes))
 
-	if e.arg.Options.TrackLocalOnly {
+	if e.arg.Options.LocalOnly {
 		err = e.storeLocalTrack()
 	} else {
 		err = e.storeRemoteTrack(ctx)

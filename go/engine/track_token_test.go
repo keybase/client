@@ -16,12 +16,7 @@ func TestTrackToken(t *testing.T) {
 }
 
 func trackWithToken(tc libkb.TestContext, fu *FakeUser, username string) {
-	idUI := &FakeIdentifyUI{
-		Fapr: keybase1.FinishAndPromptRes{
-			TrackRemote: true,
-		},
-	}
-
+	idUI := &FakeIdentifyUI{}
 	idarg := &IDEngineArg{UserAssertion: username}
 	ctx := &Context{
 		LogUI:      tc.G.UI.GetLogUI(),
@@ -35,7 +30,8 @@ func trackWithToken(tc libkb.TestContext, fu *FakeUser, username string) {
 
 	res := eng.Result()
 	arg := TrackTokenArg{
-		Token: res.TrackToken,
+		Token:   res.TrackToken,
+		Options: keybase1.TrackOptions{BypassConfirm: true},
 	}
 	teng := NewTrackToken(&arg, tc.G)
 	if err := RunEngine(teng, ctx); err != nil {

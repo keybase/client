@@ -45,6 +45,11 @@ protocol identifyCommon {
 		UPDATE_OK_6
 	}
 
+	record TrackOptions {
+		boolean localOnly;
+		boolean bypassConfirm;
+	}
+
 	record IdentifyOutcome {
 		string username;
 		union { null, Status } status;
@@ -57,8 +62,7 @@ protocol identifyCommon {
 		int numRevoked;
 		int numProofSuccesses;
 		array<TrackDiff> revoked;
-		boolean localOnly;
-		boolean approveRemote;
+		TrackOptions trackOptions;
 	}
 
 	record IdentifyRes {

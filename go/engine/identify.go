@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/keybase/client/go/libkb"
+	keybase1 "github.com/keybase/client/protocol/go"
 )
 
 // Identify is an engine to identify a user.
@@ -27,7 +28,7 @@ type IdentifyArg struct {
 	// When tracking is being performed, the identify engine is used with a tracking ui.
 	// These options are sent to the ui based on command line options.
 	// For normal identify, safe to leave these in their default zero state.
-	TrackOptions TrackOptions
+	TrackOptions keybase1.TrackOptions
 }
 
 func NewIdentifyArg(targetUsername string, withTracking, forceRemoteCheck bool) *IdentifyArg {
@@ -39,7 +40,7 @@ func NewIdentifyArg(targetUsername string, withTracking, forceRemoteCheck bool) 
 	}
 }
 
-func NewIdentifyTrackArg(targetUsername string, withTracking, forceRemoteCheck bool, options TrackOptions) *IdentifyArg {
+func NewIdentifyTrackArg(targetUsername string, withTracking, forceRemoteCheck bool, options keybase1.TrackOptions) *IdentifyArg {
 	return &IdentifyArg{
 		TargetUsername:   targetUsername,
 		WithTracking:     withTracking,
@@ -116,8 +117,7 @@ func (e *Identify) Run(ctx *Context) error {
 
 	// set the flags in the outcome with the track options to
 	// inform the ui what to do with the remote tracking prompt:
-	e.outcome.LocalOnly = e.arg.TrackOptions.TrackLocalOnly
-	e.outcome.ApproveRemote = e.arg.TrackOptions.TrackApprove
+	e.outcome.TrackOptions = e.arg.TrackOptions
 
 	e.G().Log.Debug("inserting identify outcome for %q in IdentifyCache", e.user.GetName())
 	key, err := e.G().IdentifyCache.Insert(e.outcome)

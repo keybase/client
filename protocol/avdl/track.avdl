@@ -2,14 +2,15 @@
 
 protocol track {
 	import idl "common.avdl";
+   import idl "identify_common.avdl";
 
-	// this will perform identify and track.
-	// see identify.avdl for explanation of forceRemoteCheck.
-	void track(int sessionID, string theirName, boolean localOnly, boolean approveRemote, boolean forceRemoteCheck);
-	
-	// include the trackToken returned in IdentifyRes.
-	void trackWithToken(int sessionID, string trackToken, boolean localOnly, boolean approveRemote);
+	// This will perform identify and track.
+	// Set forceRemoteCheck to true to force all remote proofs to be checked (otherwise a cached is used).
+	void track(int sessionID, string userAssertion, TrackOptions options, boolean forceRemoteCheck);
 
-	void untrack(int sessionID, string theirName);
+	// Track with token returned from identify.
+	void trackWithToken(int sessionID, string trackToken, TrackOptions options);
+
+	void untrack(int sessionID, string username);
 }
-	
+

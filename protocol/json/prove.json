@@ -206,6 +206,16 @@
     "symbols" : [ "NEW_OK_1", "NEW_ZERO_PROOFS_2", "NEW_FAIL_PROOFS_3", "UPDATE_BROKEN_4", "UPDATE_NEW_PROOFS_5", "UPDATE_OK_6" ]
   }, {
     "type" : "record",
+    "name" : "TrackOptions",
+    "fields" : [ {
+      "name" : "localOnly",
+      "type" : "boolean"
+    }, {
+      "name" : "bypassConfirm",
+      "type" : "boolean"
+    } ]
+  }, {
+    "type" : "record",
     "name" : "IdentifyOutcome",
     "fields" : [ {
       "name" : "username",
@@ -247,11 +257,8 @@
         "items" : "TrackDiff"
       }
     }, {
-      "name" : "localOnly",
-      "type" : "boolean"
-    }, {
-      "name" : "approveRemote",
-      "type" : "boolean"
+      "name" : "trackOptions",
+      "type" : "TrackOptions"
     } ]
   }, {
     "type" : "record",

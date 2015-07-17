@@ -73,8 +73,10 @@ end
 
 def validate_name(name, source)
   raise "Invalid name: #{name} in #{source}. In Objective-C you can't start a property name with \"new\"" if name.start_with?("new")
-  raise "Invalid name: #{name} in #{source}. In Objective-C you can't have a property name \"id\"" if name == "id"
-  raise "Invalid name: #{name} in #{source}. In Objective-C you can't have a property name \"self\"" if name == "self"
+
+  if ["id", "self", "default"].include?(name)
+    raise "Invalid name: #{name} in #{source}. In Objective-C you can't have a property named \"#{name}\"."
+  end
 end
 
 def default_name_for_type(type)

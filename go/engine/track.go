@@ -1,16 +1,14 @@
 package engine
 
-import "github.com/keybase/client/go/libkb"
-
-type TrackOptions struct {
-	TrackLocalOnly bool // true: only track locally, false: track locally and remotely
-	TrackApprove   bool // true: don't ask for confirmation, false: ask for confirmation
-}
+import (
+	"github.com/keybase/client/go/libkb"
+	keybase1 "github.com/keybase/client/protocol/go"
+)
 
 type TrackEngineArg struct {
-	TheirName        string
+	UserAssertion    string
 	Me               *libkb.User
-	Options          TrackOptions
+	Options          keybase1.TrackOptions
 	ForceRemoteCheck bool
 }
 
@@ -52,7 +50,7 @@ func (e *TrackEngine) SubConsumers() []libkb.UIConsumer {
 }
 
 func (e *TrackEngine) Run(ctx *Context) error {
-	iarg := NewIdentifyTrackArg(e.arg.TheirName, true, e.arg.ForceRemoteCheck, e.arg.Options)
+	iarg := NewIdentifyTrackArg(e.arg.UserAssertion, true, e.arg.ForceRemoteCheck, e.arg.Options)
 	ieng := NewIdentify(iarg, e.G())
 	if err := RunEngine(ieng, ctx); err != nil {
 		e.G().Log.Info("identify run err: %s", err)
@@ -63,20 +61,11 @@ func (e *TrackEngine) Run(ctx *Context) error {
 	e.them = ieng.User()
 
 	// prompt if the identify is correct
-	tmp, err := ctx.IdentifyUI.FinishAndPrompt(ieng.Outcome().Export())
+	err := ctx.IdentifyUI.Confirm(ieng.Outcome().Export())
 	if err != nil {
 		return err
 	}
-	ti := libkb.ImportFinishAndPromptRes(tmp)
-	if !ti.Local && !ti.Remote {
-		e.G().Log.Debug("no tracking desired via ui")
-		return nil
-	}
 
-	// now proceed to track with the token and the result of user interaction:
-	if !ti.Remote {
-		e.arg.Options.TrackLocalOnly = true
-	}
 	targ := &TrackTokenArg{
 		Token:   token,
 		Me:      e.arg.Me,
