@@ -31,6 +31,7 @@ func TestProveRooter(t *testing.T) {
 	}
 }
 
+// Make sure the prove engine uses the secret store.
 func TestProveRooterWithSecretStore(t *testing.T) {
 	// TODO: Get this working on non-OS X platforms (by mocking
 	// out the SecretStore).
