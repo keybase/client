@@ -5,7 +5,6 @@ import (
 	"crypto/x509"
 	"encoding/hex"
 	"errors"
-	"fmt"
 	"io/ioutil"
 	"net"
 	"sync"
@@ -33,15 +32,16 @@ type BlockServerRemote struct {
 	srvAddr  string
 	certFile string
 
+	// connMu protects both conn and shutdown
 	connMu   sync.Mutex
 	conn     net.Conn
 	shutdown bool
 
 	clt keybase1.GenericClient
 
-	// connectionChan is closed and set to nil when the connection
-	// succeeds.  We'd need to create a new connctedChan if connected
-	// ever transitions from true to false.
+	// connectedChan is closed and set to nil when the connection
+	// succeeds.  We'd need to create a new connectedChan if we ever
+	// want to deal with reconnecting after a disconnect.
 	connectedMu   sync.Mutex
 	connectedChan chan struct{}
 
@@ -103,7 +103,9 @@ func (b *BlockServerRemote) initClient() error {
 	b.connMu.Lock()
 	defer b.connMu.Unlock()
 	if b.shutdown {
-		return fmt.Errorf("Shutdown; refusing to make a new connection")
+		// Pretend everything is fine.  That will cause the goroutine
+		// calling us to exit eventually.
+		return nil
 	}
 
 	var err error
@@ -126,6 +128,17 @@ func (b *BlockServerRemote) Config() Config {
 
 // ConnectOnce tries once to connect to the remote block server.
 func (b *BlockServerRemote) ConnectOnce(ctx context.Context) error {
+	shutdown := func() bool {
+		b.connMu.Lock()
+		defer b.connMu.Unlock()
+		return b.shutdown
+	}()
+	if shutdown {
+		// Pretend everything is fine.  That will cause the goroutine
+		// calling us to exit.
+		return nil
+	}
+
 	var token string
 	var session *libkb.Session
 	var err error
@@ -199,9 +212,7 @@ func (b *BlockServerRemote) Reconnect(ctx context.Context) {
 		time.Sleep(1 * time.Second)
 	}
 
-	// ok to check shutdown here without a lock since ConnectOnce
-	// doesn't do anything with b.conn.
-	for !b.shutdown && b.ConnectOnce(ctx) != nil {
+	for b.ConnectOnce(ctx) != nil {
 		time.Sleep(1 * time.Second)
 	}
 }

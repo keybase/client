@@ -32,7 +32,6 @@ func (fc FakeBServerClient) maybeWaitOnChannel() {
 func (fc FakeBServerClient) Call(s string, args interface{}, res interface{}) error {
 	switch s {
 	case "keybase.1.block.establishSession":
-		fc.maybeWaitOnChannel()
 		// no need to do anything
 		return nil
 
@@ -112,35 +111,23 @@ func TestBServerRemotePutCanceled(t *testing.T) {
 	config := &ConfigLocal{codec: codec, kbpki: kbpki}
 	ctlChan := make(chan struct{})
 	fc := NewFakeBServerClient(ctlChan)
-	ctx, cancel := context.WithCancel(context.Background())
-	go func() {
-		// first establish the session
-		<-ctlChan
-		ctlChan <- struct{}{}
 
-		// wait for the Put RPC, then cancel the context
-		<-ctlChan
-		cancel()
-	}()
+	f := func(ctx context.Context) error {
+		b := newBlockServerRemoteWithClient(ctx, config, fc)
 
-	b := newBlockServerRemoteWithClient(ctx, config, fc)
-
-	bID := BlockID{1}
-	tlfID := TlfID{2}
-	bCtx := BlockPointer{bID, 1, 1, kbpki.LoggedIn, zeroBlockRefNonce}
-	data := []byte{1, 2, 3, 4}
-	crypto := &CryptoCommon{codec}
-	serverHalf, err := crypto.MakeRandomBlockCryptKeyServerHalf()
-	if err != nil {
-		t.Errorf("Couldn't make block server key half: %v", err)
+		bID := BlockID{1}
+		tlfID := TlfID{2}
+		bCtx := BlockPointer{bID, 1, 1, kbpki.LoggedIn, zeroBlockRefNonce}
+		data := []byte{1, 2, 3, 4}
+		crypto := &CryptoCommon{codec}
+		serverHalf, err := crypto.MakeRandomBlockCryptKeyServerHalf()
+		if err != nil {
+			t.Errorf("Couldn't make block server key half: %v", err)
+		}
+		err = b.Put(ctx, bID, tlfID, bCtx, data, serverHalf)
+		return err
 	}
-	err = b.Put(ctx, bID, tlfID, bCtx, data, serverHalf)
-	if err != context.Canceled {
-		t.Fatalf("Put did not return a canceled error: %v",
-			err)
-	}
-	// let the RPC complete, which shouldn't hurt anything
-	ctlChan <- struct{}{}
+	testWithCanceledContext(t, context.Background(), ctlChan, f)
 }
 
 // Test that RPCs wait for the bserver to connect to the backend

@@ -109,18 +109,11 @@ func TestKBPKIClientGetUserCanceled(t *testing.T) {
 		MakeLocalUsers(users), ctlChan)
 	c := newKBPKIClientWithClient(nil, fc)
 
-	ctx, cancel := context.WithCancel(context.Background())
-	go func() {
-		// wait for the RPC, then cancel the context
-		<-ctlChan
-		cancel()
-	}()
-	_, err := c.GetUser(ctx, keybase1.MakeTestUID(1))
-	if err != context.Canceled {
-		t.Fatalf("GetUser did not return a canceled error: %v", err)
+	f := func(ctx context.Context) error {
+		_, err := c.GetUser(ctx, keybase1.MakeTestUID(1))
+		return err
 	}
-	// let the RPC complete, which shouldn't hurt anything
-	ctlChan <- struct{}{}
+	testWithCanceledContext(t, context.Background(), ctlChan, f)
 }
 
 func TestKBPKIClientHasVerifyingKey(t *testing.T) {
@@ -191,18 +184,9 @@ func TestKBPKIClientGetCurrentCryptPublicKeyCanceled(t *testing.T) {
 	fc := NewFakeKBPKIClient(keybase1.MakeTestUID(2), localUsers, ctlChan)
 	c := newKBPKIClientWithClient(nil, fc)
 
-	ctx, cancel := context.WithCancel(context.Background())
-	go func() {
-		// wait for the RPC, then cancel the context
-		<-ctlChan
-		cancel()
-	}()
-
-	_, err := c.GetCurrentCryptPublicKey(ctx)
-	if err != context.Canceled {
-		t.Fatalf("GetCurrentCryptPublicKey did not return a canceled error: %v",
-			err)
+	f := func(ctx context.Context) error {
+		_, err := c.GetCurrentCryptPublicKey(ctx)
+		return err
 	}
-	// let the RPC complete, which shouldn't hurt anything
-	ctlChan <- struct{}{}
+	testWithCanceledContext(t, context.Background(), ctlChan, f)
 }

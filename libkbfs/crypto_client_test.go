@@ -107,20 +107,12 @@ func TestCryptoClientSignCanceled(t *testing.T) {
 	fc := NewFakeCryptoClient(codec, signingKey, cryptPrivateKey, ctlChan)
 	c := newCryptoClientWithClient(codec, nil, fc)
 
-	ctx, cancel := context.WithCancel(context.Background())
-	go func() {
-		// wait for the RPC, then cancel the context
-		<-ctlChan
-		cancel()
-	}()
-
-	msg := []byte("message")
-	_, err := c.Sign(ctx, msg)
-	if err != context.Canceled {
-		t.Fatalf("Sign did not return a canceled error: %v", err)
+	f := func(ctx context.Context) error {
+		msg := []byte("message")
+		_, err := c.Sign(ctx, msg)
+		return err
 	}
-	// let the RPC complete, which shouldn't hurt anything
-	ctlChan <- struct{}{}
+	testWithCanceledContext(t, context.Background(), ctlChan, f)
 }
 
 // Test that decrypting an TLF crypt key client half encrypted with
@@ -312,7 +304,7 @@ func TestCryptoClientDecryptTLFCryptKeyClientHalfFailures(t *testing.T) {
 	}
 }
 
-// Test various failure cases for DecryptTLFCryptKeyClientHalf.
+// Test that canceling a signing RPC returns the correct error
 func TestCryptoClientDecryptTLFCryptKeyClientHalfCanceled(t *testing.T) {
 	signingKey := MakeFakeSigningKeyOrBust("client sign")
 	cryptPrivateKey := MakeFakeCryptPrivateKeyOrBust("client crypt private")
@@ -341,19 +333,10 @@ func TestCryptoClientDecryptTLFCryptKeyClientHalfCanceled(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	ctx, cancel := context.WithCancel(context.Background())
-	go func() {
-		// wait for the RPC, then cancel the context
-		<-ctlChan
-		cancel()
-	}()
-
-	_, err = c.DecryptTLFCryptKeyClientHalf(ctx, ephPublicKey,
-		encryptedClientHalf)
-	if err != context.Canceled {
-		t.Fatalf("DecryptTLFCryptKeyClientHalf did not return a canceled "+
-			"error: %v", err)
+	f := func(ctx context.Context) error {
+		_, err = c.DecryptTLFCryptKeyClientHalf(ctx, ephPublicKey,
+			encryptedClientHalf)
+		return err
 	}
-	// let the RPC complete, which shouldn't hurt anything
-	ctlChan <- struct{}{}
+	testWithCanceledContext(t, context.Background(), ctlChan, f)
 }

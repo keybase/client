@@ -156,3 +156,20 @@ func AddNewKeysOrBust(t *testing.T, rmd *RootMetadata, dkb DirKeyBundle) {
 		t.Fatal(err)
 	}
 }
+
+func testWithCanceledContext(t *testing.T, ctx context.Context,
+	ctlChan chan struct{}, fn func(context.Context) error) {
+	ctx, cancel := context.WithCancel(context.Background())
+	go func() {
+		// wait for the RPC, then cancel the context
+		<-ctlChan
+		cancel()
+	}()
+
+	err := fn(ctx)
+	if err != context.Canceled {
+		t.Fatalf("Function did not return a canceled error: %v", err)
+	}
+	// let any waiting goroutines complete, which shouldn't hurt anything
+	ctlChan <- struct{}{}
+}
