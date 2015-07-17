@@ -3,7 +3,7 @@
   "namespace" : "keybase.1",
   "types" : [ ],
   "messages" : {
-    "changePassphrase" : {
+    "passphraseChange" : {
       "request" : [ {
         "name" : "sessionID",
         "type" : "int"

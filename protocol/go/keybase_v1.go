@@ -8,7 +8,7 @@ type GenericClient interface {
 	Call(s string, args interface{}, res interface{}) error
 }
 
-type ChangePassphraseArg struct {
+type PassphraseChangeArg struct {
 	SessionID     int    `codec:"sessionID" json:"sessionID"`
 	OldPassphrase string `codec:"oldPassphrase" json:"oldPassphrase"`
 	Passphrase    string `codec:"passphrase" json:"passphrase"`
@@ -16,17 +16,17 @@ type ChangePassphraseArg struct {
 }
 
 type AccountInterface interface {
-	ChangePassphrase(ChangePassphraseArg) error
+	PassphraseChange(PassphraseChangeArg) error
 }
 
 func AccountProtocol(i AccountInterface) rpc2.Protocol {
 	return rpc2.Protocol{
 		Name: "keybase.1.account",
 		Methods: map[string]rpc2.ServeHook{
-			"changePassphrase": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
-				args := make([]ChangePassphraseArg, 1)
+			"passphraseChange": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
+				args := make([]PassphraseChangeArg, 1)
 				if err = nxt(&args); err == nil {
-					err = i.ChangePassphrase(args[0])
+					err = i.PassphraseChange(args[0])
 				}
 				return
 			},
@@ -39,8 +39,8 @@ type AccountClient struct {
 	Cli GenericClient
 }
 
-func (c AccountClient) ChangePassphrase(__arg ChangePassphraseArg) (err error) {
-	err = c.Cli.Call("keybase.1.account.changePassphrase", []interface{}{__arg}, nil)
+func (c AccountClient) PassphraseChange(__arg PassphraseChangeArg) (err error) {
+	err = c.Cli.Call("keybase.1.account.passphraseChange", []interface{}{__arg}, nil)
 	return
 }
 

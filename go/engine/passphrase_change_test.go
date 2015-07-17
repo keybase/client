@@ -9,13 +9,13 @@ import (
 
 // Test changing the passphrase when user knows current
 // passphrase.
-func TestChangePassphraseKnown(t *testing.T) {
-	tc := SetupEngineTest(t, "ChangePassphrase")
+func TestPassphraseChangeKnown(t *testing.T) {
+	tc := SetupEngineTest(t, "PassphraseChange")
 	defer tc.Cleanup()
 
 	u := CreateAndSignupFakeUser(tc, "login")
 	newPassphrase := "password"
-	arg := &keybase1.ChangePassphraseArg{
+	arg := &keybase1.PassphraseChangeArg{
 		OldPassphrase: u.Passphrase,
 		Passphrase:    newPassphrase,
 	}
@@ -24,7 +24,7 @@ func TestChangePassphraseKnown(t *testing.T) {
 	ctx := &Context{
 		SecretUI: &libkb.TestSecretUI{},
 	}
-	eng := NewChangePassphrase(arg, tc.G)
+	eng := NewPassphraseChange(arg, tc.G)
 	if err := RunEngine(eng, ctx); err != nil {
 		t.Fatal(err)
 	}
@@ -42,8 +42,8 @@ func TestChangePassphraseKnown(t *testing.T) {
 
 // Test changing the passphrase when user knows current
 // passphrase, prompt for it.
-func TestChangePassphraseKnownPrompt(t *testing.T) {
-	tc := SetupEngineTest(t, "ChangePassphrase")
+func TestPassphraseChangeKnownPrompt(t *testing.T) {
+	tc := SetupEngineTest(t, "PassphraseChange")
 	defer tc.Cleanup()
 
 	u := CreateAndSignupFakeUser(tc, "login")
@@ -55,14 +55,14 @@ func TestChangePassphraseKnownPrompt(t *testing.T) {
 	}, "clear stream cache")
 
 	newPassphrase := "password"
-	arg := &keybase1.ChangePassphraseArg{
+	arg := &keybase1.PassphraseChangeArg{
 		Passphrase: newPassphrase,
 	}
 	secui := u.NewSecretUI()
 	ctx := &Context{
 		SecretUI: secui,
 	}
-	eng := NewChangePassphrase(arg, tc.G)
+	eng := NewPassphraseChange(arg, tc.G)
 	if err := RunEngine(eng, ctx); err != nil {
 		t.Fatal(err)
 	}
@@ -83,8 +83,8 @@ func TestChangePassphraseKnownPrompt(t *testing.T) {
 }
 
 // Test changing the passphrase after logging in via pubkey.
-func TestChangePassphraseAfterPubkeyLogin(t *testing.T) {
-	tc := SetupEngineTest(t, "ChangePassphrase")
+func TestPassphraseChangeAfterPubkeyLogin(t *testing.T) {
+	tc := SetupEngineTest(t, "PassphraseChange")
 	defer tc.Cleanup()
 
 	u := CreateAndSignupFakeUser(tc, "login")
@@ -99,13 +99,13 @@ func TestChangePassphraseAfterPubkeyLogin(t *testing.T) {
 	}
 
 	newPassphrase := "password"
-	arg := &keybase1.ChangePassphraseArg{
+	arg := &keybase1.PassphraseChangeArg{
 		Passphrase: newPassphrase,
 	}
 	ctx := &Context{
 		SecretUI: secui,
 	}
-	eng := NewChangePassphrase(arg, tc.G)
+	eng := NewPassphraseChange(arg, tc.G)
 	if err := RunEngine(eng, ctx); err != nil {
 		t.Fatal(err)
 	}
@@ -123,20 +123,20 @@ func TestChangePassphraseAfterPubkeyLogin(t *testing.T) {
 }
 
 // Test changing the passphrase when previous pp stream available.
-func TestChangePassphraseKnownNotSupplied(t *testing.T) {
-	tc := SetupEngineTest(t, "ChangePassphrase")
+func TestPassphraseChangeKnownNotSupplied(t *testing.T) {
+	tc := SetupEngineTest(t, "PassphraseChange")
 	defer tc.Cleanup()
 
 	u := CreateAndSignupFakeUser(tc, "login")
 	newPassphrase := "password"
-	arg := &keybase1.ChangePassphraseArg{
+	arg := &keybase1.PassphraseChangeArg{
 		Passphrase: newPassphrase,
 	}
 	secui := &libkb.TestSecretUI{}
 	ctx := &Context{
 		SecretUI: secui,
 	}
-	eng := NewChangePassphrase(arg, tc.G)
+	eng := NewPassphraseChange(arg, tc.G)
 	if err := RunEngine(eng, ctx); err != nil {
 		t.Fatal(err)
 	}
@@ -158,8 +158,8 @@ func TestChangePassphraseKnownNotSupplied(t *testing.T) {
 
 // Test changing the passphrase when user forgets current
 // passphrase.
-func TestChangePassphraseUnknown(t *testing.T) {
-	tc := SetupEngineTest(t, "ChangePassphrase")
+func TestPassphraseChangeUnknown(t *testing.T) {
+	tc := SetupEngineTest(t, "PassphraseChange")
 	defer tc.Cleanup()
 
 	u := CreateAndSignupFakeUser(tc, "login")
@@ -170,14 +170,14 @@ func TestChangePassphraseUnknown(t *testing.T) {
 	//
 
 	newPassphrase := "password"
-	arg := &keybase1.ChangePassphraseArg{
-		NewPassphrase: "password",
-		Force:         true,
+	arg := &keybase1.PassphraseChangeArg{
+		Passphrase: newPassphrase,
+		Force:      true,
 	}
 	ctx := &Context{
 		SecretUI: &libkb.TestSecretUI{},
 	}
-	eng := NewChangePassphrase(arg, tc.G)
+	eng := NewPassphraseChange(arg, tc.G)
 	if err := RunEngine(eng, ctx); err != nil {
 		t.Fatal(err)
 	}
@@ -195,25 +195,109 @@ func TestChangePassphraseUnknown(t *testing.T) {
 
 // Test changing the passphrase when user forgets current
 // passphrase and there's no passphrase stream cache.
-func TestChangePassphraseUnknownNoPSCache(t *testing.T) {
-	tc := SetupEngineTest(t, "ChangePassphrase")
+// No backup key available.
+func TestPassphraseChangeUnknownNoPSCache(t *testing.T) {
+	tc := SetupEngineTest(t, "PassphraseChange")
 	defer tc.Cleanup()
 
-	u := CreateAndSignupFakeUser(tc, "login")
+	CreateAndSignupFakeUser(tc, "login")
 
 	tc.G.LoginState().Account(func(a *libkb.Account) {
 		a.ClearStreamCache()
 	}, "clear stream cache")
 
 	newPassphrase := "password"
-	arg := &keybase1.ChangePassphraseArg{
-		Passphrase: "password",
+	arg := &keybase1.PassphraseChangeArg{
+		Passphrase: newPassphrase,
 		Force:      true,
 	}
 	ctx := &Context{
 		SecretUI: &libkb.TestSecretUI{},
 	}
-	eng := NewChangePassphrase(arg, tc.G)
+	eng := NewPassphraseChange(arg, tc.G)
+	err := RunEngine(eng, ctx)
+	if err == nil {
+		t.Fatal("passphrase change should have failed")
+	}
+	if _, ok := err.(libkb.NoSecretKeyError); !ok {
+		t.Fatalf("unexpected error: %s (%T)", err, err)
+	}
+}
+
+// Test changing the passphrase when user forgets current
+// passphrase and there's no passphrase stream cache.
+// Backup key exists
+func TestPassphraseChangeUnknownBackupKey(t *testing.T) {
+	tc := SetupEngineTest(t, "PassphraseChange")
+	defer tc.Cleanup()
+
+	u := CreateAndSignupFakeUser(tc, "login")
+
+	ctx := &Context{
+		LogUI:    tc.G.UI.GetLogUI(),
+		LoginUI:  libkb.TestLoginUI{},
+		SecretUI: &libkb.TestSecretUI{},
+	}
+	beng := NewBackupKeygen(tc.G)
+	if err := RunEngine(beng, ctx); err != nil {
+		t.Fatal(err)
+	}
+	backupPassphrase := beng.Passphrase()
+	_ = backupPassphrase // this will be needed later...
+
+	tc.G.LoginState().Account(func(a *libkb.Account) {
+		a.ClearStreamCache()
+	}, "clear stream cache")
+
+	newPassphrase := "password"
+	arg := &keybase1.PassphraseChangeArg{
+		Passphrase: newPassphrase,
+		Force:      true,
+	}
+	eng := NewPassphraseChange(arg, tc.G)
+	if err := RunEngine(eng, ctx); err != nil {
+		t.Fatal(err)
+	}
+
+	_, err := tc.G.LoginState().VerifyPlaintextPassphrase(newPassphrase)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	_, err = tc.G.LoginState().VerifyPlaintextPassphrase(u.Passphrase)
+	if err == nil {
+		t.Fatal("old passphrase passed verification")
+	}
+}
+
+// Test changing the passphrase when user forgets current
+// passphrase and is logged out, but has a backup key.
+func TestPassphraseChangeLoggedOutBackupKey(t *testing.T) {
+	tc := SetupEngineTest(t, "PassphraseChange")
+	defer tc.Cleanup()
+
+	u := CreateAndSignupFakeUser(tc, "login")
+
+	ctx := &Context{
+		LogUI:    tc.G.UI.GetLogUI(),
+		LoginUI:  libkb.TestLoginUI{},
+		SecretUI: &libkb.TestSecretUI{},
+	}
+	beng := NewBackupKeygen(tc.G)
+	if err := RunEngine(beng, ctx); err != nil {
+		t.Fatal(err)
+	}
+	backupPassphrase := beng.Passphrase()
+	_ = backupPassphrase // this will be needed later...
+
+	Logout(tc)
+
+	newPassphrase := "password"
+	arg := &keybase1.PassphraseChangeArg{
+		Passphrase: newPassphrase,
+		Force:      true,
+	}
+	eng := NewPassphraseChange(arg, tc.G)
 	if err := RunEngine(eng, ctx); err != nil {
 		t.Fatal(err)
 	}

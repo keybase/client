@@ -4,11 +4,8 @@ import (
 	"fmt"
 
 	"github.com/keybase/cli"
-	// "github.com/keybase/client/go/engine"
 	"github.com/keybase/client/go/libcmdline"
 	"github.com/keybase/client/go/libkb"
-	// keybase1 "github.com/keybase/client/protocol/go"
-	//"github.com/maxtaco/go-framed-msgpack-rpc/rpc2"
 )
 
 type CmdPassphraseRecover struct{}
@@ -30,16 +27,25 @@ func (c *CmdPassphraseRecover) confirm() error {
 	return GlobUI.PromptForConfirmation("Continue with password recovery?")
 }
 
-func (c *CmdPassphraseRecover) run() error {
-	return nil
+func (c *CmdPassphraseRecover) run(ch changer) error {
+	if err := c.confirm(); err != nil {
+		return err
+	}
+
+	pp, err := promptNewPassphrase()
+	if err != nil {
+		return err
+	}
+
+	return ch.change(newChangeArg(pp, true))
 }
 
 func (c *CmdPassphraseRecover) Run() error {
-	return c.run()
+	return c.run(&changerStandalone{})
 }
 
 func (c *CmdPassphraseRecover) RunClient() error {
-	return c.run()
+	return c.run(&changerClient{})
 }
 
 func (c *CmdPassphraseRecover) ParseArgv(ctx *cli.Context) error {

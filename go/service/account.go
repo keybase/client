@@ -14,8 +14,8 @@ func NewAccountHandler(xp *rpc2.Transport) *AccountHandler {
 	return &AccountHandler{BaseHandler: NewBaseHandler(xp)}
 }
 
-func (h *AccountHandler) ChangePassphrase(arg keybase1.ChangePassphraseArg) error {
-	eng := engine.NewChangePassphrase(&arg, G)
+func (h *AccountHandler) PassphraseChange(arg keybase1.PassphraseChangeArg) error {
+	eng := engine.NewPassphraseChange(&arg, G)
 	ctx := &engine.Context{
 		SecretUI: h.getSecretUI(arg.SessionID),
 	}
