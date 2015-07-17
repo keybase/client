@@ -170,7 +170,8 @@ func newDir(folder *Folder, node libkbfs.Node) *Dir {
 var _ fs.Node = (*Dir)(nil)
 
 // Attr implements the fs.Node interface for Dir.
-func (d *Dir) Attr(ctx context.Context, a *fuse.Attr) error {
+func (d *Dir) Attr(ctx context.Context, a *fuse.Attr) (err error) {
+	defer func() { d.folder.fs.reportErr(err) }()
 	d.folder.mu.Lock()
 	defer d.folder.mu.Unlock()
 
@@ -200,7 +201,8 @@ func (d *Dir) Attr(ctx context.Context, a *fuse.Attr) error {
 var _ fs.NodeRequestLookuper = (*Dir)(nil)
 
 // Lookup implements the fs.NodeRequestLookuper interface for Dir.
-func (d *Dir) Lookup(ctx context.Context, req *fuse.LookupRequest, resp *fuse.LookupResponse) (fs.Node, error) {
+func (d *Dir) Lookup(ctx context.Context, req *fuse.LookupRequest, resp *fuse.LookupResponse) (node fs.Node, err error) {
+	defer func() { d.folder.fs.reportErr(err) }()
 	d.folder.mu.Lock()
 	defer d.folder.mu.Unlock()
 
@@ -236,6 +238,14 @@ func (d *Dir) Lookup(ctx context.Context, req *fuse.LookupRequest, resp *fuse.Lo
 			return nil, err
 		}
 
+		return child, nil
+	}
+
+	if req.Name == libkbfs.ErrorFile {
+		resp.EntryValid = 0
+		child := &ErrorFile{
+			fs: d.folder.fs,
+		}
 		return child, nil
 	}
 
@@ -287,7 +297,8 @@ func (d *Dir) Lookup(ctx context.Context, req *fuse.LookupRequest, resp *fuse.Lo
 var _ fs.NodeCreater = (*Dir)(nil)
 
 // Create implements the fs.NodeCreater interface for Dir.
-func (d *Dir) Create(ctx context.Context, req *fuse.CreateRequest, resp *fuse.CreateResponse) (fs.Node, fs.Handle, error) {
+func (d *Dir) Create(ctx context.Context, req *fuse.CreateRequest, resp *fuse.CreateResponse) (node fs.Node, handle fs.Handle, err error) {
+	defer func() { d.folder.fs.reportErr(err) }()
 	d.folder.mu.Lock()
 	defer d.folder.mu.Unlock()
 
@@ -309,7 +320,9 @@ func (d *Dir) Create(ctx context.Context, req *fuse.CreateRequest, resp *fuse.Cr
 var _ fs.NodeMkdirer = (*Dir)(nil)
 
 // Mkdir implements the fs.NodeMkdirer interface for Dir.
-func (d *Dir) Mkdir(ctx context.Context, req *fuse.MkdirRequest) (fs.Node, error) {
+func (d *Dir) Mkdir(ctx context.Context, req *fuse.MkdirRequest) (
+	node fs.Node, err error) {
+	defer func() { d.folder.fs.reportErr(err) }()
 	d.folder.mu.Lock()
 	defer d.folder.mu.Unlock()
 
@@ -327,13 +340,14 @@ func (d *Dir) Mkdir(ctx context.Context, req *fuse.MkdirRequest) (fs.Node, error
 var _ fs.NodeSymlinker = (*Dir)(nil)
 
 // Symlink implements the fs.NodeSymlinker interface for Dir.
-func (d *Dir) Symlink(ctx context.Context, req *fuse.SymlinkRequest) (fs.Node, error) {
+func (d *Dir) Symlink(ctx context.Context, req *fuse.SymlinkRequest) (
+	node fs.Node, err error) {
+	defer func() { d.folder.fs.reportErr(err) }()
 	d.folder.mu.Lock()
 	defer d.folder.mu.Unlock()
 
-	_, err := d.folder.fs.config.KBFSOps().CreateLink(
-		ctx, d.node, req.NewName, req.Target)
-	if err != nil {
+	if _, err := d.folder.fs.config.KBFSOps().CreateLink(
+		ctx, d.node, req.NewName, req.Target); err != nil {
 		return nil, err
 	}
 
@@ -347,7 +361,9 @@ func (d *Dir) Symlink(ctx context.Context, req *fuse.SymlinkRequest) (fs.Node, e
 var _ fs.NodeRenamer = (*Dir)(nil)
 
 // Rename implements the fs.NodeRenamer interface for Dir.
-func (d *Dir) Rename(ctx context.Context, req *fuse.RenameRequest, newDir fs.Node) error {
+func (d *Dir) Rename(ctx context.Context, req *fuse.RenameRequest,
+	newDir fs.Node) (err error) {
+	defer func() { d.folder.fs.reportErr(err) }()
 	d.folder.mu.Lock()
 	defer d.folder.mu.Unlock()
 
@@ -384,14 +400,14 @@ func (d *Dir) Rename(ctx context.Context, req *fuse.RenameRequest, newDir fs.Nod
 var _ fs.NodeRemover = (*Dir)(nil)
 
 // Remove implements the fs.NodeRemover interface for Dir.
-func (d *Dir) Remove(ctx context.Context, req *fuse.RemoveRequest) error {
+func (d *Dir) Remove(ctx context.Context, req *fuse.RemoveRequest) (err error) {
+	defer func() { d.folder.fs.reportErr(err) }()
 	d.folder.mu.Lock()
 	defer d.folder.mu.Unlock()
 
 	// node will be removed from Folder.nodes, if it is there in the
 	// first place, by its Forget
 
-	var err error
 	if req.Dir {
 		err = d.folder.fs.config.KBFSOps().RemoveDir(ctx, d.node, req.Name)
 	} else {
@@ -409,11 +425,11 @@ var _ fs.Handle = (*Dir)(nil)
 var _ fs.HandleReadDirAller = (*Dir)(nil)
 
 // ReadDirAll implements the fs.NodeReadDirAller interface for Dir.
-func (d *Dir) ReadDirAll(ctx context.Context) ([]fuse.Dirent, error) {
+func (d *Dir) ReadDirAll(ctx context.Context) (res []fuse.Dirent, err error) {
+	defer func() { d.folder.fs.reportErr(err) }()
 	d.folder.mu.Lock()
 	defer d.folder.mu.Unlock()
 
-	var res []fuse.Dirent
 	if d.hasPublic {
 		res = append(res, fuse.Dirent{
 			Name: libkbfs.PublicName,

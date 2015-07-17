@@ -20,7 +20,8 @@ type File struct {
 var _ fs.Node = (*File)(nil)
 
 // Attr implements the fs.Node interface for File.
-func (f *File) Attr(ctx context.Context, a *fuse.Attr) error {
+func (f *File) Attr(ctx context.Context, a *fuse.Attr) (err error) {
+	defer func() { f.folder.fs.reportErr(err) }()
 	f.folder.mu.Lock()
 	defer f.folder.mu.Unlock()
 
@@ -55,7 +56,8 @@ func (f *File) sync(ctx context.Context) error {
 }
 
 // Fsync implements the fs.NodeFsyncer interface for File.
-func (f *File) Fsync(ctx context.Context, req *fuse.FsyncRequest) error {
+func (f *File) Fsync(ctx context.Context, req *fuse.FsyncRequest) (err error) {
+	defer func() { f.folder.fs.reportErr(err) }()
 	return f.sync(ctx)
 }
 
@@ -64,20 +66,27 @@ var _ fs.Handle = (*File)(nil)
 var _ fs.HandleReader = (*File)(nil)
 
 // Read implements the fs.HandleReader interface for File.
-func (f *File) Read(ctx context.Context, req *fuse.ReadRequest, resp *fuse.ReadResponse) error {
+func (f *File) Read(ctx context.Context, req *fuse.ReadRequest,
+	resp *fuse.ReadResponse) (err error) {
+	defer func() { f.folder.fs.reportErr(err) }()
 	f.folder.mu.Lock()
 	defer f.folder.mu.Unlock()
 
 	n, err := f.folder.fs.config.KBFSOps().Read(
 		ctx, f.node, resp.Data[:cap(resp.Data)], req.Offset)
+	if err != nil {
+		return err
+	}
 	resp.Data = resp.Data[:n]
-	return err
+	return nil
 }
 
 var _ fs.HandleWriter = (*File)(nil)
 
 // Write implements the fs.HandleWriter interface for File.
-func (f *File) Write(ctx context.Context, req *fuse.WriteRequest, resp *fuse.WriteResponse) error {
+func (f *File) Write(ctx context.Context, req *fuse.WriteRequest,
+	resp *fuse.WriteResponse) (err error) {
+	defer func() { f.folder.fs.reportErr(err) }()
 	f.folder.mu.Lock()
 	defer f.folder.mu.Unlock()
 
@@ -92,16 +101,19 @@ func (f *File) Write(ctx context.Context, req *fuse.WriteRequest, resp *fuse.Wri
 var _ fs.HandleFlusher = (*File)(nil)
 
 // Flush implements the fs.HandleFlusher interface for File.
-func (f *File) Flush(ctx context.Context, req *fuse.FlushRequest) error {
+func (f *File) Flush(ctx context.Context, req *fuse.FlushRequest) (err error) {
 	// I'm not sure about the guarantees from KBFSOps, so we don't
 	// differentiate between Flush and Fsync.
+	defer func() { f.folder.fs.reportErr(err) }()
 	return f.sync(ctx)
 }
 
 var _ fs.NodeSetattrer = (*File)(nil)
 
 // Setattr implements the fs.NodeSetattrer interface for File.
-func (f *File) Setattr(ctx context.Context, req *fuse.SetattrRequest, resp *fuse.SetattrResponse) error {
+func (f *File) Setattr(ctx context.Context, req *fuse.SetattrRequest,
+	resp *fuse.SetattrResponse) (err error) {
+	defer func() { f.folder.fs.reportErr(err) }()
 	f.folder.mu.Lock()
 	defer f.folder.mu.Unlock()
 

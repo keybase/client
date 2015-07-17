@@ -1,8 +1,6 @@
 package libkbfs
 
 import (
-	"fmt"
-
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/protocol/go"
 	"golang.org/x/net/context"
@@ -41,7 +39,7 @@ func (k *KBPKILocal) ResolveAssertion(ctx context.Context, input string) (
 	*libkb.User, error) {
 	uid, ok := k.Asserts[input]
 	if !ok {
-		return nil, fmt.Errorf("No such user matching %s", input)
+		return nil, NoSuchUserError{input}
 	}
 	return k.GetUser(ctx, uid)
 }
@@ -106,7 +104,7 @@ func (k *KBPKILocal) GetCurrentCryptPublicKey(ctx context.Context) (
 func (k *KBPKILocal) getLocalUser(uid keybase1.UID) (LocalUser, error) {
 	user, ok := k.Users[uid]
 	if !ok {
-		return LocalUser{}, fmt.Errorf("No such user matching %s", uid)
+		return LocalUser{}, NoSuchUserError{uid.String()}
 	}
 	return user, nil
 }
