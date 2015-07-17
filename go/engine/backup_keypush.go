@@ -1,4 +1,5 @@
-// BackupKeygen creates backup keys for a user.
+// BackupKeypush creates backup keys for a user and pushes them to
+// the server.
 //
 
 package engine
@@ -12,40 +13,40 @@ import (
 	"golang.org/x/crypto/scrypt"
 )
 
-// BackupKeygen is an engine.
-type BackupKeygen struct {
+// BackupKeypush is an engine.
+type BackupKeypush struct {
 	passphrase string
 	libkb.Contextified
 }
 
-// NewBackupKeygen creates a BackupKeygen engine.
-func NewBackupKeygen(g *libkb.GlobalContext) *BackupKeygen {
-	return &BackupKeygen{
+// NewBackupKeypush creates a BackupKeypush engine.
+func NewBackupKeypush(g *libkb.GlobalContext) *BackupKeypush {
+	return &BackupKeypush{
 		Contextified: libkb.NewContextified(g),
 	}
 }
 
 // Name is the unique engine name.
-func (e *BackupKeygen) Name() string {
-	return "BackupKeygen"
+func (e *BackupKeypush) Name() string {
+	return "BackupKeypush"
 }
 
 // GetPrereqs returns the engine prereqs.
-func (e *BackupKeygen) Prereqs() Prereqs {
+func (e *BackupKeypush) Prereqs() Prereqs {
 	return Prereqs{
 		Session: true,
 	}
 }
 
 // RequiredUIs returns the required UIs.
-func (e *BackupKeygen) RequiredUIs() []libkb.UIKind {
+func (e *BackupKeypush) RequiredUIs() []libkb.UIKind {
 	return []libkb.UIKind{
 		libkb.LoginUIKind,
 	}
 }
 
 // SubConsumers returns the other UI consumers for this engine.
-func (e *BackupKeygen) SubConsumers() []libkb.UIConsumer {
+func (e *BackupKeypush) SubConsumers() []libkb.UIConsumer {
 	return []libkb.UIConsumer{
 		&DetKeyEngine{},
 		&RevokeEngine{},
@@ -53,7 +54,7 @@ func (e *BackupKeygen) SubConsumers() []libkb.UIConsumer {
 }
 
 // Run starts the engine.
-func (e *BackupKeygen) Run(ctx *Context) error {
+func (e *BackupKeypush) Run(ctx *Context) error {
 	me, err := libkb.LoadMe(libkb.LoadUserArg{})
 	if err != nil {
 		return err
@@ -145,6 +146,6 @@ func (e *BackupKeygen) Run(ctx *Context) error {
 	return nil
 }
 
-func (e *BackupKeygen) Passphrase() string {
+func (e *BackupKeypush) Passphrase() string {
 	return e.passphrase
 }

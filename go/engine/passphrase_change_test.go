@@ -238,7 +238,7 @@ func TestPassphraseChangeUnknownBackupKey(t *testing.T) {
 		LoginUI:  libkb.TestLoginUI{},
 		SecretUI: &libkb.TestSecretUI{},
 	}
-	beng := NewBackupKeygen(tc.G)
+	beng := NewBackupKeypush(tc.G)
 	if err := RunEngine(beng, ctx); err != nil {
 		t.Fatal(err)
 	}
@@ -283,7 +283,7 @@ func TestPassphraseChangeLoggedOutBackupKey(t *testing.T) {
 		LoginUI:  libkb.TestLoginUI{},
 		SecretUI: &libkb.TestSecretUI{},
 	}
-	beng := NewBackupKeygen(tc.G)
+	beng := NewBackupKeypush(tc.G)
 	if err := RunEngine(beng, ctx); err != nil {
 		t.Fatal(err)
 	}

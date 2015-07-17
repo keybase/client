@@ -18,7 +18,7 @@ func backupDevs(t *testing.T, fu *FakeUser) (*libkb.User, []*libkb.Device) {
 	return u, cki.BackupDevices()
 }
 
-func TestBackupKeygen(t *testing.T) {
+func TestBackupKeypush(t *testing.T) {
 	tc := SetupEngineTest(t, "backup")
 	defer tc.Cleanup()
 
@@ -31,7 +31,7 @@ func TestBackupKeygen(t *testing.T) {
 		LoginUI:  libkb.TestLoginUI{},
 		SecretUI: &libkb.TestSecretUI{},
 	}
-	eng := NewBackupKeygen(tc.G)
+	eng := NewBackupKeypush(tc.G)
 	if err := RunEngine(eng, ctx); err != nil {
 		t.Fatal(err)
 	}
@@ -99,7 +99,7 @@ func TestBackupKeygen(t *testing.T) {
 }
 
 // tests revoking of existing backup keys
-func TestBackupKeygenRevoke(t *testing.T) {
+func TestBackupKeypushRevoke(t *testing.T) {
 	tc := SetupEngineTest(t, "backup")
 	defer tc.Cleanup()
 
@@ -111,7 +111,7 @@ func TestBackupKeygenRevoke(t *testing.T) {
 		SecretUI: &libkb.TestSecretUI{},
 	}
 
-	eng := NewBackupKeygen(tc.G)
+	eng := NewBackupKeypush(tc.G)
 	if err := RunEngine(eng, ctx); err != nil {
 		t.Fatal(err)
 	}
@@ -126,7 +126,7 @@ func TestBackupKeygenRevoke(t *testing.T) {
 	}
 
 	// generate another one, first should be revoked
-	eng = NewBackupKeygen(tc.G)
+	eng = NewBackupKeypush(tc.G)
 	if err := RunEngine(eng, ctx); err != nil {
 		t.Fatal(err)
 	}
@@ -142,7 +142,7 @@ func TestBackupKeygenRevoke(t *testing.T) {
 }
 
 // tests not revoking existing backup keys
-func TestBackupKeygenNoRevoke(t *testing.T) {
+func TestBackupKeypushNoRevoke(t *testing.T) {
 	tc := SetupEngineTest(t, "backup")
 	defer tc.Cleanup()
 
@@ -154,7 +154,7 @@ func TestBackupKeygenNoRevoke(t *testing.T) {
 		SecretUI: &libkb.TestSecretUI{},
 	}
 
-	eng := NewBackupKeygen(tc.G)
+	eng := NewBackupKeypush(tc.G)
 	if err := RunEngine(eng, ctx); err != nil {
 		t.Fatal(err)
 	}
@@ -169,7 +169,7 @@ func TestBackupKeygenNoRevoke(t *testing.T) {
 	}
 
 	// generate another one, first should be left alone
-	eng = NewBackupKeygen(tc.G)
+	eng = NewBackupKeypush(tc.G)
 	if err := RunEngine(eng, ctx); err != nil {
 		t.Fatal(err)
 	}

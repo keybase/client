@@ -30,7 +30,7 @@ func (c *CmdBackup) Run() error {
 		LoginUI:  G.UI.GetLoginUI(),
 		SecretUI: G.UI.GetSecretUI(),
 	}
-	eng := engine.NewBackupKeygen(G)
+	eng := engine.NewBackupKeypush(G)
 	err := engine.RunEngine(eng, ctx)
 	if err != nil {
 		return err

@@ -24,11 +24,13 @@ type DetKeyArgs struct {
 	SigningKey  libkb.GenericKey
 	EldestKeyID keybase1.KID
 	Device      *libkb.Device // nil to generate standard detkey (with web device)
+	SkipPush    bool
 }
 
 type DetKeyEngine struct {
 	arg         *DetKeyArgs
 	newEddsaKey libkb.GenericKey
+	dhKey       libkb.GenericKey
 	dev         *libkb.Device
 	libkb.Contextified
 }
@@ -53,6 +55,14 @@ func (d *DetKeyEngine) SubConsumers() []libkb.UIConsumer {
 }
 
 func (d *DetKeyEngine) Prereqs() Prereqs { return Prereqs{} }
+
+func (d *DetKeyEngine) SigKey() libkb.GenericKey {
+	return d.newEddsaKey
+}
+
+func (d *DetKeyEngine) EncKey() libkb.GenericKey {
+	return d.dhKey
+}
 
 // Run runs the detkey engine.
 func (d *DetKeyEngine) Run(ctx *Context) error {
@@ -132,10 +142,15 @@ func (d *DetKeyEngine) dh(ctx *Context, seed []byte) error {
 	key.Private = &libkb.NaclDHKeyPrivate{}
 	copy(key.Private[:], (*priv)[:])
 
+	d.dhKey = key
+
 	return d.push(ctx, newPusher(key, d.newEddsaKey, serverHalf).DH())
 }
 
 func (d *DetKeyEngine) push(ctx *Context, p *pusher) error {
+	if d.arg.SkipPush {
+		return nil
+	}
 	return p.push(ctx, d.arg.Me, d.dev)
 }
 

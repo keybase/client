@@ -134,6 +134,14 @@ func (c *PassphraseChange) findBackupKeys(ctx *Context) (*keypair, error) {
 	if len(bdevs) == 0 {
 		return nil, libkb.NoBackupKeysError{}
 	}
+
+	passphrase, err := ctx.SecretUI.GetBackupPassphrase(keybase1.GetBackupPassphraseArg{Username: c.me.GetName()})
+	if err != nil {
+		return nil, err
+	}
+
+	_ = passphrase
+
 	return nil, nil
 }
 
