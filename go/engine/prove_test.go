@@ -34,8 +34,8 @@ func TestProveRooter(t *testing.T) {
 // Make sure the prove engine uses the secret store.
 func TestProveRooterWithSecretStore(t *testing.T) {
 	testEngineWithSecretStore(t, func(
-		g *libkb.GlobalContext, fu *FakeUser, secretUI libkb.SecretUI) {
-		_, _, err := proveRooterWithSecretUI(g, fu, secretUI)
+		tc libkb.TestContext, fu *FakeUser, secretUI libkb.SecretUI) {
+		_, _, err := proveRooterWithSecretUI(tc.G, fu, secretUI)
 		if err != nil {
 			t.Fatal(err)
 		}

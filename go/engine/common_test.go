@@ -172,7 +172,7 @@ func Logout(tc libkb.TestContext) {
 // data into it when told to and reads data out from it.
 func testEngineWithSecretStore(
 	t *testing.T,
-	runEngine func(*libkb.GlobalContext, *FakeUser, libkb.SecretUI)) {
+	runEngine func(libkb.TestContext, *FakeUser, libkb.SecretUI)) {
 	// TODO: Get this working on non-OS X platforms (by mocking
 	// out the SecretStore).
 	if !libkb.HasSecretStore() {
@@ -189,7 +189,7 @@ func testEngineWithSecretStore(
 		Passphrase:  fu.Passphrase,
 		StoreSecret: true,
 	}
-	runEngine(tc.G, fu, &testSecretUI)
+	runEngine(tc, fu, &testSecretUI)
 
 	if !testSecretUI.CalledGetSecret {
 		t.Fatal("GetSecret() unexpectedly not called")
@@ -198,7 +198,7 @@ func testEngineWithSecretStore(
 	tc.G.ResetLoginStateForTest()
 
 	testSecretUI = libkb.TestSecretUI{}
-	runEngine(tc.G, fu, &testSecretUI)
+	runEngine(tc, fu, &testSecretUI)
 
 	if testSecretUI.CalledGetSecret {
 		t.Fatal("GetSecret() unexpectedly called")

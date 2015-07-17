@@ -175,38 +175,11 @@ func TestTrackLocal(t *testing.T) {
 	}
 }
 
-// Make sure the prove engine uses the secret store.
+// Make sure the track engine uses the secret store.
 func TestTrackWithSecretStore(t *testing.T) {
-	// TODO: Get this working on non-OS X platforms (by mocking
-	// out the SecretStore).
-	if !libkb.HasSecretStore() {
-		t.Skip("Skipping test since there is no secret store")
-	}
-
-	tc := SetupEngineTest(t, "track")
-	defer tc.Cleanup()
-
-	fu := CreateAndSignupFakeUser(tc, "twss")
-	tc.G.ResetLoginStateForTest()
-
-	testSecretUI := libkb.TestSecretUI{
-		Passphrase:  fu.Passphrase,
-		StoreSecret: true,
-	}
-	trackAliceWithOptions(tc, fu, TrackOptions{}, &testSecretUI)
-	defer untrackAlice(tc, fu)
-
-	if !testSecretUI.CalledGetSecret {
-		t.Fatal("GetSecret() unexpectedly not called")
-	}
-
-	tc.G.ResetLoginStateForTest()
-
-	testSecretUI = libkb.TestSecretUI{}
-	trackBobWithOptions(tc, fu, TrackOptions{}, &testSecretUI)
-	defer untrackBob(tc, fu)
-
-	if testSecretUI.CalledGetSecret {
-		t.Fatal("GetSecret() unexpectedly called")
-	}
+	testEngineWithSecretStore(t, func(
+		tc libkb.TestContext, fu *FakeUser, secretUI libkb.SecretUI) {
+		trackAliceWithOptions(tc, fu, TrackOptions{}, secretUI)
+		untrackAlice(tc, fu)
+	})
 }

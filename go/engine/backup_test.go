@@ -187,13 +187,13 @@ func TestBackupNoRevoke(t *testing.T) {
 // Make sure BackupKeygen uses the secret store.
 func TestBackupKeygenWithSecretStore(t *testing.T) {
 	testEngineWithSecretStore(t, func(
-		g *libkb.GlobalContext, fu *FakeUser, secretUI libkb.SecretUI) {
+		tc libkb.TestContext, fu *FakeUser, secretUI libkb.SecretUI) {
 		ctx := &Context{
-			LogUI:    g.UI.GetLogUI(),
+			LogUI:    tc.G.UI.GetLogUI(),
 			LoginUI:  libkb.TestLoginUI{},
 			SecretUI: secretUI,
 		}
-		eng := NewBackupKeygen(g)
+		eng := NewBackupKeygen(tc.G)
 		if err := RunEngine(eng, ctx); err != nil {
 			t.Fatal(err)
 		}
