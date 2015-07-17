@@ -5,6 +5,7 @@ import (
 	"crypto/x509"
 	"encoding/hex"
 	"errors"
+	"fmt"
 	"io/ioutil"
 	"net"
 	"sync"
@@ -32,14 +33,16 @@ type BlockServerRemote struct {
 	srvAddr  string
 	certFile string
 
-	conn net.Conn
-	clt  keybase1.GenericClient
+	connMu   sync.Mutex
+	conn     net.Conn
+	shutdown bool
 
-	// connectionChan is closed when connected goes from false to
-	// true.  We'd need to create a new connctedChan if connected ever
-	// transitions from true to false.
+	clt keybase1.GenericClient
+
+	// connectionChan is closed and set to nil when the connection
+	// succeeds.  We'd need to create a new connctedChan if connected
+	// ever transitions from true to false.
 	connectedMu   sync.Mutex
-	connected     bool
 	connectedChan chan struct{}
 
 	lastTried time.Time
@@ -56,23 +59,12 @@ func NewBlockServerRemote(ctx context.Context, config Config,
 		connectedChan: make(chan struct{}),
 	}
 
-	if err := b.initClient(); err != nil {
-		libkb.G.Log.Warning("NewBlockServerRemote: cannot connect to backend "+
-			"err : %v", err)
-		go b.Reconnect(ctx)
-		return b
-	}
-
-	if err := b.ConnectOnce(ctx); err != nil {
-		libkb.G.Log.Warning("NewBlockServerRemote: cannot connect to backend "+
-			"err : %v", err)
-		go b.Reconnect(ctx)
-	}
-
+	// Start connecting in the background
+	go b.Reconnect(ctx)
 	return b
 }
 
-// newCryptoClientWithClient should only be used for testing.
+// newBlockServerRemoteWithClient should only be used for testing.
 func newBlockServerRemoteWithClient(ctx context.Context, config Config,
 	client keybase1.GenericClient) *BlockServerRemote {
 	b := &BlockServerRemote{
@@ -108,6 +100,12 @@ func TLSConnect(cFile string, Addr string) (conn net.Conn, err error) {
 }
 
 func (b *BlockServerRemote) initClient() error {
+	b.connMu.Lock()
+	defer b.connMu.Unlock()
+	if b.shutdown {
+		return fmt.Errorf("Shutdown; refusing to make a new connection")
+	}
+
 	var err error
 	if b.conn, err = TLSConnect(b.certFile, b.srvAddr); err != nil {
 		libkb.G.Log.Warning("NewBlockServerRemote: cannot connect to backend "+
@@ -117,6 +115,7 @@ func (b *BlockServerRemote) initClient() error {
 
 	b.clt = rpc2.NewClient(rpc2.NewTransport(b.conn, libkb.NewRPCLogFactory(),
 		libkb.WrapError), libkb.UnwrapError)
+
 	return nil
 }
 
@@ -155,9 +154,13 @@ func (b *BlockServerRemote) ConnectOnce(ctx context.Context) error {
 
 	b.connectedMu.Lock()
 	defer b.connectedMu.Unlock()
-	b.connected = true
 	close(b.connectedChan)
+	b.connectedChan = nil
 	return nil
+}
+
+func (b *BlockServerRemote) isConnected() bool {
+	return b.connectedChan == nil
 }
 
 // WaitForReconnect waits for the timeout period to reconnect to the
@@ -166,9 +169,6 @@ func (b *BlockServerRemote) WaitForReconnect(parent context.Context) error {
 	c := func() chan struct{} {
 		b.connectedMu.Lock()
 		defer b.connectedMu.Unlock()
-		if b.connected {
-			return nil
-		}
 		return b.connectedChan
 	}()
 
@@ -186,9 +186,9 @@ func (b *BlockServerRemote) WaitForReconnect(parent context.Context) error {
 	case <-ctx.Done():
 		return ctx.Err()
 	case <-c:
-		// Note: if we ever transition b.connected from true to false
-		// again, we should probably put this whole method in a loop
-		// so that we check connected again after the channel closes.
+		// Note: if we ever want to recover from lost connectivity, we
+		// should probably put this whole method in a loop so that we
+		// check connectedChan again after the channel closes.
 		return nil
 	}
 }
@@ -199,22 +199,28 @@ func (b *BlockServerRemote) Reconnect(ctx context.Context) {
 		time.Sleep(1 * time.Second)
 	}
 
-	for b.ConnectOnce(ctx) != nil {
+	// ok to check shutdown here without a lock since ConnectOnce
+	// doesn't do anything with b.conn.
+	for !b.shutdown && b.ConnectOnce(ctx) != nil {
 		time.Sleep(1 * time.Second)
 	}
-	return
 }
 
 // Shutdown closes the connection to this remote block server.
 func (b *BlockServerRemote) Shutdown() {
-	b.conn.Close()
+	b.connMu.Lock()
+	defer b.connMu.Unlock()
+	if b.conn != nil {
+		b.conn.Close()
+	}
+	b.shutdown = true
 }
 
 // Get implements the BlockServer interface for BlockServerRemote.
 func (b *BlockServerRemote) Get(ctx context.Context, id BlockID,
 	context BlockContext) ([]byte, BlockCryptKeyServerHalf, error) {
 	libkb.G.Log.Debug("BlockServerRemote::Get id=%s uid=%s\n", hex.EncodeToString(id[:]), context.GetWriter().String())
-	if !b.connected {
+	if !b.isConnected() {
 		if err := b.WaitForReconnect(ctx); err != nil {
 			return nil, BlockCryptKeyServerHalf{}, err
 		}
@@ -261,7 +267,7 @@ func (b *BlockServerRemote) Put(ctx context.Context, id BlockID, tlfID TlfID,
 	context BlockContext, buf []byte,
 	serverHalf BlockCryptKeyServerHalf) error {
 	libkb.G.Log.Debug("BlockServerRemote::Put id=%s uid=%s\n", hex.EncodeToString(id[:]), context.GetWriter().String())
-	if !b.connected {
+	if !b.isConnected() {
 		if err := b.WaitForReconnect(ctx); err != nil {
 			return err
 		}
