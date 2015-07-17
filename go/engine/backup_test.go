@@ -196,9 +196,7 @@ func TestBackupKeygenSecretStore(t *testing.T) {
 	defer tc.Cleanup()
 
 	fu := CreateAndSignupFakeUser(tc, "login")
-	tc.G.LoginState().Account(func(a *libkb.Account) {
-		a.ClearStreamCache()
-	}, "TestBackupKeygenSecretStore")
+	tc.G.ResetLoginStateForTest()
 
 	testSecretUI := libkb.TestSecretUI{
 		Passphrase:  fu.Passphrase,
