@@ -167,6 +167,9 @@ func Logout(tc libkb.TestContext) {
 	}
 }
 
+// TODO: Add tests that use testEngineWithSecretStore for every engine
+// that should work with the secret store.
+
 // testEngineWithSecretStore takes a given engine-running function and
 // makes sure that it works with the secret store, i.e. that it stores
 // data into it when told to and reads data out from it.
