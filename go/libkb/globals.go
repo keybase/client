@@ -103,7 +103,10 @@ func (g *GlobalContext) Logout() error {
 	return nil
 }
 
-func (g *GlobalContext) ResetLoginState() {
+// ResetLoginStateForTest simulates a shutdown and restart (for client
+// state). Used by tests that need to clear out cached login state
+// without logging out.
+func (g *GlobalContext) ResetLoginStateForTest() {
 	g.loginState.Shutdown()
 	g.createLoginState()
 }
