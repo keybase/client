@@ -88,6 +88,7 @@ func (c *CmdPGPEncrypt) Run() error {
 		NoSelf:       c.noSelf,
 		BinaryOutput: c.binaryOut,
 		KeyQuery:     c.keyQuery,
+		SkipTrack:	  c.skipTrack,
 		TrackOptions: c.trackOptions,
 	}
 	ctx := &engine.Context{
