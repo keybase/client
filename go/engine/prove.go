@@ -164,23 +164,20 @@ func (p *Prove) doWarnings(ctx *Context) (err error) {
 }
 
 func (p *Prove) generateProof(ctx *Context) (err error) {
-	var locked *libkb.SKB
-	var which string
-	var seckey libkb.GenericKey
-
-	if locked, which, err = p.G().Keyrings.GetSecretKeyLocked(ctx.LoginContext, libkb.SecretKeyArg{
+	ska := libkb.SecretKeyArg{
 		Me:      p.me,
 		KeyType: libkb.DeviceSigningKeyType,
-	}); err != nil {
+	}
+	seckey, locked, err := p.G().Keyrings.GetSecretKeyWithPrompt(
+		ctx.LoginContext, ska, ctx.SecretUI, "proof signature")
+	if err != nil {
 		return
 	}
+
 	if p.signingKey, err = locked.GetPubKey(); err != nil {
 		return
 	}
 	if p.proof, err = p.me.ServiceProof(p.signingKey, p.st, p.usernameNormalized); err != nil {
-		return
-	}
-	if seckey, err = locked.PromptAndUnlock(ctx.LoginContext, "proof signature", which, nil, ctx.SecretUI, nil); err != nil {
 		return
 	}
 	if p.sig, p.sigID, _, err = libkb.SignJSON(p.proof, seckey); err != nil {
