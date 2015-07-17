@@ -15,7 +15,15 @@ func statNode(ctx context.Context, config libkbfs.Config, nodePath string) error
 		return err
 	}
 
-	_, de, err := openNode(ctx, config, components)
+	// Ignore the DirEntry returned by openNode so we can exercise
+	// the Stat() codepath. We can't compare the two, since they
+	// might legitimately differ due to races.
+	n, _, err := openNode(ctx, config, components)
+	if err != nil {
+		return err
+	}
+
+	de, err := config.KBFSOps().Stat(ctx, n)
 	if err != nil {
 		return err
 	}

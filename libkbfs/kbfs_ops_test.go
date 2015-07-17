@@ -3992,3 +3992,55 @@ func TestSyncDirtyWithBlockChangePointerSuccess(t *testing.T) {
 	}
 	checkBlockCache(t, config, append(blocks, rootID, changeBlockID), nil)
 }
+
+func TestKBFSOpsStatRootSuccess(t *testing.T) {
+	mockCtrl, config, ctx := kbfsOpsInit(t, false)
+	defer kbfsTestShutdown(mockCtrl, config)
+
+	u, id, h := makeID(t, config, false)
+	rmd := NewRootMetadataForTest(h, id)
+	ops := getOps(config, id)
+	ops.head = rmd
+	config.mockMdcache.EXPECT().Get(rmd.mdID).AnyTimes().Return(rmd, nil)
+
+	rootID := BlockID{42}
+	node := pathNode{makeBP(rootID, rmd, config, u), "p"}
+	p := path{FolderBranch{Tlf: id}, []pathNode{node}}
+	n := nodeFromPath(t, ops, p)
+
+	_, err := config.KBFSOps().Stat(ctx, n)
+	if err != nil {
+		t.Errorf("Error on Stat: %v", err)
+	}
+}
+
+func TestKBFSOpsFailingRootOps(t *testing.T) {
+	mockCtrl, config, ctx := kbfsOpsInit(t, false)
+	defer kbfsTestShutdown(mockCtrl, config)
+
+	u, id, h := makeID(t, config, false)
+	rmd := NewRootMetadataForTest(h, id)
+	ops := getOps(config, id)
+	ops.head = rmd
+	config.mockMdcache.EXPECT().Get(rmd.mdID).AnyTimes().Return(rmd, nil)
+
+	rootID := BlockID{42}
+	node := pathNode{makeBP(rootID, rmd, config, u), "p"}
+	p := path{FolderBranch{Tlf: id}, []pathNode{node}}
+	n := nodeFromPath(t, ops, p)
+
+	// TODO: Make sure Read, Write, and Truncate fail also with
+	// InvalidPathError{}.
+
+	err := config.KBFSOps().SetEx(ctx, n, true)
+	if err != (InvalidPathError{}) {
+		t.Errorf("Unexpected error on SetEx: %v", err)
+	}
+
+	err = config.KBFSOps().SetMtime(ctx, n, &time.Time{})
+	if err != (InvalidPathError{}) {
+		t.Errorf("Unexpected error on SetMtime: %v", err)
+	}
+
+	// TODO: Sync succeeds, but it should fail. Fix this!
+}

@@ -526,9 +526,13 @@ func (fbo *FolderBranchOps) GetRootNode(ctx context.Context,
 
 type makeNewBlock func() Block
 
-// blockLock should be taken for reading by the caller.
+// blockLock should be taken for reading by the caller. dir must be
+// valid.
 func (fbo *FolderBranchOps) getBlockLocked(md *RootMetadata,
 	dir path, newBlock makeNewBlock, rtype reqType) (Block, error) {
+	if !dir.isValid() {
+		return nil, InvalidPathError{}
+	}
 	bcache := fbo.config.BlockCache()
 	if block, err := bcache.Get(dir.tailPointer(), dir.Branch); err == nil {
 		return block, nil
@@ -698,9 +702,14 @@ func (fbo *FolderBranchOps) GetDirChildren(ctx context.Context, dir Node) (
 	return
 }
 
-// blockLocked must be taken for reading by the caller.
+// blockLocked must be taken for reading by the caller. file must have
+// a valid parent.
 func (fbo *FolderBranchOps) getEntryLocked(md *RootMetadata, file path) (
 	*DirBlock, DirEntry, error) {
+	if !file.hasValidParent() {
+		return nil, DirEntry{}, InvalidPathError{}
+	}
+
 	parentPath := file.parentPath()
 	dblock, err := fbo.getDirLocked(md, *parentPath, write)
 	if err != nil {
@@ -770,7 +779,17 @@ func (fbo *FolderBranchOps) Stat(ctx context.Context, node Node) (
 	fbo.blockLock.RLock()
 	defer fbo.blockLock.RUnlock()
 	nodePath := fbo.nodeCache.PathFromNode(node)
-	_, de, err = fbo.getEntryLocked(md, nodePath)
+	if !nodePath.isValid() {
+		err = InvalidPathError{}
+		return
+	}
+
+	if nodePath.hasValidParent() {
+		_, de, err = fbo.getEntryLocked(md, nodePath)
+	} else {
+		// nodePath is just the root.
+		de = md.data.Dir
+	}
 	return
 }
 

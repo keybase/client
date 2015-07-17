@@ -699,7 +699,9 @@ func (f *FuseOps) translateError(err error) fuse.Status {
 		return fuse.Status(syscall.EEXIST)
 	case libkbfs.NoSuchNameError:
 		return fuse.ENOENT
-	case libkbfs.BadPathError:
+	case libkbfs.BadTLFNameError:
+		return fuse.EINVAL
+	case libkbfs.InvalidPathError:
 		return fuse.EINVAL
 	case libkbfs.DirNotEmptyError:
 		return fuse.Status(syscall.ENOTEMPTY)

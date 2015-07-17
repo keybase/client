@@ -459,7 +459,7 @@ func ParseTlfHandle(ctx context.Context, config Config, name string) (
 	*TlfHandle, error) {
 	splitNames := strings.SplitN(name, ReaderSep, 3)
 	if len(splitNames) > 2 {
-		return nil, BadPathError{name}
+		return nil, BadTLFNameError{name}
 	}
 	writerNames := strings.Split(splitNames[0], ",")
 	var readerNames []string
@@ -634,12 +634,26 @@ type path struct {
 	path []pathNode
 }
 
-// TailName returns the name of the final node in the Path.
+// isValid() returns true if the path has at least one node (for the
+// root).
+func (p path) isValid() bool {
+	return len(p.path) >= 1
+}
+
+// hasValidParent() returns true if this path is valid and
+// parentPath() is a valid path.
+func (p path) hasValidParent() bool {
+	return len(p.path) >= 2
+}
+
+// tailName returns the name of the final node in the Path. Must be
+// called with a valid path.
 func (p path) tailName() string {
 	return p.path[len(p.path)-1].Name
 }
 
-// TailPointer returns the BlockPointer of the final node in the Path.
+// tailPointer returns the BlockPointer of the final node in the Path.
+// Must be called with a valid path.
 func (p path) tailPointer() BlockPointer {
 	return p.path[len(p.path)-1].BlockPointer
 }
@@ -653,13 +667,15 @@ func (p path) String() string {
 	return strings.Join(names, "/")
 }
 
-// ParentPath returns a new Path representing the parent subdirectory
-// of this Path.  Should not be called with a path of length 1.
+// parentPath returns a new Path representing the parent subdirectory
+// of this Path. Must be called with a valid path. Should not be
+// called with a path of only a single node, as that would produce an
+// invalid path.
 func (p path) parentPath() *path {
 	return &path{p.FolderBranch, p.path[:len(p.path)-1]}
 }
 
-// ChildPathNoPtr returns a new Path with the addition of a new entry
+// childPathNoPtr returns a new Path with the addition of a new entry
 // with the given name.  That final PathNode will have no BlockPointer.
 func (p path) ChildPathNoPtr(name string) *path {
 	child := &path{
@@ -671,7 +687,7 @@ func (p path) ChildPathNoPtr(name string) *path {
 	return child
 }
 
-// HasPublic returns whether or not this is a top-level folder that
+// hasPublic returns whether or not this is a top-level folder that
 // should have a "public" subdirectory.
 func (p path) hasPublic() bool {
 	// This directory has a corresponding public subdirectory if the

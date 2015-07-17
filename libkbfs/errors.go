@@ -46,15 +46,23 @@ func (e NoSuchNameError) Error() string {
 	return fmt.Sprintf("%s doesn't exist", e.Name)
 }
 
-// BadPathError indicates a top-level folder path that has an
+// BadTLFNameError indicates a top-level folder name that has an
 // incorrect format.
-type BadPathError struct {
+type BadTLFNameError struct {
 	Name string
 }
 
-// Error implements the error interface for BadPathError
-func (e BadPathError) Error() string {
-	return fmt.Sprintf("%s is in an incorrect format", e.Name)
+// Error implements the error interface for BadTLFNameError.
+func (e BadTLFNameError) Error() string {
+	return fmt.Sprintf("TLF name %s is in an incorrect format", e.Name)
+}
+
+// InvalidPathError indicates an invalid (i.e., empty) path was encountered.
+type InvalidPathError struct{}
+
+// Error implements the error interface for InvalidPathError.
+func (e InvalidPathError) Error() string {
+	return "Invalid path"
 }
 
 // DirNotEmptyError indicates that the user tried to unlink a
