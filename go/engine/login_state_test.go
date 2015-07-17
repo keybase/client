@@ -143,6 +143,22 @@ func TestLoginWhileAlreadyLoggedIn(t *testing.T) {
 	}
 }
 
+// Test that login works while already logged in and after a login
+// state reset.
+func TestLoginAfterLoginStateReset(t *testing.T) {
+	tc := SetupEngineTest(t, "login while already logged in")
+	defer tc.Cleanup()
+
+	// Logs the user in.
+	_ = CreateAndSignupFakeUser(tc, "li")
+
+	tc.G.ResetLoginStateForTest()
+
+	if err := tc.G.LoginState().LoginWithPrompt("", nil, nil, nil); err != nil {
+		t.Error(err)
+	}
+}
+
 // Test that login fails with a nonexistent user.
 func TestLoginNonexistent(t *testing.T) {
 	tc := SetupEngineTest(t, "login nonexistent")

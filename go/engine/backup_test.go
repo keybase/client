@@ -207,7 +207,7 @@ func TestBackupKeygenSecretStore(t *testing.T) {
 	}
 
 	ctx.SecretUI = &libkb.TestSecretUI{}
-	tc.G.ResetLoginState()
+	tc.G.ResetLoginStateForTest()
 
 	eng = NewBackupKeygen(tc.G)
 	if err := RunEngine(eng, ctx); err != nil {
