@@ -77,6 +77,10 @@ func (f *Folder) invalidateNodeDataRange(node fs.Node, write libkbfs.WriteRange)
 
 // LocalChange is called for changes originating within in this process.
 func (f *Folder) LocalChange(ctx context.Context, node libkbfs.Node, write libkbfs.WriteRange) {
+	if !f.fs.conn.Protocol().HasInvalidate() {
+		// OSXFUSE 2.x does not support notifications
+		return
+	}
 	if origin, ok := ctx.Value(ctxAppIDKey).(*FS); ok && origin == f.fs {
 		return
 	}
@@ -97,6 +101,10 @@ func (f *Folder) LocalChange(ctx context.Context, node libkbfs.Node, write libkb
 // BatchChanges is called for changes originating anywhere, including
 // other hosts.
 func (f *Folder) BatchChanges(ctx context.Context, changes []libkbfs.NodeChange) {
+	if !f.fs.conn.Protocol().HasInvalidate() {
+		// OSXFUSE 2.x does not support notifications
+		return
+	}
 	if origin, ok := ctx.Value(ctxAppIDKey).(*FS); ok && origin == f.fs {
 		return
 	}

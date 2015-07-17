@@ -29,6 +29,7 @@ func runNewFUSE(ctx context.Context, config libkbfs.Config, debug bool,
 
 	filesys := &FS{
 		config: config,
+		conn:   c,
 	}
 	ctx = context.WithValue(ctx, ctxAppIDKey, filesys)
 
@@ -56,6 +57,7 @@ func runNewFUSE(ctx context.Context, config libkbfs.Config, debug bool,
 type FS struct {
 	config libkbfs.Config
 	fuse   *fs.Server
+	conn   *fuse.Conn
 }
 
 var _ fs.FS = (*FS)(nil)

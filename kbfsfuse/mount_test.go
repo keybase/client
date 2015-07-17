@@ -32,6 +32,7 @@ func makeFS(t testing.TB, config *libkbfs.ConfigLocal) *fstestutil.Mount {
 	})
 	// TODO this is too late, racy
 	filesys.fuse = mnt.Server
+	filesys.conn = mnt.Conn
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -1164,6 +1165,10 @@ func TestInvalidateDataOnWrite(t *testing.T) {
 	mnt2 := makeFS(t, config)
 	defer mnt2.Close()
 
+	if !mnt2.Conn.Protocol().HasInvalidate() {
+		t.Skip("Old FUSE protocol")
+	}
+
 	const input1 = "input round one"
 	if err := ioutil.WriteFile(path.Join(mnt1.Dir, "jdoe", "myfile"), []byte(input1), 0644); err != nil {
 		t.Fatal(err)
@@ -1209,6 +1214,10 @@ func TestInvalidatePublicDataOnWrite(t *testing.T) {
 	defer mnt1.Close()
 	mnt2 := makeFS(t, config)
 	defer mnt2.Close()
+
+	if !mnt2.Conn.Protocol().HasInvalidate() {
+		t.Skip("Old FUSE protocol")
+	}
 
 	const input1 = "input round one"
 	if err := ioutil.WriteFile(path.Join(mnt1.Dir, "jdoe", "public", "myfile"), []byte(input1), 0644); err != nil {
@@ -1256,6 +1265,10 @@ func TestInvalidateDataOnTruncate(t *testing.T) {
 	mnt2 := makeFS(t, config)
 	defer mnt2.Close()
 
+	if !mnt2.Conn.Protocol().HasInvalidate() {
+		t.Skip("Old FUSE protocol")
+	}
+
 	const input1 = "input round one"
 	if err := ioutil.WriteFile(path.Join(mnt1.Dir, "jdoe", "myfile"), []byte(input1), 0644); err != nil {
 		t.Fatal(err)
@@ -1299,6 +1312,10 @@ func TestInvalidateDataOnLocalWrite(t *testing.T) {
 	config := libkbfs.MakeTestConfigOrBust(t, BServerRemoteAddr, "jdoe", "wsmith")
 	mnt := makeFS(t, config)
 	defer mnt.Close()
+
+	if !mnt.Conn.Protocol().HasInvalidate() {
+		t.Skip("Old FUSE protocol")
+	}
 
 	const input1 = "input round one"
 	if err := ioutil.WriteFile(path.Join(mnt.Dir, "jdoe", "myfile"), []byte(input1), 0644); err != nil {
@@ -1361,6 +1378,10 @@ func TestInvalidateEntryOnDelete(t *testing.T) {
 	defer mnt1.Close()
 	mnt2 := makeFS(t, config)
 	defer mnt2.Close()
+
+	if !mnt2.Conn.Protocol().HasInvalidate() {
+		t.Skip("Old FUSE protocol")
+	}
 
 	const input1 = "input round one"
 	if err := ioutil.WriteFile(path.Join(mnt1.Dir, "jdoe", "myfile"), []byte(input1), 0644); err != nil {
