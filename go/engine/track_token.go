@@ -144,7 +144,6 @@ func (e *TrackToken) storeRemoteTrack(ctx *Context) (err error) {
 		e.G().Log.Debug("- StoreRemoteTrack -> %s", libkb.ErrToOk(err))
 	}()
 
-	// TODO: Move this logic into PromptAndUnlock.
 	var secretStore libkb.SecretStore
 	if e.arg.Me != nil {
 		e.lockedKey.SetUID(e.arg.Me.GetUID())
