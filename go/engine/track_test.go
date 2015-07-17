@@ -22,7 +22,7 @@ func runTrackWithOptions(tc libkb.TestContext, fu *FakeUser, username string, op
 	ctx := &Context{
 		LogUI:      tc.G.UI.GetLogUI(),
 		IdentifyUI: idUI,
-		SecretUI:   fu.NewSecretUI(),
+		SecretUI:   secretUI,
 	}
 
 	eng := NewTrackEngine(arg, tc.G)
@@ -68,7 +68,7 @@ func assertNotTracking(t *testing.T, username string) {
 }
 
 func trackAlice(tc libkb.TestContext, fu *FakeUser) {
-	trackAliceWithOptions(tc, fu, keybase1.TrackOptions{BypassConfirm: true})
+	trackAliceWithOptions(tc, fu, keybase1.TrackOptions{BypassConfirm: true}, fu.NewSecretUI())
 }
 
 func trackAliceWithOptions(tc libkb.TestContext, fu *FakeUser, options keybase1.TrackOptions) {
@@ -82,7 +82,7 @@ func trackAliceWithOptions(tc libkb.TestContext, fu *FakeUser, options keybase1.
 }
 
 func trackBob(tc libkb.TestContext, fu *FakeUser) {
-	trackBobWithOptions(tc, fu, keybase1.TrackOptions{BypassConfirm: true})
+	trackBobWithOptions(tc, fu, keybase1.TrackOptions{BypassConfirm: true}, fu.NewSecretUI())
 }
 
 func trackBobWithOptions(tc libkb.TestContext, fu *FakeUser, options keybase1.TrackOptions) {
@@ -172,5 +172,41 @@ func TestTrackLocal(t *testing.T) {
 	}
 	if s.IsRemote() {
 		t.Errorf("tracking statement is remote, expected local")
+	}
+}
+
+// Make sure the prove engine uses the secret store.
+func TestTrackWithSecretStore(t *testing.T) {
+	// TODO: Get this working on non-OS X platforms (by mocking
+	// out the SecretStore).
+	if !libkb.HasSecretStore() {
+		t.Skip("Skipping test since there is no secret store")
+	}
+
+	tc := SetupEngineTest(t, "track")
+	defer tc.Cleanup()
+
+	fu := CreateAndSignupFakeUser(tc, "twss")
+	tc.G.ResetLoginStateForTest()
+
+	testSecretUI := libkb.TestSecretUI{
+		Passphrase:  fu.Passphrase,
+		StoreSecret: true,
+	}
+	trackAliceWithOptions(tc, fu, TrackOptions{}, &testSecretUI)
+	defer untrackAlice(tc, fu)
+
+	if !testSecretUI.CalledGetSecret {
+		t.Fatal("GetSecret() unexpectedly not called")
+	}
+
+	tc.G.ResetLoginStateForTest()
+
+	testSecretUI = libkb.TestSecretUI{}
+	trackBobWithOptions(tc, fu, TrackOptions{}, &testSecretUI)
+	defer untrackBob(tc, fu)
+
+	if testSecretUI.CalledGetSecret {
+		t.Fatal("GetSecret() unexpectedly called")
 	}
 }

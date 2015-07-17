@@ -90,7 +90,7 @@ func TestListTrackingLocal(t *testing.T) {
 	trackAlice(tc, fu)
 	defer untrackAlice(tc, fu)
 
-	trackBobWithOptions(tc, fu, keybase1.TrackOptions{LocalOnly: true})
+	trackBobWithOptions(tc, fu, keybase1.TrackOptions{LocalOnly: true}, fu.NewSecretUI())
 	defer untrackBob(tc, fu)
 
 	arg := ListTrackingEngineArg{}
