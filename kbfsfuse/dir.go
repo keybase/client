@@ -16,9 +16,11 @@ import (
 
 // Folder represents KBFS top-level folders
 type Folder struct {
-	fs *FS
-	id libkbfs.TlfID
-	dh *libkbfs.TlfHandle
+	fs           *FS
+	list         *FolderList
+	name         string
+	folderBranch libkbfs.FolderBranch
+	dh           *libkbfs.TlfHandle
 
 	// Protects fields for all Dir and File instances.
 	mu sync.Mutex
@@ -39,6 +41,9 @@ type Folder struct {
 // Caller must hold Folder.mu.
 func (f *Folder) forgetNodeLocked(node libkbfs.Node) {
 	delete(f.nodes, node.GetID())
+	if len(f.nodes) == 0 {
+		f.list.forgetFolder(f)
+	}
 }
 
 var _ libkbfs.Observer = (*Folder)(nil)
@@ -183,7 +188,7 @@ func (d *Dir) Attr(ctx context.Context, a *fuse.Attr) (err error) {
 	fillAttr(&de, a)
 
 	a.Mode = os.ModeDir | 0700
-	if d.folder.id.IsPublic() || d.folder.dh.IsPublic() {
+	if d.folder.folderBranch.Tlf.IsPublic() || d.folder.dh.IsPublic() {
 		a.Mode |= 0055
 	}
 	return nil

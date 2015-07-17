@@ -1,6 +1,7 @@
 package main
 
 import (
+	"log"
 	"os"
 	"sync"
 
@@ -80,13 +81,15 @@ func (fl *FolderList) Lookup(ctx context.Context, req *fuse.LookupRequest, resp 
 
 	folderBranch := rootNode.GetFolderBranch()
 	folder := &Folder{
-		fs:    fl.fs,
-		id:    folderBranch.Tlf,
-		dh:    dh,
-		nodes: map[libkbfs.NodeID]fs.Node{},
+		fs:           fl.fs,
+		list:         fl,
+		name:         req.Name,
+		folderBranch: folderBranch,
+		dh:           dh,
+		nodes:        map[libkbfs.NodeID]fs.Node{},
 	}
 
-	// TODO we never unregister; we also never remove entries from fl.folders
+	// TODO unregister all at unmount
 	if err := fl.fs.config.Notifier().RegisterForChanges([]libkbfs.FolderBranch{folderBranch}, folder); err != nil {
 		return nil, err
 	}
@@ -96,6 +99,16 @@ func (fl *FolderList) Lookup(ctx context.Context, req *fuse.LookupRequest, resp 
 
 	fl.folders[req.Name] = child
 	return child, nil
+}
+
+func (fl *FolderList) forgetFolder(f *Folder) {
+	fl.mu.Lock()
+	defer fl.mu.Unlock()
+
+	if err := fl.fs.config.Notifier().UnregisterFromChanges([]libkbfs.FolderBranch{f.folderBranch}, f); err != nil {
+		log.Printf("cannot unregister change notifier for folder %q: %v", f.name, err)
+	}
+	delete(fl.folders, f.name)
 }
 
 var _ fs.Handle = (*FolderList)(nil)
