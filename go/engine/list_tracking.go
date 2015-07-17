@@ -114,14 +114,14 @@ func filterRxx(trackList TrackList, filter string) (ret TrackList, err error) {
 }
 
 func (e *ListTrackingEngine) linkPGPKeys(link *libkb.TrackChainLink) (res []keybase1.PublicKey) {
-	fingerprints, err := link.GetTrackedPGPFingerprints()
+	trackedKeys, err := link.GetTrackedKeys()
 	if err != nil {
 		e.G().Log.Warning("Bad track of %s: %s", link.ToDisplayString(), err)
 		return res
 	}
 
-	for _, fingerprint := range fingerprints {
-		res = append(res, keybase1.PublicKey{PGPFingerprint: fingerprint.String()})
+	for _, trackedKey := range trackedKeys {
+		res = append(res, keybase1.PublicKey{PGPFingerprint: trackedKey.Fingerprint.String()})
 	}
 	return res
 }
@@ -213,13 +213,13 @@ func condenseRecord(l *libkb.TrackChainLink) (*jsonw.Wrapper, error) {
 		return nil, err
 	}
 
-	fps, err := l.GetTrackedPGPFingerprints()
+	trackedKeys, err := l.GetTrackedKeys()
 	if err != nil {
 		return nil, err
 	}
-	fpsDisplay := make([]string, len(fps))
-	for i, fp := range fps {
-		fpsDisplay[i] = strings.ToUpper(fp.String())
+	fpsDisplay := make([]string, len(trackedKeys))
+	for i, trackedKey := range trackedKeys {
+		fpsDisplay[i] = strings.ToUpper(trackedKey.Fingerprint.String())
 	}
 
 	un, err := l.GetTrackedUsername()

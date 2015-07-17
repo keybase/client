@@ -399,54 +399,63 @@ func (l *TrackChainLink) insertIntoTable(tab *IdentityTable) {
 	tab.tracks[l.whom] = append(tab.tracks[l.whom], l)
 }
 
-func (l *TrackChainLink) GetTrackedKID() *keybase1.KID {
-	jw := l.payloadJSON.AtPath("body.track.key")
+type TrackedKey struct {
+	KID         keybase1.KID
+	Fingerprint PGPFingerprint
+}
+
+func trackedKeyFromJSON(jw *jsonw.Wrapper) (TrackedKey, error) {
+	var ret TrackedKey
 	kid, err := GetKID(jw.AtKey("kid"))
-	if err == nil {
-		return &kid
+	if err != nil {
+		return TrackedKey{}, err
 	}
-	return nil
-}
-
-func (l *TrackChainLink) GetTrackedFingerprint() (ret *PGPFingerprint) {
-	jw := l.payloadJSON.AtPath("body.track.key")
+	ret.KID = kid
+	// TODO: Should we tolerate missing fingerprints? Will "body.track.key"
+	// ever be a non-PGP key, for example? I'm *very* hesitant about defining a
+	// new type that's basically a FOKID, right after we did all that work to
+	// delete FOKID.
 	fp, err := GetPGPFingerprint(jw.AtKey("key_fingerprint"))
-	if err == nil {
-		return fp
+	if err != nil {
+		return TrackedKey{}, err
 	}
-	return nil
+	ret.Fingerprint = *fp
+	return ret, nil
 }
 
-func (l *TrackChainLink) GetTrackedPGPFingerprints() ([]PGPFingerprint, error) {
+func (l *TrackChainLink) GetTrackedKeys() ([]TrackedKey, error) {
 	// presumably order is important, so we'll only use the map as a set
 	// to deduplicate keys.
-	set := make(map[PGPFingerprint]bool)
+	set := make(map[keybase1.KID]bool)
 
-	var res []PGPFingerprint
+	var res []TrackedKey
 
-	fp := l.GetTrackedFingerprint()
-	if fp != nil {
-		res = append(res, *fp)
-		set[*fp] = true
-	}
-
-	jw := l.payloadJSON.AtPath("body.track.pgp_keys")
-	if jw.IsNil() {
-		return res, nil
-	}
-
-	n, err := jw.Len()
-	if err != nil {
-		return nil, err
-	}
-	for i := 0; i < n; i++ {
-		fp, err := GetPGPFingerprint(jw.AtIndex(i).AtKey("key_fingerprint"))
+	keyJSON := l.payloadJSON.AtPath("body.track.key")
+	if !keyJSON.IsNil() {
+		tracked, err := trackedKeyFromJSON(keyJSON)
 		if err != nil {
 			return nil, err
 		}
-		if fp != nil && !set[*fp] {
-			res = append(res, *fp)
-			set[*fp] = true
+		res = append(res, tracked)
+		set[tracked.KID] = true
+	}
+
+	pgpKeysJSON := l.payloadJSON.AtPath("body.track.pgp_keys")
+	if !pgpKeysJSON.IsNil() {
+		n, err := pgpKeysJSON.Len()
+		if err != nil {
+			return nil, err
+		}
+		for i := 0; i < n; i++ {
+			keyJSON := pgpKeysJSON.AtIndex(i)
+			tracked, err := trackedKeyFromJSON(keyJSON)
+			if err != nil {
+				return nil, err
+			}
+			if !set[tracked.KID] {
+				res = append(res, tracked)
+				set[tracked.KID] = true
+			}
 		}
 	}
 	return res, nil
