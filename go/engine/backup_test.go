@@ -185,47 +185,17 @@ func TestBackupNoRevoke(t *testing.T) {
 }
 
 // Make sure BackupKeygen uses the secret store.
-func TestBackupKeygenSecretStore(t *testing.T) {
-	// TODO: Get this working on non-OS X platforms (by mocking
-	// out the SecretStore).
-	if !libkb.HasSecretStore() {
-		t.Skip("Skipping test since there is no secret store")
-	}
-
-	tc := SetupEngineTest(t, "backup")
-	defer tc.Cleanup()
-
-	fu := CreateAndSignupFakeUser(tc, "login")
-	tc.G.ResetLoginStateForTest()
-
-	testSecretUI := libkb.TestSecretUI{
-		Passphrase:  fu.Passphrase,
-		StoreSecret: true,
-	}
-	ctx := &Context{
-		LogUI:    tc.G.UI.GetLogUI(),
-		LoginUI:  libkb.TestLoginUI{},
-		SecretUI: &testSecretUI,
-	}
-	eng := NewBackupKeygen(tc.G)
-	if err := RunEngine(eng, ctx); err != nil {
-		t.Fatal(err)
-	}
-
-	if !testSecretUI.CalledGetSecret {
-		t.Fatal("GetSecret() unexpectedly not called")
-	}
-
-	testSecretUI = libkb.TestSecretUI{}
-	ctx.SecretUI = &testSecretUI
-	tc.G.ResetLoginStateForTest()
-
-	eng = NewBackupKeygen(tc.G)
-	if err := RunEngine(eng, ctx); err != nil {
-		t.Fatal(err)
-	}
-
-	if testSecretUI.CalledGetSecret {
-		t.Fatal("GetSecret() unexpectedly called")
-	}
+func TestBackupKeygenWithSecretStore(t *testing.T) {
+	testEngineWithSecretStore(t, func(
+		g *libkb.GlobalContext, fu *FakeUser, secretUI libkb.SecretUI) {
+		ctx := &Context{
+			LogUI:    g.UI.GetLogUI(),
+			LoginUI:  libkb.TestLoginUI{},
+			SecretUI: secretUI,
+		}
+		eng := NewBackupKeygen(g)
+		if err := RunEngine(eng, ctx); err != nil {
+			t.Fatal(err)
+		}
+	})
 }

@@ -33,40 +33,11 @@ func TestProveRooter(t *testing.T) {
 
 // Make sure the prove engine uses the secret store.
 func TestProveRooterWithSecretStore(t *testing.T) {
-	// TODO: Get this working on non-OS X platforms (by mocking
-	// out the SecretStore).
-	if !libkb.HasSecretStore() {
-		t.Skip("Skipping test since there is no secret store")
-	}
-
-	tc := SetupEngineTest(t, "prove")
-	defer tc.Cleanup()
-
-	fu := CreateAndSignupFakeUser(tc, "pwss")
-	tc.G.ResetLoginStateForTest()
-
-	testSecretUI := libkb.TestSecretUI{
-		Passphrase:  fu.Passphrase,
-		StoreSecret: true,
-	}
-	_, _, err := proveRooterWithSecretUI(tc.G, fu, &testSecretUI)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	if !testSecretUI.CalledGetSecret {
-		t.Fatal("GetSecret() unexpectedly not called")
-	}
-
-	tc.G.ResetLoginStateForTest()
-
-	testSecretUI = libkb.TestSecretUI{}
-	_, _, err = proveRooterWithSecretUI(tc.G, fu, &testSecretUI)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	if testSecretUI.CalledGetSecret {
-		t.Fatal("GetSecret() unexpectedly called")
-	}
+	testEngineWithSecretStore(t, func(
+		g *libkb.GlobalContext, fu *FakeUser, secretUI libkb.SecretUI) {
+		_, _, err := proveRooterWithSecretUI(g, fu, secretUI)
+		if err != nil {
+			t.Fatal(err)
+		}
+	})
 }
