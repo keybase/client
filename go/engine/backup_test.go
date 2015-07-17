@@ -184,7 +184,14 @@ func TestBackupNoRevoke(t *testing.T) {
 	}
 }
 
+// Make sure BackupKeygen uses the secret store.
 func TestBackupKeygenSecretStore(t *testing.T) {
+	// TODO: Get this working on non-OS X platforms (by mocking
+	// out the SecretStore).
+	if !libkb.HasSecretStore() {
+		t.Skip("Skipping test since there is no secret store")
+	}
+
 	tc := SetupEngineTest(t, "backup")
 	defer tc.Cleanup()
 
@@ -193,24 +200,34 @@ func TestBackupKeygenSecretStore(t *testing.T) {
 		a.ClearStreamCache()
 	}, "TestBackupKeygenSecretStore")
 
+	testSecretUI := libkb.TestSecretUI{
+		Passphrase:  fu.Passphrase,
+		StoreSecret: true,
+	}
 	ctx := &Context{
-		LogUI:   tc.G.UI.GetLogUI(),
-		LoginUI: libkb.TestLoginUI{},
-		SecretUI: &libkb.TestSecretUI{
-			Passphrase:  fu.Passphrase,
-			StoreSecret: true,
-		},
+		LogUI:    tc.G.UI.GetLogUI(),
+		LoginUI:  libkb.TestLoginUI{},
+		SecretUI: &testSecretUI,
 	}
 	eng := NewBackupKeygen(tc.G)
 	if err := RunEngine(eng, ctx); err != nil {
 		t.Fatal(err)
 	}
 
-	ctx.SecretUI = &libkb.TestSecretUI{}
+	if !testSecretUI.CalledGetSecret {
+		t.Fatal("GetSecret() unexpectedly not called")
+	}
+
+	testSecretUI = libkb.TestSecretUI{}
+	ctx.SecretUI = &testSecretUI
 	tc.G.ResetLoginStateForTest()
 
 	eng = NewBackupKeygen(tc.G)
 	if err := RunEngine(eng, ctx); err != nil {
 		t.Fatal(err)
+	}
+
+	if testSecretUI.CalledGetSecret {
+		t.Fatal("GetSecret() unexpectedly called")
 	}
 }
