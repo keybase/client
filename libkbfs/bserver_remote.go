@@ -231,24 +231,19 @@ func (b *BlockServerRemote) Get(ctx context.Context, id BlockID,
 	}
 
 	var res keybase1.GetBlockRes
-	c := make(chan error, 1) // buffered, in case the request is canceled
-	go func() {
+	f := func() error {
 		var err error
 		//XXX: if fails due to connection problem, should reconnect
 		clt := keybase1.BlockClient{Cli: b.clt}
 		res, err = clt.GetBlock(bid)
-		c <- err
-	}()
+		return err
+	}
 
-	select {
-	case <-ctx.Done():
-		return nil, BlockCryptKeyServerHalf{}, ctx.Err()
-	case err := <-c:
-		if err != nil {
-			libkb.G.Log.Debug("BlockServerRemote::Get id=%s err=%v\n",
-				hex.EncodeToString(id[:]), err)
-			return nil, BlockCryptKeyServerHalf{}, err
-		}
+	err := runUnlessCanceled(ctx, f)
+	if err != nil {
+		libkb.G.Log.Debug("BlockServerRemote::Get id=%s err=%v\n",
+			hex.EncodeToString(id[:]), err)
+		return nil, BlockCryptKeyServerHalf{}, err
 	}
 
 	bk := BlockCryptKeyServerHalf{}
@@ -282,21 +277,15 @@ func (b *BlockServerRemote) Put(ctx context.Context, id BlockID, tlfID TlfID,
 		Buf:      buf,
 	}
 
-	c := make(chan error, 1) // buffered, in case the request is canceled
-	go func() {
+	f := func() error {
 		clt := keybase1.BlockClient{Cli: b.clt}
-		c <- clt.PutBlock(arg)
-	}()
-
-	select {
-	case <-ctx.Done():
-		return ctx.Err()
-	case err := <-c:
-		if err != nil {
-			libkb.G.Log.Warning("BlockServerRemote::Put id=%s err=%v\n",
-				hex.EncodeToString(id[:]), err)
-			return err
-		}
+		return clt.PutBlock(arg)
+	}
+	err := runUnlessCanceled(ctx, f)
+	if err != nil {
+		libkb.G.Log.Debug("BlockServerRemote::Put id=%s err=%v\n",
+			hex.EncodeToString(id[:]), err)
+		return err
 	}
 
 	return nil
@@ -316,20 +305,14 @@ func (b *BlockServerRemote) Delete(ctx context.Context, id BlockID,
 		ChargedTo: context.GetWriter(), //the actual writer to decrement quota from
 	}
 
-	c := make(chan error, 1) // buffered, in case the request is canceled
-	go func() {
+	f := func() error {
 		clt := keybase1.BlockClient{Cli: b.clt}
-		c <- clt.DecBlockReference(arg)
-	}()
-
-	select {
-	case <-ctx.Done():
-		return ctx.Err()
-	case err := <-c:
-		if err != nil {
-			libkb.G.Log.Warning("Delete to backend err : %q", err)
-			return err
-		}
+		return clt.DecBlockReference(arg)
+	}
+	err := runUnlessCanceled(ctx, f)
+	if err != nil {
+		libkb.G.Log.Debug("Delete to backend err : %q", err)
+		return err
 	}
 
 	return nil

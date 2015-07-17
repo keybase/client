@@ -56,9 +56,8 @@ func (c *CryptoClient) Sign(ctx context.Context, msg []byte) (
 		libkb.G.Log.Debug("Signed %d-byte message with %s: err=%v", len(msg), sigInfo, err)
 	}()
 
-	ch := make(chan error, 1) // buffered, in case the request is canceled
 	var ed25519SigInfo keybase1.ED25519SignatureInfo
-	go func() {
+	f := func() error {
 		cc := keybase1.CryptoClient{Cli: c.client}
 		var err error
 		ed25519SigInfo, err = cc.SignED25519(keybase1.SignED25519Arg{
@@ -66,17 +65,11 @@ func (c *CryptoClient) Sign(ctx context.Context, msg []byte) (
 			Msg:       msg,
 			Reason:    "to use kbfs",
 		})
-		ch <- err
-	}()
-
-	select {
-	case <-ctx.Done():
-		err = ctx.Err()
+		return err
+	}
+	err = runUnlessCanceled(ctx, f)
+	if err != nil {
 		return
-	case err = <-ch:
-		if err != nil {
-			return
-		}
 	}
 
 	sigInfo = SignatureInfo{
@@ -112,9 +105,8 @@ func (c *CryptoClient) DecryptTLFCryptKeyClientHalf(ctx context.Context,
 	}
 	copy(nonce[:], encryptedClientHalf.Nonce)
 
-	ch := make(chan error, 1) // buffered, in case the request is canceled
 	var decryptedClientHalf keybase1.Bytes32
-	go func() {
+	f := func() error {
 		cc := keybase1.CryptoClient{Cli: c.client}
 		var err error
 		decryptedClientHalf, err = cc.UnboxBytes32(keybase1.UnboxBytes32Arg{
@@ -124,17 +116,11 @@ func (c *CryptoClient) DecryptTLFCryptKeyClientHalf(ctx context.Context,
 			PeersPublicKey:   keybase1.BoxPublicKey(publicKey.PublicKey),
 			Reason:           "to use kbfs",
 		})
-		ch <- err
-	}()
-
-	select {
-	case <-ctx.Done():
-		err = ctx.Err()
+		return err
+	}
+	err = runUnlessCanceled(ctx, f)
+	if err != nil {
 		return
-	case err = <-ch:
-		if err != nil {
-			return
-		}
 	}
 
 	clientHalf = TLFCryptKeyClientHalf{decryptedClientHalf}

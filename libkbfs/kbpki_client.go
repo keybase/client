@@ -150,23 +150,16 @@ func (k *KBPKIClient) GetCurrentCryptPublicKey(ctx context.Context) (
 
 func (k *KBPKIClient) identify(ctx context.Context, arg *engine.IDEngineArg) (
 	*libkb.User, []keybase1.PublicKey, error) {
-
-	ch := make(chan error, 1) // buffered, in case the request is canceled
 	var res keybase1.IdentifyRes
-	go func() {
+	f := func() error {
 		c := keybase1.IdentifyClient{Cli: k.client}
 		var err error
 		res, err = c.Identify(arg.Export())
-		ch <- err
-	}()
-
-	select {
-	case <-ctx.Done():
-		return nil, nil, ctx.Err()
-	case err := <-ch:
-		if err != nil {
-			return nil, nil, err
-		}
+		return err
+	}
+	err := runUnlessCanceled(ctx, f)
+	if err != nil {
+		return nil, nil, err
 	}
 
 	return libkb.NewUserThin(res.User.Username, keybase1.UID(res.User.Uid)), res.User.PublicKeys, nil
@@ -180,25 +173,17 @@ func (k *KBPKIClient) identifyByUID(ctx context.Context, uid keybase1.UID) (
 
 func (k *KBPKIClient) session(ctx context.Context) (
 	session *libkb.Session, deviceSubkey libkb.GenericKey, err error) {
-	ch := make(chan error, 1) // buffered, in case the request is canceled
 	var res keybase1.Session
-
-	go func() {
+	f := func() error {
 		c := keybase1.SessionClient{Cli: k.client}
 		const sessionID = 0
 		var err error
 		res, err = c.CurrentSession(sessionID)
-		ch <- err
-	}()
-
-	select {
-	case <-ctx.Done():
-		err = ctx.Err()
+		return err
+	}
+	err = runUnlessCanceled(ctx, f)
+	if err != nil {
 		return
-	case err = <-ch:
-		if err != nil {
-			return
-		}
 	}
 
 	deviceSubkey, err = libkb.ImportKeypairFromKID(res.DeviceSubkeyKid)
