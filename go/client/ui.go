@@ -47,7 +47,7 @@ func (ui BaseIdentifyUI) baseConfirm(o *keybase1.IdentifyOutcome) (bool, error) 
 	if !warnings.IsEmpty() {
 		ui.ShowWarnings(warnings)
 	}
-	if o.options.BypassConfirm {
+	if o.TrackOptions.BypassConfirm {
 		return true, nil
 	}
 	return false, nil
