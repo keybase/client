@@ -3,7 +3,6 @@ package libkbfs
 import (
 	"fmt"
 
-	"github.com/keybase/client/protocol/go"
 	"github.com/syndtr/goleveldb/leveldb"
 	"github.com/syndtr/goleveldb/leveldb/opt"
 	"github.com/syndtr/goleveldb/leveldb/storage"
@@ -96,10 +95,4 @@ func (ks *KeyServerLocal) PutTLFCryptKeyServerHalf(ctx context.Context,
 	}
 
 	return ks.db.Put(idData, serverHalf.ServerHalf[:], nil)
-}
-
-// GetMacPublicKey implements the KeyOps interface for KeyServerLocal.
-func (ks *KeyServerLocal) GetMacPublicKey(ctx context.Context,
-	uid keybase1.UID) (MacPublicKey, error) {
-	return MacPublicKey{}, nil
 }

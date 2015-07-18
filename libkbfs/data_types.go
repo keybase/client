@@ -281,14 +281,6 @@ type BlockCryptKey struct {
 	Key [32]byte
 }
 
-// MacPublicKey (along with a private key) is used to compute and
-// verify MACs. (See 4.1.3.)
-type MacPublicKey struct {
-}
-
-// MAC is a buffer representing the MAC of some data.
-type MAC []byte
-
 // BlockID is the type of hash key for each data block
 type BlockID libkb.NodeHashShort
 

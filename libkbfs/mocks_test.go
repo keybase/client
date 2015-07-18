@@ -5,12 +5,13 @@ package libkbfs
 
 import (
 	fmt "fmt"
+	reflect "reflect"
+	time "time"
+
 	gomock "github.com/golang/mock/gomock"
 	libkb "github.com/keybase/client/go/libkb"
 	go0 "github.com/keybase/client/protocol/go"
 	context "golang.org/x/net/context"
-	reflect "reflect"
-	time "time"
 )
 
 // Mock of Block interface
@@ -952,27 +953,6 @@ func (_mr *_MockCryptoRecorder) DecryptBlock(arg0, arg1, arg2 interface{}) *gomo
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "DecryptBlock", arg0, arg1, arg2)
 }
 
-func (_m *MockCrypto) MAC(publicKey MacPublicKey, buf []byte) (MAC, error) {
-	ret := _m.ctrl.Call(_m, "MAC", publicKey, buf)
-	ret0, _ := ret[0].(MAC)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-func (_mr *_MockCryptoRecorder) MAC(arg0, arg1 interface{}) *gomock.Call {
-	return _mr.mock.ctrl.RecordCall(_mr.mock, "MAC", arg0, arg1)
-}
-
-func (_m *MockCrypto) VerifyMAC(publicKey MacPublicKey, buf []byte, mac MAC) error {
-	ret := _m.ctrl.Call(_m, "VerifyMAC", publicKey, buf, mac)
-	ret0, _ := ret[0].(error)
-	return ret0
-}
-
-func (_mr *_MockCryptoRecorder) VerifyMAC(arg0, arg1, arg2 interface{}) *gomock.Call {
-	return _mr.mock.ctrl.RecordCall(_mr.mock, "VerifyMAC", arg0, arg1, arg2)
-}
-
 func (_m *MockCrypto) Hash(buf []byte) (libkb.NodeHash, error) {
 	ret := _m.ctrl.Call(_m, "Hash", buf)
 	ret0, _ := ret[0].(libkb.NodeHash)
@@ -1193,17 +1173,6 @@ func (_m *MockKeyOps) PutTLFCryptKeyServerHalf(ctx context.Context, id TlfID, ke
 
 func (_mr *_MockKeyOpsRecorder) PutTLFCryptKeyServerHalf(arg0, arg1, arg2, arg3, arg4 interface{}) *gomock.Call {
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "PutTLFCryptKeyServerHalf", arg0, arg1, arg2, arg3, arg4)
-}
-
-func (_m *MockKeyOps) GetMacPublicKey(ctx context.Context, uid go0.UID) (MacPublicKey, error) {
-	ret := _m.ctrl.Call(_m, "GetMacPublicKey", ctx, uid)
-	ret0, _ := ret[0].(MacPublicKey)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-func (_mr *_MockKeyOpsRecorder) GetMacPublicKey(arg0, arg1 interface{}) *gomock.Call {
-	return _mr.mock.ctrl.RecordCall(_mr.mock, "GetMacPublicKey", arg0, arg1)
 }
 
 // Mock of BlockOps interface

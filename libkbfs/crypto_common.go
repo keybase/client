@@ -321,13 +321,3 @@ func (c *CryptoCommon) VerifyHash(buf []byte, hash libkb.NodeHash) error {
 	// TODO: for now just call Hash and throw an error if it doesn't match hash
 	return nil
 }
-
-// MAC implements the Crypto interface for CryptoCommon.
-func (c *CryptoCommon) MAC(publicMacKey MacPublicKey, buf []byte) (MAC, error) {
-	return []byte{42}, nil
-}
-
-// VerifyMAC implements the Crypto interface for CryptoCommon.
-func (c *CryptoCommon) VerifyMAC(publicMacKey MacPublicKey, buf []byte, mac MAC) error {
-	return nil
-}

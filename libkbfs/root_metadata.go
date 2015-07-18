@@ -302,11 +302,7 @@ func (md *RootMetadata) ClearBlockChanges() {
 // RootMetadataSigned is the top-level MD object stored in MD server
 type RootMetadataSigned struct {
 	// signature over the root metadata by the private signing key
-	// (for "home" folders and public folders)
 	SigInfo SignatureInfo `codec:",omitempty"`
-	// pairwise MAC of the last writer with all readers and writers
-	// (for private shares)
-	Macs map[keybase1.UID][]byte `codec:",omitempty"`
 	// all the metadata
 	MD RootMetadata
 }
@@ -314,6 +310,6 @@ type RootMetadataSigned struct {
 // IsInitialized returns whether or not this RootMetadataSigned object
 // has been finalized by some writer.
 func (rmds *RootMetadataSigned) IsInitialized() bool {
-	// The data is only if there is some sort of signature
-	return !rmds.SigInfo.IsNil() || len(rmds.Macs) > 0
+	// The data is initialized only if there is a signature.
+	return !rmds.SigInfo.IsNil()
 }

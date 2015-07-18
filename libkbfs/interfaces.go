@@ -388,14 +388,6 @@ type Crypto interface {
 	// block) <= len(encryptedBlock).
 	DecryptBlock(encryptedBlock EncryptedBlock, key BlockCryptKey, block Block) error
 
-	// Mac computes a keyed MAC of buf using a shared secret derived
-	// from the given MacPublicKey and the current user's MAC private
-	// key.
-	MAC(publicKey MacPublicKey, buf []byte) (MAC, error)
-	// VerifyMac verifies a given key and buf would hash to the given
-	// mac.  The mac should indicate its type.
-	VerifyMAC(publicKey MacPublicKey, buf []byte, mac MAC) error
-
 	// Hash computes a deterministic hash of buf.
 	Hash(buf []byte) (libkb.NodeHash, error)
 	// VerifyHash verifies a given hash (the hash should include its
@@ -486,9 +478,6 @@ type KeyOps interface {
 	// device (identified by its CryptPublicKey) for a given TLF.
 	PutTLFCryptKeyServerHalf(ctx context.Context, id TlfID, keyGen KeyGen,
 		cryptPublicKey CryptPublicKey, serverHalf TLFCryptKeyServerHalf) error
-
-	// GetMacPublicKey gets the public MAC key for a given user.
-	GetMacPublicKey(ctx context.Context, uid keybase1.UID) (MacPublicKey, error)
 }
 
 // BlockOps gets and puts data blocks to a BlockServer. It performs

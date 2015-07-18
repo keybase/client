@@ -50,7 +50,7 @@ func verifyMDForPublic(config *ConfigMock, rmds *RootMetadataSigned,
 	}
 }
 
-func verifyMDForPrivateShare(config *ConfigMock, rmds *RootMetadataSigned,
+func verifyMDForPrivate(config *ConfigMock, rmds *RootMetadataSigned,
 	id TlfID) {
 	config.mockCodec.EXPECT().Decode(rmds.MD.SerializedPrivateMetadata, gomock.Any()).
 		Return(nil)
@@ -60,10 +60,8 @@ func verifyMDForPrivateShare(config *ConfigMock, rmds *RootMetadataSigned,
 
 	packedData := []byte{4, 3, 2, 1}
 	config.mockCodec.EXPECT().Encode(rmds.MD).Return(packedData, nil)
-	config.mockKops.EXPECT().GetMacPublicKey(gomock.Any(),
-		rmds.MD.data.LastWriter).Return(MacPublicKey{}, nil)
-	config.mockCrypto.EXPECT().VerifyMAC(
-		MacPublicKey{}, packedData, gomock.Any()).Return(nil)
+	config.mockKbpki.EXPECT().HasVerifyingKey(gomock.Any(), gomock.Any(), gomock.Any()).AnyTimes().Return(nil)
+	config.mockCrypto.EXPECT().Verify(packedData, rmds.SigInfo).Return(nil)
 }
 
 func putMDForPublic(config *ConfigMock, rmds *RootMetadataSigned,
@@ -81,7 +79,7 @@ func putMDForPublic(config *ConfigMock, rmds *RootMetadataSigned,
 		gomock.Any(), nilKID, NullMdID).Return(nil)
 }
 
-func putMDForPrivateShare(config *ConfigMock, rmds *RootMetadataSigned,
+func putMDForPrivate(config *ConfigMock, rmds *RootMetadataSigned,
 	id TlfID) {
 	expectGetTLFCryptKeyForEncryption(config, &rmds.MD)
 	config.mockCrypto.EXPECT().EncryptPrivateMetadata(
@@ -90,11 +88,7 @@ func putMDForPrivateShare(config *ConfigMock, rmds *RootMetadataSigned,
 	packedData := []byte{4, 3, 2, 1}
 	config.mockCodec.EXPECT().Encode(gomock.Any()).Return(packedData, nil).Times(2)
 
-	// Make a MAC for each writer
-	config.mockKops.EXPECT().GetMacPublicKey(gomock.Any(), gomock.Any()).
-		Times(2).Return(MacPublicKey{}, nil)
-	config.mockCrypto.EXPECT().MAC(MacPublicKey{}, packedData).
-		Times(2).Return(packedData, nil)
+	config.mockCrypto.EXPECT().Sign(gomock.Any(), gomock.Any()).Return(SignatureInfo{}, nil)
 
 	var nilKID keybase1.KID
 	config.mockMdserv.EXPECT().Put(gomock.Any(), id, rmds.MD.mdID,
@@ -128,7 +122,7 @@ func TestMDOpsGetForHandlePrivateSuccess(t *testing.T) {
 	id, h, rmds := newDir(t, config, 1, true, false)
 
 	config.mockMdserv.EXPECT().GetForHandle(ctx, h).Return(rmds, nil)
-	verifyMDForPrivateShare(config, rmds, id)
+	verifyMDForPrivate(config, rmds, id)
 
 	if rmd2, err := config.MDOps().GetForHandle(ctx, h); err != nil {
 		t.Errorf("Got error on get: %v", err)
@@ -202,7 +196,7 @@ func TestMDOpsGetForHandleFailHandleCheck(t *testing.T) {
 	h.Writers = append(h.Writers, newWriter)
 	expectUserCall(newWriter, config)
 	config.mockMdserv.EXPECT().GetForHandle(ctx, h).Return(rmds, nil)
-	verifyMDForPrivateShare(config, rmds, id)
+	verifyMDForPrivate(config, rmds, id)
 
 	if _, err := config.MDOps().GetForHandle(ctx, h); err == nil {
 		t.Errorf("Got no error on bad handle check test")
@@ -219,7 +213,7 @@ func TestMDOpsGetSuccess(t *testing.T) {
 	id, _, rmds := newDir(t, config, 1, true, false)
 
 	config.mockMdserv.EXPECT().GetForTLF(ctx, id).Return(rmds, nil)
-	verifyMDForPrivateShare(config, rmds, id)
+	verifyMDForPrivate(config, rmds, id)
 
 	if rmd2, err := config.MDOps().GetForTLF(ctx, id); err != nil {
 		t.Errorf("Got error on get: %v", err)
@@ -292,7 +286,7 @@ func TestMDOpsGetAtIDSuccess(t *testing.T) {
 
 	mdID := rmds.MD.mdID
 	config.mockMdserv.EXPECT().Get(ctx, mdID).Return(rmds, nil)
-	verifyMDForPrivateShare(config, rmds, id)
+	verifyMDForPrivate(config, rmds, id)
 
 	if rmd2, err := config.MDOps().Get(ctx, mdID); err != nil {
 		t.Errorf("Got error on getAtID: %v", err)
@@ -323,7 +317,7 @@ func TestMDOpsGetAtIDWrongMdID(t *testing.T) {
 	id, _, rmds := newDir(t, config, 1, true, false)
 	mdID := MdID{42}
 	config.mockMdserv.EXPECT().Get(ctx, mdID).Return(rmds, nil)
-	verifyMDForPrivateShare(config, rmds, id)
+	verifyMDForPrivate(config, rmds, id)
 
 	_, err := config.MDOps().Get(ctx, mdID)
 	if _, ok := err.(MDMismatchError); !ok {
@@ -356,9 +350,9 @@ func testMDOpsGetSinceSuccess(t *testing.T, fromStart bool) {
 	max := 10
 	config.mockMdserv.EXPECT().GetSince(ctx, id, start, max).
 		Return(allRMDSs, false, nil)
-	verifyMDForPrivateShare(config, rmds3, id)
-	verifyMDForPrivateShare(config, rmds2, id)
-	verifyMDForPrivateShare(config, rmds1, id)
+	verifyMDForPrivate(config, rmds3, id)
+	verifyMDForPrivate(config, rmds2, id)
+	verifyMDForPrivate(config, rmds1, id)
 
 	allRMDs, more, err := config.MDOps().GetSince(ctx, id, start, max)
 	if err != nil {
@@ -398,8 +392,8 @@ func TestMDOpsGetSinceFailBadPrevRoot(t *testing.T) {
 	max := 10
 	config.mockMdserv.EXPECT().GetSince(ctx, id, mdID4, max).
 		Return(allRMDSs, false, nil)
-	verifyMDForPrivateShare(config, rmds3, id)
-	verifyMDForPrivateShare(config, rmds2, id)
+	verifyMDForPrivate(config, rmds3, id)
+	verifyMDForPrivate(config, rmds2, id)
 
 	_, _, err := config.MDOps().GetSince(ctx, id, mdID4, max)
 	if err == nil {
@@ -462,7 +456,7 @@ func TestMDOpsPutPrivateSuccess(t *testing.T) {
 
 	// expect one call to sign MD, and one to put it
 	id, _, rmds := newDir(t, config, 1, true, false)
-	putMDForPrivateShare(config, rmds, id)
+	putMDForPrivate(config, rmds, id)
 
 	var nilKID keybase1.KID
 	if err := config.MDOps().Put(

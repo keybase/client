@@ -133,18 +133,10 @@ func NewFolder(t *testing.T, x byte, revision uint64, share bool, public bool) (
 	}
 
 	rmds := &RootMetadataSigned{}
-	if public || !share {
-		rmds.SigInfo = SignatureInfo{
-			Version:      SigED25519,
-			Signature:    []byte{42},
-			VerifyingKey: MakeFakeVerifyingKeyOrBust("fake key"),
-		}
-	} else {
-		rmds.Macs = make(map[keybase1.UID][]byte)
-		rmds.Macs[h.Writers[0]] = []byte{42}
-		if share {
-			rmds.Macs[h.Writers[1]] = []byte{43}
-		}
+	rmds.SigInfo = SignatureInfo{
+		Version:      SigED25519,
+		Signature:    []byte{42},
+		VerifyingKey: MakeFakeVerifyingKeyOrBust("fake key"),
 	}
 	rmds.MD = *rmd
 	return id, h, rmds
