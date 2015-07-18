@@ -337,9 +337,6 @@
       "name" : "keyQuery",
       "type" : "string"
     }, {
-      "name" : "skipTrack",
-      "type" : "boolean"
-    }, {
       "name" : "trackOptions",
       "type" : "TrackOptions"
     } ]

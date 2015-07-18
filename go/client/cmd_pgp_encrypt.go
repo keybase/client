@@ -67,7 +67,6 @@ func NewCmdPGPEncrypt(cl *libcmdline.CommandLine) cli.Command {
 type CmdPGPEncrypt struct {
 	UnixFilter
 	recipients   []string
-	skipTrack    bool
 	trackOptions keybase1.TrackOptions
 	sign         bool
 	noSelf       bool
@@ -88,7 +87,6 @@ func (c *CmdPGPEncrypt) Run() error {
 		NoSelf:       c.noSelf,
 		BinaryOutput: c.binaryOut,
 		KeyQuery:     c.keyQuery,
-		SkipTrack:    c.skipTrack,
 		TrackOptions: c.trackOptions,
 	}
 	ctx := &engine.Context{
@@ -125,7 +123,6 @@ func (c *CmdPGPEncrypt) RunClient() error {
 		NoSelf:       c.noSelf,
 		BinaryOut:    c.binaryOut,
 		KeyQuery:     c.keyQuery,
-		SkipTrack:    c.skipTrack,
 		TrackOptions: c.trackOptions,
 	}
 	arg := keybase1.PGPEncryptArg{Source: src, Sink: snk, Opts: opts}
@@ -151,7 +148,6 @@ func (c *CmdPGPEncrypt) ParseArgv(ctx *cli.Context) error {
 		LocalOnly:     ctx.Bool("local"),
 		BypassConfirm: ctx.Bool("y"),
 	}
-	c.skipTrack = ctx.Bool("skip-track")
 	c.sign = ctx.Bool("sign")
 	c.keyQuery = ctx.String("key")
 	c.binaryOut = ctx.Bool("binary")

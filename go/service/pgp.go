@@ -48,7 +48,6 @@ func (h *PGPHandler) PGPEncrypt(arg keybase1.PGPEncryptArg) error {
 		NoSelf:       arg.Opts.NoSelf,
 		BinaryOutput: arg.Opts.BinaryOut,
 		KeyQuery:     arg.Opts.KeyQuery,
-		SkipTrack:    arg.Opts.SkipTrack,
 		TrackOptions: arg.Opts.TrackOptions,
 	}
 	ctx := &engine.Context{

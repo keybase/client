@@ -186,6 +186,7 @@ func (ui *FakeIdentifyUI) FinishSocialProofCheck(proof keybase1.RemoteProof, res
 }
 func (ui *FakeIdentifyUI) Confirm(outcome *keybase1.IdentifyOutcome) (confirmed bool, err error) {
 	ui.Outcome = outcome
+	confirmed = outcome.TrackOptions.BypassConfirm
 	return
 }
 func (ui *FakeIdentifyUI) DisplayCryptocurrency(keybase1.Cryptocurrency) {

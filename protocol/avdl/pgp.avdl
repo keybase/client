@@ -30,7 +30,6 @@ protocol pgp {
 		boolean noSelf;
 		boolean binaryOut;
 		string keyQuery;
-		boolean skipTrack;
 		TrackOptions trackOptions;
 	}
 

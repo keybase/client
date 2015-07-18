@@ -86,11 +86,10 @@ func TestPGPEncryptNoTrack(t *testing.T) {
 
 	sink := libkb.NewBufferCloser()
 	arg := &PGPEncryptArg{
-		Recips:    []string{"t_alice", "t_bob+kbtester1@twitter", "t_charlie+tacovontaco@twitter"},
-		Source:    strings.NewReader("identify and encrypt, identify and encrypt"),
-		Sink:      sink,
-		NoSign:    true,
-		SkipTrack: true,
+		Recips: []string{"t_alice", "t_bob+kbtester1@twitter", "t_charlie+tacovontaco@twitter"},
+		Source: strings.NewReader("identify and encrypt, identify and encrypt"),
+		Sink:   sink,
+		NoSign: true,
 	}
 
 	eng := NewPGPEncrypt(arg, tc.G)

@@ -62,7 +62,8 @@ func (e *TrackEngine) Run(ctx *Context) error {
 	e.them = ieng.User()
 
 	// prompt if the identify is correct
-	confirmed, err := ctx.IdentifyUI.Confirm(ieng.Outcome().Export())
+	outcome := ieng.Outcome().Export()
+	confirmed, err := ctx.IdentifyUI.Confirm(outcome)
 	if err != nil {
 		return err
 	}

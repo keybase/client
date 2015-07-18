@@ -541,7 +541,6 @@ typedef NS_ENUM (NSInteger, KBRSignMode) {
 @property BOOL noSelf;
 @property BOOL binaryOut;
 @property NSString *keyQuery;
-@property BOOL skipTrack;
 @property KBRTrackOptions *trackOptions;
 @end
 

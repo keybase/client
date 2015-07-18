@@ -8,7 +8,7 @@ import (
 )
 
 func runTrack(tc libkb.TestContext, fu *FakeUser, username string) (idUI *FakeIdentifyUI, them *libkb.User, err error) {
-	return runTrackWithOptions(tc, fu, username, keybase1.TrackOptions{}, false)
+	return runTrackWithOptions(tc, fu, username, keybase1.TrackOptions{BypassConfirm: true}, false)
 }
 
 func runTrackWithOptions(tc libkb.TestContext, fu *FakeUser, username string, options keybase1.TrackOptions, forceRemoteCheck bool) (idUI *FakeIdentifyUI, them *libkb.User, err error) {
@@ -68,7 +68,7 @@ func assertNotTracking(t *testing.T, username string) {
 }
 
 func trackAlice(tc libkb.TestContext, fu *FakeUser) {
-	trackAliceWithOptions(tc, fu, keybase1.TrackOptions{})
+	trackAliceWithOptions(tc, fu, keybase1.TrackOptions{BypassConfirm: true})
 }
 
 func trackAliceWithOptions(tc libkb.TestContext, fu *FakeUser, options keybase1.TrackOptions) {

@@ -17,7 +17,6 @@ type PGPEncryptArg struct {
 	NoSelf       bool
 	BinaryOutput bool
 	KeyQuery     string
-	SkipTrack    bool
 	TrackOptions keybase1.TrackOptions
 }
 
@@ -106,7 +105,7 @@ func (e *PGPEncrypt) Run(ctx *Context) error {
 
 	kfarg := &PGPKeyfinderArg{
 		Users:        e.arg.Recips,
-		SkipTrack:    e.arg.SkipTrack,
+		SkipTrack:    true,
 		TrackOptions: e.arg.TrackOptions,
 	}
 
