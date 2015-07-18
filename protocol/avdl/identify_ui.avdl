@@ -68,6 +68,6 @@ protocol identifyUi {
 	void finishWebProofCheck(int sessionID, RemoteProof rp, LinkCheckResult lcr);
 	void finishSocialProofCheck(int sessionID, RemoteProof rp, LinkCheckResult lcr);
 	void displayCryptocurrency(int sessionID, Cryptocurrency c);
-	void confirm(int sessionID, IdentifyOutcome outcome);
+	boolean confirm(int sessionID, IdentifyOutcome outcome);
 	void finish(int sessionID);
 }

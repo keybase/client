@@ -525,7 +525,7 @@
         "name" : "outcome",
         "type" : "IdentifyOutcome"
       } ],
-      "response" : "null"
+      "response" : "boolean"
     },
     "finish" : {
       "request" : [ {

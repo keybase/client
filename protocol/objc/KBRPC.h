@@ -417,7 +417,7 @@ typedef NS_ENUM (NSInteger, KBRTrackStatus) {
 
 - (void)displayCryptocurrencyWithSessionID:(NSInteger)sessionID c:(KBRCryptocurrency *)c completion:(void (^)(NSError *error))completion;
 
-- (void)confirmWithSessionID:(NSInteger)sessionID outcome:(KBRIdentifyOutcome *)outcome completion:(void (^)(NSError *error))completion;
+- (void)confirmWithSessionID:(NSInteger)sessionID outcome:(KBRIdentifyOutcome *)outcome completion:(void (^)(NSError *error, BOOL b))completion;
 
 - (void)finishWithSessionID:(NSInteger)sessionID completion:(void (^)(NSError *error))completion;
 

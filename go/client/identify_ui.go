@@ -19,7 +19,7 @@ func NewIdentifyTrackUIProtocol() rpc2.Protocol {
 	return keybase1.IdentifyUiProtocol(&IdentifyUIServer{ui})
 }
 
-func (i *IdentifyUIServer) Confirm(arg keybase1.ConfirmArg) error {
+func (i *IdentifyUIServer) Confirm(arg keybase1.ConfirmArg) (bool, error) {
 	return i.ui.Confirm(&arg.Outcome)
 }
 

@@ -464,10 +464,10 @@
   }];
 }
 
-- (void)confirmWithSessionID:(NSInteger)sessionID outcome:(KBRIdentifyOutcome *)outcome completion:(void (^)(NSError *error))completion {
+- (void)confirmWithSessionID:(NSInteger)sessionID outcome:(KBRIdentifyOutcome *)outcome completion:(void (^)(NSError *error, BOOL b))completion {
   NSDictionary *params = @{@"sessionID": @(sessionID), @"outcome": KBRValue(outcome)};
   [self.client sendRequestWithMethod:@"keybase.1.identifyUi.confirm" params:params sessionId:self.sessionId completion:^(NSError *error, id retval) {
-    completion(error);
+    completion(error, 0);
   }];
 }
 

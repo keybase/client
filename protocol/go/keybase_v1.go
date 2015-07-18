@@ -1093,7 +1093,7 @@ type IdentifyUiInterface interface {
 	FinishWebProofCheck(FinishWebProofCheckArg) error
 	FinishSocialProofCheck(FinishSocialProofCheckArg) error
 	DisplayCryptocurrency(DisplayCryptocurrencyArg) error
-	Confirm(ConfirmArg) error
+	Confirm(ConfirmArg) (bool, error)
 	Finish(int) error
 }
 
@@ -1160,7 +1160,7 @@ func IdentifyUiProtocol(i IdentifyUiInterface) rpc2.Protocol {
 			"confirm": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
 				args := make([]ConfirmArg, 1)
 				if err = nxt(&args); err == nil {
-					err = i.Confirm(args[0])
+					ret, err = i.Confirm(args[0])
 				}
 				return
 			},
@@ -1220,8 +1220,8 @@ func (c IdentifyUiClient) DisplayCryptocurrency(__arg DisplayCryptocurrencyArg) 
 	return
 }
 
-func (c IdentifyUiClient) Confirm(__arg ConfirmArg) (err error) {
-	err = c.Cli.Call("keybase.1.identifyUi.confirm", []interface{}{__arg}, nil)
+func (c IdentifyUiClient) Confirm(__arg ConfirmArg) (res bool, err error) {
+	err = c.Cli.Call("keybase.1.identifyUi.confirm", []interface{}{__arg}, &res)
 	return
 }
 

@@ -79,10 +79,10 @@ func (u *RemoteBaseIdentifyUI) FinishSocialProofCheck(p keybase1.RemoteProof, lc
 	return
 }
 
-func (u *RemoteBaseIdentifyUI) Confirm(io *keybase1.IdentifyOutcome) error {
+func (u *RemoteBaseIdentifyUI) Confirm(io *keybase1.IdentifyOutcome) (confirmed bool, err error) {
 	if u.skipPrompt {
 		G.Log.Debug("skipping Confirm for %q", io.Username)
-		return nil
+		return true, nil
 	}
 	return u.uicli.Confirm(keybase1.ConfirmArg{SessionID: u.sessionID, Outcome: *io})
 }

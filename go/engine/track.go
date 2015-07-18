@@ -1,6 +1,7 @@
 package engine
 
 import (
+	"fmt"
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/protocol/go"
 )
@@ -61,9 +62,12 @@ func (e *TrackEngine) Run(ctx *Context) error {
 	e.them = ieng.User()
 
 	// prompt if the identify is correct
-	err := ctx.IdentifyUI.Confirm(ieng.Outcome().Export())
+	confirmed, err := ctx.IdentifyUI.Confirm(ieng.Outcome().Export())
 	if err != nil {
 		return err
+	}
+	if !confirmed {
+		return fmt.Errorf("Track not confirmed")
 	}
 
 	targ := &TrackTokenArg{

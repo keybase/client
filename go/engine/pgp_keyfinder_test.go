@@ -71,7 +71,7 @@ type idLubaUI struct{}
 
 func (u *idLubaUI) FinishWebProofCheck(keybase1.RemoteProof, keybase1.LinkCheckResult)    {}
 func (u *idLubaUI) FinishSocialProofCheck(keybase1.RemoteProof, keybase1.LinkCheckResult) {}
-func (u *idLubaUI) Confirm(*keybase1.IdentifyOutcome) error                               { return nil }
+func (u *idLubaUI) Confirm(*keybase1.IdentifyOutcome) (confirmed bool, err error)         { return }
 func (u *idLubaUI) DisplayCryptocurrency(keybase1.Cryptocurrency)                         {}
 func (u *idLubaUI) ReportLastTrack(*keybase1.TrackSummary)                                {}
 func (u *idLubaUI) Start(string)                                                          {}

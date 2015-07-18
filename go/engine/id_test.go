@@ -184,7 +184,7 @@ func (ui *FakeIdentifyUI) FinishSocialProofCheck(proof keybase1.RemoteProof, res
 	}
 	ui.Proofs[proof.Key] = proof.Value
 }
-func (ui *FakeIdentifyUI) Confirm(outcome *keybase1.IdentifyOutcome) (err error) {
+func (ui *FakeIdentifyUI) Confirm(outcome *keybase1.IdentifyOutcome) (confirmed bool, err error) {
 	ui.Outcome = outcome
 	return
 }

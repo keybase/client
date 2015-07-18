@@ -42,19 +42,19 @@ func (ui BaseIdentifyUI) DisplayTrackStatement(stmt string) error {
 func (ui BaseIdentifyUI) Finish() {
 }
 
-func (ui BaseIdentifyUI) baseConfirm(o *keybase1.IdentifyOutcome) (err error) {
+func (ui BaseIdentifyUI) baseConfirm(o *keybase1.IdentifyOutcome) (bool, error) {
 	warnings := libkb.ImportWarnings(o.Warnings)
 	if !warnings.IsEmpty() {
 		ui.ShowWarnings(warnings)
 	}
-	return
+	return false, nil
 }
 
 func (ui BaseIdentifyUI) LaunchNetworkChecks(i *keybase1.Identity, u *keybase1.User) {
 	return
 }
 
-func (ui IdentifyUI) Confirm(o *keybase1.IdentifyOutcome) error {
+func (ui IdentifyUI) Confirm(o *keybase1.IdentifyOutcome) (confirmed bool, err error) {
 	return ui.baseConfirm(o)
 }
 
@@ -76,7 +76,8 @@ func (ui IdentifyTrackUI) ReportRevoked(del []keybase1.TrackDiff) {
 	}
 }
 
-func (ui IdentifyTrackUI) Confirm(o *keybase1.IdentifyOutcome) (err error) {
+func (ui IdentifyTrackUI) Confirm(o *keybase1.IdentifyOutcome) (confirmed bool, err error) {
+	confirmed = false
 	var prompt string
 	username := o.Username
 
@@ -120,34 +121,34 @@ func (ui IdentifyTrackUI) Confirm(o *keybase1.IdentifyOutcome) (err error) {
 
 	// Tracking statement exists and is unchanged, nothing to do
 	if !trackChanged {
+		confirmed = true
 		return
 	}
 
 	// Tracking statement doesn't exist or changed, lets prompt them with the details
-	var ok bool
-	if ok, err = ui.parent.PromptYesNo(prompt, promptDefault); err != nil {
+	if confirmed, err = ui.parent.PromptYesNo(prompt, promptDefault); err != nil {
 		return
 	}
-	if !ok {
-		err = NotConfirmedError{}
+	if !confirmed {
 		return
 	}
 
 	// If we want to track remote, lets confirm (unless bypassing)
 	if !o.TrackOptions.LocalOnly {
 		if o.TrackOptions.BypassConfirm {
+			confirmed = true
 			return
 		}
 		prompt = "Publicly write tracking statement to server?"
-		if ok, err = ui.parent.PromptYesNo(prompt, promptDefault); err != nil {
+		if confirmed, err = ui.parent.PromptYesNo(prompt, promptDefault); err != nil {
 			return
 		}
-		if !ok {
-			err = fmt.Errorf("If you want to track locally, use the -l option")
-			//err = NotConfirmedError{}
+		if !confirmed {
 			return
 		}
 	}
+
+	confirmed = true
 	return
 }
 
