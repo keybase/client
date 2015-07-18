@@ -68,19 +68,19 @@ func TestUntrack(t *testing.T) {
 	fu := CreateAndSignupFakeUser(tc, "untrk")
 
 	// Local-tracked only.
-	trackAliceWithOptions(tc, fu, keybase1.TrackOptions{LocalOnly: true})
+	trackAliceWithOptions(tc, fu, keybase1.TrackOptions{LocalOnly: true, BypassConfirm: true})
 	assertTracking(t, "t_alice")
 	untrackAlice(tc, fu)
 	assertUntracked(t, "t_alice")
 
 	// Remote-tracked only.
-	trackAliceWithOptions(tc, fu, keybase1.TrackOptions{LocalOnly: false})
+	trackAliceWithOptions(tc, fu, keybase1.TrackOptions{LocalOnly: false, BypassConfirm: true})
 	untrackAlice(tc, fu)
 	assertUntracked(t, "t_alice")
 
 	// Both local- and remote-tracked.
-	trackAliceWithOptions(tc, fu, keybase1.TrackOptions{LocalOnly: true})
-	trackAliceWithOptions(tc, fu, keybase1.TrackOptions{LocalOnly: false})
+	trackAliceWithOptions(tc, fu, keybase1.TrackOptions{LocalOnly: true, BypassConfirm: true})
+	trackAliceWithOptions(tc, fu, keybase1.TrackOptions{LocalOnly: false, BypassConfirm: true})
 	untrackAlice(tc, fu)
 	assertUntracked(t, "t_alice")
 
@@ -106,7 +106,7 @@ func TestUntrackRemoteOnly(t *testing.T) {
 	defer tc.Cleanup()
 	fu := CreateAndSignupFakeUser(tc, "untrk")
 
-	trackAliceWithOptions(tc, fu, keybase1.TrackOptions{LocalOnly: false})
+	trackAliceWithOptions(tc, fu, keybase1.TrackOptions{LocalOnly: false, BypassConfirm: true})
 	untrackAlice(tc, fu)
 	assertUntracked(t, "t_alice")
 }

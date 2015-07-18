@@ -53,6 +53,7 @@ func TestPGPVerify(t *testing.T) {
 	tc2 := SetupEngineTest(t, "PGPVerify")
 	defer tc2.Cleanup()
 	fu2 := CreateAndSignupFakeUser(tc2, "pgp")
+
 	ctx.SecretUI = fu2.NewSecretUI()
 	verify(ctx, tc2, msg, detached, "detached different user", true)
 	verify(ctx, tc2, clearsign, "", "clearsign different user", true)
@@ -81,8 +82,9 @@ func sign(ctx *Context, tc libkb.TestContext, msg string, mode keybase1.SignMode
 func signEnc(ctx *Context, tc libkb.TestContext, msg string) string {
 	sink := libkb.NewBufferCloser()
 	arg := &PGPEncryptArg{
-		Sink:   sink,
-		Source: strings.NewReader(msg),
+		Sink:         sink,
+		Source:       strings.NewReader(msg),
+		TrackOptions: keybase1.TrackOptions{BypassConfirm: true},
 	}
 	eng := NewPGPEncrypt(arg, tc.G)
 	if err := RunEngine(eng, ctx); err != nil {
@@ -93,8 +95,9 @@ func signEnc(ctx *Context, tc libkb.TestContext, msg string) string {
 
 func verify(ctx *Context, tc libkb.TestContext, msg, sig, name string, valid bool) {
 	arg := &PGPVerifyArg{
-		Source:    strings.NewReader(msg),
-		Signature: []byte(sig),
+		Source:       strings.NewReader(msg),
+		Signature:    []byte(sig),
+		TrackOptions: keybase1.TrackOptions{BypassConfirm: true},
 	}
 	eng := NewPGPVerify(arg, tc.G)
 	if err := RunEngine(eng, ctx); err != nil {

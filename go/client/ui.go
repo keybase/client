@@ -139,7 +139,6 @@ func (ui IdentifyTrackUI) Confirm(o *keybase1.IdentifyOutcome) (confirmed bool, 
 	// If we want to track remote, lets confirm (unless bypassing)
 	if !o.TrackOptions.LocalOnly {
 		if o.TrackOptions.BypassConfirm {
-			G.Log.Warning("BYPASS CONFIRMED")
 			confirmed = true
 			return
 		}

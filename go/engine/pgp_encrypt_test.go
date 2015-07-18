@@ -34,16 +34,6 @@ func TestPGPEncrypt(t *testing.T) {
 	if len(out) == 0 {
 		t.Fatal("no output")
 	}
-
-	if err := runUntrack(tc.G, u, "t_alice"); err != nil {
-		t.Fatal(err)
-	}
-	if err := runUntrack(tc.G, u, "t_bob"); err != nil {
-		t.Fatal(err)
-	}
-	if err := runUntrack(tc.G, u, "t_charlie"); err != nil {
-		t.Fatal(err)
-	}
 }
 
 func TestPGPEncryptSelfNoKey(t *testing.T) {

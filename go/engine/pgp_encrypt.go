@@ -103,9 +103,14 @@ func (e *PGPEncrypt) Run(ctx *Context) error {
 		signer = mykey
 	}
 
+	var skipTrack = true
+	if e.arg.TrackOptions.BypassConfirm {
+		skipTrack = false
+	}
+
 	kfarg := &PGPKeyfinderArg{
 		Users:        e.arg.Recips,
-		SkipTrack:    true,
+		SkipTrack:    skipTrack,
 		TrackOptions: e.arg.TrackOptions,
 	}
 

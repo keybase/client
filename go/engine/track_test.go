@@ -82,7 +82,7 @@ func trackAliceWithOptions(tc libkb.TestContext, fu *FakeUser, options keybase1.
 }
 
 func trackBob(tc libkb.TestContext, fu *FakeUser) {
-	trackBobWithOptions(tc, fu, keybase1.TrackOptions{})
+	trackBobWithOptions(tc, fu, keybase1.TrackOptions{BypassConfirm: true})
 }
 
 func trackBobWithOptions(tc libkb.TestContext, fu *FakeUser, options keybase1.TrackOptions) {
@@ -153,7 +153,7 @@ func TestTrackLocal(t *testing.T) {
 	defer tc.Cleanup()
 	fu := CreateAndSignupFakeUser(tc, "track")
 
-	_, them, err := runTrackWithOptions(tc, fu, "t_alice", keybase1.TrackOptions{LocalOnly: true}, false)
+	_, them, err := runTrackWithOptions(tc, fu, "t_alice", keybase1.TrackOptions{LocalOnly: true, BypassConfirm: true}, false)
 	if err != nil {
 		t.Fatal(err)
 	}

@@ -24,7 +24,8 @@ func TestPGPKeyfinder(t *testing.T) {
 
 	ctx := &Context{IdentifyUI: trackUI, SecretUI: u.NewSecretUI()}
 	arg := &PGPKeyfinderArg{
-		Users: []string{"t_alice", "t_bob+kbtester1@twitter", "t_charlie+tacovontaco@twitter"},
+		Users:     []string{"t_alice", "t_bob+kbtester1@twitter", "t_charlie+tacovontaco@twitter"},
+		SkipTrack: true,
 	}
 	eng := NewPGPKeyfinder(arg, tc.G)
 	if err := RunEngine(eng, ctx); err != nil {
@@ -34,13 +35,6 @@ func TestPGPKeyfinder(t *testing.T) {
 	up := eng.UsersPlusKeys()
 	if len(up) != 3 {
 		t.Errorf("number of users found: %d, expected 3", len(up))
-	}
-
-	if err := runUntrack(tc.G, u, "t_bob"); err != nil {
-		t.Fatal(err)
-	}
-	if err := runUntrack(tc.G, u, "t_charlie"); err != nil {
-		t.Fatal(err)
 	}
 }
 
