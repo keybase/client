@@ -20,7 +20,6 @@ type Folder struct {
 	list         *FolderList
 	name         string
 	folderBranch libkbfs.FolderBranch
-	dh           *libkbfs.TlfHandle
 
 	// Protects fields for all Dir and File instances.
 	mu sync.Mutex
@@ -188,7 +187,7 @@ func (d *Dir) Attr(ctx context.Context, a *fuse.Attr) (err error) {
 	fillAttr(&de, a)
 
 	a.Mode = os.ModeDir | 0700
-	if d.folder.folderBranch.Tlf.IsPublic() || d.folder.dh.IsPublic() {
+	if d.folder.folderBranch.Tlf.IsPublic() {
 		a.Mode |= 0055
 	}
 	return nil

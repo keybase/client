@@ -85,7 +85,6 @@ func (fl *FolderList) Lookup(ctx context.Context, req *fuse.LookupRequest, resp 
 		list:         fl,
 		name:         req.Name,
 		folderBranch: folderBranch,
-		dh:           dh,
 		nodes:        map[libkbfs.NodeID]fs.Node{},
 	}
 
