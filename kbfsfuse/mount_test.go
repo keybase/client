@@ -201,7 +201,7 @@ func TestReaddirPrivate(t *testing.T) {
 	defer mnt.Close()
 
 	{
-		// Force FakeMDServer to have some DirIds it can present to us
+		// Force FakeMDServer to have some TlfIDs it can present to us
 		// as favorites. Don't go through VFS to avoid caching causing
 		// false positives.
 		dh, err := libkbfs.ParseTlfHandle(context.Background(), config, "jdoe")
@@ -225,7 +225,7 @@ func TestReaddirPublic(t *testing.T) {
 	defer mnt.Close()
 
 	{
-		// Force FakeMDServer to have some DirIds it can present to us
+		// Force FakeMDServer to have some TlfIDs it can present to us
 		// as favorites. Don't go through VFS to avoid caching causing
 		// false positives.
 		dh, err := libkbfs.ParseTlfHandle(context.Background(), config, "jdoe")
