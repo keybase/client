@@ -8,7 +8,7 @@ cd $DIR
 cd ~/Library/LaunchAgents/
 
 shopt -s nullglob
-for f in keybase.*
+for f in *keybase*
 do
   echo "Unloading and removing: $f"
   launchctl unload $f

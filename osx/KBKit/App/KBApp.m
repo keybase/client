@@ -79,8 +79,8 @@
   }];
   [AFNetworkReachabilityManager.sharedManager startMonitoring];
 
-  // Cleanup old stuff  
-  [KBUninstaller uninstall:@"keybase" completion:^(NSError *error) {}];
+  // Cleanup old stuff
+  //[KBUninstaller uninstall:@"keybase" completion:^(NSError *error) {}];
 
   // Save installed version in case a later upgrade needs this info
   NSString *version = NSBundle.mainBundle.infoDictionary[@"CFBundleShortVersionString"];

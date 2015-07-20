@@ -138,7 +138,7 @@
 
 - (NSString *)cachePath:(NSString *)filename {
   NSString *homeDir = _homeDir ? _homeDir : KBPath(@"~", NO, NO);
-  return KBPathInDir(homeDir, NSStringWithFormat(@"Library/Caches/%@", filename), NO, NO);
+  return KBPathInDir(homeDir, NSStringWithFormat(@"Library/Caches/%@/%@", [self appName], filename), NO, NO);
 }
 
 + (instancetype)env:(KBEnv)env {
@@ -207,8 +207,10 @@
            @"ProgramArguments": args,
            @"RunAtLoad": @YES,
            @"KeepAlive": @YES,
-           @"StandardOutPath": NSStringWithFormat(@"%@/%@.log", logDir, self.launchdLabelService),
-           @"StandardErrorPath": NSStringWithFormat(@"%@/%@.err", logDir, self.launchdLabelService),
+
+           // If we redirect stdout/err it creates Logs directory as root and will fail to load
+           //@"StandardOutPath": NSStringWithFormat(@"%@/%@.log", logDir, self.launchdLabelService),
+           //@"StandardErrorPath": NSStringWithFormat(@"%@/%@.err", logDir, self.launchdLabelService),
            };
 }
 
