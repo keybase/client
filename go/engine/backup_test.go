@@ -31,7 +31,7 @@ func TestBackupKeypush(t *testing.T) {
 		LoginUI:  libkb.TestLoginUI{},
 		SecretUI: &libkb.TestSecretUI{},
 	}
-	eng := NewBackupKeypush(tc.G)
+	eng := NewBackup(tc.G)
 	if err := RunEngine(eng, ctx); err != nil {
 		t.Fatal(err)
 	}
@@ -111,7 +111,7 @@ func TestBackupKeypushRevoke(t *testing.T) {
 		SecretUI: &libkb.TestSecretUI{},
 	}
 
-	eng := NewBackupKeypush(tc.G)
+	eng := NewBackup(tc.G)
 	if err := RunEngine(eng, ctx); err != nil {
 		t.Fatal(err)
 	}
@@ -126,7 +126,7 @@ func TestBackupKeypushRevoke(t *testing.T) {
 	}
 
 	// generate another one, first should be revoked
-	eng = NewBackupKeypush(tc.G)
+	eng = NewBackup(tc.G)
 	if err := RunEngine(eng, ctx); err != nil {
 		t.Fatal(err)
 	}
@@ -154,7 +154,7 @@ func TestBackupKeypushNoRevoke(t *testing.T) {
 		SecretUI: &libkb.TestSecretUI{},
 	}
 
-	eng := NewBackupKeypush(tc.G)
+	eng := NewBackup(tc.G)
 	if err := RunEngine(eng, ctx); err != nil {
 		t.Fatal(err)
 	}
@@ -169,7 +169,7 @@ func TestBackupKeypushNoRevoke(t *testing.T) {
 	}
 
 	// generate another one, first should be left alone
-	eng = NewBackupKeypush(tc.G)
+	eng = NewBackup(tc.G)
 	if err := RunEngine(eng, ctx); err != nil {
 		t.Fatal(err)
 	}
