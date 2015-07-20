@@ -264,7 +264,7 @@ const (
 	BackupKeyScryptCost    = 32768
 	BackupKeyScryptR       = 8
 	BackupKeyScryptP       = 1
-	BackupKeyScryptKeylen  = 96
+	BackupKeyScryptKeylen  = 128
 	BackupKeyPhraseEntropy = 128
 )
 

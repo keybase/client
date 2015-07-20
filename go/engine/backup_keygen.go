@@ -2,7 +2,6 @@ package engine
 
 import (
 	"bytes"
-	"fmt"
 
 	"github.com/agl/ed25519"
 	"golang.org/x/crypto/nacl/box"
@@ -20,9 +19,10 @@ type BackupKeygenArg struct {
 
 // BackupKeygen is an engine.
 type BackupKeygen struct {
-	arg    *BackupKeygenArg
-	sigKey libkb.GenericKey
-	encKey libkb.GenericKey
+	arg      *BackupKeygenArg
+	ppStream *libkb.PassphraseStream
+	sigKey   libkb.GenericKey
+	encKey   libkb.GenericKey
 	libkb.Contextified
 }
 
@@ -66,25 +66,24 @@ func (e *BackupKeygen) EncKey() libkb.GenericKey {
 
 // Run starts the engine.
 func (e *BackupKeygen) Run(ctx *Context) error {
-
-	fmt.Printf("keygen passphrase: %q\n", e.arg.Passphrase)
-
 	// make the passphrase stream
 	key, err := scrypt.Key([]byte(e.arg.Passphrase), nil,
 		libkb.BackupKeyScryptCost, libkb.BackupKeyScryptR, libkb.BackupKeyScryptP, libkb.BackupKeyScryptKeylen)
 	if err != nil {
 		return err
 	}
+	e.ppStream = libkb.NewPassphraseStream(key)
+	e.ppStream.SetGeneration(1)
 
-	ppStream := libkb.NewPassphraseStream(key)
-
-	if err := e.makeSigKey(ppStream); err != nil {
+	// make keys for the backup device
+	if err := e.makeSigKey(); err != nil {
 		return err
 	}
-	if err := e.makeEncKey(ppStream); err != nil {
+	if err := e.makeEncKey(); err != nil {
 		return err
 	}
 
+	// push everything to the server
 	if err := e.push(ctx); err != nil {
 		return err
 	}
@@ -92,8 +91,8 @@ func (e *BackupKeygen) Run(ctx *Context) error {
 	return nil
 }
 
-func (e *BackupKeygen) makeSigKey(ppStream *libkb.PassphraseStream) error {
-	pub, priv, err := ed25519.GenerateKey(bytes.NewBuffer(ppStream.EdDSASeed()))
+func (e *BackupKeygen) makeSigKey() error {
+	pub, priv, err := ed25519.GenerateKey(bytes.NewBuffer(e.ppStream.EdDSASeed()))
 	if err != nil {
 		return err
 	}
@@ -108,8 +107,8 @@ func (e *BackupKeygen) makeSigKey(ppStream *libkb.PassphraseStream) error {
 	return nil
 }
 
-func (e *BackupKeygen) makeEncKey(ppStream *libkb.PassphraseStream) error {
-	pub, priv, err := box.GenerateKey(bytes.NewBuffer(ppStream.DHSeed()))
+func (e *BackupKeygen) makeEncKey() error {
+	pub, priv, err := box.GenerateKey(bytes.NewBuffer(e.ppStream.DHSeed()))
 	if err != nil {
 		return err
 	}
@@ -128,11 +127,30 @@ func (e *BackupKeygen) push(ctx *Context) error {
 		return nil
 	}
 
+	// create a new backup device
 	dev, err := libkb.NewBackupDevice()
 	if err != nil {
 		return err
 	}
 
+	// create lks halves for this device.  Note that they aren't used for
+	// local, encrypted storage of the backup keys, but just for recovery
+	// purposes.
+	lks := libkb.NewLKSec(e.ppStream.LksClientHalf(), e.ppStream.Generation(), e.arg.Me.GetUID(), e.G())
+	if err := lks.GenerateServerHalf(); err != nil {
+		return err
+	}
+	ctext, err := lks.EncryptClientHalfRecovery(e.encKey)
+	if err != nil {
+		return err
+	}
+
+	// post them to the server.
+	if err := libkb.PostDeviceLKS(ctx.LoginContext, dev.ID, libkb.DeviceTypeBackup, lks.GetServerHalf(), lks.Generation(), ctext, e.encKey.GetKID()); err != nil {
+		return err
+	}
+
+	// push the backup signing key
 	sigDel := libkb.Delegator{
 		NewKey:      e.sigKey,
 		Sibkey:      true,
@@ -145,6 +163,7 @@ func (e *BackupKeygen) push(ctx *Context) error {
 		return err
 	}
 
+	// push the backup encryption key
 	sigEnc := libkb.Delegator{
 		NewKey:      e.encKey,
 		Sibkey:      false,

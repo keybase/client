@@ -10,7 +10,6 @@ import (
 	"time"
 
 	keybase1 "github.com/keybase/client/protocol/go"
-	jsonw "github.com/keybase/go-jsonw"
 	triplesec "github.com/keybase/go-triplesec"
 )
 
@@ -127,6 +126,16 @@ func (s *LoginState) LoginWithPassphrase(username, passphrase string, storeSecre
 	err = s.loginHandle(func(lctx LoginContext) error {
 		return s.loginWithPassphrase(lctx, username, passphrase, storeSecret)
 	}, after, "loginWithPassphrase")
+	return
+}
+
+func (s *LoginState) LoginWithKey(lctx LoginContext, user *User, key GenericKey, after afterFn) (err error) {
+	s.G().Log.Debug("+ LoginWithKey(%s) called", user.GetName())
+	defer func() { s.G().Log.Debug("- LoginWithKey -> %s", ErrToOk(err)) }()
+
+	err = s.loginHandle(func(lctx LoginContext) error {
+		return s.loginWithKey(lctx, user, key)
+	}, after, "loginWithKey")
 	return
 }
 
@@ -324,12 +333,6 @@ type getSecretKeyFn func(*Keyrings, *User) (GenericKey, error)
 // pubkeyLoginHelper looks for a locally available private key and
 // tries to establish a session via public key signature.
 func (s *LoginState) pubkeyLoginHelper(lctx LoginContext, username string, getSecretKeyFn getSecretKeyFn) (err error) {
-	var key GenericKey
-	var me *User
-	var proof *jsonw.Wrapper
-	var sig string
-	var pres *PostAuthProofRes
-
 	s.G().Log.Debug("+ pubkeyLoginHelper()")
 	defer func() {
 		if err != nil {
@@ -345,12 +348,22 @@ func (s *LoginState) pubkeyLoginHelper(lctx LoginContext, username string, getSe
 		return
 	}
 
+	var me *User
 	if me, err = LoadUser(LoadUserArg{Name: username, LoginContext: lctx}); err != nil {
 		return
 	}
 
-	if err = lctx.LoadLoginSession(username); err != nil {
-		return
+	var key GenericKey
+	if key, err = getSecretKeyFn(s.G().Keyrings, me); err != nil {
+		return err
+	}
+
+	return s.pubkeyLoginWithKey(lctx, me, key)
+}
+
+func (s *LoginState) pubkeyLoginWithKey(lctx LoginContext, me *User, key GenericKey) error {
+	if err := lctx.LoadLoginSession(me.GetName()); err != nil {
+		return err
 	}
 
 	loginSessionEncoded, err := lctx.LoginSession().SessionEncoded()
@@ -358,16 +371,14 @@ func (s *LoginState) pubkeyLoginHelper(lctx LoginContext, username string, getSe
 		return err
 	}
 
-	if key, err = getSecretKeyFn(s.G().Keyrings, me); err != nil {
+	proof, err := me.AuthenticationProof(key, loginSessionEncoded, AuthExpireIn)
+	if err != nil {
 		return err
 	}
 
-	if proof, err = me.AuthenticationProof(key, loginSessionEncoded, AuthExpireIn); err != nil {
-		return
-	}
-
-	if sig, _, _, err = SignJSON(proof, key); err != nil {
-		return
+	sig, _, _, err := SignJSON(proof, key)
+	if err != nil {
+		return err
 	}
 
 	arg := PostAuthProofArg{
@@ -375,8 +386,9 @@ func (s *LoginState) pubkeyLoginHelper(lctx LoginContext, username string, getSe
 		sig: sig,
 		key: key,
 	}
-	if pres, err = PostAuthProof(arg); err != nil {
-		return
+	pres, err := PostAuthProof(arg)
+	if err != nil {
+		return err
 	}
 
 	res, err := pres.loginResult()
@@ -745,6 +757,20 @@ func (s *LoginState) loginWithPassphrase(lctx LoginContext, username, passphrase
 	}
 
 	return s.passphraseLogin(lctx, username, passphrase, nil, "")
+}
+
+func (s *LoginState) loginWithKey(lctx LoginContext, user *User, key GenericKey) error {
+	if loggedIn, err := s.checkLoggedIn(lctx, user.GetName(), false); err != nil {
+		return err
+	} else if loggedIn {
+		return nil
+	}
+
+	if err := s.switchUser(lctx, user.GetName()); err != nil {
+		return err
+	}
+
+	return s.pubkeyLoginWithKey(lctx, user, key)
 }
 
 func (s *LoginState) logout(a LoginContext) error {

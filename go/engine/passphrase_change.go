@@ -155,9 +155,6 @@ func (c *PassphraseChange) findBackupKeys(ctx *Context) (*keypair, error) {
 	sigKey := bkeng.SigKey()
 	encKey := bkeng.EncKey()
 
-	fmt.Printf("generated sigKey kid: %s\n", sigKey.GetKID())
-	fmt.Printf("generated encKey kid: %s\n", encKey.GetKID())
-
 	var match bool
 	ckf := c.me.GetComputedKeyFamily()
 	for _, bdev := range bdevs {
@@ -170,13 +167,6 @@ func (c *PassphraseChange) findBackupKeys(ctx *Context) (*keypair, error) {
 			continue
 		}
 
-		if sk != nil {
-			fmt.Printf("existing sigKey kid: %s\n", sk.GetKID())
-		}
-		if ek != nil {
-			fmt.Printf("existing encKey kid: %s\n", ek.GetKID())
-		}
-
 		if sk.GetKID().Equal(sigKey.GetKID()) && ek.GetKID().Equal(encKey.GetKID()) {
 			match = true
 			break
@@ -187,7 +177,7 @@ func (c *PassphraseChange) findBackupKeys(ctx *Context) (*keypair, error) {
 		return nil, libkb.PassphraseError{Msg: "no matching backup keys found"}
 	}
 
-	return nil, nil
+	return &keypair{sigKey: sigKey, encKey: encKey}, nil
 }
 
 // findUpdateKeys looks for keys to perform the passphrase update.
@@ -205,7 +195,11 @@ func (c *PassphraseChange) findUpdateKeys(ctx *Context) (*keypair, error) {
 		return nil, err
 	}
 
-	// TODO: log in with backup keys
+	// log in with backup keys
+	err = c.G().LoginState().LoginWithKey(ctx.LoginContext, c.me, kp.sigKey, nil)
+	if err != nil {
+		return nil, err
+	}
 
 	return kp, nil
 }
