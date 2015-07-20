@@ -15,7 +15,6 @@
 		000E07821B30AE8500FEE4C6 /* KBServiceStatus.m in Sources */ = {isa = PBXBuildFile; fileRef = 000E077E1B30AE8500FEE4C6 /* KBServiceStatus.m */; };
 		000E078A1B30B0E700FEE4C6 /* KBFinder.h in Headers */ = {isa = PBXBuildFile; fileRef = 000E07881B30B0E700FEE4C6 /* KBFinder.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		000E078B1B30B0E700FEE4C6 /* KBFinder.m in Sources */ = {isa = PBXBuildFile; fileRef = 000E07891B30B0E700FEE4C6 /* KBFinder.m */; };
-		001392741B06B18A0082DEA8 /* DmgBackground.pxm in Resources */ = {isa = PBXBuildFile; fileRef = 001392701B06B18A0082DEA8 /* DmgBackground.pxm */; };
 		001392751B06B18A0082DEA8 /* Fuse.icns in Resources */ = {isa = PBXBuildFile; fileRef = 001392711B06B18A0082DEA8 /* Fuse.icns */; };
 		001392761B06B18A0082DEA8 /* gpgtools.icns in Resources */ = {isa = PBXBuildFile; fileRef = 001392721B06B18A0082DEA8 /* gpgtools.icns */; };
 		0013928D1B0BE5DC0082DEA8 /* uninstall_helper in Resources */ = {isa = PBXBuildFile; fileRef = 0013928C1B0BE5DC0082DEA8 /* uninstall_helper */; };
@@ -66,7 +65,6 @@
 		0043D1411B28F1370036C532 /* KBPrefTextField.m in Sources */ = {isa = PBXBuildFile; fileRef = 0043D12D1B28F1370036C532 /* KBPrefTextField.m */; };
 		0043D1471B28F7220036C532 /* KBKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 00C0DC361B28EC1800A825D4 /* KBKit.framework */; };
 		004624B81B2917AB00E218AC /* FinderSync.m in Sources */ = {isa = PBXBuildFile; fileRef = 004624B71B2917AB00E218AC /* FinderSync.m */; };
-		004624BB1B2917AB00E218AC /* FinderSync.appex in Embed App Extensions */ = {isa = PBXBuildFile; fileRef = 004624B11B2917AB00E218AC /* FinderSync.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		004624C31B2917C200E218AC /* KBKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 00C0DC361B28EC1800A825D4 /* KBKit.framework */; };
 		004624C61B2917CB00E218AC /* KBKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 00C0DC361B28EC1800A825D4 /* KBKit.framework */; };
 		004624CB1B2A08F400E218AC /* KBUninstaller.h in Headers */ = {isa = PBXBuildFile; fileRef = 004624C91B2A08F400E218AC /* KBUninstaller.h */; };
@@ -91,8 +89,6 @@
 		0057B0DB1AE57B5900BFB0E7 /* keybase.Helper in Copy Files */ = {isa = PBXBuildFile; fileRef = 0057B0B41AE57A4900BFB0E7 /* keybase.Helper */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
 		0060C7DC1B3B57AF00E70F69 /* KBProofView.h in Headers */ = {isa = PBXBuildFile; fileRef = 0060C7DA1B3B57AF00E70F69 /* KBProofView.h */; };
 		0060C7DD1B3B57AF00E70F69 /* KBProofView.m in Sources */ = {isa = PBXBuildFile; fileRef = 0060C7DB1B3B57AF00E70F69 /* KBProofView.m */; };
-		0086E3691B38C08D0042FED8 /* Share.appex in Embed App Extensions */ = {isa = PBXBuildFile; fileRef = 001C6B371B24F8630048F086 /* Share.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
-		0086E36A1B38C0900042FED8 /* Action.appex in Embed App Extensions */ = {isa = PBXBuildFile; fileRef = 009E13661B27B39300C72B28 /* Action.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		008E047E1B28ECFF000F15AA /* KBErrorView.h in Headers */ = {isa = PBXBuildFile; fileRef = 009E14041B28A93D00C72B28 /* KBErrorView.h */; };
 		008E047F1B28ECFF000F15AA /* KBErrorView.m in Sources */ = {isa = PBXBuildFile; fileRef = 009E14051B28A93D00C72B28 /* KBErrorView.m */; };
 		008E04801B28ECFF000F15AA /* KBFatalErrorView.h in Headers */ = {isa = PBXBuildFile; fileRef = 009E14061B28A93D00C72B28 /* KBFatalErrorView.h */; };
@@ -361,33 +357,12 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
-		0033CEBD1B2B9C4E00239B85 /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = 00CC43411A3A9E6C006118A9 /* Project object */;
-			proxyType = 1;
-			remoteGlobalIDString = 001C6B361B24F8630048F086;
-			remoteInfo = Share;
-		};
 		0043D1031B28ED290036C532 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 00CC43411A3A9E6C006118A9 /* Project object */;
 			proxyType = 1;
 			remoteGlobalIDString = 00C0DC351B28EC1800A825D4;
 			remoteInfo = KBKit;
-		};
-		0043D1441B28F64E0036C532 /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = 00CC43411A3A9E6C006118A9 /* Project object */;
-			proxyType = 1;
-			remoteGlobalIDString = 009E13651B27B39300C72B28;
-			remoteInfo = Action;
-		};
-		004624B91B2917AB00E218AC /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = 00CC43411A3A9E6C006118A9 /* Project object */;
-			proxyType = 1;
-			remoteGlobalIDString = 004624B01B2917AB00E218AC;
-			remoteInfo = FinderSync;
 		};
 		004624BF1B2917BA00E218AC /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
@@ -447,19 +422,6 @@
 				0043D1021B28ED290036C532 /* KBKit.framework in Embed Frameworks */,
 			);
 			name = "Embed Frameworks";
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-		0043D1461B28F64E0036C532 /* Embed App Extensions */ = {
-			isa = PBXCopyFilesBuildPhase;
-			buildActionMask = 2147483647;
-			dstPath = "";
-			dstSubfolderSpec = 13;
-			files = (
-				0086E36A1B38C0900042FED8 /* Action.appex in Embed App Extensions */,
-				004624BB1B2917AB00E218AC /* FinderSync.appex in Embed App Extensions */,
-				0086E3691B38C08D0042FED8 /* Share.appex in Embed App Extensions */,
-			);
-			name = "Embed App Extensions";
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 		004EF2CA1B3340D8007822CE /* CopyFiles */ = {
@@ -1976,7 +1938,6 @@
 				0057B0DA1AE57B4C00BFB0E7 /* Copy Files */,
 				001392891B0BDB8A0082DEA8 /* CopyFiles */,
 				0043D1051B28ED290036C532 /* Embed Frameworks */,
-				0043D1461B28F64E0036C532 /* Embed App Extensions */,
 				0043D1481B2905950036C532 /* ShellScript */,
 			);
 			buildRules = (
@@ -1984,9 +1945,6 @@
 			dependencies = (
 				0057B0D91AE57B4800BFB0E7 /* PBXTargetDependency */,
 				0043D1041B28ED290036C532 /* PBXTargetDependency */,
-				0043D1451B28F64E0036C532 /* PBXTargetDependency */,
-				004624BA1B2917AB00E218AC /* PBXTargetDependency */,
-				0033CEBE1B2B9C4E00239B85 /* PBXTargetDependency */,
 			);
 			name = Keybase;
 			productName = Keybase;
@@ -2140,7 +2098,6 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				001392741B06B18A0082DEA8 /* DmgBackground.pxm in Resources */,
 				001392751B06B18A0082DEA8 /* Fuse.icns in Resources */,
 				0013928D1B0BE5DC0082DEA8 /* uninstall_helper in Resources */,
 				004F44091B154EBA0021A29D /* kbfuse.bundle in Resources */,
@@ -2449,25 +2406,10 @@
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
-		0033CEBE1B2B9C4E00239B85 /* PBXTargetDependency */ = {
-			isa = PBXTargetDependency;
-			target = 001C6B361B24F8630048F086 /* Share */;
-			targetProxy = 0033CEBD1B2B9C4E00239B85 /* PBXContainerItemProxy */;
-		};
 		0043D1041B28ED290036C532 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
 			target = 00C0DC351B28EC1800A825D4 /* KBKit */;
 			targetProxy = 0043D1031B28ED290036C532 /* PBXContainerItemProxy */;
-		};
-		0043D1451B28F64E0036C532 /* PBXTargetDependency */ = {
-			isa = PBXTargetDependency;
-			target = 009E13651B27B39300C72B28 /* Action */;
-			targetProxy = 0043D1441B28F64E0036C532 /* PBXContainerItemProxy */;
-		};
-		004624BA1B2917AB00E218AC /* PBXTargetDependency */ = {
-			isa = PBXTargetDependency;
-			target = 004624B01B2917AB00E218AC /* FinderSync */;
-			targetProxy = 004624B91B2917AB00E218AC /* PBXContainerItemProxy */;
 		};
 		004624C01B2917BA00E218AC /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
@@ -2513,8 +2455,7 @@
 			baseConfigurationReference = 009E16211B28AC9300C72B28 /* Pods-KBKit.debug.xcconfig */;
 			buildSettings = {
 				CODE_SIGN_ENTITLEMENTS = Extensions/Share/Share.entitlements;
-				CODE_SIGN_IDENTITY = "Mac Developer";
-				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "Mac Developer";
+				CODE_SIGN_IDENTITY = "Developer ID Application";
 				COMBINE_HIDPI_IMAGES = YES;
 				DEBUG_INFORMATION_FORMAT = dwarf;
 				GCC_NO_COMMON_BLOCKS = YES;
@@ -2535,8 +2476,7 @@
 			baseConfigurationReference = 009E16221B28AC9300C72B28 /* Pods-KBKit.release.xcconfig */;
 			buildSettings = {
 				CODE_SIGN_ENTITLEMENTS = Extensions/Share/Share.entitlements;
-				CODE_SIGN_IDENTITY = "Mac Developer";
-				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "Mac Developer";
+				CODE_SIGN_IDENTITY = "Developer ID Application";
 				COMBINE_HIDPI_IMAGES = YES;
 				COPY_PHASE_STRIP = NO;
 				GCC_NO_COMMON_BLOCKS = YES;
@@ -2552,8 +2492,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				CODE_SIGN_ENTITLEMENTS = Extensions/FinderSync/FinderSync.entitlements;
-				CODE_SIGN_IDENTITY = "Mac Developer";
-				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "Mac Developer";
+				CODE_SIGN_IDENTITY = "Developer ID Application";
 				COMBINE_HIDPI_IMAGES = YES;
 				DEBUG_INFORMATION_FORMAT = dwarf;
 				GCC_NO_COMMON_BLOCKS = YES;
@@ -2573,8 +2512,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				CODE_SIGN_ENTITLEMENTS = Extensions/FinderSync/FinderSync.entitlements;
-				CODE_SIGN_IDENTITY = "Mac Developer";
-				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "Mac Developer";
+				CODE_SIGN_IDENTITY = "Developer ID Application";
 				COMBINE_HIDPI_IMAGES = YES;
 				COPY_PHASE_STRIP = NO;
 				GCC_NO_COMMON_BLOCKS = YES;
@@ -2590,14 +2528,12 @@
 			isa = XCBuildConfiguration;
 			baseConfigurationReference = C90761892F9CE72BDF1A25D0 /* Pods-keybase.Helper.debug.xcconfig */;
 			buildSettings = {
-				CODE_SIGN_IDENTITY = "Developer ID Application: Keybase, Inc. (99229SGT5K)";
 				DEBUG_INFORMATION_FORMAT = dwarf;
 				GCC_NO_COMMON_BLOCKS = YES;
 				GCC_PREPROCESSOR_DEFINITIONS = (
 					"DEBUG=1",
 					"$(inherited)",
 				);
-				OTHER_CODE_SIGN_FLAGS = "";
 				OTHER_LDFLAGS = (
 					"$(inherited)",
 					"-sectcreate",
@@ -2610,7 +2546,6 @@
 					Helper/keybase.Helper.plist,
 				);
 				PRODUCT_NAME = "$(TARGET_NAME)";
-				PROVISIONING_PROFILE = "";
 				SKIP_INSTALL = YES;
 			};
 			name = Debug;
@@ -2619,10 +2554,8 @@
 			isa = XCBuildConfiguration;
 			baseConfigurationReference = 8D23D54BB04DE19BBF61A888 /* Pods-keybase.Helper.release.xcconfig */;
 			buildSettings = {
-				CODE_SIGN_IDENTITY = "Developer ID Application: Keybase, Inc. (99229SGT5K)";
 				COPY_PHASE_STRIP = NO;
 				GCC_NO_COMMON_BLOCKS = YES;
-				OTHER_CODE_SIGN_FLAGS = "";
 				OTHER_LDFLAGS = (
 					"$(inherited)",
 					"-sectcreate",
@@ -2635,7 +2568,6 @@
 					Helper/keybase.Helper.plist,
 				);
 				PRODUCT_NAME = "$(TARGET_NAME)";
-				PROVISIONING_PROFILE = "";
 				SKIP_INSTALL = YES;
 			};
 			name = Release;
@@ -2645,8 +2577,7 @@
 			baseConfigurationReference = 009E16211B28AC9300C72B28 /* Pods-KBKit.debug.xcconfig */;
 			buildSettings = {
 				CODE_SIGN_ENTITLEMENTS = Extensions/Action/Action.entitlements;
-				CODE_SIGN_IDENTITY = "Mac Developer";
-				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "Mac Developer";
+				CODE_SIGN_IDENTITY = "Developer ID Application";
 				COMBINE_HIDPI_IMAGES = YES;
 				DEBUG_INFORMATION_FORMAT = dwarf;
 				GCC_NO_COMMON_BLOCKS = YES;
@@ -2667,8 +2598,7 @@
 			baseConfigurationReference = 009E16221B28AC9300C72B28 /* Pods-KBKit.release.xcconfig */;
 			buildSettings = {
 				CODE_SIGN_ENTITLEMENTS = Extensions/Action/Action.entitlements;
-				CODE_SIGN_IDENTITY = "Mac Developer";
-				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "Mac Developer";
+				CODE_SIGN_IDENTITY = "Developer ID Application";
 				COMBINE_HIDPI_IMAGES = YES;
 				COPY_PHASE_STRIP = NO;
 				GCC_NO_COMMON_BLOCKS = YES;
@@ -2724,7 +2654,6 @@
 			isa = XCBuildConfiguration;
 			baseConfigurationReference = 009E16211B28AC9300C72B28 /* Pods-KBKit.debug.xcconfig */;
 			buildSettings = {
-				CODE_SIGN_IDENTITY = "Developer ID Application: Keybase, Inc. (99229SGT5K)";
 				COMBINE_HIDPI_IMAGES = YES;
 				CURRENT_PROJECT_VERSION = 1;
 				DEBUG_INFORMATION_FORMAT = dwarf;
@@ -2741,7 +2670,6 @@
 				INFOPLIST_FILE = KBKit/Info.plist;
 				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks @loader_path/Frameworks";
-				OTHER_CODE_SIGN_FLAGS = "";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = YES;
 				VERSIONING_SYSTEM = "apple-generic";
@@ -2753,7 +2681,6 @@
 			isa = XCBuildConfiguration;
 			baseConfigurationReference = 009E16221B28AC9300C72B28 /* Pods-KBKit.release.xcconfig */;
 			buildSettings = {
-				CODE_SIGN_IDENTITY = "Developer ID Application: Keybase, Inc. (99229SGT5K)";
 				COMBINE_HIDPI_IMAGES = YES;
 				COPY_PHASE_STRIP = NO;
 				CURRENT_PROJECT_VERSION = 1;
@@ -2766,7 +2693,6 @@
 				INFOPLIST_FILE = KBKit/Info.plist;
 				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks @loader_path/Frameworks";
-				OTHER_CODE_SIGN_FLAGS = "";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = YES;
 				VERSIONING_SYSTEM = "apple-generic";
@@ -2859,8 +2785,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIconDev;
 				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_ENTITLEMENTS = Keybase/Keybase.entitlements;
-				CODE_SIGN_IDENTITY = "Mac Developer";
-				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "Mac Developer";
+				CODE_SIGN_IDENTITY = "";
 				COMBINE_HIDPI_IMAGES = YES;
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(inherited)",
@@ -2870,7 +2795,6 @@
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks";
 				MACOSX_DEPLOYMENT_TARGET = 10.10;
 				PRODUCT_NAME = "$(TARGET_NAME)";
-				PROVISIONING_PROFILE = "";
 				SWIFT_OBJC_BRIDGING_HEADER = "Keybase/View/Debug/Keybase-Bridging-Header.h";
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 			};
@@ -2883,8 +2807,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_ENTITLEMENTS = Keybase/Keybase.entitlements;
-				CODE_SIGN_IDENTITY = "Mac Developer";
-				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "Mac Developer";
+				CODE_SIGN_IDENTITY = "";
 				COMBINE_HIDPI_IMAGES = YES;
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(inherited)",
@@ -2894,7 +2817,6 @@
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks";
 				MACOSX_DEPLOYMENT_TARGET = 10.10;
 				PRODUCT_NAME = "$(TARGET_NAME)";
-				PROVISIONING_PROFILE = "";
 				SWIFT_OBJC_BRIDGING_HEADER = "Keybase/View/Debug/Keybase-Bridging-Header.h";
 			};
 			name = Release;

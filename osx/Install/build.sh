@@ -140,8 +140,8 @@ cp kbfsfuse $SUPPORT_BIN
 # Verify
 #codesign --verify --verbose=4 Keybase.app
 
-#echo "Re-signing..."
-#codesign --verbose --force --deep --sign "Developer ID Application: Keybase, Inc." Keybase.app
+echo "Re-signing..."
+codesign --verbose --force --deep --sign "Developer ID Application: Keybase, Inc." Keybase.app
 
 rm -rf Keybase-$VERSION.dmg
 
