@@ -27,7 +27,8 @@ type Symlink struct {
 var _ fs.Node = (*Symlink)(nil)
 
 // Attr implements the fs.Node interface for Symlink
-func (s *Symlink) Attr(ctx context.Context, a *fuse.Attr) error {
+func (s *Symlink) Attr(ctx context.Context, a *fuse.Attr) (err error) {
+	defer func() { s.parent.folder.fs.reportErr(err) }()
 	s.parent.folder.mu.Lock()
 	defer s.parent.folder.mu.Unlock()
 
@@ -44,7 +45,8 @@ func (s *Symlink) Attr(ctx context.Context, a *fuse.Attr) error {
 var _ fs.NodeReadlinker = (*Symlink)(nil)
 
 // Readlink implements the fs.NodeReadlinker interface for Symlink
-func (s *Symlink) Readlink(ctx context.Context, req *fuse.ReadlinkRequest) (string, error) {
+func (s *Symlink) Readlink(ctx context.Context, req *fuse.ReadlinkRequest) (link string, err error) {
+	defer func() { s.parent.folder.fs.reportErr(err) }()
 	s.parent.folder.mu.Lock()
 	defer s.parent.folder.mu.Unlock()
 

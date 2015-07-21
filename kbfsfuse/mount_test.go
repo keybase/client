@@ -1404,3 +1404,42 @@ func TestInvalidateEntryOnDelete(t *testing.T) {
 		t.Fatalf("expected ENOENT: %v: %q", err, buf)
 	}
 }
+
+func testForErrorText(t *testing.T, path string, expectedErr error,
+	fileType string) {
+	buf, err := ioutil.ReadFile(path)
+	s := strings.TrimSpace(string(buf))
+	if err != nil {
+		t.Fatalf("Bad error reading %s error file: %v", err, fileType)
+	}
+	if s != expectedErr.Error() {
+		t.Errorf("%s error file had bad contents; got %s, expected %s",
+			fileType, s, expectedErr)
+	}
+}
+
+func TestErrorFile(t *testing.T) {
+	config := libkbfs.MakeTestConfigOrBust(t, BServerRemoteAddr, "jdoe")
+	mnt := makeFS(t, config)
+	defer mnt.Close()
+
+	// Give the kernel a chance to lookup a few non-existent files
+	// first, otherwise on slow machines the last-reported error could
+	// be something else.
+	time.Sleep(100 * time.Millisecond)
+
+	// cause an error by stating a non-existent user
+	_, err := os.Lstat(path.Join(mnt.Dir, "janedoe"))
+	if err == nil {
+		t.Fatal("Stat of non-existent user worked!")
+	}
+
+	// Make sure the root error file reads as expected
+	expectedErr := libkbfs.NoSuchUserError{"janedoe"}
+
+	// test both the root error file and one in a directory
+	testForErrorText(t, path.Join(mnt.Dir, libkbfs.ErrorFile),
+		expectedErr, "root")
+	testForErrorText(t, path.Join(mnt.Dir, "jdoe", libkbfs.ErrorFile),
+		expectedErr, "dir")
+}

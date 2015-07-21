@@ -47,6 +47,16 @@ func (e NoSuchNameError) Error() string {
 	return fmt.Sprintf("%s doesn't exist", e.Name)
 }
 
+// NoSuchUserError indicates that the given user couldn't be resolved.
+type NoSuchUserError struct {
+	Input string
+}
+
+// Error implements the error interface for NoSuchUserError
+func (e NoSuchUserError) Error() string {
+	return fmt.Sprintf("No such user matching %s", e.Input)
+}
+
 // BadTLFNameError indicates a top-level folder name that has an
 // incorrect format.
 type BadTLFNameError struct {

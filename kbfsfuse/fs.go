@@ -62,6 +62,14 @@ type FS struct {
 
 var _ fs.FS = (*FS)(nil)
 
+func (f *FS) reportErr(err error) {
+	if err == nil {
+		return
+	}
+
+	f.config.Reporter().Report(libkbfs.RptE, libkbfs.WrapError{Err: err})
+}
+
 // Root implements the fs.FS interface for FS.
 func (f *FS) Root() (fs.Node, error) {
 	n := &Root{
@@ -109,9 +117,18 @@ func (r *Root) getMD(ctx context.Context, dh *libkbfs.TlfHandle) (libkbfs.Node, 
 }
 
 // Lookup implements the fs.NodeRequestLookuper interface for Root.
-func (r *Root) Lookup(ctx context.Context, req *fuse.LookupRequest, resp *fuse.LookupResponse) (fs.Node, error) {
+func (r *Root) Lookup(ctx context.Context, req *fuse.LookupRequest, resp *fuse.LookupResponse) (node fs.Node, err error) {
+	defer func() { r.fs.reportErr(err) }()
 	r.mu.Lock()
 	defer r.mu.Unlock()
+
+	if req.Name == libkbfs.ErrorFile {
+		resp.EntryValid = 0
+		n := &ErrorFile{
+			fs: r.fs,
+		}
+		return n, nil
+	}
 
 	if child, ok := r.folders[req.Name]; ok {
 		return child, nil
@@ -207,9 +224,11 @@ func (r *Root) getDirent(ctx context.Context, work <-chan libkbfs.TlfID, results
 }
 
 // ReadDirAll implements the ReadDirAll interface for Root.
-func (r *Root) ReadDirAll(ctx context.Context) ([]fuse.Dirent, error) {
+func (r *Root) ReadDirAll(ctx context.Context) (res []fuse.Dirent, err error) {
+	defer func() { r.fs.reportErr(err) }()
 	favs, err := r.fs.config.KBFSOps().GetFavorites(ctx)
 	if err != nil {
+		r.fs.reportErr(err)
 		return nil, err
 	}
 	work := make(chan libkbfs.TlfID)
@@ -243,7 +262,6 @@ func (r *Root) ReadDirAll(ctx context.Context) ([]fuse.Dirent, error) {
 		close(results)
 	}()
 
-	var res []fuse.Dirent
 outer:
 	for {
 		select {
