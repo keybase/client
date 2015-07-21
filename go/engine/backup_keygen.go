@@ -41,7 +41,9 @@ func (e *BackupKeygen) Name() string {
 
 // GetPrereqs returns the engine prereqs.
 func (e *BackupKeygen) Prereqs() Prereqs {
-	return Prereqs{}
+	return Prereqs{
+		Session: true,
+	}
 }
 
 // RequiredUIs returns the required UIs.
@@ -72,8 +74,25 @@ func (e *BackupKeygen) Run(ctx *Context) error {
 	if err != nil {
 		return err
 	}
+
+	var gen libkb.PassphraseGeneration
+	var serr error
+	err = e.G().LoginState().Account(func(a *libkb.Account) {
+		gen = a.GetStreamGeneration()
+		if gen < 1 {
+			gen, serr = a.LocalSession().GetPPGen()
+		}
+	}, "BackupKeygen - Run")
+	if err != nil {
+		return err
+	}
+	if serr != nil {
+		return serr
+	}
+	e.G().Log.Warning("pp generation: %d", gen)
+
 	e.ppStream = libkb.NewPassphraseStream(key)
-	e.ppStream.SetGeneration(1)
+	e.ppStream.SetGeneration(gen)
 
 	// make keys for the backup device
 	if err := e.makeSigKey(); err != nil {

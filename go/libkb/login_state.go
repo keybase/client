@@ -892,6 +892,14 @@ func (s *LoginState) PassphraseStream() (*PassphraseStream, error) {
 	return pps, err
 }
 
+func (s *LoginState) PassphraseStreamGeneration() (PassphraseGeneration, error) {
+	var gen PassphraseGeneration
+	err := s.Account(func(a *Account) {
+		gen = a.GetStreamGeneration()
+	}, "PassphraseStreamGeneration")
+	return gen, err
+}
+
 func (s *LoginState) AccountDump() {
 	err := s.Account(func(a *Account) {
 		a.Dump()
