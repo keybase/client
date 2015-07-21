@@ -54,7 +54,10 @@ func (m *MinTerm) Shutdown() error {
 	if m.tty == nil {
 		return nil
 	}
-	return m.tty.Close()
+	// this can hang waiting for newline, so do it in a goroutine.
+	// application shutting down, so will get closed by os anyway...
+	go m.tty.Close()
+	return nil
 }
 
 // Size returns the width and height of the terminal.

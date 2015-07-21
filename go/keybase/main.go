@@ -84,7 +84,7 @@ func HandleSignals() {
 	for {
 		s := <-c
 		if s != nil {
-			G.Log.Debug("trapped signal %v", s)
+			G.Log.Debug("\n\ntrapped signal %v", s)
 
 			// if the current command has a Cancel function, then call it:
 			if canc, ok := cmd.(Canceler); ok {
@@ -94,6 +94,7 @@ func HandleSignals() {
 				}
 			}
 
+			G.Log.Debug("calling shutdown")
 			G.Shutdown()
 			G.Log.Error("interrupted")
 			os.Exit(3)
