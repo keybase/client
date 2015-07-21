@@ -91,6 +91,19 @@ func (p *PGPFingerprint) Match(q string, exact bool) bool {
 	return strings.HasSuffix(strings.ToLower(p.String()), strings.ToLower(q))
 }
 
+func (k *PGPKeyBundle) StripRevocations() {
+	k.Revocations = nil
+
+	oldSubkeys := k.Subkeys
+	k.Subkeys = nil
+	for _, subkey := range oldSubkeys {
+		// Skip revoked subkeys
+		if subkey.Sig.SigType == packet.SigTypeSubkeyBinding {
+			k.Subkeys = append(k.Subkeys, subkey)
+		}
+	}
+}
+
 func (k *PGPKeyBundle) StoreToLocalDb() error {
 	s, err := k.Encode()
 	if err != nil {
