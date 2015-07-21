@@ -120,7 +120,6 @@ func (a *Account) CreateStreamCache(tsec *triplesec.Cipher, pps *PassphraseStrea
 // SetStreamGeneration sets the passphrase generation on the cached stream
 // if it exists, and otherwise will wind up warning of a problem.
 func (a *Account) SetStreamGeneration(gen PassphraseGeneration) {
-	a.G().Log.Warning("set gen: %d", gen)
 	ps := a.PassphraseStreamRef()
 	if ps == nil {
 		a.G().Log.Warning("Passphrase stream was nil; unexpected")

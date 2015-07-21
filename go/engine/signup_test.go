@@ -141,7 +141,7 @@ func TestLocalKeySecurity(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	dec, err := lks.Decrypt(nil, enc)
+	dec, _, err := lks.Decrypt(nil, enc)
 	if err != nil {
 		t.Fatal(err)
 	}

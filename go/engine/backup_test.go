@@ -18,7 +18,7 @@ func backupDevs(t *testing.T, fu *FakeUser) (*libkb.User, []*libkb.Device) {
 	return u, cki.BackupDevices()
 }
 
-func TestBackupKeypush(t *testing.T) {
+func TestBackup(t *testing.T) {
 	tc := SetupEngineTest(t, "backup")
 	defer tc.Cleanup()
 
@@ -99,7 +99,7 @@ func TestBackupKeypush(t *testing.T) {
 }
 
 // tests revoking of existing backup keys
-func TestBackupKeypushRevoke(t *testing.T) {
+func TestBackupRevoke(t *testing.T) {
 	tc := SetupEngineTest(t, "backup")
 	defer tc.Cleanup()
 
@@ -142,7 +142,7 @@ func TestBackupKeypushRevoke(t *testing.T) {
 }
 
 // tests not revoking existing backup keys
-func TestBackupKeypushNoRevoke(t *testing.T) {
+func TestBackupNoRevoke(t *testing.T) {
 	tc := SetupEngineTest(t, "backup")
 	defer tc.Cleanup()
 

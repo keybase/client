@@ -310,10 +310,12 @@ func (s *SKB) lksUnlock(lctx LoginContext, pps *PassphraseStream, secretStorer S
 		lks.SetUID(s.uid)
 		s.Unlock()
 	}
-	unlocked, err = lks.Decrypt(lctx, s.Priv.Data)
+	var ppGen PassphraseGeneration
+	unlocked, ppGen, err = lks.Decrypt(lctx, s.Priv.Data)
 	if err != nil {
 		return
 	}
+	pps.SetGeneration(ppGen)
 
 	if secretStorer != nil {
 		var secret []byte
@@ -341,7 +343,8 @@ func (s *SKB) lksUnlockWithSecretRetriever(secretRetriever SecretRetriever) (unl
 		panic("no uid set in skb")
 	}
 	lks := NewLKSecWithFullSecret(secret, s.uid, s.G())
-	return lks.Decrypt(nil, s.Priv.Data)
+	unlocked, _, err = lks.Decrypt(nil, s.Priv.Data)
+	return
 }
 
 func (s *SKB) SetUID(uid keybase1.UID) {

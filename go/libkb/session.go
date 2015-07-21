@@ -278,30 +278,6 @@ func (s *Session) Check() error {
 	return nil
 }
 
-func (s *Session) GetPPGen() (PassphraseGeneration, error) {
-	res, err := s.G().API.Get(APIArg{
-		SessionR:    s,
-		Endpoint:    "sesscheck",
-		NeedSession: true,
-		AppStatus:   []string{"OK", "BAD_SESSION"},
-	})
-	if err != nil {
-		return 0, err
-	}
-
-	if res.AppStatus != "OK" {
-		return 0, fmt.Errorf("error checking session for ppgen")
-	}
-
-	fmt.Printf("json: %s\n", res.Body.MarshalPretty())
-
-	ppGen, err := res.Body.AtKey("passphrase_generation").GetInt()
-	if err != nil {
-		return 0, err
-	}
-	return PassphraseGeneration(ppGen), nil
-}
-
 func (s *Session) HasSessionToken() bool {
 	return len(s.token) > 0
 }

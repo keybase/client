@@ -23,12 +23,13 @@ type ServerPrivateKey struct {
 type ServerPrivateKeyMap map[string]ServerPrivateKey
 
 type DeviceKey struct {
-	Type          string `json:"type"`
-	CTime         int64  `json:"ctime"`
-	MTime         int64  `json:"mtime"`
-	Description   string `json:"description"`
-	Status        int    `json:"status"`
-	LksServerHalf string `json:"lks_server_half"`
+	Type          string               `json:"type"`
+	CTime         int64                `json:"ctime"`
+	MTime         int64                `json:"mtime"`
+	Description   string               `json:"description"`
+	Status        int                  `json:"status"`
+	LksServerHalf string               `json:"lks_server_half"`
+	PPGen         PassphraseGeneration `json:"passphrase_generation"`
 }
 
 type DeviceKeyMap map[keybase1.DeviceID]DeviceKey
@@ -174,6 +175,17 @@ func (ss *SecretSyncer) Devices() (DeviceKeyMap, error) {
 		return nil, fmt.Errorf("no keys")
 	}
 	return ss.keys.Devices, nil
+}
+
+func (ss *SecretSyncer) dumpDevices() {
+	ss.G().Log.Warning("dumpDevices:")
+	if ss.keys == nil {
+		ss.G().Log.Warning("dumpDevices -- ss.keys == nil")
+		return
+	}
+	for devid, dev := range ss.keys.Devices {
+		ss.G().Log.Warning("%s -> desc: %q, type: %q, ppgen: %d", devid, dev.Description, dev.Type, dev.PPGen)
+	}
 }
 
 func (ss *SecretSyncer) HasActiveDevice() bool {

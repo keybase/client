@@ -105,8 +105,7 @@ func (s *LKSec) Load(lctx LoginContext) error {
 
 	s.secret = make([]byte, len(s.serverHalf))
 	XORBytes(s.secret, s.serverHalf, s.clientHalf)
-	s.G().Log.Debug("| Making XOR'ed secret key for Local Key Security (LKS): ServerHalf=%s; clientHalf=%s",
-		hex.EncodeToString(s.serverHalf), hex.EncodeToString(s.clientHalf))
+	s.G().Log.Debug("| Making XOR'ed secret key for Local Key Security (LKS): ServerHalf=%x; clientHalf=%x", s.serverHalf, s.clientHalf)
 
 	return nil
 }
@@ -146,14 +145,14 @@ func (s *LKSec) Encrypt(src []byte) ([]byte, error) {
 	return append(nonce, box...), nil
 }
 
-func (s *LKSec) Decrypt(lctx LoginContext, src []byte) ([]byte, error) {
+func (s *LKSec) Decrypt(lctx LoginContext, src []byte) ([]byte, PassphraseGeneration, error) {
 	s.G().Log.Debug("+ LKsec:Decrypt()")
 	defer func() {
 		s.G().Log.Debug("- LKSec::Decrypt()")
 	}()
 
 	if err := s.Load(lctx); err != nil {
-		return nil, fmt.Errorf("lksec decrypt Load err: %s", err)
+		return nil, 0, fmt.Errorf("lksec decrypt Load err: %s", err)
 	}
 	var nonce [24]byte
 	copy(nonce[:], src[0:24])
@@ -161,10 +160,10 @@ func (s *LKSec) Decrypt(lctx LoginContext, src []byte) ([]byte, error) {
 	fs := s.fsecret()
 	res, ok := secretbox.Open(nil, data, &nonce, &fs)
 	if !ok {
-		return nil, PassphraseError{"failed to open secretbox"}
+		return nil, 0, PassphraseError{"failed to open secretbox"}
 	}
 
-	return res, nil
+	return res, s.ppGen, nil
 }
 
 func (s *LKSec) fsecret() (res [32]byte) {
@@ -201,6 +200,7 @@ func (s *LKSec) apiServerHalf(lctx LoginContext, devid keybase1.DeviceID) error 
 	}
 
 	s.serverHalf = sh
+	s.ppGen = dev.PPGen
 	return nil
 }
 

@@ -41,8 +41,9 @@ func (e *BackupKeygen) Name() string {
 
 // GetPrereqs returns the engine prereqs.
 func (e *BackupKeygen) Prereqs() Prereqs {
+	// only need session if pushing keys
 	return Prereqs{
-		Session: true,
+		Session: !e.arg.SkipPush,
 	}
 }
 
@@ -76,20 +77,15 @@ func (e *BackupKeygen) Run(ctx *Context) error {
 	}
 
 	var gen libkb.PassphraseGeneration
-	var serr error
 	err = e.G().LoginState().Account(func(a *libkb.Account) {
 		gen = a.GetStreamGeneration()
-		if gen < 1 {
-			gen, serr = a.LocalSession().GetPPGen()
+		if gen < 1 && !e.arg.SkipPush {
+			e.G().Log.Warning("invalid passphrase generation: %d", gen)
 		}
 	}, "BackupKeygen - Run")
 	if err != nil {
 		return err
 	}
-	if serr != nil {
-		return serr
-	}
-	e.G().Log.Warning("pp generation: %d", gen)
 
 	e.ppStream = libkb.NewPassphraseStream(key)
 	e.ppStream.SetGeneration(gen)

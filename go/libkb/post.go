@@ -3,6 +3,7 @@ package libkb
 import (
 	"encoding/hex"
 	"fmt"
+	"runtime/debug"
 
 	keybase1 "github.com/keybase/client/protocol/go"
 	jsonw "github.com/keybase/go-jsonw"
@@ -174,6 +175,10 @@ func PostDeviceLKS(lctx LoginContext, deviceID keybase1.DeviceID, deviceType str
 	clientHalfRecovery string, clientHalfRecoveryKID keybase1.KID) error {
 	if len(serverHalf) == 0 {
 		return fmt.Errorf("PostDeviceLKS: called with empty serverHalf")
+	}
+	if ppGen < 1 {
+		G.Log.Warning("PostDeviceLKS: ppGen < 1 (%d)", ppGen)
+		debug.PrintStack()
 	}
 	arg := APIArg{
 		Endpoint:    "device/update",
