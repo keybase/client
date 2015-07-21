@@ -1677,6 +1677,161 @@ func (c LoginUiClient) PromptRevokeBackupDeviceKeys(__arg PromptRevokeBackupDevi
 	return
 }
 
+type KeyHalf struct {
+	DeviceKID string `codec:"deviceKID" json:"deviceKID"`
+	Key       []byte `codec:"key" json:"key"`
+}
+
+type MetadataResponse struct {
+	FolderID string   `codec:"folderID" json:"folderID"`
+	MdBlocks [][]byte `codec:"mdBlocks" json:"mdBlocks"`
+}
+
+type PutMetadataArg struct {
+	MdBlock []byte `codec:"mdBlock" json:"mdBlock"`
+}
+
+type GetMetadataArg struct {
+	FolderID      string `codec:"folderID" json:"folderID"`
+	FolderHandle  []byte `codec:"folderHandle" json:"folderHandle"`
+	Unmerged      bool   `codec:"unmerged" json:"unmerged"`
+	StartRevision int64  `codec:"startRevision" json:"startRevision"`
+	StopRevision  int64  `codec:"stopRevision" json:"stopRevision"`
+}
+
+type PruneUnmergedArg struct {
+	FolderID string `codec:"folderID" json:"folderID"`
+}
+
+type PutKeysArg struct {
+	KeyHalves []KeyHalf `codec:"keyHalves" json:"keyHalves"`
+}
+
+type GetKeyArg struct {
+	KeyHash string `codec:"keyHash" json:"keyHash"`
+}
+
+type TruncateLockArg struct {
+	FolderID string `codec:"folderID" json:"folderID"`
+}
+
+type TruncateUnlockArg struct {
+	FolderID string `codec:"folderID" json:"folderID"`
+}
+
+type MetadataInterface interface {
+	PutMetadata([]byte) error
+	GetMetadata(GetMetadataArg) (MetadataResponse, error)
+	PruneUnmerged(string) error
+	PutKeys([]KeyHalf) error
+	GetKey(string) ([]byte, error)
+	TruncateLock(string) (bool, error)
+	TruncateUnlock(string) (bool, error)
+}
+
+func MetadataProtocol(i MetadataInterface) rpc2.Protocol {
+	return rpc2.Protocol{
+		Name: "keybase.1.metadata",
+		Methods: map[string]rpc2.ServeHook{
+			"putMetadata": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
+				args := make([]PutMetadataArg, 1)
+				if err = nxt(&args); err == nil {
+					err = i.PutMetadata(args[0].MdBlock)
+				}
+				return
+			},
+			"getMetadata": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
+				args := make([]GetMetadataArg, 1)
+				if err = nxt(&args); err == nil {
+					ret, err = i.GetMetadata(args[0])
+				}
+				return
+			},
+			"pruneUnmerged": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
+				args := make([]PruneUnmergedArg, 1)
+				if err = nxt(&args); err == nil {
+					err = i.PruneUnmerged(args[0].FolderID)
+				}
+				return
+			},
+			"putKeys": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
+				args := make([]PutKeysArg, 1)
+				if err = nxt(&args); err == nil {
+					err = i.PutKeys(args[0].KeyHalves)
+				}
+				return
+			},
+			"getKey": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
+				args := make([]GetKeyArg, 1)
+				if err = nxt(&args); err == nil {
+					ret, err = i.GetKey(args[0].KeyHash)
+				}
+				return
+			},
+			"truncateLock": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
+				args := make([]TruncateLockArg, 1)
+				if err = nxt(&args); err == nil {
+					ret, err = i.TruncateLock(args[0].FolderID)
+				}
+				return
+			},
+			"truncateUnlock": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
+				args := make([]TruncateUnlockArg, 1)
+				if err = nxt(&args); err == nil {
+					ret, err = i.TruncateUnlock(args[0].FolderID)
+				}
+				return
+			},
+		},
+	}
+
+}
+
+type MetadataClient struct {
+	Cli GenericClient
+}
+
+func (c MetadataClient) PutMetadata(mdBlock []byte) (err error) {
+	__arg := PutMetadataArg{MdBlock: mdBlock}
+	err = c.Cli.Call("keybase.1.metadata.putMetadata", []interface{}{__arg}, nil)
+	return
+}
+
+func (c MetadataClient) GetMetadata(__arg GetMetadataArg) (res MetadataResponse, err error) {
+	err = c.Cli.Call("keybase.1.metadata.getMetadata", []interface{}{__arg}, &res)
+	return
+}
+
+func (c MetadataClient) PruneUnmerged(folderID string) (err error) {
+	__arg := PruneUnmergedArg{FolderID: folderID}
+	err = c.Cli.Call("keybase.1.metadata.pruneUnmerged", []interface{}{__arg}, nil)
+	return
+}
+
+func (c MetadataClient) PutKeys(keyHalves []KeyHalf) (err error) {
+	__arg := PutKeysArg{KeyHalves: keyHalves}
+	err = c.Cli.Call("keybase.1.metadata.putKeys", []interface{}{__arg}, nil)
+	return
+}
+
+func (c MetadataClient) GetKey(keyHash string) (res []byte, err error) {
+	__arg := GetKeyArg{KeyHash: keyHash}
+	err = c.Cli.Call("keybase.1.metadata.getKey", []interface{}{__arg}, &res)
+	return
+}
+
+func (c MetadataClient) TruncateLock(folderID string) (res bool, err error) {
+	__arg := TruncateLockArg{FolderID: folderID}
+	err = c.Cli.Call("keybase.1.metadata.truncateLock", []interface{}{__arg}, &res)
+	return
+}
+
+func (c MetadataClient) TruncateUnlock(folderID string) (res bool, err error) {
+	__arg := TruncateUnlockArg{FolderID: folderID}
+	err = c.Cli.Call("keybase.1.metadata.truncateUnlock", []interface{}{__arg}, &res)
+	return
+}
+
 type SignMode int
 
 const (

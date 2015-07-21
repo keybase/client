@@ -1,0 +1,23 @@
+@namespace("keybase.1")
+
+protocol metadata {
+	import idl "backend_common.avdl";
+
+	record KeyHalf {
+	       string deviceKID;
+	       bytes key;	
+	}
+
+	record MetadataResponse {
+	       string folderID;
+	       array<bytes> mdBlocks;
+	}
+
+	void putMetadata(bytes mdBlock);
+	MetadataResponse getMetadata(string folderID, bytes folderHandle, boolean unmerged, long startRevision, long stopRevision);
+	void pruneUnmerged(string folderID);
+	void putKeys(array<KeyHalf> keyHalves);
+	bytes getKey(string keyHash);
+	boolean truncateLock(string folderID);
+	boolean truncateUnlock(string folderID);
+}

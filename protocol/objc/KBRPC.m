@@ -657,6 +657,75 @@
 
 @end
 
+@implementation KBRKeyHalf
+@end
+
+@implementation KBRMetadataResponse
+@end
+
+@implementation KBRMetadataRequest
+
+- (void)putMetadataWithMdBlock:(NSData *)mdBlock completion:(void (^)(NSError *error))completion {
+  NSDictionary *params = @{@"mdBlock": KBRValue(mdBlock)};
+  [self.client sendRequestWithMethod:@"keybase.1.metadata.putMetadata" params:params sessionId:self.sessionId completion:^(NSError *error, id retval) {
+    completion(error);
+  }];
+}
+
+- (void)getMetadataWithFolderID:(NSString *)folderID folderHandle:(NSData *)folderHandle unmerged:(BOOL)unmerged startRevision:(long)startRevision stopRevision:(long)stopRevision completion:(void (^)(NSError *error, KBRMetadataResponse *metadataResponse))completion {
+  NSDictionary *params = @{@"folderID": KBRValue(folderID), @"folderHandle": KBRValue(folderHandle), @"unmerged": @(unmerged), @"startRevision": @(startRevision), @"stopRevision": @(stopRevision)};
+  [self.client sendRequestWithMethod:@"keybase.1.metadata.getMetadata" params:params sessionId:self.sessionId completion:^(NSError *error, id retval) {
+    if (error) {
+        completion(error, nil);
+        return;
+      }
+      KBRMetadataResponse *result = retval ? [MTLJSONAdapter modelOfClass:KBRMetadataResponse.class fromJSONDictionary:retval error:&error] : nil;
+      completion(error, result);
+  }];
+}
+
+- (void)pruneUnmergedWithFolderID:(NSString *)folderID completion:(void (^)(NSError *error))completion {
+  NSDictionary *params = @{@"folderID": KBRValue(folderID)};
+  [self.client sendRequestWithMethod:@"keybase.1.metadata.pruneUnmerged" params:params sessionId:self.sessionId completion:^(NSError *error, id retval) {
+    completion(error);
+  }];
+}
+
+- (void)putKeysWithKeyHalves:(NSArray *)keyHalves completion:(void (^)(NSError *error))completion {
+  NSDictionary *params = @{@"keyHalves": KBRValue(keyHalves)};
+  [self.client sendRequestWithMethod:@"keybase.1.metadata.putKeys" params:params sessionId:self.sessionId completion:^(NSError *error, id retval) {
+    completion(error);
+  }];
+}
+
+- (void)getKeyWithKeyHash:(NSString *)keyHash completion:(void (^)(NSError *error, NSData *bytes))completion {
+  NSDictionary *params = @{@"keyHash": KBRValue(keyHash)};
+  [self.client sendRequestWithMethod:@"keybase.1.metadata.getKey" params:params sessionId:self.sessionId completion:^(NSError *error, id retval) {
+    if (error) {
+        completion(error, nil);
+        return;
+      }
+      NSData *result = retval ? [MTLJSONAdapter modelOfClass:NSData.class fromJSONDictionary:retval error:&error] : nil;
+      completion(error, result);
+  }];
+}
+
+- (void)truncateLockWithFolderID:(NSString *)folderID completion:(void (^)(NSError *error, BOOL b))completion {
+  NSDictionary *params = @{@"folderID": KBRValue(folderID)};
+  [self.client sendRequestWithMethod:@"keybase.1.metadata.truncateLock" params:params sessionId:self.sessionId completion:^(NSError *error, id retval) {
+    completion(error, 0);
+  }];
+}
+
+- (void)truncateUnlockWithFolderID:(NSString *)folderID completion:(void (^)(NSError *error, BOOL b))completion {
+  NSDictionary *params = @{@"folderID": KBRValue(folderID)};
+  [self.client sendRequestWithMethod:@"keybase.1.metadata.truncateUnlock" params:params sessionId:self.sessionId completion:^(NSError *error, id retval) {
+    completion(error, 0);
+  }];
+}
+
+@end
+
 @implementation KBRPGPSignOptions
 @end
 
@@ -1900,6 +1969,87 @@
   if ((self = [super initWithParams:params])) {
     self.sessionID = [params[0][@"sessionID"] integerValue];
     self.device = [MTLJSONAdapter modelOfClass:KBRDevice.class fromJSONDictionary:params[0][@"device"] error:nil];
+  }
+  return self;
+}
+
+@end
+
+@implementation KBRPutMetadataRequestParams
+
+- (instancetype)initWithParams:(NSArray *)params {
+  if ((self = [super initWithParams:params])) {
+    self.mdBlock = params[0][@"mdBlock"];
+  }
+  return self;
+}
+
+@end
+
+@implementation KBRGetMetadataRequestParams
+
+- (instancetype)initWithParams:(NSArray *)params {
+  if ((self = [super initWithParams:params])) {
+    self.folderID = params[0][@"folderID"];
+    self.folderHandle = params[0][@"folderHandle"];
+    self.unmerged = [params[0][@"unmerged"] boolValue];
+    self.startRevision = [params[0][@"startRevision"] longValue];
+    self.stopRevision = [params[0][@"stopRevision"] longValue];
+  }
+  return self;
+}
+
+@end
+
+@implementation KBRPruneUnmergedRequestParams
+
+- (instancetype)initWithParams:(NSArray *)params {
+  if ((self = [super initWithParams:params])) {
+    self.folderID = params[0][@"folderID"];
+  }
+  return self;
+}
+
+@end
+
+@implementation KBRPutKeysRequestParams
+
+- (instancetype)initWithParams:(NSArray *)params {
+  if ((self = [super initWithParams:params])) {
+    self.keyHalves = [MTLJSONAdapter modelsOfClass:KBRKeyHalf.class fromJSONArray:params[0][@"keyHalves"] error:nil];
+  }
+  return self;
+}
+
+@end
+
+@implementation KBRGetKeyRequestParams
+
+- (instancetype)initWithParams:(NSArray *)params {
+  if ((self = [super initWithParams:params])) {
+    self.keyHash = params[0][@"keyHash"];
+  }
+  return self;
+}
+
+@end
+
+@implementation KBRTruncateLockRequestParams
+
+- (instancetype)initWithParams:(NSArray *)params {
+  if ((self = [super initWithParams:params])) {
+    self.folderID = params[0][@"folderID"];
+  }
+  return self;
+}
+
+@end
+
+@implementation KBRTruncateUnlockRequestParams
+
+- (instancetype)initWithParams:(NSArray *)params {
+  if ((self = [super initWithParams:params])) {
+    self.folderID = params[0][@"folderID"];
   }
   return self;
 }

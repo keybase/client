@@ -528,6 +528,33 @@ typedef NS_ENUM (NSInteger, KBRLogLevel) {
 
 @end
 
+@interface KBRKeyHalf : KBRObject
+@property NSString *deviceKID;
+@property NSData *key;
+@end
+
+@interface KBRMetadataResponse : KBRObject
+@property NSString *folderID;
+@property NSArray *mdBlocks; /*of bytes*/
+@end
+
+@interface KBRMetadataRequest : KBRRequest
+- (void)putMetadataWithMdBlock:(NSData *)mdBlock completion:(void (^)(NSError *error))completion;
+
+- (void)getMetadataWithFolderID:(NSString *)folderID folderHandle:(NSData *)folderHandle unmerged:(BOOL)unmerged startRevision:(long)startRevision stopRevision:(long)stopRevision completion:(void (^)(NSError *error, KBRMetadataResponse *metadataResponse))completion;
+
+- (void)pruneUnmergedWithFolderID:(NSString *)folderID completion:(void (^)(NSError *error))completion;
+
+- (void)putKeysWithKeyHalves:(NSArray *)keyHalves completion:(void (^)(NSError *error))completion;
+
+- (void)getKeyWithKeyHash:(NSString *)keyHash completion:(void (^)(NSError *error, NSData *bytes))completion;
+
+- (void)truncateLockWithFolderID:(NSString *)folderID completion:(void (^)(NSError *error, BOOL b))completion;
+
+- (void)truncateUnlockWithFolderID:(NSString *)folderID completion:(void (^)(NSError *error, BOOL b))completion;
+
+@end
+
 typedef NS_ENUM (NSInteger, KBRSignMode) {
 	KBRSignModeAttached = 0,
 	KBRSignModeDetached = 1,
@@ -1070,6 +1097,31 @@ typedef NS_ENUM (NSInteger, KBRPromptOverwriteType) {
 @interface KBRPromptRevokeBackupDeviceKeysRequestParams : KBRRequestParams
 @property NSInteger sessionID;
 @property KBRDevice *device;
+@end
+@interface KBRPutMetadataRequestParams : KBRRequestParams
+@property NSData *mdBlock;
+@end
+@interface KBRGetMetadataRequestParams : KBRRequestParams
+@property NSString *folderID;
+@property NSData *folderHandle;
+@property BOOL unmerged;
+@property long startRevision;
+@property long stopRevision;
+@end
+@interface KBRPruneUnmergedRequestParams : KBRRequestParams
+@property NSString *folderID;
+@end
+@interface KBRPutKeysRequestParams : KBRRequestParams
+@property NSArray *keyHalves;
+@end
+@interface KBRGetKeyRequestParams : KBRRequestParams
+@property NSString *keyHash;
+@end
+@interface KBRTruncateLockRequestParams : KBRRequestParams
+@property NSString *folderID;
+@end
+@interface KBRTruncateUnlockRequestParams : KBRRequestParams
+@property NSString *folderID;
 @end
 @interface KBRPgpSignRequestParams : KBRRequestParams
 @property NSInteger sessionID;
