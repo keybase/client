@@ -140,7 +140,7 @@ typedef NS_ENUM (NSInteger, KBAppViewMode) {
       }
     }];
   } else {
-    [KBApp.app setError:error sender:self];
+    [KBApp.app setError:error sender:self completion:nil];
   }
 }
 
@@ -260,7 +260,7 @@ typedef NS_ENUM (NSInteger, KBAppViewMode) {
     KBRLoginRequest *request = [[KBRLoginRequest alloc] initWithClient:gself.environment.service.client];
     [request logoutWithSessionID:request.sessionId completion:^(NSError *error) {
       if (error) {
-        [KBApp.app setError:error sender:self];
+        [KBApp.app setError:error sender:self completion:nil];
       }
       [self checkStatus];
     }];

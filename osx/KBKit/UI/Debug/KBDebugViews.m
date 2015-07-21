@@ -334,7 +334,7 @@
 
 - (void)showError {
   NSError *error = KBMakeErrorWithRecovery(-1, @"This is the error message.", @"This is the recovery suggestion.");
-  [KBApp.app setError:error sender:self];
+  [KBActivity setError:error sender:self];
 }
 
 - (void)showWebView {

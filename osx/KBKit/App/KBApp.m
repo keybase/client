@@ -50,6 +50,10 @@
   return [[NSApp delegate] app];
 }
 
++ (KBEnvironment *)environment {
+  return [self.app appView].environment;
+}
+
 - (void)open {
   [KBWorkspace setupLogging];
 
@@ -153,15 +157,10 @@
 
 #pragma mark Error Handling
 
-- (BOOL)setError:(NSError *)error sender:(NSView *)sender {
-  return [self setError:error sender:sender completion:nil];
-}
-
-- (BOOL)setError:(NSError *)error sender:(NSView *)sender completion:(void (^)(NSModalResponse returnCode))completion {
-  if (!error) return NO;
-
-  if (KBIsErrorName(error, @"CANCELED")) {
+- (BOOL)setError:(NSError *)error sender:(id)sender completion:(void (^)(NSModalResponse response))completion {
+  if (!error || KBIsErrorName(error, @"CANCELED")) {
     // Canceled, ok to ignore
+    if (completion) completion(KBErrorResponseIgnored);
     return NO;
   }
 
@@ -175,10 +174,11 @@
 
   if (_alerting) {
     DDLogDebug(@"Already showing error (%@)", error);
-    return YES;
+    if (completion) completion(KBErrorResponseIgnored);
+    return NO;
   }
 
-  NSWindow *window = sender.window;
+  NSWindow *window = [sender window];
   if (!window) window = [NSApp mainWindow];
   if (!window) window = [NSApp keyWindow];
   if (!window) window = [[NSApp windows] firstObject];

@@ -78,8 +78,6 @@
     if ([KBActivity setError:error sender:self]) return;
     KBStream *stream = [work output];
 
-    if ([self.navigation setError:error sender:self]) return;
-
     if (self.onSign) {
       self.onSign(self, stream.writer.data, options.mode);
     } else {

@@ -37,6 +37,9 @@ typedef NS_ENUM (NSInteger, KBNavigationTransitionType) {
 - (instancetype)initWithView:(NSView *)view;
 - (instancetype)initWithView:(NSView *)view title:(NSString *)title;
 
+- (NSView *)previousView;
+- (NSView *)currentView;
+
 - (void)pushView:(NSView *)view animated:(BOOL)animated;
 
 - (void)popViewAnimated:(BOOL)animated;
@@ -46,7 +49,7 @@ typedef NS_ENUM (NSInteger, KBNavigationTransitionType) {
 
 - (void)setView:(NSView *)view transitionType:(KBNavigationTransitionType)transitionType;
 
-- (BOOL)setError:(NSError *)error sender:(id)sender;
+- (BOOL)setError:(NSError *)error sender:(id)sender completion:(void (^)(NSModalResponse response))completion;
 
 - (void)setBorderEnabled:(BOOL)borderEnabled;
 

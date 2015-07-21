@@ -66,7 +66,7 @@
   NSString *filePath = [_fileSelectView path];
 
   if (!filePath && signatureData.length == 0) {
-    [self.navigation setError:KBErrorAlert(@"Nothing to verify.") sender:_textView];
+    [KBActivity setError:KBErrorAlert(@"Nothing to verify.") sender:_textView];
     return;
   }
 
@@ -100,7 +100,7 @@
     NSString *description = NSStringWithFormat(@"Verified from %@ with PGP key fingerprint %@", pgpSigVerification.signer.username, pgpSigVerification.signKey.PGPFingerprint);
     [KBAlert promptWithTitle:title description:description style:NSInformationalAlertStyle buttonTitles:@[@"OK"] view:self completion:^(NSModalResponse returnCode) { }];
   } else {
-    [self.navigation setError:KBErrorAlert(@"Unable to verify") sender:self];
+    [KBActivity setError:KBErrorAlert(@"Unable to verify") sender:self];
   }
 }
 

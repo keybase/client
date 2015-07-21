@@ -79,7 +79,7 @@
 
 - (void)verify {
   if (!_fileIcon.file.path) {
-    [self.navigation setError:KBErrorAlert(@"Nothing to verify.") sender:self];
+    [KBActivity setError:KBErrorAlert(@"Nothing to verify.") sender:self];
     return;
   }
 
@@ -89,10 +89,10 @@
   KBRPGPVerifyOptions *options = [[KBRPGPVerifyOptions alloc] init];
 
   _verifier = [[KBPGPVerify alloc] init];
-  self.navigation.progressEnabled = YES;
+  [KBActivity setProgressEnabled:YES sender:self];
   [_verifier verifyWithOptions:options stream:stream client:self.client sender:self completion:^(NSError *error, KBStream *stream, KBRPGPSigVerification *pgpSigVerification) {
-    self.navigation.progressEnabled = NO;
-    if ([self.navigation setError:error sender:self]) return;
+    [KBActivity setProgressEnabled:NO sender:self];
+    if ([KBActivity setError:error sender:self]) return;
 
     // TODO: this is copied from KBPGPVerifyView
     if (pgpSigVerification.verified) {
@@ -100,7 +100,7 @@
       NSString *description = NSStringWithFormat(@"Verified from %@ with PGP key fingerprint %@", pgpSigVerification.signer.username, pgpSigVerification.signKey.PGPFingerprint);
       [KBAlert promptWithTitle:title description:description style:NSInformationalAlertStyle buttonTitles:@[@"OK"] view:self completion:^(NSModalResponse returnCode) { }];
     } else {
-      [self.navigation setError:KBErrorAlert(@"Unable to verify") sender:self];
+      [KBActivity setError:KBErrorAlert(@"Unable to verify") sender:self];
     }
   }];
 }

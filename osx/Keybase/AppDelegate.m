@@ -47,8 +47,8 @@
   return (AppDelegate *)[NSApp delegate];
 }
 
-- (BOOL)setError:(NSError *)error sender:(NSView *)sender {
-  return [_app setError:error sender:sender];
+- (BOOL)setError:(NSError *)error sender:(NSView *)sender completion:(void (^)(NSModalResponse))completion {
+  return [_app setError:error sender:sender completion:completion];
 }
 
 - (void)updateMenu {

@@ -82,7 +82,7 @@
 
   window.styleMask = NSFullSizeContentViewWindowMask | NSTitledWindowMask;
 
-  [self kb_addChildWindow:window rect:CGRectMake(0, 0, size.width, size.height) position:KBWindowPositionCenter];
+  [self kb_addChildWindow:window rect:CGRectMake(rect.origin.x, rect.origin.y, size.width, size.height) position:KBWindowPositionCenter];
 
   window.modal = YES;
   self.modalShowing = YES;
@@ -129,10 +129,10 @@
     [view setNavigation:navigation];
   }
 
-  CGSize size = [view sizeThatFits:rect.size];
-  size.height += 32; // TODO
+  CGSize viewSize = [view sizeThatFits:rect.size];
+  viewSize.height += 32; // TODO
 
-  KBWindow *window = [KBWindow windowWithContentView:navigation size:size retain:YES];
+  KBWindow *window = [KBWindow windowWithContentView:navigation size:viewSize retain:YES];
   window.sheetPosition = 32;
   if (fixed) {
     [window setMovable:NO];
@@ -140,7 +140,7 @@
     window.styleMask = window.styleMask | NSResizableWindowMask;
   }
 
-  [self kb_addChildWindow:window rect:CGRectMake(0, 0, size.width, size.height) position:position];
+  [self kb_addChildWindow:window rect:CGRectMake(rect.origin.x, rect.origin.y, viewSize.width, viewSize.height) position:position];
 
   if (makeKey) {
     [window makeKeyAndOrderFront:nil];

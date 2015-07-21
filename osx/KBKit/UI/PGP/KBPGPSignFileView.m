@@ -93,20 +93,20 @@
     return [path stringByAppendingPathExtension:@"gpg"];
   };
   [KBStream checkFiles:@[_fileIcon.file] index:0 output:output streams:streams skipCheck:NO view:self completion:^(NSError *error) {
-    if ([self.navigation setError:error sender:self]) return;
+    if ([KBActivity setError:error sender:self]) return;
     if ([streams count] > 0) [self signStream:[streams firstObject] options:options];
   }];
 }
 
 - (void)signStream:(KBStream *)stream options:(KBRPGPSignOptions *)options {
   _signer = [[KBPGPSigner alloc] init];
-  self.navigation.progressEnabled = YES;
+  [KBActivity setProgressEnabled:YES sender:self];
   [_signer signWithOptions:options streams:@[stream] client:self.client sender:self completion:^(NSArray *works) {
-    self.navigation.progressEnabled = NO;
+    [KBActivity setProgressEnabled:NO sender:self];
     KBWork *work = works[0];
     NSError *error = [work error];
     KBStream *stream = [work output];
-    if ([self.navigation setError:error sender:self]) return;
+    if ([KBActivity setError:error sender:self]) return;
     [self showOutput:stream.writer];
   }];
 }

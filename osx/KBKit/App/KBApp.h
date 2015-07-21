@@ -17,7 +17,7 @@
 
 @protocol KBAppDelegate <NSApplicationDelegate>
 - (KBApp *)app;
-- (BOOL)setError:(NSError *)error sender:(NSView *)sender;
+- (BOOL)setError:(NSError *)error sender:(id)sender completion:(void (^)(NSModalResponse response))completion;
 - (id)preferencesValueForIdentifier:(NSString *)identifier;
 - (BOOL)setPrefencesValue:(id)value forIdentifier:(NSString *)identifier synchronize:(BOOL)synchronize;
 @end
@@ -30,6 +30,8 @@
 // App instance if present as a property of the NSApplicationDelegate
 + (instancetype)app;
 
++ (KBEnvironment *)environment;
+
 - (void)open;
 
 - (NSWindow *)mainWindow;
@@ -41,8 +43,7 @@
 - (NSString *)currentUsername;
 - (NSString *)APIURLString:(NSString *)path;
 
-- (BOOL)setError:(NSError *)error sender:(NSView *)sender;
-- (BOOL)setError:(NSError *)error sender:(NSView *)sender completion:(void (^)(NSModalResponse returnCode))completion;
+- (BOOL)setError:(NSError *)error sender:(id)sender completion:(void (^)(NSModalResponse response))completion;
 
 #pragma mark Menu Actions
 

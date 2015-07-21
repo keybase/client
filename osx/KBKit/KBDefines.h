@@ -14,6 +14,7 @@ static const int ddLogLevel = DDLogLevelDebug;
 typedef void (^KBCompletion)(NSError *error);
 typedef void (^KBOnCompletion)(NSError *error, id value);
 typedef void (^KBOnExtension)(id sender, NSExtensionItem *outputItem);
+typedef void (^KBOnTarget)(id sender);
 
 typedef NS_ENUM (NSInteger, KBErrorCode) {
   KBErrorCodeUnsupported = -10,
@@ -25,6 +26,15 @@ typedef NS_ENUM (NSInteger, KBErrorCode) {
   KBErrorCodeAlreadyOpening = -201,
   KBErrorCodeAlreadyOpen = -202,
   KBErrorCodeTimeout = -210,
+};
+
+typedef NS_ENUM (NSInteger, KBErrorResponse) {
+  KBErrorResponseNone,
+  KBErrorResponseRetry,
+
+  // The error is ignored if it is was a cancelation error, or
+  // an error is already showing.
+  KBErrorResponseIgnored,
 };
 
 #define KBMakeError(CODE, MSG, ...) [NSError errorWithDomain:@"Keybase" code:CODE userInfo:@{NSLocalizedDescriptionKey:[NSString stringWithFormat:MSG, ##__VA_ARGS__], NSLocalizedRecoveryOptionsErrorKey: @[@"OK"]}]

@@ -51,10 +51,14 @@
 }
 
 + (BOOL)setError:(NSError *)error sender:(id)sender {
+  [self setError:error sender:sender completion:nil];
+}
+
++ (BOOL)setError:(NSError *)error sender:(id)sender completion:(void (^)(NSModalResponse response))completion {
   if ([sender respondsToSelector:@selector(navigation)] && [sender navigation]) {
-    return [[sender navigation] setError:error sender:sender];
+    return [[sender navigation] setError:error sender:sender completion:completion];
   } else {
-    return [[NSApp delegate] setError:error sender:sender];
+    return [[NSApp delegate] setError:error sender:sender completion:completion];
   }
 }
 

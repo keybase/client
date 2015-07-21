@@ -34,5 +34,5 @@
 
 @interface KBAppView (AppDelegate)
 - (void)quitWithPrompt:(BOOL)prompt sender:(id)sender;
-- (BOOL)setError:(NSError *)error sender:(NSView *)sender completion:(void (^)(NSModalResponse returnCode))completion;
+- (BOOL)setError:(NSError *)error sender:(NSView *)sender completion:(void (^)(KBErrorResponse response))completion;
 @end

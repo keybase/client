@@ -18,5 +18,6 @@
 + (void)setProgressEnabled:(BOOL)progressEnabled subviews:(NSArray *)subviews;
 
 + (BOOL)setError:(NSError *)error sender:(id)sender;
++ (BOOL)setError:(NSError *)error sender:(id)sender completion:(void (^)(NSModalResponse response))completion;
 
 @end

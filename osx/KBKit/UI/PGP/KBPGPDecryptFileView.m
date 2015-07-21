@@ -83,7 +83,7 @@
     return [path stringByDeletingPathExtension];
   };
   [KBStream checkFiles:[_fileListView objects] index:0 output:output streams:streams skipCheck:NO view:self completion:^(NSError *error){
-    if ([self.navigation setError:error sender:self]) return;
+    if ([KBActivity setError:error sender:self]) return;
     if ([streams count] > 0) [self decryptStreams:streams];
   }];
 }
@@ -92,13 +92,13 @@
   _decrypter = [[KBPGPDecrypt alloc] init];
   KBRPGPDecryptOptions *options = [[KBRPGPDecryptOptions alloc] init];
 
-  self.navigation.progressEnabled = YES;
+  [KBActivity setProgressEnabled:YES sender:self];
   [_decrypter decryptWithOptions:options streams:streams client:self.client sender:self completion:^(NSArray *works) {
-    self.navigation.progressEnabled = NO;
+    [KBActivity setProgressEnabled:NO sender:self];
 
     // TODO: Show errors in output, not just first error
     NSArray *errors = KBMap(works, error);
-    if ([self.navigation setError:[errors firstObject] sender:self]) return;
+    if ([KBActivity setError:[errors firstObject] sender:self]) return;
 
     NSArray *decrypted = KBMap(works, output);
     [self showOutput:decrypted];

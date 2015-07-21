@@ -225,10 +225,10 @@
   return self.titleView.progressEnabled;
 }
 
-- (BOOL)setError:(NSError *)error sender:(id)sender {
+- (BOOL)setError:(NSError *)error sender:(id)sender completion:(void (^)(NSModalResponse response))completion {
   if (error) {
     self.progressEnabled = NO;
-    [[NSApp delegate] setError:error sender:sender];
+    [[NSApp delegate] setError:error sender:sender completion:completion];
     return YES;
   }
   return NO;

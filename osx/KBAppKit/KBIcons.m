@@ -48,13 +48,17 @@
     case KBIconFileVault: coreBundleName = @"FileVaultIcon.icns"; break; // Color wheel
     case KBIconMacbook: coreBundleName = @"com.apple.macbookpro-15-retina-display.icns"; break;
     case KBIconGenericApp: coreBundleName = @"GenericApplicationIcon.icns"; break; // Default App Icon
-    case KBIconNetwork: coreBundleName = @"GenericNetworkIcon.icns"; break; // Round ball network
     case KBIconExecutableBinary: coreBundleName = @"ExecutableBinaryIcon.icns"; break; // Terminal
     case KBIconAlertNote: coreBundleName = @"AlertNoteIcon.icns"; break; // Speech bubble
     case KBIconExtension: coreBundleName = @"KEXT.icns"; break; // Lego piece
     case KBIconNotifications: coreBundleName = @"Notifiations.icns"; break; // Red dot
     case KBIconColors: coreBundleName = @"ProfileBackgroundColor.icns"; break; // Color wheel
     case KBIconLocked: coreBundleName = @"LockedIcon.icns"; break; // Color wheel
+
+    // Bundle (system)
+    case KBIconComputer: bundleName = NSImageNameComputer; break;
+    case KBIconNetwork: bundleName = NSImageNameNetwork; break;
+      //case KBIconNetwork: coreBundleName = @"GenericNetworkIcon.icns"; break; // Round ball network
 
     // Local bundle
     case KBIconPGP: bundleName = @"gpgtools.icns"; break;

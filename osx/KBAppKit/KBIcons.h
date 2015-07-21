@@ -18,13 +18,15 @@ typedef NS_ENUM(NSInteger, KBIcon) {
   KBIconFileVault,
   KBIconMacbook,
   KBIconGenericApp,
-  KBIconNetwork,
   KBIconExecutableBinary,
   KBIconAlertNote,
   KBIconExtension,
   KBIconNotifications,
   KBIconColors,
   KBIconLocked,
+
+  KBIconComputer,
+  KBIconNetwork,
 
   KBIconPGP,
   KBIconFuse,

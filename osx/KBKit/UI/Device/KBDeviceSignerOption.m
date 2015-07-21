@@ -8,8 +8,7 @@
 
 #import "KBDeviceSignerOption.h"
 
-#import <ObjectiveSugar/ObjectiveSugar.h>
-#import <AppKit/AppKit.h>
+#import <KBAppKit/KBAppKit.h>
 
 @implementation KBDeviceSignerOption
 
@@ -36,8 +35,8 @@
 
 
 NSImage *KBImageForDeviceType(NSString *type) {
-  if ([type isEqualTo:@"desktop"]) return [NSImage imageNamed:NSImageNameComputer];
-  else if ([type isEqualTo:@"web"]) return [NSImage imageNamed:NSImageNameNetwork];
-  else if ([type isEqualTo:@"pgp"]) return [NSImage imageNamed:NSImageNameUser];
+  if ([type isEqualTo:@"desktop"]) return [KBIcons imageForIcon:KBIconComputer];
+  else if ([type isEqualTo:@"web"]) return [KBIcons imageForIcon:KBIconNetwork];
+  else if ([type isEqualTo:@"pgp"]) return [KBIcons imageForIcon:KBIconPGP];
   else return nil;
 }

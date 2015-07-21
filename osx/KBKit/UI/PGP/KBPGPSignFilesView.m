@@ -51,7 +51,7 @@
     output = ^(NSString *path) { return [path stringByAppendingPathExtension:@"gpg"]; };
   }
   [KBStream checkFiles:[_fileListEditView files] index:0 output:output streams:streams skipCheck:NO view:self completion:^(NSError *error) {
-    if ([self.navigation setError:error sender:self]) return;
+    if ([KBActivity setError:error sender:self]) return;
     if ([streams count] > 0) [self signStreams:streams];
   }];
 }
@@ -74,13 +74,12 @@
     options.binaryOut = YES;
   }
 
-  self.navigation.progressEnabled = YES;
-
+  [KBActivity setProgressEnabled:YES sender:self];
   [_signer signWithOptions:options streams:streams client:self.client sender:self completion:^(NSArray *works) {
-    self.navigation.progressEnabled = NO;
+    [KBActivity setProgressEnabled:NO sender:self];
     // TODO: Show errors in output, not just first error
     NSArray *errors = [works map:^(KBWork *w) { return w.error; }];
-    if ([self.navigation setError:[errors firstObject] sender:self]) return;
+    if ([KBActivity setError:[errors firstObject] sender:self]) return;
 
     [self showOutput:KBMap(works, output)];
   }];
