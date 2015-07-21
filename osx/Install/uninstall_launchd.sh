@@ -14,7 +14,3 @@ do
   launchctl unload $f
   rm $f
 done
-
-echo "Removing state"
-mv ~/Library/Application\ Support/Keybase* ~/.Trash/
-mv ~/Library/Caches/Keybase* ~/.Trash/
