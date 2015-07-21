@@ -49,6 +49,11 @@
   self.viewLayout = [YOLayout fill:_splitView];
 }
 
+- (void)setClient:(KBRPClient *)client {
+  _client = client;
+  _foldersView.client = client;
+}
+
 - (void)reload {
   //[_foldersView.favoritesView addObjects:@[[KBFile folderWithName:@"test" dateModified:[NSDate date]]]];
 }

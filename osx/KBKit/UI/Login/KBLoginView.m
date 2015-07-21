@@ -330,6 +330,7 @@
   // We are already showing the device setup view
   if (self.navigation.currentView == _deviceSetupView) return;
 
+  [_deviceSetupView removeFromSuperview];
   [self.navigation pushView:_deviceSetupView animated:YES];
 }
 

@@ -14,7 +14,7 @@
 @interface KBFoldersAppView : YOView
 
 @property KBNavigationView *navigation;
-@property KBRPClient *client;
+@property (nonatomic) KBRPClient *client;
 
 - (void)reload;
 

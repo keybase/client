@@ -32,8 +32,8 @@
 - (void)setMessage:(NSString *)message flag:(DDLogFlag)flag {
   _message = message;
   _options = KBTextOptionsMonospace|KBTextOptionsSmall;
-  if (_options & DDLogFlagError) _options |= KBTextOptionsDanger;
-  if (_options & DDLogFlagWarning) _options |= KBTextOptionsWarning;
+  if (flag & DDLogFlagError) _options |= KBTextOptionsDanger;
+  if (flag & DDLogFlagWarning) _options |= KBTextOptionsWarning;
 }
 
 - (NSAttributedString *)attributedString {
@@ -74,7 +74,7 @@
     return labelCell;
   };
   _logView.onSet = ^(KBLabelCell *label, KBConsoleItem *consoleItem, NSIndexPath *indexPath, NSTableColumn *tableColumn, KBListView *listView, BOOL dequeued) {
-    label.attributedText = [consoleItem attributedString];
+    [label setAttributedText:[consoleItem attributedString] options:consoleItem.options];
   };
   _logView.onSelect = ^(KBTableView *tableView, KBTableSelection *selection) {
     NSArray *messages = [selection.objects map:^(KBConsoleItem * c) { return c.message; }];

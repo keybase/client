@@ -126,7 +126,7 @@
 
   NSDictionary *attributes = @{NSForegroundColorAttributeName:color, NSFontAttributeName:font, NSParagraphStyleAttributeName:paragraphStyle};
 
-  return [[NSMutableAttributedString alloc] initWithString:text attributes:attributes];
+  return [[NSAttributedString alloc] initWithString:text attributes:attributes];
 }
 
 

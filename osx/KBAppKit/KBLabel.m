@@ -236,7 +236,8 @@
 
 @implementation KBLabelCell
 
-- (void)setAttributedText:(NSAttributedString *)attributedText {
+- (void)setAttributedText:(NSAttributedString *)attributedText options:(KBTextOptions)options {
+  self.options = options;
   [self setAttributedText:attributedText needsLayout:NO]; // The table view handles layout
 }
 

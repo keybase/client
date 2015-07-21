@@ -8,12 +8,12 @@
 
 #import <Foundation/Foundation.h>
 
-
 #import "KBFileListView.h"
 
 @interface KBFoldersView : YOView
 
 @property (readonly) KBFileListView *favoritesView;
 @property (readonly) KBFileListView *foldersView;
+@property (nonatomic) KBRPClient *client;
 
 @end

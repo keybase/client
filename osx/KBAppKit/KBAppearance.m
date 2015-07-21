@@ -45,9 +45,9 @@ static id<KBAppearance> gCurrentAppearance = NULL;
 @implementation KBAppearanceLight
 
 - (NSColor *)textColorForStyle:(KBTextStyle)style options:(KBTextOptions)options {
-  if (options & KBTextOptionsDanger) return KBColorWithStyle(self.dangerColor, NSBackgroundStyleDark);
-  if (options & KBTextOptionsWarning) return KBColorWithStyle(self.warnColor, NSBackgroundStyleDark);
   if (options & KBTextOptionsSelect) return KBColorWithStyle(self.selectColor, NSBackgroundStyleLight);
+  if (options & KBTextOptionsWarning) return KBColorWithStyle(self.warnColor, NSBackgroundStyleLight);
+  if (options & KBTextOptionsDanger) return KBColorWithStyle(self.dangerColor, NSBackgroundStyleLight);
 
   switch (style) {
     case KBTextStyleDefault:

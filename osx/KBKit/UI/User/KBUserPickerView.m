@@ -62,7 +62,7 @@
   [self addSubview:_label];
 
   _tokensField = [[NSTokenField alloc] init];
-  _tokensField.tokenStyle = NSRoundedTokenStyle;
+  _tokensField.tokenStyle = NSTokenStyleRounded;
   _tokensField.delegate = self;
   _tokensField.font = KBAppearance.currentAppearance.textFont;
   _tokensField.focusRingType = NSFocusRingTypeNone;
@@ -102,7 +102,9 @@
   self.viewLayout = [YOLayout layoutWithLayoutBlock:^CGSize(id<YOLayout> layout, CGSize size) {
     CGFloat x = 8;
     CGFloat y = 8;
-    x += [layout sizeToFitInFrame:CGRectMake(x, y, size.width - x, 0) view:yself.label].size.width + 8;
+    if (!yself.label.hidden) {
+      x += [layout sizeToFitInFrame:CGRectMake(x, y, size.width - x, 0) view:yself.label].size.width + 8;
+    }
 
     [layout setFrame:CGRectMake(size.width - 24, y, 20, 20) view:yself.progressView];
 
@@ -307,8 +309,12 @@
 
 #pragma mark Search
 
+- (void)setResultsView:(NSView *)resultsView {
+  _popoverInView = resultsView;
+}
+
 - (void)setSearchResultsFrame:(CGRect)searchResultsFrame inView:(NSView *)inView {
-  _popoverInView = inView;
+  [self setResultsView:inView];
   CGRect rect = searchResultsFrame;
   rect.origin.y += self.bounds.size.height;
   [self.popover setContentRect:rect];

@@ -58,15 +58,19 @@ DEPENDENCIES:
   - KBAppKit (from `.`)
   - Mantle
   - MASPreferences
-  - MPMessagePack
+  - MPMessagePack (from `~/Projects/MPMessagePack`)
   - ObjectiveSugar
   - Sparkle
-  - YOLayout
+  - YOLayout (from `~/Projects/YOLayout`)
   - ZXCVBN
 
 EXTERNAL SOURCES:
   KBAppKit:
     :path: "."
+  MPMessagePack:
+    :path: "~/Projects/MPMessagePack"
+  YOLayout:
+    :path: "~/Projects/YOLayout"
 
 SPEC CHECKSUMS:
   AFNetworking: 05edc0ac4c4c8cf57bcf4b84be5b0744b6d8e71e

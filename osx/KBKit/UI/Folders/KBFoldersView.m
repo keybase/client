@@ -12,6 +12,8 @@
 #import "KBSearchField.h"
 #import "KBViews.h"
 #import "KBFolderUsersView.h"
+#import "KBFolderAddView.h"
+#import "AppDelegate.h"
 
 @interface KBFoldersView ()
 @property NSSegmentedControl *segmentedControl;
@@ -96,6 +98,38 @@
 - (void)addFolder {
   //KBFolderUsersView *view = [[KBFolderUsersView alloc] init];
   //[self.window kb_addChildWindowForView:view rect:CGRectMake(0, 0, 500, 400) position:KBWindowPositionCenter title:@"Add Folder" fixed:NO makeKey:YES];
+  KBFolderAddView *folderAddView = [[KBFolderAddView alloc] init];
+  folderAddView.client = self.client;
+  folderAddView.close = ^(id sender) {
+    NSWindow *window = [sender window];
+    [window close];
+  };
+  folderAddView.completion = ^(NSArray *usernames) {
+
+  };
+  [self.window kb_addChildWindowForView:folderAddView rect:CGRectMake(0, 0, 400, 400) position:KBWindowPositionCenter title:@"Add Folder" fixed:NO makeKey:YES];
+}
+
+- (void)addFolderForUsernames:(NSArray *)usernames {
+  NSError *error = nil;
+  NSString *folder = [usernames join:@","];
+  NSString *path = [KBApp.environment.config.mountDir stringByAppendingPathComponent:folder];
+  if (![NSFileManager.defaultManager createDirectoryAtPath:path withIntermediateDirectories:NO attributes:@{} error:&error]) {
+    [KBActivity setError:error sender:self];
+  }
+}
+
+- (void)listFolders {
+  NSError *error = nil;
+  NSArray *files = [NSFileManager.defaultManager contentsOfDirectoryAtPath:KBApp.environment.config.mountDir error:&error];
+  if (!files) {
+    [KBActivity setError:error sender:self];
+    return;
+  }
+
+  
+
+
 }
 
 - (void)_segmentedChange:(id)sender {

@@ -14,6 +14,9 @@
 #import "KBBorder.h"
 #import "KBAppKitDefines.h"
 
+/*!
+ Note: If you set attributedText manually, setBackgroundStyle may override the colors used.
+ */
 @interface KBLabel : YOView
 
 @property (nonatomic) NSAttributedString *attributedText;
@@ -58,5 +61,7 @@
 
 
 @interface KBLabelCell : KBLabel
+
+- (void)setAttributedText:(NSAttributedString *)attributedText options:(KBTextOptions)options;
 
 @end

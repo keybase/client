@@ -3,9 +3,9 @@
 
 @implementation KBRAccountRequest
 
-- (void)changePassphraseWithSessionID:(NSInteger)sessionID oldPassphrase:(NSString *)oldPassphrase passphrase:(NSString *)passphrase force:(BOOL)force completion:(void (^)(NSError *error))completion {
+- (void)passphraseChangeWithSessionID:(NSInteger)sessionID oldPassphrase:(NSString *)oldPassphrase passphrase:(NSString *)passphrase force:(BOOL)force completion:(void (^)(NSError *error))completion {
   NSDictionary *params = @{@"sessionID": @(sessionID), @"oldPassphrase": KBRValue(oldPassphrase), @"passphrase": KBRValue(passphrase), @"force": @(force)};
-  [self.client sendRequestWithMethod:@"keybase.1.account.changePassphrase" params:params sessionId:self.sessionId completion:^(NSError *error, id retval) {
+  [self.client sendRequestWithMethod:@"keybase.1.account.passphraseChange" params:params sessionId:self.sessionId completion:^(NSError *error, id retval) {
     completion(error);
   }];
 }
@@ -464,10 +464,10 @@
   }];
 }
 
-- (void)confirmWithSessionID:(NSInteger)sessionID outcome:(KBRIdentifyOutcome *)outcome completion:(void (^)(NSError *error))completion {
+- (void)confirmWithSessionID:(NSInteger)sessionID outcome:(KBRIdentifyOutcome *)outcome completion:(void (^)(NSError *error, BOOL b))completion {
   NSDictionary *params = @{@"sessionID": @(sessionID), @"outcome": KBRValue(outcome)};
   [self.client sendRequestWithMethod:@"keybase.1.identifyUi.confirm" params:params sessionId:self.sessionId completion:^(NSError *error, id retval) {
-    completion(error);
+    completion(error, 0);
   }];
 }
 
@@ -643,6 +643,75 @@
 - (void)promptRevokeBackupDeviceKeysWithSessionID:(NSInteger)sessionID device:(KBRDevice *)device completion:(void (^)(NSError *error, BOOL b))completion {
   NSDictionary *params = @{@"sessionID": @(sessionID), @"device": KBRValue(device)};
   [self.client sendRequestWithMethod:@"keybase.1.loginUi.promptRevokeBackupDeviceKeys" params:params sessionId:self.sessionId completion:^(NSError *error, id retval) {
+    completion(error, 0);
+  }];
+}
+
+@end
+
+@implementation KBRKeyHalf
+@end
+
+@implementation KBRMetadataResponse
+@end
+
+@implementation KBRMetadataRequest
+
+- (void)putMetadataWithMdBlock:(NSData *)mdBlock completion:(void (^)(NSError *error))completion {
+  NSDictionary *params = @{@"mdBlock": KBRValue(mdBlock)};
+  [self.client sendRequestWithMethod:@"keybase.1.metadata.putMetadata" params:params sessionId:self.sessionId completion:^(NSError *error, id retval) {
+    completion(error);
+  }];
+}
+
+- (void)getMetadataWithFolderID:(NSString *)folderID folderHandle:(NSData *)folderHandle unmerged:(BOOL)unmerged startRevision:(long)startRevision stopRevision:(long)stopRevision completion:(void (^)(NSError *error, KBRMetadataResponse *metadataResponse))completion {
+  NSDictionary *params = @{@"folderID": KBRValue(folderID), @"folderHandle": KBRValue(folderHandle), @"unmerged": @(unmerged), @"startRevision": @(startRevision), @"stopRevision": @(stopRevision)};
+  [self.client sendRequestWithMethod:@"keybase.1.metadata.getMetadata" params:params sessionId:self.sessionId completion:^(NSError *error, id retval) {
+    if (error) {
+        completion(error, nil);
+        return;
+      }
+      KBRMetadataResponse *result = retval ? [MTLJSONAdapter modelOfClass:KBRMetadataResponse.class fromJSONDictionary:retval error:&error] : nil;
+      completion(error, result);
+  }];
+}
+
+- (void)pruneUnmergedWithFolderID:(NSString *)folderID completion:(void (^)(NSError *error))completion {
+  NSDictionary *params = @{@"folderID": KBRValue(folderID)};
+  [self.client sendRequestWithMethod:@"keybase.1.metadata.pruneUnmerged" params:params sessionId:self.sessionId completion:^(NSError *error, id retval) {
+    completion(error);
+  }];
+}
+
+- (void)putKeysWithKeyHalves:(NSArray *)keyHalves completion:(void (^)(NSError *error))completion {
+  NSDictionary *params = @{@"keyHalves": KBRValue(keyHalves)};
+  [self.client sendRequestWithMethod:@"keybase.1.metadata.putKeys" params:params sessionId:self.sessionId completion:^(NSError *error, id retval) {
+    completion(error);
+  }];
+}
+
+- (void)getKeyWithKeyHash:(NSString *)keyHash completion:(void (^)(NSError *error, NSData *bytes))completion {
+  NSDictionary *params = @{@"keyHash": KBRValue(keyHash)};
+  [self.client sendRequestWithMethod:@"keybase.1.metadata.getKey" params:params sessionId:self.sessionId completion:^(NSError *error, id retval) {
+    if (error) {
+        completion(error, nil);
+        return;
+      }
+      NSData *result = retval ? [MTLJSONAdapter modelOfClass:NSData.class fromJSONDictionary:retval error:&error] : nil;
+      completion(error, result);
+  }];
+}
+
+- (void)truncateLockWithFolderID:(NSString *)folderID completion:(void (^)(NSError *error, BOOL b))completion {
+  NSDictionary *params = @{@"folderID": KBRValue(folderID)};
+  [self.client sendRequestWithMethod:@"keybase.1.metadata.truncateLock" params:params sessionId:self.sessionId completion:^(NSError *error, id retval) {
+    completion(error, 0);
+  }];
+}
+
+- (void)truncateUnlockWithFolderID:(NSString *)folderID completion:(void (^)(NSError *error, BOOL b))completion {
+  NSDictionary *params = @{@"folderID": KBRValue(folderID)};
+  [self.client sendRequestWithMethod:@"keybase.1.metadata.truncateUnlock" params:params sessionId:self.sessionId completion:^(NSError *error, id retval) {
     completion(error, 0);
   }];
 }
@@ -984,6 +1053,18 @@
   }];
 }
 
+- (void)getBackupPassphraseWithSessionID:(NSInteger)sessionID username:(NSString *)username completion:(void (^)(NSError *error, NSString *str))completion {
+  NSDictionary *params = @{@"sessionID": @(sessionID), @"username": KBRValue(username)};
+  [self.client sendRequestWithMethod:@"keybase.1.secretUi.getBackupPassphrase" params:params sessionId:self.sessionId completion:^(NSError *error, id retval) {
+    if (error) {
+        completion(error, nil);
+        return;
+      }
+      NSString *result = retval ? [MTLJSONAdapter modelOfClass:NSString.class fromJSONDictionary:retval error:&error] : nil;
+      completion(error, result);
+  }];
+}
+
 @end
 
 @implementation KBRSession
@@ -1159,6 +1240,13 @@
 @implementation KBRUserSummary
 @end
 
+@implementation KBRSearchComponent
+@end
+
+@implementation KBRSearchResult
++ (NSValueTransformer *)componentsJSONTransformer { return [MTLJSONAdapter arrayTransformerWithModelClass:KBRSearchComponent.class]; }
+@end
+
 @implementation KBRUserRequest
 
 - (void)listTrackersWithSessionID:(NSInteger)sessionID uid:(NSString *)uid completion:(void (^)(NSError *error, NSArray *items))completion {
@@ -1252,13 +1340,13 @@
         completion(error, nil);
         return;
       }
-      NSArray *results = retval ? [MTLJSONAdapter modelsOfClass:KBRUserSummary.class fromJSONArray:retval error:&error] : nil;
+      NSArray *results = retval ? [MTLJSONAdapter modelsOfClass:KBRSearchResult.class fromJSONArray:retval error:&error] : nil;
       completion(error, results);
   }];
 }
 
 @end
-@implementation KBRChangePassphraseRequestParams
+@implementation KBRPassphraseChangeRequestParams
 
 - (instancetype)initWithParams:(NSArray *)params {
   if ((self = [super initWithParams:params])) {
@@ -1898,6 +1986,87 @@
 
 @end
 
+@implementation KBRPutMetadataRequestParams
+
+- (instancetype)initWithParams:(NSArray *)params {
+  if ((self = [super initWithParams:params])) {
+    self.mdBlock = params[0][@"mdBlock"];
+  }
+  return self;
+}
+
+@end
+
+@implementation KBRGetMetadataRequestParams
+
+- (instancetype)initWithParams:(NSArray *)params {
+  if ((self = [super initWithParams:params])) {
+    self.folderID = params[0][@"folderID"];
+    self.folderHandle = params[0][@"folderHandle"];
+    self.unmerged = [params[0][@"unmerged"] boolValue];
+    self.startRevision = [params[0][@"startRevision"] longValue];
+    self.stopRevision = [params[0][@"stopRevision"] longValue];
+  }
+  return self;
+}
+
+@end
+
+@implementation KBRPruneUnmergedRequestParams
+
+- (instancetype)initWithParams:(NSArray *)params {
+  if ((self = [super initWithParams:params])) {
+    self.folderID = params[0][@"folderID"];
+  }
+  return self;
+}
+
+@end
+
+@implementation KBRPutKeysRequestParams
+
+- (instancetype)initWithParams:(NSArray *)params {
+  if ((self = [super initWithParams:params])) {
+    self.keyHalves = [MTLJSONAdapter modelsOfClass:KBRKeyHalf.class fromJSONArray:params[0][@"keyHalves"] error:nil];
+  }
+  return self;
+}
+
+@end
+
+@implementation KBRGetKeyRequestParams
+
+- (instancetype)initWithParams:(NSArray *)params {
+  if ((self = [super initWithParams:params])) {
+    self.keyHash = params[0][@"keyHash"];
+  }
+  return self;
+}
+
+@end
+
+@implementation KBRTruncateLockRequestParams
+
+- (instancetype)initWithParams:(NSArray *)params {
+  if ((self = [super initWithParams:params])) {
+    self.folderID = params[0][@"folderID"];
+  }
+  return self;
+}
+
+@end
+
+@implementation KBRTruncateUnlockRequestParams
+
+- (instancetype)initWithParams:(NSArray *)params {
+  if ((self = [super initWithParams:params])) {
+    self.folderID = params[0][@"folderID"];
+  }
+  return self;
+}
+
+@end
+
 @implementation KBRPgpSignRequestParams
 
 - (instancetype)initWithParams:(NSArray *)params {
@@ -2279,6 +2448,18 @@
     self.sessionID = [params[0][@"sessionID"] integerValue];
     self.username = params[0][@"username"];
     self.retry = params[0][@"retry"];
+  }
+  return self;
+}
+
+@end
+
+@implementation KBRGetBackupPassphraseRequestParams
+
+- (instancetype)initWithParams:(NSArray *)params {
+  if ((self = [super initWithParams:params])) {
+    self.sessionID = [params[0][@"sessionID"] integerValue];
+    self.username = params[0][@"username"];
   }
   return self;
 }

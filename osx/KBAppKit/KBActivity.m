@@ -51,7 +51,7 @@
 }
 
 + (BOOL)setError:(NSError *)error sender:(id)sender {
-  [self setError:error sender:sender completion:nil];
+  return [self setError:error sender:sender completion:nil];
 }
 
 + (BOOL)setError:(NSError *)error sender:(id)sender completion:(void (^)(NSModalResponse response))completion {
