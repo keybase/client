@@ -11,7 +11,7 @@ type SearchEngine struct {
 	libkb.Contextified
 	query     string
 	numWanted int
-	results   []keybase1.UserSummary
+	results   []keybase1.SearchResult
 }
 
 type SearchEngineArgs struct {
@@ -71,37 +71,23 @@ func (e *SearchEngine) Run(ctx *Context) error {
 		}
 		completion := allCompletions.AtIndex(i)
 		components := completion.AtKey("components")
-		socialProofs := []keybase1.TrackProof{}
-		for _, proofTypeName := range componentKeys {
-			if _, isService := libkb.RemoteServiceTypes[proofTypeName]; isService {
-				val, err := components.AtKey(proofTypeName).AtKey("val").GetString()
-				if err != nil {
-					return err
-				}
-				socialProofs = append(socialProofs, keybase1.TrackProof{
-					ProofType: proofTypeName,
-					ProofName: val,
-				})
-			}
-		}
-		webProofs := []keybase1.WebProof{}
-		webProofsLen, err := components.AtKey("websites").Len()
-		if err != nil {
-			webProofsLen = 0
-		}
-		for i := 0; i < webProofsLen; i++ {
-			site, err := components.AtKey("websites").AtIndex(i).AtKey("val").GetString()
+		searchComponents := []keybase1.SearchComponent{}
+
+		for _, key := range componentKeys {
+			val, err := components.AtKey(key).AtKey("val").GetString()
 			if err != nil {
 				return err
 			}
-			protocol, err := components.AtKey("websites").AtIndex(i).AtKey("protocol").GetString()
+			score, err := components.AtKey(key).AtKey("score").GetFloat()
 			if err != nil {
 				return err
 			}
-			webProofs = append(webProofs, keybase1.WebProof{
-				Hostname:  site,
-				Protocols: []string{protocol},
+			searchComponents = append(searchComponents, keybase1.SearchComponent{
+				Key:   key,
+				Value: val,
+				Score: score,
 			})
+
 		}
 		username, err := components.AtKey("username").AtKey("val").GetString()
 		if err != nil {
@@ -115,18 +101,20 @@ func (e *SearchEngine) Run(ctx *Context) error {
 		if err != nil {
 			return err
 		}
-		e.results = append(e.results, keybase1.UserSummary{
-			Uid:      uid,
-			Username: username,
-			Proofs: keybase1.Proofs{
-				Social: socialProofs,
-				Web:    webProofs,
-			},
+		totalScore, err := completion.AtKey("total_score").GetFloat()
+		if err != nil {
+			return err
+		}
+		e.results = append(e.results, keybase1.SearchResult{
+			Uid:        uid,
+			Username:   username,
+			Components: searchComponents,
+			Score:      totalScore,
 		})
 	}
 	return nil
 }
 
-func (e *SearchEngine) GetResults() []keybase1.UserSummary {
+func (e *SearchEngine) GetResults() []keybase1.SearchResult {
 	return e.results
 }

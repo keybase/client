@@ -1240,6 +1240,13 @@
 @implementation KBRUserSummary
 @end
 
+@implementation KBRSearchComponent
+@end
+
+@implementation KBRSearchResult
++ (NSValueTransformer *)componentsJSONTransformer { return [MTLJSONAdapter arrayTransformerWithModelClass:KBRSearchComponent.class]; }
+@end
+
 @implementation KBRUserRequest
 
 - (void)listTrackersWithSessionID:(NSInteger)sessionID uid:(NSString *)uid completion:(void (^)(NSError *error, NSArray *items))completion {
@@ -1333,7 +1340,7 @@
         completion(error, nil);
         return;
       }
-      NSArray *results = retval ? [MTLJSONAdapter modelsOfClass:KBRUserSummary.class fromJSONArray:retval error:&error] : nil;
+      NSArray *results = retval ? [MTLJSONAdapter modelsOfClass:KBRSearchResult.class fromJSONArray:retval error:&error] : nil;
       completion(error, results);
   }];
 }

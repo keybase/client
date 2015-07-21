@@ -96,7 +96,7 @@ func (h *UserHandler) LoadUser(arg keybase1.LoadUserArg) (user keybase1.User, er
 	return
 }
 
-func (h *UserHandler) Search(arg keybase1.SearchArg) (results []keybase1.UserSummary, err error) {
+func (h *UserHandler) Search(arg keybase1.SearchArg) (results []keybase1.SearchResult, err error) {
 	eng := engine.NewSearchEngine(engine.SearchEngineArgs{
 		Query: arg.Query,
 	}, G)

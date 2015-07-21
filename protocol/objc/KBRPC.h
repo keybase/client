@@ -855,6 +855,19 @@ typedef NS_ENUM (NSInteger, KBRPromptDefault) {
 @property long trackTime;
 @end
 
+@interface KBRSearchComponent : KBRObject
+@property NSString *key;
+@property NSString *value;
+@property double score;
+@end
+
+@interface KBRSearchResult : KBRObject
+@property NSString *uid;
+@property NSString *username;
+@property NSArray *components; /*of KBRSearchComponent*/
+@property double score;
+@end
+
 @interface KBRUserRequest : KBRRequest
 - (void)listTrackersWithSessionID:(NSInteger)sessionID uid:(NSString *)uid completion:(void (^)(NSError *error, NSArray *items))completion;
 

@@ -3039,6 +3039,19 @@ type UserSummary struct {
 	TrackTime    Time   `codec:"trackTime" json:"trackTime"`
 }
 
+type SearchComponent struct {
+	Key   string  `codec:"key" json:"key"`
+	Value string  `codec:"value" json:"value"`
+	Score float64 `codec:"score" json:"score"`
+}
+
+type SearchResult struct {
+	Uid        UID               `codec:"uid" json:"uid"`
+	Username   string            `codec:"username" json:"username"`
+	Components []SearchComponent `codec:"components" json:"components"`
+	Score      float64           `codec:"score" json:"score"`
+}
+
 type ListTrackersArg struct {
 	SessionID int `codec:"sessionID" json:"sessionID"`
 	Uid       UID `codec:"uid" json:"uid"`
@@ -3089,7 +3102,7 @@ type UserInterface interface {
 	LoadUser(LoadUserArg) (User, error)
 	ListTracking(ListTrackingArg) ([]UserSummary, error)
 	ListTrackingJSON(ListTrackingJSONArg) (string, error)
-	Search(SearchArg) ([]UserSummary, error)
+	Search(SearchArg) ([]SearchResult, error)
 }
 
 func UserProtocol(i UserInterface) rpc2.Protocol {
@@ -3197,7 +3210,7 @@ func (c UserClient) ListTrackingJSON(__arg ListTrackingJSONArg) (res string, err
 	return
 }
 
-func (c UserClient) Search(__arg SearchArg) (res []UserSummary, err error) {
+func (c UserClient) Search(__arg SearchArg) (res []SearchResult, err error) {
 	err = c.Cli.Call("keybase.1.user.search", []interface{}{__arg}, &res)
 	return
 }

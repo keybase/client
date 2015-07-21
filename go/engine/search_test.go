@@ -32,8 +32,8 @@ func TestSearch(t *testing.T) {
 		t.Fatalf("Expected at least 2 search results for 'tacovontaco'. Got %d.", len(results))
 	}
 
-	var alice keybase1.UserSummary
-	var charlie keybase1.UserSummary
+	var alice keybase1.SearchResult
+	var charlie keybase1.SearchResult
 	for _, summary := range results {
 		if summary.Username == "t_alice" {
 			alice = summary
@@ -49,10 +49,4 @@ func TestSearch(t *testing.T) {
 		t.Fatal("Failed to find t_charlie.")
 	}
 
-	if len(alice.Proofs.Social) != 2 {
-		t.Fatalf("Expected 2 proofs for t_alice, got %d.", len(alice.Proofs.Social))
-	}
-	if len(charlie.Proofs.Social) != 2 {
-		t.Fatalf("Expected 2 proofs for t_charlie, got %d.", len(charlie.Proofs.Social))
-	}
 }

@@ -54,6 +54,20 @@ protocol user {
 	array<UserSummary> listTracking(int sessionID, string filter);
 	string listTrackingJSON(int sessionID, string filter, boolean verbose);
 
+
+	record SearchComponent {
+		string key;
+		string value;
+		double score;
+	}
+
+	record SearchResult {
+		UID uid;
+		string username;
+		array<SearchComponent> components;
+		double score;
+	}
+
 	// Search for users who match a given query
-	array<UserSummary> search(int sessionID, string query);
+	array<SearchResult> search(int sessionID, string query);
 }

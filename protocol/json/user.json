@@ -249,6 +249,38 @@
       "name" : "trackTime",
       "type" : "Time"
     } ]
+  }, {
+    "type" : "record",
+    "name" : "SearchComponent",
+    "fields" : [ {
+      "name" : "key",
+      "type" : "string"
+    }, {
+      "name" : "value",
+      "type" : "string"
+    }, {
+      "name" : "score",
+      "type" : "double"
+    } ]
+  }, {
+    "type" : "record",
+    "name" : "SearchResult",
+    "fields" : [ {
+      "name" : "uid",
+      "type" : "UID"
+    }, {
+      "name" : "username",
+      "type" : "string"
+    }, {
+      "name" : "components",
+      "type" : {
+        "type" : "array",
+        "items" : "SearchComponent"
+      }
+    }, {
+      "name" : "score",
+      "type" : "double"
+    } ]
   } ],
   "messages" : {
     "listTrackers" : {
@@ -355,7 +387,7 @@
       } ],
       "response" : {
         "type" : "array",
-        "items" : "UserSummary"
+        "items" : "SearchResult"
       }
     }
   }

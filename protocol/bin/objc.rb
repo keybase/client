@@ -21,6 +21,8 @@ def classname(type, aliases)
   case type
   when "int" then "NSNumber"
   when "long" then "NSNumber"
+  when "float" then "NSNumber"
+  when "double" then "NSNumber"
   when "string" then "NSString"
   when "bytes" then "NSData"
   else
@@ -39,6 +41,8 @@ def objc_for_type(type, enums, aliases, space)
   when "string" then ["NSString *", true]
   when "int" then ["NSInteger", false]
   when "long" then ["long", false]
+  when "float" then ["float", false]
+  when "double" then ["double", false]
   when "array" then ["NSArray *", true]
   when "boolean" then ["BOOL", false]
   when "bytes" then ["NSData *", true]
@@ -63,7 +67,7 @@ end
 
 def is_primitive_type(type)
   type = type.find { |t| t != "null" } if type.kind_of?(Array) # Union
-  ["int", "long", "boolean", "null"].include?(type)
+  ["int", "long", "float", "double", "boolean", "null"].include?(type)
 end
 
 # Deprecated
@@ -86,6 +90,8 @@ def default_name_for_type(type)
   when "string" then "str"
   when "int" then "n"
   when "long" then "l"
+  when "float" then "f"
+  when "double" then "d"
   when "array" then "items"
   when "boolean" then "b"
   when "binary" then "data"
@@ -117,6 +123,8 @@ def value_for_type(type, name, enums, aliases)
   case type
   when "int" then "[#{varname} integerValue]"
   when "long" then "[#{varname} longValue]"
+  when "float" then "[#{varname} floatValue]"
+  when "double" then "[#{varname} doubleValue]"
   when "boolean" then "[#{varname} boolValue]"
   when "string" then varname
   when "array" then varname

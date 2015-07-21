@@ -45,7 +45,29 @@ func (c *CmdSearch) RunClient() (err error) {
 		return err
 	}
 
-	return c.showResults(results)
+	userSummaries, err := UserSummariesForSearchResults(results)
+	if err != nil {
+		return err
+	}
+
+	return c.showResults(userSummaries)
+}
+
+func UserSummariesForSearchResults(results []keybase1.SearchResult) ([]keybase1.UserSummary, error) {
+	cli, err := GetUserClient()
+	if err != nil {
+		return nil, err
+	}
+
+	uids := make([]keybase1.UID, len(results))
+	for i := range results {
+		uids[i] = results[i].Uid
+	}
+	userSummaries, err := cli.LoadUncheckedUserSummaries(keybase1.LoadUncheckedUserSummariesArg{Uids: uids})
+	if err != nil {
+		return nil, err
+	}
+	return userSummaries, nil
 }
 
 func (c *CmdSearch) Run() error {
@@ -61,7 +83,12 @@ func (c *CmdSearch) Run() error {
 		return err
 	}
 
-	return c.showResults(eng.GetResults())
+	userSummaries, err := UserSummariesForSearchResults(eng.GetResults())
+	if err != nil {
+		return err
+	}
+
+	return c.showResults(userSummaries)
 }
 
 func (c *CmdSearch) showResults(results []keybase1.UserSummary) error {
