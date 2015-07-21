@@ -76,20 +76,6 @@ func Cicmp(s1, s2 string) bool {
 	return strings.ToLower(s1) == strings.ToLower(s2)
 }
 
-// XXX use strings.TrimRight(s, "=") instead
-func depad(s string) string {
-	b := []byte(s)
-	i := len(b) - 1
-	for ; i >= 0; i-- {
-		if b[i] != '=' {
-			i++
-			break
-		}
-	}
-	ret := string(b[0:i])
-	return ret
-}
-
 func PickFirstError(errors ...error) error {
 	for _, e := range errors {
 		if e != nil {
