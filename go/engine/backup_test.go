@@ -193,7 +193,7 @@ func TestBackupKeygenWithSecretStore(t *testing.T) {
 			LoginUI:  libkb.TestLoginUI{},
 			SecretUI: secretUI,
 		}
-		eng := NewBackupKeygen(tc.G)
+		eng := NewBackup(tc.G)
 		if err := RunEngine(eng, ctx); err != nil {
 			t.Fatal(err)
 		}
