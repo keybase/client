@@ -288,12 +288,35 @@ func ParseKeyFamily(jw *jsonw.Wrapper) (ret *KeyFamily, err error) {
 	// Parse the keys, and collect the PGP keys to map their fingerprints.
 	kf.AllKeys = make(map[keybase1.KID]GenericKey)
 	for _, bundle := range rkf.AllBundles {
-		key, err := ParseGenericKey(bundle)
+		newKey, err := ParseGenericKey(bundle)
 		if err != nil {
 			return nil, err
 		}
-		// TODO: Merge PGP keys with the same KID.
-		kf.AllKeys[key.GetKID()] = key
+
+		kid := newKey.GetKID()
+
+		if pgp, isPGP := newKey.(*PGPKeyBundle); isPGP {
+			// For now, we've decided to merge each version of a PGP key and
+			// ignore revocations when validating a sigchain. This stops anyone
+			// from breaking their sigchain by uploading a revoked version of
+			// their PGP key. Unfortunately it also creates a vulnerability
+			// when Alice's key is compromised and she revokes it PGP-style
+			// without revoking it sigchain-style: Keybase clients will
+			// continue to accept the key as legit, Mallory can now make
+			// sigchain links as Alice.
+			//
+			// A long-term solution is for us to track PGP keys' history in the
+			// sigchain and use one at a time. This is detailed in issue #544.
+			pgp.StripRevocations()
+
+			if oldKey, ok := kf.AllKeys[kid]; ok {
+				oldKey.(*PGPKeyBundle).MergeKey(pgp)
+			} else {
+				kf.AllKeys[kid] = pgp
+			}
+		} else {
+			kf.AllKeys[kid] = newKey
+		}
 	}
 
 	// Collect the PGP keys. (Do this with the AllKeys map instead of the
