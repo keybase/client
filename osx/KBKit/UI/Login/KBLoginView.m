@@ -20,6 +20,8 @@
 @property KBRLoginRequest *request;
 @property (nonatomic) NSString *username;
 @property NSArray *accounts;
+
+@property KBDeviceSetupChooseView *deviceSetupView;
 @end
 
 @implementation KBLoginView
@@ -170,6 +172,13 @@
     [self.navigation pushView:deviceSetupDisplayView animated:YES];
   }];
 
+  [self.client registerMethod:@"keybase.1.locksmithUi.deviceSignAttemptErr" sessionId:_request.sessionId requestHandler:^(NSNumber *messageId, NSString *method, NSArray *params, MPRequestCompletion completion) {
+    KBRDeviceSignAttemptErrRequestParams *requestParams = [[KBRDeviceSignAttemptErrRequestParams alloc] initWithParams:params];
+    [KBActivity setError:KBErrorAlert(@"%@", requestParams.msg) sender:self completion:^(NSModalResponse response) {
+      completion(nil, nil);
+    }];
+  }];
+
   BOOL storeSecret = _saveToKeychainButton.state == NSOnState;
 
   if ([passphrase isEqualToString:PASSWORD_PLACEHOLDER]) {
@@ -281,47 +290,47 @@
 }
 
 - (void)selectSigner:(KBRSelectSignerRequestParams *)params completion:(MPRequestCompletion)completion {
-  KBDeviceSetupChooseView *deviceSetupView = [[KBDeviceSetupChooseView alloc] init];
-  [deviceSetupView setDevices:params.devices hasPGP:params.hasPGP];
-
-  __weak KBDeviceSetupChooseView *gdeviceSetupView = deviceSetupView;
-  deviceSetupView.selectButton.targetBlock = ^{
-    KBDeviceSignerOption *option = [gdeviceSetupView.deviceSignerView selectedObject];
-    if (!option) {
-      [KBActivity setError:KBErrorAlert(@"You need to select an option or cancel.") sender:self];
-      return;
-    }
-
-    KBRSelectSignerRes *response = [[KBRSelectSignerRes alloc] init];
-    response.action = KBRSelectSignerActionSign;
-    KBRDeviceSigner *signer = [[KBRDeviceSigner alloc] init];
-    switch (option.signerType) {
-      case KBDeviceSignerTypePGP: {
-        signer.kind = KBRDeviceSignerKindPgp;
-        break;
+  if (!_deviceSetupView) {
+    _deviceSetupView = [[KBDeviceSetupChooseView alloc] init];
+    GHWeakSelf gself = self;
+    _deviceSetupView.selectButton.targetBlock = ^{
+      KBDeviceSignerOption *option = [gself.deviceSetupView.deviceSignerView selectedObject];
+      if (!option) {
+        [KBActivity setError:KBErrorAlert(@"You need to select an option or cancel.") sender:gself];
+        return;
       }
-      case KBDeviceSignerTypeDevice: {
-        signer.kind = KBRDeviceSignerKindDevice;
-        signer.deviceID = option.device.deviceID;
-        signer.deviceName = option.device.name;
-        break;
+
+      KBRSelectSignerRes *response = [[KBRSelectSignerRes alloc] init];
+      response.action = KBRSelectSignerActionSign;
+      KBRDeviceSigner *signer = [[KBRDeviceSigner alloc] init];
+      switch (option.signerType) {
+        case KBDeviceSignerTypePGP: {
+          signer.kind = KBRDeviceSignerKindPgp;
+          break;
+        }
+        case KBDeviceSignerTypeDevice: {
+          signer.kind = KBRDeviceSignerKindDevice;
+          signer.deviceID = option.device.deviceID;
+          signer.deviceName = option.device.name;
+          break;
+        }
       }
-    }
-    response.signer = signer;
-    [self.navigation setProgressEnabled:YES];
-    completion(nil, response);
-  };
+      response.signer = signer;
+      [gself.navigation setProgressEnabled:YES];
+      completion(nil, response);
+    };
 
-  deviceSetupView.cancelButton.targetBlock = ^{
-    [self cancelLogin];
-    /*
-    KBRSelectSignerRes *response = [[KBRSelectSignerRes alloc] init];
-    response.action = KBRSelectSignerActionCancel;
-    completion(nil, response);
-     */
-  };
+    _deviceSetupView.cancelButton.targetBlock = ^{
+      [gself cancelLogin];
+    };
+  }
 
-  [self.navigation pushView:deviceSetupView animated:YES];
+  [_deviceSetupView setDevices:params.devices hasPGP:params.hasPGP];
+
+  // We are already showing the device setup view
+  if (self.navigation.currentView == _deviceSetupView) return;
+
+  [self.navigation pushView:_deviceSetupView animated:YES];
 }
 
 @end
