@@ -179,7 +179,7 @@ func TestTrackLocal(t *testing.T) {
 func TestTrackWithSecretStore(t *testing.T) {
 	testEngineWithSecretStore(t, func(
 		tc libkb.TestContext, fu *FakeUser, secretUI libkb.SecretUI) {
-		trackAliceWithOptions(tc, fu, keybase1.TrackOptions{}, secretUI)
+		trackAliceWithOptions(tc, fu, keybase1.TrackOptions{BypassConfirm: true}, secretUI)
 		untrackAlice(tc, fu)
 	})
 }
