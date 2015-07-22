@@ -3,6 +3,7 @@ package main
 import (
 	"log"
 	"os"
+	"strings"
 	"sync"
 
 	"bazil.org/fuse"
@@ -129,6 +130,11 @@ func (fl *FolderList) getDirent(ctx context.Context, work <-chan libkbfs.TlfID, 
 				return err
 			}
 			name := dh.ToString(ctx, fl.fs.config)
+			if fl.public {
+				const publicSuffix = libkbfs.ReaderSep + libkbfs.PublicUIDName
+				// strip off the public portion
+				name = strings.TrimSuffix(name, publicSuffix)
+			}
 			results <- fuse.Dirent{
 				Type: fuse.DT_Dir,
 				Name: name,
