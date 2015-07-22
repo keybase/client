@@ -48,12 +48,19 @@ func (pi *pinentryInstance) useSecretStore(useSecretStore bool) (pinentrySecretS
 	// name "GnuPG" and the account name equal to the passed-in
 	// cache-id option value.
 	pi.Set("OPTION", "cache-id "+accountName, &err)
+	if err != nil {
+		// It's possible that the pinentry being used doesn't support
+		// this option.  So just return instead of causing a fatal
+		// error.
+		pi.parent.log.Debug("| Error setting pinentry cache-id OPTION: %s", err)
+		pi.parent.log.Debug("| Not using secret store as a result.")
+		return "", nil
+	}
 	return pinentrySecretStoreInfo(accountName), err
 }
 
 func (pi *pinentryInstance) shouldStoreSecret(info pinentrySecretStoreInfo) bool {
-	accountName := string(info)
-	if accountName == "" {
+	if len(info) == 0 {
 		return false
 	}
 
@@ -69,7 +76,7 @@ func (pi *pinentryInstance) shouldStoreSecret(info pinentrySecretStoreInfo) bool
 	// pinentry.
 	attributes := kc.GenericPasswordAttributes{
 		ServiceName: pinentryServiceName,
-		AccountName: accountName,
+		AccountName: string(info),
 	}
 	return (kc.FindAndRemoveGenericPassword(&attributes) == nil)
 }
