@@ -664,6 +664,13 @@
 
 @implementation KBRMetadataRequest
 
+- (void)authenticateWithUser:(NSString *)user deviceKID:(NSString *)deviceKID sid:(NSString *)sid completion:(void (^)(NSError *error))completion {
+  NSDictionary *params = @{@"user": KBRValue(user), @"deviceKID": KBRValue(deviceKID), @"sid": KBRValue(sid)};
+  [self.client sendRequestWithMethod:@"keybase.1.metadata.authenticate" params:params sessionId:self.sessionId completion:^(NSError *error, id retval) {
+    completion(error);
+  }];
+}
+
 - (void)putMetadataWithMdBlock:(NSData *)mdBlock completion:(void (^)(NSError *error))completion {
   NSDictionary *params = @{@"mdBlock": KBRValue(mdBlock)};
   [self.client sendRequestWithMethod:@"keybase.1.metadata.putMetadata" params:params sessionId:self.sessionId completion:^(NSError *error, id retval) {
@@ -1999,6 +2006,19 @@
   if ((self = [super initWithParams:params])) {
     self.sessionID = [params[0][@"sessionID"] integerValue];
     self.device = [MTLJSONAdapter modelOfClass:KBRDevice.class fromJSONDictionary:params[0][@"device"] error:nil];
+  }
+  return self;
+}
+
+@end
+
+@implementation KBRAuthenticateRequestParams
+
+- (instancetype)initWithParams:(NSArray *)params {
+  if ((self = [super initWithParams:params])) {
+    self.user = params[0][@"user"];
+    self.deviceKID = params[0][@"deviceKID"];
+    self.sid = params[0][@"sid"];
   }
   return self;
 }

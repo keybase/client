@@ -4,7 +4,7 @@ protocol metadata {
 	import idl "backend_common.avdl";
 
 	record KeyHalf {
-	       string deviceKID;
+	       KID deviceKID;
 	       bytes key;	
 	}
 
@@ -13,6 +13,7 @@ protocol metadata {
 	       array<bytes> mdBlocks;
 	}
 
+	void authenticate(UID user, KID deviceKID, string sid);
 	void putMetadata(bytes mdBlock);
 	MetadataResponse getMetadata(string folderID, bytes folderHandle, boolean unmerged, long startRevision, long stopRevision);
 	void pruneUnmerged(string folderID);

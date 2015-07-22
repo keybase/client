@@ -175,7 +175,7 @@
     "name" : "KeyHalf",
     "fields" : [ {
       "name" : "deviceKID",
-      "type" : "string"
+      "type" : "KID"
     }, {
       "name" : "key",
       "type" : "bytes"
@@ -195,6 +195,19 @@
     } ]
   } ],
   "messages" : {
+    "authenticate" : {
+      "request" : [ {
+        "name" : "user",
+        "type" : "UID"
+      }, {
+        "name" : "deviceKID",
+        "type" : "KID"
+      }, {
+        "name" : "sid",
+        "type" : "string"
+      } ],
+      "response" : "null"
+    },
     "putMetadata" : {
       "request" : [ {
         "name" : "mdBlock",
