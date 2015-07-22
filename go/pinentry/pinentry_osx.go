@@ -6,6 +6,7 @@ import (
 	"crypto/rand"
 	"encoding/hex"
 	"fmt"
+	"os"
 
 	kc "github.com/keybase/go-osxkeychain"
 )
@@ -79,4 +80,8 @@ func (pi *pinentryInstance) shouldStoreSecret(info pinentrySecretStoreInfo) bool
 		AccountName: string(info),
 	}
 	return (kc.FindAndRemoveGenericPassword(&attributes) == nil)
+}
+
+func IsRemote() bool {
+	return len(os.Getenv("SSH_CONNECTION")) > 0
 }

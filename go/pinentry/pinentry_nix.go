@@ -45,6 +45,9 @@ func canExec(s string) error {
 }
 
 func FindPinentry(log *logger.Logger) (string, error) {
+	if IsRemote() {
+		return "", fmt.Errorf("remote display connection detected, not using pinentry")
+	}
 	bins := []string{
 		// If you install MacTools you'll wind up with this pinentry
 		"/usr/local/MacGPG2/libexec/pinentry-mac.app/Contents/MacOS/pinentry-mac",
