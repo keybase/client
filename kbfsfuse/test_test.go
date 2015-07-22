@@ -34,7 +34,7 @@ func TestMain(m *testing.M) {
 		fmt.Printf("Testing Using Remote Backend: %s\n", bserver.Config.BServerAddr)
 		bserver.InitConfig("../bserver/testconfig.json")
 		bserver.Config.TestNoSession = true
-		bserver.StartBServer(nil)
+		bserver.StartBServer()
 	}
 
 	os.Exit(m.Run())
