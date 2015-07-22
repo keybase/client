@@ -12,6 +12,8 @@ import (
 	"golang.org/x/net/context"
 )
 
+// FolderList is a node that can list all of the logged-in user's
+// favorite top-level folders, on either a public or private basis.
 type FolderList struct {
 	fs *FS
 	// only accept public folders
