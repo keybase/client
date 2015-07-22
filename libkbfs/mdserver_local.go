@@ -377,9 +377,7 @@ func (md *MDServerLocal) GetFavorites(ctx context.Context) ([]TlfID, error) {
 		key := iter.Key()
 		var id TlfID
 		copy(id[:], key[:len(id)])
-		if !id.IsPublic() {
-			output = append(output, id)
-		}
+		output = append(output, id)
 	}
 	iter.Release()
 	err := iter.Error()
