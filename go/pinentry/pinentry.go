@@ -42,7 +42,7 @@ func (pe *Pinentry) Init() (error, error) {
 	}
 	err, fatalerr := pe.FindProgram()
 	if err == nil {
-		err = pe.GetTerminalName()
+		pe.GetTerminalName()
 	}
 	pe.term = os.Getenv("TERM")
 	pe.initRes = &err
@@ -70,16 +70,22 @@ func (pe *Pinentry) FindProgram() (error, error) {
 	return err, fatalerr
 }
 
-func (pe *Pinentry) GetTerminalName() error {
+func (pe *Pinentry) GetTerminalName() {
 	tty, err := os.Readlink("/proc/self/fd/0")
 	if err != nil {
 		pe.log.Debug("| Can't find terminal name via /proc lookup: %s", err)
-	} else {
-		pe.log.Debug("| found tty=%s", tty)
-		pe.tty = tty
+
+		// try /dev/tty
+		tty = "/dev/tty"
+		_, err = os.Stat("/dev/tty")
+		if err != nil {
+			pe.log.Debug("| stat /dev/tty failed: %s", err)
+			return
+		}
 	}
-	// Tis not a fatal error.  In particular, it won't work on OSX
-	return nil
+
+	pe.log.Debug("| found tty=%s", tty)
+	pe.tty = tty
 }
 
 func (pe *Pinentry) Get(arg keybase1.SecretEntryArg) (res *keybase1.SecretEntryRes, err error) {
@@ -164,10 +170,18 @@ func (pi *pinentryInstance) Init() (err error) {
 	}
 
 	if len(parent.tty) > 0 {
+		parent.log.Debug("setting ttyname to %s", parent.tty)
 		pi.Set("OPTION", "ttyname="+parent.tty, &err)
+		if err != nil {
+			parent.log.Debug("error setting ttyname: %s", err)
+		}
 	}
 	if len(parent.term) > 0 {
+		parent.log.Info("setting ttytype to %s", parent.term)
 		pi.Set("OPTION", "ttytype="+parent.term, &err)
+		if err != nil {
+			parent.log.Debug("error setting ttytype: %s", err)
+		}
 	}
 
 	parent.log.Debug("- pinentryInstance::Init() -> %v", err)
