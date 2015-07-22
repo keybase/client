@@ -619,15 +619,25 @@ func (d *Locksmith) detkey(ctx *Context) (libkb.GenericKey, error) {
 	return detkey, nil
 }
 
+var ErrDeviceMustBeUnique = errors.New("device name must be unique")
+
 func (d *Locksmith) deviceName(ctx *Context) (string, error) {
-	if len(d.devName) == 0 {
+	if len(d.devName) > 0 {
+		return d.devName, nil
+	}
+
+	for i := 0; i < 10; i++ {
 		name, err := ctx.LocksmithUI.PromptDeviceName(0)
 		if err != nil {
 			return "", err
 		}
-		d.devName = name
+		if !d.isDeviceNameTaken(ctx, name) {
+			d.devName = name
+			return d.devName, nil
+		}
+		ctx.LocksmithUI.DeviceNameTaken(keybase1.DeviceNameTakenArg{Name: name})
 	}
-	return d.devName, nil
+	return "", ErrDeviceMustBeUnique
 }
 
 func (d *Locksmith) hasActiveDevice(ctx *Context) bool {
@@ -643,4 +653,19 @@ func (d *Locksmith) hasActiveDevice(ctx *Context) bool {
 		}
 	}
 	return res
+}
+
+func (d *Locksmith) isDeviceNameTaken(ctx *Context, name string) bool {
+	if ctx.LoginContext != nil {
+		return ctx.LoginContext.SecretSyncer().IsDeviceNameTaken(name)
+	}
+
+	var taken bool
+	err := d.G().LoginState().SecretSyncer(func(ss *libkb.SecretSyncer) {
+		taken = ss.IsDeviceNameTaken(name)
+	}, "Locksmith - isDeviceNameTaken")
+	if err != nil {
+		d.G().Log.Warning("secret syncer error in isDeviceNameTaken: %s", err)
+	}
+	return taken
 }

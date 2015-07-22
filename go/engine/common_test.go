@@ -47,6 +47,8 @@ func NewFakeUserOrBust(t *testing.T, prefix string) (fu *FakeUser) {
 	return fu
 }
 
+const defaultDeviceName = "my device"
+
 // MakeTestSignupEngineRunArg fills a SignupEngineRunArg with the most
 // common parameters for testing and returns it.
 func MakeTestSignupEngineRunArg(fu *FakeUser) SignupEngineRunArg {
@@ -56,7 +58,7 @@ func MakeTestSignupEngineRunArg(fu *FakeUser) SignupEngineRunArg {
 		InviteCode:  testInviteCode,
 		Passphrase:  fu.Passphrase,
 		StoreSecret: false,
-		DeviceName:  "my device",
+		DeviceName:  defaultDeviceName,
 		SkipGPG:     true,
 		SkipMail:    true,
 	}

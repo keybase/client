@@ -200,6 +200,24 @@ func (ss *SecretSyncer) HasActiveDevice() bool {
 	return false
 }
 
+func (ss *SecretSyncer) IsDeviceNameTaken(name string) bool {
+	if ss.keys == nil {
+		return false
+	}
+	for _, v := range ss.keys.Devices {
+		if v.Status != DeviceStatusActive {
+			continue
+		}
+		if v.Type == DeviceTypeWeb {
+			continue
+		}
+		if TrimCicmp(v.Description, name) {
+			return true
+		}
+	}
+	return false
+}
+
 func (ss *SecretSyncer) ActiveDevices() (DeviceKeyMap, error) {
 	if ss.keys == nil {
 		return nil, fmt.Errorf("no keys")

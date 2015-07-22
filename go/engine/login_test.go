@@ -387,10 +387,19 @@ func TestUserInfo(t *testing.T) {
 
 type lockui struct {
 	selectSignerCount int
+	deviceName        string
+}
+
+func (l *lockui) setDeviceName(n string) {
+	l.deviceName = n
 }
 
 func (l *lockui) PromptDeviceName(dummy int) (string, error) {
-	return "my test device", nil
+	return l.deviceName, nil
+}
+
+func (l *lockui) DeviceNameTaken(arg keybase1.DeviceNameTakenArg) error {
+	return nil
 }
 
 func (l *lockui) SelectSigner(arg keybase1.SelectSignerArg) (res keybase1.SelectSignerRes, err error) {

@@ -26,6 +26,7 @@ protocol locksmithUi {
 	}
 
 	string promptDeviceName(int sessionID);
+	void deviceNameTaken(int sessionID, string name);
 
 	// selectSigner is for when a user logs in with a new device
 	// and it needs to be signed by an existing device or pgp.

@@ -473,8 +473,12 @@ type LocksmithUI struct {
 }
 
 func (d LocksmithUI) PromptDeviceName(dummy int) (string, error) {
-	return d.parent.Prompt("Enter a name for this device", false,
-		libkb.CheckNotEmpty)
+	return d.parent.Prompt("Enter a name for this device", false, libkb.CheckNotEmpty)
+}
+
+func (d LocksmithUI) DeviceNameTaken(arg keybase1.DeviceNameTakenArg) error {
+	d.parent.Output(fmt.Sprintf("Device name %q is already in use.  Please enter a unique device name.\n", arg.Name))
+	return nil
 }
 
 func (d LocksmithUI) SelectSigner(arg keybase1.SelectSignerArg) (res keybase1.SelectSignerRes, err error) {

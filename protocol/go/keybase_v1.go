@@ -1279,6 +1279,11 @@ type PromptDeviceNameArg struct {
 	SessionID int `codec:"sessionID" json:"sessionID"`
 }
 
+type DeviceNameTakenArg struct {
+	SessionID int    `codec:"sessionID" json:"sessionID"`
+	Name      string `codec:"name" json:"name"`
+}
+
 type SelectSignerArg struct {
 	SessionID int      `codec:"sessionID" json:"sessionID"`
 	Devices   []Device `codec:"devices" json:"devices"`
@@ -1307,6 +1312,7 @@ type KexStatusArg struct {
 
 type LocksmithUiInterface interface {
 	PromptDeviceName(int) (string, error)
+	DeviceNameTaken(DeviceNameTakenArg) error
 	SelectSigner(SelectSignerArg) (SelectSignerRes, error)
 	DeviceSignAttemptErr(DeviceSignAttemptErrArg) error
 	DisplaySecretWords(DisplaySecretWordsArg) error
@@ -1321,6 +1327,13 @@ func LocksmithUiProtocol(i LocksmithUiInterface) rpc2.Protocol {
 				args := make([]PromptDeviceNameArg, 1)
 				if err = nxt(&args); err == nil {
 					ret, err = i.PromptDeviceName(args[0].SessionID)
+				}
+				return
+			},
+			"deviceNameTaken": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
+				args := make([]DeviceNameTakenArg, 1)
+				if err = nxt(&args); err == nil {
+					err = i.DeviceNameTaken(args[0])
 				}
 				return
 			},
@@ -1364,6 +1377,11 @@ type LocksmithUiClient struct {
 func (c LocksmithUiClient) PromptDeviceName(sessionID int) (res string, err error) {
 	__arg := PromptDeviceNameArg{SessionID: sessionID}
 	err = c.Cli.Call("keybase.1.locksmithUi.promptDeviceName", []interface{}{__arg}, &res)
+	return
+}
+
+func (c LocksmithUiClient) DeviceNameTaken(__arg DeviceNameTakenArg) (err error) {
+	err = c.Cli.Call("keybase.1.locksmithUi.deviceNameTaken", []interface{}{__arg}, nil)
 	return
 }
 

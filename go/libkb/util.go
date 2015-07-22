@@ -76,6 +76,10 @@ func Cicmp(s1, s2 string) bool {
 	return strings.ToLower(s1) == strings.ToLower(s2)
 }
 
+func TrimCicmp(s1, s2 string) bool {
+	return Cicmp(strings.TrimSpace(s1), strings.TrimSpace(s2))
+}
+
 func PickFirstError(errors ...error) error {
 	for _, e := range errors {
 		if e != nil {

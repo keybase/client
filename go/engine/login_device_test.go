@@ -25,7 +25,6 @@ func TestLoginNewDeviceKex(t *testing.T) {
 	defer tcX.Cleanup()
 
 	// sign up with device X
-	// G = tcX.G
 	u := CreateAndSignupFakeUser(tcX, "login")
 	docui := &lockuiDevice{lockui: &lockui{}}
 	secui := &libkb.TestSecretUI{Passphrase: u.Passphrase}
@@ -385,6 +384,38 @@ func TestLoginNewDeviceKexCancelOnY(t *testing.T) {
 	}
 
 	wg.Wait()
+}
+
+// TestLoginNewDeviceDupName tests that a device name must be
+// unique.
+func TestLoginNewDeviceDupName(t *testing.T) {
+	kex.HelloTimeout = 5 * time.Second
+	kex.IntraTimeout = 5 * time.Second
+	kex.PollDuration = 1 * time.Second
+
+	// test context for device X
+	tcX := SetupEngineTest(t, "loginX")
+	defer tcX.Cleanup()
+
+	// sign up with device X
+	u := CreateAndSignupFakeUser(tcX, "login")
+	docui := &lockuiDevice{lockui: &lockui{}}
+
+	// set the device name to the same as the one used in CreateAndSignupFakeUser
+	docui.setDeviceName(defaultDeviceName)
+
+	secui := &libkb.TestSecretUI{Passphrase: u.Passphrase}
+
+	// test context for device Y
+	tcY := SetupEngineTest(t, "loginY")
+	defer tcY.Cleanup()
+
+	// log in with device Y
+	li := NewLoginWithPromptEngine(u.Username, tcY.G)
+	ctx := &Context{LogUI: tcY.G.UI.GetLogUI(), LocksmithUI: docui, GPGUI: &gpgtestui{}, SecretUI: secui, LoginUI: &libkb.TestLoginUI{}}
+	if err := RunEngine(li, ctx); err != ErrDeviceMustBeUnique {
+		t.Fatalf("expected ErrDeviceMustBeUnique, got %v", err)
+	}
 }
 
 type lockuiDevice struct {

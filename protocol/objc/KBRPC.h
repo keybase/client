@@ -464,6 +464,8 @@ typedef NS_ENUM (NSInteger, KBRKexStatusCode) {
 @interface KBRLocksmithUiRequest : KBRRequest
 - (void)promptDeviceNameWithSessionID:(NSInteger)sessionID completion:(void (^)(NSError *error, NSString *str))completion;
 
+- (void)deviceNameTakenWithSessionID:(NSInteger)sessionID name:(NSString *)name completion:(void (^)(NSError *error))completion;
+
 - (void)selectSignerWithSessionID:(NSInteger)sessionID devices:(NSArray *)devices hasPGP:(BOOL)hasPGP completion:(void (^)(NSError *error, KBRSelectSignerRes *selectSignerRes))completion;
 
 - (void)deviceSignAttemptErrWithSessionID:(NSInteger)sessionID msg:(NSString *)msg attempt:(NSInteger)attempt total:(NSInteger)total completion:(void (^)(NSError *error))completion;
@@ -1042,6 +1044,10 @@ typedef NS_ENUM (NSInteger, KBRPromptDefault) {
 @end
 @interface KBRPromptDeviceNameRequestParams : KBRRequestParams
 @property NSInteger sessionID;
+@end
+@interface KBRDeviceNameTakenRequestParams : KBRRequestParams
+@property NSInteger sessionID;
+@property NSString *name;
 @end
 @interface KBRSelectSignerRequestParams : KBRRequestParams
 @property NSInteger sessionID;

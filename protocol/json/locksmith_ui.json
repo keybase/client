@@ -204,6 +204,16 @@
       } ],
       "response" : "string"
     },
+    "deviceNameTaken" : {
+      "request" : [ {
+        "name" : "sessionID",
+        "type" : "int"
+      }, {
+        "name" : "name",
+        "type" : "string"
+      } ],
+      "response" : "null"
+    },
     "selectSigner" : {
       "request" : [ {
         "name" : "sessionID",
