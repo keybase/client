@@ -93,13 +93,18 @@ func (e *Backup) Run(ctx *Context) error {
 		}
 	}
 
-	ska := libkb.SecretKeyArg{
+	// TODO: Integrate with the platform's SecretStore. This is
+	// tricky because of the need for PassphraseGeneration. See
+	// https://github.com/keybase/client/issues/550 .
+
+	locked, which, err := e.G().Keyrings.GetSecretKeyLocked(ctx.LoginContext, libkb.SecretKeyArg{
 		Me:      me,
 		KeyType: libkb.DeviceSigningKeyType,
+	})
+	if err != nil {
+		return err
 	}
-
-	signingKey, _, err := e.G().Keyrings.GetSecretKeyWithPrompt(
-		ctx.LoginContext, ska, ctx.SecretUI, "backup key signature")
+	signingKey, err := locked.PromptAndUnlock(ctx.LoginContext, "backup key signature", which, nil, ctx.SecretUI, nil)
 	if err != nil {
 		return err
 	}
