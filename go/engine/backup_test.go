@@ -186,6 +186,8 @@ func TestBackupNoRevoke(t *testing.T) {
 
 // Make sure BackupKeygen uses the secret store.
 func TestBackupKeygenWithSecretStore(t *testing.T) {
+	t.Skip("Re-enable this when https://github.com/keybase/client/issues/550 is fixed")
+
 	testEngineWithSecretStore(t, func(
 		tc libkb.TestContext, fu *FakeUser, secretUI libkb.SecretUI) {
 		ctx := &Context{
