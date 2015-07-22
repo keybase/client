@@ -14,6 +14,7 @@ import (
 
 	"bazil.org/fuse/fs"
 	"bazil.org/fuse/fs/fstestutil"
+	keybase1 "github.com/keybase/client/protocol/go"
 	"github.com/keybase/kbfs/libkbfs"
 	"golang.org/x/net/context"
 )
@@ -239,6 +240,7 @@ func TestReaddirPublic(t *testing.T) {
 		// as favorites. Don't go through VFS to avoid caching causing
 		// false positives.
 		dh, err := libkbfs.ParseTlfHandle(context.Background(), config, "jdoe")
+		dh.Readers = append(dh.Readers, keybase1.PublicUID)
 		if err != nil {
 			t.Fatalf("cannot parse jdoe as folder: %v", err)
 		}

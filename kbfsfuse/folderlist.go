@@ -175,6 +175,9 @@ func (fl *FolderList) ReadDirAll(ctx context.Context) (res []fuse.Dirent, err er
 	go func() {
 		// feed work
 		for _, tlfID := range favs {
+			if fl.public != tlfID.IsPublic() {
+				continue
+			}
 			work <- tlfID
 		}
 		close(work)
