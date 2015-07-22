@@ -183,3 +183,21 @@ func TestBackupNoRevoke(t *testing.T) {
 		t.Errorf("num backup devices: %d, expected 2", len(bdevs))
 	}
 }
+
+// Make sure BackupKeygen uses the secret store.
+func TestBackupKeygenWithSecretStore(t *testing.T) {
+	t.Skip("Re-enable this when https://github.com/keybase/client/issues/550 is fixed")
+
+	testEngineWithSecretStore(t, func(
+		tc libkb.TestContext, fu *FakeUser, secretUI libkb.SecretUI) {
+		ctx := &Context{
+			LogUI:    tc.G.UI.GetLogUI(),
+			LoginUI:  libkb.TestLoginUI{},
+			SecretUI: secretUI,
+		}
+		eng := NewBackup(tc.G)
+		if err := RunEngine(eng, ctx); err != nil {
+			t.Fatal(err)
+		}
+	})
+}

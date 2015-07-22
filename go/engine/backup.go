@@ -93,6 +93,10 @@ func (e *Backup) Run(ctx *Context) error {
 		}
 	}
 
+	// TODO: Integrate with the platform's SecretStore. This is
+	// tricky because of the need for PassphraseGeneration. See
+	// https://github.com/keybase/client/issues/550 .
+
 	locked, which, err := e.G().Keyrings.GetSecretKeyLocked(ctx.LoginContext, libkb.SecretKeyArg{
 		Me:      me,
 		KeyType: libkb.DeviceSigningKeyType,

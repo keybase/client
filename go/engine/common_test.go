@@ -166,3 +166,44 @@ func Logout(tc libkb.TestContext) {
 		tc.T.Fatalf("logout error: %s", err)
 	}
 }
+
+// TODO: Add tests that use testEngineWithSecretStore for every engine
+// that should work with the secret store.
+
+// testEngineWithSecretStore takes a given engine-running function and
+// makes sure that it works with the secret store, i.e. that it stores
+// data into it when told to and reads data out from it.
+func testEngineWithSecretStore(
+	t *testing.T,
+	runEngine func(libkb.TestContext, *FakeUser, libkb.SecretUI)) {
+	// TODO: Get this working on non-OS X platforms (by mocking
+	// out the SecretStore).
+	if !libkb.HasSecretStore() {
+		t.Skip("Skipping test since there is no secret store")
+	}
+
+	tc := SetupEngineTest(t, "wss")
+	defer tc.Cleanup()
+
+	fu := CreateAndSignupFakeUser(tc, "wss")
+	tc.ResetLoginState()
+
+	testSecretUI := libkb.TestSecretUI{
+		Passphrase:  fu.Passphrase,
+		StoreSecret: true,
+	}
+	runEngine(tc, fu, &testSecretUI)
+
+	if !testSecretUI.CalledGetSecret {
+		t.Fatal("GetSecret() unexpectedly not called")
+	}
+
+	tc.ResetLoginState()
+
+	testSecretUI = libkb.TestSecretUI{}
+	runEngine(tc, fu, &testSecretUI)
+
+	if testSecretUI.CalledGetSecret {
+		t.Fatal("GetSecret() unexpectedly called")
+	}
+}

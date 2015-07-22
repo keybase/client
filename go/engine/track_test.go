@@ -8,10 +8,10 @@ import (
 )
 
 func runTrack(tc libkb.TestContext, fu *FakeUser, username string) (idUI *FakeIdentifyUI, them *libkb.User, err error) {
-	return runTrackWithOptions(tc, fu, username, keybase1.TrackOptions{BypassConfirm: true}, false)
+	return runTrackWithOptions(tc, fu, username, keybase1.TrackOptions{BypassConfirm: true}, fu.NewSecretUI(), false)
 }
 
-func runTrackWithOptions(tc libkb.TestContext, fu *FakeUser, username string, options keybase1.TrackOptions, forceRemoteCheck bool) (idUI *FakeIdentifyUI, them *libkb.User, err error) {
+func runTrackWithOptions(tc libkb.TestContext, fu *FakeUser, username string, options keybase1.TrackOptions, secretUI libkb.SecretUI, forceRemoteCheck bool) (idUI *FakeIdentifyUI, them *libkb.User, err error) {
 	idUI = &FakeIdentifyUI{}
 
 	arg := &TrackEngineArg{
@@ -22,7 +22,7 @@ func runTrackWithOptions(tc libkb.TestContext, fu *FakeUser, username string, op
 	ctx := &Context{
 		LogUI:      tc.G.UI.GetLogUI(),
 		IdentifyUI: idUI,
-		SecretUI:   fu.NewSecretUI(),
+		SecretUI:   secretUI,
 	}
 
 	eng := NewTrackEngine(arg, tc.G)
@@ -68,11 +68,11 @@ func assertNotTracking(t *testing.T, username string) {
 }
 
 func trackAlice(tc libkb.TestContext, fu *FakeUser) {
-	trackAliceWithOptions(tc, fu, keybase1.TrackOptions{BypassConfirm: true})
+	trackAliceWithOptions(tc, fu, keybase1.TrackOptions{BypassConfirm: true}, fu.NewSecretUI())
 }
 
-func trackAliceWithOptions(tc libkb.TestContext, fu *FakeUser, options keybase1.TrackOptions) {
-	idUI, res, err := runTrackWithOptions(tc, fu, "t_alice", options, false)
+func trackAliceWithOptions(tc libkb.TestContext, fu *FakeUser, options keybase1.TrackOptions, secretUI libkb.SecretUI) {
+	idUI, res, err := runTrackWithOptions(tc, fu, "t_alice", options, secretUI, false)
 	if err != nil {
 		tc.T.Fatal(err)
 	}
@@ -82,11 +82,11 @@ func trackAliceWithOptions(tc libkb.TestContext, fu *FakeUser, options keybase1.
 }
 
 func trackBob(tc libkb.TestContext, fu *FakeUser) {
-	trackBobWithOptions(tc, fu, keybase1.TrackOptions{BypassConfirm: true})
+	trackBobWithOptions(tc, fu, keybase1.TrackOptions{BypassConfirm: true}, fu.NewSecretUI())
 }
 
-func trackBobWithOptions(tc libkb.TestContext, fu *FakeUser, options keybase1.TrackOptions) {
-	idUI, res, err := runTrackWithOptions(tc, fu, "t_bob", options, false)
+func trackBobWithOptions(tc libkb.TestContext, fu *FakeUser, options keybase1.TrackOptions, secretUI libkb.SecretUI) {
+	idUI, res, err := runTrackWithOptions(tc, fu, "t_bob", options, secretUI, false)
 	if err != nil {
 		tc.T.Fatal(err)
 	}
@@ -153,7 +153,7 @@ func TestTrackLocal(t *testing.T) {
 	defer tc.Cleanup()
 	fu := CreateAndSignupFakeUser(tc, "track")
 
-	_, them, err := runTrackWithOptions(tc, fu, "t_alice", keybase1.TrackOptions{LocalOnly: true, BypassConfirm: true}, false)
+	_, them, err := runTrackWithOptions(tc, fu, "t_alice", keybase1.TrackOptions{LocalOnly: true, BypassConfirm: true}, fu.NewSecretUI(), false)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -173,4 +173,13 @@ func TestTrackLocal(t *testing.T) {
 	if s.IsRemote() {
 		t.Errorf("tracking statement is remote, expected local")
 	}
+}
+
+// Make sure the track engine uses the secret store.
+func TestTrackWithSecretStore(t *testing.T) {
+	testEngineWithSecretStore(t, func(
+		tc libkb.TestContext, fu *FakeUser, secretUI libkb.SecretUI) {
+		trackAliceWithOptions(tc, fu, keybase1.TrackOptions{BypassConfirm: true}, secretUI)
+		untrackAlice(tc, fu)
+	})
 }

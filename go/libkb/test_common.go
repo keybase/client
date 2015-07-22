@@ -138,6 +138,14 @@ func (tc *TestContext) MakePGPKey(id string) (*PGPKeyBundle, error) {
 	return NewPGPKeyBundle(arg, tc.G.UI.GetLogUI())
 }
 
+// ResetLoginStateForTest simulates a shutdown and restart (for client
+// state). Used by tests that need to clear out cached login state
+// without logging out.
+func (tc *TestContext) ResetLoginState() {
+	tc.G.loginState.Shutdown()
+	tc.G.createLoginState()
+}
+
 func setupTestContext(nm string) (tc TestContext, err error) {
 
 	g := NewGlobalContext()

@@ -1,6 +1,10 @@
 package engine
 
-import "testing"
+import (
+	"testing"
+
+	"github.com/keybase/client/go/libkb"
+)
 
 func TestProveRooter(t *testing.T) {
 	tc := SetupEngineTest(t, "prove")
@@ -25,4 +29,15 @@ func TestProveRooter(t *testing.T) {
 	if !proveUI.checked {
 		t.Error("OkToCheck never called")
 	}
+}
+
+// Make sure the prove engine uses the secret store.
+func TestProveRooterWithSecretStore(t *testing.T) {
+	testEngineWithSecretStore(t, func(
+		tc libkb.TestContext, fu *FakeUser, secretUI libkb.SecretUI) {
+		_, _, err := proveRooterWithSecretUI(tc.G, fu, secretUI)
+		if err != nil {
+			t.Fatal(err)
+		}
+	})
 }

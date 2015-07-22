@@ -25,7 +25,7 @@ func checkTrack(tc libkb.TestContext, fu *FakeUser, username string, blocks []sb
 }
 
 func checkTrackForce(tc libkb.TestContext, fu *FakeUser, username string, blocks []sb, outcome *keybase1.IdentifyOutcome) error {
-	ui, them, err := runTrackWithOptions(tc, fu, username, keybase1.TrackOptions{BypassConfirm: true}, true)
+	ui, them, err := runTrackWithOptions(tc, fu, username, keybase1.TrackOptions{BypassConfirm: true}, fu.NewSecretUI(), true)
 	if err != nil {
 		return err
 	}

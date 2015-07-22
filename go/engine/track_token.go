@@ -144,11 +144,13 @@ func (e *TrackToken) storeRemoteTrack(ctx *Context) (err error) {
 		e.G().Log.Debug("- StoreRemoteTrack -> %s", libkb.ErrToOk(err))
 	}()
 
-	// need to unlock private key
-	if e.lockedKey == nil {
-		return fmt.Errorf("nil locked key")
+	var secretStore libkb.SecretStore
+	if e.arg.Me != nil {
+		e.lockedKey.SetUID(e.arg.Me.GetUID())
+		secretStore = libkb.NewSecretStore(e.arg.Me.GetName())
 	}
-	e.signingKeyPriv, err = e.lockedKey.PromptAndUnlock(ctx.LoginContext, "tracking signature", e.lockedWhich, nil, ctx.SecretUI, nil)
+	// need to unlock private key
+	e.signingKeyPriv, err = e.lockedKey.PromptAndUnlock(ctx.LoginContext, "tracking signature", e.lockedWhich, secretStore, ctx.SecretUI, nil)
 	if err != nil {
 		return err
 	}
