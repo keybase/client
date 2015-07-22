@@ -304,13 +304,13 @@ func (b *BlockServerRemote) AddBlockReference(ctx context.Context, id BlockID,
 	nonce := context.GetRefNonce()
 	arg := keybase1.IncBlockReferenceArg{
 		Bid: keybase1.BlockIdCombo{
-			ChargedTo: context.GetWriter(), //should be the original chargedto
+			ChargedTo: context.GetCreator(),
 			BlockHash: id.String(),
 		},
-		Nonce:     hex.EncodeToString(nonce[:]),
 		Folder:    tlfID.String(),
 		ChargedTo: context.GetWriter(), //the actual writer to decrement quota from
 	}
+	copy(arg.Nonce[:], nonce[:])
 
 	f := func() error {
 		clt := keybase1.BlockClient{Cli: b.clt}
@@ -336,13 +336,13 @@ func (b *BlockServerRemote) RemoveBlockReference(ctx context.Context, id BlockID
 	nonce := context.GetRefNonce()
 	arg := keybase1.DecBlockReferenceArg{
 		Bid: keybase1.BlockIdCombo{
-			ChargedTo: context.GetWriter(), //should be the original chargedto
+			ChargedTo: context.GetCreator(),
 			BlockHash: id.String(),
 		},
-		Nonce:     hex.EncodeToString(nonce[:]),
-		Folder:    tlfID.String(),
+		Folder:    tlfID[:].String(),
 		ChargedTo: context.GetWriter(), //the actual writer to decrement quota from
 	}
+	copy(arg.Nonce[:], nonce[:])
 
 	f := func() error {
 		clt := keybase1.BlockClient{Cli: b.clt}
