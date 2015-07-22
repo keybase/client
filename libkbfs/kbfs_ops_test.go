@@ -1379,7 +1379,10 @@ func TestKBFSOpRemoveMultiBlockFileSuccess(t *testing.T) {
 	n := nodeFromPath(t, ops, p)
 
 	config.BlockCache().Put(node.BlockPointer.ID, rootBlock)
-	config.BlockCache().Put(fileNode.BlockPointer.ID, fileBlock)
+
+	// let the top block be uncached, so we have to fetch it from BlockOps.
+	expectBlock(config, rmd, fileNode.BlockPointer, fileBlock, nil)
+
 	config.BlockCache().Put(fileBlock.IPtrs[0].BlockPointer.ID, block1)
 	config.BlockCache().Put(fileBlock.IPtrs[1].BlockPointer.ID, block2)
 	config.BlockCache().Put(fileBlock.IPtrs[2].BlockPointer.ID, block3)
