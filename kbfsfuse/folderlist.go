@@ -147,11 +147,11 @@ func (fl *FolderList) ReadDirAll(ctx context.Context) (res []fuse.Dirent, err er
 	work := make(chan libkbfs.TlfID)
 	results := make(chan fuse.Dirent)
 	errCh := make(chan error, 1)
-	const workers = 10
+	const maxWorkers = 10
 	var wg sync.WaitGroup
 	ctx, cancel := context.WithCancel(ctx)
 	defer cancel()
-	for i := 0; i < workers; i++ {
+	for i := 0; i < maxWorkers && i < len(favs); i++ {
 		wg.Add(1)
 		go func() {
 			defer wg.Done()
