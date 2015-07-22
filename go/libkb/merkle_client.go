@@ -81,7 +81,7 @@ type MerkleUserLeaf struct {
 	idVersion int64
 	username  string
 	uid       keybase1.UID
-	eldest    *keybase1.KID
+	eldest    keybase1.KID // may be empty
 }
 
 type PathSteps []*PathStep
@@ -489,7 +489,7 @@ func parseV2(jw *jsonw.Wrapper) (*MerkleUserLeaf, error) {
 		if err != nil {
 			return nil, err
 		}
-		user.eldest = &eldest
+		user.eldest = eldest
 	}
 
 	return &user, nil

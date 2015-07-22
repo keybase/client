@@ -632,10 +632,10 @@ func (c ChainLink) ToMerkleTriple() *MerkleTriple {
 // was signed by a key in the current family.
 func (c *ChainLink) IsInCurrentFamily(u *User) bool {
 	eldest := u.GetEldestKID()
-	if eldest == nil {
+	if eldest.IsNil() {
 		return false
 	}
-	return *eldest == c.ToEldestKID()
+	return eldest.Equal(c.ToEldestKID())
 }
 
 //=========================================================================

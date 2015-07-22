@@ -328,10 +328,8 @@ func (u *User) SyncSecrets() error {
 	return G.LoginState().RunSecretSyncer(u.id)
 }
 
-func (u *User) GetEldestKID() (ret *keybase1.KID) {
-	if u.leaf.eldest == nil {
-		return nil
-	}
+// May return an empty KID
+func (u *User) GetEldestKID() (ret keybase1.KID) {
 	return u.leaf.eldest
 }
 
@@ -345,10 +343,10 @@ func (u *User) sigChain() *SigChain {
 
 func (u *User) MakeIDTable() error {
 	kid := u.GetEldestKID()
-	if kid == nil {
+	if kid.IsNil() {
 		return NoKeyError{"Expected a key but didn't find one"}
 	}
-	idt, err := NewIdentityTable(*kid, u.sigChain(), u.sigHints)
+	idt, err := NewIdentityTable(kid, u.sigChain(), u.sigHints)
 	if err != nil {
 		return err
 	}
@@ -462,7 +460,7 @@ func (u *User) localDelegateKey(key GenericKey, sigID keybase1.SigID, kid keybas
 	err = u.sigChain().LocalDelegate(u.keyFamily, key, sigID, kid, isSibkey)
 	if isEldest {
 		eldestKID := key.GetKID()
-		u.leaf.eldest = &eldestKID
+		u.leaf.eldest = eldestKID
 	}
 	return
 }

@@ -98,7 +98,7 @@ func (d *Locksmith) hasKeyFamily() bool {
 	if kf == nil {
 		return false
 	}
-	if d.arg.User.GetEldestKID() == nil {
+	if d.arg.User.GetEldestKID().IsNil() {
 		return false
 	}
 	return true
@@ -158,7 +158,7 @@ func (d *Locksmith) checkKeys(ctx *Context) error {
 		d.G().Log.Debug("| User didn't have a key family")
 		return d.addBasicKeys(ctx)
 	}
-	if d.user.GetEldestKID() == nil {
+	if d.user.GetEldestKID().IsNil() {
 		d.G().Log.Debug("| User didn't have an eldest key")
 		return d.addBasicKeys(ctx)
 	}
@@ -485,14 +485,14 @@ func (d *Locksmith) deviceSignPGPNext(ctx *Context, pgpk libkb.GenericKey) error
 
 	eldest := d.user.GetEldestKID()
 	ctx.LogUI.Debug("eldest kid from user: %s", eldest)
-	if err := d.addDeviceKeyWithSigner(ctx, pgpk, *eldest); err != nil {
+	if err := d.addDeviceKeyWithSigner(ctx, pgpk, eldest); err != nil {
 		return err
 	}
 
 	dk, err := d.detkey(ctx)
 	if err != nil || dk == nil {
 		ctx.LogUI.Debug("no detkey found, adding one")
-		if err := d.addDetKey(ctx, *eldest); err != nil {
+		if err := d.addDetKey(ctx, eldest); err != nil {
 			return err
 		}
 	}

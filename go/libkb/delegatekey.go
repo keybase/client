@@ -19,7 +19,7 @@ type Delegator struct {
 	// Set these fields
 	NewKey            GenericKey
 	ExistingKey       GenericKey
-	ExistingKID       *keybase1.KID
+	ExistingKID       keybase1.KID // may be empty
 	EldestKID         keybase1.KID
 	Me                *User
 	Sibkey            bool
@@ -48,10 +48,10 @@ func (d Delegator) getExistingKID() (kid keybase1.KID) {
 	return d.ExistingKey.GetKID()
 }
 
-func (d Delegator) GetExistingKeyKID() (ret *keybase1.KID) {
+func (d Delegator) GetExistingKeyKID() (ret keybase1.KID) {
 	if d.ExistingKey != nil {
 		kid := d.ExistingKey.GetKID()
-		return &kid
+		return kid
 	}
 	return d.ExistingKID
 }
@@ -82,11 +82,11 @@ func (d *Delegator) CheckArgs() (err error) {
 	}
 
 	if d.EldestKID.Exists() || d.isEldest {
-	} else if kid := d.Me.GetEldestKID(); kid == nil {
+	} else if kid := d.Me.GetEldestKID(); kid.IsNil() {
 		err = NoEldestKeyError{}
 		return err
 	} else {
-		d.EldestKID = *kid
+		d.EldestKID = kid
 	}
 
 	G.Log.Debug("| Picked key %s for signing", d.signingKey.GetKID())

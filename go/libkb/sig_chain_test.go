@@ -173,7 +173,7 @@ func doChainTest(t *testing.T, testCase TestCase) {
 		sigchain.chainLinks = append(sigchain.chainLinks, link)
 	}
 	if sigchainErr == nil {
-		_, sigchainErr = sigchain.VerifySigsAndComputeKeys(&eldestKID, &ckf)
+		_, sigchainErr = sigchain.VerifySigsAndComputeKeys(eldestKID, &ckf)
 	}
 
 	// Some tests expect an error. If we get one, make sure it's the right

@@ -426,7 +426,7 @@ func (sc *SigChain) verifySubchain(kf KeyFamily, links []*ChainLink) (cached boo
 	return
 }
 
-func (sc *SigChain) VerifySigsAndComputeKeys(eldest *keybase1.KID, ckf *ComputedKeyFamily) (cached bool, err error) {
+func (sc *SigChain) VerifySigsAndComputeKeys(eldest keybase1.KID, ckf *ComputedKeyFamily) (cached bool, err error) {
 
 	cached = false
 	G.Log.Debug("+ VerifySigsAndComputeKeys for user %s", sc.uid)
@@ -438,18 +438,18 @@ func (sc *SigChain) VerifySigsAndComputeKeys(eldest *keybase1.KID, ckf *Computed
 		return
 	}
 
-	if ckf.kf == nil || eldest == nil {
+	if ckf.kf == nil || eldest.IsNil() {
 		G.Log.Debug("| VerifyWithKey short-circuit, since no Key available")
 		return
 	}
-	links, err := sc.LimitToEldestKID(*eldest)
+	links, err := sc.LimitToEldestKID(eldest)
 	if err != nil {
 		return
 	}
 
 	if links == nil || len(links) == 0 {
-		G.Log.Debug("| Empty chain after we limited to eldest %s", *eldest)
-		eldestKey := ckf.kf.AllKeys[*eldest]
+		G.Log.Debug("| Empty chain after we limited to eldest %s", eldest)
+		eldestKey := ckf.kf.AllKeys[eldest]
 		sc.localCki = NewComputedKeyInfos()
 		err = sc.localCki.InsertServerEldestKey(eldestKey, sc.username)
 		ckf.cki = sc.localCki
@@ -572,7 +572,7 @@ func (l *SigChainLoader) LoadLinksFromStorage() (err error) {
 	// allKeys. We have to load something...  Note that we don't use l.fp
 	// here (as we used to) since if the user used to have chainlinks, and then
 	// removed their key, we still want to load their last chainlinks.
-	var loadKID *keybase1.KID
+	var loadKID keybase1.KID
 
 	curr = mt.LinkID
 	var link *ChainLink
@@ -586,10 +586,10 @@ func (l *SigChainLoader) LoadLinksFromStorage() (err error) {
 		}
 		kid2 := link.ToEldestKID()
 
-		if loadKID == nil {
-			loadKID = &kid2
+		if loadKID.IsNil() {
+			loadKID = kid2
 			G.Log.Debug("| Setting loadKID=%s", kid2)
-		} else if !l.allKeys && loadKID != nil && *loadKID != kid2 {
+		} else if !l.allKeys && loadKID.Exists() && !loadKID.Equal(kid2) {
 			goodKey = false
 			G.Log.Debug("| Stop loading at KID=%s (!= KID=%s)", loadKID, kid2)
 		}

@@ -38,7 +38,7 @@ func TestLoginFakeUserNoKeys(t *testing.T) {
 	if kf == nil {
 		t.Fatal("user has a nil key family")
 	}
-	if me.GetEldestKID() != nil {
+	if me.GetEldestKID().Exists() {
 		t.Fatalf("user has an eldest key, they should have no keys: %s", me.GetEldestKID())
 	}
 
@@ -63,7 +63,7 @@ func testUserHasDeviceKey(t *testing.T) {
 	if kf == nil {
 		t.Fatal("user has a nil key family")
 	}
-	if me.GetEldestKID() == nil {
+	if me.GetEldestKID().IsNil() {
 		t.Fatal("user has no eldest key")
 	}
 

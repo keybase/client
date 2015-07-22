@@ -157,7 +157,7 @@ func (k *KexFwd) Run(ctx *Context) error {
 	pargs := &DeviceKeygenPushArgs{
 		SkipSignerPush: true,
 		Signer:         dkeng.SigningKey(),
-		EldestKID:      *k.user.GetEldestKID(),
+		EldestKID:      k.user.GetEldestKID(),
 		User:           k.user,
 	}
 	if err := dkeng.Push(ctx, pargs); err != nil {
@@ -202,7 +202,7 @@ func (k *KexFwd) handleDone(ctx *Context, m *kex.Msg) error {
 // revSig generates a reverse signature using X's device key id.
 func (k *KexFwd) revSig(eddsa libkb.NaclKeyPair) (sig string, err error) {
 	delg := libkb.Delegator{
-		ExistingKID: &k.xDevKeyID,
+		ExistingKID: k.xDevKeyID,
 		NewKey:      eddsa,
 		Me:          k.args.User,
 		Sibkey:      true,
