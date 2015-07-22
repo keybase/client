@@ -1672,13 +1672,19 @@ func (c LoginUiClient) PromptRevokeBackupDeviceKeys(__arg PromptRevokeBackupDevi
 }
 
 type KeyHalf struct {
-	DeviceKID string `codec:"deviceKID" json:"deviceKID"`
+	DeviceKID KID    `codec:"deviceKID" json:"deviceKID"`
 	Key       []byte `codec:"key" json:"key"`
 }
 
 type MetadataResponse struct {
 	FolderID string   `codec:"folderID" json:"folderID"`
 	MdBlocks [][]byte `codec:"mdBlocks" json:"mdBlocks"`
+}
+
+type AuthenticateArg struct {
+	User      UID    `codec:"user" json:"user"`
+	DeviceKID KID    `codec:"deviceKID" json:"deviceKID"`
+	Sid       string `codec:"sid" json:"sid"`
 }
 
 type PutMetadataArg struct {
@@ -1714,6 +1720,7 @@ type TruncateUnlockArg struct {
 }
 
 type MetadataInterface interface {
+	Authenticate(AuthenticateArg) error
 	PutMetadata([]byte) error
 	GetMetadata(GetMetadataArg) (MetadataResponse, error)
 	PruneUnmerged(string) error
@@ -1727,6 +1734,13 @@ func MetadataProtocol(i MetadataInterface) rpc2.Protocol {
 	return rpc2.Protocol{
 		Name: "keybase.1.metadata",
 		Methods: map[string]rpc2.ServeHook{
+			"authenticate": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
+				args := make([]AuthenticateArg, 1)
+				if err = nxt(&args); err == nil {
+					err = i.Authenticate(args[0])
+				}
+				return
+			},
 			"putMetadata": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
 				args := make([]PutMetadataArg, 1)
 				if err = nxt(&args); err == nil {
@@ -1783,6 +1797,11 @@ func MetadataProtocol(i MetadataInterface) rpc2.Protocol {
 
 type MetadataClient struct {
 	Cli GenericClient
+}
+
+func (c MetadataClient) Authenticate(__arg AuthenticateArg) (err error) {
+	err = c.Cli.Call("keybase.1.metadata.authenticate", []interface{}{__arg}, nil)
+	return
 }
 
 func (c MetadataClient) PutMetadata(mdBlock []byte) (err error) {

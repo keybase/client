@@ -533,6 +533,8 @@ typedef NS_ENUM (NSInteger, KBRLogLevel) {
 @end
 
 @interface KBRMetadataRequest : KBRRequest
+- (void)authenticateWithUser:(NSString *)user deviceKID:(NSString *)deviceKID sid:(NSString *)sid completion:(void (^)(NSError *error))completion;
+
 - (void)putMetadataWithMdBlock:(NSData *)mdBlock completion:(void (^)(NSError *error))completion;
 
 - (void)getMetadataWithFolderID:(NSString *)folderID folderHandle:(NSData *)folderHandle unmerged:(BOOL)unmerged startRevision:(long)startRevision stopRevision:(long)stopRevision completion:(void (^)(NSError *error, KBRMetadataResponse *metadataResponse))completion;
@@ -1094,6 +1096,11 @@ typedef NS_ENUM (NSInteger, KBRPromptDefault) {
 @interface KBRPromptRevokeBackupDeviceKeysRequestParams : KBRRequestParams
 @property NSInteger sessionID;
 @property KBRDevice *device;
+@end
+@interface KBRAuthenticateRequestParams : KBRRequestParams
+@property NSString *user;
+@property NSString *deviceKID;
+@property NSString *sid;
 @end
 @interface KBRPutMetadataRequestParams : KBRRequestParams
 @property NSData *mdBlock;
