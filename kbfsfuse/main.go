@@ -18,7 +18,6 @@ var localUserFlag = flag.String("localuser", "strib",
 	"fake local user (only valid when local=true)")
 var clientFlag = flag.Bool("client", false, "use keybase daemon")
 var debug = flag.Bool("debug", false, "Print FUSE debug messages")
-var newFUSE = flag.Bool("new-fuse", false, "use new FUSE implementation")
 
 func printUsageAndExit() {
 	log.Fatal("Usage:\n  kbfsfuse [-client|-local] MOUNTPOINT")
@@ -47,13 +46,7 @@ func main() {
 	defer libkbfs.Shutdown(*memprofile)
 
 	ctx := context.Background()
-	if *newFUSE {
-		if err := runNewFUSE(ctx, config, *debug, flag.Arg(0)); err != nil {
-			log.Fatalf("error serving filesystem: %v", err)
-		}
-	} else {
-		if err := runHanwenFUSE(ctx, config, *debug, flag.Arg(0)); err != nil {
-			log.Fatalf("error serving filesystem: %v", err)
-		}
+	if err := runNewFUSE(ctx, config, *debug, flag.Arg(0)); err != nil {
+		log.Fatalf("error serving filesystem: %v", err)
 	}
 }
