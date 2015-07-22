@@ -1009,7 +1009,7 @@ func TestSetattrMtime(t *testing.T) {
 
 	p := path.Join(mnt.Dir, PrivateName, "jdoe", "myfile")
 	const input = "hello, world\n"
-	if err := ioutil.WriteFile(p, []byte(input), 0755); err != nil {
+	if err := ioutil.WriteFile(p, []byte(input), 0644); err != nil {
 		t.Fatal(err)
 	}
 
