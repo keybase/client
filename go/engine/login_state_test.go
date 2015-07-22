@@ -152,7 +152,7 @@ func TestLoginAfterLoginStateReset(t *testing.T) {
 	// Logs the user in.
 	_ = CreateAndSignupFakeUser(tc, "li")
 
-	tc.G.ResetLoginStateForTest()
+	tc.ResetLoginState()
 
 	if err := tc.G.LoginState().LoginWithPrompt("", nil, nil, nil); err != nil {
 		t.Error(err)

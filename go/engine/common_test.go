@@ -186,7 +186,7 @@ func testEngineWithSecretStore(
 	defer tc.Cleanup()
 
 	fu := CreateAndSignupFakeUser(tc, "wss")
-	tc.G.ResetLoginStateForTest()
+	tc.ResetLoginState()
 
 	testSecretUI := libkb.TestSecretUI{
 		Passphrase:  fu.Passphrase,
@@ -198,7 +198,7 @@ func testEngineWithSecretStore(
 		t.Fatal("GetSecret() unexpectedly not called")
 	}
 
-	tc.G.ResetLoginStateForTest()
+	tc.ResetLoginState()
 
 	testSecretUI = libkb.TestSecretUI{}
 	runEngine(tc, fu, &testSecretUI)
