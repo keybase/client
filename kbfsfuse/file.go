@@ -25,6 +25,10 @@ func (f *File) Attr(ctx context.Context, a *fuse.Attr) (err error) {
 	f.folder.mu.Lock()
 	defer f.folder.mu.Unlock()
 
+	return f.attrLocked(ctx, a)
+}
+
+func (f *File) attrLocked(ctx context.Context, a *fuse.Attr) (err error) {
 	de, err := f.folder.fs.config.KBFSOps().Stat(ctx, f.node)
 	if err != nil {
 		if _, ok := err.(libkbfs.NoSuchNameError); ok {
@@ -156,6 +160,10 @@ func (f *File) Setattr(ctx context.Context, req *fuse.SetattrRequest,
 		// don't let an unhandled operation slip by without error
 		log.Printf("Setattr did not handle %v", valid)
 		return fuse.ENOSYS
+	}
+
+	if err := f.attrLocked(ctx, &resp.Attr); err != nil {
+		return err
 	}
 	return nil
 }
