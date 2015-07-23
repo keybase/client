@@ -177,6 +177,10 @@ func (d *Dir) Attr(ctx context.Context, a *fuse.Attr) (err error) {
 	d.folder.mu.Lock()
 	defer d.folder.mu.Unlock()
 
+	return d.attrLocked(ctx, a)
+}
+
+func (d *Dir) attrLocked(ctx context.Context, a *fuse.Attr) (err error) {
 	de, err := d.folder.fs.config.KBFSOps().Stat(ctx, d.node)
 	if err != nil {
 		if _, ok := err.(libkbfs.NoSuchNameError); ok {
@@ -420,4 +424,48 @@ func (d *Dir) Forget() {
 	defer d.folder.mu.Unlock()
 
 	d.folder.forgetNodeLocked(d.node)
+}
+
+var _ fs.NodeSetattrer = (*Dir)(nil)
+
+// Setattr implements the fs.NodeSetattrer interface for File.
+func (d *Dir) Setattr(ctx context.Context, req *fuse.SetattrRequest, resp *fuse.SetattrResponse) (err error) {
+	defer func() { d.folder.fs.reportErr(err) }()
+	d.folder.mu.Lock()
+	defer d.folder.mu.Unlock()
+
+	valid := req.Valid
+
+	if valid.Mode() {
+		// You can't set the mode on KBFS directories.
+		return fuse.EPERM
+	}
+
+	if valid.Mtime() {
+		err := d.folder.fs.config.KBFSOps().SetMtime(
+			ctx, d.node, &req.Mtime)
+		if err != nil {
+			return err
+		}
+		valid &^= fuse.SetattrMtime | fuse.SetattrMtimeNow
+	}
+
+	// KBFS has no concept of persistent atime; explicitly don't handle it
+	valid &^= fuse.SetattrAtime | fuse.SetattrAtimeNow
+
+	// things we don't need to explicitly handle
+	valid &^= fuse.SetattrLockOwner | fuse.SetattrHandle
+
+	if valid != 0 {
+		// don't let an unhandled operation slip by without error
+		log.Printf("Setattr did not handle %v", valid)
+		return fuse.ENOSYS
+	}
+
+	// Something in Linux kernel *requires* directories to provide
+	// attributes here, where it was just an optimization for files.
+	if err := d.attrLocked(ctx, &resp.Attr); err != nil {
+		return err
+	}
+	return nil
 }

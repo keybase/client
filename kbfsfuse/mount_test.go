@@ -1009,6 +1009,26 @@ func TestChmodNonExec(t *testing.T) {
 	}
 }
 
+func TestChmodDir(t *testing.T) {
+	config := libkbfs.MakeTestConfigOrBust(t, BServerRemoteAddr, "jdoe")
+	mnt := makeFS(t, config)
+	defer mnt.Close()
+
+	p := path.Join(mnt.Dir, PrivateName, "jdoe", "myfile")
+	if err := os.Mkdir(p, 0755); err != nil {
+		t.Fatal(err)
+	}
+
+	switch err := os.Chmod(p, 0655); err := err.(type) {
+	case *os.PathError:
+		if g, e := err.Err, syscall.EPERM; g != e {
+			t.Fatalf("wrong error: %v != %v", g, e)
+		}
+	default:
+		t.Fatalf("expected a PathError, got %T: %v", err, err)
+	}
+}
+
 func TestSetattrFileMtime(t *testing.T) {
 	config := libkbfs.MakeTestConfigOrBust(t, BServerRemoteAddr, "jdoe")
 	mnt := makeFS(t, config)
@@ -1045,6 +1065,69 @@ func TestSetattrFileMtimeNow(t *testing.T) {
 	p := path.Join(mnt.Dir, PrivateName, "jdoe", "myfile")
 	const input = "hello, world\n"
 	if err := ioutil.WriteFile(p, []byte(input), 0644); err != nil {
+		t.Fatal(err)
+	}
+
+	mtime := time.Date(2015, 1, 2, 3, 4, 5, 6, time.Local)
+	// KBFS does not respect atime (which is ok), but we need to give
+	// something to the syscall.
+	atime := time.Date(2015, 7, 8, 9, 10, 11, 12, time.Local)
+	if err := os.Chtimes(p, atime, mtime); err != nil {
+		t.Fatal(err)
+	}
+
+	// cause mtime to be set to now
+	if err := touch(p); err != nil {
+		t.Fatalf("touch failed: %v", err)
+	}
+	now := time.Now()
+
+	fi, err := os.Lstat(p)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if g, o := fi.ModTime(), mtime; !g.After(o) {
+		t.Errorf("mtime did not progress: %v <= %v", g, o)
+	}
+	if g, e := fi.ModTime(), now; !timeEqualFuzzy(g, e, 1*time.Second) {
+		t.Errorf("mtime is wrong: %v !~= %v", g, e)
+	}
+}
+
+func TestSetattrDirMtime(t *testing.T) {
+	config := libkbfs.MakeTestConfigOrBust(t, BServerRemoteAddr, "jdoe")
+	mnt := makeFS(t, config)
+	defer mnt.Close()
+
+	p := path.Join(mnt.Dir, PrivateName, "jdoe", "mydir")
+	if err := os.Mkdir(p, 0755); err != nil {
+		t.Fatal(err)
+	}
+
+	mtime := time.Date(2015, 1, 2, 3, 4, 5, 6, time.Local)
+	// KBFS does not respect atime (which is ok), but we need to give
+	// something to the syscall.
+	atime := time.Date(2015, 7, 8, 9, 10, 11, 12, time.Local)
+	if err := os.Chtimes(p, atime, mtime); err != nil {
+		t.Fatal(err)
+	}
+
+	fi, err := os.Lstat(p)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if g, e := fi.ModTime(), mtime; !fsTimeEqual(g, e) {
+		t.Errorf("wrong mtime: %v !~= %v", g, e)
+	}
+}
+
+func TestSetattrDirMtimeNow(t *testing.T) {
+	config := libkbfs.MakeTestConfigOrBust(t, BServerRemoteAddr, "jdoe")
+	mnt := makeFS(t, config)
+	defer mnt.Close()
+
+	p := path.Join(mnt.Dir, PrivateName, "jdoe", "mydir")
+	if err := os.Mkdir(p, 0755); err != nil {
 		t.Fatal(err)
 	}
 
