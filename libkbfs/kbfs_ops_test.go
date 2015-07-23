@@ -292,23 +292,16 @@ func testKBFSOpsGetRootNodeCreateNewSuccess(t *testing.T, public bool) {
 	_, id, h := makeID(t, config, public)
 	rmd := NewRootMetadataForTest(h, id)
 
-	var nilCpk CryptPublicKey
-	config.mockKbpki.EXPECT().GetCurrentCryptPublicKey(ctx).
-		Return(nilCpk, nil)
-
 	// create a new MD
-	var nilKID keybase1.KID
 	config.mockMdops.EXPECT().
-		GetUnmergedSince(gomock.Any(), id, nilKID, NullMdID, gomock.Any()).
-		Return(nil, false, nil)
+		GetUnmergedForTLF(gomock.Any(), id).Return(nil, nil)
 	config.mockMdops.EXPECT().GetForTLF(gomock.Any(), id).Return(rmd, nil)
 	// now KBFS will fill it in:
 	rootPtr, plainSize, readyBlockData := fillInNewMD(t, config, rmd)
 	// now cache and put everything
 	config.mockBops.EXPECT().Put(ctx, rmd, ptrMatcher{rootPtr}, readyBlockData).
 		Return(nil)
-	config.mockMdops.EXPECT().Put(gomock.Any(), id, rmd, nilKID, NullMdID).
-		Return(nil)
+	config.mockMdops.EXPECT().Put(gomock.Any(), rmd).Return(nil)
 	config.mockMdcache.EXPECT().Put(rmd.mdID, rmd).Return(nil)
 
 	n, de, h, err := config.KBFSOps().
@@ -359,10 +352,6 @@ func TestKBFSOpsGetRootMDCreateNewFailNonWriter(t *testing.T) {
 	h.Readers = []keybase1.UID{userID}
 	h.Writers = []keybase1.UID{ownerID}
 
-	var nilCpk CryptPublicKey
-	config.mockKbpki.EXPECT().GetCurrentCryptPublicKey(ctx).
-		Return(nilCpk, nil)
-
 	rmd := NewRootMetadataForTest(h, id)
 
 	// create a new MD
@@ -370,10 +359,8 @@ func TestKBFSOpsGetRootMDCreateNewFailNonWriter(t *testing.T) {
 	// in reality, createNewMD should fail early because the MD server
 	// will refuse to create the new MD for this user.  But for this test,
 	// we won't bother
-	var nilKID keybase1.KID
 	config.mockMdops.EXPECT().
-		GetUnmergedSince(gomock.Any(), id, nilKID, NullMdID, gomock.Any()).
-		Return(nil, false, nil)
+		GetUnmergedForTLF(gomock.Any(), id).Return(nil, nil)
 	config.mockMdops.EXPECT().GetForTLF(gomock.Any(), id).Return(rmd, nil)
 	// try to get the MD for writing, but fail (no puts should happen)
 	config.mockKbpki.EXPECT().GetLoggedInUser(ctx).AnyTimes().
@@ -879,26 +866,17 @@ func expectSyncBlockHelper(
 	}
 	if skipSync == 0 {
 		// sign the MD and put it
-		var nilKID keybase1.KID
 		if unmerged {
-			config.mockMdops.EXPECT().Put(gomock.Any(), id, gomock.Any(),
-				nilKID, NullMdID).Return(OutOfDateMDError{})
-			var nilCpk CryptPublicKey
-			config.mockKbpki.EXPECT().GetCurrentCryptPublicKey(gomock.Any()).
-				Return(nilCpk, nil)
-
+			config.mockMdops.EXPECT().Put(gomock.Any(), gomock.Any()).Return(MDServerErrorConflictRevision{})
 			config.mockMdops.EXPECT().PutUnmerged(
-				gomock.Any(), id, gomock.Any(), nilKID).
-				Do(func(ctx context.Context, id TlfID, rmd *RootMetadata,
-				deviceKID keybase1.KID) {
+				gomock.Any(), gomock.Any()).
+				Do(func(ctx context.Context, rmd *RootMetadata) {
 				// add some serialized metadata to satisfy the check
 				rmd.SerializedPrivateMetadata = make([]byte, 1)
 			}).Return(nil)
 		} else {
-			config.mockMdops.EXPECT().Put(
-				gomock.Any(), id, gomock.Any(), nilKID, NullMdID).
-				Do(func(ctx context.Context, id TlfID, rmd *RootMetadata,
-				deviceKID keybase1.KID, unmergedID MdID) {
+			config.mockMdops.EXPECT().Put(gomock.Any(), gomock.Any()).
+				Do(func(ctx context.Context, rmd *RootMetadata) {
 				// add some serialized metadata to satisfy the check
 				rmd.SerializedPrivateMetadata = make([]byte, 1)
 			}).Return(nil)

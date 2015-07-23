@@ -419,55 +419,46 @@ type Codec interface {
 // MDOps gets and puts root metadata to an MDServer.  On a get, it
 // verifies the metadata is signed by the metadata's signing key.
 type MDOps interface {
-	// GetForHandle returns the current metadata object corresponding
-	// to the given top-level folder's handle, if the logged-in user
-	// has read permission on the folder.  It creates the folder if
-	// one doesn't exist yet, and the logged-in user has write
-	// permissions to the top-level folder.
-	GetForHandle(ctx context.Context, handle *TlfHandle) (*RootMetadata, error)
-	// GetForTLF returns the current metadata object corresponding to the
-	// given top-level folder, if the logged-in user has read
-	// permission on the folder.
-	GetForTLF(ctx context.Context, id TlfID) (*RootMetadata, error)
-	// Get returns the metadata object corresponding that matches the
-	// provided MD ID, if one exists and the logged-in user has read
-	// permissions on the corresponding top-level folder.
-	Get(ctx context.Context, mdID MdID) (*RootMetadata, error)
-	// Put stores the given metadata object for the top-level folder
-	// on the server, if the logged-in user has write permission on
-	// the folder.  If deviceID is non-nil, the unmerged history for
-	// the corresponding device is updated to indicate that everything
-	// up to and including the provided unmergedBase has been merged
-	// (similar to a git rebase).  If the server cannot commit this MD
-	// to this top-level folder because md.PrevRoot does not match the
-	// current MD object for the folder due to another concurrent
-	// writer, it will return a specific error (TODO: make one) and
-	// the caller is expected to call PutUnmerged if it wants
-	// durability over consistency.
-	Put(ctx context.Context, id TlfID, rmd *RootMetadata,
-		deviceKID keybase1.KID, unmergedBase MdID) error
-	// GetSince returns all the MD objects that have been committed
-	// since (not including) the stated mdID, up to a client-imposed
-	// maximum.  The server may return fewer, and should also indicate
-	// whether there are more that could be returned.
-	GetSince(ctx context.Context, id TlfID, mdID MdID, max int) (
-		sinceRmds []*RootMetadata, hasMore bool, err error)
+	// GetForHandle returns the current metadata
+	// object corresponding to the given top-level folder's handle, if
+	// the logged-in user has read permission on the folder.  It
+	// creates the folder if one doesn't exist yet, and the logged-in
+	// user has permission to do so.
+	GetForHandle(ctx context.Context, handle *TlfHandle) (
+		*RootMetadata, error)
 
-	// PutUnmerged gives each device (identified by the device subkey
-	// KID) the ability to store its own unmerged version of the
-	// metadata, in order to provide per-device durability when
-	// consistency can't be quickly guaranteed.
-	PutUnmerged(ctx context.Context, id TlfID, rmd *RootMetadata,
-		deviceKID keybase1.KID) error
-	// GetUnmergedSince returns all the MD objects that have been
-	// saved to the unmerged linear history for this device since (not
-	// including) the stated mdID, up to a client-imposed maximum.
-	// The server may return fewer, and should also indicate whether
-	// there are more that could be returned.   If mdID is the nil
-	// value, it returns the list of MD objects from the beginning of
-	// the unmerged history for this device.
-	GetUnmergedSince(ctx context.Context, id TlfID, deviceKID keybase1.KID,
-		mdID MdID, max int) (sinceRmds []*RootMetadata, hasMore bool, err error)
+	// GetUnmergedForHandle is the same as the above but for unmerged
+	// metadata history.
+	GetUnmergedForHandle(ctx context.Context, handle *TlfHandle) (
+		*RootMetadata, error)
+
+	// GetForTLF returns the current metadata object
+	// corresponding to the given top-level folder, if the logged-in
+	// user has read permission on the folder.
+	GetForTLF(ctx context.Context, id TlfID) (*RootMetadata, error)
+
+	// GetUnmergedForTLF is the same as the above but for unmerged
+	// metadata.
+	GetUnmergedForTLF(ctx context.Context, id TlfID) (
+		*RootMetadata, error)
+
+	// GetRange returns a range of metadata objects
+	// corresponding to the passed revision numbers.
+	GetRange(ctx context.Context, id TlfID, start, stop MetadataRevision) (
+		[]*RootMetadata, error)
+
+	// GetUnmergedRange is the same as the above but for unmerged
+	// metadata history.
+	GetUnmergedRange(ctx context.Context, id TlfID, start, stop MetadataRevision) (
+		[]*RootMetadata, error)
+
+	// Put stores the metadata object for the given
+	// top-level folder.
+	Put(ctx context.Context, rmd *RootMetadata) error
+
+	// PutUnmerged is the same as the above but for unmerged
+	// metadata history.
+	PutUnmerged(ctx context.Context, rmd *RootMetadata) error
 
 	// GetFavorites returns the logged-in user's list of favorite
 	// top-level folders.
@@ -535,51 +526,29 @@ type MDServer interface {
 	// the logged-in user has read permission on the folder.  It
 	// creates the folder if one doesn't exist yet, and the logged-in
 	// user has permission to do so.
-	GetForHandle(ctx context.Context, handle *TlfHandle) (
-		*RootMetadataSigned, error)
+	GetForHandle(ctx context.Context, handle *TlfHandle, unmerged bool) (
+		TlfID, *RootMetadataSigned, error)
+
 	// GetForTLF returns the current (signed/encrypted) metadata object
 	// corresponding to the given top-level folder, if the logged-in
 	// user has read permission on the folder.
-	GetForTLF(ctx context.Context, id TlfID) (*RootMetadataSigned, error)
-	// Get returns the (signed/encrypted) metadata object that matches
-	// the provided MD ID, if one exists and the logged-in user has
-	// read permission on the corresponding top-level folder.
-	Get(ctx context.Context, mdID MdID) (*RootMetadataSigned, error)
-	// GetSince returns all the MD objects that have been committed
-	// since (not including) the stated mdID, up to a client-imposed
-	// maximum.  The server may return fewer, and should also indicate
-	// whether there are more that could be returned.
-	GetSince(ctx context.Context, id TlfID, mdID MdID, max int) (
-		sinceRmds []*RootMetadataSigned, hasMore bool, err error)
-	// Put stores the (signed/encrypted) metadata object for the given
-	// top-level folder, under the given MD ID.  If deviceID is
-	// non-nil, the unmerged history for the corresponding device is
-	// updated to indicate that everything up to and including the
-	// provided unmergedBase has been merged (similar to a git
-	// rebase).  If the server cannot commit this MD to this top-level
-	// folder because md.PrevRoot does not match the current MD object
-	// for the folder due to another concurrent writer, it will return
-	// a specific error (TODO: make one) and the caller is expected to
-	// call PutUnmerged if it wants durability over consistency.
-	Put(ctx context.Context, id TlfID, mdID MdID, rmds *RootMetadataSigned,
-		deviceKID keybase1.KID, unmergedBase MdID) error
+	GetForTLF(ctx context.Context, id TlfID, unmerged bool) (
+		*RootMetadataSigned, error)
 
-	// PutUnmerged gives each device (identified by the device subkey
-	// KID) the ability to store its own unmerged version of the
-	// metadata, in order to provide per-device durability when
-	// consistency can't be quickly guaranteed.
-	PutUnmerged(ctx context.Context, id TlfID, mdID MdID,
-		rmds *RootMetadataSigned, deviceKID keybase1.KID) error
-	// GetUnmergedSince returns all the MD objects that have been
-	// saved to the unmerged linear history for this device since (not
-	// including) the stated mdID, up to a client-imposed maximum.
-	// The server may return fewer, and should also indicate whether
-	// there are more that could be returned.  If mdID is the nil
-	// value, it returns the list of MD objects from the beginning of
-	// the unmerged history for this device.
-	GetUnmergedSince(ctx context.Context, id TlfID, deviceKID keybase1.KID,
-		mdID MdID, max int) (
-		sinceRmds []*RootMetadataSigned, hasMore bool, err error)
+	// GetRange returns a range of (signed/encrypted) metadata objects
+	// corresponding to the passed revision numbers.
+	GetRange(ctx context.Context, id TlfID, unmerged bool, start, stop MetadataRevision) (
+		[]*RootMetadataSigned, error)
+
+	// Put stores the (signed/encrypted) metadata object for the given
+	// top-level folder. Note: If the unmerged bit is set in the metadata
+	// block's flags bitmask it will be appended to the unmerged per-device
+	// history.
+	Put(ctx context.Context, rmds *RootMetadataSigned) error
+
+	// PruneUnmerged prunes all unmerged history for the given user
+	// and device for the given top-level folder..
+	PruneUnmerged(ctx context.Context, id TlfID) error
 
 	// GetFavorites returns the logged-in user's list of favorite
 	// top-level folders.

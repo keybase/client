@@ -509,18 +509,6 @@ func (e EmptyNameError) Error() string {
 	return fmt.Sprintf("Cannot use empty name for pointer %v", e.ptr)
 }
 
-// OutOfDateMDError indicates that the MD server rejected our MD
-// update because it is out of date with respect to the current head.
-type OutOfDateMDError struct {
-	PrevRoot MdID
-}
-
-// Error implements the error interface for OutOfDateError.
-func (e OutOfDateMDError) Error() string {
-	return fmt.Sprintf("MD rejected because its previous root was %v, "+
-		"but that is not the current MD root", e.PrevRoot)
-}
-
 // PaddedBlockReadError occurs if the number of bytes read do not
 // equal the number of bytes specified.
 type PaddedBlockReadError struct {
@@ -553,4 +541,28 @@ type IncrementMissingBlockError struct {
 func (e IncrementMissingBlockError) Error() string {
 	return fmt.Sprintf("Tried to increment ref count for block %v, but no "+
 		"such block exists on the server", e.ID)
+}
+
+// MDInvalidGetArguments indicates either the handle or top-level folder ID
+// specified in a get request was invalid.
+type MDInvalidGetArguments struct {
+	id     TlfID
+	handle *TlfHandle
+}
+
+// Error implements the error interface for MDInvalidGetArguments.
+func (e MDInvalidGetArguments) Error() string {
+	return fmt.Sprintf("Invalid arguments for MD get, id: %v, handle: %v",
+		e.id, e.handle)
+}
+
+// MDInvalidTlfID indicates whether the folder ID returned from the
+// MD server was not parsable/invalid.
+type MDInvalidTlfID struct {
+	id string
+}
+
+// Error implements the error interface for MDInvalidTlfID.
+func (e MDInvalidTlfID) Error() string {
+	return fmt.Sprintf("Invalid TLF ID returned from server: %s", e.id)
 }

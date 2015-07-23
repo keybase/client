@@ -10,20 +10,29 @@ import (
 	"github.com/keybase/client/go/client"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/protocol/go"
+	"golang.org/x/net/context"
 )
 
 func makeMDServer(config Config, serverRootDir *string) (MDServer, error) {
-	if serverRootDir == nil {
-		return NewMDServerMemory(config)
+	// XXX TODO: this is how we enable this for testing
+	// XXX TODO: this will change soon
+	mdServerAddr := os.Getenv(EnvMDServerAddr)
+
+	var err error
+	var mdserv MDServer
+	if len(mdServerAddr) == 0 {
+		if serverRootDir == nil {
+			return NewMDServerMemory(config)
+		}
+		handlePath := filepath.Join(*serverRootDir, "kbfs_handles")
+		mdPath := filepath.Join(*serverRootDir, "kbfs_md")
+		revPath := filepath.Join(*serverRootDir, "kbfs_revisions")
+		mdserv, err = NewMDServerLocal(
+			config, handlePath, mdPath, revPath)
+	} else {
+		mdserv, err = NewMDServerRemote(context.TODO(), config, mdServerAddr)
 	}
-
-	handlePath := filepath.Join(*serverRootDir, "kbfs_handles")
-	dbPath := filepath.Join(*serverRootDir, "kbfs_dirs")
-	mdPath := filepath.Join(*serverRootDir, "kbfs_md")
-	unmergedPath := filepath.Join(*serverRootDir, "kbfs_unmerged")
-
-	return NewMDServerLocal(
-		config, handlePath, dbPath, mdPath, unmergedPath)
+	return mdserv, err
 }
 
 func makeBlockServer(config Config, serverRootDir *string) (BlockServer, error) {
@@ -87,7 +96,7 @@ func Init(localUser string, serverRootDir *string, cpuProfilePath, memProfilePat
 
 	mdserv, err := makeMDServer(config, serverRootDir)
 	if err != nil {
-		return nil, fmt.Errorf("cannot open MD database: %v", err)
+		return nil, fmt.Errorf("cannot connect to mdserver: %v", err)
 	}
 	config.SetMDServer(mdserv)
 

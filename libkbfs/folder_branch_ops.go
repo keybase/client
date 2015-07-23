@@ -46,7 +46,7 @@ type syncInfo struct {
 // Constants used in this file.  TODO: Make these configurable?
 const (
 	maxParallelBlockPuts = 10
-	maxMDsAtATime        = 100
+	maxMDsAtATime        = 10 // Max response size for a single DynamoDB query is 1MB.
 )
 
 // FolderBranchOps implements the KBFSOps interface for a specific
@@ -249,45 +249,12 @@ func (fbo *FolderBranchOps) getMDLocked(ctx context.Context, rtype reqType) (
 	// if this device has any unmerged commits -- take the latest one.
 	mdops := fbo.config.MDOps()
 
-	cpk, err := fbo.config.KBPKI().GetCurrentCryptPublicKey(ctx)
+	// get the head of the unmerged branch for this device (if any)
+	md, err := mdops.GetUnmergedForTLF(ctx, fbo.id())
 	if err != nil {
 		return nil, err
 	}
-	var unmergedMDs []*RootMetadata
-	more := true
-	lastMdID := NullMdID
-	for more {
-		// TODO: it might make sense to persist our last-known
-		// unmerged ID, so we can avoid most or all of these fetches.
-		unmergedMDs, more, err = mdops.GetUnmergedSince(ctx, fbo.id(),
-			cpk.KID, lastMdID, maxMDsAtATime)
-		if err != nil {
-			return nil, err
-		}
-		func() {
-			fbo.headLock.Lock()
-			defer fbo.headLock.Unlock()
-			// might as well cache each one
-			for _, umd := range unmergedMDs {
-				lastMdID, err = umd.MetadataID(fbo.config)
-				if err != nil {
-					return
-				}
-
-				err = fbo.config.MDCache().Put(lastMdID, umd)
-				if err != nil {
-					return
-				}
-			}
-		}()
-		if err != nil {
-			return nil, err
-		}
-	}
-	var md *RootMetadata
-	if unmergedMDs != nil {
-		// The most recent one is the last one in the list
-		md = unmergedMDs[len(unmergedMDs)-1]
+	if md != nil {
 		fbo.transitionStagedLocked(true)
 	} else {
 		// no unmerged MDs for this device, so just get the current head
@@ -427,9 +394,7 @@ func (fbo *FolderBranchOps) initMDLocked(
 
 	// finally, write out the new metadata
 	md.data.LastWriter = user
-	var nilKID keybase1.KID
-	if err = fbo.config.MDOps().Put(
-		ctx, md.ID, md, nilKID, NullMdID); err != nil {
+	if err = fbo.config.MDOps().Put(ctx, md); err != nil {
 		return err
 	}
 	if mdID, err := md.MetadataID(fbo.config); err != nil {
@@ -1009,6 +974,8 @@ func (fbo *FolderBranchOps) syncBlockLocked(ctx context.Context,
 			if err != nil {
 				return path{}, DirEntry{}, nil, err
 			}
+			// bump revision
+			md.Revision++
 		} else {
 			prevDir := path{
 				FolderBranch: dir.FolderBranch,
@@ -1243,14 +1210,15 @@ func (fbo *FolderBranchOps) finalizeWriteLocked(ctx context.Context,
 
 	// finally, write out the new metadata
 	md.data.LastWriter = user
-	var nilKID keybase1.KID
 	mdops := fbo.config.MDOps()
 
 	doUnmergedPut := true
 	if !fbo.staged {
 		// only do a normal Put if we're not already staged.
-		err = mdops.Put(ctx, newPaths[0].Tlf, md, nilKID, NullMdID)
-		_, doUnmergedPut = err.(OutOfDateMDError)
+		err = mdops.Put(ctx, md)
+		_, isConflictRevision := err.(MDServerErrorConflictRevision)
+		_, isConflictPrevRoot := err.(MDServerErrorConflictPrevRoot)
+		doUnmergedPut = isConflictRevision || isConflictPrevRoot
 		if err != nil && !doUnmergedPut {
 			return err
 		}
@@ -1258,11 +1226,7 @@ func (fbo *FolderBranchOps) finalizeWriteLocked(ctx context.Context,
 
 	if doUnmergedPut {
 		// We're out of date, so put it as an unmerged MD.
-		cpk, err := fbo.config.KBPKI().GetCurrentCryptPublicKey(ctx)
-		if err != nil {
-			return nil
-		}
-		err = mdops.PutUnmerged(ctx, newPaths[0].Tlf, md, cpk.KID)
+		err = mdops.PutUnmerged(ctx, md)
 		if err != nil {
 			return nil
 		}

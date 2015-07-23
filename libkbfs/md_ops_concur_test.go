@@ -26,7 +26,12 @@ func (m *MDOpsConcurTest) GetForHandle(ctx context.Context, handle *TlfHandle) (
 	return nil, fmt.Errorf("Not supported")
 }
 
-func (m *MDOpsConcurTest) GetForTLF(ctx context.Context, id TlfID) (
+func (m *MDOpsConcurTest) GetUnmergedForHandle(ctx context.Context, handle *TlfHandle) (
+	*RootMetadata, error) {
+	return nil, fmt.Errorf("Not supported")
+}
+
+func (m *MDOpsConcurTest) getForTLF(ctx context.Context, id TlfID, unmerged bool) (
 	*RootMetadata, error) {
 	_, ok := <-m.enter
 	if !ok {
@@ -39,37 +44,45 @@ func (m *MDOpsConcurTest) GetForTLF(ctx context.Context, id TlfID) (
 	return NewRootMetadata(dh, id), nil
 }
 
-func (m *MDOpsConcurTest) Get(ctx context.Context, mdID MdID) (
+func (m *MDOpsConcurTest) GetForTLF(ctx context.Context, id TlfID) (
 	*RootMetadata, error) {
-	return nil, fmt.Errorf("Not supported")
+	return m.getForTLF(ctx, id, false)
 }
 
-func (m *MDOpsConcurTest) GetSince(ctx context.Context, id TlfID, mdID MdID,
-	max int) ([]*RootMetadata, bool, error) {
-	return nil, false, nil
+func (m *MDOpsConcurTest) GetUnmergedForTLF(ctx context.Context, id TlfID) (
+	*RootMetadata, error) {
+	return m.getForTLF(ctx, id, true)
 }
 
-func (m *MDOpsConcurTest) Put(ctx context.Context, id TlfID, md *RootMetadata,
-	deviceKID keybase1.KID, unmergedBase MdID) error {
+func (m *MDOpsConcurTest) GetRange(ctx context.Context, id TlfID,
+	start, stop MetadataRevision) ([]*RootMetadata, error) {
+	return nil, nil
+}
+
+func (m *MDOpsConcurTest) GetUnmergedRange(ctx context.Context, id TlfID,
+	start, stop MetadataRevision) ([]*RootMetadata, error) {
+	return nil, nil
+}
+
+func (m *MDOpsConcurTest) Put(ctx context.Context, md *RootMetadata) error {
 	<-m.start
 	<-m.enter
 	md.SerializedPrivateMetadata = make([]byte, 1, 1)
 	return nil
 }
 
-func (m *MDOpsConcurTest) PutUnmerged(ctx context.Context, id TlfID,
-	rmd *RootMetadata, deviceKID keybase1.KID) error {
+func (m *MDOpsConcurTest) PutUnmerged(ctx context.Context, md *RootMetadata) error {
+	md.Flags |= MetadataFlagUnmerged
+	return m.Put(ctx, md)
+}
+
+func (m *MDOpsConcurTest) PruneUnmerged(ctx context.Context, id TlfID) error {
 	return nil
 }
 
 func (m *MDOpsConcurTest) GetLastCommittedPoint(ctx context.Context, id TlfID,
 	deviceKID keybase1.KID) (bool, MdID, error) {
 	return false, MdID{0}, nil
-}
-
-func (m *MDOpsConcurTest) GetUnmergedSince(ctx context.Context, id TlfID,
-	deviceKID keybase1.KID, mdID MdID, max int) ([]*RootMetadata, bool, error) {
-	return nil, false, nil
 }
 
 func (m *MDOpsConcurTest) GetFavorites(ctx context.Context) ([]*TlfHandle, error) {

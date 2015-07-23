@@ -157,16 +157,6 @@ func TestKeyManagerCachedSecretKeyForBlockDecryptionSuccess(t *testing.T) {
 	}
 }
 
-func makeDirKeyBundle(uid keybase1.UID, cryptPublicKey CryptPublicKey) DirKeyBundle {
-	return DirKeyBundle{
-		RKeys: map[keybase1.UID]map[keybase1.KID]EncryptedTLFCryptKeyClientHalf{
-			uid: map[keybase1.KID]EncryptedTLFCryptKeyClientHalf{
-				cryptPublicKey.KID: EncryptedTLFCryptKeyClientHalf{},
-			},
-		},
-	}
-}
-
 func TestKeyManagerUncachedSecretKeyForEncryptionSuccess(t *testing.T) {
 	mockCtrl, config, ctx := keyManagerInit(t)
 	defer keyManagerShutdown(mockCtrl, config)
@@ -175,7 +165,7 @@ func TestKeyManagerUncachedSecretKeyForEncryptionSuccess(t *testing.T) {
 	rmd := NewRootMetadataForTest(h, id)
 
 	subkey := MakeFakeCryptPublicKeyOrBust("crypt public key")
-	AddNewKeysOrBust(t, rmd, makeDirKeyBundle(uid, subkey))
+	AddNewKeysOrBust(t, rmd, MakeDirRKeyBundle(uid, subkey))
 
 	expectUncachedGetTLFCryptKey(config, rmd, rmd.LatestKeyGeneration(), uid, subkey)
 
@@ -193,7 +183,7 @@ func TestKeyManagerUncachedSecretKeyForMDDecryptionSuccess(t *testing.T) {
 	rmd := NewRootMetadataForTest(h, id)
 
 	subkey := MakeFakeCryptPublicKeyOrBust("crypt public key")
-	AddNewKeysOrBust(t, rmd, makeDirKeyBundle(uid, subkey))
+	AddNewKeysOrBust(t, rmd, MakeDirRKeyBundle(uid, subkey))
 
 	expectUncachedGetTLFCryptKey(config, rmd, rmd.LatestKeyGeneration(), uid, subkey)
 
@@ -211,8 +201,8 @@ func TestKeyManagerUncachedSecretKeyForBlockDecryptionSuccess(t *testing.T) {
 	rmd := NewRootMetadataForTest(h, id)
 
 	subkey := MakeFakeCryptPublicKeyOrBust("crypt public key")
-	AddNewKeysOrBust(t, rmd, makeDirKeyBundle(uid, subkey))
-	AddNewKeysOrBust(t, rmd, makeDirKeyBundle(uid, subkey))
+	AddNewKeysOrBust(t, rmd, MakeDirRKeyBundle(uid, subkey))
+	AddNewKeysOrBust(t, rmd, MakeDirRKeyBundle(uid, subkey))
 
 	keyGen := rmd.LatestKeyGeneration() - 1
 	expectUncachedGetTLFCryptKey(config, rmd, keyGen, uid, subkey)

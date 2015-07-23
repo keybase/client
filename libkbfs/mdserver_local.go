@@ -1,39 +1,31 @@
 package libkbfs
 
 import (
+	"bytes"
+	"encoding/binary"
 	"fmt"
+	"sync"
 
 	keybase1 "github.com/keybase/client/protocol/go"
 	"github.com/syndtr/goleveldb/leveldb"
 	"github.com/syndtr/goleveldb/leveldb/storage"
+	"github.com/syndtr/goleveldb/leveldb/util"
 	"golang.org/x/net/context"
 )
-
-type unmergedDevInfo struct {
-	Base MdID `codec:"b"`
-	Head MdID `codec:"h"`
-}
-
-type unmergedInfo struct {
-	Devices map[keybase1.KID]unmergedDevInfo
-}
 
 // MDServerLocal just stores blocks in local leveldb instances.
 type MDServerLocal struct {
 	config   Config
-	handleDb *leveldb.DB // dir handle -> dirId
-	idDb     *leveldb.DB // dirId -> MD ID
-	mdDb     *leveldb.DB // MD ID -> root metadata (signed)
-	devDb    *leveldb.DB // dirId -> unmergedInfo
+	handleDb *leveldb.DB // folder handle                   -> folderId
+	mdDb     *leveldb.DB // MD ID                           -> root metadata (signed)
+	revDb    *leveldb.DB // folderId+[deviceKID]+[revision] -> MD ID
+	mutex    *sync.Mutex
 }
 
 func newMDServerLocalWithStorage(config Config,
-	handleStorage, idStorage, mdStorage, devStorage storage.Storage) (*MDServerLocal, error) {
+	handleStorage, mdStorage, revStorage storage.Storage) (*MDServerLocal, error) {
+
 	handleDb, err := leveldb.Open(handleStorage, leveldbOptions)
-	if err != nil {
-		return nil, err
-	}
-	idDb, err := leveldb.Open(idStorage, leveldbOptions)
 	if err != nil {
 		return nil, err
 	}
@@ -41,24 +33,20 @@ func newMDServerLocalWithStorage(config Config,
 	if err != nil {
 		return nil, err
 	}
-	devDb, err := leveldb.Open(devStorage, leveldbOptions)
+	revDb, err := leveldb.Open(revStorage, leveldbOptions)
 	if err != nil {
 		return nil, err
 	}
-	mdserv := &MDServerLocal{config, handleDb, idDb, mdDb, devDb}
+	mdserv := &MDServerLocal{config, handleDb, mdDb, revDb, &sync.Mutex{}}
 	return mdserv, nil
 }
 
 // NewMDServerLocal constructs a new MDServerLocal object that stores
 // data in the directories specified as parameters to this function.
-func NewMDServerLocal(config Config, handleDbfile string, idDbfile string,
-	mdDbfile string, devDbfile string) (*MDServerLocal, error) {
-	handleStorage, err := storage.OpenFile(handleDbfile)
-	if err != nil {
-		return nil, err
-	}
+func NewMDServerLocal(config Config, handleDbfile string, mdDbfile string,
+	revDbfile string) (*MDServerLocal, error) {
 
-	idStorage, err := storage.OpenFile(idDbfile)
+	handleStorage, err := storage.OpenFile(handleDbfile)
 	if err != nil {
 		return nil, err
 	}
@@ -68,82 +56,130 @@ func NewMDServerLocal(config Config, handleDbfile string, idDbfile string,
 		return nil, err
 	}
 
-	devStorage, err := storage.OpenFile(devDbfile)
+	revStorage, err := storage.OpenFile(revDbfile)
 	if err != nil {
 		return nil, err
 	}
 
-	return newMDServerLocalWithStorage(config, handleStorage,
-		idStorage, mdStorage, devStorage)
+	return newMDServerLocalWithStorage(config,
+		handleStorage, mdStorage, revStorage)
 }
 
 // NewMDServerMemory constructs a new MDServerLocal object that stores
 // all data in-memory.
 func NewMDServerMemory(config Config) (*MDServerLocal, error) {
-	return newMDServerLocalWithStorage(config, storage.NewMemStorage(),
-		storage.NewMemStorage(), storage.NewMemStorage(),
-		storage.NewMemStorage())
+	return newMDServerLocalWithStorage(config,
+		storage.NewMemStorage(), storage.NewMemStorage(), storage.NewMemStorage())
 }
 
 // GetForHandle implements the MDServer interface for MDServerLocal.
-func (md *MDServerLocal) GetForHandle(ctx context.Context, handle *TlfHandle) (
-	*RootMetadataSigned, error) {
-	buf, err := md.handleDb.Get(handle.ToBytes(md.config), nil)
-	var id TlfID
-	if err != leveldb.ErrNotFound {
+func (md *MDServerLocal) GetForHandle(ctx context.Context, handle *TlfHandle, unmerged bool) (
+	TlfID, *RootMetadataSigned, error) {
+	id := NullTlfID
+	handleBytes := handle.ToBytes(md.config)
+	buf, err := md.handleDb.Get(handleBytes, nil)
+	if err != nil && err != leveldb.ErrNotFound {
+		return id, nil, MDServerError{err}
+	}
+	if err == nil {
 		copy(id[:], buf[:len(id)])
-		return md.GetForTLF(ctx, id)
+		rmds, err := md.GetForTLF(ctx, id, unmerged)
+		return id, rmds, err
 	}
 
-	// Make a new one.
+	// Allocate a new random ID.
 	id, err = md.config.Crypto().MakeRandomTlfID(handle.IsPublic())
 	if err != nil {
-		return nil, err
+		return id, nil, MDServerError{err}
 	}
-	rmd := NewRootMetadata(handle, id)
 
-	// only users with write permissions should be creating a new one
-	user, err := md.config.KBPKI().GetLoggedInUser(ctx)
+	err = md.handleDb.Put(handleBytes, id[:], nil)
 	if err != nil {
-		return nil, err
+		return id, nil, MDServerError{err}
 	}
-	if !handle.IsWriter(user) {
-		dirstring := handle.ToString(ctx, md.config)
-		if u, err2 := md.config.KBPKI().GetUser(ctx, user); err2 == nil {
-			return nil, WriteAccessError{u.GetName(), dirstring}
-		}
-		return nil, WriteAccessError{user.String(), dirstring}
-	}
-
-	return &RootMetadataSigned{MD: *rmd}, nil
+	return id, nil, nil
 }
 
-func (md *MDServerLocal) getHeadForTLF(id TlfID) (
+// GetForTLF implements the MDServer interface for MDServerLocal.
+func (md *MDServerLocal) GetForTLF(ctx context.Context, id TlfID, unmerged bool) (
+	*RootMetadataSigned, error) {
+	mdID, err := md.getHeadForTLF(ctx, id, unmerged)
+	if err != nil {
+		return nil, MDServerError{err}
+	}
+	if mdID == NullMdID {
+		return nil, nil
+	}
+	rmds, err := md.get(ctx, mdID)
+	if err != nil {
+		return nil, MDServerError{err}
+	}
+	return rmds, nil
+}
+
+func (md *MDServerLocal) getHeadForTLF(ctx context.Context, id TlfID, unmerged bool) (
 	mdID MdID, err error) {
-	buf, err := md.idDb.Get(id[:], nil)
+	key, err := md.getMDKey(ctx, id, 0, unmerged)
 	if err != nil {
 		return
 	}
-
+	buf, err := md.revDb.Get(key[:], nil)
+	if err != nil {
+		if err == leveldb.ErrNotFound {
+			mdID, err = NullMdID, nil
+			return
+		}
+		return
+	}
 	copy(mdID[:], buf[:len(mdID)])
 	return
 }
 
-// GetForTLF implements the MDServer interface for MDServerLocal.
-func (md *MDServerLocal) GetForTLF(ctx context.Context, id TlfID) (
-	*RootMetadataSigned, error) {
-	mdID, err := md.getHeadForTLF(id)
-	if err != nil {
-		return nil, err
+func (md *MDServerLocal) getMDKey(ctx context.Context, id TlfID,
+	revision MetadataRevision, unmerged bool) ([]byte, error) {
+	// short-cut
+	if revision == MetadataRevisionHead && !unmerged {
+		return id[:], nil
 	}
-	return md.Get(ctx, mdID)
+	buf := &bytes.Buffer{}
+
+	// add folder id
+	_, err := buf.Write(id[:])
+	if err != nil {
+		return []byte{}, err
+	}
+
+	// this order is significant. this way we can iterate by prefix
+	// when pruning unmerged history per device.
+	if unmerged {
+		// add device KID
+		deviceKID, err := md.getCurrentDeviceKID(ctx)
+		if err != nil {
+			return []byte{}, err
+		}
+		_, err = buf.Write(deviceKID.ToBytes())
+		if err != nil {
+			return []byte{}, err
+		}
+	}
+
+	if revision != MetadataRevisionHead {
+		// add revision
+		err = binary.Write(buf, binary.BigEndian, revision.Number())
+		if err != nil {
+			return []byte{}, err
+		}
+	}
+	return buf.Bytes(), nil
 }
 
-// Get implements the MDServer interface for MDServerLocal.
-func (md *MDServerLocal) Get(ctx context.Context, mdID MdID) (
+func (md *MDServerLocal) get(ctx context.Context, mdID MdID) (
 	*RootMetadataSigned, error) {
 	buf, err := md.mdDb.Get(mdID[:], nil)
 	if err != nil {
+		if err == leveldb.ErrNotFound {
+			return nil, nil
+		}
 		return nil, err
 	}
 	var rmds RootMetadataSigned
@@ -151,213 +187,138 @@ func (md *MDServerLocal) Get(ctx context.Context, mdID MdID) (
 	return &rmds, err
 }
 
-// getRange returns the consecutive (at most 'max') MD objects that
-// begin just after 'start' and lead forward to (and including) 'end'.
-func (md *MDServerLocal) getRange(ctx context.Context, id TlfID, start MdID,
-	end MdID, max int) (
-	sinceRmds []*RootMetadataSigned, hasMore bool, err error) {
-	// Make sure start exists in the db first
-	_, err = md.Get(ctx, start)
+func (md *MDServerLocal) getCurrentDeviceKID(ctx context.Context) (keybase1.KID, error) {
+	key, err := md.config.KBPKI().GetCurrentCryptPublicKey(ctx)
 	if err != nil {
-		return
+		return keybase1.KID(""), err
+	}
+	return key.KID, nil
+}
+
+// GetRange implements the MDServer interface for MDServerLocal.
+func (md *MDServerLocal) GetRange(ctx context.Context, id TlfID, unmerged bool,
+	start, stop MetadataRevision) ([]*RootMetadataSigned, error) {
+
+	var rmdses []*RootMetadataSigned
+	startKey, err := md.getMDKey(ctx, id, start, unmerged)
+	if err != nil {
+		return rmdses, MDServerError{err}
+	}
+	stopKey, err := md.getMDKey(ctx, id, stop+1, unmerged)
+	if err != nil {
+		return rmdses, MDServerError{err}
 	}
 
-	if start == end {
-		return
-	}
-
-	// Without backpointers, let's do the dumb thing and go forwards
-	// from 'end' until we find 'start'.
-	rmds, err := md.Get(ctx, end)
-	if err != nil {
-		return
-	}
-	tmp := []*RootMetadataSigned{rmds}
-	for rmds.MD.PrevRoot != start {
-		// append the newer item; we'll reverse the list later
-		rmds, err = md.Get(ctx, rmds.MD.PrevRoot)
+	iter := md.revDb.NewIterator(&util.Range{Start: startKey, Limit: stopKey}, nil)
+	for iter.Next() {
+		// get MD block from MD ID
+		var mdID MdID
+		buf := iter.Value()
+		copy(mdID[:], buf)
+		rmds, err := md.get(ctx, mdID)
 		if err != nil {
-			return
+			iter.Release()
+			return rmdses, MDServerError{err}
 		}
-		tmp = append(tmp, rmds)
+		rmdses = append(rmdses, rmds)
+	}
+	iter.Release()
+	if err := iter.Error(); err != nil {
+		return rmdses, MDServerError{err}
 	}
 
-	// reverse tmp, up to max items
-	numSince := len(tmp)
-	if numSince > max {
-		numSince = max
-	}
-	sinceRmds = make([]*RootMetadataSigned, numSince)
-	for i := 0; i < numSince; i++ {
-		sinceRmds[i] = tmp[len(tmp)-1-i]
-	}
-	hasMore = numSince != len(tmp)
-	return
+	return rmdses, nil
 }
 
-// GetSince implements the MDServer interface for MDServerLocal.
-func (md *MDServerLocal) GetSince(ctx context.Context, id TlfID, mdID MdID,
-	max int) ([]*RootMetadataSigned, bool, error) {
-	rmds, err := md.GetForTLF(ctx, id)
+// Put implements the MDServer interface for MDServerLocal.
+func (md *MDServerLocal) Put(ctx context.Context, rmds *RootMetadataSigned) error {
+	// Consistency checks and the actual write need to be synchronized.
+	md.mutex.Lock()
+	defer md.mutex.Unlock()
+
+	id := rmds.MD.ID
+	unmerged := rmds.MD.IsUnmergedSet()
+	currHead, err := md.getHeadForTLF(ctx, id, unmerged)
 	if err != nil {
-		return nil, false, err
+		return MDServerError{err}
 	}
-	end, err := rmds.MD.MetadataID(md.config)
-	if err != nil {
-		return nil, false, err
+	if unmerged && currHead == NullMdID {
+		// currHead for unmerged history might be on the main branch
+		currHead = rmds.MD.PrevRoot
 	}
 
-	return md.getRange(ctx, id, mdID, end, max)
-}
+	// Consistency checks
+	var head *RootMetadataSigned
+	if currHead != NullMdID {
+		head, err = md.get(ctx, currHead)
+		if err != nil {
+			return MDServerError{err}
+		}
+		if head == nil {
+			return MDServerError{fmt.Errorf("head MD not found %v", currHead)}
+		}
+		if head.MD.Revision+1 != rmds.MD.Revision {
+			return MDServerErrorConflictRevision{
+				Expected: head.MD.Revision + 1,
+				Actual:   rmds.MD.Revision,
+			}
+		}
+	}
+	if rmds.MD.PrevRoot != currHead {
+		return MDServerErrorConflictPrevRoot{
+			Expected: currHead,
+			Actual:   rmds.MD.PrevRoot,
+		}
+	}
+	// down here because this order is consistent with mdserver
+	if head != nil {
+		expected := head.MD.DiskUsage + rmds.MD.RefBytes - rmds.MD.UnrefBytes
+		if rmds.MD.DiskUsage != expected {
+			return MDServerErrorConflictDiskUsage{
+				Expected: expected,
+				Actual:   rmds.MD.DiskUsage,
+			}
+		}
+	}
 
-func (md *MDServerLocal) put(id TlfID, mdID MdID, rmds *RootMetadataSigned,
-	iddb *leveldb.DB, idval []byte) error {
+	mdID, err := rmds.MD.MetadataID(md.config)
+
 	buf, err := md.config.Codec().Encode(rmds)
 	if err != nil {
-		return err
+		return MDServerError{err}
 	}
 
-	// The dir ID points to the current MD block ID, and the
+	// The folder ID points to the current MD block ID, and the
 	// MD ID points to the buffer
 	err = md.mdDb.Put(mdID[:], buf, nil)
 	if err != nil {
-		return err
-	}
-	return iddb.Put(id[:], idval, nil)
-}
-
-func (md *MDServerLocal) getUnmergedInfo(id TlfID) (
-	exists bool, u unmergedInfo, err error) {
-	var ubytes []byte
-	ubytes, err = md.devDb.Get(id[:], nil)
-	if err == leveldb.ErrNotFound {
-		// just let exists=false tell the story
-		err = nil
-	} else if err == nil {
-		err = md.config.Codec().Decode(ubytes, &u)
-		if err != nil {
-			return
-		}
-		exists = true
-	}
-	return
-}
-
-// Put implements the MDServer interface for MDServerLocal.  It does
-// not check that unmergedBase is part of the unmerged history; it
-// simply updates the unmerged base to that MdID without any
-// verification.
-func (md *MDServerLocal) Put(ctx context.Context, id TlfID, mdID MdID,
-	rmds *RootMetadataSigned, deviceKID keybase1.KID, unmergedBase MdID) error {
-	// First check to see that this MD is consistent with the current MD.
-	currHead, err := md.getHeadForTLF(id)
-	if err != nil && err != leveldb.ErrNotFound {
-		return err
-	} else if err == leveldb.ErrNotFound {
-		currHead = NullMdID
+		return MDServerError{err}
 	}
 
-	if rmds.MD.PrevRoot != currHead {
-		return OutOfDateMDError{rmds.MD.PrevRoot}
-	}
+	// Wrap changes to the revision DB in a batch.
+	batch := new(leveldb.Batch)
 
-	err = md.put(id, mdID, rmds, md.idDb, mdID[:])
+	// Add an entry with the revision key.
+	revKey, err := md.getMDKey(ctx, id, rmds.MD.Revision, unmerged)
 	if err != nil {
-		return err
+		return MDServerError{err}
 	}
-	handleBytes := rmds.MD.GetTlfHandle().ToBytes(md.config)
-	err = md.handleDb.Put(handleBytes, id[:], nil)
+	batch.Put(revKey, mdID[:])
+
+	// Add an entry with the head key (no revision.)
+	headKey, err := md.getMDKey(ctx, id, 0, unmerged)
 	if err != nil {
-		return err
+		return MDServerError{err}
 	}
+	batch.Put(headKey, mdID[:])
 
-	if deviceKID.IsNil() {
-		// nothing to do if no unmerged device is specified
-		return nil
-	}
-
-	// now clear out the unmerged history up to unmergedID
-	exists, u, err := md.getUnmergedInfo(id)
-	if err != nil || !exists {
-		// when no unmerged info exists for this folder, return err == nil
-		return err
-	}
-	devInfo, ok := u.Devices[deviceKID]
-	if !ok {
-		// Technically could return nil here, but since this is a
-		// local server that only supports one device, we should never
-		// hit that case.
-		return fmt.Errorf("Missing unmerged info for device %v for folder %v",
-			deviceKID, id)
-	}
-	if devInfo.Head == unmergedBase {
-		// deleting the whole history
-		delete(u.Devices, deviceKID)
-	} else {
-		devInfo.Base = unmergedBase
-		// at this point, the earliest link in the unmerged chain will
-		// no longer point to a valid MdID (because the one it points
-		// to got fixed up in the merge and removed from the unmerged
-		// list).  That's unfortunate, but we can't clear the PrevRoot
-		// because its included in the signature.
-		u.Devices[deviceKID] = devInfo
-	}
-
-	ubytes, err := md.config.Codec().Encode(&u)
+	// Write the batch.
+	err = md.revDb.Write(batch, nil)
 	if err != nil {
-		return nil
-	}
-	return md.devDb.Put(id[:], ubytes, nil)
-}
-
-// PutUnmerged implements the MDServer interface for MDServerLocal.
-func (md *MDServerLocal) PutUnmerged(ctx context.Context, id TlfID, mdID MdID,
-	rmds *RootMetadataSigned, deviceKID keybase1.KID) error {
-	// First update the per-device unmerged info
-	exists, u, err := md.getUnmergedInfo(id)
-	if err != nil {
-		return err
-	} else if !exists {
-		u = unmergedInfo{Devices: make(map[keybase1.KID]unmergedDevInfo)}
-	}
-	udev, ok := u.Devices[deviceKID]
-	if !ok {
-		// this must be the first branch from committed data
-		udev = unmergedDevInfo{Base: rmds.MD.PrevRoot}
-	} else if rmds.MD.PrevRoot != udev.Head {
-		return OutOfDateMDError{rmds.MD.PrevRoot}
+		return MDServerError{err}
 	}
 
-	udev.Head = mdID
-	u.Devices[deviceKID] = udev
-	ubytes, err := md.config.Codec().Encode(&u)
-	if err != nil {
-		return err
-	}
-	return md.put(id, mdID, rmds, md.devDb, ubytes)
-}
-
-// GetUnmergedSince implements the MDServer interface for MDServerLocal.
-func (md *MDServerLocal) GetUnmergedSince(ctx context.Context, id TlfID,
-	deviceKID keybase1.KID, mdID MdID, max int) (
-	[]*RootMetadataSigned, bool, error) {
-	exists, u, err := md.getUnmergedInfo(id)
-	if err != nil || !exists {
-		// if there's no unmerged info, just return err == nil
-		return nil, false, err
-	}
-	udev, ok := u.Devices[deviceKID]
-	if !ok {
-		return nil, false, nil
-	}
-
-	// An empty mdID means to start from the beginning of the history
-	start := mdID
-	if start == NullMdID {
-		start = udev.Base
-	}
-
-	return md.getRange(ctx, id, start, udev.Head, max)
+	return nil
 }
 
 // GetFavorites implements the MDServer interface for MDServerLocal.
@@ -376,5 +337,46 @@ func (md *MDServerLocal) GetFavorites(ctx context.Context) ([]*TlfHandle, error)
 	if err == nil {
 		err = iter.Error()
 	}
+	if err != nil {
+		err = MDServerError{err}
+	}
 	return output, err
+}
+
+// PruneUnmerged implements the MDServer interface for MDServerLocal.
+func (md *MDServerLocal) PruneUnmerged(ctx context.Context, id TlfID) error {
+	// No revision and unmerged history.
+	headKey, err := md.getMDKey(ctx, id, 0, true)
+
+	// Do these deletes in atomic batches.
+	revBatch, mdBatch := new(leveldb.Batch), new(leveldb.Batch)
+
+	// Iterate and delete.
+	iter := md.revDb.NewIterator(util.BytesPrefix(headKey), nil)
+	for iter.Next() {
+		mdID := iter.Value()
+		// Queue these up for deletion.
+		mdBatch.Delete(mdID)
+		// Delete the reference from the revision DB.
+		revBatch.Delete(iter.Key())
+	}
+	iter.Release()
+	if err = iter.Error(); err != nil {
+		return MDServerError{err}
+	}
+
+	// Write the batches of deletes.
+	if err := md.revDb.Write(revBatch, nil); err != nil {
+		return MDServerError{err}
+	}
+	if err := md.mdDb.Write(mdBatch, nil); err != nil {
+		return MDServerError{err}
+	}
+
+	return nil
+}
+
+// This should only be used for testing with an in-memory server.
+func (md *MDServerLocal) copy(config Config) *MDServerLocal {
+	return &MDServerLocal{config, md.handleDb, md.mdDb, md.revDb, md.mutex}
 }

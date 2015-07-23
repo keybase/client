@@ -2,6 +2,7 @@ package libkbfs
 
 import (
 	"sort"
+	"strconv"
 
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/protocol/go"
@@ -39,9 +40,26 @@ type MetadataFlags byte
 
 // Possible flags set in the MetdataFlags bitmask.
 const (
-	Rekey MetadataFlags = 1 << iota
-	Unmerged
+	MetadataFlagRekey MetadataFlags = 1 << iota
+	MetadataFlagUnmerged
 )
+
+// MetadataRevision is the type for the revision number.
+// This is currently int64 since that's the type of Avro's long.
+type MetadataRevision int64
+
+// String converts a MetadataRevision to its string form.
+func (mr MetadataRevision) String() string {
+	return strconv.FormatInt(mr.Number(), 10)
+}
+
+// Number casts a MetadataRevision to it's primitive type.
+func (mr MetadataRevision) Number() int64 {
+	return int64(mr)
+}
+
+// MetadataRevisionHead indicates the head revision for a particular branch.
+const MetadataRevisionHead = MetadataRevision(0)
 
 // RootMetadata is the MD that is signed by the writer.
 type RootMetadata struct {
@@ -57,7 +75,7 @@ type RootMetadata struct {
 	// The directory ID, signed over to make verification easier
 	ID TlfID
 	// The revision number
-	Revision uint64
+	Revision MetadataRevision
 	// Flags
 	Flags MetadataFlags
 	// Estimated disk usage at this revision
@@ -83,12 +101,12 @@ func (md *RootMetadata) GetKeyGeneration() int {
 
 // IsUnmergedSet returns true if the unmerged bit is set.
 func (md *RootMetadata) IsUnmergedSet() bool {
-	return md.Flags&Unmerged != 0
+	return md.Flags&MetadataFlagUnmerged != 0
 }
 
 // IsRekeySet returns true if the rekey bit is set.
 func (md *RootMetadata) IsRekeySet() bool {
-	return md.Flags&Rekey != 0
+	return md.Flags&MetadataFlagRekey != 0
 }
 
 // IsWriter returns whether or not the user+device is an authorized writer.
@@ -140,6 +158,7 @@ func NewRootMetadata(d *TlfHandle, id TlfID) *RootMetadata {
 		// enough to rekey the metadata for the first
 		// time
 		cachedTlfHandle: d,
+		Revision:        1,
 	}
 	return &md
 }
@@ -314,6 +333,7 @@ func (md *RootMetadata) ClearMetadataID() {
 // AddRefBlock adds the newly-referenced block to the add block change list.
 func (md *RootMetadata) AddRefBlock(info BlockInfo) {
 	md.RefBytes += uint64(info.EncodedSize)
+	md.DiskUsage += uint64(info.EncodedSize)
 	md.data.Changes.AddRefBlock(info.BlockPointer)
 }
 
@@ -321,6 +341,7 @@ func (md *RootMetadata) AddRefBlock(info BlockInfo) {
 func (md *RootMetadata) AddUnrefBlock(info BlockInfo) {
 	if info.EncodedSize > 0 {
 		md.UnrefBytes += uint64(info.EncodedSize)
+		md.DiskUsage -= uint64(info.EncodedSize)
 		md.data.Changes.AddUnrefBlock(info.BlockPointer)
 	}
 }
@@ -330,6 +351,8 @@ func (md *RootMetadata) AddUpdate(oldInfo BlockInfo, newInfo BlockInfo) {
 	if oldInfo.EncodedSize > 0 {
 		md.UnrefBytes += uint64(oldInfo.EncodedSize)
 		md.RefBytes += uint64(newInfo.EncodedSize)
+		md.DiskUsage += uint64(newInfo.EncodedSize)
+		md.DiskUsage -= uint64(oldInfo.EncodedSize)
 		md.data.Changes.AddUpdate(oldInfo.BlockPointer, newInfo.BlockPointer)
 	}
 }

@@ -1,11 +1,16 @@
 package libkbfs
 
 import (
+	"os"
 	"testing"
 
+	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/protocol/go"
 	"golang.org/x/net/context"
 )
+
+// EnvMDServerAddr is the environment variable name for an mdserver address.
+const EnvMDServerAddr = "KEYBASE_MDSERVER_BIND_ADDR"
 
 // NewRootMetadataForTest returns a new initialized RootMetadata object for testing.
 func NewRootMetadataForTest(d *TlfHandle, id TlfID) *RootMetadata {
@@ -60,7 +65,31 @@ func MakeTestConfigOrBust(t *testing.T, blockServerRemoteAddr *string, users ...
 		config.SetBlockServer(blockServer)
 	}
 
-	mdServer, err := NewMDServerMemory(config)
+	// see if a local remote server is specified
+	mdServerAddr := os.Getenv(EnvMDServerAddr)
+
+	var err error
+	var mdServer MDServer
+	if len(mdServerAddr) != 0 {
+		// start/restart local in-memory DynamoDB
+		runner, err := NewTestDynamoDBRunner()
+		if err != nil {
+			t.Fatal(err)
+		}
+		runner.Run(t)
+
+		// initialize libkb -- this probably isn't the best place to do this
+		// but it seems as though the MDServer rpc client is the first thing to
+		// use things from it which require initialization.
+		libkb.G.Init()
+		libkb.G.ConfigureLogging()
+
+		// connect to server
+		mdServer, err = NewMDServerRemote(context.TODO(), config, mdServerAddr)
+	} else {
+		// create in-memory server shim
+		mdServer, err = NewMDServerMemory(config)
+	}
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -99,7 +128,26 @@ func ConfigAsUser(config *ConfigLocal, loggedInUser string) *ConfigLocal {
 	c.SetCrypto(crypto)
 
 	c.SetBlockServer(config.BlockServer())
-	c.SetMDServer(config.MDServer())
+
+	// see if a local remote server is specified
+	mdServerAddr := os.Getenv(EnvMDServerAddr)
+
+	var err error
+	var mdServer MDServer
+	if len(mdServerAddr) != 0 {
+		// connect to server
+		mdServer, err = NewMDServerRemote(context.TODO(), c, mdServerAddr)
+		if err != nil {
+			panic(err.Error())
+		}
+	} else {
+		// copy the existing mdServer but update the config
+		// this way the current device KID is paired with
+		// the proper user yet the DB state is all shared.
+		mdServerToCopy := config.MDServer().(*MDServerLocal)
+		mdServer = mdServerToCopy.copy(c)
+	}
+	c.SetMDServer(mdServer)
 
 	c.SetKeyOps(config.KeyOps())
 
@@ -107,7 +155,7 @@ func ConfigAsUser(config *ConfigLocal, loggedInUser string) *ConfigLocal {
 }
 
 // NewFolder returns a new RootMetadataSigned for testing.
-func NewFolder(t *testing.T, x byte, revision uint64, share bool, public bool) (
+func NewFolder(t *testing.T, x byte, revision MetadataRevision, share bool, public bool) (
 	TlfID, *TlfHandle, *RootMetadataSigned) {
 	id := TlfID{0}
 	id[0] = x
@@ -116,18 +164,25 @@ func NewFolder(t *testing.T, x byte, revision uint64, share bool, public bool) (
 	} else {
 		id[TlfIDLen-1] = TlfIDSuffix
 	}
-	h, rmds := NewFolderWithID(t, id, revision, share, public)
+	h, rmds := NewFolderWithIDAndWriter(t, id, revision, share, public, keybase1.MakeTestUID(15))
 	return id, h, rmds
 }
 
 // NewFolderWithID returns a new RootMetadataSigned for testing.
-func NewFolderWithID(t *testing.T, id TlfID, revision uint64, share bool, public bool) (
+func NewFolderWithID(t *testing.T, id TlfID, revision MetadataRevision, share bool, public bool) (
 	*TlfHandle, *RootMetadataSigned) {
+	return NewFolderWithIDAndWriter(t, id, revision, share, public, keybase1.MakeTestUID(15))
+}
+
+// NewFolderWithIDAndWriter returns a new RootMetadataSigned for testing.
+func NewFolderWithIDAndWriter(t *testing.T, id TlfID, revision MetadataRevision,
+	share bool, public bool, writer keybase1.UID) (*TlfHandle, *RootMetadataSigned) {
+
 	h := NewTlfHandle()
 	if public {
 		h.Readers = []keybase1.UID{keybase1.PublicUID}
 	}
-	h.Writers = append(h.Writers, keybase1.MakeTestUID(15))
+	h.Writers = append(h.Writers, writer)
 	if share {
 		h.Writers = append(h.Writers, keybase1.MakeTestUID(16))
 	}
@@ -172,4 +227,26 @@ func testWithCanceledContext(t *testing.T, ctx context.Context,
 	}
 	// let any waiting goroutines complete, which shouldn't hurt anything
 	goChan <- struct{}{}
+}
+
+// MakeDirRKeyBundle creates a new bundle with a reader key.
+func MakeDirRKeyBundle(uid keybase1.UID, cryptPublicKey CryptPublicKey) DirKeyBundle {
+	return DirKeyBundle{
+		RKeys: map[keybase1.UID]map[keybase1.KID]EncryptedTLFCryptKeyClientHalf{
+			uid: map[keybase1.KID]EncryptedTLFCryptKeyClientHalf{
+				cryptPublicKey.KID: EncryptedTLFCryptKeyClientHalf{},
+			},
+		},
+	}
+}
+
+// MakeDirWKeyBundle creates a new bundle with a writer key.
+func MakeDirWKeyBundle(uid keybase1.UID, cryptPublicKey CryptPublicKey) DirKeyBundle {
+	return DirKeyBundle{
+		WKeys: map[keybase1.UID]map[keybase1.KID]EncryptedTLFCryptKeyClientHalf{
+			uid: map[keybase1.KID]EncryptedTLFCryptKeyClientHalf{
+				cryptPublicKey.KID: EncryptedTLFCryptKeyClientHalf{},
+			},
+		},
+	}
 }
