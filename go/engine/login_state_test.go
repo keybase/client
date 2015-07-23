@@ -348,7 +348,7 @@ func userHasStoredSecretViaConfiguredAccounts(tc *libkb.TestContext, username st
 }
 
 func userHasStoredSecretViaSecretStore(tc *libkb.TestContext, username string) bool {
-	secretStore := libkb.NewSecretStore(username)
+	secretStore := libkb.NewSecretStore("KeybaseTest", username)
 	if secretStore == nil {
 		tc.T.Errorf("SecretStore for %s unexpectedly nil", username)
 		return false

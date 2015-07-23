@@ -2,7 +2,7 @@
 
 package libkb
 
-func NewSecretStore(username string) SecretStore {
+func NewSecretStore(serviceName string, accountName string) SecretStore {
 	return nil
 }
 
@@ -10,7 +10,7 @@ func HasSecretStore() bool {
 	return false
 }
 
-func GetUsersWithStoredSecrets() ([]string, error) {
+func GetUsersWithStoredSecrets(serviceName string) ([]string, error) {
 	return nil, nil
 }
 
