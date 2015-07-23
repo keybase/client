@@ -57,6 +57,14 @@ func (e NoSuchUserError) Error() string {
 	return fmt.Sprintf("No such user matching %s", e.Input)
 }
 
+var _ fuse.ErrorNumber = NoSuchUserError{""}
+
+// Errno implements the fuse.ErrorNumber interface for
+// NoSuchUserError
+func (e NoSuchUserError) Errno() fuse.Errno {
+	return fuse.Errno(syscall.ENOENT)
+}
+
 // BadTLFNameError indicates a top-level folder name that has an
 // incorrect format.
 type BadTLFNameError struct {

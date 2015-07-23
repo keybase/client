@@ -148,6 +148,16 @@ func TestStatMyFolder(t *testing.T) {
 	}
 }
 
+func TestStatNonexistentFolder(t *testing.T) {
+	config := libkbfs.MakeTestConfigOrBust(t, BServerRemoteAddr, "jdoe")
+	mnt := makeFS(t, config)
+	defer mnt.Close()
+
+	if _, err := os.Lstat(path.Join(mnt.Dir, PrivateName, "does-not-exist")); !os.IsNotExist(err) {
+		t.Fatalf("expected ENOENT: %v", err)
+	}
+}
+
 func TestStatAlias(t *testing.T) {
 	config := libkbfs.MakeTestConfigOrBust(t, BServerRemoteAddr, "jdoe")
 	mnt := makeFS(t, config)
