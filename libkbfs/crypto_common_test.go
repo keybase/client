@@ -825,6 +825,24 @@ func TestBlockDepadding(t *testing.T) {
 	}
 }
 
+// Test padding of blocks results in blocks at least 2^8.
+func TestBlockPadMinimum(t *testing.T) {
+	var c CryptoCommon
+	for i := 0; i < 256; i++ {
+		b := make([]byte, i)
+		if err := cryptoRandRead(b); err != nil {
+			t.Fatal(err)
+		}
+		padded, err := c.padBlock(b)
+		if err != nil {
+			t.Errorf("padBlock error: %s", err)
+		}
+		if len(padded) != 260 {
+			t.Errorf("padded block len: %d, expected 260", len(padded))
+		}
+	}
+}
+
 // Test that secretbox encrypted data length is deterministic.
 func TestSecretboxEncryptedLen(t *testing.T) {
 	codec := NewCodecMsgpack()

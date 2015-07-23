@@ -282,9 +282,14 @@ func (c *CryptoCommon) DecryptPrivateMetadata(encryptedPmd EncryptedPrivateMetad
 	return &pmd, nil
 }
 
+const minBlockSize = 256
+
 // nextPowerOfTwo returns next power of 2 greater than the input n.
 // https://en.wikipedia.org/wiki/Power_of_two#Algorithm_to_round_up_to_power_of_two
 func nextPowerOfTwo(n uint32) uint32 {
+	if n < minBlockSize {
+		return minBlockSize
+	}
 	if n&(n-1) == 0 {
 		// if n is already power of 2, get the next one
 		n++
@@ -301,13 +306,15 @@ func nextPowerOfTwo(n uint32) uint32 {
 	return n
 }
 
+const padPrefixSize = 4
+
 // padBlock adds random padding to an encoded block.
 func (c *CryptoCommon) padBlock(block []byte) ([]byte, error) {
 	blockLen := uint32(len(block))
 	overallLen := nextPowerOfTwo(blockLen)
 	padLen := int64(overallLen - blockLen)
 
-	buf := bytes.NewBuffer(make([]byte, 0, overallLen+4))
+	buf := bytes.NewBuffer(make([]byte, 0, overallLen+padPrefixSize))
 
 	// first 4 bytes contain the length of the block data
 	if err := binary.Write(buf, binary.LittleEndian, blockLen); err != nil {
@@ -337,17 +344,12 @@ func (c *CryptoCommon) depadBlock(paddedBlock []byte) ([]byte, error) {
 	if err := binary.Read(buf, binary.LittleEndian, &blockLen); err != nil {
 		return nil, err
 	}
+	blockEndPos := int(blockLen + padPrefixSize)
 
-	block := make([]byte, int(blockLen))
-	n, err := buf.Read(block)
-	if err != nil {
-		return nil, err
+	if len(paddedBlock) < blockEndPos {
+		return nil, PaddedBlockReadError{ActualLen: len(paddedBlock), ExpectedLen: blockEndPos}
 	}
-	if n != int(blockLen) {
-		return nil, PaddedBlockReadError{ActualLen: n, ExpectedLen: int(blockLen)}
-	}
-
-	return block, nil
+	return buf.Next(int(blockLen)), nil
 }
 
 // EncryptBlock implements the Crypto interface for CryptoCommon.
