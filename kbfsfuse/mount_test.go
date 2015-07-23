@@ -1009,7 +1009,7 @@ func TestChmodNonExec(t *testing.T) {
 	}
 }
 
-func TestSetattrMtime(t *testing.T) {
+func TestSetattrFileMtime(t *testing.T) {
 	config := libkbfs.MakeTestConfigOrBust(t, BServerRemoteAddr, "jdoe")
 	mnt := makeFS(t, config)
 	defer mnt.Close()
@@ -1037,7 +1037,7 @@ func TestSetattrMtime(t *testing.T) {
 	}
 }
 
-func TestSetattrMtimeNow(t *testing.T) {
+func TestSetattrFileMtimeNow(t *testing.T) {
 	config := libkbfs.MakeTestConfigOrBust(t, BServerRemoteAddr, "jdoe")
 	mnt := makeFS(t, config)
 	defer mnt.Close()
