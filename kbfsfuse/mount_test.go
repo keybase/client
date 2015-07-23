@@ -31,12 +31,12 @@ func makeFS(t testing.TB, config *libkbfs.ConfigLocal) *fstestutil.Mount {
 			return ctx
 		},
 	})
-	// TODO this is too late, racy
-	filesys.fuse = mnt.Server
-	filesys.conn = mnt.Conn
 	if err != nil {
 		t.Fatal(err)
 	}
+	// TODO this is too late, racy
+	filesys.fuse = mnt.Server
+	filesys.conn = mnt.Conn
 	return mnt
 }
 
