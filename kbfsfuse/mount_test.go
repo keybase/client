@@ -1245,6 +1245,24 @@ func TestStatOtherFolder(t *testing.T) {
 	}
 }
 
+func TestStatOtherFolderFirstUse(t *testing.T) {
+	// This triggers a different error than with the warmup.
+	config := libkbfs.MakeTestConfigOrBust(t, BServerRemoteAddr, "jdoe", "wsmith")
+
+	c2 := libkbfs.ConfigAsUser(config, "wsmith")
+	mnt := makeFS(t, c2)
+	defer mnt.Close()
+
+	switch _, err := os.Lstat(path.Join(mnt.Dir, PrivateName, "jdoe")); err := err.(type) {
+	case *os.PathError:
+		if g, e := err.Err, syscall.EACCES; g != e {
+			t.Fatalf("wrong error: %v != %v", g, e)
+		}
+	default:
+		t.Fatalf("expected a PathError, got %T: %v", err, err)
+	}
+}
+
 func TestStatOtherFolderPublic(t *testing.T) {
 	config := libkbfs.MakeTestConfigOrBust(t, BServerRemoteAddr, "jdoe", "wsmith")
 	func() {
@@ -1269,6 +1287,24 @@ func TestStatOtherFolderPublic(t *testing.T) {
 	// fuse, not the person owning the folder
 	if g, e := fi.Mode().String(), `drwxr-xr-x`; g != e {
 		t.Errorf("wrong mode for folder: %q != %q", g, e)
+	}
+}
+
+func TestStatOtherFolderPublicFirstUse(t *testing.T) {
+	// This triggers a different error than with the warmup.
+	config := libkbfs.MakeTestConfigOrBust(t, BServerRemoteAddr, "jdoe", "wsmith")
+
+	c2 := libkbfs.ConfigAsUser(config, "wsmith")
+	mnt := makeFS(t, c2)
+	defer mnt.Close()
+
+	switch _, err := os.Lstat(path.Join(mnt.Dir, PublicName, "jdoe")); err := err.(type) {
+	case *os.PathError:
+		if g, e := err.Err, syscall.EACCES; g != e {
+			t.Fatalf("wrong error: %v != %v", g, e)
+		}
+	default:
+		t.Fatalf("expected a PathError, got %T: %v", err, err)
 	}
 }
 

@@ -168,6 +168,14 @@ func (e WriteAccessError) Error() string {
 		e.User, e.Dir)
 }
 
+var _ fuse.ErrorNumber = WriteAccessError{}
+
+// Errno implements the fuse.ErrorNumber interface for
+// WriteAccessError.
+func (e WriteAccessError) Errno() fuse.Errno {
+	return fuse.Errno(syscall.EACCES)
+}
+
 // NewReadAccessError constructs a ReadAccessError for the given
 // directory and user.
 func NewReadAccessError(ctx context.Context, config Config, dir *TlfHandle,
