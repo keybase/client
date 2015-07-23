@@ -841,10 +841,8 @@ func TestSecretboxEncryptedLen(t *testing.T) {
 			enc := secretboxSeal(t, &c, data, cryptKey.Key)
 			if j == 0 {
 				enclen = len(enc.EncryptedData)
-			} else {
-				if len(enc.EncryptedData) != enclen {
-					t.Errorf("encrypted data len: %d, expected %d", len(enc.EncryptedData), enclen)
-				}
+			} else if len(enc.EncryptedData) != enclen {
+				t.Errorf("encrypted data len: %d, expected %d", len(enc.EncryptedData), enclen)
 			}
 		}
 	}

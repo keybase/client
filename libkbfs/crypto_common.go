@@ -283,6 +283,7 @@ func (c *CryptoCommon) DecryptPrivateMetadata(encryptedPmd EncryptedPrivateMetad
 }
 
 // nextPowerOfTwo returns next power of 2 greater than the input n.
+// https://en.wikipedia.org/wiki/Power_of_two#Algorithm_to_round_up_to_power_of_two
 func nextPowerOfTwo(n uint32) uint32 {
 	if n&(n-1) == 0 {
 		// if n is already power of 2, get the next one
@@ -306,7 +307,7 @@ func (c *CryptoCommon) padBlock(block []byte) ([]byte, error) {
 	overallLen := nextPowerOfTwo(blockLen)
 	padLen := int64(overallLen - blockLen)
 
-	buf := bytes.NewBuffer(make([]byte, 0, overallLen))
+	buf := bytes.NewBuffer(make([]byte, 0, overallLen+4))
 
 	// first 4 bytes contain the length of the block data
 	if err := binary.Write(buf, binary.LittleEndian, blockLen); err != nil {
