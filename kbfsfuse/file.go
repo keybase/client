@@ -143,11 +143,11 @@ func (f *File) Setattr(ctx context.Context, req *fuse.SetattrRequest,
 		if err != nil {
 			return err
 		}
-		valid &^= fuse.SetattrMtime
+		valid &^= fuse.SetattrMtime | fuse.SetattrMtimeNow
 	}
 
 	// KBFS has no concept of persistent atime; explicitly don't handle it
-	valid &^= fuse.SetattrAtime
+	valid &^= fuse.SetattrAtime | fuse.SetattrAtimeNow
 
 	// things we don't need to explicitly handle
 	valid &^= fuse.SetattrLockOwner | fuse.SetattrHandle

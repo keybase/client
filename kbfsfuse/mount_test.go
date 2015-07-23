@@ -93,6 +93,13 @@ func fsTimeEqual(a, b time.Time) bool {
 	return a == b
 }
 
+// timeEqualFuzzy returns whether a is b+-skew.
+func timeEqualFuzzy(a, b time.Time, skew time.Duration) bool {
+	b1 := b.Add(-skew)
+	b2 := b.Add(skew)
+	return !a.Before(b1) && !a.After(b2)
+}
+
 func TestStatRoot(t *testing.T) {
 	config := libkbfs.MakeTestConfigOrBust(t, BServerRemoteAddr, "jdoe")
 	mnt := makeFS(t, config)
@@ -1027,6 +1034,43 @@ func TestSetattrMtime(t *testing.T) {
 	}
 	if g, e := fi.ModTime(), mtime; !fsTimeEqual(g, e) {
 		t.Errorf("wrong mtime: %v !~= %v", g, e)
+	}
+}
+
+func TestSetattrMtimeNow(t *testing.T) {
+	config := libkbfs.MakeTestConfigOrBust(t, BServerRemoteAddr, "jdoe")
+	mnt := makeFS(t, config)
+	defer mnt.Close()
+
+	p := path.Join(mnt.Dir, PrivateName, "jdoe", "myfile")
+	const input = "hello, world\n"
+	if err := ioutil.WriteFile(p, []byte(input), 0644); err != nil {
+		t.Fatal(err)
+	}
+
+	mtime := time.Date(2015, 1, 2, 3, 4, 5, 6, time.Local)
+	// KBFS does not respect atime (which is ok), but we need to give
+	// something to the syscall.
+	atime := time.Date(2015, 7, 8, 9, 10, 11, 12, time.Local)
+	if err := os.Chtimes(p, atime, mtime); err != nil {
+		t.Fatal(err)
+	}
+
+	// cause mtime to be set to now
+	if err := touch(p); err != nil {
+		t.Fatalf("touch failed: %v", err)
+	}
+	now := time.Now()
+
+	fi, err := os.Lstat(p)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if g, o := fi.ModTime(), mtime; !g.After(o) {
+		t.Errorf("mtime did not progress: %v <= %v", g, o)
+	}
+	if g, e := fi.ModTime(), now; !timeEqualFuzzy(g, e, 1*time.Second) {
+		t.Errorf("mtime is wrong: %v !~= %v", g, e)
 	}
 }
 
