@@ -1391,13 +1391,14 @@ func (fbo *FolderBranchOps) CreateLink(
 // writerLock must be taken by caller.
 func (fbo *FolderBranchOps) removeEntryLocked(ctx context.Context,
 	md *RootMetadata, dir path, name string) error {
-	fbo.blockLock.RLock()
-	pblock, err := fbo.getDirLocked(ctx, md, dir, write)
+	pblock, err := func() (*DirBlock, error) {
+		fbo.blockLock.RLock()
+		defer fbo.blockLock.RUnlock()
+		return fbo.getDirLocked(ctx, md, dir, write)
+	}()
 	if err != nil {
-		fbo.blockLock.RUnlock()
 		return err
 	}
-	fbo.blockLock.RUnlock()
 
 	// make sure the entry exists
 	de, ok := pblock.Children[name]
@@ -1416,8 +1417,11 @@ func (fbo *FolderBranchOps) removeEntryLocked(ctx context.Context,
 	// indirection.)  NOTE: non-empty directories can't be removed, so
 	// no need to check for indirect directory blocks here.
 	if de.Type == File || de.Type == Exec {
-		block, err :=
-			fbo.getBlockLocked(ctx, md, childPath, NewFileBlock, write)
+		block, err := func() (Block, error) {
+			fbo.blockLock.RLock()
+			defer fbo.blockLock.RUnlock()
+			return fbo.getBlockLocked(ctx, md, childPath, NewFileBlock, write)
+		}()
 		if err != nil {
 			return NoSuchBlockError{de.ID}
 		}
