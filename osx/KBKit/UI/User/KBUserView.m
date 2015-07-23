@@ -43,7 +43,7 @@
   NSMutableParagraphStyle *paragraphStyle = [[NSMutableParagraphStyle alloc] init];
   paragraphStyle.alignment = NSLeftTextAlignment;
   paragraphStyle.lineBreakMode = NSLineBreakByClipping;
-  NSDictionary *attributes = @{NSFontAttributeName: appearance.textFont, NSParagraphStyleAttributeName: paragraphStyle};
+  NSDictionary *attributes = @{NSFontAttributeName: appearance.smallTextFont, NSParagraphStyleAttributeName: paragraphStyle};
   if (userSummary.fullName) {
     [strings addObject:[[NSAttributedString alloc] initWithString:userSummary.fullName attributes:attributes]];
   }

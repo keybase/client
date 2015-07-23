@@ -2592,6 +2592,7 @@
 			isa = XCBuildConfiguration;
 			baseConfigurationReference = C90761892F9CE72BDF1A25D0 /* Pods-keybase.Helper.debug.xcconfig */;
 			buildSettings = {
+				CODE_SIGN_IDENTITY = "Mac Developer";
 				DEBUG_INFORMATION_FORMAT = dwarf;
 				GCC_NO_COMMON_BLOCKS = YES;
 				GCC_PREPROCESSOR_DEFINITIONS = (
@@ -2618,6 +2619,7 @@
 			isa = XCBuildConfiguration;
 			baseConfigurationReference = 8D23D54BB04DE19BBF61A888 /* Pods-keybase.Helper.release.xcconfig */;
 			buildSettings = {
+				CODE_SIGN_IDENTITY = "Mac Developer";
 				COPY_PHASE_STRIP = NO;
 				GCC_NO_COMMON_BLOCKS = YES;
 				OTHER_LDFLAGS = (
@@ -2718,6 +2720,7 @@
 			isa = XCBuildConfiguration;
 			baseConfigurationReference = 009E16211B28AC9300C72B28 /* Pods-KBKit.debug.xcconfig */;
 			buildSettings = {
+				CODE_SIGN_IDENTITY = "Mac Developer";
 				COMBINE_HIDPI_IMAGES = YES;
 				CURRENT_PROJECT_VERSION = 1;
 				DEBUG_INFORMATION_FORMAT = dwarf;
@@ -2745,6 +2748,7 @@
 			isa = XCBuildConfiguration;
 			baseConfigurationReference = 009E16221B28AC9300C72B28 /* Pods-KBKit.release.xcconfig */;
 			buildSettings = {
+				CODE_SIGN_IDENTITY = "Mac Developer";
 				COMBINE_HIDPI_IMAGES = YES;
 				COPY_PHASE_STRIP = NO;
 				CURRENT_PROJECT_VERSION = 1;
