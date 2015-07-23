@@ -1072,15 +1072,13 @@ func TestReaddirMyPublic(t *testing.T) {
 }
 
 func TestReaddirOtherFolderAsReader(t *testing.T) {
-	// TODO bystander is a bug workaround
-	// https://github.com/keybase/kbfs/issues/91
-	config := libkbfs.MakeTestConfigOrBust(t, BServerRemoteAddr, "jdoe", "wsmith", "bystander")
+	config := libkbfs.MakeTestConfigOrBust(t, BServerRemoteAddr, "jdoe", "wsmith")
 	func() {
 		mnt := makeFS(t, config)
 		defer mnt.Close()
 
 		// cause the folder to exist
-		if err := ioutil.WriteFile(path.Join(mnt.Dir, PrivateName, "bystander,jdoe#wsmith", "myfile"), []byte("data for myfile"), 0644); err != nil {
+		if err := ioutil.WriteFile(path.Join(mnt.Dir, PrivateName, "jdoe#wsmith", "myfile"), []byte("data for myfile"), 0644); err != nil {
 			t.Fatal(err)
 		}
 	}()
@@ -1089,7 +1087,7 @@ func TestReaddirOtherFolderAsReader(t *testing.T) {
 	mnt := makeFS(t, c2)
 	defer mnt.Close()
 
-	checkDir(t, path.Join(mnt.Dir, PrivateName, "bystander,jdoe#wsmith"), map[string]fileInfoCheck{
+	checkDir(t, path.Join(mnt.Dir, PrivateName, "jdoe#wsmith"), map[string]fileInfoCheck{
 		"myfile": nil,
 	})
 }
