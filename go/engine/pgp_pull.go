@@ -46,7 +46,6 @@ func (e *PGPPullEngine) SubConsumers() []libkb.UIConsumer {
 }
 
 func proofSetFromUserSummary(summary keybase1.UserSummary) *libkb.ProofSet {
-	// TODO: This logic is kind of duplicated from User.ToOkProofSet(). Clean that up?
 	proofs := []libkb.Proof{
 		{Key: "keybase", Value: summary.Username},
 		{Key: "uid", Value: summary.Uid.String()},
