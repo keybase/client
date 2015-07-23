@@ -2,6 +2,7 @@ package libkbfs
 
 import (
 	"testing"
+	"testing/quick"
 
 	"golang.org/x/crypto/nacl/box"
 	"golang.org/x/crypto/nacl/secretbox"
@@ -474,8 +475,12 @@ func secretboxSeal(t *testing.T, c *CryptoCommon, data interface{}, key [32]byte
 		t.Fatal(err)
 	}
 
+	return secretboxSealEncoded(t, c, encodedData, key)
+}
+
+func secretboxSealEncoded(t *testing.T, c *CryptoCommon, encodedData []byte, key [32]byte) encryptedData {
 	var nonce [24]byte
-	err = cryptoRandRead(nonce[:])
+	err := cryptoRandRead(nonce[:])
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -668,7 +673,11 @@ func TestEncryptBlock(t *testing.T) {
 		t.Errorf("Expected plain size %d, got %d", len(expectedEncodedBlock), plainSize)
 	}
 
-	encodedBlock := checkSecretboxOpen(t, encryptedData(encryptedBlock), cryptKey.Key)
+	paddedBlock := checkSecretboxOpen(t, encryptedData(encryptedBlock), cryptKey.Key)
+	encodedBlock, err := c.depadBlock(paddedBlock)
+	if err != nil {
+		t.Fatal(err)
+	}
 
 	if string(encodedBlock) != string(expectedEncodedBlock) {
 		t.Fatalf("Expected encoded data %v, got %v", expectedEncodedBlock, encodedBlock)
@@ -685,10 +694,20 @@ func TestDecryptBlockSecretboxSeal(t *testing.T) {
 
 	block := 50
 
-	encryptedBlock := EncryptedBlock(secretboxSeal(t, &c, block, cryptKey.Key))
+	encodedBlock, err := codec.Encode(block)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	paddedBlock, err := c.padBlock(encodedBlock)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	encryptedBlock := EncryptedBlock(secretboxSealEncoded(t, &c, paddedBlock, cryptKey.Key))
 
 	var decryptedBlock int
-	err := c.DecryptBlock(encryptedBlock, cryptKey, &decryptedBlock)
+	err = c.DecryptBlock(encryptedBlock, cryptKey, &decryptedBlock)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -749,4 +768,31 @@ func TestDecryptBlockFailures(t *testing.T) {
 			cryptKeyCorrupt.Key[0] = ^cryptKeyCorrupt.Key[0]
 			return cryptKeyCorrupt
 		})
+}
+
+func TestBlockPadding(t *testing.T) {
+	var c CryptoCommon
+	f := func(b []byte) bool {
+		padded, err := c.padBlock(b)
+		if err != nil {
+			t.Logf("padBlock err: %s", err)
+			return false
+		}
+		n := len(padded)
+		if n <= len(b) {
+			t.Logf("padBlock padded block len %d <= input block len %d", n, len(b))
+			return false
+		}
+		// len of slice without uint32 prefix:
+		h := n - 4
+		if h&(h-1) != 0 {
+			t.Logf("padBlock padded block len %d not a power of 2", h)
+			return false
+		}
+		return true
+	}
+
+	if err := quick.Check(f, nil); err != nil {
+		t.Error(err)
+	}
 }

@@ -1,8 +1,11 @@
 package libkbfs
 
 import (
+	"bytes"
 	"crypto/rand"
 	"crypto/sha256"
+	"encoding/binary"
+	"io"
 
 	"github.com/keybase/client/go/libkb"
 	"golang.org/x/crypto/nacl/box"
@@ -279,15 +282,86 @@ func (c *CryptoCommon) DecryptPrivateMetadata(encryptedPmd EncryptedPrivateMetad
 	return &pmd, nil
 }
 
+// nextPowerOfTwo returns next power of 2 greater than the input n.
+func nextPowerOfTwo(n uint32) uint32 {
+	if n&(n-1) == 0 {
+		// if n is already power of 2, get the next one
+		n++
+	}
+
+	n--
+	n = n | (n >> 1)
+	n = n | (n >> 2)
+	n = n | (n >> 4)
+	n = n | (n >> 8)
+	n = n | (n >> 16)
+	n++
+
+	return n
+}
+
+// padBlock adds random padding to an encoded block.
+func (c *CryptoCommon) padBlock(block []byte) ([]byte, error) {
+	blockLen := uint32(len(block))
+	overallLen := nextPowerOfTwo(blockLen)
+	padLen := int64(overallLen - blockLen)
+
+	buf := bytes.NewBuffer(make([]byte, 0, overallLen))
+
+	// first 4 bytes contain the length of the block data
+	if err := binary.Write(buf, binary.LittleEndian, blockLen); err != nil {
+		return nil, err
+	}
+
+	// followed by the actual block data
+	buf.Write(block)
+
+	// followed by random data
+	n, err := io.CopyN(buf, rand.Reader, padLen)
+	if err != nil {
+		return nil, err
+	}
+	if n != padLen {
+		return nil, UnexpectedShortCryptoRandRead{}
+	}
+
+	return buf.Bytes(), nil
+}
+
+// depadBlock extracts the actual block data from a padded block.
+func (c *CryptoCommon) depadBlock(paddedBlock []byte) ([]byte, error) {
+	buf := bytes.NewBuffer(paddedBlock)
+
+	var blockLen uint32
+	if err := binary.Read(buf, binary.LittleEndian, &blockLen); err != nil {
+		return nil, err
+	}
+
+	block := make([]byte, int(blockLen))
+	n, err := buf.Read(block)
+	if err != nil {
+		return nil, err
+	}
+	if n != int(blockLen) {
+		return nil, PaddedBlockReadError{ActualLen: n, ExpectedLen: int(blockLen)}
+	}
+
+	return block, nil
+}
+
 // EncryptBlock implements the Crypto interface for CryptoCommon.
 func (c *CryptoCommon) EncryptBlock(block Block, key BlockCryptKey) (plainSize int, encryptedBlock EncryptedBlock, err error) {
-	// TODO: add padding
 	encodedBlock, err := c.codec.Encode(block)
 	if err != nil {
 		return
 	}
 
-	encryptedData, err := c.encryptData(encodedBlock, key.Key)
+	paddedBlock, err := c.padBlock(encodedBlock)
+	if err != nil {
+		return
+	}
+
+	encryptedData, err := c.encryptData(paddedBlock, key.Key)
 	if err != nil {
 		return
 	}
@@ -298,8 +372,13 @@ func (c *CryptoCommon) EncryptBlock(block Block, key BlockCryptKey) (plainSize i
 }
 
 // DecryptBlock implements the Crypto interface for CryptoCommon.
-func (c *CryptoCommon) DecryptBlock(encryptedBlock EncryptedBlock, key BlockCryptKey, block Block) (err error) {
-	encodedBlock, err := c.decryptData(encryptedData(encryptedBlock), key.Key)
+func (c *CryptoCommon) DecryptBlock(encryptedBlock EncryptedBlock, key BlockCryptKey, block Block) error {
+	paddedBlock, err := c.decryptData(encryptedData(encryptedBlock), key.Key)
+	if err != nil {
+		return err
+	}
+
+	encodedBlock, err := c.depadBlock(paddedBlock)
 	if err != nil {
 		return err
 	}

@@ -512,3 +512,16 @@ func (e OutOfDateMDError) Error() string {
 	return fmt.Sprintf("MD rejected because its previous root was %v, "+
 		"but that is not the current MD root", e.PrevRoot)
 }
+
+// PaddedBlockReadError occurs if the number of bytes read do not
+// equal the number of bytes specified.
+type PaddedBlockReadError struct {
+	ActualLen   int
+	ExpectedLen int
+}
+
+// Error implements the error interface of PaddedBlockReadError.
+func (e PaddedBlockReadError) Error() string {
+	return fmt.Sprintf("Reading block data out of padded block resulted in %d bytes, expected %d",
+		e.ActualLen, e.ExpectedLen)
+}
