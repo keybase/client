@@ -95,6 +95,8 @@ type KeyFamily struct {
 
 	AllKeys map[keybase1.KID]GenericKey
 
+	BundlesForTesting []string
+
 	Contextified
 }
 
@@ -284,6 +286,7 @@ func ParseKeyFamily(jw *jsonw.Wrapper) (ret *KeyFamily, err error) {
 	if err = jw.UnmarshalAgain(&rkf); err != nil {
 		return
 	}
+	kf.BundlesForTesting = rkf.AllBundles
 
 	// Parse the keys, and collect the PGP keys to map their fingerprints.
 	kf.AllKeys = make(map[keybase1.KID]GenericKey)

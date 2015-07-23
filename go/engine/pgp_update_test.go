@@ -32,6 +32,17 @@ func getFakeUsersKeyBundleFromServer(t *testing.T, fu *FakeUser) *libkb.PGPKeyBu
 	return keys[0]
 }
 
+func getFakeUsersBundlesList(t *testing.T, fu *FakeUser) []string {
+	user, err := libkb.LoadUser(libkb.LoadUserArg{
+		Name:        fu.Username,
+		ForceReload: true,
+	})
+	if err != nil {
+		t.Fatal("Failed loading user", err)
+	}
+	return user.GetKeyFamily().BundlesForTesting
+}
+
 func TestPGPUpdate(t *testing.T) {
 	tc := SetupEngineTest(t, "pgp_update")
 	defer tc.Cleanup()
@@ -63,10 +74,10 @@ func TestPGPUpdate(t *testing.T) {
 	if err != nil {
 		t.Fatal("Error in PGPUpdateEngine:", err)
 	}
-	// Load the user from the server again.
-	reloadedBundle := getFakeUsersKeyBundleFromServer(t, fakeUser)
+	// Get the list of bundles from the server.
+	bundles := getFakeUsersBundlesList(t, fakeUser)
 	// Check that the key hasn't been modified.
-	if len(reloadedBundle.Subkeys) != 1 {
+	if len(bundles) != 1 {
 		t.Fatal("Key changes should not have been uploaded.")
 	}
 
@@ -76,9 +87,9 @@ func TestPGPUpdate(t *testing.T) {
 		t.Fatal("Error in PGPUpdateEngine:", err)
 	}
 	// Load the user from the server again.
-	reloadedBundle = getFakeUsersKeyBundleFromServer(t, fakeUser)
+	reloadedBundles := getFakeUsersBundlesList(t, fakeUser)
 	// Check that the key hasn't been modified.
-	if len(reloadedBundle.Subkeys) != 0 {
+	if len(reloadedBundles) != 2 {
 		t.Fatal("Key changes should have been uploaded.")
 	}
 }
