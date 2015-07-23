@@ -149,23 +149,10 @@
 - (void)showSecret:(void (^)(NSError *error, KBRKeyInfo *keyInfo))completion {
   KBRPgpRequest *request = [[KBRPgpRequest alloc] initWithClient:self.client];
   KBRPGPQuery *options = [[KBRPGPQuery alloc] init];
-  //options.query = _identifyKey.KID;
+  options.query = _identifyKey.KID;
   options.exactMatch = YES;
   options.secret = YES;
   GHWeakSelf gself = self;
-
-  options.query = KBHexString(_identifyKey.pgpFingerprint, @"");
-  [request pgpExportByFingerprintWithSessionID:request.sessionId options:options completion:^(NSError *error, NSArray *items) {
-    KBRKeyInfo *keyInfo = items[0];
-    if (keyInfo.key) {
-      gself.textView.text = keyInfo.key;
-    } else {
-      gself.textView.text = nil;
-    }
-    completion(error, keyInfo);
-  }];
-
-  /*
   [request pgpExportByKIDWithSessionID:request.sessionId options:options completion:^(NSError *error, NSArray *items) {
     KBRKeyInfo *keyInfo = items[0];
     if (keyInfo.key) {
@@ -175,7 +162,6 @@
     }
     completion(error, keyInfo);
   }];
-   */
 }
 
 - (void)removePGPKey:(dispatch_block_t)completion {
