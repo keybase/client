@@ -1,6 +1,7 @@
 package libkbfs
 
 import (
+	"bytes"
 	"testing"
 	"testing/quick"
 
@@ -770,6 +771,8 @@ func TestDecryptBlockFailures(t *testing.T) {
 		})
 }
 
+// Test padding of blocks results in a larger block, with length
+// equal to power of 2 + 4.
 func TestBlockPadding(t *testing.T) {
 	var c CryptoCommon
 	f := func(b []byte) bool {
@@ -794,5 +797,85 @@ func TestBlockPadding(t *testing.T) {
 
 	if err := quick.Check(f, nil); err != nil {
 		t.Error(err)
+	}
+}
+
+// Tests padding -> depadding results in same block data.
+func TestBlockDepadding(t *testing.T) {
+	var c CryptoCommon
+	f := func(b []byte) bool {
+		padded, err := c.padBlock(b)
+		if err != nil {
+			t.Logf("padBlock err: %s", err)
+			return false
+		}
+		depadded, err := c.depadBlock(padded)
+		if err != nil {
+			t.Logf("depadBlock err: %s", err)
+			return false
+		}
+		if !bytes.Equal(b, depadded) {
+			return false
+		}
+		return true
+	}
+
+	if err := quick.Check(f, nil); err != nil {
+		t.Error(err)
+	}
+}
+
+// Test that secretbox encrypted data length is deterministic.
+func TestSecretboxEncryptedLen(t *testing.T) {
+	codec := NewCodecMsgpack()
+	c := CryptoCommon{codec}
+
+	for i := 100; i < 100000; i += 1000 {
+		var enclen int
+		for j := 0; j < 5; j++ {
+			cryptKey := makeBlockCryptKey(t, &c)
+			data := make([]byte, i)
+			if err := cryptoRandRead(data); err != nil {
+				t.Fatal(err)
+			}
+			enc := secretboxSeal(t, &c, data, cryptKey.Key)
+			if j == 0 {
+				enclen = len(enc.EncryptedData)
+			} else {
+				if len(enc.EncryptedData) != enclen {
+					t.Errorf("encrypted data len: %d, expected %d", len(enc.EncryptedData), enclen)
+				}
+			}
+		}
+	}
+}
+
+// Test that block encrypted data length is the same for data
+// length within same power of 2.
+func TestBlockEncryptedLen(t *testing.T) {
+	codec := NewCodecMsgpack()
+	c := CryptoCommon{codec}
+	cryptKey := makeBlockCryptKey(t, &c)
+
+	var expectedLen int
+	for i := 1025; i < 2000; i++ {
+		data := make([]byte, i)
+		if err := cryptoRandRead(data); err != nil {
+			t.Fatal(err)
+		}
+		_, encBlock, err := c.EncryptBlock(data, cryptKey)
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		if expectedLen == 0 {
+			expectedLen = len(encBlock.EncryptedData)
+			continue
+		}
+
+		if len(encBlock.EncryptedData) != expectedLen {
+			t.Errorf("len encrypted data: %d, expected %d (input len: %d)",
+				len(encBlock.EncryptedData), expectedLen, i)
+		}
 	}
 }
