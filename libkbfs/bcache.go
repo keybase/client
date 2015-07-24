@@ -1,9 +1,11 @@
 package libkbfs
 
 import (
+	"fmt"
 	"sync"
 
 	lru "github.com/hashicorp/golang-lru"
+	"github.com/keybase/client/go/libkb"
 )
 
 type dirtyBlockID struct {
@@ -12,28 +14,41 @@ type dirtyBlockID struct {
 	branch   BranchName
 }
 
+type idCacheKey struct {
+	tlf           TlfID
+	plaintextHash libkb.NodeHash
+}
+
 // BlockCacheStandard implements the BlockCache interface by storing
 // blocks in an in-memory LRU cache.  Clean blocks are identified
 // internally by just their block ID (since blocks are immutable and
 // content-addressable).  Dirty blocks are identified by their block
 // ID, branch name, and reference nonce, since the same block may be
 // forked and modified on different branches and under different
-// references simulatenously.
+// references simultaneously.
 type BlockCacheStandard struct {
-	lru       *lru.Cache
+	config    Config
+	blocks    *lru.Cache
+	ids       *lru.Cache
 	dirty     map[dirtyBlockID]Block
 	dirtyLock sync.RWMutex
 }
 
 // NewBlockCacheStandard constructs a new BlockCacheStandard instance
 // with the given cache capacity.
-func NewBlockCacheStandard(capacity int) *BlockCacheStandard {
-	tmp, err := lru.New(capacity)
+func NewBlockCacheStandard(config Config, capacity int) *BlockCacheStandard {
+	blockLRU, err := lru.New(capacity)
+	if err != nil {
+		return nil
+	}
+	idLRU, err := lru.New(capacity)
 	if err != nil {
 		return nil
 	}
 	return &BlockCacheStandard{
-		lru:       tmp,
+		config:    config,
+		blocks:    blockLRU,
+		ids:       idLRU,
 		dirty:     make(map[dirtyBlockID]Block),
 		dirtyLock: sync.RWMutex{},
 	}
@@ -54,7 +69,7 @@ func (b *BlockCacheStandard) Get(ptr BlockPointer, branch BranchName) (
 	if block, ok := b.dirty[dirtyID]; ok {
 		return block, nil
 	}
-	if tmp, ok := b.lru.Get(ptr.ID); ok {
+	if tmp, ok := b.blocks.Get(ptr.ID); ok {
 		block, ok := tmp.(Block)
 		if !ok {
 			return nil, BadDataError{ptr.ID}
@@ -64,9 +79,49 @@ func (b *BlockCacheStandard) Get(ptr BlockPointer, branch BranchName) (
 	return nil, NoSuchBlockError{ptr.ID}
 }
 
+// CheckForKnownPtr implements the BlockCache interface for BlockCacheStandard.
+func (b *BlockCacheStandard) CheckForKnownPtr(tlf TlfID, block *FileBlock) (
+	BlockPointer, error) {
+	if block.IsInd {
+		return BlockPointer{}, NotDirectFileBlockError{}
+	}
+
+	hash, err := b.config.Crypto().Hash(block.Contents)
+	if err != nil {
+		return BlockPointer{}, err
+	}
+
+	key := idCacheKey{tlf, hash}
+	tmp, ok := b.ids.Get(key)
+	if !ok {
+		return BlockPointer{}, nil
+	}
+
+	ptr, ok := tmp.(BlockPointer)
+	if !ok {
+		return BlockPointer{}, fmt.Errorf("Unexpected cached id: %v", tmp)
+	}
+	return ptr, nil
+}
+
 // Put implements the BlockCache interface for BlockCacheStandard.
-func (b *BlockCacheStandard) Put(id BlockID, block Block) error {
-	b.lru.Add(id, block)
+func (b *BlockCacheStandard) Put(
+	ptr BlockPointer, tlf TlfID, block Block) error {
+	b.blocks.Add(ptr.ID, block)
+
+	// If it's the right type of block, store the hash -> ID mapping
+	if fBlock, ok := block.(*FileBlock); ok && !fBlock.IsInd {
+		hash, err := b.config.Crypto().Hash(fBlock.Contents)
+		if err != nil {
+			return err
+		}
+
+		key := idCacheKey{tlf, hash}
+		// zero out the refnonce, it doesn't matter
+		ptr.RefNonce = zeroBlockRefNonce
+		b.ids.Add(key, ptr)
+	}
+
 	return nil
 }
 
@@ -87,7 +142,7 @@ func (b *BlockCacheStandard) PutDirty(ptr BlockPointer,
 
 // Delete implements the BlockCache interface for BlockCacheStandard.
 func (b *BlockCacheStandard) Delete(id BlockID) error {
-	b.lru.Remove(id)
+	b.blocks.Remove(id)
 	return nil
 }
 

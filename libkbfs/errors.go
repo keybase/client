@@ -533,3 +533,13 @@ func (e PaddedBlockReadError) Error() string {
 	return fmt.Sprintf("Reading block data out of padded block resulted in %d bytes, expected %d",
 		e.ActualLen, e.ExpectedLen)
 }
+
+// NotDirectFileBlockError indicates that a direct file block was
+// expected, but something else (e.g., an indirect file block) was
+// given instead.
+type NotDirectFileBlockError struct {
+}
+
+func (e NotDirectFileBlockError) Error() string {
+	return fmt.Sprintf("Unexpected block type; expected a direct file block")
+}

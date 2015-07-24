@@ -298,9 +298,16 @@ type BlockCache interface {
 	// Get gets the block associated with the given block ID.  Returns
 	// the dirty block for the given ID, if one exists.
 	Get(ptr BlockPointer, branch BranchName) (Block, error)
+	// CheckForKnownPtr sees whether this client already knows a block
+	// ID for the given file block (which must be a direct file block
+	// containing data), within the top-level folder.  Returns the
+	// full BlockPointer associated with that ID, including key and
+	// data versions.  If no ID is known, return an uninitialized
+	// BlockPointer and a nil error.
+	CheckForKnownPtr(tlf TlfID, block *FileBlock) (BlockPointer, error)
 	// Put stores the final (content-addressable) block associated
 	// with the given block ID.
-	Put(id BlockID, block Block) error
+	Put(ptr BlockPointer, tlf TlfID, block Block) error
 	// PutDirty stores a dirty block currently identified by the given
 	// block pointer and branch name.
 	PutDirty(ptr BlockPointer, branch BranchName, block Block) error
@@ -594,7 +601,8 @@ type BlockServer interface {
 		[]byte, BlockCryptKeyServerHalf, error)
 	// Put stores the (encrypted) block data under the given ID and
 	// context on the server, along with the server half of the block
-	// key.  context should contain a BlockRefNonce of zero.
+	// key.  context should contain a BlockRefNonce of zero.  The
+	// initial refcount for this block will be 1.
 	Put(ctx context.Context, id BlockID, tlfID TlfID, context BlockContext,
 		buf []byte, serverHalf BlockCryptKeyServerHalf) error
 

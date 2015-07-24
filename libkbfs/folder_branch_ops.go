@@ -420,7 +420,8 @@ func (fbo *FolderBranchOps) initMDLocked(
 		readyBlockData); err != nil {
 		return err
 	}
-	if err = fbo.config.BlockCache().Put(info.ID, newDblock); err != nil {
+	if err = fbo.config.BlockCache().Put(
+		info.BlockPointer, fbo.id(), newDblock); err != nil {
 		return err
 	}
 
@@ -578,7 +579,7 @@ func (fbo *FolderBranchOps) getBlockLocked(ctx context.Context,
 	if !fbo.blockWriteLocked {
 		fbo.blockLock.RLock()
 	}
-	if err := bcache.Put(dir.tailPointer().ID, block); err != nil {
+	if err := bcache.Put(dir.tailPointer(), fbo.id(), block); err != nil {
 		return nil, err
 	}
 	return block, nil
@@ -1198,7 +1199,7 @@ func (fbo *FolderBranchOps) finalizeBlocksLocked(bps *blockPutState,
 				delete(fbo.deCache, oldPtrStripped)
 			}
 		}
-		if err := bcache.Put(newPtr.ID, blockState.block); err != nil {
+		if err := bcache.Put(newPtr, fbo.id(), blockState.block); err != nil {
 			return err
 		}
 	}
@@ -2598,7 +2599,7 @@ func (fbo *FolderBranchOps) syncLocked(ctx context.Context, file path) error {
 				// finalize until after the new path is ready, in case
 				// anyone tries to read the dirty file in the
 				// meantime.
-				bcache.Put(newInfo.ID, block)
+				bcache.Put(newInfo.BlockPointer, fbo.id(), block)
 				localPtr := ptr.BlockPointer
 				deferredDirtyDeletes =
 					append(deferredDirtyDeletes, func() error {
@@ -2668,7 +2669,7 @@ func (fbo *FolderBranchOps) syncLocked(ctx context.Context, file path) error {
 	err = func() error {
 		fbo.blockLock.Lock()
 		defer fbo.blockLock.Unlock()
-		err := bcache.Put(newPath.tailPointer().ID, fblock)
+		err := bcache.Put(newPath.tailPointer(), fbo.id(), fblock)
 		if err != nil {
 			return err
 		}

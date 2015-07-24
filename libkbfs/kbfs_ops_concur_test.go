@@ -233,7 +233,7 @@ func TestKBFSOpsConcurWriteDuringSync(t *testing.T) {
 	// there should be 5 blocks at this point: the original root block
 	// + 2 modifications (create + write), the top indirect file block
 	// and a modification (write).
-	numCleanBlocks := config.BlockCache().(*BlockCacheStandard).lru.Len()
+	numCleanBlocks := config.BlockCache().(*BlockCacheStandard).blocks.Len()
 	if numCleanBlocks != 5 {
 		t.Errorf("Unexpected number of cached clean blocks: %d\n",
 			numCleanBlocks)
@@ -282,7 +282,7 @@ func TestKBFSOpsConcurWriteDuringSyncMultiBlocks(t *testing.T) {
 	// there should be 7 blocks at this point: the original root block
 	// + 2 modifications (create + write), the top indirect file block
 	// and a modification (write), and its two children blocks.
-	numCleanBlocks := config.BlockCache().(*BlockCacheStandard).lru.Len()
+	numCleanBlocks := config.BlockCache().(*BlockCacheStandard).blocks.Len()
 	if numCleanBlocks != 7 {
 		t.Errorf("Unexpected number of cached clean blocks: %d\n",
 			numCleanBlocks)

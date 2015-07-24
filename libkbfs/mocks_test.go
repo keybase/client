@@ -691,14 +691,25 @@ func (_mr *_MockBlockCacheRecorder) Get(arg0, arg1 interface{}) *gomock.Call {
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "Get", arg0, arg1)
 }
 
-func (_m *MockBlockCache) Put(id BlockID, block Block) error {
-	ret := _m.ctrl.Call(_m, "Put", id, block)
+func (_m *MockBlockCache) CheckForKnownPtr(tlf TlfID, block *FileBlock) (BlockPointer, error) {
+	ret := _m.ctrl.Call(_m, "CheckForKnownID", tlf, block)
+	ret0, _ := ret[0].(BlockPointer)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+func (_mr *_MockBlockCacheRecorder) CheckForKnownPtr(arg0, arg1 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "CheckForKnownID", arg0, arg1)
+}
+
+func (_m *MockBlockCache) Put(ptr BlockPointer, tlf TlfID, block Block) error {
+	ret := _m.ctrl.Call(_m, "Put", ptr, tlf, block)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
-func (_mr *_MockBlockCacheRecorder) Put(arg0, arg1 interface{}) *gomock.Call {
-	return _mr.mock.ctrl.RecordCall(_mr.mock, "Put", arg0, arg1)
+func (_mr *_MockBlockCacheRecorder) Put(arg0, arg1, arg2 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "Put", arg0, arg1, arg2)
 }
 
 func (_m *MockBlockCache) PutDirty(ptr BlockPointer, branch BranchName, block Block) error {

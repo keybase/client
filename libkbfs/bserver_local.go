@@ -59,8 +59,8 @@ func (b *BlockServerLocal) getBlockEntryLocked(id BlockID) (
 	*blockEntry, error) {
 	buf, err := b.db.Get(id[:], nil)
 	if err != nil {
-		libkb.G.Log.Debug("BlockServerLocal::getBlockEntry id=%s err=%v\n",
-			hex.EncodeToString(id[:]), err)
+		libkb.G.Log.Debug("BlockServerLocal::getBlockEntryLocked id=%s "+
+			"err=%v\n", hex.EncodeToString(id[:]), err)
 		return nil, err
 	}
 	var entry blockEntry

@@ -64,7 +64,7 @@ func kbfsOpsInit(t *testing.T, changeMd bool) (mockCtrl *gomock.Controller,
 	// Use real caches, to avoid the overhead of tracking cache calls.
 	// Each test is expected to check the cache for correctness at the
 	// end of the test.
-	config.SetBlockCache(NewBlockCacheStandard(100))
+	config.SetBlockCache(NewBlockCacheStandard(config, 100))
 	config.mockBcache = nil
 
 	// These are used when computing metadata IDs.  No need to check
@@ -101,13 +101,13 @@ func checkBlockCache(t *testing.T, config *ConfigMock,
 	bcache := config.BlockCache().(*BlockCacheStandard)
 	// make sure the LRU consists of exactly the right set of clean blocks
 	for _, id := range expectedCleanBlocks {
-		_, ok := bcache.lru.Get(id)
+		_, ok := bcache.blocks.Get(id)
 		if !ok {
 			t.Errorf("BlockCache missing clean block %v at the end of the test",
 				id)
 		}
 	}
-	if bcache.lru.Len() != len(expectedCleanBlocks) {
+	if bcache.blocks.Len() != len(expectedCleanBlocks) {
 		t.Errorf("BlockCache has extra clean blocks at end of test")
 	}
 
@@ -483,7 +483,7 @@ func TestKBFSOpsGetBaseDirChildrenCacheSuccess(t *testing.T) {
 	dirBlock.Children["b"] = DirEntry{Type: Dir}
 	node := pathNode{makeBP(rootID, rmd, config, u), "p"}
 	p := path{FolderBranch{Tlf: id}, []pathNode{node}}
-	config.BlockCache().Put(rootID, dirBlock)
+	config.BlockCache().Put(node.BlockPointer, id, dirBlock)
 	ops := getOps(config, id)
 	n := nodeFromPath(t, ops, p)
 
@@ -605,7 +605,7 @@ func TestKBFSOpsGetNestedDirChildrenCacheSuccess(t *testing.T) {
 	p := path{FolderBranch{Tlf: id}, []pathNode{node, aNode, bNode}}
 	n := nodeFromPath(t, ops, p)
 
-	config.BlockCache().Put(bID, dirBlock)
+	config.BlockCache().Put(bNode.BlockPointer, id, dirBlock)
 
 	children, err := config.KBFSOps().GetDirChildren(ctx, n)
 	if err != nil {
@@ -646,7 +646,7 @@ func TestKBFSOpsLookupSuccess(t *testing.T) {
 	p := path{FolderBranch{Tlf: id}, []pathNode{node, aNode}}
 	n := nodeFromPath(t, ops, p)
 
-	config.BlockCache().Put(aID, dirBlock)
+	config.BlockCache().Put(aNode.BlockPointer, id, dirBlock)
 
 	bn, de, err := config.KBFSOps().Lookup(ctx, n, "b")
 	if err != nil {
@@ -687,7 +687,7 @@ func TestKBFSOpsLookupSymlinkSuccess(t *testing.T) {
 	p := path{FolderBranch{Tlf: id}, []pathNode{node, aNode}}
 	n := nodeFromPath(t, ops, p)
 
-	config.BlockCache().Put(aID, dirBlock)
+	config.BlockCache().Put(aNode.BlockPointer, id, dirBlock)
 
 	bn, de, err := config.KBFSOps().Lookup(ctx, n, "b")
 	if err != nil {
@@ -724,7 +724,7 @@ func TestKBFSOpsLookupNoSuchNameFail(t *testing.T) {
 	p := path{FolderBranch{Tlf: id}, []pathNode{node, aNode}}
 	n := nodeFromPath(t, ops, p)
 
-	config.BlockCache().Put(aID, dirBlock)
+	config.BlockCache().Put(aNode.BlockPointer, id, dirBlock)
 
 	expectedErr := NoSuchNameError{"c"}
 	_, _, err := config.KBFSOps().Lookup(ctx, n, "c")
@@ -761,7 +761,7 @@ func TestKBFSOpsLookupNewDataVersionFail(t *testing.T) {
 	p := path{FolderBranch{Tlf: id}, []pathNode{node, aNode}}
 	n := nodeFromPath(t, ops, p)
 
-	config.BlockCache().Put(aID, dirBlock)
+	config.BlockCache().Put(aNode.BlockPointer, id, dirBlock)
 	expectedErr := &NewDataVersionError{
 		path{FolderBranch{Tlf: id}, []pathNode{node, aNode, bNode}},
 		bInfo.DataVer,
@@ -799,7 +799,7 @@ func TestKBFSOpsStatSuccess(t *testing.T) {
 	p := path{FolderBranch{Tlf: id}, []pathNode{node, aNode, bNode}}
 	n := nodeFromPath(t, ops, p)
 
-	config.BlockCache().Put(aID, dirBlock)
+	config.BlockCache().Put(aNode.BlockPointer, id, dirBlock)
 
 	de, err := config.KBFSOps().Stat(ctx, n)
 	if err != nil {
@@ -1107,8 +1107,8 @@ func testCreateEntrySuccess(t *testing.T, entryType EntryType) {
 	n := nodeFromPath(t, ops, p)
 
 	// creating "a/b"
-	config.BlockCache().Put(aNode.BlockPointer.ID, aBlock)
-	config.BlockCache().Put(node.BlockPointer.ID, rootBlock)
+	config.BlockCache().Put(aNode.BlockPointer, id, aBlock)
+	config.BlockCache().Put(node.BlockPointer, id, rootBlock)
 	// sync block
 	var newRmd *RootMetadata
 	blocks := make([]BlockID, 3)
@@ -1214,7 +1214,7 @@ func testCreateEntryFailDupName(t *testing.T, isDir bool) {
 	n := nodeFromPath(t, ops, p)
 
 	// creating "a", which already exists in the root block
-	config.BlockCache().Put(node.BlockPointer.ID, rootBlock)
+	config.BlockCache().Put(node.BlockPointer, id, rootBlock)
 	expectedErr := NameExistsError{"a"}
 
 	var err error
@@ -1272,10 +1272,10 @@ func testRemoveEntrySuccess(t *testing.T, entryType EntryType) {
 
 	// deleting "a/b"
 	if entryType != Sym {
-		config.BlockCache().Put(bNode.BlockPointer.ID, bBlock)
+		config.BlockCache().Put(bNode.BlockPointer, id, bBlock)
 	}
-	config.BlockCache().Put(aNode.BlockPointer.ID, aBlock)
-	config.BlockCache().Put(node.BlockPointer.ID, rootBlock)
+	config.BlockCache().Put(aNode.BlockPointer, id, aBlock)
+	config.BlockCache().Put(node.BlockPointer, id, rootBlock)
 	// sync block
 	var newRmd *RootMetadata
 	blocks := make([]BlockID, 2)
@@ -1381,15 +1381,15 @@ func TestKBFSOpRemoveMultiBlockFileSuccess(t *testing.T) {
 	ops := getOps(config, id)
 	n := nodeFromPath(t, ops, p)
 
-	config.BlockCache().Put(node.BlockPointer.ID, rootBlock)
+	config.BlockCache().Put(node.BlockPointer, id, rootBlock)
 
 	// let the top block be uncached, so we have to fetch it from BlockOps.
 	expectBlock(config, rmd, fileNode.BlockPointer, fileBlock, nil)
 
-	config.BlockCache().Put(fileBlock.IPtrs[0].BlockPointer.ID, block1)
-	config.BlockCache().Put(fileBlock.IPtrs[1].BlockPointer.ID, block2)
-	config.BlockCache().Put(fileBlock.IPtrs[2].BlockPointer.ID, block3)
-	config.BlockCache().Put(fileBlock.IPtrs[3].BlockPointer.ID, block4)
+	config.BlockCache().Put(fileBlock.IPtrs[0].BlockPointer, id, block1)
+	config.BlockCache().Put(fileBlock.IPtrs[1].BlockPointer, id, block2)
+	config.BlockCache().Put(fileBlock.IPtrs[2].BlockPointer, id, block3)
+	config.BlockCache().Put(fileBlock.IPtrs[3].BlockPointer, id, block4)
 
 	// sync block
 	unrefBytes := uint64(10 + 4*5) // fileBlock + 4 indirect blocks
@@ -1467,8 +1467,8 @@ func TestRemoveDirFailNonEmpty(t *testing.T) {
 	ops := getOps(config, id)
 	n := nodeFromPath(t, ops, p)
 
-	config.BlockCache().Put(bNode.BlockPointer.ID, bBlock)
-	config.BlockCache().Put(aNode.BlockPointer.ID, aBlock)
+	config.BlockCache().Put(bNode.BlockPointer, id, bBlock)
+	config.BlockCache().Put(aNode.BlockPointer, id, aBlock)
 	expectedErr := DirNotEmptyError{bNode.Name}
 
 	if err := config.KBFSOps().RemoveDir(ctx, n, "b"); err == nil {
@@ -1501,8 +1501,8 @@ func TestRemoveDirFailNoSuchName(t *testing.T) {
 	ops := getOps(config, id)
 	n := nodeFromPath(t, ops, p)
 
-	config.BlockCache().Put(bNode.BlockPointer.ID, bBlock)
-	config.BlockCache().Put(aNode.BlockPointer.ID, aBlock)
+	config.BlockCache().Put(bNode.BlockPointer, id, bBlock)
+	config.BlockCache().Put(aNode.BlockPointer, id, aBlock)
 	expectedErr := NoSuchNameError{bNode.Name}
 
 	if err := config.KBFSOps().RemoveDir(ctx, n, "b"); err == nil {
@@ -1539,8 +1539,8 @@ func TestRenameInDirSuccess(t *testing.T) {
 	n := nodeFromPath(t, ops, p)
 
 	// renaming "a/b" to "a/c"
-	config.BlockCache().Put(aNode.BlockPointer.ID, aBlock)
-	config.BlockCache().Put(node.BlockPointer.ID, rootBlock)
+	config.BlockCache().Put(aNode.BlockPointer, id, aBlock)
+	config.BlockCache().Put(node.BlockPointer, id, rootBlock)
 	// sync block
 	var newRmd *RootMetadata
 	blocks := make([]BlockID, 3)
@@ -1611,7 +1611,7 @@ func TestRenameInRootSuccess(t *testing.T) {
 	n := nodeFromPath(t, ops, p)
 
 	// renaming "a" to "b"
-	config.BlockCache().Put(node.BlockPointer.ID, rootBlock)
+	config.BlockCache().Put(node.BlockPointer, id, rootBlock)
 	// sync block
 	var newRmd *RootMetadata
 	blocks := make([]BlockID, 2)
@@ -1699,9 +1699,9 @@ func TestRenameAcrossDirsSuccess(t *testing.T) {
 	n2 := nodeFromPath(t, ops, p2)
 
 	// renaming "a/b" to "d/c"
-	config.BlockCache().Put(aNode.BlockPointer.ID, aBlock)
-	config.BlockCache().Put(dNode.BlockPointer.ID, dBlock)
-	config.BlockCache().Put(node.BlockPointer.ID, rootBlock)
+	config.BlockCache().Put(aNode.BlockPointer, id, aBlock)
+	config.BlockCache().Put(dNode.BlockPointer, id, dBlock)
+	config.BlockCache().Put(node.BlockPointer, id, rootBlock)
 
 	// sync block
 	var newRmd *RootMetadata
@@ -1807,9 +1807,9 @@ func TestRenameAcrossPrefixSuccess(t *testing.T) {
 
 	// renaming "a/b" to "a/d/c"
 	// the common ancestor and its parent will be changed once and then re-read
-	config.BlockCache().Put(aNode.BlockPointer.ID, aBlock)
-	config.BlockCache().Put(dNode.BlockPointer.ID, dBlock)
-	config.BlockCache().Put(node.BlockPointer.ID, rootBlock)
+	config.BlockCache().Put(aNode.BlockPointer, id, aBlock)
+	config.BlockCache().Put(dNode.BlockPointer, id, dBlock)
+	config.BlockCache().Put(node.BlockPointer, id, rootBlock)
 
 	// sync block
 	var newRmd *RootMetadata
@@ -1899,9 +1899,9 @@ func TestRenameAcrossOtherPrefixSuccess(t *testing.T) {
 	n2 := nodeFromPath(t, ops, p2)
 
 	// renaming "a/d/b" to "a/c"
-	config.BlockCache().Put(aNode.BlockPointer.ID, aBlock)
-	config.BlockCache().Put(dNode.BlockPointer.ID, dBlock)
-	config.BlockCache().Put(node.BlockPointer.ID, rootBlock)
+	config.BlockCache().Put(aNode.BlockPointer, id, aBlock)
+	config.BlockCache().Put(dNode.BlockPointer, id, dBlock)
+	config.BlockCache().Put(node.BlockPointer, id, rootBlock)
 
 	// sync block
 	var newRmd *RootMetadata
@@ -2048,7 +2048,7 @@ func TestKBFSOpsCacheReadFullSuccess(t *testing.T) {
 	ops := getOps(config, id)
 	pNode := nodeFromPath(t, ops, p)
 
-	config.BlockCache().Put(fileNode.BlockPointer.ID, fileBlock)
+	config.BlockCache().Put(fileNode.BlockPointer, id, fileBlock)
 
 	n := len(fileBlock.Contents)
 	dest := make([]byte, n, n)
@@ -2077,7 +2077,7 @@ func TestKBFSOpsCacheReadPartialSuccess(t *testing.T) {
 	ops := getOps(config, id)
 	pNode := nodeFromPath(t, ops, p)
 
-	config.BlockCache().Put(fileNode.BlockPointer.ID, fileBlock)
+	config.BlockCache().Put(fileNode.BlockPointer, id, fileBlock)
 
 	dest := make([]byte, 4, 4)
 	if n, err := config.KBFSOps().Read(ctx, pNode, dest, 2); err != nil {
@@ -2123,11 +2123,11 @@ func TestKBFSOpsCacheReadFullMultiBlockSuccess(t *testing.T) {
 	ops := getOps(config, id)
 	pNode := nodeFromPath(t, ops, p)
 
-	config.BlockCache().Put(fileNode.BlockPointer.ID, fileBlock)
-	config.BlockCache().Put(fileBlock.IPtrs[0].BlockPointer.ID, block1)
-	config.BlockCache().Put(fileBlock.IPtrs[1].BlockPointer.ID, block2)
-	config.BlockCache().Put(fileBlock.IPtrs[2].BlockPointer.ID, block3)
-	config.BlockCache().Put(fileBlock.IPtrs[3].BlockPointer.ID, block4)
+	config.BlockCache().Put(fileNode.BlockPointer, id, fileBlock)
+	config.BlockCache().Put(fileBlock.IPtrs[0].BlockPointer, id, block1)
+	config.BlockCache().Put(fileBlock.IPtrs[1].BlockPointer, id, block2)
+	config.BlockCache().Put(fileBlock.IPtrs[2].BlockPointer, id, block3)
+	config.BlockCache().Put(fileBlock.IPtrs[3].BlockPointer, id, block4)
 
 	n := 20
 	dest := make([]byte, n, n)
@@ -2177,10 +2177,10 @@ func TestKBFSOpsCacheReadPartialMultiBlockSuccess(t *testing.T) {
 	ops := getOps(config, id)
 	pNode := nodeFromPath(t, ops, p)
 
-	config.BlockCache().Put(fileNode.BlockPointer.ID, fileBlock)
-	config.BlockCache().Put(fileBlock.IPtrs[0].BlockPointer.ID, block1)
-	config.BlockCache().Put(fileBlock.IPtrs[1].BlockPointer.ID, block2)
-	config.BlockCache().Put(fileBlock.IPtrs[2].BlockPointer.ID, block3)
+	config.BlockCache().Put(fileNode.BlockPointer, id, fileBlock)
+	config.BlockCache().Put(fileBlock.IPtrs[0].BlockPointer, id, block1)
+	config.BlockCache().Put(fileBlock.IPtrs[1].BlockPointer, id, block2)
+	config.BlockCache().Put(fileBlock.IPtrs[2].BlockPointer, id, block3)
 
 	n := 10
 	dest := make([]byte, n, n)
@@ -2211,7 +2211,7 @@ func TestKBFSOpsCacheReadFailPastEnd(t *testing.T) {
 	ops := getOps(config, id)
 	pNode := nodeFromPath(t, ops, p)
 
-	config.BlockCache().Put(fileNode.BlockPointer.ID, fileBlock)
+	config.BlockCache().Put(fileNode.BlockPointer, id, fileBlock)
 
 	dest := make([]byte, 4, 4)
 	if n, err := config.KBFSOps().Read(ctx, pNode, dest, 10); err != nil {
@@ -2336,8 +2336,8 @@ func TestKBFSOpsWriteNewBlockSuccess(t *testing.T) {
 	n := nodeFromPath(t, ops, p)
 	data := []byte{1, 2, 3, 4, 5, 6, 7, 8, 9, 10}
 
-	config.BlockCache().Put(node.BlockPointer.ID, rootBlock)
-	config.BlockCache().Put(fileNode.BlockPointer.ID, fileBlock)
+	config.BlockCache().Put(node.BlockPointer, id, rootBlock)
+	config.BlockCache().Put(fileNode.BlockPointer, id, fileBlock)
 	config.mockBsplit.EXPECT().CopyUntilSplit(
 		gomock.Any(), gomock.Any(), data, int64(0)).
 		Do(func(block *FileBlock, lb bool, data []byte, off int64) {
@@ -2403,8 +2403,8 @@ func TestKBFSOpsWriteExtendSuccess(t *testing.T) {
 	data := []byte{6, 7, 8, 9, 10}
 	expectedFullData := []byte{1, 2, 3, 4, 5, 6, 7, 8, 9, 10}
 
-	config.BlockCache().Put(node.BlockPointer.ID, rootBlock)
-	config.BlockCache().Put(fileNode.BlockPointer.ID, fileBlock)
+	config.BlockCache().Put(node.BlockPointer, id, rootBlock)
+	config.BlockCache().Put(fileNode.BlockPointer, id, fileBlock)
 	config.mockBsplit.EXPECT().CopyUntilSplit(
 		gomock.Any(), gomock.Any(), data, int64(5)).
 		Do(func(block *FileBlock, lb bool, data []byte, off int64) {
@@ -2462,8 +2462,8 @@ func TestKBFSOpsWritePastEndSuccess(t *testing.T) {
 	data := []byte{6, 7, 8, 9, 10}
 	expectedFullData := []byte{1, 2, 3, 4, 5, 0, 0, 6, 7, 8, 9, 10}
 
-	config.BlockCache().Put(node.BlockPointer.ID, rootBlock)
-	config.BlockCache().Put(fileNode.BlockPointer.ID, fileBlock)
+	config.BlockCache().Put(node.BlockPointer, id, rootBlock)
+	config.BlockCache().Put(fileNode.BlockPointer, id, fileBlock)
 	config.mockBsplit.EXPECT().CopyUntilSplit(
 		gomock.Any(), gomock.Any(), data, int64(7)).
 		Do(func(block *FileBlock, lb bool, data []byte, off int64) {
@@ -2521,8 +2521,8 @@ func TestKBFSOpsWriteCauseSplit(t *testing.T) {
 	newData := []byte{1, 2, 3, 4, 5, 6, 7, 8, 9, 10}
 	expectedFullData := append([]byte{0}, newData...)
 
-	config.BlockCache().Put(node.BlockPointer.ID, rootBlock)
-	config.BlockCache().Put(fileNode.BlockPointer.ID, fileBlock)
+	config.BlockCache().Put(node.BlockPointer, id, rootBlock)
+	config.BlockCache().Put(fileNode.BlockPointer, id, fileBlock)
 
 	// only copy the first half first
 	config.mockBsplit.EXPECT().CopyUntilSplit(
@@ -2640,10 +2640,10 @@ func TestKBFSOpsWriteOverMultipleBlocks(t *testing.T) {
 	expectedFullData := []byte{5, 4, 1, 2, 3, 4, 5, 8, 7, 6}
 	rmd.AddOp(newSyncOp(filePtr))
 
-	config.BlockCache().Put(node.BlockPointer.ID, rootBlock)
-	config.BlockCache().Put(fileNode.BlockPointer.ID, fileBlock)
-	config.BlockCache().Put(fileBlock.IPtrs[0].BlockPointer.ID, block1)
-	config.BlockCache().Put(fileBlock.IPtrs[1].BlockPointer.ID, block2)
+	config.BlockCache().Put(node.BlockPointer, id, rootBlock)
+	config.BlockCache().Put(fileNode.BlockPointer, id, fileBlock)
+	config.BlockCache().Put(fileBlock.IPtrs[0].BlockPointer, id, block1)
+	config.BlockCache().Put(fileBlock.IPtrs[1].BlockPointer, id, block2)
 	// only copy the first half first
 	config.mockBsplit.EXPECT().CopyUntilSplit(
 		gomock.Any(), gomock.Any(), data, int64(2)).
@@ -2719,8 +2719,8 @@ func TestKBFSOpsTruncateToZeroSuccess(t *testing.T) {
 	ops := getOps(config, id)
 	n := nodeFromPath(t, ops, p)
 
-	config.BlockCache().Put(node.BlockPointer.ID, rootBlock)
-	config.BlockCache().Put(fileNode.BlockPointer.ID, fileBlock)
+	config.BlockCache().Put(node.BlockPointer, id, rootBlock)
+	config.BlockCache().Put(fileNode.BlockPointer, id, fileBlock)
 
 	data := []byte{}
 	if err := config.KBFSOps().Truncate(ctx, n, 0); err != nil {
@@ -2777,8 +2777,8 @@ func TestKBFSOpsTruncateSameSize(t *testing.T) {
 	ops := getOps(config, id)
 	n := nodeFromPath(t, ops, p)
 
-	config.BlockCache().Put(node.BlockPointer.ID, rootBlock)
-	config.BlockCache().Put(fileNode.BlockPointer.ID, fileBlock)
+	config.BlockCache().Put(node.BlockPointer, id, rootBlock)
+	config.BlockCache().Put(fileNode.BlockPointer, id, fileBlock)
 
 	data := fileBlock.Contents
 	if err := config.KBFSOps().Truncate(ctx, n, 10); err != nil {
@@ -2816,8 +2816,8 @@ func TestKBFSOpsTruncateSmallerSuccess(t *testing.T) {
 	ops := getOps(config, id)
 	n := nodeFromPath(t, ops, p)
 
-	config.BlockCache().Put(node.BlockPointer.ID, rootBlock)
-	config.BlockCache().Put(fileNode.BlockPointer.ID, fileBlock)
+	config.BlockCache().Put(node.BlockPointer, id, rootBlock)
+	config.BlockCache().Put(fileNode.BlockPointer, id, fileBlock)
 
 	data := []byte{1, 2, 3, 4, 5}
 	if err := config.KBFSOps().Truncate(ctx, n, 5); err != nil {
@@ -2878,10 +2878,10 @@ func TestKBFSOpsTruncateShortensLastBlock(t *testing.T) {
 	n := nodeFromPath(t, ops, p)
 	rmd.AddOp(newSyncOp(fileInfo.BlockPointer))
 
-	config.BlockCache().Put(node.BlockPointer.ID, rootBlock)
-	config.BlockCache().Put(fileNode.BlockPointer.ID, fileBlock)
-	config.BlockCache().Put(fileBlock.IPtrs[0].BlockPointer.ID, block1)
-	config.BlockCache().Put(fileBlock.IPtrs[1].BlockPointer.ID, block2)
+	config.BlockCache().Put(node.BlockPointer, id, rootBlock)
+	config.BlockCache().Put(fileNode.BlockPointer, id, fileBlock)
+	config.BlockCache().Put(fileBlock.IPtrs[0].BlockPointer, id, block1)
+	config.BlockCache().Put(fileBlock.IPtrs[1].BlockPointer, id, block2)
 
 	data2 := []byte{10, 9}
 	if err := config.KBFSOps().Truncate(ctx, n, 7); err != nil {
@@ -2958,9 +2958,9 @@ func TestKBFSOpsTruncateRemovesABlock(t *testing.T) {
 	n := nodeFromPath(t, ops, p)
 	rmd.AddOp(newSyncOp(fileInfo.BlockPointer))
 
-	config.BlockCache().Put(node.BlockPointer.ID, rootBlock)
-	config.BlockCache().Put(fileNode.BlockPointer.ID, fileBlock)
-	config.BlockCache().Put(fileBlock.IPtrs[0].BlockPointer.ID, block1)
+	config.BlockCache().Put(node.BlockPointer, id, rootBlock)
+	config.BlockCache().Put(fileNode.BlockPointer, id, fileBlock)
+	config.BlockCache().Put(fileBlock.IPtrs[0].BlockPointer, id, block1)
 
 	data := []byte{5, 4, 3, 2}
 	if err := config.KBFSOps().Truncate(ctx, n, 4); err != nil {
@@ -3024,8 +3024,8 @@ func TestKBFSOpsTruncateBiggerSuccess(t *testing.T) {
 	ops := getOps(config, id)
 	n := nodeFromPath(t, ops, p)
 
-	config.BlockCache().Put(node.BlockPointer.ID, rootBlock)
-	config.BlockCache().Put(fileNode.BlockPointer.ID, fileBlock)
+	config.BlockCache().Put(node.BlockPointer, id, rootBlock)
+	config.BlockCache().Put(fileNode.BlockPointer, id, fileBlock)
 	config.mockBsplit.EXPECT().CopyUntilSplit(
 		gomock.Any(), gomock.Any(), []byte{0, 0, 0, 0, 0}, int64(5)).
 		Do(func(block *FileBlock, lb bool, data []byte, off int64) {
@@ -3081,7 +3081,7 @@ func testSetExSuccess(t *testing.T, entryType EntryType, ex bool) {
 	ops := getOps(config, id)
 	n := nodeFromPath(t, ops, p)
 
-	config.BlockCache().Put(node.BlockPointer.ID, rootBlock)
+	config.BlockCache().Put(node.BlockPointer, id, rootBlock)
 
 	expectedChanges := 1
 	// SetEx() should do nothing for symlinks.
@@ -3207,7 +3207,7 @@ func TestSetExFailNoSuchName(t *testing.T) {
 	ops := getOps(config, id)
 	n := nodeFromPath(t, ops, p)
 
-	config.BlockCache().Put(node.BlockPointer.ID, rootBlock)
+	config.BlockCache().Put(node.BlockPointer, id, rootBlock)
 	expectedErr := NoSuchNameError{p.tailName()}
 
 	// chmod a+x a
@@ -3240,7 +3240,7 @@ func TestSetMtimeSuccess(t *testing.T) {
 	ops := getOps(config, id)
 	n := nodeFromPath(t, ops, p)
 
-	config.BlockCache().Put(node.BlockPointer.ID, rootBlock)
+	config.BlockCache().Put(node.BlockPointer, id, rootBlock)
 	// sync block
 	var newRmd *RootMetadata
 	blocks := make([]BlockID, 2)
@@ -3331,7 +3331,7 @@ func TestMtimeFailNoSuchName(t *testing.T) {
 	ops := getOps(config, id)
 	n := nodeFromPath(t, ops, p)
 
-	config.BlockCache().Put(node.BlockPointer.ID, rootBlock)
+	config.BlockCache().Put(node.BlockPointer, id, rootBlock)
 	expectedErr := NoSuchNameError{p.tailName()}
 
 	newMtime := time.Now()
@@ -3370,7 +3370,7 @@ func testSyncDirtySuccess(t *testing.T, unmerged bool) {
 
 	// fsync a
 	config.BlockCache().PutDirty(aNode.BlockPointer, p.Branch, aBlock)
-	config.BlockCache().Put(node.BlockPointer.ID, rootBlock)
+	config.BlockCache().Put(node.BlockPointer, id, rootBlock)
 	// TODO: put a dirty DE entry in the cache, to test that the new
 	// root block has the correct file size.
 
@@ -3533,7 +3533,7 @@ func TestSyncDirtyMultiBlocksSuccess(t *testing.T) {
 
 	// fsync a, only block 2 is dirty
 	config.BlockCache().PutDirty(fileNode.BlockPointer, p.Branch, fileBlock)
-	config.BlockCache().Put(node.BlockPointer.ID, rootBlock)
+	config.BlockCache().Put(node.BlockPointer, id, rootBlock)
 
 	// the split is good
 	pad2 := 5
@@ -3599,10 +3599,9 @@ func TestSyncDirtyMultiBlocksSuccess(t *testing.T) {
 }
 
 func putAndCleanAnyBlock(config *ConfigMock, p path) {
-	config.mockBcache.EXPECT().Put(gomock.Any(), gomock.Any()).
-		Do(func(id BlockID, block Block) {
-		config.mockBcache.EXPECT().Get(
-			ptrMatcher{BlockPointer{ID: id}}, p.Branch).
+	config.mockBcache.EXPECT().Put(gomock.Any(), gomock.Any(), gomock.Any()).
+		Do(func(ptr BlockPointer, tlf TlfID, block Block) {
+		config.mockBcache.EXPECT().Get(ptrMatcher{ptr}, p.Branch).
 			AnyTimes().Return(block, nil)
 	}).AnyTimes().Return(nil)
 	config.mockBcache.EXPECT().DeleteDirty(gomock.Any(), p.Branch).
@@ -3970,7 +3969,7 @@ func TestSyncDirtyWithBlockChangePointerSuccess(t *testing.T) {
 
 	// fsync a
 	config.BlockCache().PutDirty(aNode.BlockPointer, p.Branch, aBlock)
-	config.BlockCache().Put(node.BlockPointer.ID, rootBlock)
+	config.BlockCache().Put(node.BlockPointer, id, rootBlock)
 
 	// override the AnyTimes expect call done by default in expectSyncBlock()
 	config.mockBsplit.EXPECT().ShouldEmbedBlockChanges(gomock.Any()).

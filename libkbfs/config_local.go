@@ -120,7 +120,7 @@ func NewConfigLocal() *ConfigLocal {
 	config.SetReporter(&ReporterSimple{})
 	config.SetMDCache(NewMDCacheStandard(5000))
 	config.SetKeyCache(&KeyCacheNull{})
-	config.SetBlockCache(NewBlockCacheStandard(5000))
+	config.SetBlockCache(NewBlockCacheStandard(config, 5000))
 	config.SetCodec(NewCodecMsgpack())
 	config.SetMDOps(&MDOpsStandard{config})
 	config.SetBlockOps(&BlockOpsStandard{config})

@@ -4,9 +4,17 @@ import (
 	"testing"
 )
 
+func blockCacheTestInit(t *testing.T, capacity int) *BlockCacheStandard {
+	config := MakeTestConfigOrBust(t, nil, "test")
+	b := NewBlockCacheStandard(config, capacity)
+	config.SetBlockCache(b)
+	return b
+}
+
 func testBcachePut(t *testing.T, id BlockID, bcache BlockCache, dirty bool) {
 	block := NewFileBlock()
 	ptr := BlockPointer{ID: id}
+	tlf := TlfID{1}
 	branch := MasterBranch
 
 	// put the block
@@ -15,7 +23,7 @@ func testBcachePut(t *testing.T, id BlockID, bcache BlockCache, dirty bool) {
 			t.Errorf("Got error on PutDirty for block %s: %v", id, err)
 		}
 	} else {
-		if err := bcache.Put(id, block); err != nil {
+		if err := bcache.Put(ptr, tlf, block); err != nil {
 			t.Errorf("Got error on Put for block %s: %v", id, err)
 		}
 	}
@@ -44,15 +52,15 @@ func testExpectedMissing(t *testing.T, id BlockID, bcache BlockCache) {
 }
 
 func TestBcachePut(t *testing.T) {
-	testBcachePut(t, BlockID{1}, NewBlockCacheStandard(100), false)
+	testBcachePut(t, BlockID{1}, blockCacheTestInit(t, 100), false)
 }
 
 func TestBcachePutDirty(t *testing.T) {
-	testBcachePut(t, BlockID{1}, NewBlockCacheStandard(100), true)
+	testBcachePut(t, BlockID{1}, blockCacheTestInit(t, 100), true)
 }
 
 func TestBcachePutPastCapacity(t *testing.T) {
-	bcache := NewBlockCacheStandard(2)
+	bcache := blockCacheTestInit(t, 2)
 	id1 := BlockID{1}
 	testBcachePut(t, id1, bcache, false)
 	id2 := BlockID{2}
@@ -80,7 +88,7 @@ func TestBcachePutPastCapacity(t *testing.T) {
 }
 
 func TestBcachePutDuplicateDirty(t *testing.T) {
-	bcache := NewBlockCacheStandard(2)
+	bcache := blockCacheTestInit(t, 2)
 	// put one under the default block pointer and branch name (clean)
 	id1 := BlockID{1}
 	testBcachePut(t, id1, bcache, false)
@@ -125,8 +133,54 @@ func TestBcachePutDuplicateDirty(t *testing.T) {
 	}
 }
 
+func TestBcacheCheckPtrSuccess(t *testing.T) {
+	bcache := blockCacheTestInit(t, 100)
+
+	block := NewFileBlock().(*FileBlock)
+	block.Contents = []byte{1, 2, 3, 4}
+	id := BlockID{1}
+	ptr := BlockPointer{ID: id}
+	tlf := TlfID{1}
+
+	err := bcache.Put(ptr, tlf, block)
+	if err != nil {
+		t.Errorf("Couldn't put block: %v", err)
+	}
+
+	checkedPtr, err := bcache.CheckForKnownPtr(tlf, block)
+	if err != nil {
+		t.Errorf("Unexpected error checking id: %v", err)
+	} else if checkedPtr != ptr {
+		t.Errorf("Unexpected pointer; got %v, expected %v", checkedPtr, id)
+	}
+}
+
+func TestBcacheCheckPtrNotFound(t *testing.T) {
+	bcache := blockCacheTestInit(t, 100)
+
+	block := NewFileBlock().(*FileBlock)
+	block.Contents = []byte{1, 2, 3, 4}
+	id := BlockID{1}
+	ptr := BlockPointer{ID: id}
+	tlf := TlfID{1}
+
+	err := bcache.Put(ptr, tlf, block)
+	if err != nil {
+		t.Errorf("Couldn't put block: %v", err)
+	}
+
+	block2 := NewFileBlock().(*FileBlock)
+	block2.Contents = []byte{4, 3, 2, 1}
+	checkedPtr, err := bcache.CheckForKnownPtr(tlf, block2)
+	if err != nil {
+		t.Errorf("Unexpected error checking id: %v", err)
+	} else if checkedPtr.IsInitialized() {
+		t.Errorf("Unexpected ID; got %v, expected null", checkedPtr)
+	}
+}
+
 func TestBcacheDelete(t *testing.T) {
-	bcache := NewBlockCacheStandard(100)
+	bcache := blockCacheTestInit(t, 100)
 
 	id1 := BlockID{1}
 	testBcachePut(t, id1, bcache, false)
@@ -143,7 +197,7 @@ func TestBcacheDelete(t *testing.T) {
 }
 
 func TestBcacheDeleteDirty(t *testing.T) {
-	bcache := NewBlockCacheStandard(100)
+	bcache := blockCacheTestInit(t, 100)
 
 	id1 := BlockID{1}
 	testBcachePut(t, id1, bcache, true)
