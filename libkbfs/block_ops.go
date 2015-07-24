@@ -121,8 +121,13 @@ func (b *BlockOpsStandard) Ready(ctx context.Context, md *RootMetadata,
 func (b *BlockOpsStandard) Put(ctx context.Context, md *RootMetadata,
 	blockPtr BlockPointer, readyBlockData ReadyBlockData) error {
 	bserv := b.config.BlockServer()
-	return bserv.Put(ctx, blockPtr.ID, md.ID, blockPtr, readyBlockData.buf,
-		readyBlockData.serverHalf)
+	if blockPtr.RefNonce == zeroBlockRefNonce {
+		return bserv.Put(ctx, blockPtr.ID, md.ID, blockPtr, readyBlockData.buf,
+			readyBlockData.serverHalf)
+	}
+	// non-zero block refnonce means this is a new reference to an
+	// existing block.
+	return bserv.IncBlockReference(ctx, blockPtr.ID, md.ID, blockPtr)
 }
 
 // Delete implements the BlockOps interface for BlockOpsStandard.

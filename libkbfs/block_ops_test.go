@@ -282,7 +282,7 @@ func TestBlockOpsReadyFailCast(t *testing.T) {
 	}
 }
 
-func TestBlockOpsPutSuccess(t *testing.T) {
+func TestBlockOpsPutNewBlockSuccess(t *testing.T) {
 	mockCtrl, config, ctx := blockOpsInit(t)
 	defer blockOpsShutdown(mockCtrl, config)
 
@@ -299,6 +299,31 @@ func TestBlockOpsPutSuccess(t *testing.T) {
 
 	config.mockBserv.EXPECT().Put(ctx, id, rmd.ID, blockPtr,
 		readyBlockData.buf, readyBlockData.serverHalf).Return(nil)
+
+	if err := config.BlockOps().
+		Put(ctx, rmd, blockPtr, readyBlockData); err != nil {
+		t.Errorf("Got error on put: %v", err)
+	}
+}
+
+func TestBlockOpsPutIncRefSuccess(t *testing.T) {
+	mockCtrl, config, ctx := blockOpsInit(t)
+	defer blockOpsShutdown(mockCtrl, config)
+
+	// expect one call to put a block
+	id := BlockID{1}
+	encData := []byte{1, 2, 3, 4}
+	nonce := BlockRefNonce([8]byte{1, 2, 3, 4, 5, 6, 7, 8})
+	blockPtr := BlockPointer{ID: id, RefNonce: nonce}
+
+	rmd := makeRMD()
+
+	readyBlockData := ReadyBlockData{
+		buf: encData,
+	}
+
+	config.mockBserv.EXPECT().IncBlockReference(ctx, id, rmd.ID, blockPtr).
+		Return(nil)
 
 	if err := config.BlockOps().
 		Put(ctx, rmd, blockPtr, readyBlockData); err != nil {
