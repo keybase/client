@@ -2,7 +2,6 @@ package libkbfs
 
 import (
 	"fmt"
-	"math/rand"
 	"runtime"
 	"sync"
 	"testing"
@@ -45,9 +44,7 @@ func kbfsOpsConcurInit(t *testing.T, users ...string) (
 		t.Fatal(err)
 	}
 
-	// make the context identifiable, to verify that it is passed
-	// correctly to the observer
-	ctx := context.WithValue(context.Background(), tCtxID, rand.Int())
+	ctx := context.Background()
 	return config, loggedInUser, ctx
 }
 
