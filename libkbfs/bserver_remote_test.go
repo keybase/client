@@ -1,6 +1,7 @@
 package libkbfs
 
 import (
+	"bytes"
 	"fmt"
 	"runtime"
 	"sync"
@@ -110,7 +111,7 @@ func TestBServerRemotePutAndGet(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Get returned an error: %v", err)
 	}
-	if !bytesEqual(buf, data) {
+	if !bytes.Equal(buf, data) {
 		t.Errorf("Got bad data -- got %v, expected %v", buf, data)
 	}
 	if key != serverHalf {

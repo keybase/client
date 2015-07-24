@@ -1,6 +1,7 @@
 package libkbfs
 
 import (
+	"bytes"
 	"errors"
 	"fmt"
 	"math/rand"
@@ -2029,19 +2030,6 @@ func TestRenameFailAcrossBranches(t *testing.T) {
 	}
 }
 
-func bytesEqual(actual []byte, expected []byte) bool {
-	// TODO: this must be built in somewhere
-	if len(actual) != len(expected) {
-		return false
-	}
-	for i, b := range actual {
-		if expected[i] != b {
-			return false
-		}
-	}
-	return true
-}
-
 func TestKBFSOpsCacheReadFullSuccess(t *testing.T) {
 	mockCtrl, config, ctx := kbfsOpsInit(t, false)
 	defer kbfsTestShutdown(mockCtrl, config)
@@ -2066,7 +2054,7 @@ func TestKBFSOpsCacheReadFullSuccess(t *testing.T) {
 		t.Errorf("Got error on read: %v", err)
 	} else if n2 != int64(n) {
 		t.Errorf("Read the wrong number of bytes: %d", n2)
-	} else if !bytesEqual(dest, fileBlock.Contents) {
+	} else if !bytes.Equal(dest, fileBlock.Contents) {
 		t.Errorf("Read bad contents: %v", dest)
 	}
 }
@@ -2094,7 +2082,7 @@ func TestKBFSOpsCacheReadPartialSuccess(t *testing.T) {
 		t.Errorf("Got error on read: %v", err)
 	} else if n != 4 {
 		t.Errorf("Read the wrong number of bytes: %d", n)
-	} else if !bytesEqual(dest, fileBlock.Contents[2:6]) {
+	} else if !bytes.Equal(dest, fileBlock.Contents[2:6]) {
 		t.Errorf("Read bad contents: %v", dest)
 	}
 }
@@ -2148,7 +2136,7 @@ func TestKBFSOpsCacheReadFullMultiBlockSuccess(t *testing.T) {
 		t.Errorf("Got error on read: %v", err)
 	} else if n2 != int64(n) {
 		t.Errorf("Read the wrong number of bytes: %d", n2)
-	} else if !bytesEqual(dest, fullContents) {
+	} else if !bytes.Equal(dest, fullContents) {
 		t.Errorf("Read bad contents: %v", dest)
 	}
 }
@@ -2200,7 +2188,7 @@ func TestKBFSOpsCacheReadPartialMultiBlockSuccess(t *testing.T) {
 		t.Errorf("Got error on read: %v", err)
 	} else if n2 != int64(n) {
 		t.Errorf("Read the wrong number of bytes: %d", n2)
-	} else if !bytesEqual(dest, contents) {
+	} else if !bytes.Equal(dest, contents) {
 		t.Errorf("Read bad contents: %v", dest)
 	}
 }
@@ -2257,7 +2245,7 @@ func TestKBFSOpsServerReadFullSuccess(t *testing.T) {
 		t.Errorf("Got error on read: %v", err)
 	} else if n2 != int64(n) {
 		t.Errorf("Read the wrong number of bytes: %d", n2)
-	} else if !bytesEqual(dest, fileBlock.Contents) {
+	} else if !bytes.Equal(dest, fileBlock.Contents) {
 		t.Errorf("Read bad contents: %v", dest)
 	}
 }
@@ -2371,7 +2359,7 @@ func TestKBFSOpsWriteNewBlockSuccess(t *testing.T) {
 	} else if ctx.Value(tCtxID) != config.observer.ctx.Value(tCtxID) {
 		t.Errorf("Wrong context value passed in local notify: %v",
 			config.observer.ctx.Value(tCtxID))
-	} else if !bytesEqual(data, newFileBlock.Contents) {
+	} else if !bytes.Equal(data, newFileBlock.Contents) {
 		t.Errorf("Wrote bad contents: %v", data)
 	} else if newRootBlock.Children["f"].Writer != userID {
 		t.Errorf("Wrong last writer: %v", newRootBlock.Children["f"].Writer)
@@ -2435,7 +2423,7 @@ func TestKBFSOpsWriteExtendSuccess(t *testing.T) {
 	} else if ctx.Value(tCtxID) != config.observer.ctx.Value(tCtxID) {
 		t.Errorf("Wrong context value passed in local notify: %v",
 			config.observer.ctx.Value(tCtxID))
-	} else if !bytesEqual(expectedFullData, newFileBlock.Contents) {
+	} else if !bytes.Equal(expectedFullData, newFileBlock.Contents) {
 		t.Errorf("Wrote bad contents: %v", data)
 	}
 	checkBlockCache(t, config, []BlockID{rootID, fileID},
@@ -2494,7 +2482,7 @@ func TestKBFSOpsWritePastEndSuccess(t *testing.T) {
 	} else if ctx.Value(tCtxID) != config.observer.ctx.Value(tCtxID) {
 		t.Errorf("Wrong context value passed in local notify: %v",
 			config.observer.ctx.Value(tCtxID))
-	} else if !bytesEqual(expectedFullData, newFileBlock.Contents) {
+	} else if !bytes.Equal(expectedFullData, newFileBlock.Contents) {
 		t.Errorf("Wrote bad contents: %v", data)
 	}
 	checkBlockCache(t, config, []BlockID{rootID, fileID},
@@ -2578,9 +2566,9 @@ func TestKBFSOpsWriteCauseSplit(t *testing.T) {
 	} else if ctx.Value(tCtxID) != config.observer.ctx.Value(tCtxID) {
 		t.Errorf("Wrong context value passed in local notify: %v",
 			config.observer.ctx.Value(tCtxID))
-	} else if !bytesEqual(expectedFullData[0:6], block1.Contents) {
+	} else if !bytes.Equal(expectedFullData[0:6], block1.Contents) {
 		t.Errorf("Wrote bad contents to block 1: %v", block1.Contents)
-	} else if !bytesEqual(expectedFullData[6:11], block2.Contents) {
+	} else if !bytes.Equal(expectedFullData[6:11], block2.Contents) {
 		t.Errorf("Wrote bad contents to block 2: %v", block2.Contents)
 	} else if !pblock.IsInd {
 		t.Errorf("Parent block is not indirect!")
@@ -2684,9 +2672,9 @@ func TestKBFSOpsWriteOverMultipleBlocks(t *testing.T) {
 	} else if ctx.Value(tCtxID) != config.observer.ctx.Value(tCtxID) {
 		t.Errorf("Wrong context value passed in local notify: %v",
 			config.observer.ctx.Value(tCtxID))
-	} else if !bytesEqual(expectedFullData[0:5], newBlock1.Contents) {
+	} else if !bytes.Equal(expectedFullData[0:5], newBlock1.Contents) {
 		t.Errorf("Wrote bad contents to block 1: %v", block1.Contents)
-	} else if !bytesEqual(expectedFullData[5:10], newBlock2.Contents) {
+	} else if !bytes.Equal(expectedFullData[5:10], newBlock2.Contents) {
 		t.Errorf("Wrote bad contents to block 2: %v", block2.Contents)
 	}
 
@@ -2750,7 +2738,7 @@ func TestKBFSOpsTruncateToZeroSuccess(t *testing.T) {
 	} else if ctx.Value(tCtxID) != config.observer.ctx.Value(tCtxID) {
 		t.Errorf("Wrong context value passed in local notify: %v",
 			config.observer.ctx.Value(tCtxID))
-	} else if !bytesEqual(data, newFileBlock.Contents) {
+	} else if !bytes.Equal(data, newFileBlock.Contents) {
 		t.Errorf("Wrote bad contents: %v", newFileBlock.Contents)
 	} else if newRootBlock.Children["f"].Writer != userID {
 		t.Errorf("Wrong last writer: %v", newRootBlock.Children["f"].Writer)
@@ -2796,7 +2784,7 @@ func TestKBFSOpsTruncateSameSize(t *testing.T) {
 	} else if config.observer.localChange != nil {
 		t.Errorf("Unexpected local update during truncate: %v",
 			config.observer.localChange)
-	} else if !bytesEqual(data, fileBlock.Contents) {
+	} else if !bytes.Equal(data, fileBlock.Contents) {
 		t.Errorf("Wrote bad contents: %v", data)
 	}
 	checkBlockCache(t, config, []BlockID{rootID, fileID}, nil)
@@ -2844,7 +2832,7 @@ func TestKBFSOpsTruncateSmallerSuccess(t *testing.T) {
 	} else if ctx.Value(tCtxID) != config.observer.ctx.Value(tCtxID) {
 		t.Errorf("Wrong context value passed in local notify: %v",
 			config.observer.ctx.Value(tCtxID))
-	} else if !bytesEqual(data, newFileBlock.Contents) {
+	} else if !bytes.Equal(data, newFileBlock.Contents) {
 		t.Errorf("Wrote bad contents: %v", data)
 	}
 	checkBlockCache(t, config, []BlockID{rootID, fileID},
@@ -2917,9 +2905,9 @@ func TestKBFSOpsTruncateShortensLastBlock(t *testing.T) {
 	} else if ctx.Value(tCtxID) != config.observer.ctx.Value(tCtxID) {
 		t.Errorf("Wrong context value passed in local notify: %v",
 			config.observer.ctx.Value(tCtxID))
-	} else if !bytesEqual(block1.Contents, newBlock1.Contents) {
+	} else if !bytes.Equal(block1.Contents, newBlock1.Contents) {
 		t.Errorf("Wrote bad contents for block 1: %v", newBlock1.Contents)
-	} else if !bytesEqual(data2, newBlock2.Contents) {
+	} else if !bytes.Equal(data2, newBlock2.Contents) {
 		t.Errorf("Wrote bad contents for block 2: %v", newBlock2.Contents)
 	} else if len(newPBlock.IPtrs) != 2 {
 		t.Errorf("Wrong number of indirect pointers: %d", len(newPBlock.IPtrs))
@@ -2994,7 +2982,7 @@ func TestKBFSOpsTruncateRemovesABlock(t *testing.T) {
 	} else if ctx.Value(tCtxID) != config.observer.ctx.Value(tCtxID) {
 		t.Errorf("Wrong context value passed in local notify: %v",
 			config.observer.ctx.Value(tCtxID))
-	} else if !bytesEqual(data, newBlock1.Contents) {
+	} else if !bytes.Equal(data, newBlock1.Contents) {
 		t.Errorf("Wrote bad contents: %v", newBlock1.Contents)
 	} else if len(newPBlock.IPtrs) != 1 {
 		t.Errorf("Wrong number of indirect pointers: %d", len(newPBlock.IPtrs))
@@ -3057,7 +3045,7 @@ func TestKBFSOpsTruncateBiggerSuccess(t *testing.T) {
 	} else if ctx.Value(tCtxID) != config.observer.ctx.Value(tCtxID) {
 		t.Errorf("Wrong context value passed in local notify: %v",
 			config.observer.ctx.Value(tCtxID))
-	} else if !bytesEqual(data, newFileBlock.Contents) {
+	} else if !bytes.Equal(data, newFileBlock.Contents) {
 		t.Errorf("Wrote bad contents: %v", data)
 	}
 	checkBlockCache(t, config, []BlockID{rootID, fileID},
@@ -3777,14 +3765,14 @@ func TestSyncDirtyMultiBlocksSplitInBlockSuccess(t *testing.T) {
 		t.Errorf("Indirect pointer encoded size5 wrong: %d", fileBlock.IPtrs[4].EncodedSize)
 	} else if fileBlock.IPtrs[4].Off != 18 {
 		t.Errorf("Indirect pointer off5 wrong: %d", fileBlock.IPtrs[4].Off)
-	} else if !bytesEqual([]byte{10, 9, 8}, block2.Contents) {
+	} else if !bytes.Equal([]byte{10, 9, 8}, block2.Contents) {
 		t.Errorf("Block 2 has the wrong data: %v", block2.Contents)
-	} else if !bytesEqual(
+	} else if !bytes.Equal(
 		[]byte{7, 6, 15, 14, 13, 12, 11}, newBlock3.Contents) {
 		t.Errorf("Block 3 has the wrong data: %v", newBlock3.Contents)
-	} else if !bytesEqual([]byte{20, 19, 18}, block4.Contents) {
+	} else if !bytes.Equal([]byte{20, 19, 18}, block4.Contents) {
 		t.Errorf("Block 4 has the wrong data: %v", block4.Contents)
-	} else if !bytesEqual([]byte{17, 16}, newBlock5.Contents) {
+	} else if !bytes.Equal([]byte{17, 16}, newBlock5.Contents) {
 		t.Errorf("Block 5 has the wrong data: %v", newBlock5.Contents)
 	} else {
 		checkNewPath(t, ctx, config, newP, expectedPath, newRmd, blocks,
@@ -3938,13 +3926,13 @@ func TestSyncDirtyMultiBlocksCopyNextBlockSuccess(t *testing.T) {
 		t.Errorf("Indirect pointer encoded size4 wrong: %d", fileBlock.IPtrs[2].EncodedSize)
 	} else if fileBlock.IPtrs[2].Off != 18 {
 		t.Errorf("Indirect pointer off4 wrong: %d", fileBlock.IPtrs[2].Off)
-	} else if !bytesEqual([]byte{5, 4, 3, 2, 1, 10, 9, 8, 7, 6},
+	} else if !bytes.Equal([]byte{5, 4, 3, 2, 1, 10, 9, 8, 7, 6},
 		block1.Contents) {
 		t.Errorf("Block 1 has the wrong data: %v", block1.Contents)
-	} else if !bytesEqual(
+	} else if !bytes.Equal(
 		[]byte{15, 14, 13, 12, 11, 20, 19, 18}, block3.Contents) {
 		t.Errorf("Block 3 has the wrong data: %v", block3.Contents)
-	} else if !bytesEqual([]byte{17, 16}, newBlock4.Contents) {
+	} else if !bytes.Equal([]byte{17, 16}, newBlock4.Contents) {
 		t.Errorf("Block 4 has the wrong data: %v", newBlock4.Contents)
 	} else {
 		checkNewPath(t, ctx, config, newP, expectedPath, newRmd, blocks,

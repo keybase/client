@@ -1,6 +1,7 @@
 package libkbfs
 
 import (
+	"bytes"
 	"fmt"
 	"runtime"
 	"sync"
@@ -140,7 +141,7 @@ func TestKBFSOpsConcurReadDuringSync(t *testing.T) {
 	if err != nil {
 		t.Errorf("Couldn't read data: %v\n", err)
 	}
-	if nr != 1 || !bytesEqual(data, buf) {
+	if nr != 1 || !bytes.Equal(data, buf) {
 		t.Errorf("Got wrong data %v; expected %v", buf, data)
 	}
 
@@ -207,7 +208,7 @@ func TestKBFSOpsConcurWriteDuringSync(t *testing.T) {
 		t.Errorf("Couldn't read data: %v\n", err)
 	}
 	expectedData := append(data, newData...)
-	if nr != 2 || !bytesEqual(expectedData, buf) {
+	if nr != 2 || !bytes.Equal(expectedData, buf) {
 		t.Errorf("Got wrong data %v; expected %v", buf, expectedData)
 	}
 
@@ -225,7 +226,7 @@ func TestKBFSOpsConcurWriteDuringSync(t *testing.T) {
 	if err != nil {
 		t.Errorf("Couldn't read data: %v\n", err)
 	}
-	if nr != 2 || !bytesEqual(expectedData, buf2) {
+	if nr != 2 || !bytes.Equal(expectedData, buf2) {
 		t.Errorf("2nd read: Got wrong data %v; expected %v", buf2, expectedData)
 	}
 
@@ -322,7 +323,7 @@ func TestKBFSOpsConcurWriteDuringSyncMultiBlocks(t *testing.T) {
 		t.Errorf("Couldn't read data: %v\n", err)
 	}
 	expectedData := []byte{11, 12, 3, 4, 5, 6, 7, 8, 9, 20}
-	if nr != 10 || !bytesEqual(expectedData, buf) {
+	if nr != 10 || !bytes.Equal(expectedData, buf) {
 		t.Errorf("Got wrong data %v; expected %v", buf, expectedData)
 	}
 
@@ -340,7 +341,7 @@ func TestKBFSOpsConcurWriteDuringSyncMultiBlocks(t *testing.T) {
 	if err != nil {
 		t.Errorf("Couldn't read data: %v\n", err)
 	}
-	if nr != 10 || !bytesEqual(expectedData, buf2) {
+	if nr != 10 || !bytes.Equal(expectedData, buf2) {
 		t.Errorf("2nd read: Got wrong data %v; expected %v", buf2, expectedData)
 	}
 }

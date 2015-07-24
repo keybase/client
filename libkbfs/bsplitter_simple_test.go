@@ -1,6 +1,7 @@
 package libkbfs
 
 import (
+	"bytes"
 	"testing"
 )
 
@@ -11,7 +12,7 @@ func TestBsplitterEmptyCopyAll(t *testing.T) {
 
 	if n := bsplit.CopyUntilSplit(fblock, false, data, 0); n != 5 {
 		t.Errorf("Did not copy expected number of bytes: %d", n)
-	} else if !bytesEqual(fblock.Contents, data) {
+	} else if !bytes.Equal(fblock.Contents, data) {
 		t.Errorf("Wrong file contents after copy: %v", fblock.Contents)
 	}
 }
@@ -24,7 +25,7 @@ func TestBsplitterNonemptyCopyAll(t *testing.T) {
 
 	if n := bsplit.CopyUntilSplit(fblock, false, data, 0); n != 5 {
 		t.Errorf("Did not copy expected number of bytes: %d", n)
-	} else if !bytesEqual(fblock.Contents, data) {
+	} else if !bytes.Equal(fblock.Contents, data) {
 		t.Errorf("Wrong file contents after copy: %v", fblock.Contents)
 	}
 }
@@ -37,7 +38,7 @@ func TestBsplitterAppendAll(t *testing.T) {
 
 	if n := bsplit.CopyUntilSplit(fblock, false, data, 2); n != 5 {
 		t.Errorf("Did not copy expected number of bytes: %d", n)
-	} else if !bytesEqual(fblock.Contents, append([]byte{10, 9}, data...)) {
+	} else if !bytes.Equal(fblock.Contents, append([]byte{10, 9}, data...)) {
 		t.Errorf("Wrong file contents after copy: %v", fblock.Contents)
 	}
 }
@@ -50,7 +51,7 @@ func TestBsplitterAppendExact(t *testing.T) {
 
 	if n := bsplit.CopyUntilSplit(fblock, false, data, 5); n != 5 {
 		t.Errorf("Did not copy expected number of bytes: %d", n)
-	} else if !bytesEqual(fblock.Contents,
+	} else if !bytes.Equal(fblock.Contents,
 		append([]byte{10, 9, 8, 7, 6}, data...)) {
 		t.Errorf("Wrong file contents after copy: %v", fblock.Contents)
 	}
@@ -64,7 +65,7 @@ func TestBsplitterSplitOne(t *testing.T) {
 
 	if n := bsplit.CopyUntilSplit(fblock, false, data, 5); n != 5 {
 		t.Errorf("Did not copy expected number of bytes: %d", n)
-	} else if !bytesEqual(fblock.Contents,
+	} else if !bytes.Equal(fblock.Contents,
 		[]byte{10, 9, 8, 7, 6, 1, 2, 3, 4, 5}) {
 		t.Errorf("Wrong file contents after copy: %v", fblock.Contents)
 	}
@@ -78,7 +79,7 @@ func TestBsplitterBlockTooBig(t *testing.T) {
 
 	if n := bsplit.CopyUntilSplit(fblock, false, data, 5); n != 0 {
 		t.Errorf("Did not copy expected number of bytes: %d", n)
-	} else if !bytesEqual(fblock.Contents, []byte{10, 9, 8, 7, 6}) {
+	} else if !bytes.Equal(fblock.Contents, []byte{10, 9, 8, 7, 6}) {
 		t.Errorf("Wrong file contents after copy: %v", fblock.Contents)
 	}
 }
@@ -91,7 +92,7 @@ func TestBsplitterOffTooBig(t *testing.T) {
 
 	if n := bsplit.CopyUntilSplit(fblock, false, data, 15); n != 0 {
 		t.Errorf("Did not copy expected number of bytes: %d", n)
-	} else if !bytesEqual(fblock.Contents,
+	} else if !bytes.Equal(fblock.Contents,
 		[]byte{10, 9, 8, 7, 6, 0, 0, 0, 0, 0}) {
 		t.Errorf("Wrong file contents after copy: %v", fblock.Contents)
 	}
