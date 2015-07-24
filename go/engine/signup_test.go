@@ -157,7 +157,7 @@ func TestLocalKeySecurityStoreSecret(t *testing.T) {
 	defer tc.Cleanup()
 	fu := NewFakeUserOrBust(t, "se")
 
-	secretStore := libkb.NewSecretStore("KeybaseTest", fu.Username)
+	secretStore := libkb.NewSecretStore(fu.Username)
 	if secretStore == nil {
 		t.Skip("No SecretStore on this platform")
 	}

@@ -57,7 +57,7 @@ func TestSecretStoreOps(t *testing.T) {
 	expectedSecret1 := []byte("test secret 1")
 	expectedSecret2 := []byte("test secret 2")
 
-	secretStore := NewSecretStore("KeybaseTest", username)
+	secretStore := NewSecretStore(username)
 
 	var err error
 
@@ -106,7 +106,7 @@ func TestSecretStoreOps(t *testing.T) {
 }
 
 func getUsersWithPrefixAndStoredSecrets(prefix string) ([]string, error) {
-	usernames, err := GetUsersWithStoredSecrets("KeybaseTest")
+	usernames, err := GetUsersWithStoredSecrets()
 	if err != nil {
 		return nil, err
 	}
@@ -140,7 +140,7 @@ func TestGetUsersWithStoredSecrets(t *testing.T) {
 	expectedUsernames := make([]string, 10)
 	for i := 0; i < len(expectedUsernames); i++ {
 		expectedUsernames[i] = fmt.Sprintf("%saccount with unicode テスト %d", prefix, i)
-		secretStore := NewSecretStore("KeybaseTest", expectedUsernames[i])
+		secretStore := NewSecretStore(expectedUsernames[i])
 		if err := secretStore.StoreSecret([]byte("test")); err != nil {
 			t.Error(err)
 		}
@@ -162,7 +162,7 @@ func TestGetUsersWithStoredSecrets(t *testing.T) {
 	}
 
 	for i := 0; i < len(expectedUsernames); i++ {
-		secretStore := NewSecretStore("KeybaseTest", expectedUsernames[i])
+		secretStore := NewSecretStore(expectedUsernames[i])
 		err = secretStore.ClearSecret()
 		if err != nil {
 			t.Error(err)

@@ -10,7 +10,7 @@ func HasSecretStore() bool {
 	return false
 }
 
-func GetUsersWithStoredSecrets(serviceName string) ([]string, error) {
+func GetUsersWithStoredSecrets() ([]string, error) {
 	return nil, nil
 }
 

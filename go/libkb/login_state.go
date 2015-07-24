@@ -726,7 +726,7 @@ func (s *LoginState) loginWithStoredSecret(lctx LoginContext, username string) e
 	}
 
 	getSecretKeyFn := func(keyrings *Keyrings, me *User) (GenericKey, error) {
-		secretRetriever := NewSecretStore("Keybase", me.GetName())
+		secretRetriever := NewSecretStore(me.GetName())
 		return keyrings.GetSecretKeyWithStoredSecret(lctx, me, secretRetriever)
 	}
 	return s.pubkeyLoginHelper(lctx, username, getSecretKeyFn)
@@ -746,7 +746,7 @@ func (s *LoginState) loginWithPassphrase(lctx LoginContext, username, passphrase
 	getSecretKeyFn := func(keyrings *Keyrings, me *User) (GenericKey, error) {
 		var secretStorer SecretStorer
 		if storeSecret {
-			secretStorer = NewSecretStore("Keybase", me.GetName())
+			secretStorer = NewSecretStore(me.GetName())
 		}
 		return keyrings.GetSecretKeyWithPassphrase(lctx, me, passphrase, secretStorer)
 	}

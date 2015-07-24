@@ -60,16 +60,17 @@ func (kss *KeychainSecretStore) ClearSecret() (err error) {
 	return
 }
 
-func NewSecretStore(serviceName string, accountName string) SecretStore {
-	return &KeychainSecretStore{serviceName, accountName}
+// Default secret store
+func NewSecretStore(accountName string) SecretStore {
+	return &KeychainSecretStore{"Keybase", accountName}
 }
 
 func HasSecretStore() bool {
 	return true
 }
 
-func GetUsersWithStoredSecrets(serviceName string) ([]string, error) {
-	return kc.GetAllAccountNames(serviceName)
+func GetUsersWithStoredSecrets() ([]string, error) {
+	return kc.GetAllAccountNames("Keybase")
 }
 
 func GetTerminalPrompt() string {

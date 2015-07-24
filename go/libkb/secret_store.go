@@ -19,7 +19,7 @@ type SecretStore interface {
 }
 
 // NewSecretStore(serviceName string, accountName string), HasSecretStore(),
-// GetUsersWithStoredSecrets(serviceName string) ([]string, error), and
+// GetUsersWithStoredSecrets() ([]string, error), and
 // GetTerminalPrompt() are defined in platform-specific files.
 
 func GetConfiguredAccounts(g *GlobalContext) ([]keybase1.ConfiguredAccount, error) {
@@ -38,7 +38,7 @@ func GetConfiguredAccounts(g *GlobalContext) ([]keybase1.ConfiguredAccount, erro
 		}
 	}
 
-	storedSecretUsernames, err := GetUsersWithStoredSecrets("Keybase")
+	storedSecretUsernames, err := GetUsersWithStoredSecrets()
 	if err != nil {
 		return nil, err
 	}
@@ -60,7 +60,7 @@ func GetConfiguredAccounts(g *GlobalContext) ([]keybase1.ConfiguredAccount, erro
 }
 
 func ClearStoredSecret(username string) error {
-	secretStore := NewSecretStore("Keybase", username)
+	secretStore := NewSecretStore(username)
 	if secretStore == nil {
 		return nil
 	}
