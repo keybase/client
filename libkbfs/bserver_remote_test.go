@@ -3,6 +3,7 @@ package libkbfs
 import (
 	"fmt"
 	"runtime"
+	"sync"
 	"testing"
 
 	keybase1 "github.com/keybase/client/protocol/go"
@@ -10,9 +11,10 @@ import (
 )
 
 type FakeBServerClient struct {
-	blocks    map[keybase1.GetBlockArg]keybase1.GetBlockRes
-	readyChan chan<- struct{}
-	goChan    <-chan struct{}
+	blocks     map[keybase1.GetBlockArg]keybase1.GetBlockRes
+	blocksLock sync.Mutex
+	readyChan  chan<- struct{}
+	goChan     <-chan struct{}
 }
 
 func NewFakeBServerClient(readyChan chan<- struct{},
@@ -24,7 +26,7 @@ func NewFakeBServerClient(readyChan chan<- struct{},
 	}
 }
 
-func (fc FakeBServerClient) maybeWaitOnChannel() {
+func (fc *FakeBServerClient) maybeWaitOnChannel() {
 	if fc.readyChan != nil {
 		// say we're ready, and wait for the signal to proceed
 		fc.readyChan <- struct{}{}
@@ -32,7 +34,8 @@ func (fc FakeBServerClient) maybeWaitOnChannel() {
 	}
 }
 
-func (fc FakeBServerClient) Call(s string, args interface{}, res interface{}) error {
+func (fc *FakeBServerClient) Call(s string, args interface{},
+	res interface{}) error {
 	switch s {
 	case "keybase.1.block.establishSession":
 		// no need to do anything
@@ -41,6 +44,8 @@ func (fc FakeBServerClient) Call(s string, args interface{}, res interface{}) er
 	case "keybase.1.block.putBlock":
 		fc.maybeWaitOnChannel()
 		putArgs := args.([]interface{})[0].(keybase1.PutBlockArg)
+		fc.blocksLock.Lock()
+		defer fc.blocksLock.Unlock()
 		fc.blocks[keybase1.GetBlockArg{Bid: putArgs.Bid}] =
 			keybase1.GetBlockRes{BlockKey: putArgs.BlockKey, Buf: putArgs.Buf}
 		return nil
@@ -49,6 +54,8 @@ func (fc FakeBServerClient) Call(s string, args interface{}, res interface{}) er
 		fc.maybeWaitOnChannel()
 		getArgs := args.([]interface{})[0].(keybase1.GetBlockArg)
 		getRes := res.(*keybase1.GetBlockRes)
+		fc.blocksLock.Lock()
+		defer fc.blocksLock.Unlock()
 		getRes2, ok := fc.blocks[getArgs]
 		*getRes = getRes2
 		if !ok {
@@ -59,6 +66,12 @@ func (fc FakeBServerClient) Call(s string, args interface{}, res interface{}) er
 	default:
 		return fmt.Errorf("Unknown call: %s %v %v", s, args, res)
 	}
+}
+
+func (fc *FakeBServerClient) numBlocks() int {
+	fc.blocksLock.Lock()
+	defer fc.blocksLock.Unlock()
+	return len(fc.blocks)
 }
 
 // Test that putting a block, and getting it back, works
@@ -87,9 +100,9 @@ func TestBServerRemotePutAndGet(t *testing.T) {
 	}
 
 	// make sure it actually got to the db
-	if len(fc.blocks) != 1 {
-		t.Errorf("There are %d blocks in the db, not 1 as expected",
-			len(fc.blocks))
+	nb := fc.numBlocks()
+	if nb != 1 {
+		t.Errorf("There are %d blocks in the db, not 1 as expected", nb)
 	}
 
 	// Now get the same block back
@@ -195,8 +208,8 @@ func TestBServerRemoteWaitForReconnect(t *testing.T) {
 	}
 
 	// make sure it actually got to the db
-	if len(fc.blocks) != 1 {
-		t.Errorf("There are %d blocks in the db, not 1 as expected",
-			len(fc.blocks))
+	nb := fc.numBlocks()
+	if nb != 1 {
+		t.Errorf("There are %d blocks in the db, not 1 as expected", nb)
 	}
 }

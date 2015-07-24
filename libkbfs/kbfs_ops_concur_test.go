@@ -398,7 +398,7 @@ func TestKBFSOpsConcurWriteParallelBlocksCanceled(t *testing.T) {
 	fc.readyChan = readyChan
 	fc.goChan = goChan
 
-	prevNBlocks := len(fc.blocks)
+	prevNBlocks := fc.numBlocks()
 	ctx, cancel := context.WithCancel(ctx)
 	go func() {
 		// let the first two blocks through.
@@ -414,7 +414,7 @@ func TestKBFSOpsConcurWriteParallelBlocksCanceled(t *testing.T) {
 	if err != context.Canceled {
 		t.Errorf("Sync did not get canceled error: %v", err)
 	}
-	nowNBlocks := len(fc.blocks)
+	nowNBlocks := fc.numBlocks()
 	if nowNBlocks != prevNBlocks+2 {
 		t.Errorf("Unexpected number of blocks; prev = %d, now = %d",
 			prevNBlocks, nowNBlocks)
