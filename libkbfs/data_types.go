@@ -458,9 +458,7 @@ func (u uidList) Less(i, j int) bool {
 }
 
 func (u uidList) Swap(i, j int) {
-	tmp := u[i]
-	u[i] = u[j]
-	u[j] = tmp
+	u[i], u[j] = u[j], u[i]
 }
 
 func sortUIDS(m map[keybase1.UID]struct{}) []keybase1.UID {
