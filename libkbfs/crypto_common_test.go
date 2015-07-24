@@ -843,7 +843,8 @@ func TestBlockPadMinimum(t *testing.T) {
 	}
 }
 
-// Test that secretbox encrypted data length is deterministic.
+// Test that secretbox encrypted data length is a deterministic
+// function of the input data length.
 func TestSecretboxEncryptedLen(t *testing.T) {
 	codec := NewCodecMsgpack()
 	c := CryptoCommon{codec}
