@@ -401,6 +401,12 @@ func (p BlockPointer) IsInitialized() bool {
 	return p.ID != NullBlockID
 }
 
+// IsFirstRef returns whether or not p represents the first reference
+// to the corresponding BlockID.
+func (p BlockPointer) IsFirstRef() bool {
+	return p.RefNonce == zeroBlockRefNonce
+}
+
 // ReadyBlockData is a block that has been encoded (and encrypted).
 type ReadyBlockData struct {
 	// These fields should not be used outside of BlockOps.Put().

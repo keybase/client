@@ -692,14 +692,14 @@ func (_mr *_MockBlockCacheRecorder) Get(arg0, arg1 interface{}) *gomock.Call {
 }
 
 func (_m *MockBlockCache) CheckForKnownPtr(tlf TlfID, block *FileBlock) (BlockPointer, error) {
-	ret := _m.ctrl.Call(_m, "CheckForKnownID", tlf, block)
+	ret := _m.ctrl.Call(_m, "CheckForKnownPtr", tlf, block)
 	ret0, _ := ret[0].(BlockPointer)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 func (_mr *_MockBlockCacheRecorder) CheckForKnownPtr(arg0, arg1 interface{}) *gomock.Call {
-	return _mr.mock.ctrl.RecordCall(_mr.mock, "CheckForKnownID", arg0, arg1)
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "CheckForKnownPtr", arg0, arg1)
 }
 
 func (_m *MockBlockCache) Put(ptr BlockPointer, tlf TlfID, block Block) error {

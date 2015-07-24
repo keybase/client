@@ -842,24 +842,39 @@ func (bps *blockPutState) mergeOtherBps(other *blockPutState) {
 func (fbo *FolderBranchOps) readyBlock(ctx context.Context, md *RootMetadata,
 	block Block, user keybase1.UID) (
 	info BlockInfo, plainSize int, readyBlockData ReadyBlockData, err error) {
-	id, plainSize, readyBlockData, err :=
-		fbo.config.BlockOps().Ready(ctx, md, block)
-	if err != nil {
-		return
+	var ptr BlockPointer
+	if fBlock, ok := block.(*FileBlock); ok && !fBlock.IsInd {
+		// first see if we are duplicating any known blocks in this folder
+		ptr, err = fbo.config.BlockCache().CheckForKnownPtr(fbo.id(), fBlock)
+		if err != nil {
+			return
+		}
+	}
+	if ptr.IsInitialized() {
+		ptr.RefNonce, err = fbo.config.Crypto().MakeBlockRefNonce()
+		if err != nil {
+			return
+		}
+		ptr.Writer = user
+	} else {
+		var id BlockID
+		id, plainSize, readyBlockData, err =
+			fbo.config.BlockOps().Ready(ctx, md, block)
+		if err != nil {
+			return
+		}
+		ptr = BlockPointer{
+			ID:       id,
+			KeyGen:   md.LatestKeyGeneration(),
+			DataVer:  fbo.config.DataVersion(),
+			Writer:   user,
+			RefNonce: zeroBlockRefNonce,
+		}
 	}
 
 	info = BlockInfo{
-		BlockPointer: BlockPointer{
-			ID:      id,
-			KeyGen:  md.LatestKeyGeneration(),
-			DataVer: fbo.config.DataVersion(),
-			Writer:  user,
-			// TODO: for now, the reference nonce for a block is just zero.
-			// When we implement de-duping, we should set it to a random nonce
-			// for all but the initial reference.
-			RefNonce: zeroBlockRefNonce,
-		},
-		EncodedSize: uint32(readyBlockData.GetEncodedSize()),
+		BlockPointer: ptr,
+		EncodedSize:  uint32(readyBlockData.GetEncodedSize()),
 	}
 	return
 }
