@@ -370,16 +370,20 @@ func (md *MDServerLocal) GetUnmergedSince(ctx context.Context, id TlfID,
 }
 
 // GetFavorites implements the MDServer interface for MDServerLocal.
-func (md *MDServerLocal) GetFavorites(ctx context.Context) ([]TlfID, error) {
-	iter := md.idDb.NewIterator(nil, nil)
-	output := make([]TlfID, 0, 1)
+func (md *MDServerLocal) GetFavorites(ctx context.Context) ([]*TlfHandle, error) {
+	iter := md.handleDb.NewIterator(nil, nil)
+	var output []*TlfHandle
+	var err error
 	for i := 0; iter.Next(); i++ {
-		key := iter.Key()
-		var id TlfID
-		copy(id[:], key[:len(id)])
-		output = append(output, id)
+		handle, err := TlfHandleDecode(iter.Key(), md.config)
+		if err != nil {
+			break
+		}
+		output = append(output, handle)
 	}
 	iter.Release()
-	err := iter.Error()
+	if err == nil {
+		err = iter.Error()
+	}
 	return output, err
 }

@@ -5,13 +5,12 @@ package libkbfs
 
 import (
 	fmt "fmt"
-	reflect "reflect"
-	time "time"
-
 	gomock "github.com/golang/mock/gomock"
 	libkb "github.com/keybase/client/go/libkb"
 	go0 "github.com/keybase/client/protocol/go"
 	context "golang.org/x/net/context"
+	reflect "reflect"
+	time "time"
 )
 
 // Mock of Block interface
@@ -179,9 +178,9 @@ func (_m *MockKBFSOps) EXPECT() *_MockKBFSOpsRecorder {
 	return _m.recorder
 }
 
-func (_m *MockKBFSOps) GetFavorites(ctx context.Context) ([]TlfID, error) {
+func (_m *MockKBFSOps) GetFavorites(ctx context.Context) ([]*TlfHandle, error) {
 	ret := _m.ctrl.Call(_m, "GetFavorites", ctx)
-	ret0, _ := ret[0].([]TlfID)
+	ret0, _ := ret[0].([]*TlfHandle)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -1122,9 +1121,9 @@ func (_mr *_MockMDOpsRecorder) GetUnmergedSince(arg0, arg1, arg2, arg3, arg4 int
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "GetUnmergedSince", arg0, arg1, arg2, arg3, arg4)
 }
 
-func (_m *MockMDOps) GetFavorites(ctx context.Context) ([]TlfID, error) {
+func (_m *MockMDOps) GetFavorites(ctx context.Context) ([]*TlfHandle, error) {
 	ret := _m.ctrl.Call(_m, "GetFavorites", ctx)
-	ret0, _ := ret[0].([]TlfID)
+	ret0, _ := ret[0].([]*TlfHandle)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -1337,9 +1336,9 @@ func (_mr *_MockMDServerRecorder) GetUnmergedSince(arg0, arg1, arg2, arg3, arg4 
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "GetUnmergedSince", arg0, arg1, arg2, arg3, arg4)
 }
 
-func (_m *MockMDServer) GetFavorites(ctx context.Context) ([]TlfID, error) {
+func (_m *MockMDServer) GetFavorites(ctx context.Context) ([]*TlfHandle, error) {
 	ret := _m.ctrl.Call(_m, "GetFavorites", ctx)
-	ret0, _ := ret[0].([]TlfID)
+	ret0, _ := ret[0].([]*TlfHandle)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }

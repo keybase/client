@@ -310,6 +310,6 @@ func (md *MDOpsStandard) GetUnmergedSince(ctx context.Context, id TlfID,
 }
 
 // GetFavorites implements the MDOps interface for MDOpsStandard.
-func (md *MDOpsStandard) GetFavorites(ctx context.Context) ([]TlfID, error) {
+func (md *MDOpsStandard) GetFavorites(ctx context.Context) ([]*TlfHandle, error) {
 	return md.config.MDServer().GetFavorites(ctx)
 }

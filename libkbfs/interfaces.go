@@ -81,7 +81,7 @@ type Node interface {
 type KBFSOps interface {
 	// GetFavorites returns the logged-in user's list of favorite
 	// top-level folders.  This is a remote-access operation.
-	GetFavorites(ctx context.Context) ([]TlfID, error)
+	GetFavorites(ctx context.Context) ([]*TlfHandle, error)
 	// GetOrCreateRootNodeByHandle returns the root node and root
 	// directory entry associated with the given TlfHandle and branch,
 	// if the logged-in user has read permissions to the top-level
@@ -464,7 +464,7 @@ type MDOps interface {
 
 	// GetFavorites returns the logged-in user's list of favorite
 	// top-level folders.
-	GetFavorites(ctx context.Context) ([]TlfID, error)
+	GetFavorites(ctx context.Context) ([]*TlfHandle, error)
 }
 
 // KeyOps fetches server-side key halves and MAC public keys from the
@@ -577,7 +577,7 @@ type MDServer interface {
 	// GetFavorites returns the logged-in user's list of favorite
 	// top-level folders.
 	// TODO: this data should be at least signed.
-	GetFavorites(ctx context.Context) ([]TlfID, error)
+	GetFavorites(ctx context.Context) ([]*TlfHandle, error)
 }
 
 // BlockServer gets and puts opaque data blocks.  The instantiation

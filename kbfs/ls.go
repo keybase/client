@@ -85,7 +85,7 @@ func lsHelper(ctx context.Context, config libkbfs.Config, components []string, h
 	kbfsOps := config.KBFSOps()
 
 	if len(components) == 1 {
-		tlfIDs, err := kbfsOps.GetFavorites(ctx)
+		tlfHandles, err := kbfsOps.GetFavorites(ctx)
 		if err != nil {
 			return err
 		}
@@ -93,12 +93,7 @@ func lsHelper(ctx context.Context, config libkbfs.Config, components []string, h
 		if hasMultiple {
 			printHeader(components)
 		}
-		for _, tlfID := range tlfIDs {
-			rmds, err := config.MDServer().GetForTLF(ctx, tlfID)
-			if err != nil {
-				return err
-			}
-			th := rmds.MD.GetTlfHandle()
+		for _, th := range tlfHandles {
 			handleEntry(th.ToString(ctx, config), libkbfs.Dir)
 		}
 

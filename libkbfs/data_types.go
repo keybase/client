@@ -426,10 +426,18 @@ type TlfHandle struct {
 
 // NewTlfHandle constructs a new, blank TlfHandle.
 func NewTlfHandle() *TlfHandle {
-	return &TlfHandle{
-		Readers: make([]keybase1.UID, 0, 1),
-		Writers: make([]keybase1.UID, 0, 1),
+	return &TlfHandle{}
+}
+
+// TlfHandleDecode decodes b into a TlfHandle.
+func TlfHandleDecode(b []byte, config Config) (*TlfHandle, error) {
+	var handle TlfHandle
+	err := config.Codec().Decode(b, &handle)
+	if err != nil {
+		return nil, err
 	}
+
+	return &handle, nil
 }
 
 func resolveUser(ctx context.Context, config Config, name string,

@@ -35,7 +35,7 @@ func (fs *KBFSOpsStandard) Shutdown() {
 }
 
 // GetFavorites implements the KBFSOps interface for KBFSOpsStandard
-func (fs *KBFSOpsStandard) GetFavorites(ctx context.Context) ([]TlfID, error) {
+func (fs *KBFSOpsStandard) GetFavorites(ctx context.Context) ([]*TlfHandle, error) {
 	mdops := fs.config.MDOps()
 	return mdops.GetFavorites(ctx)
 }

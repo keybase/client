@@ -72,6 +72,6 @@ func (m *MDOpsConcurTest) GetUnmergedSince(ctx context.Context, id TlfID,
 	return nil, false, nil
 }
 
-func (m *MDOpsConcurTest) GetFavorites(ctx context.Context) ([]TlfID, error) {
-	return []TlfID{}, nil
+func (m *MDOpsConcurTest) GetFavorites(ctx context.Context) ([]*TlfHandle, error) {
+	return nil, nil
 }

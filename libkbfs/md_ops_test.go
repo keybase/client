@@ -491,16 +491,16 @@ func TestMDOpsGetFavoritesSuccess(t *testing.T) {
 	defer mdOpsShutdown(mockCtrl, config)
 
 	// expect one call to fetch favorites
-	id1, _, _ := newDir(t, config, 1, true, false)
-	id2, _, _ := newDir(t, config, 2, true, false)
-	ids := []TlfID{id1, id2}
+	_, handle1, _ := newDir(t, config, 1, true, false)
+	_, handle2, _ := newDir(t, config, 2, true, false)
+	handles := []*TlfHandle{handle1, handle2}
 
-	config.mockMdserv.EXPECT().GetFavorites(gomock.Any()).Return(ids, nil)
+	config.mockMdserv.EXPECT().GetFavorites(gomock.Any()).Return(handles, nil)
 
-	if ids2, err := config.MDOps().GetFavorites(ctx); err != nil {
+	if handles2, err := config.MDOps().GetFavorites(ctx); err != nil {
 		t.Errorf("Got error on favorites: %v", err)
-	} else if len(ids2) != len(ids) {
-		t.Errorf("Got bad ids back: %v", ids2)
+	} else if len(handles2) != len(handles) {
+		t.Errorf("Got bad handles back: %v", handles2)
 	}
 }
 

@@ -8,7 +8,7 @@ import (
 
 	"bazil.org/fuse"
 	"bazil.org/fuse/fs"
-	"github.com/keybase/client/protocol/go"
+	keybase1 "github.com/keybase/client/protocol/go"
 	"github.com/keybase/kbfs/libkbfs"
 	"golang.org/x/net/context"
 )
@@ -117,19 +117,14 @@ var _ fs.Handle = (*FolderList)(nil)
 
 var _ fs.HandleReadDirAller = (*FolderList)(nil)
 
-func (fl *FolderList) getDirent(ctx context.Context, work <-chan libkbfs.TlfID, results chan<- fuse.Dirent) error {
+func (fl *FolderList) getDirent(ctx context.Context, work <-chan *libkbfs.TlfHandle, results chan<- fuse.Dirent) error {
 	for {
 		select {
-		case tlfID, ok := <-work:
+		case tlfHandle, ok := <-work:
 			if !ok {
 				return nil
 			}
-			_, _, dh, err := fl.fs.config.KBFSOps().GetRootNode(ctx,
-				libkbfs.FolderBranch{Tlf: tlfID, Branch: libkbfs.MasterBranch})
-			if err != nil {
-				return err
-			}
-			name := dh.ToString(ctx, fl.fs.config)
+			name := tlfHandle.ToString(ctx, fl.fs.config)
 			if fl.public {
 				const publicSuffix = libkbfs.ReaderSep + libkbfs.PublicUIDName
 				// strip off the public portion
@@ -152,7 +147,7 @@ func (fl *FolderList) ReadDirAll(ctx context.Context) (res []fuse.Dirent, err er
 	if err != nil {
 		return nil, err
 	}
-	work := make(chan libkbfs.TlfID)
+	work := make(chan *libkbfs.TlfHandle)
 	results := make(chan fuse.Dirent)
 	errCh := make(chan error, 1)
 	const maxWorkers = 10
@@ -174,11 +169,11 @@ func (fl *FolderList) ReadDirAll(ctx context.Context) (res []fuse.Dirent, err er
 
 	go func() {
 		// feed work
-		for _, tlfID := range favs {
-			if fl.public != tlfID.IsPublic() {
+		for _, tlfHandle := range favs {
+			if fl.public != tlfHandle.IsPublic() {
 				continue
 			}
-			work <- tlfID
+			work <- tlfHandle
 		}
 		close(work)
 		wg.Wait()
