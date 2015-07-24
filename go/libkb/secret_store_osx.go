@@ -3,11 +3,16 @@
 package libkb
 
 import (
+	"encoding/base64"
+
 	kc "github.com/keybase/go-osxkeychain"
 )
 
+const (
+	keychainServiceName = "keybase"
+)
+
 type KeychainSecretStore struct {
-	serviceName string
 	accountName string
 }
 
@@ -17,10 +22,12 @@ func (kss *KeychainSecretStore) StoreSecret(secret []byte) (err error) {
 		G.Log.Debug("- StoreSecret -> %s", ErrToOk(err))
 	}()
 
+	// base64-encode to make it easy to work with Keychain Access.
+	encodedSecret := base64.StdEncoding.EncodeToString(secret)
 	attributes := kc.GenericPasswordAttributes{
-		ServiceName: kss.serviceName,
+		ServiceName: keychainServiceName,
 		AccountName: kss.accountName,
-		Data:        secret,
+		Password:    encodedSecret,
 	}
 	err = kc.RemoveAndAddGenericPassword(&attributes)
 	return
@@ -33,11 +40,21 @@ func (kss *KeychainSecretStore) RetrieveSecret() (secret []byte, err error) {
 	}()
 
 	attributes := kc.GenericPasswordAttributes{
-		ServiceName: kss.serviceName,
+		ServiceName: keychainServiceName,
 		AccountName: kss.accountName,
 	}
 
-	secret, err = kc.FindGenericPassword(&attributes)
+	var encodedSecret string
+	encodedSecret, err = kc.FindGenericPassword(&attributes)
+	if err != nil {
+		return
+	}
+
+	secret, err = base64.StdEncoding.DecodeString(encodedSecret)
+	if err != nil {
+		secret = nil
+	}
+
 	return
 }
 
@@ -48,7 +65,7 @@ func (kss *KeychainSecretStore) ClearSecret() (err error) {
 	}()
 
 	attributes := kc.GenericPasswordAttributes{
-		ServiceName: kss.serviceName,
+		ServiceName: keychainServiceName,
 		AccountName: kss.accountName,
 	}
 
@@ -60,9 +77,8 @@ func (kss *KeychainSecretStore) ClearSecret() (err error) {
 	return
 }
 
-// Default secret store
-func NewSecretStore(accountName string) SecretStore {
-	return &KeychainSecretStore{"Keybase", accountName}
+func NewSecretStore(username string) SecretStore {
+	return &KeychainSecretStore{username}
 }
 
 func HasSecretStore() bool {
@@ -70,9 +86,9 @@ func HasSecretStore() bool {
 }
 
 func GetUsersWithStoredSecrets() ([]string, error) {
-	return kc.GetAllAccountNames("Keybase")
+	return kc.GetAllAccountNames(keychainServiceName)
 }
 
 func GetTerminalPrompt() string {
-	return "Store your key in the Mac OS keychain?"
+	return "Store your key in Apple's local keychain?"
 }

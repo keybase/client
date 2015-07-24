@@ -2,7 +2,7 @@
 
 package libkb
 
-func NewSecretStore(accountName string) SecretStore {
+func NewSecretStore(username string) SecretStore {
 	return nil
 }
 

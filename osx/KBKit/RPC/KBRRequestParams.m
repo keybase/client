@@ -7,7 +7,6 @@
 //
 
 #import "KBRRequestParams.h"
-#import "KBFormatter.h"
 
 @interface KBRRequestParams ()
 @property NSArray *params;
@@ -25,10 +24,6 @@
     _params = params;
   }
   return self;
-}
-
-- (NSString *)description {
-  return KBDescription(self);
 }
 
 @end

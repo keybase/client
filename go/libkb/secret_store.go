@@ -18,7 +18,7 @@ type SecretStore interface {
 	ClearSecret() error
 }
 
-// NewSecretStore(accountName string), HasSecretStore(),
+// NewSecretStore(username string), HasSecretStore(),
 // GetUsersWithStoredSecrets() ([]string, error), and
 // GetTerminalPrompt() are defined in platform-specific files.
 

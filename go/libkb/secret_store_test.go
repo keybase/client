@@ -141,7 +141,7 @@ func TestGetUsersWithStoredSecrets(t *testing.T) {
 	for i := 0; i < len(expectedUsernames); i++ {
 		expectedUsernames[i] = fmt.Sprintf("%saccount with unicode テスト %d", prefix, i)
 		secretStore := NewSecretStore(expectedUsernames[i])
-		if err := secretStore.StoreSecret([]byte("test")); err != nil {
+		if err := secretStore.StoreSecret([]byte{}); err != nil {
 			t.Error(err)
 		}
 	}
