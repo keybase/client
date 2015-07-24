@@ -302,16 +302,47 @@ func (b *BlockServerRemote) Put(ctx context.Context, id BlockID, tlfID TlfID,
 	return nil
 }
 
-// Delete implements the BlockServer interface for BlockServerRemote.
-func (b *BlockServerRemote) Delete(ctx context.Context, id BlockID,
+// IncBlockReference implements the BlockServer interface for BlockServerRemote
+func (b *BlockServerRemote) IncBlockReference(ctx context.Context, id BlockID,
 	tlfID TlfID, context BlockContext) error {
-	libkb.G.Log.Debug("BlockServerRemote::Delete id=%s uid=%s\n", hex.EncodeToString(id[:]), context.GetWriter().String())
+	libkb.G.Log.Debug("BlockServerRemote::IncBlockReference id=%s uid=%s\n",
+		hex.EncodeToString(id[:]), context.GetWriter().String())
+	nonce := context.GetRefNonce()
+	arg := keybase1.IncBlockReferenceArg{
+		Bid: keybase1.BlockIdCombo{
+			ChargedTo: context.GetWriter(), //should be the original chargedto
+			BlockHash: hex.EncodeToString(id[:]),
+		},
+		Nonce:     hex.EncodeToString(nonce[:]),
+		Folder:    hex.EncodeToString(tlfID[:]),
+		ChargedTo: context.GetWriter(), //the actual writer to decrement quota from
+	}
+
+	f := func() error {
+		clt := keybase1.BlockClient{Cli: b.clt}
+		return clt.IncBlockReference(arg)
+	}
+	err := runUnlessCanceled(ctx, f)
+	if err != nil {
+		libkb.G.Log.Debug("IncBlockReference to backend err : %q", err)
+		return err
+	}
+
+	return nil
+}
+
+// DecBlockReference implements the BlockServer interface for BlockServerRemote
+func (b *BlockServerRemote) DecBlockReference(ctx context.Context, id BlockID,
+	tlfID TlfID, context BlockContext) error {
+	libkb.G.Log.Debug("BlockServerRemote::DecBlockReference id=%s uid=%s\n",
+		hex.EncodeToString(id[:]), context.GetWriter().String())
+	nonce := context.GetRefNonce()
 	arg := keybase1.DecBlockReferenceArg{
 		Bid: keybase1.BlockIdCombo{
 			ChargedTo: context.GetWriter(), //should be the original chargedto
 			BlockHash: hex.EncodeToString(id[:]),
 		},
-		Nonce:     "0000",
+		Nonce:     hex.EncodeToString(nonce[:]),
 		Folder:    hex.EncodeToString(tlfID[:]),
 		ChargedTo: context.GetWriter(), //the actual writer to decrement quota from
 	}
@@ -322,7 +353,7 @@ func (b *BlockServerRemote) Delete(ctx context.Context, id BlockID,
 	}
 	err := runUnlessCanceled(ctx, f)
 	if err != nil {
-		libkb.G.Log.Debug("Delete to backend err : %q", err)
+		libkb.G.Log.Debug("DecBlockReference to backend err : %q", err)
 		return err
 	}
 

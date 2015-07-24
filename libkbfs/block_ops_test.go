@@ -341,7 +341,8 @@ func TestBlockOpsDeleteSuccess(t *testing.T) {
 
 	id := BlockID{1}
 	blockPtr := BlockPointer{ID: id}
-	config.mockBserv.EXPECT().Delete(ctx, id, rmd.ID, blockPtr).Return(nil)
+	config.mockBserv.EXPECT().DecBlockReference(ctx, id, rmd.ID, blockPtr).
+		Return(nil)
 
 	if err := config.BlockOps().Delete(ctx, rmd, id, blockPtr); err != nil {
 		t.Errorf("Got error on put: %v", err)
@@ -358,7 +359,8 @@ func TestBlockOpsDeleteFail(t *testing.T) {
 	id := BlockID{1}
 	err := errors.New("Fake fail")
 	blockPtr := BlockPointer{ID: id}
-	config.mockBserv.EXPECT().Delete(ctx, id, rmd.ID, blockPtr).Return(err)
+	config.mockBserv.EXPECT().DecBlockReference(ctx, id, rmd.ID, blockPtr).
+		Return(err)
 
 	if err2 := config.BlockOps().Delete(ctx, rmd, id, blockPtr); err2 != err {
 		t.Errorf("Got bad error on put: %v", err2)

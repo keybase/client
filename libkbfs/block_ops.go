@@ -129,6 +129,6 @@ func (b *BlockOpsStandard) Put(ctx context.Context, md *RootMetadata,
 func (b *BlockOpsStandard) Delete(ctx context.Context, md *RootMetadata,
 	id BlockID, context BlockContext) error {
 	bserv := b.config.BlockServer()
-	err := bserv.Delete(ctx, id, md.ID, context)
+	err := bserv.DecBlockReference(ctx, id, md.ID, context)
 	return err
 }

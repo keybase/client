@@ -594,13 +594,23 @@ type BlockServer interface {
 		[]byte, BlockCryptKeyServerHalf, error)
 	// Put stores the (encrypted) block data under the given ID and
 	// context on the server, along with the server half of the block
-	// key.
+	// key.  context should contain a BlockRefNonce of zero.
 	Put(ctx context.Context, id BlockID, tlfID TlfID, context BlockContext,
 		buf []byte, serverHalf BlockCryptKeyServerHalf) error
-	// Delete instructs the server to delete the block data
-	// associated with the given ID. No error is returned if no
-	// data exists for the given ID.
-	Delete(ctx context.Context, id BlockID, tlfID TlfID,
+
+	// IncBlockReference increments the reference count for the given
+	// block ID on the server.  context should contain a non-zero
+	// BlockRefNonce, identify this particular reference.  (Contexts
+	// with a BlockRefNonce of zero should be used when putting the
+	// block for the first time via Put().)
+	IncBlockReference(ctx context.Context, id BlockID, tlfID TlfID,
+		context BlockContext) error
+	// DecBlockReference decrements the reference count for the given
+	// block ID on the server, if the BlockRefNonce in the context is
+	// still being referenced.  If the reference count goes to zero,
+	// the server is allowed to delete the corresponding block
+	// permanently.
+	DecBlockReference(ctx context.Context, id BlockID, tlfID TlfID,
 		context BlockContext) error
 }
 

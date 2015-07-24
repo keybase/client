@@ -1390,14 +1390,24 @@ func (_mr *_MockBlockServerRecorder) Put(arg0, arg1, arg2, arg3, arg4, arg5 inte
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "Put", arg0, arg1, arg2, arg3, arg4, arg5)
 }
 
-func (_m *MockBlockServer) Delete(ctx context.Context, id BlockID, tlfID TlfID, context BlockContext) error {
-	ret := _m.ctrl.Call(_m, "Delete", ctx, id, tlfID, context)
+func (_m *MockBlockServer) IncBlockReference(ctx context.Context, id BlockID, tlfID TlfID, context BlockContext) error {
+	ret := _m.ctrl.Call(_m, "IncBlockReference", ctx, id, tlfID, context)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
-func (_mr *_MockBlockServerRecorder) Delete(arg0, arg1, arg2, arg3 interface{}) *gomock.Call {
-	return _mr.mock.ctrl.RecordCall(_mr.mock, "Delete", arg0, arg1, arg2, arg3)
+func (_mr *_MockBlockServerRecorder) IncBlockReference(arg0, arg1, arg2, arg3 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "IncBlockReference", arg0, arg1, arg2, arg3)
+}
+
+func (_m *MockBlockServer) DecBlockReference(ctx context.Context, id BlockID, tlfID TlfID, context BlockContext) error {
+	ret := _m.ctrl.Call(_m, "DecBlockReference", ctx, id, tlfID, context)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+func (_mr *_MockBlockServerRecorder) DecBlockReference(arg0, arg1, arg2, arg3 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "DecBlockReference", arg0, arg1, arg2, arg3)
 }
 
 // Mock of BlockSplitter interface
