@@ -5,6 +5,7 @@
 ```bash
 cd keybase
 go get -u
+// Nojima: The above wasn't working for me on OS X. In $GOPATH/src/github.com/keybase/client run go get ./...
 go build -a
 ```
 
