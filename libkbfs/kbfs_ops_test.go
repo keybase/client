@@ -3152,6 +3152,8 @@ func testSetExSuccess(t *testing.T, entryType EntryType, ex bool) {
 				dirUpdate)
 		} else if sao.Name != "a" {
 			t.Errorf("Incorrect name in op: %v", sao.Name)
+		} else if sao.Attr != exAttr {
+			t.Errorf("Incorrect attr in op: %v", sao.Attr)
 		}
 	}
 }
@@ -3274,6 +3276,8 @@ func TestSetMtimeSuccess(t *testing.T) {
 			dirUpdate)
 	} else if sao.Name != "a" {
 		t.Errorf("Incorrect name in op: %v", sao.Name)
+	} else if sao.Attr != mtimeAttr {
+		t.Errorf("Incorrect attr in op: %v", sao.Attr)
 	}
 }
 

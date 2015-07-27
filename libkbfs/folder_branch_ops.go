@@ -2335,7 +2335,7 @@ func (fbo *FolderBranchOps) setExLocked(
 	}
 
 	parentPath := file.parentPath()
-	md.AddOp(newSetAttrOp(file.tailName(), parentPath.tailPointer()))
+	md.AddOp(newSetAttrOp(file.tailName(), parentPath.tailPointer(), exAttr))
 
 	// If the type isn't File or Exec, there's nothing to do, but
 	// change the ctime anyway (to match ext4 behavior).
@@ -2379,7 +2379,7 @@ func (fbo *FolderBranchOps) setMtimeLocked(
 	fbo.blockLock.RUnlock()
 
 	parentPath := file.parentPath()
-	md.AddOp(newSetAttrOp(file.tailName(), parentPath.tailPointer()))
+	md.AddOp(newSetAttrOp(file.tailName(), parentPath.tailPointer(), mtimeAttr))
 
 	de.Mtime = mtime.UnixNano()
 	// setting the mtime counts as changing the file MD, so must set ctime too
