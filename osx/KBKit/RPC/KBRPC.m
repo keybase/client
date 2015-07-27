@@ -500,6 +500,13 @@
   }];
 }
 
+- (void)deviceNameTakenWithSessionID:(NSInteger)sessionID name:(NSString *)name completion:(void (^)(NSError *error))completion {
+  NSDictionary *params = @{@"sessionID": @(sessionID), @"name": KBRValue(name)};
+  [self.client sendRequestWithMethod:@"keybase.1.locksmithUi.deviceNameTaken" params:params sessionId:self.sessionId completion:^(NSError *error, id retval) {
+    completion(error);
+  }];
+}
+
 - (void)selectSignerWithSessionID:(NSInteger)sessionID devices:(NSArray *)devices hasPGP:(BOOL)hasPGP completion:(void (^)(NSError *error, KBRSelectSignerRes *selectSignerRes))completion {
   NSDictionary *params = @{@"sessionID": @(sessionID), @"devices": KBRValue(devices), @"hasPGP": @(hasPGP)};
   [self.client sendRequestWithMethod:@"keybase.1.locksmithUi.selectSigner" params:params sessionId:self.sessionId completion:^(NSError *error, id retval) {
@@ -656,6 +663,13 @@
 @end
 
 @implementation KBRMetadataRequest
+
+- (void)authenticateWithUser:(NSString *)user deviceKID:(NSString *)deviceKID sid:(NSString *)sid completion:(void (^)(NSError *error))completion {
+  NSDictionary *params = @{@"user": KBRValue(user), @"deviceKID": KBRValue(deviceKID), @"sid": KBRValue(sid)};
+  [self.client sendRequestWithMethod:@"keybase.1.metadata.authenticate" params:params sessionId:self.sessionId completion:^(NSError *error, id retval) {
+    completion(error);
+  }];
+}
 
 - (void)putMetadataWithMdBlock:(NSData *)mdBlock completion:(void (^)(NSError *error))completion {
   NSDictionary *params = @{@"mdBlock": KBRValue(mdBlock)};
@@ -1791,6 +1805,18 @@
 
 @end
 
+@implementation KBRDeviceNameTakenRequestParams
+
+- (instancetype)initWithParams:(NSArray *)params {
+  if ((self = [super initWithParams:params])) {
+    self.sessionID = [params[0][@"sessionID"] integerValue];
+    self.name = params[0][@"name"];
+  }
+  return self;
+}
+
+@end
+
 @implementation KBRSelectSignerRequestParams
 
 - (instancetype)initWithParams:(NSArray *)params {
@@ -1980,6 +2006,19 @@
   if ((self = [super initWithParams:params])) {
     self.sessionID = [params[0][@"sessionID"] integerValue];
     self.device = [MTLJSONAdapter modelOfClass:KBRDevice.class fromJSONDictionary:params[0][@"device"] error:nil];
+  }
+  return self;
+}
+
+@end
+
+@implementation KBRAuthenticateRequestParams
+
+- (instancetype)initWithParams:(NSArray *)params {
+  if ((self = [super initWithParams:params])) {
+    self.user = params[0][@"user"];
+    self.deviceKID = params[0][@"deviceKID"];
+    self.sid = params[0][@"sid"];
   }
   return self;
 }

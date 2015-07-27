@@ -8,12 +8,13 @@ end
 target "KBKit" do
   pod "GHKit"
   pod "ObjectiveSugar"
+  pod "GHKeychain"#, :path => "~/Projects/GHKeychain"
 
   pod "Mantle"
 
-  pod "MPMessagePack", :path => "~/Projects/MPMessagePack"
+  pod "MPMessagePack"#, :path => "~/Projects/MPMessagePack"
 
-  pod "YOLayout", :path => "~/Projects/YOLayout"
+  pod "YOLayout"#, :path => "~/Projects/YOLayout"
 
   pod "ZXCVBN"
   pod "AFNetworking"
@@ -30,6 +31,6 @@ end
 # This runs as a privileged helper so keep dependencies
 # here to a minimum.
 target "keybase.Helper" do
-  pod "MPMessagePack", :path => "~/Projects/MPMessagePack"
+  pod "MPMessagePack"#, :path => "~/Projects/MPMessagePack"
 end
 

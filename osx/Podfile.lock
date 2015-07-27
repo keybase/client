@@ -25,6 +25,7 @@ PODS:
     - CocoaLumberjack/Core
   - CocoaLumberjack/Extensions (2.0.1):
     - CocoaLumberjack/Default
+  - GHKeychain (1.2.8)
   - GHKit (2.0.0)
   - GHODictionary (1.0.8)
   - KBAppKit (0.1.6):
@@ -47,34 +48,32 @@ PODS:
   - Slash/arc (0.1.2)
   - Slash/no-arc (0.1.2)
   - Sparkle (1.10.0)
-  - YOLayout (0.2.8)
+  - YOLayout (0.2.9)
   - ZXCVBN (1.0.5)
 
 DEPENDENCIES:
   - AFNetworking
   - CocoaLumberjack
+  - GHKeychain
   - GHKit
   - GHODictionary
   - KBAppKit (from `.`)
   - Mantle
   - MASPreferences
-  - MPMessagePack (from `~/Projects/MPMessagePack`)
+  - MPMessagePack
   - ObjectiveSugar
   - Sparkle
-  - YOLayout (from `~/Projects/YOLayout`)
+  - YOLayout
   - ZXCVBN
 
 EXTERNAL SOURCES:
   KBAppKit:
     :path: "."
-  MPMessagePack:
-    :path: "~/Projects/MPMessagePack"
-  YOLayout:
-    :path: "~/Projects/YOLayout"
 
 SPEC CHECKSUMS:
   AFNetworking: 05edc0ac4c4c8cf57bcf4b84be5b0744b6d8e71e
   CocoaLumberjack: 019d1361244274a6138c788c6cb80baabc13fb8f
+  GHKeychain: 008cdb8bbab5b0dc1da3d0f06a67ce5203231e44
   GHKit: 29e5361c9d8a33343ae5ed4698057d1533ee590b
   GHODictionary: 4990d3fa008a11257ba54f52a3e95f90dd47ac1b
   KBAppKit: 979d91841106c7674dbc6245bd93d07ef487b26c
@@ -84,7 +83,7 @@ SPEC CHECKSUMS:
   ObjectiveSugar: a6a25f23d657c19df0a0b972466d5b5ca9f5295c
   Slash: c74317f5ccf1e31f1d486a17e0d4076029ed3fc8
   Sparkle: c859bf5283b9f12aa45bceccf8e25ebb4c008eb2
-  YOLayout: 33cd1b6a54961f698c73c6f03e6546734f73b1b5
+  YOLayout: ceb8a2de28a4dd15f813f6d6d50a3afdc2c3270f
   ZXCVBN: f3888e3f6363b8cf57bcc32857a9bc09f9f9e18e
 
-COCOAPODS: 0.37.2
+COCOAPODS: 0.38.2
