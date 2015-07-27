@@ -18,9 +18,11 @@ var local = flag.Bool("local", false,
 var localUserFlag = flag.String("localuser", "strib",
 	"fake local user (only valid when local=true)")
 var clientFlag = flag.Bool("client", false, "use keybase daemon")
+var serverRootDir = flag.String("server-root", "", "directory to put local server files (default is cwd)")
 
 const usageStr = `Usage:
-  kbfs [-client | -local [-localuser=<user>]] <command> [<args>]
+  kbfs [-client | -local [-localuser=<user>]]
+    [-server-root=path/to/dir] <command> [<args>]
 
 The possible commands are:
   stat		Display file status
@@ -51,7 +53,7 @@ func realMain() (exitStatus int) {
 		return
 	}
 
-	config, err := libkbfs.Init(localUser, *cpuprofile, *memprofile, nil)
+	config, err := libkbfs.Init(localUser, *serverRootDir, *cpuprofile, *memprofile, nil)
 	if err != nil {
 		printError("kbfs", err)
 		exitStatus = 1

@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"os/signal"
+	"path/filepath"
 	"runtime/pprof"
 
 	"github.com/keybase/client/go/client"
@@ -18,7 +19,7 @@ import (
 // Init should be called at the beginning of main. Shutdown (see
 // below) should then be called at the end of main (usually via
 // defer).
-func Init(localUser, cpuProfilePath, memProfilePath string, onSignalFn func()) (Config, error) {
+func Init(localUser, serverRootDir, cpuProfilePath, memProfilePath string, onSignalFn func()) (Config, error) {
 	if cpuProfilePath != "" {
 		// Let the GC/OS clean up the file handle.
 		f, err := os.Create(cpuProfilePath)
@@ -42,21 +43,28 @@ func Init(localUser, cpuProfilePath, memProfilePath string, onSignalFn func()) (
 		os.Exit(1)
 	}()
 
+	handlePath := filepath.Join(serverRootDir, "kbfs_handles")
+	dbPath := filepath.Join(serverRootDir, "kbfs_dirs")
+	mdPath := filepath.Join(serverRootDir, "kbfs_md")
+	unmergedPath := filepath.Join(serverRootDir, "kbfs_unmerged")
+	blockPath := filepath.Join(serverRootDir, "kbfs_block")
+	keyPath := filepath.Join(serverRootDir, "kbfs_keys")
+
 	config := NewConfigLocal()
-	mdserv, err := NewMDServerLocal(config, "kbfs_handles",
-		"kbfs_dirs", "kbfs_md", "kbfs_unmerged")
+	mdserv, err := NewMDServerLocal(
+		config, handlePath, dbPath, mdPath, unmergedPath)
 	if err != nil {
 		return nil, fmt.Errorf("cannot open MD database: %v", err)
 	}
 	config.SetMDServer(mdserv)
 
-	bserv, err := NewBlockServerLocal(config, "kbfs_block")
+	bserv, err := NewBlockServerLocal(config, blockPath)
 	if err != nil {
 		return nil, fmt.Errorf("cannot open block database: %v", err)
 	}
 	config.SetBlockServer(bserv)
 
-	kops, err := NewKeyServerLocal(config.Codec(), "kbfs_keys")
+	kops, err := NewKeyServerLocal(config.Codec(), keyPath)
 	if err != nil {
 		return nil, fmt.Errorf("cannot open key database: %v", err)
 	}

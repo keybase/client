@@ -3,8 +3,11 @@
 package main
 
 import (
+	"errors"
 	"flag"
+	"fmt"
 	"log"
+	"os"
 
 	"bazil.org/fuse"
 
@@ -19,16 +22,26 @@ var local = flag.Bool("local", false,
 var localUserFlag = flag.String("localuser", "strib",
 	"fake local user (only valid when local=true)")
 var clientFlag = flag.Bool("client", false, "use keybase daemon")
+var serverRootDir = flag.String("server-root", "", "directory to put local server files (default is cwd)")
 var debug = flag.Bool("debug", false, "Print FUSE debug messages")
 
-func printUsageAndExit() {
-	log.Fatal("Usage:\n  kbfsfuse [-client|-local] MOUNTPOINT")
+const usageStr = `Usage:
+  kbfsfuse [-client | -local [-localuser=<user>]] [-debug]
+    [-server-root=path/to/dir] /path/to/mountpoint
+
+`
+
+func printError(prefix string, err error) {
+	fmt.Fprintf(os.Stderr, "%s: %s\n", prefix, err)
 }
 
-func main() {
+// Define this so deferred functions get executed before exit.
+func realMain() (exitStatus int) {
 	flag.Parse()
 	if len(flag.Args()) < 1 {
-		printUsageAndExit()
+		fmt.Print(usageStr)
+		exitStatus = 1
+		return
 	}
 
 	var localUser string
@@ -37,11 +50,13 @@ func main() {
 	} else if *clientFlag {
 		localUser = ""
 	} else {
-		printUsageAndExit()
+		printError("kbfsfuse", errors.New("either -client or -local must be used"))
+		exitStatus = 1
+		return
 	}
 
 	mountpoint := flag.Arg(0)
-	config, err := libkbfs.Init(localUser, *cpuprofile, *memprofile, func() {
+	config, err := libkbfs.Init(localUser, *serverRootDir, *cpuprofile, *memprofile, func() {
 		// TODO: Only try to unmount if the mount process
 		// finished successfully.
 		err := fuse.Unmount(mountpoint)
@@ -50,13 +65,26 @@ func main() {
 		}
 	})
 	if err != nil {
-		log.Fatal(err)
+		printError("kbfsfuse", err)
+		exitStatus = 1
+		return
 	}
 
 	defer libkbfs.Shutdown(*memprofile)
 
 	ctx := context.Background()
+	// Blocks forever, unless an interrupt/kill signal is received
+	// (handled by libkbfs.Init) or there was a mount error.
 	if err := runNewFUSE(ctx, config, *debug, mountpoint); err != nil {
 		log.Fatalf("error serving filesystem: %v", err)
+		printError("kbfsfuse", err)
+		exitStatus = 1
+		return
 	}
+
+	return
+}
+
+func main() {
+	os.Exit(realMain())
 }
