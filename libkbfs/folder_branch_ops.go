@@ -1303,6 +1303,10 @@ func (fbo *FolderBranchOps) syncBlockAndFinalizeLocked(ctx context.Context,
 	}
 	err = fbo.doBlockPuts(ctx, md, *bps)
 	if err != nil {
+		// TODO: in theory we could recover from a
+		// IncrementMissingBlockError.  We would have to delete the
+		// offending block from our cache and re-doing ALL of the
+		// block ready calls.
 		return DirEntry{}, err
 	}
 	err = fbo.finalizeWriteLocked(ctx, md, bps, []path{p})

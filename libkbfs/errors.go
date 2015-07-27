@@ -543,3 +543,14 @@ type NotDirectFileBlockError struct {
 func (e NotDirectFileBlockError) Error() string {
 	return fmt.Sprintf("Unexpected block type; expected a direct file block")
 }
+
+// IncrementMissingBlockError indicates that we tried to increment the
+// reference count of a block that the server doesn't have.
+type IncrementMissingBlockError struct {
+	ID BlockID
+}
+
+func (e IncrementMissingBlockError) Error() string {
+	return fmt.Sprintf("Tried to increment ref count for block %v, but no "+
+		"such block exists on the server", e.ID)
+}

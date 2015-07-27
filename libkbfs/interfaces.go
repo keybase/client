@@ -610,7 +610,8 @@ type BlockServer interface {
 	// block ID on the server.  context should contain a non-zero
 	// BlockRefNonce, identify this particular reference.  (Contexts
 	// with a BlockRefNonce of zero should be used when putting the
-	// block for the first time via Put().)
+	// block for the first time via Put().)  Returns an
+	// IncrementMissingBlockError if id is unknown within this folder.
 	IncBlockReference(ctx context.Context, id BlockID, tlfID TlfID,
 		context BlockContext) error
 	// DecBlockReference decrements the reference count for the given

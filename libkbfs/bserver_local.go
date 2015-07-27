@@ -133,6 +133,9 @@ func (b *BlockServerLocal) IncBlockReference(ctx context.Context, id BlockID,
 
 	entry, err := b.getBlockEntryLocked(id)
 	if err != nil {
+		if err == leveldb.ErrNotFound {
+			return IncrementMissingBlockError{id}
+		}
 		return err
 	}
 

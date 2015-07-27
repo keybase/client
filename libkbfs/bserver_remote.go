@@ -324,6 +324,8 @@ func (b *BlockServerRemote) IncBlockReference(ctx context.Context, id BlockID,
 	}
 	err := runUnlessCanceled(ctx, f)
 	if err != nil {
+		// TODO: translate a particular RPC error into
+		// IncrementMissingBlockError?
 		libkb.G.Log.Debug("IncBlockReference to backend err : %q", err)
 		return err
 	}
