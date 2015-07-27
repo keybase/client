@@ -7,6 +7,7 @@ cd keybase
 go get -u
 // Nojima: The above wasn't working for me on OS X. In $GOPATH/src/github.com/keybase/client run go get ./...
 go build -a
+// Nojima: Run the above in $GOPATH/src/github.com/keybase/client/go/keybase
 ```
 
 ### Run the service
