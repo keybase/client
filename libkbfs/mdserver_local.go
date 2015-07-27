@@ -5,7 +5,6 @@ import (
 
 	keybase1 "github.com/keybase/client/protocol/go"
 	"github.com/syndtr/goleveldb/leveldb"
-	"github.com/syndtr/goleveldb/leveldb/opt"
 	"github.com/syndtr/goleveldb/leveldb/storage"
 	"golang.org/x/net/context"
 )
@@ -30,27 +29,19 @@ type MDServerLocal struct {
 
 func newMDServerLocalWithStorage(config Config,
 	handleStorage, idStorage, mdStorage, devStorage storage.Storage) (*MDServerLocal, error) {
-	handleDb, err := leveldb.Open(handleStorage, &opt.Options{
-		Compression: opt.NoCompression,
-	})
+	handleDb, err := leveldb.Open(handleStorage, leveldbOptions)
 	if err != nil {
 		return nil, err
 	}
-	idDb, err := leveldb.Open(idStorage, &opt.Options{
-		Compression: opt.NoCompression,
-	})
+	idDb, err := leveldb.Open(idStorage, leveldbOptions)
 	if err != nil {
 		return nil, err
 	}
-	mdDb, err := leveldb.Open(mdStorage, &opt.Options{
-		Compression: opt.NoCompression,
-	})
+	mdDb, err := leveldb.Open(mdStorage, leveldbOptions)
 	if err != nil {
 		return nil, err
 	}
-	devDb, err := leveldb.Open(devStorage, &opt.Options{
-		Compression: opt.NoCompression,
-	})
+	devDb, err := leveldb.Open(devStorage, leveldbOptions)
 	if err != nil {
 		return nil, err
 	}

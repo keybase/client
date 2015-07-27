@@ -4,7 +4,6 @@ import (
 	"fmt"
 
 	"github.com/syndtr/goleveldb/leveldb"
-	"github.com/syndtr/goleveldb/leveldb/opt"
 	"github.com/syndtr/goleveldb/leveldb/storage"
 	"golang.org/x/net/context"
 )
@@ -23,11 +22,7 @@ type KeyServerLocal struct {
 var _ KeyOps = (*KeyServerLocal)(nil)
 
 func newKeyServerLocalWithStorage(codec Codec, storage storage.Storage) (*KeyServerLocal, error) {
-	db, err := leveldb.Open(
-		storage,
-		&opt.Options{
-			Compression: opt.NoCompression,
-		})
+	db, err := leveldb.Open(storage, leveldbOptions)
 	if err != nil {
 		return nil, err
 	}

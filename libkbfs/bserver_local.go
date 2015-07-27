@@ -2,9 +2,9 @@ package libkbfs
 
 import (
 	"encoding/hex"
+
 	"github.com/keybase/client/go/libkb"
 	"github.com/syndtr/goleveldb/leveldb"
-	"github.com/syndtr/goleveldb/leveldb/opt"
 	"github.com/syndtr/goleveldb/leveldb/storage"
 	"golang.org/x/net/context"
 )
@@ -26,11 +26,7 @@ var _ BlockServer = (*BlockServerLocal)(nil)
 
 func newBlockServerLocalWithStorage(config Config, storage storage.Storage) (
 	*BlockServerLocal, error) {
-	db, err := leveldb.Open(
-		storage,
-		&opt.Options{
-			Compression: opt.NoCompression,
-		})
+	db, err := leveldb.Open(storage, leveldbOptions)
 	if err != nil {
 		return nil, err
 	}
