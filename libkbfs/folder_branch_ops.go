@@ -2663,24 +2663,9 @@ func (fbo *FolderBranchOps) syncLocked(ctx context.Context, file path) error {
 		return err
 	}
 
-	// Make the block available at the new ID, but keep it under the
-	// old ID in case someone tries to read the file under the old ID
-	// before the sync is complete.
-	err = func() error {
-		fbo.blockLock.Lock()
-		defer fbo.blockLock.Unlock()
-		err := bcache.Put(newPath.tailPointer(), fbo.id(), fblock)
-		if err != nil {
-			return err
-		}
-		deferredDirtyDeletes = append(deferredDirtyDeletes, func() error {
-			return bcache.DeleteDirty(file.tailPointer(), file.Branch)
-		})
-		return nil
-	}()
-	if err != nil {
-		return err
-	}
+	deferredDirtyDeletes = append(deferredDirtyDeletes, func() error {
+		return bcache.DeleteDirty(file.tailPointer(), file.Branch)
+	})
 
 	err = fbo.finalizeWriteLocked(ctx, md, newBps, []path{newPath})
 	if err != nil {
