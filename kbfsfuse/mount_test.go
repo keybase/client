@@ -17,6 +17,7 @@ import (
 	keybase1 "github.com/keybase/client/protocol/go"
 	"github.com/keybase/kbfs/libkbfs"
 	"golang.org/x/net/context"
+	"golang.org/x/sys/unix"
 )
 
 func makeFS(t testing.TB, config *libkbfs.ConfigLocal) *fstestutil.Mount {
@@ -1077,7 +1078,7 @@ func TestSetattrFileMtimeNow(t *testing.T) {
 	}
 
 	// cause mtime to be set to now
-	if err := touch(p); err != nil {
+	if err := unix.Utimes(p, nil); err != nil {
 		t.Fatalf("touch failed: %v", err)
 	}
 	now := time.Now()
@@ -1140,7 +1141,7 @@ func TestSetattrDirMtimeNow(t *testing.T) {
 	}
 
 	// cause mtime to be set to now
-	if err := touch(p); err != nil {
+	if err := unix.Utimes(p, nil); err != nil {
 		t.Fatalf("touch failed: %v", err)
 	}
 	now := time.Now()
