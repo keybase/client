@@ -3660,7 +3660,7 @@ func TestSyncDirtyDupBlockSuccess(t *testing.T) {
 	si.op.addWrite(0, 10)
 
 	config.BlockCache().PutDirty(bNode.BlockPointer, p.Branch, bBlock)
-	config.mockCrypto.EXPECT().Hash(aBlock.Contents).Times(2).
+	config.mockCrypto.EXPECT().Hash(aBlock.Contents).
 		Return(libkb.NodeHashShort{aNode.BlockPointer.ID[0]}, nil)
 	testPutBlockInCache(config, node.BlockPointer, id, rootBlock)
 	testPutBlockInCache(config, aNode.BlockPointer, id, aBlock)

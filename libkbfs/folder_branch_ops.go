@@ -1214,6 +1214,11 @@ func (fbo *FolderBranchOps) finalizeBlocksLocked(bps *blockPutState,
 				delete(fbo.deCache, oldPtrStripped)
 			}
 		}
+		// only cache this block if we made a brand new block, not if
+		// we just incref'd some other block.
+		if !newPtr.IsFirstRef() {
+			continue
+		}
 		if err := bcache.Put(newPtr, fbo.id(), blockState.block); err != nil {
 			return err
 		}
