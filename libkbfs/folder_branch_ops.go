@@ -407,7 +407,7 @@ func (fbo *FolderBranchOps) initMDLocked(
 		Mtime:     time.Now().UnixNano(),
 		Ctime:     time.Now().UnixNano(),
 	}
-	md.AddOp(newCreateOp("", BlockPointer{}))
+	md.AddOp(newCreateOp("", BlockPointer{}, Dir))
 	md.AddRefBlock(md.data.Dir.BlockInfo)
 	md.UnrefBytes = 0
 
@@ -1320,7 +1320,7 @@ func (fbo *FolderBranchOps) createEntryLocked(
 		return nil, DirEntry{}, NameExistsError{name}
 	}
 
-	md.AddOp(newCreateOp(name, dirPath.tailPointer()))
+	md.AddOp(newCreateOp(name, dirPath.tailPointer(), entryType))
 	// create new data block
 	var newBlock Block
 	// XXX: for now, put a unique ID in every new block, to make sure it
@@ -1412,7 +1412,7 @@ func (fbo *FolderBranchOps) createLinkLocked(
 		return DirEntry{}, NameExistsError{fromName}
 	}
 
-	md.AddOp(newCreateOp(fromName, dirPath.tailPointer()))
+	md.AddOp(newCreateOp(fromName, dirPath.tailPointer(), Sym))
 
 	// Create a direntry for the link, and then sync
 	dblock.Children[fromName] = DirEntry{

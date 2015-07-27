@@ -1174,6 +1174,8 @@ func testCreateEntrySuccess(t *testing.T, entryType EntryType) {
 		t.Errorf("Incorrect dir update in op: %v vs. %v", co.Dir, dirUpdate)
 	} else if co.NewName != "b" {
 		t.Errorf("Incorrect name in op: %v", co.NewName)
+	} else if co.Type != entryType {
+		t.Errorf("Incorrect entry type in op: %v", co.Type)
 	}
 }
 

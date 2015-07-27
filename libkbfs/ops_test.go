@@ -17,7 +17,7 @@ func TestOpSerialization(t *testing.T) {
 	ops := testOps{}
 	// add a couple ops of different types
 	ops.Ops = append(ops.Ops,
-		newCreateOp("test1", BlockPointer{ID: BlockID{42}}),
+		newCreateOp("test1", BlockPointer{ID: BlockID{42}}, File),
 		newRmOp("test2", BlockPointer{ID: BlockID{43}}))
 
 	buf, err := c.Encode(ops)

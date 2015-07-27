@@ -69,9 +69,10 @@ type createOp struct {
 	OpCommon
 	NewName string      `codec:"n"`
 	Dir     blockUpdate `codec:"d"`
+	Type    EntryType   `codec:"t"`
 }
 
-func newCreateOp(name string, oldDir BlockPointer) *createOp {
+func newCreateOp(name string, oldDir BlockPointer, t EntryType) *createOp {
 	co := &createOp{
 		OpCommon: OpCommon{
 			customUpdates: make(map[BlockPointer]*blockUpdate),
@@ -80,6 +81,7 @@ func newCreateOp(name string, oldDir BlockPointer) *createOp {
 	}
 	co.Dir.Unref = oldDir
 	co.customUpdates[oldDir] = &co.Dir
+	co.Type = t
 	return co
 }
 
