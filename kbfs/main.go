@@ -51,7 +51,7 @@ func realMain() (exitStatus int) {
 		return
 	}
 
-	config, err := libkbfs.Init(localUser, *cpuprofile, *memprofile)
+	config, err := libkbfs.Init(localUser, *cpuprofile, *memprofile, nil)
 	if err != nil {
 		printError("kbfs", err)
 		exitStatus = 1

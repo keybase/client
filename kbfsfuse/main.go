@@ -6,6 +6,8 @@ import (
 	"flag"
 	"log"
 
+	"bazil.org/fuse"
+
 	"github.com/keybase/kbfs/libkbfs"
 	"golang.org/x/net/context"
 )
@@ -38,7 +40,15 @@ func main() {
 		printUsageAndExit()
 	}
 
-	config, err := libkbfs.Init(localUser, *cpuprofile, *memprofile)
+	mountpoint := flag.Arg(0)
+	config, err := libkbfs.Init(localUser, *cpuprofile, *memprofile, func() {
+		// TODO: Only try to unmount if the mount process
+		// finished successfully.
+		err := fuse.Unmount(mountpoint)
+		if err != nil {
+			log.Print(err)
+		}
+	})
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -46,7 +56,7 @@ func main() {
 	defer libkbfs.Shutdown(*memprofile)
 
 	ctx := context.Background()
-	if err := runNewFUSE(ctx, config, *debug, flag.Arg(0)); err != nil {
+	if err := runNewFUSE(ctx, config, *debug, mountpoint); err != nil {
 		log.Fatalf("error serving filesystem: %v", err)
 	}
 }

@@ -18,7 +18,7 @@ import (
 // Init should be called at the beginning of main. Shutdown (see
 // below) should then be called at the end of main (usually via
 // defer).
-func Init(localUser, cpuProfilePath, memProfilePath string) (Config, error) {
+func Init(localUser, cpuProfilePath, memProfilePath string, onSignalFn func()) (Config, error) {
 	if cpuProfilePath != "" {
 		// Let the GC/OS clean up the file handle.
 		f, err := os.Create(cpuProfilePath)
@@ -34,6 +34,10 @@ func Init(localUser, cpuProfilePath, memProfilePath string) (Config, error) {
 		_ = <-sigchan
 
 		Shutdown(memProfilePath)
+
+		if onSignalFn != nil {
+			onSignalFn()
+		}
 
 		os.Exit(1)
 	}()
