@@ -1011,8 +1011,8 @@
   }];
 }
 
-- (void)revokeSigsWithSessionID:(NSInteger)sessionID sigIDs:(NSArray *)sigIDs seqnos:(NSArray *)seqnos completion:(void (^)(NSError *error))completion {
-  NSDictionary *params = @{@"sessionID": @(sessionID), @"sigIDs": KBRValue(sigIDs), @"seqnos": KBRValue(seqnos)};
+- (void)revokeSigsWithSessionID:(NSInteger)sessionID sigIDs:(NSArray *)sigIDs completion:(void (^)(NSError *error))completion {
+  NSDictionary *params = @{@"sessionID": @(sessionID), @"sigIDs": KBRValue(sigIDs)};
   [self.client sendRequestWithMethod:@"keybase.1.revoke.revokeSigs" params:params sessionId:self.sessionId completion:^(NSError *error, id retval) {
     completion(error);
   }];
@@ -2444,7 +2444,6 @@
   if ((self = [super initWithParams:params])) {
     self.sessionID = [params[0][@"sessionID"] integerValue];
     self.sigIDs = KBRValidateArray(params[0][@"sigIDs"], NSString.class);
-    self.seqnos = KBRValidateArray(params[0][@"seqnos"], NSNumber.class);
   }
   return self;
 }

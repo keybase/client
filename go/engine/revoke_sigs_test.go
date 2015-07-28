@@ -41,16 +41,21 @@ func TestRevokeSig(t *testing.T) {
 	}
 	assertNumDevicesAndKeys(t, u, 2, 6)
 
-	// First test that a bad seqno fails the revoke.
-	revokeEngine := NewRevokeSigsEngine(nil, []int{9999}, tc.G)
+	// First test that a bad sig id fails the revoke.
+	revokeEngine := NewRevokeSigsEngine([]keybase1.SigID{"9999"}, tc.G)
 	err = RunEngine(revokeEngine, ctx)
 	if err == nil {
 		t.Fatal(err)
 	}
 	assertNumDevicesAndKeys(t, u, 2, 6) // no change
 
-	// Now make sure a good seqno works.
-	revokeEngine = NewRevokeSigsEngine(nil, []int{FirstPGPSigSeqno}, tc.G)
+	// Check it with real sig id
+	realUser, err := libkb.LoadUser(libkb.LoadUserArg{Name: u.Username})
+	if err != nil {
+		t.Fatal(err)
+	}
+	sigID := realUser.GetSigIDFromSeqno(FirstPGPSigSeqno)
+	revokeEngine = NewRevokeSigsEngine([]keybase1.SigID{sigID}, tc.G)
 	err = RunEngine(revokeEngine, ctx)
 	if err != nil {
 		t.Fatal(err)
@@ -58,23 +63,10 @@ func TestRevokeSig(t *testing.T) {
 	assertNumDevicesAndKeys(t, u, 2, 5) // The first PGP key is gone.
 
 	// Revoking the same key again should fail.
-	revokeEngine = NewRevokeSigsEngine(nil, []int{FirstPGPSigSeqno}, tc.G)
+	revokeEngine = NewRevokeSigsEngine([]keybase1.SigID{sigID}, tc.G)
 	err = RunEngine(revokeEngine, ctx)
 	if err == nil {
 		t.Fatal(err)
 	}
 	assertNumDevicesAndKeys(t, u, 2, 5) // no change
-
-	// Check it with a raw sig id too.
-	realUser, err := libkb.LoadUser(libkb.LoadUserArg{Name: u.Username})
-	if err != nil {
-		t.Fatal(err)
-	}
-	sigID := realUser.GetSigIDFromSeqno(SecondPGPSigSeqno)
-	revokeEngine = NewRevokeSigsEngine([]keybase1.SigID{sigID}, nil, tc.G)
-	err = RunEngine(revokeEngine, ctx)
-	if err != nil {
-		t.Fatal(err)
-	}
-	assertNumDevicesAndKeys(t, u, 2, 4) // The second PGP key is gone.
 }

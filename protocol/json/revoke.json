@@ -192,12 +192,6 @@
           "type" : "array",
           "items" : "SigID"
         }
-      }, {
-        "name" : "seqnos",
-        "type" : {
-          "type" : "array",
-          "items" : "int"
-        }
       } ],
       "response" : "null"
     }

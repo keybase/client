@@ -2478,7 +2478,6 @@ type RevokeDeviceArg struct {
 type RevokeSigsArg struct {
 	SessionID int     `codec:"sessionID" json:"sessionID"`
 	SigIDs    []SigID `codec:"sigIDs" json:"sigIDs"`
-	Seqnos    []int   `codec:"seqnos" json:"seqnos"`
 }
 
 type RevokeInterface interface {
