@@ -69,9 +69,10 @@ type createOp struct {
 	OpCommon
 	NewName string      `codec:"n"`
 	Dir     blockUpdate `codec:"d"`
+	Type    EntryType   `codec:"t"`
 }
 
-func newCreateOp(name string, oldDir BlockPointer) *createOp {
+func newCreateOp(name string, oldDir BlockPointer, t EntryType) *createOp {
 	co := &createOp{
 		OpCommon: OpCommon{
 			customUpdates: make(map[BlockPointer]*blockUpdate),
@@ -80,6 +81,7 @@ func newCreateOp(name string, oldDir BlockPointer) *createOp {
 	}
 	co.Dir.Unref = oldDir
 	co.customUpdates[oldDir] = &co.Dir
+	co.Type = t
 	return co
 }
 
@@ -181,15 +183,24 @@ func (so *syncOp) SizeExceptUpdates() uint64 {
 	return uint64(len(so.Writes) * 16)
 }
 
+type attrChange uint16
+
+const (
+	exAttr attrChange = iota
+	mtimeAttr
+)
+
 // setAttrOp is an op that represents changing the attributes of a
 // file/subdirectory with in a directory.
 type setAttrOp struct {
 	OpCommon
 	Name string      `codec:"n"`
 	Dir  blockUpdate `codec:"d"`
+	Attr attrChange  `codec:"a"`
 }
 
-func newSetAttrOp(name string, oldDir BlockPointer) *setAttrOp {
+func newSetAttrOp(name string, oldDir BlockPointer,
+	attr attrChange) *setAttrOp {
 	sao := &setAttrOp{
 		OpCommon: OpCommon{
 			customUpdates: make(map[BlockPointer]*blockUpdate),
@@ -198,6 +209,7 @@ func newSetAttrOp(name string, oldDir BlockPointer) *setAttrOp {
 	}
 	sao.Dir.Unref = oldDir
 	sao.customUpdates[oldDir] = &sao.Dir
+	sao.Attr = attr
 	return sao
 }
 

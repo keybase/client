@@ -1174,6 +1174,8 @@ func testCreateEntrySuccess(t *testing.T, entryType EntryType) {
 		t.Errorf("Incorrect dir update in op: %v vs. %v", co.Dir, dirUpdate)
 	} else if co.NewName != "b" {
 		t.Errorf("Incorrect name in op: %v", co.NewName)
+	} else if co.Type != entryType {
+		t.Errorf("Incorrect entry type in op: %v", co.Type)
 	}
 }
 
@@ -3152,6 +3154,8 @@ func testSetExSuccess(t *testing.T, entryType EntryType, ex bool) {
 				dirUpdate)
 		} else if sao.Name != "a" {
 			t.Errorf("Incorrect name in op: %v", sao.Name)
+		} else if sao.Attr != exAttr {
+			t.Errorf("Incorrect attr in op: %v", sao.Attr)
 		}
 	}
 }
@@ -3274,6 +3278,8 @@ func TestSetMtimeSuccess(t *testing.T) {
 			dirUpdate)
 	} else if sao.Name != "a" {
 		t.Errorf("Incorrect name in op: %v", sao.Name)
+	} else if sao.Attr != mtimeAttr {
+		t.Errorf("Incorrect attr in op: %v", sao.Attr)
 	}
 }
 
