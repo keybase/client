@@ -20,9 +20,9 @@ func (c *CmdSigsRevoke) ParseArgv(ctx *cli.Context) error {
 		return fmt.Errorf("No arguments given to sigs revoke.")
 	}
 
-    for _, arg := range ctx.Args() {
-        c.sigIDs = append(c.sigIDs, keybase1.SigID(arg))
-    }
+	for _, arg := range ctx.Args() {
+		c.sigIDs = append(c.sigIDs, keybase1.SigID(arg))
+	}
 
 	return nil
 }
