@@ -27,7 +27,7 @@ func (kss *KeychainSecretStore) StoreSecret(secret []byte) (err error) {
 	attributes := kc.GenericPasswordAttributes{
 		ServiceName: keychainServiceName,
 		AccountName: kss.accountName,
-		Password:    encodedSecret,
+		Password:    []byte(encodedSecret),
 	}
 	err = kc.RemoveAndAddGenericPassword(&attributes)
 	return
@@ -44,13 +44,12 @@ func (kss *KeychainSecretStore) RetrieveSecret() (secret []byte, err error) {
 		AccountName: kss.accountName,
 	}
 
-	var encodedSecret string
-	encodedSecret, err = kc.FindGenericPassword(&attributes)
+	encodedSecret, err := kc.FindGenericPassword(&attributes)
 	if err != nil {
 		return
 	}
 
-	secret, err = base64.StdEncoding.DecodeString(encodedSecret)
+	secret, err = base64.StdEncoding.DecodeString(string(encodedSecret))
 	if err != nil {
 		secret = nil
 	}
