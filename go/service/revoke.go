@@ -39,6 +39,6 @@ func (h *RevokeHandler) RevokeSigs(arg keybase1.RevokeSigsArg) error {
 		LogUI:    h.getLogUI(arg.SessionID),
 		SecretUI: h.getSecretUI(arg.SessionID),
 	}
-	eng := engine.NewRevokeSigsEngine(arg.SigIDs, arg.Seqnos, G)
+	eng := engine.NewRevokeSigsEngine(arg.SigIDs, G)
 	return engine.RunEngine(eng, &ctx)
 }

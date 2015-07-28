@@ -10,13 +10,11 @@ import (
 type RevokeSigsEngine struct {
 	libkb.Contextified
 	sigIDs []keybase1.SigID
-	seqnos []int
 }
 
-func NewRevokeSigsEngine(sigIDs []keybase1.SigID, seqnos []int, g *libkb.GlobalContext) *RevokeSigsEngine {
+func NewRevokeSigsEngine(sigIDs []keybase1.SigID, g *libkb.GlobalContext) *RevokeSigsEngine {
 	return &RevokeSigsEngine{
 		sigIDs:       sigIDs,
-		seqnos:       seqnos,
 		Contextified: libkb.NewContextified(g),
 	}
 }
@@ -45,13 +43,6 @@ func (e *RevokeSigsEngine) SubConsumers() []libkb.UIConsumer {
 func (e *RevokeSigsEngine) getSigIDsToRevoke(me *libkb.User) ([]keybase1.SigID, error) {
 	ret := make([]keybase1.SigID, len(e.sigIDs))
 	copy(ret, e.sigIDs)
-	for _, seqno := range e.seqnos {
-		sigID := me.GetSigIDFromSeqno(seqno)
-		if sigID.IsNil() {
-			return nil, fmt.Errorf("Sequence number %d did not correspond to any signature.", seqno)
-		}
-		ret = append(ret, sigID)
-	}
 	for _, sigID := range ret {
 		valid, err := me.IsSigIDActive(sigID)
 		if err != nil {

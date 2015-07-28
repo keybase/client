@@ -2,7 +2,6 @@ package client
 
 import (
 	"fmt"
-	"strconv"
 
 	"github.com/keybase/cli"
 	"github.com/keybase/client/go/engine"
@@ -14,27 +13,17 @@ import (
 
 type CmdSigsRevoke struct {
 	sigIDs []keybase1.SigID
-	seqnos []int
 }
 
 func (c *CmdSigsRevoke) ParseArgv(ctx *cli.Context) error {
 	if len(ctx.Args()) == 0 {
 		return fmt.Errorf("No arguments given to sigs revoke.")
 	}
-	if ctx.Bool("seqno") {
-		for _, arg := range ctx.Args() {
-			num, err := strconv.ParseUint(arg, 10 /* base */, 32 /* size */)
-			if err != nil {
-				return err
-			}
-			c.seqnos = append(c.seqnos, int(num))
-		}
-	} else {
-		for _, arg := range ctx.Args() {
-			c.sigIDs = append(c.sigIDs, keybase1.SigID(arg))
-		}
 
+	for _, arg := range ctx.Args() {
+		c.sigIDs = append(c.sigIDs, keybase1.SigID(arg))
 	}
+
 	return nil
 }
 
@@ -54,12 +43,11 @@ func (c *CmdSigsRevoke) RunClient() error {
 
 	return cli.RevokeSigs(keybase1.RevokeSigsArg{
 		SigIDs: c.sigIDs,
-		Seqnos: c.seqnos,
 	})
 }
 
 func (c *CmdSigsRevoke) Run() error {
-	eng := engine.NewRevokeSigsEngine(c.sigIDs, c.seqnos, G)
+	eng := engine.NewRevokeSigsEngine(c.sigIDs, G)
 	ctx := engine.Context{
 		LogUI:    GlobUI.GetLogUI(),
 		SecretUI: GlobUI.GetSecretUI(),
@@ -70,16 +58,11 @@ func (c *CmdSigsRevoke) Run() error {
 func NewCmdSigsRevoke(cl *libcmdline.CommandLine) cli.Command {
 	return cli.Command{
 		Name:  "revoke",
-		Usage: "keybase sigs revoke [--seqno] ARGS...",
+		Usage: "keybase sigs revoke ARGS...",
 		Action: func(c *cli.Context) {
 			cl.ChooseCommand(&CmdSigsRevoke{}, "revoke", c)
 		},
-		Flags: []cli.Flag{
-			cli.BoolFlag{
-				Name:  "seqno",
-				Usage: "Interpret args as signature sequence numbers, rather than sig IDs.",
-			},
-		},
+		Flags: nil,
 	}
 }
 
