@@ -44,8 +44,7 @@ func (kss *KeychainSecretStore) RetrieveSecret() (secret []byte, err error) {
 		AccountName: kss.accountName,
 	}
 
-	var encodedSecret []byte
-	encodedSecret, err = kc.FindGenericPassword(&attributes)
+	encodedSecret, err := kc.FindGenericPassword(&attributes)
 	if err != nil {
 		return
 	}
