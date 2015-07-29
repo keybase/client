@@ -35,6 +35,7 @@ func RegisterProtocols(srv *rpc2.Server, xp *rpc2.Transport) error {
 		keybase1.CtlProtocol(CtlHandler{}),
 		keybase1.DeviceProtocol(NewDeviceHandler(xp)),
 		keybase1.DoctorProtocol(NewDoctorHandler(xp)),
+		keybase1.FavoriteProtocol(NewFavoriteHandler(xp)),
 		keybase1.IdentifyProtocol(NewIdentifyHandler(xp)),
 		keybase1.LoginProtocol(NewLoginHandler(xp)),
 		keybase1.ProveProtocol(NewProveHandler(xp)),
