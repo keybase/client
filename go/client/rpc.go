@@ -155,3 +155,11 @@ func GetAccountClient() (cli keybase1.AccountClient, err error) {
 	}
 	return
 }
+
+func GetFavoriteClient() (cli keybase1.FavoriteClient, err error) {
+	var rcli *rpc2.Client
+	if rcli, _, err = GetRPCClient(); err == nil {
+		cli = keybase1.FavoriteClient{Cli: rcli}
+	}
+	return
+}
