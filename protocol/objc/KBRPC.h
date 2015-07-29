@@ -187,6 +187,21 @@ typedef NS_ENUM (NSInteger, KBRDoctorFixType) {
 
 @end
 
+@interface KBRFolder : KBRObject
+@property NSString *name;
+@property BOOL private;
+@property BOOL notificationsOn;
+@end
+
+@interface KBRFavoriteRequest : KBRRequest
+- (void)favoriteAddWithSessionID:(NSInteger)sessionID folder:(KBRFolder *)folder completion:(void (^)(NSError *error))completion;
+
+- (void)favoriteDeleteWithSessionID:(NSInteger)sessionID folder:(KBRFolder *)folder completion:(void (^)(NSError *error))completion;
+
+- (void)favoriteListWithSessionID:(NSInteger)sessionID completion:(void (^)(NSError *error, NSArray *items))completion;
+
+@end
+
 @interface KBRGPGKey : KBRObject
 @property NSString *algorithm;
 @property NSString *keyID;
@@ -979,6 +994,17 @@ typedef NS_ENUM (NSInteger, KBRPromptDefault) {
 @interface KBRDisplayResultRequestParams : KBRRequestParams
 @property NSInteger sessionID;
 @property NSString *message;
+@end
+@interface KBRFavoriteAddRequestParams : KBRRequestParams
+@property NSInteger sessionID;
+@property KBRFolder *folder;
+@end
+@interface KBRFavoriteDeleteRequestParams : KBRRequestParams
+@property NSInteger sessionID;
+@property KBRFolder *folder;
+@end
+@interface KBRFavoriteListRequestParams : KBRRequestParams
+@property NSInteger sessionID;
 @end
 @interface KBRWantToAddGPGKeyRequestParams : KBRRequestParams
 @property NSInteger sessionID;

@@ -290,6 +290,39 @@
 
 @end
 
+@implementation KBRFolder
+@end
+
+@implementation KBRFavoriteRequest
+
+- (void)favoriteAddWithSessionID:(NSInteger)sessionID folder:(KBRFolder *)folder completion:(void (^)(NSError *error))completion {
+  NSDictionary *params = @{@"sessionID": @(sessionID), @"folder": KBRValue(folder)};
+  [self.client sendRequestWithMethod:@"keybase.1.favorite.favoriteAdd" params:params sessionId:self.sessionId completion:^(NSError *error, id retval) {
+    completion(error);
+  }];
+}
+
+- (void)favoriteDeleteWithSessionID:(NSInteger)sessionID folder:(KBRFolder *)folder completion:(void (^)(NSError *error))completion {
+  NSDictionary *params = @{@"sessionID": @(sessionID), @"folder": KBRValue(folder)};
+  [self.client sendRequestWithMethod:@"keybase.1.favorite.favoriteDelete" params:params sessionId:self.sessionId completion:^(NSError *error, id retval) {
+    completion(error);
+  }];
+}
+
+- (void)favoriteListWithSessionID:(NSInteger)sessionID completion:(void (^)(NSError *error, NSArray *items))completion {
+  NSDictionary *params = @{@"sessionID": @(sessionID)};
+  [self.client sendRequestWithMethod:@"keybase.1.favorite.favoriteList" params:params sessionId:self.sessionId completion:^(NSError *error, id retval) {
+    if (error) {
+        completion(error, nil);
+        return;
+      }
+      NSArray *results = retval ? [MTLJSONAdapter modelsOfClass:KBRFolder.class fromJSONArray:retval error:&error] : nil;
+      completion(error, results);
+  }];
+}
+
+@end
+
 @implementation KBRGPGKey
 + (NSValueTransformer *)identitiesJSONTransformer { return [MTLJSONAdapter arrayTransformerWithModelClass:KBRPGPIdentity.class]; }
 @end
@@ -1604,6 +1637,41 @@
   if ((self = [super initWithParams:params])) {
     self.sessionID = [params[0][@"sessionID"] integerValue];
     self.message = params[0][@"message"];
+  }
+  return self;
+}
+
+@end
+
+@implementation KBRFavoriteAddRequestParams
+
+- (instancetype)initWithParams:(NSArray *)params {
+  if ((self = [super initWithParams:params])) {
+    self.sessionID = [params[0][@"sessionID"] integerValue];
+    self.folder = [MTLJSONAdapter modelOfClass:KBRFolder.class fromJSONDictionary:params[0][@"folder"] error:nil];
+  }
+  return self;
+}
+
+@end
+
+@implementation KBRFavoriteDeleteRequestParams
+
+- (instancetype)initWithParams:(NSArray *)params {
+  if ((self = [super initWithParams:params])) {
+    self.sessionID = [params[0][@"sessionID"] integerValue];
+    self.folder = [MTLJSONAdapter modelOfClass:KBRFolder.class fromJSONDictionary:params[0][@"folder"] error:nil];
+  }
+  return self;
+}
+
+@end
+
+@implementation KBRFavoriteListRequestParams
+
+- (instancetype)initWithParams:(NSArray *)params {
+  if ((self = [super initWithParams:params])) {
+    self.sessionID = [params[0][@"sessionID"] integerValue];
   }
   return self;
 }

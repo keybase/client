@@ -20,6 +20,7 @@ build-stamp: \
 	json/device.json \
 	json/doctor.json \
 	json/doctor_ui.json \
+	json/favorite.json \
 	json/gpg_ui.json \
 	json/identify.json \
 	json/identify_ui.json \

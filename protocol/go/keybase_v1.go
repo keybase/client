@@ -700,6 +700,82 @@ func (c DoctorUiClient) DisplayResult(__arg DisplayResultArg) (err error) {
 	return
 }
 
+type Folder struct {
+	Name            string `codec:"name" json:"name"`
+	Private         bool   `codec:"private" json:"private"`
+	NotificationsOn bool   `codec:"notificationsOn" json:"notificationsOn"`
+}
+
+type FavoriteAddArg struct {
+	SessionID int    `codec:"sessionID" json:"sessionID"`
+	Folder    Folder `codec:"folder" json:"folder"`
+}
+
+type FavoriteDeleteArg struct {
+	SessionID int    `codec:"sessionID" json:"sessionID"`
+	Folder    Folder `codec:"folder" json:"folder"`
+}
+
+type FavoriteListArg struct {
+	SessionID int `codec:"sessionID" json:"sessionID"`
+}
+
+type FavoriteInterface interface {
+	FavoriteAdd(FavoriteAddArg) error
+	FavoriteDelete(FavoriteDeleteArg) error
+	FavoriteList(int) ([]Folder, error)
+}
+
+func FavoriteProtocol(i FavoriteInterface) rpc2.Protocol {
+	return rpc2.Protocol{
+		Name: "keybase.1.favorite",
+		Methods: map[string]rpc2.ServeHook{
+			"favoriteAdd": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
+				args := make([]FavoriteAddArg, 1)
+				if err = nxt(&args); err == nil {
+					err = i.FavoriteAdd(args[0])
+				}
+				return
+			},
+			"favoriteDelete": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
+				args := make([]FavoriteDeleteArg, 1)
+				if err = nxt(&args); err == nil {
+					err = i.FavoriteDelete(args[0])
+				}
+				return
+			},
+			"favoriteList": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
+				args := make([]FavoriteListArg, 1)
+				if err = nxt(&args); err == nil {
+					ret, err = i.FavoriteList(args[0].SessionID)
+				}
+				return
+			},
+		},
+	}
+
+}
+
+type FavoriteClient struct {
+	Cli GenericClient
+}
+
+func (c FavoriteClient) FavoriteAdd(__arg FavoriteAddArg) (err error) {
+	err = c.Cli.Call("keybase.1.favorite.favoriteAdd", []interface{}{__arg}, nil)
+	return
+}
+
+func (c FavoriteClient) FavoriteDelete(__arg FavoriteDeleteArg) (err error) {
+	err = c.Cli.Call("keybase.1.favorite.favoriteDelete", []interface{}{__arg}, nil)
+	return
+}
+
+func (c FavoriteClient) FavoriteList(sessionID int) (res []Folder, err error) {
+	__arg := FavoriteListArg{SessionID: sessionID}
+	err = c.Cli.Call("keybase.1.favorite.favoriteList", []interface{}{__arg}, &res)
+	return
+}
+
 type GPGKey struct {
 	Algorithm  string        `codec:"algorithm" json:"algorithm"`
 	KeyID      string        `codec:"keyID" json:"keyID"`
