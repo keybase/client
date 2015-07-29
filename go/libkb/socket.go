@@ -86,6 +86,12 @@ func (g *GlobalContext) ClearSocketError() {
 }
 
 func (g *GlobalContext) GetSocket() (net.Conn, *rpc2.Transport, error) {
+
+	// Protect all global socket wrapper manipulation with a
+	// lock to prevent race conditions.
+	g.socketWrapperMu.Lock()
+	defer g.socketWrapperMu.Unlock()
+
 	needWrapper := false
 	if g.SocketWrapper == nil {
 		needWrapper = true
@@ -105,9 +111,7 @@ func (g *GlobalContext) GetSocket() (net.Conn, *rpc2.Transport, error) {
 				sw.xp = rpc2.NewTransport(sw.conn, NewRPCLogFactory(), WrapError)
 			}
 		}
-		g.socketWrapperMu.Lock()
 		g.SocketWrapper = &sw
-		g.socketWrapperMu.Unlock()
 	}
 
 	return g.SocketWrapper.conn, g.SocketWrapper.xp, g.SocketWrapper.err
