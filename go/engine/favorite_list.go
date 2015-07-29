@@ -2,6 +2,7 @@ package engine
 
 import (
 	"github.com/keybase/client/go/libkb"
+	keybase1 "github.com/keybase/client/protocol/go"
 )
 
 // FavoriteList is an engine.
@@ -39,4 +40,9 @@ func (e *FavoriteList) SubConsumers() []libkb.UIConsumer {
 // Run starts the engine.
 func (e *FavoriteList) Run(ctx *Context) error {
 	return nil
+}
+
+// Favorites returns the list of favorites that Run generated.
+func (e *FavoriteList) Favorites() []keybase1.Folder {
+	return e.G().FavoriteCache.List()
 }

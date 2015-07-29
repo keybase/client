@@ -45,7 +45,7 @@ func (c *Cache) List() []keybase1.Folder {
 	return keys
 }
 
-// sort helper to sort Folder by Name field.
+// sort helper to sort []keybase1.Folder by Name field.
 type byName []keybase1.Folder
 
 func (b byName) Len() int           { return len(b) }

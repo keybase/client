@@ -1,17 +1,22 @@
 package engine
 
 import (
+	"fmt"
+
 	"github.com/keybase/client/go/libkb"
+	keybase1 "github.com/keybase/client/protocol/go"
 )
 
 // FavoriteDelete is an engine.
 type FavoriteDelete struct {
+	arg *keybase1.FavoriteDeleteArg
 	libkb.Contextified
 }
 
 // NewFavoriteDelete creates a FavoriteDelete engine.
-func NewFavoriteDelete(g *libkb.GlobalContext) *FavoriteDelete {
+func NewFavoriteDelete(arg *keybase1.FavoriteDeleteArg, g *libkb.GlobalContext) *FavoriteDelete {
 	return &FavoriteDelete{
+		arg:          arg,
 		Contextified: libkb.NewContextified(g),
 	}
 }
@@ -38,5 +43,9 @@ func (e *FavoriteDelete) SubConsumers() []libkb.UIConsumer {
 
 // Run starts the engine.
 func (e *FavoriteDelete) Run(ctx *Context) error {
+	if e.arg == nil {
+		return fmt.Errorf("FavoriteDelete arg is nil")
+	}
+	e.G().FavoriteCache.Delete(e.arg.Folder)
 	return nil
 }

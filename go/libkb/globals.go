@@ -20,6 +20,7 @@ import (
 	"runtime"
 	"sync"
 
+	"github.com/keybase/client/go/cache/favcache"
 	"github.com/keybase/client/go/logger"
 	keybase1 "github.com/keybase/client/protocol/go"
 )
@@ -27,19 +28,20 @@ import (
 type ShutdownHook func() error
 
 type GlobalContext struct {
-	Log             *logger.Logger // Handles all logging
-	Env             *Env           // Env variables, cmdline args & config
-	Keyrings        *Keyrings      // Gpg Keychains holding keys
-	API             API            // How to make a REST call to the server
-	ResolveCache    *ResolveCache  // cache of resolve results
-	LocalDb         *JSONLocalDb   // Local DB for cache
-	MerkleClient    *MerkleClient  // client for querying server's merkle sig tree
-	XAPI            ExternalAPI    // for contacting Twitter, Github, etc.
-	Output          io.Writer      // where 'Stdout'-style output goes
-	ProofCache      *ProofCache    // where to cache proof results
-	GpgClient       *GpgCLI        // A standard GPG-client (optional)
-	ShutdownHooks   []ShutdownHook // on shutdown, fire these...
-	SocketInfo      SocketInfo     // which socket to bind/connect to
+	Log             *logger.Logger  // Handles all logging
+	Env             *Env            // Env variables, cmdline args & config
+	Keyrings        *Keyrings       // Gpg Keychains holding keys
+	API             API             // How to make a REST call to the server
+	ResolveCache    *ResolveCache   // cache of resolve results
+	LocalDb         *JSONLocalDb    // Local DB for cache
+	MerkleClient    *MerkleClient   // client for querying server's merkle sig tree
+	XAPI            ExternalAPI     // for contacting Twitter, Github, etc.
+	Output          io.Writer       // where 'Stdout'-style output goes
+	ProofCache      *ProofCache     // where to cache proof results
+	FavoriteCache   *favcache.Cache // where to cache favorite folders
+	GpgClient       *GpgCLI         // A standard GPG-client (optional)
+	ShutdownHooks   []ShutdownHook  // on shutdown, fire these...
+	SocketInfo      SocketInfo      // which socket to bind/connect to
 	socketWrapperMu sync.RWMutex
 	SocketWrapper   *SocketWrapper   // only need one connection per
 	XStreams        *ExportedStreams // a table of streams we've exported to the daemon (or vice-versa)
@@ -96,6 +98,7 @@ func (g *GlobalContext) Logout() error {
 	}
 
 	g.IdentifyCache = NewIdentifyCache()
+	g.FavoriteCache = favcache.New()
 
 	// get a clean LoginState:
 	g.createLoginState()
@@ -161,6 +164,7 @@ func (g *GlobalContext) ConfigureCaches() error {
 	g.ResolveCache = NewResolveCache()
 	g.IdentifyCache = NewIdentifyCache()
 	g.ProofCache = NewProofCache(g.Env.GetProofCacheSize())
+	g.FavoriteCache = favcache.New()
 
 	// We consider the local DB as a cache; it's caching our
 	// fetches from the server after all (and also our cryptographic

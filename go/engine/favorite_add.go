@@ -1,17 +1,22 @@
 package engine
 
 import (
+	"fmt"
+
 	"github.com/keybase/client/go/libkb"
+	keybase1 "github.com/keybase/client/protocol/go"
 )
 
 // FavoriteAdd is an engine.
 type FavoriteAdd struct {
+	arg *keybase1.FavoriteAddArg
 	libkb.Contextified
 }
 
 // NewFavoriteAdd creates a FavoriteAdd engine.
-func NewFavoriteAdd(g *libkb.GlobalContext) *FavoriteAdd {
+func NewFavoriteAdd(arg *keybase1.FavoriteAddArg, g *libkb.GlobalContext) *FavoriteAdd {
 	return &FavoriteAdd{
+		arg:          arg,
 		Contextified: libkb.NewContextified(g),
 	}
 }
@@ -38,5 +43,9 @@ func (e *FavoriteAdd) SubConsumers() []libkb.UIConsumer {
 
 // Run starts the engine.
 func (e *FavoriteAdd) Run(ctx *Context) error {
+	if e.arg == nil {
+		return fmt.Errorf("FavoriteAdd arg is nil")
+	}
+	e.G().FavoriteCache.Add(e.arg.Folder)
 	return nil
 }
