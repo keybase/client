@@ -89,10 +89,6 @@ func (ll *LoopbackListener) Addr() (addr net.Addr) {
 func (lc *LoopbackConn) Read(b []byte) (n int, err error) {
 	lc.rMutex.Lock()
 	defer lc.rMutex.Unlock()
-	G.Log.Debug("+ Read()")
-	defer func() {
-		G.Log.Debug("- Read() -> (%d, %v)", n, err)
-	}()
 
 	if lc.buf.Len() > 0 {
 		return lc.buf.Read(b)
@@ -101,7 +97,6 @@ func (lc *LoopbackConn) Read(b []byte) (n int, err error) {
 		return 0, io.EOF
 	}
 	msg := <-lc.ch
-	G.Log.Debug("Got msg -> %v", msg)
 	if msg == nil {
 		lc.isPartnerClosed = true
 		return 0, io.EOF
@@ -119,7 +114,6 @@ func (lc *LoopbackConn) Write(b []byte) (n int, err error) {
 	if lc.isClosed {
 		return 0, syscall.EINVAL
 	}
-	G.Log.Debug("+ Sent message -> %v\n", b)
 	lc.partnerCh <- b
 	return len(b), nil
 
