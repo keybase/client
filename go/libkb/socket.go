@@ -75,6 +75,14 @@ type SocketWrapper struct {
 	err  error
 }
 
+func (g *GlobalContext) MakeLoopbackServer() (l net.Listener, err error) {
+	g.socketWrapperMu.Lock()
+	g.LoopbackListener = NewLoopbackListener()
+	l = g.LoopbackListener
+	g.socketWrapperMu.Unlock()
+	return
+}
+
 func (g *GlobalContext) BindToSocket() (net.Listener, error) {
 	return BindToSocket(g.SocketInfo)
 }

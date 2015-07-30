@@ -32,7 +32,7 @@ type LoopbackConn struct {
 }
 
 // NewLoopbackListener creates a new Loopback listener
-func NewLoopbackListener() net.Listener {
+func NewLoopbackListener() *LoopbackListener {
 	return &LoopbackListener{
 		ch:       make(chan *LoopbackConn),
 		isClosed: false,

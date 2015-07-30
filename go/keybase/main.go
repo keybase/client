@@ -63,12 +63,18 @@ func mainInner(g *libkb.GlobalContext) error {
 		return err
 	}
 
-	if g.Env.GetStandalone() || cl.IsService() {
+	standAlone := g.Env.GetStandalone()
+
+	if standAlone {
+		(service.NewService(false)).StartLoopbackServer(g)
+	}
+
+	if cl.IsService() {
 		err = cmd.Run()
 	} else {
 		// No sense in starting the daemon just to stop it
 		fc := cl.GetForkCmd()
-		if fc == libcmdline.ForceFork || (g.Env.GetAutoFork() && fc != libcmdline.NoFork) {
+		if !standAlone && (fc == libcmdline.ForceFork || (g.Env.GetAutoFork() && fc != libcmdline.NoFork)) {
 			if err = client.ForkServerNix(cl); err != nil {
 				return err
 			}

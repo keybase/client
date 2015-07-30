@@ -95,13 +95,31 @@ func (d *Service) Run() (err error) {
 	if err = d.OpenSocket(); err != nil {
 		return
 	}
-	if err = d.ConfigRPCServer(); err != nil {
+
+	var l net.Listener
+	if l, err = d.ConfigRPCServer(); err != nil {
 		return
 	}
-	if err = d.ListenLoop(); err != nil {
+	if err = d.ListenLoop(l); err != nil {
 		return
 	}
 	return
+}
+
+func (d *Service) StartLoopbackServer(g *libkb.GlobalContext) error {
+
+	var l net.Listener
+	var err error
+
+	if l, err = g.MakeLoopbackServer(); err != nil {
+		return err
+	}
+
+	if err = d.ListenLoop(l); err != nil {
+		return err
+	}
+
+	return nil
 }
 
 // If the daemon is already running, we need to be able to check what version
@@ -163,16 +181,15 @@ func (d *Service) lockPIDFile() (err error) {
 	return nil
 }
 
-func (d *Service) ConfigRPCServer() (err error) {
-	return nil
-}
-
-func (d *Service) ListenLoop() (err error) {
-
-	var l net.Listener
+func (d *Service) ConfigRPCServer() (l net.Listener, err error) {
 	if l, err = G.BindToSocket(); err != nil {
 		return
 	}
+	return
+}
+
+func (d *Service) ListenLoop(l net.Listener) (err error) {
+
 	G.PushShutdownHook(func() error {
 		G.Log.Info("Closing socket")
 		if err := d.lockPid.Close(); err != nil {

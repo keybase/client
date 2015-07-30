@@ -44,6 +44,7 @@ type GlobalContext struct {
 	SocketInfo      SocketInfo      // which socket to bind/connect to
 	socketWrapperMu sync.RWMutex
 	SocketWrapper   *SocketWrapper   // only need one connection per
+	LoopbackListener *LoopbackListener // If we're in loopback mode, we'll connect through here
 	XStreams        *ExportedStreams // a table of streams we've exported to the daemon (or vice-versa)
 	Timers          *TimerSet        // Which timers are currently configured on
 	IdentifyCache   *IdentifyCache   // cache of IdentifyOutcomes
