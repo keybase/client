@@ -16,6 +16,10 @@ type LoopbackAddr struct{}
 // LoopbackListener is a listener that creates new loopback connections.
 // It is goroutine safe.
 type LoopbackListener struct {
+
+	// Protects closing of ch so that we can close ch
+	// and set isClosed atomically.
+	sync.Mutex
 	ch       chan *LoopbackConn
 	isClosed bool
 }
@@ -23,13 +27,20 @@ type LoopbackListener struct {
 // LoopbackConn implments the net.Conn interface but is used to loopback
 // from a process to itself. It is goroutine safe.
 type LoopbackConn struct {
-	wMutex          sync.Mutex // Locks the write Path
-	rMutex          sync.Mutex // Locks the read Path
-	isClosed        bool
-	isPartnerClosed bool
-	ch              chan []byte
-	partnerCh       chan []byte
-	buf             bytes.Buffer
+
+	// wMutex protects isClosed and ch to protect against
+	// double-closes, and writes after close. It protects the
+	// writer, hence the 'w'.
+	wMutex   sync.Mutex
+	isClosed bool
+	ch       chan []byte
+
+	// rMutex Protects partnerCh and buf, to ensure that only
+	// one Go routine is reading at a time. It protects the
+	// reader hence the 'r'
+	rMutex    sync.Mutex
+	partnerCh chan []byte
+	buf       bytes.Buffer
 }
 
 // NewLoopbackListener creates a new Loopback listener
@@ -53,28 +64,38 @@ func NewLoopbackConnPair() (*LoopbackConn, *LoopbackConn) {
 // that's a connection to it.
 func (ll *LoopbackListener) Dial() (net.Conn, error) {
 	G.Log.Debug("+ LoopbackListener.Dial")
+	ll.Lock()
+	defer ll.Unlock()
+	if ll.isClosed {
+		return nil, syscall.EINVAL
+	}
 	a, b := NewLoopbackConnPair()
 	ll.ch <- a
-	G.Log.Debug("- LoopbackListener.Dial", b)
+	G.Log.Debug("- LoopbackListener.Dial")
 	return b, nil
 }
 
 // Accept waits for and returns the next connection to the listener.
 func (ll *LoopbackListener) Accept() (ret net.Conn, err error) {
 	G.Log.Debug("+ LoopbackListener.Accept")
-	if ll.isClosed {
+	var ok bool
+	if ret, ok = <-ll.ch; !ok {
 		err = syscall.EINVAL
-	} else {
-		ret = <-ll.ch
 	}
-	G.Log.Debug("- LoopbackListener.Accept")
+	G.Log.Debug("- LoopbackListener.Accept -> %v", err)
 	return ret, err
 }
 
 // Close closes the listener.
 // Any blocked Accept operations will be unblocked and return errors
 func (ll *LoopbackListener) Close() (err error) {
+	ll.Lock()
+	defer ll.Unlock()
+	if ll.isClosed {
+		return syscall.EINVAL
+	}
 	ll.isClosed = true
+	close(ll.ch)
 	return
 }
 
@@ -84,8 +105,6 @@ func (ll *LoopbackListener) Addr() (addr net.Addr) {
 }
 
 // Read reads data from the connection.
-// Read can be made to time out and return a Error with Timeout() == true
-// after a fixed time limit; see SetDeadline and SetReadDeadline.
 func (lc *LoopbackConn) Read(b []byte) (n int, err error) {
 	lc.rMutex.Lock()
 	defer lc.rMutex.Unlock()
@@ -93,12 +112,8 @@ func (lc *LoopbackConn) Read(b []byte) (n int, err error) {
 	if lc.buf.Len() > 0 {
 		return lc.buf.Read(b)
 	}
-	if lc.isPartnerClosed {
-		return 0, io.EOF
-	}
-	msg := <-lc.ch
-	if msg == nil {
-		lc.isPartnerClosed = true
+	msg, ok := <-lc.partnerCh
+	if !ok {
 		return 0, io.EOF
 	}
 	lc.buf.Write(msg)
@@ -106,17 +121,14 @@ func (lc *LoopbackConn) Read(b []byte) (n int, err error) {
 }
 
 // Write writes data to the connection.
-// Write can be made to time out and return a Error with Timeout() == true
-// after a fixed time limit; see SetDeadline and SetWriteDeadline.
 func (lc *LoopbackConn) Write(b []byte) (n int, err error) {
 	lc.wMutex.Lock()
 	defer lc.wMutex.Unlock()
 	if lc.isClosed {
 		return 0, syscall.EINVAL
 	}
-	lc.partnerCh <- b
+	lc.ch <- b
 	return len(b), nil
-
 }
 
 // Close closes the connection.
@@ -124,8 +136,11 @@ func (lc *LoopbackConn) Write(b []byte) (n int, err error) {
 func (lc *LoopbackConn) Close() (err error) {
 	lc.wMutex.Lock()
 	defer lc.wMutex.Unlock()
+	if lc.isClosed {
+		return syscall.EINVAL
+	}
 	lc.isClosed = true
-	lc.partnerCh <- nil
+	close(lc.ch)
 	return nil
 }
 
