@@ -188,29 +188,14 @@ func (ss *SecretSyncer) dumpDevices() {
 	}
 }
 
-func (ss *SecretSyncer) HasActiveDevice() bool {
-	if ss.keys == nil {
-		return false
-	}
-	for _, v := range ss.keys.Devices {
-		if v.Status == DeviceStatusActive && v.Type != DeviceTypeWeb {
-			return true
-		}
-	}
-	return false
-}
-
+// IsDeviceNameTaken returns true if a desktop or mobile device is
+// using a name already.
 func (ss *SecretSyncer) IsDeviceNameTaken(name string) bool {
-	if ss.keys == nil {
+	devs, err := ss.ActiveDevices()
+	if err != nil {
 		return false
 	}
-	for _, v := range ss.keys.Devices {
-		if v.Status != DeviceStatusActive {
-			continue
-		}
-		if v.Type == DeviceTypeWeb {
-			continue
-		}
+	for _, v := range devs {
 		if TrimCicmp(v.Description, name) {
 			return true
 		}
@@ -218,6 +203,17 @@ func (ss *SecretSyncer) IsDeviceNameTaken(name string) bool {
 	return false
 }
 
+// HasActiveDevice returns true if there is an active desktop or
+// mobile device available.
+func (ss *SecretSyncer) HasActiveDevice() bool {
+	devs, err := ss.ActiveDevices()
+	if err != nil {
+		return false
+	}
+	return len(devs) > 0
+}
+
+// ActiveDevices returns all the active desktop and mobile devices.
 func (ss *SecretSyncer) ActiveDevices() (DeviceKeyMap, error) {
 	if ss.keys == nil {
 		return nil, fmt.Errorf("no keys")
@@ -225,6 +221,28 @@ func (ss *SecretSyncer) ActiveDevices() (DeviceKeyMap, error) {
 	res := make(DeviceKeyMap)
 	for k, v := range ss.keys.Devices {
 		if v.Status != DeviceStatusActive {
+			continue
+		}
+		if v.Type != DeviceTypeDesktop && v.Type != DeviceTypeMobile {
+			continue
+		}
+		res[k] = v
+	}
+	return res, nil
+}
+
+// ActiveDevicesPlusWeb returns all the active desktop, mobile,
+// and web devices.
+func (ss *SecretSyncer) ActiveDevicesPlusWeb() (DeviceKeyMap, error) {
+	if ss.keys == nil {
+		return nil, fmt.Errorf("no keys")
+	}
+	res := make(DeviceKeyMap)
+	for k, v := range ss.keys.Devices {
+		if v.Status != DeviceStatusActive {
+			continue
+		}
+		if v.Type != DeviceTypeDesktop && v.Type != DeviceTypeMobile && v.Type != DeviceTypeWeb {
 			continue
 		}
 		res[k] = v

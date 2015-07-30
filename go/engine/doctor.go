@@ -165,8 +165,8 @@ func (e *Doctor) status(ctx *Context) {
 	var err error
 	var devs libkb.DeviceKeyMap
 	aerr := e.G().LoginState().SecretSyncer(func(ss *libkb.SecretSyncer) {
-		devs, err = ss.ActiveDevices()
-	}, "Doctor - ActiveDevices")
+		devs, err = ss.ActiveDevicesPlusWeb()
+	}, "Doctor - ActiveDevicesPlusWeb")
 	if aerr != nil {
 		e.runErr = err
 		return
@@ -178,10 +178,10 @@ func (e *Doctor) status(ctx *Context) {
 
 	for k, v := range devs {
 		dev := keybase1.Device{Type: v.Type, Name: v.Description, DeviceID: k}
-		if v.Type != libkb.DeviceTypeWeb {
-			uistatus.Devices = append(uistatus.Devices, dev)
-		} else {
+		if v.Type == libkb.DeviceTypeWeb {
 			uistatus.WebDevice = &dev
+		} else {
+			uistatus.Devices = append(uistatus.Devices, dev)
 		}
 	}
 	kf := e.user.GetComputedKeyFamily()
