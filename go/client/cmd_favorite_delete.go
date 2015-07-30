@@ -1,6 +1,8 @@
 package client
 
 import (
+	"errors"
+
 	"github.com/keybase/cli"
 	"github.com/keybase/client/go/engine"
 	"github.com/keybase/client/go/libcmdline"
@@ -9,7 +11,7 @@ import (
 )
 
 type CmdFavoriteDelete struct {
-	name string
+	folder keybase1.Folder
 }
 
 func NewCmdFavoriteDelete(cl *libcmdline.CommandLine) cli.Command {
@@ -32,6 +34,14 @@ func (c *CmdFavoriteDelete) RunClient() error {
 }
 
 func (c *CmdFavoriteDelete) ParseArgv(ctx *cli.Context) error {
+	if len(ctx.Args()) != 1 {
+		return errors.New("favorite delete takes 1 argument: <folder name>")
+	}
+	f, err := ParseTLF(ctx.Args()[0])
+	if err != nil {
+		return err
+	}
+	c.folder = f
 	return nil
 }
 
@@ -44,14 +54,13 @@ func (c *CmdFavoriteDelete) GetUsage() libkb.Usage {
 
 func (c *CmdFavoriteDelete) run(remover favRemover) error {
 	arg := keybase1.FavoriteDeleteArg{
-		Folder: keybase1.Folder{
-			Name: c.name,
-		},
+		Folder: c.folder,
 	}
 	return remover.remove(arg)
 }
 
-// delete is a reserved word...
+// delete is a reserved word...thus not favDeleter with a delete
+// function.
 type favRemover interface {
 	remove(arg keybase1.FavoriteDeleteArg) error
 }

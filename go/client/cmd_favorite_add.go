@@ -1,6 +1,8 @@
 package client
 
 import (
+	"errors"
+
 	"github.com/keybase/cli"
 	"github.com/keybase/client/go/engine"
 	"github.com/keybase/client/go/libcmdline"
@@ -9,7 +11,7 @@ import (
 )
 
 type CmdFavoriteAdd struct {
-	name string
+	folder keybase1.Folder
 }
 
 func NewCmdFavoriteAdd(cl *libcmdline.CommandLine) cli.Command {
@@ -32,6 +34,14 @@ func (c *CmdFavoriteAdd) RunClient() error {
 }
 
 func (c *CmdFavoriteAdd) ParseArgv(ctx *cli.Context) error {
+	if len(ctx.Args()) != 1 {
+		return errors.New("favorite add takes 1 argument: <folder name>")
+	}
+	f, err := ParseTLF(ctx.Args()[0])
+	if err != nil {
+		return err
+	}
+	c.folder = f
 	return nil
 }
 
@@ -44,9 +54,7 @@ func (c *CmdFavoriteAdd) GetUsage() libkb.Usage {
 
 func (c *CmdFavoriteAdd) run(adder favAdder) error {
 	arg := keybase1.FavoriteAddArg{
-		Folder: keybase1.Folder{
-			Name: c.name,
-		},
+		Folder: c.folder,
 	}
 	return adder.add(arg)
 }
