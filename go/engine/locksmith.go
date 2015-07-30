@@ -332,7 +332,7 @@ func (d *Locksmith) deviceSign(ctx *Context, withPGPOption bool) error {
 
 	var arg keybase1.SelectSignerArg
 	for k, v := range devs {
-		if v.Type != libkb.DeviceTypeWeb {
+		if v.Type != libkb.DeviceTypeWeb && v.Type != libkb.DeviceTypeBackup {
 			arg.Devices = append(arg.Devices, keybase1.Device{Type: v.Type, Name: v.Description, DeviceID: k})
 		}
 	}
