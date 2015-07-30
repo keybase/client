@@ -28,31 +28,31 @@ import (
 type ShutdownHook func() error
 
 type GlobalContext struct {
-	Log             *logger.Logger  // Handles all logging
-	Env             *Env            // Env variables, cmdline args & config
-	Keyrings        *Keyrings       // Gpg Keychains holding keys
-	API             API             // How to make a REST call to the server
-	ResolveCache    *ResolveCache   // cache of resolve results
-	LocalDb         *JSONLocalDb    // Local DB for cache
-	MerkleClient    *MerkleClient   // client for querying server's merkle sig tree
-	XAPI            ExternalAPI     // for contacting Twitter, Github, etc.
-	Output          io.Writer       // where 'Stdout'-style output goes
-	ProofCache      *ProofCache     // where to cache proof results
-	FavoriteCache   *favcache.Cache // where to cache favorite folders
-	GpgClient       *GpgCLI         // A standard GPG-client (optional)
-	ShutdownHooks   []ShutdownHook  // on shutdown, fire these...
-	SocketInfo      SocketInfo      // which socket to bind/connect to
-	socketWrapperMu sync.RWMutex
-	SocketWrapper   *SocketWrapper   // only need one connection per
+	Log              *logger.Logger  // Handles all logging
+	Env              *Env            // Env variables, cmdline args & config
+	Keyrings         *Keyrings       // Gpg Keychains holding keys
+	API              API             // How to make a REST call to the server
+	ResolveCache     *ResolveCache   // cache of resolve results
+	LocalDb          *JSONLocalDb    // Local DB for cache
+	MerkleClient     *MerkleClient   // client for querying server's merkle sig tree
+	XAPI             ExternalAPI     // for contacting Twitter, Github, etc.
+	Output           io.Writer       // where 'Stdout'-style output goes
+	ProofCache       *ProofCache     // where to cache proof results
+	FavoriteCache    *favcache.Cache // where to cache favorite folders
+	GpgClient        *GpgCLI         // A standard GPG-client (optional)
+	ShutdownHooks    []ShutdownHook  // on shutdown, fire these...
+	SocketInfo       SocketInfo      // which socket to bind/connect to
+	socketWrapperMu  sync.RWMutex
+	SocketWrapper    *SocketWrapper    // only need one connection per
 	LoopbackListener *LoopbackListener // If we're in loopback mode, we'll connect through here
-	XStreams        *ExportedStreams // a table of streams we've exported to the daemon (or vice-versa)
-	Timers          *TimerSet        // Which timers are currently configured on
-	IdentifyCache   *IdentifyCache   // cache of IdentifyOutcomes
-	UI              UI               // Interact with the UI
-	Service         bool             // whether we're in server mode
-	shutdown        bool             // whether we've shut down or not
-	loginStateMu    sync.RWMutex     // protects loginState pointer, which gets destroyed on logout
-	loginState      *LoginState      // What phase of login the user's in
+	XStreams         *ExportedStreams  // a table of streams we've exported to the daemon (or vice-versa)
+	Timers           *TimerSet         // Which timers are currently configured on
+	IdentifyCache    *IdentifyCache    // cache of IdentifyOutcomes
+	UI               UI                // Interact with the UI
+	Service          bool              // whether we're in server mode
+	shutdown         bool              // whether we've shut down or not
+	loginStateMu     sync.RWMutex      // protects loginState pointer, which gets destroyed on logout
+	loginState       *LoginState       // What phase of login the user's in
 }
 
 func NewGlobalContext() *GlobalContext {
