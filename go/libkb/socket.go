@@ -111,13 +111,15 @@ func (g *GlobalContext) GetSocket() (net.Conn, *rpc2.Transport, error) {
 
 	if needWrapper {
 		sw := SocketWrapper{}
-		if g.SocketInfo == nil {
+		if g.LoopbackListener != nil {
+			sw.conn, sw.err = g.LoopbackListener.Dial()
+		} else if g.SocketInfo == nil {
 			sw.err = fmt.Errorf("Cannot get socket in standalone mode")
 		} else {
 			sw.conn, sw.err = DialSocket(g.SocketInfo)
-			if sw.err == nil {
-				sw.xp = rpc2.NewTransport(sw.conn, NewRPCLogFactory(), WrapError)
-			}
+		}
+		if sw.err == nil {
+			sw.xp = rpc2.NewTransport(sw.conn, NewRPCLogFactory(), WrapError)
 		}
 		g.SocketWrapper = &sw
 	}

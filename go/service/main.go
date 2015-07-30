@@ -115,9 +115,7 @@ func (d *Service) StartLoopbackServer(g *libkb.GlobalContext) error {
 		return err
 	}
 
-	if err = d.ListenLoop(l); err != nil {
-		return err
-	}
+	go d.ListenLoop(l)
 
 	return nil
 }
@@ -185,10 +183,6 @@ func (d *Service) ConfigRPCServer() (l net.Listener, err error) {
 	if l, err = G.BindToSocket(); err != nil {
 		return
 	}
-	return
-}
-
-func (d *Service) ListenLoop(l net.Listener) (err error) {
 
 	G.PushShutdownHook(func() error {
 		G.Log.Info("Closing socket")
@@ -197,13 +191,17 @@ func (d *Service) ListenLoop(l net.Listener) (err error) {
 		}
 		return l.Close()
 	})
+
+	return
+}
+
+func (d *Service) ListenLoop(l net.Listener) (err error) {
 	for {
 		var c net.Conn
 		if c, err = l.Accept(); err != nil {
 			return
 		}
 		go d.Handle(c)
-
 	}
 }
 
