@@ -79,9 +79,14 @@ func (ll *LoopbackListener) Dial() (net.Conn, error) {
 func (ll *LoopbackListener) Accept() (ret net.Conn, err error) {
 	G.Log.Debug("+ LoopbackListener.Accept")
 	var ok bool
+
+	// We can't hold the lock (even if we had to) since that would
+	// deadlock the process (to have the Accepter and Dialer contending
+	// the same lock).
 	if ret, ok = <-ll.ch; !ok {
 		err = syscall.EINVAL
 	}
+
 	G.Log.Debug("- LoopbackListener.Accept -> %v", err)
 	return ret, err
 }
