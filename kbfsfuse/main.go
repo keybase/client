@@ -10,6 +10,7 @@ import (
 	"os"
 
 	"bazil.org/fuse"
+	"bazil.org/fuse/fs"
 
 	"github.com/keybase/kbfs/libkbfs"
 	"golang.org/x/net/context"
@@ -31,12 +32,14 @@ const usageStr = `Usage:
 
 `
 
-func printError(prefix string, err error) {
-	fmt.Fprintf(os.Stderr, "%s: %s\n", prefix, err)
-}
-
 // Define this so deferred functions get executed before exit.
-func realMain() (exitStatus int) {
+func realMain() (err error, exitStatus int) {
+	defer func() {
+		if err != nil && exitStatus == 0 {
+			exitStatus = 1
+		}
+	}()
+
 	flag.Parse()
 	if len(flag.Args()) < 1 {
 		fmt.Print(usageStr)
@@ -50,35 +53,74 @@ func realMain() (exitStatus int) {
 	} else if *clientFlag {
 		localUser = ""
 	} else {
-		printError("kbfsfuse", errors.New("either -client or -local must be used"))
-		exitStatus = 1
+		err = errors.New("either -client or -local must be used")
 		return
 	}
 
-	mountpoint := flag.Arg(0)
-	config, err := libkbfs.Init(localUser, *serverRootDir, *cpuprofile, *memprofile, func() {
-		// TODO: Only try to unmount if the mount process
-		// finished successfully.
-		err := fuse.Unmount(mountpoint)
-		if err != nil {
-			log.Print(err)
+	if *debug {
+		fuse.Debug = func(msg interface{}) {
+			log.Printf("FUSE: %s\n", msg)
 		}
-	})
+	}
+
+	mountpoint := flag.Arg(0)
+	c, err := fuse.Mount(mountpoint)
 	if err != nil {
-		printError("kbfsfuse", err)
-		exitStatus = 1
+		return
+	}
+	defer c.Close()
+
+	onInterruptFn := func() {
+		select {
+		case <-c.Ready:
+			// mountpoint was mounted, so try to unmount
+			// if it was successful.
+			if c.MountError == nil {
+				err = fuse.Unmount(mountpoint)
+				if err != nil {
+					return
+				}
+			}
+
+		default:
+			// mountpoint was not mounted successfully
+			// yet, so do nothing. Note that the mount
+			// could still happen, but that's a rare
+			// enough edge case.
+		}
+	}
+
+	config, err := libkbfs.Init(localUser, *serverRootDir, *cpuprofile, *memprofile, onInterruptFn)
+	if err != nil {
 		return
 	}
 
 	defer libkbfs.Shutdown(*memprofile)
 
-	ctx := context.Background()
-	// Blocks forever, unless an interrupt/kill signal is received
-	// (handled by libkbfs.Init) or there was a mount error.
-	if err := runNewFUSE(ctx, config, *debug, mountpoint); err != nil {
-		log.Fatalf("error serving filesystem: %v", err)
-		printError("kbfsfuse", err)
-		exitStatus = 1
+	filesys := &FS{
+		config: config,
+		conn:   c,
+	}
+	ctx := context.WithValue(context.Background(), ctxAppIDKey, filesys)
+
+	srv := fs.New(c, &fs.Config{
+		GetContext: func() context.Context {
+			return ctx
+		},
+	})
+	filesys.fuse = srv
+
+	// Blocks forever, unless an interrupt signal is received
+	// (handled by libkbfs.Init).
+	err = srv.Serve(filesys)
+	if err != nil {
+		return
+	}
+
+	// Check if the mount process has an error to report.
+	<-c.Ready
+	err = c.MountError
+	if err != nil {
 		return
 	}
 
@@ -86,5 +128,9 @@ func realMain() (exitStatus int) {
 }
 
 func main() {
-	os.Exit(realMain())
+	err, exitstatus := realMain()
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "kbfsfuse: %s\n", err)
+	}
+	os.Exit(exitstatus)
 }

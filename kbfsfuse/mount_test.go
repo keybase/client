@@ -21,7 +21,7 @@ import (
 )
 
 func makeFS(t testing.TB, config *libkbfs.ConfigLocal) *fstestutil.Mount {
-	// TODO duplicates runNewFUSE too much
+	// TODO duplicates main() in kbfsfuse/main.go too much
 	filesys := &FS{
 		config: config,
 	}

@@ -16,10 +16,13 @@ import (
 // non-empty, libkbfs does not communicate to any remote servers and
 // instead uses fake implementations of various servers.
 //
+// onInterruptFn is called whenever an interrupt signal is received
+// (e.g., if the user hits Ctrl-C).
+//
 // Init should be called at the beginning of main. Shutdown (see
 // below) should then be called at the end of main (usually via
 // defer).
-func Init(localUser, serverRootDir, cpuProfilePath, memProfilePath string, onSignalFn func()) (Config, error) {
+func Init(localUser, serverRootDir, cpuProfilePath, memProfilePath string, onInterruptFn func()) (Config, error) {
 	if cpuProfilePath != "" {
 		// Let the GC/OS clean up the file handle.
 		f, err := os.Create(cpuProfilePath)
@@ -30,14 +33,14 @@ func Init(localUser, serverRootDir, cpuProfilePath, memProfilePath string, onSig
 	}
 
 	sigchan := make(chan os.Signal, 1)
-	signal.Notify(sigchan, os.Interrupt, os.Kill)
+	signal.Notify(sigchan, os.Interrupt)
 	go func() {
 		_ = <-sigchan
 
 		Shutdown(memProfilePath)
 
-		if onSignalFn != nil {
-			onSignalFn()
+		if onInterruptFn != nil {
+			onInterruptFn()
 		}
 
 		os.Exit(1)

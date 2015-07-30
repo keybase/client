@@ -1,7 +1,6 @@
 package main
 
 import (
-	"log"
 	"os"
 
 	"bazil.org/fuse"
@@ -9,48 +8,6 @@ import (
 	"github.com/keybase/kbfs/libkbfs"
 	"golang.org/x/net/context"
 )
-
-func logMsg(msg interface{}) {
-	log.Printf("FUSE: %s\n", msg)
-}
-
-func runNewFUSE(ctx context.Context, config libkbfs.Config, debug bool,
-	mountpoint string) error {
-	if debug {
-		fuse.Debug = logMsg
-	}
-
-	c, err := fuse.Mount(mountpoint)
-	if err != nil {
-		return err
-	}
-	defer c.Close()
-
-	filesys := &FS{
-		config: config,
-		conn:   c,
-	}
-	ctx = context.WithValue(ctx, ctxAppIDKey, filesys)
-
-	srv := fs.New(c, &fs.Config{
-		GetContext: func() context.Context {
-			return ctx
-		},
-	})
-	filesys.fuse = srv
-
-	if err := srv.Serve(filesys); err != nil {
-		return err
-	}
-
-	// check if the mount process has an error to report
-	<-c.Ready
-	if err := c.MountError; err != nil {
-		return err
-	}
-
-	return nil
-}
 
 // FS implements the newfuse FS interface for KBFS.
 type FS struct {
