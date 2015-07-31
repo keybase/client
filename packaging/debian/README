@@ -1,0 +1,10 @@
+build_debian.sh
+
+Runs the Go build for github.com/keybase/client/go/keybase and then
+packages that executable into a .deb in this directory. In addition to
+setting up the Keybase Go build, you'll need Debian's dpkg-deb tool.
+That's installed by default on Debian and Ubuntu, and you can install it
+on Arch with "dpkg" in the AUR.
+
+TODO: Add scripts for installing package repos, and figure out the
+server side of that.
