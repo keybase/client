@@ -194,3 +194,18 @@ func (k *KBPKIClient) session(ctx context.Context) (
 	session = libkb.NewSessionThin(keybase1.UID(res.Uid), res.Username, res.Token)
 	return
 }
+
+// FavoriteAdd implements the KBPKI interface for KBPKILocal.
+func (k *KBPKIClient) FavoriteAdd(ctx context.Context, folder keybase1.Folder) error {
+	return nil
+}
+
+// FavoriteRemove implements the KBPKI interface for KBPKILocal.
+func (k *KBPKIClient) FavoriteRemove(ctx context.Context, folder keybase1.Folder) error {
+	return nil
+}
+
+// FavoriteList implements the KBPKI interface for KBPKILocal.
+func (k *KBPKIClient) FavoriteList(ctx context.Context) ([]keybase1.Folder, error) {
+	return nil, nil
+}

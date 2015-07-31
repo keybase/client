@@ -471,6 +471,37 @@ func (_mr *_MockKBPKIRecorder) GetCurrentCryptPublicKey(arg0 interface{}) *gomoc
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "GetCurrentCryptPublicKey", arg0)
 }
 
+func (_m *MockKBPKI) FavoriteAdd(ctx context.Context, folder go0.Folder) error {
+	ret := _m.ctrl.Call(_m, "FavoriteAdd", ctx, folder)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+func (_mr *_MockKBPKIRecorder) FavoriteAdd(arg0, arg1 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "FavoriteAdd", arg0, arg1)
+}
+
+func (_m *MockKBPKI) FavoriteRemove(ctx context.Context, folder go0.Folder) error {
+	ret := _m.ctrl.Call(_m, "FavoriteRemove", ctx, folder)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+func (_mr *_MockKBPKIRecorder) FavoriteRemove(arg0, arg1 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "FavoriteRemove", arg0, arg1)
+}
+
+func (_m *MockKBPKI) FavoriteList(ctx context.Context) ([]go0.Folder, error) {
+	ret := _m.ctrl.Call(_m, "FavoriteList", ctx)
+	ret0, _ := ret[0].([]go0.Folder)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+func (_mr *_MockKBPKIRecorder) FavoriteList(arg0 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "FavoriteList", arg0)
+}
+
 // Mock of KeyManager interface
 type MockKeyManager struct {
 	ctrl     *gomock.Controller

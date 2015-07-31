@@ -1,6 +1,7 @@
 package libkbfs
 
 import (
+	"runtime/debug"
 	"sync"
 	"time"
 
@@ -53,6 +54,7 @@ func (fs *KBFSOpsStandard) getOps(fb FolderBranch) *FolderBranchOps {
 	// look it up again in case someone else got the lock
 	ops, ok := fs.ops[fb]
 	if !ok {
+		debug.PrintStack()
 		// TODO: add some interface for specifying the type of the
 		// branch; for now assume online and read-write.
 		ops = NewFolderBranchOps(fs.config, fb, standard)

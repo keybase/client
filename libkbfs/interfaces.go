@@ -217,6 +217,18 @@ type KBPKI interface {
 	// GetCurrentCryptPublicKey gets the crypt public key for the
 	// currently-active device.
 	GetCurrentCryptPublicKey(ctx context.Context) (CryptPublicKey, error)
+
+	// FavoriteAdd adds folder to the list of the logged in user's
+	// favorite folders.
+	FavoriteAdd(ctx context.Context, folder keybase1.Folder) error
+
+	// FavoriteRemove removes folder from the list of the logged in user's
+	// favorite folders.
+	FavoriteRemove(ctx context.Context, folder keybase1.Folder) error
+
+	// FavoriteList returns the list of all favorite folders for
+	// the logged in user.
+	FavoriteList(ctx context.Context) ([]keybase1.Folder, error)
 }
 
 // KeyManager fetches and constructs the keys needed for KBFS file

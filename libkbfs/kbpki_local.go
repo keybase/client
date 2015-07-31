@@ -108,3 +108,18 @@ func (k *KBPKILocal) getLocalUser(uid keybase1.UID) (LocalUser, error) {
 	}
 	return user, nil
 }
+
+// FavoriteAdd implements the KBPKI interface for KBPKILocal.
+func (k *KBPKILocal) FavoriteAdd(ctx context.Context, folder keybase1.Folder) error {
+	return nil
+}
+
+// FavoriteRemove implements the KBPKI interface for KBPKILocal.
+func (k *KBPKILocal) FavoriteRemove(ctx context.Context, folder keybase1.Folder) error {
+	return nil
+}
+
+// FavoriteList implements the KBPKI interface for KBPKILocal.
+func (k *KBPKILocal) FavoriteList(ctx context.Context) ([]keybase1.Folder, error) {
+	return nil, nil
+}
