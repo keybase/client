@@ -33,7 +33,7 @@ const usageStr = `Usage:
 `
 
 // Define this so deferred functions get executed before exit.
-func realMain() (err error, exitStatus int) {
+func realMain() (exitStatus int, err error) {
 	defer func() {
 		if err != nil && exitStatus == 0 {
 			exitStatus = 1
@@ -128,7 +128,7 @@ func realMain() (err error, exitStatus int) {
 }
 
 func main() {
-	err, exitstatus := realMain()
+	exitstatus, err := realMain()
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "kbfsfuse: %s\n", err)
 	}
