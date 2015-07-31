@@ -5,6 +5,7 @@ package client
 import (
 	"fmt"
 	"os"
+	"os/exec"
 	"syscall"
 	"time"
 
@@ -76,7 +77,12 @@ func pingLoop() error {
 }
 
 func makeServerCommandLine(cl libkb.CommandLine) (arg0 string, args []string, err error) {
-	arg0 = os.Args[0]
+	// ForkExec requires an absolute path to the binary. LookPath() gets this
+	// for us, or correctly leaves arg0 alone if it's already a path.
+	arg0, err = exec.LookPath(os.Args[0])
+	if err != nil {
+		return
+	}
 
 	// Fixme: This isn't ideal, it would be better to specify when the args
 	// are defined if they should be reexported to the server, and if so, then
