@@ -63,19 +63,24 @@ func mainInner(g *libkb.GlobalContext) error {
 		return err
 	}
 
-	if g.Env.GetStandalone() || cl.IsService() {
-		err = cmd.Run()
-	} else {
-		// No sense in starting the daemon just to stop it
-		fc := cl.GetForkCmd()
-		if fc == libcmdline.ForceFork || (g.Env.GetAutoFork() && fc != libcmdline.NoFork) {
-			if err = client.ForkServerNix(cl); err != nil {
-				return err
-			}
-		}
-		err = cmd.RunClient()
+	if cl.IsService() {
+		return cmd.Run()
 	}
-	return err
+
+	// Start the server on the other end, possibly.
+	// There are two cases in which we do this: (1) we want
+	// a local loopback server in standalone mode; (2) we
+	// need to "autofork" it. Do at most one of these
+	// operations.
+	if g.Env.GetStandalone() {
+		(service.NewService(false)).StartLoopbackServer(g)
+	} else if fc := cl.GetForkCmd(); fc == libcmdline.ForceFork || (g.Env.GetAutoFork() && fc != libcmdline.NoFork) {
+		if err = client.ForkServerNix(cl); err != nil {
+			return err
+		}
+	}
+
+	return cmd.RunClient()
 }
 
 func HandleSignals() {
