@@ -1,0 +1,5 @@
+Package: keybase
+Version: @@VERSION@@
+Architecture: amd64
+Maintainer: bugs@keybase.io
+Description: Keybase's command line client
