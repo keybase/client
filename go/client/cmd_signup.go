@@ -221,40 +221,56 @@ func (s *CmdSignup) trySignup() (err error) {
 }
 
 func (s *CmdSignup) runEngine() (retry bool, err error) {
-	arg := engine.SignupEngineRunArg{
-		Username:    s.fields.username.GetValue(),
-		Email:       s.fields.email.GetValue(),
-		InviteCode:  s.fields.code.GetValue(),
-		Passphrase:  s.passphrase,
-		StoreSecret: s.storeSecret,
-		DeviceName:  s.fields.deviceName.GetValue(),
-	}
 	s.engine.SetArg(&arg)
-	ctx := &engine.Context{
-		LogUI:    G.UI.GetLogUI(),
-		GPGUI:    G.UI.GetGPGUI(),
-		SecretUI: G.UI.GetSecretUI(),
-		LoginUI:  G.UI.GetLoginUI(),
+
+	rarg := keybase1.SignupArg{
+		Username:   s.fields.username.GetValue(),
+		Email:      s.fields.email.GetValue(),
+		InviteCode: s.fields.code.GetValue(),
+		Passphrase: s.passphrase,
+		DeviceName: s.fields.deviceName.GetValue(),
 	}
-	err = engine.RunEngine(s.engine, ctx)
+	res, err := e.scli.Signup(rarg)
 	if err == nil {
-		return false, nil
+		return nil
 	}
-
-	// check to see if the error is a join engine run result:
-	if e, ok := err.(engine.SignupJoinEngineRunRes); ok {
-		if e.PassphraseOk {
-			s.fields.passphraseRetry.Disabled = false
+	G.Log.Debug("error: %q, type: %T", err, err)
+	if !res.PassphraseOk || !res.PostOk || !res.WriteOk {
+		// problem with the join phase
+		return engine.SignupJoinEngineRunRes{
+			PassphraseOk: res.PassphraseOk,
+			PostOk:       res.PostOk,
+			WriteOk:      res.WriteOk,
+			Err:          err,
 		}
-		if !e.PostOk {
-			retry, err = s.HandlePostError(e.Err)
-		} else {
-			err = e.Err
-		}
-		return retry, err
 	}
+	return err
 
-	return false, err
+	//ctx := &engine.Context{
+	//	LogUI:    G.UI.GetLogUI(),
+	//	GPGUI:    G.UI.GetGPGUI(),
+	//	SecretUI: G.UI.GetSecretUI(),
+	//	LoginUI:  G.UI.GetLoginUI(),
+	//}
+	//err = engine.RunEngine(s.engine, ctx)
+	//if err == nil {
+	//	return false, nil
+	//}
+	//
+	//	//// check to see if the error is a join engine run result:
+	//	//if e, ok := err.(engine.SignupJoinEngineRunRes); ok {
+	//	//	if e.PassphraseOk {
+	//	//		s.fields.passphraseRetry.Disabled = false
+	//	//	}
+	//	//	if !e.PostOk {
+	//	//		retry, err = s.HandlePostError(e.Err)
+	//	//	} else {
+	//	//		err = e.Err
+	//	//	}
+	//	//	return retry, err
+	//	//}
+	//
+	//return false, err
 }
 
 func (s *CmdSignup) RequestInvitePromptForOk() (err error) {
