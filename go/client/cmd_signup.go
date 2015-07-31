@@ -42,11 +42,13 @@ func (pf PromptFields) ToList() []*Field {
 	return []*Field{pf.email, pf.code, pf.username, pf.passphraseRetry, pf.deviceName}
 }
 
-type CmdSignupState struct {
+type CmdSignup struct {
 	engine   *clientModeSignupEngine
 	fields   *PromptFields
 	prompter *Prompter
 
+	scli              keybase1.SignupClient
+	ccli              keybase1.ConfigClient
 	code              string
 	requestedInvite   bool
 	fullname          string
@@ -60,7 +62,7 @@ type CmdSignupState struct {
 	doPrompt          bool
 }
 
-func (s *CmdSignupState) ParseArgv(ctx *cli.Context) error {
+func (s *CmdSignup) ParseArgv(ctx *cli.Context) error {
 	nargs := len(ctx.Args())
 	var err error
 
@@ -110,7 +112,7 @@ func (s *CmdSignupState) ParseArgv(ctx *cli.Context) error {
 	return err
 }
 
-func (s *CmdSignupState) SuccessMessage() error {
+func (s *CmdSignup) successMessage() error {
 	msg := `
 Welcome to keybase.io!
 
@@ -122,35 +124,45 @@ Enjoy!
 	return nil
 }
 
-func (s *CmdSignupState) Run() error {
+func (s *CmdSignup) Run() (err error) {
 	G.Log.Debug("| Client mode")
-	s.engine = &clientModeSignupEngine{doPrompt: s.doPrompt}
-	return s.run()
-}
 
-func (s *CmdSignupState) run() error {
-	G.Log.Debug("+ CmdSignupState::Run")
-	defer G.Log.Debug("- CmdSignupState::Run")
+	if err = s.initClient(); err != nil {
+		return err
+	}
 
-	err := s.runSignup()
+	if err = s.CheckRegistered(); err != nil {
+		return err
+	}
+
+	err := s.trySignup()
+
 	if err != nil {
 		if _, cce := err.(CleanCancelError); cce {
 			s.requestedInvite = true
-			return s.RequestInvite()
+			return s.requestInvite()
 		}
 		return err
 	}
 
-	s.SuccessMessage()
+	s.successMessage()
 	return nil
 }
 
-func (s *CmdSignupState) CheckRegistered() (err error) {
-	if err = s.engine.CheckRegistered(); err == nil {
-		return
-	} else if _, ok := err.(libkb.AlreadyRegisteredError); !ok {
+func (s *CmdSignup) checkRegistered() (err error) {
+
+	G.Log.Debug("+ clientModeSignupEngine::CheckRegistered")
+	defer G.Log.Debug("- clientModeSignupEngine::CheckRegistered -> %s", libkb.ErrToOk(err))
+
+	var rres keybase1.GetCurrentStatusRes
+
+	if rres, err = e.ccli.GetCurrentStatus(0); err != nil {
+		return err
+	}
+	if !rres.Registered {
 		return
 	}
+
 	prompt := "Already registered; do you want to reregister?"
 	if rereg, err := GlobUI.PromptYesNo(prompt, PromptDefaultNo); err != nil {
 		return err
@@ -160,7 +172,7 @@ func (s *CmdSignupState) CheckRegistered() (err error) {
 	return nil
 }
 
-func (s *CmdSignupState) Prompt() (err error) {
+func (s *CmdSignup) Prompt() (err error) {
 	if !s.doPrompt {
 		return nil
 	}
@@ -192,11 +204,10 @@ func (s *CmdSignupState) Prompt() (err error) {
 	return
 }
 
-func (s *CmdSignupState) runSignup() (err error) {
+func (s *CmdSignup) trySignup() (err error) {
 	retry := true
 
-	if err = s.engine.Init(); err == nil {
-		err = s.CheckRegistered()
+	if err = s.Init(); err == nil {
 	}
 
 	for retry && err == nil {
@@ -208,7 +219,7 @@ func (s *CmdSignupState) runSignup() (err error) {
 	return err
 }
 
-func (s *CmdSignupState) runEngine() (retry bool, err error) {
+func (s *CmdSignup) runEngine() (retry bool, err error) {
 	arg := engine.SignupEngineRunArg{
 		Username:    s.fields.username.GetValue(),
 		Email:       s.fields.email.GetValue(),
@@ -245,7 +256,7 @@ func (s *CmdSignupState) runEngine() (retry bool, err error) {
 	return false, err
 }
 
-func (s *CmdSignupState) RequestInvitePromptForOk() (err error) {
+func (s *CmdSignup) RequestInvitePromptForOk() (err error) {
 	prompt := "Would you like to be added to the invite request list?"
 	var invite bool
 	if invite, err = GlobUI.PromptYesNo(prompt, PromptDefaultYes); err != nil {
@@ -257,7 +268,7 @@ func (s *CmdSignupState) RequestInvitePromptForOk() (err error) {
 	return nil
 }
 
-func (s *CmdSignupState) RequestInvitePromptForData() error {
+func (s *CmdSignup) RequestInvitePromptForData() error {
 
 	fullname := &Field{
 		Name:   "fullname",
@@ -278,7 +289,7 @@ func (s *CmdSignupState) RequestInvitePromptForData() error {
 	return nil
 }
 
-func (s *CmdSignupState) RequestInvitePost() error {
+func (s *CmdSignup) RequestInvitePost() error {
 	err := s.engine.PostInviteRequest(libkb.InviteRequestArg{
 		Email:    s.fields.email.GetValue(),
 		Fullname: s.fullname,
@@ -290,7 +301,7 @@ func (s *CmdSignupState) RequestInvitePost() error {
 	return err
 }
 
-func (s *CmdSignupState) RequestInvite() error {
+func (s *CmdSignup) requestInvite() error {
 	if err := s.RequestInvitePromptForOk(); err != nil {
 		return err
 	}
@@ -300,7 +311,7 @@ func (s *CmdSignupState) RequestInvite() error {
 	return s.RequestInvitePost()
 }
 
-func (s *CmdSignupState) MakePrompter() {
+func (s *CmdSignup) MakePrompter() {
 	code := &Field{
 		Defval:  s.code,
 		Name:    "code",
@@ -358,7 +369,7 @@ func (s *CmdSignupState) MakePrompter() {
 	s.prompter = NewPrompter(s.fields.ToList())
 }
 
-func (s *CmdSignupState) GetUsage() libkb.Usage {
+func (s *CmdSignup) GetUsage() libkb.Usage {
 	return libkb.Usage{
 		Config:     true,
 		GpgKeyring: true,
@@ -368,8 +379,6 @@ func (s *CmdSignupState) GetUsage() libkb.Usage {
 }
 
 type clientModeSignupEngine struct {
-	scli     keybase1.SignupClient
-	ccli     keybase1.ConfigClient
 	arg      *engine.SignupEngineRunArg
 	doPrompt bool
 	libkb.Contextified
@@ -395,21 +404,7 @@ func (e *clientModeSignupEngine) SubConsumers() []libkb.UIConsumer {
 
 func (e *clientModeSignupEngine) Prereqs() (ret engine.Prereqs) { return }
 
-func (e *clientModeSignupEngine) CheckRegistered() (err error) {
-	G.Log.Debug("+ clientModeSignupEngine::CheckRegistered")
-	defer G.Log.Debug("- clientModeSignupEngine::CheckRegistered -> %s", libkb.ErrToOk(err))
-	var rres keybase1.GetCurrentStatusRes
-	if rres, err = e.ccli.GetCurrentStatus(0); err != nil {
-		return err
-	}
-	if rres.Registered {
-		err = libkb.AlreadyRegisteredError{}
-		return
-	}
-	return
-}
-
-func (e *clientModeSignupEngine) Init() error {
+func (s *CmdSignup) initClient() error {
 	var err error
 	if e.scli, err = GetSignupClient(); err != nil {
 		return err
