@@ -131,7 +131,7 @@ func (s *CmdSignup) Run() (err error) {
 		return err
 	}
 
-	if err = s.CheckRegistered(); err != nil {
+	if err = s.checkRegistered(); err != nil {
 		return err
 	}
 
@@ -172,7 +172,7 @@ func (s *CmdSignup) checkRegistered() (err error) {
 	return nil
 }
 
-func (s *CmdSignup) Prompt() (err error) {
+func (s *CmdSignup) prompt() (err error) {
 	if !s.doPrompt {
 		return nil
 	}
@@ -206,13 +206,14 @@ func (s *CmdSignup) Prompt() (err error) {
 
 func (s *CmdSignup) trySignup() (err error) {
 	retry := true
-
-	if err = s.Init(); err == nil {
-	}
-
 	for retry && err == nil {
-		if err = s.Prompt(); err == nil {
+		if err = s.prompt(); err == nil {
 			retry, err = s.runEngine()
+			// No sense in retrying if we're just going to use the same
+			// data again...
+			if !s.doPrompt {
+				retry = false
+			}
 		}
 	}
 
