@@ -84,7 +84,7 @@ func makeServerCommandLine(cl libkb.CommandLine) (arg0 string, args []string, er
 	// this when we yank out keybase/cli
 	bools := []string{
 		"debug",
-		"api-dump",
+		"api-dump-unsafe",
 		"plain-logging",
 	}
 

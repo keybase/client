@@ -139,6 +139,11 @@ func doRequestShared(api Requester, arg APIArg, req *http.Request, wantJSONRes b
 		timerType = TimerXAPI
 	}
 
+	if G.Env.GetAPIDump() {
+		b, _ := json.MarshalIndent(arg.getHTTPArgs(), "", "  ")
+		G.Log.Debug(fmt.Sprintf("| full request: %s", b))
+	}
+
 	timer := G.Timers.Start(timerType)
 	resp, err = cli.cli.Do(req)
 	timer.Report(req.Method + " " + arg.Endpoint)
@@ -173,7 +178,8 @@ func doRequestShared(api Requester, arg APIArg, req *http.Request, wantJSONRes b
 
 		jw = jsonw.NewWrapper(obj)
 		if G.Env.GetAPIDump() {
-			G.Log.Debug(fmt.Sprintf("| full reply: %v", obj))
+			b, _ := json.MarshalIndent(obj, "", "  ")
+			G.Log.Debug(fmt.Sprintf("| full reply: %s", b))
 		}
 	}
 

@@ -89,7 +89,7 @@ func (p CommandLine) GetGpgHome() string {
 	return p.GetGString("gpg-home")
 }
 func (p CommandLine) GetAPIDump() (bool, bool) {
-	return p.GetBool("api-dump", true)
+	return p.GetBool("api-dump-unsafe", true)
 }
 func (p CommandLine) GetDevelMode() (bool, bool) {
 	return p.GetBool("devel", true)
@@ -307,8 +307,8 @@ func (p *CommandLine) PopulateApp(addHelp bool, extraFlags []cli.Flag) {
 			Usage: "specify a PGP directory (default is ~/.gnupg)",
 		},
 		cli.BoolFlag{
-			Name:  "api-dump",
-			Usage: "dump API call internals",
+			Name:  "api-dump-unsafe",
+			Usage: "dump API call internals (may leak secrets)",
 		},
 		cli.StringFlag{
 			Name:  "merkle-key-fingerprints",
