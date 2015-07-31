@@ -4,7 +4,6 @@ import (
 	"io/ioutil"
 
 	"github.com/keybase/cli"
-	"github.com/keybase/client/go/engine"
 	"github.com/keybase/client/go/libcmdline"
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/protocol/go"
@@ -56,29 +55,6 @@ type CmdPGPVerify struct {
 	signedBy         string
 }
 
-func (c *CmdPGPVerify) Run() error {
-	if err := c.FilterOpen(); err != nil {
-		return err
-	}
-
-	arg := &engine.PGPVerifyArg{
-		Source:       c.source,
-		Signature:    c.detachedData,
-		SignedBy:     c.signedBy,
-		TrackOptions: c.trackOptions,
-	}
-	ctx := &engine.Context{
-		SecretUI:   G.UI.GetSecretUI(),
-		IdentifyUI: G.UI.GetIdentifyTrackUI(true),
-		LogUI:      G.UI.GetLogUI(),
-	}
-	eng := engine.NewPGPVerify(arg, G)
-	err := engine.RunEngine(eng, ctx)
-
-	c.Close(err)
-	return err
-}
-
 func (c *CmdPGPVerify) RunClient() error {
 	cli, err := GetPGPClient()
 	if err != nil {
@@ -109,10 +85,6 @@ func (c *CmdPGPVerify) RunClient() error {
 
 	c.Close(err)
 	return err
-}
-
-func (c *CmdPGPVerify) isDetached() bool {
-	return len(c.detachedFilename) > 0
 }
 
 func (c *CmdPGPVerify) ParseArgv(ctx *cli.Context) error {

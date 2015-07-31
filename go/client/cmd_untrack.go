@@ -4,7 +4,6 @@ import (
 	"fmt"
 
 	"github.com/keybase/cli"
-	"github.com/keybase/client/go/engine"
 	"github.com/keybase/client/go/libcmdline"
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/protocol/go"
@@ -51,17 +50,6 @@ func (v *CmdUntrack) RunClient() error {
 	return cli.Untrack(keybase1.UntrackArg{
 		Username: v.user,
 	})
-}
-
-func (v *CmdUntrack) Run() error {
-	arg := engine.UntrackEngineArg{
-		Username: v.user,
-	}
-	eng := engine.NewUntrackEngine(&arg, G)
-	ctx := engine.Context{
-		SecretUI: GlobUI.GetSecretUI(),
-	}
-	return engine.RunEngine(eng, &ctx)
 }
 
 func (v *CmdUntrack) GetUsage() libkb.Usage {

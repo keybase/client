@@ -6,7 +6,6 @@ import (
 	"io/ioutil"
 
 	"github.com/keybase/cli"
-	"github.com/keybase/client/go/engine"
 	"github.com/keybase/client/go/libcmdline"
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/protocol/go"
@@ -72,21 +71,6 @@ func (s *CmdPGPImport) RunClient() error {
 		return err
 	}
 	return cli.PGPImport(s.arg)
-}
-
-func (s *CmdPGPImport) Run() (err error) {
-	ctx := engine.Context{
-		SecretUI: GlobUI.GetSecretUI(),
-		LogUI:    GlobUI.GetLogUI(),
-	}
-	if err = s.readKeyData(); err != nil {
-		return
-	}
-	var eng *engine.PGPKeyImportEngine
-	if eng, err = engine.NewPGPKeyImportEngineFromBytes(s.arg.Key, s.arg.PushSecret, nil); err != nil {
-		return
-	}
-	return engine.RunEngine(eng, &ctx)
 }
 
 func (s *CmdPGPImport) readKeyData() error {

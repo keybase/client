@@ -10,9 +10,7 @@ import (
 
 type CmdPing struct{}
 
-func (v *CmdPing) RunClient() error { return v.Run() }
-
-func (v *CmdPing) Run() error {
+func (v *CmdPing) RunClient() error {
 	_, err := G.API.Post(libkb.APIArg{
 		Endpoint: "ping",
 		Args: libkb.HTTPArgs{

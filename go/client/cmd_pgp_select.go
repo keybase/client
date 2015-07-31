@@ -4,7 +4,6 @@ import (
 	"fmt"
 
 	"github.com/keybase/cli"
-	"github.com/keybase/client/go/engine"
 	"github.com/keybase/client/go/libcmdline"
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/protocol/go"
@@ -45,19 +44,6 @@ func (v *CmdPGPSelect) RunClient() error {
 	}
 
 	err = c.PGPSelect(keybase1.PGPSelectArg{FingerprintQuery: v.query, AllowMulti: v.multi, SkipImport: v.skipImport})
-	PGPMultiWarn(err)
-	return err
-}
-
-func (v *CmdPGPSelect) Run() error {
-	ctx := &engine.Context{
-		GPGUI:    G.UI.GetGPGUI(),
-		SecretUI: G.UI.GetSecretUI(),
-		LogUI:    G.UI.GetLogUI(),
-	}
-	arg := engine.GPGImportKeyArg{Query: v.query, AllowMulti: v.multi, SkipImport: v.skipImport}
-	gpg := engine.NewGPGImportKeyEngine(&arg, G)
-	err := engine.RunEngine(gpg, ctx)
 	PGPMultiWarn(err)
 	return err
 }

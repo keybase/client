@@ -117,20 +117,6 @@ func (s *CmdPGPSign) RunClient() (err error) {
 	return s.Close(err)
 }
 
-func (s *CmdPGPSign) Run() (err error) {
-	if err = s.FilterOpen(); err != nil {
-		return
-	}
-	earg := engine.PGPSignArg{Sink: s.sink, Source: s.source, Opts: s.opts}
-	ctx := engine.Context{
-		SecretUI: GlobUI.GetSecretUI(),
-	}
-	eng := engine.NewPGPSignEngine(&earg, G)
-	err = engine.RunEngine(eng, &ctx)
-	s.Close(err)
-	return err
-}
-
 func (s *CmdPGPSign) GetUsage() libkb.Usage {
 	return libkb.Usage{
 		Config:    true,

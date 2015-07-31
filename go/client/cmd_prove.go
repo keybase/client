@@ -6,7 +6,6 @@ import (
 	"os"
 
 	"github.com/keybase/cli"
-	"github.com/keybase/client/go/engine"
 	"github.com/keybase/client/go/libcmdline"
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/protocol/go"
@@ -83,23 +82,6 @@ func (p *CmdProve) installOutputHook(ui *ProveUI) {
 			return p.fileOutputHook(s)
 		}
 	}
-}
-
-// Run the prove engine in standalone mode.
-func (p *CmdProve) Run() (err error) {
-	ui := ProveUI{parent: GlobUI}
-	p.installOutputHook(&ui)
-
-	// command line interface wants the PromptPosted ui loop
-	p.arg.PromptPosted = true
-
-	eng := engine.NewProve(&p.arg, G)
-	ctx := engine.Context{
-		LogUI:    GlobUI.GetLogUI(),
-		SecretUI: GlobUI.GetSecretUI(),
-		ProveUI:  ui,
-	}
-	return engine.RunEngine(eng, &ctx)
 }
 
 // NewCmdProve makes a new prove command from the given CLI parameters.

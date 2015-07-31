@@ -50,24 +50,6 @@ func (v *CmdStatus) RunClient() (err error) {
 	return nil
 }
 
-func (v *CmdStatus) Run() error {
-	currentStatus, err := libkb.GetCurrentStatus()
-	if err != nil {
-		return err
-	}
-	if !currentStatus.LoggedIn {
-		return fmt.Errorf("Not logged in.")
-	}
-
-	me, err := libkb.LoadMe(libkb.LoadUserArg{})
-	if err != nil {
-		return err
-	}
-	exported := me.Export()
-	err = v.printExportedMe(*exported)
-	return err
-}
-
 func findSubkeys(parentID keybase1.KID, allKeys []keybase1.PublicKey) []keybase1.PublicKey {
 	ret := []keybase1.PublicKey{}
 	for _, key := range allKeys {

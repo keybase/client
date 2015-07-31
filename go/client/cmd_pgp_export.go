@@ -2,15 +2,12 @@ package client
 
 import (
 	"fmt"
-
-	"os"
-
 	"github.com/keybase/cli"
-	"github.com/keybase/client/go/engine"
 	"github.com/keybase/client/go/libcmdline"
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/protocol/go"
 	"github.com/maxtaco/go-framed-msgpack-rpc/rpc2"
+	"os"
 )
 
 func NewCmdPGPExport(cl *libcmdline.CommandLine) cli.Command {
@@ -97,17 +94,6 @@ func (s *CmdPGPExport) finish(res []keybase1.KeyInfo, inErr error) error {
 	}
 	snk.Write([]byte(res[0].Key))
 	return snk.Close()
-}
-
-func (s *CmdPGPExport) Run() (err error) {
-	ctx := engine.Context{
-		SecretUI: GlobUI.GetSecretUI(),
-		LogUI:    GlobUI.GetLogUI(),
-	}
-	eng := engine.NewPGPKeyExportEngine(s.arg, G)
-	err = engine.RunEngine(eng, &ctx)
-	err = s.finish(eng.Results(), err)
-	return err
 }
 
 func (s *CmdPGPExport) GetUsage() libkb.Usage {

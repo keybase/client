@@ -2,7 +2,6 @@ package client
 
 import (
 	"fmt"
-
 	"github.com/keybase/cli"
 	"github.com/keybase/client/go/engine"
 	"github.com/keybase/client/go/libcmdline"
@@ -38,8 +37,7 @@ func (v *CmdPGPGen) ParseArgv(ctx *cli.Context) (err error) {
 	return err
 }
 
-// XXX is there a reason this uses CreatePGPIDs and the standalone
-// Run below uses MakeAllIds?
+// Why use CreatePGPIDs rather than MakeAllIds?
 func (v *CmdPGPGen) RunClient() (err error) {
 	protocols := []rpc2.Protocol{
 		NewLogUIProtocol(),
@@ -58,17 +56,6 @@ func (v *CmdPGPGen) RunClient() (err error) {
 	err = cli.PGPKeyGen(v.arg.Export())
 	PGPMultiWarn(err)
 	return err
-}
-
-func (v *CmdPGPGen) Run() (err error) {
-	ctx := &engine.Context{SecretUI: GlobUI.GetSecretUI(), LogUI: GlobUI.GetLogUI()}
-	if err = v.arg.Gen.MakeAllIds(); err != nil {
-		return
-	}
-	eng := engine.NewPGPKeyImportEngine(v.arg)
-	err = engine.RunEngine(eng, ctx)
-	PGPMultiWarn(err)
-	return
 }
 
 func PGPMultiWarn(err error) {

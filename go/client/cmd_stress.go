@@ -42,10 +42,6 @@ type CmdStress struct {
 	passphrase string
 }
 
-func (c *CmdStress) Run() error {
-	return errors.New("stress command only designed for client/daemon mode")
-}
-
 func (c *CmdStress) rpcClient() (*rpc2.Client, error) {
 	cli, _, err := GetRPCClient()
 	if err != nil {

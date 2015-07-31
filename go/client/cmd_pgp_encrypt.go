@@ -4,7 +4,6 @@ import (
 	"errors"
 
 	"github.com/keybase/cli"
-	"github.com/keybase/client/go/engine"
 	"github.com/keybase/client/go/libcmdline"
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/protocol/go"
@@ -72,32 +71,6 @@ type CmdPGPEncrypt struct {
 	noSelf       bool
 	keyQuery     string
 	binaryOut    bool
-}
-
-func (c *CmdPGPEncrypt) Run() error {
-	if err := c.FilterOpen(); err != nil {
-		return err
-	}
-
-	arg := &engine.PGPEncryptArg{
-		Recips:       c.recipients,
-		Source:       c.source,
-		Sink:         c.sink,
-		NoSign:       !c.sign,
-		NoSelf:       c.noSelf,
-		BinaryOutput: c.binaryOut,
-		KeyQuery:     c.keyQuery,
-		TrackOptions: c.trackOptions,
-	}
-	ctx := &engine.Context{
-		IdentifyUI: G.UI.GetIdentifyTrackUI(true),
-		SecretUI:   G.UI.GetSecretUI(),
-	}
-	eng := engine.NewPGPEncrypt(arg, G)
-	err := engine.RunEngine(eng, ctx)
-
-	c.Close(err)
-	return err
 }
 
 func (c *CmdPGPEncrypt) RunClient() error {

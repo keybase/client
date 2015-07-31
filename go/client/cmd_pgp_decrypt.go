@@ -2,7 +2,6 @@ package client
 
 import (
 	"github.com/keybase/cli"
-	"github.com/keybase/client/go/engine"
 	"github.com/keybase/client/go/libcmdline"
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/protocol/go"
@@ -55,30 +54,6 @@ type CmdPGPDecrypt struct {
 	trackOptions keybase1.TrackOptions
 	signed       bool
 	signedBy     string
-}
-
-func (c *CmdPGPDecrypt) Run() error {
-	if err := c.FilterOpen(); err != nil {
-		return err
-	}
-	arg := &engine.PGPDecryptArg{
-		Source:       c.source,
-		Sink:         c.sink,
-		AssertSigned: c.signed,
-		SignedBy:     c.signedBy,
-		TrackOptions: c.trackOptions,
-	}
-	ctx := &engine.Context{
-		SecretUI:   G.UI.GetSecretUI(),
-		IdentifyUI: G.UI.GetIdentifyTrackUI(true),
-		LogUI:      G.UI.GetLogUI(),
-	}
-	eng := engine.NewPGPDecrypt(arg, G)
-	err := engine.RunEngine(eng, ctx)
-
-	c.Close(err)
-
-	return err
 }
 
 func (c *CmdPGPDecrypt) RunClient() error {

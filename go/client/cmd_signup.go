@@ -42,16 +42,8 @@ func (pf PromptFields) ToList() []*Field {
 	return []*Field{pf.email, pf.code, pf.username, pf.passphraseRetry, pf.deviceName}
 }
 
-type signupProcess interface {
-	CheckRegistered() error
-	PostInviteRequest(libkb.InviteRequestArg) error
-	Init() error
-	SetArg(*engine.SignupEngineRunArg)
-	engine.Engine
-}
-
 type CmdSignupState struct {
-	engine   signupProcess
+	engine   *clientModeSignupEngine
 	fields   *PromptFields
 	prompter *Prompter
 
@@ -97,12 +89,6 @@ func (s *CmdSignupState) ParseArgv(ctx *cli.Context) error {
 	}
 
 	if ctx.Bool("batch") {
-		/*
-			if len(s.defaultUsername) == 0 {
-				return BadArgsError{"username required in batch mode"}
-			}
-		*/
-
 		s.fields = &PromptFields{
 			email:           &Field{Value: &s.defaultEmail},
 			code:            &Field{Value: &s.code},
@@ -139,16 +125,6 @@ Enjoy!
 func (s *CmdSignupState) RunClient() error {
 	G.Log.Debug("| Client mode")
 	s.engine = &clientModeSignupEngine{doPrompt: s.doPrompt}
-	return s.run()
-}
-
-func (s *CmdSignupState) Run() error {
-	G.Log.Debug("| Standalone mode")
-	// try to use the localdb right now instead of failing to use it later...
-	if err := G.LocalDb.ForceOpen(); err != nil {
-		return err
-	}
-	s.engine = engine.NewSignupEngine(nil, G)
 	return s.run()
 }
 
