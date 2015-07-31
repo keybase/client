@@ -1,7 +1,6 @@
 package libkb
 
 import (
-	"encoding/hex"
 	"regexp"
 	"strings"
 	"unicode"
@@ -52,12 +51,9 @@ var CheckPassphraseNew = Checker{
 
 var CheckInviteCode = Checker{
 	F: func(s string) bool {
-		if b, err := hex.DecodeString(s); err == nil {
-			return len(b) == 12
-		}
-		return false
+		return len(s) > 4
 	},
-	Hint: "Invite codes are 24-digit hex strings",
+	Hint: "Invite codes are 4 or more characters",
 }
 
 func IsYes(s string) bool {
