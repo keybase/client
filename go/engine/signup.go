@@ -56,29 +56,6 @@ func (s *SignupEngine) SubConsumers() []libkb.UIConsumer {
 	}
 }
 
-func (s *SignupEngine) Init() error {
-	return nil
-}
-
-func (s *SignupEngine) SetArg(arg *SignupEngineRunArg) {
-	s.arg = arg
-}
-
-func (s *SignupEngine) CheckRegistered() (err error) {
-	s.G().Log.Debug("+ SignupEngine::CheckRegistered")
-	if cr := s.G().Env.GetConfig(); cr == nil {
-		err = fmt.Errorf("No configuration file available")
-	} else if u := cr.GetUID(); u.Exists() {
-		err = libkb.AlreadyRegisteredError{UID: u}
-	}
-	s.G().Log.Debug("- SignupEngine::CheckRegistered -> %s", libkb.ErrToOk(err))
-	return err
-}
-
-func (s *SignupEngine) PostInviteRequest(arg libkb.InviteRequestArg) error {
-	return libkb.PostInviteRequest(arg)
-}
-
 func (s *SignupEngine) GetMe() *libkb.User {
 	return s.me
 }
