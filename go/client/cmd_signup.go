@@ -4,7 +4,6 @@ import (
 	"os"
 
 	"github.com/keybase/cli"
-	"github.com/keybase/client/go/engine"
 	"github.com/keybase/client/go/libcmdline"
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/protocol/go"
@@ -17,7 +16,7 @@ func NewCmdSignup(cl *libcmdline.CommandLine) cli.Command {
 		Usage:       "keybase signup [-c <code>]",
 		Description: "signup for a new account",
 		Action: func(c *cli.Context) {
-			cl.ChooseCommand(&CmdSignupState{}, "signup", c)
+			cl.ChooseCommand(&CmdSignup{}, "signup", c)
 		},
 		Flags: []cli.Flag{
 			cli.StringFlag{
@@ -42,11 +41,12 @@ func (pf PromptFields) ToList() []*Field {
 	return []*Field{pf.email, pf.code, pf.username, pf.passphraseRetry, pf.deviceName}
 }
 
-type CmdSignupState struct {
-	engine   *clientModeSignupEngine
+type CmdSignup struct {
 	fields   *PromptFields
 	prompter *Prompter
 
+	scli              keybase1.SignupClient
+	ccli              keybase1.ConfigClient
 	code              string
 	requestedInvite   bool
 	fullname          string
@@ -60,7 +60,7 @@ type CmdSignupState struct {
 	doPrompt          bool
 }
 
-func (s *CmdSignupState) ParseArgv(ctx *cli.Context) error {
+func (s *CmdSignup) ParseArgv(ctx *cli.Context) error {
 	nargs := len(ctx.Args())
 	var err error
 
@@ -110,7 +110,7 @@ func (s *CmdSignupState) ParseArgv(ctx *cli.Context) error {
 	return err
 }
 
-func (s *CmdSignupState) SuccessMessage() error {
+func (s *CmdSignup) successMessage() error {
 	msg := `
 Welcome to keybase.io!
 
@@ -122,35 +122,43 @@ Enjoy!
 	return nil
 }
 
-func (s *CmdSignupState) Run() error {
+func (s *CmdSignup) Run() (err error) {
 	G.Log.Debug("| Client mode")
-	s.engine = &clientModeSignupEngine{doPrompt: s.doPrompt}
-	return s.run()
-}
 
-func (s *CmdSignupState) run() error {
-	G.Log.Debug("+ CmdSignupState::Run")
-	defer G.Log.Debug("- CmdSignupState::Run")
+	if err = s.initClient(); err != nil {
+		return err
+	}
 
-	err := s.runSignup()
-	if err != nil {
+	if err = s.checkRegistered(); err != nil {
+		return err
+	}
+
+	if err = s.trySignup(); err != nil {
 		if _, cce := err.(CleanCancelError); cce {
 			s.requestedInvite = true
-			return s.RequestInvite()
+			return s.requestInvite()
 		}
 		return err
 	}
 
-	s.SuccessMessage()
+	s.successMessage()
 	return nil
 }
 
-func (s *CmdSignupState) CheckRegistered() (err error) {
-	if err = s.engine.CheckRegistered(); err == nil {
-		return
-	} else if _, ok := err.(libkb.AlreadyRegisteredError); !ok {
+func (s *CmdSignup) checkRegistered() (err error) {
+
+	G.Log.Debug("+ clientModeSignupEngine::CheckRegistered")
+	defer G.Log.Debug("- clientModeSignupEngine::CheckRegistered -> %s", libkb.ErrToOk(err))
+
+	var rres keybase1.GetCurrentStatusRes
+
+	if rres, err = s.ccli.GetCurrentStatus(0); err != nil {
+		return err
+	}
+	if !rres.Registered {
 		return
 	}
+
 	prompt := "Already registered; do you want to reregister?"
 	if rereg, err := GlobUI.PromptYesNo(prompt, PromptDefaultNo); err != nil {
 		return err
@@ -160,7 +168,7 @@ func (s *CmdSignupState) CheckRegistered() (err error) {
 	return nil
 }
 
-func (s *CmdSignupState) Prompt() (err error) {
+func (s *CmdSignup) prompt() (err error) {
 	if !s.doPrompt {
 		return nil
 	}
@@ -192,15 +200,10 @@ func (s *CmdSignupState) Prompt() (err error) {
 	return
 }
 
-func (s *CmdSignupState) runSignup() (err error) {
+func (s *CmdSignup) trySignup() (err error) {
 	retry := true
-
-	if err = s.engine.Init(); err == nil {
-		err = s.CheckRegistered()
-	}
-
 	for retry && err == nil {
-		if err = s.Prompt(); err == nil {
+		if err = s.prompt(); err == nil {
 			retry, err = s.runEngine()
 		}
 	}
@@ -208,44 +211,31 @@ func (s *CmdSignupState) runSignup() (err error) {
 	return err
 }
 
-func (s *CmdSignupState) runEngine() (retry bool, err error) {
-	arg := engine.SignupEngineRunArg{
-		Username:    s.fields.username.GetValue(),
-		Email:       s.fields.email.GetValue(),
-		InviteCode:  s.fields.code.GetValue(),
-		Passphrase:  s.passphrase,
-		StoreSecret: s.storeSecret,
-		DeviceName:  s.fields.deviceName.GetValue(),
+func (s *CmdSignup) runEngine() (retry bool, err error) {
+
+	rarg := keybase1.SignupArg{
+		Username:   s.fields.username.GetValue(),
+		Email:      s.fields.email.GetValue(),
+		InviteCode: s.fields.code.GetValue(),
+		Passphrase: s.passphrase,
+		DeviceName: s.fields.deviceName.GetValue(),
 	}
-	s.engine.SetArg(&arg)
-	ctx := &engine.Context{
-		LogUI:    G.UI.GetLogUI(),
-		GPGUI:    G.UI.GetGPGUI(),
-		SecretUI: G.UI.GetSecretUI(),
-		LoginUI:  G.UI.GetLoginUI(),
-	}
-	err = engine.RunEngine(s.engine, ctx)
+	res, err := s.scli.Signup(rarg)
 	if err == nil {
 		return false, nil
 	}
-
+	G.Log.Debug("error: %q, type: %T", err, err)
 	// check to see if the error is a join engine run result:
-	if e, ok := err.(engine.SignupJoinEngineRunRes); ok {
-		if e.PassphraseOk {
-			s.fields.passphraseRetry.Disabled = false
-		}
-		if !e.PostOk {
-			retry, err = s.HandlePostError(e.Err)
-		} else {
-			err = e.Err
-		}
-		return retry, err
+	if res.PassphraseOk {
+		s.fields.passphraseRetry.Disabled = false
 	}
-
-	return false, err
+	if !res.PostOk {
+		retry, err = s.handlePostError(err)
+	}
+	return retry, err
 }
 
-func (s *CmdSignupState) RequestInvitePromptForOk() (err error) {
+func (s *CmdSignup) requestInvitePromptForOk() (err error) {
 	prompt := "Would you like to be added to the invite request list?"
 	var invite bool
 	if invite, err = GlobUI.PromptYesNo(prompt, PromptDefaultYes); err != nil {
@@ -257,7 +247,7 @@ func (s *CmdSignupState) RequestInvitePromptForOk() (err error) {
 	return nil
 }
 
-func (s *CmdSignupState) RequestInvitePromptForData() error {
+func (s *CmdSignup) requestInvitePromptForData() error {
 
 	fullname := &Field{
 		Name:   "fullname",
@@ -278,29 +268,17 @@ func (s *CmdSignupState) RequestInvitePromptForData() error {
 	return nil
 }
 
-func (s *CmdSignupState) RequestInvitePost() error {
-	err := s.engine.PostInviteRequest(libkb.InviteRequestArg{
-		Email:    s.fields.email.GetValue(),
-		Fullname: s.fullname,
-		Notes:    s.notes,
-	})
-	if err == nil {
-		G.Log.Info("Success! You're on our list, thanks for your interest.")
-	}
-	return err
-}
-
-func (s *CmdSignupState) RequestInvite() error {
-	if err := s.RequestInvitePromptForOk(); err != nil {
+func (s *CmdSignup) requestInvite() error {
+	if err := s.requestInvitePromptForOk(); err != nil {
 		return err
 	}
-	if err := s.RequestInvitePromptForData(); err != nil {
+	if err := s.requestInvitePromptForData(); err != nil {
 		return err
 	}
-	return s.RequestInvitePost()
+	return s.postInviteRequest()
 }
 
-func (s *CmdSignupState) MakePrompter() {
+func (s *CmdSignup) MakePrompter() {
 	code := &Field{
 		Defval:  s.code,
 		Name:    "code",
@@ -358,7 +336,7 @@ func (s *CmdSignupState) MakePrompter() {
 	s.prompter = NewPrompter(s.fields.ToList())
 }
 
-func (s *CmdSignupState) GetUsage() libkb.Usage {
+func (s *CmdSignup) GetUsage() libkb.Usage {
 	return libkb.Usage{
 		Config:     true,
 		GpgKeyring: true,
@@ -367,55 +345,13 @@ func (s *CmdSignupState) GetUsage() libkb.Usage {
 	}
 }
 
-type clientModeSignupEngine struct {
-	scli     keybase1.SignupClient
-	ccli     keybase1.ConfigClient
-	arg      *engine.SignupEngineRunArg
-	doPrompt bool
-	libkb.Contextified
-}
-
-func (e *clientModeSignupEngine) Name() string {
-	return "clientModeSignupEngine"
-}
-
-func (e *clientModeSignupEngine) RequiredUIs() []libkb.UIKind {
-	return []libkb.UIKind{
-		libkb.LogUIKind,
-		libkb.GPGUIKind,
-		libkb.SecretUIKind,
-	}
-}
-
-func (e *clientModeSignupEngine) SubConsumers() []libkb.UIConsumer {
-	// this doesn't use any subengines itself, so nil is ok here.
-	// the destination of this will handle it...
-	return nil
-}
-
-func (e *clientModeSignupEngine) Prereqs() (ret engine.Prereqs) { return }
-
-func (e *clientModeSignupEngine) CheckRegistered() (err error) {
-	G.Log.Debug("+ clientModeSignupEngine::CheckRegistered")
-	defer G.Log.Debug("- clientModeSignupEngine::CheckRegistered -> %s", libkb.ErrToOk(err))
-	var rres keybase1.GetCurrentStatusRes
-	if rres, err = e.ccli.GetCurrentStatus(0); err != nil {
-		return err
-	}
-	if rres.Registered {
-		err = libkb.AlreadyRegisteredError{}
-		return
-	}
-	return
-}
-
-func (e *clientModeSignupEngine) Init() error {
+func (s *CmdSignup) initClient() error {
 	var err error
-	if e.scli, err = GetSignupClient(); err != nil {
+	if s.scli, err = GetSignupClient(); err != nil {
 		return err
 	}
 
-	if e.ccli, err = GetConfigClient(); err != nil {
+	if s.ccli, err = GetConfigClient(); err != nil {
 		return err
 	}
 
@@ -423,7 +359,7 @@ func (e *clientModeSignupEngine) Init() error {
 		NewLogUIProtocol(),
 		NewSecretUIProtocol(),
 	}
-	if e.doPrompt {
+	if s.doPrompt {
 		protocols = append(protocols, NewGPGUIProtocol())
 	} else {
 		ui := GlobUI.GetGPGUI().(GPGUI)
@@ -436,52 +372,20 @@ func (e *clientModeSignupEngine) Init() error {
 	return nil
 }
 
-func (e *clientModeSignupEngine) SetArg(arg *engine.SignupEngineRunArg) {
-	e.arg = arg
-}
-
-func (e *clientModeSignupEngine) Run(ctx *engine.Context) error {
-	// in case daemon restarted before the last time the connections
-	// were established:
-	if err := e.Init(); err != nil {
-		return err
-	}
-
-	rarg := keybase1.SignupArg{
-		Username:   e.arg.Username,
-		Email:      e.arg.Email,
-		InviteCode: e.arg.InviteCode,
-		Passphrase: e.arg.Passphrase,
-		DeviceName: e.arg.DeviceName,
-	}
-	res, err := e.scli.Signup(rarg)
-	if err == nil {
-		return nil
-	}
-	G.Log.Debug("error: %q, type: %T", err, err)
-	if !res.PassphraseOk || !res.PostOk || !res.WriteOk {
-		// problem with the join phase
-		return engine.SignupJoinEngineRunRes{
-			PassphraseOk: res.PassphraseOk,
-			PostOk:       res.PostOk,
-			WriteOk:      res.WriteOk,
-			Err:          err,
-		}
-	}
-	return err
-}
-
-func (e *clientModeSignupEngine) PostInviteRequest(arg libkb.InviteRequestArg) (err error) {
+func (s *CmdSignup) postInviteRequest() (err error) {
 	rarg := keybase1.InviteRequestArg{
-		Email:    arg.Email,
-		Fullname: arg.Fullname,
-		Notes:    arg.Notes,
+		Email:    s.fields.email.GetValue(),
+		Fullname: s.fullname,
+		Notes:    s.notes,
 	}
-	err = e.scli.InviteRequest(rarg)
+	err = s.scli.InviteRequest(rarg)
+	if err == nil {
+		G.Log.Info("Success! You're on our list, thanks for your interest.")
+	}
 	return
 }
 
-func (s *CmdSignupState) HandlePostError(inerr error) (retry bool, err error) {
+func (s *CmdSignup) handlePostError(inerr error) (retry bool, err error) {
 	retry = false
 	err = inerr
 	if ase, ok := inerr.(libkb.AppStatusError); ok {
