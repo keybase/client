@@ -157,7 +157,7 @@ func (p CommandLine) GetStandalone() (bool, bool) {
 }
 
 func (p CommandLine) GetLocalRPCDebug() string {
-	return p.GetGString("local-rpc-debug")
+	return p.GetGString("unsecure-local-rpc-debug")
 }
 
 func (p CommandLine) GetTimers() string {
@@ -338,8 +338,8 @@ func (p *CommandLine) PopulateApp(addHelp bool, extraFlags []cli.Flag) {
 			Usage: "use the client without any daemon support",
 		},
 		cli.StringFlag{
-			Name:  "local-rpc-debug",
-			Usage: "use to debug local RPC",
+			Name:  "unsecure-local-rpc-debug",
+			Usage: "use to debug local RPC (may leak secrets)",
 		},
 		cli.StringFlag{
 			Name:  "log-file",
