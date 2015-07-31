@@ -8,16 +8,12 @@ import (
 
 type CmdLogout struct{}
 
-func (v *CmdLogout) RunClient() error {
+func (v *CmdLogout) Run() error {
 	cli, err := GetLoginClient()
 	if err != nil {
 		return err
 	}
 	return cli.Logout(0)
-}
-
-func (v *CmdLogout) Run() error {
-	return libkb.G.Logout()
 }
 
 func NewCmdLogout(cl *libcmdline.CommandLine) cli.Command {

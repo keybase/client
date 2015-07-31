@@ -4,7 +4,6 @@ import (
 	"fmt"
 
 	"github.com/keybase/cli"
-	"github.com/keybase/client/go/engine"
 	"github.com/keybase/client/go/libcmdline"
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/protocol/go"
@@ -27,7 +26,7 @@ func (c *CmdDeviceRemove) ParseArgv(ctx *cli.Context) error {
 	return nil
 }
 
-func (c *CmdDeviceRemove) RunClient() (err error) {
+func (c *CmdDeviceRemove) Run() (err error) {
 	cli, err := GetRevokeClient()
 	if err != nil {
 		return err
@@ -44,15 +43,6 @@ func (c *CmdDeviceRemove) RunClient() (err error) {
 	return cli.RevokeDevice(keybase1.RevokeDeviceArg{
 		DeviceID: c.id,
 	})
-}
-
-func (c *CmdDeviceRemove) Run() error {
-	eng := engine.NewRevokeDeviceEngine(c.id, G)
-	ctx := engine.Context{
-		LogUI:    GlobUI.GetLogUI(),
-		SecretUI: GlobUI.GetSecretUI(),
-	}
-	return engine.RunEngine(eng, &ctx)
 }
 
 func NewCmdDeviceRemove(cl *libcmdline.CommandLine) cli.Command {

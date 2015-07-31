@@ -15,8 +15,6 @@ func (c *CmdDbNuke) ParseArgv(ctx *cli.Context) error {
 	return nil
 }
 
-func (c *CmdDbNuke) RunClient() error { return c.Run() }
-
 func (c *CmdDbNuke) Run() error {
 	var err error
 	if !c.force {

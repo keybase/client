@@ -3,13 +3,11 @@ package client
 import (
 	"errors"
 	"fmt"
-	"path/filepath"
-
 	"github.com/keybase/cli"
-	"github.com/keybase/client/go/engine"
 	"github.com/keybase/client/go/libcmdline"
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/protocol/go"
+	"path/filepath"
 )
 
 type CmdFavoriteList struct{}
@@ -23,14 +21,6 @@ func NewCmdFavoriteList(cl *libcmdline.CommandLine) cli.Command {
 			cl.ChooseCommand(&CmdFavoriteList{}, "add", c)
 		},
 	}
-}
-
-func (c *CmdFavoriteList) Run() error {
-	return c.run(&favListStandalone{})
-}
-
-func (c *CmdFavoriteList) RunClient() error {
-	return c.run(&favListClient{})
 }
 
 func (c *CmdFavoriteList) ParseArgv(ctx *cli.Context) error {
@@ -47,9 +37,9 @@ func (c *CmdFavoriteList) GetUsage() libkb.Usage {
 	}
 }
 
-func (c *CmdFavoriteList) run(lister favLister) error {
+func (c *CmdFavoriteList) Run() error {
 	arg := keybase1.FavoriteListArg{}
-	folders, err := lister.list(arg)
+	folders, err := list(arg)
 	if err != nil {
 		return err
 	}
@@ -63,24 +53,7 @@ func (c *CmdFavoriteList) run(lister favLister) error {
 	return nil
 }
 
-type favLister interface {
-	list(arg keybase1.FavoriteListArg) ([]keybase1.Folder, error)
-}
-
-type favListStandalone struct{}
-
-func (f *favListStandalone) list(arg keybase1.FavoriteListArg) ([]keybase1.Folder, error) {
-	ctx := &engine.Context{}
-	eng := engine.NewFavoriteList(G)
-	if err := engine.RunEngine(eng, ctx); err != nil {
-		return nil, err
-	}
-	return eng.Favorites(), nil
-}
-
-type favListClient struct{}
-
-func (f *favListClient) list(arg keybase1.FavoriteListArg) ([]keybase1.Folder, error) {
+func list(arg keybase1.FavoriteListArg) ([]keybase1.Folder, error) {
 	cli, err := GetFavoriteClient()
 	if err != nil {
 		return nil, err

@@ -6,7 +6,6 @@ import (
 	"strings"
 
 	"github.com/keybase/cli"
-	"github.com/keybase/client/go/engine"
 	"github.com/keybase/client/go/libcmdline"
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/protocol/go"
@@ -141,7 +140,7 @@ func (s *CmdSigsList) DisplayKTable(sigs []keybase1.Sig) (err error) {
 	return
 }
 
-func (s *CmdSigsList) RunClient() error {
+func (s *CmdSigsList) Run() error {
 	cli, err := GetSigsClient()
 	if err != nil {
 		return err
@@ -178,32 +177,6 @@ func (s *CmdSigsList) RunClient() error {
 		return err
 	}
 	return s.DisplayKTable(sigs)
-}
-
-func (s *CmdSigsList) Run() error {
-	ctx := &engine.Context{}
-	args := engine.SigsListArgs{
-		Username: s.username,
-		AllKeys:  s.allKeys,
-		Types:    s.types,
-		Filterx:  s.filter,
-		Verbose:  s.verbose,
-		Revoked:  s.revoked,
-	}
-	eng := engine.NewSigsList(args, G)
-	if err := engine.RunEngine(eng, ctx); err != nil {
-		return err
-	}
-
-	if s.json {
-		j, err := eng.JSON()
-		if err != nil {
-			return err
-		}
-		fmt.Println(j)
-		return nil
-	}
-	return s.DisplayKTable(eng.Sigs())
 }
 
 func NewCmdSigsList(cl *libcmdline.CommandLine) cli.Command {

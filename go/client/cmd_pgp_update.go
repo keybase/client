@@ -2,7 +2,6 @@ package client
 
 import (
 	"github.com/keybase/cli"
-	"github.com/keybase/client/go/engine"
 	"github.com/keybase/client/go/libcmdline"
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/protocol/go"
@@ -20,7 +19,7 @@ func (v *CmdPGPUpdate) ParseArgv(ctx *cli.Context) error {
 	return nil
 }
 
-func (v *CmdPGPUpdate) RunClient() (err error) {
+func (v *CmdPGPUpdate) Run() (err error) {
 	cli, err := GetPGPClient()
 	if err != nil {
 		return err
@@ -39,13 +38,6 @@ func (v *CmdPGPUpdate) RunClient() (err error) {
 	})
 }
 
-func (v *CmdPGPUpdate) Run() error {
-	eng := engine.NewPGPUpdateEngine(v.fingerprints, v.all, G)
-	ctx := engine.Context{
-		LogUI: GlobUI.GetLogUI(),
-	}
-	return engine.RunEngine(eng, &ctx)
-}
 func NewCmdPGPUpdate(cl *libcmdline.CommandLine) cli.Command {
 	return cli.Command{
 		Name:        "update",

@@ -14,8 +14,7 @@ import (
 type Command interface {
 	libkb.Command
 	ParseArgv(*cli.Context) error // A command-specific parse-args
-	Run() error                   // Actually run the command (finally!)
-	RunClient() error             // Run in client mode
+	Run() error                   // Run in client mode
 }
 
 type ForkCmd int
@@ -27,19 +26,22 @@ const (
 )
 
 type CommandLine struct {
-	app        *cli.App
-	ctx        *cli.Context
-	cmd        Command
-	name       string  // the name of the chosen command
-	service    bool    // The server is a special command
-	fork       ForkCmd // If the command is to stop (then don't start the server)
-	defaultCmd string
+	app          *cli.App
+	ctx          *cli.Context
+	cmd          Command
+	name         string  // the name of the chosen command
+	service      bool    // The server is a special command
+	fork         ForkCmd // If the command is to stop (then don't start the server)
+	noStandalone bool    // On if this command can't run in standalone mode
+	defaultCmd   string
 }
 
 func (p CommandLine) IsService() bool       { return p.service }
 func (p *CommandLine) SetService()          { p.service = true }
 func (p CommandLine) GetForkCmd() ForkCmd   { return p.fork }
 func (p *CommandLine) SetForkCmd(v ForkCmd) { p.fork = v }
+func (p *CommandLine) SetNoStandalone()     { p.noStandalone = true }
+func (p CommandLine) IsNoStandalone() bool  { return p.noStandalone }
 
 func (p CommandLine) GetSplitLogOutput() (bool, bool) {
 	return p.GetBool("split-log-output", true)

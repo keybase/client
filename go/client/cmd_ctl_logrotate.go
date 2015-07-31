@@ -1,8 +1,6 @@
 package client
 
 import (
-	"fmt"
-
 	"github.com/keybase/cli"
 	"github.com/keybase/client/go/libcmdline"
 	"github.com/keybase/client/go/libkb"
@@ -16,6 +14,7 @@ func NewCmdCtlLogRotate(cl *libcmdline.CommandLine) cli.Command {
 		Action: func(c *cli.Context) {
 			cl.ChooseCommand(&CmdCtlLogRotate{}, "stop", c)
 			cl.SetForkCmd(libcmdline.NoFork)
+			cl.SetNoStandalone()
 		},
 	}
 }
@@ -26,16 +25,12 @@ func (s *CmdCtlLogRotate) ParseArgv(ctx *cli.Context) error {
 	return nil
 }
 
-func (s *CmdCtlLogRotate) RunClient() (err error) {
+func (s *CmdCtlLogRotate) Run() (err error) {
 	cli, err := GetCtlClient()
 	if err != nil {
 		return err
 	}
 	return cli.LogRotate()
-}
-
-func (s *CmdCtlLogRotate) Run() error {
-	return fmt.Errorf("Can't run `ctl log-rotate` in standalone mode")
 }
 
 func (s *CmdCtlLogRotate) GetUsage() libkb.Usage {

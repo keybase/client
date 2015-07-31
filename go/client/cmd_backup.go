@@ -4,7 +4,6 @@ import (
 	"fmt"
 
 	"github.com/keybase/cli"
-	"github.com/keybase/client/go/engine"
 	"github.com/keybase/client/go/libcmdline"
 	"github.com/keybase/client/go/libkb"
 	"github.com/maxtaco/go-framed-msgpack-rpc/rpc2"
@@ -25,21 +24,6 @@ type CmdBackup struct {
 }
 
 func (c *CmdBackup) Run() error {
-	ctx := &engine.Context{
-		LogUI:    G.UI.GetLogUI(),
-		LoginUI:  G.UI.GetLoginUI(),
-		SecretUI: G.UI.GetSecretUI(),
-	}
-	eng := engine.NewBackup(G)
-	err := engine.RunEngine(eng, ctx)
-	if err != nil {
-		return err
-	}
-	c.output(eng.Passphrase())
-	return nil
-}
-
-func (c *CmdBackup) RunClient() error {
 	cli, err := GetLoginClient()
 	if err != nil {
 		return err

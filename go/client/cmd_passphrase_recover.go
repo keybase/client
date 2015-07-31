@@ -27,25 +27,15 @@ func (c *CmdPassphraseRecover) confirm() error {
 	return GlobUI.PromptForConfirmation("Continue with password recovery?")
 }
 
-func (c *CmdPassphraseRecover) run(ch changer) error {
+func (c *CmdPassphraseRecover) Run() error {
 	if err := c.confirm(); err != nil {
 		return err
 	}
-
 	pp, err := promptNewPassphrase()
 	if err != nil {
 		return err
 	}
-
-	return ch.change(newChangeArg(pp, true))
-}
-
-func (c *CmdPassphraseRecover) Run() error {
-	return c.run(&changerStandalone{})
-}
-
-func (c *CmdPassphraseRecover) RunClient() error {
-	return c.run(&changerClient{})
+	return passphraseChange(newChangeArg(pp, true))
 }
 
 func (c *CmdPassphraseRecover) ParseArgv(ctx *cli.Context) error {

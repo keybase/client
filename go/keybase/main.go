@@ -73,6 +73,9 @@ func mainInner(g *libkb.GlobalContext) error {
 	// need to "autofork" it. Do at most one of these
 	// operations.
 	if g.Env.GetStandalone() {
+		if cl.IsNoStandalone() {
+			return fmt.Errorf("Can't run command in standalone mode")
+		}
 		(service.NewService(false)).StartLoopbackServer(g)
 	} else if fc := cl.GetForkCmd(); fc == libcmdline.ForceFork || (g.Env.GetAutoFork() && fc != libcmdline.NoFork) {
 		if err = client.ForkServerNix(cl); err != nil {
@@ -80,7 +83,7 @@ func mainInner(g *libkb.GlobalContext) error {
 		}
 	}
 
-	return cmd.RunClient()
+	return cmd.Run()
 }
 
 func HandleSignals() {

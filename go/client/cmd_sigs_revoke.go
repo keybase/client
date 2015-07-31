@@ -2,9 +2,7 @@ package client
 
 import (
 	"fmt"
-
 	"github.com/keybase/cli"
-	"github.com/keybase/client/go/engine"
 	"github.com/keybase/client/go/libcmdline"
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/protocol/go"
@@ -27,7 +25,7 @@ func (c *CmdSigsRevoke) ParseArgv(ctx *cli.Context) error {
 	return nil
 }
 
-func (c *CmdSigsRevoke) RunClient() error {
+func (c *CmdSigsRevoke) Run() error {
 	cli, err := GetRevokeClient()
 	if err != nil {
 		return err
@@ -44,15 +42,6 @@ func (c *CmdSigsRevoke) RunClient() error {
 	return cli.RevokeSigs(keybase1.RevokeSigsArg{
 		SigIDs: c.sigIDs,
 	})
-}
-
-func (c *CmdSigsRevoke) Run() error {
-	eng := engine.NewRevokeSigsEngine(c.sigIDs, G)
-	ctx := engine.Context{
-		LogUI:    GlobUI.GetLogUI(),
-		SecretUI: GlobUI.GetSecretUI(),
-	}
-	return engine.RunEngine(eng, &ctx)
 }
 
 func NewCmdSigsRevoke(cl *libcmdline.CommandLine) cli.Command {

@@ -4,7 +4,6 @@ import (
 	"errors"
 
 	"github.com/keybase/cli"
-	"github.com/keybase/client/go/engine"
 	"github.com/keybase/client/go/libcmdline"
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/protocol/go"
@@ -42,7 +41,7 @@ func (v *CmdLogin) client() (*keybase1.LoginClient, error) {
 	return &c, nil
 }
 
-func (v *CmdLogin) RunClient() error {
+func (v *CmdLogin) Run() error {
 	cli, err := v.client()
 	if err != nil {
 		return err
@@ -55,18 +54,6 @@ func (v *CmdLogin) RunClient() error {
 		SessionID: v.sessionID,
 		Username:  v.Username,
 	})
-}
-
-func (v *CmdLogin) Run() error {
-	ctx := &engine.Context{
-		LogUI:       G.UI.GetLogUI(),
-		LoginUI:     G.UI.GetLoginUI(),
-		LocksmithUI: G.UI.GetLocksmithUI(),
-		GPGUI:       G.UI.GetGPGUI(),
-		SecretUI:    G.UI.GetSecretUI(),
-	}
-	li := engine.NewLoginWithPromptEngine(v.Username, G)
-	return engine.RunEngine(li, ctx)
 }
 
 func (v *CmdLogin) Cancel() error {

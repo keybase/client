@@ -4,7 +4,6 @@ import (
 	"fmt"
 
 	"github.com/keybase/cli"
-	"github.com/keybase/client/go/engine"
 	"github.com/keybase/client/go/libcmdline"
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/protocol/go"
@@ -32,7 +31,7 @@ func NewCmdDeviceAdd(cl *libcmdline.CommandLine) cli.Command {
 }
 
 // RunClient runs the command in client/server mode.
-func (c *CmdDeviceAdd) RunClient() error {
+func (c *CmdDeviceAdd) Run() error {
 	var err error
 	c.sessionID, err = libkb.RandInt()
 	if err != nil {
@@ -51,13 +50,6 @@ func (c *CmdDeviceAdd) RunClient() error {
 	}
 
 	return cli.DeviceAdd(keybase1.DeviceAddArg{SecretPhrase: c.phrase, SessionID: c.sessionID})
-}
-
-// Run runs the command in standalone mode.
-func (c *CmdDeviceAdd) Run() error {
-	ctx := &engine.Context{SecretUI: GlobUI.GetSecretUI(), LocksmithUI: GlobUI.GetLocksmithUI()}
-	eng := engine.NewKexSib(G, c.phrase)
-	return engine.RunEngine(eng, ctx)
 }
 
 // ParseArgv gets the secret phrase from the command args.

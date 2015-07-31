@@ -2,7 +2,6 @@ package client
 
 import (
 	"github.com/keybase/cli"
-	"github.com/keybase/client/go/engine"
 	"github.com/keybase/client/go/libcmdline"
 	"github.com/keybase/client/go/libkb"
 	"github.com/maxtaco/go-framed-msgpack-rpc/rpc2"
@@ -22,19 +21,6 @@ func NewCmdDoctor(cl *libcmdline.CommandLine) cli.Command {
 type CmdDoctor struct{}
 
 func (c *CmdDoctor) Run() error {
-	ctx := &engine.Context{
-		DoctorUI:    G.UI.GetDoctorUI(),
-		SecretUI:    G.UI.GetSecretUI(),
-		LogUI:       G.UI.GetLogUI(),
-		LoginUI:     G.UI.GetLoginUI(),
-		LocksmithUI: G.UI.GetLocksmithUI(),
-		GPGUI:       G.UI.GetGPGUI(),
-	}
-	eng := engine.NewDoctor(G)
-	return engine.RunEngine(eng, ctx)
-}
-
-func (c *CmdDoctor) RunClient() error {
 	cli, err := GetDoctorClient()
 	if err != nil {
 		return err

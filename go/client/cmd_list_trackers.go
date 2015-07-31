@@ -8,7 +8,6 @@ import (
 	"text/tabwriter"
 
 	"github.com/keybase/cli"
-	"github.com/keybase/client/go/engine"
 	"github.com/keybase/client/go/libcmdline"
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/protocol/go"
@@ -57,36 +56,6 @@ func NewCmdListTrackers(cl *libcmdline.CommandLine) cli.Command {
 
 type batchfn func([]keybase1.UID) ([]keybase1.UserSummary, error)
 
-// Run runs the command in standalone mode.
-func (c *CmdListTrackers) Run() error {
-	ctx := &engine.Context{LogUI: G.UI.GetLogUI()}
-	var eng *engine.ListTrackersEngine
-	if c.uid.Exists() {
-		eng = engine.NewListTrackers(c.uid, G)
-	} else if len(c.username) > 0 {
-		eng = engine.NewListTrackersByName(c.username)
-	} else {
-		eng = engine.NewListTrackersSelf()
-	}
-
-	if err := engine.RunEngine(eng, ctx); err != nil {
-		return err
-	}
-	trs := eng.ExportedList()
-
-	summarize := func(uids []keybase1.UID) (res []keybase1.UserSummary, err error) {
-		sumeng := engine.NewUserSummary(uids, G)
-		if err = engine.RunEngine(sumeng, ctx); err != nil {
-			return
-		}
-		res = sumeng.ExportedSummariesList()
-		return
-	}
-
-	c.output(trs, summarize)
-	return nil
-}
-
 func populateList(trs []keybase1.Tracker, summarizer batchfn) (ret []keybase1.UserSummary, err error) {
 
 	for i := 0; i < len(trs); i += libkb.UserSummaryLimit {
@@ -109,7 +78,7 @@ func populateList(trs []keybase1.Tracker, summarizer batchfn) (ret []keybase1.Us
 }
 
 // RunClient runs the command in client/server mode.
-func (c *CmdListTrackers) RunClient() error {
+func (c *CmdListTrackers) Run() error {
 	cli, err := GetUserClient()
 	if err != nil {
 		return err

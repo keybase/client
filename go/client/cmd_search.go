@@ -5,7 +5,6 @@ import (
 	"strings"
 
 	"github.com/keybase/cli"
-	"github.com/keybase/client/go/engine"
 	"github.com/keybase/client/go/libcmdline"
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/protocol/go"
@@ -27,7 +26,7 @@ func (c *CmdSearch) ParseArgv(ctx *cli.Context) error {
 	return nil
 }
 
-func (c *CmdSearch) RunClient() (err error) {
+func (c *CmdSearch) Run() (err error) {
 	cli, err := GetUserClient()
 	if err != nil {
 		return err
@@ -68,27 +67,6 @@ func UserSummariesForSearchResults(results []keybase1.SearchResult) ([]keybase1.
 		return nil, err
 	}
 	return userSummaries, nil
-}
-
-func (c *CmdSearch) Run() error {
-	eng := engine.NewSearchEngine(engine.SearchEngineArgs{
-		Query: c.query,
-	}, G)
-	ctx := engine.Context{
-		LogUI:    GlobUI.GetLogUI(),
-		SecretUI: GlobUI.GetSecretUI(),
-	}
-	err := engine.RunEngine(eng, &ctx)
-	if err != nil {
-		return err
-	}
-
-	userSummaries, err := UserSummariesForSearchResults(eng.GetResults())
-	if err != nil {
-		return err
-	}
-
-	return c.showResults(userSummaries)
 }
 
 func (c *CmdSearch) showResults(results []keybase1.UserSummary) error {

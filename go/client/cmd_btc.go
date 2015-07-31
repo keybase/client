@@ -4,7 +4,6 @@ import (
 	"fmt"
 
 	"github.com/keybase/cli"
-	"github.com/keybase/client/go/engine"
 	"github.com/keybase/client/go/libcmdline"
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/protocol/go"
@@ -25,7 +24,7 @@ func (c *CmdBTC) ParseArgv(ctx *cli.Context) error {
 	return nil
 }
 
-func (c *CmdBTC) RunClient() (err error) {
+func (c *CmdBTC) Run() (err error) {
 	cli, err := GetBTCClient()
 	if err != nil {
 		return err
@@ -43,15 +42,6 @@ func (c *CmdBTC) RunClient() (err error) {
 		Address: c.address,
 		Force:   c.force,
 	})
-}
-
-func (c *CmdBTC) Run() error {
-	eng := engine.NewBTCEngine(c.address, c.force, G)
-	ctx := engine.Context{
-		LogUI:    GlobUI.GetLogUI(),
-		SecretUI: GlobUI.GetSecretUI(),
-	}
-	return engine.RunEngine(eng, &ctx)
 }
 
 func NewCmdBTC(cl *libcmdline.CommandLine) cli.Command {

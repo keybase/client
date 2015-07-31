@@ -1,8 +1,6 @@
 package client
 
 import (
-	"fmt"
-
 	"github.com/keybase/cli"
 	"github.com/keybase/client/go/libcmdline"
 	"github.com/keybase/client/go/libkb"
@@ -16,6 +14,7 @@ func NewCmdCtlStart(cl *libcmdline.CommandLine) cli.Command {
 		Action: func(c *cli.Context) {
 			cl.ChooseCommand(&CmdCtlStart{}, "start", c)
 			cl.SetForkCmd(libcmdline.ForceFork)
+			cl.SetNoStandalone()
 		},
 	}
 }
@@ -26,12 +25,8 @@ func (s *CmdCtlStart) ParseArgv(ctx *cli.Context) error {
 	return nil
 }
 
-func (s *CmdCtlStart) RunClient() (err error) {
+func (s *CmdCtlStart) Run() (err error) {
 	return nil
-}
-
-func (s *CmdCtlStart) Run() error {
-	return fmt.Errorf("Can't run `ctl start` in standalone mode")
 }
 
 func (s *CmdCtlStart) GetUsage() libkb.Usage {

@@ -4,7 +4,6 @@ import (
 	"fmt"
 
 	"github.com/keybase/cli"
-	"github.com/keybase/client/go/engine"
 	"github.com/keybase/client/go/libcmdline"
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/protocol/go"
@@ -23,7 +22,7 @@ func (c *CmdRevoke) ParseArgv(ctx *cli.Context) error {
 	return nil
 }
 
-func (c *CmdRevoke) RunClient() (err error) {
+func (c *CmdRevoke) Run() (err error) {
 	cli, err := GetRevokeClient()
 	if err != nil {
 		return err
@@ -40,15 +39,6 @@ func (c *CmdRevoke) RunClient() (err error) {
 	return cli.RevokeKey(keybase1.RevokeKeyArg{
 		KeyID: c.id,
 	})
-}
-
-func (c *CmdRevoke) Run() error {
-	eng := engine.NewRevokeKeyEngine(c.id, G)
-	ctx := engine.Context{
-		LogUI:    GlobUI.GetLogUI(),
-		SecretUI: GlobUI.GetSecretUI(),
-	}
-	return engine.RunEngine(eng, &ctx)
 }
 
 func NewCmdRevoke(cl *libcmdline.CommandLine) cli.Command {

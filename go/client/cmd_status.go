@@ -22,7 +22,7 @@ func (v *CmdStatus) ParseArgv(ctx *cli.Context) error {
 	return nil
 }
 
-func (v *CmdStatus) RunClient() (err error) {
+func (v *CmdStatus) Run() (err error) {
 	configCli, err := GetConfigClient()
 	if err != nil {
 		return err
@@ -48,24 +48,6 @@ func (v *CmdStatus) RunClient() (err error) {
 	}
 	v.printExportedMe(me)
 	return nil
-}
-
-func (v *CmdStatus) Run() error {
-	currentStatus, err := libkb.GetCurrentStatus()
-	if err != nil {
-		return err
-	}
-	if !currentStatus.LoggedIn {
-		return fmt.Errorf("Not logged in.")
-	}
-
-	me, err := libkb.LoadMe(libkb.LoadUserArg{})
-	if err != nil {
-		return err
-	}
-	exported := me.Export()
-	err = v.printExportedMe(*exported)
-	return err
 }
 
 func findSubkeys(parentID keybase1.KID, allKeys []keybase1.PublicKey) []keybase1.PublicKey {

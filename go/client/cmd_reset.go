@@ -2,7 +2,6 @@ package client
 
 import (
 	"github.com/keybase/cli"
-	"github.com/keybase/client/go/engine"
 	"github.com/keybase/client/go/libcmdline"
 	"github.com/keybase/client/go/libkb"
 	"github.com/maxtaco/go-framed-msgpack-rpc/rpc2"
@@ -14,7 +13,7 @@ const (
 	resetPrompt = "Really delete all local cached state?"
 )
 
-func (v *CmdReset) RunClient() (err error) {
+func (v *CmdReset) Run() (err error) {
 	if err = GlobUI.PromptForConfirmation(resetPrompt); err != nil {
 		return
 	}
@@ -32,16 +31,6 @@ func (v *CmdReset) RunClient() (err error) {
 	}
 
 	return cli.Reset(0)
-}
-
-func (v *CmdReset) Run() (err error) {
-	if err = GlobUI.PromptForConfirmation(resetPrompt); err != nil {
-		return
-	}
-
-	eng := engine.NewResetEngine(G)
-	ctx := engine.Context{}
-	return engine.RunEngine(eng, &ctx)
 }
 
 func NewCmdReset(cl *libcmdline.CommandLine) cli.Command {

@@ -4,7 +4,6 @@ import (
 	"fmt"
 
 	"github.com/keybase/cli"
-	"github.com/keybase/client/go/engine"
 	"github.com/keybase/client/go/libcmdline"
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/protocol/go"
@@ -46,7 +45,7 @@ func (v *CmdTrack) ParseArgv(ctx *cli.Context) error {
 	return nil
 }
 
-func (v *CmdTrack) RunClient() error {
+func (v *CmdTrack) Run() error {
 	cli, err := GetTrackClient()
 	if err != nil {
 		return err
@@ -65,19 +64,6 @@ func (v *CmdTrack) RunClient() error {
 		UserAssertion: v.user,
 		Options:       v.options,
 	})
-}
-
-func (v *CmdTrack) Run() error {
-	arg := engine.TrackEngineArg{
-		UserAssertion: v.user,
-		Options:       v.options,
-	}
-	eng := engine.NewTrackEngine(&arg, G)
-	ctx := engine.Context{
-		SecretUI:   GlobUI.GetSecretUI(),
-		IdentifyUI: GlobUI.GetIdentifyTrackUI(true),
-	}
-	return engine.RunEngine(eng, &ctx)
 }
 
 func (v *CmdTrack) GetUsage() libkb.Usage {
