@@ -19,7 +19,7 @@ type LoopbackListener struct {
 
 	// Protects closing of ch so that we can close ch
 	// and set isClosed atomically.
-	sync.Mutex
+	mutex    sync.Mutex
 	ch       chan *LoopbackConn
 	isClosed bool
 }
@@ -33,13 +33,13 @@ type LoopbackConn struct {
 	// writer, hence the 'w'.
 	wMutex   sync.Mutex
 	isClosed bool
-	ch       chan []byte
+	ch       chan<- []byte
 
 	// rMutex Protects partnerCh and buf, to ensure that only
 	// one Go routine is reading at a time. It protects the
 	// reader hence the 'r'
 	rMutex    sync.Mutex
-	partnerCh chan []byte
+	partnerCh <-chan []byte
 	buf       bytes.Buffer
 }
 
@@ -53,10 +53,12 @@ func NewLoopbackListener() *LoopbackListener {
 
 // NewLoopbackConnPair makes a new loopback connection pair
 func NewLoopbackConnPair() (*LoopbackConn, *LoopbackConn) {
-	a := &LoopbackConn{ch: make(chan []byte)}
-	b := &LoopbackConn{ch: make(chan []byte)}
-	a.partnerCh = b.ch
-	b.partnerCh = a.ch
+	aCh := make(chan []byte)
+	bCh := make(chan []byte)
+	a := &LoopbackConn{ch: aCh}
+	b := &LoopbackConn{ch: bCh}
+	a.partnerCh = bCh
+	b.partnerCh = aCh
 	return a, b
 }
 
@@ -64,8 +66,8 @@ func NewLoopbackConnPair() (*LoopbackConn, *LoopbackConn) {
 // that's a connection to it.
 func (ll *LoopbackListener) Dial() (net.Conn, error) {
 	G.Log.Debug("+ LoopbackListener.Dial")
-	ll.Lock()
-	defer ll.Unlock()
+	ll.mutex.Lock()
+	defer ll.mutex.Unlock()
 	if ll.isClosed {
 		return nil, syscall.EINVAL
 	}
@@ -94,8 +96,8 @@ func (ll *LoopbackListener) Accept() (ret net.Conn, err error) {
 // Close closes the listener.
 // Any blocked Accept operations will be unblocked and return errors
 func (ll *LoopbackListener) Close() (err error) {
-	ll.Lock()
-	defer ll.Unlock()
+	ll.mutex.Lock()
+	defer ll.mutex.Unlock()
 	if ll.isClosed {
 		return syscall.EINVAL
 	}
