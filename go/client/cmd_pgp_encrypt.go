@@ -73,7 +73,7 @@ type CmdPGPEncrypt struct {
 	binaryOut    bool
 }
 
-func (c *CmdPGPEncrypt) RunClient() error {
+func (c *CmdPGPEncrypt) Run() error {
 	cli, err := GetPGPClient()
 	if err != nil {
 		return err

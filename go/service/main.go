@@ -68,7 +68,7 @@ func (d *Service) Handle(c net.Conn) {
 	}
 }
 
-func (d *Service) RunClient() (err error) {
+func (d *Service) Run() (err error) {
 	G.Service = true
 
 	err = d.writeVersionFile()

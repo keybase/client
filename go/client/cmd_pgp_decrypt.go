@@ -56,7 +56,7 @@ type CmdPGPDecrypt struct {
 	signedBy     string
 }
 
-func (c *CmdPGPDecrypt) RunClient() error {
+func (c *CmdPGPDecrypt) Run() error {
 	cli, err := GetPGPClient()
 	if err != nil {
 		return err

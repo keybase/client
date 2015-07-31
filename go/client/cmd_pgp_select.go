@@ -29,7 +29,7 @@ func (v *CmdPGPSelect) ParseArgv(ctx *cli.Context) (err error) {
 	return err
 }
 
-func (v *CmdPGPSelect) RunClient() error {
+func (v *CmdPGPSelect) Run() error {
 	c, err := GetPGPClient()
 	if err != nil {
 		return err

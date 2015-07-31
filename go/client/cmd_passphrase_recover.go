@@ -27,7 +27,7 @@ func (c *CmdPassphraseRecover) confirm() error {
 	return GlobUI.PromptForConfirmation("Continue with password recovery?")
 }
 
-func (c *CmdPassphraseRecover) RunClient() error {
+func (c *CmdPassphraseRecover) Run() error {
 	if err := c.confirm(); err != nil {
 		return err
 	}

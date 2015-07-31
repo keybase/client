@@ -13,7 +13,7 @@ const (
 	resetPrompt = "Really delete all local cached state?"
 )
 
-func (v *CmdReset) RunClient() (err error) {
+func (v *CmdReset) Run() (err error) {
 	if err = GlobUI.PromptForConfirmation(resetPrompt); err != nil {
 		return
 	}

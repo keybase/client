@@ -64,7 +64,7 @@ func mainInner(g *libkb.GlobalContext) error {
 	}
 
 	if cl.IsService() {
-		return cmd.RunClient()
+		return cmd.Run()
 	}
 
 	// Start the server on the other end, possibly.
@@ -83,7 +83,7 @@ func mainInner(g *libkb.GlobalContext) error {
 		}
 	}
 
-	return cmd.RunClient()
+	return cmd.Run()
 }
 
 func HandleSignals() {

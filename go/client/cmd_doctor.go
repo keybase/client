@@ -20,7 +20,7 @@ func NewCmdDoctor(cl *libcmdline.CommandLine) cli.Command {
 
 type CmdDoctor struct{}
 
-func (c *CmdDoctor) RunClient() error {
+func (c *CmdDoctor) Run() error {
 	cli, err := GetDoctorClient()
 	if err != nil {
 		return err

@@ -8,7 +8,7 @@ import (
 
 type CmdLogout struct{}
 
-func (v *CmdLogout) RunClient() error {
+func (v *CmdLogout) Run() error {
 	cli, err := GetLoginClient()
 	if err != nil {
 		return err

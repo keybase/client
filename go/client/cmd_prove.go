@@ -48,7 +48,7 @@ func newProveUIProtocol(ui ProveUI) rpc2.Protocol {
 }
 
 // RunClient runs the `keybase prove` subcommand in client/server mode.
-func (p *CmdProve) RunClient() error {
+func (p *CmdProve) Run() error {
 	var cli keybase1.ProveClient
 
 	proveUI := ProveUI{parent: GlobUI}

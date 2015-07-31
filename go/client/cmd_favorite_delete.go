@@ -23,7 +23,7 @@ func NewCmdFavoriteDelete(cl *libcmdline.CommandLine) cli.Command {
 	}
 }
 
-func (c *CmdFavoriteDelete) RunClient() error {
+func (c *CmdFavoriteDelete) Run() error {
 	arg := keybase1.FavoriteDeleteArg{
 		Folder: c.folder,
 	}

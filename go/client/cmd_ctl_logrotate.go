@@ -25,7 +25,7 @@ func (s *CmdCtlLogRotate) ParseArgv(ctx *cli.Context) error {
 	return nil
 }
 
-func (s *CmdCtlLogRotate) RunClient() (err error) {
+func (s *CmdCtlLogRotate) Run() (err error) {
 	cli, err := GetCtlClient()
 	if err != nil {
 		return err

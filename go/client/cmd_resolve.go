@@ -22,7 +22,7 @@ func (v *CmdResolve) ParseArgv(ctx *cli.Context) error {
 	return err
 }
 
-func (v *CmdResolve) RunClient() error {
+func (v *CmdResolve) Run() error {
 	res, err := libkb.LoadUser(libkb.LoadUserArg{Name: v.input})
 	if err == nil {
 		fmt.Println(res.GetName())

@@ -22,7 +22,7 @@ func (c *CmdRevoke) ParseArgv(ctx *cli.Context) error {
 	return nil
 }
 
-func (c *CmdRevoke) RunClient() (err error) {
+func (c *CmdRevoke) Run() (err error) {
 	cli, err := GetRevokeClient()
 	if err != nil {
 		return err

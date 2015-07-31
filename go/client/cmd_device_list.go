@@ -37,7 +37,7 @@ func NewCmdDeviceList(cl *libcmdline.CommandLine) cli.Command {
 }
 
 // RunClient runs the command in client/server mode.
-func (c *CmdDeviceList) RunClient() error {
+func (c *CmdDeviceList) Run() error {
 	cli, err := GetDeviceClient()
 	if err != nil {
 		return err

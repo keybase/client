@@ -62,7 +62,7 @@ func (c *CmdStress) rpcClient() (*rpc2.Client, error) {
 	return cli, nil
 }
 
-func (c *CmdStress) RunClient() error {
+func (c *CmdStress) Run() error {
 	cli, err := c.rpcClient()
 	if err != nil {
 		return err

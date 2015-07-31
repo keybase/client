@@ -51,7 +51,7 @@ func (v *CmdConfig) ParseArgv(ctx *cli.Context) error {
 	return nil
 }
 
-func (v *CmdConfig) RunClient() error {
+func (v *CmdConfig) Run() error {
 	if v.location {
 		configFile := G.Env.GetConfigFilename()
 		if v.reset || v.clear || v.key != "" {

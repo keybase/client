@@ -25,7 +25,7 @@ func (c *CmdSigsRevoke) ParseArgv(ctx *cli.Context) error {
 	return nil
 }
 
-func (c *CmdSigsRevoke) RunClient() error {
+func (c *CmdSigsRevoke) Run() error {
 	cli, err := GetRevokeClient()
 	if err != nil {
 		return err

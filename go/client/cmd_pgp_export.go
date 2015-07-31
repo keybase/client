@@ -56,7 +56,7 @@ func (s *CmdPGPExport) ParseArgv(ctx *cli.Context) error {
 	return err
 }
 
-func (s *CmdPGPExport) RunClient() (err error) {
+func (s *CmdPGPExport) Run() (err error) {
 	protocols := []rpc2.Protocol{
 		NewLogUIProtocol(),
 		NewSecretUIProtocol(),

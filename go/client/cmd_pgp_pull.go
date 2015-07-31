@@ -17,7 +17,7 @@ func (v *CmdPGPPull) ParseArgv(ctx *cli.Context) error {
 	return nil
 }
 
-func (v *CmdPGPPull) RunClient() (err error) {
+func (v *CmdPGPPull) Run() (err error) {
 	cli, err := GetPGPClient()
 	if err != nil {
 		return err

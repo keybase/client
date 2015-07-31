@@ -31,7 +31,7 @@ func NewCmdDeviceAdd(cl *libcmdline.CommandLine) cli.Command {
 }
 
 // RunClient runs the command in client/server mode.
-func (c *CmdDeviceAdd) RunClient() error {
+func (c *CmdDeviceAdd) Run() error {
 	var err error
 	c.sessionID, err = libkb.RandInt()
 	if err != nil {

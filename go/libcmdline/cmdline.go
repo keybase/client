@@ -14,7 +14,7 @@ import (
 type Command interface {
 	libkb.Command
 	ParseArgv(*cli.Context) error // A command-specific parse-args
-	RunClient() error             // Run in client mode
+	Run() error                   // Run in client mode
 }
 
 type ForkCmd int

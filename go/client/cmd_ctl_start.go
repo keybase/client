@@ -25,7 +25,7 @@ func (s *CmdCtlStart) ParseArgv(ctx *cli.Context) error {
 	return nil
 }
 
-func (s *CmdCtlStart) RunClient() (err error) {
+func (s *CmdCtlStart) Run() (err error) {
 	return nil
 }
 

@@ -53,7 +53,7 @@ func (s *CmdPGPImport) ParseArgv(ctx *cli.Context) error {
 	return err
 }
 
-func (s *CmdPGPImport) RunClient() error {
+func (s *CmdPGPImport) Run() error {
 	if err := s.readKeyData(); err != nil {
 		return err
 	}

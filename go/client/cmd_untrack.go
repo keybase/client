@@ -33,7 +33,7 @@ func (v *CmdUntrack) ParseArgv(ctx *cli.Context) error {
 	return nil
 }
 
-func (v *CmdUntrack) RunClient() error {
+func (v *CmdUntrack) Run() error {
 	cli, err := GetTrackClient()
 	if err != nil {
 		return err

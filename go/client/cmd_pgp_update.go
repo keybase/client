@@ -19,7 +19,7 @@ func (v *CmdPGPUpdate) ParseArgv(ctx *cli.Context) error {
 	return nil
 }
 
-func (v *CmdPGPUpdate) RunClient() (err error) {
+func (v *CmdPGPUpdate) Run() (err error) {
 	cli, err := GetPGPClient()
 	if err != nil {
 		return err

@@ -16,7 +16,7 @@ func TestLocation(t *testing.T) {
 	c := CmdConfig{}
 	c.location = true
 	c.writer = libkb.NewTestOutput(config.GetConfigFileName()+"\n", t, &called)
-	c.RunClient()
+	c.Run()
 	if !called {
 		t.Errorf("Did not read %s", c.key)
 	}
@@ -32,7 +32,7 @@ func TestReset(t *testing.T) {
 	c.reset = true
 	// no output for this test
 	c.writer = libkb.NewTestOutput("", t, &called)
-	c.RunClient()
+	c.Run()
 
 	// Now the file should be empty
 	if p, err := ioutil.ReadFile(config.GetConfigFileName()); err == nil {
@@ -55,7 +55,7 @@ func checkRead(t *testing.T, key string, expected string) {
 	c := CmdConfig{}
 	c.key = key
 	c.writer = libkb.NewTestOutput(expected, t, &called)
-	c.RunClient()
+	c.Run()
 	if !called {
 		t.Errorf("Did not read %s", c.key)
 	}
@@ -118,7 +118,7 @@ func TestReadMissingVar(t *testing.T) {
 	c := CmdConfig{}
 	c.key = "a"
 	c.writer = libkb.NewTestOutput("", t, &called)
-	c.RunClient()
+	c.Run()
 	if called {
 		t.Errorf("Expected nothing, but read %s", c.key)
 	}
@@ -133,7 +133,7 @@ func setAndCheck(t *testing.T, config *libkb.TestConfig, key string, value strin
 	c.valueSet = true
 	// should be no output
 	c.writer = libkb.NewTestOutput("", t, &called)
-	c.RunClient()
+	c.Run()
 
 	// check the file by reading it in
 	cf := libkb.NewJSONConfigFile(config.GetConfigFileName())
@@ -333,7 +333,7 @@ func TestClear(t *testing.T) {
 	c.key = "c"
 	// should be no output
 	c.writer = libkb.NewTestOutput("", t, &called)
-	c.RunClient()
+	c.Run()
 	if called {
 		t.Errorf("Read output for cleared key %s", c.key)
 	}

@@ -122,7 +122,7 @@ Enjoy!
 	return nil
 }
 
-func (s *CmdSignupState) RunClient() error {
+func (s *CmdSignupState) Run() error {
 	G.Log.Debug("| Client mode")
 	s.engine = &clientModeSignupEngine{doPrompt: s.doPrompt}
 	return s.run()

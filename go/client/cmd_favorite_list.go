@@ -37,7 +37,7 @@ func (c *CmdFavoriteList) GetUsage() libkb.Usage {
 	}
 }
 
-func (c *CmdFavoriteList) RunClient() error {
+func (c *CmdFavoriteList) Run() error {
 	arg := keybase1.FavoriteListArg{}
 	folders, err := list(arg)
 	if err != nil {

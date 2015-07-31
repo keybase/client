@@ -15,7 +15,7 @@ func (c *CmdDbNuke) ParseArgv(ctx *cli.Context) error {
 	return nil
 }
 
-func (c *CmdDbNuke) RunClient() error {
+func (c *CmdDbNuke) Run() error {
 	var err error
 	if !c.force {
 		err = GlobUI.PromptForConfirmation("Really blast away your local DB cache?")

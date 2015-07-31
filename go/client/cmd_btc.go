@@ -24,7 +24,7 @@ func (c *CmdBTC) ParseArgv(ctx *cli.Context) error {
 	return nil
 }
 
-func (c *CmdBTC) RunClient() (err error) {
+func (c *CmdBTC) Run() (err error) {
 	cli, err := GetBTCClient()
 	if err != nil {
 		return err

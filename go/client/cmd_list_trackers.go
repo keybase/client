@@ -78,7 +78,7 @@ func populateList(trs []keybase1.Tracker, summarizer batchfn) (ret []keybase1.Us
 }
 
 // RunClient runs the command in client/server mode.
-func (c *CmdListTrackers) RunClient() error {
+func (c *CmdListTrackers) Run() error {
 	cli, err := GetUserClient()
 	if err != nil {
 		return err

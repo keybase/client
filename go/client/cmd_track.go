@@ -45,7 +45,7 @@ func (v *CmdTrack) ParseArgv(ctx *cli.Context) error {
 	return nil
 }
 
-func (v *CmdTrack) RunClient() error {
+func (v *CmdTrack) Run() error {
 	cli, err := GetTrackClient()
 	if err != nil {
 		return err

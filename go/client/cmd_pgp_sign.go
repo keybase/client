@@ -96,7 +96,7 @@ func (s *CmdPGPSign) ParseArgv(ctx *cli.Context) error {
 	return s.FilterInit(msg, infile, outfile)
 }
 
-func (s *CmdPGPSign) RunClient() (err error) {
+func (s *CmdPGPSign) Run() (err error) {
 	protocols := []rpc2.Protocol{
 		NewStreamUIProtocol(),
 		NewSecretUIProtocol(),

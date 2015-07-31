@@ -140,7 +140,7 @@ func (s *CmdSigsList) DisplayKTable(sigs []keybase1.Sig) (err error) {
 	return
 }
 
-func (s *CmdSigsList) RunClient() error {
+func (s *CmdSigsList) Run() error {
 	cli, err := GetSigsClient()
 	if err != nil {
 		return err

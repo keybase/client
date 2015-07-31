@@ -41,7 +41,7 @@ func (v *CmdLogin) client() (*keybase1.LoginClient, error) {
 	return &c, nil
 }
 
-func (v *CmdLogin) RunClient() error {
+func (v *CmdLogin) Run() error {
 	cli, err := v.client()
 	if err != nil {
 		return err

@@ -26,7 +26,7 @@ func (c *CmdSearch) ParseArgv(ctx *cli.Context) error {
 	return nil
 }
 
-func (c *CmdSearch) RunClient() (err error) {
+func (c *CmdSearch) Run() (err error) {
 	cli, err := GetUserClient()
 	if err != nil {
 		return err

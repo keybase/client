@@ -23,7 +23,7 @@ func NewCmdFavoriteAdd(cl *libcmdline.CommandLine) cli.Command {
 	}
 }
 
-func (c *CmdFavoriteAdd) RunClient() error {
+func (c *CmdFavoriteAdd) Run() error {
 	arg := keybase1.FavoriteAddArg{
 		Folder: c.folder,
 	}

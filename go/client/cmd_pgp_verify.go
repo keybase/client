@@ -55,7 +55,7 @@ type CmdPGPVerify struct {
 	signedBy         string
 }
 
-func (c *CmdPGPVerify) RunClient() error {
+func (c *CmdPGPVerify) Run() error {
 	cli, err := GetPGPClient()
 	if err != nil {
 		return err

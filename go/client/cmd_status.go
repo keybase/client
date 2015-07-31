@@ -22,7 +22,7 @@ func (v *CmdStatus) ParseArgv(ctx *cli.Context) error {
 	return nil
 }
 
-func (v *CmdStatus) RunClient() (err error) {
+func (v *CmdStatus) Run() (err error) {
 	configCli, err := GetConfigClient()
 	if err != nil {
 		return err

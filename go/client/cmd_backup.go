@@ -23,7 +23,7 @@ func NewCmdBackup(cl *libcmdline.CommandLine) cli.Command {
 type CmdBackup struct {
 }
 
-func (c *CmdBackup) RunClient() error {
+func (c *CmdBackup) Run() error {
 	cli, err := GetLoginClient()
 	if err != nil {
 		return err

@@ -10,7 +10,7 @@ import (
 
 type CmdVersion struct{}
 
-func (v *CmdVersion) RunClient() error {
+func (v *CmdVersion) Run() error {
 	libkb.VersionMessage(func(s string) { fmt.Println(s) })
 	return nil
 }

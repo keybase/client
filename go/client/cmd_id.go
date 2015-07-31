@@ -36,7 +36,7 @@ func (v *CmdID) makeArg() *engine.IDEngineArg {
 	}
 }
 
-func (v *CmdID) RunClient() error {
+func (v *CmdID) Run() error {
 	var cli keybase1.IdentifyClient
 	protocols := []rpc2.Protocol{
 		NewLogUIProtocol(),

@@ -101,7 +101,7 @@ func DisplayJSON(jsonStr string) (err error) {
 	return
 }
 
-func (s *CmdListTracking) RunClient() error {
+func (s *CmdListTracking) Run() error {
 	cli, err := GetUserClient()
 	if err != nil {
 		return err

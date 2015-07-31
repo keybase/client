@@ -21,7 +21,7 @@ func NewCmdPassphraseChange(cl *libcmdline.CommandLine) cli.Command {
 	}
 }
 
-func (c *CmdPassphraseChange) RunClient() error {
+func (c *CmdPassphraseChange) Run() error {
 	pp, err := promptNewPassphrase()
 	if err != nil {
 		return err
