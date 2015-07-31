@@ -15,9 +15,7 @@ func (c *CmdCert) ParseArgv(ctx *cli.Context) error {
 	return nil
 }
 
-func (c *CmdCert) RunClient() error { return c.Run() }
-
-func (c *CmdCert) Run() error {
+func (c *CmdCert) RunClient() error {
 	os.Stdout.Write([]byte(libkb.BundledCAs["api.keybase.io"] + "\n"))
 	return nil
 }

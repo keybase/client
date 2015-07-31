@@ -21,13 +21,13 @@ func NewCmdPassphraseChange(cl *libcmdline.CommandLine) cli.Command {
 	}
 }
 
-func (c *CmdPassphraseChange) run(ch changer) error {
+func (c *CmdPassphraseChange) RunClient() error {
 	pp, err := promptNewPassphrase()
 	if err != nil {
 		return err
 	}
 
-	if err := ch.change(newChangeArg(pp, false)); err != nil {
+	if err := passphraseChange(newChangeArg(pp, false)); err != nil {
 		fmt.Println()
 		fmt.Println("There was a problem during the standard update of your passphrase.")
 		fmt.Printf("\n%s\n\n", err)
@@ -39,14 +39,6 @@ func (c *CmdPassphraseChange) run(ch changer) error {
 
 	G.Log.Info("Passphrase changed.")
 	return nil
-}
-
-func (c *CmdPassphraseChange) Run() error {
-	return c.run(&changerStandalone{})
-}
-
-func (c *CmdPassphraseChange) RunClient() error {
-	return c.run(&changerClient{})
 }
 
 func (c *CmdPassphraseChange) ParseArgv(ctx *cli.Context) error {

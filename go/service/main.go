@@ -69,10 +69,6 @@ func (d *Service) Handle(c net.Conn) {
 }
 
 func (d *Service) RunClient() (err error) {
-	return fmt.Errorf("can't run service in client mode")
-}
-
-func (d *Service) Run() (err error) {
 	G.Service = true
 
 	err = d.writeVersionFile()

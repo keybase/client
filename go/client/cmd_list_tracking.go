@@ -7,7 +7,6 @@ import (
 	"strings"
 
 	"github.com/keybase/cli"
-	"github.com/keybase/client/go/engine"
 	"github.com/keybase/client/go/libcmdline"
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/protocol/go"
@@ -124,27 +123,6 @@ func (s *CmdListTracking) RunClient() error {
 		return err
 	}
 	return displayTable(table, s.verbose, s.headers)
-}
-
-func (s *CmdListTracking) Run() (err error) {
-	arg := engine.ListTrackingEngineArg{
-		JSON:    s.json,
-		Verbose: s.verbose,
-		Filter:  s.filter,
-	}
-	eng := engine.NewListTrackingEngine(&arg, G)
-	ctx := engine.Context{}
-	err = engine.RunEngine(eng, &ctx)
-	if err != nil {
-		return
-	}
-
-	if s.json {
-		err = DisplayJSON(eng.JSONResult())
-	} else {
-		err = displayTable(eng.TableResult(), s.verbose, s.headers)
-	}
-	return
 }
 
 func NewCmdListTracking(cl *libcmdline.CommandLine) cli.Command {

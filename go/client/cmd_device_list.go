@@ -6,7 +6,6 @@ import (
 	"text/tabwriter"
 
 	"github.com/keybase/cli"
-	"github.com/keybase/client/go/engine"
 	"github.com/keybase/client/go/libcmdline"
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/protocol/go"
@@ -35,18 +34,6 @@ func NewCmdDeviceList(cl *libcmdline.CommandLine) cli.Command {
 			cl.ChooseCommand(&CmdDeviceList{}, "list", c)
 		},
 	}
-}
-
-// Run runs the command in standalone mode.
-func (c *CmdDeviceList) Run() error {
-	ctx := &engine.Context{LogUI: GlobUI.GetLogUI()}
-	eng := engine.NewDevList(G)
-	if err := engine.RunEngine(eng, ctx); err != nil {
-		return err
-	}
-	devs := eng.List(c.all)
-	c.output(devs)
-	return nil
 }
 
 // RunClient runs the command in client/server mode.

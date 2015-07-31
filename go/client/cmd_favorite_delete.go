@@ -2,9 +2,7 @@ package client
 
 import (
 	"errors"
-
 	"github.com/keybase/cli"
-	"github.com/keybase/client/go/engine"
 	"github.com/keybase/client/go/libcmdline"
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/protocol/go"
@@ -25,12 +23,15 @@ func NewCmdFavoriteDelete(cl *libcmdline.CommandLine) cli.Command {
 	}
 }
 
-func (c *CmdFavoriteDelete) Run() error {
-	return c.run(&favRemoveStandalone{})
-}
-
 func (c *CmdFavoriteDelete) RunClient() error {
-	return c.run(&favRemoveClient{})
+	arg := keybase1.FavoriteDeleteArg{
+		Folder: c.folder,
+	}
+	cli, err := GetFavoriteClient()
+	if err != nil {
+		return err
+	}
+	return cli.FavoriteDelete(arg)
 }
 
 func (c *CmdFavoriteDelete) ParseArgv(ctx *cli.Context) error {
@@ -50,35 +51,4 @@ func (c *CmdFavoriteDelete) GetUsage() libkb.Usage {
 		Config: true,
 		API:    true,
 	}
-}
-
-func (c *CmdFavoriteDelete) run(remover favRemover) error {
-	arg := keybase1.FavoriteDeleteArg{
-		Folder: c.folder,
-	}
-	return remover.remove(arg)
-}
-
-// delete is a reserved word...thus not favDeleter with a delete
-// function.
-type favRemover interface {
-	remove(arg keybase1.FavoriteDeleteArg) error
-}
-
-type favRemoveStandalone struct{}
-
-func (f *favRemoveStandalone) remove(arg keybase1.FavoriteDeleteArg) error {
-	ctx := &engine.Context{}
-	eng := engine.NewFavoriteDelete(&arg, G)
-	return engine.RunEngine(eng, ctx)
-}
-
-type favRemoveClient struct{}
-
-func (f *favRemoveClient) remove(arg keybase1.FavoriteDeleteArg) error {
-	cli, err := GetFavoriteClient()
-	if err != nil {
-		return err
-	}
-	return cli.FavoriteDelete(arg)
 }

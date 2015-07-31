@@ -16,10 +16,6 @@ func (v *CmdLogout) RunClient() error {
 	return cli.Logout(0)
 }
 
-func (v *CmdLogout) Run() error {
-	return libkb.G.Logout()
-}
-
 func NewCmdLogout(cl *libcmdline.CommandLine) cli.Command {
 	return cli.Command{
 		Name:  "logout",
