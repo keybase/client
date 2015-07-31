@@ -394,6 +394,7 @@ func TestKBFSOpsGetRootMDForHandleExisting(t *testing.T) {
 	}
 
 	config.mockMdops.EXPECT().GetForHandle(gomock.Any(), h).Return(rmd, nil)
+	config.mockKbpki.EXPECT().FavoriteAdd(gomock.Any(), h.ToKBFolder(ctx, config)).Return(nil)
 	ops := getOps(config, id)
 	ops.head = rmd
 

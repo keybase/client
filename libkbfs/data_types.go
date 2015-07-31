@@ -633,6 +633,15 @@ func (h *TlfHandle) ToBytes(config Config) (out []byte) {
 	return
 }
 
+// ToKBFolder converts a TlfHandle into a keybase1.Folder,
+// suitable for KBKPI calls.
+func (h *TlfHandle) ToKBFolder(ctx context.Context, config Config) keybase1.Folder {
+	return keybase1.Folder{
+		Name:    h.ToString(ctx, config),
+		Private: !h.IsPublic(),
+	}
+}
+
 // Equal returns true if two TlfHandles are equal.
 func (h *TlfHandle) Equal(rhs *TlfHandle, config Config) bool {
 	return bytes.Equal(h.ToBytes(config), rhs.ToBytes(config))

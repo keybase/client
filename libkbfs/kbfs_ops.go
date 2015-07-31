@@ -1,7 +1,6 @@
 package libkbfs
 
 import (
-	"runtime/debug"
 	"sync"
 	"time"
 
@@ -54,7 +53,6 @@ func (fs *KBFSOpsStandard) getOps(fb FolderBranch) *FolderBranchOps {
 	// look it up again in case someone else got the lock
 	ops, ok := fs.ops[fb]
 	if !ok {
-		debug.PrintStack()
 		// TODO: add some interface for specifying the type of the
 		// branch; for now assume online and read-write.
 		ops = NewFolderBranchOps(fs.config, fb, standard)
@@ -78,6 +76,18 @@ func (fs *KBFSOpsStandard) GetOrCreateRootNodeForHandle(
 	md, err := mdops.GetForHandle(ctx, handle)
 	if err != nil {
 		return
+	}
+
+	// TODO: in andy_md2 branch, if GetForHandle returns (id, nil, nil) then
+	// the folder was just created.  For now, we don't know, so we'll
+	// just assume it was created.
+	created := true
+	if created && branch == MasterBranch {
+		// add folder to favorites
+		err = fs.config.KBPKI().FavoriteAdd(ctx, handle.ToKBFolder(ctx, fs.config))
+		if err != nil {
+			return
+		}
 	}
 
 	fb := FolderBranch{Tlf: md.ID, Branch: branch}
