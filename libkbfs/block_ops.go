@@ -127,13 +127,13 @@ func (b *BlockOpsStandard) Put(ctx context.Context, md *RootMetadata,
 	}
 	// non-zero block refnonce means this is a new reference to an
 	// existing block.
-	return bserv.IncBlockReference(ctx, blockPtr.ID, md.ID, blockPtr)
+	return bserv.AddBlockReference(ctx, blockPtr.ID, md.ID, blockPtr)
 }
 
 // Delete implements the BlockOps interface for BlockOpsStandard.
 func (b *BlockOpsStandard) Delete(ctx context.Context, md *RootMetadata,
 	id BlockID, context BlockContext) error {
 	bserv := b.config.BlockServer()
-	err := bserv.DecBlockReference(ctx, id, md.ID, context)
+	err := bserv.RemoveBlockReference(ctx, id, md.ID, context)
 	return err
 }

@@ -120,14 +120,14 @@ func (b *BlockServerLocal) Put(ctx context.Context, id BlockID, tlfID TlfID,
 	return b.putBlockEntryLocked(id, entry)
 }
 
-// IncBlockReference implements the BlockServer interface for BlockServerLocal
-func (b *BlockServerLocal) IncBlockReference(ctx context.Context, id BlockID,
+// AddBlockReference implements the BlockServer interface for BlockServerLocal
+func (b *BlockServerLocal) AddBlockReference(ctx context.Context, id BlockID,
 	tlfID TlfID, context BlockContext) error {
 	b.lock.Lock()
 	defer b.lock.Unlock()
 
 	refNonce := context.GetRefNonce()
-	libkb.G.Log.Debug("BlockServerLocal.IncBlockReference id=%s "+
+	libkb.G.Log.Debug("BlockServerLocal.AddBlockReference id=%s "+
 		"refnonce=%s uid=%s\n", hex.EncodeToString(id[:]),
 		hex.EncodeToString(refNonce[:]), context.GetWriter().String())
 
@@ -143,13 +143,14 @@ func (b *BlockServerLocal) IncBlockReference(ctx context.Context, id BlockID,
 	return b.putBlockEntryLocked(id, entry)
 }
 
-// DecBlockReference implements the BlockServer interface for BlockServerLocal
-func (b *BlockServerLocal) DecBlockReference(ctx context.Context, id BlockID,
+// RemoveBlockReference implements the BlockServer interface for
+// BlockServerLocal
+func (b *BlockServerLocal) RemoveBlockReference(ctx context.Context, id BlockID,
 	tlfID TlfID, context BlockContext) error {
 	b.lock.Lock()
 	defer b.lock.Unlock()
 
-	libkb.G.Log.Debug("BlockServerLocal.Delete id=%s uid=%s\n",
+	libkb.G.Log.Debug("BlockServerLocal.RemoveBlockReference id=%s uid=%s\n",
 		hex.EncodeToString(id[:]), context.GetWriter().String())
 
 	entry, err := b.getBlockEntryLocked(id)

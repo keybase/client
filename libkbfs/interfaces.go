@@ -601,25 +601,27 @@ type BlockServer interface {
 		[]byte, BlockCryptKeyServerHalf, error)
 	// Put stores the (encrypted) block data under the given ID and
 	// context on the server, along with the server half of the block
-	// key.  context should contain a BlockRefNonce of zero.  The
-	// initial refcount for this block will be 1.
+	// key.  context should contain a BlockRefNonce of zero.  There
+	// will be an initial reference for this block for the given
+	// context.
 	Put(ctx context.Context, id BlockID, tlfID TlfID, context BlockContext,
 		buf []byte, serverHalf BlockCryptKeyServerHalf) error
 
-	// IncBlockReference increments the reference count for the given
-	// block ID on the server.  context should contain a non-zero
-	// BlockRefNonce, identify this particular reference.  (Contexts
-	// with a BlockRefNonce of zero should be used when putting the
-	// block for the first time via Put().)  Returns an
-	// IncrementMissingBlockError if id is unknown within this folder.
-	IncBlockReference(ctx context.Context, id BlockID, tlfID TlfID,
+	// AddBlockReference adds a new reference to the given block,
+	// defined by the given context (which should contain a non-zero
+	// BlockRefNonce).  (Contexts with a BlockRefNonce of zero should
+	// be used when putting the block for the first time via Put().)
+	// Returns an IncrementMissingBlockError if id is unknown within
+	// this folder.  Calling more than once with the same context is a
+	// no-op.
+	AddBlockReference(ctx context.Context, id BlockID, tlfID TlfID,
 		context BlockContext) error
-	// DecBlockReference decrements the reference count for the given
-	// block ID on the server, if the BlockRefNonce in the context is
-	// still being referenced.  If the reference count goes to zero,
-	// the server is allowed to delete the corresponding block
-	// permanently.
-	DecBlockReference(ctx context.Context, id BlockID, tlfID TlfID,
+	// RemoveBlockReference removes the reference to the given block
+	// ID defined by the given context.  If no references to the block
+	// remain after this call, the server is allowed to delete the
+	// corresponding block permanently.  If the reference defined by
+	// the count has already been removed, the call is a no-op.
+	RemoveBlockReference(ctx context.Context, id BlockID, tlfID TlfID,
 		context BlockContext) error
 }
 

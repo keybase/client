@@ -322,7 +322,7 @@ func TestBlockOpsPutIncRefSuccess(t *testing.T) {
 		buf: encData,
 	}
 
-	config.mockBserv.EXPECT().IncBlockReference(ctx, id, rmd.ID, blockPtr).
+	config.mockBserv.EXPECT().AddBlockReference(ctx, id, rmd.ID, blockPtr).
 		Return(nil)
 
 	if err := config.BlockOps().
@@ -366,7 +366,7 @@ func TestBlockOpsDeleteSuccess(t *testing.T) {
 
 	id := BlockID{1}
 	blockPtr := BlockPointer{ID: id}
-	config.mockBserv.EXPECT().DecBlockReference(ctx, id, rmd.ID, blockPtr).
+	config.mockBserv.EXPECT().RemoveBlockReference(ctx, id, rmd.ID, blockPtr).
 		Return(nil)
 
 	if err := config.BlockOps().Delete(ctx, rmd, id, blockPtr); err != nil {
@@ -384,7 +384,7 @@ func TestBlockOpsDeleteFail(t *testing.T) {
 	id := BlockID{1}
 	err := errors.New("Fake fail")
 	blockPtr := BlockPointer{ID: id}
-	config.mockBserv.EXPECT().DecBlockReference(ctx, id, rmd.ID, blockPtr).
+	config.mockBserv.EXPECT().RemoveBlockReference(ctx, id, rmd.ID, blockPtr).
 		Return(err)
 
 	if err2 := config.BlockOps().Delete(ctx, rmd, id, blockPtr); err2 != err {

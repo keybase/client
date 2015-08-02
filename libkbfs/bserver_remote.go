@@ -304,10 +304,10 @@ func (b *BlockServerRemote) Put(ctx context.Context, id BlockID, tlfID TlfID,
 	return nil
 }
 
-// IncBlockReference implements the BlockServer interface for BlockServerRemote
-func (b *BlockServerRemote) IncBlockReference(ctx context.Context, id BlockID,
+// AddBlockReference implements the BlockServer interface for BlockServerRemote
+func (b *BlockServerRemote) AddBlockReference(ctx context.Context, id BlockID,
 	tlfID TlfID, context BlockContext) error {
-	libkb.G.Log.Debug("BlockServerRemote.IncBlockReference id=%s uid=%s\n",
+	libkb.G.Log.Debug("BlockServerRemote.AddBlockReference id=%s uid=%s\n",
 		hex.EncodeToString(id[:]), context.GetWriter().String())
 	nonce := context.GetRefNonce()
 	arg := keybase1.IncBlockReferenceArg{
@@ -328,17 +328,18 @@ func (b *BlockServerRemote) IncBlockReference(ctx context.Context, id BlockID,
 	if err != nil {
 		// TODO: translate a particular RPC error into
 		// IncrementMissingBlockError?
-		libkb.G.Log.Debug("IncBlockReference to backend err : %q", err)
+		libkb.G.Log.Debug("AddBlockReference to backend err : %q", err)
 		return err
 	}
 
 	return nil
 }
 
-// DecBlockReference implements the BlockServer interface for BlockServerRemote
-func (b *BlockServerRemote) DecBlockReference(ctx context.Context, id BlockID,
+// RemoveBlockReference implements the BlockServer interface for
+// BlockServerRemote
+func (b *BlockServerRemote) RemoveBlockReference(ctx context.Context, id BlockID,
 	tlfID TlfID, context BlockContext) error {
-	libkb.G.Log.Debug("BlockServerRemote.DecBlockReference id=%s uid=%s\n",
+	libkb.G.Log.Debug("BlockServerRemote.RemoveBlockReference id=%s uid=%s\n",
 		hex.EncodeToString(id[:]), context.GetWriter().String())
 	nonce := context.GetRefNonce()
 	arg := keybase1.DecBlockReferenceArg{
@@ -357,7 +358,7 @@ func (b *BlockServerRemote) DecBlockReference(ctx context.Context, id BlockID,
 	}
 	err := runUnlessCanceled(ctx, f)
 	if err != nil {
-		libkb.G.Log.Debug("DecBlockReference to backend err : %q", err)
+		libkb.G.Log.Debug("RemoveBlockReference to backend err : %q", err)
 		return err
 	}
 
