@@ -230,7 +230,8 @@ func (b *BlockServerRemote) Shutdown() {
 // Get implements the BlockServer interface for BlockServerRemote.
 func (b *BlockServerRemote) Get(ctx context.Context, id BlockID,
 	context BlockContext) ([]byte, BlockCryptKeyServerHalf, error) {
-	libkb.G.Log.Debug("BlockServerRemote::Get id=%s uid=%s\n", hex.EncodeToString(id[:]), context.GetWriter().String())
+	libkb.G.Log.Debug("BlockServerRemote.Get id=%s uid=%s\n",
+		hex.EncodeToString(id[:]), context.GetWriter().String())
 	if !b.isConnected() {
 		if err := b.WaitForReconnect(ctx); err != nil {
 			return nil, BlockCryptKeyServerHalf{}, err
@@ -252,7 +253,7 @@ func (b *BlockServerRemote) Get(ctx context.Context, id BlockID,
 
 	err := runUnlessCanceled(ctx, f)
 	if err != nil {
-		libkb.G.Log.Debug("BlockServerRemote::Get id=%s err=%v\n",
+		libkb.G.Log.Debug("BlockServerRemote.Get id=%s err=%v\n",
 			hex.EncodeToString(id[:]), err)
 		return nil, BlockCryptKeyServerHalf{}, err
 	}
@@ -272,7 +273,8 @@ func (b *BlockServerRemote) Get(ctx context.Context, id BlockID,
 func (b *BlockServerRemote) Put(ctx context.Context, id BlockID, tlfID TlfID,
 	context BlockContext, buf []byte,
 	serverHalf BlockCryptKeyServerHalf) error {
-	libkb.G.Log.Debug("BlockServerRemote::Put id=%s uid=%s\n", hex.EncodeToString(id[:]), context.GetWriter().String())
+	libkb.G.Log.Debug("BlockServerRemote.Put id=%s uid=%s\n",
+		hex.EncodeToString(id[:]), context.GetWriter().String())
 	if !b.isConnected() {
 		if err := b.WaitForReconnect(ctx); err != nil {
 			return err
@@ -294,7 +296,7 @@ func (b *BlockServerRemote) Put(ctx context.Context, id BlockID, tlfID TlfID,
 	}
 	err := runUnlessCanceled(ctx, f)
 	if err != nil {
-		libkb.G.Log.Debug("BlockServerRemote::Put id=%s err=%v\n",
+		libkb.G.Log.Debug("BlockServerRemote.Put id=%s err=%v\n",
 			hex.EncodeToString(id[:]), err)
 		return err
 	}
@@ -305,7 +307,7 @@ func (b *BlockServerRemote) Put(ctx context.Context, id BlockID, tlfID TlfID,
 // IncBlockReference implements the BlockServer interface for BlockServerRemote
 func (b *BlockServerRemote) IncBlockReference(ctx context.Context, id BlockID,
 	tlfID TlfID, context BlockContext) error {
-	libkb.G.Log.Debug("BlockServerRemote::IncBlockReference id=%s uid=%s\n",
+	libkb.G.Log.Debug("BlockServerRemote.IncBlockReference id=%s uid=%s\n",
 		hex.EncodeToString(id[:]), context.GetWriter().String())
 	nonce := context.GetRefNonce()
 	arg := keybase1.IncBlockReferenceArg{
@@ -336,7 +338,7 @@ func (b *BlockServerRemote) IncBlockReference(ctx context.Context, id BlockID,
 // DecBlockReference implements the BlockServer interface for BlockServerRemote
 func (b *BlockServerRemote) DecBlockReference(ctx context.Context, id BlockID,
 	tlfID TlfID, context BlockContext) error {
-	libkb.G.Log.Debug("BlockServerRemote::DecBlockReference id=%s uid=%s\n",
+	libkb.G.Log.Debug("BlockServerRemote.DecBlockReference id=%s uid=%s\n",
 		hex.EncodeToString(id[:]), context.GetWriter().String())
 	nonce := context.GetRefNonce()
 	arg := keybase1.DecBlockReferenceArg{

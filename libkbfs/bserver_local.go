@@ -59,7 +59,7 @@ func (b *BlockServerLocal) getBlockEntryLocked(id BlockID) (
 	*blockEntry, error) {
 	buf, err := b.db.Get(id[:], nil)
 	if err != nil {
-		libkb.G.Log.Debug("BlockServerLocal::getBlockEntryLocked id=%s "+
+		libkb.G.Log.Debug("BlockServerLocal.getBlockEntryLocked id=%s "+
 			"err=%v\n", hex.EncodeToString(id[:]), err)
 		return nil, err
 	}
@@ -77,7 +77,7 @@ func (b *BlockServerLocal) Get(ctx context.Context, id BlockID,
 	b.lock.Lock()
 	defer b.lock.Unlock()
 
-	libkb.G.Log.Debug("BlockServerLocal::Get id=%s uid=%s\n",
+	libkb.G.Log.Debug("BlockServerLocal.Get id=%s uid=%s\n",
 		hex.EncodeToString(id[:]), context.GetWriter().String())
 	entry, err := b.getBlockEntryLocked(id)
 	if err != nil {
@@ -90,7 +90,7 @@ func (b *BlockServerLocal) putBlockEntryLocked(
 	id BlockID, entry *blockEntry) error {
 	entryBuf, err := b.config.Codec().Encode(entry)
 	if err != nil {
-		libkb.G.Log.Warning("BlockServerLocal::putBlockEntry id=%s err=%v\n",
+		libkb.G.Log.Warning("BlockServerLocal.putBlockEntry id=%s err=%v\n",
 			hex.EncodeToString(id[:]), err)
 		return err
 	}
@@ -104,7 +104,7 @@ func (b *BlockServerLocal) Put(ctx context.Context, id BlockID, tlfID TlfID,
 	b.lock.Lock()
 	defer b.lock.Unlock()
 
-	libkb.G.Log.Debug("BlockServerLocal::Put id=%s uid=%s\n",
+	libkb.G.Log.Debug("BlockServerLocal.Put id=%s uid=%s\n",
 		hex.EncodeToString(id[:]), context.GetWriter().String())
 
 	if context.GetRefNonce() != zeroBlockRefNonce {
@@ -127,7 +127,7 @@ func (b *BlockServerLocal) IncBlockReference(ctx context.Context, id BlockID,
 	defer b.lock.Unlock()
 
 	refNonce := context.GetRefNonce()
-	libkb.G.Log.Debug("BlockServerLocal::IncBlockReference id=%s "+
+	libkb.G.Log.Debug("BlockServerLocal.IncBlockReference id=%s "+
 		"refnonce=%s uid=%s\n", hex.EncodeToString(id[:]),
 		hex.EncodeToString(refNonce[:]), context.GetWriter().String())
 
@@ -149,7 +149,7 @@ func (b *BlockServerLocal) DecBlockReference(ctx context.Context, id BlockID,
 	b.lock.Lock()
 	defer b.lock.Unlock()
 
-	libkb.G.Log.Debug("BlockServerLocal::Delete id=%s uid=%s\n",
+	libkb.G.Log.Debug("BlockServerLocal.Delete id=%s uid=%s\n",
 		hex.EncodeToString(id[:]), context.GetWriter().String())
 
 	entry, err := b.getBlockEntryLocked(id)
