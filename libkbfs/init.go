@@ -12,9 +12,46 @@ import (
 	"github.com/keybase/client/protocol/go"
 )
 
+func makeMDServer(config Config, serverRootDir *string) (MDServer, error) {
+	if serverRootDir == nil {
+		return NewMDServerMemory(config)
+	}
+
+	handlePath := filepath.Join(*serverRootDir, "kbfs_handles")
+	dbPath := filepath.Join(*serverRootDir, "kbfs_dirs")
+	mdPath := filepath.Join(*serverRootDir, "kbfs_md")
+	unmergedPath := filepath.Join(*serverRootDir, "kbfs_unmerged")
+
+	return NewMDServerLocal(
+		config, handlePath, dbPath, mdPath, unmergedPath)
+}
+
+func makeBlockServer(config Config, serverRootDir *string) (BlockServer, error) {
+	if serverRootDir == nil {
+		return NewBlockServerMemory(config)
+	}
+
+	blockPath := filepath.Join(*serverRootDir, "kbfs_block")
+	return NewBlockServerLocal(config, blockPath)
+}
+
+func makeKeyServer(config Config, serverRootDir *string) (KeyOps, error) {
+	if serverRootDir == nil {
+		return NewKeyServerMemory(config.Codec())
+	}
+
+	keyPath := filepath.Join(*serverRootDir, "kbfs_key")
+	return NewKeyServerLocal(config.Codec(), keyPath)
+}
+
 // Init initializes a config and returns it. If localUser is
 // non-empty, libkbfs does not communicate to any remote servers and
 // instead uses fake implementations of various servers.
+//
+// If serverRootDir is nil, an in-memory server is used. If it is
+// non-nil and points to the empty string, the current working
+// directory is used. Otherwise, the pointed-to string is treated as a
+// path.
 //
 // onInterruptFn is called whenever an interrupt signal is received
 // (e.g., if the user hits Ctrl-C).
@@ -22,7 +59,7 @@ import (
 // Init should be called at the beginning of main. Shutdown (see
 // below) should then be called at the end of main (usually via
 // defer).
-func Init(localUser, serverRootDir, cpuProfilePath, memProfilePath string, onInterruptFn func()) (Config, error) {
+func Init(localUser string, serverRootDir *string, cpuProfilePath, memProfilePath string, onInterruptFn func()) (Config, error) {
 	if cpuProfilePath != "" {
 		// Let the GC/OS clean up the file handle.
 		f, err := os.Create(cpuProfilePath)
@@ -46,28 +83,21 @@ func Init(localUser, serverRootDir, cpuProfilePath, memProfilePath string, onInt
 		os.Exit(1)
 	}()
 
-	handlePath := filepath.Join(serverRootDir, "kbfs_handles")
-	dbPath := filepath.Join(serverRootDir, "kbfs_dirs")
-	mdPath := filepath.Join(serverRootDir, "kbfs_md")
-	unmergedPath := filepath.Join(serverRootDir, "kbfs_unmerged")
-	blockPath := filepath.Join(serverRootDir, "kbfs_block")
-	keyPath := filepath.Join(serverRootDir, "kbfs_keys")
-
 	config := NewConfigLocal()
-	mdserv, err := NewMDServerLocal(
-		config, handlePath, dbPath, mdPath, unmergedPath)
+
+	mdserv, err := makeMDServer(config, serverRootDir)
 	if err != nil {
 		return nil, fmt.Errorf("cannot open MD database: %v", err)
 	}
 	config.SetMDServer(mdserv)
 
-	bserv, err := NewBlockServerLocal(config, blockPath)
+	bserv, err := makeBlockServer(config, serverRootDir)
 	if err != nil {
 		return nil, fmt.Errorf("cannot open block database: %v", err)
 	}
 	config.SetBlockServer(bserv)
 
-	kops, err := NewKeyServerLocal(config.Codec(), keyPath)
+	kops, err := makeKeyServer(config, serverRootDir)
 	if err != nil {
 		return nil, fmt.Errorf("cannot open key database: %v", err)
 	}

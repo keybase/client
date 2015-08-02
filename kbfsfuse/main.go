@@ -23,12 +23,13 @@ var local = flag.Bool("local", false,
 var localUserFlag = flag.String("localuser", "strib",
 	"fake local user (only valid when local=true)")
 var clientFlag = flag.Bool("client", false, "use keybase daemon")
-var serverRootDir = flag.String("server-root", "", "directory to put local server files (default is cwd)")
+var serverRootDirFlag = flag.String("server-root", "", "directory to put local server files (default is cwd)")
+var serverInMemoryFlag = flag.Bool("server-in-memory", false, "use in-memory server (and ignore -server-root)")
 var debug = flag.Bool("debug", false, "Print FUSE debug messages")
 
 const usageStr = `Usage:
   kbfsfuse [-client | -local [-localuser=<user>]] [-debug]
-    [-server-root=path/to/dir] /path/to/mountpoint
+    [-server-in-memory|-server-root=path/to/dir] /path/to/mountpoint
 
 `
 
@@ -63,6 +64,11 @@ func realMain() (exitStatus int, err error) {
 		}
 	}
 
+	var serverRootDir *string
+	if !*serverInMemoryFlag {
+		serverRootDir = serverRootDirFlag
+	}
+
 	mountpoint := flag.Arg(0)
 	c, err := fuse.Mount(mountpoint)
 	if err != nil {
@@ -90,7 +96,7 @@ func realMain() (exitStatus int, err error) {
 		}
 	}
 
-	config, err := libkbfs.Init(localUser, *serverRootDir, *cpuprofile, *memprofile, onInterruptFn)
+	config, err := libkbfs.Init(localUser, serverRootDir, *cpuprofile, *memprofile, onInterruptFn)
 	if err != nil {
 		return
 	}
