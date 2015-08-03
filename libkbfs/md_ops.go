@@ -317,8 +317,3 @@ func (md *MDOpsStandard) PutUnmerged(ctx context.Context, rmd *RootMetadata) err
 	rmd.Flags |= MetadataFlagUnmerged
 	return md.Put(ctx, rmd)
 }
-
-// GetFavorites implements the MDOps interface for MDOpsStandard.
-func (md *MDOpsStandard) GetFavorites(ctx context.Context) ([]*TlfHandle, error) {
-	return md.config.MDServer().GetFavorites(ctx)
-}

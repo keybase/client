@@ -471,10 +471,6 @@ type MDOps interface {
 	// PutUnmerged is the same as the above but for unmerged
 	// metadata history.
 	PutUnmerged(ctx context.Context, rmd *RootMetadata) error
-
-	// GetFavorites returns the logged-in user's list of favorite
-	// top-level folders.
-	GetFavorites(ctx context.Context) ([]*TlfHandle, error)
 }
 
 // KeyOps fetches server-side key halves and MAC public keys from the
@@ -561,11 +557,6 @@ type MDServer interface {
 	// PruneUnmerged prunes all unmerged history for the given user
 	// and device for the given top-level folder..
 	PruneUnmerged(ctx context.Context, id TlfID) error
-
-	// GetFavorites returns the logged-in user's list of favorite
-	// top-level folders.
-	// TODO: this data should be at least signed.
-	GetFavorites(ctx context.Context) ([]*TlfHandle, error)
 }
 
 // BlockServer gets and puts opaque data blocks.  The instantiation

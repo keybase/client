@@ -401,34 +401,3 @@ func TestMDOpsPutFailEncode(t *testing.T) {
 		t.Errorf("Got bad error on put: %v", err2)
 	}
 }
-
-func TestMDOpsGetFavoritesSuccess(t *testing.T) {
-	mockCtrl, config, ctx := mdOpsInit(t)
-	defer mdOpsShutdown(mockCtrl, config)
-
-	// expect one call to fetch favorites
-	_, handle1, _ := newDir(t, config, 1, true, false)
-	_, handle2, _ := newDir(t, config, 2, true, false)
-	handles := []*TlfHandle{handle1, handle2}
-
-	config.mockMdserv.EXPECT().GetFavorites(gomock.Any()).Return(handles, nil)
-
-	if handles2, err := config.MDOps().GetFavorites(ctx); err != nil {
-		t.Errorf("Got error on favorites: %v", err)
-	} else if len(handles2) != len(handles) {
-		t.Errorf("Got bad handles back: %v", handles2)
-	}
-}
-
-func TestMDOpsGetFavoritesFail(t *testing.T) {
-	mockCtrl, config, ctx := mdOpsInit(t)
-	defer mdOpsShutdown(mockCtrl, config)
-
-	err := errors.New("Fake fail")
-	// expect one call to favorites, and fail it
-	config.mockMdserv.EXPECT().GetFavorites(ctx).Return(nil, err)
-
-	if _, err2 := config.MDOps().GetFavorites(ctx); err2 != err {
-		t.Errorf("Got bad error on favorites: %v", err2)
-	}
-}
