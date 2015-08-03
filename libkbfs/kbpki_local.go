@@ -1,6 +1,7 @@
 package libkbfs
 
 import (
+	"github.com/keybase/client/go/cache/favcache"
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/protocol/go"
 	"golang.org/x/net/context"
@@ -8,9 +9,10 @@ import (
 
 // KBPKILocal just serves users from a static map in memory
 type KBPKILocal struct {
-	Users    map[keybase1.UID]LocalUser
-	Asserts  map[string]keybase1.UID
-	LoggedIn keybase1.UID
+	Users     map[keybase1.UID]LocalUser
+	Asserts   map[string]keybase1.UID
+	LoggedIn  keybase1.UID
+	Favorites *favcache.Cache
 }
 
 var _ KBPKI = (*KBPKILocal)(nil)
@@ -19,9 +21,10 @@ var _ KBPKI = (*KBPKILocal)(nil)
 // possible users, and one user that should be "logged in".
 func NewKBPKILocal(loggedIn keybase1.UID, users []LocalUser) *KBPKILocal {
 	k := &KBPKILocal{
-		Users:    make(map[keybase1.UID]LocalUser),
-		Asserts:  make(map[string]keybase1.UID),
-		LoggedIn: loggedIn,
+		Users:     make(map[keybase1.UID]LocalUser),
+		Asserts:   make(map[string]keybase1.UID),
+		LoggedIn:  loggedIn,
+		Favorites: favcache.New(),
 	}
 	for _, u := range users {
 		k.Users[u.UID] = u
@@ -111,15 +114,17 @@ func (k *KBPKILocal) getLocalUser(uid keybase1.UID) (LocalUser, error) {
 
 // FavoriteAdd implements the KBPKI interface for KBPKILocal.
 func (k *KBPKILocal) FavoriteAdd(ctx context.Context, folder keybase1.Folder) error {
+	k.Favorites.Add(folder)
 	return nil
 }
 
 // FavoriteRemove implements the KBPKI interface for KBPKILocal.
 func (k *KBPKILocal) FavoriteRemove(ctx context.Context, folder keybase1.Folder) error {
+	k.Favorites.Delete(folder)
 	return nil
 }
 
 // FavoriteList implements the KBPKI interface for KBPKILocal.
 func (k *KBPKILocal) FavoriteList(ctx context.Context) ([]keybase1.Folder, error) {
-	return nil, nil
+	return k.Favorites.List(), nil
 }

@@ -1,6 +1,7 @@
 package libkbfs
 
 import (
+	"log"
 	"sync"
 	"time"
 
@@ -36,8 +37,25 @@ func (fs *KBFSOpsStandard) Shutdown() {
 
 // GetFavorites implements the KBFSOps interface for KBFSOpsStandard
 func (fs *KBFSOpsStandard) GetFavorites(ctx context.Context) ([]*TlfHandle, error) {
-	mdops := fs.config.MDOps()
-	return mdops.GetFavorites(ctx)
+	kbd := fs.config.KBPKI()
+	folders, err := kbd.FavoriteList(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	// TODO: ParseTlfHandle is expensive.  Think about caching the result
+	// for a little while.
+	var handles []*TlfHandle
+	for _, f := range folders {
+		handle, err := ParseTlfHandle(ctx, fs.config, f.Name)
+		if err != nil {
+			// not a fatal error.
+			log.Printf("ParseTlfHandler error: %s", err)
+			continue
+		}
+		handles = append(handles, handle)
+	}
+	return handles, nil
 }
 
 func (fs *KBFSOpsStandard) getOps(fb FolderBranch) *FolderBranchOps {
