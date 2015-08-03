@@ -321,28 +321,6 @@ func (md *MDServerLocal) Put(ctx context.Context, rmds *RootMetadataSigned) erro
 	return nil
 }
 
-// GetFavorites implements the MDServer interface for MDServerLocal.
-func (md *MDServerLocal) GetFavorites(ctx context.Context) ([]*TlfHandle, error) {
-	iter := md.handleDb.NewIterator(nil, nil)
-	var output []*TlfHandle
-	var err error
-	for i := 0; iter.Next(); i++ {
-		handle, err := TlfHandleDecode(iter.Key(), md.config)
-		if err != nil {
-			break
-		}
-		output = append(output, handle)
-	}
-	iter.Release()
-	if err == nil {
-		err = iter.Error()
-	}
-	if err != nil {
-		err = MDServerError{err}
-	}
-	return output, err
-}
-
 // PruneUnmerged implements the MDServer interface for MDServerLocal.
 func (md *MDServerLocal) PruneUnmerged(ctx context.Context, id TlfID) error {
 	// No revision and unmerged history.
