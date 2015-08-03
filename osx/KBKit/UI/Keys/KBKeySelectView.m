@@ -55,7 +55,7 @@
     gself.completion(gself, response);
   };
 
-  self.viewLayout = [YOBorderLayout layoutWithCenter:_keysView top:nil bottom:@[footerView] insets:UIEdgeInsetsMake(20, 20, 20, 20) spacing:20];
+  self.viewLayout = [YOVBorderLayout layoutWithCenter:_keysView top:nil bottom:@[footerView] insets:UIEdgeInsetsMake(20, 20, 20, 20) spacing:20];
 }
 
 - (void)setGPGKeys:(NSArray *)GPGKeys {

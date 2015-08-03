@@ -44,7 +44,7 @@
   _importButton.targetBlock = ^{ [gself import]; };
   [footerView addSubview:_importButton];
 
-  self.viewLayout = [YOBorderLayout layoutWithCenter:_textView top:nil bottom:@[line, footerView] insets:UIEdgeInsetsZero spacing:0];
+  self.viewLayout = [YOVBorderLayout layoutWithCenter:_textView top:nil bottom:@[line, footerView] insets:UIEdgeInsetsZero spacing:0];
 }
 
 - (void)chooseFile {

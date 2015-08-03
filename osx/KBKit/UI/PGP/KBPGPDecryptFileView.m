@@ -55,7 +55,7 @@
   footerView.decryptButton.targetBlock = ^{ [self decrypt]; };
   [self addSubview:footerView];
 
-  self.viewLayout = [YOBorderLayout layoutWithCenter:_fileListView top:@[toolbarView] bottom:@[footerView] insets:UIEdgeInsetsZero spacing:0];
+  self.viewLayout = [YOVBorderLayout layoutWithCenter:_fileListView top:@[toolbarView] bottom:@[footerView] insets:UIEdgeInsetsZero spacing:0];
 }
 
 - (void)setFiles:(NSArray *)files {

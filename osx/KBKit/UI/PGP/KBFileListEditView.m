@@ -41,7 +41,7 @@
   };
   [self addSubview:_fileListView];
 
-  self.viewLayout = [YOBorderLayout layoutWithCenter:_fileListView top:@[toolbarView] bottom:nil insets:UIEdgeInsetsZero spacing:0];
+  self.viewLayout = [YOVBorderLayout layoutWithCenter:_fileListView top:@[toolbarView] bottom:nil insets:UIEdgeInsetsZero spacing:0];
 }
 
 - (NSArray *)files {

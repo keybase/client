@@ -176,7 +176,7 @@
   GHWeakSelf gself = self;
   [KBActivity setProgressEnabled:YES sender:self];
   KBRRevokeRequest *request = [[KBRRevokeRequest alloc] initWithClient:self.client];
-  [request revokeSigsWithSessionID:request.sessionId sigIDs:@[sigId] seqnos:nil completion:^(NSError *error) {
+  [request revokeSigsWithSessionID:request.sessionId sigIDs:@[sigId] completion:^(NSError *error) {
     [KBActivity setProgressEnabled:NO sender:self];
     if ([KBActivity setError:error sender:self]) return;
     gself.completion(gself, NO);

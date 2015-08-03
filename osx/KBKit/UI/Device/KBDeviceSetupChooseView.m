@@ -46,7 +46,7 @@
   _selectButton = [KBButton buttonWithText:@"Select" style:KBButtonStylePrimary];
   [bottomView addSubview:_selectButton];
 
-  contentView.viewLayout = [YOBorderLayout layoutWithCenter:_deviceSignerView top:@[topView] bottom:@[bottomView] insets:UIEdgeInsetsMake(40, 40, 40, 40) spacing:20 maxSize:CGSizeMake(600,0)];
+  contentView.viewLayout = [YOVBorderLayout layoutWithCenter:_deviceSignerView top:@[topView] bottom:@[bottomView] insets:UIEdgeInsetsMake(40, 40, 40, 40) spacing:20 maxSize:CGSizeMake(600,0)];
 
   self.viewLayout = [YOLayout center:contentView];
 }

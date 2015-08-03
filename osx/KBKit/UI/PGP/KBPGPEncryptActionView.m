@@ -65,7 +65,7 @@
   _fileIcon.iconHeight = 400;
   _fileIcon.font = [NSFont systemFontOfSize:18];
 
-  _borderLayout = [YOBorderLayout layoutWithCenter:nil top:@[topView] bottom:@[_footerView]];
+  _borderLayout = [YOVBorderLayout layoutWithCenter:nil top:@[topView] bottom:@[_footerView]];
   self.viewLayout = _borderLayout;
 }
 

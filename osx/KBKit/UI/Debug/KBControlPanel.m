@@ -52,7 +52,7 @@
   };
   [_splitView setLeftView:_listView];
 
-  self.viewLayout = [YOBorderLayout layoutWithCenter:_splitView top:@[] bottom:@[] insets:UIEdgeInsetsMake(20, 20, 20, 20) spacing:20];
+  self.viewLayout = [YOVBorderLayout layoutWithCenter:_splitView top:@[] bottom:@[] insets:UIEdgeInsetsMake(20, 20, 20, 20) spacing:20];
 }
 
 - (void)select:(id<KBComponent>)component {
@@ -68,7 +68,7 @@
   YOView *view = [YOView view];
   [view addSubview:contentView];
 
-  YOBorderLayout *borderLayout = [YOBorderLayout layout];
+  YOBorderLayout *borderLayout = [YOVBorderLayout layout];
   borderLayout.spacing = 10;
   view.viewLayout = borderLayout;
   [borderLayout setCenter:contentView];

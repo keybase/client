@@ -73,7 +73,7 @@
   }
   [self addSubview:bottomView];
 
-  self.viewLayout = [YOBorderLayout layoutWithCenter:_proofView top:@[topView] bottom:@[bottomView]];
+  self.viewLayout = [YOVBorderLayout layoutWithCenter:_proofView top:@[topView] bottom:@[bottomView]];
 }
 
 - (void)copyToClipboard {

@@ -76,11 +76,6 @@
   [view addSubview:scrollView];
 
   YOHBox *buttons = [YOHBox box:@{@"spacing": @(10)}];
-  [buttons addSubview:[KBButton buttonWithText:@"Status" style:KBButtonStyleDefault options:KBButtonOptionsToolbar dispatchBlock:^(KBButton *button, dispatch_block_t completion) {
-    [self checkServiceStatus:^(NSError *error) {
-      completion();
-    }];
-  }]];
   [buttons addSubview:[KBButton buttonWithText:@"Panic" style:KBButtonStyleDanger options:KBButtonOptionsToolbar dispatchBlock:^(KBButton *button, dispatch_block_t completion) {
     [self panic:^(NSError *error) {
       completion();
@@ -88,7 +83,7 @@
   }]];
   [view addSubview:buttons];
 
-  view.viewLayout = [YOBorderLayout layoutWithCenter:scrollView top:nil bottom:@[buttons] insets:UIEdgeInsetsZero spacing:10];
+  view.viewLayout = [YOVBorderLayout layoutWithCenter:scrollView top:nil bottom:@[buttons] insets:UIEdgeInsetsZero spacing:10];
 
   _infoView = view;
 }
@@ -126,13 +121,6 @@
 - (void)panic:(KBCompletion)completion {
   KBRCtlRequest *request = [[KBRCtlRequest alloc] initWithClient:self.client];
   [request panicWithMessage:@"Testing panic" completion:^(NSError *error) {
-    completion(error);
-  }];
-}
-
-- (void)checkServiceStatus:(KBCompletion)completion {
-  KBRCtlRequest *request = [[KBRCtlRequest alloc] initWithClient:self.client];
-  [request status:^(NSError *error, KBRServiceStatusRes *serviceStatusRes) {
     completion(error);
   }];
 }

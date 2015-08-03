@@ -11,7 +11,6 @@
 #import "KBPGPTextView.h"
 #import "KBPGPVerifiedView.h"
 #import "KBPGPOutputFooterView.h"
-#import <YOLayout/YOBorderLayout.h>
 
 @interface KBPGPOutputView ()
 @property KBPGPTextView *textView;
@@ -43,7 +42,7 @@
   _footerView.closeButton.targetBlock = ^{ [[gself window] close]; };
   [self addSubview:_footerView];
 
-  self.viewLayout = [YOBorderLayout layoutWithCenter:_textView top:nil bottom:@[_verifiedView, _footerView]];
+  self.viewLayout = [YOVBorderLayout layoutWithCenter:_textView top:nil bottom:@[_verifiedView, _footerView]];
 }
 
 - (void)setText:(NSString *)text wrap:(BOOL)wrap {

@@ -12,6 +12,8 @@
 #import "KBFSStatusView.h"
 #import "KBInstallAction.h"
 #import "KBLogFormatter.h"
+#import "KBRPC.h"
+#import "KBApp.h"
 
 @interface KBConsoleView () <KBComponent>
 @property KBListView *logView;
@@ -53,57 +55,59 @@
 
   _logFormatter = [[KBLogConsoleFormatter alloc] init];
 
+  YOSelf yself = self;
   YOView *logView = [YOView view];
+  {
+    // TODO logging grows forever
+    _logView = [KBListView listViewWithRowHeight:16];
+    _logView.identifier = @"log";
+    _logView.scrollView.borderType = NSBezelBorder;
+    _logView.view.intercellSpacing = CGSizeMake(10, 10);
+    _logView.view.usesAlternatingRowBackgroundColors = YES;
+    _logView.view.allowsMultipleSelection = YES;
+    _logView.view.allowsEmptySelection = YES;
+    _logView.onIdentifier = ^(NSIndexPath *indexPath, NSTableColumn *tableColumn, KBListView *listView) {
+      return @"KBLabelCell";
+    };
+    _logView.onCreate = ^(NSIndexPath *indexPath, NSTableColumn *tableColumn, KBListView *listView) {
+      KBLabelCell *labelCell = [[KBLabelCell alloc] init];
+      labelCell.fixedHeight = 16;
+      return labelCell;
+    };
+    _logView.onSet = ^(KBLabelCell *label, KBConsoleItem *consoleItem, NSIndexPath *indexPath, NSTableColumn *tableColumn, KBListView *listView, BOOL dequeued) {
+      [label setAttributedText:[consoleItem attributedString] options:consoleItem.options];
+    };
+    _logView.onSelect = ^(KBTableView *tableView, KBTableSelection *selection) {
+      NSArray *messages = [selection.objects map:^(KBConsoleItem * c) { return c.message; }];
+      [yself.textView setText:[messages join:@"\n\n"] style:KBTextStyleDefault options:KBTextOptionsMonospace|KBTextOptionsSmall alignment:NSLeftTextAlignment lineBreakMode:NSLineBreakByCharWrapping];
+    };
+    [logView addSubview:_logView];
+
+    _textView = [[KBTextView alloc] init];
+    _textView.borderType = NSBezelBorder;
+    _textView.identifier = @"textView";
+    _textView.editable = NO;
+    _textView.view.textContainerInset = CGSizeMake(5, 5);
+    [logView addSubview:_textView];
+
+    logView.viewLayout = [YOLayout layoutWithLayoutBlock:^CGSize(id<YOLayout> layout, CGSize size) {
+      CGFloat y = 0;
+      y += [layout setFrame:CGRectMake(0, y, size.width, size.height * 0.5) view:yself.logView].size.height;
+      [layout setFrame:CGRectMake(0, y + 10, size.width, size.height - y - 10) view:yself.textView];
+      return size;
+    }];
+  }
   [self addSubview:logView];
 
-  GHWeakSelf gself = self;
-  // TODO logging grows forever
-  _logView = [KBListView listViewWithRowHeight:16];
-  _logView.identifier = @"log";
-  _logView.scrollView.borderType = NSBezelBorder;
-  _logView.view.intercellSpacing = CGSizeMake(10, 10);
-  _logView.view.usesAlternatingRowBackgroundColors = YES;
-  _logView.view.allowsMultipleSelection = YES;
-  _logView.view.allowsEmptySelection = YES;
-  _logView.onIdentifier = ^(NSIndexPath *indexPath, NSTableColumn *tableColumn, KBListView *listView) {
-    return @"KBLabelCell";
-  };
-  _logView.onCreate = ^(NSIndexPath *indexPath, NSTableColumn *tableColumn, KBListView *listView) {
-    KBLabelCell *labelCell = [[KBLabelCell alloc] init];
-    labelCell.fixedHeight = 16;
-    return labelCell;
-  };
-  _logView.onSet = ^(KBLabelCell *label, KBConsoleItem *consoleItem, NSIndexPath *indexPath, NSTableColumn *tableColumn, KBListView *listView, BOOL dequeued) {
-    [label setAttributedText:[consoleItem attributedString] options:consoleItem.options];
-  };
-  _logView.onSelect = ^(KBTableView *tableView, KBTableSelection *selection) {
-    NSArray *messages = [selection.objects map:^(KBConsoleItem * c) { return c.message; }];
-    [gself.textView setText:[messages join:@"\n\n"] style:KBTextStyleDefault options:KBTextOptionsMonospace|KBTextOptionsSmall alignment:NSLeftTextAlignment lineBreakMode:NSLineBreakByCharWrapping];
-  };
-  [logView addSubview:_logView];
-
-  _textView = [[KBTextView alloc] init];
-  _textView.borderType = NSBezelBorder;
-  _textView.identifier = @"textView";
-  _textView.editable = NO;
-  _textView.view.textContainerInset = CGSizeMake(5, 5);
-  [logView addSubview:_textView];
-
   YOHBox *buttons = [YOHBox box];
+  {
+    KBButton *clearButton = [KBButton buttonWithText:@"Clear" style:KBButtonStyleDefault options:KBButtonOptionsToolbar];
+    clearButton.targetBlock = ^{ [yself clear]; };
+    [buttons addSubview:clearButton];
+  }
   [self addSubview:buttons];
-  KBButton *clearButton = [KBButton buttonWithText:@"Clear" style:KBButtonStyleDefault options:KBButtonOptionsToolbar];
-  clearButton.targetBlock = ^{ [gself clear]; };
-  [buttons addSubview:clearButton];
 
-  YOSelf yself = self;
-  logView.viewLayout = [YOLayout layoutWithLayoutBlock:^CGSize(id<YOLayout> layout, CGSize size) {
-    CGFloat y = 0;
-    y += [layout setFrame:CGRectMake(0, y, size.width, size.height * 0.5) view:yself.logView].size.height;
-    [layout setFrame:CGRectMake(0, y + 10, size.width, size.height - y - 10) view:yself.textView];
-    return size;
-  }];
-
-  self.viewLayout = [YOBorderLayout layoutWithCenter:logView top:nil bottom:@[buttons] insets:UIEdgeInsetsZero spacing:10];
+  self.viewLayout = [YOVBorderLayout layoutWithCenter:logView top:nil bottom:@[buttons] insets:UIEdgeInsetsZero spacing:10];
 }
 
 - (void)clear {

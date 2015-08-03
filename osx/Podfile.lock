@@ -48,7 +48,7 @@ PODS:
   - Slash/arc (0.1.2)
   - Slash/no-arc (0.1.2)
   - Sparkle (1.10.0)
-  - YOLayout (0.2.9)
+  - YOLayout (0.2.10)
   - ZXCVBN (1.0.5)
 
 DEPENDENCIES:
@@ -83,7 +83,7 @@ SPEC CHECKSUMS:
   ObjectiveSugar: a6a25f23d657c19df0a0b972466d5b5ca9f5295c
   Slash: c74317f5ccf1e31f1d486a17e0d4076029ed3fc8
   Sparkle: c859bf5283b9f12aa45bceccf8e25ebb4c008eb2
-  YOLayout: ceb8a2de28a4dd15f813f6d6d50a3afdc2c3270f
+  YOLayout: 5c8558eb457df646e840cc6da76be590166ee0b5
   ZXCVBN: f3888e3f6363b8cf57bcc32857a9bc09f9f9e18e
 
 COCOAPODS: 0.38.2

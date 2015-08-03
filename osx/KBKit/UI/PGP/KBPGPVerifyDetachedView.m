@@ -47,7 +47,7 @@
   _footerView.verifyButton.targetBlock = ^{ [gself verify]; };
   [bottomView addSubview:_footerView];
 
-  self.viewLayout = [YOBorderLayout layoutWithCenter:_textView top:nil bottom:@[bottomView]];
+  self.viewLayout = [YOVBorderLayout layoutWithCenter:_textView top:nil bottom:@[bottomView]];
 }
 
 - (void)setData:(NSData *)data armored:(BOOL)armored {

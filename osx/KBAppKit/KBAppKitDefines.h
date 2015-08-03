@@ -12,7 +12,8 @@
 #import <GHKit/GHKit.h>
 #import <YOLayout/YOLayout.h>
 #import <YOLayout/YOBox.h>
-#import <YOLayout/YOBorderLayout.h>
+#import <YOLayout/YOVBorderLayout.h>
+#import <YOLayout/YOHBorderLayout.h>
 #import <ObjectiveSugar/ObjectiveSugar.h>
 #import <CocoaLumberjack/CocoaLumberjack.h>
 
@@ -43,3 +44,4 @@ typedef NS_ENUM(NSInteger, KBHorizontalAlignment) {
   KBHorizontalAlignmentCenter,
   KBHorizontalAlignmentRight
 };
+

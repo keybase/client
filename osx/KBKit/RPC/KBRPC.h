@@ -129,18 +129,12 @@
 
 @end
 
-@interface KBRServiceStatusRes : KBRObject
-@property long time;
-@end
-
 @interface KBRCtlRequest : KBRRequest
 - (void)stop:(void (^)(NSError *error))completion;
 
 - (void)logRotate:(void (^)(NSError *error))completion;
 
 - (void)panicWithMessage:(NSString *)message completion:(void (^)(NSError *error))completion;
-
-- (void)status:(void (^)(NSError *error, KBRServiceStatusRes *serviceStatusRes))completion;
 
 @end
 
@@ -184,6 +178,21 @@ typedef NS_ENUM (NSInteger, KBRDoctorFixType) {
 - (void)displayStatusWithSessionID:(NSInteger)sessionID status:(KBRDoctorStatus *)status completion:(void (^)(NSError *error, BOOL b))completion;
 
 - (void)displayResultWithSessionID:(NSInteger)sessionID message:(NSString *)message completion:(void (^)(NSError *error))completion;
+
+@end
+
+@interface KBRFolder : KBRObject
+@property NSString *name;
+@property BOOL private;
+@property BOOL notificationsOn;
+@end
+
+@interface KBRFavoriteRequest : KBRRequest
+- (void)favoriteAddWithSessionID:(NSInteger)sessionID folder:(KBRFolder *)folder completion:(void (^)(NSError *error))completion;
+
+- (void)favoriteDeleteWithSessionID:(NSInteger)sessionID folder:(KBRFolder *)folder completion:(void (^)(NSError *error))completion;
+
+- (void)favoriteListWithSessionID:(NSInteger)sessionID completion:(void (^)(NSError *error, NSArray *items))completion;
 
 @end
 
@@ -698,7 +707,7 @@ typedef NS_ENUM (NSInteger, KBRPromptOverwriteType) {
 
 - (void)revokeDeviceWithSessionID:(NSInteger)sessionID deviceID:(NSString *)deviceID completion:(void (^)(NSError *error))completion;
 
-- (void)revokeSigsWithSessionID:(NSInteger)sessionID sigIDs:(NSArray *)sigIDs seqnos:(NSArray *)seqnos completion:(void (^)(NSError *error))completion;
+- (void)revokeSigsWithSessionID:(NSInteger)sessionID sigIDs:(NSArray *)sigIDs completion:(void (^)(NSError *error))completion;
 
 @end
 
@@ -979,6 +988,17 @@ typedef NS_ENUM (NSInteger, KBRPromptDefault) {
 @interface KBRDisplayResultRequestParams : KBRRequestParams
 @property NSInteger sessionID;
 @property NSString *message;
+@end
+@interface KBRFavoriteAddRequestParams : KBRRequestParams
+@property NSInteger sessionID;
+@property KBRFolder *folder;
+@end
+@interface KBRFavoriteDeleteRequestParams : KBRRequestParams
+@property NSInteger sessionID;
+@property KBRFolder *folder;
+@end
+@interface KBRFavoriteListRequestParams : KBRRequestParams
+@property NSInteger sessionID;
 @end
 @interface KBRWantToAddGPGKeyRequestParams : KBRRequestParams
 @property NSInteger sessionID;
@@ -1275,7 +1295,6 @@ typedef NS_ENUM (NSInteger, KBRPromptDefault) {
 @interface KBRRevokeSigsRequestParams : KBRRequestParams
 @property NSInteger sessionID;
 @property NSArray *sigIDs;
-@property NSArray *seqnos;
 @end
 @interface KBRGetSecretRequestParams : KBRRequestParams
 @property NSInteger sessionID;

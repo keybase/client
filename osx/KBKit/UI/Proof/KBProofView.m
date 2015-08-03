@@ -65,7 +65,7 @@
   }
   [self addSubview:bottomView];
 
-  self.viewLayout = [YOBorderLayout layoutWithCenter:contentView top:nil bottom:@[bottomView]];
+  self.viewLayout = [YOVBorderLayout layoutWithCenter:contentView top:nil bottom:@[bottomView]];
 }
 
 - (void)setProofResult:(KBProofResult *)proofResult {

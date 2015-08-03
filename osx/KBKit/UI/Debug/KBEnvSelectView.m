@@ -58,7 +58,7 @@
   nextButton.targetBlock = ^{ [gself next]; };
   [buttons addSubview:nextButton];
 
-  self.viewLayout = [YOBorderLayout layoutWithCenter:_splitView top:@[header] bottom:@[buttons] insets:UIEdgeInsetsMake(20, 40, 20, 40) spacing:20];
+  self.viewLayout = [YOVBorderLayout layoutWithCenter:_splitView top:@[header] bottom:@[buttons] insets:UIEdgeInsetsMake(20, 40, 20, 40) spacing:20];
 
   _customView = [[KBCustomEnvView alloc] init];
 

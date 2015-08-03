@@ -38,7 +38,7 @@
   _footerView.clearSign.hidden = YES;
   [self addSubview:_footerView];
 
-  self.viewLayout = [YOBorderLayout layoutWithCenter:_fileListEditView top:nil bottom:@[_footerView] insets:UIEdgeInsetsZero spacing:0];
+  self.viewLayout = [YOVBorderLayout layoutWithCenter:_fileListEditView top:nil bottom:@[_footerView] insets:UIEdgeInsetsZero spacing:0];
 }
 
 - (void)sign {

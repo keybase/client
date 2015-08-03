@@ -49,7 +49,7 @@
   _footerView.includeSelfButton.state = NSOnState;
   [self addSubview:_footerView];
 
-  self.viewLayout = [YOBorderLayout layoutWithCenter:_fileListEditView top:@[topView] bottom:@[_footerView]];
+  self.viewLayout = [YOVBorderLayout layoutWithCenter:_fileListEditView top:@[topView] bottom:@[_footerView]];
 }
 
 - (void)layout {

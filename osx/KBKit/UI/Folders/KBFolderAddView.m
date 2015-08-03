@@ -64,7 +64,7 @@
   }
   [self addSubview:bottomView];
 
-  self.viewLayout = [YOBorderLayout layoutWithCenter:_resultsView top:@[topView] bottom:@[bottomView]];
+  self.viewLayout = [YOVBorderLayout layoutWithCenter:_resultsView top:@[topView] bottom:@[bottomView]];
 }
 
 - (void)layout {

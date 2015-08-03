@@ -61,7 +61,7 @@
   _footerView.includeSelfButton.state = NSOnState;
   [bottomView addSubview:_footerView];
 
-  self.viewLayout = [YOBorderLayout layoutWithCenter:_textView top:@[topView] bottom:@[bottomView]];
+  self.viewLayout = [YOVBorderLayout layoutWithCenter:_textView top:@[topView] bottom:@[bottomView]];
 }
 
 - (void)layout {

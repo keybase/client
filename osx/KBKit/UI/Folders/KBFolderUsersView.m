@@ -28,7 +28,7 @@
   KBButton *saveButton = [KBButton buttonWithText:@"Save" style:KBButtonStylePrimary];
   [footerView addSubview:saveButton];
 
-  self.viewLayout = [YOBorderLayout layoutWithCenter:_folderUsersListView top:nil bottom:@[footerView] insets:UIEdgeInsetsMake(20, 20, 20, 20)spacing:10];
+  self.viewLayout = [YOVBorderLayout layoutWithCenter:_folderUsersListView top:nil bottom:@[footerView] insets:UIEdgeInsetsMake(20, 20, 20, 20)spacing:10];
 }
 
 @end

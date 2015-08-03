@@ -44,7 +44,7 @@
   }
   [self addSubview:contentView];
 
-  self.viewLayout = [YOBorderLayout fitVertical:contentView];
+  self.viewLayout = [YOVBorderLayout fitVertical:contentView];
 }
 
 - (void)setIdentifyKey:(KBRIdentifyKey *)identifyKey {
