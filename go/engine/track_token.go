@@ -72,6 +72,11 @@ func (e *TrackToken) Run(ctx *Context) error {
 		return err
 	}
 
+	if outcome.TrackStatus() == keybase1.TrackStatus_UPDATE_OK {
+		e.G().Log.Debug("tracking statement up-to-date.")
+		return nil
+	}
+
 	if err := e.loadThem(outcome.Username); err != nil {
 		return err
 	}

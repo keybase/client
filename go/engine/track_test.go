@@ -148,6 +148,58 @@ func TestTrackMultiple(t *testing.T) {
 	trackAlice(tc, fu)
 }
 
+// see issue #578
+func TestTrackRetrack(t *testing.T) {
+	tc := SetupEngineTest(t, "track")
+	defer tc.Cleanup()
+	fu := CreateAndSignupFakeUser(tc, "track")
+
+	tc.G.LoginState().Account(func(a *libkb.Account) {
+		a.ClearStreamCache()
+	}, "clear stream cache")
+
+	idUI := &FakeIdentifyUI{}
+	secretUI := fu.NewSecretUI()
+
+	arg := &TrackEngineArg{
+		UserAssertion: "t_alice",
+		Options:       keybase1.TrackOptions{BypassConfirm: true},
+	}
+	ctx := &Context{
+		LogUI:      tc.G.UI.GetLogUI(),
+		IdentifyUI: idUI,
+		SecretUI:   secretUI,
+	}
+
+	eng := NewTrackEngine(arg, tc.G)
+	err := RunEngine(eng, ctx)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if !secretUI.CalledGetSecret {
+		t.Errorf("expected get secret call")
+	}
+
+	// clear out the passphrase cache
+	tc.G.LoginState().Account(func(a *libkb.Account) {
+		a.ClearStreamCache()
+	}, "clear stream cache")
+
+	// reset the flag
+	secretUI.CalledGetSecret = false
+
+	eng = NewTrackEngine(arg, tc.G)
+	err = RunEngine(eng, ctx)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if secretUI.CalledGetSecret {
+		t.Errorf("get secret called on retrack")
+	}
+}
+
 func TestTrackLocal(t *testing.T) {
 	tc := SetupEngineTest(t, "track")
 	defer tc.Cleanup()
