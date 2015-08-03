@@ -197,15 +197,34 @@ func (k *KBPKIClient) session(ctx context.Context) (
 
 // FavoriteAdd implements the KBPKI interface for KBPKILocal.
 func (k *KBPKIClient) FavoriteAdd(ctx context.Context, folder keybase1.Folder) error {
-	return nil
+	f := func() error {
+		c := keybase1.FavoriteClient{Cli: k.client}
+		return c.FavoriteAdd(keybase1.FavoriteAddArg{Folder: folder})
+	}
+	return runUnlessCanceled(ctx, f)
 }
 
 // FavoriteRemove implements the KBPKI interface for KBPKILocal.
 func (k *KBPKIClient) FavoriteRemove(ctx context.Context, folder keybase1.Folder) error {
-	return nil
+	f := func() error {
+		c := keybase1.FavoriteClient{Cli: k.client}
+		return c.FavoriteDelete(keybase1.FavoriteDeleteArg{Folder: folder})
+	}
+	return runUnlessCanceled(ctx, f)
 }
 
 // FavoriteList implements the KBPKI interface for KBPKILocal.
 func (k *KBPKIClient) FavoriteList(ctx context.Context) ([]keybase1.Folder, error) {
-	return nil, nil
+	var folders []keybase1.Folder
+	f := func() error {
+		c := keybase1.FavoriteClient{Cli: k.client}
+		const sessionID = 0
+		var err error
+		folders, err = c.FavoriteList(sessionID)
+		return err
+	}
+	if err := runUnlessCanceled(ctx, f); err != nil {
+		return nil, err
+	}
+	return folders, nil
 }
