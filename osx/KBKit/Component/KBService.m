@@ -128,7 +128,7 @@
 - (void)checkStatus:(void (^)(NSError *error, KBRGetCurrentStatusRes *currentStatus, KBRConfig *config))completion {
   GHWeakSelf gself = self;
   KBRConfigRequest *statusRequest = [[KBRConfigRequest alloc] initWithClient:self.client];
-  [statusRequest getCurrentStatusWithSessionID:statusRequest.sessionId completion:^(NSError *error, KBRGetCurrentStatusRes *userStatus) {
+  [statusRequest getCurrentStatus:^(NSError *error, KBRGetCurrentStatusRes *userStatus) {
     gself.userStatus = userStatus;
     [self componentDidUpdate];
     if (error) {
@@ -136,7 +136,7 @@
       return;
     }
     KBRConfigRequest *configRequest = [[KBRConfigRequest alloc] initWithClient:self.client];
-    [configRequest getConfigWithSessionID:configRequest.sessionId completion:^(NSError *error, KBRConfig *userConfig) {
+    [configRequest getConfig:^(NSError *error, KBRConfig *userConfig) {
       gself.userConfig = userConfig;
       [self componentDidUpdate];
       completion(error, userStatus, userConfig);

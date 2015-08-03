@@ -258,7 +258,7 @@
   [self registerClient:self.client sessionId:request.sessionId];
   KBRTrackOptions *options = [[KBRTrackOptions alloc] init];
   options.localOnly = NO;
-  [request trackWithTokenWithSessionID:request.sessionId trackToken:self.trackToken options:options completion:^(NSError *error) {
+  [request trackWithTokenWithTrackToken:self.trackToken options:options completion:^(NSError *error) {
     [KBActivity setProgressEnabled:NO sender:self];
     if (error) {
       [gself showTrackAction:KBTrackActionErrored username:username error:error];
@@ -287,7 +287,7 @@
   GHWeakSelf gself = self;
   KBRIdentifyRequest *identifyRequest = [[KBRIdentifyRequest alloc] initWithClient:self.client];
   [self registerClient:self.client sessionId:identifyRequest.sessionId];
-  [identifyRequest identifyDefaultWithSessionID:identifyRequest.sessionId userAssertion:_username forceRemoteCheck:NO completion:^(NSError *error, KBRIdentifyRes *identifyRes) {
+  [identifyRequest identifyDefaultWithUserAssertion:_username forceRemoteCheck:NO completion:^(NSError *error, KBRIdentifyRes *identifyRes) {
     [gself.headerView setProgressEnabled:NO];
     gself.loading = NO;
     if (error) {
@@ -304,7 +304,7 @@
   GHWeakSelf gself = self;
   KBRIdentifyRequest *identifyRequest = [[KBRIdentifyRequest alloc] initWithClient:self.client];
   [self registerClient:self.client sessionId:identifyRequest.sessionId];
-  [identifyRequest identifyDefaultWithSessionID:identifyRequest.sessionId userAssertion:_username forceRemoteCheck:NO completion:^(NSError *error, KBRIdentifyRes *identifyRes) {
+  [identifyRequest identifyDefaultWithUserAssertion:_username forceRemoteCheck:NO completion:^(NSError *error, KBRIdentifyRes *identifyRes) {
     [gself.headerView setProgressEnabled:NO];
     gself.loading = NO;
     if (error) {
@@ -367,7 +367,7 @@
   KBRTrackRequest *request = [[KBRTrackRequest alloc] initWithClient:self.client];
   GHWeakSelf gself = self;
   NSString *username = _username;
-  [request untrackWithSessionID:request.sessionId username:username completion:^(NSError *error) {
+  [request untrackWithUsername:username completion:^(NSError *error) {
     [self.headerView setProgressEnabled:NO];
     if (error) {
       [gself showTrackAction:KBTrackActionErrored username:username error:error];
@@ -381,7 +381,7 @@
 
 - (void)addPGPKey {
   KBRConfigRequest *request = [[KBRConfigRequest alloc] initWithClient:self.client];
-  [request getConfigWithSessionID:request.sessionId completion:^(NSError *error, KBRConfig *config) {
+  [request getConfig:^(NSError *error, KBRConfig *config) {
     KBAlertView *alert = [[KBAlertView alloc] init];
     [alert addButtonWithTitle:@"Import Manually" tag:1];
     if (config.gpgExists) [alert addButtonWithTitle:@"Import from GPG" tag:2];
@@ -428,7 +428,7 @@
     KBRPGPCreateUids *uids = [[KBRPGPCreateUids alloc] init];
     uids.useDefault = YES;
     KBRPgpRequest *request = [[KBRPgpRequest alloc] initWithClient:self.client];
-    [request pgpKeyGenDefaultWithSessionID:request.sessionId createUids:uids completion:^(NSError *error) {
+    [request pgpKeyGenDefaultWithCreateUids:uids completion:^(NSError *error) {
       completion(error);
       [self refresh];
     }];
@@ -442,7 +442,7 @@
     KBRSelectKeyAndPushOptionRequestParams *requestParams = [[KBRSelectKeyAndPushOptionRequestParams alloc] initWithParams:params];
     [self selectPGPKey:requestParams completion:completion];
   }];
-  [request pgpSelectWithSessionID:request.sessionId fingerprintQuery:nil allowMulti:NO skipImport:NO completion:^(NSError *error) {
+  [request pgpSelectWithFingerprintQuery:nil allowMulti:NO skipImport:NO completion:^(NSError *error) {
     [KBActivity setError:error sender:self];
     [self refresh];
   }];
@@ -491,7 +491,7 @@
   // Just testing in progress
   /*
   KBRConfigRequest *request = [[KBRConfigRequest alloc] initWithClient:self.client];
-  [request setUserConfigWithSessionID:request.sessionId username:self.username key:@"picture.source" value:@"github" completion:^(NSError *error) {
+  [request setUserConfigWithUsername:self.username key:@"picture.source" value:@"github" completion:^(NSError *error) {
     if (error) [KBActivity setError:error sender:self];
     //[self refresh];
   }];

@@ -138,7 +138,7 @@
   KBRPGPQuery *options = [[KBRPGPQuery alloc] init];
   options.query = _identifyKey.KID;
   options.exactMatch = YES;
-  [request pgpExportWithSessionID:request.sessionId options:options completion:^(NSError *error, NSArray *keys) {
+  [request pgpExportWithOptions:options completion:^(NSError *error, NSArray *keys) {
     // TODO This only works when we are the user being key exported
     KBRKeyInfo *keyInfo = [keys firstObject];
     [gself.textView setText:keyInfo.key style:KBTextStyleDefault options:KBTextOptionsMonospace alignment:NSLeftTextAlignment lineBreakMode:NSLineBreakByClipping];
@@ -149,33 +149,16 @@
 - (void)showSecret:(void (^)(NSError *error, KBRKeyInfo *keyInfo))completion {
   KBRPgpRequest *request = [[KBRPgpRequest alloc] initWithClient:self.client];
   KBRPGPQuery *options = [[KBRPGPQuery alloc] init];
-  //options.query = _identifyKey.KID;
+  options.query = _identifyKey.KID;
   options.exactMatch = YES;
   options.secret = YES;
   GHWeakSelf gself = self;
 
-  options.query = KBHexString(_identifyKey.pgpFingerprint, @"");
-  [request pgpExportByFingerprintWithSessionID:request.sessionId options:options completion:^(NSError *error, NSArray *items) {
+  [request pgpExportByKIDWithOptions:options completion:^(NSError *error, NSArray *items) {
     KBRKeyInfo *keyInfo = items[0];
-    if (keyInfo.key) {
-      gself.textView.text = keyInfo.key;
-    } else {
-      gself.textView.text = nil;
-    }
+    if (keyInfo.key) gself.textView.text = keyInfo.key;
     completion(error, keyInfo);
   }];
-
-  /*
-  [request pgpExportByKIDWithSessionID:request.sessionId options:options completion:^(NSError *error, NSArray *items) {
-    KBRKeyInfo *keyInfo = items[0];
-    if (keyInfo.key) {
-      gself.textView.text = keyInfo.key;
-    } else {
-      gself.textView.text = nil;
-    }
-    completion(error, keyInfo);
-  }];
-   */
 }
 
 - (void)removePGPKey:(dispatch_block_t)completion {
@@ -183,7 +166,7 @@
   [KBAlert yesNoWithTitle:@"Delete PGP Key" description:@"Are you sure you want to remove this PGP Key?" yes:@"Delete" view:self completion:^(BOOL yes) {
     if (yes) {
       KBRRevokeRequest *request = [[KBRRevokeRequest alloc] initWithClient:self.client];
-      [request revokeKeyWithSessionID:request.sessionId keyID:kid completion:^(NSError *error) {
+      [request revokeKeyWithKeyID:kid completion:^(NSError *error) {
         [NSNotificationCenter.defaultCenter postNotificationName:KBUserDidChangeNotification object:nil userInfo:nil];
         [self close];
       }];

@@ -258,7 +258,7 @@ typedef NS_ENUM (NSInteger, KBAppViewMode) {
   dispatch_block_t logout = ^{
     [self showInProgress:@"Logging out"];
     KBRLoginRequest *request = [[KBRLoginRequest alloc] initWithClient:gself.environment.service.client];
-    [request logoutWithSessionID:request.sessionId completion:^(NSError *error) {
+    [request logout:^(NSError *error) {
       if (error) {
         [KBApp.app setError:error sender:self completion:nil];
       }

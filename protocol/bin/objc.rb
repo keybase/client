@@ -219,6 +219,8 @@ paths.each do |path|
     request_params = mparam["request"].dup
     response_type = mparam["response"]
 
+    request_params.shift if request_params.length > 0 && request_params[0]["name"] == "sessionID"
+
     request_params_items = request_params.map do |p|
       if is_primitive_type(p["type"]) || enums.include?(p["type"])
         "@\"#{p["name"]}\": @(#{alias_name(p["name"])})"

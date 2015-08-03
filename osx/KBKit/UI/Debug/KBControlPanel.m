@@ -68,7 +68,7 @@
   YOView *view = [YOView view];
   [view addSubview:contentView];
 
-  YOBorderLayout *borderLayout = [YOVBorderLayout layout];
+  YOVBorderLayout *borderLayout = [YOVBorderLayout layout];
   borderLayout.spacing = 10;
   view.viewLayout = borderLayout;
   [borderLayout setCenter:contentView];

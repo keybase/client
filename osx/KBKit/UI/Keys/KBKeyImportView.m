@@ -108,7 +108,7 @@
 - (void)import {
   [KBActivity setProgressEnabled:YES sender:self];
   KBRPgpRequest *request = [[KBRPgpRequest alloc] initWithClient:self.client];
-  [request pgpImportWithSessionID:request.sessionId key:_textView.data pushSecret:NO completion:^(NSError *error) {
+  [request pgpImportWithKey:_textView.data pushSecret:NO completion:^(NSError *error) {
     [KBActivity setProgressEnabled:NO sender:self];
     if ([KBActivity setError:error sender:self]) return;
 

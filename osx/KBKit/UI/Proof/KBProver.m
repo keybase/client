@@ -67,7 +67,7 @@
   NSString *sigID = proofResult.proof.sigID;
   KBRProveRequest *request = [[KBRProveRequest alloc] initWithClient:self.client];
   [KBActivity setProgressEnabled:YES sender:self];
-  [request checkProofWithSessionID:request.sessionId sigID:sigID completion:^(NSError *error, KBRCheckProofStatus *checkProofStatus) {
+  [request checkProofWithSigID:sigID completion:^(NSError *error, KBRCheckProofStatus *checkProofStatus) {
     [KBActivity setProgressEnabled:NO sender:self];
     if ([KBActivity setError:error sender:self]) return;
 
@@ -99,7 +99,7 @@
   NSAssert(proofResult.proof.sigID, @"No proof sigId");
   [KBActivity setProgressEnabled:YES sender:self];
   KBRRevokeRequest *request = [[KBRRevokeRequest alloc] initWithClient:self.client];
-  [request revokeSigsWithSessionID:request.sessionId sigIDs:@[proofResult.proof.sigID] completion:^(NSError *error) {
+  [request revokeSigsWithSigIDs:@[proofResult.proof.sigID] completion:^(NSError *error) {
     [KBActivity setProgressEnabled:NO sender:self];
     completion(error);
   }];

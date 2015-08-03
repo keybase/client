@@ -33,7 +33,7 @@
 @property KBComposeTextView *textView;
 @property KBFileIcon *fileIcon;
 
-@property YOBorderLayout *borderLayout;
+@property YOVBorderLayout *borderLayout;
 @end
 
 @implementation KBPGPEncryptActionView

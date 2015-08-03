@@ -205,6 +205,7 @@
 
   NSMutableDictionary *mparams = [params mutableCopy];
   [mparams gh_mutableCompact];
+  if (!mparams[@"sessionID"]) mparams[@"sessionID"] = @(sessionId);
 
   KBLog(KBLogRPC|KBLogDebug, @"Requesting: %@(%@)", method, KBDescription(KBScrubSensitive(mparams)));
 
@@ -224,9 +225,9 @@
                  MPErrorInfoKey: errorInfo,
                  }];
     }
-    if ([[KBWorkspace userDefaults] boolForKey:@"Preferences.Advanced.Record"]) {
-      if (result) [self.recorder recordResponse:method response:result sessionId:sessionId];
-    }
+//    if ([[KBWorkspace userDefaults] boolForKey:@"Preferences.Advanced.Record"]) {
+//      if (result) [self.recorder recordResponse:method response:result sessionId:sessionId];
+//    }
     KBLog(KBLogRPC|KBLogDebug, @"Replied (%@): %@", method, result ? KBDescription(result) : @"{}");
     completion(error, result);
   }];
@@ -238,7 +239,7 @@
 
 - (void)check:(void (^)(NSError *error, NSString *version))completion {
   KBRConfigRequest *request = [[KBRConfigRequest alloc] initWithClient:self];
-  [request getConfigWithSessionID:request.sessionId completion:^(NSError *error, KBRConfig *config) {
+  [request getConfig:^(NSError *error, KBRConfig *config) {
     completion(error, config.version);
   }];
 }

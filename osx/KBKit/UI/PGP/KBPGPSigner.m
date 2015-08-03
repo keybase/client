@@ -33,7 +33,7 @@
   KBRStream *sink = [[KBRStream alloc] init];
   sink.fd = stream.label;
 
-  [request pgpSignWithSessionID:request.sessionId source:source sink:sink opts:options completion:^(NSError *error) {
+  [request pgpSignWithSource:source sink:sink opts:options completion:^(NSError *error) {
     completion([KBWork workWithInput:stream output:stream error:error]);
   }];
 }

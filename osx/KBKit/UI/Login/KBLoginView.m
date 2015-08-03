@@ -183,7 +183,7 @@
 
   if ([passphrase isEqualToString:PASSWORD_PLACEHOLDER]) {
     [self.navigation setProgressEnabled:YES];
-    [_request loginWithStoredSecretWithSessionID:_request.sessionId username:username completion:^(NSError *error) {
+    [_request loginWithStoredSecretWithUsername:username completion:^(NSError *error) {
       [self.navigation setProgressEnabled:NO];
       if (error) {
         [self handleError:error];
@@ -193,7 +193,7 @@
     }];
   } else {
     [self.navigation setProgressEnabled:YES];
-    [_request loginWithPassphraseWithSessionID:_request.sessionId username:username passphrase:passphrase storeSecret:storeSecret completion:^(NSError *error) {
+    [_request loginWithPassphraseWithUsername:username passphrase:passphrase storeSecret:storeSecret completion:^(NSError *error) {
       [self.navigation setProgressEnabled:NO];
       if (error) {
         [self handleError:error];
@@ -225,7 +225,7 @@
 - (void)loadAccounts {
   KBRLoginRequest *request = [[KBRLoginRequest alloc] initWithClient:self.client];
   GHWeakSelf gself = self;
-  [request getConfiguredAccountsWithSessionID:request.sessionId completion:^(NSError *error, NSArray *accounts) {
+  [request getConfiguredAccounts:^(NSError *error, NSArray *accounts) {
     gself.accounts = accounts;
     [self updateForAccounts];
   }];
@@ -258,7 +258,7 @@
 - (void)clearKeychain:(NSString *)username completion:(MPCompletion)completion {
   DDLogDebug(@"Clearing cached secret for %@", username);
   KBRLoginRequest *request = [[KBRLoginRequest alloc] initWithClient:self.client];
-  [request clearStoredSecretWithSessionID:request.sessionId username:username completion:completion];
+  [request clearStoredSecretWithUsername:username completion:completion];
 }
 
 - (void)handleError:(NSError *)error {
@@ -283,7 +283,7 @@
 
 - (void)cancelLogin {
   KBRLoginRequest *request = [[KBRLoginRequest alloc] initWithClient:self.client];
-  [request cancelLoginWithSessionID:request.sessionId completion:^(NSError *error) {
+  [request cancelLogin:^(NSError *error) {
     [KBActivity setError:error sender:self];
     [self goBackToLogin];
   }];

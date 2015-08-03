@@ -43,7 +43,7 @@
   KBRStream *sink = [[KBRStream alloc] init];
   sink.fd = stream.label;
 
-  [request pgpDecryptWithSessionID:request.sessionId source:source sink:sink opts:options completion:^(NSError *error, KBRPGPSigVerification *pgpSigVerification) {
+  [request pgpDecryptWithSource:source sink:sink opts:options completion:^(NSError *error, KBRPGPSigVerification *pgpSigVerification) {
     KBPGPDecrypted *decrypted = [KBPGPDecrypted decryptedWithStream:stream pgpSigVerification:pgpSigVerification];
     KBWork *work = [KBWork workWithInput:stream output:decrypted error:error];
     completion(work);

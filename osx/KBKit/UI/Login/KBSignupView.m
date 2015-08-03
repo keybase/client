@@ -219,7 +219,7 @@
 
   GHWeakSelf gself = self;
   KBRSignupRequest *request = [[KBRSignupRequest alloc] initWithClient:self.client];
-  [request checkUsernameAvailableWithSessionID:request.sessionId username:username completion:^(NSError *error) {
+  [request checkUsernameAvailableWithUsername:username completion:^(NSError *error) {
     if (error.code == 701) {
       [gself.usernameStatusLabel setText:@"Already taken" font:[NSFont systemFontOfSize:12] color:KBAppearance.currentAppearance.dangerColor alignment:NSRightTextAlignment lineBreakMode:NSLineBreakByClipping];
     } else if (error) {
@@ -279,7 +279,7 @@
   }];
 
   [self.navigation setProgressEnabled:YES];
-  [request signupWithSessionID:request.sessionId email:email inviteCode:self.inviteField.text passphrase:passphrase username:username deviceName:deviceName completion:^(NSError *error, KBRSignupRes *res) {
+  [request signupWithEmail:email inviteCode:self.inviteField.text passphrase:passphrase username:username deviceName:deviceName completion:^(NSError *error, KBRSignupRes *res) {
     [self.navigation setProgressEnabled:NO];
     if ([KBActivity setError:error sender:self]) return;
 

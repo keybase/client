@@ -156,7 +156,7 @@
   }];
 
   [KBActivity setProgressEnabled:YES sender:self];
-  [request startProofWithSessionID:request.sessionId service:_serviceName username:_serviceUsername force:NO promptPosted:NO completion:^(NSError *error, KBRStartProofResult *startProofResult) {
+  [request startProofWithService:_serviceName username:_serviceUsername force:NO promptPosted:NO completion:^(NSError *error, KBRStartProofResult *startProofResult) {
     [KBActivity setProgressEnabled:NO sender:self];
     if (error) {
       [KBActivity setError:error sender:self];
@@ -176,7 +176,7 @@
   GHWeakSelf gself = self;
   [KBActivity setProgressEnabled:YES sender:self];
   KBRRevokeRequest *request = [[KBRRevokeRequest alloc] initWithClient:self.client];
-  [request revokeSigsWithSessionID:request.sessionId sigIDs:@[sigId] completion:^(NSError *error) {
+  [request revokeSigsWithSigIDs:@[sigId] completion:^(NSError *error) {
     [KBActivity setProgressEnabled:NO sender:self];
     if ([KBActivity setError:error sender:self]) return;
     gself.completion(gself, NO);
@@ -188,7 +188,7 @@
   NSString *sigId = _sigId;
   KBRProveRequest *request = [[KBRProveRequest alloc] initWithClient:self.client];
   [KBActivity setProgressEnabled:YES sender:self];
-  [request checkProofWithSessionID:request.sessionId sigID:sigId completion:^(NSError *error, KBRCheckProofStatus *checkProofStatus) {
+  [request checkProofWithSigID:sigId completion:^(NSError *error, KBRCheckProofStatus *checkProofStatus) {
     [KBActivity setProgressEnabled:NO sender:self];
     if ([KBActivity setError:error sender:self]) return;
 
@@ -205,7 +205,7 @@
   NSString *sigID = _sigId;
   KBRProveRequest *request = [[KBRProveRequest alloc] initWithClient:self.client];
   [KBActivity setProgressEnabled:YES sender:self];
-  [request checkProofWithSessionID:request.sessionId sigID:sigID completion:^(NSError *error, KBRCheckProofStatus *checkProofStatus) {
+  [request checkProofWithSigID:sigID completion:^(NSError *error, KBRCheckProofStatus *checkProofStatus) {
     [KBActivity setProgressEnabled:NO sender:self];
     if ([KBActivity setError:error sender:self]) return;
 
