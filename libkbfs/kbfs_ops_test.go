@@ -136,12 +136,17 @@ func TestKBFSOpsGetFavoritesSuccess(t *testing.T) {
 	_, handle1, _ := newDir(t, config, 1, true, false)
 	_, handle2, _ := newDir(t, config, 2, true, false)
 	handles := []*TlfHandle{handle1, handle2}
+	folders := []keybase1.Folder{handle1.ToKBFolder(ctx, config), handle2.ToKBFolder(ctx, config)}
 
-	config.mockMdops.EXPECT().GetFavorites(gomock.Any()).Return(handles, nil)
+	config.mockKbpki.EXPECT().FavoriteList(ctx).Return(folders, nil)
+	var user libkb.User
+	config.mockKbpki.EXPECT().ResolveAssertion(gomock.Any(), gomock.Any()).AnyTimes().Return(&user, nil)
 
-	if handles2, err := config.KBFSOps().GetFavorites(ctx); err != nil {
+	handles2, err := config.KBFSOps().GetFavorites(ctx)
+	if err != nil {
 		t.Errorf("Got error on favorites: %v", err)
-	} else if len(handles2) != len(handles) {
+	}
+	if len(handles2) != len(handles) {
 		t.Errorf("Got bad handles back: %v", handles2)
 	}
 }
@@ -152,7 +157,7 @@ func TestKBFSOpsGetFavoritesFail(t *testing.T) {
 
 	err := errors.New("Fake fail")
 	// expect one call to favorites, and fail it
-	config.mockMdops.EXPECT().GetFavorites(gomock.Any()).Return(nil, err)
+	config.mockKbpki.EXPECT().FavoriteList(ctx).Return(nil, err)
 
 	if _, err2 := config.KBFSOps().GetFavorites(ctx); err2 != err {
 		t.Errorf("Got bad error on favorites: %v", err2)
