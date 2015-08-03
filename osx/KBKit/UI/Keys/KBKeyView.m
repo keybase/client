@@ -157,6 +157,7 @@
   [request pgpExportByKIDWithOptions:options completion:^(NSError *error, NSArray *items) {
     KBRKeyInfo *keyInfo = items[0];
     if (keyInfo.key) gself.textView.text = keyInfo.key;
+    else if (!error) error = KBMakeError(-1, @"No secret key");
     completion(error, keyInfo);
   }];
 }

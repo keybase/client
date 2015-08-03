@@ -1006,15 +1006,8 @@ type IdentifyArg struct {
 	ForceRemoteCheck bool   `codec:"forceRemoteCheck" json:"forceRemoteCheck"`
 }
 
-type IdentifyDefaultArg struct {
-	SessionID        int    `codec:"sessionID" json:"sessionID"`
-	UserAssertion    string `codec:"userAssertion" json:"userAssertion"`
-	ForceRemoteCheck bool   `codec:"forceRemoteCheck" json:"forceRemoteCheck"`
-}
-
 type IdentifyInterface interface {
 	Identify(IdentifyArg) (IdentifyRes, error)
-	IdentifyDefault(IdentifyDefaultArg) (IdentifyRes, error)
 }
 
 func IdentifyProtocol(i IdentifyInterface) rpc2.Protocol {
@@ -1025,13 +1018,6 @@ func IdentifyProtocol(i IdentifyInterface) rpc2.Protocol {
 				args := make([]IdentifyArg, 1)
 				if err = nxt(&args); err == nil {
 					ret, err = i.Identify(args[0])
-				}
-				return
-			},
-			"identifyDefault": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
-				args := make([]IdentifyDefaultArg, 1)
-				if err = nxt(&args); err == nil {
-					ret, err = i.IdentifyDefault(args[0])
 				}
 				return
 			},
@@ -1046,11 +1032,6 @@ type IdentifyClient struct {
 
 func (c IdentifyClient) Identify(__arg IdentifyArg) (res IdentifyRes, err error) {
 	err = c.Cli.Call("keybase.1.identify.identify", []interface{}{__arg}, &res)
-	return
-}
-
-func (c IdentifyClient) IdentifyDefault(__arg IdentifyDefaultArg) (res IdentifyRes, err error) {
-	err = c.Cli.Call("keybase.1.identify.identifyDefault", []interface{}{__arg}, &res)
 	return
 }
 

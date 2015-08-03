@@ -12,4 +12,6 @@
 
 - (instancetype)initWithParams:(NSArray *)params;
 
++ (instancetype)params;
+
 @end

@@ -74,7 +74,7 @@
   GHWeakSelf gself = self;
   // TODO animating?
   //_devicesView.progressView.animating = YES;
-  [request deviceListWithAll:NO completion:^(NSError *error, NSArray *items) {
+  [request deviceList:[KBRDeviceListRequestParams params] completion:^(NSError *error, NSArray *items) {
     //gself.devicesView.progressView.animating = NO;
     if (error) {
       [gself.devicesView removeAllObjects];
@@ -94,7 +94,9 @@
 
   KBRRevokeRequest *request = [[KBRRevokeRequest alloc] initWithClient:self.client];
   GHWeakSelf gself = self;
-  [request revokeDeviceWithDeviceID:device.deviceID completion:^(NSError *error) {
+  KBRRevokeDeviceRequestParams *params = [KBRRevokeDeviceRequestParams params];
+  params.deviceID = device.deviceID;
+  [request revokeDevice:params completion:^(NSError *error) {
     if ([KBActivity setError:error sender:self]) return;
 
     [gself.devicesView.dataSource removeObjectAtIndexPath:indexPathToRemove];

@@ -306,23 +306,12 @@
         "type" : "string"
       }, {
         "name" : "trackStatement",
-        "type" : "boolean"
+        "type" : "boolean",
+        "default" : false
       }, {
         "name" : "forceRemoteCheck",
-        "type" : "boolean"
-      } ],
-      "response" : "IdentifyRes"
-    },
-    "identifyDefault" : {
-      "request" : [ {
-        "name" : "sessionID",
-        "type" : "int"
-      }, {
-        "name" : "userAssertion",
-        "type" : "string"
-      }, {
-        "name" : "forceRemoteCheck",
-        "type" : "boolean"
+        "type" : "boolean",
+        "default" : false
       } ],
       "response" : "IdentifyRes"
     }

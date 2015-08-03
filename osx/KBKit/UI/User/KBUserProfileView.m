@@ -287,7 +287,9 @@
   GHWeakSelf gself = self;
   KBRIdentifyRequest *identifyRequest = [[KBRIdentifyRequest alloc] initWithClient:self.client];
   [self registerClient:self.client sessionId:identifyRequest.sessionId];
-  [identifyRequest identifyDefaultWithUserAssertion:_username forceRemoteCheck:NO completion:^(NSError *error, KBRIdentifyRes *identifyRes) {
+  KBRIdentifyRequestParams *params = [KBRIdentifyRequestParams params];
+  params.userAssertion = _username;
+  [identifyRequest identify:params completion:^(NSError *error, KBRIdentifyRes *identifyRes) {
     [gself.headerView setProgressEnabled:NO];
     gself.loading = NO;
     if (error) {
@@ -304,7 +306,9 @@
   GHWeakSelf gself = self;
   KBRIdentifyRequest *identifyRequest = [[KBRIdentifyRequest alloc] initWithClient:self.client];
   [self registerClient:self.client sessionId:identifyRequest.sessionId];
-  [identifyRequest identifyDefaultWithUserAssertion:_username forceRemoteCheck:NO completion:^(NSError *error, KBRIdentifyRes *identifyRes) {
+  KBRIdentifyRequestParams *params = [KBRIdentifyRequestParams params];
+  params.userAssertion = _username;
+  [identifyRequest identify:params completion:^(NSError *error, KBRIdentifyRes *identifyRes) {
     [gself.headerView setProgressEnabled:NO];
     gself.loading = NO;
     if (error) {
