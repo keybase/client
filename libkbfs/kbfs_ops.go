@@ -35,7 +35,29 @@ func (fs *KBFSOpsStandard) Shutdown() {
 	}
 }
 
-// GetFavorites implements the KBFSOps interface for KBFSOpsStandard
+// GetFavorites implements the KBFSOps interface for
+// KBFSOpsStandard.
+//
+// Notes:
+//
+// Now that this uses keybased to get the list of
+// favorites, it gets the folder name as a string.  In order to
+// return TlfHandles, it has to call ParseTlfHandle(), which is
+// expensive in that it calls resolveUser on each user in each
+// favorite, which calls Identify.
+//
+// So, for example, doing an `ls /keybase/private` when you have
+// lots of favorites is going to result in a lot of identify
+// calls.
+//
+// It would be nice to have `ls /keybase/private` not result in
+// identify calls and just display the list of favorite names,
+// then when you `cd /keybase/private/alice,bob` or `cp x.tar.gz
+// /keybase/private/alice,bob,charlie` any necessary identify
+// calls will be made.
+//
+// Will explore how best to do that in a separate branch.
+//
 func (fs *KBFSOpsStandard) GetFavorites(ctx context.Context) ([]*TlfHandle, error) {
 	kbd := fs.config.KBPKI()
 	folders, err := kbd.FavoriteList(ctx)
@@ -43,8 +65,6 @@ func (fs *KBFSOpsStandard) GetFavorites(ctx context.Context) ([]*TlfHandle, erro
 		return nil, err
 	}
 
-	// TODO: ParseTlfHandle is expensive.  Think about caching the result
-	// for a little while.
 	var handles []*TlfHandle
 	for _, f := range folders {
 		handle, err := ParseTlfHandle(ctx, fs.config, f.Name)
