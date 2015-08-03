@@ -15,12 +15,13 @@ import (
 // compileBinary compiles the keybase main binary via `go install`.  It installs
 // it in the user's $GOPATH/bin, as per go standard.
 func compileBinary() error {
+	fmt.Printf("Compiling `keybase` binary via `go install`\n")
 	if prog, err := exec.LookPath("go"); err != nil {
 		return err
 	} else if out, err := exec.Command(prog, "install").CombinedOutput(); err != nil {
 		return err
 	} else {
-		fmt.Printf("compiled `keybase` binary: %v\n", out)
+		fmt.Printf("Compiled `keybase` binary: %v\n", out)
 	}
 	return nil
 }
