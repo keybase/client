@@ -448,6 +448,12 @@ func TlfHandleDecode(b []byte, config Config) (*TlfHandle, error) {
 
 func resolveUser(ctx context.Context, config Config, name string,
 	errCh chan<- error, results chan<- keybase1.UID) {
+	// short-circuit if this is the special public user:
+	if name == PublicUIDName {
+		results <- keybase1.PublicUID
+		return
+	}
+
 	user, err := config.KBPKI().ResolveAssertion(ctx, name)
 	if err != nil {
 		select {
