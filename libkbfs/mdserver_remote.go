@@ -19,7 +19,6 @@ type MDServerRemote struct {
 // NewMDServerRemote returns a new instance of MDServerRemote.
 func NewMDServerRemote(ctx context.Context, config Config, srvAddr string) (
 	*MDServerRemote, error) {
-
 	// connect to server XXX TODO: need to handle reconnects+tls
 	c, err := net.Dial("tcp", srvAddr)
 	if err != nil {

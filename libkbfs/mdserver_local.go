@@ -305,8 +305,8 @@ func (md *MDServerLocal) Put(ctx context.Context, rmds *RootMetadataSigned) erro
 	}
 	batch.Put(revKey, mdID[:])
 
-	// Add an entry with the head key (no revision.)
-	headKey, err := md.getMDKey(ctx, id, 0, unmerged)
+	// Add an entry with the head key.
+	headKey, err := md.getMDKey(ctx, id, MetadataRevisionHead, unmerged)
 	if err != nil {
 		return MDServerError{err}
 	}
