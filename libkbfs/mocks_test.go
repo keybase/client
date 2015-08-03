@@ -1172,17 +1172,6 @@ func (_mr *_MockMDOpsRecorder) PutUnmerged(arg0, arg1 interface{}) *gomock.Call 
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "PutUnmerged", arg0, arg1)
 }
 
-func (_m *MockMDOps) GetFavorites(ctx context.Context) ([]*TlfHandle, error) {
-	ret := _m.ctrl.Call(_m, "GetFavorites", ctx)
-	ret0, _ := ret[0].([]*TlfHandle)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-func (_mr *_MockMDOpsRecorder) GetFavorites(arg0 interface{}) *gomock.Call {
-	return _mr.mock.ctrl.RecordCall(_mr.mock, "GetFavorites", arg0)
-}
-
 // Mock of KeyOps interface
 type MockKeyOps struct {
 	ctrl     *gomock.Controller
@@ -1362,17 +1351,6 @@ func (_m *MockMDServer) PruneUnmerged(ctx context.Context, id TlfID) error {
 
 func (_mr *_MockMDServerRecorder) PruneUnmerged(arg0, arg1 interface{}) *gomock.Call {
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "PruneUnmerged", arg0, arg1)
-}
-
-func (_m *MockMDServer) GetFavorites(ctx context.Context) ([]*TlfHandle, error) {
-	ret := _m.ctrl.Call(_m, "GetFavorites", ctx)
-	ret0, _ := ret[0].([]*TlfHandle)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-func (_mr *_MockMDServerRecorder) GetFavorites(arg0 interface{}) *gomock.Call {
-	return _mr.mock.ctrl.RecordCall(_mr.mock, "GetFavorites", arg0)
 }
 
 // Mock of BlockServer interface
