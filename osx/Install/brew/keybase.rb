@@ -49,14 +49,10 @@ class Keybase < Formula
       <key>ProgramArguments</key>
       <array>
         <string>#{opt_bin}/keybase</string>
-        <string>-L</string>
         <string>-d</string>
+        <string>-L</string>
         <string>service</string>
       </array>
-      <key>StandardOutPath</key>
-      <string>#{ENV['HOME']}/Library/Logs/keybase.log</string>
-      <key>StandardErrorPath</key>
-      <string>#{ENV['HOME']}/Library/Logs/keybase.log</string>
       <key>KeepAlive</key>
       <true/>
       <key>RunAtLoad</key>
