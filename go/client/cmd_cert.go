@@ -1,8 +1,6 @@
 package client
 
 import (
-	"os"
-
 	"github.com/keybase/cli"
 	"github.com/keybase/client/go/libcmdline"
 	"github.com/keybase/client/go/libkb"
@@ -16,8 +14,8 @@ func (c *CmdCert) ParseArgv(ctx *cli.Context) error {
 }
 
 func (c *CmdCert) Run() error {
-	os.Stdout.Write([]byte(libkb.BundledCAs["api.keybase.io"] + "\n"))
-	return nil
+	_, err := GlobUI.Println(libkb.BundledCAs["api.keybase.io"])
+	return err
 }
 
 func NewCmdCert(cl *libcmdline.CommandLine) cli.Command {

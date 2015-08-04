@@ -2,7 +2,6 @@ package client
 
 import (
 	"fmt"
-	"os"
 	"strings"
 
 	"github.com/keybase/cli"
@@ -135,7 +134,7 @@ func (s *CmdSigsList) DisplayKTable(sigs []keybase1.Sig) (err error) {
 		return row
 	}
 
-	libkb.Tablify(os.Stdout, cols, rowfunc)
+	GlobUI.Tablify(cols, rowfunc)
 
 	return
 }
