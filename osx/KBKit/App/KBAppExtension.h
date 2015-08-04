@@ -10,7 +10,6 @@
 #import <AppKit/AppKit.h>
 
 #import "KBDefines.h"
-#import "KBFinder.h"
 
 @interface KBAppExtension : NSObject
 

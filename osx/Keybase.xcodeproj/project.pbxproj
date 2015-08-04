@@ -105,9 +105,6 @@
 		009E13711B27B39300C72B28 /* ActionViewController.xib in Resources */ = {isa = PBXBuildFile; fileRef = 009E13701B27B39300C72B28 /* ActionViewController.xib */; };
 		009E137D1B28A91F00C72B28 /* AppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = 009E137C1B28A91F00C72B28 /* AppDelegate.m */; };
 		009E167D1B28AF6800C72B28 /* MainMenu.xib in Resources */ = {isa = PBXBuildFile; fileRef = 00CC43551A3A9E6C006118A9 /* MainMenu.xib */; };
-		00B603471B5D8F54004718DF /* Share.appex in Embed App Extensions */ = {isa = PBXBuildFile; fileRef = 001C6B371B24F8630048F086 /* Share.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
-		00B6034A1B5D8F54004718DF /* Action.appex in Embed App Extensions */ = {isa = PBXBuildFile; fileRef = 009E13661B27B39300C72B28 /* Action.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
-		00B6034D1B5D8F54004718DF /* FinderSync.appex in Embed App Extensions */ = {isa = PBXBuildFile; fileRef = 004624B11B2917AB00E218AC /* FinderSync.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		00B603571B5DA965004718DF /* KBFolderAddView.h in Headers */ = {isa = PBXBuildFile; fileRef = 00B603551B5DA965004718DF /* KBFolderAddView.h */; };
 		00B603581B5DA965004718DF /* KBFolderAddView.m in Sources */ = {isa = PBXBuildFile; fileRef = 00B603561B5DA965004718DF /* KBFolderAddView.m */; };
 		00B81D681B32148F009872E4 /* KBUserTrackStatus.h in Headers */ = {isa = PBXBuildFile; fileRef = 00B81D661B32148F009872E4 /* KBUserTrackStatus.h */; };
@@ -404,27 +401,6 @@
 			remoteGlobalIDString = 0057B0B31AE57A4900BFB0E7;
 			remoteInfo = Helper;
 		};
-		00B603481B5D8F54004718DF /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = 00CC43411A3A9E6C006118A9 /* Project object */;
-			proxyType = 1;
-			remoteGlobalIDString = 001C6B361B24F8630048F086;
-			remoteInfo = Share;
-		};
-		00B6034B1B5D8F54004718DF /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = 00CC43411A3A9E6C006118A9 /* Project object */;
-			proxyType = 1;
-			remoteGlobalIDString = 009E13651B27B39300C72B28;
-			remoteInfo = Action;
-		};
-		00B6034E1B5D8F54004718DF /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = 00CC43411A3A9E6C006118A9 /* Project object */;
-			proxyType = 1;
-			remoteGlobalIDString = 004624B01B2917AB00E218AC;
-			remoteInfo = FinderSync;
-		};
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -479,19 +455,6 @@
 				0057B0DB1AE57B5900BFB0E7 /* keybase.Helper in Copy Files */,
 			);
 			name = "Copy Files";
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-		00B603501B5D8F55004718DF /* Embed App Extensions */ = {
-			isa = PBXCopyFilesBuildPhase;
-			buildActionMask = 2147483647;
-			dstPath = "";
-			dstSubfolderSpec = 13;
-			files = (
-				00B6034D1B5D8F54004718DF /* FinderSync.appex in Embed App Extensions */,
-				00B6034A1B5D8F54004718DF /* Action.appex in Embed App Extensions */,
-				00B603471B5D8F54004718DF /* Share.appex in Embed App Extensions */,
-			);
-			name = "Embed App Extensions";
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXCopyFilesBuildPhase section */
@@ -1983,16 +1946,12 @@
 				001392891B0BDB8A0082DEA8 /* CopyFiles */,
 				0043D1051B28ED290036C532 /* Embed Frameworks */,
 				0043D1481B2905950036C532 /* ShellScript */,
-				00B603501B5D8F55004718DF /* Embed App Extensions */,
 			);
 			buildRules = (
 			);
 			dependencies = (
 				0057B0D91AE57B4800BFB0E7 /* PBXTargetDependency */,
 				0043D1041B28ED290036C532 /* PBXTargetDependency */,
-				00B603491B5D8F54004718DF /* PBXTargetDependency */,
-				00B6034C1B5D8F54004718DF /* PBXTargetDependency */,
-				00B6034F1B5D8F54004718DF /* PBXTargetDependency */,
 			);
 			name = Keybase;
 			productName = Keybase;
@@ -2484,21 +2443,6 @@
 			isa = PBXTargetDependency;
 			target = 0057B0B31AE57A4900BFB0E7 /* keybase.Helper */;
 			targetProxy = 0057B0D81AE57B4800BFB0E7 /* PBXContainerItemProxy */;
-		};
-		00B603491B5D8F54004718DF /* PBXTargetDependency */ = {
-			isa = PBXTargetDependency;
-			target = 001C6B361B24F8630048F086 /* Share */;
-			targetProxy = 00B603481B5D8F54004718DF /* PBXContainerItemProxy */;
-		};
-		00B6034C1B5D8F54004718DF /* PBXTargetDependency */ = {
-			isa = PBXTargetDependency;
-			target = 009E13651B27B39300C72B28 /* Action */;
-			targetProxy = 00B6034B1B5D8F54004718DF /* PBXContainerItemProxy */;
-		};
-		00B6034F1B5D8F54004718DF /* PBXTargetDependency */ = {
-			isa = PBXTargetDependency;
-			target = 004624B01B2917AB00E218AC /* FinderSync */;
-			targetProxy = 00B6034E1B5D8F54004718DF /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
 

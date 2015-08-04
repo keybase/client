@@ -37,7 +37,7 @@
     switch (env) {
       case KBEnvProd: {
         self.title = @"Keybase.io";
-        self.identifier = @"kb";
+        self.identifier = @"live";
         self.host = @"https://api.keybase.io:443";
         self.mountDir = KBPath(@"~/Keybase", NO, NO);
         self.debugEnabled = YES;

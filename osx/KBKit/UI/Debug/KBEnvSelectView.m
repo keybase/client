@@ -96,11 +96,10 @@
       return;
     }
     self.onSelect([[KBEnvironment alloc] initWithConfig:config]);
-  } else if ([env.config.identifier isEqualToString:@"brew"]) {
-    self.onSelect(env);
+  } else if ([env.config.identifier isEqualToString:@"live"]) {
+    [KBActivity setError:KBMakeError(KBErrorCodeUnsupported, @"Not supported yet") sender:self];
   } else {
     self.onSelect(env);
-    //[KBActivity setError:KBMakeError(KBErrorCodeUnsupported, @"Only supporting custom and brew envs for the moment") sender:self];
   }
 }
 

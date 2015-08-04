@@ -10,7 +10,7 @@
 
 #import <KBKit/KBAppExtension.h>
 
-#define KBLog NSLog
+#define KBExtLog NSLog
 
 @interface ShareViewController ()
 @property KBAppExtension *app;
@@ -20,7 +20,7 @@
 
 - (void)didSelectPost {
   NSExtensionItem *item = self.extensionContext.inputItems.firstObject;
-  KBLog(@"Attachments: %@", item.attachments);
+  KBExtLog(@"Attachments: %@", item.attachments);
 
   _app = [[KBAppExtension alloc] init];
   [_app encryptExtensionItem:item usernames:@[] sender:self.view completion:^(id sender, NSExtensionItem *outputItem) {
