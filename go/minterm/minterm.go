@@ -17,6 +17,8 @@ import (
 // MinTerm is a minimal terminal interface.
 type MinTerm struct {
 	tty    *os.File
+	in     *os.File
+	out    *os.File
 	width  int
 	height int
 }
@@ -40,6 +42,8 @@ func (m *MinTerm) open() error {
 		return err
 	}
 	m.tty = f
+	m.out = m.tty
+	m.in = m.tty
 	fd := int(m.tty.Fd())
 	w, h, err := terminal.GetSize(fd)
 	if err != nil {
@@ -67,7 +71,7 @@ func (m *MinTerm) Size() (int, int) {
 
 // Write writes a string to the terminal.
 func (m *MinTerm) Write(s string) error {
-	_, err := fmt.Fprint(m.tty, s)
+	_, err := fmt.Fprint(m.out, s)
 	return err
 }
 
@@ -75,7 +79,7 @@ func (m *MinTerm) Write(s string) error {
 // the prompt parameter first.
 func (m *MinTerm) Prompt(prompt string) (string, error) {
 	m.Write(prompt)
-	r := bufio.NewReader(m.tty)
+	r := bufio.NewReader(m.in)
 	p, err := r.ReadString('\n')
 	if err != nil {
 		return "", err
