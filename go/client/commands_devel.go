@@ -29,7 +29,6 @@ func GetCommands(cl *libcmdline.CommandLine) []cli.Command {
 		NewCmdPing(cl),
 		NewCmdProve(cl),
 		NewCmdReset(cl),
-		NewCmdResolve(cl),
 		NewCmdRevoke(cl),
 		NewCmdSearch(cl),
 		NewCmdSigs(cl),
