@@ -161,6 +161,13 @@ func TestTrackRetrack(t *testing.T) {
 	idUI := &FakeIdentifyUI{}
 	secretUI := fu.NewSecretUI()
 
+	var err error
+	fu.User, err = libkb.LoadMe(libkb.LoadUserArg{PublicKeyOptional: true})
+	if err != nil {
+		t.Fatal(err)
+	}
+	seqnoBefore := fu.User.GetSigChainLastKnownSeqno()
+
 	arg := &TrackEngineArg{
 		UserAssertion: "t_alice",
 		Options:       keybase1.TrackOptions{BypassConfirm: true},
@@ -172,7 +179,7 @@ func TestTrackRetrack(t *testing.T) {
 	}
 
 	eng := NewTrackEngine(arg, tc.G)
-	err := RunEngine(eng, ctx)
+	err = RunEngine(eng, ctx)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -181,6 +188,18 @@ func TestTrackRetrack(t *testing.T) {
 		t.Errorf("expected get secret call")
 	}
 
+	fu.User, err = libkb.LoadMe(libkb.LoadUserArg{PublicKeyOptional: true})
+	if err != nil {
+		t.Fatal(err)
+	}
+	seqnoAfter := fu.User.GetSigChainLastKnownSeqno()
+
+	if seqnoAfter == seqnoBefore {
+		t.Errorf("seqno after track: %d, expected > %d", seqnoAfter, seqnoBefore)
+	}
+
+	Logout(tc)
+	fu.LoginOrBust(tc)
 	// clear out the passphrase cache
 	tc.G.LoginState().Account(func(a *libkb.Account) {
 		a.ClearStreamCache()
@@ -197,6 +216,16 @@ func TestTrackRetrack(t *testing.T) {
 
 	if secretUI.CalledGetSecret {
 		t.Errorf("get secret called on retrack")
+	}
+
+	fu.User, err = libkb.LoadMe(libkb.LoadUserArg{PublicKeyOptional: true})
+	if err != nil {
+		t.Fatal(err)
+	}
+	seqnoRetrack := fu.User.GetSigChainLastKnownSeqno()
+
+	if seqnoRetrack > seqnoAfter {
+		t.Errorf("seqno after retrack: %d, expected %d", seqnoRetrack, seqnoAfter)
 	}
 }
 
