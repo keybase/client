@@ -125,7 +125,8 @@ func (e *Backup) Run(ctx *Context) error {
 		return err
 	}
 
-	return nil
+	return ctx.LoginUI.DisplayBackupPhrase(keybase1.DisplayBackupPhraseArg{Phrase: e.passphrase})
+
 }
 
 func (e *Backup) Passphrase() string {

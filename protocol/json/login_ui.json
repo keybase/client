@@ -178,6 +178,16 @@
         "type" : "Device"
       } ],
       "response" : "boolean"
+    },
+    "displayBackupPhrase" : {
+      "request" : [ {
+        "name" : "sessionID",
+        "type" : "int"
+      }, {
+        "name" : "phrase",
+        "type" : "string"
+      } ],
+      "response" : "null"
     }
   }
 }

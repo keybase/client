@@ -40,6 +40,6 @@ protocol login {
 	void reset(int sessionID);
 
 	// backup generates backup keys for restoring an account.
-	// It returns a secret phrase the user needs to store for recovery.
-	string backup(int sessionID);
+	// It calls login_ui.displayBackupPhrase with the phrase.
+	void backup(int sessionID);
 }

@@ -254,7 +254,7 @@
         "name" : "sessionID",
         "type" : "int"
       } ],
-      "response" : "string"
+      "response" : "null"
     }
   }
 }

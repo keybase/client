@@ -88,18 +88,14 @@ func (h *LoginHandler) CancelLogin(sessionID int) error {
 	return c.Cancel()
 }
 
-func (h *LoginHandler) Backup(sessionID int) (string, error) {
+func (h *LoginHandler) Backup(sessionID int) error {
 	ctx := &engine.Context{
 		LogUI:    h.getLogUI(sessionID),
 		LoginUI:  h.getLoginUI(sessionID),
 		SecretUI: h.getSecretUI(sessionID),
 	}
 	eng := engine.NewBackup(G)
-	err := engine.RunEngine(eng, ctx)
-	if err != nil {
-		return "", err
-	}
-	return eng.Passphrase(), nil
+	return engine.RunEngine(eng, ctx)
 }
 
 type RemoteLocksmithUI struct {

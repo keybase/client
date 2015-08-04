@@ -1,8 +1,6 @@
 package client
 
 import (
-	"fmt"
-
 	"github.com/keybase/cli"
 	"github.com/keybase/client/go/libcmdline"
 	"github.com/keybase/client/go/libkb"
@@ -36,18 +34,7 @@ func (c *CmdBackup) Run() error {
 	if err := RegisterProtocols(protocols); err != nil {
 		return err
 	}
-	phrase, err := cli.Backup(0)
-	if err != nil {
-		return err
-	}
-	c.output(phrase)
-	return nil
-}
-
-func (c *CmdBackup) output(phrase string) {
-	fmt.Printf("Here is your secret backup phrase:\n\n")
-	fmt.Printf("\t%s\n\n", phrase)
-	fmt.Printf("Write it down and keep somewhere safe.\n")
+	return cli.Backup(0)
 }
 
 func (c *CmdBackup) ParseArgv(ctx *cli.Context) error {

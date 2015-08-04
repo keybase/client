@@ -1565,7 +1565,7 @@ type LoginInterface interface {
 	CancelLogin(int) error
 	Logout(int) error
 	Reset(int) error
-	Backup(int) (string, error)
+	Backup(int) error
 }
 
 func LoginProtocol(i LoginInterface) rpc2.Protocol {
@@ -1631,7 +1631,7 @@ func LoginProtocol(i LoginInterface) rpc2.Protocol {
 			"backup": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
 				args := make([]BackupArg, 1)
 				if err = nxt(&args); err == nil {
-					ret, err = i.Backup(args[0].SessionID)
+					err = i.Backup(args[0].SessionID)
 				}
 				return
 			},
@@ -1688,9 +1688,9 @@ func (c LoginClient) Reset(sessionID int) (err error) {
 	return
 }
 
-func (c LoginClient) Backup(sessionID int) (res string, err error) {
+func (c LoginClient) Backup(sessionID int) (err error) {
 	__arg := BackupArg{SessionID: sessionID}
-	err = c.Cli.Call("keybase.1.login.backup", []interface{}{__arg}, &res)
+	err = c.Cli.Call("keybase.1.login.backup", []interface{}{__arg}, nil)
 	return
 }
 
@@ -1703,9 +1703,15 @@ type PromptRevokeBackupDeviceKeysArg struct {
 	Device    Device `codec:"device" json:"device"`
 }
 
+type DisplayBackupPhraseArg struct {
+	SessionID int    `codec:"sessionID" json:"sessionID"`
+	Phrase    string `codec:"phrase" json:"phrase"`
+}
+
 type LoginUiInterface interface {
 	GetEmailOrUsername(int) (string, error)
 	PromptRevokeBackupDeviceKeys(PromptRevokeBackupDeviceKeysArg) (bool, error)
+	DisplayBackupPhrase(DisplayBackupPhraseArg) error
 }
 
 func LoginUiProtocol(i LoginUiInterface) rpc2.Protocol {
@@ -1726,6 +1732,13 @@ func LoginUiProtocol(i LoginUiInterface) rpc2.Protocol {
 				}
 				return
 			},
+			"displayBackupPhrase": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
+				args := make([]DisplayBackupPhraseArg, 1)
+				if err = nxt(&args); err == nil {
+					err = i.DisplayBackupPhrase(args[0])
+				}
+				return
+			},
 		},
 	}
 
@@ -1743,6 +1756,11 @@ func (c LoginUiClient) GetEmailOrUsername(sessionID int) (res string, err error)
 
 func (c LoginUiClient) PromptRevokeBackupDeviceKeys(__arg PromptRevokeBackupDeviceKeysArg) (res bool, err error) {
 	err = c.Cli.Call("keybase.1.loginUi.promptRevokeBackupDeviceKeys", []interface{}{__arg}, &res)
+	return
+}
+
+func (c LoginUiClient) DisplayBackupPhrase(__arg DisplayBackupPhraseArg) (err error) {
+	err = c.Cli.Call("keybase.1.loginUi.displayBackupPhrase", []interface{}{__arg}, nil)
 	return
 }
 

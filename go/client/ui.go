@@ -581,6 +581,13 @@ func (l LoginUI) PromptRevokeBackupDeviceKeys(arg keybase1.PromptRevokeBackupDev
 	return l.parent.PromptYesNo(fmt.Sprintf("Revoke existing backup keys (%s)?", arg.Device.DeviceID), PromptDefaultYes)
 }
 
+func (l LoginUI) DisplayBackupPhrase(arg keybase1.DisplayBackupPhraseArg) error {
+	l.parent.Printf("Here is your secret backup phrase:\n\n")
+	l.parent.Printf("\t%s\n\n", arg.Phrase)
+	l.parent.Printf("Write it down and keep somewhere safe.\n")
+	return nil
+}
+
 type SecretUI struct {
 	parent *UI
 }
