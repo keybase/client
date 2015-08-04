@@ -37,6 +37,10 @@ func (u *LoginUI) PromptRevokeBackupDeviceKeys(arg keybase1.PromptRevokeBackupDe
 	return u.cli.PromptRevokeBackupDeviceKeys(arg)
 }
 
+func (u *LoginUI) DisplayBackupPhrase(arg keybase1.DisplayBackupPhraseArg) error {
+	return u.cli.DisplayBackupPhrase(arg)
+}
+
 type SecretUI struct {
 	sessionID int
 	cli       *keybase1.SecretUiClient

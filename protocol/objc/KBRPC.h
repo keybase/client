@@ -808,6 +808,10 @@ typedef NS_ENUM (NSInteger, KBRPromptDefault) {
 @property NSInteger sessionID;
 @property KBRDevice *device;
 @end
+@interface KBRDisplayBackupPhraseRequestParams : KBRRequestParams
+@property NSInteger sessionID;
+@property NSString *phrase;
+@end
 @interface KBRAuthenticateRequestParams : KBRRequestParams
 @property NSString *user;
 @property NSString *deviceKID;
@@ -1320,7 +1324,7 @@ typedef NS_ENUM (NSInteger, KBRPromptDefault) {
 
 - (void)reset:(void (^)(NSError *error))completion;
 
-- (void)backup:(void (^)(NSError *error, NSString *str))completion;
+- (void)backup:(void (^)(NSError *error))completion;
 
 @end
 
@@ -1330,6 +1334,10 @@ typedef NS_ENUM (NSInteger, KBRPromptDefault) {
 - (void)promptRevokeBackupDeviceKeys:(KBRPromptRevokeBackupDeviceKeysRequestParams *)params completion:(void (^)(NSError *error, BOOL b))completion;
 
 - (void)promptRevokeBackupDeviceKeysWithDevice:(KBRDevice *)device completion:(void (^)(NSError *error, BOOL b))completion;
+
+- (void)displayBackupPhrase:(KBRDisplayBackupPhraseRequestParams *)params completion:(void (^)(NSError *error))completion;
+
+- (void)displayBackupPhraseWithPhrase:(NSString *)phrase completion:(void (^)(NSError *error))completion;
 
 @end
 

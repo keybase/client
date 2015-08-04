@@ -848,15 +848,10 @@
   }];
 }
 
-- (void)backup:(void (^)(NSError *error, NSString *str))completion {
+- (void)backup:(void (^)(NSError *error))completion {
   NSDictionary *rparams = @{};
   [self.client sendRequestWithMethod:@"keybase.1.login.backup" params:rparams sessionId:self.sessionId completion:^(NSError *error, id retval) {
-    if (error) {
-      completion(error, nil);
-      return;
-    }
-    NSString *result = retval ? [MTLJSONAdapter modelOfClass:NSString.class fromJSONDictionary:retval error:&error] : nil;
-    completion(error, result);
+    completion(error);
   }];
 }
 
@@ -887,6 +882,20 @@
   NSDictionary *rparams = @{@"device": KBRValue(device)};
   [self.client sendRequestWithMethod:@"keybase.1.loginUi.promptRevokeBackupDeviceKeys" params:rparams sessionId:self.sessionId completion:^(NSError *error, id retval) {
     completion(error, 0);
+  }];
+}
+
+- (void)displayBackupPhrase:(KBRDisplayBackupPhraseRequestParams *)params completion:(void (^)(NSError *error))completion {
+  NSDictionary *rparams = @{@"phrase": KBRValue(params.phrase)};
+  [self.client sendRequestWithMethod:@"keybase.1.loginUi.displayBackupPhrase" params:rparams sessionId:self.sessionId completion:^(NSError *error, id retval) {
+    completion(error);
+  }];
+}
+
+- (void)displayBackupPhraseWithPhrase:(NSString *)phrase completion:(void (^)(NSError *error))completion {
+  NSDictionary *rparams = @{@"phrase": KBRValue(phrase)};
+  [self.client sendRequestWithMethod:@"keybase.1.loginUi.displayBackupPhrase" params:rparams sessionId:self.sessionId completion:^(NSError *error, id retval) {
+    completion(error);
   }];
 }
 
@@ -2982,6 +2991,23 @@
 
 + (instancetype)params {
   KBRPromptRevokeBackupDeviceKeysRequestParams *p = [[self alloc] init];
+  // Add default values
+  return p;
+}
+@end
+
+@implementation KBRDisplayBackupPhraseRequestParams
+
+- (instancetype)initWithParams:(NSArray *)params {
+  if ((self = [super initWithParams:params])) {
+    self.sessionID = [params[0][@"sessionID"] integerValue];
+    self.phrase = params[0][@"phrase"];
+  }
+  return self;
+}
+
++ (instancetype)params {
+  KBRDisplayBackupPhraseRequestParams *p = [[self alloc] init];
   // Add default values
   return p;
 }

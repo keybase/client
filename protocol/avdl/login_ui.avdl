@@ -5,4 +5,5 @@ protocol loginUi {
 
 	string getEmailOrUsername(int sessionID);
 	boolean promptRevokeBackupDeviceKeys(int sessionID, Device device);
+	void displayBackupPhrase(int sessionID, string phrase);
 }
