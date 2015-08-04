@@ -1,7 +1,11 @@
 package libkbfs
 
 import (
+	"crypto/tls"
+	"crypto/x509"
+	"errors"
 	"net"
+	"time"
 
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/protocol/go"
@@ -9,28 +13,34 @@ import (
 	"golang.org/x/net/context"
 )
 
+const (
+	// MDServerReconnectThrottleMinSecs is the min number of seconds to wait before attempting a reconnect.
+	MDServerReconnectThrottleMinSecs = 1
+	// MDServerReconnectThrottleMaxSecs is the max number of seconds to wait before attempting a reconnect.
+	MDServerReconnectThrottleMaxSecs = 30
+)
+
 // MDServerRemote is an implementation of the MDServer interface.
 type MDServerRemote struct {
-	srvAddr string
-	client  keybase1.GenericClient
-	config  Config
+	srvAddr               string
+	transport             *rpc2.Transport
+	client                keybase1.GenericClient
+	config                Config
+	certs                 *x509.CertPool
+	reconnectThrottleSecs int
 }
 
 // NewMDServerRemote returns a new instance of MDServerRemote.
 func NewMDServerRemote(ctx context.Context, config Config, srvAddr string) (
 	*MDServerRemote, error) {
-	// connect to server XXX TODO: need to handle reconnects+tls
-	c, err := net.Dial("tcp", srvAddr)
-	if err != nil {
-		return nil, err
+	certs := x509.NewCertPool()
+	if !certs.AppendCertsFromPEM(config.CACert()) {
+		return nil, errors.New("Unable to load CA certificate")
 	}
-	transport := rpc2.NewTransport(c, libkb.NewRPCLogFactory(), libkb.WrapError)
-	client := rpc2.NewClient(transport, MDServerUnwrapError)
-
 	mdserver := &MDServerRemote{
 		srvAddr: srvAddr,
-		client:  client,
 		config:  config,
+		certs:   certs,
 	}
 	return mdserver, mdserver.connect(ctx)
 }
@@ -68,6 +78,24 @@ func (md *MDServerRemote) connect(ctx context.Context) error {
 		token = session.GetToken()
 	}
 
+	if len(md.srvAddr) != 0 {
+		// connect to server
+		var c net.Conn
+		err = runUnlessCanceled(ctx, func() error {
+			config := tls.Config{RootCAs: md.certs}
+			c, err = tls.Dial("tcp", md.srvAddr, &config)
+			if err != nil {
+				return err
+			}
+			return err
+		})
+		if err != nil {
+			return err
+		}
+		md.transport = rpc2.NewTransport(c, libkb.NewRPCLogFactory(), libkb.WrapError)
+		md.client = rpc2.NewClient(md.transport, MDServerUnwrapError)
+	}
+
 	// authenticate
 	creds := keybase1.AuthenticateArg{
 		User:      user,
@@ -82,6 +110,34 @@ func (md *MDServerRemote) connect(ctx context.Context) error {
 		return err
 	}
 	return nil
+}
+
+// This method will attempt to reconnect if passed a retrieable error code.
+func (md *MDServerRemote) checkReconnect(ctx context.Context, err error) bool {
+	if err == nil {
+		md.reconnectThrottleSecs = 0
+		return false
+	}
+	_, disconnected := err.(rpc2.DisconnectedError)
+	_, eof := err.(rpc2.EofError)
+	retry := disconnected || eof
+	if retry {
+		if md.reconnectThrottleSecs <= 0 {
+			md.reconnectThrottleSecs = MDServerReconnectThrottleMinSecs
+		} else {
+			md.reconnectThrottleSecs *= 2
+			if md.reconnectThrottleSecs > MDServerReconnectThrottleMaxSecs {
+				md.reconnectThrottleSecs = MDServerReconnectThrottleMaxSecs
+			}
+		}
+		libkb.G.Log.Warning("MDServerRemote: disconnected; retrying in %d seconds",
+			md.reconnectThrottleSecs)
+		time.Sleep(time.Duration(md.reconnectThrottleSecs) * time.Second)
+		md.connect(ctx) // ignore any error, we'll retry
+	} else {
+		md.reconnectThrottleSecs = 0
+	}
+	return retry
 }
 
 // Helper used to retrieve metadata blocks from the MD server.
@@ -109,8 +165,13 @@ func (md *MDServerRemote) get(ctx context.Context, id TlfID, handle *TlfHandle,
 	var response keybase1.MetadataResponse
 	err := runUnlessCanceled(ctx, func() error {
 		var err error
-		client := keybase1.MetadataClient{Cli: md.client}
-		response, err = client.GetMetadata(arg)
+		for true {
+			client := keybase1.MetadataClient{Cli: md.client}
+			response, err = client.GetMetadata(arg)
+			if !md.checkReconnect(ctx, err) {
+				break
+			}
+		}
 		return err
 	})
 	if err != nil {
@@ -179,16 +240,29 @@ func (md *MDServerRemote) Put(ctx context.Context, rmds *RootMetadataSigned) err
 	}
 	// put request
 	return runUnlessCanceled(ctx, func() error {
-		client := keybase1.MetadataClient{Cli: md.client}
-		return client.PutMetadata(rmdsBytes)
+		for true {
+			client := keybase1.MetadataClient{Cli: md.client}
+			err = client.PutMetadata(rmdsBytes)
+			if !md.checkReconnect(ctx, err) {
+				break
+			}
+		}
+		return err
 	})
 }
 
 // PruneUnmerged implements the MDServer interface for MDServerRemote.
 func (md *MDServerRemote) PruneUnmerged(ctx context.Context, id TlfID) error {
 	return runUnlessCanceled(ctx, func() error {
-		client := keybase1.MetadataClient{Cli: md.client}
-		return client.PruneUnmerged(id.String())
+		var err error
+		for true {
+			client := keybase1.MetadataClient{Cli: md.client}
+			err = client.PruneUnmerged(id.String())
+			if !md.checkReconnect(ctx, err) {
+				break
+			}
+		}
+		return err
 	})
 }
 

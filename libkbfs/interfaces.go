@@ -692,6 +692,9 @@ type Config interface {
 	// ReqsBufSize indicates the number of read or write operations
 	// that can be buffered per folder
 	ReqsBufSize() int
+	// set CA certificate
+	CACert() []byte
+	SetCACert([]byte)
 }
 
 // NodeCache holds Nodes, and allows libkbfs to update them when

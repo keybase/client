@@ -21,6 +21,7 @@ type ConfigLocal struct {
 	bserv    BlockServer
 	bsplit   BlockSplitter
 	notifier Notifier
+	cacert   []byte
 }
 
 // LocalUser represents a fake KBFS user, useful for testing.
@@ -127,6 +128,7 @@ func NewConfigLocal() *ConfigLocal {
 	// 64K blocks by default, block changes embedded max == 8K
 	config.SetBlockSplitter(&BlockSplitterSimple{64 * 1024, 8 * 1024})
 	config.SetNotifier(config.kbfs.(*KBFSOpsStandard))
+	config.SetCACert([]byte(TestCACert))
 	return config
 }
 
@@ -299,6 +301,16 @@ func (c *ConfigLocal) DataVersion() DataVer {
 // ReqsBufSize implements the Config interface for ConfigLocal.
 func (c *ConfigLocal) ReqsBufSize() int {
 	return 20
+}
+
+// CACert implements the Config interface for ConfigLocal.
+func (c *ConfigLocal) CACert() []byte {
+	return c.cacert
+}
+
+// SetCACert implements the Config interface for ConfigLocal.
+func (c *ConfigLocal) SetCACert(cert []byte) {
+	c.cacert = cert
 }
 
 // NewConfigLocalWithCrypto initializes a local crypto config w/a crypto interface that can be used for non-PKI crypto.
