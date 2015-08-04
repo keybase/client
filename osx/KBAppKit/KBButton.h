@@ -52,6 +52,8 @@ typedef void (^KBButtonDispatchBlock)(KBButton *button, dispatch_block_t complet
 
 - (void)setAttributedTitle:(NSAttributedString *)attributedTitle style:(KBButtonStyle)style options:(KBButtonOptions)options;
 
+- (void)dispatchButton;
+
 @end
 
 @interface KBButtonCell : NSButtonCell

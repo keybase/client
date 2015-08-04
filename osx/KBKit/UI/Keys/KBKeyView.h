@@ -16,7 +16,7 @@
 @property KBNavigationView *navigation;
 @property KBRPClient *client;
 
-@property KBButton *cancelButton;
+@property KBButton *closeButton;
 
 - (void)setIdentifyKey:(KBRIdentifyKey *)identifyKey;
 

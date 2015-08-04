@@ -35,7 +35,7 @@
 - (void)viewInit {
   self.title = @"";
   self.target = self;
-  self.action = @selector(_performTargetBlock);
+  self.action = @selector(dispatchButton);
 }
 
 + (instancetype)button {
@@ -212,7 +212,7 @@
   cell.options = options;
   cell.parent = button;
   cell.target = button;
-  cell.action = @selector(_performTargetBlock);
+  cell.action = @selector(dispatchButton);
   cell.backgroundStyle = NSBackgroundStyleLight;
   return cell;
 }
@@ -254,7 +254,7 @@
   [self setNeedsDisplay];
 }
 
-- (void)_performTargetBlock {
+- (void)dispatchButton {
   if (self.targetBlock) self.targetBlock();
   if (self.dispatchBlock) {
     self.enabled = NO;

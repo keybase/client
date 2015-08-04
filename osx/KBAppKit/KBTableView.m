@@ -215,7 +215,7 @@
   NSInteger lastRowIndex = [_dataSource countForSection:0] - 1;
   if (lastRowIndex < 0) return;
 
-  // TODO animated?
+  // TODO Animated not working
   animated = NO;
   if (animated) {
     NSRect rowRect = [_view rectOfRow:lastRowIndex];

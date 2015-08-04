@@ -142,10 +142,11 @@
 - (void)addMessages:(NSArray *)messages {
   BOOL atBottom = [self.logView isAtBottom];
   [self.logView.dataSource addObjects:messages];
-  [self.logView.view noteNumberOfRowsChanged];
   if ([self.logView.dataSource truncateBeginning:300 max:1000 section:0]) {
     [self.logView reloadData];
   }
+  //[self.logView.view noteNumberOfRowsChanged];
+  [self.logView reloadData];
   if (atBottom) [self.logView scrollToBottom:NO];
 }
 

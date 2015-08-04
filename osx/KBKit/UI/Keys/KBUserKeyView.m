@@ -35,8 +35,8 @@
     [buttons kb_setBackgroundColor:KBAppearance.currentAppearance.secondaryBackgroundColor];
     {
       YOHBox *rightButtons = [YOHBox box:@{@"spacing": @(10), @"horizontalAlignment": @"right", @"minSize": @"90,0"}];
-      _cancelButton = [KBButton buttonWithText:@"Close" style:KBButtonStyleDefault options:KBButtonOptionsToolbar];
-      [rightButtons addSubview:_cancelButton];
+      _closeButton = [KBButton buttonWithText:@"Close" style:KBButtonStyleDefault options:KBButtonOptionsToolbar];
+      [rightButtons addSubview:_closeButton];
       [buttons addSubview:rightButtons];
     }
     [contentView addSubview:buttons];
@@ -61,7 +61,7 @@
 }
 
 - (void)close {
-  _cancelButton.targetBlock();
+  [_closeButton dispatchButton];
 }
 
 - (void)addText:(NSString *)text header:(NSString *)header {

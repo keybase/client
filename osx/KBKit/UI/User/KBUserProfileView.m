@@ -413,13 +413,13 @@
     KBKeyView *keyView = [[KBKeyView alloc] init];
     keyView.client = self.client;
     [keyView setIdentifyKey:key];
-    keyView.cancelButton.dispatchBlock = ^(KBButton *button, dispatch_block_t completion) { [[button window] close]; completion(); };
+    keyView.closeButton.dispatchBlock = ^(KBButton *button, dispatch_block_t completion) { [[button window] close]; completion(); };
     [self.window kb_addChildWindowForView:keyView rect:CGRectMake(0, 0, 500, 400) position:KBWindowPositionCenter title:@"Key" fixed:NO makeKey:YES];
   } else {
     KBUserKeyView *keyView = [[KBUserKeyView alloc] init];
     keyView.client = self.client;
     [keyView setIdentifyKey:key];
-    keyView.cancelButton.dispatchBlock = ^(KBButton *button, dispatch_block_t completion) { [[button window] close]; completion(); };
+    keyView.closeButton.dispatchBlock = ^(KBButton *button, dispatch_block_t completion) { [[button window] close]; completion(); };
     [self.window kb_addChildWindowForView:keyView rect:CGRectMake(0, 0, 500, 400) position:KBWindowPositionCenter title:@"Key" fixed:NO makeKey:YES];
 
   }
