@@ -35,7 +35,7 @@ func NewFakeUser(prefix string) (fu *FakeUser, err error) {
 		return
 	}
 	passphrase := hex.EncodeToString(buf)
-	fu = &FakeUser{username, email, passphrase, nil}
+	fu = &FakeUser{Username: username, Email: email, Passphrase: passphrase}
 	return
 }
 
