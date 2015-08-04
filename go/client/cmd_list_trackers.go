@@ -3,7 +3,6 @@ package client
 import (
 	"encoding/json"
 	"fmt"
-	"os"
 	"strings"
 	"text/tabwriter"
 
@@ -120,8 +119,7 @@ func (c *CmdListTrackers) headout(count int) *tabwriter.Writer {
 	}
 	fmt.Printf("%d %s:\n\n", count, noun)
 
-	w := new(tabwriter.Writer)
-	w.Init(os.Stdout, 5, 0, 3, ' ', 0)
+	w := GlobUI.DefaultTabWriter()
 	if c.headers {
 		fmt.Fprintf(w, "Username\tFull name\tProofs\n")
 		fmt.Fprintf(w, "==========\t==========\t==========\n")

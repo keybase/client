@@ -2,8 +2,6 @@ package client
 
 import (
 	"fmt"
-	"os"
-	"text/tabwriter"
 
 	"github.com/keybase/cli"
 	"github.com/keybase/client/go/libcmdline"
@@ -58,8 +56,7 @@ func (c *CmdDeviceList) Run() error {
 }
 
 func (c *CmdDeviceList) output(devs []keybase1.Device) {
-	w := new(tabwriter.Writer)
-	w.Init(os.Stdout, 5, 0, 3, ' ', 0)
+	w := GlobUI.DefaultTabWriter()
 	fmt.Fprintf(w, "Name\tType\tID\n")
 	fmt.Fprintf(w, "==========\t==========\t==========\n")
 	for _, v := range devs {

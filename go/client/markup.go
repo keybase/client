@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"fmt"
 	"io"
-	"os"
 	"regexp"
 	"strings"
 
@@ -198,7 +197,7 @@ func (r *Renderer) RenderNode(node *html.Node) {
 
 func getWriter(w io.Writer) io.Writer {
 	if w == nil {
-		w = os.Stdout
+		w = GlobUI.OutputWriter()
 	}
 	return w
 }
@@ -213,7 +212,7 @@ func Render(w io.Writer, m *libkb.Markup) {
 		fmt.Printf("Cannot render markup: %s\n", err)
 		return
 	}
-	renderer := NewRenderer(os.Stdout)
+	renderer := NewRenderer(w)
 	renderer.RenderNodes(doc.Nodes)
 }
 

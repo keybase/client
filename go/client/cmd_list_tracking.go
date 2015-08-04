@@ -2,8 +2,6 @@ package client
 
 import (
 	"fmt"
-	"io"
-	"os"
 	"strings"
 
 	"github.com/keybase/cli"
@@ -92,13 +90,13 @@ func displayTable(entries []keybase1.UserSummary, verbose bool, headers bool) (e
 		return row
 	}
 
-	libkb.Tablify(os.Stdout, cols, rowfunc)
+	GlobUI.Tablify(cols, rowfunc)
 	return
 }
 
-func DisplayJSON(jsonStr string) (err error) {
-	_, err = io.WriteString(os.Stdout, jsonStr+"\n")
-	return
+func DisplayJSON(jsonStr string) error {
+	_, err := GlobUI.Println(jsonStr)
+	return err
 }
 
 func (s *CmdListTracking) Run() error {

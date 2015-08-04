@@ -118,8 +118,7 @@ Welcome to keybase.io!
 
 Enjoy!
 `
-	os.Stdout.Write([]byte(msg))
-	return nil
+	return GlobUI.Output(msg)
 }
 
 func (s *CmdSignup) Run() (err error) {

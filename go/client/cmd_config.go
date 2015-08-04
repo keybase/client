@@ -4,7 +4,6 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"os"
 	"strconv"
 
 	"github.com/keybase/cli"
@@ -45,7 +44,7 @@ func (v *CmdConfig) ParseArgv(ctx *cli.Context) error {
 	}
 
 	if v.writer == nil {
-		v.writer = os.Stdout
+		v.writer = GlobUI.OutputWriter()
 	}
 
 	return nil

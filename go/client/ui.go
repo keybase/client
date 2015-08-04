@@ -429,7 +429,7 @@ func (p ProveUI) PromptUsername(arg keybase1.PromptUsernameArg) (string, error) 
 }
 
 func (p ProveUI) render(txt keybase1.Text) {
-	RenderText(os.Stdout, txt)
+	RenderText(p.parent.OutputWriter(), txt)
 }
 
 func (p ProveUI) OutputPrechecks(arg keybase1.OutputPrechecksArg) error {
@@ -857,8 +857,20 @@ func (ui *UI) PromptSelectionOrCancel(prompt string, low, hi int) (ret int, err 
 	return
 }
 
+func (ui *UI) Tablify(headings []string, rowfunc func() []string) {
+	libkb.Tablify(ui.OutputWriter(), headings, rowfunc)
+}
+
+func (ui *UI) NewTabWriter(minwidth, tabwidth, padding int, padchar byte, flags uint) *tabwriter.Writer {
+	return tabwriter.NewWriter(ui.OutputWriter(), minwidth, tabwidth, padding, padchar, flags)
+}
+
+func (ui *UI) DefaultTabWriter() *tabwriter.Writer {
+	return ui.NewTabWriter(5, 0, 3, ' ', 0)
+}
+
 func (ui *UI) Output(s string) error {
-	_, err := os.Stdout.Write([]byte(s))
+	_, err := ui.OutputWriter().Write([]byte(s))
 	return err
 }
 
@@ -868,6 +880,10 @@ func (ui *UI) OutputWriter() io.Writer {
 
 func (ui *UI) Printf(format string, a ...interface{}) (n int, err error) {
 	return fmt.Fprintf(ui.OutputWriter(), format, a...)
+}
+
+func (ui *UI) Println(a ...interface{}) (int, error) {
+	return fmt.Fprintln(ui.OutputWriter(), a...)
 }
 
 //=====================================================
