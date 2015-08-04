@@ -82,13 +82,6 @@ func (u *User) GetIDVersion() (int64, error) {
 	return u.basics.AtKey("id_version").GetInt64()
 }
 
-func (u *User) GetSeqno() Seqno {
-	var ret int64 = -1
-	var err error
-	u.sigs.AtKey("last").AtKey("seqno").GetInt64Void(&ret, &err)
-	return Seqno(ret)
-}
-
 func (u *User) GetSigChainLastKnownSeqno() Seqno {
 	if u.sigChain() == nil {
 		return 0
