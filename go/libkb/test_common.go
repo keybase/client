@@ -300,3 +300,7 @@ func (t TestLoginUI) GetEmailOrUsername(dummy int) (string, error) {
 func (t TestLoginUI) PromptRevokeBackupDeviceKeys(arg keybase1.PromptRevokeBackupDeviceKeysArg) (bool, error) {
 	return t.RevokeBackup, nil
 }
+
+func (t TestLoginUI) DisplayBackupPhrase(arg keybase1.DisplayBackupPhraseArg) error {
+	return nil
+}

@@ -231,6 +231,10 @@ func (m *GetUsernameMock) PromptRevokeBackupDeviceKeys(arg keybase1.PromptRevoke
 	return false, nil
 }
 
+func (m *GetUsernameMock) DisplayBackupPhrase(arg keybase1.DisplayBackupPhraseArg) error {
+	return nil
+}
+
 func (m *GetUsernameMock) CheckLastErr(t *testing.T) {
 	if m.LastErr != nil {
 		t.Fatal(m.LastErr)
