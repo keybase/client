@@ -14,6 +14,6 @@
 
 @property (readonly) KBButton *closeButton;
 
-- (void)setError:(NSError *)error;
+- (void)setError:(NSError *)error completion:(dispatch_block_t)completion;
 
 @end

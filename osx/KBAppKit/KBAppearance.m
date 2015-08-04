@@ -47,7 +47,7 @@ static id<KBAppearance> gCurrentAppearance = NULL;
 - (NSColor *)textColorForStyle:(KBTextStyle)style options:(KBTextOptions)options {
   if (options & KBTextOptionsSelect) return KBColorWithStyle(self.selectColor, NSBackgroundStyleLight);
   if (options & KBTextOptionsWarning) return KBColorWithStyle(self.warnColor, NSBackgroundStyleLight);
-  if (options & KBTextOptionsDanger) return KBColorWithStyle(self.dangerColor, NSBackgroundStyleLight);
+  if (options & KBTextOptionsDanger) return KBColorWithStyle(self.dangerTextColor, NSBackgroundStyleLight);
 
   switch (style) {
     case KBTextStyleDefault:
@@ -138,6 +138,10 @@ static id<KBAppearance> gCurrentAppearance = NULL;
   return [NSColor colorWithRed:1.0f green:0.22f blue:0.22f alpha:1.0f];
 }
 
+- (NSColor *)dangerTextColor {
+  return [NSColor colorWithRed:153.0/255.0 green:48.0/255.0 blue:49.0/255.0 alpha:1.0f];
+}
+
 - (NSColor *)dangerBackgroundColor {
   return [NSColor colorWithRed:247.0/255.0 green:238.0/255.0 blue:241.0/255.0 alpha:1.0f];
 }
@@ -147,7 +151,7 @@ static id<KBAppearance> gCurrentAppearance = NULL;
 }
 
 - (NSColor *)warnButtonColor {
-  return [NSColor colorWithRed:232.0/255.0 green:134.0/255.0 blue:0/255.0 alpha:1.0f];
+  return [NSColor colorWithRed:237.0/255.0 green:159.0/255.0 blue:53.0/255.0 alpha:1.0f];
 }
 
 - (NSColor *)infoBackgroundColor {
@@ -277,7 +281,7 @@ static id<KBAppearance> gCurrentAppearance = NULL;
       return [NSColor colorWithRed:189.0/255.0 green:26.0/255.0 blue:29.0/255.0 alpha:1.0];
 
     case KBButtonStyleWarning:
-      return [self warnButtonColor];
+      return [NSColor colorWithRed:232.0/255.0 green:134.0/255.0 blue:0/255.0 alpha:1.0f];
 
     case KBButtonStyleCheckbox:
     case KBButtonStyleLink:

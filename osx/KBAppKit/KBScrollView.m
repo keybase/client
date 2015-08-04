@@ -32,7 +32,7 @@
     CGRect scrollRect = YOCGRectApplyInsets(CGRectMake(0, 0, size.width, size.height), insets);
 
     if ([yself.scrollView.documentView isKindOfClass:YOView.class]) {
-      [layout sizeToFitVerticalInFrame:CGRectMake(0, 0, scrollRect.size.width - 10, scrollRect.size.height) view:yself.scrollView.documentView];
+      [layout sizeToFitVerticalInFrame:CGRectMake(0, 0, scrollRect.size.width, scrollRect.size.height) view:yself.scrollView.documentView];
     }
 
     [layout setFrame:scrollRect view:yself.scrollView];

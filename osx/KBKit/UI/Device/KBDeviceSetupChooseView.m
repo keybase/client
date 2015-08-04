@@ -35,7 +35,7 @@
 
   _deviceSignerView.onSet = ^(KBImageTextView *view, KBDeviceSignerOption *option, NSIndexPath *indexPath, NSTableColumn *tableColumn, KBListView *listView, BOOL dequeued) {
     view.tintImageForStyle = YES;
-    [view setTitle:option.title info:option.info image:option.image];
+    [view setTitle:option.title info:option.info image:option.image lineBreakMode:NSLineBreakByClipping];
   };
   [contentView addSubview:_deviceSignerView];
 

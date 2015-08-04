@@ -78,7 +78,7 @@
   [self setNeedsLayout];
 }
 
-- (void)setTrackStatus:(KBUserTrackStatus *)trackStatus skipable:(BOOL)skipable completion:(KBTrackCompletion)completion {
+- (void)setTrackStatus:(KBUserTrackStatus *)trackStatus skippable:(BOOL)skippable completion:(KBTrackCompletion)completion {
   [self clear];
   _trackStatus = trackStatus;
   _completion = completion;
@@ -119,7 +119,7 @@
     }
   }
 
-  _cancelButton.hidden = !skipable;
+  _cancelButton.hidden = !skippable;
   [_cancelButton setText:cancelText style:KBButtonStyleDefault options:0];
   [self setNeedsLayout];
 }

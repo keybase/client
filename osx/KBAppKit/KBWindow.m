@@ -112,9 +112,13 @@
 @implementation NSWindow (KBWindow)
 
 - (NSWindow *)kb_addChildWindowForView:(NSView *)view size:(CGSize)size makeKey:(BOOL)makeKey {
-  KBWindow *window = [KBWindow windowWithContentView:view size:size retain:YES];
+  NSUInteger styleMask = NSFullSizeContentViewWindowMask | NSTitledWindowMask | NSClosableWindowMask;
+  return [self kb_addChildWindowForView:view size:size makeKey:makeKey styleMask:styleMask];
+}
 
-  window.styleMask = NSFullSizeContentViewWindowMask | NSTitledWindowMask;
+- (NSWindow *)kb_addChildWindowForView:(NSView *)view size:(CGSize)size makeKey:(BOOL)makeKey styleMask:(NSUInteger)styleMask {
+  KBWindow *window = [KBWindow windowWithContentView:view size:size retain:YES];
+  window.styleMask = styleMask;
 
   [self kb_addChildWindow:window rect:CGRectMake(0, 0, size.width, size.height) position:KBWindowPositionCenter];
 

@@ -33,6 +33,8 @@ typedef NS_ENUM (NSInteger, KBWindowPosition) {
 
 - (NSWindow *)kb_addChildWindowForView:(NSView *)view size:(CGSize)size makeKey:(BOOL)makeKey;
 
+- (NSWindow *)kb_addChildWindowForView:(NSView *)view size:(CGSize)size makeKey:(BOOL)makeKey styleMask:(NSUInteger)styleMask;
+
 - (NSWindow *)kb_addChildWindowForView:(YOView *)view rect:(CGRect)rect position:(KBWindowPosition)position title:(NSString *)title fixed:(BOOL)fixed makeKey:(BOOL)makeKey;
 
 - (void)kb_addChildWindow:(NSWindow *)window rect:(CGRect)rect position:(KBWindowPosition)position;

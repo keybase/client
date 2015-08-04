@@ -178,7 +178,10 @@
     return NO;
   }
 
-  NSWindow *window = [sender window];
+  NSWindow *window = nil;
+  if ([sender isKindOfClass:NSWindow.class]) window = sender;
+  if (!window && [sender respondsToSelector:@selector(window)]) window = [sender window];
+
   if (!window) window = [NSApp mainWindow];
   if (!window) window = [NSApp keyWindow];
   if (!window) window = [[NSApp windows] firstObject];

@@ -257,9 +257,11 @@
   if ([obj isKindOfClass:KBUserToken.class]) {
     NSString *username = [obj username];
     KBUserProfileView *trackView = [[KBUserProfileView alloc] init];
-    [trackView setUsername:username client:self.client];
+    trackView.popup = YES;
     trackView.fromWindow = (KBWindow *)[self window];
     [trackView openPopupWindow];
+
+    [trackView setUsername:username client:self.client];
   }
 }
 

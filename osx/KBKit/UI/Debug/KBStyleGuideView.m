@@ -12,6 +12,7 @@
 #import "KBComponent.h"
 #import "KBDebugViews.h"
 #import "KBRMockClient.h"
+#import "KBFontIcon.h"
 
 @interface KBStyleGuideView ()
 @property KBProgressOverlayView *progressView;
@@ -26,7 +27,7 @@
   NSString *shortText = @"Street art Vice Kickstarter Odd Future Tumblr, Brooklyn Carles cronut wolf umami meggings actually bespoke.";
   NSString *longText = @"Portland pug normcore, heirloom meggings small batch skateboard next level vinyl drinking vinegar 90's messenger bag iPhone DIY blog. Polaroid +1 chia, direct trade art party ennui fixie. Listicle readymade fashion axe ethical, scenester irony American Apparel DIY XOXO.";
 
-  YOBox *contentView = [YOVBox box:@{@"spacing": @"10", @"insets": @"20"}];
+  YOVBox *contentView = [YOVBox box:@{@"spacing": @"10", @"insets": @"20"}];
   [contentView kb_setBackgroundColor:KBAppearance.currentAppearance.secondaryBackgroundColor];
 
   KBLabel *label1 = [[KBLabel alloc] initWithFrame:CGRectMake(0, 0, 200, 30)];
@@ -35,62 +36,72 @@
   [label1 setBorderWithColor:NSColor.blueColor width:0.5];
   [contentView addSubview:label1];
 
-//  KBLabel *label2 = [[KBLabel alloc] initWithFrame:CGRectMake(0, 0, 200, 50)];
-//  label2.verticalAlignment = KBVerticalAlignmentMiddle;
-//  [label2 setBorderWithColor:NSColor.blackColor width:1.0];
-//  [label2 setText:@"Text Middle Align with border" font:[NSFont systemFontOfSize:16] color:NSColor.blackColor alignment:NSCenterTextAlignment];
-//  [contentView addSubview:label2];
-
   KBImageTextView *imageTextView = [[KBImageTextView alloc] initWithFrame:CGRectMake(0, 0, 200, 30)];
   imageTextView.imageSize = CGSizeMake(40, 40);
-  [imageTextView setTitle:title info:shortText imageURLString:@"bundle://30-Hardware-black-computer-30" imageSize:CGSizeMake(30, 30)];
+  [imageTextView setTitle:shortText info:longText imageURLString:@"http://dummyimage.com/120x120/000/fff" imageSize:CGSizeMake(30, 30) lineBreakMode:NSLineBreakByWordWrapping];
   [contentView addSubview:imageTextView];
 
   KBHoverView *popover = [[KBHoverView alloc] initWithFrame:CGRectMake(0, 0, 200, 0)];
   [popover setText:longText title:title];
   [contentView addSubview:popover];
 
-  YOView *buttonView = [[YOView alloc] init];
-  KBButton *buttonPrimary = [KBButton buttonWithText:@"Primary" style:KBButtonStylePrimary];
-  buttonPrimary.targetBlock = ^{ };
-  [buttonView addSubview:buttonPrimary];
+  YOVBox *buttonView = [YOVBox box:@{@"spacing": @(20)}];
+  {
+    YOHBox *buttons = [YOHBox box:@{@"spacing": @(10), @"minSize": @"100,0"}];
+    {
+      KBButton *buttonPrimary = [KBButton buttonWithText:@"Primary" style:KBButtonStylePrimary];
+      [buttons addSubview:buttonPrimary];
 
-  KBButton *buttonDefault = [KBButton buttonWithText:@"Default" style:KBButtonStyleDefault];
-  buttonDefault.targetBlock = ^{ };
-  [buttonView addSubview:buttonDefault];
+      KBButton *buttonDefault = [KBButton buttonWithText:@"Default" style:KBButtonStyleDefault];
+      [buttons addSubview:buttonDefault];
 
-  NSImage *image = [NSImage imageNamed:@"46-Arrows-black-arrow-67-24"];
-  image.size = CGSizeMake(16, 16);
-  KBButton *buttonImageText = [KBButton buttonWithText:@"Back" image:image style:KBButtonStyleDefault options:0];
-  [buttonView addSubview:buttonImageText];
+      KBButton *warningDefault = [KBButton buttonWithText:@"Warning" style:KBButtonStyleWarning];
+      [buttons addSubview:warningDefault];
 
-  buttonView.viewLayout = [YOLayout layoutWithLayoutBlock:^CGSize(id<YOLayout> layout, CGSize size) {
-    CGSize itemSize = CGSizeMake(200, 42);
-    CGFloat padding = 10;
-    if (itemSize.width > size.width) itemSize.width = size.width;
-
-    CGFloat x = 0;
-    CGFloat y = 0;
-    NSInteger index = 0;
-    BOOL wrap = NO;
-    for (id view in buttonView.subviews) {
-
-      wrap = (x + itemSize.width) > size.width;
-      if (wrap) {
-        x = 0;
-        y += itemSize.height + padding;
-      }
-
-      [layout setFrame:CGRectMake(x, y, itemSize.width, itemSize.height) view:view];
-
-      // If we didn't wrap on last item, then wrap
-      x += itemSize.width + padding;
-      index++;
+      KBButton *dangerDefault = [KBButton buttonWithText:@"Danger" style:KBButtonStyleDanger];
+      [buttons addSubview:dangerDefault];
     }
-    y += itemSize.height + padding;
-    return CGSizeMake(size.width, y);
-  }];
+    [buttonView addSubview:buttons];
 
+    YOHBox *buttonsToolbar = [YOHBox box:@{@"spacing": @(10), @"minSize": @"100,0"}];
+    {
+      KBButton *buttonPrimaryToolbar = [KBButton buttonWithText:@"Toolbar" style:KBButtonStylePrimary options:KBButtonOptionsToolbar];
+      [buttonsToolbar addSubview:buttonPrimaryToolbar];
+
+      KBButton *buttonDefaultToolbar = [KBButton buttonWithText:@"Toolbar" style:KBButtonStyleDefault options:KBButtonOptionsToolbar];
+      [buttonsToolbar addSubview:buttonDefaultToolbar];
+
+      KBButton *warningDefaultToolbar = [KBButton buttonWithText:@"Toolbar" style:KBButtonStyleWarning options:KBButtonOptionsToolbar];
+      [buttonsToolbar addSubview:warningDefaultToolbar];
+
+      KBButton *dangerDefaultToolbar = [KBButton buttonWithText:@"Toolbar" style:KBButtonStyleDanger options:KBButtonOptionsToolbar];
+      [buttonsToolbar addSubview:dangerDefaultToolbar];
+    }
+    [buttonView addSubview:buttonsToolbar];
+
+    YOHBox *buttonsToolbarToggle = [YOHBox box:@{@"spacing": @(10), @"minSize": @"100,0"}];
+    {
+      KBButton *buttonPrimaryToolbar = [KBButton buttonWithText:@"Toggle" style:KBButtonStylePrimary options:KBButtonOptionsToolbar|KBButtonOptionsToggle];
+      [buttonsToolbarToggle addSubview:buttonPrimaryToolbar];
+
+      KBButton *buttonDefaultToolbar = [KBButton buttonWithText:@"Toggle" style:KBButtonStyleDefault options:KBButtonOptionsToolbar|KBButtonOptionsToggle];
+      [buttonsToolbarToggle addSubview:buttonDefaultToolbar];
+
+      KBButton *warningDefaultToolbar = [KBButton buttonWithText:@"Toggle" style:KBButtonStyleWarning options:KBButtonOptionsToolbar|KBButtonOptionsToggle];
+      [buttonsToolbarToggle addSubview:warningDefaultToolbar];
+
+      KBButton *dangerDefaultToolbar = [KBButton buttonWithText:@"Toggle" style:KBButtonStyleDanger options:KBButtonOptionsToolbar|KBButtonOptionsToggle];
+      [buttonsToolbarToggle addSubview:dangerDefaultToolbar];
+    }
+    [buttonView addSubview:buttonsToolbarToggle];
+
+    YOHBox *buttonsIcon = [YOHBox box:@{@"spacing": @(10), @"minSize": @"100,0"}];
+    {
+      KBButton *buttonImageText = [KBFontIcon buttonForIcon:@"angleLeft" text:@"Back" style:KBButtonStyleDefault options:0 sender:self];
+      [buttonsIcon addSubview:buttonImageText];
+    }
+    [buttonView addSubview:buttonsIcon];
+  }
   [contentView addSubview:buttonView];
 
   YOBox *linkView = [YOBox box:@{@"spacing": @(10), @"minSize": @"200,40"}];

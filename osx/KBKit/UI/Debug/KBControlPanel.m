@@ -37,7 +37,7 @@
   _listView = [KBListView listViewWithPrototypeClass:KBImageTextCell.class rowHeight:0];
   _listView.scrollView.borderType = NSBezelBorder;
   _listView.onSet = ^(KBImageTextView *label, id<KBComponent> component, NSIndexPath *indexPath, NSTableColumn *tableColumn, KBListView *listView, BOOL dequeued) {
-    [label setTitle:component.name info:component.info image:component.image];
+    [label setTitle:component.name info:component.info image:component.image lineBreakMode:NSLineBreakByClipping];
   };
   _listView.onSelect = ^(KBTableView *tableView, KBTableSelection *selection) {
     [gself select:selection.object];

@@ -28,6 +28,7 @@
 #import "KBWorkspace.h"
 #import "KBNotifications.h"
 #import "KBProver.h"
+#import "KBErrorView.h"
 
 @interface KBUserProfileView ()
 @property KBScrollView *scrollView;
@@ -41,41 +42,57 @@
 
 @property (getter=isLoading) BOOL loading;
 @property KBProver *prover;
+
+@property KBErrorView *errorView;
 @end
 
 @implementation KBUserProfileView
 
 - (void)viewInit {
   [super viewInit];
-  
-  _headerView = [[KBUserHeaderView alloc] init];
-  _headerView.imageView.dispatchBlock = ^(KBImageView *imageView, dispatch_block_t completion) {
-    [self selectPicture];
-    completion();
-  };
-  _userInfoView = [[KBUserInfoView alloc] init];
-  _trackView = [[KBTrackView alloc] init];
-  _trackView.untrackButton.targetBlock = ^{ [self untrack]; };
-  YOView *contentView = [[YOView alloc] init];
-  [contentView addSubview:_headerView];
-  [contentView addSubview:_userInfoView];
-  [contentView addSubview:_trackView];
-
-  YOSelf yself = self;
-  contentView.viewLayout = [YOLayout layoutWithLayoutBlock:^CGSize(id<YOLayout> layout, CGSize size) {
-    CGFloat y = 0;
-    //CGSize headerSize = [yself.headerView sizeThatFits:CGSizeMake(MIN(400, size.width) - 20, size.height)];
-    //y += [layout centerWithSize:headerSize frame:CGRectMake(0, y, MIN(400, size.width), headerSize.height) view:yself.headerView].size.height;
-    y += [layout sizeToFitVerticalInFrame:CGRectMake(0, y, size.width - 20, 0) view:yself.headerView].size.height;
-    y += [layout sizeToFitVerticalInFrame:CGRectMake(0, y, size.width, 0) view:yself.userInfoView].size.height;
-    y += [layout sizeToFitVerticalInFrame:CGRectMake(0, y, size.width, 0) view:yself.trackView].size.height;
-    return CGSizeMake(size.width, y);
-  }];
 
   _scrollView = [[KBScrollView alloc] init];
-  [_scrollView setDocumentView:contentView];
-  [self addSubview:_scrollView];
+  {
+    YOView *contentView = [[YOView alloc] init];
+    {
+      _headerView = [[KBUserHeaderView alloc] init];
+      _headerView.imageView.dispatchBlock = ^(KBImageView *imageView, dispatch_block_t completion) {
+        [self selectPicture];
+        completion();
+      };
+      [contentView addSubview:_headerView];
 
+      _errorView = [[KBErrorView alloc] init];
+      _errorView.hidden = YES;
+      [contentView addSubview:_errorView];
+
+      _userInfoView = [[KBUserInfoView alloc] init];
+      [contentView addSubview:_userInfoView];
+
+      _trackView = [[KBTrackView alloc] init];
+      _trackView.untrackButton.targetBlock = ^{ [self untrack]; };
+      [contentView addSubview:_trackView];
+    }
+
+    YOSelf yself = self;
+    contentView.viewLayout = [YOLayout layoutWithLayoutBlock:^CGSize(id<YOLayout> layout, CGSize size) {
+      CGFloat y = 0;
+      //CGSize headerSize = [yself.headerView sizeThatFits:CGSizeMake(MIN(400, size.width) - 20, size.height)];
+      //y += [layout centerWithSize:headerSize frame:CGRectMake(0, y, MIN(400, size.width), headerSize.height) view:yself.headerView].size.height;
+      y += [layout sizeToFitVerticalInFrame:CGRectMake(0, y, size.width - 20, 0) view:yself.headerView].size.height;
+
+      if (!yself.errorView.hidden) {
+        y += [layout sizeToFitVerticalInFrame:CGRectMake(10, y, size.width - 20, 0) view:yself.errorView].size.height;
+      }
+
+      y += [layout sizeToFitVerticalInFrame:CGRectMake(0, y, size.width, 0) view:yself.userInfoView].size.height;
+      y += [layout sizeToFitVerticalInFrame:CGRectMake(0, y, size.width, 0) view:yself.trackView].size.height;
+      return CGSizeMake(size.width, y);
+    }];
+
+    [_scrollView setDocumentView:contentView];
+  }
+  [self addSubview:_scrollView];
   self.viewLayout = [YOLayout fill:_scrollView];
 }
 
@@ -87,7 +104,6 @@
   }
 }
 
-
 - (void)clear {
   _username = nil;
   _keys = nil;
@@ -95,13 +111,15 @@
   [_userInfoView clear];
   [_trackView clear];
   _trackView.hidden = YES;
+  [self setError:nil];
   [self setNeedsLayout];
 }
 
 - (void)openPopupWindow {
   NSAssert(self.fromWindow, @"No window");
+  NSAssert(self.popup, @"Not a popup");
   [self removeFromSuperview];
-  [self.fromWindow kb_addChildWindowForView:self size:CGSizeMake(400, 400) makeKey:NO];
+  [self.fromWindow kb_addChildWindowForView:self size:CGSizeMake(400, 400) makeKey:NO styleMask:NSFullSizeContentViewWindowMask|NSTitledWindowMask];
 }
 
 - (void)registerClient:(KBRPClient *)client sessionId:(NSInteger)sessionId {
@@ -213,7 +231,7 @@
 - (void)showTrackPrompt:(KBUserTrackStatus *)trackStatus completion:(void (^)(BOOL track))completion {
   GHWeakSelf gself = self;
   self.trackView.hidden = NO;
-  [self.trackView setTrackStatus:trackStatus skipable:self.popup completion:^(BOOL track) {
+  [self.trackView setTrackStatus:trackStatus skippable:self.popup completion:^(BOOL track) {
     if (!track) {
       [gself showTrackAction:KBTrackActionSkipped username:trackStatus.username error:nil];
       completion(NO);
@@ -241,7 +259,7 @@
   GHWeakSelf gself = self;
   KBUserTrackStatus *trackStatus = [[KBUserTrackStatus alloc] initWithUsername:identify.user.username identifyOutcome:identify.outcome];
   self.trackView.hidden = NO;
-  [self.trackView setTrackStatus:trackStatus skipable:self.popup completion:^(BOOL track) {
+  [self.trackView setTrackStatus:trackStatus skippable:self.popup completion:^(BOOL track) {
     if (track) {
       [gself track:trackStatus.username];
     } else {
@@ -275,8 +293,20 @@
     [NSNotificationCenter.defaultCenter postNotificationName:KBTrackingListDidChangeNotification object:nil userInfo:@{@"username": username}];
   });
 
-  if (self.popup) {
-    [[self window] close];
+  if (self.popup) [[self window] close];
+
+  [self setNeedsLayout];
+}
+
+- (void)setError:(NSError *)error {
+  if (error) {
+    GHWeakSelf gself = self;
+    _errorView.hidden = NO;
+    [_errorView setError:error completion:self.popup ? ^{
+      [[gself window] close];
+    } : nil];
+  } else {
+    _errorView.hidden = YES;
   }
   [self setNeedsLayout];
 }
@@ -293,7 +323,7 @@
     [gself.headerView setProgressEnabled:NO];
     gself.loading = NO;
     if (error) {
-      [KBActivity setError:error sender:self];
+      [self setError:error];
       return;
     }
     [self showTrackOption:identifyRes];
@@ -312,7 +342,7 @@
     [gself.headerView setProgressEnabled:NO];
     gself.loading = NO;
     if (error) {
-      [KBActivity setError:error sender:self];
+      [self setError:error];
       return;
     }
 
@@ -342,6 +372,9 @@
 
 - (void)setUsername:(NSString *)username client:(KBRPClient *)client {
   NSParameterAssert(client);
+
+  if (self.popup && !self.window) NSAssert(NO, @"Popup but we aren't in a window. You need to call openPopupWindow before this method");
+
   if ([self isLoadingUsername:username]) return;
   NSAssert(!_loading, @"In progress");
 
@@ -447,7 +480,7 @@
     [self selectPGPKey:requestParams completion:completion];
   }];
   [request pgpSelectWithFingerprintQuery:nil allowMulti:NO skipImport:NO completion:^(NSError *error) {
-    [KBActivity setError:error sender:self];
+    [self setError:error];
     [self refresh];
   }];
 }
@@ -478,7 +511,7 @@
 - (void)createProofWithServiceName:(NSString *)serviceName {
   if (!_prover) _prover = [[KBProver alloc] init];
   [_prover createProofWithServiceName:serviceName client:self.client sender:self completion:^(NSError *error) {
-    if (error) [KBActivity setError:error sender:self];
+    if (error) [self setError:error];
     [self refresh];
   }];
 }
@@ -486,7 +519,7 @@
 - (void)proofAction:(KBProofAction)proofAction proofResult:(KBProofResult *)proofResult {
   if (!_prover) _prover = [[KBProver alloc] init];
   [_prover handleProofAction:proofAction proofResult:proofResult client:self.client sender:self completion:^(NSError *error) {
-    if (error) [KBActivity setError:error sender:self];
+    if (error) [self setError:error];
     [self refresh];
   }];
 }
@@ -496,7 +529,7 @@
   /*
   KBRConfigRequest *request = [[KBRConfigRequest alloc] initWithClient:self.client];
   [request setUserConfigWithUsername:self.username key:@"picture.source" value:@"github" completion:^(NSError *error) {
-    if (error) [KBActivity setError:error sender:self];
+    if (error) [self setError:error];
     //[self refresh];
   }];
    */

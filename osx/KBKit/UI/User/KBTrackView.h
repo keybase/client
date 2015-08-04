@@ -19,7 +19,7 @@ typedef void (^KBTrackCompletion)(BOOL track); // track is NO if skipped
 
 @property (readonly) KBButton *untrackButton;
 
-- (void)setTrackStatus:(KBUserTrackStatus *)trackStatus skipable:(BOOL)skipable completion:(KBTrackCompletion)completion;
+- (void)setTrackStatus:(KBUserTrackStatus *)trackStatus skippable:(BOOL)skippable completion:(KBTrackCompletion)completion;
 
 - (void)setTrackAction:(KBTrackAction)trackAction error:(NSError *)error;
 

@@ -25,8 +25,8 @@
 @property CGSize imageSize;
 @property BOOL tintImageForStyle;
 
-- (void)setTitle:(NSString *)title info:(NSString *)info image:(NSImage *)image;
-- (void)setTitle:(NSString *)title info:(NSString *)info imageURLString:(NSString *)imageURLString imageSize:(CGSize)imageSize;
+- (void)setTitle:(NSString *)title info:(NSString *)info image:(NSImage *)image lineBreakMode:(NSLineBreakMode)lineBreakMode;
+- (void)setTitle:(NSString *)title info:(NSString *)info imageURLString:(NSString *)imageURLString imageSize:(CGSize)imageSize lineBreakMode:(NSLineBreakMode)lineBreakMode;
 
 @end
 

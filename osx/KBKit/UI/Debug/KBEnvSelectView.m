@@ -42,7 +42,7 @@
   _listView = [KBListView listViewWithPrototypeClass:KBImageTextCell.class rowHeight:0];
   _listView.scrollView.borderType = NSBezelBorder;
   _listView.onSet = ^(KBImageTextView *label, KBEnvironment *env, NSIndexPath *indexPath, NSTableColumn *tableColumn, KBListView *listView, BOOL dequeued) {
-    [label setTitle:env.config.title info:env.config.info image:env.config.image];
+    [label setTitle:env.config.title info:env.config.info image:env.config.image lineBreakMode:NSLineBreakByClipping];
   };
   _listView.onSelect = ^(KBTableView *tableView, KBTableSelection *selection) {
     [gself select:selection.object];

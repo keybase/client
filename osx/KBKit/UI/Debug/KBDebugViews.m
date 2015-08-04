@@ -173,8 +173,9 @@
   KBUserProfileView *userProfileView = [[KBUserProfileView alloc] init];
   userProfileView.popup = YES;
   userProfileView.fromWindow = (KBWindow *)[self window];
-  [userProfileView setUsername:username client:self.client];
   [userProfileView openPopupWindow];
+
+  [userProfileView setUsername:username client:self.client];
 }
 
 - (void)showSelectKey {
