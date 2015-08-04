@@ -16,6 +16,7 @@ cp "$GOPATH/bin/keybase" build/usr/bin/
 
 mkdir -p build/DEBIAN
 cat control.template | sed "s/@@VERSION@@/$version/" > build/DEBIAN/control
+cp postinst build/DEBIAN/
 
 debname="keybase-${version}.deb"
 dpkg-deb --build build "$debname"
