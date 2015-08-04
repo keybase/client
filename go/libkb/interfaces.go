@@ -159,6 +159,7 @@ type APIArg struct {
 	Endpoint    string
 	uArgs       url.Values
 	Args        HTTPArgs
+	jsonPayload map[string]interface{}
 	NeedSession bool
 	SessionR    SessionReader
 	HTTPStatus  []int
@@ -194,6 +195,7 @@ type API interface {
 	GetResp(APIArg) (*http.Response, error)
 	GetDecode(APIArg, interface{}) error
 	Post(APIArg) (*APIRes, error)
+	PostJSON(APIArg) (*APIRes, error)
 	PostResp(APIArg) (*http.Response, error)
 	PostDecode(APIArg, interface{}) error
 }

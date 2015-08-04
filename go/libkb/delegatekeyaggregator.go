@@ -1,9 +1,8 @@
 package libkb
 
 import (
-	"encoding/json"
 	"errors"
-	"net/url"
+	"fmt"
 )
 
 // DelegatorAggregator manages delegating multiple keys in one post to the server
@@ -15,7 +14,7 @@ func DelegatorAggregator(lctx LoginContext, ds []Delegator) (err error) {
 	}
 
 	// Store all the args to build a single big json later
-	args := []url.Values{}
+	args := []map[string]string{}
 
 	for i := range ds {
 		// Mutate the original and not a copy from range
@@ -24,10 +23,15 @@ func DelegatorAggregator(lctx LoginContext, ds []Delegator) (err error) {
 		d.Aggregated = true
 		d.Run(lctx)
 
-		args = append(args, d.postArg.getHTTPArgs())
+		flatArgs := d.postArg.flattenHTTPArgs(d.postArg.getHTTPArgs())
+		G.Log.Debug(fmt.Sprintf("NOJ: %+v", flatArgs))
+		args = append(args, flatArgs)
 	}
 
-	sigs, err := json.Marshal(args)
+	G.Log.Debug(fmt.Sprintf("NOJ2: %+v", args))
+
+	payload := make(map[string]interface{})
+	payload["sigs"] = args
 
 	if err != nil {
 		return err
@@ -36,12 +40,11 @@ func DelegatorAggregator(lctx LoginContext, ds []Delegator) (err error) {
 	// Adopt most parameters from the first item
 	var apiArgBase = ds[0]
 	var apiArg = apiArgBase.postArg
+	apiArg.Args = nil
+	apiArg.uArgs = nil
 	apiArg.Endpoint = "key/multi"
+	apiArg.jsonPayload = payload
 
-	apiArg.Args = HTTPArgs{
-		"sigs": S{Val: string(sigs)},
-	}
-
-	_, err = apiArgBase.G().API.Post(apiArg)
+	_, err = apiArgBase.G().API.PostJSON(apiArg)
 	return err
 }
