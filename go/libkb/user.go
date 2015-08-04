@@ -89,6 +89,13 @@ func (u *User) GetSigChainLastKnownSeqno() Seqno {
 	return u.sigChain().GetLastKnownSeqno()
 }
 
+func (u *User) GetSigChainLastKnownSeqno() Seqno {
+	if u.sigChain() == nil {
+		return 0
+	}
+	return u.sigChain().GetLastKnownSeqno()
+}
+
 func (u *User) GetKeyFamily() *KeyFamily {
 	return u.keyFamily
 }
