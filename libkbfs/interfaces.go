@@ -527,7 +527,6 @@ type BlockOps interface {
 // verifies the logged-in user has read permissions.
 //
 // TODO: Add interface for searching by time
-// TODO: PutFavorites() to allow for signed favorites list
 type MDServer interface {
 	// GetForHandle returns the current (signed/encrypted) metadata
 	// object corresponding to the given top-level folder's handle, if
