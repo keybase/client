@@ -481,14 +481,14 @@ func (_mr *_MockKBPKIRecorder) FavoriteAdd(arg0, arg1 interface{}) *gomock.Call 
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "FavoriteAdd", arg0, arg1)
 }
 
-func (_m *MockKBPKI) FavoriteRemove(ctx context.Context, folder go0.Folder) error {
-	ret := _m.ctrl.Call(_m, "FavoriteRemove", ctx, folder)
+func (_m *MockKBPKI) FavoriteDelete(ctx context.Context, folder go0.Folder) error {
+	ret := _m.ctrl.Call(_m, "FavoriteDelete", ctx, folder)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
-func (_mr *_MockKBPKIRecorder) FavoriteRemove(arg0, arg1 interface{}) *gomock.Call {
-	return _mr.mock.ctrl.RecordCall(_mr.mock, "FavoriteRemove", arg0, arg1)
+func (_mr *_MockKBPKIRecorder) FavoriteDelete(arg0, arg1 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "FavoriteDelete", arg0, arg1)
 }
 
 func (_m *MockKBPKI) FavoriteList(ctx context.Context) ([]go0.Folder, error) {
@@ -1872,6 +1872,24 @@ func (_m *MockConfig) ReqsBufSize() int {
 
 func (_mr *_MockConfigRecorder) ReqsBufSize() *gomock.Call {
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "ReqsBufSize")
+}
+
+func (_m *MockConfig) CACert() []byte {
+	ret := _m.ctrl.Call(_m, "CACert")
+	ret0, _ := ret[0].([]byte)
+	return ret0
+}
+
+func (_mr *_MockConfigRecorder) CACert() *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "CACert")
+}
+
+func (_m *MockConfig) SetCACert(_param0 []byte) {
+	_m.ctrl.Call(_m, "SetCACert", _param0)
+}
+
+func (_mr *_MockConfigRecorder) SetCACert(arg0 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "SetCACert", arg0)
 }
 
 // Mock of NodeCache interface
