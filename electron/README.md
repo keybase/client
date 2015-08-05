@@ -16,5 +16,8 @@ To build and run Keybase in Electron:
 make run
 ```
 
+Type a command in the input box, for example: `id t_alice`.
+(This is the only username that works.)
+
 
 To open dev tools hit cmd+option+i.
