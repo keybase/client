@@ -2,12 +2,14 @@ package libkbfs
 
 import (
 	"bytes"
+	"crypto/hmac"
 	"crypto/rand"
 	"crypto/sha256"
 	"encoding/binary"
 	"io"
 
 	"github.com/keybase/client/go/libkb"
+	keybase1 "github.com/keybase/client/protocol/go"
 	"golang.org/x/crypto/nacl/box"
 	"golang.org/x/crypto/nacl/secretbox"
 )
@@ -402,4 +404,18 @@ func (c *CryptoCommon) Hash(buf []byte) (libkb.NodeHash, error) {
 func (c *CryptoCommon) VerifyHash(buf []byte, hash libkb.NodeHash) error {
 	// TODO: for now just call Hash and throw an error if it doesn't match hash
 	return nil
+}
+
+// GetTLFCryptKeyServerHalfID implements the Crypto interface for CryptoCommon.
+func (c *CryptoCommon) GetTLFCryptKeyServerHalfID(
+	user keybase1.UID, deviceKID keybase1.KID,
+	serverHalf TLFCryptKeyServerHalf) TLFCryptKeyServerHalfID {
+	mac := hmac.New(sha256.New, serverHalf.ServerHalf[:])
+	mac.Write(user.ToBytes())
+	mac.Write(deviceKID.ToBytes())
+	hash := mac.Sum(nil)
+
+	var id TLFCryptKeyServerHalfID
+	copy(id.ServerHalfID[:], hash[:])
+	return id
 }

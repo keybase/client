@@ -950,6 +950,16 @@ func (_mr *_MockCryptoRecorder) DecryptTLFCryptKeyClientHalf(arg0, arg1, arg2 in
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "DecryptTLFCryptKeyClientHalf", arg0, arg1, arg2)
 }
 
+func (_m *MockCrypto) GetTLFCryptKeyServerHalfID(user go0.UID, deviceKID go0.KID, serverHalf TLFCryptKeyServerHalf) TLFCryptKeyServerHalfID {
+	ret := _m.ctrl.Call(_m, "GetTLFCryptKeyServerHalfID", user, deviceKID, serverHalf)
+	ret0, _ := ret[0].(TLFCryptKeyServerHalfID)
+	return ret0
+}
+
+func (_mr *_MockCryptoRecorder) GetTLFCryptKeyServerHalfID(arg0, arg1, arg2 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "GetTLFCryptKeyServerHalfID", arg0, arg1, arg2)
+}
+
 func (_m *MockCrypto) EncryptPrivateMetadata(pmd *PrivateMetadata, key TLFCryptKey) (EncryptedPrivateMetadata, error) {
 	ret := _m.ctrl.Call(_m, "EncryptPrivateMetadata", pmd, key)
 	ret0, _ := ret[0].(EncryptedPrivateMetadata)
@@ -1193,25 +1203,25 @@ func (_m *MockKeyOps) EXPECT() *_MockKeyOpsRecorder {
 	return _m.recorder
 }
 
-func (_m *MockKeyOps) GetTLFCryptKeyServerHalf(ctx context.Context, id TlfID, keyGen KeyGen, cryptPublicKey CryptPublicKey) (TLFCryptKeyServerHalf, error) {
-	ret := _m.ctrl.Call(_m, "GetTLFCryptKeyServerHalf", ctx, id, keyGen, cryptPublicKey)
+func (_m *MockKeyOps) GetTLFCryptKeyServerHalf(ctx context.Context, serverHalfID TLFCryptKeyServerHalfID) (TLFCryptKeyServerHalf, error) {
+	ret := _m.ctrl.Call(_m, "GetTLFCryptKeyServerHalf", ctx, serverHalfID)
 	ret0, _ := ret[0].(TLFCryptKeyServerHalf)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-func (_mr *_MockKeyOpsRecorder) GetTLFCryptKeyServerHalf(arg0, arg1, arg2, arg3 interface{}) *gomock.Call {
-	return _mr.mock.ctrl.RecordCall(_mr.mock, "GetTLFCryptKeyServerHalf", arg0, arg1, arg2, arg3)
+func (_mr *_MockKeyOpsRecorder) GetTLFCryptKeyServerHalf(arg0, arg1 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "GetTLFCryptKeyServerHalf", arg0, arg1)
 }
 
-func (_m *MockKeyOps) PutTLFCryptKeyServerHalf(ctx context.Context, id TlfID, keyGen KeyGen, cryptPublicKey CryptPublicKey, serverHalf TLFCryptKeyServerHalf) error {
-	ret := _m.ctrl.Call(_m, "PutTLFCryptKeyServerHalf", ctx, id, keyGen, cryptPublicKey, serverHalf)
+func (_m *MockKeyOps) PutTLFCryptKeyServerHalves(ctx context.Context, serverKeyHalves map[go0.UID]map[go0.KID]TLFCryptKeyServerHalf) error {
+	ret := _m.ctrl.Call(_m, "PutTLFCryptKeyServerHalves", ctx, serverKeyHalves)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
-func (_mr *_MockKeyOpsRecorder) PutTLFCryptKeyServerHalf(arg0, arg1, arg2, arg3, arg4 interface{}) *gomock.Call {
-	return _mr.mock.ctrl.RecordCall(_mr.mock, "PutTLFCryptKeyServerHalf", arg0, arg1, arg2, arg3, arg4)
+func (_mr *_MockKeyOpsRecorder) PutTLFCryptKeyServerHalves(arg0, arg1 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "PutTLFCryptKeyServerHalves", arg0, arg1)
 }
 
 // Mock of BlockOps interface

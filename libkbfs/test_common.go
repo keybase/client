@@ -95,7 +95,7 @@ func MakeTestConfigOrBust(t *testing.T, blockServerRemoteAddr *string, users ...
 	}
 	config.SetMDServer(mdServer)
 
-	keyOps, err := NewKeyServerMemory(config.Codec())
+	keyOps, err := NewKeyServerMemory(config)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -149,7 +149,10 @@ func ConfigAsUser(config *ConfigLocal, loggedInUser string) *ConfigLocal {
 	}
 	c.SetMDServer(mdServer)
 
-	c.SetKeyOps(config.KeyOps())
+	// use the same db but swap configs
+	keyServerToCopy := config.KeyOps().(*KeyServerLocal)
+	keyServer := keyServerToCopy.copy(c)
+	c.SetKeyOps(keyServer)
 
 	return c
 }
@@ -232,9 +235,9 @@ func testWithCanceledContext(t *testing.T, ctx context.Context,
 // MakeDirRKeyBundle creates a new bundle with a reader key.
 func MakeDirRKeyBundle(uid keybase1.UID, cryptPublicKey CryptPublicKey) DirKeyBundle {
 	return DirKeyBundle{
-		RKeys: map[keybase1.UID]map[keybase1.KID]EncryptedTLFCryptKeyClientHalf{
-			uid: map[keybase1.KID]EncryptedTLFCryptKeyClientHalf{
-				cryptPublicKey.KID: EncryptedTLFCryptKeyClientHalf{},
+		RKeys: map[keybase1.UID]map[keybase1.KID]TLFCryptKeyInfo{
+			uid: map[keybase1.KID]TLFCryptKeyInfo{
+				cryptPublicKey.KID: TLFCryptKeyInfo{},
 			},
 		},
 	}
@@ -243,9 +246,9 @@ func MakeDirRKeyBundle(uid keybase1.UID, cryptPublicKey CryptPublicKey) DirKeyBu
 // MakeDirWKeyBundle creates a new bundle with a writer key.
 func MakeDirWKeyBundle(uid keybase1.UID, cryptPublicKey CryptPublicKey) DirKeyBundle {
 	return DirKeyBundle{
-		WKeys: map[keybase1.UID]map[keybase1.KID]EncryptedTLFCryptKeyClientHalf{
-			uid: map[keybase1.KID]EncryptedTLFCryptKeyClientHalf{
-				cryptPublicKey.KID: EncryptedTLFCryptKeyClientHalf{},
+		WKeys: map[keybase1.UID]map[keybase1.KID]TLFCryptKeyInfo{
+			uid: map[keybase1.KID]TLFCryptKeyInfo{
+				cryptPublicKey.KID: TLFCryptKeyInfo{},
 			},
 		},
 	}

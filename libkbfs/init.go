@@ -46,11 +46,11 @@ func makeBlockServer(config Config, serverRootDir *string) (BlockServer, error) 
 
 func makeKeyServer(config Config, serverRootDir *string) (KeyOps, error) {
 	if serverRootDir == nil {
-		return NewKeyServerMemory(config.Codec())
+		return NewKeyServerMemory(config)
 	}
 
 	keyPath := filepath.Join(*serverRootDir, "kbfs_key")
-	return NewKeyServerLocal(config.Codec(), keyPath)
+	return NewKeyServerLocal(config, keyPath)
 }
 
 // Init initializes a config and returns it. If localUser is

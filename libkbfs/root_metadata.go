@@ -202,11 +202,11 @@ func (md RootMetadata) getDirKeyBundle(keyGen KeyGen) (*DirKeyBundle, error) {
 	return &md.Keys[i], nil
 }
 
-// GetEncryptedTLFCryptKeyClientHalfData returns the encrypted buffer
-// of the given user's client key half for this top-level folder.
-func (md RootMetadata) GetEncryptedTLFCryptKeyClientHalfData(
-	keyGen KeyGen, user keybase1.UID, currentCryptPublicKey CryptPublicKey) (
-	encryptedClientHalf EncryptedTLFCryptKeyClientHalf, ok bool, err error) {
+// GetTLFCryptKeyInfo returns the TLFCryptKeyInfo entry for the given user
+// and device at the given key generation.
+func (md RootMetadata) GetTLFCryptKeyInfo(keyGen KeyGen, user keybase1.UID,
+	currentCryptPublicKey CryptPublicKey) (
+	info TLFCryptKeyInfo, ok bool, err error) {
 	dkb, err := md.getDirKeyBundle(keyGen)
 	if err != nil {
 		return
@@ -214,9 +214,9 @@ func (md RootMetadata) GetEncryptedTLFCryptKeyClientHalfData(
 
 	key := currentCryptPublicKey.KID
 	if u, ok1 := dkb.WKeys[user]; ok1 {
-		encryptedClientHalf, ok = u[key]
+		info, ok = u[key]
 	} else if u, ok1 = dkb.RKeys[user]; ok1 {
-		encryptedClientHalf, ok = u[key]
+		info, ok = u[key]
 	}
 	return
 }

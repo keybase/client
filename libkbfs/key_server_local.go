@@ -1,93 +1,99 @@
 package libkbfs
 
 import (
-	"fmt"
-
+	keybase1 "github.com/keybase/client/protocol/go"
 	"github.com/syndtr/goleveldb/leveldb"
 	"github.com/syndtr/goleveldb/leveldb/storage"
 	"golang.org/x/net/context"
 )
 
-// KeyServerLocal just stores key server halves in a local leveldb
-// instance.
-//
-// Per-block key server halves are keyed by block ID, and per-TLF key
-// server halves are keyed by (dir id, key generation, device encryption
-// public key) tuples.
+// KeyServerLocal puts/gets key server halves in/from a local leveldb instance.
 type KeyServerLocal struct {
-	codec Codec
-	db    *leveldb.DB
+	config Config
+	db     *leveldb.DB // TLFCryptKeyServerHalfID -> TLFCryptKeyServerHalf
 }
 
-var _ KeyOps = (*KeyServerLocal)(nil)
-
-func newKeyServerLocalWithStorage(codec Codec, storage storage.Storage) (*KeyServerLocal, error) {
+func newKeyServerLocalWithStorage(config Config, storage storage.Storage) (
+	*KeyServerLocal, error) {
 	db, err := leveldb.Open(storage, leveldbOptions)
 	if err != nil {
 		return nil, err
 	}
-	kops := &KeyServerLocal{codec, db}
+	kops := &KeyServerLocal{config, db}
 	return kops, nil
 }
 
 // NewKeyServerLocal returns a KeyServerLocal with a leveldb instance at the
 // given file.
-func NewKeyServerLocal(codec Codec, dbfile string) (*KeyServerLocal, error) {
+func NewKeyServerLocal(config Config, dbfile string) (*KeyServerLocal, error) {
 	storage, err := storage.OpenFile(dbfile)
 	if err != nil {
 		return nil, err
 	}
-	return newKeyServerLocalWithStorage(codec, storage)
+	return newKeyServerLocalWithStorage(config, storage)
 }
 
 // NewKeyServerMemory returns a KeyServerLocal with an in-memory leveldb
 // instance.
-func NewKeyServerMemory(codec Codec) (*KeyServerLocal, error) {
-	return newKeyServerLocalWithStorage(codec, storage.NewMemStorage())
-}
-
-// DeleteBlockCryptKeyServerHalf implements the KeyOps interface for
-// KeyServerLocal.
-func (ks *KeyServerLocal) DeleteBlockCryptKeyServerHalf(id BlockID) error {
-	return ks.db.Delete(id[:], nil)
-}
-
-type serverHalfID struct {
-	ID             TlfID
-	KeyGen         KeyGen
-	CryptPublicKey CryptPublicKey
+func NewKeyServerMemory(config Config) (*KeyServerLocal, error) {
+	return newKeyServerLocalWithStorage(config, storage.NewMemStorage())
 }
 
 // GetTLFCryptKeyServerHalf implements the KeyOps interface for
 // KeyServerLocal.
 func (ks *KeyServerLocal) GetTLFCryptKeyServerHalf(ctx context.Context,
-	id TlfID, keyGen KeyGen, cryptPublicKey CryptPublicKey) (
-	serverHalf TLFCryptKeyServerHalf, err error) {
-	idData, err := ks.codec.Encode(serverHalfID{id, keyGen, cryptPublicKey})
+	serverHalfID TLFCryptKeyServerHalfID) (TLFCryptKeyServerHalf, error) {
+	buf, err := ks.db.Get(serverHalfID.ServerHalfID[:], nil)
 	if err != nil {
-		return
+		return TLFCryptKeyServerHalf{}, err
 	}
 
-	data, err := ks.db.Get(idData, nil)
+	var serverHalf TLFCryptKeyServerHalf
+	err = ks.config.Codec().Decode(buf, &serverHalf)
 	if err != nil {
-		return
+		return TLFCryptKeyServerHalf{}, err
 	}
-	if len(data) != len(serverHalf.ServerHalf) {
-		err = fmt.Errorf("Expected length %d, got %d", len(serverHalf.ServerHalf), len(data))
-		return
+
+	user, err := ks.config.KBPKI().GetLoggedInUser(ctx)
+	if err != nil {
+		return TLFCryptKeyServerHalf{}, err
 	}
-	copy(serverHalf.ServerHalf[:], data)
-	return
+	key, err := ks.config.KBPKI().GetCurrentCryptPublicKey(ctx)
+	if err != nil {
+		return TLFCryptKeyServerHalf{}, err
+	}
+
+	crypto := ks.config.Crypto()
+	computedServerHalfID :=
+		crypto.GetTLFCryptKeyServerHalfID(user, key.KID, serverHalf)
+
+	// verify we're giving this to the correct user.
+	if serverHalfID != computedServerHalfID {
+		return TLFCryptKeyServerHalf{}, MDServerErrorUnauthorized{}
+	}
+	return serverHalf, nil
 }
 
-// PutTLFCryptKeyServerHalf implements the KeyOps interface for
-// KeyServerLocal.
-func (ks *KeyServerLocal) PutTLFCryptKeyServerHalf(ctx context.Context,
-	id TlfID, keyGen KeyGen, cryptPublicKey CryptPublicKey, serverHalf TLFCryptKeyServerHalf) error {
-	idData, err := ks.codec.Encode(serverHalfID{id, keyGen, cryptPublicKey})
-	if err != nil {
-		return err
+// PutTLFCryptKeyServerHalves implements the KeyOps interface for KeyServerLocal.
+func (ks *KeyServerLocal) PutTLFCryptKeyServerHalves(ctx context.Context,
+	serverKeyHalves map[keybase1.UID]map[keybase1.KID]TLFCryptKeyServerHalf) error {
+	// batch up the writes such that they're atomic.
+	batch := &leveldb.Batch{}
+	crypto := ks.config.Crypto()
+	for user, deviceMap := range serverKeyHalves {
+		for deviceKID, serverHalf := range deviceMap {
+			buf, err := ks.config.Codec().Encode(serverHalf)
+			if err != nil {
+				return err
+			}
+			id := crypto.GetTLFCryptKeyServerHalfID(user, deviceKID, serverHalf)
+			batch.Put(id.ServerHalfID[:], buf)
+		}
 	}
+	return ks.db.Write(batch, nil)
+}
 
-	return ks.db.Put(idData, serverHalf.ServerHalf[:], nil)
+// Copies a key server but swaps the config.
+func (ks *KeyServerLocal) copy(config Config) *KeyServerLocal {
+	return &KeyServerLocal{config, ks.db}
 }

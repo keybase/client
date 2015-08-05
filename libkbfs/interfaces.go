@@ -391,6 +391,12 @@ type Crypto interface {
 		encryptedClientHalf EncryptedTLFCryptKeyClientHalf) (
 		TLFCryptKeyClientHalf, error)
 
+	// GetTLFCryptKeyServerHalfID creates a unique ID for this particular
+	// TLFCryptKeyServerHalf.
+	GetTLFCryptKeyServerHalfID(
+		user keybase1.UID, deviceKID keybase1.KID,
+		serverHalf TLFCryptKeyServerHalf) TLFCryptKeyServerHalfID
+
 	// EncryptPrivateMetadata encrypts a PrivateMetadata object.
 	EncryptPrivateMetadata(pmd *PrivateMetadata, key TLFCryptKey) (EncryptedPrivateMetadata, error)
 	// DecryptPrivateMetadata decrypts a PrivateMetadata object.
@@ -473,17 +479,17 @@ type MDOps interface {
 	PutUnmerged(ctx context.Context, rmd *RootMetadata) error
 }
 
-// KeyOps fetches server-side key halves and MAC public keys from the
-// key server.
+// KeyOps fetches server-side key halves from the key server.
 type KeyOps interface {
-	// GetTLFCryptKeyServerHalf gets the server-side key half for a
-	// device (identified by its CryptPublicKey) for a given TLF.
-	GetTLFCryptKeyServerHalf(ctx context.Context, id TlfID, keyGen KeyGen,
-		cryptPublicKey CryptPublicKey) (TLFCryptKeyServerHalf, error)
-	// PutTLFCryptKeyServerHalf puts the server-side key half for a
-	// device (identified by its CryptPublicKey) for a given TLF.
-	PutTLFCryptKeyServerHalf(ctx context.Context, id TlfID, keyGen KeyGen,
-		cryptPublicKey CryptPublicKey, serverHalf TLFCryptKeyServerHalf) error
+	// GetTLFCryptKeyServerHalf gets a server-side key half for a
+	// device given the key half ID.
+	GetTLFCryptKeyServerHalf(ctx context.Context,
+		serverHalfID TLFCryptKeyServerHalfID) (TLFCryptKeyServerHalf, error)
+
+	// PutTLFCryptKeyServerHalves stores a server-side key halves for a
+	// set of users and devices.
+	PutTLFCryptKeyServerHalves(ctx context.Context,
+		serverKeyHalves map[keybase1.UID]map[keybase1.KID]TLFCryptKeyServerHalf) error
 }
 
 // BlockOps gets and puts data blocks to a BlockServer. It performs

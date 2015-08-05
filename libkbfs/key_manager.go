@@ -72,7 +72,7 @@ func (km *KeyManagerStandard) getTLFCryptKey(ctx context.Context,
 		return
 	}
 
-	clientHalfData, ok, err := md.GetEncryptedTLFCryptKeyClientHalfData(keyGen, user, currentCryptPublicKey)
+	info, ok, err := md.GetTLFCryptKeyInfo(keyGen, user, currentCryptPublicKey)
 	if err != nil {
 		return
 	}
@@ -88,7 +88,7 @@ func (km *KeyManagerStandard) getTLFCryptKey(ctx context.Context,
 
 	crypto := km.config.Crypto()
 	clientHalf, err :=
-		crypto.DecryptTLFCryptKeyClientHalf(ctx, ePublicKey, clientHalfData)
+		crypto.DecryptTLFCryptKeyClientHalf(ctx, ePublicKey, info.ClientHalf)
 	if err != nil {
 		return
 	}
@@ -96,8 +96,7 @@ func (km *KeyManagerStandard) getTLFCryptKey(ctx context.Context,
 	// now get the server-side key-half, do the unmasking, cache the result, return
 	// TODO: can parallelize the get() with decryption
 	kops := km.config.KeyOps()
-	serverHalf, err :=
-		kops.GetTLFCryptKeyServerHalf(ctx, md.ID, keyGen, currentCryptPublicKey)
+	serverHalf, err := kops.GetTLFCryptKeyServerHalf(ctx, info.ServerHalfID)
 	if err != nil {
 		return
 	}
@@ -117,14 +116,17 @@ func (km *KeyManagerStandard) getTLFCryptKey(ctx context.Context,
 func (km *KeyManagerStandard) secretKeysForUser(ctx context.Context,
 	md *RootMetadata, uid keybase1.UID, tlfCryptKey TLFCryptKey,
 	ePrivKey TLFEphemeralPrivateKey) (
-	uMap map[keybase1.KID]EncryptedTLFCryptKeyClientHalf, err error) {
+	clientMap map[keybase1.KID]TLFCryptKeyInfo,
+	serverMap map[keybase1.KID]TLFCryptKeyServerHalf, err error) {
 	defer func() {
 		if err != nil {
-			uMap = nil
+			clientMap = nil
+			serverMap = nil
 		}
 	}()
 
-	uMap = make(map[keybase1.KID]EncryptedTLFCryptKeyClientHalf)
+	clientMap = make(map[keybase1.KID]TLFCryptKeyInfo)
+	serverMap = make(map[keybase1.KID]TLFCryptKeyServerHalf)
 
 	if md.ID.IsPublic() {
 		// no per-device keys for public directories
@@ -133,8 +135,6 @@ func (km *KeyManagerStandard) secretKeysForUser(ctx context.Context,
 	}
 
 	crypto := km.config.Crypto()
-	kops := km.config.KeyOps()
-	newKeyGen := md.LatestKeyGeneration() + 1
 
 	publicKeys, err := km.config.KBPKI().GetCryptPublicKeys(ctx, uid)
 	if err != nil {
@@ -145,7 +145,6 @@ func (km *KeyManagerStandard) secretKeysForUser(ctx context.Context,
 	//    * create a new random server half
 	//    * mask it with the key to get the client half
 	//    * encrypt the client half
-	//    * push the server half to the server
 	//
 	// TODO: parallelize
 	for _, k := range publicKeys {
@@ -167,12 +166,13 @@ func (km *KeyManagerStandard) secretKeysForUser(ctx context.Context,
 			return
 		}
 
-		if err = kops.PutTLFCryptKeyServerHalf(
-			ctx, md.ID, newKeyGen, k, serverHalf); err != nil {
-			return
+		serverHalfID := crypto.GetTLFCryptKeyServerHalfID(uid, k.KID, serverHalf)
+		keyInfo := TLFCryptKeyInfo{
+			ClientHalf:   encryptedClientHalf,
+			ServerHalfID: serverHalfID,
 		}
-
-		uMap[k.KID] = encryptedClientHalf
+		clientMap[k.KID] = keyInfo
+		serverMap[k.KID] = serverHalf
 	}
 
 	return
@@ -192,29 +192,38 @@ func (km *KeyManagerStandard) Rekey(ctx context.Context,
 	}
 
 	handle := md.GetTlfHandle()
-	newKeys := DirKeyBundle{
-		WKeys:                 make(map[keybase1.UID]map[keybase1.KID]EncryptedTLFCryptKeyClientHalf),
-		RKeys:                 make(map[keybase1.UID]map[keybase1.KID]EncryptedTLFCryptKeyClientHalf),
+	newClientKeys := DirKeyBundle{
+		WKeys:                 make(map[keybase1.UID]map[keybase1.KID]TLFCryptKeyInfo),
+		RKeys:                 make(map[keybase1.UID]map[keybase1.KID]TLFCryptKeyInfo),
 		TLFPublicKey:          pubKey,
 		TLFEphemeralPublicKey: ePubKey,
 	}
+	newServerKeys := make(map[keybase1.UID]map[keybase1.KID]TLFCryptKeyServerHalf)
+
 	// TODO: parallelize
 	for _, w := range handle.Writers {
-		uMap, err := km.secretKeysForUser(ctx, md, w, tlfCryptKey, ePrivKey)
+		clientMap, serverMap, err := km.secretKeysForUser(ctx, md, w, tlfCryptKey, ePrivKey)
 		if err != nil {
 			return err
 		}
-		newKeys.WKeys[w] = uMap
+		newClientKeys.WKeys[w] = clientMap
+		newServerKeys[w] = serverMap
 	}
 	for _, r := range handle.Readers {
-		uMap, err := km.secretKeysForUser(ctx, md, r, tlfCryptKey, ePrivKey)
+		clientMap, serverMap, err := km.secretKeysForUser(ctx, md, r, tlfCryptKey, ePrivKey)
 		if err != nil {
 			return err
 		}
-		newKeys.RKeys[r] = uMap
+		newClientKeys.RKeys[r] = clientMap
+		newServerKeys[r] = serverMap
 	}
 
-	err = md.AddNewKeys(newKeys)
+	// Push new keys to the key server.
+	if err = km.config.KeyOps().PutTLFCryptKeyServerHalves(ctx, newServerKeys); err != nil {
+		return err
+	}
+
+	err = md.AddNewKeys(newClientKeys)
 	if err != nil {
 		return err
 	}

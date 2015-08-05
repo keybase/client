@@ -2,6 +2,7 @@ package libkbfs
 
 import (
 	"bytes"
+	"crypto/sha256"
 	"encoding/hex"
 	"fmt"
 	"sort"
@@ -769,14 +770,38 @@ func (p path) hasPublic() bool {
 	return len(p.path) == 1 && !p.Tlf.IsPublic()
 }
 
+// TLFCryptKeyServerHalfID is the identifier type for a server-side key half.
+type TLFCryptKeyServerHalfID struct {
+	ServerHalfID [sha256.Size]byte // Exported for serialization.
+}
+
+// DeepCopy returns a complete copy of a TLFCryptKeyServerHalfID.
+func (id TLFCryptKeyServerHalfID) DeepCopy() TLFCryptKeyServerHalfID {
+	return id
+}
+
+// TLFCryptKeyInfo is a per-device key half entry in the DirKeyBundle.
+type TLFCryptKeyInfo struct {
+	ClientHalf   EncryptedTLFCryptKeyClientHalf
+	ServerHalfID TLFCryptKeyServerHalfID
+}
+
+// DeepCopy returns a complete copy of a TLFCryptKeyInfo.
+func (info TLFCryptKeyInfo) DeepCopy() TLFCryptKeyInfo {
+	return TLFCryptKeyInfo{
+		ClientHalf:   info.ClientHalf.DeepCopy(),
+		ServerHalfID: info.ServerHalfID.DeepCopy(),
+	}
+}
+
 // DirKeyBundle is a bundle of all the keys for a directory
 type DirKeyBundle struct {
 	// Symmetric secret key, encrypted for each writer's device
 	// (identified by the KID of the corresponding device CryptPublicKey).
-	WKeys map[keybase1.UID]map[keybase1.KID]EncryptedTLFCryptKeyClientHalf
+	WKeys map[keybase1.UID]map[keybase1.KID]TLFCryptKeyInfo
 	// Symmetric secret key, encrypted for each reader's device
 	// (identified by the KID of the corresponding device CryptPublicKey).
-	RKeys map[keybase1.UID]map[keybase1.KID]EncryptedTLFCryptKeyClientHalf
+	RKeys map[keybase1.UID]map[keybase1.KID]TLFCryptKeyInfo
 
 	// M_f as described in 4.1.1 of https://keybase.io/blog/crypto
 	// .
@@ -794,16 +819,16 @@ type DirKeyBundle struct {
 // DeepCopy returns a complete copy of this DirKeyBundle.
 func (dkb DirKeyBundle) DeepCopy() DirKeyBundle {
 	newDkb := dkb
-	newDkb.WKeys = make(map[keybase1.UID]map[keybase1.KID]EncryptedTLFCryptKeyClientHalf)
+	newDkb.WKeys = make(map[keybase1.UID]map[keybase1.KID]TLFCryptKeyInfo)
 	for u, m := range dkb.WKeys {
-		newDkb.WKeys[u] = make(map[keybase1.KID]EncryptedTLFCryptKeyClientHalf)
+		newDkb.WKeys[u] = make(map[keybase1.KID]TLFCryptKeyInfo)
 		for k, b := range m {
 			newDkb.WKeys[u][k] = b.DeepCopy()
 		}
 	}
-	newDkb.RKeys = make(map[keybase1.UID]map[keybase1.KID]EncryptedTLFCryptKeyClientHalf)
+	newDkb.RKeys = make(map[keybase1.UID]map[keybase1.KID]TLFCryptKeyInfo)
 	for u, m := range dkb.RKeys {
-		newDkb.RKeys[u] = make(map[keybase1.KID]EncryptedTLFCryptKeyClientHalf)
+		newDkb.RKeys[u] = make(map[keybase1.KID]TLFCryptKeyInfo)
 		for k, b := range m {
 			newDkb.RKeys[u][k] = b.DeepCopy()
 		}
