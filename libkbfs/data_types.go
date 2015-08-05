@@ -640,7 +640,7 @@ func (h *TlfHandle) ToBytes(config Config) (out []byte) {
 }
 
 // ToKBFolder converts a TlfHandle into a keybase1.Folder,
-// suitable for KBKPI calls.
+// suitable for KBPKI calls.
 func (h *TlfHandle) ToKBFolder(ctx context.Context, config Config) keybase1.Folder {
 	return keybase1.Folder{
 		Name:    h.ToString(ctx, config),

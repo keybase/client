@@ -219,12 +219,12 @@ type KBPKI interface {
 	GetCurrentCryptPublicKey(ctx context.Context) (CryptPublicKey, error)
 
 	// FavoriteAdd adds folder to the list of the logged in user's
-	// favorite folders.
+	// favorite folders.  It is idempotent.
 	FavoriteAdd(ctx context.Context, folder keybase1.Folder) error
 
-	// FavoriteRemove removes folder from the list of the logged in user's
-	// favorite folders.
-	FavoriteRemove(ctx context.Context, folder keybase1.Folder) error
+	// FavoriteDelete deletes folder from the list of the logged in user's
+	// favorite folders.  It is idempotent.
+	FavoriteDelete(ctx context.Context, folder keybase1.Folder) error
 
 	// FavoriteList returns the list of all favorite folders for
 	// the logged in user.

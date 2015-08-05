@@ -118,8 +118,8 @@ func (k *KBPKILocal) FavoriteAdd(ctx context.Context, folder keybase1.Folder) er
 	return nil
 }
 
-// FavoriteRemove implements the KBPKI interface for KBPKILocal.
-func (k *KBPKILocal) FavoriteRemove(ctx context.Context, folder keybase1.Folder) error {
+// FavoriteDelete implements the KBPKI interface for KBPKILocal.
+func (k *KBPKILocal) FavoriteDelete(ctx context.Context, folder keybase1.Folder) error {
 	k.Favorites.Delete(folder)
 	return nil
 }
