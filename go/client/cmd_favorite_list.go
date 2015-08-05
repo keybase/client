@@ -2,12 +2,12 @@ package client
 
 import (
 	"errors"
-	"fmt"
+	"path/filepath"
+
 	"github.com/keybase/cli"
 	"github.com/keybase/client/go/libcmdline"
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/protocol/go"
-	"path/filepath"
 )
 
 type CmdFavoriteList struct{}
@@ -48,7 +48,7 @@ func (c *CmdFavoriteList) Run() error {
 		if f.Private {
 			acc = "private"
 		}
-		fmt.Println(filepath.Join(acc, f.Name))
+		GlobUI.Println(filepath.Join(acc, f.Name))
 	}
 	return nil
 }

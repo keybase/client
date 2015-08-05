@@ -61,14 +61,14 @@ func findSubkeys(parentID keybase1.KID, allKeys []keybase1.PublicKey) []keybase1
 }
 
 func (v *CmdStatus) printExportedMe(me keybase1.User) error {
-	fmt.Printf("Username: %s\n", me.Username)
-	fmt.Printf("User ID: %s\n", me.Uid)
-	fmt.Printf("Device ID: %s\n", G.Env.GetDeviceID())
+	GlobUI.Printf("Username: %s\n", me.Username)
+	GlobUI.Printf("User ID: %s\n", me.Uid)
+	GlobUI.Printf("Device ID: %s\n", G.Env.GetDeviceID())
 	if len(me.PublicKeys) == 0 {
-		fmt.Printf("No public keys.\n")
+		GlobUI.Printf("No public keys.\n")
 		return nil
 	}
-	fmt.Printf("Public keys:\n")
+	GlobUI.Printf("Public keys:\n")
 	// Keep track of subkeys we print, so that if e.g. a subkey's parent is
 	// nonexistent, we can notice that we skipped it.
 	subkeysShown := make(map[keybase1.KID]bool)
@@ -104,10 +104,10 @@ func printKey(key keybase1.PublicKey, subkeys []keybase1.PublicKey, indent int) 
 	if key.IsEldest {
 		eldestStr = " (eldest)"
 	}
-	fmt.Printf("%s%s%s\n", indentSpace(indent), key.KID, eldestStr)
+	GlobUI.Printf("%s%s%s\n", indentSpace(indent), key.KID, eldestStr)
 	if key.PGPFingerprint != "" {
-		fmt.Printf("%sPGP Fingerprint: %s\n", indentSpace(indent+1), libkb.PGPFingerprintFromHexNoError(key.PGPFingerprint).ToQuads())
-		fmt.Printf("%sPGP Identities:\n", indentSpace(indent+1))
+		GlobUI.Printf("%sPGP Fingerprint: %s\n", indentSpace(indent+1), libkb.PGPFingerprintFromHexNoError(key.PGPFingerprint).ToQuads())
+		GlobUI.Printf("%sPGP Identities:\n", indentSpace(indent+1))
 		for _, identity := range key.PGPIdentities {
 			commentStr := ""
 			if identity.Comment != "" {
@@ -117,7 +117,7 @@ func printKey(key keybase1.PublicKey, subkeys []keybase1.PublicKey, indent int) 
 			if identity.Email != "" {
 				emailStr = fmt.Sprintf(" <%s>", identity.Email)
 			}
-			fmt.Printf("%s%s%s%s\n", indentSpace(indent+2), identity.Username, commentStr, emailStr)
+			GlobUI.Printf("%s%s%s%s\n", indentSpace(indent+2), identity.Username, commentStr, emailStr)
 		}
 	}
 	webStr := ""
@@ -125,16 +125,16 @@ func printKey(key keybase1.PublicKey, subkeys []keybase1.PublicKey, indent int) 
 		webStr = " (web)"
 	}
 	if key.DeviceID != "" {
-		fmt.Printf("%sDevice ID: %s%s\n", indentSpace(indent+1), key.DeviceID, webStr)
+		GlobUI.Printf("%sDevice ID: %s%s\n", indentSpace(indent+1), key.DeviceID, webStr)
 	}
 	if key.DeviceDescription != "" {
-		fmt.Printf("%sDevice Description: %s\n", indentSpace(indent+1), key.DeviceDescription)
+		GlobUI.Printf("%sDevice Description: %s\n", indentSpace(indent+1), key.DeviceDescription)
 	}
-	fmt.Printf("%sCreated: %s\n", indentSpace(indent+1), keybase1.FromTime(key.CTime))
-	fmt.Printf("%sExpires: %s\n", indentSpace(indent+1), keybase1.FromTime(key.ETime))
+	GlobUI.Printf("%sCreated: %s\n", indentSpace(indent+1), keybase1.FromTime(key.CTime))
+	GlobUI.Printf("%sExpires: %s\n", indentSpace(indent+1), keybase1.FromTime(key.ETime))
 
 	if subkeys != nil && len(subkeys) > 0 {
-		fmt.Printf("%sSubkeys:\n", indentSpace(indent+1))
+		GlobUI.Printf("%sSubkeys:\n", indentSpace(indent+1))
 		for _, subkey := range subkeys {
 			printKey(subkey, nil, indent+2)
 		}
