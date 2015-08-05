@@ -1,0 +1,10 @@
+{
+  "compilerOptions": {
+    "module": "commonjs",
+    "removeComments": true,
+    "preserveConstEnums": true,
+    "outDir": "../build/renderer",
+    "sourceMap": true,
+    "target": "ES5"
+  }
+}

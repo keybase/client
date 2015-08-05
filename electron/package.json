@@ -1,0 +1,39 @@
+{
+  "name": "Keybase",
+  "version": "0.1.0",
+  "description": "Keybase app",
+  "author": "Gabriel Handford <gabrielh@gmail.com>",
+  "contributors": [],
+  "main": "main.js",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/keybase/client.git"
+  },
+  "bugs": {
+    "url": "https://github.com/keybase/client/issues"
+  },
+  "keywords": [
+    "keybase"
+  ],
+  "license": "MIT",
+  "dependencies": {
+    "js-yaml": "^3.3.1",
+    "moment": "^2.10.6",
+    "normalize.css": "^3.0.3",
+    "react": "^0.13.3",
+    "typed-react": "^3.4.1",
+    "underscore": "^1.8.3",
+    "electron-breakpoint": "^1.0.1",
+    "framed-msgpack-rpc": "^1.1.7"
+  },
+  "devDependencies": {
+    "asar": "^0.7.2",
+    "browserify": "^11.0.1",
+    "electron-prebuilt": "^0.30.1",
+    "less": "^2.5.1",
+    "typescript": "^1.5.3"
+  },
+  "scripts": {
+    "test": "make"
+  }
+}

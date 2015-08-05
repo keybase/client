@@ -1,0 +1,10 @@
+{
+  "compilerOptions": {
+    "module": "commonjs",
+    "removeComments": true,
+    "preserveConstEnums": true,
+    "outDir": "../build/browser",
+    "sourceMap": true,
+    "target": "ES5"
+  }
+}
