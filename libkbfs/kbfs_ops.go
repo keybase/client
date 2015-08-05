@@ -103,11 +103,27 @@ func (fs *KBFSOpsStandard) getOpsByNode(node Node) *FolderBranchOps {
 	return fs.getOps(node.GetFolderBranch())
 }
 
+func (fs *KBFSOpsStandard) getOpsByHandle(ctx context.Context, handle *TlfHandle, fb FolderBranch) (*FolderBranchOps, error) {
+	fs.opsLock.RLock()
+	_, exists := fs.ops[fb]
+	fs.opsLock.RUnlock()
+
+	if !exists && fb.Branch == MasterBranch {
+		err := fs.config.KBPKI().FavoriteAdd(ctx, handle.ToKBFolder(ctx, fs.config))
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	return fs.getOps(fb), nil
+}
+
 // GetOrCreateRootNodeForHandle implements the KBFSOps interface for
 // KBFSOpsStandard
 func (fs *KBFSOpsStandard) GetOrCreateRootNodeForHandle(
 	ctx context.Context, handle *TlfHandle, branch BranchName) (
 	node Node, de DirEntry, err error) {
+
 	// Do GetForHandle() unlocked -- no cache lookups, should be fine
 	mdops := fs.config.MDOps()
 	// TODO: only do this the first time, cache the folder ID after that
@@ -116,20 +132,11 @@ func (fs *KBFSOpsStandard) GetOrCreateRootNodeForHandle(
 		return
 	}
 
-	// TODO: in andy_md2 branch, if GetForHandle returns (id, nil, nil) then
-	// the folder was just created.  For now, we don't know, so we'll
-	// just assume it was created.
-	created := true
-	if created && branch == MasterBranch {
-		// add folder to favorites
-		err = fs.config.KBPKI().FavoriteAdd(ctx, handle.ToKBFolder(ctx, fs.config))
-		if err != nil {
-			return
-		}
-	}
-
 	fb := FolderBranch{Tlf: md.ID, Branch: branch}
-	ops := fs.getOps(fb)
+	ops, err := fs.getOpsByHandle(ctx, handle, fb)
+	if err != nil {
+		return
+	}
 	if branch == MasterBranch {
 		// For now, only the master branch can be initialized with a
 		// branch new MD object.
