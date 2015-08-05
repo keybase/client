@@ -50,17 +50,21 @@ func readHelper(ctx context.Context, config libkbfs.Config, args []string) error
 		return errExactlyOnePath
 	}
 
-	filePath := flags.Arg(0)
-	components, err := split(filePath)
+	filePathStr := flags.Arg(0)
+	p, err := makeKbfsPath(filePathStr)
 	if err != nil {
 		return err
 	}
 
-	if *verbose {
-		fmt.Fprintf(os.Stderr, "Looking up %s\n", join(components))
+	if p.pathType != tlfPath {
+		return fmt.Errorf("Cannot read %s", p)
 	}
 
-	fileNode, err := openFile(ctx, config, components)
+	if *verbose {
+		fmt.Fprintf(os.Stderr, "Looking up %s\n", p)
+	}
+
+	fileNode, err := p.getFileNode(ctx, config)
 	if err != nil {
 		return err
 	}

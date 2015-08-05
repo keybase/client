@@ -15,16 +15,16 @@ type reqType int
 
 const (
 	read  reqType = iota // A read request
-	write         = iota // A write request
+	write                // A write request
 )
 
 type branchType int
 
 const (
 	standard       branchType = iota // an online, read-write branch
-	archive                   = iota // an online, read-only branch
-	offline                   = iota // an offline, read-write branch
-	archiveOffline            = iota // an offline, read-only branch
+	archive                          // an online, read-only branch
+	offline                          // an offline, read-write branch
+	archiveOffline                   // an offline, read-only branch
 )
 
 type state int

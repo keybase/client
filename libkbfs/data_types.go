@@ -888,11 +888,11 @@ const (
 	// File is a regular file.
 	File EntryType = iota
 	// Exec is an executable file.
-	Exec = iota
+	Exec
 	// Dir is a directory.
-	Dir = iota
+	Dir
 	// Sym is a symbolic link.
-	Sym = iota
+	Sym
 )
 
 // String implements the fmt.Stringer interface for EntryType

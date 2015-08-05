@@ -3,14 +3,15 @@ package main
 import (
 	"flag"
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/keybase/kbfs/libkbfs"
 	"golang.org/x/net/context"
 )
 
-func printHeader(components []string) {
-	fmt.Printf("%s:\n", join(components))
+func printHeader(p kbfsPath) {
+	fmt.Printf("%s:\n", p)
 }
 
 func computeModeStr(entryType libkbfs.EntryType) string {
@@ -48,7 +49,7 @@ func computeModeStr(entryType libkbfs.EntryType) string {
 	return fmt.Sprintf("%s%s%s%s", typeStr, modeStr, modeStr, "---")
 }
 
-func printEntry(ctx context.Context, config libkbfs.Config, components []string, name string, entryType libkbfs.EntryType, longFormat, useSigil bool) {
+func printEntry(ctx context.Context, config libkbfs.Config, dir kbfsPath, name string, entryType libkbfs.EntryType, longFormat, useSigil bool) {
 	var sigil string
 	if useSigil {
 		switch entryType {
@@ -64,7 +65,11 @@ func printEntry(ctx context.Context, config libkbfs.Config, components []string,
 		}
 	}
 	if longFormat {
-		_, de, err := openNode(ctx, config, append(components, name))
+		p, err := dir.join(name)
+		if err != nil {
+			printError("ls", err)
+		}
+		_, de, err := p.getNode(ctx, config)
 		if err != nil {
 			printError("ls", err)
 		}
@@ -81,85 +86,112 @@ func printEntry(ctx context.Context, config libkbfs.Config, components []string,
 	}
 }
 
-func lsHelper(ctx context.Context, config libkbfs.Config, components []string, hasMultiple bool, handleEntry func(string, libkbfs.EntryType)) error {
+func lsHelper(ctx context.Context, config libkbfs.Config, p kbfsPath, hasMultiple bool, handleEntry func(string, libkbfs.EntryType)) error {
 	kbfsOps := config.KBFSOps()
 
-	if len(components) == 1 {
+	switch p.pathType {
+	case rootPath:
+		if hasMultiple {
+			printHeader(p)
+		}
+		handleEntry(topName, libkbfs.Dir)
+		return nil
+
+	case keybasePath:
+		if hasMultiple {
+			printHeader(p)
+		}
+		handleEntry(publicName, libkbfs.Dir)
+		handleEntry(privateName, libkbfs.Dir)
+		return nil
+
+	case keybaseChildPath:
 		tlfHandles, err := kbfsOps.GetFavorites(ctx)
 		if err != nil {
 			return err
 		}
 
 		if hasMultiple {
-			printHeader(components)
+			printHeader(p)
 		}
 		for _, th := range tlfHandles {
-			handleEntry(th.ToString(ctx, config), libkbfs.Dir)
+			if p.public == th.IsPublic() {
+				name := th.ToString(ctx, config)
+				if p.public {
+					// strip off the public portion
+					name = strings.TrimSuffix(name, publicSuffix)
+				}
+				handleEntry(name, libkbfs.Dir)
+			}
 		}
+		return nil
 
-		return err
-	}
-
-	node, de, err := openNode(ctx, config, components)
-	if err != nil {
-		return err
-	}
-
-	if de.Type == libkbfs.Dir {
-		// GetDirChildren doesn't verify the dir-ness of the node
-		// correctly (since it ends up creating a new DirBlock if the
-		// node isn't in the cache already).
-		//
-		// TODO: Fix the above.
-		children, err := kbfsOps.GetDirChildren(ctx, node)
+	case tlfPath:
+		n, de, err := p.getNode(ctx, config)
 		if err != nil {
 			return err
 		}
 
-		if hasMultiple {
-			printHeader(components)
+		if de.Type == libkbfs.Dir {
+			// GetDirChildren doesn't verify the dir-ness
+			// of the node correctly (since it ends up
+			// creating a new DirBlock if the node isn't
+			// in the cache already).
+			//
+			// TODO: Fix the above.
+			children, err := kbfsOps.GetDirChildren(ctx, n)
+			if err != nil {
+				return err
+			}
+
+			if hasMultiple {
+				printHeader(p)
+			}
+			for name, entryType := range children {
+				handleEntry(name, entryType)
+			}
+		} else {
+			_, name, err := p.dirAndBasename()
+			if err != nil {
+				return err
+			}
+			handleEntry(name, de.Type)
 		}
-		for name, entryType := range children {
-			handleEntry(name, entryType)
-		}
-	} else {
-		name := components[len(components)-1]
-		handleEntry(name, de.Type)
+		return nil
+
+	default:
+		break
 	}
 
-	return nil
+	return fmt.Errorf("invalid KBFS path %s", p)
 }
 
-func lsOne(ctx context.Context, config libkbfs.Config, nodePath string, longFormat, useSigil, recursive, hasMultiple bool) error {
-	components, err := split(nodePath)
-	if err != nil {
-		return err
-	}
-
-	if len(components) == 0 || components[0] != "keybase" {
-		return fmt.Errorf("%s is not in /keybase", nodePath)
-	}
-
+func lsOne(ctx context.Context, config libkbfs.Config, p kbfsPath, longFormat, useSigil, recursive, hasMultiple bool, errorFn func(error)) {
 	var children []string
 	handleEntry := func(name string, entryType libkbfs.EntryType) {
 		if recursive && entryType == libkbfs.Dir {
 			children = append(children, name)
 		}
-		printEntry(ctx, config, components, name, entryType, longFormat, useSigil)
+		printEntry(ctx, config, p, name, entryType, longFormat, useSigil)
 	}
-	err = lsHelper(ctx, config, components, hasMultiple || recursive, handleEntry)
+	err := lsHelper(ctx, config, p, hasMultiple || recursive, handleEntry)
 	if err != nil {
-		return err
+		errorFn(err)
+		// Fall-through.
 	}
 
 	if recursive {
 		for _, name := range children {
+			childPath, err := p.join(name)
+			if err != nil {
+				errorFn(err)
+				continue
+			}
+
 			fmt.Print("\n")
-			lsOne(ctx, config, join(append(components, name)), longFormat, useSigil, true, true)
+			lsOne(ctx, config, childPath, longFormat, useSigil, true, true, errorFn)
 		}
 	}
-
-	return nil
 }
 
 func ls(ctx context.Context, config libkbfs.Config, args []string) (exitStatus int) {
@@ -169,24 +201,30 @@ func ls(ctx context.Context, config libkbfs.Config, args []string) (exitStatus i
 	recursive := flags.Bool("R", false, "Recursively list subdirectories encountered.")
 	flags.Parse(args)
 
-	nodePaths := flags.Args()
-	if len(nodePaths) == 0 {
+	nodePathStrs := flags.Args()
+	if len(nodePathStrs) == 0 {
 		printError("ls", errAtLeastOnePath)
 		exitStatus = 1
 		return
 	}
 
-	hasMultiple := len(nodePaths) > 1
-	for i, nodePath := range nodePaths {
+	hasMultiple := len(nodePathStrs) > 1
+	for i, nodePathStr := range nodePathStrs {
+		p, err := makeKbfsPath(nodePathStr)
+		if err != nil {
+			printError("ls", err)
+			exitStatus = 1
+			continue
+		}
+
 		if i > 0 {
 			fmt.Print("\n")
 		}
 
-		err := lsOne(ctx, config, nodePath, *longFormat, *useSigil, *recursive, hasMultiple)
-		if err != nil {
+		lsOne(ctx, config, p, *longFormat, *useSigil, *recursive, hasMultiple, func(err error) {
 			printError("ls", err)
 			exitStatus = 1
-		}
+		})
 	}
 	return
 }

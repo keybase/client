@@ -32,7 +32,7 @@ func (nw *nodeWriter) Write(p []byte) (n int, err error) {
 	return
 }
 
-func writeHelper(ctx context.Context, config libkbfs.Config, args []string) error {
+func writeHelper(ctx context.Context, config libkbfs.Config, args []string) (err error) {
 	flags := flag.NewFlagSet("kbfs write", flag.ContinueOnError)
 	append := flags.Bool("a", false, "Append to an existing file instead of truncating it.")
 	verbose := flags.Bool("v", false, "Print extra status output.")
@@ -42,21 +42,43 @@ func writeHelper(ctx context.Context, config libkbfs.Config, args []string) erro
 		return errExactlyOnePath
 	}
 
-	filePath := flags.Arg(0)
-	components, err := split(filePath)
+	filePathStr := flags.Arg(0)
+
+	defer func() {
+		if err != nil {
+			if _, ok := err.(cannotWriteErr); !ok {
+				err = cannotWriteErr{filePathStr, err}
+			}
+		}
+	}()
+
+	p, err := makeKbfsPath(filePathStr)
 	if err != nil {
-		return err
+		return
 	}
 
-	parentComponents := components[:len(components)-1]
-	parentNode, err := openDir(ctx, config, parentComponents)
+	if p.pathType != tlfPath {
+		err = cannotWriteErr{filePathStr, nil}
+		return
+	}
+
+	dir, filename, err := p.dirAndBasename()
+	if err != nil {
+		return
+	}
+
+	if dir.pathType != tlfPath {
+		err = cannotWriteErr{filePathStr, nil}
+		return
+	}
+
+	parentNode, err := dir.getDirNode(ctx, config)
 	if err != nil {
 		return err
 	}
 
 	kbfsOps := config.KBFSOps()
 
-	filename := components[len(components)-1]
 	noSuchFileErr := libkbfs.NoSuchNameError{Name: filename}
 
 	// The operations below are racy, but that is inherent to a
@@ -72,7 +94,7 @@ func writeHelper(ctx context.Context, config libkbfs.Config, args []string) erro
 
 	if err == noSuchFileErr {
 		if *verbose {
-			fmt.Fprintf(os.Stderr, "Creating %s\n", join(components))
+			fmt.Fprintf(os.Stderr, "Creating %s\n", p)
 		}
 		fileNode, _, err = kbfsOps.CreateFile(ctx, parentNode, filename, false)
 		if err != nil {
@@ -81,13 +103,13 @@ func writeHelper(ctx context.Context, config libkbfs.Config, args []string) erro
 	} else {
 		if *append {
 			if *verbose {
-				fmt.Fprintf(os.Stderr, "Appending to %s\n", join(components))
+				fmt.Fprintf(os.Stderr, "Appending to %s\n", p)
 			}
 
 			off = int64(de.Size)
 		} else {
 			if *verbose {
-				fmt.Fprintf(os.Stderr, "Truncating %s\n", join(components))
+				fmt.Fprintf(os.Stderr, "Truncating %s\n", p)
 			}
 			err = kbfsOps.Truncate(ctx, fileNode, 0)
 			if err != nil {
@@ -117,7 +139,7 @@ func writeHelper(ctx context.Context, config libkbfs.Config, args []string) erro
 
 	if needSync {
 		if *verbose {
-			fmt.Fprintf(os.Stderr, "Syncing %s\n", join(components))
+			fmt.Fprintf(os.Stderr, "Syncing %s\n", p)
 		}
 		err := kbfsOps.Sync(ctx, fileNode)
 		if err != nil {

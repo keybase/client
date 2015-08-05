@@ -9,16 +9,20 @@ import (
 	"golang.org/x/net/context"
 )
 
-func createDir(ctx context.Context, kbfsOps libkbfs.KBFSOps, parentNode libkbfs.Node, dirname, path string, verbose bool) (libkbfs.Node, error) {
-	childNode, _, err := kbfsOps.CreateDir(ctx, parentNode, dirname)
-	if err == nil {
+func maybePrintPath(path string, err error, verbose bool) {
+	if err == nil && verbose {
 		fmt.Fprintf(os.Stderr, "mkdir: created directory '%s'\n", path)
 	}
+}
+
+func createDir(ctx context.Context, kbfsOps libkbfs.KBFSOps, parentNode libkbfs.Node, dirname, path string, verbose bool) (libkbfs.Node, error) {
+	childNode, _, err := kbfsOps.CreateDir(ctx, parentNode, dirname)
+	maybePrintPath(path, err, verbose)
 	return childNode, err
 }
 
-func mkdirOne(ctx context.Context, config libkbfs.Config, dirPath string, createIntermediate, verbose bool) error {
-	components, err := split(dirPath)
+func mkdirOne(ctx context.Context, config libkbfs.Config, dirPathStr string, createIntermediate, verbose bool) error {
+	p, err := makeKbfsPath(dirPathStr)
 	if err != nil {
 		return err
 	}
@@ -26,17 +30,31 @@ func mkdirOne(ctx context.Context, config libkbfs.Config, dirPath string, create
 	kbfsOps := config.KBFSOps()
 
 	if createIntermediate {
-		tlfComponents := components[:2]
-		tlfNode, err := openDir(ctx, config, tlfComponents)
+		if p.pathType != tlfPath || len(p.tlfComponents) == 0 {
+			// Nothing to do.
+			return nil
+		}
+
+		tlfRoot := kbfsPath{
+			pathType: tlfPath,
+			public:   p.public,
+			tlfName:  p.tlfName,
+		}
+		tlfNode, err := tlfRoot.getDirNode(ctx, config)
 		if err != nil {
 			return err
 		}
 
+		currP := tlfRoot
 		currNode := tlfNode
-		for i := 2; i < len(components); i++ {
-			dirname := components[i]
-			path := join(components[:i+1])
-			nextNode, err := createDir(ctx, kbfsOps, currNode, dirname, path, verbose)
+		for i := 0; i < len(p.tlfComponents); i++ {
+			dirname := p.tlfComponents[i]
+			currP, err = currP.join(dirname)
+			if err != nil {
+				return err
+			}
+
+			nextNode, err := createDir(ctx, kbfsOps, currNode, dirname, currP.String(), verbose)
 			if err == (libkbfs.NameExistsError{Name: dirname}) {
 				nextNode, _, err = kbfsOps.Lookup(ctx, currNode, dirname)
 			}
@@ -46,14 +64,29 @@ func mkdirOne(ctx context.Context, config libkbfs.Config, dirPath string, create
 			currNode = nextNode
 		}
 	} else {
-		parentComponents := components[:len(components)-1]
-		parentNode, err := openDir(ctx, config, parentComponents)
+		if p.pathType != tlfPath {
+			return libkbfs.NameExistsError{Name: p.String()}
+		}
+
+		parentDir, dirname, err := p.dirAndBasename()
 		if err != nil {
 			return err
 		}
 
-		dirname := components[len(components)-1]
-		_, err = createDir(ctx, kbfsOps, parentNode, dirname, dirPath, verbose)
+		if parentDir.pathType != tlfPath {
+			// TODO: Ideally, this would error out if
+			// p already existed.
+			_, err := p.getDirNode(ctx, config)
+			maybePrintPath(p.String(), err, verbose)
+			return err
+		}
+
+		parentNode, err := parentDir.getDirNode(ctx, config)
+		if err != nil {
+			return err
+		}
+
+		_, err = createDir(ctx, kbfsOps, parentNode, dirname, p.String(), verbose)
 		if err != nil {
 			return err
 		}

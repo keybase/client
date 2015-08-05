@@ -9,23 +9,26 @@ import (
 	"golang.org/x/net/context"
 )
 
-func statNode(ctx context.Context, config libkbfs.Config, nodePath string) error {
-	components, err := split(nodePath)
+func statNode(ctx context.Context, config libkbfs.Config, nodePathStr string) error {
+	p, err := makeKbfsPath(nodePathStr)
 	if err != nil {
 		return err
 	}
 
-	// Ignore the DirEntry returned by openNode so we can exercise
-	// the Stat() codepath. We can't compare the two, since they
-	// might legitimately differ due to races.
-	n, _, err := openNode(ctx, config, components)
+	n, de, err := p.getNode(ctx, config)
 	if err != nil {
 		return err
 	}
 
-	de, err := config.KBFSOps().Stat(ctx, n)
-	if err != nil {
-		return err
+	// If n is non-nil, ignore the DirEntry returned by
+	// p.getNode() so we can exercise the Stat() codepath. We
+	// can't compare the two, since they might legitimately differ
+	// due to races.
+	if n != nil {
+		de, err = config.KBFSOps().Stat(ctx, n)
+		if err != nil {
+			return err
+		}
 	}
 
 	var symPathStr string
