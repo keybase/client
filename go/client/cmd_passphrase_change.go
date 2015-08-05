@@ -1,8 +1,6 @@
 package client
 
 import (
-	"fmt"
-
 	"github.com/keybase/cli"
 	"github.com/keybase/client/go/libcmdline"
 	"github.com/keybase/client/go/libkb"
@@ -28,12 +26,12 @@ func (c *CmdPassphraseChange) Run() error {
 	}
 
 	if err := passphraseChange(newChangeArg(pp, false)); err != nil {
-		fmt.Println()
-		fmt.Println("There was a problem during the standard update of your passphrase.")
-		fmt.Printf("\n%s\n\n", err)
-		fmt.Println("If you have forgotten your existing passphrase, you can recover")
-		fmt.Println("your account with the command 'keybase passphrase recover'.")
-		fmt.Println()
+		GlobUI.Println()
+		GlobUI.Println("There was a problem during the standard update of your passphrase.")
+		GlobUI.Printf("\n%s\n\n", err)
+		GlobUI.Println("If you have forgotten your existing passphrase, you can recover")
+		GlobUI.Println("your account with the command 'keybase passphrase recover'.")
+		GlobUI.Println()
 		return err
 	}
 

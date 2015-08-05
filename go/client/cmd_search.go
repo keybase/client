@@ -78,16 +78,16 @@ func (c *CmdSearch) showResults(results []keybase1.UserSummary) error {
 
 func (c *CmdSearch) showRegularResults(results []keybase1.UserSummary) error {
 	for _, user := range results {
-		fmt.Printf("%s", user.Username)
+		GlobUI.Printf("%s", user.Username)
 		for _, social := range user.Proofs.Social {
-			fmt.Printf(" %s:%s", social.ProofType, social.ProofName)
+			GlobUI.Printf(" %s:%s", social.ProofType, social.ProofName)
 		}
 		for _, web := range user.Proofs.Web {
 			for _, protocol := range web.Protocols {
-				fmt.Printf(" %s://%s", protocol, web.Hostname)
+				GlobUI.Printf(" %s://%s", protocol, web.Hostname)
 			}
 		}
-		fmt.Println()
+		GlobUI.Println()
 	}
 	return nil
 }
@@ -114,7 +114,7 @@ func (c *CmdSearch) showJSONResults(results []keybase1.UserSummary) error {
 		}
 		output.SetIndex(userIndex, userBlob)
 	}
-	fmt.Println(output.MarshalPretty())
+	GlobUI.Println(output.MarshalPretty())
 	return nil
 }
 

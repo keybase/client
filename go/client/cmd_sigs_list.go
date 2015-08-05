@@ -167,7 +167,7 @@ func (s *CmdSigsList) Run() error {
 		if err != nil {
 			return err
 		}
-		fmt.Println(json)
+		GlobUI.Println(json)
 		return nil
 	}
 

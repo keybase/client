@@ -117,7 +117,7 @@ func (c *CmdListTrackers) headout(count int) *tabwriter.Writer {
 	if count > 1 {
 		noun = "trackers"
 	}
-	fmt.Printf("%d %s:\n\n", count, noun)
+	GlobUI.Printf("%d %s:\n\n", count, noun)
 
 	w := GlobUI.DefaultTabWriter()
 	if c.headers {
@@ -134,7 +134,7 @@ func (c *CmdListTrackers) output(trs []keybase1.Tracker, summarizer batchfn) (er
 	}
 
 	if len(sums) == 0 {
-		fmt.Printf("no trackers\n")
+		GlobUI.Printf("no trackers\n")
 		return nil
 	}
 
@@ -154,7 +154,7 @@ func (c *CmdListTrackers) output(trs []keybase1.Tracker, summarizer batchfn) (er
 		w.Flush()
 	} else {
 		for _, v := range sums {
-			fmt.Println(v.Username)
+			GlobUI.Println(v.Username)
 		}
 	}
 
@@ -191,7 +191,7 @@ func (c *CmdListTrackers) outputJSON(sums []keybase1.UserSummary) error {
 	if err != nil {
 		return err
 	}
-	fmt.Println(string(j))
+	GlobUI.Println(string(j))
 	return nil
 }
 

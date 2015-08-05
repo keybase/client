@@ -1,8 +1,6 @@
 package client
 
 import (
-	"fmt"
-
 	"github.com/keybase/cli"
 	"github.com/keybase/client/go/libcmdline"
 	"github.com/keybase/client/go/libkb"
@@ -11,7 +9,7 @@ import (
 type CmdVersion struct{}
 
 func (v *CmdVersion) Run() error {
-	libkb.VersionMessage(func(s string) { fmt.Println(s) })
+	libkb.VersionMessage(func(s string) { GlobUI.Println(s) })
 	return nil
 }
 

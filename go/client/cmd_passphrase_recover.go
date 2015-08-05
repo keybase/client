@@ -1,8 +1,6 @@
 package client
 
 import (
-	"fmt"
-
 	"github.com/keybase/cli"
 	"github.com/keybase/client/go/libcmdline"
 	"github.com/keybase/client/go/libkb"
@@ -22,8 +20,8 @@ func NewCmdPassphraseRecover(cl *libcmdline.CommandLine) cli.Command {
 }
 
 func (c *CmdPassphraseRecover) confirm() error {
-	fmt.Println("Password recovery will put your account on probation for 5 days.")
-	fmt.Println("You won't be able to perform certain actions, like revoking devices.")
+	GlobUI.Println("Password recovery will put your account on probation for 5 days.")
+	GlobUI.Println("You won't be able to perform certain actions, like revoking devices.")
 	return GlobUI.PromptForConfirmation("Continue with password recovery?")
 }
 

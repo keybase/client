@@ -40,7 +40,7 @@ func displayTable(entries []keybase1.UserSummary, verbose bool, headers bool) (e
 		if len(entries) == 1 {
 			noun = "user"
 		}
-		fmt.Printf("Tracking %d %s:\n\n", len(entries), noun)
+		GlobUI.Printf("Tracking %d %s:\n\n", len(entries), noun)
 	}
 
 	var cols []string
