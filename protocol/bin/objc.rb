@@ -248,7 +248,7 @@ paths.each do |path|
   end
 
 
-  header << "@interface #{classname(protocol.camelize, aliases)}Request : KBRRequest"
+  header << "@interface #{classname(protocol.camelize, aliases)}Request : KBRRequest\n"
   impl << "@implementation #{classname(protocol.camelize, aliases)}Request\n"
 
   h["messages"].each do |method, mparam|
@@ -272,30 +272,40 @@ paths.each do |path|
       end
     end
     params_str = []
+    if mparam["doc"] then
+      header << "/*!"
+      header << " " + mparam["doc"].gsub(/[\t ]+/, ' ')
+      header << " */"
+    end
     if request_params.length > 0
       params_str << ":(KBR#{method.camelize}RequestParams *)params"
       params_str << "completion:(#{objc_for_type(response_completion, enums, aliases, false)})completion"
       add_methods(header, impl, namespace, protocol, response_type, method, request_params_items, params_str, aliases)
+    else
+      params_str << ":(#{objc_for_type(response_completion, enums, aliases, false)})completion"
+      add_methods(header, impl, namespace, protocol, response_type, method, request_params_items, params_str, aliases)
     end
 
-    # Generate with full method signature
-    request_params_items = request_params.map do |p|
-      if is_primitive_type(p["type"]) || enums.include?(p["type"])
-        "@\"#{p["name"]}\": @(#{alias_name(p["name"])})"
-      else
-        "@\"#{p["name"]}\": KBRValue(#{alias_name(p["name"])})"
+    # Generate with full method signature (deprecated)
+    if request_params.length > 0
+      request_params_items = request_params.map do |p|
+        if is_primitive_type(p["type"]) || enums.include?(p["type"])
+          "@\"#{p["name"]}\": @(#{alias_name(p["name"])})"
+        else
+          "@\"#{p["name"]}\": KBRValue(#{alias_name(p["name"])})"
+        end
       end
-    end
-    request_params << {"name" => "completion", "type" => response_completion}
-    params_str = request_params.each_with_index.collect do |param, index|
-      name = alias_name(param["name"])
-      validate_name(name, protocol)
-      name = "With#{name.camelize}" if index == 0
-      name = "" if request_params.length == 1
+      request_params << {"name" => "completion", "type" => response_completion}
+      params_str = request_params.each_with_index.collect do |param, index|
+        name = alias_name(param["name"])
+        validate_name(name, protocol)
+        name = "With#{name.camelize}" if index == 0
+        name = "" if request_params.length == 1
 
-      "#{name}:(#{objc_for_type(param["type"], enums, aliases, false)})#{alias_name(param["name"])}"
+        "#{name}:(#{objc_for_type(param["type"], enums, aliases, false)})#{alias_name(param["name"])}"
+      end
+      add_methods(header, impl, namespace, protocol, response_type, method, request_params_items, params_str, aliases)
     end
-    add_methods(header, impl, namespace, protocol, response_type, method, request_params_items, params_str, aliases)
 
     # Request params
     if mparam["request"].length > 0
