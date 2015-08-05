@@ -4,11 +4,11 @@ import (
 	"testing"
 )
 
-func blockCacheTestInit(t *testing.T, capacity int) *BlockCacheStandard {
+func blockCacheTestInit(t *testing.T, capacity int) Config {
 	config := MakeTestConfigOrBust(t, nil, "test")
 	b := NewBlockCacheStandard(config, capacity)
 	config.SetBlockCache(b)
-	return b
+	return config
 }
 
 func testBcachePut(t *testing.T, id BlockID, bcache BlockCache, dirty bool) {
@@ -52,15 +52,21 @@ func testExpectedMissing(t *testing.T, id BlockID, bcache BlockCache) {
 }
 
 func TestBcachePut(t *testing.T) {
-	testBcachePut(t, BlockID{1}, blockCacheTestInit(t, 100), false)
+	config := blockCacheTestInit(t, 100)
+	defer config.Shutdown()
+	testBcachePut(t, BlockID{1}, config.BlockCache(), false)
 }
 
 func TestBcachePutDirty(t *testing.T) {
-	testBcachePut(t, BlockID{1}, blockCacheTestInit(t, 100), true)
+	config := blockCacheTestInit(t, 100)
+	defer config.Shutdown()
+	testBcachePut(t, BlockID{1}, config.BlockCache(), true)
 }
 
 func TestBcachePutPastCapacity(t *testing.T) {
-	bcache := blockCacheTestInit(t, 2)
+	config := blockCacheTestInit(t, 2)
+	defer config.Shutdown()
+	bcache := config.BlockCache()
 	id1 := BlockID{1}
 	testBcachePut(t, id1, bcache, false)
 	id2 := BlockID{2}
@@ -88,7 +94,9 @@ func TestBcachePutPastCapacity(t *testing.T) {
 }
 
 func TestBcachePutDuplicateDirty(t *testing.T) {
-	bcache := blockCacheTestInit(t, 2)
+	config := blockCacheTestInit(t, 2)
+	defer config.Shutdown()
+	bcache := config.BlockCache()
 	// put one under the default block pointer and branch name (clean)
 	id1 := BlockID{1}
 	testBcachePut(t, id1, bcache, false)
@@ -134,7 +142,9 @@ func TestBcachePutDuplicateDirty(t *testing.T) {
 }
 
 func TestBcacheCheckPtrSuccess(t *testing.T) {
-	bcache := blockCacheTestInit(t, 100)
+	config := blockCacheTestInit(t, 100)
+	defer config.Shutdown()
+	bcache := config.BlockCache()
 
 	block := NewFileBlock().(*FileBlock)
 	block.Contents = []byte{1, 2, 3, 4}
@@ -156,7 +166,9 @@ func TestBcacheCheckPtrSuccess(t *testing.T) {
 }
 
 func TestBcacheCheckPtrNotFound(t *testing.T) {
-	bcache := blockCacheTestInit(t, 100)
+	config := blockCacheTestInit(t, 100)
+	defer config.Shutdown()
+	bcache := config.BlockCache()
 
 	block := NewFileBlock().(*FileBlock)
 	block.Contents = []byte{1, 2, 3, 4}
@@ -180,7 +192,9 @@ func TestBcacheCheckPtrNotFound(t *testing.T) {
 }
 
 func TestBcacheDelete(t *testing.T) {
-	bcache := blockCacheTestInit(t, 100)
+	config := blockCacheTestInit(t, 100)
+	defer config.Shutdown()
+	bcache := config.BlockCache()
 
 	id1 := BlockID{1}
 	testBcachePut(t, id1, bcache, false)
@@ -197,7 +211,9 @@ func TestBcacheDelete(t *testing.T) {
 }
 
 func TestBcacheDeleteDirty(t *testing.T) {
-	bcache := blockCacheTestInit(t, 100)
+	config := blockCacheTestInit(t, 100)
+	defer config.Shutdown()
+	bcache := config.BlockCache()
 
 	id1 := BlockID{1}
 	testBcachePut(t, id1, bcache, true)

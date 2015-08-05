@@ -1,61 +1,43 @@
 package libkbfs
 
 import (
-	"crypto/tls"
-	"crypto/x509"
-	"errors"
-	"net"
-	"time"
-
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/protocol/go"
-	"github.com/maxtaco/go-framed-msgpack-rpc/rpc2"
 	"golang.org/x/net/context"
-)
-
-const (
-	// MDServerReconnectThrottleMinSecs is the min number of seconds to wait before attempting a reconnect.
-	MDServerReconnectThrottleMinSecs = 1
-	// MDServerReconnectThrottleMaxSecs is the max number of seconds to wait before attempting a reconnect.
-	MDServerReconnectThrottleMaxSecs = 30
+	"time"
 )
 
 // MDServerRemote is an implementation of the MDServer interface.
 type MDServerRemote struct {
-	srvAddr               string
-	transport             *rpc2.Transport
-	client                keybase1.GenericClient
-	config                Config
-	certs                 *x509.CertPool
-	reconnectThrottleSecs int
+	config     Config
+	conn       *Connection
+	testClient keybase1.GenericClient // for testing
 }
+
+// Test that MDServerRemote fully implements the MDServer interface.
+var _ MDServer = (*MDServerRemote)(nil)
+
+// Test that MDServerRemote fully implements the KeyServer interface.
+var _ KeyServer = (*MDServerRemote)(nil)
 
 // NewMDServerRemote returns a new instance of MDServerRemote.
-func NewMDServerRemote(ctx context.Context, config Config, srvAddr string) (
-	*MDServerRemote, error) {
-	certs := x509.NewCertPool()
-	if !certs.AppendCertsFromPEM(config.CACert()) {
-		return nil, errors.New("Unable to load CA certificate")
-	}
-	mdserver := &MDServerRemote{
-		srvAddr: srvAddr,
-		config:  config,
-		certs:   certs,
-	}
-	return mdserver, mdserver.connect(ctx)
+func NewMDServerRemote(ctx context.Context, config Config, srvAddr string) *MDServerRemote {
+	mdServer := &MDServerRemote{config: config}
+	connection := NewConnection(ctx, config, srvAddr, mdServer, MDServerUnwrapError)
+	mdServer.conn = connection
+	return mdServer
 }
 
-// This is for testing only.
+// For testing.
 func newMDServerRemoteWithClient(ctx context.Context, config Config,
-	client keybase1.GenericClient) (*MDServerRemote, error) {
-	mdserver := &MDServerRemote{
-		client: client,
-		config: config,
-	}
-	return mdserver, mdserver.connect(ctx)
+	testClient keybase1.GenericClient) *MDServerRemote {
+	mdServer := &MDServerRemote{config: config, testClient: testClient}
+	return mdServer
 }
 
-func (md *MDServerRemote) connect(ctx context.Context) error {
+// OnConnect implements the ConnectionHandler interface.
+func (md *MDServerRemote) OnConnect(ctx context.Context,
+	conn *Connection, client keybase1.GenericClient) error {
 	// get UID, deviceKID and session token
 	var err error
 	var user keybase1.UID
@@ -78,66 +60,47 @@ func (md *MDServerRemote) connect(ctx context.Context) error {
 		token = session.GetToken()
 	}
 
-	if len(md.srvAddr) != 0 {
-		// connect to server
-		var c net.Conn
-		err = runUnlessCanceled(ctx, func() error {
-			config := tls.Config{RootCAs: md.certs}
-			c, err = tls.Dial("tcp", md.srvAddr, &config)
-			if err != nil {
-				return err
-			}
-			return err
-		})
-		if err != nil {
-			return err
-		}
-		md.transport = rpc2.NewTransport(c, libkb.NewRPCLogFactory(), libkb.WrapError)
-		md.client = rpc2.NewClient(md.transport, MDServerUnwrapError)
-	}
-
 	// authenticate
 	creds := keybase1.AuthenticateArg{
 		User:      user,
 		DeviceKID: key.KID,
 		Sid:       token,
 	}
-	err = runUnlessCanceled(ctx, func() error {
-		client := keybase1.MetadataClient{Cli: md.client}
-		return client.Authenticate(creds)
+
+	// save the conn pointer
+	md.conn = conn
+
+	// using conn.DoCommand here would cause problematic recursion
+	return runUnlessCanceled(ctx, func() error {
+		c := keybase1.MetadataClient{Cli: client}
+		return c.Authenticate(creds)
 	})
-	if err != nil {
-		return err
-	}
-	return nil
 }
 
-// This method will attempt to reconnect if passed a retrieable error code.
-func (md *MDServerRemote) checkReconnect(ctx context.Context, err error) bool {
-	if err == nil {
-		md.reconnectThrottleSecs = 0
-		return false
+// OnConnectError implements the ConnectionHandler interface.
+func (md *MDServerRemote) OnConnectError(err error, wait time.Duration) {
+	libkb.G.Log.Warning("MDServerRemote: connection error: %q; retrying in %s",
+		err, wait)
+	// TODO: it might make sense to show something to the user if this is
+	// due to authentication, for example.
+}
+
+// Helper to return a metadata client.
+func (md *MDServerRemote) client() keybase1.MetadataClient {
+	if md.testClient != nil {
+		// for testing
+		return keybase1.MetadataClient{Cli: md.testClient}
 	}
-	_, disconnected := err.(rpc2.DisconnectedError)
-	_, eof := err.(rpc2.EofError)
-	retry := disconnected || eof
-	if retry {
-		if md.reconnectThrottleSecs <= 0 {
-			md.reconnectThrottleSecs = MDServerReconnectThrottleMinSecs
-		} else {
-			md.reconnectThrottleSecs *= 2
-			if md.reconnectThrottleSecs > MDServerReconnectThrottleMaxSecs {
-				md.reconnectThrottleSecs = MDServerReconnectThrottleMaxSecs
-			}
-		}
-		libkb.G.Log.Warning("MDServerRemote: disconnected; retrying in %d seconds",
-			md.reconnectThrottleSecs)
-		time.Sleep(time.Duration(md.reconnectThrottleSecs) * time.Second)
-		md.connect(ctx) // ignore any error, we'll retry
-	} else {
-		md.reconnectThrottleSecs = 0
+	return keybase1.MetadataClient{Cli: md.conn.GetClient()}
+}
+
+// Helper to call an rpc command.
+func (md *MDServerRemote) doCommand(ctx context.Context, command func() error) error {
+	if md.testClient != nil {
+		// for testing
+		return runUnlessCanceled(ctx, command)
 	}
-	return retry
+	return md.conn.DoCommand(ctx, command)
 }
 
 // Helper used to retrieve metadata blocks from the MD server.
@@ -162,16 +125,10 @@ func (md *MDServerRemote) get(ctx context.Context, id TlfID, handle *TlfHandle,
 	}
 
 	// request
+	var err error
 	var response keybase1.MetadataResponse
-	err := runUnlessCanceled(ctx, func() error {
-		var err error
-		for true {
-			client := keybase1.MetadataClient{Cli: md.client}
-			response, err = client.GetMetadata(arg)
-			if !md.checkReconnect(ctx, err) {
-				break
-			}
-		}
+	err = md.doCommand(ctx, func() error {
+		response, err = md.client().GetMetadata(arg)
 		return err
 	})
 	if err != nil {
@@ -239,31 +196,56 @@ func (md *MDServerRemote) Put(ctx context.Context, rmds *RootMetadataSigned) err
 		return err
 	}
 	// put request
-	return runUnlessCanceled(ctx, func() error {
-		for true {
-			client := keybase1.MetadataClient{Cli: md.client}
-			err = client.PutMetadata(rmdsBytes)
-			if !md.checkReconnect(ctx, err) {
-				break
-			}
-		}
-		return err
+	return md.doCommand(ctx, func() error {
+		return md.client().PutMetadata(rmdsBytes)
 	})
 }
 
 // PruneUnmerged implements the MDServer interface for MDServerRemote.
 func (md *MDServerRemote) PruneUnmerged(ctx context.Context, id TlfID) error {
-	return runUnlessCanceled(ctx, func() error {
-		var err error
-		for true {
-			client := keybase1.MetadataClient{Cli: md.client}
-			err = client.PruneUnmerged(id.String())
-			if !md.checkReconnect(ctx, err) {
-				break
-			}
-		}
+	return md.doCommand(ctx, func() error {
+		return md.client().PruneUnmerged(id.String())
+	})
+}
+
+// Shutdown implements the MDServer interface for MDServerRemote.
+func (md *MDServerRemote) Shutdown() {
+	md.conn.Shutdown()
+}
+
+//
+// The below methods support the MD server acting as the key server.
+// This will be the case for v1 of KBFS but we may move to our own
+// separate key server at some point.
+//
+
+// GetTLFCryptKeyServerHalf is an implementation of the KeyServer interface.
+func (md *MDServerRemote) GetTLFCryptKeyServerHalf(ctx context.Context,
+	serverHalfID TLFCryptKeyServerHalfID) (TLFCryptKeyServerHalf, error) {
+	// encode the ID
+	idBytes, err := md.config.Codec().Encode(serverHalfID)
+	if err != nil {
+		return TLFCryptKeyServerHalf{}, err
+	}
+
+	// get the key
+	var keyBytes []byte
+	err = md.doCommand(ctx, func() error {
+		keyBytes, err = md.client().GetKey(idBytes)
 		return err
 	})
+	if err != nil {
+		return TLFCryptKeyServerHalf{}, err
+	}
+
+	// decode the key
+	var serverHalf TLFCryptKeyServerHalf
+	err = md.config.Codec().Decode(keyBytes, &serverHalf)
+	if err != nil {
+		return TLFCryptKeyServerHalf{}, err
+	}
+
+	return serverHalf, nil
 }
 
 // RegisterForUpdate implements the MDServer interface for MDServerRemote.
@@ -277,8 +259,27 @@ func (md *MDServerRemote) RegisterForUpdate(ctx context.Context, id TlfID,
 	return nil, nil
 }
 
-// GetFavorites implements the MDServer interface for MDServerRemote.
-func (md *MDServerRemote) GetFavorites(ctx context.Context) ([]*TlfHandle, error) {
-	//XXX mdserver isn't going to support this
-	return nil, nil
+// PutTLFCryptKeyServerHalves is an implementation of the KeyServer interface.
+func (md *MDServerRemote) PutTLFCryptKeyServerHalves(ctx context.Context,
+	serverKeyHalves map[keybase1.UID]map[keybase1.KID]TLFCryptKeyServerHalf) error {
+	// flatten out the map into an array
+	var keyHalves []keybase1.KeyHalf
+	for user, deviceMap := range serverKeyHalves {
+		for deviceKID, serverHalf := range deviceMap {
+			keyHalf, err := md.config.Codec().Encode(serverHalf)
+			if err != nil {
+				return err
+			}
+			keyHalves = append(keyHalves,
+				keybase1.KeyHalf{
+					User:      user,
+					DeviceKID: deviceKID,
+					Key:       keyHalf,
+				})
+		}
+	}
+	// put the keys
+	return md.doCommand(ctx, func() error {
+		return md.client().PutKeys(keyHalves)
+	})
 }

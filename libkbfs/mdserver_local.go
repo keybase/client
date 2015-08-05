@@ -430,6 +430,11 @@ func (md *MDServerLocal) RegisterForUpdate(ctx context.Context, id TlfID,
 	return c, nil
 }
 
+// Shutdown implements the MDServer interface for MDServerLocal.
+func (md *MDServerLocal) Shutdown() {
+	// Nothing to do.
+}
+
 // This should only be used for testing with an in-memory server.
 func (md *MDServerLocal) copy(config Config) *MDServerLocal {
 	// NOTE: observers and sessionHeads are copied shallowly on

@@ -419,3 +419,16 @@ func (c *CryptoCommon) GetTLFCryptKeyServerHalfID(
 	copy(id.ServerHalfID[:], hash[:])
 	return id
 }
+
+// VerifyTLFCryptKeyServerHalfID implements the Crypto interface for CryptoCommon.
+func (c *CryptoCommon) VerifyTLFCryptKeyServerHalfID(serverHalfID TLFCryptKeyServerHalfID,
+	user keybase1.UID, deviceKID keybase1.KID, serverHalf TLFCryptKeyServerHalf) error {
+	computedID := c.GetTLFCryptKeyServerHalfID(user, deviceKID, serverHalf)
+	if computedID != serverHalfID {
+		return KeyHalfMismatchError{
+			Expected: serverHalfID,
+			Actual:   computedID,
+		}
+	}
+	return nil
+}

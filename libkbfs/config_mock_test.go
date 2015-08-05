@@ -40,6 +40,7 @@ type ConfigMock struct {
 	mockKops     *MockKeyOps
 	mockBops     *MockBlockOps
 	mockMdserv   *MockMDServer
+	mockKserv    *MockKeyServer
 	mockBserv    *MockBlockServer
 	mockBsplit   *MockBlockSplitter
 	mockNotifier *MockNotifier
@@ -79,6 +80,8 @@ func NewConfigMock(c *gomock.Controller, ctr *SafeTestReporter) *ConfigMock {
 	config.SetBlockOps(config.mockBops)
 	config.mockMdserv = NewMockMDServer(c)
 	config.SetMDServer(config.mockMdserv)
+	config.mockKserv = NewMockKeyServer(c)
+	config.SetKeyServer(config.mockKserv)
 	config.mockBserv = NewMockBlockServer(c)
 	config.SetBlockServer(config.mockBserv)
 	config.mockBsplit = NewMockBlockSplitter(c)

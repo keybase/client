@@ -12,6 +12,7 @@ import (
 func TestMDServerBasics(t *testing.T) {
 	// setup
 	config := MakeTestConfigOrBust(t, nil, "test_user")
+	defer config.MDServer().Shutdown()
 	mdServer := config.MDServer()
 	ctx := context.Background()
 	user, err := config.KBPKI().GetLoggedInUser(ctx)

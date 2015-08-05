@@ -405,6 +405,10 @@ type Crypto interface {
 		user keybase1.UID, deviceKID keybase1.KID,
 		serverHalf TLFCryptKeyServerHalf) TLFCryptKeyServerHalfID
 
+	// VerifyTLFCryptKeyServerHalfID verifies the ID is the proper HMAC result.
+	VerifyTLFCryptKeyServerHalfID(serverHalfID TLFCryptKeyServerHalfID, user keybase1.UID,
+		deviceKID keybase1.KID, serverHalf TLFCryptKeyServerHalf) error
+
 	// EncryptPrivateMetadata encrypts a PrivateMetadata object.
 	EncryptPrivateMetadata(pmd *PrivateMetadata, key TLFCryptKey) (EncryptedPrivateMetadata, error)
 	// DecryptPrivateMetadata decrypts a PrivateMetadata object.
@@ -596,6 +600,9 @@ type MDServer interface {
 	// notifications.
 	RegisterForUpdate(ctx context.Context, id TlfID,
 		currHead MetadataRevision) (<-chan error, error)
+
+	// Shutdown is called to shutdown an MDServer connection.
+	Shutdown()
 }
 
 // BlockServer gets and puts opaque data blocks.  The instantiation
@@ -656,6 +663,19 @@ type BlockSplitter interface {
 	// ShouldEmbedBlockChanges decides whether we should keep the
 	// block changes embedded in the MD or not.
 	ShouldEmbedBlockChanges(bc *BlockChanges) bool
+}
+
+// KeyServer fetches/writes server-side key halves from/to the key server.
+type KeyServer interface {
+	// GetTLFCryptKeyServerHalf gets a server-side key half for a
+	// device given the key half ID.
+	GetTLFCryptKeyServerHalf(ctx context.Context,
+		serverHalfID TLFCryptKeyServerHalfID) (TLFCryptKeyServerHalf, error)
+
+	// PutTLFCryptKeyServerHalves stores a server-side key halves for a
+	// set of users and devices.
+	PutTLFCryptKeyServerHalves(ctx context.Context,
+		serverKeyHalves map[keybase1.UID]map[keybase1.KID]TLFCryptKeyServerHalf) error
 }
 
 // NodeChange represents a change made to a node as part of an atomic
@@ -726,6 +746,8 @@ type Config interface {
 	SetMDServer(MDServer)
 	BlockServer() BlockServer
 	SetBlockServer(BlockServer)
+	KeyServer() KeyServer
+	SetKeyServer(KeyServer)
 	BlockSplitter() BlockSplitter
 	SetBlockSplitter(BlockSplitter)
 	Notifier() Notifier
@@ -734,9 +756,10 @@ type Config interface {
 	// ReqsBufSize indicates the number of read or write operations
 	// that can be buffered per folder
 	ReqsBufSize() int
-	// set CA certificate
 	CACert() []byte
 	SetCACert([]byte)
+	// Shutdown is called to free config resources.
+	Shutdown()
 }
 
 // NodeCache holds Nodes, and allows libkbfs to update them when
@@ -771,4 +794,17 @@ type NodeCache interface {
 	Unlink(ptr BlockPointer, oldPath path)
 	// PathFromNode creates the path up to a given Node.
 	PathFromNode(node Node) path
+}
+
+// ConnectionTransport is a container for an underlying transport to be
+// used by a Connection instance.
+type ConnectionTransport interface {
+	// Dial is called to connect to the server.
+	Dial(ctx context.Context, srvAddr string) (keybase1.GenericClient, error)
+
+	// IsConnected is called to check for connection status.
+	IsConnected() bool
+
+	// Finalize is used to indicate the result of Dial is complete.
+	Finalize()
 }

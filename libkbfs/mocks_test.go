@@ -970,6 +970,16 @@ func (_mr *_MockCryptoRecorder) GetTLFCryptKeyServerHalfID(arg0, arg1, arg2 inte
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "GetTLFCryptKeyServerHalfID", arg0, arg1, arg2)
 }
 
+func (_m *MockCrypto) VerifyTLFCryptKeyServerHalfID(serverHalfID TLFCryptKeyServerHalfID, user go0.UID, deviceKID go0.KID, serverHalf TLFCryptKeyServerHalf) error {
+	ret := _m.ctrl.Call(_m, "VerifyTLFCryptKeyServerHalfID", serverHalfID, user, deviceKID, serverHalf)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+func (_mr *_MockCryptoRecorder) VerifyTLFCryptKeyServerHalfID(arg0, arg1, arg2, arg3 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "VerifyTLFCryptKeyServerHalfID", arg0, arg1, arg2, arg3)
+}
+
 func (_m *MockCrypto) EncryptPrivateMetadata(pmd *PrivateMetadata, key TLFCryptKey) (EncryptedPrivateMetadata, error) {
 	ret := _m.ctrl.Call(_m, "EncryptPrivateMetadata", pmd, key)
 	ret0, _ := ret[0].(EncryptedPrivateMetadata)
@@ -1392,6 +1402,14 @@ func (_mr *_MockMDServerRecorder) RegisterForUpdate(arg0, arg1, arg2 interface{}
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "RegisterForUpdate", arg0, arg1, arg2)
 }
 
+func (_m *MockMDServer) Shutdown() {
+	_m.ctrl.Call(_m, "Shutdown")
+}
+
+func (_mr *_MockMDServerRecorder) Shutdown() *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "Shutdown")
+}
+
 // Mock of BlockServer interface
 type MockBlockServer struct {
 	ctrl     *gomock.Controller
@@ -1504,6 +1522,48 @@ func (_m *MockBlockSplitter) ShouldEmbedBlockChanges(bc *BlockChanges) bool {
 
 func (_mr *_MockBlockSplitterRecorder) ShouldEmbedBlockChanges(arg0 interface{}) *gomock.Call {
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "ShouldEmbedBlockChanges", arg0)
+}
+
+// Mock of KeyServer interface
+type MockKeyServer struct {
+	ctrl     *gomock.Controller
+	recorder *_MockKeyServerRecorder
+}
+
+// Recorder for MockKeyServer (not exported)
+type _MockKeyServerRecorder struct {
+	mock *MockKeyServer
+}
+
+func NewMockKeyServer(ctrl *gomock.Controller) *MockKeyServer {
+	mock := &MockKeyServer{ctrl: ctrl}
+	mock.recorder = &_MockKeyServerRecorder{mock}
+	return mock
+}
+
+func (_m *MockKeyServer) EXPECT() *_MockKeyServerRecorder {
+	return _m.recorder
+}
+
+func (_m *MockKeyServer) GetTLFCryptKeyServerHalf(ctx context.Context, serverHalfID TLFCryptKeyServerHalfID) (TLFCryptKeyServerHalf, error) {
+	ret := _m.ctrl.Call(_m, "GetTLFCryptKeyServerHalf", ctx, serverHalfID)
+	ret0, _ := ret[0].(TLFCryptKeyServerHalf)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+func (_mr *_MockKeyServerRecorder) GetTLFCryptKeyServerHalf(arg0, arg1 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "GetTLFCryptKeyServerHalf", arg0, arg1)
+}
+
+func (_m *MockKeyServer) PutTLFCryptKeyServerHalves(ctx context.Context, serverKeyHalves map[go0.UID]map[go0.KID]TLFCryptKeyServerHalf) error {
+	ret := _m.ctrl.Call(_m, "PutTLFCryptKeyServerHalves", ctx, serverKeyHalves)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+func (_mr *_MockKeyServerRecorder) PutTLFCryptKeyServerHalves(arg0, arg1 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "PutTLFCryptKeyServerHalves", arg0, arg1)
 }
 
 // Mock of Observer interface
@@ -1857,6 +1917,24 @@ func (_mr *_MockConfigRecorder) SetBlockServer(arg0 interface{}) *gomock.Call {
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "SetBlockServer", arg0)
 }
 
+func (_m *MockConfig) KeyServer() KeyServer {
+	ret := _m.ctrl.Call(_m, "KeyServer")
+	ret0, _ := ret[0].(KeyServer)
+	return ret0
+}
+
+func (_mr *_MockConfigRecorder) KeyServer() *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "KeyServer")
+}
+
+func (_m *MockConfig) SetKeyServer(_param0 KeyServer) {
+	_m.ctrl.Call(_m, "SetKeyServer", _param0)
+}
+
+func (_mr *_MockConfigRecorder) SetKeyServer(arg0 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "SetKeyServer", arg0)
+}
+
 func (_m *MockConfig) BlockSplitter() BlockSplitter {
 	ret := _m.ctrl.Call(_m, "BlockSplitter")
 	ret0, _ := ret[0].(BlockSplitter)
@@ -1929,6 +2007,14 @@ func (_m *MockConfig) SetCACert(_param0 []byte) {
 
 func (_mr *_MockConfigRecorder) SetCACert(arg0 interface{}) *gomock.Call {
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "SetCACert", arg0)
+}
+
+func (_m *MockConfig) Shutdown() {
+	_m.ctrl.Call(_m, "Shutdown")
+}
+
+func (_mr *_MockConfigRecorder) Shutdown() *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "Shutdown")
 }
 
 // Mock of NodeCache interface
@@ -2007,4 +2093,54 @@ func (_m *MockNodeCache) PathFromNode(node Node) path {
 
 func (_mr *_MockNodeCacheRecorder) PathFromNode(arg0 interface{}) *gomock.Call {
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "PathFromNode", arg0)
+}
+
+// Mock of ConnectionTransport interface
+type MockConnectionTransport struct {
+	ctrl     *gomock.Controller
+	recorder *_MockConnectionTransportRecorder
+}
+
+// Recorder for MockConnectionTransport (not exported)
+type _MockConnectionTransportRecorder struct {
+	mock *MockConnectionTransport
+}
+
+func NewMockConnectionTransport(ctrl *gomock.Controller) *MockConnectionTransport {
+	mock := &MockConnectionTransport{ctrl: ctrl}
+	mock.recorder = &_MockConnectionTransportRecorder{mock}
+	return mock
+}
+
+func (_m *MockConnectionTransport) EXPECT() *_MockConnectionTransportRecorder {
+	return _m.recorder
+}
+
+func (_m *MockConnectionTransport) Dial(ctx context.Context, srvAddr string) (go0.GenericClient, error) {
+	ret := _m.ctrl.Call(_m, "Dial", ctx, srvAddr)
+	ret0, _ := ret[0].(go0.GenericClient)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+func (_mr *_MockConnectionTransportRecorder) Dial(arg0, arg1 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "Dial", arg0, arg1)
+}
+
+func (_m *MockConnectionTransport) IsConnected() bool {
+	ret := _m.ctrl.Call(_m, "IsConnected")
+	ret0, _ := ret[0].(bool)
+	return ret0
+}
+
+func (_mr *_MockConnectionTransportRecorder) IsConnected() *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "IsConnected")
+}
+
+func (_m *MockConnectionTransport) Finalize() {
+	_m.ctrl.Call(_m, "Finalize")
+}
+
+func (_mr *_MockConnectionTransportRecorder) Finalize() *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "Finalize")
 }

@@ -13,25 +13,71 @@ import (
 	"golang.org/x/net/context"
 )
 
-func makeMDServer(config Config, serverRootDir *string) (MDServer, error) {
-	// XXX TODO: this is how we enable this for testing
-	// XXX TODO: this will change soon
-	mdServerAddr := os.Getenv(EnvMDServerAddr)
+func getMDServerAddr() string {
+	// XXX TODO: the source of this will likely change soon
+	return os.Getenv(EnvMDServerAddr)
+}
 
+func useLocalMDServer() bool {
+	return len(getMDServerAddr()) == 0
+}
+
+func useLocalKeyServer() bool {
+	// currently the remote MD server also acts as the key server.
+	return useLocalMDServer()
+}
+
+func makeMDServer(config Config, serverRootDir *string) (
+	MDServer, error) {
 	var err error
-	var mdserv MDServer
-	if len(mdServerAddr) == 0 {
+	var mdServer MDServer
+	if useLocalMDServer() {
 		if serverRootDir == nil {
-			return NewMDServerMemory(config)
+			// local in-memory MD server
+			mdServer, err = NewMDServerMemory(config)
+			if err != nil {
+				return nil, err
+			}
 		}
+		// local persistent MD server
 		handlePath := filepath.Join(*serverRootDir, "kbfs_handles")
 		mdPath := filepath.Join(*serverRootDir, "kbfs_md")
 		revPath := filepath.Join(*serverRootDir, "kbfs_revisions")
-		mdserv, err = NewMDServerLocal(config, handlePath, mdPath, revPath)
+		mdServer, err = NewMDServerLocal(
+			config, handlePath, mdPath, revPath)
+		if err != nil {
+			return nil, err
+		}
 	} else {
-		mdserv, err = NewMDServerRemote(context.TODO(), config, mdServerAddr)
+		// this can't fail. reconnection attempts will be automatic.
+		mdServer = NewMDServerRemote(context.TODO(), config, getMDServerAddr())
 	}
-	return mdserv, err
+	return mdServer, nil
+}
+
+func makeKeyServer(config Config, serverRootDir *string) (
+	KeyServer, error) {
+	var err error
+	var keyServer KeyServer
+	if useLocalKeyServer() {
+		if serverRootDir == nil {
+			// local in-memory key server
+			keyServer, err = NewKeyServerMemory(config)
+			if err != nil {
+				return nil, err
+			}
+		}
+		// local persistent key server
+		keyPath := filepath.Join(*serverRootDir, "kbfs_key")
+		keyServer, err = NewKeyServerLocal(config, keyPath)
+		if err != nil {
+			return nil, err
+		}
+	} else {
+		// currently the remote MD server also acts as the key server.
+		keyServer = config.MDServer().(*MDServerRemote)
+	}
+	return keyServer, nil
 }
 
 func makeBlockServer(config Config, serverRootDir *string) (BlockServer, error) {
@@ -41,15 +87,6 @@ func makeBlockServer(config Config, serverRootDir *string) (BlockServer, error) 
 
 	blockPath := filepath.Join(*serverRootDir, "kbfs_block")
 	return NewBlockServerLocal(config, blockPath)
-}
-
-func makeKeyServer(config Config, serverRootDir *string) (KeyOps, error) {
-	if serverRootDir == nil {
-		return NewKeyServerMemory(config)
-	}
-
-	keyPath := filepath.Join(*serverRootDir, "kbfs_key")
-	return NewKeyServerLocal(config, keyPath)
 }
 
 // Init initializes a config and returns it. If localUser is
@@ -93,23 +130,23 @@ func Init(localUser string, serverRootDir *string, cpuProfilePath, memProfilePat
 
 	config := NewConfigLocal()
 
-	mdserv, err := makeMDServer(config, serverRootDir)
+	mdServer, err := makeMDServer(config, serverRootDir)
 	if err != nil {
-		return nil, fmt.Errorf("cannot connect to mdserver: %v", err)
+		return nil, fmt.Errorf("problem creating MD server: %v", err)
 	}
-	config.SetMDServer(mdserv)
+	config.SetMDServer(mdServer)
+
+	keyServer, err := makeKeyServer(config, serverRootDir)
+	if err != nil {
+		return nil, fmt.Errorf("problem creating key server: %v", err)
+	}
+	config.SetKeyServer(keyServer)
 
 	bserv, err := makeBlockServer(config, serverRootDir)
 	if err != nil {
 		return nil, fmt.Errorf("cannot open block database: %v", err)
 	}
 	config.SetBlockServer(bserv)
-
-	kops, err := makeKeyServer(config, serverRootDir)
-	if err != nil {
-		return nil, fmt.Errorf("cannot open key database: %v", err)
-	}
-	config.SetKeyOps(kops)
 
 	libkb.G.Init()
 	libkb.G.ConfigureConfig()

@@ -804,6 +804,11 @@ func (id TLFCryptKeyServerHalfID) DeepCopy() TLFCryptKeyServerHalfID {
 	return id
 }
 
+// String implements the Stringer interface for TLFCryptKeyServerHalfID.
+func (id TLFCryptKeyServerHalfID) String() string {
+	return hex.EncodeToString(id.ServerHalfID[:])
+}
+
 // TLFCryptKeyInfo is a per-device key half entry in the DirKeyBundle.
 type TLFCryptKeyInfo struct {
 	ClientHalf   EncryptedTLFCryptKeyClientHalf

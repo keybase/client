@@ -19,6 +19,7 @@ type ConfigLocal struct {
 	bops     BlockOps
 	mdserv   MDServer
 	bserv    BlockServer
+	keyserv  KeyServer
 	bsplit   BlockSplitter
 	notifier Notifier
 	cacert   []byte
@@ -125,6 +126,7 @@ func NewConfigLocal() *ConfigLocal {
 	config.SetCodec(NewCodecMsgpack())
 	config.SetMDOps(&MDOpsStandard{config})
 	config.SetBlockOps(&BlockOpsStandard{config})
+	config.SetKeyOps(&KeyOpsStandard{config})
 	// 64K blocks by default, block changes embedded max == 8K
 	config.SetBlockSplitter(&BlockSplitterSimple{64 * 1024, 8 * 1024})
 	config.SetNotifier(config.kbfs.(*KBFSOpsStandard))
@@ -273,6 +275,16 @@ func (c *ConfigLocal) SetBlockServer(b BlockServer) {
 	c.bserv = b
 }
 
+// KeyServer implements the Config interface for ConfigLocal.
+func (c *ConfigLocal) KeyServer() KeyServer {
+	return c.keyserv
+}
+
+// SetKeyServer implements the Config interface for ConfigLocal.
+func (c *ConfigLocal) SetKeyServer(k KeyServer) {
+	c.keyserv = k
+}
+
 // BlockSplitter implements the Config interface for ConfigLocal.
 func (c *ConfigLocal) BlockSplitter() BlockSplitter {
 	return c.bsplit
@@ -321,4 +333,14 @@ func NewConfigLocalWithCrypto() *ConfigLocal {
 	crypto := NewCryptoLocal(config.Codec(), signingKey, cryptPrivateKey)
 	config.SetCrypto(crypto)
 	return config
+}
+
+// Shutdown implements the Config interface for ConfigLocal.
+func (c *ConfigLocal) Shutdown() {
+	// TODO: perhaps Shutdown() should be part of the interface.
+	kops, ok := c.KBFSOps().(*KBFSOpsStandard)
+	if ok {
+		kops.Shutdown()
+	}
+	c.MDServer().Shutdown()
 }

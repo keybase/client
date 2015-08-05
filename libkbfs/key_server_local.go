@@ -13,6 +13,9 @@ type KeyServerLocal struct {
 	db     *leveldb.DB // TLFCryptKeyServerHalfID -> TLFCryptKeyServerHalf
 }
 
+// Test that KeyServerLocal fully implements the KeyServer interface.
+var _ KeyServer = (*KeyServerLocal)(nil)
+
 func newKeyServerLocalWithStorage(config Config, storage storage.Storage) (
 	*KeyServerLocal, error) {
 	db, err := leveldb.Open(storage, leveldbOptions)

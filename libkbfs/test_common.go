@@ -70,6 +70,7 @@ func MakeTestConfigOrBust(t *testing.T, blockServerRemoteAddr *string, users ...
 
 	var err error
 	var mdServer MDServer
+	var keyServer KeyServer
 	if len(mdServerAddr) != 0 {
 		// start/restart local in-memory DynamoDB
 		runner, err := NewTestDynamoDBRunner()
@@ -85,21 +86,23 @@ func MakeTestConfigOrBust(t *testing.T, blockServerRemoteAddr *string, users ...
 		libkb.G.ConfigureLogging()
 
 		// connect to server
-		mdServer, err = NewMDServerRemote(context.TODO(), config, mdServerAddr)
+		mdServer = NewMDServerRemote(context.TODO(), config, mdServerAddr)
+		// for now the MD server acts as the key server in production
+		keyServer = mdServer.(*MDServerRemote)
 	} else {
 		// create in-memory server shim
 		mdServer, err = NewMDServerMemory(config)
-	}
-	if err != nil {
-		t.Fatal(err)
+		if err != nil {
+			t.Fatal(err)
+		}
+		// shim for the key server too
+		keyServer, err = NewKeyServerMemory(config)
+		if err != nil {
+			t.Fatal(err)
+		}
 	}
 	config.SetMDServer(mdServer)
-
-	keyOps, err := NewKeyServerMemory(config)
-	if err != nil {
-		t.Fatal(err)
-	}
-	config.SetKeyOps(keyOps)
+	config.SetKeyServer(keyServer)
 
 	return config
 }
@@ -132,27 +135,26 @@ func ConfigAsUser(config *ConfigLocal, loggedInUser string) *ConfigLocal {
 	// see if a local remote server is specified
 	mdServerAddr := os.Getenv(EnvMDServerAddr)
 
-	var err error
 	var mdServer MDServer
+	var keyServer KeyServer
 	if len(mdServerAddr) != 0 {
 		// connect to server
-		mdServer, err = NewMDServerRemote(context.TODO(), c, mdServerAddr)
-		if err != nil {
-			panic(err.Error())
-		}
+		mdServer = NewMDServerRemote(context.TODO(), c, mdServerAddr)
+		// for now the MD server also acts as the key server.
+		keyServer = mdServer.(*MDServerRemote)
 	} else {
 		// copy the existing mdServer but update the config
 		// this way the current device KID is paired with
 		// the proper user yet the DB state is all shared.
 		mdServerToCopy := config.MDServer().(*MDServerLocal)
 		mdServer = mdServerToCopy.copy(c)
+
+		// use the same db but swap configs
+		keyServerToCopy := config.KeyServer().(*KeyServerLocal)
+		keyServer = keyServerToCopy.copy(c)
 	}
 	c.SetMDServer(mdServer)
-
-	// use the same db but swap configs
-	keyServerToCopy := config.KeyOps().(*KeyServerLocal)
-	keyServer := keyServerToCopy.copy(c)
-	c.SetKeyOps(keyServer)
+	c.SetKeyServer(keyServer)
 
 	return c
 }

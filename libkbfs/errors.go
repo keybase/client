@@ -577,3 +577,15 @@ type MDInvalidTlfID struct {
 func (e MDInvalidTlfID) Error() string {
 	return fmt.Sprintf("Invalid TLF ID returned from server: %s", e.id)
 }
+
+// KeyHalfMismatchError is returned when the key server doesn't return the expected key half.
+type KeyHalfMismatchError struct {
+	Expected TLFCryptKeyServerHalfID
+	Actual   TLFCryptKeyServerHalfID
+}
+
+// Error implements the error interface for KeyHalfMismatchError.
+func (e KeyHalfMismatchError) Error() string {
+	return fmt.Sprintf("Key mismatch, expected ID: %s, actual ID: %s",
+		e.Expected, e.Actual)
+}

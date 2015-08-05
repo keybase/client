@@ -12,10 +12,10 @@ func TestKeyServerLocalTLFCryptKeyServerHalves(t *testing.T) {
 	// simulate two users
 	userName1, userName2 := "u1", "u2"
 	config1, uid1, ctx := kbfsOpsConcurInit(t, userName1, userName2)
-	defer config1.KBFSOps().(*KBFSOpsStandard).Shutdown()
+	defer config1.Shutdown()
 
 	config2 := ConfigAsUser(config1.(*ConfigLocal), userName2)
-	defer config2.KBFSOps().(*KBFSOpsStandard).Shutdown()
+	defer config2.Shutdown()
 	uid2, err := config2.KBPKI().GetLoggedInUser(context.Background())
 	if err != nil {
 		t.Fatal(err)
