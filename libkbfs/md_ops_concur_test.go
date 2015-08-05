@@ -79,12 +79,3 @@ func (m *MDOpsConcurTest) PutUnmerged(ctx context.Context, md *RootMetadata) err
 func (m *MDOpsConcurTest) PruneUnmerged(ctx context.Context, id TlfID) error {
 	return nil
 }
-
-func (m *MDOpsConcurTest) GetLastCommittedPoint(ctx context.Context, id TlfID,
-	deviceKID keybase1.KID) (bool, MdID, error) {
-	return false, MdID{0}, nil
-}
-
-func (m *MDOpsConcurTest) GetFavorites(ctx context.Context) ([]*TlfHandle, error) {
-	return nil, nil
-}
