@@ -45,7 +45,7 @@
   }];
 }
 
-- (void)registerTrackView:(NSInteger)sessionId client:(KBRPClient *)client sender:(id)sender {
+- (void)registerTrackView:(NSNumber *)sessionId client:(KBRPClient *)client sender:(id)sender {
   NSAssert([sender window], @"No parent window");
   _trackView = [[KBUserProfileView alloc] init];
   _trackView.popup = YES;

@@ -89,7 +89,7 @@
   GHWeakSelf gself = self;
   [KBActivity setProgressEnabled:YES sender:self];
   KBRDeviceRequest *request = [[KBRDeviceRequest alloc] initWithClient:self.client];
-  if (_sessionId) request.sessionId = [_sessionId integerValue];
+  if (_sessionId) request.sessionId = _sessionId;
   [request deviceAddCancel:^(NSError *error) {
     [KBActivity setProgressEnabled:NO sender:self];
     if (error) [KBActivity setError:error sender:self];
@@ -116,7 +116,7 @@
 
   GHWeakSelf gself = self;
   [KBActivity setProgressEnabled:YES sender:self except:@[_cancelButton]];
-  _sessionId = @(request.sessionId);
+  _sessionId = request.sessionId;
   [request deviceAddWithSecretPhrase:secretWords completion:^(NSError *error) {
     [KBActivity setProgressEnabled:NO sender:self except:@[gself.cancelButton]];
     if (error) {

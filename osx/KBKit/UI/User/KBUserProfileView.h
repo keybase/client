@@ -32,7 +32,7 @@
 
 - (void)clear;
 
-- (void)registerClient:(KBRPClient *)client sessionId:(NSInteger)sessionId;
+- (void)registerClient:(KBRPClient *)client sessionId:(NSNumber *)sessionId;
 
 - (void)openPopupWindow;
 

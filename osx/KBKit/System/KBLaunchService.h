@@ -16,9 +16,10 @@
 @property (readonly) NSString *label;
 @property (readonly) NSDictionary *plist;
 @property (readonly) NSString *versionPath;
+@property (readonly) NSString *logFile;
 @property (readonly) NSString *bundleVersion;
 
-- (void)setName:(NSString *)name info:(NSString *)info label:(NSString *)label bundleVersion:(NSString *)bundleVersion versionPath:(NSString *)versionPath plist:(NSDictionary *)plist;
+- (void)setName:(NSString *)name info:(NSString *)info label:(NSString *)label bundleVersion:(NSString *)bundleVersion versionPath:(NSString *)versionPath plist:(NSDictionary *)plist logFile:(NSString *)logFile;
 
 - (NSString *)plistDestination;
 

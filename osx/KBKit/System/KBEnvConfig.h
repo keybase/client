@@ -40,6 +40,8 @@ typedef NS_ENUM (NSInteger, KBEnv) {
 + (instancetype)loadFromUserDefaults:(NSUserDefaults *)userDefaults;
 - (void)saveToUserDefaults:(NSUserDefaults *)userDefaults;
 
+- (NSString *)logFile;
+
 - (NSDictionary *)launchdPlistDictionaryForService;
 - (NSDictionary *)launchdPlistDictionaryForKBFS;
 

@@ -28,7 +28,7 @@ typedef NSString *(^KBFileOutput)(NSString *path);
 
 #pragma mark -
 
-- (void)registerWithClient:(KBRPClient *)client sessionId:(NSInteger)sessionId;
+- (void)registerWithClient:(KBRPClient *)client sessionId:(NSNumber *)sessionId;
 
 + (void)checkFiles:(NSArray */*of KBFile*/)files index:(NSInteger)index output:(KBFileOutput)output streams:(NSMutableArray *)streams skipCheck:(BOOL)skipCheck view:(NSView *)view completion:(KBCompletion)completion;
 

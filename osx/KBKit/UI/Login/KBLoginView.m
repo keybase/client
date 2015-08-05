@@ -282,11 +282,16 @@
 }
 
 - (void)cancelLogin {
-  KBRLoginRequest *request = [[KBRLoginRequest alloc] initWithClient:self.client];
-  [request cancelLogin:^(NSError *error) {
-    [KBActivity setError:error sender:self];
+  if (!_request) {
     [self goBackToLogin];
-  }];
+  } else {
+    KBRLoginRequest *request = [[KBRLoginRequest alloc] initWithClient:self.client];
+    request.sessionId = _request.sessionId;
+    [request cancelLogin:^(NSError *error) {
+      [KBActivity setError:error sender:self];
+      [self goBackToLogin];
+    }];
+  }
 }
 
 - (void)selectSigner:(KBRSelectSignerRequestParams *)params completion:(MPRequestCompletion)completion {

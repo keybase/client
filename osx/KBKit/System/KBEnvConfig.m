@@ -192,25 +192,24 @@
   return args;
 }
 
+- (NSString *)logFile {
+  NSString *logDir = KBPath(@"~/Library/Logs", NO, NO);
+  // Be careful of logging. I've seen launchd create these as root, and cause the service to fail.
+  return NSStringWithFormat(@"%@/%@.log", logDir, self.launchdLabelService);
+}
+
 - (NSDictionary *)launchdPlistDictionaryForService {
   if (!self.launchdLabelService) return nil;
 
   NSArray *args = [self programArgumentsForKeybase:YES escape:NO tilde:NO options:@[@"-L", @"service"]];
-
-  // Logging
-  NSString *logDir = KBPath(@"~/Library/Logs/Keybase", NO, NO);
-  // Need to create logging dir here because otherwise it might be created as root by launchctl.
-  [NSFileManager.defaultManager createDirectoryAtPath:logDir withIntermediateDirectories:YES attributes:nil error:nil];
 
   return @{
            @"Label": self.launchdLabelService,
            @"ProgramArguments": args,
            @"RunAtLoad": @YES,
            @"KeepAlive": @YES,
-
-           // If we redirect stdout/err it creates Logs directory as root and will fail to load
-           //@"StandardOutPath": NSStringWithFormat(@"%@/%@.log", logDir, self.launchdLabelService),
-           //@"StandardErrorPath": NSStringWithFormat(@"%@/%@.err", logDir, self.launchdLabelService),
+           @"StandardOutPath": [self logFile],
+           @"StandardErrorPath": [self logFile],
            };
 }
 

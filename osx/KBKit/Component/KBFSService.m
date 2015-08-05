@@ -18,7 +18,7 @@
 - (instancetype)initWithConfig:(KBEnvConfig *)config {
   if ((self = [super initWithConfig:config])) {
     NSDictionary *info = [[NSBundle mainBundle] infoDictionary];
-    [self setName:@"KBFS" info:@"The filesystem" label:config.launchdLabelKBFS bundleVersion:info[@"KBFSVersion"] versionPath:nil plist:config.launchdPlistDictionaryForKBFS];
+    [self setName:@"KBFS" info:@"The filesystem" label:config.launchdLabelKBFS bundleVersion:info[@"KBFSVersion"] versionPath:nil plist:config.launchdPlistDictionaryForKBFS logFile:config.logFile];
   }
   return self;
 }

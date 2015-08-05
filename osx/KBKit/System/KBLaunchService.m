@@ -30,13 +30,14 @@
 
 @implementation KBLaunchService
 
-- (void)setName:(NSString *)name info:(NSString *)info label:(NSString *)label bundleVersion:(NSString *)bundleVersion versionPath:(NSString *)versionPath plist:(NSDictionary *)plist {
+- (void)setName:(NSString *)name info:(NSString *)info label:(NSString *)label bundleVersion:(NSString *)bundleVersion versionPath:(NSString *)versionPath plist:(NSDictionary *)plist logFile:(NSString *)logFile {
   _name = name;
   _info = info;
   _label = label;
   _versionPath = versionPath;
   _plist = plist;
   _bundleVersion = bundleVersion;
+  _logFile = logFile;
 }
 
 - (NSImage *)image {
@@ -155,10 +156,17 @@
   //if (![NSFileManager.defaultManager fileExistsAtPath:launchAgentPlistDest]) {
   NSError *error = nil;
 
+  // Returns yes if created successfully or already exists
+  if (![NSFileManager.defaultManager createFileAtPath:_logFile contents:[NSData data] attributes:nil]) {
+    if (!error) error = KBMakeErrorWithRecovery(-1, @"Install Error", @"Unable to touch log file: %@.", _logFile);
+    completion(error);
+    return;
+  }
+
   // Remove plist file if exists
   if ([NSFileManager.defaultManager fileExistsAtPath:plistDest]) {
     if (![NSFileManager.defaultManager removeItemAtPath:plistDest error:&error]) {
-      if (!error) error = KBMakeErrorWithRecovery(-1, @"Install Error", @"Unable to remove existing launch agent plist for upgrade.", nil);
+      if (!error) error = KBMakeErrorWithRecovery(-1, @"Install Error", @"Unable to remove existing launch agent plist for upgrade.");
       completion(error);
       return;
     }
@@ -167,7 +175,7 @@
   // Remove version file if exists
   if ([NSFileManager.defaultManager fileExistsAtPath:_versionPath]) {
     if (![NSFileManager.defaultManager removeItemAtPath:_versionPath error:&error]) {
-      if (!error) error = KBMakeErrorWithRecovery(-1, @"Install Error", @"Unable to remove existing version file.", nil);
+      if (!error) error = KBMakeErrorWithRecovery(-1, @"Install Error", @"Unable to remove existing version file.");
       completion(error);
       return;
     }
@@ -176,13 +184,13 @@
   NSDictionary *plistDict = _plist;
   NSData *data = [NSPropertyListSerialization dataWithPropertyList:plistDict format:NSPropertyListXMLFormat_v1_0 options:0 error:&error];
   if (!data) {
-    if (!error) error = KBMakeErrorWithRecovery(-1, @"Install Error", @"Unable to create plist data.", nil);
+    if (!error) error = KBMakeErrorWithRecovery(-1, @"Install Error", @"Unable to create plist data.");
     completion(error);
     return;
   }
 
   if (![data writeToFile:plistDest atomically:YES]) {
-    if (!error) error = KBMakeErrorWithRecovery(-1, @"Install Error", @"Unable to create launch agent plist.", nil);
+    if (!error) error = KBMakeErrorWithRecovery(-1, @"Install Error", @"Unable to create launch agent plist.");
     completion(error);
     return;
   }

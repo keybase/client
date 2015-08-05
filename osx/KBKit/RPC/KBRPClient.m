@@ -166,9 +166,9 @@
   return [requestHandlers firstObject];
 }
 
-- (NSInteger)nextSessionId {
+- (NSNumber *)nextSessionId {
   static NSInteger gSessionId = 0;
-  return ++gSessionId;
+  return [NSNumber numberWithInteger:++gSessionId];
 }
 
 - (void)close {
@@ -181,7 +181,7 @@
   [self.delegate RPClientDidDisconnect:self];
 }
 
-- (void)sendRequestWithMethod:(NSString *)method params:(NSDictionary *)params sessionId:(NSInteger)sessionId completion:(MPRequestCompletion)completion {
+- (void)sendRequestWithMethod:(NSString *)method params:(NSDictionary *)params sessionId:(NSNumber *)sessionId completion:(MPRequestCompletion)completion {
   NSTimeInterval delay = 0;
 #ifdef DEBUG
   //delay = 0.5;
@@ -195,21 +195,21 @@
   }
 }
 
-- (void)_sendRequestWithMethod:(NSString *)method params:(NSDictionary *)params sessionId:(NSInteger)sessionId completion:(MPRequestCompletion)completion {
+- (void)_sendRequestWithMethod:(NSString *)method params:(NSDictionary *)params sessionId:(NSNumber *)sessionId completion:(MPRequestCompletion)completion {
   if (_client.status != MPMessagePackClientStatusOpen) {
     completion(KBMakeErrorWithRecovery(-400, @"We are unable to connect to the Keybase service.", @"You may need to update or re-install to fix this."), nil);
     return;
   }
 
-  NSAssert(sessionId > 0, @"Bad session id");
+  NSAssert([sessionId integerValue] > 0, @"Bad session id");
 
   NSMutableDictionary *mparams = [params mutableCopy];
   [mparams gh_mutableCompact];
-  if (!mparams[@"sessionID"]) mparams[@"sessionID"] = @(sessionId);
+  if (!mparams[@"sessionID"]) mparams[@"sessionID"] = sessionId;
 
   KBLog(KBLogRPC|KBLogDebug, @"Requesting: %@(%@)", method, KBDescription(KBScrubSensitive(mparams)));
 
-  [_client sendRequestWithMethod:method params:@[mparams] messageId:sessionId completion:^(NSError *error, id result) {
+  [_client sendRequestWithMethod:method params:@[mparams] messageId:[sessionId integerValue] completion:^(NSError *error, id result) {
     [self unregister:sessionId];
     if (error) {
       KBLog(KBLogRPC|KBLogError, @"%@", error);
@@ -244,18 +244,19 @@
   }];
 }
 
-- (void)registerMethod:(NSString *)method sessionId:(NSInteger)sessionId requestHandler:(MPRequestHandler)requestHandler {
+- (void)registerMethod:(NSString *)method sessionId:(NSNumber *)sessionId requestHandler:(MPRequestHandler)requestHandler {
+  NSParameterAssert(sessionId);
   if (!self.registrations) self.registrations = [GHODictionary dictionary];
-  KBRPCRegistration *registration = self.registrations[@(sessionId)];
+  KBRPCRegistration *registration = self.registrations[sessionId];
   if (!registration) {
     registration = [[KBRPCRegistration alloc] init];
-    self.registrations[@(sessionId)] = registration;
+    self.registrations[sessionId] = registration;
   }
   [registration registerMethod:method requestHandler:requestHandler];
 }
 
-- (void)unregister:(NSInteger)sessionId {
-  [self.registrations removeObjectForKey:@(sessionId)];
+- (void)unregister:(NSNumber *)sessionId {
+  [self.registrations removeObjectForKey:sessionId];
 }
 
 - (void)openAndCheck:(void (^)(NSError *error, NSString *version))completion {

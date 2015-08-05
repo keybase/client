@@ -35,8 +35,8 @@ echo "Version from libkb/version.go: $VERSION"
 #
 
 if [ ! -f "$KB_GO_SRC/keybase/keybase" ]; then
-  echo "  Using source: $KB_GO_SRC"
-  echo "  Compiling keybase (go)..."
+  echo "Using source: $KB_GO_SRC"
+  echo "Compiling keybase (go)..."
   cd $KB_GO_SRC/keybase/
   go build -a
 fi
@@ -44,8 +44,8 @@ cp $KB_GO_SRC/keybase/keybase $BUILD_DEST/keybase
 chmod +x $BUILD_DEST/keybase
 
 if [ ! -f "$KB_GO_SRC/keybase/keybase" ]; then
-  echo "  Using KBFS source: $KBFS_GO_SRC"
-  echo "  Compiling kbfs..."
+  echo "Using KBFS source: $KBFS_GO_SRC"
+  echo "Compiling kbfs..."
   cd $KBFS_GO_SRC/kbfsfuse/
   go build -a
 fi
@@ -56,7 +56,7 @@ chmod +x $BUILD_DEST/kbfsfuse
 # Keybase.app
 #
 
-echo "Keybase.app"
+echo ""
 
 PLIST=$DIR/../Keybase/Info.plist
 HELPER_PLIST=$DIR/../Helper/Info.plist
@@ -66,12 +66,17 @@ KB_HELPER_VERSION=`/usr/libexec/PlistBuddy -c "Print :CFBundleShortVersionString
 KB_FUSE_VERSION=`/usr/libexec/PlistBuddy -c "Print :CFBundleShortVersionString" $FUSE_PLIST`
 KBFS_VERSION=$VERSION
 
-echo "  Keybase.app Version: $VERSION"
-echo "  Service Version: $KB_SERVICE_VERSION"
-echo "  Helper Version: $KB_HELPER_VERSION"
-echo "  KBFS Version: $KBFS_VERSION"
-echo "  Fuse Version: $KB_FUSE_VERSION"
-echo " "
+echo "Keybase.app Version: $VERSION"
+echo "Service Version: $KB_SERVICE_VERSION"
+echo "Helper Version: $KB_HELPER_VERSION"
+echo "KBFS Version: $KBFS_VERSION"
+echo "Fuse Version: $KB_FUSE_VERSION"
+echo ""
+
+echo "Checking executable version"
+echo "`$BUILD_DEST/keybase --version`"
+echo ""
+
 echo "Is the correct?"
 select o in "Yes" "No"; do
     case $o in

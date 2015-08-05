@@ -24,9 +24,9 @@
 
 @implementation KBRMockClient
 
-- (NSInteger)nextSessionId {
+- (NSNumber *)nextSessionId {
   static NSInteger gSessionId = 0;
-  return ++gSessionId;
+  return [NSNumber numberWithInteger:++gSessionId];
 }
 
 - (void)open {
@@ -35,10 +35,10 @@
   });
 }
 
-- (void)sendRequestWithMethod:(NSString *)method params:(NSArray *)params sessionId:(NSInteger)sessionId completion:(MPRequestCompletion)completion {
+- (void)sendRequestWithMethod:(NSString *)method params:(NSArray *)params sessionId:(NSNumber *)sessionId completion:(MPRequestCompletion)completion {
   self.completion = completion;
   if (self.handler) {
-    self.handler(@(sessionId), method, params, completion);
+    self.handler(sessionId, method, params, completion);
     return;
   }
 
@@ -52,18 +52,18 @@
   }
 }
 
-- (void)registerMethod:(NSString *)method sessionId:(NSInteger)sessionId requestHandler:(MPRequestHandler)requestHandler {
+- (void)registerMethod:(NSString *)method sessionId:(NSNumber *)sessionId requestHandler:(MPRequestHandler)requestHandler {
   if (!self.registrations) self.registrations = [NSMutableDictionary dictionary];
-  KBRPCRegistration *registration = self.registrations[@(sessionId)];
+  KBRPCRegistration *registration = self.registrations[sessionId];
   if (!registration) {
     registration = [[KBRPCRegistration alloc] init];
-    self.registrations[@(sessionId)] = registration;
+    self.registrations[sessionId] = registration;
   }
   [registration registerMethod:method requestHandler:requestHandler];
 }
 
-- (void)unregister:(NSInteger)sessionId {
-  [self.registrations removeObjectForKey:@(sessionId)];
+- (void)unregister:(NSNumber *)sessionId {
+  [self.registrations removeObjectForKey:sessionId];
 }
 
 - (BOOL)replayMethod:(NSString *)requestMethod completion:(MPRequestCompletion)completion {

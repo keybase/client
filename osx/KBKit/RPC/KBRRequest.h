@@ -17,7 +17,7 @@
 @interface KBRRequest : NSObject
 
 @property (readonly) KBRPClient *client;
-@property NSInteger sessionId;
+@property (nonatomic) NSNumber *sessionId;
 
 - (instancetype)initWithClient:(KBRPClient *)client;
 

@@ -26,7 +26,7 @@
 - (instancetype)initWithConfig:(KBEnvConfig *)config {
   NSDictionary *info = [[NSBundle mainBundle] infoDictionary];
   if ((self = [super initWithConfig:config])) {
-    [self setName:@"Service" info:@"The Keybase service" label:config.launchdLabelService bundleVersion:info[@"KBServiceVersion"] versionPath:[config cachePath:@"service.version"] plist:config.launchdPlistDictionaryForService];
+    [self setName:@"Service" info:@"The Keybase service" label:config.launchdLabelService bundleVersion:info[@"KBServiceVersion"] versionPath:[config cachePath:@"service.version"] plist:config.launchdPlistDictionaryForService logFile:config.logFile];
   }
   return self;
 }

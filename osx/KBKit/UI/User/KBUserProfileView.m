@@ -122,7 +122,7 @@
   [self.fromWindow kb_addChildWindowForView:self size:CGSizeMake(400, 400) makeKey:NO styleMask:NSFullSizeContentViewWindowMask|NSTitledWindowMask];
 }
 
-- (void)registerClient:(KBRPClient *)client sessionId:(NSInteger)sessionId {
+- (void)registerClient:(KBRPClient *)client sessionId:(NSNumber *)sessionId {
   GHWeakSelf gself = self;
   self.client = client;
 

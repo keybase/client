@@ -19,9 +19,13 @@
   NSParameterAssert(client);
   if ((self = [super init])) {
     _client = client;
-    _sessionId = [client nextSessionId];
   }
   return self;
+}
+
+- (NSNumber *)sessionId {
+  if (!_sessionId) _sessionId = [_client nextSessionId];
+  return _sessionId;
 }
 
 @end

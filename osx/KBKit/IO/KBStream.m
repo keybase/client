@@ -29,7 +29,7 @@ typedef BOOL (^KBAddToStream)(NSString *outPath, NSMutableArray *streams, KBComp
   return stream;
 }
 
-- (void)registerWithClient:(KBRPClient *)client sessionId:(NSInteger)sessionId {
+- (void)registerWithClient:(KBRPClient *)client sessionId:(NSNumber *)sessionId {
   [client registerMethod:@"keybase.1.streamUi.read" sessionId:sessionId requestHandler:^(NSNumber *messageId, NSString *method, NSArray *params, MPRequestCompletion completion) {
     [self RPCReadWithParams:params completion:completion];
   }];
