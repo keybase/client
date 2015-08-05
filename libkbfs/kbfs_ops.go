@@ -70,7 +70,7 @@ func (fs *KBFSOpsStandard) GetFavorites(ctx context.Context) ([]*TlfHandle, erro
 		handle, err := ParseTlfHandle(ctx, fs.config, f.Name)
 		if err != nil {
 			// not a fatal error.
-			log.Printf("ParseTlfHandler error: %s", err)
+			log.Printf("ParseTlfHandle error: %s", err)
 			continue
 		}
 		handles = append(handles, handle)
