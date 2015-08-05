@@ -570,6 +570,21 @@ type MDServer interface {
 	// PruneUnmerged prunes all unmerged history for the given user
 	// and device for the given top-level folder..
 	PruneUnmerged(ctx context.Context, id TlfID) error
+
+	// RegisterForUpdates tells the MD server to invoke the given
+	// observer function when there is a merged update with a revision
+	// number greater than currHead, which did NOT originate from this
+	// same MD server session.  observer may be called synchronously
+	// if the current MD object for this top-level folder has a
+	// greater revision number and was not written by this MD server
+	// session (in which case, the context passed to observer will be
+	// derived from ctx).  observer is only ever called once; the
+	// caller must re-register if it wants future updates.  If the
+	// error passed to observer is non-nil, the caller must
+	// re-register (e.g., the connection to the MD server may have
+	// failed).
+	RegisterForUpdates(ctx context.Context, id TlfID,
+		currHead MetadataRevision, observer func(context.Context, error)) error
 }
 
 // BlockServer gets and puts opaque data blocks.  The instantiation

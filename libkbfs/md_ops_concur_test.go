@@ -79,3 +79,8 @@ func (m *MDOpsConcurTest) PutUnmerged(ctx context.Context, md *RootMetadata) err
 func (m *MDOpsConcurTest) PruneUnmerged(ctx context.Context, id TlfID) error {
 	return nil
 }
+
+func (m *MDOpsConcurTest) RegisterForUpdates(ctx context.Context, id TlfID,
+	currHead MetadataRevision, observer func(context.Context, error)) error {
+	return nil
+}

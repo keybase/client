@@ -354,6 +354,12 @@ func (md *MDServerLocal) PruneUnmerged(ctx context.Context, id TlfID) error {
 	return nil
 }
 
+// RegisterForUpdates implements the MDServer interface for MDServerLocal.
+func (md *MDServerLocal) RegisterForUpdates(ctx context.Context, id TlfID,
+	currHead MetadataRevision, observer func(context.Context, error)) error {
+	return nil
+}
+
 // This should only be used for testing with an in-memory server.
 func (md *MDServerLocal) copy(config Config) *MDServerLocal {
 	return &MDServerLocal{config, md.handleDb, md.mdDb, md.revDb, md.mutex}

@@ -266,6 +266,17 @@ func (md *MDServerRemote) PruneUnmerged(ctx context.Context, id TlfID) error {
 	})
 }
 
+// RegisterForUpdates implements the MDServer interface for MDServerRemote.
+func (md *MDServerRemote) RegisterForUpdates(ctx context.Context, id TlfID,
+	currHead MetadataRevision, observer func(context.Context, error)) error {
+	// This could work by a long-poll RPC that runs in a separate
+	// goroutine, or by listening as a server on the same RPC
+	// connection for an incoming RPC from the MD server.  Either way,
+	// it will have to know when the underlying TCP connection goes
+	// away so it can fire the observer with an error.
+	return nil
+}
+
 // GetFavorites implements the MDServer interface for MDServerRemote.
 func (md *MDServerRemote) GetFavorites(ctx context.Context) ([]*TlfHandle, error) {
 	//XXX mdserver isn't going to support this
