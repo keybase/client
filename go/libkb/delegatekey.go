@@ -218,8 +218,12 @@ func (d *Delegator) post(lctx LoginContext) (err error) {
 		"type":            S{Val: d.PushType},
 		"is_remote_proof": B{Val: false},
 		"public_key":      S{Val: pub},
-		"server_half":     S{Val: hex.EncodeToString(d.ServerHalf)},
 	}
+
+	if len(string(d.ServerHalf)) > 0 {
+		hargs["server_half"] = S{Val: hex.EncodeToString(d.ServerHalf)}
+	}
+
 	if d.isEldest {
 		hargs["is_primary"] = I{Val: 1}
 	} else {
