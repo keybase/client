@@ -15,16 +15,17 @@ import (
 
 // MDServerLocal just stores blocks in local leveldb instances.
 type MDServerLocal struct {
-	config   Config
-	handleDb *leveldb.DB // folder handle                   -> folderId
-	mdDb     *leveldb.DB // MD ID                           -> root metadata (signed)
-	revDb    *leveldb.DB // folderId+[deviceKID]+[revision] -> MD ID
-	mutex    *sync.Mutex
+	config      Config
+	handleDb    *leveldb.DB // folder handle                   -> folderId
+	mdDb        *leveldb.DB // MD ID                           -> root metadata (signed)
+	revDb       *leveldb.DB // folderId+[deviceKID]+[revision] -> MD ID
+	mutex       *sync.Mutex
+	observers   map[interface{}]func(context.Context, error)
+	sessionHead interface{}
 }
 
-func newMDServerLocalWithStorage(config Config,
-	handleStorage, mdStorage, revStorage storage.Storage) (*MDServerLocal, error) {
-
+func newMDServerLocalWithStorage(config Config, handleStorage, mdStorage,
+	revStorage storage.Storage) (*MDServerLocal, error) {
 	handleDb, err := leveldb.Open(handleStorage, leveldbOptions)
 	if err != nil {
 		return nil, err
@@ -37,7 +38,8 @@ func newMDServerLocalWithStorage(config Config,
 	if err != nil {
 		return nil, err
 	}
-	mdserv := &MDServerLocal{config, handleDb, mdDb, revDb, &sync.Mutex{}}
+	mdserv := &MDServerLocal{config, handleDb, mdDb, revDb, &sync.Mutex{},
+		make(map[interface{}]func(context.Context, error)), nil}
 	return mdserv, nil
 }
 
@@ -61,15 +63,16 @@ func NewMDServerLocal(config Config, handleDbfile string, mdDbfile string,
 		return nil, err
 	}
 
-	return newMDServerLocalWithStorage(config,
-		handleStorage, mdStorage, revStorage)
+	return newMDServerLocalWithStorage(config, handleStorage, mdStorage,
+		revStorage)
 }
 
 // NewMDServerMemory constructs a new MDServerLocal object that stores
 // all data in-memory.
 func NewMDServerMemory(config Config) (*MDServerLocal, error) {
 	return newMDServerLocalWithStorage(config,
-		storage.NewMemStorage(), storage.NewMemStorage(), storage.NewMemStorage())
+		storage.NewMemStorage(), storage.NewMemStorage(),
+		storage.NewMemStorage())
 }
 
 // GetForHandle implements the MDServer interface for MDServerLocal.
@@ -318,6 +321,18 @@ func (md *MDServerLocal) Put(ctx context.Context, rmds *RootMetadataSigned) erro
 		return MDServerError{err}
 	}
 
+	if !unmerged {
+		md.sessionHead = md
+
+		// now fire all the observers that aren't from this session
+		for k, v := range md.observers {
+			if k != md.sessionHead {
+				v(ctx, nil)
+				delete(md.observers, k)
+			}
+		}
+	}
+
 	return nil
 }
 
@@ -357,10 +372,43 @@ func (md *MDServerLocal) PruneUnmerged(ctx context.Context, id TlfID) error {
 // RegisterForUpdates implements the MDServer interface for MDServerLocal.
 func (md *MDServerLocal) RegisterForUpdates(ctx context.Context, id TlfID,
 	currHead MetadataRevision, observer func(context.Context, error)) error {
+	md.mutex.Lock()
+	defer md.mutex.Unlock()
+
+	// are we already passed this revision?  If so, fire observer
+	// immediately
+	currMergedHead, err := md.getHeadForTLF(ctx, id, false)
+	if err != nil {
+		return err
+	}
+	var currMergedHeadRev MetadataRevision
+	if currMergedHead != NullMdID {
+		head, err := md.get(ctx, currMergedHead)
+		if err != nil {
+			return MDServerError{err}
+		}
+		if head == nil {
+			return MDServerError{fmt.Errorf("head MD not found %v", currHead)}
+		}
+		currMergedHeadRev = head.MD.Revision
+	}
+
+	if currMergedHeadRev > currHead && md != md.sessionHead {
+		observer(ctx, nil)
+		return nil
+	}
+
+	// Otherwise, this is a legit observer.  This assumes that each
+	// client will be using a unique instance of MDServerLocal.
+	md.observers[md] = observer
 	return nil
 }
 
 // This should only be used for testing with an in-memory server.
 func (md *MDServerLocal) copy(config Config) *MDServerLocal {
-	return &MDServerLocal{config, md.handleDb, md.mdDb, md.revDb, md.mutex}
+	// NOTE: observers is copied shallowly on purpose, so that the MD
+	// server that gets a Put will notify all observers no matter
+	// where they got on the list.
+	return &MDServerLocal{config, md.handleDb, md.mdDb, md.revDb, md.mutex,
+		md.observers, md.sessionHead}
 }

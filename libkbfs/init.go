@@ -27,8 +27,7 @@ func makeMDServer(config Config, serverRootDir *string) (MDServer, error) {
 		handlePath := filepath.Join(*serverRootDir, "kbfs_handles")
 		mdPath := filepath.Join(*serverRootDir, "kbfs_md")
 		revPath := filepath.Join(*serverRootDir, "kbfs_revisions")
-		mdserv, err = NewMDServerLocal(
-			config, handlePath, mdPath, revPath)
+		mdserv, err = NewMDServerLocal(config, handlePath, mdPath, revPath)
 	} else {
 		mdserv, err = NewMDServerRemote(context.TODO(), config, mdServerAddr)
 	}
