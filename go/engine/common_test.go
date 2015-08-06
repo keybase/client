@@ -102,6 +102,27 @@ func CreateAndSignupFakeUserSafe(g *libkb.GlobalContext, prefix string) (*FakeUs
 	return fu, nil
 }
 
+func CreateAndSignupFakeUserGPG(tc libkb.TestContext, prefix string) *FakeUser {
+	fu := NewFakeUserOrBust(tc.T, prefix)
+	if err := tc.GenerateGPGKeyring(fu.Email); err != nil {
+		tc.T.Fatal(err)
+	}
+	arg := MakeTestSignupEngineRunArg(fu)
+	arg.SkipGPG = false
+	ctx := &Context{
+		LogUI:    tc.G.UI.GetLogUI(),
+		GPGUI:    &gpgtestui{},
+		SecretUI: fu.NewSecretUI(),
+		LoginUI:  libkb.TestLoginUI{Username: fu.Username},
+	}
+	s := NewSignupEngine(&arg, tc.G)
+	err := RunEngine(s, ctx)
+	if err != nil {
+		tc.T.Fatal(err)
+	}
+	return fu
+}
+
 func (fu *FakeUser) LoginWithSecretUI(secui libkb.SecretUI, g *libkb.GlobalContext) error {
 	ctx := &Context{
 		LogUI:       g.UI.GetLogUI(),

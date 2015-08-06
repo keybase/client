@@ -254,6 +254,49 @@ func TestLoginPGPMultSignNewDevice(t *testing.T) {
 	testUserHasDeviceKey(t)
 }
 
+// pgp sibkey used to sign new device
+func TestLoginPGPSibSignNewDevice(t *testing.T) {
+	tc := SetupEngineTest(t, "login")
+	u1 := CreateAndSignupFakeUserGPG(tc, "pgp")
+	Logout(tc)
+
+	// redo SetupEngineTest to get a new home directory...should look like a new device.
+	tc2 := SetupEngineTest(t, "login")
+	defer tc2.Cleanup()
+
+	// we need the gpg keyring that's in the first homedir
+	if err := tc.MoveGpgKeyringTo(tc2); err != nil {
+		t.Fatal(err)
+	}
+
+	// now safe to cleanup first home
+	tc.Cleanup()
+
+	docui := &lockuiPGP{&lockui{}}
+
+	before := docui.selectSignerCount
+
+	li := NewLoginWithPromptEngine(u1.Username, tc2.G)
+	secui := &libkb.TestSecretUI{Passphrase: u1.Passphrase}
+	ctx := &Context{
+		LogUI:       tc2.G.UI.GetLogUI(),
+		LocksmithUI: docui,
+		SecretUI:    secui,
+		GPGUI:       &gpgtestui{},
+		LoginUI:     &libkb.TestLoginUI{},
+	}
+	if err := RunEngine(li, ctx); err != nil {
+		t.Fatal(err)
+	}
+
+	after := docui.selectSignerCount
+	if after-before != 1 {
+		t.Errorf("doc ui SelectSigner called %d times, expected 1", after-before)
+	}
+
+	testUserHasDeviceKey(t)
+}
+
 // TestLoginInterrupt* tries to simulate what would happen if the
 // locksmith login checkup gets interrupted.  See Issue #287.
 

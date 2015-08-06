@@ -219,6 +219,7 @@ func createFakeUserWithPGPMult(t *testing.T, tc libkb.TestContext) *FakeUser {
 
 func createFakeUserWithPGPSibkey(tc libkb.TestContext) *FakeUser {
 	fu := CreateAndSignupFakeUser(tc, "pgp")
+
 	arg := PGPKeyImportEngineArg{
 		Gen: &libkb.PGPGenArg{
 			PrimaryBits: 768,
