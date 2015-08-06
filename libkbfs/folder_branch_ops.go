@@ -874,6 +874,7 @@ func (fbo *FolderBranchOps) unembedBlockChanges(
 	changes.Pointer = info.BlockPointer
 	changes.Ops = nil
 	md.RefBytes += uint64(info.EncodedSize)
+	md.DiskUsage += uint64(info.EncodedSize)
 	return
 }
 
