@@ -28,10 +28,10 @@ class Login extends TypedReact.Component<{}, LoginState> {
     console.log('Submit');
     e.preventDefault();
     let username = React.findDOMNode<HTMLInputElement>(this.refs['username']).value;
-    let password = React.findDOMNode<HTMLInputElement>(this.refs['password']).value;
+    let passphrase = React.findDOMNode<HTMLInputElement>(this.refs['password']).value;
     //let storeSecret = React.findDOMNode<HTMLInputElement>(this.refs['storeSecret']).value;
     //console.log('Store secret? ', storeSecret);
-    let request = {protocol: 'keybase.1.login', method:'loginWithPassphrase', args: {username, password}};
+    let request = {protocol: 'keybase.1.login', method:'loginWithPassphrase', args: {username, passphrase}};
     ipc.send('rpc', request)
   }
 

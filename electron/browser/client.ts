@@ -55,6 +55,7 @@ class Client {
     });
   }
 
+  // For running commands from the console
   run(command: string, responder: Responder) {
 
     var cmdArgs = command.split(/\s*[\s,]\s*/);
