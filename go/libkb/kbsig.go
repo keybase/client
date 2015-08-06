@@ -378,8 +378,11 @@ func (u *User) AuthenticationProof(key GenericKey, session string, ei int) (ret 
 	if _, err = rand.Read(nonce[:]); err != nil {
 		return
 	}
-	body.SetKey("nonce", jsonw.NewString(hex.EncodeToString(nonce[:])))
-	body.SetKey("session", jsonw.NewString(session))
+	auth := jsonw.NewDictionary()
+	auth.SetKey("nonce", jsonw.NewString(hex.EncodeToString(nonce[:])))
+	auth.SetKey("session", jsonw.NewString(session))
+
+	body.SetKey("auth", auth)
 	return
 }
 
