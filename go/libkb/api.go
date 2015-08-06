@@ -161,13 +161,9 @@ func doRequestShared(api Requester, arg APIArg, req *http.Request, wantJSONRes b
 	}
 
 	if G.Env.GetAPIDump() {
-		if wantJSONRes {
-			b, _ := json.MarshalIndent(arg.jsonPayload, "", "  ")
-			G.Log.Debug(fmt.Sprintf("| full request: %s", b))
-		} else {
-			b, _ := json.MarshalIndent(arg.getHTTPArgs(), "", "  ")
-			G.Log.Debug(fmt.Sprintf("| full request: %s", b))
-		}
+		jpStr, _ := json.MarshalIndent(arg.jsonPayload, "", "  ")
+		argStr, _ := json.MarshalIndent(arg.getHTTPArgs(), "", "  ")
+		G.Log.Debug(fmt.Sprintf("| full request: json:%s querystring:%s", jpStr, argStr))
 	}
 
 	timer := G.Timers.Start(timerType)
