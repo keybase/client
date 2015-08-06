@@ -21,6 +21,7 @@ type Locksmith struct {
 	lks        *libkb.LKSec
 	kexMu      sync.Mutex
 	kex        *KexFwd
+	canceled   chan struct{}
 }
 
 type LocksmithArg struct {
@@ -38,8 +39,9 @@ type LocksmithStatus struct {
 
 func NewLocksmith(arg *LocksmithArg, g *libkb.GlobalContext) *Locksmith {
 	return &Locksmith{
-		arg:          arg,
 		Contextified: libkb.NewContextified(g),
+		arg:          arg,
+		canceled:     make(chan struct{}),
 	}
 }
 
@@ -124,10 +126,11 @@ func (d *Locksmith) LoginCheckup(ctx *Context, u *libkb.User) error {
 }
 
 func (d *Locksmith) Cancel() error {
+	close(d.canceled)
 	d.kexMu.Lock()
 	defer d.kexMu.Unlock()
 	if d.kex == nil {
-		d.G().Log.Debug("Locksmith Cancel called, but kex is nil")
+		d.G().Log.Debug("Locksmith Cancel called, but kex is nil (so nothing should be running)")
 		return nil
 	}
 	return d.kex.Cancel()
@@ -343,9 +346,26 @@ func (d *Locksmith) deviceSign(ctx *Context, withPGPOption bool) error {
 		if i > 0 {
 			ctx.LogUI.Debug("retrying device sign process")
 		}
-		res, err := ctx.LocksmithUI.SelectSigner(arg)
-		if err != nil {
-			return err
+
+		resCh := make(chan keybase1.SelectSignerRes)
+		errCh := make(chan error)
+
+		go func() {
+			res, err := ctx.LocksmithUI.SelectSigner(arg)
+			if err != nil {
+				errCh <- err
+			} else {
+				resCh <- res
+			}
+		}()
+
+		var res keybase1.SelectSignerRes
+		select {
+		case res = <-resCh:
+		case e := <-errCh:
+			return e
+		case <-d.canceled:
+			return libkb.CanceledError{M: "locksmith canceled while prompting user for signer"}
 		}
 
 		if res.Action == keybase1.SelectSignerAction_CANCEL {
@@ -626,18 +646,35 @@ func (d *Locksmith) deviceName(ctx *Context) (string, error) {
 		return d.devName, nil
 	}
 
-	for i := 0; i < 10; i++ {
-		name, err := ctx.LocksmithUI.PromptDeviceName(0)
-		if err != nil {
-			return "", err
+	nameCh := make(chan string)
+	errCh := make(chan error)
+
+	go func() {
+		for i := 0; i < 10; i++ {
+			name, err := ctx.LocksmithUI.PromptDeviceName(0)
+			if err != nil {
+				errCh <- err
+				return
+			}
+			if !d.isDeviceNameTaken(ctx, name) {
+				nameCh <- name
+				return
+			}
+			ctx.LocksmithUI.DeviceNameTaken(keybase1.DeviceNameTakenArg{Name: name})
 		}
-		if !d.isDeviceNameTaken(ctx, name) {
-			d.devName = name
-			return d.devName, nil
-		}
-		ctx.LocksmithUI.DeviceNameTaken(keybase1.DeviceNameTakenArg{Name: name})
+		errCh <- ErrDeviceMustBeUnique
+	}()
+
+	select {
+	case n := <-nameCh:
+		d.devName = n
+		return d.devName, nil
+	case e := <-errCh:
+		return "", e
+	case <-d.canceled:
+		return "", libkb.CanceledError{M: "locksmith canceled while getting device name"}
 	}
-	return "", ErrDeviceMustBeUnique
+
 }
 
 func (d *Locksmith) hasActiveDevice(ctx *Context) bool {
