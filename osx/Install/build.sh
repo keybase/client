@@ -142,11 +142,18 @@ mkdir -p $SUPPORT_BIN
 cp keybase $SUPPORT_BIN
 cp kbfsfuse $SUPPORT_BIN
 
+echo "Re-signing..."
+# Need to sign contents first (helper), then app bundle
+codesign --verbose --force --deep --sign "Developer ID Application: Keybase, Inc." Keybase.app/Contents/Library/LaunchServices/keybase.Helper
+codesign --verbose --force --deep --sign "Developer ID Application: Keybase, Inc." Keybase.app
+
 # Verify
 #codesign --verify --verbose=4 Keybase.app
+#spctl --assess --verbose=4 /Applications/Keybase.app/Contents/Library/LaunchServices/keybase.Helper
 
-echo "Re-signing..."
-codesign --verbose --force --deep --sign "Developer ID Application: Keybase, Inc." Keybase.app
+echo "Checking Helper..."
+spctl --assess --verbose=4 Keybase.app/Contents/Library/LaunchServices/keybase.Helper
+
 
 rm -rf Keybase-$VERSION.dmg
 
@@ -166,16 +173,7 @@ else
   To open the DMG:
 
     open build/Keybase-$VERSION.dmg
+
   "
+
 fi
-
-
-
-# echo "What do you want to do?"
-# select o in "Install" "Open" "Exit"; do
-#     case $o in
-#         Install ) ditto Keybase.app /Applications/Keybase.app; break;;
-#         Open ) open Keybase-$VERSION.dmg; break;;
-#         Exit ) exit;;
-#     esac
-# done
