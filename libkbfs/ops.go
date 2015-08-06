@@ -12,6 +12,12 @@ type op interface {
 	SizeExceptUpdates() uint64
 }
 
+// finalOp represents a single file-system remote-sync operation in
+// its final state
+type finalOp interface {
+	AllUpdates() []blockUpdate
+}
+
 // op codes
 const (
 	createOpCode extCode = iota + extCodeOpsRangeStart
@@ -89,6 +95,12 @@ func (co *createOp) SizeExceptUpdates() uint64 {
 	return uint64(len(co.NewName))
 }
 
+func (co createOp) AllUpdates() []blockUpdate {
+	updates := make([]blockUpdate, len(co.Updates))
+	copy(updates, co.Updates)
+	return append(updates, co.Dir)
+}
+
 // rmOp is an op representing a file or subdirectory removal
 type rmOp struct {
 	OpCommon
@@ -110,6 +122,12 @@ func newRmOp(name string, oldDir BlockPointer) *rmOp {
 
 func (ro *rmOp) SizeExceptUpdates() uint64 {
 	return uint64(len(ro.OldName))
+}
+
+func (ro rmOp) AllUpdates() []blockUpdate {
+	updates := make([]blockUpdate, len(ro.Updates))
+	copy(updates, ro.Updates)
+	return append(updates, ro.Dir)
 }
 
 // renameOp is an op representing a rename of a file/subdirectory from
@@ -144,6 +162,15 @@ func newRenameOp(oldName string, oldOldDir BlockPointer,
 
 func (ro *renameOp) SizeExceptUpdates() uint64 {
 	return uint64(len(ro.NewName) + len(ro.NewName))
+}
+
+func (ro renameOp) AllUpdates() []blockUpdate {
+	updates := make([]blockUpdate, len(ro.Updates))
+	copy(updates, ro.Updates)
+	if (ro.NewDir != blockUpdate{}) {
+		return append(updates, ro.NewDir, ro.OldDir)
+	}
+	return append(updates, ro.OldDir)
 }
 
 // WriteRange represents a file modification.  Len is 0 for a
@@ -183,6 +210,12 @@ func (so *syncOp) SizeExceptUpdates() uint64 {
 	return uint64(len(so.Writes) * 16)
 }
 
+func (so syncOp) AllUpdates() []blockUpdate {
+	updates := make([]blockUpdate, len(so.Updates))
+	copy(updates, so.Updates)
+	return append(updates, so.File)
+}
+
 type attrChange uint16
 
 const (
@@ -215,6 +248,12 @@ func newSetAttrOp(name string, oldDir BlockPointer,
 
 func (sao *setAttrOp) SizeExceptUpdates() uint64 {
 	return uint64(len(sao.Name))
+}
+
+func (sao setAttrOp) AllUpdates() []blockUpdate {
+	updates := make([]blockUpdate, len(sao.Updates))
+	copy(updates, sao.Updates)
+	return append(updates, sao.Dir)
 }
 
 // gcOp is an op that represents garbage-collecting the history of a
