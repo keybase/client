@@ -1,25 +1,24 @@
-import _ = require('underscore');
-import BufferView = require('./buffer-view');
-import configuration = require('./lib/configuration');
-import InputBox = require('./input-box');
+import ConsoleBuffer = require('./console-buffer');
+import ConsoleInput = require('./console-input');
 import Log = require('./lib/log');
 import React = require('react');
 import TypedReact = require('typed-react');
 
-const D = React.DOM;
-
+//import configuration = require('./lib/configuration');
 //const test = configuration.get('app', 'test');
 
-interface AppViewProps {}
+const D = React.DOM;
 
-interface AppViewState {
+interface ConsoleProps {}
+
+interface ConsoleState {
   username: string;
   log: Log;
 }
 
-class AppView extends TypedReact.Component<AppViewProps, AppViewState> {
+class Console extends TypedReact.Component<ConsoleProps, ConsoleState> {
 
-  getInitialState(): AppViewState {
+  getInitialState(): ConsoleState {
     return {
       username: '',
       log: new Log([], '')
@@ -35,8 +34,8 @@ class AppView extends TypedReact.Component<AppViewProps, AppViewState> {
   render() {
     return (
       D.div({id: 'app-view'},
-        BufferView({log: this.state.log}),
-        InputBox({submit: this.submitInput})
+        ConsoleBuffer({log: this.state.log}),
+        ConsoleInput({submit: this.submitInput})
       )
     );
   }
@@ -64,4 +63,4 @@ class AppView extends TypedReact.Component<AppViewProps, AppViewState> {
   }
 }
 
-export = React.createFactory(TypedReact.createClass(AppView));
+export = React.createFactory(TypedReact.createClass(Console));

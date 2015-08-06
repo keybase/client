@@ -1,15 +1,13 @@
-import _ = require('underscore');
-import configuration = require('./lib/configuration');
 import React = require('react');
 import TypedReact = require('typed-react');
 
 const D = React.DOM;
 
-interface InputBoxProps {
+interface ConsoleInputProps {
   submit: (text: string) => void;
 }
 
-class InputBox extends TypedReact.Component<InputBoxProps, {}> {
+class ConsoleInput extends TypedReact.Component<ConsoleInputProps, {}> {
   componentDidMount() {
     window.addEventListener('click', this.focus);
   }
@@ -25,7 +23,7 @@ class InputBox extends TypedReact.Component<InputBoxProps, {}> {
   }
 
 /*
-  shouldComponentUpdate(nextProps: InputBoxProps): boolean {
+  shouldComponentUpdate(nextProps: ConsoleInputProps): boolean {
     let input = React.findDOMNode<HTMLInputElement>(this.refs['input']);
     return !(<any>input).matches(':focus');
   }
@@ -52,4 +50,4 @@ class InputBox extends TypedReact.Component<InputBoxProps, {}> {
   }
 }
 
-export = React.createFactory(TypedReact.createClass(InputBox));
+export = React.createFactory(TypedReact.createClass(ConsoleInput));

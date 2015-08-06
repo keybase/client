@@ -4,3 +4,5 @@
 /// <reference path="../lib.d/default/default.d.ts" />
 
 /// <reference path="../lib.d/js-yaml/js-yaml.d.ts" />
+
+/// <reference path="../lib.d/keybase/keybase.d.ts" />

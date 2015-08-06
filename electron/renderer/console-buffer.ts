@@ -8,13 +8,13 @@ const D = React.DOM;
 const followLogBuffer = 20;
 const minimumScrollHeight = 10;
 
-interface BufferViewProps {
+interface ConsoleBufferProps {
   log: Log;
 }
 
-interface BufferViewState {}
+interface ConsoleBufferState {}
 
-class BufferView extends TypedReact.Component<BufferViewProps, BufferViewState> {
+class ConsoleBuffer extends TypedReact.Component<ConsoleBufferProps, ConsoleBufferState> {
   isFollowingLog: boolean;
 
   constructor() {
@@ -22,7 +22,7 @@ class BufferView extends TypedReact.Component<BufferViewProps, BufferViewState> 
     this.isFollowingLog = true;
   }
 
-  getInitialState(): BufferViewState {
+  getInitialState(): ConsoleBufferState {
     return {
       log: new Log([], '')
     };
@@ -41,10 +41,9 @@ class BufferView extends TypedReact.Component<BufferViewProps, BufferViewState> 
         D.pre(null, text)
       )
      );
-
   }
 
-  componentWillUpdate(nextProps: BufferViewProps) {
+  componentWillUpdate(nextProps: ConsoleBufferProps) {
     let view = this.view();
     let isAtBottom = view.scrollHeight - view.clientHeight - view.scrollTop < followLogBuffer;
     this.isFollowingLog = isAtBottom;
@@ -120,4 +119,4 @@ class BufferView extends TypedReact.Component<BufferViewProps, BufferViewState> 
 
 }
 
-export = React.createFactory(TypedReact.createClass(BufferView));
+export = React.createFactory(TypedReact.createClass(ConsoleBuffer));

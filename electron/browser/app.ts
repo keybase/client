@@ -3,8 +3,7 @@ import BrowserWindow = require('browser-window');
 import configuration = require('./configuration');
 
 import ipc = require('ipc');
-
-import RPC = require('./rpc');
+import Client = require('./client');
 
 export function run(mainUrl: string) {
   var config = configuration.load();
@@ -14,15 +13,25 @@ export function run(mainUrl: string) {
   var client = null;
 
   function openNewWindow() {
-    window = new BrowserWindow({width: 600, height: 400});
+    window = new BrowserWindow({width: 1200, height: 700}); // Very wide for dev tools
     window.loadUrl(mainUrl);
 
-    //window.toggleDevTools();
+    window.toggleDevTools();
 
-    client = new RPC();
+    client = new Client();
 
+    // RPC call
+    ipc.on('rpc', function(event, request) {
+      console.log('Got request: ', request);
+      client.invoke(request, function(response) {
+        console.log('Replying: ', response);
+        event.sender.send('rpc', response);
+      });
+    });
+
+    // Console command
     ipc.on('command', function(event, arg) {
-      event.sender.send('output', "Running: " + arg.text);
+      event.sender.send('output', 'Running: ' + arg.text);
 
       client.run(arg.text, function(err, res) {
         if (err != null) {

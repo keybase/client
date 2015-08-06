@@ -24,6 +24,8 @@
     "typed-react": "^3.4.1",
     "underscore": "^1.8.3",
     "electron-breakpoint": "^1.0.1",
+    "jquery": "^2.1.4",
+    "bootstrap": "^3.3.5",
     "framed-msgpack-rpc": "^1.1.7"
   },
   "devDependencies": {

@@ -10,3 +10,5 @@
 
 /// included in NPM packages
 /// <reference path="../node_modules/typed-react/typed-react.d.ts" />
+
+/// <reference path="../lib.d/keybase/keybase.d.ts" />

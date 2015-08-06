@@ -1,6 +1,8 @@
-import AppView = require('./app-view');
 import React = require('react');
 import TypedReact = require('typed-react');
+
+import Login = require('./login');
+//import ConsoleView = require('./app-view');
 
 const D = React.DOM;
 
@@ -11,7 +13,8 @@ class App extends TypedReact.Component<{}, AppState> {
   componentDidMount() {}
 
   render() {
-    return AppView();
+    return Login();
+    //return ConsoleView();
   }
 
 };

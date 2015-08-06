@@ -16,24 +16,30 @@ dep:
 build: clean
 	@mkdir build
 	@mkdir build/browser
+	@mkdir build/css
+	@mkdir build/js
 	@mkdir build/renderer
 
 	@cp -r config build/
-	@cp -r ./node_modules/normalize.css/normalize.css build/
+
 	@cp -r main.js build/
+	@cp -r ./node_modules/jquery/dist/jquery.js build/js
+	@cp -r ./node_modules/bootstrap/dist/js/bootstrap.js build/js
+
+	@cp -r ./node_modules/normalize.css/normalize.css build/css
+	@cp -r ./node_modules/bootstrap/dist/css/bootstrap.css build/css
+
 	@cp -r index.html build/
 	@cp -r resource build/
 	@cp -r package.json build/
 
-	# Renderer scripts
+	@# We --ignore ipc because Electron has its own defined that is better
 	$(TSC) -p ./renderer
 	$(BROWSERIFY) ./build/renderer/app.js -o build/renderer.js --ignore ipc --debug
 
-	# Browser scripts
 	$(TSC) -p ./browser
 
-	# Styles
-	$(LESS) ./style/main.less > build/built.css
+	$(LESS) ./style/main.less > build/css/built.css
 
 clean: clean-asar
 	@rm -rf ./build

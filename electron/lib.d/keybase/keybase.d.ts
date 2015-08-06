@@ -1,0 +1,5 @@
+
+declare module Keybase {
+
+
+}
