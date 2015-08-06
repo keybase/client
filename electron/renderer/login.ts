@@ -54,7 +54,7 @@ class Login extends TypedReact.Component<{}, LoginState> {
 
           D.div({className: 'form-group'},
             D.label({htmlFor: 'inputEmail', }, 'Email or Username'),
-            D.input({ref: 'username', className: 'form-control', placeholder:'Email or Username', required: true, autofocus: true})
+            D.input({ref: 'username', className: 'form-control', placeholder:'Email or Username', required: true, autoFocus: true})
           ),
           D.div({className: 'form-group'},
             D.label({htmlFor: 'inputPassword'}, 'Password'),

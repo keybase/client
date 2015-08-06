@@ -5,6 +5,6 @@
     "preserveConstEnums": true,
     "outDir": "../build/renderer",
     "sourceMap": true,
-    "target": "ES5"
+    "target": "es5"
   }
 }
