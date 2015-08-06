@@ -25,7 +25,6 @@ class Login extends TypedReact.Component<{}, LoginState> {
   }
 
   submit(e: React.FormEvent) {
-    console.log('Submit');
     e.preventDefault();
     let username = React.findDOMNode<HTMLInputElement>(this.refs['username']).value;
     let passphrase = React.findDOMNode<HTMLInputElement>(this.refs['password']).value;
@@ -36,11 +35,11 @@ class Login extends TypedReact.Component<{}, LoginState> {
   }
 
   onResponse(response) {
-    console.log('Response: ', response)
+    console.log('Login response: ', response)
     if (response.err) {
       this.state.alert = {type: 'danger', message: response.err['desc']};
     } else {
-      this.state.alert = {type: 'success', message: JSON.stringify(response, null, 2)};
+      this.state.alert = {type: 'success', message: "Logged in!"};
     }
     this.forceUpdate();
   }
