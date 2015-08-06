@@ -2,7 +2,6 @@ package libkb
 
 import (
 	"errors"
-	"fmt"
 )
 
 // DelegatorAggregator manages delegating multiple keys in one post to the server
@@ -24,11 +23,8 @@ func DelegatorAggregator(lctx LoginContext, ds []Delegator) (err error) {
 		d.Run(lctx)
 
 		flatArgs := d.postArg.flattenHTTPArgs(d.postArg.getHTTPArgs())
-		G.Log.Debug(fmt.Sprintf("NOJ: %+v", flatArgs))
 		args = append(args, flatArgs)
 	}
-
-	G.Log.Debug(fmt.Sprintf("NOJ2: %+v", args))
 
 	payload := make(map[string]interface{})
 	payload["sigs"] = args
