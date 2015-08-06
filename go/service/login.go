@@ -83,7 +83,7 @@ func (h *LoginHandler) CancelLogin(sessionID int) error {
 	c := h.canceler(sessionID)
 	if c == nil {
 		G.Log.Debug("CancelLogin called and there's no login engine for sessionID %d", sessionID)
-		return nil
+		return libkb.LoginSessionNotFound{SessionID: sessionID}
 	}
 	return c.Cancel()
 }

@@ -1024,3 +1024,11 @@ type NotLatestSubchainError struct {
 func (e NotLatestSubchainError) Error() string {
 	return e.Msg
 }
+
+type LoginSessionNotFound struct {
+	SessionID int
+}
+
+func (e LoginSessionNotFound) Error() string {
+	return fmt.Sprintf("No login session found for session id %d", e.SessionID)
+}
