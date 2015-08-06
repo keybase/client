@@ -108,7 +108,7 @@ func (g *GlobalContext) Logout() error {
 }
 
 func (g *GlobalContext) ConfigureLogging() error {
-	g.Log.Configure(g.Env.GetPlainLogging(), g.Env.GetDebug(), g.Env.GetLogFile())
+	g.Log.Configure(g.Env.GetLogFormat(), g.Env.GetDebug(), g.Env.GetLogFile())
 	g.Output = os.Stdout
 	return nil
 }

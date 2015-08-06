@@ -89,8 +89,18 @@ func colorByteSequence(code int) []byte {
 func (cp CodePair) OpenBytes() []byte  { return colorByteSequence(cp.Open) }
 func (cp CodePair) CloseBytes() []byte { return colorByteSequence(cp.Close) }
 
+func HasColor() bool {
+	// TODO Color should be based on whether log format supports it
+	logFormatHasColor := map[string]bool{
+		"":        true,
+		"default": true,
+		"fancy":   true,
+	}
+	return logFormatHasColor[G.Env.GetLogFormat()]
+}
+
 func ColorOpen(which string) []byte {
-	if G.Env.GetPlainLogging() {
+	if !HasColor() {
 		return nil
 	}
 	if cp, ok := codes[which]; ok {
@@ -107,7 +117,7 @@ func GetColorCode(which string) *CodePair {
 }
 
 func ColorClose(which string) []byte {
-	if G.Env.GetPlainLogging() {
+	if !HasColor() {
 		return nil
 	}
 	if cp, ok := codes[which]; ok {
@@ -117,7 +127,7 @@ func ColorClose(which string) []byte {
 }
 
 func ColorBytes(which string, text []byte) []byte {
-	if G.Env.GetPlainLogging() {
+	if !HasColor() {
 		return text
 	} else if cp, ok := codes[which]; ok {
 		ret := colorByteSequence(cp.Open)

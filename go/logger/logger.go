@@ -10,9 +10,10 @@ import (
 )
 
 const (
-	fancyFormat = "%{color}%{time:15:04:05.000000} ▶ %{level:.4s} %{id:03x}%{color:reset} %{message}"
-	plainFormat = "%{level:.4s} %{id:03x} %{message}"
-	niceFormat  = "%{color}▶ %{level:.4s} %{message} %{color:reset}"
+	fancyFormat   = "%{color}%{time:15:04:05.000000} ▶ %{level:.4s} %{id:03x}%{color:reset} %{message}"
+	plainFormat   = "%{level:.4s} %{id:03x} %{message}"
+	fileFormat    = "%{time:15:04:05.000000} ▶ %{level:.4s} %{id:03x} %{message}"
+	defaultFormat = "%{color}▶ %{level:.4s} %{message} %{color:reset}"
 )
 
 const permDir os.FileMode = 0700
@@ -45,30 +46,35 @@ func (log *Logger) Errorf(fmt string, arg ...interface{}) {
 	log.Error(fmt, arg...)
 }
 
-func (log *Logger) PlainLogging() {
-	log.configureMutex.Lock()
-	defer log.configureMutex.Unlock()
-	logging.SetFormatter(logging.MustStringFormatter(plainFormat))
-}
-
-func (log *Logger) Configure(plain, debug bool, filename string) {
+func (log *Logger) Configure(style string, debug bool, filename string) {
 	log.configureMutex.Lock()
 	defer log.configureMutex.Unlock()
 
 	log.filename = filename
 
-	fmt := niceFormat
-	if plain {
-		fmt = plainFormat
-	} else if debug {
-		fmt = fancyFormat
+	var logfmt string
+	if debug {
+		logfmt = fancyFormat
+	} else {
+		logfmt = defaultFormat
+	}
+
+	switch style {
+	case "default":
+		logfmt = defaultFormat // Default
+	case "plain":
+		logfmt = plainFormat // Plain
+	case "file":
+		logfmt = fileFormat // Good for logging to files
+	case "fancy":
+		logfmt = fancyFormat // Fancy, good for terminals with color
 	}
 
 	if debug {
 		logging.SetLevel(logging.DEBUG, "keybase")
 	}
 
-	logging.SetFormatter(logging.MustStringFormatter(fmt))
+	logging.SetFormatter(logging.MustStringFormatter(logfmt))
 }
 
 func (log *Logger) RotateLogFile() error {

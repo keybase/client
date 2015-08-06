@@ -28,7 +28,7 @@ type CommandLine interface {
 	GetDbFilename() string
 	GetDebug() (bool, bool)
 	GetProxy() string
-	GetPlainLogging() (bool, bool)
+	GetLogFormat() string
 	GetGpgHome() string
 	GetAPIDump() (bool, bool)
 	GetUserCacheSize() (int, bool)
@@ -88,7 +88,7 @@ type ConfigReader interface {
 	GetUserConfig() (*UserConfig, error)
 	GetUserConfigForUsername(s string) (*UserConfig, error)
 	GetProxy() string
-	GetPlainLogging() (bool, bool)
+	GetLogFormat() string
 	GetGpgHome() string
 	GetBundledCA(host string) string
 	GetStringAtPath(string) (string, bool)

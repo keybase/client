@@ -63,8 +63,8 @@ func (n NullConfiguration) GetAllUsernames() (string, []string, error) {
 func (n NullConfiguration) GetDebug() (bool, bool) {
 	return false, false
 }
-func (n NullConfiguration) GetPlainLogging() (bool, bool) {
-	return false, false
+func (n NullConfiguration) GetLogFormat() string {
+	return ""
 }
 func (n NullConfiguration) GetAPIDump() (bool, bool) {
 	return false, false
@@ -370,11 +370,11 @@ func (e *Env) GetStandalone() bool {
 	)
 }
 
-func (e *Env) GetPlainLogging() bool {
-	return e.GetBool(false,
-		func() (bool, bool) { return e.cmd.GetPlainLogging() },
-		func() (bool, bool) { return e.getEnvBool("KEYBASE_PLAIN_LOGGING") },
-		func() (bool, bool) { return e.config.GetPlainLogging() },
+func (e *Env) GetLogFormat() string {
+	return e.GetString(
+		func() string { return e.cmd.GetLogFormat() },
+		func() string { return os.Getenv("KEYBASE_LOG_FORMAT") },
+		func() string { return e.config.GetLogFormat() },
 	)
 }
 

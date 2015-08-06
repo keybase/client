@@ -82,8 +82,8 @@ func (p CommandLine) GetProxy() string {
 func (p CommandLine) GetUsername() string {
 	return p.GetGString("username")
 }
-func (p CommandLine) GetPlainLogging() (bool, bool) {
-	return p.GetBool("plain-logging", true)
+func (p CommandLine) GetLogFormat() string {
+	return p.GetGString("log-format")
 }
 func (p CommandLine) GetGpgHome() string {
 	return p.GetGString("gpg-home")
@@ -298,9 +298,9 @@ func (p *CommandLine) PopulateApp(addHelp bool, extraFlags []cli.Flag) {
 			Name:  "debug, d",
 			Usage: "enable debugging mode",
 		},
-		cli.BoolFlag{
-			Name:  "plain-logging, L",
-			Usage: "plain logging mode (no colors)",
+		cli.StringFlag{
+			Name:  "log-format",
+			Usage: "Log format (default, plain, file, fancy).",
 		},
 		cli.StringFlag{
 			Name:  "pgpdir, gpgdir",

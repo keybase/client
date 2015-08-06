@@ -398,8 +398,8 @@ func (f JSONConfigFile) GetDebug() (bool, bool) {
 func (f JSONConfigFile) GetAutoFork() (bool, bool) {
 	return f.GetTopLevelBool("auto_fork")
 }
-func (f JSONConfigFile) GetPlainLogging() (bool, bool) {
-	return f.GetTopLevelBool("plain_logging")
+func (f JSONConfigFile) GetLogFormat() string {
+	return f.GetTopLevelString("log_format")
 }
 func (f JSONConfigFile) GetStandalone() (bool, bool) {
 	return f.GetTopLevelBool("standalone")
