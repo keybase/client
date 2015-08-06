@@ -240,42 +240,43 @@ func (a *Account) getDeviceKey(ckf *ComputedKeyFamily, secretKeyType SecretKeyTy
 // LockedLocalSecretKey looks in the local keyring to find a key
 // for the given user.  Returns non-nil if one was found, and nil
 // otherwise.
-func (a *Account) LockedLocalSecretKey(ska SecretKeyArg) *SKB {
+func (a *Account) LockedLocalSecretKey(ska SecretKeyArg) (*SKB, error) {
 	var ret *SKB
 	me := ska.Me
 	a.EnsureUsername(me.GetName())
 
 	keyring, err := a.Keyring()
-	if err != nil || keyring == nil {
-		var s string
-		if err != nil {
-			s = " (" + err.Error() + ")"
-		}
-		a.G().Log.Debug("| No secret keyring found" + s)
-		return nil
+	if err != nil {
+		return nil, err
+	}
+	if keyring == nil {
+		a.G().Log.Debug("| No secret keyring found: %s", err)
+		return nil, NoKeyringsError{}
 	}
 
 	ckf := me.GetComputedKeyFamily()
 	if ckf == nil {
 		a.G().Log.Warning("No ComputedKeyFamily found for %s", me.name)
-		return nil
+		return nil, KeyFamilyError{Msg: "not found for " + me.name}
 	}
 
 	if (ska.KeyType == DeviceSigningKeyType) || (ska.KeyType == DeviceEncryptionKeyType) {
 		key, err := a.getDeviceKey(ckf, ska.KeyType)
 		if err != nil {
 			a.G().Log.Debug("| No key for current device: %s", err)
+			return nil, err
 		}
 
 		if key == nil {
 			a.G().Log.Debug("| Key for current device is nil")
-		} else {
-			kid := key.GetKID()
-			a.G().Log.Debug("| Found KID for current device: %s", kid)
-			ret = keyring.LookupByKid(kid)
-			if ret != nil {
-				a.G().Log.Debug("| Using device key: %s", kid)
-			}
+			return nil, NoKeyError{Msg: "Key for current device is nil"}
+		}
+
+		kid := key.GetKID()
+		a.G().Log.Debug("| Found KID for current device: %s", kid)
+		ret = keyring.LookupByKid(kid)
+		if ret != nil {
+			a.G().Log.Debug("| Using device key: %s", kid)
 		}
 	} else {
 		a.G().Log.Debug("| Looking up secret key in local keychain")
@@ -286,7 +287,7 @@ func (a *Account) LockedLocalSecretKey(ska SecretKeyArg) *SKB {
 		ret.SetUID(me.GetUID())
 	}
 
-	return ret
+	return ret, nil
 }
 
 func (a *Account) Shutdown() error {

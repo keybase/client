@@ -54,7 +54,7 @@ type LoginContext interface {
 	SaveState(sessionID, csrf, username string, uid keybase1.UID) error
 
 	Keyring() (*SKBKeyringFile, error)
-	LockedLocalSecretKey(ska SecretKeyArg) *SKB
+	LockedLocalSecretKey(ska SecretKeyArg) (*SKB, error)
 
 	SecretSyncer() *SecretSyncer
 	RunSecretSyncer(uid keybase1.UID) error

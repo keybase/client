@@ -87,18 +87,18 @@ func (e *TrackToken) Run(ctx *Context) error {
 	}
 	e.lockedKey, e.lockedWhich, err = e.G().Keyrings.GetSecretKeyLocked(ctx.LoginContext, ska)
 	if err != nil {
-		e.G().Log.Info("secretkey err: %s", err)
+		e.G().Log.Debug("secretkey err: %s", err)
 		return err
 	}
 	e.lockedKey.SetUID(e.arg.Me.GetUID())
 	e.signingKeyPub, err = e.lockedKey.GetPubKey()
 	if err != nil {
-		e.G().Log.Info("getpubkey err: %s", err)
+		e.G().Log.Debug("getpubkey err: %s", err)
 		return err
 	}
 
 	if e.trackStatement, err = e.arg.Me.TrackingProofFor(e.signingKeyPub, e.them, outcome); err != nil {
-		e.G().Log.Info("tracking proof err: %s", err)
+		e.G().Log.Debug("tracking proof err: %s", err)
 		return err
 	}
 

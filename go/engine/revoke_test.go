@@ -109,3 +109,50 @@ func TestRevokeKey(t *testing.T) {
 
 	assertNumDevicesAndKeys(t, u, 2, 4)
 }
+
+// See issue #370.
+func TestTrackAfterRevoke(t *testing.T) {
+	tc1 := SetupEngineTest(t, "rev")
+	defer tc1.Cleanup()
+
+	// We need two devices.  Going to use GPG to sign second device.
+
+	// Sign up on tc1:
+	u := CreateAndSignupFakeUserGPG(tc1, "pgp")
+
+	// Redo SetupEngineTest to get a new home directory...should look like a new device.
+	tc2 := SetupEngineTest(t, "login")
+	defer tc2.Cleanup()
+
+	// We need the gpg keyring that's in the first device homedir:
+	if err := tc1.MoveGpgKeyringTo(tc2); err != nil {
+		t.Fatal(err)
+	}
+
+	// Login on device tc2.  It will use gpg to sign the device.
+	docui := &lockuiPGP{&lockui{}}
+	li := NewLoginWithPromptEngine(u.Username, tc2.G)
+	ctx := &Context{
+		LogUI:       tc2.G.UI.GetLogUI(),
+		LocksmithUI: docui,
+		SecretUI:    u.NewSecretUI(),
+		GPGUI:       &gpgtestui{},
+		LoginUI:     &libkb.TestLoginUI{},
+	}
+	if err := RunEngine(li, ctx); err != nil {
+		t.Fatal(err)
+	}
+
+	// tc2 revokes tc1 device:
+	doRevokeDevice(tc2, u, tc1.G.Env.GetDeviceID())
+
+	// Still logged in on tc1.  Try to use it to track someone.  It should fail
+	// with a KeyRevokedError.
+	_, _, err := runTrack(tc1, u, "t_alice")
+	if err == nil {
+		t.Fatal("expected runTrack to return an error")
+	}
+	if _, ok := err.(libkb.KeyRevokedError); !ok {
+		t.Errorf("expected libkb.KeyRevokedError, got %T", err)
+	}
+}

@@ -255,7 +255,7 @@ func TestLoginPGPMultSignNewDevice(t *testing.T) {
 }
 
 // pgp sibkey used to sign new device
-func TestLoginPGPSibSignNewDevice(t *testing.T) {
+func TestLoginGPGSignNewDevice(t *testing.T) {
 	tc := SetupEngineTest(t, "login")
 	u1 := CreateAndSignupFakeUserGPG(tc, "pgp")
 	Logout(tc)

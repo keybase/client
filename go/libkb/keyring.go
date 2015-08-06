@@ -190,7 +190,6 @@ type SecretKeyArg struct {
 // those in the local Keyring that are also active for the user.
 // In any case, the key will be locked.
 func (k *Keyrings) GetSecretKeyLocked(lctx LoginContext, ska SecretKeyArg) (ret *SKB, which string, err error) {
-
 	k.G().Log.Debug("+ GetSecretKeyLocked()")
 	defer func() {
 		k.G().Log.Debug("- GetSecretKeyLocked() -> %s", ErrToOk(err))
@@ -205,15 +204,22 @@ func (k *Keyrings) GetSecretKeyLocked(lctx LoginContext, ska SecretKeyArg) (ret 
 	}
 
 	if lctx != nil {
-		ret = lctx.LockedLocalSecretKey(ska)
+		ret, err = lctx.LockedLocalSecretKey(ska)
+		if err != nil {
+			return ret, which, err
+		}
 	} else {
-		err = k.G().LoginState().Account(func(a *Account) {
-			ret = a.LockedLocalSecretKey(ska)
+		aerr := k.G().LoginState().Account(func(a *Account) {
+			ret, err = a.LockedLocalSecretKey(ska)
 		}, "LockedLocalSecretKey")
 		if err != nil {
-			return
+			return ret, which, err
+		}
+		if aerr != nil {
+			return nil, which, aerr
 		}
 	}
+
 	if ret != nil {
 		k.G().Log.Debug("| Getting local secret key")
 		return
@@ -242,9 +248,8 @@ func (k *Keyrings) GetSecretKeyLocked(lctx LoginContext, ska SecretKeyArg) (ret 
 
 	if !KeyMatchesQuery(pub, ska.KeyQuery, ska.ExactMatch) {
 		k.G().Log.Debug("| Can't use Synced PGP key; doesn't match query %s", ska.KeyQuery)
-		ret = nil
 		err = NoSecretKeyError{}
-		return
+		return nil, "", err
 
 	}
 
