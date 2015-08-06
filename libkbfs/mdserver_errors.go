@@ -3,7 +3,9 @@ package libkbfs
 import (
 	"errors"
 	"fmt"
+	"syscall"
 
+	"bazil.org/fuse"
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/protocol/go"
 	"github.com/maxtaco/go-framed-msgpack-rpc/rpc2"
@@ -164,6 +166,11 @@ func (e MDServerErrorUnauthorized) ToStatus() (s keybase1.Status) {
 	s.Name = "UNAUTHORIZED"
 	s.Desc = e.Error()
 	return
+}
+
+// Errno implements the fuse.ErrorNumber interface for MDServerErrorUnauthorized.
+func (e MDServerErrorUnauthorized) Errno() fuse.Errno {
+	return fuse.Errno(syscall.EACCES)
 }
 
 // MDServerUnwrapError unwraps errors from the rpc stack.
