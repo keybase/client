@@ -6,6 +6,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/protocol/go"
 	"golang.org/x/net/context"
 )
@@ -154,6 +155,9 @@ type FolderBranchOps struct {
 	// The current state of this folder-branch.
 	state     state
 	stateLock sync.Mutex
+
+	// coordinating the fetching of MD updates from the server
+	mdUpdates chan struct{}
 }
 
 var _ KBFSOps = (*FolderBranchOps)(nil)
@@ -180,7 +184,10 @@ func NewFolderBranchOps(config Config, fb FolderBranch,
 // Shutdown safely shuts down any background goroutines that may have
 // been launched by FolderBranchOps.
 func (fbo *FolderBranchOps) Shutdown() {
-	// Nothing to do right now
+	if fbo.mdUpdates != nil {
+		close(fbo.mdUpdates)
+		fbo.mdUpdates = nil
+	}
 }
 
 func (fbo *FolderBranchOps) id() TlfID {
@@ -440,6 +447,12 @@ func (fbo *FolderBranchOps) CheckForNewMDAndInit(
 	fb := FolderBranch{md.ID, MasterBranch}
 	if fb != fbo.folderBranch {
 		return WrongOpsError{fbo.folderBranch, fb}
+	}
+
+	// subscribe to updates; for now only the master branch can get updates
+	if fbo.branch() == MasterBranch {
+		fbo.mdUpdates = make(chan struct{}, 1)
+		go fbo.mdUpdater()
 	}
 
 	if md.data.Dir.Type == Dir {
@@ -1192,9 +1205,6 @@ func (fbo *FolderBranchOps) finalizeBlocksLocked(bps *blockPutState,
 			return err
 		}
 	}
-	for newPtr, oldPtr := range bps.oldPtrs {
-		fbo.nodeCache.UpdatePointer(oldPtr, newPtr)
-	}
 	return nil
 }
 
@@ -1749,10 +1759,6 @@ func (fbo *FolderBranchOps) renameLocked(
 		return err
 	}
 
-	err = fbo.nodeCache.Move(newDe.BlockPointer, newParentNode, newName)
-	if err != nil {
-		return err
-	}
 	return fbo.finalizeWriteLocked(
 		ctx, md, newBps, []path{newOldPath, newNewPath})
 }
@@ -2776,14 +2782,100 @@ func (fbo *FolderBranchOps) notifyLocal(ctx context.Context,
 
 // notifyBatch sends out a notification for the most recent op in md
 func (fbo *FolderBranchOps) notifyBatch(ctx context.Context, md *RootMetadata) {
-	var op interface{}
+	var opUntyped interface{}
 	if md.data.Changes.Ops != nil {
-		op = md.data.Changes.Ops[len(md.data.Changes.Ops)-1]
+		opUntyped = md.data.Changes.Ops[len(md.data.Changes.Ops)-1]
 	} else {
 		// Uh-oh, the block changes have been kicked out into a block.
 		// Use a cached copy instead, and clear it when done.
-		op = md.data.cachedChanges.Ops[len(md.data.cachedChanges.Ops)-1]
+		opUntyped = md.data.cachedChanges.Ops[len(md.data.cachedChanges.Ops)-1]
 		md.data.cachedChanges.Ops = nil
+	}
+
+	opTyped, ok := opUntyped.(finalOp)
+	if !ok {
+		// TODO: log an error? panic?
+		return
+	}
+	fbo.notifyOneOp(ctx, opTyped, md)
+}
+
+// searchForNodeInDirLocked recursively tries to find a path, and
+// ultimately a node, to ptr, given the set of pointers that were
+// updated in a particular operation.
+//
+// blockLock must be taken for reading
+func (fbo *FolderBranchOps) searchForNodeInDirLocked(ctx context.Context,
+	ptr BlockPointer, newPtrs map[BlockPointer]bool,
+	md *RootMetadata, currDir path) Node {
+	dirBlock, err := fbo.getDirLocked(ctx, md, currDir, read)
+	if err != nil {
+		return nil
+	}
+
+	for name, de := range dirBlock.Children {
+		if de.BlockPointer == ptr {
+			childPath := currDir.ChildPathNoPtr(name)
+			childPath.path[len(childPath.path)-1].BlockPointer = ptr
+			// make a node for every pathnode
+			var n Node
+			for _, pn := range childPath.path {
+				n, err = fbo.nodeCache.GetOrCreate(pn.BlockPointer, pn.Name, n)
+				if err != nil {
+					return nil
+				}
+			}
+			return n
+		}
+
+		// otherwise, recurse if this represents an updated block
+		if _, ok := newPtrs[de.BlockPointer]; ok {
+			childPath := *currDir.ChildPathNoPtr(name)
+			childPath.path[len(childPath.path)-1].BlockPointer = de.BlockPointer
+			n := fbo.searchForNodeInDirLocked(ctx, ptr, newPtrs, md, childPath)
+			if n != nil {
+				return n
+			}
+		}
+	}
+
+	return nil
+}
+
+// searchForNode tries to figure out the path to the given
+// blockPointer, using only the block updates that happened as part of
+// a given MD update operation.
+func (fbo *FolderBranchOps) searchForNode(ctx context.Context,
+	ptr BlockPointer, op finalOp, md *RootMetadata) Node {
+	fbo.blockLock.RLock()
+	defer fbo.blockLock.RUnlock()
+
+	// Start by figuring out which newly-updated pointer is the root
+	// directory.  From there, search upwards along all paths until we
+	// find ptr.
+	newPtrs := make(map[BlockPointer]bool)
+	var rootPath path
+	for _, update := range op.AllUpdates() {
+		newPtrs[update.Ref] = true
+		node := fbo.nodeCache.Get(update.Ref)
+		if node == nil {
+			continue
+		}
+
+		// this is the root node if the path has only one element
+		p := fbo.nodeCache.PathFromNode(node)
+		if len(p.path) == 1 {
+			rootPath = p
+		}
+	}
+	return fbo.searchForNodeInDirLocked(ctx, ptr, newPtrs, md, rootPath)
+}
+
+func (fbo *FolderBranchOps) notifyOneOp(ctx context.Context, op finalOp,
+	md *RootMetadata) {
+	// update all the block pointers
+	for _, update := range op.AllUpdates() {
+		fbo.nodeCache.UpdatePointer(update.Unref, update.Ref)
 	}
 
 	var changes []NodeChange
@@ -2810,22 +2902,68 @@ func (fbo *FolderBranchOps) notifyBatch(ctx context.Context, md *RootMetadata) {
 		})
 	case *renameOp:
 		oldNode := fbo.nodeCache.Get(realOp.OldDir.Ref)
-		if oldNode == nil {
-			return
+		if oldNode != nil {
+			changes = append(changes, NodeChange{
+				Node:       oldNode,
+				DirUpdated: []string{realOp.OldName},
+			})
 		}
-		changes = append(changes, NodeChange{
-			Node:       oldNode,
-			DirUpdated: []string{realOp.OldName},
-		})
+		var newNode Node
 		if realOp.NewDir.Ref != zeroPtr {
-			newNode := fbo.nodeCache.Get(realOp.NewDir.Ref)
-			if newNode == nil {
+			newNode = fbo.nodeCache.Get(realOp.NewDir.Ref)
+			if newNode != nil {
+				changes = append(changes, NodeChange{
+					Node:       newNode,
+					DirUpdated: []string{realOp.NewName},
+				})
+			}
+		} else {
+			newNode = oldNode
+		}
+
+		if oldNode != nil {
+			oldPath := *fbo.nodeCache.PathFromNode(oldNode).
+				ChildPathNoPtr(realOp.OldName)
+			// we want the non-updated old path, so we can look up the old name
+			oldPath.path[len(oldPath.path)-2].BlockPointer = realOp.OldDir.Unref
+			// find the node for the actual change; requires looking up
+			// the directory entry to get the BlockPointer, unfortunately.
+			var de DirEntry
+			var err error
+			func() {
+				fbo.blockLock.RLock()
+				defer fbo.blockLock.RUnlock()
+				_, de, err = fbo.getEntryLocked(ctx, md, oldPath)
+			}()
+			if err != nil {
 				return
 			}
-			changes = append(changes, NodeChange{
-				Node:       newNode,
-				DirUpdated: []string{realOp.NewName},
-			})
+
+			if newNode == nil {
+				if childNode :=
+					fbo.nodeCache.Get(de.BlockPointer); childNode != nil {
+					// if the childNode exists, we still have to update
+					// its path to go through the new node.  That means
+					// creating nodes for all the intervening paths.
+					// Unfortunately we don't have enough information to
+					// know what the newPath is; we have to guess it from
+					// the updates.
+					newNode =
+						fbo.searchForNode(ctx, realOp.NewDir.Ref, realOp, md)
+					if newNode == nil {
+						panic("Couldn't find the new node!")
+					}
+				}
+			}
+
+			if newNode != nil {
+				// if new node exists as well, move the node
+				err =
+					fbo.nodeCache.Move(de.BlockPointer, newNode, realOp.NewName)
+				if err != nil {
+					return
+				}
+			}
 		}
 	case *syncOp:
 		node := fbo.nodeCache.Get(realOp.File.Ref)
@@ -2872,5 +3010,139 @@ func (fbo *FolderBranchOps) notifyBatch(ctx context.Context, md *RootMetadata) {
 	defer fbo.obsLock.RUnlock()
 	for _, obs := range fbo.observers {
 		obs.BatchChanges(ctx, changes)
+	}
+}
+
+// headLock must be taken for reading, at least
+func (fbo *FolderBranchOps) getCurrMDRevisionLocked() MetadataRevision {
+	if fbo.head != nil {
+		return fbo.head.Revision
+	}
+	return MetadataRevisionHead
+}
+
+func (fbo *FolderBranchOps) getCurrMDRevision() MetadataRevision {
+	fbo.headLock.RLock()
+	defer fbo.headLock.RUnlock()
+	return fbo.getCurrMDRevisionLocked()
+}
+
+func (fbo *FolderBranchOps) registerForUpdates() {
+	// Make a context with the session value set for the local MD
+	// server, in case we're using that.
+	ctx := context.Background()
+	err := fbo.config.MDServer().RegisterForUpdates(ctx, fbo.id(),
+		fbo.getCurrMDRevision(),
+		func(ctx context.Context, err error) {
+			fbo.observeUpdate(ctx, err)
+		})
+	if err != nil {
+		// Retry in a little while.
+		// TODO: maybe add a way to trigger off the MD server reconnecting?
+		go func() {
+			time.Sleep(1 * time.Second)
+			fbo.registerForUpdates()
+		}()
+	}
+}
+
+func (fbo *FolderBranchOps) observeUpdate(ctx context.Context, err error) {
+	if err != nil {
+		// there was some problem -- reregister
+		fbo.registerForUpdates()
+	} else if fbo.mdUpdates != nil {
+		fbo.mdUpdates <- struct{}{}
+	}
+}
+
+func (fbo *FolderBranchOps) applyMDUpdates(ctx context.Context,
+	rmds []*RootMetadata) error {
+	fbo.writerLock.Lock()
+	defer fbo.writerLock.Unlock()
+	fbo.headLock.Lock()
+	defer fbo.headLock.Unlock()
+
+	// if we have staged changes, ignore all updates until conflict
+	// resolution kicks in
+	if fbo.staged {
+		return fmt.Errorf("Ignoring MD updates while local updates are staged")
+	}
+
+	for _, rmd := range rmds {
+		if rmd.Revision != fbo.getCurrMDRevisionLocked()+1 {
+			return fmt.Errorf("MD revision %d isn't next in line for our "+
+				"current revision %d", rmd.Revision,
+				fbo.getCurrMDRevisionLocked())
+		}
+
+		err := fbo.saveMdToCacheLocked(rmd)
+		if err != nil {
+			return err
+		}
+
+		// TODO: deal with unembedded block changes
+		for _, opUntyped := range rmd.data.Changes.Ops {
+			opTyped, ok := opUntyped.(finalOp)
+			if !ok {
+				return fmt.Errorf("Unexpected non-finalOp type: %T", opUntyped)
+			}
+
+			// notifyOneOp is expecting pointers, but this
+			// deserialized metadata probably gives non-pointers
+			switch realOp := opTyped.(type) {
+			default:
+				// must already be a pointer
+			case createOp:
+				opTyped = &realOp
+			case rmOp:
+				opTyped = &realOp
+			case renameOp:
+				opTyped = &realOp
+			case syncOp:
+				opTyped = &realOp
+			case setAttrOp:
+				opTyped = &realOp
+			}
+
+			fbo.notifyOneOp(ctx, opTyped, rmd)
+		}
+	}
+	return nil
+}
+
+func (fbo *FolderBranchOps) getAndApplyMDUpdates(ctx context.Context) {
+	defer fbo.registerForUpdates()
+	done := false
+	for !done {
+		// first look up all MD revisions newer than my current head
+		currHead := fbo.getCurrMDRevision()
+		// TODO: add a timeout to the context?
+		rmds, err := fbo.config.MDOps().GetRange(ctx, fbo.id(),
+			currHead+1, currHead+1+maxMDsAtATime)
+		if err != nil {
+			// Just try again by reregistering.  TODO: maybe some
+			// errors can't be fixed that way?
+			libkb.G.Log.Debug("GetRange failed while trying to update MD: "+
+				"%v\n", err)
+			return
+		}
+
+		err = fbo.applyMDUpdates(ctx, rmds)
+		if err != nil {
+			libkb.G.Log.Debug("Applying updated MD failed: %v\n", err)
+			return
+		}
+
+		if len(rmds) != maxMDsAtATime {
+			done = true
+		}
+	}
+}
+
+func (fbo *FolderBranchOps) mdUpdater() {
+	fbo.registerForUpdates()
+	ctx := context.Background()
+	for range fbo.mdUpdates {
+		fbo.getAndApplyMDUpdates(ctx)
 	}
 }

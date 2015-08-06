@@ -82,6 +82,10 @@ func kbfsOpsInit(t *testing.T, changeMd bool) (mockCtrl *gomock.Controller,
 			Return(libkb.NodeHashShort{1}, nil)
 	}
 
+	// no tests that use this method depend on push notificaions
+	config.mockMdserv.EXPECT().RegisterForUpdates(gomock.Any(),
+		gomock.Any(), gomock.Any(), gomock.Any()).AnyTimes().Return(nil)
+
 	// make the context identifiable, to verify that it is passed
 	// correctly to the observer
 	ctx = context.WithValue(context.Background(), tCtxID, rand.Int())
