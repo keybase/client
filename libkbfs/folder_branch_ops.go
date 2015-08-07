@@ -3068,6 +3068,34 @@ func (fbo *FolderBranchOps) applyMDUpdates(ctx context.Context,
 		return fmt.Errorf("Ignoring MD updates while local updates are staged")
 	}
 
+	// if any of the operations have unembedded block ops, fetch those
+	// now and fix them up.  TODO: parallelize me.
+	for _, rmd := range rmds {
+		if rmd.data.Changes.Pointer == zeroPtr {
+			continue
+		}
+
+		block, err := func() (*FileBlock, error) {
+			fbo.blockLock.RLock()
+			defer fbo.blockLock.RUnlock()
+			// make a fake path so getFileLocked is happy
+			p := path{
+				FolderBranch: fbo.folderBranch,
+				path: []pathNode{
+					pathNode{BlockPointer: rmd.data.Changes.Pointer}},
+			}
+			return fbo.getFileLocked(ctx, rmd, p, read)
+		}()
+		if err != nil {
+			return err
+		}
+
+		err = fbo.config.Codec().Decode(block.Contents, &rmd.data.Changes)
+		if err != nil {
+			return err
+		}
+	}
+
 	for _, rmd := range rmds {
 		if rmd.Revision != fbo.getCurrMDRevisionLocked()+1 {
 			return fmt.Errorf("MD revision %d isn't next in line for our "+
@@ -3080,7 +3108,6 @@ func (fbo *FolderBranchOps) applyMDUpdates(ctx context.Context,
 			return err
 		}
 
-		// TODO: deal with unembedded block changes
 		for _, opUntyped := range rmd.data.Changes.Ops {
 			opTyped, ok := opUntyped.(finalOp)
 			if !ok {

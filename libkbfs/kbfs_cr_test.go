@@ -80,7 +80,7 @@ func TestBasicMDUpdate(t *testing.T) {
 	}
 }
 
-func TestMultipleMDUpdates(t *testing.T) {
+func testMultipleMDUpdates(t *testing.T, unembedChanges bool) {
 	// simulate two users
 	userName1, userName2 := "u1", "u2"
 	config1, uid1, ctx := kbfsOpsConcurInit(t, userName1, userName2)
@@ -91,6 +91,16 @@ func TestMultipleMDUpdates(t *testing.T) {
 	uid2, err := config2.KBPKI().GetLoggedInUser(context.Background())
 	if err != nil {
 		t.Fatal(err)
+	}
+
+	if unembedChanges {
+		bss1, ok1 := config1.BlockSplitter().(*BlockSplitterSimple)
+		bss2, ok2 := config2.BlockSplitter().(*BlockSplitterSimple)
+		if !ok1 || !ok2 {
+			t.Fatalf("Couldn't convert BlockSplitters!")
+		}
+		bss1.blockChangeEmbedMaxSize = 3
+		bss2.blockChangeEmbedMaxSize = 3
 	}
 
 	h := NewTlfHandle()
@@ -143,6 +153,14 @@ func TestMultipleMDUpdates(t *testing.T) {
 	if _, ok := entries["c"]; !ok {
 		t.Fatalf("User 2 doesn't see file c")
 	}
+}
+
+func TestMultipleMDUpdates(t *testing.T) {
+	testMultipleMDUpdates(t, false)
+}
+
+func TestMultipleMDUpdatesUnembedChanges(t *testing.T) {
+	testMultipleMDUpdates(t, true)
 }
 
 // Tests that, in the face of a conflict, a user will commit its
