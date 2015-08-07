@@ -177,7 +177,7 @@ func (f *JSONConfigFile) SwitchUser(un string) error {
 	f.userConfigWrapper.Lock()
 	defer f.userConfigWrapper.Unlock()
 
-	if cu := f.getCurrentUser(); cu == un {
+	if cu := f.getCurrentUser(); UsernameEq(cu, un) {
 		G.Log.Debug("| Already configured as user=%s", un)
 		return nil
 	}
@@ -245,7 +245,7 @@ func (f *JSONConfigFile) SetDeviceID(did keybase1.DeviceID) (err error) {
 
 func (f *JSONConfigFile) getCurrentUser() string {
 	s, _ := f.jw.AtKey("current_user").GetString()
-	return s
+	return UsernameNormalize(s)
 }
 
 // SetUserConfig writes this UserConfig to the config file and updates the
@@ -368,7 +368,7 @@ func (f JSONConfigFile) GetUsername() (ret string) {
 	if uc, _ := f.GetUserConfig(); uc != nil {
 		ret = uc.GetUsername()
 	}
-	return ret
+	return UsernameNormalize(ret)
 }
 func (f JSONConfigFile) GetSalt() (ret []byte) {
 	if uc, _ := f.GetUserConfig(); uc != nil {

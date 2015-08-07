@@ -16,7 +16,7 @@ var CheckEmail = Checker{
 
 var CheckUsername = Checker{
 	F: func(s string) bool {
-		re := regexp.MustCompile(`^([a-z0-9][a-z0-9_]?)+$`)
+		re := regexp.MustCompile(`^([a-zA-Z0-9][a-zA-Z0-9_]?)+$`)
 		return len(s) >= 2 && len(s) <= 16 && re.MatchString(s)
 	},
 	Hint: "between 2 and 16 characters long",

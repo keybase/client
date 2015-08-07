@@ -87,7 +87,7 @@ func (s *SignupJoinEngine) Post(arg SignupJoinEngineRunArg) (err error) {
 			"skip_mail":     libkb.B{Val: arg.SkipMail},
 		}})
 	if err == nil {
-		s.username = arg.Username
+		s.username = libkb.UsernameNormalize(arg.Username)
 		libkb.GetUIDVoid(res.Body.AtKey("uid"), &s.uid, &err)
 		res.Body.AtKey("session").GetStringVoid(&s.session, &err)
 		res.Body.AtKey("csrf_token").GetStringVoid(&s.csrf, &err)
