@@ -39,6 +39,10 @@ func NewFakeUser(prefix string) (fu *FakeUser, err error) {
 	return
 }
 
+func (fu FakeUser) NormalizedUsername() libkb.NormalizedUsername {
+	return libkb.NewNormalizedUsername(fu.Username)
+}
+
 func NewFakeUserOrBust(t *testing.T, prefix string) (fu *FakeUser) {
 	var err error
 	if fu, err = NewFakeUser(prefix); err != nil {

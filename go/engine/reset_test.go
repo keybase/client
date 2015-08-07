@@ -41,7 +41,7 @@ func TestReset(t *testing.T) {
 	}
 
 	if libkb.HasSecretStore() {
-		secretStore := libkb.NewSecretStore(fu.Username)
+		secretStore := libkb.NewSecretStore(fu.NormalizedUsername())
 		_, err := secretStore.RetrieveSecret()
 		if err != nil {
 			t.Fatal(err)
@@ -69,7 +69,7 @@ func TestReset(t *testing.T) {
 	}
 
 	if libkb.HasSecretStore() {
-		secretStore := libkb.NewSecretStore(fu.Username)
+		secretStore := libkb.NewSecretStore(fu.NormalizedUsername())
 		secret, err := secretStore.RetrieveSecret()
 		if err == nil {
 			t.Errorf("Unexpectedly got secret %v", secret)
