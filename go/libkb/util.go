@@ -280,15 +280,3 @@ func OpenLogFile() (name string, file *os.File, err error) {
 	name = G.Env.GetLogFile()
 	return logger.OpenLogFile(name)
 }
-
-// UsernameNormalize normalizes any username into the canonical
-// representation. Might eventually do more than just toLower but
-// for now just toLower.
-func UsernameNormalize(s string) string {
-	return strings.ToLower(s)
-}
-
-// UsernameEq compares two usernames for equality
-func UsernameEq(a, b string) bool {
-	return UsernameNormalize(a) == UsernameNormalize(b)
-}

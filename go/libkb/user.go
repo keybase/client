@@ -75,8 +75,9 @@ func NewUserFromLocalStorage(o *jsonw.Wrapper) (*User, error) {
 	return u, err
 }
 
-func (u *User) GetName() string      { return u.name }
-func (u *User) GetUID() keybase1.UID { return u.id }
+func (u *User) GetNormalizedName() NormalizedUsername { return NewNormalizedUsername(u.name) }
+func (u *User) GetName() string                       { return u.name }
+func (u *User) GetUID() keybase1.UID                  { return u.id }
 
 func (u *User) GetIDVersion() (int64, error) {
 	return u.basics.AtKey("id_version").GetInt64()

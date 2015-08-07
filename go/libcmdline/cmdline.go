@@ -79,8 +79,8 @@ func (p CommandLine) GetPGPFingerprint() *libkb.PGPFingerprint {
 func (p CommandLine) GetProxy() string {
 	return p.GetGString("proxy")
 }
-func (p CommandLine) GetUsername() string {
-	return p.GetGString("username")
+func (p CommandLine) GetUsername() libkb.NormalizedUsername {
+	return libkb.NewNormalizedUsername(p.GetGString("username"))
 }
 func (p CommandLine) GetLogFormat() string {
 	return p.GetGString("log-format")

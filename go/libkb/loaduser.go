@@ -37,7 +37,7 @@ func (arg *LoadUserArg) checkUIDName() error {
 	}
 
 	if arg.UID = myUID(arg.G(), arg.LoginContext); arg.UID.IsNil() {
-		arg.Name = arg.G().Env.GetUsername()
+		arg.Name = arg.G().Env.GetUsername().String()
 	}
 	return nil
 }

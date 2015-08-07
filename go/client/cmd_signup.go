@@ -75,7 +75,7 @@ func (s *CmdSignup) ParseArgv(ctx *cli.Context) error {
 	s.defaultUsername = ctx.String("username")
 	if s.defaultUsername == "" {
 		cl := G.Env.GetCommandLine()
-		s.defaultUsername = cl.GetUsername()
+		s.defaultUsername = cl.GetUsername().String()
 	}
 
 	s.defaultPassphrase = ctx.String("passphrase")

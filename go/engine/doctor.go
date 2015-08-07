@@ -97,7 +97,14 @@ func (e *Doctor) login(ctx *Context) {
 		e.runErr = errors.New("No user accounts were found on this device.  Run 'keybase signup' if you need an account or 'keybase login' if you already have one.")
 		return
 	}
-	selected, err := ctx.DoctorUI.LoginSelect(current, other)
+
+	// Export the NormalizedUsernames to regular strings
+	othersExp := []string{}
+	for _, o := range other {
+		othersExp = append(othersExp, o.String())
+	}
+
+	selected, err := ctx.DoctorUI.LoginSelect(current.String(), othersExp)
 	if err != nil {
 		e.runErr = err
 		return

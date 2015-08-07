@@ -2,6 +2,7 @@ package libkb
 
 import (
 	"encoding/hex"
+	"strings"
 
 	keybase1 "github.com/keybase/client/protocol/go"
 	jsonw "github.com/keybase/go-jsonw"
@@ -9,11 +10,30 @@ import (
 
 //==================================================================
 
+// NormalizedUsername is a username that has been normalized (toLowered)
+// and therefore will compare correctly against other normalized usernames.
+type NormalizedUsername string
+
+// NewNormalizedUsername makes a normalized username out of a non-normalized
+// plain string username
+func NewNormalizedUsername(s string) NormalizedUsername {
+	return NormalizedUsername(strings.ToLower(s))
+}
+
+// Eq returns true if the given normalized usernames are equal
+func (n NormalizedUsername) Eq(n2 NormalizedUsername) bool {
+	return string(n) == string(n2)
+}
+
+func (n NormalizedUsername) String() string { return string(n) }
+
+//==================================================================
+
 type UserConfig struct {
-	ID     string  `json:"id"`
-	Name   string  `json:"name"`
-	Salt   string  `json:"salt"`
-	Device *string `json:"device"`
+	ID     string             `json:"id"`
+	Name   NormalizedUsername `json:"name"`
+	Salt   string             `json:"salt"`
+	Device *string            `json:"device"`
 
 	importedID       keybase1.UID
 	importedSalt     []byte
@@ -22,17 +42,17 @@ type UserConfig struct {
 
 //==================================================================
 
-func (u UserConfig) GetUID() keybase1.UID           { return u.importedID }
-func (u UserConfig) GetUsername() string            { return u.Name }
-func (u UserConfig) GetSalt() []byte                { return u.importedSalt }
-func (u UserConfig) GetDeviceID() keybase1.DeviceID { return u.importedDeviceID }
+func (u UserConfig) GetUID() keybase1.UID            { return u.importedID }
+func (u UserConfig) GetUsername() NormalizedUsername { return u.Name }
+func (u UserConfig) GetSalt() []byte                 { return u.importedSalt }
+func (u UserConfig) GetDeviceID() keybase1.DeviceID  { return u.importedDeviceID }
 
 //==================================================================
 
-func NewUserConfig(id keybase1.UID, name string, salt []byte, dev keybase1.DeviceID) *UserConfig {
+func NewUserConfig(id keybase1.UID, name NormalizedUsername, salt []byte, dev keybase1.DeviceID) *UserConfig {
 	ret := &UserConfig{
 		ID:               id.String(),
-		Name:             UsernameNormalize(name),
+		Name:             name,
 		Salt:             hex.EncodeToString(salt),
 		Device:           nil,
 		importedID:       id,

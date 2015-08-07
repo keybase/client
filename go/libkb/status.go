@@ -24,7 +24,7 @@ func GetCurrentStatus() (res CurrentStatus, err error) {
 	res.Configured = true
 	if u := cr.GetUID(); u.Exists() {
 		res.Registered = true
-		res.User = NewUserThin(cr.GetUsername(), u)
+		res.User = NewUserThin(cr.GetUsername().String(), u)
 	}
 	res.LoggedIn, err = G.LoginState().LoggedInProvisionedLoad()
 	return

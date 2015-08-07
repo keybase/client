@@ -56,7 +56,7 @@ func (i Identity) ToPGPUserID() *packet.UserId {
 
 func KeybaseIdentity(un string) Identity {
 	if len(un) == 0 {
-		un = G.Env.GetUsername()
+		un = G.Env.GetUsername().String()
 	}
 	return Identity{
 		Username: CanonicalHost + "/" + un,

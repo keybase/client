@@ -21,7 +21,7 @@ import (
 
 type CommandLine interface {
 	GetHome() string
-	GetUsername() string
+	GetUsername() NormalizedUsername
 	GetServerURI() string
 	GetConfigFilename() string
 	GetSessionFilename() string
@@ -86,7 +86,7 @@ type ConfigReader interface {
 	GetDebug() (bool, bool)
 	GetAutoFork() (bool, bool)
 	GetUserConfig() (*UserConfig, error)
-	GetUserConfigForUsername(s string) (*UserConfig, error)
+	GetUserConfigForUsername(s NormalizedUsername) (*UserConfig, error)
 	GetProxy() string
 	GetLogFormat() string
 	GetGpgHome() string
@@ -114,8 +114,8 @@ type ConfigReader interface {
 	GetLocalRPCDebug() string
 	GetTimers() string
 	GetDeviceID() keybase1.DeviceID
-	GetUsername() string
-	GetAllUsernames() (current string, others []string, err error)
+	GetUsername() NormalizedUsername
+	GetAllUsernames() (current NormalizedUsername, others []NormalizedUsername, err error)
 	GetUID() keybase1.UID
 	GetProxyCACerts() ([]string, error)
 	GetSplitLogOutput() (bool, bool)
@@ -125,7 +125,7 @@ type ConfigReader interface {
 
 type ConfigWriter interface {
 	SetUserConfig(cfg *UserConfig, overwrite bool) error
-	SwitchUser(un string) error
+	SwitchUser(un NormalizedUsername) error
 	SetDeviceID(keybase1.DeviceID) error
 	SetStringAtPath(string, string) error
 	SetBoolAtPath(string, bool) error

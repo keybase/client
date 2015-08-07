@@ -16,7 +16,7 @@ type SignupJoinEngine struct {
 	session        string
 	csrf           string
 	lastPassphrase string
-	username       string
+	username       libkb.NormalizedUsername
 	ppGen          libkb.PassphraseGeneration
 
 	libkb.Contextified
@@ -87,7 +87,7 @@ func (s *SignupJoinEngine) Post(arg SignupJoinEngineRunArg) (err error) {
 			"skip_mail":     libkb.B{Val: arg.SkipMail},
 		}})
 	if err == nil {
-		s.username = libkb.UsernameNormalize(arg.Username)
+		s.username = libkb.NewNormalizedUsername(arg.Username)
 		libkb.GetUIDVoid(res.Body.AtKey("uid"), &s.uid, &err)
 		res.Body.AtKey("session").GetStringVoid(&s.session, &err)
 		res.Body.AtKey("csrf_token").GetStringVoid(&s.csrf, &err)
@@ -134,7 +134,7 @@ func (s *SignupJoinEngine) WriteOut(lctx libkb.LoginContext, salt []byte) error 
 	if err := lctx.LocalSession().Load(); err != nil {
 		return err
 	}
-	if err := lctx.CreateLoginSessionWithSalt(s.username, salt); err != nil {
+	if err := lctx.CreateLoginSessionWithSalt(s.username.String(), salt); err != nil {
 		return err
 	}
 	if err := lctx.SaveState(s.session, s.csrf, s.username, s.uid); err != nil {

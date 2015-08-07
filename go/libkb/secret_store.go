@@ -30,11 +30,11 @@ func GetConfiguredAccounts(g *GlobalContext) ([]keybase1.ConfiguredAccount, erro
 
 	allUsernames := append(otherUsernames, currentUsername)
 
-	accounts := make(map[string]keybase1.ConfiguredAccount)
+	accounts := make(map[NormalizedUsername]keybase1.ConfiguredAccount)
 
 	for _, username := range allUsernames {
 		accounts[username] = keybase1.ConfiguredAccount{
-			Username: username,
+			Username: username.String(),
 		}
 	}
 
@@ -44,10 +44,11 @@ func GetConfiguredAccounts(g *GlobalContext) ([]keybase1.ConfiguredAccount, erro
 	}
 
 	for _, username := range storedSecretUsernames {
-		account, ok := accounts[username]
+		nu := NewNormalizedUsername(username)
+		account, ok := accounts[nu]
 		if ok {
 			account.HasStoredSecret = true
-			accounts[username] = account
+			accounts[nu] = account
 		}
 	}
 
