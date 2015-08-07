@@ -213,7 +213,7 @@ func (a *Account) Keyring() (*SKBKeyringFile, error) {
 	if unp == nil {
 		return nil, NoUsernameError{}
 	}
-	kr, err := LoadSKBKeyring(unp.String(), a.G())
+	kr, err := LoadSKBKeyring(*unp, a.G())
 	if err != nil {
 		return nil, err
 	}

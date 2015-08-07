@@ -60,7 +60,7 @@ func GetConfiguredAccounts(g *GlobalContext) ([]keybase1.ConfiguredAccount, erro
 	return configuredAccounts, nil
 }
 
-func ClearStoredSecret(username string) error {
+func ClearStoredSecret(username NormalizedUsername) error {
 	secretStore := NewSecretStore(username)
 	if secretStore == nil {
 		return nil

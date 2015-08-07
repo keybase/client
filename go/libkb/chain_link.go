@@ -357,13 +357,13 @@ func (c *ChainLink) Unpack(trusted bool, selfUID keybase1.UID) (err error) {
 	return err
 }
 
-func (c *ChainLink) CheckNameAndID(s string, i keybase1.UID) error {
+func (c *ChainLink) CheckNameAndID(s NormalizedUsername, i keybase1.UID) error {
 	if c.unpacked.uid.NotEqual(i) {
 		return UIDMismatchError{
 			fmt.Sprintf("UID mismatch %s != %s in Link %s", c.unpacked.uid, i, c.id),
 		}
 	}
-	if !Cicmp(c.unpacked.username, s) {
+	if !s.Eq(NewNormalizedUsername(c.unpacked.username)) {
 		return BadUsernameError{
 			fmt.Sprintf("Username mismatch %s != %s in Link %s",
 				c.unpacked.username, s, c.id),

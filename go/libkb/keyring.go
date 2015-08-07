@@ -40,20 +40,20 @@ func NewKeyrings(g *GlobalContext) *Keyrings {
 
 //===================================================================
 
-func (g *GlobalContext) SKBFilenameForUser(un string) string {
+func (g *GlobalContext) SKBFilenameForUser(un NormalizedUsername) string {
 	tmp := g.Env.GetSecretKeyringTemplate()
 	token := "%u"
 	if strings.Index(tmp, token) < 0 {
 		return tmp
 	}
 
-	return strings.Replace(tmp, token, un, -1)
+	return strings.Replace(tmp, token, un.String(), -1)
 }
 
 // Note:  you need to be logged in as 'un' for this function to
 // work.  Otherwise, it just silently returns nil, nil.
-func LoadSKBKeyring(un string, g *GlobalContext) (*SKBKeyringFile, error) {
-	if len(un) == 0 {
+func LoadSKBKeyring(un NormalizedUsername, g *GlobalContext) (*SKBKeyringFile, error) {
+	if un.IsNil() {
 		return nil, NoUsernameError{}
 	}
 
@@ -271,7 +271,7 @@ func (k *Keyrings) GetSecretKeyWithPrompt(lctx LoginContext, ska SecretKeyArg, s
 	var secretStore SecretStore
 	if ska.Me != nil {
 		skb.SetUID(ska.Me.GetUID())
-		secretStore = NewSecretStore(ska.Me.GetName())
+		secretStore = NewSecretStore(ska.Me.GetNormalizedName())
 	}
 	if key, err = skb.PromptAndUnlock(lctx, reason, which, secretStore, secretUI, nil); err != nil {
 		key = nil

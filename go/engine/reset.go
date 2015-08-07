@@ -31,7 +31,7 @@ func (e *ResetEngine) SubConsumers() []libkb.UIConsumer {
 }
 
 func (e *ResetEngine) Run(ctx *Context) (err error) {
-	username := e.G().Env.GetUsername().String()
+	username := e.G().Env.GetUsername()
 	if clearSecretErr := libkb.ClearStoredSecret(username); clearSecretErr != nil {
 		e.G().Log.Warning("ClearStoredSecret error: %s", clearSecretErr)
 	}

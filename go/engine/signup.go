@@ -163,7 +163,7 @@ func (s *SignupEngine) registerDevice(a libkb.LoginContext, ctx *Context, device
 		// (instead of when we first get the value of
 		// StoreSecret) as the username may change during the
 		// signup process.
-		secretStore := libkb.NewSecretStore(s.me.GetName())
+		secretStore := libkb.NewSecretStore(s.me.GetNormalizedName())
 		secret, err := s.lks.GetSecret()
 		if err != nil {
 			return err

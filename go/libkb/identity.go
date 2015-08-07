@@ -54,13 +54,13 @@ func (i Identity) ToPGPUserID() *packet.UserId {
 
 }
 
-func KeybaseIdentity(un string) Identity {
-	if len(un) == 0 {
-		un = G.Env.GetUsername().String()
+func KeybaseIdentity(un NormalizedUsername) Identity {
+	if un.IsNil() {
+		un = G.Env.GetUsername()
 	}
 	return Identity{
-		Username: CanonicalHost + "/" + un,
-		Email:    un + "@" + CanonicalHost,
+		Username: CanonicalHost + "/" + un.String(),
+		Email:    un.String() + "@" + CanonicalHost,
 	}
 }
 

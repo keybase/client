@@ -70,7 +70,7 @@ func (h *LoginHandler) LoginWithPassphrase(arg keybase1.LoginWithPassphraseArg) 
 }
 
 func (h *LoginHandler) ClearStoredSecret(arg keybase1.ClearStoredSecretArg) error {
-	return libkb.ClearStoredSecret(arg.Username)
+	return libkb.ClearStoredSecret(libkb.NewNormalizedUsername(arg.Username))
 }
 
 func (h *LoginHandler) loginWithEngine(eng *engine.LoginEngine, ctx *engine.Context, sessionID int) error {

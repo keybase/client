@@ -25,7 +25,11 @@ func (n NormalizedUsername) Eq(n2 NormalizedUsername) bool {
 	return string(n) == string(n2)
 }
 
+// String returns the normalized username as a string (in lower case)
 func (n NormalizedUsername) String() string { return string(n) }
+
+// IsNil returns true if the username is the empty string
+func (n NormalizedUsername) IsNil() bool { return len(string(n)) == 0 }
 
 //==================================================================
 
