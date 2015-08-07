@@ -3,7 +3,6 @@ package main
 import (
 	"log"
 	"os"
-	"strings"
 	"sync"
 
 	"bazil.org/fuse"
@@ -117,22 +116,16 @@ var _ fs.Handle = (*FolderList)(nil)
 
 var _ fs.HandleReadDirAller = (*FolderList)(nil)
 
-func (fl *FolderList) getDirent(ctx context.Context, work <-chan *libkbfs.TlfHandle, results chan<- fuse.Dirent) error {
+func (fl *FolderList) getDirent(ctx context.Context, work <-chan *libkbfs.Favorite, results chan<- fuse.Dirent) error {
 	for {
 		select {
-		case tlfHandle, ok := <-work:
+		case fav, ok := <-work:
 			if !ok {
 				return nil
 			}
-			name := tlfHandle.ToString(ctx, fl.fs.config)
-			if fl.public {
-				const publicSuffix = libkbfs.ReaderSep + libkbfs.PublicUIDName
-				// strip off the public portion
-				name = strings.TrimSuffix(name, publicSuffix)
-			}
 			results <- fuse.Dirent{
 				Type: fuse.DT_Dir,
-				Name: name,
+				Name: fav.Name,
 			}
 		case <-ctx.Done():
 			return ctx.Err()
@@ -147,7 +140,7 @@ func (fl *FolderList) ReadDirAll(ctx context.Context) (res []fuse.Dirent, err er
 	if err != nil {
 		return nil, err
 	}
-	work := make(chan *libkbfs.TlfHandle)
+	work := make(chan *libkbfs.Favorite)
 	results := make(chan fuse.Dirent)
 	errCh := make(chan error, 1)
 	const maxWorkers = 10
@@ -169,11 +162,11 @@ func (fl *FolderList) ReadDirAll(ctx context.Context) (res []fuse.Dirent, err er
 
 	go func() {
 		// feed work
-		for _, tlfHandle := range favs {
-			if fl.public != tlfHandle.IsPublic() {
+		for _, fav := range favs {
+			if fl.public != fav.Public {
 				continue
 			}
-			work <- tlfHandle
+			work <- fav
 		}
 		close(work)
 		wg.Wait()

@@ -178,9 +178,9 @@ func (_m *MockKBFSOps) EXPECT() *_MockKBFSOpsRecorder {
 	return _m.recorder
 }
 
-func (_m *MockKBFSOps) GetFavorites(ctx context.Context) ([]*TlfHandle, error) {
+func (_m *MockKBFSOps) GetFavorites(ctx context.Context) ([]*Favorite, error) {
 	ret := _m.ctrl.Call(_m, "GetFavorites", ctx)
-	ret0, _ := ret[0].([]*TlfHandle)
+	ret0, _ := ret[0].([]*Favorite)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }

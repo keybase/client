@@ -3,7 +3,6 @@ package main
 import (
 	"flag"
 	"fmt"
-	"strings"
 	"time"
 
 	"github.com/keybase/kbfs/libkbfs"
@@ -106,7 +105,7 @@ func lsHelper(ctx context.Context, config libkbfs.Config, p kbfsPath, hasMultipl
 		return nil
 
 	case keybaseChildPath:
-		tlfHandles, err := kbfsOps.GetFavorites(ctx)
+		favs, err := kbfsOps.GetFavorites(ctx)
 		if err != nil {
 			return err
 		}
@@ -114,14 +113,9 @@ func lsHelper(ctx context.Context, config libkbfs.Config, p kbfsPath, hasMultipl
 		if hasMultiple {
 			printHeader(p)
 		}
-		for _, th := range tlfHandles {
-			if p.public == th.IsPublic() {
-				name := th.ToString(ctx, config)
-				if p.public {
-					// strip off the public portion
-					name = strings.TrimSuffix(name, publicSuffix)
-				}
-				handleEntry(name, libkbfs.Dir)
+		for _, fav := range favs {
+			if p.public == fav.Public {
+				handleEntry(fav.Name, libkbfs.Dir)
 			}
 		}
 		return nil

@@ -192,7 +192,7 @@ func (fbo *FolderBranchOps) branch() BranchName {
 }
 
 // GetFavorites implements the KBFSOps interface for FolderBranchOps
-func (fbo *FolderBranchOps) GetFavorites(ctx context.Context) ([]*TlfHandle, error) {
+func (fbo *FolderBranchOps) GetFavorites(ctx context.Context) ([]*Favorite, error) {
 	return nil, fmt.Errorf("GetFavorites is not supported by FolderBranchOps")
 }
 

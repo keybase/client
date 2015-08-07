@@ -81,7 +81,7 @@ type Node interface {
 type KBFSOps interface {
 	// GetFavorites returns the logged-in user's list of favorite
 	// top-level folders.  This is a remote-access operation.
-	GetFavorites(ctx context.Context) ([]*TlfHandle, error)
+	GetFavorites(ctx context.Context) ([]*Favorite, error)
 	// GetOrCreateRootNodeByHandle returns the root node and root
 	// directory entry associated with the given TlfHandle and branch,
 	// if the logged-in user has read permissions to the top-level

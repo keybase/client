@@ -653,6 +653,23 @@ func (h *TlfHandle) Equal(rhs *TlfHandle, config Config) bool {
 	return bytes.Equal(h.ToBytes(config), rhs.ToBytes(config))
 }
 
+// Favorite is a top-level favorited folder name.
+type Favorite struct {
+	Name   string
+	Public bool
+}
+
+// NewFavoriteFromFolder creates a Favorite from a
+// keybase1.Folder.
+func NewFavoriteFromFolder(folder keybase1.Folder) *Favorite {
+	const publicSuffix = ReaderSep + PublicUIDName
+	name := strings.TrimSuffix(folder.Name, publicSuffix)
+	return &Favorite{
+		Name:   name,
+		Public: name != folder.Name,
+	}
+}
+
 // PathNode is a single node along an KBFS path, pointing to the top
 // block for that node of the path.
 type pathNode struct {
