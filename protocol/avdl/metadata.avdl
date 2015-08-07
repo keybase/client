@@ -4,6 +4,7 @@ protocol metadata {
 	import idl "backend_common.avdl";
 
 	record KeyHalf {
+	       UID user;
 	       KID deviceKID;
 	       bytes key;	
 	}
@@ -18,7 +19,7 @@ protocol metadata {
 	MetadataResponse getMetadata(string folderID, bytes folderHandle, boolean unmerged, long startRevision, long stopRevision);
 	void pruneUnmerged(string folderID);
 	void putKeys(array<KeyHalf> keyHalves);
-	bytes getKey(string keyHash);
+	bytes getKey(bytes keyHalfID);
 	boolean truncateLock(string folderID);
 	boolean truncateUnlock(string folderID);
 }

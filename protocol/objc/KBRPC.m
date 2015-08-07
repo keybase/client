@@ -984,7 +984,7 @@
 }
 
 - (void)getKey:(KBRGetKeyRequestParams *)params completion:(void (^)(NSError *error, NSData *bytes))completion {
-  NSDictionary *rparams = @{@"keyHash": KBRValue(params.keyHash)};
+  NSDictionary *rparams = @{@"keyHalfID": KBRValue(params.keyHalfID)};
   [self.client sendRequestWithMethod:@"keybase.1.metadata.getKey" params:rparams sessionId:self.sessionId completion:^(NSError *error, id retval) {
     if (error) {
       completion(error, nil);
@@ -995,8 +995,8 @@
   }];
 }
 
-- (void)getKeyWithKeyHash:(NSString *)keyHash completion:(void (^)(NSError *error, NSData *bytes))completion {
-  NSDictionary *rparams = @{@"keyHash": KBRValue(keyHash)};
+- (void)getKeyWithKeyHalfID:(NSData *)keyHalfID completion:(void (^)(NSError *error, NSData *bytes))completion {
+  NSDictionary *rparams = @{@"keyHalfID": KBRValue(keyHalfID)};
   [self.client sendRequestWithMethod:@"keybase.1.metadata.getKey" params:rparams sessionId:self.sessionId completion:^(NSError *error, id retval) {
     if (error) {
       completion(error, nil);
@@ -3103,7 +3103,7 @@
 
 - (instancetype)initWithParams:(NSArray *)params {
   if ((self = [super initWithParams:params])) {
-    self.keyHash = params[0][@"keyHash"];
+    self.keyHalfID = params[0][@"keyHalfID"];
   }
   return self;
 }

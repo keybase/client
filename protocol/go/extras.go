@@ -178,6 +178,14 @@ func (u UID) String() string {
 	return string(u)
 }
 
+func (u UID) ToBytes() []byte {
+	b, err := hex.DecodeString(string(u))
+	if err != nil {
+		return nil
+	}
+	return b
+}
+
 func (u UID) IsNil() bool {
 	return len(u) == 0
 }

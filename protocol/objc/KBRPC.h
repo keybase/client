@@ -371,6 +371,7 @@ typedef NS_ENUM (NSInteger, KBRLogLevel) {
 @end
 
 @interface KBRKeyHalf : KBRObject
+@property NSString *user;
 @property NSString *deviceKID;
 @property NSData *key;
 @end
@@ -834,7 +835,7 @@ typedef NS_ENUM (NSInteger, KBRPromptDefault) {
 @property NSArray *keyHalves;
 @end
 @interface KBRGetKeyRequestParams : KBRRequestParams
-@property NSString *keyHash;
+@property NSData *keyHalfID;
 @end
 @interface KBRTruncateLockRequestParams : KBRRequestParams
 @property NSString *folderID;
@@ -1387,7 +1388,7 @@ typedef NS_ENUM (NSInteger, KBRPromptDefault) {
 
 - (void)getKey:(KBRGetKeyRequestParams *)params completion:(void (^)(NSError *error, NSData *bytes))completion;
 
-- (void)getKeyWithKeyHash:(NSString *)keyHash completion:(void (^)(NSError *error, NSData *bytes))completion;
+- (void)getKeyWithKeyHalfID:(NSData *)keyHalfID completion:(void (^)(NSError *error, NSData *bytes))completion;
 
 - (void)truncateLock:(KBRTruncateLockRequestParams *)params completion:(void (^)(NSError *error, BOOL b))completion;
 

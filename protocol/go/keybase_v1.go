@@ -1765,6 +1765,7 @@ func (c LoginUiClient) DisplayBackupPhrase(__arg DisplayBackupPhraseArg) (err er
 }
 
 type KeyHalf struct {
+	User      UID    `codec:"user" json:"user"`
 	DeviceKID KID    `codec:"deviceKID" json:"deviceKID"`
 	Key       []byte `codec:"key" json:"key"`
 }
@@ -1801,7 +1802,7 @@ type PutKeysArg struct {
 }
 
 type GetKeyArg struct {
-	KeyHash string `codec:"keyHash" json:"keyHash"`
+	KeyHalfID []byte `codec:"keyHalfID" json:"keyHalfID"`
 }
 
 type TruncateLockArg struct {
@@ -1818,7 +1819,7 @@ type MetadataInterface interface {
 	GetMetadata(GetMetadataArg) (MetadataResponse, error)
 	PruneUnmerged(string) error
 	PutKeys([]KeyHalf) error
-	GetKey(string) ([]byte, error)
+	GetKey([]byte) ([]byte, error)
 	TruncateLock(string) (bool, error)
 	TruncateUnlock(string) (bool, error)
 }
@@ -1865,7 +1866,7 @@ func MetadataProtocol(i MetadataInterface) rpc2.Protocol {
 			"getKey": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
 				args := make([]GetKeyArg, 1)
 				if err = nxt(&args); err == nil {
-					ret, err = i.GetKey(args[0].KeyHash)
+					ret, err = i.GetKey(args[0].KeyHalfID)
 				}
 				return
 			},
@@ -1920,8 +1921,8 @@ func (c MetadataClient) PutKeys(keyHalves []KeyHalf) (err error) {
 	return
 }
 
-func (c MetadataClient) GetKey(keyHash string) (res []byte, err error) {
-	__arg := GetKeyArg{KeyHash: keyHash}
+func (c MetadataClient) GetKey(keyHalfID []byte) (res []byte, err error) {
+	__arg := GetKeyArg{KeyHalfID: keyHalfID}
 	err = c.Cli.Call("keybase.1.metadata.getKey", []interface{}{__arg}, &res)
 	return
 }
