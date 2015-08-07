@@ -1675,3 +1675,156 @@ func TestErrorFile(t *testing.T) {
 	testForErrorText(t, path.Join(mnt.Dir, PrivateName, "jdoe", libkbfs.ErrorFile),
 		expectedErr, "dir")
 }
+
+func TestInvalidateAcrossMounts(t *testing.T) {
+	config1 := libkbfs.MakeTestConfigOrBust(t, BServerRemoteAddr, "user1",
+		"user2")
+	mnt1 := makeFS(t, config1)
+	defer mnt1.Close()
+
+	config2 := libkbfs.ConfigAsUser(config1, "user2")
+	mnt2 := makeFS(t, config2)
+	defer mnt2.Close()
+
+	if !mnt2.Conn.Protocol().HasInvalidate() {
+		t.Skip("Old FUSE protocol")
+	}
+
+	// user 1 writes one file to root and one to a sub directory
+	const input1 = "input round one"
+	myfile1 := path.Join(mnt1.Dir, PrivateName, "user1,user2", "myfile")
+	if err := ioutil.WriteFile(myfile1, []byte(input1), 0644); err != nil {
+		t.Fatal(err)
+	}
+	mydir1 := path.Join(mnt1.Dir, PrivateName, "user1,user2", "mydir")
+	if err := os.Mkdir(mydir1, 0755); err != nil {
+		t.Fatal(err)
+	}
+	mydira1 := path.Join(mydir1, "a")
+	if err := ioutil.WriteFile(mydira1, []byte(input1), 0644); err != nil {
+		t.Fatal(err)
+	}
+
+	myfile2 := path.Join(mnt2.Dir, PrivateName, "user1,user2", "myfile")
+	buf, err := ioutil.ReadFile(myfile2)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if g, e := string(buf), input1; g != e {
+		t.Errorf("wrong content: %q != %q", g, e)
+	}
+
+	mydir2 := path.Join(mnt2.Dir, PrivateName, "user1,user2", "mydir")
+	mydira2 := path.Join(mydir2, "a")
+	buf, err = ioutil.ReadFile(mydira2)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if g, e := string(buf), input1; g != e {
+		t.Errorf("wrong content: %q != %q", g, e)
+	}
+
+	// now remove the first file, and rename the second
+	if err := os.Remove(myfile1); err != nil {
+		t.Fatal(err)
+	}
+	mydirb1 := path.Join(mydir1, "b")
+	if err := os.Rename(mydira1, mydirb1); err != nil {
+		t.Fatal(err)
+	}
+
+	// check everything from user 2's perspective
+	if buf, err := ioutil.ReadFile(myfile2); !os.IsNotExist(err) {
+		t.Fatalf("expected ENOENT: %v: %q", err, buf)
+	}
+	if buf, err := ioutil.ReadFile(mydira2); !os.IsNotExist(err) {
+		t.Fatalf("expected ENOENT: %v: %q", err, buf)
+	}
+
+	checkDir(t, mydir2, map[string]fileInfoCheck{
+		"b": func(fi os.FileInfo) error {
+			if fi.Size() != int64(len(input1)) {
+				return fmt.Errorf("Bad file size: %d", fi.Size())
+			}
+			return nil
+		},
+	})
+
+	mydirb2 := path.Join(mydir2, "b")
+	buf, err = ioutil.ReadFile(mydirb2)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if g, e := string(buf), input1; g != e {
+		t.Errorf("wrong content: %q != %q", g, e)
+	}
+}
+
+func TestInvalidateRenameToUncachedDir(t *testing.T) {
+	config1 := libkbfs.MakeTestConfigOrBust(t, BServerRemoteAddr, "user1",
+		"user2")
+	mnt1 := makeFS(t, config1)
+	defer mnt1.Close()
+
+	config2 := libkbfs.ConfigAsUser(config1, "user2")
+	mnt2 := makeFS(t, config2)
+	defer mnt2.Close()
+
+	if !mnt2.Conn.Protocol().HasInvalidate() {
+		t.Skip("Old FUSE protocol")
+	}
+
+	// user 1 writes one file to root and one to a sub directory
+	const input1 = "input round one"
+	myfile1 := path.Join(mnt1.Dir, PrivateName, "user1,user2", "myfile")
+	if err := ioutil.WriteFile(myfile1, []byte(input1), 0644); err != nil {
+		t.Fatal(err)
+	}
+	mydir1 := path.Join(mnt1.Dir, PrivateName, "user1,user2", "mydir")
+	if err := os.Mkdir(mydir1, 0755); err != nil {
+		t.Fatal(err)
+	}
+	mydirfile1 := path.Join(mydir1, "myfile")
+
+	myfile2 := path.Join(mnt2.Dir, PrivateName, "user1,user2", "myfile")
+	f, err := os.OpenFile(myfile2, os.O_RDWR, 0644)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer f.Close()
+
+	{
+		buf := make([]byte, 4096)
+		n, err := f.ReadAt(buf, 0)
+		if err != nil && err != io.EOF {
+			t.Fatal(err)
+		}
+		if g, e := string(buf[:n]), input1; g != e {
+			t.Errorf("wrong content: %q != %q", g, e)
+		}
+	}
+
+	// now rename the second into a directory that user 2 hasn't seen
+	if err := os.Rename(myfile1, mydirfile1); err != nil {
+		t.Fatal(err)
+	}
+
+	// user 2 should be able to write to its open file, and user 1
+	// will see the change
+	const input2 = "input round two"
+	{
+		n, err := f.WriteAt([]byte(input2), 0)
+		if err != nil || n != len(input2) {
+			t.Fatal(err)
+		}
+	}
+	f.Close()
+
+	buf, err := ioutil.ReadFile(mydirfile1)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if g, e := string(buf), input2; g != e {
+		t.Errorf("wrong content: %q != %q", g, e)
+	}
+}
