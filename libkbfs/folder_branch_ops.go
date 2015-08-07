@@ -1979,6 +1979,7 @@ func (fbo *FolderBranchOps) writeDataLocked(
 
 	fbo.cacheLock.Lock()
 	defer fbo.cacheLock.Unlock()
+	de.SetWriter(user)
 	si := fbo.getOrCreateSyncInfoLocked(de)
 	for nCopied < n {
 		ptr, parentBlock, indexInParent, block, more, startOff, err :=
@@ -2054,7 +2055,6 @@ func (fbo *FolderBranchOps) writeDataLocked(
 			de.EncodedSize = 0
 			// update the file info
 			de.Size += uint64(len(block.Contents) - oldLen)
-			de.SetWriter(user)
 			parentPtr := stripBP(file.parentPath().tailPointer())
 			if _, ok := fbo.deCache[parentPtr]; !ok {
 				fbo.deCache[parentPtr] = make(map[BlockPointer]DirEntry)
@@ -2197,6 +2197,7 @@ func (fbo *FolderBranchOps) truncateLocked(
 		}
 	}()
 
+	de.SetWriter(user)
 	si := fbo.getOrCreateSyncInfoLocked(de)
 	if more {
 		// TODO: if indexInParent == 0, we can remove the level of indirection
@@ -2239,7 +2240,6 @@ func (fbo *FolderBranchOps) truncateLocked(
 
 	de.EncodedSize = 0
 	de.Size = size
-	de.SetWriter(user)
 	parentPtr := stripBP(file.parentPath().tailPointer())
 	if _, ok := fbo.deCache[parentPtr]; !ok {
 		fbo.deCache[parentPtr] = make(map[BlockPointer]DirEntry)
