@@ -191,7 +191,7 @@ func (k *KBPKIClient) session(ctx context.Context) (
 		return
 	}
 
-	session = libkb.NewSessionThin(keybase1.UID(res.Uid), res.Username, res.Token)
+	session = libkb.NewSessionThin(keybase1.UID(res.Uid), libkb.NewNormalizedUsername(res.Username), res.Token)
 	return
 }
 
