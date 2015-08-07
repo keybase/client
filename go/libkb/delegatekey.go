@@ -250,5 +250,6 @@ func (d *Delegator) post(lctx LoginContext) (err error) {
 		return nil
 	}
 	_, err = d.G().API.Post(arg)
+
 	return err
 }

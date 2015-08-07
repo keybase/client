@@ -42,8 +42,8 @@ func (g *NaclKeyGen) SaveLKS(lks *LKSec, lctx LoginContext) error {
 	return err
 }
 
-func (g *NaclKeyGen) Push(lctx LoginContext) (mt MerkleTriple, err error) {
-	d := Delegator{
+func (g *NaclKeyGen) Push(lctx LoginContext, aggregated bool) (d Delegator, err error) {
+	d = Delegator{
 		NewKey:      g.pair,
 		RevSig:      g.arg.RevSig,
 		Device:      g.arg.Device,
@@ -53,10 +53,13 @@ func (g *NaclKeyGen) Push(lctx LoginContext) (mt MerkleTriple, err error) {
 		Me:          g.arg.Me,
 		EldestKID:   g.arg.EldestKeyID,
 	}
-	if err = d.Run(lctx); err != nil {
+
+	if aggregated {
 		return
 	}
-	return d.GetMerkleTriple(), err
+
+	err = d.Run(lctx)
+	return
 }
 
 func (g *NaclKeyGen) GetKeyPair() NaclKeyPair {

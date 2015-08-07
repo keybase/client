@@ -110,20 +110,22 @@ func (e *DeviceKeygen) Push(ctx *Context, pargs *DeviceKeygenPushArgs) error {
 	var encSigner libkb.GenericKey
 	eldestKID := pargs.EldestKID
 
-	// push the signing key
+	ds := []libkb.Delegator{}
+
+	// append the signing key
 	if pargs.IsEldest {
-		e.pushEldest(ctx, pargs)
+		e.appendEldest(ctx, pargs, &ds)
 		encSigner = e.naclSignGen.GetKeyPair()
 		eldestKID = encSigner.GetKID()
 	} else if !pargs.SkipSignerPush {
-		e.pushSibkey(ctx, pargs)
+		e.appendSibkey(ctx, pargs, &ds)
 		encSigner = e.naclSignGen.GetKeyPair()
 	} else {
 		encSigner = pargs.Signer
 	}
 
-	// push the encryption key
-	e.pushEncKey(ctx, encSigner, eldestKID, pargs.User)
+	e.appendEncKey(ctx, encSigner, eldestKID, pargs.User, &ds)
+	e.pushErr = libkb.DelegatorAggregator(ctx.LoginContext, ds)
 
 	// push the LKS server half
 	e.pushLKS(ctx)
@@ -182,28 +184,43 @@ func (e *DeviceKeygen) localSave(ctx *Context) {
 	}
 }
 
-func (e *DeviceKeygen) pushEldest(ctx *Context, pargs *DeviceKeygenPushArgs) {
+func (e *DeviceKeygen) appendEldest(ctx *Context, pargs *DeviceKeygenPushArgs, ds *[]libkb.Delegator) {
 	if e.pushErr != nil {
 		return
 	}
-	_, e.pushErr = e.naclSignGen.Push(ctx.LoginContext)
+
+	var d libkb.Delegator
+	d, e.pushErr = e.naclSignGen.Push(ctx.LoginContext, true)
+	if e.pushErr == nil {
+		*ds = append(*ds, d)
+	}
 }
 
-func (e *DeviceKeygen) pushSibkey(ctx *Context, pargs *DeviceKeygenPushArgs) {
+func (e *DeviceKeygen) appendSibkey(ctx *Context, pargs *DeviceKeygenPushArgs, ds *[]libkb.Delegator) {
 	if e.pushErr != nil {
 		return
 	}
 
+	var d libkb.Delegator
 	e.naclSignGen.UpdateArg(pargs.Signer, pargs.EldestKID, true, pargs.User)
-	_, e.pushErr = e.naclSignGen.Push(ctx.LoginContext)
+	d, e.pushErr = e.naclSignGen.Push(ctx.LoginContext, true)
+	if e.pushErr == nil {
+		*ds = append(*ds, d)
+	}
 }
 
-func (e *DeviceKeygen) pushEncKey(ctx *Context, signer libkb.GenericKey, eldestKID keybase1.KID, user *libkb.User) {
+func (e *DeviceKeygen) appendEncKey(ctx *Context, signer libkb.GenericKey, eldestKID keybase1.KID, user *libkb.User, ds *[]libkb.Delegator) {
 	if e.pushErr != nil {
 		return
 	}
+
 	e.naclEncGen.UpdateArg(signer, eldestKID, false, user)
-	_, e.pushErr = e.naclEncGen.Push(ctx.LoginContext)
+
+	var d libkb.Delegator
+	d, e.pushErr = e.naclEncGen.Push(ctx.LoginContext, true)
+	if e.pushErr == nil {
+		*ds = append(*ds, d)
+	}
 }
 
 func (e *DeviceKeygen) generateClientHalfRecovery() (string, keybase1.KID, error) {
