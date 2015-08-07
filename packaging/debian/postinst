@@ -1,3 +1,132 @@
 #! /bin/bash
 
-echo 'This is a post-install script!!!'
+###
+### This script is largely copied from the post-install script used by Google
+### Chrome. It adds the Keybase package repo to your APT sources, so that
+### system updates pull in Keybase updates.
+###
+
+SOURCES_PREAMBLE="\
+### THIS FILE IS AUTOMATICALLY CONFIGURED ###
+# Modifications may be lost.
+"
+REPOCONFIG="deb http://dist.keybase.io/deb/repo stable main"
+
+APT_GET="`which apt-get 2> /dev/null`"
+APT_CONFIG="`which apt-config 2> /dev/null`"
+
+# Install the repository signing key (see:
+# https://keybase.io/docs/server_security/our_code_signing_key)
+install_key() {
+  APT_KEY="`which apt-key 2> /dev/null`"
+  if [ -x "$APT_KEY" ]; then
+    "$APT_KEY" add - >/dev/null 2>&1 <<KEYDATA
+-----BEGIN PGP PUBLIC KEY BLOCK-----
+Version: GnuPG/MacGPG2 v2.0.22 (Darwin)
+Comment: GPGTools - https://gpgtools.org
+
+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
+oJO3q10K/XeP2GohBf5q0imfUw==
+=2Er/
+-----END PGP PUBLIC KEY BLOCK-----
+KEYDATA
+  fi
+}
+
+# Parse apt configuration and return requested variable value.
+apt_config_val() {
+  APTVAR="$1"
+  if [ -x "$APT_CONFIG" ]; then
+    "$APT_CONFIG" dump | sed -e "/^$APTVAR /"'!d' -e "s/^$APTVAR \"\(.*\)\".*/\1/"
+  fi
+}
+
+# Set variables for the locations of the apt sources lists.
+find_apt_sources() {
+  APTDIR=$(apt_config_val Dir)
+  APTETC=$(apt_config_val 'Dir::Etc')
+  APT_SOURCES="$APTDIR$APTETC$(apt_config_val 'Dir::Etc::sourcelist')"
+  APT_SOURCESDIR="$APTDIR$APTETC$(apt_config_val 'Dir::Etc::sourceparts')"
+}
+
+# Add the Keybase repository to the apt sources.
+create_sources_lists() {
+  find_apt_sources
+
+  SOURCELIST="$APT_SOURCESDIR/keybase.list"
+  if [ -d "$APT_SOURCESDIR" ]; then
+    echo "$SOURCES_PREAMBLE" > "$SOURCELIST"
+    echo "$REPOCONFIG" >> "$SOURCELIST"
+  fi
+}
+
+install_key
+create_sources_lists
