@@ -189,7 +189,7 @@ func (s *SKB) unlockSecretKeyFromSecretRetriever(secretRetriever SecretRetriever
 // a passphrase stream.  It's not verified through a Login.
 func (s *SKB) unverifiedPassphraseStream(lctx LoginContext, passphrase string) (tsec *triplesec.Cipher, ret *PassphraseStream, err error) {
 	var salt []byte
-	username := s.G().Env.GetUsername()
+	username := s.G().Env.GetUsername().String()
 	if lctx != nil {
 		if len(username) > 0 {
 			err = lctx.LoadLoginSession(username)

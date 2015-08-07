@@ -24,7 +24,7 @@ type Session struct {
 	deviceID keybase1.DeviceID
 	valid    bool
 	uid      keybase1.UID
-	username *string
+	username *NormalizedUsername
 	mtime    int64
 }
 
@@ -34,7 +34,7 @@ func newSession(g *GlobalContext) *Session {
 
 // NewSessionThin creates a minimal (thin) session of just the uid and username.
 // Clients of the daemon that use the session protocol need this.
-func NewSessionThin(uid keybase1.UID, username string, token string) *Session {
+func NewSessionThin(uid keybase1.UID, username NormalizedUsername, token string) *Session {
 	// XXX should this set valid to true?  daemon won't return a
 	// session unless valid is true, so...
 	return &Session{uid: uid, username: &username, token: token, valid: true}
@@ -62,7 +62,7 @@ func (s *Session) IsLoggedInAndProvisioned() bool {
 	return true
 }
 
-func (s *Session) GetUsername() *string {
+func (s *Session) GetUsername() *NormalizedUsername {
 	return s.username
 }
 
@@ -82,11 +82,11 @@ func (s *Session) APIArgs() (token, csrf string) {
 	return s.token, s.csrf
 }
 
-func (s *Session) SetUsername(username string) {
+func (s *Session) SetUsername(username NormalizedUsername) {
 	s.username = &username
 }
 
-func (s *Session) SetLoggedIn(sessionID, csrfToken, username string, uid keybase1.UID) error {
+func (s *Session) SetLoggedIn(sessionID, csrfToken string, username NormalizedUsername, uid keybase1.UID) error {
 	s.valid = true
 	s.uid = uid
 	s.username = &username
@@ -265,7 +265,8 @@ func (s *Session) Check() error {
 		}
 		s.valid = true
 		s.uid = uid
-		s.username = &username
+		nu := NewNormalizedUsername(username)
+		s.username = &nu
 		if !s.IsRecent() {
 			s.SetCsrf(csrf)
 		}

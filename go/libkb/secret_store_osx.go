@@ -13,7 +13,7 @@ const (
 )
 
 type KeychainSecretStore struct {
-	accountName string
+	accountName NormalizedUsername
 }
 
 func (kss *KeychainSecretStore) StoreSecret(secret []byte) (err error) {
@@ -26,7 +26,7 @@ func (kss *KeychainSecretStore) StoreSecret(secret []byte) (err error) {
 	encodedSecret := base64.StdEncoding.EncodeToString(secret)
 	attributes := kc.GenericPasswordAttributes{
 		ServiceName: keychainServiceName,
-		AccountName: kss.accountName,
+		AccountName: kss.accountName.String(),
 		Password:    []byte(encodedSecret),
 	}
 	err = kc.RemoveAndAddGenericPassword(&attributes)
@@ -41,7 +41,7 @@ func (kss *KeychainSecretStore) RetrieveSecret() (secret []byte, err error) {
 
 	attributes := kc.GenericPasswordAttributes{
 		ServiceName: keychainServiceName,
-		AccountName: kss.accountName,
+		AccountName: kss.accountName.String(),
 	}
 
 	encodedSecret, err := kc.FindGenericPassword(&attributes)
@@ -65,7 +65,7 @@ func (kss *KeychainSecretStore) ClearSecret() (err error) {
 
 	attributes := kc.GenericPasswordAttributes{
 		ServiceName: keychainServiceName,
-		AccountName: kss.accountName,
+		AccountName: kss.accountName.String(),
 	}
 
 	err = kc.FindAndRemoveGenericPassword(&attributes)
@@ -76,7 +76,7 @@ func (kss *KeychainSecretStore) ClearSecret() (err error) {
 	return
 }
 
-func NewSecretStore(username string) SecretStore {
+func NewSecretStore(username NormalizedUsername) SecretStore {
 	return &KeychainSecretStore{username}
 }
 

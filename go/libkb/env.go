@@ -19,7 +19,7 @@ func (n NullConfiguration) GetServerURI() string                          { retu
 func (n NullConfiguration) GetConfigFilename() string                     { return "" }
 func (n NullConfiguration) GetSessionFilename() string                    { return "" }
 func (n NullConfiguration) GetDbFilename() string                         { return "" }
-func (n NullConfiguration) GetUsername() string                           { return "" }
+func (n NullConfiguration) GetUsername() NormalizedUsername               { return NormalizedUsername("") }
 func (n NullConfiguration) GetEmail() string                              { return "" }
 func (n NullConfiguration) GetProxy() string                              { return "" }
 func (n NullConfiguration) GetGpgHome() string                            { return "" }
@@ -51,13 +51,15 @@ func (n NullConfiguration) GetNoAutoFork() (bool, bool)                   { retu
 func (n NullConfiguration) GetSplitLogOutput() (bool, bool)               { return false, false }
 func (n NullConfiguration) GetLogFile() string                            { return "" }
 
-func (n NullConfiguration) GetUserConfig() (*UserConfig, error)                    { return nil, nil }
-func (n NullConfiguration) GetUserConfigForUsername(s string) (*UserConfig, error) { return nil, nil }
-func (n NullConfiguration) GetGString(string) string                               { return "" }
-func (n NullConfiguration) GetBool(string, bool) (bool, bool)                      { return false, false }
+func (n NullConfiguration) GetUserConfig() (*UserConfig, error) { return nil, nil }
+func (n NullConfiguration) GetUserConfigForUsername(s NormalizedUsername) (*UserConfig, error) {
+	return nil, nil
+}
+func (n NullConfiguration) GetGString(string) string          { return "" }
+func (n NullConfiguration) GetBool(string, bool) (bool, bool) { return false, false }
 
-func (n NullConfiguration) GetAllUsernames() (string, []string, error) {
-	return "", nil, nil
+func (n NullConfiguration) GetAllUsernames() (NormalizedUsername, []NormalizedUsername, error) {
+	return NormalizedUsername(""), nil, nil
 }
 
 func (n NullConfiguration) GetDebug() (bool, bool) {
@@ -385,7 +387,7 @@ func (e *Env) GetAPIDump() bool {
 	)
 }
 
-func (e *Env) GetUsername() string {
+func (e *Env) GetUsername() NormalizedUsername {
 	return e.config.GetUsername()
 }
 
@@ -530,7 +532,7 @@ func (e *Env) GetProofCacheShortDur() time.Duration {
 }
 
 func (e *Env) GetEmailOrUsername() string {
-	un := e.GetUsername()
+	un := e.GetUsername().String()
 	if len(un) > 0 {
 		return un
 	}

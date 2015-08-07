@@ -10,7 +10,7 @@ import (
 
 type SigChain struct {
 	uid        keybase1.UID
-	username   string
+	username   NormalizedUsername
 	chainLinks []*ChainLink
 	idVerified bool
 	allKeys    bool
@@ -611,7 +611,7 @@ func (l *SigChainLoader) LoadLinksFromStorage() (err error) {
 func (l *SigChainLoader) MakeSigChain() error {
 	sc := &SigChain{
 		uid:          l.user.GetUID(),
-		username:     l.user.GetName(),
+		username:     l.user.GetNormalizedName(),
 		chainLinks:   l.links,
 		allKeys:      l.allKeys,
 		Contextified: l.Contextified,

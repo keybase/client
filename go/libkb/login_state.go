@@ -50,8 +50,8 @@ type LoginContext interface {
 	ClearLoginSession()
 
 	LocalSession() *Session
-	EnsureUsername(username string)
-	SaveState(sessionID, csrf, username string, uid keybase1.UID) error
+	EnsureUsername(username NormalizedUsername)
+	SaveState(sessionID, csrf string, username NormalizedUsername, uid keybase1.UID) error
 
 	Keyring() (*SKBKeyringFile, error)
 	LockedLocalSecretKey(ska SecretKeyArg) (*SKB, error)
@@ -308,7 +308,7 @@ func (s *LoginState) postLoginToServer(lctx LoginContext, eOu string, lgpw []byt
 
 func (s *LoginState) saveLoginState(lctx LoginContext, res *loginAPIResult) error {
 	lctx.SetStreamGeneration(res.ppGen)
-	return lctx.SaveState(res.sessionID, res.csrfToken, res.username, res.uid)
+	return lctx.SaveState(res.sessionID, res.csrfToken, NewNormalizedUsername(res.username), res.uid)
 }
 
 func (r PostAuthProofRes) loginResult() (*loginAPIResult, error) {
@@ -343,7 +343,9 @@ func (s *LoginState) pubkeyLoginHelper(lctx LoginContext, username string, getSe
 		s.G().Log.Debug("- pubkeyLoginHelper() -> %s", ErrToOk(err))
 	}()
 
-	if _, err = s.G().Env.GetConfig().GetUserConfigForUsername(username); err != nil {
+	nu := NewNormalizedUsername(username)
+
+	if _, err = s.G().Env.GetConfig().GetUserConfigForUsername(nu); err != nil {
 		s.G().Log.Debug("| No Userconfig for %s: %s", username, err)
 		return
 	}
@@ -409,8 +411,9 @@ func (s *LoginState) checkLoggedIn(lctx LoginContext, username string, force boo
 		return
 	}
 
-	un := lctx.LocalSession().GetUsername()
-	if loggedInTmp && len(username) > 0 && un != nil && username != *un {
+	nu1 := lctx.LocalSession().GetUsername()
+	nu2 := NewNormalizedUsername(username)
+	if loggedInTmp && len(nu2) > 0 && nu1 != nil && !nu1.Eq(nu2) {
 		err = LoggedInError{}
 		return
 	}
@@ -430,13 +433,14 @@ func (s *LoginState) switchUser(lctx LoginContext, username string) error {
 	if !CheckUsername.F(username) {
 		return errors.New("invalid username provided to switchUser")
 	}
-	if err := s.G().Env.GetConfigWriter().SwitchUser(username); err != nil {
+	nu := NewNormalizedUsername(username)
+	if err := s.G().Env.GetConfigWriter().SwitchUser(nu); err != nil {
 		s.G().Log.Debug("| Can't switch user to %s: %s", username, err)
 		// apparently this isn't an error either
 		return nil
 	}
 
-	lctx.EnsureUsername(username)
+	lctx.EnsureUsername(nu)
 
 	s.G().Log.Debug("| Successfully switched user to %s", username)
 	return nil
@@ -594,7 +598,7 @@ func (s *LoginState) stretchPassphraseIfNecessary(lctx LoginContext, un string, 
 
 func (s *LoginState) verifyPassphraseWithServer(ui SecretUI) error {
 	return s.loginHandle(func(lctx LoginContext) error {
-		return s.loginWithPromptHelper(lctx, s.G().Env.GetUsername(), nil, ui, true)
+		return s.loginWithPromptHelper(lctx, s.G().Env.GetUsername().String(), nil, ui, true)
 	}, nil, "LoginState - verifyPassphrase")
 }
 
@@ -726,7 +730,7 @@ func (s *LoginState) loginWithStoredSecret(lctx LoginContext, username string) e
 	}
 
 	getSecretKeyFn := func(keyrings *Keyrings, me *User) (GenericKey, error) {
-		secretRetriever := NewSecretStore(me.GetName())
+		secretRetriever := NewSecretStore(me.GetNormalizedName())
 		return keyrings.GetSecretKeyWithStoredSecret(lctx, me, secretRetriever)
 	}
 	return s.pubkeyLoginHelper(lctx, username, getSecretKeyFn)
@@ -746,7 +750,7 @@ func (s *LoginState) loginWithPassphrase(lctx LoginContext, username, passphrase
 	getSecretKeyFn := func(keyrings *Keyrings, me *User) (GenericKey, error) {
 		var secretStorer SecretStorer
 		if storeSecret {
-			secretStorer = NewSecretStore(me.GetName())
+			secretStorer = NewSecretStore(me.GetNormalizedName())
 		}
 		return keyrings.GetSecretKeyWithPassphrase(lctx, me, passphrase, secretStorer)
 	}

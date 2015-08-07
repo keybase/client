@@ -412,7 +412,7 @@ func TestUserInfo(t *testing.T) {
 	defer tc.Cleanup()
 
 	u := CreateAndSignupFakeUser(tc, "login")
-	var username string
+	var username libkb.NormalizedUsername
 	var err error
 	aerr := tc.G.LoginState().Account(func(a *libkb.Account) {
 		_, username, _, _, err = a.UserInfo()
@@ -423,7 +423,7 @@ func TestUserInfo(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if username != u.Username {
+	if !username.Eq(libkb.NewNormalizedUsername(u.Username)) {
 		t.Errorf("userinfo username: %q, expected %q", username, u.Username)
 	}
 }

@@ -162,7 +162,8 @@ func (f JSONConfigFile) getUserConfigWithLock() (ret *UserConfig, err error) {
 	if s, err = f.jw.AtKey("current_user").GetString(); err != nil {
 		return
 	}
-	if ret, err = f.GetUserConfigForUsername(s); err != nil {
+	nu := NewNormalizedUsername(s)
+	if ret, err = f.GetUserConfigForUsername(nu); err != nil {
 		return
 	} else if ret != nil {
 		f.userConfigWrapper.userConfig = ret
@@ -173,20 +174,20 @@ func (f JSONConfigFile) getUserConfigWithLock() (ret *UserConfig, err error) {
 	return
 }
 
-func (f *JSONConfigFile) SwitchUser(un string) error {
+func (f *JSONConfigFile) SwitchUser(nu NormalizedUsername) error {
 	f.userConfigWrapper.Lock()
 	defer f.userConfigWrapper.Unlock()
 
-	if cu := f.getCurrentUser(); cu == un {
-		G.Log.Debug("| Already configured as user=%s", un)
+	if cu := f.getCurrentUser(); cu.Eq(nu) {
+		G.Log.Debug("| Already configured as user=%s", nu)
 		return nil
 	}
 
-	if f.jw.AtKey("users").AtKey(un).IsNil() {
-		return UserNotFoundError{msg: un}
+	if f.jw.AtKey("users").AtKey(nu.String()).IsNil() {
+		return UserNotFoundError{msg: nu.String()}
 	}
 
-	f.jw.SetKey("current_user", jsonw.NewString(un))
+	f.jw.SetKey("current_user", jsonw.NewString(nu.String()))
 	f.userConfigWrapper.userConfig = nil
 	f.dirty = true
 	return nil
@@ -194,11 +195,11 @@ func (f *JSONConfigFile) SwitchUser(un string) error {
 
 // GetUserConfigForUsername sees if there's a UserConfig object for the given
 // username previously stored.
-func (f JSONConfigFile) GetUserConfigForUsername(s string) (*UserConfig, error) {
-	return ImportUserConfigFromJSONWrapper(f.jw.AtKey("users").AtKey(s))
+func (f JSONConfigFile) GetUserConfigForUsername(nu NormalizedUsername) (*UserConfig, error) {
+	return ImportUserConfigFromJSONWrapper(f.jw.AtKey("users").AtKey(nu.String()))
 }
 
-func (f JSONConfigFile) GetAllUsernames() (current string, others []string, err error) {
+func (f JSONConfigFile) GetAllUsernames() (current NormalizedUsername, others []NormalizedUsername, err error) {
 	current = f.getCurrentUser()
 	uw := f.jw.AtKey("users")
 	if uw.IsNil() {
@@ -219,8 +220,9 @@ func (f JSONConfigFile) GetAllUsernames() (current string, others []string, err 
 			err = e
 			return
 		}
-		if name != current {
-			others = append(others, name)
+		nu := NewNormalizedUsername(name)
+		if !nu.Eq(current) {
+			others = append(others, nu)
 		}
 	}
 	return
@@ -243,9 +245,9 @@ func (f *JSONConfigFile) SetDeviceID(did keybase1.DeviceID) (err error) {
 	return
 }
 
-func (f *JSONConfigFile) getCurrentUser() string {
+func (f *JSONConfigFile) getCurrentUser() NormalizedUsername {
 	s, _ := f.jw.AtKey("current_user").GetString()
-	return s
+	return NormalizedUsername(s)
 }
 
 // SetUserConfig writes this UserConfig to the config file and updates the
@@ -275,18 +277,18 @@ func (f *JSONConfigFile) setUserConfigWithLock(u *UserConfig, overwrite bool) er
 			f.jw.SetKey("users", parent)
 			f.dirty = true
 		}
-		if parent.AtKey(un).IsNil() || overwrite {
+		if parent.AtKey(un.String()).IsNil() || overwrite {
 			uWrapper, err := jsonw.NewObjectWrapper(*u)
 			if err != nil {
 				return err
 			}
-			parent.SetKey(un, uWrapper)
+			parent.SetKey(un.String(), uWrapper)
 			f.userConfigWrapper.userConfig = u
 			f.dirty = true
 		}
 
-		if f.getCurrentUser() != un {
-			f.jw.SetKey("current_user", jsonw.NewString(un))
+		if !f.getCurrentUser().Eq(un) {
+			f.jw.SetKey("current_user", jsonw.NewString(un.String()))
 			f.userConfigWrapper.userConfig = nil
 			f.dirty = true
 		}
@@ -364,7 +366,7 @@ func (f JSONConfigFile) GetDevelMode() (bool, bool) {
 func (f JSONConfigFile) GetNoPinentry() (bool, bool) {
 	return f.GetBoolAtPath("pinentry.disabled")
 }
-func (f JSONConfigFile) GetUsername() (ret string) {
+func (f JSONConfigFile) GetUsername() (ret NormalizedUsername) {
 	if uc, _ := f.GetUserConfig(); uc != nil {
 		ret = uc.GetUsername()
 	}

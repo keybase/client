@@ -9,7 +9,7 @@ import (
 
 type LoadUserArg struct {
 	UID               keybase1.UID
-	Name              string
+	Name              string // Can also be an assertion like foo@twitter
 	PublicKeyOptional bool
 	NoCacheResult     bool // currently ignore
 	Self              bool
@@ -37,7 +37,7 @@ func (arg *LoadUserArg) checkUIDName() error {
 	}
 
 	if arg.UID = myUID(arg.G(), arg.LoginContext); arg.UID.IsNil() {
-		arg.Name = arg.G().Env.GetUsername()
+		arg.Name = arg.G().Env.GetUsername().String()
 	}
 	return nil
 }

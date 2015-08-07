@@ -192,7 +192,7 @@ func (cki ComputedKeyInfos) InsertLocalEldestKey(kid keybase1.KID) {
 
 // For use when there are no chain links at all, so all we can do is trust the
 // eldest key that the server reported.
-func (cki ComputedKeyInfos) InsertServerEldestKey(eldestKey GenericKey, un string) error {
+func (cki ComputedKeyInfos) InsertServerEldestKey(eldestKey GenericKey, un NormalizedUsername) error {
 	kbid := KeybaseIdentity(un)
 	if pgp, ok := eldestKey.(*PGPKeyBundle); ok {
 		match, ctime, etime := pgp.CheckIdentity(kbid)
@@ -206,7 +206,7 @@ func (cki ComputedKeyInfos) InsertServerEldestKey(eldestKey GenericKey, un strin
 	return KeyFamilyError{"InsertServerEldestKey found a non-PGP key."}
 }
 
-func (ckf ComputedKeyFamily) InsertEldestLink(tcl TypedChainLink, username string) (err error) {
+func (ckf ComputedKeyFamily) InsertEldestLink(tcl TypedChainLink, username NormalizedUsername) (err error) {
 	kid := tcl.GetKID()
 	key, err := ckf.kf.FindKeyWithKIDUnsafe(kid)
 	if err != nil {

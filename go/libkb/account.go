@@ -243,7 +243,7 @@ func (a *Account) getDeviceKey(ckf *ComputedKeyFamily, secretKeyType SecretKeyTy
 func (a *Account) LockedLocalSecretKey(ska SecretKeyArg) (*SKB, error) {
 	var ret *SKB
 	me := ska.Me
-	a.EnsureUsername(me.GetName())
+	a.EnsureUsername(me.GetNormalizedName())
 
 	keyring, err := a.Keyring()
 	if err != nil {
@@ -294,7 +294,7 @@ func (a *Account) Shutdown() error {
 	return a.LocalSession().Write()
 }
 
-func (a *Account) EnsureUsername(username string) {
+func (a *Account) EnsureUsername(username NormalizedUsername) {
 	su := a.LocalSession().GetUsername()
 	if su == nil {
 		a.LocalSession().SetUsername(username)
@@ -307,7 +307,7 @@ func (a *Account) EnsureUsername(username string) {
 
 }
 
-func (a *Account) UserInfo() (uid keybase1.UID, username, token string, deviceSubkey GenericKey, err error) {
+func (a *Account) UserInfo() (uid keybase1.UID, username NormalizedUsername, token string, deviceSubkey GenericKey, err error) {
 	if !a.LoggedIn() {
 		err = LoginRequiredError{}
 		return
@@ -324,12 +324,12 @@ func (a *Account) UserInfo() (uid keybase1.UID, username, token string, deviceSu
 	}
 
 	uid = user.GetUID()
-	username = user.GetName()
+	username = user.GetNormalizedName()
 	token = a.localSession.GetToken()
 	return
 }
 
-func (a *Account) SaveState(sessionID, csrf, username string, uid keybase1.UID) error {
+func (a *Account) SaveState(sessionID, csrf string, username NormalizedUsername, uid keybase1.UID) error {
 	cw := a.G().Env.GetConfigWriter()
 	if cw == nil {
 		return NoConfigWriterError{}
