@@ -27,7 +27,12 @@ func makeFS(t testing.TB, config *libkbfs.ConfigLocal) *fstestutil.Mount {
 	}
 	ctx := context.Background()
 	ctx = context.WithValue(ctx, ctxAppIDKey, filesys)
-	mnt, err := fstestutil.MountedT(t, filesys, &fs.Config{
+	fn := func(mnt *fstestutil.Mount) fs.FS {
+		filesys.fuse = mnt.Server
+		filesys.conn = mnt.Conn
+		return filesys
+	}
+	mnt, err := fstestutil.MountedFuncT(t, fn, &fs.Config{
 		GetContext: func() context.Context {
 			return ctx
 		},
@@ -35,9 +40,6 @@ func makeFS(t testing.TB, config *libkbfs.ConfigLocal) *fstestutil.Mount {
 	if err != nil {
 		t.Fatal(err)
 	}
-	// TODO this is too late, racy
-	filesys.fuse = mnt.Server
-	filesys.conn = mnt.Conn
 	return mnt
 }
 
