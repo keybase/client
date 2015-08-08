@@ -666,7 +666,7 @@ func NewFavoriteFromFolder(folder keybase1.Folder) *Favorite {
 	name := strings.TrimSuffix(folder.Name, publicSuffix)
 	return &Favorite{
 		Name:   name,
-		Public: name != folder.Name,
+		Public: len(name) != len(folder.Name),
 	}
 }
 
