@@ -2031,9 +2031,8 @@ type PGPVerifyArg struct {
 }
 
 type PGPImportArg struct {
-	SessionID  int    `codec:"sessionID" json:"sessionID"`
-	Key        []byte `codec:"key" json:"key"`
-	PushSecret bool   `codec:"pushSecret" json:"pushSecret"`
+	SessionID int    `codec:"sessionID" json:"sessionID"`
+	Key       []byte `codec:"key" json:"key"`
 }
 
 type PGPExportArg struct {
@@ -2073,7 +2072,6 @@ type PGPSelectArg struct {
 	SessionID        int    `codec:"sessionID" json:"sessionID"`
 	FingerprintQuery string `codec:"fingerprintQuery" json:"fingerprintQuery"`
 	AllowMulti       bool   `codec:"allowMulti" json:"allowMulti"`
-	SkipImport       bool   `codec:"skipImport" json:"skipImport"`
 }
 
 type PGPUpdateArg struct {

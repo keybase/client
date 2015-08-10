@@ -105,7 +105,7 @@ func createFakeUserWithPGPOnly(t *testing.T, tc libkb.TestContext) *FakeUser {
 	gen.AddDefaultUID()
 	peng := NewPGPKeyImportEngine(PGPKeyImportEngineArg{
 		Gen:        &gen,
-		PushSecret: true,
+		pushSecret: true,
 		Lks:        s.lks,
 		NoSave:     true,
 	})

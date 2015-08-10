@@ -872,7 +872,6 @@ typedef NS_ENUM (NSInteger, KBRPromptDefault) {
 @interface KBRPgpImportRequestParams : KBRRequestParams
 @property NSInteger sessionID;
 @property NSData *key;
-@property BOOL pushSecret;
 @end
 @interface KBRPgpExportRequestParams : KBRRequestParams
 @property NSInteger sessionID;
@@ -905,7 +904,6 @@ typedef NS_ENUM (NSInteger, KBRPromptDefault) {
 @property NSInteger sessionID;
 @property NSString *fingerprintQuery;
 @property BOOL allowMulti;
-@property BOOL skipImport;
 @end
 @interface KBRPgpUpdateRequestParams : KBRRequestParams
 @property NSInteger sessionID;
@@ -1423,7 +1421,7 @@ typedef NS_ENUM (NSInteger, KBRPromptDefault) {
 
 - (void)pgpImport:(KBRPgpImportRequestParams *)params completion:(void (^)(NSError *error))completion;
 
-- (void)pgpImportWithKey:(NSData *)key pushSecret:(BOOL)pushSecret completion:(void (^)(NSError *error))completion;
+- (void)pgpImportWithKey:(NSData *)key completion:(void (^)(NSError *error))completion;
 
 - (void)pgpExport:(KBRPgpExportRequestParams *)params completion:(void (^)(NSError *error, NSArray *items))completion;
 
@@ -1449,7 +1447,7 @@ typedef NS_ENUM (NSInteger, KBRPromptDefault) {
 
 - (void)pgpSelect:(KBRPgpSelectRequestParams *)params completion:(void (^)(NSError *error))completion;
 
-- (void)pgpSelectWithFingerprintQuery:(NSString *)fingerprintQuery allowMulti:(BOOL)allowMulti skipImport:(BOOL)skipImport completion:(void (^)(NSError *error))completion;
+- (void)pgpSelectWithFingerprintQuery:(NSString *)fingerprintQuery allowMulti:(BOOL)allowMulti completion:(void (^)(NSError *error))completion;
 
 - (void)pgpUpdate:(KBRPgpUpdateRequestParams *)params completion:(void (^)(NSError *error))completion;
 

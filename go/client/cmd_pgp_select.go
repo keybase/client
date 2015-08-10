@@ -11,9 +11,8 @@ import (
 )
 
 type CmdPGPSelect struct {
-	query      string
-	multi      bool
-	skipImport bool
+	query string
+	multi bool
 }
 
 func (v *CmdPGPSelect) ParseArgv(ctx *cli.Context) (err error) {
@@ -24,7 +23,6 @@ func (v *CmdPGPSelect) ParseArgv(ctx *cli.Context) (err error) {
 	}
 	if err == nil {
 		v.multi = ctx.Bool("multi")
-		v.skipImport = ctx.Bool("no-import")
 	}
 	return err
 }
@@ -43,7 +41,7 @@ func (v *CmdPGPSelect) Run() error {
 		return err
 	}
 
-	err = c.PGPSelect(keybase1.PGPSelectArg{FingerprintQuery: v.query, AllowMulti: v.multi, SkipImport: v.skipImport})
+	err = c.PGPSelect(keybase1.PGPSelectArg{FingerprintQuery: v.query, AllowMulti: v.multi})
 	PGPMultiWarn(err)
 	return err
 }
@@ -60,10 +58,6 @@ func NewCmdPGPSelect(cl *libcmdline.CommandLine) cli.Command {
 			cli.BoolFlag{
 				Name:  "multi",
 				Usage: "Allow multiple PGP keys",
-			},
-			cli.BoolFlag{
-				Name:  "no-import",
-				Usage: "Don't import private key to Keybase's private keychain",
 			},
 		},
 	}
