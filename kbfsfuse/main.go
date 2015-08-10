@@ -9,6 +9,7 @@ import (
 	"io/ioutil"
 	"log"
 	"os"
+	"path/filepath"
 
 	"bazil.org/fuse"
 	"bazil.org/fuse/fs"
@@ -37,6 +38,7 @@ var clientFlag = flag.Bool("client", false, "use keybase daemon")
 var serverRootDirFlag = flag.String("server-root", "", "directory to put local server files (default is cwd)")
 var serverInMemoryFlag = flag.Bool("server-in-memory", false, "use in-memory server (and ignore -server-root)")
 var debug = flag.Bool("debug", false, "Print FUSE debug messages")
+var version = flag.Bool("version", false, "Print version")
 
 const usageStr = `Usage:
   kbfsfuse [-client | -local [-localuser=<user>]] [-debug]
@@ -47,6 +49,12 @@ const usageStr = `Usage:
 // Define this so deferred functions get executed before exit.
 func realMain() (exitStatus, error) {
 	flag.Parse()
+
+	if *version {
+		fmt.Printf("%s\n", libkbfs.Version)
+		return usageError, nil
+	}
+
 	if len(flag.Args()) < 1 {
 		fmt.Print(usageStr)
 		return usageError, nil
@@ -119,7 +127,8 @@ func realMain() (exitStatus, error) {
 	})
 	filesys.fuse = srv
 
-	err = ioutil.WriteFile("kbfs.version", []byte(libkbfs.Version), 0644)
+	// TODO Switch to cacheDir or runtimeDir, using serverRootDir as default for now
+	err = ioutil.WriteFile(filepath.Join(*serverRootDir, "kbfs.version"), []byte(libkbfs.Version), 0644)
 	if err != nil {
 		return defaultError, err
 	}
