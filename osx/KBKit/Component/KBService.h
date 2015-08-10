@@ -12,11 +12,13 @@
 #import "KBRPC.h"
 #import "KBRPClient.h"
 
-@interface KBService : KBLaunchService
+@interface KBService : NSObject <KBComponent, KBInstallable>
 
 @property (readonly, nonatomic) KBRPClient *client;
 @property (readonly, nonatomic) KBRGetCurrentStatusRes *userStatus;
 @property (readonly, nonatomic) KBRConfig *userConfig;
+
+- (instancetype)initWithConfig:(KBEnvConfig *)config;
 
 - (void)checkStatus:(void (^)(NSError *error, KBRGetCurrentStatusRes *userStatus, KBRConfig *userConfig))completion;
 

@@ -73,7 +73,7 @@
   rover.enumerator = [_installActions objectEnumerator];
   rover.runBlock = ^(KBInstallAction *installAction, KBRunCompletion runCompletion) {
     DDLogDebug(@"Checking %@", installAction.installable.name);
-    [installAction.installable updateComponentStatus:^(NSError *error) {
+    [installAction.installable updateComponentStatus:NO completion:^(NSError *error) {
       // Clear install outcome
       installAction.installAttempted = NO;
       installAction.installError = error;

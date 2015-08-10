@@ -141,7 +141,7 @@
 
 - (NSWindow *)openInWindow:(YOView *)view size:(CGSize)size title:(NSString *)title {
   if ([view respondsToSelector:@selector(setClient:)]) {
-    [(id)view setClient:(KBRPClient *)self.client];
+    if (![(id)view client]) [(id)view setClient:(KBRPClient *)self.client];
   }
   return [self.window kb_addChildWindowForView:view rect:CGRectMake(0, 0, size.width, size.height) position:KBWindowPositionCenter title:title fixed:NO makeKey:YES];
 }
@@ -185,7 +185,7 @@
   KBKeySelectView *selectView = [[KBKeySelectView alloc] init];
   [selectView setGPGKeys:requestParams.keys];
   selectView.completion = ^(id sender, id response) { [[sender window] close]; };
-  [self openInWindow:selectView size:CGSizeMake(600, 400) title:nil];
+  [self openInWindow:selectView size:CGSizeMake(600, 400) title:@"Keybase"];
 }
 
 - (void)showImportKey {
@@ -198,13 +198,13 @@
   KBDeviceSetupDisplayView *secretWordsView = [[KBDeviceSetupDisplayView alloc] init];
   [secretWordsView setSecretWords:@"profit tiny dumb cherry explain poet" deviceNameExisting:@"Macbook (Work)" deviceNameToAdd:@"Macbook (Home)"];
   secretWordsView.button.dispatchBlock = ^(KBButton *button, dispatch_block_t completion) { [[button window] close]; };
-  [self openInWindow:secretWordsView size:CGSizeMake(600, 400) title:nil];
+  [self openInWindow:secretWordsView size:CGSizeMake(600, 400) title:@"Keybase"];
 }
 
 - (void)showDeviceAdd {
   KBDeviceAddView *view = [[KBDeviceAddView alloc] init];
   view.completion = ^(id sender, BOOL ok) { [[sender window] close]; };
-  [self openInWindow:view size:CGSizeMake(600, 400) title:nil];
+  [self openInWindow:view size:CGSizeMake(600, 400) title:@"Keybase"];
 }
 
 - (void)showProveInstructions {
@@ -235,16 +235,17 @@
   KBSignupView *signUpView = [[KBSignupView alloc] init];
   KBRMockClient *mockClient = [[KBRMockClient alloc] init];
   mockClient.handler = ^(NSNumber *messageId, NSString *method, NSArray *params, MPRequestCompletion completion) {
-    [signUpView.window close];
+    completion(nil, @{});
   };
   signUpView.client = mockClient;
+  signUpView.completion = ^(id sender) { [[sender window] close]; };
   [self openInWindow:signUpView size:CGSizeMake(800, 600) title:@"Keybase"];
 }
 
 - (void)showDeviceSetupPrompt {
   KBDeviceSetupPromptView *devicePromptView = [[KBDeviceSetupPromptView alloc] init];
   devicePromptView.completion = ^(id sender, NSError *error, NSString *deviceName) { [[sender window] close]; };
-  [self openInWindow:devicePromptView size:CGSizeMake(600, 400) title:nil];
+  [self openInWindow:devicePromptView size:CGSizeMake(600, 400) title:@"Keybase"];
 }
 
 - (KBDeviceSetupChooseView *)deviceSetupChooseView {
@@ -267,7 +268,7 @@
 }
 
 - (void)showDeviceSetupChoose {
-  [self openInWindow:[self deviceSetupChooseView] size:CGSizeMake(700, 500) title:nil];
+  [self openInWindow:[self deviceSetupChooseView] size:CGSizeMake(700, 500) title:@"Keybase"];
 }
 
 - (void)showPGPEncrypt {
@@ -300,7 +301,7 @@
 
 - (void)showPGPOutput {
   KBPGPOutputView *view = [[KBPGPOutputView alloc] init];
-  [self openInWindow:view size:CGSizeMake(600, 400) title:nil];
+  [self openInWindow:view size:CGSizeMake(600, 400) title:@"Keybase"];
 }
 
 - (void)showPGPFileOutput {
@@ -308,7 +309,7 @@
   [view setFiles:@[[KBFile fileWithPath:@"/Users/gabe/Downloads/test4.mp4.gpg"],
                    [KBFile fileWithPath:@"/Users/gabe/Downloads/test-a-really-long-file-name-what-happens?.txt.gpg"]]];
 
-  [self openInWindow:view size:CGSizeMake(600, 400) title:nil];
+  [self openInWindow:view size:CGSizeMake(600, 400) title:@"Keybase"];
 }
 
 - (void)showPGPDecrypt {

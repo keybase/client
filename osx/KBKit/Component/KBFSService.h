@@ -11,6 +11,8 @@
 #import "KBLaunchService.h"
 #import "KBEnvironment.h"
 
-@interface KBFSService : KBLaunchService
+@interface KBFSService : NSObject <KBComponent, KBInstallable>
+
+- (instancetype)initWithConfig:(KBEnvConfig *)config;
 
 @end

@@ -56,7 +56,7 @@
   return [[NSBundle mainBundle] infoDictionary][@"KBFuseVersion"];
 }
 
-- (void)updateComponentStatus:(KBCompletion)completion {
+- (void)updateComponentStatus:(NSTimeInterval)timeout completion:(KBCompletion)completion {
   GHODictionary *info = [GHODictionary dictionary];
   NSString *bundleVersion = self.bundleVersion;
   MPXPCClient *helper = [[MPXPCClient alloc] initWithServiceName:@"keybase.Helper" privileged:YES];

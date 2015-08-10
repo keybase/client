@@ -13,6 +13,8 @@
 #import <KBAppKit/KBAppKit.h>
 #import "KBRPC.h"
 
+typedef void (^KBSignUpCompletion)(id sender);
+
 @class KBSignupView;
 
 @protocol KBSignupViewDelegate
@@ -25,6 +27,8 @@
 @property KBNavigationView *navigation;
 @property KBRPClient *client;
 @property (weak) id<KBSignupViewDelegate> delegate;
+
+@property (copy) KBSignUpCompletion completion;
 
 @property KBTextField *emailField;
 @property KBTextField *usernameField;

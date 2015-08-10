@@ -14,6 +14,12 @@
 @interface KBService ()
 @property KBRPClient *client;
 
+@property NSString *name;
+@property NSString *info;
+
+@property KBLaunchService *launchService;
+
+@property KBEnvConfig *config;
 @property (nonatomic) KBRGetCurrentStatusRes *userStatus;
 @property (nonatomic) KBRConfig *userConfig;
 @property NSError *statusError;
@@ -24,11 +30,18 @@
 @implementation KBService
 
 - (instancetype)initWithConfig:(KBEnvConfig *)config {
-  NSDictionary *info = [[NSBundle mainBundle] infoDictionary];
-  if ((self = [super initWithConfig:config])) {
-    [self setName:@"Service" info:@"The Keybase service" label:config.launchdLabelService bundleVersion:info[@"KBServiceVersion"] versionPath:[config cachePath:@"service.version"] plist:config.launchdPlistDictionaryForService logFile:config.logFile];
+  if ((self = [self init])) {
+    _config = config;
+    _name = @"Service";
+    _info = @"The Keybase service";
+    NSDictionary *info = [[NSBundle mainBundle] infoDictionary];
+    _launchService = [[KBLaunchService alloc] initWithLabel:config.launchdLabelService bundleVersion:info[@"KBServiceVersion"] versionPath:[config cachePath:@"service.version"] plist:config.launchdPlistDictionaryForService logFile:[config logFile:config.launchdLabelService]];
   }
   return self;
+}
+
+- (NSImage *)image {
+  return [KBIcons imageForIcon:KBIconNetwork];
 }
 
 - (NSView *)componentView {
@@ -42,8 +55,8 @@
   info[@"Home"] = KBPath(self.config.homeDir, YES, NO);
   info[@"Socket"] = KBPath(self.config.sockFile, YES, NO);
 
-  info[@"Launchd"] = self.label ? self.label : @"-";
-  GHODictionary *statusInfo = [self componentStatusInfo];
+  info[@"Launchd"] = _launchService.label ? _launchService.label : @"-";
+  GHODictionary *statusInfo = [_launchService componentStatusInfo];
   if (statusInfo) [info addEntriesFromOrderedDictionary:statusInfo];
 
   if (_statusError) info[@"Status Error"] = _statusError.localizedDescription;
@@ -60,13 +73,13 @@
   info[@"User Status"] = [userStatus join:@", "];
 
   if (self.config.installEnabled) {
-    info[@"Launchd Plist"] = KBPath([self plistDestination], YES, NO);
+    info[@"Launchd Plist"] = KBPath([_launchService plistDestination], YES, NO);
   }
 
   if (!self.config.installEnabled) {
     info[@"Command"] = [self.config commandLineForService:NO escape:YES tilde:YES options:@[@"service"]];
   } else {
-    info[@"Command"] = [self.config commandLineForService:YES escape:NO tilde:NO options:@[@"-L", @"service"]];
+    info[@"Command"] = [self.config commandLineForService:YES escape:NO tilde:NO options:@[@"--log-format=file", @"service"]];
   }
 
   YOView *view = [[YOView alloc] init];
@@ -89,26 +102,20 @@
 }
 
 - (void)refreshComponent:(KBCompletion)completion {
-  [self updateComponentStatus:^(NSError *error) {
+  [_launchService updateComponentStatus:0 completion:^(NSError *error) {
     if (error) {
       completion(error);
       return;
     }
-    [self refreshLaunchStatus:completion];
+    [self _refreshLaunchStatus:completion];
   }];
 }
 
-- (void)refreshLaunchStatus:(KBCompletion)completion {
-  GHWeakSelf gself = self;
-  if (gself.label) {
-    [KBLaunchCtl status:gself.label completion:^(KBServiceStatus *serviceStatus) {
-      [self componentDidUpdate];
-      completion(nil);
-    }];
-  } else {
+- (void)_refreshLaunchStatus:(KBCompletion)completion {
+  [_launchService refreshLaunchStatus:^(NSError *error) {
     [self componentDidUpdate];
-    completion(nil);
-  }
+    completion(error);
+  }];
 }
 
 - (KBRPClient *)client {
@@ -144,5 +151,31 @@
   }];
 }
 
+- (void)install:(KBCompletion)completion {
+  [_launchService install:completion];
+}
+
+- (void)uninstall:(KBCompletion)completion {
+  [_launchService uninstall:completion];
+}
+
+- (void)start:(KBCompletion)completion {
+  [_launchService start:completion];
+}
+
+- (void)stop:(KBCompletion)completion {
+  [_launchService stop:completion];
+}
+
+- (void)updateComponentStatus:(NSTimeInterval)timeout completion:(KBCompletion)completion {
+  [_launchService updateComponentStatus:timeout completion:^(NSError *error) {
+    [self componentDidUpdate];
+    completion(error);
+  }];
+}
+
+- (KBComponentStatus *)componentStatus {
+  return _launchService.componentStatus;
+}
 
 @end

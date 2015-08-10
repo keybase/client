@@ -18,7 +18,7 @@ typedef void (^KBOnComponentStatus)(KBComponentStatus *installStatus);
 
 - (KBComponentStatus *)componentStatus;
 
-- (void)updateComponentStatus:(KBCompletion)completion;
+- (void)updateComponentStatus:(NSTimeInterval)timeout completion:(KBCompletion)completion;
 
 - (void)install:(KBCompletion)completion;
 - (void)uninstall:(KBCompletion)completion;
@@ -38,7 +38,7 @@ typedef void (^KBOnComponentStatus)(KBComponentStatus *installStatus);
 // Called when component updated
 - (void)componentDidUpdate;
 
-- (void)updateComponentStatus:(KBCompletion)completion;
+- (void)updateComponentStatus:(NSTimeInterval)timeout completion:(KBCompletion)completion;
 
 - (GHODictionary *)componentStatusInfo;
 

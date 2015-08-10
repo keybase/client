@@ -63,4 +63,10 @@
   }];
 }
 
++ (void)alertWithTitle:(NSString *)title description:(NSString *)description ok:(NSString *)ok view:(NSView *)view completion:(void (^)(BOOL yes))completion {
+  [KBAlert promptWithTitle:title description:description style:NSInformationalAlertStyle buttonTitles:@[ok] view:view completion:^(NSModalResponse returnCode) {
+    completion((returnCode == NSAlertFirstButtonReturn));
+  }];
+}
+
 @end

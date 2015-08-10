@@ -46,7 +46,7 @@
   [_infoView setProperties:info];
 }
 
-- (void)updateComponentStatus:(KBCompletion)completion {
+- (void)updateComponentStatus:(NSTimeInterval)timeout completion:(KBCompletion)completion {
   NSError *error = nil;
   NSString *destination = [NSFileManager.defaultManager destinationOfSymbolicLinkAtPath:LINK_SOURCE error:&error];
   if (error) {

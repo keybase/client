@@ -38,7 +38,9 @@
 - (void)sendRequestWithMethod:(NSString *)method params:(NSArray *)params sessionId:(NSNumber *)sessionId completion:(MPRequestCompletion)completion {
   self.completion = completion;
   if (self.handler) {
-    self.handler(sessionId, method, params, completion);
+    dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(2 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
+      self.handler(sessionId, method, params, completion);
+    });
     return;
   }
 

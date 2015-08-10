@@ -240,14 +240,14 @@
   NSString *passphrase = self.passwordField.text;
   NSString *deviceName = [self.deviceNameField.text gh_strip];
 
+  if ([NSString gh_isBlank:email]) {
+    [KBActivity setError:KBErrorAlert(@"You need to enter an email address.") sender:_emailField];
+    return;
+  }
+  
   if ([NSString gh_isBlank:username]) {
     // TODO Become first responder
     [KBActivity setError:KBErrorAlert(@"You need to enter a username.") sender:_usernameField];
-    return;
-  }
-
-  if ([NSString gh_isBlank:email]) {
-    [KBActivity setError:KBErrorAlert(@"You need to enter an email address.") sender:_emailField];
     return;
   }
 
@@ -293,6 +293,7 @@
     self.strengthLabel.attributedText = nil;
 
     [self.delegate signupViewDidSignup:self];
+    if (self.completion) self.completion(self);
   }];
 }
 

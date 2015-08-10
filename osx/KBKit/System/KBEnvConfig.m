@@ -10,7 +10,6 @@
 
 #import "KBDefines.h"
 #import <KBAppKit/KBAppKit.h>
-#import <GHODictionary/GHODictionary.h>
 
 @interface KBEnvConfig ()
 @property NSString *homeDir;
@@ -52,7 +51,7 @@
         self.identifier = @"localhost";
         self.host = @"http://localhost:3000";
         self.develMode = YES;
-        self.mountDir = KBPath(@"~/Keybase.dev", NO, NO);
+        self.mountDir = KBPath(@"~/Keybase.local", NO, NO);
         self.debugEnabled = YES;
         self.info = @"Uses the localhost web server";
         self.image = [NSImage imageNamed:NSImageNameComputer];
@@ -105,12 +104,7 @@
 }
 
 - (NSString *)sockFile {
-  NSString *sockFile;
-  if (_sockFile) {
-    sockFile = _sockFile;
-  } else {
-    sockFile = KBPathInDir([self configDir], @"keybased.sock", NO, NO);
-  }
+  NSString *sockFile = [self appPath:_sockFile ? _sockFile : @"keybased.sock"];
   if ([sockFile length] > 103) {
     [NSException raise:NSInvalidArgumentException format:@"Sock path too long. It should be < 104 characters. %@", sockFile];
   }
@@ -121,24 +115,22 @@
   return self.isDevelMode ? @"KeybaseDev" : @"Keybase";
 }
 
-- (NSString *)configDir {
+- (NSString *)appPath:(NSString *)filename {
   NSString *homeDir = _homeDir ? _homeDir : KBPath(@"~", NO, NO);
-  return KBPathInDir(homeDir, NSStringWithFormat(@"Library/Application Support/%@", [self appName]), NO, NO);
-}
-
-- (NSString *)configFile {
-  NSString *configFile;
-  if (_configFile) {
-    configFile = _configFile;
-  } else {
-    configFile = KBPathInDir([self configDir], @"config.json", NO, NO);
-  }
-  return configFile;
+  NSString *appPath = NSStringWithFormat(@"Library/Application Support/%@", [self appName]);
+  if (filename) appPath = [appPath stringByAppendingPathComponent:filename];
+  return KBPathInDir(homeDir, appPath, NO, NO);
 }
 
 - (NSString *)cachePath:(NSString *)filename {
   NSString *homeDir = _homeDir ? _homeDir : KBPath(@"~", NO, NO);
-  return KBPathInDir(homeDir, NSStringWithFormat(@"Library/Caches/%@/%@", [self appName], filename), NO, NO);
+  NSString *cachePath = NSStringWithFormat(@"Library/Caches/%@", [self appName]);
+  if (filename) cachePath = [cachePath stringByAppendingPathComponent:filename];
+  return KBPathInDir(homeDir, cachePath, NO, NO);
+}
+
+- (NSString *)configFile {
+  return [self appPath:_configFile ? _configFile : @"config.json"];
 }
 
 + (instancetype)env:(KBEnv)env {
@@ -192,24 +184,25 @@
   return args;
 }
 
-- (NSString *)logFile {
+- (NSString *)logFile:(NSString *)label {
   NSString *logDir = KBPath(@"~/Library/Logs", NO, NO);
   // Be careful of logging. I've seen launchd create these as root, and cause the service to fail.
-  return NSStringWithFormat(@"%@/%@.log", logDir, self.launchdLabelService);
+  return NSStringWithFormat(@"%@/%@.log", logDir, label);
 }
 
 - (NSDictionary *)launchdPlistDictionaryForService {
   if (!self.launchdLabelService) return nil;
 
-  NSArray *args = [self programArgumentsForKeybase:YES escape:NO tilde:NO options:@[@"-L", @"service"]];
+  NSArray *args = [self programArgumentsForKeybase:YES escape:NO tilde:NO options:@[@"--log-format=file", @"service"]];
 
   return @{
            @"Label": self.launchdLabelService,
            @"ProgramArguments": args,
            @"RunAtLoad": @YES,
            @"KeepAlive": @YES,
-           @"StandardOutPath": [self logFile],
-           @"StandardErrorPath": [self logFile],
+           @"WorkingDirectory": [self appPath:nil],
+           @"StandardOutPath": [self logFile:self.launchdLabelService],
+           @"StandardErrorPath": [self logFile:self.launchdLabelService],
            };
 }
 
@@ -234,7 +227,6 @@
     [args addObject:@"-debug"];
   }
 
-  [args addObject:@"-new-fuse"];
   [args addObject:@"-client"];
   if (self.mountDir) [args addObject:KBPath(self.mountDir, tilde, escape)];
 
@@ -249,8 +241,8 @@
   return [[self programArgumentsForKeybase:useBundle escape:escape tilde:tilde options:options] join:@" "];
 }
 
-- (GHODictionary *)envsForKBS:(BOOL)tilde escape:(BOOL)escape {
-  GHODictionary *envs = [GHODictionary dictionary];
+- (NSDictionary *)envsForKBS:(BOOL)tilde escape:(BOOL)escape {
+  NSMutableDictionary *envs = [NSMutableDictionary dictionary];
   envs[@"PATH"] = @"/sbin:/Library/Filesystems/kbfuse.fs/Support"; // For umount, mount_osxfusefs
   envs[@"KEYBASE_SOCKET_FILE"] = KBPath([self sockFile], tilde, escape);
   envs[@"KEYBASE_CONFIG_FILE"] = KBPath([self configFile], tilde, escape);
@@ -261,12 +253,7 @@
   if (!self.launchdLabelKBFS) return nil;
 
   NSArray *args = [self programArgumentsForKBFS:YES escape:NO tilde:NO options:nil];
-  GHODictionary *envs = [self envsForKBS:NO escape:NO];
-
-  // Logging
-  NSString *logDir = KBPath(@"~/Library/Logs/Keybase", NO, NO);
-  // Need to create logging dir here because otherwise it might be created as root by launchctl.
-  [NSFileManager.defaultManager createDirectoryAtPath:logDir withIntermediateDirectories:YES attributes:nil error:nil];
+  NSDictionary *envs = [self envsForKBS:NO escape:NO];
 
   return @{
            @"Label": self.launchdLabelKBFS,
@@ -274,8 +261,9 @@
            @"ProgramArguments": args,
            @"RunAtLoad": @YES,
            @"KeepAlive": @YES,
-           @"StandardOutPath": NSStringWithFormat(@"%@/%@.log", logDir, self.launchdLabelKBFS),
-           @"StandardErrorPath": NSStringWithFormat(@"%@/%@.err", logDir, self.launchdLabelKBFS),
+           @"WorkingDirectory": [self appPath:nil],
+           @"StandardOutPath": [self logFile:self.launchdLabelKBFS],
+           @"StandardErrorPath": [self logFile:self.launchdLabelKBFS],
            };
 }
 

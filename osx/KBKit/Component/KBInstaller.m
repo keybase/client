@@ -44,7 +44,7 @@
       installAction.installError = error;
 
       if (!error) {
-        [installAction.installable updateComponentStatus:^(NSError *error) {
+        [installAction.installable updateComponentStatus:YES completion:^(NSError *error) {
           runCompletion(installAction);
         }];
       } else {

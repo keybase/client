@@ -16,8 +16,6 @@
 #import <CocoaLumberjack/CocoaLumberjack.h>
 
 @interface KBLaunchService ()
-@property NSString *name;
-@property NSString *info;
 @property NSString *label;
 @property NSString *versionPath;
 @property NSDictionary *plist;
@@ -26,22 +24,21 @@
 @property NSString *runningVersion;
 @property NSNumber *pid;
 @property NSNumber *lastExitStatus;
+
+@property KBComponentStatus *componentStatus;
 @end
 
 @implementation KBLaunchService
 
-- (void)setName:(NSString *)name info:(NSString *)info label:(NSString *)label bundleVersion:(NSString *)bundleVersion versionPath:(NSString *)versionPath plist:(NSDictionary *)plist logFile:(NSString *)logFile {
-  _name = name;
-  _info = info;
-  _label = label;
-  _versionPath = versionPath;
-  _plist = plist;
-  _bundleVersion = bundleVersion;
-  _logFile = logFile;
-}
-
-- (NSImage *)image {
-  return [KBIcons imageForIcon:KBIconNetwork];
+- (instancetype)initWithLabel:(NSString *)label bundleVersion:(NSString *)bundleVersion versionPath:(NSString *)versionPath plist:(NSDictionary *)plist logFile:(NSString *)logFile {
+  if ((self = [super init])) {
+    _label = label;
+    _versionPath = versionPath;
+    _plist = plist;
+    _bundleVersion = bundleVersion;
+    _logFile = logFile;
+  }
+  return self;
 }
 
 - (GHODictionary *)componentStatusInfo {
@@ -68,7 +65,7 @@
   return info;
 }
 
-- (void)waitForVersionFile:(void (^)(NSString *runningVersion))completion {
+- (void)waitForVersionFile:(NSTimeInterval)timeout completion:(void (^)(NSString *runningVersion))completion {
   NSString *versionPath = _versionPath;
   KBWaitForBlock block = ^(KBWaitForCheck completion) {
     if (!versionPath) {
@@ -79,10 +76,10 @@
       completion(NO, version);
     }
   };
-  [KBWaitFor waitFor:block delay:0.5 timeout:10 label:NSStringWithFormat(@"%@ (version file)", _label) completion:completion];
+  [KBWaitFor waitFor:block delay:0.5 timeout:timeout label:NSStringWithFormat(@"%@ (version file)", _label) completion:completion];
 }
 
-- (void)updateComponentStatus:(KBCompletion)completion {
+- (void)updateComponentStatus:(NSTimeInterval)timeout completion:(KBCompletion)completion {
   self.pid = nil;
   self.lastExitStatus = nil;
   self.runningVersion = nil;
@@ -105,7 +102,7 @@
       self.componentStatus = [KBComponentStatus componentStatusWithError:serviceStatus.error];
       completion(serviceStatus.error);
     } else {
-      [self waitForVersionFile:^(NSString *runningVersion) {
+      [self waitForVersionFile:timeout completion:^(NSString *runningVersion) {
         GHODictionary *info = [GHODictionary dictionary];
         if (serviceStatus.isRunning && runningVersion) {
           self.runningVersion = runningVersion;
@@ -137,10 +134,6 @@
 }
 
 - (void)install:(KBCompletion)completion {
-  [self installLaunchAgent:completion];
-}
-
-- (void)installLaunchAgent:(KBCompletion)completion {
 
   NSString *plistDest = [self plistDestination];
   if (!plistDest) {
@@ -232,6 +225,16 @@
   [KBLaunchCtl unload:plistDest label:_label disable:NO completion:^(NSError *error, NSString *output) {
     completion(error);
   }];
+}
+
+- (void)refreshLaunchStatus:(KBCompletion)completion {
+  if (_label) {
+    [KBLaunchCtl status:_label completion:^(KBServiceStatus *serviceStatus) {
+      completion(nil);
+    }];
+  } else {
+    completion(nil);
+  }
 }
 
 //- (void)checkLaunch:(void (^)(NSError *error))completion {

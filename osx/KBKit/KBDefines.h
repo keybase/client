@@ -22,6 +22,7 @@ typedef NS_ENUM (NSInteger, KBErrorCode) {
 
   KBErrorCodeInstallError = -101,
   KBErrorCodePathNotFound = -102,
+  KBErrorCodePathInaccessible = -103,
 
   KBErrorCodeAlreadyOpening = -201,
   KBErrorCodeAlreadyOpen = -202,

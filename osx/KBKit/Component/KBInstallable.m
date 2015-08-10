@@ -28,8 +28,6 @@
 
 - (void)componentDidUpdate { }
 
-- (NSString *)version { return nil; }
-
 - (GHODictionary *)componentStatusInfo {
   if (!_componentStatus) return [GHODictionary dictionary];
   GHODictionary *info = [GHODictionary dictionary];
@@ -41,10 +39,12 @@
   return info;
 }
 
-- (void)updateComponentStatus:(KBCompletion)completion { completion(nil); }
+- (void)updateComponentStatus:(NSTimeInterval)timeout completion:(KBCompletion)completion {
+  completion(nil);
+}
 
 - (void)refreshComponent:(KBCompletion)completion {
-  [self updateComponentStatus:completion];
+  [self updateComponentStatus:0 completion:completion];
 }
 
 @end

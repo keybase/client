@@ -10,9 +10,11 @@
 
 #import <Sparkle/Sparkle.h>
 #import <CocoaLumberjack/CocoaLumberjack.h>
+#import <GHKit/GHKit.h>
 
 @interface AppDelegate ()
 @property NSStatusItem *statusItem;
+@property NSDictionary *config;
 @end
 
 @implementation AppDelegate

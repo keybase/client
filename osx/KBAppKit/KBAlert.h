@@ -24,4 +24,6 @@ typedef void (^KBAlertResponse)(NSModalResponse returnCode);
 
 + (void)yesNoWithTitle:(NSString *)title description:(NSString *)description yes:(NSString *)yes view:(NSView *)view completion:(void (^)(BOOL yes))completion;
 
++ (void)alertWithTitle:(NSString *)title description:(NSString *)description ok:(NSString *)ok view:(NSView *)view completion:(void (^)(BOOL yes))completion;
+
 @end
