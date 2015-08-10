@@ -6,6 +6,7 @@ import (
 	"errors"
 	"flag"
 	"fmt"
+	"io/ioutil"
 	"log"
 	"os"
 
@@ -14,6 +15,16 @@ import (
 
 	"github.com/keybase/kbfs/libkbfs"
 	"golang.org/x/net/context"
+)
+
+// ExitStatus defines the possible program exit status codes
+type exitStatus int
+
+const (
+	success      exitStatus = 0 // No error
+	defaultError            = 1 // Default/generic error
+	usageError              = 2 // One or more arguments are invalid
+	mountError              = 3 // We were unable to mount
 )
 
 var cpuprofile = flag.String("cpuprofile", "", "write cpu profile to file")
@@ -34,18 +45,11 @@ const usageStr = `Usage:
 `
 
 // Define this so deferred functions get executed before exit.
-func realMain() (exitStatus int, err error) {
-	defer func() {
-		if err != nil && exitStatus == 0 {
-			exitStatus = 1
-		}
-	}()
-
+func realMain() (exitStatus, error) {
 	flag.Parse()
 	if len(flag.Args()) < 1 {
 		fmt.Print(usageStr)
-		exitStatus = 1
-		return
+		return usageError, nil
 	}
 
 	var localUser string
@@ -54,8 +58,7 @@ func realMain() (exitStatus int, err error) {
 	} else if *clientFlag {
 		localUser = ""
 	} else {
-		err = errors.New("either -client or -local must be used")
-		return
+		return usageError, errors.New("either -client or -local must be used")
 	}
 
 	if *debug {
@@ -72,7 +75,7 @@ func realMain() (exitStatus int, err error) {
 	mountpoint := flag.Arg(0)
 	c, err := fuse.Mount(mountpoint)
 	if err != nil {
-		return
+		return mountError, err
 	}
 	defer c.Close()
 
@@ -98,7 +101,7 @@ func realMain() (exitStatus int, err error) {
 
 	config, err := libkbfs.Init(localUser, serverRootDir, *cpuprofile, *memprofile, onInterruptFn)
 	if err != nil {
-		return
+		return defaultError, err
 	}
 
 	defer libkbfs.Shutdown(*memprofile)
@@ -116,21 +119,26 @@ func realMain() (exitStatus int, err error) {
 	})
 	filesys.fuse = srv
 
+	err = ioutil.WriteFile("kbfs.version", []byte(libkbfs.Version), 0644)
+	if err != nil {
+		return defaultError, err
+	}
+
 	// Blocks forever, unless an interrupt signal is received
 	// (handled by libkbfs.Init).
 	err = srv.Serve(filesys)
 	if err != nil {
-		return
+		return defaultError, err
 	}
 
 	// Check if the mount process has an error to report.
 	<-c.Ready
 	err = c.MountError
 	if err != nil {
-		return
+		return mountError, err
 	}
 
-	return
+	return success, err
 }
 
 func main() {
@@ -138,5 +146,5 @@ func main() {
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "kbfsfuse: %s\n", err)
 	}
-	os.Exit(exitstatus)
+	os.Exit(int(exitstatus))
 }
