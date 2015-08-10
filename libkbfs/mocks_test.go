@@ -1373,14 +1373,15 @@ func (_mr *_MockMDServerRecorder) PruneUnmerged(arg0, arg1 interface{}) *gomock.
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "PruneUnmerged", arg0, arg1)
 }
 
-func (_m *MockMDServer) RegisterForUpdates(ctx context.Context, id TlfID, currHead MetadataRevision, observer func(context.Context, error)) error {
-	ret := _m.ctrl.Call(_m, "RegisterForUpdates", ctx, id, currHead, observer)
-	ret0, _ := ret[0].(error)
-	return ret0
+func (_m *MockMDServer) RegisterForUpdate(ctx context.Context, id TlfID, currHead MetadataRevision) (<-chan error, error) {
+	ret := _m.ctrl.Call(_m, "RegisterForUpdate", ctx, id, currHead)
+	ret0, _ := ret[0].(<-chan error)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
 }
 
-func (_mr *_MockMDServerRecorder) RegisterForUpdates(arg0, arg1, arg2, arg3 interface{}) *gomock.Call {
-	return _mr.mock.ctrl.RecordCall(_mr.mock, "RegisterForUpdates", arg0, arg1, arg2, arg3)
+func (_mr *_MockMDServerRecorder) RegisterForUpdate(arg0, arg1, arg2 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "RegisterForUpdate", arg0, arg1, arg2)
 }
 
 // Mock of BlockServer interface

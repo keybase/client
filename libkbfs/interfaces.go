@@ -571,20 +571,19 @@ type MDServer interface {
 	// and device for the given top-level folder..
 	PruneUnmerged(ctx context.Context, id TlfID) error
 
-	// RegisterForUpdates tells the MD server to invoke the given
-	// observer function when there is a merged update with a revision
-	// number greater than currHead, which did NOT originate from this
-	// same MD server session.  observer may be called synchronously
-	// if the current MD object for this top-level folder has a
-	// greater revision number and was not written by this MD server
-	// session (in which case, the context passed to observer will be
-	// derived from ctx).  observer is only ever called once; the
-	// caller must re-register if it wants future updates.  If the
-	// error passed to observer is non-nil, the caller must
-	// re-register (e.g., the connection to the MD server may have
-	// failed).
-	RegisterForUpdates(ctx context.Context, id TlfID,
-		currHead MetadataRevision, observer func(context.Context, error)) error
+	// RegisterForUpdate tells the MD server to inform the caller when
+	// there is a merged update with a revision number greater than
+	// currHead, which did NOT originate from this same MD server
+	// session.  This method returns a chan which can receive only a
+	// single error before it's closed.  If the received err is nil,
+	// then there is updated MD ready to fetch which didn't originate
+	// locally; if it is non-nil, then the previous registration
+	// cannot send the next notification (e.g., the connection to the
+	// MD server may have failed). In either case, the caller must
+	// re-register to get a new chan that can receive future update
+	// notifications.
+	RegisterForUpdate(ctx context.Context, id TlfID,
+		currHead MetadataRevision) (<-chan error, error)
 }
 
 // BlockServer gets and puts opaque data blocks.  The instantiation

@@ -156,8 +156,8 @@ type FolderBranchOps struct {
 	state     state
 	stateLock sync.Mutex
 
-	// coordinating the fetching of MD updates from the server
-	mdUpdates chan struct{}
+	// Closed on shutdown
+	shutdownChan chan struct{}
 }
 
 var _ KBFSOps = (*FolderBranchOps)(nil)
@@ -173,21 +173,19 @@ func NewFolderBranchOps(config Config, fb FolderBranch,
 		copyFileBlocks: make(map[BlockPointer]bool),
 		deferredWrites: make(
 			[]func(context.Context, *RootMetadata, path) error, 0),
-		unrefCache: make(map[BlockPointer]*syncInfo),
-		deCache:    make(map[BlockPointer]map[BlockPointer]DirEntry),
-		writerLock: &sync.Mutex{},
-		nodeCache:  newNodeCacheStandard(fb),
-		state:      cleanState,
+		unrefCache:   make(map[BlockPointer]*syncInfo),
+		deCache:      make(map[BlockPointer]map[BlockPointer]DirEntry),
+		writerLock:   &sync.Mutex{},
+		nodeCache:    newNodeCacheStandard(fb),
+		state:        cleanState,
+		shutdownChan: make(chan struct{}),
 	}
 }
 
 // Shutdown safely shuts down any background goroutines that may have
 // been launched by FolderBranchOps.
 func (fbo *FolderBranchOps) Shutdown() {
-	if fbo.mdUpdates != nil {
-		close(fbo.mdUpdates)
-		fbo.mdUpdates = nil
-	}
+	close(fbo.shutdownChan)
 }
 
 func (fbo *FolderBranchOps) id() TlfID {
@@ -451,8 +449,7 @@ func (fbo *FolderBranchOps) CheckForNewMDAndInit(
 
 	// subscribe to updates; for now only the master branch can get updates
 	if fbo.branch() == MasterBranch {
-		fbo.mdUpdates = make(chan struct{}, 1)
-		go fbo.mdUpdater()
+		fbo.registerForUpdates()
 	}
 
 	if md.data.Dir.Type == Dir {
@@ -3027,34 +3024,6 @@ func (fbo *FolderBranchOps) getCurrMDRevision() MetadataRevision {
 	return fbo.getCurrMDRevisionLocked()
 }
 
-func (fbo *FolderBranchOps) registerForUpdates() {
-	// Make a context with the session value set for the local MD
-	// server, in case we're using that.
-	ctx := context.Background()
-	err := fbo.config.MDServer().RegisterForUpdates(ctx, fbo.id(),
-		fbo.getCurrMDRevision(),
-		func(ctx context.Context, err error) {
-			fbo.observeUpdate(ctx, err)
-		})
-	if err != nil {
-		// Retry in a little while.
-		// TODO: maybe add a way to trigger off the MD server reconnecting?
-		go func() {
-			time.Sleep(1 * time.Second)
-			fbo.registerForUpdates()
-		}()
-	}
-}
-
-func (fbo *FolderBranchOps) observeUpdate(ctx context.Context, err error) {
-	if err != nil {
-		// there was some problem -- reregister
-		fbo.registerForUpdates()
-	} else if fbo.mdUpdates != nil {
-		fbo.mdUpdates <- struct{}{}
-	}
-}
-
 func (fbo *FolderBranchOps) applyMDUpdates(ctx context.Context,
 	rmds []*RootMetadata) error {
 	fbo.writerLock.Lock()
@@ -3166,10 +3135,30 @@ func (fbo *FolderBranchOps) getAndApplyMDUpdates(ctx context.Context) {
 	}
 }
 
-func (fbo *FolderBranchOps) mdUpdater() {
-	fbo.registerForUpdates()
+func (fbo *FolderBranchOps) registerForUpdates() {
+	// Make a context with the session value set for the local MD
+	// server, in case we're using that.
 	ctx := context.Background()
-	for range fbo.mdUpdates {
-		fbo.getAndApplyMDUpdates(ctx)
+	c, err := fbo.config.MDServer().RegisterForUpdate(ctx, fbo.id(),
+		fbo.getCurrMDRevision())
+	if err != nil {
+		// Retry in a new goroutine, to avoid potentially large call stacks.
+		go func() {
+			// immediately try to re-register; assume the MDServer
+			// implementation will handle any reconnection logic.
+			fbo.registerForUpdates()
+		}()
 	}
+	go func() {
+		select {
+		case err := <-c:
+			if err != nil {
+				fbo.registerForUpdates()
+			} else {
+				fbo.getAndApplyMDUpdates(context.Background())
+			}
+		case <-fbo.shutdownChan:
+			return
+		}
+	}()
 }

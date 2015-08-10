@@ -15,13 +15,19 @@ import (
 
 // MDServerLocal just stores blocks in local leveldb instances.
 type MDServerLocal struct {
-	config      Config
-	handleDb    *leveldb.DB // folder handle                   -> folderId
-	mdDb        *leveldb.DB // MD ID                           -> root metadata (signed)
-	revDb       *leveldb.DB // folderId+[deviceKID]+[revision] -> MD ID
-	mutex       *sync.Mutex
-	observers   map[interface{}]func(context.Context, error)
-	sessionHead interface{}
+	config   Config
+	handleDb *leveldb.DB // folder handle                   -> folderId
+	mdDb     *leveldb.DB // MD ID                           -> root metadata (signed)
+	revDb    *leveldb.DB // folderId+[deviceKID]+[revision] -> MD ID
+
+	// mutex protects observers and sessionHead
+	mutex *sync.Mutex
+	// Multiple instances of MDServerLocal could share a reference to
+	// this map and sessionHead, and we use that to ensure that all
+	// observers are fired correctly no matter which MDServerLocal
+	// instance gets the Put() call.
+	observers   map[*MDServerLocal]chan<- error
+	sessionHead **MDServerLocal
 }
 
 func newMDServerLocalWithStorage(config Config, handleStorage, mdStorage,
@@ -39,7 +45,7 @@ func newMDServerLocalWithStorage(config Config, handleStorage, mdStorage,
 		return nil, err
 	}
 	mdserv := &MDServerLocal{config, handleDb, mdDb, revDb, &sync.Mutex{},
-		make(map[interface{}]func(context.Context, error)), nil}
+		make(map[*MDServerLocal]chan<- error), new(*MDServerLocal)}
 	return mdserv, nil
 }
 
@@ -322,12 +328,13 @@ func (md *MDServerLocal) Put(ctx context.Context, rmds *RootMetadataSigned) erro
 	}
 
 	if !unmerged {
-		md.sessionHead = md
+		*md.sessionHead = md
 
 		// now fire all the observers that aren't from this session
 		for k, v := range md.observers {
-			if k != md.sessionHead {
-				v(ctx, nil)
+			if k != *md.sessionHead {
+				v <- nil
+				close(v)
 				delete(md.observers, k)
 			}
 		}
@@ -369,39 +376,46 @@ func (md *MDServerLocal) PruneUnmerged(ctx context.Context, id TlfID) error {
 	return nil
 }
 
-// RegisterForUpdates implements the MDServer interface for MDServerLocal.
-func (md *MDServerLocal) RegisterForUpdates(ctx context.Context, id TlfID,
-	currHead MetadataRevision, observer func(context.Context, error)) error {
+// RegisterForUpdate implements the MDServer interface for MDServerLocal.
+func (md *MDServerLocal) RegisterForUpdate(ctx context.Context, id TlfID,
+	currHead MetadataRevision) (<-chan error, error) {
 	md.mutex.Lock()
 	defer md.mutex.Unlock()
 
-	// are we already passed this revision?  If so, fire observer
+	// are we already past this revision?  If so, fire observer
 	// immediately
 	currMergedHead, err := md.getHeadForTLF(ctx, id, false)
 	if err != nil {
-		return err
+		return nil, err
 	}
 	var currMergedHeadRev MetadataRevision
 	if currMergedHead != NullMdID {
 		head, err := md.get(ctx, currMergedHead)
 		if err != nil {
-			return MDServerError{err}
+			return nil, MDServerError{err}
 		}
 		if head == nil {
-			return MDServerError{fmt.Errorf("head MD not found %v", currHead)}
+			return nil,
+				MDServerError{fmt.Errorf("head MD not found %v", currHead)}
 		}
 		currMergedHeadRev = head.MD.Revision
 	}
 
-	if currMergedHeadRev > currHead && md != md.sessionHead {
-		observer(ctx, nil)
-		return nil
+	c := make(chan error, 1)
+	if currMergedHeadRev > currHead && md != *md.sessionHead {
+		c <- nil
+		close(c)
+		return c, nil
 	}
 
 	// Otherwise, this is a legit observer.  This assumes that each
 	// client will be using a unique instance of MDServerLocal.
-	md.observers[md] = observer
-	return nil
+	if _, ok := md.observers[md]; ok {
+		return nil, fmt.Errorf("Attempted double-registration for "+
+			"MDServerLocal %p\n", md)
+	}
+	md.observers[md] = c
+	return c, nil
 }
 
 // This should only be used for testing with an in-memory server.
