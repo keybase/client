@@ -20,7 +20,7 @@ func (v *CmdPGPSelect) ParseArgv(ctx *cli.Context) (err error) {
 	if nargs := len(ctx.Args()); nargs == 1 {
 		v.query = ctx.Args()[0]
 	} else if nargs != 0 {
-		err = fmt.Errorf("mkey select takes 0 or 1 arguments")
+		err = fmt.Errorf("pgp select takes 0 or 1 arguments")
 	}
 	if err == nil {
 		v.multi = ctx.Bool("multi")
@@ -52,7 +52,7 @@ func NewCmdPGPSelect(cl *libcmdline.CommandLine) cli.Command {
 	return cli.Command{
 		Name:        "select",
 		Usage:       "keybase pgp select [<key-query>]",
-		Description: "Select a key as your own and push it to the server",
+		Description: "Select a key as your own and register the public half with the server",
 		Action: func(c *cli.Context) {
 			cl.ChooseCommand(&CmdPGPSelect{}, "select", c)
 		},
