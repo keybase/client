@@ -15,7 +15,15 @@ type Block interface{}
 
 // BlockContext is used by the server to help identify blocks
 type BlockContext interface {
-	// GetWriter returns the UID of the writer for the corresponding block
+	// GetCreator returns the UID of the writer who created this block
+	// and was first charged for it.  Note that this might differ from
+	// the user that actually first PUT the block if we implement
+	// per-group billing.
+	GetCreator() keybase1.UID
+	// GetWriter returns the UID of the writer for the corresponding
+	// block (and should be charged for it).  Note that this might
+	// differ from the user that actually PUTs the block if we
+	// implement per-group billing.
 	GetWriter() keybase1.UID
 	// GetRefNonce returns the unique reference nonce for this block
 	GetRefNonce() BlockRefNonce

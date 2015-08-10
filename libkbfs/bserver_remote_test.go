@@ -88,7 +88,7 @@ func TestBServerRemotePutAndGet(t *testing.T) {
 
 	bID := BlockID{1}
 	tlfID := TlfID{2}
-	bCtx := BlockPointer{bID, 1, 1, kbpki.LoggedIn, zeroBlockRefNonce}
+	bCtx := BlockPointer{bID, 1, 1, kbpki.LoggedIn, "", zeroBlockRefNonce}
 	data := []byte{1, 2, 3, 4}
 	crypto := &CryptoCommon{codec}
 	serverHalf, err := crypto.MakeRandomBlockCryptKeyServerHalf()
@@ -135,7 +135,7 @@ func TestBServerRemotePutCanceled(t *testing.T) {
 
 		bID := BlockID{1}
 		tlfID := TlfID{2}
-		bCtx := BlockPointer{bID, 1, 1, kbpki.LoggedIn, zeroBlockRefNonce}
+		bCtx := BlockPointer{bID, 1, 1, kbpki.LoggedIn, "", zeroBlockRefNonce}
 		data := []byte{1, 2, 3, 4}
 		crypto := &CryptoCommon{codec}
 		serverHalf, err := crypto.MakeRandomBlockCryptKeyServerHalf()
@@ -169,7 +169,7 @@ func TestBServerRemoteWaitForReconnect(t *testing.T) {
 	go func() {
 		bID := BlockID{1}
 		tlfID := TlfID{2}
-		bCtx := BlockPointer{bID, 1, 1, kbpki.LoggedIn, zeroBlockRefNonce}
+		bCtx := BlockPointer{bID, 1, 1, kbpki.LoggedIn, "", zeroBlockRefNonce}
 		data := []byte{1, 2, 3, 4}
 		crypto := &CryptoCommon{codec}
 		serverHalf, err := crypto.MakeRandomBlockCryptKeyServerHalf()

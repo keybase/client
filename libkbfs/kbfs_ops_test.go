@@ -194,7 +194,7 @@ func makeIDAndRMD(t *testing.T, config *ConfigMock) (
 	config.mockMdcache.EXPECT().Get(rmd.mdID).AnyTimes().Return(rmd, nil)
 	config.Notifier().RegisterForChanges(
 		[]FolderBranch{FolderBranch{id, MasterBranch}}, config.observer)
-	rmd.data.Dir.Writer = userID
+	rmd.data.Dir.Creator = userID
 	return userID, id, rmd
 }
 
@@ -433,7 +433,7 @@ func makeBP(id BlockID, rmd *RootMetadata, config Config,
 		ID:      id,
 		KeyGen:  rmd.LatestKeyGeneration(),
 		DataVer: config.DataVersion(),
-		Writer:  u,
+		Creator: u,
 		// refnonces not needed for tests until dedup is implemented
 	}
 }
@@ -448,8 +448,9 @@ func makeBI(id BlockID, rmd *RootMetadata, config Config,
 
 func makeBIFromID(id BlockID, user keybase1.UID) BlockInfo {
 	return BlockInfo{
-		BlockPointer: BlockPointer{ID: id, KeyGen: 1, DataVer: 1, Writer: user},
-		EncodedSize:  1,
+		BlockPointer: BlockPointer{ID: id, KeyGen: 1, DataVer: 1,
+			Creator: user},
+		EncodedSize: 1,
 	}
 }
 
@@ -1023,7 +1024,7 @@ func checkNewPath(t *testing.T, ctx context.Context, config Config,
 			}
 			// TODO: update BlockPointer for refnonces when we start deduping
 			dblock := getDirBlockFromCache(t, config,
-				makeBP(id, rmd, config, rmd.data.Dir.Writer), newPath.Branch)
+				makeBP(id, rmd, config, rmd.data.Dir.Creator), newPath.Branch)
 			nextDe, ok := dblock.Children[nextName]
 			if !ok {
 				t.Errorf("No entry (%d) for %s", i, nextName)
@@ -2368,8 +2369,9 @@ func TestKBFSOpsWriteNewBlockSuccess(t *testing.T) {
 			config.observer.ctx.Value(tCtxID))
 	} else if !bytes.Equal(data, newFileBlock.Contents) {
 		t.Errorf("Wrote bad contents: %v", data)
-	} else if newRootBlock.Children["f"].Writer != userID {
-		t.Errorf("Wrong last writer: %v", newRootBlock.Children["f"].Writer)
+	} else if newRootBlock.Children["f"].GetWriter() != userID {
+		t.Errorf("Wrong last writer: %v",
+			newRootBlock.Children["f"].GetWriter())
 	} else if newRootBlock.Children["f"].Size != uint64(len(data)) {
 		t.Errorf("Wrong size for written file: %d",
 			newRootBlock.Children["f"].Size)
@@ -2618,7 +2620,7 @@ func TestKBFSOpsWriteOverMultipleBlocks(t *testing.T) {
 	id1 := BlockID{44}
 	id2 := BlockID{45}
 	rootBlock := NewDirBlock().(*DirBlock)
-	filePtr := BlockPointer{ID: fileID, Writer: userID, KeyGen: 1, DataVer: 1}
+	filePtr := BlockPointer{ID: fileID, Creator: userID, KeyGen: 1, DataVer: 1}
 	rootBlock.Children["f"] = DirEntry{
 		BlockInfo: BlockInfo{
 			BlockPointer: filePtr,
@@ -2747,8 +2749,9 @@ func TestKBFSOpsTruncateToZeroSuccess(t *testing.T) {
 			config.observer.ctx.Value(tCtxID))
 	} else if !bytes.Equal(data, newFileBlock.Contents) {
 		t.Errorf("Wrote bad contents: %v", newFileBlock.Contents)
-	} else if newRootBlock.Children["f"].Writer != userID {
-		t.Errorf("Wrong last writer: %v", newRootBlock.Children["f"].Writer)
+	} else if newRootBlock.Children["f"].GetWriter() != userID {
+		t.Errorf("Wrong last writer: %v",
+			newRootBlock.Children["f"].GetWriter())
 	} else if newRootBlock.Children["f"].Size != 0 {
 		t.Errorf("Wrong size for written file: %d",
 			newRootBlock.Children["f"].Size)
@@ -3571,8 +3574,8 @@ func TestSyncDirtyMultiBlocksSuccess(t *testing.T) {
 	newP := ops.nodeCache.PathFromNode(n)
 	if fileBlock.IPtrs[0].EncodedSize != 5 {
 		t.Errorf("Indirect pointer encoded size1 wrong: %d", fileBlock.IPtrs[0].EncodedSize)
-	} else if fileBlock.IPtrs[1].Writer != userID {
-		t.Errorf("Got unexpected writer: %s", fileBlock.IPtrs[1].Writer)
+	} else if fileBlock.IPtrs[1].GetWriter() != userID {
+		t.Errorf("Got unexpected writer: %s", fileBlock.IPtrs[1].GetWriter())
 	} else if fileBlock.IPtrs[1].EncodedSize != 10 {
 		t.Errorf("Indirect pointer encoded size2 wrong: %d", fileBlock.IPtrs[1].EncodedSize)
 	} else if fileBlock.IPtrs[2].EncodedSize != 7 {
@@ -3683,6 +3686,10 @@ func TestSyncDirtyDupBlockSuccess(t *testing.T) {
 	// marking it as a dup
 	if newP.path[1].RefNonce != refNonce {
 		t.Errorf("Block was not caught as a dup: %v", newP.path[1])
+	}
+	if newP.path[1].Creator != aNode.GetWriter() {
+		t.Errorf("Creator was not successfully propagated: saw %v, expected %v",
+			newP.path[1].Creator, aNode.GetWriter())
 	}
 
 	// check the sync op

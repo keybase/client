@@ -359,7 +359,12 @@ type BlockPointer struct {
 	ID      BlockID
 	KeyGen  KeyGen  // if valid, which generation of the DirKeyBundle to use.
 	DataVer DataVer // if valid, which version of the KBFS data structures is pointed to
-	Writer  keybase1.UID
+	// Creator is the UID that was first charged for the initial
+	// reference to this block.
+	Creator keybase1.UID
+	// Writer is the UID that should be charged for this reference to
+	// the block.  If empty, it defaults to Creator.
+	Writer keybase1.UID `codec:"w,omitempty"`
 	// When RefNonce is all 0s, this is the initial reference to a
 	// particular block.  Using a constant refnonce for the initial
 	// reference allows the server to identify and optimize for the
@@ -387,9 +392,28 @@ type BlockInfo struct {
 	EncodedSize uint32
 }
 
+// GetCreator implements the BlockContext interface for BlockPointer.
+func (p BlockPointer) GetCreator() keybase1.UID {
+	return p.Creator
+}
+
 // GetWriter implements the BlockContext interface for BlockPointer.
 func (p BlockPointer) GetWriter() keybase1.UID {
-	return p.Writer
+	if !p.Writer.IsNil() {
+		return p.Writer
+	}
+	return p.Creator
+}
+
+// SetWriter sets the Writer field, if necessary.
+func (p *BlockPointer) SetWriter(newWriter keybase1.UID) {
+	if p.Creator != newWriter {
+		p.Writer = newWriter
+	} else {
+		// save some bytes by not populating the separate Writer
+		// field if it matches the creator.
+		p.Writer = ""
+	}
 }
 
 // GetRefNonce implements the BlockContext interface for BlockPointer.

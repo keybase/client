@@ -55,6 +55,16 @@ func (_m *MockBlockContext) EXPECT() *_MockBlockContextRecorder {
 	return _m.recorder
 }
 
+func (_m *MockBlockContext) GetCreator() go0.UID {
+	ret := _m.ctrl.Call(_m, "GetCreator")
+	ret0, _ := ret[0].(go0.UID)
+	return ret0
+}
+
+func (_mr *_MockBlockContextRecorder) GetCreator() *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "GetCreator")
+}
+
 func (_m *MockBlockContext) GetWriter() go0.UID {
 	ret := _m.ctrl.Call(_m, "GetWriter")
 	ret0, _ := ret[0].(go0.UID)

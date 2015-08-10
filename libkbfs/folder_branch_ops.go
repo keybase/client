@@ -620,6 +620,7 @@ func stripBP(ptr BlockPointer) BlockPointer {
 		RefNonce: ptr.RefNonce,
 		KeyGen:   ptr.KeyGen,
 		DataVer:  ptr.DataVer,
+		Creator:  ptr.Creator,
 	}
 }
 
@@ -820,7 +821,7 @@ func (fbo *FolderBranchOps) readyBlock(ctx context.Context, md *RootMetadata,
 		if err != nil {
 			return
 		}
-		ptr.Writer = user
+		ptr.SetWriter(user)
 	} else {
 		var id BlockID
 		id, plainSize, readyBlockData, err =
@@ -2047,7 +2048,7 @@ func (fbo *FolderBranchOps) writeDataLocked(
 			de.EncodedSize = 0
 			// update the file info
 			de.Size += uint64(len(block.Contents) - oldLen)
-			de.Writer = user
+			de.SetWriter(user)
 			parentPtr := stripBP(file.parentPath().tailPointer())
 			if _, ok := fbo.deCache[parentPtr]; !ok {
 				fbo.deCache[parentPtr] = make(map[BlockPointer]DirEntry)
@@ -2232,7 +2233,7 @@ func (fbo *FolderBranchOps) truncateLocked(
 
 	de.EncodedSize = 0
 	de.Size = size
-	de.Writer = user
+	de.SetWriter(user)
 	parentPtr := stripBP(file.parentPath().tailPointer())
 	if _, ok := fbo.deCache[parentPtr]; !ok {
 		fbo.deCache[parentPtr] = make(map[BlockPointer]DirEntry)
