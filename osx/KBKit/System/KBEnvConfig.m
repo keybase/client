@@ -9,6 +9,7 @@
 #import "KBEnvConfig.h"
 
 #import "KBDefines.h"
+#import "KBPath.h"
 #import <KBAppKit/KBAppKit.h>
 
 @interface KBEnvConfig ()
@@ -38,7 +39,7 @@
         self.title = @"Keybase.io";
         self.identifier = @"live";
         self.host = @"https://api.keybase.io:443";
-        self.mountDir = KBPath(@"~/Keybase", NO, NO);
+        self.mountDir = [KBPath path:@"~/Keybase" options:0];
         self.debugEnabled = YES;
         self.info = @"Uses keybase.io";
         self.image = [NSImage imageNamed:NSImageNameNetwork];
@@ -51,7 +52,7 @@
         self.identifier = @"localhost";
         self.host = @"http://localhost:3000";
         self.develMode = YES;
-        self.mountDir = KBPath(@"~/Keybase.local", NO, NO);
+        self.mountDir = [KBPath path:@"~/Keybase.local" options:0];
         self.debugEnabled = YES;
         self.info = @"Uses the localhost web server";
         self.image = [NSImage imageNamed:NSImageNameComputer];
@@ -62,7 +63,7 @@
       case KBEnvBrew: {
         self.title = @"Homebrew";
         self.identifier = @"brew";
-        self.mountDir = KBPath(@"~/Keybase.brew", NO, NO);
+        self.mountDir = [KBPath path:@"~/Keybase.brew" options:0];
         self.debugEnabled = YES;
         self.info = @"Uses homebrew install";
         self.image = [KBIcons imageForIcon:KBIconExecutableBinary];
@@ -82,7 +83,7 @@
 
 + (NSString *)groupContainer:(NSString *)path {
   NSString *dir = [[NSFileManager defaultManager] containerURLForSecurityApplicationGroupIdentifier:KBAppGroupId].path;
-  return KBPathInDir(dir, path, NO, NO);
+  return [KBPath pathInDir:dir path:path options:0];
 }
 
 + (instancetype)loadFromUserDefaults:(NSUserDefaults *)userDefaults {
@@ -91,46 +92,46 @@
   BOOL develMode = [userDefaults boolForKey:@"Devel"];
 
   //if (!homeDir) homeDir = [KBEnvConfig groupContainer:@"dev"];
-  if (!mountDir) mountDir = KBPath(@"~/Keybase.dev", NO, NO);
+  if (!mountDir) mountDir = [KBPath path:@"~/Keybase.dev" options:0];
 
   return [[KBEnvConfig alloc] initWithHomeDir:homeDir sockFile:nil mountDir:mountDir develMode:develMode];
 }
 
 - (void)saveToUserDefaults:(NSUserDefaults *)userDefaults {
-  [userDefaults setObject:KBPath(self.homeDir, NO, NO) forKey:@"HomeDir"];
-  [userDefaults setObject:KBPath(self.mountDir, NO, NO) forKey:@"MountDir"];
+  [userDefaults setObject:[KBPath path:self.homeDir options:0] forKey:@"HomeDir"];
+  [userDefaults setObject:[KBPath path:self.mountDir options:0] forKey:@"MountDir"];
   [userDefaults setBool:self.isDevelMode forKey:@"Devel"];
   [userDefaults synchronize];
-}
-
-- (NSString *)sockFile {
-  NSString *sockFile = [self appPath:_sockFile ? _sockFile : @"keybased.sock"];
-  if ([sockFile length] > 103) {
-    [NSException raise:NSInvalidArgumentException format:@"Sock path too long. It should be < 104 characters. %@", sockFile];
-  }
-  return sockFile;
 }
 
 - (NSString *)appName {
   return self.isDevelMode ? @"KeybaseDev" : @"Keybase";
 }
 
-- (NSString *)appPath:(NSString *)filename {
-  NSString *homeDir = _homeDir ? _homeDir : KBPath(@"~", NO, NO);
+- (NSString *)appPath:(NSString *)filename options:(KBPathOptions)options {
+  NSString *homeDir = _homeDir ? _homeDir : @"~";
   NSString *appPath = NSStringWithFormat(@"Library/Application Support/%@", [self appName]);
   if (filename) appPath = [appPath stringByAppendingPathComponent:filename];
-  return KBPathInDir(homeDir, appPath, NO, NO);
+  return [KBPath pathInDir:homeDir path:appPath options:options];
 }
 
-- (NSString *)cachePath:(NSString *)filename {
-  NSString *homeDir = _homeDir ? _homeDir : KBPath(@"~", NO, NO);
+- (NSString *)cachePath:(NSString *)filename options:(KBPathOptions)options {
+  NSString *homeDir = _homeDir ? _homeDir : @"~";
   NSString *cachePath = NSStringWithFormat(@"Library/Caches/%@", [self appName]);
   if (filename) cachePath = [cachePath stringByAppendingPathComponent:filename];
-  return KBPathInDir(homeDir, cachePath, NO, NO);
+  return [KBPath pathInDir:homeDir path:cachePath options:options];
 }
 
 - (NSString *)configFile {
-  return [self appPath:_configFile ? _configFile : @"config.json"];
+  return [self appPath:_configFile ? _configFile : @"config.json" options:0];
+}
+
+- (NSString *)sockFile {
+  NSString *sockFile = [self appPath:_sockFile ? _sockFile : @"keybased.sock" options:0];
+  if ([sockFile length] > 103) {
+    [NSException raise:NSInvalidArgumentException format:@"Sock path too long. It should be < 104 characters. %@", sockFile];
+  }
+  return sockFile;
 }
 
 + (instancetype)env:(KBEnv)env {
@@ -141,9 +142,9 @@
   if ((self = [super init])) {
     self.identifier = @"custom";
     self.title = @"Custom";
-    self.homeDir = KBPath(homeDir, NO, NO);
-    self.sockFile = KBPath(sockFile, NO, NO);
-    self.mountDir = mountDir;
+    self.homeDir = [KBPath path:homeDir options:0];
+    self.sockFile = [KBPath path:sockFile options:0];
+    self.mountDir = [KBPath path:mountDir options:0];
     self.info = @"For development";
     self.image = [NSImage imageNamed:NSImageNameAdvanced];
     self.launchdEnabled = NO;
@@ -154,56 +155,10 @@
   return self;
 }
 
-- (NSArray *)programArgumentsForKeybase:(BOOL)useBundle escape:(BOOL)escape tilde:(BOOL)tilde options:(NSArray *)options {
-  NSMutableArray *args = [NSMutableArray array];
-  if (useBundle) {
-    [args addObject:NSStringWithFormat(@"%@/bin/keybase", self.bundle.sharedSupportPath)];
-  } else {
-    [args addObject:@"./keybase"];
-  }
-  if (_homeDir) {
-    [args addObjectsFromArray:@[@"-H", KBPath(_homeDir, tilde, escape)]];
-  }
-
-  if (_host) {
-    [args addObjectsFromArray:@[@"-s", _host]];
-  }
-
-  if (_debugEnabled) {
-    [args addObject:@"-d"];
-  }
-
-  if (_sockFile) {
-    [args addObject:NSStringWithFormat(@"--socket-file=%@", KBPath(_sockFile, tilde, escape))];
-  }
-
-  if (options) {
-    [args addObjectsFromArray:options];
-  }
-
-  return args;
-}
-
 - (NSString *)logFile:(NSString *)label {
-  NSString *logDir = KBPath(@"~/Library/Logs", NO, NO);
+  NSString *logDir = [KBPath path:@"~/Library/Logs" options:0];
   // Be careful of logging. I've seen launchd create these as root, and cause the service to fail.
   return NSStringWithFormat(@"%@/%@.log", logDir, label);
-}
-
-- (NSDictionary *)launchdPlistDictionaryForService {
-  if (!self.launchdLabelService) return nil;
-
-  NSArray *args = [self programArgumentsForKeybase:YES escape:NO tilde:NO options:@[@"--log-format=file", @"service"]];
-
-  return @{
-           @"Label": self.launchdLabelService,
-           @"ProgramArguments": args,
-           @"RunAtLoad": @YES,
-           @"KeepAlive": @YES,
-           @"WorkingDirectory": [self appPath:nil],
-           @"StandardOutPath": [self logFile:self.launchdLabelService],
-           @"StandardErrorPath": [self logFile:self.launchdLabelService],
-           };
 }
 
 - (NSBundle *)bundle {
@@ -214,75 +169,16 @@
 #endif
 }
 
-- (NSArray *)programArgumentsForKBFS:(BOOL)useBundle escape:(BOOL)escape tilde:(BOOL)tilde options:(NSArray *)options {
-  NSMutableArray *args = [NSMutableArray array];
-
-  if (useBundle) {
-    [args addObject:NSStringWithFormat(@"%@/bin/kbfsfuse", self.bundle.sharedSupportPath)];
-  } else {
-    [args addObject:@"./kbfsfuse"];
-  }
-
-  if (self.debugEnabled) {
-    [args addObject:@"-debug"];
-  }
-
-  [args addObject:@"-client"];
-  if (self.mountDir) [args addObject:KBPath(self.mountDir, tilde, escape)];
-
-  if (options) {
-    [args addObjectsFromArray:options];
-  }
-
-  return args;
-}
-
-- (NSString *)commandLineForService:(BOOL)useBundle escape:(BOOL)escape tilde:(BOOL)tilde options:(NSArray *)options {
-  return [[self programArgumentsForKeybase:useBundle escape:escape tilde:tilde options:options] join:@" "];
-}
-
-- (NSDictionary *)envsForKBS:(BOOL)tilde escape:(BOOL)escape {
-  NSMutableDictionary *envs = [NSMutableDictionary dictionary];
-  envs[@"PATH"] = @"/sbin:/Library/Filesystems/kbfuse.fs/Support"; // For umount, mount_osxfusefs
-  envs[@"KEYBASE_SOCKET_FILE"] = KBPath([self sockFile], tilde, escape);
-  envs[@"KEYBASE_CONFIG_FILE"] = KBPath([self configFile], tilde, escape);
-  return envs;
-}
-
-- (NSDictionary *)launchdPlistDictionaryForKBFS {
-  if (!self.launchdLabelKBFS) return nil;
-
-  NSArray *args = [self programArgumentsForKBFS:YES escape:NO tilde:NO options:nil];
-  NSDictionary *envs = [self envsForKBS:NO escape:NO];
-
-  return @{
-           @"Label": self.launchdLabelKBFS,
-           @"EnvironmentVariables": envs,
-           @"ProgramArguments": args,
-           @"RunAtLoad": @YES,
-           @"KeepAlive": @YES,
-           @"WorkingDirectory": [self appPath:nil],
-           @"StandardOutPath": [self logFile:self.launchdLabelKBFS],
-           @"StandardErrorPath": [self logFile:self.launchdLabelKBFS],
-           };
-}
-
-- (NSString *)commandLineForKBFS:(BOOL)useBundle escape:(BOOL)escape tilde:(BOOL)tilde options:(NSArray *)options {
-  NSString *envs = [[[self envsForKBS:tilde escape:escape] map:^(id key, id value) { return NSStringWithFormat(@"%@=%@", key, value); }] join:@" "];
-  NSString *args = [[self programArgumentsForKBFS:useBundle escape:escape tilde:tilde options:options] join:@" "];
-  return NSStringWithFormat(@"%@ %@", envs, args);
-}
-
 - (BOOL)validate:(NSError **)error {
-  if (_homeDir && ![NSFileManager.defaultManager fileExistsAtPath:KBPath(_homeDir, NO, NO) isDirectory:nil]) {
+  if (_homeDir && ![NSFileManager.defaultManager fileExistsAtPath:[KBPath path:_homeDir options:0] isDirectory:nil]) {
     if (error) *error = KBMakeError(KBErrorCodePathNotFound, @"%@ doesn't exist (homeDir)", _homeDir);
     return NO;
   }
-  if (_sockFile && ![NSFileManager.defaultManager fileExistsAtPath:KBPath(_sockFile, NO, NO) isDirectory:nil]) {
+  if (_sockFile && ![NSFileManager.defaultManager fileExistsAtPath:[KBPath path:_sockFile options:0] isDirectory:nil]) {
     if (error) *error = KBMakeError(KBErrorCodePathNotFound, @"%@ doesn't exist (sockFile)", _sockFile);
     return NO;
   }
-  if (_mountDir && ![NSFileManager.defaultManager fileExistsAtPath:KBPath(_mountDir, NO, NO) isDirectory:nil]) {
+  if (_mountDir && ![NSFileManager.defaultManager fileExistsAtPath:[KBPath path:_mountDir options:0] isDirectory:nil]) {
     if (error) *error = KBMakeError(KBErrorCodePathNotFound, @"%@ doesn't exist (mountDir)", _mountDir);
     return NO;
   }

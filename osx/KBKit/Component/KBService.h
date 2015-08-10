@@ -22,4 +22,6 @@
 
 - (void)checkStatus:(void (^)(NSError *error, KBRGetCurrentStatusRes *userStatus, KBRConfig *userConfig))completion;
 
++ (NSString *)commandLineForService:(KBEnvConfig *)config useBundle:(BOOL)useBundle pathOptions:(KBPathOptions)pathOptions args:(NSArray *)args;
+
 @end

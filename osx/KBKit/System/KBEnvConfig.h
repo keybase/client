@@ -8,6 +8,8 @@
 
 #import <Foundation/Foundation.h>
 
+#import "KBPath.h"
+
 typedef NS_ENUM (NSInteger, KBEnv) {
   KBEnvProd,
   KBEnvDevel,
@@ -42,17 +44,8 @@ typedef NS_ENUM (NSInteger, KBEnv) {
 
 - (NSString *)logFile:(NSString *)label;
 
-- (NSDictionary *)launchdPlistDictionaryForService;
-- (NSDictionary *)launchdPlistDictionaryForKBFS;
-
-- (NSArray *)programArgumentsForKeybase:(BOOL)useBundle escape:(BOOL)escape tilde:(BOOL)tilde options:(NSArray *)options;
-- (NSArray *)programArgumentsForKBFS:(BOOL)useBundle escape:(BOOL)escape tilde:(BOOL)tilde options:(NSArray *)options;
-
-- (NSString *)commandLineForService:(BOOL)useBundle escape:(BOOL)escape tilde:(BOOL)tilde options:(NSArray *)options;
-- (NSString *)commandLineForKBFS:(BOOL)useBundle escape:(BOOL)escape tilde:(BOOL)tilde options:(NSArray *)options;
-
-- (NSString *)appPath:(NSString *)filename;
-- (NSString *)cachePath:(NSString *)filename;
+- (NSString *)appPath:(NSString *)filename options:(KBPathOptions)options;
+- (NSString *)cachePath:(NSString *)filename options:(KBPathOptions)options;
 
 - (NSBundle *)bundle;
 

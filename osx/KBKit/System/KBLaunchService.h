@@ -10,6 +10,10 @@
 
 #import "KBInstallable.h"
 #import "KBComponent.h"
+#import "KBServiceStatus.h"
+#import "KBLaunchCtl.h"
+
+typedef void (^KBLaunchComponentStatus)(KBComponentStatus *componentStatus, KBServiceStatus *serviceStatus);
 
 @interface KBLaunchService : NSObject
 
@@ -25,14 +29,14 @@
 
 - (NSString *)plistDestination;
 
-- (void)install:(KBCompletion)completion;
+- (void)install:(NSTimeInterval)timeout completion:(KBLaunchComponentStatus)completion;
 - (void)uninstall:(KBCompletion)completion;
-- (void)start:(KBCompletion)completion;
+
+- (void)start:(NSTimeInterval)timeout completion:(KBLaunchComponentStatus)completion;
 - (void)stop:(KBCompletion)completion;
 
 - (GHODictionary *)componentStatusInfo;
 
-- (void)updateComponentStatus:(NSTimeInterval)timeout completion:(KBCompletion)completion;
-- (void)refreshLaunchStatus:(KBCompletion)completion;
+- (void)updateComponentStatus:(NSTimeInterval)timeout completion:(KBLaunchComponentStatus)completion;
 
 @end

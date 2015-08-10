@@ -14,6 +14,9 @@
 #import "KBCustomEnvView.h"
 #import "KBWorkspace.h"
 
+#import "KBService.h"
+#import "KBFSService.h"
+
 #import <KBAppKit/KBAppKit.h>
 
 @interface KBEnvSelectView ()
@@ -134,9 +137,9 @@
 
   KBEnvConfig *config = environment.config;
   [labels addSubview:createView(@"Id", config.identifier)];
-  [labels addSubview:createView(@"Home", KBPath(config.homeDir, YES, NO))];
+  [labels addSubview:createView(@"Home", [KBPath path:config.homeDir options:KBPathOptionsTilde])];
   if (config.host) [labels addSubview:createView(@"Host", config.host)];
-  if (config.mountDir) [labels addSubview:createView(@"Mount", KBPath(config.mountDir, YES, NO))];
+  if (config.mountDir) [labels addSubview:createView(@"Mount", [KBPath path:config.mountDir options:KBPathOptionsTilde])];
   if (config.isLaunchdEnabled) {
     [labels addSubview:createView(@"Service ID", config.launchdLabelService)];
     [labels addSubview:createView(@"KBFS ID", config.launchdLabelKBFS)];
@@ -146,8 +149,8 @@
     [labels addSubview:createView(@"Other", @"Installer Disabled")];
   }
 
-  [labels addSubview:createView(@"Service (cmd)", [config commandLineForService:NO escape:YES tilde:NO options:@[@"--log-format=file", @"service"]])];
-  [labels addSubview:createView(@"KBFS (cmd)", [config commandLineForKBFS:NO escape:YES tilde:NO options:nil])];
+  [labels addSubview:createView(@"Service (cmd)", [KBService commandLineForService:config useBundle:NO pathOptions:KBPathOptionsTilde args:@[@"--log-format=file", @"service"]])];
+  [labels addSubview:createView(@"KBFS (cmd)", [KBFSService commandLineForKBFS:config useBundle:NO pathOptions:0 args:nil])];
 
   GHWeakSelf gself = self;
   YOHBox *buttons = [YOHBox box];

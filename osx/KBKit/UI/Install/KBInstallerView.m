@@ -49,7 +49,7 @@
   KBButton *skipButton = [KBButton buttonWithText:@"Skip" style:KBButtonStyleDefault];
   skipButton.targetBlock = ^{ [gself skip]; };
   [_buttons addSubview:skipButton];
-  KBButton *nextButton = [KBButton buttonWithText:@"Continue" style:KBButtonStylePrimary];
+  KBButton *nextButton = [KBButton buttonWithText:@"Update" style:KBButtonStylePrimary];
   nextButton.targetBlock = ^{ [gself install]; };
   [_buttons addSubview:nextButton];  
 

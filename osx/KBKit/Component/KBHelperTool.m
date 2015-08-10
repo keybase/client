@@ -60,7 +60,7 @@
   [_infoView setProperties:info];
 }
 
-- (void)updateComponentStatus:(NSTimeInterval)timeout completion:(KBCompletion)completion {
+- (void)refreshComponent:(KBCompletion)completion {
   _version = nil;
   if (![NSFileManager.defaultManager fileExistsAtPath:PLIST_DEST isDirectory:nil] &&
       ![NSFileManager.defaultManager fileExistsAtPath:HELPER_LOCATION isDirectory:nil]) {

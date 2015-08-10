@@ -10,11 +10,10 @@
 #import "KBRPC.h"
 #import "KBAlert.h"
 #import "KBRPCRegistration.h"
-#import "KBInstaller.h"
 #import "KBRPCRecord.h"
-#import "KBInstaller.h"
 #import "KBWorkspace.h"
 #import "KBFormatter.h"
+#import "KBEnvironment.h"
 
 #import <GHKit/GHKit.h>
 #import <ObjectiveSugar/ObjectiveSugar.h>

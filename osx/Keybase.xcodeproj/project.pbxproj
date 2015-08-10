@@ -21,6 +21,8 @@
 		0013928E1B0BE6170082DEA8 /* uninstall_helper in CopyFiles */ = {isa = PBXBuildFile; fileRef = 0013928C1B0BE5DC0082DEA8 /* uninstall_helper */; };
 		001C6B3C1B24F8630048F086 /* icon.icns in Resources */ = {isa = PBXBuildFile; fileRef = 001C6B3B1B24F8630048F086 /* icon.icns */; };
 		001C6B401B24F8630048F086 /* ShareViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 001C6B3F1B24F8630048F086 /* ShareViewController.m */; };
+		002E20DC1B7943BF0093CB0F /* KBPath.h in Headers */ = {isa = PBXBuildFile; fileRef = 002E20DA1B7943BF0093CB0F /* KBPath.h */; };
+		002E20DD1B7943BF0093CB0F /* KBPath.m in Sources */ = {isa = PBXBuildFile; fileRef = 002E20DB1B7943BF0093CB0F /* KBPath.m */; };
 		002F2B4F1B3B7A0800779FED /* KBProofRepairView.h in Headers */ = {isa = PBXBuildFile; fileRef = 002F2B4D1B3B7A0800779FED /* KBProofRepairView.h */; };
 		002F2B501B3B7A0800779FED /* KBProofRepairView.m in Sources */ = {isa = PBXBuildFile; fileRef = 002F2B4E1B3B7A0800779FED /* KBProofRepairView.m */; };
 		002F2B531B3CB35300779FED /* KBProver.h in Headers */ = {isa = PBXBuildFile; fileRef = 002F2B511B3CB35300779FED /* KBProver.h */; };
@@ -489,6 +491,8 @@
 		001C6B3D1B24F8630048F086 /* Share.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = Share.entitlements; sourceTree = "<group>"; };
 		001C6B3E1B24F8630048F086 /* ShareViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ShareViewController.h; sourceTree = "<group>"; };
 		001C6B3F1B24F8630048F086 /* ShareViewController.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = ShareViewController.m; sourceTree = "<group>"; };
+		002E20DA1B7943BF0093CB0F /* KBPath.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBPath.h; sourceTree = "<group>"; };
+		002E20DB1B7943BF0093CB0F /* KBPath.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBPath.m; sourceTree = "<group>"; };
 		002F2B4D1B3B7A0800779FED /* KBProofRepairView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBProofRepairView.h; sourceTree = "<group>"; };
 		002F2B4E1B3B7A0800779FED /* KBProofRepairView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBProofRepairView.m; sourceTree = "<group>"; };
 		002F2B511B3CB35300779FED /* KBProver.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBProver.h; sourceTree = "<group>"; };
@@ -948,6 +952,8 @@
 				001A835F1B28DB7B006E61E9 /* KBStream.m */,
 				001A83601B28DB7B006E61E9 /* KBWriter.h */,
 				001A83611B28DB7B006E61E9 /* KBWriter.m */,
+				002E20DA1B7943BF0093CB0F /* KBPath.h */,
+				002E20DB1B7943BF0093CB0F /* KBPath.m */,
 			);
 			path = IO;
 			sourceTree = "<group>";
@@ -1786,6 +1792,7 @@
 				0043D1361B28F1370036C532 /* KBPrefFileView.h in Headers */,
 				003F4C111B4F0AAC00F20684 /* KBUserKeyView.h in Headers */,
 				0043D13A1B28F1370036C532 /* KBPrefGPGView.h in Headers */,
+				002E20DC1B7943BF0093CB0F /* KBPath.h in Headers */,
 				00C0DD271B28EC8300A825D4 /* KBFileIcon.h in Headers */,
 				002F2B531B3CB35300779FED /* KBProver.h in Headers */,
 				00C0DCF51B28EC7800A825D4 /* KBPGPEncryptFooterView.h in Headers */,
@@ -2269,6 +2276,7 @@
 				00C0DD481B28EC8700A825D4 /* KBDeviceView.m in Sources */,
 				008E04811B28ECFF000F15AA /* KBFatalErrorView.m in Sources */,
 				0043D13D1B28F1370036C532 /* KBPrefOption.m in Sources */,
+				002E20DD1B7943BF0093CB0F /* KBPath.m in Sources */,
 				00C0DD501B28EC8B00A825D4 /* KBCustomEnvView.m in Sources */,
 				00C0DCDC1B28EC7300A825D4 /* KBSignupView.m in Sources */,
 				00C0DC8C1B28EC5500A825D4 /* KBPrivilegedTask.m in Sources */,

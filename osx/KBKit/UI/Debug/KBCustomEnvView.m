@@ -9,6 +9,10 @@
 #import "KBCustomEnvView.h"
 
 #import "KBDefines.h"
+#import "KBPath.h"
+
+#import "KBService.h"
+#import "KBFSService.h"
 
 @interface KBCustomEnvView ()
 @property KBTextField *homeDirField;
@@ -103,16 +107,15 @@
 }
 
 - (void)setConfig:(KBEnvConfig *)config {
-  _homeDirField.text = KBPath(config.homeDir, YES, NO);
-//  _socketFileField.text = KBPath(config.sockFile, YES, NO);
-  _mountDirField.text = KBPath(config.mountDir, YES, NO);
+  _homeDirField.text = [KBPath path:config.homeDir options:KBPathOptionsTilde];
+  _mountDirField.text = [KBPath path:config.mountDir options:KBPathOptionsTilde];
   [self updateCLI:config];
   [self setNeedsLayout];
 }
 
 - (void)updateCLI:(KBEnvConfig *)config {
-  NSString *serviceCLI = NSStringWithFormat(@"env -i %@", [config commandLineForService:NO escape:YES tilde:YES options:@[@"service"]]);
-  NSString *kbfsCLI = NSStringWithFormat(@"env -i %@", [config commandLineForKBFS:NO escape:YES tilde:YES options:nil]);
+  NSString *serviceCLI = NSStringWithFormat(@"env -i %@", [KBService commandLineForService:config useBundle:NO pathOptions:KBPathOptionsEscape|KBPathOptionsTilde args:@[@"service"]]);
+  NSString *kbfsCLI = NSStringWithFormat(@"env -i %@", [KBFSService commandLineForKBFS:config useBundle:NO pathOptions:KBPathOptionsEscape args:nil]);
 
   [_serviceCLI setText:serviceCLI style:KBTextStyleDefault options:KBTextOptionsMonospace alignment:NSLeftTextAlignment lineBreakMode:NSLineBreakByWordWrapping];
 

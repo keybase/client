@@ -59,13 +59,6 @@ NSNumber *KBNumberFromString(NSString *s);
 
 NSString *KBNSStringWithFormat(NSString *formatString, ...);
 
-NSString *KBPath(NSString *path, BOOL tilde, BOOL escape);
-
-// Return path in directory (if directory is nil returns nil)
-NSString *KBPathInDir(NSString *dir, NSString *path, BOOL tilde, BOOL escape);
-
-NSURL *KBURLPath(NSString *path, BOOL isDir, BOOL tilde, BOOL escape);
-
 NSString *KBNSStringByStrippingHTML(NSString *str);
 
 #define LINK_SOURCE (@"/usr/local/bin/keybase")

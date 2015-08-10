@@ -9,6 +9,7 @@
 #import "KBUninstaller.h"
 #import "KBLaunchCtl.h"
 #import "KBRunOver.h"
+#import "KBPath.h"
 #import <CocoaLumberjack/CocoaLumberjack.h>
 
 @implementation KBUninstaller
@@ -16,7 +17,10 @@
 + (void)uninstall:(NSString *)prefix completion:(KBCompletion)completion {
   NSAssert([prefix length] > 2, @"Must have a prefix");
   NSFileManager *fileManager = NSFileManager.defaultManager;
-  NSDirectoryEnumerator *enumerator = [fileManager enumeratorAtURL:KBURLPath(@"~/Library/LaunchAgents/", YES, NO, NO)  includingPropertiesForKeys:@[NSURLIsRegularFileKey] options:0 errorHandler:^(NSURL *url, NSError *error) {
+
+  NSURL *URL = [NSURL fileURLWithPath:[KBPath path:@"~/Library/LaunchAgents/" options:0] isDirectory:YES];
+
+  NSDirectoryEnumerator *enumerator = [fileManager enumeratorAtURL:URL includingPropertiesForKeys:@[NSURLIsRegularFileKey] options:0 errorHandler:^(NSURL *url, NSError *error) {
     return YES;
   }];
 
@@ -27,7 +31,7 @@
       DDLogDebug(@"Unloading %@", URL.path);
       [KBLaunchCtl unload:URL.path label:nil disable:NO completion:^(NSError *error, NSString *output) {
         DDLogDebug(@"Removing %@", URL.path);
-        [fileManager removeItemAtPath:KBPath(URL.path, NO, NO) error:nil];
+        [fileManager removeItemAtPath:[KBPath path:URL.path options:0] error:nil];
         runCompletion(URL);
       }];
     } else {
@@ -43,11 +47,11 @@
 
 + (void)deleteAll:(NSString *)dir {
   NSFileManager *fileManager = NSFileManager.defaultManager;
-  NSDirectoryEnumerator *enumerator = [fileManager enumeratorAtPath:KBPath(dir, NO, NO)];
+  NSDirectoryEnumerator *enumerator = [fileManager enumeratorAtPath:[KBPath path:dir options:0]];
   for (NSString *file in enumerator) {
     DDLogDebug(@"Removing %@", file);
     NSError *error = nil;
-    if (![fileManager removeItemAtPath:KBPathInDir(dir, file, NO, NO) error:&error]) {
+    if (![fileManager removeItemAtPath:[KBPath pathInDir:dir path:file options:0] error:&error]) {
       DDLogError(@"Error: %@", error);
     }
   }

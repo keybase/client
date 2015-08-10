@@ -22,9 +22,8 @@
 
 @property NSString *bundleVersion;
 @property NSString *runningVersion;
-@property NSNumber *pid;
-@property NSNumber *lastExitStatus;
 
+@property KBServiceStatus *serviceStatus;
 @property KBComponentStatus *componentStatus;
 @end
 
@@ -56,11 +55,9 @@
   info[@"Version"] = KBOr(self.runningVersion, @"-");
   info[@"Bundle Version"] = KBOr(self.bundleVersion, @"-");
 
-  if (!_lastExitStatus) {
-    info[@"PID"] = KBOr(_pid, @"-");
-  } else {
-    info[@"PID"] = NSStringWithFormat(@"%@ (%@)", KBOr(_pid, @"-"), KBOr(_lastExitStatus, @"-"));
-  }
+
+  info[@"PID"] = KBOr(self.serviceStatus.pid, @"-");
+  info[@"Exit Status"] = KBOr(self.serviceStatus.lastExitStatus, @"-");
 
   return info;
 }
@@ -79,48 +76,50 @@
   [KBWaitFor waitFor:block delay:0.5 timeout:timeout label:NSStringWithFormat(@"%@ (version file)", _label) completion:completion];
 }
 
-- (void)updateComponentStatus:(NSTimeInterval)timeout completion:(KBCompletion)completion {
-  self.pid = nil;
-  self.lastExitStatus = nil;
+- (void)updateComponentStatus:(NSTimeInterval)timeout completion:(void (^)(KBComponentStatus *componentStatus, KBServiceStatus *serviceStatus))completion {
+  self.serviceStatus = nil;
   self.runningVersion = nil;
+  self.componentStatus = nil;
 
   if (!_label) {
-    completion(nil);
+    completion(nil, nil);
     return;
   }
-  [KBLaunchCtl status:_label completion:^(KBServiceStatus *serviceStatus) {
+  NSString *label = _label;
+  [KBLaunchCtl status:label completion:^(KBServiceStatus *serviceStatus) {
+    self.serviceStatus = serviceStatus;
     if (!serviceStatus) {
       NSString *plistDest = [self plistDestination];
       KBInstallStatus installStatus = [NSFileManager.defaultManager fileExistsAtPath:plistDest] ? KBInstallStatusInstalled : KBInstallStatusNotInstalled;
 
       self.componentStatus = [KBComponentStatus componentStatusWithInstallStatus:installStatus runtimeStatus:KBRuntimeStatusNotRunning info:nil];
-      completion(nil);
+      completion(self.componentStatus, self.serviceStatus);
       return;
     }
 
     if (serviceStatus.error) {
       self.componentStatus = [KBComponentStatus componentStatusWithError:serviceStatus.error];
-      completion(serviceStatus.error);
+      completion(self.componentStatus, self.serviceStatus);
     } else {
       [self waitForVersionFile:timeout completion:^(NSString *runningVersion) {
         GHODictionary *info = [GHODictionary dictionary];
         if (serviceStatus.isRunning && runningVersion) {
           self.runningVersion = runningVersion;
-          self.pid = serviceStatus.pid;
           info[@"Version"] = runningVersion;
           if (![runningVersion isEqualToString:self.bundleVersion]) {
             info[@"New Version"] = self.bundleVersion;
             self.componentStatus = [KBComponentStatus componentStatusWithInstallStatus:KBInstallStatusNeedsUpgrade runtimeStatus:KBRuntimeStatusRunning info:info];
-            completion(nil);
           } else {
             self.componentStatus = [KBComponentStatus componentStatusWithInstallStatus:KBInstallStatusInstalled runtimeStatus:KBRuntimeStatusRunning info:info];
-            completion(nil);
           }
         } else {
-          self.lastExitStatus = serviceStatus.lastExitStatus;
           self.componentStatus = [KBComponentStatus componentStatusWithInstallStatus:KBInstallStatusInstalled runtimeStatus:KBRuntimeStatusNotRunning info:nil];
-          completion(nil);
         }
+
+        [KBLaunchCtl status:label completion:^(KBServiceStatus *serviceStatus) {
+          self.serviceStatus = serviceStatus;
+          completion(self.componentStatus, self.serviceStatus);
+        }];
       }];
     }
   }];
@@ -133,12 +132,12 @@
   return plistDest;
 }
 
-- (void)install:(KBCompletion)completion {
+- (void)install:(NSTimeInterval)timeout completion:(KBLaunchComponentStatus)completion {
 
   NSString *plistDest = [self plistDestination];
   if (!plistDest) {
     NSError *error = KBMakeErrorWithRecovery(-1, @"Install Error", @"No launch agent destination.", nil);
-    completion(error);
+    completion([KBComponentStatus componentStatusWithError:error], nil);
     return;
   }
 
@@ -152,7 +151,7 @@
   // Returns yes if created successfully or already exists
   if (![NSFileManager.defaultManager createFileAtPath:_logFile contents:[NSData data] attributes:nil]) {
     if (!error) error = KBMakeErrorWithRecovery(-1, @"Install Error", @"Unable to touch log file: %@.", _logFile);
-    completion(error);
+    completion([KBComponentStatus componentStatusWithError:error], nil);
     return;
   }
 
@@ -160,7 +159,7 @@
   if ([NSFileManager.defaultManager fileExistsAtPath:plistDest]) {
     if (![NSFileManager.defaultManager removeItemAtPath:plistDest error:&error]) {
       if (!error) error = KBMakeErrorWithRecovery(-1, @"Install Error", @"Unable to remove existing launch agent plist for upgrade.");
-      completion(error);
+      completion([KBComponentStatus componentStatusWithError:error], nil);
       return;
     }
   }
@@ -169,7 +168,7 @@
   if ([NSFileManager.defaultManager fileExistsAtPath:_versionPath]) {
     if (![NSFileManager.defaultManager removeItemAtPath:_versionPath error:&error]) {
       if (!error) error = KBMakeErrorWithRecovery(-1, @"Install Error", @"Unable to remove existing version file.");
-      completion(error);
+      completion([KBComponentStatus componentStatusWithError:error], nil);
       return;
     }
   }
@@ -178,21 +177,21 @@
   NSData *data = [NSPropertyListSerialization dataWithPropertyList:plistDict format:NSPropertyListXMLFormat_v1_0 options:0 error:&error];
   if (!data) {
     if (!error) error = KBMakeErrorWithRecovery(-1, @"Install Error", @"Unable to create plist data.");
-    completion(error);
+    completion([KBComponentStatus componentStatusWithError:error], nil);
     return;
   }
 
   if (![data writeToFile:plistDest atomically:YES]) {
     if (!error) error = KBMakeErrorWithRecovery(-1, @"Install Error", @"Unable to create launch agent plist.");
-    completion(error);
+    completion([KBComponentStatus componentStatusWithError:error], nil);
     return;
   }
 
   // We installed the launch agent plist
   DDLogDebug(@"Installed launch agent plist");
 
-  [KBLaunchCtl reload:plistDest label:_label completion:^(KBServiceStatus *serviceStatus) {
-    completion(serviceStatus.error);
+  [KBLaunchCtl reload:plistDest label:_label completion:^(KBServiceStatus *reloadStatus) {
+    [self updateComponentStatus:timeout completion:completion];
   }];
 }
 
@@ -213,10 +212,13 @@
   }];
 }
 
-- (void)start:(KBCompletion)completion {
+- (void)start:(NSTimeInterval)timeout completion:(KBLaunchComponentStatus)completion {
   NSString *plistDest = [self plistDestination];
-  [KBLaunchCtl load:plistDest label:_label force:YES completion:^(NSError *error, NSString *output) {
-    completion(error);
+  NSString *label = _label;
+  [KBLaunchCtl load:plistDest label:label force:YES completion:^(NSError *error, NSString *output) {
+    [self updateComponentStatus:timeout completion:^(KBComponentStatus *componentStatus, KBServiceStatus *serviceStatus) {
+      completion(componentStatus, serviceStatus);
+    }];
   }];
 }
 
@@ -225,16 +227,6 @@
   [KBLaunchCtl unload:plistDest label:_label disable:NO completion:^(NSError *error, NSString *output) {
     completion(error);
   }];
-}
-
-- (void)refreshLaunchStatus:(KBCompletion)completion {
-  if (_label) {
-    [KBLaunchCtl status:_label completion:^(KBServiceStatus *serviceStatus) {
-      completion(nil);
-    }];
-  } else {
-    completion(nil);
-  }
 }
 
 //- (void)checkLaunch:(void (^)(NSError *error))completion {

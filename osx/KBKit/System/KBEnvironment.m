@@ -55,17 +55,10 @@
 }
 
 - (NSArray *)installActionsNeeded {
-  NSArray *installActions = [_installActions select:^BOOL(KBInstallAction *installAction) {
+  return [_installActions select:^BOOL(KBInstallAction *installAction) {
     return (installAction.installable.componentStatus.installStatus != KBInstallStatusInstalled ||
             installAction.installable.componentStatus.runtimeStatus == KBRuntimeStatusNotRunning);
   }];
-
-  // Ignore KBFS since it's not ready yet
-  installActions = [installActions select:^BOOL(KBInstallAction *installAction) {
-    return ![installAction.name isEqual:@"KBFS"];
-  }];
-
-  return installActions;
 }
 
 - (void)installStatus:(void (^)(BOOL needsInstall))completion {
@@ -73,7 +66,7 @@
   rover.enumerator = [_installActions objectEnumerator];
   rover.runBlock = ^(KBInstallAction *installAction, KBRunCompletion runCompletion) {
     DDLogDebug(@"Checking %@", installAction.installable.name);
-    [installAction.installable updateComponentStatus:NO completion:^(NSError *error) {
+    [installAction.installable refreshComponent:^(NSError *error) {
       // Clear install outcome
       installAction.installAttempted = NO;
       installAction.installError = error;
@@ -82,6 +75,7 @@
   };
   rover.completion = ^(NSArray *installActions) {
     NSArray *installActionsNeeded = [self installActionsNeeded];
+    //DDLogDebug(@"Install actions needed: %@", installActionsNeeded);
     completion([installActionsNeeded count] > 0);
   };
   [rover run];

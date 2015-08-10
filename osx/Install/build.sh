@@ -16,19 +16,6 @@ CODE_SIGN_IDENTITY="Developer ID Application: Keybase, Inc. (99229SGT5K)"
 rm -rf $BUILD_DEST
 mkdir -p $BUILD_DEST
 
-# Read the version from go/libkb/version.go.
-# This is the core version info that we use for both the service and app,
-# though this may change in the future.
-VERSION=`head -1 "$KB_GO_SRC/libkb/version.go" | cut -f2 -d ' ' | tr -d ' '`
-#echo "// $VERSION\npackage libkb\n\nvar CLIENT_VERSION = \"$VERSION\"\n" | gofmt > $KB_GO_SRC/libkb/version.go
-
-if [ "$VERSION" = "" ]; then
-  echo "Unable to parse version"
-  exit 1
-fi
-
-echo "Version from libkb/version.go: $VERSION"
-
 #
 # Build go services.
 # If the are already present, don't rebuild.
@@ -52,29 +39,28 @@ fi
 cp $KBFS_GO_SRC/kbfsfuse/kbfsfuse $BUILD_DEST/kbfsfuse
 chmod +x $BUILD_DEST/kbfsfuse
 
+echo "Checking versions"
+# Read the versions.
+KB_SERVICE_VERSION="`$BUILD_DEST/keybase --version | cut -f3 -d ' '`"
+KBFS_VERSION="`$BUILD_DEST/kbfsfuse -version | cut -f1 -d ' '`"
+APP_VERSION="$KB_SERVICE_VERSION"
+
 #
 # Keybase.app
 #
 
-echo ""
-
 PLIST=$DIR/../Keybase/Info.plist
 HELPER_PLIST=$DIR/../Helper/Info.plist
 FUSE_PLIST=$DIR/Fuse/kbfuse.bundle/Contents/Info.plist
-KB_SERVICE_VERSION=$VERSION
 KB_HELPER_VERSION=`/usr/libexec/PlistBuddy -c "Print :CFBundleShortVersionString" $HELPER_PLIST`
 KB_FUSE_VERSION=`/usr/libexec/PlistBuddy -c "Print :CFBundleShortVersionString" $FUSE_PLIST`
-KBFS_VERSION=$VERSION
 
-echo "Keybase.app Version: $VERSION"
-echo "Service Version: $KB_SERVICE_VERSION"
-echo "Helper Version: $KB_HELPER_VERSION"
-echo "KBFS Version: $KBFS_VERSION"
-echo "Fuse Version: $KB_FUSE_VERSION"
 echo ""
-
-echo "Checking executable version"
-echo "`$BUILD_DEST/keybase --version`"
+echo "Keybase.app Version: $APP_VERSION"
+echo "Service Version: $KB_SERVICE_VERSION"
+echo "KBFS Version: $KBFS_VERSION"
+echo "Helper Version: $KB_HELPER_VERSION"
+echo "Fuse Version: $KB_FUSE_VERSION"
 echo ""
 
 echo "Is the correct?"
@@ -86,8 +72,8 @@ select o in "Yes" "No"; do
 done
 
 echo "  Updating $PLIST"
-/usr/libexec/PlistBuddy -c "Set :CFBundleVersion '${VERSION}'" $PLIST
-/usr/libexec/PlistBuddy -c "Set :CFBundleShortVersionString '${VERSION}'" $PLIST
+/usr/libexec/PlistBuddy -c "Set :CFBundleVersion '${APP_VERSION}'" $PLIST
+/usr/libexec/PlistBuddy -c "Set :CFBundleShortVersionString '${APP_VERSION}'" $PLIST
 /usr/libexec/PlistBuddy -c "Set :KBServiceVersion '${KB_SERVICE_VERSION}'" $PLIST
 /usr/libexec/PlistBuddy -c "Set :KBHelperVersion '${KB_HELPER_VERSION}'" $PLIST
 /usr/libexec/PlistBuddy -c "Set :KBFSVersion '${KBFS_VERSION}'" $PLIST
@@ -155,11 +141,11 @@ echo "Checking Helper..."
 spctl --assess --verbose=4 Keybase.app/Contents/Library/LaunchServices/keybase.Helper
 
 
-rm -rf Keybase-$VERSION.dmg
+rm -rf Keybase-$APP_VERSION.dmg
 
 cp ../appdmg/* .
 
-appdmg appdmg.json Keybase-$VERSION.dmg
+appdmg appdmg.json Keybase-$APP_VERSION.dmg
 
 if [ "$ACTION" = "install" ]; then
   ditto $BUILD_DEST/Keybase.app /Applications/Keybase.app
@@ -172,7 +158,7 @@ else
 
   To open the DMG:
 
-    open build/Keybase-$VERSION.dmg
+    open build/Keybase-$APP_VERSION.dmg
 
   "
 

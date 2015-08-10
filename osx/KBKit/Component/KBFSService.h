@@ -15,4 +15,6 @@
 
 - (instancetype)initWithConfig:(KBEnvConfig *)config;
 
++ (NSString *)commandLineForKBFS:(KBEnvConfig *)config useBundle:(BOOL)useBundle pathOptions:(KBPathOptions)pathOptions args:(NSArray *)args;
+
 @end

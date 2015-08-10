@@ -39,12 +39,4 @@
   return info;
 }
 
-- (void)updateComponentStatus:(NSTimeInterval)timeout completion:(KBCompletion)completion {
-  completion(nil);
-}
-
-- (void)refreshComponent:(KBCompletion)completion {
-  [self updateComponentStatus:0 completion:completion];
-}
-
 @end
