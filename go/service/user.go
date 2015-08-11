@@ -79,19 +79,11 @@ func (h *UserHandler) ListTrackingJSON(arg keybase1.ListTrackingJSONArg) (res st
 }
 
 func (h *UserHandler) LoadUser(arg keybase1.LoadUserArg) (user keybase1.User, err error) {
-	var uid keybase1.UID
-	if arg.Uid != nil {
-		uid = *arg.Uid
-	}
-	userObj, err := libkb.LoadUser(libkb.LoadUserArg{
-		UID:  uid,
-		Name: arg.Username,
-		Self: arg.IsSelf,
-	})
+	u, err := libkb.LoadUser(libkb.LoadUserArg{UID: arg.Uid})
 	if err != nil {
 		return
 	}
-	exportedUser := userObj.Export()
+	exportedUser := u.Export()
 	user = *exportedUser
 	return
 }
@@ -106,4 +98,16 @@ func (h *UserHandler) Search(arg keybase1.SearchArg) (results []keybase1.SearchR
 		results = eng.GetResults()
 	}
 	return
+}
+
+func (h *UserHandler) LoadPublicKeys(arg keybase1.LoadPublicKeysArg) (keys []keybase1.PublicKey, err error) {
+	u, err := libkb.LoadUser(libkb.LoadUserArg{UID: arg.Uid})
+	if err != nil {
+		return
+	}
+	publicKeys := []keybase1.PublicKey{}
+	if u.GetComputedKeyFamily() != nil {
+		publicKeys = u.GetComputedKeyFamily().Export()
+	}
+	return publicKeys, nil
 }

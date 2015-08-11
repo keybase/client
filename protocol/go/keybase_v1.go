@@ -87,9 +87,8 @@ type PublicKey struct {
 }
 
 type User struct {
-	Uid        UID         `codec:"uid" json:"uid"`
-	Username   string      `codec:"username" json:"username"`
-	PublicKeys []PublicKey `codec:"publicKeys" json:"publicKeys"`
+	Uid      UID    `codec:"uid" json:"uid"`
+	Username string `codec:"username" json:"username"`
 }
 
 type Device struct {
@@ -3184,10 +3183,13 @@ type LoadUncheckedUserSummariesArg struct {
 }
 
 type LoadUserArg struct {
-	SessionID int    `codec:"sessionID" json:"sessionID"`
-	Uid       *UID   `codec:"uid,omitempty" json:"uid,omitempty"`
-	Username  string `codec:"username" json:"username"`
-	IsSelf    bool   `codec:"isSelf" json:"isSelf"`
+	SessionID int `codec:"sessionID" json:"sessionID"`
+	Uid       UID `codec:"uid" json:"uid"`
+}
+
+type LoadPublicKeysArg struct {
+	SessionID int `codec:"sessionID" json:"sessionID"`
+	Uid       UID `codec:"uid" json:"uid"`
 }
 
 type ListTrackingArg struct {
@@ -3212,6 +3214,7 @@ type UserInterface interface {
 	ListTrackersSelf(int) ([]Tracker, error)
 	LoadUncheckedUserSummaries(LoadUncheckedUserSummariesArg) ([]UserSummary, error)
 	LoadUser(LoadUserArg) (User, error)
+	LoadPublicKeys(LoadPublicKeysArg) ([]PublicKey, error)
 	ListTracking(ListTrackingArg) ([]UserSummary, error)
 	ListTrackingJSON(ListTrackingJSONArg) (string, error)
 	Search(SearchArg) ([]SearchResult, error)
@@ -3253,6 +3256,13 @@ func UserProtocol(i UserInterface) rpc2.Protocol {
 				args := make([]LoadUserArg, 1)
 				if err = nxt(&args); err == nil {
 					ret, err = i.LoadUser(args[0])
+				}
+				return
+			},
+			"loadPublicKeys": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
+				args := make([]LoadPublicKeysArg, 1)
+				if err = nxt(&args); err == nil {
+					ret, err = i.LoadPublicKeys(args[0])
 				}
 				return
 			},
@@ -3309,6 +3319,11 @@ func (c UserClient) LoadUncheckedUserSummaries(__arg LoadUncheckedUserSummariesA
 
 func (c UserClient) LoadUser(__arg LoadUserArg) (res User, err error) {
 	err = c.Cli.Call("keybase.1.user.loadUser", []interface{}{__arg}, &res)
+	return
+}
+
+func (c UserClient) LoadPublicKeys(__arg LoadPublicKeysArg) (res []PublicKey, err error) {
+	err = c.Cli.Call("keybase.1.user.loadPublicKeys", []interface{}{__arg}, &res)
 	return
 }
 

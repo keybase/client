@@ -1,6 +1,9 @@
 package libkb
 
-import "testing"
+import (
+	keybase1 "github.com/keybase/client/protocol/go"
+	"testing"
+)
 
 func TestExportUser(t *testing.T) {
 	tc := SetupTest(t, "export_user")
@@ -20,11 +23,16 @@ func TestExportUser(t *testing.T) {
 		t.Fatal("wrong username", exportedAlice.Username)
 	}
 
-	if len(exportedAlice.PublicKeys) != 1 {
-		t.Fatal("expected 1 public key", exportedAlice.PublicKeys)
+	publicKeys := []keybase1.PublicKey{}
+	if alice.GetComputedKeyFamily() != nil {
+		publicKeys = alice.GetComputedKeyFamily().Export()
 	}
 
-	if exportedAlice.PublicKeys[0].PGPFingerprint != "2373fd089f28f328916b88f99c7927c0bdfdadf9" {
-		t.Fatal("wrong fingerprint", exportedAlice.PublicKeys[0].PGPFingerprint)
+	if len(publicKeys) != 1 {
+		t.Fatal("expected 1 public key", publicKeys)
+	}
+
+	if publicKeys[0].PGPFingerprint != "2373fd089f28f328916b88f99c7927c0bdfdadf9" {
+		t.Fatal("wrong fingerprint", publicKeys[0].PGPFingerprint)
 	}
 }

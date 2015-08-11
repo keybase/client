@@ -310,7 +310,7 @@ func (c *CmdStress) status() {
 	myUID := currentStatus.User.Uid
 
 	ucli := keybase1.UserClient{Cli: cli}
-	_, err = ucli.LoadUser(keybase1.LoadUserArg{Uid: &myUID})
+	_, err = ucli.LoadUser(keybase1.LoadUserArg{Uid: myUID})
 	if err != nil {
 		G.Log.Warning("load user error: %s", err)
 	}

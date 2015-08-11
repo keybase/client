@@ -1949,7 +1949,7 @@
 }
 
 - (void)loadUser:(KBRLoadUserRequestParams *)params completion:(void (^)(NSError *error, KBRUser *user))completion {
-  NSDictionary *rparams = @{@"uid": KBRValue(params.uid), @"username": KBRValue(params.username), @"isSelf": @(params.isSelf)};
+  NSDictionary *rparams = @{@"uid": KBRValue(params.uid)};
   [self.client sendRequestWithMethod:@"keybase.1.user.loadUser" params:rparams sessionId:self.sessionId completion:^(NSError *error, id retval) {
     if (error) {
       completion(error, nil);
@@ -1960,8 +1960,8 @@
   }];
 }
 
-- (void)loadUserWithUid:(NSString *)uid username:(NSString *)username isSelf:(BOOL)isSelf completion:(void (^)(NSError *error, KBRUser *user))completion {
-  NSDictionary *rparams = @{@"uid": KBRValue(uid), @"username": KBRValue(username), @"isSelf": @(isSelf)};
+- (void)loadUserWithUid:(NSString *)uid completion:(void (^)(NSError *error, KBRUser *user))completion {
+  NSDictionary *rparams = @{@"uid": KBRValue(uid)};
   [self.client sendRequestWithMethod:@"keybase.1.user.loadUser" params:rparams sessionId:self.sessionId completion:^(NSError *error, id retval) {
     if (error) {
       completion(error, nil);
@@ -1969,6 +1969,30 @@
     }
     KBRUser *result = retval ? [MTLJSONAdapter modelOfClass:KBRUser.class fromJSONDictionary:retval error:&error] : nil;
     completion(error, result);
+  }];
+}
+
+- (void)loadPublicKeys:(KBRLoadPublicKeysRequestParams *)params completion:(void (^)(NSError *error, NSArray *items))completion {
+  NSDictionary *rparams = @{@"uid": KBRValue(params.uid)};
+  [self.client sendRequestWithMethod:@"keybase.1.user.loadPublicKeys" params:rparams sessionId:self.sessionId completion:^(NSError *error, id retval) {
+    if (error) {
+      completion(error, nil);
+      return;
+    }
+    NSArray *results = retval ? [MTLJSONAdapter modelsOfClass:KBRPublicKey.class fromJSONArray:retval error:&error] : nil;
+    completion(error, results);
+  }];
+}
+
+- (void)loadPublicKeysWithUid:(NSString *)uid completion:(void (^)(NSError *error, NSArray *items))completion {
+  NSDictionary *rparams = @{@"uid": KBRValue(uid)};
+  [self.client sendRequestWithMethod:@"keybase.1.user.loadPublicKeys" params:rparams sessionId:self.sessionId completion:^(NSError *error, id retval) {
+    if (error) {
+      completion(error, nil);
+      return;
+    }
+    NSArray *results = retval ? [MTLJSONAdapter modelsOfClass:KBRPublicKey.class fromJSONArray:retval error:&error] : nil;
+    completion(error, results);
   }];
 }
 
@@ -4005,14 +4029,29 @@
   if ((self = [super initWithParams:params])) {
     self.sessionID = [params[0][@"sessionID"] integerValue];
     self.uid = params[0][@"uid"];
-    self.username = params[0][@"username"];
-    self.isSelf = [params[0][@"isSelf"] boolValue];
   }
   return self;
 }
 
 + (instancetype)params {
   KBRLoadUserRequestParams *p = [[self alloc] init];
+  // Add default values
+  return p;
+}
+@end
+
+@implementation KBRLoadPublicKeysRequestParams
+
+- (instancetype)initWithParams:(NSArray *)params {
+  if ((self = [super initWithParams:params])) {
+    self.sessionID = [params[0][@"sessionID"] integerValue];
+    self.uid = params[0][@"uid"];
+  }
+  return self;
+}
+
++ (instancetype)params {
+  KBRLoadPublicKeysRequestParams *p = [[self alloc] init];
   // Add default values
   return p;
 }
@@ -4087,7 +4126,6 @@
 @end
 
 @implementation KBRUser
-+ (NSValueTransformer *)publicKeysJSONTransformer { return [MTLJSONAdapter arrayTransformerWithModelClass:KBRPublicKey.class]; }
 @end
 
 @implementation KBRDevice
