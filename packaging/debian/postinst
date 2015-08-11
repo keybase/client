@@ -118,6 +118,10 @@ find_apt_sources() {
 }
 
 # Add the Keybase repository to the apt sources.
+# NOTE: Google's postinst script includes code to deal with cases where distro
+# upgrades disable this package source. We haven't been able to repro that, and
+# we don't want to include a bunch of code (and a cronjob) unless we're sure
+# it's still needed. Fingers crossed that we don't run into this in the future.
 create_sources_lists() {
   find_apt_sources
 
