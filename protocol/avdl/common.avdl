@@ -57,6 +57,7 @@ protocol Common {
 	record User {
 		UID uid;
 		string username;
+		array<PublicKey> publicKeys;
 	}
 
 	record Device {

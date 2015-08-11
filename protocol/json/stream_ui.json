@@ -127,6 +127,12 @@
     }, {
       "name" : "username",
       "type" : "string"
+    }, {
+      "name" : "publicKeys",
+      "type" : {
+        "type" : "array",
+        "items" : "PublicKey"
+      }
     } ]
   }, {
     "type" : "record",

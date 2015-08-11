@@ -564,9 +564,14 @@ func (ckf ComputedKeyFamily) Export() []keybase1.PublicKey {
 }
 
 func (u *User) Export() *keybase1.User {
+	publicKeys := []keybase1.PublicKey{}
+	if u.GetComputedKeyFamily() != nil {
+		publicKeys = u.GetComputedKeyFamily().Export()
+	}
 	return &keybase1.User{
-		Uid:      u.GetUID(),
-		Username: u.GetName(),
+		Uid:        u.GetUID(),
+		Username:   u.GetName(),
+		PublicKeys: publicKeys,
 	}
 }
 

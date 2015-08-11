@@ -43,6 +43,7 @@
 @interface KBRUser : KBRObject
 @property NSString *uid;
 @property NSString *username;
+@property NSArray *publicKeys; /*of KBRPublicKey*/
 @end
 
 @interface KBRDevice : KBRObject
@@ -1073,10 +1074,8 @@ typedef NS_ENUM (NSInteger, KBRPromptDefault) {
 @interface KBRLoadUserRequestParams : KBRRequestParams
 @property NSInteger sessionID;
 @property NSString *uid;
-@end
-@interface KBRLoadPublicKeysRequestParams : KBRRequestParams
-@property NSInteger sessionID;
-@property NSString *uid;
+@property NSString *username;
+@property BOOL isSelf;
 @end
 @interface KBRListTrackingRequestParams : KBRRequestParams
 @property NSInteger sessionID;
@@ -1639,11 +1638,7 @@ typedef NS_ENUM (NSInteger, KBRPromptDefault) {
 
 - (void)loadUser:(KBRLoadUserRequestParams *)params completion:(void (^)(NSError *error, KBRUser *user))completion;
 
-- (void)loadUserWithUid:(NSString *)uid completion:(void (^)(NSError *error, KBRUser *user))completion;
-
-- (void)loadPublicKeys:(KBRLoadPublicKeysRequestParams *)params completion:(void (^)(NSError *error, NSArray *items))completion;
-
-- (void)loadPublicKeysWithUid:(NSString *)uid completion:(void (^)(NSError *error, NSArray *items))completion;
+- (void)loadUserWithUid:(NSString *)uid username:(NSString *)username isSelf:(BOOL)isSelf completion:(void (^)(NSError *error, KBRUser *user))completion;
 
 - (void)listTracking:(KBRListTrackingRequestParams *)params completion:(void (^)(NSError *error, NSArray *items))completion;
 

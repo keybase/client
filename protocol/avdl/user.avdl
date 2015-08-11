@@ -45,11 +45,9 @@ protocol user {
 	// if len(uids) > 500, the first 500 will be returned.
 	array<UserSummary> loadUncheckedUserSummaries(int sessionID, array<UID> uids);
 
-	// Load a single user from the server, and verify key family data.
-	User loadUser(int sessionID, UID uid);
-
-	// Load public keys for a user
-	array<PublicKey> loadPublicKeys(int sessionID, UID uid);
+	// Load a single user from the server, and verify key family data. This can
+	// be expensive, thus the single UID argument instead of an array.
+	User loadUser(int sessionID, union{null, UID} uid, string username, boolean isSelf);
 
 	// The list-tracking function get verified data from the tracking statements
 	// in the user's own sigchain.
@@ -72,5 +70,4 @@ protocol user {
 
 	// Search for users who match a given query
 	array<SearchResult> search(int sessionID, string query);
-
 }

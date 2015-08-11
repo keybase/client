@@ -42,16 +42,11 @@ func (v *CmdStatus) Run() (err error) {
 		return err
 	}
 
-	me, err := userCli.LoadUser(keybase1.LoadUserArg{Uid: myUID})
+	me, err := userCli.LoadUser(keybase1.LoadUserArg{Uid: &myUID})
 	if err != nil {
 		return err
 	}
-
-	publicKeys, err := userCli.LoadPublicKeys(keybase1.LoadPublicKeysArg{Uid: myUID})
-	if err != nil {
-		return err
-	}
-	v.printExportedMe(me, publicKeys)
+	v.printExportedMe(me)
 	return nil
 }
 
@@ -65,11 +60,11 @@ func findSubkeys(parentID keybase1.KID, allKeys []keybase1.PublicKey) []keybase1
 	return ret
 }
 
-func (v *CmdStatus) printExportedMe(me keybase1.User, publicKeys []keybase1.PublicKey) error {
+func (v *CmdStatus) printExportedMe(me keybase1.User) error {
 	GlobUI.Printf("Username: %s\n", me.Username)
 	GlobUI.Printf("User ID: %s\n", me.Uid)
 	GlobUI.Printf("Device ID: %s\n", G.Env.GetDeviceID())
-	if len(publicKeys) == 0 {
+	if len(me.PublicKeys) == 0 {
 		GlobUI.Printf("No public keys.\n")
 		return nil
 	}
@@ -77,12 +72,12 @@ func (v *CmdStatus) printExportedMe(me keybase1.User, publicKeys []keybase1.Publ
 	// Keep track of subkeys we print, so that if e.g. a subkey's parent is
 	// nonexistent, we can notice that we skipped it.
 	subkeysShown := make(map[keybase1.KID]bool)
-	for _, key := range publicKeys {
+	for _, key := range me.PublicKeys {
 		if !key.IsSibkey {
 			// Subkeys will be printed under their respective sibkeys.
 			continue
 		}
-		subkeys := findSubkeys(key.KID, publicKeys)
+		subkeys := findSubkeys(key.KID, me.PublicKeys)
 		err := printKey(key, subkeys, 1)
 		if err != nil {
 			return err
@@ -92,7 +87,7 @@ func (v *CmdStatus) printExportedMe(me keybase1.User, publicKeys []keybase1.Publ
 		}
 	}
 	// Print errors for any subkeys we failed to show.
-	for _, key := range publicKeys {
+	for _, key := range me.PublicKeys {
 		if !key.IsSibkey && !subkeysShown[key.KID] {
 			errorStr := fmt.Sprintf("Dangling subkey: %s", key.KID)
 			G.Log.Error(errorStr) // %s in here angers `go vet`
