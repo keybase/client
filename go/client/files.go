@@ -234,7 +234,11 @@ func (u *UnixFilter) Close(inerr error) error {
 	e1 := u.source.Close()
 	e2 := u.sink.Close()
 	e3 := u.sink.HitError(inerr)
-	return libkb.PickFirstError(e1, e2, e3)
+	err := libkb.PickFirstError(e1, e2, e3)
+	if err == io.EOF {
+		return nil
+	}
+	return err
 }
 
 func (u *UnixFilter) ClientFilterOpen() (snk, src keybase1.Stream, err error) {

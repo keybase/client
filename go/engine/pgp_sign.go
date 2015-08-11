@@ -122,7 +122,7 @@ func (p *PGPSignEngine) Run(ctx *Context) (err error) {
 	if dumpTo != nil {
 		written, err = io.Copy(dumpTo, p.arg.Source)
 		if err == nil && written == 0 {
-			err = fmt.Errorf("Empty source file, nothing to sign")
+			p.G().Log.Debug("Empty source file.")
 		}
 	}
 
