@@ -162,7 +162,7 @@ func (k *KBPKIClient) identify(ctx context.Context, arg *engine.IDEngineArg) (
 		return nil, nil, err
 	}
 
-	return libkb.NewUserThin(res.User.Username, keybase1.UID(res.User.Uid)), res.User.PublicKeys, nil
+	return libkb.NewUserThin(res.User.Username, keybase1.UID(res.User.Uid)), res.PublicKeys, nil
 }
 
 func (k *KBPKIClient) identifyByUID(ctx context.Context, uid keybase1.UID) (
