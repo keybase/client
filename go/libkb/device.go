@@ -1,6 +1,7 @@
 package libkb
 
 import (
+	"errors"
 	keybase1 "github.com/keybase/client/protocol/go"
 	jsonw "github.com/keybase/go-jsonw"
 	"strings"
@@ -60,8 +61,39 @@ func NewBackupDevice() (*Device, error) {
 		return nil, err
 	}
 	s := DeviceStatusActive
-	words, _ := SecWordList(BackupKeyNameEntropy)
-	desc := "Account Recover Keys " + strings.Join(words, " ")
+
+	// Load user to find existing device descriptions so we can ensure we don't make a dupe
+	me, err := LoadMe(LoadUserArg{})
+	if err != nil {
+		return nil, err
+	}
+
+	takenNamesSet := make(map[string]bool)
+
+	for _, key := range me.GetComputedKeyFamily().cki.Devices {
+		if key.Type == "backup" {
+			if key.Description != nil {
+				takenNamesSet[*key.Description] = true
+			}
+		}
+	}
+
+	// Try up to 1000 times to get a unique name
+	var i int
+	desc := ""
+	for i = 0; i < 1000; i++ {
+		words, _ := SecWordList(BackupKeyNameEntropy)
+		possible := "Account Recover Keys " + strings.Join(words, " ")
+
+		if takenNamesSet[possible] == false {
+			desc = possible
+			break
+		}
+	}
+
+	if desc == "" {
+		return nil, errors.New("Can't find unique backup key description")
+	}
 
 	d := &Device{
 		ID:          did,
