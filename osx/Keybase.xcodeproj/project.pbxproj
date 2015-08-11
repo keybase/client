@@ -23,6 +23,7 @@
 		001C6B401B24F8630048F086 /* ShareViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 001C6B3F1B24F8630048F086 /* ShareViewController.m */; };
 		002E20DC1B7943BF0093CB0F /* KBPath.h in Headers */ = {isa = PBXBuildFile; fileRef = 002E20DA1B7943BF0093CB0F /* KBPath.h */; };
 		002E20DD1B7943BF0093CB0F /* KBPath.m in Sources */ = {isa = PBXBuildFile; fileRef = 002E20DB1B7943BF0093CB0F /* KBPath.m */; };
+		002E20DF1B7AB1930093CB0F /* kbfuse.bundle in Resources */ = {isa = PBXBuildFile; fileRef = 002E20DE1B7AB1930093CB0F /* kbfuse.bundle */; };
 		002F2B4F1B3B7A0800779FED /* KBProofRepairView.h in Headers */ = {isa = PBXBuildFile; fileRef = 002F2B4D1B3B7A0800779FED /* KBProofRepairView.h */; };
 		002F2B501B3B7A0800779FED /* KBProofRepairView.m in Sources */ = {isa = PBXBuildFile; fileRef = 002F2B4E1B3B7A0800779FED /* KBProofRepairView.m */; };
 		002F2B531B3CB35300779FED /* KBProver.h in Headers */ = {isa = PBXBuildFile; fileRef = 002F2B511B3CB35300779FED /* KBProver.h */; };
@@ -86,7 +87,6 @@
 		0046C0EE1B29114F00C4D06F /* KBNotifications.m in Sources */ = {isa = PBXBuildFile; fileRef = 0046C0EC1B29114F00C4D06F /* KBNotifications.m */; };
 		0046C0EF1B29123C00C4D06F /* KBKit.h in Headers */ = {isa = PBXBuildFile; fileRef = 009E13841B28A93D00C72B28 /* KBKit.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		004EF2CB1B3340ED007822CE /* FontAwesome.otf in CopyFiles */ = {isa = PBXBuildFile; fileRef = 004EF2C81B33409A007822CE /* FontAwesome.otf */; };
-		004F44091B154EBA0021A29D /* kbfuse.bundle in Resources */ = {isa = PBXBuildFile; fileRef = 004F44081B154EBA0021A29D /* kbfuse.bundle */; };
 		0057B0C61AE57A7A00BFB0E7 /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 0057B0C21AE57A7A00BFB0E7 /* main.m */; };
 		0057B0DB1AE57B5900BFB0E7 /* keybase.Helper in Copy Files */ = {isa = PBXBuildFile; fileRef = 0057B0B41AE57A4900BFB0E7 /* keybase.Helper */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
 		0060C7DC1B3B57AF00E70F69 /* KBProofView.h in Headers */ = {isa = PBXBuildFile; fileRef = 0060C7DA1B3B57AF00E70F69 /* KBProofView.h */; };
@@ -493,6 +493,7 @@
 		001C6B3F1B24F8630048F086 /* ShareViewController.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = ShareViewController.m; sourceTree = "<group>"; };
 		002E20DA1B7943BF0093CB0F /* KBPath.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBPath.h; sourceTree = "<group>"; };
 		002E20DB1B7943BF0093CB0F /* KBPath.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBPath.m; sourceTree = "<group>"; };
+		002E20DE1B7AB1930093CB0F /* kbfuse.bundle */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.plug-in"; path = kbfuse.bundle; sourceTree = "<group>"; };
 		002F2B4D1B3B7A0800779FED /* KBProofRepairView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBProofRepairView.h; sourceTree = "<group>"; };
 		002F2B4E1B3B7A0800779FED /* KBProofRepairView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBProofRepairView.m; sourceTree = "<group>"; };
 		002F2B511B3CB35300779FED /* KBProver.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBProver.h; sourceTree = "<group>"; };
@@ -555,7 +556,6 @@
 		004D14961A3BCF1F0083888D /* Podfile */ = {isa = PBXFileReference; lastKnownFileType = text; path = Podfile; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.ruby; };
 		004EF2C81B33409A007822CE /* FontAwesome.otf */ = {isa = PBXFileReference; lastKnownFileType = file; path = FontAwesome.otf; sourceTree = "<group>"; };
 		004F44051B154C1C0021A29D /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
-		004F44081B154EBA0021A29D /* kbfuse.bundle */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.plug-in"; path = kbfuse.bundle; sourceTree = "<group>"; };
 		00566A581A9BAD4800CA236E /* build.sh */ = {isa = PBXFileReference; lastKnownFileType = text.script.sh; path = build.sh; sourceTree = "<group>"; };
 		00566A5B1A9BAD4800CA236E /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
 		0057B0B41AE57A4900BFB0E7 /* keybase.Helper */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = keybase.Helper; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -1529,7 +1529,7 @@
 		00A420511AE6F88E0040CCDC /* Fuse */ = {
 			isa = PBXGroup;
 			children = (
-				004F44081B154EBA0021A29D /* kbfuse.bundle */,
+				002E20DE1B7AB1930093CB0F /* kbfuse.bundle */,
 				004F44051B154C1C0021A29D /* README.md */,
 			);
 			path = Fuse;
@@ -2114,8 +2114,8 @@
 			files = (
 				001392751B06B18A0082DEA8 /* Fuse.icns in Resources */,
 				0013928D1B0BE5DC0082DEA8 /* uninstall_helper in Resources */,
-				004F44091B154EBA0021A29D /* kbfuse.bundle in Resources */,
 				00CC43541A3A9E6C006118A9 /* Images.xcassets in Resources */,
+				002E20DF1B7AB1930093CB0F /* kbfuse.bundle in Resources */,
 				009E167D1B28AF6800C72B28 /* MainMenu.xib in Resources */,
 				001392761B06B18A0082DEA8 /* gpgtools.icns in Resources */,
 			);

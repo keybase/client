@@ -1,23 +1,30 @@
 
 ### Building OSXFuse for Keybase
 
-Checkout the OSXFuse (osxfuse-2.7.6) version:
+Checkout the OSXFuse (osxfuse-2.8.0) version:
 
     git clone --recursive -b osxfuse-2.7.6 git://github.com/osxfuse/osxfuse.git osxfuse
     cd osxfuse
 
-In `build.sh` replace `M_KEXT_ID` with `keybase.osxfuse.filesystems.osxfusefs`.
-
+In `build.sh` replace `M_KEXT_ID` with `keybase.osxfuse.filesystems.kbfuse`.
 In `kext/common/fuse_version.h` replace `OSXFUSE_IDENTIFIER_LITERAL` with `keybase.osxfuse`.
 
+In `kext/common/fuse_param.h` replace `OSXFUSE_BUNDLE_PATH` with `"/Library/Filesystems/kbfuse.fs"`.
+In `kext/common/fuse_param.h` replace `OSXFUSE_DEVICE_BASENAME` to `kbfuse`.
+
 Clean and build the small dist:
+
+    sudo rm -rf /tmp/osxfuse-core-10.10-2.7.6/
 
     sh build.sh -t clean
     sh build.sh -t smalldist
 
+If you get an error compiling you might have to run `brew link gettext --force`.
+(see https://github.com/osxfuse/osxfuse/issues/149)
+
 Create our own bundle from the kext and some support files:
 
-    cd ../Fuse
+    cd keybase/client/osx/Install/Fuse
 
     rm -rf kbfuse.bundle
     mkdir -p kbfuse.bundle

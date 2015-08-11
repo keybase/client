@@ -156,10 +156,16 @@ else
 
     ditto build/Keybase.app /Applications/Keybase.app
 
+  To open the build dir:
+
+    open build
+
   To open the DMG:
 
     open build/Keybase-$APP_VERSION.dmg
 
-  "
+  The build was archived to:
 
+    $ARCHIVE_HOLD_PATH
+  "
 fi
