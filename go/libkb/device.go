@@ -3,6 +3,7 @@ package libkb
 import (
 	keybase1 "github.com/keybase/client/protocol/go"
 	jsonw "github.com/keybase/go-jsonw"
+	"strings"
 )
 
 const (
@@ -59,7 +60,9 @@ func NewBackupDevice() (*Device, error) {
 		return nil, err
 	}
 	s := DeviceStatusActive
-	desc := "Account Recover Keys"
+	words, _ := SecWordList(BackupKeyNameEntropy)
+	desc := "Account Recover Keys " + strings.Join(words, " ")
+
 	d := &Device{
 		ID:          did,
 		Type:        DeviceTypeBackup,
