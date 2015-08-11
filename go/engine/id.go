@@ -12,9 +12,10 @@ type IDEngineArg struct {
 }
 
 type IDRes struct {
-	Outcome    *libkb.IdentifyOutcome
-	User       *libkb.User
-	TrackToken libkb.IdentifyCacheToken
+	Outcome           *libkb.IdentifyOutcome
+	User              *libkb.User
+	TrackToken        libkb.IdentifyCacheToken
+	ComputedKeyFamily *libkb.ComputedKeyFamily
 }
 
 // IDEnginge is the type used by cmd_id Run, daemon id handler.
@@ -68,7 +69,7 @@ func (e *IDEngine) run(ctx *Context) (*IDRes, error) {
 		return nil, err
 	}
 	user := ieng.User()
-	res := &IDRes{Outcome: ieng.Outcome(), User: user, TrackToken: ieng.TrackToken()}
+	res := &IDRes{Outcome: ieng.Outcome(), User: user, TrackToken: ieng.TrackToken(), ComputedKeyFamily: user.GetComputedKeyFamily()}
 
 	if !e.arg.TrackStatement {
 		ctx.IdentifyUI.Finish()
@@ -124,5 +125,6 @@ func (ir *IDRes) Export() *keybase1.IdentifyRes {
 		Outcome:    *((*ir.Outcome).Export()),
 		User:       ir.User.Export(),
 		TrackToken: ir.TrackToken.Export(),
+		PublicKeys: ir.ComputedKeyFamily.Export(),
 	}
 }

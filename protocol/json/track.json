@@ -127,12 +127,6 @@
     }, {
       "name" : "username",
       "type" : "string"
-    }, {
-      "name" : "publicKeys",
-      "type" : {
-        "type" : "array",
-        "items" : "PublicKey"
-      }
     } ]
   }, {
     "type" : "record",
@@ -266,6 +260,12 @@
     "fields" : [ {
       "name" : "user",
       "type" : [ "null", "User" ]
+    }, {
+      "name" : "publicKeys",
+      "type" : {
+        "type" : "array",
+        "items" : "PublicKey"
+      }
     }, {
       "name" : "outcome",
       "type" : "IdentifyOutcome"

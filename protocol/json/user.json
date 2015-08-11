@@ -127,12 +127,6 @@
     }, {
       "name" : "username",
       "type" : "string"
-    }, {
-      "name" : "publicKeys",
-      "type" : {
-        "type" : "array",
-        "items" : "PublicKey"
-      }
     } ]
   }, {
     "type" : "record",
@@ -341,15 +335,22 @@
         "type" : "int"
       }, {
         "name" : "uid",
-        "type" : [ "null", "UID" ]
-      }, {
-        "name" : "username",
-        "type" : "string"
-      }, {
-        "name" : "isSelf",
-        "type" : "boolean"
+        "type" : "UID"
       } ],
       "response" : "User"
+    },
+    "loadPublicKeys" : {
+      "request" : [ {
+        "name" : "sessionID",
+        "type" : "int"
+      }, {
+        "name" : "uid",
+        "type" : "UID"
+      } ],
+      "response" : {
+        "type" : "array",
+        "items" : "PublicKey"
+      }
     },
     "listTracking" : {
       "request" : [ {
