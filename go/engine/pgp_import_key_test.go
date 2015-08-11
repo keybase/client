@@ -23,7 +23,7 @@ func TestPGPImportAndExport(t *testing.T) {
 	// try all four permutations of push options:
 
 	fp, _, key := armorKey(t, tc, u.Email)
-	eng, err := NewPGPKeyImportEngineFromBytes([]byte(key), false, tc.G)
+	eng, err := newPGPKeyImportEngineFromBytesPushSecret([]byte(key), false, tc.G)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -32,7 +32,7 @@ func TestPGPImportAndExport(t *testing.T) {
 	}
 
 	fp, _, key = armorKey(t, tc, u.Email)
-	eng, err = NewPGPKeyImportEngineFromBytes([]byte(key), true, tc.G)
+	eng, err = newPGPKeyImportEngineFromBytesPushSecret([]byte(key), true, tc.G)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -92,7 +92,7 @@ func TestPGPImportPublicKey(t *testing.T) {
 	tc := SetupEngineTest(t, "pgpsave")
 	defer tc.Cleanup()
 
-	_, err := NewPGPKeyImportEngineFromBytes([]byte(pubkeyIssue325), false, tc.G)
+	_, err := NewPGPKeyImportEngineFromBytes([]byte(pubkeyIssue325), tc.G)
 	if err == nil {
 		t.Fatal("import of public key didn't generate error")
 	}
@@ -110,7 +110,7 @@ func TestIssue454(t *testing.T) {
 	CreateAndSignupFakeUser(tc, "login")
 	secui := &libkb.TestSecretUI{Passphrase: "test"}
 	ctx := &Context{LogUI: tc.G.UI.GetLogUI(), SecretUI: secui}
-	eng, err := NewPGPKeyImportEngineFromBytes([]byte(keyIssue454), false, tc.G)
+	eng, err := NewPGPKeyImportEngineFromBytes([]byte(keyIssue454), tc.G)
 	if err != nil {
 		t.Fatal(err)
 	}

@@ -25,10 +25,6 @@ func NewCmdPGPImport(cl *libcmdline.CommandLine) cli.Command {
 				Name:  "i, infile",
 				Usage: "specify an infile (stdin by default)",
 			},
-			cli.BoolFlag{
-				Name:  "push-secret",
-				Usage: "push an encrypted copy of the secret key to the server",
-			},
 		},
 	}
 }
@@ -43,7 +39,6 @@ func (s *CmdPGPImport) ParseArgv(ctx *cli.Context) error {
 	nargs := len(ctx.Args())
 	var err error
 
-	s.arg.PushSecret = ctx.Bool("push-secret")
 	s.infile = ctx.String("infile")
 
 	if nargs > 0 {

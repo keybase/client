@@ -504,9 +504,6 @@
       }, {
         "name" : "key",
         "type" : "bytes"
-      }, {
-        "name" : "pushSecret",
-        "type" : "boolean"
       } ],
       "response" : "null"
     },
@@ -597,9 +594,6 @@
         "type" : "string"
       }, {
         "name" : "allowMulti",
-        "type" : "boolean"
-      }, {
-        "name" : "skipImport",
         "type" : "boolean"
       } ],
       "response" : "null"

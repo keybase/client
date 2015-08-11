@@ -30,13 +30,14 @@ type PGPKeyImportEngineArg struct {
 	Ctx        *libkb.GlobalContext
 	Lks        *libkb.LKSec
 	NoSave     bool
-	PushSecret bool
+	pushSecret bool
 	AllowMulti bool
 	DoExport   bool
 	DoUnlock   bool
 }
 
-func NewPGPKeyImportEngineFromBytes(key []byte, pushPrivate bool, gc *libkb.GlobalContext) (eng *PGPKeyImportEngine, err error) {
+// Internally we allow setting pushPrivate but externally we do not
+func newPGPKeyImportEngineFromBytesPushSecret(key []byte, pushPrivate bool, gc *libkb.GlobalContext) (eng *PGPKeyImportEngine, err error) {
 	var bundle *libkb.PGPKeyBundle
 	if libkb.IsArmored(key) {
 		bundle, err = libkb.ReadPrivateKeyFromString(string(key))
@@ -48,7 +49,7 @@ func NewPGPKeyImportEngineFromBytes(key []byte, pushPrivate bool, gc *libkb.Glob
 	}
 	arg := PGPKeyImportEngineArg{
 		Pregen:     bundle,
-		PushSecret: pushPrivate,
+		pushSecret: pushPrivate,
 		AllowMulti: true,
 		DoExport:   false,
 		DoUnlock:   true,
@@ -56,6 +57,10 @@ func NewPGPKeyImportEngineFromBytes(key []byte, pushPrivate bool, gc *libkb.Glob
 	}
 	eng = NewPGPKeyImportEngine(arg)
 	return
+}
+
+func NewPGPKeyImportEngineFromBytes(key []byte, gc *libkb.GlobalContext) (eng *PGPKeyImportEngine, err error) {
+	return newPGPKeyImportEngineFromBytesPushSecret(key, false, gc)
 }
 
 func (e *PGPKeyImportEngine) loadMe() (err error) {
@@ -277,7 +282,7 @@ func (e *PGPKeyImportEngine) generate(ctx *Context) (err error) {
 		}
 	}
 
-	if e.arg.PushSecret {
+	if e.arg.pushSecret {
 		if err = e.prepareSecretPush(ctx); err != nil {
 			return
 		}

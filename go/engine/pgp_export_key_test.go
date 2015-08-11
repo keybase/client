@@ -16,7 +16,7 @@ func TestPGPExportOptions(t *testing.T) {
 	ctx := &Context{LogUI: tc.G.UI.GetLogUI(), SecretUI: secui}
 
 	fp, kid, key := armorKey(t, tc, u.Email)
-	eng, err := NewPGPKeyImportEngineFromBytes([]byte(key), true, tc.G)
+	eng, err := newPGPKeyImportEngineFromBytesPushSecret([]byte(key), true, tc.G)
 	if err != nil {
 		t.Fatal(err)
 	}
