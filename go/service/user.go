@@ -105,7 +105,7 @@ func (h *UserHandler) LoadPublicKeys(arg keybase1.LoadPublicKeysArg) (keys []key
 	if err != nil {
 		return
 	}
-	publicKeys := []keybase1.PublicKey{}
+	var publicKeys []keybase1.PublicKey
 	if u.GetComputedKeyFamily() != nil {
 		publicKeys = u.GetComputedKeyFamily().Export()
 	}

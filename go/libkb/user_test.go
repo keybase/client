@@ -23,7 +23,7 @@ func TestExportUser(t *testing.T) {
 		t.Fatal("wrong username", exportedAlice.Username)
 	}
 
-	publicKeys := []keybase1.PublicKey{}
+	var publicKeys []keybase1.PublicKey
 	if alice.GetComputedKeyFamily() != nil {
 		publicKeys = alice.GetComputedKeyFamily().Export()
 	}
