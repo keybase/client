@@ -45,7 +45,7 @@ protocol user {
 	// if len(uids) > 500, the first 500 will be returned.
 	array<UserSummary> loadUncheckedUserSummaries(int sessionID, array<UID> uids);
 
-	// Load a single user from the server, and verify key family data.
+	// Load a user from the server.
 	User loadUser(int sessionID, UID uid);
 
 	// Load public keys for a user
@@ -72,5 +72,4 @@ protocol user {
 
 	// Search for users who match a given query
 	array<SearchResult> search(int sessionID, string query);
-
 }
