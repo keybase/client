@@ -226,6 +226,8 @@ func (d *Delegator) post(lctx LoginContext) (err error) {
 
 	if d.isEldest {
 		hargs["is_primary"] = I{Val: 1}
+		hargs["new_eldest"] = B{Val: true}
+		hargs["signing_kid"] = S{Val: d.NewKey.GetKID().String()}
 	} else {
 		hargs["eldest_kid"] = d.EldestKID
 		hargs["signing_kid"] = d.getSigningKID()
