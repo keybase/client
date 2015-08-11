@@ -2074,6 +2074,7 @@ type PGPSelectArg struct {
 	FingerprintQuery string `codec:"fingerprintQuery" json:"fingerprintQuery"`
 	AllowMulti       bool   `codec:"allowMulti" json:"allowMulti"`
 	SkipImport       bool   `codec:"skipImport" json:"skipImport"`
+	OnlyImport       bool   `codec:"onlyImport" json:"onlyImport"`
 }
 
 type PGPUpdateArg struct {

@@ -601,6 +601,9 @@
       }, {
         "name" : "skipImport",
         "type" : "boolean"
+      }, {
+        "name" : "onlyImport",
+        "type" : "boolean"
       } ],
       "response" : "null"
     },

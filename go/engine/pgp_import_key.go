@@ -31,6 +31,7 @@ type PGPKeyImportEngineArg struct {
 	Lks        *libkb.LKSec
 	NoSave     bool
 	PushSecret bool
+	OnlySave   bool
 	AllowMulti bool
 	DoExport   bool
 	DoUnlock   bool
@@ -179,12 +180,14 @@ func (e *PGPKeyImportEngine) Run(ctx *Context) error {
 		return err
 	}
 
-	if err := e.testExisting(); err != nil {
-		return err
-	}
+	if !e.arg.OnlySave {
+		if err := e.testExisting(); err != nil {
+			return err
+		}
 
-	if err := e.loadDelegator(ctx); err != nil {
-		return err
+		if err := e.loadDelegator(ctx); err != nil {
+			return err
+		}
 	}
 
 	if err := e.unlock(ctx); err != nil {
@@ -195,12 +198,14 @@ func (e *PGPKeyImportEngine) Run(ctx *Context) error {
 		return err
 	}
 
-	if err := e.push(ctx); err != nil {
-		return err
-	}
+	if !e.arg.OnlySave {
+		if err := e.push(ctx); err != nil {
+			return err
+		}
 
-	if err := e.exportToGPG(ctx); err != nil {
-		return err
+		if err := e.exportToGPG(ctx); err != nil {
+			return err
+		}
 	}
 
 	return nil

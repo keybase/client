@@ -194,7 +194,12 @@ func (h *PGPHandler) PGPDeletePrimary(sessionID int) (err error) {
 }
 
 func (h *PGPHandler) PGPSelect(sarg keybase1.PGPSelectArg) error {
-	arg := engine.GPGImportKeyArg{Query: sarg.FingerprintQuery, AllowMulti: sarg.AllowMulti, SkipImport: sarg.SkipImport}
+	arg := engine.GPGImportKeyArg{
+		Query:      sarg.FingerprintQuery,
+		AllowMulti: sarg.AllowMulti,
+		SkipImport: sarg.SkipImport,
+		OnlyImport: sarg.OnlyImport,
+	}
 	gpg := engine.NewGPGImportKeyEngine(&arg, G)
 	ctx := &engine.Context{
 		GPGUI:    h.getGPGUI(sarg.SessionID),

@@ -14,6 +14,7 @@ type CmdPGPSelect struct {
 	query      string
 	multi      bool
 	skipImport bool
+	onlyImport bool
 }
 
 func (v *CmdPGPSelect) ParseArgv(ctx *cli.Context) (err error) {
@@ -25,6 +26,10 @@ func (v *CmdPGPSelect) ParseArgv(ctx *cli.Context) (err error) {
 	if err == nil {
 		v.multi = ctx.Bool("multi")
 		v.skipImport = ctx.Bool("no-import")
+		v.onlyImport = ctx.Bool("only-import")
+		if v.onlyImport && v.skipImport {
+			err = fmt.Errorf("Can specify only one of --no-import OR --only-import")
+		}
 	}
 	return err
 }
@@ -43,7 +48,12 @@ func (v *CmdPGPSelect) Run() error {
 		return err
 	}
 
-	err = c.PGPSelect(keybase1.PGPSelectArg{FingerprintQuery: v.query, AllowMulti: v.multi, SkipImport: v.skipImport})
+	err = c.PGPSelect(keybase1.PGPSelectArg{
+		FingerprintQuery: v.query,
+		AllowMulti:       v.multi,
+		SkipImport:       v.skipImport,
+		OnlyImport:       v.onlyImport,
+	})
 	PGPMultiWarn(err)
 	return err
 }
@@ -63,7 +73,11 @@ func NewCmdPGPSelect(cl *libcmdline.CommandLine) cli.Command {
 			},
 			cli.BoolFlag{
 				Name:  "no-import",
-				Usage: "Don't import private key to Keybase's private keychain",
+				Usage: "Don't import private key to local Keybase's private keychain",
+			},
+			cli.BoolFlag{
+				Name:  "only-import",
+				Usage: "only import the secret key into local Keybase private keycahin",
 			},
 		},
 	}
