@@ -10,7 +10,7 @@ SOURCES_PREAMBLE="\
 ### THIS FILE IS AUTOMATICALLY CONFIGURED ###
 # Modifications may be lost.
 "
-REPOCONFIG="deb http://dist.keybase.io/deb/repo stable main"
+REPOCONFIG="deb http://dist.keybase.io/linux/deb/repo stable main"
 
 APT_GET="`which apt-get 2> /dev/null`"
 APT_CONFIG="`which apt-config 2> /dev/null`"
