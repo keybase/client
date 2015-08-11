@@ -101,8 +101,8 @@ func (c *CmdPGPEncrypt) Run() error {
 	arg := keybase1.PGPEncryptArg{Source: src, Sink: snk, Opts: opts}
 	err = cli.PGPEncrypt(arg)
 
-	c.Close(err)
-	return err
+	cerr := c.Close(err)
+	return libkb.PickFirstError(err, cerr)
 }
 
 func (c *CmdPGPEncrypt) ParseArgv(ctx *cli.Context) error {

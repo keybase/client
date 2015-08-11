@@ -82,9 +82,9 @@ func (c *CmdPGPDecrypt) Run() error {
 	arg := keybase1.PGPDecryptArg{Source: src, Sink: snk, Opts: opts}
 	_, err = cli.PGPDecrypt(arg)
 
-	c.Close(err)
+	cerr := c.Close(err)
 
-	return err
+	return libkb.PickFirstError(err, cerr)
 }
 
 func (c *CmdPGPDecrypt) ParseArgv(ctx *cli.Context) error {

@@ -107,9 +107,6 @@ func (s *StdoutSink) Open() error {
 }
 
 func (s *StdoutSink) Close() error {
-	if !s.open {
-		return io.EOF
-	}
 	s.open = false
 	return nil
 }
@@ -234,11 +231,7 @@ func (u *UnixFilter) Close(inerr error) error {
 	e1 := u.source.Close()
 	e2 := u.sink.Close()
 	e3 := u.sink.HitError(inerr)
-	err := libkb.PickFirstError(e1, e2, e3)
-	if err == io.EOF {
-		return nil
-	}
-	return err
+	return libkb.PickFirstError(e1, e2, e3)
 }
 
 func (u *UnixFilter) ClientFilterOpen() (snk, src keybase1.Stream, err error) {

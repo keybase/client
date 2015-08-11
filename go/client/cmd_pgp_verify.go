@@ -83,8 +83,8 @@ func (c *CmdPGPVerify) Run() error {
 	}
 	_, err = cli.PGPVerify(arg)
 
-	c.Close(err)
-	return err
+	cerr := c.Close(err)
+	return libkb.PickFirstError(err, cerr)
 }
 
 func (c *CmdPGPVerify) ParseArgv(ctx *cli.Context) error {
