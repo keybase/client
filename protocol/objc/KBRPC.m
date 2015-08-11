@@ -4183,6 +4183,7 @@
 @end
 
 @implementation KBRIdentifyRes
++ (NSValueTransformer *)publicKeysJSONTransformer { return [MTLJSONAdapter arrayTransformerWithModelClass:KBRPublicKey.class]; }
 @end
 
 @implementation KBRRemoteProof

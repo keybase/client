@@ -261,6 +261,12 @@
       "name" : "user",
       "type" : [ "null", "User" ]
     }, {
+      "name" : "publicKeys",
+      "type" : {
+        "type" : "array",
+        "items" : "PublicKey"
+      }
+    }, {
       "name" : "outcome",
       "type" : "IdentifyOutcome"
     }, {

@@ -985,6 +985,7 @@ type IdentifyOutcome struct {
 
 type IdentifyRes struct {
 	User       *User           `codec:"user,omitempty" json:"user,omitempty"`
+	PublicKeys []PublicKey     `codec:"publicKeys" json:"publicKeys"`
 	Outcome    IdentifyOutcome `codec:"outcome" json:"outcome"`
 	TrackToken string          `codec:"trackToken" json:"trackToken"`
 }

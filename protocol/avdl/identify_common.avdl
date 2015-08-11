@@ -67,6 +67,7 @@ protocol identifyCommon {
 
 	record IdentifyRes {
 		union { null, User } user;
+		array<PublicKey> publicKeys;
 		IdentifyOutcome outcome;
 		string trackToken;
 	}

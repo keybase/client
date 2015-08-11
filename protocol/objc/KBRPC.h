@@ -249,6 +249,7 @@ typedef NS_ENUM (NSInteger, KBRTrackStatus) {
 
 @interface KBRIdentifyRes : KBRObject
 @property KBRUser *user;
+@property NSArray *publicKeys; /*of KBRPublicKey*/
 @property KBRIdentifyOutcome *outcome;
 @property NSString *trackToken;
 @end
