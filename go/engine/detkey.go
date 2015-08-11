@@ -61,30 +61,44 @@ func (d *DetKeyEngine) EncKey() libkb.GenericKey {
 }
 
 // Run runs the detkey engine.
-func (d *DetKeyEngine) Run(ctx *Context) error {
+func (d *DetKeyEngine) Run(ctx *Context) (err error) {
 	d.dev = libkb.NewWebDevice()
 
-	if err := d.eddsa(ctx, d.arg.PPStream); err != nil {
-		return fmt.Errorf("eddsa error: %s", err)
+	delegators := []libkb.Delegator{}
+
+	var delegator libkb.Delegator
+	if delegator, err = d.eddsa(ctx, d.arg.PPStream); err != nil {
+		err = fmt.Errorf("eddsa error: %s", err)
+		return
 	}
+
+	delegators = append(delegators, delegator)
 
 	// turn off self proof
 	d.arg.SelfProof = false
 
-	if err := d.dh(ctx, d.arg.PPStream.DHSeed()); err != nil {
-		return fmt.Errorf("dh error: %s", err)
+	if delegator, err = d.dh(ctx, d.arg.PPStream.DHSeed()); err != nil {
+		err = fmt.Errorf("dh error: %s", err)
+		return
 	}
-	return nil
+
+	delegators = append(delegators, delegator)
+
+	err = libkb.DelegatorAggregator(ctx.LoginContext, delegators)
+	return
 }
 
-func (d *DetKeyEngine) eddsa(ctx *Context, tpk *libkb.PassphraseStream) error {
-	serverHalf, err := libkb.RandBytes(len(tpk.EdDSASeed()))
+func (d *DetKeyEngine) eddsa(ctx *Context, tpk *libkb.PassphraseStream) (delegator libkb.Delegator, err error) {
+	var serverHalf []byte
+	serverHalf, err = libkb.RandBytes(len(tpk.EdDSASeed()))
 	if err != nil {
-		return err
+		return
 	}
-	key, err := GenSigningDetKey(tpk, serverHalf)
+
+	var key libkb.GenericKey
+	key, err = GenSigningDetKey(tpk, serverHalf)
 	if err != nil {
-		return err
+		return
 	}
 
 	var signingKey libkb.GenericKey
@@ -94,7 +108,8 @@ func (d *DetKeyEngine) eddsa(ctx *Context, tpk *libkb.PassphraseStream) error {
 	}
 	d.newEddsaKey = key
 
-	return d.push(ctx, newPusher(key, signingKey, serverHalf).EdDSA())
+	delegator, err = d.push(ctx, newPusher(key, signingKey, serverHalf).EdDSA())
+	return
 }
 
 func GenSigningDetKey(tpk *libkb.PassphraseStream, serverHalf []byte) (gkey libkb.GenericKey, err error) {
@@ -115,18 +130,24 @@ func GenSigningDetKey(tpk *libkb.PassphraseStream, serverHalf []byte) (gkey libk
 	return key, nil
 }
 
-func (d *DetKeyEngine) dh(ctx *Context, seed []byte) error {
-	serverHalf, err := libkb.RandBytes(len(seed))
+func (d *DetKeyEngine) dh(ctx *Context, seed []byte) (delegator libkb.Delegator, err error) {
+	var serverHalf []byte
+	serverHalf, err = libkb.RandBytes(len(seed))
 	if err != nil {
-		return err
+		return
 	}
-	xseed, err := serverSeed(seed, serverHalf)
+
+	var xseed []byte
+	xseed, err = serverSeed(seed, serverHalf)
 	if err != nil {
-		return err
+		return
 	}
-	pub, priv, err := box.GenerateKey(bytes.NewBuffer(xseed))
+
+	var pub *[32]byte
+	var priv *[32]byte
+	pub, priv, err = box.GenerateKey(bytes.NewBuffer(xseed))
 	if err != nil {
-		return err
+		return
 	}
 
 	var key libkb.NaclDHKeyPair
@@ -136,14 +157,17 @@ func (d *DetKeyEngine) dh(ctx *Context, seed []byte) error {
 
 	d.dhKey = key
 
-	return d.push(ctx, newPusher(key, d.newEddsaKey, serverHalf).DH())
+	delegator, err = d.push(ctx, newPusher(key, d.newEddsaKey, serverHalf).DH())
+	return
 }
 
-func (d *DetKeyEngine) push(ctx *Context, p *pusher) error {
+func (d *DetKeyEngine) push(ctx *Context, p *pusher) (delegator libkb.Delegator, err error) {
 	if d.arg.SkipPush {
-		return nil
+		return
 	}
-	return p.push(ctx, d.arg.Me, d.dev)
+
+	delegator, err = p.push(ctx, d.arg.Me, d.dev)
+	return
 }
 
 type pusher struct {
@@ -174,12 +198,13 @@ func (p *pusher) DH() *pusher {
 	return p
 }
 
-func (p *pusher) push(ctx *Context, me *libkb.User, device *libkb.Device) error {
+func (p *pusher) push(ctx *Context, me *libkb.User, device *libkb.Device) (delegator libkb.Delegator, err error) {
 	if device == nil {
-		return libkb.ErrCannotGenerateDevice
+		err = libkb.ErrCannotGenerateDevice
+		return
 	}
 
-	g := libkb.Delegator{
+	delegator = libkb.Delegator{
 		NewKey:      p.key,
 		Sibkey:      p.sibkey,
 		Expire:      p.expire,
@@ -189,7 +214,7 @@ func (p *pusher) push(ctx *Context, me *libkb.User, device *libkb.Device) error 
 		Device:      device,
 	}
 
-	return g.Run(ctx.LoginContext)
+	return
 }
 
 func serverSeed(seed, serverHalf []byte) (newseed []byte, err error) {
