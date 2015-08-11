@@ -31,7 +31,10 @@ build_one_architecture() {
     > "$dest/build/DEBIAN/control"
   cp "$here/postinst" "$dest/build/DEBIAN/"
 
-  dpkg-deb --build "$dest/build" "$dest/keybase-${version}-${debian_arch}.deb"
+  dpkg-deb --build "$dest/build" "$dest/keybase.deb"
+
+  # Write the version number to a file for the caller's convenience.
+  echo -n "$version" > "$dest/VERSION"
 }
 
 # Note that Go names the x86 architecture differently than Debian does, which
