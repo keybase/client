@@ -1251,14 +1251,14 @@
 }
 
 - (void)pgpSelect:(KBRPgpSelectRequestParams *)params completion:(void (^)(NSError *error))completion {
-  NSDictionary *rparams = @{@"fingerprintQuery": KBRValue(params.fingerprintQuery), @"allowMulti": @(params.allowMulti), @"skipImport": @(params.skipImport)};
+  NSDictionary *rparams = @{@"fingerprintQuery": KBRValue(params.fingerprintQuery), @"allowMulti": @(params.allowMulti), @"skipImport": @(params.skipImport), @"onlyImport": @(params.onlyImport)};
   [self.client sendRequestWithMethod:@"keybase.1.pgp.pgpSelect" params:rparams sessionId:self.sessionId completion:^(NSError *error, id retval) {
     completion(error);
   }];
 }
 
-- (void)pgpSelectWithFingerprintQuery:(NSString *)fingerprintQuery allowMulti:(BOOL)allowMulti skipImport:(BOOL)skipImport completion:(void (^)(NSError *error))completion {
-  NSDictionary *rparams = @{@"fingerprintQuery": KBRValue(fingerprintQuery), @"allowMulti": @(allowMulti), @"skipImport": @(skipImport)};
+- (void)pgpSelectWithFingerprintQuery:(NSString *)fingerprintQuery allowMulti:(BOOL)allowMulti skipImport:(BOOL)skipImport onlyImport:(BOOL)onlyImport completion:(void (^)(NSError *error))completion {
+  NSDictionary *rparams = @{@"fingerprintQuery": KBRValue(fingerprintQuery), @"allowMulti": @(allowMulti), @"skipImport": @(skipImport), @"onlyImport": @(onlyImport)};
   [self.client sendRequestWithMethod:@"keybase.1.pgp.pgpSelect" params:rparams sessionId:self.sessionId completion:^(NSError *error, id retval) {
     completion(error);
   }];
@@ -3370,6 +3370,7 @@
     self.fingerprintQuery = params[0][@"fingerprintQuery"];
     self.allowMulti = [params[0][@"allowMulti"] boolValue];
     self.skipImport = [params[0][@"skipImport"] boolValue];
+    self.onlyImport = [params[0][@"onlyImport"] boolValue];
   }
   return self;
 }

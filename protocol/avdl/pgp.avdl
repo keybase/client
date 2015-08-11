@@ -93,7 +93,7 @@ protocol pgp {
 	void pgpDeletePrimary(int sessionID);
 
 	// select an existing key and add to kb
-	void pgpSelect(int sessionID, string fingerprintQuery, boolean allowMulti, boolean skipImport);
+	void pgpSelect(int sessionID, string fingerprintQuery, boolean allowMulti, boolean skipImport, boolean onlyImport);
 
 	// push updated key(s) to the server
 	void pgpUpdate(int sessionID, boolean all, array<string> fingerprints);

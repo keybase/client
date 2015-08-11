@@ -19,6 +19,7 @@ type GPGImportKeyArg struct {
 	Signer     libkb.GenericKey
 	AllowMulti bool
 	SkipImport bool
+	OnlyImport bool
 	Me         *libkb.User
 	Lks        *libkb.LKSec
 }
@@ -88,8 +89,10 @@ func (e *GPGImportKeyEngine) Run(ctx *Context) (err error) {
 		}
 	}
 
-	if err = PGPCheckMulti(me, e.arg.AllowMulti); err != nil {
-		return err
+	if !e.arg.OnlyImport {
+		if err = PGPCheckMulti(me, e.arg.AllowMulti); err != nil {
+			return err
+		}
 	}
 
 	if _, err = gpg.Configure(); err != nil {
@@ -151,6 +154,7 @@ func (e *GPGImportKeyEngine) Run(ctx *Context) (err error) {
 		Me:         me,
 		AllowMulti: e.arg.AllowMulti,
 		NoSave:     e.arg.SkipImport,
+		OnlySave:   e.arg.OnlyImport,
 		Lks:        e.arg.Lks,
 	})
 
