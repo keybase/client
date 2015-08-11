@@ -9,7 +9,17 @@ import (
 	keybase1 "github.com/keybase/client/protocol/go"
 )
 
-// Test login switching between two different users.
+type signTest struct {
+	name  string
+	input string
+}
+
+var signTests = []signTest{
+	{name: "john hancock", input: "When in the Course of human events, it becomes necessary for one people to dissolve the political bands"},
+	{name: "empty", input: ""},
+}
+
+// Test pgp sign attached.
 func TestPGPSign(t *testing.T) {
 	tc := SetupEngineTest(t, "pgp_sign")
 	defer tc.Cleanup()
@@ -29,34 +39,34 @@ func TestPGPSign(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	var sink bytes.Buffer
+	for _, test := range signTests {
+		var sink bytes.Buffer
 
-	// Put your John Hancock on this!
-	msg := "When in the Course of human events, it becomes necessary for one people to dissolve the political bands"
+		earg := PGPSignArg{
+			Sink:   libkb.NopWriteCloser{W: &sink},
+			Source: ioutil.NopCloser(bytes.NewBufferString(test.input)),
+			Opts: keybase1.PGPSignOptions{
+				Mode: keybase1.SignMode_ATTACHED,
+			},
+		}
 
-	earg := PGPSignArg{
-		Sink:   libkb.NopWriteCloser{W: &sink},
-		Source: ioutil.NopCloser(bytes.NewBufferString(msg)),
-		Opts: keybase1.PGPSignOptions{
-			Mode: keybase1.SignMode_ATTACHED,
-		},
+		eng := NewPGPSignEngine(&earg, tc.G)
+		ctx := Context{
+			SecretUI: fu.NewSecretUI(),
+		}
+
+		err = RunEngine(eng, &ctx)
+		if err != nil {
+			t.Errorf("%s: run error: %s", test.name, err)
+			continue
+		}
+
+		sig := sink.String()
+
+		_, err = key.VerifyString(sig, []byte(test.input))
+		if err != nil {
+			t.Errorf("%s: verify error: %s", test.name, err)
+			continue
+		}
 	}
-
-	eng := NewPGPSignEngine(&earg, tc.G)
-	ctx := Context{
-		SecretUI: fu.NewSecretUI(),
-	}
-
-	err = RunEngine(eng, &ctx)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	sig := sink.String()
-
-	_, err = key.VerifyString(sig, []byte(msg))
-	if err != nil {
-		t.Fatal(err)
-	}
-
 }

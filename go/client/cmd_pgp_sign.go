@@ -114,7 +114,8 @@ func (s *CmdPGPSign) Run() (err error) {
 		arg := keybase1.PGPSignArg{Source: src, Sink: snk, Opts: s.opts}
 		err = cli.PGPSign(arg)
 	}
-	return s.Close(err)
+	cerr := s.Close(err)
+	return libkb.PickFirstError(err, cerr)
 }
 
 func (s *CmdPGPSign) GetUsage() libkb.Usage {
