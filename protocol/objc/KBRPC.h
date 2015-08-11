@@ -325,7 +325,6 @@ typedef NS_ENUM (NSInteger, KBRDeviceSignerKind) {
 typedef NS_ENUM (NSInteger, KBRSelectSignerAction) {
 	KBRSelectSignerActionSign = 0,
 	KBRSelectSignerActionCancel = 1,
-	KBRSelectSignerActionResetAccount = 2,
 };
 
 @interface KBRDeviceSigner : KBRObject

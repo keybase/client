@@ -167,7 +167,7 @@
   }, {
     "type" : "enum",
     "name" : "SelectSignerAction",
-    "symbols" : [ "SIGN_0", "CANCEL_1", "RESET_ACCOUNT_2" ]
+    "symbols" : [ "SIGN_0", "CANCEL_1" ]
   }, {
     "type" : "record",
     "name" : "DeviceSigner",

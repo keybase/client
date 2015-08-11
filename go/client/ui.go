@@ -508,7 +508,6 @@ func (d LocksmithUI) SelectSigner(arg keybase1.SelectSignerArg) (res keybase1.Se
 	}
 
 	fmt.Fprintf(w, "(999) ...nevermind, I'll add this device later\t(logout)\n")
-	fmt.Fprintf(w, "(666) ...I have lost all those keys and need to reset my account\t\n")
 
 	w.Flush()
 
@@ -522,12 +521,6 @@ func (d LocksmithUI) SelectSigner(arg keybase1.SelectSignerArg) (res keybase1.Se
 	}
 
 	if ret == 999 {
-		res.Action = keybase1.SelectSignerAction_CANCEL
-		return res, nil
-	}
-
-	if ret == 666 {
-		G.Log.Warning("account reset not yet implemented.")
 		res.Action = keybase1.SelectSignerAction_CANCEL
 		return res, nil
 	}

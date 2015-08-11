@@ -1298,9 +1298,8 @@ const (
 type SelectSignerAction int
 
 const (
-	SelectSignerAction_SIGN          SelectSignerAction = 0
-	SelectSignerAction_CANCEL        SelectSignerAction = 1
-	SelectSignerAction_RESET_ACCOUNT SelectSignerAction = 2
+	SelectSignerAction_SIGN   SelectSignerAction = 0
+	SelectSignerAction_CANCEL SelectSignerAction = 1
 )
 
 type DeviceSigner struct {

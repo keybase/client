@@ -372,10 +372,6 @@ func (d *Locksmith) deviceSign(ctx *Context, withPGPOption bool) error {
 			// XXX another way to bail besides returning an error?
 			return fmt.Errorf("cancel requested by user")
 		}
-		if res.Action == keybase1.SelectSignerAction_RESET_ACCOUNT {
-			ctx.LogUI.Info("reset account action not yet implemented")
-			return ErrNotYetImplemented
-		}
 
 		if res.Action != keybase1.SelectSignerAction_SIGN {
 			return fmt.Errorf("unknown action value: %d", res.Action)

@@ -10,8 +10,7 @@ protocol locksmithUi {
 
 	enum SelectSignerAction {
 		SIGN_0,
-		CANCEL_1,
-		RESET_ACCOUNT_2
+		CANCEL_1
 	}
 
 	record DeviceSigner {
