@@ -233,3 +233,11 @@ func TestIssue280(t *testing.T) {
 
 	return
 }
+
+func TestSignupGeneratesBackupKey(t *testing.T) {
+	tc := SetupEngineTest(t, "signup")
+	defer tc.Cleanup()
+
+	fu := CreateAndSignupFakeUser(tc, "se")
+	hasOneBackupDev(t, fu)
+}
