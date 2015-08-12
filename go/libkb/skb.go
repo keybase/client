@@ -209,7 +209,7 @@ func (s *SKB) unverifiedPassphraseStream(lctx LoginContext, passphrase string) (
 			salt, err = a.LoginSession().Salt()
 		}, "skb - salt")
 		if aerr != nil {
-			return nil, nil, err
+			return nil, nil, aerr
 		}
 	}
 	if err != nil {
