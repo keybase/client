@@ -190,7 +190,7 @@ func (ss *SecretSyncer) dumpDevices() {
 
 // IsDeviceNameTaken returns true if a desktop or mobile device is
 // using a name already.
-func (ss *SecretSyncer) IsDeviceNameTaken(name string, includeTypesSet map[string]bool) bool {
+func (ss *SecretSyncer) IsDeviceNameTaken(name string, includeTypesSet *map[string]bool) bool {
 	devs, err := ss.ActiveDevices(includeTypesSet)
 	if err != nil {
 		return false
@@ -205,7 +205,7 @@ func (ss *SecretSyncer) IsDeviceNameTaken(name string, includeTypesSet map[strin
 
 // HasActiveDevice returns true if there is an active desktop or
 // mobile device available.
-func (ss *SecretSyncer) HasActiveDevice(includeTypesSet map[string]bool) bool {
+func (ss *SecretSyncer) HasActiveDevice(includeTypesSet *map[string]bool) bool {
 	devs, err := ss.ActiveDevices(includeTypesSet)
 	if err != nil {
 		return false
@@ -214,14 +214,16 @@ func (ss *SecretSyncer) HasActiveDevice(includeTypesSet map[string]bool) bool {
 }
 
 // ActiveDevices returns all the active desktop and mobile devices.
-func (ss *SecretSyncer) ActiveDevices(includeTypesSet map[string]bool) (DeviceKeyMap, error) {
+func (ss *SecretSyncer) ActiveDevices(includeTypesSet *map[string]bool) (DeviceKeyMap, error) {
 	if ss.keys == nil {
 		return nil, fmt.Errorf("no keys")
 	}
 
-	if len(includeTypesSet) == 0 {
-		includeTypesSet[DeviceTypeDesktop] = true
-		includeTypesSet[DeviceTypeMobile] = true
+	if includeTypesSet == nil {
+		includeTypesSet = &map[string]bool{
+			DeviceTypeDesktop: true,
+			DeviceTypeMobile:  true,
+		}
 	}
 
 	res := make(DeviceKeyMap)
@@ -230,7 +232,7 @@ func (ss *SecretSyncer) ActiveDevices(includeTypesSet map[string]bool) (DeviceKe
 			continue
 		}
 
-		if includeTypesSet[v.Type] {
+		if (*includeTypesSet)[v.Type] {
 			res[k] = v
 		}
 	}

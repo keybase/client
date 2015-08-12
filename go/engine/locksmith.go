@@ -321,10 +321,10 @@ func (d *Locksmith) deviceSign(ctx *Context, withPGPOption bool) error {
 
 	var devs libkb.DeviceKeyMap
 	if ctx.LoginContext != nil {
-		devs, err = ctx.LoginContext.SecretSyncer().ActiveDevices(map[string]bool{})
+		devs, err = ctx.LoginContext.SecretSyncer().ActiveDevices(nil)
 	} else {
 		aerr := d.G().LoginState().SecretSyncer(func(ss *libkb.SecretSyncer) {
-			devs, err = ss.ActiveDevices(map[string]bool{})
+			devs, err = ss.ActiveDevices(nil)
 		}, "Locksmith - deviceSign - ActiveDevices")
 		if aerr != nil {
 			return aerr
@@ -676,10 +676,10 @@ func (d *Locksmith) deviceName(ctx *Context) (string, error) {
 func (d *Locksmith) hasActiveDevice(ctx *Context) bool {
 	var res bool
 	if ctx.LoginContext != nil {
-		res = ctx.LoginContext.SecretSyncer().HasActiveDevice(map[string]bool{})
+		res = ctx.LoginContext.SecretSyncer().HasActiveDevice(nil)
 	} else {
 		err := d.G().LoginState().SecretSyncer(func(ss *libkb.SecretSyncer) {
-			res = ss.HasActiveDevice(map[string]bool{})
+			res = ss.HasActiveDevice(nil)
 		}, "Locksmith - hasActiveDevice")
 		if err != nil {
 			d.G().Log.Warning("secret syncer error in hasActiveDevices: %s", err)
@@ -690,12 +690,12 @@ func (d *Locksmith) hasActiveDevice(ctx *Context) bool {
 
 func (d *Locksmith) isDeviceNameTaken(ctx *Context, name string) bool {
 	if ctx.LoginContext != nil {
-		return ctx.LoginContext.SecretSyncer().IsDeviceNameTaken(name, map[string]bool{})
+		return ctx.LoginContext.SecretSyncer().IsDeviceNameTaken(name, nil)
 	}
 
 	var taken bool
 	err := d.G().LoginState().SecretSyncer(func(ss *libkb.SecretSyncer) {
-		taken = ss.IsDeviceNameTaken(name, map[string]bool{})
+		taken = ss.IsDeviceNameTaken(name, nil)
 	}, "Locksmith - isDeviceNameTaken")
 	if err != nil {
 		d.G().Log.Warning("secret syncer error in isDeviceNameTaken: %s", err)

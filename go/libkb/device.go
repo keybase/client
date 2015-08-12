@@ -41,7 +41,7 @@ func (d *Device) IsWeb() bool {
 	return d.Type == DeviceTypeWeb
 }
 
-func genUniqueDeviceName(types map[string]bool, prefix string, entropy int, retries int) string {
+func genUniqueDeviceName(types *map[string]bool, prefix string, entropy int, retries int) string {
 	if retries <= 0 {
 		return ""
 	}
@@ -94,7 +94,7 @@ func NewBackupDevice() (*Device, error) {
 		return nil, err
 	}
 	s := DeviceStatusActive
-	desc := genUniqueDeviceName(map[string]bool{DeviceTypeBackup: true}, "Account Recover Keys", BackupKeyNameEntropy, 100)
+	desc := genUniqueDeviceName(&map[string]bool{DeviceTypeBackup: true}, "Account Recover Keys", BackupKeyNameEntropy, 100)
 
 	if desc == "" {
 		return nil, errors.New("Can't find unique backup key description")
