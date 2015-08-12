@@ -2549,6 +2549,7 @@ type RevokeKeyArg struct {
 type RevokeDeviceArg struct {
 	SessionID int      `codec:"sessionID" json:"sessionID"`
 	DeviceID  DeviceID `codec:"deviceID" json:"deviceID"`
+	Force     bool     `codec:"force" json:"force"`
 }
 
 type RevokeSigsArg struct {

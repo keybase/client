@@ -966,6 +966,7 @@ typedef NS_ENUM (NSInteger, KBRPromptDefault) {
 @interface KBRRevokeDeviceRequestParams : KBRRequestParams
 @property NSInteger sessionID;
 @property NSString *deviceID;
+@property BOOL force;
 @end
 @interface KBRRevokeSigsRequestParams : KBRRequestParams
 @property NSInteger sessionID;
@@ -1520,7 +1521,7 @@ typedef NS_ENUM (NSInteger, KBRPromptDefault) {
 
 - (void)revokeDevice:(KBRRevokeDeviceRequestParams *)params completion:(void (^)(NSError *error))completion;
 
-- (void)revokeDeviceWithDeviceID:(NSString *)deviceID completion:(void (^)(NSError *error))completion;
+- (void)revokeDeviceWithDeviceID:(NSString *)deviceID force:(BOOL)force completion:(void (^)(NSError *error))completion;
 
 - (void)revokeSigs:(KBRRevokeSigsRequestParams *)params completion:(void (^)(NSError *error))completion;
 

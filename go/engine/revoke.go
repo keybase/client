@@ -19,12 +19,19 @@ type RevokeEngine struct {
 	deviceID  keybase1.DeviceID
 	kidString string
 	mode      RevokeMode
+	force     bool
 }
 
-func NewRevokeDeviceEngine(id keybase1.DeviceID, g *libkb.GlobalContext) *RevokeEngine {
+type RevokeDeviceEngineArgs struct {
+	ID    keybase1.DeviceID
+	Force bool
+}
+
+func NewRevokeDeviceEngine(args RevokeDeviceEngineArgs, g *libkb.GlobalContext) *RevokeEngine {
 	return &RevokeEngine{
-		deviceID:     id,
+		deviceID:     args.ID,
 		mode:         RevokeDevice,
+		force:        args.Force,
 		Contextified: libkb.NewContextified(g),
 	}
 }
@@ -60,10 +67,6 @@ func (e *RevokeEngine) SubConsumers() []libkb.UIConsumer {
 
 func (e *RevokeEngine) getKIDsToRevoke(me *libkb.User) ([]keybase1.KID, error) {
 	if e.mode == RevokeDevice {
-		currentDevice := e.G().Env.GetDeviceID()
-		if e.deviceID == currentDevice {
-			return nil, fmt.Errorf("Can't revoke the current device.")
-		}
 		deviceKeys, err := me.GetComputedKeyFamily().GetAllActiveKeysForDevice(e.deviceID)
 		if err != nil {
 			return nil, err
@@ -90,6 +93,15 @@ func (e *RevokeEngine) getKIDsToRevoke(me *libkb.User) ([]keybase1.KID, error) {
 }
 
 func (e *RevokeEngine) Run(ctx *Context) error {
+	currentDevice := e.G().Env.GetDeviceID()
+	var deviceID keybase1.DeviceID
+	if e.mode == RevokeDevice {
+		deviceID = e.deviceID
+		if e.deviceID == currentDevice && !e.force {
+			return fmt.Errorf("Can't revoke the current device.")
+		}
+	}
+
 	me, err := libkb.LoadMe(libkb.LoadUserArg{})
 	if err != nil {
 		return err
@@ -115,10 +127,6 @@ func (e *RevokeEngine) Run(ctx *Context) error {
 		return err
 	}
 
-	var deviceID keybase1.DeviceID
-	if e.mode == RevokeDevice {
-		deviceID = e.deviceID
-	}
 	proof, err := me.RevokeKeysProof(sigKey, kidsToRevoke, deviceID)
 	if err != nil {
 		return err

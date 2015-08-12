@@ -11,7 +11,8 @@ import (
 )
 
 type CmdDeviceRemove struct {
-	id keybase1.DeviceID
+	id    keybase1.DeviceID
+	force bool
 }
 
 func (c *CmdDeviceRemove) ParseArgv(ctx *cli.Context) error {
@@ -23,6 +24,7 @@ func (c *CmdDeviceRemove) ParseArgv(ctx *cli.Context) error {
 		return err
 	}
 	c.id = id
+	c.force = ctx.Bool("force")
 	return nil
 }
 
@@ -41,6 +43,7 @@ func (c *CmdDeviceRemove) Run() (err error) {
 	}
 
 	return cli.RevokeDevice(keybase1.RevokeDeviceArg{
+		Force:    c.force,
 		DeviceID: c.id,
 	})
 }
@@ -50,7 +53,12 @@ func NewCmdDeviceRemove(cl *libcmdline.CommandLine) cli.Command {
 		Name:        "remove",
 		Usage:       "keybase device remove <id>",
 		Description: "remove a device from your account, and revoke its keys",
-		Flags:       []cli.Flag{},
+		Flags: []cli.Flag{
+			cli.BoolFlag{
+				Name:  "f, force",
+				Usage: "Override warning about removing the current device",
+			},
+		},
 		Action: func(c *cli.Context) {
 			cl.ChooseCommand(&CmdDeviceRemove{}, "remove", c)
 		},

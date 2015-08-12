@@ -1489,14 +1489,14 @@
 }
 
 - (void)revokeDevice:(KBRRevokeDeviceRequestParams *)params completion:(void (^)(NSError *error))completion {
-  NSDictionary *rparams = @{@"deviceID": KBRValue(params.deviceID)};
+  NSDictionary *rparams = @{@"deviceID": KBRValue(params.deviceID), @"force": @(params.force)};
   [self.client sendRequestWithMethod:@"keybase.1.revoke.revokeDevice" params:rparams sessionId:self.sessionId completion:^(NSError *error, id retval) {
     completion(error);
   }];
 }
 
-- (void)revokeDeviceWithDeviceID:(NSString *)deviceID completion:(void (^)(NSError *error))completion {
-  NSDictionary *rparams = @{@"deviceID": KBRValue(deviceID)};
+- (void)revokeDeviceWithDeviceID:(NSString *)deviceID force:(BOOL)force completion:(void (^)(NSError *error))completion {
+  NSDictionary *rparams = @{@"deviceID": KBRValue(deviceID), @"force": @(force)};
   [self.client sendRequestWithMethod:@"keybase.1.revoke.revokeDevice" params:rparams sessionId:self.sessionId completion:^(NSError *error, id retval) {
     completion(error);
   }];
@@ -3623,6 +3623,7 @@
   if ((self = [super initWithParams:params])) {
     self.sessionID = [params[0][@"sessionID"] integerValue];
     self.deviceID = params[0][@"deviceID"];
+    self.force = [params[0][@"force"] boolValue];
   }
   return self;
 }

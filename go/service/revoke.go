@@ -30,7 +30,7 @@ func (h *RevokeHandler) RevokeDevice(arg keybase1.RevokeDeviceArg) error {
 		LogUI:    h.getLogUI(sessionID),
 		SecretUI: h.getSecretUI(sessionID),
 	}
-	eng := engine.NewRevokeDeviceEngine(arg.DeviceID, G)
+	eng := engine.NewRevokeDeviceEngine(engine.RevokeDeviceEngineArgs{ID: arg.DeviceID, Force: arg.Force}, G)
 	return engine.RunEngine(eng, &ctx)
 }
 

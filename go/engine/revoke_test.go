@@ -8,7 +8,7 @@ import (
 )
 
 func getActiveDevicesAndKeys(t *testing.T, u *FakeUser) ([]*libkb.Device, []libkb.GenericKey) {
-	user, err := libkb.LoadUser(libkb.LoadUserArg{Name: u.Username})
+	user, err := libkb.LoadUser(libkb.LoadUserArg{Name: u.Username, PublicKeyOptional: true})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -24,28 +24,24 @@ func getActiveDevicesAndKeys(t *testing.T, u *FakeUser) ([]*libkb.Device, []libk
 	return activeDevices, append(sibkeys, subkeys...)
 }
 
-func doRevokeKey(tc libkb.TestContext, u *FakeUser, id string) {
+func doRevokeKey(tc libkb.TestContext, u *FakeUser, id string) error {
 	revokeEngine := NewRevokeKeyEngine(id, tc.G)
 	ctx := &Context{
 		LogUI:    tc.G.UI.GetLogUI(),
 		SecretUI: u.NewSecretUI(),
 	}
 	err := RunEngine(revokeEngine, ctx)
-	if err != nil {
-		tc.T.Fatal(err)
-	}
+	return err
 }
 
-func doRevokeDevice(tc libkb.TestContext, u *FakeUser, id keybase1.DeviceID) {
-	revokeEngine := NewRevokeDeviceEngine(id, tc.G)
+func doRevokeDevice(tc libkb.TestContext, u *FakeUser, id keybase1.DeviceID, force bool) error {
+	revokeEngine := NewRevokeDeviceEngine(RevokeDeviceEngineArgs{ID: id, Force: force}, tc.G)
 	ctx := &Context{
 		LogUI:    tc.G.UI.GetLogUI(),
 		SecretUI: u.NewSecretUI(),
 	}
 	err := RunEngine(revokeEngine, ctx)
-	if err != nil {
-		tc.T.Fatal(err)
-	}
+	return err
 }
 
 func assertNumDevicesAndKeys(t *testing.T, u *FakeUser, numDevices, numKeys int) {
@@ -68,19 +64,41 @@ func TestRevokeDevice(t *testing.T) {
 
 	devices, _ := getActiveDevicesAndKeys(t, u)
 	var webDevice *libkb.Device
+	var thisDevice *libkb.Device
 	for _, device := range devices {
 		if device.Type == "web" {
 			webDevice = device
-			break
+		} else {
+			thisDevice = device
 		}
 	}
 	if webDevice == nil {
 		t.Fatal("Expected to find a web device.")
 	}
 
-	doRevokeDevice(tc, u, webDevice.ID)
+	// Revoking the web device should succeed.
+	err := doRevokeDevice(tc, u, webDevice.ID, false)
+	if err != nil {
+		tc.T.Fatal(err)
+	}
 
 	assertNumDevicesAndKeys(t, u, 1, 2)
+
+	// Revoking the current device should fail.
+	err = doRevokeDevice(tc, u, thisDevice.ID, false)
+	if err == nil {
+		tc.T.Fatal("Expected revoking the current device to fail.")
+	}
+
+	assertNumDevicesAndKeys(t, u, 1, 2)
+
+	// But it should succeed with the --force flag.
+	err = doRevokeDevice(tc, u, thisDevice.ID, true)
+	if err != nil {
+		tc.T.Fatal(err)
+	}
+
+	assertNumDevicesAndKeys(t, u, 0, 0)
 }
 
 func TestRevokeKey(t *testing.T) {
@@ -105,7 +123,10 @@ func TestRevokeKey(t *testing.T) {
 		t.Fatal("Expected to find PGP key")
 	}
 
-	doRevokeKey(tc, u, (*pgpKey).GetKID().String())
+	err := doRevokeKey(tc, u, (*pgpKey).GetKID().String())
+	if err != nil {
+		tc.T.Fatal(err)
+	}
 
 	assertNumDevicesAndKeys(t, u, 2, 4)
 }
@@ -144,11 +165,14 @@ func TestTrackAfterRevoke(t *testing.T) {
 	}
 
 	// tc2 revokes tc1 device:
-	doRevokeDevice(tc2, u, tc1.G.Env.GetDeviceID())
+	err := doRevokeDevice(tc2, u, tc1.G.Env.GetDeviceID(), false)
+	if err != nil {
+		tc2.T.Fatal(err)
+	}
 
 	// Still logged in on tc1.  Try to use it to track someone.  It should fail
 	// with a KeyRevokedError.
-	_, _, err := runTrack(tc1, u, "t_alice")
+	_, _, err = runTrack(tc1, u, "t_alice")
 	if err == nil {
 		t.Fatal("expected runTrack to return an error")
 	}

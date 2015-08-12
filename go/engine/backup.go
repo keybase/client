@@ -78,7 +78,7 @@ func (e *Backup) Run(ctx *Context) error {
 		if !revoke {
 			continue
 		}
-		reng := NewRevokeDeviceEngine(bdev.ID, e.G())
+		reng := NewRevokeDeviceEngine(RevokeDeviceEngineArgs{ID: bdev.ID}, e.G())
 		if err := RunEngine(reng, ctx); err != nil {
 			// probably not a good idea to continue...
 			return err
