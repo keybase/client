@@ -237,8 +237,7 @@ func (p *CommandLine) PopulateApp(addHelp bool, extraFlags []cli.Flag) {
 	app := p.app
 	app.Name = "keybase"
 	app.Version = libkb.Version
-	app.Usage = "control keybase either with 1-off commands, " +
-		"or start a daemon"
+	app.Usage = "Keybase command line client"
 
 	app.Flags = []cli.Flag{
 		cli.StringFlag{
@@ -300,7 +299,7 @@ func (p *CommandLine) PopulateApp(addHelp bool, extraFlags []cli.Flag) {
 		},
 		cli.StringFlag{
 			Name:  "log-format",
-			Usage: "Log format (default, plain, file, fancy).",
+			Usage: "log format (default, plain, file, fancy)",
 		},
 		cli.StringFlag{
 			Name:  "pgpdir, gpgdir",
@@ -312,7 +311,7 @@ func (p *CommandLine) PopulateApp(addHelp bool, extraFlags []cli.Flag) {
 		},
 		cli.StringFlag{
 			Name:  "merkle-key-fingerprints",
-			Usage: "Set of admissable Merkle Tree fingerprints (colon-separated)",
+			Usage: "set of admissable Merkle Tree fingerprints (colon-separated)",
 		},
 		cli.IntFlag{
 			Name:  "user-cache-size",
@@ -324,11 +323,11 @@ func (p *CommandLine) PopulateApp(addHelp bool, extraFlags []cli.Flag) {
 		},
 		cli.StringFlag{
 			Name:  "gpg",
-			Usage: "Path to GPG client (optional for exporting keys)",
+			Usage: "path to GPG client (optional for exporting keys)",
 		},
 		cli.StringFlag{
 			Name:  "gpg-options",
-			Usage: "Options to use when calling GPG",
+			Usage: "options to use when calling GPG",
 		},
 		cli.IntFlag{
 			Name:  "daemon-port",
