@@ -149,8 +149,8 @@
     [labels addSubview:createView(@"Other", @"Installer Disabled")];
   }
 
-  [labels addSubview:createView(@"Service (cmd)", [KBService commandLineForService:config useBundle:NO pathOptions:KBPathOptionsTilde args:@[@"--log-format=file", @"service"]])];
-  [labels addSubview:createView(@"KBFS (cmd)", [KBFSService commandLineForKBFS:config useBundle:NO pathOptions:0 args:nil])];
+  [labels addSubview:createView(@"Service (cmd)", [KBService commandLineForService:config useBundle:NO pathOptions:KBPathOptionsEscape args:@[@"--log-format=file", @"service"]])];
+  [labels addSubview:createView(@"KBFS (cmd)", [KBFSService commandLineForKBFS:config useBundle:NO pathOptions:KBPathOptionsEscape args:nil])];
 
   GHWeakSelf gself = self;
   YOHBox *buttons = [YOHBox box];

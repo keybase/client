@@ -38,6 +38,7 @@
 #import "KBFile.h"
 #import "KBSecretPromptView.h"
 #import "KBAppExtension.h"
+#import "KBAppProgressView.h"
 
 @implementation KBDebugViews
 
@@ -50,6 +51,8 @@
   [contentView addSubview:[KBButton linkWithText:@"Components" targetBlock:^{ [self showComponents]; }]];
 
   [contentView addSubview:[KBBox lineWithInsets:UIEdgeInsetsMake(10, 10, 10, 10)]];
+
+  [contentView addSubview:[KBButton linkWithText:@"Loading" targetBlock:^{ [self showAppProgress]; }]];
 
   [contentView addSubview:[KBButton linkWithText:@"Login" targetBlock:^{ [self showLogin]; }]];
   [contentView addSubview:[KBButton linkWithText:@"Signup" targetBlock:^{ [self showSignup]; }]];
@@ -240,6 +243,13 @@
   signUpView.client = mockClient;
   signUpView.completion = ^(id sender) { [[sender window] close]; };
   [self openInWindow:signUpView size:CGSizeMake(800, 600) title:@"Keybase"];
+}
+
+- (void)showAppProgress {
+  KBAppProgressView *view = [[KBAppProgressView alloc] init];
+  view.progressView.title = @"Connecting";
+  view.progressView.animating = YES;
+  [self openInWindow:view size:CGSizeMake(800, 600) title:@"Keybase"];
 }
 
 - (void)showDeviceSetupPrompt {

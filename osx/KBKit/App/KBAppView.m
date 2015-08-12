@@ -43,6 +43,8 @@ typedef NS_ENUM (NSInteger, KBAppViewMode) {
 @property KBSourceOutlineView *sourceView;
 @property (readonly) YOView *contentView;
 
+@property KBAppProgressView *appProgressView;
+
 @property KBUsersAppView *usersAppView;
 @property KBDevicesAppView *devicesAppView;
 @property KBFoldersAppView *foldersAppView;
@@ -184,10 +186,13 @@ typedef NS_ENUM (NSInteger, KBAppViewMode) {
 }
 
 - (void)showInProgress:(NSString *)title {
-  KBAppProgressView *view = [[KBAppProgressView alloc] init];
-  [view enableProgressWithTitle:title];
-  KBNavigationView *navigation = [[KBNavigationView alloc] initWithView:view title:_title];
-  [self setContentView:navigation mode:KBAppViewModeInProgress];
+  if (!_appProgressView || self.mode != KBAppViewModeInProgress) {
+    _appProgressView = [[KBAppProgressView alloc] init];
+    KBNavigationView *navigation = [[KBNavigationView alloc] initWithView:_appProgressView title:_title];
+    [self setContentView:navigation mode:KBAppViewModeInProgress];
+  }
+  _appProgressView.progressView.title = title;
+  _appProgressView.progressView.animating = YES;
 }
 
 - (void)showInstaller:(KBInstaller *)installer {

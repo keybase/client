@@ -26,13 +26,4 @@
 
 - (void)viewDidAppear:(BOOL)animated { }
 
-- (void)enableProgressWithTitle:(NSString *)title {
-  _progressView.title = title;
-  _progressView.animating = YES;
-}
-
-- (void)disableProgress {
-  _progressView.animating = NO;
-}
-
 @end

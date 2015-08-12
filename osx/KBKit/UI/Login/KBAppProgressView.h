@@ -16,7 +16,6 @@
 @property KBNavigationView *navigation;
 @property KBRPClient *client;
 
-- (void)enableProgressWithTitle:(NSString *)title;
-- (void)disableProgress;
+@property (readonly) KBProgressOverlayView *progressView;
 
 @end

@@ -284,7 +284,9 @@
 }
 
 - (void)reloadData {
+  NSInteger selectedRow = [_view selectedRow];
   [self.view reloadData];
+  if (selectedRow >= 0) [self setSelectedRow:selectedRow];
 }
 
 - (void)removeAllTableColumns {
