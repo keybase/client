@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	"github.com/keybase/client/go/libkb"
+	keybase1 "github.com/keybase/client/protocol/go"
 )
 
 func backupDevs(t *testing.T, fu *FakeUser) (*libkb.User, []*libkb.Device) {
@@ -18,7 +19,7 @@ func backupDevs(t *testing.T, fu *FakeUser) (*libkb.User, []*libkb.Device) {
 	return u, cki.BackupDevices()
 }
 
-func hasOneBackupDev(t *testing.T, fu *FakeUser) {
+func hasOneBackupDev(t *testing.T, fu *FakeUser) keybase1.DeviceID {
 	u, bdevs := backupDevs(t, fu)
 
 	if len(bdevs) != 1 {
@@ -40,6 +41,8 @@ func hasOneBackupDev(t *testing.T, fu *FakeUser) {
 	if enckey == nil {
 		t.Fatal("nil backup enckey")
 	}
+
+	return devid
 }
 
 func TestBackup(t *testing.T) {
@@ -65,25 +68,7 @@ func TestBackup(t *testing.T) {
 	Logout(tc)
 
 	// check for the backup key
-	u, bdevs := backupDevs(t, fu)
-	if len(bdevs) != 1 {
-		t.Errorf("num backup devices: %d, expected 1", len(bdevs))
-	}
-	devid := bdevs[0].ID
-	sibkey, err := u.GetComputedKeyFamily().GetSibkeyForDevice(devid)
-	if err != nil {
-		t.Fatal(err)
-	}
-	if sibkey == nil {
-		t.Fatal("nil backup sibkey")
-	}
-	enckey, err := u.GetComputedKeyFamily().GetEncryptionSubkeyForDevice(devid)
-	if err != nil {
-		t.Fatal(err)
-	}
-	if enckey == nil {
-		t.Fatal("nil backup enckey")
-	}
+	devid := hasOneBackupDev(t, fu)
 
 	// ok, just log in again:
 	if err := fu.Login(tc.G); err != nil {
@@ -103,7 +88,7 @@ func TestBackup(t *testing.T) {
 		t.Errorf("after backup key gen, login with passphrase failed: %s", err)
 	}
 
-	_, err = tc.G.LoginState().VerifyPlaintextPassphrase(fu.Passphrase)
+	_, err := tc.G.LoginState().VerifyPlaintextPassphrase(fu.Passphrase)
 	if err != nil {
 		t.Fatal(err)
 	}
