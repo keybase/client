@@ -96,7 +96,7 @@ func TestLoginAddsKeys(t *testing.T) {
 
 	li := NewLoginWithPromptEngine(username, tc.G)
 	secui := &libkb.TestSecretUI{Passphrase: passphrase}
-	ctx := &Context{LogUI: tc.G.UI.GetLogUI(), LocksmithUI: &lockui{}, GPGUI: &gpgtestui{}, SecretUI: secui, LoginUI: &libkb.TestLoginUI{}}
+	ctx := &Context{LogUI: tc.G.UI.GetLogUI(), LocksmithUI: &lockui{deviceName: "Device"}, GPGUI: &gpgtestui{}, SecretUI: secui, LoginUI: &libkb.TestLoginUI{}}
 	if err := RunEngine(li, ctx); err != nil {
 		t.Fatal(err)
 	}
@@ -118,7 +118,7 @@ func TestLoginDetKeyOnly(t *testing.T) {
 
 	li := NewLoginWithPromptEngine(username, tc.G)
 	secui := &libkb.TestSecretUI{Passphrase: passphrase}
-	ctx := &Context{LogUI: tc.G.UI.GetLogUI(), LocksmithUI: &lockui{}, SecretUI: secui, GPGUI: &gpgtestui{}, LoginUI: &libkb.TestLoginUI{}}
+	ctx := &Context{LogUI: tc.G.UI.GetLogUI(), LocksmithUI: &lockui{deviceName: "Device"}, SecretUI: secui, GPGUI: &gpgtestui{}, LoginUI: &libkb.TestLoginUI{}}
 	if err := RunEngine(li, ctx); err != nil {
 		t.Fatal(err)
 	}
@@ -189,7 +189,7 @@ func TestLoginPGPPubOnlySignNewDevice(t *testing.T) {
 	// now safe to cleanup first home
 	tc.Cleanup()
 
-	docui := &lockuiPGP{&lockui{}}
+	docui := &lockuiPGP{&lockui{deviceName: "Device"}}
 
 	before := docui.selectSignerCount
 
@@ -229,7 +229,7 @@ func TestLoginPGPMultSignNewDevice(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	docui := &lockuiPGP{&lockui{}}
+	docui := &lockuiPGP{&lockui{deviceName: "Device"}}
 
 	before := docui.selectSignerCount
 
@@ -272,7 +272,7 @@ func TestLoginGPGSignNewDevice(t *testing.T) {
 	// now safe to cleanup first home
 	tc.Cleanup()
 
-	docui := &lockuiPGP{&lockui{}}
+	docui := &lockuiPGP{&lockui{deviceName: "Device"}}
 
 	before := docui.selectSignerCount
 

@@ -41,12 +41,43 @@ func (d *Device) IsWeb() bool {
 	return d.Type == DeviceTypeWeb
 }
 
+func genUniqueDeviceName(types map[string]bool, prefix string, entropy int, retries int) string {
+	if retries <= 0 {
+		return ""
+	}
+
+	for i := 0; i < retries; i++ {
+		words, err := SecWordList(entropy)
+		if err != nil {
+			return ""
+		}
+		possible := prefix + " " + strings.Join(words, " ")
+
+		var taken = false
+		err = G.LoginState().SecretSyncer(func(ss *SecretSyncer) {
+			taken = ss.IsDeviceNameTaken(possible, types)
+		}, "Device - genUniqueDeviceName")
+
+		if err != nil {
+			return ""
+		}
+
+		if taken == false {
+			return possible
+		}
+	}
+
+	return ""
+}
+
 func NewWebDevice() (ret *Device) {
 	if did, err := NewDeviceID(); err != nil {
 		G.Log.Errorf("In random new device ID: %s", err)
 	} else {
 		s := DeviceStatusActive
+
 		desc := "Web Key"
+
 		ret = &Device{
 			ID:          did,
 			Type:        DeviceTypeWeb,
@@ -63,35 +94,7 @@ func NewBackupDevice() (*Device, error) {
 		return nil, err
 	}
 	s := DeviceStatusActive
-
-	// Load user to find existing device descriptions so we can ensure we don't make a dupe
-	me, err := LoadMe(LoadUserArg{})
-	if err != nil {
-		return nil, err
-	}
-
-	takenNamesSet := make(map[string]bool)
-
-	for _, key := range me.GetComputedKeyFamily().cki.Devices {
-		if key.Type == "backup" {
-			if key.Description != nil {
-				takenNamesSet[*key.Description] = true
-			}
-		}
-	}
-
-	// Try up to 1000 times to get a unique name
-	var i int
-	desc := ""
-	for i = 0; i < 1000; i++ {
-		words, _ := SecWordList(BackupKeyNameEntropy)
-		possible := "Account Recover Keys " + strings.Join(words, " ")
-
-		if takenNamesSet[possible] == false {
-			desc = possible
-			break
-		}
-	}
+	desc := genUniqueDeviceName(map[string]bool{DeviceTypeBackup: true}, "Account Recover Keys", BackupKeyNameEntropy, 100)
 
 	if desc == "" {
 		return nil, errors.New("Can't find unique backup key description")

@@ -46,7 +46,7 @@ func (d *DevList) Run(ctx *Context) error {
 		if err = libkb.RunSyncer(a.SecretSyncer(), uid, a.LoggedIn(), a.LocalSession()); err != nil {
 			return
 		}
-		devs, err = a.SecretSyncer().ActiveDevices()
+		devs, err = a.SecretSyncer().ActiveDevices(map[string]bool{})
 	}, "DevList - ActiveDevices")
 	if aerr != nil {
 		return aerr
