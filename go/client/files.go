@@ -82,12 +82,12 @@ func (s *FileSource) Open() error {
 }
 
 func (s *FileSource) Close() error {
-	if s.file != nil {
-		err := s.file.Close()
-		s.file = nil
-		return err
+	if s.file == nil {
+		return nil
 	}
-	return io.EOF
+	err := s.file.Close()
+	s.file = nil
+	return err
 }
 
 func (s *FileSource) Read(p []byte) (n int, err error) {
