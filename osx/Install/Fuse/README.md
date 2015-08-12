@@ -1,7 +1,7 @@
 
 ### Building OSXFuse for Keybase
 
-Checkout the OSXFuse (osxfuse-2.8.0) version:
+Checkout the OSXFuse (osxfuse-2.7.6) version:
 
     git clone --recursive -b osxfuse-2.7.6 git://github.com/osxfuse/osxfuse.git osxfuse
     cd osxfuse
