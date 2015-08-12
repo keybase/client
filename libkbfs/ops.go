@@ -10,11 +10,6 @@ type op interface {
 	AddUnrefBlock(ptr BlockPointer)
 	AddUpdate(oldPtr BlockPointer, newPtr BlockPointer)
 	SizeExceptUpdates() uint64
-}
-
-// finalOp represents a single file-system remote-sync operation in
-// its final state
-type finalOp interface {
 	AllUpdates() []blockUpdate
 }
 
@@ -34,6 +29,13 @@ type blockUpdate struct {
 	Unref BlockPointer `codec:"u,omitempty"`
 	Ref   BlockPointer `codec:"r,omitempty"`
 }
+
+// list codes
+const (
+	opsListCode extCode = iota + extCodeListRangeStart
+)
+
+type opsList []op
 
 // OpCommon are data structures needed by all ops.  It is only
 // exported for serialization purposes.
@@ -95,7 +97,7 @@ func (co *createOp) SizeExceptUpdates() uint64 {
 	return uint64(len(co.NewName))
 }
 
-func (co createOp) AllUpdates() []blockUpdate {
+func (co *createOp) AllUpdates() []blockUpdate {
 	updates := make([]blockUpdate, len(co.Updates))
 	copy(updates, co.Updates)
 	return append(updates, co.Dir)
@@ -124,7 +126,7 @@ func (ro *rmOp) SizeExceptUpdates() uint64 {
 	return uint64(len(ro.OldName))
 }
 
-func (ro rmOp) AllUpdates() []blockUpdate {
+func (ro *rmOp) AllUpdates() []blockUpdate {
 	updates := make([]blockUpdate, len(ro.Updates))
 	copy(updates, ro.Updates)
 	return append(updates, ro.Dir)
@@ -164,7 +166,7 @@ func (ro *renameOp) SizeExceptUpdates() uint64 {
 	return uint64(len(ro.NewName) + len(ro.NewName))
 }
 
-func (ro renameOp) AllUpdates() []blockUpdate {
+func (ro *renameOp) AllUpdates() []blockUpdate {
 	updates := make([]blockUpdate, len(ro.Updates))
 	copy(updates, ro.Updates)
 	if (ro.NewDir != blockUpdate{}) {
@@ -210,7 +212,7 @@ func (so *syncOp) SizeExceptUpdates() uint64 {
 	return uint64(len(so.Writes) * 16)
 }
 
-func (so syncOp) AllUpdates() []blockUpdate {
+func (so *syncOp) AllUpdates() []blockUpdate {
 	updates := make([]blockUpdate, len(so.Updates))
 	copy(updates, so.Updates)
 	return append(updates, so.File)
@@ -250,7 +252,7 @@ func (sao *setAttrOp) SizeExceptUpdates() uint64 {
 	return uint64(len(sao.Name))
 }
 
-func (sao setAttrOp) AllUpdates() []blockUpdate {
+func (sao *setAttrOp) AllUpdates() []blockUpdate {
 	updates := make([]blockUpdate, len(sao.Updates))
 	copy(updates, sao.Updates)
 	return append(updates, sao.Dir)
@@ -276,6 +278,29 @@ func (gco *gcOp) SizeExceptUpdates() uint64 {
 	return 0
 }
 
+// Our ugorji codec cannot decode our extension types as pointers, and
+// we need them to be pointers so they correctly satisfy the op
+// interface.  So this function simply converts them into pointers as
+// needed.
+func opPointerizer(iface interface{}) reflect.Value {
+	switch op := iface.(type) {
+	default:
+		return reflect.ValueOf(iface)
+	case createOp:
+		return reflect.ValueOf(&op)
+	case rmOp:
+		return reflect.ValueOf(&op)
+	case renameOp:
+		return reflect.ValueOf(&op)
+	case syncOp:
+		return reflect.ValueOf(&op)
+	case setAttrOp:
+		return reflect.ValueOf(&op)
+	case gcOp:
+		return reflect.ValueOf(&op)
+	}
+}
+
 // RegisterOps registers all op types with the given codec.
 func RegisterOps(codec Codec) {
 	codec.RegisterType(reflect.TypeOf(createOp{}), createOpCode)
@@ -284,4 +309,6 @@ func RegisterOps(codec Codec) {
 	codec.RegisterType(reflect.TypeOf(syncOp{}), syncOpCode)
 	codec.RegisterType(reflect.TypeOf(setAttrOp{}), setAttrOpCode)
 	codec.RegisterType(reflect.TypeOf(gcOp{}), gcOpCode)
+	codec.RegisterIfaceSliceType(reflect.TypeOf(opsList{}), opsListCode,
+		opPointerizer)
 }

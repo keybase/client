@@ -68,6 +68,8 @@ func NewConfigMock(c *gomock.Controller, ctr *SafeTestReporter) *ConfigMock {
 	config.mockCodec = NewMockCodec(c)
 	config.mockCodec.EXPECT().RegisterType(gomock.Any(), gomock.Any()).
 		AnyTimes().Return()
+	config.mockCodec.EXPECT().RegisterIfaceSliceType(gomock.Any(),
+		gomock.Any(), gomock.Any()).AnyTimes().Return()
 	config.SetCodec(config.mockCodec)
 	config.mockMdops = NewMockMDOps(c)
 	config.SetMDOps(config.mockMdops)

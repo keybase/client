@@ -889,13 +889,9 @@ type BlockChanges struct {
 	// the block contains a serialized version of BlockChanges)
 	Pointer BlockPointer `codec:"p,omitempty"`
 	// An ordered list of operations completed in this update
-	Ops []interface{} `codec:"o,omitempty"`
+	Ops opsList `codec:"o,omitempty"`
 	// Estimate the number of bytes that this set of changes will take to encode
 	sizeEstimate uint64
-	// Most recent operation (currently being populated).  We keep
-	// this here, instead of using the tails of Ops, because we need
-	// it typed as an op and not an interface{}.
-	latestOp op
 }
 
 // Equals returns true if the given BlockChanges is equal to this
@@ -920,21 +916,21 @@ func (bc *BlockChanges) addBPSize() {
 // AddRefBlock adds the newly-referenced block to this BlockChanges
 // and updates the size estimate.
 func (bc *BlockChanges) AddRefBlock(ptr BlockPointer) {
-	bc.latestOp.AddRefBlock(ptr)
+	bc.Ops[len(bc.Ops)-1].AddRefBlock(ptr)
 	bc.addBPSize()
 }
 
 // AddUnrefBlock adds the newly unreferenced block to this BlockChanges
 // and updates the size estimate.
 func (bc *BlockChanges) AddUnrefBlock(ptr BlockPointer) {
-	bc.latestOp.AddUnrefBlock(ptr)
+	bc.Ops[len(bc.Ops)-1].AddUnrefBlock(ptr)
 	bc.addBPSize()
 }
 
 // AddUpdate adds the newly updated block to this BlockChanges
 // and updates the size estimate.
 func (bc *BlockChanges) AddUpdate(oldPtr BlockPointer, newPtr BlockPointer) {
-	bc.latestOp.AddUpdate(oldPtr, newPtr)
+	bc.Ops[len(bc.Ops)-1].AddUpdate(oldPtr, newPtr)
 	bc.addBPSize()
 	bc.addBPSize()
 }
@@ -943,7 +939,6 @@ func (bc *BlockChanges) AddUpdate(oldPtr BlockPointer, newPtr BlockPointer) {
 // Add* calls will populate this operation.
 func (bc *BlockChanges) AddOp(o op) {
 	bc.Ops = append(bc.Ops, o)
-	bc.latestOp = o
 	bc.sizeEstimate += o.SizeExceptUpdates()
 }
 
@@ -1091,5 +1086,6 @@ type extCode uint64
 // these track the start of a range of unique extCodes for various
 // types of extensions.
 const (
-	extCodeOpsRangeStart = 1
+	extCodeOpsRangeStart  = 1
+	extCodeListRangeStart = 101
 )

@@ -1085,6 +1085,14 @@ func (_mr *_MockCodecRecorder) RegisterType(arg0, arg1 interface{}) *gomock.Call
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "RegisterType", arg0, arg1)
 }
 
+func (_m *MockCodec) RegisterIfaceSliceType(rt reflect.Type, code extCode, typer func(interface{}) reflect.Value) {
+	_m.ctrl.Call(_m, "RegisterIfaceSliceType", rt, code, typer)
+}
+
+func (_mr *_MockCodecRecorder) RegisterIfaceSliceType(arg0, arg1, arg2 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "RegisterIfaceSliceType", arg0, arg1, arg2)
+}
+
 // Mock of MDOps interface
 type MockMDOps struct {
 	ctrl     *gomock.Controller

@@ -2779,22 +2779,17 @@ func (fbo *FolderBranchOps) notifyLocal(ctx context.Context,
 
 // notifyBatch sends out a notification for the most recent op in md
 func (fbo *FolderBranchOps) notifyBatch(ctx context.Context, md *RootMetadata) {
-	var opUntyped interface{}
+	var lastOp op
 	if md.data.Changes.Ops != nil {
-		opUntyped = md.data.Changes.Ops[len(md.data.Changes.Ops)-1]
+		lastOp = md.data.Changes.Ops[len(md.data.Changes.Ops)-1]
 	} else {
 		// Uh-oh, the block changes have been kicked out into a block.
 		// Use a cached copy instead, and clear it when done.
-		opUntyped = md.data.cachedChanges.Ops[len(md.data.cachedChanges.Ops)-1]
+		lastOp = md.data.cachedChanges.Ops[len(md.data.cachedChanges.Ops)-1]
 		md.data.cachedChanges.Ops = nil
 	}
 
-	opTyped, ok := opUntyped.(finalOp)
-	if !ok {
-		// TODO: log an error? panic?
-		return
-	}
-	fbo.notifyOneOp(ctx, opTyped, md)
+	fbo.notifyOneOp(ctx, lastOp, md)
 }
 
 // searchForNodeInDirLocked recursively tries to find a path, and
@@ -2843,7 +2838,7 @@ func (fbo *FolderBranchOps) searchForNodeInDirLocked(ctx context.Context,
 // blockPointer, using only the block updates that happened as part of
 // a given MD update operation.
 func (fbo *FolderBranchOps) searchForNode(ctx context.Context,
-	ptr BlockPointer, op finalOp, md *RootMetadata) Node {
+	ptr BlockPointer, op op, md *RootMetadata) Node {
 	fbo.blockLock.RLock()
 	defer fbo.blockLock.RUnlock()
 
@@ -2868,7 +2863,7 @@ func (fbo *FolderBranchOps) searchForNode(ctx context.Context,
 	return fbo.searchForNodeInDirLocked(ctx, ptr, newPtrs, md, rootPath)
 }
 
-func (fbo *FolderBranchOps) notifyOneOp(ctx context.Context, op finalOp,
+func (fbo *FolderBranchOps) notifyOneOp(ctx context.Context, op op,
 	md *RootMetadata) {
 	// update all the block pointers
 	for _, update := range op.AllUpdates() {
@@ -3077,30 +3072,8 @@ func (fbo *FolderBranchOps) applyMDUpdates(ctx context.Context,
 			return err
 		}
 
-		for _, opUntyped := range rmd.data.Changes.Ops {
-			opTyped, ok := opUntyped.(finalOp)
-			if !ok {
-				return fmt.Errorf("Unexpected non-finalOp type: %T", opUntyped)
-			}
-
-			// notifyOneOp is expecting pointers, but this
-			// deserialized metadata probably gives non-pointers
-			switch realOp := opTyped.(type) {
-			default:
-				// must already be a pointer
-			case createOp:
-				opTyped = &realOp
-			case rmOp:
-				opTyped = &realOp
-			case renameOp:
-				opTyped = &realOp
-			case syncOp:
-				opTyped = &realOp
-			case setAttrOp:
-				opTyped = &realOp
-			}
-
-			fbo.notifyOneOp(ctx, opTyped, rmd)
+		for _, op := range rmd.data.Changes.Ops {
+			fbo.notifyOneOp(ctx, op, rmd)
 		}
 	}
 	return nil
