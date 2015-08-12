@@ -314,6 +314,7 @@ var ErrNotYetImplemented = errors.New("not yet implemented")
 // a device key, pgp key, or both.
 func (d *Locksmith) deviceSign(ctx *Context, withPGPOption bool) error {
 	newDeviceName, err := d.deviceName(ctx)
+
 	if err != nil {
 		return err
 	}
@@ -652,7 +653,7 @@ func (d *Locksmith) deviceName(ctx *Context) (string, error) {
 				errCh <- err
 				return
 			}
-			if !d.isDeviceNameTaken(ctx, name) {
+			if len(name) > 0 && !d.isDeviceNameTaken(ctx, name) {
 				nameCh <- name
 				return
 			}
@@ -670,7 +671,6 @@ func (d *Locksmith) deviceName(ctx *Context) (string, error) {
 	case <-d.canceled:
 		return "", libkb.CanceledError{M: "locksmith canceled while getting device name"}
 	}
-
 }
 
 func (d *Locksmith) hasActiveDevice(ctx *Context) bool {

@@ -26,7 +26,8 @@ func TestLoginNewDeviceKex(t *testing.T) {
 
 	// sign up with device X
 	u := CreateAndSignupFakeUser(tcX, "login")
-	docui := &lockuiDevice{lockui: &lockui{}}
+	docuiShared := lockuiDeviceShared{}
+	docui := &lockuiDevice{lockui: &lockui{deviceName: "device X"}, shared: &docuiShared}
 	secui := &libkb.TestSecretUI{Passphrase: u.Passphrase}
 
 	// test that we can get the secret key:
@@ -73,6 +74,9 @@ func TestLoginNewDeviceKex(t *testing.T) {
 
 	// log in with device Y
 	li := NewLoginWithPromptEngine(u.Username, tcY.G)
+
+	docui = &lockuiDevice{lockui: &lockui{deviceName: "device Y"}, shared: &docuiShared}
+
 	ctx := &Context{LogUI: tcY.G.UI.GetLogUI(), LocksmithUI: docui, GPGUI: &gpgtestui{}, SecretUI: secui, LoginUI: &libkb.TestLoginUI{}}
 	if err := RunEngine(li, ctx); err != nil {
 		t.Fatal(err)
@@ -92,7 +96,8 @@ func TestLoginNewDeviceCancel(t *testing.T) {
 	// sign up with device X
 	u := CreateAndSignupFakeUser(tcX, "login")
 
-	docui := &lockuiCancel{lockui: &lockui{}}
+	docuiShared := lockuiDeviceShared{}
+	docui := &lockuiDevice{lockui: &lockui{deviceName: "device X"}, shared: &docuiShared}
 
 	// test context for device Y
 	tcY := SetupEngineTest(t, "loginY")
@@ -146,7 +151,8 @@ func TestLoginNewDeviceKexBadPhrase(t *testing.T) {
 
 	// sign up with device X
 	u := CreateAndSignupFakeUser(tcX, "login")
-	docui := &lockuiDevice{lockui: &lockui{}}
+	docuiShared := lockuiDeviceShared{}
+	docui := &lockuiDevice{lockui: &lockui{deviceName: "device X"}, shared: &docuiShared}
 	secui := &libkb.TestSecretUI{Passphrase: u.Passphrase}
 
 	// test that we can get the secret key:
@@ -204,6 +210,9 @@ func TestLoginNewDeviceKexBadPhrase(t *testing.T) {
 
 	// log in with device Y
 	li = NewLoginWithPromptEngine(u.Username, tcY.G)
+
+	docui = &lockuiDevice{lockui: &lockui{deviceName: "device Y"}, shared: &docuiShared}
+
 	ctx := &Context{LogUI: tcY.G.UI.GetLogUI(), LocksmithUI: docui, GPGUI: &gpgtestui{}, SecretUI: secui, LoginUI: &libkb.TestLoginUI{}}
 	err = RunEngine(li, ctx)
 	if err != nil {
@@ -234,7 +243,8 @@ func TestLoginNewDeviceKexRetryPhrase(t *testing.T) {
 	// sign up with device X
 	// G = tcX.G
 	u := CreateAndSignupFakeUser(tcX, "login")
-	docui := &lockuiDevice{lockui: &lockui{}}
+	docuiShared := lockuiDeviceShared{}
+	docui := &lockuiDevice{lockui: &lockui{deviceName: "device X"}, shared: &docuiShared}
 	secui := &libkb.TestSecretUI{Passphrase: u.Passphrase}
 
 	// test that we can get the secret key:
@@ -289,6 +299,9 @@ func TestLoginNewDeviceKexRetryPhrase(t *testing.T) {
 
 	// log in with device Y
 	li := NewLoginWithPromptEngine(u.Username, tcY.G)
+
+	docui = &lockuiDevice{lockui: &lockui{deviceName: "device Y"}, shared: &docuiShared}
+
 	ctx := &Context{LogUI: tcY.G.UI.GetLogUI(), LocksmithUI: docui, GPGUI: &gpgtestui{}, SecretUI: secui, LoginUI: &libkb.TestLoginUI{}}
 	if err := RunEngine(li, ctx); err != nil {
 		t.Fatal(err)
@@ -314,7 +327,9 @@ func TestLoginNewDeviceKexCancelOnY(t *testing.T) {
 
 	// sign up with device X
 	u := CreateAndSignupFakeUser(tcX, "login")
-	docui := &lockuiDevice{lockui: &lockui{}}
+	docuiShared := lockuiDeviceShared{}
+	docui := &lockuiDevice{lockui: &lockui{deviceName: "device X"}, shared: &docuiShared}
+
 	secui := &libkb.TestSecretUI{Passphrase: u.Passphrase}
 
 	// test that we can get the secret key:
@@ -374,6 +389,9 @@ func TestLoginNewDeviceKexCancelOnY(t *testing.T) {
 
 	// log in with device Y
 	li = NewLoginWithPromptEngine(u.Username, tcY.G)
+
+	docui = &lockuiDevice{lockui: &lockui{deviceName: "device Y"}, shared: &docuiShared}
+
 	ctx := &Context{LogUI: tcY.G.UI.GetLogUI(), LocksmithUI: docui, GPGUI: &gpgtestui{}, SecretUI: secui, LoginUI: &libkb.TestLoginUI{}}
 	err = RunEngine(li, ctx)
 	if err == nil {
@@ -399,7 +417,8 @@ func TestLoginNewDeviceDupName(t *testing.T) {
 
 	// sign up with device X
 	u := CreateAndSignupFakeUser(tcX, "login")
-	docui := &lockuiDevice{lockui: &lockui{}}
+	docuiShared := lockuiDeviceShared{}
+	docui := &lockuiDevice{lockui: &lockui{}, shared: &docuiShared}
 
 	// set the device name to the same as the one used in CreateAndSignupFakeUser
 	docui.setDeviceName(defaultDeviceName)
@@ -418,16 +437,20 @@ func TestLoginNewDeviceDupName(t *testing.T) {
 	}
 }
 
-type lockuiDevice struct {
-	*lockui
+type lockuiDeviceShared struct {
 	secret string
 	sync.Mutex
 }
 
+type lockuiDevice struct {
+	*lockui
+	shared *lockuiDeviceShared
+}
+
 func (l *lockuiDevice) secretPhrase() string {
-	l.Lock()
-	defer l.Unlock()
-	return l.secret
+	l.shared.Lock()
+	defer l.shared.Unlock()
+	return l.shared.secret
 }
 
 // select the first device
@@ -444,9 +467,9 @@ func (l *lockuiDevice) SelectSigner(arg keybase1.SelectSignerArg) (res keybase1.
 }
 
 func (l *lockuiDevice) DisplaySecretWords(arg keybase1.DisplaySecretWordsArg) error {
-	l.Lock()
-	l.secret = arg.Secret
-	l.Unlock()
+	l.shared.Lock()
+	l.shared.secret = arg.Secret
+	l.shared.Unlock()
 	return nil
 }
 

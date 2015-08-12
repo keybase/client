@@ -1,6 +1,7 @@
 package engine
 
 import (
+	"errors"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/libkb/kex"
 	keybase1 "github.com/keybase/client/protocol/go"
@@ -58,6 +59,10 @@ func (k *KexFwd) Run(ctx *Context) error {
 	k.G().Log.Debug("KexFwd: run starting")
 	defer k.G().Log.Debug("KexFwd: run finished")
 	k.user = k.args.User
+
+	if k.args.DevDesc == "" {
+		return errors.New("Empty device description passed to kex")
+	}
 
 	// register a new device
 	ndarg := &DeviceRegisterArgs{

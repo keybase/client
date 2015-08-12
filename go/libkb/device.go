@@ -46,10 +46,12 @@ func NewWebDevice() (ret *Device) {
 		G.Log.Errorf("In random new device ID: %s", err)
 	} else {
 		s := DeviceStatusActive
+		desc := "Web Key"
 		ret = &Device{
-			ID:     did,
-			Type:   DeviceTypeWeb,
-			Status: &s,
+			ID:          did,
+			Type:        DeviceTypeWeb,
+			Status:      &s,
+			Description: &desc,
 		}
 	}
 	return
