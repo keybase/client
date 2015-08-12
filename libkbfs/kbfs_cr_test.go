@@ -1,7 +1,6 @@
 package libkbfs
 
 import (
-	"runtime"
 	"testing"
 
 	"golang.org/x/net/context"
@@ -27,6 +26,20 @@ func readAndCompareData(t *testing.T, config Config, ctx context.Context,
 	if data[0] != expectedData[0] {
 		t.Errorf("User %s didn't see own data: %v", user, data)
 	}
+}
+
+type testCRObserver struct {
+	c chan<- struct{}
+}
+
+func (t *testCRObserver) LocalChange(ctx context.Context, node Node,
+	write WriteRange) {
+	// ignore
+}
+
+func (t *testCRObserver) BatchChanges(ctx context.Context,
+	changes []NodeChange) {
+	t.c <- struct{}{}
 }
 
 func TestBasicMDUpdate(t *testing.T) {
@@ -59,14 +72,20 @@ func TestBasicMDUpdate(t *testing.T) {
 		t.Errorf("Couldn't get root: %v", err)
 	}
 
+	// register client 2 as a listener before the create happens
+	c := make(chan struct{})
+	config2.Notifier().RegisterForChanges(
+		[]FolderBranch{rootNode1.GetFolderBranch()}, &testCRObserver{c})
+
 	// user 1 creates a file
 	_, _, err = kbfsOps1.CreateFile(ctx, rootNode1, "a", false)
 	if err != nil {
 		t.Fatalf("Couldn't create file: %v", err)
 	}
 
-	// Let the scheduler run so that node2 can see the update
-	runtime.Gosched()
+	// Wait for the next batch change notification
+	<-c
+
 	entries, err := kbfsOps2.GetDirChildren(ctx, rootNode2)
 	if err != nil {
 		t.Fatalf("User 2 couldn't see the root dir: %v", err)
@@ -127,6 +146,11 @@ func testMultipleMDUpdates(t *testing.T, unembedChanges bool) {
 		t.Errorf("Couldn't get root: %v", err)
 	}
 
+	// register client 2 as a listener before the create happens
+	c := make(chan struct{})
+	config2.Notifier().RegisterForChanges(
+		[]FolderBranch{rootNode1.GetFolderBranch()}, &testCRObserver{c})
+
 	// now user 1 renames the old file, and creates a new one
 	err = kbfsOps1.Rename(ctx, rootNode1, "a", rootNode1, "b")
 	if err != nil {
@@ -137,8 +161,10 @@ func testMultipleMDUpdates(t *testing.T, unembedChanges bool) {
 		t.Fatalf("Couldn't create file: %v", err)
 	}
 
-	// Let the scheduler run so that node2 can see the updates
-	runtime.Gosched()
+	// Wait for the next 2 batch change notifications
+	<-c
+	<-c
+
 	entries, err := kbfsOps2.GetDirChildren(ctx, rootNode2)
 	if err != nil {
 		t.Fatalf("User 2 couldn't see the root dir: %v", err)
