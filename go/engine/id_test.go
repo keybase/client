@@ -2,6 +2,7 @@ package engine
 
 import (
 	"reflect"
+	"sync"
 	"testing"
 
 	"github.com/keybase/client/go/libkb"
@@ -170,21 +171,29 @@ type FakeIdentifyUI struct {
 	Keys            map[libkb.PGPFingerprint]*keybase1.TrackDiff
 	DisplayKeyCalls int
 	Outcome         *keybase1.IdentifyOutcome
+	sync.Mutex
 }
 
 func (ui *FakeIdentifyUI) FinishWebProofCheck(proof keybase1.RemoteProof, result keybase1.LinkCheckResult) {
+	ui.Lock()
+	defer ui.Unlock()
 	if ui.Proofs == nil {
 		ui.Proofs = make(map[string]string)
 	}
 	ui.Proofs[proof.Key] = proof.Value
 }
+
 func (ui *FakeIdentifyUI) FinishSocialProofCheck(proof keybase1.RemoteProof, result keybase1.LinkCheckResult) {
+	ui.Lock()
+	defer ui.Unlock()
 	if ui.Proofs == nil {
 		ui.Proofs = make(map[string]string)
 	}
 	ui.Proofs[proof.Key] = proof.Value
 }
 func (ui *FakeIdentifyUI) Confirm(outcome *keybase1.IdentifyOutcome) (confirmed bool, err error) {
+	ui.Lock()
+	defer ui.Unlock()
 	ui.Outcome = outcome
 	confirmed = outcome.TrackOptions.BypassConfirm
 	return
@@ -193,6 +202,8 @@ func (ui *FakeIdentifyUI) DisplayCryptocurrency(keybase1.Cryptocurrency) {
 }
 
 func (ui *FakeIdentifyUI) DisplayKey(ik keybase1.IdentifyKey) {
+	ui.Lock()
+	defer ui.Unlock()
 	if ui.Keys == nil {
 		ui.Keys = make(map[libkb.PGPFingerprint]*keybase1.TrackDiff)
 	}
@@ -207,6 +218,8 @@ func (ui *FakeIdentifyUI) Start(username string) {
 }
 func (ui *FakeIdentifyUI) Finish() {}
 func (ui *FakeIdentifyUI) LaunchNetworkChecks(id *keybase1.Identity, user *keybase1.User) {
+	ui.Lock()
+	defer ui.Unlock()
 	ui.User = user
 }
 func (ui *FakeIdentifyUI) DisplayTrackStatement(string) (err error) {

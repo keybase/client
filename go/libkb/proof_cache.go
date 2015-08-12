@@ -84,6 +84,8 @@ func NewProofCache(capac int) *ProofCache {
 }
 
 func (pc *ProofCache) setup() error {
+	pc.Lock()
+	defer pc.Unlock()
 	if pc.lru != nil {
 		return nil
 	}
@@ -99,6 +101,10 @@ func (pc *ProofCache) memGet(sid keybase1.SigID) *CheckResult {
 	if err := pc.setup(); err != nil {
 		return nil
 	}
+
+	pc.RLock()
+	defer pc.RUnlock()
+
 	tmp, found := pc.lru.Get(sid)
 	if !found {
 		return nil
@@ -119,6 +125,10 @@ func (pc *ProofCache) memPut(sid keybase1.SigID, cr CheckResult) {
 	if err := pc.setup(); err != nil {
 		return
 	}
+
+	pc.RLock()
+	defer pc.RUnlock()
+
 	pc.lru.Add(sid, cr)
 }
 
@@ -126,8 +136,6 @@ func (pc *ProofCache) Get(sid keybase1.SigID) *CheckResult {
 	if pc == nil {
 		return nil
 	}
-	pc.RLock()
-	defer pc.RUnlock()
 
 	cr := pc.memGet(sid)
 	if cr == nil {
@@ -185,8 +193,6 @@ func (pc *ProofCache) Put(sid keybase1.SigID, pe ProofError) error {
 	if pc == nil {
 		return nil
 	}
-	pc.Lock()
-	defer pc.Unlock()
 	cr := CheckResult{pe, time.Now()}
 	pc.memPut(sid, cr)
 	return pc.dbPut(sid, cr)
