@@ -32,8 +32,11 @@ class Keybase < Formula
   def post_install
     # Automatically restart (unload/load) the service
     Dir.glob("#{opt_prefix}/*.plist").each do |plist_source_path|
-      ln_sf plist_source_path, "#{ENV['HOME']}/Library/LaunchAgents"
       plist_dest_path = "#{ENV['HOME']}/Library/LaunchAgents/#{File.basename(plist_source_path)}"
+
+      rm plist_dest_path
+      cp plist_source_path, "#{ENV['HOME']}/Library/LaunchAgents/"
+
       system "launchctl", "unload", plist_dest_path
       system "launchctl", "load", "-w", plist_dest_path
     end
