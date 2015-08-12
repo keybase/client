@@ -72,7 +72,8 @@
       if ([info count] != 3) continue;
       if ([info[2] isEqualTo:label]) {
         NSNumber *pid = KBNumberFromString(info[0]);
-        NSNumber *lastExitStatus = KBNumberFromString(info[1]);
+        // Only parse exit status if PID is not set
+        NSNumber *lastExitStatus = !pid ? KBNumberFromString(info[1]) : nil;
         completion([KBServiceStatus serviceStatusWithPid:pid lastExitStatus:lastExitStatus label:label]);
         return;
       }

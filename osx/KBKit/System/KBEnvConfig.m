@@ -19,7 +19,6 @@
 @property (getter=isDevelMode) BOOL develMode;
 @property NSString *mountDir;
 @property NSString *sockFile;
-@property NSString *identifier;
 @property (getter=isLaunchdEnabled) BOOL launchdEnabled;
 @property NSString *launchdLabelService;
 @property NSString *launchdLabelKBFS;
@@ -37,7 +36,6 @@
     switch (env) {
       case KBEnvProd: {
         self.title = @"Keybase.io";
-        self.identifier = @"live";
         self.host = @"https://api.keybase.io:443";
         self.mountDir = [KBPath path:@"~/Keybase" options:0];
         self.debugEnabled = YES;
@@ -45,11 +43,12 @@
         self.image = [NSImage imageNamed:NSImageNameNetwork];
         self.launchdEnabled = YES;
         self.installEnabled = YES;
+        self.launchdLabelService = @"keybase.Service";
+        self.launchdLabelKBFS = @"keybase.KBFS";
         break;
       }
       case KBEnvDevel: {
         self.title = @"Local";
-        self.identifier = @"localhost";
         self.host = @"http://localhost:3000";
         self.develMode = YES;
         self.mountDir = [KBPath path:@"~/Keybase.local" options:0];
@@ -57,12 +56,13 @@
         self.info = @"Uses the localhost web server";
         self.image = [NSImage imageNamed:NSImageNameComputer];
         self.launchdEnabled = YES;
+        self.launchdLabelService = @"keybase.Service.localhost";
+        self.launchdLabelKBFS = @"keybase.KBFS.localhost";
         self.installEnabled = YES;
         break;
       }
       case KBEnvBrew: {
         self.title = @"Homebrew";
-        self.identifier = @"brew";
         self.mountDir = [KBPath path:@"~/Keybase.brew" options:0];
         self.debugEnabled = YES;
         self.info = @"Uses homebrew install";
@@ -71,11 +71,6 @@
         self.installEnabled = NO;
         break;
       }
-    }
-
-    if (self.isLaunchdEnabled) {
-      self.launchdLabelService = NSStringWithFormat(@"keybase.Service.%@", self.identifier);
-      self.launchdLabelKBFS = NSStringWithFormat(@"keybase.KBFS.%@", self.identifier);
     }
   }
   return self;
@@ -140,7 +135,6 @@
 
 - (instancetype)initWithHomeDir:(NSString *)homeDir sockFile:(NSString *)sockFile mountDir:(NSString *)mountDir develMode:(BOOL)develMode {
   if ((self = [super init])) {
-    self.identifier = @"custom";
     self.title = @"Custom";
     self.homeDir = [KBPath path:homeDir options:0];
     self.sockFile = [KBPath path:sockFile options:0];
