@@ -931,6 +931,7 @@ func (bc *BlockChanges) AddUnrefBlock(ptr BlockPointer) {
 // and updates the size estimate.
 func (bc *BlockChanges) AddUpdate(oldPtr BlockPointer, newPtr BlockPointer) {
 	bc.Ops[len(bc.Ops)-1].AddUpdate(oldPtr, newPtr)
+	// add sizes for both block pointers
 	bc.addBPSize()
 	bc.addBPSize()
 }
