@@ -18,6 +18,30 @@ func backupDevs(t *testing.T, fu *FakeUser) (*libkb.User, []*libkb.Device) {
 	return u, cki.BackupDevices()
 }
 
+func hasOneBackupDev(t *testing.T, fu *FakeUser) {
+	u, bdevs := backupDevs(t, fu)
+
+	if len(bdevs) != 1 {
+		t.Fatalf("num backup devices: %d, expected 1", len(bdevs))
+	}
+
+	devid := bdevs[0].ID
+	sibkey, err := u.GetComputedKeyFamily().GetSibkeyForDevice(devid)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if sibkey == nil {
+		t.Fatal("nil backup sibkey")
+	}
+	enckey, err := u.GetComputedKeyFamily().GetEncryptionSubkeyForDevice(devid)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if enckey == nil {
+		t.Fatal("nil backup enckey")
+	}
+}
+
 func TestBackup(t *testing.T) {
 	tc := SetupEngineTest(t, "backup")
 	defer tc.Cleanup()
