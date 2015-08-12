@@ -41,10 +41,10 @@ func (fc FakeKBPKIClient) Call(s string, args interface{}, res interface{}) erro
 		user := fc.Local.Users[uid]
 		identifyRes := res.(*keybase1.IdentifyRes)
 		identifyRes.User = &keybase1.User{
-			Uid:        uid,
-			Username:   user.Name,
-			PublicKeys: user.GetPublicKeys(),
+			Uid:      uid,
+			Username: user.Name,
 		}
+		identifyRes.PublicKeys = user.GetPublicKeys()
 		return nil
 
 	case "keybase.1.session.currentSession":
