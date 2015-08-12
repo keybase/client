@@ -106,11 +106,11 @@
   }
 }
 
-- (void)clearEnv {
+- (void)uninstall {
   KBEnvironment *env = _listView.selectedObject;
-  [KBAlert yesNoWithTitle:@"Clear Environment" description:NSStringWithFormat(@"Are you sure you want to clear %@?", env.config.title) yes:@"Clear" view:self completion:^(BOOL yes) {
-    [env uninstallServices:^(NSError *error) {
-      if (error) DDLogError(@"Error: %@", error);
+  [KBAlert yesNoWithTitle:@"Uninstall" description:NSStringWithFormat(@"Are you sure you want to uninstall %@?", env.config.title) yes:@"Uninstall" view:self completion:^(BOOL yes) {
+    [env uninstall:^(NSError *error) {
+      [KBActivity setError:error sender:self];
     }];
   }];
 }
@@ -155,7 +155,7 @@
   GHWeakSelf gself = self;
   YOHBox *buttons = [YOHBox box];
   [view addSubview:buttons];
-  [buttons addSubview:[KBButton buttonWithText:@"Clear" style:KBButtonStyleDefault options:KBButtonOptionsToolbar targetBlock:^{ [gself clearEnv]; }]];
+  [buttons addSubview:[KBButton buttonWithText:@"Uninstall" style:KBButtonStyleDefault options:KBButtonOptionsToolbar targetBlock:^{ [gself uninstall]; }]];
 
   return view;
 }

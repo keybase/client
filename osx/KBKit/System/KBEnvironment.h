@@ -24,7 +24,7 @@
 
 - (NSArray *)installActionsNeeded;
 
-- (void)uninstallServices:(KBCompletion)completion;
+- (void)uninstall:(KBCompletion)completion;
 
 - (NSArray *)componentsForControlPanel;
 

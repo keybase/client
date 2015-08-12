@@ -344,7 +344,8 @@ typedef NS_ENUM (NSInteger, KBAppViewMode) {
 }
 
 - (void)RPClientDidDisconnect:(KBRPClient *)RPClient {
-  //DDLogInfo(@"Disconnected from Keybase service.");
+  DDLogInfo(@"Disconnected.");
+  [self showInProgress:nil];
   [NSNotificationCenter.defaultCenter postNotificationName:KBStatusDidChangeNotification object:nil userInfo:@{}];
 }
 

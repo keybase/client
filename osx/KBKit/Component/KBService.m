@@ -177,7 +177,7 @@
 + (NSArray *)programArgumentsForKeybase:(KBEnvConfig *)config useBundle:(BOOL)useBundle pathOptions:(KBPathOptions)pathOptions args:(NSArray *)args {
   NSMutableArray *pargs = [NSMutableArray array];
   if (useBundle) {
-    [pargs addObject:NSStringWithFormat(@"%@/bin/keybase", config.bundle.sharedSupportPath)];
+    [pargs addObject:[KBPath pathInDir:config.bundle.sharedSupportPath path:@"bin/keybase" options:pathOptions]];
   } else {
     [pargs addObject:@"./keybase"];
   }
@@ -194,7 +194,7 @@
   }
 
   if (config.sockFile) {
-    [pargs addObject:NSStringWithFormat(@"--socket-file=%@", [KBPath path:config.sockFile options:0])];
+    [pargs addObject:NSStringWithFormat(@"--socket-file=%@", [KBPath path:config.sockFile options:pathOptions])];
   }
 
   if (args) {

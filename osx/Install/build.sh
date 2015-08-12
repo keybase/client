@@ -51,7 +51,7 @@ APP_VERSION="$KB_SERVICE_VERSION"
 
 PLIST=$DIR/../Keybase/Info.plist
 HELPER_PLIST=$DIR/../Helper/Info.plist
-FUSE_PLIST=$DIR/Fuse/kbfuse.bundle/Contents/Info.plist
+FUSE_PLIST=$DIR/Fuse/osxfusefs.bundle/Contents/Info.plist
 KB_HELPER_VERSION=`/usr/libexec/PlistBuddy -c "Print :CFBundleShortVersionString" $HELPER_PLIST`
 KB_FUSE_VERSION=`/usr/libexec/PlistBuddy -c "Print :CFBundleShortVersionString" $FUSE_PLIST`
 

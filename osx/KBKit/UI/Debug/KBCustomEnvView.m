@@ -114,7 +114,7 @@
 }
 
 - (void)updateCLI:(KBEnvConfig *)config {
-  NSString *serviceCLI = NSStringWithFormat(@"env -i %@", [KBService commandLineForService:config useBundle:NO pathOptions:KBPathOptionsEscape|KBPathOptionsTilde args:@[@"service"]]);
+  NSString *serviceCLI = NSStringWithFormat(@"env -i %@", [KBService commandLineForService:config useBundle:NO pathOptions:KBPathOptionsEscape args:@[@"service"]]);
   NSString *kbfsCLI = NSStringWithFormat(@"env -i %@", [KBFSService commandLineForKBFS:config useBundle:NO pathOptions:KBPathOptionsEscape args:nil]);
 
   [_serviceCLI setText:serviceCLI style:KBTextStyleDefault options:KBTextOptionsMonospace alignment:NSLeftTextAlignment lineBreakMode:NSLineBreakByWordWrapping];

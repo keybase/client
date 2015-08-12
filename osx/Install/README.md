@@ -41,10 +41,10 @@ The bundled version info is read from the Keybase.app Info.plist (KBFSVersion). 
 
 We need to make sure when restarting KBFS after an upgrade that we do so safely.
 
-### OSXFuse (kbfuse)
+### OSXFuse
 
-The bundled version info is read from `Keybase.app/Contents/Resources/kbfuse.bundle/Contents/Info.plist`.
-The installed version info is read from `/Library/Filesystems/kbfuse.fs/Support/osxfusefs.kext/Contents/Info.plist`.
+The bundled version info is read from `Keybase.app/Contents/Resources/osxfusefs.bundle/Contents/Info.plist`.
+The installed version info is read from `/Library/Filesystems/osxfusefs.fs/Support/osxfusefs.kext/Contents/Info.plist`.
 The running version is queried from calling `KextManagerCopyLoadedKextInfo` from the privileged helper tool.
 
 When upgrading we have to be careful to make sure KBFS is shutdown and there aren't any mounts.

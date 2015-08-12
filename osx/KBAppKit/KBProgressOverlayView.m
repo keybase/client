@@ -67,6 +67,7 @@
 }
 
 - (void)setTitle:(NSString *)title {
+  if (!title) title = @"Loading";
   [_label setText:[NSString stringWithFormat:@"%@ ...", title] font:[NSFont systemFontOfSize:20] color:[KBAppearance.currentAppearance textColor] alignment:NSCenterTextAlignment lineBreakMode:NSLineBreakByClipping];
   [self setNeedsLayout];
 }

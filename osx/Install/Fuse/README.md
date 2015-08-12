@@ -6,12 +6,6 @@ Checkout the OSXFuse (osxfuse-2.8.0) version:
     git clone --recursive -b osxfuse-2.7.6 git://github.com/osxfuse/osxfuse.git osxfuse
     cd osxfuse
 
-In `build.sh` replace `M_KEXT_ID` with `keybase.osxfuse.filesystems.kbfuse`.
-In `kext/common/fuse_version.h` replace `OSXFUSE_IDENTIFIER_LITERAL` with `keybase.osxfuse`.
-
-In `kext/common/fuse_param.h` replace `OSXFUSE_BUNDLE_PATH` with `"/Library/Filesystems/kbfuse.fs"`.
-In `kext/common/fuse_param.h` replace `OSXFUSE_DEVICE_BASENAME` to `kbfuse`.
-
 Clean and build the small dist:
 
     sudo rm -rf /tmp/osxfuse-core-10.10-2.7.6/
@@ -26,21 +20,21 @@ Create our own bundle from the kext and some support files:
 
     cd keybase/client/osx/Install/Fuse
 
-    rm -rf kbfuse.bundle
-    mkdir -p kbfuse.bundle
+    rm -rf osxfusefs.bundle
+    mkdir -p osxfusefs.bundle
 
-    ditto /tmp/osxfuse-core-10.10-2.7.6/osxfuse/Library/Filesystems/osxfusefs.fs/Contents kbfuse.bundle/Contents/
-    ditto /tmp/osxfuse-core-10.10-2.7.6/osxfuse/Library/Filesystems/osxfusefs.fs/Support/osxfusefs.kext kbfuse.bundle/Support/osxfusefs.kext
-    ditto /tmp/osxfuse-core-10.10-2.7.6/osxfuse/Library/Filesystems/osxfusefs.fs/Support/load_osxfusefs kbfuse.bundle/Support/load_osxfusefs
-    ditto /tmp/osxfuse-core-10.10-2.7.6/osxfuse/Library/Filesystems/osxfusefs.fs/Support/mount_osxfusefs kbfuse.bundle/Support/mount_osxfusefs
+    ditto /tmp/osxfuse-core-10.10-2.7.6/osxfuse/Library/Filesystems/osxfusefs.fs/Contents osxfusefs.bundle/Contents/
+    ditto /tmp/osxfuse-core-10.10-2.7.6/osxfuse/Library/Filesystems/osxfusefs.fs/Support/osxfusefs.kext osxfusefs.bundle/Support/osxfusefs.kext
+    ditto /tmp/osxfuse-core-10.10-2.7.6/osxfuse/Library/Filesystems/osxfusefs.fs/Support/load_osxfusefs osxfusefs.bundle/Support/load_osxfusefs
+    ditto /tmp/osxfuse-core-10.10-2.7.6/osxfuse/Library/Filesystems/osxfusefs.fs/Support/mount_osxfusefs osxfusefs.bundle/Support/mount_osxfusefs
 
 Sign the kext:
 
-    codesign --verbose --sign "Developer ID Application: Keybase, Inc." kbfuse.bundle/Support/osxfusefs.kext
+    codesign --verbose --sign "Developer ID Application: Keybase, Inc." osxfusefs.bundle/Support/osxfusefs.kext
 
 To verify kext signature:
 
-    codesign -dvvv kbfuse.bundle/Support/osxfusefs.kext
+    codesign -dvvv osxfusefs.bundle/Support/osxfusefs.kext
 
 Make sure the entire bundle is included in the main Keybase target.
 
@@ -48,17 +42,17 @@ Make sure the entire bundle is included in the main Keybase target.
 
 If you want to install it manually:
 
-    sudo ditto kbfuse.bundle /Library/Filesystems/kbfuse.fs
-    sudo chown -R 0:0 /Library/Filesystems/kbfuse.fs
-    sudo chmod -R 755 /Library/Filesystems/kbfuse.fs
+    sudo ditto osxfusefs.bundle /Library/Filesystems/osxfusefs.fs
+    sudo chown -R 0:0 /Library/Filesystems/osxfusefs.fs
+    sudo chmod -R 755 /Library/Filesystems/osxfusefs.fs
 
 ### Verifying
 
 After install if you are having problems loading the kext:
 
-    sudo kextutil -l /Library/Filesystems/kbfuse.fs/Support/osxfusefs.kext
+    sudo kextutil -l /Library/Filesystems/osxfusefs.fs/Support/osxfusefs.kext
 
 View kext status:
 
-    sudo kextstat -b keybase.osxfuse.filesystems.osxfusefs
+    sudo kextstat -b com.github.osxfuse.filesystems.osxfusefs
 

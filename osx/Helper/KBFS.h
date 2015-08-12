@@ -10,10 +10,10 @@
 
 #import "KBHelperDefines.h"
 
-#define KBFUSE_BUNDLE (@"/Library/Filesystems/kbfuse.fs")
+#define KBFUSE_BUNDLE (@"/Library/Filesystems/osxfusefs.fs")
 
-#define KEXT_LABEL (@"keybase.osxfuse.filesystems.osxfusefs")
-#define KEXT_LABEL_CFSTR CFSTR("keybase.osxfuse.filesystems.osxfusefs")
+#define KEXT_LABEL (@"com.github.osxfuse.filesystems.osxfusefs")
+#define KEXT_LABEL_CFSTR CFSTR("com.github.osxfuse.filesystems.osxfusefs")
 
 
 @interface KBFS : NSObject

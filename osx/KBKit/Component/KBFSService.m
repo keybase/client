@@ -175,7 +175,7 @@
 
 + (NSDictionary *)envsForKBS:(KBEnvConfig *)config pathOptions:(KBPathOptions)pathOptions {
   NSMutableDictionary *envs = [NSMutableDictionary dictionary];
-  envs[@"PATH"] = @"/sbin:/usr/sbin:/Library/Filesystems/kbfuse.fs/Support"; // For umount, diskutil, mount_osxfusefs
+  //envs[@"PATH"] = @"/sbin:/usr/sbin:/Library/Filesystems/osxfusefs.fs/Support"; // For umount, diskutil, mount_osxfusefs
   envs[@"KEYBASE_SOCKET_FILE"] = [KBPath path:[config sockFile] options:pathOptions];
   envs[@"KEYBASE_CONFIG_FILE"] = [KBPath path:[config configFile] options:pathOptions];
   return envs;

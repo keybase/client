@@ -21,7 +21,7 @@
 
 - (instancetype)init {
   if ((self = [super init])) {
-    _source = @"/Applications/Keybase.app/Contents/Resources/kbfuse.bundle";
+    _source = @"/Applications/Keybase.app/Contents/Resources/osxfusefs.bundle";
     _destination = KBFUSE_BUNDLE;
     _kext = KBNSStringWithFormat(@"%@/Support/osxfusefs.kext", _destination);
   }

@@ -5,7 +5,7 @@
 	<key>CFBundleDevelopmentRegion</key>
 	<string>English</string>
 	<key>CFBundleIdentifier</key>
-	<string>keybase.osxfuse.filesystems.kbfusefs</string>
+	<string>com.github.osxfuse.filesystems.osxfusefs</string>
 	<key>CFBundleInfoDictionaryVersion</key>
 	<string>6.0</string>
 	<key>CFBundleName</key>
@@ -13,11 +13,11 @@
 	<key>CFBundlePackageType</key>
 	<string>fs</string>
 	<key>CFBundleShortVersionString</key>
-	<string>2.8.0</string>
+	<string>2.7.6</string>
 	<key>CFBundleSignature</key>
 	<string>????</string>
 	<key>CFBundleVersion</key>
-	<string>2.8.0</string>
+	<string>2.7.6</string>
 	<key>BuildFlavor</key>
 	<string></string>
 	<key>FSPersonalities</key>

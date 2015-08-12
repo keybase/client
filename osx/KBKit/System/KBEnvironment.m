@@ -81,35 +81,13 @@
   [rover run];
 }
 
-- (void)uninstallServices:(KBCompletion)completion {
+- (void)uninstall:(KBCompletion)completion {
   KBRunOver *rover = [[KBRunOver alloc] init];
-  rover.enumerator = [_services reverseObjectEnumerator];
+  rover.enumerator = [_installables reverseObjectEnumerator];
   rover.runBlock = ^(id<KBInstallable> installable, KBRunCompletion runCompletion) {
     [installable uninstall:^(NSError *error) {
       runCompletion(installable);
     }];
-  };
-  rover.completion = ^(NSArray *outputs) {
-    // TODO Check errors
-    [self clearHome:completion];
-  };
-  [rover run];
-}
-
-- (void)clearHome:(KBCompletion)completion {
-
-  NSString *homeDir = _config.homeDir;
-  NSArray *dirs = @[@".cache/keybase", @".config/keybase", @".local/keybase"];
-
-  KBRunOver *rover = [[KBRunOver alloc] init];
-  rover.enumerator = [dirs objectEnumerator];
-  rover.runBlock = ^(NSString *dir, KBRunCompletion runCompletion) {
-    NSString *kbDir = NSStringWithFormat(@"%@/%@", homeDir, dir);
-    if ([NSFileManager.defaultManager fileExistsAtPath:kbDir isDirectory:nil]) {
-      DDLogDebug(@"Removing: %@", kbDir);
-      [NSFileManager.defaultManager removeItemAtPath:kbDir error:nil];
-    }
-    runCompletion(kbDir);
   };
   rover.completion = ^(NSArray *outputs) {
     completion(nil);
