@@ -487,6 +487,17 @@ func (e WrongOpsError) Error() string {
 		"branch %s", e.opsFB.Tlf, e.opsFB.Branch, e.nodeFB.Tlf, e.nodeFB.Branch)
 }
 
+// NodeNotFoundError indicates that we tried to find a node for the
+// given BlockPointer and failed.
+type NodeNotFoundError struct {
+	ptr BlockPointer
+}
+
+// Error implements the error interface for NodeNotFoundError.
+func (e NodeNotFoundError) Error() string {
+	return fmt.Sprintf("No node found for pointer %v", e.ptr)
+}
+
 // ParentNodeNotFoundError indicates that we tried to update a Node's
 // parent with a BlockPointer that we don't yet know about.
 type ParentNodeNotFoundError struct {

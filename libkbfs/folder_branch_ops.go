@@ -158,6 +158,9 @@ type FolderBranchOps struct {
 
 	// Closed on shutdown
 	shutdownChan chan struct{}
+
+	// make sure we only kick off registration once
+	registerOnce sync.Once
 }
 
 var _ KBFSOps = (*FolderBranchOps)(nil)
@@ -449,7 +452,7 @@ func (fbo *FolderBranchOps) CheckForNewMDAndInit(
 
 	// subscribe to updates; for now only the master branch can get updates
 	if fbo.branch() == MasterBranch {
-		fbo.registerForUpdates()
+		fbo.registerOnce.Do(fbo.registerForUpdates)
 	}
 
 	if md.data.Dir.Type == Dir {
@@ -2799,12 +2802,13 @@ func (fbo *FolderBranchOps) notifyBatch(ctx context.Context, md *RootMetadata) {
 // blockLock must be taken for reading
 func (fbo *FolderBranchOps) searchForNodeInDirLocked(ctx context.Context,
 	ptr BlockPointer, newPtrs map[BlockPointer]bool,
-	md *RootMetadata, currDir path) Node {
+	md *RootMetadata, currDir path) (Node, error) {
 	dirBlock, err := fbo.getDirLocked(ctx, md, currDir, read)
 	if err != nil {
-		return nil
+		return nil, err
 	}
 
+	err = NodeNotFoundError{ptr}
 	for name, de := range dirBlock.Children {
 		if de.BlockPointer == ptr {
 			childPath := currDir.ChildPathNoPtr(name)
@@ -2814,31 +2818,33 @@ func (fbo *FolderBranchOps) searchForNodeInDirLocked(ctx context.Context,
 			for _, pn := range childPath.path {
 				n, err = fbo.nodeCache.GetOrCreate(pn.BlockPointer, pn.Name, n)
 				if err != nil {
-					return nil
+					return nil, err
 				}
 			}
-			return n
+			return n, nil
 		}
 
 		// otherwise, recurse if this represents an updated block
 		if _, ok := newPtrs[de.BlockPointer]; ok {
 			childPath := *currDir.ChildPathNoPtr(name)
 			childPath.path[len(childPath.path)-1].BlockPointer = de.BlockPointer
-			n := fbo.searchForNodeInDirLocked(ctx, ptr, newPtrs, md, childPath)
-			if n != nil {
-				return n
+			var n Node
+			n, err =
+				fbo.searchForNodeInDirLocked(ctx, ptr, newPtrs, md, childPath)
+			if n != nil && err == nil {
+				return n, nil
 			}
 		}
 	}
 
-	return nil
+	return nil, err
 }
 
 // searchForNode tries to figure out the path to the given
 // blockPointer, using only the block updates that happened as part of
 // a given MD update operation.
 func (fbo *FolderBranchOps) searchForNode(ctx context.Context,
-	ptr BlockPointer, op op, md *RootMetadata) Node {
+	ptr BlockPointer, op op, md *RootMetadata) (Node, error) {
 	fbo.blockLock.RLock()
 	defer fbo.blockLock.RUnlock()
 
@@ -2940,10 +2946,11 @@ func (fbo *FolderBranchOps) notifyOneOp(ctx context.Context, op op,
 					// Unfortunately we don't have enough information to
 					// know what the newPath is; we have to guess it from
 					// the updates.
-					newNode =
+					newNode, err =
 						fbo.searchForNode(ctx, realOp.NewDir.Ref, realOp, md)
 					if newNode == nil {
-						panic("Couldn't find the new node!")
+						panic(fmt.Sprintf("Couldn't find the new node: %v",
+							err))
 					}
 				}
 			}
@@ -3081,8 +3088,7 @@ func (fbo *FolderBranchOps) applyMDUpdates(ctx context.Context,
 
 func (fbo *FolderBranchOps) getAndApplyMDUpdates(ctx context.Context) {
 	defer fbo.registerForUpdates()
-	done := false
-	for !done {
+	for {
 		// first look up all MD revisions newer than my current head
 		currHead := fbo.getCurrMDRevision()
 		// TODO: add a timeout to the context?
@@ -3091,19 +3097,19 @@ func (fbo *FolderBranchOps) getAndApplyMDUpdates(ctx context.Context) {
 		if err != nil {
 			// Just try again by reregistering.  TODO: maybe some
 			// errors can't be fixed that way?
-			libkb.G.Log.Debug("GetRange failed while trying to update MD: "+
-				"%v\n", err)
+			libkb.G.Log.Debug("GetRange failed while trying to update MD: %v",
+				err)
 			return
 		}
 
 		err = fbo.applyMDUpdates(ctx, rmds)
 		if err != nil {
-			libkb.G.Log.Debug("Applying updated MD failed: %v\n", err)
+			libkb.G.Log.Debug("Applying updated MD failed: %v", err)
 			return
 		}
 
 		if len(rmds) != maxMDsAtATime {
-			done = true
+			return
 		}
 	}
 }
@@ -3112,26 +3118,34 @@ func (fbo *FolderBranchOps) registerForUpdates() {
 	// Make a context with the session value set for the local MD
 	// server, in case we're using that.
 	ctx := context.Background()
-	c, err := fbo.config.MDServer().RegisterForUpdate(ctx, fbo.id(),
-		fbo.getCurrMDRevision())
-	if err != nil {
-		// Retry in a new goroutine, to avoid potentially large call stacks.
-		go func() {
-			// immediately try to re-register; assume the MDServer
-			// implementation will handle any reconnection logic.
-			fbo.registerForUpdates()
-		}()
-	}
-	go func() {
-		select {
-		case err := <-c:
-			if err != nil {
-				fbo.registerForUpdates()
-			} else {
-				fbo.getAndApplyMDUpdates(context.Background())
+	for i := 0; true; i++ {
+		c, err := fbo.config.MDServer().RegisterForUpdate(ctx, fbo.id(),
+			fbo.getCurrMDRevision())
+		if err != nil {
+			// If the MDServer ever returns an error immediately from
+			// RegisterForUpdates without any context switch, this
+			// loop could end up pegging the CPU.  If that happens,
+			// it's probably a bug in MDServer or its use.
+			if i == 0 {
+				libkb.G.Log.Debug("RegisterForUpdate failed: %v; retrying", err)
 			}
-		case <-fbo.shutdownChan:
-			return
+			continue
 		}
-	}()
+		libkb.G.Log.Debug("RegisterForUpdate succeeded", err)
+
+		// successful registration; now, wait for an update or a shutdown
+		go func() {
+			select {
+			case err := <-c:
+				if err != nil {
+					fbo.registerForUpdates()
+				} else {
+					fbo.getAndApplyMDUpdates(context.Background())
+				}
+			case <-fbo.shutdownChan:
+				return
+			}
+		}()
+		break
+	}
 }
