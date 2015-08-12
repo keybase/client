@@ -138,7 +138,7 @@ func TestLoginWhileAlreadyLoggedIn(t *testing.T) {
 	}
 
 	// This should fail.
-	if _, ok := tc.G.LoginState().LoginWithPrompt("other", nil, nil, nil).(libkb.LoggedInError); !ok {
+	if _, ok := tc.G.LoginState().LoginWithPrompt("other", nil, nil, nil).(libkb.LoggedInWrongUserError); !ok {
 		t.Fatal("Did not get expected LoggedIn error")
 	}
 }

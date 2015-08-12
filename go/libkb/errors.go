@@ -440,6 +440,17 @@ func (e LoggedInError) Error() string {
 
 //=============================================================================
 
+type LoggedInWrongUserError struct {
+	ExistingName  NormalizedUsername
+	AttemptedName NormalizedUsername
+}
+
+func (e LoggedInWrongUserError) Error() string {
+	return fmt.Sprintf("Logged in as %q, attempting to log in as %q:  try logout first", e.ExistingName, e.AttemptedName)
+}
+
+//=============================================================================
+
 type InternalError struct {
 	Msg string
 }

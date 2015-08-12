@@ -414,8 +414,8 @@ func (s *LoginState) checkLoggedIn(lctx LoginContext, username string, force boo
 	nu1 := lctx.LocalSession().GetUsername()
 	nu2 := NewNormalizedUsername(username)
 	if loggedInTmp && len(nu2) > 0 && nu1 != nil && !nu1.Eq(nu2) {
-		err = LoggedInError{}
-		return
+		err = LoggedInWrongUserError{ExistingName: *nu1, AttemptedName: nu2}
+		return false, err
 	}
 
 	if !force && loggedInTmp {

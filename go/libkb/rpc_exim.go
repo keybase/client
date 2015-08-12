@@ -391,6 +391,15 @@ func (e LoggedInError) ToStatus() (s keybase1.Status) {
 
 //=============================================================================
 
+func (e LoggedInWrongUserError) ToStatus() (s keybase1.Status) {
+	s.Code = SCAlreadyLoggedIn
+	s.Name = "ALREADY_LOGGED_IN"
+	s.Desc = e.Error()
+	return
+}
+
+//=============================================================================
+
 func (e KeyGenError) ToStatus() (s keybase1.Status) {
 	s.Code = SCKeyBadGen
 	s.Name = "KEY_BAD_GEN"
