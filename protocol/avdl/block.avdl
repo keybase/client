@@ -15,5 +15,5 @@ protocol block {
 
 	void incBlockReference(BlockIdCombo bid, string nonce, string folder, UID chargedTo);
 	void decBlockReference(BlockIdCombo bid, string nonce, string folder, UID chargedTo);
-	
+
 }

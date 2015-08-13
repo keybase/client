@@ -675,6 +675,10 @@ typedef NS_ENUM (NSInteger, KBRPromptDefault) {
 @interface KBRFavoriteListRequestParams : KBRRequestParams
 @property NSInteger sessionID;
 @end
+@interface KBRFavoriteAddTLFRequestParams : KBRRequestParams
+@property NSInteger sessionID;
+@property NSString *name;
+@end
 @interface KBRWantToAddGPGKeyRequestParams : KBRRequestParams
 @property NSInteger sessionID;
 @end
@@ -1125,6 +1129,9 @@ typedef NS_ENUM (NSInteger, KBRPromptDefault) {
 
 @interface KBRBTCRequest : KBRRequest
 
+/*!
+ Claim a bitcoin address.
+ */
 - (void)registerBTC:(KBRRegisterBTCRequestParams *)params completion:(void (^)(NSError *error))completion;
 
 - (void)registerBTCWithAddress:(NSString *)address force:(BOOL)force completion:(void (^)(NSError *error))completion;
@@ -1171,20 +1178,35 @@ typedef NS_ENUM (NSInteger, KBRPromptDefault) {
 
 @interface KBRDeviceRequest : KBRRequest
 
+/*!
+ List devices for the user.
+
+ It skips any web devices unless the all flag is true.
+ */
 - (void)deviceList:(KBRDeviceListRequestParams *)params completion:(void (^)(NSError *error, NSArray *items))completion;
 
 - (void)deviceListWithAll:(BOOL)all completion:(void (^)(NSError *error, NSArray *items))completion;
 
+/*!
+ Add a new device using a phrase from an existing device.
+ */
 - (void)deviceAdd:(KBRDeviceAddRequestParams *)params completion:(void (^)(NSError *error))completion;
 
 - (void)deviceAddWithSecretPhrase:(NSString *)secretPhrase completion:(void (^)(NSError *error))completion;
 
+/*!
+ Cancels an in-progress deviceAdd(...). Use the sessionID you provided to
+ deviceAdd as the parameter.
+ */
 - (void)deviceAddCancel:(void (^)(NSError *error))completion;
 
 @end
 
 @interface KBRDoctorRequest : KBRRequest
 
+/*!
+ Checks account status and offers to fix any issues.
+ */
 - (void)doctor:(void (^)(NSError *error))completion;
 
 @end
@@ -1216,6 +1238,13 @@ typedef NS_ENUM (NSInteger, KBRPromptDefault) {
 - (void)favoriteDeleteWithFolder:(KBRFolder *)folder completion:(void (^)(NSError *error))completion;
 
 - (void)favoriteList:(void (^)(NSError *error, NSArray *items))completion;
+
+/*!
+ Add favorite top-level folder by name.
+ */
+- (void)favoriteAddTLF:(KBRFavoriteAddTLFRequestParams *)params completion:(void (^)(NSError *error))completion;
+
+- (void)favoriteAddTLFWithName:(NSString *)name completion:(void (^)(NSError *error))completion;
 
 @end
 

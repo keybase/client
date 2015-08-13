@@ -2,37 +2,10 @@ package client
 
 import (
 	"fmt"
-
-	"github.com/keybase/cli"
-	"github.com/keybase/client/go/libcmdline"
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/protocol/go"
 	"github.com/maxtaco/go-framed-msgpack-rpc/rpc2"
 )
-
-// CmdDeviceList is the 'device list' command.  It displays all
-// the devices for the current user.
-type CmdDeviceList struct {
-	all bool
-}
-
-// NewCmdDeviceList creates a new cli.Command.
-func NewCmdDeviceList(cl *libcmdline.CommandLine) cli.Command {
-	return cli.Command{
-		Name:        "list",
-		Usage:       "keybase device list",
-		Description: "List devices",
-		Flags: []cli.Flag{
-			cli.BoolFlag{
-				Name:  "a, all",
-				Usage: "include web devices",
-			},
-		},
-		Action: func(c *cli.Context) {
-			cl.ChooseCommand(&CmdDeviceList{}, "list", c)
-		},
-	}
-}
 
 // RunClient runs the command in client/server mode.
 func (c *CmdDeviceList) Run() error {
@@ -63,12 +36,6 @@ func (c *CmdDeviceList) output(devs []keybase1.Device) {
 		fmt.Fprintf(w, "%s\t%s\t%s\n", v.Name, v.Type, v.DeviceID)
 	}
 	w.Flush()
-}
-
-// ParseArgv does nothing for this command.
-func (c *CmdDeviceList) ParseArgv(ctx *cli.Context) error {
-	c.all = ctx.Bool("all")
-	return nil
 }
 
 // GetUsage says what this command needs to operate.

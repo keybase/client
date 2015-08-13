@@ -198,6 +198,20 @@
         "type" : "array",
         "items" : "Folder"
       }
+    },
+    "favoriteAddTLF" : {
+      "doc" : "Add favorite top-level folder by name.",
+      "command" : {
+        "name" : "add"
+      },
+      "request" : [ {
+        "name" : "sessionID",
+        "type" : "int"
+      }, {
+        "name" : "name",
+        "type" : "string"
+      } ],
+      "response" : "null"
     }
   }
 }

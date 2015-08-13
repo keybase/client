@@ -4,7 +4,7 @@ protocol favorite {
 	import idl "common.avdl";
 
 	// Folder represents a favorite top-level folder in kbfs.
-	// This type is likely to change significantly as all the various parts 
+	// This type is likely to change significantly as all the various parts
 	// are connected and tested.
 	record Folder {
 		string name;              // patrick,max or chris,maxtaco@twitter#strib
@@ -20,4 +20,10 @@ protocol favorite {
 
 	// favoriteList returns all of a user's favorite folders.
 	array<Folder> favoriteList(int sessionID);
+
+	/**
+	  Add favorite top-level folder by name.
+	  */
+	@command({"name": "add"})
+	void favoriteAddTLF(int sessionID, string name);
 }

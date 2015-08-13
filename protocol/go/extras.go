@@ -5,6 +5,7 @@ import (
 	"encoding/binary"
 	"encoding/hex"
 	"fmt"
+	"path/filepath"
 	"strings"
 	"time"
 
@@ -313,4 +314,37 @@ func TimeFromSeconds(seconds int64) Time {
 func FormatTime(t Time) string {
 	layout := "2006-01-02 15:04:05 MST"
 	return FromTime(t).Format(layout)
+}
+
+type Command interface {
+	ParseArgv(ctx *cli.Context) error
+}
+
+// ParseTLF takes keybase paths like
+//
+//     /keybase/public/patrick,chris
+//     /keybase/private/patrick,maxtaco@twitter
+//     public/patrick,jack
+//     /public/patrick,chris,sam
+//
+// and creates suitable folders with the name portion and the
+// private flag set correctly.
+func ParseTLF(path string) (Folder, error) {
+	dir, name := filepath.Split(path)
+
+	var f Folder
+
+	// get the last element of the directory, which should be public or private
+	acc := filepath.Base(dir)
+	switch acc {
+	case "public":
+		f.Private = false
+	case "private":
+		f.Private = true
+	default:
+		return f, fmt.Errorf("folder path needs to contain public or private subdirectory")
+	}
+
+	f.Name = name
+	return f, nil
 }

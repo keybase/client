@@ -719,10 +719,16 @@ type FavoriteListArg struct {
 	SessionID int `codec:"sessionID" json:"sessionID"`
 }
 
+type FavoriteAddTLFArg struct {
+	SessionID int    `codec:"sessionID" json:"sessionID"`
+	Name      string `codec:"name" json:"name"`
+}
+
 type FavoriteInterface interface {
 	FavoriteAdd(FavoriteAddArg) error
 	FavoriteDelete(FavoriteDeleteArg) error
 	FavoriteList(int) ([]Folder, error)
+	FavoriteAddTLF(FavoriteAddTLFArg) error
 }
 
 func FavoriteProtocol(i FavoriteInterface) rpc2.Protocol {
@@ -750,6 +756,13 @@ func FavoriteProtocol(i FavoriteInterface) rpc2.Protocol {
 				}
 				return
 			},
+			"favoriteAddTLF": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
+				args := make([]FavoriteAddTLFArg, 1)
+				if err = nxt(&args); err == nil {
+					err = i.FavoriteAddTLF(args[0])
+				}
+				return
+			},
 		},
 	}
 
@@ -772,6 +785,11 @@ func (c FavoriteClient) FavoriteDelete(__arg FavoriteDeleteArg) (err error) {
 func (c FavoriteClient) FavoriteList(sessionID int) (res []Folder, err error) {
 	__arg := FavoriteListArg{SessionID: sessionID}
 	err = c.Cli.Call("keybase.1.favorite.favoriteList", []interface{}{__arg}, &res)
+	return
+}
+
+func (c FavoriteClient) FavoriteAddTLF(__arg FavoriteAddTLFArg) (err error) {
+	err = c.Cli.Call("keybase.1.favorite.favoriteAddTLF", []interface{}{__arg}, nil)
 	return
 }
 

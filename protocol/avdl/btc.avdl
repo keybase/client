@@ -3,5 +3,9 @@
 protocol BTC {
 	import idl "common.avdl";
 
-	void registerBTC(int sessionID, string address, boolean force);
+	/**
+	  Claim a bitcoin address.
+	 */
+	@command({"name": "btc"})
+	void registerBTC(int sessionID, string address, boolean force=false);
 }

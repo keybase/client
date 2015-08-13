@@ -41,7 +41,7 @@ build-stamp: \
 	json/stream_ui.json \
 	json/track.json \
 	json/ui.json \
-	json/user.json 
+	json/user.json
 	@mkdir -p json
 	date > $@
 
@@ -50,14 +50,20 @@ go/keybase_v1.go: build-stamp
 	$(ICED) ./bin/go.iced -v 2 -d json -t go -o $@
 	gofmt -w $@
 
+cmds-build-stamp: build-stamp
+	ruby ./bin/cmds.rb
+	gofmt -w go/cmds.go
+	mv go/cmds.go ../go/client
+	date > $@
+
 objc-build-stamp: build-stamp
 	ruby ./bin/objc.rb
 	date > $@
 
 clean:
-	rm -rf json/*.json go/keybase_v1.go objc/*
+	rm -rf json/*.json go/keybase_v1.go go/cmds.go objc/*
 
-build: build-stamp go/keybase_v1.go objc-build-stamp
+build: build-stamp go/keybase_v1.go cmds-build-stamp objc-build-stamp
 
 .PHONY: test setup config
 
