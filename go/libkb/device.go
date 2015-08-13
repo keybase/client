@@ -76,7 +76,7 @@ func NewWebDevice() (ret *Device) {
 	} else {
 		s := DeviceStatusActive
 
-		desc := "Web Key"
+		desc := "Web Key " + did.String() // TODO maybe make a nice unique keyname, can't use getUniqueDeviceName if not logged in...
 
 		ret = &Device{
 			ID:          did,
