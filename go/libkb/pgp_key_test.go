@@ -260,3 +260,23 @@ ejqLyhhGTnPydDtFrzsGkw3Qz5r1K2p88A2mGkix3/H0CnkcSSTxI/ID2OQndQOZ
 LpRtxqDTDVA6H/R+dqEhg/ni2jAapEr4VzIbew==
 =bXrj
 -----END PGP PRIVATE KEY BLOCK-----`
+
+func TestReadOneKeyFromBytes(t *testing.T) {
+	// found by go-fuzz:
+	// (errors are ok, panics are not...these all caused panics with an older version of
+	// openpgp)
+	_, err := ReadOneKeyFromBytes([]byte("\x9900\x03000000\x01\x00\x00\x00\x030"))
+	if err != nil {
+		t.Log(err)
+	}
+
+	_, err = ReadOneKeyFromBytes([]byte("\xd1\x1b\x0000000000000000000" + "000000000"))
+	if err != nil {
+		t.Log(err)
+	}
+
+	_, err = ReadOneKeyFromBytes([]byte("0\xd1\x03\x0000"))
+	if err != nil {
+		t.Log(err)
+	}
+}
