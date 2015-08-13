@@ -2,7 +2,7 @@ package engine
 
 import (
 	"bytes"
-	"errors"
+	"fmt"
 
 	"github.com/agl/ed25519"
 	"golang.org/x/crypto/nacl/box"
@@ -140,19 +140,49 @@ func (e *BackupKeygen) push(ctx *Context) error {
 	// local, encrypted storage of the backup keys, but just for recovery
 	// purposes.
 
+	foundStream := false
 	var ppgen libkb.PassphraseGeneration
 	var clientHalf []byte
 	e.G().LoginState().Account(func(a *libkb.Account) {
 		stream := a.PassphraseStream()
 		if stream == nil {
-			err = errors.New("Nil passphrase stream")
 			return
 		}
+		foundStream = true
 		ppgen = stream.Generation()
 		clientHalf = stream.LksClientHalf()
 	}, "BackupKeygen - push")
-	if err != nil {
-		return err
+
+	// stream was nil, so we must have loaded lks from the secret
+	// store.
+	if !foundStream {
+		devid := e.G().Env.GetDeviceID()
+		if devid.IsNil() {
+			return fmt.Errorf("no device id set")
+		}
+
+		var dev libkb.DeviceKey
+		var err error
+		aerr := e.G().LoginState().Account(func(a *libkb.Account) {
+			if err = libkb.RunSyncer(a.SecretSyncer(), e.arg.Me.GetUID(), a.LoggedIn(), a.LocalSession()); err != nil {
+				return
+			}
+			dev, err = a.SecretSyncer().FindDevice(devid)
+		}, "BackupKeygen.Run() -- retrieving passphrase generation)")
+		if aerr != nil {
+			return aerr
+		}
+		if err != nil {
+			return err
+		}
+
+		// TODO: Plumb through actual secret to here, then XOR
+		// with server half to get client half.
+		ppgen = dev.PPGen
+	}
+
+	if ppgen < 1 {
+		e.G().Log.Warning("invalid passphrase generation: %d", ppgen)
 	}
 
 	lks := libkb.NewLKSecWithClientHalf(clientHalf, ppgen, e.arg.Me.GetUID(), e.G())
