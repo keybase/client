@@ -151,7 +151,15 @@ func (e *BackupKeygen) push(ctx *Context) error {
 	// create lks halves for this device.  Note that they aren't used for
 	// local, encrypted storage of the backup keys, but just for recovery
 	// purposes.
-	lks := libkb.NewLKSec(e.ppStream.LksClientHalf(), e.ppStream.Generation(), e.arg.Me.GetUID(), e.G())
+
+	var ppgen libkb.PassphraseGeneration
+	var clientHalf []byte
+	e.G().LoginState().Account(func(a *libkb.Account) {
+		ppgen = a.PassphraseStreamCache().PassphraseStream().Generation()
+		clientHalf = a.PassphraseStreamCache().PassphraseStream().LksClientHalf()
+	}, "BackupKeygen - push")
+
+	lks := libkb.NewLKSec(clientHalf, ppgen, e.arg.Me.GetUID(), e.G())
 	if err := lks.GenerateServerHalf(); err != nil {
 		return err
 	}
