@@ -2,6 +2,8 @@ package engine
 
 import (
 	"bytes"
+	"encoding/hex"
+	"errors"
 	"fmt"
 
 	"github.com/agl/ed25519"
@@ -125,6 +127,53 @@ func (e *BackupKeygen) makeEncKey(seed []byte) error {
 	return nil
 }
 
+func (e *BackupKeygen) getClientHalfFromSecretStore() ([]byte, libkb.PassphraseGeneration, error) {
+	zeroGen := libkb.PassphraseGeneration(0)
+
+	secretStore := libkb.NewSecretStore(e.arg.Me.GetNormalizedName())
+	if secretStore == nil {
+		return nil, zeroGen, errors.New("No secret store available")
+	}
+
+	secret, err := secretStore.RetrieveSecret()
+	if err != nil {
+		return nil, zeroGen, err
+	}
+
+	devid := e.G().Env.GetDeviceID()
+	if devid.IsNil() {
+		return nil, zeroGen, fmt.Errorf("no device id set")
+	}
+
+	var dev libkb.DeviceKey
+	aerr := e.G().LoginState().Account(func(a *libkb.Account) {
+		if err = libkb.RunSyncer(a.SecretSyncer(), e.arg.Me.GetUID(), a.LoggedIn(), a.LocalSession()); err != nil {
+			return
+		}
+		dev, err = a.SecretSyncer().FindDevice(devid)
+	}, "BackupKeygen.Run() -- retrieving passphrase generation)")
+	if aerr != nil {
+		return nil, zeroGen, aerr
+	}
+	if err != nil {
+		return nil, zeroGen, err
+	}
+
+	serverHalf, err := hex.DecodeString(dev.LksServerHalf)
+	if err != nil {
+		return nil, zeroGen, err
+	}
+
+	if len(secret) != len(serverHalf) {
+		return nil, zeroGen, fmt.Errorf("secret has length %d, server half has length %d", len(secret), len(serverHalf))
+	}
+
+	clientHalf := make([]byte, len(secret))
+	libkb.XORBytes(clientHalf, secret, serverHalf)
+
+	return clientHalf, dev.PPGen, nil
+}
+
 func (e *BackupKeygen) push(ctx *Context) error {
 	if e.arg.SkipPush {
 		return nil
@@ -156,29 +205,10 @@ func (e *BackupKeygen) push(ctx *Context) error {
 	// stream was nil, so we must have loaded lks from the secret
 	// store.
 	if !foundStream {
-		devid := e.G().Env.GetDeviceID()
-		if devid.IsNil() {
-			return fmt.Errorf("no device id set")
-		}
-
-		var dev libkb.DeviceKey
-		var err error
-		aerr := e.G().LoginState().Account(func(a *libkb.Account) {
-			if err = libkb.RunSyncer(a.SecretSyncer(), e.arg.Me.GetUID(), a.LoggedIn(), a.LocalSession()); err != nil {
-				return
-			}
-			dev, err = a.SecretSyncer().FindDevice(devid)
-		}, "BackupKeygen.Run() -- retrieving passphrase generation)")
-		if aerr != nil {
-			return aerr
-		}
+		clientHalf, ppgen, err = e.getClientHalfFromSecretStore()
 		if err != nil {
 			return err
 		}
-
-		// TODO: Plumb through actual secret to here, then XOR
-		// with server half to get client half.
-		ppgen = dev.PPGen
 	}
 
 	if ppgen < 1 {
