@@ -75,19 +75,7 @@ func (e *BackupKeygen) Run(ctx *Context) error {
 		return err
 	}
 
-	var gen libkb.PassphraseGeneration
-	err = e.G().LoginState().Account(func(a *libkb.Account) {
-		gen = a.GetStreamGeneration()
-		if gen < 1 && !e.arg.SkipPush {
-			e.G().Log.Warning("invalid passphrase generation: %d", gen)
-		}
-	}, "BackupKeygen - Run")
-	if err != nil {
-		return err
-	}
-
 	ppStream := libkb.NewPassphraseStream(key)
-	ppStream.SetGeneration(gen)
 
 	// make keys for the backup device
 	if err := e.makeSigKey(ppStream.EdDSASeed()); err != nil {
