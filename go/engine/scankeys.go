@@ -64,7 +64,7 @@ func NewScanKeys(secui libkb.SecretUI, idui libkb.IdentifyUI, opts *keybase1.Tra
 			return
 		}
 		pps := a.PassphraseStream()
-		lks := libkb.NewLKSec(pps.LksClientHalf(), pps.Generation(), sk.me.GetUID(), sk.G())
+		lks := libkb.NewLKSec(pps, sk.me.GetUID(), sk.G())
 		err = lks.Load(a)
 		if err != nil {
 			// It's ok if lks fails to load.  Probably due to lack of device.

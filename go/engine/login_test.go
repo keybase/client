@@ -314,11 +314,11 @@ func TestLoginInterruptDeviceRegister(t *testing.T) {
 		t.Fatal(err)
 	}
 	secui := &libkb.TestSecretUI{Passphrase: passphrase}
-	tk, err := tc.G.LoginState().GetPassphraseStream(secui)
+	pps, err := tc.G.LoginState().GetPassphraseStream(secui)
 	if err != nil {
 		t.Fatal(err)
 	}
-	lks := libkb.NewLKSec(tk.LksClientHalf(), tk.Generation(), me.GetUID(), tc.G)
+	lks := libkb.NewLKSec(pps, me.GetUID(), tc.G)
 
 	Logout(tc)
 
@@ -361,11 +361,11 @@ func TestLoginInterruptDevicePush(t *testing.T) {
 		t.Fatal(err)
 	}
 	secui := &libkb.TestSecretUI{Passphrase: passphrase}
-	tk, err := tc.G.LoginState().GetPassphraseStream(secui)
+	pps, err := tc.G.LoginState().GetPassphraseStream(secui)
 	if err != nil {
 		t.Fatal(err)
 	}
-	lks := libkb.NewLKSec(tk.LksClientHalf(), tk.Generation(), me.GetUID(), tc.G)
+	lks := libkb.NewLKSec(pps, me.GetUID(), tc.G)
 
 	// going to register a device only, not generating the device keys.
 	dregArgs := &DeviceRegisterArgs{

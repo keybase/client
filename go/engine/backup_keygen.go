@@ -139,14 +139,11 @@ func (e *BackupKeygen) push(ctx *Context) error {
 	// local, encrypted storage of the backup keys, but just for recovery
 	// purposes.
 
-	var ppgen libkb.PassphraseGeneration
-	var clientHalf []byte
+	var lks *libkb.LKSec
 	e.G().LoginState().Account(func(a *libkb.Account) {
-		ppgen = a.PassphraseStreamCache().PassphraseStream().Generation()
-		clientHalf = a.PassphraseStreamCache().PassphraseStream().LksClientHalf()
+		lks = libkb.NewLKSec(a.PassphraseStreamCache().PassphraseStream(), e.arg.Me.GetUID(), e.G())
 	}, "BackupKeygen - push")
 
-	lks := libkb.NewLKSec(clientHalf, ppgen, e.arg.Me.GetUID(), e.G())
 	if err := lks.GenerateServerHalf(); err != nil {
 		return err
 	}

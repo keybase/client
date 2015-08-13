@@ -240,12 +240,12 @@ func (d *Locksmith) addDeviceKey(ctx *Context) error {
 	if err != nil {
 		return err
 	}
-	tk, err := d.ppStream(ctx)
+	pps, err := d.ppStream(ctx)
 	if err != nil {
 		return err
 	}
 
-	d.lks = libkb.NewLKSec(tk.LksClientHalf(), tk.Generation(), d.user.GetUID(), d.G())
+	d.lks = libkb.NewLKSec(pps, d.user.GetUID(), d.G())
 	args := &DeviceWrapArgs{
 		Me:         d.user,
 		DeviceName: devname,
@@ -267,11 +267,11 @@ func (d *Locksmith) addDeviceKeyWithSigner(ctx *Context, signer libkb.GenericKey
 	if err != nil {
 		return err
 	}
-	tk, err := d.ppStream(ctx)
+	pps, err := d.ppStream(ctx)
 	if err != nil {
 		return err
 	}
-	d.lks = libkb.NewLKSec(tk.LksClientHalf(), tk.Generation(), d.user.GetUID(), d.G())
+	d.lks = libkb.NewLKSec(pps, d.user.GetUID(), d.G())
 	args := &DeviceWrapArgs{
 		Me:         d.user,
 		DeviceName: devname,
@@ -520,7 +520,7 @@ func (d *Locksmith) deviceSignExistingDevice(ctx *Context, existingID keybase1.D
 	ctx.LogUI.Debug("device sign with existing device [%s]", existingID)
 	ctx.LogUI.Debug("new device name: %s", newDevName)
 
-	tk, err := d.ppStream(ctx)
+	pps, err := d.ppStream(ctx)
 	if err != nil {
 		return err
 	}
@@ -534,7 +534,7 @@ func (d *Locksmith) deviceSignExistingDevice(ctx *Context, existingID keybase1.D
 	}
 
 	d.kexMu.Lock()
-	d.kex = NewKexFwd(tk.LksClientHalf(), tk.Generation(), kargs, d.G())
+	d.kex = NewKexFwd(pps, kargs, d.G())
 	d.kexMu.Unlock()
 
 	err = RunEngine(d.kex, ctx)

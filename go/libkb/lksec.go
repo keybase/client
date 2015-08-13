@@ -19,10 +19,10 @@ type LKSec struct {
 	Contextified
 }
 
-func NewLKSec(clientHalf []byte, ppGen PassphraseGeneration, uid keybase1.UID, gc *GlobalContext) *LKSec {
+func NewLKSec(pps *PassphraseStream, uid keybase1.UID, gc *GlobalContext) *LKSec {
 	return &LKSec{
-		clientHalf:   clientHalf,
-		ppGen:        ppGen,
+		clientHalf:   pps.LksClientHalf(),
+		ppGen:        pps.Generation(),
 		uid:          uid,
 		Contextified: NewContextified(gc),
 	}
@@ -211,7 +211,7 @@ func NewLKSForEncrypt(ui SecretUI, uid keybase1.UID, gc *GlobalContext) (ret *LK
 	if pps, err = gc.LoginState().GetPassphraseStream(ui); err != nil {
 		return
 	}
-	ret = NewLKSec(pps.LksClientHalf(), pps.Generation(), uid, gc)
+	ret = NewLKSec(pps, uid, gc)
 	return
 }
 

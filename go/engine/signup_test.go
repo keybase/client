@@ -128,9 +128,7 @@ func TestLocalKeySecurity(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	ch := s.ppStream.LksClientHalf()
-
-	lks := libkb.NewLKSec(ch, s.ppStream.Generation(), s.uid, nil)
+	lks := libkb.NewLKSec(s.ppStream, s.uid, nil)
 	if err := lks.Load(nil); err != nil {
 		t.Fatal(err)
 	}

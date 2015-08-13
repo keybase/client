@@ -27,12 +27,12 @@ type KexFwdArgs struct {
 }
 
 // NewKexFwd creates a KexFwd engine.
-func NewKexFwd(lksClientHalf []byte, ppGen libkb.PassphraseGeneration, args *KexFwdArgs, gc *libkb.GlobalContext) *KexFwd {
+func NewKexFwd(pps *libkb.PassphraseStream, args *KexFwdArgs, gc *libkb.GlobalContext) *KexFwd {
 	kc := newKexCom(gc)
 	kf := &KexFwd{KexCom: *kc, args: args}
 	kf.debugName = "KexFwd"
-	if lksClientHalf != nil {
-		kf.lks = libkb.NewLKSec(lksClientHalf, ppGen, kf.args.User.GetUID(), gc)
+	if pps != nil {
+		kf.lks = libkb.NewLKSec(pps, kf.args.User.GetUID(), gc)
 	}
 	return kf
 }
