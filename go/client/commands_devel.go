@@ -12,13 +12,13 @@ import (
 func GetCommands(cl *libcmdline.CommandLine) []cli.Command {
 	return []cli.Command{
 		NewCmdBackup(cl),
-		NewCmdBTC(&CmdBTC{},cl),
+		NewCmdBTC(&CmdBTC{}, cl),
 		NewCmdCert(cl),
 		NewCmdConfig(cl),
 		NewCmdCtl(cl),
 		NewCmdDb(cl),
 		NewCmdDevice(cl),
-		NewCmdDoctor(&CmdDoctor{},cl),
+		NewCmdDoctor(&CmdDoctor{}, cl),
 		NewCmdFavorite(cl),
 		NewCmdID(cl),
 		NewCmdList(cl),
