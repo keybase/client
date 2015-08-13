@@ -27,3 +27,5 @@ _testmain.go
 *.prof
 
 go/keybase/keybase
+
+*-fuzz.zip
