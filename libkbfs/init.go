@@ -81,12 +81,18 @@ func makeKeyServer(config Config, serverRootDir *string) (
 }
 
 func makeBlockServer(config Config, serverRootDir *string) (BlockServer, error) {
-	if serverRootDir == nil {
-		return NewBlockServerMemory(config)
+	bServerAddr := os.Getenv(EnvBServerAddr)
+	if len(bServerAddr) == 0 {
+		if serverRootDir == nil {
+			return NewBlockServerMemory(config)
+		}
+
+		blockPath := filepath.Join(*serverRootDir, "kbfs_block")
+		return NewBlockServerLocal(config, blockPath)
 	}
 
-	blockPath := filepath.Join(*serverRootDir, "kbfs_block")
-	return NewBlockServerLocal(config, blockPath)
+	fmt.Printf("Using remote bserver %s\n", bServerAddr)
+	return NewBlockServerRemote(context.TODO(), config, bServerAddr), nil
 }
 
 // Init initializes a config and returns it. If localUser is
@@ -130,6 +136,12 @@ func Init(localUser string, serverRootDir *string, cpuProfilePath, memProfilePat
 
 	config := NewConfigLocal()
 
+	libkb.G.Init()
+	libkb.G.ConfigureConfig()
+	libkb.G.ConfigureLogging()
+	libkb.G.ConfigureCaches()
+	libkb.G.ConfigureMerkleClient()
+
 	mdServer, err := makeMDServer(config, serverRootDir)
 	if err != nil {
 		return nil, fmt.Errorf("problem creating MD server: %v", err)
@@ -141,18 +153,6 @@ func Init(localUser string, serverRootDir *string, cpuProfilePath, memProfilePat
 		return nil, fmt.Errorf("problem creating key server: %v", err)
 	}
 	config.SetKeyServer(keyServer)
-
-	bserv, err := makeBlockServer(config, serverRootDir)
-	if err != nil {
-		return nil, fmt.Errorf("cannot open block database: %v", err)
-	}
-	config.SetBlockServer(bserv)
-
-	libkb.G.Init()
-	libkb.G.ConfigureConfig()
-	libkb.G.ConfigureLogging()
-	libkb.G.ConfigureCaches()
-	libkb.G.ConfigureMerkleClient()
 
 	client.InitUI()
 	libkb.G.UI.Configure()
@@ -170,43 +170,46 @@ func Init(localUser string, serverRootDir *string, cpuProfilePath, memProfilePat
 			return nil, fmt.Errorf("Could not get Crypto: %v", err)
 		}
 		config.SetCrypto(c)
-
-		return config, nil
-	}
-
-	// localUser != ""
-
-	users := []string{"strib", "max", "chris", "fred"}
-	userIndex := -1
-	for i := range users {
-		if localUser == users[i] {
-			userIndex = i
-			break
+	} else {
+		users := []string{"strib", "max", "chris", "fred"}
+		userIndex := -1
+		for i := range users {
+			if localUser == users[i] {
+				userIndex = i
+				break
+			}
 		}
+		if userIndex < 0 {
+			return nil, fmt.Errorf("user %s not in list %v", localUser, users)
+		}
+
+		localUsers := MakeLocalUsers(users)
+
+		// TODO: Auto-generate these, too?
+		localUsers[0].Asserts = []string{"github:strib"}
+		localUsers[1].Asserts = []string{"twitter:maxtaco"}
+		localUsers[2].Asserts = []string{"twitter:malgorithms"}
+		localUsers[3].Asserts = []string{"twitter:fakalin"}
+
+		var localUID keybase1.UID
+		if userIndex >= 0 {
+			localUID = localUsers[userIndex].UID
+		}
+
+		k := NewKBPKILocal(localUID, localUsers)
+		config.SetKBPKI(k)
+
+		signingKey := MakeLocalUserSigningKeyOrBust(localUser)
+		cryptPrivateKey := MakeLocalUserCryptPrivateKeyOrBust(localUser)
+		config.SetCrypto(NewCryptoLocal(config.Codec(), signingKey,
+			cryptPrivateKey))
 	}
-	if userIndex < 0 {
-		return nil, fmt.Errorf("user %s not in list %v", localUser, users)
+
+	bserv, err := makeBlockServer(config, serverRootDir)
+	if err != nil {
+		return nil, fmt.Errorf("cannot open block database: %v", err)
 	}
-
-	localUsers := MakeLocalUsers(users)
-
-	// TODO: Auto-generate these, too?
-	localUsers[0].Asserts = []string{"github:strib"}
-	localUsers[1].Asserts = []string{"twitter:maxtaco"}
-	localUsers[2].Asserts = []string{"twitter:malgorithms"}
-	localUsers[3].Asserts = []string{"twitter:fakalin"}
-
-	var localUID keybase1.UID
-	if userIndex >= 0 {
-		localUID = localUsers[userIndex].UID
-	}
-
-	k := NewKBPKILocal(localUID, localUsers)
-	config.SetKBPKI(k)
-
-	signingKey := MakeLocalUserSigningKeyOrBust(localUser)
-	cryptPrivateKey := MakeLocalUserCryptPrivateKeyOrBust(localUser)
-	config.SetCrypto(NewCryptoLocal(config.Codec(), signingKey, cryptPrivateKey))
+	config.SetBlockServer(bserv)
 
 	return config, nil
 }
