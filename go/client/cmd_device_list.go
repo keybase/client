@@ -2,13 +2,15 @@ package client
 
 import (
 	"fmt"
-	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/protocol/go"
 	"github.com/maxtaco/go-framed-msgpack-rpc/rpc2"
 )
 
-// RunClient runs the command in client/server mode.
-func (c *CmdDeviceList) Run() error {
+type CmdDeviceListDisplay struct {
+	CmdDeviceList
+}
+
+func (c *CmdDeviceListDisplay) Run() error {
 	cli, err := GetDeviceClient()
 	if err != nil {
 		return err
@@ -28,7 +30,7 @@ func (c *CmdDeviceList) Run() error {
 	return nil
 }
 
-func (c *CmdDeviceList) output(devs []keybase1.Device) {
+func (c *CmdDeviceListDisplay) output(devs []keybase1.Device) {
 	w := GlobUI.DefaultTabWriter()
 	fmt.Fprintf(w, "Name\tType\tID\n")
 	fmt.Fprintf(w, "==========\t==========\t==========\n")
@@ -36,13 +38,4 @@ func (c *CmdDeviceList) output(devs []keybase1.Device) {
 		fmt.Fprintf(w, "%s\t%s\t%s\n", v.Name, v.Type, v.DeviceID)
 	}
 	w.Flush()
-}
-
-// GetUsage says what this command needs to operate.
-func (c *CmdDeviceList) GetUsage() libkb.Usage {
-	return libkb.Usage{
-		Config:    true,
-		KbKeyring: true,
-		API:       true,
-	}
 }

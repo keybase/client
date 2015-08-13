@@ -11,7 +11,7 @@ func NewCmdFavorite(cl *libcmdline.CommandLine) cli.Command {
 		Usage:       "keybase favorite [add|delete|list]",
 		Description: "Add or delete favorite kbfs folders",
 		Subcommands: []cli.Command{
-			NewCmdFavoriteAdd(cl),
+			NewCmdFavoriteAdd(&CmdFavoriteAdd{}, cl),
 			NewCmdFavoriteDelete(cl),
 			NewCmdFavoriteList(cl),
 		},

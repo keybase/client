@@ -13,8 +13,8 @@ func NewCmdDevice(cl *libcmdline.CommandLine) cli.Command {
 		Usage:       "keybase device [subcommands...]",
 		Description: "Manage your devices",
 		Subcommands: []cli.Command{
-			NewCmdDeviceList(cl),
-			NewCmdDeviceAdd(cl),
+			NewCmdDeviceList(&CmdDeviceListDisplay{}, cl),
+			NewCmdDeviceAdd(&CmdDeviceAdd{}, cl),
 			NewCmdDeviceRemove(cl),
 		},
 	}

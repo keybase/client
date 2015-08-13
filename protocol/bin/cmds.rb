@@ -67,6 +67,7 @@ paths.each do |path|
 
 		class_name = convert_classname(command, subcommand)
 		method_name = convert_methodname(message_name)
+		client_name = convert_classname(protocol, nil)
 
 		# Parse method signature
 		flags = []
@@ -101,7 +102,7 @@ paths.each do |path|
 				# Arg
 				properties << "#{name} #{type}"
 				assigns << "c.#{name} = ctx.Args()[#{assigns.length}]"
-				struct_assigns << "#{name.capitalize}: c.#{name},"
+				struct_assigns << "#{titleize(name)}: c.#{name},"
 				args << name
 			end
 		end
@@ -112,31 +113,66 @@ paths.each do |path|
 
 		usage = "keybase #{command_desc}#{flags_desc}#{args_desc}"
 
+		cli_args = struct_assigns.length > 0 ? "keybase1.#{method_name}Arg{#{struct_assigns.join("\n")}}" : "c.sessionID"
+
 		# Generate GO
 		go << <<-EOS
 		type Cmd#{class_name} struct {
-			#{properties.join("\n			")}
+			#{properties.join("\n")}
 		}
 
 		func (c *Cmd#{class_name}) ParseArgv(ctx *cli.Context) error {
 			if len(ctx.Args()) != #{args.length} {
 				return fmt.Errorf("Invalid arguments.")
 			}
-			#{assigns.join("\n			")}
+			#{assigns.join("\n")}
 			return nil
 		}
 
-		func NewCmd#{class_name}(cl *libcmdline.CommandLine) cli.Command {
+		func NewCmd#{class_name}(cmd libcmdline.Command, cl *libcmdline.CommandLine) cli.Command {
 			return cli.Command{
 				Name:        "#{subcommand}",
 				Usage:       "#{usage}",
 				Description: "#{desc}",
 				Flags: []cli.Flag{
-					#{flagdefs.join("\n					")}
+					#{flagdefs.join("\n")}
 				},
 				Action: func(c *cli.Context) {
-					cl.ChooseCommand(&Cmd#{class_name}{}, "#{subcommand}", c)
+					cl.ChooseCommand(cmd, "#{subcommand}", c)
 				},
+			}
+		}
+
+		func (c *Cmd#{class_name}) Run() (err error) {
+			c.sessionID, err = libkb.RandInt()
+			if err != nil {
+				return err
+			}
+			cli, err := Get#{client_name}Client()
+			if err != nil {
+				return err
+			}
+
+			protocols := []rpc2.Protocol{
+				NewLogUIProtocol(),
+				NewSecretUIProtocol(),
+				NewLocksmithUIProtocol(),
+			}
+			if err = RegisterProtocols(protocols); err != nil {
+				return
+			}
+
+
+			#{response == "null" ? "err" : "_, err"} = cli.#{method_name}(#{cli_args})
+			return
+		}
+
+		func (c *Cmd#{class_name}) GetUsage() libkb.Usage {
+			return libkb.Usage{
+				Config:     true,
+				GpgKeyring: true,
+				KbKeyring:  true,
+				API:        true,
 			}
 		}
 		EOS
@@ -152,6 +188,9 @@ paths.each do |path|
 			"fmt"
 			"github.com/keybase/cli"
 			"github.com/keybase/client/go/libcmdline"
+			"github.com/keybase/client/go/libkb"
+			keybase1 "github.com/keybase/client/protocol/go"
+			"github.com/maxtaco/go-framed-msgpack-rpc/rpc2"
 		)
 
 		EOS

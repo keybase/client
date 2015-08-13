@@ -5,6 +5,9 @@ import (
 	"fmt"
 	"github.com/keybase/cli"
 	"github.com/keybase/client/go/libcmdline"
+	"github.com/keybase/client/go/libkb"
+	keybase1 "github.com/keybase/client/protocol/go"
+	"github.com/maxtaco/go-framed-msgpack-rpc/rpc2"
 )
 
 type CmdBTC struct {
@@ -22,7 +25,7 @@ func (c *CmdBTC) ParseArgv(ctx *cli.Context) error {
 	return nil
 }
 
-func NewCmdBTC(cl *libcmdline.CommandLine) cli.Command {
+func NewCmdBTC(cmd libcmdline.Command, cl *libcmdline.CommandLine) cli.Command {
 	return cli.Command{
 		Name:        "btc",
 		Usage:       "keybase btc [--force] <address>",
@@ -31,8 +34,41 @@ func NewCmdBTC(cl *libcmdline.CommandLine) cli.Command {
 			cli.BoolFlag{Name: "force", Usage: ""},
 		},
 		Action: func(c *cli.Context) {
-			cl.ChooseCommand(&CmdBTC{}, "btc", c)
+			cl.ChooseCommand(cmd, "btc", c)
 		},
+	}
+}
+
+func (c *CmdBTC) Run() (err error) {
+	c.sessionID, err = libkb.RandInt()
+	if err != nil {
+		return err
+	}
+	cli, err := GetBTCClient()
+	if err != nil {
+		return err
+	}
+
+	protocols := []rpc2.Protocol{
+		NewLogUIProtocol(),
+		NewSecretUIProtocol(),
+		NewLocksmithUIProtocol(),
+	}
+	if err = RegisterProtocols(protocols); err != nil {
+		return
+	}
+
+	err = cli.RegisterBTC(keybase1.RegisterBTCArg{Address: c.address,
+		Force: c.force})
+	return
+}
+
+func (c *CmdBTC) GetUsage() libkb.Usage {
+	return libkb.Usage{
+		Config:     true,
+		GpgKeyring: true,
+		KbKeyring:  true,
+		API:        true,
 	}
 }
 
@@ -49,7 +85,7 @@ func (c *CmdDeviceList) ParseArgv(ctx *cli.Context) error {
 	return nil
 }
 
-func NewCmdDeviceList(cl *libcmdline.CommandLine) cli.Command {
+func NewCmdDeviceList(cmd libcmdline.Command, cl *libcmdline.CommandLine) cli.Command {
 	return cli.Command{
 		Name:        "list",
 		Usage:       "keybase device list [--all]",
@@ -58,8 +94,40 @@ func NewCmdDeviceList(cl *libcmdline.CommandLine) cli.Command {
 			cli.BoolFlag{Name: "all", Usage: ""},
 		},
 		Action: func(c *cli.Context) {
-			cl.ChooseCommand(&CmdDeviceList{}, "list", c)
+			cl.ChooseCommand(cmd, "list", c)
 		},
+	}
+}
+
+func (c *CmdDeviceList) Run() (err error) {
+	c.sessionID, err = libkb.RandInt()
+	if err != nil {
+		return err
+	}
+	cli, err := GetDeviceClient()
+	if err != nil {
+		return err
+	}
+
+	protocols := []rpc2.Protocol{
+		NewLogUIProtocol(),
+		NewSecretUIProtocol(),
+		NewLocksmithUIProtocol(),
+	}
+	if err = RegisterProtocols(protocols); err != nil {
+		return
+	}
+
+	_, err = cli.DeviceList(keybase1.DeviceListArg{All: c.all})
+	return
+}
+
+func (c *CmdDeviceList) GetUsage() libkb.Usage {
+	return libkb.Usage{
+		Config:     true,
+		GpgKeyring: true,
+		KbKeyring:  true,
+		API:        true,
 	}
 }
 
@@ -76,15 +144,47 @@ func (c *CmdDeviceAdd) ParseArgv(ctx *cli.Context) error {
 	return nil
 }
 
-func NewCmdDeviceAdd(cl *libcmdline.CommandLine) cli.Command {
+func NewCmdDeviceAdd(cmd libcmdline.Command, cl *libcmdline.CommandLine) cli.Command {
 	return cli.Command{
 		Name:        "add",
 		Usage:       "keybase device add <secretPhrase>",
 		Description: "Add a new device using a phrase from an existing device.",
 		Flags:       []cli.Flag{},
 		Action: func(c *cli.Context) {
-			cl.ChooseCommand(&CmdDeviceAdd{}, "add", c)
+			cl.ChooseCommand(cmd, "add", c)
 		},
+	}
+}
+
+func (c *CmdDeviceAdd) Run() (err error) {
+	c.sessionID, err = libkb.RandInt()
+	if err != nil {
+		return err
+	}
+	cli, err := GetDeviceClient()
+	if err != nil {
+		return err
+	}
+
+	protocols := []rpc2.Protocol{
+		NewLogUIProtocol(),
+		NewSecretUIProtocol(),
+		NewLocksmithUIProtocol(),
+	}
+	if err = RegisterProtocols(protocols); err != nil {
+		return
+	}
+
+	err = cli.DeviceAdd(keybase1.DeviceAddArg{SecretPhrase: c.secretPhrase})
+	return
+}
+
+func (c *CmdDeviceAdd) GetUsage() libkb.Usage {
+	return libkb.Usage{
+		Config:     true,
+		GpgKeyring: true,
+		KbKeyring:  true,
+		API:        true,
 	}
 }
 
@@ -100,15 +200,47 @@ func (c *CmdDoctor) ParseArgv(ctx *cli.Context) error {
 	return nil
 }
 
-func NewCmdDoctor(cl *libcmdline.CommandLine) cli.Command {
+func NewCmdDoctor(cmd libcmdline.Command, cl *libcmdline.CommandLine) cli.Command {
 	return cli.Command{
 		Name:        "doctor",
 		Usage:       "keybase doctor",
 		Description: "Checks account status and offers to fix any issues.",
 		Flags:       []cli.Flag{},
 		Action: func(c *cli.Context) {
-			cl.ChooseCommand(&CmdDoctor{}, "doctor", c)
+			cl.ChooseCommand(cmd, "doctor", c)
 		},
+	}
+}
+
+func (c *CmdDoctor) Run() (err error) {
+	c.sessionID, err = libkb.RandInt()
+	if err != nil {
+		return err
+	}
+	cli, err := GetDoctorClient()
+	if err != nil {
+		return err
+	}
+
+	protocols := []rpc2.Protocol{
+		NewLogUIProtocol(),
+		NewSecretUIProtocol(),
+		NewLocksmithUIProtocol(),
+	}
+	if err = RegisterProtocols(protocols); err != nil {
+		return
+	}
+
+	err = cli.Doctor(c.sessionID)
+	return
+}
+
+func (c *CmdDoctor) GetUsage() libkb.Usage {
+	return libkb.Usage{
+		Config:     true,
+		GpgKeyring: true,
+		KbKeyring:  true,
+		API:        true,
 	}
 }
 
@@ -125,14 +257,46 @@ func (c *CmdFavoriteAdd) ParseArgv(ctx *cli.Context) error {
 	return nil
 }
 
-func NewCmdFavoriteAdd(cl *libcmdline.CommandLine) cli.Command {
+func NewCmdFavoriteAdd(cmd libcmdline.Command, cl *libcmdline.CommandLine) cli.Command {
 	return cli.Command{
 		Name:        "add",
 		Usage:       "keybase favorite add <name>",
 		Description: "Add favorite top-level folder by name.",
 		Flags:       []cli.Flag{},
 		Action: func(c *cli.Context) {
-			cl.ChooseCommand(&CmdFavoriteAdd{}, "add", c)
+			cl.ChooseCommand(cmd, "add", c)
 		},
+	}
+}
+
+func (c *CmdFavoriteAdd) Run() (err error) {
+	c.sessionID, err = libkb.RandInt()
+	if err != nil {
+		return err
+	}
+	cli, err := GetFavoriteClient()
+	if err != nil {
+		return err
+	}
+
+	protocols := []rpc2.Protocol{
+		NewLogUIProtocol(),
+		NewSecretUIProtocol(),
+		NewLocksmithUIProtocol(),
+	}
+	if err = RegisterProtocols(protocols); err != nil {
+		return
+	}
+
+	err = cli.FavoriteAddTLF(keybase1.FavoriteAddTLFArg{Name: c.name})
+	return
+}
+
+func (c *CmdFavoriteAdd) GetUsage() libkb.Usage {
+	return libkb.Usage{
+		Config:     true,
+		GpgKeyring: true,
+		KbKeyring:  true,
+		API:        true,
 	}
 }
