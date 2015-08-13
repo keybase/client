@@ -157,12 +157,17 @@
   } ],
   "messages" : {
     "deviceList" : {
+      "doc" : "List devices for the user.\n\n\t  It skips any web devices unless the all flag is true.",
+      "command" : {
+        "name" : "list"
+      },
       "request" : [ {
         "name" : "sessionID",
         "type" : "int"
       }, {
         "name" : "all",
-        "type" : "boolean"
+        "type" : "boolean",
+        "default" : false
       } ],
       "response" : {
         "type" : "array",
@@ -170,6 +175,10 @@
       }
     },
     "deviceAdd" : {
+      "doc" : "Add a new device using a phrase from an existing device.",
+      "command" : {
+        "name" : "add"
+      },
       "request" : [ {
         "name" : "sessionID",
         "type" : "int"
@@ -180,6 +189,7 @@
       "response" : "null"
     },
     "deviceAddCancel" : {
+      "doc" : "Cancels an in-progress deviceAdd(...). Use the sessionID you provided to\n\t  deviceAdd as the parameter.",
       "request" : [ {
         "name" : "sessionID",
         "type" : "int"

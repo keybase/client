@@ -38,7 +38,7 @@ func (c *CmdFavoriteDelete) ParseArgv(ctx *cli.Context) error {
 	if len(ctx.Args()) != 1 {
 		return errors.New("favorite delete takes 1 argument: <folder name>")
 	}
-	f, err := ParseTLF(ctx.Args()[0])
+	f, err := keybase1.ParseTLF(ctx.Args()[0])
 	if err != nil {
 		return err
 	}

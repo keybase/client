@@ -157,6 +157,10 @@
   } ],
   "messages" : {
     "doctor" : {
+      "doc" : "Checks account status and offers to fix any issues.",
+      "command" : {
+        "name" : "doctor"
+      },
       "request" : [ {
         "name" : "sessionID",
         "type" : "int"

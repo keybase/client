@@ -24,6 +24,16 @@ func (h *FavoriteHandler) FavoriteAdd(arg keybase1.FavoriteAddArg) error {
 	return engine.RunEngine(eng, ctx)
 }
 
+func (h *FavoriteHandler) FavoriteAddTLF(arg keybase1.FavoriteAddTLFArg) error {
+	folder, err := keybase1.ParseTLF(arg.Name)
+	if err != nil {
+		return err
+	}
+	eng := engine.NewFavoriteAdd(&keybase1.FavoriteAddArg{SessionID: arg.SessionID, Folder: folder}, G)
+	ctx := &engine.Context{}
+	return engine.RunEngine(eng, ctx)
+}
+
 // FavoriteDelete handles the favoriteDelete RPC.
 func (h *FavoriteHandler) FavoriteDelete(arg keybase1.FavoriteDeleteArg) error {
 	eng := engine.NewFavoriteDelete(&arg, G)

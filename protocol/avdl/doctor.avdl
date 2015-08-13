@@ -3,5 +3,9 @@
 protocol doctor {
 	import idl "common.avdl";
 
+	/**
+	  Checks account status and offers to fix any issues.
+	 */
+	@command({"name": "doctor"})
 	void doctor(int sessionID);
 }

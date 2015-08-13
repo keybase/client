@@ -157,6 +157,10 @@
   } ],
   "messages" : {
     "registerBTC" : {
+      "doc" : "Claim a bitcoin address.",
+      "command" : {
+        "name" : "btc"
+      },
       "request" : [ {
         "name" : "sessionID",
         "type" : "int"
@@ -165,7 +169,8 @@
         "type" : "string"
       }, {
         "name" : "force",
-        "type" : "boolean"
+        "type" : "boolean",
+        "default" : false
       } ],
       "response" : "null"
     }

@@ -417,6 +417,20 @@
   }];
 }
 
+- (void)favoriteAddTLF:(KBRFavoriteAddTLFRequestParams *)params completion:(void (^)(NSError *error))completion {
+  NSDictionary *rparams = @{@"name": KBRValue(params.name)};
+  [self.client sendRequestWithMethod:@"keybase.1.favorite.favoriteAddTLF" params:rparams sessionId:self.sessionId completion:^(NSError *error, id retval) {
+    completion(error);
+  }];
+}
+
+- (void)favoriteAddTLFWithName:(NSString *)name completion:(void (^)(NSError *error))completion {
+  NSDictionary *rparams = @{@"name": KBRValue(name)};
+  [self.client sendRequestWithMethod:@"keybase.1.favorite.favoriteAddTLF" params:rparams sessionId:self.sessionId completion:^(NSError *error, id retval) {
+    completion(error);
+  }];
+}
+
 @end
 
 @implementation KBRGpgUiRequest
@@ -2192,6 +2206,7 @@
 + (instancetype)params {
   KBRRegisterBTCRequestParams *p = [[self alloc] init];
   // Add default values
+  p.force = false;
   return p;
 }
 @end
@@ -2314,6 +2329,7 @@
 + (instancetype)params {
   KBRDeviceListRequestParams *p = [[self alloc] init];
   // Add default values
+  p.all = false;
   return p;
 }
 @end
@@ -2464,6 +2480,23 @@
 
 + (instancetype)params {
   KBRFavoriteListRequestParams *p = [[self alloc] init];
+  // Add default values
+  return p;
+}
+@end
+
+@implementation KBRFavoriteAddTLFRequestParams
+
+- (instancetype)initWithParams:(NSArray *)params {
+  if ((self = [super initWithParams:params])) {
+    self.sessionID = [params[0][@"sessionID"] integerValue];
+    self.name = params[0][@"name"];
+  }
+  return self;
+}
+
++ (instancetype)params {
+  KBRFavoriteAddTLFRequestParams *p = [[self alloc] init];
   // Add default values
   return p;
 }
