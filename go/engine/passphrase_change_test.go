@@ -38,6 +38,9 @@ func TestPassphraseChangeKnown(t *testing.T) {
 	if err == nil {
 		t.Fatal("old passphrase passed verification")
 	}
+
+	u.Passphrase = newPassphrase
+	assertLoadSecretKeys(tc, u, "passphrase change known")
 }
 
 // Test changing the passphrase when user knows current
@@ -80,6 +83,9 @@ func TestPassphraseChangeKnownPrompt(t *testing.T) {
 	if !secui.CalledGetKBPassphrase {
 		t.Errorf("get kb passphrase not called")
 	}
+
+	u.Passphrase = newPassphrase
+	assertLoadSecretKeys(tc, u, "passphrase change known prompt")
 }
 
 // Test changing the passphrase after logging in via pubkey.
@@ -120,6 +126,8 @@ func TestPassphraseChangeAfterPubkeyLogin(t *testing.T) {
 		t.Fatal("old passphrase passed verification")
 	}
 
+	u.Passphrase = newPassphrase
+	assertLoadSecretKeys(tc, u, "passphrase change after pubkey login")
 }
 
 // Test changing the passphrase when previous pp stream available.
@@ -154,6 +162,9 @@ func TestPassphraseChangeKnownNotSupplied(t *testing.T) {
 	if secui.CalledGetKBPassphrase {
 		t.Errorf("get kb passphrase called")
 	}
+
+	u.Passphrase = newPassphrase
+	assertLoadSecretKeys(tc, u, "passphrase change known, not supplied")
 }
 
 // Test changing the passphrase when user forgets current
@@ -191,6 +202,9 @@ func TestPassphraseChangeUnknown(t *testing.T) {
 	if err == nil {
 		t.Fatal("old passphrase passed verification")
 	}
+
+	u.Passphrase = newPassphrase
+	assertLoadSecretKeys(tc, u, "passphrase change unknown")
 }
 
 // Test changing the passphrase when user forgets current
@@ -200,7 +214,7 @@ func TestPassphraseChangeUnknownNoPSCache(t *testing.T) {
 	tc := SetupEngineTest(t, "PassphraseChange")
 	defer tc.Cleanup()
 
-	CreateAndSignupFakeUser(tc, "login")
+	u := CreateAndSignupFakeUser(tc, "login")
 
 	tc.G.LoginState().Account(func(a *libkb.Account) {
 		a.ClearStreamCache()
@@ -222,6 +236,8 @@ func TestPassphraseChangeUnknownNoPSCache(t *testing.T) {
 	if _, ok := err.(libkb.NoBackupKeysError); !ok {
 		t.Fatalf("unexpected error: %s (%T)", err, err)
 	}
+
+	assertLoadSecretKeys(tc, u, "passphrase change unknown, no ps cache")
 }
 
 // Test changing the passphrase when user forgets current
@@ -268,6 +284,36 @@ func TestPassphraseChangeUnknownBackupKey(t *testing.T) {
 	if err == nil {
 		t.Fatal("old passphrase passed verification")
 	}
+
+	u.Passphrase = newPassphrase
+	assertLoadSecretKeys(tc, u, "passphrase change unknown, backup key")
+}
+
+func assertLoadSecretKeys(tc libkb.TestContext, u *FakeUser, msg string) {
+	me, err := libkb.LoadMe(libkb.LoadUserArg{})
+	if err != nil {
+		tc.T.Fatalf("%s: %s", msg, err)
+	}
+	skarg := libkb.SecretKeyArg{
+		Me:      me,
+		KeyType: libkb.DeviceSigningKeyType,
+	}
+	sigKey, _, err := tc.G.Keyrings.GetSecretKeyWithPrompt(nil, skarg, u.NewSecretUI(), "testing sig")
+	if err != nil {
+		tc.T.Fatalf("%s: %s", msg, err)
+	}
+	if sigKey == nil {
+		tc.T.Fatalf("%s: got nil signing key", msg)
+	}
+
+	skarg.KeyType = libkb.DeviceEncryptionKeyType
+	encKey, _, err := tc.G.Keyrings.GetSecretKeyWithPrompt(nil, skarg, u.NewSecretUI(), "testing enc")
+	if err != nil {
+		tc.T.Fatalf("%s: %s", msg, err)
+	}
+	if encKey == nil {
+		tc.T.Fatalf("%s: got nil encryption key", msg)
+	}
 }
 
 // Test changing the passphrase when user forgets current
@@ -277,6 +323,8 @@ func TestPassphraseChangeLoggedOutBackupKey(t *testing.T) {
 	defer tc.Cleanup()
 
 	u := CreateAndSignupFakeUser(tc, "login")
+
+	assertLoadSecretKeys(tc, u, "logged out w/ backup key, before passphrase change")
 
 	ctx := &Context{
 		LogUI:    tc.G.UI.GetLogUI(),
@@ -311,4 +359,7 @@ func TestPassphraseChangeLoggedOutBackupKey(t *testing.T) {
 	if err == nil {
 		t.Fatal("old passphrase passed verification")
 	}
+
+	u.Passphrase = newPassphrase
+	assertLoadSecretKeys(tc, u, "logged out w/ backup key, after passphrase change")
 }
