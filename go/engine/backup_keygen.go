@@ -19,10 +19,9 @@ type BackupKeygenArg struct {
 
 // BackupKeygen is an engine.
 type BackupKeygen struct {
-	arg      *BackupKeygenArg
-	ppStream *libkb.PassphraseStream
-	sigKey   libkb.GenericKey
-	encKey   libkb.GenericKey
+	arg    *BackupKeygenArg
+	sigKey libkb.GenericKey
+	encKey libkb.GenericKey
 	libkb.Contextified
 }
 
@@ -87,14 +86,14 @@ func (e *BackupKeygen) Run(ctx *Context) error {
 		return err
 	}
 
-	e.ppStream = libkb.NewPassphraseStream(key)
-	e.ppStream.SetGeneration(gen)
+	ppStream := libkb.NewPassphraseStream(key)
+	ppStream.SetGeneration(gen)
 
 	// make keys for the backup device
-	if err := e.makeSigKey(); err != nil {
+	if err := e.makeSigKey(ppStream.EdDSASeed()); err != nil {
 		return err
 	}
-	if err := e.makeEncKey(); err != nil {
+	if err := e.makeEncKey(ppStream.DHSeed()); err != nil {
 		return err
 	}
 
@@ -106,8 +105,8 @@ func (e *BackupKeygen) Run(ctx *Context) error {
 	return nil
 }
 
-func (e *BackupKeygen) makeSigKey() error {
-	pub, priv, err := ed25519.GenerateKey(bytes.NewBuffer(e.ppStream.EdDSASeed()))
+func (e *BackupKeygen) makeSigKey(seed []byte) error {
+	pub, priv, err := ed25519.GenerateKey(bytes.NewBuffer(seed))
 	if err != nil {
 		return err
 	}
@@ -122,8 +121,8 @@ func (e *BackupKeygen) makeSigKey() error {
 	return nil
 }
 
-func (e *BackupKeygen) makeEncKey() error {
-	pub, priv, err := box.GenerateKey(bytes.NewBuffer(e.ppStream.DHSeed()))
+func (e *BackupKeygen) makeEncKey(seed []byte) error {
+	pub, priv, err := box.GenerateKey(bytes.NewBuffer(seed))
 	if err != nil {
 		return err
 	}
