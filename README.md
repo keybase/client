@@ -102,14 +102,17 @@ From bserver/:
 
 For testing, it is often useful to bring up the Keybase daemon in a
 clean environment, potentially multiple copies of it at once for
-different users.  To do this, first build docker images for both
-keybase and keybase/client if you haven't already:
+different users.  To do this, first build docker images keybase,
+keybase/client and bserver if you haven't already:
 
     cd <keybase repo root>
     docker build -t kbweb .
     cd $GOPATH/src/github.com/keybase/client/go
     go install ./...
     docker build -t kbdaemon .
+    cd $GOPATH/src/github.com/keybase/kbfs/bserver
+    docker build -t bserver .
+    go install ./...
 
 Now you can set up your test environment.  Let's say you want to be
 logged in as two users:

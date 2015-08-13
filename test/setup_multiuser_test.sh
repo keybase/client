@@ -10,7 +10,7 @@ num_users=$1
 # First start the webserver
 $KEYBASE_CLIENT_ROOT/test/check_or_start_kbweb.sh
 
-# Then start two daemons and save the environment from each
+# Then start multiple daemons and save the environment from each
 u=1
 cmds=""
 userfile=`tempfile`
@@ -45,4 +45,15 @@ cat $userfile >> $file
 eval $cmds
 rm $userfile
 clean_kbfs_env
+
+# generate new ssl keys
+# first, the server CA private key:
+openssl genrsa -out $CA_PRIV_KEY
+# then cacert
+openssl req -subj /CN=localhost -batch -new -x509 -key $CA_PRIV_KEY -out $CA_CERT -days 1095
+# the client's CA cert is in a different file
+cp $CA_CERT $CLIENT_CA_CERT
+
+# start bserver
+./launch_bserver.sh
 
