@@ -7,13 +7,13 @@ import (
 	"github.com/keybase/client/go/libcmdline"
 )
 
-type CmdBtc struct {
+type CmdBTC struct {
 	sessionID int
 	address   string
 	force     bool
 }
 
-func (c *CmdBtc) ParseArgv(ctx *cli.Context) error {
+func (c *CmdBTC) ParseArgv(ctx *cli.Context) error {
 	if len(ctx.Args()) != 1 {
 		return fmt.Errorf("Invalid arguments.")
 	}
@@ -22,7 +22,7 @@ func (c *CmdBtc) ParseArgv(ctx *cli.Context) error {
 	return nil
 }
 
-func NewCmdBtc(cl *libcmdline.CommandLine) cli.Command {
+func NewCmdBTC(cl *libcmdline.CommandLine) cli.Command {
 	return cli.Command{
 		Name:        "btc",
 		Usage:       "keybase btc [--force] <address>",
@@ -31,7 +31,7 @@ func NewCmdBtc(cl *libcmdline.CommandLine) cli.Command {
 			cli.BoolFlag{Name: "force", Usage: ""},
 		},
 		Action: func(c *cli.Context) {
-			cl.ChooseCommand(&CmdBtc{}, "btc", c)
+			cl.ChooseCommand(&CmdBTC{}, "btc", c)
 		},
 	}
 }

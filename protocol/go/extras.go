@@ -316,10 +316,6 @@ func FormatTime(t Time) string {
 	return FromTime(t).Format(layout)
 }
 
-type Command interface {
-	ParseArgv(ctx *cli.Context) error
-}
-
 // ParseTLF takes keybase paths like
 //
 //     /keybase/public/patrick,chris
