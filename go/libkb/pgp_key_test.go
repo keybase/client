@@ -262,6 +262,7 @@ LpRtxqDTDVA6H/R+dqEhg/ni2jAapEr4VzIbew==
 -----END PGP PRIVATE KEY BLOCK-----`
 
 func TestReadOneKeyFromBytes(t *testing.T) {
+	t.Log("If this test panics for you, then you need to update golang.org/x/crypto/openpgp")
 	// found by go-fuzz:
 	// (errors are ok, panics are not...these all caused panics with an older version of
 	// openpgp)
