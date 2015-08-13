@@ -185,18 +185,17 @@ func (e *BackupKeygen) push(ctx *Context) error {
 		e.G().Log.Warning("invalid passphrase generation: %d", ppgen)
 	}
 
-	lks := libkb.NewLKSecWithClientHalf(clientHalf, ppgen, e.arg.Me.GetUID(), e.G())
-
-	if err := lks.GenerateServerHalf(); err != nil {
+	backupLks := libkb.NewLKSecWithClientHalf(clientHalf, ppgen, e.arg.Me.GetUID(), e.G())
+	if err := backupLks.GenerateServerHalf(); err != nil {
 		return err
 	}
-	ctext, err := lks.EncryptClientHalfRecovery(e.encKey)
+	ctext, err := backupLks.EncryptClientHalfRecovery(e.encKey)
 	if err != nil {
 		return err
 	}
 
 	// post them to the server.
-	if err := libkb.PostDeviceLKS(ctx.LoginContext, backupDev.ID, libkb.DeviceTypeBackup, lks.GetServerHalf(), lks.Generation(), ctext, e.encKey.GetKID()); err != nil {
+	if err := libkb.PostDeviceLKS(ctx.LoginContext, backupDev.ID, libkb.DeviceTypeBackup, backupLks.GetServerHalf(), backupLks.Generation(), ctext, e.encKey.GetKID()); err != nil {
 		return err
 	}
 
