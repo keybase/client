@@ -1,0 +1,17 @@
+Install:
+
+go get github.com/dvyukov/go-fuzz/go-fuzz
+go get github.com/dvyukov/go-fuzz/go-fuzz-build
+
+
+To run go-fuzz:
+
+In each subdirectory of keybase/client/go/fuzz, for example passphrase_stream:
+
+1. go-fuzz-build github.com/keybase/client/go/fuzz/passphrase_stream
+
+2. (in keybase/client/go/fuzz/passphrase_stream)
+
+	go-fuzz -bin=./libkb-fuzz.zip -workdir=.                         
+
+
