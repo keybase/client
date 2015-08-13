@@ -28,6 +28,15 @@ func NewLKSec(pps *PassphraseStream, uid keybase1.UID, gc *GlobalContext) *LKSec
 	}
 }
 
+func NewLKSecWithClientHalf(clientHalf []byte, ppgen PassphraseGeneration, uid keybase1.UID, gc *GlobalContext) *LKSec {
+	return &LKSec{
+		clientHalf:   clientHalf,
+		ppGen:        ppgen,
+		uid:          uid,
+		Contextified: NewContextified(gc),
+	}
+}
+
 func NewLKSecWithFullSecret(secret []byte, uid keybase1.UID, gc *GlobalContext) *LKSec {
 	return &LKSec{
 		secret:       secret,

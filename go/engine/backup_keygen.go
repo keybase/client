@@ -2,6 +2,7 @@ package engine
 
 import (
 	"bytes"
+	"errors"
 
 	"github.com/agl/ed25519"
 	"golang.org/x/crypto/nacl/box"
@@ -139,10 +140,22 @@ func (e *BackupKeygen) push(ctx *Context) error {
 	// local, encrypted storage of the backup keys, but just for recovery
 	// purposes.
 
-	var lks *libkb.LKSec
+	var ppgen libkb.PassphraseGeneration
+	var clientHalf []byte
 	e.G().LoginState().Account(func(a *libkb.Account) {
-		lks = libkb.NewLKSec(a.PassphraseStreamCache().PassphraseStream(), e.arg.Me.GetUID(), e.G())
+		stream := a.PassphraseStream()
+		if stream == nil {
+			err = errors.New("Nil passphrase stream")
+			return
+		}
+		ppgen = stream.Generation()
+		clientHalf = stream.LksClientHalf()
 	}, "BackupKeygen - push")
+	if err != nil {
+		return err
+	}
+
+	lks := libkb.NewLKSecWithClientHalf(clientHalf, ppgen, e.arg.Me.GetUID(), e.G())
 
 	if err := lks.GenerateServerHalf(); err != nil {
 		return err
