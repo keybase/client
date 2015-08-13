@@ -10,7 +10,7 @@ import (
 	"golang.org/x/crypto/nacl/box"
 )
 
-// SelfProof = true: runs the detkey engine and uses the eddsa key as
+// DetKeyArgs SelfProof = true: runs the detkey engine and uses the eddsa key as
 // the signing key.  This is currently only used for testing to
 // generate a fake users who only has a detkey, but perhaps it
 // will be useful for something else...
@@ -66,9 +66,9 @@ func (d *DetKeyEngine) Run(ctx *Context) (err error) {
 
 	d.dev = libkb.NewWebDevice()
 
-	delegators := []libkb.Delegator{}
-
+	var delegators []libkb.Delegator
 	var delegator libkb.Delegator
+
 	if delegator, err = d.eddsa(ctx, d.arg.PPStream); err != nil {
 		err = fmt.Errorf("eddsa error: %s", err)
 		return
