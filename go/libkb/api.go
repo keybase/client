@@ -232,7 +232,7 @@ func (arg APIArg) getHTTPArgs() url.Values {
 
 func (arg APIArg) flattenHTTPArgs(args url.Values) map[string]string {
 	// HTTPArgs currently is a map of string -> [string] (with only one value). This is a helper to flatten this out
-	var flatArgs = map[string]string{}
+	var flatArgs = make(map[string]string)
 
 	for k, v := range args {
 		flatArgs[k] = v[0]
