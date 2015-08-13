@@ -131,7 +131,7 @@ func (e *BackupKeygen) push(ctx *Context) error {
 	}
 
 	// create a new backup device
-	dev, err := libkb.NewBackupDevice()
+	backupDev, err := libkb.NewBackupDevice()
 	if err != nil {
 		return err
 	}
@@ -166,7 +166,7 @@ func (e *BackupKeygen) push(ctx *Context) error {
 	}
 
 	// post them to the server.
-	if err := libkb.PostDeviceLKS(ctx.LoginContext, dev.ID, libkb.DeviceTypeBackup, lks.GetServerHalf(), lks.Generation(), ctext, e.encKey.GetKID()); err != nil {
+	if err := libkb.PostDeviceLKS(ctx.LoginContext, backupDev.ID, libkb.DeviceTypeBackup, lks.GetServerHalf(), lks.Generation(), ctext, e.encKey.GetKID()); err != nil {
 		return err
 	}
 
@@ -177,7 +177,7 @@ func (e *BackupKeygen) push(ctx *Context) error {
 		Expire:      libkb.NaclEdDSAExpireIn,
 		ExistingKey: e.arg.SigningKey,
 		Me:          e.arg.Me,
-		Device:      dev,
+		Device:      backupDev,
 	}
 
 	// push the backup encryption key
@@ -187,7 +187,7 @@ func (e *BackupKeygen) push(ctx *Context) error {
 		Expire:      libkb.NaclDHExpireIn,
 		ExistingKey: e.sigKey,
 		Me:          e.arg.Me,
-		Device:      dev,
+		Device:      backupDev,
 	}
 
 	return libkb.DelegatorAggregator(ctx.LoginContext, []libkb.Delegator{sigDel, sigEnc})
