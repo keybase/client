@@ -213,7 +213,11 @@ func TestPassphraseChangeUnknownNoPSCache(t *testing.T) {
 	tc := SetupEngineTest(t, "PassphraseChange")
 	defer tc.Cleanup()
 
-	u := CreateAndSignupFakeUser(tc, "login")
+	f := func(arg *SignupEngineRunArg) {
+		arg.SkipPaper = true
+	}
+
+	u, _ := CreateAndSignupFakeUserCustomArg(tc, "paper", f)
 
 	tc.G.LoginState().Account(func(a *libkb.Account) {
 		a.ClearStreamCache()
