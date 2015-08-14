@@ -212,9 +212,9 @@ func (e *BackupKeygen) push(ctx *Context) error {
 	}
 
 	backupLks := libkb.NewLKSecWithClientHalf(clientHalf, ppgen, e.arg.Me.GetUID(), e.G())
-	if err := backupLks.GenerateServerHalf(); err != nil {
-		return err
-	}
+	// Set the server half to be empty, as we don't need it.
+	backupLks.SetServerHalf(make([]byte, len(clientHalf)))
+
 	ctext, err := backupLks.EncryptClientHalfRecovery(e.encKey)
 	if err != nil {
 		return err
