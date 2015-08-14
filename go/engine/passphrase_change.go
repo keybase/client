@@ -84,11 +84,6 @@ func (c *PassphraseChange) Run(ctx *Context) (err error) {
 	return
 }
 
-type keypair struct {
-	encKey libkb.GenericKey
-	sigKey libkb.GenericKey
-}
-
 // findDeviceKeys looks for device keys and unlocks them.
 func (c *PassphraseChange) findDeviceKeys(ctx *Context) (*keypair, error) {
 	// need to be logged in to get a device key (unlocked)
@@ -128,56 +123,7 @@ func (c *PassphraseChange) findDeviceKeys(ctx *Context) (*keypair, error) {
 // regenerate backup keys, which are then matched against the
 // backup keys found in the keyfamily.
 func (c *PassphraseChange) findBackupKeys(ctx *Context) (*keypair, error) {
-	cki := c.me.GetComputedKeyInfos()
-	if cki == nil {
-		return nil, fmt.Errorf("no computed key infos")
-	}
-	bdevs := cki.BackupDevices()
-	if len(bdevs) == 0 {
-		return nil, libkb.NoBackupKeysError{}
-	}
-
-	passphrase, err := ctx.SecretUI.GetBackupPassphrase(keybase1.GetBackupPassphraseArg{Username: c.me.GetName()})
-	if err != nil {
-		return nil, err
-	}
-
-	bkarg := &BackupKeygenArg{
-		Passphrase: passphrase,
-		SkipPush:   true,
-		Me:         c.me,
-	}
-	bkeng := NewBackupKeygen(bkarg, c.G())
-	if err := RunEngine(bkeng, ctx); err != nil {
-		return nil, err
-	}
-
-	sigKey := bkeng.SigKey()
-	encKey := bkeng.EncKey()
-
-	var match bool
-	ckf := c.me.GetComputedKeyFamily()
-	for _, bdev := range bdevs {
-		sk, err := ckf.GetSibkeyForDevice(bdev.ID)
-		if err != nil {
-			continue
-		}
-		ek, err := ckf.GetEncryptionSubkeyForDevice(bdev.ID)
-		if err != nil {
-			continue
-		}
-
-		if sk.GetKID().Equal(sigKey.GetKID()) && ek.GetKID().Equal(encKey.GetKID()) {
-			match = true
-			break
-		}
-	}
-
-	if !match {
-		return nil, libkb.PassphraseError{Msg: "no matching backup keys found"}
-	}
-
-	return &keypair{sigKey: sigKey, encKey: encKey}, nil
+	return findBackupKeys(ctx, c.G(), c.me)
 }
 
 // findUpdateKeys looks for keys to perform the passphrase update.

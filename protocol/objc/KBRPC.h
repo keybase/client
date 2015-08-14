@@ -320,6 +320,7 @@ typedef NS_ENUM (NSInteger, KBRTrackStatus) {
 typedef NS_ENUM (NSInteger, KBRDeviceSignerKind) {
 	KBRDeviceSignerKindDevice = 0,
 	KBRDeviceSignerKindPgp = 1,
+	KBRDeviceSignerKindPaperBackupKey = 2,
 };
 
 typedef NS_ENUM (NSInteger, KBRSelectSignerAction) {
@@ -745,6 +746,7 @@ typedef NS_ENUM (NSInteger, KBRPromptDefault) {
 @property NSInteger sessionID;
 @property NSArray *devices;
 @property BOOL hasPGP;
+@property BOOL hasPaperBackupKey;
 @end
 @interface KBRDeviceSignAttemptErrRequestParams : KBRRequestParams
 @property NSInteger sessionID;
@@ -1303,7 +1305,7 @@ typedef NS_ENUM (NSInteger, KBRPromptDefault) {
 
 - (void)selectSigner:(KBRSelectSignerRequestParams *)params completion:(void (^)(NSError *error, KBRSelectSignerRes *selectSignerRes))completion;
 
-- (void)selectSignerWithDevices:(NSArray *)devices hasPGP:(BOOL)hasPGP completion:(void (^)(NSError *error, KBRSelectSignerRes *selectSignerRes))completion;
+- (void)selectSignerWithDevices:(NSArray *)devices hasPGP:(BOOL)hasPGP hasPaperBackupKey:(BOOL)hasPaperBackupKey completion:(void (^)(NSError *error, KBRSelectSignerRes *selectSignerRes))completion;
 
 - (void)deviceSignAttemptErr:(KBRDeviceSignAttemptErrRequestParams *)params completion:(void (^)(NSError *error))completion;
 

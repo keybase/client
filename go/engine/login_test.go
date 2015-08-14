@@ -307,6 +307,66 @@ func TestLoginGPGSignNewDevice(t *testing.T) {
 	hasOneBackupDev(t, u1)
 }
 
+// paper backup key used to sign new device
+func TestLoginPaperSignNewDevice(t *testing.T) {
+	tc := SetupEngineTest(t, "login")
+	defer tc.Cleanup()
+	fu := NewFakeUserOrBust(t, "paper")
+	arg := MakeTestSignupEngineRunArg(fu)
+	loginUI := &paperLoginUI{Username: fu.Username}
+	ctx := &Context{
+		LogUI:    tc.G.UI.GetLogUI(),
+		GPGUI:    &gpgtestui{},
+		SecretUI: fu.NewSecretUI(),
+		LoginUI:  loginUI,
+	}
+	s := NewSignupEngine(&arg, tc.G)
+	err := RunEngine(s, ctx)
+	if err != nil {
+		tc.T.Fatal(err)
+	}
+
+	assertNumDevicesAndKeys(t, fu, 3, 6)
+
+	Logout(tc)
+
+	if len(loginUI.PaperPhrase) == 0 {
+		t.Fatal("login ui has no paper key phrase")
+	}
+
+	// redo SetupEngineTest to get a new home directory...should look like a new device.
+	tc2 := SetupEngineTest(t, "login")
+	defer tc2.Cleanup()
+
+	locksmithUI := &lockuiPaper{&lockui{}}
+
+	before := locksmithUI.selectSignerCount
+
+	secui := fu.NewSecretUI()
+	secui.BackupPassphrase = loginUI.PaperPhrase
+
+	li := NewLoginWithPromptEngine(fu.Username, tc2.G)
+	ctx = &Context{
+		LogUI:       tc2.G.UI.GetLogUI(),
+		LocksmithUI: locksmithUI,
+		SecretUI:    secui,
+		GPGUI:       &gpgtestui{},
+		LoginUI:     &libkb.TestLoginUI{},
+	}
+	if err := RunEngine(li, ctx); err != nil {
+		t.Fatal(err)
+	}
+
+	after := locksmithUI.selectSignerCount
+	if after-before != 1 {
+		t.Errorf("doc ui SelectSigner called %d times, expected 1", after-before)
+	}
+
+	testUserHasDeviceKey(t)
+
+	assertNumDevicesAndKeys(t, fu, 4, 8)
+}
+
 // TestLoginInterrupt* tries to simulate what would happen if the
 // locksmith login checkup gets interrupted.  See Issue #287.
 
@@ -487,4 +547,37 @@ func (l *lockuiPGP) SelectSigner(arg keybase1.SelectSignerArg) (res keybase1.Sel
 	res.Action = keybase1.SelectSignerAction_SIGN
 	res.Signer = &keybase1.DeviceSigner{Kind: keybase1.DeviceSignerKind_PGP}
 	return
+}
+
+type lockuiPaper struct {
+	*lockui
+}
+
+func (l *lockuiPaper) SelectSigner(arg keybase1.SelectSignerArg) (res keybase1.SelectSignerRes, err error) {
+	l.selectSignerCount++
+	res.Action = keybase1.SelectSignerAction_SIGN
+	res.Signer = &keybase1.DeviceSigner{Kind: keybase1.DeviceSignerKind_PAPER_BACKUP_KEY}
+	return
+}
+
+type paperLoginUI struct {
+	Username    string
+	PaperPhrase string
+}
+
+func (p *paperLoginUI) GetEmailOrUsername(_ int) (string, error) {
+	return p.Username, nil
+}
+
+func (p *paperLoginUI) PromptRevokeBackupDeviceKeys(arg keybase1.PromptRevokeBackupDeviceKeysArg) (bool, error) {
+	return false, nil
+}
+
+func (p *paperLoginUI) DisplayBackupPhrase(arg keybase1.DisplayBackupPhraseArg) error {
+	return nil
+}
+
+func (p *paperLoginUI) DisplayInitialPaperKey(arg keybase1.DisplayInitialPaperKeyArg) error {
+	p.PaperPhrase = arg.Phrase
+	return nil
 }
