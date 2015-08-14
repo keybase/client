@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"io"
 	"io/ioutil"
 	"net/http"
 	"net/url"
@@ -108,15 +109,35 @@ func (api *BaseAPIEngine) PrepareGet(url url.URL, arg APIArg) (*http.Request, er
 	return http.NewRequest("GET", ruri, nil)
 }
 
-func (api *BaseAPIEngine) PreparePost(url url.URL, arg APIArg) (*http.Request, error) {
+func (api *BaseAPIEngine) PreparePost(url url.URL, arg APIArg, sendJSON bool) (*http.Request, error) {
 	ruri := url.String()
 	G.Log.Debug(fmt.Sprintf("+ API Post request to %s", ruri))
-	body := ioutil.NopCloser(strings.NewReader(arg.getHTTPArgs().Encode()))
+
+	var body io.Reader
+
+	if sendJSON {
+		jsonString, err := json.Marshal(arg.jsonPayload)
+		if err != nil {
+			return nil, err
+		}
+		body = ioutil.NopCloser(strings.NewReader(string(jsonString)))
+	} else {
+		body = ioutil.NopCloser(strings.NewReader(arg.getHTTPArgs().Encode()))
+	}
+
 	req, err := http.NewRequest("POST", ruri, body)
 	if err != nil {
 		return nil, err
 	}
-	typ := "application/x-www-form-urlencoded; charset=utf-8"
+
+	var typ = ""
+
+	if sendJSON {
+		typ = "application/json"
+	} else {
+		typ = "application/x-www-form-urlencoded; charset=utf-8"
+	}
+
 	req.Header.Add("Content-Type", typ)
 	return req, nil
 }
@@ -140,8 +161,9 @@ func doRequestShared(api Requester, arg APIArg, req *http.Request, wantJSONRes b
 	}
 
 	if G.Env.GetAPIDump() {
-		b, _ := json.MarshalIndent(arg.getHTTPArgs(), "", "  ")
-		G.Log.Debug(fmt.Sprintf("| full request: %s", b))
+		jpStr, _ := json.MarshalIndent(arg.jsonPayload, "", "  ")
+		argStr, _ := json.MarshalIndent(arg.getHTTPArgs(), "", "  ")
+		G.Log.Debug(fmt.Sprintf("| full request: json:%s querystring:%s", jpStr, argStr))
 	}
 
 	timer := G.Timers.Start(timerType)
@@ -206,6 +228,17 @@ func (arg APIArg) getHTTPArgs() url.Values {
 		return arg.Args.ToValues()
 	}
 	return arg.uArgs
+}
+
+func (arg APIArg) flattenHTTPArgs(args url.Values) map[string]string {
+	// HTTPArgs currently is a map of string -> [string] (with only one value). This is a helper to flatten this out
+	flatArgs := make(map[string]string)
+
+	for k, v := range args {
+		flatArgs[k] = v[0]
+	}
+
+	return flatArgs
 }
 
 // End shared code
@@ -335,7 +368,16 @@ func (a *InternalAPIEngine) GetDecode(arg APIArg, v interface{}) error {
 
 func (a *InternalAPIEngine) Post(arg APIArg) (*APIRes, error) {
 	url := a.getURL(arg)
-	req, err := a.PreparePost(url, arg)
+	req, err := a.PreparePost(url, arg, false)
+	if err != nil {
+		return nil, err
+	}
+	return a.DoRequest(arg, req)
+}
+
+func (a *InternalAPIEngine) PostJSON(arg APIArg) (*APIRes, error) {
+	url := a.getURL(arg)
+	req, err := a.PreparePost(url, arg, true)
 	if err != nil {
 		return nil, err
 	}
@@ -345,7 +387,7 @@ func (a *InternalAPIEngine) Post(arg APIArg) (*APIRes, error) {
 // PostResp performs a POST request and returns the http response.
 func (a *InternalAPIEngine) PostResp(arg APIArg) (*http.Response, error) {
 	url := a.getURL(arg)
-	req, err := a.PreparePost(url, arg)
+	req, err := a.PreparePost(url, arg, false)
 	if err != nil {
 		return nil, err
 	}
@@ -492,7 +534,7 @@ func (api *ExternalAPIEngine) postCommon(arg APIArg, restype int) (
 	if err != nil {
 		return
 	}
-	req, err = api.PreparePost(*url, arg)
+	req, err = api.PreparePost(*url, arg, false)
 	if err != nil {
 		return
 	}

@@ -30,6 +30,7 @@ type Delegator struct {
 	EncodedPrivateKey string
 	Ctime             int64
 	PushType          string
+	Aggregated        bool // During aggregation we skip some steps (posting, updating some state)
 
 	// Internal fields
 	isEldest     bool
@@ -37,6 +38,7 @@ type Delegator struct {
 	sig          string
 	sigID        keybase1.SigID
 	merkleTriple MerkleTriple
+	postArg      APIArg
 }
 
 func (d Delegator) getSigningKID() keybase1.KID { return d.signingKey.GetKID() }
@@ -203,7 +205,7 @@ func (d *Delegator) updateLocalState(linkid LinkID) (err error) {
 	return d.Me.localDelegateKey(d.NewKey, d.sigID, d.getExistingKID(), d.IsSibkey(), d.isEldest)
 }
 
-func (d Delegator) post(lctx LoginContext) (err error) {
+func (d *Delegator) post(lctx LoginContext) (err error) {
 	var pub string
 	if pub, err = d.NewKey.Encode(); err != nil {
 		return
@@ -216,10 +218,16 @@ func (d Delegator) post(lctx LoginContext) (err error) {
 		"type":            S{Val: d.PushType},
 		"is_remote_proof": B{Val: false},
 		"public_key":      S{Val: pub},
-		"server_half":     S{Val: hex.EncodeToString(d.ServerHalf)},
 	}
+
+	if len(string(d.ServerHalf)) > 0 {
+		hargs["server_half"] = S{Val: hex.EncodeToString(d.ServerHalf)}
+	}
+
 	if d.isEldest {
 		hargs["is_primary"] = I{Val: 1}
+		hargs["new_eldest"] = B{Val: true}
+		hargs["signing_kid"] = S{Val: d.NewKey.GetKID().String()}
 	} else {
 		hargs["eldest_kid"] = d.EldestKID
 		hargs["signing_kid"] = d.getSigningKID()
@@ -238,6 +246,12 @@ func (d Delegator) post(lctx LoginContext) (err error) {
 	if lctx != nil {
 		arg.SessionR = lctx.LocalSession()
 	}
+
+	if d.Aggregated {
+		d.postArg = arg
+		return nil
+	}
 	_, err = d.G().API.Post(arg)
+
 	return err
 }

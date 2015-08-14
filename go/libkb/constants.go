@@ -266,6 +266,7 @@ const (
 	BackupKeyScryptP       = 1
 	BackupKeyScryptKeylen  = 128
 	BackupKeyPhraseEntropy = 128
+	BackupKeyNameEntropy   = 24
 )
 
 const UserSummaryLimit = 500 // max number of user summaries in one request

@@ -166,9 +166,6 @@ func (e *BackupKeygen) push(ctx *Context) error {
 		Me:          e.arg.Me,
 		Device:      dev,
 	}
-	if err := sigDel.Run(ctx.LoginContext); err != nil {
-		return err
-	}
 
 	// push the backup encryption key
 	sigEnc := libkb.Delegator{
@@ -179,9 +176,6 @@ func (e *BackupKeygen) push(ctx *Context) error {
 		Me:          e.arg.Me,
 		Device:      dev,
 	}
-	if err := sigEnc.Run(ctx.LoginContext); err != nil {
-		return err
-	}
 
-	return nil
+	return libkb.DelegatorAggregator(ctx.LoginContext, []libkb.Delegator{sigDel, sigEnc})
 }

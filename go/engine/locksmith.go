@@ -91,8 +91,9 @@ func (d *Locksmith) check(ctx *Context) error {
 	d.status.CurrentDeviceOk = d.arg.User.HasDeviceInCurrentInstall()
 	d.status.HavePGP = d.hasPGP()
 	d.status.HaveDetKey = d.hasDetKey(ctx)
-	d.status.HaveActiveDevice = d.hasActiveDevice(ctx)
-	return nil
+	var err error
+	d.status.HaveActiveDevice, err = d.hasActiveDevice(ctx)
+	return err
 }
 
 func (d *Locksmith) hasKeyFamily() bool {
@@ -181,7 +182,13 @@ func (d *Locksmith) checkKeys(ctx *Context) error {
 
 	hasPGP := len(d.user.GetActivePGPKeys(false)) > 0
 
-	if d.hasActiveDevice(ctx) {
+	hasActiveDevice, err := d.hasActiveDevice(ctx)
+
+	if err != nil {
+		return err
+	}
+
+	if hasActiveDevice {
 		// they have at least one device, just not this device...
 		d.G().Log.Debug("| User has an active device, just not this one")
 		return d.deviceSign(ctx, hasPGP)
@@ -314,16 +321,17 @@ var ErrNotYetImplemented = errors.New("not yet implemented")
 // a device key, pgp key, or both.
 func (d *Locksmith) deviceSign(ctx *Context, withPGPOption bool) error {
 	newDeviceName, err := d.deviceName(ctx)
+
 	if err != nil {
 		return err
 	}
 
 	var devs libkb.DeviceKeyMap
 	if ctx.LoginContext != nil {
-		devs, err = ctx.LoginContext.SecretSyncer().ActiveDevices()
+		devs, err = ctx.LoginContext.SecretSyncer().ActiveDevices(libkb.DefaultDeviceTypes)
 	} else {
 		aerr := d.G().LoginState().SecretSyncer(func(ss *libkb.SecretSyncer) {
-			devs, err = ss.ActiveDevices()
+			devs, err = ss.ActiveDevices(libkb.DefaultDeviceTypes)
 		}, "Locksmith - deviceSign - ActiveDevices")
 		if aerr != nil {
 			return aerr
@@ -652,7 +660,7 @@ func (d *Locksmith) deviceName(ctx *Context) (string, error) {
 				errCh <- err
 				return
 			}
-			if !d.isDeviceNameTaken(ctx, name) {
+			if len(name) > 0 && !d.isDeviceNameTaken(ctx, name) {
 				nameCh <- name
 				return
 			}
@@ -670,32 +678,38 @@ func (d *Locksmith) deviceName(ctx *Context) (string, error) {
 	case <-d.canceled:
 		return "", libkb.CanceledError{M: "locksmith canceled while getting device name"}
 	}
-
 }
 
-func (d *Locksmith) hasActiveDevice(ctx *Context) bool {
+func (d *Locksmith) hasActiveDevice(ctx *Context) (bool, error) {
 	var res bool
+	var err error
 	if ctx.LoginContext != nil {
-		res = ctx.LoginContext.SecretSyncer().HasActiveDevice()
+		res, err = ctx.LoginContext.SecretSyncer().HasActiveDevice(libkb.DefaultDeviceTypes)
 	} else {
+		var ierr error
 		err := d.G().LoginState().SecretSyncer(func(ss *libkb.SecretSyncer) {
-			res = ss.HasActiveDevice()
+			res, ierr = ss.HasActiveDevice(libkb.DefaultDeviceTypes)
 		}, "Locksmith - hasActiveDevice")
+		if ierr != nil {
+			d.G().Log.Warning("secret syncer error in hasActiveDevices: %s", ierr)
+			return false, ierr
+		}
 		if err != nil {
 			d.G().Log.Warning("secret syncer error in hasActiveDevices: %s", err)
+			return false, err
 		}
 	}
-	return res
+	return res, err
 }
 
 func (d *Locksmith) isDeviceNameTaken(ctx *Context, name string) bool {
 	if ctx.LoginContext != nil {
-		return ctx.LoginContext.SecretSyncer().IsDeviceNameTaken(name)
+		return ctx.LoginContext.SecretSyncer().IsDeviceNameTaken(name, libkb.DefaultDeviceTypes)
 	}
 
 	var taken bool
 	err := d.G().LoginState().SecretSyncer(func(ss *libkb.SecretSyncer) {
-		taken = ss.IsDeviceNameTaken(name)
+		taken = ss.IsDeviceNameTaken(name, libkb.DefaultDeviceTypes)
 	}, "Locksmith - isDeviceNameTaken")
 	if err != nil {
 		d.G().Log.Warning("secret syncer error in isDeviceNameTaken: %s", err)
