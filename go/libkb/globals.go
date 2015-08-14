@@ -75,12 +75,12 @@ func (g *GlobalContext) Init() {
 	g.Env = NewEnv(nil, nil)
 	g.Service = false
 	g.loginStateMu.Lock()
-	g.createLoginState()
-	g.loginStateMu.Unlock()
+	defer g.loginStateMu.Unlock()
+	g.createLoginStateLocked()
 }
 
 // requires lock on loginStateMu before calling
-func (g *GlobalContext) createLoginState() {
+func (g *GlobalContext) createLoginStateLocked() {
 	g.loginState = NewLoginState(g)
 }
 
@@ -102,7 +102,7 @@ func (g *GlobalContext) Logout() error {
 	g.FavoriteCache = favcache.New()
 
 	// get a clean LoginState:
-	g.createLoginState()
+	g.createLoginStateLocked()
 
 	return nil
 }

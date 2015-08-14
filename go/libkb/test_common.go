@@ -143,7 +143,9 @@ func (tc *TestContext) MakePGPKey(id string) (*PGPKeyBundle, error) {
 // without logging out.
 func (tc *TestContext) ResetLoginState() {
 	tc.G.loginState.Shutdown()
-	tc.G.createLoginState()
+	tc.G.loginStateMu.Lock()
+	defer tc.G.loginStateMu.Unlock()
+	tc.G.createLoginStateLocked()
 }
 
 func setupTestContext(nm string) (tc TestContext, err error) {
