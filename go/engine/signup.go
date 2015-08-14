@@ -29,6 +29,7 @@ type SignupEngineRunArg struct {
 	DeviceName  string
 	SkipGPG     bool
 	SkipMail    bool
+	SkipPaper   bool
 }
 
 func NewSignupEngine(arg *SignupEngineRunArg, g *libkb.GlobalContext) *SignupEngine {
@@ -53,6 +54,7 @@ func (s *SignupEngine) SubConsumers() []libkb.UIConsumer {
 		&DetKeyEngine{},
 		&GPGImportKeyEngine{},
 		&DeviceWrap{},
+		&Paper{},
 	}
 }
 
@@ -77,6 +79,12 @@ func (s *SignupEngine) Run(ctx *Context) error {
 
 		if err := s.registerDevice(a, ctx, s.arg.DeviceName); err != nil {
 			return err
+		}
+
+		if !s.arg.SkipPaper {
+			if err := s.genPaperKeys(ctx); err != nil {
+				return err
+			}
 		}
 
 		if err := s.genDetKeys(ctx); err != nil {
@@ -186,6 +194,15 @@ func (s *SignupEngine) genDetKeys(ctx *Context) error {
 		EldestKeyID: s.signingKey.GetKID(),
 	}
 	eng := NewDetKeyEngine(arg, s.G())
+	return RunEngine(eng, ctx)
+}
+
+func (s *SignupEngine) genPaperKeys(ctx *Context) error {
+	args := &PaperArgs{
+		Me:         s.me,
+		SigningKey: s.signingKey,
+	}
+	eng := NewPaper(s.G(), args)
 	return RunEngine(eng, ctx)
 }
 
