@@ -157,7 +157,7 @@
   }, {
     "type" : "enum",
     "name" : "DeviceSignerKind",
-    "symbols" : [ "DEVICE_0", "PGP_1" ]
+    "symbols" : [ "DEVICE_0", "PGP_1", "PAPER_BACKUP_KEY_2" ]
   }, {
     "type" : "enum",
     "name" : "SelectSignerAction",
@@ -220,6 +220,9 @@
         }
       }, {
         "name" : "hasPGP",
+        "type" : "boolean"
+      }, {
+        "name" : "hasPaperBackupKey",
         "type" : "boolean"
       } ],
       "response" : "SelectSignerRes"

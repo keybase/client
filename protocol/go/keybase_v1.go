@@ -1291,8 +1291,9 @@ func (c IdentifyUiClient) Finish(sessionID int) (err error) {
 type DeviceSignerKind int
 
 const (
-	DeviceSignerKind_DEVICE DeviceSignerKind = 0
-	DeviceSignerKind_PGP    DeviceSignerKind = 1
+	DeviceSignerKind_DEVICE           DeviceSignerKind = 0
+	DeviceSignerKind_PGP              DeviceSignerKind = 1
+	DeviceSignerKind_PAPER_BACKUP_KEY DeviceSignerKind = 2
 )
 
 type SelectSignerAction int
@@ -1341,9 +1342,10 @@ type DeviceNameTakenArg struct {
 }
 
 type SelectSignerArg struct {
-	SessionID int      `codec:"sessionID" json:"sessionID"`
-	Devices   []Device `codec:"devices" json:"devices"`
-	HasPGP    bool     `codec:"hasPGP" json:"hasPGP"`
+	SessionID         int      `codec:"sessionID" json:"sessionID"`
+	Devices           []Device `codec:"devices" json:"devices"`
+	HasPGP            bool     `codec:"hasPGP" json:"hasPGP"`
+	HasPaperBackupKey bool     `codec:"hasPaperBackupKey" json:"hasPaperBackupKey"`
 }
 
 type DeviceSignAttemptErrArg struct {

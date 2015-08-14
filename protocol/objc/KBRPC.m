@@ -672,7 +672,7 @@
 }
 
 - (void)selectSigner:(KBRSelectSignerRequestParams *)params completion:(void (^)(NSError *error, KBRSelectSignerRes *selectSignerRes))completion {
-  NSDictionary *rparams = @{@"devices": KBRValue(params.devices), @"hasPGP": @(params.hasPGP)};
+  NSDictionary *rparams = @{@"devices": KBRValue(params.devices), @"hasPGP": @(params.hasPGP), @"hasPaperBackupKey": @(params.hasPaperBackupKey)};
   [self.client sendRequestWithMethod:@"keybase.1.locksmithUi.selectSigner" params:rparams sessionId:self.sessionId completion:^(NSError *error, id retval) {
     if (error) {
       completion(error, nil);
@@ -683,8 +683,8 @@
   }];
 }
 
-- (void)selectSignerWithDevices:(NSArray *)devices hasPGP:(BOOL)hasPGP completion:(void (^)(NSError *error, KBRSelectSignerRes *selectSignerRes))completion {
-  NSDictionary *rparams = @{@"devices": KBRValue(devices), @"hasPGP": @(hasPGP)};
+- (void)selectSignerWithDevices:(NSArray *)devices hasPGP:(BOOL)hasPGP hasPaperBackupKey:(BOOL)hasPaperBackupKey completion:(void (^)(NSError *error, KBRSelectSignerRes *selectSignerRes))completion {
+  NSDictionary *rparams = @{@"devices": KBRValue(devices), @"hasPGP": @(hasPGP), @"hasPaperBackupKey": @(hasPaperBackupKey)};
   [self.client sendRequestWithMethod:@"keybase.1.locksmithUi.selectSigner" params:rparams sessionId:self.sessionId completion:^(NSError *error, id retval) {
     if (error) {
       completion(error, nil);
@@ -2766,6 +2766,7 @@
     self.sessionID = [params[0][@"sessionID"] integerValue];
     self.devices = [MTLJSONAdapter modelsOfClass:KBRDevice.class fromJSONArray:params[0][@"devices"] error:nil];
     self.hasPGP = [params[0][@"hasPGP"] boolValue];
+    self.hasPaperBackupKey = [params[0][@"hasPaperBackupKey"] boolValue];
   }
   return self;
 }

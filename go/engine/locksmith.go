@@ -355,6 +355,9 @@ func (d *Locksmith) deviceSign(ctx *Context, withPGPOption bool) error {
 		if v.Type != libkb.DeviceTypeWeb && v.Type != libkb.DeviceTypeBackup {
 			arg.Devices = append(arg.Devices, keybase1.Device{Type: v.Type, Name: v.Description, DeviceID: k})
 		}
+		if v.Type == libkb.DeviceTypeBackup {
+			arg.HasPaperBackupKey = true
+		}
 	}
 	arg.HasPGP = withPGPOption
 
@@ -396,7 +399,8 @@ func (d *Locksmith) deviceSign(ctx *Context, withPGPOption bool) error {
 
 		// sign action:
 
-		if res.Signer.Kind == keybase1.DeviceSignerKind_PGP {
+		switch res.Signer.Kind {
+		case keybase1.DeviceSignerKind_PGP:
 			err := d.deviceSignPGP(ctx)
 			if err == nil {
 				ctx.LogUI.Debug("device sign w/ pgp success")
@@ -411,7 +415,7 @@ func (d *Locksmith) deviceSign(ctx *Context, withPGPOption bool) error {
 			if err = ctx.LocksmithUI.DeviceSignAttemptErr(uiarg); err != nil {
 				d.G().Log.Info("error making ui call DeviceSignAttemptErr: %s", err)
 			}
-		} else if res.Signer.Kind == keybase1.DeviceSignerKind_DEVICE {
+		case keybase1.DeviceSignerKind_DEVICE:
 			if res.Signer.DeviceID == nil {
 				return fmt.Errorf("selected device for signing, but DeviceID is nil")
 			}
@@ -420,7 +424,7 @@ func (d *Locksmith) deviceSign(ctx *Context, withPGPOption bool) error {
 			}
 			err := d.deviceSignExistingDevice(ctx, *res.Signer.DeviceID, *res.Signer.DeviceName, newDeviceName, libkb.DeviceTypeDesktop)
 			if err == nil {
-				ctx.LogUI.Debug("device sign w/ existing device succes")
+				ctx.LogUI.Debug("device sign w/ existing device success")
 				return nil
 			}
 			ctx.LogUI.Info("deviceSignExistingDevice error: %s", err)
@@ -440,7 +444,21 @@ func (d *Locksmith) deviceSign(ctx *Context, withPGPOption bool) error {
 			if err = ctx.LocksmithUI.DeviceSignAttemptErr(uiarg); err != nil {
 				d.G().Log.Info("error making ui call DeviceSignAttemptErr: %s", err)
 			}
-		} else {
+		case keybase1.DeviceSignerKind_PAPER_BACKUP_KEY:
+			err := d.deviceSignPaper(ctx)
+			if err == nil {
+				ctx.LogUI.Debug("device sign w/ paper backup key success")
+				return nil
+			}
+			uiarg := keybase1.DeviceSignAttemptErrArg{
+				Msg:     err.Error(),
+				Attempt: i + 1,
+				Total:   totalTries,
+			}
+			if err = ctx.LocksmithUI.DeviceSignAttemptErr(uiarg); err != nil {
+				d.G().Log.Info("error making ui call DeviceSignAttemptErr: %s", err)
+			}
+		default:
 			return fmt.Errorf("unknown signer kind: %d", res.Signer.Kind)
 		}
 	}
@@ -561,6 +579,21 @@ func (d *Locksmith) deviceSignExistingDevice(ctx *Context, existingID keybase1.D
 	d.kexMu.Unlock()
 
 	return err
+}
+
+func (d *Locksmith) deviceSignPaper(ctx *Context) error {
+	kp, err := findBackupKeys(ctx, d.G(), d.user)
+	if err != nil {
+		return err
+	}
+
+	eldest := d.user.GetEldestKID()
+	ctx.LogUI.Debug("eldest kid from user: %s", eldest)
+	if err := d.addDeviceKeyWithSigner(ctx, kp.sigKey, eldest); err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func (d *Locksmith) selectPGPKey(ctx *Context, keys []*libkb.PGPKeyBundle) (*libkb.PGPKeyBundle, error) {

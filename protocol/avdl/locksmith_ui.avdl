@@ -5,7 +5,8 @@ protocol locksmithUi {
 
 	enum DeviceSignerKind {
 		DEVICE_0,
-		PGP_1
+		PGP_1,
+		PAPER_BACKUP_KEY_2
 	}
 
 	enum SelectSignerAction {
@@ -29,7 +30,7 @@ protocol locksmithUi {
 
 	// selectSigner is for when a user logs in with a new device
 	// and it needs to be signed by an existing device or pgp.
-	SelectSignerRes selectSigner(int sessionID, array<Device> devices, boolean hasPGP);
+	SelectSignerRes selectSigner(int sessionID, array<Device> devices, boolean hasPGP, boolean hasPaperBackupKey);
 
 	// if there's an error signing a new device, the daemon will call this
 	// to tell clients about the error.  attempt is the attempt number.
