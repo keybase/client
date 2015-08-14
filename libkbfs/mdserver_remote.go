@@ -1,16 +1,23 @@
 package libkbfs
 
 import (
+	"fmt"
+	"sync"
+	"time"
+
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/protocol/go"
 	"golang.org/x/net/context"
-	"time"
 )
 
 // MDServerRemote is an implementation of the MDServer interface.
 type MDServerRemote struct {
-	config     Config
-	conn       *Connection
+	config Config
+	conn   *Connection
+
+	observerMu sync.Mutex // protects observers
+	observers  map[TlfID]chan<- error
+
 	testClient keybase1.GenericClient // for testing
 }
 
@@ -22,7 +29,10 @@ var _ KeyServer = (*MDServerRemote)(nil)
 
 // NewMDServerRemote returns a new instance of MDServerRemote.
 func NewMDServerRemote(ctx context.Context, config Config, srvAddr string) *MDServerRemote {
-	mdServer := &MDServerRemote{config: config}
+	mdServer := &MDServerRemote{
+		config:    config,
+		observers: make(map[TlfID]chan<- error),
+	}
 	connection := NewConnection(ctx, config, srvAddr, mdServer, MDServerUnwrapError)
 	mdServer.conn = connection
 	return mdServer
@@ -83,6 +93,29 @@ func (md *MDServerRemote) OnConnectError(err error, wait time.Duration) {
 		err, wait)
 	// TODO: it might make sense to show something to the user if this is
 	// due to authentication, for example.
+	md.cancelObservers()
+}
+
+// OnDisconnected implements the ConnectionHandler interface.
+func (md *MDServerRemote) OnDisconnected() {
+	md.cancelObservers()
+}
+
+// Signal errors and clear any registered observers.
+func (md *MDServerRemote) cancelObservers() {
+	md.observerMu.Lock()
+	defer md.observerMu.Unlock()
+	// fire errors for any registered observers
+	for id, observerChan := range md.observers {
+		md.signalObserver(observerChan, id, MDServerDisconnected{})
+	}
+}
+
+// Signal an observer. The observer lock must be held.
+func (md *MDServerRemote) signalObserver(observerChan chan<- error, id TlfID, err error) {
+	observerChan <- err
+	close(observerChan)
+	delete(md.observers, id)
 }
 
 // Helper to return a metadata client.
@@ -162,7 +195,7 @@ func (md *MDServerRemote) GetForHandle(ctx context.Context, handle *TlfHandle, u
 	if err != nil {
 		return id, nil, err
 	}
-	if rmdses == nil || len(rmdses) == 0 {
+	if len(rmdses) == 0 {
 		return id, nil, nil
 	}
 	return id, rmdses[0], nil
@@ -175,7 +208,7 @@ func (md *MDServerRemote) GetForTLF(ctx context.Context, id TlfID, unmerged bool
 	if err != nil {
 		return nil, err
 	}
-	if rmdses == nil || len(rmdses) == 0 {
+	if len(rmdses) == 0 {
 		return nil, nil
 	}
 	return rmdses[0], nil
@@ -208,9 +241,78 @@ func (md *MDServerRemote) PruneUnmerged(ctx context.Context, id TlfID) error {
 	})
 }
 
+// MetadataUpdate implements the MetadataUpdateProtocol interface.
+func (md *MDServerRemote) MetadataUpdate(arg keybase1.MetadataUpdateArg) error {
+	id := ParseTlfID(arg.FolderID)
+	if id == NullTlfID {
+		return MDServerErrorBadRequest{"Invalid folder ID"}
+	}
+
+	md.observerMu.Lock()
+	defer md.observerMu.Unlock()
+	observerChan, ok := md.observers[id]
+	if !ok {
+		// not registered
+		return nil
+	}
+
+	// signal that we've seen the update
+	md.signalObserver(observerChan, id, nil)
+	return nil
+}
+
+// RegisterForUpdate implements the MDServer interface for MDServerRemote.
+func (md *MDServerRemote) RegisterForUpdate(ctx context.Context, id TlfID,
+	currHead MetadataRevision) (<-chan error, error) {
+	arg := keybase1.RegisterForUpdatesArg{
+		FolderID:     id.String(),
+		CurrRevision: currHead.Number(),
+	}
+
+	// setup the server to receive updates
+	err := md.conn.Serve(keybase1.MetadataUpdateProtocol(md))
+	if err != nil {
+		libkb.G.Log.Warning("MDServerRemote: unable to create update server %q", err)
+		return nil, err
+	}
+
+	// register
+	var c chan error
+	err = md.doCommand(ctx, func() error {
+		// keep re-adding the observer on retries.
+		// OnDisconnected/OnConnectError will remove it.
+		func() {
+			md.observerMu.Lock()
+			defer md.observerMu.Unlock()
+			if _, ok := md.observers[id]; ok {
+				panic(fmt.Sprintf("Attempted double-registration for MDServerRemote %p",
+					md))
+			}
+			c = make(chan error, 1)
+			md.observers[id] = c
+		}()
+		return md.client().RegisterForUpdates(arg)
+	})
+	if err != nil {
+		// cancel the observer if it still exists
+		md.observerMu.Lock()
+		defer md.observerMu.Unlock()
+		if observerChan, ok := md.observers[id]; ok {
+			delete(md.observers, id)
+			close(observerChan)
+		}
+		c = nil
+	}
+
+	return c, err
+}
+
 // Shutdown implements the MDServer interface for MDServerRemote.
 func (md *MDServerRemote) Shutdown() {
+	// close the connection
 	md.conn.Shutdown()
+	// cancel pending observers
+	md.cancelObservers()
 }
 
 //
@@ -246,17 +348,6 @@ func (md *MDServerRemote) GetTLFCryptKeyServerHalf(ctx context.Context,
 	}
 
 	return serverHalf, nil
-}
-
-// RegisterForUpdate implements the MDServer interface for MDServerRemote.
-func (md *MDServerRemote) RegisterForUpdate(ctx context.Context, id TlfID,
-	currHead MetadataRevision) (<-chan error, error) {
-	// This could work by a long-poll RPC that runs in a separate
-	// goroutine, or by listening as a server on the same RPC
-	// connection for an incoming RPC from the MD server.  Either way,
-	// it will have to know when the underlying TCP connection goes
-	// away so it can fire the observer with an error.
-	return nil, nil
 }
 
 // PutTLFCryptKeyServerHalves is an implementation of the KeyServer interface.

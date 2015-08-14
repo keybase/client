@@ -23,6 +23,9 @@ type ConnectionHandler interface {
 
 	// OnConnectError is called whenever there is an error during connection.
 	OnConnectError(err error, reconnectThrottleDuration time.Duration)
+
+	// OnDisconnected is called whenever the connection notices it is disconnected.
+	OnDisconnected()
 }
 
 // ConnectionTransportTLS is a ConnectionTransport implementation that uses TLS+rpc2.
@@ -31,7 +34,9 @@ type ConnectionTransportTLS struct {
 	unwrapErrFunc   rpc2.UnwrapErrorFunc
 	transport       *rpc2.Transport
 	stagedTransport *rpc2.Transport
-	mutex           sync.Mutex // protects transport
+	server          *rpc2.Server
+	conn            net.Conn
+	mutex           sync.Mutex // protects transport and server
 }
 
 // Test that ConnectionTransportTLS fully implements the ConnectionTransport interface.
@@ -40,7 +45,6 @@ var _ ConnectionTransport = (*ConnectionTransportTLS)(nil)
 // Dial is an implementation of the ConnectionTransport interface.
 func (ct *ConnectionTransportTLS) Dial(ctx context.Context, srvAddr string) (
 	keybase1.GenericClient, error) {
-	var conn net.Conn
 	var err error
 	err = runUnlessCanceled(ctx, func() error {
 		// load CA certificate
@@ -50,16 +54,31 @@ func (ct *ConnectionTransportTLS) Dial(ctx context.Context, srvAddr string) (
 		}
 		// connect
 		config := tls.Config{RootCAs: certs}
-		conn, err = tls.Dial("tcp", srvAddr, &config)
+		ct.conn, err = tls.Dial("tcp", srvAddr, &config)
 		return err
 	})
 	if err != nil {
 		return nil, err
 	}
 
-	ct.stagedTransport = rpc2.NewTransport(conn, libkb.NewRPCLogFactory(), libkb.WrapError)
+	ct.stagedTransport = rpc2.NewTransport(ct.conn, libkb.NewRPCLogFactory(), libkb.WrapError)
 	client := rpc2.NewClient(ct.stagedTransport, ct.unwrapErrFunc)
 	return client, nil
+}
+
+// Serve is an implementation of the ConnectionTransport interface.
+func (ct *ConnectionTransportTLS) Serve(server rpc2.Protocol) error {
+	ct.mutex.Lock()
+	defer ct.mutex.Unlock()
+	if ct.server != nil {
+		return nil
+	}
+	ct.server = rpc2.NewServer(ct.transport, libkb.WrapError)
+	err := ct.server.Register(server)
+	if err != nil {
+		return err
+	}
+	return ct.server.Run(true)
 }
 
 // IsConnected is an implementation of the ConnectionTransport interface.
@@ -75,6 +94,16 @@ func (ct *ConnectionTransportTLS) Finalize() {
 	defer ct.mutex.Unlock()
 	ct.transport = ct.stagedTransport
 	ct.stagedTransport = nil
+	ct.server = nil
+}
+
+// Close is an implementation of the ConnectionTransport interface.
+func (ct *ConnectionTransportTLS) Close() {
+	ct.mutex.Lock()
+	defer ct.mutex.Unlock()
+	if ct.conn != nil {
+		ct.conn.Close()
+	}
 }
 
 // Connection encapsulates all client connection handling.
@@ -159,6 +188,8 @@ func (c *Connection) waitForConnection(ctx context.Context) error {
 		// already connected
 		return nil
 	}
+	// inform the handler of our disconnected state
+	c.handler.OnDisconnected()
 	// kick-off a connection and wait for it to complete
 	// or for the caller to cancel.
 	reconnectChan := c.getReconnectChan()
@@ -234,6 +265,11 @@ func (c *Connection) GetClient() keybase1.GenericClient {
 	return c.client
 }
 
+// Serve is called to act as a server for an upstream client.
+func (c *Connection) Serve(server rpc2.Protocol) error {
+	return c.transport.Serve(server)
+}
+
 // Shutdown cancels any reconnect loop in progress.
 // Calling this invalidates the connection object.
 func (c *Connection) Shutdown() {
@@ -243,7 +279,8 @@ func (c *Connection) Shutdown() {
 	if c.cancelFunc != nil {
 		c.cancelFunc()
 	}
-	// TODO: I think it would be ideal for this to also close
-	// the transport but the rpc2 package doesn't appear to
-	// expose that ability at the moment.
+	if c.transport != nil {
+		// close the connection
+		c.transport.Close()
+	}
 }

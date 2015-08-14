@@ -62,10 +62,10 @@ func TestBasicMDUpdate(t *testing.T) {
 	// simulate two users
 	userName1, userName2 := "u1", "u2"
 	config1, uid1, ctx := kbfsOpsConcurInit(t, userName1, userName2)
-	defer config1.KBFSOps().(*KBFSOpsStandard).Shutdown()
+	defer config1.Shutdown()
 
 	config2 := ConfigAsUser(config1.(*ConfigLocal), userName2)
-	defer config2.KBFSOps().(*KBFSOpsStandard).Shutdown()
+	defer config2.Shutdown()
 	uid2, err := config2.KBPKI().GetLoggedInUser(context.Background())
 	if err != nil {
 		t.Fatal(err)
@@ -132,10 +132,10 @@ func testMultipleMDUpdates(t *testing.T, unembedChanges bool) {
 	// simulate two users
 	userName1, userName2 := "u1", "u2"
 	config1, uid1, ctx := kbfsOpsConcurInit(t, userName1, userName2)
-	defer config1.KBFSOps().(*KBFSOpsStandard).Shutdown()
+	defer config1.Shutdown()
 
 	config2 := ConfigAsUser(config1.(*ConfigLocal), userName2)
-	defer config2.KBFSOps().(*KBFSOpsStandard).Shutdown()
+	defer config2.Shutdown()
 	uid2, err := config2.KBPKI().GetLoggedInUser(context.Background())
 	if err != nil {
 		t.Fatal(err)
@@ -298,9 +298,9 @@ func TestUnmergedAfterRestart(t *testing.T) {
 	// now re-login the users, and make sure 1 can see the changes,
 	// but 2 can't
 	config1B := ConfigAsUser(config1.(*ConfigLocal), userName1)
-	defer config1B.KBFSOps().(*KBFSOpsStandard).Shutdown()
+	defer config1B.Shutdown()
 	config2B := ConfigAsUser(config1.(*ConfigLocal), userName2)
-	defer config2B.KBFSOps().(*KBFSOpsStandard).Shutdown()
+	defer config2B.Shutdown()
 
 	readAndCompareData(t, config1B, ctx, h, data1, userName1)
 	readAndCompareData(t, config2B, ctx, h, data2, userName2)

@@ -620,3 +620,13 @@ func (e HashMismatchError) Error() string {
 	return fmt.Sprintf("Hash mismatch: expected %s, got %s",
 		e.ExpectedH, e.ActualH)
 }
+
+// MDServerDisconnected indicates the MDServer has been disconnected for clients waiting
+// on an update channel.
+type MDServerDisconnected struct {
+}
+
+// Error implements the error interface for MDServerDisconnected.
+func (e MDServerDisconnected) Error() string {
+	return "MDServer is disconnected"
+}

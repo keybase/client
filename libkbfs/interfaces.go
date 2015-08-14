@@ -7,6 +7,7 @@ import (
 
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/protocol/go"
+	"github.com/maxtaco/go-framed-msgpack-rpc/rpc2"
 	"golang.org/x/net/context"
 )
 
@@ -813,9 +814,16 @@ type ConnectionTransport interface {
 	// Dial is called to connect to the server.
 	Dial(ctx context.Context, srvAddr string) (keybase1.GenericClient, error)
 
+	// Serve is called when the client needs to act as a server on behalf
+	// of a server who wants to act as a client, e.g. push notifications.
+	Serve(server rpc2.Protocol) error
+
 	// IsConnected is called to check for connection status.
 	IsConnected() bool
 
 	// Finalize is used to indicate the result of Dial is complete.
 	Finalize()
+
+	// Close is used to close any open connection.
+	Close()
 }
