@@ -49,7 +49,11 @@ func TestBackup(t *testing.T) {
 	tc := SetupEngineTest(t, "backup")
 	defer tc.Cleanup()
 
-	fu := CreateAndSignupFakeUser(tc, "login")
+	f := func(arg *SignupEngineRunArg) {
+		arg.SkipPaper = true
+	}
+
+	fu, _ := CreateAndSignupFakeUserCustomArg(tc, "login", f)
 
 	userDeviceID := tc.G.Env.GetDeviceID()
 
@@ -173,8 +177,8 @@ func TestBackupNoRevoke(t *testing.T) {
 
 	// check for the backup key
 	_, bdevs := backupDevs(t, fu)
-	if len(bdevs) != 1 {
-		t.Errorf("num backup devices: %d, expected 1", len(bdevs))
+	if len(bdevs) != 2 {
+		t.Errorf("num backup devices: %d, expected 2", len(bdevs))
 	}
 
 	// generate another one, first should be left alone
@@ -188,8 +192,8 @@ func TestBackupNoRevoke(t *testing.T) {
 
 	// check for the backup key
 	_, bdevs = backupDevs(t, fu)
-	if len(bdevs) != 2 {
-		t.Errorf("num backup devices: %d, expected 2", len(bdevs))
+	if len(bdevs) != 3 {
+		t.Errorf("num backup devices: %d, expected 3", len(bdevs))
 	}
 }
 

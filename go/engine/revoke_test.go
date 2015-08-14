@@ -47,9 +47,15 @@ func doRevokeDevice(tc libkb.TestContext, u *FakeUser, id keybase1.DeviceID, for
 func assertNumDevicesAndKeys(t *testing.T, u *FakeUser, numDevices, numKeys int) {
 	devices, keys := getActiveDevicesAndKeys(t, u)
 	if len(devices) != numDevices {
+		for i, d := range devices {
+			t.Logf("device %d: %+v", i, d)
+		}
 		t.Fatalf("Expected to find %d devices. Found %d.", numDevices, len(devices))
 	}
 	if len(keys) != numKeys {
+		for i, k := range keys {
+			t.Logf("key %d: %+v", i, k)
+		}
 		t.Fatalf("Expected to find %d keys. Found %d.", numKeys, len(keys))
 	}
 }
@@ -60,7 +66,7 @@ func TestRevokeDevice(t *testing.T) {
 
 	u := CreateAndSignupFakeUser(tc, "rev")
 
-	assertNumDevicesAndKeys(t, u, 2, 4)
+	assertNumDevicesAndKeys(t, u, 3, 6)
 
 	devices, _ := getActiveDevicesAndKeys(t, u)
 	var webDevice *libkb.Device
@@ -68,7 +74,7 @@ func TestRevokeDevice(t *testing.T) {
 	for _, device := range devices {
 		if device.Type == "web" {
 			webDevice = device
-		} else {
+		} else if device.Type != "backup" {
 			thisDevice = device
 		}
 	}
@@ -82,7 +88,7 @@ func TestRevokeDevice(t *testing.T) {
 		tc.T.Fatal(err)
 	}
 
-	assertNumDevicesAndKeys(t, u, 1, 2)
+	assertNumDevicesAndKeys(t, u, 2, 4)
 
 	// Revoking the current device should fail.
 	err = doRevokeDevice(tc, u, thisDevice.ID, false)
@@ -90,7 +96,7 @@ func TestRevokeDevice(t *testing.T) {
 		tc.T.Fatal("Expected revoking the current device to fail.")
 	}
 
-	assertNumDevicesAndKeys(t, u, 1, 2)
+	assertNumDevicesAndKeys(t, u, 2, 4)
 
 	// But it should succeed with the --force flag.
 	err = doRevokeDevice(tc, u, thisDevice.ID, true)
@@ -98,7 +104,7 @@ func TestRevokeDevice(t *testing.T) {
 		tc.T.Fatal(err)
 	}
 
-	assertNumDevicesAndKeys(t, u, 0, 0)
+	assertNumDevicesAndKeys(t, u, 1, 2)
 }
 
 func TestRevokeKey(t *testing.T) {
@@ -107,7 +113,7 @@ func TestRevokeKey(t *testing.T) {
 
 	u := createFakeUserWithPGPSibkey(tc)
 
-	assertNumDevicesAndKeys(t, u, 2, 5)
+	assertNumDevicesAndKeys(t, u, 3, 7)
 
 	_, keys := getActiveDevicesAndKeys(t, u)
 	var pgpKey *libkb.GenericKey
@@ -128,7 +134,7 @@ func TestRevokeKey(t *testing.T) {
 		tc.T.Fatal(err)
 	}
 
-	assertNumDevicesAndKeys(t, u, 2, 4)
+	assertNumDevicesAndKeys(t, u, 3, 6)
 }
 
 // See issue #370.

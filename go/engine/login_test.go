@@ -106,6 +106,9 @@ func TestLoginAddsKeys(t *testing.T) {
 
 	// since this user didn't have any keys, login should have fixed that:
 	testUserHasDeviceKey(t)
+
+	// and they should have a paper backup key
+	hasOneBackupDev(t, &FakeUser{Username: username, Passphrase: passphrase})
 }
 
 func TestLoginDetKeyOnly(t *testing.T) {
@@ -128,6 +131,9 @@ func TestLoginDetKeyOnly(t *testing.T) {
 
 	// since this user didn't have a device key, login should have fixed that:
 	testUserHasDeviceKey(t)
+
+	// and they should have a paper backup key since this is their first device
+	hasOneBackupDev(t, &FakeUser{Username: username, Passphrase: passphrase})
 }
 
 // TestLoginPGPSignNewDevice
@@ -170,6 +176,7 @@ func TestLoginPGPSignNewDevice(t *testing.T) {
 	}
 
 	testUserHasDeviceKey(t)
+	hasOneBackupDev(t, u1)
 }
 
 func TestLoginPGPPubOnlySignNewDevice(t *testing.T) {
@@ -212,6 +219,7 @@ func TestLoginPGPPubOnlySignNewDevice(t *testing.T) {
 	}
 
 	testUserHasDeviceKey(t)
+	hasOneBackupDev(t, u1)
 }
 
 func TestLoginPGPMultSignNewDevice(t *testing.T) {
@@ -252,6 +260,7 @@ func TestLoginPGPMultSignNewDevice(t *testing.T) {
 	}
 
 	testUserHasDeviceKey(t)
+	hasOneBackupDev(t, u1)
 }
 
 // pgp sibkey used to sign new device
@@ -295,6 +304,7 @@ func TestLoginGPGSignNewDevice(t *testing.T) {
 	}
 
 	testUserHasDeviceKey(t)
+	hasOneBackupDev(t, u1)
 }
 
 // TestLoginInterrupt* tries to simulate what would happen if the

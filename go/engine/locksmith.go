@@ -225,7 +225,12 @@ func (d *Locksmith) checkKeys(ctx *Context) error {
 		d.G().Log.Debug("| The user doesn't have a detkey")
 	}
 
-	return err
+	if err != nil {
+		return err
+	}
+
+	// this is the first (non-web) device for the user, so generate a paper key
+	return d.paperKey(ctx)
 }
 
 // addBasicKeys is used for accounts that have no device or det
@@ -236,6 +241,10 @@ func (d *Locksmith) addBasicKeys(ctx *Context) error {
 	}
 
 	if err := d.addDetKey(ctx, d.signingKey.GetKID()); err != nil {
+		return err
+	}
+
+	if err := d.paperKey(ctx); err != nil {
 		return err
 	}
 
@@ -715,4 +724,13 @@ func (d *Locksmith) isDeviceNameTaken(ctx *Context, name string) bool {
 		d.G().Log.Warning("secret syncer error in isDeviceNameTaken: %s", err)
 	}
 	return taken
+}
+
+func (d *Locksmith) paperKey(ctx *Context) error {
+	args := &PaperArgs{
+		SigningKey: d.signingKey,
+		Me:         d.user,
+	}
+	eng := NewPaper(d.G(), args)
+	return RunEngine(eng, ctx)
 }
