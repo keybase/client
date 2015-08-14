@@ -1707,10 +1707,16 @@ type DisplayBackupPhraseArg struct {
 	Phrase    string `codec:"phrase" json:"phrase"`
 }
 
+type DisplayInitialPaperKeyArg struct {
+	SessionID int    `codec:"sessionID" json:"sessionID"`
+	Phrase    string `codec:"phrase" json:"phrase"`
+}
+
 type LoginUiInterface interface {
 	GetEmailOrUsername(int) (string, error)
 	PromptRevokeBackupDeviceKeys(PromptRevokeBackupDeviceKeysArg) (bool, error)
 	DisplayBackupPhrase(DisplayBackupPhraseArg) error
+	DisplayInitialPaperKey(DisplayInitialPaperKeyArg) error
 }
 
 func LoginUiProtocol(i LoginUiInterface) rpc2.Protocol {
@@ -1738,6 +1744,13 @@ func LoginUiProtocol(i LoginUiInterface) rpc2.Protocol {
 				}
 				return
 			},
+			"displayInitialPaperKey": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
+				args := make([]DisplayInitialPaperKeyArg, 1)
+				if err = nxt(&args); err == nil {
+					err = i.DisplayInitialPaperKey(args[0])
+				}
+				return
+			},
 		},
 	}
 
@@ -1760,6 +1773,11 @@ func (c LoginUiClient) PromptRevokeBackupDeviceKeys(__arg PromptRevokeBackupDevi
 
 func (c LoginUiClient) DisplayBackupPhrase(__arg DisplayBackupPhraseArg) (err error) {
 	err = c.Cli.Call("keybase.1.loginUi.displayBackupPhrase", []interface{}{__arg}, nil)
+	return
+}
+
+func (c LoginUiClient) DisplayInitialPaperKey(__arg DisplayInitialPaperKeyArg) (err error) {
+	err = c.Cli.Call("keybase.1.loginUi.displayInitialPaperKey", []interface{}{__arg}, nil)
 	return
 }
 

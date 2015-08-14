@@ -812,6 +812,10 @@ typedef NS_ENUM (NSInteger, KBRPromptDefault) {
 @property NSInteger sessionID;
 @property NSString *phrase;
 @end
+@interface KBRDisplayInitialPaperKeyRequestParams : KBRRequestParams
+@property NSInteger sessionID;
+@property NSString *phrase;
+@end
 @interface KBRAuthenticateRequestParams : KBRRequestParams
 @property NSString *user;
 @property NSString *deviceKID;
@@ -1364,6 +1368,10 @@ typedef NS_ENUM (NSInteger, KBRPromptDefault) {
 - (void)displayBackupPhrase:(KBRDisplayBackupPhraseRequestParams *)params completion:(void (^)(NSError *error))completion;
 
 - (void)displayBackupPhraseWithPhrase:(NSString *)phrase completion:(void (^)(NSError *error))completion;
+
+- (void)displayInitialPaperKey:(KBRDisplayInitialPaperKeyRequestParams *)params completion:(void (^)(NSError *error))completion;
+
+- (void)displayInitialPaperKeyWithPhrase:(NSString *)phrase completion:(void (^)(NSError *error))completion;
 
 @end
 

@@ -182,6 +182,16 @@
         "type" : "string"
       } ],
       "response" : "null"
+    },
+    "displayInitialPaperKey" : {
+      "request" : [ {
+        "name" : "sessionID",
+        "type" : "int"
+      }, {
+        "name" : "phrase",
+        "type" : "string"
+      } ],
+      "response" : "null"
     }
   }
 }

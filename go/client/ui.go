@@ -581,6 +581,30 @@ func (l LoginUI) DisplayBackupPhrase(arg keybase1.DisplayBackupPhraseArg) error 
 	return nil
 }
 
+func (l LoginUI) DisplayInitialPaperKey(arg keybase1.DisplayInitialPaperKeyArg) error {
+	l.parent.Printf("IMPORTANT: PAPER KEY GENERATION\n\n")
+	l.parent.Printf("During Keybase's alpha, everyone gets a paper key. This is a private key.\n")
+	l.parent.Printf("  1. you must write it down\n")
+	l.parent.Printf("  2. it can be used to recover data\n")
+	l.parent.Printf("  3. it can be used to add new computers before we have a mobile app, so your wallet is a good place for it.\n\n")
+	l.parent.Printf("Your paper key is\n\n")
+	l.parent.Printf("\t%s\n\n", arg.Phrase)
+	l.parent.Printf("Write it down now.\n\n")
+	confirmed, err := l.parent.PromptYesNo("Have you written down the above key?", PromptDefaultNo)
+	if err != nil {
+		return err
+	}
+	for !confirmed {
+		l.parent.Printf("\nPlease write down your paper key\n\n")
+		l.parent.Printf("\t%s\n\n", arg.Phrase)
+		confirmed, err = l.parent.PromptYesNo("Now have you written it down?", PromptDefaultNo)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
 type SecretUI struct {
 	parent *UI
 }
