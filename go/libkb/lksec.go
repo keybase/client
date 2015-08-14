@@ -2,6 +2,7 @@ package libkb
 
 import (
 	"encoding/hex"
+	"errors"
 	"fmt"
 
 	keybase1 "github.com/keybase/client/protocol/go"
@@ -28,6 +29,15 @@ func NewLKSec(pps *PassphraseStream, uid keybase1.UID, gc *GlobalContext) *LKSec
 	}
 }
 
+func NewLKSecWithClientHalf(clientHalf []byte, ppgen PassphraseGeneration, uid keybase1.UID, gc *GlobalContext) *LKSec {
+	return &LKSec{
+		clientHalf:   clientHalf,
+		ppGen:        ppgen,
+		uid:          uid,
+		Contextified: NewContextified(gc),
+	}
+}
+
 func NewLKSecWithFullSecret(secret []byte, uid keybase1.UID, gc *GlobalContext) *LKSec {
 	return &LKSec{
 		secret:       secret,
@@ -45,6 +55,10 @@ func (s *LKSec) SetClientHalf(b []byte) {
 	s.clientHalf = b
 }
 
+func (s *LKSec) SetServerHalf(b []byte) {
+	s.serverHalf = b
+}
+
 // Generation returns the passphrase generation that this local key security
 // object is derived from.
 func (s LKSec) Generation() PassphraseGeneration {
@@ -53,7 +67,7 @@ func (s LKSec) Generation() PassphraseGeneration {
 
 func (s *LKSec) GenerateServerHalf() error {
 	if s.clientHalf == nil {
-		return fmt.Errorf("Can't generate server half without a client half")
+		return errors.New("Can't generate server half without a client half")
 	}
 	if s.serverHalf != nil {
 		return nil

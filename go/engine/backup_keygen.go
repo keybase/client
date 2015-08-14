@@ -2,6 +2,9 @@ package engine
 
 import (
 	"bytes"
+	"encoding/hex"
+	"errors"
+	"fmt"
 
 	"github.com/agl/ed25519"
 	"golang.org/x/crypto/nacl/box"
@@ -124,13 +127,60 @@ func (e *BackupKeygen) makeEncKey(seed []byte) error {
 	return nil
 }
 
+func (e *BackupKeygen) getClientHalfFromSecretStore() ([]byte, libkb.PassphraseGeneration, error) {
+	zeroGen := libkb.PassphraseGeneration(0)
+
+	secretStore := libkb.NewSecretStore(e.arg.Me.GetNormalizedName())
+	if secretStore == nil {
+		return nil, zeroGen, errors.New("No secret store available")
+	}
+
+	secret, err := secretStore.RetrieveSecret()
+	if err != nil {
+		return nil, zeroGen, err
+	}
+
+	devid := e.G().Env.GetDeviceID()
+	if devid.IsNil() {
+		return nil, zeroGen, fmt.Errorf("no device id set")
+	}
+
+	var dev libkb.DeviceKey
+	aerr := e.G().LoginState().Account(func(a *libkb.Account) {
+		if err = libkb.RunSyncer(a.SecretSyncer(), e.arg.Me.GetUID(), a.LoggedIn(), a.LocalSession()); err != nil {
+			return
+		}
+		dev, err = a.SecretSyncer().FindDevice(devid)
+	}, "BackupKeygen.Run() -- retrieving passphrase generation)")
+	if aerr != nil {
+		return nil, zeroGen, aerr
+	}
+	if err != nil {
+		return nil, zeroGen, err
+	}
+
+	serverHalf, err := hex.DecodeString(dev.LksServerHalf)
+	if err != nil {
+		return nil, zeroGen, err
+	}
+
+	if len(secret) != len(serverHalf) {
+		return nil, zeroGen, fmt.Errorf("secret has length %d, server half has length %d", len(secret), len(serverHalf))
+	}
+
+	clientHalf := make([]byte, len(secret))
+	libkb.XORBytes(clientHalf, secret, serverHalf)
+
+	return clientHalf, dev.PPGen, nil
+}
+
 func (e *BackupKeygen) push(ctx *Context) error {
 	if e.arg.SkipPush {
 		return nil
 	}
 
 	// create a new backup device
-	dev, err := libkb.NewBackupDevice()
+	backupDev, err := libkb.NewBackupDevice()
 	if err != nil {
 		return err
 	}
@@ -139,21 +189,39 @@ func (e *BackupKeygen) push(ctx *Context) error {
 	// local, encrypted storage of the backup keys, but just for recovery
 	// purposes.
 
-	var lks *libkb.LKSec
+	foundStream := false
+	var ppgen libkb.PassphraseGeneration
+	var clientHalf []byte
 	e.G().LoginState().Account(func(a *libkb.Account) {
-		lks = libkb.NewLKSec(a.PassphraseStreamCache().PassphraseStream(), e.arg.Me.GetUID(), e.G())
+		stream := a.PassphraseStream()
+		if stream == nil {
+			return
+		}
+		foundStream = true
+		ppgen = stream.Generation()
+		clientHalf = stream.LksClientHalf()
 	}, "BackupKeygen - push")
 
-	if err := lks.GenerateServerHalf(); err != nil {
-		return err
+	// stream was nil, so we must have loaded lks from the secret
+	// store.
+	if !foundStream {
+		clientHalf, ppgen, err = e.getClientHalfFromSecretStore()
+		if err != nil {
+			return err
+		}
 	}
-	ctext, err := lks.EncryptClientHalfRecovery(e.encKey)
+
+	backupLks := libkb.NewLKSecWithClientHalf(clientHalf, ppgen, e.arg.Me.GetUID(), e.G())
+	// Set the server half to be empty, as we don't need it.
+	backupLks.SetServerHalf(make([]byte, len(clientHalf)))
+
+	ctext, err := backupLks.EncryptClientHalfRecovery(e.encKey)
 	if err != nil {
 		return err
 	}
 
 	// post them to the server.
-	if err := libkb.PostDeviceLKS(ctx.LoginContext, dev.ID, libkb.DeviceTypeBackup, lks.GetServerHalf(), lks.Generation(), ctext, e.encKey.GetKID()); err != nil {
+	if err := libkb.PostDeviceLKS(ctx.LoginContext, backupDev.ID, libkb.DeviceTypeBackup, backupLks.GetServerHalf(), backupLks.Generation(), ctext, e.encKey.GetKID()); err != nil {
 		return err
 	}
 
@@ -164,7 +232,7 @@ func (e *BackupKeygen) push(ctx *Context) error {
 		Expire:      libkb.NaclEdDSAExpireIn,
 		ExistingKey: e.arg.SigningKey,
 		Me:          e.arg.Me,
-		Device:      dev,
+		Device:      backupDev,
 	}
 
 	// push the backup encryption key
@@ -174,7 +242,7 @@ func (e *BackupKeygen) push(ctx *Context) error {
 		Expire:      libkb.NaclDHExpireIn,
 		ExistingKey: e.sigKey,
 		Me:          e.arg.Me,
-		Device:      dev,
+		Device:      backupDev,
 	}
 
 	return libkb.DelegatorAggregator(ctx.LoginContext, []libkb.Delegator{sigDel, sigEnc})
