@@ -503,7 +503,12 @@ func (d LocksmithUI) SelectSigner(arg keybase1.SelectSignerArg) (res keybase1.Se
 	}
 
 	if arg.HasPGP {
-		fmt.Fprintf(w, "(%d) using PGP\t(requires access to your PGP key)\n", len(arg.Devices)+1)
+		fmt.Fprintf(w, "(%d) using PGP\t(requires access to your PGP key)\n", optcount+1)
+		optcount++
+	}
+
+	if arg.HasPaperBackupKey {
+		fmt.Fprintf(w, "(%d) using a paper backup key\t(that you wrote down during signup/login)\n", optcount+1)
 		optcount++
 	}
 
@@ -525,20 +530,27 @@ func (d LocksmithUI) SelectSigner(arg keybase1.SelectSignerArg) (res keybase1.Se
 		return res, nil
 	}
 
-	if ret < 1 || ret > len(arg.Devices)+1 {
+	if ret < 1 || ret > optcount {
 		res.Action = keybase1.SelectSignerAction_CANCEL
 		return res, nil
 	}
 
 	res.Action = keybase1.SelectSignerAction_SIGN
 	res.Signer = &keybase1.DeviceSigner{}
-	if ret == len(arg.Devices)+1 {
-		res.Signer.Kind = keybase1.DeviceSignerKind_PGP
-	} else {
+	if ret <= len(arg.Devices) {
 		res.Signer.Kind = keybase1.DeviceSignerKind_DEVICE
 		res.Signer.DeviceID = &(arg.Devices[ret-1].DeviceID)
 		res.Signer.DeviceName = &(arg.Devices[ret-1].Name)
+	} else if ret == len(arg.Devices)+1 {
+		if arg.HasPGP {
+			res.Signer.Kind = keybase1.DeviceSignerKind_PGP
+		} else {
+			res.Signer.Kind = keybase1.DeviceSignerKind_PAPER_BACKUP_KEY
+		}
+	} else if ret == len(arg.Devices)+2 {
+		res.Signer.Kind = keybase1.DeviceSignerKind_PAPER_BACKUP_KEY
 	}
+
 	return res, nil
 }
 
