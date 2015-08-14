@@ -62,8 +62,6 @@ func (d *DetKeyEngine) EncKey() libkb.GenericKey {
 
 // Run runs the detkey engine.
 func (d *DetKeyEngine) Run(ctx *Context) (err error) {
-	var wasSelfProof = d.arg.SelfProof
-
 	d.dev = libkb.NewWebDevice()
 
 	var delegators []libkb.Delegator
@@ -86,18 +84,7 @@ func (d *DetKeyEngine) Run(ctx *Context) (err error) {
 
 	delegators = append(delegators, delegator)
 
-	// can't support multi in this case
-	if wasSelfProof {
-		for _, delegator := range delegators {
-			err = delegator.Run(ctx.LoginContext)
-			if err != nil {
-				return
-			}
-		}
-	} else {
-		err = libkb.DelegatorAggregator(ctx.LoginContext, delegators)
-	}
-
+	err = libkb.DelegatorAggregator(ctx.LoginContext, delegators)
 	return
 }
 
