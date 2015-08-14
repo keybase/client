@@ -235,7 +235,7 @@ func (s *LoginState) VerifyPlaintextPassphrase(pp string) (ppStream *PassphraseS
 			ppStream = lctx.PassphraseStreamCache().PassphraseStream()
 		}
 		return ret
-	}, nil, "VerifyPLaintextPassphrase")
+	}, nil, "VerifyPlaintextPassphrase")
 	return
 }
 
