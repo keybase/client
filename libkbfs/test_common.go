@@ -9,11 +9,16 @@ import (
 	"golang.org/x/net/context"
 )
 
-// EnvMDServerAddr is the environment variable name for an mdserver address.
-const EnvMDServerAddr = "KEYBASE_MDSERVER_BIND_ADDR"
-
-// EnvBServerAddr is the environment variable name for a block server address.
-const EnvBServerAddr = "KEYBASE_BSERVER_BIND_ADDR"
+const (
+	// EnvMDServerAddr is the environment variable name for an mdserver address.
+	EnvMDServerAddr = "KEYBASE_MDSERVER_BIND_ADDR"
+	// EnvBServerAddr is the environment variable name for a block
+	// server address.
+	EnvBServerAddr = "KEYBASE_BSERVER_BIND_ADDR"
+	// EnvCACertPEM is the environment variable name for the CA cert
+	// PEM the client uses to verify the KBFS servers.
+	EnvCACertPEM = "KEYBASE_CA_CERT_PEM"
+)
 
 // NewRootMetadataForTest returns a new initialized RootMetadata object for testing.
 func NewRootMetadataForTest(d *TlfHandle, id TlfID) *RootMetadata {

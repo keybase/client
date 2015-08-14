@@ -5,7 +5,6 @@ import (
 	"crypto/x509"
 	"encoding/hex"
 	"errors"
-	"io/ioutil"
 	"net"
 	"sync"
 	"time"
@@ -29,8 +28,7 @@ var (
 type BlockServerRemote struct {
 	config Config
 
-	srvAddr  string
-	certFile string
+	srvAddr string
 
 	// connMu protects both conn and shutdown
 	connMu   sync.Mutex
@@ -55,7 +53,6 @@ func NewBlockServerRemote(ctx context.Context, config Config,
 	b := &BlockServerRemote{
 		config:        config,
 		srvAddr:       blkSrvAddr,
-		certFile:      "./cert.pem",
 		connectedChan: make(chan struct{}),
 	}
 
@@ -82,14 +79,9 @@ func newBlockServerRemoteWithClient(ctx context.Context, config Config,
 
 // TLSConnect connects over TLS to the given server, expecting the
 // connection to be authenticated with the given certificate.
-func TLSConnect(cFile string, Addr string) (conn net.Conn, err error) {
+func TLSConnect(cert []byte, Addr string) (conn net.Conn, err error) {
 	CAPool := x509.NewCertPool()
-	var cacert []byte
-	cacert, err = ioutil.ReadFile(cFile)
-	if err != nil {
-		return
-	}
-	CAPool.AppendCertsFromPEM(cacert)
+	CAPool.AppendCertsFromPEM(cert)
 
 	config := tls.Config{RootCAs: CAPool}
 	conn, err = tls.Dial("tcp", Addr, &config)
@@ -109,7 +101,7 @@ func (b *BlockServerRemote) initClient() error {
 	}
 
 	var err error
-	if b.conn, err = TLSConnect(b.certFile, b.srvAddr); err != nil {
+	if b.conn, err = TLSConnect(b.config.CACert(), b.srvAddr); err != nil {
 		libkb.G.Log.Warning("NewBlockServerRemote: cannot connect to backend "+
 			"err : %v", err)
 		return err

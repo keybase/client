@@ -1,6 +1,10 @@
 package libkbfs
 
-import keybase1 "github.com/keybase/client/protocol/go"
+import (
+	"os"
+
+	keybase1 "github.com/keybase/client/protocol/go"
+)
 
 // ConfigLocal implements the Config interface using purely local
 // server objects (no KBFS operations used RPCs).
@@ -130,7 +134,14 @@ func NewConfigLocal() *ConfigLocal {
 	// 64K blocks by default, block changes embedded max == 8K
 	config.SetBlockSplitter(&BlockSplitterSimple{64 * 1024, 8 * 1024})
 	config.SetNotifier(config.kbfs.(*KBFSOpsStandard))
-	config.SetCACert([]byte(TestCACert))
+
+	// set the cert to be the environment variable, if it exists
+	envCACert := os.Getenv(EnvCACertPEM)
+	if len(envCACert) != 0 {
+		config.SetCACert([]byte(envCACert))
+	} else {
+		config.SetCACert([]byte(TestCACert))
+	}
 	return config
 }
 
