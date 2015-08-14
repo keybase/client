@@ -235,6 +235,10 @@ func (m *GetUsernameMock) DisplayBackupPhrase(arg keybase1.DisplayBackupPhraseAr
 	return nil
 }
 
+func (m *GetUsernameMock) DisplayInitialPaperKey(arg keybase1.DisplayInitialPaperKeyArg) error {
+	return nil
+}
+
 func (m *GetUsernameMock) CheckLastErr(t *testing.T) {
 	if m.LastErr != nil {
 		t.Fatal(m.LastErr)

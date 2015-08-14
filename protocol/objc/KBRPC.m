@@ -899,6 +899,20 @@
   }];
 }
 
+- (void)displayInitialPaperKey:(KBRDisplayInitialPaperKeyRequestParams *)params completion:(void (^)(NSError *error))completion {
+  NSDictionary *rparams = @{@"phrase": KBRValue(params.phrase)};
+  [self.client sendRequestWithMethod:@"keybase.1.loginUi.displayInitialPaperKey" params:rparams sessionId:self.sessionId completion:^(NSError *error, id retval) {
+    completion(error);
+  }];
+}
+
+- (void)displayInitialPaperKeyWithPhrase:(NSString *)phrase completion:(void (^)(NSError *error))completion {
+  NSDictionary *rparams = @{@"phrase": KBRValue(phrase)};
+  [self.client sendRequestWithMethod:@"keybase.1.loginUi.displayInitialPaperKey" params:rparams sessionId:self.sessionId completion:^(NSError *error, id retval) {
+    completion(error);
+  }];
+}
+
 @end
 
 @implementation KBRMetadataRequest
@@ -3032,6 +3046,23 @@
 
 + (instancetype)params {
   KBRDisplayBackupPhraseRequestParams *p = [[self alloc] init];
+  // Add default values
+  return p;
+}
+@end
+
+@implementation KBRDisplayInitialPaperKeyRequestParams
+
+- (instancetype)initWithParams:(NSArray *)params {
+  if ((self = [super initWithParams:params])) {
+    self.sessionID = [params[0][@"sessionID"] integerValue];
+    self.phrase = params[0][@"phrase"];
+  }
+  return self;
+}
+
++ (instancetype)params {
+  KBRDisplayInitialPaperKeyRequestParams *p = [[self alloc] init];
   // Add default values
   return p;
 }

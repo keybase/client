@@ -41,6 +41,10 @@ func (u *LoginUI) DisplayBackupPhrase(arg keybase1.DisplayBackupPhraseArg) error
 	return u.cli.DisplayBackupPhrase(arg)
 }
 
+func (u *LoginUI) DisplayInitialPaperKey(arg keybase1.DisplayInitialPaperKeyArg) error {
+	return u.cli.DisplayInitialPaperKey(arg)
+}
+
 type SecretUI struct {
 	sessionID int
 	cli       *keybase1.SecretUiClient

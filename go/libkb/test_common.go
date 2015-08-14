@@ -304,3 +304,7 @@ func (t TestLoginUI) PromptRevokeBackupDeviceKeys(arg keybase1.PromptRevokeBacku
 func (t TestLoginUI) DisplayBackupPhrase(arg keybase1.DisplayBackupPhraseArg) error {
 	return nil
 }
+
+func (t TestLoginUI) DisplayInitialPaperKey(arg keybase1.DisplayInitialPaperKeyArg) error {
+	return nil
+}
