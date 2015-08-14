@@ -211,10 +211,6 @@ func (e *BackupKeygen) push(ctx *Context) error {
 		}
 	}
 
-	if ppgen < 1 {
-		e.G().Log.Warning("invalid passphrase generation: %d", ppgen)
-	}
-
 	backupLks := libkb.NewLKSecWithClientHalf(clientHalf, ppgen, e.arg.Me.GetUID(), e.G())
 	if err := backupLks.GenerateServerHalf(); err != nil {
 		return err
