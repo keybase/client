@@ -28,7 +28,7 @@ func NewBackup(g *libkb.GlobalContext) *Backup {
 
 // Name is the unique engine name.
 func (e *Backup) Name() string {
-	return "BackupKeypush"
+	return "Backup"
 }
 
 // GetPrereqs returns the engine prereqs.
@@ -48,8 +48,8 @@ func (e *Backup) RequiredUIs() []libkb.UIKind {
 // SubConsumers returns the other UI consumers for this engine.
 func (e *Backup) SubConsumers() []libkb.UIConsumer {
 	return []libkb.UIConsumer{
-		&DetKeyEngine{},
 		&RevokeEngine{},
+		&BackupKeygen{},
 	}
 }
 

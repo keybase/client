@@ -234,7 +234,7 @@ func TestIssue280(t *testing.T) {
 	return
 }
 
-func TestSignupGeneratesBackupKey(t *testing.T) {
+func TestSignupGeneratesPaperKey(t *testing.T) {
 	tc := SetupEngineTest(t, "signup")
 	defer tc.Cleanup()
 
