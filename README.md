@@ -103,7 +103,7 @@ From bserver/:
 For testing, it is often useful to bring up the Keybase daemon in a
 clean environment, potentially multiple copies of it at once for
 different users.  To do this, first build docker images keybase,
-keybase/client and bserver if you haven't already:
+keybase/client, bserver, and mdserver if you haven't already:
 
     cd <keybase repo root>
     docker build -t kbweb .
@@ -130,30 +130,32 @@ logged in as two users:
     go build ./...
     test/setup_multiuser_test.sh 2
 
-Now you have a webserver running, and two logged-in users.  To act as user1:
+Now you have a webserver running, and two logged-in users, and two
+mountpoints: /tmp/kbfs1 and /tmp/kbfs2.  To act as user1:
 
-    test/switch_to_user_env.sh 1
     . /tmp/user1.env
 
-Now you have KBFS mounted at /tmp/kbfs, acting as user 1.  This user's
-Keybase user name is $KBUSER, and you can access the usernames of the
-other user via $KBUSER2.
+This user's Keybase user name is $KBUSER, and you can access the
+usernames of the other user via $KBUSER2.
 
-    ls /tmp/kbfs/$KBUSER
-    echo "private" > /tmp/kbfs/$KBUSER/private
-    echo "shared" > /tmp/kbfs/$KBUSER1,$KBUSER2/shared
+    ls /tmp/kbfs1/private/$KBUSER
+    echo "private" > /tmp/kbfs1/private/$KBUSER/private
+    echo "shared" > /tmp/kbfs1/private/$KBUSER1,$KBUSER2/shared
 
-Now you can switch to user2 and read the shared file you just created,
-but not the private file
+Now you can switch to user2 (maybe in another terminal tab) and read
+the shared file you just created, but not the private file:
 
-    test/switch_to_user_env.sh 2
     . /tmp/user2.env
-    cat /tmp/kbfs/$KBUSER1,$KBUSER2/shared  # succeeds
-    cat /tmp/kbfs/$KBUSER1/private  # fails!
+    cat /tmp/kbfs2/private/$KBUSER1,$KBUSER2/shared  # succeeds
+    cat /tmp/kbfs2/private/$KBUSER1/private  # fails!
 
-NOTE: Until the backend server integration is ready, we can only have
-one user running at a time (because the local backend uses leveldb,
-which only supports one user at a time).
+NOTE: Until the mdserver supports push notifications, you'll have to
+liberally unmount and remount users to see updated directories.  So if
+user 1 put a new file in "$KBUSER1,$KBUSER2", to see it in user 2's
+mount you'd need to:
+
+    ./unmount_for_user.sh 2
+    ./mount_for_user.sh 2
 
 When you are done testing, you can nuke your environment:
 

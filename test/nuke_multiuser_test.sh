@@ -7,7 +7,12 @@ KBFS_TEST_DIR=$PWD/`dirname $0`
 
 num_users=$1
 
-clean_kbfs_env
+if [ -z "$num_users" ]; then
+    echo "You need to specify num_users."
+    exit -1
+fi
+
+clean_kbfs_env $num_users
 
 # shutdown mdserver
 docker rm -f $MDSERV_INSTANCE_NAME

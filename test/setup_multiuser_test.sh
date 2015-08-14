@@ -7,6 +7,11 @@ KBFS_TEST_DIR=$PWD/`dirname $0`
 
 num_users=$1
 
+if [ -z "$num_users" ]; then
+    echo "You need to specify num_users."
+    exit -1
+fi
+
 # First start the webserver
 $KEYBASE_CLIENT_ROOT/test/check_or_start_kbweb.sh
 
@@ -44,7 +49,7 @@ cat $userfile >> $file
 
 eval $cmds
 rm $userfile
-clean_kbfs_env
+clean_kbfs_env $num_users
 
 # generate new ssl keys
 # first, the server CA private key:
@@ -62,3 +67,9 @@ cp $CA_CERT $CLIENT_CA_CERT
 
 # start mdserver
 ./launch_mdserver.sh
+
+u=1
+while [ $u -le $num_users ]; do
+    ./mount_for_user.sh $u
+    u=$[u+1]
+done
