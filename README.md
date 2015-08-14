@@ -113,6 +113,9 @@ keybase/client and bserver if you haven't already:
     cd $GOPATH/src/github.com/keybase/kbfs/bserver
     docker build -t bserver .
     go install ./...
+    cd $GOPATH/src/github.com/keybase/kbfs/mdserver
+    docker build -t mdserver .
+    go install ./...
 
 Next, create a $GOPATH/src/github.com/keybase/kbfs/test/secrets file.
 Ask someone for the secrets.  The format looks like this:

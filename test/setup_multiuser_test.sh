@@ -60,3 +60,5 @@ cp $CA_CERT $CLIENT_CA_CERT
 # start bserver
 ./launch_bserver.sh
 
+# start mdserver
+./launch_mdserver.sh

@@ -9,6 +9,9 @@ num_users=$1
 
 clean_kbfs_env
 
+# shutdown mdserver
+docker rm -f $MDSERV_INSTANCE_NAME
+
 # shutdown bserver
 docker rm -f $BSERV_INSTANCE_NAME
 
