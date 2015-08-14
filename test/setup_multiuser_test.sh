@@ -54,6 +54,9 @@ openssl req -subj /CN=localhost -batch -new -x509 -key $CA_PRIV_KEY -out $CA_CER
 # the client's CA cert is in a different file
 cp $CA_CERT $CLIENT_CA_CERT
 
+# start dynamo
+./launch_dynamo.sh
+
 # start bserver
 ./launch_bserver.sh
 

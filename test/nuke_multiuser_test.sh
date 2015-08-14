@@ -12,6 +12,9 @@ clean_kbfs_env
 # shutdown bserver
 docker rm -f $BSERV_INSTANCE_NAME
 
+# shutdown dynamo
+docker rm -f $DYNAMO_INSTANCE_NAME
+
 u=1
 while [ $u -le $num_users ]; do
     docker rm -f `instance_name $u`
