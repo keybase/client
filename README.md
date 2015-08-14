@@ -114,6 +114,12 @@ keybase/client and bserver if you haven't already:
     docker build -t bserver .
     go install ./...
 
+Next, create a $GOPATH/src/github.com/keybase/kbfs/test/secrets file.
+Ask someone for the secrets.  The format looks like this:
+
+    export KBFS_S3_ACCESS_KEY="<ACCESS KEY HERE>"
+    export KBFS_S3_SECRET_KEY="<SECRET KEY HERE>"
+
 Now you can set up your test environment.  Let's say you want to be
 logged in as two users:
 
