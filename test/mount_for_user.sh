@@ -14,6 +14,6 @@ export KEYBASE_CA_CERT_PEM=`cat $CA_CERT`
 
 mountpoint=`mount_name $user`
 
-nohup $KBFS_TEST_DIR/../kbfsfuse/kbfsfuse -client -debug $mountpoint >> $KBFS_DATA/server$user.log 2>&1 &
+nohup $KBFS_TEST_DIR/../kbfsfuse/kbfsfuse -client -debug $mountpoint >> $KBFS_DATA/client$user.log 2>&1 &
 cd -
 
