@@ -336,7 +336,7 @@ func TestPassphraseChangeLoggedOutBackupKeySecretStore(t *testing.T) {
 	u := NewFakeUserOrBust(tc.T, "login")
 	signupArg := MakeTestSignupEngineRunArg(u)
 	signupArg.StoreSecret = true
-	SignupFakeUserWithArg(tc, u, signupArg)
+	_ = SignupFakeUserWithArg(tc, u, signupArg)
 
 	// This needs to happen *before* resetting the login state (as
 	// this call will just load it back).
