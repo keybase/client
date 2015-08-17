@@ -265,7 +265,7 @@ const (
 	PaperKeyScryptR       = 8
 	PaperKeyScryptP       = 1
 	PaperKeyScryptKeylen  = 128
-	PaperKeyPhraseEntropy = 128
+	PaperKeyPhraseEntropy = 144
 	PaperKeyNameEntropy   = 24
 )
 
