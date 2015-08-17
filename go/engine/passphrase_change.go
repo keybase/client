@@ -122,8 +122,8 @@ func (c *PassphraseChange) findDeviceKeys(ctx *Context) (*keypair, error) {
 // does, it prompts for a backup phrase.  This is used to
 // regenerate backup keys, which are then matched against the
 // backup keys found in the keyfamily.
-func (c *PassphraseChange) findBackupKeys(ctx *Context) (*keypair, error) {
-	return findBackupKeys(ctx, c.G(), c.me)
+func (c *PassphraseChange) findPaperKeys(ctx *Context) (*keypair, error) {
+	return findPaperKeys(ctx, c.G(), c.me)
 }
 
 // findUpdateKeys looks for keys to perform the passphrase update.
@@ -136,7 +136,7 @@ func (c *PassphraseChange) findUpdateKeys(ctx *Context) (*keypair, error) {
 		return kp, nil
 	}
 
-	kp, err = c.findBackupKeys(ctx)
+	kp, err = c.findPaperKeys(ctx)
 	if err != nil {
 		return nil, err
 	}

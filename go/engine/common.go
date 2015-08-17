@@ -23,7 +23,7 @@ type keypair struct {
 // does, it prompts for a backup phrase.  This is used to
 // regenerate backup keys, which are then matched against the
 // backup keys found in the keyfamily.
-func findBackupKeys(ctx *Context, g *libkb.GlobalContext, me *libkb.User) (*keypair, error) {
+func findPaperKeys(ctx *Context, g *libkb.GlobalContext, me *libkb.User) (*keypair, error) {
 	cki := me.GetComputedKeyInfos()
 	if cki == nil {
 		return nil, fmt.Errorf("no computed key infos")
