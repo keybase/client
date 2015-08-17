@@ -94,7 +94,7 @@ func (h *LoginHandler) Backup(sessionID int) error {
 		LoginUI:  h.getLoginUI(sessionID),
 		SecretUI: h.getSecretUI(sessionID),
 	}
-	eng := engine.NewBackup(G)
+	eng := engine.NewPaperKey(G)
 	return engine.RunEngine(eng, ctx)
 }
 

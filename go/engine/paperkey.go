@@ -49,7 +49,7 @@ func (e *PaperKey) RequiredUIs() []libkb.UIKind {
 func (e *PaperKey) SubConsumers() []libkb.UIConsumer {
 	return []libkb.UIConsumer{
 		&RevokeEngine{},
-		&BackupKeygen{},
+		&PaperKeyGen{},
 	}
 }
 
@@ -107,12 +107,12 @@ func (e *PaperKey) Run(ctx *Context) error {
 	}
 	e.passphrase = strings.Join(words, " ")
 
-	kgarg := &BackupKeygenArg{
+	kgarg := &PaperKeyGenArg{
 		Passphrase: e.passphrase,
 		Me:         me,
 		SigningKey: signingKey,
 	}
-	kgeng := NewBackupKeygen(kgarg, e.G())
+	kgeng := NewPaperKeyGen(kgarg, e.G())
 	if err := RunEngine(kgeng, ctx); err != nil {
 		return err
 	}

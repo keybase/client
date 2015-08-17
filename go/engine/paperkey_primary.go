@@ -63,12 +63,12 @@ func (e *PaperKeyPrimary) Run(ctx *Context) error {
 	}
 	e.passphrase = strings.Join(words, " ")
 
-	kgarg := &BackupKeygenArg{
+	kgarg := &PaperKeyGenArg{
 		Passphrase: e.passphrase,
 		Me:         e.args.Me,
 		SigningKey: e.args.SigningKey,
 	}
-	kgeng := NewBackupKeygen(kgarg, e.G())
+	kgeng := NewPaperKeyGen(kgarg, e.G())
 	if err := RunEngine(kgeng, ctx); err != nil {
 		return err
 	}

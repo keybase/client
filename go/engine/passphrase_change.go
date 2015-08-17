@@ -51,7 +51,7 @@ func (c *PassphraseChange) RequiredUIs() []libkb.UIKind {
 // SubConsumers requires the other UI consumers of this engine
 func (c *PassphraseChange) SubConsumers() []libkb.UIConsumer {
 	return []libkb.UIConsumer{
-		&BackupKeygen{},
+		&PaperKeyGen{},
 	}
 }
 

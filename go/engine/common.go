@@ -38,12 +38,12 @@ func findBackupKeys(ctx *Context, g *libkb.GlobalContext, me *libkb.User) (*keyp
 		return nil, err
 	}
 
-	bkarg := &BackupKeygenArg{
+	bkarg := &PaperKeyGenArg{
 		Passphrase: passphrase,
 		SkipPush:   true,
 		Me:         me,
 	}
-	bkeng := NewBackupKeygen(bkarg, g)
+	bkeng := NewPaperKeyGen(bkarg, g)
 	if err := RunEngine(bkeng, ctx); err != nil {
 		return nil, err
 	}
