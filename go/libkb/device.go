@@ -2,9 +2,11 @@ package libkb
 
 import (
 	"errors"
+	"fmt"
+	"strings"
+
 	keybase1 "github.com/keybase/client/protocol/go"
 	jsonw "github.com/keybase/go-jsonw"
-	"strings"
 )
 
 const (
@@ -94,7 +96,9 @@ func NewBackupDevice() (*Device, error) {
 		return nil, err
 	}
 	s := DeviceStatusActive
-	desc, err := genUniqueDeviceName(map[string]bool{DeviceTypeBackup: true}, "Account Recover Keys", BackupKeyNameEntropy, 100)
+	//	desc, err := genUniqueDeviceName(map[string]bool{DeviceTypeBackup: true}, "Account Recover Keys", BackupKeyNameEntropy, 100)
+	// XXX temporary:  waiting on Issue #642
+	desc := fmt.Sprintf("Paper Key (%s)", did)
 
 	if err != nil {
 		return nil, errors.New("Can't find unique backup key description")

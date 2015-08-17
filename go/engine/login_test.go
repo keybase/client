@@ -338,7 +338,7 @@ func TestLoginPaperSignNewDevice(t *testing.T) {
 	tc2 := SetupEngineTest(t, "login")
 	defer tc2.Cleanup()
 
-	locksmithUI := &lockuiPaper{&lockui{}}
+	locksmithUI := &lockuiPaper{&lockui{deviceName: "new device paper sign"}}
 
 	before := locksmithUI.selectSignerCount
 
