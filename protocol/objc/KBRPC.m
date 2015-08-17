@@ -1606,9 +1606,9 @@
   }];
 }
 
-- (void)getBackupPassphrase:(KBRGetBackupPassphraseRequestParams *)params completion:(void (^)(NSError *error, NSString *str))completion {
+- (void)getPaperKeyPassphrase:(KBRGetPaperKeyPassphraseRequestParams *)params completion:(void (^)(NSError *error, NSString *str))completion {
   NSDictionary *rparams = @{@"username": KBRValue(params.username)};
-  [self.client sendRequestWithMethod:@"keybase.1.secretUi.getBackupPassphrase" params:rparams sessionId:self.sessionId completion:^(NSError *error, id retval) {
+  [self.client sendRequestWithMethod:@"keybase.1.secretUi.getPaperKeyPassphrase" params:rparams sessionId:self.sessionId completion:^(NSError *error, id retval) {
     if (error) {
       completion(error, nil);
       return;
@@ -1618,9 +1618,9 @@
   }];
 }
 
-- (void)getBackupPassphraseWithUsername:(NSString *)username completion:(void (^)(NSError *error, NSString *str))completion {
+- (void)getPaperKeyPassphraseWithUsername:(NSString *)username completion:(void (^)(NSError *error, NSString *str))completion {
   NSDictionary *rparams = @{@"username": KBRValue(username)};
-  [self.client sendRequestWithMethod:@"keybase.1.secretUi.getBackupPassphrase" params:rparams sessionId:self.sessionId completion:^(NSError *error, id retval) {
+  [self.client sendRequestWithMethod:@"keybase.1.secretUi.getPaperKeyPassphrase" params:rparams sessionId:self.sessionId completion:^(NSError *error, id retval) {
     if (error) {
       completion(error, nil);
       return;
@@ -3741,7 +3741,7 @@
 }
 @end
 
-@implementation KBRGetBackupPassphraseRequestParams
+@implementation KBRGetPaperKeyPassphraseRequestParams
 
 - (instancetype)initWithParams:(NSArray *)params {
   if ((self = [super initWithParams:params])) {
@@ -3752,7 +3752,7 @@
 }
 
 + (instancetype)params {
-  KBRGetBackupPassphraseRequestParams *p = [[self alloc] init];
+  KBRGetPaperKeyPassphraseRequestParams *p = [[self alloc] init];
   // Add default values
   return p;
 }

@@ -709,7 +709,7 @@ func (ui SecretUI) GetKeybasePassphrase(arg keybase1.GetKeybasePassphraseArg) (t
 	return
 }
 
-func (ui SecretUI) GetBackupPassphrase(arg keybase1.GetBackupPassphraseArg) (text string, err error) {
+func (ui SecretUI) GetPaperKeyPassphrase(arg keybase1.GetPaperKeyPassphraseArg) (text string, err error) {
 	desc := fmt.Sprintf("Please enter a backup passphrase for %s", arg.Username)
 	text, _, err = ui.ppprompt(libkb.PromptArg{
 		TerminalPrompt: "backup passphrase",

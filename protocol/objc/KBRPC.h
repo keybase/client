@@ -996,7 +996,7 @@ typedef NS_ENUM (NSInteger, KBRPromptDefault) {
 @property NSString *username;
 @property NSString *retry;
 @end
-@interface KBRGetBackupPassphraseRequestParams : KBRRequestParams
+@interface KBRGetPaperKeyPassphraseRequestParams : KBRRequestParams
 @property NSInteger sessionID;
 @property NSString *username;
 @end
@@ -1553,9 +1553,9 @@ typedef NS_ENUM (NSInteger, KBRPromptDefault) {
 
 - (void)getKeybasePassphraseWithUsername:(NSString *)username retry:(NSString *)retry completion:(void (^)(NSError *error, NSString *str))completion;
 
-- (void)getBackupPassphrase:(KBRGetBackupPassphraseRequestParams *)params completion:(void (^)(NSError *error, NSString *str))completion;
+- (void)getPaperKeyPassphrase:(KBRGetPaperKeyPassphraseRequestParams *)params completion:(void (^)(NSError *error, NSString *str))completion;
 
-- (void)getBackupPassphraseWithUsername:(NSString *)username completion:(void (^)(NSError *error, NSString *str))completion;
+- (void)getPaperKeyPassphraseWithUsername:(NSString *)username completion:(void (^)(NSError *error, NSString *str))completion;
 
 @end
 

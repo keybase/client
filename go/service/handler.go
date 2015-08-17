@@ -66,10 +66,10 @@ func (l *SecretUI) GetKeybasePassphrase(arg keybase1.GetKeybasePassphraseArg) (s
 	return l.cli.GetKeybasePassphrase(arg)
 }
 
-// GetBackupPassphrase gets a backup passphrase from pinentry (if
+// GetPaperKeyPassphrase gets a paper key passphrase from pinentry (if
 // possible).
-func (l *SecretUI) GetBackupPassphrase(arg keybase1.GetBackupPassphraseArg) (string, error) {
-	return l.cli.GetBackupPassphrase(arg)
+func (l *SecretUI) GetPaperKeyPassphrase(arg keybase1.GetPaperKeyPassphraseArg) (string, error) {
+	return l.cli.GetPaperKeyPassphrase(arg)
 }
 
 func (h *BaseHandler) rpcClient() *rpc2.Client {

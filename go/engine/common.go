@@ -33,7 +33,7 @@ func findBackupKeys(ctx *Context, g *libkb.GlobalContext, me *libkb.User) (*keyp
 		return nil, libkb.NoPaperKeysError{}
 	}
 
-	passphrase, err := ctx.SecretUI.GetBackupPassphrase(keybase1.GetBackupPassphraseArg{Username: me.GetName()})
+	passphrase, err := ctx.SecretUI.GetPaperKeyPassphrase(keybase1.GetPaperKeyPassphraseArg{Username: me.GetName()})
 	if err != nil {
 		return nil, err
 	}
