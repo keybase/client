@@ -243,7 +243,7 @@
       } ],
       "response" : "null"
     },
-    "backup" : {
+    "paperKey" : {
       "request" : [ {
         "name" : "sessionID",
         "type" : "int"

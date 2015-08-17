@@ -88,7 +88,7 @@ func (h *LoginHandler) CancelLogin(sessionID int) error {
 	return c.Cancel()
 }
 
-func (h *LoginHandler) Backup(sessionID int) error {
+func (h *LoginHandler) PaperKey(sessionID int) error {
 	ctx := &engine.Context{
 		LogUI:    h.getLogUI(sessionID),
 		LoginUI:  h.getLoginUI(sessionID),

@@ -33,16 +33,16 @@ func (u *LoginUI) GetEmailOrUsername(dummy int) (string, error) {
 	return u.cli.GetEmailOrUsername(u.sessionID)
 }
 
-func (u *LoginUI) PromptRevokeBackupDeviceKeys(arg keybase1.PromptRevokeBackupDeviceKeysArg) (bool, error) {
-	return u.cli.PromptRevokeBackupDeviceKeys(arg)
+func (u *LoginUI) PromptRevokePaperKeys(arg keybase1.PromptRevokePaperKeysArg) (bool, error) {
+	return u.cli.PromptRevokePaperKeys(arg)
 }
 
-func (u *LoginUI) DisplayBackupPhrase(arg keybase1.DisplayBackupPhraseArg) error {
-	return u.cli.DisplayBackupPhrase(arg)
+func (u *LoginUI) DisplayPaperKeyPhrase(arg keybase1.DisplayPaperKeyPhraseArg) error {
+	return u.cli.DisplayPaperKeyPhrase(arg)
 }
 
-func (u *LoginUI) DisplayInitialPaperKey(arg keybase1.DisplayInitialPaperKeyArg) error {
-	return u.cli.DisplayInitialPaperKey(arg)
+func (u *LoginUI) DisplayPrimaryPaperKey(arg keybase1.DisplayPrimaryPaperKeyArg) error {
+	return u.cli.DisplayPrimaryPaperKey(arg)
 }
 
 type SecretUI struct {

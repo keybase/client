@@ -34,7 +34,7 @@ func (c *CmdPaperKey) Run() error {
 	if err := RegisterProtocols(protocols); err != nil {
 		return err
 	}
-	return cli.Backup(0)
+	return cli.PaperKey(0)
 }
 
 func (c *CmdPaperKey) ParseArgv(ctx *cli.Context) error {

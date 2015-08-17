@@ -39,7 +39,7 @@ protocol login {
 	void logout(int sessionID);
 	void reset(int sessionID);
 
-	// backup generates backup keys for restoring an account.
-	// It calls login_ui.displayBackupPhrase with the phrase.
-	void backup(int sessionID);
+	// paperKey generates paper backup keys for restoring an account.
+	// It calls login_ui.displayPaperKeyPhrase with the phrase.
+	void paperKey(int sessionID);
 }
