@@ -13,14 +13,25 @@ build_root="${1:-$(mktemp -d)}"
 
 echo Building in: "$build_root"
 
-# Everything gets laid out in here as it should be on the filesystem. The spec
-# file is set up to copy from here.
-dest="$build_root/keybase_dest"
+build_one_architecture() {
+  # Everything gets laid out in $dest as it should be on the filesystem. The
+  # spec file is set up to copy from there
+  dest="$build_root/keybase_dest/$rpm_arch"
 
-# `go build` reads $GOARCH
-go build -o "$dest/usr/bin/keybase" github.com/keybase/client/go/keybase
+  # `go build` reads $GOARCH
+  echo "building Go client for $GOARCH"
+  go build -o "$dest/usr/bin/keybase" github.com/keybase/client/go/keybase
 
-# TODO: Make `keybase --version` behave better.
-version="$("$dest/usr/bin/keybase" --version 2> /dev/null | cut -d " " -f 3 || true)"
+  # TODO: Make `keybase --version` behave better.
+  version="$("$dest/usr/bin/keybase" --version 2> /dev/null | cut -d " " -f 3 || true)"
 
-rpmbuild --define "_topdir $build_root" -bb "$here/spec"
+  rpmbuild --define "_topdir $build_root" --target "$rpm_arch" -bb "$here/spec"
+}
+
+export rpm_arch=i386
+export GOARCH=386
+build_one_architecture
+
+export rpm_arch=x86_64
+export GOARCH=amd64
+build_one_architecture
