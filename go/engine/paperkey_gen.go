@@ -81,7 +81,7 @@ func (e *PaperKeyGen) Run(ctx *Context) error {
 
 	ppStream := libkb.NewPassphraseStream(key)
 
-	// make keys for the backup device
+	// make keys for the paper device
 	if err := e.makeSigKey(ppStream.EdDSASeed()); err != nil {
 		return err
 	}
@@ -193,7 +193,7 @@ func (e *PaperKeyGen) push(ctx *Context) error {
 	}
 
 	// create lks halves for this device.  Note that they aren't used for
-	// local, encrypted storage of the backup keys, but just for recovery
+	// local, encrypted storage of the paper keys, but just for recovery
 	// purposes.
 
 	foundStream := false
@@ -232,7 +232,7 @@ func (e *PaperKeyGen) push(ctx *Context) error {
 		return err
 	}
 
-	// push the backup signing key
+	// push the paper signing key
 	sigDel := libkb.Delegator{
 		NewKey:      e.sigKey,
 		Sibkey:      true,
@@ -242,7 +242,7 @@ func (e *PaperKeyGen) push(ctx *Context) error {
 		Device:      backupDev,
 	}
 
-	// push the backup encryption key
+	// push the paper encryption key
 	sigEnc := libkb.Delegator{
 		NewKey:      e.encKey,
 		Sibkey:      false,

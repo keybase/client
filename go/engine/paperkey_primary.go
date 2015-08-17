@@ -1,5 +1,5 @@
 // PaperKeyPrimary creates the initial paper backup key for a user.  It
-// differs from the Backup engine in that it already knows the
+// differs from the PaperKey engine in that it already knows the
 // signing key and it doesn't offer to revoke any devices, plus it
 // uses a different UI call to display the phrase.
 package engine
