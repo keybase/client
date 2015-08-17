@@ -199,15 +199,24 @@ func (e *PaperKeyGen) push(ctx *Context) error {
 	foundStream := false
 	var ppgen libkb.PassphraseGeneration
 	var clientHalf []byte
-	e.G().LoginState().Account(func(a *libkb.Account) {
-		stream := a.PassphraseStream()
-		if stream == nil {
-			return
+	if ctx.LoginContext != nil {
+		stream := ctx.LoginContext.PassphraseStreamCache().PassphraseStream()
+		if stream != nil {
+			foundStream = true
+			ppgen = stream.Generation()
+			clientHalf = stream.LksClientHalf()
 		}
-		foundStream = true
-		ppgen = stream.Generation()
-		clientHalf = stream.LksClientHalf()
-	}, "BackupKeygen - push")
+	} else {
+		e.G().LoginState().Account(func(a *libkb.Account) {
+			stream := a.PassphraseStream()
+			if stream == nil {
+				return
+			}
+			foundStream = true
+			ppgen = stream.Generation()
+			clientHalf = stream.LksClientHalf()
+		}, "BackupKeygen - push")
+	}
 
 	// stream was nil, so we must have loaded lks from the secret
 	// store.
@@ -228,7 +237,7 @@ func (e *PaperKeyGen) push(ctx *Context) error {
 	}
 
 	// post them to the server.
-	if err := libkb.PostDeviceLKS(ctx.LoginContext, backupDev.ID, libkb.DeviceTypeBackup, backupLks.GetServerHalf(), backupLks.Generation(), ctext, e.encKey.GetKID()); err != nil {
+	if err := libkb.PostDeviceLKS(ctx.LoginContext, backupDev.ID, libkb.DeviceTypePaper, backupLks.GetServerHalf(), backupLks.Generation(), ctext, e.encKey.GetKID()); err != nil {
 		return err
 	}
 
