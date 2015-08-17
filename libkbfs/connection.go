@@ -79,16 +79,15 @@ func (ct *ConnectionTransportTLS) Finalize() {
 
 // Connection encapsulates all client connection handling.
 type Connection struct {
-	config     Config
-	srvAddr    string
-	handler    ConnectionHandler
-	transport  ConnectionTransport
-	ctx        context.Context    // used for canceling reconnect loops
-	cancelFunc context.CancelFunc // ^same
+	config    Config
+	srvAddr   string
+	handler   ConnectionHandler
+	transport ConnectionTransport
 
-	mutex         sync.Mutex // protects: client and reconnectChan
+	mutex         sync.Mutex // protects: client, reconnectChan, and cancelFunc
 	client        keybase1.GenericClient
 	reconnectChan chan struct{}
+	cancelFunc    context.CancelFunc // used to cancel the reconnect loop
 }
 
 // NewConnection returns a newly connected connection.
@@ -101,14 +100,11 @@ func NewConnection(ctx context.Context, config Config, srvAddr string,
 // Separate from NewConnection to allow for unit testing.
 func newConnectionWithTransport(ctx context.Context, config Config, srvAddr string,
 	handler ConnectionHandler, transport ConnectionTransport) *Connection {
-	connCtx, cancelFunc := context.WithCancel(context.Background())
 	connection := &Connection{
-		srvAddr:    srvAddr,
-		config:     config,
-		handler:    handler,
-		ctx:        connCtx,
-		cancelFunc: cancelFunc,
-		transport:  transport,
+		srvAddr:   srvAddr,
+		config:    config,
+		handler:   handler,
+		transport: transport,
 	}
 	connection.getReconnectChan() // start connecting
 	return connection
@@ -197,20 +193,23 @@ func (c *Connection) getReconnectChan() chan struct{} {
 	c.mutex.Lock()
 	defer c.mutex.Unlock()
 	if c.reconnectChan == nil {
+		var ctx context.Context
+		// for canceleing the reconnect loop via Shutdown()
+		ctx, c.cancelFunc = context.WithCancel(context.Background())
 		c.reconnectChan = make(chan struct{}, 20)
-		go c.doReconnect(c.reconnectChan)
+		go c.doReconnect(ctx, c.reconnectChan)
 	}
 	return c.reconnectChan
 }
 
 // doReconnect attempts a reconnection.
-func (c *Connection) doReconnect(reconnectChan chan struct{}) {
+func (c *Connection) doReconnect(ctx context.Context, reconnectChan chan struct{}) {
 	// retry w/exponential backoff
 	backoff.RetryNotify(func() error {
 		// try to connect
-		err := c.connect(c.ctx)
+		err := c.connect(ctx)
 		// context was canceled by Shutdown()
-		if c.ctx.Err() != nil {
+		if ctx.Err() != nil {
 			c.handler = nil // drop the circular reference
 			// short-circuit Retry
 			return nil
@@ -225,6 +224,7 @@ func (c *Connection) doReconnect(reconnectChan chan struct{}) {
 	defer c.mutex.Unlock()
 	close(reconnectChan)
 	c.reconnectChan = nil
+	c.cancelFunc = nil
 }
 
 // GetClient is called to retrieve an rpc client suitable for use by the caller.
@@ -235,8 +235,14 @@ func (c *Connection) GetClient() keybase1.GenericClient {
 }
 
 // Shutdown cancels any reconnect loop in progress.
+// Calling this invalidates the connection object.
 func (c *Connection) Shutdown() {
-	c.cancelFunc() // cancel any reconnect loop
+	c.mutex.Lock()
+	defer c.mutex.Unlock()
+	// cancel any reconnect loop
+	if c.cancelFunc != nil {
+		c.cancelFunc()
+	}
 	// TODO: I think it would be ideal for this to also close
 	// the transport but the rpc2 package doesn't appear to
 	// expose that ability at the moment.
