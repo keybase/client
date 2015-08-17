@@ -1,9 +1,7 @@
 package libkb
 
 import (
-	"errors"
 	"fmt"
-	"strings"
 
 	keybase1 "github.com/keybase/client/protocol/go"
 	jsonw "github.com/keybase/go-jsonw"
@@ -43,35 +41,6 @@ func (d *Device) IsWeb() bool {
 	return d.Type == DeviceTypeWeb
 }
 
-func genUniqueDeviceName(types map[string]bool, prefix string, entropy int, retries int) (string, error) {
-	if retries <= 0 {
-		return "", errors.New("genUniqueDeviceName needs positive retries")
-	}
-
-	for i := 0; i < retries; i++ {
-		words, err := SecWordList(entropy)
-		if err != nil {
-			return "", err
-		}
-		possible := prefix + " " + strings.Join(words, " ")
-
-		var taken = false
-		err = G.LoginState().SecretSyncer(func(ss *SecretSyncer) {
-			taken = ss.IsDeviceNameTaken(possible, types)
-		}, "Device - genUniqueDeviceName")
-
-		if err != nil {
-			return "", err
-		}
-
-		if taken == false {
-			return possible, nil
-		}
-	}
-
-	return "", errors.New("Couldn't find valid unique device name")
-}
-
 func NewWebDevice() (ret *Device) {
 	if did, err := NewDeviceID(); err != nil {
 		G.Log.Errorf("In random new device ID: %s", err)
@@ -90,15 +59,14 @@ func NewWebDevice() (ret *Device) {
 	return
 }
 
-func NewPaperDevice() (*Device, error) {
+// NewPaperDevice creates a new paper backup key device
+func NewPaperDevice(passphrasePrefix string) (*Device, error) {
 	did, err := NewDeviceID()
 	if err != nil {
 		return nil, err
 	}
 	s := DeviceStatusActive
-	//	desc, err := genUniqueDeviceName(map[string]bool{DeviceTypeBackup: true}, "Account Recover Keys", BackupKeyNameEntropy, 100)
-	// XXX temporary:  waiting on Issue #642
-	desc := fmt.Sprintf("Paper Key (%s)", did)
+	desc := fmt.Sprintf("Paper Key (%s ...)", passphrasePrefix)
 
 	d := &Device{
 		ID:          did,

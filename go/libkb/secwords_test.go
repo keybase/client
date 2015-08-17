@@ -25,3 +25,14 @@ func TestSecWordList128(t *testing.T) {
 		t.Errorf("# words = %d, expected 12", len(words))
 	}
 }
+
+func TestSecWordList144(t *testing.T) {
+	words, err := SecWordList(144)
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Logf("words: %v", words)
+	if len(words) != 14 {
+		t.Errorf("# words = %d, expected 14", len(words))
+	}
+}
