@@ -72,9 +72,9 @@ func TestRevokeDevice(t *testing.T) {
 	var webDevice *libkb.Device
 	var thisDevice *libkb.Device
 	for _, device := range devices {
-		if device.Type == "web" {
+		if device.Type == libkb.DeviceTypeWeb {
 			webDevice = device
-		} else if device.Type != "backup" {
+		} else if device.Type != libkb.DeviceTypePaper {
 			thisDevice = device
 		}
 	}

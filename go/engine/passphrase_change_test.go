@@ -236,7 +236,7 @@ func TestPassphraseChangeUnknownNoPSCache(t *testing.T) {
 	if err == nil {
 		t.Fatal("passphrase change should have failed")
 	}
-	if _, ok := err.(libkb.NoBackupKeysError); !ok {
+	if _, ok := err.(libkb.NoPaperKeysError); !ok {
 		t.Fatalf("unexpected error: %s (%T)", err, err)
 	}
 

@@ -148,7 +148,7 @@ const (
 	DeviceTypeDesktop = "desktop"
 	DeviceTypeMobile  = "mobile"
 	DeviceTypeWeb     = "web"
-	DeviceTypeBackup  = "backup"
+	DeviceTypePaper   = "backup"
 )
 
 const DownloadURL = "https://keybase.io/download"
@@ -261,12 +261,12 @@ const (
 )
 
 const (
-	BackupKeyScryptCost    = 32768
-	BackupKeyScryptR       = 8
-	BackupKeyScryptP       = 1
-	BackupKeyScryptKeylen  = 128
-	BackupKeyPhraseEntropy = 128
-	BackupKeyNameEntropy   = 24
+	PaperKeyScryptCost    = 32768
+	PaperKeyScryptR       = 8
+	PaperKeyScryptP       = 1
+	PaperKeyScryptKeylen  = 128
+	PaperKeyPhraseEntropy = 128
+	PaperKeyNameEntropy   = 24
 )
 
 const UserSummaryLimit = 500 // max number of user summaries in one request

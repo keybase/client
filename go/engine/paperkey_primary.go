@@ -57,7 +57,7 @@ func (e *PaperKeyPrimary) SubConsumers() []libkb.UIConsumer {
 
 // Run starts the engine.
 func (e *PaperKeyPrimary) Run(ctx *Context) error {
-	words, err := libkb.SecWordList(libkb.BackupKeyPhraseEntropy)
+	words, err := libkb.SecWordList(libkb.PaperKeyPhraseEntropy)
 	if err != nil {
 		return err
 	}

@@ -251,11 +251,11 @@ func (u NoSecretKeyError) Error() string {
 
 //=============================================================================
 
-type NoBackupKeysError struct {
+type NoPaperKeysError struct {
 }
 
-func (u NoBackupKeysError) Error() string {
-	return "No backup keys available"
+func (u NoPaperKeysError) Error() string {
+	return "No paper keys available"
 }
 
 //=============================================================================

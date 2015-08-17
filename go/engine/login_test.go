@@ -108,7 +108,7 @@ func TestLoginAddsKeys(t *testing.T) {
 	testUserHasDeviceKey(t)
 
 	// and they should have a paper backup key
-	hasOneBackupDev(t, &FakeUser{Username: username, Passphrase: passphrase})
+	hasOnePaperDev(t, &FakeUser{Username: username, Passphrase: passphrase})
 }
 
 func TestLoginDetKeyOnly(t *testing.T) {
@@ -133,7 +133,7 @@ func TestLoginDetKeyOnly(t *testing.T) {
 	testUserHasDeviceKey(t)
 
 	// and they should have a paper backup key since this is their first device
-	hasOneBackupDev(t, &FakeUser{Username: username, Passphrase: passphrase})
+	hasOnePaperDev(t, &FakeUser{Username: username, Passphrase: passphrase})
 }
 
 // TestLoginPGPSignNewDevice
@@ -176,7 +176,7 @@ func TestLoginPGPSignNewDevice(t *testing.T) {
 	}
 
 	testUserHasDeviceKey(t)
-	hasOneBackupDev(t, u1)
+	hasOnePaperDev(t, u1)
 }
 
 func TestLoginPGPPubOnlySignNewDevice(t *testing.T) {
@@ -219,7 +219,7 @@ func TestLoginPGPPubOnlySignNewDevice(t *testing.T) {
 	}
 
 	testUserHasDeviceKey(t)
-	hasOneBackupDev(t, u1)
+	hasOnePaperDev(t, u1)
 }
 
 func TestLoginPGPMultSignNewDevice(t *testing.T) {
@@ -260,7 +260,7 @@ func TestLoginPGPMultSignNewDevice(t *testing.T) {
 	}
 
 	testUserHasDeviceKey(t)
-	hasOneBackupDev(t, u1)
+	hasOnePaperDev(t, u1)
 }
 
 // pgp sibkey used to sign new device
@@ -304,7 +304,7 @@ func TestLoginGPGSignNewDevice(t *testing.T) {
 	}
 
 	testUserHasDeviceKey(t)
-	hasOneBackupDev(t, u1)
+	hasOnePaperDev(t, u1)
 }
 
 // paper backup key used to sign new device
@@ -569,15 +569,15 @@ func (p *paperLoginUI) GetEmailOrUsername(_ int) (string, error) {
 	return p.Username, nil
 }
 
-func (p *paperLoginUI) PromptRevokeBackupDeviceKeys(arg keybase1.PromptRevokeBackupDeviceKeysArg) (bool, error) {
+func (p *paperLoginUI) PromptRevokePaperKeys(arg keybase1.PromptRevokePaperKeysArg) (bool, error) {
 	return false, nil
 }
 
-func (p *paperLoginUI) DisplayBackupPhrase(arg keybase1.DisplayBackupPhraseArg) error {
+func (p *paperLoginUI) DisplayPaperKeyPhrase(arg keybase1.DisplayPaperKeyPhraseArg) error {
 	return nil
 }
 
-func (p *paperLoginUI) DisplayInitialPaperKey(arg keybase1.DisplayInitialPaperKeyArg) error {
+func (p *paperLoginUI) DisplayPrimaryPaperKey(arg keybase1.DisplayPrimaryPaperKeyArg) error {
 	p.PaperPhrase = arg.Phrase
 	return nil
 }

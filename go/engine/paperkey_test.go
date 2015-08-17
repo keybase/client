@@ -7,7 +7,7 @@ import (
 	keybase1 "github.com/keybase/client/protocol/go"
 )
 
-func backupDevs(t *testing.T, fu *FakeUser) (*libkb.User, []*libkb.Device) {
+func paperDevs(t *testing.T, fu *FakeUser) (*libkb.User, []*libkb.Device) {
 	u, err := libkb.LoadUser(libkb.LoadUserArg{Name: fu.Username, ForceReload: true})
 	if err != nil {
 		t.Fatal(err)
@@ -16,11 +16,11 @@ func backupDevs(t *testing.T, fu *FakeUser) (*libkb.User, []*libkb.Device) {
 	if cki == nil {
 		t.Fatal("no computed key infos")
 	}
-	return u, cki.BackupDevices()
+	return u, cki.PaperDevices()
 }
 
-func hasOneBackupDev(t *testing.T, fu *FakeUser) keybase1.DeviceID {
-	u, bdevs := backupDevs(t, fu)
+func hasOnePaperDev(t *testing.T, fu *FakeUser) keybase1.DeviceID {
+	u, bdevs := paperDevs(t, fu)
 
 	if len(bdevs) != 1 {
 		t.Fatalf("num backup devices: %d, expected 1", len(bdevs))
@@ -72,7 +72,7 @@ func TestPaperKey(t *testing.T) {
 	Logout(tc)
 
 	// check for the backup key
-	devid := hasOneBackupDev(t, fu)
+	devid := hasOnePaperDev(t, fu)
 
 	// ok, just log in again:
 	if err := fu.Login(tc.G); err != nil {
@@ -133,7 +133,7 @@ func TestPaperKeyRevoke(t *testing.T) {
 	}
 
 	// check for the backup key
-	_, bdevs := backupDevs(t, fu)
+	_, bdevs := paperDevs(t, fu)
 	if len(bdevs) != 1 {
 		t.Errorf("num backup devices: %d, expected 1", len(bdevs))
 	}
@@ -148,7 +148,7 @@ func TestPaperKeyRevoke(t *testing.T) {
 	}
 
 	// check for the backup key
-	_, bdevs = backupDevs(t, fu)
+	_, bdevs = paperDevs(t, fu)
 	if len(bdevs) != 1 {
 		t.Errorf("num backup devices: %d, expected 1", len(bdevs))
 	}
@@ -176,7 +176,7 @@ func TestPaperKeyNoRevoke(t *testing.T) {
 	}
 
 	// check for the backup key
-	_, bdevs := backupDevs(t, fu)
+	_, bdevs := paperDevs(t, fu)
 	if len(bdevs) != 2 {
 		t.Errorf("num backup devices: %d, expected 2", len(bdevs))
 	}
@@ -191,7 +191,7 @@ func TestPaperKeyNoRevoke(t *testing.T) {
 	}
 
 	// check for the backup key
-	_, bdevs = backupDevs(t, fu)
+	_, bdevs = paperDevs(t, fu)
 	if len(bdevs) != 3 {
 		t.Errorf("num backup devices: %d, expected 3", len(bdevs))
 	}

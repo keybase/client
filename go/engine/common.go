@@ -28,9 +28,9 @@ func findBackupKeys(ctx *Context, g *libkb.GlobalContext, me *libkb.User) (*keyp
 	if cki == nil {
 		return nil, fmt.Errorf("no computed key infos")
 	}
-	bdevs := cki.BackupDevices()
+	bdevs := cki.PaperDevices()
 	if len(bdevs) == 0 {
-		return nil, libkb.NoBackupKeysError{}
+		return nil, libkb.NoPaperKeysError{}
 	}
 
 	passphrase, err := ctx.SecretUI.GetBackupPassphrase(keybase1.GetBackupPassphraseArg{Username: me.GetName()})
