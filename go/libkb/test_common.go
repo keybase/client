@@ -283,7 +283,7 @@ func (t *TestSecretUI) GetKeybasePassphrase(keybase1.GetKeybasePassphraseArg) (s
 	return t.Passphrase, nil
 }
 
-func (t *TestSecretUI) GetBackupPassphrase(keybase1.GetBackupPassphraseArg) (string, error) {
+func (t *TestSecretUI) GetPaperKeyPassphrase(keybase1.GetPaperKeyPassphraseArg) (string, error) {
 	t.CalledGetBUPassphrase = true
 	return t.BackupPassphrase, nil
 }

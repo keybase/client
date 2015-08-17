@@ -2673,7 +2673,7 @@ type GetKeybasePassphraseArg struct {
 	Retry     string `codec:"retry" json:"retry"`
 }
 
-type GetBackupPassphraseArg struct {
+type GetPaperKeyPassphraseArg struct {
 	SessionID int    `codec:"sessionID" json:"sessionID"`
 	Username  string `codec:"username" json:"username"`
 }
@@ -2682,7 +2682,7 @@ type SecretUiInterface interface {
 	GetSecret(GetSecretArg) (SecretEntryRes, error)
 	GetNewPassphrase(GetNewPassphraseArg) (GetNewPassphraseRes, error)
 	GetKeybasePassphrase(GetKeybasePassphraseArg) (string, error)
-	GetBackupPassphrase(GetBackupPassphraseArg) (string, error)
+	GetPaperKeyPassphrase(GetPaperKeyPassphraseArg) (string, error)
 }
 
 func SecretUiProtocol(i SecretUiInterface) rpc2.Protocol {
@@ -2710,10 +2710,10 @@ func SecretUiProtocol(i SecretUiInterface) rpc2.Protocol {
 				}
 				return
 			},
-			"getBackupPassphrase": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
-				args := make([]GetBackupPassphraseArg, 1)
+			"getPaperKeyPassphrase": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
+				args := make([]GetPaperKeyPassphraseArg, 1)
 				if err = nxt(&args); err == nil {
-					ret, err = i.GetBackupPassphrase(args[0])
+					ret, err = i.GetPaperKeyPassphrase(args[0])
 				}
 				return
 			},
@@ -2741,8 +2741,8 @@ func (c SecretUiClient) GetKeybasePassphrase(__arg GetKeybasePassphraseArg) (res
 	return
 }
 
-func (c SecretUiClient) GetBackupPassphrase(__arg GetBackupPassphraseArg) (res string, err error) {
-	err = c.Cli.Call("keybase.1.secretUi.getBackupPassphrase", []interface{}{__arg}, &res)
+func (c SecretUiClient) GetPaperKeyPassphrase(__arg GetPaperKeyPassphraseArg) (res string, err error) {
+	err = c.Cli.Call("keybase.1.secretUi.getPaperKeyPassphrase", []interface{}{__arg}, &res)
 	return
 }
 

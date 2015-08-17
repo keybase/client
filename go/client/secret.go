@@ -31,6 +31,6 @@ func (s *SecretUIServer) GetKeybasePassphrase(arg keybase1.GetKeybasePassphraseA
 	return s.eng.GetKeybasePassphrase(arg)
 }
 
-func (s *SecretUIServer) GetBackupPassphrase(arg keybase1.GetBackupPassphraseArg) (string, error) {
-	return s.eng.GetBackupPassphrase(arg)
+func (s *SecretUIServer) GetPaperKeyPassphrase(arg keybase1.GetPaperKeyPassphraseArg) (string, error) {
+	return s.eng.GetPaperKeyPassphrase(arg)
 }
