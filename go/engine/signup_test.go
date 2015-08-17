@@ -167,16 +167,7 @@ func TestLocalKeySecurityStoreSecret(t *testing.T) {
 
 	arg := MakeTestSignupEngineRunArg(fu)
 	arg.StoreSecret = true
-	s := NewSignupEngine(&arg, tc.G)
-	ctx := &Context{
-		LogUI:    tc.G.UI.GetLogUI(),
-		GPGUI:    &gpgtestui{},
-		SecretUI: fu.NewSecretUI(),
-		LoginUI:  &libkb.TestLoginUI{Username: fu.Username},
-	}
-	if err := RunEngine(s, ctx); err != nil {
-		t.Fatal(err)
-	}
+	s := SignupFakeUserWithArg(tc, fu, arg)
 
 	secret, err := s.lks.GetSecret()
 	if err != nil {

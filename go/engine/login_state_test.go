@@ -558,20 +558,7 @@ func TestSignupWithStoreThenLogin(t *testing.T) {
 
 	arg := MakeTestSignupEngineRunArg(fu)
 	arg.StoreSecret = true
-	ctx := &Context{
-		LogUI: tc.G.UI.GetLogUI(),
-		GPGUI: &gpgtestui{},
-		SecretUI: &libkb.TestSecretUI{
-			Passphrase:  fu.Passphrase,
-			StoreSecret: true,
-		},
-		LoginUI: libkb.TestLoginUI{Username: fu.Username},
-	}
-	s := NewSignupEngine(&arg, tc.G)
-	err := RunEngine(s, ctx)
-	if err != nil {
-		tc.T.Fatal(err)
-	}
+	_ = SignupFakeUserWithArg(tc, fu, arg)
 
 	Logout(tc)
 

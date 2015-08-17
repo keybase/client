@@ -68,9 +68,7 @@ func MakeTestSignupEngineRunArg(fu *FakeUser) SignupEngineRunArg {
 	}
 }
 
-func CreateAndSignupFakeUser(tc libkb.TestContext, prefix string) *FakeUser {
-	fu := NewFakeUserOrBust(tc.T, prefix)
-	arg := MakeTestSignupEngineRunArg(fu)
+func SignupFakeUserWithArg(tc libkb.TestContext, fu *FakeUser, arg SignupEngineRunArg) *SignupEngine {
 	ctx := &Context{
 		LogUI:    tc.G.UI.GetLogUI(),
 		GPGUI:    &gpgtestui{},
@@ -82,6 +80,13 @@ func CreateAndSignupFakeUser(tc libkb.TestContext, prefix string) *FakeUser {
 	if err != nil {
 		tc.T.Fatal(err)
 	}
+	return s
+}
+
+func CreateAndSignupFakeUser(tc libkb.TestContext, prefix string) *FakeUser {
+	fu := NewFakeUserOrBust(tc.T, prefix)
+	arg := MakeTestSignupEngineRunArg(fu)
+	_ = SignupFakeUserWithArg(tc, fu, arg)
 	return fu
 }
 
