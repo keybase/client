@@ -194,7 +194,7 @@ func (c *Connection) getReconnectChan() chan struct{} {
 	defer c.mutex.Unlock()
 	if c.reconnectChan == nil {
 		var ctx context.Context
-		// for canceleing the reconnect loop via Shutdown()
+		// for canceling the reconnect loop via Shutdown()
 		ctx, c.cancelFunc = context.WithCancel(context.Background())
 		c.reconnectChan = make(chan struct{}, 20)
 		go c.doReconnect(ctx, c.reconnectChan)
