@@ -338,8 +338,8 @@ func TestPassphraseChangeLoggedOutBackupKeySecretStore(t *testing.T) {
 	signupArg.StoreSecret = true
 	_ = SignupFakeUserWithArg(tc, u, signupArg)
 
-	// This needs to happen *before* resetting the login state (as
-	// this call will just load it back).
+	// This needs to happen *before* resetting the login state, as
+	// this call will cause the login state to be reloaded.
 	assertLoadSecretKeys(tc, u, "logged out w/ backup key, before passphrase change")
 
 	tc.ResetLoginState()
