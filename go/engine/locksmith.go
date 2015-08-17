@@ -765,10 +765,10 @@ func (d *Locksmith) isDeviceNameTaken(ctx *Context, name string) bool {
 }
 
 func (d *Locksmith) paperKey(ctx *Context) error {
-	args := &PaperArgs{
+	args := &PaperKeyPrimaryArgs{
 		SigningKey: d.signingKey,
 		Me:         d.user,
 	}
-	eng := NewPaper(d.G(), args)
+	eng := NewPaperKeyPrimary(d.G(), args)
 	return RunEngine(eng, ctx)
 }

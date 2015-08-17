@@ -54,7 +54,7 @@ func (s *SignupEngine) SubConsumers() []libkb.UIConsumer {
 		&DetKeyEngine{},
 		&GPGImportKeyEngine{},
 		&DeviceWrap{},
-		&Paper{},
+		&PaperKeyPrimary{},
 	}
 }
 
@@ -198,11 +198,11 @@ func (s *SignupEngine) genDetKeys(ctx *Context) error {
 }
 
 func (s *SignupEngine) genPaperKeys(ctx *Context) error {
-	args := &PaperArgs{
+	args := &PaperKeyPrimaryArgs{
 		Me:         s.me,
 		SigningKey: s.signingKey,
 	}
-	eng := NewPaper(s.G(), args)
+	eng := NewPaperKeyPrimary(s.G(), args)
 	return RunEngine(eng, ctx)
 }
 
