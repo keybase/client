@@ -7,21 +7,21 @@ import (
 	"github.com/maxtaco/go-framed-msgpack-rpc/rpc2"
 )
 
-func NewCmdBackup(cl *libcmdline.CommandLine) cli.Command {
+func NewCmdPaperKey(cl *libcmdline.CommandLine) cli.Command {
 	return cli.Command{
-		Name:        "backup",
-		Usage:       "keybase backup",
-		Description: "Generate backup keys for recovering your account",
+		Name:        "paperkey",
+		Usage:       "keybase paperkey",
+		Description: "Generate paper keys for recovering your account",
 		Action: func(c *cli.Context) {
-			cl.ChooseCommand(&CmdBackup{}, "backup", c)
+			cl.ChooseCommand(&CmdPaperKey{}, "paperkey", c)
 		},
 	}
 }
 
-type CmdBackup struct {
+type CmdPaperKey struct {
 }
 
-func (c *CmdBackup) Run() error {
+func (c *CmdPaperKey) Run() error {
 	cli, err := GetLoginClient()
 	if err != nil {
 		return err
@@ -37,11 +37,11 @@ func (c *CmdBackup) Run() error {
 	return cli.Backup(0)
 }
 
-func (c *CmdBackup) ParseArgv(ctx *cli.Context) error {
+func (c *CmdPaperKey) ParseArgv(ctx *cli.Context) error {
 	return nil
 }
 
-func (c *CmdBackup) GetUsage() libkb.Usage {
+func (c *CmdPaperKey) GetUsage() libkb.Usage {
 	return libkb.Usage{
 		Config:    true,
 		API:       true,

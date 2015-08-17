@@ -11,7 +11,6 @@ import (
 
 func GetCommands(cl *libcmdline.CommandLine) []cli.Command {
 	return []cli.Command{
-		NewCmdBackup(cl),
 		NewCmdBTC(cl),
 		NewCmdCert(cl),
 		NewCmdConfig(cl),
@@ -23,6 +22,7 @@ func GetCommands(cl *libcmdline.CommandLine) []cli.Command {
 		NewCmdList(cl),
 		NewCmdLogin(cl),
 		NewCmdLogout(cl),
+		NewCmdPaperKey(cl),
 		NewCmdPassphrase(cl),
 		NewCmdPGP(cl),
 		NewCmdPing(cl),
