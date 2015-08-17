@@ -13,13 +13,13 @@ import (
 	keybase1 "github.com/keybase/client/protocol/go"
 )
 
-// PaperKeyKeypush is an engine.
+// PaperKey is an engine.
 type PaperKey struct {
 	passphrase string
 	libkb.Contextified
 }
 
-// NewPaperKeyKeypush creates a PaperKeyKeypush engine.
+// NewPaperKey creates a PaperKey engine.
 func NewPaperKey(g *libkb.GlobalContext) *PaperKey {
 	return &PaperKey{
 		Contextified: libkb.NewContextified(g),
