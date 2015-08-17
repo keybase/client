@@ -1,5 +1,5 @@
-// PaperKey creates backup keys for a user and pushes them to the server.
-// It checks for existing backup devices and offers to revoke the
+// PaperKey creates paper backup keys for a user and pushes them to the server.
+// It checks for existing paper devices and offers to revoke the
 // keys.
 //
 
@@ -60,7 +60,7 @@ func (e *PaperKey) Run(ctx *Context) error {
 		return err
 	}
 
-	// check for existing backup keys
+	// check for existing paper keys
 	cki := me.GetComputedKeyInfos()
 	if cki == nil {
 		return fmt.Errorf("no computed key infos")
@@ -96,7 +96,7 @@ func (e *PaperKey) Run(ctx *Context) error {
 	signingKey, _, err := e.G().Keyrings.GetSecretKeyWithPrompt(ctx.LoginContext, libkb.SecretKeyArg{
 		Me:      me,
 		KeyType: libkb.DeviceSigningKeyType,
-	}, ctx.SecretUI, "backup key signature")
+	}, ctx.SecretUI, "paper key signature")
 	if err != nil {
 		return err
 	}
