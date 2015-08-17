@@ -1,0 +1,16 @@
+Name: keybase
+Version: 0.0.1
+Release: 1
+Summary: Keybase command line client
+License: BSD
+
+%description
+Keybase command line client
+
+%install
+mkdir "$RPM_BUILD_ROOT"
+# The calling script is responsible for populating "keybase_dest".
+cp -r "$RPM_BUILD_DIR/../keybase_dest"/* "$RPM_BUILD_ROOT"
+
+%files
+/usr/bin/*
