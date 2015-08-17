@@ -118,7 +118,7 @@ func sigVer(ss *libkb.SignatureStatus, owner *libkb.User) keybase1.PGPSigVerific
 			}
 		}
 		if ss.Entity != nil {
-			bundle := (*libkb.PGPKeyBundle)(ss.Entity)
+			bundle := libkb.NewPGPKeyBundle(ss.Entity)
 			res.SignKey = bundle.Export()
 		}
 	}

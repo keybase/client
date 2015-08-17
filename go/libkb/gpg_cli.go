@@ -145,7 +145,7 @@ func (g *GpgCLI) ImportKey(secret bool, fp PGPFingerprint) (ret *PGPKeyBundle, e
 		return nil, TooManyKeysError{len(el), fp}
 	}
 
-	return (*PGPKeyBundle)(el[0]), nil
+	return NewPGPKeyBundle(el[0]), nil
 }
 
 func (g *GpgCLI) ExportKey(k PGPKeyBundle) (err error) {

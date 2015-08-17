@@ -92,7 +92,7 @@ func (p *PGPSignEngine) Run(ctx *Context) (err error) {
 
 	bo := p.arg.Opts.BinaryOut
 	bi := p.arg.Opts.BinaryIn
-	pgpe := (*openpgp.Entity)(pgp)
+	pgpe := pgp.Entity
 	mode := p.arg.Opts.Mode
 
 	switch mode {

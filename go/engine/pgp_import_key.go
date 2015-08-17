@@ -87,7 +87,7 @@ func (e *PGPKeyImportEngine) generateKey(ctx *Context) (err error) {
 	if err = gen.CreatePGPIDs(); err != nil {
 		return
 	}
-	e.bundle, err = libkb.NewPGPKeyBundle(*gen, ctx.LogUI)
+	e.bundle, err = libkb.GeneratePGPKeyBundle(*gen, ctx.LogUI)
 	return
 }
 
