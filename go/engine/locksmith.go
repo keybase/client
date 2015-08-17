@@ -587,7 +587,7 @@ func (d *Locksmith) deviceSignExistingDevice(ctx *Context, existingID keybase1.D
 }
 
 func (d *Locksmith) deviceSignPaper(ctx *Context) error {
-	kp, err := findBackupKeys(ctx, d.G(), d.user)
+	kp, err := findPaperKeys(ctx, d.G(), d.user)
 	if err != nil {
 		return err
 	}
