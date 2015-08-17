@@ -70,7 +70,7 @@ func findPaperKeys(ctx *Context, g *libkb.GlobalContext, me *libkb.User) (*keypa
 	}
 
 	if !match {
-		return nil, libkb.PassphraseError{Msg: "no matching backup keys found"}
+		return nil, libkb.PassphraseError{Msg: "no matching paper backup keys found"}
 	}
 
 	return &keypair{sigKey: sigKey, encKey: encKey}, nil
