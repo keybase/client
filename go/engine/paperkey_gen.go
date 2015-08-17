@@ -13,36 +13,36 @@ import (
 	"github.com/keybase/client/go/libkb"
 )
 
-type BackupKeygenArg struct {
+type PaperKeyGenArg struct {
 	Passphrase string
 	SkipPush   bool
 	Me         *libkb.User
 	SigningKey libkb.GenericKey
 }
 
-// BackupKeygen is an engine.
-type BackupKeygen struct {
-	arg    *BackupKeygenArg
+// PaperKeyGen is an engine.
+type PaperKeyGen struct {
+	arg    *PaperKeyGenArg
 	sigKey libkb.GenericKey
 	encKey libkb.GenericKey
 	libkb.Contextified
 }
 
-// NewBackupKeygen creates a BackupKeygen engine.
-func NewBackupKeygen(arg *BackupKeygenArg, g *libkb.GlobalContext) *BackupKeygen {
-	return &BackupKeygen{
+// NewPaperKeyGen creates a PaperKeyGen engine.
+func NewPaperKeyGen(arg *PaperKeyGenArg, g *libkb.GlobalContext) *PaperKeyGen {
+	return &PaperKeyGen{
 		arg:          arg,
 		Contextified: libkb.NewContextified(g),
 	}
 }
 
 // Name is the unique engine name.
-func (e *BackupKeygen) Name() string {
-	return "BackupKeygen"
+func (e *PaperKeyGen) Name() string {
+	return "PaperKeyGen"
 }
 
 // GetPrereqs returns the engine prereqs.
-func (e *BackupKeygen) Prereqs() Prereqs {
+func (e *PaperKeyGen) Prereqs() Prereqs {
 	// only need session if pushing keys
 	return Prereqs{
 		Session: !e.arg.SkipPush,
@@ -50,27 +50,27 @@ func (e *BackupKeygen) Prereqs() Prereqs {
 }
 
 // RequiredUIs returns the required UIs.
-func (e *BackupKeygen) RequiredUIs() []libkb.UIKind {
+func (e *PaperKeyGen) RequiredUIs() []libkb.UIKind {
 	return []libkb.UIKind{}
 }
 
 // SubConsumers returns the other UI consumers for this engine.
-func (e *BackupKeygen) SubConsumers() []libkb.UIConsumer {
+func (e *PaperKeyGen) SubConsumers() []libkb.UIConsumer {
 	return []libkb.UIConsumer{
 		&DetKeyEngine{},
 	}
 }
 
-func (e *BackupKeygen) SigKey() libkb.GenericKey {
+func (e *PaperKeyGen) SigKey() libkb.GenericKey {
 	return e.sigKey
 }
 
-func (e *BackupKeygen) EncKey() libkb.GenericKey {
+func (e *PaperKeyGen) EncKey() libkb.GenericKey {
 	return e.encKey
 }
 
 // Run starts the engine.
-func (e *BackupKeygen) Run(ctx *Context) error {
+func (e *PaperKeyGen) Run(ctx *Context) error {
 	// make the passphrase stream
 	key, err := scrypt.Key([]byte(e.arg.Passphrase), nil,
 		libkb.BackupKeyScryptCost, libkb.BackupKeyScryptR, libkb.BackupKeyScryptP, libkb.BackupKeyScryptKeylen)
@@ -96,7 +96,7 @@ func (e *BackupKeygen) Run(ctx *Context) error {
 	return nil
 }
 
-func (e *BackupKeygen) makeSigKey(seed []byte) error {
+func (e *PaperKeyGen) makeSigKey(seed []byte) error {
 	pub, priv, err := ed25519.GenerateKey(bytes.NewBuffer(seed))
 	if err != nil {
 		return err
@@ -112,7 +112,7 @@ func (e *BackupKeygen) makeSigKey(seed []byte) error {
 	return nil
 }
 
-func (e *BackupKeygen) makeEncKey(seed []byte) error {
+func (e *PaperKeyGen) makeEncKey(seed []byte) error {
 	pub, priv, err := box.GenerateKey(bytes.NewBuffer(seed))
 	if err != nil {
 		return err
@@ -127,7 +127,7 @@ func (e *BackupKeygen) makeEncKey(seed []byte) error {
 	return nil
 }
 
-func (e *BackupKeygen) getClientHalfFromSecretStore() ([]byte, libkb.PassphraseGeneration, error) {
+func (e *PaperKeyGen) getClientHalfFromSecretStore() ([]byte, libkb.PassphraseGeneration, error) {
 	zeroGen := libkb.PassphraseGeneration(0)
 
 	secretStore := libkb.NewSecretStore(e.arg.Me.GetNormalizedName())
@@ -174,7 +174,7 @@ func (e *BackupKeygen) getClientHalfFromSecretStore() ([]byte, libkb.PassphraseG
 	return clientHalf, dev.PPGen, nil
 }
 
-func (e *BackupKeygen) push(ctx *Context) error {
+func (e *PaperKeyGen) push(ctx *Context) error {
 	if e.arg.SkipPush {
 		return nil
 	}
