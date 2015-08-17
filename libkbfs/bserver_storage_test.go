@@ -13,7 +13,7 @@ func makeTestEntries(n int) ([]BlockID, []blockEntry, error) {
 	ids := make([]BlockID, n)
 
 	for i := 0; i < n; i++ {
-		err := cryptoRandRead(ids[i][:])
+		err := cryptoRandRead(ids[i].Hash[:])
 		if err != nil {
 			return nil, nil, err
 		}

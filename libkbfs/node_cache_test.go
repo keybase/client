@@ -10,7 +10,7 @@ func setupNodeCache(t *testing.T, id TlfID, branch BranchName, flat bool) (
 	childPath1 []pathNode, childPath2 []pathNode) {
 	ncs = newNodeCacheStandard(FolderBranch{id, branch})
 
-	parentPtr := BlockPointer{ID: BlockID{0}}
+	parentPtr := BlockPointer{ID: fakeBlockID(0)}
 	parentName := "parent"
 	var err error
 	parentNode, err = ncs.GetOrCreate(parentPtr, parentName, nil)
@@ -22,7 +22,7 @@ func setupNodeCache(t *testing.T, id TlfID, branch BranchName, flat bool) (
 	}
 
 	// now create a child node for that parent
-	childPtr1 := BlockPointer{ID: BlockID{1}}
+	childPtr1 := BlockPointer{ID: fakeBlockID(1)}
 	childName1 := "child1"
 	childNode1, err = ncs.GetOrCreate(childPtr1, childName1, parentNode)
 	if err != nil {
@@ -37,7 +37,7 @@ func setupNodeCache(t *testing.T, id TlfID, branch BranchName, flat bool) (
 		parent2 = parentNode
 	}
 
-	childPtr2 := BlockPointer{ID: BlockID{2}}
+	childPtr2 := BlockPointer{ID: fakeBlockID(2)}
 	childName2 := "child2"
 	childNode2, err = ncs.GetOrCreate(childPtr2, childName2, parent2)
 	if err != nil {
@@ -154,7 +154,7 @@ func TestNodeCacheGetOrCreateSuccess(t *testing.T) {
 func TestNodeCacheGetOrCreateNoParent(t *testing.T) {
 	ncs := newNodeCacheStandard(FolderBranch{TlfID{0}, ""})
 
-	parentPtr := BlockPointer{ID: BlockID{0}}
+	parentPtr := BlockPointer{ID: fakeBlockID(0)}
 	parentNode, err := ncs.GetOrCreate(parentPtr, "parent", nil)
 	if err != nil {
 		t.Errorf("Couldn't create top-level parent node: %v", err)
@@ -163,7 +163,7 @@ func TestNodeCacheGetOrCreateNoParent(t *testing.T) {
 	simulateGC(ncs, []Node{})
 
 	// now try to create a child node for that parent
-	childPtr1 := BlockPointer{ID: BlockID{1}}
+	childPtr1 := BlockPointer{ID: fakeBlockID(1)}
 	_, err = ncs.GetOrCreate(childPtr1, "child", parentNode)
 	expectedErr := ParentNodeNotFoundError{parentPtr}
 	if err != expectedErr {
@@ -175,13 +175,13 @@ func TestNodeCacheGetOrCreateNoParent(t *testing.T) {
 func TestNodeCacheUpdatePointer(t *testing.T) {
 	ncs := newNodeCacheStandard(FolderBranch{TlfID{0}, ""})
 
-	parentPtr := BlockPointer{ID: BlockID{0}}
+	parentPtr := BlockPointer{ID: fakeBlockID(0)}
 	parentNode, err := ncs.GetOrCreate(parentPtr, "parent", nil)
 	if err != nil {
 		t.Errorf("Couldn't create top-level parent node: %v", err)
 	}
 
-	newParentPtr := BlockPointer{ID: BlockID{1}}
+	newParentPtr := BlockPointer{ID: fakeBlockID(1)}
 	ncs.UpdatePointer(parentPtr, newParentPtr)
 
 	if parentNode.(*nodeStandard).core.pathNode.BlockPointer != newParentPtr {

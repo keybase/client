@@ -20,6 +20,16 @@ const (
 	EnvCACertPEM = "KEYBASE_CA_CERT_PEM"
 )
 
+// RandomBlockID returns a randomly-generated BlockID for testing.
+func RandomBlockID() BlockID {
+	var h libkb.NodeHashShort
+	err := cryptoRandRead(h[:])
+	if err != nil {
+		panic(err)
+	}
+	return BlockID{h}
+}
+
 // NewRootMetadataForTest returns a new initialized RootMetadata object for testing.
 func NewRootMetadataForTest(d *TlfHandle, id TlfID) *RootMetadata {
 	rmd := NewRootMetadata(d, id)

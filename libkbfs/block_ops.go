@@ -112,7 +112,7 @@ func (b *BlockOpsStandard) Ready(ctx context.Context, md *RootMetadata,
 		return
 	}
 
-	id = BlockID(nhs)
+	id = BlockID{nhs}
 
 	return
 }

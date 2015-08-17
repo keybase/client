@@ -54,24 +54,24 @@ func testExpectedMissing(t *testing.T, id BlockID, bcache BlockCache) {
 func TestBcachePut(t *testing.T) {
 	config := blockCacheTestInit(t, 100)
 	defer config.Shutdown()
-	testBcachePut(t, BlockID{1}, config.BlockCache(), false)
+	testBcachePut(t, fakeBlockID(1), config.BlockCache(), false)
 }
 
 func TestBcachePutDirty(t *testing.T) {
 	config := blockCacheTestInit(t, 100)
 	defer config.Shutdown()
-	testBcachePut(t, BlockID{1}, config.BlockCache(), true)
+	testBcachePut(t, fakeBlockID(1), config.BlockCache(), true)
 }
 
 func TestBcachePutPastCapacity(t *testing.T) {
 	config := blockCacheTestInit(t, 2)
 	defer config.Shutdown()
 	bcache := config.BlockCache()
-	id1 := BlockID{1}
+	id1 := fakeBlockID(1)
 	testBcachePut(t, id1, bcache, false)
-	id2 := BlockID{2}
+	id2 := fakeBlockID(2)
 	testBcachePut(t, id2, bcache, false)
-	testBcachePut(t, BlockID{3}, bcache, false)
+	testBcachePut(t, fakeBlockID(3), bcache, false)
 
 	// now block 1 should have been kicked out
 	testExpectedMissing(t, id1, bcache)
@@ -82,10 +82,10 @@ func TestBcachePutPastCapacity(t *testing.T) {
 	}
 
 	// dirty blocks don't count
-	testBcachePut(t, BlockID{4}, bcache, true)
-	testBcachePut(t, BlockID{5}, bcache, true)
-	testBcachePut(t, BlockID{6}, bcache, true)
-	testBcachePut(t, BlockID{7}, bcache, true)
+	testBcachePut(t, fakeBlockID(4), bcache, true)
+	testBcachePut(t, fakeBlockID(5), bcache, true)
+	testBcachePut(t, fakeBlockID(6), bcache, true)
+	testBcachePut(t, fakeBlockID(7), bcache, true)
 
 	// 2 should still be there
 	if _, err := bcache.Get(BlockPointer{ID: id2}, MasterBranch); err != nil {
@@ -98,7 +98,7 @@ func TestBcachePutDuplicateDirty(t *testing.T) {
 	defer config.Shutdown()
 	bcache := config.BlockCache()
 	// put one under the default block pointer and branch name (clean)
-	id1 := BlockID{1}
+	id1 := fakeBlockID(1)
 	testBcachePut(t, id1, bcache, false)
 	cleanBranch := MasterBranch
 
@@ -148,7 +148,7 @@ func TestBcacheCheckPtrSuccess(t *testing.T) {
 
 	block := NewFileBlock().(*FileBlock)
 	block.Contents = []byte{1, 2, 3, 4}
-	id := BlockID{1}
+	id := fakeBlockID(1)
 	ptr := BlockPointer{ID: id}
 	tlf := TlfID{1}
 
@@ -172,7 +172,7 @@ func TestBcacheCheckPtrNotFound(t *testing.T) {
 
 	block := NewFileBlock().(*FileBlock)
 	block.Contents = []byte{1, 2, 3, 4}
-	id := BlockID{1}
+	id := fakeBlockID(1)
 	ptr := BlockPointer{ID: id}
 	tlf := TlfID{1}
 
@@ -196,9 +196,9 @@ func TestBcacheDelete(t *testing.T) {
 	defer config.Shutdown()
 	bcache := config.BlockCache()
 
-	id1 := BlockID{1}
+	id1 := fakeBlockID(1)
 	testBcachePut(t, id1, bcache, false)
-	id2 := BlockID{2}
+	id2 := fakeBlockID(2)
 	testBcachePut(t, id2, bcache, false)
 
 	bcache.Delete(id1)
@@ -215,9 +215,9 @@ func TestBcacheDeleteDirty(t *testing.T) {
 	defer config.Shutdown()
 	bcache := config.BlockCache()
 
-	id1 := BlockID{1}
+	id1 := fakeBlockID(1)
 	testBcachePut(t, id1, bcache, true)
-	id2 := BlockID{2}
+	id2 := fakeBlockID(2)
 	testBcachePut(t, id2, bcache, false)
 
 	bcache.DeleteDirty(BlockPointer{ID: id1}, MasterBranch)

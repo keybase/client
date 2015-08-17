@@ -112,7 +112,7 @@ func TestBlockOpsGetSuccess(t *testing.T) {
 	defer blockOpsShutdown(mockCtrl, config)
 
 	// expect one call to fetch a block, and one to decrypt it
-	id := BlockID{1}
+	id := fakeBlockID(1)
 	encData := []byte{1, 2, 3, 4}
 	blockPtr := BlockPointer{ID: id}
 	config.mockBserv.EXPECT().Get(ctx, id, blockPtr).Return(
@@ -139,7 +139,7 @@ func TestBlockOpsGetFailGet(t *testing.T) {
 	defer blockOpsShutdown(mockCtrl, config)
 
 	// fail the fetch call
-	id := BlockID{1}
+	id := fakeBlockID(1)
 	err := errors.New("Fake fail")
 	blockPtr := BlockPointer{ID: id}
 	config.mockBserv.EXPECT().Get(ctx, id, blockPtr).Return(
@@ -157,7 +157,7 @@ func TestBlockOpsGetFailDecryptBlockData(t *testing.T) {
 	defer blockOpsShutdown(mockCtrl, config)
 
 	// expect one call to fetch a block, then fail to decrypt i
-	id := BlockID{1}
+	id := fakeBlockID(1)
 	encData := []byte{1, 2, 3, 4}
 	blockPtr := BlockPointer{ID: id}
 	config.mockBserv.EXPECT().Get(ctx, id, blockPtr).Return(
@@ -180,14 +180,13 @@ func TestBlockOpsReadySuccess(t *testing.T) {
 	// expect one call to encrypt a block, one to hash it
 	decData := TestBlock{42}
 	encData := []byte{1, 2, 3, 4}
-	id := BlockID{1}
+	id := fakeBlockID(1)
 
 	rmd := makeRMD()
 
 	expectedPlainSize := 4
 	expectBlockEncrypt(config, rmd, decData, expectedPlainSize, encData, nil)
-	config.mockCrypto.EXPECT().Hash(encData).Return(
-		libkb.NodeHashShort(id), nil)
+	config.mockCrypto.EXPECT().Hash(encData).Return(id.Hash, nil)
 
 	id2, plainSize, readyBlockData, err :=
 		config.BlockOps().Ready(ctx, rmd, decData)
@@ -275,7 +274,7 @@ func TestBlockOpsReadyFailCast(t *testing.T) {
 
 	config.mockCrypto.EXPECT().Hash(encData).Return(badID, nil)
 
-	err := BadCryptoError{BlockID{0}}
+	err := BadCryptoError{fakeBlockID(0)}
 	if _, _, _, err2 :=
 		config.BlockOps().Ready(ctx, rmd, decData); err2 != err {
 		t.Errorf("Got bad error on ready: %v (expected %v)", err2, err)
@@ -287,7 +286,7 @@ func TestBlockOpsPutNewBlockSuccess(t *testing.T) {
 	defer blockOpsShutdown(mockCtrl, config)
 
 	// expect one call to put a block
-	id := BlockID{1}
+	id := fakeBlockID(1)
 	encData := []byte{1, 2, 3, 4}
 	blockPtr := BlockPointer{ID: id}
 
@@ -311,7 +310,7 @@ func TestBlockOpsPutIncRefSuccess(t *testing.T) {
 	defer blockOpsShutdown(mockCtrl, config)
 
 	// expect one call to put a block
-	id := BlockID{1}
+	id := fakeBlockID(1)
 	encData := []byte{1, 2, 3, 4}
 	nonce := BlockRefNonce([8]byte{1, 2, 3, 4, 5, 6, 7, 8})
 	blockPtr := BlockPointer{ID: id, RefNonce: nonce}
@@ -336,7 +335,7 @@ func TestBlockOpsPutFail(t *testing.T) {
 	defer blockOpsShutdown(mockCtrl, config)
 
 	// fail the put call
-	id := BlockID{1}
+	id := fakeBlockID(1)
 	encData := []byte{1, 2, 3, 4}
 	blockPtr := BlockPointer{ID: id}
 
@@ -364,7 +363,7 @@ func TestBlockOpsDeleteSuccess(t *testing.T) {
 	// expect one call to delete a block
 	rmd := makeRMD()
 
-	id := BlockID{1}
+	id := fakeBlockID(1)
 	blockPtr := BlockPointer{ID: id}
 	config.mockBserv.EXPECT().RemoveBlockReference(ctx, id, rmd.ID, blockPtr).
 		Return(nil)
@@ -381,7 +380,7 @@ func TestBlockOpsDeleteFail(t *testing.T) {
 	// fail the delete call
 	rmd := makeRMD()
 
-	id := BlockID{1}
+	id := fakeBlockID(1)
 	err := errors.New("Fake fail")
 	blockPtr := BlockPointer{ID: id}
 	config.mockBserv.EXPECT().RemoveBlockReference(ctx, id, rmd.ID, blockPtr).

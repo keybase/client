@@ -6,6 +6,7 @@ import (
 	"crypto/rand"
 	"crypto/sha256"
 	"encoding/binary"
+	"errors"
 	"io"
 
 	"github.com/keybase/client/go/libkb"
@@ -34,6 +35,13 @@ type CryptoCommon struct {
 	codec Codec
 }
 
+// MakeCryptoCommon returns a default CryptoCommon object. This is
+// meant to be used for code that doesn't use Config (like server
+// code).
+func MakeCryptoCommon() CryptoCommon {
+	return CryptoCommon{NewCodecMsgpack()}
+}
+
 // MakeRandomTlfID implements the Crypto interface for CryptoCommon.
 func (c *CryptoCommon) MakeRandomTlfID(isPublic bool) (TlfID, error) {
 	var id TlfID
@@ -52,7 +60,7 @@ func (c *CryptoCommon) MakeRandomTlfID(isPublic bool) (TlfID, error) {
 // MakeTemporaryBlockID implements the Crypto interface for CryptoCommon.
 func (c *CryptoCommon) MakeTemporaryBlockID() (BlockID, error) {
 	var id BlockID
-	err := cryptoRandRead(id[:])
+	err := cryptoRandRead(id.Hash[:])
 	if err != nil {
 		return BlockID{}, err
 	}
@@ -402,7 +410,9 @@ func (c *CryptoCommon) Hash(buf []byte) (libkb.NodeHash, error) {
 
 // VerifyHash implements the Crypto interface for CryptoCommon.
 func (c *CryptoCommon) VerifyHash(buf []byte, hash libkb.NodeHash) error {
-	// TODO: for now just call Hash and throw an error if it doesn't match hash
+	if !hash.Check(string(buf)) {
+		return errors.New("invalid hash")
+	}
 	return nil
 }
 

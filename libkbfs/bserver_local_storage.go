@@ -1,7 +1,6 @@
 package libkbfs
 
 import (
-	"encoding/hex"
 	"io/ioutil"
 	"os"
 	"path/filepath"
@@ -102,7 +101,9 @@ func makeBserverFileStorage(codec Codec, dir string) *bserverFileStorage {
 // first two characters of the name to keep the number of directories
 // in dir itself to a manageable number, similar to git.
 func (s *bserverFileStorage) buildPath(id BlockID) string {
-	return filepath.Join(s.dir, hex.EncodeToString(id[:1]), hex.EncodeToString(id[1:]))
+	idStr := id.String()
+	// TODO: Change 2 to 4 once we have versioned block IDs.
+	return filepath.Join(s.dir, idStr[:2], idStr[2:])
 }
 
 func (s *bserverFileStorage) getLocked(p string) (blockEntry, error) {
@@ -199,7 +200,7 @@ func makeBserverLeveldbStorage(codec Codec, db *leveldb.DB) *bserverLeveldbStora
 }
 
 func (s *bserverLeveldbStorage) getLocked(id BlockID) (blockEntry, error) {
-	buf, err := s.db.Get(id[:], nil)
+	buf, err := s.db.Get(id.Bytes(), nil)
 	if err != nil {
 		return blockEntry{}, err
 	}
@@ -225,7 +226,7 @@ func (s *bserverLeveldbStorage) putLocked(id BlockID, entry blockEntry) error {
 		return err
 	}
 
-	return s.db.Put(id[:], entryBuf, nil)
+	return s.db.Put(id.Bytes(), entryBuf, nil)
 }
 
 func (s *bserverLeveldbStorage) put(id BlockID, entry blockEntry) error {
@@ -265,7 +266,7 @@ func (s *bserverLeveldbStorage) removeReference(id BlockID, refNonce BlockRefNon
 
 	delete(entry.Refs, refNonce)
 	if len(entry.Refs) == 0 {
-		return s.db.Delete(id[:], nil)
+		return s.db.Delete(id.Bytes(), nil)
 	}
 	return s.putLocked(id, entry)
 }

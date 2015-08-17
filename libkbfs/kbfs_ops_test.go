@@ -242,7 +242,7 @@ func expectBlock(config *ConfigMock, rmd *RootMetadata, blockPtr BlockPointer, b
 	if fBlock, ok := block.(*FileBlock); ok && !fBlock.IsInd && err == nil {
 		// we'll write it back to the cache
 		config.mockCrypto.EXPECT().Hash(fBlock.Contents).
-			Return(libkb.NodeHashShort{blockPtr.ID[0]}, nil)
+			Return(blockPtr.ID.Hash, nil)
 	}
 }
 
@@ -276,7 +276,7 @@ func fillInNewMD(t *testing.T, config *ConfigMock, rmd *RootMetadata) (
 		}).Return(nil)
 	}
 	rootPtr = BlockPointer{
-		ID:      BlockID{42},
+		ID:      fakeBlockID(42),
 		KeyGen:  1,
 		DataVer: 1,
 	}
@@ -476,7 +476,7 @@ func testPutBlockInCacheWithHashTimes(config *ConfigMock, ptr BlockPointer,
 	id TlfID, block Block, hashTimes int) {
 	if fBlock, ok := block.(*FileBlock); ok && !fBlock.IsInd {
 		config.mockCrypto.EXPECT().Hash(fBlock.Contents).Times(hashTimes).
-			Return(libkb.NodeHashShort{ptr.ID[0]}, nil)
+			Return(ptr.ID.Hash, nil)
 	}
 	config.BlockCache().Put(ptr, id, block)
 }
@@ -492,7 +492,7 @@ func TestKBFSOpsGetBaseDirChildrenCacheSuccess(t *testing.T) {
 
 	u, id, rmd := makeIDAndRMD(t, config)
 
-	rootID := BlockID{42}
+	rootID := fakeBlockID(42)
 	dirBlock := NewDirBlock().(*DirBlock)
 	dirBlock.Children["a"] = DirEntry{Type: File}
 	dirBlock.Children["b"] = DirEntry{Type: Dir}
@@ -523,7 +523,7 @@ func TestKBFSOpsGetBaseDirChildrenUncachedSuccess(t *testing.T) {
 
 	u, id, rmd := makeIDAndRMD(t, config)
 
-	rootID := BlockID{42}
+	rootID := fakeBlockID(42)
 	dirBlock := NewDirBlock().(*DirBlock)
 	blockPtr := makeBP(rootID, rmd, config, u)
 	node := pathNode{blockPtr, "p"}
@@ -551,7 +551,7 @@ func TestKBFSOpsGetBaseDirChildrenUncachedFailNonReader(t *testing.T) {
 
 	rmd := NewRootMetadataForTest(h, id)
 
-	rootID := BlockID{42}
+	rootID := fakeBlockID(42)
 	node := pathNode{makeBP(rootID, rmd, config, userID), "p"}
 	p := path{FolderBranch{Tlf: id}, []pathNode{node}}
 	ops := getOps(config, id)
@@ -578,7 +578,7 @@ func TestKBFSOpsGetBaseDirChildrenUncachedFailMissingBlock(t *testing.T) {
 
 	u, id, rmd := makeIDAndRMD(t, config)
 
-	rootID := BlockID{42}
+	rootID := fakeBlockID(42)
 	dirBlock := NewDirBlock().(*DirBlock)
 	blockPtr := makeBP(rootID, rmd, config, u)
 	node := pathNode{blockPtr, "p"}
@@ -608,9 +608,9 @@ func TestKBFSOpsGetNestedDirChildrenCacheSuccess(t *testing.T) {
 	ops.head = rmd
 	config.mockMdcache.EXPECT().Get(rmd.mdID).AnyTimes().Return(rmd, nil)
 
-	rootID := BlockID{42}
-	aID := BlockID{43}
-	bID := BlockID{44}
+	rootID := fakeBlockID(42)
+	aID := fakeBlockID(43)
+	bID := fakeBlockID(44)
 	dirBlock := NewDirBlock().(*DirBlock)
 	dirBlock.Children["a"] = DirEntry{Type: Exec}
 	dirBlock.Children["b"] = DirEntry{Type: Sym}
@@ -648,9 +648,9 @@ func TestKBFSOpsLookupSuccess(t *testing.T) {
 	ops.head = rmd
 	config.mockMdcache.EXPECT().Get(rmd.mdID).AnyTimes().Return(rmd, nil)
 
-	rootID := BlockID{42}
-	aID := BlockID{43}
-	bID := BlockID{44}
+	rootID := fakeBlockID(42)
+	aID := fakeBlockID(43)
+	bID := fakeBlockID(44)
 	dirBlock := NewDirBlock().(*DirBlock)
 	dirBlock.Children["b"] = DirEntry{
 		BlockInfo: makeBIFromID(bID, u),
@@ -689,9 +689,9 @@ func TestKBFSOpsLookupSymlinkSuccess(t *testing.T) {
 	ops.head = rmd
 	config.mockMdcache.EXPECT().Get(rmd.mdID).AnyTimes().Return(rmd, nil)
 
-	rootID := BlockID{42}
-	aID := BlockID{43}
-	bID := BlockID{44}
+	rootID := fakeBlockID(42)
+	aID := fakeBlockID(43)
+	bID := fakeBlockID(44)
 	dirBlock := NewDirBlock().(*DirBlock)
 	dirBlock.Children["b"] = DirEntry{
 		BlockInfo: makeBIFromID(bID, u),
@@ -726,9 +726,9 @@ func TestKBFSOpsLookupNoSuchNameFail(t *testing.T) {
 	ops.head = rmd
 	config.mockMdcache.EXPECT().Get(rmd.mdID).AnyTimes().Return(rmd, nil)
 
-	rootID := BlockID{42}
-	aID := BlockID{43}
-	bID := BlockID{44}
+	rootID := fakeBlockID(42)
+	aID := fakeBlockID(43)
+	bID := fakeBlockID(44)
 	dirBlock := NewDirBlock().(*DirBlock)
 	dirBlock.Children["b"] = DirEntry{
 		BlockInfo: makeBIFromID(bID, u),
@@ -760,9 +760,9 @@ func TestKBFSOpsLookupNewDataVersionFail(t *testing.T) {
 	ops.head = rmd
 	config.mockMdcache.EXPECT().Get(rmd.mdID).AnyTimes().Return(rmd, nil)
 
-	rootID := BlockID{42}
-	aID := BlockID{43}
-	bID := BlockID{44}
+	rootID := fakeBlockID(42)
+	aID := fakeBlockID(43)
+	bID := fakeBlockID(44)
 	dirBlock := NewDirBlock().(*DirBlock)
 	bInfo := makeBIFromID(bID, u)
 	bInfo.DataVer = 10
@@ -800,9 +800,9 @@ func TestKBFSOpsStatSuccess(t *testing.T) {
 	ops.head = rmd
 	config.mockMdcache.EXPECT().Get(rmd.mdID).AnyTimes().Return(rmd, nil)
 
-	rootID := BlockID{42}
-	aID := BlockID{43}
-	bID := BlockID{44}
+	rootID := fakeBlockID(42)
+	aID := fakeBlockID(43)
+	bID := fakeBlockID(44)
 	dirBlock := NewDirBlock().(*DirBlock)
 	dirBlock.Children["b"] = DirEntry{
 		BlockInfo: makeBIFromID(bID, u),
@@ -853,12 +853,12 @@ func expectSyncBlockHelper(
 	// all have EncodedSize == 1.
 	unrefBytes += uint64(len(p.path) * 1)
 
-	lastID := byte(p.tailPointer().ID[0] * 2)
+	lastID := p.tailPointer().ID
 	for i := len(newPath.path) - 1; i >= skipSync; i-- {
-		newID := BlockID{lastID}
-		newBuf := []byte{lastID}
+		newID := fakeBlockIDMul(lastID, 2)
+		newBuf := []byte{byte(i)}
 		refBytes += uint64(len(newBuf))
-		lastID++
+		lastID = newID
 		readyBlockData := ReadyBlockData{
 			buf: newBuf,
 		}
@@ -1096,10 +1096,10 @@ func testCreateEntrySuccess(t *testing.T, entryType EntryType) {
 
 	userID, id, rmd := makeIDAndRMD(t, config)
 
-	rootID := BlockID{42}
+	rootID := fakeBlockID(42)
 	rmd.data.Dir.ID = rootID
 	rmd.data.Dir.Type = Dir
-	aID := BlockID{43}
+	aID := fakeBlockID(43)
 	rootBlock := NewDirBlock().(*DirBlock)
 	rootBlock.Children["a"] = DirEntry{
 		BlockInfo: makeBIFromID(aID, userID),
@@ -1211,8 +1211,8 @@ func testCreateEntryFailDupName(t *testing.T, isDir bool) {
 
 	u, id, rmd := makeIDAndRMD(t, config)
 
-	rootID := BlockID{42}
-	aID := BlockID{43}
+	rootID := fakeBlockID(42)
+	aID := fakeBlockID(43)
 	rootBlock := NewDirBlock().(*DirBlock)
 	rootBlock.Children["a"] = DirEntry{
 		BlockInfo: makeBIFromID(aID, u),
@@ -1255,10 +1255,10 @@ func testRemoveEntrySuccess(t *testing.T, entryType EntryType) {
 
 	userID, id, rmd := makeIDAndRMD(t, config)
 
-	rootID := BlockID{41}
+	rootID := fakeBlockID(41)
 	rmd.data.Dir.ID = rootID
-	aID := BlockID{42}
-	bID := BlockID{43}
+	aID := fakeBlockID(42)
+	bID := fakeBlockID(43)
 	rootBlock := NewDirBlock().(*DirBlock)
 	rootBlock.Children["a"] = DirEntry{
 		BlockInfo: makeBIFromID(aID, userID),
@@ -1353,13 +1353,13 @@ func TestKBFSOpRemoveMultiBlockFileSuccess(t *testing.T) {
 
 	userID, id, rmd := makeIDAndRMD(t, config)
 
-	rootID := BlockID{42}
+	rootID := fakeBlockID(42)
 	rmd.data.Dir.ID = rootID
-	fileID := BlockID{43}
-	id1 := BlockID{44}
-	id2 := BlockID{45}
-	id3 := BlockID{46}
-	id4 := BlockID{47}
+	fileID := fakeBlockID(43)
+	id1 := fakeBlockID(44)
+	id2 := fakeBlockID(45)
+	id3 := fakeBlockID(46)
+	id4 := fakeBlockID(47)
 	rootBlock := NewDirBlock().(*DirBlock)
 	// TODO(akalin): Figure out actual Size value.
 	rootBlock.Children["a"] = DirEntry{
@@ -1451,10 +1451,10 @@ func TestRemoveDirFailNonEmpty(t *testing.T) {
 
 	u, id, rmd := makeIDAndRMD(t, config)
 
-	rootID := BlockID{41}
-	aID := BlockID{42}
-	bID := BlockID{43}
-	cID := BlockID{44}
+	rootID := fakeBlockID(41)
+	aID := fakeBlockID(42)
+	bID := fakeBlockID(43)
+	cID := fakeBlockID(44)
 	rootBlock := NewDirBlock().(*DirBlock)
 	rootBlock.Children["a"] = DirEntry{
 		BlockInfo: makeBIFromID(aID, u),
@@ -1494,9 +1494,9 @@ func TestRemoveDirFailNoSuchName(t *testing.T) {
 
 	u, id, rmd := makeIDAndRMD(t, config)
 
-	rootID := BlockID{41}
-	aID := BlockID{42}
-	bID := BlockID{43}
+	rootID := fakeBlockID(41)
+	aID := fakeBlockID(42)
+	bID := fakeBlockID(43)
 	rootBlock := NewDirBlock().(*DirBlock)
 	rootBlock.Children["a"] = DirEntry{
 		BlockInfo: makeBIFromID(aID, u),
@@ -1528,10 +1528,10 @@ func TestRenameInDirSuccess(t *testing.T) {
 
 	userID, id, rmd := makeIDAndRMD(t, config)
 
-	rootID := BlockID{41}
+	rootID := fakeBlockID(41)
 	rmd.data.Dir.ID = rootID
-	aID := BlockID{42}
-	bID := BlockID{43}
+	aID := fakeBlockID(42)
+	bID := fakeBlockID(43)
 	rootBlock := NewDirBlock().(*DirBlock)
 	rootBlock.Children["a"] = DirEntry{
 		BlockInfo: makeBIFromID(aID, userID),
@@ -1607,9 +1607,9 @@ func TestRenameInRootSuccess(t *testing.T) {
 
 	userID, id, rmd := makeIDAndRMD(t, config)
 
-	rootID := BlockID{41}
+	rootID := fakeBlockID(41)
 	rmd.data.Dir.ID = rootID
-	aID := BlockID{42}
+	aID := fakeBlockID(42)
 	rootBlock := NewDirBlock().(*DirBlock)
 	rootBlock.Children["a"] = DirEntry{
 		BlockInfo: makeBIFromID(aID, userID),
@@ -1676,10 +1676,10 @@ func TestRenameAcrossDirsSuccess(t *testing.T) {
 
 	userID, id, rmd := makeIDAndRMD(t, config)
 
-	rootID := BlockID{41}
+	rootID := fakeBlockID(41)
 	rmd.data.Dir.ID = rootID
-	aID := BlockID{42}
-	bID := BlockID{43}
+	aID := fakeBlockID(42)
+	bID := fakeBlockID(43)
 	rmd.data.Dir.ID = rootID
 	rmd.data.Dir.Type = Dir
 	rootBlock := NewDirBlock().(*DirBlock)
@@ -1698,7 +1698,7 @@ func TestRenameAcrossDirsSuccess(t *testing.T) {
 	ops := getOps(config, id)
 	n1 := nodeFromPath(t, ops, p1)
 
-	dID := BlockID{40}
+	dID := fakeBlockID(40)
 	rootBlock.Children["d"] = DirEntry{
 		BlockInfo: makeBIFromID(dID, userID),
 		Type:      Dir,
@@ -1784,11 +1784,11 @@ func TestRenameAcrossPrefixSuccess(t *testing.T) {
 
 	userID, id, rmd := makeIDAndRMD(t, config)
 
-	rootID := BlockID{41}
+	rootID := fakeBlockID(41)
 	rmd.data.Dir.ID = rootID
-	aID := BlockID{42}
-	bID := BlockID{43}
-	dID := BlockID{40}
+	aID := fakeBlockID(42)
+	bID := fakeBlockID(43)
+	dID := fakeBlockID(40)
 	rmd.data.Dir.ID = rootID
 	rmd.data.Dir.Type = Dir
 	rootBlock := NewDirBlock().(*DirBlock)
@@ -1877,11 +1877,11 @@ func TestRenameAcrossOtherPrefixSuccess(t *testing.T) {
 
 	userID, id, rmd := makeIDAndRMD(t, config)
 
-	rootID := BlockID{41}
+	rootID := fakeBlockID(41)
 	rmd.data.Dir.ID = rootID
-	aID := BlockID{42}
-	bID := BlockID{43}
-	dID := BlockID{40}
+	aID := fakeBlockID(42)
+	bID := fakeBlockID(43)
+	dID := fakeBlockID(40)
 	rmd.data.Dir.ID = rootID
 	rmd.data.Dir.Type = Dir
 	rootBlock := NewDirBlock().(*DirBlock)
@@ -1988,16 +1988,16 @@ func TestRenameFailAcrossTopLevelFolders(t *testing.T) {
 	h2.Writers = append(h2.Writers, userID2)
 	expectUserCalls(h2, config)
 
-	rootID1 := BlockID{41}
-	aID1 := BlockID{42}
+	rootID1 := fakeBlockID(41)
+	aID1 := fakeBlockID(42)
 	node1 := pathNode{makeBP(rootID1, &rmd1.MD, config, userID1), "p"}
 	aNode1 := pathNode{makeBP(aID1, &rmd1.MD, config, userID1), "a"}
 	p1 := path{FolderBranch{Tlf: id1}, []pathNode{node1, aNode1}}
 	ops1 := getOps(config, id1)
 	n1 := nodeFromPath(t, ops1, p1)
 
-	rootID2 := BlockID{38}
-	aID2 := BlockID{39}
+	rootID2 := fakeBlockID(38)
+	aID2 := fakeBlockID(39)
 	node2 := pathNode{makeBP(rootID2, &rmd2.MD, config, userID2), "p"}
 	aNode2 := pathNode{makeBP(aID2, &rmd2.MD, config, userID2), "a"}
 	p2 := path{FolderBranch{Tlf: id2}, []pathNode{node2, aNode2}}
@@ -2022,8 +2022,8 @@ func TestRenameFailAcrossBranches(t *testing.T) {
 	h1.Writers = append(h1.Writers, userID1)
 	expectUserCalls(h1, config)
 
-	rootID1 := BlockID{41}
-	aID1 := BlockID{42}
+	rootID1 := fakeBlockID(41)
+	aID1 := fakeBlockID(42)
 	node1 := pathNode{makeBP(rootID1, &rmd1.MD, config, userID1), "p"}
 	aNode1 := pathNode{makeBP(aID1, &rmd1.MD, config, userID1), "a"}
 	p1 := path{FolderBranch{Tlf: id1}, []pathNode{node1, aNode1}}
@@ -2048,8 +2048,8 @@ func TestKBFSOpsCacheReadFullSuccess(t *testing.T) {
 
 	u, id, rmd := makeIDAndRMD(t, config)
 
-	rootID := BlockID{42}
-	fileID := BlockID{43}
+	rootID := fakeBlockID(42)
+	fileID := fakeBlockID(43)
 	fileBlock := NewFileBlock().(*FileBlock)
 	fileBlock.Contents = []byte{1, 2, 3, 4, 5, 6, 7, 8, 9, 10}
 	node := pathNode{makeBP(rootID, rmd, config, u), "p"}
@@ -2077,8 +2077,8 @@ func TestKBFSOpsCacheReadPartialSuccess(t *testing.T) {
 
 	u, id, rmd := makeIDAndRMD(t, config)
 
-	rootID := BlockID{42}
-	fileID := BlockID{43}
+	rootID := fakeBlockID(42)
+	fileID := fakeBlockID(43)
 	fileBlock := NewFileBlock().(*FileBlock)
 	fileBlock.Contents = []byte{1, 2, 3, 4, 5, 6, 7, 8, 9, 10}
 	node := pathNode{makeBP(rootID, rmd, config, u), "p"}
@@ -2105,12 +2105,12 @@ func TestKBFSOpsCacheReadFullMultiBlockSuccess(t *testing.T) {
 
 	u, id, rmd := makeIDAndRMD(t, config)
 
-	rootID := BlockID{42}
-	fileID := BlockID{43}
-	id1 := BlockID{44}
-	id2 := BlockID{45}
-	id3 := BlockID{46}
-	id4 := BlockID{47}
+	rootID := fakeBlockID(42)
+	fileID := fakeBlockID(43)
+	id1 := fakeBlockID(44)
+	id2 := fakeBlockID(45)
+	id3 := fakeBlockID(46)
+	id4 := fakeBlockID(47)
 	fileBlock := NewFileBlock().(*FileBlock)
 	fileBlock.IsInd = true
 	fileBlock.IPtrs = []IndirectFilePtr{
@@ -2159,12 +2159,12 @@ func TestKBFSOpsCacheReadPartialMultiBlockSuccess(t *testing.T) {
 
 	u, id, rmd := makeIDAndRMD(t, config)
 
-	rootID := BlockID{42}
-	fileID := BlockID{43}
-	id1 := BlockID{44}
-	id2 := BlockID{45}
-	id3 := BlockID{46}
-	id4 := BlockID{47}
+	rootID := fakeBlockID(42)
+	fileID := fakeBlockID(43)
+	id1 := fakeBlockID(44)
+	id2 := fakeBlockID(45)
+	id3 := fakeBlockID(46)
+	id4 := fakeBlockID(47)
 	fileBlock := NewFileBlock().(*FileBlock)
 	fileBlock.IsInd = true
 	fileBlock.IPtrs = []IndirectFilePtr{
@@ -2211,8 +2211,8 @@ func TestKBFSOpsCacheReadFailPastEnd(t *testing.T) {
 
 	u, id, rmd := makeIDAndRMD(t, config)
 
-	rootID := BlockID{42}
-	fileID := BlockID{43}
+	rootID := fakeBlockID(42)
+	fileID := fakeBlockID(43)
 	fileBlock := NewFileBlock().(*FileBlock)
 	fileBlock.Contents = []byte{1, 2, 3, 4, 5, 6, 7, 8, 9, 10}
 	node := pathNode{makeBP(rootID, rmd, config, u), "p"}
@@ -2237,8 +2237,8 @@ func TestKBFSOpsServerReadFullSuccess(t *testing.T) {
 
 	u, id, rmd := makeIDAndRMD(t, config)
 
-	rootID := BlockID{42}
-	fileID := BlockID{43}
+	rootID := fakeBlockID(42)
+	fileID := fakeBlockID(43)
 	fileBlock := NewFileBlock().(*FileBlock)
 	fileBlock.Contents = []byte{1, 2, 3, 4, 5, 6, 7, 8, 9, 10}
 	node := pathNode{makeBP(rootID, rmd, config, u), "p"}
@@ -2268,8 +2268,8 @@ func TestKBFSOpsServerReadFailNoSuchBlock(t *testing.T) {
 
 	u, id, rmd := makeIDAndRMD(t, config)
 
-	rootID := BlockID{42}
-	fileID := BlockID{43}
+	rootID := fakeBlockID(42)
+	fileID := fakeBlockID(43)
 	fileBlock := NewFileBlock().(*FileBlock)
 	fileBlock.Contents = []byte{1, 2, 3, 4, 5, 6, 7, 8, 9, 10}
 	node := pathNode{makeBP(rootID, rmd, config, u), "p"}
@@ -2328,8 +2328,8 @@ func TestKBFSOpsWriteNewBlockSuccess(t *testing.T) {
 
 	userID, id, rmd := makeIDAndRMD(t, config)
 
-	rootID := BlockID{42}
-	fileID := BlockID{43}
+	rootID := fakeBlockID(42)
+	fileID := fakeBlockID(43)
 	rootBlock := NewDirBlock().(*DirBlock)
 	rootBlock.Children["f"] = DirEntry{
 		BlockInfo: BlockInfo{
@@ -2394,8 +2394,8 @@ func TestKBFSOpsWriteExtendSuccess(t *testing.T) {
 
 	userID, id, rmd := makeIDAndRMD(t, config)
 
-	rootID := BlockID{42}
-	fileID := BlockID{43}
+	rootID := fakeBlockID(42)
+	fileID := fakeBlockID(43)
 	rootBlock := NewDirBlock().(*DirBlock)
 	rootBlock.Children["f"] = DirEntry{
 		BlockInfo: BlockInfo{
@@ -2453,8 +2453,8 @@ func TestKBFSOpsWritePastEndSuccess(t *testing.T) {
 
 	userID, id, rmd := makeIDAndRMD(t, config)
 
-	rootID := BlockID{42}
-	fileID := BlockID{43}
+	rootID := fakeBlockID(42)
+	fileID := fakeBlockID(43)
 	rootBlock := NewDirBlock().(*DirBlock)
 	rootBlock.Children["f"] = DirEntry{
 		BlockInfo: BlockInfo{
@@ -2512,8 +2512,8 @@ func TestKBFSOpsWriteCauseSplit(t *testing.T) {
 
 	userID, id, rmd := makeIDAndRMD(t, config)
 
-	rootID := BlockID{42}
-	fileID := BlockID{43}
+	rootID := fakeBlockID(42)
+	fileID := fakeBlockID(43)
 	rootBlock := NewDirBlock().(*DirBlock)
 	rootBlock.Children["f"] = DirEntry{
 		BlockInfo: BlockInfo{
@@ -2542,8 +2542,8 @@ func TestKBFSOpsWriteCauseSplit(t *testing.T) {
 		block.Contents = append([]byte{0}, data[0:5]...)
 	}).Return(int64(5))
 
-	id1 := BlockID{44}
-	id2 := BlockID{45}
+	id1 := fakeBlockID(44)
+	id2 := fakeBlockID(45)
 	// new left block
 	config.mockCrypto.EXPECT().MakeTemporaryBlockID().Return(id1, nil)
 	// new right block
@@ -2619,10 +2619,10 @@ func TestKBFSOpsWriteOverMultipleBlocks(t *testing.T) {
 	defer kbfsTestShutdown(mockCtrl, config)
 
 	userID, id, rmd := makeIDAndRMD(t, config)
-	rootID := BlockID{42}
-	fileID := BlockID{43}
-	id1 := BlockID{44}
-	id2 := BlockID{45}
+	rootID := fakeBlockID(42)
+	fileID := fakeBlockID(43)
+	id1 := fakeBlockID(44)
+	id2 := fakeBlockID(45)
 	rootBlock := NewDirBlock().(*DirBlock)
 	filePtr := BlockPointer{ID: fileID, Creator: userID, KeyGen: 1, DataVer: 1}
 	rootBlock.Children["f"] = DirEntry{
@@ -2712,8 +2712,8 @@ func TestKBFSOpsTruncateToZeroSuccess(t *testing.T) {
 
 	userID, id, rmd := makeIDAndRMD(t, config)
 
-	rootID := BlockID{42}
-	fileID := BlockID{43}
+	rootID := fakeBlockID(42)
+	fileID := fakeBlockID(43)
 	rootBlock := NewDirBlock().(*DirBlock)
 	rootBlock.Children["f"] = DirEntry{
 		BlockInfo: BlockInfo{
@@ -2774,8 +2774,8 @@ func TestKBFSOpsTruncateSameSize(t *testing.T) {
 
 	u, id, rmd := makeIDAndRMD(t, config)
 
-	rootID := BlockID{42}
-	fileID := BlockID{43}
+	rootID := fakeBlockID(42)
+	fileID := fakeBlockID(43)
 	rootBlock := NewDirBlock().(*DirBlock)
 	rootBlock.Children["f"] = DirEntry{
 		BlockInfo: makeBIFromID(fileID, u),
@@ -2810,8 +2810,8 @@ func TestKBFSOpsTruncateSmallerSuccess(t *testing.T) {
 
 	userID, id, rmd := makeIDAndRMD(t, config)
 
-	rootID := BlockID{42}
-	fileID := BlockID{43}
+	rootID := fakeBlockID(42)
+	fileID := fakeBlockID(43)
 	rootBlock := NewDirBlock().(*DirBlock)
 	rootBlock.Children["f"] = DirEntry{
 		BlockInfo: BlockInfo{
@@ -2863,10 +2863,10 @@ func TestKBFSOpsTruncateShortensLastBlock(t *testing.T) {
 
 	userID, id, rmd := makeIDAndRMD(t, config)
 
-	rootID := BlockID{42}
-	fileID := BlockID{43}
-	id1 := BlockID{44}
-	id2 := BlockID{45}
+	rootID := fakeBlockID(42)
+	fileID := fakeBlockID(43)
+	id1 := fakeBlockID(44)
+	id2 := fakeBlockID(45)
 	rootBlock := NewDirBlock().(*DirBlock)
 	fileInfo := makeBIFromID(fileID, userID)
 	rootBlock.Children["f"] = DirEntry{
@@ -2943,10 +2943,10 @@ func TestKBFSOpsTruncateRemovesABlock(t *testing.T) {
 
 	userID, id, rmd := makeIDAndRMD(t, config)
 
-	rootID := BlockID{42}
-	fileID := BlockID{43}
-	id1 := BlockID{44}
-	id2 := BlockID{45}
+	rootID := fakeBlockID(42)
+	fileID := fakeBlockID(43)
+	id1 := fakeBlockID(44)
+	id2 := fakeBlockID(45)
 	rootBlock := NewDirBlock().(*DirBlock)
 	fileInfo := makeBIFromID(fileID, userID)
 	rootBlock.Children["f"] = DirEntry{
@@ -3018,8 +3018,8 @@ func TestKBFSOpsTruncateBiggerSuccess(t *testing.T) {
 
 	userID, id, rmd := makeIDAndRMD(t, config)
 
-	rootID := BlockID{42}
-	fileID := BlockID{43}
+	rootID := fakeBlockID(42)
+	fileID := fakeBlockID(43)
 	rootBlock := NewDirBlock().(*DirBlock)
 	rootBlock.Children["f"] = DirEntry{
 		BlockInfo: BlockInfo{
@@ -3078,9 +3078,9 @@ func testSetExSuccess(t *testing.T, entryType EntryType, ex bool) {
 
 	userID, id, rmd := makeIDAndRMD(t, config)
 
-	rootID := BlockID{42}
+	rootID := fakeBlockID(42)
 	rmd.data.Dir.ID = rootID
-	aID := BlockID{43}
+	aID := fakeBlockID(43)
 	rootBlock := NewDirBlock().(*DirBlock)
 	rootBlock.Children["a"] = DirEntry{
 		BlockInfo: makeBIFromID(aID, userID),
@@ -3210,8 +3210,8 @@ func TestSetExFailNoSuchName(t *testing.T) {
 
 	u, id, rmd := makeIDAndRMD(t, config)
 
-	rootID := BlockID{42}
-	aID := BlockID{43}
+	rootID := fakeBlockID(42)
+	aID := fakeBlockID(43)
 	rootBlock := NewDirBlock().(*DirBlock)
 	node := pathNode{makeBP(rootID, rmd, config, u), "p"}
 	aNode := pathNode{makeBP(aID, rmd, config, u), "a"}
@@ -3238,9 +3238,9 @@ func TestSetMtimeSuccess(t *testing.T) {
 
 	userID, id, rmd := makeIDAndRMD(t, config)
 
-	rootID := BlockID{42}
+	rootID := fakeBlockID(42)
 	rmd.data.Dir.ID = rootID
-	aID := BlockID{43}
+	aID := fakeBlockID(43)
 	rootBlock := NewDirBlock().(*DirBlock)
 	rootBlock.Children["a"] = DirEntry{
 		BlockInfo: makeBIFromID(aID, userID),
@@ -3301,8 +3301,8 @@ func TestSetMtimeNull(t *testing.T) {
 
 	u, id, rmd := makeIDAndRMD(t, config)
 
-	rootID := BlockID{42}
-	aID := BlockID{43}
+	rootID := fakeBlockID(42)
+	aID := fakeBlockID(43)
 	rootBlock := NewDirBlock().(*DirBlock)
 	oldMtime := time.Now().UnixNano()
 	rootBlock.Children["a"] = DirEntry{
@@ -3334,8 +3334,8 @@ func TestMtimeFailNoSuchName(t *testing.T) {
 
 	u, id, rmd := makeIDAndRMD(t, config)
 
-	rootID := BlockID{42}
-	aID := BlockID{43}
+	rootID := fakeBlockID(42)
+	aID := fakeBlockID(43)
 	rootBlock := NewDirBlock().(*DirBlock)
 	node := pathNode{makeBP(rootID, rmd, config, u), "p"}
 	aNode := pathNode{makeBP(aID, rmd, config, u), "a"}
@@ -3362,9 +3362,9 @@ func testSyncDirtySuccess(t *testing.T, unmerged bool) {
 
 	userID, id, rmd := makeIDAndRMD(t, config)
 
-	rootID := BlockID{42}
+	rootID := fakeBlockID(42)
 	rmd.data.Dir.ID = rootID
-	aID := BlockID{43}
+	aID := fakeBlockID(43)
 	rootBlock := NewDirBlock().(*DirBlock)
 	rootBlock.Children["a"] = DirEntry{
 		BlockInfo: makeBIFromID(aID, userID),
@@ -3384,7 +3384,7 @@ func testSyncDirtySuccess(t *testing.T, unmerged bool) {
 	// fsync a
 	config.BlockCache().PutDirty(aNode.BlockPointer, p.Branch, aBlock)
 	config.mockCrypto.EXPECT().Hash(aBlock.Contents).Times(2).
-		Return(libkb.NodeHashShort{aNode.BlockPointer.ID[0]}, nil)
+		Return(aNode.BlockPointer.ID.Hash, nil)
 	testPutBlockInCache(config, node.BlockPointer, id, rootBlock)
 	// TODO: put a dirty DE entry in the cache, to test that the new
 	// root block has the correct file size.
@@ -3442,9 +3442,9 @@ func TestSyncCleanSuccess(t *testing.T) {
 
 	u, id, rmd := makeIDAndRMD(t, config)
 
-	rootID := BlockID{42}
+	rootID := fakeBlockID(42)
 	rmd.data.Dir.ID = rootID
-	aID := BlockID{43}
+	aID := fakeBlockID(43)
 	node := pathNode{makeBP(rootID, rmd, config, u), "p"}
 	aNode := pathNode{makeBP(aID, rmd, config, u), "a"}
 	p := path{FolderBranch{Tlf: id}, []pathNode{node, aNode}}
@@ -3483,7 +3483,7 @@ func expectSyncDirtyBlock(config *ConfigMock, rmd *RootMetadata,
 	}
 	c1 := config.mockBsplit.EXPECT().CheckSplit(block).Return(splitAt)
 
-	newID := BlockID{ptr.ID[0] + 100}
+	newID := fakeBlockIDAdd(ptr.ID, 100)
 	// Ideally, we'd use the size of block.Contents at the time
 	// that Ready() is called, but GoMock isn't expressive enough
 	// for that.
@@ -3494,7 +3494,7 @@ func expectSyncDirtyBlock(config *ConfigMock, rmd *RootMetadata,
 	c2 := config.mockBops.EXPECT().Ready(gomock.Any(), rmdMatcher{rmd}, block).
 		After(c1).Return(newID, len(block.Contents), readyBlockData, nil)
 	config.mockCrypto.EXPECT().Hash(block.Contents).AnyTimes().
-		Return(libkb.NodeHashShort{ptr.ID[0]}, nil)
+		Return(ptr.ID.Hash, nil)
 	config.mockBops.EXPECT().Put(gomock.Any(), rmdMatcher{rmd},
 		ptrMatcher{BlockPointer{ID: newID}}, gomock.Any()).Return(nil)
 	return c2
@@ -3506,13 +3506,13 @@ func TestSyncDirtyMultiBlocksSuccess(t *testing.T) {
 
 	userID, id, rmd := makeIDAndRMD(t, config)
 
-	rootID := BlockID{42}
+	rootID := fakeBlockID(42)
 	rmd.data.Dir.ID = rootID
-	fileID := BlockID{43}
-	id1 := BlockID{44}
-	id2 := BlockID{45}
-	id3 := BlockID{46}
-	id4 := BlockID{47}
+	fileID := fakeBlockID(43)
+	id1 := fakeBlockID(44)
+	id2 := fakeBlockID(45)
+	id3 := fakeBlockID(46)
+	id4 := fakeBlockID(47)
 	rootBlock := NewDirBlock().(*DirBlock)
 	rootBlock.Children["a"] = DirEntry{
 		BlockInfo: makeBIFromID(fileID, userID),
@@ -3622,10 +3622,10 @@ func TestSyncDirtyDupBlockSuccess(t *testing.T) {
 
 	userID, id, rmd := makeIDAndRMD(t, config)
 
-	rootID := BlockID{42}
+	rootID := fakeBlockID(42)
 	rmd.data.Dir.ID = rootID
-	aID := BlockID{43}
-	bID := BlockID{44}
+	aID := fakeBlockID(43)
+	bID := fakeBlockID(44)
 	rootBlock := NewDirBlock().(*DirBlock)
 	rootBlock.Children["a"] = DirEntry{
 		BlockInfo: makeBIFromID(aID, userID),
@@ -3651,7 +3651,7 @@ func TestSyncDirtyDupBlockSuccess(t *testing.T) {
 
 	config.BlockCache().PutDirty(bNode.BlockPointer, p.Branch, bBlock)
 	config.mockCrypto.EXPECT().Hash(aBlock.Contents).
-		Return(libkb.NodeHashShort{aNode.BlockPointer.ID[0]}, nil)
+		Return(aNode.BlockPointer.ID.Hash, nil)
 	testPutBlockInCache(config, node.BlockPointer, id, rootBlock)
 	testPutBlockInCache(config, aNode.BlockPointer, id, aBlock)
 
@@ -3737,13 +3737,13 @@ func TestSyncDirtyMultiBlocksSplitInBlockSuccess(t *testing.T) {
 
 	userID, id, rmd := makeIDAndRMD(t, config)
 
-	rootID := BlockID{42}
+	rootID := fakeBlockID(42)
 	rmd.data.Dir.ID = rootID
-	fileID := BlockID{43}
-	id1 := BlockID{44}
-	id2 := BlockID{45}
-	id3 := BlockID{46}
-	id4 := BlockID{47}
+	fileID := fakeBlockID(43)
+	id1 := fakeBlockID(44)
+	id2 := fakeBlockID(45)
+	id3 := fakeBlockID(46)
+	id4 := fakeBlockID(47)
 	rootBlock := NewDirBlock().(*DirBlock)
 	rootBlock.Children["a"] = DirEntry{
 		BlockInfo: makeBIFromID(fileID, userID),
@@ -3822,7 +3822,7 @@ func TestSyncDirtyMultiBlocksSplitInBlockSuccess(t *testing.T) {
 		block4, int64(3), pad4)
 	var newID5 BlockID
 	var newBlock5 *FileBlock
-	id5 := BlockID{48}
+	id5 := fakeBlockID(48)
 	config.mockCrypto.EXPECT().MakeTemporaryBlockID().Return(id5, nil)
 	config.mockBcache.EXPECT().PutDirty(ptrMatcher{BlockPointer{ID: id5}},
 		p.Branch, gomock.Any()).
@@ -3851,9 +3851,9 @@ func TestSyncDirtyMultiBlocksSplitInBlockSuccess(t *testing.T) {
 			refBytes, unrefBytes, &newRmd, blocks)
 	putAndCleanAnyBlock(config, p)
 
-	newID2 := BlockID{id2[0] + 100}
-	newID3 := BlockID{id3[0] + 100}
-	newID4 := BlockID{id4[0] + 100}
+	newID2 := fakeBlockIDAdd(id2, 100)
+	newID3 := fakeBlockIDAdd(id3, 100)
+	newID4 := fakeBlockIDAdd(id4, 100)
 
 	if err := config.KBFSOps().Sync(ctx, n); err != nil {
 		t.Errorf("Got unexpected error on sync: %v", err)
@@ -3885,7 +3885,7 @@ func TestSyncDirtyMultiBlocksSplitInBlockSuccess(t *testing.T) {
 		t.Errorf("Indirect pointer encoded size4 wrong: %d", fileBlock.IPtrs[3].EncodedSize)
 	} else if fileBlock.IPtrs[3].Off != 15 {
 		t.Errorf("Indirect pointer off4 wrong: %d", fileBlock.IPtrs[3].Off)
-	} else if fileBlock.IPtrs[4].ID != (BlockID{newID5[0] + 100}) {
+	} else if fileBlock.IPtrs[4].ID != fakeBlockIDAdd(newID5, 100) {
 		t.Errorf("Indirect pointer id5 wrong: %v", fileBlock.IPtrs[4].ID)
 	} else if fileBlock.IPtrs[4].EncodedSize != 1 {
 		t.Errorf("Indirect pointer encoded size5 wrong: %d", fileBlock.IPtrs[4].EncodedSize)
@@ -3918,13 +3918,13 @@ func TestSyncDirtyMultiBlocksCopyNextBlockSuccess(t *testing.T) {
 
 	userID, id, rmd := makeIDAndRMD(t, config)
 
-	rootID := BlockID{42}
+	rootID := fakeBlockID(42)
 	rmd.data.Dir.ID = rootID
-	fileID := BlockID{43}
-	id1 := BlockID{44}
-	id2 := BlockID{45}
-	id3 := BlockID{46}
-	id4 := BlockID{47}
+	fileID := fakeBlockID(43)
+	id1 := fakeBlockID(44)
+	id2 := fakeBlockID(45)
+	id3 := fakeBlockID(46)
+	id4 := fakeBlockID(47)
 	rootBlock := NewDirBlock().(*DirBlock)
 	rootBlock.Children["a"] = DirEntry{
 		BlockInfo: makeBIFromID(fileID, userID),
@@ -4028,9 +4028,9 @@ func TestSyncDirtyMultiBlocksCopyNextBlockSuccess(t *testing.T) {
 			refBytes, unrefBytes, &newRmd, blocks)
 	putAndCleanAnyBlock(config, p)
 
-	newID1 := BlockID{id1[0] + 100}
-	newID3 := BlockID{id3[0] + 100}
-	newID4 := BlockID{id4[0] + 100}
+	newID1 := fakeBlockIDAdd(id1, 100)
+	newID3 := fakeBlockIDAdd(id3, 100)
+	newID4 := fakeBlockIDAdd(id4, 100)
 
 	if err := config.KBFSOps().Sync(ctx, n); err != nil {
 		t.Errorf("Got unexpected error on sync: %v", err)
@@ -4076,9 +4076,9 @@ func TestSyncDirtyWithBlockChangePointerSuccess(t *testing.T) {
 
 	userID, id, rmd := makeIDAndRMD(t, config)
 
-	rootID := BlockID{42}
+	rootID := fakeBlockID(42)
 	rmd.data.Dir.ID = rootID
-	aID := BlockID{43}
+	aID := fakeBlockID(43)
 	rootBlock := NewDirBlock().(*DirBlock)
 	rootBlock.Children["a"] = DirEntry{
 		BlockInfo: makeBIFromID(aID, userID),
@@ -4109,7 +4109,7 @@ func TestSyncDirtyWithBlockChangePointerSuccess(t *testing.T) {
 		rmd, false, 0, refBytes, 0, &newRmd, blocks)
 
 	// expected calls for block changes block
-	changeBlockID := BlockID{253}
+	changeBlockID := fakeBlockID(253)
 	changePlainSize := 1
 	changeBuf := []byte{253}
 	changeReadyBlockData := ReadyBlockData{
@@ -4119,7 +4119,7 @@ func TestSyncDirtyWithBlockChangePointerSuccess(t *testing.T) {
 		gomock.Any()).Return(changeBlockID, changePlainSize,
 		changeReadyBlockData, nil).After(lastCall)
 	config.mockCrypto.EXPECT().Hash(aBlock.Contents).AnyTimes().
-		Return(libkb.NodeHashShort{changeBlockID[0]}, nil)
+		Return(changeBlockID.Hash, nil)
 	config.mockBops.EXPECT().Put(gomock.Any(), rmdMatcher{rmd},
 		ptrMatcher{BlockPointer{ID: changeBlockID}}, changeReadyBlockData).
 		Return(nil)
@@ -4148,7 +4148,7 @@ func TestKBFSOpsStatRootSuccess(t *testing.T) {
 	ops.head = rmd
 	config.mockMdcache.EXPECT().Get(rmd.mdID).AnyTimes().Return(rmd, nil)
 
-	rootID := BlockID{42}
+	rootID := fakeBlockID(42)
 	node := pathNode{makeBP(rootID, rmd, config, u), "p"}
 	p := path{FolderBranch{Tlf: id}, []pathNode{node}}
 	n := nodeFromPath(t, ops, p)
@@ -4169,7 +4169,7 @@ func TestKBFSOpsFailingRootOps(t *testing.T) {
 	ops.head = rmd
 	config.mockMdcache.EXPECT().Get(rmd.mdID).AnyTimes().Return(rmd, nil)
 
-	rootID := BlockID{42}
+	rootID := fakeBlockID(42)
 	node := pathNode{makeBP(rootID, rmd, config, u), "p"}
 	p := path{FolderBranch{Tlf: id}, []pathNode{node}}
 	n := nodeFromPath(t, ops, p)

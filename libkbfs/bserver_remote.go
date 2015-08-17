@@ -223,14 +223,14 @@ func (b *BlockServerRemote) Shutdown() {
 func (b *BlockServerRemote) Get(ctx context.Context, id BlockID,
 	context BlockContext) ([]byte, BlockCryptKeyServerHalf, error) {
 	libkb.G.Log.Debug("BlockServerRemote.Get id=%s uid=%s\n",
-		hex.EncodeToString(id[:]), context.GetWriter().String())
+		id.String(), context.GetWriter().String())
 	if !b.isConnected() {
 		if err := b.WaitForReconnect(ctx); err != nil {
 			return nil, BlockCryptKeyServerHalf{}, err
 		}
 	}
 	bid := keybase1.BlockIdCombo{
-		BlockHash: hex.EncodeToString(id[:]),
+		BlockHash: id.String(),
 		ChargedTo: context.GetWriter(),
 	}
 
@@ -246,7 +246,7 @@ func (b *BlockServerRemote) Get(ctx context.Context, id BlockID,
 	err := runUnlessCanceled(ctx, f)
 	if err != nil {
 		libkb.G.Log.Debug("BlockServerRemote.Get id=%s err=%v\n",
-			hex.EncodeToString(id[:]), err)
+			id.String(), err)
 		return nil, BlockCryptKeyServerHalf{}, err
 	}
 
@@ -266,7 +266,7 @@ func (b *BlockServerRemote) Put(ctx context.Context, id BlockID, tlfID TlfID,
 	context BlockContext, buf []byte,
 	serverHalf BlockCryptKeyServerHalf) error {
 	libkb.G.Log.Debug("BlockServerRemote.Put id=%s uid=%s\n",
-		hex.EncodeToString(id[:]), context.GetWriter().String())
+		id.String(), context.GetWriter().String())
 	if !b.isConnected() {
 		if err := b.WaitForReconnect(ctx); err != nil {
 			return err
@@ -275,7 +275,7 @@ func (b *BlockServerRemote) Put(ctx context.Context, id BlockID, tlfID TlfID,
 	arg := keybase1.PutBlockArg{
 		Bid: keybase1.BlockIdCombo{
 			ChargedTo: context.GetWriter(),
-			BlockHash: hex.EncodeToString(id[:]),
+			BlockHash: id.String(),
 		},
 		BlockKey: hex.EncodeToString(serverHalf.ServerHalf[:]),
 		Folder:   hex.EncodeToString(tlfID[:]),
@@ -289,7 +289,7 @@ func (b *BlockServerRemote) Put(ctx context.Context, id BlockID, tlfID TlfID,
 	err := runUnlessCanceled(ctx, f)
 	if err != nil {
 		libkb.G.Log.Debug("BlockServerRemote.Put id=%s err=%v\n",
-			hex.EncodeToString(id[:]), err)
+			id.String(), err)
 		return err
 	}
 
@@ -300,12 +300,12 @@ func (b *BlockServerRemote) Put(ctx context.Context, id BlockID, tlfID TlfID,
 func (b *BlockServerRemote) AddBlockReference(ctx context.Context, id BlockID,
 	tlfID TlfID, context BlockContext) error {
 	libkb.G.Log.Debug("BlockServerRemote.AddBlockReference id=%s uid=%s\n",
-		hex.EncodeToString(id[:]), context.GetWriter().String())
+		id.String(), context.GetWriter().String())
 	nonce := context.GetRefNonce()
 	arg := keybase1.IncBlockReferenceArg{
 		Bid: keybase1.BlockIdCombo{
 			ChargedTo: context.GetWriter(), //should be the original chargedto
-			BlockHash: hex.EncodeToString(id[:]),
+			BlockHash: id.String(),
 		},
 		Nonce:     hex.EncodeToString(nonce[:]),
 		Folder:    hex.EncodeToString(tlfID[:]),
@@ -332,12 +332,12 @@ func (b *BlockServerRemote) AddBlockReference(ctx context.Context, id BlockID,
 func (b *BlockServerRemote) RemoveBlockReference(ctx context.Context, id BlockID,
 	tlfID TlfID, context BlockContext) error {
 	libkb.G.Log.Debug("BlockServerRemote.RemoveBlockReference id=%s uid=%s\n",
-		hex.EncodeToString(id[:]), context.GetWriter().String())
+		id.String(), context.GetWriter().String())
 	nonce := context.GetRefNonce()
 	arg := keybase1.DecBlockReferenceArg{
 		Bid: keybase1.BlockIdCombo{
 			ChargedTo: context.GetWriter(), //should be the original chargedto
-			BlockHash: hex.EncodeToString(id[:]),
+			BlockHash: id.String(),
 		},
 		Nonce:     hex.EncodeToString(nonce[:]),
 		Folder:    hex.EncodeToString(tlfID[:]),

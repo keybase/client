@@ -86,7 +86,7 @@ func TestBServerRemotePutAndGet(t *testing.T) {
 	ctx := context.Background()
 	b := newBlockServerRemoteWithClient(ctx, config, fc)
 
-	bID := BlockID{1}
+	bID := fakeBlockID(1)
 	tlfID := TlfID{2}
 	bCtx := BlockPointer{bID, 1, 1, kbpki.LoggedIn, "", zeroBlockRefNonce}
 	data := []byte{1, 2, 3, 4}
@@ -133,7 +133,7 @@ func TestBServerRemotePutCanceled(t *testing.T) {
 	f := func(ctx context.Context) error {
 		b := newBlockServerRemoteWithClient(ctx, config, fc)
 
-		bID := BlockID{1}
+		bID := fakeBlockID(1)
 		tlfID := TlfID{2}
 		bCtx := BlockPointer{bID, 1, 1, kbpki.LoggedIn, "", zeroBlockRefNonce}
 		data := []byte{1, 2, 3, 4}
@@ -167,7 +167,7 @@ func TestBServerRemoteWaitForReconnect(t *testing.T) {
 
 	putChan := make(chan error)
 	go func() {
-		bID := BlockID{1}
+		bID := fakeBlockID(1)
 		tlfID := TlfID{2}
 		bCtx := BlockPointer{bID, 1, 1, kbpki.LoggedIn, "", zeroBlockRefNonce}
 		data := []byte{1, 2, 3, 4}

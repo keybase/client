@@ -307,10 +307,40 @@ type BlockCryptKey struct {
 }
 
 // BlockID is the type of hash key for each data block
-type BlockID libkb.NodeHashShort
+type BlockID struct {
+	// Exported only for serialization purposes.
+	Hash libkb.NodeHashShort `codec:"h"`
+}
+
+// MaxBlockIDStringLength is the maximum length of the string
+// representation of a BlockID.
+const MaxBlockIDStringLength = 2 * libkb.NodeHashLenShort
 
 // NullBlockID is an empty block ID.
-var NullBlockID = BlockID{0}
+var NullBlockID = BlockID{}
+
+// BlockIDFromString creates a BlockID from the given string.
+func BlockIDFromString(blockIDStr string) (BlockID, error) {
+	bytes, err := hex.DecodeString(blockIDStr)
+	if err != nil {
+		return NullBlockID, err
+	}
+	var h libkb.NodeHashShort
+	if len(h) != len(bytes) {
+		return NullBlockID, fmt.Errorf("Invalid BlockID length %d", len(bytes))
+	}
+	copy(h[:], bytes)
+	return BlockID{h}, nil
+}
+
+// Bytes returns the bytes of the block ID.
+func (id BlockID) Bytes() []byte {
+	return id.Hash[:]
+}
+
+func (id BlockID) String() string {
+	return hex.EncodeToString(id.Bytes())
+}
 
 // MdID is the type of hash key for each metadata block
 type MdID libkb.NodeHashShort
