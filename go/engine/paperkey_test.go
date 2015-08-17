@@ -45,7 +45,7 @@ func hasOneBackupDev(t *testing.T, fu *FakeUser) keybase1.DeviceID {
 	return devid
 }
 
-func TestBackup(t *testing.T) {
+func TestPaperKey(t *testing.T) {
 	tc := SetupEngineTest(t, "backup")
 	defer tc.Cleanup()
 
@@ -62,7 +62,7 @@ func TestBackup(t *testing.T) {
 		LoginUI:  libkb.TestLoginUI{},
 		SecretUI: &libkb.TestSecretUI{},
 	}
-	eng := NewBackup(tc.G)
+	eng := NewPaperKey(tc.G)
 	if err := RunEngine(eng, ctx); err != nil {
 		t.Fatal(err)
 	}
@@ -112,7 +112,7 @@ func TestBackup(t *testing.T) {
 }
 
 // tests revoking of existing backup keys
-func TestBackupRevoke(t *testing.T) {
+func TestPaperKeyRevoke(t *testing.T) {
 	tc := SetupEngineTest(t, "backup")
 	defer tc.Cleanup()
 
@@ -124,7 +124,7 @@ func TestBackupRevoke(t *testing.T) {
 		SecretUI: &libkb.TestSecretUI{},
 	}
 
-	eng := NewBackup(tc.G)
+	eng := NewPaperKey(tc.G)
 	if err := RunEngine(eng, ctx); err != nil {
 		t.Fatal(err)
 	}
@@ -139,7 +139,7 @@ func TestBackupRevoke(t *testing.T) {
 	}
 
 	// generate another one, first should be revoked
-	eng = NewBackup(tc.G)
+	eng = NewPaperKey(tc.G)
 	if err := RunEngine(eng, ctx); err != nil {
 		t.Fatal(err)
 	}
@@ -155,7 +155,7 @@ func TestBackupRevoke(t *testing.T) {
 }
 
 // tests not revoking existing backup keys
-func TestBackupNoRevoke(t *testing.T) {
+func TestPaperKeyNoRevoke(t *testing.T) {
 	tc := SetupEngineTest(t, "backup")
 	defer tc.Cleanup()
 
@@ -167,7 +167,7 @@ func TestBackupNoRevoke(t *testing.T) {
 		SecretUI: &libkb.TestSecretUI{},
 	}
 
-	eng := NewBackup(tc.G)
+	eng := NewPaperKey(tc.G)
 	if err := RunEngine(eng, ctx); err != nil {
 		t.Fatal(err)
 	}
@@ -182,7 +182,7 @@ func TestBackupNoRevoke(t *testing.T) {
 	}
 
 	// generate another one, first should be left alone
-	eng = NewBackup(tc.G)
+	eng = NewPaperKey(tc.G)
 	if err := RunEngine(eng, ctx); err != nil {
 		t.Fatal(err)
 	}
@@ -197,8 +197,8 @@ func TestBackupNoRevoke(t *testing.T) {
 	}
 }
 
-// Make sure BackupKeygen uses the secret store.
-func TestBackupKeygenWithSecretStore(t *testing.T) {
+// Make sure PaperKeyGen uses the secret store.
+func TestPaperKeyGenWithSecretStore(t *testing.T) {
 	testEngineWithSecretStore(t, func(
 		tc libkb.TestContext, fu *FakeUser, secretUI libkb.SecretUI) {
 		ctx := &Context{
@@ -206,7 +206,7 @@ func TestBackupKeygenWithSecretStore(t *testing.T) {
 			LoginUI:  libkb.TestLoginUI{},
 			SecretUI: secretUI,
 		}
-		eng := NewBackup(tc.G)
+		eng := NewPaperKey(tc.G)
 		if err := RunEngine(eng, ctx); err != nil {
 			t.Fatal(err)
 		}

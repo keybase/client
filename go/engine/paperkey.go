@@ -1,4 +1,4 @@
-// Backup creates backup keys for a user and pushes them to the server.
+// PaperKey creates backup keys for a user and pushes them to the server.
 // It checks for existing backup devices and offers to revoke the
 // keys.
 //
@@ -13,40 +13,40 @@ import (
 	keybase1 "github.com/keybase/client/protocol/go"
 )
 
-// BackupKeypush is an engine.
-type Backup struct {
+// PaperKeyKeypush is an engine.
+type PaperKey struct {
 	passphrase string
 	libkb.Contextified
 }
 
-// NewBackupKeypush creates a BackupKeypush engine.
-func NewBackup(g *libkb.GlobalContext) *Backup {
-	return &Backup{
+// NewPaperKeyKeypush creates a PaperKeyKeypush engine.
+func NewPaperKey(g *libkb.GlobalContext) *PaperKey {
+	return &PaperKey{
 		Contextified: libkb.NewContextified(g),
 	}
 }
 
 // Name is the unique engine name.
-func (e *Backup) Name() string {
-	return "Backup"
+func (e *PaperKey) Name() string {
+	return "PaperKey"
 }
 
 // GetPrereqs returns the engine prereqs.
-func (e *Backup) Prereqs() Prereqs {
+func (e *PaperKey) Prereqs() Prereqs {
 	return Prereqs{
 		Session: true,
 	}
 }
 
 // RequiredUIs returns the required UIs.
-func (e *Backup) RequiredUIs() []libkb.UIKind {
+func (e *PaperKey) RequiredUIs() []libkb.UIKind {
 	return []libkb.UIKind{
 		libkb.LoginUIKind,
 	}
 }
 
 // SubConsumers returns the other UI consumers for this engine.
-func (e *Backup) SubConsumers() []libkb.UIConsumer {
+func (e *PaperKey) SubConsumers() []libkb.UIConsumer {
 	return []libkb.UIConsumer{
 		&RevokeEngine{},
 		&BackupKeygen{},
@@ -54,7 +54,7 @@ func (e *Backup) SubConsumers() []libkb.UIConsumer {
 }
 
 // Run starts the engine.
-func (e *Backup) Run(ctx *Context) error {
+func (e *PaperKey) Run(ctx *Context) error {
 	me, err := libkb.LoadMe(libkb.LoadUserArg{})
 	if err != nil {
 		return err
@@ -121,6 +121,6 @@ func (e *Backup) Run(ctx *Context) error {
 
 }
 
-func (e *Backup) Passphrase() string {
+func (e *PaperKey) Passphrase() string {
 	return e.passphrase
 }
