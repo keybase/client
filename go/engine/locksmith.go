@@ -335,12 +335,17 @@ func (d *Locksmith) deviceSign(ctx *Context, withPGPOption bool) error {
 		return err
 	}
 
+	devFilter := map[string]bool{
+		libkb.DeviceTypeDesktop: true,
+		libkb.DeviceTypeMobile:  true,
+		libkb.DeviceTypeBackup:  true,
+	}
 	var devs libkb.DeviceKeyMap
 	if ctx.LoginContext != nil {
-		devs, err = ctx.LoginContext.SecretSyncer().ActiveDevices(libkb.DefaultDeviceTypes)
+		devs, err = ctx.LoginContext.SecretSyncer().ActiveDevices(devFilter)
 	} else {
 		aerr := d.G().LoginState().SecretSyncer(func(ss *libkb.SecretSyncer) {
-			devs, err = ss.ActiveDevices(libkb.DefaultDeviceTypes)
+			devs, err = ss.ActiveDevices(devFilter)
 		}, "Locksmith - deviceSign - ActiveDevices")
 		if aerr != nil {
 			return aerr
@@ -352,10 +357,9 @@ func (d *Locksmith) deviceSign(ctx *Context, withPGPOption bool) error {
 
 	var arg keybase1.SelectSignerArg
 	for k, v := range devs {
-		if v.Type != libkb.DeviceTypeWeb && v.Type != libkb.DeviceTypeBackup {
+		if v.Type != libkb.DeviceTypeBackup {
 			arg.Devices = append(arg.Devices, keybase1.Device{Type: v.Type, Name: v.Description, DeviceID: k})
-		}
-		if v.Type == libkb.DeviceTypeBackup {
+		} else {
 			arg.HasPaperBackupKey = true
 		}
 	}
@@ -450,6 +454,7 @@ func (d *Locksmith) deviceSign(ctx *Context, withPGPOption bool) error {
 				ctx.LogUI.Debug("device sign w/ paper backup key success")
 				return nil
 			}
+			d.G().Log.Debug("deviceSignPaper error: %s", err)
 			uiarg := keybase1.DeviceSignAttemptErrArg{
 				Msg:     err.Error(),
 				Attempt: i + 1,
