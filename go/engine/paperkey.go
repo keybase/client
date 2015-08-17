@@ -66,7 +66,7 @@ func (e *PaperKey) Run(ctx *Context) error {
 		return fmt.Errorf("no computed key infos")
 	}
 	var needReload bool
-	for _, bdev := range cki.BackupDevices() {
+	for _, bdev := range cki.PaperDevices() {
 		revoke, err := ctx.LoginUI.PromptRevokePaperKeys(
 			keybase1.PromptRevokePaperKeysArg{
 				Device: *bdev.ProtExport(),
@@ -101,7 +101,7 @@ func (e *PaperKey) Run(ctx *Context) error {
 		return err
 	}
 
-	words, err := libkb.SecWordList(libkb.BackupKeyPhraseEntropy)
+	words, err := libkb.SecWordList(libkb.PaperKeyPhraseEntropy)
 	if err != nil {
 		return err
 	}

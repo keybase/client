@@ -90,7 +90,7 @@ func NewWebDevice() (ret *Device) {
 	return
 }
 
-func NewBackupDevice() (*Device, error) {
+func NewPaperDevice() (*Device, error) {
 	did, err := NewDeviceID()
 	if err != nil {
 		return nil, err
@@ -100,13 +100,9 @@ func NewBackupDevice() (*Device, error) {
 	// XXX temporary:  waiting on Issue #642
 	desc := fmt.Sprintf("Paper Key (%s)", did)
 
-	if err != nil {
-		return nil, errors.New("Can't find unique backup key description")
-	}
-
 	d := &Device{
 		ID:          did,
-		Type:        DeviceTypeBackup,
+		Type:        DeviceTypePaper,
 		Status:      &s,
 		Description: &desc,
 	}

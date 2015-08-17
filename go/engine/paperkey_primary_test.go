@@ -33,5 +33,5 @@ func TestPaperKeyPrimary(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	hasOneBackupDev(t, fu)
+	hasOnePaperDev(t, fu)
 }

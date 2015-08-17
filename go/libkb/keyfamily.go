@@ -116,8 +116,8 @@ func (cki *ComputedKeyInfos) Insert(k keybase1.KID, i *ComputedKeyInfo) {
 	cki.dirty = true
 }
 
-// BackupDevices returns a list of all the backup devices.
-func (cki *ComputedKeyInfos) BackupDevices() []*Device {
+// PaperDevices returns a list of all the paperkey devices.
+func (cki *ComputedKeyInfos) PaperDevices() []*Device {
 	var d []*Device
 	for _, v := range cki.Devices {
 		if v.Status == nil {
@@ -126,7 +126,7 @@ func (cki *ComputedKeyInfos) BackupDevices() []*Device {
 		if *v.Status != DeviceStatusActive {
 			continue
 		}
-		if v.Type != DeviceTypeBackup {
+		if v.Type != DeviceTypePaper {
 			continue
 		}
 		d = append(d, v)

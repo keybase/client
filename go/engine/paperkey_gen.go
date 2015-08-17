@@ -73,7 +73,7 @@ func (e *PaperKeyGen) EncKey() libkb.GenericKey {
 func (e *PaperKeyGen) Run(ctx *Context) error {
 	// make the passphrase stream
 	key, err := scrypt.Key([]byte(e.arg.Passphrase), nil,
-		libkb.BackupKeyScryptCost, libkb.BackupKeyScryptR, libkb.BackupKeyScryptP, libkb.BackupKeyScryptKeylen)
+		libkb.PaperKeyScryptCost, libkb.PaperKeyScryptR, libkb.PaperKeyScryptP, libkb.PaperKeyScryptKeylen)
 	if err != nil {
 		return err
 	}
@@ -179,8 +179,8 @@ func (e *PaperKeyGen) push(ctx *Context) error {
 		return nil
 	}
 
-	// create a new backup device
-	backupDev, err := libkb.NewBackupDevice()
+	// create a new paper key device
+	backupDev, err := libkb.NewPaperDevice()
 	if err != nil {
 		return err
 	}

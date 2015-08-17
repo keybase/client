@@ -227,15 +227,15 @@ func (m *GetUsernameMock) GetEmailOrUsername(int) (string, error) {
 	return m.Username, nil
 }
 
-func (m *GetUsernameMock) PromptRevokeBackupDeviceKeys(arg keybase1.PromptRevokeBackupDeviceKeysArg) (bool, error) {
+func (m *GetUsernameMock) PromptRevokePaperKeys(arg keybase1.PromptRevokePaperKeysArg) (bool, error) {
 	return false, nil
 }
 
-func (m *GetUsernameMock) DisplayBackupPhrase(arg keybase1.DisplayBackupPhraseArg) error {
+func (m *GetUsernameMock) DisplayPaperKeyPhrase(arg keybase1.DisplayPaperKeyPhraseArg) error {
 	return nil
 }
 
-func (m *GetUsernameMock) DisplayInitialPaperKey(arg keybase1.DisplayInitialPaperKeyArg) error {
+func (m *GetUsernameMock) DisplayPrimaryPaperKey(arg keybase1.DisplayPrimaryPaperKeyArg) error {
 	return nil
 }
 

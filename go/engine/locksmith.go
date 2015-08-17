@@ -338,7 +338,7 @@ func (d *Locksmith) deviceSign(ctx *Context, withPGPOption bool) error {
 	devFilter := map[string]bool{
 		libkb.DeviceTypeDesktop: true,
 		libkb.DeviceTypeMobile:  true,
-		libkb.DeviceTypeBackup:  true,
+		libkb.DeviceTypePaper:   true,
 	}
 	var devs libkb.DeviceKeyMap
 	if ctx.LoginContext != nil {
@@ -357,7 +357,7 @@ func (d *Locksmith) deviceSign(ctx *Context, withPGPOption bool) error {
 
 	var arg keybase1.SelectSignerArg
 	for k, v := range devs {
-		if v.Type != libkb.DeviceTypeBackup {
+		if v.Type != libkb.DeviceTypePaper {
 			arg.Devices = append(arg.Devices, keybase1.Device{Type: v.Type, Name: v.Description, DeviceID: k})
 		} else {
 			arg.HasPaperBackupKey = true
