@@ -297,14 +297,14 @@ func (t TestLoginUI) GetEmailOrUsername(dummy int) (string, error) {
 	return t.Username, nil
 }
 
-func (t TestLoginUI) PromptRevokeBackupDeviceKeys(arg keybase1.PromptRevokeBackupDeviceKeysArg) (bool, error) {
+func (t TestLoginUI) PromptRevokePaperKeys(arg keybase1.PromptRevokePaperKeysArg) (bool, error) {
 	return t.RevokeBackup, nil
 }
 
-func (t TestLoginUI) DisplayBackupPhrase(arg keybase1.DisplayBackupPhraseArg) error {
+func (t TestLoginUI) DisplayPaperKeyPhrase(arg keybase1.DisplayPaperKeyPhraseArg) error {
 	return nil
 }
 
-func (t TestLoginUI) DisplayInitialPaperKey(arg keybase1.DisplayInitialPaperKeyArg) error {
+func (t TestLoginUI) DisplayPrimaryPaperKey(arg keybase1.DisplayPrimaryPaperKeyArg) error {
 	return nil
 }

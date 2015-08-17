@@ -4,7 +4,7 @@ protocol loginUi {
 	import idl "common.avdl";
 
 	string getEmailOrUsername(int sessionID);
-	boolean promptRevokeBackupDeviceKeys(int sessionID, Device device);
-	void displayBackupPhrase(int sessionID, string phrase);
-	void displayInitialPaperKey(int sessionID, string phrase);
+	boolean promptRevokePaperKeys(int sessionID, Device device);
+	void displayPaperKeyPhrase(int sessionID, string phrase);
+	void displayPrimaryPaperKey(int sessionID, string phrase);
 }

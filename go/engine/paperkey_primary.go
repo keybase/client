@@ -73,5 +73,5 @@ func (e *PaperKeyPrimary) Run(ctx *Context) error {
 		return err
 	}
 
-	return ctx.LoginUI.DisplayInitialPaperKey(keybase1.DisplayInitialPaperKeyArg{Phrase: e.passphrase})
+	return ctx.LoginUI.DisplayPrimaryPaperKey(keybase1.DisplayPrimaryPaperKeyArg{Phrase: e.passphrase})
 }

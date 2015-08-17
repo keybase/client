@@ -163,7 +163,7 @@
       } ],
       "response" : "string"
     },
-    "promptRevokeBackupDeviceKeys" : {
+    "promptRevokePaperKeys" : {
       "request" : [ {
         "name" : "sessionID",
         "type" : "int"
@@ -173,7 +173,7 @@
       } ],
       "response" : "boolean"
     },
-    "displayBackupPhrase" : {
+    "displayPaperKeyPhrase" : {
       "request" : [ {
         "name" : "sessionID",
         "type" : "int"
@@ -183,7 +183,7 @@
       } ],
       "response" : "null"
     },
-    "displayInitialPaperKey" : {
+    "displayPrimaryPaperKey" : {
       "request" : [ {
         "name" : "sessionID",
         "type" : "int"

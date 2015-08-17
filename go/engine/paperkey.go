@@ -67,8 +67,8 @@ func (e *PaperKey) Run(ctx *Context) error {
 	}
 	var needReload bool
 	for _, bdev := range cki.BackupDevices() {
-		revoke, err := ctx.LoginUI.PromptRevokeBackupDeviceKeys(
-			keybase1.PromptRevokeBackupDeviceKeysArg{
+		revoke, err := ctx.LoginUI.PromptRevokePaperKeys(
+			keybase1.PromptRevokePaperKeysArg{
 				Device: *bdev.ProtExport(),
 			})
 		if err != nil {
@@ -117,7 +117,7 @@ func (e *PaperKey) Run(ctx *Context) error {
 		return err
 	}
 
-	return ctx.LoginUI.DisplayBackupPhrase(keybase1.DisplayBackupPhraseArg{Phrase: e.passphrase})
+	return ctx.LoginUI.DisplayPaperKeyPhrase(keybase1.DisplayPaperKeyPhraseArg{Phrase: e.passphrase})
 
 }
 

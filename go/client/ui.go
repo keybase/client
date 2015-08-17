@@ -582,18 +582,18 @@ func (l LoginUI) GetEmailOrUsername(dummy int) (string, error) {
 		libkb.CheckEmailOrUsername)
 }
 
-func (l LoginUI) PromptRevokeBackupDeviceKeys(arg keybase1.PromptRevokeBackupDeviceKeysArg) (bool, error) {
-	return l.parent.PromptYesNo(fmt.Sprintf("Revoke existing backup keys (%s)?", arg.Device.DeviceID), PromptDefaultYes)
+func (l LoginUI) PromptRevokePaperKeys(arg keybase1.PromptRevokePaperKeysArg) (bool, error) {
+	return l.parent.PromptYesNo(fmt.Sprintf("Revoke existing paper keys (%s)?", arg.Device.DeviceID), PromptDefaultYes)
 }
 
-func (l LoginUI) DisplayBackupPhrase(arg keybase1.DisplayBackupPhraseArg) error {
-	l.parent.Printf("Here is your secret backup phrase:\n\n")
+func (l LoginUI) DisplayPaperKeyPhrase(arg keybase1.DisplayPaperKeyPhraseArg) error {
+	l.parent.Printf("Here is your secret paper key phrase:\n\n")
 	l.parent.Printf("\t%s\n\n", arg.Phrase)
 	l.parent.Printf("Write it down and keep somewhere safe.\n")
 	return nil
 }
 
-func (l LoginUI) DisplayInitialPaperKey(arg keybase1.DisplayInitialPaperKeyArg) error {
+func (l LoginUI) DisplayPrimaryPaperKey(arg keybase1.DisplayPrimaryPaperKeyArg) error {
 	l.parent.Printf("IMPORTANT: PAPER KEY GENERATION\n\n")
 	l.parent.Printf("During Keybase's alpha, everyone gets a paper key. This is a private key.\n")
 	l.parent.Printf("  1. you must write it down\n")

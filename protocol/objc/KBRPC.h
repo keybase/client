@@ -800,21 +800,21 @@ typedef NS_ENUM (NSInteger, KBRPromptDefault) {
 @interface KBRResetRequestParams : KBRRequestParams
 @property NSInteger sessionID;
 @end
-@interface KBRBackupRequestParams : KBRRequestParams
+@interface KBRPaperKeyRequestParams : KBRRequestParams
 @property NSInteger sessionID;
 @end
 @interface KBRGetEmailOrUsernameRequestParams : KBRRequestParams
 @property NSInteger sessionID;
 @end
-@interface KBRPromptRevokeBackupDeviceKeysRequestParams : KBRRequestParams
+@interface KBRPromptRevokePaperKeysRequestParams : KBRRequestParams
 @property NSInteger sessionID;
 @property KBRDevice *device;
 @end
-@interface KBRDisplayBackupPhraseRequestParams : KBRRequestParams
+@interface KBRDisplayPaperKeyPhraseRequestParams : KBRRequestParams
 @property NSInteger sessionID;
 @property NSString *phrase;
 @end
-@interface KBRDisplayInitialPaperKeyRequestParams : KBRRequestParams
+@interface KBRDisplayPrimaryPaperKeyRequestParams : KBRRequestParams
 @property NSInteger sessionID;
 @property NSString *phrase;
 @end
@@ -1355,7 +1355,7 @@ typedef NS_ENUM (NSInteger, KBRPromptDefault) {
 
 - (void)reset:(void (^)(NSError *error))completion;
 
-- (void)backup:(void (^)(NSError *error))completion;
+- (void)paperKey:(void (^)(NSError *error))completion;
 
 @end
 
@@ -1363,17 +1363,17 @@ typedef NS_ENUM (NSInteger, KBRPromptDefault) {
 
 - (void)getEmailOrUsername:(void (^)(NSError *error, NSString *str))completion;
 
-- (void)promptRevokeBackupDeviceKeys:(KBRPromptRevokeBackupDeviceKeysRequestParams *)params completion:(void (^)(NSError *error, BOOL b))completion;
+- (void)promptRevokePaperKeys:(KBRPromptRevokePaperKeysRequestParams *)params completion:(void (^)(NSError *error, BOOL b))completion;
 
-- (void)promptRevokeBackupDeviceKeysWithDevice:(KBRDevice *)device completion:(void (^)(NSError *error, BOOL b))completion;
+- (void)promptRevokePaperKeysWithDevice:(KBRDevice *)device completion:(void (^)(NSError *error, BOOL b))completion;
 
-- (void)displayBackupPhrase:(KBRDisplayBackupPhraseRequestParams *)params completion:(void (^)(NSError *error))completion;
+- (void)displayPaperKeyPhrase:(KBRDisplayPaperKeyPhraseRequestParams *)params completion:(void (^)(NSError *error))completion;
 
-- (void)displayBackupPhraseWithPhrase:(NSString *)phrase completion:(void (^)(NSError *error))completion;
+- (void)displayPaperKeyPhraseWithPhrase:(NSString *)phrase completion:(void (^)(NSError *error))completion;
 
-- (void)displayInitialPaperKey:(KBRDisplayInitialPaperKeyRequestParams *)params completion:(void (^)(NSError *error))completion;
+- (void)displayPrimaryPaperKey:(KBRDisplayPrimaryPaperKeyRequestParams *)params completion:(void (^)(NSError *error))completion;
 
-- (void)displayInitialPaperKeyWithPhrase:(NSString *)phrase completion:(void (^)(NSError *error))completion;
+- (void)displayPrimaryPaperKeyWithPhrase:(NSString *)phrase completion:(void (^)(NSError *error))completion;
 
 @end
 
