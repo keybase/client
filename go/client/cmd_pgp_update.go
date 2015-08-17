@@ -27,6 +27,7 @@ func (v *CmdPGPUpdate) Run() (err error) {
 
 	protocols := []rpc2.Protocol{
 		NewLogUIProtocol(),
+		NewSecretUIProtocol(),
 	}
 	if err = RegisterProtocols(protocols); err != nil {
 		return err

@@ -288,7 +288,9 @@ func (u *User) KeyProof(arg Delegator) (ret *jsonw.Wrapper, pushType string, err
 		pushType = EldestType
 		addPGPHashIfApplicable(ret.AtKey("key"), arg.NewKey)
 	} else {
-		if arg.Sibkey {
+		if arg.PGPUpdate {
+			pushType = PGPUpdateType
+		} else if arg.Sibkey {
 			pushType = SibkeyType
 		} else {
 			pushType = SubkeyType
@@ -373,17 +375,21 @@ func (u *User) delegateKeyProof(arg Delegator, signingkey keybase1.KID, pushType
 		setDeviceOnBody(body, arg.NewKey, *arg.Device)
 	}
 
-	var kp *jsonw.Wrapper
-	if kp, err = keyToProofJSON(arg.NewKey, pushType, signingkey, arg.RevSig, u); err != nil {
-		return
-	}
+	if pushType == PGPUpdateType {
+		addPGPHashIfApplicable(body.AtKey("key"), arg.NewKey)
+	} else {
+		var kp *jsonw.Wrapper
+		if kp, err = keyToProofJSON(arg.NewKey, pushType, signingkey, arg.RevSig, u); err != nil {
+			return
+		}
 
-	if pushType == SibkeyType {
-		addPGPHashIfApplicable(kp, arg.NewKey)
-	}
+		if pushType == SibkeyType {
+			addPGPHashIfApplicable(kp, arg.NewKey)
+		}
 
-	// pushType can be 'subkey' or 'sibkey'
-	body.SetKey(pushType, kp)
+		// pushType can be 'subkey' or 'sibkey'
+		body.SetKey(pushType, kp)
+	}
 	return
 }
 

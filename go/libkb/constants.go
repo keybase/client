@@ -113,9 +113,10 @@ const (
 )
 
 const (
-	SibkeyType = "sibkey"
-	SubkeyType = "subkey"
-	EldestType = "eldest"
+	PGPUpdateType = "pgp_update"
+	SibkeyType    = "sibkey"
+	SubkeyType    = "subkey"
+	EldestType    = "eldest"
 )
 
 const (

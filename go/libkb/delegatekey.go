@@ -23,6 +23,7 @@ type Delegator struct {
 	EldestKID         keybase1.KID
 	Me                *User
 	Sibkey            bool
+	PGPUpdate         bool
 	Expire            int
 	Device            *Device
 	RevSig            string
@@ -222,6 +223,10 @@ func (d *Delegator) post(lctx LoginContext) (err error) {
 
 	if len(string(d.ServerHalf)) > 0 {
 		hargs["server_half"] = S{Val: hex.EncodeToString(d.ServerHalf)}
+	}
+
+	if d.PGPUpdate {
+		hargs["is_update"] = B{Val: true}
 	}
 
 	if d.isEldest {
