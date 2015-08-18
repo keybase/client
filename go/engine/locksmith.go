@@ -393,8 +393,7 @@ func (d *Locksmith) deviceSign(ctx *Context, withPGPOption bool) error {
 		}
 
 		if res.Action == keybase1.SelectSignerAction_CANCEL {
-			// XXX another way to bail besides returning an error?
-			return fmt.Errorf("cancel requested by user")
+			return libkb.CanceledError{M: "cancel requested by user"}
 		}
 
 		if res.Action != keybase1.SelectSignerAction_SIGN {
