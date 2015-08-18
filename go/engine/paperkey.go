@@ -7,7 +7,6 @@ package engine
 
 import (
 	"fmt"
-	"strings"
 
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/protocol/go"
@@ -15,7 +14,7 @@ import (
 
 // PaperKey is an engine.
 type PaperKey struct {
-	passphrase string
+	passphrase libkb.PaperKeyPhrase
 	libkb.Contextified
 }
 
@@ -101,11 +100,10 @@ func (e *PaperKey) Run(ctx *Context) error {
 		return err
 	}
 
-	words, err := libkb.SecWordList(libkb.PaperKeyPhraseEntropy)
+	e.passphrase, err = libkb.MakePaperKeyPhrase(libkb.PaperKeyVersion)
 	if err != nil {
 		return err
 	}
-	e.passphrase = strings.Join(words, " ")
 
 	kgarg := &PaperKeyGenArg{
 		Passphrase: e.passphrase,
@@ -117,10 +115,10 @@ func (e *PaperKey) Run(ctx *Context) error {
 		return err
 	}
 
-	return ctx.LoginUI.DisplayPaperKeyPhrase(keybase1.DisplayPaperKeyPhraseArg{Phrase: e.passphrase})
+	return ctx.LoginUI.DisplayPaperKeyPhrase(keybase1.DisplayPaperKeyPhraseArg{Phrase: e.passphrase.String()})
 
 }
 
 func (e *PaperKey) Passphrase() string {
-	return e.passphrase
+	return e.passphrase.String()
 }

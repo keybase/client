@@ -266,7 +266,7 @@ const (
 	PaperKeyScryptP       = 1
 	PaperKeyScryptKeylen  = 128
 	PaperKeyPhraseEntropy = 144
-	PaperKeyNameEntropy   = 24
+	PaperKeyVersion       = 0
 )
 
 const UserSummaryLimit = 500 // max number of user summaries in one request

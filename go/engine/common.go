@@ -19,10 +19,10 @@ type keypair struct {
 	sigKey libkb.GenericKey
 }
 
-// findBackupKeys checks if the user has backup keys.  If he/she
-// does, it prompts for a backup phrase.  This is used to
-// regenerate backup keys, which are then matched against the
-// backup keys found in the keyfamily.
+// findPaperKeys checks if the user has paper backup keys.  If he/she
+// does, it prompts for a paperkey phrase.  This is used to
+// regenerate paper keys, which are then matched against the
+// paper keys found in the keyfamily.
 func findPaperKeys(ctx *Context, g *libkb.GlobalContext, me *libkb.User) (*keypair, error) {
 	cki := me.GetComputedKeyInfos()
 	if cki == nil {
@@ -37,9 +37,13 @@ func findPaperKeys(ctx *Context, g *libkb.GlobalContext, me *libkb.User) (*keypa
 	if err != nil {
 		return nil, err
 	}
+	paperPhrase := libkb.NewPaperKeyPhrase(passphrase)
+	if paperPhrase.Version() != libkb.PaperKeyVersion {
+		return nil, libkb.KeyVersionError{}
+	}
 
 	bkarg := &PaperKeyGenArg{
-		Passphrase: passphrase,
+		Passphrase: libkb.NewPaperKeyPhrase(passphrase),
 		SkipPush:   true,
 		Me:         me,
 	}
