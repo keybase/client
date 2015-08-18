@@ -16,6 +16,9 @@ import (
 type Delegator struct {
 	Contextified
 
+	// TODO: Rethink flags (Sibkey, PGPUpdate)
+	// https://github.com/keybase/client/issues/647
+
 	// Set these fields
 	NewKey            GenericKey
 	ExistingKey       GenericKey
