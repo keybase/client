@@ -12,7 +12,11 @@ func PGPEncrypt(source io.Reader, sink io.WriteCloser, signer *PGPKeyBundle, rec
 	for i, r := range recipients {
 		to[i] = r.Entity
 	}
-	w, err := openpgp.Encrypt(sink, to, signer.Entity, &openpgp.FileHints{IsBinary: true}, nil)
+	var signerEntity *openpgp.Entity
+	if signer != nil {
+		signerEntity = signer.Entity
+	}
+	w, err := openpgp.Encrypt(sink, to, signerEntity, &openpgp.FileHints{IsBinary: true}, nil)
 	if err != nil {
 		return err
 	}
