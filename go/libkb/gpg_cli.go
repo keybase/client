@@ -1,9 +1,11 @@
 package libkb
 
 import (
+	"bytes"
 	"fmt"
 	"io"
 	"os/exec"
+	"strings"
 	"sync"
 
 	"golang.org/x/crypto/openpgp"
@@ -122,7 +124,7 @@ func (g *GpgCLI) ImportKey(secret bool, fp PGPFingerprint) (ret *PGPKeyBundle, e
 	}
 
 	arg := RunGpg2Arg{
-		Arguments: []string{cmd, fp.String()},
+		Arguments: []string{"--armor", cmd, fp.String()},
 		Stdout:    true,
 	}
 
@@ -131,7 +133,11 @@ func (g *GpgCLI) ImportKey(secret bool, fp PGPFingerprint) (ret *PGPKeyBundle, e
 		return nil, res.Err
 	}
 
-	el, err := openpgp.ReadKeyRing(res.Stdout)
+	buf := new(bytes.Buffer)
+	buf.ReadFrom(res.Stdout)
+	armored := buf.String()
+
+	el, err := openpgp.ReadArmoredKeyRing(strings.NewReader(armored))
 	if err != nil {
 		return nil, err
 	}
@@ -145,7 +151,8 @@ func (g *GpgCLI) ImportKey(secret bool, fp PGPFingerprint) (ret *PGPKeyBundle, e
 		return nil, TooManyKeysError{len(el), fp}
 	}
 
-	return (*PGPKeyBundle)(el[0]), nil
+	bundle := PGPKeyBundle{el[0], armored}
+	return &bundle, nil
 }
 
 func (g *GpgCLI) ExportKey(k PGPKeyBundle) (err error) {

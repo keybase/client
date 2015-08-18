@@ -38,7 +38,7 @@ func TestPGPEncrypt(t *testing.T) {
 
 	// check that each recipient can read the message
 	for _, recip := range recipients {
-		kr := openpgp.EntityList{(*openpgp.Entity)(recip)}
+		kr := openpgp.EntityList{recip.Entity}
 		emsg := bytes.NewBuffer(out)
 		md, err := openpgp.ReadMessage(emsg, kr, nil, nil)
 		if err != nil {
@@ -79,7 +79,7 @@ func TestPGPEncryptString(t *testing.T) {
 
 	// check that each recipient can read the message
 	for _, recip := range recipients {
-		kr := openpgp.EntityList{(*openpgp.Entity)(recip)}
+		kr := openpgp.EntityList{recip.Entity}
 		emsg := bytes.NewBuffer(out)
 		md, err := openpgp.ReadMessage(emsg, kr, nil, nil)
 		if err != nil {
@@ -120,7 +120,7 @@ func TestPGPEncryptQuick(t *testing.T) {
 
 		// check that each recipient can read the message
 		for _, recip := range recipients {
-			kr := openpgp.EntityList{(*openpgp.Entity)(recip)}
+			kr := openpgp.EntityList{recip.Entity}
 			emsg := bytes.NewBuffer(out)
 			md, err := openpgp.ReadMessage(emsg, kr, nil, nil)
 			if err != nil {
@@ -177,7 +177,7 @@ func TestPGPEncryptLong(t *testing.T) {
 
 	// check that each recipient can read the message
 	for _, recip := range recipients {
-		kr := openpgp.EntityList{(*openpgp.Entity)(recip)}
+		kr := openpgp.EntityList{recip.Entity}
 		emsg := bytes.NewBuffer(out)
 		md, err := openpgp.ReadMessage(emsg, kr, nil, nil)
 		if err != nil {

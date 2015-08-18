@@ -39,6 +39,7 @@ func (e *PGPUpdateEngine) Prereqs() Prereqs {
 func (e *PGPUpdateEngine) RequiredUIs() []libkb.UIKind {
 	return []libkb.UIKind{
 		libkb.LogUIKind,
+		libkb.SecretUIKind,
 	}
 }
 
@@ -68,6 +69,17 @@ func (e *PGPUpdateEngine) Run(ctx *Context) error {
 		return err
 	}
 
+	del := libkb.Delegator{
+		PGPUpdate: true,
+		Me:        me,
+		Expire:    libkb.KeyExpireIn,
+	}
+
+	err = del.LoadSigningKey(ctx.LoginContext, ctx.SecretUI)
+	if err != nil {
+		return err
+	}
+
 	for _, fingerprint := range fingerprints {
 		if len(e.selectedFingerprints) > 0 && !e.selectedFingerprints[fingerprint.String()] {
 			ctx.LogUI.Warning("Skipping update for key %s", fingerprint.String())
@@ -86,20 +98,14 @@ func (e *PGPUpdateEngine) Run(ctx *Context) error {
 			}
 		}
 
-		keyBlob, err := bundle.Encode()
-		if err != nil {
-			return err
-		}
+		del.NewKey = bundle
+
 		ctx.LogUI.Info("Posting update for key %s.", fingerprint.String())
-		_, err = e.G().API.Post(libkb.APIArg{
-			Endpoint:    "key/add",
-			NeedSession: true,
-			Args: libkb.HTTPArgs{
-				"public_key": libkb.S{Val: keyBlob},
-				"is_update":  libkb.I{Val: 1},
-			},
-		})
-		if err != nil {
+		if err := del.Run(ctx.LoginContext); err != nil {
+			if appStatusErr, ok := err.(libkb.AppStatusError); ok && appStatusErr.Code == libkb.SCKeyDuplicateUpdate {
+				ctx.LogUI.Info("Key was already up to date.")
+				continue
+			}
 			return err
 		}
 		ctx.LogUI.Info("Update succeeded for key %s.", fingerprint)

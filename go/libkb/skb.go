@@ -19,7 +19,6 @@ import (
 
 	keybase1 "github.com/keybase/client/protocol/go"
 	triplesec "github.com/keybase/go-triplesec"
-	"golang.org/x/crypto/openpgp"
 )
 
 type SKB struct {
@@ -55,7 +54,7 @@ func (key *PGPKeyBundle) ToSKB(gc *GlobalContext, tsec *triplesec.Cipher) (ret *
 	var pk, sk bytes.Buffer
 
 	// Need to serialize Private first, because
-	err = (*openpgp.Entity)(key).SerializePrivate(&sk, nil)
+	err = key.Entity.SerializePrivate(&sk, nil)
 	if err != nil {
 		return
 	}
@@ -70,7 +69,7 @@ func (key *PGPKeyBundle) ToSKB(gc *GlobalContext, tsec *triplesec.Cipher) (ret *
 		ret.Priv.Encryption = 0
 	}
 
-	err = (*openpgp.Entity)(key).Serialize(&pk)
+	err = key.Entity.Serialize(&pk)
 	if err != nil {
 		return
 	}
@@ -86,7 +85,7 @@ func (key *PGPKeyBundle) ToLksSKB(lks *LKSec) (ret *SKB, err error) {
 	}
 	var pk, sk bytes.Buffer
 
-	err = (*openpgp.Entity)(key).SerializePrivate(&sk, nil)
+	err = key.Entity.SerializePrivate(&sk, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -98,7 +97,7 @@ func (key *PGPKeyBundle) ToLksSKB(lks *LKSec) (ret *SKB, err error) {
 	}
 	ret.Priv.Encryption = LKSecVersion
 
-	err = (*openpgp.Entity)(key).Serialize(&pk)
+	err = key.Entity.Serialize(&pk)
 	if err != nil {
 		return nil, err
 	}
