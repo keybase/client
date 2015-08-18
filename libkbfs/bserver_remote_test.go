@@ -87,7 +87,7 @@ func TestBServerRemotePutAndGet(t *testing.T) {
 	b := newBlockServerRemoteWithClient(ctx, config, fc)
 
 	bID := fakeBlockID(1)
-	tlfID := TlfID{2}
+	tlfID := FakeTlfID(2, false)
 	bCtx := BlockPointer{bID, 1, 1, kbpki.LoggedIn, "", zeroBlockRefNonce}
 	data := []byte{1, 2, 3, 4}
 	crypto := &CryptoCommon{codec}
@@ -134,7 +134,7 @@ func TestBServerRemotePutCanceled(t *testing.T) {
 		b := newBlockServerRemoteWithClient(ctx, config, fc)
 
 		bID := fakeBlockID(1)
-		tlfID := TlfID{2}
+		tlfID := FakeTlfID(2, false)
 		bCtx := BlockPointer{bID, 1, 1, kbpki.LoggedIn, "", zeroBlockRefNonce}
 		data := []byte{1, 2, 3, 4}
 		crypto := &CryptoCommon{codec}
@@ -168,7 +168,7 @@ func TestBServerRemoteWaitForReconnect(t *testing.T) {
 	putChan := make(chan error)
 	go func() {
 		bID := fakeBlockID(1)
-		tlfID := TlfID{2}
+		tlfID := FakeTlfID(2, false)
 		bCtx := BlockPointer{bID, 1, 1, kbpki.LoggedIn, "", zeroBlockRefNonce}
 		data := []byte{1, 2, 3, 4}
 		crypto := &CryptoCommon{codec}

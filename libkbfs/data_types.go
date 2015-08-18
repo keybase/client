@@ -15,49 +15,6 @@ import (
 )
 
 const (
-	// TlfIDLen is the number of bytes in a top-level folder ID
-	TlfIDLen = 16
-	// TlfIDSuffix is the last byte of a private top-level folder ID
-	TlfIDSuffix = 0x16
-	// PubTlfIDSuffix is the last byte of a public top-level folder ID
-	PubTlfIDSuffix = 0x17
-)
-
-// TlfID is a top-level folder ID
-type TlfID [TlfIDLen]byte
-
-// String implements the fmt.Stringer interface for TlfID
-func (t TlfID) String() string {
-	return hex.EncodeToString(t[:])
-}
-
-// IsPublic returns true if this TlfID is for a public top-level folder
-func (t TlfID) IsPublic() bool {
-	return t[TlfIDLen-1] == PubTlfIDSuffix
-}
-
-// ParseTlfID parses a hex encoded TlfID. Returns NullTlfID on failure.
-func ParseTlfID(s string) TlfID {
-	if len(s) != 2*TlfIDLen {
-		return NullTlfID
-	}
-	bytes, err := hex.DecodeString(s)
-	if err != nil {
-		return NullTlfID
-	}
-	if len(bytes) != TlfIDLen {
-		return NullTlfID
-	}
-	suffix := bytes[TlfIDLen-1]
-	if suffix != TlfIDSuffix && suffix != PubTlfIDSuffix {
-		return NullTlfID
-	}
-	var tlfID TlfID
-	copy(tlfID[:], bytes[:TlfIDLen])
-	return tlfID
-}
-
-const (
 	// ReaderSep is the string that separates readers from writers in a
 	// TlfHandle string representation.
 	ReaderSep = "#"
@@ -369,9 +326,6 @@ func (id MdID) String() string {
 
 // NullMdID is an empty MdID
 var NullMdID = MdID{}
-
-// NullTlfID is an empty TlfID
-var NullTlfID = TlfID{0}
 
 // KeyGen is the type of a key generation for a top-level folder.
 type KeyGen int

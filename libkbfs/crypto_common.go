@@ -45,14 +45,14 @@ func MakeCryptoCommon() CryptoCommon {
 // MakeRandomTlfID implements the Crypto interface for CryptoCommon.
 func (c *CryptoCommon) MakeRandomTlfID(isPublic bool) (TlfID, error) {
 	var id TlfID
-	err := cryptoRandRead(id[:])
+	err := cryptoRandRead(id.id[:])
 	if err != nil {
 		return TlfID{}, err
 	}
 	if isPublic {
-		id[len(id)-1] = PubTlfIDSuffix
+		id.id[TlfIDByteLen-1] = PubTlfIDSuffix
 	} else {
-		id[len(id)-1] = TlfIDSuffix
+		id.id[TlfIDByteLen-1] = TlfIDSuffix
 	}
 	return id, nil
 }

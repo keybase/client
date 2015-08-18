@@ -60,7 +60,7 @@ func TestKBFSOpsConcurDoubleMDGet(t *testing.T) {
 
 	n := 10
 	c := make(chan error, n)
-	dir := TlfID{0}
+	dir := FakeTlfID(0, false)
 	cl := &CounterLock{}
 
 	ops := getOps(config, dir)

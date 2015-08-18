@@ -14,7 +14,7 @@ func blockCacheTestInit(t *testing.T, capacity int) Config {
 func testBcachePut(t *testing.T, id BlockID, bcache BlockCache, dirty bool) {
 	block := NewFileBlock()
 	ptr := BlockPointer{ID: id}
-	tlf := TlfID{1}
+	tlf := FakeTlfID(1, false)
 	branch := MasterBranch
 
 	// put the block
@@ -150,7 +150,7 @@ func TestBcacheCheckPtrSuccess(t *testing.T) {
 	block.Contents = []byte{1, 2, 3, 4}
 	id := fakeBlockID(1)
 	ptr := BlockPointer{ID: id}
-	tlf := TlfID{1}
+	tlf := FakeTlfID(1, false)
 
 	err := bcache.Put(ptr, tlf, block)
 	if err != nil {
@@ -174,7 +174,7 @@ func TestBcacheCheckPtrNotFound(t *testing.T) {
 	block.Contents = []byte{1, 2, 3, 4}
 	id := fakeBlockID(1)
 	ptr := BlockPointer{ID: id}
-	tlf := TlfID{1}
+	tlf := FakeTlfID(1, false)
 
 	err := bcache.Put(ptr, tlf, block)
 	if err != nil {

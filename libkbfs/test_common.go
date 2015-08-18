@@ -54,7 +54,7 @@ func NewRootMetadataForTest(d *TlfHandle, id TlfID) *RootMetadata {
 		},
 	}
 	// make up the MD ID
-	rmd.mdID = fakeMdID(id[0])
+	rmd.mdID = fakeMdID(fakeTlfIDByte(id))
 	return rmd
 }
 
@@ -182,16 +182,26 @@ func ConfigAsUser(config *ConfigLocal, loggedInUser string) *ConfigLocal {
 	return c
 }
 
+// FakeTlfID creates a fake public or private TLF ID from the given
+// byte.
+func FakeTlfID(b byte, public bool) TlfID {
+	bytes := [TlfIDByteLen]byte{b}
+	if public {
+		bytes[TlfIDByteLen-1] = PubTlfIDSuffix
+	} else {
+		bytes[TlfIDByteLen-1] = TlfIDSuffix
+	}
+	return TlfID{bytes}
+}
+
+func fakeTlfIDByte(id TlfID) byte {
+	return id.id[0]
+}
+
 // NewFolder returns a new RootMetadataSigned for testing.
 func NewFolder(t *testing.T, x byte, revision MetadataRevision, share bool, public bool) (
 	TlfID, *TlfHandle, *RootMetadataSigned) {
-	id := TlfID{0}
-	id[0] = x
-	if public {
-		id[TlfIDLen-1] = PubTlfIDSuffix
-	} else {
-		id[TlfIDLen-1] = TlfIDSuffix
-	}
+	id := FakeTlfID(x, public)
 	h, rmds := NewFolderWithIDAndWriter(t, id, revision, share, public, keybase1.MakeTestUID(15))
 	return id, h, rmds
 }

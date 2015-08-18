@@ -278,7 +278,7 @@ func (b *BlockServerRemote) Put(ctx context.Context, id BlockID, tlfID TlfID,
 			BlockHash: id.String(),
 		},
 		BlockKey: hex.EncodeToString(serverHalf.ServerHalf[:]),
-		Folder:   hex.EncodeToString(tlfID[:]),
+		Folder:   tlfID.String(),
 		Buf:      buf,
 	}
 
@@ -308,7 +308,7 @@ func (b *BlockServerRemote) AddBlockReference(ctx context.Context, id BlockID,
 			BlockHash: id.String(),
 		},
 		Nonce:     hex.EncodeToString(nonce[:]),
-		Folder:    hex.EncodeToString(tlfID[:]),
+		Folder:    tlfID.String(),
 		ChargedTo: context.GetWriter(), //the actual writer to decrement quota from
 	}
 
@@ -340,7 +340,7 @@ func (b *BlockServerRemote) RemoveBlockReference(ctx context.Context, id BlockID
 			BlockHash: id.String(),
 		},
 		Nonce:     hex.EncodeToString(nonce[:]),
-		Folder:    hex.EncodeToString(tlfID[:]),
+		Folder:    tlfID.String(),
 		ChargedTo: context.GetWriter(), //the actual writer to decrement quota from
 	}
 

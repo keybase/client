@@ -9,8 +9,7 @@ import (
 // Test that GetTlfHandle() generates a TlfHandle properly for public
 // TLFs if there is no cached TlfHandle.
 func TestRootMetadataGetTlfHandlePublic(t *testing.T) {
-	var tlfID TlfID
-	tlfID[len(tlfID)-1] = PubTlfIDSuffix
+	tlfID := FakeTlfID(0, true)
 	rmd := NewRootMetadata(nil, tlfID)
 	dirHandle := rmd.GetTlfHandle()
 	if dirHandle == nil {
@@ -27,8 +26,7 @@ func TestRootMetadataGetTlfHandlePublic(t *testing.T) {
 // Test that GetTlfHandle() generates a TlfHandle properly for
 // non-public TLFs if there is no cached TlfHandle.
 func TestRootMetadataGetTlfHandlePrivate(t *testing.T) {
-	var tlfID TlfID
-	tlfID[len(tlfID)-1] = TlfIDSuffix
+	tlfID := FakeTlfID(0, false)
 	rmd := NewRootMetadata(nil, tlfID)
 	AddNewKeysOrBust(t, rmd, DirKeyBundle{})
 	dirHandle := rmd.GetTlfHandle()

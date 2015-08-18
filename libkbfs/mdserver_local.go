@@ -92,7 +92,11 @@ func (md *MDServerLocal) GetForHandle(ctx context.Context, handle *TlfHandle, un
 		return id, nil, MDServerError{err}
 	}
 	if err == nil {
-		copy(id[:], buf[:len(id)])
+		var id TlfID
+		err := id.UnmarshalBinary(buf)
+		if err != nil {
+			return NullTlfID, nil, err
+		}
 		rmds, err := md.GetForTLF(ctx, id, unmerged)
 		return id, rmds, err
 	}
@@ -103,7 +107,7 @@ func (md *MDServerLocal) GetForHandle(ctx context.Context, handle *TlfHandle, un
 		return id, nil, MDServerError{err}
 	}
 
-	err = md.handleDb.Put(handleBytes, id[:], nil)
+	err = md.handleDb.Put(handleBytes, id.Bytes(), nil)
 	if err != nil {
 		return id, nil, MDServerError{err}
 	}
@@ -148,12 +152,12 @@ func (md *MDServerLocal) getMDKey(ctx context.Context, id TlfID,
 	revision MetadataRevision, unmerged bool) ([]byte, error) {
 	// short-cut
 	if revision == MetadataRevisionHead && !unmerged {
-		return id[:], nil
+		return id.Bytes(), nil
 	}
 	buf := &bytes.Buffer{}
 
 	// add folder id
-	_, err := buf.Write(id[:])
+	_, err := buf.Write(id.Bytes())
 	if err != nil {
 		return []byte{}, err
 	}
