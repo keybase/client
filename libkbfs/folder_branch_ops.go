@@ -157,8 +157,7 @@ type FolderBranchOps struct {
 	stateLock sync.Mutex
 
 	// The current status summary for this folder
-	status     *folderBranchStatusKeeper
-	statusLock sync.Mutex
+	status *folderBranchStatusKeeper
 
 	// Closed on shutdown
 	shutdownChan chan struct{}
@@ -243,7 +242,7 @@ func (fbo *FolderBranchOps) checkDataVersion(p path, ptr BlockPointer) error {
 	return nil
 }
 
-// headLock and statusLock must be taken by caller
+// headLock must be taken by caller
 func (fbo *FolderBranchOps) setHeadLocked(md *RootMetadata) {
 	fbo.head = md
 	fbo.status.setRootMetadata(md)
@@ -297,8 +296,6 @@ func (fbo *FolderBranchOps) getMDLocked(ctx context.Context, rtype reqType) (
 
 		fbo.headLock.Lock()
 		defer fbo.headLock.Unlock()
-		fbo.statusLock.Lock()
-		defer fbo.statusLock.Unlock()
 		fbo.setHeadLocked(md)
 	}
 
@@ -433,8 +430,6 @@ func (fbo *FolderBranchOps) initMDLocked(
 				"%v: Unexpected MD ID during new MD initialization: %v",
 				md.ID, headID)
 		}
-		fbo.statusLock.Lock()
-		defer fbo.statusLock.Unlock()
 		fbo.setHeadLocked(md)
 	}
 	return nil
@@ -923,7 +918,7 @@ func (fbo *FolderBranchOps) unembedBlockChanges(
 	return
 }
 
-// headLock and statusLock should be taken by the caller.
+// headLock should be taken by the caller.
 func (fbo *FolderBranchOps) saveMdToCacheLocked(md *RootMetadata) error {
 	mdID, err := md.MetadataID(fbo.config)
 	if err != nil {
@@ -1291,8 +1286,6 @@ func (fbo *FolderBranchOps) finalizeWriteLocked(ctx context.Context,
 		return err
 	}
 
-	fbo.statusLock.Lock()
-	defer fbo.statusLock.Unlock()
 	err = fbo.saveMdToCacheLocked(md)
 	if err != nil {
 		// XXX: if we return with an error here, should we somehow
@@ -2176,8 +2169,6 @@ func (fbo *FolderBranchOps) Write(
 			})
 	}
 
-	fbo.statusLock.Lock()
-	defer fbo.statusLock.Unlock()
 	fbo.status.addDirtyNode(file)
 	return nil
 }
@@ -2334,8 +2325,6 @@ func (fbo *FolderBranchOps) Truncate(
 			})
 	}
 
-	fbo.statusLock.Lock()
-	defer fbo.statusLock.Unlock()
 	fbo.status.addDirtyNode(file)
 	return nil
 }
@@ -2779,8 +2768,6 @@ func (fbo *FolderBranchOps) Sync(ctx context.Context, file Node) (err error) {
 		return err
 	}
 
-	fbo.statusLock.Lock()
-	defer fbo.statusLock.Unlock()
 	fbo.status.rmDirtyNode(file)
 	return nil
 }
@@ -2794,8 +2781,6 @@ func (fbo *FolderBranchOps) Status(
 			WrongOpsError{fbo.folderBranch, folderBranch}
 	}
 
-	fbo.statusLock.Lock()
-	defer fbo.statusLock.Unlock()
 	return fbo.status.getStatus(ctx)
 }
 
@@ -3127,8 +3112,6 @@ func (fbo *FolderBranchOps) applyMDUpdates(ctx context.Context,
 		}
 	}
 
-	fbo.statusLock.Lock()
-	defer fbo.statusLock.Unlock()
 	for _, rmd := range rmds {
 		if rmd.Revision != fbo.getCurrMDRevisionLocked()+1 {
 			return fmt.Errorf("MD revision %d isn't next in line for our "+
