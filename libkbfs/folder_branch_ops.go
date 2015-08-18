@@ -2176,6 +2176,9 @@ func (fbo *FolderBranchOps) Write(
 			})
 	}
 
+	fbo.statusLock.Lock()
+	defer fbo.statusLock.Unlock()
+	fbo.status.addDirtyNode(file)
 	return nil
 }
 
@@ -2330,6 +2333,10 @@ func (fbo *FolderBranchOps) Truncate(
 				return fbo.truncateLocked(ctx, md, f, size, false)
 			})
 	}
+
+	fbo.statusLock.Lock()
+	defer fbo.statusLock.Unlock()
+	fbo.status.addDirtyNode(file)
 	return nil
 }
 
@@ -2767,7 +2774,15 @@ func (fbo *FolderBranchOps) Sync(ctx context.Context, file Node) (err error) {
 	fbo.writerLock.Lock()
 	defer fbo.writerLock.Unlock()
 	filePath := fbo.nodeCache.PathFromNode(file)
-	return fbo.syncLocked(ctx, filePath)
+	err = fbo.syncLocked(ctx, filePath)
+	if err != nil {
+		return err
+	}
+
+	fbo.statusLock.Lock()
+	defer fbo.statusLock.Unlock()
+	fbo.status.rmDirtyNode(file)
+	return nil
 }
 
 // Status implements the KBFSOps interface for FolderBranchOps

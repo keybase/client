@@ -43,7 +43,8 @@ func (t *testCRObserver) BatchChanges(ctx context.Context,
 }
 
 func checkStatus(t *testing.T, ctx context.Context, kbfsOps KBFSOps,
-	staged bool, headWriter string, fb FolderBranch, prefix string) {
+	staged bool, headWriter string, dirtyPaths []string, fb FolderBranch,
+	prefix string) {
 	status, err := kbfsOps.Status(ctx, fb)
 	if err != nil {
 		t.Fatalf("%s: Couldn't get status", prefix)
@@ -53,6 +54,22 @@ func checkStatus(t *testing.T, ctx context.Context, kbfsOps KBFSOps,
 	}
 	if status.HeadWriter != headWriter {
 		t.Errorf("%s: Unexpected head writer: %s", prefix, status.HeadWriter)
+	}
+	if len(status.DirtyPaths) != len(dirtyPaths) {
+		t.Errorf("%s: Unexpected dirty paths: %v", prefix, status.DirtyPaths)
+	}
+	for _, p := range dirtyPaths {
+		found := false
+		for _, sp := range status.DirtyPaths {
+			if p == sp {
+				found = true
+				break
+			}
+		}
+		if !found {
+			t.Errorf("%s: Couldn't find dirty path %s in %v", prefix,
+				p, status.DirtyPaths)
+		}
 	}
 }
 
@@ -120,10 +137,10 @@ func TestBasicMDUpdate(t *testing.T) {
 	// The status should have fired as well (though in this case the
 	// writer is the same as before)
 	<-status.Changed()
-	checkStatus(t, ctx, kbfsOps1, false, userName1, rootNode1.GetFolderBranch(),
-		"Node 1")
-	checkStatus(t, ctx, kbfsOps2, false, userName1, rootNode2.GetFolderBranch(),
-		"Node 2")
+	checkStatus(t, ctx, kbfsOps1, false, userName1, nil,
+		rootNode1.GetFolderBranch(), "Node 1")
+	checkStatus(t, ctx, kbfsOps2, false, userName1, nil,
+		rootNode2.GetFolderBranch(), "Node 2")
 }
 
 func testMultipleMDUpdates(t *testing.T, unembedChanges bool) {
@@ -264,6 +281,8 @@ func TestUnmergedAfterRestart(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Couldn't write file: %v", err)
 	}
+	checkStatus(t, ctx, kbfsOps2, false, userName1, []string{"u1,u2/a"},
+		rootNode2.GetFolderBranch(), "Node 2 (after write)")
 	err = kbfsOps2.Sync(ctx, fileNode2)
 	if err != nil {
 		t.Fatalf("Couldn't sync file: %v", err)
@@ -279,16 +298,17 @@ func TestUnmergedAfterRestart(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Couldn't write file: %v", err)
 	}
-
+	checkStatus(t, ctx, kbfsOps1, false, userName1, []string{"u1,u2/a"},
+		rootNode1.GetFolderBranch(), "Node 1 (after write)")
 	err = kbfsOps1.Sync(ctx, fileNode1)
 	if err != nil {
 		t.Fatalf("Couldn't sync file: %v", err)
 	}
 
-	checkStatus(t, ctx, kbfsOps1, true, userName1, rootNode1.GetFolderBranch(),
-		"Node 1")
-	checkStatus(t, ctx, kbfsOps2, false, userName2, rootNode2.GetFolderBranch(),
-		"Node 2")
+	checkStatus(t, ctx, kbfsOps1, true, userName1, nil,
+		rootNode1.GetFolderBranch(), "Node 1")
+	checkStatus(t, ctx, kbfsOps2, false, userName2, nil,
+		rootNode2.GetFolderBranch(), "Node 2")
 
 	// now re-login the users, and make sure 1 can see the changes,
 	// but 2 can't
@@ -300,9 +320,9 @@ func TestUnmergedAfterRestart(t *testing.T) {
 	readAndCompareData(t, config1B, ctx, h, data1, userName1)
 	readAndCompareData(t, config2B, ctx, h, data2, userName2)
 
-	checkStatus(t, ctx, config1B.KBFSOps(), true, userName1,
+	checkStatus(t, ctx, config1B.KBFSOps(), true, userName1, nil,
 		rootNode1.GetFolderBranch(), "Node 1")
-	checkStatus(t, ctx, config2B.KBFSOps(), false, userName2,
+	checkStatus(t, ctx, config2B.KBFSOps(), false, userName2, nil,
 		rootNode2.GetFolderBranch(), "Node 2")
 }
 
