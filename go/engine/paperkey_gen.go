@@ -5,7 +5,6 @@ import (
 	"encoding/hex"
 	"errors"
 	"fmt"
-	"strings"
 
 	"github.com/agl/ed25519"
 	"golang.org/x/crypto/nacl/box"
@@ -15,7 +14,7 @@ import (
 )
 
 type PaperKeyGenArg struct {
-	Passphrase string
+	Passphrase libkb.PaperKeyPhrase
 	SkipPush   bool
 	Me         *libkb.User
 	SigningKey libkb.GenericKey
@@ -180,14 +179,10 @@ func (e *PaperKeyGen) push(ctx *Context) error {
 		return nil
 	}
 
-	// Need the passphrase prefix for the paper device name.
-	// This is the first two words in the passphrase.  There
-	// is sufficient entropy to cover this...
-	words := strings.Fields(e.arg.Passphrase)
-	prefix := strings.Join(words[0:2], " ")
-
-	// create a new paper key device
-	backupDev, err := libkb.NewPaperDevice(prefix)
+	// Create a new paper key device. Need the passphrase prefix
+	// for the paper device name.  This is the first two words in
+	// the passphrase.  There is sufficient entropy to cover this...
+	backupDev, err := libkb.NewPaperDevice(e.arg.Passphrase.Prefix())
 	if err != nil {
 		return err
 	}

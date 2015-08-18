@@ -1043,3 +1043,9 @@ type LoginSessionNotFound struct {
 func (e LoginSessionNotFound) Error() string {
 	return fmt.Sprintf("No login session found for session id %d", e.SessionID)
 }
+
+type KeyVersionError struct{}
+
+func (k KeyVersionError) Error() string {
+	return "Invalid key version"
+}

@@ -5,15 +5,13 @@
 package engine
 
 import (
-	"strings"
-
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/protocol/go"
 )
 
 // PaperKeyPrimary is an engine.
 type PaperKeyPrimary struct {
-	passphrase string
+	passphrase libkb.PaperKeyPhrase
 	args       *PaperKeyPrimaryArgs
 	libkb.Contextified
 }
@@ -57,11 +55,11 @@ func (e *PaperKeyPrimary) SubConsumers() []libkb.UIConsumer {
 
 // Run starts the engine.
 func (e *PaperKeyPrimary) Run(ctx *Context) error {
-	words, err := libkb.SecWordList(libkb.PaperKeyPhraseEntropy)
+	var err error
+	e.passphrase, err = libkb.MakePaperKeyPhrase(libkb.PaperKeyVersion)
 	if err != nil {
 		return err
 	}
-	e.passphrase = strings.Join(words, " ")
 
 	kgarg := &PaperKeyGenArg{
 		Passphrase: e.passphrase,
@@ -73,5 +71,5 @@ func (e *PaperKeyPrimary) Run(ctx *Context) error {
 		return err
 	}
 
-	return ctx.LoginUI.DisplayPrimaryPaperKey(keybase1.DisplayPrimaryPaperKeyArg{Phrase: e.passphrase})
+	return ctx.LoginUI.DisplayPrimaryPaperKey(keybase1.DisplayPrimaryPaperKeyArg{Phrase: e.passphrase.String()})
 }
