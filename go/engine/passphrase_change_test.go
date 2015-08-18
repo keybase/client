@@ -354,7 +354,7 @@ func TestPassphraseChangeLoggedOutBackupKeySecretStore(t *testing.T) {
 		LoginUI:  libkb.TestLoginUI{},
 		SecretUI: &secretUI,
 	}
-	beng := NewBackup(tc.G)
+	beng := NewPaperKey(tc.G)
 	if err := RunEngine(beng, ctx); err != nil {
 		t.Fatal(err)
 	}
