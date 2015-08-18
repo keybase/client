@@ -91,8 +91,8 @@ func (e MDServerErrorConflictRevision) ToStatus() (s keybase1.Status) {
 // MDServerErrorConflictPrevRoot is returned when the passed MD block is inconsistent with current history.
 type MDServerErrorConflictPrevRoot struct {
 	Desc     string
-	Expected [32]byte
-	Actual   [32]byte
+	Expected MdID
+	Actual   MdID
 }
 
 // Error implements the Error interface for MDServerErrorConflictPrevRoot.

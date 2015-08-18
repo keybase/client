@@ -6,7 +6,6 @@ import (
 	"testing"
 
 	"github.com/golang/mock/gomock"
-	"github.com/keybase/client/go/libkb"
 	"golang.org/x/net/context"
 )
 
@@ -186,7 +185,7 @@ func TestBlockOpsReadySuccess(t *testing.T) {
 
 	expectedPlainSize := 4
 	expectBlockEncrypt(config, rmd, decData, expectedPlainSize, encData, nil)
-	config.mockCrypto.EXPECT().Hash(encData).Return(id.Hash, nil)
+	config.mockCrypto.EXPECT().MakePermanentBlockID(encData).Return(id, nil)
 
 	id2, plainSize, readyBlockData, err :=
 		config.BlockOps().Ready(ctx, rmd, decData)
@@ -238,7 +237,7 @@ func TestBlockOpsReadyFailEncryptBlockData(t *testing.T) {
 	}
 }
 
-func TestBlockOpsReadyFailHash(t *testing.T) {
+func TestBlockOpsReadyFailMakePermanentBlockID(t *testing.T) {
 	mockCtrl, config, ctx := blockOpsInit(t)
 	defer blockOpsShutdown(mockCtrl, config)
 
@@ -251,33 +250,11 @@ func TestBlockOpsReadyFailHash(t *testing.T) {
 
 	expectBlockEncrypt(config, rmd, decData, 4, encData, nil)
 
-	config.mockCrypto.EXPECT().Hash(encData).Return(nil, err)
+	config.mockCrypto.EXPECT().MakePermanentBlockID(encData).Return(BlockID{}, err)
 
 	if _, _, _, err2 := config.BlockOps().
 		Ready(ctx, rmd, decData); err2 != err {
 		t.Errorf("Got bad error on ready: %v", err2)
-	}
-}
-
-func TestBlockOpsReadyFailCast(t *testing.T) {
-	mockCtrl, config, ctx := blockOpsInit(t)
-	defer blockOpsShutdown(mockCtrl, config)
-
-	// expect one call to encrypt a block, one to hash it
-	decData := TestBlock{42}
-	encData := []byte{1, 2, 3, 4}
-	badID := libkb.NodeHashLong{0}
-
-	rmd := makeRMD()
-
-	expectBlockEncrypt(config, rmd, decData, 4, encData, nil)
-
-	config.mockCrypto.EXPECT().Hash(encData).Return(badID, nil)
-
-	err := BadCryptoError{fakeBlockID(0)}
-	if _, _, _, err2 :=
-		config.BlockOps().Ready(ctx, rmd, decData); err2 != err {
-		t.Errorf("Got bad error on ready: %v (expected %v)", err2, err)
 	}
 }
 

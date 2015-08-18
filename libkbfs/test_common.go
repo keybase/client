@@ -30,6 +30,11 @@ func RandomBlockID() BlockID {
 	return BlockID{h}
 }
 
+func fakeMdID(b byte) MdID {
+	h := libkb.NodeHashShort{b}
+	return MdID{h}
+}
+
 // NewRootMetadataForTest returns a new initialized RootMetadata object for testing.
 func NewRootMetadataForTest(d *TlfHandle, id TlfID) *RootMetadata {
 	rmd := NewRootMetadata(d, id)
@@ -49,7 +54,7 @@ func NewRootMetadataForTest(d *TlfHandle, id TlfID) *RootMetadata {
 		},
 	}
 	// make up the MD ID
-	rmd.mdID = MdID{id[0]}
+	rmd.mdID = fakeMdID(id[0])
 	return rmd
 }
 

@@ -1,9 +1,6 @@
 package libkbfs
 
-import (
-	"github.com/keybase/client/go/libkb"
-	"golang.org/x/net/context"
-)
+import "golang.org/x/net/context"
 
 // BlockOpsStandard implements the BlockOps interface by relaying
 // requests to the block server.
@@ -100,19 +97,10 @@ func (b *BlockOpsStandard) Ready(ctx context.Context, md *RootMetadata,
 		return
 	}
 
-	// now get the block ID for the buffer
-	h, err := crypto.Hash(buf)
+	id, err = crypto.MakePermanentBlockID(buf)
 	if err != nil {
 		return
 	}
-
-	nhs, ok := h.(libkb.NodeHashShort)
-	if !ok {
-		err = BadCryptoError{id}
-		return
-	}
-
-	id = BlockID{nhs}
 
 	return
 }

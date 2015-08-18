@@ -67,19 +67,14 @@ func kbfsOpsInit(t *testing.T, changeMd bool) (mockCtrl *gomock.Controller,
 	config.SetBlockCache(NewBlockCacheStandard(config, 100))
 	config.mockBcache = nil
 
-	// These are used when computing metadata IDs.  No need to check
-	// in this test.
-	mdEnc := []byte{0}
-	config.mockCodec.EXPECT().Encode(gomock.Any()).AnyTimes().
-		Return(mdEnc, nil)
 	if changeMd {
 		// Give different values for the MD Id so we can test that it
 		// is properly cached
-		config.mockCrypto.EXPECT().Hash(mdEnc).AnyTimes().
-			Return(libkb.NodeHashShort{2}, nil)
+		config.mockCrypto.EXPECT().MakeMdID(gomock.Any()).AnyTimes().
+			Return(fakeMdID(2), nil)
 	} else {
-		config.mockCrypto.EXPECT().Hash(mdEnc).AnyTimes().
-			Return(libkb.NodeHashShort{1}, nil)
+		config.mockCrypto.EXPECT().MakeMdID(gomock.Any()).AnyTimes().
+			Return(fakeMdID(1), nil)
 	}
 
 	// make the context identifiable, to verify that it is passed
@@ -852,6 +847,13 @@ func expectSyncBlockHelper(
 	// By convention for these tests, the old blocks along the path
 	// all have EncodedSize == 1.
 	unrefBytes += uint64(len(p.path) * 1)
+
+	// This is for the calls made to CheckForKnownPtr.
+	encodedBlock := []byte{0}
+	config.mockCodec.EXPECT().Encode(gomock.Any()).AnyTimes().
+		Return(encodedBlock, nil)
+	config.mockCrypto.EXPECT().Hash(encodedBlock).AnyTimes().
+		Return(libkb.NodeHashShort{1}, nil)
 
 	lastID := p.tailPointer().ID
 	for i := len(newPath.path) - 1; i >= skipSync; i-- {

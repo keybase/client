@@ -57,6 +57,23 @@ func (c *CryptoCommon) MakeRandomTlfID(isPublic bool) (TlfID, error) {
 	return id, nil
 }
 
+// MakeMdID implements the Crypto interface for CryptoCommon.
+func (c *CryptoCommon) MakeMdID(md *RootMetadata) (MdID, error) {
+	// Make sure that the serialized metadata is set; otherwise we
+	// won't get the right MdID.
+	if md.SerializedPrivateMetadata == nil {
+		return NullMdID, MDMissingDataError{md.ID}
+	}
+
+	buf, err := c.codec.Encode(md)
+	if err != nil {
+		return NullMdID, err
+	}
+
+	h := sha256.Sum256(buf)
+	return MdID{h}, nil
+}
+
 // MakeTemporaryBlockID implements the Crypto interface for CryptoCommon.
 func (c *CryptoCommon) MakeTemporaryBlockID() (BlockID, error) {
 	var id BlockID
@@ -65,6 +82,20 @@ func (c *CryptoCommon) MakeTemporaryBlockID() (BlockID, error) {
 		return BlockID{}, err
 	}
 	return id, nil
+}
+
+// MakePermanentBlockID implements the Crypto interface for CryptoCommon.
+func (c *CryptoCommon) MakePermanentBlockID(encodedEncryptedData []byte) (BlockID, error) {
+	h := sha256.Sum256(encodedEncryptedData)
+	return BlockID{h}, nil
+}
+
+// VerifyBlockID implements the Crypto interface for CryptoCommon.
+func (c *CryptoCommon) VerifyBlockID(encodedEncryptedData []byte, id BlockID) error {
+	if !id.Hash.Check(string(encodedEncryptedData)) {
+		return errors.New("invalid hash")
+	}
+	return nil
 }
 
 // MakeBlockRefNonce implements the Crypto interface for CryptoCommon.
@@ -401,19 +432,7 @@ func (c *CryptoCommon) DecryptBlock(encryptedBlock EncryptedBlock, key BlockCryp
 
 // Hash implements the Crypto interface for CryptoCommon.
 func (c *CryptoCommon) Hash(buf []byte) (libkb.NodeHash, error) {
-	h := sha256.New()
-	h.Write(buf)
-	var tmp libkb.NodeHashShort
-	copy([]byte(tmp[:]), h.Sum(nil))
-	return tmp, nil
-}
-
-// VerifyHash implements the Crypto interface for CryptoCommon.
-func (c *CryptoCommon) VerifyHash(buf []byte, hash libkb.NodeHash) error {
-	if !hash.Check(string(buf)) {
-		return errors.New("invalid hash")
-	}
-	return nil
+	return libkb.NodeHashShort(sha256.Sum256(buf)), nil
 }
 
 // GetTLFCryptKeyServerHalfID implements the Crypto interface for CryptoCommon.

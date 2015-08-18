@@ -349,10 +349,22 @@ type Crypto interface {
 	// MakeRandomTlfID generates a dir ID using a CSPRNG.
 	MakeRandomTlfID(isPublic bool) (TlfID, error)
 
+	// MakeMdID computes the MD ID of a RootMetadata object.
+	MakeMdID(md *RootMetadata) (MdID, error)
+
 	// MakeTemporaryBlockID generates a temporary block ID using a
 	// CSPRNG. This is used for indirect blocks before they're
 	// committed to the server.
 	MakeTemporaryBlockID() (BlockID, error)
+
+	// MakePermanentBlockID computes the permanent ID of a block
+	// given its encoded and encrypted contents.
+	MakePermanentBlockID(encodedEncryptedData []byte) (BlockID, error)
+
+	// VerifyBlockID verifies that the given block ID is the
+	// permanent block ID for the given encoded and encrypted
+	// data.
+	VerifyBlockID(encodedEncryptedData []byte, id BlockID) error
 
 	// MakeRefNonce generates a block reference nonce using a
 	// CSPRNG. This is used for distinguishing different references to
@@ -427,9 +439,6 @@ type Crypto interface {
 
 	// Hash computes a deterministic hash of buf.
 	Hash(buf []byte) (libkb.NodeHash, error)
-	// VerifyHash verifies a given hash (the hash should include its
-	// type).
-	VerifyHash(buf []byte, hash libkb.NodeHash) error
 }
 
 // Codec encodes and decodes arbitrary data

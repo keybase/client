@@ -4,7 +4,6 @@ import (
 	"sort"
 	"strconv"
 
-	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/protocol/go"
 )
 
@@ -303,26 +302,12 @@ func (md *RootMetadata) MetadataID(config Config) (MdID, error) {
 		return md.mdID, nil
 	}
 
-	// Make sure that the serialized metadata is set, otherwise we
-	// won't get the right MdID
-	if md.SerializedPrivateMetadata == nil {
-		return NullMdID, MDMissingDataError{md.ID}
-	}
-
-	buf, err := config.Codec().Encode(md)
+	mdID, err := config.Crypto().MakeMdID(md)
 	if err != nil {
-		return NullMdID, err
+		return MdID{}, err
 	}
-	h, err := config.Crypto().Hash(buf)
-	if err != nil {
-		return NullMdID, err
-	}
-	nhs, ok := h.(libkb.NodeHashShort)
-	if !ok {
-		return NullMdID, BadCryptoMDError{md.ID}
-	}
-	md.mdID = MdID(nhs)
-	return md.mdID, nil
+	md.mdID = mdID
+	return mdID, nil
 }
 
 // ClearMetadataID forgets the cached version of the RootMetadata's MdID

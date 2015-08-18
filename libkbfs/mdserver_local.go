@@ -141,8 +141,7 @@ func (md *MDServerLocal) getHeadForTLF(ctx context.Context, id TlfID, unmerged b
 		}
 		return
 	}
-	copy(mdID[:], buf[:len(mdID)])
-	return
+	return MdIDFromBytes(buf)
 }
 
 func (md *MDServerLocal) getMDKey(ctx context.Context, id TlfID,
@@ -185,7 +184,7 @@ func (md *MDServerLocal) getMDKey(ctx context.Context, id TlfID,
 
 func (md *MDServerLocal) get(ctx context.Context, mdID MdID) (
 	*RootMetadataSigned, error) {
-	buf, err := md.mdDb.Get(mdID[:], nil)
+	buf, err := md.mdDb.Get(mdID.Bytes(), nil)
 	if err != nil {
 		if err == leveldb.ErrNotFound {
 			return nil, nil
@@ -220,19 +219,21 @@ func (md *MDServerLocal) GetRange(ctx context.Context, id TlfID, unmerged bool,
 	}
 
 	iter := md.revDb.NewIterator(&util.Range{Start: startKey, Limit: stopKey}, nil)
+	defer iter.Release()
 	for iter.Next() {
 		// get MD block from MD ID
 		var mdID MdID
 		buf := iter.Value()
-		copy(mdID[:], buf)
+		mdID, err := MdIDFromBytes(buf)
+		if err != nil {
+			return rmdses, MDServerError{err}
+		}
 		rmds, err := md.get(ctx, mdID)
 		if err != nil {
-			iter.Release()
 			return rmdses, MDServerError{err}
 		}
 		rmdses = append(rmdses, rmds)
 	}
-	iter.Release()
 	if err := iter.Error(); err != nil {
 		return rmdses, MDServerError{err}
 	}
@@ -300,7 +301,7 @@ func (md *MDServerLocal) Put(ctx context.Context, rmds *RootMetadataSigned) erro
 
 	// The folder ID points to the current MD block ID, and the
 	// MD ID points to the buffer
-	err = md.mdDb.Put(mdID[:], buf, nil)
+	err = md.mdDb.Put(mdID.Bytes(), buf, nil)
 	if err != nil {
 		return MDServerError{err}
 	}
@@ -313,14 +314,14 @@ func (md *MDServerLocal) Put(ctx context.Context, rmds *RootMetadataSigned) erro
 	if err != nil {
 		return MDServerError{err}
 	}
-	batch.Put(revKey, mdID[:])
+	batch.Put(revKey, mdID.Bytes())
 
 	// Add an entry with the head key.
 	headKey, err := md.getMDKey(ctx, id, MetadataRevisionHead, unmerged)
 	if err != nil {
 		return MDServerError{err}
 	}
-	batch.Put(headKey, mdID[:])
+	batch.Put(headKey, mdID.Bytes())
 
 	// Write the batch.
 	err = md.revDb.Write(batch, nil)
@@ -357,6 +358,7 @@ func (md *MDServerLocal) PruneUnmerged(ctx context.Context, id TlfID) error {
 
 	// Iterate and delete.
 	iter := md.revDb.NewIterator(util.BytesPrefix(headKey), nil)
+	defer iter.Release()
 	for iter.Next() {
 		mdID := iter.Value()
 		// Queue these up for deletion.
@@ -364,7 +366,6 @@ func (md *MDServerLocal) PruneUnmerged(ctx context.Context, id TlfID) error {
 		// Delete the reference from the revision DB.
 		revBatch.Delete(iter.Key())
 	}
-	iter.Release()
 	if err = iter.Error(); err != nil {
 		return MDServerError{err}
 	}

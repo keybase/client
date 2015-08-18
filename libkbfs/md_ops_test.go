@@ -281,14 +281,14 @@ func testMDOpsGetRangeSuccess(t *testing.T, fromStart bool) {
 	// expect one call to fetch MD, and one to verify it
 	id, _, rmds1 := newDir(t, config, 1, true, false)
 	_, _, rmds2 := newDir(t, config, 1, true, false)
-	rmds2.MD.mdID = MdID{42}
+	rmds2.MD.mdID = fakeMdID(42)
 	rmds1.MD.PrevRoot = rmds2.MD.mdID
 	rmds1.MD.Revision = 102
 	_, _, rmds3 := newDir(t, config, 1, true, false)
-	rmds3.MD.mdID = MdID{43}
+	rmds3.MD.mdID = fakeMdID(43)
 	rmds2.MD.PrevRoot = rmds3.MD.mdID
 	rmds2.MD.Revision = 101
-	mdID4 := MdID{44}
+	mdID4 := fakeMdID(44)
 	rmds3.MD.PrevRoot = mdID4
 	rmds3.MD.Revision = 100
 
@@ -328,14 +328,14 @@ func TestMDOpsGetRangeFailBadPrevRoot(t *testing.T) {
 	// expect one call to fetch MD, and one to verify it
 	id, _, rmds1 := newDir(t, config, 1, true, false)
 	_, _, rmds2 := newDir(t, config, 1, true, false)
-	rmds2.MD.mdID = MdID{42}
-	rmds1.MD.PrevRoot = MdID{46} // points to some random ID
+	rmds2.MD.mdID = fakeMdID(42)
+	rmds1.MD.PrevRoot = fakeMdID(46) // points to some random ID
 	rmds1.MD.Revision = 202
 	_, _, rmds3 := newDir(t, config, 1, true, false)
-	rmds3.MD.mdID = MdID{43}
+	rmds3.MD.mdID = fakeMdID(43)
 	rmds2.MD.PrevRoot = rmds3.MD.mdID
 	rmds2.MD.Revision = 201
-	mdID4 := MdID{44}
+	mdID4 := fakeMdID(44)
 	rmds3.MD.PrevRoot = mdID4
 	rmds3.MD.Revision = 200
 

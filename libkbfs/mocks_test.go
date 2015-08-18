@@ -825,6 +825,17 @@ func (_mr *_MockCryptoRecorder) MakeRandomTlfID(arg0 interface{}) *gomock.Call {
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "MakeRandomTlfID", arg0)
 }
 
+func (_m *MockCrypto) MakeMdID(md *RootMetadata) (MdID, error) {
+	ret := _m.ctrl.Call(_m, "MakeMdID", md)
+	ret0, _ := ret[0].(MdID)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+func (_mr *_MockCryptoRecorder) MakeMdID(arg0 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "MakeMdID", arg0)
+}
+
 func (_m *MockCrypto) MakeTemporaryBlockID() (BlockID, error) {
 	ret := _m.ctrl.Call(_m, "MakeTemporaryBlockID")
 	ret0, _ := ret[0].(BlockID)
@@ -834,6 +845,27 @@ func (_m *MockCrypto) MakeTemporaryBlockID() (BlockID, error) {
 
 func (_mr *_MockCryptoRecorder) MakeTemporaryBlockID() *gomock.Call {
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "MakeTemporaryBlockID")
+}
+
+func (_m *MockCrypto) MakePermanentBlockID(encodedEncryptedData []byte) (BlockID, error) {
+	ret := _m.ctrl.Call(_m, "MakePermanentBlockID", encodedEncryptedData)
+	ret0, _ := ret[0].(BlockID)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+func (_mr *_MockCryptoRecorder) MakePermanentBlockID(arg0 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "MakePermanentBlockID", arg0)
+}
+
+func (_m *MockCrypto) VerifyBlockID(encodedEncryptedData []byte, id BlockID) error {
+	ret := _m.ctrl.Call(_m, "VerifyBlockID", encodedEncryptedData, id)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+func (_mr *_MockCryptoRecorder) VerifyBlockID(arg0, arg1 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "VerifyBlockID", arg0, arg1)
 }
 
 func (_m *MockCrypto) MakeBlockRefNonce() (BlockRefNonce, error) {
@@ -1033,16 +1065,6 @@ func (_m *MockCrypto) Hash(buf []byte) (libkb.NodeHash, error) {
 
 func (_mr *_MockCryptoRecorder) Hash(arg0 interface{}) *gomock.Call {
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "Hash", arg0)
-}
-
-func (_m *MockCrypto) VerifyHash(buf []byte, hash libkb.NodeHash) error {
-	ret := _m.ctrl.Call(_m, "VerifyHash", buf, hash)
-	ret0, _ := ret[0].(error)
-	return ret0
-}
-
-func (_mr *_MockCryptoRecorder) VerifyHash(arg0, arg1 interface{}) *gomock.Call {
-	return _mr.mock.ctrl.RecordCall(_mr.mock, "VerifyHash", arg0, arg1)
 }
 
 // Mock of Codec interface

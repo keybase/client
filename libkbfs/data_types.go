@@ -343,10 +343,32 @@ func (id BlockID) String() string {
 }
 
 // MdID is the type of hash key for each metadata block
-type MdID libkb.NodeHashShort
+type MdID struct {
+	// Exported only for serialization purposes.
+	Hash libkb.NodeHashShort `codec:"h"`
+}
+
+// MdIDFromBytes creates a MdID from the given byte array.
+func MdIDFromBytes(mdIDBytes []byte) (MdID, error) {
+	var h libkb.NodeHashShort
+	if len(h) != len(mdIDBytes) {
+		return NullMdID, fmt.Errorf("Invalid MdID length %d", len(mdIDBytes))
+	}
+	copy(h[:], mdIDBytes)
+	return MdID{h}, nil
+}
+
+// Bytes returns the bytes of the MD ID.
+func (id MdID) Bytes() []byte {
+	return id.Hash[:]
+}
+
+func (id MdID) String() string {
+	return hex.EncodeToString(id.Bytes())
+}
 
 // NullMdID is an empty MdID
-var NullMdID = MdID{0}
+var NullMdID = MdID{}
 
 // NullTlfID is an empty TlfID
 var NullTlfID = TlfID{0}
