@@ -637,7 +637,7 @@ func stripBP(ptr BlockPointer) BlockPointer {
 	}
 }
 
-func (fbo *FolderBranchOps) updateDirBlock(
+func (fbo *FolderBranchOps) updateDirBlock(ctx context.Context,
 	dir path, block *DirBlock) *DirBlock {
 	// see if this directory has any outstanding writes/truncates that
 	// require an updated DirEntry
@@ -651,6 +651,20 @@ func (fbo *FolderBranchOps) updateDirBlock(
 		dblockCopy.Children = make(map[string]DirEntry)
 		for k, v := range block.Children {
 			if de, ok := deMap[stripBP(v.BlockPointer)]; ok {
+				// We have a local copy update to the block, so set
+				// ourselves to be writer, if possible.  If there's an
+				// error, just log it and keep going because having
+				// the correct Writer is not important enough to fail
+				// the whole lookup.
+				user, err := fbo.config.KBPKI().GetLoggedInUser(ctx)
+				if err != nil {
+					libkb.G.Log.Debug("Ignoring error while getting "+
+						"logged-in user during directory entry lookup: %v",
+						err)
+				} else {
+					de.SetWriter(user)
+				}
+
 				dblockCopy.Children[k] = de
 			} else {
 				dblockCopy.Children[k] = v
@@ -707,7 +721,7 @@ func (fbo *FolderBranchOps) getEntryLocked(ctx context.Context,
 		return nil, DirEntry{}, err
 	}
 
-	dblock = fbo.updateDirBlock(*parentPath, dblock)
+	dblock = fbo.updateDirBlock(ctx, *parentPath, dblock)
 
 	// make sure it exists
 	name := file.tailName()
@@ -1979,7 +1993,6 @@ func (fbo *FolderBranchOps) writeDataLocked(
 
 	fbo.cacheLock.Lock()
 	defer fbo.cacheLock.Unlock()
-	de.SetWriter(user)
 	si := fbo.getOrCreateSyncInfoLocked(de)
 	for nCopied < n {
 		ptr, parentBlock, indexInParent, block, more, startOff, err :=
@@ -2197,7 +2210,6 @@ func (fbo *FolderBranchOps) truncateLocked(
 		}
 	}()
 
-	de.SetWriter(user)
 	si := fbo.getOrCreateSyncInfoLocked(de)
 	if more {
 		// TODO: if indexInParent == 0, we can remove the level of indirection

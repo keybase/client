@@ -268,3 +268,79 @@ func TestUnmergedAfterRestart(t *testing.T) {
 	readAndCompareData(t, config1B, ctx, h, data1, userName1)
 	readAndCompareData(t, config2B, ctx, h, data2, userName2)
 }
+
+// Tests that multiple users can write to the same file sequentially
+// without any problems.
+func TestMultiUserWrite(t *testing.T) {
+	// simulate two users
+	userName1, userName2 := "u1", "u2"
+	config1, uid1, ctx := kbfsOpsConcurInit(t, userName1, userName2)
+	defer config1.Shutdown()
+
+	config2 := ConfigAsUser(config1.(*ConfigLocal), userName2)
+	defer config2.Shutdown()
+	uid2, err := config2.KBPKI().GetLoggedInUser(context.Background())
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	h := NewTlfHandle()
+	h.Writers = append(h.Writers, uid1)
+	h.Writers = append(h.Writers, uid2)
+
+	// user1 creates a file in a shared dir
+	kbfsOps1 := config1.KBFSOps()
+	rootNode1, _, err :=
+		kbfsOps1.GetOrCreateRootNodeForHandle(ctx, h, MasterBranch)
+	if err != nil {
+		t.Errorf("Couldn't create folder: %v", err)
+	}
+	_, _, err = kbfsOps1.CreateFile(ctx, rootNode1, "a", false)
+	if err != nil {
+		t.Fatalf("Couldn't create file: %v", err)
+	}
+
+	// then user2 write to the file
+	kbfsOps2 := config2.KBFSOps()
+	rootNode2, _, err :=
+		kbfsOps2.GetOrCreateRootNodeForHandle(ctx, h, MasterBranch)
+	if err != nil {
+		t.Errorf("Couldn't create folder: %v", err)
+	}
+	fileNode2, _, err := kbfsOps2.Lookup(ctx, rootNode2, "a")
+	if err != nil {
+		t.Fatalf("Couldn't lookup file: %v", err)
+	}
+
+	data2 := []byte{2}
+	err = kbfsOps2.Write(ctx, fileNode2, data2, 0)
+	if err != nil {
+		t.Fatalf("Couldn't write file: %v", err)
+	}
+
+	// The writer should be user 2, even before the Sync
+	de, err := kbfsOps2.Stat(ctx, fileNode2)
+	if err != nil {
+		t.Fatalf("Couldn't lookup file: %v", err)
+	}
+	if de.GetWriter() != uid2 {
+		t.Errorf("After user 2's first write, Writer is wrong: %v",
+			de.GetWriter())
+	}
+
+	err = kbfsOps2.Sync(ctx, fileNode2)
+	if err != nil {
+		t.Fatalf("Couldn't sync file: %v", err)
+	}
+	data3 := []byte{3}
+	err = kbfsOps2.Write(ctx, fileNode2, data3, 0)
+	if err != nil {
+		t.Fatalf("Couldn't write file: %v", err)
+	}
+	err = kbfsOps2.Sync(ctx, fileNode2)
+	if err != nil {
+		t.Fatalf("Couldn't sync file: %v", err)
+	}
+
+	readAndCompareData(t, config2, ctx, h, data3, userName2)
+}
