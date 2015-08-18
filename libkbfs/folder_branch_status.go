@@ -10,12 +10,12 @@ import (
 // current status of a particular folder-branch.  It is suitable for
 // encoding directly as JSON.
 type FolderBranchStatus struct {
-	Staged           bool
-	HeadWriter       string
-	DiskUsage        uint64
-	DirtyPaths       []string
-	UploadingPaths   []string
-	DownloadingPaths []string
+	Staged     bool
+	HeadWriter string
+	DiskUsage  uint64
+	// DirtyPaths are files that have been written, but not flushed.
+	// They do not represent unstaged changes in your local instance.
+	DirtyPaths []string
 
 	updateChan chan struct{}
 }
@@ -34,11 +34,9 @@ type folderBranchStatusKeeper struct {
 	config    Config
 	nodeCache NodeCache
 
-	md               *RootMetadata
-	dirtyNodes       map[NodeID]Node
-	uploadingNodes   map[NodeID]Node
-	downloadingNodes map[NodeID]Node
-	dataMutex        *sync.Mutex
+	md         *RootMetadata
+	dirtyNodes map[NodeID]Node
+	dataMutex  *sync.Mutex
 
 	updateChan  chan struct{}
 	updateMutex *sync.Mutex
@@ -47,14 +45,12 @@ type folderBranchStatusKeeper struct {
 func newFolderBranchStatusKeeper(
 	config Config, nodeCache NodeCache) *folderBranchStatusKeeper {
 	return &folderBranchStatusKeeper{
-		config:           config,
-		nodeCache:        nodeCache,
-		dirtyNodes:       make(map[NodeID]Node),
-		uploadingNodes:   make(map[NodeID]Node),
-		downloadingNodes: make(map[NodeID]Node),
-		dataMutex:        &sync.Mutex{},
-		updateChan:       make(chan struct{}, 1),
-		updateMutex:      &sync.Mutex{},
+		config:      config,
+		nodeCache:   nodeCache,
+		dirtyNodes:  make(map[NodeID]Node),
+		dataMutex:   &sync.Mutex{},
+		updateChan:  make(chan struct{}, 1),
+		updateMutex: &sync.Mutex{},
 	}
 }
 
@@ -110,22 +106,6 @@ func (fbsk *folderBranchStatusKeeper) rmDirtyNode(n Node) {
 	fbsk.rmNode(fbsk.dirtyNodes, n)
 }
 
-func (fbsk *folderBranchStatusKeeper) addDownloadingNode(n Node) {
-	fbsk.addNode(fbsk.downloadingNodes, n)
-}
-
-func (fbsk *folderBranchStatusKeeper) rmDownloadingNode(n Node) {
-	fbsk.rmNode(fbsk.downloadingNodes, n)
-}
-
-func (fbsk *folderBranchStatusKeeper) addUploadingNode(n Node) {
-	fbsk.addNode(fbsk.uploadingNodes, n)
-}
-
-func (fbsk *folderBranchStatusKeeper) rmUploadingNode(n Node) {
-	fbsk.rmNode(fbsk.uploadingNodes, n)
-}
-
 // dataMutex should be taken by the caller
 func (fbsk *folderBranchStatusKeeper) convertNodesToPathsLocked(
 	m map[NodeID]Node) []string {
@@ -159,8 +139,5 @@ func (fbsk *folderBranchStatusKeeper) getStatus(ctx context.Context) (
 	}
 
 	fbs.DirtyPaths = fbsk.convertNodesToPathsLocked(fbsk.dirtyNodes)
-	fbs.DownloadingPaths = fbsk.convertNodesToPathsLocked(fbsk.downloadingNodes)
-	fbs.UploadingPaths = fbsk.convertNodesToPathsLocked(fbsk.uploadingNodes)
-
 	return fbs, nil
 }

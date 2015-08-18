@@ -101,8 +101,6 @@ func TestFBStatusAllFields(t *testing.T) {
 	fbsk.setRootMetadata(md)
 	fbsk.addDirtyNode(n1)
 	fbsk.addDirtyNode(n2)
-	fbsk.addDownloadingNode(n1)
-	fbsk.addUploadingNode(n2)
 
 	// check the returned status for accuracy
 	status, err := fbsk.getStatus(ctx)
@@ -133,19 +131,5 @@ func TestFBStatusAllFields(t *testing.T) {
 	}
 	if !p1Found || !p2Found {
 		t.Errorf("Did not find all dirty nodes: %v", status.DirtyPaths)
-	}
-	if len(status.DownloadingPaths) != 1 {
-		t.Errorf("Expected 1 dirty path in status, got %d",
-			len(status.DownloadingPaths))
-	}
-	if status.DownloadingPaths[0] != p1Str {
-		t.Errorf("Downloading path wrong: %s", status.DownloadingPaths[1])
-	}
-	if len(status.UploadingPaths) != 1 {
-		t.Errorf("Expected 1 dirty path in status, got %d",
-			len(status.UploadingPaths))
-	}
-	if status.UploadingPaths[0] != p2Str {
-		t.Errorf("Uploading path wrong: %s", status.UploadingPaths[0])
 	}
 }
