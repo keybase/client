@@ -11,11 +11,17 @@ import (
 	keybase1 "github.com/keybase/client/protocol/go"
 )
 
+func init() {
+	kex.HelloTimeout = 5 * time.Second
+	kex.IntraTimeout = 5 * time.Second
+	kex.PollDuration = 1 * time.Second
+}
+
 // TestLoginNewDeviceKex is a device provisioning test.  It
 // simulates the scenario where a user logs in to a new device and
 // uses an existing device to provision it.  This test uses
 // the api server for all kex communication.
-func TestLoginNewDeviceKex(t *testing.T) {
+func TestLoginNewDeviceKex1(t *testing.T) {
 	kex.HelloTimeout = 5 * time.Second
 	kex.IntraTimeout = 5 * time.Second
 	kex.PollDuration = 1 * time.Second
@@ -82,8 +88,8 @@ func TestLoginNewDeviceKex(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	testUserHasDeviceKey(t)
 	wg.Wait()
+	testUserHasDeviceKey(tcY.T)
 }
 
 // issue #408, cancel login before device provisioning finishes.
@@ -97,7 +103,7 @@ func TestLoginNewDeviceCancel(t *testing.T) {
 	u := CreateAndSignupFakeUser(tcX, "login")
 
 	docuiShared := lockuiDeviceShared{}
-	docui := &lockuiDevice{lockui: &lockui{deviceName: "device X"}, shared: &docuiShared}
+	docui := &lockuiCancel{lockui: &lockui{deviceName: "device X"}, shared: &docuiShared}
 
 	// test context for device Y
 	tcY := SetupEngineTest(t, "loginY")
@@ -113,8 +119,12 @@ func TestLoginNewDeviceCancel(t *testing.T) {
 		LoginUI:     &libkb.TestLoginUI{},
 	}
 	err := RunEngine(li, ctx)
-	if err == nil {
-		t.Fatal("expected cancel err, got nil err")
+	if err != nil {
+		if _, ok := err.(libkb.CanceledError); !ok {
+			t.Fatalf("expected cancel err, got a different error: %s (%T)", err, err)
+		}
+	} else {
+		t.Fatal("login on device Y should have returned error")
 	}
 
 	loggedIn, err := tcY.G.LoginState().LoggedInProvisionedLoad()
@@ -475,6 +485,7 @@ func (l *lockuiDevice) DisplaySecretWords(arg keybase1.DisplaySecretWordsArg) er
 
 type lockuiCancel struct {
 	*lockui
+	shared *lockuiDeviceShared
 }
 
 func (l *lockuiCancel) SelectSigner(arg keybase1.SelectSignerArg) (res keybase1.SelectSignerRes, err error) {
