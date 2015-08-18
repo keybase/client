@@ -129,7 +129,7 @@ func SimpleSign(payload []byte, key PGPKeyBundle) (out string, id keybase1.SigID
 	var outb bytes.Buffer
 	var in io.WriteCloser
 	var h HashSummer
-	if in, h, err = ArmoredAttachedSign(NopWriteCloser{&outb}, *key.Entity, nil, nil); err != nil {
+	if in, h, err = ArmoredAttachedSign(NopWriteCloser{&outb}, openpgp.Entity(key), nil, nil); err != nil {
 		return
 	}
 	if _, err = in.Write(payload); err != nil {
@@ -253,9 +253,9 @@ func AttachedSignWrapper(out io.WriteCloser, key PGPKeyBundle, armored bool) (
 	in io.WriteCloser, err error) {
 
 	if armored {
-		in, _, err = ArmoredAttachedSign(out, *key.Entity, nil, nil)
+		in, _, err = ArmoredAttachedSign(out, openpgp.Entity(key), nil, nil)
 	} else {
-		in, err = AttachedSign(out, *key.Entity, nil, nil)
+		in, err = AttachedSign(out, openpgp.Entity(key), nil, nil)
 	}
 	return
 }

@@ -38,7 +38,7 @@ func ui32p(i int) *uint32 {
 //
 // Modification of: https://code.google.com/p/go/source/browse/openpgp/keys.go?repo=crypto&r=8fec09c61d5d66f460d227fd1df3473d7e015bc6#456
 //  From golang.com/x/crypto/openpgp/keys.go
-func GeneratePGPKeyBundle(arg PGPGenArg, logUI LogUI) (*PGPKeyBundle, error) {
+func NewPGPKeyBundle(arg PGPGenArg, logUI LogUI) (*PGPKeyBundle, error) {
 	currentTime := arg.Config.Now()
 
 	if len(arg.Ids) == 0 {
@@ -129,7 +129,7 @@ func GeneratePGPKeyBundle(arg PGPGenArg, logUI LogUI) (*PGPKeyBundle, error) {
 	e.Subkeys[0].PrivateKey.IsSubkey = true
 	e.Subkeys[0].Sig.KeyLifetimeSecs = ui32p(arg.SubkeyLifetime)
 
-	return NewPGPKeyBundle(e), nil
+	return (*PGPKeyBundle)(e), nil
 }
 
 // CreateIDs creates identities for KeyGenArg.Ids if none exist.

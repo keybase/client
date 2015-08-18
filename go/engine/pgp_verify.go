@@ -208,6 +208,6 @@ func (e *PGPVerify) checkSignedBy(ctx *Context) error {
 }
 
 func (e *PGPVerify) outputSuccess(ctx *Context, signer *openpgp.Entity, owner *libkb.User) {
-	fingerprint := libkb.PGPFingerprint(signer.PrimaryKey.Fingerprint)
-	ctx.LogUI.Notice("Signature verified.  Signed by %s.  PGP Fingerprint: %s", owner.GetName(), fingerprint)
+	bundle := (*libkb.PGPKeyBundle)(signer)
+	ctx.LogUI.Notice("Signature verified.  Signed by %s.  PGP Fingerprint: %s", owner.GetName(), bundle.GetFingerprint())
 }

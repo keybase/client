@@ -7,6 +7,7 @@ import (
 	"testing"
 
 	keybase1 "github.com/keybase/client/protocol/go"
+	"golang.org/x/crypto/openpgp"
 )
 
 // TestConfig tracks libkb config during a test
@@ -112,12 +113,12 @@ func (tc *TestContext) GenerateGPGKeyring(ids ...string) error {
 			return err
 		}
 
-		err = bundle.Entity.SerializePrivate(fsk, nil)
+		err = (*openpgp.Entity)(bundle).SerializePrivate(fsk, nil)
 		if err != nil {
 			return err
 		}
 
-		err = bundle.Entity.Serialize(fpk)
+		err = (*openpgp.Entity)(bundle).Serialize(fpk)
 		if err != nil {
 			return err
 		}
@@ -134,7 +135,7 @@ func (tc *TestContext) MakePGPKey(id string) (*PGPKeyBundle, error) {
 	}
 	arg.Init()
 	arg.CreatePGPIDs()
-	return GeneratePGPKeyBundle(arg, tc.G.UI.GetLogUI())
+	return NewPGPKeyBundle(arg, tc.G.UI.GetLogUI())
 }
 
 // ResetLoginStateForTest simulates a shutdown and restart (for client

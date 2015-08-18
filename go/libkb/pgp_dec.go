@@ -23,7 +23,7 @@ type SignatureStatus struct {
 func PGPDecryptWithBundles(source io.Reader, sink io.Writer, keys []*PGPKeyBundle) (*SignatureStatus, error) {
 	opkr := make(openpgp.EntityList, len(keys))
 	for i, k := range keys {
-		opkr[i] = k.Entity
+		opkr[i] = (*openpgp.Entity)(k)
 	}
 	return PGPDecrypt(source, sink, opkr)
 }

@@ -92,7 +92,7 @@ func TestCreateIds(t *testing.T) {
 		}
 
 		// test the PGPKeyBundle
-		bundle, err := GeneratePGPKeyBundle(*arg, G.UI.GetLogUI())
+		bundle, err := NewPGPKeyBundle(*arg, G.UI.GetLogUI())
 		if err != nil {
 			t.Errorf("%s: bundle error: %s", test.name, err)
 		}

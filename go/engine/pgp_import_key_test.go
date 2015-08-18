@@ -6,6 +6,7 @@ import (
 
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/protocol/go"
+	"golang.org/x/crypto/openpgp"
 	"golang.org/x/crypto/openpgp/armor"
 )
 
@@ -129,7 +130,7 @@ func armorKey(t *testing.T, tc libkb.TestContext, email string) (libkb.PGPFinger
 	if err != nil {
 		t.Fatal(err)
 	}
-	if err := bundle.Entity.SerializePrivate(writer, nil); err != nil {
+	if err := (*openpgp.Entity)(bundle).SerializePrivate(writer, nil); err != nil {
 		t.Fatal(err)
 	}
 	if err := writer.Close(); err != nil {

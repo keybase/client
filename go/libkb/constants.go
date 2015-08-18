@@ -85,13 +85,7 @@ const (
 	SCKeyInUse               = 907
 	SCKeyBadGen              = 913
 	SCKeyNoSecret            = 914
-	SCKeyBadUIDs             = 915
-	SCKeyNoActive            = 916
-	SCKeyNoSig               = 917
-	SCKeyBadSig              = 918
-	SCKeyBadEldest           = 919
-	SCKeyNoEldest            = 920
-	SCKeyDuplicateUpdate     = 921
+	SCKeyNoActive            = 915
 	SCBadTrackSession        = 1301
 	SCStreamExists           = 1501
 	SCStreamNotFound         = 1502
@@ -113,10 +107,9 @@ const (
 )
 
 const (
-	PGPUpdateType = "pgp_update"
-	SibkeyType    = "sibkey"
-	SubkeyType    = "subkey"
-	EldestType    = "eldest"
+	SibkeyType = "sibkey"
+	SubkeyType = "subkey"
+	EldestType = "eldest"
 )
 
 const (
