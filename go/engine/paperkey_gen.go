@@ -72,7 +72,7 @@ func (e *PaperKeyGen) EncKey() libkb.GenericKey {
 // Run starts the engine.
 func (e *PaperKeyGen) Run(ctx *Context) error {
 	// make the passphrase stream
-	key, err := scrypt.Key([]byte(e.arg.Passphrase), nil,
+	key, err := scrypt.Key(e.arg.Passphrase.Bytes(), nil,
 		libkb.PaperKeyScryptCost, libkb.PaperKeyScryptR, libkb.PaperKeyScryptP, libkb.PaperKeyScryptKeylen)
 	if err != nil {
 		return err
