@@ -61,14 +61,14 @@ var MerkleTestKIDs = []string{
 const (
 	KeybaseKIDV1       = 1 // Uses SHA-256
 	KeybaseSignatureV1 = 1
-	OneYearInMinutes   = 24 * 60 * 60 * 365
+	OneYearInSeconds   = 24 * 60 * 60 * 365
 
-	SigExpireIn       = OneYearInMinutes * 10 // 10 years
-	NaclEdDSAExpireIn = OneYearInMinutes * 10 // 10 years
-	NaclDHExpireIn    = OneYearInMinutes * 10 // 10 years
-	KeyExpireIn       = OneYearInMinutes * 10 // 10 years
-	SubkeyExpireIn    = OneYearInMinutes * 10 // 10 years
-	AuthExpireIn      = OneYearInMinutes      // 1 year
+	SigExpireIn       = OneYearInSeconds * 10 // 10 years
+	NaclEdDSAExpireIn = OneYearInSeconds * 10 // 10 years
+	NaclDHExpireIn    = OneYearInSeconds * 10 // 10 years
+	KeyExpireIn       = OneYearInSeconds * 10 // 10 years
+	SubkeyExpireIn    = OneYearInSeconds * 10 // 10 years
+	AuthExpireIn      = OneYearInSeconds      // 1 year
 )
 
 // Status codes.  This list should match keybase/lib/constants.iced.
