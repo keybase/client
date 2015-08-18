@@ -384,6 +384,17 @@ func (_mr *_MockKBFSOpsRecorder) Sync(arg0, arg1 interface{}) *gomock.Call {
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "Sync", arg0, arg1)
 }
 
+func (_m *MockKBFSOps) Status(ctx context.Context, folderBranch FolderBranch) (FolderBranchStatus, error) {
+	ret := _m.ctrl.Call(_m, "Status", ctx, folderBranch)
+	ret0, _ := ret[0].(FolderBranchStatus)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+func (_mr *_MockKBFSOpsRecorder) Status(arg0, arg1 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "Status", arg0, arg1)
+}
+
 // Mock of KBPKI interface
 type MockKBPKI struct {
 	ctrl     *gomock.Controller

@@ -199,6 +199,12 @@ type KBFSOps interface {
 	// system interface, this may include modifications done via
 	// multiple file handles.  This is a remote-sync operation.
 	Sync(ctx context.Context, file Node) error
+	// Status returns the status of a particular folder/branch.  The
+	// status object includes a channel that will be closed when the
+	// status has been updated (to eliminate the need for polling this
+	// method).
+	Status(ctx context.Context, folderBranch FolderBranch) (
+		FolderBranchStatus, error)
 }
 
 // KBPKI interacts with kbpkid to fetch info from keybase

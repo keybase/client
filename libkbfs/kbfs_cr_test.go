@@ -42,6 +42,20 @@ func (t *testCRObserver) BatchChanges(ctx context.Context,
 	t.c <- struct{}{}
 }
 
+func checkStatus(t *testing.T, ctx context.Context, kbfsOps KBFSOps,
+	staged bool, headWriter string, fb FolderBranch, prefix string) {
+	status, err := kbfsOps.Status(ctx, fb)
+	if err != nil {
+		t.Fatalf("%s: Couldn't get status", prefix)
+	}
+	if status.Staged != staged {
+		t.Errorf("%s: Staged doesn't match, according to status", prefix)
+	}
+	if status.HeadWriter != headWriter {
+		t.Errorf("%s: Unexpected head writer: %s", prefix, status.HeadWriter)
+	}
+}
+
 func TestBasicMDUpdate(t *testing.T) {
 	// simulate two users
 	userName1, userName2 := "u1", "u2"
@@ -72,6 +86,11 @@ func TestBasicMDUpdate(t *testing.T) {
 		t.Errorf("Couldn't get root: %v", err)
 	}
 
+	status, err := kbfsOps2.Status(ctx, rootNode2.GetFolderBranch())
+	if err != nil {
+		t.Fatalf("Couldn't get status")
+	}
+
 	// register client 2 as a listener before the create happens
 	c := make(chan struct{})
 	config2.Notifier().RegisterForChanges(
@@ -97,6 +116,14 @@ func TestBasicMDUpdate(t *testing.T) {
 	if _, ok := entries["a"]; !ok {
 		t.Fatalf("User 2 doesn't see file a")
 	}
+
+	// The status should have fired as well (though in this case the
+	// writer is the same as before)
+	<-status.Changed()
+	checkStatus(t, ctx, kbfsOps1, false, userName1, rootNode1.GetFolderBranch(),
+		"Node 1")
+	checkStatus(t, ctx, kbfsOps2, false, userName1, rootNode2.GetFolderBranch(),
+		"Node 2")
 }
 
 func testMultipleMDUpdates(t *testing.T, unembedChanges bool) {
@@ -258,6 +285,11 @@ func TestUnmergedAfterRestart(t *testing.T) {
 		t.Fatalf("Couldn't sync file: %v", err)
 	}
 
+	checkStatus(t, ctx, kbfsOps1, true, userName1, rootNode1.GetFolderBranch(),
+		"Node 1")
+	checkStatus(t, ctx, kbfsOps2, false, userName2, rootNode2.GetFolderBranch(),
+		"Node 2")
+
 	// now re-login the users, and make sure 1 can see the changes,
 	// but 2 can't
 	config1B := ConfigAsUser(config1.(*ConfigLocal), userName1)
@@ -267,6 +299,11 @@ func TestUnmergedAfterRestart(t *testing.T) {
 
 	readAndCompareData(t, config1B, ctx, h, data1, userName1)
 	readAndCompareData(t, config2B, ctx, h, data2, userName2)
+
+	checkStatus(t, ctx, config1B.KBFSOps(), true, userName1,
+		rootNode1.GetFolderBranch(), "Node 1")
+	checkStatus(t, ctx, config2B.KBFSOps(), false, userName2,
+		rootNode2.GetFolderBranch(), "Node 2")
 }
 
 // Tests that multiple users can write to the same file sequentially

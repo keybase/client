@@ -156,6 +156,10 @@ type FolderBranchOps struct {
 	state     state
 	stateLock sync.Mutex
 
+	// The current status summary for this folder
+	status     *folderBranchStatusKeeper
+	statusLock sync.Mutex
+
 	// Closed on shutdown
 	shutdownChan chan struct{}
 
@@ -168,6 +172,7 @@ var _ KBFSOps = (*FolderBranchOps)(nil)
 // NewFolderBranchOps constructs a new FolderBranchOps object.
 func NewFolderBranchOps(config Config, fb FolderBranch,
 	bType branchType) *FolderBranchOps {
+	nodeCache := newNodeCacheStandard(fb)
 	return &FolderBranchOps{
 		config:         config,
 		folderBranch:   fb,
@@ -178,8 +183,9 @@ func NewFolderBranchOps(config Config, fb FolderBranch,
 			[]func(context.Context, *RootMetadata, path) error, 0),
 		unrefCache:   make(map[BlockPointer]*syncInfo),
 		deCache:      make(map[BlockPointer]map[BlockPointer]DirEntry),
+		status:       newFolderBranchStatusKeeper(config, nodeCache),
 		writerLock:   &sync.Mutex{},
-		nodeCache:    newNodeCacheStandard(fb),
+		nodeCache:    nodeCache,
 		state:        cleanState,
 		shutdownChan: make(chan struct{}),
 	}
@@ -237,6 +243,12 @@ func (fbo *FolderBranchOps) checkDataVersion(p path, ptr BlockPointer) error {
 	return nil
 }
 
+// headLock and statusLock must be taken by caller
+func (fbo *FolderBranchOps) setHeadLocked(md *RootMetadata) {
+	fbo.head = md
+	fbo.status.setRootMetadata(md)
+}
+
 // if rtype == write, then writerLock must be taken
 func (fbo *FolderBranchOps) getMDLocked(ctx context.Context, rtype reqType) (
 	*RootMetadata, error) {
@@ -281,10 +293,13 @@ func (fbo *FolderBranchOps) getMDLocked(ctx context.Context, rtype reqType) (
 			return nil, err
 		}
 
+		err = fbo.config.MDCache().Put(mdID, md)
+
 		fbo.headLock.Lock()
 		defer fbo.headLock.Unlock()
-		fbo.head = md
-		err = fbo.config.MDCache().Put(mdID, md)
+		fbo.statusLock.Lock()
+		defer fbo.statusLock.Unlock()
+		fbo.setHeadLocked(md)
 	}
 
 	return md, err
@@ -418,7 +433,9 @@ func (fbo *FolderBranchOps) initMDLocked(
 				"%v: Unexpected MD ID during new MD initialization: %v",
 				md.ID, headID)
 		}
-		fbo.head = md
+		fbo.statusLock.Lock()
+		defer fbo.statusLock.Unlock()
+		fbo.setHeadLocked(md)
 	}
 	return nil
 }
@@ -906,7 +923,7 @@ func (fbo *FolderBranchOps) unembedBlockChanges(
 	return
 }
 
-// headLock should be taken by the caller.
+// headLock and statusLock should be taken by the caller.
 func (fbo *FolderBranchOps) saveMdToCacheLocked(md *RootMetadata) error {
 	mdID, err := md.MetadataID(fbo.config)
 	if err != nil {
@@ -924,7 +941,7 @@ func (fbo *FolderBranchOps) saveMdToCacheLocked(md *RootMetadata) error {
 	} else if err = fbo.config.MDCache().Put(mdID, md); err != nil {
 		return err
 	}
-	fbo.head = md
+	fbo.setHeadLocked(md)
 	return nil
 }
 
@@ -1274,6 +1291,8 @@ func (fbo *FolderBranchOps) finalizeWriteLocked(ctx context.Context,
 		return err
 	}
 
+	fbo.statusLock.Lock()
+	defer fbo.statusLock.Unlock()
 	err = fbo.saveMdToCacheLocked(md)
 	if err != nil {
 		// XXX: if we return with an error here, should we somehow
@@ -2751,6 +2770,20 @@ func (fbo *FolderBranchOps) Sync(ctx context.Context, file Node) (err error) {
 	return fbo.syncLocked(ctx, filePath)
 }
 
+// Status implements the KBFSOps interface for FolderBranchOps
+func (fbo *FolderBranchOps) Status(
+	ctx context.Context, folderBranch FolderBranch) (
+	FolderBranchStatus, error) {
+	if folderBranch != fbo.folderBranch {
+		return FolderBranchStatus{},
+			WrongOpsError{fbo.folderBranch, folderBranch}
+	}
+
+	fbo.statusLock.Lock()
+	defer fbo.statusLock.Unlock()
+	return fbo.status.getStatus(ctx)
+}
+
 // RegisterForChanges registers a single Observer to receive
 // notifications about this folder/branch.
 func (fbo *FolderBranchOps) RegisterForChanges(obs Observer) error {
@@ -3079,6 +3112,8 @@ func (fbo *FolderBranchOps) applyMDUpdates(ctx context.Context,
 		}
 	}
 
+	fbo.statusLock.Lock()
+	defer fbo.statusLock.Unlock()
 	for _, rmd := range rmds {
 		if rmd.Revision != fbo.getCurrMDRevisionLocked()+1 {
 			return fmt.Errorf("MD revision %d isn't next in line for our "+
