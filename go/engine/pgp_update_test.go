@@ -47,6 +47,8 @@ func TestPGPUpdate(t *testing.T) {
 	tc := SetupEngineTest(t, "pgp_update")
 	defer tc.Cleanup()
 
+	// Note that this user's key is not created in the GPG keyring. For the
+	// purposes of this test that's ok.
 	fakeUser := createFakeUserWithPGPSibkey(tc)
 	bundle := getFakeUsersKeyBundleFromServer(t, fakeUser)
 	if len(bundle.Subkeys) != 1 {
@@ -99,7 +101,8 @@ func TestPGPUpdateMultiKey(t *testing.T) {
 	tc := SetupEngineTest(t, "pgp_update")
 	defer tc.Cleanup()
 
-	// Get a user with one PGP sibkey.
+	// Get a user with one PGP sibkey. Note that this user's key is not created
+	// in the GPG keyring. For the purposes of this test that's ok.
 	fu := createFakeUserWithPGPSibkey(tc)
 
 	// Generate a second PGP sibkey.
