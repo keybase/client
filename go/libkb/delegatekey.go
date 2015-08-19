@@ -2,6 +2,7 @@ package libkb
 
 import (
 	"encoding/hex"
+	"fmt"
 	"time"
 
 	keybase1 "github.com/keybase/client/protocol/go"
@@ -206,6 +207,7 @@ func (d *Delegator) updateLocalState(linkid LinkID) (err error) {
 }
 
 func (d *Delegator) post(lctx LoginContext) (err error) {
+	fmt.Printf("post!\n")
 	var pub string
 	if pub, err = d.NewKey.Encode(); err != nil {
 		return
@@ -247,7 +249,9 @@ func (d *Delegator) post(lctx LoginContext) (err error) {
 		arg.SessionR = lctx.LocalSession()
 	}
 
+	fmt.Printf("helo!\n")
 	if d.Aggregated {
+		fmt.Printf("aggregated\n")
 		d.postArg = arg
 		return nil
 	}

@@ -63,7 +63,6 @@ func (d *Locksmith) RequiredUIs() []libkb.UIKind {
 func (d *Locksmith) SubConsumers() []libkb.UIConsumer {
 	return []libkb.UIConsumer{
 		&DeviceWrap{},
-		&DetKeyEngine{},
 	}
 }
 
@@ -240,10 +239,6 @@ func (d *Locksmith) addBasicKeys(ctx *Context) error {
 		return err
 	}
 
-	if err := d.addDetKey(ctx, d.signingKey.GetKID()); err != nil {
-		return err
-	}
-
 	if err := d.paperKey(ctx); err != nil {
 		return err
 	}
@@ -304,26 +299,6 @@ func (d *Locksmith) addDeviceKeyWithSigner(ctx *Context, signer libkb.GenericKey
 	d.signingKey = eng.SigningKey()
 	return nil
 }
-
-func (d *Locksmith) addDetKey(ctx *Context, eldest keybase1.KID) error {
-	if d.signingKey == nil {
-		return fmt.Errorf("addDetKey called, but d.signingKey is nil")
-	}
-	tk, err := d.ppStream(ctx)
-	if err != nil {
-		return err
-	}
-	arg := &DetKeyArgs{
-		PPStream:    tk,
-		Me:          d.user,
-		SigningKey:  d.signingKey,
-		EldestKeyID: eldest,
-	}
-	eng := NewDetKeyEngine(arg, d.G())
-	return RunEngine(eng, ctx)
-}
-
-var ErrNotYetImplemented = errors.New("not yet implemented")
 
 // deviceSign is used to sign a new installation of keybase on a
 // new device.  It happens when the user has keys already, either
@@ -542,14 +517,6 @@ func (d *Locksmith) deviceSignPGPNext(ctx *Context, pgpk libkb.GenericKey) error
 	ctx.LogUI.Debug("eldest kid from user: %s", eldest)
 	if err := d.addDeviceKeyWithSigner(ctx, pgpk, eldest); err != nil {
 		return err
-	}
-
-	dk, err := d.detkey(ctx)
-	if err != nil || dk == nil {
-		ctx.LogUI.Debug("no detkey found, adding one")
-		if err := d.addDetKey(ctx, eldest); err != nil {
-			return err
-		}
 	}
 
 	return nil

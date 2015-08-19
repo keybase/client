@@ -20,6 +20,9 @@ func TestPaperKeyPrimary(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
+	if me == nil {
+		t.Fatal("nil me")
+	}
 
 	ctx := &Context{
 		LoginUI: libkb.TestLoginUI{},

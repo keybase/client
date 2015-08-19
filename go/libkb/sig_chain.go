@@ -3,6 +3,7 @@ package libkb
 import (
 	"fmt"
 	"io"
+	"runtime/debug"
 	"time"
 
 	keybase1 "github.com/keybase/client/protocol/go"
@@ -44,6 +45,10 @@ func (sc *SigChain) LocalDelegate(kf *KeyFamily, key GenericKey, sigID keybase1.
 		cki = l.cki.ShallowCopy()
 	}
 	if cki == nil {
+		G.Log.Warning("LocalDelegate: creating new cki (%s)", signingKid)
+		G.Log.Warning("stack:")
+		debug.PrintStack()
+		G.Log.Warning("stack done")
 		cki = NewComputedKeyInfos()
 		cki.InsertLocalEldestKey(signingKid)
 	}
@@ -62,7 +67,11 @@ func (sc *SigChain) LocalDelegate(kf *KeyFamily, key GenericKey, sigID keybase1.
 func (sc SigChain) GetComputedKeyInfos() (cki *ComputedKeyInfos) {
 	cki = sc.localCki
 	if cki == nil {
+		G.Log.Warning("localCki is nil")
 		if l := sc.GetLastLink(); l != nil {
+			if l.cki == nil {
+				G.Log.Warning("l.cki is nil")
+			}
 			cki = l.cki
 		}
 	}
@@ -429,7 +438,7 @@ func (sc *SigChain) verifySubchain(kf KeyFamily, links []*ChainLink) (cached boo
 func (sc *SigChain) VerifySigsAndComputeKeys(eldest keybase1.KID, ckf *ComputedKeyFamily) (cached bool, err error) {
 
 	cached = false
-	G.Log.Debug("+ VerifySigsAndComputeKeys for user %s", sc.uid)
+	G.Log.Debug("+ VerifySigsAndComputeKeys for user %s (eldest = %s)", sc.uid, eldest)
 	defer func() {
 		G.Log.Debug("- VerifySigsAndComputeKeys for user %s -> %s", sc.uid, ErrToOk(err))
 	}()
@@ -565,6 +574,12 @@ func (l *SigChainLoader) LoadLinksFromStorage() (err error) {
 
 	if mt, err = l.LoadLastLinkIDFromStorage(); err != nil || mt == nil {
 		G.Log.Debug("| Failed to load last link ID")
+		if err == nil {
+			G.Log.Debug("| no error loading last link ID from storage")
+		}
+		if mt == nil {
+			G.Log.Debug("| mt (MerkleTriple) nil result from load last link ID from storage")
+		}
 		return err
 	}
 
@@ -733,7 +748,7 @@ func (l *SigChainLoader) LoadFromServer() (err error) {
 //========================================================================
 
 func (l *SigChainLoader) VerifySigsAndComputeKeys() (err error) {
-
+	G.Log.Debug("VerifySigsAndComputeKeys(): l.leaf: %v, l.leaf.eldest: %v, l.ckf: %v", l.leaf, l.leaf.eldest, l.ckf)
 	if l.ckf.kf != nil {
 		_, err = l.chain.VerifySigsAndComputeKeys(l.leaf.eldest, &l.ckf)
 	}

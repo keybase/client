@@ -66,7 +66,7 @@ func TestRevokeDevice(t *testing.T) {
 
 	u := CreateAndSignupFakeUser(tc, "rev")
 
-	assertNumDevicesAndKeys(t, u, 3, 6)
+	assertNumDevicesAndKeys(t, u, 2, 4)
 
 	devices, _ := getActiveDevicesAndKeys(t, u)
 	var webDevice *libkb.Device
@@ -78,20 +78,12 @@ func TestRevokeDevice(t *testing.T) {
 			thisDevice = device
 		}
 	}
-	if webDevice == nil {
-		t.Fatal("Expected to find a web device.")
+	if webDevice != nil {
+		t.Fatal("Expected to not find a web device.")
 	}
-
-	// Revoking the web device should succeed.
-	err := doRevokeDevice(tc, u, webDevice.ID, false)
-	if err != nil {
-		tc.T.Fatal(err)
-	}
-
-	assertNumDevicesAndKeys(t, u, 2, 4)
 
 	// Revoking the current device should fail.
-	err = doRevokeDevice(tc, u, thisDevice.ID, false)
+	err := doRevokeDevice(tc, u, thisDevice.ID, false)
 	if err == nil {
 		tc.T.Fatal("Expected revoking the current device to fail.")
 	}
@@ -113,7 +105,7 @@ func TestRevokeKey(t *testing.T) {
 
 	u := createFakeUserWithPGPSibkey(tc)
 
-	assertNumDevicesAndKeys(t, u, 3, 7)
+	assertNumDevicesAndKeys(t, u, 2, 5)
 
 	_, keys := getActiveDevicesAndKeys(t, u)
 	var pgpKey *libkb.GenericKey
@@ -134,7 +126,7 @@ func TestRevokeKey(t *testing.T) {
 		tc.T.Fatal(err)
 	}
 
-	assertNumDevicesAndKeys(t, u, 3, 6)
+	assertNumDevicesAndKeys(t, u, 2, 4)
 }
 
 // See issue #370.
