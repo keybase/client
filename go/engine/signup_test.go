@@ -29,6 +29,14 @@ func TestSignupEngine(t *testing.T) {
 		t.Fatal(err)
 	}
 
+	me, err := libkb.LoadMe(libkb.LoadUserArg{})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if me.GetEldestKID().IsNil() {
+		t.Fatal("after signup, eldest kid is nil")
+	}
+
 	// Now try to logout and log back in
 	Logout(tc)
 

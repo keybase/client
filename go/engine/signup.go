@@ -51,7 +51,6 @@ func (s *SignupEngine) Prereqs() Prereqs { return Prereqs{} }
 
 func (s *SignupEngine) SubConsumers() []libkb.UIConsumer {
 	return []libkb.UIConsumer{
-		&DetKeyEngine{},
 		&GPGImportKeyEngine{},
 		&DeviceWrap{},
 		&PaperKeyPrimary{},
@@ -85,10 +84,6 @@ func (s *SignupEngine) Run(ctx *Context) error {
 			if err := s.genPaperKeys(ctx); err != nil {
 				return err
 			}
-		}
-
-		if err := s.genDetKeys(ctx); err != nil {
-			return fmt.Errorf("detkeys error: %s", err)
 		}
 
 		if s.arg.SkipGPG {
@@ -183,18 +178,10 @@ func (s *SignupEngine) registerDevice(a libkb.LoginContext, ctx *Context, device
 		}
 	}
 
-	return nil
-}
+	s.G().Log.Warning("registered new device: %s", s.G().Env.GetDeviceID())
+	s.G().Log.Warning("eldest kid: %s", s.me.GetEldestKID())
 
-func (s *SignupEngine) genDetKeys(ctx *Context) error {
-	arg := &DetKeyArgs{
-		PPStream:    s.ppStream,
-		Me:          s.me,
-		SigningKey:  s.signingKey,
-		EldestKeyID: s.signingKey.GetKID(),
-	}
-	eng := NewDetKeyEngine(arg, s.G())
-	return RunEngine(eng, ctx)
+	return nil
 }
 
 func (s *SignupEngine) genPaperKeys(ctx *Context) error {

@@ -31,41 +31,6 @@ func createFakeUserWithNoKeys(tc libkb.TestContext) (username, passphrase string
 	return username, passphrase
 }
 
-func createFakeUserWithDetKey(tc libkb.TestContext) (username, passphrase string) {
-	username, email := fakeUser(tc.T, "login")
-	passphrase = fakePassphrase(tc.T)
-
-	s := NewSignupEngine(nil, tc.G)
-
-	f := func(a libkb.LoginContext) error {
-		if err := s.genPassphraseStream(a, passphrase); err != nil {
-			return err
-		}
-
-		if err := s.join(a, username, email, testInviteCode, true); err != nil {
-			return err
-		}
-		return nil
-	}
-	if err := s.G().LoginState().ExternalFunc(f, "createFakeUserWithDetKey"); err != nil {
-		tc.T.Fatal(err)
-	}
-
-	// generate the detkey only, using SelfProof
-	arg := &DetKeyArgs{
-		Me:        s.me,
-		PPStream:  s.ppStream,
-		SelfProof: true,
-	}
-	eng := NewDetKeyEngine(arg, tc.G)
-	ctx := &Context{LogUI: tc.G.UI.GetLogUI()}
-	if err := RunEngine(eng, ctx); err != nil {
-		tc.T.Fatal(err)
-	}
-
-	return username, passphrase
-}
-
 // createFakeUserWithPGPOnly creates a new fake/testing user, who signed
 // up on the Web site, and used the Web site to generate his/her key.  They
 // used triplesec-encryption and synced their key to the keybase servers.

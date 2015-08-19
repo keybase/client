@@ -484,6 +484,8 @@ func parseV2(jw *jsonw.Wrapper) (*MerkleUserLeaf, error) {
 		}
 	}
 
+	fmt.Printf("parseV2, l = %d, jw.AtIndex(3) nil? %v\n", l, jw.AtIndex(3).IsNil())
+	fmt.Printf("jw:\n%s\n\n", jw.MarshalPretty())
 	if l >= 4 && !jw.AtIndex(3).IsNil() {
 		eldest, err := GetKID(jw.AtIndex(3))
 		if err != nil {
@@ -533,7 +535,7 @@ func ParseMerkleUserLeaf(jw *jsonw.Wrapper) (user *MerkleUserLeaf, err error) {
 		err = fmt.Errorf("Unexpected version: %d", v)
 	}
 
-	G.Log.Debug("- ParsingMerkleUserLeaf -> %v", err)
+	G.Log.Debug("- ParsingMerkleUserLeaf -> %v", ErrToOk(err))
 	return
 }
 

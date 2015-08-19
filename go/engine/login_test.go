@@ -111,32 +111,6 @@ func TestLoginAddsKeys(t *testing.T) {
 	hasOnePaperDev(t, &FakeUser{Username: username, Passphrase: passphrase})
 }
 
-func TestLoginDetKeyOnly(t *testing.T) {
-	t.Skip("deprecated")
-	tc := SetupEngineTest(t, "login")
-	defer tc.Cleanup()
-
-	username, passphrase := createFakeUserWithDetKey(tc)
-
-	Logout(tc)
-
-	li := NewLoginWithPromptEngine(username, tc.G)
-	secui := &libkb.TestSecretUI{Passphrase: passphrase}
-	ctx := &Context{LogUI: tc.G.UI.GetLogUI(), LocksmithUI: &lockui{deviceName: "Device"}, SecretUI: secui, GPGUI: &gpgtestui{}, LoginUI: &libkb.TestLoginUI{}}
-	if err := RunEngine(li, ctx); err != nil {
-		t.Fatal(err)
-	}
-	if err := AssertLoggedIn(tc); err != nil {
-		t.Fatal(err)
-	}
-
-	// since this user didn't have a device key, login should have fixed that:
-	testUserHasDeviceKey(t)
-
-	// and they should have a paper backup key since this is their first device
-	hasOnePaperDev(t, &FakeUser{Username: username, Passphrase: passphrase})
-}
-
 // TestLoginPGPSignNewDevice
 //
 //  Setup: Create a new user who only has a Sync'ed PGP key, like our typical
@@ -327,7 +301,7 @@ func TestLoginPaperSignNewDevice(t *testing.T) {
 		tc.T.Fatal(err)
 	}
 
-	assertNumDevicesAndKeys(t, fu, 3, 6)
+	assertNumDevicesAndKeys(t, fu, 2, 4)
 
 	Logout(tc)
 
@@ -365,7 +339,7 @@ func TestLoginPaperSignNewDevice(t *testing.T) {
 
 	testUserHasDeviceKey(t)
 
-	assertNumDevicesAndKeys(t, fu, 4, 8)
+	assertNumDevicesAndKeys(t, fu, 3, 6)
 }
 
 // TestLoginInterrupt* tries to simulate what would happen if the

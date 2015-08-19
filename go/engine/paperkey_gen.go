@@ -56,9 +56,7 @@ func (e *PaperKeyGen) RequiredUIs() []libkb.UIKind {
 
 // SubConsumers returns the other UI consumers for this engine.
 func (e *PaperKeyGen) SubConsumers() []libkb.UIConsumer {
-	return []libkb.UIConsumer{
-		&DetKeyEngine{},
-	}
+	return nil
 }
 
 func (e *PaperKeyGen) SigKey() libkb.GenericKey {
@@ -255,6 +253,8 @@ func (e *PaperKeyGen) push(ctx *Context) error {
 		Me:          e.arg.Me,
 		Device:      backupDev,
 	}
+
+	fmt.Printf("\n\n*****************************************************\n\n")
 
 	return libkb.DelegatorAggregator(ctx.LoginContext, []libkb.Delegator{sigDel, sigEnc})
 }
