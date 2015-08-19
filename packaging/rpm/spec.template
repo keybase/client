@@ -1,5 +1,5 @@
 Name: keybase
-Version: 0.0.1
+Version: @@VERSION@@
 Release: 1
 Summary: Keybase command line client
 License: BSD
@@ -14,3 +14,6 @@ cp -r "$RPM_BUILD_DIR/../keybase_dest/$RPM_ARCH"/* "$RPM_BUILD_ROOT"
 
 %files
 /usr/bin/*
+
+# The postinstall script gets appended below here.
+%post -p /bin/bash
