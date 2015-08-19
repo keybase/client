@@ -2,6 +2,7 @@ import React = require('react');
 import TypedReact = require('typed-react');
 
 import Login = require('./login');
+//import Test = require('./test');
 //import ConsoleView = require('./app-view');
 
 const D = React.DOM;
@@ -14,6 +15,7 @@ class App extends TypedReact.Component<{}, AppState> {
 
   render() {
     return Login();
+    //return Test();
     //return ConsoleView();
   }
 

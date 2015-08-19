@@ -15,7 +15,8 @@ interface LoginState {
 class Login extends TypedReact.Component<{}, LoginState> {
 
   componentDidMount() {
-    ipc.on('rpc', this.onResponse);
+    ipc.on('response', this.onResponse); // Response from service
+    ipc.on('request', this.onRequest); // Request from service to UI
   }
 
   getInitialState(): LoginState {
@@ -31,11 +32,20 @@ class Login extends TypedReact.Component<{}, LoginState> {
     //let storeSecret = React.findDOMNode<HTMLInputElement>(this.refs['storeSecret']).value;
     //console.log('Store secret? ', storeSecret);
     let request = {protocol: 'keybase.1.login', method:'loginWithPassphrase', args: {username, passphrase}};
-    ipc.send('rpc', request)
+    ipc.send('request', request) // Make call to service
+  }
+
+  onRequest(request) {
+    let method = request.method;
+    let arg = request.arg;
+    console.log('Request from main: ', method, arg);
+    let response = {result: 'Dev'}
+    ipc.send('response', response); // Response to service request
   }
 
   onResponse(response) {
-    console.log('Login response: ', response)
+    let result = response.result;
+    console.log('Response: ', result, response.err);
     if (response.err) {
       this.state.alert = {type: 'danger', message: response.err['desc']};
     } else {

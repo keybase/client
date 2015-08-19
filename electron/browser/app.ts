@@ -2,7 +2,6 @@ import app = require('app');
 import BrowserWindow = require('browser-window');
 import configuration = require('./configuration');
 
-import ipc = require('ipc');
 import Client = require('./client');
 
 export function run(mainUrl: string) {
@@ -19,29 +18,7 @@ export function run(mainUrl: string) {
     window.toggleDevTools();
 
     client = new Client();
-
-    // RPC call
-    ipc.on('rpc', function(event, request) {
-      console.log('Got request: ', request);
-      client.invoke(request, function(response) {
-        console.log('Replying: ', response);
-        event.sender.send('rpc', response);
-      });
-    });
-
-    // Console command
-    ipc.on('command', function(event, arg) {
-      event.sender.send('output', 'Running: ' + arg.text);
-
-      client.run(arg.text, function(err, res) {
-        if (err != null) {
-          event.sender.send('error', err.desc);
-        }
-        if (res != null) {
-          event.sender.send('output', JSON.stringify(res, null, 2));
-        }
-      });
-    });
+    //global['client'] = client;
 
     const sockfile = config['app']['sockfile'];
 

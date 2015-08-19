@@ -35,7 +35,7 @@ build: clean
 
 	@# We --ignore ipc because Electron has its own defined that is better
 	$(TSC) -p ./renderer
-	$(BROWSERIFY) ./build/renderer/app.js -o build/renderer.js --ignore ipc --debug
+	$(BROWSERIFY) ./build/renderer/app.js -o build/renderer.js --ignore=ipc --ignore=remote --debug
 
 	$(TSC) -p ./browser
 
