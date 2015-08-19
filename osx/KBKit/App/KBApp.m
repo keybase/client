@@ -121,7 +121,7 @@
   [_controlPanel addComponents:componentsForControlPanel];
   [_controlPanel open:_appView];
 
-  [_appView openWithEnvironment:environment];
+  [_appView openWithEnvironment:environment completion:^(NSError *error) {}];
 }
 
 - (NSWindow *)mainWindow {

@@ -99,7 +99,7 @@ typedef NS_ENUM (NSInteger, KBAppViewMode) {
   [NSNotificationCenter.defaultCenter removeObserver:self];
 }
 
-- (void)openWithEnvironment:(KBEnvironment *)environment {
+- (void)openWithEnvironment:(KBEnvironment *)environment completion:(KBCompletion)completion {
   _environment = environment;
 
   NSDictionary *info = [[NSBundle mainBundle] infoDictionary];
@@ -111,17 +111,17 @@ typedef NS_ENUM (NSInteger, KBAppViewMode) {
   [_environment installStatus:^(BOOL needsInstall) {
     if (needsInstall) {
       KBInstaller *installer = [[KBInstaller alloc] initWithEnvironment:gself.environment];
-      [self showInstaller:installer];
+      [self showInstaller:installer completion:completion];
     } else {
-      [self connect];
+      [self connect:completion];
     }
   }];
 }
 
-- (void)connect {
+- (void)connect:(KBCompletion)completion {
   KBRPClient *client = _environment.service.client;
   client.delegate = self;
-  [client open:^(NSError *error) {}];
+  [client open:completion];
 }
 
 // If we errored while checking status
@@ -195,12 +195,12 @@ typedef NS_ENUM (NSInteger, KBAppViewMode) {
   _appProgressView.progressView.animating = YES;
 }
 
-- (void)showInstaller:(KBInstaller *)installer {
+- (void)showInstaller:(KBInstaller *)installer completion:(KBCompletion)completion {
   KBInstallerView *view = [[KBInstallerView alloc] init];
   [view setInstaller:installer];
   view.completion = ^() {
     [self showInProgress:@"Loading"];
-    [self connect];
+    [self connect:completion];
   };
   KBNavigationView *navigation = [[KBNavigationView alloc] initWithView:view title:_title];
   [self setContentView:navigation mode:KBAppViewModeInstaller];
@@ -422,7 +422,7 @@ typedef NS_ENUM (NSInteger, KBAppViewMode) {
 - (NSRect)window:(NSWindow *)window willPositionSheet:(NSWindow *)sheet usingRect:(NSRect)rect {
   CGFloat sheetPosition = 0;
   if (_mode == KBAppViewModeMain) sheetPosition = 74;
-  else sheetPosition = 33;
+  else sheetPosition = 32;
   rect.origin.y += -sheetPosition;
   return rect;
 }

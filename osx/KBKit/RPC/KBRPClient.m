@@ -194,9 +194,18 @@
   }
 }
 
+- (void)_respondWithResult:(id)result error:(NSError *)error method:(NSString *)method completion:(MPRequestCompletion)completion {
+  if (error) {
+    KBLog(KBLogRPC|KBLogError, @"%@", error);
+  } else {
+    KBLog(KBLogRPC|KBLogDebug, @"Replied (%@): %@", method, result ? KBDescription(result) : @"nil");
+  }
+  completion(error, result);
+}
+
 - (void)_sendRequestWithMethod:(NSString *)method params:(NSDictionary *)params sessionId:(NSNumber *)sessionId completion:(MPRequestCompletion)completion {
   if (_client.status != MPMessagePackClientStatusOpen) {
-    completion(KBMakeErrorWithRecovery(-400, @"We are unable to connect to the Keybase service.", @"You may need to update or re-install to fix this."), nil);
+    [self _respondWithResult:nil error:KBMakeErrorWithRecovery(-400, @"We are unable to connect to the Keybase service.", @"You may need to update or re-install to fix this.") method:method completion:completion];
     return;
   }
 
@@ -227,8 +236,7 @@
 //    if ([[KBWorkspace userDefaults] boolForKey:@"Preferences.Advanced.Record"]) {
 //      if (result) [self.recorder recordResponse:method response:result sessionId:sessionId];
 //    }
-    KBLog(KBLogRPC|KBLogDebug, @"Replied (%@): %@", method, result ? KBDescription(result) : @"{}");
-    completion(error, result);
+    [self _respondWithResult:result error:error method:method completion:completion];
   }];
   
 //  if ([[KBWorkspace userDefaults] boolForKey:@"Preferences.Advanced.Record"]) {

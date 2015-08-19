@@ -17,7 +17,7 @@
 @property (nonatomic) KBRUser *user;
 @property (readonly) KBEnvironment *environment;
 
-- (void)openWithEnvironment:(KBEnvironment *)environment;
+- (void)openWithEnvironment:(KBEnvironment *)environment completion:(KBCompletion)completion;
 
 - (KBWindow *)openWindow;
 

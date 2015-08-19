@@ -479,7 +479,9 @@
     KBRSelectKeyAndPushOptionRequestParams *requestParams = [[KBRSelectKeyAndPushOptionRequestParams alloc] initWithParams:params];
     [self selectPGPKey:requestParams completion:completion];
   }];
-  [request pgpSelectWithFingerprintQuery:nil allowMulti:NO skipImport:NO completion:^(NSError *error) {
+
+  KBRPgpSelectRequestParams *params = [KBRPgpSelectRequestParams params];
+  [request pgpSelect:params completion:^(NSError *error) {
     [self setError:error];
     [self refresh];
   }];

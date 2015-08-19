@@ -179,7 +179,7 @@
   if (useBundle) {
     [pargs addObject:[KBPath pathInDir:config.bundle.sharedSupportPath path:@"bin/keybase" options:pathOptions]];
   } else {
-    [pargs addObject:@"./keybase"];
+    [pargs addObjectsFromArray:@[@"env", @"-i", @"./keybase"]];
   }
   if (config.homeDir) {
     [pargs addObjectsFromArray:@[@"-H", [KBPath path:config.homeDir options:pathOptions]]];

@@ -43,7 +43,6 @@
 @interface KBRUser : KBRObject
 @property NSString *uid;
 @property NSString *username;
-@property NSArray *publicKeys; /*of KBRPublicKey*/
 @end
 
 @interface KBRDevice : KBRObject
@@ -250,6 +249,7 @@ typedef NS_ENUM (NSInteger, KBRTrackStatus) {
 
 @interface KBRIdentifyRes : KBRObject
 @property KBRUser *user;
+@property NSArray *publicKeys; /*of KBRPublicKey*/
 @property KBRIdentifyOutcome *outcome;
 @property NSString *trackToken;
 @end
@@ -320,12 +320,12 @@ typedef NS_ENUM (NSInteger, KBRTrackStatus) {
 typedef NS_ENUM (NSInteger, KBRDeviceSignerKind) {
 	KBRDeviceSignerKindDevice = 0,
 	KBRDeviceSignerKindPgp = 1,
+	KBRDeviceSignerKindPaperBackupKey = 2,
 };
 
 typedef NS_ENUM (NSInteger, KBRSelectSignerAction) {
 	KBRSelectSignerActionSign = 0,
 	KBRSelectSignerActionCancel = 1,
-	KBRSelectSignerActionResetAccount = 2,
 };
 
 @interface KBRDeviceSigner : KBRObject
@@ -371,6 +371,7 @@ typedef NS_ENUM (NSInteger, KBRLogLevel) {
 @end
 
 @interface KBRKeyHalf : KBRObject
+@property NSString *user;
 @property NSString *deviceKID;
 @property NSData *key;
 @end
@@ -745,6 +746,7 @@ typedef NS_ENUM (NSInteger, KBRPromptDefault) {
 @property NSInteger sessionID;
 @property NSArray *devices;
 @property BOOL hasPGP;
+@property BOOL hasPaperBackupKey;
 @end
 @interface KBRDeviceSignAttemptErrRequestParams : KBRRequestParams
 @property NSInteger sessionID;
@@ -798,17 +800,21 @@ typedef NS_ENUM (NSInteger, KBRPromptDefault) {
 @interface KBRResetRequestParams : KBRRequestParams
 @property NSInteger sessionID;
 @end
-@interface KBRBackupRequestParams : KBRRequestParams
+@interface KBRPaperKeyRequestParams : KBRRequestParams
 @property NSInteger sessionID;
 @end
 @interface KBRGetEmailOrUsernameRequestParams : KBRRequestParams
 @property NSInteger sessionID;
 @end
-@interface KBRPromptRevokeBackupDeviceKeysRequestParams : KBRRequestParams
+@interface KBRPromptRevokePaperKeysRequestParams : KBRRequestParams
 @property NSInteger sessionID;
 @property KBRDevice *device;
 @end
-@interface KBRDisplayBackupPhraseRequestParams : KBRRequestParams
+@interface KBRDisplayPaperKeyPhraseRequestParams : KBRRequestParams
+@property NSInteger sessionID;
+@property NSString *phrase;
+@end
+@interface KBRDisplayPrimaryPaperKeyRequestParams : KBRRequestParams
 @property NSInteger sessionID;
 @property NSString *phrase;
 @end
@@ -834,7 +840,7 @@ typedef NS_ENUM (NSInteger, KBRPromptDefault) {
 @property NSArray *keyHalves;
 @end
 @interface KBRGetKeyRequestParams : KBRRequestParams
-@property NSString *keyHash;
+@property NSData *keyHalfID;
 @end
 @interface KBRTruncateLockRequestParams : KBRRequestParams
 @property NSString *folderID;
@@ -906,6 +912,7 @@ typedef NS_ENUM (NSInteger, KBRPromptDefault) {
 @property NSString *fingerprintQuery;
 @property BOOL allowMulti;
 @property BOOL skipImport;
+@property BOOL onlyImport;
 @end
 @interface KBRPgpUpdateRequestParams : KBRRequestParams
 @property NSInteger sessionID;
@@ -965,6 +972,7 @@ typedef NS_ENUM (NSInteger, KBRPromptDefault) {
 @interface KBRRevokeDeviceRequestParams : KBRRequestParams
 @property NSInteger sessionID;
 @property NSString *deviceID;
+@property BOOL force;
 @end
 @interface KBRRevokeSigsRequestParams : KBRRequestParams
 @property NSInteger sessionID;
@@ -988,7 +996,7 @@ typedef NS_ENUM (NSInteger, KBRPromptDefault) {
 @property NSString *username;
 @property NSString *retry;
 @end
-@interface KBRGetBackupPassphraseRequestParams : KBRRequestParams
+@interface KBRGetPaperKeyPassphraseRequestParams : KBRRequestParams
 @property NSInteger sessionID;
 @property NSString *username;
 @end
@@ -1073,8 +1081,10 @@ typedef NS_ENUM (NSInteger, KBRPromptDefault) {
 @interface KBRLoadUserRequestParams : KBRRequestParams
 @property NSInteger sessionID;
 @property NSString *uid;
-@property NSString *username;
-@property BOOL isSelf;
+@end
+@interface KBRLoadPublicKeysRequestParams : KBRRequestParams
+@property NSInteger sessionID;
+@property NSString *uid;
 @end
 @interface KBRListTrackingRequestParams : KBRRequestParams
 @property NSInteger sessionID;
@@ -1295,7 +1305,7 @@ typedef NS_ENUM (NSInteger, KBRPromptDefault) {
 
 - (void)selectSigner:(KBRSelectSignerRequestParams *)params completion:(void (^)(NSError *error, KBRSelectSignerRes *selectSignerRes))completion;
 
-- (void)selectSignerWithDevices:(NSArray *)devices hasPGP:(BOOL)hasPGP completion:(void (^)(NSError *error, KBRSelectSignerRes *selectSignerRes))completion;
+- (void)selectSignerWithDevices:(NSArray *)devices hasPGP:(BOOL)hasPGP hasPaperBackupKey:(BOOL)hasPaperBackupKey completion:(void (^)(NSError *error, KBRSelectSignerRes *selectSignerRes))completion;
 
 - (void)deviceSignAttemptErr:(KBRDeviceSignAttemptErrRequestParams *)params completion:(void (^)(NSError *error))completion;
 
@@ -1345,7 +1355,7 @@ typedef NS_ENUM (NSInteger, KBRPromptDefault) {
 
 - (void)reset:(void (^)(NSError *error))completion;
 
-- (void)backup:(void (^)(NSError *error))completion;
+- (void)paperKey:(void (^)(NSError *error))completion;
 
 @end
 
@@ -1353,13 +1363,17 @@ typedef NS_ENUM (NSInteger, KBRPromptDefault) {
 
 - (void)getEmailOrUsername:(void (^)(NSError *error, NSString *str))completion;
 
-- (void)promptRevokeBackupDeviceKeys:(KBRPromptRevokeBackupDeviceKeysRequestParams *)params completion:(void (^)(NSError *error, BOOL b))completion;
+- (void)promptRevokePaperKeys:(KBRPromptRevokePaperKeysRequestParams *)params completion:(void (^)(NSError *error, BOOL b))completion;
 
-- (void)promptRevokeBackupDeviceKeysWithDevice:(KBRDevice *)device completion:(void (^)(NSError *error, BOOL b))completion;
+- (void)promptRevokePaperKeysWithDevice:(KBRDevice *)device completion:(void (^)(NSError *error, BOOL b))completion;
 
-- (void)displayBackupPhrase:(KBRDisplayBackupPhraseRequestParams *)params completion:(void (^)(NSError *error))completion;
+- (void)displayPaperKeyPhrase:(KBRDisplayPaperKeyPhraseRequestParams *)params completion:(void (^)(NSError *error))completion;
 
-- (void)displayBackupPhraseWithPhrase:(NSString *)phrase completion:(void (^)(NSError *error))completion;
+- (void)displayPaperKeyPhraseWithPhrase:(NSString *)phrase completion:(void (^)(NSError *error))completion;
+
+- (void)displayPrimaryPaperKey:(KBRDisplayPrimaryPaperKeyRequestParams *)params completion:(void (^)(NSError *error))completion;
+
+- (void)displayPrimaryPaperKeyWithPhrase:(NSString *)phrase completion:(void (^)(NSError *error))completion;
 
 @end
 
@@ -1387,7 +1401,7 @@ typedef NS_ENUM (NSInteger, KBRPromptDefault) {
 
 - (void)getKey:(KBRGetKeyRequestParams *)params completion:(void (^)(NSError *error, NSData *bytes))completion;
 
-- (void)getKeyWithKeyHash:(NSString *)keyHash completion:(void (^)(NSError *error, NSData *bytes))completion;
+- (void)getKeyWithKeyHalfID:(NSData *)keyHalfID completion:(void (^)(NSError *error, NSData *bytes))completion;
 
 - (void)truncateLock:(KBRTruncateLockRequestParams *)params completion:(void (^)(NSError *error, BOOL b))completion;
 
@@ -1449,7 +1463,7 @@ typedef NS_ENUM (NSInteger, KBRPromptDefault) {
 
 - (void)pgpSelect:(KBRPgpSelectRequestParams *)params completion:(void (^)(NSError *error))completion;
 
-- (void)pgpSelectWithFingerprintQuery:(NSString *)fingerprintQuery allowMulti:(BOOL)allowMulti skipImport:(BOOL)skipImport completion:(void (^)(NSError *error))completion;
+- (void)pgpSelectWithFingerprintQuery:(NSString *)fingerprintQuery allowMulti:(BOOL)allowMulti skipImport:(BOOL)skipImport onlyImport:(BOOL)onlyImport completion:(void (^)(NSError *error))completion;
 
 - (void)pgpUpdate:(KBRPgpUpdateRequestParams *)params completion:(void (^)(NSError *error))completion;
 
@@ -1517,7 +1531,7 @@ typedef NS_ENUM (NSInteger, KBRPromptDefault) {
 
 - (void)revokeDevice:(KBRRevokeDeviceRequestParams *)params completion:(void (^)(NSError *error))completion;
 
-- (void)revokeDeviceWithDeviceID:(NSString *)deviceID completion:(void (^)(NSError *error))completion;
+- (void)revokeDeviceWithDeviceID:(NSString *)deviceID force:(BOOL)force completion:(void (^)(NSError *error))completion;
 
 - (void)revokeSigs:(KBRRevokeSigsRequestParams *)params completion:(void (^)(NSError *error))completion;
 
@@ -1539,9 +1553,9 @@ typedef NS_ENUM (NSInteger, KBRPromptDefault) {
 
 - (void)getKeybasePassphraseWithUsername:(NSString *)username retry:(NSString *)retry completion:(void (^)(NSError *error, NSString *str))completion;
 
-- (void)getBackupPassphrase:(KBRGetBackupPassphraseRequestParams *)params completion:(void (^)(NSError *error, NSString *str))completion;
+- (void)getPaperKeyPassphrase:(KBRGetPaperKeyPassphraseRequestParams *)params completion:(void (^)(NSError *error, NSString *str))completion;
 
-- (void)getBackupPassphraseWithUsername:(NSString *)username completion:(void (^)(NSError *error, NSString *str))completion;
+- (void)getPaperKeyPassphraseWithUsername:(NSString *)username completion:(void (^)(NSError *error, NSString *str))completion;
 
 @end
 
@@ -1637,7 +1651,11 @@ typedef NS_ENUM (NSInteger, KBRPromptDefault) {
 
 - (void)loadUser:(KBRLoadUserRequestParams *)params completion:(void (^)(NSError *error, KBRUser *user))completion;
 
-- (void)loadUserWithUid:(NSString *)uid username:(NSString *)username isSelf:(BOOL)isSelf completion:(void (^)(NSError *error, KBRUser *user))completion;
+- (void)loadUserWithUid:(NSString *)uid completion:(void (^)(NSError *error, KBRUser *user))completion;
+
+- (void)loadPublicKeys:(KBRLoadPublicKeysRequestParams *)params completion:(void (^)(NSError *error, NSArray *items))completion;
+
+- (void)loadPublicKeysWithUid:(NSString *)uid completion:(void (^)(NSError *error, NSArray *items))completion;
 
 - (void)listTracking:(KBRListTrackingRequestParams *)params completion:(void (^)(NSError *error, NSArray *items))completion;
 
