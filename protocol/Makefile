@@ -29,6 +29,7 @@ build-stamp: \
 	json/login.json \
 	json/login_ui.json \
 	json/metadata.json \
+	json/metadata_update.json \
 	json/pgp.json \
 	json/prove.json \
 	json/prove_ui.json \

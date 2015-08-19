@@ -228,6 +228,16 @@
       } ],
       "response" : "MetadataResponse"
     },
+    "registerForUpdates" : {
+      "request" : [ {
+        "name" : "folderID",
+        "type" : "string"
+      }, {
+        "name" : "currRevision",
+        "type" : "long"
+      } ],
+      "response" : "null"
+    },
     "pruneUnmerged" : {
       "request" : [ {
         "name" : "folderID",
