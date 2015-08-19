@@ -178,8 +178,8 @@ func (s *SignupEngine) registerDevice(a libkb.LoginContext, ctx *Context, device
 		}
 	}
 
-	s.G().Log.Warning("registered new device: %s", s.G().Env.GetDeviceID())
-	s.G().Log.Warning("eldest kid: %s", s.me.GetEldestKID())
+	s.G().Log.Debug("registered new device: %s", s.G().Env.GetDeviceID())
+	s.G().Log.Debug("eldest kid: %s", s.me.GetEldestKID())
 
 	return nil
 }

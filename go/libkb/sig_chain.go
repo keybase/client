@@ -3,7 +3,6 @@ package libkb
 import (
 	"fmt"
 	"io"
-	"runtime/debug"
 	"time"
 
 	keybase1 "github.com/keybase/client/protocol/go"
@@ -45,10 +44,7 @@ func (sc *SigChain) LocalDelegate(kf *KeyFamily, key GenericKey, sigID keybase1.
 		cki = l.cki.ShallowCopy()
 	}
 	if cki == nil {
-		G.Log.Warning("LocalDelegate: creating new cki (%s)", signingKid)
-		G.Log.Warning("stack:")
-		debug.PrintStack()
-		G.Log.Warning("stack done")
+		G.Log.Debug("LocalDelegate: creating new cki (signingKid: %s)", signingKid)
 		cki = NewComputedKeyInfos()
 		cki.InsertLocalEldestKey(signingKid)
 	}
@@ -67,10 +63,9 @@ func (sc *SigChain) LocalDelegate(kf *KeyFamily, key GenericKey, sigID keybase1.
 func (sc SigChain) GetComputedKeyInfos() (cki *ComputedKeyInfos) {
 	cki = sc.localCki
 	if cki == nil {
-		G.Log.Warning("localCki is nil")
 		if l := sc.GetLastLink(); l != nil {
 			if l.cki == nil {
-				G.Log.Warning("l.cki is nil")
+				G.Log.Debug("l.cki is nil")
 			}
 			cki = l.cki
 		}

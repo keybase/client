@@ -3,7 +3,6 @@ package libkb
 import (
 	"fmt"
 	"io"
-	"os"
 
 	keybase1 "github.com/keybase/client/protocol/go"
 	jsonw "github.com/keybase/go-jsonw"
@@ -386,19 +385,15 @@ func (u *User) HasActiveKey() bool {
 	if ckf := u.GetComputedKeyFamily(); ckf != nil {
 		return ckf.HasActiveKey()
 	}
-	G.Log.Warning("no ckf")
+
 	if u.sigChain() == nil {
-		G.Log.Warning("sig chain is nil")
-	} else {
-		if u.sigChain().GetComputedKeyInfos() == nil {
-			G.Log.Warning("comp key infos is nil")
-		}
+		G.Log.Debug("User HasActiveKey: sig chain is nil")
+	} else if u.sigChain().GetComputedKeyInfos() == nil {
+		G.Log.Debug("User HasActiveKey: comp key infos is nil")
 	}
 	if u.keyFamily == nil {
-		G.Log.Warning("keyFamily is nil")
+		G.Log.Debug("User HasActiveKey: keyFamily is nil")
 	}
-
-	u.sigChain().Dump(os.Stdout)
 
 	return false
 }
@@ -473,7 +468,7 @@ func (u *User) localDelegateKey(key GenericKey, sigID keybase1.SigID, kid keybas
 		err = NoSigChainError{}
 		return
 	}
-	G.Log.Warning("user - localDelegateKey - signing kid: %s", kid)
+	G.Log.Debug("User localDelegateKey signing kid: %s", kid)
 	err = u.sigChain().LocalDelegate(u.keyFamily, key, sigID, kid, isSibkey)
 	if isEldest {
 		eldestKID := key.GetKID()

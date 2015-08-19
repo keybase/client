@@ -254,7 +254,5 @@ func (e *PaperKeyGen) push(ctx *Context) error {
 		Device:      backupDev,
 	}
 
-	fmt.Printf("\n\n*****************************************************\n\n")
-
 	return libkb.DelegatorAggregator(ctx.LoginContext, []libkb.Delegator{sigDel, sigEnc})
 }
