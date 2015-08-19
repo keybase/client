@@ -173,7 +173,7 @@ func (e *Doctor) status(ctx *Context) {
 	var devs libkb.DeviceKeyMap
 	aerr := e.G().LoginState().SecretSyncer(func(ss *libkb.SecretSyncer) {
 		devs, err = ss.ActiveDevices(libkb.DefaultDeviceTypes)
-	}, "Doctor - ActiveDevicesPlusWeb")
+	}, "Doctor - ActiveDevices")
 	if aerr != nil {
 		e.runErr = err
 		return

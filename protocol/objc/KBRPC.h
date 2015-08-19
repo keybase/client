@@ -32,7 +32,6 @@
 @property NSArray *PGPIdentities; /*of KBRPGPIdentity*/
 @property BOOL isSibkey;
 @property BOOL isEldest;
-@property BOOL isWeb;
 @property NSString *parentID;
 @property NSString *deviceID;
 @property NSString *deviceDescription;
