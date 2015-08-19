@@ -830,6 +830,10 @@ typedef NS_ENUM (NSInteger, KBRPromptDefault) {
 @property long startRevision;
 @property long stopRevision;
 @end
+@interface KBRRegisterForUpdatesRequestParams : KBRRequestParams
+@property NSString *folderID;
+@property long currRevision;
+@end
 @interface KBRPruneUnmergedRequestParams : KBRRequestParams
 @property NSString *folderID;
 @end
@@ -844,6 +848,10 @@ typedef NS_ENUM (NSInteger, KBRPromptDefault) {
 @end
 @interface KBRTruncateUnlockRequestParams : KBRRequestParams
 @property NSString *folderID;
+@end
+@interface KBRMetadataUpdateRequestParams : KBRRequestParams
+@property NSString *folderID;
+@property long revision;
 @end
 @interface KBRPgpSignRequestParams : KBRRequestParams
 @property NSInteger sessionID;
@@ -1386,6 +1394,10 @@ typedef NS_ENUM (NSInteger, KBRPromptDefault) {
 
 - (void)getMetadataWithFolderID:(NSString *)folderID folderHandle:(NSData *)folderHandle unmerged:(BOOL)unmerged startRevision:(long)startRevision stopRevision:(long)stopRevision completion:(void (^)(NSError *error, KBRMetadataResponse *metadataResponse))completion;
 
+- (void)registerForUpdates:(KBRRegisterForUpdatesRequestParams *)params completion:(void (^)(NSError *error))completion;
+
+- (void)registerForUpdatesWithFolderID:(NSString *)folderID currRevision:(long)currRevision completion:(void (^)(NSError *error))completion;
+
 - (void)pruneUnmerged:(KBRPruneUnmergedRequestParams *)params completion:(void (^)(NSError *error))completion;
 
 - (void)pruneUnmergedWithFolderID:(NSString *)folderID completion:(void (^)(NSError *error))completion;
@@ -1405,6 +1417,14 @@ typedef NS_ENUM (NSInteger, KBRPromptDefault) {
 - (void)truncateUnlock:(KBRTruncateUnlockRequestParams *)params completion:(void (^)(NSError *error, BOOL b))completion;
 
 - (void)truncateUnlockWithFolderID:(NSString *)folderID completion:(void (^)(NSError *error, BOOL b))completion;
+
+@end
+
+@interface KBRMetadataUpdateRequest : KBRRequest
+
+- (void)metadataUpdate:(KBRMetadataUpdateRequestParams *)params completion:(void (^)(NSError *error))completion;
+
+- (void)metadataUpdateWithFolderID:(NSString *)folderID revision:(long)revision completion:(void (^)(NSError *error))completion;
 
 @end
 

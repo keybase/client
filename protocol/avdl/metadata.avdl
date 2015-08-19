@@ -17,6 +17,7 @@ protocol metadata {
 	void authenticate(UID user, KID deviceKID, string sid);
 	void putMetadata(bytes mdBlock);
 	MetadataResponse getMetadata(string folderID, bytes folderHandle, boolean unmerged, long startRevision, long stopRevision);
+	void registerForUpdates(string folderID, long currRevision);
 	void pruneUnmerged(string folderID);
 	void putKeys(array<KeyHalf> keyHalves);
 	bytes getKey(bytes keyHalfID);

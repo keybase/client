@@ -1811,6 +1811,11 @@ type GetMetadataArg struct {
 	StopRevision  int64  `codec:"stopRevision" json:"stopRevision"`
 }
 
+type RegisterForUpdatesArg struct {
+	FolderID     string `codec:"folderID" json:"folderID"`
+	CurrRevision int64  `codec:"currRevision" json:"currRevision"`
+}
+
 type PruneUnmergedArg struct {
 	FolderID string `codec:"folderID" json:"folderID"`
 }
@@ -1835,6 +1840,7 @@ type MetadataInterface interface {
 	Authenticate(AuthenticateArg) error
 	PutMetadata([]byte) error
 	GetMetadata(GetMetadataArg) (MetadataResponse, error)
+	RegisterForUpdates(RegisterForUpdatesArg) error
 	PruneUnmerged(string) error
 	PutKeys([]KeyHalf) error
 	GetKey([]byte) ([]byte, error)
@@ -1864,6 +1870,13 @@ func MetadataProtocol(i MetadataInterface) rpc2.Protocol {
 				args := make([]GetMetadataArg, 1)
 				if err = nxt(&args); err == nil {
 					ret, err = i.GetMetadata(args[0])
+				}
+				return
+			},
+			"registerForUpdates": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
+				args := make([]RegisterForUpdatesArg, 1)
+				if err = nxt(&args); err == nil {
+					err = i.RegisterForUpdates(args[0])
 				}
 				return
 			},
@@ -1927,6 +1940,11 @@ func (c MetadataClient) GetMetadata(__arg GetMetadataArg) (res MetadataResponse,
 	return
 }
 
+func (c MetadataClient) RegisterForUpdates(__arg RegisterForUpdatesArg) (err error) {
+	err = c.Cli.Call("keybase.1.metadata.registerForUpdates", []interface{}{__arg}, nil)
+	return
+}
+
 func (c MetadataClient) PruneUnmerged(folderID string) (err error) {
 	__arg := PruneUnmergedArg{FolderID: folderID}
 	err = c.Cli.Call("keybase.1.metadata.pruneUnmerged", []interface{}{__arg}, nil)
@@ -1954,6 +1972,40 @@ func (c MetadataClient) TruncateLock(folderID string) (res bool, err error) {
 func (c MetadataClient) TruncateUnlock(folderID string) (res bool, err error) {
 	__arg := TruncateUnlockArg{FolderID: folderID}
 	err = c.Cli.Call("keybase.1.metadata.truncateUnlock", []interface{}{__arg}, &res)
+	return
+}
+
+type MetadataUpdateArg struct {
+	FolderID string `codec:"folderID" json:"folderID"`
+	Revision int64  `codec:"revision" json:"revision"`
+}
+
+type MetadataUpdateInterface interface {
+	MetadataUpdate(MetadataUpdateArg) error
+}
+
+func MetadataUpdateProtocol(i MetadataUpdateInterface) rpc2.Protocol {
+	return rpc2.Protocol{
+		Name: "keybase.1.metadataUpdate",
+		Methods: map[string]rpc2.ServeHook{
+			"metadataUpdate": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
+				args := make([]MetadataUpdateArg, 1)
+				if err = nxt(&args); err == nil {
+					err = i.MetadataUpdate(args[0])
+				}
+				return
+			},
+		},
+	}
+
+}
+
+type MetadataUpdateClient struct {
+	Cli GenericClient
+}
+
+func (c MetadataUpdateClient) MetadataUpdate(__arg MetadataUpdateArg) (err error) {
+	err = c.Cli.Call("keybase.1.metadataUpdate.metadataUpdate", []interface{}{__arg}, nil)
 	return
 }
 
