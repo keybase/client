@@ -14,7 +14,7 @@ type ErrorFile struct {
 
 var _ fs.Node = (*ErrorFile)(nil)
 
-// Attr implements the fs.Node interface for File.
+// Attr implements the fs.Node interface for ErrorFile.
 func (f *ErrorFile) Attr(ctx context.Context, a *fuse.Attr) error {
 	data, etime := f.fs.config.Reporter().LastError()
 	a.Size = uint64(len(data)) + 1
@@ -30,7 +30,7 @@ var _ fs.Handle = (*ErrorFile)(nil)
 
 var _ fs.NodeOpener = (*ErrorFile)(nil)
 
-// Open implements the fs.NodeOpener interface for File.
+// Open implements the fs.NodeOpener interface for ErrorFile.
 func (f *ErrorFile) Open(ctx context.Context, req *fuse.OpenRequest,
 	resp *fuse.OpenResponse) (fs.Handle, error) {
 	data, _ := f.fs.config.Reporter().LastError()
