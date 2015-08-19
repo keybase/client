@@ -1,11 +1,13 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
 	"io"
 	"io/ioutil"
 	"os"
 	"path"
+	"reflect"
 	"runtime"
 	"strings"
 	"syscall"
@@ -1909,5 +1911,41 @@ func TestInvalidateRenameToUncachedDir(t *testing.T) {
 	}
 	if g, e := string(buf), input2; g != e {
 		t.Errorf("wrong content: %q != %q", g, e)
+	}
+}
+
+func TestStatusFile(t *testing.T) {
+	config := libkbfs.MakeTestConfigOrBust(t, BServerRemoteAddr, "jdoe")
+	defer config.Shutdown()
+	mnt := makeFS(t, config)
+	defer mnt.Close()
+
+	ctx := context.Background()
+	dh, err := libkbfs.ParseTlfHandle(ctx, config, "jdoe")
+	ops := config.KBFSOps()
+	jdoe, _, err := ops.GetOrCreateRootNodeForHandle(ctx, dh,
+		libkbfs.MasterBranch)
+	status, _, err := ops.Status(ctx, jdoe.GetFolderBranch())
+	if err != nil {
+		t.Fatalf("Couldn't get KBFS status: %v", err)
+	}
+
+	// Simply make sure the status in the file matches what we'd
+	// expect.  Checking the exact content should be left for tests
+	// within libkbfs.
+	buf, err := ioutil.ReadFile(path.Join(mnt.Dir, PublicName, "jdoe",
+		StatusFileName))
+	if err != nil {
+		t.Fatalf("Couldn't read KBFS status file: %v", err)
+	}
+
+	var bufStatus libkbfs.FolderBranchStatus
+	json.Unmarshal(buf, &bufStatus)
+
+	// It's safe to compare the path slices with DeepEqual since they
+	// will all be null for this test (nothing is dirtied).
+	if !reflect.DeepEqual(status, bufStatus) {
+		t.Fatalf("Status file contents (%s) didn't match expected status %v",
+			buf, status)
 	}
 }
