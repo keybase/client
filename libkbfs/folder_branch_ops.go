@@ -293,6 +293,9 @@ func (fbo *FolderBranchOps) getMDLocked(ctx context.Context, rtype reqType) (
 		}
 
 		err = fbo.config.MDCache().Put(mdID, md)
+		if err != nil {
+			return nil, err
+		}
 
 		fbo.headLock.Lock()
 		defer fbo.headLock.Unlock()
