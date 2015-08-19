@@ -653,6 +653,9 @@ type BlockServer interface {
 	// the count has already been removed, the call is a no-op.
 	RemoveBlockReference(ctx context.Context, id BlockID, tlfID TlfID,
 		context BlockContext) error
+
+	// Shutdown is called to shutdown an MDServer connection.
+	Shutdown()
 }
 
 // BlockSplitter decides when a file or directory block needs to be split

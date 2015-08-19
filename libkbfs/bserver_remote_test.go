@@ -169,12 +169,7 @@ func TestBServerRemoteWaitForReconnect(t *testing.T) {
 	fc := NewFakeBServerClient(nil, nil, nil)
 	ctx := context.Background()
 
-	// make a new bserver, but don't connect it yes
-	b := &BlockServerRemote{
-		config:        config,
-		connectedChan: make(chan struct{}),
-		clt:           fc,
-	}
+	b := newBlockServerRemoteWithClient(ctx, config, fc)
 
 	putChan := make(chan error)
 	go func() {
@@ -207,14 +202,8 @@ func TestBServerRemoteWaitForReconnect(t *testing.T) {
 		// fall through to connecting
 	}
 
-	// Now allow it to connect
-	err := b.ConnectOnce(ctx)
-	if err != nil {
-		t.Fatalf("ConnectOnce returned an error: %v", err)
-	}
-
 	// now there should be an answer waiting for us
-	err = <-putChan
+	err := <-putChan
 	if err != nil {
 		t.Fatalf("Put got an error: %v", err)
 	}

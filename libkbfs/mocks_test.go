@@ -1497,6 +1497,14 @@ func (_mr *_MockBlockServerRecorder) RemoveBlockReference(arg0, arg1, arg2, arg3
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "RemoveBlockReference", arg0, arg1, arg2, arg3)
 }
 
+func (_m *MockBlockServer) Shutdown() {
+	_m.ctrl.Call(_m, "Shutdown")
+}
+
+func (_mr *_MockBlockServerRecorder) Shutdown() *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "Shutdown")
+}
+
 // Mock of BlockSplitter interface
 type MockBlockSplitter struct {
 	ctrl     *gomock.Controller

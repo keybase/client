@@ -1,135 +1,44 @@
 package libkbfs
 
 import (
-	"crypto/tls"
-	"crypto/x509"
 	"encoding/hex"
-	"errors"
-	"net"
-	"sync"
 	"time"
 
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/protocol/go"
-	"github.com/maxtaco/go-framed-msgpack-rpc/rpc2"
 	"golang.org/x/net/context"
-)
-
-var (
-	// ErrNoActiveConn is an error returned when this component
-	// is not yet connected to the block server.
-	ErrNoActiveConn = errors.New("Not connected to block server")
-	// BServerTimeout is the timeout for communications with block server.
-	BServerTimeout = 60 * time.Second
 )
 
 // BlockServerRemote implements the BlockServer interface and
 // represents a remote KBFS block server.
 type BlockServerRemote struct {
-	config Config
-
-	srvAddr string
-
-	// connMu protects both conn and shutdown
-	connMu   sync.Mutex
-	conn     net.Conn
-	shutdown bool
-
-	clt keybase1.GenericClient
-
-	// connectedChan is closed and set to nil when the connection
-	// succeeds.  We'd need to create a new connectedChan if we ever
-	// want to deal with reconnecting after a disconnect.
-	connectedMu   sync.Mutex
-	connectedChan chan struct{}
-
-	lastTried time.Time
+	config     Config
+	conn       *Connection
+	testClient keybase1.GenericClient // for testing
 }
+
+// Test that BlockServerRemote fully implements the BlockServer interface.
+var _ BlockServer = (*BlockServerRemote)(nil)
 
 // NewBlockServerRemote constructs a new BlockServerRemote for the
 // given address.
-func NewBlockServerRemote(ctx context.Context, config Config,
-	blkSrvAddr string) *BlockServerRemote {
-	b := &BlockServerRemote{
-		config:        config,
-		srvAddr:       blkSrvAddr,
-		connectedChan: make(chan struct{}),
-	}
-
-	// Start connecting in the background
-	go b.Reconnect(ctx)
-	return b
+func NewBlockServerRemote(ctx context.Context, config Config, blkSrvAddr string) *BlockServerRemote {
+	bs := &BlockServerRemote{config: config}
+	connection := NewConnection(ctx, config, blkSrvAddr, bs, BServerUnwrapError)
+	bs.conn = connection
+	return bs
 }
 
-// newBlockServerRemoteWithClient should only be used for testing.
+// For testing.
 func newBlockServerRemoteWithClient(ctx context.Context, config Config,
-	client keybase1.GenericClient) *BlockServerRemote {
-	b := &BlockServerRemote{
-		config:        config,
-		connectedChan: make(chan struct{}),
-		clt:           client,
-	}
-
-	if err := b.ConnectOnce(ctx); err != nil {
-		panic("Failed to connect to a provided client.")
-	}
-
-	return b
+	testClient keybase1.GenericClient) *BlockServerRemote {
+	bs := &BlockServerRemote{config: config, testClient: testClient}
+	return bs
 }
 
-// TLSConnect connects over TLS to the given server, expecting the
-// connection to be authenticated with the given certificate.
-func TLSConnect(cert []byte, Addr string) (conn net.Conn, err error) {
-	CAPool := x509.NewCertPool()
-	CAPool.AppendCertsFromPEM(cert)
-
-	config := tls.Config{RootCAs: CAPool}
-	conn, err = tls.Dial("tcp", Addr, &config)
-	if err != nil {
-		return
-	}
-	return
-}
-
-func (b *BlockServerRemote) initClient() error {
-	b.connMu.Lock()
-	defer b.connMu.Unlock()
-	if b.shutdown {
-		// Pretend everything is fine.  That will cause the goroutine
-		// calling us to exit eventually.
-		return nil
-	}
-
-	var err error
-	if b.conn, err = TLSConnect(b.config.CACert(), b.srvAddr); err != nil {
-		libkb.G.Log.Warning("NewBlockServerRemote: cannot connect to backend "+
-			"err : %v", err)
-		return err
-	}
-
-	b.clt = rpc2.NewClient(rpc2.NewTransport(b.conn, libkb.NewRPCLogFactory(),
-		libkb.WrapError), libkb.UnwrapError)
-
-	return nil
-}
-
-// Config returns the configuration object
-func (b *BlockServerRemote) Config() Config {
-	return b.config
-}
-
-// ConnectOnce tries once to connect to the remote block server.
-func (b *BlockServerRemote) ConnectOnce(ctx context.Context) error {
-	shutdown := func() bool {
-		b.connMu.Lock()
-		defer b.connMu.Unlock()
-		return b.shutdown
-	}()
-	if shutdown {
-		// Pretend everything is fine.  That will cause the goroutine
-		// calling us to exit.
-		return nil
-	}
+// OnConnect implements the ConnectionHandler interface.
+func (b *BlockServerRemote) OnConnect(ctx context.Context,
+	conn *Connection, client keybase1.GenericClient) error {
 
 	var token string
 	var session *libkb.Session
@@ -151,111 +60,74 @@ func (b *BlockServerRemote) ConnectOnce(ctx context.Context) error {
 		User: user,
 		Sid:  token,
 	}
-	clt := keybase1.BlockClient{Cli: b.clt}
-	if err = clt.EstablishSession(arg); err != nil {
-		libkb.G.Log.Warning("BlockServerRemote: error getting session token %q", err)
-		return err
-	}
 
-	b.connectedMu.Lock()
-	defer b.connectedMu.Unlock()
-	close(b.connectedChan)
-	b.connectedChan = nil
-	return nil
+	// save the conn pointer
+	b.conn = conn
+
+	// using conn.DoCommand here would cause problematic recursion
+	return runUnlessCanceled(ctx, func() error {
+		c := keybase1.BlockClient{Cli: client}
+		return c.EstablishSession(arg)
+	})
 }
 
-func (b *BlockServerRemote) isConnected() bool {
-	return b.connectedChan == nil
+// OnConnectError implements the ConnectionHandler interface.
+func (b *BlockServerRemote) OnConnectError(err error, wait time.Duration) {
+	libkb.G.Log.Warning("BlockServerRemote: connection error: %q; retrying in %s",
+		err, wait)
+	// TODO: it might make sense to show something to the user if this is
+	// due to authentication, for example.
 }
 
-// WaitForReconnect waits for the timeout period to reconnect to the
-// server.
-func (b *BlockServerRemote) WaitForReconnect(parent context.Context) error {
-	c := func() chan struct{} {
-		b.connectedMu.Lock()
-		defer b.connectedMu.Unlock()
-		return b.connectedChan
-	}()
-
-	if c == nil {
-		// we're already connected
-		return nil
+// Helper to return a metadata client.
+func (b *BlockServerRemote) client() keybase1.BlockClient {
+	if b.testClient != nil {
+		// for testing
+		return keybase1.BlockClient{Cli: b.testClient}
 	}
-
-	ctx, cancel := context.WithTimeout(parent, BServerTimeout)
-	defer cancel()
-
-	// Wait either for the timeout, or for the connection to come up
-	// (c will be closed).
-	select {
-	case <-ctx.Done():
-		return ctx.Err()
-	case <-c:
-		// Note: if we ever want to recover from lost connectivity, we
-		// should probably put this whole method in a loop so that we
-		// check connectedChan again after the channel closes.
-		return nil
-	}
+	return keybase1.BlockClient{Cli: b.conn.GetClient()}
 }
 
-// Reconnect reconnects to block server.
-func (b *BlockServerRemote) Reconnect(ctx context.Context) {
-	for b.initClient() != nil {
-		time.Sleep(1 * time.Second)
-	}
-
-	for b.ConnectOnce(ctx) != nil {
-		time.Sleep(1 * time.Second)
-	}
+// OnDisconnected implements the ConnectionHandler interface.
+func (b *BlockServerRemote) OnDisconnected() {
+	libkb.G.Log.Warning("BlockServerRemote is disconnected\n")
 }
 
-// Shutdown closes the connection to this remote block server.
-func (b *BlockServerRemote) Shutdown() {
-	b.connMu.Lock()
-	defer b.connMu.Unlock()
-	if b.conn != nil {
-		b.conn.Close()
+// Helper to call an rpc command.
+func (b *BlockServerRemote) doCommand(ctx context.Context, command func() error) error {
+	if b.testClient != nil {
+		// for testing
+		return runUnlessCanceled(ctx, command)
 	}
-	b.shutdown = true
+	return b.conn.DoCommand(ctx, command)
 }
 
 // Get implements the BlockServer interface for BlockServerRemote.
 func (b *BlockServerRemote) Get(ctx context.Context, id BlockID,
 	context BlockContext) ([]byte, BlockCryptKeyServerHalf, error) {
 	libkb.G.Log.Debug("BlockServerRemote.Get id=%s uid=%s\n",
-		id, context.GetWriter())
-	if !b.isConnected() {
-		if err := b.WaitForReconnect(ctx); err != nil {
-			return nil, BlockCryptKeyServerHalf{}, err
-		}
-	}
+		id.String(), context.GetWriter())
 	bid := keybase1.BlockIdCombo{
 		BlockHash: id.String(),
 		ChargedTo: context.GetWriter(),
 	}
 
+	var err error
 	var res keybase1.GetBlockRes
-	f := func() error {
-		var err error
-		//XXX: if fails due to connection problem, should reconnect
-		clt := keybase1.BlockClient{Cli: b.clt}
-		res, err = clt.GetBlock(bid)
+	err = b.doCommand(ctx, func() error {
+		res, err = b.client().GetBlock(bid)
 		return err
-	}
-
-	err := runUnlessCanceled(ctx, f)
+	})
 	if err != nil {
-		libkb.G.Log.Debug("BlockServerRemote.Get id=%s err=%v\n",
-			id, err)
+		libkb.G.Log.Debug("BlockServerRemote.Get id=%s err=%v\n", id.String(), err)
 		return nil, BlockCryptKeyServerHalf{}, err
 	}
 
 	bk := BlockCryptKeyServerHalf{}
-	kbuf, err := hex.DecodeString(res.BlockKey)
-	if err != nil {
+	var kbuf []byte
+	if kbuf, err = hex.DecodeString(res.BlockKey); err != nil {
 		return nil, BlockCryptKeyServerHalf{}, err
 	}
-
 	copy(bk.ServerHalf[:], kbuf)
 	return res.Buf, bk, nil
 }
@@ -266,12 +138,7 @@ func (b *BlockServerRemote) Put(ctx context.Context, id BlockID, tlfID TlfID,
 	context BlockContext, buf []byte,
 	serverHalf BlockCryptKeyServerHalf) error {
 	libkb.G.Log.Debug("BlockServerRemote.Put id=%s uid=%s\n",
-		id, context.GetWriter())
-	if !b.isConnected() {
-		if err := b.WaitForReconnect(ctx); err != nil {
-			return err
-		}
-	}
+		id.String(), context.GetWriter())
 	arg := keybase1.PutBlockArg{
 		Bid: keybase1.BlockIdCombo{
 			ChargedTo: context.GetWriter(),
@@ -282,14 +149,14 @@ func (b *BlockServerRemote) Put(ctx context.Context, id BlockID, tlfID TlfID,
 		Buf:      buf,
 	}
 
-	f := func() error {
-		clt := keybase1.BlockClient{Cli: b.clt}
-		return clt.PutBlock(arg)
-	}
-	err := runUnlessCanceled(ctx, f)
+	var err error
+	err = b.doCommand(ctx, func() error {
+		return b.client().PutBlock(arg)
+	})
+
 	if err != nil {
 		libkb.G.Log.Debug("BlockServerRemote.Put id=%s err=%v\n",
-			id, err)
+			id.String(), err)
 		return err
 	}
 
@@ -300,8 +167,7 @@ func (b *BlockServerRemote) Put(ctx context.Context, id BlockID, tlfID TlfID,
 func (b *BlockServerRemote) AddBlockReference(ctx context.Context, id BlockID,
 	tlfID TlfID, context BlockContext) error {
 	libkb.G.Log.Debug("BlockServerRemote.AddBlockReference id=%s creator=%s uid=%s\n",
-		id, context.GetCreator(), context.GetWriter())
-	nonce := context.GetRefNonce()
+		id.String(), context.GetCreator(), context.GetWriter())
 	arg := keybase1.IncBlockReferenceArg{
 		Bid: keybase1.BlockIdCombo{
 			ChargedTo: context.GetCreator(),
@@ -310,20 +176,17 @@ func (b *BlockServerRemote) AddBlockReference(ctx context.Context, id BlockID,
 		Folder:    tlfID.String(),
 		ChargedTo: context.GetWriter(), //the actual writer to decrement quota from
 	}
+	nonce := context.GetRefNonce()
 	copy(arg.Nonce[:], nonce[:])
 
-	f := func() error {
-		clt := keybase1.BlockClient{Cli: b.clt}
-		return clt.IncBlockReference(arg)
-	}
-	err := runUnlessCanceled(ctx, f)
+	var err error
+	err = b.doCommand(ctx, func() error {
+		return b.client().IncBlockReference(arg)
+	})
 	if err != nil {
-		// TODO: translate a particular RPC error into
-		// IncrementMissingBlockError?
-		libkb.G.Log.Debug("AddBlockReference to backend err : %q", err)
+		libkb.G.Log.Debug("BlockServerRemote.AddBlockReference id=%s err=%v", id.String(), err)
 		return err
 	}
-
 	return nil
 }
 
@@ -332,8 +195,7 @@ func (b *BlockServerRemote) AddBlockReference(ctx context.Context, id BlockID,
 func (b *BlockServerRemote) RemoveBlockReference(ctx context.Context, id BlockID,
 	tlfID TlfID, context BlockContext) error {
 	libkb.G.Log.Debug("BlockServerRemote.RemoveBlockReference id=%s uid=%s\n",
-		id, context.GetWriter())
-	nonce := context.GetRefNonce()
+		id.String(), context.GetWriter())
 	arg := keybase1.DecBlockReferenceArg{
 		Bid: keybase1.BlockIdCombo{
 			ChargedTo: context.GetCreator(),
@@ -342,17 +204,21 @@ func (b *BlockServerRemote) RemoveBlockReference(ctx context.Context, id BlockID
 		Folder:    tlfID.String(),
 		ChargedTo: context.GetWriter(), //the actual writer to decrement quota from
 	}
+	nonce := context.GetRefNonce()
 	copy(arg.Nonce[:], nonce[:])
 
-	f := func() error {
-		clt := keybase1.BlockClient{Cli: b.clt}
-		return clt.DecBlockReference(arg)
-	}
-	err := runUnlessCanceled(ctx, f)
+	var err error
+	err = b.doCommand(ctx, func() error {
+		return b.client().DecBlockReference(arg)
+	})
 	if err != nil {
-		libkb.G.Log.Debug("RemoveBlockReference to backend err : %q", err)
+		libkb.G.Log.Debug("BlockServerRemote.RemoveBlockReference id=%s err=%v", id.String(), err)
 		return err
 	}
-
 	return nil
+}
+
+// Shutdown implements the BlockServer interface for BlockServerRemote.
+func (b *BlockServerRemote) Shutdown() {
+	b.conn.Shutdown()
 }

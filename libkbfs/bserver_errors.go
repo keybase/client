@@ -1,7 +1,12 @@
 package libkbfs
 
 import (
+	"syscall"
+
+	"bazil.org/fuse"
+	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/protocol/go"
+	"github.com/maxtaco/go-framed-msgpack-rpc/rpc2"
 )
 
 const (
@@ -77,6 +82,11 @@ func (e BServerErrorUnauthorized) Error() string {
 	return e.Msg
 }
 
+// Errno implements the fuse.ErrorNumber interface for BServerErrorUnauthorized.
+func (e BServerErrorUnauthorized) Errno() fuse.Errno {
+	return fuse.Errno(syscall.EACCES)
+}
+
 // BServerErrorOverQuota is a generic client-side error.
 type BServerErrorOverQuota struct {
 	Msg string
@@ -117,4 +127,44 @@ func (e BServerErrorBlockNonExistent) Error() string {
 		return "BServer: non-existent block"
 	}
 	return e.Msg
+}
+
+// BServerUnwrapError unwraps errors from the rpc stack.
+func BServerUnwrapError(nxt rpc2.DecodeNext) (app error, dispatch error) {
+	var s *keybase1.Status
+	if dispatch = nxt(&s); dispatch == nil {
+		if s == nil {
+			app = nil
+			return
+		}
+		switch s.Code {
+		case StatusCodeBServerError:
+			app = BServerError{Msg: s.Desc}
+			break
+		case StatusCodeBServerErrorBadRequest:
+			app = BServerErrorBadRequest{Msg: s.Desc}
+			break
+		case StatusCodeBServerErrorUnauthorized:
+			app = BServerErrorUnauthorized{Msg: s.Desc}
+			break
+		case StatusCodeBServerErrorOverQuota:
+			app = BServerErrorOverQuota{Msg: s.Desc}
+			break
+		case StatusCodeBServerErrorBlockNonExistent:
+			app = BServerErrorBlockNonExistent{Msg: s.Desc}
+			break
+		default:
+			ase := libkb.AppStatusError{
+				Code:   s.Code,
+				Name:   s.Name,
+				Desc:   s.Desc,
+				Fields: make(map[string]string),
+			}
+			for _, f := range s.Fields {
+				ase.Fields[f.Key] = f.Value
+			}
+			app = ase
+		}
+	}
+	return
 }
