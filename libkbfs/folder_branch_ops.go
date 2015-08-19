@@ -1210,8 +1210,7 @@ func (fbo *FolderBranchOps) doBlockPuts(ctx context.Context,
 }
 
 // both writerLock and blockLocked should be taken by the caller
-func (fbo *FolderBranchOps) finalizeBlocksLocked(bps *blockPutState,
-	newPaths []path) error {
+func (fbo *FolderBranchOps) finalizeBlocksLocked(bps *blockPutState) error {
 	bcache := fbo.config.BlockCache()
 	fbo.cacheLock.Lock()
 	defer fbo.cacheLock.Unlock()
@@ -1239,11 +1238,7 @@ func (fbo *FolderBranchOps) finalizeBlocksLocked(bps *blockPutState,
 
 // writerLock must be taken by the caller.
 func (fbo *FolderBranchOps) finalizeWriteLocked(ctx context.Context,
-	md *RootMetadata, bps *blockPutState, newPaths []path) error {
-	if len(newPaths) == 0 {
-		return fmt.Errorf("Can't finalize 0 paths")
-	}
-
+	md *RootMetadata, bps *blockPutState) error {
 	user, err := fbo.config.KBPKI().GetLoggedInUser(ctx)
 	if err != nil {
 		return err
@@ -1283,7 +1278,7 @@ func (fbo *FolderBranchOps) finalizeWriteLocked(ctx context.Context,
 	// now take the blockLock, since we are potentially finalizing and
 	// messing with old blocks
 	fbo.blockLock.Lock()
-	err = fbo.finalizeBlocksLocked(bps, newPaths)
+	err = fbo.finalizeBlocksLocked(bps)
 	fbo.blockLock.Unlock()
 	if err != nil {
 		return err
@@ -1306,7 +1301,7 @@ func (fbo *FolderBranchOps) syncBlockAndFinalizeLocked(ctx context.Context,
 	md *RootMetadata, newBlock Block, dir path, name string,
 	entryType EntryType, mtime bool, ctime bool, stopAt BlockPointer) (
 	DirEntry, error) {
-	p, de, bps, err := fbo.syncBlockLocked(ctx, md, newBlock, dir, name,
+	_, de, bps, err := fbo.syncBlockLocked(ctx, md, newBlock, dir, name,
 		entryType, mtime, ctime, zeroPtr, nil)
 	if err != nil {
 		return DirEntry{}, err
@@ -1319,7 +1314,7 @@ func (fbo *FolderBranchOps) syncBlockAndFinalizeLocked(ctx context.Context,
 		// block ready calls.
 		return DirEntry{}, err
 	}
-	err = fbo.finalizeWriteLocked(ctx, md, bps, []path{p})
+	err = fbo.finalizeWriteLocked(ctx, md, bps)
 	if err != nil {
 		return DirEntry{}, err
 	}
@@ -1788,8 +1783,7 @@ func (fbo *FolderBranchOps) renameLocked(
 		return err
 	}
 
-	return fbo.finalizeWriteLocked(
-		ctx, md, newBps, []path{newOldPath, newNewPath})
+	return fbo.finalizeWriteLocked(ctx, md, newBps)
 }
 
 // Rename implements the KBFSOps interface for FolderBranchOps
@@ -2694,7 +2688,7 @@ func (fbo *FolderBranchOps) syncLocked(ctx context.Context, file path) (
 		return bcache.DeleteDirty(file.tailPointer(), file.Branch)
 	})
 
-	err = fbo.finalizeWriteLocked(ctx, md, newBps, []path{newPath})
+	err = fbo.finalizeWriteLocked(ctx, md, newBps)
 	if err != nil {
 		return true, err
 	}
