@@ -125,12 +125,8 @@ func printKey(key keybase1.PublicKey, subkeys []keybase1.PublicKey, indent int) 
 			GlobUI.Printf("%s%s%s%s\n", indentSpace(indent+2), identity.Username, commentStr, emailStr)
 		}
 	}
-	webStr := ""
-	if key.IsWeb {
-		webStr = " (web)"
-	}
 	if key.DeviceID != "" {
-		GlobUI.Printf("%sDevice ID: %s%s\n", indentSpace(indent+1), key.DeviceID, webStr)
+		GlobUI.Printf("%sDevice ID: %s\n", indentSpace(indent+1), key.DeviceID)
 	}
 	if key.DeviceDescription != "" {
 		GlobUI.Printf("%sDevice Description: %s\n", indentSpace(indent+1), key.DeviceDescription)

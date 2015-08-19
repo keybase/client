@@ -22,12 +22,6 @@ func NewCmdDeviceList(cl *libcmdline.CommandLine) cli.Command {
 		Name:        "list",
 		Usage:       "keybase device list",
 		Description: "List devices",
-		Flags: []cli.Flag{
-			cli.BoolFlag{
-				Name:  "a, all",
-				Usage: "include web devices",
-			},
-		},
 		Action: func(c *cli.Context) {
 			cl.ChooseCommand(&CmdDeviceList{}, "list", c)
 		},

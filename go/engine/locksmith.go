@@ -203,7 +203,7 @@ func (d *Locksmith) checkKeys(ctx *Context) error {
 		return err
 	}
 
-	// this is the first (non-web) device for the user, so generate a paper key
+	// this is the first device for the user, so generate a paper key.
 	return d.paperKey(ctx)
 }
 
