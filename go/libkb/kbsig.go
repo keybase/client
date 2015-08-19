@@ -338,6 +338,9 @@ func keyToProofJSON(newkey GenericKey, typ string, signingKey keybase1.KID, revS
 	}
 
 	ret.SetKey("kid", jsonw.NewString(newkey.GetKID().String()))
+	if IsPGP(newkey) {
+		ret.SetKey("fingerprint", jsonw.NewString(newkey.GetFingerprintP().String()))
+	}
 	return
 }
 
