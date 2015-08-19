@@ -13,10 +13,10 @@ func TestDeviceList(t *testing.T) {
 	if err := RunEngine(eng, ctx); err != nil {
 		t.Fatal(err)
 	}
-	if len(eng.List(true)) != 1 {
-		for i, d := range eng.List(true) {
+	if len(eng.List()) != 1 {
+		for i, d := range eng.List() {
 			t.Logf("%d: %+v", i, d)
 		}
-		t.Errorf("devices: %d, expected 1", len(eng.List(true)))
+		t.Errorf("devices: %d, expected 1", len(eng.List()))
 	}
 }

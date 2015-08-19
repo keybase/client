@@ -47,7 +47,7 @@ func (c *CmdDeviceList) Run() error {
 		return err
 	}
 
-	devs, err := cli.DeviceList(keybase1.DeviceListArg{All: c.all})
+	devs, err := cli.DeviceList(0)
 	if err != nil {
 		return err
 	}

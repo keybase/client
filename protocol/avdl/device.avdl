@@ -3,9 +3,8 @@
 protocol device {
 	import idl "common.avdl";
 
-	// deviceList returns the devices for the user.  It skips any 
-	// web devices unless the all flag is true.
-	array<Device> deviceList(int sessionID, boolean all);
+	// deviceList returns the devices for the user.
+	array<Device> deviceList(int sessionID);
 
 	// deviceAdd starts the process of adding a new device using an existing 
 	// device.  It is called on the existing device.  Client is responsible

@@ -69,17 +69,11 @@ func TestRevokeDevice(t *testing.T) {
 	assertNumDevicesAndKeys(t, u, 2, 4)
 
 	devices, _ := getActiveDevicesAndKeys(t, u)
-	var webDevice *libkb.Device
 	var thisDevice *libkb.Device
 	for _, device := range devices {
-		if device.Type == libkb.DeviceTypeWeb {
-			webDevice = device
-		} else if device.Type != libkb.DeviceTypePaper {
+		if device.Type != libkb.DeviceTypePaper {
 			thisDevice = device
 		}
-	}
-	if webDevice != nil {
-		t.Fatal("Expected to not find a web device.")
 	}
 
 	// Revoking the current device should fail.

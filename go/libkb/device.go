@@ -36,29 +36,6 @@ type Device struct {
 	Status      *int              `json:"status,omitempty"`
 }
 
-// IsWeb returns true if the device is a Web pseudo-device
-func (d *Device) IsWeb() bool {
-	return d.Type == DeviceTypeWeb
-}
-
-func NewWebDevice() (ret *Device) {
-	if did, err := NewDeviceID(); err != nil {
-		G.Log.Errorf("In random new device ID: %s", err)
-	} else {
-		s := DeviceStatusActive
-
-		desc := "Web Key " + did.String() // TODO maybe make a nice unique keyname, can't use getUniqueDeviceName if not logged in...
-
-		ret = &Device{
-			ID:          did,
-			Type:        DeviceTypeWeb,
-			Status:      &s,
-			Description: &desc,
-		}
-	}
-	return
-}
-
 // NewPaperDevice creates a new paper backup key device
 func NewPaperDevice(passphrasePrefix string) (*Device, error) {
 	did, err := NewDeviceID()

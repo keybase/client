@@ -74,9 +74,6 @@ type ComputedKeyInfos struct {
 
 	// Map of KID -> DeviceID
 	KIDToDeviceID map[keybase1.KID]keybase1.DeviceID
-
-	// The last-added Web device, to figure out where the DetKey is.
-	WebDeviceID keybase1.DeviceID
 }
 
 // As returned by user/lookup.json
@@ -708,12 +705,6 @@ func (ckf *ComputedKeyFamily) UpdateDevices(tcl TypedChainLink) (err error) {
 		ckf.cki.KIDToDeviceID[kid] = did
 	}
 
-	// Last-writer wins on the Web device
-	if dobj != nil && dobj.IsWeb() {
-		G.Log.Debug("| Set Web/DetKey Device")
-		ckf.cki.WebDeviceID = dobj.ID
-	}
-
 	return
 }
 
@@ -796,37 +787,6 @@ func (ckf *ComputedKeyFamily) getDeviceForKid(kid keybase1.KID) (ret *Device, er
 	if didString, found := ckf.cki.KIDToDeviceID[kid]; found {
 		ret = ckf.cki.Devices[didString]
 	}
-	return
-}
-
-// IsDetKey tells if the given Key represents a deterministically-generated
-// Web key
-func (ckf *ComputedKeyFamily) IsDetKey(key GenericKey) (ret bool, err error) {
-
-	// First try to see if the key itself is a detkey
-	if ret, err = ckf.isDetKeyHelper(key.GetKID()); ret || err != nil {
-		return
-	}
-
-	// Then see if the parent is a detkey and we're a subkey of it.
-	if info, found := ckf.cki.Infos[key.GetKID()]; found && info.Parent.IsValid() && !info.Sibkey {
-		ret, err = ckf.isDetKeyHelper(info.Parent)
-	}
-	return
-}
-
-// isDetKeyHelper looks at the given KID (in hex) and sees if it is marked as a
-// deterministic Key (if the IsWeb() flag is on).  It won't look up or down the
-// key graph.
-func (ckf *ComputedKeyFamily) isDetKeyHelper(kid keybase1.KID) (ret bool, err error) {
-	var dev *Device
-	if dev, err = ckf.getDeviceForKid(kid); err != nil {
-		return
-	}
-	if dev == nil {
-		return
-	}
-	ret = dev.IsWeb()
 	return
 }
 

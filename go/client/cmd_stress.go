@@ -242,7 +242,7 @@ func (c *CmdStress) deviceList() {
 		return
 	}
 	dcli := keybase1.DeviceClient{Cli: cli}
-	_, err = dcli.DeviceList(keybase1.DeviceListArg{})
+	_, err = dcli.DeviceList(0)
 	if err != nil {
 		G.Log.Warning("device list error: %s", err)
 	}
