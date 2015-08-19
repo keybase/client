@@ -47,11 +47,12 @@ func TestPGPUpdate(t *testing.T) {
 	tc := SetupEngineTest(t, "pgp_update")
 	defer tc.Cleanup()
 
-	fakeUser := createFakeUserWithPGPOnly(t, tc)
+	fakeUser := createFakeUserWithPGPSibkey(tc)
 	bundle := getFakeUsersKeyBundleFromServer(t, fakeUser)
 	if len(bundle.Subkeys) != 1 {
 		t.Fatal("expected exactly 1 subkey")
 	}
+	originalBundlesLen := len(getFakeUsersBundlesList(t, fakeUser))
 
 	// Modify the key by deleting the subkey.
 	bundle.Subkeys = []openpgp.Subkey{}
@@ -77,7 +78,7 @@ func TestPGPUpdate(t *testing.T) {
 	// Get the list of bundles from the server.
 	bundles := getFakeUsersBundlesList(t, fakeUser)
 	// Check that the key hasn't been modified.
-	if len(bundles) != 1 {
+	if len(bundles) != originalBundlesLen {
 		t.Fatal("Key changes should not have been uploaded.")
 	}
 
@@ -89,7 +90,7 @@ func TestPGPUpdate(t *testing.T) {
 	// Load the user from the server again.
 	reloadedBundles := getFakeUsersBundlesList(t, fakeUser)
 	// Check that the key hasn't been modified.
-	if len(reloadedBundles) != 2 {
+	if len(reloadedBundles) != originalBundlesLen+1 {
 		t.Fatal("Key changes should have been uploaded.")
 	}
 }
@@ -98,10 +99,30 @@ func TestPGPUpdateMultiKey(t *testing.T) {
 	tc := SetupEngineTest(t, "pgp_update")
 	defer tc.Cleanup()
 
-	createFakeUserWithPGPMult(t, tc)
+	// Get a user with one PGP sibkey.
+	fu := createFakeUserWithPGPSibkey(tc)
+
+	// Generate a second PGP sibkey.
+	arg := PGPKeyImportEngineArg{
+		AllowMulti: true,
+		Gen: &libkb.PGPGenArg{
+			PrimaryBits: 768,
+			SubkeyBits:  768,
+		},
+	}
+	arg.Gen.MakeAllIds()
+	ctx := Context{
+		LogUI:    tc.G.UI.GetLogUI(),
+		SecretUI: fu.NewSecretUI(),
+	}
+	eng := NewPGPKeyImportEngine(arg)
+	err := RunEngine(eng, &ctx)
+	if err != nil {
+		tc.T.Fatal(err)
+	}
 
 	// `client pgp update` should fail by default, because there are multiple keys.
-	err := doUpdate([]string{}, false /* all */, tc)
+	err = doUpdate([]string{}, false /* all */, tc)
 	if err == nil {
 		t.Fatal("Update should fail with multiple keys and no --all.")
 	}
