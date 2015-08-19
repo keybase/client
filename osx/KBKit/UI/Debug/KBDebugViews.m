@@ -39,6 +39,7 @@
 #import "KBSecretPromptView.h"
 #import "KBAppExtension.h"
 #import "KBAppProgressView.h"
+#import "KBPaperKeyDisplayView.h"
 
 @implementation KBDebugViews
 
@@ -61,6 +62,10 @@
   [contentView addSubview:[KBButton linkWithText:@"Device Setup (Choose)" targetBlock:^{ [self showDeviceSetupChoose]; }]];
   [contentView addSubview:[KBButton linkWithText:@"Device Setup (Display)" targetBlock:^{ [self showDeviceSetupDisplay]; }]];
   [contentView addSubview:[KBButton linkWithText:@"Device Add" targetBlock:^{ [self showDeviceAdd]; }]];
+
+  [contentView addSubview:[KBBox lineWithInsets:UIEdgeInsetsMake(10, 10, 10, 10)]];
+
+  [contentView addSubview:[KBButton linkWithText:@"Paper Key (Display)" targetBlock:^{ [self showPaperKeyDisplay]; }]];
 
   [contentView addSubview:[KBBox lineWithInsets:UIEdgeInsetsMake(10, 10, 10, 10)]];
 
@@ -279,6 +284,14 @@
 
 - (void)showDeviceSetupChoose {
   [self openInWindow:[self deviceSetupChooseView] size:CGSizeMake(700, 500) title:@"Keybase"];
+}
+
+- (void)showPaperKeyDisplay {
+  NSString *phrase = @"industry clip thank brief salad street hobby banana tennis hip frequent illness fringe hair";
+  KBPaperKeyDisplayView *view = [[KBPaperKeyDisplayView alloc] init];
+  [view setPhrase:phrase];
+  view.button.dispatchBlock = ^(KBButton *button, dispatch_block_t completion) { [[button window] close]; };
+  [self openInWindow:view size:CGSizeMake(700, 500) title:@"Keybase"];
 }
 
 - (void)showPGPEncrypt {

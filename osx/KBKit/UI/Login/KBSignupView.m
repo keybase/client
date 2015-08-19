@@ -9,6 +9,7 @@
 #import "KBSignupView.h"
 #import "KBStrengthLabel.h"
 #import "KBDefines.h"
+#import "KBPaperKeyDisplayView.h"
 
 #import <CocoaLumberjack/CocoaLumberjack.h>
 
@@ -277,6 +278,8 @@
   [self.client registerMethod:@"keybase.1.gpgUi.wantToAddGPGKey" sessionId:request.sessionId requestHandler:^(NSNumber *messageId, NSString *method, NSArray *params, MPRequestCompletion completion) {
     completion(nil, @(NO));
   }];
+
+  [KBPaperKeyDisplayView registerDisplay:self.client sessionId:request.sessionId navigation:self.navigation];
 
   [self.navigation setProgressEnabled:YES];
   [request signupWithEmail:email inviteCode:self.inviteField.text passphrase:passphrase username:username deviceName:deviceName completion:^(NSError *error, KBRSignupRes *res) {

@@ -10,6 +10,7 @@
 #import "KBDeviceSetupChooseView.h"
 #import "KBDeviceSetupPromptView.h"
 #import "KBDeviceSetupDisplayView.h"
+#import "KBPaperKeyDisplayView.h"
 #import "KBDefines.h"
 
 #define PASSWORD_PLACEHOLDER (@"-----------")
@@ -179,6 +180,8 @@
     }];
   }];
 
+  [KBPaperKeyDisplayView registerDisplay:self.client sessionId:_request.sessionId navigation:self.navigation];
+
   BOOL storeSecret = _saveToKeychainButton.state == NSOnState;
 
   if ([passphrase isEqualToString:PASSWORD_PLACEHOLDER]) {
@@ -272,6 +275,19 @@
     if ([self.passwordField.text isEqualToString:PASSWORD_PLACEHOLDER]) {
       self.passwordField.text = @"";
     }
+  } else if (KBIsErrorName(error, @"ALREADY_LOGGED_IN")) {
+    // Workaround bug where the service reports not logged in, but when we try to login, it says already logged in.
+    // Remove when fixed (or keep as a failsafe).
+    // https://github.com/keybase/client/issues/595
+    KBRLoginRequest *request = [[KBRLoginRequest alloc] initWithClient:self.client];
+    [request logout:^(NSError *error) {
+      if (error) {
+        [KBActivity setError:error sender:self];
+      } else {
+        [KBActivity setError:KBErrorAlert(@"There was a login in progress and we had to manually logout. Please try logging in again.") sender:self];
+      }
+    }];
+    return;
   }
 
   [KBActivity setError:error sender:self];
