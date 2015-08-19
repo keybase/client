@@ -241,25 +241,6 @@ func (ss *SecretSyncer) ActiveDevices(includeTypesSet map[string]bool) (DeviceKe
 	return res, nil
 }
 
-// ActiveDevicesPlusWeb returns all the active desktop, mobile,
-// and web devices.
-func (ss *SecretSyncer) ActiveDevicesPlusWeb() (DeviceKeyMap, error) {
-	if ss.keys == nil {
-		return nil, fmt.Errorf("no keys")
-	}
-	res := make(DeviceKeyMap)
-	for k, v := range ss.keys.Devices {
-		if v.Status != DeviceStatusActive {
-			continue
-		}
-		if v.Type != DeviceTypeDesktop && v.Type != DeviceTypeMobile && v.Type != DeviceTypeWeb {
-			continue
-		}
-		res[k] = v
-	}
-	return res, nil
-}
-
 // FindDetKeySrvHalf locates the detkey matching kt and returns
 // the bundle, which is the server half of the detkey.
 func (ss *SecretSyncer) FindDetKeySrvHalf(kt KeyType) ([]byte, error) {

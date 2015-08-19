@@ -261,20 +261,8 @@
 
 @implementation KBRDeviceRequest
 
-- (void)deviceList:(KBRDeviceListRequestParams *)params completion:(void (^)(NSError *error, NSArray *items))completion {
-  NSDictionary *rparams = @{@"all": @(params.all)};
-  [self.client sendRequestWithMethod:@"keybase.1.device.deviceList" params:rparams sessionId:self.sessionId completion:^(NSError *error, id retval) {
-    if (error) {
-      completion(error, nil);
-      return;
-    }
-    NSArray *results = retval ? [MTLJSONAdapter modelsOfClass:KBRDevice.class fromJSONArray:retval error:&error] : nil;
-    completion(error, results);
-  }];
-}
-
-- (void)deviceListWithAll:(BOOL)all completion:(void (^)(NSError *error, NSArray *items))completion {
-  NSDictionary *rparams = @{@"all": @(all)};
+- (void)deviceList:(void (^)(NSError *error, NSArray *items))completion {
+  NSDictionary *rparams = @{};
   [self.client sendRequestWithMethod:@"keybase.1.device.deviceList" params:rparams sessionId:self.sessionId completion:^(NSError *error, id retval) {
     if (error) {
       completion(error, nil);
@@ -2320,7 +2308,6 @@
 - (instancetype)initWithParams:(NSArray *)params {
   if ((self = [super initWithParams:params])) {
     self.sessionID = [params[0][@"sessionID"] integerValue];
-    self.all = [params[0][@"all"] boolValue];
   }
   return self;
 }

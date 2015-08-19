@@ -503,8 +503,7 @@ func (c CtlClient) Status() (res ServiceStatusRes, err error) {
 }
 
 type DeviceListArg struct {
-	SessionID int  `codec:"sessionID" json:"sessionID"`
-	All       bool `codec:"all" json:"all"`
+	SessionID int `codec:"sessionID" json:"sessionID"`
 }
 
 type DeviceAddArg struct {
@@ -517,7 +516,7 @@ type DeviceAddCancelArg struct {
 }
 
 type DeviceInterface interface {
-	DeviceList(DeviceListArg) ([]Device, error)
+	DeviceList(int) ([]Device, error)
 	DeviceAdd(DeviceAddArg) error
 	DeviceAddCancel(int) error
 }
@@ -529,7 +528,7 @@ func DeviceProtocol(i DeviceInterface) rpc2.Protocol {
 			"deviceList": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
 				args := make([]DeviceListArg, 1)
 				if err = nxt(&args); err == nil {
-					ret, err = i.DeviceList(args[0])
+					ret, err = i.DeviceList(args[0].SessionID)
 				}
 				return
 			},
@@ -556,7 +555,8 @@ type DeviceClient struct {
 	Cli GenericClient
 }
 
-func (c DeviceClient) DeviceList(__arg DeviceListArg) (res []Device, err error) {
+func (c DeviceClient) DeviceList(sessionID int) (res []Device, err error) {
+	__arg := DeviceListArg{SessionID: sessionID}
 	err = c.Cli.Call("keybase.1.device.deviceList", []interface{}{__arg}, &res)
 	return
 }
@@ -624,7 +624,6 @@ type DoctorStatus struct {
 	Fix           DoctorFixType    `codec:"fix" json:"fix"`
 	SignerOpts    DoctorSignerOpts `codec:"signerOpts" json:"signerOpts"`
 	Devices       []Device         `codec:"devices" json:"devices"`
-	WebDevice     *Device          `codec:"webDevice,omitempty" json:"webDevice,omitempty"`
 	CurrentDevice *Device          `codec:"currentDevice,omitempty" json:"currentDevice,omitempty"`
 }
 

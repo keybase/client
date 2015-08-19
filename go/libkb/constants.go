@@ -147,7 +147,6 @@ const (
 const (
 	DeviceTypeDesktop = "desktop"
 	DeviceTypeMobile  = "mobile"
-	DeviceTypeWeb     = "web"
 	DeviceTypePaper   = "backup"
 )
 

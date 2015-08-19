@@ -60,11 +60,8 @@ func (d DoctorUI) LoginSelect(currentUser string, otherUsers []string) (string, 
 }
 
 func (d DoctorUI) DisplayStatus(status keybase1.DoctorStatus) (bool, error) {
-	if status.WebDevice != nil || len(status.Devices) > 0 {
+	if len(status.Devices) > 0 {
 		d.parent.Output("All devices:\n")
-		if status.WebDevice != nil {
-			d.parent.Printf("web device:\t\t[%s]\n", status.WebDevice.DeviceID)
-		}
 		for _, dev := range status.Devices {
 			d.parent.Printf("%s\t%s\t[%s]\n", dev.Name, dev.Type, dev.DeviceID)
 		}

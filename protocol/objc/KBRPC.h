@@ -109,7 +109,6 @@ typedef NS_ENUM (NSInteger, KBRDoctorFixType) {
 @property KBRDoctorFixType fix;
 @property KBRDoctorSignerOpts *signerOpts;
 @property NSArray *devices; /*of KBRDevice*/
-@property KBRDevice *webDevice;
 @property KBRDevice *currentDevice;
 @end
 
@@ -640,7 +639,6 @@ typedef NS_ENUM (NSInteger, KBRPromptDefault) {
 @end
 @interface KBRDeviceListRequestParams : KBRRequestParams
 @property NSInteger sessionID;
-@property BOOL all;
 @end
 @interface KBRDeviceAddRequestParams : KBRRequestParams
 @property NSInteger sessionID;
@@ -1178,9 +1176,7 @@ typedef NS_ENUM (NSInteger, KBRPromptDefault) {
 
 @interface KBRDeviceRequest : KBRRequest
 
-- (void)deviceList:(KBRDeviceListRequestParams *)params completion:(void (^)(NSError *error, NSArray *items))completion;
-
-- (void)deviceListWithAll:(BOOL)all completion:(void (^)(NSError *error, NSArray *items))completion;
+- (void)deviceList:(void (^)(NSError *error, NSArray *items))completion;
 
 - (void)deviceAdd:(KBRDeviceAddRequestParams *)params completion:(void (^)(NSError *error))completion;
 

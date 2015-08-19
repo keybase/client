@@ -71,21 +71,9 @@ func (d *DevList) Run(ctx *Context) error {
 	return nil
 }
 
-// List returns the devices for a user.  It excludes any web
-// devices unless all is true.
-func (d *DevList) List(all bool) []keybase1.Device {
-	if all {
-		return d.devices
-	}
-
-	var filtered []keybase1.Device
-	for _, d := range d.devices {
-		if d.Type == libkb.DeviceTypeWeb {
-			continue
-		}
-		filtered = append(filtered, d)
-	}
-	return filtered
+// List returns the devices for a user.
+func (d *DevList) List() []keybase1.Device {
+	return d.devices
 }
 
 type dname []keybase1.Device

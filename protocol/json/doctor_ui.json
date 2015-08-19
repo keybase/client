@@ -100,9 +100,6 @@
       "name" : "isEldest",
       "type" : "boolean"
     }, {
-      "name" : "isWeb",
-      "type" : "boolean"
-    }, {
       "name" : "parentID",
       "type" : "string"
     }, {
@@ -186,9 +183,6 @@
         "type" : "array",
         "items" : "Device"
       }
-    }, {
-      "name" : "webDevice",
-      "type" : [ "null", "Device" ]
     }, {
       "name" : "currentDevice",
       "type" : [ "null", "Device" ]

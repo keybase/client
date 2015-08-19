@@ -27,7 +27,6 @@ protocol doctorUi {
 		DoctorFixType fix;
 		DoctorSignerOpts signerOpts;
 		array<Device> devices;
-		union { null, Device } webDevice;
 		union { null, Device } currentDevice;
 	}
 

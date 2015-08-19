@@ -151,7 +151,7 @@ func (e *Doctor) status(ctx *Context) {
 	signopts := keybase1.DoctorSignerOpts{
 		OtherDevice: status.HaveActiveDevice,
 		PGP:         status.HavePGP,
-		Internal:    status.NoKeys || status.HaveDetKey,
+		Internal:    status.NoKeys,
 	}
 	if signopts.OtherDevice {
 		// if they have another active device, internal signing not an option
@@ -172,7 +172,7 @@ func (e *Doctor) status(ctx *Context) {
 	var err error
 	var devs libkb.DeviceKeyMap
 	aerr := e.G().LoginState().SecretSyncer(func(ss *libkb.SecretSyncer) {
-		devs, err = ss.ActiveDevicesPlusWeb()
+		devs, err = ss.ActiveDevices(libkb.DefaultDeviceTypes)
 	}, "Doctor - ActiveDevicesPlusWeb")
 	if aerr != nil {
 		e.runErr = err
@@ -185,11 +185,7 @@ func (e *Doctor) status(ctx *Context) {
 
 	for k, v := range devs {
 		dev := keybase1.Device{Type: v.Type, Name: v.Description, DeviceID: k}
-		if v.Type == libkb.DeviceTypeWeb {
-			uistatus.WebDevice = &dev
-		} else {
-			uistatus.Devices = append(uistatus.Devices, dev)
-		}
+		uistatus.Devices = append(uistatus.Devices, dev)
 	}
 	kf := e.user.GetComputedKeyFamily()
 	if kf != nil {

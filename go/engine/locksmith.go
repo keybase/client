@@ -34,7 +34,6 @@ type LocksmithStatus struct {
 	NoKeys           bool
 	HavePGP          bool
 	HaveActiveDevice bool
-	HaveDetKey       bool
 }
 
 func NewLocksmith(arg *LocksmithArg, g *libkb.GlobalContext) *Locksmith {
@@ -86,11 +85,10 @@ func (d *Locksmith) Status() LocksmithStatus {
 }
 
 func (d *Locksmith) check(ctx *Context) error {
+	var err error
 	d.status.NoKeys = !d.hasKeyFamily()
 	d.status.CurrentDeviceOk = d.arg.User.HasDeviceInCurrentInstall()
 	d.status.HavePGP = d.hasPGP()
-	d.status.HaveDetKey = d.hasDetKey(ctx)
-	var err error
 	d.status.HaveActiveDevice, err = d.hasActiveDevice(ctx)
 	return err
 }
@@ -182,7 +180,6 @@ func (d *Locksmith) checkKeys(ctx *Context) error {
 	hasPGP := len(d.user.GetActivePGPKeys(false)) > 0
 
 	hasActiveDevice, err := d.hasActiveDevice(ctx)
-
 	if err != nil {
 		return err
 	}
@@ -196,35 +193,13 @@ func (d *Locksmith) checkKeys(ctx *Context) error {
 	// they don't have any devices.
 	d.G().Log.Debug("| the user doesn't have any devices")
 
-	dk, err := d.detkey(ctx)
-
-	if err == nil {
-
-		d.G().Log.Debug("| The user has a detkey")
-		// use their detkey to sign this device
-		err = d.addDeviceKeyWithSigner(ctx, dk, dk.GetKID())
-
-	} else if _, ok := err.(libkb.NotFoundError); ok {
-
-		d.G().Log.Debug("| The user doesn't have a detkey")
-		// they don't have a detkey.
-		//
-		// they can get to this point if they sign up on the web,
-		// add a pgp key.  With that situation, they have keys
-		// so the check above for a nil key family doesn't apply.
-
-		// make sure we have pgp
-		if !hasPGP {
-			return fmt.Errorf("unknown state:  no detkey, no pgpkey, no devices, but have some key(s).\nOne way to get here is to create a web user, create a pgp key via web but don't store private key on web.  Then login.  When issue #174 is done (fixes a bug with the user's computedkeyfamily, activepgpkeys), then that scenario should work fine")
-		}
-
-		// deviceSign will handle the rest...
-		err = d.deviceSign(ctx, true)
-	} else {
-		d.G().Log.Debug("| The user doesn't have a detkey")
+	// make sure we have pgp
+	if !hasPGP {
+		return fmt.Errorf("invalid state:  no pgpkey, no devices, but have some key(s)")
 	}
 
-	if err != nil {
+	// deviceSign will handle the rest...
+	if err := d.deviceSign(ctx, true); err != nil {
 		return err
 	}
 
@@ -607,53 +582,6 @@ func (d *Locksmith) ppStream(ctx *Context) (ret *libkb.PassphraseStream, err err
 	}
 
 	return d.G().LoginState().GetPassphraseStream(ctx.SecretUI)
-}
-
-func (d *Locksmith) detKeySrvHalf(ctx *Context) ([]byte, error) {
-	var half []byte
-	var err error
-	if ctx.LoginContext != nil {
-		half, err = ctx.LoginContext.SecretSyncer().FindDetKeySrvHalf(libkb.KeyTypeKbNaclEddsaServerHalf)
-	} else {
-		aerr := d.G().LoginState().SecretSyncer(func(ss *libkb.SecretSyncer) {
-			half, err = ss.FindDetKeySrvHalf(libkb.KeyTypeKbNaclEddsaServerHalf)
-		}, "Locksmith - detKeySrvHalf")
-		if aerr != nil {
-			return nil, aerr
-		}
-	}
-	return half, err
-}
-
-func (d *Locksmith) hasDetKey(ctx *Context) bool {
-	half, err := d.detKeySrvHalf(ctx)
-	if err != nil {
-		return false
-	}
-	if len(half) == 0 {
-		return false
-	}
-	return true
-}
-
-func (d *Locksmith) detkey(ctx *Context) (libkb.GenericKey, error) {
-	// get server half of detkey via ss
-	half, err := d.detKeySrvHalf(ctx)
-	if err != nil {
-		return nil, err
-	}
-
-	// regenerate the detkey
-	tk, err := d.ppStream(ctx)
-	if err != nil {
-		return nil, err
-	}
-
-	detkey, err := GenSigningDetKey(tk, half)
-	if err != nil {
-		return nil, err
-	}
-	return detkey, nil
 }
 
 var ErrDeviceMustBeUnique = errors.New("device name must be unique")
