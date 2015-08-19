@@ -484,8 +484,7 @@ func parseV2(jw *jsonw.Wrapper) (*MerkleUserLeaf, error) {
 		}
 	}
 
-	fmt.Printf("parseV2, l = %d, jw.AtIndex(3) nil? %v\n", l, jw.AtIndex(3).IsNil())
-	fmt.Printf("jw:\n%s\n\n", jw.MarshalPretty())
+	G.Log.Debug("Merkle leaf json:\n%s\n", jw.MarshalPretty())
 	if l >= 4 && !jw.AtIndex(3).IsNil() {
 		eldest, err := GetKID(jw.AtIndex(3))
 		if err != nil {

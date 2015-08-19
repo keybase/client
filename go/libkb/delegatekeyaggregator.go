@@ -1,9 +1,6 @@
 package libkb
 
-import (
-	"errors"
-	"fmt"
-)
+import "errors"
 
 // DelegatorAggregator manages delegating multiple keys in one post to the server
 
@@ -43,8 +40,6 @@ func DelegatorAggregator(lctx LoginContext, ds []Delegator) (err error) {
 	apiArg.uArgs = nil
 	apiArg.Endpoint = "key/multi"
 	apiArg.jsonPayload = payload
-
-	fmt.Printf("payload:\n%s\n\n", payload)
 
 	_, err = apiArgBase.G().API.PostJSON(apiArg)
 	return err

@@ -136,7 +136,6 @@ func CreateAndSignupFakeUserCustomArg(tc libkb.TestContext, prefix string, fmod 
 	fu := NewFakeUserOrBust(tc.T, prefix)
 	arg := MakeTestSignupEngineRunArg(fu)
 	fmod(&arg)
-	fmt.Printf("arg: %+v\n", arg)
 	ctx := &Context{
 		LogUI:    tc.G.UI.GetLogUI(),
 		GPGUI:    &gpgtestui{},
