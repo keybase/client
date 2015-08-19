@@ -65,7 +65,7 @@ func (sc SigChain) GetComputedKeyInfos() (cki *ComputedKeyInfos) {
 	if cki == nil {
 		if l := sc.GetLastLink(); l != nil {
 			if l.cki == nil {
-				G.Log.Debug("l.cki is nil")
+				G.Log.Debug("GetComputedKeyInfos: l.cki is nil")
 			}
 			cki = l.cki
 		}
