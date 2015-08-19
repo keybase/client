@@ -339,7 +339,7 @@ func (b *BlockServerRemote) RemoveBlockReference(ctx context.Context, id BlockID
 			ChargedTo: context.GetCreator(),
 			BlockHash: id.String(),
 		},
-		Folder:    tlfID[:].String(),
+		Folder:    tlfID.String(),
 		ChargedTo: context.GetWriter(), //the actual writer to decrement quota from
 	}
 	copy(arg.Nonce[:], nonce[:])
