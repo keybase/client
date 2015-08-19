@@ -45,7 +45,7 @@ func (t *testCRObserver) BatchChanges(ctx context.Context,
 func checkStatus(t *testing.T, ctx context.Context, kbfsOps KBFSOps,
 	staged bool, headWriter string, dirtyPaths []string, fb FolderBranch,
 	prefix string) {
-	status, err := kbfsOps.Status(ctx, fb)
+	status, _, err := kbfsOps.Status(ctx, fb)
 	if err != nil {
 		t.Fatalf("%s: Couldn't get status", prefix)
 	}
@@ -55,22 +55,7 @@ func checkStatus(t *testing.T, ctx context.Context, kbfsOps KBFSOps,
 	if status.HeadWriter != headWriter {
 		t.Errorf("%s: Unexpected head writer: %s", prefix, status.HeadWriter)
 	}
-	if len(status.DirtyPaths) != len(dirtyPaths) {
-		t.Errorf("%s: Unexpected dirty paths: %v", prefix, status.DirtyPaths)
-	}
-	for _, p := range dirtyPaths {
-		found := false
-		for _, sp := range status.DirtyPaths {
-			if p == sp {
-				found = true
-				break
-			}
-		}
-		if !found {
-			t.Errorf("%s: Couldn't find dirty path %s in %v", prefix,
-				p, status.DirtyPaths)
-		}
-	}
+	checkStringSlices(t, dirtyPaths, status.DirtyPaths)
 }
 
 func TestBasicMDUpdate(t *testing.T) {
@@ -103,7 +88,7 @@ func TestBasicMDUpdate(t *testing.T) {
 		t.Errorf("Couldn't get root: %v", err)
 	}
 
-	status, err := kbfsOps2.Status(ctx, rootNode2.GetFolderBranch())
+	_, statusChan, err := kbfsOps2.Status(ctx, rootNode2.GetFolderBranch())
 	if err != nil {
 		t.Fatalf("Couldn't get status")
 	}
@@ -136,7 +121,7 @@ func TestBasicMDUpdate(t *testing.T) {
 
 	// The status should have fired as well (though in this case the
 	// writer is the same as before)
-	<-status.Changed()
+	<-statusChan
 	checkStatus(t, ctx, kbfsOps1, false, userName1, nil,
 		rootNode1.GetFolderBranch(), "Node 1")
 	checkStatus(t, ctx, kbfsOps2, false, userName1, nil,

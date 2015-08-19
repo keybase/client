@@ -16,16 +16,10 @@ type FolderBranchStatus struct {
 	// DirtyPaths are files that have been written, but not flushed.
 	// They do not represent unstaged changes in your local instance.
 	DirtyPaths []string
-
-	updateChan chan struct{}
 }
 
-// Changed returns a channel that is closed whenever the status of the
-// corresponding folder-branch changes and should be re-fetched by
-// anyone who cares.
-func (fbs FolderBranchStatus) Changed() <-chan struct{} {
-	return fbs.updateChan
-}
+// StatusUpdate is a dummy type used to indicate status has been updated.
+type StatusUpdate struct{}
 
 // folderBranchStatusKeeper holds and updates the status for a given
 // folder-branch, and produces FolderBranchStatus instances suitable
@@ -36,21 +30,19 @@ type folderBranchStatusKeeper struct {
 
 	md         *RootMetadata
 	dirtyNodes map[NodeID]Node
-	dataMutex  *sync.Mutex
+	dataMutex  sync.Mutex
 
-	updateChan  chan struct{}
-	updateMutex *sync.Mutex
+	updateChan  chan StatusUpdate
+	updateMutex sync.Mutex
 }
 
 func newFolderBranchStatusKeeper(
 	config Config, nodeCache NodeCache) *folderBranchStatusKeeper {
 	return &folderBranchStatusKeeper{
-		config:      config,
-		nodeCache:   nodeCache,
-		dirtyNodes:  make(map[NodeID]Node),
-		dataMutex:   &sync.Mutex{},
-		updateChan:  make(chan struct{}, 1),
-		updateMutex: &sync.Mutex{},
+		config:     config,
+		nodeCache:  nodeCache,
+		dirtyNodes: make(map[NodeID]Node),
+		updateChan: make(chan StatusUpdate, 1),
 	}
 }
 
@@ -59,7 +51,7 @@ func (fbsk *folderBranchStatusKeeper) signalChangeLocked() {
 	fbsk.updateMutex.Lock()
 	defer fbsk.updateMutex.Unlock()
 	close(fbsk.updateChan)
-	fbsk.updateChan = make(chan struct{}, 1)
+	fbsk.updateChan = make(chan StatusUpdate, 1)
 }
 
 // setRootMetadata sets the current head metadata for the
@@ -119,25 +111,24 @@ func (fbsk *folderBranchStatusKeeper) convertNodesToPathsLocked(
 // getStatus returns a FolderBranchStatus-representation of the
 // current status.
 func (fbsk *folderBranchStatusKeeper) getStatus(ctx context.Context) (
-	FolderBranchStatus, error) {
+	FolderBranchStatus, <-chan StatusUpdate, error) {
 	fbsk.dataMutex.Lock()
 	defer fbsk.dataMutex.Unlock()
 	fbsk.updateMutex.Lock()
 	defer fbsk.updateMutex.Unlock()
 
 	var fbs FolderBranchStatus
-	fbs.updateChan = fbsk.updateChan
 
 	if fbsk.md != nil {
 		fbs.Staged = (fbsk.md.Flags & MetadataFlagUnmerged) != 0
 		u, err := fbsk.config.KBPKI().GetUser(ctx, fbsk.md.data.LastWriter)
 		if err != nil {
-			return FolderBranchStatus{}, err
+			return FolderBranchStatus{}, nil, err
 		}
 		fbs.HeadWriter = u.GetName()
 		fbs.DiskUsage = fbsk.md.DiskUsage
 	}
 
 	fbs.DirtyPaths = fbsk.convertNodesToPathsLocked(fbsk.dirtyNodes)
-	return fbs, nil
+	return fbs, fbsk.updateChan, nil
 }

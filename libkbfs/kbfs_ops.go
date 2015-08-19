@@ -247,7 +247,7 @@ func (fs *KBFSOpsStandard) Sync(ctx context.Context, file Node) error {
 // Status implements the KBFSOps interface for KBFSOpsStandard
 func (fs *KBFSOpsStandard) Status(
 	ctx context.Context, folderBranch FolderBranch) (
-	FolderBranchStatus, error) {
+	FolderBranchStatus, <-chan StatusUpdate, error) {
 	ops := fs.getOps(folderBranch)
 	return ops.Status(ctx, folderBranch)
 }

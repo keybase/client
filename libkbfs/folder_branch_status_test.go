@@ -2,6 +2,8 @@ package libkbfs
 
 import (
 	"fmt"
+	"reflect"
+	"sort"
 	"testing"
 
 	"github.com/golang/mock/gomock"
@@ -35,7 +37,7 @@ func TestFBStatusSignal(t *testing.T) {
 	defer fbStatusTestShutdown(mockCtrl, config)
 	ctx := context.Background()
 
-	status, err := fbsk.getStatus(ctx)
+	_, c, err := fbsk.getStatus(ctx)
 	if err != nil {
 		t.Fatalf("Couldn't get status: %v", err)
 	}
@@ -45,9 +47,9 @@ func TestFBStatusSignal(t *testing.T) {
 	nodeCache.EXPECT().PathFromNode(mockNodeMatcher{n}).AnyTimes().Return(p1)
 
 	fbsk.addDirtyNode(n)
-	<-status.Changed()
+	<-c
 
-	status, err = fbsk.getStatus(ctx)
+	_, c, err = fbsk.getStatus(ctx)
 	if err != nil {
 		t.Fatalf("Couldn't get status: %v", err)
 	}
@@ -55,7 +57,7 @@ func TestFBStatusSignal(t *testing.T) {
 	// no change should result in no signal
 	fbsk.addDirtyNode(n)
 	select {
-	case <-status.Changed():
+	case <-c:
 		t.Fatalf("Status should not have signalled a change")
 	default:
 	}
@@ -77,6 +79,14 @@ func (m mockNodeMatcher) Matches(x interface{}) bool {
 
 func (m mockNodeMatcher) String() string {
 	return fmt.Sprintf("Matches node %v", m.node)
+}
+
+func checkStringSlices(t *testing.T, expected, got []string) {
+	sort.Strings(expected)
+	sort.Strings(got)
+	if !reflect.DeepEqual(expected, got) {
+		t.Errorf("Expected %v; got %v", expected, got)
+	}
 }
 
 func TestFBStatusAllFields(t *testing.T) {
@@ -103,7 +113,7 @@ func TestFBStatusAllFields(t *testing.T) {
 	fbsk.addDirtyNode(n2)
 
 	// check the returned status for accuracy
-	status, err := fbsk.getStatus(ctx)
+	status, _, err := fbsk.getStatus(ctx)
 	if err != nil {
 		t.Fatalf("Couldn't get status: %v", err)
 	}
@@ -114,22 +124,6 @@ func TestFBStatusAllFields(t *testing.T) {
 	if status.HeadWriter != fmt.Sprintf("user_%s", h.Writers[0]) {
 		t.Errorf("Unexpected head writer in status: %s", status.HeadWriter)
 	}
-	if len(status.DirtyPaths) != 2 {
-		t.Errorf("Expected 2 dirty paths in status, got %d",
-			len(status.DirtyPaths))
-	}
-	p1Str := p1.String()
-	p2Str := p2.String()
-	var p1Found, p2Found bool
-	for _, p := range status.DirtyPaths {
-		if p == p1Str {
-			p1Found = true
-		}
-		if p == p2Str {
-			p2Found = true
-		}
-	}
-	if !p1Found || !p2Found {
-		t.Errorf("Did not find all dirty nodes: %v", status.DirtyPaths)
-	}
+	expectedDirtyPaths := []string{p1.String(), p2.String()}
+	checkStringSlices(t, expectedDirtyPaths, status.DirtyPaths)
 }

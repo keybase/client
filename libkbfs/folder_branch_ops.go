@@ -2782,9 +2782,9 @@ func (fbo *FolderBranchOps) Sync(ctx context.Context, file Node) (err error) {
 // Status implements the KBFSOps interface for FolderBranchOps
 func (fbo *FolderBranchOps) Status(
 	ctx context.Context, folderBranch FolderBranch) (
-	FolderBranchStatus, error) {
+	FolderBranchStatus, <-chan StatusUpdate, error) {
 	if folderBranch != fbo.folderBranch {
-		return FolderBranchStatus{},
+		return FolderBranchStatus{}, nil,
 			WrongOpsError{fbo.folderBranch, folderBranch}
 	}
 
