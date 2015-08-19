@@ -113,6 +113,7 @@ type GetBlockRes struct {
 	Buf      []byte `codec:"buf" json:"buf"`
 }
 
+type BlockRefNonce [8]byte
 type EstablishSessionArg struct {
 	User UID    `codec:"user" json:"user"`
 	Sid  string `codec:"sid" json:"sid"`
@@ -130,17 +131,17 @@ type GetBlockArg struct {
 }
 
 type IncBlockReferenceArg struct {
-	Bid       BlockIdCombo `codec:"bid" json:"bid"`
-	Nonce     string       `codec:"nonce" json:"nonce"`
-	Folder    string       `codec:"folder" json:"folder"`
-	ChargedTo UID          `codec:"chargedTo" json:"chargedTo"`
+	Bid       BlockIdCombo  `codec:"bid" json:"bid"`
+	Nonce     BlockRefNonce `codec:"nonce" json:"nonce"`
+	Folder    string        `codec:"folder" json:"folder"`
+	ChargedTo UID           `codec:"chargedTo" json:"chargedTo"`
 }
 
 type DecBlockReferenceArg struct {
-	Bid       BlockIdCombo `codec:"bid" json:"bid"`
-	Nonce     string       `codec:"nonce" json:"nonce"`
-	Folder    string       `codec:"folder" json:"folder"`
-	ChargedTo UID          `codec:"chargedTo" json:"chargedTo"`
+	Bid       BlockIdCombo  `codec:"bid" json:"bid"`
+	Nonce     BlockRefNonce `codec:"nonce" json:"nonce"`
+	Folder    string        `codec:"folder" json:"folder"`
+	ChargedTo UID           `codec:"chargedTo" json:"chargedTo"`
 }
 
 type BlockInterface interface {

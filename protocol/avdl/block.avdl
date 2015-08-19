@@ -13,7 +13,10 @@ protocol block {
 	void putBlock(BlockIdCombo bid, string folder, string blockKey, bytes buf);
 	GetBlockRes getBlock(BlockIdCombo bid);
 
-	void incBlockReference(BlockIdCombo bid, string nonce, string folder, UID chargedTo);
-	void decBlockReference(BlockIdCombo bid, string nonce, string folder, UID chargedTo);
+	// Fixed-size nonce to identify a reference to a block
+	fixed BlockRefNonce(8);
+
+	void incBlockReference(BlockIdCombo bid, BlockRefNonce nonce, string folder, UID chargedTo);
+	void decBlockReference(BlockIdCombo bid, BlockRefNonce nonce, string folder, UID chargedTo);
 	
 }
