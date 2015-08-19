@@ -33,10 +33,14 @@ func (l *LevelDb) open() error {
 
 		// version check, this could go into the root db instance but then we'd lose our lazy open...
 		if err == nil {
-			ver, found, err := l.get(DbKey{Typ: DBCacheVersion, Key: "Ver"}, "Ver")
+			var found bool
+			var ver []byte
+
+			ver, found, err = l.get(DbKey{Typ: DBCacheVersion, Key: "Ver"}, "Ver")
 
 			// mismatch or not found? nuke and remake
 			if !found || string(ver) != DBCurrentCacheVersion && err == nil {
+				G.Log.Debug("LevelDB version mismatch: expected %s but found %s", DBCurrentCacheVersion, string(ver))
 				err = l.close(false)
 				if err == nil {
 					fn := l.GetFilename()
