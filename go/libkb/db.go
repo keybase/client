@@ -112,6 +112,10 @@ const (
 	DBSigChainTailEncrypted   = 0xe9
 	DBMerkleRoot              = 0xf0
 	DBTrackers                = 0xf1
+	DBCacheVersion            = 0xf2
+)
+const (
+	DBCurrentCacheVersion = "1"
 )
 
 const (
