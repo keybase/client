@@ -15,7 +15,7 @@ dep:
 
 build: clean
 	@mkdir build
-	@mkdir build/browser
+	@mkdir build/app
 	@mkdir build/css
 	@mkdir build/js
 	@mkdir build/renderer
@@ -37,7 +37,7 @@ build: clean
 	$(TSC) -p ./renderer
 	$(BROWSERIFY) ./build/renderer/app.js -o build/renderer.js --ignore=ipc --ignore=remote --debug
 
-	$(TSC) -p ./browser
+	$(TSC) -p ./app
 
 	$(LESS) ./style/main.less > build/css/built.css
 

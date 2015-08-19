@@ -39,7 +39,9 @@ class Login extends TypedReact.Component<{}, LoginState> {
     let method = request.method;
     let arg = request.arg;
     console.log('Request from main: ', method, arg);
-    let response = {result: 'Dev'}
+    // TODO: Based on request method and args, show UI and respond with user
+    // input.
+    let response = {result: 'Testing Electron'}
     ipc.send('response', response); // Response to service request
   }
 

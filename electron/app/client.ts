@@ -70,7 +70,7 @@ class Client {
     // );
 
     client.transport.add_program('keybase.1.locksmithUi', {
-      'testCallback': function(transportArg, transportResponse) {
+      'promptDeviceName': function(transportArg, transportResponse) {
         client.sendToRenderer('promptDeviceName', transportArg[0], event, transportResponse);
       }}
     );
