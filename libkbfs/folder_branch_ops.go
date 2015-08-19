@@ -2446,27 +2446,28 @@ func (fbo *FolderBranchOps) mergeUnrefCacheLocked(file path, md *RootMetadata) {
 }
 
 // writerLock must be taken by the caller.
-func (fbo *FolderBranchOps) syncLocked(ctx context.Context, file path) error {
+func (fbo *FolderBranchOps) syncLocked(ctx context.Context, file path) (
+	stillDirty bool, err error) {
 	// if the cache for this file isn't dirty, we're done
 	fbo.blockLock.RLock()
 	bcache := fbo.config.BlockCache()
 	if !bcache.IsDirty(file.tailPointer(), file.Branch) {
 		fbo.blockLock.RUnlock()
-		return nil
+		return false, nil
 	}
 	fbo.blockLock.RUnlock()
 
 	// verify we have permission to write
 	md, err := fbo.getMDForWriteLocked(ctx)
 	if err != nil {
-		return err
+		return true, err
 	}
 
 	// If the MD doesn't match the MD expected by the path, that
 	// implies we are using a cached path, which implies the node has
 	// been unlinked.  In that case, we can safely ignore this sync.
 	if md.data.Dir.BlockPointer != file.path[0].BlockPointer {
-		return nil
+		return true, nil
 	}
 
 	doUnlock := true
@@ -2481,12 +2482,12 @@ func (fbo *FolderBranchOps) syncLocked(ctx context.Context, file path) error {
 	// to disk
 	fblock, err := fbo.getFileLocked(ctx, md, file, write)
 	if err != nil {
-		return err
+		return true, err
 	}
 
 	user, err := fbo.config.KBPKI().GetLoggedInUser(ctx)
 	if err != nil {
-		return err
+		return true, err
 	}
 
 	bps := newBlockPutState(1)
@@ -2516,14 +2517,14 @@ func (fbo *FolderBranchOps) syncLocked(ctx context.Context, file path) error {
 			ptr := fblock.IPtrs[i]
 			isDirty := bcache.IsDirty(ptr.BlockPointer, file.Branch)
 			if (ptr.EncodedSize > 0) && isDirty {
-				return InconsistentEncodedSizeError{ptr.BlockInfo}
+				return true, InconsistentEncodedSizeError{ptr.BlockInfo}
 			}
 			if isDirty {
 				_, _, _, block, more, _, err :=
 					fbo.getFileBlockAtOffsetLocked(ctx, md, file, fblock,
 						ptr.Off, write)
 				if err != nil {
-					return err
+					return true, err
 				}
 
 				splitAt := bsplit.CheckSplit(block)
@@ -2540,19 +2541,19 @@ func (fbo *FolderBranchOps) syncLocked(ctx context.Context, file path) error {
 						if err := fbo.newRightBlockLocked(
 							ctx, file.tailPointer(), file.Branch, fblock,
 							endOfBlock, md); err != nil {
-							return err
+							return true, err
 						}
 					}
 					rPtr, _, _, rblock, _, _, err :=
 						fbo.getFileBlockAtOffsetLocked(ctx, md, file, fblock,
 							endOfBlock, write)
 					if err != nil {
-						return err
+						return true, err
 					}
 					rblock.Contents = append(extraBytes, rblock.Contents...)
 					if err = fbo.cacheBlockIfNotYetDirtyLocked(
 						rPtr, file.Branch, rblock); err != nil {
-						return err
+						return true, err
 					}
 					fblock.IPtrs[i+1].Off = ptr.Off + int64(len(block.Contents))
 					md.AddUnrefBlock(fblock.IPtrs[i+1].BlockInfo)
@@ -2568,7 +2569,7 @@ func (fbo *FolderBranchOps) syncLocked(ctx context.Context, file path) error {
 						fbo.getFileBlockAtOffsetLocked(ctx, md, file, fblock,
 							endOfBlock, write)
 					if err != nil {
-						return err
+						return true, err
 					}
 					// copy some of that block's data into this block
 					nCopied := bsplit.CopyUntilSplit(block, false,
@@ -2577,7 +2578,7 @@ func (fbo *FolderBranchOps) syncLocked(ctx context.Context, file path) error {
 					if len(rblock.Contents) > 0 {
 						if err = fbo.cacheBlockIfNotYetDirtyLocked(
 							rPtr, file.Branch, rblock); err != nil {
-							return err
+							return true, err
 						}
 						fblock.IPtrs[i+1].Off =
 							ptr.Off + int64(len(block.Contents))
@@ -2603,19 +2604,19 @@ func (fbo *FolderBranchOps) syncLocked(ctx context.Context, file path) error {
 		for i, ptr := range fblock.IPtrs {
 			isDirty := bcache.IsDirty(ptr.BlockPointer, file.Branch)
 			if (ptr.EncodedSize > 0) && isDirty {
-				return &InconsistentEncodedSizeError{ptr.BlockInfo}
+				return true, &InconsistentEncodedSizeError{ptr.BlockInfo}
 			}
 			if isDirty {
 				_, _, _, block, _, _, err := fbo.getFileBlockAtOffsetLocked(
 					ctx, md, file, fblock, ptr.Off, write)
 				if err != nil {
-					return err
+					return true, err
 				}
 
 				newInfo, _, readyBlockData, err :=
 					fbo.readyBlock(ctx, md, block, user)
 				if err != nil {
-					return err
+					return true, err
 				}
 
 				// put the new block in the cache, but defer the
@@ -2642,7 +2643,7 @@ func (fbo *FolderBranchOps) syncLocked(ctx context.Context, file path) error {
 	parentPath := file.parentPath()
 	dblock, err := fbo.getDirLocked(ctx, md, *parentPath, write)
 	if err != nil {
-		return err
+		return true, err
 	}
 	lbc := make(localBcache)
 
@@ -2677,13 +2678,13 @@ func (fbo *FolderBranchOps) syncLocked(ctx context.Context, file path) error {
 		fbo.syncBlockLocked(ctx, md, fblock, *parentPath, file.tailName(),
 			File, true, true, zeroPtr, lbc)
 	if err != nil {
-		return err
+		return true, err
 	}
 	newBps.mergeOtherBps(bps)
 
 	err = fbo.doBlockPuts(ctx, md, *newBps)
 	if err != nil {
-		return err
+		return true, err
 	}
 
 	deferredDirtyDeletes = append(deferredDirtyDeletes, func() error {
@@ -2692,7 +2693,7 @@ func (fbo *FolderBranchOps) syncLocked(ctx context.Context, file path) error {
 
 	err = fbo.finalizeWriteLocked(ctx, md, newBps, []path{newPath})
 	if err != nil {
-		return err
+		return true, err
 	}
 
 	fbo.blockLock.Lock()
@@ -2732,13 +2733,14 @@ func (fbo *FolderBranchOps) syncLocked(ctx context.Context, file path) error {
 		return nil
 	}()
 	if err != nil {
-		return err
+		return true, err
 	}
 
 	fbo.copyFileBlocks = make(map[BlockPointer]bool)
 	// Redo any writes or truncates that happened to our file while
 	// the sync was happening.
 	writes := fbo.deferredWrites
+	stillDirty = len(fbo.deferredWrites) != 0
 	fbo.deferredWrites = nil
 	for _, f := range writes {
 		// we can safely read head here because we hold writerLock
@@ -2746,11 +2748,11 @@ func (fbo *FolderBranchOps) syncLocked(ctx context.Context, file path) error {
 		if err != nil {
 			// It's a little weird to return an error from a deferred
 			// write here. Hopefully that will never happen.
-			return err
+			return true, err
 		}
 	}
 
-	return nil
+	return stillDirty, nil
 }
 
 // Sync implements the KBFSOps interface for FolderBranchOps
@@ -2763,12 +2765,14 @@ func (fbo *FolderBranchOps) Sync(ctx context.Context, file Node) (err error) {
 	fbo.writerLock.Lock()
 	defer fbo.writerLock.Unlock()
 	filePath := fbo.nodeCache.PathFromNode(file)
-	err = fbo.syncLocked(ctx, filePath)
+	stillDirty, err := fbo.syncLocked(ctx, filePath)
 	if err != nil {
 		return err
 	}
 
-	fbo.status.rmDirtyNode(file)
+	if !stillDirty {
+		fbo.status.rmDirtyNode(file)
+	}
 	return nil
 }
 
