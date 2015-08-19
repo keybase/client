@@ -17,7 +17,13 @@
 #import "KBSearcher.h"
 #import "KBNotifications.h"
 
+#import <MDPSplitView/MDPSplitView.h>
+
 @interface KBUsersAppView ()
+@property MDPSplitView *splitView;
+@property YOView *leftView;
+@property YOView *rightView;
+
 @property KBSearchControl *searchField;
 @property NSPopUpButton *menuButton;
 
@@ -44,95 +50,115 @@
 
   YOSelf yself = self;
 
-  _searchField = [[KBSearchField alloc] init];
-  _searchField.delegate = self;
-  [self addSubview:_searchField];
+  _splitView = [[MDPSplitView alloc] init];
+  _splitView.vertical = YES;
+  _splitView.dividerStyle = NSSplitViewDividerStyleThin;
 
-  NSMenu *menu = [[NSMenu alloc] init];
-  [menu addItemWithTitle:@"" action:NULL keyEquivalent:@""];
-  NSMenuItem *item;
-  item = [menu addItemWithTitle:@"Tracking" action:@selector(showTracking:) keyEquivalent:@""];
-  item.target = self;
-  item = [menu addItemWithTitle:@"Trackers" action:@selector(showTrackers:) keyEquivalent:@""];
-  item.target = self;
-  _menuButton = [[NSPopUpButton alloc] initWithFrame:CGRectMake(0, 0, 320, 23) pullsDown:YES];
-  [_menuButton.cell setArrowPosition:NSPopUpArrowAtBottom];
-  _menuButton.bordered = NO;
-  [_menuButton setTarget:self];
-  [_menuButton setMenu:menu];
-  [self addSubview:_menuButton];
+  _leftView = [YOView view];
+  {
+    _searchField = [[KBSearchField alloc] init];
+    _searchField.delegate = self;
+    [_leftView addSubview:_searchField];
 
-  GHWeakSelf gself = self;
-  _trackingView = [[KBUserListView alloc] init];
-  _trackingView.identifier = @"Tracking";
-  _trackingView.listView.onSelect = ^(KBTableView *tableView, KBTableSelection *selection) {
-    KBRUserSummary *userSummary = selection.object;
-    [gself.trackingUserView setUsername:userSummary.username client:gself.client];
-  };
+    NSMenu *menu = [[NSMenu alloc] init];
+    [menu addItemWithTitle:@"" action:NULL keyEquivalent:@""];
+    NSMenuItem *item;
+    item = [menu addItemWithTitle:@"Tracking" action:@selector(showTracking:) keyEquivalent:@""];
+    item.target = self;
+    item = [menu addItemWithTitle:@"Trackers" action:@selector(showTrackers:) keyEquivalent:@""];
+    item.target = self;
+    _menuButton = [[NSPopUpButton alloc] initWithFrame:CGRectMake(0, 0, 320, 23) pullsDown:YES];
+    [_menuButton.cell setArrowPosition:NSPopUpArrowAtBottom];
+    _menuButton.bordered = NO;
+    [_menuButton setTarget:self];
+    [_menuButton setMenu:menu];
+    [_leftView addSubview:_menuButton];
 
-  _trackersView = [[KBUserListView alloc] init];
-  _trackersView.identifier = @"Trackers";
-  _trackersView.listView.onSelect = ^(KBTableView *tableView, KBTableSelection *selection) {
-    KBRUserSummary *userSummary = selection.object;
-    [gself.trackersUserView setUsername:userSummary.username client:gself.client];
-  };
+    GHWeakSelf gself = self;
+    _trackingView = [[KBUserListView alloc] init];
+    _trackingView.identifier = @"Tracking";
+    _trackingView.listView.onSelect = ^(KBTableView *tableView, KBTableSelection *selection) {
+      KBRUserSummary *userSummary = selection.object;
+      [gself.trackingUserView setUsername:userSummary.username client:gself.client];
+    };
 
-  _views = [[KBViews alloc] init];
-  [_views setViews:@[_trackingView, _trackersView]];
-  [self addSubview:_views];
+    _trackersView = [[KBUserListView alloc] init];
+    _trackersView.identifier = @"Trackers";
+    _trackersView.listView.onSelect = ^(KBTableView *tableView, KBTableSelection *selection) {
+      KBRUserSummary *userSummary = selection.object;
+      [gself.trackersUserView setUsername:userSummary.username client:gself.client];
+    };
 
-  _userViews = [[KBViews alloc] init];
-  _trackingUserView = [[KBUserProfileViewer alloc] init];
-  _trackingUserView.identifier = @"Tracking";
-  _trackersUserView = [[KBUserProfileViewer alloc] init];
-  _trackersUserView.identifier = @"Trackers";
-  [_userViews setViews:@[_trackingUserView, _trackersUserView]];
-  [self addSubview:_userViews];
+    _views = [[KBViews alloc] init];
+    [_views setViews:@[_trackingView, _trackersView]];
+    [_leftView addSubview:_views];
 
-  _searchProgressView = [[KBActivityIndicatorView alloc] init];
-  _searchProgressView.lineWidth = 1.0;
-  [self addSubview:_searchProgressView];
+    _searchProgressView = [[KBActivityIndicatorView alloc] init];
+    _searchProgressView.lineWidth = 1.0;
+    [_leftView addSubview:_searchProgressView];
 
-  _listProgressView = [[KBActivityIndicatorView alloc] init];
-  _listProgressView.lineWidth = 1.0;
-  [self addSubview:_listProgressView];
+    _listProgressView = [[KBActivityIndicatorView alloc] init];
+    _listProgressView.lineWidth = 1.0;
+    [_leftView addSubview:_listProgressView];
 
-  _searchView = [[KBUserListView alloc] init];
-  _searchView.listView.onSelect = ^(KBTableView *tableView, KBTableSelection *selection) {
-    KBRUserSummary *userSummary = selection.object;
-    [gself.searchUserView setUsername:userSummary.username client:gself.client];
-  };
-  _searchUserView = [[KBUserProfileViewer alloc] init];
+    _searchView = [[KBUserListView alloc] init];
+    _searchView.listView.onSelect = ^(KBTableView *tableView, KBTableSelection *selection) {
+      KBRUserSummary *userSummary = selection.object;
+      [gself.searchUserView setUsername:userSummary.username client:gself.client];
+    };
 
-  KBBox *borderMiddle = [KBBox line];
-  [self addSubview:borderMiddle];
+    _leftView.viewLayout = [YOLayout layoutWithLayoutBlock:^(id<YOLayout> layout, CGSize size) {
 
-  self.viewLayout = [YOLayout layoutWithLayoutBlock:^(id<YOLayout> layout, CGSize size) {
+      CGFloat col = size.width;
+      // If this y is too small, the search field focus will conflict with the window title bar drag
+      // and the search field will become really janky.
+      // This isn't an issue anymore after I added KBAppTitleView but it was such an annoying bug I am
+      // leaving this comment here.
+      CGFloat y = 10;
 
-    CGFloat col = 240;
-    // If this y is too small, the search field focus will conflict with the window title bar drag
-    // and the search field will become really janky.
-    // This isn't an issue anymore after I added KBAppTitleView but it was such an annoying bug I am
-    // leaving this comment here.
-    CGFloat y = 10;
+      [layout setFrame:CGRectMake(col - 46, y + 4, 14, 14) view:yself.searchProgressView];
 
-    [layout setFrame:CGRectMake(col - 46, y + 4, 14, 14) view:yself.searchProgressView];
+      y += [layout setFrame:CGRectMake(10, y, col - 21, 22) view:yself.searchField].size.height + 9;
 
-    y += [layout setFrame:CGRectMake(10, y, col - 21, 22) view:yself.searchField].size.height + 9;
+      [layout setFrame:CGRectMake(0, y, col, size.height - y) view:yself.searchView];
 
-    [layout setFrame:CGRectMake(0, y, col, size.height - y) view:yself.searchView];
+      [layout setFrame:CGRectMake(7, y + 5, 14, 14) view:yself.listProgressView];
+      y += [layout setFrame:CGRectMake(13, y, col - 21, 23) view:yself.menuButton].size.height + 4;
 
-    [layout setFrame:CGRectMake(7, y + 5, 14, 14) view:yself.listProgressView];
-    y += [layout setFrame:CGRectMake(13, y, col - 21, 23) view:yself.menuButton].size.height + 4;
+      [layout setFrame:CGRectMake(0, y, col - 1, size.height - y) view:yself.views];
 
-    [layout setFrame:CGRectMake(0, y, col - 1, size.height - y) view:yself.views];
+      return size;
+    }];
+  }
+  [_splitView addSubview:_leftView];
 
-    [layout setFrame:CGRectMake(col - 1, 0, 1, size.height) view:borderMiddle];
-    [layout setFrame:CGRectMake(col, 0, size.width - col, size.height) view:yself.userViews];
-    [layout setFrame:CGRectMake(col, 0, size.width - col, size.height) view:yself.searchUserView];
+  _rightView = [YOView view];
+  {
+    _userViews = [[KBViews alloc] init];
+    _trackingUserView = [[KBUserProfileViewer alloc] init];
+    _trackingUserView.identifier = @"Tracking";
+    _trackersUserView = [[KBUserProfileViewer alloc] init];
+    _trackersUserView.identifier = @"Trackers";
+    [_userViews setViews:@[_trackingUserView, _trackersUserView]];
+    [_rightView addSubview:_userViews];
 
-    return size;
-  }];
+    _searchUserView = [[KBUserProfileViewer alloc] init];
+
+    _rightView.viewLayout = [YOLayout layoutWithLayoutBlock:^(id<YOLayout> layout, CGSize size) {
+      [layout setSize:size view:yself.userViews options:0];
+      [layout setSize:size view:yself.searchUserView options:0];
+      return size;
+    }];
+  }
+  [_splitView addSubview:_rightView];
+
+  [_splitView adjustSubviews];
+  dispatch_async(dispatch_get_main_queue(), ^{
+    [yself.splitView setPosition:240 ofDividerAtIndex:0 animated:NO];
+  });
+
+  self.viewLayout = [YOLayout fill:_splitView];
+  [self addSubview:_splitView];
 
   [self showTracking:self];
   [_menuButton selectItemAtIndex:0];
@@ -228,10 +254,10 @@
 
 - (void)showSearch {
   if (![_searchView superview]) {
-    [self addSubview:_searchView positioned:NSWindowAbove relativeTo:_views];
+    [_leftView addSubview:_searchView positioned:NSWindowAbove relativeTo:_views];
   }
   if (![_searchUserView superview]) {
-    [self addSubview:_searchUserView positioned:NSWindowAbove relativeTo:_userViews];
+    [_rightView addSubview:_searchUserView positioned:NSWindowAbove relativeTo:_userViews];
   }
 }
 

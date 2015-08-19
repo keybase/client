@@ -21,10 +21,6 @@
 - (void)viewInit {
   [super viewInit];
 
-//  KBSplitView *view = [[KBSplitView alloc] init];
-//  view.dividerRatio = .50;
-//  [self addSubview:view];
-
   GHWeakSelf gself = self;
   _decryptView = [[KBPGPDecryptView alloc] init];
   _decryptView.onDecrypt = ^(KBPGPDecryptView *view, KBPGPDecrypted *decrypted) {
@@ -41,11 +37,6 @@
 
   _outputView = [[KBPGPOutputView alloc] init];
   _outputView.footerView.closeButton.hidden = YES;
-
-//  [view setLeftView:_decryptView];
-//  [view setRightView:_outputView];
-//
-//  self.viewLayout = [YOLayout fill:view];
 
   self.viewLayout = [YOLayout fill:_decryptView];
 }

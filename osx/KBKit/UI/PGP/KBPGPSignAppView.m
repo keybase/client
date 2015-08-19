@@ -21,10 +21,6 @@
 - (void)viewInit {
   [super viewInit];
 
-//  KBSplitView *view = [[KBSplitView alloc] init];
-//  view.dividerRatio = 0.5; // -500; // Enough for 64 monospace characters in output view
-//  [self addSubview:view];
-
   GHWeakSelf gself = self;
   _signView = [[KBPGPSignView alloc] init];
   _signView.onSign = ^(KBPGPSignView *view, NSData *data, KBRSignMode mode) {
@@ -42,9 +38,6 @@
   _outputView = [[KBPGPOutputView alloc] init];
   _outputView.footerView.closeButton.hidden = YES;
 
-//  [view setLeftView:_signView];
-//  [view setRightView:_outputView];
-//  self.viewLayout = [YOLayout fill:view];
   self.viewLayout = [YOLayout fill:_signView];
 }
 

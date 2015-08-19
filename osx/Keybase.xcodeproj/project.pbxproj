@@ -15,6 +15,8 @@
 		000E07821B30AE8500FEE4C6 /* KBServiceStatus.m in Sources */ = {isa = PBXBuildFile; fileRef = 000E077E1B30AE8500FEE4C6 /* KBServiceStatus.m */; };
 		000E078A1B30B0E700FEE4C6 /* KBFinder.h in Headers */ = {isa = PBXBuildFile; fileRef = 000E07881B30B0E700FEE4C6 /* KBFinder.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		000E078B1B30B0E700FEE4C6 /* KBFinder.m in Sources */ = {isa = PBXBuildFile; fileRef = 000E07891B30B0E700FEE4C6 /* KBFinder.m */; };
+		000EB4681B852CC2002CFCF7 /* KBPaperKeyDisplayView.h in Headers */ = {isa = PBXBuildFile; fileRef = 000EB4661B852CC2002CFCF7 /* KBPaperKeyDisplayView.h */; };
+		000EB4691B852CC2002CFCF7 /* KBPaperKeyDisplayView.m in Sources */ = {isa = PBXBuildFile; fileRef = 000EB4671B852CC2002CFCF7 /* KBPaperKeyDisplayView.m */; };
 		0012060A1B7AC47000D773D6 /* osxfusefs.bundle in Resources */ = {isa = PBXBuildFile; fileRef = 001206091B7AC47000D773D6 /* osxfusefs.bundle */; };
 		001392751B06B18A0082DEA8 /* Fuse.icns in Resources */ = {isa = PBXBuildFile; fileRef = 001392711B06B18A0082DEA8 /* Fuse.icns */; };
 		001392761B06B18A0082DEA8 /* gpgtools.icns in Resources */ = {isa = PBXBuildFile; fileRef = 001392721B06B18A0082DEA8 /* gpgtools.icns */; };
@@ -470,6 +472,8 @@
 		000E077E1B30AE8500FEE4C6 /* KBServiceStatus.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBServiceStatus.m; sourceTree = "<group>"; };
 		000E07881B30B0E700FEE4C6 /* KBFinder.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBFinder.h; sourceTree = "<group>"; };
 		000E07891B30B0E700FEE4C6 /* KBFinder.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBFinder.m; sourceTree = "<group>"; };
+		000EB4661B852CC2002CFCF7 /* KBPaperKeyDisplayView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBPaperKeyDisplayView.h; sourceTree = "<group>"; };
+		000EB4671B852CC2002CFCF7 /* KBPaperKeyDisplayView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBPaperKeyDisplayView.m; sourceTree = "<group>"; };
 		001206091B7AC47000D773D6 /* osxfusefs.bundle */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.plug-in"; path = osxfusefs.bundle; sourceTree = "<group>"; };
 		001392701B06B18A0082DEA8 /* DmgBackground.pxm */ = {isa = PBXFileReference; lastKnownFileType = file; path = DmgBackground.pxm; sourceTree = "<group>"; };
 		001392711B06B18A0082DEA8 /* Fuse.icns */ = {isa = PBXFileReference; lastKnownFileType = image.icns; path = Fuse.icns; sourceTree = "<group>"; };
@@ -928,6 +932,15 @@
 			path = KBFS;
 			sourceTree = "<group>";
 		};
+		000EB4621B852C77002CFCF7 /* PaperKey */ = {
+			isa = PBXGroup;
+			children = (
+				000EB4661B852CC2002CFCF7 /* KBPaperKeyDisplayView.h */,
+				000EB4671B852CC2002CFCF7 /* KBPaperKeyDisplayView.m */,
+			);
+			path = PaperKey;
+			sourceTree = "<group>";
+		};
 		0013926F1B06B18A0082DEA8 /* Resources */ = {
 			isa = PBXGroup;
 			children = (
@@ -1162,6 +1175,7 @@
 		009E13C11B28A93D00C72B28 /* UI */ = {
 			isa = PBXGroup;
 			children = (
+				000EB4621B852C77002CFCF7 /* PaperKey */,
 				00DAF5B91B2F8262000D7F9A /* Share */,
 				009E13C21B28A93D00C72B28 /* Debug */,
 				009E13D51B28A93D00C72B28 /* Device */,
@@ -1673,6 +1687,7 @@
 				00C0DC891B28EC5500A825D4 /* KBLaunchService.h in Headers */,
 				0043D1111B28EF670036C532 /* KBSourceOutlineView.h in Headers */,
 				00C0DC831B28EC5000A825D4 /* KBConvert.h in Headers */,
+				000EB4681B852CC2002CFCF7 /* KBPaperKeyDisplayView.h in Headers */,
 				00C0DD0B1B28EC7800A825D4 /* KBPGPSignView.h in Headers */,
 				00C0DD1D1B28EC7E00A825D4 /* KBGPGKeysView.h in Headers */,
 				00C0DC7D1B28EC5000A825D4 /* KBRunOver.h in Headers */,
@@ -2296,6 +2311,7 @@
 				00C0DC5E1B28EC3F00A825D4 /* KBWorkspace.m in Sources */,
 				00C0DD1E1B28EC7E00A825D4 /* KBGPGKeysView.m in Sources */,
 				00C0DC7E1B28EC5000A825D4 /* KBRunOver.m in Sources */,
+				000EB4691B852CC2002CFCF7 /* KBPaperKeyDisplayView.m in Sources */,
 				00C0DC641B28EC3F00A825D4 /* KBRPC.m in Sources */,
 				00C0DD001B28EC7800A825D4 /* KBPGPOutputView.m in Sources */,
 				00C0DC8E1B28EC5A00A825D4 /* KBCLIInstall.m in Sources */,

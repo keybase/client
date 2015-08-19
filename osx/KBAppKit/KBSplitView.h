@@ -11,6 +11,7 @@
 #import <YOLayout/YOLayout.h>
 #import "KBBox.h"
 
+// Split view (fixed divider)
 @interface KBSplitView : YOView
 
 @property UIEdgeInsets insets;

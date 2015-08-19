@@ -21,10 +21,6 @@
 - (void)viewInit {
   [super viewInit];
 
-//  KBSplitView *view = [[KBSplitView alloc] init];
-//  view.dividerRatio = .50;
-//  [self addSubview:view];
-
   GHWeakSelf gself = self;
   _verifyView = [[KBPGPVerifyView alloc] init];
   _verifyView.onVerify = ^(KBPGPVerifyView *view, KBPGPDecrypted *decrypted) {
@@ -44,10 +40,6 @@
   _outputView = [[KBPGPOutputView alloc] init];
   _outputView.footerView.closeButton.hidden = YES;
 
-//  [view setLeftView:_verifyView];
-//  [view setRightView:_outputView];
-//
-//  self.viewLayout = [YOLayout fill:view];
   self.viewLayout = [YOLayout fill:_verifyView];
 }
 

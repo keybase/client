@@ -11,8 +11,10 @@
 #import "KBDeviceView.h"
 #import "KBDeviceAddView.h"
 
+#import <MDPSplitView/MDPSplitView.h>
+
 @interface KBDevicesAppView ()
-@property KBSplitView *splitView;
+@property MDPSplitView *splitView;
 @property KBListView *devicesView;
 
 @property KBDeviceAddView *addView;
@@ -23,7 +25,7 @@
 - (void)viewInit {
   [super viewInit];
 
-  _splitView = [[KBSplitView alloc] init];
+  _splitView = [[MDPSplitView alloc] init];
   [self addSubview:_splitView];
 
   YOSelf yself = self;
@@ -63,8 +65,14 @@
   YOView *contentView = [[YOView alloc] init];
   [contentView kb_setBackgroundColor:NSColor.whiteColor];
 
-  [_splitView setLeftView:devicesView];
-  [_splitView setRightView:contentView];
+  _splitView.vertical = YES;
+  _splitView.dividerStyle = NSSplitViewDividerStyleThin;
+  [_splitView addSubview:devicesView];
+  [_splitView addSubview:contentView];
+  [_splitView adjustSubviews];
+  dispatch_async(dispatch_get_main_queue(), ^{
+    [yself.splitView setPosition:240 ofDividerAtIndex:0 animated:NO];
+  });
 
   self.viewLayout = [YOLayout fill:_splitView];
 }

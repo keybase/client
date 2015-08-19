@@ -24,6 +24,8 @@ target "KBKit" do
 
   pod "MASPreferences"
 
+  pod "MDPSplitView"
+
   # Local pods
   pod "KBAppKit", :path => "."
 end

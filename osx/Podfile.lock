@@ -35,10 +35,11 @@ PODS:
     - ObjectiveSugar
     - Slash
     - YOLayout (~> 0.2.3)
-  - Mantle (2.0.3):
-    - Mantle/extobjc (= 2.0.3)
-  - Mantle/extobjc (2.0.3)
+  - Mantle (2.0.4):
+    - Mantle/extobjc (= 2.0.4)
+  - Mantle/extobjc (2.0.4)
   - MASPreferences (1.1.2)
+  - MDPSplitView (1.0.2)
   - MPMessagePack (1.1.23):
     - GHODictionary
   - ObjectiveSugar (1.1.0)
@@ -60,6 +61,7 @@ DEPENDENCIES:
   - KBAppKit (from `.`)
   - Mantle
   - MASPreferences
+  - MDPSplitView
   - MPMessagePack
   - ObjectiveSugar
   - Sparkle
@@ -77,8 +79,9 @@ SPEC CHECKSUMS:
   GHKit: 29e5361c9d8a33343ae5ed4698057d1533ee590b
   GHODictionary: 4990d3fa008a11257ba54f52a3e95f90dd47ac1b
   KBAppKit: 979d91841106c7674dbc6245bd93d07ef487b26c
-  Mantle: 8d6b14979a082a9ed4994463eb7a4ff576c94632
+  Mantle: 6bee68168423948be0c0c5924832bf3af188e099
   MASPreferences: 32d8a2c5ef1d60b63240f5676b011ff72e194cb1
+  MDPSplitView: 127b4b371e813ec29333e515fb1c057126a75671
   MPMessagePack: a6f9b328cf057350589dbc095e6bb0536609ecae
   ObjectiveSugar: a6a25f23d657c19df0a0b972466d5b5ca9f5295c
   Slash: c74317f5ccf1e31f1d486a17e0d4076029ed3fc8

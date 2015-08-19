@@ -12,9 +12,10 @@
 #import "KBFile.h"
 #import "KBFoldersView.h"
 #import "KBFilePreviewView.h"
+#import <MDPSplitView/MDPSplitView.h>
 
 @interface KBFoldersAppView ()
-@property KBSplitView *splitView;
+@property MDPSplitView *splitView;
 @property KBFoldersView *foldersView;
 @end
 
@@ -23,8 +24,7 @@
 - (void)viewInit {
   [super viewInit];
 
-  _splitView = [[KBSplitView alloc] init];
-  _splitView.dividerPosition = -240;
+  _splitView = [[MDPSplitView alloc] init];
   [self addSubview:_splitView];
 
   _foldersView = [[KBFoldersView alloc] init];
@@ -43,8 +43,15 @@
     if (file) [previewView setFile:file];
   };
 
-  [_splitView setLeftView:_foldersView];
-  [_splitView setRightView:previewView];
+  _splitView.vertical = YES;
+  _splitView.dividerStyle = NSSplitViewDividerStyleThin;
+  [_splitView addSubview:_foldersView];
+  [_splitView addSubview:previewView];
+  [_splitView adjustSubviews];
+  GHWeakSelf gself = self;
+  dispatch_async(dispatch_get_main_queue(), ^{
+    [gself.splitView setPosition:self.frame.size.width - 240 ofDividerAtIndex:0 animated:NO];
+  });
 
   self.viewLayout = [YOLayout fill:_splitView];
 }
