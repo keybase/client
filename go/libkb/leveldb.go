@@ -30,8 +30,41 @@ func (l *LevelDb) open() error {
 		fn := l.GetFilename()
 		G.Log.Debug("Opening LevelDB for local cache: %s", fn)
 		l.db, err = leveldb.OpenFile(fn, nil)
+
+		// version check, this could go into the root db instance but then we'd lose our lazy open...
+		if err == nil {
+			var found bool
+			var ver []byte
+
+			ver, found, err = l.get(DbKey{Typ: DBCacheVersion, Key: "Ver"}, "Ver")
+
+			// mismatch or not found? nuke and remake
+			if !found || string(ver) != DBCurrentCacheVersion && err == nil {
+				G.Log.Debug("LevelDB version mismatch: expected %s but found %s", DBCurrentCacheVersion, string(ver))
+				err = l.close(false)
+				if err == nil {
+					fn := l.GetFilename()
+					err = os.RemoveAll(fn)
+
+					if err == nil {
+						l.db, err = leveldb.OpenFile(fn, nil)
+						if err == nil {
+							// set the right version
+							err = l.writeVersion()
+						}
+					}
+				}
+			}
+		}
 	}
 	return err
+}
+
+func (l *LevelDb) writeVersion() error {
+	value := DBCurrentCacheVersion
+	key := DbKey{Typ: DBCacheVersion, Key: "Ver"}
+
+	return l.db.Put(key.ToBytes("Ver"), []byte(value), nil)
 }
 
 // ForceOpen opens the leveldb file.  This is used in situations
