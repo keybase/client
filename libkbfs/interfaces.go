@@ -496,13 +496,13 @@ type MDOps interface {
 	GetUnmergedForTLF(ctx context.Context, id TlfID) (
 		*RootMetadata, error)
 
-	// GetRange returns a range of metadata objects
-	// corresponding to the passed revision numbers.
+	// GetRange returns a range of metadata objects corresponding to
+	// the passed revision numbers (inclusive).
 	GetRange(ctx context.Context, id TlfID, start, stop MetadataRevision) (
 		[]*RootMetadata, error)
 
 	// GetUnmergedRange is the same as the above but for unmerged
-	// metadata history.
+	// metadata history (inclusive).
 	GetUnmergedRange(ctx context.Context, id TlfID, start, stop MetadataRevision) (
 		[]*RootMetadata, error)
 
@@ -585,7 +585,7 @@ type MDServer interface {
 		*RootMetadataSigned, error)
 
 	// GetRange returns a range of (signed/encrypted) metadata objects
-	// corresponding to the passed revision numbers.
+	// corresponding to the passed revision numbers (inclusive).
 	GetRange(ctx context.Context, id TlfID, unmerged bool, start, stop MetadataRevision) (
 		[]*RootMetadataSigned, error)
 
