@@ -112,6 +112,7 @@ func TestLoginAddsKeys(t *testing.T) {
 }
 
 func TestLoginDetKeyOnly(t *testing.T) {
+	t.Skip("deprecated")
 	tc := SetupEngineTest(t, "login")
 	defer tc.Cleanup()
 
