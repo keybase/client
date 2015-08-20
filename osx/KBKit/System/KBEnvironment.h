@@ -17,14 +17,11 @@
 @property (readonly) KBEnvConfig *config;
 @property (readonly) KBService *service;
 @property (readonly) NSArray */*of KBInstallAction*/installActions;
+@property (readonly) NSArray */*of id<KBInstallable>*/installables;
 
 - (instancetype)initWithConfig:(KBEnvConfig *)config;
 
-- (void)installStatus:(void (^)(BOOL needsInstall))completion;
-
 - (NSArray *)installActionsNeeded;
-
-- (void)uninstall:(KBCompletion)completion;
 
 - (NSArray *)componentsForControlPanel;
 

@@ -92,7 +92,9 @@
       NSString *plistDest = [self plistDestination];
       KBInstallStatus installStatus = [NSFileManager.defaultManager fileExistsAtPath:plistDest] ? KBInstallStatusInstalled : KBInstallStatusNotInstalled;
 
-      self.componentStatus = [KBComponentStatus componentStatusWithInstallStatus:installStatus runtimeStatus:KBRuntimeStatusNotRunning info:nil];
+      GHODictionary *info = [GHODictionary dictionary];
+      if (serviceStatus.lastExitStatus) info[@"Status"] = serviceStatus.lastExitStatus;
+      self.componentStatus = [KBComponentStatus componentStatusWithInstallStatus:installStatus runtimeStatus:KBRuntimeStatusNotRunning info:info];
       completion(self.componentStatus, self.serviceStatus);
       return;
     }
@@ -132,7 +134,7 @@
   return plistDest;
 }
 
-- (void)install:(NSTimeInterval)timeout completion:(KBLaunchComponentStatus)completion {
+- (void)installWithTimeout:(NSTimeInterval)timeout completion:(KBLaunchComponentStatus)completion {
 
   NSString *plistDest = [self plistDestination];
   if (!plistDest) {

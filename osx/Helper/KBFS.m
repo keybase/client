@@ -114,9 +114,9 @@
 }
 
 - (void)unload:(KBOnCompletion)completion {
-  OSReturn status = KextManagerUnloadKextWithIdentifier(KEXT_LABEL_CFSTR);
+  OSReturn status = KextManagerUnloadKextWithIdentifier((CFStringRef)KEXT_LABEL);
   if (status != kOSReturnSuccess) {
-    NSError *error = KBMakeError(KBHelperErrorKBFS, @"KextManager failed to unload with status: %@", @(status));
+    NSError *error = KBMakeError(KBHelperErrorKBFS, @"KextManager failed to unload with status: %@: %@", @(status), [self descriptionForStatus:status]);
     completion(error, @(0));
   } else {
     completion(nil, @(1));
@@ -124,7 +124,7 @@
 }
 
 - (void)uninstall:(KBOnCompletion)completion {
-  KextManagerUnloadKextWithIdentifier(KEXT_LABEL_CFSTR);
+  KextManagerUnloadKextWithIdentifier((CFStringRef)KEXT_LABEL);
 
   NSError *error = nil;
   if ([NSFileManager.defaultManager fileExistsAtPath:_destination isDirectory:NULL] && ![NSFileManager.defaultManager removeItemAtPath:_destination error:&error]) {
@@ -132,6 +132,43 @@
     completion(error, @(0));
   } else {
     completion(nil, @(1));
+  }
+}
+
+- (NSString *)descriptionForStatus:(OSReturn)status {
+  switch (status) {
+    case kOSMetaClassDuplicateClass:
+      return @"A duplicate Libkern C++ classname was encountered during kext loading.";
+    case kOSMetaClassHasInstances:
+      return @"A kext cannot be unloaded because there are instances derived from Libkern C++ classes that it defines.";
+    case kOSMetaClassInstNoSuper:
+      return @"Internal error: No superclass can be found when constructing an instance of a Libkern C++ class.";
+    case kOSMetaClassInternal:
+      return @"Internal OSMetaClass run-time error.";
+    case kOSMetaClassNoDicts:
+      return @"Internal error: An allocation failure occurred registering Libkern C++ classes during kext loading.";
+    case kOSMetaClassNoInit:
+      return @"Internal error: The Libkern C++ class registration system was not properly initialized during kext loading.";
+    case kOSMetaClassNoInsKModSet:
+      return @"Internal error: An error occurred registering a specific Libkern C++ class during kext loading.";
+    case kOSMetaClassNoKext:
+      return @"Internal error: The kext for a Libkern C++ class can't be found during kext loading.";
+    case kOSMetaClassNoKModSet:
+      return @"Internal error: An allocation failure occurred registering Libkern C++ classes during kext loading.";
+    case kOSMetaClassNoSuper:
+      return @"Internal error: No superclass can be found for a specific Libkern C++ class during kext loading.";
+    case kOSMetaClassNoTempData:
+      return @"Internal error: An allocation failure occurred registering Libkern C++ classes during kext loading.";
+    case kOSReturnError:
+      return @"Unspecified Libkern error. Not equal to KERN_FAILURE.";
+    case kOSReturnSuccess:
+      return @"Operation successful. Equal to KERN_SUCCESS.";
+    case -603947004:
+      return @"Root privileges required.";
+    case -603947002:
+      return @"Kext not loaded.";
+    default:
+      return @"Unknown error unloading kext.";
   }
 }
 

@@ -125,7 +125,7 @@
       [layout setFrame:CGRectMake(7, y + 5, 14, 14) view:yself.listProgressView];
       y += [layout setFrame:CGRectMake(13, y, col - 21, 23) view:yself.menuButton].size.height + 4;
 
-      [layout setFrame:CGRectMake(0, y, col - 1, size.height - y) view:yself.views];
+      [layout setFrame:CGRectMake(0, y, col, size.height - y) view:yself.views];
 
       return size;
     }];

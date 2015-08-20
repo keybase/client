@@ -78,12 +78,6 @@
     info[@"Launchd Plist"] = [KBPath path:[_launchService plistDestination] options:KBPathOptionsTilde];
   }
 
-  if (!self.config.installEnabled) {
-    info[@"Command"] = [KBService commandLineForService:self.config useBundle:NO pathOptions:KBPathOptionsTilde|KBPathOptionsEscape args:@[@"service"]];
-  } else {
-    info[@"Command"] = [KBService commandLineForService:self.config useBundle:YES pathOptions:0 args:@[@"--log-format=file", @"service"]];
-  }
-
   YOView *view = [[YOView alloc] init];
   KBDebugPropertiesView *propertiesView = [[KBDebugPropertiesView alloc] init];
   [propertiesView setProperties:info];
@@ -104,7 +98,7 @@
 }
 
 - (void)refreshComponent:(KBCompletion)completion {
-  [_launchService updateComponentStatus:0 completion:^(KBComponentStatus *componentStatus, KBServiceStatus *serviceStatus) {
+  [self.launchService updateComponentStatus:0 completion:^(KBComponentStatus *componentStatus, KBServiceStatus *serviceStatus) {
     [self componentDidUpdate];
     completion(componentStatus.error);
   }];
@@ -122,6 +116,19 @@
   [request panicWithMessage:@"Testing panic" completion:^(NSError *error) {
     completion(error);
   }];
+}
+
+- (void)checkHomebrew:(void (^)(KBServiceStatus *serviceStatus))completion {
+  NSString *launchAgentDir = [[NSSearchPathForDirectoriesInDomains(NSLibraryDirectory, NSUserDomainMask, YES) firstObject] stringByAppendingPathComponent:@"LaunchAgents"];
+  NSString *plistDest = [launchAgentDir stringByAppendingPathComponent:@"homebrew.mxcl.keybase.plist"];
+
+  if ([NSFileManager.defaultManager fileExistsAtPath:plistDest isDirectory:nil]) {
+    [KBLaunchCtl status:@"homebrew.mxcl.keybase" completion:^(KBServiceStatus *serviceStatus) {
+      completion(serviceStatus);
+    }];
+  } else {
+    completion(nil);
+  }
 }
 
 - (void)checkStatus:(void (^)(NSError *error, KBRGetCurrentStatusRes *currentStatus, KBRConfig *config))completion {
@@ -144,7 +151,7 @@
 }
 
 - (void)install:(KBCompletion)completion {
-  [_launchService install:5 completion:^(KBComponentStatus *componentStatus, KBServiceStatus *serviceStatus) {
+  [_launchService installWithTimeout:5 completion:^(KBComponentStatus *componentStatus, KBServiceStatus *serviceStatus) {
     completion(componentStatus.error);
   }];
 }
@@ -179,9 +186,9 @@
   if (useBundle) {
     [pargs addObject:[KBPath pathInDir:config.bundle.sharedSupportPath path:@"bin/keybase" options:pathOptions]];
   } else {
-    [pargs addObjectsFromArray:@[@"env", @"-i", @"./keybase"]];
+    [pargs addObjectsFromArray:@[@"./keybase"]];
   }
-  if (config.homeDir) {
+  if (config.isHomeDirSet) {
     [pargs addObjectsFromArray:@[@"-H", [KBPath path:config.homeDir options:pathOptions]]];
   }
 
@@ -193,7 +200,7 @@
     [pargs addObject:@"-d"];
   }
 
-  if (config.sockFile) {
+  if (config.isSockFileSet) {
     [pargs addObject:NSStringWithFormat(@"--socket-file=%@", [KBPath path:config.sockFile options:pathOptions])];
   }
 

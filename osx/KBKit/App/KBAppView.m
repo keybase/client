@@ -107,10 +107,9 @@ typedef NS_ENUM (NSInteger, KBAppViewMode) {
 
   [self showInProgress:@"Loading"];
 
-  GHWeakSelf gself = self;  
-  [_environment installStatus:^(BOOL needsInstall) {
+  KBInstaller *installer = [[KBInstaller alloc] initWithEnvironment:_environment];
+  [installer installStatus:^(BOOL needsInstall) {
     if (needsInstall) {
-      KBInstaller *installer = [[KBInstaller alloc] initWithEnvironment:gself.environment];
       [self showInstaller:installer completion:completion];
     } else {
       [self connect:completion];

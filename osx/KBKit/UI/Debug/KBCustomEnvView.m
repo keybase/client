@@ -20,7 +20,7 @@
 @property KBTextField *mountDirField;
 @property KBLabel *serviceCLI;
 @property KBLabel *kbfsCLI;
-@property KBButton *develButton;
+//@property KBButton *develButton;
 @end
 
 @implementation KBCustomEnvView
@@ -36,15 +36,6 @@
   _homeDirField.onChange = ^{ [gself update]; };
   [self addSubview:_homeDirField];
 
-//  KBLabel *sockFileLabel = [KBLabel labelWithText:@"Socket File" style:KBTextStyleDefault];
-//  [self addSubview:sockFileLabel];
-//  _socketFileField = [[KBTextField alloc] init];
-//  _socketFileField.textField.font = KBAppearance.currentAppearance.textFont;
-//  _socketFileField.insets = UIEdgeInsetsMake(8, 8, 8, 0);
-//  _socketFileField.textField.lineBreakMode = NSLineBreakByTruncatingHead;
-//  _socketFileField.onChange = ^{ [gself update]; };
-//  [self addSubview:_socketFileField];
-
   KBLabel *mountDirLabel = [KBLabel labelWithText:@"Mount Dir" style:KBTextStyleDefault];
   [self addSubview:mountDirLabel];
   _mountDirField = [[KBTextField alloc] init];
@@ -54,9 +45,9 @@
   _mountDirField.onChange = ^{ [gself update]; };
   [self addSubview:_mountDirField];
 
-  _develButton = [KBButton buttonWithText:@"Dev Mode (Localhost)" style:KBButtonStyleCheckbox];
-  _develButton.state = NSOnState;
-  [self addSubview:_develButton];
+//  _develButton = [KBButton buttonWithText:@"Dev Mode (Localhost)" style:KBButtonStyleCheckbox];
+//  _develButton.state = NSOnState;
+//  [self addSubview:_develButton];
 
   KBLabel *serviceLabel = [KBLabel labelWithText:@"Service Command" style:KBTextStyleHeader];
   [self addSubview:serviceLabel];
@@ -75,15 +66,12 @@
     CGFloat x = 0;
     CGFloat y = 0;
     CGFloat col = 80;
-//    x += [layout sizeToFitVerticalInFrame:CGRectMake(x, 9, col, 0) view:sockFileLabel].size.width + 10;
-//    y += [layout sizeToFitVerticalInFrame:CGRectMake(x, 0, size.width - x - 10, 0) view:yself.socketFileField].size.height + 10;
-//    x = 0;
     x += [layout sizeToFitVerticalInFrame:CGRectMake(x, y + 9, col, 0) view:homeDirLabel].size.width + 10;
     y += [layout sizeToFitVerticalInFrame:CGRectMake(x, y, size.width - x - 10, 0) view:yself.homeDirField].size.height + 10;
     x = 0;
     x += [layout sizeToFitVerticalInFrame:CGRectMake(x, y + 9, col, 0) view:mountDirLabel].size.width + 10;
     y += [layout sizeToFitVerticalInFrame:CGRectMake(x, y, size.width - x - 10, 0) view:yself.mountDirField].size.height + 10;
-    y += [layout sizeToFitInFrame:CGRectMake(x, y, size.width - x - 10, 0) view:yself.develButton].size.height + 10;
+//    y += [layout sizeToFitInFrame:CGRectMake(x, y, size.width - x - 10, 0) view:yself.develButton].size.height + 10;
     x = 0;
     y += 20;
     y += [layout sizeToFitVerticalInFrame:CGRectMake(x, y, size.width - x - 10, 0) view:serviceLabel].size.height + 10;
@@ -101,9 +89,8 @@
 
 - (KBEnvConfig *)config {
   NSString *homeDir = [_homeDirField.text gh_strip];
-//  NSString *sockFile = [_socketFileField.text gh_strip];
   NSString *mountDir = [_mountDirField.text gh_strip];
-  return [[KBEnvConfig alloc] initWithHomeDir:homeDir sockFile:nil mountDir:mountDir develMode:_develButton.state == NSOnState];
+  return [KBEnvConfig customEnvWithHomeDir:homeDir sockFile:nil mountDir:mountDir];
 }
 
 - (void)setConfig:(KBEnvConfig *)config {

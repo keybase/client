@@ -58,6 +58,41 @@
   [rover run];
 }
 
+- (void)installStatus:(void (^)(BOOL needsInstall))completion {
+  KBRunOver *rover = [[KBRunOver alloc] init];
+  rover.enumerator = [_environment.installActions objectEnumerator];
+  rover.runBlock = ^(KBInstallAction *installAction, KBRunCompletion runCompletion) {
+    DDLogDebug(@"Checking %@", installAction.installable.name);
+    [installAction.installable refreshComponent:^(NSError *error) {
+      // Clear install outcome
+      installAction.installAttempted = NO;
+      installAction.installError = error;
+      runCompletion(installAction);
+    }];
+  };
+
+  NSArray *installActionsNeeded = [_environment installActionsNeeded];
+  rover.completion = ^(NSArray *installActions) {
+    //DDLogDebug(@"Install actions needed: %@", installActionsNeeded);
+    completion([installActionsNeeded count] > 0);
+  };
+  [rover run];
+}
+
+- (void)uninstall:(KBCompletion)completion {
+  KBRunOver *rover = [[KBRunOver alloc] init];
+  rover.enumerator = [_environment.installables reverseObjectEnumerator];
+  rover.runBlock = ^(id<KBInstallable> installable, KBRunCompletion runCompletion) {
+    [installable uninstall:^(NSError *error) {
+      runCompletion(installable);
+    }];
+  };
+  rover.completion = ^(NSArray *outputs) {
+    completion(nil);
+  };
+  [rover run];
+}
+
 /*
 - (void)removeDirectory:(NSString *)directory error:(NSError **)error {
   NSArray *files = [NSFileManager.defaultManager contentsOfDirectoryAtPath:directory error:error];

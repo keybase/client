@@ -16,6 +16,7 @@
 
 #import "KBService.h"
 #import "KBFSService.h"
+#import "KBInstaller.h"
 
 #import <KBAppKit/KBAppKit.h>
 
@@ -66,15 +67,15 @@
   _customView = [[KBCustomEnvView alloc] init];
 
   NSArray *envs = @[
-                    [[KBEnvironment alloc] initWithConfig:[KBEnvConfig env:KBEnvProd]],
-                    [[KBEnvironment alloc] initWithConfig:[KBEnvConfig env:KBEnvDevel]],
-                    [[KBEnvironment alloc] initWithConfig:[KBEnvConfig env:KBEnvBrew]],
+                    [[KBEnvironment alloc] initWithConfig:[KBEnvConfig envType:KBEnvTypeProd]],
+                    [[KBEnvironment alloc] initWithConfig:[KBEnvConfig envType:KBEnvTypeDevel]],
+                    [[KBEnvironment alloc] initWithConfig:[KBEnvConfig envType:KBEnvTypeBrew]],
                     [[KBEnvironment alloc] initWithConfig:[KBEnvConfig loadFromUserDefaults:[KBWorkspace userDefaults]]],
                     ];
   [_listView setObjects:envs animated:NO];
 
-  NSString *identifier = [[KBWorkspace userDefaults] objectForKey:@"Env"];
-  KBEnvironment *selected = [envs detect:^BOOL(KBEnvironment *e) { return [e.config.identifier isEqualToString:identifier]; }];
+  NSString *title = [[KBWorkspace userDefaults] objectForKey:@"Env"];
+  KBEnvironment *selected = [envs detect:^BOOL(KBEnvironment *e) { return [e.config.title isEqualToString:title]; }];
   if (selected) [_listView setSelectedRow:[envs indexOfObject:selected]];
   else [_listView setSelectedRow:[_listView.dataSource countForSection:0] - 1];
 }
@@ -87,10 +88,10 @@
   KBEnvironment *env = _listView.selectedObject;
 
   NSUserDefaults *userDefaults = [KBWorkspace userDefaults];
-  [userDefaults setObject:env.config.identifier forKey:@"Env"];
+  [userDefaults setObject:env.config.title forKey:@"Env"];
   [userDefaults synchronize];
 
-  if ([env.config.identifier isEqualToString:@"custom"]) {
+  if (env.config.envType == KBEnvTypeCustom) {
     KBEnvConfig *config = [_customView config];
     [config saveToUserDefaults:[KBWorkspace userDefaults]];
     NSError *error = nil;
@@ -99,7 +100,7 @@
       return;
     }
     self.onSelect([[KBEnvironment alloc] initWithConfig:config]);
-  } else if ([env.config.identifier isEqualToString:@"live"]) {
+  } else if (env.config.envType == KBEnvTypeProd) {
     [KBActivity setError:KBMakeError(KBErrorCodeUnsupported, @"Not supported yet") sender:self];
   } else {
     self.onSelect(env);
@@ -108,15 +109,16 @@
 
 - (void)uninstall {
   KBEnvironment *env = _listView.selectedObject;
+  KBInstaller *installer = [[KBInstaller alloc] initWithEnvironment:env];
   [KBAlert yesNoWithTitle:@"Uninstall" description:NSStringWithFormat(@"Are you sure you want to uninstall %@?", env.config.title) yes:@"Uninstall" view:self completion:^(BOOL yes) {
-    [env uninstall:^(NSError *error) {
+    [installer uninstall:^(NSError *error) {
       [KBActivity setError:error sender:self];
     }];
   }];
 }
 
 - (NSView *)viewForEnvironment:(KBEnvironment *)environment {
-  if ([environment.config.identifier isEqual:@"custom"]) {
+  if (environment.config.envType == KBEnvTypeCustom) {
     [_customView setConfig:environment.config];
     return _customView;
   }
@@ -136,21 +138,16 @@
   };
 
   KBEnvConfig *config = environment.config;
-  [labels addSubview:createView(@"Id", config.identifier)];
-  [labels addSubview:createView(@"Home", [KBPath path:config.homeDir options:KBPathOptionsTilde])];
   if (config.host) [labels addSubview:createView(@"Host", config.host)];
   if (config.mountDir) [labels addSubview:createView(@"Mount", [KBPath path:config.mountDir options:KBPathOptionsTilde])];
   if (config.isLaunchdEnabled) {
-    [labels addSubview:createView(@"Service ID", config.launchdLabelService)];
-    [labels addSubview:createView(@"KBFS ID", config.launchdLabelKBFS)];
+    [labels addSubview:createView(@"Service Launchd", config.launchdLabelService)];
+    [labels addSubview:createView(@"KBFS Launchd", config.launchdLabelKBFS)];
   }
 
   if (!config.isInstallEnabled) {
-    [labels addSubview:createView(@"Other", @"Installer Disabled")];
+    [labels addSubview:createView(@" ", @"Installer Disabled")];
   }
-
-  [labels addSubview:createView(@"Service (cmd)", [KBService commandLineForService:config useBundle:NO pathOptions:KBPathOptionsEscape args:@[@"--log-format=file", @"service"]])];
-  [labels addSubview:createView(@"KBFS (cmd)", [KBFSService commandLineForKBFS:config useBundle:NO pathOptions:KBPathOptionsEscape args:nil])];
 
   GHWeakSelf gself = self;
   YOHBox *buttons = [YOHBox box];

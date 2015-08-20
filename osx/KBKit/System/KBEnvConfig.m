@@ -12,11 +12,13 @@
 #import "KBPath.h"
 #import <KBAppKit/KBAppKit.h>
 
+#define LOCALHOST (@"http://localhost:3000")
+#define PRODHOST (@"https://api.keybase.io:443")
+
 @interface KBEnvConfig ()
 @property NSString *homeDir;
 @property NSString *host;
 @property (getter=isDebugEnabled) BOOL debugEnabled;
-@property (getter=isDevelMode) BOOL develMode;
 @property NSString *mountDir;
 @property NSString *sockFile;
 @property (getter=isLaunchdEnabled) BOOL launchdEnabled;
@@ -26,17 +28,22 @@
 @property NSString *info;
 @property NSImage *image;
 @property (getter=isInstallEnabled) BOOL installEnabled;
-@property NSString *configFile; // Deprecated, will remove soon
+@property KBEnvType envType;
 @end
 
 @implementation KBEnvConfig
 
-- (instancetype)initWithEnv:(KBEnv)env {
++ (instancetype)envType:(KBEnvType)envType {
+  return [[self.class alloc] initWithEnvType:envType];
+}
+
+- (instancetype)initWithEnvType:(KBEnvType)envType {
   if ((self = [super init])) {
-    switch (env) {
-      case KBEnvProd: {
+    _envType = envType;
+    switch (_envType) {
+      case KBEnvTypeProd: {
         self.title = @"Keybase.io";
-        self.host = @"https://api.keybase.io:443";
+        self.host = PRODHOST;
         self.mountDir = [KBPath path:@"~/Keybase" options:0];
         self.debugEnabled = YES;
         self.info = @"Uses keybase.io";
@@ -47,10 +54,9 @@
         self.launchdLabelKBFS = @"keybase.KBFS";
         break;
       }
-      case KBEnvDevel: {
+      case KBEnvTypeDevel: {
         self.title = @"Local";
-        self.host = @"http://localhost:3000";
-        self.develMode = YES;
+        self.host = LOCALHOST;
         self.mountDir = [KBPath path:@"~/Keybase.local" options:0];
         self.debugEnabled = YES;
         self.info = @"Uses the localhost web server";
@@ -61,7 +67,7 @@
         self.installEnabled = YES;
         break;
       }
-      case KBEnvBrew: {
+      case KBEnvTypeBrew: {
         self.title = @"Homebrew";
         self.mountDir = [KBPath path:@"~/Keybase.brew" options:0];
         self.debugEnabled = YES;
@@ -71,6 +77,9 @@
         self.installEnabled = NO;
         break;
       }
+      case KBEnvTypeCustom:
+        [NSException raise:NSInvalidArgumentException format:@"For custom env, use customEnvWithHomeDir:..."];
+        break;
     }
   }
   return self;
@@ -84,41 +93,42 @@
 + (instancetype)loadFromUserDefaults:(NSUserDefaults *)userDefaults {
   NSString *homeDir = [userDefaults stringForKey:@"HomeDir"];
   NSString *mountDir = [userDefaults stringForKey:@"MountDir"];
-  BOOL develMode = [userDefaults boolForKey:@"Devel"];
 
-  //if (!homeDir) homeDir = [KBEnvConfig groupContainer:@"dev"];
   if (!mountDir) mountDir = [KBPath path:@"~/Keybase.dev" options:0];
 
-  return [[KBEnvConfig alloc] initWithHomeDir:homeDir sockFile:nil mountDir:mountDir develMode:develMode];
+  return [KBEnvConfig customEnvWithHomeDir:homeDir sockFile:nil mountDir:mountDir];
 }
 
 - (void)saveToUserDefaults:(NSUserDefaults *)userDefaults {
   [userDefaults setObject:[KBPath path:self.homeDir options:0] forKey:@"HomeDir"];
   [userDefaults setObject:[KBPath path:self.mountDir options:0] forKey:@"MountDir"];
-  [userDefaults setBool:self.isDevelMode forKey:@"Devel"];
   [userDefaults synchronize];
 }
 
 - (NSString *)appName {
-  return self.isDevelMode ? @"KeybaseDev" : @"Keybase";
+    switch (_envType) {
+      case KBEnvTypeProd: return @"Keybase";
+      default: return @"KeybaseDev";
+    }
 }
 
 - (NSString *)appPath:(NSString *)filename options:(KBPathOptions)options {
-  NSString *homeDir = _homeDir ? _homeDir : @"~";
+  NSString *homeDir = self.homeDir;
   NSString *appPath = NSStringWithFormat(@"Library/Application Support/%@", [self appName]);
   if (filename) appPath = [appPath stringByAppendingPathComponent:filename];
   return [KBPath pathInDir:homeDir path:appPath options:options];
 }
 
 - (NSString *)cachePath:(NSString *)filename options:(KBPathOptions)options {
-  NSString *homeDir = _homeDir ? _homeDir : @"~";
+  NSString *homeDir = self.homeDir;
   NSString *cachePath = NSStringWithFormat(@"Library/Caches/%@", [self appName]);
   if (filename) cachePath = [cachePath stringByAppendingPathComponent:filename];
   return [KBPath pathInDir:homeDir path:cachePath options:options];
 }
 
-- (NSString *)configFile {
-  return [self appPath:_configFile ? _configFile : @"config.json" options:0];
+- (NSString *)homeDir {
+  NSString *homeDir = _homeDir ? _homeDir : @"~";
+  return [KBPath path:homeDir options:0];
 }
 
 - (NSString *)sockFile {
@@ -129,24 +139,22 @@
   return sockFile;
 }
 
-+ (instancetype)env:(KBEnv)env {
-  return [[self.class alloc] initWithEnv:env];
-}
+- (BOOL)isHomeDirSet { return !!_homeDir; }
+- (BOOL)isSockFileSet { return !!_sockFile; }
 
-- (instancetype)initWithHomeDir:(NSString *)homeDir sockFile:(NSString *)sockFile mountDir:(NSString *)mountDir develMode:(BOOL)develMode {
-  if ((self = [super init])) {
-    self.title = @"Custom";
-    self.homeDir = [KBPath path:homeDir options:0];
-    self.sockFile = [KBPath path:sockFile options:0];
-    self.mountDir = [KBPath path:mountDir options:0];
-    self.info = @"For development";
-    self.image = [NSImage imageNamed:NSImageNameAdvanced];
-    self.launchdEnabled = NO;
-    self.installEnabled = NO;
-    self.debugEnabled = YES;
-    self.develMode = develMode;
-  }
-  return self;
++ (instancetype)customEnvWithHomeDir:(NSString *)homeDir sockFile:(NSString *)sockFile mountDir:(NSString *)mountDir {
+  KBEnvConfig *envConfig = [[KBEnvConfig alloc] init];
+  envConfig.envType = KBEnvTypeCustom;
+  envConfig.title = @"Custom";
+  envConfig.homeDir = [KBPath path:homeDir options:0];
+  envConfig.sockFile = [KBPath path:sockFile options:0];
+  envConfig.mountDir = [KBPath path:mountDir options:0];
+  envConfig.info = @"For development";
+  envConfig.image = [NSImage imageNamed:NSImageNameAdvanced];
+  envConfig.launchdEnabled = NO;
+  envConfig.installEnabled = NO;
+  envConfig.debugEnabled = YES;
+  return envConfig;
 }
 
 - (NSString *)logFile:(NSString *)label {
@@ -164,16 +172,19 @@
 }
 
 - (BOOL)validate:(NSError **)error {
-  if (_homeDir && ![NSFileManager.defaultManager fileExistsAtPath:[KBPath path:_homeDir options:0] isDirectory:nil]) {
-    if (error) *error = KBMakeError(KBErrorCodePathNotFound, @"%@ doesn't exist (homeDir)", _homeDir);
+  NSString *homeDir = self.homeDir;
+  if (homeDir && ![NSFileManager.defaultManager fileExistsAtPath:homeDir isDirectory:nil]) {
+    if (error) *error = KBMakeError(KBErrorCodePathNotFound, @"%@ doesn't exist (homeDir)", homeDir);
     return NO;
   }
-  if (_sockFile && ![NSFileManager.defaultManager fileExistsAtPath:[KBPath path:_sockFile options:0] isDirectory:nil]) {
-    if (error) *error = KBMakeError(KBErrorCodePathNotFound, @"%@ doesn't exist (sockFile)", _sockFile);
+  NSString *sockFile = self.sockFile;
+  if (sockFile && ![NSFileManager.defaultManager fileExistsAtPath:sockFile isDirectory:nil]) {
+    if (error) *error = KBMakeError(KBErrorCodePathNotFound, @"%@ doesn't exist (sockFile)", sockFile);
     return NO;
   }
-  if (_mountDir && ![NSFileManager.defaultManager fileExistsAtPath:[KBPath path:_mountDir options:0] isDirectory:nil]) {
-    if (error) *error = KBMakeError(KBErrorCodePathNotFound, @"%@ doesn't exist (mountDir)", _mountDir);
+  NSString *mountDir = self.mountDir;
+  if (mountDir && ![NSFileManager.defaultManager fileExistsAtPath:mountDir isDirectory:nil]) {
+    if (error) *error = KBMakeError(KBErrorCodePathNotFound, @"%@ doesn't exist (mountDir)", mountDir);
     return NO;
   }
   return YES;

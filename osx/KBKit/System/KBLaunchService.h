@@ -29,7 +29,7 @@ typedef void (^KBLaunchComponentStatus)(KBComponentStatus *componentStatus, KBSe
 
 - (NSString *)plistDestination;
 
-- (void)install:(NSTimeInterval)timeout completion:(KBLaunchComponentStatus)completion;
+- (void)installWithTimeout:(NSTimeInterval)timeout completion:(KBLaunchComponentStatus)completion;
 - (void)uninstall:(KBCompletion)completion;
 
 - (void)start:(NSTimeInterval)timeout completion:(KBLaunchComponentStatus)completion;

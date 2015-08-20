@@ -61,38 +61,4 @@
   }];
 }
 
-- (void)installStatus:(void (^)(BOOL needsInstall))completion {
-  KBRunOver *rover = [[KBRunOver alloc] init];
-  rover.enumerator = [_installActions objectEnumerator];
-  rover.runBlock = ^(KBInstallAction *installAction, KBRunCompletion runCompletion) {
-    DDLogDebug(@"Checking %@", installAction.installable.name);
-    [installAction.installable refreshComponent:^(NSError *error) {
-      // Clear install outcome
-      installAction.installAttempted = NO;
-      installAction.installError = error;
-      runCompletion(installAction);
-    }];
-  };
-  rover.completion = ^(NSArray *installActions) {
-    NSArray *installActionsNeeded = [self installActionsNeeded];
-    //DDLogDebug(@"Install actions needed: %@", installActionsNeeded);
-    completion([installActionsNeeded count] > 0);
-  };
-  [rover run];
-}
-
-- (void)uninstall:(KBCompletion)completion {
-  KBRunOver *rover = [[KBRunOver alloc] init];
-  rover.enumerator = [_installables reverseObjectEnumerator];
-  rover.runBlock = ^(id<KBInstallable> installable, KBRunCompletion runCompletion) {
-    [installable uninstall:^(NSError *error) {
-      runCompletion(installable);
-    }];
-  };
-  rover.completion = ^(NSArray *outputs) {
-    completion(nil);
-  };
-  [rover run];
-}
-
 @end

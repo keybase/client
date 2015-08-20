@@ -18,6 +18,11 @@
 
 - (instancetype)initWithEnvironment:(KBEnvironment *)environment;
 
+- (void)installStatus:(void (^)(BOOL needsInstall))completion;
+
 - (void)install:(dispatch_block_t)completion;
+
+- (void)uninstall:(KBCompletion)completion;
+
 
 @end

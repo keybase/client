@@ -54,12 +54,6 @@
     info[@"Launchd Plist"] = [KBPath path:[_launchService plistDestination] options:KBPathOptionsTilde];
   }
 
-  if (!self.config.installEnabled) {
-    info[@"Command"] = [KBFSService commandLineForKBFS:self.config useBundle:NO pathOptions:KBPathOptionsEscape args:nil];
-  } else {
-    info[@"Command"] = [KBFSService commandLineForKBFS:self.config useBundle:YES pathOptions:0 args:nil];
-  }
-
   if (!_infoView) _infoView = [[KBDebugPropertiesView alloc] init];
   [_infoView setProperties:info];
 }
@@ -133,7 +127,7 @@
   NSString *mountDir = [self.config mountDir];
   GHWeakSelf gself = self;
   [self ensureDirectory:mountDir completion:^(NSError *error) {
-    [gself.launchService install:5 completion:^(KBComponentStatus *componentStatus, KBServiceStatus *serviceStatus) {
+    [gself.launchService installWithTimeout:5 completion:^(KBComponentStatus *componentStatus, KBServiceStatus *serviceStatus) {
       if ([serviceStatus.lastExitStatus integerValue] == 3) {
         completion(KBMakeError(-1, @"Failed with a mount error"));
       } else {
@@ -176,8 +170,8 @@
 + (NSDictionary *)envsForKBS:(KBEnvConfig *)config pathOptions:(KBPathOptions)pathOptions {
   NSMutableDictionary *envs = [NSMutableDictionary dictionary];
   //envs[@"PATH"] = @"/sbin:/usr/sbin:/Library/Filesystems/osxfusefs.fs/Support"; // For umount, diskutil, mount_osxfusefs
-  envs[@"KEYBASE_SOCKET_FILE"] = [KBPath path:[config sockFile] options:pathOptions];
-  envs[@"KEYBASE_CONFIG_FILE"] = [KBPath path:[config configFile] options:pathOptions];
+  envs[@"KEYBASE_SOCKET_FILE"] = [KBPath path:config.sockFile options:pathOptions];
+  envs[@"KEYBASE_CONFIG_FILE"] = [KBPath path:[config appPath:@"config.json" options:0] options:pathOptions];
   return envs;
 }
 
