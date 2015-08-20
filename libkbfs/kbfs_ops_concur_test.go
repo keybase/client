@@ -110,7 +110,7 @@ func TestKBFSOpsConcurReadDuringSync(t *testing.T) {
 	rootNode, _, err :=
 		kbfsOps.GetOrCreateRootNodeForHandle(ctx, h, MasterBranch)
 	if err != nil {
-		t.Errorf("Couldn't create folder: %v", err)
+		t.Fatalf("Couldn't create folder: %v", err)
 	}
 	fileNode, _, err := kbfsOps.CreateFile(ctx, rootNode, "a", false)
 	if err != nil {
@@ -169,7 +169,7 @@ func TestKBFSOpsConcurWriteDuringSync(t *testing.T) {
 	rootNode, _, err :=
 		kbfsOps.GetOrCreateRootNodeForHandle(ctx, h, MasterBranch)
 	if err != nil {
-		t.Errorf("Couldn't create folder: %v", err)
+		t.Fatalf("Couldn't create folder: %v", err)
 	}
 	fileNode, _, err := kbfsOps.CreateFile(ctx, rootNode, "a", false)
 	if err != nil {
@@ -260,7 +260,7 @@ func TestKBFSOpsConcurWriteDuringSyncMultiBlocks(t *testing.T) {
 	rootNode, _, err :=
 		kbfsOps.GetOrCreateRootNodeForHandle(ctx, h, MasterBranch)
 	if err != nil {
-		t.Errorf("Couldn't create folder: %v", err)
+		t.Fatalf("Couldn't create folder: %v", err)
 	}
 	fileNode, _, err := kbfsOps.CreateFile(ctx, rootNode, "a", false)
 	if err != nil {
@@ -372,7 +372,7 @@ func TestKBFSOpsConcurWriteParallelBlocksCanceled(t *testing.T) {
 	rootNode, _, err :=
 		kbfsOps.GetOrCreateRootNodeForHandle(ctx, h, MasterBranch)
 	if err != nil {
-		t.Errorf("Couldn't create folder: %v", err)
+		t.Fatalf("Couldn't create folder: %v", err)
 	}
 	fileNode, _, err := kbfsOps.CreateFile(ctx, rootNode, "a", false)
 	if err != nil {
@@ -463,7 +463,7 @@ func TestKBFSOpsConcurWriteParallelBlocksError(t *testing.T) {
 	rootNode, _, err :=
 		kbfsOps.GetOrCreateRootNodeForHandle(ctx, h, MasterBranch)
 	if err != nil {
-		t.Errorf("Couldn't create folder: %v", err)
+		t.Fatalf("Couldn't create folder: %v", err)
 	}
 	fileNode, _, err := kbfsOps.CreateFile(ctx, rootNode, "a", false)
 	if err != nil {

@@ -2,9 +2,9 @@ package libkbfs
 
 import (
 	"bytes"
-	"crypto/sha256"
 	"encoding/hex"
 	"fmt"
+	"reflect"
 	"sort"
 	"strings"
 	"sync"
@@ -256,76 +256,16 @@ type BlockCryptKeyServerHalf struct {
 	ServerHalf [32]byte
 }
 
+func (serverHalf BlockCryptKeyServerHalf) String() string {
+	return hex.EncodeToString(serverHalf.ServerHalf[:])
+}
+
 // BlockCryptKey is used to encrypt/decrypt block data. (See 4.1.2.)
 type BlockCryptKey struct {
 	// Exported only for serialization purposes. Should only be
 	// used by implementations of Crypto.
 	Key [32]byte
 }
-
-// BlockID is the type of hash key for each data block
-type BlockID struct {
-	// Exported only for serialization purposes.
-	Hash libkb.NodeHashShort `codec:"h"`
-}
-
-// MaxBlockIDStringLength is the maximum length of the string
-// representation of a BlockID.
-const MaxBlockIDStringLength = 2 * libkb.NodeHashLenShort
-
-// NullBlockID is an empty block ID.
-var NullBlockID = BlockID{}
-
-// BlockIDFromString creates a BlockID from the given string.
-func BlockIDFromString(blockIDStr string) (BlockID, error) {
-	bytes, err := hex.DecodeString(blockIDStr)
-	if err != nil {
-		return NullBlockID, err
-	}
-	var h libkb.NodeHashShort
-	if len(h) != len(bytes) {
-		return NullBlockID, fmt.Errorf("Invalid BlockID length %d", len(bytes))
-	}
-	copy(h[:], bytes)
-	return BlockID{h}, nil
-}
-
-// Bytes returns the bytes of the block ID.
-func (id BlockID) Bytes() []byte {
-	return id.Hash[:]
-}
-
-func (id BlockID) String() string {
-	return hex.EncodeToString(id.Bytes())
-}
-
-// MdID is the type of hash key for each metadata block
-type MdID struct {
-	// Exported only for serialization purposes.
-	Hash libkb.NodeHashShort `codec:"h"`
-}
-
-// MdIDFromBytes creates a MdID from the given byte array.
-func MdIDFromBytes(mdIDBytes []byte) (MdID, error) {
-	var h libkb.NodeHashShort
-	if len(h) != len(mdIDBytes) {
-		return NullMdID, fmt.Errorf("Invalid MdID length %d", len(mdIDBytes))
-	}
-	copy(h[:], mdIDBytes)
-	return MdID{h}, nil
-}
-
-// Bytes returns the bytes of the MD ID.
-func (id MdID) Bytes() []byte {
-	return id.Hash[:]
-}
-
-func (id MdID) String() string {
-	return hex.EncodeToString(id.Bytes())
-}
-
-// NullMdID is an empty MdID
-var NullMdID = MdID{}
 
 // KeyGen is the type of a key generation for a top-level folder.
 type KeyGen int
@@ -359,6 +299,10 @@ type BlockRefNonce [8]byte
 // zeroBlockRefNonce is a special BlockRefNonce used for the initial
 // reference to a block.
 var zeroBlockRefNonce = BlockRefNonce([8]byte{0, 0, 0, 0, 0, 0, 0, 0})
+
+func (nonce BlockRefNonce) String() string {
+	return hex.EncodeToString(nonce[:])
+}
 
 // BlockPointer contains the identifying information for a block in KBFS.
 type BlockPointer struct {
@@ -429,7 +373,7 @@ func (p BlockPointer) GetRefNonce() BlockRefNonce {
 
 // IsInitialized returns whether or not this BlockPointer has non-nil data.
 func (p BlockPointer) IsInitialized() bool {
-	return p.ID != NullBlockID
+	return p.ID != BlockID{}
 }
 
 // IsFirstRef returns whether or not p represents the first reference
@@ -802,7 +746,7 @@ func (p path) hasPublic() bool {
 
 // TLFCryptKeyServerHalfID is the identifier type for a server-side key half.
 type TLFCryptKeyServerHalfID struct {
-	ServerHalfID [sha256.Size]byte // Exported for serialization.
+	ID HMAC // Exported for serialization.
 }
 
 // DeepCopy returns a complete copy of a TLFCryptKeyServerHalfID.
@@ -812,7 +756,7 @@ func (id TLFCryptKeyServerHalfID) DeepCopy() TLFCryptKeyServerHalfID {
 
 // String implements the Stringer interface for TLFCryptKeyServerHalfID.
 func (id TLFCryptKeyServerHalfID) String() string {
-	return hex.EncodeToString(id.ServerHalfID[:])
+	return id.ID.String()
 }
 
 // TLFCryptKeyInfo is a per-device key half entry in the DirKeyBundle.
@@ -918,10 +862,9 @@ func (bc BlockChanges) Equals(other BlockChanges) bool {
 }
 
 func (bc *BlockChanges) addBPSize() {
-	// estimate size of BlockPointer as 2 UIDs and 3 64-bit ints
-	// XXX: use unsafe.SizeOf here instead?  It's not crucial that
-	// it's right.
-	bc.sizeEstimate += uint64(libkb.NodeHashLenShort + keybase1.UID_LEN + 3*8)
+	// We want an estimate of the codec-encoded size, but the
+	// in-memory size is good enough.
+	bc.sizeEstimate += uint64(reflect.TypeOf(BlockPointer{}).Size())
 }
 
 // AddRefBlock adds the newly-referenced block to this BlockChanges

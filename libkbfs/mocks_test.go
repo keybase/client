@@ -1004,10 +1004,11 @@ func (_mr *_MockCryptoRecorder) DecryptTLFCryptKeyClientHalf(arg0, arg1, arg2 in
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "DecryptTLFCryptKeyClientHalf", arg0, arg1, arg2)
 }
 
-func (_m *MockCrypto) GetTLFCryptKeyServerHalfID(user go0.UID, deviceKID go0.KID, serverHalf TLFCryptKeyServerHalf) TLFCryptKeyServerHalfID {
+func (_m *MockCrypto) GetTLFCryptKeyServerHalfID(user go0.UID, deviceKID go0.KID, serverHalf TLFCryptKeyServerHalf) (TLFCryptKeyServerHalfID, error) {
 	ret := _m.ctrl.Call(_m, "GetTLFCryptKeyServerHalfID", user, deviceKID, serverHalf)
 	ret0, _ := ret[0].(TLFCryptKeyServerHalfID)
-	return ret0
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
 }
 
 func (_mr *_MockCryptoRecorder) GetTLFCryptKeyServerHalfID(arg0, arg1, arg2 interface{}) *gomock.Call {
@@ -1066,17 +1067,6 @@ func (_m *MockCrypto) DecryptBlock(encryptedBlock EncryptedBlock, key BlockCrypt
 
 func (_mr *_MockCryptoRecorder) DecryptBlock(arg0, arg1, arg2 interface{}) *gomock.Call {
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "DecryptBlock", arg0, arg1, arg2)
-}
-
-func (_m *MockCrypto) Hash(buf []byte) (libkb.NodeHash, error) {
-	ret := _m.ctrl.Call(_m, "Hash", buf)
-	ret0, _ := ret[0].(libkb.NodeHash)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-func (_mr *_MockCryptoRecorder) Hash(arg0 interface{}) *gomock.Call {
-	return _mr.mock.ctrl.RecordCall(_mr.mock, "Hash", arg0)
 }
 
 // Mock of Codec interface

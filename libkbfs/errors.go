@@ -589,3 +589,34 @@ func (e KeyHalfMismatchError) Error() string {
 	return fmt.Sprintf("Key mismatch, expected ID: %s, actual ID: %s",
 		e.Expected, e.Actual)
 }
+
+// InvalidHashError is returned whenever an invalid hash is
+// detected.
+type InvalidHashError struct {
+	H Hash
+}
+
+func (e InvalidHashError) Error() string {
+	return fmt.Sprintf("Invalid hash %s", e.H)
+}
+
+// UnknownHashTypeError is returned whenever a hash with an unknown
+// hash type is attempted to be used for verification.
+type UnknownHashTypeError struct {
+	T HashType
+}
+
+func (e UnknownHashTypeError) Error() string {
+	return fmt.Sprintf("Unknown hash type %s", e.T)
+}
+
+// HashMismatchError is returned whenever a hash mismatch is detected.
+type HashMismatchError struct {
+	ExpectedH Hash
+	ActualH   Hash
+}
+
+func (e HashMismatchError) Error() string {
+	return fmt.Sprintf("Hash mismatch: expected %s, got %s",
+		e.ExpectedH, e.ActualH)
+}

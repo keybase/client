@@ -166,7 +166,12 @@ func (km *KeyManagerStandard) secretKeysForUser(ctx context.Context,
 			return
 		}
 
-		serverHalfID := crypto.GetTLFCryptKeyServerHalfID(uid, k.KID, serverHalf)
+		var serverHalfID TLFCryptKeyServerHalfID
+		serverHalfID, err = crypto.GetTLFCryptKeyServerHalfID(uid, k.KID, serverHalf)
+		if err != nil {
+			return
+		}
+
 		keyInfo := TLFCryptKeyInfo{
 			ClientHalf:   encryptedClientHalf,
 			ServerHalfID: serverHalfID,

@@ -5,7 +5,6 @@ import (
 	"sync"
 
 	lru "github.com/hashicorp/golang-lru"
-	"github.com/keybase/client/go/libkb"
 )
 
 type dirtyBlockID struct {
@@ -16,7 +15,7 @@ type dirtyBlockID struct {
 
 type idCacheKey struct {
 	tlf           TlfID
-	plaintextHash libkb.NodeHash
+	plaintextHash RawDefaultHash
 }
 
 // BlockCacheStandard implements the BlockCache interface by storing
@@ -86,11 +85,7 @@ func (b *BlockCacheStandard) CheckForKnownPtr(tlf TlfID, block *FileBlock) (
 		return BlockPointer{}, NotDirectFileBlockError{}
 	}
 
-	hash, err := b.config.Crypto().Hash(block.Contents)
-	if err != nil {
-		return BlockPointer{}, err
-	}
-
+	_, hash := DoRawDefaultHash(block.Contents)
 	key := idCacheKey{tlf, hash}
 	tmp, ok := b.ids.Get(key)
 	if !ok {
@@ -111,11 +106,7 @@ func (b *BlockCacheStandard) Put(
 
 	// If it's the right type of block, store the hash -> ID mapping
 	if fBlock, ok := block.(*FileBlock); ok && !fBlock.IsInd {
-		hash, err := b.config.Crypto().Hash(fBlock.Contents)
-		if err != nil {
-			return err
-		}
-
+		_, hash := DoRawDefaultHash(fBlock.Contents)
 		key := idCacheKey{tlf, hash}
 		// zero out the refnonce, it doesn't matter
 		ptr.RefNonce = zeroBlockRefNonce

@@ -71,14 +71,29 @@ func TestKeyServerLocalTLFCryptKeyServerHalves(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	serverHalfID1 :=
+	serverHalfID1, err :=
 		config1.Crypto().GetTLFCryptKeyServerHalfID(uid1, publicKey1.KID, serverHalf1)
-	serverHalfID2 :=
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	serverHalfID2, err :=
 		config1.Crypto().GetTLFCryptKeyServerHalfID(uid1, publicKey1.KID, serverHalf2)
-	serverHalfID3 :=
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	serverHalfID3, err :=
 		config1.Crypto().GetTLFCryptKeyServerHalfID(uid1, publicKey1.KID, serverHalf3)
-	serverHalfID4 :=
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	serverHalfID4, err :=
 		config1.Crypto().GetTLFCryptKeyServerHalfID(uid2, publicKey2.KID, serverHalf4)
+	if err != nil {
+		t.Fatal(err)
+	}
 
 	half1, err := config1.KeyOps().GetTLFCryptKeyServerHalf(ctx, serverHalfID1)
 	if err != nil {
@@ -110,7 +125,7 @@ func TestKeyServerLocalTLFCryptKeyServerHalves(t *testing.T) {
 	half4, err := config1.KeyOps().GetTLFCryptKeyServerHalf(ctx, serverHalfID4)
 	_, unauthorized := err.(MDServerErrorUnauthorized)
 	if !unauthorized {
-		t.Errorf("Expected unauthorized")
+		t.Errorf("Expected unauthorized, got %v", err)
 	}
 
 	// try to get uid2's key now as uid2
@@ -123,7 +138,10 @@ func TestKeyServerLocalTLFCryptKeyServerHalves(t *testing.T) {
 		t.Errorf("Expected %v, got %v", serverHalf4, half4)
 	}
 
-	serverHalfIDNope := config1.Crypto().GetTLFCryptKeyServerHalfID(uid1, publicKey1.KID, serverHalf4)
+	serverHalfIDNope, err := config1.Crypto().GetTLFCryptKeyServerHalfID(uid1, publicKey1.KID, serverHalf4)
+	if err != nil {
+		t.Error(err)
+	}
 
 	_, err = config1.KeyOps().GetTLFCryptKeyServerHalf(ctx, serverHalfIDNope)
 	if err == nil {

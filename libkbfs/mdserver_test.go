@@ -37,8 +37,8 @@ func TestMDServerBasics(t *testing.T) {
 	}
 
 	// (2) push some new metadata blocks
-	prevRoot := NullMdID
-	middleRoot := NullMdID
+	prevRoot := MdID{}
+	middleRoot := MdID{}
 	for i := MetadataRevision(1); i <= 10; i++ {
 		_, md := NewFolderWithIDAndWriter(t, id, i, true, false, user)
 		md.MD.SerializedPrivateMetadata = make([]byte, 1)

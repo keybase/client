@@ -2,11 +2,8 @@ package libkbfs
 
 import (
 	"bytes"
-	"crypto/hmac"
 	"crypto/rand"
-	"crypto/sha256"
 	"encoding/binary"
-	"errors"
 	"io"
 
 	"github.com/keybase/client/go/libkb"
@@ -62,40 +59,47 @@ func (c *CryptoCommon) MakeMdID(md *RootMetadata) (MdID, error) {
 	// Make sure that the serialized metadata is set; otherwise we
 	// won't get the right MdID.
 	if md.SerializedPrivateMetadata == nil {
-		return NullMdID, MDMissingDataError{md.ID}
+		return MdID{}, MDMissingDataError{md.ID}
 	}
 
 	buf, err := c.codec.Encode(md)
 	if err != nil {
-		return NullMdID, err
+		return MdID{}, err
 	}
 
-	h := sha256.Sum256(buf)
+	h, err := DefaultHash(buf)
+	if err != nil {
+		return MdID{}, err
+	}
 	return MdID{h}, nil
 }
 
 // MakeTemporaryBlockID implements the Crypto interface for CryptoCommon.
 func (c *CryptoCommon) MakeTemporaryBlockID() (BlockID, error) {
-	var id BlockID
-	err := cryptoRandRead(id.Hash[:])
+	var dh RawDefaultHash
+	err := cryptoRandRead(dh[:])
 	if err != nil {
 		return BlockID{}, err
 	}
-	return id, nil
+	h, err := HashFromRaw(DefaultHashType, dh[:])
+	if err != nil {
+		return BlockID{}, err
+	}
+	return BlockID{h}, nil
 }
 
 // MakePermanentBlockID implements the Crypto interface for CryptoCommon.
 func (c *CryptoCommon) MakePermanentBlockID(encodedEncryptedData []byte) (BlockID, error) {
-	h := sha256.Sum256(encodedEncryptedData)
+	h, err := DefaultHash(encodedEncryptedData)
+	if err != nil {
+		return BlockID{}, nil
+	}
 	return BlockID{h}, nil
 }
 
 // VerifyBlockID implements the Crypto interface for CryptoCommon.
 func (c *CryptoCommon) VerifyBlockID(encodedEncryptedData []byte, id BlockID) error {
-	if !id.Hash.Check(string(encodedEncryptedData)) {
-		return errors.New("invalid hash")
-	}
-	return nil
+	return id.h.Verify(encodedEncryptedData)
 }
 
 // MakeBlockRefNonce implements the Crypto interface for CryptoCommon.
@@ -430,34 +434,25 @@ func (c *CryptoCommon) DecryptBlock(encryptedBlock EncryptedBlock, key BlockCryp
 	return c.codec.Decode(encodedBlock, &block)
 }
 
-// Hash implements the Crypto interface for CryptoCommon.
-func (c *CryptoCommon) Hash(buf []byte) (libkb.NodeHash, error) {
-	return libkb.NodeHashShort(sha256.Sum256(buf)), nil
-}
-
 // GetTLFCryptKeyServerHalfID implements the Crypto interface for CryptoCommon.
 func (c *CryptoCommon) GetTLFCryptKeyServerHalfID(
 	user keybase1.UID, deviceKID keybase1.KID,
-	serverHalf TLFCryptKeyServerHalf) TLFCryptKeyServerHalfID {
-	mac := hmac.New(sha256.New, serverHalf.ServerHalf[:])
-	mac.Write(user.ToBytes())
-	mac.Write(deviceKID.ToBytes())
-	hash := mac.Sum(nil)
-
-	var id TLFCryptKeyServerHalfID
-	copy(id.ServerHalfID[:], hash[:])
-	return id
+	serverHalf TLFCryptKeyServerHalf) (TLFCryptKeyServerHalfID, error) {
+	key := serverHalf.ServerHalf[:]
+	data := append(user.ToBytes(), deviceKID.ToBytes()...)
+	hmac, err := DefaultHMAC(key, data)
+	if err != nil {
+		return TLFCryptKeyServerHalfID{}, err
+	}
+	return TLFCryptKeyServerHalfID{
+		ID: hmac,
+	}, nil
 }
 
 // VerifyTLFCryptKeyServerHalfID implements the Crypto interface for CryptoCommon.
 func (c *CryptoCommon) VerifyTLFCryptKeyServerHalfID(serverHalfID TLFCryptKeyServerHalfID,
 	user keybase1.UID, deviceKID keybase1.KID, serverHalf TLFCryptKeyServerHalf) error {
-	computedID := c.GetTLFCryptKeyServerHalfID(user, deviceKID, serverHalf)
-	if computedID != serverHalfID {
-		return KeyHalfMismatchError{
-			Expected: serverHalfID,
-			Actual:   computedID,
-		}
-	}
-	return nil
+	key := serverHalf.ServerHalf[:]
+	data := append(user.ToBytes(), deviceKID.ToBytes()...)
+	return serverHalfID.ID.Verify(key, data)
 }

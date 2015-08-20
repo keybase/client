@@ -223,7 +223,7 @@ func (b *BlockServerRemote) Shutdown() {
 func (b *BlockServerRemote) Get(ctx context.Context, id BlockID,
 	context BlockContext) ([]byte, BlockCryptKeyServerHalf, error) {
 	libkb.G.Log.Debug("BlockServerRemote.Get id=%s uid=%s\n",
-		id.String(), context.GetWriter().String())
+		id, context.GetWriter())
 	if !b.isConnected() {
 		if err := b.WaitForReconnect(ctx); err != nil {
 			return nil, BlockCryptKeyServerHalf{}, err
@@ -246,7 +246,7 @@ func (b *BlockServerRemote) Get(ctx context.Context, id BlockID,
 	err := runUnlessCanceled(ctx, f)
 	if err != nil {
 		libkb.G.Log.Debug("BlockServerRemote.Get id=%s err=%v\n",
-			id.String(), err)
+			id, err)
 		return nil, BlockCryptKeyServerHalf{}, err
 	}
 
@@ -266,7 +266,7 @@ func (b *BlockServerRemote) Put(ctx context.Context, id BlockID, tlfID TlfID,
 	context BlockContext, buf []byte,
 	serverHalf BlockCryptKeyServerHalf) error {
 	libkb.G.Log.Debug("BlockServerRemote.Put id=%s uid=%s\n",
-		id.String(), context.GetWriter().String())
+		id, context.GetWriter())
 	if !b.isConnected() {
 		if err := b.WaitForReconnect(ctx); err != nil {
 			return err
@@ -277,7 +277,7 @@ func (b *BlockServerRemote) Put(ctx context.Context, id BlockID, tlfID TlfID,
 			ChargedTo: context.GetWriter(),
 			BlockHash: id.String(),
 		},
-		BlockKey: hex.EncodeToString(serverHalf.ServerHalf[:]),
+		BlockKey: serverHalf.String(),
 		Folder:   tlfID.String(),
 		Buf:      buf,
 	}
@@ -289,7 +289,7 @@ func (b *BlockServerRemote) Put(ctx context.Context, id BlockID, tlfID TlfID,
 	err := runUnlessCanceled(ctx, f)
 	if err != nil {
 		libkb.G.Log.Debug("BlockServerRemote.Put id=%s err=%v\n",
-			id.String(), err)
+			id, err)
 		return err
 	}
 
@@ -300,7 +300,7 @@ func (b *BlockServerRemote) Put(ctx context.Context, id BlockID, tlfID TlfID,
 func (b *BlockServerRemote) AddBlockReference(ctx context.Context, id BlockID,
 	tlfID TlfID, context BlockContext) error {
 	libkb.G.Log.Debug("BlockServerRemote.AddBlockReference id=%s creator=%s uid=%s\n",
-		id.String(), context.GetCreator(), context.GetWriter().String())
+		id, context.GetCreator(), context.GetWriter())
 	nonce := context.GetRefNonce()
 	arg := keybase1.IncBlockReferenceArg{
 		Bid: keybase1.BlockIdCombo{
@@ -332,7 +332,7 @@ func (b *BlockServerRemote) AddBlockReference(ctx context.Context, id BlockID,
 func (b *BlockServerRemote) RemoveBlockReference(ctx context.Context, id BlockID,
 	tlfID TlfID, context BlockContext) error {
 	libkb.G.Log.Debug("BlockServerRemote.RemoveBlockReference id=%s uid=%s\n",
-		id.String(), context.GetWriter().String())
+		id, context.GetWriter())
 	nonce := context.GetRefNonce()
 	arg := keybase1.DecBlockReferenceArg{
 		Bid: keybase1.BlockIdCombo{

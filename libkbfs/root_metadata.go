@@ -298,7 +298,7 @@ func (md RootMetadata) IsInitialized() bool {
 
 // MetadataID computes and caches the MdID for this RootMetadata
 func (md *RootMetadata) MetadataID(config Config) (MdID, error) {
-	if md.mdID != NullMdID {
+	if md.mdID != (MdID{}) {
 		return md.mdID, nil
 	}
 
@@ -312,7 +312,7 @@ func (md *RootMetadata) MetadataID(config Config) (MdID, error) {
 
 // ClearMetadataID forgets the cached version of the RootMetadata's MdID
 func (md *RootMetadata) ClearMetadataID() {
-	md.mdID = NullMdID
+	md.mdID = MdID{}
 }
 
 // AddRefBlock adds the newly-referenced block to the add block change list.

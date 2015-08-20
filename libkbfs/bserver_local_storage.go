@@ -97,13 +97,13 @@ func makeBserverFileStorage(codec Codec, dir string) *bserverFileStorage {
 }
 
 // Store each block in its own file with name equal to the hex-encoded
-// blockID. Splay the filenames over 256 subdirectories using the
-// first two characters of the name to keep the number of directories
+// blockID. Splay the filenames over 256^2 subdirectories (one byte
+// for the hash type plus the first byte of the hash data) using the
+// first four characters of the name to keep the number of directories
 // in dir itself to a manageable number, similar to git.
 func (s *bserverFileStorage) buildPath(id BlockID) string {
 	idStr := id.String()
-	// TODO: Change 2 to 4 once we have versioned block IDs.
-	return filepath.Join(s.dir, idStr[:2], idStr[2:])
+	return filepath.Join(s.dir, idStr[:4], idStr[4:])
 }
 
 func (s *bserverFileStorage) getLocked(p string) (blockEntry, error) {

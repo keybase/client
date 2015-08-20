@@ -1,8 +1,6 @@
 package libkbfs
 
-import (
-	"testing"
-)
+import "testing"
 
 func blockCacheTestInit(t *testing.T, capacity int) Config {
 	config := MakeTestConfigOrBust(t, nil, "test")

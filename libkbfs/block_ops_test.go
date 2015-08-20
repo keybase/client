@@ -249,7 +249,7 @@ func TestBlockOpsReadyFailMakePermanentBlockID(t *testing.T) {
 
 	expectBlockEncrypt(config, rmd, decData, 4, encData, nil)
 
-	config.mockCrypto.EXPECT().MakePermanentBlockID(encData).Return(BlockID{}, err)
+	config.mockCrypto.EXPECT().MakePermanentBlockID(encData).Return(fakeBlockID(0), err)
 
 	if _, _, _, err2 := config.BlockOps().
 		Ready(ctx, rmd, decData); err2 != err {

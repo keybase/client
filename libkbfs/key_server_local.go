@@ -1,6 +1,7 @@
 package libkbfs
 
 import (
+	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/protocol/go"
 	"github.com/syndtr/goleveldb/leveldb"
 	"github.com/syndtr/goleveldb/leveldb/storage"
@@ -46,7 +47,7 @@ func NewKeyServerMemory(config Config) (*KeyServerLocal, error) {
 // KeyServerLocal.
 func (ks *KeyServerLocal) GetTLFCryptKeyServerHalf(ctx context.Context,
 	serverHalfID TLFCryptKeyServerHalfID) (TLFCryptKeyServerHalf, error) {
-	buf, err := ks.db.Get(serverHalfID.ServerHalfID[:], nil)
+	buf, err := ks.db.Get(serverHalfID.ID.Bytes(), nil)
 	if err != nil {
 		return TLFCryptKeyServerHalf{}, err
 	}
@@ -66,12 +67,10 @@ func (ks *KeyServerLocal) GetTLFCryptKeyServerHalf(ctx context.Context,
 		return TLFCryptKeyServerHalf{}, err
 	}
 
-	crypto := ks.config.Crypto()
-	computedServerHalfID :=
-		crypto.GetTLFCryptKeyServerHalfID(user, key.KID, serverHalf)
-
-	// verify we're giving this to the correct user.
-	if serverHalfID != computedServerHalfID {
+	err = ks.config.Crypto().VerifyTLFCryptKeyServerHalfID(
+		serverHalfID, user, key.KID, serverHalf)
+	if err != nil {
+		libkb.G.Log.Warning("error verifying server half ID: %s", err)
 		return TLFCryptKeyServerHalf{}, MDServerErrorUnauthorized{}
 	}
 	return serverHalf, nil
@@ -89,8 +88,11 @@ func (ks *KeyServerLocal) PutTLFCryptKeyServerHalves(ctx context.Context,
 			if err != nil {
 				return err
 			}
-			id := crypto.GetTLFCryptKeyServerHalfID(user, deviceKID, serverHalf)
-			batch.Put(id.ServerHalfID[:], buf)
+			id, err := crypto.GetTLFCryptKeyServerHalfID(user, deviceKID, serverHalf)
+			if err != nil {
+				return err
+			}
+			batch.Put(id.ID.Bytes(), buf)
 		}
 	}
 	return ks.db.Write(batch, nil)

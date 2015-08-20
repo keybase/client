@@ -121,7 +121,7 @@ func (md *MDServerLocal) GetForTLF(ctx context.Context, id TlfID, unmerged bool)
 	if err != nil {
 		return nil, MDServerError{err}
 	}
-	if mdID == NullMdID {
+	if mdID == (MdID{}) {
 		return nil, nil
 	}
 	rmds, err := md.get(ctx, mdID)
@@ -140,7 +140,7 @@ func (md *MDServerLocal) getHeadForTLF(ctx context.Context, id TlfID, unmerged b
 	buf, err := md.revDb.Get(key[:], nil)
 	if err != nil {
 		if err == leveldb.ErrNotFound {
-			mdID, err = NullMdID, nil
+			mdID, err = MdID{}, nil
 			return
 		}
 		return
@@ -226,7 +226,6 @@ func (md *MDServerLocal) GetRange(ctx context.Context, id TlfID, unmerged bool,
 	defer iter.Release()
 	for iter.Next() {
 		// get MD block from MD ID
-		var mdID MdID
 		buf := iter.Value()
 		mdID, err := MdIDFromBytes(buf)
 		if err != nil {
@@ -257,14 +256,14 @@ func (md *MDServerLocal) Put(ctx context.Context, rmds *RootMetadataSigned) erro
 	if err != nil {
 		return MDServerError{err}
 	}
-	if unmerged && currHead == NullMdID {
+	if unmerged && currHead == (MdID{}) {
 		// currHead for unmerged history might be on the main branch
 		currHead = rmds.MD.PrevRoot
 	}
 
 	// Consistency checks
 	var head *RootMetadataSigned
-	if currHead != NullMdID {
+	if currHead != (MdID{}) {
 		head, err = md.get(ctx, currHead)
 		if err != nil {
 			return MDServerError{err}
@@ -398,7 +397,7 @@ func (md *MDServerLocal) RegisterForUpdate(ctx context.Context, id TlfID,
 		return nil, err
 	}
 	var currMergedHeadRev MetadataRevision
-	if currMergedHead != NullMdID {
+	if currMergedHead != (MdID{}) {
 		head, err := md.get(ctx, currMergedHead)
 		if err != nil {
 			return nil, MDServerError{err}

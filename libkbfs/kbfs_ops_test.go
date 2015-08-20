@@ -234,11 +234,6 @@ func expectBlock(config *ConfigMock, rmd *RootMetadata, blockPtr BlockPointer, b
 			*v = *block.(*DirBlock)
 		}
 	}).Return(err)
-	if fBlock, ok := block.(*FileBlock); ok && !fBlock.IsInd && err == nil {
-		// we'll write it back to the cache
-		config.mockCrypto.EXPECT().Hash(fBlock.Contents).
-			Return(blockPtr.ID.Hash, nil)
-	}
 }
 
 // ptrMatcher implements the gomock.Matcher interface to compare
@@ -467,18 +462,9 @@ func nodeFromPath(t *testing.T, ops *FolderBranchOps, p path) Node {
 	return prevNode
 }
 
-func testPutBlockInCacheWithHashTimes(config *ConfigMock, ptr BlockPointer,
-	id TlfID, block Block, hashTimes int) {
-	if fBlock, ok := block.(*FileBlock); ok && !fBlock.IsInd {
-		config.mockCrypto.EXPECT().Hash(fBlock.Contents).Times(hashTimes).
-			Return(ptr.ID.Hash, nil)
-	}
-	config.BlockCache().Put(ptr, id, block)
-}
-
 func testPutBlockInCache(config *ConfigMock, ptr BlockPointer, id TlfID,
 	block Block) {
-	testPutBlockInCacheWithHashTimes(config, ptr, id, block, 1)
+	config.BlockCache().Put(ptr, id, block)
 }
 
 func TestKBFSOpsGetBaseDirChildrenCacheSuccess(t *testing.T) {
@@ -852,8 +838,6 @@ func expectSyncBlockHelper(
 	encodedBlock := []byte{0}
 	config.mockCodec.EXPECT().Encode(gomock.Any()).AnyTimes().
 		Return(encodedBlock, nil)
-	config.mockCrypto.EXPECT().Hash(encodedBlock).AnyTimes().
-		Return(libkb.NodeHashShort{1}, nil)
 
 	lastID := p.tailPointer().ID
 	for i := len(newPath.path) - 1; i >= skipSync; i-- {
@@ -1128,12 +1112,8 @@ func testCreateEntrySuccess(t *testing.T, entryType EntryType) {
 	var err error
 	switch entryType {
 	case File:
-		config.mockCrypto.EXPECT().Hash(nil).Times(2).
-			Return(libkb.NodeHashShort{3}, nil)
 		newN, _, err = config.KBFSOps().CreateFile(ctx, n, "b", false)
 	case Exec:
-		config.mockCrypto.EXPECT().Hash(nil).Times(2).
-			Return(libkb.NodeHashShort{3}, nil)
 		newN, _, err = config.KBFSOps().CreateFile(ctx, n, "b", true)
 	case Dir:
 		newN, _, err = config.KBFSOps().CreateDir(ctx, n, "b")
@@ -3385,8 +3365,6 @@ func testSyncDirtySuccess(t *testing.T, unmerged bool) {
 
 	// fsync a
 	config.BlockCache().PutDirty(aNode.BlockPointer, p.Branch, aBlock)
-	config.mockCrypto.EXPECT().Hash(aBlock.Contents).Times(2).
-		Return(aNode.BlockPointer.ID.Hash, nil)
 	testPutBlockInCache(config, node.BlockPointer, id, rootBlock)
 	// TODO: put a dirty DE entry in the cache, to test that the new
 	// root block has the correct file size.
@@ -3495,8 +3473,6 @@ func expectSyncDirtyBlock(config *ConfigMock, rmd *RootMetadata,
 	}
 	c2 := config.mockBops.EXPECT().Ready(gomock.Any(), rmdMatcher{rmd}, block).
 		After(c1).Return(newID, len(block.Contents), readyBlockData, nil)
-	config.mockCrypto.EXPECT().Hash(block.Contents).AnyTimes().
-		Return(ptr.ID.Hash, nil)
 	config.mockBops.EXPECT().Put(gomock.Any(), rmdMatcher{rmd},
 		ptrMatcher{BlockPointer{ID: newID}}, gomock.Any()).Return(nil)
 	return c2
@@ -3652,8 +3628,6 @@ func TestSyncDirtyDupBlockSuccess(t *testing.T) {
 	si.op.addWrite(0, 10)
 
 	config.BlockCache().PutDirty(bNode.BlockPointer, p.Branch, bBlock)
-	config.mockCrypto.EXPECT().Hash(aBlock.Contents).
-		Return(aNode.BlockPointer.ID.Hash, nil)
 	testPutBlockInCache(config, node.BlockPointer, id, rootBlock)
 	testPutBlockInCache(config, aNode.BlockPointer, id, aBlock)
 
@@ -4120,8 +4094,6 @@ func TestSyncDirtyWithBlockChangePointerSuccess(t *testing.T) {
 	lastCall = config.mockBops.EXPECT().Ready(gomock.Any(), rmdMatcher{rmd},
 		gomock.Any()).Return(changeBlockID, changePlainSize,
 		changeReadyBlockData, nil).After(lastCall)
-	config.mockCrypto.EXPECT().Hash(aBlock.Contents).AnyTimes().
-		Return(changeBlockID.Hash, nil)
 	config.mockBops.EXPECT().Put(gomock.Any(), rmdMatcher{rmd},
 		ptrMatcher{BlockPointer{ID: changeBlockID}}, changeReadyBlockData).
 		Return(nil)

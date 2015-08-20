@@ -420,7 +420,7 @@ type Crypto interface {
 	// TLFCryptKeyServerHalf.
 	GetTLFCryptKeyServerHalfID(
 		user keybase1.UID, deviceKID keybase1.KID,
-		serverHalf TLFCryptKeyServerHalf) TLFCryptKeyServerHalfID
+		serverHalf TLFCryptKeyServerHalf) (TLFCryptKeyServerHalfID, error)
 
 	// VerifyTLFCryptKeyServerHalfID verifies the ID is the proper HMAC result.
 	VerifyTLFCryptKeyServerHalfID(serverHalfID TLFCryptKeyServerHalfID, user keybase1.UID,
@@ -441,9 +441,6 @@ type Crypto interface {
 	// DecryptBlock() must guarantee that (size of the decrypted
 	// block) <= len(encryptedBlock).
 	DecryptBlock(encryptedBlock EncryptedBlock, key BlockCryptKey, block Block) error
-
-	// Hash computes a deterministic hash of buf.
-	Hash(buf []byte) (libkb.NodeHash, error)
 }
 
 // Codec encodes and decodes arbitrary data

@@ -171,7 +171,7 @@ func (md *MDOpsStandard) processRange(ctx context.Context, id TlfID,
 
 	// verify each of the MD objects, and verify the PrevRoot pointers
 	// are correct
-	lastRoot, lastRevision := NullMdID, MetadataRevision(0)
+	lastRoot, lastRevision := MdID{}, MetadataRevision(0)
 	rmd := make([]*RootMetadata, 0, len(rmds))
 	for _, r := range rmds {
 		currRoot, err := r.MD.MetadataID(md.config)
@@ -191,7 +191,7 @@ func (md *MDOpsStandard) processRange(ctx context.Context, id TlfID,
 			}
 		}
 		// (2) check PrevRoot pointer
-		if r.MD.PrevRoot != lastRoot && lastRoot != NullMdID {
+		if r.MD.PrevRoot != lastRoot && lastRoot != (MdID{}) {
 			return nil, MDMismatchError{
 				r.MD.GetTlfHandle().ToString(ctx, md.config),
 				fmt.Sprintf("MD (id=%v) points to an unexpected root (%v) "+
@@ -207,7 +207,7 @@ func (md *MDOpsStandard) processRange(ctx context.Context, id TlfID,
 		rmd = append(rmd, &r.MD)
 	}
 
-	// TODO: in the case where lastRoot == NullMdID, should we verify
+	// TODO: in the case where lastRoot == MdID{}, should we verify
 	// that the starting PrevRoot points back to something that's
 	// actually a valid part of this history?  If the MD signature is
 	// indeed valid, this probably isn't a huge deal, but it may let

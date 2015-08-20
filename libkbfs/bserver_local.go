@@ -1,7 +1,6 @@
 package libkbfs
 
 import (
-	"encoding/hex"
 	"fmt"
 
 	"github.com/keybase/client/go/libkb"
@@ -37,7 +36,7 @@ func NewBlockServerMemory(config Config) (*BlockServerLocal, error) {
 func (b *BlockServerLocal) Get(ctx context.Context, id BlockID,
 	context BlockContext) ([]byte, BlockCryptKeyServerHalf, error) {
 	libkb.G.Log.Debug("BlockServerLocal.Get id=%s uid=%s\n",
-		id.String(), context.GetWriter().String())
+		id, context.GetWriter())
 	entry, err := b.s.get(id)
 	if err != nil {
 		return nil, BlockCryptKeyServerHalf{}, err
@@ -50,7 +49,7 @@ func (b *BlockServerLocal) Put(ctx context.Context, id BlockID, tlfID TlfID,
 	context BlockContext, buf []byte,
 	serverHalf BlockCryptKeyServerHalf) error {
 	libkb.G.Log.Debug("BlockServerLocal.Put id=%s uid=%s\n",
-		id.String(), context.GetWriter().String())
+		id, context.GetWriter())
 
 	if context.GetRefNonce() != zeroBlockRefNonce {
 		return fmt.Errorf("Can't Put() a block with a non-zero refnonce.")
@@ -70,8 +69,8 @@ func (b *BlockServerLocal) AddBlockReference(ctx context.Context, id BlockID,
 	tlfID TlfID, context BlockContext) error {
 	refNonce := context.GetRefNonce()
 	libkb.G.Log.Debug("BlockServerLocal.AddBlockReference id=%s "+
-		"refnonce=%s uid=%s\n", id.String(),
-		hex.EncodeToString(refNonce[:]), context.GetWriter().String())
+		"refnonce=%s uid=%s\n", id,
+		refNonce, context.GetWriter())
 
 	return b.s.addReference(id, refNonce)
 }
@@ -82,7 +81,7 @@ func (b *BlockServerLocal) RemoveBlockReference(ctx context.Context, id BlockID,
 	tlfID TlfID, context BlockContext) error {
 	refNonce := context.GetRefNonce()
 	libkb.G.Log.Debug("BlockServerLocal.RemoveBlockReference id=%s uid=%s\n",
-		id.String(), context.GetWriter().String())
+		id, context.GetWriter())
 
 	return b.s.removeReference(id, refNonce)
 }

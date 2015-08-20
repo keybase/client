@@ -22,8 +22,12 @@ const (
 
 // RandomBlockID returns a randomly-generated BlockID for testing.
 func RandomBlockID() BlockID {
-	var h libkb.NodeHashShort
-	err := cryptoRandRead(h[:])
+	var dh RawDefaultHash
+	err := cryptoRandRead(dh[:])
+	if err != nil {
+		panic(err)
+	}
+	h, err := HashFromRaw(DefaultHashType, dh[:])
 	if err != nil {
 		panic(err)
 	}
@@ -31,7 +35,11 @@ func RandomBlockID() BlockID {
 }
 
 func fakeMdID(b byte) MdID {
-	h := libkb.NodeHashShort{b}
+	dh := RawDefaultHash{b}
+	h, err := HashFromRaw(DefaultHashType, dh[:])
+	if err != nil {
+		panic(err)
+	}
 	return MdID{h}
 }
 

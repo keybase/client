@@ -79,13 +79,13 @@ func TestBasicMDUpdate(t *testing.T) {
 	rootNode1, _, err :=
 		kbfsOps1.GetOrCreateRootNodeForHandle(ctx, h, MasterBranch)
 	if err != nil {
-		t.Errorf("Couldn't create folder: %v", err)
+		t.Fatalf("Couldn't create folder: %v", err)
 	}
 	kbfsOps2 := config2.KBFSOps()
 	rootNode2, _, err :=
 		kbfsOps2.GetOrCreateRootNodeForHandle(ctx, h, MasterBranch)
 	if err != nil {
-		t.Errorf("Couldn't get root: %v", err)
+		t.Fatalf("Couldn't get root: %v", err)
 	}
 
 	_, statusChan, err := kbfsOps2.Status(ctx, rootNode2.GetFolderBranch())
@@ -159,7 +159,7 @@ func testMultipleMDUpdates(t *testing.T, unembedChanges bool) {
 	rootNode1, _, err :=
 		kbfsOps1.GetOrCreateRootNodeForHandle(ctx, h, MasterBranch)
 	if err != nil {
-		t.Errorf("Couldn't create folder: %v", err)
+		t.Fatalf("Couldn't create folder: %v", err)
 	}
 	// user 1 creates a file
 	_, _, err = kbfsOps1.CreateFile(ctx, rootNode1, "a", false)
@@ -243,7 +243,7 @@ func TestUnmergedAfterRestart(t *testing.T) {
 	rootNode1, _, err :=
 		kbfsOps1.GetOrCreateRootNodeForHandle(ctx, h, MasterBranch)
 	if err != nil {
-		t.Errorf("Couldn't create folder: %v", err)
+		t.Fatalf("Couldn't create folder: %v", err)
 	}
 	fileNode1, _, err := kbfsOps1.CreateFile(ctx, rootNode1, "a", false)
 	if err != nil {
