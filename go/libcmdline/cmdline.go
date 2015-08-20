@@ -62,10 +62,10 @@ func (p CommandLine) GetServerURI() string {
 	return p.GetGString("server")
 }
 func (p CommandLine) GetConfigFilename() string {
-	return p.GetGString("config")
+	return p.GetGString("config-file")
 }
 func (p CommandLine) GetSessionFilename() string {
-	return p.GetGString("session")
+	return p.GetGString("session-file")
 }
 func (p CommandLine) GetDbFilename() string {
 	return p.GetGString("db")
@@ -249,11 +249,11 @@ func (p *CommandLine) PopulateApp(addHelp bool, extraFlags []cli.Flag) {
 			Usage: fmt.Sprintf("specify server API (default: %s)", libkb.ServerURI),
 		},
 		cli.StringFlag{
-			Name:  "config, c",
+			Name:  "config-file, c",
 			Usage: "specify an (alternate) master config file",
 		},
 		cli.StringFlag{
-			Name:  "session",
+			Name:  "session-file",
 			Usage: "specify an alternate session data file",
 		},
 		cli.StringFlag{
@@ -267,10 +267,6 @@ func (p *CommandLine) PopulateApp(addHelp bool, extraFlags []cli.Flag) {
 		cli.StringFlag{
 			Name:  "username, u",
 			Usage: "specify Keybase username of the current user",
-		},
-		cli.StringFlag{
-			Name:  "uid, i",
-			Usage: "specify Keybase UID for current user",
 		},
 		cli.StringFlag{
 			Name:  "pinentry",
