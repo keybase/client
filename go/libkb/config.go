@@ -317,13 +317,13 @@ func (f JSONConfigFile) GetServerURI() string {
 	return f.GetTopLevelString("server")
 }
 func (f JSONConfigFile) GetConfigFilename() string {
-	return f.GetTopLevelString("config")
+	return f.GetTopLevelString("config_file")
 }
 func (f JSONConfigFile) GetSecretKeyringTemplate() string {
 	return f.GetTopLevelString("secret_keyring")
 }
 func (f JSONConfigFile) GetSessionFilename() string {
-	return f.GetTopLevelString("session")
+	return f.GetTopLevelString("session_file")
 }
 func (f JSONConfigFile) GetDbFilename() string {
 	return f.GetTopLevelString("db")
