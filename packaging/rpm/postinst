@@ -20,7 +20,7 @@ install_yum() {
 cat > "$YUM_REPO_FILE" << REPOCONTENT
 [keybase]
 name=keybase
-baseurl=$REPOCONFIG
+baseurl=$REPOCONFIG/$RPM_ARCH
 enabled=1
 gpgcheck=1
 gpgkey=https://keybase.io/docs/server_security/code_signing_key.asc
