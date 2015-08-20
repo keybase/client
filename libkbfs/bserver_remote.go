@@ -299,8 +299,8 @@ func (b *BlockServerRemote) Put(ctx context.Context, id BlockID, tlfID TlfID,
 // AddBlockReference implements the BlockServer interface for BlockServerRemote
 func (b *BlockServerRemote) AddBlockReference(ctx context.Context, id BlockID,
 	tlfID TlfID, context BlockContext) error {
-	libkb.G.Log.Debug("BlockServerRemote.AddBlockReference id=%s uid=%s\n",
-		id.String(), context.GetWriter().String())
+	libkb.G.Log.Debug("BlockServerRemote.AddBlockReference id=%s creator=%s uid=%s\n",
+		id.String(), context.GetCreator(), context.GetWriter().String())
 	nonce := context.GetRefNonce()
 	arg := keybase1.IncBlockReferenceArg{
 		Bid: keybase1.BlockIdCombo{

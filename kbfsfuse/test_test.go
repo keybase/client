@@ -26,15 +26,16 @@ func TestMain(m *testing.M) {
 
 	rand.Seed(time.Now().UnixNano())
 
-	useRemote := flag.Bool("kbfs.bserverRemote", false, "which bserver to use, local or remote")
+	bserverPort := flag.String("kbfs.bserverPort", "", "specify the port of bserver on localhost, otherwise, only local server is used")
 	flag.Parse()
 
-	if *useRemote {
-		BServerRemoteAddr = &bserver.Config.BServerAddr
-		fmt.Printf("Testing Using Remote Backend: %s\n", bserver.Config.BServerAddr)
+	if *bserverPort != "" {
 		bserver.InitConfig("../bserver/testconfig.json")
+		srvAddr := "127.0.0.1:" + *bserverPort
+		fmt.Printf("Testing Using Remote Backend: %s\n", srvAddr)
+		BServerRemoteAddr = &srvAddr
 		bserver.Config.TestNoSession = true
-		bserver.StartBServer(*BServerRemoteAddr)
+		bserver.StartBServer(srvAddr)
 	}
 
 	os.Exit(m.Run())
