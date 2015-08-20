@@ -80,7 +80,7 @@ func TestBServerRemotePutAndGet(t *testing.T) {
 	codec := NewCodecMsgpack()
 	localUsers := MakeLocalUsers([]string{"testuser"})
 	loggedInUser := localUsers[0]
-	kbpki := NewKBPKILocal(loggedInUser.UID, localUsers)
+	kbpki := NewKBPKIMemory(loggedInUser.UID, localUsers)
 	config := &ConfigLocal{codec: codec, kbpki: kbpki}
 	fc := NewFakeBServerClient(nil, nil)
 	ctx := context.Background()
@@ -124,7 +124,7 @@ func TestBServerRemotePutCanceled(t *testing.T) {
 	codec := NewCodecMsgpack()
 	localUsers := MakeLocalUsers([]string{"testuser"})
 	loggedInUser := localUsers[0]
-	kbpki := NewKBPKILocal(loggedInUser.UID, localUsers)
+	kbpki := NewKBPKIMemory(loggedInUser.UID, localUsers)
 	config := &ConfigLocal{codec: codec, kbpki: kbpki}
 	readyChan := make(chan struct{})
 	goChan := make(chan struct{})
@@ -153,7 +153,7 @@ func TestBServerRemoteWaitForReconnect(t *testing.T) {
 	codec := NewCodecMsgpack()
 	localUsers := MakeLocalUsers([]string{"testuser"})
 	loggedInUser := localUsers[0]
-	kbpki := NewKBPKILocal(loggedInUser.UID, localUsers)
+	kbpki := NewKBPKIMemory(loggedInUser.UID, localUsers)
 	config := &ConfigLocal{codec: codec, kbpki: kbpki}
 	fc := NewFakeBServerClient(nil, nil)
 	ctx := context.Background()

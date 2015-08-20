@@ -9,7 +9,7 @@ import (
 
 	"github.com/keybase/client/go/client"
 	"github.com/keybase/client/go/libkb"
-	"github.com/keybase/client/protocol/go"
+	keybase1 "github.com/keybase/client/protocol/go"
 	"golang.org/x/net/context"
 )
 
@@ -95,6 +95,45 @@ func makeBlockServer(config Config, serverRootDir *string) (BlockServer, error) 
 	return NewBlockServerRemote(context.TODO(), config, bServerAddr), nil
 }
 
+func makeKBPKIClient(config Config, serverRootDir *string, localUser string) (KBPKI, error) {
+	if localUser == "" {
+		libkb.G.ConfigureSocketInfo()
+		return NewKBPKIClient(libkb.G)
+	}
+
+	users := []string{"strib", "max", "chris", "fred"}
+	userIndex := -1
+	for i := range users {
+		if localUser == users[i] {
+			userIndex = i
+			break
+		}
+	}
+	if userIndex < 0 {
+		return nil, fmt.Errorf("user %s not in list %v", localUser, users)
+	}
+
+	localUsers := MakeLocalUsers(users)
+
+	// TODO: Auto-generate these, too?
+	localUsers[0].Asserts = []string{"github:strib"}
+	localUsers[1].Asserts = []string{"twitter:maxtaco"}
+	localUsers[2].Asserts = []string{"twitter:malgorithms"}
+	localUsers[3].Asserts = []string{"twitter:fakalin"}
+
+	var localUID keybase1.UID
+	if userIndex >= 0 {
+		localUID = localUsers[userIndex].UID
+	}
+
+	if serverRootDir == nil {
+		return NewKBPKIMemory(localUID, localUsers), nil
+	}
+
+	favPath := filepath.Join(*serverRootDir, "kbfs_favs")
+	return NewKBPKILocal(localUID, localUsers, favPath, config.Codec())
+}
+
 // Init initializes a config and returns it. If localUser is
 // non-empty, libkbfs does not communicate to any remote servers and
 // instead uses fake implementations of various servers.
@@ -157,48 +196,19 @@ func Init(localUser string, serverRootDir *string, cpuProfilePath, memProfilePat
 	client.InitUI()
 	libkb.G.UI.Configure()
 
-	if localUser == "" {
-		libkb.G.ConfigureSocketInfo()
-		k, err := NewKBPKIClient(libkb.G)
-		if err != nil {
-			return nil, fmt.Errorf("Could not get KBPKI: %v", err)
-		}
-		config.SetKBPKI(k)
+	k, err := makeKBPKIClient(config, serverRootDir, localUser)
+	if err != nil {
+		return nil, fmt.Errorf("problem creating KBPKI client: %s", err)
+	}
+	config.SetKBPKI(k)
 
+	if localUser == "" {
 		c, err := NewCryptoClient(config.Codec(), libkb.G)
 		if err != nil {
 			return nil, fmt.Errorf("Could not get Crypto: %v", err)
 		}
 		config.SetCrypto(c)
 	} else {
-		users := []string{"strib", "max", "chris", "fred"}
-		userIndex := -1
-		for i := range users {
-			if localUser == users[i] {
-				userIndex = i
-				break
-			}
-		}
-		if userIndex < 0 {
-			return nil, fmt.Errorf("user %s not in list %v", localUser, users)
-		}
-
-		localUsers := MakeLocalUsers(users)
-
-		// TODO: Auto-generate these, too?
-		localUsers[0].Asserts = []string{"github:strib"}
-		localUsers[1].Asserts = []string{"twitter:maxtaco"}
-		localUsers[2].Asserts = []string{"twitter:malgorithms"}
-		localUsers[3].Asserts = []string{"twitter:fakalin"}
-
-		var localUID keybase1.UID
-		if userIndex >= 0 {
-			localUID = localUsers[userIndex].UID
-		}
-
-		k := NewKBPKILocal(localUID, localUsers)
-		config.SetKBPKI(k)
-
 		signingKey := MakeLocalUserSigningKeyOrBust(localUser)
 		cryptPrivateKey := MakeLocalUserCryptPrivateKeyOrBust(localUser)
 		config.SetCrypto(NewCryptoLocal(config.Codec(), signingKey,

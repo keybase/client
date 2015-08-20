@@ -1,30 +1,63 @@
 package libkbfs
 
 import (
+	"errors"
+
 	"github.com/keybase/client/go/cache/favcache"
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/protocol/go"
+	"github.com/syndtr/goleveldb/leveldb"
+	"github.com/syndtr/goleveldb/leveldb/storage"
 	"golang.org/x/net/context"
 )
 
 // KBPKILocal just serves users from a static map in memory
 type KBPKILocal struct {
-	Users     map[keybase1.UID]LocalUser
-	Asserts   map[string]keybase1.UID
-	LoggedIn  keybase1.UID
-	Favorites *favcache.Cache
+	Users      map[keybase1.UID]LocalUser
+	Asserts    map[string]keybase1.UID
+	LoggedIn   keybase1.UID
+	Favorites  *favcache.Cache
+	favoriteDb *leveldb.DB // favorite folders
+	codec      Codec
 }
 
 var _ KBPKI = (*KBPKILocal)(nil)
 
 // NewKBPKILocal constructs a KBPKILocal object given a set of
 // possible users, and one user that should be "logged in".
-func NewKBPKILocal(loggedIn keybase1.UID, users []LocalUser) *KBPKILocal {
+// Any storage (e.g. the favorites) persists to disk.
+func NewKBPKILocal(loggedIn keybase1.UID, users []LocalUser, favDbFile string, codec Codec) (*KBPKILocal, error) {
+	k := newKBPKI(loggedIn, users)
+	k.codec = codec
+
+	favoriteStorage, err := storage.OpenFile(favDbFile)
+	if err != nil {
+		return nil, err
+	}
+	favoriteDb, err := leveldb.Open(favoriteStorage, leveldbOptions)
+	if err != nil {
+		return nil, err
+	}
+	k.favoriteDb = favoriteDb
+
+	return k, nil
+}
+
+// NewKBPKIMemory constructs a KBPKILocal object given a set of
+// possible users, and one user that should be "logged in".
+// Any storage (e.g. the favorites) is kept in memory only.
+func NewKBPKIMemory(loggedIn keybase1.UID, users []LocalUser) *KBPKILocal {
+	k := newKBPKI(loggedIn, users)
+	k.Favorites = favcache.New()
+	return k
+}
+
+// newKBPKI creates the base KBPKILocal object.
+func newKBPKI(loggedIn keybase1.UID, users []LocalUser) *KBPKILocal {
 	k := &KBPKILocal{
-		Users:     make(map[keybase1.UID]LocalUser),
-		Asserts:   make(map[string]keybase1.UID),
-		LoggedIn:  loggedIn,
-		Favorites: favcache.New(),
+		Users:    make(map[keybase1.UID]LocalUser),
+		Asserts:  make(map[string]keybase1.UID),
+		LoggedIn: loggedIn,
 	}
 	for _, u := range users {
 		k.Users[u.UID] = u
@@ -112,19 +145,66 @@ func (k *KBPKILocal) getLocalUser(uid keybase1.UID) (LocalUser, error) {
 	return user, nil
 }
 
+// ErrFavStorageUnavailable is returned when neither the favorite cache
+// nor the favorite db are initialized.
+var ErrFavStorageUnavailable = errors.New("no favorite storage system available")
+
 // FavoriteAdd implements the KBPKI interface for KBPKILocal.
 func (k *KBPKILocal) FavoriteAdd(ctx context.Context, folder keybase1.Folder) error {
-	k.Favorites.Add(folder)
-	return nil
+	if k.Favorites != nil {
+		k.Favorites.Add(folder)
+		return nil
+	}
+
+	if k.favoriteDb == nil {
+		return ErrFavStorageUnavailable
+	}
+
+	enc, err := k.codec.Encode(folder)
+	if err != nil {
+		return err
+	}
+
+	return k.favoriteDb.Put([]byte(folder.Name), enc, nil)
 }
 
 // FavoriteDelete implements the KBPKI interface for KBPKILocal.
 func (k *KBPKILocal) FavoriteDelete(ctx context.Context, folder keybase1.Folder) error {
-	k.Favorites.Delete(folder)
-	return nil
+	if k.Favorites != nil {
+		k.Favorites.Delete(folder)
+		return nil
+	}
+
+	if k.favoriteDb == nil {
+		return ErrFavStorageUnavailable
+	}
+
+	return k.favoriteDb.Delete([]byte(folder.Name), nil)
 }
 
 // FavoriteList implements the KBPKI interface for KBPKILocal.
 func (k *KBPKILocal) FavoriteList(ctx context.Context) ([]keybase1.Folder, error) {
-	return k.Favorites.List(), nil
+	if k.Favorites != nil {
+		return k.Favorites.List(), nil
+	}
+
+	if k.favoriteDb == nil {
+		return nil, ErrFavStorageUnavailable
+	}
+
+	iter := k.favoriteDb.NewIterator(nil, nil)
+	defer iter.Release()
+	var folders []keybase1.Folder
+	for iter.Next() {
+		var folder keybase1.Folder
+		if err := k.codec.Decode(iter.Value(), &folder); err != nil {
+			return nil, err
+		}
+		folders = append(folders, folder)
+	}
+	if err := iter.Error(); err != nil {
+		return nil, err
+	}
+
+	return folders, nil
 }
