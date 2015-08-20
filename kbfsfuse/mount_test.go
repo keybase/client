@@ -306,13 +306,7 @@ func TestReaddirMyFolderWithFiles(t *testing.T) {
 	checkDir(t, path.Join(mnt.Dir, PrivateName, "jdoe"), files)
 }
 
-func TestCreateThenRead(t *testing.T) {
-	config := libkbfs.MakeTestConfigOrBust(t, BServerRemoteAddr, "jdoe")
-	defer config.Shutdown()
-	mnt := makeFS(t, config)
-	defer mnt.Close()
-
-	p := path.Join(mnt.Dir, PrivateName, "jdoe", "myfile")
+func testOneCreateThenRead(t *testing.T, p string) {
 	f, err := os.Create(p)
 	if err != nil {
 		t.Fatal(err)
@@ -333,6 +327,32 @@ func TestCreateThenRead(t *testing.T) {
 	if g, e := string(buf), input; g != e {
 		t.Errorf("bad file contents: %q != %q", g, e)
 	}
+}
+
+func TestCreateThenRead(t *testing.T) {
+	config := libkbfs.MakeTestConfigOrBust(t, BServerRemoteAddr, "jdoe")
+	defer config.Shutdown()
+	mnt := makeFS(t, config)
+	defer mnt.Close()
+
+	p := path.Join(mnt.Dir, PrivateName, "jdoe", "myfile")
+	testOneCreateThenRead(t, p)
+}
+
+// Tests that writing and reading multiple files works, implicitly
+// exercising any block pointer reference counting code (since the
+// initial created files will have identical empty blocks to start
+// with).
+func TestMultipleCreateThenRead(t *testing.T) {
+	config := libkbfs.MakeTestConfigOrBust(t, BServerRemoteAddr, "jdoe")
+	defer config.Shutdown()
+	mnt := makeFS(t, config)
+	defer mnt.Close()
+
+	p1 := path.Join(mnt.Dir, PrivateName, "jdoe", "myfile1")
+	testOneCreateThenRead(t, p1)
+	p2 := path.Join(mnt.Dir, PrivateName, "jdoe", "myfile2")
+	testOneCreateThenRead(t, p2)
 }
 
 func TestReadUnflushed(t *testing.T) {
