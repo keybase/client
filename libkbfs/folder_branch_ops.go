@@ -858,6 +858,16 @@ func (fbo *FolderBranchOps) readyBlock(ctx context.Context, md *RootMetadata,
 			return
 		}
 	}
+
+	// Ready the block, even in the case where we can reuse an
+	// existing block, just so that we know what the size of the
+	// encrypted data will be.
+	id, plainSize, readyBlockData, err :=
+		fbo.config.BlockOps().Ready(ctx, md, block)
+	if err != nil {
+		return
+	}
+
 	if ptr.IsInitialized() {
 		ptr.RefNonce, err = fbo.config.Crypto().MakeBlockRefNonce()
 		if err != nil {
@@ -865,12 +875,6 @@ func (fbo *FolderBranchOps) readyBlock(ctx context.Context, md *RootMetadata,
 		}
 		ptr.SetWriter(user)
 	} else {
-		var id BlockID
-		id, plainSize, readyBlockData, err =
-			fbo.config.BlockOps().Ready(ctx, md, block)
-		if err != nil {
-			return
-		}
 		ptr = BlockPointer{
 			ID:       id,
 			KeyGen:   md.LatestKeyGeneration(),

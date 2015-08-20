@@ -3631,6 +3631,12 @@ func TestSyncDirtyDupBlockSuccess(t *testing.T) {
 	testPutBlockInCache(config, node.BlockPointer, id, rootBlock)
 	testPutBlockInCache(config, aNode.BlockPointer, id, aBlock)
 
+	readyBlockData := ReadyBlockData{
+		buf: []byte{6, 7, 8, 9, 10, 11, 12},
+	}
+	config.mockBops.EXPECT().Ready(gomock.Any(), rmdMatcher{rmd}, bBlock).
+		Return(bID, len(bBlock.Contents), readyBlockData, nil)
+
 	refNonce := BlockRefNonce{1}
 	config.mockCrypto.EXPECT().MakeBlockRefNonce().AnyTimes().
 		Return(refNonce, nil)
@@ -3639,16 +3645,17 @@ func TestSyncDirtyDupBlockSuccess(t *testing.T) {
 	var newRmd *RootMetadata
 	blocks := make([]BlockID, 1)
 	unrefBytes := uint64(1) // unref'd block b
+	refBytes := uint64(len(readyBlockData.buf))
 	rootP := path{FolderBranch: p.FolderBranch, path: []pathNode{p.path[0]}}
 	expectedPath, _ := expectSyncBlock(t, config, nil, userID, id, "", rootP,
-		rmd, false, 0, 0, unrefBytes, &newRmd, blocks)
+		rmd, false, 0, refBytes, unrefBytes, &newRmd, blocks)
 	blocks = append(blocks, bID)
 
 	// manually add b
 	expectedPath.path = append(expectedPath.path,
 		pathNode{BlockPointer{ID: aID, RefNonce: refNonce}, "b"})
 	config.mockBops.EXPECT().Put(gomock.Any(), rmdMatcher{rmd},
-		ptrMatcher{expectedPath.path[1].BlockPointer}, ReadyBlockData{}).
+		ptrMatcher{expectedPath.path[1].BlockPointer}, readyBlockData).
 		Return(nil)
 
 	// fsync b
