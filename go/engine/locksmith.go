@@ -422,6 +422,9 @@ func (d *Locksmith) deviceSign(ctx *Context, withPGPOption bool) error {
 
 func (d *Locksmith) deviceSignPGP(ctx *Context) error {
 	pgpKeys := d.user.GetActivePGPKeys(false)
+	if len(pgpKeys) == 0 {
+		return errors.New("no active PGP keys")
+	}
 	var selected *libkb.PGPKeyBundle
 	if len(pgpKeys) > 1 {
 		// show a list of pgp keys and let them select which one to use
