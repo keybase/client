@@ -383,3 +383,118 @@ func TestPassphraseChangeLoggedOutBackupKeySecretStore(t *testing.T) {
 	u.Passphrase = newPassphrase
 	assertLoadSecretKeys(tc, u, "logged out w/ backup key, after passphrase change")
 }
+
+// Test using an lksec-encrypted pgp private key after changing the
+// passphrase.
+func TestPassphraseChangePGPUsage(t *testing.T) {
+	tc := SetupEngineTest(t, "PassphraseChange")
+	defer tc.Cleanup()
+
+	u := createFakeUserWithPGPSibkey(tc)
+
+	// clear the passphrase stream cache to force a prompt
+	// for the existing passphrase.
+	tc.G.LoginState().Account(func(a *libkb.Account) {
+		a.ClearStreamCache()
+	}, "clear stream cache")
+
+	newPassphrase := "password"
+	arg := &keybase1.PassphraseChangeArg{
+		Passphrase: newPassphrase,
+	}
+	secui := u.NewSecretUI()
+	ctx := &Context{
+		SecretUI: secui,
+	}
+	eng := NewPassphraseChange(arg, tc.G)
+	if err := RunEngine(eng, ctx); err != nil {
+		t.Fatal(err)
+	}
+
+	verifyPassphraseChange(tc, u, newPassphrase)
+
+	if !secui.CalledGetKBPassphrase {
+		t.Errorf("get kb passphrase not called")
+	}
+
+	u.Passphrase = newPassphrase
+	assertLoadSecretKeys(tc, u, "passphrase change pgp")
+
+	me, err := libkb.LoadMe(libkb.LoadUserArg{})
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	secui.Passphrase = newPassphrase
+	ska := libkb.SecretKeyArg{
+		Me:      me,
+		KeyType: libkb.PGPKeyType,
+	}
+	key, _, err := tc.G.Keyrings.GetSecretKeyWithPrompt(nil, ska, secui, "pgp test")
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	var ok bool
+	_, ok = key.(*libkb.PGPKeyBundle)
+	if !ok {
+		t.Errorf("key type: %T, expected libkb.PGPKeyBundle", key)
+	}
+}
+
+// Test using a 3sec-encrypted pgp private key after changing the
+// passphrase.
+func TestPassphraseChangePGP3Sec(t *testing.T) {
+	tc := SetupEngineTest(t, "PassphraseChange")
+	defer tc.Cleanup()
+
+	u := createFakeUserWithPGPSibkeyPushed(tc)
+
+	// clear the passphrase stream cache to force a prompt
+	// for the existing passphrase.
+	tc.G.LoginState().Account(func(a *libkb.Account) {
+		a.ClearStreamCache()
+	}, "clear stream cache")
+
+	newPassphrase := "password"
+	arg := &keybase1.PassphraseChangeArg{
+		Passphrase: newPassphrase,
+	}
+	secui := u.NewSecretUI()
+	ctx := &Context{
+		SecretUI: secui,
+	}
+	eng := NewPassphraseChange(arg, tc.G)
+	if err := RunEngine(eng, ctx); err != nil {
+		t.Fatal(err)
+	}
+
+	verifyPassphraseChange(tc, u, newPassphrase)
+
+	if !secui.CalledGetKBPassphrase {
+		t.Errorf("get kb passphrase not called")
+	}
+
+	u.Passphrase = newPassphrase
+	assertLoadSecretKeys(tc, u, "passphrase change pgp")
+
+	me, err := libkb.LoadMe(libkb.LoadUserArg{})
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	ska := libkb.SecretKeyArg{
+		Me:      me,
+		KeyType: libkb.PGPKeyType,
+	}
+	key, _, err := tc.G.Keyrings.GetSecretKeyWithPrompt(nil, ska, u.NewSecretUI(), "pgp test")
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	var ok bool
+	_, ok = key.(*libkb.PGPKeyBundle)
+	if !ok {
+		t.Errorf("key type: %T, expected libkb.PGPKeyBundle", key)
+	}
+}
