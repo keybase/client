@@ -1,6 +1,7 @@
 package libkbfs
 
 import (
+	"fmt"
 	"reflect"
 )
 
@@ -276,6 +277,50 @@ func newGCOp() *gcOp {
 
 func (gco *gcOp) SizeExceptUpdates() uint64 {
 	return 0
+}
+
+func (gco *gcOp) AllUpdates() []blockUpdate {
+	return gco.Updates
+}
+
+// invertOpForLocalNotifications returns an operation that represents
+// an undoing of the effect of the given op.  These are intended to be
+// used for local notifications only, and would not be useful for
+// finding conflicts (for example, we lose information about the type
+// of the file in a rmOp that we are trying to re-create).
+func invertOpForLocalNotifications(oldOp op) op {
+	var newOp op
+	switch op := oldOp.(type) {
+	default:
+		panic(fmt.Sprintf("Unrecognized operation: %v", op))
+	case *createOp:
+		newOp = newRmOp(op.NewName, op.Dir.Ref)
+	case *rmOp:
+		// Guess at the type, shouldn't be used for local notification
+		// purposes.
+		newOp = newCreateOp(op.OldName, op.Dir.Ref, File)
+	case *renameOp:
+		newOp = newRenameOp(op.NewName, op.NewDir.Ref,
+			op.OldName, op.OldDir.Ref)
+	case *syncOp:
+		// Just replay the writes; for notifications purposes, they
+		// will do the right job of marking the right bytes as
+		// invalid.
+		newOp = newSyncOp(op.File.Ref)
+		newOp.(*syncOp).Writes = op.Writes
+	case *setAttrOp:
+		newOp = newSetAttrOp(op.Name, op.Dir.Ref, op.Attr)
+	case *gcOp:
+		newOp = op
+	}
+
+	// Now reverse all the block updates.  Don't bother with bare Refs
+	// and Unrefs since they don't matter for local notification
+	// purposes.
+	for _, update := range oldOp.AllUpdates() {
+		newOp.AddUpdate(update.Ref, update.Unref)
+	}
+	return newOp
 }
 
 // Our ugorji codec cannot decode our extension types as pointers, and
