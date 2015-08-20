@@ -63,11 +63,11 @@ const (
 	KeybaseSignatureV1 = 1
 	OneYearInSeconds   = 24 * 60 * 60 * 365
 
-	SigExpireIn       = OneYearInSeconds * 10 // 10 years
-	NaclEdDSAExpireIn = OneYearInSeconds * 10 // 10 years
-	NaclDHExpireIn    = OneYearInSeconds * 10 // 10 years
-	KeyExpireIn       = OneYearInSeconds * 10 // 10 years
-	SubkeyExpireIn    = OneYearInSeconds * 10 // 10 years
+	SigExpireIn       = OneYearInSeconds * 16 // 16 years
+	NaclEdDSAExpireIn = OneYearInSeconds * 16 // 16 years
+	NaclDHExpireIn    = OneYearInSeconds * 16 // 16 years
+	KeyExpireIn       = OneYearInSeconds * 16 // 16 years
+	SubkeyExpireIn    = OneYearInSeconds * 16 // 16 years
 	AuthExpireIn      = OneYearInSeconds      // 1 year
 )
 
