@@ -210,6 +210,12 @@ func (fbo *FolderBranchOps) GetFavorites(ctx context.Context) ([]*Favorite, erro
 	return nil, fmt.Errorf("GetFavorites is not supported by FolderBranchOps")
 }
 
+func (fbo *FolderBranchOps) getState() state {
+	fbo.stateLock.Lock()
+	defer fbo.stateLock.Unlock()
+	return fbo.state
+}
+
 func (fbo *FolderBranchOps) transitionState(newState state) {
 	fbo.stateLock.Lock()
 	defer fbo.stateLock.Unlock()
@@ -3077,17 +3083,23 @@ func (fbo *FolderBranchOps) getCurrMDRevision() MetadataRevision {
 	return fbo.getCurrMDRevisionLocked()
 }
 
-func (fbo *FolderBranchOps) applyMDUpdates(ctx context.Context,
-	rmds []*RootMetadata) error {
-	fbo.writerLock.Lock()
-	defer fbo.writerLock.Unlock()
+// writerLock must be held by the caller
+func (fbo *FolderBranchOps) applyMDUpdatesLocked(ctx context.Context,
+	rmds []*RootMetadata, invert bool) error {
 	fbo.headLock.Lock()
 	defer fbo.headLock.Unlock()
 
 	// if we have staged changes, ignore all updates until conflict
-	// resolution kicks in
-	if fbo.staged {
+	// resolution kicks in.  TODO: cache these for future use.
+	if !invert && fbo.staged {
 		return fmt.Errorf("Ignoring MD updates while local updates are staged")
+	}
+
+	// Don't allow updates while we're in the dirty state; the next
+	// sync will put us into an unmerged state anyway and we'll
+	// require conflict resolution.
+	if fbo.getState() != cleanState {
+		return fmt.Errorf("Ignoring MD updates while writes are dirty")
 	}
 
 	// if any of the operations have unembedded block ops, fetch those
@@ -3119,26 +3131,51 @@ func (fbo *FolderBranchOps) applyMDUpdates(ctx context.Context,
 	}
 
 	for _, rmd := range rmds {
-		if rmd.Revision != fbo.getCurrMDRevisionLocked()+1 {
-			return fmt.Errorf("MD revision %d isn't next in line for our "+
-				"current revision %d", rmd.Revision,
-				fbo.getCurrMDRevisionLocked())
+		inc := MetadataRevision(1)
+		if invert {
+			inc = -1
 		}
-
+		// on inversion, it's ok to re-apply the current revision
+		// since you need to invert all of its ops.
+		if !invert || rmd.Revision != fbo.getCurrMDRevisionLocked() {
+			if rmd.Revision != fbo.getCurrMDRevisionLocked()+inc {
+				return fmt.Errorf("MD revision %d isn't next in line for our "+
+					"current revision %d", rmd.Revision,
+					fbo.getCurrMDRevisionLocked())
+			}
+		}
 		err := fbo.saveMdToCacheLocked(rmd)
 		if err != nil {
 			return err
 		}
 
-		for _, op := range rmd.data.Changes.Ops {
+		// reverse the ops and invert each one
+		ops := rmd.data.Changes.Ops
+		if invert {
+			invertedOps := make([]op, len(ops))
+			copy(invertedOps, ops)
+			ops = invertedOps
+			for i := len(ops)/2 - 1; i >= 0; i-- {
+				opp := len(ops) - 1 - i
+				ops[i], ops[opp] = ops[opp], ops[i]
+			}
+			for i, op := range ops {
+				ops[i] = invertOpForLocalNotifications(op)
+			}
+		}
+		for _, op := range ops {
 			fbo.notifyOneOp(ctx, op, rmd)
 		}
 	}
 	return nil
 }
 
-func (fbo *FolderBranchOps) getAndApplyMDUpdates(ctx context.Context) {
-	defer fbo.registerForUpdates()
+// if reregister is false, assume writerLock is held
+func (fbo *FolderBranchOps) getAndApplyMDUpdates(ctx context.Context,
+	reregister bool) error {
+	if reregister {
+		defer fbo.registerForUpdates()
+	}
 	for {
 		// first look up all MD revisions newer than my current head
 		currHead := fbo.getCurrMDRevision()
@@ -3146,21 +3183,77 @@ func (fbo *FolderBranchOps) getAndApplyMDUpdates(ctx context.Context) {
 		rmds, err := fbo.config.MDOps().GetRange(ctx, fbo.id(),
 			currHead+1, currHead+1+maxMDsAtATime)
 		if err != nil {
-			// Just try again by reregistering.  TODO: maybe some
-			// errors can't be fixed that way?
-			libkb.G.Log.Debug("GetRange failed while trying to update MD: %v",
-				err)
-			return
+			// Just try again by reregistering
+			return err
 		}
 
-		err = fbo.applyMDUpdates(ctx, rmds)
+		err = func() error {
+			if reregister {
+				fbo.writerLock.Lock()
+				defer fbo.writerLock.Unlock()
+			}
+			return fbo.applyMDUpdatesLocked(ctx, rmds, false)
+		}()
 		if err != nil {
-			libkb.G.Log.Debug("Applying updated MD failed: %v", err)
-			return
+			return err
 		}
 
 		if len(rmds) != maxMDsAtATime {
-			return
+			return nil
+		}
+	}
+}
+
+// writerLock should be held by caller.
+func (fbo *FolderBranchOps) invertUnmergedMDUpdatesLocked(
+	ctx context.Context) error {
+	// walk backwards until we find one that is merged
+	currHead := fbo.getCurrMDRevision()
+	for {
+		backwardsNum := currHead - maxMDsAtATime // (MetadataRevision is signed)
+		if backwardsNum < 1 {
+			backwardsNum = 1
+		}
+
+		// first look up all unmerged MD revisions older than my current head
+		// TODO: add a timeout to the context?
+		rmds, err := fbo.config.MDOps().GetUnmergedRange(ctx, fbo.id(),
+			backwardsNum, currHead)
+		if err != nil {
+			return err
+		}
+
+		// reverse the rmds
+		for i := len(rmds)/2 - 1; i >= 0; i-- {
+			opp := len(rmds) - 1 - i
+			rmds[i], rmds[opp] = rmds[opp], rmds[i]
+		}
+
+		err = fbo.applyMDUpdatesLocked(ctx, rmds, true)
+		if err != nil {
+			return err
+		}
+
+		// on the next iteration, start apply the previous root
+		currHead = fbo.getCurrMDRevision() - 1
+		if currHead < 1 {
+			return fmt.Errorf("Ran out of MD updates to unstage!")
+		}
+		if len(rmds) != maxMDsAtATime {
+			// we have arrived at the branch point.  The new root is
+			// the previous revision from the current head.  Find it
+			// and apply.
+			fbo.transitionStagedLocked(false)
+			rmds, err := fbo.config.MDOps().GetRange(ctx, fbo.id(),
+				currHead, currHead)
+			if err != nil {
+				return err
+			}
+			if len(rmds) == 0 {
+				return fmt.Errorf("Couldn't find the branch point %d\n",
+					currHead)
+			}
+			return fbo.saveMdToCacheLocked(rmds[0])
 		}
 	}
 }
@@ -3210,7 +3303,11 @@ func (fbo *FolderBranchOps) registerForUpdates() {
 		if err != nil {
 			fbo.registerForUpdates()
 		} else {
-			fbo.getAndApplyMDUpdates(context.Background())
+			err = fbo.getAndApplyMDUpdates(context.Background(), true)
+			if err != nil {
+				libkb.G.Log.Debug("Got an error while applying "+
+					"updates: %v", err)
+			}
 		}
 		return err
 	})
