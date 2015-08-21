@@ -43,7 +43,7 @@ func NewPaperDevice(passphrasePrefix string) (*Device, error) {
 		return nil, err
 	}
 	s := DeviceStatusActive
-	desc := fmt.Sprintf("Paper Key (%s ...)", passphrasePrefix)
+	desc := fmt.Sprintf("Paper Key (%s...)", passphrasePrefix)
 
 	d := &Device{
 		ID:          did,
