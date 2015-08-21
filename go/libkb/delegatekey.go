@@ -19,7 +19,6 @@ type Delegator struct {
 	// Set these fields
 	NewKey            GenericKey
 	ExistingKey       GenericKey
-	ExistingKID       keybase1.KID // may be empty
 	EldestKID         keybase1.KID
 	Me                *User
 	Sibkey            bool
@@ -29,7 +28,7 @@ type Delegator struct {
 	ServerHalf        []byte
 	EncodedPrivateKey string
 	Ctime             int64
-	PushType          string
+	LinkType          LinkType
 	Aggregated        bool // During aggregation we skip some steps (posting, updating some state)
 
 	// Internal fields
@@ -48,14 +47,6 @@ func (d Delegator) getExistingKID() (kid keybase1.KID) {
 		return
 	}
 	return d.ExistingKey.GetKID()
-}
-
-func (d Delegator) GetExistingKeyKID() (ret keybase1.KID) {
-	if d.ExistingKey != nil {
-		kid := d.ExistingKey.GetKID()
-		return kid
-	}
-	return d.ExistingKID
 }
 
 // Sometime our callers don't set Sibkey=true for eldest keys, so
@@ -169,7 +160,7 @@ func (d *Delegator) Run(lctx LoginContext) (err error) {
 		}
 	}
 
-	if jw, d.PushType, err = d.Me.KeyProof(*d); err != nil {
+	if jw, d.LinkType, err = d.Me.KeyProof(*d); err != nil {
 		G.Log.Debug("| Failure in KeyProof()")
 		return
 	}
@@ -215,7 +206,7 @@ func (d *Delegator) post(lctx LoginContext) (err error) {
 		"sig_id_base":     S{Val: d.sigID.ToString(false)},
 		"sig_id_short":    S{Val: d.sigID.ToShortID()},
 		"sig":             S{Val: d.sig},
-		"type":            S{Val: d.PushType},
+		"type":            S{Val: string(d.LinkType)},
 		"is_remote_proof": B{Val: false},
 		"public_key":      S{Val: pub},
 	}

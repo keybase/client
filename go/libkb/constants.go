@@ -113,10 +113,19 @@ const (
 	MerkleTreeLeaf = 2
 )
 
+type LinkType string
+
 const (
-	SibkeyType = "sibkey"
-	SubkeyType = "subkey"
-	EldestType = "eldest"
+	AuthenticationType    LinkType = "auth"
+	CryptocurrencyType             = "cryptocurrency"
+	EldestType                     = "eldest"
+	RevokeType                     = "revoke"
+	SibkeyType                     = "sibkey"
+	SubkeyType                     = "subkey"
+	TrackType                      = "track"
+	UntrackType                    = "untrack"
+	UpdatePassphraseType           = "update_passphrase_hash"
+	WebServiceBindingType          = "web_service_binding"
 )
 
 const (
