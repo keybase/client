@@ -1,4 +1,5 @@
 package libkb
 
-// Current version (Use semantic versioning, http://semver.org/)
+// Current version (should be MAJOR.MINOR.TINY)
 const Version = "1.0.0"
+const Build = "9"
