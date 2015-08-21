@@ -3258,6 +3258,56 @@ func (fbo *FolderBranchOps) invertUnmergedMDUpdatesLocked(
 	}
 }
 
+// UnstageForTesting implements the KBFSOps interface for FolderBranchOps
+// TODO: remove once we have automatic conflict resolution
+func (fbo *FolderBranchOps) UnstageForTesting(
+	ctx context.Context, folderBranch FolderBranch) error {
+	if folderBranch != fbo.folderBranch {
+		return WrongOpsError{fbo.folderBranch, folderBranch}
+	}
+
+	if !fbo.staged {
+		// no-op
+		return nil
+	}
+
+	if fbo.getState() != cleanState {
+		return fmt.Errorf("Can't unstage while files are dirty!")
+	}
+
+	fbo.writerLock.Lock()
+	defer fbo.writerLock.Unlock()
+	// don't allow any writes to sneak into the cache
+	fbo.cacheLock.Lock()
+	defer fbo.cacheLock.Unlock()
+
+	// launch unstaging in a new goroutine, because we don't want to
+	// use the provided context because upper layers might ignore our
+	// notifications if we do.  But we still want to wait for the
+	// context to cancel.
+	c := make(chan error, 1)
+	freshCtx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+	go func() {
+		// fetch all of my unstaged updates, and undo them one at a time
+		err := fbo.invertUnmergedMDUpdatesLocked(freshCtx)
+		if err != nil {
+			c <- err
+			return
+		}
+
+		// now go forward in time, if possible
+		c <- fbo.getAndApplyMDUpdates(freshCtx, false)
+	}()
+
+	select {
+	case err := <-c:
+		return err
+	case <-ctx.Done():
+		return ctx.Err()
+	}
+}
+
 // Run the passed function with a context that's canceled on shutdown.
 func (fbo *FolderBranchOps) runUnlessShutdown(fn func(ctx context.Context) error) error {
 	ctx, cancelFunc := context.WithCancel(context.Background())

@@ -205,6 +205,11 @@ type KBFSOps interface {
 	// updated (to eliminate the need for polling this method).
 	Status(ctx context.Context, folderBranch FolderBranch) (
 		FolderBranchStatus, <-chan StatusUpdate, error)
+	// UnstageForTesting clears out this device's staged state, if
+	// any, and fast-forwards to the current head of this
+	// folder-branch. TODO: remove this once we have automatic
+	// conflict resolution.
+	UnstageForTesting(ctx context.Context, folderBranch FolderBranch) error
 }
 
 // KBPKI interacts with kbpkid to fetch info from keybase

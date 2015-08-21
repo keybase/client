@@ -252,6 +252,14 @@ func (fs *KBFSOpsStandard) Status(
 	return ops.Status(ctx, folderBranch)
 }
 
+// UnstageForTesting implements the KBFSOps interface for KBFSOpsStandard
+// TODO: remove once we have automatic conflict resolution
+func (fs *KBFSOpsStandard) UnstageForTesting(
+	ctx context.Context, folderBranch FolderBranch) error {
+	ops := fs.getOps(folderBranch)
+	return ops.UnstageForTesting(ctx, folderBranch)
+}
+
 // Notifier:
 var _ Notifier = (*KBFSOpsStandard)(nil)
 

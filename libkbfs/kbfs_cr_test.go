@@ -24,12 +24,13 @@ func readAndCompareData(t *testing.T, config Config, ctx context.Context,
 		t.Fatalf("Couldn't read file: %v", err)
 	}
 	if data[0] != expectedData[0] {
-		t.Errorf("User %s didn't see own data: %v", user, data)
+		t.Errorf("User %s didn't see expected data: %v", user, data)
 	}
 }
 
 type testCRObserver struct {
-	c chan<- struct{}
+	c       chan<- struct{}
+	changes []NodeChange
 }
 
 func (t *testCRObserver) LocalChange(ctx context.Context, node Node,
@@ -39,6 +40,7 @@ func (t *testCRObserver) LocalChange(ctx context.Context, node Node,
 
 func (t *testCRObserver) BatchChanges(ctx context.Context,
 	changes []NodeChange) {
+	t.changes = append(t.changes, changes...)
 	t.c <- struct{}{}
 }
 
@@ -96,7 +98,7 @@ func TestBasicMDUpdate(t *testing.T) {
 	// register client 2 as a listener before the create happens
 	c := make(chan struct{})
 	config2.Notifier().RegisterForChanges(
-		[]FolderBranch{rootNode1.GetFolderBranch()}, &testCRObserver{c})
+		[]FolderBranch{rootNode1.GetFolderBranch()}, &testCRObserver{c, nil})
 
 	// user 1 creates a file
 	_, _, err = kbfsOps1.CreateFile(ctx, rootNode1, "a", false)
@@ -178,7 +180,7 @@ func testMultipleMDUpdates(t *testing.T, unembedChanges bool) {
 	// register client 2 as a listener before the create happens
 	c := make(chan struct{})
 	config2.Notifier().RegisterForChanges(
-		[]FolderBranch{rootNode1.GetFolderBranch()}, &testCRObserver{c})
+		[]FolderBranch{rootNode1.GetFolderBranch()}, &testCRObserver{c, nil})
 
 	// now user 1 renames the old file, and creates a new one
 	err = kbfsOps1.Rename(ctx, rootNode1, "a", rootNode1, "b")
@@ -309,6 +311,45 @@ func TestUnmergedAfterRestart(t *testing.T) {
 		rootNode1.GetFolderBranch(), "Node 1")
 	checkStatus(t, ctx, config2B.KBFSOps(), false, userName2, nil,
 		rootNode2.GetFolderBranch(), "Node 2")
+
+	// register as a listener before the unstaging happens
+	c := make(chan struct{}, 2)
+	cro := &testCRObserver{c, nil}
+	config1B.Notifier().RegisterForChanges(
+		[]FolderBranch{rootNode1.GetFolderBranch()}, cro)
+
+	// Unstage user 1's changes, and make sure everyone is back in
+	// sync.  TODO: remove this once we have automatic conflict
+	// resolution.
+	err = config1B.KBFSOps().UnstageForTesting(ctx, rootNode1.GetFolderBranch())
+	if err != nil {
+		t.Fatalf("Couldn't unstage: %v", err)
+	}
+
+	// we should have had two updates, one for the unstaging and one
+	// for the fast-forward
+	<-c
+	<-c
+	// make sure we see two sync op changes, on the same node
+	if len(cro.changes) != 2 {
+		t.Errorf("Unexpected number of changes: %d", len(cro.changes))
+	}
+	var n Node
+	for _, change := range cro.changes {
+		if n == nil {
+			n = change.Node
+		} else if n.GetID() != change.Node.GetID() {
+			t.Errorf("Changes involve different nodes, %v vs %v\n",
+				n.GetID(), change.Node.GetID())
+		}
+	}
+
+	readAndCompareData(t, config1B, ctx, h, data2, userName2)
+	readAndCompareData(t, config2B, ctx, h, data2, userName2)
+	checkStatus(t, ctx, config1B.KBFSOps(), false, userName2, nil,
+		rootNode1.GetFolderBranch(), "Node 1 (after unstage)")
+	checkStatus(t, ctx, config2B.KBFSOps(), false, userName2, nil,
+		rootNode2.GetFolderBranch(), "Node 2 (after unstage)")
 }
 
 // Tests that multiple users can write to the same file sequentially
