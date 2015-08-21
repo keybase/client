@@ -25,13 +25,10 @@ build_one_architecture() {
   # TODO: Make `keybase --version` behave better.
   version="$("$dest/usr/bin/keybase" --version 2> /dev/null | cut -d " " -f 3 || true)"
 
-  # The spec file is the same for both architectures, but it depends on
-  # $version. No harm in writing it here, even though we'll rewrite it next
-  # time through the loop.
-  spec="$build_root/SPECS/keybase.spec"
+  spec="$build_root/SPECS/keybase-$rpm_arch.spec"
   mkdir -p "$(dirname "$spec")"
   cat "$here/spec.template" | sed "s/@@VERSION@@/$version/" > "$spec"
-  cat "$here/postinst" >> "$spec"
+  cat "$here/postinst.template" | sed "s/@@ARCH@@/$rpm_arch/" >> "$spec"
 
   rpmbuild --define "_topdir $build_root" --target "$rpm_arch" -bb "$spec"
 }
