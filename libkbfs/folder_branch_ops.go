@@ -163,6 +163,9 @@ type FolderBranchOps struct {
 	// Closed on shutdown
 	shutdownChan chan struct{}
 
+	// Can be used by test programs to turn off notifications for a while
+	updatePauseChan chan (<-chan struct{})
+
 	// make sure we only kick off registration once
 	registerOnce sync.Once
 }
@@ -181,13 +184,14 @@ func NewFolderBranchOps(config Config, fb FolderBranch,
 		copyFileBlocks: make(map[BlockPointer]bool),
 		deferredWrites: make(
 			[]func(context.Context, *RootMetadata, path) error, 0),
-		unrefCache:   make(map[BlockPointer]*syncInfo),
-		deCache:      make(map[BlockPointer]map[BlockPointer]DirEntry),
-		status:       newFolderBranchStatusKeeper(config, nodeCache),
-		writerLock:   &sync.Mutex{},
-		nodeCache:    nodeCache,
-		state:        cleanState,
-		shutdownChan: make(chan struct{}),
+		unrefCache:      make(map[BlockPointer]*syncInfo),
+		deCache:         make(map[BlockPointer]map[BlockPointer]DirEntry),
+		status:          newFolderBranchStatusKeeper(config, nodeCache),
+		writerLock:      &sync.Mutex{},
+		nodeCache:       nodeCache,
+		state:           cleanState,
+		shutdownChan:    make(chan struct{}),
+		updatePauseChan: make(chan (<-chan struct{})),
 	}
 }
 
@@ -3349,16 +3353,28 @@ func (fbo *FolderBranchOps) registerForUpdates() {
 
 	// successful registration; now, wait for an update or a shutdown
 	go fbo.runUnlessShutdown(func(ctx context.Context) error {
-		err := <-updateChan
-		if err != nil {
-			fbo.registerForUpdates()
-		} else {
-			err = fbo.getAndApplyMDUpdates(context.Background(), true)
-			if err != nil {
-				libkb.G.Log.Debug("Got an error while applying "+
-					"updates: %v", err)
+		var err error
+		for {
+			select {
+			case err = <-updateChan:
+				if err != nil {
+					if err != nil {
+						libkb.G.Log.Debug("Got a connection error while "+
+							"waiting for updates: %v", err)
+					}
+					fbo.registerForUpdates()
+				} else {
+					err = fbo.getAndApplyMDUpdates(context.Background(), true)
+					if err != nil {
+						libkb.G.Log.Debug("Got an error while applying "+
+							"updates: %v", err)
+					}
+				}
+				return err
+			case unpause := <-fbo.updatePauseChan:
+				// wait to be unpaused
+				<-unpause
 			}
 		}
-		return err
 	})
 }

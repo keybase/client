@@ -1,6 +1,7 @@
 package libkbfs
 
 import (
+	"fmt"
 	"os"
 	"testing"
 
@@ -295,4 +296,20 @@ func MakeDirWKeyBundle(uid keybase1.UID, cryptPublicKey CryptPublicKey) DirKeyBu
 			},
 		},
 	}
+}
+
+// DisableUpdatesForTesting stops the given folder from acting on new
+// updates.  Send a struct{}{} down the returned channel to restart
+// notifications
+func DisableUpdatesForTesting(config Config, folderBranch FolderBranch) (
+	chan<- struct{}, error) {
+	kbfsOps, ok := config.KBFSOps().(*KBFSOpsStandard)
+	if !ok {
+		return nil, fmt.Errorf("Unexpected KBFSOps type")
+	}
+
+	ops := kbfsOps.getOps(folderBranch)
+	c := make(chan struct{})
+	ops.updatePauseChan <- c
+	return c, nil
 }
