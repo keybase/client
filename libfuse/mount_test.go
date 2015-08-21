@@ -1976,3 +1976,107 @@ func TestStatusFile(t *testing.T) {
 			buf, status)
 	}
 }
+
+// TODO: remove once we have automatic conflict resolution tests
+func TestUnstageFile(t *testing.T) {
+	config1 := libkbfs.MakeTestConfigOrBust(t, BServerRemoteAddr, "user1",
+		"user2")
+	mnt1 := makeFS(t, config1)
+	defer mnt1.Close()
+
+	config2 := libkbfs.ConfigAsUser(config1, "user2")
+	mnt2 := makeFS(t, config2)
+	defer mnt2.Close()
+
+	if !mnt2.Conn.Protocol().HasInvalidate() {
+		t.Skip("Old FUSE protocol")
+	}
+
+	ctx := context.Background()
+
+	// both users read the root dir first
+	myroot1 := path.Join(mnt1.Dir, PrivateName, "user1,user2")
+	myroot2 := path.Join(mnt2.Dir, PrivateName, "user1,user2")
+	checkDir(t, myroot1, map[string]fileInfoCheck{})
+	checkDir(t, myroot2, map[string]fileInfoCheck{})
+
+	// turn updates off for user 2
+	dh, err := libkbfs.ParseTlfHandle(ctx, config2, "user1,user2")
+	rootNode2, _, err := config2.KBFSOps().GetOrCreateRootNodeForHandle(ctx, dh,
+		libkbfs.MasterBranch)
+	_, err = libkbfs.DisableUpdatesForTesting(config2,
+		rootNode2.GetFolderBranch())
+	if err != nil {
+		t.Fatalf("Couldn't pause user 2 updates")
+	}
+
+	// user1 writes a file and makes a few directories
+	const input1 = "input round one"
+	myfile1 := path.Join(mnt1.Dir, PrivateName, "user1,user2", "myfile")
+	if err := ioutil.WriteFile(myfile1, []byte(input1), 0644); err != nil {
+		t.Fatal(err)
+	}
+	mydir1 := path.Join(mnt1.Dir, PrivateName, "user1,user2", "mydir")
+	if err := os.Mkdir(mydir1, 0755); err != nil {
+		t.Fatal(err)
+	}
+	mysubdir1 := path.Join(mnt1.Dir, PrivateName, "user1,user2", "mydir",
+		"mysubdir")
+	if err := os.Mkdir(mysubdir1, 0755); err != nil {
+		t.Fatal(err)
+	}
+
+	// user2 does similar
+	const input2 = "input round two"
+	myfile2 := path.Join(mnt2.Dir, PrivateName, "user1,user2", "myfile")
+	if err := ioutil.WriteFile(myfile2, []byte(input2), 0644); err != nil {
+		t.Fatal(err)
+	}
+	mydir2 := path.Join(mnt2.Dir, PrivateName, "user1,user2", "mydir")
+	if err := os.Mkdir(mydir2, 0755); err != nil {
+		t.Fatal(err)
+	}
+	myothersubdir2 := path.Join(mnt2.Dir, PrivateName, "user1,user2", "mydir",
+		"myothersubdir")
+	if err := os.Mkdir(myothersubdir2, 0755); err != nil {
+		t.Fatal(err)
+	}
+
+	// verify that they don't see each other's files
+	checkDir(t, mydir1, map[string]fileInfoCheck{
+		"mysubdir": mustBeDir,
+	})
+	checkDir(t, mydir2, map[string]fileInfoCheck{
+		"myothersubdir": mustBeDir,
+	})
+
+	// now unstage user 2 and they should see the same stuff
+	unstageFile2 := path.Join(mnt2.Dir, PrivateName, "user1,user2",
+		UnstageFileName)
+	if err := ioutil.WriteFile(unstageFile2, []byte{1}, 0222); err != nil {
+		t.Fatal(err)
+	}
+
+	// They should see identical folders now
+	checkDir(t, mydir1, map[string]fileInfoCheck{
+		"mysubdir": mustBeDir,
+	})
+	checkDir(t, mydir2, map[string]fileInfoCheck{
+		"mysubdir": mustBeDir,
+	})
+
+	buf, err := ioutil.ReadFile(myfile1)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if g, e := string(buf), input1; g != e {
+		t.Errorf("wrong content: %q != %q", g, e)
+	}
+	buf, err = ioutil.ReadFile(myfile2)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if g, e := string(buf), input1; g != e {
+		t.Errorf("wrong content: %q != %q", g, e)
+	}
+}

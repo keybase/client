@@ -221,6 +221,14 @@ func (d *Dir) Lookup(ctx context.Context, req *fuse.LookupRequest, resp *fuse.Lo
 		return child, nil
 	}
 
+	if req.Name == UnstageFileName {
+		resp.EntryValid = 0
+		child := &UnstageFile{
+			folder: d.folder,
+		}
+		return child, nil
+	}
+
 	newNode, de, err := d.folder.fs.config.KBFSOps().Lookup(ctx, d.node, req.Name)
 	if err != nil {
 		if _, ok := err.(libkbfs.NoSuchNameError); ok {
