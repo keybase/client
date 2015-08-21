@@ -1,6 +1,7 @@
 package client
 
 import (
+	"fmt"
 	"github.com/keybase/cli"
 	"github.com/keybase/client/go/libcmdline"
 	"github.com/keybase/client/go/libkb"
