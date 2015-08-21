@@ -38,6 +38,13 @@ func NewScanKeys(secui libkb.SecretUI, idui libkb.IdentifyUI, opts *keybase1.Tra
 		opts:         opts,
 		Contextified: libkb.NewContextified(g),
 	}
+	var err error
+
+	g.Log.Debug("+ NewScanKeys")
+	defer func() {
+		g.Log.Debug("- NewScanKeys -> %s", err)
+	}()
+
 	lin, err := g.LoginState().LoggedInLoad()
 	if err != nil {
 		return nil, err
@@ -61,6 +68,7 @@ func NewScanKeys(secui libkb.SecretUI, idui libkb.IdentifyUI, opts *keybase1.Tra
 
 	aerr := sk.G().LoginState().Account(func(a *libkb.Account) {
 		if !a.PassphraseStreamCache().Valid() {
+			g.Log.Debug("| NewScanKeys: passphrase stream cache wasn't valid, so bailing out!")
 			return
 		}
 		pps := a.PassphraseStream()
@@ -79,7 +87,8 @@ func NewScanKeys(secui libkb.SecretUI, idui libkb.IdentifyUI, opts *keybase1.Tra
 		if err != nil {
 			return
 		}
-		err = sk.extractKeys(a, ring, synced, secui, lks)
+		g.Log.Debug("| NewScanKeys: callling into extractKeys")
+		err = sk.extractKeys(a, ring, synced, secui, lks, g)
 	}, "NewScanKeys - extractKeys")
 	if aerr != nil {
 		return nil, err
@@ -169,12 +178,27 @@ func (s *ScanKeys) Owner() *libkb.User {
 
 // extractKeys gets all the private pgp keys out of the ring and
 // the synced key.
-func (s *ScanKeys) extractKeys(lctx libkb.LoginContext, ring *libkb.SKBKeyringFile, synced *libkb.SKB, ui libkb.SecretUI, lks *libkb.LKSec) error {
-	if err := s.extractKey(lctx, synced, ui, lks); err != nil {
+func (s *ScanKeys) extractKeys(lctx libkb.LoginContext, ring *libkb.SKBKeyringFile, synced *libkb.SKB, ui libkb.SecretUI, lks *libkb.LKSec, g *libkb.GlobalContext) error {
+	var err error
+	g.Log.Debug("+ ScanKeys::extractKeys")
+	defer func() {
+		g.Log.Debug("- ScanKeys::extractKeys -> %s", err)
+	}()
+
+	if synced == nil {
+		g.Log.Debug("| No synced key; so not attempting to extract")
+	}
+	if err = s.extractKey(lctx, synced, ui, lks); err != nil {
 		return fmt.Errorf("extracting synced key error: %s", err)
 	}
 
-	for _, b := range ring.Blocks {
+	for i, b := range ring.Blocks {
+		desc, e2 := b.VerboseDescription()
+		if e2 == nil {
+			g.Log.Debug("| Attempting extract on Key=%s", desc)
+		} else {
+			g.Log.Debug("| Failed to get description from Key %d", i)
+		}
 		if !libkb.IsPGPAlgo(b.Type) {
 			continue
 		}

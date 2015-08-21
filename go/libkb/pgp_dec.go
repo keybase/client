@@ -46,6 +46,7 @@ func PGPDecrypt(source io.Reader, sink io.Writer, kr openpgp.KeyRing) (*Signatur
 		r = b.Body
 	}
 
+	G.Log.Debug("Calling into openpgp ReadMessage for decryption")
 	md, err := openpgp.ReadMessage(r, kr, nil, nil)
 	if err != nil {
 		if err == errors.ErrKeyIncorrect {
