@@ -7,7 +7,7 @@
 ###
 
 # sources.list setting for keybase updates.
-REPOCONFIG="http://dist.keybase.io/linux/rpm/repo"
+REPOCONFIG="http://dist.keybase.io/linux/rpm/repo/@@ARCH@@"
 
 YUM_REPO_FILE="/etc/yum.repos.d/keybase.repo"
 
@@ -20,7 +20,7 @@ install_yum() {
 cat > "$YUM_REPO_FILE" << REPOCONTENT
 [keybase]
 name=keybase
-baseurl=$REPOCONFIG/$RPM_ARCH
+baseurl=$REPOCONFIG
 enabled=1
 gpgcheck=1
 gpgkey=https://keybase.io/docs/server_security/code_signing_key.asc
