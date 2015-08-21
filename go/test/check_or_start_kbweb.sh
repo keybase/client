@@ -7,6 +7,7 @@ QUOTA_PORT="44003"
 # image
 KBWEB_CONTAINER_NAME="kbweb$KBWEB_PORT"
 KBWEB_IMAGE_NAME="kbweb"
+TIMEOUT=90
 
 function check_server() {
     timeout=$1
@@ -34,7 +35,7 @@ if [ $? -eq 0 ]; then
         set -e
         echo "Unpausing existing container"
         docker unpause $KBWEB_CONTAINER_NAME
-        check_server 1 30
+        check_server 1 $TIMEOUT
         exit 0
     fi
 fi
@@ -46,13 +47,13 @@ if [ $? -eq 0 ]; then
         set -e
         echo "Starting existing container"
         docker start $KBWEB_CONTAINER_NAME
-        check_server 1 30
+        check_server 1 $TIMEOUT
         exit 0
     else
         # if it exists, but is already unpaused and running, then maybe it's
         # still in the process of launching; just wait
         echo "Using existing container"
-        check_server 1 30
+        check_server 1 $TIMEOUT
         exit 0
     fi
 fi
@@ -63,7 +64,7 @@ if [ $? -eq 0 ]; then
     set -e
     echo "Launching new container"
     docker run -d -p $KBWEB_PORT:$KBWEB_PORT -p $QUOTA_PORT:$QUOTA_PORT -d --name=$KBWEB_CONTAINER_NAME $KBWEB_IMAGE_NAME
-    check_server 1 30
+    check_server 1 $TIMEOUT
     exit 0
 fi
 
