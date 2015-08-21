@@ -1709,7 +1709,7 @@ func (fbo *FolderBranchOps) renameLocked(
 				}
 				fbo.deCache[newPtr][dePtr] = de
 				delete(deMap, dePtr)
-				if deMap == nil {
+				if len(deMap) == 0 {
 					delete(fbo.deCache, oldPtr)
 				} else {
 					fbo.deCache[oldPtr] = deMap
@@ -2670,7 +2670,7 @@ func (fbo *FolderBranchOps) syncLocked(ctx context.Context, file path) (
 			lbc[parentPath.tailPointer()] = dblock
 			doDeleteDe = true
 			delete(deMap, filePtr)
-			if deMap == nil {
+			if len(deMap) == 0 {
 				delete(fbo.deCache, parentPtr)
 			} else {
 				fbo.deCache[parentPtr] = deMap
@@ -2727,7 +2727,7 @@ func (fbo *FolderBranchOps) syncLocked(ctx context.Context, file path) (
 		if doDeleteDe {
 			deMap := fbo.deCache[parentPtr]
 			delete(deMap, filePtr)
-			if deMap == nil {
+			if len(deMap) == 0 {
 				delete(fbo.deCache, parentPtr)
 			} else {
 				fbo.deCache[parentPtr] = deMap
