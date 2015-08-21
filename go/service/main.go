@@ -124,7 +124,8 @@ func (d *Service) writeVersionFile() error {
 		return err
 	}
 	versionFilePath := path.Join(G.Env.GetCacheDir(), "service.version")
-	return ioutil.WriteFile(versionFilePath, []byte(libkb.Version), 0644)
+	version := fmt.Sprintf("%s-%s", libkb.Version, libkb.Build)
+	return ioutil.WriteFile(versionFilePath, []byte(version), 0644)
 }
 
 func (d *Service) ReleaseLock() error {

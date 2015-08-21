@@ -139,8 +139,8 @@ func (c expectCmd) close() {
 // TestVersion tests the trivial version subcommand
 func TestVersion(t *testing.T) {
 	u := newUser(t)
-	cmd := u.newExpectCmd(t, "version")
-	cmd.expect(t, "Keybase Command-Line App")
+	cmd := u.newExpectCmd(t, "version -v")
+	cmd.expect(t, "Keybase")
 	cmd.expect(t, "- Visit https://keybase.io for more details")
 	cmd.interact()
 	cmd.wait()
