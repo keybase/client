@@ -20,8 +20,8 @@
 @property NSString *versionPath;
 @property NSDictionary *plist;
 
-@property NSString *bundleVersion;
-@property NSString *runningVersion;
+@property KBSemVersion *bundleVersion;
+@property KBSemVersion *runningVersion;
 
 @property KBServiceStatus *serviceStatus;
 @property KBComponentStatus *componentStatus;
@@ -29,7 +29,7 @@
 
 @implementation KBLaunchService
 
-- (instancetype)initWithLabel:(NSString *)label bundleVersion:(NSString *)bundleVersion versionPath:(NSString *)versionPath plist:(NSDictionary *)plist logFile:(NSString *)logFile {
+- (instancetype)initWithLabel:(NSString *)label bundleVersion:(KBSemVersion *)bundleVersion versionPath:(NSString *)versionPath plist:(NSDictionary *)plist logFile:(NSString *)logFile {
   if ((self = [super init])) {
     _label = label;
     _versionPath = versionPath;
@@ -106,10 +106,10 @@
       [self waitForVersionFile:timeout completion:^(NSString *runningVersion) {
         GHODictionary *info = [GHODictionary dictionary];
         if (serviceStatus.isRunning && runningVersion) {
-          self.runningVersion = runningVersion;
+          self.runningVersion = [KBSemVersion version:runningVersion];
           info[@"Version"] = runningVersion;
-          if (![runningVersion isEqualToString:self.bundleVersion]) {
-            info[@"New Version"] = self.bundleVersion;
+          if ([self.bundleVersion isGreaterThan:self.runningVersion]) {
+            info[@"New Version"] = [self.bundleVersion description];
             self.componentStatus = [KBComponentStatus componentStatusWithInstallStatus:KBInstallStatusNeedsUpgrade runtimeStatus:KBRuntimeStatusRunning info:info];
           } else {
             self.componentStatus = [KBComponentStatus componentStatusWithInstallStatus:KBInstallStatusInstalled runtimeStatus:KBRuntimeStatusRunning info:info];

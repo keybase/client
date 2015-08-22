@@ -15,3 +15,11 @@ FOUNDATION_EXPORT double KBKitVersionNumber;
 FOUNDATION_EXPORT const unsigned char KBKitVersionString[];
 
 // In this header, you should import all the public headers of your framework using statements like #import <KBKit/PublicHeader.h>
+
+#import <KBKit/KBFormatter.h>
+#import <KBKit/KBSemVersion.h>
+#import <KBKit/KBApp.h>
+#import <KBKit/KBNotifications.h>
+#import <KBKit/KBWorkspace.h>
+#import <KBKit/KBEnvConfig.h>
+#import <KBKit/KBDefines.h>

@@ -27,6 +27,7 @@ if [ ! -f "$KB_GO_SRC/keybase/keybase" ]; then
   cd $KB_GO_SRC/keybase/
   go build -a
 fi
+echo "Copying: $KB_GO_SRC/keybase/keybase"
 cp $KB_GO_SRC/keybase/keybase $BUILD_DEST/keybase
 chmod +x $BUILD_DEST/keybase
 
@@ -36,31 +37,39 @@ if [ ! -f "$KB_GO_SRC/keybase/keybase" ]; then
   cd $KBFS_GO_SRC/kbfsfuse/
   go build -a
 fi
+echo "Copying: $KBFS_GO_SRC/kbfsfuse/kbfsfuse"
 cp $KBFS_GO_SRC/kbfsfuse/kbfsfuse $BUILD_DEST/kbfsfuse
 chmod +x $BUILD_DEST/kbfsfuse
 
+# Read the versions and build numbers
 echo "Checking versions"
-# Read the versions.
-KB_SERVICE_VERSION="`$BUILD_DEST/keybase --version | cut -f3 -d ' '`"
-KBFS_VERSION="`$BUILD_DEST/kbfsfuse -version | cut -f1 -d ' '`"
-APP_VERSION="$KB_SERVICE_VERSION"
+KB_SERVICE_VERSION="`$BUILD_DEST/keybase version -d | cut -f1 -d '-'`"
+KB_SERVICE_BUILD="`$BUILD_DEST/keybase version -d | cut -f2 -d '-'`"
 
-#
-# Keybase.app
-#
+KBFS_VERSION="`$BUILD_DEST/kbfsfuse -version | cut -f1 -d '-'`"
+KBFS_BUILD="`$BUILD_DEST/kbfsfuse -version | cut -f2 -d '-'`"
+
+# CFBundleShortVersionString is the MAJOR.MINOR.TINY, for example, "1.2.3".
+# CFBundleVersion is the build number, for example, "12345" or "1.2.3 (build 12345AB)"
 
 PLIST=$DIR/../Keybase/Info.plist
-HELPER_PLIST=$DIR/../Helper/Info.plist
-FUSE_PLIST=$DIR/Fuse/osxfusefs.bundle/Contents/Info.plist
-KB_HELPER_VERSION=`/usr/libexec/PlistBuddy -c "Print :CFBundleShortVersionString" $HELPER_PLIST`
-KB_FUSE_VERSION=`/usr/libexec/PlistBuddy -c "Print :CFBundleShortVersionString" $FUSE_PLIST`
+APP_VERSION="`/usr/libexec/PlistBuddy -c "Print :CFBundleShortVersionString" $PLIST`"
+APP_BUILD="`/usr/libexec/PlistBuddy -c "Print :CFBundleVersion" $PLIST`"
 
-echo ""
-echo "Keybase.app Version: $APP_VERSION"
-echo "Service Version: $KB_SERVICE_VERSION"
-echo "KBFS Version: $KBFS_VERSION"
-echo "Helper Version: $KB_HELPER_VERSION"
-echo "Fuse Version: $KB_FUSE_VERSION"
+HELPER_PLIST=$DIR/../Helper/Info.plist
+KB_HELPER_VERSION="`/usr/libexec/PlistBuddy -c "Print :CFBundleShortVersionString" $HELPER_PLIST`"
+KB_HELPER_BUILD="`/usr/libexec/PlistBuddy -c "Print :CFBundleVersion" $HELPER_PLIST`"
+
+FUSE_PLIST=$DIR/Fuse/osxfusefs.bundle/Contents/Info.plist
+FUSE_VERSION="`/usr/libexec/PlistBuddy -c "Print :CFBundleShortVersionString" $FUSE_PLIST`"
+FUSE_BUILD="`/usr/libexec/PlistBuddy -c "Print :CFBundleVersion" $FUSE_PLIST`"
+
+echo "Version (Build):"
+echo "  Keybase.app: $APP_VERSION ($APP_BUILD)"
+echo "  Service: $KB_SERVICE_VERSION ($KB_SERVICE_BUILD)"
+echo "  KBFS: $KBFS_VERSION ($KBFS_BUILD)"
+echo "  Helper: $KB_HELPER_VERSION ($KB_HELPER_BUILD)"
+echo "  Fuse: $FUSE_VERSION ($FUSE_BUILD)"
 echo ""
 
 echo "Is the correct?"
@@ -72,12 +81,14 @@ select o in "Yes" "No"; do
 done
 
 echo "  Updating $PLIST"
-/usr/libexec/PlistBuddy -c "Set :CFBundleVersion '${APP_VERSION}'" $PLIST
-/usr/libexec/PlistBuddy -c "Set :CFBundleShortVersionString '${APP_VERSION}'" $PLIST
 /usr/libexec/PlistBuddy -c "Set :KBServiceVersion '${KB_SERVICE_VERSION}'" $PLIST
+/usr/libexec/PlistBuddy -c "Set :KBServiceBuild '${KB_SERVICE_BUILD}'" $PLIST
 /usr/libexec/PlistBuddy -c "Set :KBHelperVersion '${KB_HELPER_VERSION}'" $PLIST
+/usr/libexec/PlistBuddy -c "Set :KBHelperBuild '${KB_HELPER_BUILD}'" $PLIST
 /usr/libexec/PlistBuddy -c "Set :KBFSVersion '${KBFS_VERSION}'" $PLIST
-/usr/libexec/PlistBuddy -c "Set :KBFuseVersion '${KB_FUSE_VERSION}'" $PLIST
+/usr/libexec/PlistBuddy -c "Set :KBFSBuild '${KBFS_BUILD}'" $PLIST
+/usr/libexec/PlistBuddy -c "Set :KBFuseVersion '${FUSE_VERSION}'" $PLIST
+/usr/libexec/PlistBuddy -c "Set :KBFuseBuild '${FUSE_BUILD}'" $PLIST
 echo "  "
 
 echo "  Cleaning..."

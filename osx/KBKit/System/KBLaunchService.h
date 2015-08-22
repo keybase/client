@@ -12,6 +12,7 @@
 #import "KBComponent.h"
 #import "KBServiceStatus.h"
 #import "KBLaunchCtl.h"
+#import "KBSemVersion.h"
 
 typedef void (^KBLaunchComponentStatus)(KBComponentStatus *componentStatus, KBServiceStatus *serviceStatus);
 
@@ -21,11 +22,11 @@ typedef void (^KBLaunchComponentStatus)(KBComponentStatus *componentStatus, KBSe
 @property (readonly) NSDictionary *plist;
 @property (readonly) NSString *versionPath;
 @property (readonly) NSString *logFile;
-@property (readonly) NSString *bundleVersion;
+@property (readonly) KBSemVersion *bundleVersion;
 
 @property (readonly) KBComponentStatus *componentStatus;
 
-- (instancetype)initWithLabel:(NSString *)label bundleVersion:(NSString *)bundleVersion versionPath:(NSString *)versionPath plist:(NSDictionary *)plist logFile:(NSString *)logFile;
+- (instancetype)initWithLabel:(NSString *)label bundleVersion:(KBSemVersion *)bundleVersion versionPath:(NSString *)versionPath plist:(NSDictionary *)plist logFile:(NSString *)logFile;
 
 - (NSString *)plistDestination;
 

@@ -107,10 +107,10 @@ typedef NS_ENUM (NSInteger, KBAppViewMode) {
 
   [self showInProgress:@"Loading"];
 
-  KBInstaller *installer = [[KBInstaller alloc] initWithEnvironment:_environment];
-  [installer installStatus:^(BOOL needsInstall) {
+  KBInstaller *installer = [[KBInstaller alloc] init];
+  [installer installStatusWithEnvironment:_environment completion:^(BOOL needsInstall) {
     if (needsInstall) {
-      [self showInstaller:installer completion:completion];
+      [self showInstaller:environment completion:completion];
     } else {
       [self connect:completion];
     }
@@ -194,9 +194,9 @@ typedef NS_ENUM (NSInteger, KBAppViewMode) {
   _appProgressView.progressView.animating = YES;
 }
 
-- (void)showInstaller:(KBInstaller *)installer completion:(KBCompletion)completion {
+- (void)showInstaller:(KBEnvironment *)environment completion:(KBCompletion)completion {
   KBInstallerView *view = [[KBInstallerView alloc] init];
-  [view setInstaller:installer];
+  [view setEnvironment:environment];
   view.completion = ^() {
     [self showInProgress:@"Loading"];
     [self connect:completion];

@@ -40,14 +40,28 @@
   return plist[@"CFBundleShortVersionString"];
 }
 
-- (NSString *)runningVersion {
+- (NSDictionary *)kextInfo {
   NSDictionary *kexts = (__bridge NSDictionary *)KextManagerCopyLoadedKextInfo((__bridge CFArrayRef)@[KEXT_LABEL], NULL);
-  return kexts[KEXT_LABEL][@"CFBundleVersion"];
+  return kexts[KEXT_LABEL];
+}
+
+- (BOOL)isKextLoaded {
+  NSDictionary *kexts = (__bridge NSDictionary *)KextManagerCopyLoadedKextInfo((__bridge CFArrayRef)@[KEXT_LABEL], (__bridge CFArrayRef)@[@"OSBundleStarted"]);
+  return [kexts[KEXT_LABEL][@"OSBundleStarted"] boolValue];
+}
+
+- (void)info:(KBOnCompletion)completion {
+  NSDictionary *info = @{@"KextLabel": KEXT_LABEL, @"Kext": [self kextInfo]};
+  completion(nil, info);
+}
+
+- (NSString *)runningVersion {
+  return [self kextInfo][@"CFBundleVersion"];
 }
 
 - (void)installOrUpdate:(KBOnCompletion)completion {
   if ([NSFileManager.defaultManager fileExistsAtPath:_destination isDirectory:NULL]) {
-    [self update:completion];
+    completion(KBMakeError(KBHelperErrorKBFS, @"Update is currently unsupported."), @(0));
   } else {
     [self install:completion];
   }
@@ -114,17 +128,31 @@
 }
 
 - (void)unload:(KBOnCompletion)completion {
+  NSError *error = nil;
+  BOOL unloaded = [self unloadKext:&error];
+  completion(error, @(unloaded));
+}
+
+- (BOOL)unloadKext:(NSError **)error {
   OSReturn status = KextManagerUnloadKextWithIdentifier((CFStringRef)KEXT_LABEL);
   if (status != kOSReturnSuccess) {
-    NSError *error = KBMakeError(KBHelperErrorKBFS, @"KextManager failed to unload with status: %@: %@", @(status), [self descriptionForStatus:status]);
-    completion(error, @(0));
-  } else {
-    completion(nil, @(1));
+    if (error) *error = KBMakeError(KBHelperErrorKBFS, @"KextManager failed to unload with status: %@: %@", @(status), [self descriptionForStatus:status]);
+    return NO;
   }
+  return YES;
 }
 
 - (void)uninstall:(KBOnCompletion)completion {
-  KextManagerUnloadKextWithIdentifier((CFStringRef)KEXT_LABEL);
+  if ([self isKextLoaded]) {
+    NSError *error = nil;
+    if (![self unloadKext:&error]) {
+      completion(error, @(NO));
+      return;
+    }
+  } else {
+    // Do an unload to be safe (in case isKextLoaded lied)
+    KextManagerUnloadKextWithIdentifier((CFStringRef)KEXT_LABEL);
+  }
 
   NSError *error = nil;
   if ([NSFileManager.defaultManager fileExistsAtPath:_destination isDirectory:NULL] && ![NSFileManager.defaultManager removeItemAtPath:_destination error:&error]) {

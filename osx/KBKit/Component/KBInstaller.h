@@ -11,18 +11,14 @@
 
 #import "KBEnvironment.h"
 
-
 @interface KBInstaller : NSObject
 
-@property (readonly) KBEnvironment *environment;
+- (void)installStatus:(NSArray *)installActions completion:(void (^)(BOOL needsInstall))completion;
+- (void)install:(NSArray *)installActions completion:(dispatch_block_t)completion;
+- (void)uninstall:(NSArray *)installables completion:(dispatch_block_t)completion;
 
-- (instancetype)initWithEnvironment:(KBEnvironment *)environment;
-
-- (void)installStatus:(void (^)(BOOL needsInstall))completion;
-
-- (void)install:(dispatch_block_t)completion;
-
-- (void)uninstall:(KBCompletion)completion;
-
+- (void)installStatusWithEnvironment:(KBEnvironment *)environment completion:(void (^)(BOOL needsInstall))completion;
+- (void)installWithEnvironment:(KBEnvironment *)environment completion:(void (^)(NSArray *installActions))completion;
+- (void)uninstallWithEnvironment:(KBEnvironment *)environment completion:(void (^)(NSArray *installActions))completion;
 
 @end

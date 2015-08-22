@@ -15,12 +15,15 @@
 #import <ServiceManagement/ServiceManagement.h>
 #import <MPMessagePack/MPXPCClient.h>
 
+#import "KBSemVersion.h"
+#import "KBFormatter.h"
+
 #define PLIST_DEST (@"/Library/LaunchDaemons/keybase.Helper.plist")
 #define HELPER_LOCATION (@"/Library/PrivilegedHelperTools/keybase.Helper")
 
 @interface KBHelperTool ()
 @property KBDebugPropertiesView *infoView;
-@property NSString *version;
+@property KBSemVersion *version;
 @end
 
 @implementation KBHelperTool
@@ -42,14 +45,16 @@
   return _infoView;
 }
 
-- (NSString *)bundleVersion {
-  return [[NSBundle mainBundle] infoDictionary][@"KBHelperVersion"];
+- (KBSemVersion *)bundleVersion {
+  return [KBSemVersion version:NSBundle.mainBundle.infoDictionary[@"KBHelperVersion"] build:NSBundle.mainBundle.infoDictionary[@"KBHelperBuild"]];
 }
 
 - (void)componentDidUpdate {
+
+
   GHODictionary *info = [GHODictionary dictionary];
   info[@"Version"] = GHOrNull(_version);
-  info[@"Bundle Version"] = GHOrNull(self.bundleVersion);
+  info[@"Bundle Version"] = [[self bundleVersion] description];
 
   GHODictionary *statusInfo = [self componentStatusInfo];
   if (statusInfo) [info addEntriesFromOrderedDictionary:statusInfo];
@@ -69,24 +74,24 @@
     return;
   }
 
-  NSString *bundleVersion = self.bundleVersion;
+  KBSemVersion *bundleVersion = [self bundleVersion];
   GHODictionary *info = [GHODictionary dictionary];
   GHWeakSelf gself = self;
-  MPXPCClient *helper = [[MPXPCClient alloc] initWithServiceName:@"keybase.Helper" privileged:YES];
+  MPXPCClient *helper = [[MPXPCClient alloc] initWithServiceName:@"keybase.Helper" privileged:YES readOptions:MPMessagePackReaderOptionsUseOrderedDictionary];
   [helper sendRequest:@"version" params:nil completion:^(NSError *error, NSDictionary *versions) {
     if (error) {
       self.componentStatus = [KBComponentStatus componentStatusWithInstallStatus:KBInstallStatusInstalled runtimeStatus:KBRuntimeStatusNotRunning info:nil];
       completion(error);
     } else {
-      NSString *runningVersion = KBIfNull(versions[@"version"], nil);
+      KBSemVersion *runningVersion = [KBSemVersion version:KBIfNull(versions[@"version"], @"") build:KBIfNull(versions[@"build"], nil)];
       gself.version = runningVersion;
-      if (runningVersion) info[@"Version"] = runningVersion;
-      if ([runningVersion isEqualTo:bundleVersion]) {
-        self.componentStatus = [KBComponentStatus componentStatusWithInstallStatus:KBInstallStatusInstalled runtimeStatus:KBRuntimeStatusRunning info:info];
+      if (runningVersion) info[@"Version"] = [runningVersion description];
+      if ([bundleVersion isGreaterThan:runningVersion]) {
+        if (bundleVersion) info[@"New version"] = [bundleVersion description];
+        self.componentStatus = [KBComponentStatus componentStatusWithInstallStatus:KBInstallStatusNeedsUpgrade runtimeStatus:KBRuntimeStatusRunning info:info];
         completion(nil);
       } else {
-        if (bundleVersion) info[@"New version"] = bundleVersion;
-        self.componentStatus = [KBComponentStatus componentStatusWithInstallStatus:KBInstallStatusNeedsUpgrade runtimeStatus:KBRuntimeStatusRunning info:info];
+        self.componentStatus = [KBComponentStatus componentStatusWithInstallStatus:KBInstallStatusInstalled runtimeStatus:KBRuntimeStatusRunning info:info];
         completion(nil);
       }
     }

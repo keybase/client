@@ -9,19 +9,17 @@
 #import <Cocoa/Cocoa.h>
 #import <XCTest/XCTest.h>
 
-#import "KBEnvConfig.h"
+#import <KBKit/KBKit.h>
 
 @interface KBEnvConfigTest : XCTestCase
 @end
 
 @implementation KBEnvConfigTest
 
-- (void)testPlist {
-  KBEnvConfig *config = [KBEnvConfig env:KBEnvKeybaseIO];
-  NSDictionary *plist = [config launchdPlistDictionaryForService];
-  XCTAssertNotNil(plist);
-  NSDictionary *plist2 = [config launchdPlistDictionaryForKBFS];
-  XCTAssertNotNil(plist2);
+- (void)test {
+  KBEnvConfig *config = [KBEnvConfig envType:KBEnvTypeProd];
+  // TODO
+  XCTAssertNotNil(config);
 }
 
 @end

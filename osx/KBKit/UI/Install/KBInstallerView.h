@@ -18,7 +18,8 @@
 @property KBNavigationView *navigation;
 @property KBRPClient *client;
 
-@property (nonatomic) KBInstaller *installer;
 @property (copy) dispatch_block_t completion;
+
+- (void)setEnvironment:(KBEnvironment *)environment;
 
 @end

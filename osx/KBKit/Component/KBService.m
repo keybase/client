@@ -10,6 +10,7 @@
 
 #import "KBLaunchCtl.h"
 #import "KBDebugPropertiesView.h"
+#import "KBSemVersion.h"
 
 @interface KBService ()
 @property KBRPClient *client;
@@ -37,7 +38,8 @@
     NSDictionary *info = [[NSBundle mainBundle] infoDictionary];
     NSString *versionPath = [config cachePath:@"service.version" options:0];
     NSDictionary *plist = [KBService launchdPlistDictionaryForService:_config];
-    _launchService = [[KBLaunchService alloc] initWithLabel:config.launchdLabelService bundleVersion:info[@"KBServiceVersion"] versionPath:versionPath plist:plist logFile:[config logFile:config.launchdLabelService]];
+    KBSemVersion *bundleVersion = [KBSemVersion version:info[@"KBServiceVersion"] build:info[@"KBServiceBuild"]];
+    _launchService = [[KBLaunchService alloc] initWithLabel:config.launchdLabelService bundleVersion:bundleVersion versionPath:versionPath plist:plist logFile:[config logFile:config.launchdLabelService]];
   }
   return self;
 }

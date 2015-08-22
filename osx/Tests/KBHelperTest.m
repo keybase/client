@@ -11,7 +11,7 @@
 
 #import "KBHelper.h"
 
-
+// TODO: Fix
 @interface KBHelperTest : XCTestCase
 @end
 
@@ -22,7 +22,7 @@
 
   KBHelper *helper = [[KBHelper alloc] init];
   [helper handleRequestWithMethod:@"version" params:nil messageId:@(1) completion:^(NSError *error, id value) {
-    NSLog(@"value=%@", KBDescription(value));
+    //NSLog(@"value=%@", KBDescription(value));
     [expectation fulfill];
   }];
 

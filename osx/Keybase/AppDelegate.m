@@ -12,6 +12,9 @@
 #import <CocoaLumberjack/CocoaLumberjack.h>
 #import <GHKit/GHKit.h>
 
+#import "KBNotifications.h"
+#import "KBWorkspace.h"
+
 @interface AppDelegate ()
 @property NSStatusItem *statusItem;
 @property NSDictionary *config;

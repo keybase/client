@@ -16,8 +16,8 @@
 
 @property (readonly) id<KBInstallable> installable;
 
-@property BOOL installAttempted;
-@property NSError *installError; // If there was
+@property BOOL attempted;
+@property NSError *error; // If there was one
 
 + (instancetype)installActionWithInstallable:(id<KBInstallable>)installable;
 

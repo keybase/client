@@ -28,7 +28,8 @@
     NSDictionary *info = [[NSBundle mainBundle] infoDictionary];
     NSString *versionPath = [config appPath:@"kbfs.version" options:0];
     NSDictionary *plist = [KBFSService launchdPlistDictionaryForKBFS:_config];
-    _launchService = [[KBLaunchService alloc] initWithLabel:config.launchdLabelKBFS bundleVersion:info[@"KBFSVersion"] versionPath:versionPath plist:plist logFile:[config logFile:config.launchdLabelKBFS]];
+    KBSemVersion *bundleVersion = [KBSemVersion version:info[@"KBFSVersion"] build:info[@"KBFSBuild"]];
+    _launchService = [[KBLaunchService alloc] initWithLabel:config.launchdLabelKBFS bundleVersion:bundleVersion versionPath:versionPath plist:plist logFile:[config logFile:config.launchdLabelKBFS]];
   }
   return self;
 }

@@ -17,6 +17,8 @@
 @property YOView *installStatusView;
 @property YOHBox *buttons;
 @property YOHBox *skipButtons;
+
+@property (nonatomic) KBEnvironment *environment;
 @end
 
 @implementation KBInstallerView
@@ -49,6 +51,9 @@
   KBButton *skipButton = [KBButton buttonWithText:@"Skip" style:KBButtonStyleDefault];
   skipButton.targetBlock = ^{ [gself skip]; };
   [_buttons addSubview:skipButton];
+  KBButton *refreshButton = [KBButton buttonWithText:@"Refresh" style:KBButtonStyleDefault];
+  refreshButton.targetBlock = ^{ [gself refresh]; };
+  [_buttons addSubview:refreshButton];
   KBButton *nextButton = [KBButton buttonWithText:@"Update" style:KBButtonStylePrimary];
   nextButton.targetBlock = ^{ [gself install]; };
   [_buttons addSubview:nextButton];  
@@ -56,13 +61,32 @@
   self.viewLayout = [YOLayout center:contentView];
 }
 
+- (void)viewDidAppear:(BOOL)animated {
+  //
+}
+
 - (void)install {
   [KBActivity setProgressEnabled:YES sender:self];
   GHWeakSelf gself = self;
-  [_installer install:^{
+  KBInstaller *installer = [[KBInstaller alloc] init];
+  [installer installWithEnvironment:_environment completion:^(NSArray *installActions) {
     [KBActivity setProgressEnabled:NO sender:self];
-    [self updateInstallActions:[gself.installer.environment installActions]];
-    if ([[gself.installer.environment installActionsNeeded] count] == 0) {
+    [self showInstallActions:installActions];
+    if ([[gself.environment installActionsNeeded] count] == 0) {
+      self.completion();
+    }
+  }];
+}
+
+- (void)refresh {
+  [KBActivity setProgressEnabled:YES sender:self];
+  GHWeakSelf gself = self;
+  KBInstaller *installer = [[KBInstaller alloc] init];
+  [installer installStatusWithEnvironment:_environment completion:^(BOOL needsInstall) {
+    [KBActivity setProgressEnabled:NO sender:self];
+    if (needsInstall) {
+      [self showInstallActions:gself.environment.installActions];
+    } else {
       self.completion();
     }
   }];
@@ -72,16 +96,12 @@
   self.completion();
 }
 
-- (void)viewDidAppear:(BOOL)animated {
-
+- (void)setEnvironment:(KBEnvironment *)environment {
+  _environment = environment;
+  [self showInstallActions:[_environment installActions]];
 }
 
-- (void)setInstaller:(KBInstaller *)installer {
-  _installer = installer;
-  [self updateInstallActions:[_installer.environment installActions]];
-}
-
-- (void)updateInstallActions:(NSArray *)installActions {
+- (void)showInstallActions:(NSArray *)installActions {
   NSArray *installViews = [_installStatusView.subviews copy];
   for (NSView *subview in installViews) [subview removeFromSuperview];
 

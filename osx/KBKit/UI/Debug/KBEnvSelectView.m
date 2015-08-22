@@ -109,10 +109,13 @@
 
 - (void)uninstall {
   KBEnvironment *env = _listView.selectedObject;
-  KBInstaller *installer = [[KBInstaller alloc] initWithEnvironment:env];
+  KBInstaller *installer = [[KBInstaller alloc] init];
   [KBAlert yesNoWithTitle:@"Uninstall" description:NSStringWithFormat(@"Are you sure you want to uninstall %@?", env.config.title) yes:@"Uninstall" view:self completion:^(BOOL yes) {
-    [installer uninstall:^(NSError *error) {
-      [KBActivity setError:error sender:self];
+    [installer uninstallWithEnvironment:env completion:^(NSArray *uninstallActions) {
+      NSArray *errors = [uninstallActions select:^BOOL(KBInstallAction *uninstallAction) { return !!uninstallAction.error; }];
+      if ([errors count] > 0) {
+        [KBActivity setError:KBErrorAlert(@"There was an error uninstalling.") sender:self];
+      }
     }];
   }];
 }

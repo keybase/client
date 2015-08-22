@@ -12,10 +12,13 @@
 #import <MPMessagePack/MPXPCClient.h>
 #import "KBDebugPropertiesView.h"
 #import "KBFS.h"
+#import "KBSemVersion.h"
 
 @interface KBFuseComponent ()
 @property KBDebugPropertiesView *infoView;
-@property NSString *version;
+@property KBSemVersion *version;
+
+@property (nonatomic) MPXPCClient *helper;
 @end
 
 @implementation KBFuseComponent
@@ -40,7 +43,7 @@
 - (void)componentDidUpdate {
   GHODictionary *info = [GHODictionary dictionary];
 
-  info[@"Version"] = KBOr([self version], @"-");
+  info[@"Version"] = KBOr([[self version] description], @"-");
   info[@"Bundle Version"] = self.bundleVersion;
 
   GHODictionary *statusInfo = [self componentStatusInfo];
@@ -52,63 +55,67 @@
   [_infoView setProperties:info];
 }
 
-- (NSString *)bundleVersion {
-  return [[NSBundle mainBundle] infoDictionary][@"KBFuseVersion"];
+- (KBSemVersion *)bundleVersion {
+  return [KBSemVersion version:NSBundle.mainBundle.infoDictionary[@"KBFuseVersion"]];
 }
 
 - (void)refreshComponent:(KBCompletion)completion {
   GHODictionary *info = [GHODictionary dictionary];
-  NSString *bundleVersion = self.bundleVersion;
+  KBSemVersion *bundleVersion = self.bundleVersion;
   MPXPCClient *helper = [[MPXPCClient alloc] initWithServiceName:@"keybase.Helper" privileged:YES];
+  helper.timeout = 10;
   [helper sendRequest:@"version" params:nil completion:^(NSError *error, NSDictionary *versions) {
     if (error) {
       self.componentStatus = [KBComponentStatus componentStatusWithInstallStatus:KBInstallStatusNotInstalled runtimeStatus:KBRuntimeStatusNotRunning info:nil];
       completion(error);
     } else {
-      NSString *runningVersion = KBIfNull(versions[@"fuseRunningVersion"], nil);
-      NSString *installedVersion = KBIfNull(versions[@"fuseInstalledVersion"], nil);
+      KBSemVersion *runningVersion = [KBSemVersion version:KBIfNull(versions[@"fuseRunningVersion"], nil)];
+      KBSemVersion *installedVersion = [KBSemVersion version:KBIfNull(versions[@"fuseInstalledVersion"], nil)];
       self.version = runningVersion;
-      if (runningVersion) info[@"Version"] = runningVersion;
+      if (runningVersion) info[@"Version"] = [runningVersion description];
       if (!runningVersion) {
         KBInstallStatus installStatus = installedVersion ? KBInstallStatusInstalled : KBInstallStatusNotInstalled;
         self.componentStatus = [KBComponentStatus componentStatusWithInstallStatus:installStatus runtimeStatus:KBRuntimeStatusNotRunning info:nil];
         completion(nil);
-      } else if ([runningVersion isEqualTo:bundleVersion]) {
-        self.componentStatus = [KBComponentStatus componentStatusWithInstallStatus:KBInstallStatusInstalled runtimeStatus:KBRuntimeStatusRunning info:info];
+      } else if ([bundleVersion isGreaterThan:runningVersion]) {
+        if (bundleVersion) info[@"Bundle Version"] = [bundleVersion description];
+        // TODO Support upgrades for Fuse
+        NSString *errorMsg = NSStringWithFormat(@"Upgrade available (%@ > %@) but currently unsupported", [bundleVersion description], [runningVersion description]);
+        self.componentStatus = [KBComponentStatus componentStatusWithError:KBMakeError(-1, @"%@", errorMsg)];
         completion(nil);
       } else {
-        if (bundleVersion) info[@"Bundle Version"] = bundleVersion;
-        self.componentStatus = [KBComponentStatus componentStatusWithInstallStatus:KBInstallStatusNeedsUpgrade runtimeStatus:KBRuntimeStatusRunning info:info];
+        self.componentStatus = [KBComponentStatus componentStatusWithInstallStatus:KBInstallStatusInstalled runtimeStatus:KBRuntimeStatusRunning info:info];
         completion(nil);
       }
     }
   }];
 }
 
+- (MPXPCClient *)helper {
+  if (!_helper) _helper = [[MPXPCClient alloc] initWithServiceName:@"keybase.Helper" privileged:YES];
+  return _helper;
+}
+
 - (void)install:(KBCompletion)completion {
-  MPXPCClient *helper = [[MPXPCClient alloc] initWithServiceName:@"keybase.Helper" privileged:YES];
-  [helper sendRequest:@"kbfs_install" params:nil completion:^(NSError *error, id value) {
+  [[self helper] sendRequest:@"kbfs_install" params:nil completion:^(NSError *error, id value) {
     completion(error);
   }];
 }
 
 - (void)uninstall:(KBCompletion)completion {
-  MPXPCClient *helper = [[MPXPCClient alloc] initWithServiceName:@"keybase.Helper" privileged:YES];
-  [helper sendRequest:@"kbfs_uninstall" params:nil completion:^(NSError *error, id value) {
+  [[self helper] sendRequest:@"kbfs_uninstall" params:nil completion:^(NSError *error, id value) {
     completion(error);
   }];
 }
 
 - (void)start:(KBCompletion)completion {
-  MPXPCClient *helper = [[MPXPCClient alloc] initWithServiceName:@"keybase.Helper" privileged:YES];
-  [helper sendRequest:@"kbfs_load" params:nil completion:^(NSError *error, id value) {
+  [[self helper] sendRequest:@"kbfs_load" params:nil completion:^(NSError *error, id value) {
     completion(error);
   }];
 }
 
 - (void)stop:(KBCompletion)completion {
-  MPXPCClient *helper = [[MPXPCClient alloc] initWithServiceName:@"keybase.Helper" privileged:YES];
-  [helper sendRequest:@"kbfs_unload" params:nil completion:^(NSError *error, id value) {
+  [[self helper] sendRequest:@"kbfs_unload" params:nil completion:^(NSError *error, id value) {
     completion(error);
   }];
 }

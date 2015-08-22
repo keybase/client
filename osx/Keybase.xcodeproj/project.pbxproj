@@ -17,6 +17,14 @@
 		000E078B1B30B0E700FEE4C6 /* KBFinder.m in Sources */ = {isa = PBXBuildFile; fileRef = 000E07891B30B0E700FEE4C6 /* KBFinder.m */; };
 		000EB4681B852CC2002CFCF7 /* KBPaperKeyDisplayView.h in Headers */ = {isa = PBXBuildFile; fileRef = 000EB4661B852CC2002CFCF7 /* KBPaperKeyDisplayView.h */; };
 		000EB4691B852CC2002CFCF7 /* KBPaperKeyDisplayView.m in Sources */ = {isa = PBXBuildFile; fileRef = 000EB4671B852CC2002CFCF7 /* KBPaperKeyDisplayView.m */; };
+		000EB4701B87967C002CFCF7 /* KBSemVersion.h in Headers */ = {isa = PBXBuildFile; fileRef = 000EB46E1B87967C002CFCF7 /* KBSemVersion.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		000EB4711B87967C002CFCF7 /* KBSemVersion.m in Sources */ = {isa = PBXBuildFile; fileRef = 000EB46F1B87967C002CFCF7 /* KBSemVersion.m */; };
+		000EB4731B879F1E002CFCF7 /* KBSemVersionTest.m in Sources */ = {isa = PBXBuildFile; fileRef = 000EB4721B879F1E002CFCF7 /* KBSemVersionTest.m */; };
+		000EB4741B87A057002CFCF7 /* KBFormatterTest.m in Sources */ = {isa = PBXBuildFile; fileRef = 00FB76C11B0D3CA30070DEED /* KBFormatterTest.m */; };
+		000EB4751B87A2E3002CFCF7 /* KBEnvConfigTest.m in Sources */ = {isa = PBXBuildFile; fileRef = 00FB76BC1B0C5B5D0070DEED /* KBEnvConfigTest.m */; };
+		000EB4761B87A351002CFCF7 /* KBDefinesTest.m in Sources */ = {isa = PBXBuildFile; fileRef = 00FB76BA1B0C5B300070DEED /* KBDefinesTest.m */; };
+		000EB4771B87A36D002CFCF7 /* KBLaunchCtlTest.m in Sources */ = {isa = PBXBuildFile; fileRef = 0093A00E1AF1201800082859 /* KBLaunchCtlTest.m */; };
+		000EB47B1B87A982002CFCF7 /* KBSemVersion.m in Sources */ = {isa = PBXBuildFile; fileRef = 000EB46F1B87967C002CFCF7 /* KBSemVersion.m */; };
 		0012060A1B7AC47000D773D6 /* osxfusefs.bundle in Resources */ = {isa = PBXBuildFile; fileRef = 001206091B7AC47000D773D6 /* osxfusefs.bundle */; };
 		001392751B06B18A0082DEA8 /* Fuse.icns in Resources */ = {isa = PBXBuildFile; fileRef = 001392711B06B18A0082DEA8 /* Fuse.icns */; };
 		001392761B06B18A0082DEA8 /* gpgtools.icns in Resources */ = {isa = PBXBuildFile; fileRef = 001392721B06B18A0082DEA8 /* gpgtools.icns */; };
@@ -113,7 +121,7 @@
 		00B603581B5DA965004718DF /* KBFolderAddView.m in Sources */ = {isa = PBXBuildFile; fileRef = 00B603561B5DA965004718DF /* KBFolderAddView.m */; };
 		00B81D681B32148F009872E4 /* KBUserTrackStatus.h in Headers */ = {isa = PBXBuildFile; fileRef = 00B81D661B32148F009872E4 /* KBUserTrackStatus.h */; };
 		00B81D691B32148F009872E4 /* KBUserTrackStatus.m in Sources */ = {isa = PBXBuildFile; fileRef = 00B81D671B32148F009872E4 /* KBUserTrackStatus.m */; };
-		00C0DC551B28EC3F00A825D4 /* KBDefines.h in Headers */ = {isa = PBXBuildFile; fileRef = 00C0DC251B28E91300A825D4 /* KBDefines.h */; };
+		00C0DC551B28EC3F00A825D4 /* KBDefines.h in Headers */ = {isa = PBXBuildFile; fileRef = 00C0DC251B28E91300A825D4 /* KBDefines.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		00C0DC561B28EC3F00A825D4 /* KBDefines.m in Sources */ = {isa = PBXBuildFile; fileRef = 00C0DC261B28E91300A825D4 /* KBDefines.m */; };
 		00C0DC5D1B28EC3F00A825D4 /* KBWorkspace.h in Headers */ = {isa = PBXBuildFile; fileRef = 009E13871B28A93D00C72B28 /* KBWorkspace.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		00C0DC5E1B28EC3F00A825D4 /* KBWorkspace.m in Sources */ = {isa = PBXBuildFile; fileRef = 009E13881B28A93D00C72B28 /* KBWorkspace.m */; };
@@ -144,7 +152,7 @@
 		00C0DC781B28EC3F00A825D4 /* KBWriter.m in Sources */ = {isa = PBXBuildFile; fileRef = 001A83611B28DB7B006E61E9 /* KBWriter.m */; };
 		00C0DC791B28EC5000A825D4 /* KBLogFormatter.h in Headers */ = {isa = PBXBuildFile; fileRef = 009E15EF1B28A9A800C72B28 /* KBLogFormatter.h */; };
 		00C0DC7A1B28EC5000A825D4 /* KBLogFormatter.m in Sources */ = {isa = PBXBuildFile; fileRef = 009E15F01B28A9A800C72B28 /* KBLogFormatter.m */; };
-		00C0DC7B1B28EC5000A825D4 /* KBFormatter.h in Headers */ = {isa = PBXBuildFile; fileRef = 009E14B71B28A93D00C72B28 /* KBFormatter.h */; };
+		00C0DC7B1B28EC5000A825D4 /* KBFormatter.h in Headers */ = {isa = PBXBuildFile; fileRef = 009E14B71B28A93D00C72B28 /* KBFormatter.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		00C0DC7C1B28EC5000A825D4 /* KBFormatter.m in Sources */ = {isa = PBXBuildFile; fileRef = 009E14B81B28A93D00C72B28 /* KBFormatter.m */; };
 		00C0DC7D1B28EC5000A825D4 /* KBRunOver.h in Headers */ = {isa = PBXBuildFile; fileRef = 009E14B91B28A93D00C72B28 /* KBRunOver.h */; };
 		00C0DC7E1B28EC5000A825D4 /* KBRunOver.m in Sources */ = {isa = PBXBuildFile; fileRef = 009E14BA1B28A93D00C72B28 /* KBRunOver.m */; };
@@ -154,7 +162,7 @@
 		00C0DC821B28EC5000A825D4 /* KBWork.m in Sources */ = {isa = PBXBuildFile; fileRef = 009E14BE1B28A93D00C72B28 /* KBWork.m */; };
 		00C0DC831B28EC5000A825D4 /* KBConvert.h in Headers */ = {isa = PBXBuildFile; fileRef = 009E161C1B28AA8100C72B28 /* KBConvert.h */; };
 		00C0DC841B28EC5000A825D4 /* KBConvert.m in Sources */ = {isa = PBXBuildFile; fileRef = 009E161D1B28AA8100C72B28 /* KBConvert.m */; };
-		00C0DC851B28EC5500A825D4 /* KBEnvConfig.h in Headers */ = {isa = PBXBuildFile; fileRef = 009E164D1B28AD6900C72B28 /* KBEnvConfig.h */; };
+		00C0DC851B28EC5500A825D4 /* KBEnvConfig.h in Headers */ = {isa = PBXBuildFile; fileRef = 009E164D1B28AD6900C72B28 /* KBEnvConfig.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		00C0DC861B28EC5500A825D4 /* KBEnvConfig.m in Sources */ = {isa = PBXBuildFile; fileRef = 009E164E1B28AD6900C72B28 /* KBEnvConfig.m */; };
 		00C0DC881B28EC5500A825D4 /* KBEnvironment.m in Sources */ = {isa = PBXBuildFile; fileRef = 009E16501B28AD6900C72B28 /* KBEnvironment.m */; };
 		00C0DC891B28EC5500A825D4 /* KBLaunchService.h in Headers */ = {isa = PBXBuildFile; fileRef = 009E16511B28AD6900C72B28 /* KBLaunchService.h */; };
@@ -474,6 +482,9 @@
 		000E07891B30B0E700FEE4C6 /* KBFinder.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBFinder.m; sourceTree = "<group>"; };
 		000EB4661B852CC2002CFCF7 /* KBPaperKeyDisplayView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBPaperKeyDisplayView.h; sourceTree = "<group>"; };
 		000EB4671B852CC2002CFCF7 /* KBPaperKeyDisplayView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBPaperKeyDisplayView.m; sourceTree = "<group>"; };
+		000EB46E1B87967C002CFCF7 /* KBSemVersion.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBSemVersion.h; sourceTree = "<group>"; };
+		000EB46F1B87967C002CFCF7 /* KBSemVersion.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBSemVersion.m; sourceTree = "<group>"; };
+		000EB4721B879F1E002CFCF7 /* KBSemVersionTest.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBSemVersionTest.m; sourceTree = "<group>"; };
 		001206091B7AC47000D773D6 /* osxfusefs.bundle */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.plug-in"; path = osxfusefs.bundle; sourceTree = "<group>"; };
 		001392701B06B18A0082DEA8 /* DmgBackground.pxm */ = {isa = PBXFileReference; lastKnownFileType = file; path = DmgBackground.pxm; sourceTree = "<group>"; };
 		001392711B06B18A0082DEA8 /* Fuse.icns */ = {isa = PBXFileReference; lastKnownFileType = image.icns; path = Fuse.icns; sourceTree = "<group>"; };
@@ -1134,6 +1145,8 @@
 				00C0DC261B28E91300A825D4 /* KBDefines.m */,
 				009E13871B28A93D00C72B28 /* KBWorkspace.h */,
 				009E13881B28A93D00C72B28 /* KBWorkspace.m */,
+				000EB46E1B87967C002CFCF7 /* KBSemVersion.h */,
+				000EB46F1B87967C002CFCF7 /* KBSemVersion.m */,
 				0043D1061B28EF670036C532 /* App */,
 				000E07831B30AFC800FEE4C6 /* KBFS */,
 				00B81D651B32147F009872E4 /* Track */,
@@ -1657,6 +1670,7 @@
 				00FB76BA1B0C5B300070DEED /* KBDefinesTest.m */,
 				00FB76BC1B0C5B5D0070DEED /* KBEnvConfigTest.m */,
 				00FB76C11B0D3CA30070DEED /* KBFormatterTest.m */,
+				000EB4721B879F1E002CFCF7 /* KBSemVersionTest.m */,
 				00AA75111B27635D0069A6CC /* Supporting Files */,
 			);
 			path = Tests;
@@ -1742,6 +1756,7 @@
 				00C0DD3D1B28EC8700A825D4 /* KBDevicesAppView.h in Headers */,
 				00C0DCE31B28EC7800A825D4 /* KBPGPDecryptAppView.h in Headers */,
 				00C0DD451B28EC8700A825D4 /* KBDeviceSignerOption.h in Headers */,
+				000EB4701B87967C002CFCF7 /* KBSemVersion.h in Headers */,
 				00C0DD011B28EC7800A825D4 /* KBPGPSignAppView.h in Headers */,
 				00C0DC951B28EC5A00A825D4 /* KBFuseComponent.h in Headers */,
 				00C0DCE91B28EC7800A825D4 /* KBPGPDecryptFooterView.h in Headers */,
@@ -2240,6 +2255,7 @@
 				0057B0C61AE57A7A00BFB0E7 /* main.m in Sources */,
 				003B40481B265F7B000B7D3B /* KBHelperDefines.m in Sources */,
 				003B40451B265F7B000B7D3B /* KBHelper.m in Sources */,
+				000EB47B1B87A982002CFCF7 /* KBSemVersion.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -2255,6 +2271,11 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				000EB4731B879F1E002CFCF7 /* KBSemVersionTest.m in Sources */,
+				000EB4761B87A351002CFCF7 /* KBDefinesTest.m in Sources */,
+				000EB4771B87A36D002CFCF7 /* KBLaunchCtlTest.m in Sources */,
+				000EB4751B87A2E3002CFCF7 /* KBEnvConfigTest.m in Sources */,
+				000EB4741B87A057002CFCF7 /* KBFormatterTest.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -2265,6 +2286,7 @@
 				00C0DC9E1B28EC5A00A825D4 /* KBInstaller.m in Sources */,
 				00C0DCD61B28EC6F00A825D4 /* KBSecretPromptView.m in Sources */,
 				00C0DC881B28EC5500A825D4 /* KBEnvironment.m in Sources */,
+				000EB4711B87967C002CFCF7 /* KBSemVersion.m in Sources */,
 				00C0DD521B28EC8B00A825D4 /* KBDebugViews.m in Sources */,
 				000E07801B30AE8500FEE4C6 /* KBLaunchCtl.m in Sources */,
 				00C0DCE01B28EC7800A825D4 /* KBPGPAppView.m in Sources */,
@@ -2644,8 +2666,10 @@
 		};
 		00AA75191B27635D0069A6CC /* Debug */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = 009E16211B28AC9300C72B28 /* Pods-KBKit.debug.xcconfig */;
 			buildSettings = {
 				BUNDLE_LOADER = "$(TEST_HOST)";
+				CLANG_ALLOW_NON_MODULAR_INCLUDES_IN_FRAMEWORK_MODULES = YES;
 				COMBINE_HIDPI_IMAGES = YES;
 				DEBUG_INFORMATION_FORMAT = dwarf;
 				FRAMEWORK_SEARCH_PATHS = (
@@ -2666,8 +2690,10 @@
 		};
 		00AA751A1B27635D0069A6CC /* Release */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = 009E16221B28AC9300C72B28 /* Pods-KBKit.release.xcconfig */;
 			buildSettings = {
 				BUNDLE_LOADER = "$(TEST_HOST)";
+				CLANG_ALLOW_NON_MODULAR_INCLUDES_IN_FRAMEWORK_MODULES = YES;
 				COMBINE_HIDPI_IMAGES = YES;
 				COPY_PHASE_STRIP = NO;
 				FRAMEWORK_SEARCH_PATHS = (
@@ -2815,6 +2841,7 @@
 			baseConfigurationReference = FAAF3A5FAFE57DBEBE1CCC2A /* Pods-Keybase.debug.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIconDev;
+				CLANG_ALLOW_NON_MODULAR_INCLUDES_IN_FRAMEWORK_MODULES = YES;
 				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_ENTITLEMENTS = Keybase/Keybase.entitlements;
 				CODE_SIGN_IDENTITY = "Mac Developer";
@@ -2837,6 +2864,7 @@
 			baseConfigurationReference = 2DAA038ECF4F88C4E9D2BA1F /* Pods-Keybase.release.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CLANG_ALLOW_NON_MODULAR_INCLUDES_IN_FRAMEWORK_MODULES = YES;
 				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_ENTITLEMENTS = Keybase/Keybase.entitlements;
 				CODE_SIGN_IDENTITY = "Mac Developer";

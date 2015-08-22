@@ -25,6 +25,9 @@
   } else if ([method isEqualToString:@"kbfs_unload"]) {
     KBFS *kbfs = [[KBFS alloc] init];
     [kbfs unload:completion];
+  } else if ([method isEqualToString:@"kbfs_info"]) {
+    KBFS *kbfs = [[KBFS alloc] init];
+    [kbfs info:completion];
   } else if ([method isEqualToString:@"kbfs_install"]) {
     KBFS *kbfs = [[KBFS alloc] init];
     [kbfs installOrUpdate:completion];
@@ -42,11 +45,13 @@
 - (void)version:(void (^)(NSError *error, id value))completion {
   KBFS *kbfs = [[KBFS alloc] init];
   NSString *version = NSBundle.mainBundle.infoDictionary[@"CFBundleShortVersionString"];
+  NSString *build = NSBundle.mainBundle.infoDictionary[@"CFBundleVersion"];
   NSDictionary *response = @{
                              @"version": version,
-                             @"fuseBundleVersion": KBOrNull(kbfs.bundleVersion),
-                             @"fuseInstalledVersion": KBOrNull(kbfs.installedVersion),
-                             @"fuseRunningVersion": KBOrNull(kbfs.runningVersion),
+                             @"build": build,
+                             @"fuseBundleVersion": KBOr(kbfs.bundleVersion, @""),
+                             @"fuseInstalledVersion": KBOr(kbfs.installedVersion, @""),
+                             @"fuseRunningVersion": KBOr(kbfs.runningVersion, @""),
                              };
   completion(nil, response);
 }

@@ -30,8 +30,8 @@
   KBComponentStatus *status = _installable.componentStatus;
   if (status.error) {
     return NSStringWithFormat(@"Error: %@", status.error.localizedDescription);
-  } else if (_installError) {
-    return NSStringWithFormat(@"Install Error: %@", _installError.localizedDescription);
+  } else if (_error) {
+    return NSStringWithFormat(@"Error: %@", _error.localizedDescription);
   } else {
     return status.statusDescription;
   }

@@ -27,7 +27,7 @@ PODS:
     - CocoaLumberjack/Default
   - GHKeychain (1.2.8)
   - GHKit (2.0.0)
-  - GHODictionary (1.0.8)
+  - GHODictionary (1.0.9)
   - KBAppKit (0.1.6):
     - AFNetworking
     - CocoaLumberjack
@@ -40,7 +40,7 @@ PODS:
   - Mantle/extobjc (2.0.4)
   - MASPreferences (1.1.2)
   - MDPSplitView (1.0.2)
-  - MPMessagePack (1.1.23):
+  - MPMessagePack (1.1.25):
     - GHODictionary
   - ObjectiveSugar (1.1.0)
   - Slash (0.1.2):
@@ -77,12 +77,12 @@ SPEC CHECKSUMS:
   CocoaLumberjack: 019d1361244274a6138c788c6cb80baabc13fb8f
   GHKeychain: 008cdb8bbab5b0dc1da3d0f06a67ce5203231e44
   GHKit: 29e5361c9d8a33343ae5ed4698057d1533ee590b
-  GHODictionary: 4990d3fa008a11257ba54f52a3e95f90dd47ac1b
+  GHODictionary: 1f7873492445e0f33ac19575a358c3c91926b564
   KBAppKit: 979d91841106c7674dbc6245bd93d07ef487b26c
   Mantle: 6bee68168423948be0c0c5924832bf3af188e099
   MASPreferences: 32d8a2c5ef1d60b63240f5676b011ff72e194cb1
   MDPSplitView: 127b4b371e813ec29333e515fb1c057126a75671
-  MPMessagePack: a6f9b328cf057350589dbc095e6bb0536609ecae
+  MPMessagePack: 31356a5df61dfc8376c794ce39782c090f597191
   ObjectiveSugar: a6a25f23d657c19df0a0b972466d5b5ca9f5295c
   Slash: c74317f5ccf1e31f1d486a17e0d4076029ed3fc8
   Sparkle: c859bf5283b9f12aa45bceccf8e25ebb4c008eb2

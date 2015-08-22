@@ -21,6 +21,8 @@
 - (NSString *)installedVersion;
 - (NSString *)runningVersion;
 
+- (NSDictionary *)kextInfo;
+
 
 - (void)install:(KBOnCompletion)completion;
 
@@ -40,5 +42,10 @@
 - (void)load:(KBOnCompletion)completion;
 
 - (void)unload:(KBOnCompletion)completion;
+
+/*!
+ Info about KBFS (kext info, etc).
+ */
+- (void)info:(KBOnCompletion)completion;
 
 @end

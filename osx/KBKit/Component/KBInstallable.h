@@ -32,6 +32,7 @@ typedef void (^KBOnComponentStatus)(KBComponentStatus *installStatus);
 
 @property (nonatomic) KBComponentStatus *componentStatus;
 @property (readonly) KBEnvConfig *config;
+@property NSArray *dependencies;
 
 - (instancetype)initWithConfig:(KBEnvConfig *)config;
 
