@@ -32,7 +32,6 @@
 @property NSArray *PGPIdentities; /*of KBRPGPIdentity*/
 @property BOOL isSibkey;
 @property BOOL isEldest;
-@property BOOL isWeb;
 @property NSString *parentID;
 @property NSString *deviceID;
 @property NSString *deviceDescription;
@@ -89,10 +88,6 @@
 @property NSData *publicKey;
 @end
 
-@interface KBRServiceStatusRes : KBRObject
-@property long time;
-@end
-
 typedef NS_ENUM (NSInteger, KBRDoctorFixType) {
 	KBRDoctorFixTypeNone = 0,
 	KBRDoctorFixTypeAddEldestDevice = 1,
@@ -109,7 +104,6 @@ typedef NS_ENUM (NSInteger, KBRDoctorFixType) {
 @property KBRDoctorFixType fix;
 @property KBRDoctorSignerOpts *signerOpts;
 @property NSArray *devices; /*of KBRDevice*/
-@property KBRDevice *webDevice;
 @property KBRDevice *currentDevice;
 @end
 
@@ -523,6 +517,10 @@ typedef NS_ENUM (NSInteger, KBRPromptOverwriteType) {
 @property BOOL revoked;
 @end
 
+@interface KBRTest : KBRObject
+@property NSString *reply;
+@end
+
 typedef NS_ENUM (NSInteger, KBRPromptDefault) {
 	KBRPromptDefaultNone = 0,
 	KBRPromptDefaultYes = 1,
@@ -596,13 +594,13 @@ typedef NS_ENUM (NSInteger, KBRPromptDefault) {
 @end
 @interface KBRIncBlockReferenceRequestParams : KBRRequestParams
 @property KBRBlockIdCombo *bid;
-@property NSString *nonce;
+@property NSData *nonce;
 @property NSString *folder;
 @property NSString *chargedTo;
 @end
 @interface KBRDecBlockReferenceRequestParams : KBRRequestParams
 @property KBRBlockIdCombo *bid;
-@property NSString *nonce;
+@property NSData *nonce;
 @property NSString *folder;
 @property NSString *chargedTo;
 @end
@@ -635,12 +633,8 @@ typedef NS_ENUM (NSInteger, KBRPromptDefault) {
 @property NSData *peersPublicKey;
 @property NSString *reason;
 @end
-@interface KBRPanicRequestParams : KBRRequestParams
-@property NSString *message;
-@end
 @interface KBRDeviceListRequestParams : KBRRequestParams
 @property NSInteger sessionID;
-@property BOOL all;
 @end
 @interface KBRDeviceAddRequestParams : KBRRequestParams
 @property NSInteger sessionID;
@@ -832,6 +826,10 @@ typedef NS_ENUM (NSInteger, KBRPromptDefault) {
 @property BOOL unmerged;
 @property long startRevision;
 @property long stopRevision;
+@end
+@interface KBRRegisterForUpdatesRequestParams : KBRRequestParams
+@property NSString *folderID;
+@property long currRevision;
 @end
 @interface KBRPruneUnmergedRequestParams : KBRRequestParams
 @property NSString *folderID;
@@ -1043,6 +1041,17 @@ typedef NS_ENUM (NSInteger, KBRPromptDefault) {
 @property KBRStream *s;
 @property NSData *buf;
 @end
+@interface KBRTestRequestParams : KBRRequestParams
+@property NSInteger sessionID;
+@property NSString *name;
+@end
+@interface KBRTestCallbackRequestParams : KBRRequestParams
+@property NSInteger sessionID;
+@property NSString *name;
+@end
+@interface KBRPanicRequestParams : KBRRequestParams
+@property NSString *message;
+@end
 @interface KBRTrackRequestParams : KBRRequestParams
 @property NSInteger sessionID;
 @property NSString *userAssertion;
@@ -1122,11 +1131,11 @@ typedef NS_ENUM (NSInteger, KBRPromptDefault) {
 
 - (void)incBlockReference:(KBRIncBlockReferenceRequestParams *)params completion:(void (^)(NSError *error))completion;
 
-- (void)incBlockReferenceWithBid:(KBRBlockIdCombo *)bid nonce:(NSString *)nonce folder:(NSString *)folder chargedTo:(NSString *)chargedTo completion:(void (^)(NSError *error))completion;
+- (void)incBlockReferenceWithBid:(KBRBlockIdCombo *)bid nonce:(NSData *)nonce folder:(NSString *)folder chargedTo:(NSString *)chargedTo completion:(void (^)(NSError *error))completion;
 
 - (void)decBlockReference:(KBRDecBlockReferenceRequestParams *)params completion:(void (^)(NSError *error))completion;
 
-- (void)decBlockReferenceWithBid:(KBRBlockIdCombo *)bid nonce:(NSString *)nonce folder:(NSString *)folder chargedTo:(NSString *)chargedTo completion:(void (^)(NSError *error))completion;
+- (void)decBlockReferenceWithBid:(KBRBlockIdCombo *)bid nonce:(NSData *)nonce folder:(NSString *)folder chargedTo:(NSString *)chargedTo completion:(void (^)(NSError *error))completion;
 
 @end
 
@@ -1168,19 +1177,11 @@ typedef NS_ENUM (NSInteger, KBRPromptDefault) {
 
 - (void)logRotate:(void (^)(NSError *error))completion;
 
-- (void)panic:(KBRPanicRequestParams *)params completion:(void (^)(NSError *error))completion;
-
-- (void)panicWithMessage:(NSString *)message completion:(void (^)(NSError *error))completion;
-
-- (void)status:(void (^)(NSError *error, KBRServiceStatusRes *serviceStatusRes))completion;
-
 @end
 
 @interface KBRDeviceRequest : KBRRequest
 
-- (void)deviceList:(KBRDeviceListRequestParams *)params completion:(void (^)(NSError *error, NSArray *items))completion;
-
-- (void)deviceListWithAll:(BOOL)all completion:(void (^)(NSError *error, NSArray *items))completion;
+- (void)deviceList:(void (^)(NSError *error, NSArray *items))completion;
 
 - (void)deviceAdd:(KBRDeviceAddRequestParams *)params completion:(void (^)(NSError *error))completion;
 
@@ -1390,6 +1391,10 @@ typedef NS_ENUM (NSInteger, KBRPromptDefault) {
 - (void)getMetadata:(KBRGetMetadataRequestParams *)params completion:(void (^)(NSError *error, KBRMetadataResponse *metadataResponse))completion;
 
 - (void)getMetadataWithFolderID:(NSString *)folderID folderHandle:(NSData *)folderHandle unmerged:(BOOL)unmerged startRevision:(long)startRevision stopRevision:(long)stopRevision completion:(void (^)(NSError *error, KBRMetadataResponse *metadataResponse))completion;
+
+- (void)registerForUpdates:(KBRRegisterForUpdatesRequestParams *)params completion:(void (^)(NSError *error))completion;
+
+- (void)registerForUpdatesWithFolderID:(NSString *)folderID currRevision:(long)currRevision completion:(void (^)(NSError *error))completion;
 
 - (void)pruneUnmerged:(KBRPruneUnmergedRequestParams *)params completion:(void (^)(NSError *error))completion;
 
@@ -1606,6 +1611,22 @@ typedef NS_ENUM (NSInteger, KBRPromptDefault) {
 - (void)write:(KBRWriteRequestParams *)params completion:(void (^)(NSError *error, NSInteger n))completion;
 
 - (void)writeWithS:(KBRStream *)s buf:(NSData *)buf completion:(void (^)(NSError *error, NSInteger n))completion;
+
+@end
+
+@interface KBRTestRequest : KBRRequest
+
+- (void)test:(KBRTestRequestParams *)params completion:(void (^)(NSError *error, KBRTest *test))completion;
+
+- (void)testWithName:(NSString *)name completion:(void (^)(NSError *error, KBRTest *test))completion;
+
+- (void)testCallback:(KBRTestCallbackRequestParams *)params completion:(void (^)(NSError *error, NSString *str))completion;
+
+- (void)testCallbackWithName:(NSString *)name completion:(void (^)(NSError *error, NSString *str))completion;
+
+- (void)panic:(KBRPanicRequestParams *)params completion:(void (^)(NSError *error))completion;
+
+- (void)panicWithMessage:(NSString *)message completion:(void (^)(NSError *error))completion;
 
 @end
 

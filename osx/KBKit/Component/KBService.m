@@ -114,7 +114,7 @@
 }
 
 - (void)panic:(KBCompletion)completion {
-  KBRCtlRequest *request = [[KBRCtlRequest alloc] initWithClient:self.client];
+  KBRTestRequest *request = [[KBRTestRequest alloc] initWithClient:self.client];
   [request panicWithMessage:@"Testing panic" completion:^(NSError *error) {
     completion(error);
   }];

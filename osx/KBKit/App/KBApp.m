@@ -124,6 +124,16 @@
   [_appView openWithEnvironment:environment completion:^(NSError *error) {}];
 }
 
+- (void)_test {
+  KBRTestRequest *request = [[KBRTestRequest alloc] initWithClient:self.service.client];
+  [self.service.client registerMethod:@"keybase.1.test.testCallback" sessionId:request.sessionId requestHandler:^(NSNumber *messageId, NSString *method, NSArray *params, MPRequestCompletion completion) {
+    completion(nil, @"the reply");
+  }];
+  [request testWithName:@"testing" completion:^(NSError *error, KBRTest *test) {
+    // Testing
+  }];
+}
+
 - (NSWindow *)mainWindow {
   return _appView.window;
 }

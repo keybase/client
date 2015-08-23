@@ -82,7 +82,7 @@
   GHWeakSelf gself = self;
   // TODO animating?
   //_devicesView.progressView.animating = YES;
-  [request deviceList:[KBRDeviceListRequestParams params] completion:^(NSError *error, NSArray *items) {
+  [request deviceList:^(NSError *error, NSArray *items) {
     //gself.devicesView.progressView.animating = NO;
     if (error) {
       [gself.devicesView removeAllObjects];
