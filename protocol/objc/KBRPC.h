@@ -88,10 +88,6 @@
 @property NSData *publicKey;
 @end
 
-@interface KBRServiceStatusRes : KBRObject
-@property long time;
-@end
-
 typedef NS_ENUM (NSInteger, KBRDoctorFixType) {
 	KBRDoctorFixTypeNone = 0,
 	KBRDoctorFixTypeAddEldestDevice = 1,
@@ -521,6 +517,10 @@ typedef NS_ENUM (NSInteger, KBRPromptOverwriteType) {
 @property BOOL revoked;
 @end
 
+@interface KBRTest : KBRObject
+@property NSString *reply;
+@end
+
 typedef NS_ENUM (NSInteger, KBRPromptDefault) {
 	KBRPromptDefaultNone = 0,
 	KBRPromptDefaultYes = 1,
@@ -632,9 +632,6 @@ typedef NS_ENUM (NSInteger, KBRPromptDefault) {
 @property NSData *nonce;
 @property NSData *peersPublicKey;
 @property NSString *reason;
-@end
-@interface KBRPanicRequestParams : KBRRequestParams
-@property NSString *message;
 @end
 @interface KBRDeviceListRequestParams : KBRRequestParams
 @property NSInteger sessionID;
@@ -849,10 +846,6 @@ typedef NS_ENUM (NSInteger, KBRPromptDefault) {
 @interface KBRTruncateUnlockRequestParams : KBRRequestParams
 @property NSString *folderID;
 @end
-@interface KBRMetadataUpdateRequestParams : KBRRequestParams
-@property NSString *folderID;
-@property long revision;
-@end
 @interface KBRPgpSignRequestParams : KBRRequestParams
 @property NSInteger sessionID;
 @property KBRStream *source;
@@ -1048,6 +1041,17 @@ typedef NS_ENUM (NSInteger, KBRPromptDefault) {
 @property KBRStream *s;
 @property NSData *buf;
 @end
+@interface KBRTestRequestParams : KBRRequestParams
+@property NSInteger sessionID;
+@property NSString *name;
+@end
+@interface KBRTestCallbackRequestParams : KBRRequestParams
+@property NSInteger sessionID;
+@property NSString *name;
+@end
+@interface KBRPanicRequestParams : KBRRequestParams
+@property NSString *message;
+@end
 @interface KBRTrackRequestParams : KBRRequestParams
 @property NSInteger sessionID;
 @property NSString *userAssertion;
@@ -1172,12 +1176,6 @@ typedef NS_ENUM (NSInteger, KBRPromptDefault) {
 - (void)stop:(void (^)(NSError *error))completion;
 
 - (void)logRotate:(void (^)(NSError *error))completion;
-
-- (void)panic:(KBRPanicRequestParams *)params completion:(void (^)(NSError *error))completion;
-
-- (void)panicWithMessage:(NSString *)message completion:(void (^)(NSError *error))completion;
-
-- (void)status:(void (^)(NSError *error, KBRServiceStatusRes *serviceStatusRes))completion;
 
 @end
 
@@ -1420,14 +1418,6 @@ typedef NS_ENUM (NSInteger, KBRPromptDefault) {
 
 @end
 
-@interface KBRMetadataUpdateRequest : KBRRequest
-
-- (void)metadataUpdate:(KBRMetadataUpdateRequestParams *)params completion:(void (^)(NSError *error))completion;
-
-- (void)metadataUpdateWithFolderID:(NSString *)folderID revision:(long)revision completion:(void (^)(NSError *error))completion;
-
-@end
-
 @interface KBRPgpRequest : KBRRequest
 
 - (void)pgpSign:(KBRPgpSignRequestParams *)params completion:(void (^)(NSError *error))completion;
@@ -1621,6 +1611,22 @@ typedef NS_ENUM (NSInteger, KBRPromptDefault) {
 - (void)write:(KBRWriteRequestParams *)params completion:(void (^)(NSError *error, NSInteger n))completion;
 
 - (void)writeWithS:(KBRStream *)s buf:(NSData *)buf completion:(void (^)(NSError *error, NSInteger n))completion;
+
+@end
+
+@interface KBRTestRequest : KBRRequest
+
+- (void)test:(KBRTestRequestParams *)params completion:(void (^)(NSError *error, KBRTest *test))completion;
+
+- (void)testWithName:(NSString *)name completion:(void (^)(NSError *error, KBRTest *test))completion;
+
+- (void)testCallback:(KBRTestCallbackRequestParams *)params completion:(void (^)(NSError *error, NSString *str))completion;
+
+- (void)testCallbackWithName:(NSString *)name completion:(void (^)(NSError *error, NSString *str))completion;
+
+- (void)panic:(KBRPanicRequestParams *)params completion:(void (^)(NSError *error))completion;
+
+- (void)panicWithMessage:(NSString *)message completion:(void (^)(NSError *error))completion;
 
 @end
 

@@ -3,8 +3,6 @@ package service
 import (
 	"os"
 	"time"
-
-	keybase1 "github.com/keybase/client/protocol/go"
 )
 
 type CtlHandler struct{}
@@ -22,18 +20,4 @@ func (c CtlHandler) Stop() error {
 
 func (c CtlHandler) LogRotate() error {
 	return G.Log.RotateLogFile()
-}
-
-func (c CtlHandler) Panic(message string) error {
-	G.Log.Info("Received panic() RPC")
-	go func() {
-		panic(message)
-	}()
-	return nil
-}
-
-func (c CtlHandler) Status() (keybase1.ServiceStatusRes, error) {
-	var status keybase1.ServiceStatusRes
-	status.Time = keybase1.ToTime(time.Now())
-	return status, nil
 }

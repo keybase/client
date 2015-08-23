@@ -1,0 +1,41 @@
+{
+  "protocol" : "test",
+  "namespace" : "keybase.1",
+  "types" : [ {
+    "type" : "record",
+    "name" : "Test",
+    "fields" : [ {
+      "name" : "reply",
+      "type" : "string"
+    } ]
+  } ],
+  "messages" : {
+    "test" : {
+      "request" : [ {
+        "name" : "sessionID",
+        "type" : "int"
+      }, {
+        "name" : "name",
+        "type" : "string"
+      } ],
+      "response" : "Test"
+    },
+    "testCallback" : {
+      "request" : [ {
+        "name" : "sessionID",
+        "type" : "int"
+      }, {
+        "name" : "name",
+        "type" : "string"
+      } ],
+      "response" : "string"
+    },
+    "panic" : {
+      "request" : [ {
+        "name" : "message",
+        "type" : "string"
+      } ],
+      "response" : "null"
+    }
+  }
+}

@@ -151,13 +151,6 @@
       "name" : "fd",
       "type" : "int"
     } ]
-  }, {
-    "type" : "record",
-    "name" : "ServiceStatusRes",
-    "fields" : [ {
-      "name" : "time",
-      "type" : "Time"
-    } ]
   } ],
   "messages" : {
     "stop" : {
@@ -167,17 +160,6 @@
     "logRotate" : {
       "request" : [ ],
       "response" : "null"
-    },
-    "panic" : {
-      "request" : [ {
-        "name" : "message",
-        "type" : "string"
-      } ],
-      "response" : "null"
-    },
-    "status" : {
-      "request" : [ ],
-      "response" : "ServiceStatusRes"
     }
   }
 }

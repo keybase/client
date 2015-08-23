@@ -1,0 +1,20 @@
+@namespace("keybase.1")
+protocol test {
+
+	// Result from calling test(..).
+	record Test {
+		string reply;
+	}
+
+	// Call test method.
+	// Will trigger the testCallback method, whose result will be set in the
+	// returned Test object, reply property.
+	Test test(int sessionID, string name);
+
+	// This is a service callback triggered from test(..).
+	// The name param is what was passed into test.
+	string testCallback(int sessionID, string name);
+
+	// For testing crashes
+	void panic(string message);
+}

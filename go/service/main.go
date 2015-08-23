@@ -44,6 +44,7 @@ func RegisterProtocols(srv *rpc2.Server, xp *rpc2.Transport) error {
 		keybase1.SigsProtocol(NewSigsHandler(xp)),
 		keybase1.PGPProtocol(NewPGPHandler(xp)),
 		keybase1.RevokeProtocol(NewRevokeHandler(xp)),
+		keybase1.TestProtocol(NewTestHandler(xp)),
 		keybase1.TrackProtocol(NewTrackHandler(xp)),
 		keybase1.UserProtocol(NewUserHandler(xp)),
 	}

@@ -416,28 +416,15 @@ func (c CryptoClient) UnboxBytes32(__arg UnboxBytes32Arg) (res Bytes32, err erro
 	return
 }
 
-type ServiceStatusRes struct {
-	Time Time `codec:"time" json:"time"`
-}
-
 type StopArg struct {
 }
 
 type LogRotateArg struct {
 }
 
-type PanicArg struct {
-	Message string `codec:"message" json:"message"`
-}
-
-type StatusArg struct {
-}
-
 type CtlInterface interface {
 	Stop() error
 	LogRotate() error
-	Panic(string) error
-	Status() (ServiceStatusRes, error)
 }
 
 func CtlProtocol(i CtlInterface) rpc2.Protocol {
@@ -458,20 +445,6 @@ func CtlProtocol(i CtlInterface) rpc2.Protocol {
 				}
 				return
 			},
-			"panic": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
-				args := make([]PanicArg, 1)
-				if err = nxt(&args); err == nil {
-					err = i.Panic(args[0].Message)
-				}
-				return
-			},
-			"status": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
-				args := make([]StatusArg, 1)
-				if err = nxt(&args); err == nil {
-					ret, err = i.Status()
-				}
-				return
-			},
 		},
 	}
 
@@ -488,17 +461,6 @@ func (c CtlClient) Stop() (err error) {
 
 func (c CtlClient) LogRotate() (err error) {
 	err = c.Cli.Call("keybase.1.ctl.logRotate", []interface{}{LogRotateArg{}}, nil)
-	return
-}
-
-func (c CtlClient) Panic(message string) (err error) {
-	__arg := PanicArg{Message: message}
-	err = c.Cli.Call("keybase.1.ctl.panic", []interface{}{__arg}, nil)
-	return
-}
-
-func (c CtlClient) Status() (res ServiceStatusRes, err error) {
-	err = c.Cli.Call("keybase.1.ctl.status", []interface{}{StatusArg{}}, &res)
 	return
 }
 
@@ -1975,40 +1937,6 @@ func (c MetadataClient) TruncateUnlock(folderID string) (res bool, err error) {
 	return
 }
 
-type MetadataUpdateArg struct {
-	FolderID string `codec:"folderID" json:"folderID"`
-	Revision int64  `codec:"revision" json:"revision"`
-}
-
-type MetadataUpdateInterface interface {
-	MetadataUpdate(MetadataUpdateArg) error
-}
-
-func MetadataUpdateProtocol(i MetadataUpdateInterface) rpc2.Protocol {
-	return rpc2.Protocol{
-		Name: "keybase.1.metadataUpdate",
-		Methods: map[string]rpc2.ServeHook{
-			"metadataUpdate": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
-				args := make([]MetadataUpdateArg, 1)
-				if err = nxt(&args); err == nil {
-					err = i.MetadataUpdate(args[0])
-				}
-				return
-			},
-		},
-	}
-
-}
-
-type MetadataUpdateClient struct {
-	Cli GenericClient
-}
-
-func (c MetadataUpdateClient) MetadataUpdate(__arg MetadataUpdateArg) (err error) {
-	err = c.Cli.Call("keybase.1.metadataUpdate.metadataUpdate", []interface{}{__arg}, nil)
-	return
-}
-
 type SignMode int
 
 const (
@@ -3070,6 +2998,80 @@ func (c StreamUiClient) Read(__arg ReadArg) (res []byte, err error) {
 
 func (c StreamUiClient) Write(__arg WriteArg) (res int, err error) {
 	err = c.Cli.Call("keybase.1.streamUi.write", []interface{}{__arg}, &res)
+	return
+}
+
+type Test struct {
+	Reply string `codec:"reply" json:"reply"`
+}
+
+type TestArg struct {
+	SessionID int    `codec:"sessionID" json:"sessionID"`
+	Name      string `codec:"name" json:"name"`
+}
+
+type TestCallbackArg struct {
+	SessionID int    `codec:"sessionID" json:"sessionID"`
+	Name      string `codec:"name" json:"name"`
+}
+
+type PanicArg struct {
+	Message string `codec:"message" json:"message"`
+}
+
+type TestInterface interface {
+	Test(TestArg) (Test, error)
+	TestCallback(TestCallbackArg) (string, error)
+	Panic(string) error
+}
+
+func TestProtocol(i TestInterface) rpc2.Protocol {
+	return rpc2.Protocol{
+		Name: "keybase.1.test",
+		Methods: map[string]rpc2.ServeHook{
+			"test": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
+				args := make([]TestArg, 1)
+				if err = nxt(&args); err == nil {
+					ret, err = i.Test(args[0])
+				}
+				return
+			},
+			"testCallback": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
+				args := make([]TestCallbackArg, 1)
+				if err = nxt(&args); err == nil {
+					ret, err = i.TestCallback(args[0])
+				}
+				return
+			},
+			"panic": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
+				args := make([]PanicArg, 1)
+				if err = nxt(&args); err == nil {
+					err = i.Panic(args[0].Message)
+				}
+				return
+			},
+		},
+	}
+
+}
+
+type TestClient struct {
+	Cli GenericClient
+}
+
+func (c TestClient) Test(__arg TestArg) (res Test, err error) {
+	err = c.Cli.Call("keybase.1.test.test", []interface{}{__arg}, &res)
+	return
+}
+
+func (c TestClient) TestCallback(__arg TestCallbackArg) (res string, err error) {
+	err = c.Cli.Call("keybase.1.test.testCallback", []interface{}{__arg}, &res)
+	return
+}
+
+func (c TestClient) Panic(message string) (err error) {
+	__arg := PanicArg{Message: message}
+	err = c.Cli.Call("keybase.1.test.panic", []interface{}{__arg}, nil)
 	return
 }
 
