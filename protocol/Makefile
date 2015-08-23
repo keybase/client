@@ -29,7 +29,6 @@ build-stamp: \
 	json/login.json \
 	json/login_ui.json \
 	json/metadata.json \
-	json/metadata_update.json \
 	json/pgp.json \
 	json/prove.json \
 	json/prove_ui.json \
@@ -42,7 +41,7 @@ build-stamp: \
 	json/stream_ui.json \
 	json/track.json \
 	json/ui.json \
-	json/user.json 
+	json/user.json
 	@mkdir -p json
 	date > $@
 
