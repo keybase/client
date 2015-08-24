@@ -57,17 +57,26 @@ func (e *PGPDecrypt) SubConsumers() []libkb.UIConsumer {
 }
 
 // Run starts the engine.
-func (e *PGPDecrypt) Run(ctx *Context) error {
+func (e *PGPDecrypt) Run(ctx *Context) (err error) {
+	e.G().Log.Debug("+ PGPDecrypt::Run")
+	defer func() {
+		e.G().Log.Debug("- PGPDecrypt::Run %s", err)
+	}()
+
+	e.G().Log.Debug("| ScanKeys")
+
 	sk, err := NewScanKeys(ctx.SecretUI, ctx.IdentifyUI, &e.arg.TrackOptions, e.G())
 	if err != nil {
 		return err
 	}
+	e.G().Log.Debug("| PGPDecrypt")
 	e.signStatus, err = libkb.PGPDecrypt(e.arg.Source, e.arg.Sink, sk)
 	if err != nil {
 		return err
 	}
 
-	if err := e.arg.Sink.Close(); err != nil {
+	e.G().Log.Debug("| Sink Close")
+	if err = e.arg.Sink.Close(); err != nil {
 		return err
 	}
 
@@ -90,7 +99,8 @@ func (e *PGPDecrypt) Run(ctx *Context) error {
 		return e.signStatus.SignatureError
 	}
 
-	if err := e.checkSignedBy(ctx); err != nil {
+	e.G().Log.Debug("| checkSignedBy")
+	if err = e.checkSignedBy(ctx); err != nil {
 		return err
 	}
 
