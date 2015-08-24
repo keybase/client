@@ -91,6 +91,16 @@ func (p *PGPFingerprint) Match(q string, exact bool) bool {
 	return strings.HasSuffix(strings.ToLower(p.String()), strings.ToLower(q))
 }
 
+func (k *PGPKeyBundle) FullHash() (string, error) {
+	keyBlob, err := k.Encode()
+	if err != nil {
+		return "", err
+	}
+
+	keySum := sha256.Sum256([]byte(strings.TrimSpace(keyBlob)))
+	return hex.EncodeToString(keySum[:]), nil
+}
+
 func (k *PGPKeyBundle) StripRevocations() {
 	k.Revocations = nil
 

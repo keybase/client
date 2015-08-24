@@ -30,12 +30,14 @@ func merkleRootInfo() (ret *jsonw.Wrapper) {
 }
 
 type KeySection struct {
-	Key         GenericKey
-	EldestKID   keybase1.KID
-	ParentKID   keybase1.KID
-	HasRevSig   bool
-	RevSig      string
-	SigningUser *User
+	Me             *User
+	Key            GenericKey
+	EldestKID      keybase1.KID
+	ParentKID      keybase1.KID
+	HasRevSig      bool
+	RevSig         string
+	SigningUser    *User
+	IncludePGPHash bool
 }
 
 func (arg KeySection) ToJSON() (*jsonw.Wrapper, error) {
@@ -71,6 +73,14 @@ func (arg KeySection) ToJSON() (*jsonw.Wrapper, error) {
 		fingerprint := pgp.GetFingerprint()
 		ret.SetKey("fingerprint", jsonw.NewString(fingerprint.String()))
 		ret.SetKey("key_id", jsonw.NewString(fingerprint.ToKeyID()))
+		if arg.IncludePGPHash {
+			hash, err := pgp.FullHash()
+			if err != nil {
+				return nil, err
+			}
+
+			ret.SetKey("full_hash", jsonw.NewString(hash))
+		}
 	}
 
 	return ret, nil
@@ -209,12 +219,13 @@ func remoteProofToTrackingStatement(s RemoteProofChainLink, base *jsonw.Wrapper)
 }
 
 type ProofMetadata struct {
-	Me           *User
-	LinkType     LinkType
-	SigningKey   GenericKey
-	Eldest       keybase1.KID
-	CreationTime int64
-	ExpireIn     int
+	Me             *User
+	LinkType       LinkType
+	SigningKey     GenericKey
+	Eldest         keybase1.KID
+	CreationTime   int64
+	ExpireIn       int
+	IncludePGPHash bool
 }
 
 func (arg ProofMetadata) ToJSON() (ret *jsonw.Wrapper, err error) {
@@ -262,9 +273,11 @@ func (arg ProofMetadata) ToJSON() (ret *jsonw.Wrapper, err error) {
 	body.SetKey("type", jsonw.NewString(string(arg.LinkType)))
 
 	key, err = KeySection{
-		Key:         arg.SigningKey,
-		EldestKID:   eldest,
-		SigningUser: arg.Me,
+		Me:             arg.Me,
+		Key:            arg.SigningKey,
+		EldestKID:      eldest,
+		SigningUser:    arg.Me,
+		IncludePGPHash: arg.IncludePGPHash,
 	}.ToJSON()
 	if err != nil {
 		ret = nil
@@ -309,10 +322,12 @@ func (u *User) UntrackingProofFor(signingKey GenericKey, u2 *User) (ret *jsonw.W
 func (u *User) KeyProof(arg Delegator) (ret *jsonw.Wrapper, linkType LinkType, err error) {
 	var kp *jsonw.Wrapper
 	existingKey := arg.ExistingKey
+	includePGPHash := false
 
 	if existingKey == nil {
 		linkType = EldestType
 		existingKey = arg.NewKey
+		includePGPHash = true
 	} else {
 		keySection := KeySection{
 			Key: arg.NewKey,
@@ -333,12 +348,13 @@ func (u *User) KeyProof(arg Delegator) (ret *jsonw.Wrapper, linkType LinkType, e
 	}
 
 	ret, err = ProofMetadata{
-		Me:           u,
-		LinkType:     linkType,
-		ExpireIn:     arg.Expire,
-		SigningKey:   existingKey,
-		Eldest:       arg.EldestKID,
-		CreationTime: arg.Ctime,
+		Me:             u,
+		LinkType:       linkType,
+		ExpireIn:       arg.Expire,
+		SigningKey:     existingKey,
+		Eldest:         arg.EldestKID,
+		CreationTime:   arg.Ctime,
+		IncludePGPHash: includePGPHash,
 	}.ToJSON()
 	if err != nil {
 		return
