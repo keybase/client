@@ -202,9 +202,10 @@ func (s *LoginState) GetPassphraseStream(ui SecretUI) (ret *PassphraseStream, er
 
 // GetVerifiedTripleSec either returns a cached, verified Triplesec
 // or generates a new one that's verified via Login.
-func (s *LoginState) GetVerifiedTriplesec(ui SecretUI) (ret *triplesec.Cipher, err error) {
+func (s *LoginState) GetVerifiedTriplesec(ui SecretUI) (ret *triplesec.Cipher, gen PassphraseGeneration, err error) {
 	err = s.Account(func(a *Account) {
 		ret = a.PassphraseStreamCache().Triplesec()
+		gen = a.GetStreamGeneration()
 	}, "LoginState - GetVerifiedTriplesec - first")
 	if err != nil || ret != nil {
 		return
@@ -216,6 +217,7 @@ func (s *LoginState) GetVerifiedTriplesec(ui SecretUI) (ret *triplesec.Cipher, e
 
 	err = s.Account(func(a *Account) {
 		ret = a.PassphraseStreamCache().Triplesec()
+		gen = a.GetStreamGeneration()
 	}, "LoginState - GetVerifiedTriplesec - second")
 	if err != nil || ret != nil {
 		return

@@ -408,23 +408,25 @@ func (s *NaclSigInfo) ArmoredEncode() (ret string, err error) {
 	return PacketArmoredEncode(s)
 }
 
-func (k NaclSigningKeyPair) ToSKB(gc *GlobalContext, t *triplesec.Cipher) (*SKB, error) {
+func (k NaclSigningKeyPair) ToSKB(gc *GlobalContext, t *triplesec.Cipher, gen PassphraseGeneration) (*SKB, error) {
 	ret := &SKB{}
 	ret.SetGlobalContext(gc)
 	ret.Pub = k.GetKID().ToBytes()
 	ret.Type = KIDNaclEddsa
 	ret.Priv.Encryption = 0
 	ret.Priv.Data = (*k.Private)[:]
+	ret.Priv.PassphraseGeneration = int(gen)
 	return ret, nil
 }
 
-func (k NaclDHKeyPair) ToSKB(gc *GlobalContext, t *triplesec.Cipher) (*SKB, error) {
+func (k NaclDHKeyPair) ToSKB(gc *GlobalContext, t *triplesec.Cipher, gen PassphraseGeneration) (*SKB, error) {
 	ret := &SKB{}
 	ret.SetGlobalContext(gc)
 	ret.Pub = k.GetKID().ToBytes()
 	ret.Type = KIDNaclDH
 	ret.Priv.Encryption = 0
 	ret.Priv.Data = (*k.Private)[:]
+	ret.Priv.PassphraseGeneration = int(gen)
 	return ret, nil
 }
 

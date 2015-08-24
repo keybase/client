@@ -498,3 +498,45 @@ func TestPassphraseChangePGP3Sec(t *testing.T) {
 		t.Errorf("key type: %T, expected libkb.PGPKeyBundle", key)
 	}
 }
+
+// Test changing the passphrase when user forgets current
+// passphrase and is logged out, but has a backup key.
+// Also, this user has a 3sec-encrypted private pgp key
+// that will be unusable after changing passphrase.
+func TestPassphraseChangeLoggedOutBackupKeyPlusPGP(t *testing.T) {
+	tc := SetupEngineTest(t, "PassphraseChange")
+	defer tc.Cleanup()
+
+	u := createFakeUserWithPGPSibkeyPushed(tc)
+
+	assertLoadSecretKeys(tc, u, "logged out w/ backup key, before passphrase change")
+
+	ctx := &Context{
+		LogUI:    tc.G.UI.GetLogUI(),
+		LoginUI:  libkb.TestLoginUI{},
+		SecretUI: &libkb.TestSecretUI{},
+	}
+	beng := NewPaperKey(tc.G)
+	if err := RunEngine(beng, ctx); err != nil {
+		t.Fatal(err)
+	}
+	backupPassphrase := beng.Passphrase()
+	ctx.SecretUI = &libkb.TestSecretUI{BackupPassphrase: backupPassphrase}
+
+	Logout(tc)
+
+	newPassphrase := "password"
+	arg := &keybase1.PassphraseChangeArg{
+		Passphrase: newPassphrase,
+		Force:      true,
+	}
+	eng := NewPassphraseChange(arg, tc.G)
+	if err := RunEngine(eng, ctx); err != nil {
+		t.Fatal(err)
+	}
+
+	verifyPassphraseChange(tc, u, newPassphrase)
+
+	u.Passphrase = newPassphrase
+	assertLoadSecretKeys(tc, u, "logged out w/ backup key, after passphrase change")
+}

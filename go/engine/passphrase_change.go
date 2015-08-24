@@ -12,9 +12,10 @@ import (
 // PassphraseChange engine is used for changing the user's passphrase, either
 // by replacement or by force.
 type PassphraseChange struct {
-	arg      *keybase1.PassphraseChangeArg
-	me       *libkb.User
-	ppStream *libkb.PassphraseStream
+	arg        *keybase1.PassphraseChangeArg
+	me         *libkb.User
+	ppStream   *libkb.PassphraseStream
+	usingPaper bool
 	libkb.Contextified
 }
 
@@ -123,7 +124,12 @@ func (c *PassphraseChange) findDeviceKeys(ctx *Context) (*keypair, error) {
 // regenerate backup keys, which are then matched against the
 // backup keys found in the keyfamily.
 func (c *PassphraseChange) findPaperKeys(ctx *Context) (*keypair, error) {
-	return findPaperKeys(ctx, c.G(), c.me)
+	kp, err := findPaperKeys(ctx, c.G(), c.me)
+	if err != nil {
+		return nil, err
+	}
+	c.usingPaper = true
+	return kp, nil
 }
 
 // findUpdateKeys looks for keys to perform the passphrase update.
@@ -153,7 +159,7 @@ func (c *PassphraseChange) findUpdateKeys(ctx *Context) (*keypair, error) {
 // fetchLKS gets the encrypted LKS client half from the server.
 // It uses encKey to decrypt it.  It also returns the passphrase
 // generation.
-func (c *PassphraseChange) fetchLKS(ctx *Context, encKey libkb.GenericKey) (int, []byte, error) {
+func (c *PassphraseChange) fetchLKS(ctx *Context, encKey libkb.GenericKey) (libkb.PassphraseGeneration, []byte, error) {
 	res, err := c.G().API.Get(
 		libkb.APIArg{
 			Endpoint:    "passphrase/recover",
@@ -180,14 +186,20 @@ func (c *PassphraseChange) fetchLKS(ctx *Context, encKey libkb.GenericKey) (int,
 		return 0, nil, err
 	}
 
-	return ppGen, msg, nil
+	return libkb.PassphraseGeneration(ppGen), msg, nil
 }
 
-func (c *PassphraseChange) updatePassphrase(ctx *Context, sigKey libkb.GenericKey, ppGen int, oldClientHalf []byte) error {
+func (c *PassphraseChange) updatePassphrase(ctx *Context, sigKey libkb.GenericKey, ppGen libkb.PassphraseGeneration, oldClientHalf []byte) error {
+
+	pgpKey, err := c.findPrivatePGPKey(ctx)
+	if err != nil {
+		return err
+	}
+
 	var acctErr error
 	c.G().LoginState().Account(func(a *libkb.Account) {
 		// Ready the update argument; almost done, but we need some more stuff.
-		args, err := c.commonArgs(a, oldClientHalf)
+		args, err := c.commonArgs(a, oldClientHalf, pgpKey, ppGen)
 		if err != nil {
 			acctErr = err
 			return
@@ -201,6 +213,9 @@ func (c *PassphraseChange) updatePassphrase(ctx *Context, sigKey libkb.GenericKe
 		}
 
 		// Generate a signature with our unlocked sibling key from device.
+		// XXX this ppGen is currently the existing generation.  It should
+		// be the next generation.
+		// See issue #688.
 		proof, err := c.me.UpdatePassphraseProof(sigKey, pwh.String(), ppGen)
 		if err != nil {
 			acctErr = err
@@ -274,7 +289,11 @@ func (c *PassphraseChange) runStandardUpdate(ctx *Context) (err error) {
 	} else {
 		err = c.verifySuppliedPassphrase(ctx)
 	}
+	if err != nil {
+		return err
+	}
 
+	pgpKey, err := c.findPrivatePGPKey(ctx)
 	if err != nil {
 		return err
 	}
@@ -285,7 +304,7 @@ func (c *PassphraseChange) runStandardUpdate(ctx *Context) (err error) {
 		oldPWH := a.PassphraseStreamCache().PassphraseStream().PWHash()
 		oldClientHalf := a.PassphraseStreamCache().PassphraseStream().LksClientHalf()
 
-		args, err := c.commonArgs(a, oldClientHalf)
+		args, err := c.commonArgs(a, oldClientHalf, pgpKey, gen)
 		if err != nil {
 			acctErr = err
 			return
@@ -315,13 +334,13 @@ func (c *PassphraseChange) runStandardUpdate(ctx *Context) (err error) {
 
 // commonArgs must be called inside a LoginState().Account(...)
 // closure
-func (c *PassphraseChange) commonArgs(a *libkb.Account, oldClientHalf []byte) (*libkb.HTTPArgs, error) {
+func (c *PassphraseChange) commonArgs(a *libkb.Account, oldClientHalf []byte, pgpKey libkb.GenericKey, existingGen libkb.PassphraseGeneration) (*libkb.HTTPArgs, error) {
 	salt, err := a.LoginSession().Salt()
 	if err != nil {
 		return nil, err
 	}
 
-	_, newPPStream, err := libkb.StretchPassphrase(c.arg.Passphrase, salt)
+	tsec, newPPStream, err := libkb.StretchPassphrase(c.arg.Passphrase, salt)
 	if err != nil {
 		return nil, err
 	}
@@ -352,12 +371,22 @@ func (c *PassphraseChange) commonArgs(a *libkb.Account, oldClientHalf []byte) (*
 		return nil, err
 	}
 
-	return &libkb.HTTPArgs{
+	args := &libkb.HTTPArgs{
 		"pwh":               libkb.HexArg(newPWH),
 		"pwh_version":       libkb.I{Val: int(triplesec.Version)},
 		"lks_mask":          libkb.HexArg(mask),
 		"lks_client_halves": libkb.S{Val: string(lkschJSON)},
-	}, nil
+	}
+
+	if pgpKey != nil {
+		encoded, err := c.encodePrivatePGPKey(pgpKey, tsec, existingGen+1)
+		if err != nil {
+			return nil, err
+		}
+		args.Add("private_key", libkb.S{Val: encoded})
+	}
+
+	return args, nil
 
 }
 
@@ -374,4 +403,40 @@ func (c *PassphraseChange) getVerifiedPassphraseHash(ctx *Context) (err error) {
 func (c *PassphraseChange) verifySuppliedPassphrase(ctx *Context) (err error) {
 	c.ppStream, err = c.G().LoginState().VerifyPlaintextPassphrase(c.arg.OldPassphrase)
 	return
+}
+
+// getPrivatePGPKey gets the user's private pgp key if it exists.
+func (c *PassphraseChange) findPrivatePGPKey(ctx *Context) (libkb.GenericKey, error) {
+	// if using paper keys, then can't decrypt the pgp secret key, so don't even try.
+	if c.usingPaper == true {
+		return nil, nil
+	}
+
+	ska := libkb.SecretKeyArg{
+		Me:      c.me,
+		KeyType: libkb.PGPKeyType,
+	}
+
+	key, _, err := c.G().Keyrings.GetSecretKeyWithPrompt(nil, ska, ctx.SecretUI, "passphrase change")
+
+	if err != nil {
+		if _, ok := err.(libkb.NoSecretKeyError); ok {
+			// it's ok if we can't find a pgp key
+			return nil, nil
+		}
+		return nil, err
+	}
+
+	return key, nil
+}
+
+// encodePrivatePGPKey encrypts key with tsec and armor-encodes it.
+// It includes the passphrase generation in the data.
+func (c *PassphraseChange) encodePrivatePGPKey(key libkb.GenericKey, tsec *triplesec.Cipher, gen libkb.PassphraseGeneration) (string, error) {
+	skb, err := key.ToSKB(c.G(), tsec, gen)
+	if err != nil {
+		return "", err
+	}
+
+	return skb.ArmoredEncode()
 }

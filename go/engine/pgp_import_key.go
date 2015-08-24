@@ -292,11 +292,11 @@ func (e *PGPKeyImportEngine) generate(ctx *Context) (err error) {
 }
 
 func (e *PGPKeyImportEngine) prepareSecretPush(ctx *Context) error {
-	tsec, err := e.G().LoginState().GetVerifiedTriplesec(ctx.SecretUI)
+	tsec, gen, err := e.G().LoginState().GetVerifiedTriplesec(ctx.SecretUI)
 	if err != nil {
 		return err
 	}
-	skb, err := e.bundle.ToSKB(e.G(), tsec)
+	skb, err := e.bundle.ToSKB(e.G(), tsec, gen)
 	if err != nil {
 		return err
 	}
