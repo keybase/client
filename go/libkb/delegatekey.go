@@ -16,12 +16,16 @@ import (
 type Delegator struct {
 	Contextified
 
+	// TODO: Rethink flags (Sibkey, PGPUpdate)
+	// https://github.com/keybase/client/issues/647
+
 	// Set these fields
 	NewKey            GenericKey
 	ExistingKey       GenericKey
 	EldestKID         keybase1.KID
 	Me                *User
 	Sibkey            bool
+	PGPUpdate         bool
 	Expire            int
 	Device            *Device
 	RevSig            string
@@ -213,6 +217,10 @@ func (d *Delegator) post(lctx LoginContext) (err error) {
 
 	if len(string(d.ServerHalf)) > 0 {
 		hargs["server_half"] = S{Val: hex.EncodeToString(d.ServerHalf)}
+	}
+
+	if d.PGPUpdate {
+		hargs["is_update"] = B{Val: true}
 	}
 
 	if d.isEldest {

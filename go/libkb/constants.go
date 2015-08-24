@@ -119,6 +119,7 @@ const (
 	AuthenticationType    LinkType = "auth"
 	CryptocurrencyType             = "cryptocurrency"
 	EldestType                     = "eldest"
+	PGPUpdateType                  = "pgp_update"
 	RevokeType                     = "revoke"
 	SibkeyType                     = "sibkey"
 	SubkeyType                     = "subkey"

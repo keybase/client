@@ -332,7 +332,10 @@ func (u *User) KeyProof(arg Delegator) (ret *jsonw.Wrapper, linkType LinkType, e
 		keySection := KeySection{
 			Key: arg.NewKey,
 		}
-		if arg.Sibkey {
+		if arg.PGPUpdate {
+			linkType = PGPUpdateType
+			keySection.IncludePGPHash = true
+		} else if arg.Sibkey {
 			linkType = SibkeyType
 			keySection.HasRevSig = true
 			keySection.RevSig = arg.RevSig
