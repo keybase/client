@@ -64,6 +64,7 @@ func (b *BlockServerRemote) OnConnect(ctx context.Context,
 	// save the conn pointer
 	b.conn = conn
 
+	libkb.G.Log.Debug("BlockServerRemote.OnConnect establish session for user %s\n", user.String())
 	// using conn.DoCommand here would cause problematic recursion
 	return runUnlessCanceled(ctx, func() error {
 		c := keybase1.BlockClient{Cli: client}
