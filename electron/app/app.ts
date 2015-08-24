@@ -17,7 +17,7 @@ export function run(mainUrl: string) {
 
     window.toggleDevTools();
 
-    client = new Client();
+    client = new Client(window);
     //global['client'] = client;
 
     const sockfile = config['app']['sockfile'];

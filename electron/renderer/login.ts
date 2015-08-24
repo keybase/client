@@ -1,84 +1,85 @@
-import React = require('react');
-import TypedReact = require('typed-react');
+import React = require("react");
+import TypedReact = require("typed-react");
 
-import AlertView = require('./alert-view');
-import Alert = require('./lib/alert');
+import AlertView = require("./alert-view");
+import Alert = require("./lib/alert");
 
 const D = React.DOM;
 
-let ipc = _require('ipc');
+import LoginForm = require("./login/form");
+import DevicePrompt = require("./login/device_prompt");
+import LoginFinish = require("./login/finish");
+import LoginStatus = require("./login/status")
+
+let ipc = _require("ipc");
+
+enum LoginStep {Form, DevicePrompt, Finish};
 
 interface LoginState {
-  alert: Alert;
+  status: LoginStatus;
+  step: LoginStep;
 }
 
 class Login extends TypedReact.Component<{}, LoginState> {
 
   componentDidMount() {
-    ipc.on('response', this.onResponse); // Response from service
-    ipc.on('request', this.onRequest); // Request from service to UI
+    ipc.on("serviceRequest", this.onServiceRequest); // Request from service to UI
+    ipc.on("serviceResponse", this.onServiceResponse); // Response from service
   }
 
   getInitialState(): LoginState {
     return {
-      alert: null
+      status: null,
+      step: LoginStep.Form
     }
   }
 
-  submit(e: React.FormEvent) {
-    e.preventDefault();
-    let username = React.findDOMNode<HTMLInputElement>(this.refs['username']).value;
-    let passphrase = React.findDOMNode<HTMLInputElement>(this.refs['password']).value;
-    //let storeSecret = React.findDOMNode<HTMLInputElement>(this.refs['storeSecret']).value;
-    //console.log('Store secret? ', storeSecret);
-    let request = {protocol: 'keybase.1.login', method:'loginWithPassphrase', args: {username, passphrase}};
-    ipc.send('request', request) // Make call to service
+  sendError(msg: string) {
+    let response = {err: msg};
+    ipc.send("responseForService", response);
   }
 
-  onRequest(request) {
+  reset() {
+    this.state.step = LoginStep.Form;
+    this.state.status = null;
+    this.forceUpdate();
+  }
+
+  onServiceRequest(request) {
     let method = request.method;
-    let arg = request.arg;
-    console.log('Request from main: ', method, arg);
-    // TODO: Based on request method and args, show UI and respond with user
-    // input.
-    let response = {result: 'Testing Electron'}
-    ipc.send('response', response); // Response to service request
+    let args = request.args;
+    console.log("Request from main: ", method, args);
+    if (method == "keybase.1.locksmithUi.promptDeviceName") {
+      this.state.step = LoginStep.DevicePrompt;
+    // TODO: keybase.1.locksmithUi.selectSigner
+    }  else {
+      this.sendError("Don't know how to handle method: " + method);
+    }
+    this.forceUpdate();
   }
 
-  onResponse(response) {
+  onServiceResponse(response) {
     let result = response.result;
-    console.log('Response: ', result, response.err);
     if (response.err) {
-      this.state.alert = {type: 'danger', message: response.err['desc']};
+      this.state.step = LoginStep.Form;
+      this.state.status = {alert: {type: "danger", message: response.err["desc"]}};
     } else {
-      this.state.alert = {type: 'success', message: "Logged in!"};
+      this.state.step = LoginStep.Finish;
+      this.state.status = {alert: {type: "success", message: "Logged in!"}};
     }
     this.forceUpdate();
   }
 
   render() {
+    var step = null;
+    switch (this.state.step) {
+      case LoginStep.Form: step = LoginForm(this.state.status); break;
+      case LoginStep.DevicePrompt: step = DevicePrompt(this.state.status); break;
+      case LoginStep.Finish: step = LoginFinish(this.state.status); break;
+    };
     return (
-      D.div({className: 'container'},
-        D.form({className: 'form-login', onSubmit: this.submit},
-          D.h2({className: 'form-login-heading'}, 'Welcome to Keybase'),
-
-          AlertView({alert: this.state.alert}),
-
-          D.div({className: 'form-group'},
-            D.label({htmlFor: 'inputEmail', }, 'Email or Username'),
-            D.input({ref: 'username', className: 'form-control', placeholder:'Email or Username', required: true, autoFocus: true})
-          ),
-          D.div({className: 'form-group'},
-            D.label({htmlFor: 'inputPassword'}, 'Password'),
-            D.input({type: 'password', className: 'form-control', ref: 'password', placeholder:'Password', required: true})
-          ),
-          D.div({className: 'checkbox'},
-            D.label(null,
-              D.input({type: 'checkbox', value: 'remember-me', ref: 'storeSecret'}, 'Remember me')
-            )
-          ),
-          D.button({className: 'btn btn-primary', type: 'submit'}, 'Log In')
-        )
+      D.div({className: "container"},
+        step
       )
     );
   }
