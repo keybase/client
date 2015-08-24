@@ -2,7 +2,7 @@ package libkbfs
 
 import (
 	"bytes"
-	"fmt"
+	"errors"
 	"runtime"
 	"sync"
 	"testing"
@@ -349,6 +349,9 @@ func TestKBFSOpsConcurWriteDuringSyncMultiBlocks(t *testing.T) {
 // Test that a write consisting of multiple blocks can be canceled
 // before all blocks have been written.
 func TestKBFSOpsConcurWriteParallelBlocksCanceled(t *testing.T) {
+	if maxParallelBlockPuts <= 1 {
+		t.Skip("Skipping because we are not putting blocks in parallel.")
+	}
 	config, uid, ctx := kbfsOpsConcurInit(t, "test_user")
 	defer config.Shutdown()
 
@@ -378,10 +381,14 @@ func TestKBFSOpsConcurWriteParallelBlocksCanceled(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Couldn't create file: %v", err)
 	}
-	// 15 blocks
+	// Two initial blocks, then maxParallelBlockPuts blocks that
+	// will be processed but discarded, then three extra blocks
+	// that will be ignored.
+	initialBlocks := 2
+	extraBlocks := 3
+	totalFileBlocks := initialBlocks + maxParallelBlockPuts + extraBlocks
 	var data []byte
-	fileBlocks := int64(15)
-	for i := int64(0); i < blockSize*fileBlocks; i++ {
+	for i := int64(0); i < blockSize*int64(totalFileBlocks); i++ {
 		data = append(data, byte(i))
 	}
 	err = kbfsOps.Write(ctx, fileNode, data, 0)
@@ -401,14 +408,30 @@ func TestKBFSOpsConcurWriteParallelBlocksCanceled(t *testing.T) {
 	prevNBlocks := fc.numBlocks()
 	ctx, cancel := context.WithCancel(ctx)
 	go func() {
-		// let the first two blocks through.
-		<-readyChan
-		goChan <- struct{}{}
-		<-finishChan
+		// let the first initialBlocks blocks through.
+		for i := 0; i < initialBlocks; i++ {
+			<-readyChan
+		}
 
-		<-readyChan
-		goChan <- struct{}{}
-		<-finishChan
+		for i := 0; i < initialBlocks; i++ {
+			goChan <- struct{}{}
+		}
+
+		for i := 0; i < initialBlocks; i++ {
+			<-finishChan
+		}
+
+		// Let each parallel block worker block on readyChan.
+		for i := 0; i < maxParallelBlockPuts; i++ {
+			<-readyChan
+		}
+
+		// Make sure all the workers are busy.
+		select {
+		case <-readyChan:
+			t.Error("Worker unexpectedly ready")
+		default:
+		}
 
 		cancel()
 	}()
@@ -423,17 +446,22 @@ func TestKBFSOpsConcurWriteParallelBlocksCanceled(t *testing.T) {
 			prevNBlocks, nowNBlocks)
 	}
 
-	// now clean up by letting the rest of the blocks through.
+	// Now clean up by letting the rest of the blocks through.
 	for i := 0; i < maxParallelBlockPuts; i++ {
-		select {
-		case <-readyChan:
-			goChan <- struct{}{}
-			<-finishChan
-		default:
-			continue
-		}
+		goChan <- struct{}{}
 	}
 
+	for i := 0; i < maxParallelBlockPuts; i++ {
+		<-finishChan
+	}
+
+	// Make sure there are no more workers, i.e. the extra blocks
+	// aren't sent to the server.
+	select {
+	case <-readyChan:
+		t.Error("Worker unexpectedly ready")
+	default:
+	}
 }
 
 // Test that, when writing multiple blocks in parallel, one error will
@@ -489,7 +517,7 @@ func TestKBFSOpsConcurWriteParallelBlocksError(t *testing.T) {
 	// let two blocks through and fail the third:
 	c = b.EXPECT().Put(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(),
 		gomock.Any(), gomock.Any()).Times(2).After(c).Return(nil)
-	putErr := fmt.Errorf("This is a forced error on put")
+	putErr := errors.New("This is a forced error on put")
 	errChan := make(chan struct{})
 	c = b.EXPECT().Put(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(),
 		gomock.Any(), gomock.Any()).
