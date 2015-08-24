@@ -1027,6 +1027,24 @@
 
 @end
 
+@implementation KBRMetadataUpdateRequest
+
+- (void)metadataUpdate:(KBRMetadataUpdateRequestParams *)params completion:(void (^)(NSError *error))completion {
+  NSDictionary *rparams = @{@"folderID": KBRValue(params.folderID), @"revision": @(params.revision)};
+  [self.client sendRequestWithMethod:@"keybase.1.metadataUpdate.metadataUpdate" params:rparams sessionId:self.sessionId completion:^(NSError *error, id retval) {
+    completion(error);
+  }];
+}
+
+- (void)metadataUpdateWithFolderID:(NSString *)folderID revision:(long)revision completion:(void (^)(NSError *error))completion {
+  NSDictionary *rparams = @{@"folderID": KBRValue(folderID), @"revision": @(revision)};
+  [self.client sendRequestWithMethod:@"keybase.1.metadataUpdate.metadataUpdate" params:rparams sessionId:self.sessionId completion:^(NSError *error, id retval) {
+    completion(error);
+  }];
+}
+
+@end
+
 @implementation KBRPgpRequest
 
 - (void)pgpSign:(KBRPgpSignRequestParams *)params completion:(void (^)(NSError *error))completion {
@@ -3240,6 +3258,23 @@
 
 + (instancetype)params {
   KBRTruncateUnlockRequestParams *p = [[self alloc] init];
+  // Add default values
+  return p;
+}
+@end
+
+@implementation KBRMetadataUpdateRequestParams
+
+- (instancetype)initWithParams:(NSArray *)params {
+  if ((self = [super initWithParams:params])) {
+    self.folderID = params[0][@"folderID"];
+    self.revision = [params[0][@"revision"] longValue];
+  }
+  return self;
+}
+
++ (instancetype)params {
+  KBRMetadataUpdateRequestParams *p = [[self alloc] init];
   // Add default values
   return p;
 }

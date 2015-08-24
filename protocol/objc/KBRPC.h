@@ -846,6 +846,10 @@ typedef NS_ENUM (NSInteger, KBRPromptDefault) {
 @interface KBRTruncateUnlockRequestParams : KBRRequestParams
 @property NSString *folderID;
 @end
+@interface KBRMetadataUpdateRequestParams : KBRRequestParams
+@property NSString *folderID;
+@property long revision;
+@end
 @interface KBRPgpSignRequestParams : KBRRequestParams
 @property NSInteger sessionID;
 @property KBRStream *source;
@@ -1415,6 +1419,14 @@ typedef NS_ENUM (NSInteger, KBRPromptDefault) {
 - (void)truncateUnlock:(KBRTruncateUnlockRequestParams *)params completion:(void (^)(NSError *error, BOOL b))completion;
 
 - (void)truncateUnlockWithFolderID:(NSString *)folderID completion:(void (^)(NSError *error, BOOL b))completion;
+
+@end
+
+@interface KBRMetadataUpdateRequest : KBRRequest
+
+- (void)metadataUpdate:(KBRMetadataUpdateRequestParams *)params completion:(void (^)(NSError *error))completion;
+
+- (void)metadataUpdateWithFolderID:(NSString *)folderID revision:(long)revision completion:(void (^)(NSError *error))completion;
 
 @end
 

@@ -1937,6 +1937,40 @@ func (c MetadataClient) TruncateUnlock(folderID string) (res bool, err error) {
 	return
 }
 
+type MetadataUpdateArg struct {
+	FolderID string `codec:"folderID" json:"folderID"`
+	Revision int64  `codec:"revision" json:"revision"`
+}
+
+type MetadataUpdateInterface interface {
+	MetadataUpdate(MetadataUpdateArg) error
+}
+
+func MetadataUpdateProtocol(i MetadataUpdateInterface) rpc2.Protocol {
+	return rpc2.Protocol{
+		Name: "keybase.1.metadataUpdate",
+		Methods: map[string]rpc2.ServeHook{
+			"metadataUpdate": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
+				args := make([]MetadataUpdateArg, 1)
+				if err = nxt(&args); err == nil {
+					err = i.MetadataUpdate(args[0])
+				}
+				return
+			},
+		},
+	}
+
+}
+
+type MetadataUpdateClient struct {
+	Cli GenericClient
+}
+
+func (c MetadataUpdateClient) MetadataUpdate(__arg MetadataUpdateArg) (err error) {
+	err = c.Cli.Call("keybase.1.metadataUpdate.metadataUpdate", []interface{}{__arg}, nil)
+	return
+}
+
 type SignMode int
 
 const (
