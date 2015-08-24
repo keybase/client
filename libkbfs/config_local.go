@@ -352,6 +352,9 @@ func (c *ConfigLocal) SetLoggerMaker(
 // NewConfigLocalWithCrypto initializes a local crypto config w/a crypto interface that can be used for non-PKI crypto.
 func NewConfigLocalWithCrypto() *ConfigLocal {
 	config := NewConfigLocal()
+	config.SetLoggerMaker(func(m string) logger.Logger {
+		return logger.NewNull()
+	})
 	signingKey := MakeLocalUserSigningKeyOrBust("nobody")
 	cryptPrivateKey := MakeLocalUserCryptPrivateKeyOrBust("nobody")
 	crypto := NewCryptoLocal(config, signingKey, cryptPrivateKey)

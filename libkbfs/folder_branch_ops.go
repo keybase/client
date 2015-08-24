@@ -1293,6 +1293,19 @@ func (fbo *FolderBranchOps) finalizeBlocksLocked(bps *blockPutState) error {
 	return nil
 }
 
+// Returns true if the passed error indicates a reviion conflict.
+func (fbo *FolderBranchOps) isRevisionConflict(err error) bool {
+	if err == nil {
+		return false
+	}
+	_, isConflictRevision := err.(MDServerErrorConflictRevision)
+	_, isConflictPrevRoot := err.(MDServerErrorConflictPrevRoot)
+	_, isConflictDiskUsage := err.(MDServerErrorConflictDiskUsage)
+	_, isConditionFailed := err.(MDServerErrorConditionFailed)
+	return isConflictRevision || isConflictPrevRoot ||
+		isConflictDiskUsage || isConditionFailed
+}
+
 // writerLock must be taken by the caller.
 func (fbo *FolderBranchOps) finalizeWriteLocked(ctx context.Context,
 	md *RootMetadata, bps *blockPutState) error {
@@ -1309,9 +1322,7 @@ func (fbo *FolderBranchOps) finalizeWriteLocked(ctx context.Context,
 	if !fbo.staged {
 		// only do a normal Put if we're not already staged.
 		err = mdops.Put(ctx, md)
-		_, isConflictRevision := err.(MDServerErrorConflictRevision)
-		_, isConflictPrevRoot := err.(MDServerErrorConflictPrevRoot)
-		doUnmergedPut = isConflictRevision || isConflictPrevRoot
+		doUnmergedPut = fbo.isRevisionConflict(err)
 		if err != nil && !doUnmergedPut {
 			return err
 		}

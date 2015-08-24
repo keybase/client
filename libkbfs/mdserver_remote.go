@@ -5,6 +5,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/cenkalti/backoff"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/logger"
 	keybase1 "github.com/keybase/client/protocol/go"
@@ -140,7 +141,24 @@ func (md *MDServerRemote) doCommand(ctx context.Context, command func() error) e
 		// for testing
 		return runUnlessCanceled(ctx, command)
 	}
-	return md.conn.DoCommand(ctx, command)
+
+	// retry throttle errors w/backoff
+	var err error
+	backoff.RetryNotify(func() error {
+		// this will retry connectivity errors w/backoff
+		err = md.conn.DoCommand(ctx, command)
+		_, throttle := err.(MDServerErrorThrottle)
+		if err != nil && throttle {
+			return err
+		}
+		// short circuit retry loop if no error/error isn't MDServerErrorThrottle.
+		return nil
+	}, backoff.NewExponentialBackOff(),
+		func(err error, nextTime time.Duration) {
+			libkb.G.Log.Warning("MDServerRemote: error: %q; will retry in %s",
+				err, nextTime)
+		})
+	return err
 }
 
 // Helper used to retrieve metadata blocks from the MD server.
@@ -288,28 +306,33 @@ func (md *MDServerRemote) RegisterForUpdate(ctx context.Context, id TlfID,
 	// register
 	var c chan error
 	err = md.doCommand(ctx, func() error {
-		// keep re-adding the observer on retries.
-		// OnDisconnected/OnConnectError will remove it.
+		// keep re-adding the observer on retries
 		func() {
 			md.observerMu.Lock()
 			defer md.observerMu.Unlock()
 			if _, ok := md.observers[id]; ok {
-				panic(fmt.Sprintf("Attempted double-registration for MDServerRemote %p",
-					md))
+				panic(fmt.Sprintf("Attempted double-registration for folder: %s",
+					id))
 			}
 			c = make(chan error, 1)
 			md.observers[id] = c
 		}()
-		return md.client().RegisterForUpdates(arg)
+		err := md.client().RegisterForUpdates(arg)
+		if err != nil {
+			func() {
+				md.observerMu.Lock()
+				defer md.observerMu.Unlock()
+				// we could've been canceled by a shutdown so look this up
+				// again before closing and deleting.
+				if updateChan, ok := md.observers[id]; ok {
+					close(updateChan)
+					delete(md.observers, id)
+				}
+			}()
+		}
+		return err
 	})
 	if err != nil {
-		// cancel the observer if it still exists
-		md.observerMu.Lock()
-		defer md.observerMu.Unlock()
-		if observerChan, ok := md.observers[id]; ok {
-			delete(md.observers, id)
-			close(observerChan)
-		}
 		c = nil
 	}
 

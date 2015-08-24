@@ -27,6 +27,10 @@ const (
 	// StatusCodeMDServerErrorUnauthorized is the error code to indicate the client is unauthorized to perform
 	// a certain operation. This is also used to indicate an object isn't found.
 	StatusCodeMDServerErrorUnauthorized = 2806
+	// StatusCodeMDServerErrorThrottle is the error code to indicate the client should initiate backoff.
+	StatusCodeMDServerErrorThrottle = 2807
+	// StatusCodeMDServerErrorConditionFailed is the error code to indicate the write condition failed.
+	StatusCodeMDServerErrorConditionFailed = 2808
 )
 
 // MDServerError is a generic server-side error.
@@ -173,6 +177,43 @@ func (e MDServerErrorUnauthorized) Errno() fuse.Errno {
 	return fuse.Errno(syscall.EACCES)
 }
 
+// MDServerErrorThrottle is returned when the server wants the client to backoff.
+type MDServerErrorThrottle struct {
+	Err error
+}
+
+// Error implements the Error interface for MDServerErrorThrottle.
+func (e MDServerErrorThrottle) Error() string {
+	return e.Err.Error()
+}
+
+// ToStatus implements the ExportableError interface for MDServerErrorThrottle.
+func (e MDServerErrorThrottle) ToStatus() (s keybase1.Status) {
+	s.Code = StatusCodeMDServerErrorThrottle
+	s.Name = "THROTTLE"
+	s.Desc = e.Err.Error()
+	return
+}
+
+// MDServerErrorConditionFailed is returned when a conditonal write failed.
+// This means there was a race and the caller should consider it a conflcit.
+type MDServerErrorConditionFailed struct {
+	Err error
+}
+
+// Error implements the Error interface for MDServerErrorConditionFailed.
+func (e MDServerErrorConditionFailed) Error() string {
+	return e.Err.Error()
+}
+
+// ToStatus implements the ExportableError interface for MDServerErrorConditionFailed.
+func (e MDServerErrorConditionFailed) ToStatus() (s keybase1.Status) {
+	s.Code = StatusCodeMDServerErrorThrottle
+	s.Name = "CONDITION_FAILED"
+	s.Desc = e.Err.Error()
+	return
+}
+
 // MDServerUnwrapError unwraps errors from the rpc stack.
 func MDServerUnwrapError(nxt rpc2.DecodeNext) (app error, dispatch error) {
 	var s *keybase1.Status
@@ -202,6 +243,12 @@ func MDServerUnwrapError(nxt rpc2.DecodeNext) (app error, dispatch error) {
 			break
 		case StatusCodeMDServerErrorUnauthorized:
 			app = MDServerErrorUnauthorized{}
+			break
+		case StatusCodeMDServerErrorThrottle:
+			app = MDServerErrorThrottle{errors.New(s.Desc)}
+			break
+		case StatusCodeMDServerErrorConditionFailed:
+			app = MDServerErrorConditionFailed{errors.New(s.Desc)}
 			break
 		default:
 			ase := libkb.AppStatusError{
