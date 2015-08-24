@@ -10,9 +10,13 @@ import (
 func PGPEncrypt(source io.Reader, sink io.WriteCloser, signer *PGPKeyBundle, recipients []*PGPKeyBundle) error {
 	to := make([]*openpgp.Entity, len(recipients))
 	for i, r := range recipients {
-		to[i] = (*openpgp.Entity)(r)
+		to[i] = r.Entity
 	}
-	w, err := openpgp.Encrypt(sink, to, (*openpgp.Entity)(signer), &openpgp.FileHints{IsBinary: true}, nil)
+	var signerEntity *openpgp.Entity
+	if signer != nil {
+		signerEntity = signer.Entity
+	}
+	w, err := openpgp.Encrypt(sink, to, signerEntity, &openpgp.FileHints{IsBinary: true}, nil)
 	if err != nil {
 		return err
 	}

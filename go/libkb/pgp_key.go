@@ -18,7 +18,22 @@ import (
 	"golang.org/x/crypto/openpgp/packet"
 )
 
-type PGPKeyBundle openpgp.Entity
+type PGPKeyBundle struct {
+	*openpgp.Entity
+
+	// We make the (fairly dangerous) assumption that the key will never be
+	// modified. This avoids the issue that encoding an openpgp.Entity is
+	// nondeterministic due to Go's randomized iteration order (so different
+	// exports of the same key may hash differently).
+	//
+	// If you're *sure* that you're creating a PGPKeyBundle from an armored
+	// *public* key, you can prefill this field and Export() will use it.
+	ArmoredPublicKey string
+}
+
+func NewPGPKeyBundle(entity *openpgp.Entity) *PGPKeyBundle {
+	return &PGPKeyBundle{Entity: entity}
+}
 
 const (
 	PGPFingerprintLen = 20
@@ -147,7 +162,7 @@ func GetPGPFingerprintVoid(w *jsonw.Wrapper, p *PGPFingerprint, e *error) {
 
 func (k PGPKeyBundle) toList() openpgp.EntityList {
 	list := make(openpgp.EntityList, 1, 1)
-	list[0] = (*openpgp.Entity)(&k)
+	list[0] = k.Entity
 	return list
 }
 
@@ -178,10 +193,14 @@ func (k PGPKeyBundle) MatchesKey(key *openpgp.Key) bool {
 }
 
 func (k *PGPKeyBundle) Encode() (ret string, err error) {
+	if k.ArmoredPublicKey != "" {
+		return k.ArmoredPublicKey, nil
+	}
 	buf := bytes.Buffer{}
 	err = k.EncodeToStream(NopWriteCloser{&buf})
 	if err == nil {
 		ret = string(buf.Bytes())
+		k.ArmoredPublicKey = ret
 	}
 	return
 }
@@ -222,7 +241,7 @@ func (k *PGPKeyBundle) EncodeToStream(wc io.WriteCloser) (err error) {
 		return
 	}
 
-	if err = ((*openpgp.Entity)(k)).Serialize(writer); err != nil {
+	if err = k.Entity.Serialize(writer); err != nil {
 		return
 	}
 	if err = writer.Close(); err != nil {
@@ -236,7 +255,7 @@ func (k *PGPKeyBundle) EncodeToStream(wc io.WriteCloser) (err error) {
 func ReadOneKeyFromString(s string) (*PGPKeyBundle, error) {
 	reader := strings.NewReader(s)
 	el, err := openpgp.ReadArmoredKeyRing(reader)
-	return finishReadOne(el, err)
+	return finishReadOne(el, s, err)
 }
 
 // firstPrivateKey scans s for a private key block.
@@ -286,7 +305,7 @@ func ReadPrivateKeyFromString(s string) (*PGPKeyBundle, error) {
 	return ReadOneKeyFromString(priv)
 }
 
-func finishReadOne(el []*openpgp.Entity, err error) (*PGPKeyBundle, error) {
+func finishReadOne(el []*openpgp.Entity, armored string, err error) (*PGPKeyBundle, error) {
 	if err != nil {
 		return nil, err
 	}
@@ -295,14 +314,14 @@ func finishReadOne(el []*openpgp.Entity, err error) (*PGPKeyBundle, error) {
 	} else if len(el) != 1 {
 		return nil, fmt.Errorf("Found multiple keys; wanted just one")
 	} else {
-		return (*PGPKeyBundle)(el[0]), nil
+		return NewPGPKeyBundle(el[0]), nil
 	}
 }
 
 func ReadOneKeyFromBytes(b []byte) (*PGPKeyBundle, error) {
 	reader := bytes.NewBuffer(b)
 	el, err := openpgp.ReadKeyRing(reader)
-	return finishReadOne(el, err)
+	return finishReadOne(el, "", err)
 }
 
 func GetOneKey(jw *jsonw.Wrapper) (*PGPKeyBundle, error) {

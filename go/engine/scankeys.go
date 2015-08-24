@@ -198,7 +198,7 @@ func (s *ScanKeys) extractKey(lctx libkb.LoginContext, skb *libkb.SKB, ui libkb.
 	}
 	bundle, ok := k.(*libkb.PGPKeyBundle)
 	if ok {
-		s.keys = append(s.keys, (*openpgp.Entity)(bundle))
+		s.keys = append(s.keys, bundle.Entity)
 	}
 	return nil
 }
@@ -243,7 +243,7 @@ func (s *ScanKeys) scan(id uint64) (openpgp.EntityList, error) {
 	// (which implements the openpgp.KeyRing interface)
 	var list openpgp.EntityList
 	for _, k := range uplus[0].Keys {
-		list = append(list, (*openpgp.Entity)(k))
+		list = append(list, k.Entity)
 	}
 	return list, nil
 
