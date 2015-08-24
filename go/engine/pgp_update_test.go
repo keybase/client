@@ -140,6 +140,6 @@ func TestPGPUpdateMultiKey(t *testing.T) {
 	// It should finally succeed with just --all.
 	err = doUpdate([]string{}, true /* all */, fu, tc)
 	if err != nil {
-		t.Fatal("Update should succeed with --all.")
+		t.Fatal("Update should succeed with --all. Error:", err)
 	}
 }
