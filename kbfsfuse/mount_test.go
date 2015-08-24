@@ -1761,6 +1761,20 @@ func TestErrorFile(t *testing.T) {
 		expectedErr, "dir")
 }
 
+type testMountObserver struct {
+	c chan<- struct{}
+}
+
+func (t *testMountObserver) LocalChange(ctx context.Context, node libkbfs.Node,
+	write libkbfs.WriteRange) {
+	// ignore
+}
+
+func (t *testMountObserver) BatchChanges(ctx context.Context,
+	changes []libkbfs.NodeChange) {
+	t.c <- struct{}{}
+}
+
 func TestInvalidateAcrossMounts(t *testing.T) {
 	config1 := libkbfs.MakeTestConfigOrBust(t, BServerRemoteAddr, "user1",
 		"user2")
@@ -1809,6 +1823,15 @@ func TestInvalidateAcrossMounts(t *testing.T) {
 		t.Errorf("wrong content: %q != %q", g, e)
 	}
 
+	ctx := context.Background()
+	dh, err := libkbfs.ParseTlfHandle(ctx, config2, "user1,user2")
+	rootNode, _, err := config2.KBFSOps().GetOrCreateRootNodeForHandle(ctx, dh,
+		libkbfs.MasterBranch)
+	c := make(chan struct{})
+	config2.Notifier().RegisterForChanges(
+		[]libkbfs.FolderBranch{rootNode.GetFolderBranch()},
+		&testMountObserver{c})
+
 	// now remove the first file, and rename the second
 	if err := os.Remove(myfile1); err != nil {
 		t.Fatal(err)
@@ -1817,6 +1840,10 @@ func TestInvalidateAcrossMounts(t *testing.T) {
 	if err := os.Rename(mydira1, mydirb1); err != nil {
 		t.Fatal(err)
 	}
+
+	// wait for 2 to get the notifications
+	<-c
+	<-c
 
 	// check everything from user 2's perspective
 	if buf, err := ioutil.ReadFile(myfile2); !os.IsNotExist(err) {
