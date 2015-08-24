@@ -353,7 +353,7 @@ func TestKBFSOpsConcurWriteParallelBlocksCanceled(t *testing.T) {
 	defer config.Shutdown()
 
 	// give it a remote block server with a fake client
-	fc := NewFakeBServerClient(nil, nil)
+	fc := NewFakeBServerClient(nil, nil, nil)
 	b := newBlockServerRemoteWithClient(ctx, config, fc)
 	config.SetBlockServer(b)
 
@@ -393,8 +393,10 @@ func TestKBFSOpsConcurWriteParallelBlocksCanceled(t *testing.T) {
 	// cancel the context
 	readyChan := make(chan struct{})
 	goChan := make(chan struct{})
+	finishChan := make(chan struct{})
 	fc.readyChan = readyChan
 	fc.goChan = goChan
+	fc.finishChan = finishChan
 
 	prevNBlocks := fc.numBlocks()
 	ctx, cancel := context.WithCancel(ctx)
@@ -402,8 +404,11 @@ func TestKBFSOpsConcurWriteParallelBlocksCanceled(t *testing.T) {
 		// let the first two blocks through.
 		<-readyChan
 		goChan <- struct{}{}
+		<-finishChan
+
 		<-readyChan
 		goChan <- struct{}{}
+		<-finishChan
 
 		cancel()
 	}()
@@ -423,6 +428,7 @@ func TestKBFSOpsConcurWriteParallelBlocksCanceled(t *testing.T) {
 		select {
 		case <-readyChan:
 			goChan <- struct{}{}
+			<-finishChan
 		default:
 			continue
 		}

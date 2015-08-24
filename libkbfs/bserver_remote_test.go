@@ -16,10 +16,13 @@ type FakeBServerClient struct {
 	blocksLock sync.Mutex
 	readyChan  chan<- struct{}
 	goChan     <-chan struct{}
+	finishChan chan<- struct{}
 }
 
-func NewFakeBServerClient(readyChan chan<- struct{},
-	goChan <-chan struct{}) *FakeBServerClient {
+func NewFakeBServerClient(
+	readyChan chan<- struct{},
+	goChan <-chan struct{},
+	finishChan chan<- struct{}) *FakeBServerClient {
 	return &FakeBServerClient{
 		blocks:    make(map[keybase1.GetBlockArg]keybase1.GetBlockRes),
 		readyChan: readyChan,
@@ -35,6 +38,12 @@ func (fc *FakeBServerClient) maybeWaitOnChannel() {
 	}
 }
 
+func (fc *FakeBServerClient) maybeFinishOnChannel() {
+	if fc.finishChan != nil {
+		fc.finishChan <- struct{}{}
+	}
+}
+
 func (fc *FakeBServerClient) Call(s string, args interface{},
 	res interface{}) error {
 	switch s {
@@ -44,6 +53,7 @@ func (fc *FakeBServerClient) Call(s string, args interface{},
 
 	case "keybase.1.block.putBlock":
 		fc.maybeWaitOnChannel()
+		defer fc.maybeFinishOnChannel()
 		putArgs := args.([]interface{})[0].(keybase1.PutBlockArg)
 		fc.blocksLock.Lock()
 		defer fc.blocksLock.Unlock()
@@ -53,6 +63,7 @@ func (fc *FakeBServerClient) Call(s string, args interface{},
 
 	case "keybase.1.block.getBlock":
 		fc.maybeWaitOnChannel()
+		defer fc.maybeFinishOnChannel()
 		getArgs := args.([]interface{})[0].(keybase1.GetBlockArg)
 		getRes := res.(*keybase1.GetBlockRes)
 		fc.blocksLock.Lock()
@@ -82,7 +93,7 @@ func TestBServerRemotePutAndGet(t *testing.T) {
 	loggedInUser := localUsers[0]
 	kbpki := NewKBPKILocal(loggedInUser.UID, localUsers)
 	config := &ConfigLocal{codec: codec, kbpki: kbpki}
-	fc := NewFakeBServerClient(nil, nil)
+	fc := NewFakeBServerClient(nil, nil, nil)
 	ctx := context.Background()
 	b := newBlockServerRemoteWithClient(ctx, config, fc)
 
@@ -128,7 +139,7 @@ func TestBServerRemotePutCanceled(t *testing.T) {
 	config := &ConfigLocal{codec: codec, kbpki: kbpki}
 	readyChan := make(chan struct{})
 	goChan := make(chan struct{})
-	fc := NewFakeBServerClient(readyChan, goChan)
+	fc := NewFakeBServerClient(readyChan, goChan, nil)
 
 	f := func(ctx context.Context) error {
 		b := newBlockServerRemoteWithClient(ctx, config, fc)
@@ -155,7 +166,7 @@ func TestBServerRemoteWaitForReconnect(t *testing.T) {
 	loggedInUser := localUsers[0]
 	kbpki := NewKBPKILocal(loggedInUser.UID, localUsers)
 	config := &ConfigLocal{codec: codec, kbpki: kbpki}
-	fc := NewFakeBServerClient(nil, nil)
+	fc := NewFakeBServerClient(nil, nil, nil)
 	ctx := context.Background()
 
 	// make a new bserver, but don't connect it yes
