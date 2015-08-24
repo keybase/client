@@ -1,6 +1,7 @@
 package libkbfs
 
 import (
+	"errors"
 	"fmt"
 	"math/rand"
 	"sync"
@@ -3164,38 +3165,53 @@ func (fbo *FolderBranchOps) getAndApplyMDUpdates(ctx context.Context) {
 	}
 }
 
-func (fbo *FolderBranchOps) registerForUpdates() {
-	// Make a context with the session value set for the local MD
-	// server, in case we're using that.
-	ctx := context.Background()
-	for i := 0; true; i++ {
-		c, err := fbo.config.MDServer().RegisterForUpdate(ctx, fbo.id(),
-			fbo.getCurrMDRevision())
-		if err != nil {
-			// If the MDServer ever returns an error immediately from
-			// RegisterForUpdates without any context switch, this
-			// loop could end up pegging the CPU.  If that happens,
-			// it's probably a bug in MDServer or its use.
-			if i == 0 {
-				libkb.G.Log.Debug("RegisterForUpdate failed: %v; retrying", err)
-			}
-			continue
-		}
-		libkb.G.Log.Debug("RegisterForUpdate succeeded", err)
+// Run the passed function with a context that's canceled on shutdown.
+func (fbo *FolderBranchOps) runUnlessShutdown(fn func(ctx context.Context) error) error {
+	ctx, cancelFunc := context.WithCancel(context.Background())
+	defer cancelFunc()
+	errChan := make(chan error, 1)
+	go func() {
+		errChan <- fn(ctx)
+	}()
 
-		// successful registration; now, wait for an update or a shutdown
-		go func() {
-			select {
-			case err := <-c:
-				if err != nil {
-					fbo.registerForUpdates()
-				} else {
-					fbo.getAndApplyMDUpdates(context.Background())
-				}
-			case <-fbo.shutdownChan:
-				return
-			}
-		}()
-		break
+	select {
+	case err := <-errChan:
+		return err
+	case <-fbo.shutdownChan:
+		return errors.New("shutdown received")
 	}
+}
+
+func (fbo *FolderBranchOps) registerForUpdates() {
+	var err error
+	var updateChan <-chan error
+
+	err = fbo.runUnlessShutdown(func(ctx context.Context) error {
+		// this will retry on connectivity issues. TODO: backoff on explicit
+		// throttle errors from the back-end inside MDServer.
+		updateChan, err = fbo.config.MDServer().RegisterForUpdate(ctx, fbo.id(),
+			fbo.getCurrMDRevision())
+		return err
+	})
+
+	if err != nil {
+		// TODO: we should probably display something or put us in some error
+		// state obvious to the user.
+		libkb.G.Log.Debug("RegisterForUpdate failed, err: %q, folder: %s",
+			err, fbo.id())
+		return
+	}
+
+	libkb.G.Log.Debug("RegisterForUpdate succeeded")
+
+	// successful registration; now, wait for an update or a shutdown
+	go fbo.runUnlessShutdown(func(ctx context.Context) error {
+		err := <-updateChan
+		if err != nil {
+			fbo.registerForUpdates()
+		} else {
+			fbo.getAndApplyMDUpdates(context.Background())
+		}
+		return err
+	})
 }

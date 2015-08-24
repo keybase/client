@@ -107,12 +107,12 @@ func (md *MDServerRemote) cancelObservers() {
 	defer md.observerMu.Unlock()
 	// fire errors for any registered observers
 	for id, observerChan := range md.observers {
-		md.signalObserver(observerChan, id, MDServerDisconnected{})
+		md.signalObserverLocked(observerChan, id, MDServerDisconnected{})
 	}
 }
 
 // Signal an observer. The observer lock must be held.
-func (md *MDServerRemote) signalObserver(observerChan chan<- error, id TlfID, err error) {
+func (md *MDServerRemote) signalObserverLocked(observerChan chan<- error, id TlfID, err error) {
 	observerChan <- err
 	close(observerChan)
 	delete(md.observers, id)
@@ -257,7 +257,7 @@ func (md *MDServerRemote) MetadataUpdate(arg keybase1.MetadataUpdateArg) error {
 	}
 
 	// signal that we've seen the update
-	md.signalObserver(observerChan, id, nil)
+	md.signalObserverLocked(observerChan, id, nil)
 	return nil
 }
 
