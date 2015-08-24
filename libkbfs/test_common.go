@@ -74,7 +74,7 @@ func MakeTestConfigOrBust(t *testing.T, blockServerRemoteAddr *string, users ...
 	localUsers := MakeLocalUsers(users)
 	loggedInUser := localUsers[0]
 
-	kbpki := NewKBPKILocal(loggedInUser.UID, localUsers)
+	kbpki := NewKBPKIMemory(loggedInUser.UID, localUsers)
 
 	// TODO: Consider using fake BlockOps and MDOps instead.
 	config.SetKBPKI(kbpki)
@@ -153,7 +153,7 @@ func ConfigAsUser(config *ConfigLocal, loggedInUser string) *ConfigLocal {
 	for _, u := range pki.Users {
 		localUsers = append(localUsers, u)
 	}
-	newPKI := NewKBPKILocal(loggedInUID, localUsers)
+	newPKI := NewKBPKIMemory(loggedInUID, localUsers)
 	c.SetKBPKI(newPKI)
 
 	signingKey := MakeLocalUserSigningKeyOrBust(loggedInUser)

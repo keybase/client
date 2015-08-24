@@ -16,7 +16,7 @@ type FakeKBPKIClient struct {
 func NewFakeKBPKIClient(loggedIn keybase1.UID, users []LocalUser,
 	ctlChan chan struct{}) *FakeKBPKIClient {
 	return &FakeKBPKIClient{
-		Local:   NewKBPKILocal(loggedIn, users),
+		Local:   NewKBPKIMemory(loggedIn, users),
 		ctlChan: ctlChan,
 	}
 }
