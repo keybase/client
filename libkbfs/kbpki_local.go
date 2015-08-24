@@ -2,12 +2,14 @@ package libkbfs
 
 import (
 	"errors"
+	"fmt"
 
 	"github.com/keybase/client/go/cache/favcache"
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/protocol/go"
 	"github.com/syndtr/goleveldb/leveldb"
 	"github.com/syndtr/goleveldb/leveldb/storage"
+	"github.com/syndtr/goleveldb/leveldb/util"
 	"golang.org/x/net/context"
 )
 
@@ -149,6 +151,10 @@ func (k *KBPKILocal) getLocalUser(uid keybase1.UID) (LocalUser, error) {
 // nor the favorite db are initialized.
 var ErrFavStorageUnavailable = errors.New("no favorite storage system available")
 
+func (k *KBPKILocal) favkey(folder keybase1.Folder) []byte {
+	return []byte(fmt.Sprintf("%s:%s", k.LoggedIn, folder.Name))
+}
+
 // FavoriteAdd implements the KBPKI interface for KBPKILocal.
 func (k *KBPKILocal) FavoriteAdd(ctx context.Context, folder keybase1.Folder) error {
 	if k.Favorites != nil {
@@ -165,7 +171,7 @@ func (k *KBPKILocal) FavoriteAdd(ctx context.Context, folder keybase1.Folder) er
 		return err
 	}
 
-	return k.favoriteDb.Put([]byte(folder.Name), enc, nil)
+	return k.favoriteDb.Put(k.favkey(folder), enc, nil)
 }
 
 // FavoriteDelete implements the KBPKI interface for KBPKILocal.
@@ -179,7 +185,7 @@ func (k *KBPKILocal) FavoriteDelete(ctx context.Context, folder keybase1.Folder)
 		return ErrFavStorageUnavailable
 	}
 
-	return k.favoriteDb.Delete([]byte(folder.Name), nil)
+	return k.favoriteDb.Delete(k.favkey(folder), nil)
 }
 
 // FavoriteList implements the KBPKI interface for KBPKILocal.
@@ -192,7 +198,7 @@ func (k *KBPKILocal) FavoriteList(ctx context.Context) ([]keybase1.Folder, error
 		return nil, ErrFavStorageUnavailable
 	}
 
-	iter := k.favoriteDb.NewIterator(nil, nil)
+	iter := k.favoriteDb.NewIterator(util.BytesPrefix([]byte(k.LoggedIn+":")), nil)
 	defer iter.Release()
 	var folders []keybase1.Folder
 	for iter.Next() {
