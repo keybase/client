@@ -43,15 +43,21 @@ func (g *NaclKeyGen) SaveLKS(lks *LKSec, lctx LoginContext) error {
 }
 
 func (g *NaclKeyGen) Push(lctx LoginContext, aggregated bool) (d Delegator, err error) {
+	var delegationType DelegationType
+	if g.arg.Sibkey {
+		delegationType = SibkeyType
+	} else {
+		delegationType = SubkeyType
+	}
 	d = Delegator{
-		NewKey:      g.pair,
-		RevSig:      g.arg.RevSig,
-		Device:      g.arg.Device,
-		Expire:      g.arg.ExpireIn,
-		Sibkey:      g.arg.Sibkey,
-		ExistingKey: g.arg.Signer,
-		Me:          g.arg.Me,
-		EldestKID:   g.arg.EldestKeyID,
+		NewKey:         g.pair,
+		RevSig:         g.arg.RevSig,
+		Device:         g.arg.Device,
+		Expire:         g.arg.ExpireIn,
+		DelegationType: delegationType,
+		ExistingKey:    g.arg.Signer,
+		Me:             g.arg.Me,
+		EldestKID:      g.arg.EldestKeyID,
 	}
 
 	if aggregated {

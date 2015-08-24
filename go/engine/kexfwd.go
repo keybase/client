@@ -207,15 +207,15 @@ func (k *KexFwd) handleDone(ctx *Context, m *kex.Msg) error {
 // revSig generates a reverse signature using X's device key id.
 func (k *KexFwd) revSig(eddsa libkb.NaclKeyPair) (sig string, err error) {
 	delg := libkb.Delegator{
-		ExistingKey: k.xDevKey,
-		NewKey:      eddsa,
-		Me:          k.args.User,
-		Sibkey:      true,
-		Expire:      libkb.NaclEdDSAExpireIn,
-		Device:      k.GetDevice(),
+		ExistingKey:    k.xDevKey,
+		NewKey:         eddsa,
+		Me:             k.args.User,
+		DelegationType: libkb.SibkeyType,
+		Expire:         libkb.NaclEdDSAExpireIn,
+		Device:         k.GetDevice(),
 	}
 	var jw *jsonw.Wrapper
-	if jw, _, err = k.args.User.KeyProof(delg); err != nil {
+	if jw, err = k.args.User.KeyProof(delg); err != nil {
 		return
 	}
 	sig, _, _, err = libkb.SignJSON(jw, eddsa)

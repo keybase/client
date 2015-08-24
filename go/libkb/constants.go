@@ -114,19 +114,21 @@ const (
 )
 
 type LinkType string
+type DelegationType LinkType
 
 const (
 	AuthenticationType    LinkType = "auth"
 	CryptocurrencyType             = "cryptocurrency"
-	EldestType                     = "eldest"
-	PGPUpdateType                  = "pgp_update"
 	RevokeType                     = "revoke"
-	SibkeyType                     = "sibkey"
-	SubkeyType                     = "subkey"
 	TrackType                      = "track"
 	UntrackType                    = "untrack"
 	UpdatePassphraseType           = "update_passphrase_hash"
 	WebServiceBindingType          = "web_service_binding"
+
+	EldestType    DelegationType = "eldest"
+	PGPUpdateType                = "pgp_update"
+	SibkeyType                   = "sibkey"
+	SubkeyType                   = "subkey"
 )
 
 const (

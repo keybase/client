@@ -319,30 +319,24 @@ func (u *User) UntrackingProofFor(signingKey GenericKey, u2 *User) (ret *jsonw.W
 	return
 }
 
-func (u *User) KeyProof(arg Delegator) (ret *jsonw.Wrapper, linkType LinkType, err error) {
+func (u *User) KeyProof(arg Delegator) (ret *jsonw.Wrapper, err error) {
 	var kp *jsonw.Wrapper
-	existingKey := arg.ExistingKey
 	includePGPHash := false
 
-	if existingKey == nil {
-		linkType = EldestType
-		existingKey = arg.NewKey
+	if arg.DelegationType == EldestType {
 		includePGPHash = true
 	} else {
 		keySection := KeySection{
 			Key: arg.NewKey,
 		}
-		if arg.PGPUpdate {
-			linkType = PGPUpdateType
+		if arg.DelegationType == PGPUpdateType {
 			keySection.IncludePGPHash = true
-		} else if arg.Sibkey {
-			linkType = SibkeyType
+		} else if arg.DelegationType == SibkeyType {
 			keySection.HasRevSig = true
 			keySection.RevSig = arg.RevSig
 			keySection.IncludePGPHash = true
 		} else {
-			linkType = SubkeyType
-			keySection.ParentKID = existingKey.GetKID()
+			keySection.ParentKID = arg.ExistingKey.GetKID()
 		}
 
 		if kp, err = keySection.ToJSON(); err != nil {
@@ -352,9 +346,9 @@ func (u *User) KeyProof(arg Delegator) (ret *jsonw.Wrapper, linkType LinkType, e
 
 	ret, err = ProofMetadata{
 		Me:             u,
-		LinkType:       linkType,
+		LinkType:       LinkType(arg.DelegationType),
 		ExpireIn:       arg.Expire,
-		SigningKey:     existingKey,
+		SigningKey:     arg.GetSigningKey(),
 		Eldest:         arg.EldestKID,
 		CreationTime:   arg.Ctime,
 		IncludePGPHash: includePGPHash,
@@ -372,7 +366,7 @@ func (u *User) KeyProof(arg Delegator) (ret *jsonw.Wrapper, linkType LinkType, e
 	}
 
 	if kp != nil {
-		body.SetKey(string(linkType), kp)
+		body.SetKey(string(arg.DelegationType), kp)
 	}
 
 	return

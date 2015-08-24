@@ -227,13 +227,13 @@ func (k *KexSib) handlePleaseSign(ctx *Context, m *kex.Msg) error {
 	}
 
 	del := libkb.Delegator{
-		NewKey:       newKey,
-		ExistingKey:  k.sigKey,
-		Me:           k.user,
-		Expire:       libkb.NaclEdDSAExpireIn,
-		LinkType:     libkb.SibkeyType,
-		EldestKID:    k.user.GetEldestKID(),
-		Contextified: libkb.NewContextified(k.G()),
+		NewKey:         newKey,
+		ExistingKey:    k.sigKey,
+		Me:             k.user,
+		Expire:         libkb.NaclEdDSAExpireIn,
+		DelegationType: libkb.SibkeyType,
+		EldestKID:      k.user.GetEldestKID(),
+		Contextified:   libkb.NewContextified(k.G()),
 	}
 
 	if err = del.CheckArgs(); err != nil {

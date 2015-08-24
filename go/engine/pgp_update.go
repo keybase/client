@@ -70,9 +70,9 @@ func (e *PGPUpdateEngine) Run(ctx *Context) error {
 	}
 
 	del := libkb.Delegator{
-		PGPUpdate: true,
-		Me:        me,
-		Expire:    libkb.KeyExpireIn,
+		DelegationType: libkb.PGPUpdateType,
+		Me:             me,
+		Expire:         libkb.KeyExpireIn,
 	}
 
 	err = del.LoadSigningKey(ctx.LoginContext, ctx.SecretUI)
