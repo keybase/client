@@ -86,7 +86,13 @@ const (
 	SCKeyInUse               = 907
 	SCKeyBadGen              = 913
 	SCKeyNoSecret            = 914
-	SCKeyNoActive            = 915
+	SCKeyBadUIDs             = 915
+	SCKeyNoActive            = 916
+	SCKeyNoSig               = 917
+	SCKeyBadSig              = 918
+	SCKeyBadEldest           = 919
+	SCKeyNoEldest            = 920
+	SCKeyDuplicateUpdate     = 921
 	SCBadTrackSession        = 1301
 	SCStreamExists           = 1501
 	SCStreamNotFound         = 1502
@@ -107,10 +113,22 @@ const (
 	MerkleTreeLeaf = 2
 )
 
+type LinkType string
+type DelegationType LinkType
+
 const (
-	SibkeyType = "sibkey"
-	SubkeyType = "subkey"
-	EldestType = "eldest"
+	AuthenticationType    LinkType = "auth"
+	CryptocurrencyType             = "cryptocurrency"
+	RevokeType                     = "revoke"
+	TrackType                      = "track"
+	UntrackType                    = "untrack"
+	UpdatePassphraseType           = "update_passphrase_hash"
+	WebServiceBindingType          = "web_service_binding"
+
+	EldestType    DelegationType = "eldest"
+	PGPUpdateType                = "pgp_update"
+	SibkeyType                   = "sibkey"
+	SubkeyType                   = "subkey"
 )
 
 const (

@@ -236,22 +236,22 @@ func (e *PaperKeyGen) push(ctx *Context) error {
 
 	// push the paper signing key
 	sigDel := libkb.Delegator{
-		NewKey:      e.sigKey,
-		Sibkey:      true,
-		Expire:      libkb.NaclEdDSAExpireIn,
-		ExistingKey: e.arg.SigningKey,
-		Me:          e.arg.Me,
-		Device:      backupDev,
+		NewKey:         e.sigKey,
+		DelegationType: libkb.SibkeyType,
+		Expire:         libkb.NaclEdDSAExpireIn,
+		ExistingKey:    e.arg.SigningKey,
+		Me:             e.arg.Me,
+		Device:         backupDev,
 	}
 
 	// push the paper encryption key
 	sigEnc := libkb.Delegator{
-		NewKey:      e.encKey,
-		Sibkey:      false,
-		Expire:      libkb.NaclDHExpireIn,
-		ExistingKey: e.sigKey,
-		Me:          e.arg.Me,
-		Device:      backupDev,
+		NewKey:         e.encKey,
+		DelegationType: libkb.SubkeyType,
+		Expire:         libkb.NaclDHExpireIn,
+		ExistingKey:    e.sigKey,
+		Me:             e.arg.Me,
+		Device:         backupDev,
 	}
 
 	return libkb.DelegatorAggregator(ctx.LoginContext, []libkb.Delegator{sigDel, sigEnc})

@@ -19,29 +19,25 @@ type Delegator struct {
 	// Set these fields
 	NewKey            GenericKey
 	ExistingKey       GenericKey
-	ExistingKID       keybase1.KID // may be empty
 	EldestKID         keybase1.KID
 	Me                *User
-	Sibkey            bool
 	Expire            int
 	Device            *Device
 	RevSig            string
 	ServerHalf        []byte
 	EncodedPrivateKey string
 	Ctime             int64
-	PushType          string
+	DelegationType    DelegationType
 	Aggregated        bool // During aggregation we skip some steps (posting, updating some state)
 
 	// Internal fields
-	isEldest     bool
-	signingKey   GenericKey
 	sig          string
 	sigID        keybase1.SigID
 	merkleTriple MerkleTriple
 	postArg      APIArg
 }
 
-func (d Delegator) getSigningKID() keybase1.KID { return d.signingKey.GetKID() }
+func (d Delegator) getSigningKID() keybase1.KID { return d.GetSigningKey().GetKID() }
 
 func (d Delegator) getExistingKID() (kid keybase1.KID) {
 	if d.ExistingKey == nil {
@@ -50,17 +46,18 @@ func (d Delegator) getExistingKID() (kid keybase1.KID) {
 	return d.ExistingKey.GetKID()
 }
 
-func (d Delegator) GetExistingKeyKID() (ret keybase1.KID) {
+func (d Delegator) GetSigningKey() GenericKey {
 	if d.ExistingKey != nil {
-		kid := d.ExistingKey.GetKID()
-		return kid
+		return d.ExistingKey
 	}
-	return d.ExistingKID
+	return d.NewKey
 }
 
-// Sometime our callers don't set Sibkey=true for eldest keys, so
-// we workaround that here.
-func (d Delegator) IsSibkey() bool { return d.Sibkey || d.isEldest }
+func (d Delegator) IsSibkeyOrEldest() bool {
+	return d.DelegationType == SibkeyType || d.DelegationType == EldestType
+}
+
+func (d Delegator) IsEldest() bool { return d.DelegationType == EldestType }
 
 // GetMerkleTriple gets the new MerkleTriple that came about as a result
 // of performing the key delegation.
@@ -75,15 +72,18 @@ func (d *Delegator) CheckArgs() (err error) {
 		return
 	}
 
-	if d.signingKey = d.ExistingKey; d.signingKey != nil {
+	if d.DelegationType == "" {
+		err = MissingDelegationTypeError{}
+	}
+
+	if d.ExistingKey != nil {
 		G.Log.Debug("| Picked passed-in signing key")
 	} else {
 		G.Log.Debug("| Picking new key for an eldest self-sig")
-		d.signingKey = d.NewKey
-		d.isEldest = true
+		d.DelegationType = EldestType
 	}
 
-	if d.EldestKID.Exists() || d.isEldest {
+	if d.EldestKID.Exists() || d.IsEldest() {
 	} else if kid := d.Me.GetEldestKID(); kid.IsNil() {
 		err = NoEldestKeyError{}
 		return err
@@ -91,7 +91,7 @@ func (d *Delegator) CheckArgs() (err error) {
 		d.EldestKID = kid
 	}
 
-	G.Log.Debug("| Picked key %s for signing", d.signingKey.GetKID())
+	G.Log.Debug("| Picked key %s for signing", d.getSigningKID())
 	G.Log.Debug("- Delegator::checkArgs()")
 
 	return nil
@@ -106,7 +106,7 @@ func (d *Delegator) LoadSigningKey(lctx LoginContext, ui SecretUI) (err error) {
 
 	G.Log.Debug("+ Delegator::LoadSigningKey")
 	defer func() {
-		G.Log.Debug("+ Delegator::LoadSigningKey -> %s, (found=%v)", ErrToOk(err), (d.signingKey != nil))
+		G.Log.Debug("+ Delegator::LoadSigningKey -> %s, (found=%v)", ErrToOk(err), (d.GetSigningKey() != nil))
 	}()
 
 	if d.ExistingKey != nil {
@@ -157,8 +157,8 @@ func (d *Delegator) Run(lctx LoginContext) (err error) {
 
 	// For a sibkey signature, we first sign the blob with the
 	// sibkey, and then embed that signature for the delegating key
-	if d.Sibkey {
-		if jw, _, err = d.Me.KeyProof(*d); err != nil {
+	if d.DelegationType == SibkeyType {
+		if jw, err = d.Me.KeyProof(*d); err != nil {
 			G.Log.Debug("| Failure in intermediate KeyProof()")
 			return err
 		}
@@ -169,7 +169,7 @@ func (d *Delegator) Run(lctx LoginContext) (err error) {
 		}
 	}
 
-	if jw, d.PushType, err = d.Me.KeyProof(*d); err != nil {
+	if jw, err = d.Me.KeyProof(*d); err != nil {
 		G.Log.Debug("| Failure in KeyProof()")
 		return
 	}
@@ -181,7 +181,7 @@ func (d *Delegator) SignAndPost(lctx LoginContext, jw *jsonw.Wrapper) (err error
 
 	var linkid LinkID
 
-	if d.sig, d.sigID, linkid, err = SignJSON(jw, d.signingKey); err != nil {
+	if d.sig, d.sigID, linkid, err = SignJSON(jw, d.GetSigningKey()); err != nil {
 		G.Log.Debug("| Failure in SignJson()")
 		return err
 	}
@@ -202,7 +202,7 @@ func (d *Delegator) updateLocalState(linkid LinkID) (err error) {
 	d.Me.SigChainBump(linkid, d.sigID)
 	d.merkleTriple = MerkleTriple{LinkID: linkid, SigID: d.sigID}
 
-	return d.Me.localDelegateKey(d.NewKey, d.sigID, d.getExistingKID(), d.IsSibkey(), d.isEldest)
+	return d.Me.localDelegateKey(d.NewKey, d.sigID, d.getExistingKID(), d.IsSibkeyOrEldest(), d.IsEldest())
 }
 
 func (d *Delegator) post(lctx LoginContext) (err error) {
@@ -215,7 +215,7 @@ func (d *Delegator) post(lctx LoginContext) (err error) {
 		"sig_id_base":     S{Val: d.sigID.ToString(false)},
 		"sig_id_short":    S{Val: d.sigID.ToShortID()},
 		"sig":             S{Val: d.sig},
-		"type":            S{Val: d.PushType},
+		"type":            S{Val: string(d.DelegationType)},
 		"is_remote_proof": B{Val: false},
 		"public_key":      S{Val: pub},
 	}
@@ -224,7 +224,11 @@ func (d *Delegator) post(lctx LoginContext) (err error) {
 		hargs["server_half"] = S{Val: hex.EncodeToString(d.ServerHalf)}
 	}
 
-	if d.isEldest {
+	if d.DelegationType == PGPUpdateType {
+		hargs["is_update"] = B{Val: true}
+	}
+
+	if d.IsEldest() {
 		hargs["is_primary"] = I{Val: 1}
 		hargs["new_eldest"] = B{Val: true}
 		hargs["signing_kid"] = S{Val: d.NewKey.GetKID().String()}

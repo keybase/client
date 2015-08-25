@@ -87,7 +87,7 @@ func (e *PGPKeyImportEngine) generateKey(ctx *Context) (err error) {
 	if err = gen.CreatePGPIDs(); err != nil {
 		return
 	}
-	e.bundle, err = libkb.NewPGPKeyBundle(*gen, ctx.LogUI)
+	e.bundle, err = libkb.GeneratePGPKeyBundle(*gen, ctx.LogUI)
 	return
 }
 
@@ -249,10 +249,10 @@ func (e *PGPKeyImportEngine) unlock(ctx *Context) (err error) {
 func (e *PGPKeyImportEngine) loadDelegator(ctx *Context) (err error) {
 
 	e.del = &libkb.Delegator{
-		ExistingKey: e.arg.SigningKey,
-		Me:          e.me,
-		Expire:      libkb.KeyExpireIn,
-		Sibkey:      true,
+		ExistingKey:    e.arg.SigningKey,
+		Me:             e.me,
+		Expire:         libkb.KeyExpireIn,
+		DelegationType: libkb.SibkeyType,
 	}
 
 	return e.del.LoadSigningKey(ctx.LoginContext, ctx.SecretUI)

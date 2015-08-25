@@ -7,10 +7,11 @@ import (
 	"golang.org/x/crypto/openpgp"
 )
 
-func doUpdate(fingerprints []string, all bool, tc libkb.TestContext) (err error) {
+func doUpdate(fingerprints []string, all bool, fu *FakeUser, tc libkb.TestContext) (err error) {
 	eng := NewPGPUpdateEngine(fingerprints, all, tc.G)
 	ctx := Context{
-		LogUI: tc.G.UI.GetLogUI(),
+		LogUI:    tc.G.UI.GetLogUI(),
+		SecretUI: fu.NewSecretUI(),
 	}
 	err = RunEngine(eng, &ctx)
 	return
@@ -73,7 +74,7 @@ func TestPGPUpdate(t *testing.T) {
 	}
 
 	// Now run `client pgp update` with a fingerprint that doesn't match.
-	err = doUpdate([]string{"not_a_real_fingerprint"}, false, tc)
+	err = doUpdate([]string{"not_a_real_fingerprint"}, false, fakeUser, tc)
 	if err != nil {
 		t.Fatal("Error in PGPUpdateEngine:", err)
 	}
@@ -85,7 +86,7 @@ func TestPGPUpdate(t *testing.T) {
 	}
 
 	// Do the same thing without the fingerprint. It should go through this time.
-	err = doUpdate([]string{}, false, tc)
+	err = doUpdate([]string{}, false, fakeUser, tc)
 	if err != nil {
 		t.Fatal("Error in PGPUpdateEngine:", err)
 	}
@@ -125,20 +126,20 @@ func TestPGPUpdateMultiKey(t *testing.T) {
 	}
 
 	// `client pgp update` should fail by default, because there are multiple keys.
-	err = doUpdate([]string{}, false /* all */, tc)
+	err = doUpdate([]string{}, false /* all */, fu, tc)
 	if err == nil {
 		t.Fatal("Update should fail with multiple keys and no --all.")
 	}
 
 	// `client pgp update` should fail with both specific fingerprints and --all.
-	err = doUpdate([]string{"foo"}, true /* all */, tc)
+	err = doUpdate([]string{"foo"}, true /* all */, fu, tc)
 	if err == nil {
 		t.Fatal("Update should fail with explicit fingerprint and --all.")
 	}
 
 	// It should finally succeed with just --all.
-	err = doUpdate([]string{}, true /* all */, tc)
+	err = doUpdate([]string{}, true /* all */, fu, tc)
 	if err != nil {
-		t.Fatal("Update should succeed with --all.")
+		t.Fatal("Update should succeed with --all. Error:", err)
 	}
 }

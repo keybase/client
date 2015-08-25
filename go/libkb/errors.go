@@ -214,6 +214,14 @@ func (e NotFoundError) Error() string {
 
 //=============================================================================
 
+type MissingDelegationTypeError struct{}
+
+func (e MissingDelegationTypeError) Error() string {
+	return "DelegationType wasn't set"
+}
+
+//=============================================================================
+
 type NoKeyError struct {
 	Msg string
 }

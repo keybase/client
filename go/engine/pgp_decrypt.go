@@ -108,7 +108,7 @@ func (e *PGPDecrypt) Run(ctx *Context) (err error) {
 		return fmt.Errorf("sign status entity is nil")
 	}
 
-	bundle := (*libkb.PGPKeyBundle)(e.signStatus.Entity)
+	bundle := libkb.NewPGPKeyBundle(e.signStatus.Entity)
 	ctx.LogUI.Notice("Signature verified.  Signed by %s.  PGP Fingerprint: %s.", e.owner.GetName(), bundle.GetFingerprint())
 
 	return nil

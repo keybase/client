@@ -118,7 +118,7 @@ func sigVer(ss *libkb.SignatureStatus, owner *libkb.User) keybase1.PGPSigVerific
 			}
 		}
 		if ss.Entity != nil {
-			bundle := (*libkb.PGPKeyBundle)(ss.Entity)
+			bundle := libkb.NewPGPKeyBundle(ss.Entity)
 			res.SignKey = bundle.Export()
 		}
 	}
@@ -212,7 +212,8 @@ func (h *PGPHandler) PGPSelect(sarg keybase1.PGPSelectArg) error {
 
 func (h *PGPHandler) PGPUpdate(arg keybase1.PGPUpdateArg) error {
 	ctx := engine.Context{
-		LogUI: h.getLogUI(arg.SessionID),
+		LogUI:    h.getLogUI(arg.SessionID),
+		SecretUI: h.getSecretUI(arg.SessionID),
 	}
 	eng := engine.NewPGPUpdateEngine(arg.Fingerprints, arg.All, G)
 	return engine.RunEngine(eng, &ctx)

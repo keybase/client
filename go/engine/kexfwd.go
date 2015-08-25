@@ -13,10 +13,10 @@ import (
 // device (referred to as device Y in comments).
 type KexFwd struct {
 	KexCom
-	args      *KexFwdArgs
-	secret    *kex.Secret
-	lks       *libkb.LKSec
-	xDevKeyID keybase1.KID
+	args    *KexFwdArgs
+	secret  *kex.Secret
+	lks     *libkb.LKSec
+	xDevKey libkb.GenericKey
 }
 
 type KexFwdArgs struct {
@@ -189,9 +189,9 @@ func (k *KexFwd) Cancel() error {
 	return nil
 }
 
-func (k *KexFwd) handleHello(ctx *Context, m *kex.Msg) error {
-	k.xDevKeyID = m.Args().DevKeyID
-	return nil
+func (k *KexFwd) handleHello(ctx *Context, m *kex.Msg) (err error) {
+	k.xDevKey, err = libkb.ImportKeypairFromKID(m.Args().DevKeyID)
+	return
 }
 
 func (k *KexFwd) handleDone(ctx *Context, m *kex.Msg) error {
@@ -207,15 +207,15 @@ func (k *KexFwd) handleDone(ctx *Context, m *kex.Msg) error {
 // revSig generates a reverse signature using X's device key id.
 func (k *KexFwd) revSig(eddsa libkb.NaclKeyPair) (sig string, err error) {
 	delg := libkb.Delegator{
-		ExistingKID: k.xDevKeyID,
-		NewKey:      eddsa,
-		Me:          k.args.User,
-		Sibkey:      true,
-		Expire:      libkb.NaclEdDSAExpireIn,
-		Device:      k.GetDevice(),
+		ExistingKey:    k.xDevKey,
+		NewKey:         eddsa,
+		Me:             k.args.User,
+		DelegationType: libkb.SibkeyType,
+		Expire:         libkb.NaclEdDSAExpireIn,
+		Device:         k.GetDevice(),
 	}
 	var jw *jsonw.Wrapper
-	if jw, _, err = k.args.User.KeyProof(delg); err != nil {
+	if jw, err = k.args.User.KeyProof(delg); err != nil {
 		return
 	}
 	sig, _, _, err = libkb.SignJSON(jw, eddsa)
