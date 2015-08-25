@@ -3137,19 +3137,20 @@ func (fbo *FolderBranchOps) applyMDUpdatesLocked(ctx context.Context,
 	}
 
 	for _, rmd := range rmds {
-		inc := MetadataRevision(1)
+		// check that we're applying the expected MD revision
 		if invert {
-			inc = -1
-		}
-		// on inversion, it's ok to re-apply the current revision
-		// since you need to invert all of its ops.
-		if !invert || rmd.Revision != fbo.getCurrMDRevisionLocked() {
-			if rmd.Revision != fbo.getCurrMDRevisionLocked()+inc {
-				return fmt.Errorf("MD revision %d isn't next in line for our "+
-					"current revision %d", rmd.Revision,
-					fbo.getCurrMDRevisionLocked())
+			// on inversion, it's ok to re-apply the current revision
+			// since you need to invert all of its ops.
+			if rmd.Revision != fbo.getCurrMDRevisionLocked() &&
+				rmd.Revision != fbo.getCurrMDRevisionLocked()-1 {
+				return MDUpdateInvertError{rmd.Revision,
+					fbo.getCurrMDRevisionLocked()}
 			}
+		} else if rmd.Revision != fbo.getCurrMDRevisionLocked()+1 {
+			return MDUpdateApplyError{rmd.Revision,
+				fbo.getCurrMDRevisionLocked()}
 		}
+
 		err := fbo.saveMdToCacheLocked(rmd)
 		if err != nil {
 			return err

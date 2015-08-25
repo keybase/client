@@ -630,3 +630,29 @@ type MDServerDisconnected struct {
 func (e MDServerDisconnected) Error() string {
 	return "MDServer is disconnected"
 }
+
+// MDUpdateApplyError indicates that we tried to apply a revision that
+// was not the next in line.
+type MDUpdateApplyError struct {
+	rev  MetadataRevision
+	curr MetadataRevision
+}
+
+// Error implements the error interface for MDUpdateApplyError.
+func (e MDUpdateApplyError) Error() string {
+	return fmt.Sprintf("MD revision %d isn't next in line for our "+
+		"current revision %d", e.rev, e.curr)
+}
+
+// MDUpdateInvertError indicates that we tried to apply a revision that
+// was not the next in line.
+type MDUpdateInvertError struct {
+	rev  MetadataRevision
+	curr MetadataRevision
+}
+
+// Error implements the error interface for MDUpdateInvertError.
+func (e MDUpdateInvertError) Error() string {
+	return fmt.Sprintf("MD revision %d isn't next in line for our "+
+		"current revision %d while inverting", e.rev, e.curr)
+}
