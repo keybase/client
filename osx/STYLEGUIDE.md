@@ -39,6 +39,17 @@ if (user.isHappy) {
 
 All Apple types should be used over primitive ones. For example, if you are working with time intervals, use `NSTimeInterval` instead of `double`.
 
+## String Formatting
+
+If you wrap primitives in `@(..)`, then you can use `%@` for the string format specifier.
+
+**For example:**
+
+```objc
+NSInteger num = 1;
+[NSString stringWithFormat:@"Number was %@", @(num)];
+```
+
 ## Properties
 
 Don't specify `assign` or `retain` if it's the default. Don't specify `nonatomic` unless you are defining the method in the implementation.
