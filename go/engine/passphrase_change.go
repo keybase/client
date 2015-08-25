@@ -213,10 +213,7 @@ func (c *PassphraseChange) updatePassphrase(ctx *Context, sigKey libkb.GenericKe
 		}
 
 		// Generate a signature with our unlocked sibling key from device.
-		// XXX this ppGen is currently the existing generation.  It should
-		// be the next generation.
-		// See issue #688.
-		proof, err := c.me.UpdatePassphraseProof(sigKey, pwh.String(), ppGen)
+		proof, err := c.me.UpdatePassphraseProof(sigKey, pwh.String(), ppGen+1)
 		if err != nil {
 			acctErr = err
 			return

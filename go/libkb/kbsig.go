@@ -490,8 +490,6 @@ func (u *User) CryptocurrencySig(key GenericKey, address string, sigToRevoke key
 	return ret, nil
 }
 
-// XXX this ppGen is currently the existing generation.  It should be the next generation.
-// See issue #688.
 func (u *User) UpdatePassphraseProof(key GenericKey, pwh string, ppGen PassphraseGeneration) (*jsonw.Wrapper, error) {
 	ret, err := ProofMetadata{
 		Me:         u,
