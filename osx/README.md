@@ -22,6 +22,9 @@ open Keybase.xcworkspace
 
 Then select the target ```Keybase``` and run.
 
+### Styleguide
+
+See [STYLEGUIDE.md](STYLEGUIDE.md).
 
 ### Dev References
 
