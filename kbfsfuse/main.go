@@ -6,26 +6,14 @@ import (
 	"errors"
 	"flag"
 	"fmt"
-	"io/ioutil"
 	"log"
 	"os"
-	"path/filepath"
 
 	"bazil.org/fuse"
-	"bazil.org/fuse/fs"
 
+	"github.com/keybase/kbfs/libfuse"
 	"github.com/keybase/kbfs/libkbfs"
 	"golang.org/x/net/context"
-)
-
-// ExitStatus defines the possible program exit status codes
-type exitStatus int
-
-const (
-	success      exitStatus = 0 // No error
-	defaultError            = 1 // Default/generic error
-	usageError              = 2 // One or more arguments are invalid
-	mountError              = 3 // We were unable to mount
 )
 
 var cpuprofile = flag.String("cpuprofile", "", "write cpu profile to file")
@@ -46,18 +34,17 @@ const usageStr = `Usage:
 
 `
 
-// Define this so deferred functions get executed before exit.
-func realMain() (exitStatus, error) {
+func realMain() error {
 	flag.Parse()
 
 	if *version {
 		fmt.Printf("%s\n", libkbfs.Version)
-		return usageError, nil
+		return nil
 	}
 
 	if len(flag.Args()) < 1 {
 		fmt.Print(usageStr)
-		return usageError, nil
+		return errors.New("no mount specified")
 	}
 
 	var localUser string
@@ -66,7 +53,7 @@ func realMain() (exitStatus, error) {
 	} else if *clientFlag {
 		localUser = ""
 	} else {
-		return usageError, errors.New("either -client or -local must be used")
+		return errors.New("either -client or -local must be used")
 	}
 
 	if *debug {
@@ -83,7 +70,7 @@ func realMain() (exitStatus, error) {
 	mountpoint := flag.Arg(0)
 	c, err := fuse.Mount(mountpoint)
 	if err != nil {
-		return mountError, err
+		return err
 	}
 	defer c.Close()
 
@@ -109,52 +96,30 @@ func realMain() (exitStatus, error) {
 
 	config, err := libkbfs.Init(localUser, serverRootDir, *cpuprofile, *memprofile, onInterruptFn)
 	if err != nil {
-		return defaultError, err
+		return err
 	}
 
 	defer libkbfs.Shutdown(*memprofile)
 
-	filesys := &FS{
-		config: config,
-		conn:   c,
-	}
-	ctx := context.WithValue(context.Background(), ctxAppIDKey, filesys)
-
-	srv := fs.New(c, &fs.Config{
-		GetContext: func() context.Context {
-			return ctx
-		},
-	})
-	filesys.fuse = srv
-
-	// TODO Switch to cacheDir or runtimeDir, using serverRootDir as default for now
-	version := fmt.Sprintf("%s-%s", libkbfs.Version, libkbfs.Build)
-	err = ioutil.WriteFile(filepath.Join(*serverRootDir, "kbfs.version"), []byte(version), 0644)
-	if err != nil {
-		return defaultError, err
-	}
-
-	// Blocks forever, unless an interrupt signal is received
-	// (handled by libkbfs.Init).
-	err = srv.Serve(filesys)
-	if err != nil {
-		return defaultError, err
-	}
+	fs := libfuse.NewFS(config, c)
+	ctx := context.WithValue(context.Background(), libfuse.CtxAppIDKey, fs)
+	fs.Serve(ctx)
 
 	// Check if the mount process has an error to report.
 	<-c.Ready
 	err = c.MountError
 	if err != nil {
-		return mountError, err
+		return err
 	}
 
-	return success, err
+	return nil
 }
 
 func main() {
-	exitstatus, err := realMain()
+	err := realMain()
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "kbfsfuse: %s\n", err)
+		os.Exit(1)
 	}
-	os.Exit(int(exitstatus))
+	os.Exit(0)
 }

@@ -1,4 +1,4 @@
-package main
+package libfuse
 
 import (
 	"fmt"
@@ -84,7 +84,7 @@ func (f *Folder) LocalChange(ctx context.Context, node libkbfs.Node, write libkb
 		// OSXFUSE 2.x does not support notifications
 		return
 	}
-	if origin, ok := ctx.Value(ctxAppIDKey).(*FS); ok && origin == f.fs {
+	if origin, ok := ctx.Value(CtxAppIDKey).(*FS); ok && origin == f.fs {
 		return
 	}
 
@@ -108,7 +108,7 @@ func (f *Folder) BatchChanges(ctx context.Context, changes []libkbfs.NodeChange)
 		// OSXFUSE 2.x does not support notifications
 		return
 	}
-	if origin, ok := ctx.Value(ctxAppIDKey).(*FS); ok && origin == f.fs {
+	if origin, ok := ctx.Value(CtxAppIDKey).(*FS); ok && origin == f.fs {
 		return
 	}
 

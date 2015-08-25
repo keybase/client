@@ -1,4 +1,4 @@
-package main
+package libfuse
 
 import (
 	"time"
@@ -13,9 +13,10 @@ const (
 
 	// PrivateName is the name of the parent of all private top-level folders.
 	PrivateName = "private"
-)
 
-var ctxAppIDKey = "kbfsfuse-app-id"
+	// CtxAppIDKey is the context app id
+	CtxAppIDKey = "kbfsfuse-app-id"
+)
 
 // fillAttr sets attributes based on the dir entry. It only handles fields
 // common to all direntry types.

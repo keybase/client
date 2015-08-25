@@ -1,4 +1,4 @@
-package main
+package libfuse
 
 import (
 	"os"
@@ -14,6 +14,25 @@ type FS struct {
 	config libkbfs.Config
 	fuse   *fs.Server
 	conn   *fuse.Conn
+}
+
+// NewFS creates an FS
+func NewFS(config libkbfs.Config, conn *fuse.Conn) FS {
+	return FS{config: config, conn: conn}
+}
+
+// Serve FS. Will block.
+func (f *FS) Serve(ctx context.Context) error {
+	srv := fs.New(f.conn, &fs.Config{
+		GetContext: func() context.Context {
+			return ctx
+		},
+	})
+	f.fuse = srv
+
+	// Blocks forever, unless an interrupt signal is received
+	// (handled by libkbfs.Init).
+	return srv.Serve(f)
 }
 
 var _ fs.FS = (*FS)(nil)
