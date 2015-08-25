@@ -160,6 +160,7 @@ func (c *PassphraseChange) findUpdateKeys(ctx *Context) (*keypair, error) {
 // It uses encKey to decrypt it.  It also returns the passphrase
 // generation.
 func (c *PassphraseChange) fetchLKS(ctx *Context, encKey libkb.GenericKey) (libkb.PassphraseGeneration, []byte, error) {
+	c.G().Log.Warning("calling passphrase/recover")
 	res, err := c.G().API.Get(
 		libkb.APIArg{
 			Endpoint:    "passphrase/recover",
@@ -230,6 +231,8 @@ func (c *PassphraseChange) updatePassphrase(ctx *Context, sigKey libkb.GenericKe
 		args.Add("sig", libkb.S{Val: sig})
 		args.Add("signing_kid", sigKey.GetKID())
 
+		c.G().Log.Warning("args: %+v", args)
+
 		postArg := libkb.APIArg{
 			Endpoint:    "passphrase/sign",
 			NeedSession: true,
@@ -237,6 +240,7 @@ func (c *PassphraseChange) updatePassphrase(ctx *Context, sigKey libkb.GenericKe
 			SessionR:    a.LocalSession(),
 		}
 
+		c.G().Log.Warning("calling passphrase/sign")
 		_, err = c.G().API.Post(postArg)
 		if err != nil {
 			acctErr = fmt.Errorf("api post to passphrase/sign error: %s", err)
@@ -318,6 +322,7 @@ func (c *PassphraseChange) runStandardUpdate(ctx *Context) (err error) {
 			SessionR:    a.LocalSession(),
 		}
 
+		c.G().Log.Warning("calling passphrase/replace")
 		_, err = c.G().API.Post(postArg)
 		if err != nil {
 			acctErr = err
@@ -408,13 +413,27 @@ func (c *PassphraseChange) verifySuppliedPassphrase(ctx *Context) (err error) {
 // findAndDecryptPrivatePGPKey gets the user's private pgp key if it exists.
 func (c *PassphraseChange) findAndDecryptPrivatePGPKey(ctx *Context) (libkb.GenericKey, error) {
 	// if using paper keys, then can't decrypt the pgp secret key, so don't even try.
-	if c.usingPaper {
-		return nil, nil
-	}
+	/*
+		if c.usingPaper {
+			return nil, nil
+		}
+	*/
 
 	ska := libkb.SecretKeyArg{
 		Me:      c.me,
 		KeyType: libkb.PGPKeyType,
+	}
+
+	if c.usingPaper {
+		secretRetriever := libkb.NewSecretStore(c.me.GetNormalizedName())
+		key, err := c.G().Keyrings.GetSecretKeyWithStoredSecret(ctx.LoginContext, ska, c.me, secretRetriever)
+		if err == nil {
+			return key, nil
+		}
+
+		c.G().Log.Warning("tried getting pgp key with stored secret but failed: %s", err)
+
+		return nil, nil
 	}
 
 	key, _, err := c.G().Keyrings.GetSecretKeyWithPrompt(nil, ska, ctx.SecretUI, "passphrase change")

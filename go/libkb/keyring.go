@@ -281,15 +281,17 @@ func (k *Keyrings) GetSecretKeyWithPrompt(lctx LoginContext, ska SecretKeyArg, s
 	return
 }
 
-func (k *Keyrings) GetSecretKeyWithStoredSecret(lctx LoginContext, me *User, secretRetriever SecretRetriever) (key GenericKey, err error) {
+func (k *Keyrings) GetSecretKeyWithStoredSecret(lctx LoginContext, ska SecretKeyArg, me *User, secretRetriever SecretRetriever) (key GenericKey, err error) {
 	k.G().Log.Debug("+ GetSecretKeyWithStoredSecret()")
 	defer func() {
 		k.G().Log.Debug("- GetSecretKeyWithStoredSecret() -> %s", ErrToOk(err))
 	}()
-	ska := SecretKeyArg{
-		Me:      me,
-		KeyType: DeviceSigningKeyType,
-	}
+	/*
+		ska := SecretKeyArg{
+			Me:      me,
+			KeyType: DeviceSigningKeyType,
+		}
+	*/
 	var skb *SKB
 	skb, _, err = k.GetSecretKeyLocked(lctx, ska)
 	if err != nil {

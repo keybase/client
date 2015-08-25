@@ -733,7 +733,11 @@ func (s *LoginState) loginWithStoredSecret(lctx LoginContext, username string) e
 
 	getSecretKeyFn := func(keyrings *Keyrings, me *User) (GenericKey, error) {
 		secretRetriever := NewSecretStore(me.GetNormalizedName())
-		return keyrings.GetSecretKeyWithStoredSecret(lctx, me, secretRetriever)
+		ska := SecretKeyArg{
+			Me:      me,
+			KeyType: DeviceSigningKeyType,
+		}
+		return keyrings.GetSecretKeyWithStoredSecret(lctx, ska, me, secretRetriever)
 	}
 	return s.pubkeyLoginHelper(lctx, username, getSecretKeyFn)
 }
