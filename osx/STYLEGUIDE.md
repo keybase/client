@@ -161,10 +161,8 @@ Property definitions should be used in place of naked instance variables wheneve
 **For example:**
 
 ```objc
-@interface NYTSection: NSObject
-
-@property (nonatomic) NSString *headline;
-
+@interface KBLabel: NSObject
+@property NSString *text;
 @end
 ```
 
@@ -172,13 +170,9 @@ Property definitions should be used in place of naked instance variables wheneve
 
 ```objc
 @interface NYTSection : NSObject {
-    NSString *headline;
+  NSString *text
 }
 ```
-
-#### Variable Qualifiers
-
-When it comes to the variable qualifiers [introduced with ARC](https://developer.apple.com/library/ios/releasenotes/objectivec/rn-transitioningtoarc/Introduction/Introduction.html#//apple_ref/doc/uid/TP40011226-CH1-SW4), the qualifier (`__strong`, `__weak`, `__unsafe_unretained`, `__autoreleasing`) should be placed between the asterisks and the variable name, e.g., `NSString * __weak text`.
 
 ## Naming
 
@@ -361,3 +355,6 @@ if (isAwesome == YES) // Never do this.
 ## Singletons
 
 Don't use Singletons except for AppDelegate (or NSApp).
+
+
+This guide is a modified version of the Objective-C Style Guide used by The New York Times.
