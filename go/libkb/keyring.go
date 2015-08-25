@@ -286,12 +286,6 @@ func (k *Keyrings) GetSecretKeyWithStoredSecret(lctx LoginContext, ska SecretKey
 	defer func() {
 		k.G().Log.Debug("- GetSecretKeyWithStoredSecret() -> %s", ErrToOk(err))
 	}()
-	/*
-		ska := SecretKeyArg{
-			Me:      me,
-			KeyType: DeviceSigningKeyType,
-		}
-	*/
 	var skb *SKB
 	skb, _, err = k.GetSecretKeyLocked(lctx, ska)
 	if err != nil {
