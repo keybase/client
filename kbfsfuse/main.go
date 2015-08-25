@@ -128,7 +128,8 @@ func realMain() (exitStatus, error) {
 	filesys.fuse = srv
 
 	// TODO Switch to cacheDir or runtimeDir, using serverRootDir as default for now
-	err = ioutil.WriteFile(filepath.Join(*serverRootDir, "kbfs.version"), []byte(libkbfs.Version), 0644)
+	version := fmt.Sprintf("%s-%s", libkbfs.Version, libkbfs.Build)
+	err = ioutil.WriteFile(filepath.Join(*serverRootDir, "kbfs.version"), []byte(version), 0644)
 	if err != nil {
 		return defaultError, err
 	}
