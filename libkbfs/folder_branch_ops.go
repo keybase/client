@@ -211,7 +211,7 @@ func (fbo *FolderBranchOps) branch() BranchName {
 
 // GetFavorites implements the KBFSOps interface for FolderBranchOps
 func (fbo *FolderBranchOps) GetFavorites(ctx context.Context) ([]*Favorite, error) {
-	return nil, fmt.Errorf("GetFavorites is not supported by FolderBranchOps")
+	return nil, errors.New("GetFavorites is not supported by FolderBranchOps")
 }
 
 func (fbo *FolderBranchOps) getState() state {
@@ -454,7 +454,7 @@ func (fbo *FolderBranchOps) initMDLocked(
 func (fbo *FolderBranchOps) GetOrCreateRootNodeForHandle(
 	ctx context.Context, handle *TlfHandle, branch BranchName) (
 	node Node, de DirEntry, err error) {
-	err = fmt.Errorf("GetOrCreateRootNodeForHandle is not supported by " +
+	err = errors.New("GetOrCreateRootNodeForHandle is not supported by " +
 		"FolderBranchOps")
 	return
 }
@@ -3096,14 +3096,14 @@ func (fbo *FolderBranchOps) applyMDUpdatesLocked(ctx context.Context,
 	// if we have staged changes, ignore all updates until conflict
 	// resolution kicks in.  TODO: cache these for future use.
 	if !invert && fbo.staged {
-		return fmt.Errorf("Ignoring MD updates while local updates are staged")
+		return errors.New("Ignoring MD updates while local updates are staged")
 	}
 
 	// Don't allow updates while we're in the dirty state; the next
 	// sync will put us into an unmerged state anyway and we'll
 	// require conflict resolution.
 	if fbo.getState() != cleanState {
-		return fmt.Errorf("Ignoring MD updates while writes are dirty")
+		return errors.New("Ignoring MD updates while writes are dirty")
 	}
 
 	// if any of the operations have unembedded block ops, fetch those
@@ -3241,7 +3241,7 @@ func (fbo *FolderBranchOps) invertUnmergedMDUpdatesLocked(
 		// on the next iteration, start apply the previous root
 		currHead = fbo.getCurrMDRevision() - 1
 		if currHead < 1 {
-			return fmt.Errorf("Ran out of MD updates to unstage!")
+			return errors.New("Ran out of MD updates to unstage!")
 		}
 		if len(rmds) != maxMDsAtATime {
 			// we have arrived at the branch point.  The new root is
@@ -3276,7 +3276,7 @@ func (fbo *FolderBranchOps) UnstageForTesting(
 	}
 
 	if fbo.getState() != cleanState {
-		return fmt.Errorf("Can't unstage while files are dirty!")
+		return errors.New("Can't unstage while files are dirty!")
 	}
 
 	fbo.writerLock.Lock()

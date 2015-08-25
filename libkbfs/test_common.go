@@ -1,7 +1,7 @@
 package libkbfs
 
 import (
-	"fmt"
+	"errors"
 	"os"
 	"testing"
 
@@ -305,7 +305,7 @@ func DisableUpdatesForTesting(config Config, folderBranch FolderBranch) (
 	chan<- struct{}, error) {
 	kbfsOps, ok := config.KBFSOps().(*KBFSOpsStandard)
 	if !ok {
-		return nil, fmt.Errorf("Unexpected KBFSOps type")
+		return nil, errors.New("Unexpected KBFSOps type")
 	}
 
 	ops := kbfsOps.getOps(folderBranch)
