@@ -43,6 +43,8 @@ All Apple types should be used over primitive ones. For example, if you are work
 
 Don't specify `assign` or `retain` if it's the default. Don't specify `nonatomic` unless you are defining the method in the implementation.
 
+If the name of a `BOOL` property is expressed as an adjective, the property’s name can omit the `is` prefix but should specify the conventional name for the getter.
+
 **For example:**
 
 ```objc
@@ -355,16 +357,6 @@ if (someNumber.boolValue == NO)
 ```objc
 if (isAwesome == YES) // Never do this.
 ```
-
-If the name of a `BOOL` property is expressed as an adjective, the property’s name can omit the `is` prefix but should specify the conventional name for the getter.
-
-**For example:**
-
-```objc
-@property (assign, getter=isEditable) BOOL editable;
-```
-
-_Text and example taken from the [Cocoa Naming Guidelines](https://developer.apple.com/library/mac/#documentation/Cocoa/Conceptual/CodingGuidelines/Articles/NamingIvarsAndTypes.html#//apple_ref/doc/uid/20001284-BAJGIIJE)._
 
 ## Singletons
 
