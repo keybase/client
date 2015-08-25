@@ -49,8 +49,9 @@ class Client {
     this.transport = rpc.createTransport({path: path, robust: true});
 
     let client = this;
-    this.transport.set_handler(function(method, arg, response) {
-      client.serviceRequestForRenderer(method, arg, response);
+    this.transport.set_generic_handler(function(request) {
+      //console.log("Handler: ", request);
+      client.serviceRequestForRenderer(request.method, request.param, request.response);
     });
 
     this.transport.connect(function (err) {
