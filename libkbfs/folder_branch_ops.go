@@ -3087,6 +3087,8 @@ func (fbo *FolderBranchOps) getCurrMDRevision() MetadataRevision {
 	return fbo.getCurrMDRevisionLocked()
 }
 
+type applyMDUpdatesFunc func(context.Context, []*RootMetadata, bool) error
+
 // writerLock must be held by the caller
 func (fbo *FolderBranchOps) applyMDUpdatesLocked(ctx context.Context,
 	rmds []*RootMetadata, invert bool) error {
@@ -3174,12 +3176,16 @@ func (fbo *FolderBranchOps) applyMDUpdatesLocked(ctx context.Context,
 	return nil
 }
 
+func (fbo *FolderBranchOps) applyMDUpdates(ctx context.Context,
+	rmds []*RootMetadata, invert bool) error {
+	fbo.writerLock.Lock()
+	defer fbo.writerLock.Unlock()
+	return fbo.applyMDUpdatesLocked(ctx, rmds, invert)
+}
+
 // if reregister is false, assume writerLock is held
 func (fbo *FolderBranchOps) getAndApplyMDUpdates(ctx context.Context,
-	reregister bool) error {
-	if reregister {
-		defer fbo.registerForUpdates()
-	}
+	applyFunc applyMDUpdatesFunc) error {
 	for {
 		// first look up all MD revisions newer than my current head
 		currHead := fbo.getCurrMDRevision()
@@ -3191,13 +3197,7 @@ func (fbo *FolderBranchOps) getAndApplyMDUpdates(ctx context.Context,
 			return err
 		}
 
-		err = func() error {
-			if reregister {
-				fbo.writerLock.Lock()
-				defer fbo.writerLock.Unlock()
-			}
-			return fbo.applyMDUpdatesLocked(ctx, rmds, false)
-		}()
+		err = applyFunc(ctx, rmds, false)
 		if err != nil {
 			return err
 		}
@@ -3279,12 +3279,6 @@ func (fbo *FolderBranchOps) UnstageForTesting(
 		return errors.New("Can't unstage while files are dirty!")
 	}
 
-	fbo.writerLock.Lock()
-	defer fbo.writerLock.Unlock()
-	// don't allow any writes to sneak into the cache
-	fbo.cacheLock.Lock()
-	defer fbo.cacheLock.Unlock()
-
 	// launch unstaging in a new goroutine, because we don't want to
 	// use the provided context because upper layers might ignore our
 	// notifications if we do.  But we still want to wait for the
@@ -3293,6 +3287,12 @@ func (fbo *FolderBranchOps) UnstageForTesting(
 	freshCtx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 	go func() {
+		fbo.writerLock.Lock()
+		defer fbo.writerLock.Unlock()
+		// don't allow any writes to sneak into the cache
+		fbo.cacheLock.Lock()
+		defer fbo.cacheLock.Unlock()
+
 		// fetch all of my unstaged updates, and undo them one at a time
 		err := fbo.invertUnmergedMDUpdatesLocked(freshCtx)
 		if err != nil {
@@ -3301,7 +3301,7 @@ func (fbo *FolderBranchOps) UnstageForTesting(
 		}
 
 		// now go forward in time, if possible
-		c <- fbo.getAndApplyMDUpdates(freshCtx, false)
+		c <- fbo.getAndApplyMDUpdates(freshCtx, fbo.applyMDUpdatesLocked)
 	}()
 
 	select {
@@ -3357,20 +3357,20 @@ func (fbo *FolderBranchOps) registerForUpdates() {
 		for {
 			select {
 			case err = <-updateChan:
+				defer fbo.registerForUpdates()
 				if err != nil {
-					if err != nil {
-						libkb.G.Log.Debug("Got a connection error while "+
-							"waiting for updates: %v", err)
-					}
-					fbo.registerForUpdates()
-				} else {
-					err = fbo.getAndApplyMDUpdates(context.Background(), true)
-					if err != nil {
-						libkb.G.Log.Debug("Got an error while applying "+
-							"updates: %v", err)
-					}
+					libkb.G.Log.Debug("Got a connection error while "+
+						"waiting for updates: %v", err)
+					return err
 				}
-				return err
+				err = fbo.getAndApplyMDUpdates(context.Background(),
+					fbo.applyMDUpdates)
+				if err != nil {
+					libkb.G.Log.Debug("Got an error while applying "+
+						"updates: %v", err)
+					return err
+				}
+				return nil
 			case unpause := <-fbo.updatePauseChan:
 				// wait to be unpaused
 				<-unpause
