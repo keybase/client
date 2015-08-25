@@ -131,7 +131,15 @@ func (d *Locksmith) Cancel() error {
 		d.G().Log.Debug("Locksmith Cancel called, but kex is nil (so nothing should be running)")
 		return nil
 	}
-	return d.kex.Cancel()
+	kexErr := d.kex.Cancel()
+	logoutErr := d.G().Logout()
+	if kexErr != nil {
+		return kexErr
+	}
+	if logoutErr != nil {
+		return logoutErr
+	}
+	return nil
 }
 
 // This can fail, but we'll warn if it does.
