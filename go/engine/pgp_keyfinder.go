@@ -20,6 +20,7 @@ type PGPKeyfinder struct {
 
 type PGPKeyfinderArg struct {
 	Users        []string
+	SkipIdentify bool
 	SkipTrack    bool
 	TrackOptions keybase1.TrackOptions
 }
@@ -84,6 +85,12 @@ func (e *PGPKeyfinder) setup(ctx *Context) {
 
 func (e *PGPKeyfinder) verifyUsers(ctx *Context) {
 	if e.runerr != nil {
+		return
+	}
+
+	// decrypt, verify don't need to identify recipients
+	if e.arg.SkipIdentify {
+		e.loadUsers(ctx)
 		return
 	}
 
@@ -186,6 +193,22 @@ func (e *PGPKeyfinder) loadMe() {
 		return
 	}
 	e.me = me
+}
+
+func (e *PGPKeyfinder) loadUsers(ctx *Context) {
+	if e.runerr != nil {
+		return
+	}
+
+	// need to load all the users
+	for _, u := range e.arg.Users {
+		user, err := libkb.LoadUser(libkb.LoadUserArg{Name: u, PublicKeyOptional: true})
+		if err != nil {
+			e.runerr = err
+			return
+		}
+		e.addUser(user, false)
+	}
 }
 
 func (e *PGPKeyfinder) addUser(user *libkb.User, tracked bool) {
