@@ -154,7 +154,7 @@ Acronyms should be all caps.
 
 Single letter variable names should be avoided except as simple counter variables in loops.
 
-Asterisks indicating a type is a pointer should be “attached to” the variable name. **For example,** `NSString *text` **not** `NSString* text` or `NSString * text`, except in the case of constants (`NSString * const NYTConstantString`).
+Asterisks indicating a type is a pointer should be “attached to” the variable name. **For example,** `NSString *text` **not** `NSString* text` or `NSString * text`, except in the case of constants (`NSString * const KBConstantString`).
 
 Property definitions should be used in place of naked instance variables whenever possible. Direct instance variable access should be avoided except in initializer methods (`init`, `initWithCoder:`, etc…), `dealloc` methods and within custom setters and getters. For more information, see [Apple’s docs on using accessor methods in initializer methods and `dealloc`](https://developer.apple.com/library/mac/documentation/Cocoa/Conceptual/MemoryMgmt/Articles/mmPractical.html#//apple_ref/doc/uid/TP40004447-SW6).
 
@@ -169,7 +169,7 @@ Property definitions should be used in place of naked instance variables wheneve
 **Not:**
 
 ```objc
-@interface NYTSection : NSObject {
+@interface KBLabel : NSObject {
   NSString *text
 }
 ```
@@ -356,5 +356,6 @@ if (isAwesome == YES) // Never do this.
 
 Don't use Singletons except for AppDelegate (or NSApp).
 
+## Thanks
 
 This guide is a modified version of the Objective-C Style Guide used by The New York Times.
