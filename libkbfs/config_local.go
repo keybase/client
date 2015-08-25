@@ -3,6 +3,7 @@ package libkbfs
 import (
 	"os"
 
+	"github.com/keybase/client/go/logger"
 	keybase1 "github.com/keybase/client/protocol/go"
 )
 
@@ -27,6 +28,7 @@ type ConfigLocal struct {
 	bsplit   BlockSplitter
 	notifier Notifier
 	cacert   []byte
+	loggerFn func(prefix string) logger.Logger
 }
 
 // LocalUser represents a fake KBFS user, useful for testing.
@@ -334,6 +336,17 @@ func (c *ConfigLocal) CACert() []byte {
 // SetCACert implements the Config interface for ConfigLocal.
 func (c *ConfigLocal) SetCACert(cert []byte) {
 	c.cacert = cert
+}
+
+// MakeLogger implements the Config interface for ConfigLocal.
+func (c *ConfigLocal) MakeLogger(module string) logger.Logger {
+	return c.loggerFn(module)
+}
+
+// SetLoggerMaker implements the Config interface for ConfigLocal.
+func (c *ConfigLocal) SetLoggerMaker(
+	loggerFn func(module string) logger.Logger) {
+	c.loggerFn = loggerFn
 }
 
 // NewConfigLocalWithCrypto initializes a local crypto config w/a crypto interface that can be used for non-PKI crypto.

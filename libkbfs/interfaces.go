@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/keybase/client/go/libkb"
+	"github.com/keybase/client/go/logger"
 	keybase1 "github.com/keybase/client/protocol/go"
 	"github.com/maxtaco/go-framed-msgpack-rpc/rpc2"
 	"golang.org/x/net/context"
@@ -778,6 +779,8 @@ type Config interface {
 	ReqsBufSize() int
 	CACert() []byte
 	SetCACert([]byte)
+	MakeLogger(module string) logger.Logger
+	SetLoggerMaker(func(module string) logger.Logger)
 	// Shutdown is called to free config resources.
 	Shutdown()
 }

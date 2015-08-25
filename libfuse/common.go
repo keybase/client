@@ -16,6 +16,9 @@ const (
 
 	// CtxAppIDKey is the context app id
 	CtxAppIDKey = "kbfsfuse-app-id"
+
+	// CtxOpID is a unique operation ID
+	CtxOpID = "ID"
 )
 
 // fillAttr sets attributes based on the dir entry. It only handles fields

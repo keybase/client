@@ -2,6 +2,7 @@ package libkbfs
 
 import (
 	"github.com/golang/mock/gomock"
+	"github.com/keybase/client/go/logger"
 	"golang.org/x/net/context"
 )
 
@@ -90,5 +91,8 @@ func NewConfigMock(c *gomock.Controller, ctr *SafeTestReporter) *ConfigMock {
 	config.SetNotifier(config.mockNotifier)
 	config.observer = &FakeObserver{}
 	config.ctr = ctr
+	config.SetLoggerMaker(func(m string) logger.Logger {
+		return logger.NewTestLogger(ctr.t)
+	})
 	return config
 }

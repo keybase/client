@@ -25,7 +25,7 @@ var localUserFlag = flag.String("localuser", "strib",
 var clientFlag = flag.Bool("client", false, "use keybase daemon")
 var serverRootDirFlag = flag.String("server-root", "", "directory to put local server files (default is cwd)")
 var serverInMemoryFlag = flag.Bool("server-in-memory", false, "use in-memory server (and ignore -server-root)")
-var debug = flag.Bool("debug", false, "Print FUSE debug messages")
+var debug = flag.Bool("debug", false, "Print debug messages")
 var version = flag.Bool("version", false, "Print version")
 
 const usageStr = `Usage:
@@ -94,7 +94,8 @@ func realMain() error {
 		}
 	}
 
-	config, err := libkbfs.Init(localUser, serverRootDir, *cpuprofile, *memprofile, onInterruptFn)
+	config, err := libkbfs.Init(localUser, serverRootDir, *cpuprofile,
+		*memprofile, onInterruptFn, *debug)
 	if err != nil {
 		return err
 	}

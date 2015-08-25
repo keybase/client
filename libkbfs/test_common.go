@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	"github.com/keybase/client/go/libkb"
+	"github.com/keybase/client/go/logger"
 	keybase1 "github.com/keybase/client/protocol/go"
 	"golang.org/x/net/context"
 )
@@ -71,6 +72,9 @@ func NewRootMetadataForTest(d *TlfHandle, id TlfID) *RootMetadata {
 // unit-testing with the given list of users.
 func MakeTestConfigOrBust(t *testing.T, blockServerRemoteAddr *string, users ...string) *ConfigLocal {
 	config := NewConfigLocal()
+	config.SetLoggerMaker(func(m string) logger.Logger {
+		return logger.NewTestLogger(t)
+	})
 
 	localUsers := MakeLocalUsers(users)
 	loggedInUser := localUsers[0]
@@ -143,6 +147,7 @@ func MakeTestConfigOrBust(t *testing.T, blockServerRemoteAddr *string, users ...
 // the logged in user
 func ConfigAsUser(config *ConfigLocal, loggedInUser string) *ConfigLocal {
 	c := NewConfigLocal()
+	c.SetLoggerMaker(config.loggerFn)
 
 	pki := config.KBPKI().(*KBPKILocal)
 	loggedInUID, ok := pki.Asserts[loggedInUser]

@@ -7,7 +7,9 @@ import (
 	fmt "fmt"
 	gomock "github.com/golang/mock/gomock"
 	libkb "github.com/keybase/client/go/libkb"
+	logger "github.com/keybase/client/go/logger"
 	go0 "github.com/keybase/client/protocol/go"
+	rpc2 "github.com/maxtaco/go-framed-msgpack-rpc/rpc2"
 	context "golang.org/x/net/context"
 	reflect "reflect"
 	time "time"
@@ -2051,6 +2053,24 @@ func (_mr *_MockConfigRecorder) SetCACert(arg0 interface{}) *gomock.Call {
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "SetCACert", arg0)
 }
 
+func (_m *MockConfig) MakeLogger(module string) logger.Logger {
+	ret := _m.ctrl.Call(_m, "MakeLogger", module)
+	ret0, _ := ret[0].(logger.Logger)
+	return ret0
+}
+
+func (_mr *_MockConfigRecorder) MakeLogger(arg0 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "MakeLogger", arg0)
+}
+
+func (_m *MockConfig) SetLoggerMaker(_param0 func(string) logger.Logger) {
+	_m.ctrl.Call(_m, "SetLoggerMaker", _param0)
+}
+
+func (_mr *_MockConfigRecorder) SetLoggerMaker(arg0 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "SetLoggerMaker", arg0)
+}
+
 func (_m *MockConfig) Shutdown() {
 	_m.ctrl.Call(_m, "Shutdown")
 }
@@ -2169,6 +2189,16 @@ func (_mr *_MockConnectionTransportRecorder) Dial(arg0, arg1 interface{}) *gomoc
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "Dial", arg0, arg1)
 }
 
+func (_m *MockConnectionTransport) Serve(server rpc2.Protocol) error {
+	ret := _m.ctrl.Call(_m, "Serve", server)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+func (_mr *_MockConnectionTransportRecorder) Serve(arg0 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "Serve", arg0)
+}
+
 func (_m *MockConnectionTransport) IsConnected() bool {
 	ret := _m.ctrl.Call(_m, "IsConnected")
 	ret0, _ := ret[0].(bool)
@@ -2185,4 +2215,12 @@ func (_m *MockConnectionTransport) Finalize() {
 
 func (_mr *_MockConnectionTransportRecorder) Finalize() *gomock.Call {
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "Finalize")
+}
+
+func (_m *MockConnectionTransport) Close() {
+	_m.ctrl.Call(_m, "Close")
+}
+
+func (_mr *_MockConnectionTransportRecorder) Close() *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "Close")
 }

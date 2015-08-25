@@ -9,6 +9,7 @@ import (
 
 	"github.com/keybase/client/go/client"
 	"github.com/keybase/client/go/libkb"
+	"github.com/keybase/client/go/logger"
 	keybase1 "github.com/keybase/client/protocol/go"
 	"golang.org/x/net/context"
 )
@@ -136,7 +137,8 @@ func makeKBPKIClient(config Config, serverRootDir *string, localUser string) (KB
 // Init should be called at the beginning of main. Shutdown (see
 // below) should then be called at the end of main (usually via
 // defer).
-func Init(localUser string, serverRootDir *string, cpuProfilePath, memProfilePath string, onInterruptFn func()) (Config, error) {
+func Init(localUser string, serverRootDir *string, cpuProfilePath,
+	memProfilePath string, onInterruptFn func(), debug bool) (Config, error) {
 	if cpuProfilePath != "" {
 		// Let the GC/OS clean up the file handle.
 		f, err := os.Create(cpuProfilePath)
@@ -161,6 +163,17 @@ func Init(localUser string, serverRootDir *string, cpuProfilePath, memProfilePat
 	}()
 
 	config := NewConfigLocal()
+
+	// Set logging
+	config.SetLoggerMaker(func(module string) logger.Logger {
+		lg := logger.New(fmt.Sprintf("kbfs(%s)", module))
+		if debug {
+			// Turn on debugging.  TODO: allow a proper log file and
+			// style to be specified.
+			lg.Configure("", true, "")
+		}
+		return lg
+	})
 
 	libkb.G.Init()
 	libkb.G.ConfigureConfig()
