@@ -1,4 +1,4 @@
-# Keybase Objective-C Style Guide
+# Keybase Style Guide
 
 ## Dot Notation Syntax
 
@@ -342,9 +342,6 @@ typedef NS_OPTIONS (NSInteger, KBTextOptions) {
 if (!someObject) {
 }
 
-if (someObject == nil) {
-}
-
 if (!!someObject) {
 }
 ```
@@ -354,7 +351,6 @@ if (!!someObject) {
 ```objc
 if (isAwesome)
 if (!someNumber.boolValue)
-if (someNumber.boolValue == NO)
 ```
 
 **Not:**
