@@ -191,7 +191,7 @@ func (c *PassphraseChange) fetchLKS(ctx *Context, encKey libkb.GenericKey) (libk
 
 func (c *PassphraseChange) updatePassphrase(ctx *Context, sigKey libkb.GenericKey, ppGen libkb.PassphraseGeneration, oldClientHalf []byte) error {
 
-	pgpKey, err := c.findPrivatePGPKey(ctx)
+	pgpKey, err := c.findAndDecryptPrivatePGPKey(ctx)
 	if err != nil {
 		return err
 	}
@@ -293,7 +293,7 @@ func (c *PassphraseChange) runStandardUpdate(ctx *Context) (err error) {
 		return err
 	}
 
-	pgpKey, err := c.findPrivatePGPKey(ctx)
+	pgpKey, err := c.findAndDecryptPrivatePGPKey(ctx)
 	if err != nil {
 		return err
 	}
@@ -405,10 +405,10 @@ func (c *PassphraseChange) verifySuppliedPassphrase(ctx *Context) (err error) {
 	return
 }
 
-// getPrivatePGPKey gets the user's private pgp key if it exists.
-func (c *PassphraseChange) findPrivatePGPKey(ctx *Context) (libkb.GenericKey, error) {
+// findAndDecryptPrivatePGPKey gets the user's private pgp key if it exists.
+func (c *PassphraseChange) findAndDecryptPrivatePGPKey(ctx *Context) (libkb.GenericKey, error) {
 	// if using paper keys, then can't decrypt the pgp secret key, so don't even try.
-	if c.usingPaper == true {
+	if c.usingPaper {
 		return nil, nil
 	}
 
