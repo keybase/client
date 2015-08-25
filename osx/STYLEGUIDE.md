@@ -33,52 +33,15 @@ if (user.isHappy) {
 * Whitespace within methods should be used to separate functionality (though often this can indicate an opportunity to split the method into several, smaller methods). In methods with long or verbose names, a single line of whitespace may be used to provide visual separation before the method’s body.
 * `@synthesize` and `@dynamic` should each be declared on new lines in the implementation.
 
-## Conditionals
-
-Conditional bodies should always use braces even when a conditional body could be written without braces (e.g., it is one line only) to prevent errors. These errors include adding a second line and expecting it to be part of the if-statement. Another, [even more dangerous defect](http://programmers.stackexchange.com/a/16530) may happen where the line “inside” the if-statement is commented out, and the next line unwittingly becomes part of the if-statement. In addition, this style is more consistent with all other conditionals, and therefore more easily scannable.
-
-**For example:**
-```objc
-if (!error) {
-    return success;
-}
-```
-
-**Not:**
-```objc
-if (!error)
-    return success;
-```
-
-or
-
-```objc
-if (!error) return success;
-```
-
-### Ternary Operator
-
-The ternary operator, `?` , should only be used when it increases clarity or code neatness. A single condition is usually all that should be evaluated. Evaluating multiple conditions is usually more understandable as an if statement, or refactored into named variables.
-
-**For example:**
-```objc
-result = a > b ? x : y;
-```
-
-**Not:**
-```objc
-result = a > b ? x = c > d ? c : d : y;
-```
-
 ## Types
 
-`NSInteger` and `NSUInteger` should be used instead of `int`, `long`, etc per Apple's best practices and 64-bit safety. `CGFloat` is preferred over `float` for the same reasons. This future proofs code for 64-bit platforms.
+`NSInteger` and `NSUInteger` should be used instead of `int`, `long`. `CGFloat` is preferred over `float` for the same reasons.
 
-All Apple types should be used over primitive ones. For example, if you are working with time intervals, use `NSTimeInterval` instead of `double` even though it is synonymous. This is considered best practice and makes for clearer code.
+All Apple types should be used over primitive ones. For example, if you are working with time intervals, use `NSTimeInterval` instead of `double`.
 
 ## Properties
 
-Don't specify assign or retain if it's the default. Don't specify nonatomic unless you are overriding the method in the implementation.
+Don't specify `assign` or `retain` if it's the default. Don't specify `nonatomic` unless you are defining the method in the implementation.
 
 **For example:**
 
@@ -96,7 +59,7 @@ Don't specify assign or retain if it's the default. Don't specify nonatomic unle
 @property (nonatomic, assign) BOOL loading;
 ```
 
-Let properties be readonly (immutable) unless necessary. Make them readwrite in the implementation.
+Let properties be `readonly` (immutable) unless necessary. Make them readwrite in the implementation.
 
 **For example:**
 
@@ -109,14 +72,13 @@ Let properties be readonly (immutable) unless necessary. Make them readwrite in 
 @end
 ```
 
+Private properties should be declared in class extensions (anonymous categories) in the implementation file of a class.
+
 `KBSemVersion.m`
 
 ```objc
 @interface KBSemVersion ()
 @property NSString *version;
-@property NSInteger major;
-@property NSInteger minor;
-@property NSInteger patch;
 @property NSString *build;
 @end
 ```
@@ -155,9 +117,28 @@ In method signatures, there should be a space after the scope (`-` or `+` symbol
 - (void)setExampleText:(NSString *)exampleText image:(UIImage *)image;
 ```
 
+Method signatures the argument and parameter should match. First argument should match after the method name (and any `With` or `For`).
+
+**For example:**
+
+```objc
+- (void)initWithText:(NSString *)text image:(UIImage *)image;
+- (void)drawWithText:(NSString *)text image:(UIImage *)image offset:(CGFloat)offset;
+```
+
+**Not:**
+
+```objc
+- (void)initWithExampleText:(NSString *)text defaultImage:(UIImage *)image;
+- (void)draw:(NSString *)text defaultImage:(UIImage *)image forOffset:(CGFloat)offset;
+```
+
+
 ## Variables
 
 Variables should be named descriptively, with the variable’s name clearly communicating what the variable _is_ and pertinent information a programmer needs to use that value properly.
+
+Acronyms should be all caps.
 
 **For example:**
 
@@ -346,36 +327,7 @@ typedef NS_OPTIONS (NSInteger, KBTextOptions) {
 };
 ```
 
-## Private Properties
-
-Private properties should be declared in class extensions (anonymous categories) in the implementation file of a class.
-
-**For example:**
-
-```objc
-@interface KBSemVersion ()
-@property NSString *version;
-@property NSInteger major;
-@property NSInteger minor;
-@property NSInteger patch;
-@property NSString *build;
-@end
-```
-
-## Image Naming
-
-Image names should be named consistently to preserve organization and developer sanity. They should be named as one camel case string with a description of their purpose, followed by the un-prefixed name of the class or property they are customizing (if there is one), followed by a further description of color and/or placement, and finally their state.
-
-**For example:**
-
-* `RefreshBarButtonItem` / `RefreshBarButtonItem@2x` and `RefreshBarButtonItemSelected` / `RefreshBarButtonItemSelected@2x`
-* `ArticleNavigationBarWhite` / `ArticleNavigationBarWhite@2x` and `ArticleNavigationBarBlackSelected` / `ArticleNavigationBarBlackSelected@2x`.
-
-Images that are used for a similar purpose should be grouped in respective groups in an Images folder or Asset Catalog.
-
 ## Booleans
-
-Never compare something directly to `YES`, because `YES` is defined as `1`, and a `BOOL` in Objective-C is a `CHAR` type that is 8 bits long (so a value of `11111110` will return `NO` if compared to `YES`).
 
 **For an object pointer:**
 
@@ -384,6 +336,9 @@ if (!someObject) {
 }
 
 if (someObject == nil) {
+}
+
+if (!!someObject) {
 }
 ```
 
@@ -413,4 +368,4 @@ _Text and example taken from the [Cocoa Naming Guidelines](https://developer.app
 
 ## Singletons
 
-Don't use Singletons except for the AppDelegate.
+Don't use Singletons except for AppDelegate (or NSApp).
