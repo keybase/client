@@ -404,7 +404,6 @@ func TestPassphraseChangeLoggedOutBackupKeySecretStore(t *testing.T) {
 
 	u.Passphrase = newPassphrase
 	assertLoadSecretKeys(tc, u, "logged out w/ backup key, after passphrase change")
-	assertLoadPGPKeys(tc, u)
 }
 
 // Test using an lksec-encrypted pgp private key after changing the
