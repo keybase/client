@@ -21,12 +21,16 @@ type LKSec struct {
 }
 
 func NewLKSec(pps *PassphraseStream, uid keybase1.UID, gc *GlobalContext) *LKSec {
-	return &LKSec{
-		clientHalf:   pps.LksClientHalf(),
-		ppGen:        pps.Generation(),
+	res := &LKSec{
 		uid:          uid,
 		Contextified: NewContextified(gc),
 	}
+
+	if pps != nil {
+		res.clientHalf = pps.LksClientHalf()
+		res.ppGen = pps.Generation()
+	}
+	return res
 }
 
 func NewLKSecWithClientHalf(clientHalf []byte, ppgen PassphraseGeneration, uid keybase1.UID, gc *GlobalContext) *LKSec {

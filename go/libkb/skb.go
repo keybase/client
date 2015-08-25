@@ -110,6 +110,14 @@ func (key *PGPKeyBundle) ToLksSKB(lks *LKSec) (ret *SKB, err error) {
 	return ret, nil
 }
 
+func (s *SKB) Dump() {
+	if s == nil {
+		s.G().Log.Debug("SKB Dump:  skb is nil\n")
+		return
+	}
+	s.G().Log.Debug("skb: %+v, uid = %s\n", s, s.uid)
+}
+
 func (s *SKB) newLKSec(pps *PassphraseStream) *LKSec {
 	if s.newLKSecForTest != nil {
 		return s.newLKSecForTest(pps.LksClientHalf())

@@ -67,10 +67,6 @@ func NewScanKeys(secui libkb.SecretUI, idui libkb.IdentifyUI, opts *keybase1.Tra
 	}
 
 	aerr := sk.G().LoginState().Account(func(a *libkb.Account) {
-		if !a.PassphraseStreamCache().Valid() {
-			g.Log.Debug("| NewScanKeys: passphrase stream cache wasn't valid, so bailing out!")
-			return
-		}
 		pps := a.PassphraseStream()
 		lks := libkb.NewLKSec(pps, sk.me.GetUID(), sk.G())
 		err = lks.Load(a)
@@ -182,7 +178,7 @@ func (s *ScanKeys) extractKeys(lctx libkb.LoginContext, ring *libkb.SKBKeyringFi
 	var err error
 	g.Log.Debug("+ ScanKeys::extractKeys")
 	defer func() {
-		g.Log.Debug("- ScanKeys::extractKeys -> %s", err)
+		g.Log.Debug("- ScanKeys::extractKeys -> %s", libkb.ErrToOk(err))
 	}()
 
 	if synced == nil {
@@ -202,6 +198,8 @@ func (s *ScanKeys) extractKeys(lctx libkb.LoginContext, ring *libkb.SKBKeyringFi
 		if !libkb.IsPGPAlgo(b.Type) {
 			continue
 		}
+		// make sure uid set on each block:
+		b.SetUID(s.me.GetUID())
 		if err := s.extractKey(lctx, b, ui, lks); err != nil {
 			return fmt.Errorf("extracting ring block error: %s", err)
 		}
