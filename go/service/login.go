@@ -76,7 +76,14 @@ func (h *LoginHandler) ClearStoredSecret(arg keybase1.ClearStoredSecretArg) erro
 func (h *LoginHandler) loginWithEngine(eng *engine.LoginEngine, ctx *engine.Context, sessionID int) error {
 	h.setCanceler(sessionID, eng)
 	defer h.removeCanceler(sessionID)
-	return engine.RunEngine(eng, ctx)
+	err := engine.RunEngine(eng, ctx)
+	if err != nil {
+		if _, ok := err.(libkb.CanceledError); ok {
+			G.Log.Debug("logging out due to login cancel")
+			G.Logout()
+		}
+	}
+	return err
 }
 
 func (h *LoginHandler) CancelLogin(sessionID int) error {
