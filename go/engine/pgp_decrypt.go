@@ -69,7 +69,6 @@ func (e *PGPDecrypt) Run(ctx *Context) (err error) {
 	if err != nil {
 		return err
 	}
-	sk.SkipAPI = true
 	e.G().Log.Debug("| PGPDecrypt")
 	e.signStatus, err = libkb.PGPDecrypt(e.arg.Source, e.arg.Sink, sk)
 	if err != nil {

@@ -20,7 +20,6 @@ type PGPKeyfinder struct {
 
 type PGPKeyfinderArg struct {
 	Users        []string
-	SkipIdentify bool
 	SkipTrack    bool
 	TrackOptions keybase1.TrackOptions
 }
@@ -85,12 +84,6 @@ func (e *PGPKeyfinder) setup(ctx *Context) {
 
 func (e *PGPKeyfinder) verifyUsers(ctx *Context) {
 	if e.runerr != nil {
-		return
-	}
-
-	// decrypt, verify don't need to identify recipients
-	if e.arg.SkipIdentify {
-		e.loadUsers(ctx)
 		return
 	}
 
