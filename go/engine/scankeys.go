@@ -17,12 +17,13 @@ import (
 // It is not an engine, but uses an engine and is used by engines,
 // so has to be in the engine package.  It is a UIConsumer.
 type ScanKeys struct {
-	keys  openpgp.EntityList
-	secui libkb.SecretUI
-	idui  libkb.IdentifyUI
-	opts  *keybase1.TrackOptions
-	owner *libkb.User // the owner of the found key(s).  Can be `me` or any other keybase user.
-	me    *libkb.User
+	SkipAPI bool // if true, won't look for keys on api server
+	keys    openpgp.EntityList
+	secui   libkb.SecretUI
+	idui    libkb.IdentifyUI
+	opts    *keybase1.TrackOptions
+	owner   *libkb.User // the owner of the found key(s).  Can be `me` or any other keybase user.
+	me      *libkb.User
 	libkb.Contextified
 }
 
@@ -124,6 +125,12 @@ func (s *ScanKeys) KeysById(id uint64) []openpgp.Key {
 		return memres
 	}
 
+	if s.SkipAPI {
+		// skip api flag is set, so abort scan here.
+		// (for decrypt, pointless to look for public keys on api server)
+		return nil
+	}
+
 	// no match, so use api server to find keys for this id
 	list, err := s.scan(id)
 	if err != nil {
@@ -146,6 +153,12 @@ func (s *ScanKeys) KeysByIdUsage(id uint64, requiredUsage byte) []openpgp.Key {
 		s.G().Log.Debug("ScanKeys:KeysByIdUsage(%d) => owner == me (%s)", id, s.me.GetName())
 		s.owner = s.me // `me` is the owner of all s.keys
 		return memres
+	}
+
+	if s.SkipAPI {
+		// skip api flag is set, so abort scan here.
+		// (for decrypt, pointless to look for public keys on api server)
+		return nil
 	}
 
 	// no match, so now lookup the user on the api server by the key id.
