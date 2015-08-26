@@ -19,11 +19,11 @@ const (
 const permDir os.FileMode = 0700
 
 var initLoggingBackendOnce sync.Once
+var logRotateMutex sync.Mutex
 
 type Logger struct {
 	logging.Logger
 	filename       string
-	rotateMutex    sync.Mutex
 	configureMutex sync.Mutex
 	module         string
 }
@@ -83,8 +83,8 @@ func (log *Logger) Configure(style string, debug bool, filename string) {
 }
 
 func (log *Logger) RotateLogFile() error {
-	log.rotateMutex.Lock()
-	defer log.rotateMutex.Unlock()
+	logRotateMutex.Lock()
+	defer logRotateMutex.Unlock()
 	log.Info("Rotating log file; closing down old file")
 	_, file, err := OpenLogFile(log.filename)
 	if err != nil {
