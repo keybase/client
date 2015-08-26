@@ -34,14 +34,17 @@ func (u *LoginUI) GetEmailOrUsername(dummy int) (string, error) {
 }
 
 func (u *LoginUI) PromptRevokePaperKeys(arg keybase1.PromptRevokePaperKeysArg) (bool, error) {
+	arg.SessionID = u.sessionID
 	return u.cli.PromptRevokePaperKeys(arg)
 }
 
 func (u *LoginUI) DisplayPaperKeyPhrase(arg keybase1.DisplayPaperKeyPhraseArg) error {
+	arg.SessionID = u.sessionID
 	return u.cli.DisplayPaperKeyPhrase(arg)
 }
 
 func (u *LoginUI) DisplayPrimaryPaperKey(arg keybase1.DisplayPrimaryPaperKeyArg) error {
+	arg.SessionID = u.sessionID
 	return u.cli.DisplayPrimaryPaperKey(arg)
 }
 
