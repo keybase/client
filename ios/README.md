@@ -10,6 +10,9 @@ pod setup
 # Generate workspace
 pod install
 
+# Setup npm
+npm install
+
 # Open workspace (not xcodeproj)
 open Keybase.xcworkspace
 ```
