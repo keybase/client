@@ -187,8 +187,6 @@ func TestBServerRemoteWaitForReconnect(t *testing.T) {
 		putChan <- b.Put(ctx, bID, tlfID, bCtx, data, serverHalf)
 	}()
 
-	// tell the put to start
-	putChan <- nil
 	// give the goroutine a chance to run
 	runtime.Gosched()
 
@@ -201,6 +199,9 @@ func TestBServerRemoteWaitForReconnect(t *testing.T) {
 	default:
 		// fall through to connecting
 	}
+
+	// tell the put to start
+	putChan <- nil
 
 	// now there should be an answer waiting for us
 	err := <-putChan
