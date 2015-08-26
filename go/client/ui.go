@@ -587,7 +587,7 @@ func (l LoginUI) PromptRevokePaperKeys(arg keybase1.PromptRevokePaperKeysArg) (b
 	if l.noPrompt {
 		return false, nil
 	}
-	return l.parent.PromptYesNo(fmt.Sprintf("Revoke existing paper keys (%s)?", arg.Device.DeviceID), PromptDefaultYes)
+	return l.parent.PromptYesNo(fmt.Sprintf("Revoke existing paper key %q?", arg.Device.Name), PromptDefaultYes)
 }
 
 func (l LoginUI) DisplayPaperKeyPhrase(arg keybase1.DisplayPaperKeyPhraseArg) error {
