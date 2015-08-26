@@ -151,7 +151,7 @@ func (md *MDServerLocal) getHeadForTLF(ctx context.Context, id TlfID, unmerged b
 func (md *MDServerLocal) getMDKey(ctx context.Context, id TlfID,
 	revision MetadataRevision, unmerged bool) ([]byte, error) {
 	// short-cut
-	if revision == MetadataRevisionHead && !unmerged {
+	if revision == MetadataRevisionUninitialized && !unmerged {
 		return id.Bytes(), nil
 	}
 	buf := &bytes.Buffer{}
@@ -176,7 +176,7 @@ func (md *MDServerLocal) getMDKey(ctx context.Context, id TlfID,
 		}
 	}
 
-	if revision != MetadataRevisionHead {
+	if revision != MetadataRevisionUninitialized {
 		// add revision
 		err = binary.Write(buf, binary.BigEndian, revision.Number())
 		if err != nil {
@@ -320,7 +320,8 @@ func (md *MDServerLocal) Put(ctx context.Context, rmds *RootMetadataSigned) erro
 	batch.Put(revKey, mdID.Bytes())
 
 	// Add an entry with the head key.
-	headKey, err := md.getMDKey(ctx, id, MetadataRevisionHead, unmerged)
+	headKey, err := md.getMDKey(ctx, id, MetadataRevisionUninitialized,
+		unmerged)
 	if err != nil {
 		return MDServerError{err}
 	}

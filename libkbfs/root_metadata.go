@@ -57,8 +57,9 @@ func (mr MetadataRevision) Number() int64 {
 	return int64(mr)
 }
 
-// MetadataRevisionHead indicates the head revision for a particular branch.
-const MetadataRevisionHead = MetadataRevision(0)
+// MetadataRevisionUninitialized indicates that a top-level folder has
+// not yet been initialized.
+const MetadataRevisionUninitialized = MetadataRevision(0)
 
 // RootMetadata is the MD that is signed by the writer.
 type RootMetadata struct {

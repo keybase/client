@@ -191,7 +191,7 @@ func (md *MDServerRemote) get(ctx context.Context, id TlfID, handle *TlfHandle,
 func (md *MDServerRemote) GetForHandle(ctx context.Context, handle *TlfHandle, unmerged bool) (
 	TlfID, *RootMetadataSigned, error) {
 	id, rmdses, err := md.get(ctx, NullTlfID, handle, unmerged,
-		MetadataRevisionHead, MetadataRevisionHead)
+		MetadataRevisionUninitialized, MetadataRevisionUninitialized)
 	if err != nil {
 		return id, nil, err
 	}
@@ -204,7 +204,8 @@ func (md *MDServerRemote) GetForHandle(ctx context.Context, handle *TlfHandle, u
 // GetForTLF implements the MDServer interface for MDServerRemote.
 func (md *MDServerRemote) GetForTLF(ctx context.Context, id TlfID, unmerged bool) (
 	*RootMetadataSigned, error) {
-	_, rmdses, err := md.get(ctx, id, nil, unmerged, MetadataRevisionHead, MetadataRevisionHead)
+	_, rmdses, err := md.get(ctx, id, nil, unmerged,
+		MetadataRevisionUninitialized, MetadataRevisionUninitialized)
 	if err != nil {
 		return nil, err
 	}

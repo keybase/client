@@ -163,7 +163,7 @@ type FolderBranchOps struct {
 	// Closed on shutdown
 	shutdownChan chan struct{}
 
-	// Can be used by test programs to turn off notifications for a while
+	// Can be used to turn off notifications for a while (e.g., for testing)
 	updatePauseChan chan (<-chan struct{})
 
 	// make sure we only kick off registration once
@@ -3078,7 +3078,7 @@ func (fbo *FolderBranchOps) getCurrMDRevisionLocked() MetadataRevision {
 	if fbo.head != nil {
 		return fbo.head.Revision
 	}
-	return MetadataRevisionHead
+	return MetadataRevisionUninitialized
 }
 
 func (fbo *FolderBranchOps) getCurrMDRevision() MetadataRevision {
@@ -3087,27 +3087,9 @@ func (fbo *FolderBranchOps) getCurrMDRevision() MetadataRevision {
 	return fbo.getCurrMDRevisionLocked()
 }
 
-type applyMDUpdatesFunc func(context.Context, []*RootMetadata, bool) error
-
-// writerLock must be held by the caller
-func (fbo *FolderBranchOps) applyMDUpdatesLocked(ctx context.Context,
-	rmds []*RootMetadata, invert bool) error {
-	fbo.headLock.Lock()
-	defer fbo.headLock.Unlock()
-
-	// if we have staged changes, ignore all updates until conflict
-	// resolution kicks in.  TODO: cache these for future use.
-	if !invert && fbo.staged {
-		return errors.New("Ignoring MD updates while local updates are staged")
-	}
-
-	// Don't allow updates while we're in the dirty state; the next
-	// sync will put us into an unmerged state anyway and we'll
-	// require conflict resolution.
-	if fbo.getState() != cleanState {
-		return errors.New("Ignoring MD updates while writes are dirty")
-	}
-
+// writerLock and headLock must be held by the caller
+func (fbo *FolderBranchOps) reembedBlockChangesLocked(ctx context.Context,
+	rmds []*RootMetadata) error {
 	// if any of the operations have unembedded block ops, fetch those
 	// now and fix them up.  TODO: parallelize me.
 	for _, rmd := range rmds {
@@ -3135,18 +3117,35 @@ func (fbo *FolderBranchOps) applyMDUpdatesLocked(ctx context.Context,
 			return err
 		}
 	}
+	return nil
+}
+
+type applyMDUpdatesFunc func(context.Context, []*RootMetadata) error
+
+// writerLock must be held by the caller
+func (fbo *FolderBranchOps) applyMDUpdatesLocked(ctx context.Context,
+	rmds []*RootMetadata) error {
+	fbo.headLock.Lock()
+	defer fbo.headLock.Unlock()
+
+	// if we have staged changes, ignore all updates until conflict
+	// resolution kicks in.  TODO: cache these for future use.
+	if fbo.staged {
+		return errors.New("Ignoring MD updates while local updates are staged")
+	}
+
+	// Don't allow updates while we're in the dirty state; the next
+	// sync will put us into an unmerged state anyway and we'll
+	// require conflict resolution.
+	if fbo.getState() != cleanState {
+		return errors.New("Ignoring MD updates while writes are dirty")
+	}
+
+	fbo.reembedBlockChangesLocked(ctx, rmds)
 
 	for _, rmd := range rmds {
 		// check that we're applying the expected MD revision
-		if invert {
-			// on inversion, it's ok to re-apply the current revision
-			// since you need to invert all of its ops.
-			if rmd.Revision != fbo.getCurrMDRevisionLocked() &&
-				rmd.Revision != fbo.getCurrMDRevisionLocked()-1 {
-				return MDUpdateInvertError{rmd.Revision,
-					fbo.getCurrMDRevisionLocked()}
-			}
-		} else if rmd.Revision != fbo.getCurrMDRevisionLocked()+1 {
+		if rmd.Revision != fbo.getCurrMDRevisionLocked()+1 {
 			return MDUpdateApplyError{rmd.Revision,
 				fbo.getCurrMDRevisionLocked()}
 		}
@@ -3156,35 +3155,62 @@ func (fbo *FolderBranchOps) applyMDUpdatesLocked(ctx context.Context,
 			return err
 		}
 
-		// reverse the ops and invert each one
-		ops := rmd.data.Changes.Ops
-		if invert {
-			invertedOps := make([]op, len(ops))
-			copy(invertedOps, ops)
-			ops = invertedOps
-			for i := len(ops)/2 - 1; i >= 0; i-- {
-				opp := len(ops) - 1 - i
-				ops[i], ops[opp] = ops[opp], ops[i]
-			}
-			for i, op := range ops {
-				ops[i] = invertOpForLocalNotifications(op)
-			}
-		}
-		for _, op := range ops {
+		for _, op := range rmd.data.Changes.Ops {
 			fbo.notifyOneOp(ctx, op, rmd)
 		}
 	}
 	return nil
 }
 
-func (fbo *FolderBranchOps) applyMDUpdates(ctx context.Context,
-	rmds []*RootMetadata, invert bool) error {
-	fbo.writerLock.Lock()
-	defer fbo.writerLock.Unlock()
-	return fbo.applyMDUpdatesLocked(ctx, rmds, invert)
+// writerLock must be held by the caller
+func (fbo *FolderBranchOps) undoMDUpdatesLocked(ctx context.Context,
+	rmds []*RootMetadata) error {
+	fbo.headLock.Lock()
+	defer fbo.headLock.Unlock()
+
+	// Don't allow updates while we're in the dirty state; the next
+	// sync will put us into an unmerged state anyway and we'll
+	// require conflict resolution.
+	if fbo.getState() != cleanState {
+		return errors.New("Ignoring MD updates while writes are dirty")
+	}
+
+	fbo.reembedBlockChangesLocked(ctx, rmds)
+
+	// go backwards through the updates
+	for i := len(rmds) - 1; i >= 0; i-- {
+		rmd := rmds[i]
+		// on undo, it's ok to re-apply the current revision since you
+		// need to invert all of its ops.
+		if rmd.Revision != fbo.getCurrMDRevisionLocked() &&
+			rmd.Revision != fbo.getCurrMDRevisionLocked()-1 {
+			return MDUpdateInvertError{rmd.Revision,
+				fbo.getCurrMDRevisionLocked()}
+		}
+
+		err := fbo.saveMdToCacheLocked(rmd)
+		if err != nil {
+			return err
+		}
+
+		// iterate the ops in reverse and invert each one
+		ops := rmd.data.Changes.Ops
+		for j := len(ops) - 1; j >= 0; j-- {
+			fbo.notifyOneOp(ctx, invertOpForLocalNotifications(ops[j]), rmd)
+		}
+	}
+	return nil
 }
 
-// if reregister is false, assume writerLock is held
+func (fbo *FolderBranchOps) applyMDUpdates(ctx context.Context,
+	rmds []*RootMetadata) error {
+	fbo.writerLock.Lock()
+	defer fbo.writerLock.Unlock()
+	return fbo.applyMDUpdatesLocked(ctx, rmds)
+}
+
+// Assumes all necessary locking is either already done by caller, or
+// is done by applyFunc.
 func (fbo *FolderBranchOps) getAndApplyMDUpdates(ctx context.Context,
 	applyFunc applyMDUpdatesFunc) error {
 	for {
@@ -3194,11 +3220,10 @@ func (fbo *FolderBranchOps) getAndApplyMDUpdates(ctx context.Context,
 		rmds, err := fbo.config.MDOps().GetRange(ctx, fbo.id(),
 			currHead+1, currHead+1+maxMDsAtATime)
 		if err != nil {
-			// Just try again by reregistering
 			return err
 		}
 
-		err = applyFunc(ctx, rmds, false)
+		err = applyFunc(ctx, rmds)
 		if err != nil {
 			return err
 		}
@@ -3210,14 +3235,14 @@ func (fbo *FolderBranchOps) getAndApplyMDUpdates(ctx context.Context,
 }
 
 // writerLock should be held by caller.
-func (fbo *FolderBranchOps) invertUnmergedMDUpdatesLocked(
+func (fbo *FolderBranchOps) undoUnmergedMDUpdatesLocked(
 	ctx context.Context) error {
 	// walk backwards until we find one that is merged
 	currHead := fbo.getCurrMDRevision()
 	for {
 		backwardsNum := currHead - maxMDsAtATime // (MetadataRevision is signed)
-		if backwardsNum < 1 {
-			backwardsNum = 1
+		if backwardsNum <= MetadataRevisionUninitialized {
+			backwardsNum = MetadataRevisionUninitialized + 1
 		}
 
 		// first look up all unmerged MD revisions older than my current head
@@ -3228,26 +3253,23 @@ func (fbo *FolderBranchOps) invertUnmergedMDUpdatesLocked(
 			return err
 		}
 
-		// reverse the rmds
-		for i := len(rmds)/2 - 1; i >= 0; i-- {
-			opp := len(rmds) - 1 - i
-			rmds[i], rmds[opp] = rmds[opp], rmds[i]
-		}
-
-		err = fbo.applyMDUpdatesLocked(ctx, rmds, true)
+		err = fbo.undoMDUpdatesLocked(ctx, rmds)
 		if err != nil {
 			return err
 		}
 
 		// on the next iteration, start apply the previous root
 		currHead = fbo.getCurrMDRevision() - 1
-		if currHead < 1 {
+		if currHead <= MetadataRevisionUninitialized {
 			return errors.New("Ran out of MD updates to unstage!")
 		}
 		if len(rmds) != maxMDsAtATime {
-			// we have arrived at the branch point.  The new root is
+			// We have arrived at the branch point.  The new root is
 			// the previous revision from the current head.  Find it
-			// and apply.
+			// and apply.  TODO: somehow fake the current head into
+			// being currHead-1, so that future calls to
+			// applyMDUpdates will fetch this along with the rest of
+			// the updates.
 			fbo.transitionStagedLocked(false)
 			rmds, err := fbo.config.MDOps().GetRange(ctx, fbo.id(),
 				currHead, currHead)
@@ -3295,7 +3317,14 @@ func (fbo *FolderBranchOps) UnstageForTesting(
 		defer fbo.cacheLock.Unlock()
 
 		// fetch all of my unstaged updates, and undo them one at a time
-		err := fbo.invertUnmergedMDUpdatesLocked(freshCtx)
+		err := fbo.undoUnmergedMDUpdatesLocked(freshCtx)
+		if err != nil {
+			c <- err
+			return
+		}
+
+		// let the server know we no longer have need
+		err = fbo.config.MDServer().PruneUnmerged(freshCtx, fbo.id())
 		if err != nil {
 			c <- err
 			return
