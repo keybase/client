@@ -2091,6 +2091,7 @@ type PGPKeyGenArg struct {
 	CreateUids  PGPCreateUids `codec:"createUids" json:"createUids"`
 	AllowMulti  bool          `codec:"allowMulti" json:"allowMulti"`
 	DoExport    bool          `codec:"doExport" json:"doExport"`
+	PushSecret  bool          `codec:"pushSecret" json:"pushSecret"`
 }
 
 type PGPKeyGenDefaultArg struct {
