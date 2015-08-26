@@ -8,6 +8,7 @@ import (
 func (a *PGPKeyImportEngineArg) Export() (ret keybase1.PGPKeyGenArg) {
 	ret.AllowMulti = a.AllowMulti
 	ret.DoExport = a.DoExport
+	ret.PushSecret = a.PushSecret
 	a.Gen.ExportTo(&ret)
 	return
 }

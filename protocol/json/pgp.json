@@ -565,6 +565,9 @@
       }, {
         "name" : "doExport",
         "type" : "boolean"
+      }, {
+        "name" : "pushSecret",
+        "type" : "boolean"
       } ],
       "response" : "null"
     },

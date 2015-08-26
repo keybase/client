@@ -901,6 +901,7 @@ typedef NS_ENUM (NSInteger, KBRPromptDefault) {
 @property KBRPGPCreateUids *createUids;
 @property BOOL allowMulti;
 @property BOOL doExport;
+@property BOOL pushSecret;
 @end
 @interface KBRPgpKeyGenDefaultRequestParams : KBRRequestParams
 @property NSInteger sessionID;
@@ -1470,7 +1471,7 @@ typedef NS_ENUM (NSInteger, KBRPromptDefault) {
 
 - (void)pgpKeyGen:(KBRPgpKeyGenRequestParams *)params completion:(void (^)(NSError *error))completion;
 
-- (void)pgpKeyGenWithPrimaryBits:(NSInteger)primaryBits subkeyBits:(NSInteger)subkeyBits createUids:(KBRPGPCreateUids *)createUids allowMulti:(BOOL)allowMulti doExport:(BOOL)doExport completion:(void (^)(NSError *error))completion;
+- (void)pgpKeyGenWithPrimaryBits:(NSInteger)primaryBits subkeyBits:(NSInteger)subkeyBits createUids:(KBRPGPCreateUids *)createUids allowMulti:(BOOL)allowMulti doExport:(BOOL)doExport pushSecret:(BOOL)pushSecret completion:(void (^)(NSError *error))completion;
 
 - (void)pgpKeyGenDefault:(KBRPgpKeyGenDefaultRequestParams *)params completion:(void (^)(NSError *error))completion;
 

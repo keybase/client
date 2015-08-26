@@ -86,7 +86,7 @@ protocol pgp {
 		array<PGPIdentity> ids;
 	}
 
-	void pgpKeyGen(int sessionID, int primaryBits, int subkeyBits, PGPCreateUids createUids, boolean allowMulti, boolean doExport);
+	void pgpKeyGen(int sessionID, int primaryBits, int subkeyBits, PGPCreateUids createUids, boolean allowMulti, boolean doExport, boolean pushSecret);
 
 	void pgpKeyGenDefault(int sessionID, PGPCreateUids createUids);
 

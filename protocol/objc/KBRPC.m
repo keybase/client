@@ -1224,14 +1224,14 @@
 }
 
 - (void)pgpKeyGen:(KBRPgpKeyGenRequestParams *)params completion:(void (^)(NSError *error))completion {
-  NSDictionary *rparams = @{@"primaryBits": @(params.primaryBits), @"subkeyBits": @(params.subkeyBits), @"createUids": KBRValue(params.createUids), @"allowMulti": @(params.allowMulti), @"doExport": @(params.doExport)};
+  NSDictionary *rparams = @{@"primaryBits": @(params.primaryBits), @"subkeyBits": @(params.subkeyBits), @"createUids": KBRValue(params.createUids), @"allowMulti": @(params.allowMulti), @"doExport": @(params.doExport), @"pushSecret": @(params.pushSecret)};
   [self.client sendRequestWithMethod:@"keybase.1.pgp.pgpKeyGen" params:rparams sessionId:self.sessionId completion:^(NSError *error, id retval) {
     completion(error);
   }];
 }
 
-- (void)pgpKeyGenWithPrimaryBits:(NSInteger)primaryBits subkeyBits:(NSInteger)subkeyBits createUids:(KBRPGPCreateUids *)createUids allowMulti:(BOOL)allowMulti doExport:(BOOL)doExport completion:(void (^)(NSError *error))completion {
-  NSDictionary *rparams = @{@"primaryBits": @(primaryBits), @"subkeyBits": @(subkeyBits), @"createUids": KBRValue(createUids), @"allowMulti": @(allowMulti), @"doExport": @(doExport)};
+- (void)pgpKeyGenWithPrimaryBits:(NSInteger)primaryBits subkeyBits:(NSInteger)subkeyBits createUids:(KBRPGPCreateUids *)createUids allowMulti:(BOOL)allowMulti doExport:(BOOL)doExport pushSecret:(BOOL)pushSecret completion:(void (^)(NSError *error))completion {
+  NSDictionary *rparams = @{@"primaryBits": @(primaryBits), @"subkeyBits": @(subkeyBits), @"createUids": KBRValue(createUids), @"allowMulti": @(allowMulti), @"doExport": @(doExport), @"pushSecret": @(pushSecret)};
   [self.client sendRequestWithMethod:@"keybase.1.pgp.pgpKeyGen" params:rparams sessionId:self.sessionId completion:^(NSError *error, id retval) {
     completion(error);
   }];
@@ -3451,6 +3451,7 @@
     self.createUids = [MTLJSONAdapter modelOfClass:KBRPGPCreateUids.class fromJSONDictionary:params[0][@"createUids"] error:nil];
     self.allowMulti = [params[0][@"allowMulti"] boolValue];
     self.doExport = [params[0][@"doExport"] boolValue];
+    self.pushSecret = [params[0][@"pushSecret"] boolValue];
   }
   return self;
 }

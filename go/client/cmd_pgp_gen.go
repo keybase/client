@@ -2,6 +2,7 @@ package client
 
 import (
 	"fmt"
+
 	"github.com/keybase/cli"
 	"github.com/keybase/client/go/engine"
 	"github.com/keybase/client/go/libcmdline"
@@ -53,6 +54,11 @@ func (v *CmdPGPGen) Run() (err error) {
 	if err = v.arg.Gen.CreatePGPIDs(); err != nil {
 		return err
 	}
+	v.arg.PushSecret, err = GlobUI.PromptYesNo("Push private PGP key to keybase.io?", PromptDefaultYes)
+	if err != nil {
+		return err
+	}
+
 	err = cli.PGPKeyGen(v.arg.Export())
 	PGPMultiWarn(err)
 	return err
