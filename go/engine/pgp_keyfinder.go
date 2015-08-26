@@ -188,22 +188,6 @@ func (e *PGPKeyfinder) loadMe() {
 	e.me = me
 }
 
-func (e *PGPKeyfinder) loadUsers(ctx *Context) {
-	if e.runerr != nil {
-		return
-	}
-
-	// need to load all the users
-	for _, u := range e.arg.Users {
-		user, err := libkb.LoadUser(libkb.LoadUserArg{Name: u, PublicKeyOptional: true})
-		if err != nil {
-			e.runerr = err
-			return
-		}
-		e.addUser(user, false)
-	}
-}
-
 func (e *PGPKeyfinder) addUser(user *libkb.User, tracked bool) {
 	e.uplus = append(e.uplus, &UserPlusKeys{User: user, IsTracked: tracked})
 }
