@@ -60,18 +60,21 @@ func (v *CmdPGPGen) Run() (err error) {
 	}
 
 	err = cli.PGPKeyGen(v.arg.Export())
-	PGPMultiWarn(err)
+	err = AddPGPMultiInstructions(err)
 	return err
 }
 
-func PGPMultiWarn(err error) {
+func AddPGPMultiInstructions(err error) error {
 	if err == nil {
-		return
+		return nil
 	}
 	if kee, ok := err.(libkb.KeyExistsError); ok {
-		G.Log.Warning("You already have a PGP key registered (%s)", kee.Key.ToQuads())
-		G.Log.Info("Specify the `--multi` flag to override this check")
+		return fmt.Errorf("You already have a PGP key registered (%s)\n"+
+			"Specify the `--multi` flag to override this check",
+			kee.Key.ToQuads())
 	}
+	// Not the right type. Return it as is.
+	return err
 }
 
 func NewCmdPGPGen(cl *libcmdline.CommandLine) cli.Command {

@@ -54,7 +54,7 @@ func (v *CmdPGPSelect) Run() error {
 		SkipImport:       v.skipImport,
 		OnlyImport:       v.onlyImport,
 	})
-	PGPMultiWarn(err)
+	err = AddPGPMultiInstructions(err)
 	return err
 }
 
