@@ -6,6 +6,7 @@ import (
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/protocol/go"
 	"golang.org/x/crypto/openpgp"
+	"golang.org/x/crypto/openpgp/packet"
 )
 
 // ScanKeys finds pgp decryption keys in SKB and also if there is
@@ -17,13 +18,12 @@ import (
 // It is not an engine, but uses an engine and is used by engines,
 // so has to be in the engine package.  It is a UIConsumer.
 type ScanKeys struct {
-	SkipAPI bool // if true, won't look for keys on api server
-	keys    openpgp.EntityList
-	secui   libkb.SecretUI
-	idui    libkb.IdentifyUI
-	opts    *keybase1.TrackOptions
-	owner   *libkb.User // the owner of the found key(s).  Can be `me` or any other keybase user.
-	me      *libkb.User
+	keys  openpgp.EntityList
+	secui libkb.SecretUI
+	idui  libkb.IdentifyUI
+	opts  *keybase1.TrackOptions
+	owner *libkb.User // the owner of the found key(s).  Can be `me` or any other keybase user.
+	me    *libkb.User
 	libkb.Contextified
 }
 
@@ -116,6 +116,7 @@ func (s *ScanKeys) Count() int {
 }
 
 // KeysById returns the set of keys that have the given key id.
+// It is only called during decryption by openpgp.
 func (s *ScanKeys) KeysById(id uint64) []openpgp.Key {
 	memres := s.keys.KeysById(id)
 	s.G().Log.Debug("ScanKeys:KeysById(%d) => %d keys match in memory", id, len(memres))
@@ -125,27 +126,20 @@ func (s *ScanKeys) KeysById(id uint64) []openpgp.Key {
 		return memres
 	}
 
-	if s.SkipAPI {
-		// skip api flag is set, so abort scan here.
-		// (for decrypt, pointless to look for public keys on api server)
-		return nil
-	}
-
-	// no match, so use api server to find keys for this id
-	list, err := s.scan(id)
-	if err != nil {
-		s.G().Log.Warning("error finding keys for %016x: %s", id, err)
-		return nil
-	}
-	s.G().Log.Debug("ScanKeys:KeysById(%d) => %d keys found via api scan", id, len(list))
-	return list.KeysById(id)
+	return nil
 }
 
 // KeysByIdAndUsage returns the set of keys with the given id
 // that also meet the key usage given by requiredUsage.
 // The requiredUsage is expressed as the bitwise-OR of
 // packet.KeyFlag* values.
+// It is only called during signature verification so therefore
+// requiredUsage will only equal KeyFlagSign.
 func (s *ScanKeys) KeysByIdUsage(id uint64, requiredUsage byte) []openpgp.Key {
+	if requiredUsage&packet.KeyFlagSign == 0 {
+		panic(fmt.Sprintf("ScanKeys:  unexpected requiredUsage flags set: %x", requiredUsage))
+	}
+
 	// first, check the keys we already extracted.
 	memres := s.keys.KeysByIdUsage(id, requiredUsage)
 	s.G().Log.Debug("ScanKeys:KeysByIdUsage(%d, %x) => %d keys match in memory", id, requiredUsage, len(memres))
@@ -153,12 +147,6 @@ func (s *ScanKeys) KeysByIdUsage(id uint64, requiredUsage byte) []openpgp.Key {
 		s.G().Log.Debug("ScanKeys:KeysByIdUsage(%d) => owner == me (%s)", id, s.me.GetName())
 		s.owner = s.me // `me` is the owner of all s.keys
 		return memres
-	}
-
-	if s.SkipAPI {
-		// skip api flag is set, so abort scan here.
-		// (for decrypt, pointless to look for public keys on api server)
-		return nil
 	}
 
 	// no match, so now lookup the user on the api server by the key id.
@@ -256,7 +244,7 @@ func (s *ScanKeys) scan(id uint64) (openpgp.EntityList, error) {
 	// use PGPKeyfinder engine to get the pgp keys for the user
 	// could use "uid://xxxxxxx" instead of username here, but the log output
 	// is more user-friendly with usernames.
-	arg := &PGPKeyfinderArg{Users: []string{username}, SkipIdentify: true}
+	arg := &PGPKeyfinderArg{Users: []string{username}}
 	if s.opts != nil {
 		arg.TrackOptions = *s.opts
 	}
@@ -281,7 +269,6 @@ func (s *ScanKeys) scan(id uint64) (openpgp.EntityList, error) {
 		list = append(list, k.Entity)
 	}
 	return list, nil
-
 }
 
 // apiLookup gets the username and uid from the api server for the

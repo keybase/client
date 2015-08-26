@@ -386,7 +386,7 @@ func (a AppStatusError) Error() string {
 		fields = fmt.Sprintf(" (bad fields: %s)", strings.Join(v, ","))
 	}
 
-	return fmt.Sprintf("Failure from server: %s%s (error %d)", a.Desc, fields, a.Code)
+	return fmt.Sprintf("%s%s (error %d)", a.Desc, fields, a.Code)
 }
 
 //=============================================================================
