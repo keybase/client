@@ -18,24 +18,29 @@ const (
 
 const permDir os.FileMode = 0700
 
+var initLoggingBackendOnce sync.Once
+
 type Logger struct {
 	logging.Logger
 	filename       string
 	rotateMutex    sync.Mutex
 	configureMutex sync.Mutex
+	module         string
 }
 
-func New() *Logger {
-	log := logging.MustGetLogger("keybase")
-	ret := &Logger{Logger: *log}
+func New(module string) *Logger {
+	log := logging.MustGetLogger(module)
+	ret := &Logger{Logger: *log, module: module}
 	ret.initLogging()
 	return ret
 }
 
 func (log *Logger) initLogging() {
-	logBackend := logging.NewLogBackend(os.Stderr, "", 0)
-	logging.SetBackend(logBackend)
-	logging.SetLevel(logging.INFO, "keybase")
+	initLoggingBackendOnce.Do(func() {
+		logBackend := logging.NewLogBackend(os.Stderr, "", 0)
+		logging.SetBackend(logBackend)
+	})
+	logging.SetLevel(logging.INFO, log.module)
 }
 
 func (log *Logger) Profile(fmts string, arg ...interface{}) {
@@ -71,7 +76,7 @@ func (log *Logger) Configure(style string, debug bool, filename string) {
 	}
 
 	if debug {
-		logging.SetLevel(logging.DEBUG, "keybase")
+		logging.SetLevel(logging.DEBUG, log.module)
 	}
 
 	logging.SetFormatter(logging.MustStringFormatter(logfmt))
