@@ -126,6 +126,8 @@ func (s *ScanKeys) KeysById(id uint64) []openpgp.Key {
 		return memres
 	}
 
+	// KeysById is only used for decryption, so getting public keys from
+	// API server via s.scan(id) is pointless, so just returning nil.
 	return nil
 }
 
@@ -136,7 +138,7 @@ func (s *ScanKeys) KeysById(id uint64) []openpgp.Key {
 // It is only called during signature verification so therefore
 // requiredUsage will only equal KeyFlagSign.
 func (s *ScanKeys) KeysByIdUsage(id uint64, requiredUsage byte) []openpgp.Key {
-	if requiredUsage&packet.KeyFlagSign == 0 {
+	if requiredUsage != packet.KeyFlagSign {
 		panic(fmt.Sprintf("ScanKeys:  unexpected requiredUsage flags set: %x", requiredUsage))
 	}
 
