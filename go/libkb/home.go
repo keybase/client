@@ -92,10 +92,9 @@ func (x XdgPosix) ChdirDir() (ret string, err error) {
 }
 
 func (x XdgPosix) LogDir() string {
-	ret := x.xdgRuntimeDir()
-	if len(ret) != 0 {
-		return ret
-	}
+	// There doesn't seem to be an official place for logs in the XDG spec, but
+	// according to http://stackoverflow.com/a/27965014/823869 at least, this
+	// is the best compromise.
 	return x.CacheDir()
 }
 
