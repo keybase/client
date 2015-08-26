@@ -92,10 +92,6 @@ func (x XdgPosix) ChdirDir() (ret string, err error) {
 }
 
 func (x XdgPosix) LogDir() string {
-	ret := x.xdgRuntimeDir()
-	if len(ret) != 0 {
-		return ret
-	}
 	return x.CacheDir()
 }
 
