@@ -158,6 +158,9 @@ func (s *CmdSignup) checkRegistered() (err error) {
 		return
 	}
 
+	if !s.doPrompt {
+		return nil
+	}
 	prompt := "Already registered; do you want to reregister?"
 	if rereg, err := GlobUI.PromptYesNo(prompt, PromptDefaultNo); err != nil {
 		return err
@@ -356,15 +359,19 @@ func (s *CmdSignup) initClient() error {
 
 	protocols := []rpc2.Protocol{
 		NewLogUIProtocol(),
-		NewLoginUIProtocol(),
 		NewSecretUIProtocol(),
 	}
 	if s.doPrompt {
 		protocols = append(protocols, NewGPGUIProtocol())
+		protocols = append(protocols, NewLoginUIProtocol())
 	} else {
-		ui := GlobUI.GetGPGUI().(GPGUI)
-		ui.noPrompt = true
-		protocols = append(protocols, keybase1.GpgUiProtocol(ui))
+		gpgUI := GlobUI.GetGPGUI().(GPGUI)
+		gpgUI.noPrompt = true
+		protocols = append(protocols, keybase1.GpgUiProtocol(gpgUI))
+
+		loginUI := GlobUI.GetLoginUI().(LoginUI)
+		loginUI.noPrompt = true
+		protocols = append(protocols, keybase1.LoginUiProtocol(loginUI))
 	}
 	if err = RegisterProtocols(protocols); err != nil {
 		return err

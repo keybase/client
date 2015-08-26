@@ -373,7 +373,7 @@ func (ui *UI) GetIdentifyUI() libkb.IdentifyUI {
 }
 
 func (ui *UI) GetLoginUI() libkb.LoginUI {
-	return LoginUI{ui}
+	return LoginUI{parent: ui}
 }
 
 func (ui *UI) GetSecretUI() libkb.SecretUI {
@@ -574,7 +574,8 @@ func (d LocksmithUI) KexStatus(arg keybase1.KexStatusArg) error {
 //============================================================
 
 type LoginUI struct {
-	parent *UI
+	parent   *UI
+	noPrompt bool
 }
 
 func (l LoginUI) GetEmailOrUsername(dummy int) (string, error) {
@@ -583,10 +584,16 @@ func (l LoginUI) GetEmailOrUsername(dummy int) (string, error) {
 }
 
 func (l LoginUI) PromptRevokePaperKeys(arg keybase1.PromptRevokePaperKeysArg) (bool, error) {
+	if l.noPrompt {
+		return false, nil
+	}
 	return l.parent.PromptYesNo(fmt.Sprintf("Revoke existing paper keys (%s)?", arg.Device.DeviceID), PromptDefaultYes)
 }
 
 func (l LoginUI) DisplayPaperKeyPhrase(arg keybase1.DisplayPaperKeyPhraseArg) error {
+	if l.noPrompt {
+		return nil
+	}
 	l.parent.Printf("Here is your secret paper key phrase:\n\n")
 	l.parent.Printf("\t%s\n\n", arg.Phrase)
 	l.parent.Printf("Write it down and keep somewhere safe.\n")
@@ -594,6 +601,9 @@ func (l LoginUI) DisplayPaperKeyPhrase(arg keybase1.DisplayPaperKeyPhraseArg) er
 }
 
 func (l LoginUI) DisplayPrimaryPaperKey(arg keybase1.DisplayPrimaryPaperKeyArg) error {
+	if l.noPrompt {
+		return nil
+	}
 	l.parent.Printf("IMPORTANT: PAPER KEY GENERATION\n\n")
 	l.parent.Printf("During Keybase's alpha, everyone gets a paper key. This is a private key.\n")
 	l.parent.Printf("  1. you must write it down\n")
