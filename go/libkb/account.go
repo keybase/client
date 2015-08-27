@@ -280,7 +280,10 @@ func (a *Account) LockedLocalSecretKey(ska SecretKeyArg) (*SKB, error) {
 		}
 	} else {
 		a.G().Log.Debug("| Looking up secret key in local keychain")
-		ret = keyring.SearchWithComputedKeyFamily(ckf, ska)
+		blocks := keyring.SearchWithComputedKeyFamily(ckf, ska)
+		if len(blocks) > 0 {
+			ret = blocks[0]
+		}
 	}
 
 	if ret != nil {
