@@ -191,7 +191,7 @@ func (c *PassphraseChange) fetchLKS(ctx *Context, encKey libkb.GenericKey) (libk
 
 func (c *PassphraseChange) updatePassphrase(ctx *Context, sigKey libkb.GenericKey, ppGen libkb.PassphraseGeneration, oldClientHalf []byte) error {
 
-	pgpKey, err := c.findAndDecryptPrivatePGPKey(ctx)
+	pgpKeys, err := c.findAndDecryptPrivatePGPKeys(ctx)
 	if err != nil {
 		return err
 	}
@@ -199,7 +199,7 @@ func (c *PassphraseChange) updatePassphrase(ctx *Context, sigKey libkb.GenericKe
 	var acctErr error
 	c.G().LoginState().Account(func(a *libkb.Account) {
 		// Ready the update argument; almost done, but we need some more stuff.
-		args, err := c.commonArgs(a, oldClientHalf, pgpKey, ppGen)
+		args, err := c.commonArgs(a, oldClientHalf, pgpKeys, ppGen)
 		if err != nil {
 			acctErr = err
 			return
@@ -290,7 +290,7 @@ func (c *PassphraseChange) runStandardUpdate(ctx *Context) (err error) {
 		return err
 	}
 
-	pgpKey, err := c.findAndDecryptPrivatePGPKey(ctx)
+	pgpKeys, err := c.findAndDecryptPrivatePGPKeys(ctx)
 	if err != nil {
 		return err
 	}
@@ -301,7 +301,7 @@ func (c *PassphraseChange) runStandardUpdate(ctx *Context) (err error) {
 		oldPWH := a.PassphraseStreamCache().PassphraseStream().PWHash()
 		oldClientHalf := a.PassphraseStreamCache().PassphraseStream().LksClientHalf()
 
-		args, err := c.commonArgs(a, oldClientHalf, pgpKey, gen)
+		args, err := c.commonArgs(a, oldClientHalf, pgpKeys, gen)
 		if err != nil {
 			acctErr = err
 			return
@@ -331,7 +331,7 @@ func (c *PassphraseChange) runStandardUpdate(ctx *Context) (err error) {
 
 // commonArgs must be called inside a LoginState().Account(...)
 // closure
-func (c *PassphraseChange) commonArgs(a *libkb.Account, oldClientHalf []byte, pgpKey libkb.GenericKey, existingGen libkb.PassphraseGeneration) (*libkb.HTTPArgs, error) {
+func (c *PassphraseChange) commonArgs(a *libkb.Account, oldClientHalf []byte, pgpKeys []libkb.GenericKey, existingGen libkb.PassphraseGeneration) (*libkb.HTTPArgs, error) {
 	salt, err := a.LoginSession().Salt()
 	if err != nil {
 		return nil, err
@@ -375,7 +375,8 @@ func (c *PassphraseChange) commonArgs(a *libkb.Account, oldClientHalf []byte, pg
 		"lks_client_halves": libkb.S{Val: string(lkschJSON)},
 	}
 
-	if pgpKey != nil {
+	if len(pgpKeys) > 0 {
+		pgpKey := pgpKeys[0]
 		encoded, err := c.encodePrivatePGPKey(pgpKey, tsec, existingGen+1)
 		if err != nil {
 			return nil, err
@@ -402,43 +403,69 @@ func (c *PassphraseChange) verifySuppliedPassphrase(ctx *Context) (err error) {
 	return
 }
 
-// findAndDecryptPrivatePGPKey gets the user's private pgp key if it exists.
-func (c *PassphraseChange) findAndDecryptPrivatePGPKey(ctx *Context) (libkb.GenericKey, error) {
+// findAndDecryptPrivatePGPKeys gets the user's private pgp keys if
+// any exist and decrypts them.
+func (c *PassphraseChange) findAndDecryptPrivatePGPKeys(ctx *Context) ([]libkb.GenericKey, error) {
 	ska := libkb.SecretKeyArg{
 		Me:      c.me,
 		KeyType: libkb.PGPKeyType,
 	}
 
-	if c.usingPaper {
-		// if using paper keys, there's a chance the PGP key can be decrypted
-		// via secret store:
-		secretRetriever := libkb.NewSecretStore(c.me.GetNormalizedName())
-		key, err := c.G().Keyrings.GetSecretKeyWithStoredSecret(ctx.LoginContext, ska, c.me, secretRetriever)
-		if err == nil {
-			// success:
-			return key, nil
-		}
-
-		switch err.(type) {
-		case libkb.BadKeyError, libkb.NoSecretKeyError:
-			// expected errors, ok to proceed without pgp key:
-			return nil, nil
-		default:
-			// unexpected error type:
-			return nil, err
-		}
-	}
-
-	key, _, err := c.G().Keyrings.GetSecretKeyWithPrompt(ctx.LoginContext, ska, ctx.SecretUI, "passphrase change")
+	// get all the pgp key skb blocks from the keyring:
+	var blocks []*libkb.SKB
+	err := c.G().LoginState().Keyring(func(kr *libkb.SKBKeyringFile) {
+		blocks = kr.SearchWithComputedKeyFamily(c.me.GetComputedKeyFamily(), ska)
+	}, "PassphraseChange - findAndDecryptPrivatePGPKey")
 	if err != nil {
-		if _, ok := err.(libkb.NoSecretKeyError); ok {
-			// it's ok if we can't find a pgp key
-			return nil, nil
-		}
 		return nil, err
 	}
 
-	return key, nil
+	// and the synced secret key:
+	syncKey, err := c.me.SyncedSecretKey(ctx.LoginContext)
+	if err != nil {
+		return nil, err
+	}
+	if syncKey != nil {
+		blocks = append(blocks, syncKey)
+	}
+
+	secretRetriever := libkb.NewSecretStore(c.me.GetNormalizedName())
+
+	// avoid duplicates:
+	keys := make(map[keybase1.KID]libkb.GenericKey)
+	for _, block := range blocks {
+		block.SetUID(c.me.GetUID())
+		var key libkb.GenericKey
+		if c.usingPaper {
+			key, err = block.UnlockWithStoredSecret(secretRetriever)
+			if err != nil {
+				switch err.(type) {
+				case libkb.BadKeyError, libkb.NoSecretKeyError:
+					// expected errors, ok to proceed...
+					continue
+				default:
+					// unexpected error type:
+					return nil, err
+				}
+			}
+		} else {
+			key, err = block.PromptAndUnlock(ctx.LoginContext, "passphrase change", "your keybase passphrase", secretRetriever, ctx.SecretUI, nil)
+			if err != nil {
+				if _, ok := err.(libkb.NoSecretKeyError); ok {
+					continue
+				}
+				return nil, err
+			}
+		}
+		keys[key.GetKID()] = key
+	}
+
+	keyList := make([]libkb.GenericKey, 0, len(keys))
+	for _, key := range keys {
+		keyList = append(keyList, key)
+	}
+
+	return keyList, nil
 }
 
 // encodePrivatePGPKey encrypts key with tsec and armor-encodes it.
