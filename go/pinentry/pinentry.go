@@ -26,10 +26,10 @@ type Pinentry struct {
 	term    string
 	tty     string
 	prog    string
-	log     *logger.Logger
+	log     logger.Logger
 }
 
-func New(envprog string, log *logger.Logger) *Pinentry {
+func New(envprog string, log logger.Logger) *Pinentry {
 	return &Pinentry{
 		prog: envprog,
 		log:  log,

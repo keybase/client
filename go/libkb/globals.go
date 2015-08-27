@@ -28,7 +28,7 @@ import (
 type ShutdownHook func() error
 
 type GlobalContext struct {
-	Log              *logger.Logger  // Handles all logging
+	Log              logger.Logger   // Handles all logging
 	Env              *Env            // Env variables, cmdline args & config
 	Keyrings         *Keyrings       // Gpg Keychains holding keys
 	API              API             // How to make a REST call to the server
@@ -110,7 +110,8 @@ func (g *GlobalContext) Logout() error {
 }
 
 func (g *GlobalContext) ConfigureLogging() error {
-	g.Log.Configure(g.Env.GetLogFormat(), g.Env.GetDebug(), g.Env.GetLogFile())
+	g.Log.Configure(g.Env.GetLogFormat(), g.Env.GetDebug(),
+		g.Env.GetLogFile())
 	g.Output = os.Stdout
 	return nil
 }

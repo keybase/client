@@ -44,7 +44,7 @@ func canExec(s string) error {
 	}
 }
 
-func FindPinentry(log *logger.Logger) (string, error) {
+func FindPinentry(log logger.Logger) (string, error) {
 	if IsRemote() {
 		return "", fmt.Errorf("remote display connection detected, not using pinentry")
 	}

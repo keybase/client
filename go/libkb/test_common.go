@@ -17,6 +17,7 @@ type TestConfig struct {
 func (c *TestConfig) GetConfigFileName() string { return c.configFileName }
 
 func (c *TestConfig) InitTest(t *testing.T, initConfig string) {
+	// TODO: should be initializing the G.Log to be a logger.TestLogger.
 	G.Init()
 	var f *os.File
 	var err error
