@@ -57,9 +57,14 @@ func (mr MetadataRevision) Number() int64 {
 	return int64(mr)
 }
 
-// MetadataRevisionUninitialized indicates that a top-level folder has
-// not yet been initialized.
-const MetadataRevisionUninitialized = MetadataRevision(0)
+const (
+	// MetadataRevisionUninitialized indicates that a top-level folder has
+	// not yet been initialized.
+	MetadataRevisionUninitialized = MetadataRevision(0)
+	// MetadataRevisionInitial is always the first revision for an
+	// initialized top-level folder.
+	MetadataRevisionInitial = MetadataRevision(1)
+)
 
 // RootMetadata is the MD that is signed by the writer.
 type RootMetadata struct {
@@ -158,7 +163,7 @@ func NewRootMetadata(d *TlfHandle, id TlfID) *RootMetadata {
 		// enough to rekey the metadata for the first
 		// time
 		cachedTlfHandle: d,
-		Revision:        1,
+		Revision:        MetadataRevisionInitial,
 	}
 	return &md
 }

@@ -307,7 +307,8 @@ func invertOpForLocalNotifications(oldOp op) op {
 		// will do the right job of marking the right bytes as
 		// invalid.
 		newOp = newSyncOp(op.File.Ref)
-		newOp.(*syncOp).Writes = op.Writes
+		newOp.(*syncOp).Writes = make([]WriteRange, len(op.Writes))
+		copy(newOp.(*syncOp).Writes, op.Writes)
 	case *setAttrOp:
 		newOp = newSetAttrOp(op.Name, op.Dir.Ref, op.Attr)
 	case *gcOp:

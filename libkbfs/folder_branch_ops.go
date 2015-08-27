@@ -1034,7 +1034,11 @@ func (fbo *FolderBranchOps) syncBlockLocked(ctx context.Context,
 				return path{}, DirEntry{}, nil, err
 			}
 			// bump revision
-			md.Revision++
+			if md.Revision < MetadataRevisionInitial {
+				md.Revision = MetadataRevisionInitial
+			} else {
+				md.Revision++
+			}
 		} else {
 			prevDir := path{
 				FolderBranch: dir.FolderBranch,
@@ -3240,15 +3244,15 @@ func (fbo *FolderBranchOps) undoUnmergedMDUpdatesLocked(
 	// walk backwards until we find one that is merged
 	currHead := fbo.getCurrMDRevision()
 	for {
-		backwardsNum := currHead - maxMDsAtATime // (MetadataRevision is signed)
-		if backwardsNum <= MetadataRevisionUninitialized {
-			backwardsNum = MetadataRevisionUninitialized + 1
+		startRev := currHead - maxMDsAtATime // (MetadataRevision is signed)
+		if startRev < MetadataRevisionInitial {
+			startRev = MetadataRevisionInitial
 		}
 
 		// first look up all unmerged MD revisions older than my current head
 		// TODO: add a timeout to the context?
 		rmds, err := fbo.config.MDOps().GetUnmergedRange(ctx, fbo.id(),
-			backwardsNum, currHead)
+			startRev, currHead)
 		if err != nil {
 			return err
 		}
@@ -3260,7 +3264,7 @@ func (fbo *FolderBranchOps) undoUnmergedMDUpdatesLocked(
 
 		// on the next iteration, start apply the previous root
 		currHead = fbo.getCurrMDRevision() - 1
-		if currHead <= MetadataRevisionUninitialized {
+		if currHead < MetadataRevisionInitial {
 			return errors.New("Ran out of MD updates to unstage!")
 		}
 		if len(rmds) != maxMDsAtATime {
@@ -3383,10 +3387,9 @@ func (fbo *FolderBranchOps) registerForUpdates() {
 
 	// successful registration; now, wait for an update or a shutdown
 	go fbo.runUnlessShutdown(func(ctx context.Context) error {
-		var err error
 		for {
 			select {
-			case err = <-updateChan:
+			case err := <-updateChan:
 				defer fbo.registerForUpdates()
 				if err != nil {
 					libkb.G.Log.Debug("Got a connection error while "+

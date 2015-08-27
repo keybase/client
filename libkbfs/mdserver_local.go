@@ -176,7 +176,7 @@ func (md *MDServerLocal) getMDKey(ctx context.Context, id TlfID,
 		}
 	}
 
-	if revision != MetadataRevisionUninitialized {
+	if revision >= MetadataRevisionInitial {
 		// add revision
 		err = binary.Write(buf, binary.BigEndian, revision.Number())
 		if err != nil {
