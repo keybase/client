@@ -1,0 +1,44 @@
+{
+  "protocol" : "debugging",
+  "namespace" : "keybase.1",
+  "types" : [ {
+    "type" : "record",
+    "name" : "FirstStepResult",
+    "fields" : [ {
+      "name" : "valPlusTwo",
+      "type" : "int"
+    } ]
+  } ],
+  "messages" : {
+    "firstStep" : {
+      "request" : [ {
+        "name" : "sessionID",
+        "type" : "int"
+      }, {
+        "name" : "val",
+        "type" : "int"
+      } ],
+      "response" : "FirstStepResult"
+    },
+    "secondStep" : {
+      "request" : [ {
+        "name" : "sessionID",
+        "type" : "int"
+      }, {
+        "name" : "val",
+        "type" : "int"
+      } ],
+      "response" : "int"
+    },
+    "increment" : {
+      "request" : [ {
+        "name" : "sessionID",
+        "type" : "int"
+      }, {
+        "name" : "val",
+        "type" : "int"
+      } ],
+      "response" : "int"
+    }
+  }
+}

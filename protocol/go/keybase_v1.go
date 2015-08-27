@@ -513,6 +513,80 @@ func (c CtlClient) Reload() (err error) {
 	return
 }
 
+type FirstStepResult struct {
+	ValPlusTwo int `codec:"valPlusTwo" json:"valPlusTwo"`
+}
+
+type FirstStepArg struct {
+	SessionID int `codec:"sessionID" json:"sessionID"`
+	Val       int `codec:"val" json:"val"`
+}
+
+type SecondStepArg struct {
+	SessionID int `codec:"sessionID" json:"sessionID"`
+	Val       int `codec:"val" json:"val"`
+}
+
+type IncrementArg struct {
+	SessionID int `codec:"sessionID" json:"sessionID"`
+	Val       int `codec:"val" json:"val"`
+}
+
+type DebuggingInterface interface {
+	FirstStep(FirstStepArg) (FirstStepResult, error)
+	SecondStep(SecondStepArg) (int, error)
+	Increment(IncrementArg) (int, error)
+}
+
+func DebuggingProtocol(i DebuggingInterface) rpc2.Protocol {
+	return rpc2.Protocol{
+		Name: "keybase.1.debugging",
+		Methods: map[string]rpc2.ServeHook{
+			"firstStep": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
+				args := make([]FirstStepArg, 1)
+				if err = nxt(&args); err == nil {
+					ret, err = i.FirstStep(args[0])
+				}
+				return
+			},
+			"secondStep": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
+				args := make([]SecondStepArg, 1)
+				if err = nxt(&args); err == nil {
+					ret, err = i.SecondStep(args[0])
+				}
+				return
+			},
+			"increment": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
+				args := make([]IncrementArg, 1)
+				if err = nxt(&args); err == nil {
+					ret, err = i.Increment(args[0])
+				}
+				return
+			},
+		},
+	}
+
+}
+
+type DebuggingClient struct {
+	Cli GenericClient
+}
+
+func (c DebuggingClient) FirstStep(__arg FirstStepArg) (res FirstStepResult, err error) {
+	err = c.Cli.Call("keybase.1.debugging.firstStep", []interface{}{__arg}, &res)
+	return
+}
+
+func (c DebuggingClient) SecondStep(__arg SecondStepArg) (res int, err error) {
+	err = c.Cli.Call("keybase.1.debugging.secondStep", []interface{}{__arg}, &res)
+	return
+}
+
+func (c DebuggingClient) Increment(__arg IncrementArg) (res int, err error) {
+	err = c.Cli.Call("keybase.1.debugging.increment", []interface{}{__arg}, &res)
+	return
+}
+
 type DeviceListArg struct {
 	SessionID int `codec:"sessionID" json:"sessionID"`
 }
