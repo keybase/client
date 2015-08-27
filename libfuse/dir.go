@@ -173,7 +173,9 @@ var _ fs.Node = (*Dir)(nil)
 
 // Attr implements the fs.Node interface for Dir.
 func (d *Dir) Attr(ctx context.Context, a *fuse.Attr) (err error) {
-	defer func() { d.folder.fs.reportErr(err) }()
+	ctx = NewContextWithOpID(ctx)
+	d.folder.fs.log.CDebugf(ctx, "Dir Attr")
+	defer func() { d.folder.fs.reportErr(ctx, err) }()
 	d.folder.mu.Lock()
 	defer d.folder.mu.Unlock()
 
@@ -201,7 +203,9 @@ var _ fs.NodeRequestLookuper = (*Dir)(nil)
 
 // Lookup implements the fs.NodeRequestLookuper interface for Dir.
 func (d *Dir) Lookup(ctx context.Context, req *fuse.LookupRequest, resp *fuse.LookupResponse) (node fs.Node, err error) {
-	defer func() { d.folder.fs.reportErr(err) }()
+	ctx = NewContextWithOpID(ctx)
+	d.folder.fs.log.CDebugf(ctx, "Dir Lookup %s", req.Name)
+	defer func() { d.folder.fs.reportErr(ctx, err) }()
 	d.folder.mu.Lock()
 	defer d.folder.mu.Unlock()
 
@@ -278,7 +282,9 @@ var _ fs.NodeCreater = (*Dir)(nil)
 
 // Create implements the fs.NodeCreater interface for Dir.
 func (d *Dir) Create(ctx context.Context, req *fuse.CreateRequest, resp *fuse.CreateResponse) (node fs.Node, handle fs.Handle, err error) {
-	defer func() { d.folder.fs.reportErr(err) }()
+	ctx = NewContextWithOpID(ctx)
+	d.folder.fs.log.CDebugf(ctx, "Dir Create %s", req.Name)
+	defer func() { d.folder.fs.reportErr(ctx, err) }()
 	d.folder.mu.Lock()
 	defer d.folder.mu.Unlock()
 
@@ -302,7 +308,9 @@ var _ fs.NodeMkdirer = (*Dir)(nil)
 // Mkdir implements the fs.NodeMkdirer interface for Dir.
 func (d *Dir) Mkdir(ctx context.Context, req *fuse.MkdirRequest) (
 	node fs.Node, err error) {
-	defer func() { d.folder.fs.reportErr(err) }()
+	ctx = NewContextWithOpID(ctx)
+	d.folder.fs.log.CDebugf(ctx, "Dir Mkdir %s", req.Name)
+	defer func() { d.folder.fs.reportErr(ctx, err) }()
 	d.folder.mu.Lock()
 	defer d.folder.mu.Unlock()
 
@@ -322,7 +330,10 @@ var _ fs.NodeSymlinker = (*Dir)(nil)
 // Symlink implements the fs.NodeSymlinker interface for Dir.
 func (d *Dir) Symlink(ctx context.Context, req *fuse.SymlinkRequest) (
 	node fs.Node, err error) {
-	defer func() { d.folder.fs.reportErr(err) }()
+	ctx = NewContextWithOpID(ctx)
+	d.folder.fs.log.CDebugf(ctx, "Dir Symlink %s -> %s",
+		req.NewName, req.Target)
+	defer func() { d.folder.fs.reportErr(ctx, err) }()
 	d.folder.mu.Lock()
 	defer d.folder.mu.Unlock()
 
@@ -343,7 +354,10 @@ var _ fs.NodeRenamer = (*Dir)(nil)
 // Rename implements the fs.NodeRenamer interface for Dir.
 func (d *Dir) Rename(ctx context.Context, req *fuse.RenameRequest,
 	newDir fs.Node) (err error) {
-	defer func() { d.folder.fs.reportErr(err) }()
+	ctx = NewContextWithOpID(ctx)
+	d.folder.fs.log.CDebugf(ctx, "Dir Rename %s -> %s",
+		req.OldName, req.NewName)
+	defer func() { d.folder.fs.reportErr(ctx, err) }()
 	d.folder.mu.Lock()
 	defer d.folder.mu.Unlock()
 
@@ -381,7 +395,9 @@ var _ fs.NodeRemover = (*Dir)(nil)
 
 // Remove implements the fs.NodeRemover interface for Dir.
 func (d *Dir) Remove(ctx context.Context, req *fuse.RemoveRequest) (err error) {
-	defer func() { d.folder.fs.reportErr(err) }()
+	ctx = NewContextWithOpID(ctx)
+	d.folder.fs.log.CDebugf(ctx, "Dir Remove %s", req.Name)
+	defer func() { d.folder.fs.reportErr(ctx, err) }()
 	d.folder.mu.Lock()
 	defer d.folder.mu.Unlock()
 
@@ -406,7 +422,9 @@ var _ fs.HandleReadDirAller = (*Dir)(nil)
 
 // ReadDirAll implements the fs.NodeReadDirAller interface for Dir.
 func (d *Dir) ReadDirAll(ctx context.Context) (res []fuse.Dirent, err error) {
-	defer func() { d.folder.fs.reportErr(err) }()
+	ctx = NewContextWithOpID(ctx)
+	d.folder.fs.log.CDebugf(ctx, "Dir ReadDirAll")
+	defer func() { d.folder.fs.reportErr(ctx, err) }()
 	d.folder.mu.Lock()
 	defer d.folder.mu.Unlock()
 
@@ -446,7 +464,9 @@ var _ fs.NodeSetattrer = (*Dir)(nil)
 
 // Setattr implements the fs.NodeSetattrer interface for File.
 func (d *Dir) Setattr(ctx context.Context, req *fuse.SetattrRequest, resp *fuse.SetattrResponse) (err error) {
-	defer func() { d.folder.fs.reportErr(err) }()
+	ctx = NewContextWithOpID(ctx)
+	d.folder.fs.log.CDebugf(ctx, "Dir SetAttr")
+	defer func() { d.folder.fs.reportErr(ctx, err) }()
 	d.folder.mu.Lock()
 	defer d.folder.mu.Unlock()
 

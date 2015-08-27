@@ -16,6 +16,7 @@ import (
 
 	"bazil.org/fuse/fs"
 	"bazil.org/fuse/fs/fstestutil"
+	"github.com/keybase/client/go/logger"
 	keybase1 "github.com/keybase/client/protocol/go"
 	"github.com/keybase/kbfs/libkbfs"
 	"golang.org/x/net/context"
@@ -26,6 +27,7 @@ func makeFS(t testing.TB, config *libkbfs.ConfigLocal) *fstestutil.Mount {
 	// TODO duplicates main() in kbfsfuse/main.go too much
 	filesys := &FS{
 		config: config,
+		log:    logger.NewTestLogger(t),
 	}
 	ctx := context.Background()
 	ctx = context.WithValue(ctx, CtxAppIDKey, filesys)

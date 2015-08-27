@@ -60,6 +60,9 @@ func Start(mounter Mounter, options StartOptions) *Error {
 
 	fs := NewFS(config, c)
 	ctx := context.WithValue(context.Background(), CtxAppIDKey, fs)
+	logTags := make(logger.CtxLogTags)
+	logTags[libfuse.CtxIDKey] = libfuse.CtxOpID
+	ctx = logger.NewContextWithLogTags(ctx, logTags)
 	fs.Serve(ctx)
 
 	<-c.Ready

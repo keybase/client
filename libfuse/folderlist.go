@@ -35,7 +35,9 @@ var _ fs.NodeRequestLookuper = (*FolderList)(nil)
 
 // Lookup implements the fs.NodeRequestLookuper interface.
 func (fl *FolderList) Lookup(ctx context.Context, req *fuse.LookupRequest, resp *fuse.LookupResponse) (node fs.Node, err error) {
-	defer func() { fl.fs.reportErr(err) }()
+	ctx = NewContextWithOpID(ctx)
+	fl.fs.log.CDebugf(ctx, "FL Lookup %s", req.Name)
+	defer func() { fl.fs.reportErr(ctx, err) }()
 	fl.mu.Lock()
 	defer fl.mu.Unlock()
 
@@ -135,7 +137,9 @@ func (fl *FolderList) getDirent(ctx context.Context, work <-chan *libkbfs.Favori
 
 // ReadDirAll implements the ReadDirAll interface.
 func (fl *FolderList) ReadDirAll(ctx context.Context) (res []fuse.Dirent, err error) {
-	defer func() { fl.fs.reportErr(err) }()
+	ctx = NewContextWithOpID(ctx)
+	fl.fs.log.CDebugf(ctx, "FL ReadDirAll")
+	defer func() { fl.fs.reportErr(ctx, err) }()
 	favs, err := fl.fs.config.KBFSOps().GetFavorites(ctx)
 	if err != nil {
 		return nil, err

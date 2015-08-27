@@ -5,11 +5,11 @@ package main
 import (
 	"flag"
 	"fmt"
-	"log"
 	"os"
 
 	"bazil.org/fuse"
 
+	"github.com/keybase/client/go/logger"
 	"github.com/keybase/kbfs/libfuse"
 	"github.com/keybase/kbfs/libkbfs"
 )
@@ -57,8 +57,10 @@ func start() *libfuse.Error {
 	}
 
 	if *debug {
+		log := logger.NewWithCallDepth("FUSE", 1)
+		log.Configure("", true, "")
 		fuse.Debug = func(msg interface{}) {
-			log.Printf("FUSE: %s\n", msg)
+			log.Debug("%s", msg)
 		}
 	}
 

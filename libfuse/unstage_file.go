@@ -34,7 +34,9 @@ var _ fs.HandleWriter = (*UnstageFile)(nil)
 // Write implements the fs.HandleWriter interface for UnstageFile.
 func (f *UnstageFile) Write(ctx context.Context, req *fuse.WriteRequest,
 	resp *fuse.WriteResponse) (err error) {
-	defer func() { f.folder.fs.reportErr(err) }()
+	ctx = NewContextWithOpID(ctx)
+	f.folder.fs.log.CDebugf(ctx, "UnstageFile Write")
+	defer func() { f.folder.fs.reportErr(ctx, err) }()
 	if len(req.Data) == 0 {
 		return nil
 	}

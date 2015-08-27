@@ -21,7 +21,9 @@ var _ fs.Node = (*File)(nil)
 
 // Attr implements the fs.Node interface for File.
 func (f *File) Attr(ctx context.Context, a *fuse.Attr) (err error) {
-	defer func() { f.folder.fs.reportErr(err) }()
+	ctx = NewContextWithOpID(ctx)
+	f.folder.fs.log.CDebugf(ctx, "File Attr")
+	defer func() { f.folder.fs.reportErr(ctx, err) }()
 	f.folder.mu.Lock()
 	defer f.folder.mu.Unlock()
 
@@ -61,7 +63,9 @@ func (f *File) sync(ctx context.Context) error {
 
 // Fsync implements the fs.NodeFsyncer interface for File.
 func (f *File) Fsync(ctx context.Context, req *fuse.FsyncRequest) (err error) {
-	defer func() { f.folder.fs.reportErr(err) }()
+	ctx = NewContextWithOpID(ctx)
+	f.folder.fs.log.CDebugf(ctx, "File Fsync")
+	defer func() { f.folder.fs.reportErr(ctx, err) }()
 	return f.sync(ctx)
 }
 
@@ -72,7 +76,9 @@ var _ fs.HandleReader = (*File)(nil)
 // Read implements the fs.HandleReader interface for File.
 func (f *File) Read(ctx context.Context, req *fuse.ReadRequest,
 	resp *fuse.ReadResponse) (err error) {
-	defer func() { f.folder.fs.reportErr(err) }()
+	ctx = NewContextWithOpID(ctx)
+	f.folder.fs.log.CDebugf(ctx, "File Read")
+	defer func() { f.folder.fs.reportErr(ctx, err) }()
 	f.folder.mu.Lock()
 	defer f.folder.mu.Unlock()
 
@@ -90,7 +96,9 @@ var _ fs.HandleWriter = (*File)(nil)
 // Write implements the fs.HandleWriter interface for File.
 func (f *File) Write(ctx context.Context, req *fuse.WriteRequest,
 	resp *fuse.WriteResponse) (err error) {
-	defer func() { f.folder.fs.reportErr(err) }()
+	ctx = NewContextWithOpID(ctx)
+	f.folder.fs.log.CDebugf(ctx, "File Write")
+	defer func() { f.folder.fs.reportErr(ctx, err) }()
 	f.folder.mu.Lock()
 	defer f.folder.mu.Unlock()
 
@@ -106,9 +114,11 @@ var _ fs.HandleFlusher = (*File)(nil)
 
 // Flush implements the fs.HandleFlusher interface for File.
 func (f *File) Flush(ctx context.Context, req *fuse.FlushRequest) (err error) {
+	ctx = NewContextWithOpID(ctx)
+	f.folder.fs.log.CDebugf(ctx, "File Flush")
 	// I'm not sure about the guarantees from KBFSOps, so we don't
 	// differentiate between Flush and Fsync.
-	defer func() { f.folder.fs.reportErr(err) }()
+	defer func() { f.folder.fs.reportErr(ctx, err) }()
 	return f.sync(ctx)
 }
 
@@ -117,7 +127,9 @@ var _ fs.NodeSetattrer = (*File)(nil)
 // Setattr implements the fs.NodeSetattrer interface for File.
 func (f *File) Setattr(ctx context.Context, req *fuse.SetattrRequest,
 	resp *fuse.SetattrResponse) (err error) {
-	defer func() { f.folder.fs.reportErr(err) }()
+	ctx = NewContextWithOpID(ctx)
+	f.folder.fs.log.CDebugf(ctx, "File SetAttr")
+	defer func() { f.folder.fs.reportErr(ctx, err) }()
 	f.folder.mu.Lock()
 	defer f.folder.mu.Unlock()
 

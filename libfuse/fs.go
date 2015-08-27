@@ -5,6 +5,7 @@ import (
 
 	"bazil.org/fuse"
 	"bazil.org/fuse/fs"
+	"github.com/keybase/client/go/logger"
 	"github.com/keybase/kbfs/libkbfs"
 	"golang.org/x/net/context"
 )
@@ -14,11 +15,18 @@ type FS struct {
 	config libkbfs.Config
 	fuse   *fs.Server
 	conn   *fuse.Conn
+	log    logger.Logger
 }
 
 // NewFS creates an FS
-func NewFS(config libkbfs.Config, conn *fuse.Conn) FS {
-	return FS{config: config, conn: conn}
+func NewFS(config libkbfs.Config, conn *fuse.Conn, debug bool) FS {
+	log := logger.New("kbfsfuse")
+	if debug {
+		// Turn on debugging.  TODO: allow a proper log file and
+		// style to be specified.
+		log.Configure("", true, "")
+	}
+	return FS{config: config, conn: conn, log: log}
 }
 
 // Serve FS. Will block.
@@ -37,12 +45,19 @@ func (f *FS) Serve(ctx context.Context) error {
 
 var _ fs.FS = (*FS)(nil)
 
-func (f *FS) reportErr(err error) {
+func (f *FS) reportErr(ctx context.Context, err error) {
 	if err == nil {
+		f.log.CDebugf(ctx, "Request complete")
 		return
 	}
 
 	f.config.Reporter().Report(libkbfs.RptE, libkbfs.WrapError{Err: err})
+	// We just log the error as debug, rather than error, because it
+	// might just indicate an expected error such as an ENOENT.
+	//
+	// TODO: Classify errors and escalate the logging level of the
+	// important ones.
+	f.log.CDebugf(ctx, err.Error())
 }
 
 // Root implements the fs.FS interface for FS.
@@ -79,7 +94,9 @@ var _ fs.NodeRequestLookuper = (*Root)(nil)
 
 // Lookup implements the fs.NodeRequestLookuper interface for Root.
 func (r *Root) Lookup(ctx context.Context, req *fuse.LookupRequest, resp *fuse.LookupResponse) (node fs.Node, err error) {
-	defer func() { r.private.fs.reportErr(err) }()
+	ctx = NewContextWithOpID(ctx)
+	r.private.fs.log.CDebugf(ctx, "FS Lookup %s", req.Name)
+	defer func() { r.private.fs.reportErr(ctx, err) }()
 	switch req.Name {
 	case PrivateName:
 		return r.private, nil
@@ -101,7 +118,9 @@ var _ fs.HandleReadDirAller = (*Root)(nil)
 
 // ReadDirAll implements the ReadDirAll interface for Root.
 func (r *Root) ReadDirAll(ctx context.Context) (res []fuse.Dirent, err error) {
-	defer func() { r.private.fs.reportErr(err) }()
+	ctx = NewContextWithOpID(ctx)
+	r.private.fs.log.CDebugf(ctx, "FS ReadDirAll")
+	defer func() { r.private.fs.reportErr(ctx, err) }()
 	res = []fuse.Dirent{
 		{
 			Type: fuse.DT_Dir,
