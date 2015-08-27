@@ -6,5 +6,6 @@ protocol ctl {
 
 	void stop();
 	void logRotate();
+	void setLogLevel(LogLevel level);
 
 }

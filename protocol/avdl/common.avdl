@@ -69,4 +69,15 @@ protocol Common {
 	record Stream {
 		int fd;
 	}
+
+	enum LogLevel {
+		NONE_0,
+		DEBUG_1,
+		INFO_2,
+		NOTICE_3,
+		WARN_4,
+		ERROR_5,
+		CRITICAL_6,
+		FATAL_7
+	}
 }

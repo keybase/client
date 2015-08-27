@@ -1,6 +1,7 @@
 package service
 
 import (
+	keybase1 "github.com/keybase/client/protocol/go"
 	"os"
 	"time"
 )
@@ -20,4 +21,9 @@ func (c CtlHandler) Stop() error {
 
 func (c CtlHandler) LogRotate() error {
 	return G.Log.RotateLogFile()
+}
+
+func (c CtlHandler) SetLogLevel(level keybase1.LogLevel) error {
+	G.Log.SetLogLevel(level)
+	return nil
 }

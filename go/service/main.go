@@ -18,12 +18,13 @@ import (
 var G = libkb.G
 
 type Service struct {
-	chdirTo string
-	lockPid *libkb.LockPIDFile
+	isDaemon bool
+	chdirTo  string
+	lockPid  *libkb.LockPIDFile
 }
 
-func NewService(d bool) *Service {
-	return &Service{}
+func NewService(isDaemon bool) *Service {
+	return &Service{isDaemon: isDaemon}
 }
 
 func RegisterProtocols(srv *rpc2.Server, xp *rpc2.Transport) error {
@@ -64,7 +65,22 @@ func (d *Service) Handle(c net.Conn) {
 		G.Log.Warning("RegisterProtocols error: %s", err)
 		return
 	}
-	if err := server.Run(true); err != nil {
+
+	if d.isDaemon {
+		// Create an extra LogUI that lives for the duration of this client
+		// connection, which we register with the logger to hook into all calls
+		// to G.Log.*(). This is a hack to allow the client to print warning
+		// and error messages that currently get hidden away in the daemon's
+		// logfile. Eventually we should replace G.Log with a less hacky
+		// context object that we pass around everywhere, and then we won't
+		// need these global hacks.
+		baseHandler := NewBaseHandler(xp)
+		logUI := LogUI{sessionID: 0, cli: baseHandler.getLogUICli()}
+		handle := G.Log.AddExternalLogger(&logUI)
+		defer G.Log.RemoveExternalLogger(handle)
+	}
+
+	if err := server.Run(false /* bg */); err != nil {
 		G.Log.Warning("Run error: %s", err)
 	}
 }
@@ -220,7 +236,7 @@ func NewCmdService(cl *libcmdline.CommandLine) cli.Command {
 			},
 		},
 		Action: func(c *cli.Context) {
-			cl.ChooseCommand(&Service{}, "service", c)
+			cl.ChooseCommand(NewService(true /* isDaemon */), "service", c)
 			cl.SetService()
 		},
 	}

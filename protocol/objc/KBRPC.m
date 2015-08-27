@@ -231,6 +231,20 @@
   }];
 }
 
+- (void)setLogLevel:(KBRSetLogLevelRequestParams *)params completion:(void (^)(NSError *error))completion {
+  NSDictionary *rparams = @{@"level": @(params.level)};
+  [self.client sendRequestWithMethod:@"keybase.1.ctl.setLogLevel" params:rparams sessionId:self.sessionId completion:^(NSError *error, id retval) {
+    completion(error);
+  }];
+}
+
+- (void)setLogLevelWithLevel:(KBRLogLevel)level completion:(void (^)(NSError *error))completion {
+  NSDictionary *rparams = @{@"level": @(level)};
+  [self.client sendRequestWithMethod:@"keybase.1.ctl.setLogLevel" params:rparams sessionId:self.sessionId completion:^(NSError *error, id retval) {
+    completion(error);
+  }];
+}
+
 @end
 
 @implementation KBRDeviceRequest
@@ -2354,6 +2368,22 @@
 
 + (instancetype)params {
   KBRUnboxBytes32RequestParams *p = [[self alloc] init];
+  // Add default values
+  return p;
+}
+@end
+
+@implementation KBRSetLogLevelRequestParams
+
+- (instancetype)initWithParams:(NSArray *)params {
+  if ((self = [super initWithParams:params])) {
+    self.level = [params[0][@"level"] integerValue];
+  }
+  return self;
+}
+
++ (instancetype)params {
+  KBRSetLogLevelRequestParams *p = [[self alloc] init];
   // Add default values
   return p;
 }

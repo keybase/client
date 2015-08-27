@@ -9,6 +9,8 @@ import (
 	"github.com/keybase/client/go/libcmdline"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/service"
+	keybase1 "github.com/keybase/client/protocol/go"
+	"github.com/maxtaco/go-framed-msgpack-rpc/rpc2"
 )
 
 // Keep this around to simplify things
@@ -76,11 +78,33 @@ func mainInner(g *libkb.GlobalContext) error {
 		if cl.IsNoStandalone() {
 			return fmt.Errorf("Can't run command in standalone mode")
 		}
-		(service.NewService(false)).StartLoopbackServer(g)
-	} else if fc := cl.GetForkCmd(); fc == libcmdline.ForceFork || (g.Env.GetAutoFork() && fc != libcmdline.NoFork) {
-		if err = client.ForkServerNix(cl); err != nil {
+		service.NewService(false /* isDaemon */).StartLoopbackServer(g)
+	} else {
+		// If this command warrants an autofork, do it now.
+		if fc := cl.GetForkCmd(); fc == libcmdline.ForceFork || (g.Env.GetAutoFork() && fc != libcmdline.NoFork) {
+			if err = client.ForkServerNix(cl); err != nil {
+				return err
+			}
+		}
+		// Whether or not we autoforked, we're now running in client-server
+		// mode (as opposed to standalone). Register a global LogUI so that
+		// calls to G.Log() in the daemon can be copied to us. This is
+		// something of a hack on the daemon side.
+		protocols := []rpc2.Protocol{client.NewLogUIProtocol()}
+		if err := client.RegisterProtocols(protocols); err != nil {
 			return err
 		}
+		// Send our current debugging state, so that the server can avoid
+		// sending us verbose logs when we don't want to read them.
+		logLevel := keybase1.LogLevel_INFO
+		if G.Env.GetDebug() {
+			logLevel = keybase1.LogLevel_DEBUG
+		}
+		ctlClient, err := client.GetCtlClient()
+		if err != nil {
+			return err
+		}
+		ctlClient.SetLogLevel(logLevel)
 	}
 
 	return cmd.Run()

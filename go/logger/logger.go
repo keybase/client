@@ -1,6 +1,7 @@
 package logger
 
 import (
+	keybase1 "github.com/keybase/client/protocol/go"
 	"golang.org/x/net/context"
 )
 
@@ -49,4 +50,21 @@ type Logger interface {
 	// RotateLogFile rotates the log file, if the underlying logger is
 	// writing to a file.
 	RotateLogFile() error
+
+	// External loggers are a hack to allow the calls to G.Log.* in the daemon
+	// to be forwarded to the client. Loggers are registered here with
+	// AddExternalLogger when connections are started, and every log that's
+	// done gets replayed for each external logger registered at the time. That
+	// will cause some duplication when multiple clients are connected, but
+	// it's a hack. Ideally in the future every function that needs to log will
+	// have a context.
+	//
+	// Because external loggers are intended to be talking over the RPC
+	// connection, we don't want to push all the voluminous debug logs unless
+	// the client actually wants them. Thus we keep a log level here, and we
+	// drop any logs that are below that level. Clients will set this over RPC
+	// when they connect.
+	AddExternalLogger(externalLogger ExternalLogger) uint64
+	RemoveExternalLogger(handle uint64)
+	SetLogLevel(level keybase1.LogLevel)
 }

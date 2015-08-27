@@ -33,7 +33,7 @@ func GetExtraFlags() []cli.Flag {
 // Windows (probably?). Returns an error if anything bad happens; otherwise,
 // assume that the server was successfully started up.
 func ForkServerNix(cl libkb.CommandLine) error {
-	srv := service.NewService(true)
+	srv := service.NewService(true /* isDaemon */)
 
 	// If we try to get an exclusive lock and succeed, it means we
 	// need to relaunch the daemon since it's dead

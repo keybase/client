@@ -56,6 +56,17 @@
 @property NSInteger fd;
 @end
 
+typedef NS_ENUM (NSInteger, KBRLogLevel) {
+	KBRLogLevelNone = 0,
+	KBRLogLevelDebug = 1,
+	KBRLogLevelInfo = 2,
+	KBRLogLevelNotice = 3,
+	KBRLogLevelWarn = 4,
+	KBRLogLevelError = 5,
+	KBRLogLevelCritical = 6,
+	KBRLogLevelFatal = 7,
+};
+
 @interface KBRBlockIdCombo : KBRObject
 @property NSString *blockHash;
 @property NSString *chargedTo;
@@ -349,16 +360,6 @@ typedef NS_ENUM (NSInteger, KBRKexStatusCode) {
 	KBRKexStatusCodeEnd = 12,
 };
 
-typedef NS_ENUM (NSInteger, KBRLogLevel) {
-	KBRLogLevelNone = 0,
-	KBRLogLevelDebug = 1,
-	KBRLogLevelInfo = 2,
-	KBRLogLevelNotice = 3,
-	KBRLogLevelWarn = 4,
-	KBRLogLevelError = 5,
-	KBRLogLevelCritical = 6,
-};
-
 @interface KBRConfiguredAccount : KBRObject
 @property NSString *username;
 @property BOOL hasStoredSecret;
@@ -632,6 +633,9 @@ typedef NS_ENUM (NSInteger, KBRPromptDefault) {
 @property NSData *nonce;
 @property NSData *peersPublicKey;
 @property NSString *reason;
+@end
+@interface KBRSetLogLevelRequestParams : KBRRequestParams
+@property KBRLogLevel level;
 @end
 @interface KBRDeviceListRequestParams : KBRRequestParams
 @property NSInteger sessionID;
@@ -1181,6 +1185,10 @@ typedef NS_ENUM (NSInteger, KBRPromptDefault) {
 - (void)stop:(void (^)(NSError *error))completion;
 
 - (void)logRotate:(void (^)(NSError *error))completion;
+
+- (void)setLogLevel:(KBRSetLogLevelRequestParams *)params completion:(void (^)(NSError *error))completion;
+
+- (void)setLogLevelWithLevel:(KBRLogLevel)level completion:(void (^)(NSError *error))completion;
 
 @end
 

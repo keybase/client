@@ -102,6 +102,19 @@ type Stream struct {
 	Fd int `codec:"fd" json:"fd"`
 }
 
+type LogLevel int
+
+const (
+	LogLevel_NONE     LogLevel = 0
+	LogLevel_DEBUG    LogLevel = 1
+	LogLevel_INFO     LogLevel = 2
+	LogLevel_NOTICE   LogLevel = 3
+	LogLevel_WARN     LogLevel = 4
+	LogLevel_ERROR    LogLevel = 5
+	LogLevel_CRITICAL LogLevel = 6
+	LogLevel_FATAL    LogLevel = 7
+)
+
 type BlockIdCombo struct {
 	BlockHash string `codec:"blockHash" json:"blockHash"`
 	ChargedTo UID    `codec:"chargedTo" json:"chargedTo"`
@@ -422,9 +435,14 @@ type StopArg struct {
 type LogRotateArg struct {
 }
 
+type SetLogLevelArg struct {
+	Level LogLevel `codec:"level" json:"level"`
+}
+
 type CtlInterface interface {
 	Stop() error
 	LogRotate() error
+	SetLogLevel(LogLevel) error
 }
 
 func CtlProtocol(i CtlInterface) rpc2.Protocol {
@@ -445,6 +463,13 @@ func CtlProtocol(i CtlInterface) rpc2.Protocol {
 				}
 				return
 			},
+			"setLogLevel": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
+				args := make([]SetLogLevelArg, 1)
+				if err = nxt(&args); err == nil {
+					err = i.SetLogLevel(args[0].Level)
+				}
+				return
+			},
 		},
 	}
 
@@ -461,6 +486,12 @@ func (c CtlClient) Stop() (err error) {
 
 func (c CtlClient) LogRotate() (err error) {
 	err = c.Cli.Call("keybase.1.ctl.logRotate", []interface{}{LogRotateArg{}}, nil)
+	return
+}
+
+func (c CtlClient) SetLogLevel(level LogLevel) (err error) {
+	__arg := SetLogLevelArg{Level: level}
+	err = c.Cli.Call("keybase.1.ctl.setLogLevel", []interface{}{__arg}, nil)
 	return
 }
 
@@ -1423,18 +1454,6 @@ func (c LocksmithUiClient) KexStatus(__arg KexStatusArg) (err error) {
 	err = c.Cli.Call("keybase.1.locksmithUi.kexStatus", []interface{}{__arg}, nil)
 	return
 }
-
-type LogLevel int
-
-const (
-	LogLevel_NONE     LogLevel = 0
-	LogLevel_DEBUG    LogLevel = 1
-	LogLevel_INFO     LogLevel = 2
-	LogLevel_NOTICE   LogLevel = 3
-	LogLevel_WARN     LogLevel = 4
-	LogLevel_ERROR    LogLevel = 5
-	LogLevel_CRITICAL LogLevel = 6
-)
 
 type LogArg struct {
 	SessionID int      `codec:"sessionID" json:"sessionID"`
