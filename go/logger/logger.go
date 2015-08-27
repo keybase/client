@@ -36,6 +36,9 @@ func New(module string) *Logger {
 }
 
 func (log *Logger) initLogging() {
+	// Logging is always done to stderr. It's the responsibility of the
+	// launcher (like launchd on OSX, or the autoforking code) to set up stderr
+	// to point to the appropriate log file.
 	initLoggingBackendOnce.Do(func() {
 		logBackend := logging.NewLogBackend(os.Stderr, "", 0)
 		logging.SetBackend(logBackend)
@@ -64,6 +67,7 @@ func (log *Logger) Configure(style string, debug bool, filename string) {
 		logfmt = defaultFormat
 	}
 
+	// Override the format above if an explicit style was specified.
 	switch style {
 	case "default":
 		logfmt = defaultFormat // Default
