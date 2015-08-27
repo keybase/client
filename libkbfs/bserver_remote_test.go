@@ -3,7 +3,6 @@ package libkbfs
 import (
 	"bytes"
 	"fmt"
-	"runtime"
 	"sync"
 	"testing"
 
