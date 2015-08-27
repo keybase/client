@@ -3,6 +3,7 @@ package service
 import (
 	keybase1 "github.com/keybase/client/protocol/go"
 	"github.com/maxtaco/go-framed-msgpack-rpc/rpc2"
+	"strconv"
 )
 
 type TestHandler struct {
@@ -27,6 +28,10 @@ func (t TestHandler) Test(arg keybase1.TestArg) (test keybase1.Test, err error) 
 }
 
 func (t TestHandler) TestCallback(arg keybase1.TestCallbackArg) (s string, err error) {
+	i, err := strconv.Atoi(arg.Name)
+	if err == nil {
+		s = strconv.Itoa(i + 1)
+	}
 	return
 }
 

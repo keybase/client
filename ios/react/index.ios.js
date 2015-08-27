@@ -20,7 +20,7 @@ class Keybase extends Component {
   constructor () {
     super()
     this.state = {
-      selectedTab: 'react'
+      selectedTab: 'go'
     }
   }
 

@@ -8,6 +8,8 @@ var {
   Component
 } = React
 
+var engine = require('./engine')
+
 var styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -25,12 +27,31 @@ var styles = StyleSheet.create({
 class GoTest extends Component {
   constructor () {
     super()
+
+    this.state = {data: '123'}
+
+    setInterval(() => {
+      this.sendToGo()
+    }, 1000)
+
+    this.sendToGo()
+  }
+
+  sendToGo () {
+    var toSend = this.state.data
+
+    engine.rpc('test.testCallback', [{sessionID: 1, name: toSend}],
+               (err, data) => {
+                 if (!err) {
+                   this.setState({data: data})
+                 }
+               })
   }
 
   render () {
     return (
       <View style={styles.container}>
-      <Text style={styles.welcome}>TODO</Text>
+      <Text style={styles.welcome}>From Go: {this.state.data}</Text>
       </View>
     )
   }
