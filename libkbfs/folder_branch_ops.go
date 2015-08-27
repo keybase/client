@@ -7,7 +7,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/keybase/client/go/libkb"
+	"github.com/keybase/client/go/logger"
 	keybase1 "github.com/keybase/client/protocol/go"
 	"golang.org/x/net/context"
 )
@@ -160,6 +160,9 @@ type FolderBranchOps struct {
 	// The current status summary for this folder
 	status *folderBranchStatusKeeper
 
+	// How to log
+	log logger.Logger
+
 	// Closed on shutdown
 	shutdownChan chan struct{}
 
@@ -176,6 +179,20 @@ var _ KBFSOps = (*FolderBranchOps)(nil)
 func NewFolderBranchOps(config Config, fb FolderBranch,
 	bType branchType) *FolderBranchOps {
 	nodeCache := newNodeCacheStandard(fb)
+
+	// make logger
+	branchSuffix := ""
+	if fb.Branch != MasterBranch {
+		branchSuffix = " " + string(fb.Branch)
+	}
+	tlfStringFull := fb.Tlf.String()
+	// Shorten the TLF ID for the module name.  8 characters should be
+	// unique enough for a local node.
+	log := config.MakeLogger(fmt.Sprintf("FBO %s%s", tlfStringFull[:8],
+		branchSuffix))
+	// But print it out once in full, just in case.
+	log.CInfof(nil, "Created new folder-branch for %s", tlfStringFull)
+
 	return &FolderBranchOps{
 		config:         config,
 		folderBranch:   fb,
@@ -190,6 +207,7 @@ func NewFolderBranchOps(config Config, fb FolderBranch,
 		writerLock:      &sync.Mutex{},
 		nodeCache:       nodeCache,
 		state:           cleanState,
+		log:             log,
 		shutdownChan:    make(chan struct{}),
 		updatePauseChan: make(chan (<-chan struct{})),
 	}
@@ -470,7 +488,10 @@ func (fbo *FolderBranchOps) checkNode(node Node) error {
 // CheckForNewMDAndInit sees whether the given MD object has been
 // initialized yet; if not, it does so.
 func (fbo *FolderBranchOps) CheckForNewMDAndInit(
-	ctx context.Context, md *RootMetadata) error {
+	ctx context.Context, md *RootMetadata) (err error) {
+	fbo.log.CDebugf(ctx, "CheckForNewMDAndInit")
+	defer fbo.log.CDebugf(ctx, "Done: %v", err)
+
 	fb := FolderBranch{md.ID, MasterBranch}
 	if fb != fbo.folderBranch {
 		return WrongOpsError{fbo.folderBranch, fb}
@@ -512,6 +533,15 @@ func (fbo *FolderBranchOps) execReadThenWrite(f func(reqType) error) error {
 func (fbo *FolderBranchOps) GetRootNode(ctx context.Context,
 	folderBranch FolderBranch) (
 	node Node, de DirEntry, handle *TlfHandle, err error) {
+	fbo.log.CDebugf(ctx, "GetRootNode")
+	defer func() {
+		if err != nil {
+			fbo.log.CDebugf(ctx, "Error: %v", err)
+		} else {
+			fbo.log.CDebugf(ctx, "Done: %p", node.GetID())
+		}
+	}()
+
 	if folderBranch != fbo.folderBranch {
 		err = WrongOpsError{fbo.folderBranch, folderBranch}
 		return
@@ -684,9 +714,8 @@ func (fbo *FolderBranchOps) updateDirBlock(ctx context.Context,
 				// the whole lookup.
 				user, err := fbo.config.KBPKI().GetLoggedInUser(ctx)
 				if err != nil {
-					libkb.G.Log.Debug("Ignoring error while getting "+
-						"logged-in user during directory entry lookup: %v",
-						err)
+					fbo.log.CDebugf(ctx, "Ignoring error while getting "+
+						"logged-in user during directory entry lookup: %v", err)
 				} else {
 					de.SetWriter(user)
 				}
@@ -704,6 +733,9 @@ func (fbo *FolderBranchOps) updateDirBlock(ctx context.Context,
 // GetDirChildren implements the KBFSOps interface for FolderBranchOps
 func (fbo *FolderBranchOps) GetDirChildren(ctx context.Context, dir Node) (
 	children map[string]EntryType, err error) {
+	fbo.log.CDebugf(ctx, "GetDirChildren %p", dir.GetID())
+	defer fbo.log.CDebugf(ctx, "Done: %v", err)
+
 	err = fbo.checkNode(dir)
 	if err != nil {
 		return
@@ -762,6 +794,9 @@ func (fbo *FolderBranchOps) getEntryLocked(ctx context.Context,
 // Lookup implements the KBFSOps interface for FolderBranchOps
 func (fbo *FolderBranchOps) Lookup(ctx context.Context, dir Node, name string) (
 	node Node, de DirEntry, err error) {
+	fbo.log.CDebugf(ctx, "Lookup %v %p", dir.GetID(), name)
+	defer fbo.log.CDebugf(ctx, "Done: %v", err)
+
 	err = fbo.checkNode(dir)
 	if err != nil {
 		return
@@ -797,6 +832,9 @@ func (fbo *FolderBranchOps) Lookup(ctx context.Context, dir Node, name string) (
 // Stat implements the KBFSOps interface for FolderBranchOps
 func (fbo *FolderBranchOps) Stat(ctx context.Context, node Node) (
 	de DirEntry, err error) {
+	fbo.log.CDebugf(ctx, "Stat %p", node.GetID())
+	defer fbo.log.CDebugf(ctx, "Done: %v", err)
+
 	err = fbo.checkNode(node)
 	if err != nil {
 		return
@@ -1398,8 +1436,18 @@ func (fbo *FolderBranchOps) createEntryLocked(
 
 // CreateDir implements the KBFSOps interface for FolderBranchOps
 func (fbo *FolderBranchOps) CreateDir(
-	ctx context.Context, dir Node, path string) (Node, DirEntry, error) {
-	err := fbo.checkNode(dir)
+	ctx context.Context, dir Node, path string) (
+	n Node, de DirEntry, err error) {
+	fbo.log.CDebugf(ctx, "CreateDir %p %s", dir.GetID(), path)
+	defer func() {
+		if err != nil {
+			fbo.log.CDebugf(ctx, "Error: %v", err)
+		} else {
+			fbo.log.CDebugf(ctx, "Done: %p", n.GetID())
+		}
+	}()
+
+	err = fbo.checkNode(dir)
 	if err != nil {
 		return nil, DirEntry{}, err
 	}
@@ -1413,6 +1461,15 @@ func (fbo *FolderBranchOps) CreateDir(
 func (fbo *FolderBranchOps) CreateFile(
 	ctx context.Context, dir Node, path string, isExec bool) (
 	n Node, de DirEntry, err error) {
+	fbo.log.CDebugf(ctx, "CreateFile %p %s", dir.GetID(), path)
+	defer func() {
+		if err != nil {
+			fbo.log.CDebugf(ctx, "Error: %v", err)
+		} else {
+			fbo.log.CDebugf(ctx, "Done: %p", n.GetID())
+		}
+	}()
+
 	err = fbo.checkNode(dir)
 	if err != nil {
 		return
@@ -1479,8 +1536,12 @@ func (fbo *FolderBranchOps) createLinkLocked(
 // CreateLink implements the KBFSOps interface for FolderBranchOps
 func (fbo *FolderBranchOps) CreateLink(
 	ctx context.Context, dir Node, fromName string, toPath string) (
-	DirEntry, error) {
-	err := fbo.checkNode(dir)
+	de DirEntry, err error) {
+	fbo.log.CDebugf(ctx, "CreateLink %p %s -> %s",
+		dir.GetID(), fromName, toPath)
+	defer fbo.log.CDebugf(ctx, "Done: %v", err)
+
+	err = fbo.checkNode(dir)
 	if err != nil {
 		return DirEntry{}, err
 	}
@@ -1555,6 +1616,9 @@ func (fbo *FolderBranchOps) removeEntryLocked(ctx context.Context,
 // RemoveDir implements the KBFSOps interface for FolderBranchOps
 func (fbo *FolderBranchOps) RemoveDir(
 	ctx context.Context, dir Node, dirName string) (err error) {
+	fbo.log.CDebugf(ctx, "RemoveDir %p %s", dir.GetID(), dirName)
+	defer fbo.log.CDebugf(ctx, "Done: %v", err)
+
 	err = fbo.checkNode(dir)
 	if err != nil {
 		return
@@ -1602,8 +1666,11 @@ func (fbo *FolderBranchOps) RemoveDir(
 
 // RemoveEntry implements the KBFSOps interface for FolderBranchOps
 func (fbo *FolderBranchOps) RemoveEntry(ctx context.Context, dir Node,
-	name string) error {
-	err := fbo.checkNode(dir)
+	name string) (err error) {
+	fbo.log.CDebugf(ctx, "RemoveEntry %p %s", dir.GetID(), name)
+	defer fbo.log.CDebugf(ctx, "Done: %v", err)
+
+	err = fbo.checkNode(dir)
 	if err != nil {
 		return err
 	}
@@ -1808,8 +1875,12 @@ func (fbo *FolderBranchOps) renameLocked(
 // Rename implements the KBFSOps interface for FolderBranchOps
 func (fbo *FolderBranchOps) Rename(
 	ctx context.Context, oldParent Node, oldName string, newParent Node,
-	newName string) error {
-	err := fbo.checkNode(newParent)
+	newName string) (err error) {
+	fbo.log.CDebugf(ctx, "Rename %p/%s -> %p/%s", oldParent.GetID(),
+		oldName, newParent.GetID(), newName)
+	defer fbo.log.CDebugf(ctx, "Done: %v", err)
+
+	err = fbo.checkNode(newParent)
 	if err != nil {
 		return err
 	}
@@ -1920,8 +1991,12 @@ func (fbo *FolderBranchOps) readLocked(
 
 // Read implements the KBFSOps interface for FolderBranchOps
 func (fbo *FolderBranchOps) Read(
-	ctx context.Context, file Node, dest []byte, off int64) (int64, error) {
-	err := fbo.checkNode(file)
+	ctx context.Context, file Node, dest []byte, off int64) (
+	n int64, err error) {
+	fbo.log.CDebugf(ctx, "Read %p %d %d", file.GetID(), len(dest), off)
+	defer fbo.log.CDebugf(ctx, "Done: %v", err)
+
+	err = fbo.checkNode(file)
 	if err != nil {
 		return 0, err
 	}
@@ -2139,8 +2214,11 @@ func (fbo *FolderBranchOps) writeDataLocked(
 
 // Write implements the KBFSOps interface for FolderBranchOps
 func (fbo *FolderBranchOps) Write(
-	ctx context.Context, file Node, data []byte, off int64) error {
-	err := fbo.checkNode(file)
+	ctx context.Context, file Node, data []byte, off int64) (err error) {
+	fbo.log.CDebugf(ctx, "Write %p %d %d", file.GetID(), len(data), off)
+	defer fbo.log.CDebugf(ctx, "Done: %v", err)
+
+	err = fbo.checkNode(file)
 	if err != nil {
 		return err
 	}
@@ -2302,8 +2380,11 @@ func (fbo *FolderBranchOps) truncateLocked(
 
 // Truncate implements the KBFSOps interface for FolderBranchOps
 func (fbo *FolderBranchOps) Truncate(
-	ctx context.Context, file Node, size uint64) error {
-	err := fbo.checkNode(file)
+	ctx context.Context, file Node, size uint64) (err error) {
+	fbo.log.CDebugf(ctx, "Truncate %p %d", file.GetID(), size)
+	defer fbo.log.CDebugf(ctx, "Done: %v", err)
+
+	err = fbo.checkNode(file)
 	if err != nil {
 		return err
 	}
@@ -2390,6 +2471,9 @@ func (fbo *FolderBranchOps) setExLocked(
 // SetEx implements the KBFSOps interface for FolderBranchOps
 func (fbo *FolderBranchOps) SetEx(
 	ctx context.Context, file Node, ex bool) (err error) {
+	fbo.log.CDebugf(ctx, "SetEx %p %v", file.GetID(), ex)
+	defer fbo.log.CDebugf(ctx, "Done: %v", err)
+
 	err = fbo.checkNode(file)
 	if err != nil {
 		return
@@ -2434,6 +2518,9 @@ func (fbo *FolderBranchOps) setMtimeLocked(
 // SetMtime implements the KBFSOps interface for FolderBranchOps
 func (fbo *FolderBranchOps) SetMtime(
 	ctx context.Context, file Node, mtime *time.Time) (err error) {
+	fbo.log.CDebugf(ctx, "SetMtime %p %v", file.GetID(), mtime)
+	defer fbo.log.CDebugf(ctx, "Done: %v", err)
+
 	if mtime == nil {
 		// Can happen on some OSes (e.g. OSX) when trying to set the atime only
 		return nil
@@ -2773,6 +2860,9 @@ func (fbo *FolderBranchOps) syncLocked(ctx context.Context, file path) (
 
 // Sync implements the KBFSOps interface for FolderBranchOps
 func (fbo *FolderBranchOps) Sync(ctx context.Context, file Node) (err error) {
+	fbo.log.CDebugf(ctx, "Sync %p", file.GetID())
+	defer fbo.log.CDebugf(ctx, "Done: %v", err)
+
 	err = fbo.checkNode(file)
 	if err != nil {
 		return
@@ -2795,7 +2885,10 @@ func (fbo *FolderBranchOps) Sync(ctx context.Context, file Node) (err error) {
 // Status implements the KBFSOps interface for FolderBranchOps
 func (fbo *FolderBranchOps) Status(
 	ctx context.Context, folderBranch FolderBranch) (
-	FolderBranchStatus, <-chan StatusUpdate, error) {
+	fbs FolderBranchStatus, updateChan <-chan StatusUpdate, err error) {
+	fbo.log.CDebugf(ctx, "Status")
+	defer fbo.log.CDebugf(ctx, "Done: %v", err)
+
 	if folderBranch != fbo.folderBranch {
 		return FolderBranchStatus{}, nil,
 			WrongOpsError{fbo.folderBranch, folderBranch}
@@ -3292,7 +3385,10 @@ func (fbo *FolderBranchOps) undoUnmergedMDUpdatesLocked(
 // UnstageForTesting implements the KBFSOps interface for FolderBranchOps
 // TODO: remove once we have automatic conflict resolution
 func (fbo *FolderBranchOps) UnstageForTesting(
-	ctx context.Context, folderBranch FolderBranch) error {
+	ctx context.Context, folderBranch FolderBranch) (err error) {
+	fbo.log.CDebugf(ctx, "UnstageForTesting")
+	defer fbo.log.CDebugf(ctx, "Done: %v", err)
+
 	if folderBranch != fbo.folderBranch {
 		return WrongOpsError{fbo.folderBranch, folderBranch}
 	}
@@ -3346,9 +3442,33 @@ func (fbo *FolderBranchOps) UnstageForTesting(
 	}
 }
 
+// CtxFBOTagKey is the type used for unique context tags within FolderBranchOps
+type CtxFBOTagKey int
+
+const (
+	// CtxFBOIDKey is the type of the tag for unique operation IDs
+	// within FolderBranchOps.
+	CtxFBOIDKey CtxFBOTagKey = iota
+)
+
+// CtxFBOOpID is the display name for the unique operation
+// FolderBranchOps ID tag.
+const CtxFBOOpID = "FBOID"
+
 // Run the passed function with a context that's canceled on shutdown.
 func (fbo *FolderBranchOps) runUnlessShutdown(fn func(ctx context.Context) error) error {
-	ctx, cancelFunc := context.WithCancel(context.Background())
+	// Tag each request with a unique ID
+	logTags := make(logger.CtxLogTags)
+	logTags[CtxFBOIDKey] = CtxFBOOpID
+	ctx := logger.NewContextWithLogTags(context.Background(), logTags)
+	id, err := MakeRandomRequestID()
+	if err != nil {
+		fbo.log.Warning("Couldn't generate a random request ID: %v", err)
+	} else {
+		ctx = context.WithValue(ctx, CtxFBOIDKey, id)
+	}
+
+	ctx, cancelFunc := context.WithCancel(ctx)
 	defer cancelFunc()
 	errChan := make(chan error, 1)
 	go func() {
@@ -3367,46 +3487,49 @@ func (fbo *FolderBranchOps) registerForUpdates() {
 	var err error
 	var updateChan <-chan error
 
-	err = fbo.runUnlessShutdown(func(ctx context.Context) error {
+	err = fbo.runUnlessShutdown(func(ctx context.Context) (err error) {
+		currRev := fbo.getCurrMDRevision()
+		fbo.log.CDebugf(ctx, "Registering for updates (curr rev = %d)", currRev)
+		defer fbo.log.CDebugf(ctx, "Done: %v", err)
+
 		// this will retry on connectivity issues. TODO: backoff on explicit
 		// throttle errors from the back-end inside MDServer.
 		updateChan, err = fbo.config.MDServer().RegisterForUpdate(ctx, fbo.id(),
-			fbo.getCurrMDRevision())
+			currRev)
 		return err
 	})
 
 	if err != nil {
 		// TODO: we should probably display something or put us in some error
 		// state obvious to the user.
-		libkb.G.Log.Debug("RegisterForUpdate failed, err: %q, folder: %s",
-			err, fbo.id())
 		return
 	}
 
-	libkb.G.Log.Debug("RegisterForUpdate succeeded")
-
 	// successful registration; now, wait for an update or a shutdown
-	go fbo.runUnlessShutdown(func(ctx context.Context) error {
+	go fbo.runUnlessShutdown(func(ctx context.Context) (err error) {
+		fbo.log.CDebugf(ctx, "Waiting for updates")
+		defer fbo.log.CDebugf(ctx, "Done: %v", err)
+
 		for {
 			select {
 			case err := <-updateChan:
+				fbo.log.CDebugf(ctx, "Got an update: %v", err)
 				defer fbo.registerForUpdates()
 				if err != nil {
-					libkb.G.Log.Debug("Got a connection error while "+
-						"waiting for updates: %v", err)
 					return err
 				}
-				err = fbo.getAndApplyMDUpdates(context.Background(),
-					fbo.applyMDUpdates)
+				err = fbo.getAndApplyMDUpdates(ctx, fbo.applyMDUpdates)
 				if err != nil {
-					libkb.G.Log.Debug("Got an error while applying "+
+					fbo.log.CDebugf(ctx, "Got an error while applying "+
 						"updates: %v", err)
 					return err
 				}
 				return nil
 			case unpause := <-fbo.updatePauseChan:
+				fbo.log.CInfof(ctx, "Updates paused")
 				// wait to be unpaused
 				<-unpause
+				fbo.log.CInfof(ctx, "Updates unpaused")
 			}
 		}
 	})

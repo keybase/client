@@ -1,6 +1,10 @@
 package libkbfs
 
-import "golang.org/x/net/context"
+import (
+	"encoding/base64"
+
+	"golang.org/x/net/context"
+)
 
 // Runs fn (which may block) in a separate goroutine and waits for it
 // to finish, unless ctx is cancelled. Returns nil only when fn was
@@ -18,4 +22,19 @@ func runUnlessCanceled(ctx context.Context, fn func() error) error {
 	case err := <-c:
 		return err
 	}
+}
+
+// MakeRandomRequestID generates a random ID suitable for tagging a
+// request in KBFS, and very likely to be universally unique.
+func MakeRandomRequestID() (string, error) {
+	// Use a random ID to tag each request.  We want this to be really
+	// universally unique, as these request IDs might need to be
+	// propagated all the way to the server.  Use a base64-encoded
+	// random 128-bit number.
+	buf := make([]byte, 128/8)
+	err := cryptoRandRead(buf)
+	if err != nil {
+		return "", err
+	}
+	return base64.RawURLEncoding.EncodeToString(buf), nil
 }
