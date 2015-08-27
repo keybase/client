@@ -433,7 +433,7 @@ func (k *SKBKeyringFile) Index() (err error) {
 	return
 }
 
-func (k SKBKeyringFile) SearchWithComputedKeyFamily(ckf *ComputedKeyFamily, ska SecretKeyArg) *SKB {
+func (k SKBKeyringFile) SearchWithComputedKeyFamily(ckf *ComputedKeyFamily, ska SecretKeyArg) []*SKB {
 	var kid keybase1.KID
 	G.Log.Debug("+ SKBKeyringFile.SearchWithComputedKeyFamily")
 	defer func() {
@@ -446,6 +446,7 @@ func (k SKBKeyringFile) SearchWithComputedKeyFamily(ckf *ComputedKeyFamily, ska 
 		G.Log.Debug("- SKBKeyringFile.SearchWithComputedKeyFamily -> %s\n", res)
 	}()
 	G.Log.Debug("| Searching %d possible blocks", len(k.Blocks))
+	var blocks []*SKB
 	for i := len(k.Blocks) - 1; i >= 0; i-- {
 		G.Log.Debug("| trying key index# -> %d", i)
 		if key, err := k.Blocks[i].GetPubKey(); err == nil && key != nil {
@@ -460,13 +461,13 @@ func (k SKBKeyringFile) SearchWithComputedKeyFamily(ckf *ComputedKeyFamily, ska 
 			} else if active != DLGSibkey {
 				G.Log.Debug("| Skipped, active=%d", int(active))
 			} else {
-				return k.Blocks[i]
+				blocks = append(blocks, k.Blocks[i])
 			}
 		} else {
 			G.Log.Debug("| failed --> %v", err)
 		}
 	}
-	return nil
+	return blocks
 }
 
 func (k SKBKeyringFile) LookupByFingerprint(fp PGPFingerprint) *SKB {
