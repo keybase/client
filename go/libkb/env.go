@@ -191,7 +191,7 @@ func (e *Env) getEnvInt(s string) (int, bool) {
 	v := os.Getenv(s)
 	if len(v) > 0 {
 		tmp, err := strconv.ParseInt(v, 0, 64)
-		if err != nil {
+		if err == nil {
 			return int(tmp), true
 		}
 	}
