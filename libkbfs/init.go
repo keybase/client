@@ -29,54 +29,41 @@ func useLocalKeyServer() bool {
 
 func makeMDServer(config Config, serverRootDir *string) (
 	MDServer, error) {
-	var err error
-	var mdServer MDServer
+	if serverRootDir == nil {
+		// local in-memory MD server
+		return NewMDServerMemory(config)
+	}
+
 	if useLocalMDServer() {
-		if serverRootDir == nil {
-			// local in-memory MD server
-			mdServer, err = NewMDServerMemory(config)
-			if err != nil {
-				return nil, err
-			}
-		}
 		// local persistent MD server
 		handlePath := filepath.Join(*serverRootDir, "kbfs_handles")
 		mdPath := filepath.Join(*serverRootDir, "kbfs_md")
 		revPath := filepath.Join(*serverRootDir, "kbfs_revisions")
-		mdServer, err = NewMDServerLocal(
+		return NewMDServerLocal(
 			config, handlePath, mdPath, revPath)
-		if err != nil {
-			return nil, err
-		}
-	} else {
-		// this can't fail. reconnection attempts will be automatic.
-		mdServer = NewMDServerRemote(context.TODO(), config, getMDServerAddr())
 	}
+
+	// remote MD server. this can't fail. reconnection attempts
+	// will be automatic.
+	mdServer := NewMDServerRemote(context.TODO(), config, getMDServerAddr())
 	return mdServer, nil
 }
 
 func makeKeyServer(config Config, serverRootDir *string) (
 	KeyServer, error) {
-	var err error
-	var keyServer KeyServer
+	if serverRootDir == nil {
+		// local in-memory key server
+		return NewKeyServerMemory(config)
+	}
+
 	if useLocalKeyServer() {
-		if serverRootDir == nil {
-			// local in-memory key server
-			keyServer, err = NewKeyServerMemory(config)
-			if err != nil {
-				return nil, err
-			}
-		}
 		// local persistent key server
 		keyPath := filepath.Join(*serverRootDir, "kbfs_key")
-		keyServer, err = NewKeyServerLocal(config, keyPath)
-		if err != nil {
-			return nil, err
-		}
-	} else {
-		// currently the remote MD server also acts as the key server.
-		keyServer = config.MDServer().(*MDServerRemote)
+		return NewKeyServerLocal(config, keyPath)
 	}
+
+	// currently the remote MD server also acts as the key server.
+	keyServer := config.MDServer().(*MDServerRemote)
 	return keyServer, nil
 }
 
