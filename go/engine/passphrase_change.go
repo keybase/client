@@ -432,8 +432,8 @@ func (c *PassphraseChange) findAndDecryptPrivatePGPKeys(ctx *Context) ([]libkb.G
 			key, err = block.UnlockWithStoredSecret(secretRetriever)
 			if err != nil {
 				switch err.(type) {
-				case libkb.BadKeyError, libkb.NoSecretKeyError:
-					// expected errors, ok to proceed...
+				case libkb.BadKeyError:
+					// expected error, ok to proceed...
 					continue
 				default:
 					// unexpected error type:
@@ -443,9 +443,6 @@ func (c *PassphraseChange) findAndDecryptPrivatePGPKeys(ctx *Context) ([]libkb.G
 		} else {
 			key, err = block.PromptAndUnlock(ctx.LoginContext, "passphrase change", "your keybase passphrase", secretRetriever, ctx.SecretUI, nil)
 			if err != nil {
-				if _, ok := err.(libkb.NoSecretKeyError); ok {
-					continue
-				}
 				return nil, err
 			}
 		}

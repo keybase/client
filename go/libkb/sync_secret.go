@@ -37,7 +37,7 @@ type ServerPrivateKeys struct {
 	Status      APIStatus           `json:"status"`
 	Version     int                 `json:"version"`
 	Mtime       *int                `json:"mtime"`
-	PrivateKeys ServerPrivateKeyMap `json:"private_keys"`
+	PrivateKeys ServerPrivateKeyMap `json:"private_keys"` // note these are only PGP keys
 	Devices     DeviceKeyMap        `json:"devices"`
 }
 
@@ -139,7 +139,7 @@ func (ss *SecretSyncer) FindActiveKey(ckf *ComputedKeyFamily) (ret *SKB, err err
 	return
 }
 
-// AllActiveKeys returns all the active synced keys.
+// AllActiveKeys returns all the active synced PGP keys.
 func (ss *SecretSyncer) AllActiveKeys(ckf *ComputedKeyFamily) []*SKB {
 	var res []*SKB
 	for _, key := range ss.keys.PrivateKeys {

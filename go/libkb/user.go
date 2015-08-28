@@ -326,6 +326,9 @@ func (u *User) GetSyncedSecretKey() (ret *SKB, err error) {
 	return
 }
 
+// AllSyncedSecretKeys returns all the PGP key blocks that were
+// synced to API server.  LoginContext can be nil if this isn't
+// used while logging in, signing up.
 func (u *User) AllSyncedSecretKeys(lctx LoginContext) (keys []*SKB, err error) {
 	G.Log.Debug("+ User.AllSyncedSecretKeys()")
 	defer func() {
