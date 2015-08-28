@@ -65,9 +65,17 @@ type Standard struct {
 	module         string
 }
 
+// New creates a new Standard logger for module.
 func New(module string) *Standard {
+	return NewWithCallDepth(module, 0)
+}
+
+// NewWithCallDepth creates a new Standard logger for module, and when
+// printing file names and line numbers, it goes extraCallDepth up the
+// stack from where logger was invoked.
+func NewWithCallDepth(module string, extraCallDepth int) *Standard {
 	log := logging.MustGetLogger(module)
-	log.ExtraCalldepth = 1
+	log.ExtraCalldepth = 1 + extraCallDepth
 	ret := &Standard{log: log, module: module}
 	ret.initLogging()
 	return ret
