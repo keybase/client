@@ -304,7 +304,7 @@ func (c *PassphraseChange) runStandardUpdate(ctx *Context) (err error) {
 			return
 		}
 		payload["oldpwh"] = libkb.HexArg(oldPWH).String()
-		payload["ppgen"] = libkb.I{Val: int(gen)}.String()
+		payload["ppgen"] = gen
 		postArg := libkb.APIArg{
 			Endpoint:    "passphrase/replace",
 			NeedSession: true,
@@ -363,7 +363,7 @@ func (c *PassphraseChange) commonArgs(a *libkb.Account, oldClientHalf []byte, pg
 
 	payload := make(libkb.JSONPayload)
 	payload["pwh"] = libkb.HexArg(newPWH).String()
-	payload["pwh_version"] = libkb.I{Val: int(triplesec.Version)}.String()
+	payload["pwh_version"] = triplesec.Version
 	payload["lks_mask"] = libkb.HexArg(mask).String()
 	payload["lks_client_halves"] = lksch
 
