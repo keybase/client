@@ -26,7 +26,7 @@ func DelegatorAggregator(lctx LoginContext, ds []Delegator) (err error) {
 		args = append(args, flatArgs)
 	}
 
-	payload := make(map[string]interface{})
+	payload := make(JSONPayload)
 	payload["sigs"] = args
 
 	if err != nil {
@@ -39,7 +39,7 @@ func DelegatorAggregator(lctx LoginContext, ds []Delegator) (err error) {
 	apiArg.Args = nil
 	apiArg.uArgs = nil
 	apiArg.Endpoint = "key/multi"
-	apiArg.jsonPayload = payload
+	apiArg.JSONPayload = payload
 
 	_, err = apiArgBase.G().API.PostJSON(apiArg)
 	return err

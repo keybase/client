@@ -116,7 +116,10 @@ func (api *BaseAPIEngine) PreparePost(url url.URL, arg APIArg, sendJSON bool) (*
 	var body io.Reader
 
 	if sendJSON {
-		jsonString, err := json.Marshal(arg.jsonPayload)
+		if len(arg.getHTTPArgs()) > 0 {
+			panic("PreparePost:  sending JSON, but http args exist and they will be ignored.  Fix your APIArg.")
+		}
+		jsonString, err := json.Marshal(arg.JSONPayload)
 		if err != nil {
 			return nil, err
 		}
@@ -130,8 +133,7 @@ func (api *BaseAPIEngine) PreparePost(url url.URL, arg APIArg, sendJSON bool) (*
 		return nil, err
 	}
 
-	var typ = ""
-
+	var typ string
 	if sendJSON {
 		typ = "application/json"
 	} else {
@@ -161,7 +163,7 @@ func doRequestShared(api Requester, arg APIArg, req *http.Request, wantJSONRes b
 	}
 
 	if G.Env.GetAPIDump() {
-		jpStr, _ := json.MarshalIndent(arg.jsonPayload, "", "  ")
+		jpStr, _ := json.MarshalIndent(arg.JSONPayload, "", "  ")
 		argStr, _ := json.MarshalIndent(arg.getHTTPArgs(), "", "  ")
 		G.Log.Debug(fmt.Sprintf("| full request: json:%s querystring:%s", jpStr, argStr))
 	}

@@ -155,11 +155,13 @@ type Command interface {
 	GetUsage() Usage
 }
 
+type JSONPayload map[string]interface{}
+
 type APIArg struct {
 	Endpoint    string
 	uArgs       url.Values
 	Args        HTTPArgs
-	jsonPayload map[string]interface{}
+	JSONPayload JSONPayload
 	NeedSession bool
 	SessionR    SessionReader
 	HTTPStatus  []int

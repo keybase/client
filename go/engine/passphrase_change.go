@@ -1,7 +1,6 @@
 package engine
 
 import (
-	"encoding/json"
 	"fmt"
 
 	"github.com/keybase/client/go/libkb"
@@ -199,21 +198,21 @@ func (c *PassphraseChange) updatePassphrase(ctx *Context, sigKey libkb.GenericKe
 	var acctErr error
 	c.G().LoginState().Account(func(a *libkb.Account) {
 		// Ready the update argument; almost done, but we need some more stuff.
-		args, err := c.commonArgs(a, oldClientHalf, pgpKeys, ppGen)
+		payload, err := c.commonArgs(a, oldClientHalf, pgpKeys, ppGen)
 		if err != nil {
 			acctErr = err
 			return
 		}
 
 		// get the new passphrase hash out of the args
-		pwh, ok := (*args)["pwh"]
-		if !ok {
+		pwh, ok := payload["pwh"].(string)
+		if !ok || len(pwh) == 0 {
 			acctErr = fmt.Errorf("no pwh found in common args")
 			return
 		}
 
 		// Generate a signature with our unlocked sibling key from device.
-		proof, err := c.me.UpdatePassphraseProof(sigKey, pwh.String(), ppGen+1)
+		proof, err := c.me.UpdatePassphraseProof(sigKey, pwh, ppGen+1)
 		if err != nil {
 			acctErr = err
 			return
@@ -224,17 +223,17 @@ func (c *PassphraseChange) updatePassphrase(ctx *Context, sigKey libkb.GenericKe
 			acctErr = err
 			return
 		}
-		args.Add("sig", libkb.S{Val: sig})
-		args.Add("signing_kid", sigKey.GetKID())
+		payload["sig"] = sig
+		payload["signing_kid"] = sigKey.GetKID()
 
 		postArg := libkb.APIArg{
 			Endpoint:    "passphrase/sign",
 			NeedSession: true,
-			Args:        *args,
+			JSONPayload: payload,
 			SessionR:    a.LocalSession(),
 		}
 
-		_, err = c.G().API.Post(postArg)
+		_, err = c.G().API.PostJSON(postArg)
 		if err != nil {
 			acctErr = fmt.Errorf("api post to passphrase/sign error: %s", err)
 			return
@@ -301,21 +300,21 @@ func (c *PassphraseChange) runStandardUpdate(ctx *Context) (err error) {
 		oldPWH := a.PassphraseStreamCache().PassphraseStream().PWHash()
 		oldClientHalf := a.PassphraseStreamCache().PassphraseStream().LksClientHalf()
 
-		args, err := c.commonArgs(a, oldClientHalf, pgpKeys, gen)
+		payload, err := c.commonArgs(a, oldClientHalf, pgpKeys, gen)
 		if err != nil {
 			acctErr = err
 			return
 		}
-		args.Add("oldpwh", libkb.HexArg(oldPWH))
-		args.Add("ppgen", libkb.I{Val: int(gen)})
+		payload["oldpwh"] = libkb.HexArg(oldPWH).String()
+		payload["ppgen"] = libkb.I{Val: int(gen)}.String()
 		postArg := libkb.APIArg{
 			Endpoint:    "passphrase/replace",
 			NeedSession: true,
-			Args:        *args,
+			JSONPayload: payload,
 			SessionR:    a.LocalSession(),
 		}
 
-		_, err = c.G().API.Post(postArg)
+		_, err = c.G().API.PostJSON(postArg)
 		if err != nil {
 			acctErr = err
 			return
@@ -331,7 +330,7 @@ func (c *PassphraseChange) runStandardUpdate(ctx *Context) (err error) {
 
 // commonArgs must be called inside a LoginState().Account(...)
 // closure
-func (c *PassphraseChange) commonArgs(a *libkb.Account, oldClientHalf []byte, pgpKeys []libkb.GenericKey, existingGen libkb.PassphraseGeneration) (*libkb.HTTPArgs, error) {
+func (c *PassphraseChange) commonArgs(a *libkb.Account, oldClientHalf []byte, pgpKeys []libkb.GenericKey, existingGen libkb.PassphraseGeneration) (libkb.JSONPayload, error) {
 	salt, err := a.LoginSession().Salt()
 	if err != nil {
 		return nil, err
@@ -363,29 +362,24 @@ func (c *PassphraseChange) commonArgs(a *libkb.Account, oldClientHalf []byte, pg
 		}
 		lksch[key.GetKID()] = ctext
 	}
-	lkschJSON, err := json.Marshal(lksch)
-	if err != nil {
-		return nil, err
-	}
 
-	args := &libkb.HTTPArgs{
-		"pwh":               libkb.HexArg(newPWH),
-		"pwh_version":       libkb.I{Val: int(triplesec.Version)},
-		"lks_mask":          libkb.HexArg(mask),
-		"lks_client_halves": libkb.S{Val: string(lkschJSON)},
-	}
+	payload := make(libkb.JSONPayload)
+	payload["pwh"] = libkb.HexArg(newPWH).String()
+	payload["pwh_version"] = libkb.I{Val: int(triplesec.Version)}.String()
+	payload["lks_mask"] = libkb.HexArg(mask).String()
+	payload["lks_client_halves"] = lksch
 
-	if len(pgpKeys) > 0 {
-		pgpKey := pgpKeys[0]
-		encoded, err := c.encodePrivatePGPKey(pgpKey, tsec, existingGen+1)
+	var encodedKeys []string
+	for _, key := range pgpKeys {
+		encoded, err := c.encodePrivatePGPKey(key, tsec, existingGen+1)
 		if err != nil {
 			return nil, err
 		}
-		args.Add("private_key", libkb.S{Val: encoded})
+		encodedKeys = append(encodedKeys, encoded)
 	}
+	payload["private_keys"] = encodedKeys
 
-	return args, nil
-
+	return payload, nil
 }
 
 func (c *PassphraseChange) loadMe() (err error) {
