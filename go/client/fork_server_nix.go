@@ -28,10 +28,10 @@ func GetExtraFlags() []cli.Flag {
 	}
 }
 
-// ForkServerNix forks a new background Keybase service, and waits until
-// it's pingable. It will only do something useful on Unixes; it won't
-// work on Linux. Returns an error if anything bad happens; otherwise, assume
-// that the server was successfully started up.
+// ForkServerNix forks a new background Keybase service, and waits until it's
+// pingable. It will only do something useful on Unixes; it won't work on
+// Windows (probably?). Returns an error if anything bad happens; otherwise,
+// assume that the server was successfully started up.
 func ForkServerNix(cl libkb.CommandLine) error {
 	srv := service.NewService(true)
 
