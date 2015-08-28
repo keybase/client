@@ -71,7 +71,7 @@
   KBInstaller *installer = [[KBInstaller alloc] init];
   [installer installWithEnvironment:_environment completion:^(NSArray *installActions) {
     [KBActivity setProgressEnabled:NO sender:self];
-    [self showInstallActions:installActions];
+    [self showInstallActions:gself.environment.installActions];
     if ([[gself.environment installActionsNeeded] count] == 0) {
       self.completion();
     }

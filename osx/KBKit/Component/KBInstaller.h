@@ -13,7 +13,7 @@
 
 @interface KBInstaller : NSObject
 
-- (void)installStatus:(NSArray *)installActions completion:(void (^)(BOOL needsInstall))completion;
+- (void)installStatus:(NSArray *)installActions completion:(dispatch_block_t)completion;
 - (void)install:(NSArray *)installActions completion:(dispatch_block_t)completion;
 - (void)uninstall:(NSArray *)installables completion:(dispatch_block_t)completion;
 

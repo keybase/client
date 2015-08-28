@@ -26,7 +26,7 @@
     _name = @"KBFS";
     _info = @"The filesystem";
     NSDictionary *info = [[NSBundle mainBundle] infoDictionary];
-    NSString *versionPath = [config appPath:@"kbfs.version" options:0];
+    NSString *versionPath = [config cachePath:@"kbfs.version" options:0];
     NSDictionary *plist = [KBFSService launchdPlistDictionaryForKBFS:_config];
     KBSemVersion *bundleVersion = [KBSemVersion version:info[@"KBFSVersion"] build:info[@"KBFSBuild"]];
     _launchService = [[KBLaunchService alloc] initWithLabel:config.launchdLabelKBFS bundleVersion:bundleVersion versionPath:versionPath plist:plist logFile:[config logFile:config.launchdLabelKBFS]];
@@ -168,30 +168,18 @@
   return _launchService.componentStatus;
 }
 
-+ (NSDictionary *)envsForKBS:(KBEnvConfig *)config pathOptions:(KBPathOptions)pathOptions {
-  NSMutableDictionary *envs = [NSMutableDictionary dictionary];
-  //envs[@"PATH"] = @"/sbin:/usr/sbin:/Library/Filesystems/osxfusefs.fs/Support"; // For umount, diskutil, mount_osxfusefs
-  envs[@"KEYBASE_SOCKET_FILE"] = [KBPath path:config.sockFile options:pathOptions];
-  envs[@"KEYBASE_CONFIG_FILE"] = [KBPath path:[config appPath:@"config.json" options:0] options:pathOptions];
-  return envs;
-}
-
 + (NSArray *)programArgumentsForKBFS:(KBEnvConfig *)config useBundle:(BOOL)useBundle pathOptions:(KBPathOptions)pathOptions args:(NSArray *)args {
   NSMutableArray *pargs = [NSMutableArray array];
 
   if (useBundle) {
-    [pargs addObject:NSStringWithFormat(@"%@/bin/kbfsfuse", config.bundle.sharedSupportPath)];
+    [pargs addObject:NSStringWithFormat(@"%@/bin/kbfsd", config.bundle.sharedSupportPath)];
   } else {
-    [pargs addObject:@"./kbfsfuse"];
+    [pargs addObject:@"./kbfsd"];
   }
 
-  if (config.debugEnabled) {
-    [pargs addObject:@"-debug"];
-  }
 
-  [pargs addObject:@"-client"];
-
-  [pargs addObject:NSStringWithFormat(@"-server-root=%@", [config appPath:nil options:pathOptions])];
+  [pargs addObject:NSStringWithFormat(@"--app-dir=%@", [config appPath:nil options:pathOptions])];
+  [pargs addObject:NSStringWithFormat(@"--cache-dir=%@", [config cachePath:nil options:pathOptions])];
 
   if (args) {
     [pargs addObjectsFromArray:args];
@@ -206,11 +194,8 @@
   if (!config.launchdLabelKBFS) return nil;
 
   NSArray *args = [self programArgumentsForKBFS:config useBundle:YES pathOptions:0 args:nil];
-  NSDictionary *envs = [self envsForKBS:config pathOptions:0];
-
   return @{
            @"Label": config.launchdLabelKBFS,
-           @"EnvironmentVariables": envs,
            @"ProgramArguments": args,
            @"RunAtLoad": @YES,
            @"KeepAlive": @YES,
@@ -221,9 +206,7 @@
 }
 
 + (NSString *)commandLineForKBFS:(KBEnvConfig *)config useBundle:(BOOL)useBundle pathOptions:(KBPathOptions)pathOptions args:(NSArray *)args {
-  NSString *envs = [[[self envsForKBS:config pathOptions:pathOptions] map:^(id key, id value) { return NSStringWithFormat(@"%@=%@", key, value); }] join:@" "];
-  NSString *pargs = [[self programArgumentsForKBFS:config useBundle:useBundle pathOptions:pathOptions args:args] join:@" "];
-  return NSStringWithFormat(@"%@ %@", envs, pargs);
+  return [[self programArgumentsForKBFS:config useBundle:useBundle pathOptions:pathOptions args:args] join:@" "];
 }
 
 @end

@@ -9,8 +9,8 @@
 #import <Foundation/Foundation.h>
 
 typedef NS_OPTIONS (NSInteger, KBPathOptions) {
-  KBPathOptionsEscape = 1 << 1,
-  KBPathOptionsTilde = 1 << 2,
+  KBPathOptionsEscape = 1 << 0,
+  KBPathOptionsTilde = 1 << 1,
 };
 
 @interface KBPath : NSObject

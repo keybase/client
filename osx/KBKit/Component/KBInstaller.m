@@ -54,10 +54,12 @@
 }
 
 - (void)installStatusWithEnvironment:(KBEnvironment *)environment completion:(void (^)(BOOL needsInstall))completion {
-  [self installStatus:environment.installActions completion:completion];
+  [self installStatus:environment.installActions completion:^{
+    completion([[environment installActionsNeeded] count] > 0);
+  }];
 }
 
-- (void)installStatus:(NSArray *)installActions completion:(void (^)(BOOL needsInstall))completion {
+- (void)installStatus:(NSArray *)installActions completion:(dispatch_block_t)completion {
   KBRunOver *rover = [[KBRunOver alloc] init];
   rover.enumerator = [installActions objectEnumerator];
   rover.runBlock = ^(KBInstallAction *installAction, KBRunCompletion runCompletion) {
@@ -70,7 +72,7 @@
     }];
   };
   rover.completion = ^(NSArray *installActions) {
-    completion([installActions count] > 0);
+    completion();
   };
   [rover run];
 }
