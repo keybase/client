@@ -603,3 +603,82 @@ func TestPassphraseChangeLoggedOutBackupKeySecretStorePGP(t *testing.T) {
 	assertLoadSecretKeys(tc, u, "logged out w/ backup key, after passphrase change")
 	assertLoadPGPKeys(tc, u)
 }
+
+// test pp change when user has multiple 3sec encrypted pgp keys.
+func TestPassphraseChangePGP3SecMultiple(t *testing.T) {
+	tc := SetupEngineTest(t, "PassphraseChange")
+	defer tc.Cleanup()
+
+	u := createFakeUserWithPGPSibkeyPushed(tc)
+
+	// create/push another pgp key
+	parg := PGPKeyImportEngineArg{
+		Gen: &libkb.PGPGenArg{
+			PrimaryBits: 768,
+			SubkeyBits:  768,
+		},
+		PushSecret: true,
+		NoSave:     true,
+		AllowMulti: true,
+	}
+	parg.Gen.MakeAllIds()
+	pctx := &Context{
+		LogUI:    tc.G.UI.GetLogUI(),
+		SecretUI: u.NewSecretUI(),
+	}
+	peng := NewPGPKeyImportEngine(parg)
+	err := RunEngine(peng, pctx)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	// clear the passphrase stream cache to force a prompt
+	// for the existing passphrase.
+	tc.G.LoginState().Account(func(a *libkb.Account) {
+		a.ClearStreamCache()
+	}, "clear stream cache")
+
+	newPassphrase := "password"
+	arg := &keybase1.PassphraseChangeArg{
+		Passphrase: newPassphrase,
+	}
+	secui := u.NewSecretUI()
+	ctx := &Context{
+		SecretUI: secui,
+	}
+	eng := NewPassphraseChange(arg, tc.G)
+	if err := RunEngine(eng, ctx); err != nil {
+		t.Fatal(err)
+	}
+
+	verifyPassphraseChange(tc, u, newPassphrase)
+
+	if !secui.CalledGetKBPassphrase {
+		t.Errorf("get kb passphrase not called")
+	}
+
+	u.Passphrase = newPassphrase
+	assertLoadSecretKeys(tc, u, "passphrase change pgp")
+	assertLoadPGPKeys(tc, u)
+
+	me, err := libkb.LoadMe(libkb.LoadUserArg{ForceReload: true})
+	if err != nil {
+		t.Fatal(err)
+	}
+	syncKeys, err := me.AllSyncedSecretKeys(nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(syncKeys) != 2 {
+		t.Errorf("num pgp sync keys: %d, expected 2", len(syncKeys))
+	}
+	for _, key := range syncKeys {
+		unlocked, err := key.PromptAndUnlock(nil, "", "", nil, u.NewSecretUI(), nil)
+		if err != nil {
+			t.Fatal(err)
+		}
+		if unlocked == nil {
+			t.Fatal("failed to unlock key")
+		}
+	}
+}

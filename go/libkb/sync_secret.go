@@ -139,6 +139,17 @@ func (ss *SecretSyncer) FindActiveKey(ckf *ComputedKeyFamily) (ret *SKB, err err
 	return
 }
 
+// AllActiveKeys returns all the active synced keys.
+func (ss *SecretSyncer) AllActiveKeys(ckf *ComputedKeyFamily) []*SKB {
+	var res []*SKB
+	for _, key := range ss.keys.PrivateKeys {
+		if ret, _ := key.FindActiveKey(ckf); ret != nil {
+			res = append(res, ret)
+		}
+	}
+	return res
+}
+
 func (ss *SecretSyncer) FindPrivateKey(kid string) (ServerPrivateKey, bool) {
 	k, ok := ss.keys.PrivateKeys[kid]
 	return k, ok

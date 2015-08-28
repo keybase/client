@@ -276,12 +276,12 @@ func (u *User) StoreTopLevel() error {
 
 func (u *User) SyncedSecretKey(lctx LoginContext) (ret *SKB, err error) {
 	if lctx != nil {
-		return u.GetSyncedSecretKeyLogin(lctx)
+		return u.getSyncedSecretKeyLogin(lctx)
 	}
 	return u.GetSyncedSecretKey()
 }
 
-func (u *User) GetSyncedSecretKeyLogin(lctx LoginContext) (ret *SKB, err error) {
+func (u *User) getSyncedSecretKeyLogin(lctx LoginContext) (ret *SKB, err error) {
 	G.Log.Debug("+ User.GetSyncedSecretKeyLogin()")
 	defer func() {
 		G.Log.Debug("- User.GetSyncedSecretKeyLogin() -> %s", ErrToOk(err))
@@ -296,7 +296,8 @@ func (u *User) GetSyncedSecretKeyLogin(lctx LoginContext) (ret *SKB, err error) 
 		return
 	}
 
-	return lctx.SecretSyncer().FindActiveKey(ckf)
+	ret, err = lctx.SecretSyncer().FindActiveKey(ckf)
+	return
 }
 
 func (u *User) GetSyncedSecretKey() (ret *SKB, err error) {
@@ -317,6 +318,58 @@ func (u *User) GetSyncedSecretKey() (ret *SKB, err error) {
 
 	aerr := G.LoginState().SecretSyncer(func(s *SecretSyncer) {
 		ret, err = s.FindActiveKey(ckf)
+	}, "User - FindActiveKey")
+	if aerr != nil {
+		return nil, aerr
+	}
+
+	return
+}
+
+func (u *User) AllSyncedSecretKeys(lctx LoginContext) ([]*SKB, error) {
+	if lctx != nil {
+		return u.allSyncedSecretKeysLogin(lctx)
+	}
+	return u.allSyncedSecretKeys()
+}
+
+func (u *User) allSyncedSecretKeysLogin(lctx LoginContext) (keys []*SKB, err error) {
+	G.Log.Debug("+ User.AllSyncedSecretKeysLogin()")
+	defer func() {
+		G.Log.Debug("- User.AllSyncedSecretKeyLogin() -> %s", ErrToOk(err))
+	}()
+
+	if err = lctx.RunSecretSyncer(u.id); err != nil {
+		return
+	}
+	ckf := u.GetComputedKeyFamily()
+	if ckf == nil {
+		G.Log.Debug("| short-circuit; no Computed key family")
+		return
+	}
+
+	keys = lctx.SecretSyncer().AllActiveKeys(ckf)
+	return
+}
+
+func (u *User) allSyncedSecretKeys() (keys []*SKB, err error) {
+	G.Log.Debug("+ User.allSyncedSecretKey()")
+	defer func() {
+		G.Log.Debug("- User.allSyncedSecretKey() -> %s", ErrToOk(err))
+	}()
+
+	if err = u.SyncSecrets(); err != nil {
+		return
+	}
+
+	ckf := u.GetComputedKeyFamily()
+	if ckf == nil {
+		G.Log.Debug("| short-circuit; no Computed key family")
+		return
+	}
+
+	aerr := G.LoginState().SecretSyncer(func(s *SecretSyncer) {
+		keys = s.AllActiveKeys(ckf)
 	}, "User - FindActiveKey")
 	if aerr != nil {
 		return nil, aerr

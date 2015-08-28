@@ -67,9 +67,7 @@ func (c *PassphraseChange) Run(ctx *Context) (err error) {
 		return
 	}
 
-	if err == nil {
-		c.G().LoginState().RunSecretSyncer(c.me.GetUID())
-	}
+	c.G().LoginState().RunSecretSyncer(c.me.GetUID())
 
 	if c.arg.Force {
 		err = c.runForcedUpdate(ctx)
@@ -414,13 +412,13 @@ func (c *PassphraseChange) findAndDecryptPrivatePGPKeys(ctx *Context) ([]libkb.G
 		return nil, err
 	}
 
-	// and the synced secret key:
-	syncKey, err := c.me.SyncedSecretKey(ctx.LoginContext)
+	// and the synced secret keys:
+	syncKeys, err := c.me.AllSyncedSecretKeys(ctx.LoginContext)
 	if err != nil {
 		return nil, err
 	}
-	if syncKey != nil {
-		blocks = append(blocks, syncKey)
+	if syncKeys != nil {
+		blocks = append(blocks, syncKeys...)
 	}
 
 	secretRetriever := libkb.NewSecretStore(c.me.GetNormalizedName())
