@@ -116,17 +116,21 @@ func (k *PGPKeyBundle) FullHash() (string, error) {
 	return hex.EncodeToString(keySum[:]), nil
 }
 
-func (k *PGPKeyBundle) StripRevocations() {
-	k.Revocations = nil
+func (k *PGPKeyBundle) StripRevocations() (strippedKey *PGPKeyBundle) {
+	entityCopy := *k.Entity
+	strippedKey = &PGPKeyBundle{Entity: &entityCopy}
 
-	oldSubkeys := k.Subkeys
-	k.Subkeys = nil
+	strippedKey.Revocations = nil
+
+	oldSubkeys := strippedKey.Subkeys
+	strippedKey.Subkeys = nil
 	for _, subkey := range oldSubkeys {
 		// Skip revoked subkeys
 		if subkey.Sig.SigType == packet.SigTypeSubkeyBinding {
-			k.Subkeys = append(k.Subkeys, subkey)
+			strippedKey.Subkeys = append(strippedKey.Subkeys, subkey)
 		}
 	}
+	return
 }
 
 func (k *PGPKeyBundle) StoreToLocalDb() error {

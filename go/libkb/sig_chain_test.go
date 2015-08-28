@@ -261,8 +261,9 @@ func getCurrentTimeForTest(sigChain SigChain, keyFamily *KeyFamily) time.Time {
 			t = linkCTime
 		}
 	}
-	for _, pgp := range keyFamily.pgps {
-		keyCTime := pgp.PrimaryKey.CreationTime
+	for _, kid := range keyFamily.pgps {
+		ks, _ := keyFamily.FindKeySetWithKIDUnsafe(kid)
+		keyCTime := ks.(*PGPKeySet).PermissivelyMergedKey.PrimaryKey.CreationTime
 		if keyCTime.After(t) {
 			t = keyCTime
 		}

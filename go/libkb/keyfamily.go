@@ -45,6 +45,11 @@ type ComputedKeyInfo struct {
 	DelegatedAt *KeybaseTime
 	RevokedAt   *KeybaseTime
 
+	// For PGP keys, the active version of the key. If unspecified, use the
+	// legacy behavior of combining every instance of this key that we got from
+	// the server minus revocations.
+	ActivePGPHash string
+
 	Contextified
 }
 
@@ -81,16 +86,98 @@ type RawKeyFamily struct {
 	AllBundles []string `json:"all_bundles"`
 }
 
+type KeySet interface {
+	GetSingleKey() GenericKey
+	GetKeyWithHash(string) GenericKey
+}
+
+type SingleKeySet struct{ GenericKey }
+
+func (s SingleKeySet) GetSingleKey() GenericKey {
+	return s.GenericKey
+}
+
+func (s SingleKeySet) GetKeyWithHash(hash string) GenericKey {
+	if hash == "" {
+		return s.GetSingleKey()
+	}
+	return nil
+}
+
+type PGPKeySet struct {
+	PermissivelyMergedKey *PGPKeyBundle
+	KeysByHash            map[string]*PGPKeyBundle
+}
+
+func NewPGPKeySet() *PGPKeySet {
+	return &PGPKeySet{nil, make(map[string]*PGPKeyBundle)}
+}
+
+func (s *PGPKeySet) addKey(key *PGPKeyBundle) error {
+	fullHash, err := key.FullHash()
+	if err != nil {
+		return err
+	}
+
+	// Only the KID (and sometimes the fingerprint) of PGP keys has
+	// historically been signed into the sigchain. When validating a sigchain
+	// and multiple versions of the PGP key are available (which may be
+	// different in terms of subkeys, UIDs, and revocations) we chose to merge
+	// every version and ignore revocations. This stops anyone from breaking
+	// their sigchain by uploading a revoked version of their PGP key, but also
+	// creates a vulnerability when Alice's key is compromised and she revokes
+	// it PGP-style without revoking it sigchain-style: Keybase clients will
+	// continue to accept the key, Mallory can now make sigchain links as
+	// Alice.
+	//
+	// As a long term solution, we decided that PGP keys' full hashes over time
+	// should be tracked in the sigchain so that the client can know which
+	// version to use to validate each link. This is detailed in issue #544.
+	//
+	// PGPKeySet keeps both the individual versions of the key, indexed by
+	// hash, and the permissively-merged version to support both the old
+	// behavior (for sigchains or sections of sigchains with no specific PGP
+	// key hash) and the new behavior.
+
+	s.KeysByHash[fullHash] = key
+
+	strippedKey := key.StripRevocations()
+	if s.PermissivelyMergedKey == nil {
+		s.PermissivelyMergedKey = strippedKey
+	} else {
+		s.PermissivelyMergedKey.MergeKey(strippedKey)
+	}
+	return nil
+}
+
+func (s *PGPKeySet) GetSingleKey() GenericKey {
+	return s.PermissivelyMergedKey
+}
+
+func (s *PGPKeySet) GetKeyWithHash(hash string) GenericKey {
+	if hash == "" {
+		return s.GetSingleKey()
+	}
+	if key, ok := s.KeysByHash[hash]; ok {
+		return key
+	}
+	// Go lesson: It's essential to explicitly return nil when a key doesn't
+	// exist, instead of just returning s.KeysByHash[hash] above. A nil
+	// *PGPKeyBundle would become a *non-nil* GenericKey. See
+	// https://golang.org/doc/faq#nil_error for details.
+	return nil
+}
+
 // Once the client downloads a RawKeyFamily, it converts it into a KeyFamily,
 // which has some additional information about Fingerprints and PGP keys
 type KeyFamily struct {
-	pgps []*PGPKeyBundle
+	pgps []keybase1.KID
 
 	// These fields are computed on the client side, so they can be trusted.
 	pgp2kid map[PGPFingerprint]keybase1.KID
 	kid2pgp map[keybase1.KID]PGPFingerprint
 
-	AllKeys map[keybase1.KID]GenericKey
+	AllKeys map[keybase1.KID]KeySet
 
 	BundlesForTesting []string
 
@@ -205,7 +292,7 @@ func (cki ComputedKeyInfos) InsertServerEldestKey(eldestKey GenericKey, un Norma
 
 func (ckf ComputedKeyFamily) InsertEldestLink(tcl TypedChainLink, username NormalizedUsername) (err error) {
 	kid := tcl.GetKID()
-	key, err := ckf.kf.FindKeyWithKIDUnsafe(kid)
+	key, err := ckf.FindKeyWithKIDUnsafe(kid)
 	if err != nil {
 		return
 	}
@@ -286,7 +373,7 @@ func ParseKeyFamily(jw *jsonw.Wrapper) (ret *KeyFamily, err error) {
 	kf.BundlesForTesting = rkf.AllBundles
 
 	// Parse the keys, and collect the PGP keys to map their fingerprints.
-	kf.AllKeys = make(map[keybase1.KID]GenericKey)
+	kf.AllKeys = make(map[keybase1.KID]KeySet)
 	for _, bundle := range rkf.AllBundles {
 		newKey, err := ParseGenericKey(bundle)
 		if err != nil {
@@ -296,44 +383,24 @@ func ParseKeyFamily(jw *jsonw.Wrapper) (ret *KeyFamily, err error) {
 		kid := newKey.GetKID()
 
 		if pgp, isPGP := newKey.(*PGPKeyBundle); isPGP {
-			// For now, we've decided to merge each version of a PGP key and
-			// ignore revocations when validating a sigchain. This stops anyone
-			// from breaking their sigchain by uploading a revoked version of
-			// their PGP key. Unfortunately it also creates a vulnerability
-			// when Alice's key is compromised and she revokes it PGP-style
-			// without revoking it sigchain-style: Keybase clients will
-			// continue to accept the key as legit, Mallory can now make
-			// sigchain links as Alice.
-			//
-			// A long-term solution is for us to track PGP keys' history in the
-			// sigchain and use one at a time. This is detailed in issue #544.
-			pgp.StripRevocations()
-
-			if oldKey, ok := kf.AllKeys[kid]; ok {
-				oldKey.(*PGPKeyBundle).MergeKey(pgp)
-			} else {
-				kf.AllKeys[kid] = pgp
+			var keySet *PGPKeySet
+			if ks, ok := kf.AllKeys[kid]; ok {
+				keySet = ks.(*PGPKeySet)
 			}
+			if keySet == nil {
+				keySet = NewPGPKeySet()
+				kf.AllKeys[kid] = keySet
+
+				kf.pgps = append(kf.pgps, kid)
+
+				fp := pgp.GetFingerprint()
+				kf.pgp2kid[fp] = kid
+				kf.kid2pgp[kid] = fp
+			}
+			keySet.addKey(pgp)
 		} else {
-			kf.AllKeys[kid] = newKey
+			kf.AllKeys[kid] = SingleKeySet{newKey}
 		}
-	}
-
-	// Collect the PGP keys. (Do this with the AllKeys map instead of the
-	// AllBundles response, because the latter can contain duplicates.)
-	for _, key := range kf.AllKeys {
-		pgp, isPGP := key.(*PGPKeyBundle)
-		if isPGP {
-			kf.pgps = append(kf.pgps, pgp)
-		}
-	}
-
-	// Map the PGP fingerprints.
-	for _, p := range kf.pgps {
-		fp := p.GetFingerprint()
-		kid := p.GetKID()
-		kf.pgp2kid[fp] = kid
-		kf.kid2pgp[kid] = fp
 	}
 
 	ret = &kf
@@ -343,12 +410,25 @@ func ParseKeyFamily(jw *jsonw.Wrapper) (ret *KeyFamily, err error) {
 // This function doesn't validate anything about the key it returns -- that key
 // could be expired or revoked. Most callers should prefer the FindActive*
 // methods on the ComputedKeyFamily.
-func (kf KeyFamily) FindKeyWithKIDUnsafe(kid keybase1.KID) (GenericKey, error) {
+func (kf KeyFamily) FindKeySetWithKIDUnsafe(kid keybase1.KID) (KeySet, error) {
 	key, ok := kf.AllKeys[kid]
 	if !ok {
 		return nil, KeyFamilyError{fmt.Sprintf("No key found for %s", kid)}
 	}
 	return key, nil
+}
+
+func (ckf ComputedKeyFamily) FindKeyWithKIDUnsafe(kid keybase1.KID) (GenericKey, error) {
+	ks, err := ckf.kf.FindKeySetWithKIDUnsafe(kid)
+	if err != nil {
+		return nil, err
+	}
+	if ckf.cki != nil {
+		if cki, found := ckf.cki.Infos[kid]; found {
+			return ks.GetKeyWithHash(cki.ActivePGPHash), nil
+		}
+	}
+	return ks.GetSingleKey(), nil
 }
 
 func (ckf ComputedKeyFamily) getCkiIfActiveAtTime(kid keybase1.KID, t time.Time) (ret *ComputedKeyInfo, err error) {
@@ -389,7 +469,7 @@ func (ckf ComputedKeyFamily) FindActiveSibkeyAtTime(kid keybase1.KID, t time.Tim
 	} else if !liveCki.Sibkey {
 		err = BadKeyError{fmt.Sprintf("The key '%s' wasn't delegated as a sibkey", kid)}
 	} else {
-		key, err = ckf.kf.FindKeyWithKIDUnsafe(kid)
+		key, err = ckf.FindKeyWithKIDUnsafe(kid)
 		cki = *liveCki
 	}
 	return
@@ -407,7 +487,7 @@ func (ckf ComputedKeyFamily) FindActiveEncryptionSubkey(kid keybase1.KID) (Gener
 	if ki.Sibkey {
 		return nil, BadKeyError{fmt.Sprintf("The key '%s' was delegated as a sibkey", kid.String())}
 	}
-	key, err := ckf.kf.FindKeyWithKIDUnsafe(kid)
+	key, err := ckf.FindKeyWithKIDUnsafe(kid)
 	if err != nil {
 		return nil, err
 	}
@@ -542,13 +622,13 @@ func (ckf *ComputedKeyFamily) RevokeKid(kid keybase1.KID, tcl TypedChainLink) (e
 // found return true, and otherwise false.
 func (ckf ComputedKeyFamily) FindKeybaseName(s string) bool {
 	kem := KeybaseEmailAddress(s)
-	for _, pgp := range ckf.kf.pgps {
-		kid := pgp.GetKID()
+	for _, kid := range ckf.kf.pgps {
 		if info, found := ckf.cki.Infos[kid]; !found {
 			continue
 		} else if info.Status != KeyUncancelled || !info.Sibkey {
 			continue
 		}
+		pgp := ckf.kf.AllKeys[kid].GetSingleKey().(*PGPKeyBundle)
 		if pgp.FindEmail(kem) {
 			G.Log.Debug("| Found self-sig for %s in key ID: %s", s, kid)
 			return true
@@ -561,10 +641,11 @@ func (ckf ComputedKeyFamily) FindKeybaseName(s string) bool {
 // We'll need to do this when a key is locally generated.
 func (kf *KeyFamily) LocalDelegate(key GenericKey) (err error) {
 	if pgp, ok := key.(*PGPKeyBundle); ok {
-		kf.pgp2kid[pgp.GetFingerprint()] = pgp.GetKID()
-		kf.pgps = append(kf.pgps, pgp)
+		kid := pgp.GetKID()
+		kf.pgp2kid[pgp.GetFingerprint()] = kid
+		kf.pgps = append(kf.pgps, kid)
 	}
-	kf.AllKeys[key.GetKID()] = key
+	kf.AllKeys[key.GetKID()] = SingleKeySet{key}
 	return
 }
 
@@ -588,9 +669,10 @@ func (ckf ComputedKeyFamily) GetKeyRole(kid keybase1.KID) (ret KeyRole) {
 }
 
 // GetAllActiveSibkeys gets all active Sibkeys from given ComputedKeyFamily.
-func (ckf ComputedKeyFamily) GetAllActiveSibkeysAtTime(t time.Time) (ret []GenericKey) {
-	for kid, key := range ckf.kf.AllKeys {
-		if ckf.GetKeyRoleAtTime(kid, t) == DLGSibkey && key != nil {
+func (ckf ComputedKeyFamily) GetAllActiveKeysWithRoleAtTime(role KeyRole, t time.Time) (ret []GenericKey) {
+	for kid := range ckf.kf.AllKeys {
+		if ckf.GetKeyRoleAtTime(kid, t) == role {
+			key, _ := ckf.FindKeyWithKIDUnsafe(kid)
 			ret = append(ret, key)
 		}
 	}
@@ -598,20 +680,20 @@ func (ckf ComputedKeyFamily) GetAllActiveSibkeysAtTime(t time.Time) (ret []Gener
 }
 
 // GetAllActiveSibkeys gets all active Sibkeys from given ComputedKeyFamily.
-func (ckf ComputedKeyFamily) GetAllActiveSibkeys() (ret []GenericKey) {
+func (ckf ComputedKeyFamily) GetAllActiveSibkeysAtTime(t time.Time) []GenericKey {
+	return ckf.GetAllActiveKeysWithRoleAtTime(DLGSibkey, t)
+}
+
+// GetAllActiveSibkeys gets all active Sibkeys from given ComputedKeyFamily.
+func (ckf ComputedKeyFamily) GetAllActiveSibkeys() []GenericKey {
 	return ckf.GetAllActiveSibkeysAtTime(time.Now())
 }
 
 func (ckf ComputedKeyFamily) GetAllActiveSubkeysAtTime(t time.Time) (ret []GenericKey) {
-	for kid, key := range ckf.kf.AllKeys {
-		if ckf.GetKeyRoleAtTime(kid, t) == DLGSubkey && key != nil {
-			ret = append(ret, key)
-		}
-	}
-	return
+	return ckf.GetAllActiveKeysWithRoleAtTime(DLGSubkey, t)
 }
 
-func (ckf ComputedKeyFamily) GetAllActiveSubkeys() (ret []GenericKey) {
+func (ckf ComputedKeyFamily) GetAllActiveSubkeys() []GenericKey {
 	return ckf.GetAllActiveSubkeysAtTime(time.Now())
 }
 
@@ -655,10 +737,11 @@ func (ckf ComputedKeyFamily) HasActiveKey() bool {
 // will return only the Sibkeys. Note the keys need to be non-canceled,
 // and non-expired.
 func (ckf ComputedKeyFamily) GetActivePGPKeys(sibkey bool) (ret []*PGPKeyBundle) {
-	for _, pgp := range ckf.kf.pgps {
-		role := ckf.GetKeyRole(pgp.GetKID())
+	for _, kid := range ckf.kf.pgps {
+		role := ckf.GetKeyRole(kid)
 		if (sibkey && role == DLGSibkey) || role != DLGNone {
-			ret = append(ret, pgp)
+			key, _ := ckf.FindKeyWithKIDUnsafe(kid)
+			ret = append(ret, key.(*PGPKeyBundle))
 		}
 	}
 	return
