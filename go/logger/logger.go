@@ -11,9 +11,9 @@ import (
 
 const (
 	fancyFormat   = "%{color}%{time:15:04:05.000000} ▶ [%{level:.4s} %{module} %{shortfile}] %{id:03x}%{color:reset} %{message}"
-	plainFormat   = "[%{level:.4s} %{module} %{shortfile}] %{id:03x} %{message}"
+	plainFormat   = "[%{level:.4s}] %{id:03x} %{message}"
 	fileFormat    = "%{time:15:04:05.000000} ▶ [%{level:.4s} %{module} %{shortfile}] %{id:03x} %{message}"
-	defaultFormat = "%{color}▶ [%{level:.4s} %{module} %{shortfile}] %{message} %{color:reset}"
+	defaultFormat = "%{color}%{message}%{color:reset}"
 )
 
 const permDir os.FileMode = 0700
