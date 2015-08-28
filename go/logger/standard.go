@@ -240,8 +240,11 @@ func (log *Standard) RotateLogFile() error {
 		syscall.Dup2(int(file.Fd()), 2),
 		file.Close(),
 	)
+	if err != nil {
+		log.log.Warning("Couldn't rotate file: %v", err)
+	}
 	log.log.Info("Rotated log file; opening up new file")
-	return err
+	return nil
 }
 
 func OpenLogFile(filename string) (name string, file *os.File, err error) {
