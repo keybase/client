@@ -412,7 +412,7 @@ func (sc *SigChain) verifySubchain(kf KeyFamily, links []*ChainLink) (cached boo
 			}
 		}
 
-		if err = tcl.VerifyReverseSig(&kf); err != nil {
+		if err = tcl.VerifyReverseSig(ckf); err != nil {
 			G.Log.Debug("| Failure in VerifyReverseSig: %s", err)
 			return
 		}
@@ -457,7 +457,7 @@ func (sc *SigChain) VerifySigsAndComputeKeys(eldest keybase1.KID, ckf *ComputedK
 
 	if links == nil || len(links) == 0 {
 		G.Log.Debug("| Empty chain after we limited to eldest %s", eldest)
-		eldestKey := ckf.kf.AllKeys[eldest]
+		eldestKey, _ := ckf.FindKeyWithKIDUnsafe(eldest)
 		sc.localCki = NewComputedKeyInfos()
 		err = sc.localCki.InsertServerEldestKey(eldestKey, sc.username)
 		ckf.cki = sc.localCki

@@ -33,7 +33,7 @@ type TypedChainLink interface {
 	GetUID() keybase1.UID
 	GetDelegatedKid() keybase1.KID
 	GetParentKid() keybase1.KID
-	VerifyReverseSig(kf *KeyFamily) error
+	VerifyReverseSig(ckf ComputedKeyFamily) error
 	GetMerkleSeqno() int
 	GetDevice() *Device
 }
@@ -61,13 +61,13 @@ func (g *GenericChainLink) ToDebugString() string {
 	return fmt.Sprintf("uid=%s, seq=%d, link=%s", g.Parent().uid, g.unpacked.seqno, g.id)
 }
 
-func (g *GenericChainLink) GetDelegatedKid() (kid keybase1.KID)  { return }
-func (g *GenericChainLink) GetParentKid() (kid keybase1.KID)     { return }
-func (g *GenericChainLink) VerifyReverseSig(kf *KeyFamily) error { return nil }
-func (g *GenericChainLink) IsRevocationIsh() bool                { return false }
-func (g *GenericChainLink) GetRole() KeyRole                     { return DLGNone }
-func (g *GenericChainLink) IsRevoked() bool                      { return g.revoked }
-func (g *GenericChainLink) GetSeqno() Seqno                      { return g.unpacked.seqno }
+func (g *GenericChainLink) GetDelegatedKid() (kid keybase1.KID)          { return }
+func (g *GenericChainLink) GetParentKid() (kid keybase1.KID)             { return }
+func (g *GenericChainLink) VerifyReverseSig(ckf ComputedKeyFamily) error { return nil }
+func (g *GenericChainLink) IsRevocationIsh() bool                        { return false }
+func (g *GenericChainLink) GetRole() KeyRole                             { return DLGNone }
+func (g *GenericChainLink) IsRevoked() bool                              { return g.revoked }
+func (g *GenericChainLink) GetSeqno() Seqno                              { return g.unpacked.seqno }
 func (g *GenericChainLink) GetPGPFingerprint() *PGPFingerprint {
 	return g.unpacked.pgpFingerprint
 }
@@ -551,7 +551,8 @@ func (s *SibkeyChainLink) insertIntoTable(tab *IdentityTable) {
 
 //-------------------------------------
 
-func (s *SibkeyChainLink) VerifyReverseSig(kf *KeyFamily) (err error) {
+// VerifyReverseSig checks a SibkeyChainLink's reverse signature using the ComputedKeyFamily provided.
+func (s *SibkeyChainLink) VerifyReverseSig(ckf ComputedKeyFamily) (err error) {
 	var key GenericKey
 
 	if len(s.reverseSig) == 0 {
@@ -561,7 +562,7 @@ func (s *SibkeyChainLink) VerifyReverseSig(kf *KeyFamily) (err error) {
 		return
 	}
 
-	if key, err = kf.FindKeyWithKIDUnsafe(s.GetDelegatedKid()); err != nil {
+	if key, err = ckf.FindKeyWithKIDUnsafe(s.GetDelegatedKid()); err != nil {
 		return err
 	}
 

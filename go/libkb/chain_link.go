@@ -461,7 +461,7 @@ func (c *ChainLink) VerifySigWithKeyFamily(ckf ComputedKeyFamily) (cached bool, 
 	var key GenericKey
 	var sigID keybase1.SigID
 
-	err = c.checkServerSignatureMetadata(ckf.kf)
+	err = c.checkServerSignatureMetadata(ckf)
 	if err != nil {
 		return cached, err
 	}
@@ -552,14 +552,14 @@ func (c *ChainLink) VerifyLink() error {
 	return nil
 }
 
-func (c *ChainLink) checkServerSignatureMetadata(kf *KeyFamily) error {
+func (c *ChainLink) checkServerSignatureMetadata(ckf ComputedKeyFamily) error {
 	// Check the payload KID, fingerprint, and ctime against the
 	// server-provided KID and ctime.
 	serverKID, err := GetKID(c.packed.AtKey("kid"))
 	if err != nil {
 		return err
 	}
-	serverKey, err := kf.FindKeyWithKIDUnsafe(serverKID)
+	serverKey, err := ckf.FindKeyWithKIDUnsafe(serverKID)
 	if err != nil {
 		return err
 	}
