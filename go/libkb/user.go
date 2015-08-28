@@ -326,56 +326,41 @@ func (u *User) GetSyncedSecretKey() (ret *SKB, err error) {
 	return
 }
 
-func (u *User) AllSyncedSecretKeys(lctx LoginContext) ([]*SKB, error) {
+func (u *User) AllSyncedSecretKeys(lctx LoginContext) (keys []*SKB, err error) {
+	G.Log.Debug("+ User.AllSyncedSecretKeys()")
+	defer func() {
+		G.Log.Debug("- User.AllSyncedSecretKey() -> %s", ErrToOk(err))
+	}()
+
 	if lctx != nil {
-		return u.allSyncedSecretKeysLogin(lctx)
-	}
-	return u.allSyncedSecretKeys()
-}
-
-func (u *User) allSyncedSecretKeysLogin(lctx LoginContext) (keys []*SKB, err error) {
-	G.Log.Debug("+ User.AllSyncedSecretKeysLogin()")
-	defer func() {
-		G.Log.Debug("- User.AllSyncedSecretKeyLogin() -> %s", ErrToOk(err))
-	}()
-
-	if err = lctx.RunSecretSyncer(u.id); err != nil {
-		return
-	}
-	ckf := u.GetComputedKeyFamily()
-	if ckf == nil {
-		G.Log.Debug("| short-circuit; no Computed key family")
-		return
-	}
-
-	keys = lctx.SecretSyncer().AllActiveKeys(ckf)
-	return
-}
-
-func (u *User) allSyncedSecretKeys() (keys []*SKB, err error) {
-	G.Log.Debug("+ User.allSyncedSecretKey()")
-	defer func() {
-		G.Log.Debug("- User.allSyncedSecretKey() -> %s", ErrToOk(err))
-	}()
-
-	if err = u.SyncSecrets(); err != nil {
-		return
+		if err = lctx.RunSecretSyncer(u.id); err != nil {
+			return nil, err
+		}
+	} else {
+		if err = u.G().LoginState().RunSecretSyncer(u.id); err != nil {
+			return nil, err
+		}
 	}
 
 	ckf := u.GetComputedKeyFamily()
 	if ckf == nil {
 		G.Log.Debug("| short-circuit; no Computed key family")
-		return
+		return nil, nil
 	}
 
-	aerr := G.LoginState().SecretSyncer(func(s *SecretSyncer) {
+	if lctx != nil {
+		keys = lctx.SecretSyncer().AllActiveKeys(ckf)
+		return keys, nil
+	}
+
+	aerr := u.G().LoginState().SecretSyncer(func(s *SecretSyncer) {
 		keys = s.AllActiveKeys(ckf)
 	}, "User - FindActiveKey")
 	if aerr != nil {
 		return nil, aerr
 	}
 
-	return
+	return keys, nil
 }
 
 func (u *User) SyncSecrets() error {
