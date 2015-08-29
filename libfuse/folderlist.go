@@ -1,7 +1,6 @@
 package libfuse
 
 import (
-	"log"
 	"os"
 	"sync"
 
@@ -109,7 +108,8 @@ func (fl *FolderList) forgetFolder(f *Folder) {
 	defer fl.mu.Unlock()
 
 	if err := fl.fs.config.Notifier().UnregisterFromChanges([]libkbfs.FolderBranch{f.folderBranch}, f); err != nil {
-		log.Printf("cannot unregister change notifier for folder %q: %v", f.name, err)
+		fl.fs.log.Info("cannot unregister change notifier for folder %q: %v",
+			f.name, err)
 	}
 	delete(fl.folders, f.name)
 }

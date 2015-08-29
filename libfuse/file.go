@@ -1,8 +1,6 @@
 package libfuse
 
 import (
-	"log"
-
 	"bazil.org/fuse"
 	"bazil.org/fuse/fs"
 	"github.com/keybase/kbfs/libkbfs"
@@ -170,7 +168,7 @@ func (f *File) Setattr(ctx context.Context, req *fuse.SetattrRequest,
 
 	if valid != 0 {
 		// don't let an unhandled operation slip by without error
-		log.Printf("Setattr did not handle %v", valid)
+		f.folder.fs.log.CInfof(ctx, "Setattr did not handle %v", valid)
 		return fuse.ENOSYS
 	}
 

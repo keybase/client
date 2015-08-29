@@ -3,7 +3,6 @@ package libfuse
 import (
 	"flag"
 	"fmt"
-	"log"
 	"math/rand"
 	"os"
 	"testing"
@@ -16,9 +15,6 @@ import (
 var BServerRemoteAddr *string
 
 func TestMain(m *testing.M) {
-
-	log.SetFlags(log.LstdFlags | log.Lshortfile)
-
 	libkb.G.Init()
 	libkb.G.ConfigureConfig()
 	libkb.G.ConfigureLogging()

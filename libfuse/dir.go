@@ -2,7 +2,6 @@ package libfuse
 
 import (
 	"fmt"
-	"log"
 	"math"
 	"os"
 	"sync"
@@ -97,7 +96,7 @@ func (f *Folder) LocalChange(ctx context.Context, node libkbfs.Node, write libkb
 
 	if err := f.invalidateNodeDataRange(n, write); err != nil && err != fuse.ErrNotCached {
 		// TODO we have no mechanism to do anything about this
-		log.Printf("FUSE invalidate error: %v", err)
+		f.fs.log.CErrorf(ctx, "FUSE invalidate error: %v", err)
 	}
 }
 
@@ -125,13 +124,13 @@ func (f *Folder) BatchChanges(ctx context.Context, changes []libkbfs.NodeChange)
 			// invalidate potentially cached Readdir contents
 			if err := f.fs.fuse.InvalidateNodeData(n); err != nil && err != fuse.ErrNotCached {
 				// TODO we have no mechanism to do anything about this
-				log.Printf("FUSE invalidate error: %v", err)
+				f.fs.log.CErrorf(ctx, "FUSE invalidate error: %v", err)
 			}
 			for _, name := range v.DirUpdated {
 				// invalidate the dentry cache
 				if err := f.fs.fuse.InvalidateEntry(n, name); err != nil && err != fuse.ErrNotCached {
 					// TODO we have no mechanism to do anything about this
-					log.Printf("FUSE invalidate error: %v", err)
+					f.fs.log.CErrorf(ctx, "FUSE invalidate error: %v", err)
 				}
 			}
 
@@ -139,7 +138,7 @@ func (f *Folder) BatchChanges(ctx context.Context, changes []libkbfs.NodeChange)
 			for _, write := range v.FileUpdated {
 				if err := f.invalidateNodeDataRange(n, write); err != nil && err != fuse.ErrNotCached {
 					// TODO we have no mechanism to do anything about this
-					log.Printf("FUSE invalidate error: %v", err)
+					f.fs.log.CErrorf(ctx, "FUSE invalidate error: %v", err)
 				}
 			}
 
@@ -147,7 +146,7 @@ func (f *Folder) BatchChanges(ctx context.Context, changes []libkbfs.NodeChange)
 			// just the attributes
 			if err := f.fs.fuse.InvalidateNodeAttr(n); err != nil && err != fuse.ErrNotCached {
 				// TODO we have no mechanism to do anything about this
-				log.Printf("FUSE invalidate error: %v", err)
+				f.fs.log.CErrorf(ctx, "FUSE invalidate error: %v", err)
 			}
 		}
 	}
@@ -494,7 +493,7 @@ func (d *Dir) Setattr(ctx context.Context, req *fuse.SetattrRequest, resp *fuse.
 
 	if valid != 0 {
 		// don't let an unhandled operation slip by without error
-		log.Printf("Setattr did not handle %v", valid)
+		d.folder.fs.log.CInfof(ctx, "Setattr did not handle %v", valid)
 		return fuse.ENOSYS
 	}
 
