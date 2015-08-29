@@ -166,7 +166,11 @@ func Init(localUser string, serverRootDir *string, cpuProfilePath,
 
 	// Set logging
 	config.SetLoggerMaker(func(module string) logger.Logger {
-		lg := logger.New(fmt.Sprintf("kbfs(%s)", module))
+		mname := "kbfs"
+		if module != "" {
+			mname += fmt.Sprintf("(%s)", module)
+		}
+		lg := logger.New(mname)
 		if debug {
 			// Turn on debugging.  TODO: allow a proper log file and
 			// style to be specified.
