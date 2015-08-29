@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/keybase/client/go/libkb"
+	"github.com/keybase/client/go/logger"
 	keybase1 "github.com/keybase/client/protocol/go"
 	"golang.org/x/net/context"
 )
@@ -14,6 +15,7 @@ import (
 type MDServerRemote struct {
 	config Config
 	conn   *Connection
+	log    logger.Logger
 
 	observerMu sync.Mutex // protects observers
 	observers  map[TlfID]chan<- error
@@ -32,6 +34,7 @@ func NewMDServerRemote(ctx context.Context, config Config, srvAddr string) *MDSe
 	mdServer := &MDServerRemote{
 		config:    config,
 		observers: make(map[TlfID]chan<- error),
+		log:       config.MakeLogger(""),
 	}
 	connection := NewConnection(ctx, config, srvAddr, mdServer, MDServerUnwrapError)
 	mdServer.conn = connection
@@ -41,7 +44,11 @@ func NewMDServerRemote(ctx context.Context, config Config, srvAddr string) *MDSe
 // For testing.
 func newMDServerRemoteWithClient(ctx context.Context, config Config,
 	testClient keybase1.GenericClient) *MDServerRemote {
-	mdServer := &MDServerRemote{config: config, testClient: testClient}
+	mdServer := &MDServerRemote{
+		config:     config,
+		testClient: testClient,
+		log:        config.MakeLogger(""),
+	}
 	return mdServer
 }
 
@@ -64,7 +71,7 @@ func (md *MDServerRemote) OnConnect(ctx context.Context,
 	var session *libkb.Session
 	session, err = md.config.KBPKI().GetSession(ctx)
 	if err != nil {
-		libkb.G.Log.Warning("MDServerRemote: error getting session %q", err)
+		md.log.CWarningf(ctx, "MDServerRemote: error getting session %q", err)
 		return err
 	} else if session != nil {
 		token = session.GetToken()
@@ -89,7 +96,7 @@ func (md *MDServerRemote) OnConnect(ctx context.Context,
 
 // OnConnectError implements the ConnectionHandler interface.
 func (md *MDServerRemote) OnConnectError(err error, wait time.Duration) {
-	libkb.G.Log.Warning("MDServerRemote: connection error: %q; retrying in %s",
+	md.log.Warning("MDServerRemote: connection error: %q; retrying in %s",
 		err, wait)
 	// TODO: it might make sense to show something to the user if this is
 	// due to authentication, for example.
@@ -273,7 +280,8 @@ func (md *MDServerRemote) RegisterForUpdate(ctx context.Context, id TlfID,
 	// setup the server to receive updates
 	err := md.conn.Serve(keybase1.MetadataUpdateProtocol(md))
 	if err != nil {
-		libkb.G.Log.Warning("MDServerRemote: unable to create update server %q", err)
+		md.log.CWarningf(ctx,
+			"MDServerRemote: unable to create update server %q", err)
 		return nil, err
 	}
 
