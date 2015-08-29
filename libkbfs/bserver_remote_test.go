@@ -92,6 +92,7 @@ func TestBServerRemotePutAndGet(t *testing.T) {
 	loggedInUser := localUsers[0]
 	kbpki := NewKBPKIMemory(loggedInUser.UID, localUsers)
 	config := &ConfigLocal{codec: codec, kbpki: kbpki}
+	setTestLogger(config, t)
 	fc := NewFakeBServerClient(nil, nil, nil)
 	ctx := context.Background()
 	b := newBlockServerRemoteWithClient(ctx, config, fc)
@@ -136,6 +137,7 @@ func TestBServerRemotePutCanceled(t *testing.T) {
 	loggedInUser := localUsers[0]
 	kbpki := NewKBPKIMemory(loggedInUser.UID, localUsers)
 	config := &ConfigLocal{codec: codec, kbpki: kbpki}
+	setTestLogger(config, t)
 	readyChan := make(chan struct{})
 	goChan := make(chan struct{})
 	fc := NewFakeBServerClient(readyChan, goChan, nil)

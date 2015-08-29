@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/keybase/client/go/libkb"
+	"github.com/keybase/client/go/logger"
 	keybase1 "github.com/keybase/client/protocol/go"
 	"golang.org/x/net/context"
 )
@@ -14,6 +15,7 @@ import (
 type BlockServerRemote struct {
 	config     Config
 	conn       *Connection
+	log        logger.Logger
 	testClient keybase1.GenericClient // for testing
 }
 
@@ -23,7 +25,7 @@ var _ BlockServer = (*BlockServerRemote)(nil)
 // NewBlockServerRemote constructs a new BlockServerRemote for the
 // given address.
 func NewBlockServerRemote(ctx context.Context, config Config, blkSrvAddr string) *BlockServerRemote {
-	bs := &BlockServerRemote{config: config}
+	bs := &BlockServerRemote{config: config, log: config.MakeLogger("")}
 	connection := NewConnection(ctx, config, blkSrvAddr, bs, BServerUnwrapError)
 	bs.conn = connection
 	return bs
@@ -32,7 +34,11 @@ func NewBlockServerRemote(ctx context.Context, config Config, blkSrvAddr string)
 // For testing.
 func newBlockServerRemoteWithClient(ctx context.Context, config Config,
 	testClient keybase1.GenericClient) *BlockServerRemote {
-	bs := &BlockServerRemote{config: config, testClient: testClient}
+	bs := &BlockServerRemote{
+		config:     config,
+		log:        config.MakeLogger(""),
+		testClient: testClient,
+	}
 	return bs
 }
 
@@ -44,7 +50,7 @@ func (b *BlockServerRemote) OnConnect(ctx context.Context,
 	var session *libkb.Session
 	var err error
 	if session, err = b.config.KBPKI().GetSession(ctx); err != nil {
-		libkb.G.Log.Warning("BlockServerRemote: error getting session %q", err)
+		b.log.CWarningf(ctx, "BlockServerRemote: error getting session %q", err)
 		return err
 	} else if session != nil {
 		token = session.GetToken()
@@ -64,7 +70,8 @@ func (b *BlockServerRemote) OnConnect(ctx context.Context,
 	// save the conn pointer
 	b.conn = conn
 
-	libkb.G.Log.Debug("BlockServerRemote.OnConnect establish session for user %s\n", user.String())
+	b.log.CDebugf(ctx, "BlockServerRemote.OnConnect establish session for "+
+		"user %s\n", user.String())
 	// using conn.DoCommand here would cause problematic recursion
 	return runUnlessCanceled(ctx, func() error {
 		c := keybase1.BlockClient{Cli: client}
@@ -74,7 +81,7 @@ func (b *BlockServerRemote) OnConnect(ctx context.Context,
 
 // OnConnectError implements the ConnectionHandler interface.
 func (b *BlockServerRemote) OnConnectError(err error, wait time.Duration) {
-	libkb.G.Log.Warning("BlockServerRemote: connection error: %q; retrying in %s",
+	b.log.Warning("BlockServerRemote: connection error: %q; retrying in %s",
 		err, wait)
 	// TODO: it might make sense to show something to the user if this is
 	// due to authentication, for example.
@@ -91,7 +98,7 @@ func (b *BlockServerRemote) client() keybase1.BlockClient {
 
 // OnDisconnected implements the ConnectionHandler interface.
 func (b *BlockServerRemote) OnDisconnected() {
-	libkb.G.Log.Warning("BlockServerRemote is disconnected\n")
+	b.log.Warning("BlockServerRemote is disconnected")
 }
 
 // Helper to call an rpc command.
@@ -106,7 +113,7 @@ func (b *BlockServerRemote) doCommand(ctx context.Context, command func() error)
 // Get implements the BlockServer interface for BlockServerRemote.
 func (b *BlockServerRemote) Get(ctx context.Context, id BlockID,
 	context BlockContext) ([]byte, BlockCryptKeyServerHalf, error) {
-	libkb.G.Log.Debug("BlockServerRemote.Get id=%s uid=%s\n",
+	b.log.CDebugf(ctx, "BlockServerRemote.Get id=%s uid=%s",
 		id.String(), context.GetWriter())
 	bid := keybase1.BlockIdCombo{
 		BlockHash: id.String(),
@@ -120,7 +127,8 @@ func (b *BlockServerRemote) Get(ctx context.Context, id BlockID,
 		return err
 	})
 	if err != nil {
-		libkb.G.Log.Debug("BlockServerRemote.Get id=%s err=%v\n", id.String(), err)
+		b.log.CDebugf(ctx, "BlockServerRemote.Get id=%s err=%v",
+			id.String(), err)
 		return nil, BlockCryptKeyServerHalf{}, err
 	}
 
@@ -138,7 +146,7 @@ func (b *BlockServerRemote) Get(ctx context.Context, id BlockID,
 func (b *BlockServerRemote) Put(ctx context.Context, id BlockID, tlfID TlfID,
 	context BlockContext, buf []byte,
 	serverHalf BlockCryptKeyServerHalf) error {
-	libkb.G.Log.Debug("BlockServerRemote.Put id=%s uid=%s\n",
+	b.log.CDebugf(ctx, "BlockServerRemote.Put id=%s uid=%s",
 		id.String(), context.GetWriter())
 	arg := keybase1.PutBlockArg{
 		Bid: keybase1.BlockIdCombo{
@@ -156,7 +164,7 @@ func (b *BlockServerRemote) Put(ctx context.Context, id BlockID, tlfID TlfID,
 	})
 
 	if err != nil {
-		libkb.G.Log.Debug("BlockServerRemote.Put id=%s err=%v\n",
+		b.log.CDebugf(ctx, "BlockServerRemote.Put id=%s err=%v",
 			id.String(), err)
 		return err
 	}
@@ -167,8 +175,9 @@ func (b *BlockServerRemote) Put(ctx context.Context, id BlockID, tlfID TlfID,
 // AddBlockReference implements the BlockServer interface for BlockServerRemote
 func (b *BlockServerRemote) AddBlockReference(ctx context.Context, id BlockID,
 	tlfID TlfID, context BlockContext) error {
-	libkb.G.Log.Debug("BlockServerRemote.AddBlockReference id=%s creator=%s uid=%s\n",
-		id.String(), context.GetCreator(), context.GetWriter())
+	b.log.CDebugf(ctx, "BlockServerRemote.AddBlockReference id=%s "+
+		"creator=%s uid=%s", id.String(), context.GetCreator(),
+		context.GetWriter())
 	arg := keybase1.IncBlockReferenceArg{
 		Bid: keybase1.BlockIdCombo{
 			ChargedTo: context.GetCreator(),
@@ -185,7 +194,8 @@ func (b *BlockServerRemote) AddBlockReference(ctx context.Context, id BlockID,
 		return b.client().IncBlockReference(arg)
 	})
 	if err != nil {
-		libkb.G.Log.Debug("BlockServerRemote.AddBlockReference id=%s err=%v", id.String(), err)
+		b.log.CDebugf(ctx, "BlockServerRemote.AddBlockReference id=%s err=%v",
+			id.String(), err)
 		return err
 	}
 	return nil
@@ -195,7 +205,7 @@ func (b *BlockServerRemote) AddBlockReference(ctx context.Context, id BlockID,
 // BlockServerRemote
 func (b *BlockServerRemote) RemoveBlockReference(ctx context.Context, id BlockID,
 	tlfID TlfID, context BlockContext) error {
-	libkb.G.Log.Debug("BlockServerRemote.RemoveBlockReference id=%s uid=%s\n",
+	b.log.CDebugf(ctx, "BlockServerRemote.RemoveBlockReference id=%s uid=%s",
 		id.String(), context.GetWriter())
 	arg := keybase1.DecBlockReferenceArg{
 		Bid: keybase1.BlockIdCombo{
@@ -213,7 +223,8 @@ func (b *BlockServerRemote) RemoveBlockReference(ctx context.Context, id BlockID
 		return b.client().DecBlockReference(arg)
 	})
 	if err != nil {
-		libkb.G.Log.Debug("BlockServerRemote.RemoveBlockReference id=%s err=%v", id.String(), err)
+		b.log.CDebugf(ctx, "BlockServerRemote.RemoveBlockReference id=%s "+
+			"err=%v", id.String(), err)
 		return err
 	}
 	return nil
