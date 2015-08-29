@@ -2,6 +2,7 @@ package libkbfs
 
 import (
 	"encoding/base64"
+	"strings"
 
 	"golang.org/x/net/context"
 )
@@ -36,5 +37,6 @@ func MakeRandomRequestID() (string, error) {
 	if err != nil {
 		return "", err
 	}
-	return base64.RawURLEncoding.EncodeToString(buf), nil
+	// TODO: go1.5 has RawURLEncoding which leaves off the padding entirely
+	return strings.TrimSuffix(base64.URLEncoding.EncodeToString(buf), "=="), nil
 }
