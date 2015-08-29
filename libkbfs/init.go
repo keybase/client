@@ -215,8 +215,7 @@ func Init(localUser string, serverRootDir *string, cpuProfilePath,
 	} else {
 		signingKey := MakeLocalUserSigningKeyOrBust(localUser)
 		cryptPrivateKey := MakeLocalUserCryptPrivateKeyOrBust(localUser)
-		config.SetCrypto(NewCryptoLocal(config.Codec(), signingKey,
-			cryptPrivateKey))
+		config.SetCrypto(NewCryptoLocal(config, signingKey, cryptPrivateKey))
 	}
 
 	bserv, err := makeBlockServer(config, serverRootDir)

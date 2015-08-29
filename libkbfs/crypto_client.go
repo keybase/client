@@ -3,7 +3,6 @@ package libkbfs
 import (
 	"github.com/keybase/client/go/client"
 	"github.com/keybase/client/go/libkb"
-	"github.com/keybase/client/go/logger"
 	keybase1 "github.com/keybase/client/protocol/go"
 	"github.com/maxtaco/go-framed-msgpack-rpc/rpc2"
 	"golang.org/x/net/context"
@@ -16,7 +15,6 @@ type CryptoClient struct {
 	CryptoCommon
 	ctx    *libkb.GlobalContext
 	client keybase1.GenericClient
-	log    logger.Logger
 }
 
 var _ Crypto = (*CryptoClient)(nil)
@@ -50,8 +48,8 @@ func NewCryptoClient(config Config, ctx *libkb.GlobalContext) (
 // newCryptoClientWithClient should only be used for testing.
 func newCryptoClientWithClient(config Config, ctx *libkb.GlobalContext,
 	client keybase1.GenericClient) *CryptoClient {
-	return &CryptoClient{CryptoCommon{config.Codec()}, ctx, client,
-		config.MakeLogger("")}
+	return &CryptoClient{
+		CryptoCommon{config.Codec(), config.MakeLogger("")}, ctx, client}
 }
 
 // Sign implements the Crypto interface for CryptoClient.

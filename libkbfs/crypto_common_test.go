@@ -14,8 +14,8 @@ import (
 // Test (very superficially) that MakeTemporaryBlockID() returns non-zero
 // values that aren't equal.
 func TestCryptoCommonRandomBlockID(t *testing.T) {
-	codec := NewCodecMsgpack()
-	c := CryptoCommon{codec}
+	config := testCryptoClientConfig(t)
+	c := CryptoCommon{config.Codec(), config.MakeLogger("")}
 
 	b1, err := c.MakeTemporaryBlockID()
 	if err != nil {
@@ -43,8 +43,8 @@ func TestCryptoCommonRandomBlockID(t *testing.T) {
 // Test (very superficially) that MakeRandomTLFKeys() returns non-zero
 // values that aren't equal.
 func TestCryptoCommonRandomTLFKeys(t *testing.T) {
-	codec := NewCodecMsgpack()
-	c := CryptoCommon{codec}
+	config := testCryptoClientConfig(t)
+	c := CryptoCommon{config.Codec(), config.MakeLogger("")}
 
 	a1, a2, a3, a4, a5, err := c.MakeRandomTLFKeys()
 	if err != nil {
@@ -120,8 +120,8 @@ func TestCryptoCommonRandomTLFKeys(t *testing.T) {
 // Test (very superficially) that MakeRandomTLFCryptKeyServerHalf()
 // returns non-zero values that aren't equal.
 func TestCryptoCommonRandomTLFCryptKeyServerHalf(t *testing.T) {
-	codec := NewCodecMsgpack()
-	c := CryptoCommon{codec}
+	config := testCryptoClientConfig(t)
+	c := CryptoCommon{config.Codec(), config.MakeLogger("")}
 
 	k1, err := c.MakeRandomTLFCryptKeyServerHalf()
 	if err != nil {
@@ -149,8 +149,8 @@ func TestCryptoCommonRandomTLFCryptKeyServerHalf(t *testing.T) {
 // Test (very superficially) that MakeRandomBlockCryptKeyServerHalf()
 // returns non-zero values that aren't equal.
 func TestCryptoCommonRandomBlockCryptKeyServerHalf(t *testing.T) {
-	codec := NewCodecMsgpack()
-	c := CryptoCommon{codec}
+	config := testCryptoClientConfig(t)
+	c := CryptoCommon{config.Codec(), config.MakeLogger("")}
 
 	k1, err := c.MakeRandomBlockCryptKeyServerHalf()
 	if err != nil {
@@ -179,8 +179,8 @@ func TestCryptoCommonRandomBlockCryptKeyServerHalf(t *testing.T) {
 // the server half and the key, and that UnmaskTLFCryptKey() undoes
 // the masking properly.
 func TestCryptoCommonMaskUnmaskTLFCryptKey(t *testing.T) {
-	codec := NewCodecMsgpack()
-	c := CryptoCommon{codec}
+	config := testCryptoClientConfig(t)
+	c := CryptoCommon{config.Codec(), config.MakeLogger("")}
 
 	serverHalf, err := c.MakeRandomTLFCryptKeyServerHalf()
 	if err != nil {
@@ -218,8 +218,8 @@ func TestCryptoCommonMaskUnmaskTLFCryptKey(t *testing.T) {
 // Test that UnmaskBlockCryptKey() returns bytes that are different from
 // the server half and the key.
 func TestCryptoCommonUnmaskTLFCryptKey(t *testing.T) {
-	codec := NewCodecMsgpack()
-	c := CryptoCommon{codec}
+	config := testCryptoClientConfig(t)
+	c := CryptoCommon{config.Codec(), config.MakeLogger("")}
 
 	serverHalf, err := c.MakeRandomBlockCryptKeyServerHalf()
 	if err != nil {
@@ -246,8 +246,8 @@ func TestCryptoCommonUnmaskTLFCryptKey(t *testing.T) {
 }
 
 func TestCryptoCommonEncryptDecryptBlock(t *testing.T) {
-	codec := NewCodecMsgpack()
-	c := CryptoCommon{codec}
+	config := testCryptoClientConfig(t)
+	c := CryptoCommon{config.Codec(), config.MakeLogger("")}
 
 	block := TestBlock{42}
 	key := BlockCryptKey{}
@@ -279,8 +279,8 @@ func TestCryptoCommonVerifyFailures(t *testing.T) {
 		VerifyingKey: signingKey.getVerifyingKey(),
 	}
 
-	codec := NewCodecMsgpack()
-	c := CryptoCommon{codec}
+	config := testCryptoClientConfig(t)
+	c := CryptoCommon{config.Codec(), config.MakeLogger("")}
 
 	var expectedErr, err error
 
@@ -355,8 +355,8 @@ func TestCryptoCommonVerifyFailures(t *testing.T) {
 // Test that crypto.EncryptTLFCryptKeyClientHalf() encrypts its
 // passed-in client half properly.
 func TestCryptoCommonEncryptTLFCryptKeyClientHalf(t *testing.T) {
-	codec := NewCodecMsgpack()
-	c := CryptoCommon{codec}
+	config := testCryptoClientConfig(t)
+	c := CryptoCommon{config.Codec(), config.MakeLogger("")}
 
 	_, _, ephPublicKey, ephPrivateKey, cryptKey, err := c.MakeRandomTLFKeys()
 	if err != nil {
@@ -442,8 +442,8 @@ func checkSecretboxOpen(t *testing.T, encryptedData encryptedData, key [32]byte)
 // Test that crypto.EncryptPrivateMetadata() encrypts its passed-in
 // PrivateMetadata object properly.
 func TestEncryptPrivateMetadata(t *testing.T) {
-	codec := NewCodecMsgpack()
-	c := CryptoCommon{codec}
+	config := testCryptoClientConfig(t)
+	c := CryptoCommon{config.Codec(), config.MakeLogger("")}
 
 	_, tlfPrivateKey, _, _, cryptKey, err := c.MakeRandomTLFKeys()
 	if err != nil {
@@ -453,7 +453,7 @@ func TestEncryptPrivateMetadata(t *testing.T) {
 	privateMetadata := PrivateMetadata{
 		TLFPrivateKey: tlfPrivateKey,
 	}
-	expectedEncodedPrivateMetadata, err := codec.Encode(privateMetadata)
+	expectedEncodedPrivateMetadata, err := config.Codec().Encode(privateMetadata)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -499,8 +499,8 @@ func secretboxSealEncoded(t *testing.T, c *CryptoCommon, encodedData []byte, key
 // PrivateMetadata object encrypted with the default method (current
 // nacl/secretbox).
 func TestDecryptPrivateMetadataSecretboxSeal(t *testing.T) {
-	codec := NewCodecMsgpack()
-	c := CryptoCommon{codec}
+	config := testCryptoClientConfig(t)
+	c := CryptoCommon{config.Codec(), config.MakeLogger("")}
 
 	_, tlfPrivateKey, _, _, cryptKey, err := c.MakeRandomTLFKeys()
 	if err != nil {
@@ -527,8 +527,8 @@ func TestDecryptPrivateMetadataSecretboxSeal(t *testing.T) {
 // PrivateMetadata object encrypted with the default method (current
 // nacl/secretbox).
 func TestDecryptEncryptedPrivateMetadata(t *testing.T) {
-	codec := NewCodecMsgpack()
-	c := CryptoCommon{codec}
+	config := testCryptoClientConfig(t)
+	c := CryptoCommon{config.Codec(), config.MakeLogger("")}
 
 	_, tlfPrivateKey, _, _, cryptKey, err := c.MakeRandomTLFKeys()
 	if err != nil {
@@ -602,8 +602,8 @@ func checkDecryptionFailures(
 
 // Test various failure cases for crypto.DecryptPrivateMetadata().
 func TestDecryptPrivateMetadataFailures(t *testing.T) {
-	codec := NewCodecMsgpack()
-	c := CryptoCommon{codec}
+	config := testCryptoClientConfig(t)
+	c := CryptoCommon{config.Codec(), config.MakeLogger("")}
 
 	_, tlfPrivateKey, _, _, cryptKey, err := c.MakeRandomTLFKeys()
 	if err != nil {
@@ -654,13 +654,13 @@ func makeBlockCryptKey(t *testing.T, c *CryptoCommon) BlockCryptKey {
 // Test that crypto.EncryptBlock() encrypts its passed-in Block object
 // properly.
 func TestEncryptBlock(t *testing.T) {
-	codec := NewCodecMsgpack()
-	c := CryptoCommon{codec}
+	config := testCryptoClientConfig(t)
+	c := CryptoCommon{config.Codec(), config.MakeLogger("")}
 
 	cryptKey := makeBlockCryptKey(t, &c)
 
 	block := 50
-	expectedEncodedBlock, err := codec.Encode(block)
+	expectedEncodedBlock, err := config.Codec().Encode(block)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -688,14 +688,14 @@ func TestEncryptBlock(t *testing.T) {
 // Test that crypto.DecryptBlock() decrypts a Block object encrypted
 // with the default method (current nacl/secretbox).
 func TestDecryptBlockSecretboxSeal(t *testing.T) {
-	codec := NewCodecMsgpack()
-	c := CryptoCommon{codec}
+	config := testCryptoClientConfig(t)
+	c := CryptoCommon{config.Codec(), config.MakeLogger("")}
 
 	cryptKey := makeBlockCryptKey(t, &c)
 
 	block := 50
 
-	encodedBlock, err := codec.Encode(block)
+	encodedBlock, err := config.Codec().Encode(block)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -721,8 +721,8 @@ func TestDecryptBlockSecretboxSeal(t *testing.T) {
 // Test that crypto.DecryptBlock() decrypts a Block object encrypted
 // with the default method (current nacl/secretbox).
 func TestDecryptEncryptedBlock(t *testing.T) {
-	codec := NewCodecMsgpack()
-	c := CryptoCommon{codec}
+	config := testCryptoClientConfig(t)
+	c := CryptoCommon{config.Codec(), config.MakeLogger("")}
 
 	cryptKey := makeBlockCryptKey(t, &c)
 
@@ -746,8 +746,8 @@ func TestDecryptEncryptedBlock(t *testing.T) {
 
 // Test various failure cases for crypto.DecryptBlock().
 func TestDecryptBlockFailures(t *testing.T) {
-	codec := NewCodecMsgpack()
-	c := CryptoCommon{codec}
+	config := testCryptoClientConfig(t)
+	c := CryptoCommon{config.Codec(), config.MakeLogger("")}
 
 	cryptKey := makeBlockCryptKey(t, &c)
 
@@ -846,8 +846,8 @@ func TestBlockPadMinimum(t *testing.T) {
 // Test that secretbox encrypted data length is a deterministic
 // function of the input data length.
 func TestSecretboxEncryptedLen(t *testing.T) {
-	codec := NewCodecMsgpack()
-	c := CryptoCommon{codec}
+	config := testCryptoClientConfig(t)
+	c := CryptoCommon{config.Codec(), config.MakeLogger("")}
 
 	for i := 100; i < 100000; i += 1000 {
 		var enclen int
@@ -870,8 +870,8 @@ func TestSecretboxEncryptedLen(t *testing.T) {
 // Test that block encrypted data length is the same for data
 // length within same power of 2.
 func TestBlockEncryptedLen(t *testing.T) {
-	codec := NewCodecMsgpack()
-	c := CryptoCommon{codec}
+	config := testCryptoClientConfig(t)
+	c := CryptoCommon{config.Codec(), config.MakeLogger("")}
 	cryptKey := makeBlockCryptKey(t, &c)
 
 	var expectedLen int

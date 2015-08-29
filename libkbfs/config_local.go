@@ -354,7 +354,7 @@ func NewConfigLocalWithCrypto() *ConfigLocal {
 	config := NewConfigLocal()
 	signingKey := MakeLocalUserSigningKeyOrBust("nobody")
 	cryptPrivateKey := MakeLocalUserCryptPrivateKeyOrBust("nobody")
-	crypto := NewCryptoLocal(config.Codec(), signingKey, cryptPrivateKey)
+	crypto := NewCryptoLocal(config, signingKey, cryptPrivateKey)
 	config.SetCrypto(crypto)
 	return config
 }

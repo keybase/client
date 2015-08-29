@@ -77,8 +77,9 @@ var _ Crypto = (*CryptoLocal)(nil)
 
 // NewCryptoLocal constructs a new CryptoLocal instance with the given
 // signing key.
-func NewCryptoLocal(codec Codec, signingKey SigningKey, cryptPrivateKey CryptPrivateKey) *CryptoLocal {
-	return &CryptoLocal{CryptoCommon{codec}, signingKey, cryptPrivateKey}
+func NewCryptoLocal(config Config, signingKey SigningKey, cryptPrivateKey CryptPrivateKey) *CryptoLocal {
+	return &CryptoLocal{CryptoCommon{config.Codec(), config.MakeLogger("")},
+		signingKey, cryptPrivateKey}
 }
 
 // Sign implements the Crypto interface for CryptoLocal.

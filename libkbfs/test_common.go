@@ -90,7 +90,7 @@ func MakeTestConfigOrBust(t *testing.T, blockServerRemoteAddr *string, users ...
 
 	signingKey := MakeLocalUserSigningKeyOrBust(loggedInUser.Name)
 	cryptPrivateKey := MakeLocalUserCryptPrivateKeyOrBust(loggedInUser.Name)
-	crypto := NewCryptoLocal(config.Codec(), signingKey, cryptPrivateKey)
+	crypto := NewCryptoLocal(config, signingKey, cryptPrivateKey)
 	config.SetCrypto(crypto)
 
 	if blockServerRemoteAddr != nil {
@@ -168,7 +168,7 @@ func ConfigAsUser(config *ConfigLocal, loggedInUser string) *ConfigLocal {
 
 	signingKey := MakeLocalUserSigningKeyOrBust(loggedInUser)
 	cryptPrivateKey := MakeLocalUserCryptPrivateKeyOrBust(loggedInUser)
-	crypto := NewCryptoLocal(config.Codec(), signingKey, cryptPrivateKey)
+	crypto := NewCryptoLocal(config, signingKey, cryptPrivateKey)
 	c.SetCrypto(crypto)
 
 	c.SetBlockServer(config.BlockServer())
