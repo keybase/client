@@ -207,7 +207,7 @@ func Init(localUser string, serverRootDir *string, cpuProfilePath,
 	config.SetKBPKI(k)
 
 	if localUser == "" {
-		c, err := NewCryptoClient(config.Codec(), libkb.G)
+		c, err := NewCryptoClient(config, libkb.G)
 		if err != nil {
 			return nil, fmt.Errorf("Could not get Crypto: %v", err)
 		}

@@ -3,6 +3,7 @@ package libkbfs
 import (
 	"github.com/keybase/client/go/client"
 	"github.com/keybase/client/go/libkb"
+	"github.com/keybase/client/go/logger"
 	keybase1 "github.com/keybase/client/protocol/go"
 	"github.com/maxtaco/go-framed-msgpack-rpc/rpc2"
 	"golang.org/x/net/context"
@@ -15,12 +16,14 @@ type CryptoClient struct {
 	CryptoCommon
 	ctx    *libkb.GlobalContext
 	client keybase1.GenericClient
+	log    logger.Logger
 }
 
 var _ Crypto = (*CryptoClient)(nil)
 
 // NewCryptoClient constructs a new CryptoClient.
-func NewCryptoClient(codec Codec, ctx *libkb.GlobalContext) (*CryptoClient, error) {
+func NewCryptoClient(config Config, ctx *libkb.GlobalContext) (
+	*CryptoClient, error) {
 	_, xp, err := ctx.GetSocket()
 	if err != nil {
 		return nil, err
@@ -41,19 +44,22 @@ func NewCryptoClient(codec Codec, ctx *libkb.GlobalContext) (*CryptoClient, erro
 	}
 
 	client := rpc2.NewClient(xp, libkb.UnwrapError)
-	return newCryptoClientWithClient(codec, ctx, client), nil
+	return newCryptoClientWithClient(config, ctx, client), nil
 }
 
 // newCryptoClientWithClient should only be used for testing.
-func newCryptoClientWithClient(codec Codec, ctx *libkb.GlobalContext, client keybase1.GenericClient) *CryptoClient {
-	return &CryptoClient{CryptoCommon{codec}, ctx, client}
+func newCryptoClientWithClient(config Config, ctx *libkb.GlobalContext,
+	client keybase1.GenericClient) *CryptoClient {
+	return &CryptoClient{CryptoCommon{config.Codec()}, ctx, client,
+		config.MakeLogger("")}
 }
 
 // Sign implements the Crypto interface for CryptoClient.
 func (c *CryptoClient) Sign(ctx context.Context, msg []byte) (
 	sigInfo SignatureInfo, err error) {
 	defer func() {
-		libkb.G.Log.Debug("Signed %d-byte message with %s: err=%v", len(msg), sigInfo, err)
+		c.log.CDebugf(ctx, "Signed %d-byte message with %s: err=%v", len(msg),
+			sigInfo, err)
 	}()
 
 	var ed25519SigInfo keybase1.ED25519SignatureInfo
