@@ -1,7 +1,7 @@
 package libkbfs
 
 import (
-	"github.com/keybase/client/go/libkb"
+	"github.com/keybase/client/go/logger"
 	keybase1 "github.com/keybase/client/protocol/go"
 	"github.com/syndtr/goleveldb/leveldb"
 	"github.com/syndtr/goleveldb/leveldb/storage"
@@ -12,6 +12,7 @@ import (
 type KeyServerLocal struct {
 	config Config
 	db     *leveldb.DB // TLFCryptKeyServerHalfID -> TLFCryptKeyServerHalf
+	log    logger.Logger
 }
 
 // Test that KeyServerLocal fully implements the KeyServer interface.
@@ -23,7 +24,7 @@ func newKeyServerLocalWithStorage(config Config, storage storage.Storage) (
 	if err != nil {
 		return nil, err
 	}
-	kops := &KeyServerLocal{config, db}
+	kops := &KeyServerLocal{config, db, config.MakeLogger("")}
 	return kops, nil
 }
 
@@ -70,7 +71,7 @@ func (ks *KeyServerLocal) GetTLFCryptKeyServerHalf(ctx context.Context,
 	err = ks.config.Crypto().VerifyTLFCryptKeyServerHalfID(
 		serverHalfID, user, key.KID, serverHalf)
 	if err != nil {
-		libkb.G.Log.Debug("error verifying server half ID: %s", err)
+		ks.log.CDebugf(ctx, "error verifying server half ID: %s", err)
 		return TLFCryptKeyServerHalf{}, MDServerErrorUnauthorized{}
 	}
 	return serverHalf, nil
@@ -100,5 +101,5 @@ func (ks *KeyServerLocal) PutTLFCryptKeyServerHalves(ctx context.Context,
 
 // Copies a key server but swaps the config.
 func (ks *KeyServerLocal) copy(config Config) *KeyServerLocal {
-	return &KeyServerLocal{config, ks.db}
+	return &KeyServerLocal{config, ks.db, config.MakeLogger("")}
 }
