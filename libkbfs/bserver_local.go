@@ -3,7 +3,7 @@ package libkbfs
 import (
 	"fmt"
 
-	"github.com/keybase/client/go/libkb"
+	"github.com/keybase/client/go/logger"
 	"golang.org/x/net/context"
 )
 
@@ -11,6 +11,7 @@ import (
 // storing blocks in a local leveldb instance
 type BlockServerLocal struct {
 	config Config
+	log    logger.Logger
 	s      bserverLocalStorage
 }
 
@@ -21,7 +22,7 @@ var _ BlockServer = (*BlockServerLocal)(nil)
 func NewBlockServerLocal(config Config, dbfile string) (
 	*BlockServerLocal, error) {
 	s := makeBserverFileStorage(config.Codec(), dbfile)
-	bserv := &BlockServerLocal{config: config, s: s}
+	bserv := &BlockServerLocal{config: config, log: config.MakeLogger(""), s: s}
 	return bserv, nil
 }
 
@@ -29,13 +30,14 @@ func NewBlockServerLocal(config Config, dbfile string) (
 // its data in memory.
 func NewBlockServerMemory(config Config) (*BlockServerLocal, error) {
 	s := makeBserverMemStorage()
-	return &BlockServerLocal{config: config, s: s}, nil
+	bserv := &BlockServerLocal{config: config, log: config.MakeLogger(""), s: s}
+	return bserv, nil
 }
 
 // Get implements the BlockServer interface for BlockServerLocal
 func (b *BlockServerLocal) Get(ctx context.Context, id BlockID,
 	context BlockContext) ([]byte, BlockCryptKeyServerHalf, error) {
-	libkb.G.Log.Debug("BlockServerLocal.Get id=%s uid=%s\n",
+	b.log.CDebugf(ctx, "BlockServerLocal.Get id=%s uid=%s",
 		id, context.GetWriter())
 	entry, err := b.s.get(id)
 	if err != nil {
@@ -48,7 +50,7 @@ func (b *BlockServerLocal) Get(ctx context.Context, id BlockID,
 func (b *BlockServerLocal) Put(ctx context.Context, id BlockID, tlfID TlfID,
 	context BlockContext, buf []byte,
 	serverHalf BlockCryptKeyServerHalf) error {
-	libkb.G.Log.Debug("BlockServerLocal.Put id=%s uid=%s\n",
+	b.log.CDebugf(ctx, "BlockServerLocal.Put id=%s uid=%s",
 		id, context.GetWriter())
 
 	if context.GetRefNonce() != zeroBlockRefNonce {
@@ -68,8 +70,8 @@ func (b *BlockServerLocal) Put(ctx context.Context, id BlockID, tlfID TlfID,
 func (b *BlockServerLocal) AddBlockReference(ctx context.Context, id BlockID,
 	tlfID TlfID, context BlockContext) error {
 	refNonce := context.GetRefNonce()
-	libkb.G.Log.Debug("BlockServerLocal.AddBlockReference id=%s "+
-		"refnonce=%s uid=%s\n", id,
+	b.log.CDebugf(ctx, "BlockServerLocal.AddBlockReference id=%s "+
+		"refnonce=%s uid=%s", id,
 		refNonce, context.GetWriter())
 
 	return b.s.addReference(id, refNonce)
@@ -80,7 +82,7 @@ func (b *BlockServerLocal) AddBlockReference(ctx context.Context, id BlockID,
 func (b *BlockServerLocal) RemoveBlockReference(ctx context.Context, id BlockID,
 	tlfID TlfID, context BlockContext) error {
 	refNonce := context.GetRefNonce()
-	libkb.G.Log.Debug("BlockServerLocal.RemoveBlockReference id=%s uid=%s\n",
+	b.log.CDebugf(ctx, "BlockServerLocal.RemoveBlockReference id=%s uid=%s",
 		id, context.GetWriter())
 
 	return b.s.removeReference(id, refNonce)
