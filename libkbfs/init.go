@@ -86,7 +86,7 @@ func makeBlockServer(config Config, serverRootDir *string) (BlockServer, error) 
 func makeKBPKIClient(config Config, serverRootDir *string, localUser string) (KBPKI, error) {
 	if localUser == "" {
 		libkb.G.ConfigureSocketInfo()
-		return NewKBPKIClient(libkb.G)
+		return NewKBPKIClient(libkb.G, config.MakeLogger(""))
 	}
 
 	users := []string{"strib", "max", "chris", "fred"}

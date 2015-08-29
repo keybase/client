@@ -6,6 +6,7 @@ import (
 	"github.com/keybase/client/go/client"
 	"github.com/keybase/client/go/engine"
 	"github.com/keybase/client/go/libkb"
+	"github.com/keybase/client/go/logger"
 	keybase1 "github.com/keybase/client/protocol/go"
 	"github.com/maxtaco/go-framed-msgpack-rpc/rpc2"
 	"golang.org/x/net/context"
@@ -13,14 +14,15 @@ import (
 
 // KBPKIClient uses rpc calls to daemon
 type KBPKIClient struct {
-	ctx    *libkb.GlobalContext
 	client keybase1.GenericClient
+	log    logger.Logger
 }
 
 var _ KBPKI = (*KBPKIClient)(nil)
 
 // NewKBPKIClient creates a KBPKIClient.
-func NewKBPKIClient(ctx *libkb.GlobalContext) (*KBPKIClient, error) {
+func NewKBPKIClient(ctx *libkb.GlobalContext, log logger.Logger) (
+	*KBPKIClient, error) {
 	_, xp, err := ctx.GetSocket()
 	if err != nil {
 		return nil, err
@@ -42,12 +44,13 @@ func NewKBPKIClient(ctx *libkb.GlobalContext) (*KBPKIClient, error) {
 	}
 
 	client := rpc2.NewClient(xp, libkb.UnwrapError)
-	return newKBPKIClientWithClient(ctx, client), nil
+	return newKBPKIClientWithClient(client, log), nil
 }
 
 // For testing.
-func newKBPKIClientWithClient(ctx *libkb.GlobalContext, client keybase1.GenericClient) *KBPKIClient {
-	return &KBPKIClient{ctx, client}
+func newKBPKIClientWithClient(client keybase1.GenericClient,
+	log logger.Logger) *KBPKIClient {
+	return &KBPKIClient{client, log}
 }
 
 // ResolveAssertion implements the KBPKI interface for KBPKIClient.
@@ -72,7 +75,7 @@ func (k *KBPKIClient) GetSession(ctx context.Context) (*libkb.Session, error) {
 	s, _, err := k.session(ctx)
 	if err != nil {
 		// XXX shouldn't ignore this...
-		libkb.G.Log.Warning("error getting session: %q", err)
+		k.log.CWarningf(ctx, "error getting session: %q", err)
 		return nil, err
 	}
 	return s, nil
@@ -88,7 +91,7 @@ func (k *KBPKIClient) GetLoggedInUser(ctx context.Context) (
 		return
 	}
 	uid = s.GetUID()
-	libkb.G.Log.Info("logged in user uid = %s", uid)
+	k.log.CInfof(ctx, "logged in user uid = %s", uid)
 	return
 }
 
@@ -105,7 +108,8 @@ func (k *KBPKIClient) HasVerifyingKey(ctx context.Context, uid keybase1.UID,
 			continue
 		}
 		if verifyingKey.KID.Equal(publicKey.KID) {
-			libkb.G.Log.Debug("found verifying key %s for user %s", verifyingKey.KID, uid)
+			k.log.CDebugf(ctx, "found verifying key %s for user %s",
+				verifyingKey.KID, uid)
 			return nil
 		}
 	}
@@ -130,7 +134,8 @@ func (k *KBPKIClient) GetCryptPublicKeys(ctx context.Context,
 		if err != nil {
 			return nil, err
 		}
-		libkb.G.Log.Debug("got crypt public key %s for user %s", key.VerboseDescription(), uid)
+		k.log.CDebugf(ctx, "got crypt public key %s for user %s",
+			key.VerboseDescription(), uid)
 		keys = append(keys, CryptPublicKey{key.GetKID()})
 	}
 
@@ -144,7 +149,8 @@ func (k *KBPKIClient) GetCurrentCryptPublicKey(ctx context.Context) (
 	if err != nil {
 		return CryptPublicKey{}, err
 	}
-	libkb.G.Log.Debug("got device subkey %s", deviceSubkey.GetKID().ToShortIDString())
+	k.log.CDebugf(ctx, "got device subkey %s",
+		deviceSubkey.GetKID().ToShortIDString())
 	return CryptPublicKey{deviceSubkey.GetKID()}, nil
 }
 

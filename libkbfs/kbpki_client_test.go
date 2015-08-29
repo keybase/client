@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/keybase/client/go/logger"
 	keybase1 "github.com/keybase/client/protocol/go"
 	"golang.org/x/net/context"
 )
@@ -75,7 +76,7 @@ func TestKBPKIClientResolveAssertion(t *testing.T) {
 	users := []string{"pc"}
 	expectedUID := keybase1.MakeTestUID(1)
 	fc := NewFakeKBPKIClient(expectedUID, MakeLocalUsers(users), nil)
-	c := newKBPKIClientWithClient(nil, fc)
+	c := newKBPKIClientWithClient(fc, logger.NewTestLogger(t))
 
 	u, err := c.ResolveAssertion(context.Background(), "pc")
 	if err != nil {
@@ -90,7 +91,7 @@ func TestKBPKIClientGetUser(t *testing.T) {
 	users := []string{"test_name"}
 	fc := NewFakeKBPKIClient(keybase1.MakeTestUID(1),
 		MakeLocalUsers(users), nil)
-	c := newKBPKIClientWithClient(nil, fc)
+	c := newKBPKIClientWithClient(fc, logger.NewTestLogger(t))
 
 	u, err := c.GetUser(context.Background(), keybase1.MakeTestUID(1))
 	if err != nil {
@@ -107,7 +108,7 @@ func TestKBPKIClientGetUserCanceled(t *testing.T) {
 	ctlChan := make(chan struct{})
 	fc := NewFakeKBPKIClient(keybase1.MakeTestUID(1),
 		MakeLocalUsers(users), ctlChan)
-	c := newKBPKIClientWithClient(nil, fc)
+	c := newKBPKIClientWithClient(fc, logger.NewTestLogger(t))
 
 	f := func(ctx context.Context) error {
 		_, err := c.GetUser(ctx, keybase1.MakeTestUID(1))
@@ -120,7 +121,7 @@ func TestKBPKIClientHasVerifyingKey(t *testing.T) {
 	users := []string{"test_name"}
 	localUsers := MakeLocalUsers(users)
 	fc := NewFakeKBPKIClient(keybase1.MakeTestUID(1), localUsers, nil)
-	c := newKBPKIClientWithClient(nil, fc)
+	c := newKBPKIClientWithClient(fc, logger.NewTestLogger(t))
 
 	err := c.HasVerifyingKey(context.Background(), keybase1.MakeTestUID(1),
 		localUsers[0].VerifyingKeys[0])
@@ -139,7 +140,7 @@ func TestKBPKIClientGetCryptPublicKeys(t *testing.T) {
 	users := []string{"test_name"}
 	localUsers := MakeLocalUsers(users)
 	fc := NewFakeKBPKIClient(keybase1.MakeTestUID(1), localUsers, nil)
-	c := newKBPKIClientWithClient(nil, fc)
+	c := newKBPKIClientWithClient(fc, logger.NewTestLogger(t))
 
 	cryptPublicKeys, err := c.GetCryptPublicKeys(context.Background(),
 		keybase1.MakeTestUID(1))
@@ -162,7 +163,7 @@ func TestKBPKIClientGetCurrentCryptPublicKey(t *testing.T) {
 	users := []string{"test_name1", "test_name2"}
 	localUsers := MakeLocalUsers(users)
 	fc := NewFakeKBPKIClient(keybase1.MakeTestUID(2), localUsers, nil)
-	c := newKBPKIClientWithClient(nil, fc)
+	c := newKBPKIClientWithClient(fc, logger.NewTestLogger(t))
 
 	currPublicKey, err := c.GetCurrentCryptPublicKey(context.Background())
 	if err != nil {
@@ -182,7 +183,7 @@ func TestKBPKIClientGetCurrentCryptPublicKeyCanceled(t *testing.T) {
 	localUsers := MakeLocalUsers(users)
 	ctlChan := make(chan struct{})
 	fc := NewFakeKBPKIClient(keybase1.MakeTestUID(2), localUsers, ctlChan)
-	c := newKBPKIClientWithClient(nil, fc)
+	c := newKBPKIClientWithClient(fc, logger.NewTestLogger(t))
 
 	f := func(ctx context.Context) error {
 		_, err := c.GetCurrentCryptPublicKey(ctx)
