@@ -6,6 +6,7 @@ import (
 	"strings"
 )
 
+// TempFile creates a termporary file. Use mode=0 for default permissions.
 func TempFile(prefix string, mode os.FileMode) (string, *os.File, error) {
 	buf, err := RandBytes(20)
 	if err != nil {

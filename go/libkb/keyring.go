@@ -137,7 +137,7 @@ func (k KeyringFile) WriteTo(w io.Writer) (int64, error) {
 func (k KeyringFile) GetFilename() string { return k.filename }
 
 func (k KeyringFile) Save() error {
-	return SafeWriteToFile(k)
+	return SafeWriteToFile(k, 0)
 }
 
 type SecretKeyType int
