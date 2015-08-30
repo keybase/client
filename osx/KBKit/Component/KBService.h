@@ -8,7 +8,9 @@
 
 #import <Foundation/Foundation.h>
 
-#import "KBLaunchService.h"
+#import "KBComponent.h"
+#import "KBInstallable.h"
+#import "KBEnvConfig.h"
 #import "KBRPC.h"
 #import "KBRPClient.h"
 
@@ -21,7 +23,5 @@
 - (instancetype)initWithConfig:(KBEnvConfig *)config;
 
 - (void)checkStatus:(void (^)(NSError *error, KBRGetCurrentStatusRes *userStatus, KBRConfig *userConfig))completion;
-
-+ (NSString *)commandLineForService:(KBEnvConfig *)config useBundle:(BOOL)useBundle pathOptions:(KBPathOptions)pathOptions args:(NSArray *)args;
 
 @end

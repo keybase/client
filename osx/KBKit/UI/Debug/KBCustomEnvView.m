@@ -11,8 +11,8 @@
 #import "KBDefines.h"
 #import "KBPath.h"
 
-#import "KBService.h"
-#import "KBFSService.h"
+#import "KBServiceConfig.h"
+#import "KBFSConfig.h"
 
 @interface KBCustomEnvView ()
 @property KBTextField *homeDirField;
@@ -101,8 +101,12 @@
 }
 
 - (void)updateCLI:(KBEnvConfig *)config {
-  NSString *serviceCLI = NSStringWithFormat(@"env -i %@", [KBService commandLineForService:config useBundle:NO pathOptions:KBPathOptionsEscape args:@[@"service"]]);
-  NSString *kbfsCLI = NSStringWithFormat(@"env -i %@", [KBFSService commandLineForKBFS:config useBundle:NO pathOptions:KBPathOptionsEscape args:nil]);
+
+  KBServiceConfig *serviceConfig = [[KBServiceConfig alloc] initWithConfig:config];
+  NSString *serviceCLI = NSStringWithFormat(@"env -i %@", [serviceConfig commandLineWithPathOptions:KBPathOptionsEscape]);
+
+  KBFSConfig *kbfsConfig = [[KBFSConfig alloc] initWithConfig:config];
+  NSString *kbfsCLI = NSStringWithFormat(@"env -i %@", [kbfsConfig commandLineWithPathOptions:KBPathOptionsEscape]);
 
   [_serviceCLI setText:serviceCLI style:KBTextStyleDefault options:KBTextOptionsMonospace alignment:NSLeftTextAlignment lineBreakMode:NSLineBreakByWordWrapping];
 

@@ -96,6 +96,10 @@
 		0046C0ED1B29114F00C4D06F /* KBNotifications.h in Headers */ = {isa = PBXBuildFile; fileRef = 0046C0EB1B29114F00C4D06F /* KBNotifications.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		0046C0EE1B29114F00C4D06F /* KBNotifications.m in Sources */ = {isa = PBXBuildFile; fileRef = 0046C0EC1B29114F00C4D06F /* KBNotifications.m */; };
 		0046C0EF1B29123C00C4D06F /* KBKit.h in Headers */ = {isa = PBXBuildFile; fileRef = 009E13841B28A93D00C72B28 /* KBKit.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		004CF2231B928D8B002BE5A4 /* KBFSConfig.h in Headers */ = {isa = PBXBuildFile; fileRef = 004CF2211B928D8B002BE5A4 /* KBFSConfig.h */; };
+		004CF2241B928D8B002BE5A4 /* KBFSConfig.m in Sources */ = {isa = PBXBuildFile; fileRef = 004CF2221B928D8B002BE5A4 /* KBFSConfig.m */; };
+		004CF2271B928E6D002BE5A4 /* KBServiceConfig.h in Headers */ = {isa = PBXBuildFile; fileRef = 004CF2251B928E6D002BE5A4 /* KBServiceConfig.h */; };
+		004CF2281B928E6D002BE5A4 /* KBServiceConfig.m in Sources */ = {isa = PBXBuildFile; fileRef = 004CF2261B928E6D002BE5A4 /* KBServiceConfig.m */; };
 		004EF2CB1B3340ED007822CE /* FontAwesome.otf in CopyFiles */ = {isa = PBXBuildFile; fileRef = 004EF2C81B33409A007822CE /* FontAwesome.otf */; };
 		0057B0C61AE57A7A00BFB0E7 /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 0057B0C21AE57A7A00BFB0E7 /* main.m */; };
 		0057B0DB1AE57B5900BFB0E7 /* keybase.Helper in Copy Files */ = {isa = PBXBuildFile; fileRef = 0057B0B41AE57A4900BFB0E7 /* keybase.Helper */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
@@ -568,6 +572,10 @@
 		0046C0E81B290CA100C4D06F /* KBAppExtension.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBAppExtension.m; sourceTree = "<group>"; };
 		0046C0EB1B29114F00C4D06F /* KBNotifications.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBNotifications.h; sourceTree = "<group>"; };
 		0046C0EC1B29114F00C4D06F /* KBNotifications.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBNotifications.m; sourceTree = "<group>"; };
+		004CF2211B928D8B002BE5A4 /* KBFSConfig.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBFSConfig.h; sourceTree = "<group>"; };
+		004CF2221B928D8B002BE5A4 /* KBFSConfig.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBFSConfig.m; sourceTree = "<group>"; };
+		004CF2251B928E6D002BE5A4 /* KBServiceConfig.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBServiceConfig.h; sourceTree = "<group>"; };
+		004CF2261B928E6D002BE5A4 /* KBServiceConfig.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBServiceConfig.m; sourceTree = "<group>"; };
 		004D14961A3BCF1F0083888D /* Podfile */ = {isa = PBXFileReference; lastKnownFileType = text; path = Podfile; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.ruby; };
 		004EF2C81B33409A007822CE /* FontAwesome.otf */ = {isa = PBXFileReference; lastKnownFileType = file; path = FontAwesome.otf; sourceTree = "<group>"; };
 		004F44051B154C1C0021A29D /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
@@ -1530,6 +1538,10 @@
 				009E16071B28AA3600C72B28 /* KBService.m */,
 				004624C91B2A08F400E218AC /* KBUninstaller.h */,
 				004624CA1B2A08F400E218AC /* KBUninstaller.m */,
+				004CF2211B928D8B002BE5A4 /* KBFSConfig.h */,
+				004CF2221B928D8B002BE5A4 /* KBFSConfig.m */,
+				004CF2251B928E6D002BE5A4 /* KBServiceConfig.h */,
+				004CF2261B928E6D002BE5A4 /* KBServiceConfig.m */,
 			);
 			path = Component;
 			sourceTree = "<group>";
@@ -1792,6 +1804,7 @@
 				00C0DCA91B28EC6100A825D4 /* KBSearchResults.h in Headers */,
 				00C0DC6D1B28EC3F00A825D4 /* KBRRequestParams.h in Headers */,
 				00C0DD0F1B28EC7800A825D4 /* KBPGPVerifiedView.h in Headers */,
+				004CF2231B928D8B002BE5A4 /* KBFSConfig.h in Headers */,
 				0043D1381B28F1370036C532 /* KBPrefGeneralView.h in Headers */,
 				0043D1171B28F0E00036C532 /* KBApp.h in Headers */,
 				000E07811B30AE8500FEE4C6 /* KBServiceStatus.h in Headers */,
@@ -1818,6 +1831,7 @@
 				004624CB1B2A08F400E218AC /* KBUninstaller.h in Headers */,
 				00C0DCF71B28EC7800A825D4 /* KBPGPEncryptView.h in Headers */,
 				00C0DC751B28EC3F00A825D4 /* KBStream.h in Headers */,
+				004CF2271B928E6D002BE5A4 /* KBServiceConfig.h in Headers */,
 				00C0DCFD1B28EC7800A825D4 /* KBPGPOutputFooterView.h in Headers */,
 				0043D1361B28F1370036C532 /* KBPrefFileView.h in Headers */,
 				003F4C111B4F0AAC00F20684 /* KBUserKeyView.h in Headers */,
@@ -2326,6 +2340,7 @@
 				00C0DCA01B28EC5A00A825D4 /* KBService.m in Sources */,
 				00C0DC7A1B28EC5000A825D4 /* KBLogFormatter.m in Sources */,
 				00C0DD201B28EC7E00A825D4 /* KBKeyImportView.m in Sources */,
+				004CF2241B928D8B002BE5A4 /* KBFSConfig.m in Sources */,
 				00C0DD081B28EC7800A825D4 /* KBPGPSignFileView.m in Sources */,
 				00C0DCEC1B28EC7800A825D4 /* KBPGPDecryptView.m in Sources */,
 				00C0DCCC1B28EC6B00A825D4 /* KBProveInstructionsView.m in Sources */,
@@ -2342,6 +2357,7 @@
 				00C0DCB21B28EC6600A825D4 /* KBUserHeaderView.m in Sources */,
 				004625391B2A5A9400E218AC /* KBStrengthLabel.m in Sources */,
 				00C0DCBE1B28EC6600A825D4 /* KBUserProfileView.m in Sources */,
+				004CF2281B928E6D002BE5A4 /* KBServiceConfig.m in Sources */,
 				00C0DC961B28EC5A00A825D4 /* KBFuseComponent.m in Sources */,
 				00C0DC861B28EC5500A825D4 /* KBEnvConfig.m in Sources */,
 				0043D1101B28EF670036C532 /* KBAppView.m in Sources */,

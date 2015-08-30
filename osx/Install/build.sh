@@ -34,20 +34,20 @@ chmod +x $BUILD_DEST/keybase
 if [ ! -f "$KB_GO_SRC/keybase/keybase" ]; then
   echo "Using KBFS source: $KBFS_GO_SRC"
   echo "Compiling kbfs..."
-  cd $KBFS_GO_SRC/kbfsd/
+  cd $KBFS_GO_SRC/kbfsfuse/
   go build -a
 fi
-echo "Copying: $KBFS_GO_SRC/kbfsd/kbfsd"
-cp $KBFS_GO_SRC/kbfsd/kbfsd $BUILD_DEST/kbfsd
-chmod +x $BUILD_DEST/kbfsd
+echo "Copying: $KBFS_GO_SRC/kbfsfuse/kbfsfuse"
+cp $KBFS_GO_SRC/kbfsfuse/kbfsfuse $BUILD_DEST/kbfsfuse
+chmod +x $BUILD_DEST/kbfsfuse
 
 # Read the versions and build numbers
 echo "Checking versions"
 KB_SERVICE_VERSION="`$BUILD_DEST/keybase version -d | cut -f1 -d '-'`"
 KB_SERVICE_BUILD="`$BUILD_DEST/keybase version -d | cut -f2 -d '-'`"
 
-KBFS_VERSION="`$BUILD_DEST/kbfsd --version 2>&1 | cut -f1 -d '-'`"
-KBFS_BUILD="`$BUILD_DEST/kbfsd --version 2>&1 | cut -f2 -d '-'`"
+KBFS_VERSION="`$BUILD_DEST/kbfsfuse --version 2>&1 | cut -f1 -d '-'`"
+KBFS_BUILD="`$BUILD_DEST/kbfsfuse --version 2>&1 | cut -f2 -d '-'`"
 
 # CFBundleShortVersionString is the MAJOR.MINOR.TINY, for example, "1.2.3".
 # CFBundleVersion is the build number, for example, "12345" or "1.2.3 (build 12345AB)"
@@ -137,7 +137,7 @@ chmod +x keybase
 SUPPORT_BIN="Keybase.app/Contents/SharedSupport/bin"
 mkdir -p $SUPPORT_BIN
 cp keybase $SUPPORT_BIN
-cp kbfsd $SUPPORT_BIN
+cp kbfsfuse $SUPPORT_BIN
 
 echo "Re-signing..."
 # Need to sign contents first (helper), then app bundle

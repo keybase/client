@@ -9,8 +9,10 @@
 #import "KBService.h"
 
 #import "KBLaunchCtl.h"
+#import "KBLaunchService.h"
 #import "KBDebugPropertiesView.h"
 #import "KBSemVersion.h"
+#import "KBServiceConfig.h"
 
 @interface KBService ()
 @property KBRPClient *client;
@@ -18,6 +20,7 @@
 @property NSString *name;
 @property NSString *info;
 
+@property KBServiceConfig *serviceConfig;
 @property KBLaunchService *launchService;
 
 @property KBEnvConfig *config;
@@ -36,10 +39,11 @@
     _name = @"Service";
     _info = @"The Keybase service";
     NSDictionary *info = [[NSBundle mainBundle] infoDictionary];
-    NSString *versionPath = [config cachePath:@"service.version" options:0];
-    NSDictionary *plist = [KBService launchdPlistDictionaryForService:_config];
+
+    _serviceConfig = [[KBServiceConfig alloc] initWithConfig:_config];
+    NSDictionary *plist = [_serviceConfig launchdPlistDictionary];
     KBSemVersion *bundleVersion = [KBSemVersion version:info[@"KBServiceVersion"] build:info[@"KBServiceBuild"]];
-    _launchService = [[KBLaunchService alloc] initWithLabel:config.launchdLabelService bundleVersion:bundleVersion versionPath:versionPath plist:plist logFile:[config logFile:config.launchdLabelService]];
+    _launchService = [[KBLaunchService alloc] initWithLabel:config.launchdLabelService bundleVersion:bundleVersion versionPath:_serviceConfig.versionPath plist:plist logFile:[config logFile:config.launchdLabelService]];
   }
   return self;
 }
@@ -181,56 +185,6 @@
 
 - (KBComponentStatus *)componentStatus {
   return _launchService.componentStatus;
-}
-
-+ (NSArray *)programArgumentsForKeybase:(KBEnvConfig *)config useBundle:(BOOL)useBundle pathOptions:(KBPathOptions)pathOptions args:(NSArray *)args {
-  NSMutableArray *pargs = [NSMutableArray array];
-  if (useBundle) {
-    [pargs addObject:[KBPath pathInDir:config.bundle.sharedSupportPath path:@"bin/keybase" options:pathOptions]];
-  } else {
-    [pargs addObjectsFromArray:@[@"./keybase"]];
-  }
-  if (config.isHomeDirSet) {
-    [pargs addObjectsFromArray:@[@"-H", [KBPath path:config.homeDir options:pathOptions]]];
-  }
-
-  if (config.host) {
-    [pargs addObjectsFromArray:@[@"-s", config.host]];
-  }
-
-  if (config.debugEnabled) {
-    [pargs addObject:@"-d"];
-  }
-
-  if (config.isSockFileSet) {
-    [pargs addObject:NSStringWithFormat(@"--socket-file=%@", [KBPath path:config.sockFile options:pathOptions])];
-  }
-
-  if (args) {
-    [pargs addObjectsFromArray:args];
-  }
-
-  return pargs;
-}
-
-+ (NSDictionary *)launchdPlistDictionaryForService:(KBEnvConfig *)config {
-  if (!config.launchdLabelService) return nil;
-
-  NSArray *args = [self programArgumentsForKeybase:config useBundle:YES pathOptions:0 args:@[@"--log-format=file", @"service"]];
-
-  return @{
-           @"Label": config.launchdLabelService,
-           @"ProgramArguments": args,
-           @"RunAtLoad": @YES,
-           @"KeepAlive": @YES,
-           @"WorkingDirectory": [config appPath:nil options:0],
-           @"StandardOutPath": [config logFile:config.launchdLabelService],
-           @"StandardErrorPath": [config logFile:config.launchdLabelService],
-           };
-}
-
-+ (NSString *)commandLineForService:(KBEnvConfig *)config useBundle:(BOOL)useBundle pathOptions:(KBPathOptions)pathOptions args:(NSArray *)args {
-  return [[self programArgumentsForKeybase:config useBundle:useBundle pathOptions:pathOptions args:args] join:@" "];
 }
 
 @end

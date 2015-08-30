@@ -8,11 +8,14 @@
 
 #import "KBFSService.h"
 #import "KBDebugPropertiesView.h"
+#import "KBFSConfig.h"
+#import "KBLaunchService.h"
 
 @interface KBFSService ()
 @property KBDebugPropertiesView *infoView;
 
 @property KBEnvConfig *config;
+@property KBFSConfig *kbfsConfig;
 @property NSString *name;
 @property NSString *info;
 @property KBLaunchService *launchService;
@@ -26,10 +29,10 @@
     _name = @"KBFS";
     _info = @"The filesystem";
     NSDictionary *info = [[NSBundle mainBundle] infoDictionary];
-    NSString *versionPath = [config cachePath:@"kbfs.version" options:0];
-    NSDictionary *plist = [KBFSService launchdPlistDictionaryForKBFS:_config];
+    _kbfsConfig = [[KBFSConfig alloc] initWithConfig:_config];
+    NSDictionary *plist = [_kbfsConfig launchdPlistDictionary];
     KBSemVersion *bundleVersion = [KBSemVersion version:info[@"KBFSVersion"] build:info[@"KBFSBuild"]];
-    _launchService = [[KBLaunchService alloc] initWithLabel:config.launchdLabelKBFS bundleVersion:bundleVersion versionPath:versionPath plist:plist logFile:[config logFile:config.launchdLabelKBFS]];
+    _launchService = [[KBLaunchService alloc] initWithLabel:config.launchdLabelKBFS bundleVersion:bundleVersion versionPath:_kbfsConfig.versionPath plist:plist logFile:[config logFile:config.launchdLabelKBFS]];
   }
   return self;
 }
@@ -166,47 +169,6 @@
 
 - (KBComponentStatus *)componentStatus {
   return _launchService.componentStatus;
-}
-
-+ (NSArray *)programArgumentsForKBFS:(KBEnvConfig *)config useBundle:(BOOL)useBundle pathOptions:(KBPathOptions)pathOptions args:(NSArray *)args {
-  NSMutableArray *pargs = [NSMutableArray array];
-
-  if (useBundle) {
-    [pargs addObject:NSStringWithFormat(@"%@/bin/kbfsd", config.bundle.sharedSupportPath)];
-  } else {
-    [pargs addObject:@"./kbfsd"];
-  }
-
-
-  [pargs addObject:NSStringWithFormat(@"--app-dir=%@", [config appPath:nil options:pathOptions])];
-  [pargs addObject:NSStringWithFormat(@"--cache-dir=%@", [config cachePath:nil options:pathOptions])];
-
-  if (args) {
-    [pargs addObjectsFromArray:args];
-  }
-
-  if (config.mountDir) [pargs addObject:[KBPath path:config.mountDir options:pathOptions]];
-
-  return pargs;
-}
-
-+ (NSDictionary *)launchdPlistDictionaryForKBFS:(KBEnvConfig *)config {
-  if (!config.launchdLabelKBFS) return nil;
-
-  NSArray *args = [self programArgumentsForKBFS:config useBundle:YES pathOptions:0 args:nil];
-  return @{
-           @"Label": config.launchdLabelKBFS,
-           @"ProgramArguments": args,
-           @"RunAtLoad": @YES,
-           @"KeepAlive": @YES,
-           @"WorkingDirectory": [config appPath:nil options:0],
-           @"StandardOutPath": [config logFile:config.launchdLabelKBFS],
-           @"StandardErrorPath": [config logFile:config.launchdLabelKBFS],
-           };
-}
-
-+ (NSString *)commandLineForKBFS:(KBEnvConfig *)config useBundle:(BOOL)useBundle pathOptions:(KBPathOptions)pathOptions args:(NSArray *)args {
-  return [[self programArgumentsForKBFS:config useBundle:useBundle pathOptions:pathOptions args:args] join:@" "];
 }
 
 @end

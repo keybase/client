@@ -8,13 +8,12 @@
 
 #import <Foundation/Foundation.h>
 
-#import "KBLaunchService.h"
-#import "KBEnvironment.h"
+#import "KBComponent.h"
+#import "KBInstallable.h"
+#import "KBEnvConfig.h"
 
 @interface KBFSService : NSObject <KBComponent, KBInstallable>
 
 - (instancetype)initWithConfig:(KBEnvConfig *)config;
-
-+ (NSString *)commandLineForKBFS:(KBEnvConfig *)config useBundle:(BOOL)useBundle pathOptions:(KBPathOptions)pathOptions args:(NSArray *)args;
 
 @end
