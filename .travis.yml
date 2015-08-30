@@ -10,10 +10,5 @@ script:
   - docker pull $CI_HOST/kbweb
   - docker run --name kbweb3000 -d -p 3000:3000 $CI_HOST/kbweb
   - cd go && ./test/check_or_start_kbweb.sh && go test -v ./...
-
-  # Only test races on pushes to master, since it takes a long time.
-  - if [ $TRAVIS_BRANCH == 'master' ] && [ $TRAVIS_PULL_REQUEST == 'false' ]; then
-      travis_wait go test -timeout 30m -race -v ./...;
-    fi 
 notifications:
   slack: keybase:WKlhs55Mb4am4obv1rNRg8P0
