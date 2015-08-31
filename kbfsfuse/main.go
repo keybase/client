@@ -3,7 +3,6 @@
 package main
 
 import (
-	"errors"
 	"flag"
 	"fmt"
 	"log"
@@ -13,7 +12,6 @@ import (
 
 	"github.com/keybase/kbfs/libfuse"
 	"github.com/keybase/kbfs/libkbfs"
-	"golang.org/x/net/context"
 )
 
 var cpuprofile = flag.String("cpuprofile", "", "write cpu profile to file")
@@ -25,6 +23,8 @@ var localUserFlag = flag.String("localuser", "strib",
 var clientFlag = flag.Bool("client", false, "use keybase daemon")
 var serverRootDirFlag = flag.String("server-root", "", "directory to put local server files (default is cwd)")
 var serverInMemoryFlag = flag.Bool("server-in-memory", false, "use in-memory server (and ignore -server-root)")
+var versionFile = flag.String("version-file", "", "write version to file on successful startup")
+var mountType = flag.String("mount-type", "", "mount type: default, force")
 var debug = flag.Bool("debug", false, "Print debug messages")
 var version = flag.Bool("version", false, "Print version")
 
@@ -34,7 +34,7 @@ const usageStr = `Usage:
 
 `
 
-func realMain() error {
+func start() *libfuse.Error {
 	flag.Parse()
 
 	if *version {
@@ -44,7 +44,7 @@ func realMain() error {
 
 	if len(flag.Args()) < 1 {
 		fmt.Print(usageStr)
-		return errors.New("no mount specified")
+		return libfuse.InitError("no mount specified")
 	}
 
 	var localUser string
@@ -53,7 +53,7 @@ func realMain() error {
 	} else if *clientFlag {
 		localUser = ""
 	} else {
-		return errors.New("either -client or -local must be used")
+		return libfuse.InitError("either -client or -local must be used")
 	}
 
 	if *debug {
@@ -68,59 +68,31 @@ func realMain() error {
 	}
 
 	mountpoint := flag.Arg(0)
-	c, err := fuse.Mount(mountpoint)
-	if err != nil {
-		return err
-	}
-	defer c.Close()
-
-	onInterruptFn := func() {
-		select {
-		case <-c.Ready:
-			// mountpoint was mounted, so try to unmount
-			// if it was successful.
-			if c.MountError == nil {
-				err = fuse.Unmount(mountpoint)
-				if err != nil {
-					return
-				}
-			}
-
-		default:
-			// mountpoint was not mounted successfully
-			// yet, so do nothing. Note that the mount
-			// could still happen, but that's a rare
-			// enough edge case.
-		}
+	var mounter libfuse.Mounter
+	if *mountType == "force" {
+		mounter = libfuse.ForceMounter{mountpoint}
+	} else {
+		mounter = libfuse.DefaultMounter{mountpoint}
 	}
 
-	config, err := libkbfs.Init(localUser, serverRootDir, *cpuprofile,
-		*memprofile, onInterruptFn, *debug)
-	if err != nil {
-		return err
+	options := libfuse.StartOptions{
+		LocalUser:     localUser,
+		ServerRootDir: *serverRootDir,
+		CPUProfile:    *cpuprofile,
+		MemProfile:    *memprofile,
+		VersionFile:   *versionFile,
+		Debug:         *debug,
 	}
 
-	defer libkbfs.Shutdown(*memprofile)
-
-	fs := libfuse.NewFS(config, c)
-	ctx := context.WithValue(context.Background(), libfuse.CtxAppIDKey, fs)
-	fs.Serve(ctx)
-
-	// Check if the mount process has an error to report.
-	<-c.Ready
-	err = c.MountError
-	if err != nil {
-		return err
-	}
-
-	return nil
+	return libfuse.Start(mounter, options)
 }
 
 func main() {
-	err := realMain()
+	err := start()
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "kbfsfuse: %s\n", err)
-		os.Exit(1)
+		fmt.Fprintf(os.Stderr, "kbfsfuse error: (%d) %s\n", err.Code, err.Message)
+
+		os.Exit(err.Code)
 	}
 	os.Exit(0)
 }
