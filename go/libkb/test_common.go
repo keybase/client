@@ -4,6 +4,7 @@ import (
 	"io/ioutil"
 	"os"
 	"path"
+	"sync"
 	"testing"
 
 	keybase1 "github.com/keybase/client/protocol/go"
@@ -147,7 +148,11 @@ func (tc *TestContext) ResetLoginState() {
 	tc.G.createLoginState()
 }
 
+var setupTestMu sync.Mutex
+
 func setupTestContext(nm string) (tc TestContext, err error) {
+	setupTestMu.Lock()
+	defer setupTestMu.Unlock()
 
 	g := NewGlobalContext()
 	g.Init()
@@ -183,7 +188,7 @@ func setupTestContext(nm string) (tc TestContext, err error) {
 	if err = g.ConfigureMerkleClient(); err != nil {
 		return
 	}
-	g.UI = &nullui{}
+	g.UI = &nullui{gctx: g}
 	if err = g.UI.Configure(); err != nil {
 		return
 	}
@@ -210,7 +215,9 @@ func SetupTest(t *testing.T, nm string) (tc TestContext) {
 	return tc
 }
 
-type nullui struct{}
+type nullui struct {
+	gctx *GlobalContext
+}
 
 func (n *nullui) GetDoctorUI() DoctorUI {
 	return nil
@@ -237,7 +244,7 @@ func (n *nullui) GetGPGUI() GPGUI {
 	return nil
 }
 func (n *nullui) GetLogUI() LogUI {
-	return G.Log
+	return n.gctx.Log
 }
 func (n *nullui) GetLocksmithUI() LocksmithUI {
 	return nil
