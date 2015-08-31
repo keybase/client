@@ -335,7 +335,7 @@ func (log *Standard) RemoveExternalLogger(handle uint64) {
 	delete(log.externalLoggers, handle)
 }
 
-func (log *Standard) logToExternalLoggers(level keybase1.LogLevel, format string, args ...interface{}) {
+func (log *Standard) logToExternalLoggers(level keybase1.LogLevel, format string, args []interface{}) {
 	log.externalLoggersMutex.RLock()
 	defer log.externalLoggersMutex.RUnlock()
 
