@@ -35,7 +35,7 @@ func (f *StatusFile) encodedStatus(ctx context.Context) ([]byte, error) {
 
 // Attr implements the fs.Node interface for StatusFile.
 func (f *StatusFile) Attr(ctx context.Context, a *fuse.Attr) error {
-	ctx = NewContextWithOpID(ctx)
+	ctx = NewContextWithOpID(ctx, f.folder.fs.log)
 	status, err := f.encodedStatus(ctx)
 	if err != nil {
 		return err
@@ -52,7 +52,7 @@ var _ fs.NodeOpener = (*StatusFile)(nil)
 // Open implements the fs.NodeOpener interface for StatusFile.
 func (f *StatusFile) Open(ctx context.Context, req *fuse.OpenRequest,
 	resp *fuse.OpenResponse) (fs.Handle, error) {
-	ctx = NewContextWithOpID(ctx)
+	ctx = NewContextWithOpID(ctx, f.folder.fs.log)
 	status, err := f.encodedStatus(ctx)
 	if err != nil {
 		return nil, err

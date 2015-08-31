@@ -4,6 +4,7 @@ import (
 	"time"
 
 	"bazil.org/fuse"
+	"github.com/keybase/client/go/logger"
 	"github.com/keybase/kbfs/libkbfs"
 	"golang.org/x/net/context"
 )
@@ -32,10 +33,12 @@ const (
 
 // NewContextWithOpID adds a unique ID to this context, identifying
 // a particular request.
-func NewContextWithOpID(ctx context.Context) context.Context {
+func NewContextWithOpID(ctx context.Context,
+	log logger.Logger) context.Context {
 	id, err := libkbfs.MakeRandomRequestID()
 	if err != nil {
-		panic(err)
+		log.Errorf("Couldn't make request ID: %v", err)
+		return ctx
 	}
 	return context.WithValue(ctx, CtxIDKey, id)
 }

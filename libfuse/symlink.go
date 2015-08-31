@@ -28,7 +28,7 @@ var _ fs.Node = (*Symlink)(nil)
 
 // Attr implements the fs.Node interface for Symlink
 func (s *Symlink) Attr(ctx context.Context, a *fuse.Attr) (err error) {
-	ctx = NewContextWithOpID(ctx)
+	ctx = NewContextWithOpID(ctx, s.parent.folder.fs.log)
 	s.parent.folder.fs.log.CDebugf(ctx, "Symlink Attr")
 	defer func() { s.parent.folder.fs.reportErr(ctx, err) }()
 	s.parent.folder.mu.Lock()
@@ -48,7 +48,7 @@ var _ fs.NodeReadlinker = (*Symlink)(nil)
 
 // Readlink implements the fs.NodeReadlinker interface for Symlink
 func (s *Symlink) Readlink(ctx context.Context, req *fuse.ReadlinkRequest) (link string, err error) {
-	ctx = NewContextWithOpID(ctx)
+	ctx = NewContextWithOpID(ctx, s.parent.folder.fs.log)
 	s.parent.folder.fs.log.CDebugf(ctx, "Symlink Readlink")
 	defer func() { s.parent.folder.fs.reportErr(ctx, err) }()
 	s.parent.folder.mu.Lock()

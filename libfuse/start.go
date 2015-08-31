@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"io/ioutil"
 
+	"github.com/keybase/client/go/logger"
 	"github.com/keybase/kbfs/libkbfs"
 	"golang.org/x/net/context"
 )
@@ -58,10 +59,10 @@ func Start(mounter Mounter, options StartOptions) *Error {
 		}
 	}
 
-	fs := NewFS(config, c)
+	fs := NewFS(config, c, options.Debug)
 	ctx := context.WithValue(context.Background(), CtxAppIDKey, fs)
 	logTags := make(logger.CtxLogTags)
-	logTags[libfuse.CtxIDKey] = libfuse.CtxOpID
+	logTags[CtxIDKey] = CtxOpID
 	ctx = logger.NewContextWithLogTags(ctx, logTags)
 	fs.Serve(ctx)
 

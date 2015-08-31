@@ -94,7 +94,7 @@ var _ fs.NodeRequestLookuper = (*Root)(nil)
 
 // Lookup implements the fs.NodeRequestLookuper interface for Root.
 func (r *Root) Lookup(ctx context.Context, req *fuse.LookupRequest, resp *fuse.LookupResponse) (node fs.Node, err error) {
-	ctx = NewContextWithOpID(ctx)
+	ctx = NewContextWithOpID(ctx, r.private.fs.log)
 	r.private.fs.log.CDebugf(ctx, "FS Lookup %s", req.Name)
 	defer func() { r.private.fs.reportErr(ctx, err) }()
 	switch req.Name {
@@ -118,7 +118,7 @@ var _ fs.HandleReadDirAller = (*Root)(nil)
 
 // ReadDirAll implements the ReadDirAll interface for Root.
 func (r *Root) ReadDirAll(ctx context.Context) (res []fuse.Dirent, err error) {
-	ctx = NewContextWithOpID(ctx)
+	ctx = NewContextWithOpID(ctx, r.private.fs.log)
 	r.private.fs.log.CDebugf(ctx, "FS ReadDirAll")
 	defer func() { r.private.fs.reportErr(ctx, err) }()
 	res = []fuse.Dirent{
