@@ -72,9 +72,9 @@ func start() *libfuse.Error {
 	mountpoint := flag.Arg(0)
 	var mounter libfuse.Mounter
 	if *mountType == "force" {
-		mounter = libfuse.ForceMounter{mountpoint}
+		mounter = libfuse.ForceMounter{Dir: mountpoint}
 	} else {
-		mounter = libfuse.DefaultMounter{mountpoint}
+		mounter = libfuse.DefaultMounter{Dir: mountpoint}
 	}
 
 	options := libfuse.StartOptions{
