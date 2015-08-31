@@ -66,5 +66,5 @@ type Logger interface {
 	// when they connect.
 	AddExternalLogger(externalLogger ExternalLogger) uint64
 	RemoveExternalLogger(handle uint64)
-	SetLogLevel(level keybase1.LogLevel)
+	SetExternalLogLevel(level keybase1.LogLevel)
 }

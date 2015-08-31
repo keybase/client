@@ -24,6 +24,6 @@ func (c CtlHandler) LogRotate() error {
 }
 
 func (c CtlHandler) SetLogLevel(level keybase1.LogLevel) error {
-	G.Log.SetLogLevel(level)
+	G.Log.SetExternalLogLevel(level)
 	return nil
 }

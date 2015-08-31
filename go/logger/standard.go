@@ -350,7 +350,7 @@ func (log *Standard) logToExternalLoggers(level keybase1.LogLevel, format string
 	}
 }
 
-func (log *Standard) SetLogLevel(level keybase1.LogLevel) {
+func (log *Standard) SetExternalLogLevel(level keybase1.LogLevel) {
 	log.externalLoggersMutex.Lock()
 	defer log.externalLoggersMutex.Unlock()
 
