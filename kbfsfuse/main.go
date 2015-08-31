@@ -79,7 +79,7 @@ func start() *libfuse.Error {
 
 	options := libfuse.StartOptions{
 		LocalUser:     localUser,
-		ServerRootDir: *serverRootDir,
+		ServerRootDir: serverRootDir,
 		CPUProfile:    *cpuprofile,
 		MemProfile:    *memprofile,
 		VersionFile:   *versionFile,

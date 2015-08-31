@@ -12,7 +12,7 @@ import (
 // StartOptions are options for starting up
 type StartOptions struct {
 	LocalUser     string
-	ServerRootDir string
+	ServerRootDir *string
 	CPUProfile    string
 	MemProfile    string
 	VersionFile   string
@@ -44,7 +44,7 @@ func Start(mounter Mounter, options StartOptions) *Error {
 		}
 	}
 
-	config, err := libkbfs.Init(options.LocalUser, &options.ServerRootDir, options.CPUProfile, options.MemProfile, onInterruptFn, options.Debug)
+	config, err := libkbfs.Init(options.LocalUser, options.ServerRootDir, options.CPUProfile, options.MemProfile, onInterruptFn, options.Debug)
 	if err != nil {
 		return InitError(err.Error())
 	}
