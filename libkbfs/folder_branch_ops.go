@@ -3043,6 +3043,8 @@ func (fbo *FolderBranchOps) notifyOneOp(ctx context.Context, op op,
 		if node == nil {
 			return
 		}
+		fbo.log.CDebugf(ctx, "notifyOneOp: create %s in node %p",
+			realOp.NewName, node)
 		changes = append(changes, NodeChange{
 			Node:       node,
 			DirUpdated: []string{realOp.NewName},
@@ -3052,6 +3054,8 @@ func (fbo *FolderBranchOps) notifyOneOp(ctx context.Context, op op,
 		if node == nil {
 			return
 		}
+		fbo.log.CDebugf(ctx, "notifyOneOp: remove %s in node %p",
+			realOp.OldName, node)
 		changes = append(changes, NodeChange{
 			Node:       node,
 			DirUpdated: []string{realOp.OldName},
@@ -3078,6 +3082,8 @@ func (fbo *FolderBranchOps) notifyOneOp(ctx context.Context, op op,
 		}
 
 		if oldNode != nil {
+			fbo.log.CDebugf(ctx, "notifyOneOp: rename %s/%p to %s/%p",
+				realOp.OldName, oldNode, realOp.NewName, newNode)
 			oldPath := *fbo.nodeCache.PathFromNode(oldNode).
 				ChildPathNoPtr(realOp.OldName)
 			// we want the non-updated old path, so we can look up the old name
@@ -3107,8 +3113,8 @@ func (fbo *FolderBranchOps) notifyOneOp(ctx context.Context, op op,
 					newNode, err =
 						fbo.searchForNode(ctx, realOp.NewDir.Ref, realOp, md)
 					if newNode == nil {
-						panic(fmt.Sprintf("Couldn't find the new node: %v",
-							err))
+						fbo.log.CErrorf(ctx, "Couldn't find the new node: %v",
+							err)
 					}
 				}
 			}
@@ -3127,6 +3133,8 @@ func (fbo *FolderBranchOps) notifyOneOp(ctx context.Context, op op,
 		if node == nil {
 			return
 		}
+		fbo.log.CDebugf(ctx, "notifyOneOp: sync %d writes in node %p",
+			len(realOp.Writes), node)
 
 		changes = append(changes, NodeChange{
 			Node:        node,
@@ -3137,6 +3145,9 @@ func (fbo *FolderBranchOps) notifyOneOp(ctx context.Context, op op,
 		if node == nil {
 			return
 		}
+		fbo.log.CDebugf(ctx, "notifyOneOp: setAttr %s for file %s in node %p",
+			realOp.Attr, realOp.Name, node)
+
 		childPath :=
 			*fbo.nodeCache.PathFromNode(node).ChildPathNoPtr(realOp.Name)
 
@@ -3374,8 +3385,7 @@ func (fbo *FolderBranchOps) undoUnmergedMDUpdatesLocked(
 				return err
 			}
 			if len(rmds) == 0 {
-				return fmt.Errorf("Couldn't find the branch point %d\n",
-					currHead)
+				return fmt.Errorf("Couldn't find the branch point %d", currHead)
 			}
 			return fbo.saveMdToCacheLocked(rmds[0])
 		}
