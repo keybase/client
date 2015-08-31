@@ -1,6 +1,7 @@
 package engine
 
 import (
+	"fmt"
 	"testing"
 
 	"github.com/keybase/client/go/libkb"
@@ -16,6 +17,10 @@ func verifyPassphraseChange(tc libkb.TestContext, u *FakeUser, newPassphrase str
 	_, err = tc.G.LoginState().VerifyPlaintextPassphrase(u.Passphrase)
 	if err == nil {
 		tc.T.Fatal("old passphrase passed verification")
+	}
+
+	if testing.Verbose() {
+		fmt.Printf("browser test -- username:  %s    password:  %s\n", u.Username, newPassphrase)
 	}
 }
 
@@ -75,7 +80,7 @@ func TestPassphraseChangeKnown(t *testing.T) {
 	defer tc.Cleanup()
 
 	u := CreateAndSignupFakeUser(tc, "login")
-	newPassphrase := "password"
+	newPassphrase := "password1234"
 	arg := &keybase1.PassphraseChangeArg{
 		OldPassphrase: u.Passphrase,
 		Passphrase:    newPassphrase,
@@ -96,6 +101,31 @@ func TestPassphraseChangeKnown(t *testing.T) {
 	assertLoadSecretKeys(tc, u, "passphrase change known")
 }
 
+// Test error when trying to change passphrase to shorter than 12
+// chars long.
+func TestPassphraseChangeShort(t *testing.T) {
+	tc := SetupEngineTest(t, "PassphraseChange")
+	defer tc.Cleanup()
+
+	u := CreateAndSignupFakeUser(tc, "login")
+	newPassphrase := "password"
+	arg := &keybase1.PassphraseChangeArg{
+		OldPassphrase: u.Passphrase,
+		Passphrase:    newPassphrase,
+	}
+	ctx := &Context{
+		SecretUI: &libkb.TestSecretUI{},
+	}
+	eng := NewPassphraseChange(arg, tc.G)
+	err := RunEngine(eng, ctx)
+	if err == nil {
+		t.Fatal("expected error with new short passphrase")
+	}
+	if _, ok := err.(libkb.PassphraseError); !ok {
+		t.Fatalf("expected libkb.PassphraseError, got %T", err)
+	}
+}
+
 // Test changing the passphrase when user knows current
 // passphrase, prompt for it.
 func TestPassphraseChangeKnownPrompt(t *testing.T) {
@@ -110,7 +140,7 @@ func TestPassphraseChangeKnownPrompt(t *testing.T) {
 		a.ClearStreamCache()
 	}, "clear stream cache")
 
-	newPassphrase := "password"
+	newPassphrase := "password1234"
 	arg := &keybase1.PassphraseChangeArg{
 		Passphrase: newPassphrase,
 	}
@@ -149,7 +179,7 @@ func TestPassphraseChangeAfterPubkeyLogin(t *testing.T) {
 		t.Errorf("get secret not called")
 	}
 
-	newPassphrase := "password"
+	newPassphrase := "password1234"
 	arg := &keybase1.PassphraseChangeArg{
 		Passphrase: newPassphrase,
 	}
@@ -173,7 +203,7 @@ func TestPassphraseChangeKnownNotSupplied(t *testing.T) {
 	defer tc.Cleanup()
 
 	u := CreateAndSignupFakeUser(tc, "login")
-	newPassphrase := "password"
+	newPassphrase := "password1234"
 	arg := &keybase1.PassphraseChangeArg{
 		Passphrase: newPassphrase,
 	}
@@ -209,7 +239,7 @@ func TestPassphraseChangeUnknown(t *testing.T) {
 	// change passphrase proof.
 	//
 
-	newPassphrase := "password"
+	newPassphrase := "password1234"
 	arg := &keybase1.PassphraseChangeArg{
 		Passphrase: newPassphrase,
 		Force:      true,
@@ -245,7 +275,7 @@ func TestPassphraseChangeUnknownNoPSCache(t *testing.T) {
 		a.ClearStreamCache()
 	}, "clear stream cache")
 
-	newPassphrase := "password"
+	newPassphrase := "password1234"
 	arg := &keybase1.PassphraseChangeArg{
 		Passphrase: newPassphrase,
 		Force:      true,
@@ -290,7 +320,7 @@ func TestPassphraseChangeUnknownBackupKey(t *testing.T) {
 		a.ClearStreamCache()
 	}, "clear stream cache")
 
-	newPassphrase := "password"
+	newPassphrase := "password1234"
 	arg := &keybase1.PassphraseChangeArg{
 		Passphrase: newPassphrase,
 		Force:      true,
@@ -330,7 +360,7 @@ func TestPassphraseChangeLoggedOutBackupKey(t *testing.T) {
 
 	Logout(tc)
 
-	newPassphrase := "password"
+	newPassphrase := "password1234"
 	arg := &keybase1.PassphraseChangeArg{
 		Passphrase: newPassphrase,
 		Force:      true,
@@ -390,7 +420,7 @@ func TestPassphraseChangeLoggedOutBackupKeySecretStore(t *testing.T) {
 
 	Logout(tc)
 
-	newPassphrase := "password"
+	newPassphrase := "password1234"
 	arg := &keybase1.PassphraseChangeArg{
 		Passphrase: newPassphrase,
 		Force:      true,
@@ -420,7 +450,7 @@ func TestPassphraseChangePGPUsage(t *testing.T) {
 		a.ClearStreamCache()
 	}, "clear stream cache")
 
-	newPassphrase := "password"
+	newPassphrase := "password1234"
 	arg := &keybase1.PassphraseChangeArg{
 		Passphrase: newPassphrase,
 	}
@@ -458,7 +488,7 @@ func TestPassphraseChangePGP3Sec(t *testing.T) {
 		a.ClearStreamCache()
 	}, "clear stream cache")
 
-	newPassphrase := "password"
+	newPassphrase := "password1234"
 	arg := &keybase1.PassphraseChangeArg{
 		Passphrase: newPassphrase,
 	}
@@ -508,7 +538,7 @@ func TestPassphraseChangeLoggedOutBackupKeyPlusPGP(t *testing.T) {
 
 	Logout(tc)
 
-	newPassphrase := "password"
+	newPassphrase := "password1234"
 	arg := &keybase1.PassphraseChangeArg{
 		Passphrase: newPassphrase,
 		Force:      true,
@@ -587,7 +617,7 @@ func TestPassphraseChangeLoggedOutBackupKeySecretStorePGP(t *testing.T) {
 
 	Logout(tc)
 
-	newPassphrase := "password"
+	newPassphrase := "password1234"
 	pcarg := &keybase1.PassphraseChangeArg{
 		Passphrase: newPassphrase,
 		Force:      true,
@@ -638,7 +668,7 @@ func TestPassphraseChangePGP3SecMultiple(t *testing.T) {
 		a.ClearStreamCache()
 	}, "clear stream cache")
 
-	newPassphrase := "password"
+	newPassphrase := "password1234"
 	arg := &keybase1.PassphraseChangeArg{
 		Passphrase: newPassphrase,
 	}

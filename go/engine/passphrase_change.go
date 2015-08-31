@@ -57,11 +57,14 @@ func (c *PassphraseChange) SubConsumers() []libkb.UIConsumer {
 
 // Run the engine
 func (c *PassphraseChange) Run(ctx *Context) (err error) {
-
 	c.G().Log.Debug("+ PassphraseChange.Run")
 	defer func() {
 		c.G().Log.Debug("- PassphraseChange.Run -> %s", libkb.ErrToOk(err))
 	}()
+
+	if len(c.arg.Passphrase) < libkb.MinPassphraseLength {
+		return libkb.PassphraseError{Msg: "too short"}
+	}
 
 	if err = c.loadMe(); err != nil {
 		return

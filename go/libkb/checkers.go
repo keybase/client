@@ -1,6 +1,7 @@
 package libkb
 
 import (
+	"fmt"
 	"regexp"
 	"strings"
 	"unicode"
@@ -37,15 +38,14 @@ var CheckPassphraseSimple = Checker{
 }
 
 var CheckPassphraseNew = Checker{
-
 	F: func(s string) bool {
 		r := []rune(s)
 		if len(r) > 0 && unicode.IsSpace(r[0]) {
 			return false
 		}
-		return len(s) >= 12
+		return len(s) >= MinPassphraseLength
 	},
-	Hint:          "passphrase must be 12 or more characters",
+	Hint:          fmt.Sprintf("passphrase must be %d or more characters", MinPassphraseLength),
 	PreserveSpace: true,
 }
 
