@@ -81,9 +81,9 @@ func TestLoginNewDeviceKex1(t *testing.T) {
 	// log in with device Y
 	li := NewLoginWithPromptEngine(u.Username, tcY.G)
 
-	docui = &lockuiDevice{lockui: &lockui{deviceName: "device Y"}, shared: &docuiShared}
+	ydocui := &lockuiDevice{lockui: &lockui{deviceName: "device Y"}, shared: &docuiShared}
 
-	ctx := &Context{LogUI: tcY.G.UI.GetLogUI(), LocksmithUI: docui, GPGUI: &gpgtestui{}, SecretUI: secui, LoginUI: &libkb.TestLoginUI{}}
+	ctx := &Context{LogUI: tcY.G.UI.GetLogUI(), LocksmithUI: ydocui, GPGUI: &gpgtestui{}, SecretUI: secui, LoginUI: &libkb.TestLoginUI{}}
 	if err := RunEngine(li, ctx); err != nil {
 		t.Fatal(err)
 	}
