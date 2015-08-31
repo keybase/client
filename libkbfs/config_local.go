@@ -125,7 +125,7 @@ func NewConfigLocal() *ConfigLocal {
 	config := &ConfigLocal{}
 	config.SetKBFSOps(NewKBFSOpsStandard(config))
 	config.SetKeyManager(&KeyManagerStandard{config})
-	config.SetReporter(&ReporterSimple{})
+	config.SetReporter(NewReporterSimple(10))
 	config.SetMDCache(NewMDCacheStandard(5000))
 	config.SetKeyCache(&KeyCacheNull{})
 	config.SetBlockCache(NewBlockCacheStandard(config, 5000))

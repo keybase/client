@@ -16,11 +16,11 @@ var _ fs.Node = (*ErrorFile)(nil)
 
 // Attr implements the fs.Node interface for ErrorFile.
 func (f *ErrorFile) Attr(ctx context.Context, a *fuse.Attr) error {
-	data, etime := f.fs.config.Reporter().LastError()
-	a.Size = uint64(len(data)) + 1
-	if etime != nil {
-		a.Mtime = *etime
-		a.Ctime = *etime
+	re := f.fs.config.Reporter().LastError()
+	a.Size = uint64(len(re.Error.String())) + 1
+	if re.Error != nil {
+		a.Mtime = re.Time
+		a.Ctime = re.Time
 	}
 	a.Mode = 0444
 	return nil
@@ -33,7 +33,6 @@ var _ fs.NodeOpener = (*ErrorFile)(nil)
 // Open implements the fs.NodeOpener interface for ErrorFile.
 func (f *ErrorFile) Open(ctx context.Context, req *fuse.OpenRequest,
 	resp *fuse.OpenResponse) (fs.Handle, error) {
-	data, _ := f.fs.config.Reporter().LastError()
-	data += "\n"
-	return fs.DataHandle([]byte(data)), nil
+	re := f.fs.config.Reporter().LastError()
+	return fs.DataHandle([]byte(re.Error.String() + "\n")), nil
 }

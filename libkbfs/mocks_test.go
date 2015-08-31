@@ -629,15 +629,24 @@ func (_mr *_MockReporterRecorder) Report(arg0, arg1 interface{}) *gomock.Call {
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "Report", arg0, arg1)
 }
 
-func (_m *MockReporter) LastError() (string, *time.Time) {
+func (_m *MockReporter) LastError() ReportedError {
 	ret := _m.ctrl.Call(_m, "LastError")
-	ret0, _ := ret[0].(string)
-	ret1, _ := ret[1].(*time.Time)
-	return ret0, ret1
+	ret0, _ := ret[0].(ReportedError)
+	return ret0
 }
 
 func (_mr *_MockReporterRecorder) LastError() *gomock.Call {
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "LastError")
+}
+
+func (_m *MockReporter) AllKnownErrors() []ReportedError {
+	ret := _m.ctrl.Call(_m, "AllKnownErrors")
+	ret0, _ := ret[0].([]ReportedError)
+	return ret0
+}
+
+func (_mr *_MockReporterRecorder) AllKnownErrors() *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "AllKnownErrors")
 }
 
 // Mock of MDCache interface

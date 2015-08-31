@@ -8,6 +8,7 @@ import (
 	"sort"
 	"strings"
 	"sync"
+	"time"
 
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/protocol/go"
@@ -1044,3 +1045,11 @@ const (
 	extCodeOpsRangeStart  = 1
 	extCodeListRangeStart = 101
 )
+
+// ReportedError represents an error reported by KBFS.
+type ReportedError struct {
+	Level ReportingLevel
+	Time  time.Time
+	Error fmt.Stringer
+	// TODO: stacktrace would be nice
+}

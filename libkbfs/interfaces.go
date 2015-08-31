@@ -305,7 +305,9 @@ type Reporter interface {
 	Report(level ReportingLevel, message fmt.Stringer)
 	// LastError returns the last error-level event that occurred on
 	// this device.
-	LastError() (string, *time.Time)
+	LastError() ReportedError
+	// AllKnownErrors returns all errors known to this Reporter.
+	AllKnownErrors() []ReportedError
 }
 
 // MDCache gets and puts plaintext top-level metadata into the cache.
