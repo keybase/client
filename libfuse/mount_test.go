@@ -1720,26 +1720,37 @@ func TestInvalidateEntryOnDelete(t *testing.T) {
 func testForErrorText(t *testing.T, path string, expectedErr error,
 	fileType string) {
 	buf, err := ioutil.ReadFile(path)
-	s := strings.TrimSpace(string(buf))
 	if err != nil {
 		t.Fatalf("Bad error reading %s error file: %v", err, fileType)
 	}
-	if s != expectedErr.Error() {
-		t.Errorf("%s error file had bad contents; got %s, expected %s",
-			fileType, s, expectedErr)
+
+	var errors []jsonReportedError
+	err = json.Unmarshal(buf, &errors)
+	if err != nil {
+		t.Fatalf("Couldn't unmarshal error file: %v. Full contents: %s",
+			err, string(buf))
+	}
+
+	found := false
+	for _, e := range errors {
+		if e.Error == expectedErr.Error() {
+			found = true
+			break
+		}
+	}
+
+	if !found {
+		t.Errorf("%s error file did not contain the error %s. "+
+			"Full contents: %s", fileType, expectedErr, buf)
 	}
 }
 
 func TestErrorFile(t *testing.T) {
 	config := libkbfs.MakeTestConfigOrBust(t, BServerRemoteAddr, "jdoe")
+	config.SetReporter(libkbfs.NewReporterSimple(0))
 	defer config.Shutdown()
 	mnt := makeFS(t, config)
 	defer mnt.Close()
-
-	// Give the kernel a chance to lookup a few non-existent files
-	// first, otherwise on slow machines the last-reported error could
-	// be something else.
-	time.Sleep(100 * time.Millisecond)
 
 	// cause an error by stating a non-existent user
 	_, err := os.Lstat(path.Join(mnt.Dir, PrivateName, "janedoe"))
