@@ -293,6 +293,10 @@ func (p *CommandLine) PopulateApp(addHelp bool, extraFlags []cli.Flag) {
 			Name:  "debug, d",
 			Usage: "enable debugging mode",
 		},
+		cli.BoolFlag{
+			Name:  "devel",
+			Usage: "accept dev server signing keys",
+		},
 		cli.StringFlag{
 			Name:  "log-format",
 			Usage: "log format (default, plain, file, fancy)",
