@@ -5,6 +5,7 @@ import (
 	"runtime"
 	"strings"
 
+	keybase1 "github.com/keybase/client/protocol/go"
 	"golang.org/x/net/context"
 )
 
@@ -119,3 +120,8 @@ func (log *TestLogger) RotateLogFile() error {
 	// no-op
 	return nil
 }
+
+// no-op stubs to fulfill the Logger interface
+func (log *TestLogger) AddExternalLogger(externalLogger ExternalLogger) uint64 { return 0 }
+func (log *TestLogger) RemoveExternalLogger(handle uint64)                     {}
+func (log *TestLogger) SetExternalLogLevel(level keybase1.LogLevel)            {}
