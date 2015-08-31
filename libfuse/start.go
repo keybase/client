@@ -60,7 +60,7 @@ func Start(mounter Mounter, options StartOptions) *Error {
 	}
 
 	fs := NewFS(config, c, options.Debug)
-	ctx := context.WithValue(context.Background(), CtxAppIDKey, fs)
+	ctx := context.WithValue(context.Background(), CtxAppIDKey, &fs)
 	logTags := make(logger.CtxLogTags)
 	logTags[CtxIDKey] = CtxOpID
 	ctx = logger.NewContextWithLogTags(ctx, logTags)
