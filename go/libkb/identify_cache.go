@@ -52,6 +52,10 @@ func (c *IdentifyCache) Delete(key IdentifyCacheToken) error {
 	return c.cache.Delete(string(key))
 }
 
+func (c *IdentifyCache) Shutdown() {
+	c.cache.Shutdown()
+}
+
 type IdentifyCacheToken string
 
 func (t IdentifyCacheToken) Export() string {

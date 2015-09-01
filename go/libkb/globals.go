@@ -100,6 +100,9 @@ func (g *GlobalContext) Logout() error {
 		return err
 	}
 
+	if g.IdentifyCache != nil {
+		g.IdentifyCache.Shutdown()
+	}
 	g.IdentifyCache = NewIdentifyCache()
 	g.FavoriteCache = favcache.New()
 
@@ -202,6 +205,10 @@ func (g *GlobalContext) Shutdown() error {
 	}
 	if g.LoginState() != nil {
 		epick.Push(g.LoginState().Shutdown())
+	}
+
+	if g.IdentifyCache != nil {
+		g.IdentifyCache.Shutdown()
 	}
 
 	for _, hook := range g.ShutdownHooks {
