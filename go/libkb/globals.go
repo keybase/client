@@ -79,10 +79,16 @@ func (g *GlobalContext) Init() {
 
 // requires lock on loginStateMu before calling
 func (g *GlobalContext) createLoginStateLocked() {
+	if g.loginState != nil {
+		g.loginState.Shutdown()
+	}
 	g.loginState = NewLoginState(g)
 }
 
 func (g *GlobalContext) createLoginState() {
+	if g.loginState != nil {
+		g.loginState.Shutdown()
+	}
 	g.loginState = NewLoginState(g)
 }
 

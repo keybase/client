@@ -689,6 +689,7 @@ func (s *LoginState) acctHandle(f acctHandler, name string) error {
 // account requests and handles them appropriately.  It runs until
 // the loginReqs and acctReqs channels are closed.
 func (s *LoginState) requests() {
+	var loginReqsClosed, acctReqsClosed bool
 	for {
 		select {
 		case req, ok := <-s.loginReqs:
@@ -703,7 +704,7 @@ func (s *LoginState) requests() {
 					req.res <- err
 				}
 			} else {
-				s.loginReqs = nil
+				loginReqsClosed = true
 			}
 		case req, ok := <-s.acctReqs:
 			if ok {
@@ -711,10 +712,10 @@ func (s *LoginState) requests() {
 				req.f(s.account)
 				close(req.done)
 			} else {
-				s.acctReqs = nil
+				acctReqsClosed = true
 			}
 		}
-		if s.loginReqs == nil && s.acctReqs == nil {
+		if loginReqsClosed && acctReqsClosed {
 			break
 		}
 	}

@@ -144,7 +144,6 @@ func (tc *TestContext) MakePGPKey(id string) (*PGPKeyBundle, error) {
 // state). Used by tests that need to clear out cached login state
 // without logging out.
 func (tc *TestContext) ResetLoginState() {
-	tc.G.loginState.Shutdown()
 	tc.G.createLoginState()
 }
 
