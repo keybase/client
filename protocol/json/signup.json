@@ -199,6 +199,9 @@
       }, {
         "name" : "deviceName",
         "type" : "string"
+      }, {
+        "name" : "storeSecret",
+        "type" : "boolean"
       } ],
       "response" : "SignupRes"
     },

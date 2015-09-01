@@ -1673,7 +1673,7 @@
 }
 
 - (void)signup:(KBRSignupRequestParams *)params completion:(void (^)(NSError *error, KBRSignupRes *signupRes))completion {
-  NSDictionary *rparams = @{@"email": KBRValue(params.email), @"inviteCode": KBRValue(params.inviteCode), @"passphrase": KBRValue(params.passphrase), @"username": KBRValue(params.username), @"deviceName": KBRValue(params.deviceName)};
+  NSDictionary *rparams = @{@"email": KBRValue(params.email), @"inviteCode": KBRValue(params.inviteCode), @"passphrase": KBRValue(params.passphrase), @"username": KBRValue(params.username), @"deviceName": KBRValue(params.deviceName), @"storeSecret": @(params.storeSecret)};
   [self.client sendRequestWithMethod:@"keybase.1.signup.signup" params:rparams sessionId:self.sessionId completion:^(NSError *error, id retval) {
     if (error) {
       completion(error, nil);
@@ -1684,8 +1684,8 @@
   }];
 }
 
-- (void)signupWithEmail:(NSString *)email inviteCode:(NSString *)inviteCode passphrase:(NSString *)passphrase username:(NSString *)username deviceName:(NSString *)deviceName completion:(void (^)(NSError *error, KBRSignupRes *signupRes))completion {
-  NSDictionary *rparams = @{@"email": KBRValue(email), @"inviteCode": KBRValue(inviteCode), @"passphrase": KBRValue(passphrase), @"username": KBRValue(username), @"deviceName": KBRValue(deviceName)};
+- (void)signupWithEmail:(NSString *)email inviteCode:(NSString *)inviteCode passphrase:(NSString *)passphrase username:(NSString *)username deviceName:(NSString *)deviceName storeSecret:(BOOL)storeSecret completion:(void (^)(NSError *error, KBRSignupRes *signupRes))completion {
+  NSDictionary *rparams = @{@"email": KBRValue(email), @"inviteCode": KBRValue(inviteCode), @"passphrase": KBRValue(passphrase), @"username": KBRValue(username), @"deviceName": KBRValue(deviceName), @"storeSecret": @(storeSecret)};
   [self.client sendRequestWithMethod:@"keybase.1.signup.signup" params:rparams sessionId:self.sessionId completion:^(NSError *error, id retval) {
     if (error) {
       completion(error, nil);
@@ -3909,6 +3909,7 @@
     self.passphrase = params[0][@"passphrase"];
     self.username = params[0][@"username"];
     self.deviceName = params[0][@"deviceName"];
+    self.storeSecret = [params[0][@"storeSecret"] boolValue];
   }
   return self;
 }
