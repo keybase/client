@@ -38,7 +38,7 @@ func NewCmdLaunchdInstall(cl *libcmdline.CommandLine) cli.Command {
 				if len(args) < 2 {
 					return fmt.Errorf("No path to keybase executable specified")
 				}
-				return Install(G.Env.GetHome(), args[0], args[1], G.Env.GetLogDir())
+				return Install(args[0], args[1])
 			}
 			cl.ChooseCommand(&cmdLaunchd{run}, "install", c)
 			cl.SetForkCmd(libcmdline.NoFork)
@@ -57,7 +57,7 @@ func NewCmdLaunchdUninstall(cl *libcmdline.CommandLine) cli.Command {
 				if len(args) < 1 {
 					return fmt.Errorf("No label specified")
 				}
-				return Uninstall(G.Env.GetHome(), args[0])
+				return Uninstall(args[0])
 			}
 			cl.ChooseCommand(&cmdLaunchd{run}, "uninstall", c)
 			cl.SetForkCmd(libcmdline.NoFork)
@@ -72,7 +72,7 @@ func NewCmdLaunchdList(cl *libcmdline.CommandLine) cli.Command {
 		Description: "List keybase launchd services",
 		Action: func(c *cli.Context) {
 			run := func() error {
-				return ShowServices(G.Env.GetHome())
+				return ShowServices()
 			}
 			cl.ChooseCommand(&cmdLaunchd{run}, "list", c)
 			cl.SetForkCmd(libcmdline.NoFork)
@@ -91,7 +91,7 @@ func NewCmdLaunchdStatus(cl *libcmdline.CommandLine) cli.Command {
 				if len(args) < 1 {
 					return fmt.Errorf("No label specified")
 				}
-				return ShowStatus(G.Env.GetHome(), args[0])
+				return ShowStatus(args[0])
 			}
 			cl.ChooseCommand(&cmdLaunchd{run}, "status", c)
 			cl.SetForkCmd(libcmdline.NoFork)

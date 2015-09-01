@@ -9,6 +9,7 @@ import (
 	"io/ioutil"
 	"os"
 	"os/exec"
+	"os/user"
 	"path/filepath"
 	"strconv"
 	"strings"
@@ -18,15 +19,13 @@ import (
 
 // Service defines a service
 type Service struct {
-	homeDir string
-	label   string
+	label string
 }
 
 // NewService constructs a launchd service.
-func NewService(homeDir string, label string) Service {
+func NewService(label string) Service {
 	return Service{
-		homeDir: homeDir,
-		label:   label,
+		label: label,
 	}
 }
 
@@ -51,11 +50,11 @@ func (s Service) Unload() error {
 }
 
 // Install will install the launchd service
-func (s Service) Install(binPath string, logDir string) (err error) {
+func (s Service) Install(binPath string) (err error) {
 	if _, err := os.Stat(binPath); os.IsNotExist(err) {
 		return err
 	}
-	plist := s.plist(binPath, logDir)
+	plist := s.plist(binPath)
 	plistDest := s.plistDestination()
 
 	G.Log.Info("Saving %s", plistDest)
@@ -85,8 +84,8 @@ func (s Service) Uninstall() (err error) {
 }
 
 // ListServices will return keybase services.
-func ListServices(homeDir string) ([]Service, error) {
-	files, err := ioutil.ReadDir(launchAgentDir(homeDir))
+func ListServices() ([]Service, error) {
+	files, err := ioutil.ReadDir(launchAgentDir())
 	if err != nil {
 		return nil, err
 	}
@@ -97,7 +96,7 @@ func ListServices(homeDir string) ([]Service, error) {
 		// We care about services that contain the word "keybase"
 		if strings.Contains(name, "keybase") && strings.HasSuffix(name, suffix) {
 			label := name[0 : len(name)-len(suffix)]
-			service := NewService(homeDir, label)
+			service := NewService(label)
 			services = append(services, service)
 		}
 	}
@@ -162,8 +161,8 @@ func (s Service) Status() (status ServiceStatus, err error) {
 }
 
 // ShowServices ouputs keybase service info
-func ShowServices(homeDir string) (err error) {
-	services, err := ListServices(homeDir)
+func ShowServices() (err error) {
+	services, err := ListServices()
 	if err != nil {
 		return
 	}
@@ -184,21 +183,21 @@ func ShowServices(homeDir string) (err error) {
 }
 
 // Install will install a keybase service
-func Install(homeDir string, label string, installBin string, logDir string) (err error) {
-	service := NewService(homeDir, label)
-	err = service.Install(installBin, logDir)
+func Install(label string, installBin string) (err error) {
+	service := NewService(label)
+	err = service.Install(installBin)
 	return
 }
 
 // Uninstall will uninstall a keybase service
-func Uninstall(homeDir string, label string) error {
-	service := NewService(homeDir, label)
+func Uninstall(label string) error {
+	service := NewService(label)
 	return service.Uninstall()
 }
 
 // ShowStatus shows status info for a service
-func ShowStatus(homeDir string, label string) error {
-	service := NewService(homeDir, label)
+func ShowStatus(label string) error {
+	service := NewService(label)
 	status, err := service.Status()
 	if err != nil {
 		return err
@@ -207,16 +206,28 @@ func ShowStatus(homeDir string, label string) error {
 	return nil
 }
 
-func launchAgentDir(homeDir string) string {
-	return filepath.Join(homeDir, "Library", "LaunchAgents")
+func launchAgentDir() string {
+	return filepath.Join(launchdHomeDir(), "Library", "LaunchAgents")
 }
 
 func (s Service) plistDestination() string {
-	return filepath.Join(launchAgentDir(s.homeDir), s.label+".plist")
+	return filepath.Join(launchAgentDir(), s.label+".plist")
 }
 
-func (s Service) plist(binPath string, logDir string) string {
-	logFile := filepath.Join(logDir, s.label+".G.Log")
+func launchdHomeDir() string {
+	currentUser, err := user.Current()
+	if err != nil {
+		panic(err)
+	}
+	return currentUser.HomeDir
+}
+
+func launchdLogDir() string {
+	return filepath.Join(launchdHomeDir(), "Library", "Logs")
+}
+
+func (s Service) plist(binPath string) string {
+	logFile := filepath.Join(launchdLogDir(), s.label+".log")
 
 	return `<?xml version="1.0" encoding="UTF-8"?>
     <!DOCTYPE plist PUBLIC \"-//Apple//DTD PLIST 1.0//EN\" \"http://www.apple.com/DTDs/PropertyList-1.0.dtd\">
@@ -227,7 +238,7 @@ func (s Service) plist(binPath string, logDir string) string {
       <key>ProgramArguments</key>
       <array>
         <string>` + binPath + `</string>
-        <string>--G.Log-format=file</string>
+        <string>--log-format=file</string>
         <string>service</string>
       </array>
       <key>KeepAlive</key>
