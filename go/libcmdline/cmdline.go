@@ -364,7 +364,20 @@ func (p *CommandLine) PopulateApp(addHelp bool, extraFlags []cli.Flag) {
 	app.Commands = []cli.Command{}
 }
 
+func filter(cmds []cli.Command, fn func(cli.Command) bool) []cli.Command {
+	var filter []cli.Command
+	for _, cmd := range cmds {
+		if fn(cmd) {
+			filter = append(filter, cmd)
+		}
+	}
+	return filter
+}
+
 func (p *CommandLine) AddCommands(cmds []cli.Command) {
+	cmds = filter(cmds, func(c cli.Command) bool {
+		return c.Name != ""
+	})
 	p.app.Commands = append(p.app.Commands, cmds...)
 }
 

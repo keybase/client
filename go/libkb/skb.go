@@ -553,7 +553,7 @@ func (k *SKBKeyringFile) Save(lui LogUI) error {
 	if !k.dirty {
 		return nil
 	}
-	if err := SafeWriteToFile(*k); err != nil {
+	if err := SafeWriteToFile(*k, 0); err != nil {
 		return err
 	}
 	k.dirty = false

@@ -127,10 +127,11 @@ type SafeWriter interface {
 	WriteTo(io.Writer) (int64, error)
 }
 
-func SafeWriteToFile(t SafeWriter) error {
+// SafeWriteToFile to safely write to a file. Use mode=0 for default permissions.
+func SafeWriteToFile(t SafeWriter, mode os.FileMode) error {
 	fn := t.GetFilename()
 	G.Log.Debug(fmt.Sprintf("+ Writing to %s", fn))
-	tmpfn, tmp, err := TempFile(fn, PermFile)
+	tmpfn, tmp, err := TempFile(fn, mode)
 	G.Log.Debug(fmt.Sprintf("| Temporary file generated: %s", tmpfn))
 	if err != nil {
 		return err
@@ -146,12 +147,23 @@ func SafeWriteToFile(t SafeWriter) error {
 			os.Remove(tmpfn)
 		}
 	} else {
-		G.Log.Error(fmt.Sprintf("Error writing temporary keyring %s: %s", tmpfn, err))
+		G.Log.Error(fmt.Sprintf("Error writing temporary file %s: %s", tmpfn, err))
 		tmp.Close()
 		os.Remove(tmpfn)
 	}
 	G.Log.Debug(fmt.Sprintf("- Wrote to %s -> %s", fn, ErrToOk(err)))
 	return err
+}
+
+// Pluralize returns pluralized string with value.
+// For example,
+//   Pluralize(1, "zebra", "zebras") => "1 zebra"
+//   Pluralize(2, "zebra", "zebras") => "2 zebras"
+func Pluralize(n int, singular string, plural string) string {
+	if n == 1 {
+		return fmt.Sprintf("%d %s", n, singular)
+	}
+	return fmt.Sprintf("%d %s", n, plural)
 }
 
 func IsIn(needle string, haystack []string, ci bool) bool {

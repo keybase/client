@@ -5,6 +5,8 @@
 package client
 
 import (
+	"runtime"
+
 	"github.com/keybase/cli"
 	"github.com/keybase/client/go/libcmdline"
 )
@@ -19,6 +21,7 @@ func GetCommands(cl *libcmdline.CommandLine) []cli.Command {
 		NewCmdDevice(cl),
 		NewCmdDoctor(cl),
 		NewCmdID(cl),
+		NewCmdLaunchd(cl),
 		NewCmdList(cl),
 		NewCmdLogin(cl),
 		NewCmdLogout(cl),

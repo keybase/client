@@ -20,6 +20,7 @@ func GetCommands(cl *libcmdline.CommandLine) []cli.Command {
 		NewCmdDoctor(cl),
 		NewCmdFavorite(cl),
 		NewCmdID(cl),
+		NewCmdLaunchd(cl),
 		NewCmdList(cl),
 		NewCmdLogin(cl),
 		NewCmdLogout(cl),
