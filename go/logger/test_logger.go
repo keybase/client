@@ -33,6 +33,9 @@ func NewTestLogger(log TestLogBackend) *TestLogger {
 	return &TestLogger{log: log}
 }
 
+// Verify TestLogger fully implements the Logger interface.
+var _ Logger = (*TestLogger)(nil)
+
 func prefixCaller(fmts string) string {
 	// The testing library doesn't let us control the stack depth, so
 	// just print the file and line number ourselves.

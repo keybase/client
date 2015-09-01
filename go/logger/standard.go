@@ -80,6 +80,9 @@ func New(module string) *Standard {
 	return NewWithCallDepth(module, 0)
 }
 
+// Verify Standard fully implements the Logger interface.
+var _ Logger = (*Standard)(nil)
+
 // NewWithCallDepth creates a new Standard logger for module, and when
 // printing file names and line numbers, it goes extraCallDepth up the
 // stack from where logger was invoked.
