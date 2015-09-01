@@ -15,6 +15,7 @@ type Sender struct {
 	secret    SecretKey
 	sessToken string // api session token
 	sessCsrf  string // api session csrf
+	done      chan struct{}
 	libkb.Contextified
 }
 
@@ -26,6 +27,7 @@ func NewSender(dir Direction, secret SecretKey, sessToken, sessCsrf string, gc *
 		secret:       secret,
 		sessToken:    sessToken,
 		sessCsrf:     sessCsrf,
+		done:         make(chan struct{}),
 		Contextified: libkb.NewContextified(gc),
 	}
 	go s.sequence()
@@ -60,13 +62,17 @@ func (s *Sender) PleaseSign(m *Meta, eddsa libkb.NaclSigningKeyPublic, sig, devT
 // Done sends the Done message to the server.
 func (s *Sender) Done(m *Meta) error {
 	mb := &Body{Name: DoneMsg, EOF: true}
-	return s.send(m, mb)
+	err := s.send(m, mb)
+	close(s.done)
+	return err
 }
 
 // Cancel sends the Cancel message to the server.
 func (s *Sender) Cancel(m *Meta) error {
 	mb := &Body{Name: CancelMsg, EOF: true}
-	return s.send(m, mb)
+	err := s.send(m, mb)
+	close(s.done)
+	return err
 }
 
 // CorruptStartKexSession sends a startkex message with a
@@ -136,7 +142,11 @@ func (s *Sender) APIArgs() (token, csrf string) {
 func (s *Sender) sequence() {
 	n := 1
 	for {
-		s.seqno <- n
-		n++
+		select {
+		case s.seqno <- n:
+			n++
+		case <-s.done:
+			return
+		}
 	}
 }

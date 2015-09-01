@@ -172,7 +172,7 @@ func (r *Receiver) Receive(m *Meta) (int, error) {
 
 // Cancel stops the reciever.
 func (r *Receiver) Cancel() error {
-	r.G().Log.Info("closing Receiver")
+	r.G().Log.Debug("kex Receiver cancel")
 	close(r.Msgs)
 	return nil
 }
