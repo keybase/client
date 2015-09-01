@@ -221,9 +221,9 @@ func TestLoginNewDeviceKexBadPhrase(t *testing.T) {
 	// log in with device Y
 	li = NewLoginWithPromptEngine(u.Username, tcY.G)
 
-	docui = &lockuiDevice{lockui: &lockui{deviceName: "device Y"}, shared: &docuiShared}
+	ydocui := &lockuiDevice{lockui: &lockui{deviceName: "device Y"}, shared: &docuiShared}
 
-	ctx := &Context{LogUI: tcY.G.UI.GetLogUI(), LocksmithUI: docui, GPGUI: &gpgtestui{}, SecretUI: secui, LoginUI: &libkb.TestLoginUI{}}
+	ctx := &Context{LogUI: tcY.G.UI.GetLogUI(), LocksmithUI: ydocui, GPGUI: &gpgtestui{}, SecretUI: secui, LoginUI: &libkb.TestLoginUI{}}
 	err = RunEngine(li, ctx)
 	if err != nil {
 		if _, ok := err.(libkb.CanceledError); !ok {
@@ -310,9 +310,9 @@ func TestLoginNewDeviceKexRetryPhrase(t *testing.T) {
 	// log in with device Y
 	li := NewLoginWithPromptEngine(u.Username, tcY.G)
 
-	docui = &lockuiDevice{lockui: &lockui{deviceName: "device Y"}, shared: &docuiShared}
+	ydocui := &lockuiDevice{lockui: &lockui{deviceName: "device Y"}, shared: &docuiShared}
 
-	ctx := &Context{LogUI: tcY.G.UI.GetLogUI(), LocksmithUI: docui, GPGUI: &gpgtestui{}, SecretUI: secui, LoginUI: &libkb.TestLoginUI{}}
+	ctx := &Context{LogUI: tcY.G.UI.GetLogUI(), LocksmithUI: ydocui, GPGUI: &gpgtestui{}, SecretUI: secui, LoginUI: &libkb.TestLoginUI{}}
 	if err := RunEngine(li, ctx); err != nil {
 		t.Fatal(err)
 	}
@@ -400,9 +400,9 @@ func TestLoginNewDeviceKexCancelOnY(t *testing.T) {
 	// log in with device Y
 	li = NewLoginWithPromptEngine(u.Username, tcY.G)
 
-	docui = &lockuiDevice{lockui: &lockui{deviceName: "device Y"}, shared: &docuiShared}
+	ydocui := &lockuiDevice{lockui: &lockui{deviceName: "device Y"}, shared: &docuiShared}
 
-	ctx := &Context{LogUI: tcY.G.UI.GetLogUI(), LocksmithUI: docui, GPGUI: &gpgtestui{}, SecretUI: secui, LoginUI: &libkb.TestLoginUI{}}
+	ctx := &Context{LogUI: tcY.G.UI.GetLogUI(), LocksmithUI: ydocui, GPGUI: &gpgtestui{}, SecretUI: secui, LoginUI: &libkb.TestLoginUI{}}
 	err = RunEngine(li, ctx)
 	if err == nil {
 		t.Fatal("device Y login should have failed")
