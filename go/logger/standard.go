@@ -107,8 +107,8 @@ func (log *Standard) initLogging() {
 	initLoggingBackendOnce.Do(func() {
 		logBackend := logging.NewLogBackend(os.Stderr, "", 0)
 		logging.SetBackend(logBackend)
+		logging.SetLevel(logging.INFO, log.module)
 	})
-	logging.SetLevel(logging.INFO, log.module)
 }
 
 func (log *Standard) prepareString(
