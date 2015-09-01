@@ -70,12 +70,22 @@ func ShortCA(raw string) string {
 // and build a Client config that will be used in all API server
 // requests
 func (e *Env) GenClientConfig() (*ClientConfig, error) {
-	u := e.GetServerURI()
-	if len(u) == 0 {
+	serverURI := e.GetServerURI()
+
+	if serverURI == "" {
+		runMode := RunMode(e.GetRunMode())
+		serverURI = ServerLookup[runMode]
+		if serverURI == "" {
+			err := fmt.Errorf("No server URL for run mode: %s", runMode)
+			return nil, err
+		}
+	}
+
+	if serverURI == "" {
 		err := fmt.Errorf("Cannot find a server URL")
 		return nil, err
 	}
-	url, err := url.Parse(u)
+	url, err := url.Parse(serverURI)
 	if err != nil {
 		return nil, err
 	}

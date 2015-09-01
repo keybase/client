@@ -1,7 +1,6 @@
 package libcmdline
 
 import (
-	"fmt"
 	"regexp"
 	"strings"
 	"text/tabwriter"
@@ -91,8 +90,8 @@ func (p CommandLine) GetGpgHome() string {
 func (p CommandLine) GetAPIDump() (bool, bool) {
 	return p.GetBool("api-dump-unsafe", true)
 }
-func (p CommandLine) GetDevelMode() (bool, bool) {
-	return p.GetBool("devel", true)
+func (p CommandLine) GetRunMode() string {
+	return p.GetGString("run-mode")
 }
 func (p CommandLine) GetPinentry() string {
 	return p.GetGString("pinentry")
@@ -246,7 +245,7 @@ func (p *CommandLine) PopulateApp(addHelp bool, extraFlags []cli.Flag) {
 		},
 		cli.StringFlag{
 			Name:  "server, s",
-			Usage: fmt.Sprintf("specify server API (default: %s)", libkb.ServerURI),
+			Usage: "specify server API",
 		},
 		cli.StringFlag{
 			Name:  "config-file, c",
@@ -293,9 +292,9 @@ func (p *CommandLine) PopulateApp(addHelp bool, extraFlags []cli.Flag) {
 			Name:  "debug, d",
 			Usage: "enable debugging mode",
 		},
-		cli.BoolFlag{
-			Name:  "devel",
-			Usage: "accept dev server signing keys",
+		cli.StringFlag{
+			Name:  "run-mode",
+			Usage: "run mode (devel, staging, prod)", // These are defined in libkb/constants.go
 		},
 		cli.StringFlag{
 			Name:  "log-format",

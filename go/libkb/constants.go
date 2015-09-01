@@ -10,10 +10,25 @@ import (
 
 const (
 	DevelServerURI      = "http://localhost:3000"
+	StagingServerURI    = "http://staging.keybase.io"
 	ProductionServerURI = "https://keybase.io"
 )
 
-var ServerURI = DevelServerURI
+type RunMode string
+
+const (
+	DevelRunMode      RunMode = "devel"
+	StagingRunMode            = "staging"
+	ProductionRunMode         = "prod"
+)
+
+var ServerLookup = map[RunMode]string{
+	DevelRunMode:      DevelServerURI,
+	StagingRunMode:    StagingServerURI,
+	ProductionRunMode: ProductionServerURI,
+}
+
+const DefaultRunMode = DevelRunMode
 
 const (
 	ConfigFile  = "config.json"

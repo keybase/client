@@ -46,7 +46,7 @@ func (n NullConfiguration) GetTimers() string                             { retu
 func (n NullConfiguration) GetDeviceID() keybase1.DeviceID                { return "" }
 func (n NullConfiguration) GetProxyCACerts() ([]string, error)            { return nil, nil }
 func (n NullConfiguration) GetAutoFork() (bool, bool)                     { return false, false }
-func (n NullConfiguration) GetDevelMode() (bool, bool)                    { return false, false }
+func (n NullConfiguration) GetRunMode() string                            { return "" }
 func (n NullConfiguration) GetNoAutoFork() (bool, bool)                   { return false, false }
 func (n NullConfiguration) GetSplitLogOutput() (bool, bool)               { return false, false }
 func (n NullConfiguration) GetLogFile() string                            { return "" }
@@ -162,12 +162,10 @@ func NewEnv(cmd CommandLine, config ConfigReader) *Env {
 	}
 	e := Env{cmd: cmd, config: config}
 
-	dev := e.GetDevelMode()
-
 	e.homeFinder = NewHomeFinder("keybase",
 		func() string { return e.getHomeFromCmdOrConfig() },
 		runtime.GOOS,
-		dev)
+		func() string { return e.GetRunMode() })
 	return &e
 }
 
@@ -294,7 +292,6 @@ func (e *Env) GetServerURI() string {
 		func() string { return e.cmd.GetServerURI() },
 		func() string { return os.Getenv("KEYBASE_SERVER_URI") },
 		func() string { return e.config.GetServerURI() },
-		func() string { return ServerURI },
 	)
 }
 
@@ -540,16 +537,16 @@ func (e *Env) GetEmailOrUsername() string {
 	return em
 }
 
-func (e *Env) GetDevelMode() bool {
-	return e.GetBool(false,
-		func() (bool, bool) { return e.cmd.GetDevelMode() },
-		func() (bool, bool) { return e.getEnvBool("KEYBASE_DEVEL_MODE") },
-		func() (bool, bool) { return e.config.GetDevelMode() },
-		func() (bool, bool) {
-			if e.Test.Devel || e.GetServerURI() == DevelServerURI {
-				return true, true
+func (e *Env) GetRunMode() string {
+	return e.GetString(
+		func() string { return e.cmd.GetRunMode() },
+		func() string { return os.Getenv("KEYBASE_RUN_MODE") },
+		func() string { return e.config.GetRunMode() },
+		func() string {
+			if e.Test.Devel {
+				return string(DevelRunMode)
 			}
-			return false, false
+			return string(DefaultRunMode)
 		},
 	)
 }
@@ -572,7 +569,7 @@ func (e *Env) GetMerkleKIDs() []keybase1.KID {
 		func() []string { return e.config.GetMerkleKIDs() },
 		func() []string {
 			ret := MerkleProdKIDs
-			if e.GetDevelMode() {
+			if e.GetRunMode() == string(DevelRunMode) || e.GetRunMode() == string(StagingRunMode) {
 				ret = append(ret, MerkleTestKIDs...)
 			}
 			return ret

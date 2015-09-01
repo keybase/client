@@ -49,7 +49,7 @@ type CommandLine interface {
 	GetTimers() string
 	GetSplitLogOutput() (bool, bool)
 	GetLogFile() string
-	GetDevelMode() (bool, bool)
+	GetRunMode() string
 
 	// Lower-level functions
 	GetGString(string) string
@@ -120,7 +120,7 @@ type ConfigReader interface {
 	GetProxyCACerts() ([]string, error)
 	GetSplitLogOutput() (bool, bool)
 	GetLogFile() string
-	GetDevelMode() (bool, bool)
+	GetRunMode() string
 }
 
 type ConfigWriter interface {
