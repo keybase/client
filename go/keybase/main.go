@@ -90,24 +90,32 @@ func mainInner(g *libkb.GlobalContext) error {
 		// mode (as opposed to standalone). Register a global LogUI so that
 		// calls to G.Log() in the daemon can be copied to us. This is
 		// something of a hack on the daemon side.
-		protocols := []rpc2.Protocol{client.NewLogUIProtocol()}
-		if err := client.RegisterProtocols(protocols); err != nil {
-			return err
-		}
-		// Send our current debugging state, so that the server can avoid
-		// sending us verbose logs when we don't want to read them.
-		logLevel := keybase1.LogLevel_INFO
-		if G.Env.GetDebug() {
-			logLevel = keybase1.LogLevel_DEBUG
-		}
-		ctlClient, err := client.GetCtlClient()
+		err = registerGlobalLogUI(g)
 		if err != nil {
 			return err
 		}
-		ctlClient.SetLogLevel(logLevel)
 	}
 
 	return cmd.Run()
+}
+
+func registerGlobalLogUI(g *libkb.GlobalContext) error {
+	protocols := []rpc2.Protocol{client.NewLogUIProtocol()}
+	if err := client.RegisterProtocols(protocols); err != nil {
+		return err
+	}
+	// Send our current debugging state, so that the server can avoid
+	// sending us verbose logs when we don't want to read them.
+	logLevel := keybase1.LogLevel_INFO
+	if g.Env.GetDebug() {
+		logLevel = keybase1.LogLevel_DEBUG
+	}
+	ctlClient, err := client.GetCtlClient()
+	if err != nil {
+		return err
+	}
+	ctlClient.SetLogLevel(logLevel)
+	return nil
 }
 
 func HandleSignals() {
