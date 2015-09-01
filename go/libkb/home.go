@@ -1,7 +1,6 @@
 package libkb
 
 import (
-	"fmt"
 	"io/ioutil"
 	"log"
 	"os"
@@ -11,12 +10,12 @@ import (
 	"unicode"
 )
 
-type HomeGetter func() string
+type ConfigGetter func() string
 
 type Base struct {
-	appName string
-	getHome HomeGetter
-	dev     bool
+	appName    string
+	getHome    ConfigGetter
+	getRunMode ConfigGetter
 }
 
 type HomeFinder interface {
@@ -102,31 +101,31 @@ type Darwin struct {
 	Base
 }
 
-func (d Darwin) dirName(s string) string {
+func toUpper(s string) string {
+	if s == "" {
+		return s
+	}
 	a := []rune(s)
-	a[0] = unicode.ToUpper(a[0]) // Ensure directory name is capitalized
+	a[0] = unicode.ToUpper(a[0])
 	return string(a)
 }
 
-func (d Darwin) homeDir(prefixDirs ...string) string {
-	dir := d.Home(false)
-	var dirs []string
-	dirs = append([]string{dir}, prefixDirs...)
-
-	var appName = d.dirName(d.appName)
-	if d.dev {
-		appName = fmt.Sprintf("%sDev", appName)
+func (d Darwin) homeDir(dirs ...string) string {
+	appName := toUpper(d.appName)
+	runMode := d.getRunMode()
+	if runMode != ProductionRunMode {
+		appName = appName + toUpper(string(runMode))
 	}
 	dirs = append(dirs, appName)
 	return filepath.Join(dirs...)
 }
 
-func (d Darwin) CacheDir() string            { return d.homeDir("Library", "Caches") }
-func (d Darwin) ConfigDir() string           { return d.homeDir("Library", "Application Support") }
+func (d Darwin) CacheDir() string            { return d.homeDir(d.Home(false), "Library", "Caches") }
+func (d Darwin) ConfigDir() string           { return d.homeDir(d.Home(false), "Library", "Application Support") }
 func (d Darwin) DataDir() string             { return d.ConfigDir() }
 func (d Darwin) RuntimeDir() (string, error) { return d.ConfigDir(), nil }
 func (d Darwin) ChdirDir() (string, error)   { return d.RuntimeDir() }
-func (d Darwin) LogDir() string              { return d.homeDir("Library", "Logs") }
+func (d Darwin) LogDir() string              { return d.homeDir(d.Home(false), "Library", "Logs") }
 
 func (d Darwin) Home(emptyOk bool) string {
 	var ret string
@@ -189,12 +188,12 @@ func (w Win32) Home(emptyOk bool) string {
 	return ret
 }
 
-func NewHomeFinder(appName string, getHome HomeGetter, osname string, dev bool) HomeFinder {
+func NewHomeFinder(appName string, getHome ConfigGetter, osname string, getRunMode ConfigGetter) HomeFinder {
 	if osname == "windows" {
-		return Win32{Base{appName, getHome, dev}}
+		return Win32{Base{appName, getHome, getRunMode}}
 	} else if osname == "darwin" {
-		return Darwin{Base{appName, getHome, dev}}
+		return Darwin{Base{appName, getHome, getRunMode}}
 	} else {
-		return XdgPosix{Base{appName, getHome, dev}}
+		return XdgPosix{Base{appName, getHome, getRunMode}}
 	}
 }

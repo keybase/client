@@ -360,8 +360,9 @@ func (f JSONConfigFile) GetGpgOptions() []string {
 	}
 	return ret
 }
-func (f JSONConfigFile) GetDevelMode() (bool, bool) {
-	return f.GetTopLevelBool("devel")
+func (f JSONConfigFile) GetRunMode() string {
+	res, _ := f.GetStringAtPath("run-mode")
+	return res
 }
 func (f JSONConfigFile) GetNoPinentry() (bool, bool) {
 	return f.GetBoolAtPath("pinentry.disabled")
