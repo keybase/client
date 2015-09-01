@@ -36,25 +36,28 @@ type Receiver struct {
 	seen      map[string]bool
 	secret    *Secret
 	Msgs      chan *Msg
-	done      bool
+	done      chan struct{}
 	sessToken string // api session token
 	sessCsrf  string // api session csrf
 	errs      chan error
+	libkb.Contextified
 }
 
 // NewReceiver creates a Receiver that will route messages to the
 // provided handler.  It will receive messages for the specified
 // direction.
-func NewReceiver(dir Direction, secret *Secret, sessToken, sessCsrf string) *Receiver {
+func NewReceiver(dir Direction, secret *Secret, sessToken, sessCsrf string, g *libkb.GlobalContext) *Receiver {
 	sm := make(map[string]bool)
 	return &Receiver{
-		direction: dir,
-		secret:    secret,
-		seen:      sm,
-		Msgs:      make(chan *Msg, 10),
-		errs:      make(chan error),
-		sessToken: sessToken,
-		sessCsrf:  sessCsrf,
+		direction:    dir,
+		secret:       secret,
+		seen:         sm,
+		Msgs:         make(chan *Msg, 10),
+		errs:         make(chan error),
+		sessToken:    sessToken,
+		sessCsrf:     sessCsrf,
+		done:         make(chan struct{}),
+		Contextified: libkb.NewContextified(g),
 	}
 }
 
@@ -63,7 +66,7 @@ func (r *Receiver) Poll(m *Meta) {
 	for {
 		_, err := r.Receive(m)
 		if err == ErrProtocolEOF {
-			G.Log.Debug("polling stopping due to EOF")
+			r.G().Log.Debug("polling stopping due to EOF")
 			return
 		}
 		if err != nil {
@@ -71,11 +74,14 @@ func (r *Receiver) Poll(m *Meta) {
 				r.errs <- err
 				return
 			}
-			G.Log.Debug("kex receiver poll continuing even though got error: %s (%T)", err, err)
+			r.G().Log.Debug("kex receiver poll continuing even though got error: %s (%T)", err, err)
 		}
-		if r.done {
-			G.Log.Debug("polling stopping due to done flag")
+		select {
+		case <-r.done:
+			r.G().Log.Debug("polling stopping due to done chan closed")
 			return
+		default:
+			continue
 		}
 	}
 }
@@ -89,25 +95,25 @@ func (r *Receiver) Next(name MsgName, timeout time.Duration) (*Msg, error) {
 		select {
 		case m, ok := <-r.Msgs:
 			if !ok {
-				r.done = true
+				close(r.done)
 				return nil, ErrProtocolEOF
 			}
 			if m.Name() == name {
 				return m, nil
 			}
 			if m.Name() == CancelMsg {
-				r.done = true
+				close(r.done)
 				return nil, libkb.CanceledError{}
 			}
 
-			G.Log.Info("message name: %s, expecting %s.  Ignoring this message.", m.Name(), name)
+			r.G().Log.Info("message name: %s, expecting %s.  Ignoring this message.", m.Name(), name)
 		case err := <-r.errs:
-			G.Log.Info("error waiting for message %s: %s", name, err)
+			r.G().Log.Info("error waiting for message %s: %s", name, err)
 			return nil, err
 
 		case <-time.After(timeout):
-			G.Log.Info("timed out waiting for message %s", name)
-			r.done = true
+			r.G().Log.Info("timed out waiting for message %s", name)
+			close(r.done)
 			return nil, libkb.ErrTimeout
 		}
 	}
@@ -121,19 +127,18 @@ func (r *Receiver) Receive(m *Meta) (int, error) {
 	if err != nil {
 		return 0, err
 	}
-	G.Log.Warning("no error, %d msgs", len(msgs))
 	var count int
 	for _, msg := range msgs {
 
 		if err := r.check(msg); err != nil {
-			G.Log.Warning("[%s] message failed check: %s", msg, err)
+			r.G().Log.Warning("[%s] message failed check: %s", msg, err)
 			continue
 		}
 
 		// check to see if this receiver has seen this message before
 		smac := hex.EncodeToString(msg.Body.Mac)
 		if r.seen[smac] {
-			G.Log.Warning("skipping message [%s:%s]: already seen", msg.Name(), smac)
+			r.G().Log.Warning("skipping message [%s:%s]: already seen", msg.Name(), smac)
 			continue
 		}
 
@@ -143,11 +148,12 @@ func (r *Receiver) Receive(m *Meta) (int, error) {
 			r.seqno = msg.Seqno
 		}
 
-		G.Log.Debug("received message [%s]", msg.Name())
+		r.G().Log.Debug("received message [%s]", msg.Name())
 
 		// set meta's sender and receiver
-		m.Sender = msg.Sender
-		m.Receiver = msg.Receiver
+		// XXX why?
+		// m.Sender = msg.Sender
+		// m.Receiver = msg.Receiver
 
 		r.Msgs <- msg
 
@@ -166,9 +172,8 @@ func (r *Receiver) Receive(m *Meta) (int, error) {
 
 // Cancel stops the reciever.
 func (r *Receiver) Cancel() error {
-	G.Log.Info("closing Receiver")
+	r.G().Log.Info("closing Receiver")
 	close(r.Msgs)
-	r.Msgs = nil
 	return nil
 }
 
@@ -197,7 +202,7 @@ func (r *Receiver) check(msg *Msg) error {
 
 // get performs a Get request to long poll for a set of messages.
 func (r *Receiver) get() (MsgList, error) {
-	libkb.G.Log.Debug("get: {dir: %d, seqno: %d, w = %s}", r.direction, r.seqno, r.secret.WeakID())
+	r.G().Log.Debug("get: {dir: %d, seqno: %d, w = %s}", r.direction, r.seqno, r.secret.WeakID())
 
 	var j struct {
 		Msgs   MsgList `json:"msgs"`
@@ -218,7 +223,7 @@ func (r *Receiver) get() (MsgList, error) {
 		},
 		SessionR: r,
 	}
-	if err := libkb.G.API.GetDecode(args, &j); err != nil {
+	if err := r.G().API.GetDecode(args, &j); err != nil {
 		return nil, err
 	}
 	if j.Status.Code != libkb.SCOk {

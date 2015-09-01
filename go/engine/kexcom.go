@@ -60,7 +60,7 @@ func (k *KexCom) sessionArgs(ctx *Context) (token, csrf string) {
 func (k *KexCom) poll(ctx *Context, m *kex.Meta, secret *kex.Secret) {
 	token, csrf := k.sessionArgs(ctx)
 	k.recMu.Lock()
-	k.rec = kex.NewReceiver(m.Direction, secret, token, csrf)
+	k.rec = kex.NewReceiver(m.Direction, secret, token, csrf, k.G())
 	k.recMu.Unlock()
 	k.wg.Add(1)
 	go func() {

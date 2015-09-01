@@ -58,7 +58,7 @@ func TestBasicMessage(t *testing.T) {
 	}
 
 	s := kex.NewSender(kex.DirectionYtoX, sec.Secret(), tok, csrf, tc.G)
-	r := kex.NewReceiver(kex.DirectionYtoX, sec, tok, csrf)
+	r := kex.NewReceiver(kex.DirectionYtoX, sec, tok, csrf, tc.G)
 
 	ctx := testKexMeta(t, fu.Username, sec)
 	if err := s.StartKexSession(ctx, ctx.StrongID); err != nil {
@@ -73,9 +73,13 @@ func TestBasicMessage(t *testing.T) {
 	if n != 1 {
 		t.Errorf("receive count: %d, expected 1", n)
 	}
-	msg := <-r.Msgs
-	if msg.Name() != kex.StartKexMsg {
-		t.Errorf("msg: %s, expected %s", msg.Name(), kex.StartKexMsg)
+	select {
+	case msg := <-r.Msgs:
+		if msg.Name() != kex.StartKexMsg {
+			t.Errorf("msg: %s, expected %s", msg.Name(), kex.StartKexMsg)
+		}
+	default:
+		t.Fatal("no msg in r.Msgs")
 	}
 }
 
@@ -99,7 +103,7 @@ func TestBadMACMessage(t *testing.T) {
 	}
 
 	s := kex.NewSender(kex.DirectionYtoX, sec.Secret(), tok, csrf, tc.G)
-	r := kex.NewReceiver(kex.DirectionYtoX, sec, tok, csrf)
+	r := kex.NewReceiver(kex.DirectionYtoX, sec, tok, csrf, tc.G)
 
 	ctx := testKexMeta(t, fu.Username, sec)
 	if err := s.CorruptStartKexSession(ctx, ctx.StrongID); err != nil {
