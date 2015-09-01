@@ -10,7 +10,7 @@ import (
 // Sender is an implementation of the kex Handler interface that
 // sends messages to the api server.
 type Sender struct {
-	seqno     int
+	seqno     chan int
 	direction Direction
 	secret    SecretKey
 	sessToken string // api session token
@@ -20,7 +20,16 @@ type Sender struct {
 
 // NewSender creates a Sender for the given message direction.
 func NewSender(dir Direction, secret SecretKey, sessToken, sessCsrf string, gc *libkb.GlobalContext) *Sender {
-	return &Sender{direction: dir, secret: secret, sessToken: sessToken, sessCsrf: sessCsrf, Contextified: libkb.NewContextified(gc)}
+	s := &Sender{
+		seqno:        make(chan int),
+		direction:    dir,
+		secret:       secret,
+		sessToken:    sessToken,
+		sessCsrf:     sessCsrf,
+		Contextified: libkb.NewContextified(gc),
+	}
+	go s.sequence()
+	return s
 }
 
 // StartKexSession sends the StartKexSession message to the
@@ -85,8 +94,7 @@ func (s *Sender) send(m *Meta, body *Body) error {
 func (s *Sender) genMsg(m *Meta, body *Body) (*Msg, error) {
 	msg := NewMsg(m, body)
 	msg.Direction = s.direction
-	s.seqno++
-	msg.Seqno = s.seqno
+	msg.Seqno = <-s.seqno
 	mac, err := msg.MacSum(s.secret)
 	if err != nil {
 		return nil, err
@@ -123,4 +131,12 @@ func (s *Sender) post(msg *Msg) error {
 
 func (s *Sender) APIArgs() (token, csrf string) {
 	return s.sessToken, s.sessCsrf
+}
+
+func (s *Sender) sequence() {
+	n := 1
+	for {
+		s.seqno <- n
+		n++
+	}
 }
