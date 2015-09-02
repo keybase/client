@@ -18,6 +18,7 @@ func ImportPGPKeyImportEngineArg(a keybase1.PGPKeyGenArg) (ret PGPKeyImportEngin
 	ret = PGPKeyImportEngineArg{
 		AllowMulti: a.AllowMulti,
 		DoExport:   a.DoExport,
+		PushSecret: a.PushSecret,
 		Gen:        &ga,
 	}
 	return ret
