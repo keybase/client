@@ -284,6 +284,7 @@ func launchdLogDir() string {
 	return filepath.Join(launchdHomeDir(), "Library", "Logs")
 }
 
+// TODO Use go-plist library
 func (p Plist) plist() string {
 	logFile := filepath.Join(launchdLogDir(), p.label+".log")
 
@@ -291,28 +292,29 @@ func (p Plist) plist() string {
 		return fmt.Sprintf("<string>%s</string>", s)
 	}
 
-	pargs := make([]string, len(p.args)+1)
+	pargs := []string{}
 	pargs = append(pargs, encodeString(p.binPath))
 	for _, arg := range p.args {
 		pargs = append(pargs, encodeString(arg))
 	}
 
 	return `<?xml version="1.0" encoding="UTF-8"?>
-    <!DOCTYPE plist PUBLIC \"-//Apple//DTD PLIST 1.0//EN\" \"http://www.apple.com/DTDs/PropertyList-1.0.dtd\">
-    <plist version="1.0">
-    <dict>
-      <key>Label</key>
-      <string>` + p.label + `</string>
-      <key>ProgramArguments</key>
-      <array>` + strings.Join(pargs, "\n      ") + `</array>
-      <key>KeepAlive</key>
-      <true/>
-      <key>RunAtLoad</key>
-      <true/>
-      <key>StandardErrorPath</key>
-      <string>` + logFile + `</string>
-      <key>StandardOutPath</key>
-      <string>` + logFile + `</string>
-    </dict>
-    </plist>`
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+  <key>Label</key>
+  <string>` + p.label + `</string>
+  <key>ProgramArguments</key>
+  <array>` + "\n    " + strings.Join(pargs, "\n    ") + `
+  </array>
+  <key>KeepAlive</key>
+  <true/>
+  <key>RunAtLoad</key>
+  <true/>
+  <key>StandardErrorPath</key>
+  <string>` + logFile + `</string>
+  <key>StandardOutPath</key>
+  <string>` + logFile + `</string>
+</dict>
+</plist>`
 }

@@ -3,6 +3,7 @@
 package client
 
 import (
+	"fmt"
 	"os"
 
 	"github.com/keybase/cli"
@@ -164,18 +165,18 @@ func NewCmdLaunchdStop(cl *libcmdline.CommandLine) cli.Command {
 func DiagnoseSocketError(err error) {
 	services, err := launchd.ListServices("keybase.")
 	if err != nil {
-		G.Log.Errorf("Error checking launchd services: %v\n\n", err)
+		GlobUI.Printf("Error checking launchd services: %v\n\n", err)
 		return
 	}
 
 	if len(services) == 0 {
-		G.Log.Warning("\nThere are no Keybase services installed. You may need to re-install.")
+		GlobUI.Println("\nThere are no Keybase services installed. You may need to re-install.")
 	} else if len(services) > 1 {
-		G.Log.Info("\nWe found multiple services:")
+		GlobUI.Println("\nWe found multiple services:")
 		for _, service := range services {
-			G.Log.Info("  " + service.StatusDescription())
+			GlobUI.Println("  " + service.StatusDescription())
 		}
-		G.Log.Info("")
+		GlobUI.Println("")
 	} else if len(services) == 1 {
 		service := services[0]
 		status, err := service.Status()
@@ -183,11 +184,13 @@ func DiagnoseSocketError(err error) {
 			G.Log.Errorf("Error checking service status(%s): %v\n\n", service.Label(), err)
 		} else {
 			if status == nil || !status.IsRunning() {
-				G.Log.Infof("\nWe found a Keybase service (%s) but it's not running.\n", service.Label())
-				G.Log.Infof("You might try starting it: keybase launchd start %s\n\n", service.Label())
+				GlobUI.Printf("\nWe found a Keybase service (%s) but it's not running.\n", service.Label())
+				cmd := fmt.Sprintf("keybase launchd start %s", service.Label())
+				GlobUI.Println("You might try starting it: " + cmd + "\n")
 			} else {
-				G.Log.Infof("\nWe couldn't connect but there is a Keybase service (%s) running (%s).\n", status.Label(), status.Pid())
-				G.Log.Infof("You might try restarting it: keybase launchd restart %s\n\n", status.Label())
+				GlobUI.Printf("\nWe couldn't connect but there is a Keybase service (%s) running (%s).\n", status.Label(), status.Pid())
+				cmd := fmt.Sprintf("keybase launchd restart %s", service.Label())
+				GlobUI.Println("You might try restarting it: " + cmd + "\n")
 			}
 		}
 	}
