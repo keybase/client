@@ -8,6 +8,7 @@ import (
 	"github.com/keybase/client/go/client"
 	"github.com/keybase/client/go/libcmdline"
 	"github.com/keybase/client/go/libkb"
+	"github.com/keybase/client/go/logger"
 	"github.com/keybase/client/go/service"
 	keybase1 "github.com/keybase/client/protocol/go"
 	"github.com/maxtaco/go-framed-msgpack-rpc/rpc2"
@@ -39,8 +40,14 @@ func main() {
 	}
 }
 
-func mainInner(g *libkb.GlobalContext) error {
+func warnNonProd(log logger.Logger, e *libkb.Env) {
+	mode := e.GetRunMode()
+	if mode != libkb.ProductionRunMode {
+		log.Warning(fmt.Sprintf("Running in %s mode", mode))
+	}
+}
 
+func mainInner(g *libkb.GlobalContext) error {
 	cl := libcmdline.NewCommandLine(true, client.GetExtraFlags())
 	cl.AddCommands(client.GetCommands(cl))
 	cl.AddCommands(service.GetCommands(cl))
@@ -63,6 +70,8 @@ func mainInner(g *libkb.GlobalContext) error {
 	if err = g.ConfigureAll(cl, cmd); err != nil {
 		return err
 	}
+
+	warnNonProd(g.Log, g.Env)
 
 	if cl.IsService() {
 		return cmd.Run()
