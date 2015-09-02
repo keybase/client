@@ -418,10 +418,10 @@ func (p *CommandLine) Parse(args []string) (cmd Command, err error) {
 	// cli.HelpPrinter is nil here...anything that needs it will panic.
 
 	// If we failed to parse arguments properly, switch to the help command
-	if err = p.cmd.ParseArgv(p.ctx); err != nil {
-		libkb.G.Log.Errorf("In '%s': %s", p.name, err)
-		cmd = &CmdSpecificHelp{CmdBaseHelp{p.ctx}, p.name}
-	} else if _, err = p.GetRunMode(); err != nil {
+	if err = p.cmd.ParseArgv(p.ctx); err == nil {
+		_, err = p.GetRunMode()
+	}
+	if err != nil {
 		cmd = &CmdSpecificHelp{CmdBaseHelp{p.ctx}, p.name}
 	}
 
