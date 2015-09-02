@@ -177,7 +177,7 @@ func (pi *pinentryInstance) Init() (err error) {
 		}
 	}
 	if len(parent.term) > 0 {
-		parent.log.Info("setting ttytype to %s", parent.term)
+		parent.log.Debug("setting ttytype to %s", parent.term)
 		pi.Set("OPTION", "ttytype="+parent.term, &err)
 		if err != nil {
 			parent.log.Debug("error setting ttytype: %s", err)
