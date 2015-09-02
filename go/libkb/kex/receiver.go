@@ -150,11 +150,6 @@ func (r *Receiver) Receive(m *Meta) (int, error) {
 
 		r.G().Log.Debug("received message [%s]", msg.Name())
 
-		// set meta's sender and receiver
-		// XXX why?
-		// m.Sender = msg.Sender
-		// m.Receiver = msg.Receiver
-
 		r.Msgs <- msg
 
 		count++
