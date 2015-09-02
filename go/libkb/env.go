@@ -571,6 +571,7 @@ func (e *Env) GetMerkleKIDs() []keybase1.KID {
 			ret := MerkleProdKIDs
 			if e.GetRunMode() == string(DevelRunMode) || e.GetRunMode() == string(StagingRunMode) {
 				ret = append(ret, MerkleTestKIDs...)
+				ret = append(ret, MerkleStagingKIDs...)
 			}
 			return ret
 		},

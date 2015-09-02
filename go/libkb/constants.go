@@ -10,7 +10,7 @@ import (
 
 const (
 	DevelServerURI      = "http://localhost:3000"
-	StagingServerURI    = "http://staging.keybase.io"
+	StagingServerURI    = "https://stage0.keybase.io"
 	ProductionServerURI = "https://keybase.io"
 )
 
@@ -71,6 +71,9 @@ var MerkleProdKIDs = []string{
 }
 var MerkleTestKIDs = []string{
 	"0101be58b6c82db64f6ccabb05088db443c69f87d5d48857d709ed6f73948dabe67d0a",
+}
+var MerkleStagingKIDs = []string{
+	"0101bed85ce72cc315828367c28b41af585b6b7d95646a62ca829691d70f49184fa70a",
 }
 
 const (
