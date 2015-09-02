@@ -1,6 +1,7 @@
 package client
 
 import (
+	"fmt"
 	"os"
 
 	"github.com/keybase/cli"
@@ -111,13 +112,20 @@ func (s *CmdSignup) ParseArgv(ctx *cli.Context) error {
 }
 
 func (s *CmdSignup) successMessage() error {
-	msg := `
+	username := s.fields.username.GetValue()
+	msg := fmt.Sprintf(`
 Welcome to keybase.io!
 
-    (need new instructions here...)
+   - you are now logged in as %s
+   - your profile on keybase is https://keybase.io/%s
+   - type 'keybase help' for more instructions
+   - type 'keybase pgp gen' if you'd like to create a PGP key
+
+Keybase is in alpha and we'll be rolling out new features soon. Report bugs 
+to us at https://github.com/keybase/keybase-issues
 
 Enjoy!
-`
+`, username, username)
 	return GlobUI.Output(msg)
 }
 
