@@ -46,7 +46,7 @@ func (n NullConfiguration) GetTimers() string                             { retu
 func (n NullConfiguration) GetDeviceID() keybase1.DeviceID                { return "" }
 func (n NullConfiguration) GetProxyCACerts() ([]string, error)            { return nil, nil }
 func (n NullConfiguration) GetAutoFork() (bool, bool)                     { return false, false }
-func (n NullConfiguration) GetRunMode() string                            { return "" }
+func (n NullConfiguration) GetRunMode() (RunMode, error)                  { return NoRunMode, nil }
 func (n NullConfiguration) GetNoAutoFork() (bool, bool)                   { return false, false }
 func (n NullConfiguration) GetSplitLogOutput() (bool, bool)               { return false, false }
 func (n NullConfiguration) GetLogFile() string                            { return "" }
@@ -165,7 +165,7 @@ func NewEnv(cmd CommandLine, config ConfigReader) *Env {
 	e.homeFinder = NewHomeFinder("keybase",
 		func() string { return e.getHomeFromCmdOrConfig() },
 		runtime.GOOS,
-		func() string { return e.GetRunMode() })
+		func() RunMode { return e.GetRunMode() })
 	return &e
 }
 
@@ -537,18 +537,25 @@ func (e *Env) GetEmailOrUsername() string {
 	return em
 }
 
-func (e *Env) GetRunMode() string {
-	return e.GetString(
-		func() string { return e.cmd.GetRunMode() },
-		func() string { return os.Getenv("KEYBASE_RUN_MODE") },
-		func() string { return e.config.GetRunMode() },
-		func() string {
-			if e.Test.Devel {
-				return string(DevelRunMode)
-			}
-			return string(DefaultRunMode)
-		},
-	)
+func (e *Env) GetRunMode() RunMode {
+	var ret RunMode
+
+	if e.Test.Devel {
+		return DevelRunMode
+	}
+
+	pick := func(m RunMode, err error) {
+		if ret == NoRunMode && err == nil {
+			ret = m
+		}
+	}
+
+	pick(e.cmd.GetRunMode())
+	pick(StringToRunMode(os.Getenv("KEYBASE_RUN_MODE")))
+	pick(e.config.GetRunMode())
+	pick(DefaultRunMode, nil)
+
+	return ret
 }
 
 func (e *Env) GetUID() keybase1.UID { return e.config.GetUID() }
@@ -569,7 +576,7 @@ func (e *Env) GetMerkleKIDs() []keybase1.KID {
 		func() []string { return e.config.GetMerkleKIDs() },
 		func() []string {
 			ret := MerkleProdKIDs
-			if e.GetRunMode() == string(DevelRunMode) || e.GetRunMode() == string(StagingRunMode) {
+			if e.GetRunMode() == DevelRunMode || e.GetRunMode() == StagingRunMode {
 				ret = append(ret, MerkleTestKIDs...)
 				ret = append(ret, MerkleStagingKIDs...)
 			}

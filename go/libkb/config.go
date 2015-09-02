@@ -35,6 +35,17 @@ func (f JSONConfigFile) getValueAtPath(p string, getter valueGetter) (ret interf
 	return
 }
 
+// Check looks inside the JSON file to see if any fields are poorly specified
+func (f JSONConfigFile) Check() error {
+	return PickFirstError(
+		// Feel free to add others here..
+		func() error {
+			_, err := f.GetRunMode()
+			return err
+		}(),
+	)
+}
+
 func getString(w *jsonw.Wrapper) (interface{}, error) {
 	return w.GetString()
 }
@@ -360,9 +371,13 @@ func (f JSONConfigFile) GetGpgOptions() []string {
 	}
 	return ret
 }
-func (f JSONConfigFile) GetRunMode() string {
-	res, _ := f.GetStringAtPath("run-mode")
-	return res
+func (f JSONConfigFile) GetRunMode() (RunMode, error) {
+	var err error
+	var ret RunMode = NoRunMode
+	if s, isSet := f.GetStringAtPath("run-mode"); isSet {
+		ret, err = StringToRunMode(s)
+	}
+	return ret, err
 }
 func (f JSONConfigFile) GetNoPinentry() (bool, bool) {
 	return f.GetBoolAtPath("pinentry.disabled")

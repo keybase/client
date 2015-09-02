@@ -6,7 +6,7 @@ import (
 )
 
 func TestPosix(t *testing.T) {
-	hf := NewHomeFinder("tester", nil, "posix", func() string { return string(ProductionRunMode) })
+	hf := NewHomeFinder("tester", nil, "posix", func() RunMode { return ProductionRunMode })
 	d := hf.CacheDir()
 	if !strings.Contains(d, ".cache/tester") {
 		t.Errorf("Bad Cache dir: %s", d)
@@ -22,7 +22,7 @@ func TestPosix(t *testing.T) {
 }
 
 func TestDarwinHomeFinder(t *testing.T) {
-	hf := NewHomeFinder("keybase", nil, "darwin", func() string { return string(ProductionRunMode) })
+	hf := NewHomeFinder("keybase", nil, "darwin", func() RunMode { return ProductionRunMode })
 	d := hf.ConfigDir()
 	if !strings.HasSuffix(d, "Library/Application Support/Keybase") {
 		t.Errorf("Bad config dir: %s", d)
@@ -34,7 +34,7 @@ func TestDarwinHomeFinder(t *testing.T) {
 }
 
 func TestDarwinHomeFinderInDev(t *testing.T) {
-	devHomeFinder := NewHomeFinder("keybase", nil, "darwin", func() string { return string(DevelRunMode) })
+	devHomeFinder := NewHomeFinder("keybase", nil, "darwin", func() RunMode { return DevelRunMode })
 	configDir := devHomeFinder.ConfigDir()
 	if !strings.HasSuffix(configDir, "Library/Application Support/KeybaseDevel") {
 		t.Errorf("Bad config dir: %s", configDir)
