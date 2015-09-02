@@ -90,8 +90,8 @@ func (p CommandLine) GetGpgHome() string {
 func (p CommandLine) GetAPIDump() (bool, bool) {
 	return p.GetBool("api-dump-unsafe", true)
 }
-func (p CommandLine) GetRunMode() string {
-	return p.GetGString("run-mode")
+func (p CommandLine) GetRunMode() (libkb.RunMode, error) {
+	return libkb.StringToRunMode(p.GetGString("run-mode"))
 }
 func (p CommandLine) GetPinentry() string {
 	return p.GetGString("pinentry")
@@ -420,6 +420,8 @@ func (p *CommandLine) Parse(args []string) (cmd Command, err error) {
 	// If we failed to parse arguments properly, switch to the help command
 	if err = p.cmd.ParseArgv(p.ctx); err != nil {
 		libkb.G.Log.Errorf("In '%s': %s", p.name, err)
+		cmd = &CmdSpecificHelp{CmdBaseHelp{p.ctx}, p.name}
+	} else if _, err = p.GetRunMode(); err != nil {
 		cmd = &CmdSpecificHelp{CmdBaseHelp{p.ctx}, p.name}
 	}
 

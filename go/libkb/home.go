@@ -11,11 +11,12 @@ import (
 )
 
 type ConfigGetter func() string
+type RunModeGetter func() RunMode
 
 type Base struct {
 	appName    string
 	getHome    ConfigGetter
-	getRunMode ConfigGetter
+	getRunMode RunModeGetter
 }
 
 type HomeFinder interface {
@@ -188,7 +189,7 @@ func (w Win32) Home(emptyOk bool) string {
 	return ret
 }
 
-func NewHomeFinder(appName string, getHome ConfigGetter, osname string, getRunMode ConfigGetter) HomeFinder {
+func NewHomeFinder(appName string, getHome ConfigGetter, osname string, getRunMode RunModeGetter) HomeFinder {
 	if osname == "windows" {
 		return Win32{Base{appName, getHome, getRunMode}}
 	} else if osname == "darwin" {

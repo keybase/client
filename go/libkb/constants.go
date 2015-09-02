@@ -20,6 +20,8 @@ const (
 	DevelRunMode      RunMode = "devel"
 	StagingRunMode            = "staging"
 	ProductionRunMode         = "prod"
+	RunModeError              = "error"
+	NoRunMode                 = ""
 )
 
 var ServerLookup = map[RunMode]string{
