@@ -303,9 +303,6 @@ const (
 type Reporter interface {
 	// Report records that a given event happened at the given reporting level.
 	Report(level ReportingLevel, message fmt.Stringer)
-	// LastError returns the last error-level event that occurred on
-	// this device.
-	LastError() ReportedError
 	// AllKnownErrors returns all errors known to this Reporter.
 	AllKnownErrors() []ReportedError
 }

@@ -629,16 +629,6 @@ func (_mr *_MockReporterRecorder) Report(arg0, arg1 interface{}) *gomock.Call {
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "Report", arg0, arg1)
 }
 
-func (_m *MockReporter) LastError() ReportedError {
-	ret := _m.ctrl.Call(_m, "LastError")
-	ret0, _ := ret[0].(ReportedError)
-	return ret0
-}
-
-func (_mr *_MockReporterRecorder) LastError() *gomock.Call {
-	return _mr.mock.ctrl.RecordCall(_mr.mock, "LastError")
-}
-
 func (_m *MockReporter) AllKnownErrors() []ReportedError {
 	ret := _m.ctrl.Call(_m, "AllKnownErrors")
 	ret0, _ := ret[0].([]ReportedError)

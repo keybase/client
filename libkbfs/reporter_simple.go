@@ -55,17 +55,6 @@ func (r *ReporterSimple) Report(level ReportingLevel, message fmt.Stringer) {
 	}
 }
 
-// LastError implements the Reporter interface for ReporterSimple.
-func (r *ReporterSimple) LastError() ReportedError {
-	r.lock.RLock()
-	defer r.lock.RUnlock()
-
-	if r.currErrorIndex < 0 {
-		return ReportedError{}
-	}
-	return r.errors[r.currErrorIndex]
-}
-
 // AllKnownErrors implements the Reporter interface for ReporterSimple.
 func (r *ReporterSimple) AllKnownErrors() []ReportedError {
 	r.lock.RLock()
