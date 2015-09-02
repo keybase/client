@@ -17,6 +17,9 @@ func GetRPCServer() (ret *rpc2.Server, xp *rpc2.Transport, err error) {
 	if _, xp, err = G.GetSocket(); err == nil {
 		ret = rpc2.NewServer(xp, libkb.WrapError)
 	}
+	if err != nil {
+		DiagnoseSocketError(err)
+	}
 	return
 }
 
