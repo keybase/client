@@ -171,6 +171,9 @@
       }, {
         "name" : "device",
         "type" : "Device"
+      }, {
+        "name" : "index",
+        "type" : "int"
       } ],
       "response" : "boolean"
     },

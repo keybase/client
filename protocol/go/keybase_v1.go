@@ -1682,6 +1682,7 @@ type GetEmailOrUsernameArg struct {
 type PromptRevokePaperKeysArg struct {
 	SessionID int    `codec:"sessionID" json:"sessionID"`
 	Device    Device `codec:"device" json:"device"`
+	Index     int    `codec:"index" json:"index"`
 }
 
 type DisplayPaperKeyPhraseArg struct {
@@ -2671,6 +2672,7 @@ type SecretEntryArg struct {
 	Err            string `codec:"err" json:"err"`
 	Cancel         string `codec:"cancel" json:"cancel"`
 	Ok             string `codec:"ok" json:"ok"`
+	Reason         string `codec:"reason" json:"reason"`
 	UseSecretStore bool   `codec:"useSecretStore" json:"useSecretStore"`
 }
 

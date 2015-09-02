@@ -587,7 +587,10 @@ func (l LoginUI) PromptRevokePaperKeys(arg keybase1.PromptRevokePaperKeysArg) (b
 	if l.noPrompt {
 		return false, nil
 	}
-	return l.parent.PromptYesNo(fmt.Sprintf("Revoke existing paper key %q?", arg.Device.Name), PromptDefaultYes)
+	if arg.Index == 0 {
+		l.parent.Printf("Generating a new paper key.\n")
+	}
+	return l.parent.PromptYesNo(fmt.Sprintf("Also revoke existing %q ?", arg.Device.Name), PromptDefaultNo)
 }
 
 func (l LoginUI) DisplayPaperKeyPhrase(arg keybase1.DisplayPaperKeyPhraseArg) error {
@@ -632,6 +635,9 @@ type SecretUI struct {
 }
 
 func (ui SecretUI) GetSecret(pinentry keybase1.SecretEntryArg, term *keybase1.SecretEntryArg) (*keybase1.SecretEntryRes, error) {
+	if len(pinentry.Reason) > 0 {
+		ui.parent.Printf(pinentry.Reason + "\n")
+	}
 	return ui.parent.SecretEntry.Get(pinentry, term)
 }
 

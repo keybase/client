@@ -848,14 +848,14 @@
 }
 
 - (void)promptRevokePaperKeys:(KBRPromptRevokePaperKeysRequestParams *)params completion:(void (^)(NSError *error, BOOL b))completion {
-  NSDictionary *rparams = @{@"device": KBRValue(params.device)};
+  NSDictionary *rparams = @{@"device": KBRValue(params.device), @"index": @(params.index)};
   [self.client sendRequestWithMethod:@"keybase.1.loginUi.promptRevokePaperKeys" params:rparams sessionId:self.sessionId completion:^(NSError *error, id retval) {
     completion(error, 0);
   }];
 }
 
-- (void)promptRevokePaperKeysWithDevice:(KBRDevice *)device completion:(void (^)(NSError *error, BOOL b))completion {
-  NSDictionary *rparams = @{@"device": KBRValue(device)};
+- (void)promptRevokePaperKeysWithDevice:(KBRDevice *)device index:(NSInteger)index completion:(void (^)(NSError *error, BOOL b))completion {
+  NSDictionary *rparams = @{@"device": KBRValue(device), @"index": @(index)};
   [self.client sendRequestWithMethod:@"keybase.1.loginUi.promptRevokePaperKeys" params:rparams sessionId:self.sessionId completion:^(NSError *error, id retval) {
     completion(error, 0);
   }];
@@ -3097,6 +3097,7 @@
   if ((self = [super initWithParams:params])) {
     self.sessionID = [params[0][@"sessionID"] integerValue];
     self.device = [MTLJSONAdapter modelOfClass:KBRDevice.class fromJSONDictionary:params[0][@"device"] error:nil];
+    self.index = [params[0][@"index"] integerValue];
   }
   return self;
 }

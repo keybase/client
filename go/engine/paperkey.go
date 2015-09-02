@@ -65,10 +65,11 @@ func (e *PaperKey) Run(ctx *Context) error {
 		return fmt.Errorf("no computed key infos")
 	}
 	var needReload bool
-	for _, bdev := range cki.PaperDevices() {
+	for i, bdev := range cki.PaperDevices() {
 		revoke, err := ctx.LoginUI.PromptRevokePaperKeys(
 			keybase1.PromptRevokePaperKeysArg{
 				Device: *bdev.ProtExport(),
+				Index:  i,
 			})
 		if err != nil {
 			e.G().Log.Warning("prompt error: %s", err)
@@ -95,7 +96,7 @@ func (e *PaperKey) Run(ctx *Context) error {
 	signingKey, _, err := e.G().Keyrings.GetSecretKeyWithPrompt(ctx.LoginContext, libkb.SecretKeyArg{
 		Me:      me,
 		KeyType: libkb.DeviceSigningKeyType,
-	}, ctx.SecretUI, "paper key signature")
+	}, ctx.SecretUI, "You must sign your new paper key")
 	if err != nil {
 		return err
 	}

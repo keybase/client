@@ -462,6 +462,7 @@ typedef NS_ENUM (NSInteger, KBRPromptOverwriteType) {
 @property NSString *err;
 @property NSString *cancel;
 @property NSString *ok;
+@property NSString *reason;
 @property BOOL useSecretStore;
 @end
 
@@ -807,6 +808,7 @@ typedef NS_ENUM (NSInteger, KBRPromptDefault) {
 @interface KBRPromptRevokePaperKeysRequestParams : KBRRequestParams
 @property NSInteger sessionID;
 @property KBRDevice *device;
+@property NSInteger index;
 @end
 @interface KBRDisplayPaperKeyPhraseRequestParams : KBRRequestParams
 @property NSInteger sessionID;
@@ -1379,7 +1381,7 @@ typedef NS_ENUM (NSInteger, KBRPromptDefault) {
 
 - (void)promptRevokePaperKeys:(KBRPromptRevokePaperKeysRequestParams *)params completion:(void (^)(NSError *error, BOOL b))completion;
 
-- (void)promptRevokePaperKeysWithDevice:(KBRDevice *)device completion:(void (^)(NSError *error, BOOL b))completion;
+- (void)promptRevokePaperKeysWithDevice:(KBRDevice *)device index:(NSInteger)index completion:(void (^)(NSError *error, BOOL b))completion;
 
 - (void)displayPaperKeyPhrase:(KBRDisplayPaperKeyPhraseRequestParams *)params completion:(void (^)(NSError *error))completion;
 

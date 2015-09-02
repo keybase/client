@@ -42,6 +42,7 @@ func (arg KeyUnlocker) Run() (ret GenericKey, err error) {
 			Err:            emsg,
 			Desc:           desc,
 			Prompt:         prompt,
+			Reason:         arg.Reason,
 			UseSecretStore: arg.UseSecretStore,
 		}, nil)
 
