@@ -217,7 +217,7 @@ func (s *ScanKeys) extractKey(lctx libkb.LoginContext, skb *libkb.SKB, ui libkb.
 	if skb == nil {
 		return nil
 	}
-	k, err := skb.PromptAndUnlock(lctx, "pgp decrypt", "", nil, ui, lks)
+	k, err := skb.PromptAndUnlock(lctx, "pgp decrypt", "", nil, ui, lks, s.me)
 	if err != nil {
 		return err
 	}

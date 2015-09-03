@@ -172,6 +172,39 @@ func (s *SKB) VerboseDescription() (ret string, err error) {
 	return
 }
 
+func (s *SKB) HumanDescription(owner *User) (string, error) {
+	key, err := s.GetPubKey()
+	if err != nil {
+		return "", err
+	}
+
+	if IsPGPAlgo(s.Type) {
+		return s.pgpHumanDescription(key)
+	}
+	return s.devHumandDescription(owner, key)
+}
+
+func (s *SKB) pgpHumanDescription(key GenericKey) (string, error) {
+	pgpKey, ok := key.(*PGPKeyBundle)
+	if !ok {
+		return "", BadKeyError{Msg: "not pgp key despite skb algo type"}
+	}
+
+	return pgpKey.HumanDescription(), nil
+}
+
+func (s *SKB) devHumandDescription(owner *User, key GenericKey) (string, error) {
+	ckf := owner.GetComputedKeyFamily()
+	device, err := ckf.GetDeviceForKey(key)
+	if err != nil {
+		return "", err
+	}
+	if device.Description == nil {
+		return "", fmt.Errorf("no device description")
+	}
+	return fmt.Sprintf("Device %q", *device.Description), nil
+}
+
 func (s *SKB) RawUnlockedKey() []byte {
 	return s.decryptedRaw
 }
@@ -639,8 +672,8 @@ func (s *SKB) UnlockNoPrompt(lctx LoginContext, secretStore SecretStore, lksPrel
 	return nil, errUnlockNotPossible
 }
 
-func (s *SKB) unlockPrompt(lctx LoginContext, reason, which string, secretStore SecretStore, ui SecretUI) (GenericKey, error) {
-	desc, err := s.VerboseDescription()
+func (s *SKB) unlockPrompt(lctx LoginContext, reason, which string, secretStore SecretStore, ui SecretUI, me *User) (GenericKey, error) {
+	desc, err := s.HumanDescription(me)
 	if err != nil {
 		return nil, err
 	}
@@ -664,7 +697,7 @@ func (s *SKB) unlockPrompt(lctx LoginContext, reason, which string, secretStore 
 	}.Run()
 }
 
-func (s *SKB) PromptAndUnlock(lctx LoginContext, reason, which string, secretStore SecretStore, ui SecretUI, lksPreload *LKSec) (ret GenericKey, err error) {
+func (s *SKB) PromptAndUnlock(lctx LoginContext, reason, which string, secretStore SecretStore, ui SecretUI, lksPreload *LKSec, me *User) (ret GenericKey, err error) {
 	s.G().Log.Debug("+ PromptAndUnlock(%s,%s)", reason, which)
 	defer func() {
 		s.G().Log.Debug("- PromptAndUnlock -> %s", ErrToOk(err))
@@ -680,7 +713,7 @@ func (s *SKB) PromptAndUnlock(lctx LoginContext, reason, which string, secretSto
 	}
 
 	// Prompt necessary:
-	ret, err = s.unlockPrompt(lctx, reason, which, secretStore, ui)
+	ret, err = s.unlockPrompt(lctx, reason, which, secretStore, ui, me)
 	return
 }
 

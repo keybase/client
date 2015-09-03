@@ -273,7 +273,7 @@ func (k *Keyrings) GetSecretKeyWithPrompt(lctx LoginContext, ska SecretKeyArg, s
 		skb.SetUID(ska.Me.GetUID())
 		secretStore = NewSecretStore(ska.Me.GetNormalizedName())
 	}
-	if key, err = skb.PromptAndUnlock(lctx, reason, which, secretStore, secretUI, nil); err != nil {
+	if key, err = skb.PromptAndUnlock(lctx, reason, which, secretStore, secretUI, nil, ska.Me); err != nil {
 		key = nil
 		skb = nil
 		return

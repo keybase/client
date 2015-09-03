@@ -352,6 +352,12 @@ func (k PGPKeyBundle) VerboseDescription() string {
 	return strings.Join(lines, "\n")
 }
 
+func (k PGPKeyBundle) HumanDescription() string {
+	user := k.GetPrimaryUID()
+	keyID := k.GetFingerprint().ToKeyID()
+	return fmt.Sprintf("PGP key %s %s", user, keyID)
+}
+
 func (k PGPKeyBundle) UsersDescription() []string {
 	id := k.GetPrimaryUID()
 	if len(id) == 0 {

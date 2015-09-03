@@ -155,7 +155,7 @@ func (e *TrackToken) storeRemoteTrack(ctx *Context) (err error) {
 		secretStore = libkb.NewSecretStore(e.arg.Me.GetNormalizedName())
 	}
 	// need to unlock private key
-	e.signingKeyPriv, err = e.lockedKey.PromptAndUnlock(ctx.LoginContext, "tracking signature", e.lockedWhich, secretStore, ctx.SecretUI, nil)
+	e.signingKeyPriv, err = e.lockedKey.PromptAndUnlock(ctx.LoginContext, "tracking signature", e.lockedWhich, secretStore, ctx.SecretUI, nil, e.arg.Me)
 	if err != nil {
 		return err
 	}
