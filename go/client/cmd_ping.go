@@ -11,14 +11,7 @@ import (
 type CmdPing struct{}
 
 func (v *CmdPing) Run() error {
-	_, err := G.API.Post(libkb.APIArg{
-		Endpoint: "ping",
-		Args: libkb.HTTPArgs{
-			"alice":   libkb.S{Val: "hi alice"},
-			"bob":     libkb.I{Val: 1000},
-			"charlie": libkb.B{Val: true},
-		},
-	})
+	_, err := G.API.Post(libkb.APIArg{Endpoint: "ping"})
 	if err != nil {
 		return err
 	}
