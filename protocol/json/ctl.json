@@ -171,6 +171,10 @@
         "type" : "LogLevel"
       } ],
       "response" : "null"
+    },
+    "configReload" : {
+      "request" : [ ],
+      "response" : "null"
     }
   }
 }

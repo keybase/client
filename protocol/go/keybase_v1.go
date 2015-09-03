@@ -439,10 +439,14 @@ type SetLogLevelArg struct {
 	Level LogLevel `codec:"level" json:"level"`
 }
 
+type ConfigReloadArg struct {
+}
+
 type CtlInterface interface {
 	Stop() error
 	LogRotate() error
 	SetLogLevel(LogLevel) error
+	ConfigReload() error
 }
 
 func CtlProtocol(i CtlInterface) rpc2.Protocol {
@@ -470,6 +474,13 @@ func CtlProtocol(i CtlInterface) rpc2.Protocol {
 				}
 				return
 			},
+			"configReload": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
+				args := make([]ConfigReloadArg, 1)
+				if err = nxt(&args); err == nil {
+					err = i.ConfigReload()
+				}
+				return
+			},
 		},
 	}
 
@@ -492,6 +503,11 @@ func (c CtlClient) LogRotate() (err error) {
 func (c CtlClient) SetLogLevel(level LogLevel) (err error) {
 	__arg := SetLogLevelArg{Level: level}
 	err = c.Cli.Call("keybase.1.ctl.setLogLevel", []interface{}{__arg}, nil)
+	return
+}
+
+func (c CtlClient) ConfigReload() (err error) {
+	err = c.Cli.Call("keybase.1.ctl.configReload", []interface{}{ConfigReloadArg{}}, nil)
 	return
 }
 
