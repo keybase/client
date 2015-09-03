@@ -66,7 +66,11 @@ func (x XdgPosix) dirHelper(env string, prefixDirs ...string) string {
 		v := append([]string{h}, prefixDirs...)
 		prfx = x.Join(v...)
 	}
-	return x.Join(prfx, x.appName)
+	appName := x.appName
+	if x.getRunMode() != ProductionRunMode {
+		appName = appName + "." + string(x.getRunMode())
+	}
+	return x.Join(prfx, appName)
 }
 
 func (x XdgPosix) ConfigDir() string { return x.dirHelper("XDG_CONFIG_HOME", ".config") }
@@ -86,7 +90,7 @@ func (x XdgPosix) RuntimeDir() (string, error) {
 func (x XdgPosix) ServiceSpawnDir() (ret string, err error) {
 	ret = x.xdgRuntimeDir()
 	if len(ret) == 0 {
-		ret, err = ioutil.TempDir("", "keybase_server")
+		ret, err = ioutil.TempDir("", "keybase_service")
 	}
 	return
 }
