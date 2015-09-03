@@ -587,6 +587,9 @@ func (l LoginUI) PromptRevokePaperKeys(arg keybase1.PromptRevokePaperKeysArg) (b
 	if l.noPrompt {
 		return false, nil
 	}
+	// doing this here because there is currently no way for the daemon to do
+	// a simple printf to the client, just via UI interfaces.
+	// If we add something later, then we can move this.
 	if arg.Index == 0 {
 		l.parent.Printf("Generating a new paper key.\n")
 	}
