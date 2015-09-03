@@ -234,11 +234,12 @@ func (g *GlobalContext) Shutdown() error {
 		g.IdentifyCache.Shutdown()
 	}
 
-	epick.Push(g.writeConfig())
-
 	for _, hook := range g.ShutdownHooks {
 		epick.Push(hook())
 	}
+
+	epick.Push(g.writeConfig())
+
 	g.shutdown = true
 	return epick.Error()
 }

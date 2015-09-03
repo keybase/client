@@ -245,9 +245,9 @@
   }];
 }
 
-- (void)configReload:(void (^)(NSError *error))completion {
+- (void)reload:(void (^)(NSError *error))completion {
   NSDictionary *rparams = @{};
-  [self.client sendRequestWithMethod:@"keybase.1.ctl.configReload" params:rparams sessionId:self.sessionId completion:^(NSError *error, id retval) {
+  [self.client sendRequestWithMethod:@"keybase.1.ctl.reload" params:rparams sessionId:self.sessionId completion:^(NSError *error, id retval) {
     completion(error);
   }];
 }
