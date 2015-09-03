@@ -10,7 +10,7 @@ func NewCmdCtlReload(cl *libcmdline.CommandLine) cli.Command {
 	return cli.Command{
 		Name:        "reload",
 		Usage:       "keybase ctl reload",
-		Description: "Reload config file",
+		Description: "Reload config file.",
 		Action: func(c *cli.Context) {
 			cl.ChooseCommand(&CmdCtlReload{}, "reload", c)
 			cl.SetForkCmd(libcmdline.NoFork)

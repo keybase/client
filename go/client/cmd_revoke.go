@@ -16,7 +16,7 @@ type CmdRevoke struct {
 
 func (c *CmdRevoke) ParseArgv(ctx *cli.Context) error {
 	if len(ctx.Args()) != 1 {
-		return fmt.Errorf("revoke takes exactly one key ID")
+		return fmt.Errorf("Revoke takes exactly one key.")
 	}
 	c.id = ctx.Args()[0]
 	return nil
@@ -44,8 +44,8 @@ func (c *CmdRevoke) Run() (err error) {
 func NewCmdRevoke(cl *libcmdline.CommandLine) cli.Command {
 	return cli.Command{
 		Name:        "revoke",
-		Usage:       "keybase revoke",
-		Description: "revoke a key",
+		Usage:       "keybase revoke <key-id>",
+		Description: "Revoke a key.",
 		Flags:       []cli.Flag{},
 		Action: func(c *cli.Context) {
 			cl.ChooseCommand(&CmdRevoke{}, "revoke", c)

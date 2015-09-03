@@ -13,12 +13,11 @@ func TestLocation(t *testing.T) {
 	defer config.CleanTest()
 
 	var called bool
-	c := CmdConfig{}
-	c.location = true
+	c := CmdConfigInfo{}
 	c.writer = libkb.NewTestOutput(config.GetConfigFileName()+"\n", t, &called)
 	c.Run()
 	if !called {
-		t.Errorf("Did not read %s", c.key)
+		t.Errorf("Did not output location")
 	}
 }
 
@@ -28,8 +27,7 @@ func TestReset(t *testing.T) {
 	defer config.CleanTest()
 
 	var called bool
-	c := CmdConfig{}
-	c.reset = true
+	c := CmdConfigReset{}
 	// no output for this test
 	c.writer = libkb.NewTestOutput("", t, &called)
 	c.Run()
@@ -46,13 +44,13 @@ func TestReset(t *testing.T) {
 
 	// should be no output
 	if called {
-		t.Errorf("Did not read %s", c.key)
+		t.Errorf("Did not reset")
 	}
 }
 
 func checkRead(t *testing.T, key string, expected string) {
 	var called bool
-	c := CmdConfig{}
+	c := CmdConfigGet{}
 	c.key = key
 	c.writer = libkb.NewTestOutput(expected, t, &called)
 	c.Run()
@@ -115,7 +113,7 @@ func TestReadMissingVar(t *testing.T) {
 	defer config.CleanTest()
 
 	var called bool
-	c := CmdConfig{}
+	c := CmdConfigGet{}
 	c.key = "a"
 	c.writer = libkb.NewTestOutput("", t, &called)
 	c.Run()
@@ -127,10 +125,9 @@ func TestReadMissingVar(t *testing.T) {
 func setAndCheck(t *testing.T, config *libkb.TestConfig, key string, value string,
 	checker func(libkb.JSONConfigFile, string)) {
 	var called bool
-	c := CmdConfig{}
+	c := CmdConfigSet{}
 	c.key = key
 	c.value = value
-	c.valueSet = true
 	// should be no output
 	c.writer = libkb.NewTestOutput("", t, &called)
 	c.Run()
@@ -297,8 +294,8 @@ func TestSetEmptyString(t *testing.T) {
 	defer config.CleanTest()
 
 	checker := func(cf libkb.JSONConfigFile, key string) {
-		if ret, isSet := cf.GetStringAtPath(key); !isSet || ret != "" {
-			t.Errorf("Couldn't read string after setting; ret=%s, isSet=%t",
+		if ret, isSet := cf.GetStringAtPath(key); isSet {
+			t.Errorf("Read string after clearing; ret=%s, isSet=%t",
 				ret, isSet)
 		}
 	}
@@ -328,8 +325,7 @@ func TestClear(t *testing.T) {
 
 	// clear it
 	var called bool
-	c := CmdConfig{}
-	c.clear = true
+	c := CmdConfigSet{}
 	c.key = "c"
 	// should be no output
 	c.writer = libkb.NewTestOutput("", t, &called)

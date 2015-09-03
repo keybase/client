@@ -47,12 +47,12 @@ func (c *CmdBTC) Run() (err error) {
 func NewCmdBTC(cl *libcmdline.CommandLine) cli.Command {
 	return cli.Command{
 		Name:        "btc",
-		Usage:       "keybase btc [-f] <addr>",
-		Description: "claim a bitcoin address",
+		Usage:       "keybase btc <address>",
+		Description: "Claim a bitcoin address.",
 		Flags: []cli.Flag{
 			cli.BoolFlag{
 				Name:  "f, force",
-				Usage: "overwrite an existing address",
+				Usage: "Overwrite an existing address.",
 			},
 		},
 		Action: func(c *cli.Context) {

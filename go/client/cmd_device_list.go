@@ -21,7 +21,7 @@ func NewCmdDeviceList(cl *libcmdline.CommandLine) cli.Command {
 	return cli.Command{
 		Name:        "list",
 		Usage:       "keybase device list",
-		Description: "List devices",
+		Description: "List devices.",
 		Action: func(c *cli.Context) {
 			cl.ChooseCommand(&CmdDeviceList{}, "list", c)
 		},

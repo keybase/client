@@ -14,39 +14,39 @@ import (
 func NewCmdPGPSign(cl *libcmdline.CommandLine) cli.Command {
 	return cli.Command{
 		Name:        "sign",
-		Usage:       "keybase pgp sign [-a] [-o <outfile>] [<infile>]",
-		Description: "sign a clear document",
+		Usage:       "keybase pgp sign",
+		Description: "PGP sign a document.",
 		Action: func(c *cli.Context) {
 			cl.ChooseCommand(&CmdPGPSign{}, "sign", c)
 		},
 		Flags: []cli.Flag{
 			cli.BoolFlag{
 				Name:  "b, binary",
-				Usage: "output binary message (armored by default)",
+				Usage: "Output binary message (default is armored).",
 			},
 			cli.BoolFlag{
 				Name:  "t, text",
-				Usage: "treat input data as text and canonicalize",
+				Usage: "Treat input data as text and canonicalize.",
 			},
 			cli.BoolFlag{
 				Name:  "d, detached",
-				Usage: "detached signature (we do attached by default)",
+				Usage: "Detached signature (default is attached).",
 			},
 			cli.BoolFlag{
 				Name:  "c, clearsign",
-				Usage: "generate a clearsigned text signature",
+				Usage: "Generate a clearsigned text signature.",
 			},
 			cli.StringFlag{
 				Name:  "m, message",
-				Usage: "provide the message to sign on the command line",
+				Usage: "Provide the message to sign on the command line.",
 			},
 			cli.StringFlag{
 				Name:  "o, outfile",
-				Usage: "specify an outfile (stdout by default)",
+				Usage: "Specify an outfile (default is STDOUT).",
 			},
 			cli.StringFlag{
 				Name:  "k, key",
-				Usage: "specify a key to use for signing (otherwise most recent PGP key is used)",
+				Usage: "Specify a key to use for signing (otherwise most recent PGP key is used).",
 			},
 		},
 	}

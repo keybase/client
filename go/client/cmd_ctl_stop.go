@@ -10,7 +10,7 @@ func NewCmdCtlStop(cl *libcmdline.CommandLine) cli.Command {
 	return cli.Command{
 		Name:        "stop",
 		Usage:       "keybase ctl stop",
-		Description: "Stop the background keybase service",
+		Description: "Stop the background keybase service.",
 		Action: func(c *cli.Context) {
 			cl.ChooseCommand(&CmdCtlStop{}, "stop", c)
 			cl.SetForkCmd(libcmdline.NoFork)

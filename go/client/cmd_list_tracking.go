@@ -28,7 +28,7 @@ func (s *CmdListTracking) ParseArgv(ctx *cli.Context) error {
 	s.filter = ctx.String("filter")
 
 	if nargs > 0 {
-		err = fmt.Errorf("list tracking takes no args")
+		err = fmt.Errorf("List tracking doesn't take any arguments.")
 	}
 
 	return err
@@ -125,28 +125,28 @@ func (s *CmdListTracking) Run() error {
 
 func NewCmdListTracking(cl *libcmdline.CommandLine) cli.Command {
 	return cli.Command{
-		Name:        "tracking",
-		Usage:       "keybase list tracking",
-		Description: "list who you're tracking",
+		Name:        "list-tracking",
+		Usage:       "keybase list-tracking",
+		Description: "List who you're tracking.",
 		Action: func(c *cli.Context) {
 			cl.ChooseCommand(&CmdListTracking{}, "tracking", c)
 		},
 		Flags: []cli.Flag{
 			cli.BoolFlag{
 				Name:  "j, json",
-				Usage: "output in json format; default is text",
+				Usage: "Output as JSON (default is text).",
 			},
 			cli.BoolFlag{
 				Name:  "v, verbose",
-				Usage: "a full dump, with more gory detail",
+				Usage: "A full dump, with more gory details.",
 			},
 			cli.BoolFlag{
 				Name:  "H, headers",
-				Usage: "show column headers",
+				Usage: "Show column headers.",
 			},
 			cli.StringFlag{
 				Name:  "f, filter",
-				Usage: "provide a regex filter",
+				Usage: "Provide a regex filter.",
 			},
 		},
 	}

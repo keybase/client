@@ -17,7 +17,7 @@ type CmdDeviceRemove struct {
 
 func (c *CmdDeviceRemove) ParseArgv(ctx *cli.Context) error {
 	if len(ctx.Args()) != 1 {
-		return fmt.Errorf("device remove takes exactly one key or device ID")
+		return fmt.Errorf("Device remove only takes one argument, the device ID.")
 	}
 	id, err := keybase1.DeviceIDFromString(ctx.Args()[0])
 	if err != nil {
@@ -52,11 +52,11 @@ func NewCmdDeviceRemove(cl *libcmdline.CommandLine) cli.Command {
 	return cli.Command{
 		Name:        "remove",
 		Usage:       "keybase device remove <id>",
-		Description: "remove a device from your account, and revoke its keys",
+		Description: "Remove a device.",
 		Flags: []cli.Flag{
 			cli.BoolFlag{
 				Name:  "f, force",
-				Usage: "Override warning about removing the current device",
+				Usage: "Override warning about removing the current device.",
 			},
 		},
 		Action: func(c *cli.Context) {

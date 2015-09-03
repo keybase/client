@@ -8,14 +8,14 @@ import (
 func NewCmdCtl(cl *libcmdline.CommandLine) cli.Command {
 	return cli.Command{
 		Name:        "ctl",
-		Usage:       "keybase ctl [subcommands...]",
-		Description: "Control a background keybase service",
+		Usage:       "keybase ctl [...]",
+		Description: "Control a background keybase service.",
 		Subcommands: []cli.Command{
-			NewCmdCtlLogRotate(cl),
-			NewCmdCtlRestart(cl),
 			NewCmdCtlStart(cl),
 			NewCmdCtlStop(cl),
 			NewCmdCtlReload(cl),
+			NewCmdCtlRestart(cl),
+			NewCmdCtlLogRotate(cl),
 		},
 	}
 }

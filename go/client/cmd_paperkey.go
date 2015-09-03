@@ -11,7 +11,7 @@ func NewCmdPaperKey(cl *libcmdline.CommandLine) cli.Command {
 	return cli.Command{
 		Name:        "paperkey",
 		Usage:       "keybase paperkey",
-		Description: "Generate paper keys for recovering your account",
+		Description: "Generate paper keys for recovering your account.",
 		Action: func(c *cli.Context) {
 			cl.ChooseCommand(&CmdPaperKey{}, "paperkey", c)
 		},

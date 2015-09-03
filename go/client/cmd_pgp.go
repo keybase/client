@@ -8,8 +8,8 @@ import (
 func NewCmdPGP(cl *libcmdline.CommandLine) cli.Command {
 	return cli.Command{
 		Name:        "pgp",
-		Usage:       "keybase pgp [subcommands...]",
-		Description: "Manipulate keybase PGP keys",
+		Usage:       "keybase pgp [...]",
+		Description: "Manage keybase PGP keys.",
 		Subcommands: []cli.Command{
 			NewCmdPGPGen(cl),
 			NewCmdPGPPull(cl),

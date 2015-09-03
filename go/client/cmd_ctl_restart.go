@@ -1,17 +1,18 @@
 package client
 
 import (
+	"time"
+
 	"github.com/keybase/cli"
 	"github.com/keybase/client/go/libcmdline"
 	"github.com/keybase/client/go/libkb"
-	"time"
 )
 
 func NewCmdCtlRestart(cl *libcmdline.CommandLine) cli.Command {
 	return cli.Command{
 		Name:        "restart",
 		Usage:       "keybase ctl restart",
-		Description: "Restart the background keybase service",
+		Description: "Restart the background keybase service.",
 		Action: func(c *cli.Context) {
 			cl.ChooseCommand(&CmdCtlRestart{}, "restart", c)
 			cl.SetForkCmd(libcmdline.NoFork)

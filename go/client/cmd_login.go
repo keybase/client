@@ -69,9 +69,9 @@ func (v *CmdLogin) Cancel() error {
 
 func NewCmdLogin(cl *libcmdline.CommandLine) cli.Command {
 	return cli.Command{
-		Name: "login",
-		Usage: "Establish a session with the keybase server " +
-			"(if necessary)",
+		Name:        "login",
+		Usage:       "keybase login [<username>]",
+		Description: "Establish a session with the keybase server.",
 		Action: func(c *cli.Context) {
 			cl.ChooseCommand(&CmdLogin{}, "login", c)
 		},
@@ -81,7 +81,7 @@ func NewCmdLogin(cl *libcmdline.CommandLine) cli.Command {
 func (v *CmdLogin) ParseArgv(ctx *cli.Context) (err error) {
 	nargs := len(ctx.Args())
 	if nargs > 1 {
-		err = errors.New("login takes 0 or 1 argument: [<username>]")
+		err = errors.New("Invalid arguments.")
 	} else if nargs == 1 {
 		v.Username = ctx.Args()[0]
 	}

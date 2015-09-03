@@ -93,11 +93,11 @@ func NewCmdProve(cl *libcmdline.CommandLine) cli.Command {
 		Flags: []cli.Flag{
 			cli.StringFlag{
 				Name:  "output, o",
-				Usage: "output proof text to a file (rather than standard out)",
+				Usage: "Output proof text to a file (rather than standard out).",
 			},
 			cli.BoolFlag{
 				Name:  "force, f",
-				Usage: "don't stop for any prompts",
+				Usage: "Don't prompt.",
 			},
 		},
 		Action: func(c *cli.Context) {

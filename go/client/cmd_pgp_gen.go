@@ -81,28 +81,28 @@ func NewCmdPGPGen(cl *libcmdline.CommandLine) cli.Command {
 	return cli.Command{
 		Name:        "gen",
 		Usage:       "keybase pgp gen",
-		Description: "Generate a new PGP key and write to local secret keychain",
+		Description: "Generate a new PGP key and write to local secret keychain.",
 		Flags: []cli.Flag{
 			cli.BoolFlag{
 				Name:  "d, debug",
-				Usage: "Generate small keys for debugging",
+				Usage: "Generate small keys for debugging.",
 			},
 			cli.StringSliceFlag{
 				Name:  "pgp-uid",
-				Usage: "Specify custom PGP uid(s)",
+				Usage: "Specify custom PGP uid(s).",
 				Value: &cli.StringSlice{},
 			},
 			cli.BoolFlag{
 				Name:  "no-default-pgp-uid",
-				Usage: "Do not include the default PGP uid 'username@keybase.io' in the key",
+				Usage: "Do not include the default PGP uid 'username@keybase.io' in the key.",
 			},
 			cli.BoolFlag{
 				Name:  "multi",
-				Usage: "Allow multiple PGP keys",
+				Usage: "Allow multiple PGP keys.",
 			},
 			cli.BoolFlag{
 				Name:  "no-export",
-				Usage: "Disable exporting of new keys to GPG keychain",
+				Usage: "Disable exporting of new keys to GPG keychain.",
 			},
 		},
 		Action: func(c *cli.Context) {

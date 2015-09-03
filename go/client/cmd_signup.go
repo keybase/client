@@ -14,19 +14,19 @@ import (
 func NewCmdSignup(cl *libcmdline.CommandLine) cli.Command {
 	cmd := cli.Command{
 		Name:        "signup",
-		Usage:       "keybase signup [-c <code>]",
-		Description: "signup for a new account",
+		Usage:       "keybase signup",
+		Description: "Signup for a new account.",
 		Action: func(c *cli.Context) {
 			cl.ChooseCommand(&CmdSignup{}, "signup", c)
 		},
 		Flags: []cli.Flag{
 			cli.StringFlag{
 				Name:  "c, invite-code",
-				Usage: "Specify an invite code",
+				Usage: "Specify an invite code.",
 			},
 			cli.StringFlag{
 				Name:  "email",
-				Usage: "Specify an account email",
+				Usage: "Specify an account email.",
 			},
 		},
 	}
@@ -106,7 +106,7 @@ func (s *CmdSignup) ParseArgv(ctx *cli.Context) error {
 	}
 
 	if nargs != 0 {
-		err = BadArgsError{"signup doesn't take arguments"}
+		err = BadArgsError{"Signup doesn't take arguments."}
 	}
 	return err
 }
@@ -121,7 +121,7 @@ Welcome to keybase.io!
    - type 'keybase help' for more instructions
    - type 'keybase pgp gen' if you'd like to create a PGP key
 
-Keybase is in alpha and we'll be rolling out new features soon. Report bugs 
+Keybase is in alpha and we'll be rolling out new features soon. Report bugs
 to us at https://github.com/keybase/keybase-issues
 
 Enjoy!
@@ -312,27 +312,27 @@ func (s *CmdSignup) MakePrompter() {
 		Disabled: true,
 		Name:     "passphraseRetry",
 		Checker:  &libkb.CheckYesNo,
-		Prompt:   "Reenter passphrase",
+		Prompt:   "Re-enter passphrase.",
 	}
 
 	email := &Field{
 		Defval:  s.defaultEmail,
 		Name:    "email",
-		Prompt:  "Your email address",
+		Prompt:  "Your email address.",
 		Checker: &libkb.CheckEmail,
 	}
 
 	username := &Field{
 		Defval:  s.defaultUsername,
 		Name:    "username",
-		Prompt:  "Your desired username",
+		Prompt:  "Your desired username.",
 		Checker: &libkb.CheckUsername,
 	}
 
 	deviceName := &Field{
 		Defval:  s.defaultDevice,
 		Name:    "devname",
-		Prompt:  "A public name for this device",
+		Prompt:  "A public name for this device.",
 		Checker: &libkb.CheckNotEmpty,
 	}
 

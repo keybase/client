@@ -43,11 +43,11 @@ func NewCmdPGPUpdate(cl *libcmdline.CommandLine) cli.Command {
 	return cli.Command{
 		Name:        "update",
 		Usage:       "keybase pgp update",
-		Description: "Upload the latest PGP metadata for your keys",
+		Description: "Update PGP keys.",
 		Flags: []cli.Flag{
 			cli.BoolFlag{
 				Name:  "all",
-				Usage: "update all available keys",
+				Usage: "Update all available keys.",
 			},
 		},
 		Action: func(c *cli.Context) {

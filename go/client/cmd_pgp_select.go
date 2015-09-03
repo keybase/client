@@ -21,7 +21,7 @@ func (v *CmdPGPSelect) ParseArgv(ctx *cli.Context) (err error) {
 	if nargs := len(ctx.Args()); nargs == 1 {
 		v.query = ctx.Args()[0]
 	} else if nargs != 0 {
-		err = fmt.Errorf("pgp select takes 0 or 1 arguments")
+		err = fmt.Errorf("PGP select takes 0 or 1 arguments.")
 	}
 	if err == nil {
 		v.multi = ctx.Bool("multi")
@@ -62,22 +62,22 @@ func NewCmdPGPSelect(cl *libcmdline.CommandLine) cli.Command {
 	return cli.Command{
 		Name:        "select",
 		Usage:       "keybase pgp select [<key-query>]",
-		Description: "Select a key as your own and register the public half with the server",
+		Description: "Select a key as your own and register the public half with the server.",
 		Action: func(c *cli.Context) {
 			cl.ChooseCommand(&CmdPGPSelect{}, "select", c)
 		},
 		Flags: []cli.Flag{
 			cli.BoolFlag{
 				Name:  "multi",
-				Usage: "Allow multiple PGP keys",
+				Usage: "Allow multiple PGP keys.",
 			},
 			cli.BoolFlag{
 				Name:  "no-import",
-				Usage: "Don't import private key to local Keybase's private keychain",
+				Usage: "Don't import private key to local Keybase's private keychain.",
 			},
 			cli.BoolFlag{
 				Name:  "only-import",
-				Usage: "only import the secret key into local Keybase private keycahin",
+				Usage: "only import the secret key into local Keybase private keycahin.",
 			},
 		},
 	}

@@ -26,29 +26,29 @@ type CmdListTrackers struct {
 // NewCmdListTrackers creates a new cli.Command.
 func NewCmdListTrackers(cl *libcmdline.CommandLine) cli.Command {
 	return cli.Command{
-		Name:        "trackers",
-		Usage:       "keybase list trackers [username]",
-		Description: "List trackers",
+		Name:        "list-trackers",
+		Usage:       "keybase list-trackers <username>",
+		Description: "List trackers.",
 		Flags: []cli.Flag{
 			cli.BoolFlag{
 				Name:  "i, uid",
-				Usage: "Load user by UID",
+				Usage: "Load user by UID.",
 			},
 			cli.BoolFlag{
 				Name:  "v, verbose",
-				Usage: "a full dump, with more gory detail",
+				Usage: "A full dump, with more gory details.",
 			},
 			cli.BoolFlag{
 				Name:  "j, json",
-				Usage: "output in json format; default is text",
+				Usage: "Output as JSON (default is text).",
 			},
 			cli.BoolFlag{
 				Name:  "H, headers",
-				Usage: "show column headers",
+				Usage: "Show column headers.",
 			},
 		},
 		Action: func(c *cli.Context) {
-			cl.ChooseCommand(&CmdListTrackers{}, "trackers", c)
+			cl.ChooseCommand(&CmdListTrackers{}, "list-trackers", c)
 		},
 	}
 }

@@ -19,7 +19,7 @@ type CmdID struct {
 func (v *CmdID) ParseArgv(ctx *cli.Context) error {
 	nargs := len(ctx.Args())
 	if nargs > 1 {
-		return fmt.Errorf("id takes one arg -- the user to lookup")
+		return fmt.Errorf("Identify only takes one argument, the user to lookup.")
 	}
 
 	if nargs == 1 {
@@ -65,11 +65,11 @@ func NewCmdID(cl *libcmdline.CommandLine) cli.Command {
 	return cli.Command{
 		Name:        "id",
 		Usage:       "keybase id <username>",
-		Description: "identify a user and check their proofs",
+		Description: "Identify a user and check their signature chain.",
 		Flags: []cli.Flag{
 			cli.BoolFlag{
 				Name:  "t, track-statement",
-				Usage: "output a JSON a track statement for this user",
+				Usage: "Output a tracking statement (in JSON format).",
 			},
 		},
 		Action: func(c *cli.Context) {
