@@ -2850,12 +2850,13 @@ type CheckUsernameAvailableArg struct {
 }
 
 type SignupArg struct {
-	SessionID  int    `codec:"sessionID" json:"sessionID"`
-	Email      string `codec:"email" json:"email"`
-	InviteCode string `codec:"inviteCode" json:"inviteCode"`
-	Passphrase string `codec:"passphrase" json:"passphrase"`
-	Username   string `codec:"username" json:"username"`
-	DeviceName string `codec:"deviceName" json:"deviceName"`
+	SessionID   int    `codec:"sessionID" json:"sessionID"`
+	Email       string `codec:"email" json:"email"`
+	InviteCode  string `codec:"inviteCode" json:"inviteCode"`
+	Passphrase  string `codec:"passphrase" json:"passphrase"`
+	Username    string `codec:"username" json:"username"`
+	DeviceName  string `codec:"deviceName" json:"deviceName"`
+	StoreSecret bool   `codec:"storeSecret" json:"storeSecret"`
 }
 
 type InviteRequestArg struct {

@@ -224,11 +224,12 @@ func (s *CmdSignup) trySignup() (err error) {
 func (s *CmdSignup) runEngine() (retry bool, err error) {
 
 	rarg := keybase1.SignupArg{
-		Username:   s.fields.username.GetValue(),
-		Email:      s.fields.email.GetValue(),
-		InviteCode: s.fields.code.GetValue(),
-		Passphrase: s.passphrase,
-		DeviceName: s.fields.deviceName.GetValue(),
+		Username:    s.fields.username.GetValue(),
+		Email:       s.fields.email.GetValue(),
+		InviteCode:  s.fields.code.GetValue(),
+		Passphrase:  s.passphrase,
+		StoreSecret: s.storeSecret,
+		DeviceName:  s.fields.deviceName.GetValue(),
 	}
 	res, err := s.scli.Signup(rarg)
 	if err == nil {

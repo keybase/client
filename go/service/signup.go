@@ -27,11 +27,12 @@ func (h *SignupHandler) Signup(arg keybase1.SignupArg) (res keybase1.SignupRes, 
 		LoginUI:  h.getLoginUI(arg.SessionID),
 	}
 	runarg := engine.SignupEngineRunArg{
-		Username:   arg.Username,
-		Email:      arg.Email,
-		InviteCode: arg.InviteCode,
-		Passphrase: arg.Passphrase,
-		DeviceName: arg.DeviceName,
+		Username:    arg.Username,
+		Email:       arg.Email,
+		InviteCode:  arg.InviteCode,
+		Passphrase:  arg.Passphrase,
+		StoreSecret: arg.StoreSecret,
+		DeviceName:  arg.DeviceName,
 	}
 	eng := engine.NewSignupEngine(&runarg, G)
 	err = engine.RunEngine(eng, ctx)
