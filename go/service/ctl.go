@@ -1,9 +1,10 @@
 package service
 
 import (
-	keybase1 "github.com/keybase/client/protocol/go"
 	"os"
 	"time"
+
+	keybase1 "github.com/keybase/client/protocol/go"
 )
 
 type CtlHandler struct{}
@@ -26,4 +27,9 @@ func (c CtlHandler) LogRotate() error {
 func (c CtlHandler) SetLogLevel(level keybase1.LogLevel) error {
 	G.Log.SetExternalLogLevel(level)
 	return nil
+}
+
+func (c CtlHandler) ConfigReload() error {
+	G.Log.Info("Reloading config file")
+	return G.ConfigReload()
 }

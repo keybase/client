@@ -127,7 +127,7 @@ func (f *JSONConfigFile) setValueAtPath(p string, getter valueGetter, v interfac
 	if err != nil || existing != v {
 		err = f.jw.SetValueAtPath(p, jsonw.NewWrapper(v))
 		if err == nil {
-			f.dirty = true
+			return f.flush()
 		}
 	}
 	return err
@@ -150,7 +150,7 @@ func (f *JSONConfigFile) SetNullAtPath(p string) (err error) {
 	if !existing.IsNil() || existing.Error() != nil {
 		err = f.jw.SetValueAtPath(p, jsonw.NewNil())
 		if err == nil {
-			f.dirty = true
+			return f.flush()
 		}
 	}
 	return
@@ -200,8 +200,7 @@ func (f *JSONConfigFile) SwitchUser(nu NormalizedUsername) error {
 
 	f.jw.SetKey("current_user", jsonw.NewString(nu.String()))
 	f.userConfigWrapper.userConfig = nil
-	f.dirty = true
-	return nil
+	return f.flush()
 }
 
 // GetUserConfigForUsername sees if there's a UserConfig object for the given
@@ -278,43 +277,49 @@ func (f *JSONConfigFile) setUserConfigWithLock(u *UserConfig, overwrite bool) er
 		G.Log.Debug("| SetUserConfig(nil)")
 		f.jw.DeleteKey("current_user")
 		f.userConfigWrapper.userConfig = nil
-		f.dirty = true
-	} else {
-		parent := f.jw.AtKey("users")
-		un := u.GetUsername()
-		G.Log.Debug("| SetUserConfig(%s)", un)
-		if parent.IsNil() {
-			parent = jsonw.NewDictionary()
-			f.jw.SetKey("users", parent)
-			f.dirty = true
-		}
-		if parent.AtKey(un.String()).IsNil() || overwrite {
-			uWrapper, err := jsonw.NewObjectWrapper(*u)
-			if err != nil {
-				return err
-			}
-			parent.SetKey(un.String(), uWrapper)
-			f.userConfigWrapper.userConfig = u
-			f.dirty = true
-		}
-
-		if !f.getCurrentUser().Eq(un) {
-			f.jw.SetKey("current_user", jsonw.NewString(un.String()))
-			f.userConfigWrapper.userConfig = nil
-			f.dirty = true
-		}
+		return f.flush()
 	}
-	return nil
+
+	parent := f.jw.AtKey("users")
+	un := u.GetUsername()
+	G.Log.Debug("| SetUserConfig(%s)", un)
+	if parent.IsNil() {
+		parent = jsonw.NewDictionary()
+		f.jw.SetKey("users", parent)
+		f.dirty = true
+	}
+	if parent.AtKey(un.String()).IsNil() || overwrite {
+		uWrapper, err := jsonw.NewObjectWrapper(*u)
+		if err != nil {
+			return err
+		}
+		parent.SetKey(un.String(), uWrapper)
+		f.userConfigWrapper.userConfig = u
+		f.dirty = true
+	}
+
+	if !f.getCurrentUser().Eq(un) {
+		f.jw.SetKey("current_user", jsonw.NewString(un.String()))
+		f.userConfigWrapper.userConfig = nil
+		f.dirty = true
+	}
+
+	return f.Write()
 }
 
 func (f *JSONConfigFile) DeleteAtPath(p string) {
 	f.jw.DeleteValueAtPath(p)
-	f.dirty = true
+	f.flush()
 }
 
 func (f *JSONConfigFile) Reset() {
 	f.jw = jsonw.NewDictionary()
+	f.flush()
+}
+
+func (f *JSONConfigFile) flush() error {
 	f.dirty = true
+	return f.Write()
 }
 
 func (f *JSONConfigFile) Write() error {
