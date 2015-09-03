@@ -10,9 +10,8 @@ import (
 )
 
 var val string
-var mu sync.Mutex
 var con net.Conn
-var started bool
+var startOnce sync.Once
 
 type dummyCmd struct{}
 
@@ -35,26 +34,19 @@ func (n debuggingConfig) GetLocalRPCDebug() string {
 func (d dummyCmd) GetUsage() libkb.Usage { return libkb.Usage{} }
 
 func start() {
-	if !started {
+	startOnce.Do(func() {
 		libkb.G.Init()
 		libkb.G.ConfigureAll(debuggingConfig{}, dummyCmd{})
 		(service.NewService(false)).StartLoopbackServer(libkb.G)
 		con, _, _ = libkb.G.GetSocket()
-		started = true
-	}
-}
-
-func ensureInit() {
-	mu.Lock()
-	start()
-	mu.Unlock()
+	})
 }
 
 // Takes base64 encoded msgpack rpc payload
 func Write(str string) {
 	data, err := base64.StdEncoding.DecodeString(str)
 	if err == nil {
-		ensureInit()
+		start()
 		con.Write(data)
 	} else {
 		fmt.Println("write error:", err, str)
@@ -64,7 +56,7 @@ func Write(str string) {
 // Blocking read, returns base64 encoded msgpack rpc payload
 func Read() string {
 	data := make([]byte, 1024*1024)
-	ensureInit()
+	start()
 	n, err := con.Read(data)
 	if n > 0 && err == nil {
 		str := base64.StdEncoding.EncodeToString(data[0:n])
