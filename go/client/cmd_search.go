@@ -77,6 +77,10 @@ func (c *CmdSearch) showResults(results []keybase1.UserSummary) error {
 }
 
 func (c *CmdSearch) showRegularResults(results []keybase1.UserSummary) error {
+	if len(results) == 0 {
+		GlobUI.Println("No results.")
+		return nil
+	}
 	for _, user := range results {
 		GlobUI.Printf("%s", user.Username)
 		for _, social := range user.Proofs.Social {
