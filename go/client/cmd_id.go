@@ -52,6 +52,12 @@ func (v *CmdID) Run() error {
 
 	arg := v.makeArg()
 	_, err = cli.Identify(arg.Export())
+	if _, ok := err.(libkb.SelfNotFoundError); ok {
+		GlobUI.Println("Could not find UID or username for you on this device.")
+		GlobUI.Println("You can either specify a user to id:  keybase id <username>")
+		GlobUI.Println("Or log in once on this device and run `keybase id` again.")
+		return nil
+	}
 	return err
 }
 

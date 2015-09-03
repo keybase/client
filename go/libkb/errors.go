@@ -808,12 +808,12 @@ func (e UnknownKeyTypeError) Error() string {
 
 //=============================================================================
 
-type LoadUserError struct {
+type SelfNotFoundError struct {
 	msg string
 }
 
-func (e LoadUserError) Error() string {
-	return fmt.Sprintf("LoadUser error: %s", e.msg)
+func (e SelfNotFoundError) Error() string {
+	return e.msg
 }
 
 type ChainLinkError struct {

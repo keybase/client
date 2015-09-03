@@ -38,6 +38,9 @@ func (arg *LoadUserArg) checkUIDName() error {
 
 	if arg.UID = myUID(arg.G(), arg.LoginContext); arg.UID.IsNil() {
 		arg.Name = arg.G().Env.GetUsername().String()
+		if len(arg.Name) == 0 {
+			return SelfNotFoundError{msg: "could not find UID or username for self"}
+		}
 	}
 	return nil
 }
@@ -48,7 +51,9 @@ func (arg *LoadUserArg) resolveUID() (ResolveResult, error) {
 		return rres, nil
 	}
 	if len(arg.Name) == 0 {
-		return rres, LoadUserError{"we don't know the current user's UID or name"}
+		// this won't happen anymore because check moved to
+		// checkUIDName() func, but just in case
+		return rres, fmt.Errorf("resolveUID:  no uid or name")
 	}
 
 	if rres = ResolveUID(arg.Name); rres.err != nil {

@@ -210,6 +210,8 @@ func ImportStatusAsError(s *keybase1.Status) error {
 		return StreamWrongKindError{}
 	case SCStreamEOF:
 		return io.EOF
+	case SCSelfNotFound:
+		return SelfNotFoundError{msg: s.Desc}
 	default:
 		ase := AppStatusError{
 			Code:   s.Code,
@@ -672,6 +674,14 @@ func (e IdentifyTimeoutError) ToStatus() keybase1.Status {
 	return keybase1.Status{
 		Code: SCIdentificationExpired,
 		Name: "IDENTIFICATION_EXPIRED",
+		Desc: e.Error(),
+	}
+}
+
+func (e SelfNotFoundError) ToStatus() keybase1.Status {
+	return keybase1.Status{
+		Code: SCSelfNotFound,
+		Name: "SELF_NOT_FOUND",
 		Desc: e.Error(),
 	}
 }

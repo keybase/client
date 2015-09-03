@@ -122,6 +122,7 @@ const (
 	SCTimeout                = 1602
 	SCProofError             = 1701
 	SCIdentificationExpired  = 1702
+	SCSelfNotFound           = 1703
 )
 
 const (
