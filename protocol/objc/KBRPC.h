@@ -1192,7 +1192,7 @@ typedef NS_ENUM (NSInteger, KBRPromptDefault) {
 
 - (void)setLogLevelWithLevel:(KBRLogLevel)level completion:(void (^)(NSError *error))completion;
 
-- (void)configReload:(void (^)(NSError *error))completion;
+- (void)reload:(void (^)(NSError *error))completion;
 
 @end
 

@@ -29,7 +29,7 @@ func (c CtlHandler) SetLogLevel(level keybase1.LogLevel) error {
 	return nil
 }
 
-func (c CtlHandler) ConfigReload() error {
+func (c CtlHandler) Reload() error {
 	G.Log.Info("Reloading config file")
 	return G.ConfigReload()
 }
