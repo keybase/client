@@ -53,8 +53,7 @@ func mainInner(g *libkb.GlobalContext) error {
 	}
 
 	if cmd == nil {
-		err = fmt.Errorf("No command selected")
-		return err
+		return nil
 	}
 
 	if !cl.IsService() {
