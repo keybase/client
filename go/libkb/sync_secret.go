@@ -258,7 +258,7 @@ func (ss *SecretSyncer) DumpPrivateKeys() {
 	}
 }
 
-func (k ServerPrivateKey) ToSKB() (*SKB, error) {
+func (k ServerPrivateKey) ToSKB(gc *GlobalContext) (*SKB, error) {
 	if k.KeyType != KeyTypeP3skbPrivate {
 		return nil, fmt.Errorf("invalid key type for skb conversion: %d", k.KeyType)
 	}

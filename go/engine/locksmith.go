@@ -453,7 +453,7 @@ func (d *Locksmith) deviceSignPGP(ctx *Context) error {
 		}
 	}
 	if ok {
-		skb, err := pk.ToSKB()
+		skb, err := pk.ToSKB(d.G())
 		if err != nil {
 			return err
 		}

@@ -159,7 +159,9 @@ func (p *KeybasePacket) MyUnmarshalBinary(data []byte) error {
 
 	switch p.Tag {
 	case TagP3skb:
-		body = &SKB{}
+		// XXX this function should get a G passed into it, but to do that requires
+		// a lot of changes upstream.
+		body = NewSKB(G)
 	case TagSignature:
 		body = &NaclSigInfo{}
 	case TagEncryption:

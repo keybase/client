@@ -409,8 +409,7 @@ func (s *NaclSigInfo) ArmoredEncode() (ret string, err error) {
 }
 
 func (k NaclSigningKeyPair) ToSKB(gc *GlobalContext, t *triplesec.Cipher, gen PassphraseGeneration) (*SKB, error) {
-	ret := &SKB{}
-	ret.SetGlobalContext(gc)
+	ret := NewSKB(gc)
 	ret.Pub = k.GetKID().ToBytes()
 	ret.Type = KIDNaclEddsa
 	ret.Priv.Encryption = 0
@@ -420,8 +419,7 @@ func (k NaclSigningKeyPair) ToSKB(gc *GlobalContext, t *triplesec.Cipher, gen Pa
 }
 
 func (k NaclDHKeyPair) ToSKB(gc *GlobalContext, t *triplesec.Cipher, gen PassphraseGeneration) (*SKB, error) {
-	ret := &SKB{}
-	ret.SetGlobalContext(gc)
+	ret := NewSKB(gc)
 	ret.Pub = k.GetKID().ToBytes()
 	ret.Type = KIDNaclDH
 	ret.Priv.Encryption = 0
@@ -435,7 +433,7 @@ func (k NaclSigningKeyPair) ToLksSKB(lks *LKSec) (*SKB, error) {
 	if err != nil {
 		return nil, err
 	}
-	ret := &SKB{Contextified: lks.Contextified}
+	ret := NewSKB(lks.G())
 	ret.Pub = k.GetKID().ToBytes()
 	ret.Type = KIDNaclEddsa
 	ret.Priv.Encryption = LKSecVersion
@@ -448,7 +446,7 @@ func (k NaclDHKeyPair) ToLksSKB(lks *LKSec) (*SKB, error) {
 	if err != nil {
 		return nil, err
 	}
-	ret := &SKB{Contextified: lks.Contextified}
+	ret := NewSKB(lks.G())
 	ret.Pub = k.GetKID().ToBytes()
 	ret.Type = KIDNaclDH
 	ret.Priv.Encryption = LKSecVersion

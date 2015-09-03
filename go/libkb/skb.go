@@ -41,6 +41,10 @@ type SKB struct {
 	sync.Mutex // currently only for uid
 }
 
+func NewSKB(gc *GlobalContext) *SKB {
+	return &SKB{Contextified: NewContextified(gc)}
+}
+
 type SKBPriv struct {
 	Data                 []byte `codec:"data"`
 	Encryption           int    `codec:"encryption"`
@@ -49,8 +53,7 @@ type SKBPriv struct {
 
 func (key *PGPKeyBundle) ToSKB(gc *GlobalContext, tsec *triplesec.Cipher, gen PassphraseGeneration) (ret *SKB, err error) {
 
-	ret = &SKB{}
-	ret.SetGlobalContext(gc)
+	ret = NewSKB(gc)
 
 	var pk, sk bytes.Buffer
 
@@ -93,7 +96,7 @@ func (key *PGPKeyBundle) ToLksSKB(lks *LKSec) (ret *SKB, err error) {
 		return nil, err
 	}
 
-	ret = &SKB{}
+	ret = NewSKB(lks.G())
 	ret.Priv.Data, err = lks.Encrypt(sk.Bytes())
 	if err != nil {
 		return nil, err
@@ -636,7 +639,7 @@ func (s *SKB) UnlockNoPrompt(lctx LoginContext, secretStore SecretStore, lksPrel
 	return nil, errUnlockNotPossible
 }
 
-func (s *SKB) UnlockPrompt(lctx LoginContext, reason, which string, secretStore SecretStore, ui SecretUI) (GenericKey, error) {
+func (s *SKB) unlockPrompt(lctx LoginContext, reason, which string, secretStore SecretStore, ui SecretUI) (GenericKey, error) {
 	desc, err := s.VerboseDescription()
 	if err != nil {
 		return nil, err
@@ -677,7 +680,7 @@ func (s *SKB) PromptAndUnlock(lctx LoginContext, reason, which string, secretSto
 	}
 
 	// Prompt necessary:
-	ret, err = s.UnlockPrompt(lctx, reason, which, secretStore, ui)
+	ret, err = s.unlockPrompt(lctx, reason, which, secretStore, ui)
 	return
 }
 
