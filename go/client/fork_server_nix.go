@@ -126,7 +126,7 @@ func makeServerCommandLine(cl libkb.CommandLine) (arg0 string, args []string, er
 	args = append(args, "service")
 
 	var chdir string
-	chdir, err = G.Env.GetChdirDir()
+	chdir, err = G.Env.GetServiceSpawnDir()
 	if err != nil {
 		return
 	}

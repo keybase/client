@@ -177,13 +177,13 @@ func (e *Env) getHomeFromCmdOrConfig() string {
 	)
 }
 
-func (e *Env) GetHome() string                { return e.homeFinder.Home(false) }
-func (e *Env) GetConfigDir() string           { return e.homeFinder.ConfigDir() }
-func (e *Env) GetCacheDir() string            { return e.homeFinder.CacheDir() }
-func (e *Env) GetDataDir() string             { return e.homeFinder.DataDir() }
-func (e *Env) GetRuntimeDir() (string, error) { return e.homeFinder.RuntimeDir() }
-func (e *Env) GetChdirDir() (string, error)   { return e.homeFinder.ChdirDir() }
-func (e *Env) GetLogDir() string              { return e.homeFinder.LogDir() }
+func (e *Env) GetHome() string                     { return e.homeFinder.Home(false) }
+func (e *Env) GetConfigDir() string                { return e.homeFinder.ConfigDir() }
+func (e *Env) GetCacheDir() string                 { return e.homeFinder.CacheDir() }
+func (e *Env) GetDataDir() string                  { return e.homeFinder.DataDir() }
+func (e *Env) GetRuntimeDir() (string, error)      { return e.homeFinder.RuntimeDir() }
+func (e *Env) GetServiceSpawnDir() (string, error) { return e.homeFinder.ServiceSpawnDir() }
+func (e *Env) GetLogDir() string                   { return e.homeFinder.LogDir() }
 
 func (e *Env) getEnvInt(s string) (int, bool) {
 	v := os.Getenv(s)
