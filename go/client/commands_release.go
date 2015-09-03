@@ -5,8 +5,6 @@
 package client
 
 import (
-	"runtime"
-
 	"github.com/keybase/cli"
 	"github.com/keybase/client/go/libcmdline"
 )
