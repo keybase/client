@@ -6,11 +6,13 @@ import (
 	"os/signal"
 	"path/filepath"
 	"runtime/pprof"
+	"syscall"
 
 	"github.com/keybase/client/go/client"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/logger"
 	keybase1 "github.com/keybase/client/protocol/go"
+	"github.com/rcrowley/go-metrics"
 	"golang.org/x/net/context"
 )
 
@@ -148,10 +150,10 @@ func Init(localUser string, serverRootDir *string, cpuProfilePath,
 		pprof.StartCPUProfile(f)
 	}
 
-	sigchan := make(chan os.Signal, 1)
-	signal.Notify(sigchan, os.Interrupt)
+	interruptChan := make(chan os.Signal, 1)
+	signal.Notify(interruptChan, os.Interrupt)
 	go func() {
-		_ = <-sigchan
+		_ = <-interruptChan
 
 		Shutdown(memProfilePath)
 
@@ -160,6 +162,16 @@ func Init(localUser string, serverRootDir *string, cpuProfilePath,
 		}
 
 		os.Exit(1)
+	}()
+
+	registry := metrics.NewRegistry()
+
+	usr1Chan := make(chan os.Signal, 1)
+	signal.Notify(usr1Chan, syscall.SIGUSR1)
+	go func() {
+		for range usr1Chan {
+			metrics.WriteOnce(registry, os.Stdout)
+		}
 	}()
 
 	config := NewConfigLocal()
@@ -204,6 +216,13 @@ func Init(localUser string, serverRootDir *string, cpuProfilePath,
 	if err != nil {
 		return nil, fmt.Errorf("problem creating KBPKI client: %s", err)
 	}
+
+	// Don't bother creating measured objects if UseNilMetrics is
+	// set.
+	if !metrics.UseNilMetrics {
+		k = NewKbpkiMeasured(k, registry)
+	}
+
 	config.SetKBPKI(k)
 
 	if localUser == "" {
