@@ -6,26 +6,26 @@ import (
 	"github.com/keybase/client/go/libkb"
 )
 
-func NewCmdCtlConfigReload(cl *libcmdline.CommandLine) cli.Command {
+func NewCmdCtlReload(cl *libcmdline.CommandLine) cli.Command {
 	return cli.Command{
-		Name:        "config-reload",
-		Usage:       "keybase ctl config-reload",
+		Name:        "reload",
+		Usage:       "keybase ctl reload",
 		Description: "Reload config file",
 		Action: func(c *cli.Context) {
-			cl.ChooseCommand(&CmdCtlConfigReload{}, "config-reload", c)
+			cl.ChooseCommand(&CmdCtlReload{}, "reload", c)
 			cl.SetForkCmd(libcmdline.NoFork)
 			cl.SetNoStandalone()
 		},
 	}
 }
 
-type CmdCtlConfigReload struct{}
+type CmdCtlReload struct{}
 
-func (s *CmdCtlConfigReload) ParseArgv(ctx *cli.Context) error {
+func (s *CmdCtlReload) ParseArgv(ctx *cli.Context) error {
 	return nil
 }
 
-func (s *CmdCtlConfigReload) Run() (err error) {
+func (s *CmdCtlReload) Run() (err error) {
 	cli, err := GetCtlClient()
 	if err != nil {
 		return err
@@ -33,6 +33,6 @@ func (s *CmdCtlConfigReload) Run() (err error) {
 	return cli.ConfigReload()
 }
 
-func (s *CmdCtlConfigReload) GetUsage() libkb.Usage {
+func (s *CmdCtlReload) GetUsage() libkb.Usage {
 	return libkb.Usage{}
 }

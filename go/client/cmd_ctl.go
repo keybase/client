@@ -15,7 +15,7 @@ func NewCmdCtl(cl *libcmdline.CommandLine) cli.Command {
 			NewCmdCtlRestart(cl),
 			NewCmdCtlStart(cl),
 			NewCmdCtlStop(cl),
-			NewCmdCtlConfigReload(cl),
+			NewCmdCtlReload(cl),
 		},
 	}
 }
