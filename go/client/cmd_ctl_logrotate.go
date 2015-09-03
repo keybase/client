@@ -12,7 +12,7 @@ func NewCmdCtlLogRotate(cl *libcmdline.CommandLine) cli.Command {
 		Usage:       "keybase ctl log-rotate",
 		Description: "Close and open the keybase service's logfile",
 		Action: func(c *cli.Context) {
-			cl.ChooseCommand(&CmdCtlLogRotate{}, "stop", c)
+			cl.ChooseCommand(&CmdCtlLogRotate{}, "log-rotate", c)
 			cl.SetForkCmd(libcmdline.NoFork)
 			cl.SetNoStandalone()
 		},
