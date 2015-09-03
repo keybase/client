@@ -38,7 +38,7 @@ func start() {
 		libkb.G.Init()
 		libkb.G.ConfigureAll(debuggingConfig{}, dummyCmd{})
 		(service.NewService(false)).StartLoopbackServer(libkb.G)
-		con, _, _ = libkb.G.GetSocket()
+		Reset()
 	})
 }
 
@@ -57,6 +57,7 @@ func Write(str string) {
 func Read() string {
 	data := make([]byte, 1024*1024)
 	start()
+
 	n, err := con.Read(data)
 	if n > 0 && err == nil {
 		str := base64.StdEncoding.EncodeToString(data[0:n])
@@ -65,7 +66,19 @@ func Read() string {
 
 	if err != nil {
 		fmt.Println("read error:", err)
+		// attempt to fix the connection
+		Reset()
 	}
 
 	return ""
+}
+
+func Reset() {
+	var err error
+	libkb.G.SocketWrapper = nil
+	con, _, err = libkb.G.GetSocket()
+
+	if err != nil {
+		fmt.Println("loopback socker error:", err)
+	}
 }

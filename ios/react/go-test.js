@@ -40,9 +40,9 @@ class GoTest extends Component {
   sendToGo () {
     var toSend = this.state.data
 
-    engine.rpc('test.testCallback', [{sessionID: 1, name: toSend}],
+    engine.rpc('test.testCallback', {sessionID: 1, name: toSend},
                (err, data) => {
-                 if (!err) {
+                 if (!err && data) {
                    this.setState({data: data})
                  }
                })

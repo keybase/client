@@ -43,7 +43,6 @@ class Engine {
   }
 
   setupListener () {
-    var self = this
     this.subscription = NativeAppEventEmitter.addListener(
       objcEngine.eventName,
       (payload) => {
@@ -51,7 +50,7 @@ class Engine {
           return
         }
 
-        self.rpcClient.transport.packetize_data(new Buffer(payload, 'base64')) // not sure why we can't use this here...
+        this.rpcClient.transport.packetize_data(new Buffer(payload, 'base64'))
       }
     )
   }
@@ -60,9 +59,9 @@ class Engine {
     objcEngine.runWithData(data)
   }
 
-  // (name of call, [{aruguments}], function(err, results)
+  // (name of call, {arguuments object}, function(err, results)
   rpc (proc, arg, callback) {
-    this.rpcClient.invoke(proc, arg, callback)
+    this.rpcClient.invoke(proc, [arg], callback)
   }
 }
 

@@ -9,8 +9,8 @@
   },
   "dependencies": {
     "buffer": "^3.4.3",
+    "iced-runtime": "^1.0.3",
     "react-native": "^0.10.1",
-    "util": "^0.10.3",
-    "iced-runtime": "git@github.com:chrisnojima/iced-runtime.git#check-process-nexttick"
+    "util": "^0.10.3"
   }
 }
