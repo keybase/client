@@ -20,7 +20,6 @@ type Folder struct {
 	name         string
 	folderBranch libkbfs.FolderBranch
 
-	// Protects fields for all Dir and File instances.
 	mu sync.Mutex
 	// Map KBFS nodes to FUSE nodes, to be able to handle multiple
 	// lookups and incoming change notifications. A node is present
@@ -173,13 +172,11 @@ func (d *Dir) Attr(ctx context.Context, a *fuse.Attr) (err error) {
 	ctx = NewContextWithOpID(ctx, d.folder.fs.log)
 	d.folder.fs.log.CDebugf(ctx, "Dir Attr")
 	defer func() { d.folder.fs.reportErr(ctx, err) }()
-	d.folder.mu.Lock()
-	defer d.folder.mu.Unlock()
 
-	return d.attrLocked(ctx, a)
+	return d.attr(ctx, a)
 }
 
-func (d *Dir) attrLocked(ctx context.Context, a *fuse.Attr) (err error) {
+func (d *Dir) attr(ctx context.Context, a *fuse.Attr) (err error) {
 	de, err := d.folder.fs.config.KBFSOps().Stat(ctx, d.node)
 	if err != nil {
 		if _, ok := err.(libkbfs.NoSuchNameError); ok {
@@ -331,8 +328,6 @@ func (d *Dir) Symlink(ctx context.Context, req *fuse.SymlinkRequest) (
 	d.folder.fs.log.CDebugf(ctx, "Dir Symlink %s -> %s",
 		req.NewName, req.Target)
 	defer func() { d.folder.fs.reportErr(ctx, err) }()
-	d.folder.mu.Lock()
-	defer d.folder.mu.Unlock()
 
 	if _, err := d.folder.fs.config.KBFSOps().CreateLink(
 		ctx, d.node, req.NewName, req.Target); err != nil {
@@ -355,8 +350,6 @@ func (d *Dir) Rename(ctx context.Context, req *fuse.RenameRequest,
 	d.folder.fs.log.CDebugf(ctx, "Dir Rename %s -> %s",
 		req.OldName, req.NewName)
 	defer func() { d.folder.fs.reportErr(ctx, err) }()
-	d.folder.mu.Lock()
-	defer d.folder.mu.Unlock()
 
 	newDir2, ok := newDir.(*Dir)
 	if !ok {
@@ -395,8 +388,6 @@ func (d *Dir) Remove(ctx context.Context, req *fuse.RemoveRequest) (err error) {
 	ctx = NewContextWithOpID(ctx, d.folder.fs.log)
 	d.folder.fs.log.CDebugf(ctx, "Dir Remove %s", req.Name)
 	defer func() { d.folder.fs.reportErr(ctx, err) }()
-	d.folder.mu.Lock()
-	defer d.folder.mu.Unlock()
 
 	// node will be removed from Folder.nodes, if it is there in the
 	// first place, by its Forget
@@ -422,8 +413,6 @@ func (d *Dir) ReadDirAll(ctx context.Context) (res []fuse.Dirent, err error) {
 	ctx = NewContextWithOpID(ctx, d.folder.fs.log)
 	d.folder.fs.log.CDebugf(ctx, "Dir ReadDirAll")
 	defer func() { d.folder.fs.reportErr(ctx, err) }()
-	d.folder.mu.Lock()
-	defer d.folder.mu.Unlock()
 
 	children, err := d.folder.fs.config.KBFSOps().GetDirChildren(ctx, d.node)
 	if err != nil {
@@ -464,8 +453,6 @@ func (d *Dir) Setattr(ctx context.Context, req *fuse.SetattrRequest, resp *fuse.
 	ctx = NewContextWithOpID(ctx, d.folder.fs.log)
 	d.folder.fs.log.CDebugf(ctx, "Dir SetAttr")
 	defer func() { d.folder.fs.reportErr(ctx, err) }()
-	d.folder.mu.Lock()
-	defer d.folder.mu.Unlock()
 
 	valid := req.Valid
 
@@ -497,7 +484,7 @@ func (d *Dir) Setattr(ctx context.Context, req *fuse.SetattrRequest, resp *fuse.
 
 	// Something in Linux kernel *requires* directories to provide
 	// attributes here, where it was just an optimization for files.
-	if err := d.attrLocked(ctx, &resp.Attr); err != nil {
+	if err := d.attr(ctx, &resp.Attr); err != nil {
 		return err
 	}
 	return nil

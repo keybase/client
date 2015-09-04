@@ -20,13 +20,11 @@ func (f *File) Attr(ctx context.Context, a *fuse.Attr) (err error) {
 	ctx = NewContextWithOpID(ctx, f.folder.fs.log)
 	f.folder.fs.log.CDebugf(ctx, "File Attr")
 	defer func() { f.folder.fs.reportErr(ctx, err) }()
-	f.folder.mu.Lock()
-	defer f.folder.mu.Unlock()
 
-	return f.attrLocked(ctx, a)
+	return f.attr(ctx, a)
 }
 
-func (f *File) attrLocked(ctx context.Context, a *fuse.Attr) (err error) {
+func (f *File) attr(ctx context.Context, a *fuse.Attr) (err error) {
 	de, err := f.folder.fs.config.KBFSOps().Stat(ctx, f.node)
 	if err != nil {
 		if _, ok := err.(libkbfs.NoSuchNameError); ok {
@@ -46,9 +44,6 @@ func (f *File) attrLocked(ctx context.Context, a *fuse.Attr) (err error) {
 var _ fs.NodeFsyncer = (*File)(nil)
 
 func (f *File) sync(ctx context.Context) error {
-	f.folder.mu.Lock()
-	defer f.folder.mu.Unlock()
-
 	err := f.folder.fs.config.KBFSOps().Sync(ctx, f.node)
 	if err != nil {
 		return err
@@ -75,8 +70,6 @@ func (f *File) Read(ctx context.Context, req *fuse.ReadRequest,
 	ctx = NewContextWithOpID(ctx, f.folder.fs.log)
 	f.folder.fs.log.CDebugf(ctx, "File Read")
 	defer func() { f.folder.fs.reportErr(ctx, err) }()
-	f.folder.mu.Lock()
-	defer f.folder.mu.Unlock()
 
 	n, err := f.folder.fs.config.KBFSOps().Read(
 		ctx, f.node, resp.Data[:cap(resp.Data)], req.Offset)
@@ -95,8 +88,6 @@ func (f *File) Write(ctx context.Context, req *fuse.WriteRequest,
 	ctx = NewContextWithOpID(ctx, f.folder.fs.log)
 	f.folder.fs.log.CDebugf(ctx, "File Write")
 	defer func() { f.folder.fs.reportErr(ctx, err) }()
-	f.folder.mu.Lock()
-	defer f.folder.mu.Unlock()
 
 	if err := f.folder.fs.config.KBFSOps().Write(
 		ctx, f.node, req.Data, req.Offset); err != nil {
@@ -126,8 +117,6 @@ func (f *File) Setattr(ctx context.Context, req *fuse.SetattrRequest,
 	ctx = NewContextWithOpID(ctx, f.folder.fs.log)
 	f.folder.fs.log.CDebugf(ctx, "File SetAttr")
 	defer func() { f.folder.fs.reportErr(ctx, err) }()
-	f.folder.mu.Lock()
-	defer f.folder.mu.Unlock()
 
 	valid := req.Valid
 	if valid.Size() {
@@ -170,7 +159,7 @@ func (f *File) Setattr(ctx context.Context, req *fuse.SetattrRequest,
 		return fuse.ENOSYS
 	}
 
-	if err := f.attrLocked(ctx, &resp.Attr); err != nil {
+	if err := f.attr(ctx, &resp.Attr); err != nil {
 		return err
 	}
 	return nil

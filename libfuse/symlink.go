@@ -29,8 +29,6 @@ func (s *Symlink) Attr(ctx context.Context, a *fuse.Attr) (err error) {
 	ctx = NewContextWithOpID(ctx, s.parent.folder.fs.log)
 	s.parent.folder.fs.log.CDebugf(ctx, "Symlink Attr")
 	defer func() { s.parent.folder.fs.reportErr(ctx, err) }()
-	s.parent.folder.mu.Lock()
-	defer s.parent.folder.mu.Unlock()
 
 	_, de, err := s.parent.folder.fs.config.KBFSOps().Lookup(ctx, s.parent.node, s.name)
 	if err != nil {
@@ -49,8 +47,6 @@ func (s *Symlink) Readlink(ctx context.Context, req *fuse.ReadlinkRequest) (link
 	ctx = NewContextWithOpID(ctx, s.parent.folder.fs.log)
 	s.parent.folder.fs.log.CDebugf(ctx, "Symlink Readlink")
 	defer func() { s.parent.folder.fs.reportErr(ctx, err) }()
-	s.parent.folder.mu.Lock()
-	defer s.parent.folder.mu.Unlock()
 
 	_, de, err := s.parent.folder.fs.config.KBFSOps().Lookup(ctx, s.parent.node, s.name)
 	if err != nil {
