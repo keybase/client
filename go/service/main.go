@@ -150,11 +150,7 @@ func (d *Service) ReleaseLock() error {
 }
 
 func (d *Service) GetExclusiveLock() error {
-	dir, err := G.Env.GetRuntimeDir()
-	if err != nil {
-		return err
-	}
-	if err = os.MkdirAll(dir, libkb.PermDir); err != nil {
+	if err := os.MkdirAll(G.Env.GetRuntimeDir(), libkb.PermDir); err != nil {
 		return err
 	}
 	if err := d.lockPIDFile(); err != nil {
