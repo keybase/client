@@ -5,10 +5,7 @@ import (
 	"fmt"
 	"io"
 	"os/exec"
-	"strings"
 	"sync"
-
-	"golang.org/x/crypto/openpgp"
 )
 
 type GpgCLI struct {
@@ -114,12 +111,9 @@ type RunGpgRes struct {
 
 func (g *GpgCLI) ImportKey(secret bool, fp PGPFingerprint) (ret *PGPKeyBundle, err error) {
 	var cmd string
-	var which string
 	if secret {
-		which = "secret"
 		cmd = "--export-secret-key"
 	} else {
-		which = "public"
 		cmd = "--export"
 	}
 
@@ -137,30 +131,15 @@ func (g *GpgCLI) ImportKey(secret bool, fp PGPFingerprint) (ret *PGPKeyBundle, e
 	buf.ReadFrom(res.Stdout)
 	armored := buf.String()
 
-	var el openpgp.EntityList
-
-	if len(armored) != 0 {
-		el, err = openpgp.ReadArmoredKeyRing(strings.NewReader(armored))
-	}
-
-	if err != nil {
-		return nil, err
-	}
 	if err = res.Wait(); err != nil {
 		return nil, err
 	}
-	if len(el) == 0 {
-		return nil, NoKeyError{fmt.Sprintf("No %s key for %s found", which, fp.ToKeyID())}
-	}
-	if len(el) > 1 {
-		return nil, TooManyKeysError{len(el), fp}
+
+	if len(armored) == 0 {
+		return nil, NoKeyError{fmt.Sprintf("No key found for %s", fp)}
 	}
 
-	bundle := NewPGPKeyBundle(el[0])
-	if !secret {
-		bundle.ArmoredPublicKey = armored
-	}
-	return bundle, nil
+	return ReadOneKeyFromString(armored)
 }
 
 func (g *GpgCLI) ExportKey(k PGPKeyBundle) (err error) {

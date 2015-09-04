@@ -269,12 +269,11 @@ func (u NoPaperKeysError) Error() string {
 //=============================================================================
 
 type TooManyKeysError struct {
-	n  int
-	fp PGPFingerprint
+	n int
 }
 
 func (e TooManyKeysError) Error() string {
-	return fmt.Sprintf("Too many keys (%d) found for %s", e.n, e.fp)
+	return fmt.Sprintf("Too many keys (%d) found", e.n)
 }
 
 //=============================================================================
