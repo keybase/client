@@ -102,6 +102,7 @@ func (key *PGPKeyBundle) ToLksSKB(lks *LKSec) (ret *SKB, err error) {
 		return nil, err
 	}
 	ret.Priv.Encryption = LKSecVersion
+	ret.Priv.PassphraseGeneration = int(lks.Generation())
 
 	err = key.Entity.Serialize(&pk)
 	if err != nil {

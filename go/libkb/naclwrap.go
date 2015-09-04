@@ -426,6 +426,7 @@ func (k NaclSigningKeyPair) ToLksSKB(lks *LKSec) (*SKB, error) {
 	ret.Type = KIDNaclEddsa
 	ret.Priv.Encryption = LKSecVersion
 	ret.Priv.Data = data
+	ret.Priv.PassphraseGeneration = int(lks.Generation())
 	return ret, nil
 }
 
@@ -439,6 +440,7 @@ func (k NaclDHKeyPair) ToLksSKB(lks *LKSec) (*SKB, error) {
 	ret.Type = KIDNaclDH
 	ret.Priv.Encryption = LKSecVersion
 	ret.Priv.Data = data
+	ret.Priv.PassphraseGeneration = int(lks.Generation())
 	return ret, nil
 }
 
