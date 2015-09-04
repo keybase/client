@@ -1,6 +1,7 @@
 package engine
 
 import (
+	"errors"
 	"testing"
 
 	"github.com/keybase/client/go/libkb"
@@ -519,8 +520,12 @@ type lockuiPGP struct {
 
 func (l *lockuiPGP) SelectSigner(arg keybase1.SelectSignerArg) (res keybase1.SelectSignerRes, err error) {
 	l.selectSignerCount++
-	res.Action = keybase1.SelectSignerAction_SIGN
-	res.Signer = &keybase1.DeviceSigner{Kind: keybase1.DeviceSignerKind_PGP}
+	if arg.HasPGP {
+		res.Action = keybase1.SelectSignerAction_SIGN
+		res.Signer = &keybase1.DeviceSigner{Kind: keybase1.DeviceSignerKind_PGP}
+	} else {
+		err = errors.New("arg.HasPGP is unexpectedly false")
+	}
 	return
 }
 
