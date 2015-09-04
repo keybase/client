@@ -5,6 +5,9 @@ go:
   - 1.5
 services:
   - docker
+before_install:
+  - sudo apt-get update
+  - sudo apt-get upgrade lxc-docker
 script:
   - docker login -e $CI_EMAIL -u $CI_USER -p $CI_PASS $CI_HOST
   - docker pull $CI_HOST/kbweb
