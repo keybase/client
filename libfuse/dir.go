@@ -154,8 +154,6 @@ func (f *Folder) BatchChanges(ctx context.Context, changes []libkbfs.NodeChange)
 
 // Dir represents KBFS subdirectories.
 type Dir struct {
-	fs.NodeRef
-
 	folder *Folder
 	node   libkbfs.Node
 }

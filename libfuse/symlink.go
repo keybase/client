@@ -12,8 +12,6 @@ import (
 
 // Symlink represents KBFS symlinks.
 type Symlink struct {
-	fs.NodeRef
-
 	// The directory this symlink is in. This should be safe to store
 	// here, without fear of Renames etc making it stale, because we
 	// never persist a Symlink into Folder.nodes; it has no

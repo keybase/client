@@ -9,8 +9,6 @@ import (
 
 // File represents KBFS files.
 type File struct {
-	fs.NodeRef
-
 	folder *Folder
 	node   libkbfs.Node
 }
