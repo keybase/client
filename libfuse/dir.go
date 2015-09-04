@@ -32,11 +32,11 @@ type Folder struct {
 	nodes map[libkbfs.NodeID]fs.Node
 }
 
-// forgetNodeLocked forgets a formerly active child with basename
-// name.
-//
-// Caller must hold Folder.mu.
-func (f *Folder) forgetNodeLocked(node libkbfs.Node) {
+// forgetNode forgets a formerly active child with basename name.
+func (f *Folder) forgetNode(node libkbfs.Node) {
+	f.mu.Lock()
+	defer f.mu.Unlock()
+
 	delete(f.nodes, node.GetID())
 	if len(f.nodes) == 0 {
 		f.list.forgetFolder(f)
@@ -442,10 +442,7 @@ var _ fs.NodeForgetter = (*Dir)(nil)
 
 // Forget kernel reference to this node.
 func (d *Dir) Forget() {
-	d.folder.mu.Lock()
-	defer d.folder.mu.Unlock()
-
-	d.folder.forgetNodeLocked(d.node)
+	d.folder.forgetNode(d.node)
 }
 
 var _ fs.NodeSetattrer = (*Dir)(nil)

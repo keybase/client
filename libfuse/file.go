@@ -169,8 +169,5 @@ var _ fs.NodeForgetter = (*File)(nil)
 
 // Forget kernel reference to this node.
 func (f *File) Forget() {
-	f.folder.mu.Lock()
-	defer f.folder.mu.Unlock()
-
-	f.folder.forgetNodeLocked(f.node)
+	f.folder.forgetNode(f.node)
 }
