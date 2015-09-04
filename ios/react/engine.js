@@ -67,7 +67,8 @@ class Engine {
   _rpcIncoming (payload) {
     var {
       method: method,
-      param: [param]
+      param: [param],
+      response: response
     } = payload
 
     var {sessionID: sessionID} = param
@@ -75,7 +76,7 @@ class Engine {
     var callback = this.sessionIDToCallbackMap[sessionID]
 
     if (callback) {
-      callback(null, method, param)
+      callback(null, method, param, response)
     } else {
       console.log('Invalid incoming rpc sessionID')
     }
@@ -104,7 +105,7 @@ class Engine {
   }
 
   // Make an RPC and call callback repeatedly with any related server -> client RPC calls (server calls client sometimes)
-  // (name of call, {arguments object}, function(err, proc, results)
+  // (name of call, {arguments object}, function(err, proc, params, response)
   collatedRpc (method, param, callback) {
     this._rpc(method, param, callback, true)
   }

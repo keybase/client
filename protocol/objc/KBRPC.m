@@ -249,51 +249,55 @@
 
 @implementation KBRDebuggingRequest
 
-- (void)debugtest:(KBRDebugtestRequestParams *)params completion:(void (^)(NSError *error, KBRDebugTest *debugTest))completion {
-  NSDictionary *rparams = @{@"name": KBRValue(params.name)};
-  [self.client sendRequestWithMethod:@"keybase.1.debugging.debugtest" params:rparams sessionId:self.sessionId completion:^(NSError *error, id retval) {
+- (void)firstStep:(KBRFirstStepRequestParams *)params completion:(void (^)(NSError *error, KBRFirstStepResult *firstStepResult))completion {
+  NSDictionary *rparams = @{@"val": @(params.val)};
+  [self.client sendRequestWithMethod:@"keybase.1.debugging.firstStep" params:rparams sessionId:self.sessionId completion:^(NSError *error, id retval) {
     if (error) {
       completion(error, nil);
       return;
     }
-    KBRDebugTest *result = retval ? [MTLJSONAdapter modelOfClass:KBRDebugTest.class fromJSONDictionary:retval error:&error] : nil;
+    KBRFirstStepResult *result = retval ? [MTLJSONAdapter modelOfClass:KBRFirstStepResult.class fromJSONDictionary:retval error:&error] : nil;
     completion(error, result);
   }];
 }
 
-- (void)debugtestWithName:(NSString *)name completion:(void (^)(NSError *error, KBRDebugTest *debugTest))completion {
-  NSDictionary *rparams = @{@"name": KBRValue(name)};
-  [self.client sendRequestWithMethod:@"keybase.1.debugging.debugtest" params:rparams sessionId:self.sessionId completion:^(NSError *error, id retval) {
+- (void)firstStepWithVal:(NSInteger)val completion:(void (^)(NSError *error, KBRFirstStepResult *firstStepResult))completion {
+  NSDictionary *rparams = @{@"val": @(val)};
+  [self.client sendRequestWithMethod:@"keybase.1.debugging.firstStep" params:rparams sessionId:self.sessionId completion:^(NSError *error, id retval) {
     if (error) {
       completion(error, nil);
       return;
     }
-    KBRDebugTest *result = retval ? [MTLJSONAdapter modelOfClass:KBRDebugTest.class fromJSONDictionary:retval error:&error] : nil;
+    KBRFirstStepResult *result = retval ? [MTLJSONAdapter modelOfClass:KBRFirstStepResult.class fromJSONDictionary:retval error:&error] : nil;
     completion(error, result);
   }];
 }
 
-- (void)debugtestCallback:(KBRDebugtestCallbackRequestParams *)params completion:(void (^)(NSError *error, NSString *str))completion {
-  NSDictionary *rparams = @{@"name": KBRValue(params.name)};
-  [self.client sendRequestWithMethod:@"keybase.1.debugging.debugtestCallback" params:rparams sessionId:self.sessionId completion:^(NSError *error, id retval) {
-    if (error) {
-      completion(error, nil);
-      return;
-    }
-    NSString *result = retval ? [MTLJSONAdapter modelOfClass:NSString.class fromJSONDictionary:retval error:&error] : nil;
-    completion(error, result);
+- (void)secondStep:(KBRSecondStepRequestParams *)params completion:(void (^)(NSError *error, NSInteger n))completion {
+  NSDictionary *rparams = @{@"val": @(params.val)};
+  [self.client sendRequestWithMethod:@"keybase.1.debugging.secondStep" params:rparams sessionId:self.sessionId completion:^(NSError *error, id retval) {
+    completion(error, 0);
   }];
 }
 
-- (void)debugtestCallbackWithName:(NSString *)name completion:(void (^)(NSError *error, NSString *str))completion {
-  NSDictionary *rparams = @{@"name": KBRValue(name)};
-  [self.client sendRequestWithMethod:@"keybase.1.debugging.debugtestCallback" params:rparams sessionId:self.sessionId completion:^(NSError *error, id retval) {
-    if (error) {
-      completion(error, nil);
-      return;
-    }
-    NSString *result = retval ? [MTLJSONAdapter modelOfClass:NSString.class fromJSONDictionary:retval error:&error] : nil;
-    completion(error, result);
+- (void)secondStepWithVal:(NSInteger)val completion:(void (^)(NSError *error, NSInteger n))completion {
+  NSDictionary *rparams = @{@"val": @(val)};
+  [self.client sendRequestWithMethod:@"keybase.1.debugging.secondStep" params:rparams sessionId:self.sessionId completion:^(NSError *error, id retval) {
+    completion(error, 0);
+  }];
+}
+
+- (void)increment:(KBRIncrementRequestParams *)params completion:(void (^)(NSError *error, NSInteger n))completion {
+  NSDictionary *rparams = @{@"val": @(params.val)};
+  [self.client sendRequestWithMethod:@"keybase.1.debugging.increment" params:rparams sessionId:self.sessionId completion:^(NSError *error, id retval) {
+    completion(error, 0);
+  }];
+}
+
+- (void)incrementWithVal:(NSInteger)val completion:(void (^)(NSError *error, NSInteger n))completion {
+  NSDictionary *rparams = @{@"val": @(val)};
+  [self.client sendRequestWithMethod:@"keybase.1.debugging.increment" params:rparams sessionId:self.sessionId completion:^(NSError *error, id retval) {
+    completion(error, 0);
   }];
 }
 
@@ -2441,35 +2445,52 @@
 }
 @end
 
-@implementation KBRDebugtestRequestParams
+@implementation KBRFirstStepRequestParams
 
 - (instancetype)initWithParams:(NSArray *)params {
   if ((self = [super initWithParams:params])) {
     self.sessionID = [params[0][@"sessionID"] integerValue];
-    self.name = params[0][@"name"];
+    self.val = [params[0][@"val"] integerValue];
   }
   return self;
 }
 
 + (instancetype)params {
-  KBRDebugtestRequestParams *p = [[self alloc] init];
+  KBRFirstStepRequestParams *p = [[self alloc] init];
   // Add default values
   return p;
 }
 @end
 
-@implementation KBRDebugtestCallbackRequestParams
+@implementation KBRSecondStepRequestParams
 
 - (instancetype)initWithParams:(NSArray *)params {
   if ((self = [super initWithParams:params])) {
     self.sessionID = [params[0][@"sessionID"] integerValue];
-    self.name = params[0][@"name"];
+    self.val = [params[0][@"val"] integerValue];
   }
   return self;
 }
 
 + (instancetype)params {
-  KBRDebugtestCallbackRequestParams *p = [[self alloc] init];
+  KBRSecondStepRequestParams *p = [[self alloc] init];
+  // Add default values
+  return p;
+}
+@end
+
+@implementation KBRIncrementRequestParams
+
+- (instancetype)initWithParams:(NSArray *)params {
+  if ((self = [super initWithParams:params])) {
+    self.sessionID = [params[0][@"sessionID"] integerValue];
+    self.val = [params[0][@"val"] integerValue];
+  }
+  return self;
+}
+
++ (instancetype)params {
+  KBRIncrementRequestParams *p = [[self alloc] init];
   // Add default values
   return p;
 }
@@ -4428,7 +4449,7 @@
 @implementation KBRED25519SignatureInfo
 @end
 
-@implementation KBRDebugTest
+@implementation KBRFirstStepResult
 @end
 
 @implementation KBRDoctorSignerOpts

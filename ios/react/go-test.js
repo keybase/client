@@ -28,37 +28,44 @@ class GoTest extends Component {
   constructor () {
     super()
 
-    this.state = {data: '123'}
-
-    setInterval(() => {
-      this.sendToGo()
-    }, 400)
-
+    this.state = {data: 123}
     this.TEMP = 1
+    this.sendToGo()
+  }
+
+  handleIncrement (err, data) {
+    if (!err && data) {
+      this.setState({data: data})
+    }
 
     this.sendToGo()
+  }
+
+  handleMultiStep (err, method, param, response) {
+    switch (method) {
+      case 'keybase.1.debugging.secondStep':
+        setTimeout(() => {
+          response.result(param.val + 1)
+        }, 3000)
+        break
+      default:
+        if (!err && param) {
+          this.setState({data: param.valPlusTwo})
+        }
+
+        setTimeout(() => {
+          this.sendToGo()
+        }, 1000)
+    }
   }
 
   sendToGo () {
     var toSend = this.state.data
 
-    if (this.TEMP % 2) {
-      console.log("regular call")
-      engine.rpc('debugging.debugtestCallback', {name: toSend},
-                 (err, data) => {
-                   if (!err && data) {
-                     this.setState({data: data})
-                   }
-                 })
+    if ((this.TEMP % 10) < 8) {
+      engine.rpc('debugging.increment', {val: toSend}, this.handleIncrement.bind(this))
     } else {
-      console.log("collated call")
-      engine.collatedRpc('debugging.debugtest', {name: toSend},
-                         (err, method, data) => {
-                           console.log("COLLATED METHOD", method)
-                           if (!err && data) {
-                             this.setState({data: data.name})
-                           }
-                         })
+      engine.collatedRpc('debugging.firstStep', {val: toSend}, this.handleMultiStep.bind(this))
     }
 
     this.TEMP++

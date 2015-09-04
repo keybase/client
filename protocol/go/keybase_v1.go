@@ -495,40 +495,53 @@ func (c CtlClient) SetLogLevel(level LogLevel) (err error) {
 	return
 }
 
-type DebugTest struct {
-	Reply string `codec:"reply" json:"reply"`
+type FirstStepResult struct {
+	ValPlusTwo int `codec:"valPlusTwo" json:"valPlusTwo"`
 }
 
-type DebugtestArg struct {
-	SessionID int    `codec:"sessionID" json:"sessionID"`
-	Name      string `codec:"name" json:"name"`
+type FirstStepArg struct {
+	SessionID int `codec:"sessionID" json:"sessionID"`
+	Val       int `codec:"val" json:"val"`
 }
 
-type DebugtestCallbackArg struct {
-	SessionID int    `codec:"sessionID" json:"sessionID"`
-	Name      string `codec:"name" json:"name"`
+type SecondStepArg struct {
+	SessionID int `codec:"sessionID" json:"sessionID"`
+	Val       int `codec:"val" json:"val"`
+}
+
+type IncrementArg struct {
+	SessionID int `codec:"sessionID" json:"sessionID"`
+	Val       int `codec:"val" json:"val"`
 }
 
 type DebuggingInterface interface {
-	Debugtest(DebugtestArg) (DebugTest, error)
-	DebugtestCallback(DebugtestCallbackArg) (string, error)
+	FirstStep(FirstStepArg) (FirstStepResult, error)
+	SecondStep(SecondStepArg) (int, error)
+	Increment(IncrementArg) (int, error)
 }
 
 func DebuggingProtocol(i DebuggingInterface) rpc2.Protocol {
 	return rpc2.Protocol{
 		Name: "keybase.1.debugging",
 		Methods: map[string]rpc2.ServeHook{
-			"debugtest": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
-				args := make([]DebugtestArg, 1)
+			"firstStep": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
+				args := make([]FirstStepArg, 1)
 				if err = nxt(&args); err == nil {
-					ret, err = i.Debugtest(args[0])
+					ret, err = i.FirstStep(args[0])
 				}
 				return
 			},
-			"debugtestCallback": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
-				args := make([]DebugtestCallbackArg, 1)
+			"secondStep": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
+				args := make([]SecondStepArg, 1)
 				if err = nxt(&args); err == nil {
-					ret, err = i.DebugtestCallback(args[0])
+					ret, err = i.SecondStep(args[0])
+				}
+				return
+			},
+			"increment": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
+				args := make([]IncrementArg, 1)
+				if err = nxt(&args); err == nil {
+					ret, err = i.Increment(args[0])
 				}
 				return
 			},
@@ -541,13 +554,18 @@ type DebuggingClient struct {
 	Cli GenericClient
 }
 
-func (c DebuggingClient) Debugtest(__arg DebugtestArg) (res DebugTest, err error) {
-	err = c.Cli.Call("keybase.1.debugging.debugtest", []interface{}{__arg}, &res)
+func (c DebuggingClient) FirstStep(__arg FirstStepArg) (res FirstStepResult, err error) {
+	err = c.Cli.Call("keybase.1.debugging.firstStep", []interface{}{__arg}, &res)
 	return
 }
 
-func (c DebuggingClient) DebugtestCallback(__arg DebugtestCallbackArg) (res string, err error) {
-	err = c.Cli.Call("keybase.1.debugging.debugtestCallback", []interface{}{__arg}, &res)
+func (c DebuggingClient) SecondStep(__arg SecondStepArg) (res int, err error) {
+	err = c.Cli.Call("keybase.1.debugging.secondStep", []interface{}{__arg}, &res)
+	return
+}
+
+func (c DebuggingClient) Increment(__arg IncrementArg) (res int, err error) {
+	err = c.Cli.Call("keybase.1.debugging.increment", []interface{}{__arg}, &res)
 	return
 }
 

@@ -21,14 +21,14 @@ type debuggingConfig struct {
 
 func (n debuggingConfig) GetDebug() (bool, bool) {
 	// if you want helpful debug info in xcode
-	// return true, true
-	return false, false
+	return true, true
+	// return false, false
 }
 
 func (n debuggingConfig) GetLocalRPCDebug() string {
 	// if you want helpful debug info in xcode
-	// return "Acsvip"
-	return ""
+	return "Acsvip"
+	// return ""
 }
 
 func (d dummyCmd) GetUsage() libkb.Usage { return libkb.Usage{} }

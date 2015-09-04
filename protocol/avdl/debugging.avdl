@@ -1,17 +1,18 @@
 @namespace("keybase.1")
 protocol debugging {
 
-	// Result from calling test(..).
-	record DebugTest {
-		string reply;
+	// Result from calling firstStep(..).
+	record FirstStepResult {
+		int valPlusTwo;
 	}
 
-	// Call test method.
-	// Will trigger the testCallback method, whose result will be set in the
-	// returned Test object, reply property.
-	DebugTest debugtest(int sessionID, string name);
+    // First step in multi step
+    // increments val and sends to multi step
+    FirstStepResult firstStep(int sessionID, int val);
 
-	// This is a service callback triggered from test(..).
-	// The name param is what was passed into test.
-	string debugtestCallback(int sessionID, string name);
+    // increments val
+    int secondStep(int sessionID, int val);
+
+    // Increment val
+	int increment(int sessionID, int val);
 }

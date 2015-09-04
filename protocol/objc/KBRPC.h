@@ -99,8 +99,8 @@ typedef NS_ENUM (NSInteger, KBRLogLevel) {
 @property NSData *publicKey;
 @end
 
-@interface KBRDebugTest : KBRObject
-@property NSString *reply;
+@interface KBRFirstStepResult : KBRObject
+@property NSInteger valPlusTwo;
 @end
 
 typedef NS_ENUM (NSInteger, KBRDoctorFixType) {
@@ -642,13 +642,17 @@ typedef NS_ENUM (NSInteger, KBRPromptDefault) {
 @interface KBRSetLogLevelRequestParams : KBRRequestParams
 @property KBRLogLevel level;
 @end
-@interface KBRDebugtestRequestParams : KBRRequestParams
+@interface KBRFirstStepRequestParams : KBRRequestParams
 @property NSInteger sessionID;
-@property NSString *name;
+@property NSInteger val;
 @end
-@interface KBRDebugtestCallbackRequestParams : KBRRequestParams
+@interface KBRSecondStepRequestParams : KBRRequestParams
 @property NSInteger sessionID;
-@property NSString *name;
+@property NSInteger val;
+@end
+@interface KBRIncrementRequestParams : KBRRequestParams
+@property NSInteger sessionID;
+@property NSInteger val;
 @end
 @interface KBRDeviceListRequestParams : KBRRequestParams
 @property NSInteger sessionID;
@@ -1208,13 +1212,17 @@ typedef NS_ENUM (NSInteger, KBRPromptDefault) {
 
 @interface KBRDebuggingRequest : KBRRequest
 
-- (void)debugtest:(KBRDebugtestRequestParams *)params completion:(void (^)(NSError *error, KBRDebugTest *debugTest))completion;
+- (void)firstStep:(KBRFirstStepRequestParams *)params completion:(void (^)(NSError *error, KBRFirstStepResult *firstStepResult))completion;
 
-- (void)debugtestWithName:(NSString *)name completion:(void (^)(NSError *error, KBRDebugTest *debugTest))completion;
+- (void)firstStepWithVal:(NSInteger)val completion:(void (^)(NSError *error, KBRFirstStepResult *firstStepResult))completion;
 
-- (void)debugtestCallback:(KBRDebugtestCallbackRequestParams *)params completion:(void (^)(NSError *error, NSString *str))completion;
+- (void)secondStep:(KBRSecondStepRequestParams *)params completion:(void (^)(NSError *error, NSInteger n))completion;
 
-- (void)debugtestCallbackWithName:(NSString *)name completion:(void (^)(NSError *error, NSString *str))completion;
+- (void)secondStepWithVal:(NSInteger)val completion:(void (^)(NSError *error, NSInteger n))completion;
+
+- (void)increment:(KBRIncrementRequestParams *)params completion:(void (^)(NSError *error, NSInteger n))completion;
+
+- (void)incrementWithVal:(NSInteger)val completion:(void (^)(NSError *error, NSInteger n))completion;
 
 @end
 
