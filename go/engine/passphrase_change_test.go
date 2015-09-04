@@ -29,6 +29,9 @@ func assertLoadSecretKeys(tc libkb.TestContext, u *FakeUser, msg string) {
 	if err != nil {
 		tc.T.Fatalf("%s: %s", msg, err)
 	}
+	if me == nil {
+		tc.T.Fatalf("%s: nil LoadMe result", msg)
+	}
 	skarg := libkb.SecretKeyArg{
 		Me:      me,
 		KeyType: libkb.DeviceSigningKeyType,
@@ -703,7 +706,7 @@ func TestPassphraseChangePGP3SecMultiple(t *testing.T) {
 		t.Errorf("num pgp sync keys: %d, expected 2", len(syncKeys))
 	}
 	for _, key := range syncKeys {
-		unlocked, err := key.PromptAndUnlock(nil, "", "", nil, u.NewSecretUI(), nil)
+		unlocked, err := key.PromptAndUnlock(nil, "", "", nil, u.NewSecretUI(), nil, me)
 		if err != nil {
 			t.Fatal(err)
 		}
