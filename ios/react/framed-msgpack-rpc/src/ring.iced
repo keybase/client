@@ -1,6 +1,8 @@
 
 ##=======================================================================
 
+Buffer = (require 'buffer').Buffer
+
 exports.Ring = class Ring
   """
   A Ring of buffers. Every so often you'll have to compress buffers into

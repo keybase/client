@@ -247,6 +247,58 @@
 
 @end
 
+@implementation KBRDebuggingRequest
+
+- (void)debugtest:(KBRDebugtestRequestParams *)params completion:(void (^)(NSError *error, KBRDebugTest *debugTest))completion {
+  NSDictionary *rparams = @{@"name": KBRValue(params.name)};
+  [self.client sendRequestWithMethod:@"keybase.1.debugging.debugtest" params:rparams sessionId:self.sessionId completion:^(NSError *error, id retval) {
+    if (error) {
+      completion(error, nil);
+      return;
+    }
+    KBRDebugTest *result = retval ? [MTLJSONAdapter modelOfClass:KBRDebugTest.class fromJSONDictionary:retval error:&error] : nil;
+    completion(error, result);
+  }];
+}
+
+- (void)debugtestWithName:(NSString *)name completion:(void (^)(NSError *error, KBRDebugTest *debugTest))completion {
+  NSDictionary *rparams = @{@"name": KBRValue(name)};
+  [self.client sendRequestWithMethod:@"keybase.1.debugging.debugtest" params:rparams sessionId:self.sessionId completion:^(NSError *error, id retval) {
+    if (error) {
+      completion(error, nil);
+      return;
+    }
+    KBRDebugTest *result = retval ? [MTLJSONAdapter modelOfClass:KBRDebugTest.class fromJSONDictionary:retval error:&error] : nil;
+    completion(error, result);
+  }];
+}
+
+- (void)debugtestCallback:(KBRDebugtestCallbackRequestParams *)params completion:(void (^)(NSError *error, NSString *str))completion {
+  NSDictionary *rparams = @{@"name": KBRValue(params.name)};
+  [self.client sendRequestWithMethod:@"keybase.1.debugging.debugtestCallback" params:rparams sessionId:self.sessionId completion:^(NSError *error, id retval) {
+    if (error) {
+      completion(error, nil);
+      return;
+    }
+    NSString *result = retval ? [MTLJSONAdapter modelOfClass:NSString.class fromJSONDictionary:retval error:&error] : nil;
+    completion(error, result);
+  }];
+}
+
+- (void)debugtestCallbackWithName:(NSString *)name completion:(void (^)(NSError *error, NSString *str))completion {
+  NSDictionary *rparams = @{@"name": KBRValue(name)};
+  [self.client sendRequestWithMethod:@"keybase.1.debugging.debugtestCallback" params:rparams sessionId:self.sessionId completion:^(NSError *error, id retval) {
+    if (error) {
+      completion(error, nil);
+      return;
+    }
+    NSString *result = retval ? [MTLJSONAdapter modelOfClass:NSString.class fromJSONDictionary:retval error:&error] : nil;
+    completion(error, result);
+  }];
+}
+
+@end
+
 @implementation KBRDeviceRequest
 
 - (void)deviceList:(void (^)(NSError *error, NSArray *items))completion {
@@ -2389,6 +2441,40 @@
 }
 @end
 
+@implementation KBRDebugtestRequestParams
+
+- (instancetype)initWithParams:(NSArray *)params {
+  if ((self = [super initWithParams:params])) {
+    self.sessionID = [params[0][@"sessionID"] integerValue];
+    self.name = params[0][@"name"];
+  }
+  return self;
+}
+
++ (instancetype)params {
+  KBRDebugtestRequestParams *p = [[self alloc] init];
+  // Add default values
+  return p;
+}
+@end
+
+@implementation KBRDebugtestCallbackRequestParams
+
+- (instancetype)initWithParams:(NSArray *)params {
+  if ((self = [super initWithParams:params])) {
+    self.sessionID = [params[0][@"sessionID"] integerValue];
+    self.name = params[0][@"name"];
+  }
+  return self;
+}
+
++ (instancetype)params {
+  KBRDebugtestCallbackRequestParams *p = [[self alloc] init];
+  // Add default values
+  return p;
+}
+@end
+
 @implementation KBRDeviceListRequestParams
 
 - (instancetype)initWithParams:(NSArray *)params {
@@ -4340,6 +4426,9 @@
 @end
 
 @implementation KBRED25519SignatureInfo
+@end
+
+@implementation KBRDebugTest
 @end
 
 @implementation KBRDoctorSignerOpts

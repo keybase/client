@@ -1,0 +1,34 @@
+{
+  "protocol" : "debugging",
+  "namespace" : "keybase.1",
+  "types" : [ {
+    "type" : "record",
+    "name" : "DebugTest",
+    "fields" : [ {
+      "name" : "reply",
+      "type" : "string"
+    } ]
+  } ],
+  "messages" : {
+    "debugtest" : {
+      "request" : [ {
+        "name" : "sessionID",
+        "type" : "int"
+      }, {
+        "name" : "name",
+        "type" : "string"
+      } ],
+      "response" : "DebugTest"
+    },
+    "debugtestCallback" : {
+      "request" : [ {
+        "name" : "sessionID",
+        "type" : "int"
+      }, {
+        "name" : "name",
+        "type" : "string"
+      } ],
+      "response" : "string"
+    }
+  }
+}

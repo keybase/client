@@ -1,0 +1,17 @@
+@namespace("keybase.1")
+protocol debugging {
+
+	// Result from calling test(..).
+	record DebugTest {
+		string reply;
+	}
+
+	// Call test method.
+	// Will trigger the testCallback method, whose result will be set in the
+	// returned Test object, reply property.
+	DebugTest debugtest(int sessionID, string name);
+
+	// This is a service callback triggered from test(..).
+	// The name param is what was passed into test.
+	string debugtestCallback(int sessionID, string name);
+}

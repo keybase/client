@@ -17,6 +17,7 @@ build-stamp: \
 	json/config.json \
 	json/crypto.json \
 	json/ctl.json \
+	json/debugging.json \
 	json/device.json \
 	json/doctor.json \
 	json/doctor_ui.json \

@@ -99,6 +99,10 @@ typedef NS_ENUM (NSInteger, KBRLogLevel) {
 @property NSData *publicKey;
 @end
 
+@interface KBRDebugTest : KBRObject
+@property NSString *reply;
+@end
+
 typedef NS_ENUM (NSInteger, KBRDoctorFixType) {
 	KBRDoctorFixTypeNone = 0,
 	KBRDoctorFixTypeAddEldestDevice = 1,
@@ -637,6 +641,14 @@ typedef NS_ENUM (NSInteger, KBRPromptDefault) {
 @end
 @interface KBRSetLogLevelRequestParams : KBRRequestParams
 @property KBRLogLevel level;
+@end
+@interface KBRDebugtestRequestParams : KBRRequestParams
+@property NSInteger sessionID;
+@property NSString *name;
+@end
+@interface KBRDebugtestCallbackRequestParams : KBRRequestParams
+@property NSInteger sessionID;
+@property NSString *name;
 @end
 @interface KBRDeviceListRequestParams : KBRRequestParams
 @property NSInteger sessionID;
@@ -1191,6 +1203,18 @@ typedef NS_ENUM (NSInteger, KBRPromptDefault) {
 - (void)setLogLevel:(KBRSetLogLevelRequestParams *)params completion:(void (^)(NSError *error))completion;
 
 - (void)setLogLevelWithLevel:(KBRLogLevel)level completion:(void (^)(NSError *error))completion;
+
+@end
+
+@interface KBRDebuggingRequest : KBRRequest
+
+- (void)debugtest:(KBRDebugtestRequestParams *)params completion:(void (^)(NSError *error, KBRDebugTest *debugTest))completion;
+
+- (void)debugtestWithName:(NSString *)name completion:(void (^)(NSError *error, KBRDebugTest *debugTest))completion;
+
+- (void)debugtestCallback:(KBRDebugtestCallbackRequestParams *)params completion:(void (^)(NSError *error, NSString *str))completion;
+
+- (void)debugtestCallbackWithName:(NSString *)name completion:(void (^)(NSError *error, NSString *str))completion;
 
 @end
 

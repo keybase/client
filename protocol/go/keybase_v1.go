@@ -495,6 +495,62 @@ func (c CtlClient) SetLogLevel(level LogLevel) (err error) {
 	return
 }
 
+type DebugTest struct {
+	Reply string `codec:"reply" json:"reply"`
+}
+
+type DebugtestArg struct {
+	SessionID int    `codec:"sessionID" json:"sessionID"`
+	Name      string `codec:"name" json:"name"`
+}
+
+type DebugtestCallbackArg struct {
+	SessionID int    `codec:"sessionID" json:"sessionID"`
+	Name      string `codec:"name" json:"name"`
+}
+
+type DebuggingInterface interface {
+	Debugtest(DebugtestArg) (DebugTest, error)
+	DebugtestCallback(DebugtestCallbackArg) (string, error)
+}
+
+func DebuggingProtocol(i DebuggingInterface) rpc2.Protocol {
+	return rpc2.Protocol{
+		Name: "keybase.1.debugging",
+		Methods: map[string]rpc2.ServeHook{
+			"debugtest": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
+				args := make([]DebugtestArg, 1)
+				if err = nxt(&args); err == nil {
+					ret, err = i.Debugtest(args[0])
+				}
+				return
+			},
+			"debugtestCallback": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
+				args := make([]DebugtestCallbackArg, 1)
+				if err = nxt(&args); err == nil {
+					ret, err = i.DebugtestCallback(args[0])
+				}
+				return
+			},
+		},
+	}
+
+}
+
+type DebuggingClient struct {
+	Cli GenericClient
+}
+
+func (c DebuggingClient) Debugtest(__arg DebugtestArg) (res DebugTest, err error) {
+	err = c.Cli.Call("keybase.1.debugging.debugtest", []interface{}{__arg}, &res)
+	return
+}
+
+func (c DebuggingClient) DebugtestCallback(__arg DebugtestCallbackArg) (res string, err error) {
+	err = c.Cli.Call("keybase.1.debugging.debugtestCallback", []interface{}{__arg}, &res)
+	return
+}
+
 type DeviceListArg struct {
 	SessionID int `codec:"sessionID" json:"sessionID"`
 }

@@ -32,7 +32,9 @@ class GoTest extends Component {
 
     setInterval(() => {
       this.sendToGo()
-    }, 1000)
+    }, 400)
+
+    this.TEMP = 1
 
     this.sendToGo()
   }
@@ -40,12 +42,26 @@ class GoTest extends Component {
   sendToGo () {
     var toSend = this.state.data
 
-    engine.rpc('test.testCallback', {sessionID: 1, name: toSend},
-               (err, data) => {
-                 if (!err && data) {
-                   this.setState({data: data})
-                 }
-               })
+    if (this.TEMP % 2) {
+      console.log("regular call")
+      engine.rpc('debugging.debugtestCallback', {name: toSend},
+                 (err, data) => {
+                   if (!err && data) {
+                     this.setState({data: data})
+                   }
+                 })
+    } else {
+      console.log("collated call")
+      engine.collatedRpc('debugging.debugtest', {name: toSend},
+                         (err, method, data) => {
+                           console.log("COLLATED METHOD", method)
+                           if (!err && data) {
+                             this.setState({data: data.name})
+                           }
+                         })
+    }
+
+    this.TEMP++
   }
 
   render () {
