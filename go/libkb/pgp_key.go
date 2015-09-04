@@ -314,9 +314,9 @@ func finishReadOne(el []*openpgp.Entity, armored string, err error) (*PGPKeyBund
 		return nil, err
 	}
 	if len(el) == 0 {
-		return nil, fmt.Errorf("No keys found in primary bundle")
+		return nil, NoKeyError{"No keys found in primary bundle"}
 	} else if len(el) != 1 {
-		return nil, fmt.Errorf("Found multiple keys; wanted just one")
+		return nil, TooManyKeysError{len(el)}
 	} else {
 		return NewPGPKeyBundle(el[0]), nil
 	}
