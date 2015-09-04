@@ -79,7 +79,7 @@ func (a *Account) setLoginSession(ls *LoginSession) {
 	if a.loginSession != nil {
 		// this usually happens in tests that don't call G.Logout() to logout.
 		// But it probably signifies an error.
-		a.G().Log.Warning("Account: overwriting loginSession")
+		a.G().Log.Debug("Account: overwriting loginSession")
 	}
 
 	a.loginSession = ls
