@@ -181,7 +181,7 @@ func (e *Env) GetHome() string                     { return e.homeFinder.Home(fa
 func (e *Env) GetConfigDir() string                { return e.homeFinder.ConfigDir() }
 func (e *Env) GetCacheDir() string                 { return e.homeFinder.CacheDir() }
 func (e *Env) GetDataDir() string                  { return e.homeFinder.DataDir() }
-func (e *Env) GetRuntimeDir() (string, error)      { return e.homeFinder.RuntimeDir() }
+func (e *Env) GetRuntimeDir() string               { return e.homeFinder.RuntimeDir() }
 func (e *Env) GetServiceSpawnDir() (string, error) { return e.homeFinder.ServiceSpawnDir() }
 func (e *Env) GetLogDir() string                   { return e.homeFinder.LogDir() }
 
@@ -395,11 +395,7 @@ func (e *Env) GetSocketFile() (ret string, err error) {
 		func() string { return e.config.GetSocketFile() },
 	)
 	if len(ret) == 0 {
-		var d string
-		d, err = e.GetRuntimeDir()
-		if err == nil {
-			ret = filepath.Join(d, SocketFile)
-		}
+		ret = filepath.Join(e.GetRuntimeDir(), SocketFile)
 	}
 	return
 }
@@ -411,11 +407,7 @@ func (e *Env) GetPidFile() (ret string, err error) {
 		func() string { return e.config.GetPidFile() },
 	)
 	if len(ret) == 0 {
-		var d string
-		d, err = e.GetRuntimeDir()
-		if err == nil {
-			ret = filepath.Join(d, PIDFile)
-		}
+		ret = filepath.Join(e.GetRuntimeDir(), PIDFile)
 	}
 	return
 }

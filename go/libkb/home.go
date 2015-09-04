@@ -24,7 +24,7 @@ type HomeFinder interface {
 	ConfigDir() string
 	Home(emptyOk bool) string
 	DataDir() string
-	RuntimeDir() (string, error)
+	RuntimeDir() string
 	Normalize(s string) string
 	LogDir() string
 	ServiceSpawnDir() (string, error)
@@ -79,12 +79,12 @@ func (x XdgPosix) DataDir() string   { return x.dirHelper("XDG_DATA_HOME", ".loc
 
 func (x XdgPosix) xdgRuntimeDir() string { return os.Getenv("XDG_RUNTIME_DIR") }
 
-func (x XdgPosix) RuntimeDir() (string, error) {
+func (x XdgPosix) RuntimeDir() string {
 	ret := x.xdgRuntimeDir()
 	if len(ret) != 0 {
-		return ret, nil
+		return ret
 	}
-	return x.ConfigDir(), nil
+	return x.ConfigDir()
 }
 
 func (x XdgPosix) ServiceSpawnDir() (ret string, err error) {
@@ -128,8 +128,8 @@ func (d Darwin) homeDir(dirs ...string) string {
 func (d Darwin) CacheDir() string                 { return d.homeDir(d.Home(false), "Library", "Caches") }
 func (d Darwin) ConfigDir() string                { return d.homeDir(d.Home(false), "Library", "Application Support") }
 func (d Darwin) DataDir() string                  { return d.ConfigDir() }
-func (d Darwin) RuntimeDir() (string, error)      { return d.ConfigDir(), nil }
-func (d Darwin) ServiceSpawnDir() (string, error) { return d.RuntimeDir() }
+func (d Darwin) RuntimeDir() string               { return d.ConfigDir() }
+func (d Darwin) ServiceSpawnDir() (string, error) { return d.RuntimeDir(), nil }
 func (d Darwin) LogDir() string                   { return d.homeDir(d.Home(false), "Library", "Logs") }
 
 func (d Darwin) Home(emptyOk bool) string {
@@ -161,8 +161,8 @@ func (w Win32) Normalize(s string) string {
 func (w Win32) CacheDir() string                 { return w.Home(false) }
 func (w Win32) ConfigDir() string                { return w.Home(false) }
 func (w Win32) DataDir() string                  { return w.Home(false) }
-func (w Win32) RuntimeDir() (string, error)      { return w.Home(false), nil }
-func (w Win32) ServiceSpawnDir() (string, error) { return w.RuntimeDir() }
+func (w Win32) RuntimeDir() string               { return w.Home(false) }
+func (w Win32) ServiceSpawnDir() (string, error) { return w.RuntimeDir(), nil }
 func (w Win32) LogDir() string                   { return w.Home(false) }
 
 func (w Win32) Home(emptyOk bool) string {
