@@ -314,6 +314,9 @@ func (fbo *FolderBranchOps) getMDLocked(ctx context.Context, rtype reqType) (
 
 	if md.data.Dir.Type != Dir {
 		err = fbo.initMDLocked(ctx, md)
+		if err != nil {
+			return nil, err
+		}
 	} else {
 		err = fbo.config.MDCache().Put(md)
 		if err != nil {
@@ -3322,6 +3325,20 @@ func (fbo *FolderBranchOps) applyMDUpdates(ctx context.Context,
 	return fbo.applyMDUpdatesLocked(ctx, rmds)
 }
 
+func (fbo *FolderBranchOps) getMDRangeFromCache(
+	start MetadataRevision, end MetadataRevision, merged bool) []*RootMetadata {
+	mdcache := fbo.config.MDCache()
+	var rmds []*RootMetadata
+	for i := start; i <= end; i++ {
+		rmd, err := mdcache.Get(fbo.id(), i, merged)
+		if err != nil {
+			break
+		}
+		rmds = append(rmds, rmd)
+	}
+	return rmds
+}
+
 // Assumes all necessary locking is either already done by caller, or
 // is done by applyFunc.
 func (fbo *FolderBranchOps) getAndApplyMDUpdates(ctx context.Context,
@@ -3329,19 +3346,29 @@ func (fbo *FolderBranchOps) getAndApplyMDUpdates(ctx context.Context,
 	for {
 		// first look up all MD revisions newer than my current head
 		currHead := fbo.getCurrMDRevision()
-		// TODO: add a timeout to the context?
-		rmds, err := fbo.config.MDOps().GetRange(ctx, fbo.id(),
-			currHead+1, currHead+1+maxMDsAtATime)
+
+		// If we already have all the MDs in the cache, don't make the
+		// call.
+		start := currHead + 1
+		end := start + maxMDsAtATime - 1 // range is inclusive
+		rmds := fbo.getMDRangeFromCache(start, end, true)
+		if len(rmds) < maxMDsAtATime {
+			// Fetch the RMDs that are still needed.
+			// TODO: add a timeout to the context?
+			fetchedRmds, err := fbo.config.MDOps().GetRange(
+				ctx, fbo.id(), start+MetadataRevision(len(rmds)), end)
+			if err != nil {
+				return err
+			}
+			rmds = append(rmds, fetchedRmds...)
+		}
+
+		err := applyFunc(ctx, rmds)
 		if err != nil {
 			return err
 		}
 
-		err = applyFunc(ctx, rmds)
-		if err != nil {
-			return err
-		}
-
-		if len(rmds) != maxMDsAtATime {
+		if len(rmds) < maxMDsAtATime {
 			return nil
 		}
 	}
@@ -3353,20 +3380,24 @@ func (fbo *FolderBranchOps) undoUnmergedMDUpdatesLocked(
 	// walk backwards until we find one that is merged
 	currHead := fbo.getCurrMDRevision()
 	for {
-		startRev := currHead - maxMDsAtATime // (MetadataRevision is signed)
+		// first look up all unmerged MD revisions older than my current head
+		startRev := currHead - maxMDsAtATime + 1 // (MetadataRevision is signed)
 		if startRev < MetadataRevisionInitial {
 			startRev = MetadataRevisionInitial
 		}
 
-		// first look up all unmerged MD revisions older than my current head
-		// TODO: add a timeout to the context?
-		rmds, err := fbo.config.MDOps().GetUnmergedRange(ctx, fbo.id(),
-			startRev, currHead)
-		if err != nil {
-			return err
+		rmds := fbo.getMDRangeFromCache(startRev, currHead, false)
+		if len(rmds) < maxMDsAtATime {
+			// TODO: add a timeout to the context?
+			fetchedRmds, err := fbo.config.MDOps().GetUnmergedRange(ctx,
+				fbo.id(), startRev+MetadataRevision(len(rmds)), currHead)
+			if err != nil {
+				return err
+			}
+			rmds = append(rmds, fetchedRmds...)
 		}
 
-		err = fbo.undoMDUpdatesLocked(ctx, rmds)
+		err := fbo.undoMDUpdatesLocked(ctx, rmds)
 		if err != nil {
 			return err
 		}
@@ -3376,7 +3407,7 @@ func (fbo *FolderBranchOps) undoUnmergedMDUpdatesLocked(
 		if currHead < MetadataRevisionInitial {
 			return errors.New("Ran out of MD updates to unstage!")
 		}
-		if len(rmds) != maxMDsAtATime {
+		if len(rmds) < maxMDsAtATime {
 			// We have arrived at the branch point.  The new root is
 			// the previous revision from the current head.  Find it
 			// and apply.  TODO: somehow fake the current head into
@@ -3384,10 +3415,14 @@ func (fbo *FolderBranchOps) undoUnmergedMDUpdatesLocked(
 			// applyMDUpdates will fetch this along with the rest of
 			// the updates.
 			fbo.transitionStagedLocked(false)
-			rmds, err := fbo.config.MDOps().GetRange(ctx, fbo.id(),
-				currHead, currHead)
-			if err != nil {
-				return err
+
+			rmds := fbo.getMDRangeFromCache(currHead, currHead, true)
+			if len(rmds) == 0 {
+				rmds, err = fbo.config.MDOps().GetRange(ctx, fbo.id(),
+					currHead, currHead)
+				if err != nil {
+					return err
+				}
 			}
 			if len(rmds) == 0 {
 				return fmt.Errorf("Couldn't find the branch point %d", currHead)
