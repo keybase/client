@@ -779,8 +779,24 @@ func (ckf *ComputedKeyFamily) GetEncryptionSubkeyForDevice(did keybase1.DeviceID
 }
 
 // GetDeviceForKey gets the device that this key is bound to, if any.
-func (ckf *ComputedKeyFamily) GetDeviceForKey(key GenericKey) (ret *Device, err error) {
-	return ckf.getDeviceForKid(key.GetKID())
+func (ckf *ComputedKeyFamily) GetDeviceForKey(key GenericKey) (*Device, error) {
+	dev, err := ckf.getDeviceForKid(key.GetKID())
+	if err == nil && dev != nil {
+		return dev, nil
+	}
+
+	// this could be a subkey, so try to find device for the parent
+	cki, found := ckf.cki.Infos[key.GetKID()]
+	if !found {
+		return nil, ErrNoDevice
+	}
+	parent := cki.Parent
+	if parent.IsNil() {
+		return nil, ErrNoDevice
+	}
+
+	return ckf.getDeviceForKid(parent)
+
 }
 
 func (ckf *ComputedKeyFamily) getDeviceForKid(kid keybase1.KID) (ret *Device, err error) {
