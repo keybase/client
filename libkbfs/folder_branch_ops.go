@@ -3017,24 +3017,26 @@ func (fbo *FolderBranchOps) searchForNode(ctx context.Context,
 	fbo.blockLock.RLock()
 	defer fbo.blockLock.RUnlock()
 
-	// Start by figuring out which newly-updated pointer is the root
-	// directory.  From there, search upwards along all paths until we
-	// find ptr.
+	// Record which pointers are new to this update, and thus worth
+	// searching.
 	newPtrs := make(map[BlockPointer]bool)
-	var rootPath path
 	for _, update := range op.AllUpdates() {
 		newPtrs[update.Ref] = true
-		node := fbo.nodeCache.Get(update.Ref)
-		if node == nil {
-			continue
-		}
-
-		// this is the root node if the path has only one element
-		p := fbo.nodeCache.PathFromNode(node)
-		if len(p.path) == 1 {
-			rootPath = p
-		}
 	}
+
+	// Start with the root node
+	node := fbo.nodeCache.Get(md.data.Dir.BlockPointer)
+	if node == nil {
+		return nil, fmt.Errorf("Cannot find root node corresponding to %v",
+			md.data.Dir.BlockPointer)
+	}
+
+	rootPath := fbo.nodeCache.PathFromNode(node)
+	if len(rootPath.path) != 1 {
+		return nil, fmt.Errorf("Invalid root path for %v: %s",
+			md.data.Dir.BlockPointer, rootPath)
+	}
+
 	return fbo.searchForNodeInDirLocked(ctx, ptr, newPtrs, md, rootPath)
 }
 
