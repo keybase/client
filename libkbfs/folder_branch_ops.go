@@ -315,13 +315,7 @@ func (fbo *FolderBranchOps) getMDLocked(ctx context.Context, rtype reqType) (
 	if md.data.Dir.Type != Dir {
 		err = fbo.initMDLocked(ctx, md)
 	} else {
-		// if already initialized, store directly in cache
-		mdID, err := md.MetadataID(fbo.config)
-		if err != nil {
-			return nil, err
-		}
-
-		err = fbo.config.MDCache().Put(mdID, md)
+		err = fbo.config.MDCache().Put(md)
 		if err != nil {
 			return nil, err
 		}
@@ -449,21 +443,19 @@ func (fbo *FolderBranchOps) initMDLocked(
 	if err = fbo.config.MDOps().Put(ctx, md); err != nil {
 		return err
 	}
-	if mdID, err := md.MetadataID(fbo.config); err != nil {
+	if err = fbo.config.MDCache().Put(md); err != nil {
 		return err
-	} else if err = fbo.config.MDCache().Put(mdID, md); err != nil {
-		return err
-	} else {
-		fbo.headLock.Lock()
-		defer fbo.headLock.Unlock()
-		if fbo.head != nil {
-			headID, _ := fbo.head.MetadataID(fbo.config)
-			return fmt.Errorf(
-				"%v: Unexpected MD ID during new MD initialization: %v",
-				md.ID, headID)
-		}
-		fbo.setHeadLocked(md)
 	}
+
+	fbo.headLock.Lock()
+	defer fbo.headLock.Unlock()
+	if fbo.head != nil {
+		headID, _ := fbo.head.MetadataID(fbo.config)
+		return fmt.Errorf(
+			"%v: Unexpected MD ID during new MD initialization: %v",
+			md.ID, headID)
+	}
+	fbo.setHeadLocked(md)
 	return nil
 }
 
@@ -989,7 +981,7 @@ func (fbo *FolderBranchOps) saveMdToCacheLocked(md *RootMetadata) error {
 	if headID == mdID {
 		// only save this new MD if the MDID has changed
 		return nil
-	} else if err = fbo.config.MDCache().Put(mdID, md); err != nil {
+	} else if err = fbo.config.MDCache().Put(md); err != nil {
 		return err
 	}
 	fbo.setHeadLocked(md)

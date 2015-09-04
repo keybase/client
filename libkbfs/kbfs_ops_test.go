@@ -186,7 +186,6 @@ func makeIDAndRMD(t *testing.T, config *ConfigMock) (
 	ops := getOps(config, id)
 	ops.head = rmd
 	rmd.SerializedPrivateMetadata = make([]byte, 1)
-	config.mockMdcache.EXPECT().Get(rmd.mdID).AnyTimes().Return(rmd, nil)
 	config.Notifier().RegisterForChanges(
 		[]FolderBranch{FolderBranch{id, MasterBranch}}, config.observer)
 	rmd.data.Dir.Creator = userID
@@ -297,7 +296,7 @@ func testKBFSOpsGetRootNodeCreateNewSuccess(t *testing.T, public bool) {
 	config.mockBops.EXPECT().Put(ctx, rmd, ptrMatcher{rootPtr}, readyBlockData).
 		Return(nil)
 	config.mockMdops.EXPECT().Put(gomock.Any(), rmd).Return(nil)
-	config.mockMdcache.EXPECT().Put(rmd.mdID, rmd).Return(nil)
+	config.mockMdcache.EXPECT().Put(rmd).Return(nil)
 
 	n, de, h, err := config.KBFSOps().
 		GetRootNode(ctx, FolderBranch{id, MasterBranch})
@@ -587,7 +586,6 @@ func TestKBFSOpsGetNestedDirChildrenCacheSuccess(t *testing.T) {
 	rmd := NewRootMetadataForTest(h, id)
 	ops := getOps(config, id)
 	ops.head = rmd
-	config.mockMdcache.EXPECT().Get(rmd.mdID).AnyTimes().Return(rmd, nil)
 
 	rootID := fakeBlockID(42)
 	aID := fakeBlockID(43)
@@ -627,7 +625,6 @@ func TestKBFSOpsLookupSuccess(t *testing.T) {
 	rmd := NewRootMetadataForTest(h, id)
 	ops := getOps(config, id)
 	ops.head = rmd
-	config.mockMdcache.EXPECT().Get(rmd.mdID).AnyTimes().Return(rmd, nil)
 
 	rootID := fakeBlockID(42)
 	aID := fakeBlockID(43)
@@ -668,7 +665,6 @@ func TestKBFSOpsLookupSymlinkSuccess(t *testing.T) {
 	rmd := NewRootMetadataForTest(h, id)
 	ops := getOps(config, id)
 	ops.head = rmd
-	config.mockMdcache.EXPECT().Get(rmd.mdID).AnyTimes().Return(rmd, nil)
 
 	rootID := fakeBlockID(42)
 	aID := fakeBlockID(43)
@@ -705,7 +701,6 @@ func TestKBFSOpsLookupNoSuchNameFail(t *testing.T) {
 	rmd := NewRootMetadataForTest(h, id)
 	ops := getOps(config, id)
 	ops.head = rmd
-	config.mockMdcache.EXPECT().Get(rmd.mdID).AnyTimes().Return(rmd, nil)
 
 	rootID := fakeBlockID(42)
 	aID := fakeBlockID(43)
@@ -739,7 +734,6 @@ func TestKBFSOpsLookupNewDataVersionFail(t *testing.T) {
 	rmd := NewRootMetadataForTest(h, id)
 	ops := getOps(config, id)
 	ops.head = rmd
-	config.mockMdcache.EXPECT().Get(rmd.mdID).AnyTimes().Return(rmd, nil)
 
 	rootID := fakeBlockID(42)
 	aID := fakeBlockID(43)
@@ -779,7 +773,6 @@ func TestKBFSOpsStatSuccess(t *testing.T) {
 	rmd := NewRootMetadataForTest(h, id)
 	ops := getOps(config, id)
 	ops.head = rmd
-	config.mockMdcache.EXPECT().Get(rmd.mdID).AnyTimes().Return(rmd, nil)
 
 	rootID := fakeBlockID(42)
 	aID := fakeBlockID(43)
@@ -877,8 +870,8 @@ func expectSyncBlockHelper(
 				rmd.SerializedPrivateMetadata = make([]byte, 1)
 			}).Return(nil)
 		}
-		config.mockMdcache.EXPECT().Put(gomock.Any(), gomock.Any()).
-			Do(func(id MdID, rmd *RootMetadata) {
+		config.mockMdcache.EXPECT().Put(gomock.Any()).
+			Do(func(rmd *RootMetadata) {
 			*newRmd = rmd
 			// Check that the ref bytes are correct.
 			if rmd.RefBytes != refBytes {
@@ -4127,7 +4120,6 @@ func TestKBFSOpsStatRootSuccess(t *testing.T) {
 	rmd := NewRootMetadataForTest(h, id)
 	ops := getOps(config, id)
 	ops.head = rmd
-	config.mockMdcache.EXPECT().Get(rmd.mdID).AnyTimes().Return(rmd, nil)
 
 	rootID := fakeBlockID(42)
 	node := pathNode{makeBP(rootID, rmd, config, u), "p"}
@@ -4148,7 +4140,6 @@ func TestKBFSOpsFailingRootOps(t *testing.T) {
 	rmd := NewRootMetadataForTest(h, id)
 	ops := getOps(config, id)
 	ops.head = rmd
-	config.mockMdcache.EXPECT().Get(rmd.mdID).AnyTimes().Return(rmd, nil)
 
 	rootID := fakeBlockID(42)
 	node := pathNode{makeBP(rootID, rmd, config, u), "p"}

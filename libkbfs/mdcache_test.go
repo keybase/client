@@ -39,22 +39,28 @@ func expectUserCalls(handle *TlfHandle, config *ConfigMock) {
 	}
 }
 
-func testMdcachePut(t *testing.T, id MdID, h *TlfHandle, config *ConfigMock) {
+func testMdcachePut(t *testing.T, tlf TlfID, rev MetadataRevision,
+	merged bool, h *TlfHandle, config *ConfigMock) {
 	rmd := &RootMetadata{
-		Keys: make([]DirKeyBundle, 1, 1),
+		ID:       tlf,
+		Revision: rev,
+		Keys:     make([]DirKeyBundle, 1, 1),
 	}
 	k := DirKeyBundle{}
 	rmd.Keys[0] = k
+	if !merged {
+		rmd.Flags |= MetadataFlagUnmerged
+	}
 
 	// put the md
 	expectUserCalls(h, config)
-	if err := config.MDCache().Put(id, rmd); err != nil {
-		t.Errorf("Got error on put on md %v: %v", id, err)
+	if err := config.MDCache().Put(rmd); err != nil {
+		t.Errorf("Got error on put on md %v: %v", tlf, err)
 	}
 
 	// make sure we can get it successfully
-	if rmd2, err := config.MDCache().Get(id); err != nil {
-		t.Errorf("Got error on get for md %v: %v", id, err)
+	if rmd2, err := config.MDCache().Get(tlf, rev, merged); err != nil {
+		t.Errorf("Got error on get for md %v: %v", tlf, err)
 	} else if rmd2 != rmd {
 		t.Errorf("Got back unexpected metadata: %v", rmd2)
 	}
@@ -64,37 +70,34 @@ func TestMdcachePut(t *testing.T) {
 	mockCtrl, config := mdCacheInit(t, 100)
 	defer mdCacheShutdown(mockCtrl, config)
 
-	_, h, _ := newDir(t, config, 1, true, false)
+	id, h, _ := newDir(t, config, 1, true, false)
 	h.Writers = append(h.Writers, keybase1.MakeTestUID(0))
 
-	testMdcachePut(t, fakeMdID(1), h, config)
+	testMdcachePut(t, id, 1, true, h, config)
 }
 
 func TestMdcachePutPastCapacity(t *testing.T) {
 	mockCtrl, config := mdCacheInit(t, 2)
 	defer mdCacheShutdown(mockCtrl, config)
 
-	_, h0, _ := newDir(t, config, 1, true, false)
-	id0 := fakeMdID(0)
+	id0, h0, _ := newDir(t, config, 1, true, false)
 	h0.Writers = append(h0.Writers, keybase1.MakeTestUID(0))
 
-	_, h1, _ := newDir(t, config, 2, true, false)
-	id1 := fakeMdID(1)
+	id1, h1, _ := newDir(t, config, 2, true, false)
 	h1.Writers = append(h1.Writers, keybase1.MakeTestUID(1))
 
-	_, h2, _ := newDir(t, config, 3, true, false)
-	id2 := fakeMdID(2)
+	id2, h2, _ := newDir(t, config, 3, true, false)
 	h2.Writers = append(h2.Writers, keybase1.MakeTestUID(2))
 
-	testMdcachePut(t, id0, h0, config)
-	testMdcachePut(t, id1, h1, config)
-	testMdcachePut(t, id2, h2, config)
+	testMdcachePut(t, id0, 0, true, h0, config)
+	testMdcachePut(t, id1, 0, false, h1, config)
+	testMdcachePut(t, id2, 1, true, h2, config)
 
 	// id 0 should no longer be in the cache
 	// make sure we can get it successfully
 	expectUserCalls(h0, config)
-	expectedErr := NoSuchMDError{id0}
-	if _, err := config.MDCache().Get(id0); err == nil {
+	expectedErr := NoSuchMDError{id0, 0, true}
+	if _, err := config.MDCache().Get(id0, 0, true); err == nil {
 		t.Errorf("No expected error on get")
 	} else if err != expectedErr {
 		t.Errorf("Got unexpected error on get: %v", err)

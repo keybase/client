@@ -322,10 +322,11 @@ type Reporter interface {
 
 // MDCache gets and puts plaintext top-level metadata into the cache.
 type MDCache interface {
-	// Get gets the metadata object associated with the given MD ID.
-	Get(id MdID) (*RootMetadata, error)
-	// Put stores the metadata object associated with the given MD ID.
-	Put(id MdID, md *RootMetadata) error
+	// Get gets the metadata object associated with the given TlfID,
+	// revision number and merged status
+	Get(tlf TlfID, rev MetadataRevision, merged bool) (*RootMetadata, error)
+	// Put stores the metadata object.
+	Put(md *RootMetadata) error
 }
 
 // KeyCache handles caching for both TLFCryptKeys and BlockCryptKeys.

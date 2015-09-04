@@ -264,9 +264,9 @@ func (e BadCryptoMDError) Error() string {
 }
 
 // BadMDError indicates that the system is storing corrupt MD object
-// for the given MD ID.
+// for the given TLF ID.
 type BadMDError struct {
-	ID MdID
+	ID TlfID
 }
 
 // Error implements the error interface for BadMDError
@@ -299,14 +299,18 @@ func (e MDMismatchError) Error() string {
 		e.Dir, e.Err)
 }
 
-// NoSuchMDError indicates that there is no MD object for the given MD ID.
+// NoSuchMDError indicates that there is no MD object for the given
+// folder, revision, and merged status.
 type NoSuchMDError struct {
-	ID MdID
+	Tlf    TlfID
+	Rev    MetadataRevision
+	Merged bool
 }
 
 // Error implements the error interface for NoSuchMDError
 func (e NoSuchMDError) Error() string {
-	return fmt.Sprintf("Couldn't get metadata for %v", e.ID)
+	return fmt.Sprintf("Couldn't get metadata for folder %v, revision %d, "+
+		"merged %t", e.Tlf, e.Rev, e.Merged)
 }
 
 // InvalidDataVersionError indicates that an invalid data version was
