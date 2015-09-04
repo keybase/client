@@ -319,7 +319,12 @@ func finishReadOne(el []*openpgp.Entity, armored string, err error) (*PGPKeyBund
 	} else if len(el) != 1 {
 		return nil, TooManyKeysError{len(el)}
 	} else {
-		return NewPGPKeyBundle(el[0]), nil
+		e := el[0]
+		var maybeArmored string
+		if e.PrivateKey == nil {
+			maybeArmored = armored
+		}
+		return &PGPKeyBundle{e, maybeArmored}, nil
 	}
 }
 
