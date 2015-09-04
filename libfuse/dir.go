@@ -200,8 +200,6 @@ func (d *Dir) Lookup(ctx context.Context, req *fuse.LookupRequest, resp *fuse.Lo
 	ctx = NewContextWithOpID(ctx, d.folder.fs.log)
 	d.folder.fs.log.CDebugf(ctx, "Dir Lookup %s", req.Name)
 	defer func() { d.folder.fs.reportErr(ctx, err) }()
-	d.folder.mu.Lock()
-	defer d.folder.mu.Unlock()
 
 	if req.Name == libkbfs.ErrorFile {
 		resp.EntryValid = 0
@@ -234,6 +232,10 @@ func (d *Dir) Lookup(ctx context.Context, req *fuse.LookupRequest, resp *fuse.Lo
 		}
 		return nil, err
 	}
+
+	// No libkbfs calls after this point!
+	d.folder.mu.Lock()
+	defer d.folder.mu.Unlock()
 
 	// newNode can be nil even without errors when the KBFS direntry
 	// is of a type that doesn't get its own node (is fully contained
@@ -279,8 +281,6 @@ func (d *Dir) Create(ctx context.Context, req *fuse.CreateRequest, resp *fuse.Cr
 	ctx = NewContextWithOpID(ctx, d.folder.fs.log)
 	d.folder.fs.log.CDebugf(ctx, "Dir Create %s", req.Name)
 	defer func() { d.folder.fs.reportErr(ctx, err) }()
-	d.folder.mu.Lock()
-	defer d.folder.mu.Unlock()
 
 	isExec := (req.Mode.Perm() & 0100) != 0
 	newNode, _, err := d.folder.fs.config.KBFSOps().CreateFile(
@@ -293,7 +293,9 @@ func (d *Dir) Create(ctx context.Context, req *fuse.CreateRequest, resp *fuse.Cr
 		folder: d.folder,
 		node:   newNode,
 	}
+	d.folder.mu.Lock()
 	d.folder.nodes[newNode.GetID()] = child
+	d.folder.mu.Unlock()
 	return child, child, nil
 }
 
@@ -305,8 +307,6 @@ func (d *Dir) Mkdir(ctx context.Context, req *fuse.MkdirRequest) (
 	ctx = NewContextWithOpID(ctx, d.folder.fs.log)
 	d.folder.fs.log.CDebugf(ctx, "Dir Mkdir %s", req.Name)
 	defer func() { d.folder.fs.reportErr(ctx, err) }()
-	d.folder.mu.Lock()
-	defer d.folder.mu.Unlock()
 
 	newNode, _, err := d.folder.fs.config.KBFSOps().CreateDir(
 		ctx, d.node, req.Name)
@@ -315,7 +315,9 @@ func (d *Dir) Mkdir(ctx context.Context, req *fuse.MkdirRequest) (
 	}
 
 	child := newDir(d.folder, newNode)
+	d.folder.mu.Lock()
 	d.folder.nodes[newNode.GetID()] = child
+	d.folder.mu.Unlock()
 	return child, nil
 }
 
