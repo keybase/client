@@ -199,6 +199,9 @@ func (s *SKB) devHumandDescription(owner *User, key GenericKey) (string, error) 
 	if err != nil {
 		return "", err
 	}
+	if device == nil {
+		return "", ErrNoDevice
+	}
 	if device.Description == nil {
 		return "", fmt.Errorf("no device description")
 	}
