@@ -93,6 +93,16 @@ type ChainLinkUnpacked struct {
 	proofText      string
 }
 
+// A list of SigIDs of bad chain links that should be ignored.
+var badChainLinks = map[keybase1.SigID]bool{
+	// Links 22-25 of akalin's sigchain, which was accidentally
+	// added by an old client in development on 3/23/2015, 9:02am.
+	"2a0da9730f049133ce728ba30de8c91b6658b7a375e82c4b3528d7ddb1a21f7a0f": true,
+	"eb5c7e7d3cf8370bed8ab55c0d8833ce9d74fd2c614cf2cd2d4c30feca4518fa0f": true,
+	"0f175ef0d3b57a9991db5deb30f2432a85bc05922bbe727016f3fb660863a1890f": true,
+	"48267f0e3484b2f97859829503e20c2f598529b42c1d840a8fc1eceda71458400f": true,
+}
+
 type ChainLink struct {
 	parent          *SigChain
 	id              LinkID
@@ -111,6 +121,10 @@ type ChainLink struct {
 	cki         *ComputedKeyInfos
 
 	typed TypedChainLink
+}
+
+func (c *ChainLink) IsBad() bool {
+	return badChainLinks[c.GetSigID()]
 }
 
 func (c *ChainLink) Parent() *SigChain {

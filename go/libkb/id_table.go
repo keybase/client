@@ -891,7 +891,6 @@ func (idt *IdentityTable) MarkCheckResult(err ProofError) {
 }
 
 func NewTypedChainLink(cl *ChainLink) (ret TypedChainLink, w Warning) {
-
 	if ret = cl.typed; ret != nil {
 		return
 	}
@@ -959,8 +958,13 @@ func (idt *IdentityTable) populate() error {
 		return err
 	}
 	for _, link := range links {
-		tl, w := NewTypedChainLink(link)
-		tl.insertIntoTable(idt)
+		if link.IsBad() {
+			G.Log.Debug("Ignoring bad chain link")
+			continue
+		}
+
+		tcl, w := NewTypedChainLink(link)
+		tcl.insertIntoTable(idt)
 		if w != nil {
 			w.Warn()
 		}
