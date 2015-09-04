@@ -137,10 +137,13 @@ func (d *Service) StartLoopbackServer(g *libkb.GlobalContext) error {
 // it is, in case the client has been updated.
 func (d *Service) writeVersionFile() error {
 	// 0700 as per the XDG standard
-	if err := os.MkdirAll(G.Env.GetCacheDir(), 0700); err != nil {
+	// TODO: It shouldn't be the responsibility of all callers to remember to
+	// create these directories. They should be created transparently when
+	// anything retrieves them.
+	if err := os.MkdirAll(G.Env.GetRuntimeDir(), 0700); err != nil {
 		return err
 	}
-	versionFilePath := path.Join(G.Env.GetCacheDir(), "service.version")
+	versionFilePath := path.Join(G.Env.GetRuntimeDir(), "service.version")
 	version := fmt.Sprintf("%s-%s", libkb.Version, libkb.Build)
 	return ioutil.WriteFile(versionFilePath, []byte(version), 0644)
 }
