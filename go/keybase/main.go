@@ -43,7 +43,7 @@ func main() {
 func warnNonProd(log logger.Logger, e *libkb.Env) {
 	mode := e.GetRunMode()
 	if mode != libkb.ProductionRunMode {
-		log.Warning(fmt.Sprintf("Running in %s mode", mode))
+		log.Warning("Running in %s mode", mode)
 	}
 }
 
