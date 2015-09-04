@@ -699,8 +699,11 @@ func (ckf ComputedKeyFamily) GetActivePGPKeys(sibkey bool) (ret []*PGPKeyBundle)
 	for kid := range ckf.kf.PGPKeySets {
 		role := ckf.GetKeyRole(kid)
 		if (sibkey && role == DLGSibkey) || role != DLGNone {
-			key, _ := ckf.FindKeyWithKIDUnsafe(kid)
-			ret = append(ret, key.(*PGPKeyBundle))
+			if key, err := ckf.FindKeyWithKIDUnsafe(kid); err == nil {
+				ret = append(ret, key.(*PGPKeyBundle))
+			} else {
+				G.Log.Errorf("KID %s was in a KeyFamily's list of PGP keys, but the key doesn't exist: %s", kid, err)
+			}
 		}
 	}
 	return
