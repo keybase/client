@@ -23,7 +23,8 @@ import (
 	"golang.org/x/sys/unix"
 )
 
-func makeFS(t testing.TB, config *libkbfs.ConfigLocal) *fstestutil.Mount {
+func makeFS(t testing.TB, config *libkbfs.ConfigLocal) (
+	*fstestutil.Mount, *FS, func()) {
 	// TODO duplicates main() in kbfsfuse/main.go too much
 	filesys := &FS{
 		config: config,
@@ -31,6 +32,7 @@ func makeFS(t testing.TB, config *libkbfs.ConfigLocal) *fstestutil.Mount {
 	}
 	ctx := context.Background()
 	ctx = context.WithValue(ctx, CtxAppIDKey, filesys)
+	ctx, cancelFn := context.WithCancel(ctx)
 	fn := func(mnt *fstestutil.Mount) fs.FS {
 		filesys.fuse = mnt.Server
 		filesys.conn = mnt.Conn
@@ -44,7 +46,8 @@ func makeFS(t testing.TB, config *libkbfs.ConfigLocal) *fstestutil.Mount {
 	if err != nil {
 		t.Fatal(err)
 	}
-	return mnt
+	filesys.launchNotificationProcessor(ctx)
+	return mnt, filesys, cancelFn
 }
 
 type fileInfoCheck func(fi os.FileInfo) error
@@ -110,8 +113,9 @@ func timeEqualFuzzy(a, b time.Time, skew time.Duration) bool {
 func TestStatRoot(t *testing.T) {
 	config := libkbfs.MakeTestConfigOrBust(t, BServerRemoteAddr, "jdoe")
 	defer config.Shutdown()
-	mnt := makeFS(t, config)
+	mnt, _, cancelFn := makeFS(t, config)
 	defer mnt.Close()
+	defer cancelFn()
 
 	fi, err := os.Lstat(mnt.Dir)
 	if err != nil {
@@ -125,8 +129,9 @@ func TestStatRoot(t *testing.T) {
 func TestStatPrivate(t *testing.T) {
 	config := libkbfs.MakeTestConfigOrBust(t, BServerRemoteAddr, "jdoe")
 	defer config.Shutdown()
-	mnt := makeFS(t, config)
+	mnt, _, cancelFn := makeFS(t, config)
 	defer mnt.Close()
+	defer cancelFn()
 
 	fi, err := os.Lstat(path.Join(mnt.Dir, PrivateName))
 	if err != nil {
@@ -140,8 +145,9 @@ func TestStatPrivate(t *testing.T) {
 func TestStatPublic(t *testing.T) {
 	config := libkbfs.MakeTestConfigOrBust(t, BServerRemoteAddr, "jdoe")
 	defer config.Shutdown()
-	mnt := makeFS(t, config)
+	mnt, _, cancelFn := makeFS(t, config)
 	defer mnt.Close()
+	defer cancelFn()
 
 	fi, err := os.Lstat(path.Join(mnt.Dir, PublicName))
 	if err != nil {
@@ -155,8 +161,9 @@ func TestStatPublic(t *testing.T) {
 func TestStatMyFolder(t *testing.T) {
 	config := libkbfs.MakeTestConfigOrBust(t, BServerRemoteAddr, "jdoe")
 	defer config.Shutdown()
-	mnt := makeFS(t, config)
+	mnt, _, cancelFn := makeFS(t, config)
 	defer mnt.Close()
+	defer cancelFn()
 
 	fi, err := os.Lstat(path.Join(mnt.Dir, PrivateName, "jdoe"))
 	if err != nil {
@@ -170,8 +177,9 @@ func TestStatMyFolder(t *testing.T) {
 func TestStatNonexistentFolder(t *testing.T) {
 	config := libkbfs.MakeTestConfigOrBust(t, BServerRemoteAddr, "jdoe")
 	defer config.Shutdown()
-	mnt := makeFS(t, config)
+	mnt, _, cancelFn := makeFS(t, config)
 	defer mnt.Close()
+	defer cancelFn()
 
 	if _, err := os.Lstat(path.Join(mnt.Dir, PrivateName, "does-not-exist")); !os.IsNotExist(err) {
 		t.Fatalf("expected ENOENT: %v", err)
@@ -181,8 +189,9 @@ func TestStatNonexistentFolder(t *testing.T) {
 func TestStatAlias(t *testing.T) {
 	config := libkbfs.MakeTestConfigOrBust(t, BServerRemoteAddr, "jdoe")
 	defer config.Shutdown()
-	mnt := makeFS(t, config)
+	mnt, _, cancelFn := makeFS(t, config)
 	defer mnt.Close()
+	defer cancelFn()
 
 	p := path.Join(mnt.Dir, PrivateName, "jdoe,jdoe")
 	fi, err := os.Lstat(p)
@@ -204,8 +213,9 @@ func TestStatAlias(t *testing.T) {
 func TestStatMyPublic(t *testing.T) {
 	config := libkbfs.MakeTestConfigOrBust(t, BServerRemoteAddr, "jdoe")
 	defer config.Shutdown()
-	mnt := makeFS(t, config)
+	mnt, _, cancelFn := makeFS(t, config)
 	defer mnt.Close()
+	defer cancelFn()
 
 	fi, err := os.Lstat(path.Join(mnt.Dir, PublicName, "jdoe"))
 	if err != nil {
@@ -219,8 +229,9 @@ func TestStatMyPublic(t *testing.T) {
 func TestReaddirRoot(t *testing.T) {
 	config := libkbfs.MakeTestConfigOrBust(t, BServerRemoteAddr, "jdoe")
 	defer config.Shutdown()
-	mnt := makeFS(t, config)
+	mnt, _, cancelFn := makeFS(t, config)
 	defer mnt.Close()
+	defer cancelFn()
 
 	checkDir(t, mnt.Dir, map[string]fileInfoCheck{
 		PrivateName: mustBeDir,
@@ -231,8 +242,9 @@ func TestReaddirRoot(t *testing.T) {
 func TestReaddirPrivate(t *testing.T) {
 	config := libkbfs.MakeTestConfigOrBust(t, BServerRemoteAddr, "jdoe")
 	defer config.Shutdown()
-	mnt := makeFS(t, config)
+	mnt, _, cancelFn := makeFS(t, config)
 	defer mnt.Close()
+	defer cancelFn()
 
 	{
 		// Force FakeMDServer to have some TlfIDs it can present to us
@@ -256,8 +268,9 @@ func TestReaddirPrivate(t *testing.T) {
 func TestReaddirPublic(t *testing.T) {
 	config := libkbfs.MakeTestConfigOrBust(t, BServerRemoteAddr, "jdoe")
 	defer config.Shutdown()
-	mnt := makeFS(t, config)
+	mnt, _, cancelFn := makeFS(t, config)
 	defer mnt.Close()
+	defer cancelFn()
 
 	{
 		// Force FakeMDServer to have some TlfIDs it can present to us
@@ -282,8 +295,9 @@ func TestReaddirPublic(t *testing.T) {
 func TestReaddirMyFolderEmpty(t *testing.T) {
 	config := libkbfs.MakeTestConfigOrBust(t, BServerRemoteAddr, "jdoe")
 	defer config.Shutdown()
-	mnt := makeFS(t, config)
+	mnt, _, cancelFn := makeFS(t, config)
 	defer mnt.Close()
+	defer cancelFn()
 
 	checkDir(t, path.Join(mnt.Dir, PrivateName, "jdoe"), map[string]fileInfoCheck{})
 }
@@ -291,8 +305,9 @@ func TestReaddirMyFolderEmpty(t *testing.T) {
 func TestReaddirMyFolderWithFiles(t *testing.T) {
 	config := libkbfs.MakeTestConfigOrBust(t, BServerRemoteAddr, "jdoe")
 	defer config.Shutdown()
-	mnt := makeFS(t, config)
+	mnt, _, cancelFn := makeFS(t, config)
 	defer mnt.Close()
+	defer cancelFn()
 
 	files := map[string]fileInfoCheck{
 		"one": nil,
@@ -336,8 +351,9 @@ func testOneCreateThenRead(t *testing.T, p string) {
 func TestCreateThenRead(t *testing.T) {
 	config := libkbfs.MakeTestConfigOrBust(t, BServerRemoteAddr, "jdoe")
 	defer config.Shutdown()
-	mnt := makeFS(t, config)
+	mnt, _, cancelFn := makeFS(t, config)
 	defer mnt.Close()
+	defer cancelFn()
 
 	p := path.Join(mnt.Dir, PrivateName, "jdoe", "myfile")
 	testOneCreateThenRead(t, p)
@@ -350,8 +366,9 @@ func TestCreateThenRead(t *testing.T) {
 func TestMultipleCreateThenRead(t *testing.T) {
 	config := libkbfs.MakeTestConfigOrBust(t, BServerRemoteAddr, "jdoe")
 	defer config.Shutdown()
-	mnt := makeFS(t, config)
+	mnt, _, cancelFn := makeFS(t, config)
 	defer mnt.Close()
+	defer cancelFn()
 
 	p1 := path.Join(mnt.Dir, PrivateName, "jdoe", "myfile1")
 	testOneCreateThenRead(t, p1)
@@ -362,8 +379,9 @@ func TestMultipleCreateThenRead(t *testing.T) {
 func TestReadUnflushed(t *testing.T) {
 	config := libkbfs.MakeTestConfigOrBust(t, BServerRemoteAddr, "jdoe")
 	defer config.Shutdown()
-	mnt := makeFS(t, config)
+	mnt, _, cancelFn := makeFS(t, config)
 	defer mnt.Close()
+	defer cancelFn()
 
 	p := path.Join(mnt.Dir, PrivateName, "jdoe", "myfile")
 	f, err := os.Create(p)
@@ -393,8 +411,9 @@ func TestMountAgain(t *testing.T) {
 	const input = "hello, world\n"
 	const filename = "myfile"
 	func() {
-		mnt := makeFS(t, config)
+		mnt, _, cancelFn := makeFS(t, config)
 		defer mnt.Close()
+		defer cancelFn()
 
 		p := path.Join(mnt.Dir, PrivateName, "jdoe", filename)
 		if err := ioutil.WriteFile(p, []byte(input), 0644); err != nil {
@@ -403,8 +422,9 @@ func TestMountAgain(t *testing.T) {
 	}()
 
 	func() {
-		mnt := makeFS(t, config)
+		mnt, _, cancelFn := makeFS(t, config)
 		defer mnt.Close()
+		defer cancelFn()
 		p := path.Join(mnt.Dir, PrivateName, "jdoe", filename)
 		buf, err := ioutil.ReadFile(p)
 		if err != nil {
@@ -419,8 +439,9 @@ func TestMountAgain(t *testing.T) {
 func TestCreateExecutable(t *testing.T) {
 	config := libkbfs.MakeTestConfigOrBust(t, BServerRemoteAddr, "jdoe")
 	defer config.Shutdown()
-	mnt := makeFS(t, config)
+	mnt, _, cancelFn := makeFS(t, config)
 	defer mnt.Close()
+	defer cancelFn()
 
 	p := path.Join(mnt.Dir, PrivateName, "jdoe", "myfile")
 	if err := ioutil.WriteFile(p, []byte("fake binary"), 0755); err != nil {
@@ -438,8 +459,9 @@ func TestCreateExecutable(t *testing.T) {
 func TestMkdir(t *testing.T) {
 	config := libkbfs.MakeTestConfigOrBust(t, BServerRemoteAddr, "jdoe")
 	defer config.Shutdown()
-	mnt := makeFS(t, config)
+	mnt, _, cancelFn := makeFS(t, config)
 	defer mnt.Close()
+	defer cancelFn()
 
 	p := path.Join(mnt.Dir, PrivateName, "jdoe", "mydir")
 	if err := os.Mkdir(p, 0755); err != nil {
@@ -460,8 +482,9 @@ func TestMkdirAndCreateDeep(t *testing.T) {
 	const input = "hello, world\n"
 
 	func() {
-		mnt := makeFS(t, config)
+		mnt, _, cancelFn := makeFS(t, config)
 		defer mnt.Close()
+		defer cancelFn()
 
 		one := path.Join(mnt.Dir, PrivateName, "jdoe", "one")
 		if err := os.Mkdir(one, 0755); err != nil {
@@ -479,8 +502,9 @@ func TestMkdirAndCreateDeep(t *testing.T) {
 
 	// unmount to flush cache
 	func() {
-		mnt := makeFS(t, config)
+		mnt, _, cancelFn := makeFS(t, config)
 		defer mnt.Close()
+		defer cancelFn()
 
 		p := path.Join(mnt.Dir, PrivateName, "jdoe", "one", "two", "three")
 		buf, err := ioutil.ReadFile(p)
@@ -498,8 +522,9 @@ func TestSymlink(t *testing.T) {
 	defer config.Shutdown()
 
 	func() {
-		mnt := makeFS(t, config)
+		mnt, _, cancelFn := makeFS(t, config)
 		defer mnt.Close()
+		defer cancelFn()
 
 		p := path.Join(mnt.Dir, PrivateName, "jdoe", "mylink")
 		if err := os.Symlink("myfile", p); err != nil {
@@ -509,8 +534,9 @@ func TestSymlink(t *testing.T) {
 
 	// unmount to flush cache
 	func() {
-		mnt := makeFS(t, config)
+		mnt, _, cancelFn := makeFS(t, config)
 		defer mnt.Close()
+		defer cancelFn()
 
 		p := path.Join(mnt.Dir, PrivateName, "jdoe", "mylink")
 		target, err := os.Readlink(p)
@@ -526,8 +552,9 @@ func TestSymlink(t *testing.T) {
 func TestRename(t *testing.T) {
 	config := libkbfs.MakeTestConfigOrBust(t, BServerRemoteAddr, "jdoe")
 	defer config.Shutdown()
-	mnt := makeFS(t, config)
+	mnt, _, cancelFn := makeFS(t, config)
 	defer mnt.Close()
+	defer cancelFn()
 
 	p1 := path.Join(mnt.Dir, PrivateName, "jdoe", "old")
 	p2 := path.Join(mnt.Dir, PrivateName, "jdoe", "new")
@@ -565,8 +592,9 @@ func TestRename(t *testing.T) {
 func TestRenameOverwrite(t *testing.T) {
 	config := libkbfs.MakeTestConfigOrBust(t, BServerRemoteAddr, "jdoe")
 	defer config.Shutdown()
-	mnt := makeFS(t, config)
+	mnt, _, cancelFn := makeFS(t, config)
 	defer mnt.Close()
+	defer cancelFn()
 
 	p1 := path.Join(mnt.Dir, PrivateName, "jdoe", "old")
 	p2 := path.Join(mnt.Dir, PrivateName, "jdoe", "new")
@@ -602,8 +630,9 @@ func TestRenameOverwrite(t *testing.T) {
 func TestRenameCrossDir(t *testing.T) {
 	config := libkbfs.MakeTestConfigOrBust(t, BServerRemoteAddr, "jdoe")
 	defer config.Shutdown()
-	mnt := makeFS(t, config)
+	mnt, _, cancelFn := makeFS(t, config)
 	defer mnt.Close()
+	defer cancelFn()
 
 	if err := os.Mkdir(path.Join(mnt.Dir, PrivateName, "jdoe", "one"), 0755); err != nil {
 		t.Fatal(err)
@@ -643,8 +672,9 @@ func TestRenameCrossDir(t *testing.T) {
 func TestRenameCrossFolder(t *testing.T) {
 	config := libkbfs.MakeTestConfigOrBust(t, BServerRemoteAddr, "jdoe", "wsmith")
 	defer config.Shutdown()
-	mnt := makeFS(t, config)
+	mnt, _, cancelFn := makeFS(t, config)
 	defer mnt.Close()
+	defer cancelFn()
 
 	p1 := path.Join(mnt.Dir, PrivateName, "jdoe", "old")
 	p2 := path.Join(mnt.Dir, PrivateName, "wsmith,jdoe", "new")
@@ -695,8 +725,9 @@ func TestRenameCrossFolder(t *testing.T) {
 func TestWriteThenRename(t *testing.T) {
 	config := libkbfs.MakeTestConfigOrBust(t, BServerRemoteAddr, "jdoe")
 	defer config.Shutdown()
-	mnt := makeFS(t, config)
+	mnt, _, cancelFn := makeFS(t, config)
 	defer mnt.Close()
+	defer cancelFn()
 
 	p1 := path.Join(mnt.Dir, PrivateName, "jdoe", "old")
 	p2 := path.Join(mnt.Dir, PrivateName, "jdoe", "new")
@@ -750,8 +781,9 @@ func TestWriteThenRename(t *testing.T) {
 func TestWriteThenRenameCrossDir(t *testing.T) {
 	config := libkbfs.MakeTestConfigOrBust(t, BServerRemoteAddr, "jdoe")
 	defer config.Shutdown()
-	mnt := makeFS(t, config)
+	mnt, _, cancelFn := makeFS(t, config)
 	defer mnt.Close()
+	defer cancelFn()
 
 	if err := os.Mkdir(path.Join(mnt.Dir, PrivateName, "jdoe", "one"), 0755); err != nil {
 		t.Fatal(err)
@@ -811,8 +843,9 @@ func TestWriteThenRenameCrossDir(t *testing.T) {
 func TestRemoveFile(t *testing.T) {
 	config := libkbfs.MakeTestConfigOrBust(t, BServerRemoteAddr, "jdoe")
 	defer config.Shutdown()
-	mnt := makeFS(t, config)
+	mnt, _, cancelFn := makeFS(t, config)
 	defer mnt.Close()
+	defer cancelFn()
 
 	p := path.Join(mnt.Dir, PrivateName, "jdoe", "myfile")
 	const input = "hello, world\n"
@@ -834,8 +867,9 @@ func TestRemoveFile(t *testing.T) {
 func TestRemoveDir(t *testing.T) {
 	config := libkbfs.MakeTestConfigOrBust(t, BServerRemoteAddr, "jdoe")
 	defer config.Shutdown()
-	mnt := makeFS(t, config)
+	mnt, _, cancelFn := makeFS(t, config)
 	defer mnt.Close()
+	defer cancelFn()
 
 	p := path.Join(mnt.Dir, PrivateName, "jdoe", "mydir")
 	if err := os.Mkdir(p, 0755); err != nil {
@@ -856,8 +890,9 @@ func TestRemoveDir(t *testing.T) {
 func TestRemoveDirNotEmpty(t *testing.T) {
 	config := libkbfs.MakeTestConfigOrBust(t, BServerRemoteAddr, "jdoe")
 	defer config.Shutdown()
-	mnt := makeFS(t, config)
+	mnt, _, cancelFn := makeFS(t, config)
 	defer mnt.Close()
+	defer cancelFn()
 
 	p := path.Join(mnt.Dir, PrivateName, "jdoe", "mydir")
 	if err := os.Mkdir(p, 0755); err != nil {
@@ -881,8 +916,9 @@ func TestRemoveDirNotEmpty(t *testing.T) {
 func TestRemoveFileWhileOpenWriting(t *testing.T) {
 	config := libkbfs.MakeTestConfigOrBust(t, BServerRemoteAddr, "jdoe")
 	defer config.Shutdown()
-	mnt := makeFS(t, config)
+	mnt, _, cancelFn := makeFS(t, config)
 	defer mnt.Close()
+	defer cancelFn()
 
 	p := path.Join(mnt.Dir, PrivateName, "jdoe", "myfile")
 	f, err := os.Create(p)
@@ -914,8 +950,9 @@ func TestRemoveFileWhileOpenWriting(t *testing.T) {
 func TestRemoveFileWhileOpenReading(t *testing.T) {
 	config := libkbfs.MakeTestConfigOrBust(t, BServerRemoteAddr, "jdoe")
 	defer config.Shutdown()
-	mnt := makeFS(t, config)
+	mnt, _, cancelFn := makeFS(t, config)
 	defer mnt.Close()
+	defer cancelFn()
 
 	p := path.Join(mnt.Dir, PrivateName, "jdoe", "myfile")
 	const input = "hello, world\n"
@@ -955,8 +992,9 @@ func TestRemoveFileWhileOpenReading(t *testing.T) {
 func TestTruncateGrow(t *testing.T) {
 	config := libkbfs.MakeTestConfigOrBust(t, BServerRemoteAddr, "jdoe")
 	defer config.Shutdown()
-	mnt := makeFS(t, config)
+	mnt, _, cancelFn := makeFS(t, config)
 	defer mnt.Close()
+	defer cancelFn()
 
 	p := path.Join(mnt.Dir, PrivateName, "jdoe", "myfile")
 	const input = "hello, world\n"
@@ -989,8 +1027,9 @@ func TestTruncateGrow(t *testing.T) {
 func TestTruncateShrink(t *testing.T) {
 	config := libkbfs.MakeTestConfigOrBust(t, BServerRemoteAddr, "jdoe")
 	defer config.Shutdown()
-	mnt := makeFS(t, config)
+	mnt, _, cancelFn := makeFS(t, config)
 	defer mnt.Close()
+	defer cancelFn()
 
 	p := path.Join(mnt.Dir, PrivateName, "jdoe", "myfile")
 	const input = "hello, world\n"
@@ -1023,8 +1062,9 @@ func TestTruncateShrink(t *testing.T) {
 func TestChmodExec(t *testing.T) {
 	config := libkbfs.MakeTestConfigOrBust(t, BServerRemoteAddr, "jdoe")
 	defer config.Shutdown()
-	mnt := makeFS(t, config)
+	mnt, _, cancelFn := makeFS(t, config)
 	defer mnt.Close()
+	defer cancelFn()
 
 	p := path.Join(mnt.Dir, PrivateName, "jdoe", "myfile")
 	const input = "hello, world\n"
@@ -1048,8 +1088,9 @@ func TestChmodExec(t *testing.T) {
 func TestChmodNonExec(t *testing.T) {
 	config := libkbfs.MakeTestConfigOrBust(t, BServerRemoteAddr, "jdoe")
 	defer config.Shutdown()
-	mnt := makeFS(t, config)
+	mnt, _, cancelFn := makeFS(t, config)
 	defer mnt.Close()
+	defer cancelFn()
 
 	p := path.Join(mnt.Dir, PrivateName, "jdoe", "myfile")
 	const input = "hello, world\n"
@@ -1073,8 +1114,9 @@ func TestChmodNonExec(t *testing.T) {
 func TestChmodDir(t *testing.T) {
 	config := libkbfs.MakeTestConfigOrBust(t, BServerRemoteAddr, "jdoe")
 	defer config.Shutdown()
-	mnt := makeFS(t, config)
+	mnt, _, cancelFn := makeFS(t, config)
 	defer mnt.Close()
+	defer cancelFn()
 
 	p := path.Join(mnt.Dir, PrivateName, "jdoe", "myfile")
 	if err := os.Mkdir(p, 0755); err != nil {
@@ -1094,8 +1136,9 @@ func TestChmodDir(t *testing.T) {
 func TestSetattrFileMtime(t *testing.T) {
 	config := libkbfs.MakeTestConfigOrBust(t, BServerRemoteAddr, "jdoe")
 	defer config.Shutdown()
-	mnt := makeFS(t, config)
+	mnt, _, cancelFn := makeFS(t, config)
 	defer mnt.Close()
+	defer cancelFn()
 
 	p := path.Join(mnt.Dir, PrivateName, "jdoe", "myfile")
 	const input = "hello, world\n"
@@ -1123,8 +1166,9 @@ func TestSetattrFileMtime(t *testing.T) {
 func TestSetattrFileMtimeNow(t *testing.T) {
 	config := libkbfs.MakeTestConfigOrBust(t, BServerRemoteAddr, "jdoe")
 	defer config.Shutdown()
-	mnt := makeFS(t, config)
+	mnt, _, cancelFn := makeFS(t, config)
 	defer mnt.Close()
+	defer cancelFn()
 
 	p := path.Join(mnt.Dir, PrivateName, "jdoe", "myfile")
 	const input = "hello, world\n"
@@ -1161,8 +1205,9 @@ func TestSetattrFileMtimeNow(t *testing.T) {
 func TestSetattrDirMtime(t *testing.T) {
 	config := libkbfs.MakeTestConfigOrBust(t, BServerRemoteAddr, "jdoe")
 	defer config.Shutdown()
-	mnt := makeFS(t, config)
+	mnt, _, cancelFn := makeFS(t, config)
 	defer mnt.Close()
+	defer cancelFn()
 
 	p := path.Join(mnt.Dir, PrivateName, "jdoe", "mydir")
 	if err := os.Mkdir(p, 0755); err != nil {
@@ -1189,8 +1234,9 @@ func TestSetattrDirMtime(t *testing.T) {
 func TestSetattrDirMtimeNow(t *testing.T) {
 	config := libkbfs.MakeTestConfigOrBust(t, BServerRemoteAddr, "jdoe")
 	defer config.Shutdown()
-	mnt := makeFS(t, config)
+	mnt, _, cancelFn := makeFS(t, config)
 	defer mnt.Close()
+	defer cancelFn()
 
 	p := path.Join(mnt.Dir, PrivateName, "jdoe", "mydir")
 	if err := os.Mkdir(p, 0755); err != nil {
@@ -1226,8 +1272,9 @@ func TestSetattrDirMtimeNow(t *testing.T) {
 func TestFsync(t *testing.T) {
 	config := libkbfs.MakeTestConfigOrBust(t, BServerRemoteAddr, "jdoe")
 	defer config.Shutdown()
-	mnt := makeFS(t, config)
+	mnt, _, cancelFn := makeFS(t, config)
 	defer mnt.Close()
+	defer cancelFn()
 
 	p := path.Join(mnt.Dir, PrivateName, "jdoe", "myfile")
 	f, err := os.Create(p)
@@ -1250,8 +1297,9 @@ func TestFsync(t *testing.T) {
 func TestReaddirMyPublic(t *testing.T) {
 	config := libkbfs.MakeTestConfigOrBust(t, BServerRemoteAddr, "jdoe")
 	defer config.Shutdown()
-	mnt := makeFS(t, config)
+	mnt, _, cancelFn := makeFS(t, config)
 	defer mnt.Close()
+	defer cancelFn()
 
 	files := map[string]fileInfoCheck{
 		"one": nil,
@@ -1270,8 +1318,9 @@ func TestReaddirOtherFolderAsReader(t *testing.T) {
 	config := libkbfs.MakeTestConfigOrBust(t, BServerRemoteAddr, "jdoe", "wsmith")
 	defer config.Shutdown()
 	func() {
-		mnt := makeFS(t, config)
+		mnt, _, cancelFn := makeFS(t, config)
 		defer mnt.Close()
+		defer cancelFn()
 
 		// cause the folder to exist
 		if err := ioutil.WriteFile(path.Join(mnt.Dir, PrivateName, "jdoe#wsmith", "myfile"), []byte("data for myfile"), 0644); err != nil {
@@ -1281,8 +1330,9 @@ func TestReaddirOtherFolderAsReader(t *testing.T) {
 
 	c2 := libkbfs.ConfigAsUser(config, "wsmith")
 	defer c2.Shutdown()
-	mnt := makeFS(t, c2)
+	mnt, _, cancelFn := makeFS(t, c2)
 	defer mnt.Close()
+	defer cancelFn()
 
 	checkDir(t, path.Join(mnt.Dir, PrivateName, "jdoe#wsmith"), map[string]fileInfoCheck{
 		"myfile": nil,
@@ -1293,8 +1343,9 @@ func TestStatOtherFolder(t *testing.T) {
 	config := libkbfs.MakeTestConfigOrBust(t, BServerRemoteAddr, "jdoe", "wsmith")
 	defer config.Shutdown()
 	func() {
-		mnt := makeFS(t, config)
+		mnt, _, cancelFn := makeFS(t, config)
 		defer mnt.Close()
+		defer cancelFn()
 
 		// cause the folder to exist
 		if err := ioutil.WriteFile(path.Join(mnt.Dir, PrivateName, "jdoe", "myfile"), []byte("data for myfile"), 0644); err != nil {
@@ -1304,8 +1355,9 @@ func TestStatOtherFolder(t *testing.T) {
 
 	c2 := libkbfs.ConfigAsUser(config, "wsmith")
 	defer c2.Shutdown()
-	mnt := makeFS(t, c2)
+	mnt, _, cancelFn := makeFS(t, c2)
 	defer mnt.Close()
+	defer cancelFn()
 
 	switch _, err := os.Lstat(path.Join(mnt.Dir, PrivateName, "jdoe")); err := err.(type) {
 	case *os.PathError:
@@ -1324,8 +1376,9 @@ func TestStatOtherFolderFirstUse(t *testing.T) {
 
 	c2 := libkbfs.ConfigAsUser(config, "wsmith")
 	defer c2.Shutdown()
-	mnt := makeFS(t, c2)
+	mnt, _, cancelFn := makeFS(t, c2)
 	defer mnt.Close()
+	defer cancelFn()
 
 	switch _, err := os.Lstat(path.Join(mnt.Dir, PrivateName, "jdoe")); err := err.(type) {
 	case *os.PathError:
@@ -1341,8 +1394,9 @@ func TestStatOtherFolderPublic(t *testing.T) {
 	config := libkbfs.MakeTestConfigOrBust(t, BServerRemoteAddr, "jdoe", "wsmith")
 	defer config.Shutdown()
 	func() {
-		mnt := makeFS(t, config)
+		mnt, _, cancelFn := makeFS(t, config)
 		defer mnt.Close()
+		defer cancelFn()
 
 		// cause the folder to exist
 		if err := ioutil.WriteFile(path.Join(mnt.Dir, PublicName, "jdoe", "myfile"), []byte("data for myfile"), 0644); err != nil {
@@ -1352,8 +1406,9 @@ func TestStatOtherFolderPublic(t *testing.T) {
 
 	c2 := libkbfs.ConfigAsUser(config, "wsmith")
 	defer c2.Shutdown()
-	mnt := makeFS(t, c2)
+	mnt, _, cancelFn := makeFS(t, c2)
 	defer mnt.Close()
+	defer cancelFn()
 
 	fi, err := os.Lstat(path.Join(mnt.Dir, PublicName, "jdoe"))
 	if err != nil {
@@ -1373,8 +1428,9 @@ func TestStatOtherFolderPublicFirstUse(t *testing.T) {
 
 	c2 := libkbfs.ConfigAsUser(config, "wsmith")
 	defer c2.Shutdown()
-	mnt := makeFS(t, c2)
+	mnt, _, cancelFn := makeFS(t, c2)
 	defer mnt.Close()
+	defer cancelFn()
 
 	switch _, err := os.Lstat(path.Join(mnt.Dir, PublicName, "jdoe")); err := err.(type) {
 	case *os.PathError:
@@ -1391,8 +1447,9 @@ func TestReadPublicFile(t *testing.T) {
 	defer config.Shutdown()
 	const input = "hello, world\n"
 	func() {
-		mnt := makeFS(t, config)
+		mnt, _, cancelFn := makeFS(t, config)
 		defer mnt.Close()
+		defer cancelFn()
 
 		// cause the folder to exist
 		if err := ioutil.WriteFile(path.Join(mnt.Dir, PublicName, "jdoe", "myfile"), []byte(input), 0644); err != nil {
@@ -1402,8 +1459,9 @@ func TestReadPublicFile(t *testing.T) {
 
 	c2 := libkbfs.ConfigAsUser(config, "wsmith")
 	defer c2.Shutdown()
-	mnt := makeFS(t, c2)
+	mnt, _, cancelFn := makeFS(t, c2)
 	defer mnt.Close()
+	defer cancelFn()
 
 	buf, err := ioutil.ReadFile(path.Join(mnt.Dir, PublicName, "jdoe", "myfile"))
 	if err != nil {
@@ -1418,8 +1476,9 @@ func TestReaddirOtherFolderPublicAsAnyone(t *testing.T) {
 	config := libkbfs.MakeTestConfigOrBust(t, BServerRemoteAddr, "jdoe", "wsmith")
 	defer config.Shutdown()
 	func() {
-		mnt := makeFS(t, config)
+		mnt, _, cancelFn := makeFS(t, config)
 		defer mnt.Close()
+		defer cancelFn()
 
 		// cause the folder to exist
 		if err := ioutil.WriteFile(path.Join(mnt.Dir, PublicName, "jdoe", "myfile"), []byte("data for myfile"), 0644); err != nil {
@@ -1429,8 +1488,9 @@ func TestReaddirOtherFolderPublicAsAnyone(t *testing.T) {
 
 	c2 := libkbfs.ConfigAsUser(config, "wsmith")
 	defer c2.Shutdown()
-	mnt := makeFS(t, c2)
+	mnt, _, cancelFn := makeFS(t, c2)
 	defer mnt.Close()
+	defer cancelFn()
 
 	checkDir(t, path.Join(mnt.Dir, PublicName, "jdoe"), map[string]fileInfoCheck{
 		"myfile": nil,
@@ -1441,8 +1501,9 @@ func TestReaddirOtherFolderAsAnyone(t *testing.T) {
 	config := libkbfs.MakeTestConfigOrBust(t, BServerRemoteAddr, "jdoe", "wsmith")
 	defer config.Shutdown()
 	func() {
-		mnt := makeFS(t, config)
+		mnt, _, cancelFn := makeFS(t, config)
 		defer mnt.Close()
+		defer cancelFn()
 
 		// cause the folder to exist
 		if err := ioutil.WriteFile(path.Join(mnt.Dir, PrivateName, "jdoe", "myfile"), []byte("data for myfile"), 0644); err != nil {
@@ -1452,8 +1513,9 @@ func TestReaddirOtherFolderAsAnyone(t *testing.T) {
 
 	c2 := libkbfs.ConfigAsUser(config, "wsmith")
 	defer c2.Shutdown()
-	mnt := makeFS(t, c2)
+	mnt, _, cancelFn := makeFS(t, c2)
 	defer mnt.Close()
+	defer cancelFn()
 
 	switch _, err := ioutil.ReadDir(path.Join(mnt.Dir, PrivateName, "jdoe")); err := err.(type) {
 	case *os.PathError:
@@ -1468,10 +1530,12 @@ func TestReaddirOtherFolderAsAnyone(t *testing.T) {
 func TestInvalidateDataOnWrite(t *testing.T) {
 	config := libkbfs.MakeTestConfigOrBust(t, BServerRemoteAddr, "jdoe", "wsmith")
 	defer config.Shutdown()
-	mnt1 := makeFS(t, config)
+	mnt1, _, cancelFn1 := makeFS(t, config)
 	defer mnt1.Close()
-	mnt2 := makeFS(t, config)
+	defer cancelFn1()
+	mnt2, fs2, cancelFn2 := makeFS(t, config)
 	defer mnt2.Close()
+	defer cancelFn2()
 
 	if !mnt2.Conn.Protocol().HasInvalidate() {
 		t.Skip("Old FUSE protocol")
@@ -1504,6 +1568,8 @@ func TestInvalidateDataOnWrite(t *testing.T) {
 		t.Fatal(err)
 	}
 
+	fs2.notificationGroup.Wait()
+
 	{
 		buf := make([]byte, 4096)
 		n, err := f.ReadAt(buf, 0)
@@ -1519,10 +1585,12 @@ func TestInvalidateDataOnWrite(t *testing.T) {
 func TestInvalidatePublicDataOnWrite(t *testing.T) {
 	config := libkbfs.MakeTestConfigOrBust(t, BServerRemoteAddr, "jdoe", "wsmith")
 	defer config.Shutdown()
-	mnt1 := makeFS(t, config)
+	mnt1, _, cancelFn1 := makeFS(t, config)
 	defer mnt1.Close()
-	mnt2 := makeFS(t, config)
+	defer cancelFn1()
+	mnt2, fs2, cancelFn2 := makeFS(t, config)
 	defer mnt2.Close()
+	defer cancelFn2()
 
 	if !mnt2.Conn.Protocol().HasInvalidate() {
 		t.Skip("Old FUSE protocol")
@@ -1555,6 +1623,8 @@ func TestInvalidatePublicDataOnWrite(t *testing.T) {
 		t.Fatal(err)
 	}
 
+	fs2.notificationGroup.Wait()
+
 	{
 		buf := make([]byte, 4096)
 		n, err := f.ReadAt(buf, 0)
@@ -1570,10 +1640,12 @@ func TestInvalidatePublicDataOnWrite(t *testing.T) {
 func TestInvalidateDataOnTruncate(t *testing.T) {
 	config := libkbfs.MakeTestConfigOrBust(t, BServerRemoteAddr, "jdoe", "wsmith")
 	defer config.Shutdown()
-	mnt1 := makeFS(t, config)
+	mnt1, _, cancelFn1 := makeFS(t, config)
 	defer mnt1.Close()
-	mnt2 := makeFS(t, config)
+	defer cancelFn1()
+	mnt2, fs2, cancelFn2 := makeFS(t, config)
 	defer mnt2.Close()
+	defer cancelFn2()
 
 	if !mnt2.Conn.Protocol().HasInvalidate() {
 		t.Skip("Old FUSE protocol")
@@ -1606,6 +1678,8 @@ func TestInvalidateDataOnTruncate(t *testing.T) {
 		t.Fatal(err)
 	}
 
+	fs2.notificationGroup.Wait()
+
 	{
 		buf := make([]byte, 4096)
 		n, err := f.ReadAt(buf, 0)
@@ -1621,8 +1695,9 @@ func TestInvalidateDataOnTruncate(t *testing.T) {
 func TestInvalidateDataOnLocalWrite(t *testing.T) {
 	config := libkbfs.MakeTestConfigOrBust(t, BServerRemoteAddr, "jdoe", "wsmith")
 	defer config.Shutdown()
-	mnt := makeFS(t, config)
+	mnt, fs, cancelFn := makeFS(t, config)
 	defer mnt.Close()
+	defer cancelFn()
 
 	if !mnt.Conn.Protocol().HasInvalidate() {
 		t.Skip("Old FUSE protocol")
@@ -1671,6 +1746,8 @@ func TestInvalidateDataOnLocalWrite(t *testing.T) {
 		}
 	}
 
+	fs.notificationGroup.Wait()
+
 	{
 		buf := make([]byte, 4096)
 		n, err := f.ReadAt(buf, 0)
@@ -1686,10 +1763,12 @@ func TestInvalidateDataOnLocalWrite(t *testing.T) {
 func TestInvalidateEntryOnDelete(t *testing.T) {
 	config := libkbfs.MakeTestConfigOrBust(t, BServerRemoteAddr, "jdoe", "wsmith")
 	defer config.Shutdown()
-	mnt1 := makeFS(t, config)
+	mnt1, _, cancelFn1 := makeFS(t, config)
 	defer mnt1.Close()
-	mnt2 := makeFS(t, config)
+	defer cancelFn1()
+	mnt2, fs2, cancelFn2 := makeFS(t, config)
 	defer mnt2.Close()
+	defer cancelFn2()
 
 	if !mnt2.Conn.Protocol().HasInvalidate() {
 		t.Skip("Old FUSE protocol")
@@ -1711,6 +1790,8 @@ func TestInvalidateEntryOnDelete(t *testing.T) {
 	if err := os.Remove(path.Join(mnt1.Dir, PrivateName, "jdoe", "myfile")); err != nil {
 		t.Fatal(err)
 	}
+
+	fs2.notificationGroup.Wait()
 
 	if buf, err := ioutil.ReadFile(path.Join(mnt2.Dir, PrivateName, "jdoe", "myfile")); !os.IsNotExist(err) {
 		t.Fatalf("expected ENOENT: %v: %q", err, buf)
@@ -1749,8 +1830,9 @@ func TestErrorFile(t *testing.T) {
 	config := libkbfs.MakeTestConfigOrBust(t, BServerRemoteAddr, "jdoe")
 	config.SetReporter(libkbfs.NewReporterSimple(0))
 	defer config.Shutdown()
-	mnt := makeFS(t, config)
+	mnt, _, cancelFn := makeFS(t, config)
 	defer mnt.Close()
+	defer cancelFn()
 
 	// cause an error by stating a non-existent user
 	_, err := os.Lstat(path.Join(mnt.Dir, PrivateName, "janedoe"))
@@ -1791,12 +1873,14 @@ func (t *testMountObserver) BatchChanges(ctx context.Context,
 func TestInvalidateAcrossMounts(t *testing.T) {
 	config1 := libkbfs.MakeTestConfigOrBust(t, BServerRemoteAddr, "user1",
 		"user2")
-	mnt1 := makeFS(t, config1)
+	mnt1, _, cancelFn1 := makeFS(t, config1)
 	defer mnt1.Close()
+	defer cancelFn1()
 
 	config2 := libkbfs.ConfigAsUser(config1, "user2")
-	mnt2 := makeFS(t, config2)
+	mnt2, fs2, cancelFn2 := makeFS(t, config2)
 	defer mnt2.Close()
+	defer cancelFn2()
 
 	if !mnt2.Conn.Protocol().HasInvalidate() {
 		t.Skip("Old FUSE protocol")
@@ -1836,15 +1920,6 @@ func TestInvalidateAcrossMounts(t *testing.T) {
 		t.Errorf("wrong content: %q != %q", g, e)
 	}
 
-	ctx := context.Background()
-	dh, err := libkbfs.ParseTlfHandle(ctx, config2, "user1,user2")
-	rootNode, _, err := config2.KBFSOps().GetOrCreateRootNodeForHandle(ctx, dh,
-		libkbfs.MasterBranch)
-	c := make(chan struct{})
-	config2.Notifier().RegisterForChanges(
-		[]libkbfs.FolderBranch{rootNode.GetFolderBranch()},
-		&testMountObserver{c})
-
 	// now remove the first file, and rename the second
 	if err := os.Remove(myfile1); err != nil {
 		t.Fatal(err)
@@ -1854,9 +1929,7 @@ func TestInvalidateAcrossMounts(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	// wait for 2 to get the notifications
-	<-c
-	<-c
+	fs2.notificationGroup.Wait()
 
 	// check everything from user 2's perspective
 	if buf, err := ioutil.ReadFile(myfile2); !os.IsNotExist(err) {
@@ -1888,12 +1961,14 @@ func TestInvalidateAcrossMounts(t *testing.T) {
 func TestInvalidateRenameToUncachedDir(t *testing.T) {
 	config1 := libkbfs.MakeTestConfigOrBust(t, BServerRemoteAddr, "user1",
 		"user2")
-	mnt1 := makeFS(t, config1)
+	mnt1, fs1, cancelFn1 := makeFS(t, config1)
 	defer mnt1.Close()
+	defer cancelFn1()
 
 	config2 := libkbfs.ConfigAsUser(config1, "user2")
-	mnt2 := makeFS(t, config2)
+	mnt2, fs2, cancelFn2 := makeFS(t, config2)
 	defer mnt2.Close()
+	defer cancelFn2()
 
 	if !mnt2.Conn.Protocol().HasInvalidate() {
 		t.Skip("Old FUSE protocol")
@@ -1934,6 +2009,8 @@ func TestInvalidateRenameToUncachedDir(t *testing.T) {
 		t.Fatal(err)
 	}
 
+	fs2.notificationGroup.Wait()
+
 	// user 2 should be able to write to its open file, and user 1
 	// will see the change
 	const input2 = "input round two"
@@ -1944,6 +2021,8 @@ func TestInvalidateRenameToUncachedDir(t *testing.T) {
 		}
 	}
 	f.Close()
+
+	fs1.notificationGroup.Wait()
 
 	buf, err := ioutil.ReadFile(mydirfile1)
 	if err != nil {
@@ -1957,8 +2036,9 @@ func TestInvalidateRenameToUncachedDir(t *testing.T) {
 func TestStatusFile(t *testing.T) {
 	config := libkbfs.MakeTestConfigOrBust(t, BServerRemoteAddr, "jdoe")
 	defer config.Shutdown()
-	mnt := makeFS(t, config)
+	mnt, _, cancelFn := makeFS(t, config)
 	defer mnt.Close()
+	defer cancelFn()
 
 	ctx := context.Background()
 	dh, err := libkbfs.ParseTlfHandle(ctx, config, "jdoe")
@@ -1994,12 +2074,14 @@ func TestStatusFile(t *testing.T) {
 func TestUnstageFile(t *testing.T) {
 	config1 := libkbfs.MakeTestConfigOrBust(t, BServerRemoteAddr, "user1",
 		"user2")
-	mnt1 := makeFS(t, config1)
+	mnt1, _, cancelFn1 := makeFS(t, config1)
 	defer mnt1.Close()
+	defer cancelFn1()
 
 	config2 := libkbfs.ConfigAsUser(config1, "user2")
-	mnt2 := makeFS(t, config2)
+	mnt2, _, cancelFn2 := makeFS(t, config2)
 	defer mnt2.Close()
+	defer cancelFn2()
 
 	if !mnt2.Conn.Protocol().HasInvalidate() {
 		t.Skip("Old FUSE protocol")

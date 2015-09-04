@@ -87,6 +87,12 @@ func (f *Folder) LocalChange(ctx context.Context, node libkbfs.Node, write libkb
 		return
 	}
 
+	// spawn a goroutine because we shouldn't lock during the notification
+	f.fs.queueNotification(func() { f.localChangeInvalidate(ctx, node, write) })
+}
+
+func (f *Folder) localChangeInvalidate(ctx context.Context, node libkbfs.Node,
+	write libkbfs.WriteRange) {
 	f.mu.Lock()
 	n, ok := f.nodes[node.GetID()]
 	f.mu.Unlock()
@@ -111,6 +117,12 @@ func (f *Folder) BatchChanges(ctx context.Context, changes []libkbfs.NodeChange)
 		return
 	}
 
+	// spawn a goroutine because we shouldn't lock during the notification
+	f.fs.queueNotification(func() { f.batchChangesInvalidate(ctx, changes) })
+}
+
+func (f *Folder) batchChangesInvalidate(ctx context.Context,
+	changes []libkbfs.NodeChange) {
 	for _, v := range changes {
 		f.mu.Lock()
 		n, ok := f.nodes[v.Node.GetID()]
