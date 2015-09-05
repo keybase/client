@@ -29,6 +29,7 @@ func (v *CmdLogin) client() (*keybase1.LoginClient, error) {
 		NewLogUIProtocol(),
 		NewSecretUIProtocol(),
 		NewLocksmithUIProtocol(),
+		NewGPGUIProtocol(),
 	}
 	if err := RegisterProtocols(protocols); err != nil {
 		return nil, err
