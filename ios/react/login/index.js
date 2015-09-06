@@ -4,11 +4,10 @@ var React = require('react-native')
 var {
   StyleSheet,
   Text,
-  View,
   Component
 } = React
 
-var engine = require('../engine')
+// var engine = require('../engine')
 
 var styles = StyleSheet.create({
   container: {
@@ -24,39 +23,39 @@ var styles = StyleSheet.create({
   }
 })
 
-class LoginScreen extends Component {
+var Form = require('./form')
+
+class LoginStates {}
+LoginStates.prototype.Form = 'Form'
+LoginStates.prototype.DevicePrompt = 'DevicePrompt'
+LoginStates.prototype.UserPass = 'UserPass'
+
+class LoginComponent extends Component {
   constructor () {
     super()
 
     this.state = {
-      username: null,
-      password: null,
-      storeSecret: false // TODO load this off of prefs
+      screen: LoginStates.Form
     }
-  }
-
-  onSubmit () {
-    var toSend = this.state.data
-
-    engine.rpc('login.loginWithPassphrase', {
-      username: this.state.username,
-      passphrase: this.state.passphrase,
-      storeSecret: this.state.storeSecret
-    },
-    (err, data) => {
-      if (!err && data) {
-        this.setState({data: data})
-      }
-    })
   }
 
   render () {
     return (
-      <View style={styles.container}>
-      <Text style={styles.welcome}>From Go: {this.state.data}</Text>
-      </View>
+      <Text>Login</Text>
     )
+    /*
+    switch (this.state.screen) {
+      case LoginStates.Form:
+        return (
+          <Form/>
+        )
+      default:
+        return (
+          <Text>Unknown login state</Text>
+      )
+    }
+    */
   }
 }
 
-module.exports = GoTest
+module.exports = LoginComponent

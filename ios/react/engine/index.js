@@ -11,7 +11,7 @@ var {
 
 var objcEngine = NativeModules.ObjcEngine
 
-var rpc = require('./framed-msgpack-rpc/lib/main')
+var rpc = require('../framed-msgpack-rpc/lib/main')
 var RpcTransport = rpc.transport.Transport
 var RpcClient = rpc.client.Client
 var Buffer = require('buffer').Buffer

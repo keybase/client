@@ -29,10 +29,17 @@ class ReactTest extends Component {
     this.state = {
       count: 0
     }
+  }
 
-    setInterval(() => {
+  componentDidMount () {
+    this.timer = setInterval(() => {
       this.setState({count: this.state.count + 1})
     }, 1000)
+  }
+
+  componentWillUnmount () {
+    clearInterval(this.timer)
+    this.timer = null
   }
 
   render () {

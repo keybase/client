@@ -8,7 +8,7 @@ var {
   Component
 } = React
 
-var engine = require('./engine')
+var engine = require('../engine')
 
 var styles = StyleSheet.create({
   container: {
@@ -41,10 +41,20 @@ class GoTest extends Component {
     this.sendToGo()
   }
 
+  clearTimer () {
+    clearInterval(this.timer)
+    this.timer = null
+  }
+
+  componentWillUnmount () {
+    this.clearTimer()
+  }
+
   handleMultiStep (err, method, param, response) {
     switch (method) {
       case 'keybase.1.debugging.secondStep':
-        setTimeout(() => {
+        this.clearTimer()
+        this.timer = setTimeout(() => {
           response.result(param.val + 1)
         }, 3000)
         break
@@ -53,7 +63,8 @@ class GoTest extends Component {
           this.setState({data: param.valPlusTwo})
         }
 
-        setTimeout(() => {
+        this.clearTimer()
+        this.timer = setTimeout(() => {
           this.sendToGo()
         }, 1000)
     }
