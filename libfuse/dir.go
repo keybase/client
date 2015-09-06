@@ -20,6 +20,7 @@ type Folder struct {
 	name         string
 	folderBranch libkbfs.FolderBranch
 
+	// Protects the fields below.
 	mu sync.Mutex
 	// Map KBFS nodes to FUSE nodes, to be able to handle multiple
 	// lookups and incoming change notifications. A node is present
