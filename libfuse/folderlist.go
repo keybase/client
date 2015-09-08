@@ -41,11 +41,11 @@ func (fl *FolderList) Lookup(ctx context.Context, req *fuse.LookupRequest, resp 
 	defer fl.mu.Unlock()
 
 	if req.Name == libkbfs.ErrorFile {
-		resp.EntryValid = 0
-		n := &ErrorFile{
-			fs: fl.fs,
-		}
-		return n, nil
+		return NewErrorFile(fl.fs, resp), nil
+	}
+
+	if req.Name == MetricsFileName {
+		return NewMetricsFile(fl.fs, resp), nil
 	}
 
 	if child, ok := fl.folders[req.Name]; ok {

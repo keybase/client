@@ -178,11 +178,9 @@ func (r *Root) Lookup(ctx context.Context, req *fuse.LookupRequest, resp *fuse.L
 	case PublicName:
 		return r.public, nil
 	case libkbfs.ErrorFile:
-		resp.EntryValid = 0
-		n := &ErrorFile{
-			fs: r.private.fs,
-		}
-		return n, nil
+		return NewErrorFile(r.private.fs, resp), nil
+	case MetricsFileName:
+		return NewMetricsFile(r.private.fs, resp), nil
 	}
 	return nil, fuse.ENOENT
 }

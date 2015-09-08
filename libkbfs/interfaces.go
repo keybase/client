@@ -9,6 +9,7 @@ import (
 	"github.com/keybase/client/go/logger"
 	keybase1 "github.com/keybase/client/protocol/go"
 	"github.com/maxtaco/go-framed-msgpack-rpc/rpc2"
+	metrics "github.com/rcrowley/go-metrics"
 	"golang.org/x/net/context"
 )
 
@@ -780,6 +781,12 @@ type Config interface {
 	SetCACert([]byte)
 	MakeLogger(module string) logger.Logger
 	SetLoggerMaker(func(module string) logger.Logger)
+	// MetricsRegistry may be nil, which should be interpreted as
+	// not using metrics at all. (i.e., as if UseNilMetrics were
+	// set). This differs from how go-metrics treats nil Registry
+	// objects, which is to use the default registry.
+	MetricsRegistry() metrics.Registry
+	SetMetricsRegistry(metrics.Registry)
 	// Shutdown is called to free config resources.
 	Shutdown()
 }

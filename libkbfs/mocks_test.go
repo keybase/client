@@ -10,6 +10,7 @@ import (
 	logger "github.com/keybase/client/go/logger"
 	go0 "github.com/keybase/client/protocol/go"
 	rpc2 "github.com/maxtaco/go-framed-msgpack-rpc/rpc2"
+	go_metrics "github.com/rcrowley/go-metrics"
 	context "golang.org/x/net/context"
 	reflect "reflect"
 	time "time"
@@ -2068,6 +2069,24 @@ func (_m *MockConfig) SetLoggerMaker(_param0 func(string) logger.Logger) {
 
 func (_mr *_MockConfigRecorder) SetLoggerMaker(arg0 interface{}) *gomock.Call {
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "SetLoggerMaker", arg0)
+}
+
+func (_m *MockConfig) MetricsRegistry() go_metrics.Registry {
+	ret := _m.ctrl.Call(_m, "MetricsRegistry")
+	ret0, _ := ret[0].(go_metrics.Registry)
+	return ret0
+}
+
+func (_mr *_MockConfigRecorder) MetricsRegistry() *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "MetricsRegistry")
+}
+
+func (_m *MockConfig) SetMetricsRegistry(_param0 go_metrics.Registry) {
+	_m.ctrl.Call(_m, "SetMetricsRegistry", _param0)
+}
+
+func (_mr *_MockConfigRecorder) SetMetricsRegistry(arg0 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "SetMetricsRegistry", arg0)
 }
 
 func (_m *MockConfig) Shutdown() {

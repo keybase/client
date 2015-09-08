@@ -215,19 +215,15 @@ func (d *Dir) Lookup(ctx context.Context, req *fuse.LookupRequest, resp *fuse.Lo
 	defer func() { d.folder.fs.reportErr(ctx, err) }()
 
 	if req.Name == libkbfs.ErrorFile {
-		resp.EntryValid = 0
-		child := &ErrorFile{
-			fs: d.folder.fs,
-		}
-		return child, nil
+		return NewErrorFile(d.folder.fs, resp), nil
+	}
+
+	if req.Name == MetricsFileName {
+		return NewMetricsFile(d.folder.fs, resp), nil
 	}
 
 	if req.Name == StatusFileName {
-		resp.EntryValid = 0
-		child := &StatusFile{
-			folder: d.folder,
-		}
-		return child, nil
+		return NewStatusFile(d.folder, resp), nil
 	}
 
 	if req.Name == UnstageFileName {

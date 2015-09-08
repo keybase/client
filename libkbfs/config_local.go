@@ -5,6 +5,7 @@ import (
 
 	"github.com/keybase/client/go/logger"
 	keybase1 "github.com/keybase/client/protocol/go"
+	"github.com/rcrowley/go-metrics"
 )
 
 // ConfigLocal implements the Config interface using purely local
@@ -28,8 +29,11 @@ type ConfigLocal struct {
 	bsplit   BlockSplitter
 	notifier Notifier
 	cacert   []byte
+	registry metrics.Registry
 	loggerFn func(prefix string) logger.Logger
 }
+
+var _ Config = (*ConfigLocal)(nil)
 
 // LocalUser represents a fake KBFS user, useful for testing.
 type LocalUser struct {
@@ -143,6 +147,12 @@ func NewConfigLocal() *ConfigLocal {
 		config.SetCACert([]byte(envCACert))
 	} else {
 		config.SetCACert([]byte(TestCACert))
+	}
+
+	// Don't bother creating the registry if UseNilMetrics is set.
+	if !metrics.UseNilMetrics {
+		registry := metrics.NewRegistry()
+		config.SetMetricsRegistry(registry)
 	}
 	return config
 }
@@ -360,6 +370,16 @@ func NewConfigLocalWithCrypto() *ConfigLocal {
 	crypto := NewCryptoLocal(config, signingKey, cryptPrivateKey)
 	config.SetCrypto(crypto)
 	return config
+}
+
+// MetricsRegistry implements the Config interface for ConfigLocal.
+func (c *ConfigLocal) MetricsRegistry() metrics.Registry {
+	return c.registry
+}
+
+// SetMetricsRegistry implements the Config interface for ConfigLocal.
+func (c *ConfigLocal) SetMetricsRegistry(r metrics.Registry) {
+	c.registry = r
 }
 
 // Shutdown implements the Config interface for ConfigLocal.
