@@ -7,10 +7,14 @@ var {
   View,
   SwitchIOS,
   Text,
-  TextInput
+  TextInput,
+  TouchableHighlight
 } = React
 
-// var engine = require('../engine')
+var engine = require('../engine')
+var DevicePrompt = require('./device-prompt')
+
+var commonStyles = require('../styles/common')
 
 var styles = StyleSheet.create({
   container: {
@@ -37,39 +41,71 @@ var styles = StyleSheet.create({
   horizontal: {
     flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'center'
+  },
+  rightSide: {
     justifyContent: 'flex-end',
     marginRight: 10
+  },
+  loginWrapper: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: 10
   }
 })
+
+var loginButtonStyle = [commonStyles.actionButton, {width: 200}]
 
 class LoginForm extends Component {
   constructor () {
     super()
 
     this.state = {
-      username: null,
-      password: null,
+      username: 'test7',
+      passphrase: 'okokokokokok',
       storeSecret: false // TODO load this off of prefs
     }
   }
 
-  onSubmit () {
-    /*
-    engine.rpc('login.loginWithPassphrase', {
+  submit () {
+    engine.collatedRpc('login.loginWithPassphrase', {
       username: this.state.username,
       passphrase: this.state.passphrase,
-      storeSecret: this.state.storeSecret
+      storeSecret: this.state.storeSecret,
+      error: null
     },
-    (err, data) => {
-      console.log(err, data)
-      if (!err && data) {
-        this.setState({data: data})
+    (err, method, param, response) => {
+      if (err) {
+        this.setState({error: err})
+      } else {
+        switch (method) {
+          case 'keybase.1.locksmithUi.promptDeviceName':
+            this.props.navigator.replace({
+              title: 'Device Name',
+              component: DevicePrompt,
+              passProps: {
+                response: response
+              }
+            }
+          )
+            break
+          case null:
+            break
+          default:
+            console.log('Unknown rpc from login.loginWithPassphrase: ', method)
+        }
       }
     })
-      */
   }
 
   render () {
+
+    var error = null
+    if (this.state.error) {
+      error = <Text style={[{margin: 20, padding: 10}, commonStyles.error]} >Error: {this.state.error}</Text>
+    }
+
     return (
       <View style={styles.container}>
         <TextInput
@@ -79,11 +115,12 @@ class LoginForm extends Component {
           enablesReturnKeyAutomatically={true}
           returnKeyType='next'
           autoCorrect={false}
+          onChangeText={(username) => this.setState({username})}
           onSubmitEditing={(event) => {
-            this.setState({username: event.nativeEvent.text})
             this.refs['passphrase'].focus()
           }}
           />
+
         <TextInput
           ref='passphrase'
           style={styles.input}
@@ -93,20 +130,36 @@ class LoginForm extends Component {
           enablesReturnKeyAutomatically={true}
           autoCorrect={false}
           returnKeyType='done'
+          onChangeText={(passphrase) => this.setState({passphrase})}
           onSubmitEditing={(event) => {
-            this.setState({passphrase: event.nativeEvent.text})
+            this.submit()
           }}
           />
-          <View style={styles.horizontal}>
-            <Text style={styles.switchText}>Remember me</Text>
-            <SwitchIOS
-              onValueChange={(value) => this.setState({storeSecret: value})}
-              value={this.state.storeSecret}
-            />
-          </View>
+
+        <View style={[styles.horizontal, styles.rightSide]}>
+          <Text style={styles.switchText}>Remember me</Text>
+          <SwitchIOS
+            onValueChange={(value) => this.setState({storeSecret: value})}
+            value={this.state.storeSecret}
+          />
+        </View>
+
+        {error}
+
+        <View style={styles.loginWrapper}>
+          <TouchableHighlight
+            underlayColor={commonStyles.buttonHighlight}
+            onPress={() => {this.submit()}}>
+            <Text style={loginButtonStyle} >Login</Text>
+          </TouchableHighlight>
+        </View>
       </View>
     )
   }
+}
+
+LoginForm.propTypes = {
+  navigator: React.PropTypes.object
 }
 
 module.exports = LoginForm

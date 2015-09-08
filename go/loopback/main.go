@@ -31,7 +31,17 @@ func (n debuggingConfig) GetLocalRPCDebug() string {
 	// return ""
 }
 
-func (d dummyCmd) GetUsage() libkb.Usage { return libkb.Usage{} }
+func (n debuggingConfig) GetRunMode() (libkb.RunMode, error) {
+	return libkb.DevelRunMode, nil
+}
+
+func (d dummyCmd) GetUsage() libkb.Usage {
+	return libkb.Usage{
+		Config:    true,
+		API:       true,
+		KbKeyring: true,
+	}
+}
 
 func start() {
 	startOnce.Do(func() {

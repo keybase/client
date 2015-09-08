@@ -37,7 +37,8 @@ class AppOrDebug extends Component {
     Settings.set({appOrDebug: 'app'})
     this.props.navigator.push({
       title: 'Keybase',
-      component: Login
+      component: Login,
+      passProps: this.props.navigator
     })
   }
 
@@ -46,6 +47,7 @@ class AppOrDebug extends Component {
     this.props.navigator.push({
       title: 'Debug',
       component: Debug,
+      passProps: this.props.navigator,
       leftButtonTitle: 'Back',
       onLeftButtonPress: () => this.props.navigator.pop(),
       rightButtonTitle: 'Cancel',
@@ -64,7 +66,7 @@ class AppOrDebug extends Component {
           this.showDebug()
         }
       }
-    }, 1)
+    }, 100)
   }
 
   render () {

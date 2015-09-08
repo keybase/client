@@ -44,7 +44,9 @@ class LoginComponent extends Component {
     switch (this.state.screen) {
       case LoginStates.Form:
         return (
-          <Form/>
+          <Form
+            navigator={this.props.navigator}
+          />
         )
       default:
         return (
@@ -54,6 +56,10 @@ class LoginComponent extends Component {
       )
     }
   }
+}
+
+LoginComponent.propTypes = {
+  navigator: React.PropTypes.object
 }
 
 module.exports = LoginComponent

@@ -9,14 +9,18 @@ var {
   Component
 } = React
 
+var Temp = require('../login/device-prompt')
+
 class Debug extends Component {
   constructor () {
     super()
   }
 
   render () {
-    // return React.createElement(require('../login'))
-    return React.createElement(require('./briding-tabs'))
+    return (
+      <Temp navigator={this.props.navigator}/>
+    )
+    // return React.createElement(require('./briding-tabs'))
   }
 }
 
