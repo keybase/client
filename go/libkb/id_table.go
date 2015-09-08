@@ -958,8 +958,8 @@ func (idt *IdentityTable) populate() error {
 		return err
 	}
 	for _, link := range links {
-		if link.IsBad() {
-			G.Log.Debug("Ignoring bad chain link")
+		if isBad, reason := link.IsBad(); isBad {
+			G.Log.Debug("Ignoring bad chain link with sig ID %s: %s", link.GetSigID(), reason)
 			continue
 		}
 
