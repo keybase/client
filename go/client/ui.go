@@ -638,10 +638,7 @@ type SecretUI struct {
 }
 
 func (ui SecretUI) GetSecret(pinentry keybase1.SecretEntryArg, term *keybase1.SecretEntryArg) (*keybase1.SecretEntryRes, error) {
-	if len(pinentry.Reason) > 0 {
-		ui.parent.Printf("Collecting your passphrase via pinentry.  Why?  %s\n", pinentry.Reason)
-	}
-	return ui.parent.SecretEntry.Get(pinentry, term)
+	return ui.parent.SecretEntry.Get(pinentry, term, ui.parent)
 }
 
 func (ui *UI) Configure() error {

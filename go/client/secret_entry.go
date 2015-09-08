@@ -14,6 +14,10 @@ type SecretEntry struct {
 	initRes  *error
 }
 
+type Printer interface {
+	Printf(format string, a ...interface{}) (n int, err error)
+}
+
 func NewSecretEntry(t *Terminal) *SecretEntry {
 	return &SecretEntry{terminal: t}
 }
@@ -53,14 +57,16 @@ func (se *SecretEntry) Init() (err error) {
 	return err
 }
 
-func (se *SecretEntry) Get(arg keybase1.SecretEntryArg, termArg *keybase1.SecretEntryArg) (
-	res *keybase1.SecretEntryRes, err error) {
+func (se *SecretEntry) Get(arg keybase1.SecretEntryArg, termArg *keybase1.SecretEntryArg, printer Printer) (res *keybase1.SecretEntryRes, err error) {
 
 	if err = se.Init(); err != nil {
 		return
 	}
 
 	if pe := se.pinentry; pe != nil {
+		if len(arg.Reason) > 0 {
+			printer.Printf("Collecting your passphrase via pinentry.  Why?  %s.\n", arg.Reason)
+		}
 		res, err = pe.Get(arg)
 	} else if se.terminal == nil {
 		err = NoTerminalError{}
