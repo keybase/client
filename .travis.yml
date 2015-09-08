@@ -13,6 +13,6 @@ script:
   - docker login -e $CI_EMAIL -u $CI_USER -p $CI_PASS $CI_HOST
   - docker pull $CI_HOST/kbweb
   - travis_retry docker run --name kbweb3000 -d -p 3000:3000 $CI_HOST/kbweb
-  - cd go && ./test/check_or_start_kbweb.sh && go test -v ./...
+  - cd go && ./test/check_or_start_kbweb.sh && go test ./...
 notifications:
   slack: keybase:WKlhs55Mb4am4obv1rNRg8P0
