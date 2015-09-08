@@ -575,6 +575,11 @@ func (ckf *ComputedKeyFamily) Revoke(tcl TypedChainLink) (err error) {
 	return err
 }
 
+// SetPGPHash sets the authoritative version (by hash) of a PGP key
+func (ckf *ComputedKeyFamily) SetActivePGPHash(kid keybase1.KID, hash string) {
+	ckf.cki.Infos[kid].ActivePGPHash = hash
+}
+
 // revokeSigs operates on the per-signature revocations in the given
 // TypedChainLink and applies them accordingly.
 func (ckf *ComputedKeyFamily) revokeSigs(sigs []keybase1.SigID, tcl TypedChainLink) error {
