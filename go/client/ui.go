@@ -694,7 +694,7 @@ func (ui SecretUI) GetNewPassphrase(earg keybase1.GetNewPassphraseArg) (eres key
 			return
 		}
 
-		arg.TerminalPrompt = "confirm " + arg.TerminalPrompt
+		arg.TerminalPrompt = arg.TerminalPrompt + " [confirm]"
 		arg.PinentryDesc = "Please reenter your passphase for confirmation"
 		arg.RetryMessage = ""
 		arg.Checker = nil
