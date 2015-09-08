@@ -641,6 +641,54 @@ func (s *SubkeyChainLink) insertIntoTable(tab *IdentityTable) {
 
 //
 //=========================================================================
+
+//=========================================================================
+// PGPUpdateChainLink
+//
+
+// PGPUpdateChainLink represents a chain link which marks a new version of a
+// PGP key as current. The KID and a new new full hash are included in the
+// pgp_update section of the body.
+type PGPUpdateChainLink struct {
+	GenericChainLink
+	kid keybase1.KID
+}
+
+// ParsePGPUpdateChainLink creates a PGPUpdateChainLink from a GenericChainLink
+// and verifies that its pgp_update section contains a KID and full_hash
+func ParsePGPUpdateChainLink(b GenericChainLink) (ret *PGPUpdateChainLink, err error) {
+	var kid keybase1.KID
+
+	pgpUpdate := b.payloadJSON.AtPath("body.pgp_update")
+
+	if pgpUpdate.IsNil() {
+		err = ChainLinkError{fmt.Sprintf("missing pgp_update section @%s", b.ToDebugString())}
+		return
+	}
+
+	if kid, err = GetKID(pgpUpdate.AtKey("kid")); err != nil {
+		err = ChainLinkError{fmt.Sprintf("Missing kid @%s: %s", b.ToDebugString(), err)}
+		return
+	}
+
+	ret = &PGPUpdateChainLink{b, kid}
+
+	if fh := ret.GetPGPFullHash(); fh == "" {
+		err = ChainLinkError{fmt.Sprintf("Missing full_hash @%s", b.ToDebugString())}
+		ret = nil
+		return
+	}
+
+	return
+}
+
+func (l *PGPUpdateChainLink) Type() string                       { return PGPUpdateType }
+func (l *PGPUpdateChainLink) ToDisplayString() string            { return l.kid.String() }
+func (l *PGPUpdateChainLink) GetPGPFullHash() string             { return l.extractPGPFullHash("pgp_update") }
+func (l *PGPUpdateChainLink) insertIntoTable(tab *IdentityTable) { tab.insertLink(l) }
+
+//
+//=========================================================================
 //
 
 type DeviceChainLink struct {
@@ -933,6 +981,8 @@ func NewTypedChainLink(cl *ChainLink) (ret TypedChainLink, w Warning) {
 			ret, err = ParseSibkeyChainLink(base)
 		case SubkeyType:
 			ret, err = ParseSubkeyChainLink(base)
+		case PGPUpdateType:
+			ret, err = ParsePGPUpdateChainLink(base)
 		case "device":
 			ret, err = ParseDeviceChainLink(base)
 		default:

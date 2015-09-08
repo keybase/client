@@ -394,9 +394,10 @@ func (sc *SigChain) verifySubchain(kf KeyFamily, links []*ChainLink) (cached boo
 		// family. That's important because a chain link might revoke the same
 		// key that signed it.
 		isDelegating := (tcl.GetRole() != DLGNone)
+		isModifyingKeys := isDelegating || tcl.Type() == PGPUpdateType
 		isFinalLink := (linkIndex == len(links)-1)
 		isLastLinkInSameKeyRun := (isFinalLink || newKID != links[linkIndex+1].GetKID())
-		if isDelegating || isFinalLink || isLastLinkInSameKeyRun {
+		if isModifyingKeys || isFinalLink || isLastLinkInSameKeyRun {
 			_, err = link.VerifySigWithKeyFamily(ckf)
 			if err != nil {
 				G.Log.Debug("| Failure in VerifySigWithKeyFamily: %s", err)
@@ -409,6 +410,13 @@ func (sc *SigChain) verifySubchain(kf KeyFamily, links []*ChainLink) (cached boo
 			if err != nil {
 				G.Log.Debug("| Failure in Delegate: %s", err)
 				return
+			}
+		}
+
+		if pgpcl, ok := tcl.(*PGPUpdateChainLink); ok {
+			if hash := pgpcl.GetPGPFullHash(); hash != "" {
+				G.Log.Debug("| Setting active PGP hash for %s: %s", pgpcl.kid, hash)
+				ckf.SetActivePGPHash(pgpcl.kid, hash)
 			}
 		}
 
