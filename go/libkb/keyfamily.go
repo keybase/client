@@ -222,21 +222,22 @@ func NewComputedKeyInfos() *ComputedKeyInfos {
 	}
 }
 
-func NewComputedKeyInfo(eldest, sibkey bool, status KeyStatus, ctime, etime int64) ComputedKeyInfo {
+func NewComputedKeyInfo(eldest, sibkey bool, status KeyStatus, ctime, etime int64, activePGPHash string) ComputedKeyInfo {
 	return ComputedKeyInfo{
-		Eldest:      eldest,
-		Sibkey:      sibkey,
-		Status:      status,
-		CTime:       ctime,
-		ETime:       etime,
-		Delegations: make(map[keybase1.SigID]keybase1.KID),
+		Eldest:        eldest,
+		Sibkey:        sibkey,
+		Status:        status,
+		CTime:         ctime,
+		ETime:         etime,
+		Delegations:   make(map[keybase1.SigID]keybase1.KID),
+		ActivePGPHash: activePGPHash,
 	}
 }
 
 func (cki ComputedKeyInfos) InsertLocalEldestKey(kid keybase1.KID) {
 	// CTime and ETime are both initialized to zero, meaning that (until we get
 	// updates from the server) this key never expires.
-	eldestCki := NewComputedKeyInfo(true, true, KeyUncancelled, 0, 0)
+	eldestCki := NewComputedKeyInfo(true, true, KeyUncancelled, 0, 0, "" /* activePGPHash */)
 	cki.Insert(kid, &eldestCki)
 }
 
@@ -247,7 +248,7 @@ func (cki ComputedKeyInfos) InsertServerEldestKey(eldestKey GenericKey, un Norma
 	if pgp, ok := eldestKey.(*PGPKeyBundle); ok {
 		match, ctime, etime := pgp.CheckIdentity(kbid)
 		if match {
-			eldestCki := NewComputedKeyInfo(true, true, KeyUncancelled, ctime, etime)
+			eldestCki := NewComputedKeyInfo(true, true, KeyUncancelled, ctime, etime, "" /* activePGPHash */)
 			cki.Insert(eldestKey.GetKID(), &eldestCki)
 			return nil
 		}
@@ -305,7 +306,7 @@ func (ckf ComputedKeyFamily) InsertEldestLink(tcl TypedChainLink, username Norma
 		etime = etimeKb
 	}
 
-	eldestCki := NewComputedKeyInfo(true, true, KeyUncancelled, ctime, etime)
+	eldestCki := NewComputedKeyInfo(true, true, KeyUncancelled, ctime, etime, tcl.GetPGPFullHash())
 
 	ckf.cki.Insert(kid, &eldestCki)
 	return nil
@@ -486,17 +487,17 @@ func (ckf *ComputedKeyFamily) Delegate(tcl TypedChainLink) (err error) {
 		return KeyFamilyError{fmt.Sprintf("Delegated KID %s is not in the key family", kid.String())}
 	}
 
-	err = ckf.cki.Delegate(kid, tm, sigid, tcl.GetKID(), tcl.GetParentKid(), (tcl.GetRole() == DLGSibkey), tcl.GetCTime(), tcl.GetETime())
+	err = ckf.cki.Delegate(kid, tm, sigid, tcl.GetKID(), tcl.GetParentKid(), tcl.GetPGPFullHash(), (tcl.GetRole() == DLGSibkey), tcl.GetCTime(), tcl.GetETime())
 	return
 }
 
 // Delegate marks the given ComputedKeyInfos object that the given kid is now
 // delegated, as of time tm, in sigid, as signed by signingKid, etc.
-func (cki *ComputedKeyInfos) Delegate(kid keybase1.KID, tm *KeybaseTime, sigid keybase1.SigID, signingKid, parentKID keybase1.KID, isSibkey bool, ctime, etime time.Time) (err error) {
+func (cki *ComputedKeyInfos) Delegate(kid keybase1.KID, tm *KeybaseTime, sigid keybase1.SigID, signingKid, parentKID keybase1.KID, pgpHash string, isSibkey bool, ctime, etime time.Time) (err error) {
 	G.Log.Debug("ComputeKeyInfos::Delegate To %s with %s at sig %s", kid.String(), signingKid, sigid.ToDisplayString(true))
 	info, found := cki.Infos[kid]
 	if !found {
-		newInfo := NewComputedKeyInfo(false, false, KeyUncancelled, ctime.Unix(), etime.Unix())
+		newInfo := NewComputedKeyInfo(false, false, KeyUncancelled, ctime.Unix(), etime.Unix(), pgpHash)
 		newInfo.DelegatedAt = tm
 		info = &newInfo
 		cki.Infos[kid] = info
