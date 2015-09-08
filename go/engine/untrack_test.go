@@ -24,7 +24,7 @@ func assertUntracked(tc libkb.TestContext, username string) {
 	if err != nil {
 		tc.T.Fatal(err)
 	}
-	them, err := libkb.LoadUser(libkb.LoadUserArg{Name: username})
+	them, err := libkb.LoadUser(libkb.NewLoadUserByNameArg(tc.G, username))
 	if err != nil {
 		tc.T.Fatal(err)
 	}

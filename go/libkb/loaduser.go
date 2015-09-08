@@ -23,6 +23,18 @@ func NewLoadUserArg(g *GlobalContext) LoadUserArg {
 	return LoadUserArg{Contextified: NewContextified(g)}
 }
 
+func NewLoadUserByNameArg(g *GlobalContext, name string) LoadUserArg {
+	arg := NewLoadUserArg(g)
+	arg.Name = name
+	return arg
+}
+
+func NewLoadUserPubOptionalArg(g *GlobalContext) LoadUserArg {
+	arg := NewLoadUserArg(g)
+	arg.PublicKeyOptional = true
+	return arg
+}
+
 func (arg *LoadUserArg) checkUIDName() error {
 	if arg.UID.Exists() {
 		return nil

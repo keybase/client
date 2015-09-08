@@ -38,7 +38,7 @@ func TestLoginNewDeviceKex1(t *testing.T) {
 
 	// test that we can get the secret key:
 	// XXX this is necessary for the test to pass once the goroutine starts
-	me, err := libkb.LoadMe(libkb.LoadUserArg{PublicKeyOptional: true})
+	me, err := libkb.LoadMe(libkb.NewLoadUserPubOptionalArg(tcX.G))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -89,7 +89,7 @@ func TestLoginNewDeviceKex1(t *testing.T) {
 	}
 
 	wg.Wait()
-	testUserHasDeviceKey(tcY.T)
+	testUserHasDeviceKey(tcY)
 }
 
 // issue #408, cancel login before device provisioning finishes.
@@ -167,7 +167,7 @@ func TestLoginNewDeviceKexBadPhrase(t *testing.T) {
 
 	// test that we can get the secret key:
 	// XXX this is necessary for the test to pass once the goroutine starts
-	me, err := libkb.LoadMe(libkb.LoadUserArg{PublicKeyOptional: true})
+	me, err := libkb.LoadMe(libkb.NewLoadUserPubOptionalArg(tcX.G))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -259,7 +259,7 @@ func TestLoginNewDeviceKexRetryPhrase(t *testing.T) {
 
 	// test that we can get the secret key:
 	// XXX this is necessary for the test to pass once the goroutine starts
-	me, err := libkb.LoadMe(libkb.LoadUserArg{PublicKeyOptional: true})
+	me, err := libkb.LoadMe(libkb.NewLoadUserPubOptionalArg(tcX.G))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -317,7 +317,7 @@ func TestLoginNewDeviceKexRetryPhrase(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	testUserHasDeviceKey(t)
+	testUserHasDeviceKey(tcY)
 	wg.Wait()
 }
 
@@ -344,7 +344,7 @@ func TestLoginNewDeviceKexCancelOnY(t *testing.T) {
 
 	// test that we can get the secret key:
 	// XXX this is necessary for the test to pass once the goroutine starts
-	me, err := libkb.LoadMe(libkb.LoadUserArg{PublicKeyOptional: true})
+	me, err := libkb.LoadMe(libkb.NewLoadUserPubOptionalArg(tcX.G))
 	if err != nil {
 		t.Fatal(err)
 	}

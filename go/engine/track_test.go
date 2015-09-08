@@ -36,7 +36,7 @@ func assertTracking(tc libkb.TestContext, username string) {
 	if err != nil {
 		tc.T.Fatal(err)
 	}
-	them, err := libkb.LoadUser(libkb.LoadUserArg{Name: username})
+	them, err := libkb.LoadUser(libkb.NewLoadUserByNameArg(tc.G, username))
 	if err != nil {
 		tc.T.Fatal(err)
 	}
@@ -54,7 +54,7 @@ func assertNotTracking(tc libkb.TestContext, username string) {
 	if err != nil {
 		tc.T.Fatal(err)
 	}
-	them, err := libkb.LoadUser(libkb.LoadUserArg{Name: username})
+	them, err := libkb.LoadUser(libkb.NewLoadUserByNameArg(tc.G, username))
 	if err != nil {
 		tc.T.Fatal(err)
 	}
@@ -162,7 +162,7 @@ func TestTrackRetrack(t *testing.T) {
 	secretUI := fu.NewSecretUI()
 
 	var err error
-	fu.User, err = libkb.LoadMe(libkb.LoadUserArg{PublicKeyOptional: true})
+	fu.User, err = libkb.LoadMe(libkb.NewLoadUserPubOptionalArg(tc.G))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -188,7 +188,7 @@ func TestTrackRetrack(t *testing.T) {
 		t.Errorf("expected get secret call")
 	}
 
-	fu.User, err = libkb.LoadMe(libkb.LoadUserArg{PublicKeyOptional: true})
+	fu.User, err = libkb.LoadMe(libkb.NewLoadUserPubOptionalArg(tc.G))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -218,7 +218,7 @@ func TestTrackRetrack(t *testing.T) {
 		t.Errorf("get secret called on retrack")
 	}
 
-	fu.User, err = libkb.LoadMe(libkb.LoadUserArg{PublicKeyOptional: true})
+	fu.User, err = libkb.LoadMe(libkb.NewLoadUserPubOptionalArg(tc.G))
 	if err != nil {
 		t.Fatal(err)
 	}

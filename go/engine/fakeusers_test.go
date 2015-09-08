@@ -80,7 +80,7 @@ func createFakeUserWithPGPOnly(t *testing.T, tc libkb.TestContext) *FakeUser {
 	}
 
 	var err error
-	fu.User, err = libkb.LoadMe(libkb.LoadUserArg{PublicKeyOptional: true})
+	fu.User, err = libkb.LoadMe(libkb.NewLoadUserPubOptionalArg(tc.G))
 	if err != nil {
 		tc.T.Fatal(err)
 	}

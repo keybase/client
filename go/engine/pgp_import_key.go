@@ -63,7 +63,7 @@ func (e *PGPKeyImportEngine) loadMe() (err error) {
 	if e.me = e.arg.Me; e.me != nil {
 		return
 	}
-	e.me, err = libkb.LoadMe(libkb.LoadUserArg{PublicKeyOptional: true})
+	e.me, err = libkb.LoadMe(libkb.NewLoadUserPubOptionalArg(e.G()))
 	return err
 }
 

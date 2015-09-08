@@ -99,7 +99,7 @@ func (e *ListTrackersEngine) ensureUID() error {
 		e.uid = e.G().GetMyUID()
 		return nil
 	}
-	user, err := libkb.LoadUser(libkb.LoadUserArg{Name: e.username})
+	user, err := libkb.LoadUser(libkb.NewLoadUserByNameArg(e.G(), e.username))
 	if err != nil {
 		return err
 	}

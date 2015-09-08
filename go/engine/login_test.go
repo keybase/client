@@ -30,7 +30,7 @@ func TestLoginFakeUserNoKeys(t *testing.T) {
 
 	createFakeUserWithNoKeys(tc)
 
-	me, err := libkb.LoadMe(libkb.LoadUserArg{PublicKeyOptional: true})
+	me, err := libkb.LoadMe(libkb.NewLoadUserPubOptionalArg(tc.G))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -54,36 +54,36 @@ func TestLoginFakeUserNoKeys(t *testing.T) {
 	}
 }
 
-func testUserHasDeviceKey(t *testing.T) {
-	me, err := libkb.LoadMe(libkb.LoadUserArg{PublicKeyOptional: true})
+func testUserHasDeviceKey(tc libkb.TestContext) {
+	me, err := libkb.LoadMe(libkb.NewLoadUserPubOptionalArg(tc.G))
 	if err != nil {
-		t.Fatal(err)
+		tc.T.Fatal(err)
 	}
 
 	kf := me.GetKeyFamily()
 	if kf == nil {
-		t.Fatal("user has a nil key family")
+		tc.T.Fatal("user has a nil key family")
 	}
 	if me.GetEldestKID().IsNil() {
-		t.Fatal("user has no eldest key")
+		tc.T.Fatal("user has no eldest key")
 	}
 
 	ckf := me.GetComputedKeyFamily()
 	if ckf == nil {
-		t.Fatalf("user has no computed key family")
+		tc.T.Fatalf("user has no computed key family")
 	}
 
 	active := ckf.HasActiveKey()
 	if !active {
-		t.Errorf("user has no active key")
+		tc.T.Errorf("user has no active key")
 	}
 
 	subkey, err := me.GetDeviceSubkey()
 	if err != nil {
-		t.Fatal(err)
+		tc.T.Fatal(err)
 	}
 	if subkey == nil {
-		t.Fatal("nil subkey")
+		tc.T.Fatal("nil subkey")
 	}
 }
 
@@ -106,7 +106,7 @@ func TestLoginAddsKeys(t *testing.T) {
 	}
 
 	// since this user didn't have any keys, login should have fixed that:
-	testUserHasDeviceKey(t)
+	testUserHasDeviceKey(tc)
 
 	// and they should have a paper backup key
 	hasOnePaperDev(t, &FakeUser{Username: username, Passphrase: passphrase})
@@ -151,7 +151,7 @@ func TestLoginPGPSignNewDevice(t *testing.T) {
 		t.Errorf("doc ui SelectSigner called %d times, expected 1", after-before)
 	}
 
-	testUserHasDeviceKey(t)
+	testUserHasDeviceKey(tc2)
 	hasOnePaperDev(t, u1)
 }
 
@@ -194,7 +194,7 @@ func TestLoginPGPPubOnlySignNewDevice(t *testing.T) {
 		t.Errorf("doc ui SelectSigner called %d times, expected 1", after-before)
 	}
 
-	testUserHasDeviceKey(t)
+	testUserHasDeviceKey(tc2)
 	hasOnePaperDev(t, u1)
 }
 
@@ -235,7 +235,7 @@ func TestLoginPGPMultSignNewDevice(t *testing.T) {
 		t.Errorf("doc ui SelectSigner called %d times, expected 1", after-before)
 	}
 
-	testUserHasDeviceKey(t)
+	testUserHasDeviceKey(tc2)
 	hasOnePaperDev(t, u1)
 }
 
@@ -279,7 +279,7 @@ func TestLoginGPGSignNewDevice(t *testing.T) {
 		t.Errorf("doc ui SelectSigner called %d times, expected 1", after-before)
 	}
 
-	testUserHasDeviceKey(t)
+	testUserHasDeviceKey(tc2)
 	hasOnePaperDev(t, u1)
 }
 
@@ -338,7 +338,7 @@ func TestLoginPaperSignNewDevice(t *testing.T) {
 		t.Errorf("doc ui SelectSigner called %d times, expected 1", after-before)
 	}
 
-	testUserHasDeviceKey(t)
+	testUserHasDeviceKey(tc2)
 
 	assertNumDevicesAndKeys(t, fu, 3, 6)
 }
@@ -355,7 +355,7 @@ func TestLoginInterruptDeviceRegister(t *testing.T) {
 
 	username, passphrase := createFakeUserWithNoKeys(tc)
 
-	me, err := libkb.LoadMe(libkb.LoadUserArg{PublicKeyOptional: true})
+	me, err := libkb.LoadMe(libkb.NewLoadUserPubOptionalArg(tc.G))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -390,7 +390,7 @@ func TestLoginInterruptDeviceRegister(t *testing.T) {
 	}
 
 	// since this user didn't have any keys, login should have fixed that:
-	testUserHasDeviceKey(t)
+	testUserHasDeviceKey(tc)
 }
 
 // TestLoginInterruptDevicePush interrupts before pushing device
@@ -402,7 +402,7 @@ func TestLoginInterruptDevicePush(t *testing.T) {
 
 	username, passphrase := createFakeUserWithNoKeys(tc)
 
-	me, err := libkb.LoadMe(libkb.LoadUserArg{PublicKeyOptional: true})
+	me, err := libkb.LoadMe(libkb.NewLoadUserPubOptionalArg(tc.G))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -449,7 +449,7 @@ func TestLoginInterruptDevicePush(t *testing.T) {
 	}
 
 	// since this user didn't have any keys, login should have fixed that:
-	testUserHasDeviceKey(t)
+	testUserHasDeviceKey(tc)
 }
 
 func TestUserInfo(t *testing.T) {

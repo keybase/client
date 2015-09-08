@@ -163,7 +163,7 @@ func (e *PGPKeyExportEngine) exportSecret(ctx *Context) error {
 }
 
 func (e *PGPKeyExportEngine) loadMe() (err error) {
-	e.me, err = libkb.LoadMe(libkb.LoadUserArg{PublicKeyOptional: true})
+	e.me, err = libkb.LoadMe(libkb.NewLoadUserPubOptionalArg(e.G()))
 	return
 }
 

@@ -115,7 +115,7 @@ func (d *Delegator) LoadSigningKey(lctx LoginContext, ui SecretUI) (err error) {
 	}
 
 	if d.Me == nil {
-		d.Me, err = LoadMe(LoadUserArg{PublicKeyOptional: true})
+		d.Me, err = LoadMe(NewLoadUserPubOptionalArg(d.G()))
 		if err != nil {
 			return
 		} else if d.Me == nil {

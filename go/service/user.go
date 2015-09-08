@@ -79,7 +79,7 @@ func (h *UserHandler) ListTrackingJSON(arg keybase1.ListTrackingJSONArg) (res st
 }
 
 func (h *UserHandler) LoadUser(arg keybase1.LoadUserArg) (user keybase1.User, err error) {
-	u, err := libkb.LoadUser(libkb.LoadUserArg{UID: arg.Uid})
+	u, err := libkb.LoadUser(libkb.LoadUserArg{UID: arg.Uid, Contextified: libkb.NewContextified(G)})
 	if err != nil {
 		return
 	}
@@ -101,7 +101,7 @@ func (h *UserHandler) Search(arg keybase1.SearchArg) (results []keybase1.SearchR
 }
 
 func (h *UserHandler) LoadPublicKeys(arg keybase1.LoadPublicKeysArg) (keys []keybase1.PublicKey, err error) {
-	u, err := libkb.LoadUser(libkb.LoadUserArg{UID: arg.Uid})
+	u, err := libkb.LoadUser(libkb.LoadUserArg{UID: arg.Uid, Contextified: libkb.NewContextified(G)})
 	if err != nil {
 		return
 	}

@@ -1,14 +1,15 @@
 package libkb
 
 import (
-	keybase1 "github.com/keybase/client/protocol/go"
 	"testing"
+
+	keybase1 "github.com/keybase/client/protocol/go"
 )
 
 func TestExportUser(t *testing.T) {
 	tc := SetupTest(t, "export_user")
 	defer tc.Cleanup()
-	alice, err := LoadUser(LoadUserArg{Name: "t_alice"})
+	alice, err := LoadUser(NewLoadUserByNameArg(tc.G, "t_alice"))
 	if err != nil {
 		t.Fatal(err)
 	}

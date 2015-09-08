@@ -50,7 +50,7 @@ func TestRevokeSig(t *testing.T) {
 	assertNumDevicesAndKeys(t, u, 2, 6) // no change
 
 	// Check it with real sig id
-	realUser, err := libkb.LoadUser(libkb.LoadUserArg{Name: u.Username})
+	realUser, err := libkb.LoadUser(libkb.NewLoadUserByNameArg(tc.G, u.Username))
 	if err != nil {
 		t.Fatal(err)
 	}

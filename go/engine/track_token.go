@@ -130,7 +130,7 @@ func (e *TrackToken) loadMe() error {
 }
 
 func (e *TrackToken) loadThem(username string) error {
-	them, err := libkb.LoadUser(libkb.LoadUserArg{Name: username})
+	them, err := libkb.LoadUser(libkb.NewLoadUserByNameArg(e.G(), username))
 	if err != nil {
 		return err
 	}

@@ -57,7 +57,7 @@ func (e *ProveCheck) Run(ctx *Context) error {
 	e.status = keybase1.ProofStatus(status)
 
 	e.G().Log.Debug("looking for ChainLink for %s", e.sigID)
-	me, err := libkb.LoadMe(libkb.LoadUserArg{PublicKeyOptional: true})
+	me, err := libkb.LoadMe(libkb.NewLoadUserPubOptionalArg(e.G()))
 	if err != nil {
 		return err
 	}

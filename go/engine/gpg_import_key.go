@@ -84,7 +84,7 @@ func (e *GPGImportKeyEngine) Run(ctx *Context) (err error) {
 
 	me := e.arg.Me
 	if me == nil {
-		if me, err = libkb.LoadMe(libkb.LoadUserArg{PublicKeyOptional: true}); err != nil {
+		if me, err = libkb.LoadMe(libkb.NewLoadUserPubOptionalArg(e.G())); err != nil {
 			return err
 		}
 	}

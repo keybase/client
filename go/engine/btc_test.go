@@ -8,10 +8,10 @@ import (
 	// keybase_1 "github.com/keybase/client/protocol/go"
 )
 
-func getCurrentBTCAddr(t *testing.T, username string) string {
-	u, err := libkb.LoadUser(libkb.LoadUserArg{Name: username})
+func getCurrentBTCAddr(tc libkb.TestContext, username string) string {
+	u, err := libkb.LoadUser(libkb.NewLoadUserByNameArg(tc.G, username))
 	if err != nil {
-		t.Fatal(err)
+		tc.T.Fatal(err)
 	}
 	cryptoLink := u.IDTable().ActiveCryptocurrency()
 	if cryptoLink == nil {
@@ -42,7 +42,7 @@ func TestBTC(t *testing.T) {
 	if err == nil {
 		t.Fatalf("Bad address should have failed.")
 	}
-	current := getCurrentBTCAddr(t, u.Username)
+	current := getCurrentBTCAddr(tc, u.Username)
 	if current != "" {
 		t.Fatalf("No address should be set")
 	}
@@ -53,7 +53,7 @@ func TestBTC(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	current = getCurrentBTCAddr(t, u.Username)
+	current = getCurrentBTCAddr(tc, u.Username)
 	if current != firstAddress {
 		t.Fatalf("Expected btc address '%s'. Found '%s'.", firstAddress, current)
 	}
@@ -66,7 +66,7 @@ func TestBTC(t *testing.T) {
 	} else if !strings.Contains(err.Error(), "--force") {
 		t.Fatal("Error should mention the --force flag.")
 	}
-	current = getCurrentBTCAddr(t, u.Username)
+	current = getCurrentBTCAddr(tc, u.Username)
 	if current != firstAddress {
 		t.Fatalf("Address should not have changed.")
 	}
@@ -77,13 +77,13 @@ func TestBTC(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	current = getCurrentBTCAddr(t, u.Username)
+	current = getCurrentBTCAddr(tc, u.Username)
 	if current != secondAddress {
 		t.Fatalf("Expected btc address '%s'. Found '%s'.", secondAddress, current)
 	}
 
 	// Make sure the previous link was revoked.
-	loadedUser, err := libkb.LoadUser(libkb.LoadUserArg{Name: u.Username})
+	loadedUser, err := libkb.LoadUser(libkb.NewLoadUserByNameArg(tc.G, u.Username))
 	if err != nil {
 		t.Fatalf("Failed to load user.")
 	}
