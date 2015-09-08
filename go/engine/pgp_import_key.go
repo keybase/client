@@ -296,7 +296,7 @@ func (e *PGPKeyImportEngine) prepareSecretPush(ctx *Context) error {
 	if err != nil {
 		return err
 	}
-	skb, err := e.bundle.ToSKB(e.G(), tsec, gen)
+	skb, err := e.bundle.ToServerSKB(e.G(), tsec, gen)
 	if err != nil {
 		return err
 	}

@@ -408,24 +408,12 @@ func (s *NaclSigInfo) ArmoredEncode() (ret string, err error) {
 	return PacketArmoredEncode(s)
 }
 
-func (k NaclSigningKeyPair) ToSKB(gc *GlobalContext, t *triplesec.Cipher, gen PassphraseGeneration) (*SKB, error) {
-	ret := NewSKB(gc)
-	ret.Pub = k.GetKID().ToBytes()
-	ret.Type = KIDNaclEddsa
-	ret.Priv.Encryption = 0
-	ret.Priv.Data = (*k.Private)[:]
-	ret.Priv.PassphraseGeneration = int(gen)
-	return ret, nil
+// NaCl keys are never wrapped for the server.
+func (k NaclSigningKeyPair) ToServerSKB(gc *GlobalContext, t *triplesec.Cipher, gen PassphraseGeneration) (*SKB, error) {
+	return nil, fmt.Errorf("NaCl keys should never be encrypted for the server.")
 }
-
-func (k NaclDHKeyPair) ToSKB(gc *GlobalContext, t *triplesec.Cipher, gen PassphraseGeneration) (*SKB, error) {
-	ret := NewSKB(gc)
-	ret.Pub = k.GetKID().ToBytes()
-	ret.Type = KIDNaclDH
-	ret.Priv.Encryption = 0
-	ret.Priv.Data = (*k.Private)[:]
-	ret.Priv.PassphraseGeneration = int(gen)
-	return ret, nil
+func (k NaclDHKeyPair) ToServerSKB(gc *GlobalContext, t *triplesec.Cipher, gen PassphraseGeneration) (*SKB, error) {
+	return nil, fmt.Errorf("NaCl keys should never be encrypted for the server.")
 }
 
 func (k NaclSigningKeyPair) ToLksSKB(lks *LKSec) (*SKB, error) {
@@ -438,6 +426,7 @@ func (k NaclSigningKeyPair) ToLksSKB(lks *LKSec) (*SKB, error) {
 	ret.Type = KIDNaclEddsa
 	ret.Priv.Encryption = LKSecVersion
 	ret.Priv.Data = data
+	ret.Priv.PassphraseGeneration = int(lks.Generation())
 	return ret, nil
 }
 
@@ -451,6 +440,7 @@ func (k NaclDHKeyPair) ToLksSKB(lks *LKSec) (*SKB, error) {
 	ret.Type = KIDNaclDH
 	ret.Priv.Encryption = LKSecVersion
 	ret.Priv.Data = data
+	ret.Priv.PassphraseGeneration = int(lks.Generation())
 	return ret, nil
 }
 

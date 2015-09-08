@@ -715,3 +715,91 @@ func TestPassphraseChangePGP3SecMultiple(t *testing.T) {
 		}
 	}
 }
+
+// Make sure passphrase generations are stored properly alongside encrypted keys.
+func TestPassphraseGenerationStored(t *testing.T) {
+	tc := SetupEngineTest(t, "PassphraseChange")
+	defer tc.Cleanup()
+
+	u := CreateAndSignupFakeUser(tc, "login")
+
+	// All of the keys initially created with the user should be stored as
+	// passphrase generation 1.
+	skbKeyringFile, err := libkb.LoadSKBKeyring(u.NormalizedUsername(), tc.G)
+	if err != nil {
+		t.Fatal(err)
+	}
+	initialGenerationOneCount := 0
+	for _, block := range skbKeyringFile.Blocks {
+		if block.Priv.PassphraseGeneration != 1 {
+			t.Fatalf("Expected all encrypted keys to be ppgen 1. Found %d.",
+				block.Priv.PassphraseGeneration)
+		}
+		initialGenerationOneCount++
+	}
+
+	//
+	// Do a passphrase change.
+	//
+	newPassphrase := "password1234"
+	arg := &keybase1.PassphraseChangeArg{
+		OldPassphrase: u.Passphrase,
+		Passphrase:    newPassphrase,
+	}
+	ctx := &Context{
+		LogUI:    tc.G.UI.GetLogUI(),
+		SecretUI: u.NewSecretUI(),
+	}
+	eng := NewPassphraseChange(arg, tc.G)
+	if err := RunEngine(eng, ctx); err != nil {
+		t.Fatal(err)
+	}
+	u.Passphrase = newPassphrase
+
+	//
+	// Now, generate a new key. This one should be stored with ppgen 2.
+	//
+	pgpArg := PGPKeyImportEngineArg{
+		Gen: &libkb.PGPGenArg{
+			PrimaryBits: 768,
+			SubkeyBits:  768,
+		},
+	}
+	pgpArg.Gen.MakeAllIds()
+	pgpEng := NewPGPKeyImportEngine(pgpArg)
+	pgpCtx := &Context{
+		LogUI:    tc.G.UI.GetLogUI(),
+		SecretUI: u.NewSecretUI(),
+	}
+	err = RunEngine(pgpEng, pgpCtx)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	//
+	// Finally, check that the new key (and only the new key) is marked as ppgen 2.
+	//
+	finalSKBKeyringFile, err := libkb.LoadSKBKeyring(u.NormalizedUsername(), tc.G)
+	if err != nil {
+		t.Fatal(err)
+	}
+	finalGenOneCount := 0
+	finalGenTwoCount := 0
+	for _, block := range finalSKBKeyringFile.Blocks {
+		if block.Priv.PassphraseGeneration == 1 {
+			finalGenOneCount++
+		} else if block.Priv.PassphraseGeneration == 2 {
+			finalGenTwoCount++
+		} else {
+			t.Fatalf("Expected all encrypted keys to be ppgen 1 or 2. Found %d.",
+				block.Priv.PassphraseGeneration)
+		}
+	}
+	if finalGenOneCount != initialGenerationOneCount {
+		t.Fatalf("Expected initial count of ppgen 1 keys (%d) to equal final count (%d).",
+			initialGenerationOneCount, finalGenOneCount)
+	}
+	if finalGenTwoCount != 1 {
+		t.Fatalf("Expected one key in ppgen 2. Found %d keys.", finalGenTwoCount)
+	}
+}

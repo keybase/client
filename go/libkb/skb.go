@@ -51,7 +51,7 @@ type SKBPriv struct {
 	PassphraseGeneration int    `codec:"passphrase_generation,omitempty"`
 }
 
-func (key *PGPKeyBundle) ToSKB(gc *GlobalContext, tsec *triplesec.Cipher, gen PassphraseGeneration) (ret *SKB, err error) {
+func (key *PGPKeyBundle) ToServerSKB(gc *GlobalContext, tsec *triplesec.Cipher, gen PassphraseGeneration) (ret *SKB, err error) {
 
 	ret = NewSKB(gc)
 
@@ -102,6 +102,7 @@ func (key *PGPKeyBundle) ToLksSKB(lks *LKSec) (ret *SKB, err error) {
 		return nil, err
 	}
 	ret.Priv.Encryption = LKSecVersion
+	ret.Priv.PassphraseGeneration = int(lks.Generation())
 
 	err = key.Entity.Serialize(&pk)
 	if err != nil {
