@@ -7,6 +7,7 @@ import (
 	"sync"
 	"testing"
 
+	"github.com/keybase/client/go/logger"
 	keybase1 "github.com/keybase/client/protocol/go"
 )
 
@@ -18,9 +19,9 @@ type TestConfig struct {
 func (c *TestConfig) GetConfigFileName() string { return c.configFileName }
 
 func (c *TestConfig) InitTest(t *testing.T, initConfig string) {
-	// TODO: should be initializing the G.Log to be a
-	// logger.TestLogger.  (See https://github.com/keybase/client/issues/715.)
+	G.Log = logger.NewTestLogger(t)
 	G.Init()
+
 	var f *os.File
 	var err error
 	if f, err = ioutil.TempFile("/tmp/", "testconfig"); err != nil {
@@ -149,11 +150,12 @@ func (tc *TestContext) ResetLoginState() {
 
 var setupTestMu sync.Mutex
 
-func setupTestContext(nm string) (tc TestContext, err error) {
+func setupTestContext(t *testing.T, nm string) (tc TestContext, err error) {
 	setupTestMu.Lock()
 	defer setupTestMu.Unlock()
 
 	g := NewGlobalContext()
+	g.Log = logger.NewTestLogger(t)
 	g.Init()
 
 	// Set up our testing parameters.  We might add others later on
@@ -205,7 +207,7 @@ func setupTestContext(nm string) (tc TestContext, err error) {
 func SetupTest(t *testing.T, nm string) (tc TestContext) {
 	G.Log.Debug("SetupTest %s", nm)
 	var err error
-	tc, err = setupTestContext(nm)
+	tc, err = setupTestContext(t, nm)
 	if err != nil {
 		t.Fatal(err)
 	}
