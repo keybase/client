@@ -64,8 +64,11 @@ func resolveUID(au AssertionURL) ResolveResult {
 	}
 
 	r := resolveUsername(au)
-	G.ResolveCache.Put(ck, r)
+	if r.err != nil {
+		return r
+	}
 
+	G.ResolveCache.Put(ck, r)
 	return r
 }
 
