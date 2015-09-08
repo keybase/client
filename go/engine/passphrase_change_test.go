@@ -25,7 +25,7 @@ func verifyPassphraseChange(tc libkb.TestContext, u *FakeUser, newPassphrase str
 }
 
 func assertLoadSecretKeys(tc libkb.TestContext, u *FakeUser, msg string) {
-	me, err := libkb.LoadMe(libkb.LoadUserArg{})
+	me, err := libkb.LoadMe(libkb.NewLoadUserArg(tc.G))
 	if err != nil {
 		tc.T.Fatalf("%s: %s", msg, err)
 	}
@@ -55,7 +55,7 @@ func assertLoadSecretKeys(tc libkb.TestContext, u *FakeUser, msg string) {
 }
 
 func assertLoadPGPKeys(tc libkb.TestContext, u *FakeUser) {
-	me, err := libkb.LoadMe(libkb.LoadUserArg{})
+	me, err := libkb.LoadMe(libkb.NewLoadUserArg(tc.G))
 	if err != nil {
 		tc.T.Fatal(err)
 	}

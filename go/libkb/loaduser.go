@@ -19,6 +19,10 @@ type LoadUserArg struct {
 	Contextified
 }
 
+func NewLoadUserArg(g *GlobalContext) LoadUserArg {
+	return LoadUserArg{Contextified: NewContextified(g)}
+}
+
 func (arg *LoadUserArg) checkUIDName() error {
 	if arg.UID.Exists() {
 		return nil

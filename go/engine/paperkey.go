@@ -54,7 +54,7 @@ func (e *PaperKey) SubConsumers() []libkb.UIConsumer {
 
 // Run starts the engine.
 func (e *PaperKey) Run(ctx *Context) error {
-	me, err := libkb.LoadMe(libkb.LoadUserArg{})
+	me, err := libkb.LoadMe(libkb.NewLoadUserArg(e.G()))
 	if err != nil {
 		return err
 	}
@@ -87,7 +87,7 @@ func (e *PaperKey) Run(ctx *Context) error {
 	}
 
 	if needReload {
-		me, err = libkb.LoadMe(libkb.LoadUserArg{})
+		me, err = libkb.LoadMe(libkb.NewLoadUserArg(e.G()))
 		if err != nil {
 			return err
 		}

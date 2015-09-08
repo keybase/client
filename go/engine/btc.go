@@ -48,7 +48,7 @@ func (e *BTCEngine) Run(ctx *Context) error {
 		return err
 	}
 
-	me, err := libkb.LoadMe(libkb.LoadUserArg{})
+	me, err := libkb.LoadMe(libkb.NewLoadUserArg(e.G()))
 	if err != nil {
 		return err
 	}

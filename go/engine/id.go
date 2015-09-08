@@ -79,7 +79,7 @@ func (e *IDEngine) run(ctx *Context) (*IDRes, error) {
 	// they want a json tracking statement:
 
 	// check to make sure they aren't identifying themselves
-	me, err := libkb.LoadMe(libkb.LoadUserArg{})
+	me, err := libkb.LoadMe(libkb.NewLoadUserArg(e.G()))
 	if err != nil {
 		return nil, err
 	}

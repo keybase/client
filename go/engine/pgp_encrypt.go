@@ -80,7 +80,7 @@ func (e *PGPEncrypt) Run(ctx *Context) error {
 	var mykey *libkb.PGPKeyBundle
 	var signer *libkb.PGPKeyBundle
 	if !e.arg.NoSign {
-		me, err := libkb.LoadMe(libkb.LoadUserArg{})
+		me, err := libkb.LoadMe(libkb.NewLoadUserArg(e.G()))
 		if err != nil {
 			return err
 		}
@@ -161,7 +161,7 @@ func (e *PGPEncrypt) Run(ctx *Context) error {
 }
 
 func (e *PGPEncrypt) loadSelfKey() (*libkb.PGPKeyBundle, error) {
-	me, err := libkb.LoadMe(libkb.LoadUserArg{})
+	me, err := libkb.LoadMe(libkb.NewLoadUserArg(e.G()))
 	if err != nil {
 		return nil, err
 	}

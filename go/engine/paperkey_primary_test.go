@@ -16,7 +16,7 @@ func TestPaperKeyPrimary(t *testing.T) {
 
 	fu, signingKey := CreateAndSignupFakeUserCustomArg(tc, "paper", f)
 
-	me, err := libkb.LoadMe(libkb.LoadUserArg{})
+	me, err := libkb.LoadMe(libkb.NewLoadUserArg(tc.G))
 	if err != nil {
 		t.Fatal(err)
 	}

@@ -96,7 +96,7 @@ func (e *Identify) Run(ctx *Context) error {
 		return err
 	}
 	if ok {
-		e.me, err = libkb.LoadMe(libkb.LoadUserArg{})
+		e.me, err = libkb.LoadMe(libkb.NewLoadUserArg(e.G()))
 		if err != nil {
 			return err
 		}
