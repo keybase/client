@@ -16,7 +16,7 @@ func NewCmdFavoriteList(cl *libcmdline.CommandLine) cli.Command {
 	return cli.Command{
 		Name:        "list",
 		Usage:       "keybase favorite list",
-		Description: "List all kbfs favorite folders",
+		Description: "List favorites.",
 		Action: func(c *cli.Context) {
 			cl.ChooseCommand(&CmdFavoriteList{}, "add", c)
 		},
@@ -25,7 +25,7 @@ func NewCmdFavoriteList(cl *libcmdline.CommandLine) cli.Command {
 
 func (c *CmdFavoriteList) ParseArgv(ctx *cli.Context) error {
 	if len(ctx.Args()) != 0 {
-		return errors.New("favorite list takes zero arguments")
+		return errors.New("Favorite list doesn't take any arguments")
 	}
 	return nil
 }

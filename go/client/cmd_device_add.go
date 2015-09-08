@@ -22,8 +22,8 @@ type CmdDeviceAdd struct {
 func NewCmdDeviceAdd(cl *libcmdline.CommandLine) cli.Command {
 	return cli.Command{
 		Name:        "add",
-		Usage:       "keybase device add \"secret phrase\"",
-		Description: "Authorize a new device",
+		Usage:       "keybase device add <secret-phrase>",
+		Description: "Authorize a new device.",
 		Action: func(c *cli.Context) {
 			cl.ChooseCommand(&CmdDeviceAdd{}, "add", c)
 		},
@@ -55,7 +55,7 @@ func (c *CmdDeviceAdd) Run() error {
 // ParseArgv gets the secret phrase from the command args.
 func (c *CmdDeviceAdd) ParseArgv(ctx *cli.Context) error {
 	if len(ctx.Args()) != 1 {
-		return fmt.Errorf("device add takes one arg: the secret phrase")
+		return fmt.Errorf("Device add only takes one argument, the secret phrase.")
 	}
 	c.phrase = ctx.Args()[0]
 	return nil

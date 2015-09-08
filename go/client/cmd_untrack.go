@@ -18,7 +18,7 @@ func NewCmdUntrack(cl *libcmdline.CommandLine) cli.Command {
 	return cli.Command{
 		Name:        "untrack",
 		Usage:       "keybase untrack <username>",
-		Description: "untrack a user",
+		Description: "Untrack a user.",
 		Action: func(c *cli.Context) {
 			cl.ChooseCommand(&CmdUntrack{}, "untrack", c)
 		},
@@ -27,7 +27,7 @@ func NewCmdUntrack(cl *libcmdline.CommandLine) cli.Command {
 
 func (v *CmdUntrack) ParseArgv(ctx *cli.Context) error {
 	if len(ctx.Args()) != 1 {
-		return fmt.Errorf("untrack takes one arg -- the user to untrack")
+		return fmt.Errorf("Untrack only takes one argument, the user to untrack.")
 	}
 	v.user = ctx.Args()[0]
 	return nil

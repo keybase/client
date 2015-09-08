@@ -11,7 +11,7 @@ func NewCmdDoctor(cl *libcmdline.CommandLine) cli.Command {
 	return cli.Command{
 		Name:        "doctor",
 		Usage:       "keybase doctor",
-		Description: "checks account status and offers to fix any issues",
+		Description: "Checks your environment and offers to fix any issues.",
 		Action: func(c *cli.Context) {
 			cl.ChooseCommand(&CmdDoctor{}, "doctor", c)
 		},

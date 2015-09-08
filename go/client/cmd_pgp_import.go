@@ -15,19 +15,19 @@ import (
 func NewCmdPGPImport(cl *libcmdline.CommandLine) cli.Command {
 	return cli.Command{
 		Name:        "import",
-		Usage:       "keybase pgp import [-o <file>] [-q <query>] [-s]",
-		Description: "import a PGP key into keybase (and sign into key ring)",
+		Usage:       "keybase pgp import",
+		Description: "Import a PGP key into keybase.",
 		Action: func(c *cli.Context) {
 			cl.ChooseCommand(&CmdPGPImport{}, "import", c)
 		},
 		Flags: []cli.Flag{
 			cli.StringFlag{
 				Name:  "i, infile",
-				Usage: "specify an infile (stdin by default)",
+				Usage: "Specify an infile (stdin by default).",
 			},
 			cli.BoolFlag{
 				Name:  "push-secret",
-				Usage: "push an encrypted copy of the secret key to the server",
+				Usage: "Push an encrypted copy of the secret key to the server.",
 			},
 		},
 	}
@@ -40,17 +40,13 @@ type CmdPGPImport struct {
 }
 
 func (s *CmdPGPImport) ParseArgv(ctx *cli.Context) error {
-	nargs := len(ctx.Args())
-	var err error
+	if len(ctx.Args()) > 0 {
+		return fmt.Errorf("Invalid arguments")
+	}
 
 	s.arg.PushSecret = ctx.Bool("push-secret")
 	s.infile = ctx.String("infile")
-
-	if nargs > 0 {
-		err = fmt.Errorf("import doesn't take args")
-	}
-
-	return err
+	return nil
 }
 
 func (s *CmdPGPImport) Run() error {

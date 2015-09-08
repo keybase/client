@@ -10,7 +10,7 @@ func NewCmdCtlStart(cl *libcmdline.CommandLine) cli.Command {
 	return cli.Command{
 		Name:        "start",
 		Usage:       "keybase ctl start",
-		Description: "Start the background keybase service",
+		Description: "Start the background keybase service.",
 		Action: func(c *cli.Context) {
 			cl.ChooseCommand(&CmdCtlStart{}, "start", c)
 			cl.SetForkCmd(libcmdline.ForceFork)

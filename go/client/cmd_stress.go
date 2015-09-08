@@ -22,14 +22,14 @@ func NewCmdStress(cl *libcmdline.CommandLine) cli.Command {
 	return cli.Command{
 		Name:        "stress",
 		Usage:       "keybase stress",
-		Description: "run some stressful commands on the daemon",
+		Description: "Run some stressful commands on the service.",
 		Action: func(c *cli.Context) {
 			cl.ChooseCommand(&CmdStress{}, "stress", c)
 		},
 		Flags: []cli.Flag{
 			cli.IntFlag{
 				Name:  "n",
-				Usage: "number of concurrent users to simulate",
+				Usage: "Number of concurrent users to simulate.",
 			},
 		},
 	}

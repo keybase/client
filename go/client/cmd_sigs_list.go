@@ -44,7 +44,7 @@ func (s *CmdSigsList) ParseTypes(ctx *cli.Context) error {
 	for _, i := range v {
 		ok, found := types[i]
 		if !ok || !found {
-			return fmt.Errorf("unknown signature type: %s", i)
+			return fmt.Errorf("Unknown signature type: %s", i)
 		}
 		ret[i] = true
 	}
@@ -70,7 +70,7 @@ func (s *CmdSigsList) ParseArgv(ctx *cli.Context) error {
 	if nargs == 1 {
 		s.username = ctx.Args()[0]
 	} else if nargs > 1 {
-		err = fmt.Errorf("list takes at most 1 arg, a username")
+		err = fmt.Errorf("List takes at most 1 arg, a username.")
 	}
 
 	return err
@@ -180,53 +180,41 @@ func (s *CmdSigsList) Run() error {
 
 func NewCmdSigsList(cl *libcmdline.CommandLine) cli.Command {
 	return cli.Command{
-		Name:  "list",
-		Usage: "keybase sigs list [filter]",
+		Name:        "list",
+		Usage:       "keybase sigs list",
+		Description: "List signatures.",
 		Action: func(c *cli.Context) {
 			cl.ChooseCommand(&CmdSigsList{}, "list", c)
 		},
 		Flags: []cli.Flag{
 			cli.BoolFlag{
 				Name:  "r, revoked",
-				Usage: "Show revoked signatures",
+				Usage: "Show revoked signatures.",
 			},
 			cli.BoolFlag{
 				Name:  "j, json",
-				Usage: "output in json format; default is text",
+				Usage: "Output as JSON (default is text).",
 			},
 			cli.BoolFlag{
 				Name:  "v, verbose",
-				Usage: "a full dump, with more gory detail",
+				Usage: "A full dump, with more gory details.",
 			},
 			cli.StringFlag{
-				Name: "t, type",
-				Usage: "type of sig to output; choose from {track" +
-					", proof, cryptocurrency, self}; all by default",
+				Name:  "t, type",
+				Usage: "Type of sig to output: track, proof, cryptocurrency, self, all (default is all).",
 			},
 			cli.BoolFlag{
 				Name:  "a, all-keys",
-				Usage: "show signatures from all (replaced) keys",
+				Usage: "Show signatures from all (replaced) keys.",
 			},
 			cli.BoolFlag{
 				Name:  "H, headers",
-				Usage: "show column headers",
+				Usage: "Show column headers.",
 			},
 			cli.StringFlag{
 				Name:  "f, filter",
-				Usage: "provide a regex filter",
+				Usage: "Provide a regex filter.",
 			},
-		},
-	}
-}
-
-func NewCmdSigs(cl *libcmdline.CommandLine) cli.Command {
-	return cli.Command{
-		Name:        "sigs",
-		Usage:       "keybase sigs [subcommands...]",
-		Description: "List, revoke signatures",
-		Subcommands: []cli.Command{
-			NewCmdSigsList(cl),
-			NewCmdSigsRevoke(cl),
 		},
 	}
 }

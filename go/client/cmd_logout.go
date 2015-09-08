@@ -18,8 +18,9 @@ func (v *CmdLogout) Run() error {
 
 func NewCmdLogout(cl *libcmdline.CommandLine) cli.Command {
 	return cli.Command{
-		Name:  "logout",
-		Usage: "Logout and remove session information",
+		Name:        "logout",
+		Usage:       "keybase logout",
+		Description: "Logout and remove session information.",
 		Action: func(c *cli.Context) {
 			cl.ChooseCommand(&CmdLogout{}, "logout", c)
 		},

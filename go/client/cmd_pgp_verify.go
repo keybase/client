@@ -13,7 +13,7 @@ import (
 func NewCmdPGPVerify(cl *libcmdline.CommandLine) cli.Command {
 	return cli.Command{
 		Name:        "verify",
-		Usage:       "keybase pgp verify [-l] [-y] [-s] [-S <user assertion>] [-m MESSAGE] [-d <detached signature file>] [-i <infile>]",
+		Usage:       "keybase pgp verify",
 		Description: "PGP verify message or file signatures for keybase users.",
 		Action: func(c *cli.Context) {
 			cl.ChooseCommand(&CmdPGPVerify{}, "verify", c)
@@ -21,27 +21,27 @@ func NewCmdPGPVerify(cl *libcmdline.CommandLine) cli.Command {
 		Flags: []cli.Flag{
 			cli.BoolFlag{
 				Name:  "l, local",
-				Usage: "only track locally, no statement sent to remote server",
+				Usage: "Only track locally, don't send a statement to the server.",
 			},
 			cli.BoolFlag{
 				Name:  "y",
-				Usage: "approve remote tracking without prompting",
+				Usage: "Approve remote tracking without prompting.",
 			},
 			cli.StringFlag{
 				Name:  "m, message",
-				Usage: "provide the message on the command line",
+				Usage: "Provide the message on the command line.",
 			},
 			cli.StringFlag{
 				Name:  "i, infile",
-				Usage: "specify an input file",
+				Usage: "Specify an input file.",
 			},
 			cli.StringFlag{
 				Name:  "d, detached",
-				Usage: "specify a detached signature file",
+				Usage: "Specify a detached signature file.",
 			},
 			cli.StringFlag{
 				Name:  "S, signed-by",
-				Usage: "assert signed by the given user (can use user assertion format)",
+				Usage: "Assert signed by the given user (can use user assertion format).",
 			},
 		},
 	}

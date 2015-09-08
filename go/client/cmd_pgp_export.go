@@ -2,34 +2,35 @@ package client
 
 import (
 	"fmt"
+	"os"
+
 	"github.com/keybase/cli"
 	"github.com/keybase/client/go/libcmdline"
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/protocol/go"
 	"github.com/maxtaco/go-framed-msgpack-rpc/rpc2"
-	"os"
 )
 
 func NewCmdPGPExport(cl *libcmdline.CommandLine) cli.Command {
 	return cli.Command{
 		Name:        "export",
-		Usage:       "keybase pgp export [-o <file>] [-q <query>] [-s]",
-		Description: "export a PGP key from keybase",
+		Usage:       "keybase pgp export",
+		Description: "Export a PGP key from keybase.",
 		Action: func(c *cli.Context) {
 			cl.ChooseCommand(&CmdPGPExport{}, "export", c)
 		},
 		Flags: []cli.Flag{
 			cli.StringFlag{
 				Name:  "o, outfile",
-				Usage: "specify an outfile (stdout by default)",
+				Usage: "Specify an outfile (stdout by default).",
 			},
 			cli.BoolFlag{
 				Name:  "s, secret",
-				Usage: "export secret key",
+				Usage: "Export secret key.",
 			},
 			cli.StringFlag{
 				Name:  "q, query",
-				Usage: "only export keys matching that query",
+				Usage: "Only export keys matching that query.",
 			},
 		},
 	}

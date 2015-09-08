@@ -18,7 +18,7 @@ func (c *CmdDbNuke) ParseArgv(ctx *cli.Context) error {
 func (c *CmdDbNuke) Run() error {
 	var err error
 	if !c.force {
-		err = GlobUI.PromptForConfirmation("Really blast away your local DB cache?")
+		err = GlobUI.PromptForConfirmation("Really blast away your local database?")
 	}
 	if err == nil {
 		err = G.LocalDb.Nuke()
@@ -30,14 +30,14 @@ func NewCmdDbNuke(cl *libcmdline.CommandLine) cli.Command {
 	return cli.Command{
 		Name:        "nuke",
 		Usage:       "keybase db nuke",
-		Description: "Delete the local DB cache",
+		Description: "Delete the local database.",
 		Action: func(c *cli.Context) {
 			cl.ChooseCommand(&CmdDbNuke{}, "nuke", c)
 		},
 		Flags: []cli.Flag{
 			cli.BoolFlag{
 				Name:  "force, f",
-				Usage: "Force nuking; don't prompt",
+				Usage: "Don't prompt.",
 			},
 		},
 	}
@@ -46,8 +46,8 @@ func NewCmdDbNuke(cl *libcmdline.CommandLine) cli.Command {
 func NewCmdDb(cl *libcmdline.CommandLine) cli.Command {
 	return cli.Command{
 		Name:        "db",
-		Usage:       "keybase db [subcommands...]",
-		Description: "Manipulate the local Keybase DB",
+		Usage:       "keybase db [...]",
+		Description: "Manage the local database.",
 		Subcommands: []cli.Command{
 			NewCmdDbNuke(cl),
 		},

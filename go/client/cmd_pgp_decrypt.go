@@ -11,7 +11,7 @@ import (
 func NewCmdPGPDecrypt(cl *libcmdline.CommandLine) cli.Command {
 	return cli.Command{
 		Name:        "decrypt",
-		Usage:       "keybase pgp decrypt [-l] [-y] [-s] [-S <user assertion] [-m MESSAGE] [-o OUTPUT] [-i file]",
+		Usage:       "keybase pgp decrypt",
 		Description: "PGP decrypt messages or files for keybase users.",
 		Action: func(c *cli.Context) {
 			cl.ChooseCommand(&CmdPGPDecrypt{}, "decrypt", c)
@@ -19,31 +19,31 @@ func NewCmdPGPDecrypt(cl *libcmdline.CommandLine) cli.Command {
 		Flags: []cli.Flag{
 			cli.BoolFlag{
 				Name:  "l, local",
-				Usage: "only track locally, no statement sent to remote server",
+				Usage: "Only track locally, don't send a statement to the server.",
 			},
 			cli.BoolFlag{
 				Name:  "y",
-				Usage: "approve remote tracking without prompting",
+				Usage: "Approve remote tracking without prompting.",
 			},
 			cli.BoolFlag{
 				Name:  "s, signed",
-				Usage: "assert signed",
+				Usage: "Assert signed.",
 			},
 			cli.StringFlag{
 				Name:  "S, signed-by",
-				Usage: "assert signed by the given user (can use user assertion format)",
+				Usage: "Assert signed by the given user (can use user assertion format).",
 			},
 			cli.StringFlag{
 				Name:  "m, message",
-				Usage: "provide the message on the command line",
+				Usage: "Provide the message on the command line.",
 			},
 			cli.StringFlag{
 				Name:  "i, infile",
-				Usage: "specify an input file",
+				Usage: "Specify an input file.",
 			},
 			cli.StringFlag{
 				Name:  "o, outfile",
-				Usage: "specify an outfile (stdout by default)",
+				Usage: "Specify an outfile (stdout by default).",
 			},
 		},
 	}

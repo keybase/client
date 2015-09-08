@@ -126,11 +126,11 @@ func NewCmdSearch(cl *libcmdline.CommandLine) cli.Command {
 	return cli.Command{
 		Name:        "search",
 		Usage:       "keybase search <query>",
-		Description: "search for keybase users",
+		Description: "Search for keybase users.",
 		Flags: []cli.Flag{
 			cli.BoolFlag{
 				Name:  "j, json",
-				Usage: "output a json blob",
+				Usage: "Output as JSON.",
 			},
 		},
 		Action: func(c *cli.Context) {

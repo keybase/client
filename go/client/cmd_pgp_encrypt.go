@@ -13,7 +13,7 @@ import (
 func NewCmdPGPEncrypt(cl *libcmdline.CommandLine) cli.Command {
 	return cli.Command{
 		Name:        "encrypt",
-		Usage:       "keybase pgp encrypt [-l] [-y] [--no-self] [-s] [-m MESSAGE] [-k KEY] [-b] [-o OUTPUT] [-i file] them",
+		Usage:       "keybase pgp encrypt <usernames>",
 		Description: "PGP encrypt messages or files for keybase users.",
 		Action: func(c *cli.Context) {
 			cl.ChooseCommand(&CmdPGPEncrypt{}, "encrypt", c)
@@ -21,43 +21,43 @@ func NewCmdPGPEncrypt(cl *libcmdline.CommandLine) cli.Command {
 		Flags: []cli.Flag{
 			cli.BoolFlag{
 				Name:  "l, local",
-				Usage: "only track locally, no statement sent to remote server",
+				Usage: "Only track locally, don't send a statement to the server.",
 			},
 			cli.BoolFlag{
 				Name:  "y",
-				Usage: "approve remote tracking without prompting",
+				Usage: "Approve remote tracking without prompting.",
 			},
 			cli.BoolFlag{
 				Name:  "skip-track",
-				Usage: "Don't track",
+				Usage: "Don't track.",
 			},
 			cli.BoolFlag{
 				Name:  "no-self",
-				Usage: "don't encrypt for self",
+				Usage: "Don't encrypt for self.",
 			},
 			cli.BoolFlag{
 				Name:  "s, sign",
-				Usage: "sign in addition to encrypting",
+				Usage: "Sign in addition to encrypting.",
 			},
 			cli.StringFlag{
 				Name:  "m, message",
-				Usage: "provide the message on the command line",
+				Usage: "Provide the message on the command line.",
 			},
 			cli.StringFlag{
 				Name:  "k, key",
-				Usage: "specify a key to use (otherwise most recent PGP key is used)",
+				Usage: "Specify a key to use (otherwise most recent PGP key is used).",
 			},
 			cli.BoolFlag{
 				Name:  "b, binary",
-				Usage: "output in binary (rather than ASCII/armored)",
+				Usage: "Output in binary (rather than ASCII/armored).",
 			},
 			cli.StringFlag{
 				Name:  "i, infile",
-				Usage: "specify an input file",
+				Usage: "Specify an input file.",
 			},
 			cli.StringFlag{
 				Name:  "o, outfile",
-				Usage: "specify an outfile (stdout by default)",
+				Usage: "Specify an outfile (stdout by default).",
 			},
 		},
 	}
@@ -108,7 +108,7 @@ func (c *CmdPGPEncrypt) Run() error {
 func (c *CmdPGPEncrypt) ParseArgv(ctx *cli.Context) error {
 	c.noSelf = ctx.Bool("no-self")
 	if c.noSelf && len(ctx.Args()) == 0 {
-		return errors.New("encrypt needs at least one recipient, or --no-self=false")
+		return errors.New("Encrypt needs at least one recipient, or --no-self=false")
 	}
 	msg := ctx.String("message")
 	outfile := ctx.String("outfile")

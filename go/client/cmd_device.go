@@ -10,12 +10,12 @@ import (
 func NewCmdDevice(cl *libcmdline.CommandLine) cli.Command {
 	return cli.Command{
 		Name:        "device",
-		Usage:       "keybase device [subcommands...]",
-		Description: "Manage your devices",
+		Usage:       "keybase device [...]",
+		Description: "Manage your devices.",
 		Subcommands: []cli.Command{
-			NewCmdDeviceList(cl),
 			NewCmdDeviceAdd(cl),
 			NewCmdDeviceRemove(cl),
+			NewCmdDeviceList(cl),
 		},
 	}
 }

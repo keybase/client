@@ -2,6 +2,7 @@ package client
 
 import (
 	"fmt"
+
 	"github.com/keybase/cli"
 	"github.com/keybase/client/go/libcmdline"
 	"github.com/keybase/client/go/libkb"
@@ -46,8 +47,9 @@ func (c *CmdSigsRevoke) Run() error {
 
 func NewCmdSigsRevoke(cl *libcmdline.CommandLine) cli.Command {
 	return cli.Command{
-		Name:  "revoke",
-		Usage: "keybase sigs revoke ARGS...",
+		Name:        "revoke",
+		Usage:       "keybase sigs revoke <id>",
+		Description: "Revoke signature.",
 		Action: func(c *cli.Context) {
 			cl.ChooseCommand(&CmdSigsRevoke{}, "revoke", c)
 		},

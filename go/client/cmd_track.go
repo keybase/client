@@ -19,15 +19,15 @@ func NewCmdTrack(cl *libcmdline.CommandLine) cli.Command {
 	return cli.Command{
 		Name:        "track",
 		Usage:       "keybase track <username>",
-		Description: "verify a user's authenticity and optionally track them",
+		Description: "Verify a user's authenticity and optionally track them.",
 		Flags: []cli.Flag{
 			cli.BoolFlag{
 				Name:  "local, l",
-				Usage: "only track locally, no statement sent to remote server",
+				Usage: "Only track locally, don't send a statement to the server.",
 			},
 			cli.BoolFlag{
 				Name:  "y",
-				Usage: "approve remote tracking without prompting",
+				Usage: "Approve remote tracking without prompting.",
 			},
 		},
 		Action: func(c *cli.Context) {
@@ -38,7 +38,7 @@ func NewCmdTrack(cl *libcmdline.CommandLine) cli.Command {
 
 func (v *CmdTrack) ParseArgv(ctx *cli.Context) error {
 	if len(ctx.Args()) != 1 {
-		return fmt.Errorf("track takes one arg -- the user to track")
+		return fmt.Errorf("Track only takes one argument, the user to track.")
 	}
 	v.user = ctx.Args()[0]
 	v.options = keybase1.TrackOptions{LocalOnly: ctx.Bool("local"), BypassConfirm: ctx.Bool("y")}

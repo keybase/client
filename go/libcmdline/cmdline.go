@@ -236,117 +236,116 @@ func (p *CommandLine) PopulateApp(addHelp bool, extraFlags []cli.Flag) {
 	app := p.app
 	app.Name = "keybase"
 	app.Version = libkb.Version
-	app.Usage = "Keybase command line client"
+	app.Usage = "Keybase command line client."
 
 	app.Flags = []cli.Flag{
 		cli.StringFlag{
 			Name:  "home, H",
-			Usage: "specify an (alternate) home directory",
+			Usage: "Specify an (alternate) home directory.",
 		},
 		cli.StringFlag{
 			Name:  "server, s",
-			Usage: "specify server API",
+			Usage: "Specify server API.",
 		},
 		cli.StringFlag{
 			Name:  "config-file, c",
-			Usage: "specify an (alternate) master config file",
+			Usage: "Specify an (alternate) master config file.",
 		},
 		cli.StringFlag{
 			Name:  "session-file",
-			Usage: "specify an alternate session data file",
+			Usage: "Specify an alternate session data file.",
 		},
 		cli.StringFlag{
 			Name:  "db",
-			Usage: "specify an alternate local DB location",
+			Usage: "Specify an alternate local DB location.",
 		},
 		cli.StringFlag{
 			Name:  "api-uri-path-prefix",
-			Usage: "specify an alternate API URI path prefix",
+			Usage: "Specify an alternate API URI path prefix.",
 		},
 		cli.StringFlag{
 			Name:  "username, u",
-			Usage: "specify Keybase username of the current user",
+			Usage: "Specify Keybase username of the current user.",
 		},
 		cli.StringFlag{
 			Name:  "pinentry",
-			Usage: "specify a path to find a pinentry program",
+			Usage: "Specify a path to find a pinentry program.",
 		},
 		cli.StringFlag{
 			Name:  "secret-keyring",
-			Usage: "location of the Keybase secret-keyring (P3SKB-encoded)",
+			Usage: "Location of the Keybase secret-keyring (P3SKB-encoded).",
 		},
 		cli.StringFlag{
 			Name:  "socket-file",
-			Usage: "location of the keybased socket-file",
+			Usage: "Location of the keybased socket-file.",
 		},
 		cli.StringFlag{
 			Name:  "pid-file",
-			Usage: "location of the keybased pid-file (to ensure only one running daemon)",
+			Usage: "Location of the keybased pid-file (to ensure only one running daemon).",
 		},
 		cli.StringFlag{
-			Name: "proxy",
-			Usage: "specify an HTTP(s) proxy to ship all Web " +
-				"requests over",
+			Name:  "proxy",
+			Usage: "Specify an HTTP(s) proxy to ship all Web requests over.",
 		},
 		cli.BoolFlag{
 			Name:  "debug, d",
-			Usage: "enable debugging mode",
+			Usage: "Enable debugging mode.",
 		},
 		cli.StringFlag{
 			Name:  "run-mode",
-			Usage: "run mode (devel, staging, prod)", // These are defined in libkb/constants.go
+			Usage: "Run mode (devel, staging, prod).", // These are defined in libkb/constants.go
 		},
 		cli.StringFlag{
 			Name:  "log-format",
-			Usage: "log format (default, plain, file, fancy)",
+			Usage: "Log format (default, plain, file, fancy).",
 		},
 		cli.StringFlag{
 			Name:  "pgpdir, gpgdir",
-			Usage: "specify a PGP directory (default is ~/.gnupg)",
+			Usage: "Specify a PGP directory (default is ~/.gnupg).",
 		},
 		cli.BoolFlag{
 			Name:  "api-dump-unsafe",
-			Usage: "dump API call internals (may leak secrets)",
+			Usage: "Dump API call internals (may leak secrets).",
 		},
 		cli.StringFlag{
 			Name:  "merkle-key-fingerprints",
-			Usage: "set of admissable Merkle Tree fingerprints (colon-separated)",
+			Usage: "Set of admissable Merkle Tree fingerprints (colon-separated).",
 		},
 		cli.IntFlag{
 			Name:  "user-cache-size",
-			Usage: "number of User entries to cache",
+			Usage: "Number of User entries to cache.",
 		},
 		cli.IntFlag{
 			Name:  "proof-cache-size",
-			Usage: "number of proof entries to cache",
+			Usage: "Number of proof entries to cache.",
 		},
 		cli.StringFlag{
 			Name:  "gpg",
-			Usage: "path to GPG client (optional for exporting keys)",
+			Usage: "Path to GPG client (optional for exporting keys).",
 		},
 		cli.StringFlag{
 			Name:  "gpg-options",
-			Usage: "options to use when calling GPG",
+			Usage: "Options to use when calling GPG.",
 		},
 		cli.IntFlag{
 			Name:  "daemon-port",
-			Usage: "specify a daemon port on 127.0.0.1",
+			Usage: "Specify a daemon port on 127.0.0.1.",
 		},
 		cli.BoolFlag{
 			Name:  "standalone",
-			Usage: "use the client without any daemon support",
+			Usage: "Use the client without any daemon support.",
 		},
 		cli.StringFlag{
 			Name:  "local-rpc-debug-unsafe",
-			Usage: "use to debug local RPC (may leak secrets)",
+			Usage: "Use to debug local RPC (may leak secrets).",
 		},
 		cli.StringFlag{
 			Name:  "log-file",
-			Usage: "specify a log file for the keybase service",
+			Usage: "Specify a log file for the keybase service.",
 		},
 		cli.BoolFlag{
 			Name:  "split-log-output",
-			Usage: "output service log messages to current terminal",
+			Usage: "Output service log messages to current terminal.",
 		},
 	}
 	if extraFlags != nil {

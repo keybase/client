@@ -10,16 +10,17 @@ import (
 
 func NewCmdVersion(cl *libcmdline.CommandLine) cli.Command {
 	return cli.Command{
-		Name:  "version",
-		Usage: "print out version information",
+		Name:        "version",
+		Usage:       "keybase version",
+		Description: "Print out version and build information.",
 		Flags: []cli.Flag{
 			cli.BoolFlag{
 				Name:  "v, verbose",
-				Usage: "show extra info",
+				Usage: "Show extra info.",
 			},
 			cli.BoolFlag{
 				Name:  "d, devel",
-				Usage: "show build info (for development releases)",
+				Usage: "Show build info (for development releases).",
 			},
 		},
 		Action: func(c *cli.Context) {
