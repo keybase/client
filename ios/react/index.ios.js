@@ -5,6 +5,7 @@ var {
   AppRegistry,
   Component,
   NavigatorIOS,
+  Settings,
   StyleSheet,
   Text,
   TouchableHighlight,
@@ -33,13 +34,15 @@ class AppOrDebug extends Component {
   }
 
   showApp () {
-    this.props.navigator.replace({
-      currentTitle: 'Login',
+    Settings.set({appOrDebug: 'app'})
+    this.props.navigator.push({
+      title: 'Keybase',
       component: Login
     })
   }
 
   showDebug () {
+    Settings.set({appOrDebug: 'debug'})
     this.props.navigator.push({
       title: 'Debug',
       component: Debug,
@@ -50,13 +53,31 @@ class AppOrDebug extends Component {
     })
   }
 
+  // Auto push to the next state, can't figure out a nicer way to do this
+  componentDidMount () {
+    setTimeout(() => {
+      var appOrDebug = Settings.get('appOrDebug')
+      if (appOrDebug) {
+        if (appOrDebug === 'app') {
+          this.showApp()
+        } else if (appOrDebug === 'debug') {
+          this.showDebug()
+        }
+      }
+    }, 1)
+  }
+
   render () {
     return (
       <View style={styles.appDebug}>
-        <TouchableHighlight underlayColor={commonStyles.buttonHighlight} onPress={() => {this.showApp()}}>
+        <TouchableHighlight
+          underlayColor={commonStyles.buttonHighlight}
+          onPress={() => {this.showApp()}}>
           <Text style={[commonStyles.button, {width: 200}]} >Keybase</Text>
         </TouchableHighlight>
-        <TouchableHighlight underlayColor={commonStyles.buttonHighlight} onPress={() => {this.showDebug()}}>
+        <TouchableHighlight
+          underlayColor={commonStyles.buttonHighlight}
+          onPress={() => {this.showDebug()}}>
           <Text style={[commonStyles.button, {width: 200}]}>Debug Page</Text>
         </TouchableHighlight>
       </View>
@@ -64,7 +85,10 @@ class AppOrDebug extends Component {
   }
 }
 
-AppOrDebug.propTypes = {navigator: React.PropTypes.object}
+AppOrDebug.propTypes = {
+  navigator: React.PropTypes.object,
+  appOrDebug: React.PropTypes.string
+}
 
 class Keybase extends Component {
   constructor () {
@@ -76,10 +100,10 @@ class Keybase extends Component {
       <NavigatorIOS
         style={styles.navigator}
         initialRoute={{
-          title: 'Keybase',
+          title: 'App or Debug',
           component: AppOrDebug
           /* component: Login */
-        }}
+        } }
       />
     )
   }
