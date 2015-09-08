@@ -27,6 +27,7 @@ type TypedChainLink interface {
 	GetCTime() time.Time
 	GetETime() time.Time
 	GetPGPFingerprint() *PGPFingerprint
+	GetPGPFullHash() string
 	GetKID() keybase1.KID
 	IsInCurrentFamily(u *User) bool
 	GetUsername() string
@@ -71,6 +72,7 @@ func (g *GenericChainLink) GetSeqno() Seqno                              { retur
 func (g *GenericChainLink) GetPGPFingerprint() *PGPFingerprint {
 	return g.unpacked.pgpFingerprint
 }
+func (g *GenericChainLink) GetPGPFullHash() string { return "" }
 
 func (g *GenericChainLink) GetArmoredSig() string {
 	return g.unpacked.sig
@@ -83,6 +85,15 @@ func (g *GenericChainLink) GetUID() keybase1.UID {
 }
 
 func (g *GenericChainLink) GetDevice() *Device { return nil }
+
+func (g *GenericChainLink) extractPGPFullHash(loc string) string {
+	if jw := g.payloadJSON.AtPath(fmt.Sprint("body.", loc, ".full_hash")); !jw.IsNil() {
+		if ret, err := jw.GetString(); err == nil {
+			return ret
+		}
+	}
+	return ""
+}
 
 //
 //=========================================================================
@@ -545,6 +556,7 @@ func (s *SibkeyChainLink) GetRole() KeyRole              { return DLGSibkey }
 func (s *SibkeyChainLink) Type() string                  { return SibkeyType }
 func (s *SibkeyChainLink) ToDisplayString() string       { return s.kid.String() }
 func (s *SibkeyChainLink) GetDevice() *Device            { return s.device }
+func (s *SibkeyChainLink) GetPGPFullHash() string        { return s.extractPGPFullHash("sibkey") }
 func (s *SibkeyChainLink) insertIntoTable(tab *IdentityTable) {
 	tab.insertLink(s)
 }
@@ -810,6 +822,8 @@ func (s *SelfSigChainLink) GetRemoteUsername() string { return s.GetUsername() }
 func (s *SelfSigChainLink) GetHostname() string       { return "" }
 func (s *SelfSigChainLink) GetProtocol() string       { return "" }
 func (s *SelfSigChainLink) ProofText() string         { return "" }
+
+func (s *SelfSigChainLink) GetPGPFullHash() string { return s.extractPGPFullHash("key") }
 
 func (s *SelfSigChainLink) DisplayCheck(ui IdentifyUI, lcr LinkCheckResult) {}
 

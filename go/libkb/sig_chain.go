@@ -54,7 +54,7 @@ func (sc *SigChain) LocalDelegate(kf *KeyFamily, key GenericKey, sigID keybase1.
 
 	if len(sigID) > 0 {
 		var zeroTime time.Time
-		err = cki.Delegate(key.GetKID(), NowAsKeybaseTime(0), sigID, signingKid, signingKid, isSibkey, time.Unix(0, 0), zeroTime)
+		err = cki.Delegate(key.GetKID(), NowAsKeybaseTime(0), sigID, signingKid, signingKid, "", isSibkey, time.Unix(0, 0), zeroTime)
 	}
 
 	return
