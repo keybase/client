@@ -171,6 +171,9 @@ type FolderBranchOps struct {
 
 	// make sure we only kick off registration once
 	registerOnce sync.Once
+
+	// How to resolve conflicts
+	cr *ConflictResolver
 }
 
 var _ KBFSOps = (*FolderBranchOps)(nil)
@@ -193,7 +196,7 @@ func NewFolderBranchOps(config Config, fb FolderBranch,
 	// But print it out once in full, just in case.
 	log.CInfof(nil, "Created new folder-branch for %s", tlfStringFull)
 
-	return &FolderBranchOps{
+	fbo := &FolderBranchOps{
 		config:         config,
 		folderBranch:   fb,
 		bType:          bType,
@@ -211,12 +214,15 @@ func NewFolderBranchOps(config Config, fb FolderBranch,
 		shutdownChan:    make(chan struct{}),
 		updatePauseChan: make(chan (<-chan struct{})),
 	}
+	fbo.cr = NewConflictResolver(config, fbo)
+	return fbo
 }
 
 // Shutdown safely shuts down any background goroutines that may have
 // been launched by FolderBranchOps.
 func (fbo *FolderBranchOps) Shutdown() {
 	close(fbo.shutdownChan)
+	fbo.cr.Shutdown()
 }
 
 func (fbo *FolderBranchOps) id() TlfID {
@@ -255,10 +261,8 @@ func (fbo *FolderBranchOps) transitionState(newState state) {
 }
 
 // The caller must hold writerLock.
-func (fbo *FolderBranchOps) transitionStagedLocked(staged bool) {
+func (fbo *FolderBranchOps) setStagedLocked(staged bool) {
 	fbo.staged = staged
-	// TODO: add transitions, such as kicking off conflict resolution
-	// when moving into to 'staged'.
 }
 
 func (fbo *FolderBranchOps) checkDataVersion(p path, ptr BlockPointer) error {
@@ -303,7 +307,10 @@ func (fbo *FolderBranchOps) getMDLocked(ctx context.Context, rtype reqType) (
 		return nil, err
 	}
 	if md != nil {
-		fbo.transitionStagedLocked(true)
+		fbo.setStagedLocked(true)
+		// Use uninitialized for the merged branch; the unmerged
+		// revision is enough to trigger conflict resolution.
+		fbo.cr.Resolve(md.Revision, MetadataRevisionUninitialized)
 	} else {
 		// no unmerged MDs for this device, so just get the current head
 		md, err = mdops.GetForTLF(ctx, fbo.id())
@@ -1314,12 +1321,20 @@ func (fbo *FolderBranchOps) finalizeWriteLocked(ctx context.Context,
 	mdops := fbo.config.MDOps()
 
 	doUnmergedPut := true
+	mergedRev := MetadataRevisionUninitialized
 	if !fbo.staged {
 		// only do a normal Put if we're not already staged.
 		err = mdops.Put(ctx, md)
 		doUnmergedPut = fbo.isRevisionConflict(err)
 		if err != nil && !doUnmergedPut {
 			return err
+		}
+		// The first time we transition, our last known MD revision is
+		// the same (at least) as what we thought our new revision
+		// should be.  Otherwise, just leave it at uninitialized and
+		// let the resolver sort it out.
+		if doUnmergedPut {
+			mergedRev = md.Revision
 		}
 	}
 
@@ -1329,9 +1344,10 @@ func (fbo *FolderBranchOps) finalizeWriteLocked(ctx context.Context,
 		if err != nil {
 			return nil
 		}
-		fbo.transitionStagedLocked(true)
+		fbo.setStagedLocked(true)
+		fbo.cr.Resolve(md.Revision, mergedRev)
 	} else {
-		fbo.transitionStagedLocked(false)
+		fbo.setStagedLocked(false)
 	}
 	fbo.transitionState(cleanState)
 
@@ -3247,6 +3263,13 @@ func (fbo *FolderBranchOps) applyMDUpdatesLocked(ctx context.Context,
 	// if we have staged changes, ignore all updates until conflict
 	// resolution kicks in.  TODO: cache these for future use.
 	if fbo.staged {
+		if len(rmds) > 0 {
+			unmergedRev := MetadataRevisionUninitialized
+			if fbo.head != nil {
+				unmergedRev = fbo.head.Revision
+			}
+			fbo.cr.Resolve(unmergedRev, rmds[len(rmds)-1].Revision)
+		}
 		return errors.New("Ignoring MD updates while local updates are staged")
 	}
 
@@ -3469,7 +3492,7 @@ func (fbo *FolderBranchOps) undoUnmergedMDUpdatesLocked(
 			// being currHead-1, so that future calls to
 			// applyMDUpdates will fetch this along with the rest of
 			// the updates.
-			fbo.transitionStagedLocked(false)
+			fbo.setStagedLocked(false)
 
 			rmds, err := fbo.getMDRange(ctx, currHead, currHead, Merged)
 			if err != nil {
