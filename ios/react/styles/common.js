@@ -6,7 +6,6 @@ module.exports = StyleSheet.create({
     color: 'black',
     marginBottom: 10,
     padding: 10,
-    width: 100,
     borderColor: 'blue',
     borderRadius: 2,
     backgroundColor: '#eeeeee'

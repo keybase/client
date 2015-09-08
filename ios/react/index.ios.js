@@ -33,8 +33,8 @@ class AppOrDebug extends Component {
   }
 
   showApp () {
-    this.navigationBarHidden = true
     this.props.navigator.replace({
+      currentTitle: 'Login',
       component: Login
     })
   }
@@ -54,10 +54,10 @@ class AppOrDebug extends Component {
     return (
       <View style={styles.appDebug}>
         <TouchableHighlight underlayColor={commonStyles.buttonHighlight} onPress={() => {this.showApp()}}>
-          <Text style={commonStyles.button} >App</Text>
+          <Text style={[commonStyles.button, {width: 200}]} >Keybase</Text>
         </TouchableHighlight>
         <TouchableHighlight underlayColor={commonStyles.buttonHighlight} onPress={() => {this.showDebug()}}>
-          <Text style={commonStyles.button}>Debug</Text>
+          <Text style={[commonStyles.button, {width: 200}]}>Debug Page</Text>
         </TouchableHighlight>
       </View>
     )
@@ -78,6 +78,7 @@ class Keybase extends Component {
         initialRoute={{
           title: 'Keybase',
           component: AppOrDebug
+          /* component: Login */
         }}
       />
     )

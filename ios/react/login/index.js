@@ -2,9 +2,10 @@
 
 var React = require('react-native')
 var {
+  Component,
   StyleSheet,
   Text,
-  Component
+  View
 } = React
 
 // var engine = require('../engine')
@@ -26,9 +27,9 @@ var styles = StyleSheet.create({
 var Form = require('./form')
 
 class LoginStates {}
-LoginStates.prototype.Form = 'Form'
-LoginStates.prototype.DevicePrompt = 'DevicePrompt'
-LoginStates.prototype.UserPass = 'UserPass'
+LoginStates.Form = 'Form'
+LoginStates.DevicePrompt = 'DevicePrompt'
+LoginStates.UserPass = 'UserPass'
 
 class LoginComponent extends Component {
   constructor () {
@@ -40,10 +41,6 @@ class LoginComponent extends Component {
   }
 
   render () {
-    return (
-      <Text>Login</Text>
-    )
-    /*
     switch (this.state.screen) {
       case LoginStates.Form:
         return (
@@ -51,10 +48,11 @@ class LoginComponent extends Component {
         )
       default:
         return (
-          <Text>Unknown login state</Text>
+          <View style={styles.container}>
+            <Text style={styles.welcome}>Unknown login state</Text>
+          </View>
       )
     }
-    */
   }
 }
 
