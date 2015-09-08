@@ -87,6 +87,7 @@ typedef NS_ENUM (NSInteger, KBRLogLevel) {
 @interface KBRConfig : KBRObject
 @property NSString *serverURI;
 @property NSString *socketFile;
+@property NSString *label;
 @property BOOL gpgExists;
 @property NSString *gpgPath;
 @property NSString *version;

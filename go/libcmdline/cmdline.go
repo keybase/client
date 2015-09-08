@@ -84,6 +84,9 @@ func (p CommandLine) GetUsername() libkb.NormalizedUsername {
 func (p CommandLine) GetLogFormat() string {
 	return p.GetGString("log-format")
 }
+func (p CommandLine) GetLabel() string {
+	return p.GetGString("label")
+}
 func (p CommandLine) GetGpgHome() string {
 	return p.GetGString("gpg-home")
 }
@@ -298,6 +301,10 @@ func (p *CommandLine) PopulateApp(addHelp bool, extraFlags []cli.Flag) {
 		cli.StringFlag{
 			Name:  "log-format",
 			Usage: "Log format (default, plain, file, fancy).",
+		},
+		cli.StringFlag{
+			Name:  "label",
+			Usage: "Specifying a label can help identify services.",
 		},
 		cli.StringFlag{
 			Name:  "pgpdir, gpgdir",

@@ -291,7 +291,14 @@ func (p Plist) plist() string {
 	}
 
 	pargs := []string{}
+
+	// First arg is the keybase executable
 	pargs = append(pargs, encodeString(p.binPath))
+
+	// Pass the label so clients can see where service was installed
+	labelArg := fmt.Sprintf("--label=%s", p.label)
+	pargs = append(pargs, encodeString(labelArg))
+
 	for _, arg := range p.args {
 		pargs = append(pargs, encodeString(arg))
 	}

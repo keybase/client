@@ -16,6 +16,7 @@ protocol config {
 	record Config {
 		string serverURI;
 		string socketFile;
+		string label;
 		boolean gpgExists;
 		string gpgPath;
 		string version;
