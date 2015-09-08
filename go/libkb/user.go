@@ -170,14 +170,15 @@ func (u *User) GetDeviceSubkey() (subkey GenericKey, err error) {
 func (u *User) GetServerSeqno() (i int, err error) {
 	i = -1
 
-	G.Log.Debug("+ Get server seqno for user: %s", u.name)
-	res, err := G.API.Get(APIArg{
+	u.G().Log.Debug("+ Get server seqno for user: %s", u.name)
+	res, err := u.G().API.Get(APIArg{
 		Endpoint:    "user/lookup",
 		NeedSession: false,
 		Args: HTTPArgs{
 			"username": S{u.name},
 			"fields":   S{"sigs"},
 		},
+		Contextified: NewContextified(u.G()),
 	})
 	if err != nil {
 		return
@@ -186,7 +187,7 @@ func (u *User) GetServerSeqno() (i int, err error) {
 	if err != nil {
 		return
 	}
-	G.Log.Debug("- Server seqno: %s -> %d", u.name, i)
+	u.G().Log.Debug("- Server seqno: %s -> %d", u.name, i)
 	return i, err
 }
 
@@ -195,9 +196,9 @@ func (u *User) CheckBasicsFreshness(server int64) (current bool, err error) {
 	if stored, err = u.GetIDVersion(); err == nil {
 		current = (stored >= server)
 		if current {
-			G.Log.Debug("| Local basics version is up-to-date @ version %d", stored)
+			u.G().Log.Debug("| Local basics version is up-to-date @ version %d", stored)
 		} else {
-			G.Log.Debug("| Local basics version is out-of-date: %d < %d", stored, server)
+			u.G().Log.Debug("| Local basics version is out-of-date: %d < %d", stored, server)
 		}
 	}
 	return
@@ -229,7 +230,7 @@ func (u *User) LoadSigChains(allKeys bool, f *MerkleUserLeaf, self bool) (err er
 
 func (u *User) Store() error {
 
-	G.Log.Debug("+ Store user %s", u.name)
+	u.G().Log.Debug("+ Store user %s", u.name)
 
 	// These might be dirty, in which case we can write it back
 	// to local storage. Note, this can be dirty even if the user is clean.
@@ -238,7 +239,7 @@ func (u *User) Store() error {
 	}
 
 	if !u.dirty {
-		G.Log.Debug("- Store for %s skipped; user wasn't dirty", u.name)
+		u.G().Log.Debug("- Store for %s skipped; user wasn't dirty", u.name)
 		return nil
 	}
 
@@ -251,13 +252,13 @@ func (u *User) Store() error {
 	}
 
 	u.dirty = false
-	G.Log.Debug("- Store user %s -> OK", u.name)
+	u.G().Log.Debug("- Store user %s -> OK", u.name)
 
 	return nil
 }
 
 func (u *User) StoreTopLevel() error {
-	G.Log.Debug("+ StoreTopLevel")
+	u.G().Log.Debug("+ StoreTopLevel")
 
 	jw := jsonw.NewDictionary()
 	jw.SetKey("id", UIDWrapper(u.id))
@@ -266,12 +267,12 @@ func (u *User) StoreTopLevel() error {
 	jw.SetKey("sigs", u.sigs)
 	jw.SetKey("pictures", u.pictures)
 
-	err := G.LocalDb.Put(
+	err := u.G().LocalDb.Put(
 		DbKeyUID(DBUser, u.id),
 		[]DbKey{{Typ: DBLookupUsername, Key: u.name}},
 		jw,
 	)
-	G.Log.Debug("- StoreTopLevel -> %s", ErrToOk(err))
+	u.G().Log.Debug("- StoreTopLevel -> %s", ErrToOk(err))
 	return err
 }
 
@@ -283,9 +284,9 @@ func (u *User) SyncedSecretKey(lctx LoginContext) (ret *SKB, err error) {
 }
 
 func (u *User) getSyncedSecretKeyLogin(lctx LoginContext) (ret *SKB, err error) {
-	G.Log.Debug("+ User.GetSyncedSecretKeyLogin()")
+	u.G().Log.Debug("+ User.GetSyncedSecretKeyLogin()")
 	defer func() {
-		G.Log.Debug("- User.GetSyncedSecretKeyLogin() -> %s", ErrToOk(err))
+		u.G().Log.Debug("- User.GetSyncedSecretKeyLogin() -> %s", ErrToOk(err))
 	}()
 
 	if err = lctx.RunSecretSyncer(u.id); err != nil {
@@ -293,7 +294,7 @@ func (u *User) getSyncedSecretKeyLogin(lctx LoginContext) (ret *SKB, err error) 
 	}
 	ckf := u.GetComputedKeyFamily()
 	if ckf == nil {
-		G.Log.Debug("| short-circuit; no Computed key family")
+		u.G().Log.Debug("| short-circuit; no Computed key family")
 		return
 	}
 
@@ -302,9 +303,9 @@ func (u *User) getSyncedSecretKeyLogin(lctx LoginContext) (ret *SKB, err error) 
 }
 
 func (u *User) GetSyncedSecretKey() (ret *SKB, err error) {
-	G.Log.Debug("+ User.GetSyncedSecretKey()")
+	u.G().Log.Debug("+ User.GetSyncedSecretKey()")
 	defer func() {
-		G.Log.Debug("- User.GetSyncedSecretKey() -> %s", ErrToOk(err))
+		u.G().Log.Debug("- User.GetSyncedSecretKey() -> %s", ErrToOk(err))
 	}()
 
 	if err = u.SyncSecrets(); err != nil {
@@ -313,11 +314,11 @@ func (u *User) GetSyncedSecretKey() (ret *SKB, err error) {
 
 	ckf := u.GetComputedKeyFamily()
 	if ckf == nil {
-		G.Log.Debug("| short-circuit; no Computed key family")
+		u.G().Log.Debug("| short-circuit; no Computed key family")
 		return
 	}
 
-	aerr := G.LoginState().SecretSyncer(func(s *SecretSyncer) {
+	aerr := u.G().LoginState().SecretSyncer(func(s *SecretSyncer) {
 		ret, err = s.FindActiveKey(ckf)
 	}, "User - FindActiveKey")
 	if aerr != nil {
@@ -331,9 +332,9 @@ func (u *User) GetSyncedSecretKey() (ret *SKB, err error) {
 // synced to API server.  LoginContext can be nil if this isn't
 // used while logging in, signing up.
 func (u *User) AllSyncedSecretKeys(lctx LoginContext) (keys []*SKB, err error) {
-	G.Log.Debug("+ User.AllSyncedSecretKeys()")
+	u.G().Log.Debug("+ User.AllSyncedSecretKeys()")
 	defer func() {
-		G.Log.Debug("- User.AllSyncedSecretKey() -> %s", ErrToOk(err))
+		u.G().Log.Debug("- User.AllSyncedSecretKey() -> %s", ErrToOk(err))
 	}()
 
 	if lctx != nil {
@@ -348,7 +349,7 @@ func (u *User) AllSyncedSecretKeys(lctx LoginContext) (keys []*SKB, err error) {
 
 	ckf := u.GetComputedKeyFamily()
 	if ckf == nil {
-		G.Log.Debug("| short-circuit; no Computed key family")
+		u.G().Log.Debug("| short-circuit; no Computed key family")
 		return nil, nil
 	}
 
@@ -368,7 +369,7 @@ func (u *User) AllSyncedSecretKeys(lctx LoginContext) (keys []*SKB, err error) {
 }
 
 func (u *User) SyncSecrets() error {
-	return G.LoginState().RunSecretSyncer(u.id)
+	return u.G().LoginState().RunSecretSyncer(u.id)
 }
 
 // May return an empty KID
@@ -399,19 +400,19 @@ func (u *User) MakeIDTable() error {
 
 func (u *User) VerifySelfSig() error {
 
-	G.Log.Debug("+ VerifySelfSig for user %s", u.name)
+	u.G().Log.Debug("+ VerifySelfSig for user %s", u.name)
 
 	if u.IDTable().VerifySelfSig(u.name, u.id) {
-		G.Log.Debug("- VerifySelfSig via SigChain")
+		u.G().Log.Debug("- VerifySelfSig via SigChain")
 		return nil
 	}
 
 	if u.VerifySelfSigByKey() {
-		G.Log.Debug("- VerifySelfSig via Key")
+		u.G().Log.Debug("- VerifySelfSig via Key")
 		return nil
 	}
 
-	G.Log.Debug("- VerifySelfSig failed")
+	u.G().Log.Debug("- VerifySelfSig failed")
 	return fmt.Errorf("Failed to find a self-signature for %s", u.name)
 }
 
@@ -429,12 +430,12 @@ func (u *User) HasActiveKey() bool {
 	}
 
 	if u.sigChain() == nil {
-		G.Log.Debug("User HasActiveKey: sig chain is nil")
+		u.G().Log.Debug("User HasActiveKey: sig chain is nil")
 	} else if u.sigChain().GetComputedKeyInfos() == nil {
-		G.Log.Debug("User HasActiveKey: comp key infos is nil")
+		u.G().Log.Debug("User HasActiveKey: comp key infos is nil")
 	}
 	if u.keyFamily == nil {
-		G.Log.Debug("User HasActiveKey: keyFamily is nil")
+		u.G().Log.Debug("User HasActiveKey: keyFamily is nil")
 	}
 
 	return false
@@ -445,14 +446,14 @@ func (u *User) Equal(other *User) bool {
 }
 
 func (u *User) TrackChainLinkFor(username string, uid keybase1.UID) (*TrackChainLink, error) {
-	G.Log.Debug("+ GetTrackingStatement for %s", uid)
-	defer G.Log.Debug("- GetTrackingStatement for %s", uid)
+	u.G().Log.Debug("+ GetTrackingStatement for %s", uid)
+	defer u.G().Log.Debug("- GetTrackingStatement for %s", uid)
 
 	remote, e1 := u.remoteTrackChainLinkFor(username, uid)
 	local, e2 := LocalTrackChainLinkFor(u.id, uid)
 
-	G.Log.Debug("| Load remote -> %v", (remote != nil))
-	G.Log.Debug("| Load local -> %v", (local != nil))
+	u.G().Log.Debug("| Load remote -> %v", (remote != nil))
+	u.G().Log.Debug("| Load local -> %v", (local != nil))
 
 	if e1 != nil && e2 != nil {
 		return nil, e1
@@ -510,7 +511,7 @@ func (u *User) localDelegateKey(key GenericKey, sigID keybase1.SigID, kid keybas
 		err = NoSigChainError{}
 		return
 	}
-	G.Log.Debug("User localDelegateKey signing kid: %s", kid)
+	u.G().Log.Debug("User localDelegateKey signing kid: %s", kid)
 	err = u.sigChain().LocalDelegate(u.keyFamily, key, sigID, kid, isSibkey)
 	if isEldest {
 		eldestKID := key.GetKID()
@@ -562,7 +563,7 @@ func (u *User) SigningKeyPub() (GenericKey, error) {
 		Me:      u,
 		KeyType: DeviceSigningKeyType,
 	}
-	lockedKey, _, err := G.Keyrings.GetSecretKeyLocked(nil, arg)
+	lockedKey, _, err := u.G().Keyrings.GetSecretKeyLocked(nil, arg)
 	if err != nil {
 		return nil, err
 	}
