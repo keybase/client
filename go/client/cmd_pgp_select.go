@@ -21,7 +21,7 @@ func (v *CmdPGPSelect) ParseArgv(ctx *cli.Context) (err error) {
 	if nargs := len(ctx.Args()); nargs == 1 {
 		v.query = ctx.Args()[0]
 	} else if nargs != 0 {
-		err = fmt.Errorf("PGP select takes 0 or 1 arguments.")
+		err = fmt.Errorf("PGP select takes 0 or 1 arguments")
 	}
 	if err == nil {
 		v.multi = ctx.Bool("multi")
