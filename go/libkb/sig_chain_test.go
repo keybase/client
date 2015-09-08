@@ -31,6 +31,9 @@ func getErrorTypesMap() map[string]map[reflect.Type]bool {
 		"INVALID_SIBKEY": {
 			reflect.TypeOf(KeyRevokedError{}): true,
 		},
+		"NO_KEY": {
+			reflect.TypeOf(NoKeyError{}): true,
+		},
 		"KEY_OWNERSHIP": {
 			reflect.TypeOf(KeyFamilyError{}): true,
 		},
