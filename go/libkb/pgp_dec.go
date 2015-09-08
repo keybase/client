@@ -31,7 +31,8 @@ func PGPDecryptWithBundles(source io.Reader, sink io.Writer, keys []*PGPKeyBundl
 func PGPDecrypt(source io.Reader, sink io.Writer, kr openpgp.KeyRing) (*SignatureStatus, error) {
 	peeker := NewPeeker(source)
 
-	var r io.Reader = peeker
+	var r io.Reader
+	r = peeker
 
 	armored, clearsigned := PGPDetect(peeker)
 	if clearsigned {
