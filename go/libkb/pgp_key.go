@@ -116,17 +116,21 @@ func (k *PGPKeyBundle) FullHash() (string, error) {
 	return hex.EncodeToString(keySum[:]), nil
 }
 
-func (k *PGPKeyBundle) StripRevocations() {
-	k.Revocations = nil
+func (k *PGPKeyBundle) StripRevocations() (strippedKey *PGPKeyBundle) {
+	entityCopy := *k.Entity
+	strippedKey = &PGPKeyBundle{Entity: &entityCopy}
 
-	oldSubkeys := k.Subkeys
-	k.Subkeys = nil
+	strippedKey.Revocations = nil
+
+	oldSubkeys := strippedKey.Subkeys
+	strippedKey.Subkeys = nil
 	for _, subkey := range oldSubkeys {
 		// Skip revoked subkeys
 		if subkey.Sig.SigType == packet.SigTypeSubkeyBinding {
-			k.Subkeys = append(k.Subkeys, subkey)
+			strippedKey.Subkeys = append(strippedKey.Subkeys, subkey)
 		}
 	}
+	return
 }
 
 func (k *PGPKeyBundle) StoreToLocalDb() error {
@@ -310,11 +314,16 @@ func finishReadOne(el []*openpgp.Entity, armored string, err error) (*PGPKeyBund
 		return nil, err
 	}
 	if len(el) == 0 {
-		return nil, fmt.Errorf("No keys found in primary bundle")
+		return nil, NoKeyError{"No keys found in primary bundle"}
 	} else if len(el) != 1 {
-		return nil, fmt.Errorf("Found multiple keys; wanted just one")
+		return nil, TooManyKeysError{len(el)}
 	} else {
-		return NewPGPKeyBundle(el[0]), nil
+		e := el[0]
+		var maybeArmored string
+		if e.PrivateKey == nil {
+			maybeArmored = armored
+		}
+		return &PGPKeyBundle{e, maybeArmored}, nil
 	}
 }
 

@@ -74,7 +74,7 @@ func (e *RevokeEngine) getKIDsToRevoke(me *libkb.User) ([]keybase1.KID, error) {
 		return deviceKeys, nil
 	} else if e.mode == RevokeKey {
 		kid := keybase1.KIDFromString(e.kidString)
-		key, err := me.GetKeyFamily().FindKeyWithKIDUnsafe(kid)
+		key, err := me.GetComputedKeyFamily().FindKeyWithKIDUnsafe(kid)
 		if err != nil {
 			return nil, err
 		}

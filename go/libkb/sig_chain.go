@@ -54,7 +54,7 @@ func (sc *SigChain) LocalDelegate(kf *KeyFamily, key GenericKey, sigID keybase1.
 
 	if len(sigID) > 0 {
 		var zeroTime time.Time
-		err = cki.Delegate(key.GetKID(), NowAsKeybaseTime(0), sigID, signingKid, signingKid, isSibkey, time.Unix(0, 0), zeroTime)
+		err = cki.Delegate(key.GetKID(), NowAsKeybaseTime(0), sigID, signingKid, signingKid, "", isSibkey, time.Unix(0, 0), zeroTime)
 	}
 
 	return
@@ -394,9 +394,10 @@ func (sc *SigChain) verifySubchain(kf KeyFamily, links []*ChainLink) (cached boo
 		// family. That's important because a chain link might revoke the same
 		// key that signed it.
 		isDelegating := (tcl.GetRole() != DLGNone)
+		isModifyingKeys := isDelegating || tcl.Type() == PGPUpdateType
 		isFinalLink := (linkIndex == len(links)-1)
 		isLastLinkInSameKeyRun := (isFinalLink || newKID != links[linkIndex+1].GetKID())
-		if isDelegating || isFinalLink || isLastLinkInSameKeyRun {
+		if isModifyingKeys || isFinalLink || isLastLinkInSameKeyRun {
 			_, err = link.VerifySigWithKeyFamily(ckf)
 			if err != nil {
 				G.Log.Debug("| Failure in VerifySigWithKeyFamily: %s", err)
@@ -412,7 +413,14 @@ func (sc *SigChain) verifySubchain(kf KeyFamily, links []*ChainLink) (cached boo
 			}
 		}
 
-		if err = tcl.VerifyReverseSig(&kf); err != nil {
+		if pgpcl, ok := tcl.(*PGPUpdateChainLink); ok {
+			if hash := pgpcl.GetPGPFullHash(); hash != "" {
+				G.Log.Debug("| Setting active PGP hash for %s: %s", pgpcl.kid, hash)
+				ckf.SetActivePGPHash(pgpcl.kid, hash)
+			}
+		}
+
+		if err = tcl.VerifyReverseSig(ckf); err != nil {
 			G.Log.Debug("| Failure in VerifyReverseSig: %s", err)
 			return
 		}
@@ -457,7 +465,7 @@ func (sc *SigChain) VerifySigsAndComputeKeys(eldest keybase1.KID, ckf *ComputedK
 
 	if links == nil || len(links) == 0 {
 		G.Log.Debug("| Empty chain after we limited to eldest %s", eldest)
-		eldestKey := ckf.kf.AllKeys[eldest]
+		eldestKey, _ := ckf.FindKeyWithKIDUnsafe(eldest)
 		sc.localCki = NewComputedKeyInfos()
 		err = sc.localCki.InsertServerEldestKey(eldestKey, sc.username)
 		ckf.cki = sc.localCki
