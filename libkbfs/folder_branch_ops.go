@@ -3551,6 +3551,8 @@ func (fbo *FolderBranchOps) registerForUpdates() {
 				// wait to be unpaused
 				<-unpause
 				fbo.log.CInfof(ctx, "Updates unpaused")
+			case <-ctx.Done():
+				return ctx.Err()
 			}
 		}
 	})
