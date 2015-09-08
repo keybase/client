@@ -114,7 +114,7 @@ func LoadUser(arg LoadUserArg) (ret *User, err error) {
 	G.Log.Debug("| resolved to %s", arg.UID)
 
 	// load user from local, remote
-	ret, err = loadUser(arg.UID, rres, arg.ForceReload)
+	ret, err = loadUser(arg.G(), arg.UID, rres, arg.ForceReload)
 	if err != nil {
 		return nil, err
 	}
@@ -162,10 +162,10 @@ func LoadUser(arg LoadUserArg) (ret *User, err error) {
 	return
 }
 
-func loadUser(uid keybase1.UID, rres ResolveResult, force bool) (*User, error) {
-	local, err := LoadUserFromLocalStorage(uid)
+func loadUser(g *GlobalContext, uid keybase1.UID, rres ResolveResult, force bool) (*User, error) {
+	local, err := LoadUserFromLocalStorage(g, uid)
 	if err != nil {
-		G.Log.Warning("Failed to load %s from storage: %s", uid, err)
+		g.Log.Warning("Failed to load %s from storage: %s", uid, err)
 	}
 
 	leaf, err := LookupMerkleLeaf(uid, local)
@@ -176,7 +176,7 @@ func loadUser(uid keybase1.UID, rres ResolveResult, force bool) (*User, error) {
 	var f1, loadRemote bool
 
 	if local == nil {
-		G.Log.Debug("| No local user stored for %s", uid)
+		g.Log.Debug("| No local user stored for %s", uid)
 		loadRemote = true
 	} else if f1, err = local.CheckBasicsFreshness(leaf.idVersion); err != nil {
 		return nil, err
@@ -184,12 +184,12 @@ func loadUser(uid keybase1.UID, rres ResolveResult, force bool) (*User, error) {
 		loadRemote = !f1
 	}
 
-	G.Log.Debug("| Freshness: basics=%v; for %s", f1, uid)
+	g.Log.Debug("| Freshness: basics=%v; for %s", f1, uid)
 
 	var ret *User
 	if !loadRemote && !force {
 		ret = local
-	} else if ret, err = LoadUserFromServer(uid, rres.body); err != nil {
+	} else if ret, err = LoadUserFromServer(g, uid, rres.body); err != nil {
 		return nil, err
 	}
 
@@ -201,21 +201,21 @@ func loadUser(uid keybase1.UID, rres ResolveResult, force bool) (*User, error) {
 	return ret, nil
 }
 
-func LoadUserFromLocalStorage(uid keybase1.UID) (u *User, err error) {
-	G.Log.Debug("+ LoadUserFromLocalStorage(%s)", uid)
-	jw, err := G.LocalDb.Get(DbKeyUID(DBUser, uid))
+func LoadUserFromLocalStorage(g *GlobalContext, uid keybase1.UID) (u *User, err error) {
+	g.Log.Debug("+ LoadUserFromLocalStorage(%s)", uid)
+	jw, err := g.LocalDb.Get(DbKeyUID(DBUser, uid))
 	if err != nil {
 		return nil, err
 	}
 
 	if jw == nil {
-		G.Log.Debug("- LoadUserFromLocalStorage(%s): Not found", uid)
+		g.Log.Debug("- LoadUserFromLocalStorage(%s): Not found", uid)
 		return nil, nil
 	}
 
-	G.Log.Debug("| Loaded successfully")
+	g.Log.Debug("| Loaded successfully")
 
-	if u, err = NewUserFromLocalStorage(jw); err != nil {
+	if u, err = NewUserFromLocalStorage(g, jw); err != nil {
 		return nil, err
 	}
 
@@ -223,23 +223,24 @@ func LoadUserFromLocalStorage(uid keybase1.UID) (u *User, err error) {
 		err = fmt.Errorf("Bad lookup; uid mismatch: %s != %s", uid, u.id)
 	}
 
-	G.Log.Debug("| Loaded username %s (uid=%s)", u.name, uid)
-	G.Log.Debug("- LoadUserFromLocalStorage(%s,%s)", u.name, uid)
+	g.Log.Debug("| Loaded username %s (uid=%s)", u.name, uid)
+	g.Log.Debug("- LoadUserFromLocalStorage(%s,%s)", u.name, uid)
 
 	return
 }
 
-func LoadUserFromServer(uid keybase1.UID, body *jsonw.Wrapper) (u *User, err error) {
-	G.Log.Debug("+ Load User from server: %s", uid)
+func LoadUserFromServer(g *GlobalContext, uid keybase1.UID, body *jsonw.Wrapper) (u *User, err error) {
+	g.Log.Debug("+ Load User from server: %s", uid)
 
 	// Res.body might already have been preloaded a a result of a Resolve call earlier.
 	if body == nil {
-		res, err := G.API.Get(APIArg{
+		res, err := g.API.Get(APIArg{
 			Endpoint:    "user/lookup",
 			NeedSession: false,
 			Args: HTTPArgs{
 				"uid": UIDArg(uid),
 			},
+			Contextified: NewContextified(g),
 		})
 
 		if err != nil {
@@ -247,13 +248,13 @@ func LoadUserFromServer(uid keybase1.UID, body *jsonw.Wrapper) (u *User, err err
 		}
 		body = res.Body.AtKey("them")
 	} else {
-		G.Log.Debug("| Skipped load; got user object previously")
+		g.Log.Debug("| Skipped load; got user object previously")
 	}
 
-	if u, err = NewUserFromServer(body); err != nil {
+	if u, err = NewUserFromServer(g, body); err != nil {
 		return
 	}
-	G.Log.Debug("- Load user from server: %s -> %s", uid, ErrToOk(err))
+	g.Log.Debug("- Load user from server: %s -> %s", uid, ErrToOk(err))
 
 	return
 }

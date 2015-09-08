@@ -35,7 +35,7 @@ func NewUserThin(name string, uid keybase1.UID) *User {
 	return &User{name: name, id: uid}
 }
 
-func NewUser(o *jsonw.Wrapper) (*User, error) {
+func NewUser(g *GlobalContext, o *jsonw.Wrapper) (*User, error) {
 	uid, err := GetUID(o.AtKey("id"))
 	if err != nil {
 		return nil, fmt.Errorf("user object lacks an ID: %s", err)
@@ -51,27 +51,28 @@ func NewUser(o *jsonw.Wrapper) (*User, error) {
 	}
 
 	return &User{
-		basics:     o.AtKey("basics"),
-		publicKeys: o.AtKey("public_keys"),
-		sigs:       o.AtKey("sigs"),
-		pictures:   o.AtKey("pictures"),
-		keyFamily:  kf,
-		id:         uid,
-		name:       name,
-		dirty:      false,
+		basics:       o.AtKey("basics"),
+		publicKeys:   o.AtKey("public_keys"),
+		sigs:         o.AtKey("sigs"),
+		pictures:     o.AtKey("pictures"),
+		keyFamily:    kf,
+		id:           uid,
+		name:         name,
+		dirty:        false,
+		Contextified: NewContextified(g),
 	}, nil
 }
 
-func NewUserFromServer(o *jsonw.Wrapper) (*User, error) {
-	u, e := NewUser(o)
+func NewUserFromServer(g *GlobalContext, o *jsonw.Wrapper) (*User, error) {
+	u, e := NewUser(g, o)
 	if e == nil {
 		u.dirty = true
 	}
 	return u, e
 }
 
-func NewUserFromLocalStorage(o *jsonw.Wrapper) (*User, error) {
-	u, err := NewUser(o)
+func NewUserFromLocalStorage(g *GlobalContext, o *jsonw.Wrapper) (*User, error) {
+	u, err := NewUser(g, o)
 	return u, err
 }
 
