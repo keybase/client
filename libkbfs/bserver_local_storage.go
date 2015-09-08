@@ -23,6 +23,7 @@ type bserverLocalStorage interface {
 	put(id BlockID, entry blockEntry) error
 	addReference(id BlockID, refNonce BlockRefNonce) error
 	removeReference(id BlockID, refNonce BlockRefNonce) error
+	shutdown()
 }
 
 // bserverMemStorage stores block data in an in-memory map.
@@ -81,6 +82,10 @@ func (s *bserverMemStorage) removeReference(id BlockID, refNonce BlockRefNonce) 
 		s.m[id] = entry
 	}
 	return nil
+}
+
+func (s *bserverMemStorage) shutdown() {
+	// Nothing to do.
 }
 
 // bserverFileStorage stores block data in flat files on disk.
@@ -185,6 +190,10 @@ func (s *bserverFileStorage) removeReference(id BlockID, refNonce BlockRefNonce)
 	return s.putLocked(p, entry)
 }
 
+func (s *bserverFileStorage) shutdown() {
+	// Nothing to do.
+}
+
 // bserverLeveldbStorage stores block data in a LevelDB database. This
 // is kept around only for benchmarking purposes.
 type bserverLeveldbStorage struct {
@@ -269,4 +278,10 @@ func (s *bserverLeveldbStorage) removeReference(id BlockID, refNonce BlockRefNon
 		return s.db.Delete(id.Bytes(), nil)
 	}
 	return s.putLocked(id, entry)
+}
+
+func (s *bserverLeveldbStorage) shutdown() {
+	if s.db != nil {
+		s.db.Close()
+	}
 }

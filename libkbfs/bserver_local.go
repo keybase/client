@@ -90,5 +90,5 @@ func (b *BlockServerLocal) RemoveBlockReference(ctx context.Context, id BlockID,
 
 // Shutdown implements the BlockServer interface for BlockServerLocal.
 func (b *BlockServerLocal) Shutdown() {
-	// Nothing to do.
+	b.s.shutdown()
 }

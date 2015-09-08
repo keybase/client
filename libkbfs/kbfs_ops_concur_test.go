@@ -535,6 +535,7 @@ func TestKBFSOpsConcurWriteParallelBlocksError(t *testing.T) {
 		serverHalf BlockCryptKeyServerHalf) {
 		<-proceedChan
 	}).After(c).Return(nil)
+	b.EXPECT().Shutdown().AnyTimes()
 
 	go func() {
 		<-errChan

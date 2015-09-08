@@ -232,5 +232,7 @@ func (b *BlockServerRemote) RemoveBlockReference(ctx context.Context, id BlockID
 
 // Shutdown implements the BlockServer interface for BlockServerRemote.
 func (b *BlockServerRemote) Shutdown() {
-	b.conn.Shutdown()
+	if b.conn != nil {
+		b.conn.Shutdown()
+	}
 }

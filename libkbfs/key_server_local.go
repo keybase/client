@@ -103,3 +103,10 @@ func (ks *KeyServerLocal) PutTLFCryptKeyServerHalves(ctx context.Context,
 func (ks *KeyServerLocal) copy(config Config) *KeyServerLocal {
 	return &KeyServerLocal{config, ks.db, config.MakeLogger("")}
 }
+
+// Shutdown implements the KeyServer interface for KeyServerLocal.
+func (ks *KeyServerLocal) Shutdown() {
+	if ks.db != nil {
+		ks.db.Close()
+	}
+}

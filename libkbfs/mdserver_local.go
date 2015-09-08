@@ -437,7 +437,15 @@ func (md *MDServerLocal) RegisterForUpdate(ctx context.Context, id TlfID,
 
 // Shutdown implements the MDServer interface for MDServerLocal.
 func (md *MDServerLocal) Shutdown() {
-	// Nothing to do.
+	if md.handleDb != nil {
+		md.handleDb.Close()
+	}
+	if md.mdDb != nil {
+		md.mdDb.Close()
+	}
+	if md.revDb != nil {
+		md.revDb.Close()
+	}
 }
 
 // This should only be used for testing with an in-memory server.

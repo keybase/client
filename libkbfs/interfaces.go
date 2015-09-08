@@ -212,6 +212,9 @@ type KBFSOps interface {
 	// folder-branch. TODO: remove this once we have automatic
 	// conflict resolution.
 	UnstageForTesting(ctx context.Context, folderBranch FolderBranch) error
+	// Shutdown is called to clean up any resources associated with
+	// this KBFSOps instance.
+	Shutdown()
 }
 
 // KBPKI interacts with kbpkid to fetch info from keybase
@@ -250,6 +253,9 @@ type KBPKI interface {
 	// FavoriteList returns the list of all favorite folders for
 	// the logged in user.
 	FavoriteList(ctx context.Context) ([]keybase1.Folder, error)
+
+	// Shutdown is called to free any KBPKI resources.
+	Shutdown()
 }
 
 // KeyManager fetches and constructs the keys needed for KBFS file
@@ -660,7 +666,7 @@ type BlockServer interface {
 	RemoveBlockReference(ctx context.Context, id BlockID, tlfID TlfID,
 		context BlockContext) error
 
-	// Shutdown is called to shutdown an MDServer connection.
+	// Shutdown is called to shutdown an BlockServer connection.
 	Shutdown()
 }
 
@@ -697,6 +703,9 @@ type KeyServer interface {
 	// set of users and devices.
 	PutTLFCryptKeyServerHalves(ctx context.Context,
 		serverKeyHalves map[keybase1.UID]map[keybase1.KID]TLFCryptKeyServerHalf) error
+
+	// Shutdown is called to free any KeyServer resources.
+	Shutdown()
 }
 
 // NodeChange represents a change made to a node as part of an atomic

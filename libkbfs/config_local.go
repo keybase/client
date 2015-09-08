@@ -384,10 +384,9 @@ func (c *ConfigLocal) SetMetricsRegistry(r metrics.Registry) {
 
 // Shutdown implements the Config interface for ConfigLocal.
 func (c *ConfigLocal) Shutdown() {
-	// TODO: perhaps Shutdown() should be part of the interface.
-	kops, ok := c.KBFSOps().(*KBFSOpsStandard)
-	if ok {
-		kops.Shutdown()
-	}
+	c.KBFSOps().Shutdown()
 	c.MDServer().Shutdown()
+	c.KeyServer().Shutdown()
+	c.KBPKI().Shutdown()
+	c.BlockServer().Shutdown()
 }

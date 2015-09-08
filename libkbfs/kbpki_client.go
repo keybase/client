@@ -234,3 +234,8 @@ func (k *KBPKIClient) FavoriteList(ctx context.Context) ([]keybase1.Folder, erro
 	}
 	return folders, nil
 }
+
+// Shutdown implements the KBPKI interface for KBPKIClient.
+func (k *KBPKIClient) Shutdown() {
+	// Nothing to do
+}

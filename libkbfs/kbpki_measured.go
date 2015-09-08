@@ -140,3 +140,8 @@ func (k KBPKIMeasured) FavoriteList(ctx context.Context) (
 	})
 	return favorites, err
 }
+
+// Shutdown implements the KBPKI interface for KBPKIMeasured.
+func (k KBPKIMeasured) Shutdown() {
+	k.delegate.Shutdown()
+}

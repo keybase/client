@@ -409,6 +409,14 @@ func (_mr *_MockKBFSOpsRecorder) UnstageForTesting(arg0, arg1 interface{}) *gomo
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "UnstageForTesting", arg0, arg1)
 }
 
+func (_m *MockKBFSOps) Shutdown() {
+	_m.ctrl.Call(_m, "Shutdown")
+}
+
+func (_mr *_MockKBFSOpsRecorder) Shutdown() *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "Shutdown")
+}
+
 // Mock of KBPKI interface
 type MockKBPKI struct {
 	ctrl     *gomock.Controller
@@ -535,6 +543,14 @@ func (_m *MockKBPKI) FavoriteList(ctx context.Context) ([]go0.Folder, error) {
 
 func (_mr *_MockKBPKIRecorder) FavoriteList(arg0 interface{}) *gomock.Call {
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "FavoriteList", arg0)
+}
+
+func (_m *MockKBPKI) Shutdown() {
+	_m.ctrl.Call(_m, "Shutdown")
+}
+
+func (_mr *_MockKBPKIRecorder) Shutdown() *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "Shutdown")
 }
 
 // Mock of KeyManager interface
@@ -1608,6 +1624,14 @@ func (_m *MockKeyServer) PutTLFCryptKeyServerHalves(ctx context.Context, serverK
 
 func (_mr *_MockKeyServerRecorder) PutTLFCryptKeyServerHalves(arg0, arg1 interface{}) *gomock.Call {
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "PutTLFCryptKeyServerHalves", arg0, arg1)
+}
+
+func (_m *MockKeyServer) Shutdown() {
+	_m.ctrl.Call(_m, "Shutdown")
+}
+
+func (_mr *_MockKeyServerRecorder) Shutdown() *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "Shutdown")
 }
 
 // Mock of Observer interface

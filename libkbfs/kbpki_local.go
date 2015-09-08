@@ -214,3 +214,10 @@ func (k *KBPKILocal) FavoriteList(ctx context.Context) ([]keybase1.Folder, error
 
 	return folders, nil
 }
+
+// Shutdown implements the KBPKI interface for KBPKILocal.
+func (k *KBPKILocal) Shutdown() {
+	if k.favoriteDb != nil {
+		k.favoriteDb.Close()
+	}
+}
