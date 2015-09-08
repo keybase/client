@@ -19,30 +19,30 @@ func runUntrack(g *libkb.GlobalContext, fu *FakeUser, username string) error {
 	return RunEngine(eng, &ctx)
 }
 
-func assertUntracked(t *testing.T, username string) {
-	me, err := libkb.LoadMe(libkb.LoadUserArg{})
+func assertUntracked(tc libkb.TestContext, username string) {
+	me, err := libkb.LoadMe(libkb.NewLoadUserArg(tc.G))
 	if err != nil {
-		t.Fatal(err)
+		tc.T.Fatal(err)
 	}
 	them, err := libkb.LoadUser(libkb.LoadUserArg{Name: username})
 	if err != nil {
-		t.Fatal(err)
+		tc.T.Fatal(err)
 	}
 
 	s, err := me.TrackChainLinkFor(them.GetName(), them.GetUID())
 	if err != nil {
-		t.Fatal(err)
+		tc.T.Fatal(err)
 	}
 	if s != nil {
-		t.Fatal("expected not to get a tracking statement; but got one")
+		tc.T.Fatal("expected not to get a tracking statement; but got one")
 	}
 
 	s, err = libkb.LocalTrackChainLinkFor(me.GetUID(), them.GetUID())
 	if err != nil {
-		t.Fatal(err)
+		tc.T.Fatal(err)
 	}
 	if s != nil {
-		t.Fatal("expected not to get a local tracking statement; but got one")
+		tc.T.Fatal("expected not to get a local tracking statement; but got one")
 	}
 }
 
@@ -69,20 +69,20 @@ func TestUntrack(t *testing.T) {
 
 	// Local-tracked only.
 	trackAliceWithOptions(tc, fu, keybase1.TrackOptions{LocalOnly: true, BypassConfirm: true}, fu.NewSecretUI())
-	assertTracking(t, "t_alice")
+	assertTracking(tc, "t_alice")
 	untrackAlice(tc, fu)
-	assertUntracked(t, "t_alice")
+	assertUntracked(tc, "t_alice")
 
 	// Remote-tracked only.
 	trackAliceWithOptions(tc, fu, keybase1.TrackOptions{LocalOnly: false, BypassConfirm: true}, fu.NewSecretUI())
 	untrackAlice(tc, fu)
-	assertUntracked(t, "t_alice")
+	assertUntracked(tc, "t_alice")
 
 	// Both local- and remote-tracked.
 	trackAliceWithOptions(tc, fu, keybase1.TrackOptions{LocalOnly: true, BypassConfirm: true}, fu.NewSecretUI())
 	trackAliceWithOptions(tc, fu, keybase1.TrackOptions{LocalOnly: false, BypassConfirm: true}, fu.NewSecretUI())
 	untrackAlice(tc, fu)
-	assertUntracked(t, "t_alice")
+	assertUntracked(tc, "t_alice")
 
 	// Assert that we gracefully handle cases where there is nothing to untrack.
 	err := runUntrack(tc.G, fu, "t_alice")
@@ -108,5 +108,5 @@ func TestUntrackRemoteOnly(t *testing.T) {
 
 	trackAliceWithOptions(tc, fu, keybase1.TrackOptions{LocalOnly: false, BypassConfirm: true}, fu.NewSecretUI())
 	untrackAlice(tc, fu)
-	assertUntracked(t, "t_alice")
+	assertUntracked(tc, "t_alice")
 }

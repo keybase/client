@@ -70,7 +70,7 @@ func (p *PGPSignEngine) Run(ctx *Context) (err error) {
 		}
 	}()
 
-	me, err := libkb.LoadMe(libkb.LoadUserArg{})
+	me, err := libkb.LoadMe(libkb.NewLoadUserArg(p.G()))
 	if err != nil {
 		return err
 	}

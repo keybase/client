@@ -198,7 +198,7 @@ func (k *Keyrings) GetSecretKeyLocked(lctx LoginContext, ska SecretKeyArg) (ret 
 	k.G().Log.Debug("| LoadMe w/ Secrets on")
 
 	if ska.Me == nil {
-		if ska.Me, err = LoadMe(LoadUserArg{}); err != nil {
+		if ska.Me, err = LoadMe(NewLoadUserArg(k.G())); err != nil {
 			return
 		}
 	}

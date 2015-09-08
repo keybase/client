@@ -180,7 +180,7 @@ func (e *PGPKeyfinder) loadMe() {
 	if e.me != nil {
 		return
 	}
-	me, err := libkb.LoadMe(libkb.LoadUserArg{})
+	me, err := libkb.LoadMe(libkb.NewLoadUserArg(e.G()))
 	if err != nil {
 		e.runerr = err
 		return

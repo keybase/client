@@ -13,7 +13,7 @@ func TestDeviceKey(t *testing.T) {
 	fu := CreateAndSignupFakeUser(tc, "dkal")
 
 	check := func() {
-		u, err := libkb.LoadMe(libkb.NewLoadUserArg(tc.G()))
+		u, err := libkb.LoadMe(libkb.NewLoadUserArg(tc.G))
 		if err != nil {
 			t.Fatal(err)
 		}

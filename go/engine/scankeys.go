@@ -56,7 +56,7 @@ func NewScanKeys(secui libkb.SecretUI, idui libkb.IdentifyUI, opts *keybase1.Tra
 
 	// logged in:
 
-	sk.me, err = libkb.LoadMe(libkb.LoadUserArg{})
+	sk.me, err = libkb.LoadMe(libkb.NewLoadUserArg(sk.G()))
 	if err != nil {
 		return nil, fmt.Errorf("loadme error: %s", err)
 	}

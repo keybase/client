@@ -52,7 +52,7 @@ func (e *PGPUpdateEngine) Run(ctx *Context) error {
 		return fmt.Errorf("Cannot use explicit fingerprints with --all.")
 	}
 
-	me, err := libkb.LoadMe(libkb.LoadUserArg{})
+	me, err := libkb.LoadMe(libkb.NewLoadUserArg(e.G()))
 	if err != nil {
 		return err
 	}

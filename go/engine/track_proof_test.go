@@ -33,7 +33,7 @@ func checkTrackForce(tc libkb.TestContext, fu *FakeUser, username string, blocks
 }
 
 func checkTrackCommon(tc libkb.TestContext, blocks []sb, outcome *keybase1.IdentifyOutcome, them *libkb.User, ui *FakeIdentifyUI) error {
-	me, err := libkb.LoadMe(libkb.LoadUserArg{})
+	me, err := libkb.LoadMe(libkb.NewLoadUserArg(tc.G))
 	if err != nil {
 		return err
 	}

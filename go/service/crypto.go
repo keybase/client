@@ -15,7 +15,7 @@ type CryptoHandler struct {
 }
 
 func (c *CryptoHandler) getSecretKey(secretKeyType libkb.SecretKeyType, sessionID int, reason string) (libkb.GenericKey, error) {
-	me, err := libkb.LoadMe(libkb.LoadUserArg{})
+	me, err := libkb.LoadMe(libkb.NewLoadUserArg(G))
 	if err != nil {
 		return nil, err
 	}

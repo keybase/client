@@ -92,7 +92,7 @@ func TestPGPEncryptNoTrack(t *testing.T) {
 		t.Fatal("no output")
 	}
 
-	assertNotTracking(t, "t_alice")
-	assertNotTracking(t, "t_bob")
-	assertNotTracking(t, "t_charlie")
+	assertNotTracking(tc, "t_alice")
+	assertNotTracking(tc, "t_bob")
+	assertNotTracking(tc, "t_charlie")
 }

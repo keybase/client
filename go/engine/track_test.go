@@ -31,39 +31,39 @@ func runTrackWithOptions(tc libkb.TestContext, fu *FakeUser, username string, op
 	return
 }
 
-func assertTracking(t *testing.T, username string) {
-	me, err := libkb.LoadMe(libkb.LoadUserArg{})
+func assertTracking(tc libkb.TestContext, username string) {
+	me, err := libkb.LoadMe(libkb.NewLoadUserArg(tc.G))
 	if err != nil {
-		t.Fatal(err)
+		tc.T.Fatal(err)
 	}
 	them, err := libkb.LoadUser(libkb.LoadUserArg{Name: username})
 	if err != nil {
-		t.Fatal(err)
+		tc.T.Fatal(err)
 	}
 	s, err := me.TrackChainLinkFor(them.GetName(), them.GetUID())
 	if err != nil {
-		t.Fatal(err)
+		tc.T.Fatal(err)
 	}
 	if s == nil {
-		t.Fatal("expected a tracking statement; but didn't see one")
+		tc.T.Fatal("expected a tracking statement; but didn't see one")
 	}
 }
 
-func assertNotTracking(t *testing.T, username string) {
-	me, err := libkb.LoadMe(libkb.LoadUserArg{})
+func assertNotTracking(tc libkb.TestContext, username string) {
+	me, err := libkb.LoadMe(libkb.NewLoadUserArg(tc.G))
 	if err != nil {
-		t.Fatal(err)
+		tc.T.Fatal(err)
 	}
 	them, err := libkb.LoadUser(libkb.LoadUserArg{Name: username})
 	if err != nil {
-		t.Fatal(err)
+		tc.T.Fatal(err)
 	}
 	s, err := me.TrackChainLinkFor(them.GetName(), them.GetUID())
 	if err != nil {
-		t.Fatal(err)
+		tc.T.Fatal(err)
 	}
 	if s != nil {
-		t.Errorf("a tracking statement exists for %s -> %s", me.GetName(), them.GetName())
+		tc.T.Errorf("a tracking statement exists for %s -> %s", me.GetName(), them.GetName())
 	}
 }
 
@@ -77,7 +77,7 @@ func trackAliceWithOptions(tc libkb.TestContext, fu *FakeUser, options keybase1.
 		tc.T.Fatal(err)
 	}
 	checkAliceProofs(tc.T, idUI, res)
-	assertTracking(tc.T, "t_alice")
+	assertTracking(tc, "t_alice")
 	return
 }
 
@@ -91,7 +91,7 @@ func trackBobWithOptions(tc libkb.TestContext, fu *FakeUser, options keybase1.Tr
 		tc.T.Fatal(err)
 	}
 	checkBobProofs(tc.T, idUI, res)
-	assertTracking(tc.T, "t_bob")
+	assertTracking(tc, "t_bob")
 	return
 }
 
@@ -239,7 +239,7 @@ func TestTrackLocal(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	me, err := libkb.LoadMe(libkb.LoadUserArg{})
+	me, err := libkb.LoadMe(libkb.NewLoadUserArg(tc.G))
 	if err != nil {
 		t.Fatal(err)
 	}

@@ -100,7 +100,7 @@ func (e *UntrackEngine) Run(ctx *Context) (err error) {
 }
 
 func (e *UntrackEngine) loadMe() (me *libkb.User, err error) {
-	return libkb.LoadMe(libkb.LoadUserArg{})
+	return libkb.LoadMe(libkb.NewLoadUserArg(e.G()))
 }
 
 func (e *UntrackEngine) loadThem() (them *libkb.User, remoteLink, localLink *libkb.TrackChainLink, err error) {

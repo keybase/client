@@ -121,7 +121,7 @@ func (e *TrackToken) loadMe() error {
 		return nil
 	}
 
-	me, err := libkb.LoadMe(libkb.LoadUserArg{})
+	me, err := libkb.LoadMe(libkb.NewLoadUserArg(e.G()))
 	if err != nil {
 		return err
 	}
