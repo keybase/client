@@ -13,7 +13,7 @@ func TestRevokeSig(t *testing.T) {
 
 	// The PGP key is the 5th signature in the user's chain.
 	u := createFakeUserWithPGPSibkey(tc)
-	assertNumDevicesAndKeys(t, u, 2, 5)
+	assertNumDevicesAndKeys(tc, u, 2, 5)
 
 	secui := &libkb.TestSecretUI{Passphrase: u.Passphrase}
 	ctx := &Context{
@@ -39,7 +39,7 @@ func TestRevokeSig(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	assertNumDevicesAndKeys(t, u, 2, 6)
+	assertNumDevicesAndKeys(tc, u, 2, 6)
 
 	// First test that a bad sig id fails the revoke.
 	revokeEngine := NewRevokeSigsEngine([]keybase1.SigID{"9999"}, tc.G)
@@ -47,7 +47,7 @@ func TestRevokeSig(t *testing.T) {
 	if err == nil {
 		t.Fatal(err)
 	}
-	assertNumDevicesAndKeys(t, u, 2, 6) // no change
+	assertNumDevicesAndKeys(tc, u, 2, 6) // no change
 
 	// Check it with real sig id
 	realUser, err := libkb.LoadUser(libkb.NewLoadUserByNameArg(tc.G, u.Username))
@@ -60,7 +60,7 @@ func TestRevokeSig(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	assertNumDevicesAndKeys(t, u, 2, 5) // The first PGP key is gone.
+	assertNumDevicesAndKeys(tc, u, 2, 5) // The first PGP key is gone.
 
 	// Revoking the same key again should fail.
 	revokeEngine = NewRevokeSigsEngine([]keybase1.SigID{sigID}, tc.G)
@@ -68,5 +68,5 @@ func TestRevokeSig(t *testing.T) {
 	if err == nil {
 		t.Fatal(err)
 	}
-	assertNumDevicesAndKeys(t, u, 2, 5) // no change
+	assertNumDevicesAndKeys(tc, u, 2, 5) // no change
 }

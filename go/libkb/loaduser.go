@@ -23,6 +23,12 @@ func NewLoadUserArg(g *GlobalContext) LoadUserArg {
 	return LoadUserArg{Contextified: NewContextified(g)}
 }
 
+func NewLoadUserForceArg(g *GlobalContext) LoadUserArg {
+	arg := NewLoadUserArg(g)
+	arg.ForceReload = true
+	return arg
+}
+
 func NewLoadUserByNameArg(g *GlobalContext, name string) LoadUserArg {
 	arg := NewLoadUserArg(g)
 	arg.Name = name

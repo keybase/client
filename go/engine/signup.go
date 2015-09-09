@@ -136,7 +136,7 @@ func (s *SignupEngine) join(a libkb.LoginContext, username, email, inviteCode st
 	a.CreateStreamCache(s.tsec, s.ppStream)
 
 	s.uid = res.UID
-	user, err := libkb.LoadUser(libkb.LoadUserArg{Self: true, UID: res.UID, PublicKeyOptional: true})
+	user, err := libkb.LoadUser(libkb.LoadUserArg{Self: true, UID: res.UID, PublicKeyOptional: true, Contextified: libkb.NewContextified(s.G())})
 	if err != nil {
 		return err
 	}

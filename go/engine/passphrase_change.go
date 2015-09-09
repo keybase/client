@@ -384,7 +384,7 @@ func (c *PassphraseChange) commonArgs(a *libkb.Account, oldClientHalf []byte, pg
 }
 
 func (c *PassphraseChange) loadMe() (err error) {
-	c.me, err = libkb.LoadMe(libkb.LoadUserArg{AllKeys: false, ForceReload: true})
+	c.me, err = libkb.LoadMe(libkb.NewLoadUserForceArg(c.G()))
 	return
 }
 

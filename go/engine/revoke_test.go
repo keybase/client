@@ -7,10 +7,12 @@ import (
 	keybase1 "github.com/keybase/client/protocol/go"
 )
 
-func getActiveDevicesAndKeys(t *testing.T, u *FakeUser) ([]*libkb.Device, []libkb.GenericKey) {
-	user, err := libkb.LoadUser(libkb.LoadUserArg{Name: u.Username, PublicKeyOptional: true})
+func getActiveDevicesAndKeys(tc libkb.TestContext, u *FakeUser) ([]*libkb.Device, []libkb.GenericKey) {
+	arg := libkb.NewLoadUserByNameArg(tc.G, u.Username)
+	arg.PublicKeyOptional = true
+	user, err := libkb.LoadUser(arg)
 	if err != nil {
-		t.Fatal(err)
+		tc.T.Fatal(err)
 	}
 	sibkeys := user.GetComputedKeyFamily().GetAllActiveSibkeys()
 	subkeys := user.GetComputedKeyFamily().GetAllActiveSubkeys()
@@ -44,19 +46,19 @@ func doRevokeDevice(tc libkb.TestContext, u *FakeUser, id keybase1.DeviceID, for
 	return err
 }
 
-func assertNumDevicesAndKeys(t *testing.T, u *FakeUser, numDevices, numKeys int) {
-	devices, keys := getActiveDevicesAndKeys(t, u)
+func assertNumDevicesAndKeys(tc libkb.TestContext, u *FakeUser, numDevices, numKeys int) {
+	devices, keys := getActiveDevicesAndKeys(tc, u)
 	if len(devices) != numDevices {
 		for i, d := range devices {
-			t.Logf("device %d: %+v", i, d)
+			tc.T.Logf("device %d: %+v", i, d)
 		}
-		t.Fatalf("Expected to find %d devices. Found %d.", numDevices, len(devices))
+		tc.T.Fatalf("Expected to find %d devices. Found %d.", numDevices, len(devices))
 	}
 	if len(keys) != numKeys {
 		for i, k := range keys {
-			t.Logf("key %d: %+v", i, k)
+			tc.T.Logf("key %d: %+v", i, k)
 		}
-		t.Fatalf("Expected to find %d keys. Found %d.", numKeys, len(keys))
+		tc.T.Fatalf("Expected to find %d keys. Found %d.", numKeys, len(keys))
 	}
 }
 
@@ -66,9 +68,9 @@ func TestRevokeDevice(t *testing.T) {
 
 	u := CreateAndSignupFakeUser(tc, "rev")
 
-	assertNumDevicesAndKeys(t, u, 2, 4)
+	assertNumDevicesAndKeys(tc, u, 2, 4)
 
-	devices, _ := getActiveDevicesAndKeys(t, u)
+	devices, _ := getActiveDevicesAndKeys(tc, u)
 	var thisDevice *libkb.Device
 	for _, device := range devices {
 		if device.Type != libkb.DeviceTypePaper {
@@ -82,7 +84,7 @@ func TestRevokeDevice(t *testing.T) {
 		tc.T.Fatal("Expected revoking the current device to fail.")
 	}
 
-	assertNumDevicesAndKeys(t, u, 2, 4)
+	assertNumDevicesAndKeys(tc, u, 2, 4)
 
 	// But it should succeed with the --force flag.
 	err = doRevokeDevice(tc, u, thisDevice.ID, true)
@@ -90,7 +92,7 @@ func TestRevokeDevice(t *testing.T) {
 		tc.T.Fatal(err)
 	}
 
-	assertNumDevicesAndKeys(t, u, 1, 2)
+	assertNumDevicesAndKeys(tc, u, 1, 2)
 }
 
 func TestRevokeKey(t *testing.T) {
@@ -99,9 +101,9 @@ func TestRevokeKey(t *testing.T) {
 
 	u := createFakeUserWithPGPSibkey(tc)
 
-	assertNumDevicesAndKeys(t, u, 2, 5)
+	assertNumDevicesAndKeys(tc, u, 2, 5)
 
-	_, keys := getActiveDevicesAndKeys(t, u)
+	_, keys := getActiveDevicesAndKeys(tc, u)
 	var pgpKey *libkb.GenericKey
 	for i, key := range keys {
 		if libkb.IsPGP(key) {
@@ -120,7 +122,7 @@ func TestRevokeKey(t *testing.T) {
 		tc.T.Fatal(err)
 	}
 
-	assertNumDevicesAndKeys(t, u, 2, 4)
+	assertNumDevicesAndKeys(tc, u, 2, 4)
 }
 
 // See issue #370.

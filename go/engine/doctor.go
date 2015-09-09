@@ -70,7 +70,7 @@ func (e *Doctor) login(ctx *Context) {
 
 	if ok {
 		e.G().Log.Debug("logged in already")
-		e.user, err = libkb.LoadMe(libkb.LoadUserArg{ForceReload: true})
+		e.user, err = libkb.LoadMe(libkb.NewLoadUserForceArg(e.G()))
 		if err != nil {
 			e.runErr = err
 		}

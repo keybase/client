@@ -316,7 +316,7 @@ func (a *Account) UserInfo() (uid keybase1.UID, username NormalizedUsername, tok
 		return
 	}
 
-	user, err := LoadMe(LoadUserArg{LoginContext: a})
+	user, err := LoadMe(LoadUserArg{LoginContext: a, Contextified: NewContextified(a.G())})
 	if err != nil {
 		return
 	}

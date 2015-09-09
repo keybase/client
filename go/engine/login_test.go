@@ -109,7 +109,7 @@ func TestLoginAddsKeys(t *testing.T) {
 	testUserHasDeviceKey(tc)
 
 	// and they should have a paper backup key
-	hasOnePaperDev(t, &FakeUser{Username: username, Passphrase: passphrase})
+	hasOnePaperDev(tc, &FakeUser{Username: username, Passphrase: passphrase})
 }
 
 // TestLoginPGPSignNewDevice
@@ -152,7 +152,7 @@ func TestLoginPGPSignNewDevice(t *testing.T) {
 	}
 
 	testUserHasDeviceKey(tc2)
-	hasOnePaperDev(t, u1)
+	hasOnePaperDev(tc2, u1)
 }
 
 func TestLoginPGPPubOnlySignNewDevice(t *testing.T) {
@@ -195,7 +195,7 @@ func TestLoginPGPPubOnlySignNewDevice(t *testing.T) {
 	}
 
 	testUserHasDeviceKey(tc2)
-	hasOnePaperDev(t, u1)
+	hasOnePaperDev(tc2, u1)
 }
 
 func TestLoginPGPMultSignNewDevice(t *testing.T) {
@@ -236,7 +236,7 @@ func TestLoginPGPMultSignNewDevice(t *testing.T) {
 	}
 
 	testUserHasDeviceKey(tc2)
-	hasOnePaperDev(t, u1)
+	hasOnePaperDev(tc2, u1)
 }
 
 // pgp sibkey used to sign new device
@@ -280,7 +280,7 @@ func TestLoginGPGSignNewDevice(t *testing.T) {
 	}
 
 	testUserHasDeviceKey(tc2)
-	hasOnePaperDev(t, u1)
+	hasOnePaperDev(tc2, u1)
 }
 
 // paper backup key used to sign new device
@@ -302,7 +302,7 @@ func TestLoginPaperSignNewDevice(t *testing.T) {
 		tc.T.Fatal(err)
 	}
 
-	assertNumDevicesAndKeys(t, fu, 2, 4)
+	assertNumDevicesAndKeys(tc, fu, 2, 4)
 
 	Logout(tc)
 
@@ -340,7 +340,7 @@ func TestLoginPaperSignNewDevice(t *testing.T) {
 
 	testUserHasDeviceKey(tc2)
 
-	assertNumDevicesAndKeys(t, fu, 3, 6)
+	assertNumDevicesAndKeys(tc, fu, 3, 6)
 }
 
 // TestLoginInterrupt* tries to simulate what would happen if the

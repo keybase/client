@@ -87,7 +87,9 @@ func (e *LoginEngine) Run(ctx *Context) error {
 func (e *LoginEngine) postLogin(ctx *Context, lctx libkb.LoginContext) error {
 	// We might need to ID ourselves, so load us in here
 	var err error
-	e.user, err = libkb.LoadMe(libkb.LoadUserArg{ForceReload: true, LoginContext: lctx})
+	arg := libkb.NewLoadUserForceArg(e.G())
+	arg.LoginContext = lctx
+	e.user, err = libkb.LoadMe(arg)
 	if err != nil {
 		_, ok := err.(libkb.NoKeyError)
 		if !ok {

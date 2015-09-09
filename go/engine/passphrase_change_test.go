@@ -694,7 +694,7 @@ func TestPassphraseChangePGP3SecMultiple(t *testing.T) {
 	assertLoadSecretKeys(tc, u, "passphrase change pgp")
 	assertLoadPGPKeys(tc, u)
 
-	me, err := libkb.LoadMe(libkb.LoadUserArg{ForceReload: true})
+	me, err := libkb.LoadMe(libkb.NewLoadUserForceArg(tc.G))
 	if err != nil {
 		t.Fatal(err)
 	}

@@ -55,8 +55,7 @@ func (e *ListTrackingEngine) RequiredUIs() []libkb.UIKind { return []libkb.UIKin
 func (e *ListTrackingEngine) SubConsumers() []libkb.UIConsumer { return nil }
 
 func (e *ListTrackingEngine) Run(ctx *Context) (err error) {
-	arg := libkb.LoadUserArg{Self: true}
-	user, err := libkb.LoadUser(arg)
+	user, err := libkb.LoadMe(libkb.NewLoadUserArg(e.G()))
 
 	if err != nil {
 		return

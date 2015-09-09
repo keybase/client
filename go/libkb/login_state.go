@@ -353,7 +353,7 @@ func (s *LoginState) pubkeyLoginHelper(lctx LoginContext, username string, getSe
 	}
 
 	var me *User
-	if me, err = LoadUser(LoadUserArg{Name: username, LoginContext: lctx}); err != nil {
+	if me, err = LoadUser(LoadUserArg{Name: username, LoginContext: lctx, Contextified: NewContextified(s.G())}); err != nil {
 		return
 	}
 

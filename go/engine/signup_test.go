@@ -238,5 +238,5 @@ func TestSignupGeneratesPaperKey(t *testing.T) {
 	defer tc.Cleanup()
 
 	fu := CreateAndSignupFakeUser(tc, "se")
-	hasOnePaperDev(t, fu)
+	hasOnePaperDev(tc, fu)
 }

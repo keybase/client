@@ -7,39 +7,41 @@ import (
 	keybase1 "github.com/keybase/client/protocol/go"
 )
 
-func paperDevs(t *testing.T, fu *FakeUser) (*libkb.User, []*libkb.Device) {
-	u, err := libkb.LoadUser(libkb.LoadUserArg{Name: fu.Username, ForceReload: true})
+func paperDevs(tc libkb.TestContext, fu *FakeUser) (*libkb.User, []*libkb.Device) {
+	arg := libkb.NewLoadUserForceArg(tc.G)
+	arg.Name = fu.Username
+	u, err := libkb.LoadUser(arg)
 	if err != nil {
-		t.Fatal(err)
+		tc.T.Fatal(err)
 	}
 	cki := u.GetComputedKeyInfos()
 	if cki == nil {
-		t.Fatal("no computed key infos")
+		tc.T.Fatal("no computed key infos")
 	}
 	return u, cki.PaperDevices()
 }
 
-func hasOnePaperDev(t *testing.T, fu *FakeUser) keybase1.DeviceID {
-	u, bdevs := paperDevs(t, fu)
+func hasOnePaperDev(tc libkb.TestContext, fu *FakeUser) keybase1.DeviceID {
+	u, bdevs := paperDevs(tc, fu)
 
 	if len(bdevs) != 1 {
-		t.Fatalf("num backup devices: %d, expected 1", len(bdevs))
+		tc.T.Fatalf("num backup devices: %d, expected 1", len(bdevs))
 	}
 
 	devid := bdevs[0].ID
 	sibkey, err := u.GetComputedKeyFamily().GetSibkeyForDevice(devid)
 	if err != nil {
-		t.Fatal(err)
+		tc.T.Fatal(err)
 	}
 	if sibkey == nil {
-		t.Fatal("nil backup sibkey")
+		tc.T.Fatal("nil backup sibkey")
 	}
 	enckey, err := u.GetComputedKeyFamily().GetEncryptionSubkeyForDevice(devid)
 	if err != nil {
-		t.Fatal(err)
+		tc.T.Fatal(err)
 	}
 	if enckey == nil {
-		t.Fatal("nil backup enckey")
+		tc.T.Fatal("nil backup enckey")
 	}
 
 	return devid
@@ -72,7 +74,7 @@ func TestPaperKey(t *testing.T) {
 	Logout(tc)
 
 	// check for the backup key
-	devid := hasOnePaperDev(t, fu)
+	devid := hasOnePaperDev(tc, fu)
 
 	// ok, just log in again:
 	if err := fu.Login(tc.G); err != nil {
@@ -133,7 +135,7 @@ func TestPaperKeyRevoke(t *testing.T) {
 	}
 
 	// check for the backup key
-	_, bdevs := paperDevs(t, fu)
+	_, bdevs := paperDevs(tc, fu)
 	if len(bdevs) != 1 {
 		t.Errorf("num backup devices: %d, expected 1", len(bdevs))
 	}
@@ -148,7 +150,7 @@ func TestPaperKeyRevoke(t *testing.T) {
 	}
 
 	// check for the backup key
-	_, bdevs = paperDevs(t, fu)
+	_, bdevs = paperDevs(tc, fu)
 	if len(bdevs) != 1 {
 		t.Errorf("num backup devices: %d, expected 1", len(bdevs))
 	}
@@ -176,7 +178,7 @@ func TestPaperKeyNoRevoke(t *testing.T) {
 	}
 
 	// check for the backup key
-	_, bdevs := paperDevs(t, fu)
+	_, bdevs := paperDevs(tc, fu)
 	if len(bdevs) != 2 {
 		t.Errorf("num backup devices: %d, expected 2", len(bdevs))
 	}
@@ -191,7 +193,7 @@ func TestPaperKeyNoRevoke(t *testing.T) {
 	}
 
 	// check for the backup key
-	_, bdevs = paperDevs(t, fu)
+	_, bdevs = paperDevs(tc, fu)
 	if len(bdevs) != 3 {
 		t.Errorf("num backup devices: %d, expected 3", len(bdevs))
 	}

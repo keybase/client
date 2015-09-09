@@ -58,7 +58,7 @@ func (p *Prove) SubConsumers() []libkb.UIConsumer {
 }
 
 func (p *Prove) loadMe() (err error) {
-	p.me, err = libkb.LoadMe(libkb.LoadUserArg{AllKeys: false, ForceReload: true})
+	p.me, err = libkb.LoadMe(libkb.NewLoadUserForceArg(p.G()))
 	return
 }
 
