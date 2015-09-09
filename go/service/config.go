@@ -47,6 +47,7 @@ func (h ConfigHandler) GetConfig(sessionID int) (keybase1.Config, error) {
 	}
 
 	c.ConfigPath = G.Env.GetConfigFilename()
+	c.Label = G.Env.GetLabel()
 
 	return c, nil
 }

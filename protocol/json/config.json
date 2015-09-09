@@ -181,6 +181,9 @@
       "name" : "socketFile",
       "type" : "string"
     }, {
+      "name" : "label",
+      "type" : "string"
+    }, {
       "name" : "gpgExists",
       "type" : "boolean"
     }, {

@@ -68,6 +68,9 @@ func (n NullConfiguration) GetDebug() (bool, bool) {
 func (n NullConfiguration) GetLogFormat() string {
 	return ""
 }
+func (n NullConfiguration) GetLabel() string {
+	return ""
+}
 func (n NullConfiguration) GetAPIDump() (bool, bool) {
 	return false, false
 }
@@ -374,6 +377,14 @@ func (e *Env) GetLogFormat() string {
 		func() string { return e.cmd.GetLogFormat() },
 		func() string { return os.Getenv("KEYBASE_LOG_FORMAT") },
 		func() string { return e.config.GetLogFormat() },
+	)
+}
+
+func (e *Env) GetLabel() string {
+	return e.GetString(
+		func() string { return e.cmd.GetLabel() },
+		func() string { return os.Getenv("KEYBASE_LABEL") },
+		func() string { return e.config.GetLabel() },
 	)
 }
 

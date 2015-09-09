@@ -283,6 +283,7 @@ type GetCurrentStatusRes struct {
 type Config struct {
 	ServerURI  string `codec:"serverURI" json:"serverURI"`
 	SocketFile string `codec:"socketFile" json:"socketFile"`
+	Label      string `codec:"label" json:"label"`
 	GpgExists  bool   `codec:"gpgExists" json:"gpgExists"`
 	GpgPath    string `codec:"gpgPath" json:"gpgPath"`
 	Version    string `codec:"version" json:"version"`
