@@ -17,29 +17,27 @@ func doUpdate(fingerprints []string, all bool, fu *FakeUser, tc libkb.TestContex
 	return
 }
 
-func getFakeUsersKeyBundleFromServer(t *testing.T, fu *FakeUser) *libkb.PGPKeyBundle {
-	user, err := libkb.LoadUser(libkb.LoadUserArg{
-		Name:        fu.Username,
-		ForceReload: true,
-	})
+func getFakeUsersKeyBundleFromServer(tc libkb.TestContext, fu *FakeUser) *libkb.PGPKeyBundle {
+	arg := libkb.NewLoadUserForceArg(tc.G)
+	arg.Name = fu.Username
+	user, err := libkb.LoadUser(arg)
 	if err != nil {
-		t.Fatal("Failed loading user", err)
+		tc.T.Fatal("Failed loading user", err)
 	}
 	ckf := user.GetComputedKeyFamily()
 	keys := ckf.GetActivePGPKeys(true /* sibkeys */)
 	if len(keys) != 1 {
-		t.Fatal("Expected only one key.")
+		tc.T.Fatal("Expected only one key.")
 	}
 	return keys[0]
 }
 
-func getFakeUsersBundlesList(t *testing.T, fu *FakeUser) []string {
-	user, err := libkb.LoadUser(libkb.LoadUserArg{
-		Name:        fu.Username,
-		ForceReload: true,
-	})
+func getFakeUsersBundlesList(tc libkb.TestContext, fu *FakeUser) []string {
+	arg := libkb.NewLoadUserForceArg(tc.G)
+	arg.Name = fu.Username
+	user, err := libkb.LoadUser(arg)
 	if err != nil {
-		t.Fatal("Failed loading user", err)
+		tc.T.Fatal("Failed loading user", err)
 	}
 	return user.GetKeyFamily().BundlesForTesting
 }
@@ -51,11 +49,11 @@ func TestPGPUpdate(t *testing.T) {
 	// Note that this user's key is not created in the GPG keyring. For the
 	// purposes of this test that's ok.
 	fakeUser := createFakeUserWithPGPSibkey(tc)
-	bundle := getFakeUsersKeyBundleFromServer(t, fakeUser)
+	bundle := getFakeUsersKeyBundleFromServer(tc, fakeUser)
 	if len(bundle.Subkeys) != 1 {
 		t.Fatal("expected exactly 1 subkey")
 	}
-	originalBundlesLen := len(getFakeUsersBundlesList(t, fakeUser))
+	originalBundlesLen := len(getFakeUsersBundlesList(tc, fakeUser))
 
 	// Modify the key by deleting the subkey.
 	bundle.Subkeys = []openpgp.Subkey{}
@@ -79,7 +77,7 @@ func TestPGPUpdate(t *testing.T) {
 		t.Fatal("Error in PGPUpdateEngine:", err)
 	}
 	// Get the list of bundles from the server.
-	bundles := getFakeUsersBundlesList(t, fakeUser)
+	bundles := getFakeUsersBundlesList(tc, fakeUser)
 	// Check that the key hasn't been modified.
 	if len(bundles) != originalBundlesLen {
 		t.Fatal("Key changes should not have been uploaded.")
@@ -91,7 +89,7 @@ func TestPGPUpdate(t *testing.T) {
 		t.Fatal("Error in PGPUpdateEngine:", err)
 	}
 	// Load the user from the server again.
-	reloadedBundles := getFakeUsersBundlesList(t, fakeUser)
+	reloadedBundles := getFakeUsersBundlesList(tc, fakeUser)
 	// Check that the key hasn't been modified.
 	if len(reloadedBundles) != originalBundlesLen+1 {
 		t.Fatal("Key changes should have been uploaded.")

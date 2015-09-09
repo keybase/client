@@ -151,10 +151,7 @@ func (e *PGPPullEngine) Run(ctx *Context) error {
 		}
 
 		// Get user data from the server.
-		loadUserArg := libkb.LoadUserArg{
-			Name: userSummary.Username,
-		}
-		user, err := libkb.LoadUser(loadUserArg)
+		user, err := libkb.LoadUser(libkb.NewLoadUserByNameArg(e.G(), userSummary.Username))
 		if err != nil {
 			ctx.LogUI.Errorf("Failed to load user %s: %s", userSummary.Username, err)
 			continue

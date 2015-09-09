@@ -52,11 +52,9 @@ func (k *KexSib) Run(ctx *Context) error {
 	k.engctx = ctx
 
 	var err error
-	k.user, err = libkb.LoadMe(libkb.LoadUserArg{
-		PublicKeyOptional: true,
-		LoginContext:      ctx.LoginContext,
-		Contextified:      libkb.NewContextified(k.G()),
-	})
+	uarg := libkb.NewLoadUserPubOptionalArg(k.G())
+	uarg.LoginContext = ctx.LoginContext
+	k.user, err = libkb.LoadMe(uarg)
 	if err != nil {
 		return err
 	}

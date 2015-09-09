@@ -185,7 +185,7 @@ func LoadUser(arg LoadUserArg) (ret *User, err error) {
 }
 
 func loadUser(g *GlobalContext, uid keybase1.UID, rres ResolveResult, force bool) (*User, error) {
-	local, err := LoadUserFromLocalStorage(g, uid)
+	local, err := loadUserFromLocalStorage(g, uid)
 	if err != nil {
 		g.Log.Warning("Failed to load %s from storage: %s", uid, err)
 	}
@@ -211,7 +211,7 @@ func loadUser(g *GlobalContext, uid keybase1.UID, rres ResolveResult, force bool
 	var ret *User
 	if !loadRemote && !force {
 		ret = local
-	} else if ret, err = LoadUserFromServer(g, uid, rres.body); err != nil {
+	} else if ret, err = loadUserFromServer(g, uid, rres.body); err != nil {
 		return nil, err
 	}
 
@@ -223,15 +223,15 @@ func loadUser(g *GlobalContext, uid keybase1.UID, rres ResolveResult, force bool
 	return ret, nil
 }
 
-func LoadUserFromLocalStorage(g *GlobalContext, uid keybase1.UID) (u *User, err error) {
-	g.Log.Debug("+ LoadUserFromLocalStorage(%s)", uid)
+func loadUserFromLocalStorage(g *GlobalContext, uid keybase1.UID) (u *User, err error) {
+	g.Log.Debug("+ loadUserFromLocalStorage(%s)", uid)
 	jw, err := g.LocalDb.Get(DbKeyUID(DBUser, uid))
 	if err != nil {
 		return nil, err
 	}
 
 	if jw == nil {
-		g.Log.Debug("- LoadUserFromLocalStorage(%s): Not found", uid)
+		g.Log.Debug("- loadUserFromLocalStorage(%s): Not found", uid)
 		return nil, nil
 	}
 
@@ -246,12 +246,12 @@ func LoadUserFromLocalStorage(g *GlobalContext, uid keybase1.UID) (u *User, err 
 	}
 
 	g.Log.Debug("| Loaded username %s (uid=%s)", u.name, uid)
-	g.Log.Debug("- LoadUserFromLocalStorage(%s,%s)", u.name, uid)
+	g.Log.Debug("- loadUserFromLocalStorage(%s,%s)", u.name, uid)
 
 	return
 }
 
-func LoadUserFromServer(g *GlobalContext, uid keybase1.UID, body *jsonw.Wrapper) (u *User, err error) {
+func loadUserFromServer(g *GlobalContext, uid keybase1.UID, body *jsonw.Wrapper) (u *User, err error) {
 	g.Log.Debug("+ Load User from server: %s", uid)
 
 	// Res.body might already have been preloaded a a result of a Resolve call earlier.

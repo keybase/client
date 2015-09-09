@@ -221,9 +221,11 @@ func (e *Identify) loadUser() error {
 }
 
 func (e *Identify) loadUserArg() (*libkb.LoadUserArg, error) {
+	arg := libkb.NewLoadUserArg(e.G())
 	if e.arg.SelfID() {
 		// loading self
-		return &libkb.LoadUserArg{Self: true}, nil
+		arg.Self = true
+		return &arg, nil
 	}
 
 	// Use assertions for everything:
@@ -240,7 +242,9 @@ func (e *Identify) loadUserArg() (*libkb.LoadUserArg, error) {
 		return nil, fmt.Errorf("Cannot lookup user with %q", e.arg.TargetUsername)
 	}
 
-	return &libkb.LoadUserArg{Name: b, PublicKeyOptional: true}, nil
+	arg.Name = b
+	arg.PublicKeyOptional = true
+	return &arg, nil
 }
 
 func (e *Identify) loadExpr(assertion string) error {

@@ -178,7 +178,7 @@ func (u *User) GetServerSeqno() (i int, err error) {
 			"username": S{u.name},
 			"fields":   S{"sigs"},
 		},
-		Contextified: NewContextified(u.G()),
+		Contextified: u.Contextified,
 	})
 	if err != nil {
 		return
@@ -220,7 +220,7 @@ func (u *User) LoadSigChains(allKeys bool, f *MerkleUserLeaf, self bool) (err er
 		leaf:         f,
 		chainType:    PublicChain,
 		preload:      u.sigChain(),
-		Contextified: NewContextified(u.G()),
+		Contextified: u.Contextified,
 	}
 	u.sigChainMem, err = loader.Load()
 
