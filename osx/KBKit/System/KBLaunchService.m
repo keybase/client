@@ -72,7 +72,7 @@
       completion(NO, version);
     }
   };
-  [KBWaitFor waitFor:block delay:0.5 timeout:timeout label:NSStringWithFormat(@"%@ (version file)", reason) completion:completion];
+  [KBWaitFor waitFor:block delay:0.5 timeout:timeout label:NSStringWithFormat(@"%@; %@", reason, KBPathTilde(versionFile)) completion:completion];
 }
 
 - (void)updateComponentStatus:(NSTimeInterval)timeout completion:(void (^)(KBComponentStatus *componentStatus, KBServiceStatus *serviceStatus))completion {

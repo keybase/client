@@ -18,6 +18,10 @@ typedef NS_ENUM (NSInteger, KBRPClientStatus) {
   KBRPClientStatusOpen
 };
 
+typedef NS_OPTIONS (NSInteger, KBRClientOptions) {
+  KBRClientOptionsAutoRetry = 1 << 0,
+};
+
 typedef void (^KBRPClientOnPassphrase)(NSString *passphrase);
 typedef void (^KBRPClientOnSecret)(NSString *secret);
 
@@ -38,12 +42,11 @@ typedef void (^KBRPClientOnSecret)(NSString *secret);
 @interface KBRPClient : NSObject <MPMessagePackClientDelegate>
 
 @property (weak) id<KBRPClientDelegate> delegate;
-@property (getter=isAutoRetryDisabled) BOOL autoRetryDisabled;
 
 @property (readonly) KBEnvConfig *config;
 @property (readonly) KBRPClientStatus status;
 
-- (instancetype)initWithConfig:(KBEnvConfig *)config;
+- (instancetype)initWithConfig:(KBEnvConfig *)config options:(KBRClientOptions)options;
 
 - (void)sendRequestWithMethod:(NSString *)method params:(NSDictionary *)params sessionId:(NSNumber *)sessionId completion:(MPRequestCompletion)completion;
 - (void)registerMethod:(NSString *)method sessionId:(NSNumber *)sessionId requestHandler:(MPRequestHandler)requestHandler;
@@ -51,7 +54,6 @@ typedef void (^KBRPClientOnSecret)(NSString *secret);
 - (NSNumber *)nextSessionId;
 
 - (void)open:(KBCompletion)completion;
-- (void)open:(NSString *)socketFile completion:(KBCompletion)completion;
 
 - (void)close;
 

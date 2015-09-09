@@ -40,7 +40,7 @@ PODS:
   - Mantle/extobjc (2.0.4)
   - MASPreferences (1.1.2)
   - MDPSplitView (1.0.2)
-  - MPMessagePack (1.1.25):
+  - MPMessagePack (1.1.26):
     - GHODictionary
   - ObjectiveSugar (1.1.0)
   - Slash (0.1.2):
@@ -48,7 +48,7 @@ PODS:
     - Slash/no-arc (= 0.1.2)
   - Slash/arc (0.1.2)
   - Slash/no-arc (0.1.2)
-  - Sparkle (1.10.0)
+  - Sparkle (1.11.0)
   - YOLayout (0.2.10)
   - ZXCVBN (1.0.5)
 
@@ -82,10 +82,10 @@ SPEC CHECKSUMS:
   Mantle: 6bee68168423948be0c0c5924832bf3af188e099
   MASPreferences: 32d8a2c5ef1d60b63240f5676b011ff72e194cb1
   MDPSplitView: 127b4b371e813ec29333e515fb1c057126a75671
-  MPMessagePack: 31356a5df61dfc8376c794ce39782c090f597191
+  MPMessagePack: e58a35ee93807a8cc9eaf6a204e6f3e044cbff0b
   ObjectiveSugar: a6a25f23d657c19df0a0b972466d5b5ca9f5295c
   Slash: c74317f5ccf1e31f1d486a17e0d4076029ed3fc8
-  Sparkle: c859bf5283b9f12aa45bceccf8e25ebb4c008eb2
+  Sparkle: cf10103ef35fd89caa35373bfd772c5d6f9c7d73
   YOLayout: 5c8558eb457df646e840cc6da76be590166ee0b5
   ZXCVBN: f3888e3f6363b8cf57bcc32857a9bc09f9f9e18e
 

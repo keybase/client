@@ -55,14 +55,6 @@
 }
 
 - (void)open {
-  [KBWorkspace setupLogging];
-
-  NSUserDefaults *userDefaults = [KBWorkspace userDefaults];
-  [userDefaults registerDefaults:
-   @{
-     @"Preferences.Log.Level": @(DDLogLevelError),
-     }];
-
   _preferences = [[KBPreferences alloc] init];
 
   _consoleView = [[KBConsoleView alloc] init];
@@ -88,6 +80,7 @@
 
   // Save installed version in case a later upgrade needs this info
   NSString *version = NSBundle.mainBundle.infoDictionary[@"CFBundleShortVersionString"];
+  NSUserDefaults *userDefaults = [KBWorkspace userDefaults];
   [userDefaults setObject:version forKey:@"InstallVersion"];
   [userDefaults synchronize];
 

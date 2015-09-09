@@ -44,3 +44,8 @@
 }
 
 @end
+
+
+NSString *KBPathTilde(NSString *path) {
+  return [KBPath path:path options:KBPathOptionsTilde];
+}

@@ -26,6 +26,7 @@
   [args addObject:@"load"];
   if (force) [args addObject:@"-w"];
   [args addObject:plist];
+  DDLogDebug(@"Loading %@", label);
   [self execute:@"/bin/launchctl" args:args completion:^(NSError *error, NSString *output) {
     DDLogDebug(@"Output: %@", output);
     if (error) {
@@ -44,6 +45,7 @@
   [args addObject:@"unload"];
   if (disable) [args addObject:@"-w"];
   [args addObject:plist];
+  DDLogDebug(@"Unloading %@", label);
   [self execute:@"/bin/launchctl" args:args completion:^(NSError *error, NSString *output) {
     DDLogDebug(@"Output: %@", output);
     if (error) {
@@ -62,6 +64,7 @@
 
 + (void)status:(NSString *)label completion:(KBOnLaunchStatus)completion {
   NSParameterAssert(label);
+  DDLogDebug(@"Checking launchd status for %@", label);
   [self execute:@"/bin/launchctl" args:@[@"list"] completion:^(NSError *error, NSString *output) {
     if (error) {
       completion([KBServiceStatus error:error]);
@@ -126,7 +129,7 @@
   [task setStandardOutput:outpipe];
   [task setStandardError:outpipe];
   task.terminationHandler = ^(NSTask *t) {
-    DDLogDebug(@"Task: \"%@ %@\" (%@)", command, [args componentsJoinedByString:@" "], @(t.terminationStatus));
+    //DDLogDebug(@"Task: \"%@ %@\" (%@)", command, [args componentsJoinedByString:@" "], @(t.terminationStatus));
     NSFileHandle *read = [outpipe fileHandleForReading];
     NSData *data = [read readDataToEndOfFile];
     NSString *output = [[NSString alloc] initWithData:data encoding:NSUTF8StringEncoding];

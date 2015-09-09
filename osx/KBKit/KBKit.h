@@ -23,3 +23,4 @@ FOUNDATION_EXPORT const unsigned char KBKitVersionString[];
 #import <KBKit/KBWorkspace.h>
 #import <KBKit/KBEnvConfig.h>
 #import <KBKit/KBDefines.h>
+#import <KBKit/KBLogFormatter.h>

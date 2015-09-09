@@ -154,7 +154,7 @@
 		00C0DC761B28EC3F00A825D4 /* KBStream.m in Sources */ = {isa = PBXBuildFile; fileRef = 001A835F1B28DB7B006E61E9 /* KBStream.m */; };
 		00C0DC771B28EC3F00A825D4 /* KBWriter.h in Headers */ = {isa = PBXBuildFile; fileRef = 001A83601B28DB7B006E61E9 /* KBWriter.h */; };
 		00C0DC781B28EC3F00A825D4 /* KBWriter.m in Sources */ = {isa = PBXBuildFile; fileRef = 001A83611B28DB7B006E61E9 /* KBWriter.m */; };
-		00C0DC791B28EC5000A825D4 /* KBLogFormatter.h in Headers */ = {isa = PBXBuildFile; fileRef = 009E15EF1B28A9A800C72B28 /* KBLogFormatter.h */; };
+		00C0DC791B28EC5000A825D4 /* KBLogFormatter.h in Headers */ = {isa = PBXBuildFile; fileRef = 009E15EF1B28A9A800C72B28 /* KBLogFormatter.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		00C0DC7A1B28EC5000A825D4 /* KBLogFormatter.m in Sources */ = {isa = PBXBuildFile; fileRef = 009E15F01B28A9A800C72B28 /* KBLogFormatter.m */; };
 		00C0DC7B1B28EC5000A825D4 /* KBFormatter.h in Headers */ = {isa = PBXBuildFile; fileRef = 009E14B71B28A93D00C72B28 /* KBFormatter.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		00C0DC7C1B28EC5000A825D4 /* KBFormatter.m in Sources */ = {isa = PBXBuildFile; fileRef = 009E14B81B28A93D00C72B28 /* KBFormatter.m */; };

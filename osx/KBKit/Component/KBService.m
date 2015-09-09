@@ -51,6 +51,14 @@
   return self;
 }
 
+
+- (KBRPClient *)client {
+  if (!_client) {
+    _client = [[KBRPClient alloc] initWithConfig:self.config options:KBRClientOptionsAutoRetry];
+  }
+  return _client;
+}
+
 - (NSImage *)image {
   return [KBIcons imageForIcon:KBIconNetwork];
 }
@@ -102,8 +110,11 @@
   _infoView = view;
 }
 
+/*!
+ Connect to the service and query for its label.
+ */
 + (void)lookup:(KBEnvConfig *)config completion:(void (^)(NSError *error, NSString *label))completion {
-  KBRPClient *client = [[KBRPClient alloc] initWithConfig:config];
+  KBRPClient *client = [[KBRPClient alloc] initWithConfig:config options:0];
 
   dispatch_block_t close = ^{
     dispatch_async(dispatch_get_main_queue(), ^{ [client close]; });
@@ -133,17 +144,15 @@
 }
 
 - (void)refreshComponent:(KBCompletion)completion {
-  [self.launchService updateComponentStatus:0 completion:^(KBComponentStatus *componentStatus, KBServiceStatus *serviceStatus) {
+  if (!_launchService) {
+    completion(KBMakeError(-1, @"Launchd disabled"));
+    return;
+  }
+
+  [_launchService updateComponentStatus:0 completion:^(KBComponentStatus *componentStatus, KBServiceStatus *serviceStatus) {
     [self componentDidUpdate];
     completion(componentStatus.error);
   }];
-}
-
-- (KBRPClient *)client {
-  if (!_client) {
-    _client = [[KBRPClient alloc] initWithConfig:self.config];
-  }
-  return _client;
 }
 
 - (void)panic:(KBCompletion)completion {
@@ -191,13 +200,6 @@
 - (void)stop:(KBCompletion)completion {
   [_launchService stop:completion];
 }
-
-//- (void)updateComponentStatus:(NSTimeInterval)timeout completion:(KBCompletion)completion {
-//  [_launchService updateComponentStatus:timeout completion:^(KBComponentStatus *componentStatus, KBServiceStatus *serviceStatus) {
-//    [self componentDidUpdate];
-//    completion(componentStatus.error);
-//  }];
-//}
 
 - (KBComponentStatus *)componentStatus {
   return _launchService.componentStatus;

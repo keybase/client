@@ -22,7 +22,7 @@
   if ((self = [self init])) {
     _config = config;
 
-    _versionPath = [config cachePath:@"service.version" options:0];
+    _versionPath = [config runtimePath:@"service.version" options:0];
   }
   return self;
 }

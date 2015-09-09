@@ -42,6 +42,7 @@ typedef NS_ENUM (NSInteger, KBRunMode) {
 - (NSString *)logFile:(NSString *)label;
 
 - (NSString *)appPath:(NSString *)filename options:(KBPathOptions)options;
+- (NSString *)runtimePath:(NSString *)filename options:(KBPathOptions)options;
 - (NSString *)cachePath:(NSString *)filename options:(KBPathOptions)options;
 
 - (NSBundle *)bundle;

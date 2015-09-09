@@ -20,6 +20,7 @@
 #import <CocoaLumberjack/CocoaLumberjack.h>
 
 @interface KBRPClient ()
+@property KBRClientOptions options;
 @property MPMessagePackClient *client;
 @property GHODictionary *registrations;
 
@@ -33,9 +34,10 @@
 
 @implementation KBRPClient
 
-- (instancetype)initWithConfig:(KBEnvConfig *)config {
+- (instancetype)initWithConfig:(KBEnvConfig *)config options:(KBRClientOptions)options {
   if ((self = [super init])) {
     _config = config;
+    _options = options;
   }
   return self;
 }
@@ -139,7 +141,7 @@
       KBLog(KBLogRPC|KBLogDebug, @"Error connecting: %@", error);
       [gself.delegate RPClient:gself didErrorOnConnect:error connectAttempt:gself.connectAttempt];
 
-      if (!gself.autoRetryDisabled) {
+      if ((gself.options & KBRClientOptionsAutoRetry)) {
         [gself openAfterDelay:2 completion:completion];
       } else {
         completion(error);
@@ -288,7 +290,7 @@ NSDictionary *KBScrubSensitive(NSDictionary *dict) {
   if (status == MPMessagePackClientStatusClosed) {
     // TODO: What if we have open requests?
     [self _didClose];
-    if (!_autoRetryDisabled) [self openAfterDelay:2 completion:^(NSError *error) {}];
+    [self openAfterDelay:2 completion:^(NSError *error) {}];
   } else if (status == MPMessagePackClientStatusOpen) {
     // Awesome
   }

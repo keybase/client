@@ -94,6 +94,10 @@
   return [KBPath pathInDir:homeDir path:appPath options:options];
 }
 
+- (NSString *)runtimePath:(NSString *)filename options:(KBPathOptions)options {
+  return [self cachePath:filename options:options];
+}
+
 - (NSString *)cachePath:(NSString *)filename options:(KBPathOptions)options {
   NSString *homeDir = self.homeDir;
   NSString *cachePath = NSStringWithFormat(@"Library/Caches/%@", [self appName]);
@@ -107,7 +111,7 @@
 }
 
 - (NSString *)sockFile {
-  NSString *sockFile = [self appPath:@"keybased.sock" options:0];
+  NSString *sockFile = [self runtimePath:@"keybased.sock" options:0];
   if ([sockFile length] > 103) {
     [NSException raise:NSInvalidArgumentException format:@"Sock path too long. It should be < 104 characters. %@", sockFile];
   }

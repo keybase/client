@@ -12,8 +12,8 @@
 #import <CocoaLumberjack/CocoaLumberjack.h>
 #import <GHKit/GHKit.h>
 
-#import "KBNotifications.h"
-#import "KBWorkspace.h"
+#import <KBKit/KBWorkspace.h>
+#import <KBKit/KBNotifications.h>
 
 @interface AppDelegate ()
 @property NSStatusItem *statusItem;
@@ -23,6 +23,13 @@
 @implementation AppDelegate
 
 - (void)applicationDidFinishLaunching:(NSNotification *)notification {
+  NSUserDefaults *userDefaults = [KBWorkspace userDefaults];
+  [userDefaults registerDefaults:
+   @{
+     @"Preferences.Log.Level": @(DDLogLevelError),
+     }];
+  [KBWorkspace setupLogging];
+
   _statusItem = [[NSStatusBar systemStatusBar] statusItemWithLength:NSVariableStatusItemLength];
   //_statusItem.title = @"Keybase";
 #ifdef DEBUG

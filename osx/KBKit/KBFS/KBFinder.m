@@ -49,7 +49,7 @@
 - (KBRPClient *)client {
   if (!_client) {
     KBEnvConfig *config = [KBEnvConfig envConfigFromUserDefaults:[KBWorkspace userDefaults]];
-    _client = [[KBRPClient alloc] initWithConfig:config];
+    _client = [[KBRPClient alloc] initWithConfig:config options:KBRClientOptionsAutoRetry];
   }
   return _client;
 }

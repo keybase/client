@@ -24,3 +24,5 @@ typedef NS_OPTIONS (NSInteger, KBPathOptions) {
 + (NSString *)pathInDir:(NSString *)dir path:(NSString *)path options:(KBPathOptions)options;
 
 @end
+
+NSString *KBPathTilde(NSString *path);

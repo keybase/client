@@ -20,7 +20,7 @@
 - (instancetype)initWithConfig:(KBEnvConfig *)config {
   if ((self = [self init])) {
     _config = config;
-    _versionPath = [config cachePath:@"kbfs.version" options:0];
+    _versionPath = [config runtimePath:@"kbfs.version" options:0];
   }
   return self;
 }
