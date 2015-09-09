@@ -11,7 +11,6 @@
 #import "KBPath.h"
 
 typedef NS_ENUM (NSInteger, KBRunMode) {
-  KBRunModeCustom = 0,
   KBRunModeProd,
   KBRunModeStaging,
   KBRunModeDevel,
@@ -22,22 +21,23 @@ typedef NS_ENUM (NSInteger, KBRunMode) {
 @property (nonatomic, readonly) NSString *homeDir;
 @property (readonly, getter=isDebugEnabled) BOOL debugEnabled;
 @property (readonly) NSString *mountDir;
-@property (nonatomic, readonly) NSString *sockFile;
 @property (readonly) NSString *title;
 @property (readonly) NSString *info;
 @property (readonly) NSImage *image;
 @property (readonly) KBRunMode runMode;
+@property (readonly, getter=isInstallDisabled) BOOL installDisabled;
 
 - (instancetype)initWithRunMode:(KBRunMode)runMode;
 
-+ (instancetype)envConfigWithHomeDir:(NSString *)homeDir sockFile:(NSString *)sockFile mountDir:(NSString *)mountDir;
++ (instancetype)envConfigWithHomeDir:(NSString *)homeDir mountDir:(NSString *)mountDir runMode:(KBRunMode)runMode;
 + (instancetype)envConfigWithRunMode:(KBRunMode)runMode;
 + (instancetype)envConfigFromUserDefaults:(NSUserDefaults *)userDefaults;
 
 - (void)saveToUserDefaults:(NSUserDefaults *)userDefaults;
 
 - (BOOL)isHomeDirSet;
-- (BOOL)isSockFileSet;
+
+- (NSString *)sockFile;
 
 - (NSString *)logFile:(NSString *)label;
 

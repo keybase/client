@@ -90,7 +90,7 @@
 - (KBEnvConfig *)config {
   NSString *homeDir = [_homeDirField.text gh_strip];
   NSString *mountDir = [_mountDirField.text gh_strip];
-  return [KBEnvConfig envConfigWithHomeDir:homeDir sockFile:nil mountDir:mountDir];
+  return [KBEnvConfig envConfigWithHomeDir:homeDir mountDir:mountDir runMode:KBRunModeDevel];
 }
 
 - (void)setConfig:(KBEnvConfig *)config {

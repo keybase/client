@@ -103,11 +103,6 @@
 }
 
 + (void)lookup:(KBEnvConfig *)config completion:(void (^)(NSError *error, NSString *label))completion {
-  if (config.runMode == KBRunModeCustom) {
-    completion(nil, nil);
-    return;
-  }
-
   KBRPClient *client = [[KBRPClient alloc] initWithConfig:config];
 
   dispatch_block_t close = ^{

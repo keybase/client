@@ -16,11 +16,11 @@
 @property NSString *homeDir;
 @property (getter=isDebugEnabled) BOOL debugEnabled;
 @property NSString *mountDir;
-@property NSString *sockFile;
 @property NSString *title;
 @property NSString *info;
 @property NSImage *image;
 @property KBRunMode runMode;
+@property BOOL installDisabled;
 @end
 
 @implementation KBEnvConfig
@@ -57,9 +57,6 @@
         self.image = [NSImage imageNamed:NSImageNameComputer];
         break;
       }
-      case KBRunModeCustom:
-        [NSException raise:NSInvalidArgumentException format:@"For custom env, use envConfigWithHomeDir:..."];
-        break;
     }
   }
   return self;
@@ -76,7 +73,7 @@
 
   if (!mountDir) mountDir = [KBPath path:@"~/Keybase.dev" options:0];
 
-  return [KBEnvConfig envConfigWithHomeDir:homeDir sockFile:nil mountDir:mountDir];
+  return [KBEnvConfig envConfigWithHomeDir:homeDir mountDir:mountDir runMode:KBRunModeDevel];
 }
 
 - (void)saveToUserDefaults:(NSUserDefaults *)userDefaults {
@@ -110,7 +107,7 @@
 }
 
 - (NSString *)sockFile {
-  NSString *sockFile = [self appPath:_sockFile ? _sockFile : @"keybased.sock" options:0];
+  NSString *sockFile = [self appPath:@"keybased.sock" options:0];
   if ([sockFile length] > 103) {
     [NSException raise:NSInvalidArgumentException format:@"Sock path too long. It should be < 104 characters. %@", sockFile];
   }
@@ -118,18 +115,17 @@
 }
 
 - (BOOL)isHomeDirSet { return !!_homeDir; }
-- (BOOL)isSockFileSet { return !!_sockFile; }
 
-+ (instancetype)envConfigWithHomeDir:(NSString *)homeDir sockFile:(NSString *)sockFile mountDir:(NSString *)mountDir {
++ (instancetype)envConfigWithHomeDir:(NSString *)homeDir mountDir:(NSString *)mountDir runMode:(KBRunMode)runMode {
   KBEnvConfig *envConfig = [[KBEnvConfig alloc] init];
-  envConfig.runMode = KBRunModeCustom;
+  envConfig.runMode = runMode;
   envConfig.title = @"Custom";
   envConfig.homeDir = [KBPath path:homeDir options:0];
-  envConfig.sockFile = [KBPath path:sockFile options:0];
   envConfig.mountDir = [KBPath path:mountDir options:0];
   envConfig.info = @"For development";
   envConfig.image = [NSImage imageNamed:NSImageNameAdvanced];
   envConfig.debugEnabled = YES;
+  envConfig.installDisabled = YES;
   return envConfig;
 }
 
@@ -167,20 +163,20 @@
 }
 
 - (NSString *)launchdServiceLabel {
+  if (_installDisabled) return nil;
   switch (_runMode) {
     case KBRunModeDevel: return @"keybase.Service.devel";
     case KBRunModeStaging: return @"keybase.Service.staging";
     case KBRunModeProd: return @"keybase.Service.prod";
-    case KBRunModeCustom: return nil;
   }
 }
 
 - (NSString *)launchdKBFSLabel {
+  if (_installDisabled) return nil;
   switch (_runMode) {
     case KBRunModeDevel: return @"keybase.KBFS.devel";
     case KBRunModeStaging: return @"keybase.KBFS.staging";
     case KBRunModeProd: return @"keybase.KBFS.prod";
-    case KBRunModeCustom: return nil;
   }
 }
 
@@ -190,7 +186,6 @@ NSString *NSStringFromKBRunMode(KBRunMode runMode, BOOL isValue) {
   switch (runMode) {
     case KBRunModeDevel: return isValue ? @"devel" : @"Devel";
     case KBRunModeStaging: return isValue ? @"staging" : @"Staging";
-    case KBRunModeCustom: return isValue ? @"devel" : @"Devel";
     case KBRunModeProd: return isValue ? @"prod" : @"Prod";
   }
 }

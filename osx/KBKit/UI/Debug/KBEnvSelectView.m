@@ -109,7 +109,7 @@
   [userDefaults setObject:envConfig.title forKey:@"Env"];
   [userDefaults synchronize];
 
-  if (envConfig.runMode == KBRunModeCustom) {
+  if ([envConfig.title isEqualToString:@"Custom"]) {
     envConfig = [_customView config];
     [envConfig saveToUserDefaults:[KBWorkspace userDefaults]];
     NSError *error = nil;
@@ -126,7 +126,7 @@
 }
 
 - (NSView *)viewForEnvConfig:(KBEnvConfig *)envConfig {
-  if (envConfig.runMode == KBRunModeCustom) {
+  if ([envConfig.title isEqualToString:@"Custom"]) {
     [_customView setConfig:envConfig];
     return _customView;
   }
