@@ -59,7 +59,7 @@ var CheckInviteCode = Checker{
 var CheckDeviceName = Checker{
 	F: func(s string) bool {
 		re := regexp.MustCompile(`^[a-zA-Z0-9][ _'a-zA-Z0-9+-]*$`)
-		bad := regexp.MustCompile(`  | $|['+_-][ ]?['+_-]`)
+		bad := regexp.MustCompile(`  |[ '+_-]$|['+_-][ ]?['+_-]`)
 		return len(s) >= 3 && len(s) <= 64 && re.MatchString(s) && !bad.MatchString(s)
 	},
 	Hint: "between 3 and 64 characters long",

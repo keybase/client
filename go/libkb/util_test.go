@@ -15,6 +15,8 @@ var nameCmpTest = []cmpTest{
 	{a: "work iPad", b: "work ipad", eq: true},
 	{a: "my_ipad", b: "MY IPAD", eq: true},
 	{a: "device a", b: "device b", eq: false},
+	{a: "mike's computer", b: "mikes computer", eq: true},
+	{a: "my+-'_device", b: "my device", eq: true},
 }
 
 func TestNameCmp(t *testing.T) {

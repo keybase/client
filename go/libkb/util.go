@@ -85,7 +85,7 @@ func NameTrim(s string) string {
 	s = strings.ToLower(strings.TrimSpace(s))
 	strip := func(r rune) rune {
 		switch {
-		case r == '_':
+		case r == '_', r == '-', r == '+', r == '\'':
 			return -1
 		case unicode.IsSpace(r):
 			return -1
