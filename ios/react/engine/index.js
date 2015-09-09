@@ -3,7 +3,7 @@
 // Handles sending requests to objc (then go) and back
 
 var React = require('react-native')
-var EventEmitter = require('EventEmitter');
+var EventEmitter = require('EventEmitter')
 
 var {
   NativeModules,
@@ -183,9 +183,13 @@ class Engine {
       if (sessionCollating) {
         // deregister callback
         delete this.sessionIDToCallbackMap[sessionID]
-        callback(err, null, data)
+        if (callback) {
+          callback(err, null, data)
+        }
       } else {
-        callback(err, data)
+        if (callback) {
+          callback(err, data)
+        }
       }
     })
   }
@@ -221,6 +225,10 @@ class Engine {
     })
 
     return emitter
+  }
+
+  reset () {
+    objcEngine.reset()
   }
 }
 

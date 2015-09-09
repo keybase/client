@@ -67,7 +67,7 @@ class LoginForm extends Component {
     this.state = {
       username: 'test7',
       passphrase: 'okokokokokok',
-      storeSecret: false // TODO load this off of prefs
+      storeSecret: true // TODO load this off of prefs
     }
 
     this.subscriptions = []
@@ -80,6 +80,7 @@ class LoginForm extends Component {
   }
 
   submit () {
+    /*
     var emitter = engine.emitterRpc('login.loginWithPassphrase', {
       username: this.state.username,
       passphrase: this.state.passphrase,
@@ -114,6 +115,48 @@ class LoginForm extends Component {
         }
       })
     }))
+    */
+
+   // There are pros and cons to both approaches, leaving this one for now, TODO disccuss
+
+    engine.collatedRpc('login.loginWithPassphrase', {
+      username: this.state.username,
+      passphrase: this.state.passphrase,
+      storeSecret: this.state.storeSecret,
+      error: null
+    },
+    (err, method, param, response) => {
+      if (err) {
+        console.log(err)
+        this.setState({error: err.toString()})
+      } else {
+        switch (method) {
+          case 'keybase.1.locksmithUi.promptDeviceName':
+            this.props.navigator.push({
+              title: 'Device Name',
+              component: DevicePrompt,
+              backButtonTitle: 'Cancel',
+              passProps: {
+                response: response
+              }
+            }
+          )
+            break
+          case 'keybase.1.locksmithUi.selectSigner':
+            this.props.navigator.push({
+            title: 'Device Setup',
+            component: SelectSigner,
+            passProps: {
+              response: response,
+              ...param
+            }
+          })
+            break
+          default:
+            console.log('Unknown rpc from login.loginWithPassphrase: ', method)
+        }
+      }
+    })
   }
 
   render () {

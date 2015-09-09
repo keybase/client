@@ -3,17 +3,12 @@
 var React = require('react-native')
 var {
   Component,
+  ListView,
   StyleSheet,
   View,
-  SwitchIOS,
   Text,
-  TextInput,
   TouchableHighlight
 } = React
-
-var engine = require('../engine')
-var DevicePrompt = require('./device-prompt')
-var EventEmitter = require('EventEmitter');
 
 var commonStyles = require('../styles/common')
 
@@ -24,80 +19,83 @@ var styles = StyleSheet.create({
     alignItems: 'stretch',
     backgroundColor: '#F5FCFF'
   },
-  input: {
-    height: 40,
-    marginBottom: 5,
-    marginLeft: 10,
-    marginRight: 10,
-    borderWidth: 0.5,
-    borderColor: '#0f0f0f',
-    fontSize: 13,
-    padding: 4
-  },
-  switchText: {
-    fontSize: 14,
-    textAlign: 'center',
-    margin: 10
-  },
-  horizontal: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center'
-  },
-  rightSide: {
-    justifyContent: 'flex-end',
-    marginRight: 10
-  },
-  loginWrapper: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginTop: 10
+  separator: {
+    height: 1,
+    backgroundColor: '#CCCCCC'
   }
 })
-
-var loginButtonStyle = [commonStyles.actionButton, {width: 200}]
 
 class SelectSigner extends Component {
   constructor () {
     super()
-
-    this.state = { }
   }
 
-  /*
-  componentWillUnmount () {
-    this.subscriptions.forEach(function (s) {
-      s.remove()
+  componentWillMount () {
+    var ds = new ListView.DataSource({rowHasChanged: (r1, r2) => r1 !== r2})
+
+    this.state = {
+      dataSource: ds.cloneWithRows(this.props.devices)
+    }
+  }
+
+  select (rowData) {
+    // {"action":0,"signer":{"kind":0,"deviceID":"e0ce327507bf30e8f7a2512a72bdd318","deviceName":"b"}}
+    /*
+  KBRDeviceSignerKindDevice = 0,
+	KBRDeviceSignerKindPgp = 1,
+	KBRDeviceSignerKindPaperBackupKey = 2,
+  */
+ // TODO generate this from the protocol
+
+    this.props.response.result({
+      action: 0, // sign
+      signer: {
+        kind: 0,
+        deviceID: rowData.deviceID,
+        deviceName: rowData.name
+      }
     })
   }
- */
 
-  submit () {
+  renderRow (rowData, sectionID, rowID) {
+    var sep = (rowID < (this.state.dataSource.getRowCount() - 1)) ? <View style={styles.separator} /> : null
+    return (
+      <TouchableHighlight
+        underlayColor={commonStyles.buttonHighlight}
+        onPress={() => {this.select(rowData)}}>
+        <View>
+          <View style={{margin: 10}}>
+            <Text>{rowData.name}</Text>
+            <Text style={{fontSize: 10}}>{rowData.type + ' with id ' + rowData.deviceID}</Text>
+          </View>
+          {sep}
+        </View>
+      </TouchableHighlight>
+    )
   }
 
   render () {
     return (
       <View style={styles.container}>
-        <TextInput
-          style={styles.input}
-          placeholder='TEMP'
-          value={this.state.username}
-          enablesReturnKeyAutomatically={true}
-          returnKeyType='next'
-          autoCorrect={false}
-          onChangeText={(username) => this.setState({username})}
-          onSubmitEditing={(event) => {
-            this.refs['passphrase'].focus()
-          }}
-          />
+        <ListView style={{}}
+        dataSource={this.state.dataSource}
+        renderRow={(...args) => {return this.renderRow(...args)}}
+        renderSectionHeader={() => {
+          return <Text style={{margin: 10}}>This is the first time you've logged into this computer. You need to setup and verify this installation of Keybase. Which method do you want to use?</Text>
+        }}
+        />
       </View>
     )
   }
 }
 
 SelectSigner.propTypes = {
-  navigator: React.PropTypes.object
+  navigator: React.PropTypes.object,
+  devices: React.PropTypes.array,
+  hasPGP: React.PropTypes.bool,
+  hasPaperBackupKey: React.PropTypes.bool,
+  response: React.PropTypes.object
+
 }
 
 module.exports = SelectSigner

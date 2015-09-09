@@ -12,6 +12,7 @@ var {
   View
 } = React
 
+var engine = require('./engine')
 var Login = require('./login')
 var Debug = require('./debug')
 
@@ -38,7 +39,12 @@ class AppOrDebug extends Component {
     this.props.navigator.push({
       title: 'Keybase',
       component: Login,
-      passProps: this.props.navigator
+      passProps: this.props.navigator,
+      leftButtonTitle: 'Cancel',
+      onLeftButtonPress: () => {
+        engine.reset()
+        this.props.navigator.pop()
+      }
     })
   }
 

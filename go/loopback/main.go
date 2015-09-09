@@ -84,6 +84,10 @@ func Read() string {
 }
 
 func Reset() {
+	if con != nil {
+		con.Close()
+	}
+
 	var err error
 	libkb.G.SocketWrapper = nil
 	con, _, err = libkb.G.GetSocket()

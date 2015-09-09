@@ -19,6 +19,7 @@
 - (void)startReadLoop;
 - (void)initQueues;
 - (void)runWithData:(NSString*) data;
+- (void)reset;
 
 @end
 
@@ -69,6 +70,10 @@ static NSString * const eventName = @"objc-engine-event";
   });
 }
 
+-(void) reset {
+  GoKeybaselibReset();
+}
+
 @end
 
 #pragma mark - Engine exposed to react
@@ -84,6 +89,11 @@ RCT_EXPORT_METHOD(runWithData: (NSString*) data)
 {
   [Engine sharedInstance].bridge = _bridge;
   [[Engine sharedInstance] runWithData: data];
+}
+
+RCT_EXPORT_METHOD(reset)
+{
+  [[Engine sharedInstance] reset];
 }
 
 - (NSDictionary *)constantsToExport
