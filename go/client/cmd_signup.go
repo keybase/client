@@ -312,27 +312,27 @@ func (s *CmdSignup) MakePrompter() {
 		Disabled: true,
 		Name:     "passphraseRetry",
 		Checker:  &libkb.CheckYesNo,
-		Prompt:   "Re-enter passphrase.",
+		Prompt:   "Re-enter passphrase",
 	}
 
 	email := &Field{
 		Defval:  s.defaultEmail,
 		Name:    "email",
-		Prompt:  "Your email address.",
+		Prompt:  "Your email address",
 		Checker: &libkb.CheckEmail,
 	}
 
 	username := &Field{
 		Defval:  s.defaultUsername,
 		Name:    "username",
-		Prompt:  "Your desired username.",
+		Prompt:  "Your desired username",
 		Checker: &libkb.CheckUsername,
 	}
 
 	deviceName := &Field{
 		Defval:  s.defaultDevice,
 		Name:    "devname",
-		Prompt:  "A public name for this device.",
+		Prompt:  "A public name for this device",
 		Checker: &libkb.CheckNotEmpty,
 	}
 
