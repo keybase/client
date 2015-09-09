@@ -152,11 +152,13 @@ echo "Checking Helper..."
 spctl --assess --verbose=4 Keybase.app/Contents/Library/LaunchServices/keybase.Helper
 
 
-rm -rf Keybase-$APP_VERSION.dmg
+DMG_NAME="Keybase-$APP_VERSION-$APP_BUILD.dmg"
+
+rm -rf $DMG_NAME
 
 cp ../appdmg/* .
 
-appdmg appdmg.json Keybase-$APP_VERSION.dmg
+appdmg appdmg.json $DMG_NAME
 
 if [ "$ACTION" = "install" ]; then
   ditto $BUILD_DEST/Keybase.app /Applications/Keybase.app
@@ -173,7 +175,7 @@ else
 
   To open the DMG:
 
-    open build/Keybase-$APP_VERSION.dmg
+    open build/$DMG_NAME
 
   The build was archived to:
 
