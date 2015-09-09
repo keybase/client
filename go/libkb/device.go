@@ -1,8 +1,6 @@
 package libkb
 
 import (
-	"fmt"
-
 	keybase1 "github.com/keybase/client/protocol/go"
 	jsonw "github.com/keybase/go-jsonw"
 )
@@ -43,7 +41,7 @@ func NewPaperDevice(passphrasePrefix string) (*Device, error) {
 		return nil, err
 	}
 	s := DeviceStatusActive
-	desc := fmt.Sprintf("Paper Key (%s...)", passphrasePrefix)
+	desc := passphrasePrefix
 
 	d := &Device{
 		ID:          did,

@@ -4,6 +4,7 @@ package libkb
 
 import (
 	"fmt"
+	"strings"
 	"sync"
 
 	keybase1 "github.com/keybase/client/protocol/go"
@@ -29,6 +30,18 @@ type DeviceKey struct {
 	Status        int                  `json:"status"`
 	LksServerHalf string               `json:"lks_server_half"`
 	PPGen         PassphraseGeneration `json:"passphrase_generation"`
+}
+
+func (d DeviceKey) Display() string {
+	if d.Type == DeviceTypePaper {
+		// XXX not sure if we need to support our existing paper keys, but without this
+		// someone is surely going to complain:
+		if strings.HasPrefix(d.Description, "Paper Key") {
+			return d.Description
+		}
+		return fmt.Sprintf("Paper Key (%s...)", d.Description)
+	}
+	return d.Description
 }
 
 type DeviceKeyMap map[keybase1.DeviceID]DeviceKey

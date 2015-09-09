@@ -59,7 +59,7 @@ func (d *DevList) Run(ctx *Context) error {
 	for k, v := range devs {
 		pdevs = append(pdevs, keybase1.Device{
 			Type:     v.Type,
-			Name:     v.Description,
+			Name:     v.Display(),
 			DeviceID: k,
 			CTime:    keybase1.TimeFromSeconds(v.CTime),
 			MTime:    keybase1.TimeFromSeconds(v.MTime),
