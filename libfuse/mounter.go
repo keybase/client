@@ -37,27 +37,25 @@ type ForceMounter struct {
 }
 
 // Mount tries to mount and then unmount, re-mount if unsuccessful
-func (m ForceMounter) Mount() (c *fuse.Conn, err error) {
+func (m ForceMounter) Mount() (*fuse.Conn, error) {
 	// Volume name option is only used on OSX (ignored on other platforms).
 	volName, err := volumeName(m.Dir)
 	if err != nil {
-		return
+		return nil, err
 	}
 	options := []fuse.MountOption{fuse.VolumeName(volName)}
 
-	c, err = fuse.Mount(m.Dir, options...)
+	c, err := fuse.Mount(m.Dir, options...)
 	if err == nil {
-		return
+		return c, nil
 	}
 
-	// Mount failed, let's try to unmount and then try again
-	err = m.Unmount()
-	if err != nil {
-		return
-	}
+	// Mount failed, let's try to unmount and then try mounting again, even
+	// if unmounting errors here.
+	m.Unmount()
 
-	c, err = fuse.Mount(m.Dir)
-	return
+	c, err = fuse.Mount(m.Dir, options...)
+	return c, err
 }
 
 // Unmount tries to unmount normally and then force if unsuccessful
