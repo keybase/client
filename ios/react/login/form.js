@@ -77,7 +77,8 @@ class LoginForm extends Component {
     },
     (err, method, param, response) => {
       if (err) {
-        this.setState({error: err})
+        console.log(err)
+        this.setState({error: err.toString()})
       } else {
         switch (method) {
           case 'keybase.1.locksmithUi.promptDeviceName':

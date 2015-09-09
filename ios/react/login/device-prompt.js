@@ -49,7 +49,7 @@ class DevicePrompt extends Component {
   }
 
   submit () {
-    this.props.response.response({result: this.state.deviceName})
+    this.props.response.result({result: this.state.deviceName})
   }
 
   render () {
