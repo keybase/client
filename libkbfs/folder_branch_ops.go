@@ -3325,18 +3325,77 @@ func (fbo *FolderBranchOps) applyMDUpdates(ctx context.Context,
 	return fbo.applyMDUpdatesLocked(ctx, rmds)
 }
 
-func (fbo *FolderBranchOps) getMDRangeFromCache(
-	start MetadataRevision, end MetadataRevision, merged bool) []*RootMetadata {
+func (fbo *FolderBranchOps) getMDUnmergedRange(ctx context.Context,
+	start MetadataRevision, end MetadataRevision) ([]*RootMetadata, error) {
 	mdcache := fbo.config.MDCache()
+	// Fetch from the end, one at a time, until the first error.  This
+	// assumes that old unmerged revision are always cleared from the
+	// cache.
+	var cachedRmds []*RootMetadata
+	for i := end; i >= start; i-- {
+		rmd, err := mdcache.Get(fbo.id(), i, false)
+		if err != nil {
+			break
+		}
+		cachedRmds = append(cachedRmds, rmd)
+	}
+
+	// now reverse in place
+	for i, j := 0, len(cachedRmds)-1; i < j; i, j = i+1, j-1 {
+		cachedRmds[i], cachedRmds[j] = cachedRmds[j], cachedRmds[i]
+	}
+
+	if len(cachedRmds) == int(end-start+1) {
+		return cachedRmds, nil
+	}
+
+	// try to fetch the rest from the server
+	rmds, err := fbo.config.MDOps().GetUnmergedRange(
+		ctx, fbo.id(), start, end-MetadataRevision(len(cachedRmds)))
+	if err != nil {
+		return nil, err
+	}
+
+	for _, md := range rmds {
+		if err = mdcache.Put(md); err != nil {
+			return nil, err
+		}
+	}
+
+	return append(rmds, cachedRmds...), nil
+}
+
+func (fbo *FolderBranchOps) getMDMergedRange(ctx context.Context,
+	start MetadataRevision, end MetadataRevision) ([]*RootMetadata, error) {
+	mdcache := fbo.config.MDCache()
+	// First fetch from the cache
 	var rmds []*RootMetadata
 	for i := start; i <= end; i++ {
-		rmd, err := mdcache.Get(fbo.id(), i, merged)
+		rmd, err := mdcache.Get(fbo.id(), i, true)
 		if err != nil {
 			break
 		}
 		rmds = append(rmds, rmd)
 	}
-	return rmds
+
+	if len(rmds) == int(end-start+1) {
+		return rmds, nil
+	}
+
+	// try to fetch the rest from the server
+	fetchedRmds, err := fbo.config.MDOps().GetRange(
+		ctx, fbo.id(), start+MetadataRevision(len(rmds)), end)
+	if err != nil {
+		return nil, err
+	}
+
+	for _, md := range fetchedRmds {
+		if err = mdcache.Put(md); err != nil {
+			return nil, err
+		}
+	}
+
+	return append(rmds, fetchedRmds...), nil
 }
 
 // Assumes all necessary locking is either already done by caller, or
@@ -3351,19 +3410,12 @@ func (fbo *FolderBranchOps) getAndApplyMDUpdates(ctx context.Context,
 		// call.
 		start := currHead + 1
 		end := start + maxMDsAtATime - 1 // range is inclusive
-		rmds := fbo.getMDRangeFromCache(start, end, true)
-		if len(rmds) < maxMDsAtATime {
-			// Fetch the RMDs that are still needed.
-			// TODO: add a timeout to the context?
-			fetchedRmds, err := fbo.config.MDOps().GetRange(
-				ctx, fbo.id(), start+MetadataRevision(len(rmds)), end)
-			if err != nil {
-				return err
-			}
-			rmds = append(rmds, fetchedRmds...)
+		rmds, err := fbo.getMDMergedRange(ctx, start, end)
+		if err != nil {
+			return err
 		}
 
-		err := applyFunc(ctx, rmds)
+		err = applyFunc(ctx, rmds)
 		if err != nil {
 			return err
 		}
@@ -3386,18 +3438,12 @@ func (fbo *FolderBranchOps) undoUnmergedMDUpdatesLocked(
 			startRev = MetadataRevisionInitial
 		}
 
-		rmds := fbo.getMDRangeFromCache(startRev, currHead, false)
-		if len(rmds) < maxMDsAtATime {
-			// TODO: add a timeout to the context?
-			fetchedRmds, err := fbo.config.MDOps().GetUnmergedRange(ctx,
-				fbo.id(), startRev+MetadataRevision(len(rmds)), currHead)
-			if err != nil {
-				return err
-			}
-			rmds = append(rmds, fetchedRmds...)
+		rmds, err := fbo.getMDUnmergedRange(ctx, startRev, currHead)
+		if err != nil {
+			return err
 		}
 
-		err := fbo.undoMDUpdatesLocked(ctx, rmds)
+		err = fbo.undoMDUpdatesLocked(ctx, rmds)
 		if err != nil {
 			return err
 		}
@@ -3416,13 +3462,9 @@ func (fbo *FolderBranchOps) undoUnmergedMDUpdatesLocked(
 			// the updates.
 			fbo.transitionStagedLocked(false)
 
-			rmds := fbo.getMDRangeFromCache(currHead, currHead, true)
-			if len(rmds) == 0 {
-				rmds, err = fbo.config.MDOps().GetRange(ctx, fbo.id(),
-					currHead, currHead)
-				if err != nil {
-					return err
-				}
+			rmds, err := fbo.getMDMergedRange(ctx, currHead, currHead)
+			if err != nil {
+				return err
 			}
 			if len(rmds) == 0 {
 				return fmt.Errorf("Couldn't find the branch point %d", currHead)
