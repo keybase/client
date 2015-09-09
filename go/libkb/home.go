@@ -128,7 +128,7 @@ func (d Darwin) homeDir(dirs ...string) string {
 func (d Darwin) CacheDir() string                 { return d.homeDir(d.Home(false), "Library", "Caches") }
 func (d Darwin) ConfigDir() string                { return d.homeDir(d.Home(false), "Library", "Application Support") }
 func (d Darwin) DataDir() string                  { return d.ConfigDir() }
-func (d Darwin) RuntimeDir() string               { return d.ConfigDir() }
+func (d Darwin) RuntimeDir() string               { return d.CacheDir() }
 func (d Darwin) ServiceSpawnDir() (string, error) { return d.RuntimeDir(), nil }
 func (d Darwin) LogDir() string                   { return d.homeDir(d.Home(false), "Library", "Logs") }
 
