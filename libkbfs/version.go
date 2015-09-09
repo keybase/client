@@ -4,4 +4,4 @@ package libkbfs
 const Version = "1.0.0"
 
 // Build
-const Build = "10"
+const Build = "12"

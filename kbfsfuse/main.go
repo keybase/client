@@ -38,7 +38,7 @@ func start() *libfuse.Error {
 	flag.Parse()
 
 	if *version {
-		fmt.Printf("%s\n", libkbfs.Version)
+		fmt.Printf("%s-%s\n", libkbfs.Version, libkbfs.Build)
 		return nil
 	}
 
