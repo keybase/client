@@ -56,6 +56,15 @@ var CheckInviteCode = Checker{
 	Hint: "Invite codes are 4 or more characters",
 }
 
+var CheckDeviceName = Checker{
+	F: func(s string) bool {
+		re := regexp.MustCompile(`^[a-zA-Z0-9][ _'a-zA-Z0-9+-]*$`)
+		bad := regexp.MustCompile(`  | $|['+_-][ ]?['+_-]`)
+		return len(s) >= 3 && len(s) <= 64 && re.MatchString(s) && !bad.MatchString(s)
+	},
+	Hint: "between 3 and 64 characters long",
+}
+
 func IsYes(s string) bool {
 	s = strings.ToLower(strings.TrimSpace(s))
 	return s == "y" || s == "yes"

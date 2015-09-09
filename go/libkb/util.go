@@ -15,6 +15,7 @@ import (
 	"regexp"
 	"strings"
 	"time"
+	"unicode"
 
 	"github.com/keybase/client/go/logger"
 	keybase1 "github.com/keybase/client/protocol/go"
@@ -78,6 +79,26 @@ func Cicmp(s1, s2 string) bool {
 
 func TrimCicmp(s1, s2 string) bool {
 	return Cicmp(strings.TrimSpace(s1), strings.TrimSpace(s2))
+}
+
+func NameTrim(s string) string {
+	s = strings.ToLower(strings.TrimSpace(s))
+	strip := func(r rune) rune {
+		switch {
+		case r == '_':
+			return -1
+		case unicode.IsSpace(r):
+			return -1
+		}
+		return r
+
+	}
+	return strings.Map(strip, s)
+}
+
+// NameCmp removes whitespace and underscores, compares tolower.
+func NameCmp(n1, n2 string) bool {
+	return NameTrim(n1) == NameTrim(n2)
 }
 
 func PickFirstError(errors ...error) error {

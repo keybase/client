@@ -473,7 +473,7 @@ type LocksmithUI struct {
 }
 
 func (d LocksmithUI) PromptDeviceName(dummy int) (string, error) {
-	return d.parent.Prompt("Enter a name for this device", false, libkb.CheckNotEmpty)
+	return d.parent.Prompt("Enter a name for this device", false, libkb.CheckDeviceName)
 }
 
 func (d LocksmithUI) DeviceNameTaken(arg keybase1.DeviceNameTakenArg) error {

@@ -211,7 +211,7 @@ func (ss *SecretSyncer) IsDeviceNameTaken(name string, includeTypesSet map[strin
 		return false
 	}
 	for _, v := range devs {
-		if TrimCicmp(v.Description, name) {
+		if NameCmp(v.Description, name) {
 			return true
 		}
 	}
