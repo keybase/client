@@ -10,36 +10,30 @@
 
 #import "KBPath.h"
 
-typedef NS_ENUM (NSInteger, KBEnvType) {
-  KBEnvTypeCustom = 0,
-  KBEnvTypeProd,
-  KBEnvTypeDevel,
-  KBEnvTypeBrew,
+typedef NS_ENUM (NSInteger, KBRunMode) {
+  KBRunModeCustom = 0,
+  KBRunModeProd,
+  KBRunModeStaging,
+  KBRunModeDevel,
 };
 
 @interface KBEnvConfig : NSObject
 
 @property (nonatomic, readonly) NSString *homeDir;
-@property (readonly) NSString *host;
 @property (readonly, getter=isDebugEnabled) BOOL debugEnabled;
 @property (readonly) NSString *mountDir;
 @property (nonatomic, readonly) NSString *sockFile;
-@property (readonly, getter=isLaunchdEnabled) BOOL launchdEnabled;
-@property (readonly) NSString *launchdLabelService;
-@property (readonly) NSString *launchdLabelKBFS;
 @property (readonly) NSString *title;
 @property (readonly) NSString *info;
 @property (readonly) NSImage *image;
-@property (readonly, getter=isInstallEnabled) BOOL installEnabled; // Whether to attempt install
-@property (readonly) KBEnvType envType;
+@property (readonly) KBRunMode runMode;
 
-- (instancetype)initWithEnvType:(KBEnvType)envType;
+- (instancetype)initWithRunMode:(KBRunMode)runMode;
 
-+ (instancetype)customEnvWithHomeDir:(NSString *)homeDir sockFile:(NSString *)sockFile mountDir:(NSString *)mountDir;
++ (instancetype)envConfigWithHomeDir:(NSString *)homeDir sockFile:(NSString *)sockFile mountDir:(NSString *)mountDir;
++ (instancetype)envConfigWithRunMode:(KBRunMode)runMode;
++ (instancetype)envConfigFromUserDefaults:(NSUserDefaults *)userDefaults;
 
-+ (instancetype)envType:(KBEnvType)envType;
-
-+ (instancetype)loadFromUserDefaults:(NSUserDefaults *)userDefaults;
 - (void)saveToUserDefaults:(NSUserDefaults *)userDefaults;
 
 - (BOOL)isHomeDirSet;
@@ -54,5 +48,10 @@ typedef NS_ENUM (NSInteger, KBEnvType) {
 
 - (BOOL)validate:(NSError **)error;
 
+- (NSString *)launchdServiceLabel;
+- (NSString *)launchdKBFSLabel;
+
 @end
+
+NSString *NSStringFromKBRunMode(KBRunMode runMode, BOOL isValue);
 

@@ -17,7 +17,7 @@
 @implementation KBEnvConfigTest
 
 - (void)test {
-  KBEnvConfig *config = [KBEnvConfig envType:KBEnvTypeProd];
+  KBEnvConfig *config = [KBEnvConfig envConfigWithRunMode:KBRunModeProd];
   // TODO
   XCTAssertNotNil(config);
 }

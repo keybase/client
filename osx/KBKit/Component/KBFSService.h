@@ -14,6 +14,6 @@
 
 @interface KBFSService : NSObject <KBComponent, KBInstallable>
 
-- (instancetype)initWithConfig:(KBEnvConfig *)config;
+- (instancetype)initWithConfig:(KBEnvConfig *)config label:(NSString *)label;
 
 @end

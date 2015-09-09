@@ -62,18 +62,17 @@
   return info;
 }
 
-- (void)waitForVersionFile:(NSTimeInterval)timeout completion:(void (^)(NSString *runningVersion))completion {
-  NSString *versionPath = _versionPath;
++ (void)waitForVersionFile:(NSString *)versionFile timeout:(NSTimeInterval)timeout reason:(NSString *)reason completion:(void (^)(NSString *runningVersion))completion {
   KBWaitForBlock block = ^(KBWaitForCheck completion) {
-    if (!versionPath) {
+    if (!versionFile) {
       completion(YES, nil);
     } else {
-      NSString *version = [NSString stringWithContentsOfFile:versionPath encoding:NSUTF8StringEncoding error:nil];
+      NSString *version = [NSString stringWithContentsOfFile:versionFile encoding:NSUTF8StringEncoding error:nil];
       if (version) DDLogDebug(@"Version file: %@", version);
       completion(NO, version);
     }
   };
-  [KBWaitFor waitFor:block delay:0.5 timeout:timeout label:NSStringWithFormat(@"%@ (version file)", _label) completion:completion];
+  [KBWaitFor waitFor:block delay:0.5 timeout:timeout label:NSStringWithFormat(@"%@ (version file)", reason) completion:completion];
 }
 
 - (void)updateComponentStatus:(NSTimeInterval)timeout completion:(void (^)(KBComponentStatus *componentStatus, KBServiceStatus *serviceStatus))completion {
@@ -86,6 +85,7 @@
     return;
   }
   NSString *label = _label;
+  NSString *versionPath = _versionPath;
   [KBLaunchCtl status:label completion:^(KBServiceStatus *serviceStatus) {
     self.serviceStatus = serviceStatus;
     if (!serviceStatus) {
@@ -103,7 +103,7 @@
       self.componentStatus = [KBComponentStatus componentStatusWithError:serviceStatus.error];
       completion(self.componentStatus, self.serviceStatus);
     } else {
-      [self waitForVersionFile:timeout completion:^(NSString *runningVersion) {
+      [KBLaunchService waitForVersionFile:versionPath timeout:timeout reason:label completion:^(NSString *runningVersion) {
         GHODictionary *info = [GHODictionary dictionary];
         if (serviceStatus.isRunning && runningVersion) {
           self.runningVersion = [KBSemVersion version:runningVersion];

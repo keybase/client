@@ -13,10 +13,10 @@
 
 #import "KBWorkspace.h"
 #import "KBAppExtension.h"
-#import "KBService.h"
+#import "KBRPClient.h"
 
 @interface KBFinder ()
-@property (nonatomic) KBService *service;
+@property (nonatomic) KBRPClient *client;
 @end
 
 @implementation KBFinder
@@ -46,12 +46,12 @@
   return self;
 }
 
-- (KBService *)service {
-  if (!_service) {
-    KBEnvConfig *config = [KBEnvConfig loadFromUserDefaults:[KBWorkspace userDefaults]];
-    _service = [[KBService alloc] initWithConfig:config];
+- (KBRPClient *)client {
+  if (!_client) {
+    KBEnvConfig *config = [KBEnvConfig envConfigFromUserDefaults:[KBWorkspace userDefaults]];
+    _client = [[KBRPClient alloc] initWithConfig:config];
   }
-  return _service;
+  return _client;
 }
 
 - (void)badgeIdForPath:(NSString *)path completion:(void (^)(NSString *badgeId))completion {

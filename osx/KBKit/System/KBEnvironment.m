@@ -29,23 +29,29 @@
 
 @implementation KBEnvironment
 
-- (instancetype)initWithConfig:(KBEnvConfig *)config {
+- (instancetype)initWithConfig:(KBEnvConfig *)config serviceLabel:(NSString *)serviceLabel {
   if ((self = [super init])) {
     _config = config;
-    _service = [[KBService alloc] initWithConfig:config];
+    _service = [[KBService alloc] initWithConfig:config label:serviceLabel];
 
     KBHelperTool *helperTool = [[KBHelperTool alloc] initWithConfig:config];
     KBFuseComponent *fuse = [[KBFuseComponent alloc] initWithConfig:config];
-    _kbfs = [[KBFSService alloc] initWithConfig:config];
+    _kbfs = [[KBFSService alloc] initWithConfig:config label:[config launchdKBFSLabel]];
 
     _installables = [NSArray arrayWithObjects:_service, helperTool, fuse, _kbfs, nil];
     _services = [NSArray arrayWithObjects:_service, _kbfs, nil];
     _components = [NSMutableArray arrayWithObjects:_service, _kbfs, helperTool, fuse, nil];
 
-    NSArray *installables = _config.isInstallEnabled ? _installables : nil;
+    NSArray *installables = !!serviceLabel ? _installables : nil;
     _installActions = [installables map:^(id<KBInstallable> i) { return [KBInstallAction installActionWithInstallable:i]; }];
   }
   return self;
+}
+
++ (void)lookupForConfig:(KBEnvConfig *)config completion:(void (^)(KBEnvironment *environment))completion {
+  [KBService lookup:config completion:^(NSError *error, NSString *label) {
+    completion([[KBEnvironment alloc] initWithConfig:config serviceLabel:label]);
+  }];
 }
 
 - (NSArray *)componentsForControlPanel {

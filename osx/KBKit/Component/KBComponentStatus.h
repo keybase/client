@@ -12,6 +12,7 @@
 
 typedef NS_ENUM (NSInteger, KBInstallStatus) {
   KBInstallStatusError = 1,
+  KBInstallStatusUnknown,
   KBInstallStatusNotInstalled,
   KBInstallStatusNeedsUpgrade,
   KBInstallStatusInstalled,

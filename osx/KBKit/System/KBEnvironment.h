@@ -21,7 +21,7 @@
 @property (readonly) NSArray */*of KBInstallAction*/installActions;
 @property (readonly) NSArray */*of id<KBInstallable>*/installables;
 
-- (instancetype)initWithConfig:(KBEnvConfig *)config;
++ (void)lookupForConfig:(KBEnvConfig *)config completion:(void (^)(KBEnvironment *environment))completion;
 
 - (NSArray *)installActionsNeeded;
 

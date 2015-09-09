@@ -14,7 +14,7 @@
 #import "KBRPC.h"
 #import "KBEnvironment.h"
 
-typedef void (^KBEnvSelect)(KBEnvironment *environment);
+typedef void (^KBEnvSelect)(KBEnvConfig *envConfig);
 
 @interface KBEnvSelectView : YOView
 

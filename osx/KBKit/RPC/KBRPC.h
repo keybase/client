@@ -56,6 +56,17 @@
 @property NSInteger fd;
 @end
 
+typedef NS_ENUM (NSInteger, KBRLogLevel) {
+	KBRLogLevelNone = 0,
+	KBRLogLevelDebug = 1,
+	KBRLogLevelInfo = 2,
+	KBRLogLevelNotice = 3,
+	KBRLogLevelWarn = 4,
+	KBRLogLevelError = 5,
+	KBRLogLevelCritical = 6,
+	KBRLogLevelFatal = 7,
+};
+
 @interface KBRBlockIdCombo : KBRObject
 @property NSString *blockHash;
 @property NSString *chargedTo;
@@ -76,6 +87,7 @@
 @interface KBRConfig : KBRObject
 @property NSString *serverURI;
 @property NSString *socketFile;
+@property NSString *label;
 @property BOOL gpgExists;
 @property NSString *gpgPath;
 @property NSString *version;
@@ -349,16 +361,6 @@ typedef NS_ENUM (NSInteger, KBRKexStatusCode) {
 	KBRKexStatusCodeEnd = 12,
 };
 
-typedef NS_ENUM (NSInteger, KBRLogLevel) {
-	KBRLogLevelNone = 0,
-	KBRLogLevelDebug = 1,
-	KBRLogLevelInfo = 2,
-	KBRLogLevelNotice = 3,
-	KBRLogLevelWarn = 4,
-	KBRLogLevelError = 5,
-	KBRLogLevelCritical = 6,
-};
-
 @interface KBRConfiguredAccount : KBRObject
 @property NSString *username;
 @property BOOL hasStoredSecret;
@@ -461,6 +463,7 @@ typedef NS_ENUM (NSInteger, KBRPromptOverwriteType) {
 @property NSString *err;
 @property NSString *cancel;
 @property NSString *ok;
+@property NSString *reason;
 @property BOOL useSecretStore;
 @end
 
@@ -633,6 +636,9 @@ typedef NS_ENUM (NSInteger, KBRPromptDefault) {
 @property NSData *peersPublicKey;
 @property NSString *reason;
 @end
+@interface KBRSetLogLevelRequestParams : KBRRequestParams
+@property KBRLogLevel level;
+@end
 @interface KBRDeviceListRequestParams : KBRRequestParams
 @property NSInteger sessionID;
 @end
@@ -803,6 +809,7 @@ typedef NS_ENUM (NSInteger, KBRPromptDefault) {
 @interface KBRPromptRevokePaperKeysRequestParams : KBRRequestParams
 @property NSInteger sessionID;
 @property KBRDevice *device;
+@property NSInteger index;
 @end
 @interface KBRDisplayPaperKeyPhraseRequestParams : KBRRequestParams
 @property NSInteger sessionID;
@@ -845,6 +852,10 @@ typedef NS_ENUM (NSInteger, KBRPromptDefault) {
 @end
 @interface KBRTruncateUnlockRequestParams : KBRRequestParams
 @property NSString *folderID;
+@end
+@interface KBRMetadataUpdateRequestParams : KBRRequestParams
+@property NSString *folderID;
+@property long revision;
 @end
 @interface KBRPgpSignRequestParams : KBRRequestParams
 @property NSInteger sessionID;
@@ -897,6 +908,7 @@ typedef NS_ENUM (NSInteger, KBRPromptDefault) {
 @property KBRPGPCreateUids *createUids;
 @property BOOL allowMulti;
 @property BOOL doExport;
+@property BOOL pushSecret;
 @end
 @interface KBRPgpKeyGenDefaultRequestParams : KBRRequestParams
 @property NSInteger sessionID;
@@ -1012,6 +1024,7 @@ typedef NS_ENUM (NSInteger, KBRPromptDefault) {
 @property NSString *passphrase;
 @property NSString *username;
 @property NSString *deviceName;
+@property BOOL storeSecret;
 @end
 @interface KBRInviteRequestRequestParams : KBRRequestParams
 @property NSInteger sessionID;
@@ -1176,6 +1189,12 @@ typedef NS_ENUM (NSInteger, KBRPromptDefault) {
 - (void)stop:(void (^)(NSError *error))completion;
 
 - (void)logRotate:(void (^)(NSError *error))completion;
+
+- (void)setLogLevel:(KBRSetLogLevelRequestParams *)params completion:(void (^)(NSError *error))completion;
+
+- (void)setLogLevelWithLevel:(KBRLogLevel)level completion:(void (^)(NSError *error))completion;
+
+- (void)reload:(void (^)(NSError *error))completion;
 
 @end
 
@@ -1366,7 +1385,7 @@ typedef NS_ENUM (NSInteger, KBRPromptDefault) {
 
 - (void)promptRevokePaperKeys:(KBRPromptRevokePaperKeysRequestParams *)params completion:(void (^)(NSError *error, BOOL b))completion;
 
-- (void)promptRevokePaperKeysWithDevice:(KBRDevice *)device completion:(void (^)(NSError *error, BOOL b))completion;
+- (void)promptRevokePaperKeysWithDevice:(KBRDevice *)device index:(NSInteger)index completion:(void (^)(NSError *error, BOOL b))completion;
 
 - (void)displayPaperKeyPhrase:(KBRDisplayPaperKeyPhraseRequestParams *)params completion:(void (^)(NSError *error))completion;
 
@@ -1418,6 +1437,14 @@ typedef NS_ENUM (NSInteger, KBRPromptDefault) {
 
 @end
 
+@interface KBRMetadataUpdateRequest : KBRRequest
+
+- (void)metadataUpdate:(KBRMetadataUpdateRequestParams *)params completion:(void (^)(NSError *error))completion;
+
+- (void)metadataUpdateWithFolderID:(NSString *)folderID revision:(long)revision completion:(void (^)(NSError *error))completion;
+
+@end
+
 @interface KBRPgpRequest : KBRRequest
 
 - (void)pgpSign:(KBRPgpSignRequestParams *)params completion:(void (^)(NSError *error))completion;
@@ -1458,7 +1485,7 @@ typedef NS_ENUM (NSInteger, KBRPromptDefault) {
 
 - (void)pgpKeyGen:(KBRPgpKeyGenRequestParams *)params completion:(void (^)(NSError *error))completion;
 
-- (void)pgpKeyGenWithPrimaryBits:(NSInteger)primaryBits subkeyBits:(NSInteger)subkeyBits createUids:(KBRPGPCreateUids *)createUids allowMulti:(BOOL)allowMulti doExport:(BOOL)doExport completion:(void (^)(NSError *error))completion;
+- (void)pgpKeyGenWithPrimaryBits:(NSInteger)primaryBits subkeyBits:(NSInteger)subkeyBits createUids:(KBRPGPCreateUids *)createUids allowMulti:(BOOL)allowMulti doExport:(BOOL)doExport pushSecret:(BOOL)pushSecret completion:(void (^)(NSError *error))completion;
 
 - (void)pgpKeyGenDefault:(KBRPgpKeyGenDefaultRequestParams *)params completion:(void (^)(NSError *error))completion;
 
@@ -1578,7 +1605,7 @@ typedef NS_ENUM (NSInteger, KBRPromptDefault) {
 
 - (void)signup:(KBRSignupRequestParams *)params completion:(void (^)(NSError *error, KBRSignupRes *signupRes))completion;
 
-- (void)signupWithEmail:(NSString *)email inviteCode:(NSString *)inviteCode passphrase:(NSString *)passphrase username:(NSString *)username deviceName:(NSString *)deviceName completion:(void (^)(NSError *error, KBRSignupRes *signupRes))completion;
+- (void)signupWithEmail:(NSString *)email inviteCode:(NSString *)inviteCode passphrase:(NSString *)passphrase username:(NSString *)username deviceName:(NSString *)deviceName storeSecret:(BOOL)storeSecret completion:(void (^)(NSError *error, KBRSignupRes *signupRes))completion;
 
 - (void)inviteRequest:(KBRInviteRequestRequestParams *)params completion:(void (^)(NSError *error))completion;
 

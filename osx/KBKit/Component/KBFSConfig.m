@@ -63,20 +63,20 @@
   return pargs;
 }
 
-- (NSDictionary *)launchdPlistDictionary {
-  if (!_config.launchdLabelKBFS) return nil;
+- (NSDictionary *)launchdPlistDictionary:(NSString *)label {
+  NSParameterAssert(label);
 
   NSArray *args = [self programArgumentsWithPathOptions:0 useBundle:YES args:nil];
   NSDictionary *envs = [self envsWithPathOptions:0];
   return @{
-           @"Label": _config.launchdLabelKBFS,
+           @"Label": label,
            @"EnvironmentVariables": envs,
            @"ProgramArguments": args,
            @"RunAtLoad": @YES,
            @"KeepAlive": @YES,
            @"WorkingDirectory": [_config appPath:nil options:0],
-           @"StandardOutPath": [_config logFile:_config.launchdLabelKBFS],
-           @"StandardErrorPath": [_config logFile:_config.launchdLabelKBFS],
+           @"StandardOutPath": [_config logFile:label],
+           @"StandardErrorPath": [_config logFile:label],
            };
 }
 

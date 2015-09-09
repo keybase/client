@@ -45,8 +45,8 @@
   GHWeakSelf gself = self;
   _listView = [KBListView listViewWithPrototypeClass:KBImageTextCell.class rowHeight:0];
   _listView.scrollView.borderType = NSBezelBorder;
-  _listView.onSet = ^(KBImageTextView *label, KBEnvironment *env, NSIndexPath *indexPath, NSTableColumn *tableColumn, KBListView *listView, BOOL dequeued) {
-    [label setTitle:env.config.title info:env.config.info image:env.config.image lineBreakMode:NSLineBreakByClipping];
+  _listView.onSet = ^(KBImageTextView *label, KBEnvConfig *envConfig, NSIndexPath *indexPath, NSTableColumn *tableColumn, KBListView *listView, BOOL dequeued) {
+    [label setTitle:envConfig.title info:envConfig.info image:envConfig.image lineBreakMode:NSLineBreakByClipping];
   };
   _listView.onSelect = ^(KBTableView *tableView, KBTableSelection *selection) {
     [gself select:selection.object];
@@ -66,63 +66,68 @@
 
   _customView = [[KBCustomEnvView alloc] init];
 
-  NSArray *envs = @[
-                    [[KBEnvironment alloc] initWithConfig:[KBEnvConfig envType:KBEnvTypeProd]],
-                    [[KBEnvironment alloc] initWithConfig:[KBEnvConfig envType:KBEnvTypeDevel]],
-                    [[KBEnvironment alloc] initWithConfig:[KBEnvConfig envType:KBEnvTypeBrew]],
-                    [[KBEnvironment alloc] initWithConfig:[KBEnvConfig loadFromUserDefaults:[KBWorkspace userDefaults]]],
+  NSArray *envConfigs = @[
+                          [KBEnvConfig envConfigWithRunMode:KBRunModeProd],
+                          [KBEnvConfig envConfigWithRunMode:KBRunModeStaging],
+                          [KBEnvConfig envConfigWithRunMode:KBRunModeDevel],
+                          [KBEnvConfig envConfigFromUserDefaults:[KBWorkspace userDefaults]],
                     ];
-  [_listView setObjects:envs animated:NO];
+  [_listView setObjects:envConfigs animated:NO];
 
   NSString *title = [[KBWorkspace userDefaults] objectForKey:@"Env"];
-  KBEnvironment *selected = [envs detect:^BOOL(KBEnvironment *e) { return [e.config.title isEqualToString:title]; }];
-  if (selected) [_listView setSelectedRow:[envs indexOfObject:selected]];
+  KBEnvironment *selected = [envConfigs detect:^BOOL(KBEnvConfig *c) { return [c.title isEqualToString:title]; }];
+  if (selected) [_listView setSelectedRow:[envConfigs indexOfObject:selected]];
   else [_listView setSelectedRow:[_listView.dataSource countForSection:0] - 1];
 }
 
-- (void)select:(KBEnvironment *)environment {
-  [_splitView setRightView:[self viewForEnvironment:environment]];
+- (void)select:(KBEnvConfig *)envConfig {
+  [_splitView setRightView:[self viewForEnvConfig:envConfig]];
 }
 
 - (void)next {
-  KBEnvironment *env = _listView.selectedObject;
+  KBEnvConfig *envConfig = _listView.selectedObject;
+  [self selectEnvConfig:envConfig];
+}
 
+/*
+- (void)checkHomebrew:(void (^)(BOOL exists))completion {
+  NSString *launchAgentDir = [[NSSearchPathForDirectoriesInDomains(NSLibraryDirectory, NSUserDomainMask, YES) firstObject] stringByAppendingPathComponent:@"LaunchAgents"];
+  NSString *plistDest = [launchAgentDir stringByAppendingPathComponent:@"homebrew.mxcl.keybase.plist"];
+
+  if ([NSFileManager.defaultManager fileExistsAtPath:plistDest isDirectory:nil]) {
+    completion(YES);
+    return;
+    //[KBLaunchCtl status:@"homebrew.mxcl.keybase" completion:^(KBServiceStatus *serviceStatus) { completion(serviceStatus); }];
+  }
+
+  completion(NO);
+}
+ */
+
+- (void)selectEnvConfig:(KBEnvConfig *)envConfig {
   NSUserDefaults *userDefaults = [KBWorkspace userDefaults];
-  [userDefaults setObject:env.config.title forKey:@"Env"];
+  [userDefaults setObject:envConfig.title forKey:@"Env"];
   [userDefaults synchronize];
 
-  if (env.config.envType == KBEnvTypeCustom) {
-    KBEnvConfig *config = [_customView config];
-    [config saveToUserDefaults:[KBWorkspace userDefaults]];
+  if (envConfig.runMode == KBRunModeCustom) {
+    envConfig = [_customView config];
+    [envConfig saveToUserDefaults:[KBWorkspace userDefaults]];
     NSError *error = nil;
-    if (![config validate:&error]) {
+    if (![envConfig validate:&error]) {
       [KBActivity setError:error sender:self];
       return;
     }
-    self.onSelect([[KBEnvironment alloc] initWithConfig:config]);
-  } else if (env.config.envType == KBEnvTypeProd) {
+    self.onSelect(envConfig);
+  } else if (envConfig.runMode == KBRunModeProd) {
     [KBActivity setError:KBMakeError(KBErrorCodeUnsupported, @"Not supported yet") sender:self];
   } else {
-    self.onSelect(env);
+    self.onSelect(envConfig);
   }
 }
 
-- (void)uninstall {
-  KBEnvironment *env = _listView.selectedObject;
-  KBInstaller *installer = [[KBInstaller alloc] init];
-  [KBAlert yesNoWithTitle:@"Uninstall" description:NSStringWithFormat(@"Are you sure you want to uninstall %@?", env.config.title) yes:@"Uninstall" view:self completion:^(BOOL yes) {
-    [installer uninstallWithEnvironment:env completion:^(NSArray *uninstallActions) {
-      NSArray *errors = [uninstallActions select:^BOOL(KBInstallAction *uninstallAction) { return !!uninstallAction.error; }];
-      if ([errors count] > 0) {
-        [KBActivity setError:KBErrorAlert(@"There was an error uninstalling.") sender:self];
-      }
-    }];
-  }];
-}
-
-- (NSView *)viewForEnvironment:(KBEnvironment *)environment {
-  if (environment.config.envType == KBEnvTypeCustom) {
-    [_customView setConfig:environment.config];
+- (NSView *)viewForEnvConfig:(KBEnvConfig *)envConfig {
+  if (envConfig.runMode == KBRunModeCustom) {
+    [_customView setConfig:envConfig];
     return _customView;
   }
 
@@ -140,22 +145,12 @@
     return view;
   };
 
-  KBEnvConfig *config = environment.config;
-  if (config.host) [labels addSubview:createView(@"Host", config.host)];
-  if (config.mountDir) [labels addSubview:createView(@"Mount", [KBPath path:config.mountDir options:KBPathOptionsTilde])];
-  if (config.isLaunchdEnabled) {
-    [labels addSubview:createView(@"Service Launchd", config.launchdLabelService)];
-    [labels addSubview:createView(@"KBFS Launchd", config.launchdLabelKBFS)];
-  }
+  [labels addSubview:createView(@"Run Mode", NSStringFromKBRunMode(envConfig.runMode, NO))];
+  if (envConfig.mountDir) [labels addSubview:createView(@"Mount", [KBPath path:envConfig.mountDir options:KBPathOptionsTilde])];
 
-  if (!config.isInstallEnabled) {
-    [labels addSubview:createView(@" ", @"Installer Disabled")];
+  if (envConfig.sockFile) {
+    [labels addSubview:createView(@"Connect", envConfig.sockFile)];
   }
-
-  GHWeakSelf gself = self;
-  YOHBox *buttons = [YOHBox box];
-  [view addSubview:buttons];
-  [buttons addSubview:[KBButton buttonWithText:@"Uninstall" style:KBButtonStyleDefault options:KBButtonOptionsToolbar targetBlock:^{ [gself uninstall]; }]];
 
   return view;
 }

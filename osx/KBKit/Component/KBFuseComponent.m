@@ -66,11 +66,13 @@
   helper.timeout = 10;
   [helper sendRequest:@"version" params:nil completion:^(NSError *error, NSDictionary *versions) {
     if (error) {
-      self.componentStatus = [KBComponentStatus componentStatusWithInstallStatus:KBInstallStatusNotInstalled runtimeStatus:KBRuntimeStatusNotRunning info:nil];
+      self.componentStatus = [KBComponentStatus componentStatusWithInstallStatus:KBInstallStatusUnknown runtimeStatus:KBRuntimeStatusNone info:nil];
       completion(error);
     } else {
-      KBSemVersion *runningVersion = [KBSemVersion version:KBIfNull(versions[@"fuseRunningVersion"], nil)];
-      KBSemVersion *installedVersion = [KBSemVersion version:KBIfNull(versions[@"fuseInstalledVersion"], nil)];
+      NSString *fuseRunningVersion = KBIfNull(versions[@"fuseRunningVersion"], nil);
+      NSString *fuseInstalledVersion = KBIfNull(versions[@"fuseInstalledVersion"], nil);
+      KBSemVersion *runningVersion = [KBSemVersion version:fuseRunningVersion];
+      KBSemVersion *installedVersion = [KBSemVersion version:fuseInstalledVersion];
       self.version = runningVersion;
       if (runningVersion) info[@"Version"] = [runningVersion description];
       if (!runningVersion) {

@@ -40,4 +40,6 @@ typedef void (^KBLaunchComponentStatus)(KBComponentStatus *componentStatus, KBSe
 
 - (void)updateComponentStatus:(NSTimeInterval)timeout completion:(KBLaunchComponentStatus)completion;
 
++ (void)waitForVersionFile:(NSString *)versionFile timeout:(NSTimeInterval)timeout reason:(NSString *)reason completion:(void (^)(NSString *runningVersion))completion;
+
 @end

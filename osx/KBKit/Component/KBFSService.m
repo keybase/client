@@ -23,16 +23,19 @@
 
 @implementation KBFSService
 
-- (instancetype)initWithConfig:(KBEnvConfig *)config {
+- (instancetype)initWithConfig:(KBEnvConfig *)config label:(NSString *)label {
   if ((self = [self init])) {
     _config = config;
     _name = @"KBFS";
     _info = @"The filesystem";
-    NSDictionary *info = [[NSBundle mainBundle] infoDictionary];
     _kbfsConfig = [[KBFSConfig alloc] initWithConfig:_config];
-    NSDictionary *plist = [_kbfsConfig launchdPlistDictionary];
-    KBSemVersion *bundleVersion = [KBSemVersion version:info[@"KBFSVersion"] build:info[@"KBFSBuild"]];
-    _launchService = [[KBLaunchService alloc] initWithLabel:config.launchdLabelKBFS bundleVersion:bundleVersion versionPath:_kbfsConfig.versionPath plist:plist logFile:[config logFile:config.launchdLabelKBFS]];
+
+    if (label) {
+      NSDictionary *info = [[NSBundle mainBundle] infoDictionary];
+      NSDictionary *plist = [_kbfsConfig launchdPlistDictionary:label];
+      KBSemVersion *bundleVersion = [KBSemVersion version:info[@"KBFSVersion"] build:info[@"KBFSBuild"]];
+      _launchService = [[KBLaunchService alloc] initWithLabel:label bundleVersion:bundleVersion versionPath:_kbfsConfig.versionPath plist:plist logFile:[config logFile:label]];
+    }
   }
   return self;
 }
@@ -54,7 +57,7 @@
   GHODictionary *statusInfo = [_launchService componentStatusInfo];
   if (statusInfo) [info addEntriesFromOrderedDictionary:statusInfo];
 
-  if (self.config.installEnabled) {
+  if (_launchService) {
     info[@"Launchd Plist"] = [KBPath path:[_launchService plistDestination] options:KBPathOptionsTilde];
   }
 

@@ -94,9 +94,11 @@
   KBEnvSelectView *envSelectView = [[KBEnvSelectView alloc] init];
   KBNavigationView *navigation = [[KBNavigationView alloc] initWithView:envSelectView title:@"Keybase"];
   KBWindow *window = [KBWindow windowWithContentView:navigation size:CGSizeMake(900, 600) retain:YES];
-  envSelectView.onSelect = ^(KBEnvironment *environment) {
+  envSelectView.onSelect = ^(KBEnvConfig *envConfig) {
     [window close];
-    [self openWithEnvironment:environment];
+    [KBEnvironment lookupForConfig:envConfig completion:^(KBEnvironment *environment) {
+      [self openWithEnvironment:environment];
+    }];
   };
   window.styleMask = NSFullSizeContentViewWindowMask | NSTitledWindowMask | NSResizableWindowMask;
   [window center];

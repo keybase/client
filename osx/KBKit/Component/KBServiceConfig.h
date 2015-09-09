@@ -17,7 +17,7 @@
 
 - (instancetype)initWithConfig:(KBEnvConfig *)config;
 
-- (NSDictionary *)launchdPlistDictionary;
+- (NSDictionary *)launchdPlistDictionary:(NSString *)label;
 
 - (NSString *)commandLineWithPathOptions:(KBPathOptions)pathOptions;
 

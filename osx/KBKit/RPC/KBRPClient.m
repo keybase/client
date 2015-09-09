@@ -40,7 +40,18 @@
   return self;
 }
 
++ (MPMessagePackClient *)msgpackClient {
+  MPMessagePackClient *client = [[MPMessagePackClient alloc] initWithName:@"KBRPClient" options:MPMessagePackOptionsFramed];
+  client.coder = [[KBRPCCoder alloc] init];
+  return client;
+}
+
 - (void)open:(KBCompletion)completion {
+  NSAssert(_config.sockFile, @"No sockFile");
+  [self open:_config.sockFile completion:completion];
+}
+
+- (void)open:(NSString *)socketFile completion:(KBCompletion)completion {
   NSParameterAssert(completion);
   if (self.status != KBRPClientStatusClosed) {
     completion(KBMakeError(KBErrorCodeAlreadyOpen, @"Already open"));
@@ -57,9 +68,8 @@
 
   _status = KBRPClientStatusOpening;
 
-  _client = [[MPMessagePackClient alloc] initWithName:@"KBRPClient" options:MPMessagePackOptionsFramed];
+  _client = [KBRPClient msgpackClient];
   _client.delegate = self;
-  _client.coder = [[KBRPCCoder alloc] init];
 
 //  _recorder = [[KBRPCRecord alloc] init];
   
@@ -113,16 +123,16 @@
     }
   };
 
-  [self _open:completion];
+  [self _open:socketFile completion:completion];
 }
 
-- (void)_open:(KBCompletion)completion {
+- (void)_open:(NSString *)socketFile completion:(KBCompletion)completion {
   NSParameterAssert(completion);
   KBLog(KBLogRPC|KBLogDebug, @"Connecting (%@): %@", @(_connectAttempt), [self.config sockFile]);
   _connectAttempt++;
   GHWeakSelf gself = self;
   [self.delegate RPClientWillConnect:self];
-  [_client openWithSocket:[self.config sockFile] completion:^(NSError *error) {
+  [_client openWithSocket:socketFile completion:^(NSError *error) {
     if (error) {
       gself.status = KBRPClientStatusClosed;
 
@@ -244,13 +254,6 @@
 //  }
 }
 
-- (void)check:(void (^)(NSError *error, NSString *version))completion {
-  KBRConfigRequest *request = [[KBRConfigRequest alloc] initWithClient:self];
-  [request getConfig:^(NSError *error, KBRConfig *config) {
-    completion(error, config.version);
-  }];
-}
-
 - (void)registerMethod:(NSString *)method sessionId:(NSNumber *)sessionId requestHandler:(MPRequestHandler)requestHandler {
   NSParameterAssert(sessionId);
   if (!self.registrations) self.registrations = [GHODictionary dictionary];
@@ -264,16 +267,6 @@
 
 - (void)unregister:(NSNumber *)sessionId {
   [self.registrations removeObjectForKey:sessionId];
-}
-
-- (void)openAndCheck:(void (^)(NSError *error, NSString *version))completion {
-  [self open:^(NSError *error) {
-    if (error) {
-      completion(error, nil);
-      return;
-    }
-    [self check:completion];
-  }];
 }
 
 NSDictionary *KBScrubSensitive(NSDictionary *dict) {

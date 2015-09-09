@@ -12,73 +12,53 @@
 #import "KBPath.h"
 #import <KBAppKit/KBAppKit.h>
 
-#define LOCALHOST (@"http://localhost:3000")
-#define PRODHOST (@"https://api.keybase.io:443")
-
 @interface KBEnvConfig ()
 @property NSString *homeDir;
-@property NSString *host;
 @property (getter=isDebugEnabled) BOOL debugEnabled;
 @property NSString *mountDir;
 @property NSString *sockFile;
-@property (getter=isLaunchdEnabled) BOOL launchdEnabled;
-@property NSString *launchdLabelService;
-@property NSString *launchdLabelKBFS;
 @property NSString *title;
 @property NSString *info;
 @property NSImage *image;
-@property (getter=isInstallEnabled) BOOL installEnabled;
-@property KBEnvType envType;
+@property KBRunMode runMode;
 @end
 
 @implementation KBEnvConfig
 
-+ (instancetype)envType:(KBEnvType)envType {
-  return [[self.class alloc] initWithEnvType:envType];
++ (instancetype)envConfigWithRunMode:(KBRunMode)runMode {
+  return [[self.class alloc] initWithRunMode:runMode];
 }
 
-- (instancetype)initWithEnvType:(KBEnvType)envType {
+- (instancetype)initWithRunMode:(KBRunMode)runMode {
   if ((self = [super init])) {
-    _envType = envType;
-    switch (_envType) {
-      case KBEnvTypeProd: {
+    _runMode = runMode;
+    switch (_runMode) {
+      case KBRunModeProd: {
         self.title = @"Keybase.io";
-        self.host = PRODHOST;
         self.mountDir = [KBPath path:@"~/Keybase" options:0];
         self.debugEnabled = YES;
         self.info = @"Uses keybase.io";
         self.image = [NSImage imageNamed:NSImageNameNetwork];
-        self.launchdEnabled = YES;
-        self.installEnabled = YES;
-        self.launchdLabelService = @"keybase.Service";
-        self.launchdLabelKBFS = @"keybase.KBFS";
         break;
       }
-      case KBEnvTypeDevel: {
-        self.title = @"Local";
-        self.host = LOCALHOST;
-        self.mountDir = [KBPath path:@"~/Keybase.local" options:0];
+      case KBRunModeStaging: {
+        self.title = @"Staging";
+        self.mountDir = [KBPath path:@"~/Keybase.stage" options:0];
         self.debugEnabled = YES;
-        self.info = @"Uses the localhost web server";
+        self.info = @"Uses staging server.";
+        self.image = [NSImage imageNamed:NSImageNameNetwork];
+        break;
+      }
+      case KBRunModeDevel: {
+        self.title = @"Devel";
+        self.mountDir = [KBPath path:@"~/Keybase.devel" options:0];
+        self.debugEnabled = YES;
+        self.info = @"Uses the local web server.";
         self.image = [NSImage imageNamed:NSImageNameComputer];
-        self.launchdEnabled = YES;
-        self.launchdLabelService = @"keybase.Service.localhost";
-        self.launchdLabelKBFS = @"keybase.KBFS.localhost";
-        self.installEnabled = YES;
         break;
       }
-      case KBEnvTypeBrew: {
-        self.title = @"Homebrew";
-        self.mountDir = [KBPath path:@"~/Keybase.brew" options:0];
-        self.debugEnabled = YES;
-        self.info = @"Uses homebrew install";
-        self.image = [KBIcons imageForIcon:KBIconExecutableBinary];
-        self.launchdEnabled = NO;
-        self.installEnabled = NO;
-        break;
-      }
-      case KBEnvTypeCustom:
-        [NSException raise:NSInvalidArgumentException format:@"For custom env, use customEnvWithHomeDir:..."];
+      case KBRunModeCustom:
+        [NSException raise:NSInvalidArgumentException format:@"For custom env, use envConfigWithHomeDir:..."];
         break;
     }
   }
@@ -90,13 +70,13 @@
   return [KBPath pathInDir:dir path:path options:0];
 }
 
-+ (instancetype)loadFromUserDefaults:(NSUserDefaults *)userDefaults {
++ (instancetype)envConfigFromUserDefaults:(NSUserDefaults *)userDefaults {
   NSString *homeDir = [userDefaults stringForKey:@"HomeDir"];
   NSString *mountDir = [userDefaults stringForKey:@"MountDir"];
 
   if (!mountDir) mountDir = [KBPath path:@"~/Keybase.dev" options:0];
 
-  return [KBEnvConfig customEnvWithHomeDir:homeDir sockFile:nil mountDir:mountDir];
+  return [KBEnvConfig envConfigWithHomeDir:homeDir sockFile:nil mountDir:mountDir];
 }
 
 - (void)saveToUserDefaults:(NSUserDefaults *)userDefaults {
@@ -106,10 +86,8 @@
 }
 
 - (NSString *)appName {
-    switch (_envType) {
-      case KBEnvTypeProd: return @"Keybase";
-      default: return @"KeybaseDev";
-    }
+  if (_runMode == KBRunModeProd) return @"Keybase";
+  else return NSStringWithFormat(@"Keybase%@", NSStringFromKBRunMode(_runMode, NO));
 }
 
 - (NSString *)appPath:(NSString *)filename options:(KBPathOptions)options {
@@ -142,17 +120,15 @@
 - (BOOL)isHomeDirSet { return !!_homeDir; }
 - (BOOL)isSockFileSet { return !!_sockFile; }
 
-+ (instancetype)customEnvWithHomeDir:(NSString *)homeDir sockFile:(NSString *)sockFile mountDir:(NSString *)mountDir {
++ (instancetype)envConfigWithHomeDir:(NSString *)homeDir sockFile:(NSString *)sockFile mountDir:(NSString *)mountDir {
   KBEnvConfig *envConfig = [[KBEnvConfig alloc] init];
-  envConfig.envType = KBEnvTypeCustom;
+  envConfig.runMode = KBRunModeCustom;
   envConfig.title = @"Custom";
   envConfig.homeDir = [KBPath path:homeDir options:0];
   envConfig.sockFile = [KBPath path:sockFile options:0];
   envConfig.mountDir = [KBPath path:mountDir options:0];
   envConfig.info = @"For development";
   envConfig.image = [NSImage imageNamed:NSImageNameAdvanced];
-  envConfig.launchdEnabled = NO;
-  envConfig.installEnabled = NO;
   envConfig.debugEnabled = YES;
   return envConfig;
 }
@@ -190,4 +166,31 @@
   return YES;
 }
 
+- (NSString *)launchdServiceLabel {
+  switch (_runMode) {
+    case KBRunModeDevel: return @"keybase.Service.devel";
+    case KBRunModeStaging: return @"keybase.Service.staging";
+    case KBRunModeProd: return @"keybase.Service.prod";
+    case KBRunModeCustom: return nil;
+  }
+}
+
+- (NSString *)launchdKBFSLabel {
+  switch (_runMode) {
+    case KBRunModeDevel: return @"keybase.KBFS.devel";
+    case KBRunModeStaging: return @"keybase.KBFS.staging";
+    case KBRunModeProd: return @"keybase.KBFS.prod";
+    case KBRunModeCustom: return nil;
+  }
+}
+
 @end
+
+NSString *NSStringFromKBRunMode(KBRunMode runMode, BOOL isValue) {
+  switch (runMode) {
+    case KBRunModeDevel: return isValue ? @"devel" : @"Devel";
+    case KBRunModeStaging: return isValue ? @"staging" : @"Staging";
+    case KBRunModeCustom: return isValue ? @"devel" : @"Devel";
+    case KBRunModeProd: return isValue ? @"prod" : @"Prod";
+  }
+}

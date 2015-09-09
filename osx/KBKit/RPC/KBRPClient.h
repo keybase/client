@@ -51,11 +51,9 @@ typedef void (^KBRPClientOnSecret)(NSString *secret);
 - (NSNumber *)nextSessionId;
 
 - (void)open:(KBCompletion)completion;
+- (void)open:(NSString *)socketFile completion:(KBCompletion)completion;
 
 - (void)close;
-
-- (void)check:(void (^)(NSError *error, NSString *version))completion;
-- (void)openAndCheck:(void (^)(NSError *error, NSString *version))completion;
 
 @end
 

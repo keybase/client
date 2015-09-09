@@ -13,6 +13,7 @@
 #import "KBDebugPropertiesView.h"
 #import "KBSemVersion.h"
 #import "KBServiceConfig.h"
+#import "KBRPC.h"
 
 @interface KBService ()
 @property KBRPClient *client;
@@ -33,17 +34,19 @@
 
 @implementation KBService
 
-- (instancetype)initWithConfig:(KBEnvConfig *)config {
+- (instancetype)initWithConfig:(KBEnvConfig *)config label:(NSString *)label {
   if ((self = [self init])) {
     _config = config;
     _name = @"Service";
     _info = @"The Keybase service";
-    NSDictionary *info = [[NSBundle mainBundle] infoDictionary];
-
     _serviceConfig = [[KBServiceConfig alloc] initWithConfig:_config];
-    NSDictionary *plist = [_serviceConfig launchdPlistDictionary];
-    KBSemVersion *bundleVersion = [KBSemVersion version:info[@"KBServiceVersion"] build:info[@"KBServiceBuild"]];
-    _launchService = [[KBLaunchService alloc] initWithLabel:config.launchdLabelService bundleVersion:bundleVersion versionPath:_serviceConfig.versionPath plist:plist logFile:[config logFile:config.launchdLabelService]];
+
+    if (label) {
+      NSDictionary *plist = [_serviceConfig launchdPlistDictionary:label];
+      NSDictionary *info = [[NSBundle mainBundle] infoDictionary];
+      KBSemVersion *bundleVersion = [KBSemVersion version:info[@"KBServiceVersion"] build:info[@"KBServiceBuild"]];
+      _launchService = [[KBLaunchService alloc] initWithLabel:label bundleVersion:bundleVersion versionPath:_serviceConfig.versionPath plist:plist logFile:[_config logFile:label]];
+    }
   }
   return self;
 }
@@ -80,10 +83,6 @@
   if (_userStatus.loggedIn) [userStatus addObject:@"Logged In"];
   info[@"User Status"] = [userStatus join:@", "];
 
-  if (self.config.installEnabled) {
-    info[@"Launchd Plist"] = [KBPath path:[_launchService plistDestination] options:KBPathOptionsTilde];
-  }
-
   YOView *view = [[YOView alloc] init];
   KBDebugPropertiesView *propertiesView = [[KBDebugPropertiesView alloc] init];
   [propertiesView setProperties:info];
@@ -101,6 +100,41 @@
   view.viewLayout = [YOVBorderLayout layoutWithCenter:scrollView top:nil bottom:@[buttons] insets:UIEdgeInsetsZero spacing:10];
 
   _infoView = view;
+}
+
++ (void)lookup:(KBEnvConfig *)config completion:(void (^)(NSError *error, NSString *label))completion {
+  if (config.runMode == KBRunModeCustom) {
+    completion(nil, nil);
+    return;
+  }
+
+  KBRPClient *client = [[KBRPClient alloc] initWithConfig:config];
+
+  dispatch_block_t close = ^{
+    dispatch_async(dispatch_get_main_queue(), ^{ [client close]; });
+  };
+
+  NSString *defaultLabel = [config launchdServiceLabel];
+  [client open:^(NSError *error) {
+    if (error) {
+      completion(error, defaultLabel);
+      close();
+      return;
+    } else {
+      KBRConfigRequest *configRequest = [[KBRConfigRequest alloc] initWithClient:client];
+      [configRequest getConfig:^(NSError *error, KBRConfig *userConfig) {
+        if (error) {
+          completion(error, defaultLabel);
+          close();
+          return;
+        }
+        NSString *label = userConfig.label;
+        if ([NSString gh_isBlank:userConfig.label]) label = defaultLabel;
+        completion(nil, label);
+        close();
+      }];
+    }
+  }];
 }
 
 - (void)refreshComponent:(KBCompletion)completion {
@@ -122,19 +156,6 @@
   [request panicWithMessage:@"Testing panic" completion:^(NSError *error) {
     completion(error);
   }];
-}
-
-- (void)checkHomebrew:(void (^)(KBServiceStatus *serviceStatus))completion {
-  NSString *launchAgentDir = [[NSSearchPathForDirectoriesInDomains(NSLibraryDirectory, NSUserDomainMask, YES) firstObject] stringByAppendingPathComponent:@"LaunchAgents"];
-  NSString *plistDest = [launchAgentDir stringByAppendingPathComponent:@"homebrew.mxcl.keybase.plist"];
-
-  if ([NSFileManager.defaultManager fileExistsAtPath:plistDest isDirectory:nil]) {
-    [KBLaunchCtl status:@"homebrew.mxcl.keybase" completion:^(KBServiceStatus *serviceStatus) {
-      completion(serviceStatus);
-    }];
-  } else {
-    completion(nil);
-  }
 }
 
 - (void)checkStatus:(void (^)(NSError *error, KBRGetCurrentStatusRes *currentStatus, KBRConfig *config))completion {
@@ -176,12 +197,12 @@
   [_launchService stop:completion];
 }
 
-- (void)updateComponentStatus:(NSTimeInterval)timeout completion:(KBCompletion)completion {
-  [_launchService updateComponentStatus:timeout completion:^(KBComponentStatus *componentStatus, KBServiceStatus *serviceStatus) {
-    [self componentDidUpdate];
-    completion(componentStatus.error);
-  }];
-}
+//- (void)updateComponentStatus:(NSTimeInterval)timeout completion:(KBCompletion)completion {
+//  [_launchService updateComponentStatus:timeout completion:^(KBComponentStatus *componentStatus, KBServiceStatus *serviceStatus) {
+//    [self componentDidUpdate];
+//    completion(componentStatus.error);
+//  }];
+//}
 
 - (KBComponentStatus *)componentStatus {
   return _launchService.componentStatus;

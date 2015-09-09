@@ -21,7 +21,8 @@
 @implementation KBSemVersion
 
 + (instancetype)version:(NSString *)version {
-  if (!version) return nil;  
+  if (!version) return nil;
+  if ([version isEqualToString:@""]) return nil;
 
   NSArray *split = [version split:@"-"];
   if (split.count == 0) return [[KBSemVersion alloc] init];

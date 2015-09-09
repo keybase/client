@@ -20,8 +20,10 @@
 @property (readonly, nonatomic) KBRGetCurrentStatusRes *userStatus;
 @property (readonly, nonatomic) KBRConfig *userConfig;
 
-- (instancetype)initWithConfig:(KBEnvConfig *)config;
+- (instancetype)initWithConfig:(KBEnvConfig *)config label:(NSString *)label;
 
 - (void)checkStatus:(void (^)(NSError *error, KBRGetCurrentStatusRes *userStatus, KBRConfig *userConfig))completion;
+
++ (void)lookup:(KBEnvConfig *)config completion:(void (^)(NSError *error, NSString *label))completion;
 
 @end

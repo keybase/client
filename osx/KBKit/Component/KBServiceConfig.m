@@ -9,6 +9,7 @@
 #import "KBServiceConfig.h"
 
 #import <ObjectiveSugar/ObjectiveSugar.h>
+#import <GHKit/GHKit.h>
 
 @interface KBServiceConfig ()
 @property KBEnvConfig *config;
@@ -20,6 +21,7 @@
 - (instancetype)initWithConfig:(KBEnvConfig *)config {
   if ((self = [self init])) {
     _config = config;
+
     _versionPath = [config cachePath:@"service.version" options:0];
   }
   return self;
@@ -36,16 +38,10 @@
     [pargs addObjectsFromArray:@[@"-H", [KBPath path:_config.homeDir options:pathOptions]]];
   }
 
-  if (_config.host) {
-    [pargs addObjectsFromArray:@[@"-s", _config.host]];
-  }
+  [pargs addObject:NSStringWithFormat(@"--run-mode=%@", NSStringFromKBRunMode(_config.runMode, YES))];
 
   if (_config.debugEnabled) {
     [pargs addObject:@"-d"];
-  }
-
-  if (_config.isSockFileSet) {
-    [pargs addObject:NSStringWithFormat(@"--socket-file=%@", [KBPath path:_config.sockFile options:pathOptions])];
   }
 
   if (args) {
@@ -57,19 +53,23 @@
   return pargs;
 }
 
-- (NSDictionary *)launchdPlistDictionary {
-  if (!_config.launchdLabelService) return nil;
+- (NSDictionary *)launchdPlistDictionary:(NSString *)label {
+  NSParameterAssert(label);
 
-  NSArray *args = [self programArgumentsWithPathOptions:0 useBundle:YES args:@[@"--log-format=file"]];
+  NSMutableArray *pargs = [NSMutableArray array];
+  [pargs addObject:NSStringWithFormat(@"--label=%@", label)];
+  [pargs addObject:@"--log-format=file"];
 
+  NSArray *args = [self programArgumentsWithPathOptions:0 useBundle:YES args:pargs];
+  NSString *logFile = [_config logFile:label];
   return @{
-           @"Label": _config.launchdLabelService,
+           @"Label": label,
            @"ProgramArguments": args,
            @"RunAtLoad": @YES,
            @"KeepAlive": @YES,
            @"WorkingDirectory": [_config appPath:nil options:0],
-           @"StandardOutPath": [_config logFile:_config.launchdLabelService],
-           @"StandardErrorPath": [_config logFile:_config.launchdLabelService],
+           @"StandardOutPath": logFile,
+           @"StandardErrorPath": logFile,
            };
 }
 

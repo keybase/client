@@ -282,7 +282,7 @@
   [KBPaperKeyDisplayView registerDisplay:self.client sessionId:request.sessionId navigation:self.navigation];
 
   [self.navigation setProgressEnabled:YES];
-  [request signupWithEmail:email inviteCode:self.inviteField.text passphrase:passphrase username:username deviceName:deviceName completion:^(NSError *error, KBRSignupRes *res) {
+  [request signupWithEmail:email inviteCode:self.inviteField.text passphrase:passphrase username:username deviceName:deviceName storeSecret:NO completion:^(NSError *error, KBRSignupRes *res) {
     [self.navigation setProgressEnabled:NO];
     if ([KBActivity setError:error sender:self]) return;
 

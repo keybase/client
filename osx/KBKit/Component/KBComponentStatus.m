@@ -53,6 +53,7 @@
 
 - (NSString *)actionLabel {
   switch (_installStatus) {
+    case KBInstallStatusUnknown: return @"Unknown";
     case KBInstallStatusNeedsUpgrade: return @"Upgrade";
     case KBInstallStatusInstalled: return @"Uninstall";
     case KBInstallStatusNotInstalled: return @"Install";
@@ -83,6 +84,7 @@
 NSString *NSStringFromKBInstallStatus(KBInstallStatus status) {
   switch (status) {
     case KBInstallStatusError: return @"Error";
+    case KBInstallStatusUnknown: return @"Unknown";
     case KBInstallStatusNotInstalled: return @"Not Installed";
     case KBInstallStatusNeedsUpgrade: return @"Needs Upgrade";
     case KBInstallStatusInstalled: return @"Installed";
