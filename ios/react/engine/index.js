@@ -3,6 +3,7 @@
 // Handles sending requests to objc (then go) and back
 
 var React = require('react-native')
+var EventEmitter = require('EventEmitter');
 
 var {
   NativeModules,
@@ -115,9 +116,17 @@ class Engine {
     this.rpcClient = new RpcClient(new DummyTransport(this._rpcWrite, (payload) => {this._rpcIncoming(payload)}), 'keybase.1')
     this.setupListener()
     this.sessionID = 123
-    // if you opt to call rpc with sessionCollating=true you'll get multiple callbacks associated
-    // with the same sessionId back to you
+
+    // to find the right callbacks for rpc callbacks
     this.sessionIDToCallbackMap = {}
+
+    // to find the right emitter for rpc callbacks
+    this.sessionIDToEmitterMap = {}
+  }
+
+  getSessionID () {
+    this.sessionID++
+    return this.sessionID
   }
 
   setupListener () {
@@ -150,23 +159,27 @@ class Engine {
 
     if (callback) {
       callback(null, method, param, response)
-    } else {
-      console.log('Invalid incoming rpc sessionID')
+    }
+
+    var emitter = this.sessionIDToEmitterMap[sessionID]
+
+    if (emitter) {
+      emitter.emit(method, param, response)
     }
   }
 
-  _rpc (proc, arg, callback, sessionCollating) {
-    if (!arg) {
-      arg = {}
+  _rpc (method, param, callback, sessionCollating) {
+    if (!param) {
+      param = {}
     }
 
-    var sessionID = arg.sessionID = this.sessionID++
+    var sessionID = param.sessionID = this.getSessionID()
 
     if (sessionCollating) {
-      this.sessionIDToCallbackMap[arg.sessionID] = callback
+      this.sessionIDToCallbackMap[param.sessionID] = callback
     }
 
-    this.rpcClient.invoke(proc, [arg], (err, data) => {
+    this.rpcClient.invoke(method, [param], (err, data) => {
       if (sessionCollating) {
         // deregister callback
         delete this.sessionIDToCallbackMap[sessionID]
@@ -178,7 +191,7 @@ class Engine {
   }
 
   // Make an RPC and call callback repeatedly with any related server -> client RPC calls (server calls client sometimes)
-  // (name of call, {arguments object}, function(err, proc, params, response)
+  // (name of call, {arguments object}, function(err, method, params, response)
   collatedRpc (method, param, callback) {
     this._rpc(method, param, callback, true)
   }
@@ -187,6 +200,27 @@ class Engine {
   // (name of call, {arguments object}, function(err, results), true if you want multi calls to any related server->client RPCs
   rpc (method, param, callback) {
     this._rpc(method, param, callback, false)
+  }
+
+  // Make an rpc and get back an eventemitter which sends events for any callbacks that come back
+  emitterRpc (method, param) {
+    if (!param) {
+      param = {}
+    }
+
+    var sessionID = param.sessionID = this.getSessionID()
+    var emitter = new EventEmitter()
+    this.sessionIDToEmitterMap[param.sessionID] = emitter
+
+    this.rpcClient.invoke(method, [param], (err, data) => {
+      emitter.emit(method, err, data)
+
+      // cleanup
+      delete this.sessionIDToEmitterMap[sessionID]
+      emitter.removeAllListeners()
+    })
+
+    return emitter
   }
 }
 
