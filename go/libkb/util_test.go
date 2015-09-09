@@ -12,8 +12,9 @@ var nameCmpTest = []cmpTest{
 	{a: " Space prefix", b: "Space prefix", eq: true},
 	{a: "Space suffix ", b: "Space suffix", eq: true},
 	{a: "Space Inside", b: "SpaceInside", eq: true},
-	{a: "iPad", b: "ipad", eq: true},
+	{a: "work iPad", b: "work ipad", eq: true},
 	{a: "my_ipad", b: "MY IPAD", eq: true},
+	{a: "device a", b: "device b", eq: false},
 }
 
 func TestNameCmp(t *testing.T) {
