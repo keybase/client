@@ -1,0 +1,2 @@
+configurations.create("default")
+artifacts.add("default", file('msgpack-rpc-0.7.1-SNAPSHOT.jar'))
