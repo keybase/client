@@ -260,6 +260,13 @@ func (fs *KBFSOpsStandard) UnstageForTesting(
 	return ops.UnstageForTesting(ctx, folderBranch)
 }
 
+// SyncFromServer implements the KBFSOps interface for KBFSOpsStandard
+func (fs *KBFSOpsStandard) SyncFromServer(
+	ctx context.Context, folderBranch FolderBranch) error {
+	ops := fs.getOps(folderBranch)
+	return ops.SyncFromServer(ctx, folderBranch)
+}
+
 // Notifier:
 var _ Notifier = (*KBFSOpsStandard)(nil)
 

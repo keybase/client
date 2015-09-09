@@ -3463,6 +3463,36 @@ func (fbo *FolderBranchOps) UnstageForTesting(
 	}
 }
 
+// SyncFromServer implements the KBFSOps interface for FolderBranchOps
+func (fbo *FolderBranchOps) SyncFromServer(
+	ctx context.Context, folderBranch FolderBranch) (err error) {
+	fbo.log.CDebugf(ctx, "SyncFromServer")
+	defer fbo.log.CDebugf(ctx, "Done: %v", err)
+
+	if folderBranch != fbo.folderBranch {
+		return WrongOpsError{fbo.folderBranch, folderBranch}
+	}
+
+	if fbo.staged {
+		return errors.New("Can't sync from server while unmerged.")
+	}
+
+	if fbo.getState() != cleanState {
+		return errors.New("Can't sync from server while dirty.")
+	}
+
+	if err := fbo.getAndApplyMDUpdates(ctx, fbo.applyMDUpdates); err != nil {
+		if applyErr, ok := err.(MDUpdateApplyError); ok {
+			if applyErr.rev == applyErr.curr {
+				fbo.log.CDebugf(ctx, "Already up-to-date with server")
+				return nil
+			}
+		}
+		return err
+	}
+	return nil
+}
+
 // CtxFBOTagKey is the type used for unique context tags within FolderBranchOps
 type CtxFBOTagKey int
 
