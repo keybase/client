@@ -27,13 +27,14 @@ type TypedChainLink interface {
 	GetCTime() time.Time
 	GetETime() time.Time
 	GetPGPFingerprint() *PGPFingerprint
+	GetPGPFullHash() string
 	GetKID() keybase1.KID
 	IsInCurrentFamily(u *User) bool
 	GetUsername() string
 	GetUID() keybase1.UID
 	GetDelegatedKid() keybase1.KID
 	GetParentKid() keybase1.KID
-	VerifyReverseSig(kf *KeyFamily) error
+	VerifyReverseSig(ckf ComputedKeyFamily) error
 	GetMerkleSeqno() int
 	GetDevice() *Device
 }
@@ -61,16 +62,17 @@ func (g *GenericChainLink) ToDebugString() string {
 	return fmt.Sprintf("uid=%s, seq=%d, link=%s", g.Parent().uid, g.unpacked.seqno, g.id)
 }
 
-func (g *GenericChainLink) GetDelegatedKid() (kid keybase1.KID)  { return }
-func (g *GenericChainLink) GetParentKid() (kid keybase1.KID)     { return }
-func (g *GenericChainLink) VerifyReverseSig(kf *KeyFamily) error { return nil }
-func (g *GenericChainLink) IsRevocationIsh() bool                { return false }
-func (g *GenericChainLink) GetRole() KeyRole                     { return DLGNone }
-func (g *GenericChainLink) IsRevoked() bool                      { return g.revoked }
-func (g *GenericChainLink) GetSeqno() Seqno                      { return g.unpacked.seqno }
+func (g *GenericChainLink) GetDelegatedKid() (kid keybase1.KID)          { return }
+func (g *GenericChainLink) GetParentKid() (kid keybase1.KID)             { return }
+func (g *GenericChainLink) VerifyReverseSig(ckf ComputedKeyFamily) error { return nil }
+func (g *GenericChainLink) IsRevocationIsh() bool                        { return false }
+func (g *GenericChainLink) GetRole() KeyRole                             { return DLGNone }
+func (g *GenericChainLink) IsRevoked() bool                              { return g.revoked }
+func (g *GenericChainLink) GetSeqno() Seqno                              { return g.unpacked.seqno }
 func (g *GenericChainLink) GetPGPFingerprint() *PGPFingerprint {
 	return g.unpacked.pgpFingerprint
 }
+func (g *GenericChainLink) GetPGPFullHash() string { return "" }
 
 func (g *GenericChainLink) GetArmoredSig() string {
 	return g.unpacked.sig
@@ -83,6 +85,15 @@ func (g *GenericChainLink) GetUID() keybase1.UID {
 }
 
 func (g *GenericChainLink) GetDevice() *Device { return nil }
+
+func (g *GenericChainLink) extractPGPFullHash(loc string) string {
+	if jw := g.payloadJSON.AtPath("body." + loc + ".full_hash"); !jw.IsNil() {
+		if ret, err := jw.GetString(); err == nil {
+			return ret
+		}
+	}
+	return ""
+}
 
 //
 //=========================================================================
@@ -545,13 +556,15 @@ func (s *SibkeyChainLink) GetRole() KeyRole              { return DLGSibkey }
 func (s *SibkeyChainLink) Type() string                  { return SibkeyType }
 func (s *SibkeyChainLink) ToDisplayString() string       { return s.kid.String() }
 func (s *SibkeyChainLink) GetDevice() *Device            { return s.device }
+func (s *SibkeyChainLink) GetPGPFullHash() string        { return s.extractPGPFullHash("sibkey") }
 func (s *SibkeyChainLink) insertIntoTable(tab *IdentityTable) {
 	tab.insertLink(s)
 }
 
 //-------------------------------------
 
-func (s *SibkeyChainLink) VerifyReverseSig(kf *KeyFamily) (err error) {
+// VerifyReverseSig checks a SibkeyChainLink's reverse signature using the ComputedKeyFamily provided.
+func (s *SibkeyChainLink) VerifyReverseSig(ckf ComputedKeyFamily) (err error) {
 	var key GenericKey
 
 	if len(s.reverseSig) == 0 {
@@ -561,7 +574,7 @@ func (s *SibkeyChainLink) VerifyReverseSig(kf *KeyFamily) (err error) {
 		return
 	}
 
-	if key, err = kf.FindKeyWithKIDUnsafe(s.GetDelegatedKid()); err != nil {
+	if key, err = ckf.FindKeyWithKIDUnsafe(s.GetDelegatedKid()); err != nil {
 		return err
 	}
 
@@ -625,6 +638,54 @@ func (s *SubkeyChainLink) GetParentKid() keybase1.KID    { return s.parentKid }
 func (s *SubkeyChainLink) insertIntoTable(tab *IdentityTable) {
 	tab.insertLink(s)
 }
+
+//
+//=========================================================================
+
+//=========================================================================
+// PGPUpdateChainLink
+//
+
+// PGPUpdateChainLink represents a chain link which marks a new version of a
+// PGP key as current. The KID and a new new full hash are included in the
+// pgp_update section of the body.
+type PGPUpdateChainLink struct {
+	GenericChainLink
+	kid keybase1.KID
+}
+
+// ParsePGPUpdateChainLink creates a PGPUpdateChainLink from a GenericChainLink
+// and verifies that its pgp_update section contains a KID and full_hash
+func ParsePGPUpdateChainLink(b GenericChainLink) (ret *PGPUpdateChainLink, err error) {
+	var kid keybase1.KID
+
+	pgpUpdate := b.payloadJSON.AtPath("body.pgp_update")
+
+	if pgpUpdate.IsNil() {
+		err = ChainLinkError{fmt.Sprintf("missing pgp_update section @%s", b.ToDebugString())}
+		return
+	}
+
+	if kid, err = GetKID(pgpUpdate.AtKey("kid")); err != nil {
+		err = ChainLinkError{fmt.Sprintf("Missing kid @%s: %s", b.ToDebugString(), err)}
+		return
+	}
+
+	ret = &PGPUpdateChainLink{b, kid}
+
+	if fh := ret.GetPGPFullHash(); fh == "" {
+		err = ChainLinkError{fmt.Sprintf("Missing full_hash @%s", b.ToDebugString())}
+		ret = nil
+		return
+	}
+
+	return
+}
+
+func (l *PGPUpdateChainLink) Type() string                       { return PGPUpdateType }
+func (l *PGPUpdateChainLink) ToDisplayString() string            { return l.kid.String() }
+func (l *PGPUpdateChainLink) GetPGPFullHash() string             { return l.extractPGPFullHash("pgp_update") }
+func (l *PGPUpdateChainLink) insertIntoTable(tab *IdentityTable) { tab.insertLink(l) }
 
 //
 //=========================================================================
@@ -811,6 +872,8 @@ func (s *SelfSigChainLink) GetHostname() string       { return "" }
 func (s *SelfSigChainLink) GetProtocol() string       { return "" }
 func (s *SelfSigChainLink) ProofText() string         { return "" }
 
+func (s *SelfSigChainLink) GetPGPFullHash() string { return s.extractPGPFullHash("key") }
+
 func (s *SelfSigChainLink) DisplayCheck(ui IdentifyUI, lcr LinkCheckResult) {}
 
 func (s *SelfSigChainLink) CheckDataJSON() *jsonw.Wrapper { return nil }
@@ -918,6 +981,8 @@ func NewTypedChainLink(cl *ChainLink) (ret TypedChainLink, w Warning) {
 			ret, err = ParseSibkeyChainLink(base)
 		case SubkeyType:
 			ret, err = ParseSubkeyChainLink(base)
+		case PGPUpdateType:
+			ret, err = ParsePGPUpdateChainLink(base)
 		case "device":
 			ret, err = ParseDeviceChainLink(base)
 		default:

@@ -109,6 +109,7 @@ func TestPGPUpdateMultiKey(t *testing.T) {
 	// Generate a second PGP sibkey.
 	arg := PGPKeyImportEngineArg{
 		AllowMulti: true,
+		DoExport:   true,
 		Gen: &libkb.PGPGenArg{
 			PrimaryBits: 768,
 			SubkeyBits:  768,

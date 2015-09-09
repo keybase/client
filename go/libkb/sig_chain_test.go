@@ -31,6 +31,9 @@ func getErrorTypesMap() map[string]map[reflect.Type]bool {
 		"INVALID_SIBKEY": {
 			reflect.TypeOf(KeyRevokedError{}): true,
 		},
+		"NO_KEY_WITH_THIS_HASH": {
+			reflect.TypeOf(NoKeyError{}): true,
+		},
 		"KEY_OWNERSHIP": {
 			reflect.TypeOf(KeyFamilyError{}): true,
 		},
@@ -261,8 +264,8 @@ func getCurrentTimeForTest(sigChain SigChain, keyFamily *KeyFamily) time.Time {
 			t = linkCTime
 		}
 	}
-	for _, pgp := range keyFamily.pgps {
-		keyCTime := pgp.PrimaryKey.CreationTime
+	for _, ks := range keyFamily.PGPKeySets {
+		keyCTime := ks.PermissivelyMergedKey.PrimaryKey.CreationTime
 		if keyCTime.After(t) {
 			t = keyCTime
 		}
