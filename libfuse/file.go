@@ -124,6 +124,15 @@ func (f *File) Setattr(ctx context.Context, req *fuse.SetattrRequest,
 			ctx, f.node, req.Size); err != nil {
 			return err
 		}
+		if !req.Valid.Handle() {
+			// This is a truncate (as opposed to an ftruncate), and so
+			// we can't expect a later file close.  So just sync the
+			// file now.
+			if err := f.folder.fs.config.KBFSOps().Sync(
+				ctx, f.node); err != nil {
+				return err
+			}
+		}
 		valid &^= fuse.SetattrSize
 	}
 

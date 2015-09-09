@@ -212,6 +212,12 @@ type KBFSOps interface {
 	// folder-branch. TODO: remove this once we have automatic
 	// conflict resolution.
 	UnstageForTesting(ctx context.Context, folderBranch FolderBranch) error
+	// SyncFromServer blocks until the local client has contacted the
+	// server and guaranteed that all known updates for the given
+	// top-level folder have been applied locally (and notifications
+	// sent out to any observers).  It returns an error if this
+	// folder-branch is currently unmerged or dirty locally.
+	SyncFromServer(ctx context.Context, folderBranch FolderBranch) error
 	// Shutdown is called to clean up any resources associated with
 	// this KBFSOps instance.
 	Shutdown()

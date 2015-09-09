@@ -409,6 +409,16 @@ func (_mr *_MockKBFSOpsRecorder) UnstageForTesting(arg0, arg1 interface{}) *gomo
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "UnstageForTesting", arg0, arg1)
 }
 
+func (_m *MockKBFSOps) SyncFromServer(ctx context.Context, folderBranch FolderBranch) error {
+	ret := _m.ctrl.Call(_m, "SyncFromServer", ctx, folderBranch)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+func (_mr *_MockKBFSOpsRecorder) SyncFromServer(arg0, arg1 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "SyncFromServer", arg0, arg1)
+}
+
 func (_m *MockKBFSOps) Shutdown() {
 	_m.ctrl.Call(_m, "Shutdown")
 }

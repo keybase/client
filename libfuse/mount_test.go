@@ -1527,6 +1527,30 @@ func TestReaddirOtherFolderAsAnyone(t *testing.T) {
 	}
 }
 
+func syncFolderToServer(t *testing.T, tlf string, fs *FS) {
+	dh, err := libkbfs.ParseTlfHandle(context.Background(), fs.config, tlf)
+	if err != nil {
+		t.Fatalf("cannot parse %s as folder: %v", tlf, err)
+	}
+
+	ctx := context.Background()
+	root, _, err := fs.config.KBFSOps().GetOrCreateRootNodeForHandle(
+		ctx, dh, libkbfs.MasterBranch)
+	if err != nil {
+		t.Fatalf("cannot get root for %s: %v", tlf, err)
+	}
+
+	err = fs.config.KBFSOps().SyncFromServer(ctx, root.GetFolderBranch())
+	if err != nil {
+		t.Fatalf("Couldn't sync from server: %v", err)
+	}
+	fs.notificationGroup.Wait()
+}
+
+func syncPublicFolderToServer(t *testing.T, tlf string, fs *FS) {
+	syncFolderToServer(t, tlf+libkbfs.ReaderSep+libkbfs.PublicUIDName, fs)
+}
+
 func TestInvalidateDataOnWrite(t *testing.T) {
 	config := libkbfs.MakeTestConfigOrBust(t, BServerRemoteAddr, "jdoe", "wsmith")
 	defer config.Shutdown()
@@ -1568,7 +1592,7 @@ func TestInvalidateDataOnWrite(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	fs2.notificationGroup.Wait()
+	syncFolderToServer(t, "jdoe", fs2)
 
 	{
 		buf := make([]byte, 4096)
@@ -1623,7 +1647,7 @@ func TestInvalidatePublicDataOnWrite(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	fs2.notificationGroup.Wait()
+	syncPublicFolderToServer(t, "jdoe", fs2)
 
 	{
 		buf := make([]byte, 4096)
@@ -1678,7 +1702,7 @@ func TestInvalidateDataOnTruncate(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	fs2.notificationGroup.Wait()
+	syncFolderToServer(t, "jdoe", fs2)
 
 	{
 		buf := make([]byte, 4096)
@@ -1746,6 +1770,8 @@ func TestInvalidateDataOnLocalWrite(t *testing.T) {
 		}
 	}
 
+	// The Write above is a local change, and thus we can just do a
+	// local wait without syncing to the server.
 	fs.notificationGroup.Wait()
 
 	{
@@ -1791,7 +1817,7 @@ func TestInvalidateEntryOnDelete(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	fs2.notificationGroup.Wait()
+	syncFolderToServer(t, "jdoe", fs2)
 
 	if buf, err := ioutil.ReadFile(path.Join(mnt2.Dir, PrivateName, "jdoe", "myfile")); !os.IsNotExist(err) {
 		t.Fatalf("expected ENOENT: %v: %q", err, buf)
@@ -1929,7 +1955,7 @@ func TestInvalidateAcrossMounts(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	fs2.notificationGroup.Wait()
+	syncFolderToServer(t, "user1,user2", fs2)
 
 	// check everything from user 2's perspective
 	if buf, err := ioutil.ReadFile(myfile2); !os.IsNotExist(err) {
@@ -2009,7 +2035,7 @@ func TestInvalidateRenameToUncachedDir(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	fs2.notificationGroup.Wait()
+	syncFolderToServer(t, "user1,user2", fs2)
 
 	// user 2 should be able to write to its open file, and user 1
 	// will see the change
@@ -2022,7 +2048,7 @@ func TestInvalidateRenameToUncachedDir(t *testing.T) {
 	}
 	f.Close()
 
-	fs1.notificationGroup.Wait()
+	syncFolderToServer(t, "user1,user2", fs1)
 
 	buf, err := ioutil.ReadFile(mydirfile1)
 	if err != nil {
@@ -2079,7 +2105,7 @@ func TestUnstageFile(t *testing.T) {
 	defer cancelFn1()
 
 	config2 := libkbfs.ConfigAsUser(config1, "user2")
-	mnt2, _, cancelFn2 := makeFS(t, config2)
+	mnt2, fs2, cancelFn2 := makeFS(t, config2)
 	defer mnt2.Close()
 	defer cancelFn2()
 
@@ -2151,6 +2177,8 @@ func TestUnstageFile(t *testing.T) {
 	if err := ioutil.WriteFile(unstageFile2, []byte{1}, 0222); err != nil {
 		t.Fatal(err)
 	}
+
+	syncFolderToServer(t, "user1,user2", fs2)
 
 	// They should see identical folders now
 	checkDir(t, mydir1, map[string]fileInfoCheck{
