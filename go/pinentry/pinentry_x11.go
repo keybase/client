@@ -5,5 +5,5 @@ package pinentry
 import "os"
 
 func IsRemote() bool {
-	return len(os.Getenv("DISPLAY")) > 0
+	return len(os.Getenv("DISPLAY")) == 0
 }
