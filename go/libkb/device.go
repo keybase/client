@@ -28,10 +28,10 @@ type DeviceStatus struct {
 
 type Device struct {
 	ID          keybase1.DeviceID `json:"id"`
-	Type        string            `json:"type"`
 	Kid         keybase1.KID      `json:"kid,omitempty"`
 	Description *string           `json:"name,omitempty"`
 	Status      *int              `json:"status,omitempty"`
+	Type        string            `json:"type"`
 }
 
 // NewPaperDevice creates a new paper backup key device
