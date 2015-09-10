@@ -26,7 +26,7 @@ type DeviceKey struct {
 	Type          string               `json:"type"`
 	CTime         int64                `json:"ctime"`
 	MTime         int64                `json:"mtime"`
-	Description   string               `json:"description"`
+	Description   string               `json:"name"`
 	Status        int                  `json:"status"`
 	LksServerHalf string               `json:"lks_server_half"`
 	PPGen         PassphraseGeneration `json:"passphrase_generation"`

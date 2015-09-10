@@ -73,8 +73,23 @@ func (d *Device) Merge(d2 *Device) {
 	}
 }
 
-func (d *Device) Export() *jsonw.Wrapper {
-	return jsonw.NewWrapper(d)
+func (d *Device) Export(lt LinkType) (*jsonw.Wrapper, error) {
+	dw, err := jsonw.NewObjectWrapper(d)
+	if err != nil {
+		return nil, err
+	}
+
+	if lt == SubkeyType {
+		// subkeys shouldn't have name or type
+		if err := dw.DeleteKey("name"); err != nil {
+			return nil, err
+		}
+		if err := dw.DeleteKey("type"); err != nil {
+			return nil, err
+		}
+	}
+
+	return dw, nil
 }
 
 func (d *Device) ProtExport() *keybase1.Device {
