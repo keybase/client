@@ -284,6 +284,7 @@ type Config struct {
 	ServerURI  string `codec:"serverURI" json:"serverURI"`
 	SocketFile string `codec:"socketFile" json:"socketFile"`
 	Label      string `codec:"label" json:"label"`
+	RunMode    string `codec:"runMode" json:"runMode"`
 	GpgExists  bool   `codec:"gpgExists" json:"gpgExists"`
 	GpgPath    string `codec:"gpgPath" json:"gpgPath"`
 	Version    string `codec:"version" json:"version"`

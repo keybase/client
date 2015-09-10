@@ -184,6 +184,9 @@
       "name" : "label",
       "type" : "string"
     }, {
+      "name" : "runMode",
+      "type" : "string"
+    }, {
       "name" : "gpgExists",
       "type" : "boolean"
     }, {

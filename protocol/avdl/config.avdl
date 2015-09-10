@@ -17,11 +17,11 @@ protocol config {
 		string serverURI;
 		string socketFile;
 		string label;
+		string runMode;
 		boolean gpgExists;
 		string gpgPath;
 		string version;
 		string path;
-		string configPath;
 	}
 
 	Config getConfig(int sessionID);
