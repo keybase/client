@@ -30,10 +30,11 @@ type conflictInput struct {
 // ConflictResolver is responsible for resolving conflicts in the
 // background.
 type ConflictResolver struct {
-	config    Config
-	fbo       *FolderBranchOps
-	inputChan chan conflictInput
-	log       logger.Logger
+	config     Config
+	fbo        *FolderBranchOps
+	inputChan  chan conflictInput
+	inputGroup sync.WaitGroup
+	log        logger.Logger
 
 	currInput conflictInput
 	inputLock sync.Mutex
@@ -101,6 +102,7 @@ func (cr *ConflictResolver) inputProcessor() {
 		}()
 		if !valid {
 			cr.log.CDebugf(ctx, "Ignoring uninteresting input: %v", ci)
+			cr.inputGroup.Done()
 			continue
 		}
 
@@ -113,7 +115,26 @@ func (cr *ConflictResolver) inputProcessor() {
 // numbers, and kicks off the resolution process.
 func (cr *ConflictResolver) Resolve(unmerged MetadataRevision,
 	merged MetadataRevision) {
+	cr.inputGroup.Add(1)
 	cr.inputChan <- conflictInput{unmerged, merged}
+}
+
+// Wait blocks until the current set of submitted resolutions are
+// complete (though not necessarily successful), or until the given
+// context is canceled.
+func (cr *ConflictResolver) Wait(ctx context.Context) error {
+	c := make(chan struct{}, 1)
+	go func() {
+		cr.inputGroup.Wait()
+		c <- struct{}{}
+	}()
+
+	select {
+	case <-c:
+		return nil
+	case <-ctx.Done():
+		return ctx.Err()
+	}
 }
 
 // Shutdown cancels any ongoing resolutions and stops any background
@@ -167,6 +188,7 @@ func (cr *ConflictResolver) updateCurrInput(ctx context.Context,
 func (cr *ConflictResolver) doResolve(ctx context.Context, ci conflictInput) {
 	cr.log.CDebugf(ctx, "Starting conflict resolution with input %v", ci)
 	var err error
+	defer cr.inputGroup.Done()
 	defer cr.log.CDebugf(ctx, "Finished conflict resolution: %v", err)
 
 	// Canceled before we even got started?
