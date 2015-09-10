@@ -3,8 +3,6 @@ package libcmdline
 import (
 	"regexp"
 	"strings"
-	"text/tabwriter"
-	"text/template"
 
 	"github.com/keybase/cli"
 	"github.com/keybase/client/go/libkb"
@@ -191,29 +189,7 @@ type CmdGeneralHelp struct {
 
 func (c *CmdBaseHelp) RunClient() error { return c.Run() }
 
-// This is a hack to work around keybase/cli destroying the HelpPrinter
-// object.
-func (c *CmdBaseHelp) MakeHelpPrinter() {
-	if cli.HelpPrinter != nil {
-		return
-	}
-	funcMap := template.FuncMap{
-		"join": strings.Join,
-	}
-
-	cli.HelpPrinter = func(templ string, data interface{}) {
-		w := tabwriter.NewWriter(c.ctx.App.Writer, 0, 8, 1, '\t', 0)
-		t := template.Must(template.New("help").Funcs(funcMap).Parse(templ))
-		err := t.Execute(w, data)
-		if err != nil {
-			panic(err)
-		}
-		w.Flush()
-	}
-}
-
 func (c *CmdBaseHelp) Run() error {
-	c.MakeHelpPrinter()
 	cli.ShowAppHelp(c.ctx)
 	return nil
 }
