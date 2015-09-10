@@ -58,6 +58,10 @@ func NewConflictResolver(
 		fbo:       fbo,
 		inputChan: make(chan conflictInput),
 		log:       log,
+		currInput: conflictInput{
+			unmerged: MetadataRevisionUninitialized,
+			merged:   MetadataRevisionUninitialized,
+		},
 	}
 
 	go cr.inputProcessor()
@@ -87,7 +91,9 @@ func (cr *ConflictResolver) inputProcessor() {
 		valid := func() bool {
 			cr.inputLock.Lock()
 			defer cr.inputLock.Unlock()
-			if ci.unmerged <= cr.currInput.unmerged ||
+			// The input is only interesting if one of the revisions
+			// is greater than what we've looked at to date.
+			if ci.unmerged <= cr.currInput.unmerged &&
 				ci.merged <= cr.currInput.merged {
 				return false
 			}
