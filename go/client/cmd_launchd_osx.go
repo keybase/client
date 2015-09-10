@@ -9,6 +9,7 @@ import (
 	"github.com/keybase/cli"
 	"github.com/keybase/client/go/launchd"
 	"github.com/keybase/client/go/libcmdline"
+	"github.com/keybase/client/go/libkb"
 )
 
 func NewCmdLaunchd(cl *libcmdline.CommandLine) cli.Command {
@@ -33,6 +34,12 @@ func NewCmdLaunchdInstall(cl *libcmdline.CommandLine) cli.Command {
 		Name:        "install",
 		Usage:       "keybase launchd install <label> <path/to/keybase>",
 		Description: "Install a keybase launchd service.",
+		Flags: []cli.Flag{
+			cli.StringFlag{
+				Name:  "run-mode",
+				Usage: fmt.Sprintf("Run mode (%s)", libkb.RunModes),
+			},
+		},
 		Action: func(c *cli.Context) {
 			args := c.Args()
 			if len(args) < 1 {
@@ -41,7 +48,15 @@ func NewCmdLaunchdInstall(cl *libcmdline.CommandLine) cli.Command {
 			if len(args) < 2 {
 				G.Log.Fatalf("No path to keybase executable specified.")
 			}
-			plistArgs := []string{"--log-format=file", "service"}
+			plistArgs := []string{"--log-format=file"}
+
+			runMode := c.String("run-mode")
+			if runMode != "" {
+				plistArgs = append(plistArgs, fmt.Sprintf("--run-mode=%s", runMode))
+			}
+
+			plistArgs = append(plistArgs, "service")
+
 			plist := launchd.NewPlist(args[0], args[1], plistArgs)
 			err := launchd.Install(plist)
 			if err != nil {

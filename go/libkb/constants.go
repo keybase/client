@@ -24,6 +24,8 @@ const (
 	NoRunMode                 = ""
 )
 
+var RunModes = []RunMode{DevelRunMode, StagingRunMode, ProductionRunMode}
+
 var ServerLookup = map[RunMode]string{
 	DevelRunMode:      DevelServerURI,
 	StagingRunMode:    StagingServerURI,
