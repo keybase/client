@@ -276,7 +276,9 @@ func (fbo *FolderBranchOps) checkDataVersion(p path, ptr BlockPointer) error {
 }
 
 // headLock must be taken by caller
-func (fbo *FolderBranchOps) setHeadLocked(md *RootMetadata) {
+func (fbo *FolderBranchOps) setHeadLocked(ctx context.Context,
+	md *RootMetadata) {
+	fbo.log.CDebugf(ctx, "Setting head revision to %d", md.Revision)
 	fbo.head = md
 	fbo.status.setRootMetadata(md)
 }
@@ -332,7 +334,7 @@ func (fbo *FolderBranchOps) getMDLocked(ctx context.Context, rtype reqType) (
 
 		fbo.headLock.Lock()
 		defer fbo.headLock.Unlock()
-		fbo.setHeadLocked(md)
+		fbo.setHeadLocked(ctx, md)
 	}
 
 	return md, err
@@ -465,7 +467,7 @@ func (fbo *FolderBranchOps) initMDLocked(
 			"%v: Unexpected MD ID during new MD initialization: %v",
 			md.ID, headID)
 	}
-	fbo.setHeadLocked(md)
+	fbo.setHeadLocked(ctx, md)
 	return nil
 }
 
@@ -977,7 +979,8 @@ func (fbo *FolderBranchOps) unembedBlockChanges(
 }
 
 // headLock should be taken by the caller.
-func (fbo *FolderBranchOps) saveMdToCacheLocked(md *RootMetadata) error {
+func (fbo *FolderBranchOps) saveMdToCacheLocked(ctx context.Context,
+	md *RootMetadata) error {
 	mdID, err := md.MetadataID(fbo.config)
 	if err != nil {
 		return err
@@ -994,7 +997,7 @@ func (fbo *FolderBranchOps) saveMdToCacheLocked(md *RootMetadata) error {
 	} else if err = fbo.config.MDCache().Put(md); err != nil {
 		return err
 	}
-	fbo.setHeadLocked(md)
+	fbo.setHeadLocked(ctx, md)
 	return nil
 }
 
@@ -1363,7 +1366,7 @@ func (fbo *FolderBranchOps) finalizeWriteLocked(ctx context.Context,
 		return err
 	}
 
-	err = fbo.saveMdToCacheLocked(md)
+	err = fbo.saveMdToCacheLocked(ctx, md)
 	if err != nil {
 		// XXX: if we return with an error here, should we somehow
 		// roll back the nodeCache BlockPointer updates that happened
@@ -3289,7 +3292,7 @@ func (fbo *FolderBranchOps) applyMDUpdatesLocked(ctx context.Context,
 				fbo.getCurrMDRevisionLocked()}
 		}
 
-		err := fbo.saveMdToCacheLocked(rmd)
+		err := fbo.saveMdToCacheLocked(ctx, rmd)
 		if err != nil {
 			return err
 		}
@@ -3327,7 +3330,7 @@ func (fbo *FolderBranchOps) undoMDUpdatesLocked(ctx context.Context,
 				fbo.getCurrMDRevisionLocked()}
 		}
 
-		err := fbo.saveMdToCacheLocked(rmd)
+		err := fbo.saveMdToCacheLocked(ctx, rmd)
 		if err != nil {
 			return err
 		}
@@ -3536,7 +3539,7 @@ func (fbo *FolderBranchOps) undoUnmergedMDUpdatesLocked(
 	if len(rmds) == 0 {
 		return fmt.Errorf("Couldn't find the branch point %d", currHead)
 	}
-	return fbo.saveMdToCacheLocked(rmds[0])
+	return fbo.saveMdToCacheLocked(ctx, rmds[0])
 }
 
 // UnstageForTesting implements the KBFSOps interface for FolderBranchOps
