@@ -295,6 +295,7 @@ func (e *Env) GetServerURI() string {
 		func() string { return e.cmd.GetServerURI() },
 		func() string { return os.Getenv("KEYBASE_SERVER_URI") },
 		func() string { return e.config.GetServerURI() },
+		func() string { return ServerLookup[e.GetRunMode()] },
 	)
 }
 
