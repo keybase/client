@@ -23,9 +23,9 @@
 	<key>CFBundleSignature</key>
 	<string>????</string>
 	<key>CFBundleVersion</key>
-	<string>12</string>
+	<string>13</string>
 	<key>KBFSBuild</key>
-	<string>12</string>
+	<string>13</string>
 	<key>KBFSVersion</key>
 	<string>1.0.0</string>
 	<key>KBFuseBuild</key>
@@ -37,7 +37,7 @@
 	<key>KBHelperVersion</key>
 	<string>1.0.14</string>
 	<key>KBServiceBuild</key>
-	<string>12</string>
+	<string>13</string>
 	<key>KBServiceVersion</key>
 	<string>1.0.0</string>
 	<key>LSApplicationCategoryType</key>

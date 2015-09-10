@@ -7,6 +7,7 @@
 //
 
 #import "KBLogFormatter.h"
+#import "KBLog.h"
 
 @interface KBLogFormatter ()
 @property NSDateFormatter *dateFormatter;
@@ -24,15 +25,19 @@
 }
 
 - (NSString *)formatLogMessage:(DDLogMessage *)logMessage {
-  NSString *level;
-  switch (logMessage.flag) {
-    case DDLogFlagError : level = @" [ERROR]"; break;
-    case DDLogFlagWarning : level = @" [WARN]"; break;
-    default : level = @""; break;
-  }
-
   NSString *dateAndTime = [_dateFormatter stringFromDate:logMessage.timestamp];
-  return [NSString stringWithFormat:@"%@ %@:%@%@ %@", dateAndTime, logMessage.fileName, @(logMessage.line), level, logMessage.message];
+  return [NSString stringWithFormat:@"%@ %@:%@%@ %@", dateAndTime, logMessage.fileName, @(logMessage.line), [KBLogFormatter flagsFromLogMessage:logMessage], logMessage.message];
+}
+
++ (NSString *)flagsFromLogMessage:(DDLogMessage *)logMessage {
+  NSMutableArray *flags = [NSMutableArray array];
+  if (logMessage.flag & KBLogError) [flags addObject:@"ERROR"];
+  if (logMessage.flag & KBLogWarn) [flags addObject:@"WARN"];
+  if (logMessage.flag & KBLogInfo) [flags addObject:@"INFO"];
+  if (logMessage.flag & KBLogDebug) [flags addObject:@"DEBG"];
+  if (logMessage.flag & KBLogVerbose) [flags addObject:@"VERB"];
+  if (logMessage.flag & KBLogRPC) [flags addObject:@"RPC"];
+  return [NSString stringWithFormat:@"[%@]", [flags componentsJoinedByString:@","]];
 }
 
 @end
@@ -55,7 +60,7 @@
 
 - (NSString *)formatLogMessage:(DDLogMessage *)logMessage {
   NSString *time = [_dateFormatter stringFromDate:logMessage.timestamp];
-  return [NSString stringWithFormat:@"%@ %@", time, logMessage.message];
+  return [NSString stringWithFormat:@"%@ %@ %@", time, [KBLogFormatter flagsFromLogMessage:logMessage], logMessage.message];
 }
 
 @end

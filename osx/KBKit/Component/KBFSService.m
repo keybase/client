@@ -12,13 +12,13 @@
 #import "KBLaunchService.h"
 
 @interface KBFSService ()
-@property KBDebugPropertiesView *infoView;
-
 @property KBEnvConfig *config;
 @property KBFSConfig *kbfsConfig;
 @property NSString *name;
 @property NSString *info;
 @property KBLaunchService *launchService;
+
+@property YOView *infoView;
 @end
 
 @implementation KBFSService
@@ -53,17 +53,24 @@
   GHODictionary *info = [GHODictionary dictionary];
 
   info[@"Launchd"] = _launchService.label ? _launchService.label : @"-";
-  info[@"Bundle Version"] = _launchService.bundleVersion;
+
   GHODictionary *statusInfo = [_launchService componentStatusInfo];
   if (statusInfo) [info addEntriesFromOrderedDictionary:statusInfo];
 
-  if (_launchService) {
-    info[@"Launchd Plist"] = [KBPath path:[_launchService plistDestination] options:KBPathOptionsTilde];
-  }
+  YOView *view = [[YOView alloc] init];
+  KBDebugPropertiesView *propertiesView = [[KBDebugPropertiesView alloc] init];
+  [propertiesView setProperties:info];
+  NSView *scrollView = [KBScrollView scrollViewWithDocumentView:propertiesView];
+  [view addSubview:scrollView];
 
-  if (!_infoView) _infoView = [[KBDebugPropertiesView alloc] init];
-  [_infoView setProperties:info];
+  YOHBox *buttons = [YOHBox box:@{@"spacing": @(10)}];
+  [view addSubview:buttons];
+
+  view.viewLayout = [YOVBorderLayout layoutWithCenter:scrollView top:nil bottom:@[buttons] insets:UIEdgeInsetsZero spacing:10];
+
+  _infoView = view;
 }
+
 
 - (void)ensureDirectory:(NSString *)directory completion:(KBCompletion)completion {
   BOOL isDirectory = NO;
@@ -85,51 +92,6 @@
   completion(nil);
 }
 
-/*!
- Try to fix the service based on the service status.
- */
-// This is currently disabled. The KBFS service should fix mounting issues.
-/*
-- (void)checkServiceStatus:(KBServiceStatus *)serviceStatus completion:(KBCompletion)completion retry:(dispatch_block_t)retry {
-  if ([serviceStatus.lastExitStatus integerValue] == 3) {
-    [self umount:NO completion:^(NSError *error) {
-      if (error) {
-        completion(error);
-      } else {
-        retry();
-      }
-    }];
-  } else {
-    completion(serviceStatus.error);
-  }
-}
- */
-
-// Unused.
-/*
-- (void)umount:(BOOL)force completion:(KBCompletion)completion {
-  NSTask *task = [[NSTask alloc] init];
-  if (force) {
-    task.launchPath = @"/usr/sbin/diskutil";
-    task.arguments = @[@"unmountDisk", @"force", self.config.mountDir];
-  } else {
-    task.launchPath = @"/sbin/umount";
-    task.arguments = @[self.config.mountDir];
-  }
-  task.standardOutput = nil;
-  task.standardError = nil;
-  task.terminationHandler = ^(NSTask *t) {
-    if (t.terminationStatus != 0) {
-      completion(KBMakeError(-1, @"Unmount error"));
-    } else {
-      completion(nil);
-    }
-  };
-  DDLogInfo(@"Unmounting: %@ %@", task.launchPath, task.arguments);
-  [task launch];
-}
- */
-
 - (void)install:(KBCompletion)completion {
   NSString *mountDir = [self.config mountDir];
   GHWeakSelf gself = self;
@@ -149,7 +111,7 @@
 }
 
 - (void)start:(KBCompletion)completion {
-  [_launchService start:10 completion:^(KBComponentStatus *componentStatus, KBServiceStatus *serviceStatus) {
+  [_launchService start:5 completion:^(KBComponentStatus *componentStatus, KBServiceStatus *serviceStatus) {
     completion(componentStatus.error);
   }];
 }
@@ -159,14 +121,15 @@
 }
 
 - (void)refreshComponent:(KBCompletion)completion {
+  if (!_launchService) {
+    [self componentDidUpdate];
+    completion(nil);
+    return;
+  }
+
   [_launchService updateComponentStatus:0 completion:^(KBComponentStatus *componentStatus, KBServiceStatus *serviceStatus) {
     [self componentDidUpdate];
-
-    if (!componentStatus && [serviceStatus.lastExitStatus integerValue] == 3) {
-      completion(KBMakeError(-1, @"Failed with a mount error"));
-    } else {
-      completion(componentStatus.error);
-    }
+    completion(componentStatus.error);
   }];
 }
 

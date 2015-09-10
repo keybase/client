@@ -129,7 +129,8 @@
 
 - (void)refreshComponent:(KBCompletion)completion {
   if (!_launchService) {
-    completion(KBMakeError(-1, @"Launchd disabled"));
+    [self componentDidUpdate];
+    completion(nil);
     return;
   }
 

@@ -14,6 +14,7 @@
 #import "KBWorkspace.h"
 #import "KBFormatter.h"
 #import "KBEnvironment.h"
+#import "KBLog.h"
 
 #import <GHKit/GHKit.h>
 #import <ObjectiveSugar/ObjectiveSugar.h>
@@ -65,6 +66,7 @@
     return;
   }
 
+  // Ensure its closed
   _client.delegate = nil;
   [_client close];
 
@@ -183,6 +185,8 @@
 }
 
 - (void)close {
+  KBLog(KBLogRPC|KBLogDebug, @"Closing");
+  _client.delegate = nil;
   [_client close];
   [self _didClose];
 }

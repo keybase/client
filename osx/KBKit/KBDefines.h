@@ -91,16 +91,4 @@ NSString *KBShortNameForServiceName(NSString *serviceName);
 
 NSString *KBNameForServiceName(NSString *serviceName);
 
-typedef NS_OPTIONS (NSUInteger, KBLogFlag) {
-  KBLogError = DDLogFlagError,
-  KBLogWarn = DDLogFlagWarning,
-  KBLogInfo = DDLogFlagInfo,
-  KBLogDebug = DDLogFlagDebug,
-  KBLogVerbose = DDLogFlagVerbose,
-
-  // Custom categories
-  KBLogRPC = (1 << 5),
-};
-
-#define KBLog(options, frmt, ...) LOG_MAYBE(LOG_ASYNC_ENABLED, LOG_LEVEL_DEF, options, 0, nil, __PRETTY_FUNCTION__, frmt, ##__VA_ARGS__)
 
