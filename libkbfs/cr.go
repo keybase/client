@@ -131,6 +131,39 @@ func (cr *ConflictResolver) checkDone(ctx context.Context) error {
 	}
 }
 
+func (cr *ConflictResolver) getMDs(ctx context.Context) (
+	unmerged []*RootMetadata, merged []*RootMetadata, err error) {
+	// first get all outstanding unmerged MDs for this device
+	branchPoint, unmerged, err := cr.fbo.getUnmergedMDUpdates(ctx)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	// now get all the merged MDs, starting from after the branch point
+	merged, err = cr.fbo.getMergedMDUpdates(ctx, branchPoint+1)
+	return unmerged, merged, err
+}
+
+func (cr *ConflictResolver) updateCurrInput(ctx context.Context,
+	unmerged []*RootMetadata, merged []*RootMetadata) error {
+	cr.inputLock.Lock()
+	defer cr.inputLock.Unlock()
+	// check done while holding the lock, so we know for sure if
+	// we've already been canceled and replaced by a new input.
+	err := cr.checkDone(ctx)
+	if err != nil {
+		return err
+	}
+
+	if len(unmerged) > 0 {
+		cr.currInput.unmerged = unmerged[len(unmerged)-1].Revision
+	}
+	if len(merged) > 0 {
+		cr.currInput.merged = merged[len(merged)-1].Revision
+	}
+	return nil
+}
+
 func (cr *ConflictResolver) doResolve(ctx context.Context, ci conflictInput) {
 	cr.log.CDebugf(ctx, "Starting conflict resolution with input %v", ci)
 	var err error
@@ -138,6 +171,19 @@ func (cr *ConflictResolver) doResolve(ctx context.Context, ci conflictInput) {
 
 	// Canceled before we even got started?
 	err = cr.checkDone(ctx)
+	if err != nil {
+		return
+	}
+
+	// Fetch the merged and unmerged MDs
+	unmerged, merged, err := cr.getMDs(ctx)
+	if err != nil {
+		return
+	}
+
+	// Update the current input to reflect the MDs we'll actually be
+	// working with.
+	err = cr.updateCurrInput(ctx, unmerged, merged)
 	if err != nil {
 		return
 	}
