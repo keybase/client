@@ -11,6 +11,7 @@ var {
 } = React
 
 var commonStyles = require('../styles/common')
+var enums = require('../keybase_v1')
 
 var styles = StyleSheet.create({
   container: {
@@ -33,27 +34,45 @@ class SelectSigner extends Component {
   componentWillMount () {
     var ds = new ListView.DataSource({rowHasChanged: (r1, r2) => r1 !== r2})
 
+    var devices = this.props.devices.map(function (d) {
+      var desc = ''
+
+      if (d.deviceID) {
+        desc = d.type[0].toUpperCase() + d.type.substr(1) + ' with id: ' + d.deviceID
+      }
+
+      return {
+        ...d,
+        desc: desc
+      }
+    })
+
+    if (this.props.hasPGP) {
+      devices.push({
+        name: 'PGP Key',
+        desc: 'Use your PGP key'
+      })
+    }
+
     this.state = {
-      dataSource: ds.cloneWithRows(this.props.devices)
+      dataSource: ds.cloneWithRows(devices)
     }
   }
 
   select (rowData) {
-    // {"action":0,"signer":{"kind":0,"deviceID":"e0ce327507bf30e8f7a2512a72bdd318","deviceName":"b"}}
-    /*
-  KBRDeviceSignerKindDevice = 0,
-	KBRDeviceSignerKindPgp = 1,
-	KBRDeviceSignerKindPaperBackupKey = 2,
-  */
- // TODO generate this from the protocol
+    var signer = {
+      deviceID: rowData.deviceID,
+      deviceName: rowData.name,
+      kind: enums.locksmithUi.DeviceSignerKind.device
+    }
+
+    if (!rowData.deviceID) {
+      signer.kind = enums.locksmithUi.DeviceSignerKind.pgp
+    }
 
     this.props.response.result({
-      action: 0, // sign
-      signer: {
-        kind: 0,
-        deviceID: rowData.deviceID,
-        deviceName: rowData.name
-      }
+      action: enums.locksmithUi.SelectSignerAction.sign,
+      signer: signer
     })
   }
 
@@ -66,7 +85,7 @@ class SelectSigner extends Component {
         <View>
           <View style={{margin: 10}}>
             <Text>{rowData.name}</Text>
-            <Text style={{fontSize: 10}}>{rowData.type + ' with id ' + rowData.deviceID}</Text>
+            <Text style={{fontSize: 10}}>{rowData.desc}</Text>
           </View>
           {sep}
         </View>
