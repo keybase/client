@@ -14,8 +14,8 @@
 
 @interface KBAppView : YOView
 
-@property (nonatomic) KBRUser *user;
 @property (readonly) KBEnvironment *environment;
+@property (nonatomic, readonly) KBRGetCurrentStatusRes *userStatus;
 
 - (void)openWithEnvironment:(KBEnvironment *)environment completion:(KBCompletion)completion;
 

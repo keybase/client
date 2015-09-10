@@ -76,10 +76,10 @@
 
   [menu addItemWithTitle:@"Preferences" action:@selector(preferences:) keyEquivalent:@""];
 
-  KBRGetCurrentStatusRes *status = self.app.service.userStatus;
-  if (status) {
-    if (status.loggedIn && status.user) {
-      [menu addItemWithTitle:NSStringWithFormat(@"Log Out (%@)", status.user.username) action:@selector(logout:) keyEquivalent:@""];
+  KBRGetCurrentStatusRes *userStatus = self.app.appView.userStatus;
+  if (userStatus) {
+    if (userStatus.loggedIn && userStatus.user) {
+      [menu addItemWithTitle:NSStringWithFormat(@"Log Out (%@)", userStatus.user.username) action:@selector(logout:) keyEquivalent:@""];
       [menu addItem:[NSMenuItem separatorItem]];
     } else {
       [menu addItemWithTitle:@"Log In" action:@selector(login:) keyEquivalent:@""];
@@ -93,7 +93,7 @@
 }
 
 - (IBAction)preferences:(id)sender {
-  [self.app.preferences open:self.app.service.userConfig.configPath userDefaults:[KBWorkspace userDefaults] sender:self.app.appView];
+  [self.app.preferences openWithUserDefaults:[KBWorkspace userDefaults] sender:self.app.appView];
 }
 
 - (IBAction)login:(id)sender {

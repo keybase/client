@@ -60,6 +60,9 @@ typedef NS_ENUM (NSInteger, KBAppViewMode) {
 @property KBAppViewMode mode;
 
 @property KBEnvironment *environment;
+@property KBRConfig *userConfig;
+@property KBRGetCurrentStatusRes *userStatus;
+
 @end
 
 #define TITLE_HEIGHT (32)
@@ -121,6 +124,21 @@ typedef NS_ENUM (NSInteger, KBAppViewMode) {
   KBRPClient *client = _environment.service.client;
   client.delegate = self;
   [client open:completion];
+}
+
+- (void)_checkStatus:(void (^)(NSError *error, KBRGetCurrentStatusRes *currentStatus, KBRConfig *config))completion {
+  GHWeakSelf gself = self;
+  KBRConfigRequest *statusRequest = [[KBRConfigRequest alloc] initWithClient:_environment.service.client];
+  [statusRequest getCurrentStatus:^(NSError *error, KBRGetCurrentStatusRes *userStatus) {
+    if (error) {
+      completion(error, userStatus, nil);
+      return;
+    }
+    KBRConfigRequest *configRequest = [[KBRConfigRequest alloc] initWithClient:gself.environment.service.client];
+    [configRequest getConfig:^(NSError *error, KBRConfig *userConfig) {
+      completion(error, userStatus, userConfig);
+    }];
+  }];
 }
 
 // If we errored while checking status
@@ -226,9 +244,9 @@ typedef NS_ENUM (NSInteger, KBAppViewMode) {
 }
 
 - (void)showProfile {
-  NSAssert(_user, @"No user");
+  NSAssert(_userStatus.user, @"No user");
   if (!_userProfileView) _userProfileView = [[KBUserProfileView alloc] init];
-  [_userProfileView setUsername:_user.username client:_environment.service.client];
+  [_userProfileView setUsername:_userStatus.user.username client:_environment.service.client];
   [self setContentView:_userProfileView mode:KBAppViewModeMain];
   _toolbar.selectedItem = KBAppViewItemProfile;
 }
@@ -280,14 +298,14 @@ typedef NS_ENUM (NSInteger, KBAppViewMode) {
 }
 
 - (void)checkStatus {
-  [_environment.service checkStatus:^(NSError *error, KBRGetCurrentStatusRes *status, KBRConfig *config) {
+  [self _checkStatus:^(NSError *error, KBRGetCurrentStatusRes *userStatus, KBRConfig *userConfig) {
     if (error) {
       [self setStatusError:error];
       return;
     }
-    [self updateStatus:status];
+    [self setUserStatus:userStatus userConfig:userConfig];
     // TODO reload current view if coming back from disconnect?
-    [NSNotificationCenter.defaultCenter postNotificationName:KBStatusDidChangeNotification object:nil userInfo:@{@"config": config, @"status": status}];
+    [NSNotificationCenter.defaultCenter postNotificationName:KBStatusDidChangeNotification object:nil userInfo:@{@"userConfig": userConfig, @"userStatus": userStatus}];
   }];
 }
 
@@ -302,21 +320,24 @@ typedef NS_ENUM (NSInteger, KBAppViewMode) {
  */
 
 - (NSString *)APIURLString:(NSString *)path {
-  NSString *host = _environment.service.userConfig.serverURI;
+  NSAssert(_userConfig, @"No user config");
+  NSString *host = _userConfig.serverURI;
   if ([host isEqualTo:@"https://api.keybase.io:443"]) host = @"https://keybase.io";
   return [NSString stringWithFormat:@"%@/%@", host, path];
 }
 
-- (void)updateStatus:(KBRGetCurrentStatusRes *)status {
-  self.user = status.user;
+- (void)setUserStatus:(KBRGetCurrentStatusRes *)userStatus userConfig:(KBRConfig *)userConfig {
+  _userStatus = userStatus;
+  _userConfig = userConfig;
 
-  [self.sourceView.statusView setStatus:status];
-  [self.toolbar setUser:status.user];
+  [self.loginView setUsername:userStatus.user.username];
+  [self.sourceView.statusView setStatus:userStatus];
+  [self.toolbar setUser:userStatus.user];
 
   // Don't change if we are in the installer
   if (_mode == KBAppViewModeInstaller) return;
 
-  if (status.loggedIn && status.user) {
+  if (userStatus.loggedIn && userStatus.user) {
     // Show profile if logging in or we are already showing profile, refresh it
     if (_mode != KBAppViewModeMain || _toolbar.selectedItem == KBAppViewItemProfile) {
       [self showProfile];
@@ -324,11 +345,6 @@ typedef NS_ENUM (NSInteger, KBAppViewMode) {
   } else if (_mode != KBAppViewModeLogin || _mode != KBAppViewModeSignup) {
     [self showLogin];
   }
-}
-
-- (void)setUser:(KBRUser *)user {
-  _user = user;
-  [self.loginView setUsername:user.username];
 }
 
 - (void)signupViewDidSignup:(KBSignupView *)signupView {

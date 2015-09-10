@@ -25,9 +25,6 @@
 @property KBLaunchService *launchService;
 
 @property KBEnvConfig *config;
-@property (nonatomic) KBRGetCurrentStatusRes *userStatus;
-@property (nonatomic) KBRConfig *userConfig;
-@property NSError *statusError;
 
 @property YOView *infoView;
 @end
@@ -77,19 +74,6 @@
   info[@"Launchd"] = _launchService.label ? _launchService.label : @"-";
   GHODictionary *statusInfo = [_launchService componentStatusInfo];
   if (statusInfo) [info addEntriesFromOrderedDictionary:statusInfo];
-
-  if (_statusError) info[@"Status Error"] = _statusError.localizedDescription;
-
-  info[@"API Server"] = _userConfig ? _userConfig.serverURI : @"-";
-
-  info[@"User"] = _userStatus ? _userStatus.user.username : @"-";
-  info[@"User Id"] = _userStatus ? _userStatus.user.uid : @"-";
-
-  NSMutableArray *userStatus = [NSMutableArray array];
-  if (_userStatus.configured) [userStatus addObject:@"Configured"];
-  if (_userStatus.registered) [userStatus addObject:@"Registered"];
-  if (_userStatus.loggedIn) [userStatus addObject:@"Logged In"];
-  info[@"User Status"] = [userStatus join:@", "];
 
   YOView *view = [[YOView alloc] init];
   KBDebugPropertiesView *propertiesView = [[KBDebugPropertiesView alloc] init];
@@ -159,25 +143,6 @@
   KBRTestRequest *request = [[KBRTestRequest alloc] initWithClient:self.client];
   [request panicWithMessage:@"Testing panic" completion:^(NSError *error) {
     completion(error);
-  }];
-}
-
-- (void)checkStatus:(void (^)(NSError *error, KBRGetCurrentStatusRes *currentStatus, KBRConfig *config))completion {
-  GHWeakSelf gself = self;
-  KBRConfigRequest *statusRequest = [[KBRConfigRequest alloc] initWithClient:self.client];
-  [statusRequest getCurrentStatus:^(NSError *error, KBRGetCurrentStatusRes *userStatus) {
-    gself.userStatus = userStatus;
-    [self componentDidUpdate];
-    if (error) {
-      completion(error, userStatus, nil);
-      return;
-    }
-    KBRConfigRequest *configRequest = [[KBRConfigRequest alloc] initWithClient:self.client];
-    [configRequest getConfig:^(NSError *error, KBRConfig *userConfig) {
-      gself.userConfig = userConfig;
-      [self componentDidUpdate];
-      completion(error, userStatus, userConfig);
-    }];
   }];
 }
 

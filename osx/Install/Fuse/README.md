@@ -47,6 +47,13 @@ If you want to install it manually:
     sudo chown -R 0:0 /Library/Filesystems/osxfusefs.fs
     sudo chmod -R 755 /Library/Filesystems/osxfusefs.fs
 
+### Uninstall
+
+Don't try to kextunload unless you have everything unmounted. Otherwise it will fail forever until a reboot.
+
+    sudo kextunload /Library/Filesystems/osxfusefs.fs/Support/osxfusefs.kext
+    rm -rf /Library/Filesystems/osxfusefs.fs
+
 ### Verifying
 
 After install if you are having problems loading the kext:

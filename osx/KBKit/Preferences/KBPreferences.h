@@ -15,7 +15,7 @@
 
 @interface KBPreferences : NSObject <KBPreferences>
 
-- (void)open:(NSString *)configPath userDefaults:(NSUserDefaults *)userDefaults sender:(id)sender;
+- (void)openWithUserDefaults:(NSUserDefaults *)userDefaults sender:(id)sender;
 
 - (void)close;
 

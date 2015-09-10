@@ -138,7 +138,7 @@
 }
 
 - (NSString *)currentUsername {
-  return [[[self appView] user] username];
+  return self.appView.userStatus.user.username;
 }
 
 - (NSString *)APIURLString:(NSString *)path {

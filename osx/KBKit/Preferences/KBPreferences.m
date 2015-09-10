@@ -19,8 +19,6 @@
 
 @interface KBPreferences ()
 @property MASPreferencesWindowController *preferencesWindowController;
-@property NSString *configPath;
-@property NSMutableDictionary *config;
 @property NSUserDefaults *userDefaults;
 @end
 
@@ -34,13 +32,8 @@
 
 @implementation KBPreferences
 
-- (void)open:(NSString *)configPath userDefaults:(NSUserDefaults *)userDefaults sender:(id)sender {
-  _configPath = configPath;
+- (void)openWithUserDefaults:(NSUserDefaults *)userDefaults sender:(id)sender {
   _userDefaults = userDefaults;
-  NSData *configData = [[NSData alloc] initWithContentsOfFile:_configPath];
-  if (configData) {
-    _config = [NSJSONSerialization JSONObjectWithData:configData options:NSJSONReadingMutableContainers error:nil];
-  }
 
   [_preferencesWindowController.window close];
 
@@ -82,43 +75,39 @@
 }
 
 - (void)saveConfig {
-  NSAssert(_config, @"No config");
 
-  // Don't save, we're be updating how we set config
-  //NSData *configData = [NSJSONSerialization dataWithJSONObject:_config options:NSJSONWritingPrettyPrinted error:nil];
-  //[configData writeToFile:_configPath atomically:YES];
 }
 
 - (id)valueForIdentifier:(NSString *)identifier {
-  if ([identifier isEqualTo:@"Preferences.GPGEnabled"]) {
-    return @(![_config[@"gpg-disabled"] boolValue]);
-  }
+//  if ([identifier isEqualTo:@"Preferences.GPGEnabled"]) {
+//    return @(![_config[@"gpg-disabled"] boolValue]);
+//  }
 
   if ([identifier gh_startsWith:@"Preferences."]) {
     return [_userDefaults objectForKey:identifier];
   } else {
-    NSAssert(_config, @"No config");
-    return _config[identifier];
+//    NSAssert(_config, @"No config");
+//    return _config[identifier];
+    return nil;
   }
 }
 
 - (void)setValue:(id)value forIdentifier:(NSString *)identifier synchronize:(BOOL)synchronize {
-  NSAssert(_config, @"No config");
 
   // Convert preferences
-  if ([identifier isEqualTo:@"Preferences.GPGEnabled"]) {
-    identifier = @"gpg-disabled";
-    value = @(![value boolValue]);
-  }
+//  if ([identifier isEqualTo:@"Preferences.GPGEnabled"]) {
+//    identifier = @"gpg-disabled";
+//    value = @(![value boolValue]);
+//  }
 
   if ([identifier gh_startsWith:@"Preferences."]) {
     DDLogDebug(@"Setting (local) %@=%@", identifier, value);
     [_userDefaults setObject:value forKey:identifier];
     if (synchronize) [_userDefaults synchronize];
   } else {
-    DDLogDebug(@"Setting %@=%@", identifier, value);
-    _config[identifier] = value;
-    if (synchronize) [self saveConfig];
+//    DDLogDebug(@"Setting %@=%@", identifier, value);
+//    _config[identifier] = value;
+//    if (synchronize) [self saveConfig];
   }
 }
 

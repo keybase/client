@@ -64,10 +64,10 @@
 - (NSString *)statusDescription {
   NSMutableArray *str = [NSMutableArray array];
 
-  if (_runtimeStatus == KBRuntimeStatusNotRunning) {
+  if (_runtimeStatus == KBRuntimeStatusRunning) {
     [str addObject:NSStringFromKBRuntimeStatus(_runtimeStatus)];
   } else {
-    [str addObject:NSStringFromKBInstallStatus(_installStatus)];
+    [str addObject:NSStringWithFormat(@"%@ (%@)", NSStringFromKBRuntimeStatus(_runtimeStatus), NSStringFromKBInstallStatus(_installStatus))];
   }
 
   NSMutableArray *infos = [NSMutableArray array];
