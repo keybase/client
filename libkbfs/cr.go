@@ -36,6 +36,9 @@ type ConflictResolver struct {
 	inputGroup sync.WaitGroup
 	log        logger.Logger
 
+	shutdown     bool
+	shutdownLock sync.RWMutex
+
 	currInput conflictInput
 	inputLock sync.Mutex
 }
@@ -121,6 +124,12 @@ func (cr *ConflictResolver) inputProcessor() {
 // numbers, and kicks off the resolution process.
 func (cr *ConflictResolver) Resolve(unmerged MetadataRevision,
 	merged MetadataRevision) {
+	cr.shutdownLock.RLock()
+	defer cr.shutdownLock.RUnlock()
+	if cr.shutdown {
+		return
+	}
+
 	cr.inputGroup.Add(1)
 	cr.inputChan <- conflictInput{unmerged, merged}
 }
@@ -146,6 +155,9 @@ func (cr *ConflictResolver) Wait(ctx context.Context) error {
 // Shutdown cancels any ongoing resolutions and stops any background
 // goroutines.
 func (cr *ConflictResolver) Shutdown() {
+	cr.shutdownLock.Lock()
+	defer cr.shutdownLock.Unlock()
+	cr.shutdown = true
 	close(cr.inputChan)
 }
 
