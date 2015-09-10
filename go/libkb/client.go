@@ -73,15 +73,6 @@ func (e *Env) GenClientConfig() (*ClientConfig, error) {
 	serverURI := e.GetServerURI()
 
 	if serverURI == "" {
-		runMode := RunMode(e.GetRunMode())
-		serverURI = ServerLookup[runMode]
-		if serverURI == "" {
-			err := fmt.Errorf("No server URL for run mode: %s", runMode)
-			return nil, err
-		}
-	}
-
-	if serverURI == "" {
 		err := fmt.Errorf("Cannot find a server URL")
 		return nil, err
 	}
