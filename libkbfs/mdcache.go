@@ -49,6 +49,6 @@ func (md *MDCacheStandard) Put(rmd *RootMetadata) error {
 
 // Delete implements the MDCache interface for MDCacheStandard.
 func (md *MDCacheStandard) Delete(rmd *RootMetadata) {
-	key := mdCacheKey{rmd.ID, rmd.Revision, !rmd.IsUnmergedSet()}
+	key := mdCacheKey{rmd.ID, rmd.Revision, rmd.MergedStatus()}
 	md.lru.Remove(key)
 }

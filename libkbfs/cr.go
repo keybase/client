@@ -167,7 +167,8 @@ func (cr *ConflictResolver) getMDs(ctx context.Context) (
 	}
 
 	// now get all the merged MDs, starting from after the branch point
-	merged, err = cr.fbo.getMergedMDUpdates(ctx, branchPoint+1)
+	merged, err = getMergedMDUpdates(ctx, cr.fbo.config, cr.fbo.id(),
+		branchPoint+1)
 	return unmerged, merged, err
 }
 
