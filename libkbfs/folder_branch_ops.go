@@ -3432,37 +3432,49 @@ func (fbo *FolderBranchOps) getMDRange(ctx context.Context,
 	return rmds, nil
 }
 
+func (fbo *FolderBranchOps) getMergedMDUpdates(ctx context.Context,
+	startRev MetadataRevision) (mergedRmds []*RootMetadata, err error) {
+	start := startRev
+	for {
+		end := start + maxMDsAtATime - 1 // range is inclusive
+		rmds, err := fbo.getMDRange(ctx, start, end, Merged)
+		if err != nil {
+			return nil, err
+		}
+
+		mergedRmds = append(mergedRmds, rmds...)
+
+		// TODO: limit the number of MDs we're allowed to hold in
+		// memory at any one time?
+		if len(rmds) < maxMDsAtATime {
+			return mergedRmds, nil
+		}
+		start = end + 1
+	}
+}
+
 // Assumes all necessary locking is either already done by caller, or
 // is done by applyFunc.
 func (fbo *FolderBranchOps) getAndApplyMDUpdates(ctx context.Context,
 	applyFunc applyMDUpdatesFunc) error {
-	for {
-		// first look up all MD revisions newer than my current head
-		currHead := fbo.getCurrMDRevision()
-
-		start := currHead + 1
-		end := start + maxMDsAtATime - 1 // range is inclusive
-		rmds, err := fbo.getMDRange(ctx, start, end, Merged)
-		if err != nil {
-			return err
-		}
-
-		err = applyFunc(ctx, rmds)
-		if err != nil {
-			return err
-		}
-
-		if len(rmds) < maxMDsAtATime {
-			return nil
-		}
+	// first look up all MD revisions newer than my current head
+	start := fbo.getCurrMDRevision() + 1
+	rmds, err := fbo.getMergedMDUpdates(ctx, start)
+	if err != nil {
+		return err
 	}
+
+	err = applyFunc(ctx, rmds)
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
-// writerLock should be held by caller.
-func (fbo *FolderBranchOps) undoUnmergedMDUpdatesLocked(
-	ctx context.Context) error {
+func (fbo *FolderBranchOps) getUnmergedMDUpdates(ctx context.Context) (
+	currHead MetadataRevision, unmergedRmds []*RootMetadata, err error) {
 	// walk backwards until we find one that is merged
-	currHead := fbo.getCurrMDRevision()
+	currHead = fbo.getCurrMDRevision()
 	for {
 		// first look up all unmerged MD revisions older than my current head
 		startRev := currHead - maxMDsAtATime + 1 // (MetadataRevision is signed)
@@ -3472,38 +3484,59 @@ func (fbo *FolderBranchOps) undoUnmergedMDUpdatesLocked(
 
 		rmds, err := fbo.getMDRange(ctx, startRev, currHead, Unmerged)
 		if err != nil {
-			return err
+			return MetadataRevisionUninitialized, nil, err
 		}
 
-		err = fbo.undoMDUpdatesLocked(ctx, rmds)
-		if err != nil {
-			return err
-		}
+		numNew := len(rmds)
+		// prepend to keep the ordering correct
+		unmergedRmds = append(rmds, unmergedRmds...)
 
 		// on the next iteration, start apply the previous root
-		currHead = fbo.getCurrMDRevision() - 1
-		if currHead < MetadataRevisionInitial {
-			return errors.New("Ran out of MD updates to unstage!")
+		if numNew > 0 {
+			currHead = rmds[0].Revision - 1
 		}
-		if len(rmds) < maxMDsAtATime {
-			// We have arrived at the branch point.  The new root is
-			// the previous revision from the current head.  Find it
-			// and apply.  TODO: somehow fake the current head into
-			// being currHead-1, so that future calls to
-			// applyMDUpdates will fetch this along with the rest of
-			// the updates.
-			fbo.setStagedLocked(false)
-
-			rmds, err := fbo.getMDRange(ctx, currHead, currHead, Merged)
-			if err != nil {
-				return err
-			}
-			if len(rmds) == 0 {
-				return fmt.Errorf("Couldn't find the branch point %d", currHead)
-			}
-			return fbo.saveMdToCacheLocked(rmds[0])
+		if currHead < MetadataRevisionInitial {
+			return MetadataRevisionUninitialized, nil,
+				errors.New("Ran out of MD updates to unstage!")
+		}
+		// TODO: limit the number of MDs we're allowed to hold in
+		// memory at any one time?
+		if numNew < maxMDsAtATime {
+			break
 		}
 	}
+	return currHead, unmergedRmds, nil
+}
+
+// writerLock should be held by caller.
+func (fbo *FolderBranchOps) undoUnmergedMDUpdatesLocked(
+	ctx context.Context) error {
+	currHead, unmerged, err := fbo.getUnmergedMDUpdates(ctx)
+	if err != nil {
+		return err
+	}
+
+	err = fbo.undoMDUpdatesLocked(ctx, unmerged)
+	if err != nil {
+		return err
+	}
+
+	// We have arrived at the branch point.  The new root is
+	// the previous revision from the current head.  Find it
+	// and apply.  TODO: somehow fake the current head into
+	// being currHead-1, so that future calls to
+	// applyMDUpdates will fetch this along with the rest of
+	// the updates.
+	fbo.setStagedLocked(false)
+
+	rmds, err := fbo.getMDRange(ctx, currHead, currHead, merged)
+	if err != nil {
+		return err
+	}
+	if len(rmds) == 0 {
+		return fmt.Errorf("Couldn't find the branch point %d", currHead)
+	}
+	return fbo.saveMdToCacheLocked(rmds[0])
 }
 
 // UnstageForTesting implements the KBFSOps interface for FolderBranchOps
