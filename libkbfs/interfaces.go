@@ -328,6 +328,8 @@ type MDCache interface {
 		*RootMetadata, error)
 	// Put stores the metadata object.
 	Put(md *RootMetadata) error
+	// Delete this metadata object from the cache if it exists.
+	Delete(md *RootMetadata)
 }
 
 // KeyCache handles caching for both TLFCryptKeys and BlockCryptKeys.

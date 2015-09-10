@@ -3539,7 +3539,18 @@ func (fbo *FolderBranchOps) undoUnmergedMDUpdatesLocked(
 	if len(rmds) == 0 {
 		return fmt.Errorf("Couldn't find the branch point %d", currHead)
 	}
-	return fbo.saveMdToCacheLocked(ctx, rmds[0])
+	err = fbo.saveMdToCacheLocked(ctx, rmds[0])
+	if err != nil {
+		return err
+	}
+
+	// Now that we're back on the merged branch, forget about all the
+	// unmerged updates
+	mdcache := fbo.config.MDCache()
+	for _, rmd := range unmerged {
+		mdcache.Delete(rmd)
+	}
+	return nil
 }
 
 // UnstageForTesting implements the KBFSOps interface for FolderBranchOps
