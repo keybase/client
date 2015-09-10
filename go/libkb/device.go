@@ -30,7 +30,7 @@ type Device struct {
 	ID          keybase1.DeviceID `json:"id"`
 	Type        string            `json:"type"`
 	Kid         keybase1.KID      `json:"kid,omitempty"`
-	Description *string           `json:"description,omitempty"`
+	Description *string           `json:"name,omitempty"`
 	Status      *int              `json:"status,omitempty"`
 }
 
