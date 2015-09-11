@@ -28,9 +28,8 @@ func (c *CmdDbNuke) Run() error {
 
 func NewCmdDbNuke(cl *libcmdline.CommandLine) cli.Command {
 	return cli.Command{
-		Name:        "nuke",
-		Usage:       "keybase db nuke",
-		Description: "Delete the local database.",
+		Name:  "nuke",
+		Usage: "Delete the local database",
 		Action: func(c *cli.Context) {
 			cl.ChooseCommand(&CmdDbNuke{}, "nuke", c)
 		},
@@ -45,9 +44,8 @@ func NewCmdDbNuke(cl *libcmdline.CommandLine) cli.Command {
 
 func NewCmdDb(cl *libcmdline.CommandLine) cli.Command {
 	return cli.Command{
-		Name:        "db",
-		Usage:       "keybase db [...]",
-		Description: "Manage the local database.",
+		Name:  "db",
+		Usage: "Manage the local database",
 		Subcommands: []cli.Command{
 			NewCmdDbNuke(cl),
 		},

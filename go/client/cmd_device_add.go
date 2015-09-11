@@ -18,12 +18,17 @@ type CmdDeviceAdd struct {
 	sessionID int
 }
 
+const cmdDevAddDesc = `When you are adding a new device to your account and you have an 
+existing device, you will be prompted to use this command on your
+existing device to authorize the new device.`
+
 // NewCmdDeviceAdd creates a new cli.Command.
 func NewCmdDeviceAdd(cl *libcmdline.CommandLine) cli.Command {
 	return cli.Command{
-		Name:        "add",
-		Usage:       "keybase device add <secret-phrase>",
-		Description: "Authorize a new device.",
+		Name:         "add",
+		Usage:        "Authorize a new device",
+		Description:  cmdDevAddDesc,
+		ArgumentHelp: "<secret-phrase>",
 		Action: func(c *cli.Context) {
 			cl.ChooseCommand(&CmdDeviceAdd{}, "add", c)
 		},

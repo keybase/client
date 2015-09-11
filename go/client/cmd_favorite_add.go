@@ -15,9 +15,9 @@ type CmdFavoriteAdd struct {
 
 func NewCmdFavoriteAdd(cl *libcmdline.CommandLine) cli.Command {
 	return cli.Command{
-		Name:        "add",
-		Usage:       "keybase favorite add <folder-name>",
-		Description: "Add a favorite.",
+		Name:         "add",
+		Usage:        "Add a favorite",
+		ArgumentHelp: "<folder-name>",
 		Action: func(c *cli.Context) {
 			cl.ChooseCommand(&CmdFavoriteAdd{}, "add", c)
 		},
