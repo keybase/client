@@ -13,9 +13,7 @@ func init() {
 }
 
 // AppHelpTemplate is used for `keybase help` or `keybase -h`.
-// It also is used (mistakenly) for `keybase cmd help` when `cmd` has
-// subcommands.
-var AppHelpTemplate = `NAME:
+var AppHelpTemplate = `AHT NAME:
    {{.Name}} - {{.Usage}}
 
 USAGE:
@@ -37,12 +35,7 @@ COPYRIGHT:
 
 // CommandHelpTemplate is used for `keybase help cmd` or
 // `keybase cmd help subcmd`.
-//
-// notes:
-// remove "[argument...]" from usage?
-// better usage if subcommands?
-//
-var CommandHelpTemplate = `NAME:
+var CommandHelpTemplate = `CHT NAME:
    keybase {{.FullName}} - {{.Usage}}
 
 USAGE:
@@ -60,9 +53,9 @@ OPTIONS:
    {{end}}{{ end }}
 `
 
-// this one looks ok.
 // SubcommandHelpTemplate is used for `keybase cmd` with no
 // other arguments when `cmd` has subcommands.
+// Or for `keybase cmd help` when `cmd` has subcommands.
 var SubcommandHelpTemplate = `NAME:
    {{.Name}} - {{.Usage}}
 
@@ -72,17 +65,4 @@ USAGE:
 COMMANDS:
    {{range .Commands}}{{join .Names ", "}}{{ "\t" }}{{.Usage}}
    {{end}}
-`
-var FSubcommandHelpTemplate = `NAME:
-   {{.Name}} - {{.Usage}}
-
-USAGE:
-   {{.Name}} <command>{{if .Flags}} [command options]{{end}} [arguments...]
-
-COMMANDS:
-   {{range .Commands}}{{join .Names ", "}}{{ "\t" }}{{.Usage}}
-   {{end}}{{if .Flags}}
-OPTIONS:
-   {{range .Flags}}{{.}}
-   {{end}}{{end}}
 `
