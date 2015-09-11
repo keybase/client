@@ -48,16 +48,25 @@ func NewCmdLaunchdInstall(cl *libcmdline.CommandLine) cli.Command {
 			if len(args) < 2 {
 				G.Log.Fatalf("No path to keybase executable specified.")
 			}
-			plistArgs := []string{"--log-format=file"}
 
+			label := args[0]
+			binPath := args[1]
+
+			plistArgs := []string{}
+			plistArgs = append(plistArgs, fmt.Sprintf("--label=%s", label))
+			plistArgs = append(plistArgs, "--log-format=file")
 			runMode := c.String("run-mode")
 			if runMode != "" {
 				plistArgs = append(plistArgs, fmt.Sprintf("--run-mode=%s", runMode))
 			}
-
 			plistArgs = append(plistArgs, "service")
 
-			plist := launchd.NewPlist(args[0], args[1], plistArgs)
+			envVars := make(map[string]string)
+			envVars["PATH"] = "/sbin:/usr/sbin:/bin:/usr/bin:/usr/local/bin"
+
+			workingDir := G.Env.GetCacheDir()
+
+			plist := launchd.NewPlist(label, binPath, plistArgs, envVars, workingDir)
 			err := launchd.Install(plist)
 			if err != nil {
 				G.Log.Fatalf("%v", err)

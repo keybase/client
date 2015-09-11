@@ -34,17 +34,21 @@ func (s Service) Label() string { return s.label }
 
 // Plist defines a launchd plist
 type Plist struct {
-	label   string
-	binPath string
-	args    []string
+	label      string
+	binPath    string
+	args       []string
+	envVars    map[string]string
+	workingDir string
 }
 
 // NewPlist constructs a launchd service.
-func NewPlist(label string, binPath string, args []string) Plist {
+func NewPlist(label string, binPath string, args []string, envVars map[string]string, workingDir string) Plist {
 	return Plist{
-		label:   label,
-		binPath: binPath,
-		args:    args,
+		label:      label,
+		binPath:    binPath,
+		args:       args,
+		envVars:    envVars,
+		workingDir: workingDir,
 	}
 }
 
@@ -286,21 +290,21 @@ func launchdLogDir() string {
 func (p Plist) plist() string {
 	logFile := filepath.Join(launchdLogDir(), p.label+".log")
 
-	encodeString := func(s string) string {
-		return fmt.Sprintf("<string>%s</string>", s)
+	encodeTag := func(name, val string) string {
+		return fmt.Sprintf("<%s>%s</%s>", name, val, name)
 	}
 
 	pargs := []string{}
-
 	// First arg is the keybase executable
-	pargs = append(pargs, encodeString(p.binPath))
-
-	// Pass the label so clients can see where service was installed
-	labelArg := fmt.Sprintf("--label=%s", p.label)
-	pargs = append(pargs, encodeString(labelArg))
-
+	pargs = append(pargs, encodeTag("string", p.binPath))
 	for _, arg := range p.args {
-		pargs = append(pargs, encodeString(arg))
+		pargs = append(pargs, encodeTag("string", arg))
+	}
+
+	envVars := []string{}
+	for key, value := range p.envVars {
+		envVars = append(envVars, encodeTag("key", key))
+		envVars = append(envVars, encodeTag("string", value))
 	}
 
 	return `<?xml version="1.0" encoding="UTF-8"?>
@@ -309,6 +313,9 @@ func (p Plist) plist() string {
 <dict>
   <key>Label</key>
   <string>` + p.label + `</string>
+  <key>EnvironmentVariables</key>
+  <dict>` + "\n    " + strings.Join(envVars, "\n    ") + `
+  </dict>
   <key>ProgramArguments</key>
   <array>` + "\n    " + strings.Join(pargs, "\n    ") + `
   </array>
@@ -316,6 +323,8 @@ func (p Plist) plist() string {
   <true/>
   <key>RunAtLoad</key>
   <true/>
+  <key>WorkingDirectory</key>
+  <string>` + p.workingDir + `</string>
   <key>StandardErrorPath</key>
   <string>` + logFile + `</string>
   <key>StandardOutPath</key>
