@@ -71,38 +71,37 @@
   _infoView = view;
 }
 
-
-- (void)ensureDirectory:(NSString *)directory completion:(KBCompletion)completion {
-  BOOL isDirectory = NO;
-  if (![NSFileManager.defaultManager fileExistsAtPath:directory isDirectory:&isDirectory]) {
-    NSError *error = nil;
-    if (![NSFileManager.defaultManager createDirectoryAtPath:directory withIntermediateDirectories:YES attributes:nil error:&error]) {
-      completion(error);
-      return;
-    }
-  }
-  if (!isDirectory) {
-    completion(KBMakeError(KBErrorCodePathInaccessible, @"Path exists, but isn't a directory"));
-    return;
-  }
-  if (![NSFileManager.defaultManager isReadableFileAtPath:directory]) {
-    completion(KBMakeError(KBErrorCodePathInaccessible, @"Path exists, but isn't readable"));
-    return;
-  }
-  completion(nil);
-}
-
 - (void)install:(KBCompletion)completion {
   NSString *mountDir = [self.config mountDir];
   GHWeakSelf gself = self;
-  [self ensureDirectory:mountDir completion:^(NSError *error) {
-    [gself.launchService installWithTimeout:5 completion:^(KBComponentStatus *componentStatus, KBServiceStatus *serviceStatus) {
-      if ([serviceStatus.lastExitStatus integerValue] == 3) {
-        completion(KBMakeError(-1, @"Failed with a mount error"));
-      } else {
-        completion(componentStatus.error);
-      }
-    }];
+
+  NSError *error = nil;
+  if (![KBPath ensureDirectory:mountDir error:&error]) {
+    completion(error);
+    return;
+  }
+
+  if (![KBPath ensureDirectory:[_config appPath:nil options:0] error:&error]) {
+    completion(error);
+    return;
+  }
+
+  if (![KBPath ensureDirectory:[_config cachePath:nil options:0] error:&error]) {
+    completion(error);
+    return;
+  }
+
+  if (![KBPath ensureDirectory:[_config runtimePath:nil options:0] error:&error]) {
+    completion(error);
+    return;
+  }
+
+  [gself.launchService installWithTimeout:5 completion:^(KBComponentStatus *componentStatus, KBServiceStatus *serviceStatus) {
+    if ([serviceStatus.lastExitStatus integerValue] == 3) {
+      completion(KBMakeError(-1, @"Failed with a mount error"));
+    } else {
+      completion(componentStatus.error);
+    }
   }];
 }
 

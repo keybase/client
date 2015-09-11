@@ -23,6 +23,8 @@ typedef NS_OPTIONS (NSInteger, KBPathOptions) {
 + (NSString *)path:(NSString *)path options:(KBPathOptions)options;
 + (NSString *)pathInDir:(NSString *)dir path:(NSString *)path options:(KBPathOptions)options;
 
++ (BOOL)ensureDirectory:(NSString *)directory error:(NSError **)error;
+
 @end
 
 NSString *KBPathTilde(NSString *path);

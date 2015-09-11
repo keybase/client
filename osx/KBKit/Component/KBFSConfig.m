@@ -74,7 +74,7 @@
            @"ProgramArguments": args,
            @"RunAtLoad": @YES,
            @"KeepAlive": @YES,
-           @"WorkingDirectory": [_config appPath:nil options:0],
+           @"WorkingDirectory": [_config cachePath:nil options:0],
            @"StandardOutPath": [_config logFile:label],
            @"StandardErrorPath": [_config logFile:label],
            };

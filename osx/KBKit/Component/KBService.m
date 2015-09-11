@@ -148,6 +148,22 @@
 }
 
 - (void)install:(KBCompletion)completion {
+  NSError *error = nil;
+  if (![KBPath ensureDirectory:[_config appPath:nil options:0] error:&error]) {
+    completion(error);
+    return;
+  }
+
+  if (![KBPath ensureDirectory:[_config cachePath:nil options:0] error:&error]) {
+    completion(error);
+    return;
+  }
+
+  if (![KBPath ensureDirectory:[_config runtimePath:nil options:0] error:&error]) {
+    completion(error);
+    return;
+  }
+
   [_launchService installWithTimeout:5 completion:^(KBComponentStatus *componentStatus, KBServiceStatus *serviceStatus) {
     completion(componentStatus.error);
   }];

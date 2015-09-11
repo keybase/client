@@ -7,6 +7,7 @@
 //
 
 #import "KBPath.h"
+#import "KBDefines.h"
 
 @interface KBPath ()
 @property NSString *canonicalPath;
@@ -41,6 +42,24 @@
 
 + (NSString *)pathInDir:(NSString *)dir path:(NSString *)path options:(KBPathOptions)options {
   return [[KBPath path:path] pathInDir:dir options:options];
+}
+
++ (BOOL)ensureDirectory:(NSString *)directory error:(NSError **)error {
+  BOOL isDirectory = NO;
+  if (![NSFileManager.defaultManager fileExistsAtPath:directory isDirectory:&isDirectory]) {
+    if (![NSFileManager.defaultManager createDirectoryAtPath:directory withIntermediateDirectories:YES attributes:nil error:error]) {
+      return NO;
+    }
+  }
+  if (!isDirectory) {
+    *error = KBMakeError(KBErrorCodePathInaccessible, @"Path exists, but isn't a directory: %@", directory);
+    return NO;
+  }
+  if (![NSFileManager.defaultManager isReadableFileAtPath:directory]) {
+    *error = KBMakeError(KBErrorCodePathInaccessible, @"Path exists, but isn't readable: %@", directory);
+    return NO;
+  }
+  return YES;
 }
 
 @end
