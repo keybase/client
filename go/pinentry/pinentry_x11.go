@@ -4,6 +4,7 @@ package pinentry
 
 import "os"
 
-func IsRemote() bool {
-	return len(os.Getenv("DISPLAY")) == 0
+func HasWindows() bool {
+	//If there is a DISPLAY then we can spawn a window to it.
+	return len(os.Getenv("DISPLAY")) > 0
 }
