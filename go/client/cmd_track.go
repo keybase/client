@@ -17,9 +17,9 @@ type CmdTrack struct {
 
 func NewCmdTrack(cl *libcmdline.CommandLine) cli.Command {
 	return cli.Command{
-		Name:        "track",
-		Usage:       "keybase track <username>",
-		Description: "Verify a user's authenticity and optionally track them.",
+		Name:         "track",
+		ArgumentHelp: "<username>",
+		Usage:        "Verify a user's authenticity and optionally track them",
 		Flags: []cli.Flag{
 			cli.BoolFlag{
 				Name:  "local, l",

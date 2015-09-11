@@ -151,10 +151,9 @@ func printKey(key keybase1.PublicKey, subkeys []keybase1.PublicKey, indent int) 
 
 func NewCmdStatus(cl *libcmdline.CommandLine) cli.Command {
 	return cli.Command{
-		Name:        "status",
-		Usage:       "keybase status",
-		Description: "Show information about the current user.",
-		Flags:       []cli.Flag{},
+		Name:  "status",
+		Usage: "Show information about the current user",
+		Flags: []cli.Flag{},
 		Action: func(c *cli.Context) {
 			cl.ChooseCommand(&CmdStatus{}, "status", c)
 		},

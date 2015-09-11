@@ -124,9 +124,9 @@ func (c *CmdSearch) showJSONResults(results []keybase1.UserSummary) error {
 
 func NewCmdSearch(cl *libcmdline.CommandLine) cli.Command {
 	return cli.Command{
-		Name:        "search",
-		Usage:       "keybase search <query>",
-		Description: "Search for keybase users.",
+		Name:         "search",
+		ArgumentHelp: "<query>",
+		Usage:        "Search for keybase users",
 		Flags: []cli.Flag{
 			cli.BoolFlag{
 				Name:  "j, json",

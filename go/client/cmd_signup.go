@@ -13,9 +13,8 @@ import (
 
 func NewCmdSignup(cl *libcmdline.CommandLine) cli.Command {
 	cmd := cli.Command{
-		Name:        "signup",
-		Usage:       "keybase signup",
-		Description: "Signup for a new account.",
+		Name:  "signup",
+		Usage: "Signup for a new account",
 		Action: func(c *cli.Context) {
 			cl.ChooseCommand(&CmdSignup{}, "signup", c)
 		},

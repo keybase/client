@@ -20,9 +20,8 @@ import (
 
 func NewCmdStress(cl *libcmdline.CommandLine) cli.Command {
 	return cli.Command{
-		Name:        "stress",
-		Usage:       "keybase stress",
-		Description: "Run some stressful commands on the service.",
+		Name:  "stress",
+		Usage: "Run some stressful commands on the service (devel only)",
 		Action: func(c *cli.Context) {
 			cl.ChooseCommand(&CmdStress{}, "stress", c)
 		},
