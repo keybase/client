@@ -1,6 +1,7 @@
 package libcmdline
 
 import (
+	"io"
 	"regexp"
 	"strings"
 
@@ -408,4 +409,8 @@ func (p *CommandLine) Parse(args []string) (cmd Command, err error) {
 	}
 
 	return
+}
+
+func (p *CommandLine) SetOutputWriter(w io.Writer) {
+	p.app.Writer = w
 }
