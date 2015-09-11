@@ -3,6 +3,7 @@ package libkbfs
 import (
 	"bytes"
 	"encoding/binary"
+	"errors"
 	"fmt"
 	"sync"
 
@@ -28,6 +29,9 @@ type MDServerLocal struct {
 	// instance gets the Put() call.
 	observers    map[TlfID]map[*MDServerLocal]chan<- error
 	sessionHeads map[TlfID]*MDServerLocal
+
+	shutdown     *bool
+	shutdownLock *sync.RWMutex
 }
 
 func newMDServerLocalWithStorage(config Config, handleStorage, mdStorage,
@@ -46,7 +50,7 @@ func newMDServerLocalWithStorage(config Config, handleStorage, mdStorage,
 	}
 	mdserv := &MDServerLocal{config, handleDb, mdDb, revDb, &sync.Mutex{},
 		make(map[TlfID]map[*MDServerLocal]chan<- error),
-		make(map[TlfID]*MDServerLocal)}
+		make(map[TlfID]*MDServerLocal), new(bool), &sync.RWMutex{}}
 	return mdserv, nil
 }
 
@@ -86,6 +90,12 @@ func NewMDServerMemory(config Config) (*MDServerLocal, error) {
 func (md *MDServerLocal) GetForHandle(ctx context.Context, handle *TlfHandle, unmerged bool) (
 	TlfID, *RootMetadataSigned, error) {
 	id := NullTlfID
+	md.shutdownLock.RLock()
+	defer md.shutdownLock.RUnlock()
+	if *md.shutdown {
+		return id, nil, errors.New("MD server already shut down")
+	}
+
 	handleBytes := handle.ToBytes(md.config)
 	buf, err := md.handleDb.Get(handleBytes, nil)
 	if err != nil && err != leveldb.ErrNotFound {
@@ -117,6 +127,12 @@ func (md *MDServerLocal) GetForHandle(ctx context.Context, handle *TlfHandle, un
 // GetForTLF implements the MDServer interface for MDServerLocal.
 func (md *MDServerLocal) GetForTLF(ctx context.Context, id TlfID, unmerged bool) (
 	*RootMetadataSigned, error) {
+	md.shutdownLock.RLock()
+	defer md.shutdownLock.RUnlock()
+	if *md.shutdown {
+		return nil, errors.New("MD server already shut down")
+	}
+
 	mdID, err := md.getHeadForTLF(ctx, id, unmerged)
 	if err != nil {
 		return nil, MDServerError{err}
@@ -211,6 +227,11 @@ func (md *MDServerLocal) getCurrentDeviceKID(ctx context.Context) (keybase1.KID,
 // GetRange implements the MDServer interface for MDServerLocal.
 func (md *MDServerLocal) GetRange(ctx context.Context, id TlfID, unmerged bool,
 	start, stop MetadataRevision) ([]*RootMetadataSigned, error) {
+	md.shutdownLock.RLock()
+	defer md.shutdownLock.RUnlock()
+	if *md.shutdown {
+		return nil, errors.New("MD server already shut down")
+	}
 
 	var rmdses []*RootMetadataSigned
 	startKey, err := md.getMDKey(ctx, id, start, unmerged)
@@ -246,6 +267,12 @@ func (md *MDServerLocal) GetRange(ctx context.Context, id TlfID, unmerged bool,
 
 // Put implements the MDServer interface for MDServerLocal.
 func (md *MDServerLocal) Put(ctx context.Context, rmds *RootMetadataSigned) error {
+	md.shutdownLock.RLock()
+	defer md.shutdownLock.RUnlock()
+	if *md.shutdown {
+		return errors.New("MD server already shut down")
+	}
+
 	// Consistency checks and the actual write need to be synchronized.
 	md.mutex.Lock()
 	defer md.mutex.Unlock()
@@ -354,6 +381,12 @@ func (md *MDServerLocal) Put(ctx context.Context, rmds *RootMetadataSigned) erro
 
 // PruneUnmerged implements the MDServer interface for MDServerLocal.
 func (md *MDServerLocal) PruneUnmerged(ctx context.Context, id TlfID) error {
+	md.shutdownLock.RLock()
+	defer md.shutdownLock.RUnlock()
+	if *md.shutdown {
+		return errors.New("MD server already shut down")
+	}
+
 	// No revision and unmerged history.
 	headKey, err := md.getMDKey(ctx, id, 0, true)
 
@@ -388,6 +421,12 @@ func (md *MDServerLocal) PruneUnmerged(ctx context.Context, id TlfID) error {
 // RegisterForUpdate implements the MDServer interface for MDServerLocal.
 func (md *MDServerLocal) RegisterForUpdate(ctx context.Context, id TlfID,
 	currHead MetadataRevision) (<-chan error, error) {
+	md.shutdownLock.RLock()
+	defer md.shutdownLock.RUnlock()
+	if *md.shutdown {
+		return nil, errors.New("MD server already shut down")
+	}
+
 	md.mutex.Lock()
 	defer md.mutex.Unlock()
 
@@ -437,6 +476,13 @@ func (md *MDServerLocal) RegisterForUpdate(ctx context.Context, id TlfID,
 
 // Shutdown implements the MDServer interface for MDServerLocal.
 func (md *MDServerLocal) Shutdown() {
+	md.shutdownLock.Lock()
+	defer md.shutdownLock.Unlock()
+	if *md.shutdown {
+		return
+	}
+	*md.shutdown = true
+
 	if md.handleDb != nil {
 		md.handleDb.Close()
 	}
@@ -454,5 +500,5 @@ func (md *MDServerLocal) copy(config Config) *MDServerLocal {
 	// purpose, so that the MD server that gets a Put will notify all
 	// observers correctly no matter where they got on the list.
 	return &MDServerLocal{config, md.handleDb, md.mdDb, md.revDb, md.mutex,
-		md.observers, md.sessionHeads}
+		md.observers, md.sessionHeads, md.shutdown, md.shutdownLock}
 }
