@@ -593,7 +593,15 @@ func (l LoginUI) PromptRevokePaperKeys(arg keybase1.PromptRevokePaperKeysArg) (b
 	if arg.Index == 0 {
 		l.parent.Printf("Generating a new paper key.\n")
 	}
-	return l.parent.PromptYesNo(fmt.Sprintf("Also revoke existing %q ?", arg.Device.Name), PromptDefaultNo)
+	prompt := fmt.Sprintf("Also revoke existing paper key \"%s...\" ?", arg.Device.Name)
+
+	// XXX not sure if we need to support our existing paper keys, but without this
+	// someone is surely going to complain:
+	if strings.HasPrefix(arg.Device.Name, "Paper Key") {
+		prompt = fmt.Sprintf("Also revoke existing %q ?", arg.Device.Name)
+	}
+
+	return l.parent.PromptYesNo(prompt, PromptDefaultNo)
 }
 
 func (l LoginUI) DisplayPaperKeyPhrase(arg keybase1.DisplayPaperKeyPhraseArg) error {
