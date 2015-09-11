@@ -125,11 +125,17 @@ func printKey(key keybase1.PublicKey, subkeys []keybase1.PublicKey, indent int) 
 			GlobUI.Printf("%s%s%s%s\n", indentSpace(indent+2), identity.Username, commentStr, emailStr)
 		}
 	}
-	if key.DeviceID != "" {
-		GlobUI.Printf("%sDevice ID: %s\n", indentSpace(indent+1), key.DeviceID)
-	}
-	if key.DeviceDescription != "" {
-		GlobUI.Printf("%sDevice Description: %s\n", indentSpace(indent+1), key.DeviceDescription)
+	if key.DeviceID != "" || key.DeviceType != "" || key.DeviceDescription != "" {
+		GlobUI.Printf("%sDevice:\n", indentSpace(indent+1))
+		if key.DeviceID != "" {
+			GlobUI.Printf("%sID: %s\n", indentSpace(indent+2), key.DeviceID)
+		}
+		if key.DeviceType != "" {
+			GlobUI.Printf("%sType: %s\n", indentSpace(indent+2), key.DeviceType)
+		}
+		if key.DeviceDescription != "" {
+			GlobUI.Printf("%sDescription: %s\n", indentSpace(indent+2), key.DeviceDescription)
+		}
 	}
 	GlobUI.Printf("%sCreated: %s\n", indentSpace(indent+1), keybase1.FromTime(key.CTime))
 	GlobUI.Printf("%sExpires: %s\n", indentSpace(indent+1), keybase1.FromTime(key.ETime))

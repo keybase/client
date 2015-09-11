@@ -81,6 +81,7 @@ type PublicKey struct {
 	ParentID          string        `codec:"parentID" json:"parentID"`
 	DeviceID          DeviceID      `codec:"deviceID" json:"deviceID"`
 	DeviceDescription string        `codec:"deviceDescription" json:"deviceDescription"`
+	DeviceType        string        `codec:"deviceType" json:"deviceType"`
 	CTime             Time          `codec:"cTime" json:"cTime"`
 	ETime             Time          `codec:"eTime" json:"eTime"`
 }

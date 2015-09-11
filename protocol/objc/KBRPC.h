@@ -35,6 +35,7 @@
 @property NSString *parentID;
 @property NSString *deviceID;
 @property NSString *deviceDescription;
+@property NSString *deviceType;
 @property long cTime;
 @property long eTime;
 @end

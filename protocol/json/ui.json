@@ -109,6 +109,9 @@
       "name" : "deviceDescription",
       "type" : "string"
     }, {
+      "name" : "deviceType",
+      "type" : "string"
+    }, {
       "name" : "cTime",
       "type" : "Time"
     }, {

@@ -541,9 +541,13 @@ func (ckf ComputedKeyFamily) Export() []keybase1.PublicKey {
 		deviceID := ckf.cki.KIDToDeviceID[kid]
 		device := ckf.cki.Devices[deviceID]
 		deviceDescription := ""
+		deviceType := ""
 		if device != nil {
 			if device.Description != nil {
 				deviceDescription = *device.Description
+			}
+			if device.Type != "" {
+				deviceType = device.Type
 			}
 		}
 		parentID := ""
@@ -558,6 +562,7 @@ func (ckf ComputedKeyFamily) Export() []keybase1.PublicKey {
 			IsEldest:          cki.Eldest,
 			ParentID:          parentID,
 			DeviceID:          deviceID,
+			DeviceType:        deviceType,
 			DeviceDescription: deviceDescription,
 			CTime:             keybase1.TimeFromSeconds(cki.CTime),
 			ETime:             keybase1.TimeFromSeconds(cki.ETime),
