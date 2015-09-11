@@ -13,7 +13,7 @@ func init() {
 }
 
 // AppHelpTemplate is used for `keybase help` or `keybase -h`.
-var AppHelpTemplate = `AHT NAME:
+var AppHelpTemplate = `NAME:
    {{.Name}} - {{.Usage}}
 
 USAGE:
@@ -35,7 +35,7 @@ COPYRIGHT:
 
 // CommandHelpTemplate is used for `keybase help cmd` or
 // `keybase cmd help subcmd`.
-var CommandHelpTemplate = `CHT NAME:
+var CommandHelpTemplate = `NAME:
    keybase {{.FullName}} - {{.Usage}}
 
 USAGE:
