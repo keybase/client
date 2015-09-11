@@ -32,18 +32,15 @@ echo "Building git archive for $TAG"
 cd $DIR/../..
 git archive --format tar $TAG > $DIR/client.tar
 cd $DIR
-mkdir -p src/github.com/keybase/client
-tar xpf client.tar -C src/github.com/keybase/client ${dirs[@]}
 
-echo "Fetching dependencies"
-GOPATH=$DIR go get github.com/keybase/client/go/keybase
+cp README.md $DEST
 
-# Tar and untar so we can exclude some files
-tar cpf src.tar --exclude=.git README.md src
-tar xpf src.tar -C $DEST
+cd $DEST
+rm -rf src
+mkdir -p client
+tar xpf $DIR/client.tar -C client ${dirs[@]}
 
-# Cleanup
-rm -rf src pkg src.tar client.tar
+rm $DIR/client.tar
 
 echo "Now you should add, commit, tag and push the changes."
 echo "
