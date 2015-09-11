@@ -3222,8 +3222,7 @@ func (fbo *FolderBranchOps) getCurrMDRevision() MetadataRevision {
 	return fbo.getCurrMDRevisionLocked()
 }
 
-// writerLock and headLock must be held by the caller
-func (fbo *FolderBranchOps) reembedBlockChangesLocked(ctx context.Context,
+func (fbo *FolderBranchOps) reembedBlockChanges(ctx context.Context,
 	rmds []*RootMetadata) error {
 	// if any of the operations have unembedded block ops, fetch those
 	// now and fix them up.  TODO: parallelize me.
@@ -3283,7 +3282,7 @@ func (fbo *FolderBranchOps) applyMDUpdatesLocked(ctx context.Context,
 		return errors.New("Ignoring MD updates while writes are dirty")
 	}
 
-	fbo.reembedBlockChangesLocked(ctx, rmds)
+	fbo.reembedBlockChanges(ctx, rmds)
 
 	for _, rmd := range rmds {
 		// check that we're applying the expected MD revision
@@ -3317,7 +3316,7 @@ func (fbo *FolderBranchOps) undoMDUpdatesLocked(ctx context.Context,
 		return errors.New("Ignoring MD updates while writes are dirty")
 	}
 
-	fbo.reembedBlockChangesLocked(ctx, rmds)
+	fbo.reembedBlockChanges(ctx, rmds)
 
 	// go backwards through the updates
 	for i := len(rmds) - 1; i >= 0; i-- {
