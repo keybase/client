@@ -42,6 +42,7 @@ func (l *LinkID) UnmarshalJSON(b []byte) error {
 	if err != nil {
 		return err
 	}
+	*l = make([]byte, len(lid))
 	copy((*l)[:], lid[:])
 	return nil
 }
