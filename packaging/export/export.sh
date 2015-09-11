@@ -20,7 +20,7 @@ fi
 
 # Check dest exists
 if [ ! -d "$DEST" ]; then
-  echo "%DEST doesn't exist"
+  echo "$DEST doesn't exist"
   exit 2
 fi
 
