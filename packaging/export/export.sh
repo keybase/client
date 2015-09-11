@@ -33,7 +33,7 @@ cd $DIR/../..
 git archive --format tar $TAG > $DIR/client.tar
 cd $DIR
 
-cp README.md $DEST
+cp export.md $DEST/README.md
 
 cd $DEST
 rm -rf src
