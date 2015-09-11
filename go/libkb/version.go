@@ -8,7 +8,7 @@ import (
 const Version = "1.0.0"
 
 // Build number
-const Build = "15"
+const Build = "16"
 
 // VersionString returns semantic version string.
 // If devel, include build in version string (for development releases), for
