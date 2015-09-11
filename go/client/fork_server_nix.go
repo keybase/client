@@ -19,11 +19,11 @@ func GetExtraFlags() []cli.Flag {
 	return []cli.Flag{
 		cli.BoolFlag{
 			Name:  "no-auto-fork, F",
-			Usage: "disable auto-fork of background service",
+			Usage: "Disable auto-fork of background service.",
 		},
 		cli.BoolFlag{
 			Name:  "auto-fork",
-			Usage: "enable auto-fork of background service",
+			Usage: "Enable auto-fork of background service.",
 		},
 	}
 }
