@@ -104,18 +104,21 @@ func (c *CmdSearch) showJSONResults(results []keybase1.UserSummary) error {
 		for _, social := range user.Proofs.Social {
 			userBlob.SetKey(social.ProofType, jsonw.NewString(social.ProofName))
 		}
+
 		if len(user.Proofs.Web) > 0 {
-			websites := jsonw.NewArray(len(user.Proofs.Web))
-			webIndex := 0
-			userBlob.SetKey("websites", websites)
+			var webProofs []string
 			for _, webProof := range user.Proofs.Web {
 				for _, protocol := range webProof.Protocols {
-					websites.SetIndex(webIndex, jsonw.NewString(
-						fmt.Sprintf("%s://%s", protocol, webProof.Hostname)))
-					webIndex++
+					webProofs = append(webProofs, libkb.MakeURI(protocol, webProof.Hostname))
 				}
 			}
+			websites := jsonw.NewArray(len(webProofs))
+			for i, wp := range webProofs {
+				websites.SetIndex(i, jsonw.NewString(wp))
+			}
+			userBlob.SetKey("websites", websites)
 		}
+
 		output.SetIndex(userIndex, userBlob)
 	}
 	GlobUI.Println(output.MarshalPretty())

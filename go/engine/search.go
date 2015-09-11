@@ -73,21 +73,51 @@ func (e *SearchEngine) Run(ctx *Context) error {
 		components := completion.AtKey("components")
 		searchComponents := []keybase1.SearchComponent{}
 
-		for _, key := range componentKeys {
-			val, err := components.AtKey(key).AtKey("val").GetString()
-			if err != nil {
-				return err
-			}
-			score, err := components.AtKey(key).AtKey("score").GetFloat()
-			if err != nil {
-				return err
-			}
+		add := func(key string, val string, score float64) {
 			searchComponents = append(searchComponents, keybase1.SearchComponent{
 				Key:   key,
 				Value: val,
 				Score: score,
 			})
+		}
 
+		for _, key := range componentKeys {
+			if key == "websites" {
+				n, err := components.AtKey(key).Len()
+				if err != nil {
+					return err
+				}
+				for i := 0; i < n; i++ {
+					obj := components.AtKey(key).AtIndex(i)
+					val, err := obj.AtKey("val").GetString()
+					if err != nil {
+						return err
+					}
+					score, err := obj.AtKey("score").GetFloat()
+					if err != nil {
+						return err
+					}
+					protocol, err := obj.AtKey("protocol").GetString()
+					if err != nil {
+						return err
+					}
+					if protocol == "" {
+						return err
+					}
+					add(key, libkb.MakeURI(protocol, val), score)
+				}
+
+			} else {
+				val, err := components.AtKey(key).AtKey("val").GetString()
+				if err != nil {
+					return err
+				}
+				score, err := components.AtKey(key).AtKey("score").GetFloat()
+				if err != nil {
+					return err
+				}
+				add(key, val, score)
+			}
 		}
 		username, err := components.AtKey("username").AtKey("val").GetString()
 		if err != nil {

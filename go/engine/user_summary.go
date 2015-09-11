@@ -62,6 +62,7 @@ type SocialProof struct {
 
 func (w WebProof) Export() keybase1.WebProof {
 	r := keybase1.WebProof{Hostname: w.Hostname}
+	r.Protocols = make([]string, len(w.Protocols))
 	copy(r.Protocols, w.Protocols)
 	return r
 }

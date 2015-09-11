@@ -313,3 +313,15 @@ func OpenLogFile() (name string, file *os.File, err error) {
 	name = G.Env.GetLogFile()
 	return logger.OpenLogFile(name)
 }
+
+// MakeURI makes a URI string out of the given protocol and
+// host strings, adding necessary punctuation in between.
+func MakeURI(prot string, host string) string {
+	if prot == "" {
+		return host
+	}
+	if prot[len(prot)-1] != ':' {
+		prot += ":"
+	}
+	return prot + "//" + host
+}
