@@ -262,4 +262,20 @@ func (cr *ConflictResolver) doResolve(ctx context.Context, ci conflictInput) {
 	if err != nil {
 		return
 	}
+
+	// Canceled before we start the heavy lifting?
+	err = cr.checkDone(ctx)
+	if err != nil {
+		return
+	}
+
+	// Make the chains!
+	_, _, _, err = crMakeChains(unmerged)
+	if err != nil {
+		return
+	}
+	_, _, _, err = crMakeChains(merged)
+	if err != nil {
+		return
+	}
 }

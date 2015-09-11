@@ -79,6 +79,10 @@ type createOp struct {
 	NewName string      `codec:"n"`
 	Dir     blockUpdate `codec:"d"`
 	Type    EntryType   `codec:"t"`
+
+	// If true, this create op represents half of a rename operation.
+	// This op should never be persisted in a real directory entry
+	renamed bool
 }
 
 func newCreateOp(name string, oldDir BlockPointer, t EntryType) *createOp {
