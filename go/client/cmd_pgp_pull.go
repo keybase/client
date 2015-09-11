@@ -37,10 +37,10 @@ func (v *CmdPGPPull) Run() (err error) {
 
 func NewCmdPGPPull(cl *libcmdline.CommandLine) cli.Command {
 	return cli.Command{
-		Name:        "pull",
-		Usage:       "keybase pgp pull",
-		Description: "Download the latest PGP keys for people you track.",
-		Flags:       []cli.Flag{},
+		Name:         "pull",
+		ArgumentHelp: "<usernames...>",
+		Usage:        "Download the latest PGP keys for people you track.",
+		Flags:        []cli.Flag{},
 		Action: func(c *cli.Context) {
 			cl.ChooseCommand(&CmdPGPPull{}, "pull", c)
 		},

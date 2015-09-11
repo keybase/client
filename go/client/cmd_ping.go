@@ -25,9 +25,8 @@ func (v *CmdPing) Run() error {
 
 func NewCmdPing(cl *libcmdline.CommandLine) cli.Command {
 	return cli.Command{
-		Name:        "ping",
-		Usage:       "keybase ping",
-		Description: "Ping the keybase API server.",
+		Name:  "ping",
+		Usage: "Ping the keybase API server",
 		Action: func(c *cli.Context) {
 			cl.ChooseCommand(&CmdPing{}, "ping", c)
 		},

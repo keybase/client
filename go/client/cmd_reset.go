@@ -35,9 +35,8 @@ func (v *CmdReset) Run() (err error) {
 
 func NewCmdReset(cl *libcmdline.CommandLine) cli.Command {
 	return cli.Command{
-		Name:        "reset",
-		Usage:       "keybase reset",
-		Description: "Delete all local cached state.",
+		Name:  "reset",
+		Usage: "Delete all local cached state",
 		Action: func(c *cli.Context) {
 			cl.ChooseCommand(&CmdReset{}, "reset", c)
 		},

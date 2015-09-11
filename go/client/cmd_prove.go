@@ -87,9 +87,9 @@ func (p *CmdProve) installOutputHook(ui *ProveUI) {
 // NewCmdProve makes a new prove command from the given CLI parameters.
 func NewCmdProve(cl *libcmdline.CommandLine) cli.Command {
 	return cli.Command{
-		Name:        "prove",
-		Usage:       "keybase prove <service> [<username>]",
-		Description: "generate a new proof",
+		Name:         "prove",
+		ArgumentHelp: "<service> [username]",
+		Usage:        "Generate a new proof",
 		Flags: []cli.Flag{
 			cli.StringFlag{
 				Name:  "output, o",

@@ -10,9 +10,8 @@ import (
 
 func NewCmdPGPDecrypt(cl *libcmdline.CommandLine) cli.Command {
 	return cli.Command{
-		Name:        "decrypt",
-		Usage:       "keybase pgp decrypt",
-		Description: "PGP decrypt messages or files for keybase users.",
+		Name:  "decrypt",
+		Usage: "PGP decrypt messages or files for keybase users",
 		Action: func(c *cli.Context) {
 			cl.ChooseCommand(&CmdPGPDecrypt{}, "decrypt", c)
 		},

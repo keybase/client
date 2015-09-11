@@ -125,9 +125,8 @@ func (s *CmdListTracking) Run() error {
 
 func NewCmdListTracking(cl *libcmdline.CommandLine) cli.Command {
 	return cli.Command{
-		Name:        "list-tracking",
-		Usage:       "keybase list-tracking",
-		Description: "List who you're tracking.",
+		Name:  "list-tracking",
+		Usage: "List who you're tracking",
 		Action: func(c *cli.Context) {
 			cl.ChooseCommand(&CmdListTracking{}, "tracking", c)
 		},

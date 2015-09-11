@@ -10,9 +10,8 @@ type CmdPassphraseChange struct{}
 
 func NewCmdPassphraseChange(cl *libcmdline.CommandLine) cli.Command {
 	return cli.Command{
-		Name:        "change",
-		Usage:       "keybase passphrase change",
-		Description: "Change your keybase account passphrase.",
+		Name:  "change",
+		Usage: "Change your keybase account passphrase.",
 		Action: func(c *cli.Context) {
 			cl.ChooseCommand(&CmdPassphraseChange{}, "change", c)
 		},

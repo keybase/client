@@ -70,9 +70,9 @@ func (v *CmdLogin) Cancel() error {
 
 func NewCmdLogin(cl *libcmdline.CommandLine) cli.Command {
 	return cli.Command{
-		Name:        "login",
-		Usage:       "keybase login [<username>]",
-		Description: "Establish a session with the keybase server.",
+		Name:         "login",
+		ArgumentHelp: "[username]",
+		Usage:        "Establish a session with the keybase server",
 		Action: func(c *cli.Context) {
 			cl.ChooseCommand(&CmdLogin{}, "login", c)
 		},
