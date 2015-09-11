@@ -32,8 +32,6 @@ var ServerLookup = map[RunMode]string{
 	ProductionRunMode: ProductionServerURI,
 }
 
-const DefaultRunMode = DevelRunMode
-
 const (
 	ConfigFile  = "config.json"
 	SessionFile = "session.json"
