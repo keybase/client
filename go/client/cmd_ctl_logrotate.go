@@ -8,9 +8,8 @@ import (
 
 func NewCmdCtlLogRotate(cl *libcmdline.CommandLine) cli.Command {
 	return cli.Command{
-		Name:        "log-rotate",
-		Usage:       "keybase ctl log-rotate",
-		Description: "Close and open the keybase services' log file.",
+		Name:  "log-rotate",
+		Usage: "Close and open the keybase service's log file",
 		Action: func(c *cli.Context) {
 			cl.ChooseCommand(&CmdCtlLogRotate{}, "log-rotate", c)
 			cl.SetForkCmd(libcmdline.NoFork)

@@ -10,9 +10,8 @@ import (
 
 func NewCmdCtlRestart(cl *libcmdline.CommandLine) cli.Command {
 	return cli.Command{
-		Name:        "restart",
-		Usage:       "keybase ctl restart",
-		Description: "Restart the background keybase service.",
+		Name:  "restart",
+		Usage: "Restart the background keybase service",
 		Action: func(c *cli.Context) {
 			cl.ChooseCommand(&CmdCtlRestart{}, "restart", c)
 			cl.SetForkCmd(libcmdline.NoFork)
