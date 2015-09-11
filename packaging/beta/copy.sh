@@ -2,9 +2,8 @@
 
 set -e # Fail on error
 
-# Change to dir where this script is located
+# Change to root repo dir
 DIR=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
-cd $DIR
 
 # Read destination dir (repo)
 DEST=$1
@@ -25,24 +24,26 @@ if [ ! -d "$DEST" ]; then
   exit 2
 fi
 
-# Archive the current client repo
-rm -rf $DEST/client.tar
-git archive --format tar $TAG > $DEST/client.tar
-
-# Move to destination dir
-cd $DEST
-
-# These are the only dirs we want to extract
+# These are the only dirs we want to make available
 dirs=(go protocol)
 
-for i in "${dirs[@]}"; do
-  rm -rf $i
-done
+# Archive the current client repo
+echo "Building git archive for $TAG"
+cd $DIR/../..
+git archive --format tar $TAG > $DIR/client.tar
+cd $DIR
+mkdir -p src/github.com/keybase/client
+tar xpf client.tar -C src/github.com/keybase/client ${dirs[@]}
 
-echo "Unpacking git archive"
-tar xpf client.tar ${dirs[@]}
-rm client.tar
+echo "Fetching dependencies"
+GOPATH=$DIR go get github.com/keybase/client/go/keybase
 
+# Tar and untar so we can exclude some files
+tar cpf src.tar --exclude=.git README.md src
+tar xpf src.tar -C $DEST
+
+# Cleanup
+rm -rf src pkg src.tar client.tar
 
 echo "Now you should add, commit, tag and push the changes."
 echo "
