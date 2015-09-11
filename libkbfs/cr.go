@@ -184,6 +184,17 @@ func (cr *ConflictResolver) getMDs(ctx context.Context) (
 	if err != nil {
 		return nil, nil, err
 	}
+
+	// re-embed all the block changes
+	err = cr.fbo.reembedBlockChanges(ctx, unmerged)
+	if err != nil {
+		return nil, nil, err
+	}
+	err = cr.fbo.reembedBlockChanges(ctx, merged)
+	if err != nil {
+		return nil, nil, err
+	}
+
 	return unmerged, merged, nil
 }
 
