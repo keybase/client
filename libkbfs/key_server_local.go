@@ -1,6 +1,9 @@
 package libkbfs
 
 import (
+	"errors"
+	"sync"
+
 	"github.com/keybase/client/go/logger"
 	keybase1 "github.com/keybase/client/protocol/go"
 	"github.com/syndtr/goleveldb/leveldb"
@@ -13,6 +16,9 @@ type KeyServerLocal struct {
 	config Config
 	db     *leveldb.DB // TLFCryptKeyServerHalfID -> TLFCryptKeyServerHalf
 	log    logger.Logger
+
+	shutdown     *bool
+	shutdownLock *sync.RWMutex
 }
 
 // Test that KeyServerLocal fully implements the KeyServer interface.
@@ -24,7 +30,8 @@ func newKeyServerLocalWithStorage(config Config, storage storage.Storage) (
 	if err != nil {
 		return nil, err
 	}
-	kops := &KeyServerLocal{config, db, config.MakeLogger("")}
+	kops := &KeyServerLocal{config, db, config.MakeLogger(""), new(bool),
+		&sync.RWMutex{}}
 	return kops, nil
 }
 
@@ -48,6 +55,13 @@ func NewKeyServerMemory(config Config) (*KeyServerLocal, error) {
 // KeyServerLocal.
 func (ks *KeyServerLocal) GetTLFCryptKeyServerHalf(ctx context.Context,
 	serverHalfID TLFCryptKeyServerHalfID) (TLFCryptKeyServerHalf, error) {
+	ks.shutdownLock.RLock()
+	defer ks.shutdownLock.RUnlock()
+	if *ks.shutdown {
+		return TLFCryptKeyServerHalf{},
+			errors.New("Key server already shut down")
+	}
+
 	buf, err := ks.db.Get(serverHalfID.ID.Bytes(), nil)
 	if err != nil {
 		return TLFCryptKeyServerHalf{}, err
@@ -80,6 +94,12 @@ func (ks *KeyServerLocal) GetTLFCryptKeyServerHalf(ctx context.Context,
 // PutTLFCryptKeyServerHalves implements the KeyOps interface for KeyServerLocal.
 func (ks *KeyServerLocal) PutTLFCryptKeyServerHalves(ctx context.Context,
 	serverKeyHalves map[keybase1.UID]map[keybase1.KID]TLFCryptKeyServerHalf) error {
+	ks.shutdownLock.RLock()
+	defer ks.shutdownLock.RUnlock()
+	if *ks.shutdown {
+		return errors.New("Key server already shut down")
+	}
+
 	// batch up the writes such that they're atomic.
 	batch := &leveldb.Batch{}
 	crypto := ks.config.Crypto()
@@ -101,11 +121,19 @@ func (ks *KeyServerLocal) PutTLFCryptKeyServerHalves(ctx context.Context,
 
 // Copies a key server but swaps the config.
 func (ks *KeyServerLocal) copy(config Config) *KeyServerLocal {
-	return &KeyServerLocal{config, ks.db, config.MakeLogger("")}
+	return &KeyServerLocal{config, ks.db, config.MakeLogger(""), ks.shutdown,
+		ks.shutdownLock}
 }
 
 // Shutdown implements the KeyServer interface for KeyServerLocal.
 func (ks *KeyServerLocal) Shutdown() {
+	ks.shutdownLock.Lock()
+	defer ks.shutdownLock.Unlock()
+	if *ks.shutdown {
+		return
+	}
+	*ks.shutdown = true
+
 	if ks.db != nil {
 		ks.db.Close()
 	}
