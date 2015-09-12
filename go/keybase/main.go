@@ -70,6 +70,7 @@ func mainInner(g *libkb.GlobalContext) error {
 	if err = g.ConfigureAll(cl, cmd); err != nil {
 		return err
 	}
+	g.StartupMessage()
 
 	warnNonProd(g.Log, g.Env)
 
