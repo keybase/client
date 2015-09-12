@@ -6,7 +6,9 @@ import (
 )
 
 func TestPlist(t *testing.T) {
-	plist := NewPlist("keybase.testing", "/path/to/file", []string{"--flag=test", "testArg"})
+	envVars := make(map[string]string)
+	workingDir := ""
+	plist := NewPlist("keybase.testing", "/path/to/file", []string{"--flag=test", "testArg"}, envVars, workingDir)
 
 	data := plist.plist()
 	t.Logf("Plist: %s\n", data)
