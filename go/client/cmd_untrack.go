@@ -16,9 +16,9 @@ type CmdUntrack struct {
 
 func NewCmdUntrack(cl *libcmdline.CommandLine) cli.Command {
 	return cli.Command{
-		Name:        "untrack",
-		Usage:       "keybase untrack <username>",
-		Description: "Untrack a user.",
+		Name:         "untrack",
+		ArgumentHelp: "<username>",
+		Usage:        "Untrack a user",
 		Action: func(c *cli.Context) {
 			cl.ChooseCommand(&CmdUntrack{}, "untrack", c)
 		},

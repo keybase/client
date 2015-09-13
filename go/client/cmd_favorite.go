@@ -11,9 +11,9 @@ import (
 
 func NewCmdFavorite(cl *libcmdline.CommandLine) cli.Command {
 	return cli.Command{
-		Name:        "favorite",
-		Usage:       "keybase favorite [...]",
-		Description: "Manage favorites.",
+		Name:         "favorite",
+		ArgumentHelp: "[arguments...]",
+		Usage:        "Manage favorites",
 		Subcommands: []cli.Command{
 			NewCmdFavoriteAdd(cl),
 			NewCmdFavoriteRemove(cl),

@@ -79,9 +79,8 @@ func AddPGPMultiInstructions(err error) error {
 
 func NewCmdPGPGen(cl *libcmdline.CommandLine) cli.Command {
 	return cli.Command{
-		Name:        "gen",
-		Usage:       "keybase pgp gen",
-		Description: "Generate a new PGP key and write to local secret keychain.",
+		Name:  "gen",
+		Usage: "Generate a new PGP key and write to local secret keychain",
 		Flags: []cli.Flag{
 			cli.BoolFlag{
 				Name:  "d, debug",

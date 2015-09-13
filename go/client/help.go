@@ -39,7 +39,7 @@ var CommandHelpTemplate = `NAME:
    keybase {{.FullName}} - {{.Usage}}
 
 USAGE:
-   keybase {{.FullName}}{{ if .Subcommands }} <command>{{ end }}{{if .Flags}} [command options]{{end}} [arguments...]{{if .Description}}
+   keybase {{.FullName}}{{ if .Subcommands }} <command>{{ end }}{{if .Flags}} [command options]{{end}} {{ .ArgumentHelp }}{{if .Description}}
 
 DESCRIPTION:
    {{.Description}}{{end}}{{ if .Subcommands }}

@@ -125,9 +125,9 @@ func (v *CmdConfigInfo) Run() error {
 
 func NewCmdConfig(cl *libcmdline.CommandLine) cli.Command {
 	return cli.Command{
-		Name:        "config",
-		Usage:       "keybase config [...]",
-		Description: "Manage the config.",
+		Name:         "config",
+		Usage:        "Get and set configuration options",
+		ArgumentHelp: "[arguments...]",
 		Subcommands: []cli.Command{
 			NewCmdConfigGet(cl),
 			NewCmdConfigSet(cl),
@@ -139,9 +139,9 @@ func NewCmdConfig(cl *libcmdline.CommandLine) cli.Command {
 
 func NewCmdConfigGet(cl *libcmdline.CommandLine) cli.Command {
 	return cli.Command{
-		Name:        "get",
-		Usage:       "keybase config get <key>",
-		Description: "Get a config value.",
+		Name:         "get",
+		Usage:        "Get a config value",
+		ArgumentHelp: "<key>",
 		Action: func(c *cli.Context) {
 			cl.ChooseCommand(&CmdConfigGet{}, "get", c)
 		},
@@ -150,9 +150,10 @@ func NewCmdConfigGet(cl *libcmdline.CommandLine) cli.Command {
 
 func NewCmdConfigSet(cl *libcmdline.CommandLine) cli.Command {
 	return cli.Command{
-		Name:        "set",
-		Usage:       "keybase config set <key> <value>",
-		Description: "Set a config value. Specify an empty value to clear it.",
+		Name:         "set",
+		Usage:        "Set a config value",
+		ArgumentHelp: "<key> <value>",
+		Description:  "Set a config value. Specify an empty value to clear it.",
 		Action: func(c *cli.Context) {
 			cl.ChooseCommand(&CmdConfigSet{}, "set", c)
 		},
@@ -161,9 +162,8 @@ func NewCmdConfigSet(cl *libcmdline.CommandLine) cli.Command {
 
 func NewCmdConfigReset(cl *libcmdline.CommandLine) cli.Command {
 	return cli.Command{
-		Name:        "reset",
-		Usage:       "keybase config reset",
-		Description: "Reset the config.",
+		Name:  "reset",
+		Usage: "Reset the config",
 		Action: func(c *cli.Context) {
 			cl.ChooseCommand(&CmdConfigReset{}, "reset", c)
 		},
@@ -172,9 +172,8 @@ func NewCmdConfigReset(cl *libcmdline.CommandLine) cli.Command {
 
 func NewCmdConfigInfo(cl *libcmdline.CommandLine) cli.Command {
 	return cli.Command{
-		Name:        "info",
-		Usage:       "keybase config info",
-		Description: "Show information about config.",
+		Name:  "info",
+		Usage: "Show information about config",
 		Action: func(c *cli.Context) {
 			cl.ChooseCommand(&CmdConfigInfo{}, "info", c)
 		},

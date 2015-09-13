@@ -10,9 +10,8 @@ type CmdPassphraseRecover struct{}
 
 func NewCmdPassphraseRecover(cl *libcmdline.CommandLine) cli.Command {
 	return cli.Command{
-		Name:        "recover",
-		Usage:       "keybase passphrase recover",
-		Description: "Recover your keybase account passphrase.",
+		Name:  "recover",
+		Usage: "Recover your keybase account passphrase",
 		Action: func(c *cli.Context) {
 			cl.ChooseCommand(&CmdPassphraseRecover{}, "recover", c)
 		},

@@ -19,9 +19,8 @@ type CmdDeviceList struct {
 // NewCmdDeviceList creates a new cli.Command.
 func NewCmdDeviceList(cl *libcmdline.CommandLine) cli.Command {
 	return cli.Command{
-		Name:        "list",
-		Usage:       "keybase device list",
-		Description: "List devices.",
+		Name:  "list",
+		Usage: "List devices",
 		Action: func(c *cli.Context) {
 			cl.ChooseCommand(&CmdDeviceList{}, "list", c)
 		},

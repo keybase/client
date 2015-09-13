@@ -20,9 +20,8 @@ func (c *CmdCert) Run() error {
 
 func NewCmdCert(cl *libcmdline.CommandLine) cli.Command {
 	return cli.Command{
-		Name:        "cert",
-		Usage:       "keybase cert",
-		Description: "Print the CA cert for api.keybase.io.",
+		Name:  "cert",
+		Usage: "Print the CA cert for api.keybase.io",
 		Action: func(c *cli.Context) {
 			cl.ChooseCommand(&CmdCert{}, "cert", c)
 		},

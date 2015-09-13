@@ -230,7 +230,7 @@ func (g *GpgCLI) Run2(arg RunGpg2Arg) (res RunGpg2Res) {
 	if !arg.Stderr {
 		out++
 		go func() {
-			ch <- DrainPipe(stderr, func(s string) { g.logUI.Warning(s) })
+			ch <- DrainPipe(stderr, func(s string) { g.logUI.Info(s) })
 		}()
 	} else {
 		res.Stderr = stderr

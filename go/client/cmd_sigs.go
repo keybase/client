@@ -7,9 +7,9 @@ import (
 
 func NewCmdSigs(cl *libcmdline.CommandLine) cli.Command {
 	return cli.Command{
-		Name:        "sigs",
-		Usage:       "keybase sigs [...]",
-		Description: "Manage signatures.",
+		Name:         "sigs",
+		ArgumentHelp: "[arguments...]",
+		Usage:        "Manage signatures",
 		Subcommands: []cli.Command{
 			NewCmdSigsList(cl),
 			NewCmdSigsRevoke(cl),

@@ -15,9 +15,9 @@ type CmdFavoriteDelete struct {
 
 func NewCmdFavoriteRemove(cl *libcmdline.CommandLine) cli.Command {
 	return cli.Command{
-		Name:        "remove",
-		Usage:       "keybase favorite remove <folder-name>",
-		Description: "Remove a favorite.",
+		Name:         "remove",
+		ArgumentHelp: "<folder-name>",
+		Usage:        "Remove a favorite",
 		Action: func(c *cli.Context) {
 			cl.ChooseCommand(&CmdFavoriteDelete{}, "remove", c)
 		},

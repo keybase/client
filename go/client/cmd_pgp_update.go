@@ -41,9 +41,9 @@ func (v *CmdPGPUpdate) Run() (err error) {
 
 func NewCmdPGPUpdate(cl *libcmdline.CommandLine) cli.Command {
 	return cli.Command{
-		Name:        "update",
-		Usage:       "keybase pgp update",
-		Description: "Update PGP keys.",
+		Name:         "update",
+		ArgumentHelp: "[fingerprints...]",
+		Usage:        "Update PGP keys",
 		Flags: []cli.Flag{
 			cli.BoolFlag{
 				Name:  "all",

@@ -63,9 +63,10 @@ func (v *CmdID) Run() error {
 
 func NewCmdID(cl *libcmdline.CommandLine) cli.Command {
 	return cli.Command{
-		Name:        "id",
-		Usage:       "keybase id <username>",
-		Description: "Identify a user and check their signature chain.",
+		Name:         "id",
+		ArgumentHelp: "[username]",
+		Usage:        "Identify a user and check their signature chain",
+		Description:  "Identify a user and check their signature chain.  Don't specify a username to identify yourself.  You can also specify proof assertions like user@twitter.",
 		Flags: []cli.Flag{
 			cli.BoolFlag{
 				Name:  "t, track-statement",
