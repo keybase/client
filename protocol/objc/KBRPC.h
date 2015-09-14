@@ -102,6 +102,10 @@ typedef NS_ENUM (NSInteger, KBRLogLevel) {
 @property NSData *publicKey;
 @end
 
+@interface KBRFirstStepResult : KBRObject
+@property NSInteger valPlusTwo;
+@end
+
 typedef NS_ENUM (NSInteger, KBRDoctorFixType) {
 	KBRDoctorFixTypeNone = 0,
 	KBRDoctorFixTypeAddEldestDevice = 1,
@@ -640,6 +644,18 @@ typedef NS_ENUM (NSInteger, KBRPromptDefault) {
 @end
 @interface KBRSetLogLevelRequestParams : KBRRequestParams
 @property KBRLogLevel level;
+@end
+@interface KBRFirstStepRequestParams : KBRRequestParams
+@property NSInteger sessionID;
+@property NSInteger val;
+@end
+@interface KBRSecondStepRequestParams : KBRRequestParams
+@property NSInteger sessionID;
+@property NSInteger val;
+@end
+@interface KBRIncrementRequestParams : KBRRequestParams
+@property NSInteger sessionID;
+@property NSInteger val;
 @end
 @interface KBRDeviceListRequestParams : KBRRequestParams
 @property NSInteger sessionID;
@@ -1197,6 +1213,22 @@ typedef NS_ENUM (NSInteger, KBRPromptDefault) {
 - (void)setLogLevelWithLevel:(KBRLogLevel)level completion:(void (^)(NSError *error))completion;
 
 - (void)reload:(void (^)(NSError *error))completion;
+
+@end
+
+@interface KBRDebuggingRequest : KBRRequest
+
+- (void)firstStep:(KBRFirstStepRequestParams *)params completion:(void (^)(NSError *error, KBRFirstStepResult *firstStepResult))completion;
+
+- (void)firstStepWithVal:(NSInteger)val completion:(void (^)(NSError *error, KBRFirstStepResult *firstStepResult))completion;
+
+- (void)secondStep:(KBRSecondStepRequestParams *)params completion:(void (^)(NSError *error, NSInteger n))completion;
+
+- (void)secondStepWithVal:(NSInteger)val completion:(void (^)(NSError *error, NSInteger n))completion;
+
+- (void)increment:(KBRIncrementRequestParams *)params completion:(void (^)(NSError *error, NSInteger n))completion;
+
+- (void)incrementWithVal:(NSInteger)val completion:(void (^)(NSError *error, NSInteger n))completion;
 
 @end
 
