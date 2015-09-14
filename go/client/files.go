@@ -119,7 +119,7 @@ func (s *FileSource) Read(p []byte) (n int, err error) {
 	if s.file == nil {
 		return 0, io.EOF
 	}
-	if n, err = s.file.Read(p); n == 0 {
+	if n, err = s.file.Read(p); n == 0 || err != nil {
 		s.file.Close()
 		s.file = nil
 	}
