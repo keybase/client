@@ -177,7 +177,7 @@ func (d *Locksmith) checkKeys(ctx *Context) error {
 	d.G().Log.Debug("| Syncing secrets")
 	d.syncSecrets(ctx)
 
-	hasPGP := len(d.user.GetActivePGPKeys(false)) > 0
+	hasPGP := d.hasPGP()
 
 	hasActiveDevice, err := d.hasActiveDevice(ctx)
 	if err != nil {
@@ -303,6 +303,11 @@ func (d *Locksmith) deviceSign(ctx *Context, withPGPOption bool) error {
 	}
 	if err != nil {
 		return err
+	}
+
+	if len(devs) == 0 && withPGPOption {
+		// pgp is the only option, so bypass the select signer menu
+		return d.deviceSignPGP(ctx)
 	}
 
 	var arg keybase1.SelectSignerArg
@@ -461,7 +466,7 @@ func (d *Locksmith) deviceSignPGP(ctx *Context) error {
 			return err
 		}
 
-		pgpk, err := skb.PromptAndUnlock(ctx.LoginContext, "pgp sign", "keybase", nil, ctx.SecretUI, nil, d.arg.User)
+		pgpk, err := skb.PromptAndUnlock(ctx.LoginContext, "sign new device", "keybase", nil, ctx.SecretUI, nil, d.arg.User)
 		if err != nil {
 			return err
 		}
