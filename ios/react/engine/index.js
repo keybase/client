@@ -97,6 +97,10 @@ class DummyTransport extends RpcTransport {
   get_generation () { return 1 }
 
   unwrap_incoming_error (err) {
+    if (!err) {
+      return null
+    }
+
     if (typeof (err) === 'object') {
       return new EngineError(err)
     } else {

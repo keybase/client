@@ -74,9 +74,10 @@ class GoTest extends Component {
     var toSend = this.state.data
 
     if ((this.TEMP % 10) < 8) {
-      engine.rpc('debugging.increment', {val: toSend}, this.handleIncrement.bind(this))
+      engine.rpc('debugging.increment', {val: toSend}, (err, data) => { this.handleIncrement(err, data) })
     } else {
-      engine.collatedRpc('debugging.firstStep', {val: toSend}, this.handleMultiStep.bind(this))
+      engine.collatedRpc('debugging.firstStep', {val: toSend},
+        (err, method, param, response) => { this.handleMultiStep(err, method, param, response) })
     }
 
     this.TEMP++

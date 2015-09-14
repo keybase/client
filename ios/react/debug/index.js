@@ -9,7 +9,7 @@ var {
   Component
 } = React
 
-var Temp = require('../login/select-signer')
+var Temp = require('./briding-tabs')
 
 class Debug extends Component {
   constructor () {
