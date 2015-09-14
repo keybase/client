@@ -270,11 +270,11 @@ func (cr *ConflictResolver) doResolve(ctx context.Context, ci conflictInput) {
 	}
 
 	// Make the chains!
-	_, _, _, err = crMakeChains(unmerged)
+	_, err = newCRChains(unmerged)
 	if err != nil {
 		return
 	}
-	_, _, _, err = crMakeChains(merged)
+	_, err = newCRChains(merged)
 	if err != nil {
 		return
 	}

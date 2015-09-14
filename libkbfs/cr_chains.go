@@ -8,9 +8,15 @@ type crOpNode struct {
 	nextOp *crOpNode
 }
 
-func crAddOpToChain(ptr BlockPointer, op op,
-	tails map[BlockPointer]*crOpNode) error {
-	currTailNode, ok := tails[ptr]
+type crChains struct {
+	heads     map[BlockPointer]*crOpNode
+	tails     map[BlockPointer]*crOpNode
+	tailHeads map[BlockPointer]BlockPointer
+	root      BlockPointer
+}
+
+func (cc *crChains) addOp(ptr BlockPointer, op op) error {
+	currTailNode, ok := cc.tails[ptr]
 	if !ok {
 		return fmt.Errorf("Could not find tail node for ptr %v", ptr)
 	}
@@ -22,38 +28,36 @@ func crAddOpToChain(ptr BlockPointer, op op,
 	} else {
 		newTailNode := &crOpNode{op, ptr, nil}
 		currTailNode.nextOp = newTailNode
-		tails[ptr] = newTailNode
+		cc.tails[ptr] = newTailNode
 	}
 
 	return nil
 }
 
-func crMakeChainForOp(op op, heads map[BlockPointer]*crOpNode,
-	tails map[BlockPointer]*crOpNode,
-	tailHeads map[BlockPointer]BlockPointer) error {
+func (cc *crChains) makeChainForOp(op op) error {
 	// First set the heads and tails for all updates.  We only care
 	// about updates, because new blocks cannot conflict directly with
 	// anything else.
 	for _, update := range op.AllUpdates() {
-		node, ok := tails[update.Unref]
+		node, ok := cc.tails[update.Unref]
 		if !ok {
 			// No matching tail means it's time to start a new chain
 			node = &crOpNode{}
-			heads[update.Unref] = node
+			cc.heads[update.Unref] = node
 		}
 		if node.refPtr.IsInitialized() {
 			// delete the old tail, it's no longer needed
-			delete(tails, node.refPtr)
+			delete(cc.tails, node.refPtr)
 		}
 		node.refPtr = update.Ref
-		tails[update.Ref] = node
+		cc.tails[update.Ref] = node
 
 		// keep track of the head for this tail
-		if currHead, ok := tailHeads[update.Unref]; ok {
-			delete(tailHeads, update.Unref)
-			tailHeads[update.Ref] = currHead
+		if currHead, ok := cc.tailHeads[update.Unref]; ok {
+			delete(cc.tailHeads, update.Unref)
+			cc.tailHeads[update.Ref] = currHead
 		} else {
-			tailHeads[update.Ref] = update.Unref
+			cc.tailHeads[update.Ref] = update.Unref
 		}
 	}
 
@@ -62,12 +66,12 @@ func crMakeChainForOp(op op, heads map[BlockPointer]*crOpNode,
 	default:
 		panic(fmt.Sprintf("Unrecognized operation: %v", op))
 	case *createOp:
-		err := crAddOpToChain(realOp.Dir.Ref, op, tails)
+		err := cc.addOp(realOp.Dir.Ref, op)
 		if err != nil {
 			return err
 		}
 	case *rmOp:
-		err := crAddOpToChain(realOp.Dir.Ref, op, tails)
+		err := cc.addOp(realOp.Dir.Ref, op)
 		if err != nil {
 			return err
 		}
@@ -78,24 +82,24 @@ func crMakeChainForOp(op op, heads map[BlockPointer]*crOpNode,
 			File /*type is arbitrary and won't be used*/)
 		co.renamed = true
 		co.Dir.Ref = realOp.NewDir.Ref
-		err := crAddOpToChain(realOp.NewDir.Ref, co, tails)
+		err := cc.addOp(realOp.NewDir.Ref, co)
 		if err != nil {
 			return err
 		}
 
 		ro := newRmOp(realOp.OldName, realOp.OldDir.Unref)
 		ro.Dir.Ref = realOp.OldDir.Ref
-		err = crAddOpToChain(realOp.OldDir.Ref, ro, tails)
+		err = cc.addOp(realOp.OldDir.Ref, ro)
 		if err != nil {
 			return err
 		}
 	case *syncOp:
-		err := crAddOpToChain(realOp.File.Ref, op, tails)
+		err := cc.addOp(realOp.File.Ref, op)
 		if err != nil {
 			return err
 		}
 	case *setAttrOp:
-		err := crAddOpToChain(realOp.Dir.Ref, op, tails)
+		err := cc.addOp(realOp.Dir.Ref, op)
 		if err != nil {
 			return err
 		}
@@ -106,10 +110,12 @@ func crMakeChainForOp(op op, heads map[BlockPointer]*crOpNode,
 	return nil
 }
 
-func crMakeChains(rmds []*RootMetadata) (heads map[BlockPointer]*crOpNode,
-	tails map[BlockPointer]*crOpNode, root BlockPointer, err error) {
-	heads = make(map[BlockPointer]*crOpNode)
-	tails = make(map[BlockPointer]*crOpNode)
+func newCRChains(rmds []*RootMetadata) (cc *crChains, err error) {
+	cc = &crChains{
+		heads:     make(map[BlockPointer]*crOpNode),
+		tails:     make(map[BlockPointer]*crOpNode),
+		tailHeads: make(map[BlockPointer]BlockPointer),
+	}
 
 	// For each MD update, turn each update in each op into map
 	// entries and create crOpNodes for the BlockPointers that are
@@ -118,19 +124,18 @@ func crMakeChains(rmds []*RootMetadata) (heads map[BlockPointer]*crOpNode,
 		// tailHeads tracks the head->tail mapping for the complete
 		// chain within this MD update.  We need it to be able to find
 		// the head root pointer.
-		tailHeads := make(map[BlockPointer]BlockPointer)
 		for _, op := range rmd.data.Changes.Ops {
-			err := crMakeChainForOp(op, heads, tails, tailHeads)
+			err := cc.makeChainForOp(op)
 			if err != nil {
-				return nil, nil, BlockPointer{}, err
+				return nil, err
 			}
 		}
 
-		if !root.IsInitialized() {
+		if !cc.root.IsInitialized() {
 			// Find the root head pointer
-			root = tailHeads[rmd.data.Dir.BlockPointer]
+			cc.root = cc.tailHeads[rmd.data.Dir.BlockPointer]
 		}
 
 	}
-	return heads, tails, root, nil
+	return cc, nil
 }
