@@ -7,7 +7,7 @@
 //
 
 #import "ObjcEngine.h"
-#import <keybaselib/keybaselib.h>
+#import <keybase/keybase.h>
 #import "RCTEventDispatcher.h"
 
 @interface Engine : NSObject
@@ -37,8 +37,8 @@ static NSString * const eventName = @"objc-engine-event";
   return sharedInstance;
 }
 
--(instancetype) init {
-  if(self = [super init]) {
+- (instancetype) init {
+  if ((self = [super init])) {
     [self initQueues];
     [self startReadLoop];
   }
@@ -46,17 +46,17 @@ static NSString * const eventName = @"objc-engine-event";
   return self;
 }
 
--(void) initQueues {
+- (void) initQueues {
   self.readQueue = dispatch_queue_create ("go_bridge_queue_read", DISPATCH_QUEUE_SERIAL);
   self.writeQueue = dispatch_queue_create ("go_bridge_queue_write", DISPATCH_QUEUE_SERIAL);
 }
 
 // This just starts an infinite loop in the read queue. TODO talk to gabriel how we'd like to model this. Could do a nsoperation queue or
 // something. previously i was bouncing this into another async call after each run but it's not strickly necessary
--(void) startReadLoop {
+- (void) startReadLoop {
   dispatch_async(self.readQueue, ^{
     for(;;) {
-      NSString * data = GoKeybaselibRead();
+      NSString * data = GoKeybaseReadB64();
       if(data) {
           [self.bridge.eventDispatcher sendAppEventWithName:eventName body:data];
       }
@@ -64,14 +64,14 @@ static NSString * const eventName = @"objc-engine-event";
   });
 }
 
--(void) runWithData:(NSString*) data {
+- (void) runWithData:(NSString*) data {
   dispatch_async(self.writeQueue, ^{
-    GoKeybaselibWrite(data);
+    GoKeybaseWriteB64(data);
   });
 }
 
--(void) reset {
-  GoKeybaselibReset();
+- (void) reset {
+  GoKeybaseReset();
 }
 
 @end

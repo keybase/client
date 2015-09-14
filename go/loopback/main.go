@@ -1,4 +1,4 @@
-package keybaselib
+package keybase
 
 import (
 	"encoding/base64"
@@ -53,7 +53,7 @@ func start() {
 }
 
 // Takes base64 encoded msgpack rpc payload
-func Write(str string) {
+func WriteB64(str string) {
 	data, err := base64.StdEncoding.DecodeString(str)
 	if err == nil {
 		start()
@@ -64,8 +64,8 @@ func Write(str string) {
 }
 
 // Blocking read, returns base64 encoded msgpack rpc payload
-func Read() string {
-	data := make([]byte, 1024*1024)
+func ReadB64() string {
+	data := make([]byte, 50*1024)
 	start()
 
 	n, err := con.Read(data)
