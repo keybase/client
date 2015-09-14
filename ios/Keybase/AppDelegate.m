@@ -8,39 +8,33 @@
 
 #import "RCTRootView.h"
 
+// Set this to 1 to use the application bundle to hold the react JS
+#define REACT_EMBEDDED_BUNDLE 0
+
+
 @implementation AppDelegate
 
 - (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions
 {
-  NSURL *jsCodeLocation;
+    NSURL *jsCodeLocation;
 
-  /**
-   * Loading JavaScript code - uncomment the one you want.
-   *
-   * OPTION 1
-   * Load from development server. Start the server from the repository root:
-   *
-   * $ npm start
-   *
-   * To run on device, change `localhost` to the IP address of your computer
-   * (you can get this by typing `ifconfig` into the terminal and selecting the
-   * `inet` value under `en0:`) and make sure your computer and iOS device are
-   * on the same Wi-Fi network.
-   */
+#if (REACT_EMBEDDED_BUNDLE)
+  // http://facebook.github.io/react-native/docs/runningondevice.html
+  jsCodeLocation = [[NSBundle mainBundle] URLForResource:@"main" withExtension:@"jsbundle"];
+#else
+  #ifdef REACT_HOST_HARDCODED
+    #define REACT_HOST @"192.168.1.50:8081"
+  #else
+    #define REACT_HOST @"localhost:8081"
+  #endif
 
-  jsCodeLocation = [NSURL URLWithString:@"http://localhost:8081/react/index.ios.bundle"];
+  jsCodeLocation = [NSURL URLWithString:[NSString stringWithFormat:@"http://%@/react/index.ios.bundle", REACT_HOST]];
 
-  /**
-   * OPTION 2
-   * Load from pre-bundled file on disk. To re-generate the static bundle
-   * from the root of your project directory, run
-   *
-   * $ react-native bundle --minify
-   *
-   * see http://facebook.github.io/react-native/docs/runningondevice.html
-   */
-
-//   jsCodeLocation = [[NSBundle mainBundle] URLForResource:@"main" withExtension:@"jsbundle"];
+  // sanity check if you're running on device
+  #if !(TARGET_IPHONE_SIMULATOR)
+#warning "You're testing dynamic react on your device. DON'T deploy a build like this"
+  #endif
+#endif
 
   RCTRootView *rootView = [[RCTRootView alloc] initWithBundleURL:jsCodeLocation
                                                       moduleName:@"Keybase"

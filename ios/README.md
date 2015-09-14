@@ -13,11 +13,33 @@ pod install
 # Setup npm
 npm install
 
+# Setup golang mobile
+go get golang.org/x/mobile/cmd/gomobile
+gomobile init
+
+# Build the keybase go framwork
+npm run gobuild
+
 # Open workspace (not xcodeproj)
 open Keybase.xcworkspace
 ```
 
 Then select the target ```Keybase``` and run.
+
+### Release building
+
+Make sure the code is set to use the bundled react js
+In AppDelegate.m set
+
+
+```
+#define REACT_EMBEDDED_BUNDLE 1
+```
+
+Build the bundled react code
+```
+npm run reactbundle
+```
 
 ### Xcode Settings
 
