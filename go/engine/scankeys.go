@@ -18,12 +18,14 @@ import (
 // It is not an engine, but uses an engine and is used by engines,
 // so has to be in the engine package.  It is a UIConsumer.
 type ScanKeys struct {
-	keys  openpgp.EntityList
-	secui libkb.SecretUI
-	idui  libkb.IdentifyUI
-	opts  *keybase1.TrackOptions
-	owner *libkb.User // the owner of the found key(s).  Can be `me` or any other keybase user.
-	me    *libkb.User
+	// keys  openpgp.EntityList
+	skbs   []*libkb.SKB // all skb blocks for local keys
+	secui  libkb.SecretUI
+	idui   libkb.IdentifyUI
+	opts   *keybase1.TrackOptions
+	owner  *libkb.User // the owner of the found key(s).  Can be `me` or any other keybase user.
+	me     *libkb.User
+	reason string
 	libkb.Contextified
 }
 
@@ -32,11 +34,12 @@ var _ openpgp.KeyRing = &ScanKeys{}
 
 // NewScanKeys creates a ScanKeys type.  If there is a login
 // session, it will load the pgp keys for that user.
-func NewScanKeys(secui libkb.SecretUI, idui libkb.IdentifyUI, opts *keybase1.TrackOptions, g *libkb.GlobalContext) (*ScanKeys, error) {
+func NewScanKeys(secui libkb.SecretUI, idui libkb.IdentifyUI, opts *keybase1.TrackOptions, reason string, g *libkb.GlobalContext) (*ScanKeys, error) {
 	sk := &ScanKeys{
 		secui:        secui,
 		idui:         idui,
 		opts:         opts,
+		reason:       reason,
 		Contextified: libkb.NewContextified(g),
 	}
 	var err error
@@ -68,24 +71,13 @@ func NewScanKeys(secui libkb.SecretUI, idui libkb.IdentifyUI, opts *keybase1.Tra
 	}
 
 	aerr := sk.G().LoginState().Account(func(a *libkb.Account) {
-		pps := a.PassphraseStream()
-		lks := libkb.NewLKSec(pps, sk.me.GetUID(), sk.G())
-		err = lks.Load(a)
-		if err != nil {
-			// It's ok if lks fails to load.  Probably due to lack of device.
-			// This is just a preloaded lksec, and further down the line will
-			// handle it.
-			sk.G().Log.Debug("No lksec available due to %q error.  Proceeding anyway.", err)
-			lks = nil
-		}
-
 		var ring *libkb.SKBKeyringFile
 		ring, err = a.Keyring()
 		if err != nil {
 			return
 		}
 		g.Log.Debug("| NewScanKeys: callling into extractKeys")
-		err = sk.extractKeys(a, ring, synced, secui, lks, g)
+		err = sk.extractKeys(ring, synced)
 	}, "NewScanKeys - extractKeys")
 	if aerr != nil {
 		return nil, err
@@ -112,17 +104,18 @@ func (s *ScanKeys) SubConsumers() []libkb.UIConsumer {
 
 // Count returns the number of local keys available.
 func (s *ScanKeys) Count() int {
-	return len(s.keys)
+	return len(s.skbs)
 }
 
 // KeysById returns the set of keys that have the given key id.
 // It is only called during decryption by openpgp.
 func (s *ScanKeys) KeysById(id uint64) []openpgp.Key {
-	memres := s.keys.KeysById(id)
+	primaries := s.unlockByID(id)
+	memres := primaries.KeysById(id)
 	s.G().Log.Debug("ScanKeys:KeysById(%d) => %d keys match in memory", id, len(memres))
 	if len(memres) > 0 {
 		s.G().Log.Debug("ScanKeys:KeysById(%d) => owner == me (%s)", id, s.me.GetName())
-		s.owner = s.me // `me` is the owner of all s.keys
+		s.owner = s.me // `me` is the owner of all s.skbs
 		return memres
 	}
 
@@ -143,11 +136,12 @@ func (s *ScanKeys) KeysByIdUsage(id uint64, requiredUsage byte) []openpgp.Key {
 	}
 
 	// first, check the keys we already extracted.
-	memres := s.keys.KeysByIdUsage(id, requiredUsage)
+	primaries := s.unlockByID(id)
+	memres := primaries.KeysByIdUsage(id, requiredUsage)
 	s.G().Log.Debug("ScanKeys:KeysByIdUsage(%d, %x) => %d keys match in memory", id, requiredUsage, len(memres))
 	if len(memres) > 0 {
 		s.G().Log.Debug("ScanKeys:KeysByIdUsage(%d) => owner == me (%s)", id, s.me.GetName())
-		s.owner = s.me // `me` is the owner of all s.keys
+		s.owner = s.me // `me` is the owner of all s.skbs
 		return memres
 	}
 
@@ -165,8 +159,10 @@ func (s *ScanKeys) KeysByIdUsage(id uint64, requiredUsage byte) []openpgp.Key {
 // DecryptionKeys returns all private keys that are valid for
 // decryption.
 func (s *ScanKeys) DecryptionKeys() []openpgp.Key {
-	s.G().Log.Debug("ScanKeys:DecryptionKeys() => %d keys available", len(s.keys))
-	return s.keys.DecryptionKeys()
+	s.G().Log.Debug("ScanKeys:DecryptionKeys() => %d keys available", s.Count())
+	// return s.keys.DecryptionKeys()
+	all := s.unlockAll()
+	return all.DecryptionKeys()
 }
 
 // Owner returns the owner of the keys found by ScanKeys that were
@@ -175,56 +171,28 @@ func (s *ScanKeys) Owner() *libkb.User {
 	return s.owner
 }
 
-// extractKeys gets all the private pgp keys out of the ring and
-// the synced key.
-func (s *ScanKeys) extractKeys(lctx libkb.LoginContext, ring *libkb.SKBKeyringFile, synced *libkb.SKB, ui libkb.SecretUI, lks *libkb.LKSec, g *libkb.GlobalContext) error {
+// extractKeys puts the synced pgp key block and all the pgp key
+// blocks in ring into s.skbs.
+func (s *ScanKeys) extractKeys(ring *libkb.SKBKeyringFile, synced *libkb.SKB) error {
 	var err error
-	g.Log.Debug("+ ScanKeys::extractKeys")
+	s.G().Log.Debug("+ ScanKeys::extractKeys")
 	defer func() {
-		g.Log.Debug("- ScanKeys::extractKeys -> %s", libkb.ErrToOk(err))
+		s.G().Log.Debug("- ScanKeys::extractKeys -> %s", libkb.ErrToOk(err))
 	}()
 
-	if synced == nil {
-		g.Log.Debug("| No synced key; so not attempting to extract")
-	}
-	if err = s.extractKey(lctx, synced, ui, lks); err != nil {
-		return fmt.Errorf("extracting synced key error: %s", err)
+	if synced != nil {
+		s.skbs = append(s.skbs, synced)
 	}
 
-	for i, b := range ring.Blocks {
-		desc, e2 := b.VerboseDescription()
-		if e2 == nil {
-			g.Log.Debug("| Attempting extract on Key=%s", desc)
-		} else {
-			g.Log.Debug("| Failed to get description from Key %d", i)
-		}
+	for _, b := range ring.Blocks {
 		if !libkb.IsPGPAlgo(b.Type) {
 			continue
 		}
 		// make sure uid set on each block:
 		b.SetUID(s.me.GetUID())
-		if err := s.extractKey(lctx, b, ui, lks); err != nil {
-			return fmt.Errorf("extracting ring block error: %s", err)
-		}
+		s.skbs = append(s.skbs, b)
 	}
 
-	return nil
-}
-
-// extractKey gets the private key out of skb.  If it's a pgp key,
-// it adds it to the keys stored in s.
-func (s *ScanKeys) extractKey(lctx libkb.LoginContext, skb *libkb.SKB, ui libkb.SecretUI, lks *libkb.LKSec) error {
-	if skb == nil {
-		return nil
-	}
-	k, err := skb.PromptAndUnlock(lctx, "pgp decrypt", "", nil, ui, lks, s.me)
-	if err != nil {
-		return err
-	}
-	bundle, ok := k.(*libkb.PGPKeyBundle)
-	if ok {
-		s.keys = append(s.keys, bundle.Entity)
-	}
 	return nil
 }
 
@@ -292,4 +260,55 @@ func (s *ScanKeys) apiLookup(id uint64) (username, uid string, err error) {
 		return "", "", err
 	}
 	return data.Username, data.UID, nil
+}
+
+func (s *ScanKeys) unlockByID(id uint64) openpgp.EntityList {
+	var list openpgp.EntityList
+	for _, skb := range s.skbs {
+		pubkey, err := skb.GetPubKey()
+		if err != nil {
+			s.G().Log.Warning("error getting pub key from skb: %s", err)
+			continue
+		}
+		bundle, ok := pubkey.(*libkb.PGPKeyBundle)
+		if !ok {
+			continue
+		}
+		if len(bundle.KeysById(id)) == 0 {
+			// no match
+			continue
+		}
+
+		// some key in the bundle matched, so unlock everything:
+		unlocked, err := skb.PromptAndUnlock(nil, s.reason, "", nil, s.secui, nil, s.me)
+		if err != nil {
+			s.G().Log.Warning("error unlocking key: %s", err)
+			continue
+		}
+		unlockedBundle, ok := unlocked.(*libkb.PGPKeyBundle)
+		if !ok {
+			s.G().Log.Warning("could not convert unlocked key to PGPKeyBundle")
+			continue
+		}
+		list = append(list, unlockedBundle.Entity)
+	}
+	return list
+}
+
+func (s *ScanKeys) unlockAll() openpgp.EntityList {
+	var list openpgp.EntityList
+	for _, skb := range s.skbs {
+		unlocked, err := skb.PromptAndUnlock(nil, s.reason, "", nil, s.secui, nil, s.me)
+		if err != nil {
+			s.G().Log.Warning("error unlocking key: %s", err)
+			continue
+		}
+		unlockedBundle, ok := unlocked.(*libkb.PGPKeyBundle)
+		if !ok {
+			s.G().Log.Warning("could not convert unlocked key to PGPKeyBundle")
+			continue
+		}
+		list = append(list, unlockedBundle.Entity)
+	}
+	return list
 }

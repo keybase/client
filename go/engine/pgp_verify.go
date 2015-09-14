@@ -105,7 +105,7 @@ func (e *PGPVerify) runAttached(ctx *Context) error {
 
 // runDetached verifies a detached signature
 func (e *PGPVerify) runDetached(ctx *Context) error {
-	sk, err := NewScanKeys(ctx.SecretUI, ctx.IdentifyUI, &e.arg.TrackOptions, e.G())
+	sk, err := NewScanKeys(ctx.SecretUI, ctx.IdentifyUI, &e.arg.TrackOptions, "pgp verify", e.G())
 	if err != nil {
 		return err
 	}
@@ -146,7 +146,7 @@ func (e *PGPVerify) runClearsign(ctx *Context) error {
 		return errors.New("Unable to decode clearsigned message")
 	}
 
-	sk, err := NewScanKeys(ctx.SecretUI, ctx.IdentifyUI, &e.arg.TrackOptions, e.G())
+	sk, err := NewScanKeys(ctx.SecretUI, ctx.IdentifyUI, &e.arg.TrackOptions, "pgp verify", e.G())
 	if err != nil {
 		return err
 	}
