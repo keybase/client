@@ -34,6 +34,11 @@ func TestPGPVerify(t *testing.T) {
 	// create attached sig w/ encrypt
 	attachedEnc := signEnc(ctx, tc, msg)
 
+	// Start with a fresh secret ui so the Called* flags will be false.
+	// If the verify() func works, it will ensure that the ones it cares
+	// about are false after each time it is called.
+	ctx.SecretUI = fu.NewSecretUI()
+
 	// still logged in as signer:
 	verify(ctx, tc, msg, detached, "detached logged in", true)
 	verify(ctx, tc, clearsign, "", "clearsign logged in", true)
@@ -109,5 +114,17 @@ func verify(ctx *Context, tc libkb.TestContext, msg, sig, name string, valid boo
 	}
 	if !valid {
 		tc.T.Errorf("%s validated, but it shouldn't have", name)
+	}
+	s, ok := ctx.SecretUI.(*libkb.TestSecretUI)
+	if !ok {
+		tc.T.Fatalf("%s: invalid secret ui: %T", name, ctx.SecretUI)
+	}
+	if s.CalledGetSecret {
+		tc.T.Errorf("%s: called get secret, shouldn't have", name)
+		s.CalledGetSecret = false // reset it for next caller
+	}
+	if s.CalledGetKBPassphrase {
+		tc.T.Errorf("%s: called get kb passphrase, shouldn't have", name)
+		s.CalledGetKBPassphrase = false // reset it for next caller
 	}
 }
