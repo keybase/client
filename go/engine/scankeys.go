@@ -154,7 +154,7 @@ func (s *ScanKeys) KeysByIdUsage(id uint64, requiredUsage byte) []openpgp.Key {
 	// no match, so now lookup the user on the api server by the key id.
 	list, err := s.scan(id)
 	if err != nil {
-		s.G().Log.Warning("error finding keys for %016x: %s", err)
+		s.G().Log.Warning("error finding keys for %016x: %s", id, err)
 		return nil
 	}
 	// use the list to find the keys correctly

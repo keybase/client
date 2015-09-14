@@ -144,7 +144,7 @@ func (s *SKB) ToPacket() (ret *KeybasePacket, err error) {
 
 func (s *SKB) ReadKey() (g GenericKey, err error) {
 	switch {
-	case IsPGPAlgo(s.Type) || s.Type == 0:
+	case IsPGPAlgo(s.Type):
 		g, err = ReadOneKeyFromBytes(s.Pub)
 	case s.Type == KIDNaclEddsa:
 		g, err = ImportNaclSigningKeyPairFromBytes(s.Pub, nil)
@@ -318,7 +318,7 @@ func (s *SKB) UnlockSecretKey(lctx LoginContext, passphrase string, tsec *triple
 func (s *SKB) parseUnlocked(unlocked []byte) (key GenericKey, err error) {
 
 	switch {
-	case IsPGPAlgo(s.Type) || s.Type == 0:
+	case IsPGPAlgo(s.Type):
 		key, err = ReadOneKeyFromBytes(unlocked)
 	case s.Type == KIDNaclEddsa:
 		key, err = ImportNaclSigningKeyPairFromBytes(s.Pub, unlocked)

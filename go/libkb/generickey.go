@@ -59,6 +59,7 @@ func CanEncrypt(key GenericKey) bool {
 }
 
 func WriteLksSKBToKeyring(k GenericKey, lks *LKSec, lui LogUI, lctx LoginContext) (*SKB, error) {
+	fmt.Printf("WriteLksSKBToKeyring\n")
 	skb, err := k.ToLksSKB(lks)
 	if err != nil {
 		return nil, fmt.Errorf("k.ToLksSKB() error: %s", err)

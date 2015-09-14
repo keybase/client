@@ -569,8 +569,7 @@ func (k PGPKeyBundle) VerifyString(sig string, msg []byte) (id keybase1.SigID, e
 
 func IsPGPAlgo(algo AlgoType) bool {
 	switch algo {
-	case KIDPGPRsa, KIDPGPElgamal,
-		KIDPGPDsa, KIDPGPEcdh, KIDPGPEcdsa:
+	case KIDPGPRsa, KIDPGPElgamal, KIDPGPDsa, KIDPGPEcdh, KIDPGPEcdsa, KIDPGPBase:
 		return true
 	}
 	return false
