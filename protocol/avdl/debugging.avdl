@@ -6,13 +6,13 @@ protocol debugging {
 		int valPlusTwo;
 	}
 
-    // First step in multi step
-    // increments val and sends to multi step
-    FirstStepResult firstStep(int sessionID, int val);
+	// First step in multi step
+	// increments val and sends to multi step
+	FirstStepResult firstStep(int sessionID, int val);
 
-    // increments val
-    int secondStep(int sessionID, int val);
+	// increments val
+	int secondStep(int sessionID, int val);
 
-    // Increment val
+	// Increment val
 	int increment(int sessionID, int val);
 }

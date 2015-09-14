@@ -42,9 +42,8 @@ function write () {
 }
 
 function fixCase (s) {
-  return s.toLowerCase().replace(/(\_\w)/g, replace)
-
   function replace (s) {
     return s[1][0].toUpperCase() + s[1].substr(1)
   }
+  return s.toLowerCase().replace(/(\_\w)/g, replace)
 }
