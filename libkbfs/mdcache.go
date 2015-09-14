@@ -11,9 +11,9 @@ type MDCacheStandard struct {
 }
 
 type mdCacheKey struct {
-	tlf    TlfID
-	rev    MetadataRevision
-	merged bool
+	tlf     TlfID
+	rev     MetadataRevision
+	mStatus mergeStatus
 }
 
 // NewMDCacheStandard constructs a new MDCacheStandard using the given
@@ -27,21 +27,26 @@ func NewMDCacheStandard(capacity int) *MDCacheStandard {
 }
 
 // Get implements the MDCache interface for MDCacheStandard.
-func (md *MDCacheStandard) Get(tlf TlfID, rev MetadataRevision, merged bool) (
+func (md *MDCacheStandard) Get(tlf TlfID, rev MetadataRevision,
+	mStatus mergeStatus) (
 	*RootMetadata, error) {
-	key := mdCacheKey{tlf, rev, merged}
+	key := mdCacheKey{tlf, rev, mStatus}
 	if tmp, ok := md.lru.Get(key); ok {
 		if rmd, ok := tmp.(*RootMetadata); ok {
 			return rmd, nil
 		}
 		return nil, BadMDError{tlf}
 	}
-	return nil, NoSuchMDError{tlf, rev, merged}
+	return nil, NoSuchMDError{tlf, rev, mStatus}
 }
 
 // Put implements the MDCache interface for MDCacheStandard.
 func (md *MDCacheStandard) Put(rmd *RootMetadata) error {
-	key := mdCacheKey{rmd.ID, rmd.Revision, !rmd.IsUnmergedSet()}
+	mStatus := merged
+	if rmd.IsUnmergedSet() {
+		mStatus = unmerged
+	}
+	key := mdCacheKey{rmd.ID, rmd.Revision, mStatus}
 	md.lru.Add(key, rmd)
 	return nil
 }

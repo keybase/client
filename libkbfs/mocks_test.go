@@ -687,8 +687,8 @@ func (_m *MockMDCache) EXPECT() *_MockMDCacheRecorder {
 	return _m.recorder
 }
 
-func (_m *MockMDCache) Get(tlf TlfID, rev MetadataRevision, merged bool) (*RootMetadata, error) {
-	ret := _m.ctrl.Call(_m, "Get", tlf, rev, merged)
+func (_m *MockMDCache) Get(tlf TlfID, rev MetadataRevision, mStatus mergeStatus) (*RootMetadata, error) {
+	ret := _m.ctrl.Call(_m, "Get", tlf, rev, mStatus)
 	ret0, _ := ret[0].(*RootMetadata)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1

@@ -40,7 +40,7 @@ func expectUserCalls(handle *TlfHandle, config *ConfigMock) {
 }
 
 func testMdcachePut(t *testing.T, tlf TlfID, rev MetadataRevision,
-	merged bool, h *TlfHandle, config *ConfigMock) {
+	mStatus mergeStatus, h *TlfHandle, config *ConfigMock) {
 	rmd := &RootMetadata{
 		ID:       tlf,
 		Revision: rev,
@@ -48,7 +48,7 @@ func testMdcachePut(t *testing.T, tlf TlfID, rev MetadataRevision,
 	}
 	k := DirKeyBundle{}
 	rmd.Keys[0] = k
-	if !merged {
+	if mStatus == unmerged {
 		rmd.Flags |= MetadataFlagUnmerged
 	}
 
@@ -59,7 +59,7 @@ func testMdcachePut(t *testing.T, tlf TlfID, rev MetadataRevision,
 	}
 
 	// make sure we can get it successfully
-	if rmd2, err := config.MDCache().Get(tlf, rev, merged); err != nil {
+	if rmd2, err := config.MDCache().Get(tlf, rev, mStatus); err != nil {
 		t.Errorf("Got error on get for md %v: %v", tlf, err)
 	} else if rmd2 != rmd {
 		t.Errorf("Got back unexpected metadata: %v", rmd2)
@@ -73,7 +73,7 @@ func TestMdcachePut(t *testing.T) {
 	id, h, _ := newDir(t, config, 1, true, false)
 	h.Writers = append(h.Writers, keybase1.MakeTestUID(0))
 
-	testMdcachePut(t, id, 1, true, h, config)
+	testMdcachePut(t, id, 1, merged, h, config)
 }
 
 func TestMdcachePutPastCapacity(t *testing.T) {
@@ -89,15 +89,15 @@ func TestMdcachePutPastCapacity(t *testing.T) {
 	id2, h2, _ := newDir(t, config, 3, true, false)
 	h2.Writers = append(h2.Writers, keybase1.MakeTestUID(2))
 
-	testMdcachePut(t, id0, 0, true, h0, config)
-	testMdcachePut(t, id1, 0, false, h1, config)
-	testMdcachePut(t, id2, 1, true, h2, config)
+	testMdcachePut(t, id0, 0, merged, h0, config)
+	testMdcachePut(t, id1, 0, unmerged, h1, config)
+	testMdcachePut(t, id2, 1, merged, h2, config)
 
 	// id 0 should no longer be in the cache
 	// make sure we can get it successfully
 	expectUserCalls(h0, config)
-	expectedErr := NoSuchMDError{id0, 0, true}
-	if _, err := config.MDCache().Get(id0, 0, true); err == nil {
+	expectedErr := NoSuchMDError{id0, 0, merged}
+	if _, err := config.MDCache().Get(id0, 0, merged); err == nil {
 		t.Errorf("No expected error on get")
 	} else if err != expectedErr {
 		t.Errorf("Got unexpected error on get: %v", err)

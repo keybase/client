@@ -324,7 +324,8 @@ type Reporter interface {
 type MDCache interface {
 	// Get gets the metadata object associated with the given TlfID,
 	// revision number and merged status
-	Get(tlf TlfID, rev MetadataRevision, merged bool) (*RootMetadata, error)
+	Get(tlf TlfID, rev MetadataRevision, mStatus mergeStatus) (
+		*RootMetadata, error)
 	// Put stores the metadata object.
 	Put(md *RootMetadata) error
 }

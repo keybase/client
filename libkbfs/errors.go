@@ -302,15 +302,15 @@ func (e MDMismatchError) Error() string {
 // NoSuchMDError indicates that there is no MD object for the given
 // folder, revision, and merged status.
 type NoSuchMDError struct {
-	Tlf    TlfID
-	Rev    MetadataRevision
-	Merged bool
+	Tlf     TlfID
+	Rev     MetadataRevision
+	MStatus mergeStatus
 }
 
 // Error implements the error interface for NoSuchMDError
 func (e NoSuchMDError) Error() string {
 	return fmt.Sprintf("Couldn't get metadata for folder %v, revision %d, "+
-		"merged %t", e.Tlf, e.Rev, e.Merged)
+		"%s", e.Tlf, e.Rev, e.MStatus)
 }
 
 // InvalidDataVersionError indicates that an invalid data version was

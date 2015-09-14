@@ -1053,3 +1053,21 @@ type ReportedError struct {
 	Error fmt.Stringer
 	// TODO: stacktrace would be nice
 }
+
+type mergeStatus int
+
+const (
+	merged mergeStatus = iota
+	unmerged
+)
+
+func (m mergeStatus) String() string {
+	switch m {
+	case merged:
+		return "merged"
+	case unmerged:
+		return "unmerged"
+	default:
+		panic(fmt.Sprintf("Unknown merged status: %d", m))
+	}
+}
