@@ -3331,7 +3331,7 @@ type mdRange struct {
 }
 
 func (fbo *FolderBranchOps) getMDRange(ctx context.Context,
-	start MetadataRevision, end MetadataRevision, mStatus mergeStatus) (
+	start MetadataRevision, end MetadataRevision, mStatus MergeStatus) (
 	rmds []*RootMetadata, err error) {
 	mdcache := fbo.config.MDCache()
 	var toDownload []mdRange

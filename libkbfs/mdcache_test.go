@@ -40,7 +40,7 @@ func expectUserCalls(handle *TlfHandle, config *ConfigMock) {
 }
 
 func testMdcachePut(t *testing.T, tlf TlfID, rev MetadataRevision,
-	mStatus mergeStatus, h *TlfHandle, config *ConfigMock) {
+	mStatus MergeStatus, h *TlfHandle, config *ConfigMock) {
 	rmd := &RootMetadata{
 		ID:       tlf,
 		Revision: rev,

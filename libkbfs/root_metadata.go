@@ -106,7 +106,7 @@ func (md *RootMetadata) GetKeyGeneration() int {
 
 // MergedStatus returns the status of this update -- has it been
 // merged into the main folder or not?
-func (md *RootMetadata) MergedStatus() mergeStatus {
+func (md *RootMetadata) MergedStatus() MergeStatus {
 	if md.Flags&MetadataFlagUnmerged != 0 {
 		return Unmerged
 	}

@@ -304,7 +304,7 @@ func (e MDMismatchError) Error() string {
 type NoSuchMDError struct {
 	Tlf     TlfID
 	Rev     MetadataRevision
-	MStatus mergeStatus
+	MStatus MergeStatus
 }
 
 // Error implements the error interface for NoSuchMDError

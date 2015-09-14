@@ -13,7 +13,7 @@ type MDCacheStandard struct {
 type mdCacheKey struct {
 	tlf     TlfID
 	rev     MetadataRevision
-	mStatus mergeStatus
+	mStatus MergeStatus
 }
 
 // NewMDCacheStandard constructs a new MDCacheStandard using the given
@@ -28,7 +28,7 @@ func NewMDCacheStandard(capacity int) *MDCacheStandard {
 
 // Get implements the MDCache interface for MDCacheStandard.
 func (md *MDCacheStandard) Get(tlf TlfID, rev MetadataRevision,
-	mStatus mergeStatus) (
+	mStatus MergeStatus) (
 	*RootMetadata, error) {
 	key := mdCacheKey{tlf, rev, mStatus}
 	if tmp, ok := md.lru.Get(key); ok {

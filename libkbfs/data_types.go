@@ -1054,14 +1054,19 @@ type ReportedError struct {
 	// TODO: stacktrace would be nice
 }
 
-type mergeStatus int
+// MergeStatus represents the merge status of a TLF.
+type MergeStatus int
 
 const (
-	Merged mergeStatus = iota
+	// Merged means that the TLF is merged and no conflict
+	// resolution needs to be done.
+	Merged MergeStatus = iota
+	// Unmerged means that the TLF is unmerged and conflict
+	// resolution needs to be done.
 	Unmerged
 )
 
-func (m mergeStatus) String() string {
+func (m MergeStatus) String() string {
 	switch m {
 	case Merged:
 		return "merged"
