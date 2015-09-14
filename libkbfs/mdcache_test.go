@@ -48,7 +48,7 @@ func testMdcachePut(t *testing.T, tlf TlfID, rev MetadataRevision,
 	}
 	k := DirKeyBundle{}
 	rmd.Keys[0] = k
-	if mStatus == unmerged {
+	if mStatus == Unmerged {
 		rmd.Flags |= MetadataFlagUnmerged
 	}
 
@@ -73,7 +73,7 @@ func TestMdcachePut(t *testing.T) {
 	id, h, _ := newDir(t, config, 1, true, false)
 	h.Writers = append(h.Writers, keybase1.MakeTestUID(0))
 
-	testMdcachePut(t, id, 1, merged, h, config)
+	testMdcachePut(t, id, 1, Merged, h, config)
 }
 
 func TestMdcachePutPastCapacity(t *testing.T) {
@@ -89,15 +89,15 @@ func TestMdcachePutPastCapacity(t *testing.T) {
 	id2, h2, _ := newDir(t, config, 3, true, false)
 	h2.Writers = append(h2.Writers, keybase1.MakeTestUID(2))
 
-	testMdcachePut(t, id0, 0, merged, h0, config)
-	testMdcachePut(t, id1, 0, unmerged, h1, config)
-	testMdcachePut(t, id2, 1, merged, h2, config)
+	testMdcachePut(t, id0, 0, Merged, h0, config)
+	testMdcachePut(t, id1, 0, Unmerged, h1, config)
+	testMdcachePut(t, id2, 1, Merged, h2, config)
 
 	// id 0 should no longer be in the cache
 	// make sure we can get it successfully
 	expectUserCalls(h0, config)
-	expectedErr := NoSuchMDError{id0, 0, merged}
-	if _, err := config.MDCache().Get(id0, 0, merged); err == nil {
+	expectedErr := NoSuchMDError{id0, 0, Merged}
+	if _, err := config.MDCache().Get(id0, 0, Merged); err == nil {
 		t.Errorf("No expected error on get")
 	} else if err != expectedErr {
 		t.Errorf("Got unexpected error on get: %v", err)

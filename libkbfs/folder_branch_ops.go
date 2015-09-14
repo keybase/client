@@ -3361,14 +3361,15 @@ func (fbo *FolderBranchOps) getMDRange(ctx context.Context,
 		rmds = append(rmds, rmd)
 	}
 
-	// Try to fetch the rest from the server.  TODO: parallelize me.
+	// Try to fetch the rest from the server.  TODO: parallelize me,
+	// or make this possible with a single server call.
 	for _, r := range toDownload {
 		var fetchedRmds []*RootMetadata
 		switch mStatus {
-		case merged:
+		case Merged:
 			fetchedRmds, err = fbo.config.MDOps().GetRange(
 				ctx, fbo.id(), r.start, r.end)
-		case unmerged:
+		case Unmerged:
 			fetchedRmds, err = fbo.config.MDOps().GetUnmergedRange(
 				ctx, fbo.id(), r.start, r.end)
 		default:
@@ -3376,14 +3377,6 @@ func (fbo *FolderBranchOps) getMDRange(ctx context.Context,
 		}
 		if err != nil {
 			return nil, err
-		}
-
-		// if this is an interior range, and there weren't the
-		// expected number of results, something fishy is going on
-		if r.start != start && r.end != end &&
-			len(rmds) != int(r.start-r.end+1) {
-			return nil, fmt.Errorf("Only %d MDs found in interior range "+
-				"[%d, %d]", len(rmds), r.start, r.end)
 		}
 
 		for _, rmd := range fetchedRmds {
@@ -3404,7 +3397,16 @@ func (fbo *FolderBranchOps) getMDRange(ctx context.Context,
 		return nil, nil
 	}
 
-	return rmds[minSlot : maxSlot+1], nil
+	rmds = rmds[minSlot : maxSlot+1]
+	// check to make sure there are no holes
+	for i, rmd := range rmds {
+		if rmd == nil {
+			return nil, fmt.Errorf("No %s MD found for revision %d",
+				mStatus, int(start)+minSlot+i)
+		}
+	}
+
+	return rmds, nil
 }
 
 // Assumes all necessary locking is either already done by caller, or
@@ -3415,11 +3417,9 @@ func (fbo *FolderBranchOps) getAndApplyMDUpdates(ctx context.Context,
 		// first look up all MD revisions newer than my current head
 		currHead := fbo.getCurrMDRevision()
 
-		// If we already have all the MDs in the cache, don't make the
-		// call.
 		start := currHead + 1
 		end := start + maxMDsAtATime - 1 // range is inclusive
-		rmds, err := fbo.getMDRange(ctx, start, end, merged)
+		rmds, err := fbo.getMDRange(ctx, start, end, Merged)
 		if err != nil {
 			return err
 		}
@@ -3447,7 +3447,7 @@ func (fbo *FolderBranchOps) undoUnmergedMDUpdatesLocked(
 			startRev = MetadataRevisionInitial
 		}
 
-		rmds, err := fbo.getMDRange(ctx, startRev, currHead, unmerged)
+		rmds, err := fbo.getMDRange(ctx, startRev, currHead, Unmerged)
 		if err != nil {
 			return err
 		}
@@ -3471,7 +3471,7 @@ func (fbo *FolderBranchOps) undoUnmergedMDUpdatesLocked(
 			// the updates.
 			fbo.transitionStagedLocked(false)
 
-			rmds, err := fbo.getMDRange(ctx, currHead, currHead, merged)
+			rmds, err := fbo.getMDRange(ctx, currHead, currHead, Merged)
 			if err != nil {
 				return err
 			}

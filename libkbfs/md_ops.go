@@ -79,10 +79,10 @@ func (md *MDOpsStandard) processMetadata(ctx context.Context,
 	return nil
 }
 
-func (md *MDOpsStandard) getForHandle(ctx context.Context, handle *TlfHandle, unmerged bool) (
+func (md *MDOpsStandard) getForHandle(ctx context.Context, handle *TlfHandle, Unmerged bool) (
 	*RootMetadata, error) {
 	mdserv := md.config.MDServer()
-	id, rmds, err := mdserv.GetForHandle(ctx, handle, unmerged)
+	id, rmds, err := mdserv.GetForHandle(ctx, handle, Unmerged)
 	if err != nil {
 		return nil, err
 	}
@@ -134,9 +134,9 @@ func (md *MDOpsStandard) processMetadataWithID(ctx context.Context,
 	return md.processMetadata(ctx, rmds.MD.GetTlfHandle(), rmds)
 }
 
-func (md *MDOpsStandard) getForTLF(ctx context.Context, id TlfID, unmerged bool) (
+func (md *MDOpsStandard) getForTLF(ctx context.Context, id TlfID, Unmerged bool) (
 	*RootMetadata, error) {
-	rmds, err := md.config.MDServer().GetForTLF(ctx, id, unmerged)
+	rmds, err := md.config.MDServer().GetForTLF(ctx, id, Unmerged)
 	if err != nil {
 		return nil, err
 	}
@@ -216,9 +216,9 @@ func (md *MDOpsStandard) processRange(ctx context.Context, id TlfID,
 	return rmd, nil
 }
 
-func (md *MDOpsStandard) getRange(ctx context.Context, id TlfID, unmerged bool,
+func (md *MDOpsStandard) getRange(ctx context.Context, id TlfID, Unmerged bool,
 	start, stop MetadataRevision) ([]*RootMetadata, error) {
-	rmds, err := md.config.MDServer().GetRange(ctx, id, unmerged, start, stop)
+	rmds, err := md.config.MDServer().GetRange(ctx, id, Unmerged, start, stop)
 	if err != nil {
 		return nil, err
 	}
@@ -305,7 +305,7 @@ func (md *MDOpsStandard) Put(ctx context.Context, rmd *RootMetadata) error {
 	if err != nil {
 		return err
 	}
-	if rmd.IsUnmergedSet() {
+	if rmd.MergedStatus() == Unmerged {
 		return nil
 	}
 	// or else prune all unmerged history now

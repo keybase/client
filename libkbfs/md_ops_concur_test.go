@@ -31,7 +31,7 @@ func (m *MDOpsConcurTest) GetUnmergedForHandle(ctx context.Context, handle *TlfH
 	return nil, fmt.Errorf("Not supported")
 }
 
-func (m *MDOpsConcurTest) getForTLF(ctx context.Context, id TlfID, unmerged bool) (
+func (m *MDOpsConcurTest) getForTLF(ctx context.Context, id TlfID, Unmerged bool) (
 	*RootMetadata, error) {
 	_, ok := <-m.enter
 	if !ok {

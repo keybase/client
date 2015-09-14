@@ -1057,17 +1057,17 @@ type ReportedError struct {
 type mergeStatus int
 
 const (
-	merged mergeStatus = iota
-	unmerged
+	Merged mergeStatus = iota
+	Unmerged
 )
 
 func (m mergeStatus) String() string {
 	switch m {
-	case merged:
+	case Merged:
 		return "merged"
-	case unmerged:
+	case Unmerged:
 		return "unmerged"
 	default:
-		panic(fmt.Sprintf("Unknown merged status: %d", m))
+		return "unknown"
 	}
 }

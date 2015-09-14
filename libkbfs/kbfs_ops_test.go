@@ -804,7 +804,7 @@ func expectSyncBlockHelper(
 	t *testing.T, config *ConfigMock, lastCall *gomock.Call,
 	userID keybase1.UID, id TlfID, name string, p path, rmd *RootMetadata,
 	newEntry bool, skipSync int, refBytes uint64, unrefBytes uint64,
-	newRmd **RootMetadata, newBlockIDs []BlockID, unmerged bool) (
+	newRmd **RootMetadata, newBlockIDs []BlockID, isUnmerged bool) (
 	path, *gomock.Call) {
 	// construct new path
 	newPath := path{
@@ -855,7 +855,7 @@ func expectSyncBlockHelper(
 	}
 	if skipSync == 0 {
 		// sign the MD and put it
-		if unmerged {
+		if isUnmerged {
 			config.mockMdops.EXPECT().Put(gomock.Any(), gomock.Any()).Return(MDServerErrorConflictRevision{})
 			config.mockMdops.EXPECT().PutUnmerged(
 				gomock.Any(), gomock.Any()).
@@ -3331,7 +3331,7 @@ func TestMtimeFailNoSuchName(t *testing.T) {
 
 // SetMtime failure cases are all the same as any other block sync
 
-func testSyncDirtySuccess(t *testing.T, unmerged bool) {
+func testSyncDirtySuccess(t *testing.T, isUnmerged bool) {
 	mockCtrl, config, ctx := kbfsOpsInit(t, true)
 	defer kbfsTestShutdown(mockCtrl, config)
 
@@ -3366,7 +3366,7 @@ func testSyncDirtySuccess(t *testing.T, unmerged bool) {
 	var newRmd *RootMetadata
 	blocks := make([]BlockID, 2)
 	var expectedPath path
-	if unmerged {
+	if isUnmerged {
 		expectedPath, _ = expectSyncBlockUnmerged(t, config, nil, userID, id,
 			"", p, rmd, false, 0, 0, 0, &newRmd, blocks)
 	} else {

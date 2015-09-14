@@ -595,18 +595,18 @@ type MDServer interface {
 	// the logged-in user has read permission on the folder.  It
 	// creates the folder if one doesn't exist yet, and the logged-in
 	// user has permission to do so.
-	GetForHandle(ctx context.Context, handle *TlfHandle, unmerged bool) (
+	GetForHandle(ctx context.Context, handle *TlfHandle, isUnmerged bool) (
 		TlfID, *RootMetadataSigned, error)
 
 	// GetForTLF returns the current (signed/encrypted) metadata object
 	// corresponding to the given top-level folder, if the logged-in
 	// user has read permission on the folder.
-	GetForTLF(ctx context.Context, id TlfID, unmerged bool) (
+	GetForTLF(ctx context.Context, id TlfID, isUnmerged bool) (
 		*RootMetadataSigned, error)
 
 	// GetRange returns a range of (signed/encrypted) metadata objects
 	// corresponding to the passed revision numbers (inclusive).
-	GetRange(ctx context.Context, id TlfID, unmerged bool, start, stop MetadataRevision) (
+	GetRange(ctx context.Context, id TlfID, isUnmerged bool, start, stop MetadataRevision) (
 		[]*RootMetadataSigned, error)
 
 	// Put stores the (signed/encrypted) metadata object for the given

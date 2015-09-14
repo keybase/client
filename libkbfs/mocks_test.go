@@ -1399,8 +1399,8 @@ func (_m *MockMDServer) EXPECT() *_MockMDServerRecorder {
 	return _m.recorder
 }
 
-func (_m *MockMDServer) GetForHandle(ctx context.Context, handle *TlfHandle, unmerged bool) (TlfID, *RootMetadataSigned, error) {
-	ret := _m.ctrl.Call(_m, "GetForHandle", ctx, handle, unmerged)
+func (_m *MockMDServer) GetForHandle(ctx context.Context, handle *TlfHandle, isUnmerged bool) (TlfID, *RootMetadataSigned, error) {
+	ret := _m.ctrl.Call(_m, "GetForHandle", ctx, handle, isUnmerged)
 	ret0, _ := ret[0].(TlfID)
 	ret1, _ := ret[1].(*RootMetadataSigned)
 	ret2, _ := ret[2].(error)
@@ -1411,8 +1411,8 @@ func (_mr *_MockMDServerRecorder) GetForHandle(arg0, arg1, arg2 interface{}) *go
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "GetForHandle", arg0, arg1, arg2)
 }
 
-func (_m *MockMDServer) GetForTLF(ctx context.Context, id TlfID, unmerged bool) (*RootMetadataSigned, error) {
-	ret := _m.ctrl.Call(_m, "GetForTLF", ctx, id, unmerged)
+func (_m *MockMDServer) GetForTLF(ctx context.Context, id TlfID, isUnmerged bool) (*RootMetadataSigned, error) {
+	ret := _m.ctrl.Call(_m, "GetForTLF", ctx, id, isUnmerged)
 	ret0, _ := ret[0].(*RootMetadataSigned)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
@@ -1422,8 +1422,8 @@ func (_mr *_MockMDServerRecorder) GetForTLF(arg0, arg1, arg2 interface{}) *gomoc
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "GetForTLF", arg0, arg1, arg2)
 }
 
-func (_m *MockMDServer) GetRange(ctx context.Context, id TlfID, unmerged bool, start MetadataRevision, stop MetadataRevision) ([]*RootMetadataSigned, error) {
-	ret := _m.ctrl.Call(_m, "GetRange", ctx, id, unmerged, start, stop)
+func (_m *MockMDServer) GetRange(ctx context.Context, id TlfID, isUnmerged bool, start MetadataRevision, stop MetadataRevision) ([]*RootMetadataSigned, error) {
+	ret := _m.ctrl.Call(_m, "GetRange", ctx, id, isUnmerged, start, stop)
 	ret0, _ := ret[0].([]*RootMetadataSigned)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1

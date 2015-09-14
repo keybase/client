@@ -104,9 +104,13 @@ func (md *RootMetadata) GetKeyGeneration() int {
 	return len(md.Keys)
 }
 
-// IsUnmergedSet returns true if the unmerged bit is set.
-func (md *RootMetadata) IsUnmergedSet() bool {
-	return md.Flags&MetadataFlagUnmerged != 0
+// MergedStatus returns the status of this update -- has it been
+// merged into the main folder or not?
+func (md *RootMetadata) MergedStatus() mergeStatus {
+	if md.Flags&MetadataFlagUnmerged != 0 {
+		return Unmerged
+	}
+	return Merged
 }
 
 // IsRekeySet returns true if the rekey bit is set.

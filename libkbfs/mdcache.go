@@ -42,11 +42,7 @@ func (md *MDCacheStandard) Get(tlf TlfID, rev MetadataRevision,
 
 // Put implements the MDCache interface for MDCacheStandard.
 func (md *MDCacheStandard) Put(rmd *RootMetadata) error {
-	mStatus := merged
-	if rmd.IsUnmergedSet() {
-		mStatus = unmerged
-	}
-	key := mdCacheKey{rmd.ID, rmd.Revision, mStatus}
+	key := mdCacheKey{rmd.ID, rmd.Revision, rmd.MergedStatus()}
 	md.lru.Add(key, rmd)
 	return nil
 }
