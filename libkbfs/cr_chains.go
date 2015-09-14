@@ -110,6 +110,74 @@ func (cc *crChains) makeChainForOp(op op) error {
 	return nil
 }
 
+// collapse finds complementary pairs of operations that cancel each
+// other out, and remove the relevant operations from the chain.
+// Examples include:
+//  * A create followed by a remove for the same name (delete both ops)
+//  * A create followed by a create (renamed == true) for the same name
+//    (delete the create op)
+func (cc *crChains) collapse() {
+	for ptr, head := range cc.heads {
+		createsSeen := make(map[string]*crOpNode)
+		node := head
+		updated := false
+		for node != nil {
+			switch realOp := node.op.(type) {
+			case *createOp:
+				if prevCreate, ok :=
+					createsSeen[realOp.NewName]; realOp.renamed && ok {
+					prevCreate.op = nil
+					updated = true
+				}
+				createsSeen[realOp.NewName] = node
+			case *rmOp:
+				if prevCreate, ok := createsSeen[realOp.OldName]; ok {
+					delete(createsSeen, realOp.OldName)
+					prevCreate.op = nil
+					node.op = nil
+					updated = true
+				}
+			default:
+				// ignore other op types
+			}
+			node = node.nextOp
+		}
+
+		if !updated {
+			continue
+		}
+
+		// Skip past everything with a nil op.  Note that we leave the
+		// heads and tail pointers the same, even if we've deleted
+		// some of the corresponding nodes, because those are still
+		// the valid starting and ending block pointers even in a
+		// collapsed state.
+		node = head
+		var prevNode *crOpNode
+		for node != nil {
+			if node.op == nil {
+				if prevNode != nil {
+					prevNode.nextOp = node.nextOp
+					if _, ok := cc.tails[node.refPtr]; ok &&
+						node.nextOp == nil {
+						cc.tails[node.refPtr] = prevNode
+					}
+				}
+			} else {
+				if prevNode == nil {
+					cc.heads[ptr] = node
+				}
+				prevNode = node
+			}
+			node = node.nextOp
+		}
+		// if there were no good nodes, delete the whole chain
+		if prevNode == nil {
+			delete(cc.heads, ptr)
+		}
+	}
+}
+
 func newCRChains(rmds []*RootMetadata) (cc *crChains, err error) {
 	cc = &crChains{
 		heads:     make(map[BlockPointer]*crOpNode),
@@ -137,5 +205,6 @@ func newCRChains(rmds []*RootMetadata) (cc *crChains, err error) {
 		}
 
 	}
+	cc.collapse()
 	return cc, nil
 }

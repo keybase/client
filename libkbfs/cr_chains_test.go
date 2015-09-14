@@ -6,7 +6,7 @@ import (
 )
 
 func checkExpectedChains(t *testing.T, expected map[BlockPointer]BlockPointer,
-	expectedRoot BlockPointer, cc *crChains) {
+	expectedRoot BlockPointer, cc *crChains, checkTailPtr bool) {
 	if g, e := len(cc.heads), len(expected); g != e {
 		t.Errorf("Wrong number of heads, %v vs %v", g, e)
 	}
@@ -34,7 +34,7 @@ func checkExpectedChains(t *testing.T, expected map[BlockPointer]BlockPointer,
 			currNode = currNode.nextOp
 		}
 
-		if currNode.refPtr != tail {
+		if checkTailPtr && currNode.refPtr != tail {
 			t.Fatalf("Chain for %v does not end in %v", head, tail)
 		}
 
@@ -44,7 +44,7 @@ func checkExpectedChains(t *testing.T, expected map[BlockPointer]BlockPointer,
 		}
 
 		if tailNode != currNode {
-			t.Fatalf("Chain from %v does not end in tail %v", head, tail)
+			t.Fatalf("Chain from %v does not end in tail %v (%v) vs. (%v)", head, tail, currNode, tailNode)
 		}
 
 		if cc.tailHeads[tail] != head {
@@ -99,7 +99,7 @@ func TestCRChainsSingleOp(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Error making chains: %v", err)
 	}
-	checkExpectedChains(t, expected, rootPtrUnref, cc)
+	checkExpectedChains(t, expected, rootPtrUnref, cc, true)
 
 	// check for the create op
 	dir2 := cc.heads[dir2Unref]
@@ -132,7 +132,7 @@ func TestCRChainsRenameOp(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Error making chains: %v", err)
 	}
-	checkExpectedChains(t, expected, rootPtrUnref, cc)
+	checkExpectedChains(t, expected, rootPtrUnref, cc, true)
 
 	// check for the create op
 	dir2 := cc.heads[dir2Unref]
@@ -239,7 +239,7 @@ func TestCRChainsMultiOps(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Error making chains for big RMD: %v", err)
 	}
-	checkExpectedChains(t, expected, rootPtrUnref, cc)
+	checkExpectedChains(t, expected, rootPtrUnref, cc, true)
 
 	// root should have no direct ops
 	if node := cc.heads[rootPtrUnref]; node.op != nil || node.nextOp != nil {
@@ -295,5 +295,101 @@ func TestCRChainsMultiOps(t *testing.T) {
 	if mcc.root != rootPtrUnref {
 		t.Fatalf("Root pointer incorrect for multi RMDs, %v vs %v",
 			mcc.root, rootPtrUnref)
+	}
+}
+
+// Test that we collapse chains correctly
+func TestCRChainsCollapse(t *testing.T) {
+	// To start, we have: root/dir1/ and root/dir2/file1
+	// Sequence of operations:
+	// * createfile root/dir1/file2
+	// * setex root/dir2/file1
+	// * createfile root/dir1/file3
+	// * createfile root/dir1/file4
+	// * rm root/dir1/file2
+	// * rename root/dir2/file1 root/dir1/file3
+
+	f1 := "file1"
+	f2 := "file2"
+	f3 := "file3"
+	f4 := "file4"
+
+	currPtr, ptrs, revPtrs := testCRInitPtrs(3)
+	rootPtrUnref := ptrs[0]
+	dir1Unref := ptrs[1]
+	dir2Unref := ptrs[2]
+	expected := make(map[BlockPointer]BlockPointer)
+
+	rmd := &RootMetadata{}
+
+	// createfile root/dir1/file2
+	op1 := newCreateOp(f2, dir1Unref, File)
+	currPtr = testCRFillOpPtrs(currPtr, expected, revPtrs,
+		[]BlockPointer{rootPtrUnref, dir1Unref}, op1)
+	rmd.AddOp(op1)
+
+	// setex root/dir2/file1
+	op2 := newSetAttrOp(f1, dir2Unref, exAttr)
+	currPtr = testCRFillOpPtrs(currPtr, expected, revPtrs,
+		[]BlockPointer{expected[rootPtrUnref], dir2Unref}, op2)
+	rmd.AddOp(op2)
+
+	// createfile root/dir1/file3
+	op3 := newCreateOp(f3, expected[dir1Unref], File)
+	currPtr = testCRFillOpPtrs(currPtr, expected, revPtrs,
+		[]BlockPointer{expected[rootPtrUnref], expected[dir1Unref]}, op3)
+	rmd.AddOp(op3)
+
+	// createfile root/dir1/file4
+	op4 := newCreateOp(f4, expected[dir1Unref], File)
+	currPtr = testCRFillOpPtrs(currPtr, expected, revPtrs,
+		[]BlockPointer{expected[rootPtrUnref], expected[dir1Unref]}, op4)
+	rmd.AddOp(op4)
+
+	// rm root/dir1/file2
+	op5 := newRmOp(f2, expected[dir1Unref])
+	currPtr = testCRFillOpPtrs(currPtr, expected, revPtrs,
+		[]BlockPointer{expected[rootPtrUnref], expected[dir1Unref]}, op5)
+	rmd.AddOp(op5)
+
+	// rename root/dir2/file1 root/dir1/file3
+	op6 := newRenameOp(f1, expected[dir2Unref], f3, expected[dir1Unref])
+	currPtr = testCRFillOpPtrs(currPtr, expected, revPtrs,
+		[]BlockPointer{expected[rootPtrUnref], expected[dir1Unref],
+			expected[dir2Unref]}, op6)
+	rmd.AddOp(op6)
+
+	rmd.data.Dir.BlockPointer = expected[rootPtrUnref]
+	cc, err := newCRChains([]*RootMetadata{rmd})
+	if err != nil {
+		t.Fatalf("Error making chains: %v", err)
+	}
+	checkExpectedChains(t, expected, rootPtrUnref, cc,
+		false /*tail ref pointer won't match due to collapsing*/)
+
+	// root should have no direct ops
+	if node := cc.heads[rootPtrUnref]; node.op != nil || node.nextOp != nil {
+		t.Fatalf("Unexpected root operation at %v", rootPtrUnref)
+	}
+
+	// dir1 should only have two creates (one of which is a rename).
+	dir1Head := cc.heads[dir1Unref]
+	if dir1Head.op != op4 || dir1Head.nextOp == nil {
+		t.Fatalf("Unexpected dir1 head: %v", dir1Head)
+	}
+	dir1Next := dir1Head.nextOp
+	if co, ok := dir1Next.op.(*createOp); !ok ||
+		co.NewName != f3 || !co.renamed {
+		t.Fatalf("Unexpected dir1 op: %v", dir1Next.op)
+	}
+
+	// dir2 should have a setex and the rm part of a rename
+	dir2Head := cc.heads[dir2Unref]
+	if dir2Head.op != op2 || dir2Head.nextOp == nil {
+		t.Fatalf("Unexpected dir2 head: %v", dir2Head)
+	}
+	dir2Next := dir2Head.nextOp
+	if ro, ok := dir2Next.op.(*rmOp); !ok || ro.OldName != f1 {
+		t.Fatalf("Unexpected dir2 op: %v", dir2Next.op)
 	}
 }
