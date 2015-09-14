@@ -228,6 +228,14 @@ func ShowServices(filter string) (err error) {
 // Install will install a service
 func Install(plist Plist) (err error) {
 	service := NewService(plist.label)
+
+	if plist.workingDir != "" {
+		err := ensureDirectoryExists(plist.workingDir)
+		if err != nil {
+			return err
+		}
+	}
+
 	return service.Install(plist)
 }
 
@@ -284,6 +292,14 @@ func launchdHomeDir() string {
 
 func launchdLogDir() string {
 	return filepath.Join(launchdHomeDir(), "Library", "Logs")
+}
+
+func ensureDirectoryExists(dir string) error {
+	if _, err := os.Stat(dir); os.IsNotExist(err) {
+		err = os.MkdirAll(dir, 0700)
+		return err
+	}
+	return nil
 }
 
 // TODO Use go-plist library
