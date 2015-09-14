@@ -63,7 +63,7 @@ func (c *CmdPGPDecrypt) Run() error {
 	protocols := []rpc2.Protocol{
 		NewStreamUIProtocol(),
 		NewSecretUIProtocol(),
-		NewIdentifyUIProtocol(),
+		NewIdentifyTrackUIProtocol(),
 		NewLogUIProtocol(),
 	}
 	if err := RegisterProtocols(protocols); err != nil {

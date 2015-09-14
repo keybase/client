@@ -81,7 +81,7 @@ func (c *CmdPGPEncrypt) Run() error {
 	protocols := []rpc2.Protocol{
 		NewStreamUIProtocol(),
 		NewSecretUIProtocol(),
-		NewIdentifyUIProtocol(),
+		NewIdentifyTrackUIProtocol(),
 	}
 	if err := RegisterProtocols(protocols); err != nil {
 		return err
