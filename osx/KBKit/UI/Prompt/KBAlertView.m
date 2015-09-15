@@ -20,18 +20,16 @@
   [super viewInit];
   [self kb_setBackgroundColor:KBAppearance.currentAppearance.backgroundColor];
 
-  YOVBox *contentView = [YOVBox box:@{@"insets": @"10,80,10,80"}];
+  YOVBox *contentView = [YOVBox box:@{@"spacing": @(20), @"insets": @"10,80,10,80"}];
   [self addSubview:contentView];
 
   _header = [[KBLabel alloc] init];
   [contentView addSubview:_header];
-  [contentView addSubview:[YOBox spacing:CGSizeMake(0, 20)]];
 
   _label = [[KBLabel alloc] init];
   _label.selectable = YES;
   _label.identifier = @"label";
   [contentView addSubview:_label];
-  [contentView addSubview:[YOBox spacing:CGSizeMake(0, 30)]];
 
   _buttonsView = [YOVBox box:@{@"spacing": @(20), @"maxSize": @"240,0", @"horizontalAlignment": @"center"}];
   [contentView addSubview:_buttonsView];
