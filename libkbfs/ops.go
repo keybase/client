@@ -3,6 +3,7 @@ package libkbfs
 import (
 	"fmt"
 	"reflect"
+	"strings"
 )
 
 // op represents a single file-system remote-sync operation
@@ -12,6 +13,7 @@ type op interface {
 	AddUpdate(oldPtr BlockPointer, newPtr BlockPointer)
 	SizeExceptUpdates() uint64
 	AllUpdates() []blockUpdate
+	String() string
 }
 
 // op codes
@@ -108,6 +110,14 @@ func (co *createOp) AllUpdates() []blockUpdate {
 	return append(updates, co.Dir)
 }
 
+func (co *createOp) String() string {
+	res := fmt.Sprintf("create %s (%s)", co.NewName, co.Type)
+	if co.renamed {
+		res += " (renamed)"
+	}
+	return res
+}
+
 // rmOp is an op representing a file or subdirectory removal
 type rmOp struct {
 	OpCommon
@@ -135,6 +145,10 @@ func (ro *rmOp) AllUpdates() []blockUpdate {
 	updates := make([]blockUpdate, len(ro.Updates))
 	copy(updates, ro.Updates)
 	return append(updates, ro.Dir)
+}
+
+func (ro *rmOp) String() string {
+	return fmt.Sprintf("rm %s", ro.OldName)
 }
 
 // renameOp is an op representing a rename of a file/subdirectory from
@@ -180,6 +194,10 @@ func (ro *renameOp) AllUpdates() []blockUpdate {
 	return append(updates, ro.OldDir)
 }
 
+func (ro *renameOp) String() string {
+	return fmt.Sprintf("rename %s -> %s", ro.OldName, ro.NewName)
+}
+
 // WriteRange represents a file modification.  Len is 0 for a
 // truncate.
 type WriteRange struct {
@@ -223,12 +241,30 @@ func (so *syncOp) AllUpdates() []blockUpdate {
 	return append(updates, so.File)
 }
 
+func (so *syncOp) String() string {
+	var writes []string
+	for _, r := range so.Writes {
+		writes = append(writes, fmt.Sprintf("{off=%d, len=%d}", r.Off, r.Len))
+	}
+	return fmt.Sprintf("sync [%s]", strings.Join(writes, ", "))
+}
+
 type attrChange uint16
 
 const (
 	exAttr attrChange = iota
 	mtimeAttr
 )
+
+func (ac attrChange) String() string {
+	switch ac {
+	case exAttr:
+		return "ex"
+	case mtimeAttr:
+		return "mtime"
+	}
+	return "<invalid attrChange>"
+}
 
 // setAttrOp is an op that represents changing the attributes of a
 // file/subdirectory with in a directory.
@@ -263,6 +299,10 @@ func (sao *setAttrOp) AllUpdates() []blockUpdate {
 	return append(updates, sao.Dir)
 }
 
+func (sao *setAttrOp) String() string {
+	return fmt.Sprintf("setAttr %s (%s)", sao.Name, sao.Attr)
+}
+
 // gcOp is an op that represents garbage-collecting the history of a
 // folder (which may involve unreferencing blocks that previously held
 // operation lists.
@@ -285,6 +325,10 @@ func (gco *gcOp) SizeExceptUpdates() uint64 {
 
 func (gco *gcOp) AllUpdates() []blockUpdate {
 	return gco.Updates
+}
+
+func (gco *gcOp) String() string {
+	return "gc"
 }
 
 // invertOpForLocalNotifications returns an operation that represents

@@ -18,6 +18,11 @@ type FolderBranchStatus struct {
 	// DirtyPaths are files that have been written, but not flushed.
 	// They do not represent unstaged changes in your local instance.
 	DirtyPaths []string
+
+	// If we're in the staged state, these summaries show the
+	// diverging operations per-file
+	Unmerged []*crChainSummary
+	Merged   []*crChainSummary
 }
 
 // StatusUpdate is a dummy type used to indicate status has been updated.
@@ -32,6 +37,8 @@ type folderBranchStatusKeeper struct {
 
 	md         *RootMetadata
 	dirtyNodes map[NodeID]Node
+	unmerged   *crChains
+	merged     *crChains
 	dataMutex  sync.Mutex
 
 	updateChan  chan StatusUpdate
@@ -65,6 +72,19 @@ func (fbsk *folderBranchStatusKeeper) setRootMetadata(md *RootMetadata) {
 		return
 	}
 	fbsk.md = md
+	fbsk.signalChangeLocked()
+}
+
+func (fbsk *folderBranchStatusKeeper) setCRChains(unmerged *crChains,
+	merged *crChains) {
+	fbsk.dataMutex.Lock()
+	defer fbsk.dataMutex.Unlock()
+	if unmerged == nil && fbsk.unmerged == nil &&
+		merged == nil && fbsk.merged == nil {
+		return
+	}
+	fbsk.unmerged = unmerged
+	fbsk.merged = merged
 	fbsk.signalChangeLocked()
 }
 
@@ -132,5 +152,16 @@ func (fbsk *folderBranchStatusKeeper) getStatus(ctx context.Context) (
 	}
 
 	fbs.DirtyPaths = fbsk.convertNodesToPathsLocked(fbsk.dirtyNodes)
+
+	// Make the chain summaries.  Identify using the unmerged chains,
+	// since those are most likely to be able to identify a node in
+	// the cache.
+	if fbsk.unmerged != nil {
+		fbs.Unmerged = fbsk.unmerged.summary(fbsk.unmerged, fbsk.nodeCache)
+		if fbsk.merged != nil {
+			fbs.Merged = fbsk.merged.summary(fbsk.unmerged, fbsk.nodeCache)
+		}
+	}
+
 	return fbs, fbsk.updateChan, nil
 }

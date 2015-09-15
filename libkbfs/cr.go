@@ -236,6 +236,23 @@ func (cr *ConflictResolver) updateCurrInput(ctx context.Context,
 	return nil
 }
 
+func (cr *ConflictResolver) makeChains(ctx context.Context,
+	unmerged []*RootMetadata, merged []*RootMetadata) (
+	unmergedChains *crChains, mergedChains *crChains, err error) {
+	unmergedChains, err = newCRChains(unmerged)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	mergedChains, err = newCRChains(merged)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	cr.fbo.status.setCRChains(unmergedChains, mergedChains)
+	return unmergedChains, mergedChains, nil
+}
+
 func (cr *ConflictResolver) doResolve(ctx context.Context, ci conflictInput) {
 	cr.log.CDebugf(ctx, "Starting conflict resolution with input %v", ci)
 	var err error
@@ -269,12 +286,8 @@ func (cr *ConflictResolver) doResolve(ctx context.Context, ci conflictInput) {
 		return
 	}
 
-	// Make the chains!
-	_, err = newCRChains(unmerged)
-	if err != nil {
-		return
-	}
-	_, err = newCRChains(merged)
+	// Make the chains
+	_, _, err = cr.makeChains(ctx, unmerged, merged)
 	if err != nil {
 		return
 	}

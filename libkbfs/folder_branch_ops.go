@@ -263,6 +263,9 @@ func (fbo *FolderBranchOps) transitionState(newState state) {
 // The caller must hold writerLock.
 func (fbo *FolderBranchOps) setStagedLocked(staged bool) {
 	fbo.staged = staged
+	if !staged {
+		fbo.status.setCRChains(nil, nil)
+	}
 }
 
 func (fbo *FolderBranchOps) checkDataVersion(p path, ptr BlockPointer) error {
@@ -2918,6 +2921,9 @@ func (fbo *FolderBranchOps) Status(
 		return FolderBranchStatus{}, nil,
 			WrongOpsError{fbo.folderBranch, folderBranch}
 	}
+
+	// Wait for conflict resolution to settle down, if necessary.
+	fbo.cr.Wait(ctx)
 
 	return fbo.status.getStatus(ctx)
 }

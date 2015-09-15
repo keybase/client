@@ -219,3 +219,45 @@ func newCRChains(rmds []*RootMetadata) (cc *crChains, err error) {
 	cc.collapse()
 	return cc, nil
 }
+
+type crChainSummary struct {
+	Path string
+	Ops  []string
+}
+
+func (cc *crChains) summary(identifyChains *crChains,
+	nodeCache NodeCache) (res []*crChainSummary) {
+	for headPtr, head := range cc.heads {
+		summary := &crChainSummary{}
+		res = append(res, summary)
+
+		// first stringify all the ops so they are displayed even if
+		// we can't find the path.
+		node := head
+		for node != nil {
+			if node.op != nil {
+				summary.Ops = append(summary.Ops, node.op.String())
+			}
+			node = node.nextOp
+		}
+
+		tail, err := identifyChains.tailFromHead(headPtr)
+		if err != nil {
+			// Without a identifiable tail, try using the head
+			// pointer, and see if we have a Node for it.
+			tail = headPtr
+		}
+
+		// find the path name using the identified tail pointer
+		n := nodeCache.Get(tail)
+		if n == nil {
+			summary.Path = fmt.Sprintf("Unknown path: %v", headPtr)
+			continue
+		}
+
+		path := nodeCache.PathFromNode(n)
+		summary.Path = path.String()
+	}
+
+	return res
+}
