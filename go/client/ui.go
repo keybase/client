@@ -491,14 +491,14 @@ func (d LocksmithUI) SelectSigner(arg keybase1.SelectSignerArg) (res keybase1.Se
 		var req string
 		switch dev.Type {
 		case libkb.DeviceTypeDesktop:
-			req = "requires access to that computer"
+			req = "requires access to that device"
 		case libkb.DeviceTypeMobile:
 			req = "requires your device"
 		default:
 			return res, fmt.Errorf("unknown device type: %q", dev.Type)
 		}
 
-		fmt.Fprintf(w, "(%d) with your key called %q\t(%s)\n", i+1, dev.Name, req)
+		fmt.Fprintf(w, "(%d) with your device named %q\t(%s)\n", i+1, dev.Name, req)
 		optcount++
 	}
 
@@ -559,9 +559,7 @@ func (d LocksmithUI) DeviceSignAttemptErr(arg keybase1.DeviceSignAttemptErrArg) 
 }
 
 func (d LocksmithUI) DisplaySecretWords(arg keybase1.DisplaySecretWordsArg) error {
-	d.parent.Printf("On your %q computer, a window should have appeared. Type this in it:\n\n", arg.DeviceNameExisting)
-	d.parent.Printf("\t%s\n\n", arg.Secret)
-	d.parent.Printf("Alternatively, if you're using the terminal at %q, type this:\n\n", arg.DeviceNameExisting)
+	d.parent.Printf("\nUsing the terminal at %q, type this:\n\n", arg.DeviceNameExisting)
 	d.parent.Printf("\tkeybase device add \"%s\"\n\n", arg.Secret)
 	return nil
 }
