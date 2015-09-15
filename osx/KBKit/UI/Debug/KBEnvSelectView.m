@@ -17,14 +17,15 @@
 #import "KBService.h"
 #import "KBFSService.h"
 #import "KBInstaller.h"
+#import "MDPSplitView.h"
 
 #import <KBAppKit/KBAppKit.h>
 
 @interface KBEnvSelectView ()
-@property KBSplitView *splitView;
+@property MDPSplitView *splitView;
 @property KBListView *listView;
 @property KBCustomEnvView *customView;
-@property NSView *rightView;
+@property YOView *rightView;
 @end
 
 @implementation KBEnvSelectView
@@ -37,9 +38,7 @@
   [header setText:@"Choose an Environment" style:KBTextStyleHeaderLarge alignment:NSCenterTextAlignment lineBreakMode:NSLineBreakByTruncatingTail];
   [self addSubview:header];
 
-  _splitView = [[KBSplitView alloc] init];
-  _splitView.dividerPosition = 300;
-  _splitView.divider.hidden = YES;
+  _splitView = [[MDPSplitView alloc] init];
   _splitView.vertical = YES;
   [self addSubview:_splitView];
 
@@ -53,6 +52,11 @@
     [gself select:selection.object];
   };
   [_splitView addSubview:_listView];
+
+  _rightView = [YOView view];
+  [_splitView addSubview:_rightView];
+
+  [_splitView adjustSubviews];
 
   YOHBox *buttons = [YOHBox box:@{@"horizontalAlignment": @"center", @"spacing": @(10)}];
   [self addSubview:buttons];
@@ -81,15 +85,18 @@
   else [_listView setSelectedRow:[_listView.dataSource countForSection:0] - 1];
 }
 
+- (void)viewDidMoveToSuperview {
+  [super viewDidMoveToSuperview];
+  dispatch_async(dispatch_get_main_queue(), ^{
+    [self.splitView setPosition:250 ofDividerAtIndex:0 animated:NO];
+  });
+}
+
 - (void)select:(KBEnvConfig *)envConfig {
   NSView *envView = [self viewForEnvConfig:envConfig];
-  YOVBox *view = [YOVBox box:@{@"insets": @"0,20,0,0"}];
-  [view addSubview:envView];
-
-  [_rightView removeFromSuperview];
-  _rightView = view;
-  [_splitView addSubview:_rightView];
-  [_splitView adjustSubviews];
+  for (NSView *view in _rightView.subviews) [view removeFromSuperview];
+  [_rightView addSubview:envView];
+  _rightView.viewLayout = [YOLayout fill:envView];
 }
 
 - (void)next {
