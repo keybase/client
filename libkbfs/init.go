@@ -170,7 +170,9 @@ func Init(localUser string, serverRootDir *string, cpuProfilePath,
 		if module != "" {
 			mname += fmt.Sprintf("(%s)", module)
 		}
-		lg := logger.New(mname)
+		// Add log depth so that context-based messages get the right
+		// file printed out.
+		lg := logger.NewWithCallDepth(mname, 1)
 		if debug {
 			// Turn on debugging.  TODO: allow a proper log file and
 			// style to be specified.
