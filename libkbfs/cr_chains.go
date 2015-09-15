@@ -178,6 +178,17 @@ func (cc *crChains) collapse() {
 	}
 }
 
+func (cc *crChains) tailFromHead(head BlockPointer) (BlockPointer, error) {
+	node, ok := cc.heads[head]
+	if !ok {
+		return BlockPointer{}, fmt.Errorf("No chain found for %v", head)
+	}
+	for node.nextOp != nil {
+		node = node.nextOp
+	}
+	return node.refPtr, nil
+}
+
 func newCRChains(rmds []*RootMetadata) (cc *crChains, err error) {
 	cc = &crChains{
 		heads:     make(map[BlockPointer]*crOpNode),
