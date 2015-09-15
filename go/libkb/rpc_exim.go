@@ -150,7 +150,9 @@ func ExportErrorAsStatus(e error) (ret *keybase1.Status) {
 		return &tmp
 	}
 
-	G.Log.Warning("not exportable error: %v (%T)", e, e)
+	if G.Env.GetRunMode() != ProductionRunMode {
+		G.Log.Warning("not exportable error: %v (%T)", e, e)
+	}
 
 	return &keybase1.Status{
 		Name: "GENERIC",
