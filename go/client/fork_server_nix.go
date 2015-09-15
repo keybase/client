@@ -109,6 +109,7 @@ func makeServerCommandLine(cl libkb.CommandLine) (arg0 string, args []string, er
 		"gpg-options",
 		"local-rpc-debug-unsafe",
 		"run-mode",
+		"timers",
 	}
 	args = append(args, arg0)
 
