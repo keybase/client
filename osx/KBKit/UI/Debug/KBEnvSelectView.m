@@ -24,6 +24,7 @@
 @property KBSplitView *splitView;
 @property KBListView *listView;
 @property KBCustomEnvView *customView;
+@property NSView *rightView;
 @end
 
 @implementation KBEnvSelectView
@@ -39,7 +40,7 @@
   _splitView = [[KBSplitView alloc] init];
   _splitView.dividerPosition = 300;
   _splitView.divider.hidden = YES;
-  _splitView.rightInsets = UIEdgeInsetsMake(0, 20, 0, 0);
+  _splitView.vertical = YES;
   [self addSubview:_splitView];
 
   GHWeakSelf gself = self;
@@ -51,7 +52,7 @@
   _listView.onSelect = ^(KBTableView *tableView, KBTableSelection *selection) {
     [gself select:selection.object];
   };
-  [_splitView setLeftView:_listView];
+  [_splitView addSubview:_listView];
 
   YOHBox *buttons = [YOHBox box:@{@"horizontalAlignment": @"center", @"spacing": @(10)}];
   [self addSubview:buttons];
@@ -81,7 +82,14 @@
 }
 
 - (void)select:(KBEnvConfig *)envConfig {
-  [_splitView setRightView:[self viewForEnvConfig:envConfig]];
+  NSView *envView = [self viewForEnvConfig:envConfig];
+  YOVBox *view = [YOVBox box:@{@"insets": @"0,20,0,0"}];
+  [view addSubview:envView];
+
+  [_rightView removeFromSuperview];
+  _rightView = view;
+  [_splitView addSubview:_rightView];
+  [_splitView adjustSubviews];
 }
 
 - (void)next {

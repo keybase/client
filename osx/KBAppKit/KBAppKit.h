@@ -19,6 +19,7 @@ FOUNDATION_EXPORT const unsigned char KBAppKitVersionString[];
 #import <KBAppKit/KBAppKitDefines.h>
 #import <KBAppKit/KBAppearance.h>
 #import <KBAppKit/NSView+KBView.h>
+#import <KBAppKit/NSSplitView+KBAdditions.h>
 
 #import <KBAppKit/KBImageView.h>
 #import <KBAppKit/KBText.h>

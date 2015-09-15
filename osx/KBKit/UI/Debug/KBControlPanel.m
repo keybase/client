@@ -14,9 +14,12 @@
 #import "KBDebugPropertiesView.h"
 #import "KBInstallable.h"
 
+#import <MDPSplitView/MDPSplitView.h>
+
 @interface KBControlPanel ()
 @property KBListView *listView;
-@property KBSplitView *splitView;
+@property MDPSplitView *splitView;
+@property YOView *rightView;
 
 @property id<KBComponent> selectedComponent;
 @end
@@ -27,10 +30,9 @@
   [super viewInit];
   [self kb_setBackgroundColor:KBAppearance.currentAppearance.backgroundColor];
 
-  _splitView = [[KBSplitView alloc] init];
-  _splitView.dividerPosition = 260;
-  _splitView.divider.hidden = YES;
-  _splitView.rightInsets = UIEdgeInsetsMake(0, 20, 0, 0);
+  _splitView = [[MDPSplitView alloc] init];
+  _splitView.vertical = YES;
+  //_splitView.divider.hidden = YES;
   [self addSubview:_splitView];
 
   GHWeakSelf gself = self;
@@ -50,13 +52,24 @@
     [menu addItemWithTitle:@"Uninstall" action:@selector(uninstallSelected:) keyEquivalent:@""];
     return menu;
   };
-  [_splitView setLeftView:_listView];
+  [_splitView addSubview:_listView];
+
+  _rightView = [YOView view];
+  [_splitView addSubview:_rightView];
+
+  [_splitView adjustSubviews];
 
   self.viewLayout = [YOVBorderLayout layoutWithCenter:_splitView top:@[] bottom:@[] insets:UIEdgeInsetsMake(20, 20, 20, 20) spacing:20];
 }
 
+- (void)viewDidMoveToSuperview {
+  [super viewDidMoveToSuperview];
+  dispatch_async(dispatch_get_main_queue(), ^{
+    [self.splitView setPosition:240 ofDividerAtIndex:0 animated:NO];
+  });
+}
+
 - (void)select:(id<KBComponent>)component {
-  [_splitView setRightView:nil];
   GHWeakSelf gself = self;
   [self viewForComponent:component completion:^(NSView *view) {
     [view removeFromSuperview];
@@ -94,7 +107,9 @@
     [borderLayout addToTop:topView];
   }
 
-  [_splitView setRightView:view];
+  for (NSView *view in _rightView.subviews) [view removeFromSuperview];
+  [_rightView addSubview:view];
+  _rightView.viewLayout = [YOLayout fill:view];
 }
 
 - (void)open:(id)sender {

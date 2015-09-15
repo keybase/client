@@ -15,9 +15,6 @@
 - (void)viewInit {
   [super viewInit];
 
-  _insets = UIEdgeInsetsZero;
-  _rightInsets = UIEdgeInsetsZero;
-  
   _dividerPosition = 240;
 
   _divider = [KBBox line];
@@ -36,35 +33,32 @@
       col = ceilf(size.width * yself.dividerRatio);
     }
 
-    CGFloat y = yself.insets.top;
+    CGFloat x = 0;
+    CGFloat y = 0;
     if (!yself.divider.hidden) {
       [layout setFrame:CGRectMake(col - 1, y, 1, size.height) view:yself.divider];
     } else {
       col++;
     }
 
-    [layout setFrame:CGRectMake(0, y, col - 1, size.height - y - yself.insets.bottom) view:yself.leftView];
-    [layout setFrame:YOCGRectApplyInsets(CGRectMake(col, y, size.width - col, size.height - y - yself.insets.bottom), yself.rightInsets) view:yself.rightView];
+    NSAssert(yself.vertical, @"Only support vertical");
+    for (NSView *view in yself.subviews) {
+      if (view == yself.divider) continue;
+      x += [layout setFrame:CGRectMake(x, y, col - 1, size.height - y) view:view].size.width;
+      // Only for last element?
+      col = size.width - x;
+    }
     return size;
   }];
 }
 
-- (void)setLeftView:(NSView *)leftView {
-  if (_leftView != leftView) {
-    [_leftView removeFromSuperview];
-    _leftView = leftView;
-    [self addSubview:_leftView];
-  }
+- (void)adjustSubviews {
   [self setNeedsLayout];
 }
 
-- (void)setRightView:(NSView *)rightView {
-  if (_rightView != rightView) {
-    [_rightView removeFromSuperview];
-    _rightView = rightView;
-    [self addSubview:_rightView];
-  }
-  [self setNeedsLayout];
+- (void)setPosition:(CGFloat)position ofDividerAtIndex:(NSInteger)dividerIndex animated:(BOOL)animated {
+  NSAssert(dividerIndex == 0, @"Only support 1 divider");
+  _dividerPosition = position;
 }
 
 @end

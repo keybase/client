@@ -35,9 +35,9 @@ PODS:
     - ObjectiveSugar
     - Slash
     - YOLayout (~> 0.2.3)
-  - Mantle (2.0.4):
-    - Mantle/extobjc (= 2.0.4)
-  - Mantle/extobjc (2.0.4)
+  - Mantle (2.0.5):
+    - Mantle/extobjc (= 2.0.5)
+  - Mantle/extobjc (2.0.5)
   - MASPreferences (1.1.2)
   - MDPSplitView (1.0.2)
   - MPMessagePack (1.1.26):
@@ -49,7 +49,7 @@ PODS:
   - Slash/arc (0.1.2)
   - Slash/no-arc (0.1.2)
   - Sparkle (1.11.0)
-  - YOLayout (0.2.10)
+  - YOLayout (0.2.11)
   - ZXCVBN (1.0.5)
 
 DEPENDENCIES:
@@ -79,14 +79,14 @@ SPEC CHECKSUMS:
   GHKit: 29e5361c9d8a33343ae5ed4698057d1533ee590b
   GHODictionary: 1f7873492445e0f33ac19575a358c3c91926b564
   KBAppKit: 979d91841106c7674dbc6245bd93d07ef487b26c
-  Mantle: 6bee68168423948be0c0c5924832bf3af188e099
+  Mantle: 1912395033f601de5adc8ee91e48f46e4c7051ad
   MASPreferences: 32d8a2c5ef1d60b63240f5676b011ff72e194cb1
   MDPSplitView: 127b4b371e813ec29333e515fb1c057126a75671
   MPMessagePack: e58a35ee93807a8cc9eaf6a204e6f3e044cbff0b
   ObjectiveSugar: a6a25f23d657c19df0a0b972466d5b5ca9f5295c
   Slash: c74317f5ccf1e31f1d486a17e0d4076029ed3fc8
   Sparkle: cf10103ef35fd89caa35373bfd772c5d6f9c7d73
-  YOLayout: 5c8558eb457df646e840cc6da76be590166ee0b5
+  YOLayout: 481a8361cfd747f7d079a0b3cf5c5635403989ac
   ZXCVBN: f3888e3f6363b8cf57bcc32857a9bc09f9f9e18e
 
 COCOAPODS: 0.38.2

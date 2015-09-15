@@ -11,18 +11,23 @@
 #import <YOLayout/YOLayout.h>
 #import "KBBox.h"
 
-// Split view (fixed divider)
+/*!
+ This is a really dumb split view.
+ You should use MDPSplitView instead.
+ */
 @interface KBSplitView : YOView
 
-@property UIEdgeInsets insets;
 @property CGFloat dividerPosition;
 @property float dividerRatio;
 
 @property KBBox *divider;
 
-@property UIEdgeInsets rightInsets;
 
-@property (nonatomic) NSView *leftView;
-@property (nonatomic) NSView *rightView;
+// Compatibility with NSSplitView
+@property BOOL vertical;
+@property NSSplitViewDividerStyle dividerStyle;
+
+- (void)adjustSubviews;
+- (void)setPosition:(CGFloat)position ofDividerAtIndex:(NSInteger)dividerIndex animated:(BOOL)animated;
 
 @end
