@@ -7,8 +7,8 @@ import (
 	"golang.org/x/net/context"
 )
 
-// KBPKIMeasured delegates to another KBPKI interface but also keeps track
-// of stats.
+// KBPKIMeasured delegates to another KBPKI instance but also keeps
+// track of stats.
 type KBPKIMeasured struct {
 	delegate                      KBPKI
 	resolveAssertionTimer         metrics.Timer

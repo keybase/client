@@ -229,6 +229,11 @@ func Init(localUser string, serverRootDir *string, cpuProfilePath,
 	if err != nil {
 		return nil, fmt.Errorf("cannot open block database: %v", err)
 	}
+
+	if registry := config.MetricsRegistry(); registry != nil {
+		bserv = NewBlockServerMeasured(bserv, registry)
+	}
+
 	config.SetBlockServer(bserv)
 
 	return config, nil
