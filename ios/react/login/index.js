@@ -38,66 +38,74 @@ class LoginForm extends Component {
     // stop login if not all the way through?
   }
 
+  showDevicePrompt (response) {
+    this.props.kbNavigator.push({
+      title: 'Device Name',
+      component: DevicePrompt,
+      leftButtonTitle: 'Cancel',
+      leftButtonPopN: 1,
+      props: {
+        response: response
+      }
+    })
+  }
+
+  showDeviceSetup (param, response) {
+    this.props.kbNavigator.push({
+      title: 'Device Setup',
+      leftButtonTitle: 'Cancel',
+      leftButtonPopN: 2,
+      component: SelectSigner,
+      props: {
+        response: response,
+        ...param
+      }
+    })
+  }
+
+  showSecretWords (param, response) {
+    this.props.kbNavigator.push({
+      title: 'Register Device',
+      component: DisplaySecretWords,
+      leftButtonTitle: 'Cancel',
+      leftButtonPopN: 3,
+      props: {
+        response: response,
+        ...param
+      }
+    })
+  }
+
+  log (param, response) {
+    console.log('LogUI: ', JSON.stringify(param, null, 2))
+    response.result()
+  }
+
   submit () {
     if (this.state.storeSecret) {
       Settings.set({LoginFormUsername: this.state.username})
     }
 
-    engine.collatedRpc('login.loginWithPassphrase', {
+    const param = {
       username: this.state.username,
       passphrase: this.state.passphrase,
       storeSecret: this.state.storeSecret,
       error: null
-    },
-    (err, method, param, response) => {
+    }
+
+    const incomingMap = {
+      'keybase.1.locksmithUi.promptDeviceName': (param, response) => { this.showDevicePrompt(response) },
+      'keybase.1.locksmithUi.selectSigner': (param, response) => { this.showDeviceSetup(param, response) },
+      'keybase.1.locksmithUi.displaySecretWords': (param, response) => { this.showDevicePrompt(param, response) },
+      'keybase.1.logUi.log': (param, response) => { this.log(param, response) }
+    }
+
+    engine.rpc('login.loginWithPassphrase', param, incomingMap, (err, response) => {
       if (err) {
         console.log(err)
         this.setState({error: err.toString()})
       } else {
-        switch (method) {
-          case 'keybase.1.locksmithUi.promptDeviceName':
-            this.props.kbNavigator.push({
-              title: 'Device Name',
-              component: DevicePrompt,
-              leftButtonTitle: 'Cancel',
-              leftButtonPopN: 1,
-              props: {
-                response: response
-              }
-            }
-          )
-            break
-          case 'keybase.1.locksmithUi.selectSigner':
-            this.props.kbNavigator.push({
-              title: 'Device Setup',
-              leftButtonTitle: 'Cancel',
-              leftButtonPopN: 2,
-              component: SelectSigner,
-              props: {
-                response: response,
-                ...param
-              }
-            })
-            break
-          case 'keybase.1.locksmithUi.displaySecretWords':
-            this.props.kbNavigator.push({
-              title: 'Register Device',
-              component: DisplaySecretWords,
-              leftButtonTitle: 'Cancel',
-              leftButtonPopN: 3,
-              props: {
-                response: response,
-                ...param
-              }
-            })
-            break
-          case 'keybase.1.logUi.log':
-            console.log('LogUI: ', JSON.stringify(param, null, 2))
-            response.result()
-            break
-          default:
-            console.log('Unknown rpc from login.loginWithPassphrase: ', method)
-        }
+        // TODO finish login
       }
     })
   }
