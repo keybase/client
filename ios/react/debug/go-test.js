@@ -38,7 +38,9 @@ class GoTest extends Component {
       this.setState({data: data})
     }
 
-    this.sendToGo()
+    setTimeout(() => {
+      this.sendToGo()
+    }, 100)
   }
 
   clearTimer () {
@@ -50,34 +52,32 @@ class GoTest extends Component {
     this.clearTimer()
   }
 
-  handleMultiStep (err, method, param, response) {
-    switch (method) {
-      case 'keybase.1.debugging.secondStep':
-        this.clearTimer()
-        this.timer = setTimeout(() => {
-          response.result(param.val + 1)
-        }, 3000)
-        break
-      default:
-        if (!err && param) {
-          this.setState({data: param.valPlusTwo})
-        }
+  handleSecondStep (param, response) {
+    this.clearTimer()
+    this.timer = setTimeout(() => {
+      response.result(param.val + 1)
+    }, 1000)
+  }
 
-        this.clearTimer()
-        this.timer = setTimeout(() => {
-          this.sendToGo()
-        }, 1000)
+  handleValPlus2 (err, data) {
+    if (!err) {
+      this.setState({data: data.valPlusTwo})
     }
+
+    this.clearTimer()
+    this.timer = setTimeout(() => {
+      this.sendToGo()
+    }, 1000)
   }
 
   sendToGo () {
     var toSend = this.state.data
 
     if ((this.TEMP % 10) < 8) {
-      engine.rpc('debugging.increment', {val: toSend}, (err, data) => { this.handleIncrement(err, data) })
+      engine.rpc('debugging.increment', {val: toSend}, null, (err, data) => { this.handleIncrement(err, data) })
     } else {
-      engine.collatedRpc('debugging.firstStep', {val: toSend},
-        (err, method, param, response) => { this.handleMultiStep(err, method, param, response) })
+      const incoming = { 'keybase.1.debugging.secondStep': (param, response) => { this.handleSecondStep(param, response) } }
+      engine.rpc('debugging.firstStep', {val: toSend}, incoming, (err, data) => { this.handleValPlus2(err, data) })
     }
 
     this.TEMP++
