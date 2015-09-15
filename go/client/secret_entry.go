@@ -65,7 +65,7 @@ func (se *SecretEntry) Get(arg keybase1.SecretEntryArg, termArg *keybase1.Secret
 
 	if pe := se.pinentry; pe != nil {
 		if len(arg.Reason) > 0 {
-			printer.Printf("Collecting your passphrase.  Why?  %s.\n", arg.Reason)
+			printer.Printf("Collecting your passphrase for %s.\n", arg.Reason)
 		}
 		res, err = pe.Get(arg)
 	} else if se.terminal == nil {
