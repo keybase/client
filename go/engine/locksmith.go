@@ -108,6 +108,26 @@ func (d *Locksmith) hasPGP() bool {
 	return len(d.arg.User.GetActivePGPKeys(false)) > 0
 }
 
+func (d *Locksmith) hasSingleSyncedPGPKey(ctx *Context) bool {
+	ckf := d.arg.User.GetComputedKeyFamily()
+	if ckf == nil {
+		return false
+	}
+
+	var count int
+	if ctx.LoginContext != nil {
+		count = len(ctx.LoginContext.SecretSyncer().AllActiveKeys(ckf))
+	} else {
+		aerr := d.G().LoginState().SecretSyncer(func(ss *libkb.SecretSyncer) {
+			count = len(ss.AllActiveKeys(ckf))
+		}, "Locksmith - hasSingleSyncedPGPKey")
+		if aerr != nil {
+			return false
+		}
+	}
+	return count == 1
+}
+
 func (d *Locksmith) fix(ctx *Context) error {
 	return nil
 }
@@ -306,8 +326,11 @@ func (d *Locksmith) deviceSign(ctx *Context, withPGPOption bool) error {
 	}
 
 	if len(devs) == 0 && withPGPOption {
-		// pgp is the only option, so bypass the select signer menu
-		return d.deviceSignPGP(ctx)
+		if d.hasSingleSyncedPGPKey(ctx) {
+			// the user only has a synced pgp key, so bypass the
+			// select signer interface.
+			return d.deviceSignPGP(ctx)
+		}
 	}
 
 	var arg keybase1.SelectSignerArg
