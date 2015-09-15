@@ -4,13 +4,13 @@
 package minterm
 
 import (
-	"bufio"
 	"errors"
 	"fmt"
 	"os"
 	"strings"
 
 	"github.com/keybase/gopass"
+	"github.com/keybase/miniline"
 	"golang.org/x/crypto/ssh/terminal"
 )
 
@@ -78,17 +78,11 @@ func (m *MinTerm) Write(s string) error {
 // Prompt gets a line of input from the terminal.  It displays the text in
 // the prompt parameter first.
 func (m *MinTerm) Prompt(prompt string) (string, error) {
-	m.Write(prompt)
-	r := bufio.NewReader(m.in)
-	p, err := r.ReadString('\n')
-	if err != nil {
-		return "", err
+	s, err := miniline.ReadLine(prompt)
+	if err == miniline.ErrInterrupted {
+		return "", ErrPromptInterrupted
 	}
-	// strip off the trailing newline
-	if len(p) > 0 {
-		p = p[:len(p)-1]
-	}
-	return p, nil
+	return s, nil
 }
 
 // PromptPassword gets a line of input from the terminal, but
