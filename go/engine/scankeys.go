@@ -160,7 +160,6 @@ func (s *ScanKeys) KeysByIdUsage(id uint64, requiredUsage byte) []openpgp.Key {
 // decryption.
 func (s *ScanKeys) DecryptionKeys() []openpgp.Key {
 	s.G().Log.Debug("ScanKeys:DecryptionKeys() => %d keys available", s.Count())
-	// return s.keys.DecryptionKeys()
 	all := s.unlockAll()
 	return all.DecryptionKeys()
 }
