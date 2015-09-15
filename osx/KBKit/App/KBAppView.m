@@ -29,9 +29,11 @@
 #import "KBInstallerView.h"
 #import "KBAppDebug.h"
 #import "KBNotifications.h"
+#import "KBErrorStatusView.h"
 
 typedef NS_ENUM (NSInteger, KBAppViewMode) {
   KBAppViewModeInProgress = 1,
+  KBAppViewModeError,
   KBAppViewModeInstaller,
   KBAppViewModeLogin,
   KBAppViewModeSignup,
@@ -44,6 +46,7 @@ typedef NS_ENUM (NSInteger, KBAppViewMode) {
 @property (readonly) YOView *contentView;
 
 @property KBAppProgressView *appProgressView;
+@property KBErrorStatusView *errorView;
 
 @property KBUsersAppView *usersAppView;
 @property KBDevicesAppView *devicesAppView;
@@ -208,19 +211,37 @@ typedef NS_ENUM (NSInteger, KBAppViewMode) {
     KBNavigationView *navigation = [[KBNavigationView alloc] initWithView:_appProgressView title:_title];
     [self setContentView:navigation mode:KBAppViewModeInProgress];
   }
-  _appProgressView.progressView.title = title;
-  _appProgressView.progressView.animating = YES;
+  [_appProgressView setProgressTitle:title];
+  _appProgressView.animating = YES;
+}
+
+- (void)showErrorView:(NSString *)title error:(NSError *)error {
+  if (_errorView  || self.mode != KBAppViewModeError) {
+    _errorView = [[KBErrorStatusView alloc] init];
+    KBNavigationView *navigation = [[KBNavigationView alloc] initWithView:_errorView title:_title];
+    [self setContentView:navigation mode:KBAppViewModeError];
+  }
+  GHWeakSelf gself = self;
+  [_errorView setError:error title:title retry:^{
+    [gself showConnect:^(NSError *error) {}];
+  } close:^{
+    [KBApp.app quitWithPrompt:NO sender:gself.errorView];
+  }];
 }
 
 - (void)showInstaller:(KBEnvironment *)environment completion:(KBCompletion)completion {
   KBInstallerView *view = [[KBInstallerView alloc] init];
   [view setEnvironment:environment];
   view.completion = ^() {
-    [self showInProgress:@"Loading"];
-    [self connect:completion];
+    [self showConnect:completion];
   };
   KBNavigationView *navigation = [[KBNavigationView alloc] initWithView:view title:_title];
   [self setContentView:navigation mode:KBAppViewModeInstaller];
+}
+
+- (void)showConnect:(KBCompletion)completion {
+  [self showInProgress:@"Loading"];
+  [self connect:completion];
 }
 
 - (void)showLogin {
@@ -369,10 +390,12 @@ typedef NS_ENUM (NSInteger, KBAppViewMode) {
   [NSNotificationCenter.defaultCenter postNotificationName:KBStatusDidChangeNotification object:nil userInfo:@{}];
 }
 
-- (void)RPClient:(KBRPClient *)RPClient didErrorOnConnect:(NSError *)error connectAttempt:(NSInteger)connectAttempt {
-  //if (connectAttempt == 1) [AppDelegate.sharedDelegate setFatalError:error]; // Show error on first error attempt
-  //DDLogInfo(@"Failed to connect (%@): %@", @(connectAttempt), [error localizedDescription]);
-  //[NSNotificationCenter.defaultCenter postNotificationName:KBStatusDidChangeNotification object:nil userInfo:@{}];
+- (BOOL)RPClient:(KBRPClient *)RPClient didErrorOnConnect:(NSError *)error connectAttempt:(NSInteger)connectAttempt {
+  if (connectAttempt >= 3) {
+    [self showErrorView:@"Service Error" error:error];
+    return NO;
+  }
+  return YES;
 }
 
 - (void)RPClient:(KBRPClient *)RPClient didLog:(NSString *)message {

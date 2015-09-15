@@ -15,7 +15,8 @@
 
 @property KBNavigationView *navigation;
 @property KBRPClient *client;
+@property (nonatomic, getter=isAnimating) BOOL animating;
 
-@property (readonly) KBProgressOverlayView *progressView;
+- (void)setProgressTitle:(NSString *)progressTitle;
 
 @end

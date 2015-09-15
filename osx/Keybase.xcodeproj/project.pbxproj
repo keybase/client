@@ -371,6 +371,8 @@
 		00CC43521A3A9E6C006118A9 /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 00CC43511A3A9E6C006118A9 /* main.m */; };
 		00CC43541A3A9E6C006118A9 /* Images.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 00CC43531A3A9E6C006118A9 /* Images.xcassets */; };
 		00DAF5C01B2F8969000D7F9A /* Social.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 00DAF5BE1B2F885D000D7F9A /* Social.framework */; };
+		00FED9A71BA8C8D9004541AF /* KBErrorStatusView.h in Headers */ = {isa = PBXBuildFile; fileRef = 00FED9A51BA8C8D9004541AF /* KBErrorStatusView.h */; };
+		00FED9A81BA8C8D9004541AF /* KBErrorStatusView.m in Sources */ = {isa = PBXBuildFile; fileRef = 00FED9A61BA8C8D9004541AF /* KBErrorStatusView.m */; };
 		4107D6DB8EFF41B5241BD2F4 /* libPods-Keybase.a in Frameworks */ = {isa = PBXBuildFile; fileRef = EE90BB7C590E1825E8556714 /* libPods-Keybase.a */; };
 		58C3E639B91016531F23947C /* libPods-keybase.Helper.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 28243FD1B0705F42278302F1 /* libPods-keybase.Helper.a */; };
 		B9DBD381EDEB1C3DE31B4531 /* libPods-KBKit.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 92A4A228BA0B528D11BAFDA9 /* libPods-KBKit.a */; };
@@ -874,6 +876,8 @@
 		00FB76BA1B0C5B300070DEED /* KBDefinesTest.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBDefinesTest.m; sourceTree = "<group>"; };
 		00FB76BC1B0C5B5D0070DEED /* KBEnvConfigTest.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBEnvConfigTest.m; sourceTree = "<group>"; };
 		00FB76C11B0D3CA30070DEED /* KBFormatterTest.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBFormatterTest.m; sourceTree = "<group>"; };
+		00FED9A51BA8C8D9004541AF /* KBErrorStatusView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBErrorStatusView.h; sourceTree = "<group>"; };
+		00FED9A61BA8C8D9004541AF /* KBErrorStatusView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBErrorStatusView.m; sourceTree = "<group>"; };
 		28243FD1B0705F42278302F1 /* libPods-keybase.Helper.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-keybase.Helper.a"; sourceTree = BUILT_PRODUCTS_DIR; };
 		2DAA038ECF4F88C4E9D2BA1F /* Pods-Keybase.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Keybase.release.xcconfig"; path = "Pods/Target Support Files/Pods-Keybase/Pods-Keybase.release.xcconfig"; sourceTree = "<group>"; };
 		8D23D54BB04DE19BBF61A888 /* Pods-keybase.Helper.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-keybase.Helper.release.xcconfig"; path = "Pods/Target Support Files/Pods-keybase.Helper/Pods-keybase.Helper.release.xcconfig"; sourceTree = "<group>"; };
@@ -1239,6 +1243,8 @@
 				009E140F1B28A93D00C72B28 /* KBProgressView.m */,
 				0046253A1B2A5B6100E218AC /* KBComposeTextView.h */,
 				0046253B1B2A5B6100E218AC /* KBComposeTextView.m */,
+				00FED9A51BA8C8D9004541AF /* KBErrorStatusView.h */,
+				00FED9A61BA8C8D9004541AF /* KBErrorStatusView.m */,
 			);
 			path = UI;
 			sourceTree = "<group>";
@@ -1727,6 +1733,7 @@
 				00C0DC891B28EC5500A825D4 /* KBLaunchService.h in Headers */,
 				0043D1111B28EF670036C532 /* KBSourceOutlineView.h in Headers */,
 				00C0DC831B28EC5000A825D4 /* KBConvert.h in Headers */,
+				00FED9A71BA8C8D9004541AF /* KBErrorStatusView.h in Headers */,
 				000EB4681B852CC2002CFCF7 /* KBPaperKeyDisplayView.h in Headers */,
 				00C0DD0B1B28EC7800A825D4 /* KBPGPSignView.h in Headers */,
 				00C0DD1D1B28EC7E00A825D4 /* KBGPGKeysView.h in Headers */,
@@ -2370,6 +2377,7 @@
 				0043D10E1B28EF670036C532 /* KBAppToolbar.m in Sources */,
 				00C0DCF81B28EC7800A825D4 /* KBPGPEncryptView.m in Sources */,
 				00C0DCB21B28EC6600A825D4 /* KBUserHeaderView.m in Sources */,
+				00FED9A81BA8C8D9004541AF /* KBErrorStatusView.m in Sources */,
 				004625391B2A5A9400E218AC /* KBStrengthLabel.m in Sources */,
 				00C0DCBE1B28EC6600A825D4 /* KBUserProfileView.m in Sources */,
 				004CF2281B928E6D002BE5A4 /* KBServiceConfig.m in Sources */,

@@ -128,6 +128,8 @@
     self.onSelect(envConfig);
   } else if (envConfig.runMode == KBRunModeProd) {
     [KBActivity setError:KBMakeError(KBErrorCodeUnsupported, @"Not supported yet") sender:self];
+  } else if (envConfig.runMode == KBRunModeDevel) {
+    [KBActivity setError:KBMakeError(KBErrorCodeUnsupported, @"Use Staging or Custom instead.") sender:self];
   } else {
     self.onSelect(envConfig);
   }

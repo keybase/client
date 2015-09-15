@@ -132,8 +132,9 @@
 
 - (void)_open:(NSString *)socketFile completion:(KBCompletion)completion {
   NSParameterAssert(completion);
-  KBLog(KBLogRPC|KBLogDebug, @"Connecting (%@): %@", @(_connectAttempt), [self.config sockFile]);
+
   _connectAttempt++;
+  KBLog(KBLogRPC|KBLogDebug, @"Connecting (%@): %@", @(_connectAttempt), [self.config sockFile]);
   GHWeakSelf gself = self;
   [self.delegate RPClientWillConnect:self];
   [_client openWithSocket:socketFile completion:^(NSError *error) {
@@ -141,19 +142,26 @@
       gself.status = KBRPClientStatusClosed;
 
       KBLog(KBLogRPC|KBLogDebug, @"Error connecting: %@", error);
-      [gself.delegate RPClient:gself didErrorOnConnect:error connectAttempt:gself.connectAttempt];
 
-      if ((gself.options & KBRClientOptionsAutoRetry)) {
+      BOOL retry = NO;
+      if (gself.delegate) {
+        retry = [gself.delegate RPClient:gself didErrorOnConnect:error connectAttempt:gself.connectAttempt];
+      } else {
+        retry = (gself.options & KBRClientOptionsAutoRetry);
+      }
+
+      if (retry) {
         [gself openAfterDelay:2 completion:completion];
       } else {
+        gself.connectAttempt = 0;
         completion(error);
       }
       return;
     }
 
     KBLog(KBLogRPC|KBLogDebug, @"Connected.");
-    gself.connectAttempt = 1;
     gself.status = KBRPClientStatusOpen;
+    gself.connectAttempt = 0;
     [self.delegate RPClientDidConnect:self];
     completion(nil);
   }];

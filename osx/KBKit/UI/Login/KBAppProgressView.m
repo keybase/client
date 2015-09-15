@@ -21,9 +21,21 @@
   _progressView = [[KBProgressOverlayView alloc] init];
   [self addSubview:_progressView];
 
-  self.viewLayout = [YOLayout fill:_progressView];
+  self.viewLayout = [YOLayout center:_progressView];
 }
 
 - (void)viewDidAppear:(BOOL)animated { }
+
+- (void)setProgressTitle:(NSString *)progressTitle {
+  _progressView.title = progressTitle;
+}
+
+- (void)setAnimating:(BOOL)animating {
+  _progressView.animating = animating;
+}
+
+- (BOOL)isAnimating {
+  return _progressView.isAnimating;
+}
 
 @end

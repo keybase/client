@@ -31,7 +31,9 @@ typedef void (^KBRPClientOnSecret)(NSString *secret);
 - (void)RPClientWillConnect:(KBRPClient *)RPClient;
 - (void)RPClientDidConnect:(KBRPClient *)RPClient;
 - (void)RPClientDidDisconnect:(KBRPClient *)RPClient;
-- (void)RPClient:(KBRPClient *)RPClient didErrorOnConnect:(NSError *)error connectAttempt:(NSInteger)connectAttempt;
+
+// Return YES to retry, NO to stop
+- (BOOL)RPClient:(KBRPClient *)RPClient didErrorOnConnect:(NSError *)error connectAttempt:(NSInteger)connectAttempt;
 
 - (void)RPClient:(KBRPClient *)RPClient didLog:(NSString *)message;
 

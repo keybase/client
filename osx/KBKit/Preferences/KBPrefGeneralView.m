@@ -27,8 +27,6 @@
     [launchAtLogin setLabelText:@"Launch Keybase at login" identifier:@"Preferences.LaunchAtLogin" preferences:self];
     [self addSubview:launchAtLogin];
 
-    [self addSubview:[YOBox spacing:CGSizeMake(0, 10)]];
-
     KBPrefCheckbox *autoUpdate = [[KBPrefCheckbox alloc] init];
     [autoUpdate setCategory:@"Updater"];
     [autoUpdate setLabelText:@"Automatically check for updates" identifier:@"Preferences.Sparkle.AutoUpdate" preferences:self];
@@ -52,8 +50,6 @@
     KBPrefCheckbox *sendsProfile = [[KBPrefCheckbox alloc] init];
     [sendsProfile setLabelText:@"Sends system profile" identifier:@"Preferences.Sparkle.SendsProfile" preferences:self];
     [self addSubview:sendsProfile];
-
-    [self addSubview:[YOBox spacing:CGSizeMake(0, 10)]];
 
     KBPrefPopUpView *logLevel = [[KBPrefPopUpView alloc] init];
     logLevel.inset = 0;

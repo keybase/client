@@ -252,8 +252,8 @@
 
 - (void)showAppProgress {
   KBAppProgressView *view = [[KBAppProgressView alloc] init];
-  view.progressView.title = @"Connecting";
-  view.progressView.animating = YES;
+  [view setProgressTitle:@"Connecting"];
+  view.animating = YES;
   [self openInWindow:view size:CGSizeMake(800, 600) title:@"Keybase"];
 }
 
