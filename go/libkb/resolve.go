@@ -68,7 +68,10 @@ func resolveUID(au AssertionURL) ResolveResult {
 		return r
 	}
 
-	G.ResolveCache.Put(ck, r)
+	if au.IsKeybase() {
+		G.ResolveCache.Put(ck, r)
+	}
+
 	return r
 }
 
