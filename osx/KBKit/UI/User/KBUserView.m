@@ -17,20 +17,28 @@
   self.imageView.roundedRatio = 1.0;
 }
 
-- (void)setUser:(KBRUser *)user {
+- (void)setUser:(KBRUser *)user needsLayout:(BOOL)needsLayout {
   self.imageSize = CGSizeMake(40, 40);
   [self.titleLabel setText:user.username style:KBTextStyleDefault options:KBTextOptionsStrong alignment:NSLeftTextAlignment lineBreakMode:NSLineBreakByClipping];
   self.infoLabel.attributedText = nil;
   [self.imageView kb_setUsername:user.username];
-  [self setNeedsLayout];
+  if (needsLayout) [self setNeedsLayout];
 }
 
-- (void)setUserSummary:(KBRUserSummary *)userSummary {
+- (void)setUser:(KBRUser *)user {
+  [self setUser:user needsLayout:YES];
+}
+
+- (void)setUserSummary:(KBRUserSummary *)userSummary needsLayout:(BOOL)needsLayout {
   self.imageSize = CGSizeMake(40, 40);
   [self.titleLabel setText:userSummary.username style:KBTextStyleDefault options:KBTextOptionsStrong alignment:NSLeftTextAlignment lineBreakMode:NSLineBreakByClipping];
   self.infoLabel.attributedText = [self attributedStringForUserSummary:userSummary appearance:KBAppearance.currentAppearance];
   [self.imageView kb_setUsername:userSummary.username];
-  [self setNeedsLayout];
+  if (needsLayout) [self setNeedsLayout];
+}
+
+- (void)setUserSummary:(KBRUserSummary *)userSummary {
+  [self setUserSummary:userSummary needsLayout:YES];
 }
 
 - (NSAttributedString *)attributedStringForProof:(KBRTrackProof *)proof appearance:(id<KBAppearance>)appearance attributes:(NSDictionary *)attributes {
@@ -65,6 +73,14 @@
 - (void)viewInit {
   [super viewInit];
   self.border.position = KBBoxPositionBottom;
+}
+
+- (void)setUser:(KBRUser *)user {
+  [self setUser:user needsLayout:NO];
+}
+
+- (void)setUserSummary:(KBRUserSummary *)userSummary {
+  [self setUserSummary:userSummary needsLayout:NO];
 }
 
 @end

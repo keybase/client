@@ -29,6 +29,8 @@
 - (void)setMessage:(NSString *)message flag:(DDLogFlag)flag;
 @end
 
+#define MAX_DISPLAY_TEXT_LENGTH (4000)
+
 @implementation KBConsoleItem
 
 - (void)setMessage:(NSString *)message flag:(DDLogFlag)flag {
@@ -120,6 +122,12 @@
   dispatch_async(_bufferQueue, ^{
     KBConsoleItem *consoleItem = [[KBConsoleItem alloc] init];
     NSString *message = [gself.logFormatter formatLogMessage:logMessage];
+
+    if ([message length] > MAX_DISPLAY_TEXT_LENGTH) {
+      // Truncating for performance reasons
+      message = [message substringToIndex:MAX_DISPLAY_TEXT_LENGTH];
+    }
+
     [consoleItem setMessage:message flag:logMessage.flag];
     [gself.buffer addObject:consoleItem];
     dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.5 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
