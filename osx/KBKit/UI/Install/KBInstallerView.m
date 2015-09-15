@@ -107,7 +107,13 @@
 
   for (KBInstallAction *installAction in installActions) {
     NSString *name = installAction.name;
-    NSString *statusDescription = installAction.statusDescription;
+
+    NSString *statusDescription = nil;
+    if (installAction.installable.isInstallDisabled) {
+      statusDescription = NSStringWithFormat(@"Install Disabled; %@", installAction.statusDescription);
+    } else {
+      statusDescription = installAction.statusDescription;
+    }
 
     KBHeaderLabelView *label = [KBHeaderLabelView headerLabelViewWithHeader:name headerOptions:0 text:statusDescription style:KBTextStyleDefault options:0 lineBreakMode:NSLineBreakByWordWrapping];
     label.columnRatio = 0.5;

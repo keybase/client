@@ -12,11 +12,14 @@
 #import "KBLaunchService.h"
 
 @interface KBFSService ()
-@property KBEnvConfig *config;
-@property KBFSConfig *kbfsConfig;
 @property NSString *name;
 @property NSString *info;
+@property (getter=isInstallDisabled) BOOL installDisabled;
+
+@property KBFSConfig *kbfsConfig;
 @property KBLaunchService *launchService;
+
+@property KBEnvConfig *config;
 
 @property YOView *infoView;
 @end

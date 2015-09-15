@@ -20,6 +20,7 @@
 
 @property NSString *name;
 @property NSString *info;
+@property (getter=isInstallDisabled) BOOL installDisabled;
 
 @property KBServiceConfig *serviceConfig;
 @property KBLaunchService *launchService;
@@ -36,6 +37,10 @@
     _config = config;
     _name = @"Service";
     _info = @"The Keybase service";
+
+    // Using homebrew service for the moment
+    _installDisabled = YES;
+
     _serviceConfig = [[KBServiceConfig alloc] initWithConfig:_config];
 
     if (label) {
@@ -128,16 +133,16 @@
 }
 
 - (void)refreshComponent:(KBCompletion)completion {
-  if (!_launchService) {
+  if (_launchService) {
+    [_launchService updateComponentStatus:0 completion:^(KBComponentStatus *componentStatus, KBServiceStatus *serviceStatus) {
+      [self componentDidUpdate];
+      completion(componentStatus.error);
+    }];
+  } else {
     [self componentDidUpdate];
     completion(nil);
     return;
   }
-
-  [_launchService updateComponentStatus:0 completion:^(KBComponentStatus *componentStatus, KBServiceStatus *serviceStatus) {
-    [self componentDidUpdate];
-    completion(componentStatus.error);
-  }];
 }
 
 - (void)panic:(KBCompletion)completion {

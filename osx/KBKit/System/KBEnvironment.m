@@ -60,8 +60,9 @@
 
 - (NSArray *)installActionsNeeded {
   return [_installActions select:^BOOL(KBInstallAction *installAction) {
-    return (installAction.installable.componentStatus.installStatus != KBInstallStatusInstalled ||
-            installAction.installable.componentStatus.runtimeStatus == KBRuntimeStatusNotRunning);
+    return (!installAction.installable.isInstallDisabled &&
+            (installAction.installable.componentStatus.installStatus != KBInstallStatusInstalled ||
+             installAction.installable.componentStatus.runtimeStatus == KBRuntimeStatusNotRunning));
   }];
 }
 

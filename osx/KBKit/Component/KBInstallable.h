@@ -16,6 +16,8 @@ typedef void (^KBOnComponentStatus)(KBComponentStatus *installStatus);
 
 @protocol KBInstallable <KBComponent>
 
+- (BOOL)isInstallDisabled;
+
 - (KBComponentStatus *)componentStatus;
 
 - (void)refreshComponent:(KBCompletion)completion;
@@ -32,7 +34,8 @@ typedef void (^KBOnComponentStatus)(KBComponentStatus *installStatus);
 
 @property (nonatomic) KBComponentStatus *componentStatus;
 @property (readonly) KBEnvConfig *config;
-@property NSArray *dependencies;
+
+@property (getter=isInstallDisabled) BOOL installDisabled;
 
 - (instancetype)initWithConfig:(KBEnvConfig *)config;
 
