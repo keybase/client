@@ -3,7 +3,6 @@
 // Handles sending requests to objc (then go) and back
 
 var React = require('react-native')
-var EventEmitter = require('EventEmitter')
 
 var {
   NativeModules,
@@ -54,7 +53,7 @@ class EngineError extends Error {
       case EngineError.STREAM_EXISTS:
       case EngineError.STREAM_WRONG_KIND:
       default:
-        return 'Something went wrong, try again'
+        return `Something went wrong, try again (${this.name})`
     }
     return JSON.stringify(this)
   }
