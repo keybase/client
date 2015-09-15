@@ -201,7 +201,7 @@ func (s *SKB) devHumandDescription(owner *User, key GenericKey) (string, error) 
 		return "", err
 	}
 	if device == nil {
-		return "", ErrNoDevice
+		return "", NoDeviceError{Reason: fmt.Sprintf("for key ID %s", key.GetKID())}
 	}
 	if device.Description == nil {
 		return "", fmt.Errorf("no device description")

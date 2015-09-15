@@ -767,7 +767,7 @@ func (ckf *ComputedKeyFamily) getSibkeyKidForDevice(did keybase1.DeviceID) (keyb
 	device, found := ckf.cki.Devices[did]
 	if !found {
 		G.Log.Debug("device %s not found in cki.Devices", did)
-		return kid, ErrNoDevice
+		return kid, NoDeviceError{Reason: fmt.Sprintf("for device ID %s", did)}
 	}
 	if !device.Kid.IsValid() {
 		G.Log.Debug("device found, but Kid invalid")
@@ -839,11 +839,11 @@ func (ckf *ComputedKeyFamily) GetDeviceForKey(key GenericKey) (*Device, error) {
 	// this could be a subkey, so try to find device for the parent
 	cki, found := ckf.cki.Infos[key.GetKID()]
 	if !found {
-		return nil, ErrNoDevice
+		return nil, NoDeviceError{Reason: fmt.Sprintf("for key ID %s", key.GetKID())}
 	}
 	parent := cki.Parent
 	if parent.IsNil() {
-		return nil, ErrNoDevice
+		return nil, NoDeviceError{Reason: fmt.Sprintf("for key ID %s", key.GetKID())}
 	}
 
 	return ckf.getDeviceForKid(parent)

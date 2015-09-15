@@ -137,14 +137,6 @@ func ExportErrorAsStatus(e error) (ret *keybase1.Status) {
 		}
 	}
 
-	if e == ErrTimeout {
-		return &keybase1.Status{
-			Code: SCTimeout,
-			Name: "SC_TIMEOUT",
-			Desc: e.Error(),
-		}
-	}
-
 	if ee, ok := e.(ExportableError); ok {
 		tmp := ee.ToStatus()
 		return &tmp
@@ -689,6 +681,22 @@ func (e SelfNotFoundError) ToStatus() keybase1.Status {
 	return keybase1.Status{
 		Code: SCSelfNotFound,
 		Name: "SELF_NOT_FOUND",
+		Desc: e.Error(),
+	}
+}
+
+func (e NoDeviceError) ToStatus() keybase1.Status {
+	return keybase1.Status{
+		Code: SCDeviceNotFound,
+		Name: "DEVICE_NOT_FOUND",
+		Desc: e.Error(),
+	}
+}
+
+func (e TimeoutError) ToStatus() keybase1.Status {
+	return keybase1.Status{
+		Code: SCTimeout,
+		Name: "SC_TIMEOUT",
 		Desc: e.Error(),
 	}
 }

@@ -114,7 +114,7 @@ func (r *Receiver) Next(name MsgName, timeout time.Duration) (*Msg, error) {
 		case <-time.After(timeout):
 			r.G().Log.Info("timed out waiting for message %s", name)
 			close(r.done)
-			return nil, libkb.ErrTimeout
+			return nil, libkb.TimeoutError{}
 		}
 	}
 }

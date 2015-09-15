@@ -61,7 +61,7 @@ func (k *KexSib) Run(ctx *Context) error {
 
 	dp := k.G().Env.GetDeviceID()
 	if dp.IsNil() {
-		return libkb.ErrNoDevice
+		return libkb.NoDeviceError{Reason: "in global environment"}
 	}
 	k.deviceID = dp
 	k.G().Log.Debug("device id: %s", k.deviceID)
@@ -119,7 +119,7 @@ func (k *KexSib) loopReceives(ctx *Context, m *kex.Meta, sec *kex.Secret) error 
 	// wait for StartKex() from Y
 	k.kexStatus(ctx, "waiting for StartKex from Y", keybase1.KexStatusCode_START_WAIT)
 	if err := k.next(ctx, kex.StartKexMsg, kex.StartTimeout, k.handleStart); err != nil {
-		if err != libkb.ErrTimeout {
+		if _, ok := err.(libkb.TimeoutError); !ok {
 			return err
 		}
 		// a timeout error while waiting for StartKex most likely means that the

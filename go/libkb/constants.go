@@ -114,6 +114,7 @@ const (
 	SCKeyNoEldest            = 920
 	SCKeyDuplicateUpdate     = 921
 	SCBadTrackSession        = 1301
+	SCDeviceNotFound         = 1409
 	SCStreamExists           = 1501
 	SCStreamNotFound         = 1502
 	SCStreamWrongKind        = 1503

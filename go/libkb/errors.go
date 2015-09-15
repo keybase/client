@@ -901,13 +901,26 @@ func (c CanceledError) Error() string {
 
 //=============================================================================
 
-var ErrNoDevice = errors.New("No device found")
-var ErrTimeout = errors.New("Operation timed out")
-var ErrNilUser = errors.New("User is nil")
+type NoDeviceError struct {
+	Reason string
+}
+
+func (e NoDeviceError) Error() string {
+	return fmt.Sprintf("No device found %s", e.Reason)
+}
+
+type TimeoutError struct {
+}
+
+func (e TimeoutError) Error() string {
+	return "Operation timed out"
+}
+
 var ErrReceiverDevice = errors.New("Device ID mismatch in message receiver")
 var ErrInvalidKexSession = errors.New("Invalid kex session ID")
 var ErrInvalidKexPhrase = errors.New("Invalid kex secret phrase")
-var ErrCannotGenerateDevice = errors.New("Cannot generate new device ID")
+
+var ErrNilUser = errors.New("User is nil")
 
 //=============================================================================
 

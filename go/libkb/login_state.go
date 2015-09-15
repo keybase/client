@@ -676,7 +676,7 @@ func (s *LoginState) acctHandle(f acctHandler, name string) error {
 		s.G().Log.Warning("timed out sending acct request %q", name)
 		s.G().Log.Warning("active request: %s", s.activeReq)
 		debug.PrintStack()
-		return ErrTimeout
+		return TimeoutError{}
 	}
 
 	// wait for request to finish
