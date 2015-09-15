@@ -50,11 +50,11 @@
     if (![NSFileManager.defaultManager createDirectoryAtPath:directory withIntermediateDirectories:YES attributes:nil error:error]) {
       return NO;
     }
-  }
-  if (!isDirectory) {
+  } else if (!isDirectory) {
     *error = KBMakeError(KBErrorCodePathInaccessible, @"Path exists, but isn't a directory: %@", directory);
     return NO;
   }
+
   if (![NSFileManager.defaultManager isReadableFileAtPath:directory]) {
     *error = KBMakeError(KBErrorCodePathInaccessible, @"Path exists, but isn't readable: %@", directory);
     return NO;
