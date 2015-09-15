@@ -167,7 +167,6 @@ func setupTestContext(t *testing.T, nm string) (tc TestContext, err error) {
 	tc.Tp.GPGHome = tc.Tp.Home
 	tc.Tp.GPGOptions = []string{"--homedir=" + tc.Tp.GPGHome}
 
-	tc.Tp.ServerURI = DevelServerURI
 	tc.Tp.Debug = false
 	tc.Tp.Devel = true
 	g.Env.Test = tc.Tp

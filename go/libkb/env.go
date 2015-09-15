@@ -97,7 +97,6 @@ func (n NullConfiguration) GetNullAtPath(string) bool {
 type TestParameters struct {
 	ConfigFilename string
 	Home           string
-	ServerURI      string
 	GPGHome        string
 	GPGOptions     []string
 	Debug          bool
@@ -291,7 +290,6 @@ func (e *Env) GetDuration(def time.Duration, flist ...func() (time.Duration, boo
 
 func (e *Env) GetServerURI() string {
 	return e.GetString(
-		func() string { return e.Test.ServerURI },
 		func() string { return e.cmd.GetServerURI() },
 		func() string { return os.Getenv("KEYBASE_SERVER_URI") },
 		func() string { return e.config.GetServerURI() },
@@ -544,10 +542,6 @@ func (e *Env) GetEmailOrUsername() string {
 func (e *Env) GetRunMode() RunMode {
 	var ret RunMode
 
-	if e.Test.Devel {
-		return DevelRunMode
-	}
-
 	pick := func(m RunMode, err error) {
 		if ret == NoRunMode && err == nil {
 			ret = m
@@ -558,6 +552,11 @@ func (e *Env) GetRunMode() RunMode {
 	pick(StringToRunMode(os.Getenv("KEYBASE_RUN_MODE")))
 	pick(e.config.GetRunMode())
 	pick(DefaultRunMode, nil)
+
+	// If we aren't running in devel or staging and we're testing. Let's run in devel.
+	if e.Test.Devel && ret != DevelRunMode && ret != StagingRunMode {
+		return DevelRunMode
+	}
 
 	return ret
 }
