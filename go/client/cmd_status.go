@@ -51,7 +51,17 @@ func (v *CmdStatus) Run() (err error) {
 	if err != nil {
 		return err
 	}
-	v.printExportedMe(me, publicKeys)
+
+	devCli, err := GetDeviceClient()
+	if err != nil {
+		return err
+	}
+	devs, err := devCli.DeviceList(0)
+	if err != nil {
+		return err
+	}
+
+	v.printExportedMe(me, publicKeys, devs)
 	return nil
 }
 
@@ -65,10 +75,15 @@ func findSubkeys(parentID keybase1.KID, allKeys []keybase1.PublicKey) []keybase1
 	return ret
 }
 
-func (v *CmdStatus) printExportedMe(me keybase1.User, publicKeys []keybase1.PublicKey) error {
+func (v *CmdStatus) printExportedMe(me keybase1.User, publicKeys []keybase1.PublicKey, devices []keybase1.Device) error {
 	GlobUI.Printf("Username: %s\n", me.Username)
 	GlobUI.Printf("User ID: %s\n", me.Uid)
 	GlobUI.Printf("Device ID: %s\n", G.Env.GetDeviceID())
+	for _, device := range devices {
+		if device.DeviceID == G.Env.GetDeviceID() {
+			GlobUI.Printf("Device name: %s\n", device.Name)
+		}
+	}
 	if len(publicKeys) == 0 {
 		GlobUI.Printf("No public keys.\n")
 		return nil
