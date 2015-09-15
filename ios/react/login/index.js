@@ -96,7 +96,7 @@ class LoginForm extends Component {
     const incomingMap = {
       'keybase.1.locksmithUi.promptDeviceName': (param, response) => { this.showDevicePrompt(response) },
       'keybase.1.locksmithUi.selectSigner': (param, response) => { this.showDeviceSetup(param, response) },
-      'keybase.1.locksmithUi.displaySecretWords': (param, response) => { this.showDevicePrompt(param, response) },
+      'keybase.1.locksmithUi.displaySecretWords': (param, response) => { this.showSecretWords(param, response) },
       'keybase.1.logUi.log': (param, response) => { this.log(param, response) }
     }
 
