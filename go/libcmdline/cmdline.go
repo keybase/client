@@ -331,6 +331,10 @@ func (p *CommandLine) PopulateApp(addHelp bool, extraFlags []cli.Flag) {
 			Name:  "split-log-output",
 			Usage: "Output service log messages to current terminal.",
 		},
+		cli.StringFlag{
+			Name:  "timers",
+			Usage: "specify 'a' for API; 'r' for RPCs; and 'x' for eXternal API calls",
+		},
 	}
 	if extraFlags != nil {
 		app.Flags = append(app.Flags, extraFlags...)
