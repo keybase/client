@@ -67,14 +67,14 @@ func NewConflictResolver(
 		},
 	}
 
-	go cr.inputProcessor()
+	go cr.processInput()
 	return cr
 }
 
-func (cr *ConflictResolver) inputProcessor() {
+func (cr *ConflictResolver) processInput() {
 	logTags := make(logger.CtxLogTags)
 	logTags[CtxCRIDKey] = CtxCROpID
-	ctx := logger.NewContextWithLogTags(context.Background(), logTags)
+	backgroundCtx := logger.NewContextWithLogTags(context.Background(), logTags)
 
 	var cancel func()
 	defer func() {
@@ -83,7 +83,7 @@ func (cr *ConflictResolver) inputProcessor() {
 		}
 	}()
 	for ci := range cr.inputChan {
-		ctx := ctx
+		ctx := backgroundCtx
 		id, err := MakeRandomRequestID()
 		if err != nil {
 			cr.log.Warning("Couldn't generate a random request ID: %v", err)
@@ -181,25 +181,46 @@ func (cr *ConflictResolver) getMDs(ctx context.Context) (
 	// now get all the merged MDs, starting from after the branch point
 	merged, err = getMergedMDUpdates(ctx, cr.fbo.config, cr.fbo.id(),
 		branchPoint+1)
-	return unmerged, merged, err
+	if err != nil {
+		return nil, nil, err
+	}
+	return unmerged, merged, nil
 }
 
 func (cr *ConflictResolver) updateCurrInput(ctx context.Context,
-	unmerged []*RootMetadata, merged []*RootMetadata) error {
+	unmerged []*RootMetadata, merged []*RootMetadata) (err error) {
 	cr.inputLock.Lock()
 	defer cr.inputLock.Unlock()
 	// check done while holding the lock, so we know for sure if
 	// we've already been canceled and replaced by a new input.
-	err := cr.checkDone(ctx)
+	err = cr.checkDone(ctx)
 	if err != nil {
 		return err
 	}
 
+	prevInput := cr.currInput
+	defer func() {
+		// reset the currInput if we get an error below
+		if err != nil {
+			cr.currInput = prevInput
+		}
+	}()
+
 	if len(unmerged) > 0 {
-		cr.currInput.unmerged = unmerged[len(unmerged)-1].Revision
+		rev := unmerged[len(unmerged)-1].Revision
+		if rev < cr.currInput.unmerged {
+			return fmt.Errorf("Unmerged revision %d is lower than the "+
+				"expected unmerged revision %d", rev, cr.currInput.unmerged)
+		}
+		cr.currInput.unmerged = rev
 	}
 	if len(merged) > 0 {
-		cr.currInput.merged = merged[len(merged)-1].Revision
+		rev := merged[len(merged)-1].Revision
+		if rev < cr.currInput.merged {
+			return fmt.Errorf("Merged revision %d is lower than the "+
+				"expected merged revision %d", rev, cr.currInput.merged)
+		}
+		cr.currInput.merged = rev
 	}
 	return nil
 }
@@ -208,7 +229,9 @@ func (cr *ConflictResolver) doResolve(ctx context.Context, ci conflictInput) {
 	cr.log.CDebugf(ctx, "Starting conflict resolution with input %v", ci)
 	var err error
 	defer cr.inputGroup.Done()
-	defer cr.log.CDebugf(ctx, "Finished conflict resolution: %v", err)
+	defer func() {
+		cr.log.CDebugf(ctx, "Finished conflict resolution: %v", err)
+	}()
 
 	// Canceled before we even got started?
 	err = cr.checkDone(ctx)
