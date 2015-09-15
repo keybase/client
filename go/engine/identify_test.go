@@ -28,6 +28,7 @@ var idtests = []idtest{
 }
 
 func TestIdentify(t *testing.T) {
+	t.Skip("github currently broken for kbtester1.  skipping this test until fixed.")
 	tc := SetupEngineTest(t, "Identify")
 	defer tc.Cleanup()
 
@@ -45,6 +46,7 @@ func TestIdentify(t *testing.T) {
 }
 
 func TestIdentifyWithTracking(t *testing.T) {
+	t.Skip("github currently broken for kbtester1.  skipping this test until fixed.")
 	tc := SetupEngineTest(t, "Identify")
 	defer tc.Cleanup()
 
