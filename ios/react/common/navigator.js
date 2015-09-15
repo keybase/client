@@ -5,30 +5,14 @@ var {
   Component,
   PixelRatio,
   Navigator,
-  ScrollView,
   Settings,
   StyleSheet,
   Text,
-  TouchableHighlight,
-  TouchableOpacity,
-  View,
+  TouchableOpacity
 } = React
 
-class NavButton extends Component {
-  render () {
-    return (
-      <TouchableHighlight
-        style={styles.button}
-        underlayColor='#B5B5B5'
-        onPress={this.props.onPress}>
-        <Text style={styles.buttonText}>{this.props.text}</Text>
-      </TouchableHighlight>
-    )
-  }
-}
-
 var NavigationBarRouteMapper = {
-  LeftButton: function(route, navigator, index, navState) {
+  LeftButton: function (route, navigator, index, navState) {
     if (route.leftButton) {
       return route.leftButton
     }
@@ -38,13 +22,15 @@ var NavigationBarRouteMapper = {
     }
 
     var previousRoute = navState.routeStack[index - 1]
+    // for some reason popn doesn't work, we'll likely ditch this routing anyways...
+    var i = route.leftButtonPopN ? route.leftButtonPopN : 1
+    var routes = navigator.getCurrentRoutes()
+    var targetRoute = routes[routes.length - i - 1]
+
     return (
       <TouchableOpacity
         onPress={() => {
-          for(var i = route.leftButtonPopN ? route.leftButtonPopN : 1 ; i > 0 ; --i) {
-            navigator.pop()
-          }
-          // doesn't work? navigator.popN(route.leftButtonPopN ? route.leftButtonPopN : 1)
+          navigator.popToRoute(targetRoute)
         }}
         style={styles.navBarLeftButton}>
         <Text style={[styles.navBarText, styles.navBarButtonText]}>
@@ -54,11 +40,11 @@ var NavigationBarRouteMapper = {
     )
   },
 
-  RightButton: function(route, navigator, index, navState) {
+  RightButton: function (route, navigator, index, navState) {
     return route.rightButton
   },
 
-  Title: function(route, navigator, index, navState) {
+  Title: function (route, navigator, index, navState) {
     return (
       <Text style={[styles.navBarText, styles.navBarTitleText]}>
         {route.title}
@@ -83,6 +69,10 @@ class KBNavigator extends Component {
   push (route) {
     this.pushQueue.push(this.decorateRoute(route))
     this.clearPushQueue()
+  }
+
+  popToTop () {
+    this.navigator.popToTop()
   }
 
   clearPushQueue () {
@@ -149,7 +139,7 @@ class KBNavigator extends Component {
             kbNavigator: this,
             navSavedPath: route.navSavedPath,
             ...route.props
-          })}
+          }) }
         }
         navigationBar={
           <Navigator.NavigationBar
@@ -162,41 +152,46 @@ class KBNavigator extends Component {
   }
 }
 
+KBNavigator.propTypes = {
+  initialRoute: React.PropTypes.object,
+  saveName: React.PropTypes.string
+}
+
 var styles = StyleSheet.create({
   messageText: {
     fontSize: 17,
     fontWeight: '500',
     padding: 15,
     marginTop: 50,
-    marginLeft: 15,
+    marginLeft: 15
   },
   button: {
     backgroundColor: 'white',
     padding: 15,
     borderBottomWidth: 1 / PixelRatio.get(),
-    borderBottomColor: '#CDCDCD',
+    borderBottomColor: '#CDCDCD'
   },
   buttonText: {
     fontSize: 17,
-    fontWeight: '500',
+    fontWeight: '500'
   },
   navBar: {
-    backgroundColor: 'white',
+    backgroundColor: 'white'
   },
   navBarText: {
     fontSize: 16,
-    marginVertical: 10,
+    marginVertical: 10
   },
   navBarTitleText: {
     color: 'blue',
     fontWeight: '500',
-    marginVertical: 9,
+    marginVertical: 9
   },
   navBarLeftButton: {
-    paddingLeft: 10,
+    paddingLeft: 10
   },
   navBarRightButton: {
-    paddingRight: 10,
+    paddingRight: 10
   },
   navBarButtonText: {
     color: 'blue'
@@ -204,8 +199,8 @@ var styles = StyleSheet.create({
   scene: {
     flex: 1,
     paddingTop: 20,
-    backgroundColor: '#EAEAEA',
-  },
+    backgroundColor: '#EAEAEA'
+  }
 })
 
 module.exports = KBNavigator

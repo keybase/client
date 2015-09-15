@@ -43,7 +43,7 @@ class LoginForm extends Component {
       title: 'Device Name',
       component: DevicePrompt,
       leftButtonTitle: 'Cancel',
-      leftButtonPopN: 1,
+      leftButtonPopN: 2,
       props: {
         response: response
       }
@@ -54,7 +54,7 @@ class LoginForm extends Component {
     this.props.kbNavigator.push({
       title: 'Device Setup',
       leftButtonTitle: 'Cancel',
-      leftButtonPopN: 2,
+      leftButtonPopN: 3,
       component: SelectSigner,
       props: {
         response: response,
@@ -68,7 +68,7 @@ class LoginForm extends Component {
       title: 'Register Device',
       component: DisplaySecretWords,
       leftButtonTitle: 'Cancel',
-      leftButtonPopN: 3,
+      leftButtonPopN: 4,
       props: {
         response: response,
         ...param
@@ -97,7 +97,8 @@ class LoginForm extends Component {
       'keybase.1.locksmithUi.promptDeviceName': (param, response) => { this.showDevicePrompt(response) },
       'keybase.1.locksmithUi.selectSigner': (param, response) => { this.showDeviceSetup(param, response) },
       'keybase.1.locksmithUi.displaySecretWords': (param, response) => { this.showSecretWords(param, response) },
-      'keybase.1.logUi.log': (param, response) => { this.log(param, response) }
+      'keybase.1.logUi.log': (param, response) => { this.log(param, response) },
+      'keybase.1.locksmithUi.kexStatus': (param, response) => { this.log(param, response) }
     }
 
     engine.rpc('login.loginWithPassphrase', param, incomingMap, (err, response) => {
@@ -105,7 +106,7 @@ class LoginForm extends Component {
         console.log(err)
         this.setState({error: err.toString()})
       } else {
-        // TODO finish login
+        this.props.kbNavigator.popToTop()
       }
     })
   }
