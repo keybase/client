@@ -21,8 +21,8 @@ var engine = require('../engine')
 var commonStyles = require('../styles/common')
 
 class LoginForm extends Component {
-  constructor () {
-    super()
+  constructor (props) {
+    super(props)
 
     // TODO should everything be in the keychain?
     this.state = {
@@ -106,7 +106,7 @@ class LoginForm extends Component {
         console.log(err)
         this.setState({error: err.toString()})
       } else {
-        this.props.kbNavigator.popToTop()
+        this.props.onLoggedIn()
       }
     })
   }
@@ -174,7 +174,8 @@ class LoginForm extends Component {
 }
 
 LoginForm.propTypes = {
-  kbNavigator: React.PropTypes.object
+  kbNavigator: React.PropTypes.object,
+  onLoggedIn: React.PropTypes.func
 }
 
 var styles = StyleSheet.create({
