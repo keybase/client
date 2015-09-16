@@ -24,7 +24,20 @@ class AppOrDebug extends Component {
       title: 'Keybase',
       component: require('./login'),
       saveKey: 'Login',
-      leftButtonTitle: '¯\\_(ツ)_/¯'
+      leftButtonTitle: '¯\\_(ツ)_/¯',
+      props: {
+        onLoggedIn: () => {
+          this.showSearch()
+        }
+      }
+    })
+  }
+
+  showSearch () {
+    this.props.kbNavigator.push({
+      title: 'Search',
+      component: require('./search'),
+      saveKey: 'Search'
     })
   }
 
