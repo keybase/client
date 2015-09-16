@@ -64,8 +64,18 @@ func resolveUID(au AssertionURL) ResolveResult {
 	}
 
 	r := resolveUsername(au)
-	G.ResolveCache.Put(ck, r)
 
+	if r.err != nil {
+		// Don't add to the cache if the resolve failed.
+		return r
+	}
+
+	if !au.IsKeybase() {
+		// Don't add to the cache if it's a mutable identity.
+		return r
+	}
+
+	G.ResolveCache.Put(ck, r)
 	return r
 }
 
@@ -125,6 +135,7 @@ func NewResolveCache() *ResolveCache {
 	return &ResolveCache{results: make(map[string]ResolveResult)}
 }
 
+// Get returns a ResolveResult, if present in the cache.
 func (c *ResolveCache) Get(key string) *ResolveResult {
 	c.RLock()
 	res, found := c.results[key]
@@ -135,6 +146,8 @@ func (c *ResolveCache) Get(key string) *ResolveResult {
 	return nil
 }
 
+// Put receives a copy of a ResolveResult, clears out the body
+// to avoid caching data that can go stale, and stores the result.
 func (c *ResolveCache) Put(key string, res ResolveResult) {
 	res.body = nil
 	c.Lock()
