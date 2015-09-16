@@ -36,7 +36,7 @@ cd $DIR
 cp export.md $DEST/README.md
 
 cd $DEST
-rm -rf src
+rm -rf client
 mkdir -p client
 tar xpf $DIR/client.tar -C client ${dirs[@]}
 
