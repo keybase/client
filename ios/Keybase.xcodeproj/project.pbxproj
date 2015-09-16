@@ -19,7 +19,7 @@
 		146834051AC3E58100842450 /* libReact.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 146834041AC3E56700842450 /* libReact.a */; };
 		2A072A6E5766F786B63BAEB4 /* Pods_Keybase.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 53D00F0B06A7318D8F3F70C1 /* Pods_Keybase.framework */; settings = {ATTRIBUTES = (Weak, ); }; };
 		832341BD1AAA6AB300B99B32 /* libRCTText.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 832341B51AAA6A8300B99B32 /* libRCTText.a */; };
-		DB15DA861B8F58C00058D1AB /* keybaselib.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = DB15DA851B8F58C00058D1AB /* keybaselib.framework */; };
+		DB0846051BA75DC800F54960 /* keybase.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = DB0846041BA75DC800F54960 /* keybase.framework */; };
 		DBCE36251B90F14800ECADDE /* ObjcEngine.m in Sources */ = {isa = PBXBuildFile; fileRef = DBCE36241B90F14800ECADDE /* ObjcEngine.m */; };
 		DBDCF30C1B8D03DD00BA95D8 /* AppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = DBDCF3051B8D03DD00BA95D8 /* AppDelegate.m */; };
 		DBDCF30D1B8D03DD00BA95D8 /* LaunchScreen.xib in Resources */ = {isa = PBXBuildFile; fileRef = DBDCF3061B8D03DD00BA95D8 /* LaunchScreen.xib */; };
@@ -131,7 +131,7 @@
 		832341B01AAA6A8300B99B32 /* RCTText.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = RCTText.xcodeproj; path = "node_modules/react-native/Libraries/Text/RCTText.xcodeproj"; sourceTree = "<group>"; };
 		C4673067083F84D51F14A213 /* Pods-Keybase.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Keybase.debug.xcconfig"; path = "Pods/Target Support Files/Pods-Keybase/Pods-Keybase.debug.xcconfig"; sourceTree = "<group>"; };
 		D7B880E1AB9C7DEE47229DA8 /* Pods-Keybase.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Keybase.release.xcconfig"; path = "Pods/Target Support Files/Pods-Keybase/Pods-Keybase.release.xcconfig"; sourceTree = "<group>"; };
-		DB15DA851B8F58C00058D1AB /* keybaselib.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; path = keybaselib.framework; sourceTree = "<group>"; };
+		DB0846041BA75DC800F54960 /* keybase.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; path = keybase.framework; sourceTree = "<group>"; };
 		DBCE36231B90F14800ECADDE /* ObjcEngine.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ObjcEngine.h; sourceTree = "<group>"; };
 		DBCE36241B90F14800ECADDE /* ObjcEngine.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ObjcEngine.m; sourceTree = "<group>"; };
 		DBDCF3041B8D03DD00BA95D8 /* AppDelegate.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = AppDelegate.h; sourceTree = "<group>"; };
@@ -167,9 +167,9 @@
 				133E29F31AD74F7200F7D852 /* libRCTLinking.a in Frameworks */,
 				00C302E91ABCBA2D00DB3ED1 /* libRCTNetwork.a in Frameworks */,
 				139105C61AF99C1200B5F7CC /* libRCTSettings.a in Frameworks */,
-				DB15DA861B8F58C00058D1AB /* keybaselib.framework in Frameworks */,
 				832341BD1AAA6AB300B99B32 /* libRCTText.a in Frameworks */,
 				00C302EA1ABCBA2D00DB3ED1 /* libRCTVibration.a in Frameworks */,
+				DB0846051BA75DC800F54960 /* keybase.framework in Frameworks */,
 				139FDEF61B0652A700C62182 /* libRCTWebSocket.a in Frameworks */,
 				2A072A6E5766F786B63BAEB4 /* Pods_Keybase.framework in Frameworks */,
 			);
@@ -318,7 +318,7 @@
 		8B23D2F59C5F2B2FA28E899F /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
-				DB15DA851B8F58C00058D1AB /* keybaselib.framework */,
+				DB0846041BA75DC800F54960 /* keybase.framework */,
 				53D00F0B06A7318D8F3F70C1 /* Pods_Keybase.framework */,
 			);
 			name = Frameworks;

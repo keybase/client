@@ -22,18 +22,33 @@ var styles = StyleSheet.create({
   }
 })
 
-class GoTest extends Component {
+class ReactTest extends Component {
   constructor () {
     super()
+
+    this.state = {
+      count: 0
+    }
+  }
+
+  componentDidMount () {
+    this.timer = setInterval(() => {
+      this.setState({count: this.state.count + 1})
+    }, 1000)
+  }
+
+  componentWillUnmount () {
+    clearInterval(this.timer)
+    this.timer = null
   }
 
   render () {
     return (
       <View style={styles.container}>
-      <Text style={styles.welcome}>TODO</Text>
+      <Text style={styles.welcome}>This is react counting: {this.state.count}</Text>
       </View>
     )
   }
 }
 
-module.exports = GoTest
+module.exports = ReactTest
