@@ -143,7 +143,6 @@ var sbtests = []sbtest{
 }
 
 func TestTrackProofServiceBlocks(t *testing.T) {
-	t.Skip("github currently broken for kbtester1.  skipping this test until fixed.")
 	tc := SetupEngineTest(t, "track")
 	defer tc.Cleanup()
 	fu := CreateAndSignupFakeUser(tc, "track")
