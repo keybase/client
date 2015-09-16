@@ -1,8 +1,20 @@
-## Keybase for iOS
+## Keybase
 
 ### Project Setup
 
+#### General (both android and ios)
+
 ```sh
+# Setup golang mobile
+go get golang.org/x/mobile/cmd/gomobile
+gomobile init
+```
+
+#### ios-specific
+```sh
+# Do this inside react-native/ios
+cd ios/
+
 # Install CocoaPods (if not installed)
 sudo gem install cocoapods
 pod setup
@@ -12,16 +24,16 @@ pod install
 
 # Setup npm
 npm install
+```
 
-# Setup golang mobile
-go get golang.org/x/mobile/cmd/gomobile
-gomobile init
+```sh
+# inside react-native/
 
 # Build the keybase go framwork
-npm run gobuild
+npm run gobuild-ios
 
 # Make an initial bundle (not checked in)
-npm run reactbundle
+npm run reactbundle-ios
 
 # Open workspace (not xcodeproj)
 open Keybase.xcworkspace
