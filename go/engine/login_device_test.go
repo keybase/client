@@ -203,7 +203,7 @@ func TestLoginNewDeviceKexBadPhrase(t *testing.T) {
 		// ok, we know the secret phrase, but will enter it incorrectly:
 		kx := NewKexSib(tcX.G, docui.secretPhrase()+" gibberish")
 		err := RunEngine(kx, ctx)
-		if err != libkb.ErrInvalidKexPhrase {
+		if _, ok := err.(libkb.InvalidKexPhraseError); !ok {
 			t.Fatal(err)
 		}
 

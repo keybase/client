@@ -206,6 +206,14 @@ func ImportStatusAsError(s *keybase1.Status) error {
 		return io.EOF
 	case SCSelfNotFound:
 		return SelfNotFoundError{msg: s.Desc}
+	case SCDeviceNotFound:
+		return NoDeviceError{Reason: s.Desc}
+	case SCTimeout:
+		return TimeoutError{}
+	case SCDeviceMismatch:
+		return ReceiverDeviceError{Msg: s.Desc}
+	case SCBadKexPhrase:
+		return InvalidKexPhraseError{}
 	default:
 		ase := AppStatusError{
 			Code:   s.Code,
@@ -703,8 +711,8 @@ func (e TimeoutError) ToStatus() keybase1.Status {
 
 func (e ReceiverDeviceError) ToStatus() keybase1.Status {
 	return keybase1.Status{
-		Code: SCMismatch,
-		Name: "SC_MISMATCH",
+		Code: SCDeviceMismatch,
+		Name: "SC_DEVICE_MISMATCH",
 		Desc: e.Error(),
 	}
 }

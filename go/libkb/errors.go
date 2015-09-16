@@ -916,12 +916,15 @@ func (e TimeoutError) Error() string {
 }
 
 type ReceiverDeviceError struct {
-	Expected keybase1.DeviceID
-	Received keybase1.DeviceID
+	Msg string
+}
+
+func NewReceiverDeviceError(expected, received keybase1.DeviceID) ReceiverDeviceError {
+	return ReceiverDeviceError{Msg: fmt.Sprintf("Device ID mismatch in message receiver, got %q, expected %q", received, expected)}
 }
 
 func (e ReceiverDeviceError) Error() string {
-	return fmt.Sprintf("Device ID mismatch in message receiver, got %q, expected %q", e.Received, e.Expected)
+	return e.Msg
 }
 
 type InvalidKexPhraseError struct{}
