@@ -31,7 +31,7 @@ func (k *KexCom) verifyReceiver(m *kex.Meta) error {
 	k.G().Log.Debug("[%s] kex Meta: sender device %s => receiver device %s", k.debugName, m.Sender, m.Receiver)
 	k.G().Log.Debug("[%s] kex Meta: own device %s", k.debugName, k.deviceID)
 	if m.Receiver != k.deviceID {
-		return libkb.ErrReceiverDevice
+		return libkb.ReceiverDeviceError{Expected: k.deviceID, Received: m.Receiver}
 	}
 	return nil
 }

@@ -98,6 +98,7 @@ const (
 	SCBadSession             = 202
 	SCBadLoginPassword       = 204
 	SCNotFound               = 205
+	SCMismatch               = 217
 	SCGeneric                = 218
 	SCAlreadyLoggedIn        = 235
 	SCCanceled               = 237
@@ -124,6 +125,7 @@ const (
 	SCProofError             = 1701
 	SCIdentificationExpired  = 1702
 	SCSelfNotFound           = 1703
+	SCBadKexPhrase           = 1704
 )
 
 const (

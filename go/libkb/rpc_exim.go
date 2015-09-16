@@ -700,3 +700,19 @@ func (e TimeoutError) ToStatus() keybase1.Status {
 		Desc: e.Error(),
 	}
 }
+
+func (e ReceiverDeviceError) ToStatus() keybase1.Status {
+	return keybase1.Status{
+		Code: SCMismatch,
+		Name: "SC_MISMATCH",
+		Desc: e.Error(),
+	}
+}
+
+func (e InvalidKexPhraseError) ToStatus() keybase1.Status {
+	return keybase1.Status{
+		Code: SCBadKexPhrase,
+		Name: "SC_BAD_KEX_PHRASE",
+		Desc: e.Error(),
+	}
+}

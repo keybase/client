@@ -124,7 +124,7 @@ func (k *KexSib) loopReceives(ctx *Context, m *kex.Meta, sec *kex.Secret) error 
 		}
 		// a timeout error while waiting for StartKex most likely means that the
 		// secret phrase the user entered is invalid.
-		return libkb.ErrInvalidKexPhrase
+		return libkb.InvalidKexPhraseError{}
 	}
 	k.kexStatus(ctx, "received StartKex from Y", keybase1.KexStatusCode_START_RECEIVED)
 

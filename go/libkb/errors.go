@@ -909,16 +909,26 @@ func (e NoDeviceError) Error() string {
 	return fmt.Sprintf("No device found %s", e.Reason)
 }
 
-type TimeoutError struct {
-}
+type TimeoutError struct{}
 
 func (e TimeoutError) Error() string {
 	return "Operation timed out"
 }
 
-var ErrReceiverDevice = errors.New("Device ID mismatch in message receiver")
-var ErrInvalidKexSession = errors.New("Invalid kex session ID")
-var ErrInvalidKexPhrase = errors.New("Invalid kex secret phrase")
+type ReceiverDeviceError struct {
+	Expected keybase1.DeviceID
+	Received keybase1.DeviceID
+}
+
+func (e ReceiverDeviceError) Error() string {
+	return fmt.Sprintf("Device ID mismatch in message receiver, got %q, expected %q", e.Received, e.Expected)
+}
+
+type InvalidKexPhraseError struct{}
+
+func (e InvalidKexPhraseError) Error() string {
+	return "Invalid kex secret phrase"
+}
 
 var ErrNilUser = errors.New("User is nil")
 
