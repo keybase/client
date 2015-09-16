@@ -21,8 +21,8 @@
 
 RCT_EXPORT_MODULE();
 
--(id) init {
-  if(self = [super init]) {
+- (instancetype) init {
+  if ((self = [super init])) {
     self.count = 0;
 
     [NSTimer scheduledTimerWithTimeInterval:1 target:self selector:@selector(onTimer) userInfo:nil repeats:YES];
@@ -32,7 +32,7 @@ RCT_EXPORT_MODULE();
 }
 
 #pragma mark - Send event
--(void) onTimer {
+- (void) onTimer {
     [self.bridge.eventDispatcher sendAppEventWithName:@"EventName"
                                                  body:@{@"payload": [NSString stringWithFormat:@"%@", @(self.count++)]}];
 }

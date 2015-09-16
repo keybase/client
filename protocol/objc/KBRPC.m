@@ -254,6 +254,62 @@
 
 @end
 
+@implementation KBRDebuggingRequest
+
+- (void)firstStep:(KBRFirstStepRequestParams *)params completion:(void (^)(NSError *error, KBRFirstStepResult *firstStepResult))completion {
+  NSDictionary *rparams = @{@"val": @(params.val)};
+  [self.client sendRequestWithMethod:@"keybase.1.debugging.firstStep" params:rparams sessionId:self.sessionId completion:^(NSError *error, id retval) {
+    if (error) {
+      completion(error, nil);
+      return;
+    }
+    KBRFirstStepResult *result = retval ? [MTLJSONAdapter modelOfClass:KBRFirstStepResult.class fromJSONDictionary:retval error:&error] : nil;
+    completion(error, result);
+  }];
+}
+
+- (void)firstStepWithVal:(NSInteger)val completion:(void (^)(NSError *error, KBRFirstStepResult *firstStepResult))completion {
+  NSDictionary *rparams = @{@"val": @(val)};
+  [self.client sendRequestWithMethod:@"keybase.1.debugging.firstStep" params:rparams sessionId:self.sessionId completion:^(NSError *error, id retval) {
+    if (error) {
+      completion(error, nil);
+      return;
+    }
+    KBRFirstStepResult *result = retval ? [MTLJSONAdapter modelOfClass:KBRFirstStepResult.class fromJSONDictionary:retval error:&error] : nil;
+    completion(error, result);
+  }];
+}
+
+- (void)secondStep:(KBRSecondStepRequestParams *)params completion:(void (^)(NSError *error, NSInteger n))completion {
+  NSDictionary *rparams = @{@"val": @(params.val)};
+  [self.client sendRequestWithMethod:@"keybase.1.debugging.secondStep" params:rparams sessionId:self.sessionId completion:^(NSError *error, id retval) {
+    completion(error, 0);
+  }];
+}
+
+- (void)secondStepWithVal:(NSInteger)val completion:(void (^)(NSError *error, NSInteger n))completion {
+  NSDictionary *rparams = @{@"val": @(val)};
+  [self.client sendRequestWithMethod:@"keybase.1.debugging.secondStep" params:rparams sessionId:self.sessionId completion:^(NSError *error, id retval) {
+    completion(error, 0);
+  }];
+}
+
+- (void)increment:(KBRIncrementRequestParams *)params completion:(void (^)(NSError *error, NSInteger n))completion {
+  NSDictionary *rparams = @{@"val": @(params.val)};
+  [self.client sendRequestWithMethod:@"keybase.1.debugging.increment" params:rparams sessionId:self.sessionId completion:^(NSError *error, id retval) {
+    completion(error, 0);
+  }];
+}
+
+- (void)incrementWithVal:(NSInteger)val completion:(void (^)(NSError *error, NSInteger n))completion {
+  NSDictionary *rparams = @{@"val": @(val)};
+  [self.client sendRequestWithMethod:@"keybase.1.debugging.increment" params:rparams sessionId:self.sessionId completion:^(NSError *error, id retval) {
+    completion(error, 0);
+  }];
+}
+
+@end
+
 @implementation KBRDeviceRequest
 
 - (void)deviceList:(void (^)(NSError *error, NSArray *items))completion {
@@ -2396,6 +2452,57 @@
 }
 @end
 
+@implementation KBRFirstStepRequestParams
+
+- (instancetype)initWithParams:(NSArray *)params {
+  if ((self = [super initWithParams:params])) {
+    self.sessionID = [params[0][@"sessionID"] integerValue];
+    self.val = [params[0][@"val"] integerValue];
+  }
+  return self;
+}
+
++ (instancetype)params {
+  KBRFirstStepRequestParams *p = [[self alloc] init];
+  // Add default values
+  return p;
+}
+@end
+
+@implementation KBRSecondStepRequestParams
+
+- (instancetype)initWithParams:(NSArray *)params {
+  if ((self = [super initWithParams:params])) {
+    self.sessionID = [params[0][@"sessionID"] integerValue];
+    self.val = [params[0][@"val"] integerValue];
+  }
+  return self;
+}
+
++ (instancetype)params {
+  KBRSecondStepRequestParams *p = [[self alloc] init];
+  // Add default values
+  return p;
+}
+@end
+
+@implementation KBRIncrementRequestParams
+
+- (instancetype)initWithParams:(NSArray *)params {
+  if ((self = [super initWithParams:params])) {
+    self.sessionID = [params[0][@"sessionID"] integerValue];
+    self.val = [params[0][@"val"] integerValue];
+  }
+  return self;
+}
+
++ (instancetype)params {
+  KBRIncrementRequestParams *p = [[self alloc] init];
+  // Add default values
+  return p;
+}
+@end
+
 @implementation KBRDeviceListRequestParams
 
 - (instancetype)initWithParams:(NSArray *)params {
@@ -4348,6 +4455,9 @@
 @end
 
 @implementation KBRED25519SignatureInfo
+@end
+
+@implementation KBRFirstStepResult
 @end
 
 @implementation KBRDoctorSignerOpts

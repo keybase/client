@@ -52,9 +52,9 @@ class ObjcTest extends Component {
   render () {
     return (
       <View style={styles.container}>
-      <Text style={styles.welcome}>{this.state.result}</Text>
-      <Text style={styles.welcome}>Constants from Objc: language = {objcNative.language}</Text>
-      <Text style={styles.welcome}>This is objc counting with events {this.state.count}</Text>
+        <Text style={styles.welcome}>{this.state.result}</Text>
+        <Text style={styles.welcome}>Constants from Objc: language = {objcNative.language}</Text>
+        <Text style={styles.welcome}>This is objc counting with events {this.state.count}</Text>
       </View>
     )
   }
