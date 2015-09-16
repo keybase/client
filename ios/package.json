@@ -10,7 +10,7 @@
   "dependencies": {
     "buffer": "^3.4.3",
     "iced-runtime": "^1.0.3",
-    "react-native": "^0.10.1",
+    "react-native": "^0.11.0",
     "util": "^0.10.3"
   },
   "standard": {

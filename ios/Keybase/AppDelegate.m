@@ -28,7 +28,7 @@
     #define REACT_HOST @"localhost:8081"
   #endif
 
-  jsCodeLocation = [NSURL URLWithString:[NSString stringWithFormat:@"http://%@/react/index.ios.bundle", REACT_HOST]];
+  jsCodeLocation = [NSURL URLWithString:[NSString stringWithFormat:@"http://%@/react/index.ios.bundle?platform=ios&dev=true", REACT_HOST]];
 
   // sanity check if you're running on device
   #if !(TARGET_IPHONE_SIMULATOR)
@@ -38,6 +38,7 @@
 
   RCTRootView *rootView = [[RCTRootView alloc] initWithBundleURL:jsCodeLocation
                                                       moduleName:@"Keybase"
+                                               initialProperties:nil
                                                    launchOptions:launchOptions];
 
   self.window = [[UIWindow alloc] initWithFrame:[UIScreen mainScreen].bounds];
