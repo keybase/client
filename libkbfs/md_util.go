@@ -15,13 +15,19 @@ type mdRange struct {
 func getMDRange(ctx context.Context, config Config, id TlfID,
 	start MetadataRevision, end MetadataRevision, mStatus MergeStatus) (
 	rmds []*RootMetadata, err error) {
+	// The range is invalid.  Don't treat as an error though; it just
+	// indicates that we don't yet know about any revisions.
+	if start < MetadataRevisionInitial || end < MetadataRevisionInitial {
+		return nil, nil
+	}
+
 	mdcache := config.MDCache()
 	var toDownload []mdRange
 
 	// Fetch one at a time, and figure out what ranges to fetch as you
 	// go.
 	minSlot := int(end-start) + 1
-	maxSlot := 0
+	maxSlot := -1
 	for i := start; i <= end; i++ {
 		rmd, err := mdcache.Get(id, i, mStatus)
 		if err != nil {
@@ -91,6 +97,12 @@ func getMDRange(ctx context.Context, config Config, id TlfID,
 
 func getMergedMDUpdates(ctx context.Context, config Config, id TlfID,
 	startRev MetadataRevision) (mergedRmds []*RootMetadata, err error) {
+	// We don't yet know about any revisions yet, so there's no range
+	// to get.
+	if startRev < MetadataRevisionInitial {
+		return nil, nil
+	}
+
 	start := startRev
 	for {
 		end := start + maxMDsAtATime - 1 // range is inclusive
@@ -113,6 +125,12 @@ func getMergedMDUpdates(ctx context.Context, config Config, id TlfID,
 func getUnmergedMDUpdates(ctx context.Context, config Config, id TlfID,
 	startRev MetadataRevision) (
 	currHead MetadataRevision, unmergedRmds []*RootMetadata, err error) {
+	// We don't yet know about any revisions yet, so there's no range
+	// to get.
+	if startRev < MetadataRevisionInitial {
+		return MetadataRevisionUninitialized, nil, nil
+	}
+
 	// walk backwards until we find one that is merged
 	currHead = startRev
 	for {
