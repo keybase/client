@@ -108,6 +108,53 @@ var badChainLinks = map[keybase1.SigID]string{
 	"48267f0e3484b2f97859829503e20c2f598529b42c1d840a8fc1eceda71458400f": fmt.Sprintf(badLinkTemplate, 25),
 }
 
+// Some chainlinks are broken and need a small whitespace addition to match their payload
+// hash in subsequent chainlinks.  Caused by bad code on 15 Sep 2015.
+const whitespaceIssue20150915 = "Bad whitespace stripping on 15 Sep 2015"
+
+var badWhitespaceChainLinks = map[keybase1.SigID]string{
+	"595a73fc649c2c8ccc1aa79384e0b3e7ab3049d8df838f75ef0edbcb5bbc42990f": whitespaceIssue20150915,
+	"e256078702afd7a15a24681259935b48342a49840ab6a90291b300961669790f0f": whitespaceIssue20150915,
+	"30831001edee5e01c3b5f5850043f9ef7749a1ed8624dc703ae0922e1d0f16dd0f": whitespaceIssue20150915,
+	"88e6c581dbccbf390559bcb30ca21548ba0ec4861ec2d666217bd4ed4a4a8c3f0f": whitespaceIssue20150915,
+	"4db0fe3973b3a666c7830fcb39d93282f8bc414eca1d535033a5cc625eabda0c0f": whitespaceIssue20150915,
+	"9ba23a9a1796fb22b3c938f1edf5aba4ca5be7959d9151895eb6aa7a8d8ade420f": whitespaceIssue20150915,
+	"df0005f6c61bd6efd2867b320013800781f7f047e83fd44d484c2cb2616f019f0f": whitespaceIssue20150915,
+	"a32692af33e559e00a40aa3bb4004744d2c1083112468ed1c8040eaacd15c6eb0f": whitespaceIssue20150915,
+	"3e61901f50508aba72f12740fda2be488571afc51d718d845e339e5d1d1b531d0f": whitespaceIssue20150915,
+	"de43758b653b3383aca640a96c7890458eadd35242e8f8531f29b606890a14ea0f": whitespaceIssue20150915,
+	"b9ee3b46c97d48742a73e35494d3a373602460609e3c6c54a553fc4d83b659e40f": whitespaceIssue20150915,
+	"0ff29c1d036c3f4841f3f485e28d77351abb3eeeb52d2f8d802fd15e383d9a5f0f": whitespaceIssue20150915,
+	"eb1a13c6b6e42bb7470e222b51d36144a25ffc4fbc0b32e9a1ec11f059001bc80f": whitespaceIssue20150915,
+	"9c189d6d644bad9596f78519d870a685624f813afc1d0e49155073d3b0521f970f": whitespaceIssue20150915,
+	"aea7c8f7726871714e777ac730e77e1905a38e9587f9504b739ff9b77ef2d5cc0f": whitespaceIssue20150915,
+	"ac6e225b8324c1fcbe814382e198495bea801dfeb56cb22b9e89066cc52ab03b0f": whitespaceIssue20150915,
+	"3034e8b7d75861fc28a478b4992a8592b5478d4cbc7b87150d0b59573d731d870f": whitespaceIssue20150915,
+	"140f1b7b7ba32f34ad6302d0ed78692cf1564760d78c082965dc3b8b5f7e27f10f": whitespaceIssue20150915,
+	"833f27edcf54cc489795df1dc7d9f0cbea8253e1b84f5e82749a7a2a4ffc295c0f": whitespaceIssue20150915,
+	"110a64513b4188eca2af6406a8a6dbf278dfce324b8879b5cb67e8626ff2af180f": whitespaceIssue20150915,
+	"3042dbe45383b0c2eafe13a73da35c4e721be026d7908dfcef6eb121d95b75b10f": whitespaceIssue20150915,
+	"50ba350ddc388f7c6fdba032a7d283e4caa0ca656f92f69257213222dd7deeaf0f": whitespaceIssue20150915,
+	"803854b4074d668e1761ee9c533c0fc576bd0404cf26ff7545e14512f3b9002f0f": whitespaceIssue20150915,
+	"2e08f0b9566e15fa1f9e67b236e5385cdb38d57ff51d7ab3e568532867c9f8890f": whitespaceIssue20150915,
+	"cb97f4b62f2e817e8db8c6193440214ad20f906571e4851db186869f0b4c0e310f": whitespaceIssue20150915,
+	"a5c4a30d1eaaf752df424bf813c5a907a5cf94fd371e280d39e0a3d078310fba0f": whitespaceIssue20150915,
+	"c7d26afbc1957ecca890d8d9001a9cc4863490161720ad76a2aedeb8c2d50df70f": whitespaceIssue20150915,
+	"b385c0c76d790aba156ff68fd571171fc7cb85f75e7fc9d1561d7960d8875acb0f": whitespaceIssue20150915,
+	"47d349b8bb3c8457449390ca2ed5e489a70ad511ab3edb4c7f0af27eed8c65d30f": whitespaceIssue20150915,
+	"2785b24acd6869e1e7d38a91793af549f3c35cd0729127d200b66f8c0ffba59b0f": whitespaceIssue20150915,
+	"503df567f98cf5910ba44cb95e157e656afe95d159a15c7df4e88ac6016c948f0f": whitespaceIssue20150915,
+	"2892863758cdaf9796fb36e2466093762efda94e74eb51e3ab9d6bec54064b8a0f": whitespaceIssue20150915,
+	"e1d60584995e677254f7d913b3f40060b5500241d6de0c5822ba1282acc5e08b0f": whitespaceIssue20150915,
+	"031b506b705926ea962e59046bfe1720dcf72c85310502020e2ae836b294fcde0f": whitespaceIssue20150915,
+	"1454fec21489f17a6d78927af1c9dca4209360c6ef6bfa569d8b62d32e668ea30f": whitespaceIssue20150915,
+	"ba68052597a3782f64079d7d9ec821ea9785c0868e44b597a04c9cd8bf634c1e0f": whitespaceIssue20150915,
+	"db8d59151b2f78c82c095c9545f1e4d39947a0c0bcc01b907e0ace14517d39970f": whitespaceIssue20150915,
+	"e088beccfee26c5df39239023d1e4e0cbcd63fd50d0bdc4bf2c2ba25ef1a8fe40f": whitespaceIssue20150915,
+	"8182f385c347fe57d3c46fe40e8df0e2d6cabdac38f490417b313050249be9dc0f": whitespaceIssue20150915,
+	"2415e1c77b0815661452ea683e366c6d9dfd2008a7dbc907004c3a33e56cf6190f": whitespaceIssue20150915,
+}
+
 type ChainLink struct {
 	parent          *SigChain
 	id              LinkID
@@ -413,12 +460,23 @@ func (c *ChainLink) VerifyHash() error {
 	return nil
 }
 
+// getFixedPayload usually just returns c.unpacked.payloadJSONstr, but sometimes
+// it adds extra whitespace to work around server-side bugs.
+func (c ChainLink) getFixedPayload() []byte {
+	ret := c.unpacked.payloadJSONStr
+	if s, ok := badWhitespaceChainLinks[c.unpacked.sigID]; ok {
+		G.Log.Debug("Fixing payload by adding newline on link '%s': %s", c.unpacked.sigID, s)
+		ret += "\n"
+	}
+	return []byte(ret)
+}
+
 func (c *ChainLink) VerifyPayload() error {
 	if c.payloadVerified {
 		return nil
 	}
 
-	sigid, err := SigAssertPayload(c.unpacked.sig, []byte(c.unpacked.payloadJSONStr))
+	sigid, err := SigAssertPayload(c.unpacked.sig, c.getFixedPayload())
 	if err != nil {
 		return err
 	}
@@ -475,37 +533,12 @@ func (c *ChainLink) VerifySigWithKeyFamily(ckf ComputedKeyFamily) (cached bool, 
 		return
 	}
 
-	if sigID, err = key.VerifyString(c.unpacked.sig, []byte(c.unpacked.payloadJSONStr)); err != nil {
+	if sigID, err = key.VerifyString(c.unpacked.sig, c.getFixedPayload()); err != nil {
 		return cached, BadSigError{err.Error()}
 	}
 	c.unpacked.sigID = sigID
 
 	return
-}
-
-func (c *ChainLink) VerifySig(k PGPKeyBundle) (bool, error) {
-	if c.sigVerified {
-		G.Log.Debug("Skipped verification (cached): %s", c.id)
-		return true, nil
-	}
-
-	if c.unpacked.pgpFingerprint == nil {
-		return false, NoKeyError{}
-	}
-
-	if !k.GetFingerprint().Eq(*c.unpacked.pgpFingerprint) {
-		return false, fmt.Errorf("Key fingerprint mismatch")
-	}
-
-	sigID, err := k.VerifyString(c.unpacked.sig, []byte(c.unpacked.payloadJSONStr))
-	if err != nil {
-		return false, err
-	}
-
-	c.unpacked.sigID = sigID
-	c.sigVerified = true
-	c.dirty = true
-	return false, nil
 }
 
 func ImportLinkFromServer(parent *SigChain, jw *jsonw.Wrapper, selfUID keybase1.UID) (ret *ChainLink, err error) {
