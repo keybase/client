@@ -9,7 +9,7 @@ var {
   NativeAppEventEmitter
 } = React
 
-var objcEngine = NativeModules.ObjcEngine
+var engine = require("./native")
 
 var rpc = require('../framed-msgpack-rpc/lib/main')
 var RpcTransport = rpc.transport.Transport
@@ -136,7 +136,7 @@ class Engine {
 
   setupListener () {
     this.subscription = NativeAppEventEmitter.addListener(
-      objcEngine.eventName,
+      engine.eventName,
       (payload) => {
         if (!payload) {
           return
@@ -148,7 +148,7 @@ class Engine {
   }
 
   _rpcWrite (data) {
-    objcEngine.runWithData(data)
+    engine.runWithData(data)
   }
 
   _rpcIncoming (payload) {
@@ -189,7 +189,7 @@ class Engine {
   }
 
   reset () {
-    objcEngine.reset()
+    engine.reset()
   }
 }
 
