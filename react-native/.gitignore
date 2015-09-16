@@ -23,3 +23,9 @@ xcuserdata
 Pods
 keybase.framework
 Keybase/main.jsbundle
+
+# Android
+#
+android/local.properties
+android/.gradle
+android/keybaselib/keybaselib.aar

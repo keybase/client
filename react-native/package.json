@@ -6,6 +6,7 @@
     "start": "node_modules/react-native/packager/packager.sh",
     "reactbundle-ios": "react-native bundle --minify --root react --out ios/Keybase/main.jsbundle",
     "gobuild-ios": "gomobile bind -target=ios -o ios/keybase.framework github.com/keybase/client/go/loopback",
+    "gobuild-android": "gomobile bind -target=android -o android/keybaselib/keybaselib.aar github.com/keybase/client/go/loopback",
     "packager-wipe-cache": "node ./react/packager/wipe-cache.js"
   },
   "dependencies": {
