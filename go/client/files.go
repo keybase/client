@@ -51,14 +51,39 @@ func (b *StdinSource) Open() error {
 	return nil
 }
 
+func drain(f *os.File) error {
+	buf := make([]byte, 1024*64)
+	var err error
+	var n int
+	eof := false
+	for !eof && err == nil {
+		if n, err = f.Read(buf); n == 0 && err != nil {
+			eof = true
+			if err == io.EOF {
+				err = nil
+			}
+		}
+	}
+	return err
+}
+
+// Close a source, but consume all leftover input before so doing.
 func (b *StdinSource) Close() error {
+	var err error
+	if b.open {
+		err = drain(os.Stdin)
+	}
 	b.open = false
-	return nil
+	return err
 }
 
 func (b *StdinSource) Read(p []byte) (n int, err error) {
 	if b.open {
-		return os.Stdin.Read(p)
+		n, err := os.Stdin.Read(p)
+		if n == 0 {
+			b.open = false
+		}
+		return n, err
 	}
 	return 0, io.EOF
 }
@@ -94,7 +119,11 @@ func (s *FileSource) Read(p []byte) (n int, err error) {
 	if s.file == nil {
 		return 0, io.EOF
 	}
-	return s.file.Read(p)
+	if n, err = s.file.Read(p); n == 0 || err != nil {
+		s.file.Close()
+		s.file = nil
+	}
+	return n, err
 }
 
 type StdoutSink struct {
