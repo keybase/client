@@ -64,14 +64,18 @@ func resolveUID(au AssertionURL) ResolveResult {
 	}
 
 	r := resolveUsername(au)
+
 	if r.err != nil {
+		// Don't add to the cache if the resolve failed.
 		return r
 	}
 
-	if au.IsKeybase() {
-		G.ResolveCache.Put(ck, r)
+	if !au.IsKeybase() {
+		// Don't add to the cache if it's a mutable identity.
+		return r
 	}
 
+	G.ResolveCache.Put(ck, r)
 	return r
 }
 
