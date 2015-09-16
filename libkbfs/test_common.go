@@ -171,7 +171,12 @@ func ConfigAsUser(config *ConfigLocal, loggedInUser string) *ConfigLocal {
 	crypto := NewCryptoLocal(config, signingKey, cryptPrivateKey)
 	c.SetCrypto(crypto)
 
-	c.SetBlockServer(config.BlockServer())
+	if s, ok := config.BlockServer().(*BlockServerRemote); ok {
+		blockServer := NewBlockServerRemote(context.TODO(), c, s.RemoteAddress())
+		c.SetBlockServer(blockServer)
+	} else {
+		c.SetBlockServer(config.BlockServer())
+	}
 
 	// see if a local remote server is specified
 	mdServerAddr := os.Getenv(EnvMDServerAddr)

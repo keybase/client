@@ -16,6 +16,7 @@ type BlockServerRemote struct {
 	config     Config
 	conn       *Connection
 	log        logger.Logger
+	blkSrvAddr string
 	testClient keybase1.GenericClient // for testing
 }
 
@@ -25,7 +26,9 @@ var _ BlockServer = (*BlockServerRemote)(nil)
 // NewBlockServerRemote constructs a new BlockServerRemote for the
 // given address.
 func NewBlockServerRemote(ctx context.Context, config Config, blkSrvAddr string) *BlockServerRemote {
-	bs := &BlockServerRemote{config: config, log: config.MakeLogger("")}
+	bs := &BlockServerRemote{config: config,
+		log:        config.MakeLogger(""),
+		blkSrvAddr: blkSrvAddr}
 	connection := NewConnection(ctx, config, blkSrvAddr, bs, BServerUnwrapError)
 	bs.conn = connection
 	return bs
@@ -40,6 +43,11 @@ func newBlockServerRemoteWithClient(ctx context.Context, config Config,
 		testClient: testClient,
 	}
 	return bs
+}
+
+// RemoteAddress returns the remote bserver this client is talking to
+func (b *BlockServerRemote) RemoteAddress() string {
+	return b.blkSrvAddr
 }
 
 // OnConnect implements the ConnectionHandler interface.
