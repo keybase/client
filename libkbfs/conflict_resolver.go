@@ -291,4 +291,45 @@ func (cr *ConflictResolver) doResolve(ctx context.Context, ci conflictInput) {
 	if err != nil {
 		return
 	}
+
+	// * Get the full path for every most recent pointer with a chain of
+	//   unmerged operations
+	//   * If the path doesn't exist, that means the whole node was deleted,
+	//     so skip.
+	// * Order by descending path length.
+	// * Find the corresponding path in the merged/resolved branch
+	//   * Find the original pointer for the most recent pointer.
+	//   * Find the merged most recent pointer of that original pointer.
+	//   * Search for the full path to that most recent pointer in the final
+	//     state of B.
+	//   * If it exists, great!
+	//   * If it doesn't exist, repeat on the next component of the path
+	//     (closer to the root), until you find a path that does exist.
+	//   * Now add createOps as necessary to resolvedChains in order to
+	//     create the full path again, and add entries to the corresponding
+	//     dirty blocks.  Use the most recent pointer unmerged block pointer
+	//     for the directory as the starting pointer for the new directory.
+	// * For syncOps, add a syncAttr setAttrOp to the parent unmerged dir chain
+	//   * If there's a conflict, add a resolving createOp to the parent.
+	// * Otherwise, for each operation in the unmerged chain, check for
+	//   conflicts in the corresponding merged chain and resolve accordingly.
+	//   * During this process, construct a separate set of notifyOps that
+	//     will be played locally to the local caches into line with the
+	//     new reality.
+	// * In addition, if the op is an rmOp that's not part of a rename, check
+	//   whether the original pointer of the actual BlockPointer in the
+	//   directory entry being removed has a different most recent pointer
+	//   in the merged branch.  If so, something has changed in it or in
+	//   one of its children in the merged branch, so we can ignore the rmOp.
+	// * Apply the operations by looking up the corresponding unmerged dir
+	//   entry and copying it to a copy of the corresponding merged block.
+	//   Keep these dirty block copies in a local dirty cache, keyed by
+	//   corresponding merged most recent pointer.
+	// * Once all the new blocks are ready, calculate the resolvedChain paths
+	//   and arrange them into a tree.  Do a recursive descent and
+	//   syncBlockLocked each branch (filling in the new BlockChanges in a
+	//   new MD object)
+	// * Finally attempt to put the final MD object.  If successful, send
+	//   out all the notifyOps to observers.
+	// Release all locks and reset the currInput, we're done!
 }
