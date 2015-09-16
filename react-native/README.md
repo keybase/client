@@ -10,7 +10,7 @@ go get golang.org/x/mobile/cmd/gomobile
 gomobile init
 ```
 
-#### ios-specific
+#### ios specific
 ```sh
 # Do this inside react-native/ios
 cd ios/
@@ -40,6 +40,18 @@ open Keybase.xcworkspace
 ```
 
 Then select the target ```Keybase``` and run.
+
+#### Android Specific
+This will only work on an actual device or arm emulator. see: (https://github.com/golang/go/issues/10743)
+```sh
+# inside react-native/
+
+# Build the go keybaselib
+npm run gobuild-android
+
+# This will install the app on your device
+react-native run-android
+```
 
 ### Release building
 
