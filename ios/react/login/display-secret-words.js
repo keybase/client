@@ -6,20 +6,16 @@ var {
   Component,
   StyleSheet,
   View,
-  Text,
-  TouchableHighlight
+  Text
 } = React
 
 var commonStyles = require('../styles/common')
 
 class DisplaySecretWords extends Component {
-  constructor () {
-    super()
-  }
+  constructor (props) {
+    super(props)
 
-  submit () {
-    // TODO
-    // this.props.response.result(this.state.deviceName)
+    props.response.result()
   }
 
   render () {
@@ -28,13 +24,6 @@ class DisplaySecretWords extends Component {
           <Text style={[{textAlign: 'center', marginBottom: 75}, commonStyles.h1]}>Register Device</Text>
           <Text style={[{margin: 20, marginBottom: 20}, commonStyles.h2]}>In order to register this device you need to enter in the secret phrase generated on an existing device</Text>
           <Text style={[styles.secret, commonStyles.h1]}>{this.props.secret}</Text>
-          <View style={styles.submitWrapper}>
-            <TouchableHighlight
-              underlayColor={commonStyles.buttonHighlight}
-              onPress={() => { this.submit() }}>
-              <Text style={submitButtonStyle} >Next</Text>
-            </TouchableHighlight>
-          </View>
         </View>
     )
   }
