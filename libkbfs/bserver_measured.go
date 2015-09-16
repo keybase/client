@@ -17,8 +17,8 @@ type BlockServerMeasured struct {
 
 var _ BlockServer = BlockServerMeasured{}
 
-// NewBlockServerMeasured creates and returns a new BlockMeasured
-// instance with the given delegate and registry.
+// NewBlockServerMeasured creates and returns a new
+// BlockServerMeasured instance with the given delegate and registry.
 func NewBlockServerMeasured(delegate BlockServer, r metrics.Registry) BlockServerMeasured {
 	getTimer := metrics.GetOrRegisterTimer("BlockServer.Get", r)
 	putTimer := metrics.GetOrRegisterTimer("BlockServer.Put", r)

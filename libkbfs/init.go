@@ -164,6 +164,12 @@ func Init(localUser string, serverRootDir *string, cpuProfilePath,
 
 	config := NewConfigLocal()
 
+	if registry := config.MetricsRegistry(); registry != nil {
+		keyCache := config.KeyCache()
+		keyCache = NewKeyCacheMeasured(keyCache, registry)
+		config.SetKeyCache(keyCache)
+	}
+
 	// Set logging
 	config.SetLoggerMaker(func(module string) logger.Logger {
 		mname := "kbfs"
@@ -197,6 +203,11 @@ func Init(localUser string, serverRootDir *string, cpuProfilePath,
 	if err != nil {
 		return nil, fmt.Errorf("problem creating key server: %v", err)
 	}
+
+	if registry := config.MetricsRegistry(); registry != nil {
+		keyServer = NewKeyServerMeasured(keyServer, registry)
+	}
+
 	config.SetKeyServer(keyServer)
 
 	client.InitUI()
