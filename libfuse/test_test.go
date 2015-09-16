@@ -26,11 +26,12 @@ func TestMain(m *testing.M) {
 	flag.Parse()
 
 	if *bserverPort != "" {
-		bserver.InitConfig("../bserver/testconfig.json")
+		// TODO: do we still need the commented-out lines below?
+		//bserver.InitConfig("../bserver/testconfig.json")
 		srvAddr := "127.0.0.1:" + *bserverPort
 		fmt.Printf("Testing Using Remote Backend: %s\n", srvAddr)
 		BServerRemoteAddr = &srvAddr
-		bserver.Config.TestNoSession = true
+		//bserver.Config.TestNoSession = true
 		bserver.StartBServer(srvAddr)
 	}
 
