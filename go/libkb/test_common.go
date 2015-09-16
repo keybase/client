@@ -1,3 +1,5 @@
+// +build !release
+
 package libkb
 
 import (
