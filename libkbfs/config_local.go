@@ -131,7 +131,7 @@ func NewConfigLocal() *ConfigLocal {
 	config.SetKeyManager(&KeyManagerStandard{config})
 	config.SetReporter(NewReporterSimple(10))
 	config.SetMDCache(NewMDCacheStandard(5000))
-	config.SetKeyCache(&KeyCacheNull{})
+	config.SetKeyCache(NewKeyCacheStandard(5000))
 	config.SetBlockCache(NewBlockCacheStandard(config, 5000))
 	config.SetCodec(NewCodecMsgpack())
 	config.SetMDOps(&MDOpsStandard{config})

@@ -433,6 +433,30 @@ func (e KeyNotFoundError) Error() string {
 	return fmt.Sprintf("Could not find key with kid=%s", e.kid)
 }
 
+// KeyCacheMissError indicates that a key matching the given TlfID
+// and key generation wasn't found in cache.
+type KeyCacheMissError struct {
+	tlf    TlfID
+	keyGen KeyGen
+}
+
+// Error implements the error interface for KeyCacheMissError.
+func (e KeyCacheMissError) Error() string {
+	return fmt.Sprintf("Could not find key with tlf=%s, keyGen=%d", e.tlf, e.keyGen)
+}
+
+// KeyCacheHitError indicates that a key matching the given TlfID
+// and key generation was found in cache but the object type was unknown.
+type KeyCacheHitError struct {
+	tlf    TlfID
+	keyGen KeyGen
+}
+
+// Error implements the error interface for KeyCacheHitError.
+func (e KeyCacheHitError) Error() string {
+	return fmt.Sprintf("Invalid key with tlf=%s, keyGen=%d", e.tlf, e.keyGen)
+}
+
 // UnexpectedShortCryptoRandRead indicates that fewer bytes were read
 // from crypto.rand.Read() than expected.
 type UnexpectedShortCryptoRandRead struct {
