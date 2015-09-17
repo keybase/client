@@ -37,7 +37,7 @@ func (e *IDEngine) Name() string {
 }
 
 func (e *IDEngine) Prereqs() Prereqs {
-	return Prereqs{Session: e.arg.TrackStatement}
+	return Prereqs{Device: e.arg.TrackStatement}
 }
 
 func (e *IDEngine) RequiredUIs() []libkb.UIKind {

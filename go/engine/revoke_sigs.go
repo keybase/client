@@ -25,7 +25,7 @@ func (e *RevokeSigsEngine) Name() string {
 
 func (e *RevokeSigsEngine) Prereqs() Prereqs {
 	return Prereqs{
-		Session: true,
+		Device: true,
 	}
 }
 

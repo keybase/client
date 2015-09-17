@@ -70,7 +70,7 @@ func (e *Identify) Name() string {
 // GetPrereqs returns the engine prereqs.
 func (e *Identify) Prereqs() Prereqs {
 	// if WithTracking is on, we need to be logged in
-	return Prereqs{Session: e.arg.WithTracking}
+	return Prereqs{Device: e.arg.WithTracking}
 }
 
 // RequiredUIs returns the required UIs.

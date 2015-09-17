@@ -35,6 +35,7 @@ type LoginState struct {
 // the login process.
 type LoginContext interface {
 	LoggedInLoad() (bool, error)
+	LoggedInProvisionedLoad() (bool, error)
 	Logout() error
 
 	CreateStreamCache(tsec *triplesec.Cipher, pps *PassphraseStream)

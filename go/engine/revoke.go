@@ -50,7 +50,7 @@ func (e *RevokeEngine) Name() string {
 
 func (e *RevokeEngine) Prereqs() Prereqs {
 	return Prereqs{
-		Session: true,
+		Device: true,
 	}
 }
 

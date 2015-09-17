@@ -59,6 +59,7 @@ func (s *Session) IsLoggedInAndProvisioned() bool {
 	if s.deviceID != envid {
 		return false
 	}
+
 	return true
 }
 
@@ -190,14 +191,13 @@ func (s *Session) Load() error {
 		var did keybase1.DeviceID
 		s.file.jw.AtKey("device_provisioned").GetStringVoid(&devid, &tmp)
 		if tmp != nil {
-			s.G().Log.Warning("Bad 'device_provisioned' value in session file %s: %s",
-				s.file.filename, tmp)
+			s.G().Log.Debug("Bad 'device_provisioned' value in session file %s: %s", s.file.filename, tmp)
 			ok = false
 		} else {
 			var err error
 			did, err = keybase1.DeviceIDFromString(devid)
 			if err != nil {
-				s.G().Log.Warning("Bad 'device_provisioned' value in session file %s: %s (%s)", s.file.filename, err, devid)
+				s.G().Log.Debug("Bad 'device_provisioned' value in session file %s: %s (%s)", s.file.filename, err, devid)
 				ok = false
 
 			}

@@ -27,7 +27,7 @@ func (e *BTCEngine) Name() string {
 
 func (e *BTCEngine) Prereqs() Prereqs {
 	return Prereqs{
-		Session: true,
+		Device: true,
 	}
 }
 

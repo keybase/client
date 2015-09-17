@@ -36,7 +36,7 @@ func (k *KexSib) Name() string {
 }
 
 func (k *KexSib) Prereqs() Prereqs {
-	return Prereqs{Session: true}
+	return Prereqs{Device: true}
 }
 
 func (k *KexSib) RequiredUIs() []libkb.UIKind {

@@ -14,6 +14,13 @@ func IsLoggedIn(e Engine, ctx *Context) (bool, error) {
 	return e.G().LoginState().LoggedInLoad()
 }
 
+func IsProvisioned(e Engine, ctx *Context) (bool, error) {
+	if ctx.LoginContext != nil {
+		return ctx.LoginContext.LoggedInProvisionedLoad()
+	}
+	return e.G().LoginState().LoggedInProvisionedLoad()
+}
+
 type keypair struct {
 	encKey libkb.GenericKey
 	sigKey libkb.GenericKey

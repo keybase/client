@@ -34,7 +34,7 @@ func (e *TrackEngine) Name() string {
 
 func (e *TrackEngine) Prereqs() Prereqs {
 	return Prereqs{
-		Session: true,
+		Device: true,
 	}
 }
 

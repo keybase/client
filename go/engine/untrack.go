@@ -31,7 +31,7 @@ func (e *UntrackEngine) Name() string {
 
 func (e *UntrackEngine) Prereqs() Prereqs {
 	return Prereqs{
-		Session: true,
+		Device: true,
 	}
 }
 

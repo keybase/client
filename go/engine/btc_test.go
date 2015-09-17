@@ -5,7 +5,6 @@ import (
 	"testing"
 
 	"github.com/keybase/client/go/libkb"
-	// keybase_1 "github.com/keybase/client/protocol/go"
 )
 
 func getCurrentBTCAddr(tc libkb.TestContext, username string) string {
