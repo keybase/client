@@ -13,9 +13,9 @@ import java.util.concurrent.Executors;
 import static go.keybase.Keybase.ReadB64;
 import static go.keybase.Keybase.WriteB64;
 
-public class KBLibEngine extends ReactContextBaseJavaModule {
+public class KeybaseEngine extends ReactContextBaseJavaModule {
 
-    private static final String NAME = "KBLibEngine";
+    private static final String NAME = "KeybaseEngine";
     private static final String RPC_EVENT_NAME = "RPC";
 
     private class ReadFromKBLib implements Runnable {
@@ -33,14 +33,14 @@ public class KBLibEngine extends ReactContextBaseJavaModule {
 
             reactContext
               .getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter.class)
-              .emit(KBLibEngine.RPC_EVENT_NAME, data);
+              .emit(KeybaseEngine.RPC_EVENT_NAME, data);
 
             // loop forever
             this.run();
         }
     }
 
-    public KBLibEngine(ReactApplicationContext reactContext) {
+    public KeybaseEngine(final ReactApplicationContext reactContext) {
         super(reactContext);
 
         Executor executor = Executors.newSingleThreadExecutor();
