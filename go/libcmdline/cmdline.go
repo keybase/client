@@ -280,10 +280,6 @@ func (p *CommandLine) PopulateApp(addHelp bool, extraFlags []cli.Flag) {
 			Usage: "Log format (default, plain, file, fancy).",
 		},
 		cli.StringFlag{
-			Name:  "label",
-			Usage: "Specifying a label can help identify services.",
-		},
-		cli.StringFlag{
 			Name:  "pgpdir, gpgdir",
 			Usage: "Specify a PGP directory (default is ~/.gnupg).",
 		},
