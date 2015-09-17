@@ -4,4 +4,4 @@
 
 'use strict';
 var { NativeModules } = require('react-native');
-module.exports = NativeModules.KBLibEngine;
+module.exports = NativeModules.KeybaseEngine;

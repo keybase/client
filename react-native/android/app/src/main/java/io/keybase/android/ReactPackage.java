@@ -8,14 +8,14 @@ import com.facebook.react.uimanager.ViewManager;
 import java.util.ArrayList;
 import java.util.List;
 
-import io.keybase.android.modules.KBLibEngine;
+import io.keybase.android.modules.KeybaseEngine;
 
 public class ReactPackage implements com.facebook.react.ReactPackage {
     @Override
     public List<NativeModule> createNativeModules(ReactApplicationContext reactApplicationContext) {
         List<NativeModule> modules = new ArrayList<>();
 
-        modules.add(new KBLibEngine(reactApplicationContext));
+        modules.add(new KeybaseEngine(reactApplicationContext));
 
         return modules;
     }
