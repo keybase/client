@@ -6,11 +6,15 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
+	"time"
 
+	"github.com/dustin/go-humanize"
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/protocol/go"
 	"golang.org/x/crypto/openpgp"
+	"golang.org/x/crypto/openpgp/armor"
 	"golang.org/x/crypto/openpgp/clearsign"
+	"golang.org/x/crypto/openpgp/packet"
 )
 
 type PGPVerifyArg struct {
@@ -121,13 +125,21 @@ func (e *PGPVerify) runDetached(ctx *Context) error {
 	e.owner = sk.Owner()
 	e.signStatus = &libkb.SignatureStatus{IsSigned: true}
 
+	b, err := armor.Decode(bytes.NewReader(e.arg.Signature))
+
+	p, err := packet.Read(b.Body)
+
+	if val, ok := p.(*packet.Signature); ok {
+		e.signStatus.SignatureTime = val.CreationTime
+	}
+
 	if signer != nil {
 		e.signStatus.Verified = true
 		e.signStatus.Entity = signer
 		if err := e.checkSignedBy(ctx); err != nil {
 			return err
 		}
-		e.outputSuccess(ctx, signer, sk.Owner())
+		e.outputSuccess(ctx, signer, sk.Owner(), e.signStatus.SignatureTime)
 	}
 
 	return nil
@@ -164,7 +176,7 @@ func (e *PGPVerify) runClearsign(ctx *Context) error {
 		if err := e.checkSignedBy(ctx); err != nil {
 			return err
 		}
-		e.outputSuccess(ctx, signer, sk.Owner())
+		e.outputSuccess(ctx, signer, sk.Owner(), e.signStatus.SignatureTime)
 	}
 
 	return nil
@@ -207,7 +219,8 @@ func (e *PGPVerify) checkSignedBy(ctx *Context) error {
 	return nil
 }
 
-func (e *PGPVerify) outputSuccess(ctx *Context, signer *openpgp.Entity, owner *libkb.User) {
+func (e *PGPVerify) outputSuccess(ctx *Context, signer *openpgp.Entity, owner *libkb.User, signatureTime time.Time) {
 	fingerprint := libkb.PGPFingerprint(signer.PrimaryKey.Fingerprint)
-	ctx.LogUI.Notice("Signature verified. Signed by %s. PGP Fingerprint: %s", owner.GetName(), fingerprint)
+	ctx.LogUI.Notice("Signature verified. Signed by %s %s (%s).", owner.GetName(), humanize.Time(e.signStatus.SignatureTime), e.signStatus.SignatureTime)
+	ctx.LogUI.Notice("PGP Fingerprint: %s.", fingerprint)
 }
