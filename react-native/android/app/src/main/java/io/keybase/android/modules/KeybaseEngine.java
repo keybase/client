@@ -29,14 +29,14 @@ public class KeybaseEngine extends ReactContextBaseJavaModule {
         public void run() {
             // TODO: There may be a race condition here...
             // It will fail if you try to run .getJSModule
-            String data = ReadB64();
+            //noinspection InfiniteLoopStatement
+            while (true) {
+                String data = ReadB64();
 
-            reactContext
-              .getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter.class)
-              .emit(KeybaseEngine.RPC_EVENT_NAME, data);
-
-            // loop forever
-            this.run();
+                reactContext
+                  .getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter.class)
+                  .emit(KeybaseEngine.RPC_EVENT_NAME, data);
+            }
         }
     }
 
