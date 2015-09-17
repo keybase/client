@@ -288,17 +288,14 @@ func (md *MDServerRemote) RegisterForUpdate(ctx context.Context, id TlfID,
 		CurrRevision: currHead.Number(),
 	}
 
-	// setup the server to receive updates
-	err := md.conn.Serve(keybase1.MetadataUpdateProtocol(md))
-	if err != nil {
-		md.log.CWarningf(ctx,
-			"MDServerRemote: unable to create update server %q", err)
-		return nil, err
-	}
-
 	// register
 	var c chan error
-	err = md.doCommand(ctx, func() error {
+	err := md.doCommand(ctx, func() error {
+		// set up the server to receive updates
+		err := md.conn.Serve(keybase1.MetadataUpdateProtocol(md))
+		if err != nil {
+			return err
+		}
 		// keep re-adding the observer on retries
 		func() {
 			md.observerMu.Lock()
@@ -310,7 +307,7 @@ func (md *MDServerRemote) RegisterForUpdate(ctx context.Context, id TlfID,
 			c = make(chan error, 1)
 			md.observers[id] = c
 		}()
-		err := md.client().RegisterForUpdates(arg)
+		err = md.client().RegisterForUpdates(arg)
 		if err != nil {
 			func() {
 				md.observerMu.Lock()
