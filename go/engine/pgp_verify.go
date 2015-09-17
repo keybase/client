@@ -125,9 +125,17 @@ func (e *PGPVerify) runDetached(ctx *Context) error {
 	e.owner = sk.Owner()
 	e.signStatus = &libkb.SignatureStatus{IsSigned: true}
 
-	b, err := armor.Decode(bytes.NewReader(e.arg.Signature))
-
-	p, err := packet.Read(b.Body)
+	r := e.arg.Signature
+	if libkb.IsArmored(e.arg.Signature) {
+		b, err := armor.Decode(bytes.NewReader(e.arg.Signature))
+		if err != nil {
+			return err
+		}
+		rb := new(bytes.Buffer)
+		rb.ReadFrom(b.Body)
+		r = rb.Bytes()
+	}
+	p, err := packet.Read(bytes.NewReader(r))
 
 	if val, ok := p.(*packet.Signature); ok {
 		e.signStatus.SignatureTime = val.CreationTime
