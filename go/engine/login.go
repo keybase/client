@@ -103,13 +103,55 @@ func (e *LoginEngine) postLogin(ctx *Context, lctx libkb.LoginContext) error {
 	}
 
 	// create a locksmith engine to check the account
+
 	ctx.LoginContext = lctx
 	larg := &LocksmithArg{
-		User: e.user,
+		User:      e.user,
+		CheckOnly: true,
 	}
 	e.locksmith = NewLocksmith(larg, e.G())
-	err = e.locksmith.LoginCheckup(ctx, e.user)
-	if err != nil {
+	if err := RunEngine(e.locksmith, ctx); err != nil {
+		return err
+	}
+	if e.locksmith.Status().CurrentDeviceOk {
+		lctx.LocalSession().SetDeviceProvisioned(e.G().Env.GetDeviceID())
+		return nil
+	}
+
+	// need to provision this device
+
+	// need to have passphrase stream cached in order to provision a device
+	if lctx.PassphraseStreamCache() == nil {
+		// this can happen if:
+		// 1. The user is logging in for the first time on a device.
+		// 2. Before the device is provisioned, the login is canceled or
+		//    interrupted.
+		// 3. The daemon restarts (`ctl stop`, machine reboot, bug, etc.)
+		// 4. The login session is still valid, so the next login attempt
+		//    does not require passphrase.
+		//
+		// (Note that pubkey login isn't an option until the device is
+		// provisioned.)
+		//
+		// 5. So they get to here without entering their passphrase
+		//    and without a cached passphrase stream.
+		//    Locksmith won't be able to provision the device without
+		//    the passphrase stream, and we can't do
+		//    LoginState.verifyPassphraseWithServer since that creates
+		//    a new login request and we are in the middle of a login
+		//    request.
+		//
+		// The best we can do here is to logout and tell the user to
+		// login again.  This should be a rare scenario.
+		//
+		lctx.Logout()
+		ctx.LogUI.Info("Please run `keybase login` again.  There was an unexpected error since your previous login.")
+		return libkb.ReloginRequiredError{}
+	}
+
+	larg.CheckOnly = false
+	e.locksmith = NewLocksmith(larg, e.G())
+	if err := RunEngine(e.locksmith, ctx); err != nil {
 		return err
 	}
 

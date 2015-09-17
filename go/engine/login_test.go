@@ -136,7 +136,7 @@ func TestLoginPGPSignNewDevice(t *testing.T) {
 	li := NewLoginWithPromptEngine(u1.Username, tc2.G)
 	secui := &libkb.TestSecretUI{Passphrase: u1.Passphrase}
 	ctx := &Context{
-		LogUI:       tc.G.UI.GetLogUI(),
+		LogUI:       tc2.G.UI.GetLogUI(),
 		LocksmithUI: docui,
 		SecretUI:    secui,
 		GPGUI:       &gpgtestui{},
@@ -450,6 +450,92 @@ func TestLoginInterruptDevicePush(t *testing.T) {
 
 	// since this user didn't have any keys, login should have fixed that:
 	testUserHasDeviceKey(tc)
+}
+
+// TestLoginRestartProvision
+//
+// 1. Signup via the web and push a private pgp key
+// 2. Login w/ go client.  Enter passphrase and get a session, but
+//    don't complete the device provisioning.
+// 3. Kill the daemon (`ctl stop`, reboot computer, etc.)
+// 4. Login w/ go client again.  Should get logged out and ReloginRequiredError.
+// 5. Login w/ go client.  Everything should work.
+//
+// This test should replicate that scenario.  While rare, we
+// should make it work.
+//
+func TestLoginRestartProvision(t *testing.T) {
+	tc := SetupEngineTest(t, "login")
+	// 1. Signup via the "web" and push a private pgp key
+	u1 := createFakeUserWithPGPOnly(t, tc)
+	Logout(tc)
+	tc.Cleanup()
+
+	// redo SetupEngineTest to get a new home directory...should look like a new device.
+	tc2 := SetupEngineTest(t, "login")
+	defer tc2.Cleanup()
+
+	docui := &lockuiPGP{&lockui{deviceName: "PGP Device"}}
+
+	// 2. Login w/ go client.  Enter passphrase and get a session, but
+	//    don't complete the device provisioning.
+	li := NewLoginWithPromptEngineSkipLocksmith(u1.Username, tc2.G)
+	ctx := &Context{
+		LogUI:       tc2.G.UI.GetLogUI(),
+		LocksmithUI: docui,
+		SecretUI:    u1.NewSecretUI(),
+		GPGUI:       &gpgtestui{},
+		LoginUI:     &libkb.TestLoginUI{},
+	}
+	if err := RunEngine(li, ctx); err != nil {
+		t.Fatal(err)
+	}
+
+	// 3. Clearing the stream cache is the issue when daemon restarts.
+	//    Doing a logout here would be too clean, and the next login would
+	//    work fine.
+	tc2.G.LoginState().Account(func(a *libkb.Account) {
+		a.ClearStreamCache()
+	}, "clear stream cache")
+
+	// 4. Log in again
+	li2 := NewLoginWithPromptEngine(u1.Username, tc2.G)
+	ctx2 := &Context{
+		LogUI:       tc2.G.UI.GetLogUI(),
+		LocksmithUI: docui,
+		SecretUI:    u1.NewSecretUI(),
+		GPGUI:       &gpgtestui{},
+		LoginUI:     &libkb.TestLoginUI{},
+	}
+	err := RunEngine(li2, ctx2)
+	if err == nil {
+		t.Fatal("expected relogin error, got nil")
+	}
+	if _, ok := err.(libkb.ReloginRequiredError); !ok {
+		t.Fatalf("expected relogin error, got %T", err)
+	}
+
+	// login engine should logout the user before a relogin error.
+	if err := AssertLoggedOut(tc2); err != nil {
+		t.Fatal(err)
+	}
+
+	// this login attempt should finally work:
+	li3 := NewLoginWithPromptEngine(u1.Username, tc2.G)
+	ctx3 := &Context{
+		LogUI:       tc2.G.UI.GetLogUI(),
+		LocksmithUI: docui,
+		SecretUI:    u1.NewSecretUI(),
+		GPGUI:       &gpgtestui{},
+		LoginUI:     &libkb.TestLoginUI{},
+	}
+	if err := RunEngine(li3, ctx3); err != nil {
+		t.Fatal(err)
+	}
+
+	// and they should have their device keys and paper device
+	testUserHasDeviceKey(tc2)
+	hasOnePaperDev(tc2, u1)
 }
 
 func TestUserInfo(t *testing.T) {

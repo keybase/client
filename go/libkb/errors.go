@@ -429,6 +429,12 @@ func (e LoginRequiredError) Error() string {
 	return msg
 }
 
+type ReloginRequiredError struct{}
+
+func (e ReloginRequiredError) Error() string {
+	return "Login required due to an unexpected error since your previous login."
+}
+
 //=============================================================================
 
 type LogoutError struct{}

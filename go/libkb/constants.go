@@ -101,6 +101,7 @@ const (
 	SCGeneric                = 218
 	SCAlreadyLoggedIn        = 235
 	SCCanceled               = 237
+	SCReloginRequired        = 274
 	SCBadSignupUsernameTaken = 701
 	SCKeyNotFound            = 901
 	SCKeyInUse               = 907
