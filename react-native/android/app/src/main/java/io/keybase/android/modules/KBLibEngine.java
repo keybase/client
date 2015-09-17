@@ -1,10 +1,8 @@
 package io.keybase.android.modules;
 
-import com.facebook.react.bridge.Arguments;
 import com.facebook.react.bridge.ReactApplicationContext;
 import com.facebook.react.bridge.ReactContextBaseJavaModule;
 import com.facebook.react.bridge.ReactMethod;
-import com.facebook.react.bridge.WritableMap;
 import com.facebook.react.modules.core.DeviceEventManagerModule;
 
 import java.util.HashMap;
@@ -12,12 +10,12 @@ import java.util.Map;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 
-import static go.keybase.Keybase.WriteB64;
 import static go.keybase.Keybase.ReadB64;
+import static go.keybase.Keybase.WriteB64;
 
 public class KBLibEngine extends ReactContextBaseJavaModule {
 
-    private static final String NAME = KBLibEngine.class.getName();
+    private static final String NAME = "KBLibEngine";
     private static final String RPC_EVENT_NAME = "RPC";
 
     private class ReadFromKBLib implements Runnable {
@@ -29,15 +27,13 @@ public class KBLibEngine extends ReactContextBaseJavaModule {
 
         @Override
         public void run() {
-            ReadB64();
-
-            WritableMap params = Arguments.createMap();
-            params.putNull("error");
-            params.putString("val", "something");
+            // TODO: There may be a race condition here...
+            // It will fail if you try to run .getJSModule
+            String data = ReadB64();
 
             reactContext
               .getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter.class)
-              .emit(KBLibEngine.RPC_EVENT_NAME, params);
+              .emit(KBLibEngine.RPC_EVENT_NAME, data);
 
             // loop forever
             this.run();
@@ -52,7 +48,7 @@ public class KBLibEngine extends ReactContextBaseJavaModule {
     }
 
     public String getName() {
-        return "KBLibEngine";
+        return NAME;
     }
 
     @Override
