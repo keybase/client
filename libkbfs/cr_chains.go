@@ -37,6 +37,8 @@ func (cc *crChain) collapse() {
 				indicesToRemove[prevCreateIndex] = true
 				indicesToRemove[i] = true
 			}
+		case *setAttrOp:
+			// TODO: Collapse opposite setex pairs
 		default:
 			// ignore other op types
 		}
