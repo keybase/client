@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
+	"time"
 
 	"golang.org/x/crypto/openpgp"
 	"golang.org/x/crypto/openpgp/armor"
@@ -18,6 +19,7 @@ type SignatureStatus struct {
 	SignatureError error
 	KeyID          uint64
 	Entity         *openpgp.Entity
+	SignatureTime  time.Time
 }
 
 func PGPDecryptWithBundles(source io.Reader, sink io.Writer, keys []*PGPKeyBundle) (*SignatureStatus, error) {
@@ -70,6 +72,7 @@ func PGPDecrypt(source io.Reader, sink io.Writer, kr openpgp.KeyRing) (*Signatur
 	if md.IsSigned {
 		status.IsSigned = true
 		status.KeyID = md.SignedByKeyId
+		status.SignatureTime = md.Signature.CreationTime
 		if md.SignedBy != nil {
 			status.Entity = md.SignedBy.Entity
 		}
