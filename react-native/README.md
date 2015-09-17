@@ -77,3 +77,8 @@ See [the JS style guide](standardjs.com)
 Visit [standardjs.com](http://standardjs.com/#text-editor-plugins) to find plugins for your editor of choice
 
 Currently we're using ES6/7 extensions through babel
+
+If you run into weird issues with your packager this may be due to a stale cache. Run this command to wipe your local cache
+```
+npm run packager-wipe-cache
+```
