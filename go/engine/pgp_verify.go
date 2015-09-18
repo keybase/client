@@ -125,30 +125,30 @@ func (e *PGPVerify) runDetached(ctx *Context) error {
 	e.owner = sk.Owner()
 	e.signStatus = &libkb.SignatureStatus{IsSigned: true}
 
-	r := e.arg.Signature
-	if libkb.IsArmored(e.arg.Signature) {
-		b, err := armor.Decode(bytes.NewReader(e.arg.Signature))
-		if err != nil {
-			return err
-		}
-		rb := new(bytes.Buffer)
-		rb.ReadFrom(b.Body)
-		r = rb.Bytes()
-	}
-	p, err := packet.Read(bytes.NewReader(r))
-	if err != nil {
-		return err
-	}
-
-	if val, ok := p.(*packet.Signature); ok {
-		e.signStatus.SignatureTime = val.CreationTime
-	}
-
 	if signer != nil {
 		e.signStatus.Verified = true
 		e.signStatus.Entity = signer
 		if err := e.checkSignedBy(ctx); err != nil {
 			return err
+		}
+
+		r := e.arg.Signature
+		if libkb.IsArmored(e.arg.Signature) {
+			b, err := armor.Decode(bytes.NewReader(e.arg.Signature))
+			if err != nil {
+				return err
+			}
+			rb := new(bytes.Buffer)
+			rb.ReadFrom(b.Body)
+			r = rb.Bytes()
+		}
+		p, err := packet.Read(bytes.NewReader(r))
+		if err != nil {
+			return err
+		}
+
+		if val, ok := p.(*packet.Signature); ok {
+			e.signStatus.SignatureTime = val.CreationTime
 		}
 		e.outputSuccess(ctx, signer, sk.Owner(), e.signStatus.SignatureTime)
 	}
