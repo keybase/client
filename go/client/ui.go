@@ -178,7 +178,7 @@ func (w RemoteProofWrapper) GetHostname() string       { return w.p.Value }
 func (w RemoteProofWrapper) GetDomain() string         { return w.p.Value }
 
 func (w RemoteProofWrapper) ToDisplayString() string {
-	return libkb.NewMarkup(w.p.DisplayMarkup).GetRaw()
+	return w.p.DisplayMarkup
 }
 
 type LinkCheckResultWrapper struct {
