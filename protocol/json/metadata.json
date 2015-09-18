@@ -207,7 +207,7 @@
         "name" : "sid",
         "type" : "string"
       } ],
-      "response" : "null"
+      "response" : "int"
     },
     "putMetadata" : {
       "request" : [ {
@@ -282,6 +282,10 @@
         "type" : "string"
       } ],
       "response" : "boolean"
+    },
+    "ping" : {
+      "request" : [ ],
+      "response" : "null"
     }
   }
 }

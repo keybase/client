@@ -956,17 +956,17 @@
 
 @implementation KBRMetadataRequest
 
-- (void)authenticate:(KBRAuthenticateRequestParams *)params completion:(void (^)(NSError *error))completion {
+- (void)authenticate:(KBRAuthenticateRequestParams *)params completion:(void (^)(NSError *error, NSInteger n))completion {
   NSDictionary *rparams = @{@"user": KBRValue(params.user), @"deviceKID": KBRValue(params.deviceKID), @"sid": KBRValue(params.sid)};
   [self.client sendRequestWithMethod:@"keybase.1.metadata.authenticate" params:rparams sessionId:self.sessionId completion:^(NSError *error, id retval) {
-    completion(error);
+    completion(error, 0);
   }];
 }
 
-- (void)authenticateWithUser:(NSString *)user deviceKID:(NSString *)deviceKID sid:(NSString *)sid completion:(void (^)(NSError *error))completion {
+- (void)authenticateWithUser:(NSString *)user deviceKID:(NSString *)deviceKID sid:(NSString *)sid completion:(void (^)(NSError *error, NSInteger n))completion {
   NSDictionary *rparams = @{@"user": KBRValue(user), @"deviceKID": KBRValue(deviceKID), @"sid": KBRValue(sid)};
   [self.client sendRequestWithMethod:@"keybase.1.metadata.authenticate" params:rparams sessionId:self.sessionId completion:^(NSError *error, id retval) {
-    completion(error);
+    completion(error, 0);
   }];
 }
 
@@ -1099,6 +1099,13 @@
   NSDictionary *rparams = @{@"folderID": KBRValue(folderID)};
   [self.client sendRequestWithMethod:@"keybase.1.metadata.truncateUnlock" params:rparams sessionId:self.sessionId completion:^(NSError *error, id retval) {
     completion(error, 0);
+  }];
+}
+
+- (void)ping:(void (^)(NSError *error))completion {
+  NSDictionary *rparams = @{};
+  [self.client sendRequestWithMethod:@"keybase.1.metadata.ping" params:rparams sessionId:self.sessionId completion:^(NSError *error, id retval) {
+    completion(error);
   }];
 }
 

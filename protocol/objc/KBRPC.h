@@ -1433,9 +1433,9 @@ typedef NS_ENUM (NSInteger, KBRPromptDefault) {
 
 @interface KBRMetadataRequest : KBRRequest
 
-- (void)authenticate:(KBRAuthenticateRequestParams *)params completion:(void (^)(NSError *error))completion;
+- (void)authenticate:(KBRAuthenticateRequestParams *)params completion:(void (^)(NSError *error, NSInteger n))completion;
 
-- (void)authenticateWithUser:(NSString *)user deviceKID:(NSString *)deviceKID sid:(NSString *)sid completion:(void (^)(NSError *error))completion;
+- (void)authenticateWithUser:(NSString *)user deviceKID:(NSString *)deviceKID sid:(NSString *)sid completion:(void (^)(NSError *error, NSInteger n))completion;
 
 - (void)putMetadata:(KBRPutMetadataRequestParams *)params completion:(void (^)(NSError *error))completion;
 
@@ -1468,6 +1468,8 @@ typedef NS_ENUM (NSInteger, KBRPromptDefault) {
 - (void)truncateUnlock:(KBRTruncateUnlockRequestParams *)params completion:(void (^)(NSError *error, BOOL b))completion;
 
 - (void)truncateUnlockWithFolderID:(NSString *)folderID completion:(void (^)(NSError *error, BOOL b))completion;
+
+- (void)ping:(void (^)(NSError *error))completion;
 
 @end
 

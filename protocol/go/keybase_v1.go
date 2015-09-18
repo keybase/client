@@ -1911,8 +1911,11 @@ type TruncateUnlockArg struct {
 	FolderID string `codec:"folderID" json:"folderID"`
 }
 
+type PingArg struct {
+}
+
 type MetadataInterface interface {
-	Authenticate(AuthenticateArg) error
+	Authenticate(AuthenticateArg) (int, error)
 	PutMetadata([]byte) error
 	GetMetadata(GetMetadataArg) (MetadataResponse, error)
 	RegisterForUpdates(RegisterForUpdatesArg) error
@@ -1921,6 +1924,7 @@ type MetadataInterface interface {
 	GetKey([]byte) ([]byte, error)
 	TruncateLock(string) (bool, error)
 	TruncateUnlock(string) (bool, error)
+	Ping() error
 }
 
 func MetadataProtocol(i MetadataInterface) rpc2.Protocol {
@@ -1930,7 +1934,7 @@ func MetadataProtocol(i MetadataInterface) rpc2.Protocol {
 			"authenticate": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
 				args := make([]AuthenticateArg, 1)
 				if err = nxt(&args); err == nil {
-					err = i.Authenticate(args[0])
+					ret, err = i.Authenticate(args[0])
 				}
 				return
 			},
@@ -1990,6 +1994,13 @@ func MetadataProtocol(i MetadataInterface) rpc2.Protocol {
 				}
 				return
 			},
+			"ping": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
+				args := make([]PingArg, 1)
+				if err = nxt(&args); err == nil {
+					err = i.Ping()
+				}
+				return
+			},
 		},
 	}
 
@@ -1999,8 +2010,8 @@ type MetadataClient struct {
 	Cli GenericClient
 }
 
-func (c MetadataClient) Authenticate(__arg AuthenticateArg) (err error) {
-	err = c.Cli.Call("keybase.1.metadata.authenticate", []interface{}{__arg}, nil)
+func (c MetadataClient) Authenticate(__arg AuthenticateArg) (res int, err error) {
+	err = c.Cli.Call("keybase.1.metadata.authenticate", []interface{}{__arg}, &res)
 	return
 }
 
@@ -2047,6 +2058,11 @@ func (c MetadataClient) TruncateLock(folderID string) (res bool, err error) {
 func (c MetadataClient) TruncateUnlock(folderID string) (res bool, err error) {
 	__arg := TruncateUnlockArg{FolderID: folderID}
 	err = c.Cli.Call("keybase.1.metadata.truncateUnlock", []interface{}{__arg}, &res)
+	return
+}
+
+func (c MetadataClient) Ping() (err error) {
+	err = c.Cli.Call("keybase.1.metadata.ping", []interface{}{PingArg{}}, nil)
 	return
 }
 

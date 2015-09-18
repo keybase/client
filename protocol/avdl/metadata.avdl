@@ -14,7 +14,7 @@ protocol metadata {
 	       array<bytes> mdBlocks;
 	}
 
-	void authenticate(UID user, KID deviceKID, string sid);
+	int authenticate(UID user, KID deviceKID, string sid);
 	void putMetadata(bytes mdBlock);
 	MetadataResponse getMetadata(string folderID, bytes folderHandle, boolean unmerged, long startRevision, long stopRevision);
 	void registerForUpdates(string folderID, long currRevision);
@@ -23,4 +23,5 @@ protocol metadata {
 	bytes getKey(bytes keyHalfID);
 	boolean truncateLock(string folderID);
 	boolean truncateUnlock(string folderID);
+	void ping();
 }
