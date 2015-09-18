@@ -61,7 +61,8 @@ func (k *KexSib) Run(ctx *Context) error {
 
 	dp := k.G().Env.GetDeviceID()
 	if dp.IsNil() {
-		return libkb.NoDeviceError{Reason: "in global environment"}
+		// Prereqs w/ Device: true should catch this earlier, but just in case:
+		return libkb.DeviceRequiredError{}
 	}
 	k.deviceID = dp
 	k.G().Log.Debug("device id: %s", k.deviceID)

@@ -117,6 +117,7 @@ const (
 	SCBadTrackSession        = 1301
 	SCDeviceNotFound         = 1409
 	SCDeviceMismatch         = 1410
+	SCDeviceRequired         = 1411
 	SCStreamExists           = 1501
 	SCStreamNotFound         = 1502
 	SCStreamWrongKind        = 1503

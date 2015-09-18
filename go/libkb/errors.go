@@ -435,6 +435,12 @@ func (e ReloginRequiredError) Error() string {
 	return "Login required due to an unexpected error since your previous login."
 }
 
+type DeviceRequiredError struct{}
+
+func (e DeviceRequiredError) Error() string {
+	return "Provisioned device required; login to provision this device"
+}
+
 //=============================================================================
 
 type LogoutError struct{}

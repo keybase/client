@@ -45,7 +45,7 @@ func runPrereqs(e Engine, ctx *Context) (err error) {
 			return err
 		}
 		if !ok {
-			err = libkb.LoginRequiredError{Context: "need provisioned device"}
+			err = libkb.DeviceRequiredError{}
 			return err
 		}
 	}
