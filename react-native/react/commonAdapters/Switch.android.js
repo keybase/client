@@ -3,8 +3,7 @@
 
 var React = require('react-native')
 var {
-  SwitchAndroid,
+  SwitchAndroid
 } = React
 
-
-module.exports = SwitchAndroid;
+module.exports = SwitchAndroid

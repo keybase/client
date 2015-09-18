@@ -16,6 +16,15 @@
     "util": "^0.10.3"
   },
   "standard": {
-    "parser": "babel-eslint"
+    "parser": "babel-eslint",
+    "ignore":[
+      "purepack/",
+      "iced-error/",
+      "framed-msgpack-rpc/",
+      "keybase_v1.js"
+    ]
+  },
+  "devDependencies": {
+    "babel-eslint": "^4.1.3"
   }
 }

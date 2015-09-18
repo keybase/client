@@ -3,8 +3,7 @@
 
 var React = require('react-native')
 var {
-  SwitchIOS,
+  SwitchIOS
 } = React
 
-
-module.exports = SwitchIOS;
+module.exports = SwitchIOS

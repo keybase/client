@@ -1,2 +1,2 @@
-var { NativeAppEventEmitter } = require('react-native');
+var { NativeAppEventEmitter } = require('react-native')
 module.exports = NativeAppEventEmitter

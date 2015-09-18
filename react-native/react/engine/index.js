@@ -2,14 +2,7 @@
 
 // Handles sending requests to objc (then go) and back
 
-var React = require('react-native')
-
-var {
-  NativeModules,
-  NativeAppEventEmitter
-} = React
-
-var engine = require("./native")
+var engine = require('./native')
 
 var rpc = require('../framed-msgpack-rpc/lib/main')
 var RpcTransport = rpc.transport.Transport
@@ -135,7 +128,7 @@ class Engine {
   }
 
   setupListener () {
-    var NativeEventEmitter = require('../commonAdapters/NativeEventEmitter');
+    var NativeEventEmitter = require('../commonAdapters/NativeEventEmitter')
     this.subscription = NativeEventEmitter.addListener(
       engine.eventName,
       (payload) => {

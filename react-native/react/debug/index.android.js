@@ -4,15 +4,14 @@
  * A debug tab. Use this to jump directly to a part of the app outside of the flow for quick debugging
  */
 
-var React = require('react-native');
+var React = require('react-native')
 var {
   Component,
   StyleSheet,
-  View,
-  Text
-} = React;
+  View
+} = React
 
-var GoTest = require('./go-test');
+var GoTest = require('./go-test')
 
 class Debug extends Component {
   constructor () {

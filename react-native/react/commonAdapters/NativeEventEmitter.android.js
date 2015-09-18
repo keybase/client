@@ -1,2 +1,2 @@
 var RCTDeviceEventEmitter = require('RCTDeviceEventEmitter')
-module.exports = RCTDeviceEventEmitter;
+module.exports = RCTDeviceEventEmitter

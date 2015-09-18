@@ -8,6 +8,9 @@
 # Setup golang mobile
 go get golang.org/x/mobile/cmd/gomobile
 gomobile init
+
+# Setup npm
+npm install
 ```
 
 #### ios specific
@@ -21,9 +24,6 @@ pod setup
 
 # Generate workspace
 pod install
-
-# Setup npm
-npm install
 ```
 
 ```sh
@@ -82,6 +82,7 @@ See [the objC style guide](../osx/STYLEGUIDE.md)
 
 ```
 npm install -g standard
+npm install -g babel-eslint
 npm install -g flow
 ```
 

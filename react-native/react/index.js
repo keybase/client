@@ -117,4 +117,4 @@ var styles = StyleSheet.create({
   }
 })
 
-AppRegistry.registerComponent('Keybase', () => Keybase);
+AppRegistry.registerComponent('Keybase', () => Keybase)
