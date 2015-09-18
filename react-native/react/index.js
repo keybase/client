@@ -1,8 +1,9 @@
 'use strict'
 /* @flow */
 
-var React = require('react-native')
-var {
+import React from 'react-native'
+
+const {
   AppRegistry,
   Component,
   StyleSheet,
@@ -11,12 +12,20 @@ var {
   View
 } = React
 
-var Navigator = require('./common/navigator')
-var commonStyles = require('./styles/common')
+const Navigator = require('./common/navigator')
+const commonStyles = require('./styles/common')
+
+const { Provider } = require('react-redux/native')
+const configureStore = require('./store/configureStore')
+const store = configureStore()
+
+if (GLOBAL) {
+  GLOBAL.store = store // TEMP to test
+}
 
 class AppOrDebug extends Component {
-  constructor () {
-    super()
+  constructor (props) {
+    super(props)
   }
 
   showApp () {
@@ -51,6 +60,8 @@ class AppOrDebug extends Component {
 
   // Auto push to the next state, can't figure out a nicer way to do this
   componentDidMount () {
+    this.showApp()
+    /*
     if (this.props.navSavedPath.length) {
       switch (this.props.navSavedPath[0].saveKey) {
         case 'Login':
@@ -61,6 +72,7 @@ class AppOrDebug extends Component {
           break
       }
     }
+    */
   }
 
   render () {
@@ -94,19 +106,23 @@ class Keybase extends Component {
 
   render () {
     return (
-      <Navigator
-        saveName='main'
-        ref='navigator'
-        initialRoute = {{
-          title: 'App or Debug',
-          component: AppOrDebug
-        }}
-      />
+      <Provider store={store}>
+        {() =>
+          <Navigator
+            saveName='main'
+            ref='navigator'
+            initialRoute = {{
+              title: 'App or Debug',
+              component: AppOrDebug
+            }}
+          />
+        }
+      </Provider>
     )
   }
 }
 
-var styles = StyleSheet.create({
+const styles = StyleSheet.create({
   navigator: {
     flex: 1
   },
