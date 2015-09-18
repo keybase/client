@@ -54,6 +54,7 @@ func (c *CmdStress) rpcClient() (*rpc2.Client, error) {
 		NewLogUIProtocol(),
 		NewDoctorUIProtocol(),
 		NewLocksmithUIProtocol(),
+		NewLoginUIProtocol(),
 	}
 	if err := RegisterProtocols(protocols); err != nil {
 		return nil, err

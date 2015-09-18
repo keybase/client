@@ -28,6 +28,7 @@ func (c *CmdDoctor) Run() error {
 		NewDoctorUIProtocol(),
 		NewSecretUIProtocol(),
 		NewLogUIProtocol(),
+		NewLocksmithUIProtocol(),
 	}
 	if err := RegisterProtocols(protocols); err != nil {
 		return err
