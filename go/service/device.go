@@ -29,7 +29,7 @@ func (h *DeviceHandler) DeviceList(sessionID int) ([]keybase1.Device, error) {
 func (h *DeviceHandler) DeviceAdd(arg keybase1.DeviceAddArg) error {
 	locksmithUI := NewRemoteLocksmithUI(arg.SessionID, h.rpcClient())
 	ctx := &engine.Context{SecretUI: h.getSecretUI(arg.SessionID), LocksmithUI: locksmithUI}
-	eng := engine.NewKexSib(G, arg.SecretPhrase)
+	eng := engine.NewKexProvisioner(G, arg.SecretPhrase)
 
 	h.setCanceler(arg.SessionID, eng)
 	defer h.removeCanceler(arg.SessionID)

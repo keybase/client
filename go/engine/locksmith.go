@@ -19,7 +19,7 @@ type Locksmith struct {
 	devName    string
 	lks        *libkb.LKSec
 	kexMu      sync.Mutex
-	kex        *KexFwd
+	kex        *KexNewDevice
 	canceled   chan struct{}
 }
 
@@ -550,7 +550,7 @@ func (d *Locksmith) deviceSignExistingDevice(ctx *Context, existingID keybase1.D
 		return err
 	}
 
-	kargs := &KexFwdArgs{
+	kargs := &KexNewDeviceArgs{
 		User:    d.arg.User,
 		Dst:     existingID,
 		DstName: existingName,
@@ -559,7 +559,7 @@ func (d *Locksmith) deviceSignExistingDevice(ctx *Context, existingID keybase1.D
 	}
 
 	d.kexMu.Lock()
-	d.kex = NewKexFwd(pps, kargs, d.G())
+	d.kex = NewKexNewDevice(pps, kargs, d.G())
 	d.kexMu.Unlock()
 
 	err = RunEngine(d.kex, ctx)

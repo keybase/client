@@ -9,9 +9,9 @@ import (
 	keybase1 "github.com/keybase/client/protocol/go"
 )
 
-// KexCom contains common functions for all kex engines.  It
+// KexCommon contains common functions for all kex engines.  It
 // should be embedded in the kex engines.
-type KexCom struct {
+type KexCommon struct {
 	libkb.Contextified
 	user      *libkb.User
 	deviceID  keybase1.DeviceID
@@ -23,11 +23,11 @@ type KexCom struct {
 	server    kex.Handler
 }
 
-func newKexCom(gc *libkb.GlobalContext) *KexCom {
-	return &KexCom{Contextified: libkb.NewContextified(gc)}
+func newKexCommon(gc *libkb.GlobalContext) *KexCommon {
+	return &KexCommon{Contextified: libkb.NewContextified(gc)}
 }
 
-func (k *KexCom) verifyReceiver(m *kex.Meta) error {
+func (k *KexCommon) verifyReceiver(m *kex.Meta) error {
 	k.G().Log.Debug("[%s] kex Meta: sender device %s => receiver device %s", k.debugName, m.Sender, m.Receiver)
 	k.G().Log.Debug("[%s] kex Meta: own device %s", k.debugName, k.deviceID)
 	if m.Receiver != k.deviceID {
@@ -36,14 +36,14 @@ func (k *KexCom) verifyReceiver(m *kex.Meta) error {
 	return nil
 }
 
-func (k *KexCom) verifyRequest(m *kex.Meta) error {
+func (k *KexCommon) verifyRequest(m *kex.Meta) error {
 	if err := k.verifyReceiver(m); err != nil {
 		return err
 	}
 	return nil
 }
 
-func (k *KexCom) sessionArgs(ctx *Context) (token, csrf string) {
+func (k *KexCommon) sessionArgs(ctx *Context) (token, csrf string) {
 	if ctx.LoginContext != nil {
 		token, csrf = ctx.LoginContext.LocalSession().APIArgs()
 	} else {
@@ -57,7 +57,7 @@ func (k *KexCom) sessionArgs(ctx *Context) (token, csrf string) {
 	return
 }
 
-func (k *KexCom) poll(ctx *Context, m *kex.Meta, secret *kex.Secret) {
+func (k *KexCommon) poll(ctx *Context, m *kex.Meta, secret *kex.Secret) {
 	token, csrf := k.sessionArgs(ctx)
 	k.recMu.Lock()
 	k.rec = kex.NewReceiver(m.Direction, secret, token, csrf, k.G())
@@ -69,7 +69,7 @@ func (k *KexCom) poll(ctx *Context, m *kex.Meta, secret *kex.Secret) {
 	}()
 }
 
-func (k *KexCom) next(ctx *Context, name kex.MsgName, timeout time.Duration, handler func(*Context, *kex.Msg) error) error {
+func (k *KexCommon) next(ctx *Context, name kex.MsgName, timeout time.Duration, handler func(*Context, *kex.Msg) error) error {
 	k.G().Log.Debug("%s: waiting for %s (%s)", k.debugName, name, timeout)
 	msg, err := k.rec.Next(name, timeout)
 	k.G().Log.Debug("%s: got message %s", k.debugName, name)
@@ -85,10 +85,10 @@ func (k *KexCom) next(ctx *Context, name kex.MsgName, timeout time.Duration, han
 	return handler(ctx, msg)
 }
 
-func (k *KexCom) kexStatus(ctx *Context, msg string, code keybase1.KexStatusCode) {
+func (k *KexCommon) kexStatus(ctx *Context, msg string, code keybase1.KexStatusCode) {
 	// just to be sure...
 	if ctx.LocksmithUI == nil {
-		k.G().Log.Warning("KexCom kexStatus(), ctx.LocksmithUI is nil")
+		k.G().Log.Warning("KexCommon kexStatus(), ctx.LocksmithUI is nil")
 		return
 	}
 
@@ -98,7 +98,7 @@ func (k *KexCom) kexStatus(ctx *Context, msg string, code keybase1.KexStatusCode
 	}
 }
 
-func (k *KexCom) cancel(m *kex.Meta) error {
+func (k *KexCommon) cancel(m *kex.Meta) error {
 	k.recMu.Lock()
 	defer k.recMu.Unlock()
 	if k.rec != nil {

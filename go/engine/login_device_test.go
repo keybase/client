@@ -63,7 +63,7 @@ func TestLoginNewDeviceKex1(t *testing.T) {
 			time.Sleep(50 * time.Millisecond)
 		}
 
-		kx := NewKexSib(tcX.G, docui.secretPhrase())
+		kx := NewKexProvisioner(tcX.G, docui.secretPhrase())
 		if err := RunEngine(kx, ctx); err != nil {
 			t.Fatal(err)
 		}
@@ -201,7 +201,7 @@ func TestLoginNewDeviceKexBadPhrase(t *testing.T) {
 		}
 
 		// ok, we know the secret phrase, but will enter it incorrectly:
-		kx := NewKexSib(tcX.G, docui.secretPhrase()+" gibberish")
+		kx := NewKexProvisioner(tcX.G, docui.secretPhrase()+" gibberish")
 		err := RunEngine(kx, ctx)
 		if _, ok := err.(libkb.InvalidKexPhraseError); !ok {
 			t.Fatal(err)
@@ -285,13 +285,13 @@ func TestLoginNewDeviceKexRetryPhrase(t *testing.T) {
 		}
 
 		// first time, enter bad phrase:
-		kx := NewKexSib(tcX.G, docui.secretPhrase()+"gibberish")
+		kx := NewKexProvisioner(tcX.G, docui.secretPhrase()+"gibberish")
 		if err := RunEngine(kx, ctx); err == nil {
 			t.Fatal("kexsib worked with invalid phrase")
 		}
 
 		// second time, enter correct phrase:
-		kx = NewKexSib(tcX.G, docui.secretPhrase())
+		kx = NewKexProvisioner(tcX.G, docui.secretPhrase())
 		if err := RunEngine(kx, ctx); err != nil {
 			t.Fatal(err)
 		}
@@ -377,7 +377,7 @@ func TestLoginNewDeviceKexCancelOnY(t *testing.T) {
 		li.Cancel()
 
 		// and now enter the secret phrase on device X and see what happens
-		kx := NewKexSib(tcX.G, docui.secretPhrase())
+		kx := NewKexProvisioner(tcX.G, docui.secretPhrase())
 		err := RunEngine(kx, ctx)
 		if err == nil {
 			t.Error("kex sib succeeded, it should have failed.")

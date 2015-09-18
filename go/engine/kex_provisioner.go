@@ -9,8 +9,8 @@ import (
 	jsonw "github.com/keybase/go-jsonw"
 )
 
-type KexSib struct {
-	KexCom
+type KexProvisioner struct {
+	KexCommon
 	secretPhrase string
 	engctx       *Context
 	deviceSibkey libkb.GenericKey
@@ -19,36 +19,36 @@ type KexSib struct {
 	sec          *kex.Secret
 }
 
-// NewKexSib creates a sibkey add engine.
+// NewKexProvisioner creates a sibkey add engine.
 // This runs on device X to provision device Y in forward kex.
 // The secretPhrase is needed before this engine can run because
 // the weak id used in receive() is based on it.
-func NewKexSib(g *libkb.GlobalContext, secretPhrase string) *KexSib {
-	kc := newKexCom(g)
-	return &KexSib{
-		KexCom:       *kc,
+func NewKexProvisioner(g *libkb.GlobalContext, secretPhrase string) *KexProvisioner {
+	kc := newKexCommon(g)
+	return &KexProvisioner{
+		KexCommon:    *kc,
 		secretPhrase: secretPhrase,
 	}
 }
 
-func (k *KexSib) Name() string {
-	return "KexSib"
+func (k *KexProvisioner) Name() string {
+	return "KexProvisioner"
 }
 
-func (k *KexSib) Prereqs() Prereqs {
+func (k *KexProvisioner) Prereqs() Prereqs {
 	return Prereqs{Device: true}
 }
 
-func (k *KexSib) RequiredUIs() []libkb.UIKind {
+func (k *KexProvisioner) RequiredUIs() []libkb.UIKind {
 	return []libkb.UIKind{libkb.SecretUIKind, libkb.LocksmithUIKind}
 }
 
-func (k *KexSib) SubConsumers() []libkb.UIConsumer {
+func (k *KexProvisioner) SubConsumers() []libkb.UIConsumer {
 	return nil
 }
 
 // Run starts the engine.
-func (k *KexSib) Run(ctx *Context) error {
+func (k *KexProvisioner) Run(ctx *Context) error {
 	k.engctx = ctx
 
 	var err error
@@ -73,7 +73,7 @@ func (k *KexSib) Run(ctx *Context) error {
 
 	k.deviceSibkey, err = k.user.GetComputedKeyFamily().GetSibkeyForDevice(k.deviceID)
 	if err != nil {
-		k.G().Log.Warning("KexSib.Run: error getting device sibkey: %s", err)
+		k.G().Log.Warning("KexProvisioner.Run: error getting device sibkey: %s", err)
 		return err
 	}
 
@@ -93,11 +93,11 @@ func (k *KexSib) Run(ctx *Context) error {
 	}
 	k.sigKey, _, err = k.G().Keyrings.GetSecretKeyWithPrompt(ctx.LoginContext, arg, ctx.SecretUI, "new device install")
 	if err != nil {
-		k.G().Log.Warning("KexSib.Run: GetSecretKey error: %s", err)
+		k.G().Log.Warning("KexProvisioner.Run: GetSecretKey error: %s", err)
 		return err
 	}
 
-	k.G().Log.Debug("KexSib: starting receive loop")
+	k.G().Log.Debug("KexProvisioner: starting receive loop")
 	var nilDeviceID keybase1.DeviceID
 	m := kex.NewMeta(k.user.GetUID(), k.sec.StrongID(), nilDeviceID, k.deviceID, kex.DirectionYtoX)
 	err = k.loopReceives(ctx, m, k.sec)
@@ -107,13 +107,13 @@ func (k *KexSib) Run(ctx *Context) error {
 	return err
 }
 
-func (k *KexSib) Cancel() error {
+func (k *KexProvisioner) Cancel() error {
 	var nilDeviceID keybase1.DeviceID
 	m := kex.NewMeta(k.user.GetUID(), k.sec.StrongID(), nilDeviceID, k.deviceID, kex.DirectionYtoX)
 	return k.cancel(m)
 }
 
-func (k *KexSib) loopReceives(ctx *Context, m *kex.Meta, sec *kex.Secret) error {
+func (k *KexProvisioner) loopReceives(ctx *Context, m *kex.Meta, sec *kex.Secret) error {
 	// start receive loop
 	k.poll(ctx, m, sec)
 
@@ -154,19 +154,19 @@ func (k *KexSib) loopReceives(ctx *Context, m *kex.Meta, sec *kex.Secret) error 
 		return err
 	}
 
-	k.G().Log.Debug("KexSib: finished with messages, waiting for receive to end.")
+	k.G().Log.Debug("KexProvisioner: finished with messages, waiting for receive to end.")
 	k.wg.Wait()
-	k.G().Log.Debug("KexSib: done.")
+	k.G().Log.Debug("KexProvisioner: done.")
 	k.kexStatus(ctx, "kexsib complete on existing device X ", keybase1.KexStatusCode_END)
 	return nil
 }
 
-func (k *KexSib) handleStart(ctx *Context, m *kex.Msg) error {
+func (k *KexProvisioner) handleStart(ctx *Context, m *kex.Msg) error {
 	k.devidY = m.Sender
 	return nil
 }
 
-func (k *KexSib) verifyPleaseSign(jw *jsonw.Wrapper, newKID keybase1.KID) (err error) {
+func (k *KexProvisioner) verifyPleaseSign(jw *jsonw.Wrapper, newKID keybase1.KID) (err error) {
 	jw.AssertEqAtPath("body.key.kid", k.sigKey.GetKID().ToJsonw(), &err)
 	jw.AssertEqAtPath("body.key.uid", libkb.UIDWrapper(k.user.GetUID()), &err)
 	jw.AssertEqAtPath("body.key.eldest_kid", k.user.GetEldestKID().ToJsonw(), &err)
@@ -176,7 +176,7 @@ func (k *KexSib) verifyPleaseSign(jw *jsonw.Wrapper, newKID keybase1.KID) (err e
 	return err
 }
 
-func (k *KexSib) handlePleaseSign(ctx *Context, m *kex.Msg) error {
+func (k *KexProvisioner) handlePleaseSign(ctx *Context, m *kex.Msg) error {
 	eddsa := m.Args().SigningKey
 	sig := m.Args().Sig
 
