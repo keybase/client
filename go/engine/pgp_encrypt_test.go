@@ -1,6 +1,7 @@
 package engine
 
 import (
+	"bytes"
 	"strings"
 	"testing"
 
@@ -95,4 +96,54 @@ func TestPGPEncryptNoTrack(t *testing.T) {
 	assertNotTracking(tc, "t_alice")
 	assertNotTracking(tc, "t_bob")
 	assertNotTracking(tc, "t_charlie")
+}
+
+// encrypt for self via NoSelf: false and username in recipients
+func TestPGPEncryptSelfTwice(t *testing.T) {
+	tc := SetupEngineTest(t, "PGPEncrypt")
+	defer tc.Cleanup()
+
+	u := createFakeUserWithPGPSibkey(tc)
+	trackUI := &FakeIdentifyUI{
+		Proofs: make(map[string]string),
+	}
+	ctx := &Context{IdentifyUI: trackUI, SecretUI: u.NewSecretUI()}
+
+	msg := "encrypt for self only once"
+	sink := libkb.NewBufferCloser()
+	arg := &PGPEncryptArg{
+		Recips: []string{u.Username},
+		Source: strings.NewReader(msg),
+		Sink:   sink,
+		NoSign: true,
+	}
+
+	eng := NewPGPEncrypt(arg, tc.G)
+	err := RunEngine(eng, ctx)
+	if err != nil {
+		t.Fatal(err)
+	}
+	out := sink.Bytes()
+
+	// decrypt it
+	decoded := libkb.NewBufferCloser()
+	decarg := &PGPDecryptArg{
+		Source: bytes.NewReader(out),
+		Sink:   decoded,
+	}
+	dec := NewPGPDecrypt(decarg, tc.G)
+	ctx.LogUI = tc.G.UI.GetLogUI()
+	if err := RunEngine(dec, ctx); err != nil {
+		t.Fatal(err)
+	}
+	decmsg := string(decoded.Bytes())
+	if decmsg != msg {
+		t.Errorf("decoded: %q, expected: %q", decmsg, msg)
+	}
+
+	recips := dec.signStatus.RecipientKeyIDs
+	if len(recips) != 1 {
+		t.Logf("recipient key ids: %v", recips)
+		t.Errorf("num recipient key ids: %d, expected 1", len(recips))
+	}
 }

@@ -131,7 +131,7 @@ func (e *PGPEncrypt) Run(ctx *Context) error {
 		writer = aw
 	}
 
-	var recipients []*libkb.PGPKeyBundle
+	keyset := make(map[keybase1.KID]*libkb.PGPKeyBundle)
 	if !e.arg.NoSelf {
 		if mykey == nil {
 			// need to load the public key for the logged in user
@@ -143,12 +143,18 @@ func (e *PGPEncrypt) Run(ctx *Context) error {
 
 		// mykey could still be nil
 		if mykey != nil {
-			recipients = append(recipients, mykey)
+			keyset[mykey.GetKID()] = mykey
 		}
 	}
 
 	for _, up := range uplus {
-		recipients = append(recipients, up.Keys...)
+		for _, k := range up.Keys {
+			keyset[k.GetKID()] = k
+		}
+	}
+	recipients := make([]*libkb.PGPKeyBundle, 0, len(keyset))
+	for _, key := range keyset {
+		recipients = append(recipients, key)
 	}
 
 	if err := libkb.PGPEncrypt(e.arg.Source, writer, signer, recipients); err != nil {

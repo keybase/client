@@ -14,12 +14,13 @@ import (
 )
 
 type SignatureStatus struct {
-	IsSigned       bool
-	Verified       bool
-	SignatureError error
-	KeyID          uint64
-	Entity         *openpgp.Entity
-	SignatureTime  time.Time
+	IsSigned        bool
+	Verified        bool
+	SignatureError  error
+	KeyID           uint64
+	Entity          *openpgp.Entity
+	SignatureTime   time.Time
+	RecipientKeyIDs []uint64
 }
 
 func PGPDecryptWithBundles(source io.Reader, sink io.Writer, keys []*PGPKeyBundle) (*SignatureStatus, error) {
@@ -82,6 +83,8 @@ func PGPDecrypt(source io.Reader, sink io.Writer, kr openpgp.KeyRing) (*Signatur
 			status.Verified = true
 		}
 	}
+
+	status.RecipientKeyIDs = md.EncryptedToKeyIds
 
 	return &status, nil
 }
