@@ -4,7 +4,6 @@ import (
 	"encoding/hex"
 	"time"
 
-	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/logger"
 	keybase1 "github.com/keybase/client/protocol/go"
 	"golang.org/x/net/context"
@@ -53,25 +52,19 @@ func (b *BlockServerRemote) RemoteAddress() string {
 // OnConnect implements the ConnectionHandler interface.
 func (b *BlockServerRemote) OnConnect(ctx context.Context,
 	conn *Connection, client keybase1.GenericClient) error {
-
-	var token string
-	var session *libkb.Session
-	var err error
-	if session, err = b.config.KBPKI().GetSession(ctx); err != nil {
+	token, err := b.config.KBPKI().GetCurrentToken(ctx)
+	if err != nil {
 		b.log.CWarningf(ctx, "BlockServerRemote: error getting session %q", err)
 		return err
-	} else if session != nil {
-		token = session.GetToken()
 	}
 
-	var user keybase1.UID
-	user, err = b.config.KBPKI().GetLoggedInUser(ctx)
+	uid, err := b.config.KBPKI().GetCurrentUID(ctx)
 	if err != nil {
 		return err
 	}
 
 	arg := keybase1.EstablishSessionArg{
-		User: user,
+		User: uid,
 		Sid:  token,
 	}
 
@@ -79,7 +72,7 @@ func (b *BlockServerRemote) OnConnect(ctx context.Context,
 	b.conn = conn
 
 	b.log.CDebugf(ctx, "BlockServerRemote.OnConnect establish session for "+
-		"user %s\n", user.String())
+		"uid %s\n", uid.String())
 	// using conn.DoCommand here would cause problematic recursion
 	return runUnlessCanceled(ctx, func() error {
 		c := keybase1.BlockClient{Cli: client}

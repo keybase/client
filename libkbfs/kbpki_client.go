@@ -53,46 +53,61 @@ func newKBPKIClientWithClient(client keybase1.GenericClient,
 	return &KBPKIClient{client, log}
 }
 
-// ResolveAssertion implements the KBPKI interface for KBPKIClient.
-func (k *KBPKIClient) ResolveAssertion(ctx context.Context, username string) (
-	*libkb.User, error) {
-	arg := &engine.IDEngineArg{UserAssertion: username}
-	// TODO: Consider caching the returned public key info from
-	// identify instead of dropping them.
-	user, _, err := k.identify(ctx, arg)
-	return user, err
-}
-
-// GetUser implements the KBPKI interface for KBPKIClient.
-func (k *KBPKIClient) GetUser(ctx context.Context, uid keybase1.UID) (
-	user *libkb.User, err error) {
-	user, _, err = k.identifyByUID(ctx, uid)
-	return user, err
-}
-
-// GetSession implements the KBPKI interface for KBPKIClient.
-func (k *KBPKIClient) GetSession(ctx context.Context) (*libkb.Session, error) {
+// GetCurrentToken implements the KBPKI interface for KBPKIClient.
+func (k *KBPKIClient) GetCurrentToken(ctx context.Context) (string, error) {
 	s, _, err := k.session(ctx)
 	if err != nil {
 		// XXX shouldn't ignore this...
 		k.log.CWarningf(ctx, "error getting session: %q", err)
-		return nil, err
+		return "", err
 	}
-	return s, nil
+	return s.GetToken(), nil
 }
 
-// GetLoggedInUser implements the KBPKI interface for KBPKIClient.
-func (k *KBPKIClient) GetLoggedInUser(ctx context.Context) (
-	uid keybase1.UID, error error) {
+// GetCurrentUID implements the KBPKI interface for KBPKIClient.
+func (k *KBPKIClient) GetCurrentUID(ctx context.Context) (keybase1.UID, error) {
 	s, _, err := k.session(ctx)
 	if err != nil {
 		// TODO: something more intelligent; maybe just shut down
 		// unless we want anonymous browsing of public data
-		return
+		return keybase1.UID(""), err
 	}
-	uid = s.GetUID()
+	uid := s.GetUID()
 	k.log.CInfof(ctx, "logged in user uid = %s", uid)
-	return
+	return uid, nil
+}
+
+// GetCurrentCryptPublicKey implements the KBPKI interface for KBPKIClient.
+func (k *KBPKIClient) GetCurrentCryptPublicKey(ctx context.Context) (
+	CryptPublicKey, error) {
+	_, deviceSubkey, err := k.session(ctx)
+	if err != nil {
+		return CryptPublicKey{}, err
+	}
+	k.log.CDebugf(ctx, "got device subkey %s",
+		deviceSubkey.GetKID().ToShortIDString())
+	return CryptPublicKey{deviceSubkey.GetKID()}, nil
+}
+
+// ResolveAssertion implements the KBPKI interface for KBPKIClient.
+func (k *KBPKIClient) ResolveAssertion(ctx context.Context, username string) (
+	keybase1.UID, error) {
+	arg := &engine.IDEngineArg{UserAssertion: username}
+	// TODO: Consider caching the returned public key info from
+	// identify instead of dropping them.
+	user, _, err := k.identify(ctx, arg)
+	return user.GetUID(), err
+}
+
+// GetNormalizedUsername implements the KBPKI interface for
+// KBPKIClient.
+func (k *KBPKIClient) GetNormalizedUsername(ctx context.Context, uid keybase1.UID) (
+	libkb.NormalizedUsername, error) {
+	user, _, err := k.identifyByUID(ctx, uid)
+	if err != nil {
+		return libkb.NormalizedUsername(""), err
+	}
+	return user.GetNormalizedName(), nil
 }
 
 // HasVerifyingKey implements the KBPKI interface for KBPKIClient.
@@ -140,18 +155,6 @@ func (k *KBPKIClient) GetCryptPublicKeys(ctx context.Context,
 	}
 
 	return keys, nil
-}
-
-// GetCurrentCryptPublicKey implements the KBPKI interface for KBPKIClient.
-func (k *KBPKIClient) GetCurrentCryptPublicKey(ctx context.Context) (
-	CryptPublicKey, error) {
-	_, deviceSubkey, err := k.session(ctx)
-	if err != nil {
-		return CryptPublicKey{}, err
-	}
-	k.log.CDebugf(ctx, "got device subkey %s",
-		deviceSubkey.GetKID().ToShortIDString())
-	return CryptPublicKey{deviceSubkey.GetKID()}, nil
 }
 
 func (k *KBPKIClient) identify(ctx context.Context, arg *engine.IDEngineArg) (

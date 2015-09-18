@@ -22,8 +22,8 @@ func (k *KeyOpsStandard) GetTLFCryptKeyServerHalf(ctx context.Context,
 	if err != nil {
 		return TLFCryptKeyServerHalf{}, err
 	}
-	// get current user and deviceKID
-	user, err := k.config.KBPKI().GetLoggedInUser(ctx)
+	// get current uid and deviceKID
+	uid, err := k.config.KBPKI().GetCurrentUID(ctx)
 	if err != nil {
 		return TLFCryptKeyServerHalf{}, err
 	}
@@ -34,7 +34,7 @@ func (k *KeyOpsStandard) GetTLFCryptKeyServerHalf(ctx context.Context,
 
 	// verify we got the expected key
 	crypto := k.config.Crypto()
-	err = crypto.VerifyTLFCryptKeyServerHalfID(serverHalfID, user, key.KID, serverHalf)
+	err = crypto.VerifyTLFCryptKeyServerHalfID(serverHalfID, uid, key.KID, serverHalf)
 	if err != nil {
 		return TLFCryptKeyServerHalf{}, err
 	}

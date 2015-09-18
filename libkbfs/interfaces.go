@@ -223,16 +223,23 @@ type KBFSOps interface {
 	Shutdown()
 }
 
-// KBPKI interacts with kbpkid to fetch info from keybase
+// KBPKI interacts with the Keybase daemon to fetch user info.
 type KBPKI interface {
-	// ResolveAssertion loads a user by assertion (could also be a username)
-	ResolveAssertion(ctx context.Context, input string) (*libkb.User, error)
-	// GetUser loads user by UID and checks assumptions via identify
-	GetUser(ctx context.Context, uid keybase1.UID) (*libkb.User, error)
-	// GetSession gets the current keybase session
-	GetSession(ctx context.Context) (*libkb.Session, error)
-	// GetLoggedInUser gets the UID of the current logged-in user
-	GetLoggedInUser(ctx context.Context) (keybase1.UID, error)
+	// GetCurrentToken gets the current keybase session token.
+	GetCurrentToken(ctx context.Context) (string, error)
+	// GetCurrentUID gets the UID of the current logged-in user.
+	GetCurrentUID(ctx context.Context) (keybase1.UID, error)
+	// GetCurrentCryptPublicKey gets the crypt public key for the
+	// currently-active device.
+	GetCurrentCryptPublicKey(ctx context.Context) (CryptPublicKey, error)
+
+	// ResolveAssertion loads a user by assertion (could also be a
+	// username).
+	ResolveAssertion(ctx context.Context, input string) (keybase1.UID, error)
+	// GetNormalizedUsername returns the normalized username
+	// corresponding to the given UID.
+	GetNormalizedUsername(ctx context.Context, uid keybase1.UID) (libkb.NormalizedUsername, error)
+
 	// HasVerifyingKey returns nil if the given user has the given
 	// VerifyingKey, and an error otherwise.
 	//
@@ -244,9 +251,6 @@ type KBPKI interface {
 	// per device).
 	GetCryptPublicKeys(ctx context.Context, uid keybase1.UID) (
 		[]CryptPublicKey, error)
-	// GetCurrentCryptPublicKey gets the crypt public key for the
-	// currently-active device.
-	GetCurrentCryptPublicKey(ctx context.Context) (CryptPublicKey, error)
 
 	// FavoriteAdd adds folder to the list of the logged in user's
 	// favorite folders.  It is idempotent.

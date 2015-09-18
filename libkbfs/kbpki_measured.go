@@ -11,13 +11,13 @@ import (
 // track of stats.
 type KBPKIMeasured struct {
 	delegate                      KBPKI
+	getCurrentTokenTimer          metrics.Timer
+	getCurrentUIDTimer            metrics.Timer
+	getCurrentCryptPublicKeyTimer metrics.Timer
 	resolveAssertionTimer         metrics.Timer
 	getUserTimer                  metrics.Timer
-	getSessionTimer               metrics.Timer
-	getLoggedInUserTimer          metrics.Timer
 	hasVerifyingKeyTimer          metrics.Timer
 	getCryptPublicKeysTimer       metrics.Timer
-	getCurrentCryptPublicKeyTimer metrics.Timer
 	favoriteAddTimer              metrics.Timer
 	favoriteDeleteTimer           metrics.Timer
 	favoriteListTimer             metrics.Timer
@@ -28,65 +28,73 @@ var _ KBPKI = KBPKIMeasured{}
 // NewKbpkiMeasured creates and returns a new KBPKIMeasured instance
 // with the given delegate and registry.
 func NewKbpkiMeasured(delegate KBPKI, r metrics.Registry) KBPKIMeasured {
+	getCurrentTokenTimer := metrics.GetOrRegisterTimer("KBPKI.GetCurrentToken", r)
+	getCurrentUIDTimer := metrics.GetOrRegisterTimer("KBPKI.GetCurrentUID", r)
+	getCurrentCryptPublicKeyTimer := metrics.GetOrRegisterTimer("KBPKI.GetCurrentCryptPublicKey", r)
 	resolveAssertionTimer := metrics.GetOrRegisterTimer("KBPKI.ResolveAssertion", r)
 	getUserTimer := metrics.GetOrRegisterTimer("KBPKI.GetUser", r)
-	getSessionTimer := metrics.GetOrRegisterTimer("KBPKI.GetSession", r)
-	getLoggedInUserTimer := metrics.GetOrRegisterTimer("KBPKI.GetLoggedInUser", r)
 	hasVerifyingKeyTimer := metrics.GetOrRegisterTimer("KBPKI.HasVerifyingKey", r)
 	getCryptPublicKeysTimer := metrics.GetOrRegisterTimer("KBPKI.GetCryptPublicKeys", r)
-	getCurrentCryptPublicKeyTimer := metrics.GetOrRegisterTimer("KBPKI.GetCurrentCryptPublicKey", r)
 	favoriteAddTimer := metrics.GetOrRegisterTimer("KBPKI.FavoriteAdd", r)
 	favoriteDeleteTimer := metrics.GetOrRegisterTimer("KBPKI.FavoriteDelete", r)
 	favoriteListTimer := metrics.GetOrRegisterTimer("KBPKI.FavoriteList", r)
 	return KBPKIMeasured{
 		delegate:                      delegate,
+		getCurrentTokenTimer:          getCurrentTokenTimer,
+		getCurrentUIDTimer:            getCurrentUIDTimer,
+		getCurrentCryptPublicKeyTimer: getCurrentCryptPublicKeyTimer,
 		resolveAssertionTimer:         resolveAssertionTimer,
 		getUserTimer:                  getUserTimer,
-		getSessionTimer:               getSessionTimer,
-		getLoggedInUserTimer:          getLoggedInUserTimer,
 		hasVerifyingKeyTimer:          hasVerifyingKeyTimer,
 		getCryptPublicKeysTimer:       getCryptPublicKeysTimer,
-		getCurrentCryptPublicKeyTimer: getCurrentCryptPublicKeyTimer,
 		favoriteAddTimer:              favoriteAddTimer,
 		favoriteDeleteTimer:           favoriteDeleteTimer,
 		favoriteListTimer:             favoriteListTimer,
 	}
 }
 
-// ResolveAssertion implements the KBPKI interface for KBPKIMeasured.
-func (k KBPKIMeasured) ResolveAssertion(ctx context.Context, input string) (
-	user *libkb.User, err error) {
-	k.resolveAssertionTimer.Time(func() {
-		user, err = k.delegate.ResolveAssertion(ctx, input)
+// GetCurrentToken implements the KBPKI interface for KBPKIMeasured.
+func (k KBPKIMeasured) GetCurrentToken(ctx context.Context) (token string, err error) {
+	k.getCurrentTokenTimer.Time(func() {
+		token, err = k.delegate.GetCurrentToken(ctx)
 	})
-	return user, err
+	return token, err
 }
 
-// GetUser implements the KBPKI interface for KBPKIMeasured.
-func (k KBPKIMeasured) GetUser(ctx context.Context, uid keybase1.UID) (
-	user *libkb.User, err error) {
-	k.getUserTimer.Time(func() {
-		user, err = k.delegate.GetUser(ctx, uid)
-	})
-	return user, err
-}
-
-// GetSession implements the KBPKI interface for KBPKIMeasured.
-func (k KBPKIMeasured) GetSession(ctx context.Context) (
-	session *libkb.Session, err error) {
-	k.getSessionTimer.Time(func() {
-		session, err = k.delegate.GetSession(ctx)
-	})
-	return session, err
-}
-
-// GetLoggedInUser implements the KBPKI interface for KBPKIMeasured.
-func (k KBPKIMeasured) GetLoggedInUser(ctx context.Context) (
+// GetCurrentUID implements the KBPKI interface for KBPKIMeasured.
+func (k KBPKIMeasured) GetCurrentUID(ctx context.Context) (
 	uid keybase1.UID, err error) {
-	k.getLoggedInUserTimer.Time(func() {
-		uid, err = k.delegate.GetLoggedInUser(ctx)
+	k.getCurrentUIDTimer.Time(func() {
+		uid, err = k.delegate.GetCurrentUID(ctx)
 	})
 	return uid, err
+}
+
+// GetCurrentCryptPublicKey implements the KBPKI interface for KBPKIMeasured.
+func (k KBPKIMeasured) GetCurrentCryptPublicKey(ctx context.Context) (
+	key CryptPublicKey, err error) {
+	k.getCurrentCryptPublicKeyTimer.Time(func() {
+		key, err = k.delegate.GetCurrentCryptPublicKey(ctx)
+	})
+	return key, err
+}
+
+// ResolveAssertion implements the KBPKI interface for KBPKIMeasured.
+func (k KBPKIMeasured) ResolveAssertion(ctx context.Context, input string) (
+	uid keybase1.UID, err error) {
+	k.resolveAssertionTimer.Time(func() {
+		uid, err = k.delegate.ResolveAssertion(ctx, input)
+	})
+	return uid, err
+}
+
+// GetNormalizedUsername implements the KBPKI interface for KBPKIMeasured.
+func (k KBPKIMeasured) GetNormalizedUsername(ctx context.Context, uid keybase1.UID) (
+	name libkb.NormalizedUsername, err error) {
+	k.getUserTimer.Time(func() {
+		name, err = k.delegate.GetNormalizedUsername(ctx, uid)
+	})
+	return name, err
 }
 
 // HasVerifyingKey implements the KBPKI interface for KBPKIMeasured.
@@ -105,15 +113,6 @@ func (k KBPKIMeasured) GetCryptPublicKeys(ctx context.Context, uid keybase1.UID)
 		keys, err = k.delegate.GetCryptPublicKeys(ctx, uid)
 	})
 	return keys, err
-}
-
-// GetCurrentCryptPublicKey implements the KBPKI interface for KBPKIMeasured.
-func (k KBPKIMeasured) GetCurrentCryptPublicKey(ctx context.Context) (
-	key CryptPublicKey, err error) {
-	k.getCurrentCryptPublicKeyTimer.Time(func() {
-		key, err = k.delegate.GetCurrentCryptPublicKey(ctx)
-	})
-	return key, err
 }
 
 // FavoriteAdd implements the KBPKI interface for KBPKIMeasured.

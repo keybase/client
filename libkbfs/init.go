@@ -83,13 +83,13 @@ func makeBlockServer(config Config, serverRootDir *string) (BlockServer, error) 
 	return NewBlockServerRemote(context.TODO(), config, bServerAddr), nil
 }
 
-func makeKBPKIClient(config Config, serverRootDir *string, localUser string) (KBPKI, error) {
+func makeKBPKIClient(config Config, serverRootDir *string, localUser libkb.NormalizedUsername) (KBPKI, error) {
 	if localUser == "" {
 		libkb.G.ConfigureSocketInfo()
 		return NewKBPKIClient(libkb.G, config.MakeLogger(""))
 	}
 
-	users := []string{"strib", "max", "chris", "fred"}
+	users := []libkb.NormalizedUsername{"strib", "max", "chris", "fred"}
 	userIndex := -1
 	for i := range users {
 		if localUser == users[i] {
@@ -137,7 +137,7 @@ func makeKBPKIClient(config Config, serverRootDir *string, localUser string) (KB
 // Init should be called at the beginning of main. Shutdown (see
 // below) should then be called at the end of main (usually via
 // defer).
-func Init(localUser string, serverRootDir *string, cpuProfilePath,
+func Init(localUser libkb.NormalizedUsername, serverRootDir *string, cpuProfilePath,
 	memProfilePath string, onInterruptFn func(), debug bool) (Config, error) {
 	if cpuProfilePath != "" {
 		// Let the GC/OS clean up the file handle.

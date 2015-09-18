@@ -73,7 +73,7 @@ func (ks *KeyServerLocal) GetTLFCryptKeyServerHalf(ctx context.Context,
 		return TLFCryptKeyServerHalf{}, err
 	}
 
-	user, err := ks.config.KBPKI().GetLoggedInUser(ctx)
+	uid, err := ks.config.KBPKI().GetCurrentUID(ctx)
 	if err != nil {
 		return TLFCryptKeyServerHalf{}, err
 	}
@@ -83,7 +83,7 @@ func (ks *KeyServerLocal) GetTLFCryptKeyServerHalf(ctx context.Context,
 	}
 
 	err = ks.config.Crypto().VerifyTLFCryptKeyServerHalfID(
-		serverHalfID, user, key.KID, serverHalf)
+		serverHalfID, uid, key.KID, serverHalf)
 	if err != nil {
 		ks.log.CDebugf(ctx, "error verifying server half ID: %s", err)
 		return TLFCryptKeyServerHalf{}, MDServerErrorUnauthorized{}
@@ -103,13 +103,13 @@ func (ks *KeyServerLocal) PutTLFCryptKeyServerHalves(ctx context.Context,
 	// batch up the writes such that they're atomic.
 	batch := &leveldb.Batch{}
 	crypto := ks.config.Crypto()
-	for user, deviceMap := range serverKeyHalves {
+	for uid, deviceMap := range serverKeyHalves {
 		for deviceKID, serverHalf := range deviceMap {
 			buf, err := ks.config.Codec().Encode(serverHalf)
 			if err != nil {
 				return err
 			}
-			id, err := crypto.GetTLFCryptKeyServerHalfID(user, deviceKID, serverHalf)
+			id, err := crypto.GetTLFCryptKeyServerHalfID(uid, deviceKID, serverHalf)
 			if err != nil {
 				return err
 			}

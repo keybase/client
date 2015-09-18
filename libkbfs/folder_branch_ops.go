@@ -348,12 +348,12 @@ func (fbo *FolderBranchOps) getMDForReadLocked(
 		return nil, err
 	}
 
-	user, err := fbo.config.KBPKI().GetLoggedInUser(ctx)
+	uid, err := fbo.config.KBPKI().GetCurrentUID(ctx)
 	if err != nil {
 		return nil, err
 	}
-	if !md.GetTlfHandle().IsReader(user) {
-		return nil, NewReadAccessError(ctx, fbo.config, md.GetTlfHandle(), user)
+	if !md.GetTlfHandle().IsReader(uid) {
+		return nil, NewReadAccessError(ctx, fbo.config, md.GetTlfHandle(), uid)
 	}
 	return md, nil
 }
@@ -366,13 +366,13 @@ func (fbo *FolderBranchOps) getMDForWriteLocked(ctx context.Context) (
 		return nil, err
 	}
 
-	user, err := fbo.config.KBPKI().GetLoggedInUser(ctx)
+	uid, err := fbo.config.KBPKI().GetCurrentUID(ctx)
 	if err != nil {
 		return nil, err
 	}
-	if !md.GetTlfHandle().IsWriter(user) {
+	if !md.GetTlfHandle().IsWriter(uid) {
 		return nil,
-			NewWriteAccessError(ctx, fbo.config, md.GetTlfHandle(), user)
+			NewWriteAccessError(ctx, fbo.config, md.GetTlfHandle(), uid)
 	}
 
 	// Make a copy of the MD for changing.  The caller must pass this
@@ -385,15 +385,15 @@ func (fbo *FolderBranchOps) getMDForWriteLocked(ctx context.Context) (
 func (fbo *FolderBranchOps) initMDLocked(
 	ctx context.Context, md *RootMetadata) error {
 	// create a dblock since one doesn't exist yet
-	user, err := fbo.config.KBPKI().GetLoggedInUser(ctx)
+	uid, err := fbo.config.KBPKI().GetCurrentUID(ctx)
 	if err != nil {
 		return err
 	}
 
 	handle := md.GetTlfHandle()
 
-	if !handle.IsWriter(user) {
-		return NewWriteAccessError(ctx, fbo.config, handle, user)
+	if !handle.IsWriter(uid) {
+		return NewWriteAccessError(ctx, fbo.config, handle, uid)
 	}
 
 	newDblock := &DirBlock{
@@ -420,7 +420,7 @@ func (fbo *FolderBranchOps) initMDLocked(
 		return InvalidKeyGenerationError{handle, keyGen}
 	}
 	info, plainSize, readyBlockData, err :=
-		fbo.readyBlock(ctx, md, newDblock, user)
+		fbo.readyBlock(ctx, md, newDblock, uid)
 	if err != nil {
 		return err
 	}
@@ -437,8 +437,8 @@ func (fbo *FolderBranchOps) initMDLocked(
 	md.UnrefBytes = 0
 
 	// make sure we're a writer before putting any blocks
-	if !handle.IsWriter(user) {
-		return NewWriteAccessError(ctx, fbo.config, handle, user)
+	if !handle.IsWriter(uid) {
+		return NewWriteAccessError(ctx, fbo.config, handle, uid)
 	}
 
 	if err = fbo.config.BlockOps().Put(ctx, md, info.BlockPointer,
@@ -451,7 +451,7 @@ func (fbo *FolderBranchOps) initMDLocked(
 	}
 
 	// finally, write out the new metadata
-	md.data.LastWriter = user
+	md.data.LastWriter = uid
 	if err = fbo.config.MDOps().Put(ctx, md); err != nil {
 		return err
 	}
@@ -716,12 +716,12 @@ func (fbo *FolderBranchOps) updateDirBlock(ctx context.Context,
 				// error, just log it and keep going because having
 				// the correct Writer is not important enough to fail
 				// the whole lookup.
-				user, err := fbo.config.KBPKI().GetLoggedInUser(ctx)
+				uid, err := fbo.config.KBPKI().GetCurrentUID(ctx)
 				if err != nil {
 					fbo.log.CDebugf(ctx, "Ignoring error while getting "+
 						"logged-in user during directory entry lookup: %v", err)
 				} else {
-					de.SetWriter(user)
+					de.SetWriter(uid)
 				}
 
 				dblockCopy.Children[k] = de
@@ -901,7 +901,7 @@ func (bps *blockPutState) mergeOtherBps(other *blockPutState) {
 }
 
 func (fbo *FolderBranchOps) readyBlock(ctx context.Context, md *RootMetadata,
-	block Block, user keybase1.UID) (
+	block Block, uid keybase1.UID) (
 	info BlockInfo, plainSize int, readyBlockData ReadyBlockData, err error) {
 	var ptr BlockPointer
 	if fBlock, ok := block.(*FileBlock); ok && !fBlock.IsInd {
@@ -926,13 +926,13 @@ func (fbo *FolderBranchOps) readyBlock(ctx context.Context, md *RootMetadata,
 		if err != nil {
 			return
 		}
-		ptr.SetWriter(user)
+		ptr.SetWriter(uid)
 	} else {
 		ptr = BlockPointer{
 			ID:       id,
 			KeyGen:   md.LatestKeyGeneration(),
 			DataVer:  fbo.config.DataVersion(),
-			Creator:  user,
+			Creator:  uid,
 			RefNonce: zeroBlockRefNonce,
 		}
 	}
@@ -945,10 +945,10 @@ func (fbo *FolderBranchOps) readyBlock(ctx context.Context, md *RootMetadata,
 }
 
 func (fbo *FolderBranchOps) readyBlockMultiple(ctx context.Context,
-	md *RootMetadata, currBlock Block, user keybase1.UID, bps *blockPutState) (
+	md *RootMetadata, currBlock Block, uid keybase1.UID, bps *blockPutState) (
 	info BlockInfo, plainSize int, err error) {
 	info, plainSize, readyBlockData, err :=
-		fbo.readyBlock(ctx, md, currBlock, user)
+		fbo.readyBlock(ctx, md, currBlock, uid)
 	if err != nil {
 		return
 	}
@@ -959,14 +959,14 @@ func (fbo *FolderBranchOps) readyBlockMultiple(ctx context.Context,
 
 func (fbo *FolderBranchOps) unembedBlockChanges(
 	ctx context.Context, bps *blockPutState, md *RootMetadata,
-	changes *BlockChanges, user keybase1.UID) (err error) {
+	changes *BlockChanges, uid keybase1.UID) (err error) {
 	buf, err := fbo.config.Codec().Encode(changes)
 	if err != nil {
 		return
 	}
 	block := NewFileBlock().(*FileBlock)
 	block.Contents = buf
-	info, _, err := fbo.readyBlockMultiple(ctx, md, block, user, bps)
+	info, _, err := fbo.readyBlockMultiple(ctx, md, block, uid, bps)
 	if err != nil {
 		return
 	}
@@ -1032,7 +1032,7 @@ func (fbo *FolderBranchOps) syncBlockLocked(ctx context.Context,
 	md *RootMetadata, newBlock Block, dir path, name string,
 	entryType EntryType, mtime bool, ctime bool, stopAt BlockPointer,
 	lbc localBcache) (path, DirEntry, *blockPutState, error) {
-	user, err := fbo.config.KBPKI().GetLoggedInUser(ctx)
+	uid, err := fbo.config.KBPKI().GetCurrentUID(ctx)
 	if err != nil {
 		return path{}, DirEntry{}, nil, err
 	}
@@ -1052,7 +1052,7 @@ func (fbo *FolderBranchOps) syncBlockLocked(ctx context.Context,
 	now := time.Now().UnixNano()
 	for len(newPath.path) < len(dir.path)+1 {
 		info, plainSize, err :=
-			fbo.readyBlockMultiple(ctx, md, currBlock, user, bps)
+			fbo.readyBlockMultiple(ctx, md, currBlock, uid, bps)
 		if err != nil {
 			return path{}, DirEntry{}, nil, err
 		}
@@ -1203,7 +1203,7 @@ func (fbo *FolderBranchOps) syncBlockLocked(ctx context.Context,
 	bsplit := fbo.config.BlockSplitter()
 	if !bsplit.ShouldEmbedBlockChanges(&md.data.Changes) {
 		err = fbo.unembedBlockChanges(ctx, bps, md, &md.data.Changes,
-			user)
+			uid)
 		if err != nil {
 			return path{}, DirEntry{}, nil, err
 		}
@@ -1314,13 +1314,13 @@ func (fbo *FolderBranchOps) isRevisionConflict(err error) bool {
 // writerLock must be taken by the caller.
 func (fbo *FolderBranchOps) finalizeWriteLocked(ctx context.Context,
 	md *RootMetadata, bps *blockPutState) error {
-	user, err := fbo.config.KBPKI().GetLoggedInUser(ctx)
+	uid, err := fbo.config.KBPKI().GetCurrentUID(ctx)
 	if err != nil {
 		return err
 	}
 
 	// finally, write out the new metadata
-	md.data.LastWriter = user
+	md.data.LastWriter = uid
 	mdops := fbo.config.MDOps()
 
 	doUnmergedPut := true
@@ -2040,7 +2040,7 @@ func (fbo *FolderBranchOps) newRightBlockLocked(
 	if err != nil {
 		return err
 	}
-	user, err := fbo.config.KBPKI().GetLoggedInUser(ctx)
+	uid, err := fbo.config.KBPKI().GetCurrentUID(ctx)
 	if err != nil {
 		return err
 	}
@@ -2056,7 +2056,7 @@ func (fbo *FolderBranchOps) newRightBlockLocked(
 				ID:       newRID,
 				KeyGen:   md.LatestKeyGeneration(),
 				DataVer:  fbo.config.DataVersion(),
-				Creator:  user,
+				Creator:  uid,
 				RefNonce: zeroBlockRefNonce,
 			},
 			EncodedSize: 0,
@@ -2096,12 +2096,12 @@ func (fbo *FolderBranchOps) writeDataLocked(
 	ctx context.Context, md *RootMetadata, file path, data []byte,
 	off int64, doNotify bool) error {
 	// check writer status explicitly
-	user, err := fbo.config.KBPKI().GetLoggedInUser(ctx)
+	uid, err := fbo.config.KBPKI().GetCurrentUID(ctx)
 	if err != nil {
 		return err
 	}
-	if !md.GetTlfHandle().IsWriter(user) {
-		return NewWriteAccessError(ctx, fbo.config, md.GetTlfHandle(), user)
+	if !md.GetTlfHandle().IsWriter(uid) {
+		return NewWriteAccessError(ctx, fbo.config, md.GetTlfHandle(), uid)
 	}
 
 	fblock, err := fbo.getFileLocked(ctx, md, file, write)
@@ -2167,7 +2167,7 @@ func (fbo *FolderBranchOps) writeDataLocked(
 									ID:       newID,
 									KeyGen:   md.LatestKeyGeneration(),
 									DataVer:  fbo.config.DataVersion(),
-									Creator:  user,
+									Creator:  uid,
 									RefNonce: zeroBlockRefNonce,
 								},
 								EncodedSize: 0,
@@ -2192,7 +2192,7 @@ func (fbo *FolderBranchOps) writeDataLocked(
 			}
 		}
 
-		if oldLen != len(block.Contents) || de.Writer != user {
+		if oldLen != len(block.Contents) || de.Writer != uid {
 			de.EncodedSize = 0
 			// update the file info
 			de.Size += uint64(len(block.Contents) - oldLen)
@@ -2297,12 +2297,12 @@ func (fbo *FolderBranchOps) truncateLocked(
 	ctx context.Context, md *RootMetadata, file path, size uint64,
 	doNotify bool) error {
 	// check writer status explicitly
-	user, err := fbo.config.KBPKI().GetLoggedInUser(ctx)
+	uid, err := fbo.config.KBPKI().GetCurrentUID(ctx)
 	if err != nil {
 		return err
 	}
-	if !md.GetTlfHandle().IsWriter(user) {
-		return NewWriteAccessError(ctx, fbo.config, md.GetTlfHandle(), user)
+	if !md.GetTlfHandle().IsWriter(uid) {
+		return NewWriteAccessError(ctx, fbo.config, md.GetTlfHandle(), uid)
 	}
 
 	fblock, err := fbo.getFileLocked(ctx, md, file, write)
@@ -2613,7 +2613,7 @@ func (fbo *FolderBranchOps) syncLocked(ctx context.Context, file path) (
 		return true, err
 	}
 
-	user, err := fbo.config.KBPKI().GetLoggedInUser(ctx)
+	uid, err := fbo.config.KBPKI().GetCurrentUID(ctx)
 	if err != nil {
 		return true, err
 	}
@@ -2742,7 +2742,7 @@ func (fbo *FolderBranchOps) syncLocked(ctx context.Context, file path) (
 				}
 
 				newInfo, _, readyBlockData, err :=
-					fbo.readyBlock(ctx, md, block, user)
+					fbo.readyBlock(ctx, md, block, uid)
 				if err != nil {
 					return true, err
 				}

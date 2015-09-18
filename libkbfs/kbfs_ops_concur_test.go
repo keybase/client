@@ -8,6 +8,7 @@ import (
 	"testing"
 
 	"github.com/golang/mock/gomock"
+	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/protocol/go"
 	"golang.org/x/net/context"
 )
@@ -36,17 +37,17 @@ func (cl *CounterLock) GetCount() int {
 	return cl.count
 }
 
-func kbfsOpsConcurInit(t *testing.T, users ...string) (
+func kbfsOpsConcurInit(t *testing.T, users ...libkb.NormalizedUsername) (
 	Config, keybase1.UID, context.Context) {
 	config := MakeTestConfigOrBust(t, nil, users...)
 
-	loggedInUser, err := config.KBPKI().GetLoggedInUser(context.Background())
+	currentUID, err := config.KBPKI().GetCurrentUID(context.Background())
 	if err != nil {
 		t.Fatal(err)
 	}
 
 	ctx := context.Background()
-	return config, loggedInUser, ctx
+	return config, currentUID, ctx
 }
 
 // Test that only one of two concurrent GetRootMD requests can end up
@@ -102,7 +103,7 @@ func TestKBFSOpsConcurReadDuringSync(t *testing.T) {
 	// create and write to a file
 	kbfsOps := config.KBFSOps()
 	h := NewTlfHandle()
-	uid, err := config.KBPKI().GetLoggedInUser(context.Background())
+	uid, err := config.KBPKI().GetCurrentUID(context.Background())
 	if err != nil {
 		t.Errorf("Couldn't get logged in user: %v", err)
 	}
@@ -161,7 +162,7 @@ func TestKBFSOpsConcurWriteDuringSync(t *testing.T) {
 	// create and write to a file
 	kbfsOps := config.KBFSOps()
 	h := NewTlfHandle()
-	uid, err := config.KBPKI().GetLoggedInUser(context.Background())
+	uid, err := config.KBPKI().GetCurrentUID(context.Background())
 	if err != nil {
 		t.Errorf("Couldn't get logged in user: %v", err)
 	}
@@ -252,7 +253,7 @@ func TestKBFSOpsConcurWriteDuringSyncMultiBlocks(t *testing.T) {
 	// create and write to a file
 	kbfsOps := config.KBFSOps()
 	h := NewTlfHandle()
-	uid, err := config.KBPKI().GetLoggedInUser(context.Background())
+	uid, err := config.KBPKI().GetCurrentUID(context.Background())
 	if err != nil {
 		t.Errorf("Couldn't get logged in user: %v", err)
 	}
@@ -367,7 +368,7 @@ func TestKBFSOpsConcurWriteParallelBlocksCanceled(t *testing.T) {
 	// create and write to a file
 	kbfsOps := config.KBFSOps()
 	h := NewTlfHandle()
-	uid, err := config.KBPKI().GetLoggedInUser(context.Background())
+	uid, err := config.KBPKI().GetCurrentUID(context.Background())
 	if err != nil {
 		t.Errorf("Couldn't get logged in user: %v", err)
 	}
@@ -489,7 +490,7 @@ func TestKBFSOpsConcurWriteParallelBlocksError(t *testing.T) {
 	// create and write to a file
 	kbfsOps := config.KBFSOps()
 	h := NewTlfHandle()
-	uid, err := config.KBPKI().GetLoggedInUser(context.Background())
+	uid, err := config.KBPKI().GetCurrentUID(context.Background())
 	if err != nil {
 		t.Errorf("Couldn't get logged in user: %v", err)
 	}

@@ -57,30 +57,23 @@ func newMDServerRemoteWithClient(ctx context.Context, config Config,
 func (md *MDServerRemote) OnConnect(ctx context.Context,
 	conn *Connection, client keybase1.GenericClient) error {
 	// get UID, deviceKID and session token
-	var err error
-	var user keybase1.UID
-	user, err = md.config.KBPKI().GetLoggedInUser(ctx)
+	uid, err := md.config.KBPKI().GetCurrentUID(ctx)
 	if err != nil {
 		return err
 	}
-	var key CryptPublicKey
-	key, err = md.config.KBPKI().GetCurrentCryptPublicKey(ctx)
+	key, err := md.config.KBPKI().GetCurrentCryptPublicKey(ctx)
 	if err != nil {
 		return err
 	}
-	var token string
-	var session *libkb.Session
-	session, err = md.config.KBPKI().GetSession(ctx)
+	token, err := md.config.KBPKI().GetCurrentToken(ctx)
 	if err != nil {
-		md.log.CWarningf(ctx, "MDServerRemote: error getting session %q", err)
+		md.log.CWarningf(ctx, "MDServerRemote: error getting token %q", err)
 		return err
-	} else if session != nil {
-		token = session.GetToken()
 	}
 
 	// authenticate
 	creds := keybase1.AuthenticateArg{
-		User:      user,
+		User:      uid,
 		DeviceKID: key.KID,
 		Sid:       token,
 	}

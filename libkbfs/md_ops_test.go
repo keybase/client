@@ -30,8 +30,8 @@ func newDir(t *testing.T, config *ConfigMock, x byte, share bool, public bool) (
 	TlfID, *TlfHandle, *RootMetadataSigned) {
 	revision := MetadataRevision(1)
 	id, h, rmds := NewFolder(t, x, revision, share, public)
-	expectUserCalls(h, config)
-	config.mockKbpki.EXPECT().GetLoggedInUser(gomock.Any()).AnyTimes().
+	expectUsernameCalls(h, config)
+	config.mockKbpki.EXPECT().GetCurrentUID(gomock.Any()).AnyTimes().
 		Return(h.Writers[0], nil)
 	return id, h, rmds
 }
@@ -191,7 +191,7 @@ func TestMDOpsGetForHandleFailHandleCheck(t *testing.T) {
 	// add a new writer after the MD was made, to force a failure
 	newWriter := keybase1.MakeTestUID(100)
 	h.Writers = append(h.Writers, newWriter)
-	expectUserCall(newWriter, config)
+	expectUsernameCall(newWriter, config)
 	config.mockMdserv.EXPECT().GetForHandle(ctx, h, false).Return(NullTlfID, rmds, nil)
 	verifyMDForPrivate(config, rmds, id)
 

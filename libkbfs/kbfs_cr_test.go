@@ -3,11 +3,12 @@ package libkbfs
 import (
 	"testing"
 
+	"github.com/keybase/client/go/libkb"
 	"golang.org/x/net/context"
 )
 
 func readAndCompareData(t *testing.T, config Config, ctx context.Context,
-	h *TlfHandle, expectedData []byte, user string) {
+	h *TlfHandle, expectedData []byte, user libkb.NormalizedUsername) {
 	kbfsOps := config.KBFSOps()
 	rootNode, _, err :=
 		kbfsOps.GetOrCreateRootNodeForHandle(ctx, h, MasterBranch)
@@ -45,7 +46,7 @@ func (t *testCRObserver) BatchChanges(ctx context.Context,
 }
 
 func checkStatus(t *testing.T, ctx context.Context, kbfsOps KBFSOps,
-	staged bool, headWriter string, dirtyPaths []string, fb FolderBranch,
+	staged bool, headWriter libkb.NormalizedUsername, dirtyPaths []string, fb FolderBranch,
 	prefix string) {
 	status, _, err := kbfsOps.Status(ctx, fb)
 	if err != nil {
@@ -62,13 +63,13 @@ func checkStatus(t *testing.T, ctx context.Context, kbfsOps KBFSOps,
 
 func TestBasicMDUpdate(t *testing.T) {
 	// simulate two users
-	userName1, userName2 := "u1", "u2"
+	var userName1, userName2 libkb.NormalizedUsername = "u1", "u2"
 	config1, uid1, ctx := kbfsOpsConcurInit(t, userName1, userName2)
 	defer config1.Shutdown()
 
 	config2 := ConfigAsUser(config1.(*ConfigLocal), userName2)
 	defer config2.Shutdown()
-	uid2, err := config2.KBPKI().GetLoggedInUser(context.Background())
+	uid2, err := config2.KBPKI().GetCurrentUID(context.Background())
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -132,13 +133,13 @@ func TestBasicMDUpdate(t *testing.T) {
 
 func testMultipleMDUpdates(t *testing.T, unembedChanges bool) {
 	// simulate two users
-	userName1, userName2 := "u1", "u2"
+	var userName1, userName2 libkb.NormalizedUsername = "u1", "u2"
 	config1, uid1, ctx := kbfsOpsConcurInit(t, userName1, userName2)
 	defer config1.Shutdown()
 
 	config2 := ConfigAsUser(config1.(*ConfigLocal), userName2)
 	defer config2.Shutdown()
-	uid2, err := config2.KBPKI().GetLoggedInUser(context.Background())
+	uid2, err := config2.KBPKI().GetCurrentUID(context.Background())
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -225,13 +226,13 @@ func TestMultipleMDUpdatesUnembedChanges(t *testing.T) {
 // the other user will be unaffected).
 func TestUnmergedAfterRestart(t *testing.T) {
 	// simulate two users
-	userName1, userName2 := "u1", "u2"
+	var userName1, userName2 libkb.NormalizedUsername = "u1", "u2"
 	config1, uid1, ctx := kbfsOpsConcurInit(t, userName1, userName2)
 	defer config1.Shutdown()
 
 	config2 := ConfigAsUser(config1.(*ConfigLocal), userName2)
 	defer config2.Shutdown()
-	uid2, err := config2.KBPKI().GetLoggedInUser(context.Background())
+	uid2, err := config2.KBPKI().GetCurrentUID(context.Background())
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -356,13 +357,13 @@ func TestUnmergedAfterRestart(t *testing.T) {
 // without any problems.
 func TestMultiUserWrite(t *testing.T) {
 	// simulate two users
-	userName1, userName2 := "u1", "u2"
+	var userName1, userName2 libkb.NormalizedUsername = "u1", "u2"
 	config1, uid1, ctx := kbfsOpsConcurInit(t, userName1, userName2)
 	defer config1.Shutdown()
 
 	config2 := ConfigAsUser(config1.(*ConfigLocal), userName2)
 	defer config2.Shutdown()
-	uid2, err := config2.KBPKI().GetLoggedInUser(context.Background())
+	uid2, err := config2.KBPKI().GetCurrentUID(context.Background())
 	if err != nil {
 		t.Fatal(err)
 	}

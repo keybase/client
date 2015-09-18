@@ -430,7 +430,7 @@ func resolveUser(ctx context.Context, config Config, name string,
 		return
 	}
 
-	user, err := config.KBPKI().ResolveAssertion(ctx, name)
+	uid, err := config.KBPKI().ResolveAssertion(ctx, name)
 	if err != nil {
 		select {
 		case errCh <- err:
@@ -439,7 +439,6 @@ func resolveUser(ctx context.Context, config Config, name string,
 		}
 		return
 	}
-	uid := user.GetUID()
 	results <- uid
 }
 
@@ -566,9 +565,10 @@ func resolveUids(ctx context.Context, config Config,
 	// TODO: parallelize?
 	for _, uid := range uids {
 		if uid.Equal(keybase1.PublicUID) {
+			// PublicUIDName is already normalized.
 			names = append(names, PublicUIDName)
-		} else if user, err := config.KBPKI().GetUser(ctx, uid); err == nil {
-			names = append(names, user.GetName())
+		} else if name, err := config.KBPKI().GetNormalizedUsername(ctx, uid); err == nil {
+			names = append(names, string(name))
 		} else {
 			config.Reporter().Report(RptE, WrapError{err})
 			names = append(names, fmt.Sprintf("uid:%s", uid))

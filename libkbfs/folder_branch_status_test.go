@@ -121,7 +121,7 @@ func TestFBStatusAllFields(t *testing.T) {
 	if !status.Staged {
 		t.Errorf("Status does not show staged changes")
 	}
-	if status.HeadWriter != fmt.Sprintf("user_%s", h.Writers[0]) {
+	if string(status.HeadWriter) != fmt.Sprintf("user_%s", h.Writers[0]) {
 		t.Errorf("Unexpected head writer in status: %s", status.HeadWriter)
 	}
 	expectedDirtyPaths := []string{p1.String(), p2.String()}

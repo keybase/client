@@ -3,6 +3,7 @@ package libkbfs
 import (
 	"os"
 
+	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/logger"
 	keybase1 "github.com/keybase/client/protocol/go"
 	"github.com/rcrowley/go-metrics"
@@ -37,7 +38,7 @@ var _ Config = (*ConfigLocal)(nil)
 
 // LocalUser represents a fake KBFS user, useful for testing.
 type LocalUser struct {
-	Name                  string
+	Name                  libkb.NormalizedUsername
 	UID                   keybase1.UID
 	Asserts               []string
 	VerifyingKeys         []VerifyingKey
@@ -84,31 +85,31 @@ func (lu *LocalUser) GetPublicKeys() []keybase1.PublicKey {
 // will always be returned for a given user.
 
 // MakeLocalUserSigningKeyOrBust returns a unique signing key for this user.
-func MakeLocalUserSigningKeyOrBust(name string) SigningKey {
-	return MakeFakeSigningKeyOrBust(name + " signing key")
+func MakeLocalUserSigningKeyOrBust(name libkb.NormalizedUsername) SigningKey {
+	return MakeFakeSigningKeyOrBust(string(name) + " signing key")
 }
 
 // MakeLocalUserVerifyingKeyOrBust makes a new verifying key
 // corresponding to the signing key for this user.
-func MakeLocalUserVerifyingKeyOrBust(name string) VerifyingKey {
+func MakeLocalUserVerifyingKeyOrBust(name libkb.NormalizedUsername) VerifyingKey {
 	return MakeLocalUserSigningKeyOrBust(name).getVerifyingKey()
 }
 
 // MakeLocalUserCryptPrivateKeyOrBust returns a unique private
 // encryption key for this user.
-func MakeLocalUserCryptPrivateKeyOrBust(name string) CryptPrivateKey {
-	return MakeFakeCryptPrivateKeyOrBust(name + " crypt key")
+func MakeLocalUserCryptPrivateKeyOrBust(name libkb.NormalizedUsername) CryptPrivateKey {
+	return MakeFakeCryptPrivateKeyOrBust(string(name) + " crypt key")
 }
 
 // MakeLocalUserCryptPublicKeyOrBust returns the public key
 // corresponding to the crypt private key for this user.
-func MakeLocalUserCryptPublicKeyOrBust(name string) CryptPublicKey {
+func MakeLocalUserCryptPublicKeyOrBust(name libkb.NormalizedUsername) CryptPublicKey {
 	return MakeLocalUserCryptPrivateKeyOrBust(name).getPublicKey()
 }
 
 // MakeLocalUsers is a helper function to generate a list of
 // LocalUsers suitable to use with KBPKILocal.
-func MakeLocalUsers(users []string) []LocalUser {
+func MakeLocalUsers(users []libkb.NormalizedUsername) []LocalUser {
 	localUsers := make([]LocalUser, len(users))
 	for i := 0; i < len(users); i++ {
 		verifyingKey := MakeLocalUserVerifyingKeyOrBust(users[i])

@@ -9,7 +9,6 @@ import (
 	"time"
 
 	"github.com/golang/mock/gomock"
-	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/protocol/go"
 	"golang.org/x/net/context"
 )
@@ -134,8 +133,7 @@ func TestKBFSOpsGetFavoritesSuccess(t *testing.T) {
 	folders := []keybase1.Folder{handle1.ToKBFolder(ctx, config), handle2.ToKBFolder(ctx, config)}
 
 	config.mockKbpki.EXPECT().FavoriteList(ctx).Return(folders, nil)
-	var user libkb.User
-	config.mockKbpki.EXPECT().ResolveAssertion(gomock.Any(), gomock.Any()).AnyTimes().Return(&user, nil)
+	config.mockKbpki.EXPECT().ResolveAssertion(gomock.Any(), gomock.Any()).AnyTimes().Return(keybase1.UID(""), nil)
 
 	handles2, err := config.KBFSOps().GetFavorites(ctx)
 	if err != nil {
@@ -160,16 +158,16 @@ func TestKBFSOpsGetFavoritesFail(t *testing.T) {
 }
 
 func makeID(t *testing.T, config *ConfigMock, public bool) (keybase1.UID, TlfID, *TlfHandle) {
-	userID := keybase1.MakeTestUID(15)
+	uid := keybase1.MakeTestUID(15)
 	id, h, _ := newDir(t, config, 1, true, public)
 	if public {
 		h.Readers = []keybase1.UID{keybase1.PublicUID}
 	}
-	h.Writers = []keybase1.UID{userID}
-	expectUserCalls(h, config)
-	config.mockKbpki.EXPECT().GetLoggedInUser(gomock.Any()).AnyTimes().
-		Return(userID, nil)
-	return userID, id, h
+	h.Writers = []keybase1.UID{uid}
+	expectUsernameCalls(h, config)
+	config.mockKbpki.EXPECT().GetCurrentUID(gomock.Any()).AnyTimes().
+		Return(uid, nil)
+	return uid, id, h
 }
 
 func getOps(config Config, id TlfID) *FolderBranchOps {
@@ -179,7 +177,7 @@ func getOps(config Config, id TlfID) *FolderBranchOps {
 
 func makeIDAndRMD(t *testing.T, config *ConfigMock) (
 	keybase1.UID, TlfID, *RootMetadata) {
-	userID, id, h := makeID(t, config, false)
+	uid, id, h := makeID(t, config, false)
 	rmd := NewRootMetadataForTest(h, id)
 	AddNewKeysOrBust(t, rmd, DirKeyBundle{})
 
@@ -188,8 +186,8 @@ func makeIDAndRMD(t *testing.T, config *ConfigMock) (
 	rmd.SerializedPrivateMetadata = make([]byte, 1)
 	config.Notifier().RegisterForChanges(
 		[]FolderBranch{FolderBranch{id, MasterBranch}}, config.observer)
-	rmd.data.Dir.Creator = userID
-	return userID, id, rmd
+	rmd.data.Dir.Creator = uid
+	return uid, id, rmd
 }
 
 func TestKBFSOpsGetRootNodeCacheSuccess(t *testing.T) {
@@ -340,16 +338,16 @@ func TestKBFSOpsGetRootMDCreateNewFailNonWriter(t *testing.T) {
 	mockCtrl, config, ctx := kbfsOpsInit(t, false)
 	defer kbfsTestShutdown(mockCtrl, config)
 
-	userID := keybase1.MakeTestUID(15)
+	uid := keybase1.MakeTestUID(15)
 	ownerID := keybase1.MakeTestUID(20)
 	id, h, _ := newDir(t, config, 1, true, false)
-	h.Readers = []keybase1.UID{userID}
+	h.Readers = []keybase1.UID{uid}
 	h.Writers = []keybase1.UID{ownerID}
 
 	rmd := NewRootMetadataForTest(h, id)
 
 	// create a new MD
-	expectUserCalls(h, config)
+	expectUsernameCalls(h, config)
 	// in reality, createNewMD should fail early because the MD server
 	// will refuse to create the new MD for this user.  But for this test,
 	// we won't bother
@@ -357,10 +355,10 @@ func TestKBFSOpsGetRootMDCreateNewFailNonWriter(t *testing.T) {
 		GetUnmergedForTLF(gomock.Any(), id).Return(nil, nil)
 	config.mockMdops.EXPECT().GetForTLF(gomock.Any(), id).Return(rmd, nil)
 	// try to get the MD for writing, but fail (no puts should happen)
-	config.mockKbpki.EXPECT().GetLoggedInUser(ctx).AnyTimes().
-		Return(userID, nil)
+	config.mockKbpki.EXPECT().GetCurrentUID(ctx).AnyTimes().
+		Return(uid, nil)
 	expectedErr := WriteAccessError{
-		fmt.Sprintf("user_%s", userID), h.ToString(ctx, config)}
+		fmt.Sprintf("user_%s", uid), h.ToString(ctx, config)}
 
 	if _, _, _, err :=
 		config.KBFSOps().
@@ -523,27 +521,27 @@ func TestKBFSOpsGetBaseDirChildrenUncachedFailNonReader(t *testing.T) {
 	mockCtrl, config, ctx := kbfsOpsInit(t, false)
 	defer kbfsTestShutdown(mockCtrl, config)
 
-	userID := keybase1.MakeTestUID(15)
+	uid := keybase1.MakeTestUID(15)
 	ownerID := keybase1.MakeTestUID(20)
 	id, h, _ := newDir(t, config, 1, true, false)
 	h.Writers = []keybase1.UID{ownerID}
-	expectUserCalls(h, config)
+	expectUsernameCalls(h, config)
 
 	rmd := NewRootMetadataForTest(h, id)
 
 	rootID := fakeBlockID(42)
-	node := pathNode{makeBP(rootID, rmd, config, userID), "p"}
+	node := pathNode{makeBP(rootID, rmd, config, uid), "p"}
 	p := path{FolderBranch{Tlf: id}, []pathNode{node}}
 	ops := getOps(config, id)
 	n := nodeFromPath(t, ops, p)
 
 	// won't even try getting the block if the user isn't a reader
 	ops.head = rmd
-	config.mockKbpki.EXPECT().GetLoggedInUser(ctx).AnyTimes().
-		Return(userID, nil)
-	expectUserCall(userID, config)
+	config.mockKbpki.EXPECT().GetCurrentUID(ctx).AnyTimes().
+		Return(uid, nil)
+	expectUsernameCall(uid, config)
 	expectedErr := ReadAccessError{
-		fmt.Sprintf("user_%s", userID), h.ToString(ctx, config)}
+		fmt.Sprintf("user_%s", uid), h.ToString(ctx, config)}
 
 	if _, err := config.KBFSOps().GetDirChildren(ctx, n); err == nil {
 		t.Errorf("Got no expected error on getdir")
@@ -802,7 +800,7 @@ func TestKBFSOpsStatSuccess(t *testing.T) {
 
 func expectSyncBlockHelper(
 	t *testing.T, config *ConfigMock, lastCall *gomock.Call,
-	userID keybase1.UID, id TlfID, name string, p path, rmd *RootMetadata,
+	uid keybase1.UID, id TlfID, name string, p path, rmd *RootMetadata,
 	newEntry bool, skipSync int, refBytes uint64, unrefBytes uint64,
 	newRmd **RootMetadata, newBlockIDs []BlockID, isUnmerged bool) (
 	path, *gomock.Call) {
@@ -889,19 +887,19 @@ func expectSyncBlockHelper(
 
 func expectSyncBlock(
 	t *testing.T, config *ConfigMock, lastCall *gomock.Call,
-	userID keybase1.UID, id TlfID, name string, p path, rmd *RootMetadata,
+	uid keybase1.UID, id TlfID, name string, p path, rmd *RootMetadata,
 	newEntry bool, skipSync int, refBytes uint64, unrefBytes uint64,
 	newRmd **RootMetadata, newBlockIDs []BlockID) (path, *gomock.Call) {
-	return expectSyncBlockHelper(t, config, lastCall, userID, id, name, p, rmd,
+	return expectSyncBlockHelper(t, config, lastCall, uid, id, name, p, rmd,
 		newEntry, skipSync, refBytes, unrefBytes, newRmd, newBlockIDs, false)
 }
 
 func expectSyncBlockUnmerged(
 	t *testing.T, config *ConfigMock, lastCall *gomock.Call,
-	userID keybase1.UID, id TlfID, name string, p path, rmd *RootMetadata,
+	uid keybase1.UID, id TlfID, name string, p path, rmd *RootMetadata,
 	newEntry bool, skipSync int, refBytes uint64, unrefBytes uint64,
 	newRmd **RootMetadata, newBlockIDs []BlockID) (path, *gomock.Call) {
-	return expectSyncBlockHelper(t, config, lastCall, userID, id, name, p, rmd,
+	return expectSyncBlockHelper(t, config, lastCall, uid, id, name, p, rmd,
 		newEntry, skipSync, refBytes, unrefBytes, newRmd, newBlockIDs, true)
 }
 
@@ -1073,7 +1071,7 @@ func testCreateEntrySuccess(t *testing.T, entryType EntryType) {
 	mockCtrl, config, ctx := kbfsOpsInit(t, true)
 	defer kbfsTestShutdown(mockCtrl, config)
 
-	userID, id, rmd := makeIDAndRMD(t, config)
+	uid, id, rmd := makeIDAndRMD(t, config)
 
 	rootID := fakeBlockID(42)
 	rmd.data.Dir.ID = rootID
@@ -1081,12 +1079,12 @@ func testCreateEntrySuccess(t *testing.T, entryType EntryType) {
 	aID := fakeBlockID(43)
 	rootBlock := NewDirBlock().(*DirBlock)
 	rootBlock.Children["a"] = DirEntry{
-		BlockInfo: makeBIFromID(aID, userID),
+		BlockInfo: makeBIFromID(aID, uid),
 		Type:      Dir,
 	}
 	aBlock := NewDirBlock().(*DirBlock)
-	node := pathNode{makeBP(rootID, rmd, config, userID), "p"}
-	aNode := pathNode{makeBP(aID, rmd, config, userID), "a"}
+	node := pathNode{makeBP(rootID, rmd, config, uid), "p"}
+	aNode := pathNode{makeBP(aID, rmd, config, uid), "a"}
 	p := path{FolderBranch{Tlf: id}, []pathNode{node, aNode}}
 	ops := getOps(config, id)
 	n := nodeFromPath(t, ops, p)
@@ -1098,7 +1096,7 @@ func testCreateEntrySuccess(t *testing.T, entryType EntryType) {
 	var newRmd *RootMetadata
 	blocks := make([]BlockID, 3)
 	expectedPath, _ :=
-		expectSyncBlock(t, config, nil, userID, id, "b", p, rmd,
+		expectSyncBlock(t, config, nil, uid, id, "b", p, rmd,
 			entryType != Sym, 0, 0, 0, &newRmd, blocks)
 
 	var newN Node
@@ -1228,7 +1226,7 @@ func testRemoveEntrySuccess(t *testing.T, entryType EntryType) {
 	mockCtrl, config, ctx := kbfsOpsInit(t, true)
 	defer kbfsTestShutdown(mockCtrl, config)
 
-	userID, id, rmd := makeIDAndRMD(t, config)
+	uid, id, rmd := makeIDAndRMD(t, config)
 
 	rootID := fakeBlockID(41)
 	rmd.data.Dir.ID = rootID
@@ -1236,21 +1234,21 @@ func testRemoveEntrySuccess(t *testing.T, entryType EntryType) {
 	bID := fakeBlockID(43)
 	rootBlock := NewDirBlock().(*DirBlock)
 	rootBlock.Children["a"] = DirEntry{
-		BlockInfo: makeBIFromID(aID, userID),
+		BlockInfo: makeBIFromID(aID, uid),
 		Type:      Dir,
 	}
 	aBlock := NewDirBlock().(*DirBlock)
 	aBlock.Children["b"] = DirEntry{
-		BlockInfo: makeBIFromID(bID, userID),
+		BlockInfo: makeBIFromID(bID, uid),
 		Type:      entryType,
 	}
 	bBlock := NewFileBlock()
 	if entryType == Dir {
 		bBlock = NewDirBlock()
 	}
-	node := pathNode{makeBP(rootID, rmd, config, userID), "p"}
-	aNode := pathNode{makeBP(aID, rmd, config, userID), "a"}
-	bNode := pathNode{makeBP(bID, rmd, config, userID), "b"}
+	node := pathNode{makeBP(rootID, rmd, config, uid), "p"}
+	aNode := pathNode{makeBP(aID, rmd, config, uid), "a"}
+	bNode := pathNode{makeBP(bID, rmd, config, uid), "b"}
 	p := path{FolderBranch{Tlf: id}, []pathNode{node, aNode}}
 	ops := getOps(config, id)
 	n := nodeFromPath(t, ops, p)
@@ -1265,7 +1263,7 @@ func testRemoveEntrySuccess(t *testing.T, entryType EntryType) {
 	var newRmd *RootMetadata
 	blocks := make([]BlockID, 2)
 	unrefBytes := uint64(1) // a block of size 1 is being unreferenced
-	expectedPath, _ := expectSyncBlock(t, config, nil, userID, id, "",
+	expectedPath, _ := expectSyncBlock(t, config, nil, uid, id, "",
 		p, rmd, false, 0, 0, unrefBytes, &newRmd, blocks)
 
 	var err error
@@ -1326,7 +1324,7 @@ func TestKBFSOpRemoveMultiBlockFileSuccess(t *testing.T) {
 	mockCtrl, config, ctx := kbfsOpsInit(t, true)
 	defer kbfsTestShutdown(mockCtrl, config)
 
-	userID, id, rmd := makeIDAndRMD(t, config)
+	uid, id, rmd := makeIDAndRMD(t, config)
 
 	rootID := fakeBlockID(42)
 	rmd.data.Dir.ID = rootID
@@ -1347,10 +1345,10 @@ func TestKBFSOpRemoveMultiBlockFileSuccess(t *testing.T) {
 	fileBlock := NewFileBlock().(*FileBlock)
 	fileBlock.IsInd = true
 	fileBlock.IPtrs = []IndirectFilePtr{
-		IndirectFilePtr{makeBI(id1, rmd, config, userID, 5), 0},
-		IndirectFilePtr{makeBI(id2, rmd, config, userID, 5), 5},
-		IndirectFilePtr{makeBI(id3, rmd, config, userID, 5), 10},
-		IndirectFilePtr{makeBI(id4, rmd, config, userID, 5), 15},
+		IndirectFilePtr{makeBI(id1, rmd, config, uid, 5), 0},
+		IndirectFilePtr{makeBI(id2, rmd, config, uid, 5), 5},
+		IndirectFilePtr{makeBI(id3, rmd, config, uid, 5), 10},
+		IndirectFilePtr{makeBI(id4, rmd, config, uid, 5), 15},
 	}
 	block1 := NewFileBlock().(*FileBlock)
 	block1.Contents = []byte{5, 4, 3, 2, 1}
@@ -1360,8 +1358,8 @@ func TestKBFSOpRemoveMultiBlockFileSuccess(t *testing.T) {
 	block3.Contents = []byte{15, 14, 13, 12, 11}
 	block4 := NewFileBlock().(*FileBlock)
 	block4.Contents = []byte{20, 19, 18, 17, 16}
-	node := pathNode{makeBP(rootID, rmd, config, userID), "p"}
-	fileNode := pathNode{makeBP(fileID, rmd, config, userID), "a"}
+	node := pathNode{makeBP(rootID, rmd, config, uid), "p"}
+	fileNode := pathNode{makeBP(fileID, rmd, config, uid), "a"}
 	p := path{FolderBranch{Tlf: id}, []pathNode{node}}
 	ops := getOps(config, id)
 	n := nodeFromPath(t, ops, p)
@@ -1380,7 +1378,7 @@ func TestKBFSOpRemoveMultiBlockFileSuccess(t *testing.T) {
 	unrefBytes := uint64(10 + 4*5) // fileBlock + 4 indirect blocks
 	var newRmd *RootMetadata
 	blocks := make([]BlockID, 1)
-	expectedPath, _ := expectSyncBlock(t, config, nil, userID, id, "",
+	expectedPath, _ := expectSyncBlock(t, config, nil, uid, id, "",
 		p, rmd, false, 0, 0, unrefBytes, &newRmd, blocks)
 
 	err := config.KBFSOps().RemoveEntry(ctx, n, "a")
@@ -1501,7 +1499,7 @@ func TestRenameInDirSuccess(t *testing.T) {
 	mockCtrl, config, ctx := kbfsOpsInit(t, true)
 	defer kbfsTestShutdown(mockCtrl, config)
 
-	userID, id, rmd := makeIDAndRMD(t, config)
+	uid, id, rmd := makeIDAndRMD(t, config)
 
 	rootID := fakeBlockID(41)
 	rmd.data.Dir.ID = rootID
@@ -1509,16 +1507,16 @@ func TestRenameInDirSuccess(t *testing.T) {
 	bID := fakeBlockID(43)
 	rootBlock := NewDirBlock().(*DirBlock)
 	rootBlock.Children["a"] = DirEntry{
-		BlockInfo: makeBIFromID(aID, userID),
+		BlockInfo: makeBIFromID(aID, uid),
 		Type:      Dir,
 	}
 	aBlock := NewDirBlock().(*DirBlock)
 	aBlock.Children["b"] = DirEntry{
-		BlockInfo: makeBIFromID(bID, userID),
+		BlockInfo: makeBIFromID(bID, uid),
 		Type:      File,
 	}
-	node := pathNode{makeBP(rootID, rmd, config, userID), "p"}
-	aNode := pathNode{makeBP(aID, rmd, config, userID), "a"}
+	node := pathNode{makeBP(rootID, rmd, config, uid), "p"}
+	aNode := pathNode{makeBP(aID, rmd, config, uid), "a"}
 	p := path{FolderBranch{Tlf: id}, []pathNode{node, aNode}}
 	ops := getOps(config, id)
 	n := nodeFromPath(t, ops, p)
@@ -1530,7 +1528,7 @@ func TestRenameInDirSuccess(t *testing.T) {
 	var newRmd *RootMetadata
 	blocks := make([]BlockID, 3)
 	expectedPath, _ :=
-		expectSyncBlock(t, config, nil, userID, id, "", p, rmd, false,
+		expectSyncBlock(t, config, nil, uid, id, "", p, rmd, false,
 			0, 0, 0, &newRmd, blocks)
 
 	err := config.KBFSOps().Rename(ctx, n, "b", n, "c")
@@ -1580,17 +1578,17 @@ func TestRenameInRootSuccess(t *testing.T) {
 	mockCtrl, config, ctx := kbfsOpsInit(t, true)
 	defer kbfsTestShutdown(mockCtrl, config)
 
-	userID, id, rmd := makeIDAndRMD(t, config)
+	uid, id, rmd := makeIDAndRMD(t, config)
 
 	rootID := fakeBlockID(41)
 	rmd.data.Dir.ID = rootID
 	aID := fakeBlockID(42)
 	rootBlock := NewDirBlock().(*DirBlock)
 	rootBlock.Children["a"] = DirEntry{
-		BlockInfo: makeBIFromID(aID, userID),
+		BlockInfo: makeBIFromID(aID, uid),
 		Type:      File,
 	}
-	node := pathNode{makeBP(rootID, rmd, config, userID), "p"}
+	node := pathNode{makeBP(rootID, rmd, config, uid), "p"}
 	p := path{FolderBranch{Tlf: id}, []pathNode{node}}
 	ops := getOps(config, id)
 	n := nodeFromPath(t, ops, p)
@@ -1601,7 +1599,7 @@ func TestRenameInRootSuccess(t *testing.T) {
 	var newRmd *RootMetadata
 	blocks := make([]BlockID, 2)
 	expectedPath, _ :=
-		expectSyncBlock(t, config, nil, userID, id, "", p, rmd, false,
+		expectSyncBlock(t, config, nil, uid, id, "", p, rmd, false,
 			0, 0, 0, &newRmd, blocks)
 
 	err := config.KBFSOps().Rename(ctx, n, "a", n, "b")
@@ -1649,7 +1647,7 @@ func TestRenameAcrossDirsSuccess(t *testing.T) {
 	mockCtrl, config, ctx := kbfsOpsInit(t, true)
 	defer kbfsTestShutdown(mockCtrl, config)
 
-	userID, id, rmd := makeIDAndRMD(t, config)
+	uid, id, rmd := makeIDAndRMD(t, config)
 
 	rootID := fakeBlockID(41)
 	rmd.data.Dir.ID = rootID
@@ -1659,27 +1657,27 @@ func TestRenameAcrossDirsSuccess(t *testing.T) {
 	rmd.data.Dir.Type = Dir
 	rootBlock := NewDirBlock().(*DirBlock)
 	rootBlock.Children["a"] = DirEntry{
-		BlockInfo: makeBIFromID(aID, userID),
+		BlockInfo: makeBIFromID(aID, uid),
 		Type:      Dir,
 	}
 	aBlock := NewDirBlock().(*DirBlock)
 	aBlock.Children["b"] = DirEntry{
-		BlockInfo: makeBIFromID(bID, userID),
+		BlockInfo: makeBIFromID(bID, uid),
 		Type:      File,
 	}
-	node := pathNode{makeBP(rootID, rmd, config, userID), "p"}
-	aNode := pathNode{makeBP(aID, rmd, config, userID), "a"}
+	node := pathNode{makeBP(rootID, rmd, config, uid), "p"}
+	aNode := pathNode{makeBP(aID, rmd, config, uid), "a"}
 	p1 := path{FolderBranch{Tlf: id}, []pathNode{node, aNode}}
 	ops := getOps(config, id)
 	n1 := nodeFromPath(t, ops, p1)
 
 	dID := fakeBlockID(40)
 	rootBlock.Children["d"] = DirEntry{
-		BlockInfo: makeBIFromID(dID, userID),
+		BlockInfo: makeBIFromID(dID, uid),
 		Type:      Dir,
 	}
 	dBlock := NewDirBlock().(*DirBlock)
-	dNode := pathNode{makeBP(dID, rmd, config, userID), "d"}
+	dNode := pathNode{makeBP(dID, rmd, config, uid), "d"}
 	p2 := path{FolderBranch{Tlf: id}, []pathNode{node, dNode}}
 	n2 := nodeFromPath(t, ops, p2)
 
@@ -1692,13 +1690,13 @@ func TestRenameAcrossDirsSuccess(t *testing.T) {
 	var newRmd *RootMetadata
 	blocks1 := make([]BlockID, 2)
 	expectedPath1, lastCall :=
-		expectSyncBlock(t, config, nil, userID, id, "", p1, rmd, false,
+		expectSyncBlock(t, config, nil, uid, id, "", p1, rmd, false,
 			1, 0, 0, nil, blocks1)
 	blocks2 := make([]BlockID, 3)
 	refBytes := uint64(1)   // need to include directory "a"
 	unrefBytes := uint64(1) // need to include directory "a"
 	expectedPath2, _ :=
-		expectSyncBlock(t, config, lastCall, userID, id, "", p2, rmd, false, 0,
+		expectSyncBlock(t, config, lastCall, uid, id, "", p2, rmd, false, 0,
 			refBytes, unrefBytes, &newRmd, blocks2)
 	// fix up old expected path's common ancestor
 	expectedPath1.path[0].ID = expectedPath2.path[0].ID
@@ -1757,7 +1755,7 @@ func TestRenameAcrossPrefixSuccess(t *testing.T) {
 	mockCtrl, config, ctx := kbfsOpsInit(t, true)
 	defer kbfsTestShutdown(mockCtrl, config)
 
-	userID, id, rmd := makeIDAndRMD(t, config)
+	uid, id, rmd := makeIDAndRMD(t, config)
 
 	rootID := fakeBlockID(41)
 	rmd.data.Dir.ID = rootID
@@ -1768,22 +1766,22 @@ func TestRenameAcrossPrefixSuccess(t *testing.T) {
 	rmd.data.Dir.Type = Dir
 	rootBlock := NewDirBlock().(*DirBlock)
 	rootBlock.Children["a"] = DirEntry{
-		BlockInfo: makeBIFromID(aID, userID),
+		BlockInfo: makeBIFromID(aID, uid),
 		Type:      Dir,
 	}
 	aBlock := NewDirBlock().(*DirBlock)
 	aBlock.Children["b"] = DirEntry{
-		BlockInfo: makeBIFromID(bID, userID),
+		BlockInfo: makeBIFromID(bID, uid),
 		Type:      File,
 	}
 	aBlock.Children["d"] = DirEntry{
-		BlockInfo: makeBIFromID(dID, userID),
+		BlockInfo: makeBIFromID(dID, uid),
 		Type:      File,
 	}
 	dBlock := NewDirBlock().(*DirBlock)
-	node := pathNode{makeBP(rootID, rmd, config, userID), "p"}
-	aNode := pathNode{makeBP(aID, rmd, config, userID), "a"}
-	dNode := pathNode{makeBP(dID, rmd, config, userID), "d"}
+	node := pathNode{makeBP(rootID, rmd, config, uid), "p"}
+	aNode := pathNode{makeBP(aID, rmd, config, uid), "a"}
+	dNode := pathNode{makeBP(dID, rmd, config, uid), "d"}
 	p1 := path{FolderBranch{Tlf: id}, []pathNode{node, aNode}}
 	p2 := path{FolderBranch{Tlf: id}, []pathNode{node, aNode, dNode}}
 	ops := getOps(config, id)
@@ -1800,7 +1798,7 @@ func TestRenameAcrossPrefixSuccess(t *testing.T) {
 	var newRmd *RootMetadata
 	blocks := make([]BlockID, 4)
 	expectedPath2, _ :=
-		expectSyncBlock(t, config, nil, userID, id, "", p2, rmd, false,
+		expectSyncBlock(t, config, nil, uid, id, "", p2, rmd, false,
 			0, 0, 0, &newRmd, blocks)
 
 	err := config.KBFSOps().Rename(ctx, n1, "b", n2, "c")
@@ -1850,7 +1848,7 @@ func TestRenameAcrossOtherPrefixSuccess(t *testing.T) {
 	mockCtrl, config, ctx := kbfsOpsInit(t, true)
 	defer kbfsTestShutdown(mockCtrl, config)
 
-	userID, id, rmd := makeIDAndRMD(t, config)
+	uid, id, rmd := makeIDAndRMD(t, config)
 
 	rootID := fakeBlockID(41)
 	rmd.data.Dir.ID = rootID
@@ -1861,22 +1859,22 @@ func TestRenameAcrossOtherPrefixSuccess(t *testing.T) {
 	rmd.data.Dir.Type = Dir
 	rootBlock := NewDirBlock().(*DirBlock)
 	rootBlock.Children["a"] = DirEntry{
-		BlockInfo: makeBIFromID(aID, userID),
+		BlockInfo: makeBIFromID(aID, uid),
 		Type:      Dir,
 	}
 	aBlock := NewDirBlock().(*DirBlock)
 	aBlock.Children["d"] = DirEntry{
-		BlockInfo: makeBIFromID(dID, userID),
+		BlockInfo: makeBIFromID(dID, uid),
 		Type:      File,
 	}
 	dBlock := NewDirBlock().(*DirBlock)
 	dBlock.Children["b"] = DirEntry{
-		BlockInfo: makeBIFromID(bID, userID),
+		BlockInfo: makeBIFromID(bID, uid),
 		Type:      File,
 	}
-	node := pathNode{makeBP(rootID, rmd, config, userID), "p"}
-	aNode := pathNode{makeBP(aID, rmd, config, userID), "a"}
-	dNode := pathNode{makeBP(dID, rmd, config, userID), "d"}
+	node := pathNode{makeBP(rootID, rmd, config, uid), "p"}
+	aNode := pathNode{makeBP(aID, rmd, config, uid), "a"}
+	dNode := pathNode{makeBP(dID, rmd, config, uid), "d"}
 	p1 := path{FolderBranch{Tlf: id}, []pathNode{node, aNode, dNode}}
 	p2 := path{FolderBranch{Tlf: id}, []pathNode{node, aNode}}
 	ops := getOps(config, id)
@@ -1892,13 +1890,13 @@ func TestRenameAcrossOtherPrefixSuccess(t *testing.T) {
 	var newRmd *RootMetadata
 	blocks1 := make([]BlockID, 3)
 	expectedPath1, lastCall :=
-		expectSyncBlock(t, config, nil, userID, id, "", p1, rmd, false,
+		expectSyncBlock(t, config, nil, uid, id, "", p1, rmd, false,
 			2, 0, 0, &newRmd, blocks1)
 	blocks2 := make([]BlockID, 3)
 	refBytes := uint64(1)   // need to include directory "d"
 	unrefBytes := uint64(1) // need to include directory "d"
 	expectedPath2, _ :=
-		expectSyncBlock(t, config, lastCall, userID, id, "", p2, rmd, false, 0,
+		expectSyncBlock(t, config, lastCall, uid, id, "", p2, rmd, false, 0,
 			refBytes, unrefBytes, &newRmd, blocks2)
 	// the new path is a prefix of the old path
 	expectedPath1.path[0].ID = expectedPath2.path[0].ID
@@ -1953,28 +1951,28 @@ func TestRenameFailAcrossTopLevelFolders(t *testing.T) {
 	mockCtrl, config, ctx := kbfsOpsInit(t, false)
 	defer kbfsTestShutdown(mockCtrl, config)
 
-	userID1 := keybase1.MakeTestUID(15)
+	uid1 := keybase1.MakeTestUID(15)
 	id1, h1, rmd1 := newDir(t, config, 1, true, false)
-	h1.Writers = append(h1.Writers, userID1)
-	expectUserCalls(h1, config)
+	h1.Writers = append(h1.Writers, uid1)
+	expectUsernameCalls(h1, config)
 
-	userID2 := keybase1.MakeTestUID(20)
+	uid2 := keybase1.MakeTestUID(20)
 	id2, h2, rmd2 := newDir(t, config, 2, true, false)
-	h2.Writers = append(h2.Writers, userID2)
-	expectUserCalls(h2, config)
+	h2.Writers = append(h2.Writers, uid2)
+	expectUsernameCalls(h2, config)
 
 	rootID1 := fakeBlockID(41)
 	aID1 := fakeBlockID(42)
-	node1 := pathNode{makeBP(rootID1, &rmd1.MD, config, userID1), "p"}
-	aNode1 := pathNode{makeBP(aID1, &rmd1.MD, config, userID1), "a"}
+	node1 := pathNode{makeBP(rootID1, &rmd1.MD, config, uid1), "p"}
+	aNode1 := pathNode{makeBP(aID1, &rmd1.MD, config, uid1), "a"}
 	p1 := path{FolderBranch{Tlf: id1}, []pathNode{node1, aNode1}}
 	ops1 := getOps(config, id1)
 	n1 := nodeFromPath(t, ops1, p1)
 
 	rootID2 := fakeBlockID(38)
 	aID2 := fakeBlockID(39)
-	node2 := pathNode{makeBP(rootID2, &rmd2.MD, config, userID2), "p"}
-	aNode2 := pathNode{makeBP(aID2, &rmd2.MD, config, userID2), "a"}
+	node2 := pathNode{makeBP(rootID2, &rmd2.MD, config, uid2), "p"}
+	aNode2 := pathNode{makeBP(aID2, &rmd2.MD, config, uid2), "a"}
 	p2 := path{FolderBranch{Tlf: id2}, []pathNode{node2, aNode2}}
 	ops2 := getOps(config, id2)
 	n2 := nodeFromPath(t, ops2, p2)
@@ -1992,15 +1990,15 @@ func TestRenameFailAcrossBranches(t *testing.T) {
 	mockCtrl, config, ctx := kbfsOpsInit(t, false)
 	defer kbfsTestShutdown(mockCtrl, config)
 
-	userID1 := keybase1.MakeTestUID(15)
+	uid1 := keybase1.MakeTestUID(15)
 	id1, h1, rmd1 := newDir(t, config, 1, true, false)
-	h1.Writers = append(h1.Writers, userID1)
-	expectUserCalls(h1, config)
+	h1.Writers = append(h1.Writers, uid1)
+	expectUsernameCalls(h1, config)
 
 	rootID1 := fakeBlockID(41)
 	aID1 := fakeBlockID(42)
-	node1 := pathNode{makeBP(rootID1, &rmd1.MD, config, userID1), "p"}
-	aNode1 := pathNode{makeBP(aID1, &rmd1.MD, config, userID1), "a"}
+	node1 := pathNode{makeBP(rootID1, &rmd1.MD, config, uid1), "p"}
+	aNode1 := pathNode{makeBP(aID1, &rmd1.MD, config, uid1), "a"}
 	p1 := path{FolderBranch{Tlf: id1}, []pathNode{node1, aNode1}}
 	p2 := path{FolderBranch{id1, "test"}, []pathNode{node1, aNode1}}
 	ops1 := getOps(config, id1)
@@ -2301,21 +2299,21 @@ func TestKBFSOpsWriteNewBlockSuccess(t *testing.T) {
 	mockCtrl, config, ctx := kbfsOpsInit(t, true)
 	defer kbfsTestShutdown(mockCtrl, config)
 
-	userID, id, rmd := makeIDAndRMD(t, config)
+	uid, id, rmd := makeIDAndRMD(t, config)
 
 	rootID := fakeBlockID(42)
 	fileID := fakeBlockID(43)
 	rootBlock := NewDirBlock().(*DirBlock)
 	rootBlock.Children["f"] = DirEntry{
 		BlockInfo: BlockInfo{
-			BlockPointer: makeBP(fileID, rmd, config, userID),
+			BlockPointer: makeBP(fileID, rmd, config, uid),
 			EncodedSize:  1,
 		},
 		Type: File,
 	}
 	fileBlock := NewFileBlock().(*FileBlock)
-	node := pathNode{makeBP(rootID, rmd, config, userID), "p"}
-	fileNode := pathNode{makeBP(fileID, rmd, config, userID), "f"}
+	node := pathNode{makeBP(rootID, rmd, config, uid), "p"}
+	fileNode := pathNode{makeBP(fileID, rmd, config, uid), "f"}
 	p := path{FolderBranch{Tlf: id}, []pathNode{node, fileNode}}
 	ops := getOps(config, id)
 	n := nodeFromPath(t, ops, p)
@@ -2348,7 +2346,7 @@ func TestKBFSOpsWriteNewBlockSuccess(t *testing.T) {
 			config.observer.ctx.Value(tCtxID))
 	} else if !bytes.Equal(data, newFileBlock.Contents) {
 		t.Errorf("Wrote bad contents: %v", data)
-	} else if newRootBlock.Children["f"].GetWriter() != userID {
+	} else if newRootBlock.Children["f"].GetWriter() != uid {
 		t.Errorf("Wrong last writer: %v",
 			newRootBlock.Children["f"].GetWriter())
 	} else if newRootBlock.Children["f"].Size != uint64(len(data)) {
@@ -2367,22 +2365,22 @@ func TestKBFSOpsWriteExtendSuccess(t *testing.T) {
 	mockCtrl, config, ctx := kbfsOpsInit(t, true)
 	defer kbfsTestShutdown(mockCtrl, config)
 
-	userID, id, rmd := makeIDAndRMD(t, config)
+	uid, id, rmd := makeIDAndRMD(t, config)
 
 	rootID := fakeBlockID(42)
 	fileID := fakeBlockID(43)
 	rootBlock := NewDirBlock().(*DirBlock)
 	rootBlock.Children["f"] = DirEntry{
 		BlockInfo: BlockInfo{
-			BlockPointer: makeBP(fileID, rmd, config, userID),
+			BlockPointer: makeBP(fileID, rmd, config, uid),
 			EncodedSize:  1,
 		},
 		Type: File,
 	}
 	fileBlock := NewFileBlock().(*FileBlock)
 	fileBlock.Contents = []byte{1, 2, 3, 4, 5}
-	node := pathNode{makeBP(rootID, rmd, config, userID), "p"}
-	fileNode := pathNode{makeBP(fileID, rmd, config, userID), "f"}
+	node := pathNode{makeBP(rootID, rmd, config, uid), "p"}
+	fileNode := pathNode{makeBP(fileID, rmd, config, uid), "f"}
 	p := path{FolderBranch{Tlf: id}, []pathNode{node, fileNode}}
 	ops := getOps(config, id)
 	n := nodeFromPath(t, ops, p)
@@ -2426,22 +2424,22 @@ func TestKBFSOpsWritePastEndSuccess(t *testing.T) {
 	mockCtrl, config, ctx := kbfsOpsInit(t, true)
 	defer kbfsTestShutdown(mockCtrl, config)
 
-	userID, id, rmd := makeIDAndRMD(t, config)
+	uid, id, rmd := makeIDAndRMD(t, config)
 
 	rootID := fakeBlockID(42)
 	fileID := fakeBlockID(43)
 	rootBlock := NewDirBlock().(*DirBlock)
 	rootBlock.Children["f"] = DirEntry{
 		BlockInfo: BlockInfo{
-			BlockPointer: makeBP(fileID, rmd, config, userID),
+			BlockPointer: makeBP(fileID, rmd, config, uid),
 			EncodedSize:  1,
 		},
 		Type: File,
 	}
 	fileBlock := NewFileBlock().(*FileBlock)
 	fileBlock.Contents = []byte{1, 2, 3, 4, 5}
-	node := pathNode{makeBP(rootID, rmd, config, userID), "p"}
-	fileNode := pathNode{makeBP(fileID, rmd, config, userID), "f"}
+	node := pathNode{makeBP(rootID, rmd, config, uid), "p"}
+	fileNode := pathNode{makeBP(fileID, rmd, config, uid), "f"}
 	p := path{FolderBranch{Tlf: id}, []pathNode{node, fileNode}}
 	ops := getOps(config, id)
 	n := nodeFromPath(t, ops, p)
@@ -2485,22 +2483,22 @@ func TestKBFSOpsWriteCauseSplit(t *testing.T) {
 	mockCtrl, config, ctx := kbfsOpsInit(t, true)
 	defer kbfsTestShutdown(mockCtrl, config)
 
-	userID, id, rmd := makeIDAndRMD(t, config)
+	uid, id, rmd := makeIDAndRMD(t, config)
 
 	rootID := fakeBlockID(42)
 	fileID := fakeBlockID(43)
 	rootBlock := NewDirBlock().(*DirBlock)
 	rootBlock.Children["f"] = DirEntry{
 		BlockInfo: BlockInfo{
-			BlockPointer: makeBP(fileID, rmd, config, userID),
+			BlockPointer: makeBP(fileID, rmd, config, uid),
 			EncodedSize:  1,
 		},
 		Type: File,
 	}
 	fileBlock := NewFileBlock().(*FileBlock)
 	fileBlock.Contents = []byte{}
-	node := pathNode{makeBP(rootID, rmd, config, userID), "p"}
-	fileNode := pathNode{makeBP(fileID, rmd, config, userID), "f"}
+	node := pathNode{makeBP(rootID, rmd, config, uid), "p"}
+	fileNode := pathNode{makeBP(fileID, rmd, config, uid), "f"}
 	p := path{FolderBranch{Tlf: id}, []pathNode{node, fileNode}}
 	ops := getOps(config, id)
 	n := nodeFromPath(t, ops, p)
@@ -2542,9 +2540,9 @@ func TestKBFSOpsWriteCauseSplit(t *testing.T) {
 
 	b, _ = config.BlockCache().Get(fileNode.BlockPointer, p.Branch)
 	pblock := b.(*FileBlock)
-	b, _ = config.BlockCache().Get(makeBP(id1, rmd, config, userID), p.Branch)
+	b, _ = config.BlockCache().Get(makeBP(id1, rmd, config, uid), p.Branch)
 	block1 := b.(*FileBlock)
-	b, _ = config.BlockCache().Get(makeBP(id2, rmd, config, userID), p.Branch)
+	b, _ = config.BlockCache().Get(makeBP(id2, rmd, config, uid), p.Branch)
 	block2 := b.(*FileBlock)
 
 	if len(ops.nodeCache.PathFromNode(config.observer.localChange).path) !=
@@ -2593,13 +2591,13 @@ func TestKBFSOpsWriteOverMultipleBlocks(t *testing.T) {
 	mockCtrl, config, ctx := kbfsOpsInit(t, true)
 	defer kbfsTestShutdown(mockCtrl, config)
 
-	userID, id, rmd := makeIDAndRMD(t, config)
+	uid, id, rmd := makeIDAndRMD(t, config)
 	rootID := fakeBlockID(42)
 	fileID := fakeBlockID(43)
 	id1 := fakeBlockID(44)
 	id2 := fakeBlockID(45)
 	rootBlock := NewDirBlock().(*DirBlock)
-	filePtr := BlockPointer{ID: fileID, Creator: userID, KeyGen: 1, DataVer: 1}
+	filePtr := BlockPointer{ID: fileID, Creator: uid, KeyGen: 1, DataVer: 1}
 	rootBlock.Children["f"] = DirEntry{
 		BlockInfo: BlockInfo{
 			BlockPointer: filePtr,
@@ -2610,15 +2608,15 @@ func TestKBFSOpsWriteOverMultipleBlocks(t *testing.T) {
 	fileBlock := NewFileBlock().(*FileBlock)
 	fileBlock.IsInd = true
 	fileBlock.IPtrs = []IndirectFilePtr{
-		IndirectFilePtr{makeBI(id1, rmd, config, userID, 5), 0},
-		IndirectFilePtr{makeBI(id2, rmd, config, userID, 6), 5},
+		IndirectFilePtr{makeBI(id1, rmd, config, uid, 5), 0},
+		IndirectFilePtr{makeBI(id2, rmd, config, uid, 6), 5},
 	}
 	block1 := NewFileBlock().(*FileBlock)
 	block1.Contents = []byte{5, 4, 3, 2, 1}
 	block2 := NewFileBlock().(*FileBlock)
 	block2.Contents = []byte{10, 9, 8, 7, 6}
-	node := pathNode{makeBP(rootID, rmd, config, userID), "p"}
-	fileNode := pathNode{makeBP(fileID, rmd, config, userID), "f"}
+	node := pathNode{makeBP(rootID, rmd, config, uid), "p"}
+	fileNode := pathNode{makeBP(fileID, rmd, config, uid), "f"}
 	p := path{FolderBranch{Tlf: id}, []pathNode{node, fileNode}}
 	ops := getOps(config, id)
 	n := nodeFromPath(t, ops, p)
@@ -2685,22 +2683,22 @@ func TestKBFSOpsTruncateToZeroSuccess(t *testing.T) {
 	mockCtrl, config, ctx := kbfsOpsInit(t, true)
 	defer kbfsTestShutdown(mockCtrl, config)
 
-	userID, id, rmd := makeIDAndRMD(t, config)
+	uid, id, rmd := makeIDAndRMD(t, config)
 
 	rootID := fakeBlockID(42)
 	fileID := fakeBlockID(43)
 	rootBlock := NewDirBlock().(*DirBlock)
 	rootBlock.Children["f"] = DirEntry{
 		BlockInfo: BlockInfo{
-			BlockPointer: makeBP(fileID, rmd, config, userID),
+			BlockPointer: makeBP(fileID, rmd, config, uid),
 			EncodedSize:  1,
 		},
 		Type: File,
 	}
 	fileBlock := NewFileBlock().(*FileBlock)
 	fileBlock.Contents = []byte{1, 2, 3, 4, 5, 6, 7, 8, 9, 10}
-	node := pathNode{makeBP(rootID, rmd, config, userID), "p"}
-	fileNode := pathNode{makeBP(fileID, rmd, config, userID), "f"}
+	node := pathNode{makeBP(rootID, rmd, config, uid), "p"}
+	fileNode := pathNode{makeBP(fileID, rmd, config, uid), "f"}
 	p := path{FolderBranch{Tlf: id}, []pathNode{node, fileNode}}
 	ops := getOps(config, id)
 	n := nodeFromPath(t, ops, p)
@@ -2728,7 +2726,7 @@ func TestKBFSOpsTruncateToZeroSuccess(t *testing.T) {
 			config.observer.ctx.Value(tCtxID))
 	} else if !bytes.Equal(data, newFileBlock.Contents) {
 		t.Errorf("Wrote bad contents: %v", newFileBlock.Contents)
-	} else if newRootBlock.Children["f"].GetWriter() != userID {
+	} else if newRootBlock.Children["f"].GetWriter() != uid {
 		t.Errorf("Wrong last writer: %v",
 			newRootBlock.Children["f"].GetWriter())
 	} else if newRootBlock.Children["f"].Size != 0 {
@@ -2783,22 +2781,22 @@ func TestKBFSOpsTruncateSmallerSuccess(t *testing.T) {
 	mockCtrl, config, ctx := kbfsOpsInit(t, true)
 	defer kbfsTestShutdown(mockCtrl, config)
 
-	userID, id, rmd := makeIDAndRMD(t, config)
+	uid, id, rmd := makeIDAndRMD(t, config)
 
 	rootID := fakeBlockID(42)
 	fileID := fakeBlockID(43)
 	rootBlock := NewDirBlock().(*DirBlock)
 	rootBlock.Children["f"] = DirEntry{
 		BlockInfo: BlockInfo{
-			BlockPointer: makeBP(fileID, rmd, config, userID),
+			BlockPointer: makeBP(fileID, rmd, config, uid),
 			EncodedSize:  1,
 		},
 		Type: File,
 	}
 	fileBlock := NewFileBlock().(*FileBlock)
 	fileBlock.Contents = []byte{1, 2, 3, 4, 5, 6, 7, 8, 9, 10}
-	node := pathNode{makeBP(rootID, rmd, config, userID), "p"}
-	fileNode := pathNode{makeBP(fileID, rmd, config, userID), "f"}
+	node := pathNode{makeBP(rootID, rmd, config, uid), "p"}
+	fileNode := pathNode{makeBP(fileID, rmd, config, uid), "f"}
 	p := path{FolderBranch{Tlf: id}, []pathNode{node, fileNode}}
 	ops := getOps(config, id)
 	n := nodeFromPath(t, ops, p)
@@ -2836,14 +2834,14 @@ func TestKBFSOpsTruncateShortensLastBlock(t *testing.T) {
 	mockCtrl, config, ctx := kbfsOpsInit(t, true)
 	defer kbfsTestShutdown(mockCtrl, config)
 
-	userID, id, rmd := makeIDAndRMD(t, config)
+	uid, id, rmd := makeIDAndRMD(t, config)
 
 	rootID := fakeBlockID(42)
 	fileID := fakeBlockID(43)
 	id1 := fakeBlockID(44)
 	id2 := fakeBlockID(45)
 	rootBlock := NewDirBlock().(*DirBlock)
-	fileInfo := makeBIFromID(fileID, userID)
+	fileInfo := makeBIFromID(fileID, uid)
 	rootBlock.Children["f"] = DirEntry{
 		BlockInfo: fileInfo,
 		Size:      10,
@@ -2851,15 +2849,15 @@ func TestKBFSOpsTruncateShortensLastBlock(t *testing.T) {
 	fileBlock := NewFileBlock().(*FileBlock)
 	fileBlock.IsInd = true
 	fileBlock.IPtrs = []IndirectFilePtr{
-		IndirectFilePtr{makeBI(id1, rmd, config, userID, 5), 0},
-		IndirectFilePtr{makeBI(id2, rmd, config, userID, 6), 5},
+		IndirectFilePtr{makeBI(id1, rmd, config, uid, 5), 0},
+		IndirectFilePtr{makeBI(id2, rmd, config, uid, 6), 5},
 	}
 	block1 := NewFileBlock().(*FileBlock)
 	block1.Contents = []byte{5, 4, 3, 2, 1}
 	block2 := NewFileBlock().(*FileBlock)
 	block2.Contents = []byte{10, 9, 8, 7, 6}
-	node := pathNode{makeBP(rootID, rmd, config, userID), "p"}
-	fileNode := pathNode{makeBP(fileID, rmd, config, userID), "f"}
+	node := pathNode{makeBP(rootID, rmd, config, uid), "p"}
+	fileNode := pathNode{makeBP(fileID, rmd, config, uid), "f"}
 	p := path{FolderBranch{Tlf: id}, []pathNode{node, fileNode}}
 	ops := getOps(config, id)
 	n := nodeFromPath(t, ops, p)
@@ -2916,14 +2914,14 @@ func TestKBFSOpsTruncateRemovesABlock(t *testing.T) {
 	mockCtrl, config, ctx := kbfsOpsInit(t, true)
 	defer kbfsTestShutdown(mockCtrl, config)
 
-	userID, id, rmd := makeIDAndRMD(t, config)
+	uid, id, rmd := makeIDAndRMD(t, config)
 
 	rootID := fakeBlockID(42)
 	fileID := fakeBlockID(43)
 	id1 := fakeBlockID(44)
 	id2 := fakeBlockID(45)
 	rootBlock := NewDirBlock().(*DirBlock)
-	fileInfo := makeBIFromID(fileID, userID)
+	fileInfo := makeBIFromID(fileID, uid)
 	rootBlock.Children["f"] = DirEntry{
 		BlockInfo: fileInfo,
 		Size:      10,
@@ -2931,15 +2929,15 @@ func TestKBFSOpsTruncateRemovesABlock(t *testing.T) {
 	fileBlock := NewFileBlock().(*FileBlock)
 	fileBlock.IsInd = true
 	fileBlock.IPtrs = []IndirectFilePtr{
-		IndirectFilePtr{makeBI(id1, rmd, config, userID, 5), 0},
-		IndirectFilePtr{makeBI(id2, rmd, config, userID, 6), 5},
+		IndirectFilePtr{makeBI(id1, rmd, config, uid, 5), 0},
+		IndirectFilePtr{makeBI(id2, rmd, config, uid, 6), 5},
 	}
 	block1 := NewFileBlock().(*FileBlock)
 	block1.Contents = []byte{5, 4, 3, 2, 1}
 	block2 := NewFileBlock().(*FileBlock)
 	block2.Contents = []byte{10, 9, 8, 7, 6}
-	node := pathNode{makeBP(rootID, rmd, config, userID), "p"}
-	fileNode := pathNode{makeBP(fileID, rmd, config, userID), "f"}
+	node := pathNode{makeBP(rootID, rmd, config, uid), "p"}
+	fileNode := pathNode{makeBP(fileID, rmd, config, uid), "f"}
 	p := path{FolderBranch{Tlf: id}, []pathNode{node, fileNode}}
 	ops := getOps(config, id)
 	n := nodeFromPath(t, ops, p)
@@ -2991,22 +2989,22 @@ func TestKBFSOpsTruncateBiggerSuccess(t *testing.T) {
 	mockCtrl, config, ctx := kbfsOpsInit(t, true)
 	defer kbfsTestShutdown(mockCtrl, config)
 
-	userID, id, rmd := makeIDAndRMD(t, config)
+	uid, id, rmd := makeIDAndRMD(t, config)
 
 	rootID := fakeBlockID(42)
 	fileID := fakeBlockID(43)
 	rootBlock := NewDirBlock().(*DirBlock)
 	rootBlock.Children["f"] = DirEntry{
 		BlockInfo: BlockInfo{
-			BlockPointer: makeBP(fileID, rmd, config, userID),
+			BlockPointer: makeBP(fileID, rmd, config, uid),
 			EncodedSize:  1,
 		},
 		Type: File,
 	}
 	fileBlock := NewFileBlock().(*FileBlock)
 	fileBlock.Contents = []byte{1, 2, 3, 4, 5}
-	node := pathNode{makeBP(rootID, rmd, config, userID), "p"}
-	fileNode := pathNode{makeBP(fileID, rmd, config, userID), "f"}
+	node := pathNode{makeBP(rootID, rmd, config, uid), "p"}
+	fileNode := pathNode{makeBP(fileID, rmd, config, uid), "f"}
 	p := path{FolderBranch{Tlf: id}, []pathNode{node, fileNode}}
 	ops := getOps(config, id)
 	n := nodeFromPath(t, ops, p)
@@ -3051,19 +3049,19 @@ func testSetExSuccess(t *testing.T, entryType EntryType, ex bool) {
 	mockCtrl, config, ctx := kbfsOpsInit(t, entryType != Sym)
 	defer kbfsTestShutdown(mockCtrl, config)
 
-	userID, id, rmd := makeIDAndRMD(t, config)
+	uid, id, rmd := makeIDAndRMD(t, config)
 
 	rootID := fakeBlockID(42)
 	rmd.data.Dir.ID = rootID
 	aID := fakeBlockID(43)
 	rootBlock := NewDirBlock().(*DirBlock)
 	rootBlock.Children["a"] = DirEntry{
-		BlockInfo: makeBIFromID(aID, userID),
+		BlockInfo: makeBIFromID(aID, uid),
 		Size:      1,
 		Type:      entryType,
 	}
-	node := pathNode{makeBP(rootID, rmd, config, userID), "p"}
-	aNode := pathNode{makeBP(aID, rmd, config, userID), "a"}
+	node := pathNode{makeBP(rootID, rmd, config, uid), "p"}
+	aNode := pathNode{makeBP(aID, rmd, config, uid), "a"}
 	p := path{FolderBranch{Tlf: id}, []pathNode{node, aNode}}
 	ops := getOps(config, id)
 	n := nodeFromPath(t, ops, p)
@@ -3082,7 +3080,7 @@ func testSetExSuccess(t *testing.T, entryType EntryType, ex bool) {
 	if entryType != Sym {
 		// sync block
 		blocks = make([]BlockID, 2)
-		expectedPath, _ = expectSyncBlock(t, config, nil, userID, id, "",
+		expectedPath, _ = expectSyncBlock(t, config, nil, uid, id, "",
 			*p.parentPath(), rmd, false, 0, 0, 0, &newRmd, blocks)
 		expectedPath.path = append(expectedPath.path, aNode)
 	}
@@ -3211,18 +3209,18 @@ func TestSetMtimeSuccess(t *testing.T) {
 	mockCtrl, config, ctx := kbfsOpsInit(t, true)
 	defer kbfsTestShutdown(mockCtrl, config)
 
-	userID, id, rmd := makeIDAndRMD(t, config)
+	uid, id, rmd := makeIDAndRMD(t, config)
 
 	rootID := fakeBlockID(42)
 	rmd.data.Dir.ID = rootID
 	aID := fakeBlockID(43)
 	rootBlock := NewDirBlock().(*DirBlock)
 	rootBlock.Children["a"] = DirEntry{
-		BlockInfo: makeBIFromID(aID, userID),
+		BlockInfo: makeBIFromID(aID, uid),
 		Type:      File,
 	}
-	node := pathNode{makeBP(rootID, rmd, config, userID), "p"}
-	aNode := pathNode{makeBP(aID, rmd, config, userID), "a"}
+	node := pathNode{makeBP(rootID, rmd, config, uid), "p"}
+	aNode := pathNode{makeBP(aID, rmd, config, uid), "a"}
 	p := path{FolderBranch{Tlf: id}, []pathNode{node, aNode}}
 	ops := getOps(config, id)
 	n := nodeFromPath(t, ops, p)
@@ -3231,7 +3229,7 @@ func TestSetMtimeSuccess(t *testing.T) {
 	// sync block
 	var newRmd *RootMetadata
 	blocks := make([]BlockID, 2)
-	expectedPath, _ := expectSyncBlock(t, config, nil, userID, id, "",
+	expectedPath, _ := expectSyncBlock(t, config, nil, uid, id, "",
 		*p.parentPath(), rmd, false, 0, 0, 0, &newRmd, blocks)
 	expectedPath.path = append(expectedPath.path, aNode)
 
@@ -3335,20 +3333,20 @@ func testSyncDirtySuccess(t *testing.T, isUnmerged bool) {
 	mockCtrl, config, ctx := kbfsOpsInit(t, true)
 	defer kbfsTestShutdown(mockCtrl, config)
 
-	userID, id, rmd := makeIDAndRMD(t, config)
+	uid, id, rmd := makeIDAndRMD(t, config)
 
 	rootID := fakeBlockID(42)
 	rmd.data.Dir.ID = rootID
 	aID := fakeBlockID(43)
 	rootBlock := NewDirBlock().(*DirBlock)
 	rootBlock.Children["a"] = DirEntry{
-		BlockInfo: makeBIFromID(aID, userID),
+		BlockInfo: makeBIFromID(aID, uid),
 		Type:      File,
 	}
 	aBlock := NewFileBlock().(*FileBlock)
 	aBlock.Contents = []byte{1, 2, 3, 4, 5}
-	node := pathNode{makeBP(rootID, rmd, config, userID), "p"}
-	aNode := pathNode{makeBP(aID, rmd, config, userID), "a"}
+	node := pathNode{makeBP(rootID, rmd, config, uid), "p"}
+	aNode := pathNode{makeBP(aID, rmd, config, uid), "a"}
 	p := path{FolderBranch{Tlf: id}, []pathNode{node, aNode}}
 	ops := getOps(config, id)
 	n := nodeFromPath(t, ops, p)
@@ -3367,10 +3365,10 @@ func testSyncDirtySuccess(t *testing.T, isUnmerged bool) {
 	blocks := make([]BlockID, 2)
 	var expectedPath path
 	if isUnmerged {
-		expectedPath, _ = expectSyncBlockUnmerged(t, config, nil, userID, id,
+		expectedPath, _ = expectSyncBlockUnmerged(t, config, nil, uid, id,
 			"", p, rmd, false, 0, 0, 0, &newRmd, blocks)
 	} else {
-		expectedPath, _ = expectSyncBlock(t, config, nil, userID, id, "", p,
+		expectedPath, _ = expectSyncBlock(t, config, nil, uid, id, "", p,
 			rmd, false, 0, 0, 0, &newRmd, blocks)
 	}
 
@@ -3475,7 +3473,7 @@ func TestSyncDirtyMultiBlocksSuccess(t *testing.T) {
 	mockCtrl, config, ctx := kbfsOpsInit(t, true)
 	defer kbfsTestShutdown(mockCtrl, config)
 
-	userID, id, rmd := makeIDAndRMD(t, config)
+	uid, id, rmd := makeIDAndRMD(t, config)
 
 	rootID := fakeBlockID(42)
 	rmd.data.Dir.ID = rootID
@@ -3486,17 +3484,17 @@ func TestSyncDirtyMultiBlocksSuccess(t *testing.T) {
 	id4 := fakeBlockID(47)
 	rootBlock := NewDirBlock().(*DirBlock)
 	rootBlock.Children["a"] = DirEntry{
-		BlockInfo: makeBIFromID(fileID, userID),
+		BlockInfo: makeBIFromID(fileID, uid),
 		Size:      20,
 	}
 	fileBlock := NewFileBlock().(*FileBlock)
 	fileBlock.IsInd = true
 	fileBlock.IPtrs = []IndirectFilePtr{
-		IndirectFilePtr{makeBI(id1, rmd, config, userID, 5), 0},
+		IndirectFilePtr{makeBI(id1, rmd, config, uid, 5), 0},
 		IndirectFilePtr{makeBI(id2, rmd, config,
 			keybase1.MakeTestUID(0), 0), 5},
-		IndirectFilePtr{makeBI(id3, rmd, config, userID, 7), 10},
-		IndirectFilePtr{makeBI(id4, rmd, config, userID, 0), 15},
+		IndirectFilePtr{makeBI(id3, rmd, config, uid, 7), 10},
+		IndirectFilePtr{makeBI(id4, rmd, config, uid, 0), 15},
 	}
 	block1 := NewFileBlock().(*FileBlock)
 	block1.Contents = []byte{5, 4, 3, 2, 1}
@@ -3506,8 +3504,8 @@ func TestSyncDirtyMultiBlocksSuccess(t *testing.T) {
 	block3.Contents = []byte{15, 14, 13, 12, 11}
 	block4 := NewFileBlock().(*FileBlock)
 	block4.Contents = []byte{20, 19, 18, 17, 16}
-	node := pathNode{makeBP(rootID, rmd, config, userID), "p"}
-	fileNode := pathNode{makeBP(fileID, rmd, config, userID), "a"}
+	node := pathNode{makeBP(rootID, rmd, config, uid), "p"}
+	fileNode := pathNode{makeBP(fileID, rmd, config, uid), "a"}
 	p := path{FolderBranch{Tlf: id}, []pathNode{node, fileNode}}
 	ops := getOps(config, id)
 	n := nodeFromPath(t, ops, p)
@@ -3539,7 +3537,7 @@ func TestSyncDirtyMultiBlocksSuccess(t *testing.T) {
 	var newRmd *RootMetadata
 	blocks := make([]BlockID, 2)
 	expectedPath, _ :=
-		expectSyncBlock(t, config, nil, userID, id, "", p, rmd, false, 0,
+		expectSyncBlock(t, config, nil, uid, id, "", p, rmd, false, 0,
 			refBytes, unrefBytes, &newRmd, blocks)
 
 	err := config.KBFSOps().Sync(ctx, n)
@@ -3549,7 +3547,7 @@ func TestSyncDirtyMultiBlocksSuccess(t *testing.T) {
 	newP := ops.nodeCache.PathFromNode(n)
 	if fileBlock.IPtrs[0].EncodedSize != 5 {
 		t.Errorf("Indirect pointer encoded size1 wrong: %d", fileBlock.IPtrs[0].EncodedSize)
-	} else if fileBlock.IPtrs[1].GetWriter() != userID {
+	} else if fileBlock.IPtrs[1].GetWriter() != uid {
 		t.Errorf("Got unexpected writer: %s", fileBlock.IPtrs[1].GetWriter())
 	} else if fileBlock.IPtrs[1].EncodedSize != 10 {
 		t.Errorf("Indirect pointer encoded size2 wrong: %d", fileBlock.IPtrs[1].EncodedSize)
@@ -3591,7 +3589,7 @@ func TestSyncDirtyDupBlockSuccess(t *testing.T) {
 	mockCtrl, config, ctx := kbfsOpsInit(t, true)
 	defer kbfsTestShutdown(mockCtrl, config)
 
-	userID, id, rmd := makeIDAndRMD(t, config)
+	uid, id, rmd := makeIDAndRMD(t, config)
 
 	rootID := fakeBlockID(42)
 	rmd.data.Dir.ID = rootID
@@ -3599,20 +3597,20 @@ func TestSyncDirtyDupBlockSuccess(t *testing.T) {
 	bID := fakeBlockID(44)
 	rootBlock := NewDirBlock().(*DirBlock)
 	rootBlock.Children["a"] = DirEntry{
-		BlockInfo: makeBIFromID(aID, userID),
+		BlockInfo: makeBIFromID(aID, uid),
 		Type:      File,
 	}
 	rootBlock.Children["b"] = DirEntry{
-		BlockInfo: makeBIFromID(bID, userID),
+		BlockInfo: makeBIFromID(bID, uid),
 		Type:      File,
 	}
 	aBlock := NewFileBlock().(*FileBlock)
 	aBlock.Contents = []byte{1, 2, 3, 4, 5}
 	bBlock := NewFileBlock().(*FileBlock)
 	bBlock.Contents = aBlock.Contents
-	node := pathNode{makeBP(rootID, rmd, config, userID), "p"}
-	aNode := pathNode{makeBP(aID, rmd, config, userID), "a"}
-	bNode := pathNode{makeBP(bID, rmd, config, userID), "b"}
+	node := pathNode{makeBP(rootID, rmd, config, uid), "p"}
+	aNode := pathNode{makeBP(aID, rmd, config, uid), "a"}
+	bNode := pathNode{makeBP(bID, rmd, config, uid), "b"}
 	p := path{FolderBranch{Tlf: id}, []pathNode{node, bNode}}
 	ops := getOps(config, id)
 	n := nodeFromPath(t, ops, p)
@@ -3640,7 +3638,7 @@ func TestSyncDirtyDupBlockSuccess(t *testing.T) {
 	unrefBytes := uint64(1) // unref'd block b
 	refBytes := uint64(len(readyBlockData.buf))
 	rootP := path{FolderBranch: p.FolderBranch, path: []pathNode{p.path[0]}}
-	expectedPath, _ := expectSyncBlock(t, config, nil, userID, id, "", rootP,
+	expectedPath, _ := expectSyncBlock(t, config, nil, uid, id, "", rootP,
 		rmd, false, 0, refBytes, unrefBytes, &newRmd, blocks)
 	blocks = append(blocks, bID)
 
@@ -3711,7 +3709,7 @@ func TestSyncDirtyMultiBlocksSplitInBlockSuccess(t *testing.T) {
 	config.mockBcache = NewMockBlockCache(mockCtrl)
 	config.SetBlockCache(config.mockBcache)
 
-	userID, id, rmd := makeIDAndRMD(t, config)
+	uid, id, rmd := makeIDAndRMD(t, config)
 
 	rootID := fakeBlockID(42)
 	rmd.data.Dir.ID = rootID
@@ -3722,16 +3720,16 @@ func TestSyncDirtyMultiBlocksSplitInBlockSuccess(t *testing.T) {
 	id4 := fakeBlockID(47)
 	rootBlock := NewDirBlock().(*DirBlock)
 	rootBlock.Children["a"] = DirEntry{
-		BlockInfo: makeBIFromID(fileID, userID),
+		BlockInfo: makeBIFromID(fileID, uid),
 		Size:      20,
 	}
 	fileBlock := NewFileBlock().(*FileBlock)
 	fileBlock.IsInd = true
 	fileBlock.IPtrs = []IndirectFilePtr{
-		IndirectFilePtr{makeBI(id1, rmd, config, userID, 10), 0},
-		IndirectFilePtr{makeBI(id2, rmd, config, userID, 0), 5},
-		IndirectFilePtr{makeBI(id3, rmd, config, userID, 0), 10},
-		IndirectFilePtr{makeBI(id4, rmd, config, userID, 0), 15},
+		IndirectFilePtr{makeBI(id1, rmd, config, uid, 10), 0},
+		IndirectFilePtr{makeBI(id2, rmd, config, uid, 0), 5},
+		IndirectFilePtr{makeBI(id3, rmd, config, uid, 0), 10},
+		IndirectFilePtr{makeBI(id4, rmd, config, uid, 0), 15},
 	}
 	block1 := NewFileBlock().(*FileBlock)
 	block1.Contents = []byte{5, 4, 3, 2, 1}
@@ -3741,8 +3739,8 @@ func TestSyncDirtyMultiBlocksSplitInBlockSuccess(t *testing.T) {
 	block3.Contents = []byte{15, 14, 13, 12, 11}
 	block4 := NewFileBlock().(*FileBlock)
 	block4.Contents = []byte{20, 19, 18, 17, 16}
-	node := pathNode{makeBP(rootID, rmd, config, userID), "p"}
-	fileNode := pathNode{makeBP(fileID, rmd, config, userID), "a"}
+	node := pathNode{makeBP(rootID, rmd, config, uid), "p"}
+	fileNode := pathNode{makeBP(fileID, rmd, config, uid), "a"}
 	p := path{FolderBranch{Tlf: id}, []pathNode{node, fileNode}}
 	ops := getOps(config, id)
 	n := nodeFromPath(t, ops, p)
@@ -3823,7 +3821,7 @@ func TestSyncDirtyMultiBlocksSplitInBlockSuccess(t *testing.T) {
 	var newRmd *RootMetadata
 	blocks := make([]BlockID, 2)
 	expectedPath, _ :=
-		expectSyncBlock(t, config, c4, userID, id, "", p, rmd, false, 0,
+		expectSyncBlock(t, config, c4, uid, id, "", p, rmd, false, 0,
 			refBytes, unrefBytes, &newRmd, blocks)
 	putAndCleanAnyBlock(config, p)
 
@@ -3892,7 +3890,7 @@ func TestSyncDirtyMultiBlocksCopyNextBlockSuccess(t *testing.T) {
 	config.mockBcache = NewMockBlockCache(mockCtrl)
 	config.SetBlockCache(config.mockBcache)
 
-	userID, id, rmd := makeIDAndRMD(t, config)
+	uid, id, rmd := makeIDAndRMD(t, config)
 
 	rootID := fakeBlockID(42)
 	rmd.data.Dir.ID = rootID
@@ -3903,16 +3901,16 @@ func TestSyncDirtyMultiBlocksCopyNextBlockSuccess(t *testing.T) {
 	id4 := fakeBlockID(47)
 	rootBlock := NewDirBlock().(*DirBlock)
 	rootBlock.Children["a"] = DirEntry{
-		BlockInfo: makeBIFromID(fileID, userID),
+		BlockInfo: makeBIFromID(fileID, uid),
 		Size:      20,
 	}
 	fileBlock := NewFileBlock().(*FileBlock)
 	fileBlock.IsInd = true
 	fileBlock.IPtrs = []IndirectFilePtr{
-		IndirectFilePtr{makeBI(id1, rmd, config, userID, 0), 0},
-		IndirectFilePtr{makeBI(id2, rmd, config, userID, 10), 5},
-		IndirectFilePtr{makeBI(id3, rmd, config, userID, 0), 10},
-		IndirectFilePtr{makeBI(id4, rmd, config, userID, 15), 15},
+		IndirectFilePtr{makeBI(id1, rmd, config, uid, 0), 0},
+		IndirectFilePtr{makeBI(id2, rmd, config, uid, 10), 5},
+		IndirectFilePtr{makeBI(id3, rmd, config, uid, 0), 10},
+		IndirectFilePtr{makeBI(id4, rmd, config, uid, 15), 15},
 	}
 	block1 := NewFileBlock().(*FileBlock)
 	block1.Contents = []byte{5, 4, 3, 2, 1}
@@ -3922,8 +3920,8 @@ func TestSyncDirtyMultiBlocksCopyNextBlockSuccess(t *testing.T) {
 	block3.Contents = []byte{15, 14, 13, 12, 11}
 	block4 := NewFileBlock().(*FileBlock)
 	block4.Contents = []byte{20, 19, 18, 17, 16}
-	node := pathNode{makeBP(rootID, rmd, config, userID), "p"}
-	fileNode := pathNode{makeBP(fileID, rmd, config, userID), "a"}
+	node := pathNode{makeBP(rootID, rmd, config, uid), "p"}
+	fileNode := pathNode{makeBP(fileID, rmd, config, uid), "a"}
 	p := path{FolderBranch{Tlf: id}, []pathNode{node, fileNode}}
 	ops := getOps(config, id)
 	n := nodeFromPath(t, ops, p)
@@ -4000,7 +3998,7 @@ func TestSyncDirtyMultiBlocksCopyNextBlockSuccess(t *testing.T) {
 	var newRmd *RootMetadata
 	blocks := make([]BlockID, 2)
 	expectedPath, _ :=
-		expectSyncBlock(t, config, nil, userID, id, "", p, rmd, false, 0,
+		expectSyncBlock(t, config, nil, uid, id, "", p, rmd, false, 0,
 			refBytes, unrefBytes, &newRmd, blocks)
 	putAndCleanAnyBlock(config, p)
 
@@ -4050,20 +4048,20 @@ func TestSyncDirtyWithBlockChangePointerSuccess(t *testing.T) {
 	mockCtrl, config, ctx := kbfsOpsInit(t, true)
 	defer kbfsTestShutdown(mockCtrl, config)
 
-	userID, id, rmd := makeIDAndRMD(t, config)
+	uid, id, rmd := makeIDAndRMD(t, config)
 
 	rootID := fakeBlockID(42)
 	rmd.data.Dir.ID = rootID
 	aID := fakeBlockID(43)
 	rootBlock := NewDirBlock().(*DirBlock)
 	rootBlock.Children["a"] = DirEntry{
-		BlockInfo: makeBIFromID(aID, userID),
+		BlockInfo: makeBIFromID(aID, uid),
 		Type:      File,
 	}
 	aBlock := NewFileBlock().(*FileBlock)
 	aBlock.Contents = []byte{1, 2, 3, 4, 5}
-	node := pathNode{makeBP(rootID, rmd, config, userID), "p"}
-	aNode := pathNode{makeBP(aID, rmd, config, userID), "a"}
+	node := pathNode{makeBP(rootID, rmd, config, uid), "p"}
+	aNode := pathNode{makeBP(aID, rmd, config, uid), "a"}
 	p := path{FolderBranch{Tlf: id}, []pathNode{node, aNode}}
 	ops := getOps(config, id)
 	n := nodeFromPath(t, ops, p)
@@ -4081,7 +4079,7 @@ func TestSyncDirtyWithBlockChangePointerSuccess(t *testing.T) {
 	refBytes := uint64(1) // 1 new block changes block
 	var newRmd *RootMetadata
 	blocks := make([]BlockID, 2)
-	expectedPath, lastCall := expectSyncBlock(t, config, nil, userID, id, "", p,
+	expectedPath, lastCall := expectSyncBlock(t, config, nil, uid, id, "", p,
 		rmd, false, 0, refBytes, 0, &newRmd, blocks)
 
 	// expected calls for block changes block

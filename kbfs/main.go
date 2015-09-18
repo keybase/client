@@ -8,6 +8,7 @@ import (
 
 	"golang.org/x/net/context"
 
+	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/kbfs/libkbfs"
 )
 
@@ -44,11 +45,11 @@ func realMain() (exitStatus int) {
 		return
 	}
 
-	var localUser string
+	var localUser libkb.NormalizedUsername
 	if *local {
-		localUser = *localUserFlag
+		localUser = libkb.NewNormalizedUsername(*localUserFlag)
 	} else if *clientFlag {
-		localUser = ""
+		localUser = libkb.NormalizedUsername("")
 	} else {
 		printError("kbfs", errors.New("either -client or -local must be used"))
 		exitStatus = 1

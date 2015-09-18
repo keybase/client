@@ -448,9 +448,42 @@ func (_m *MockKBPKI) EXPECT() *_MockKBPKIRecorder {
 	return _m.recorder
 }
 
-func (_m *MockKBPKI) ResolveAssertion(ctx context.Context, input string) (*libkb.User, error) {
+func (_m *MockKBPKI) GetCurrentToken(ctx context.Context) (string, error) {
+	ret := _m.ctrl.Call(_m, "GetCurrentToken", ctx)
+	ret0, _ := ret[0].(string)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+func (_mr *_MockKBPKIRecorder) GetCurrentToken(arg0 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "GetCurrentToken", arg0)
+}
+
+func (_m *MockKBPKI) GetCurrentUID(ctx context.Context) (go0.UID, error) {
+	ret := _m.ctrl.Call(_m, "GetCurrentUID", ctx)
+	ret0, _ := ret[0].(go0.UID)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+func (_mr *_MockKBPKIRecorder) GetCurrentUID(arg0 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "GetCurrentUID", arg0)
+}
+
+func (_m *MockKBPKI) GetCurrentCryptPublicKey(ctx context.Context) (CryptPublicKey, error) {
+	ret := _m.ctrl.Call(_m, "GetCurrentCryptPublicKey", ctx)
+	ret0, _ := ret[0].(CryptPublicKey)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+func (_mr *_MockKBPKIRecorder) GetCurrentCryptPublicKey(arg0 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "GetCurrentCryptPublicKey", arg0)
+}
+
+func (_m *MockKBPKI) ResolveAssertion(ctx context.Context, input string) (go0.UID, error) {
 	ret := _m.ctrl.Call(_m, "ResolveAssertion", ctx, input)
-	ret0, _ := ret[0].(*libkb.User)
+	ret0, _ := ret[0].(go0.UID)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -459,37 +492,15 @@ func (_mr *_MockKBPKIRecorder) ResolveAssertion(arg0, arg1 interface{}) *gomock.
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "ResolveAssertion", arg0, arg1)
 }
 
-func (_m *MockKBPKI) GetUser(ctx context.Context, uid go0.UID) (*libkb.User, error) {
-	ret := _m.ctrl.Call(_m, "GetUser", ctx, uid)
-	ret0, _ := ret[0].(*libkb.User)
+func (_m *MockKBPKI) GetNormalizedUsername(ctx context.Context, uid go0.UID) (libkb.NormalizedUsername, error) {
+	ret := _m.ctrl.Call(_m, "GetNormalizedUsername", ctx, uid)
+	ret0, _ := ret[0].(libkb.NormalizedUsername)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-func (_mr *_MockKBPKIRecorder) GetUser(arg0, arg1 interface{}) *gomock.Call {
-	return _mr.mock.ctrl.RecordCall(_mr.mock, "GetUser", arg0, arg1)
-}
-
-func (_m *MockKBPKI) GetSession(ctx context.Context) (*libkb.Session, error) {
-	ret := _m.ctrl.Call(_m, "GetSession", ctx)
-	ret0, _ := ret[0].(*libkb.Session)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-func (_mr *_MockKBPKIRecorder) GetSession(arg0 interface{}) *gomock.Call {
-	return _mr.mock.ctrl.RecordCall(_mr.mock, "GetSession", arg0)
-}
-
-func (_m *MockKBPKI) GetLoggedInUser(ctx context.Context) (go0.UID, error) {
-	ret := _m.ctrl.Call(_m, "GetLoggedInUser", ctx)
-	ret0, _ := ret[0].(go0.UID)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-func (_mr *_MockKBPKIRecorder) GetLoggedInUser(arg0 interface{}) *gomock.Call {
-	return _mr.mock.ctrl.RecordCall(_mr.mock, "GetLoggedInUser", arg0)
+func (_mr *_MockKBPKIRecorder) GetNormalizedUsername(arg0, arg1 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "GetNormalizedUsername", arg0, arg1)
 }
 
 func (_m *MockKBPKI) HasVerifyingKey(ctx context.Context, uid go0.UID, verifyingKey VerifyingKey) error {
@@ -511,17 +522,6 @@ func (_m *MockKBPKI) GetCryptPublicKeys(ctx context.Context, uid go0.UID) ([]Cry
 
 func (_mr *_MockKBPKIRecorder) GetCryptPublicKeys(arg0, arg1 interface{}) *gomock.Call {
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "GetCryptPublicKeys", arg0, arg1)
-}
-
-func (_m *MockKBPKI) GetCurrentCryptPublicKey(ctx context.Context) (CryptPublicKey, error) {
-	ret := _m.ctrl.Call(_m, "GetCurrentCryptPublicKey", ctx)
-	ret0, _ := ret[0].(CryptPublicKey)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-func (_mr *_MockKBPKIRecorder) GetCurrentCryptPublicKey(arg0 interface{}) *gomock.Call {
-	return _mr.mock.ctrl.RecordCall(_mr.mock, "GetCurrentCryptPublicKey", arg0)
 }
 
 func (_m *MockKBPKI) FavoriteAdd(ctx context.Context, folder go0.Folder) error {

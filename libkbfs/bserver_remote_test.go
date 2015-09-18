@@ -6,6 +6,7 @@ import (
 	"sync"
 	"testing"
 
+	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/protocol/go"
 	"golang.org/x/net/context"
 )
@@ -88,7 +89,7 @@ func (fc *FakeBServerClient) numBlocks() int {
 // Test that putting a block, and getting it back, works
 func TestBServerRemotePutAndGet(t *testing.T) {
 	codec := NewCodecMsgpack()
-	localUsers := MakeLocalUsers([]string{"testuser"})
+	localUsers := MakeLocalUsers([]libkb.NormalizedUsername{"testuser"})
 	loggedInUser := localUsers[0]
 	kbpki := NewKBPKIMemory(loggedInUser.UID, localUsers)
 	config := &ConfigLocal{codec: codec, kbpki: kbpki}
@@ -99,7 +100,7 @@ func TestBServerRemotePutAndGet(t *testing.T) {
 
 	bID := fakeBlockID(1)
 	tlfID := FakeTlfID(2, false)
-	bCtx := BlockPointer{bID, 1, 1, kbpki.LoggedIn, "", zeroBlockRefNonce}
+	bCtx := BlockPointer{bID, 1, 1, kbpki.CurrentUID, "", zeroBlockRefNonce}
 	data := []byte{1, 2, 3, 4}
 	crypto := &CryptoCommon{codec, config.MakeLogger("")}
 	serverHalf, err := crypto.MakeRandomBlockCryptKeyServerHalf()
@@ -133,7 +134,7 @@ func TestBServerRemotePutAndGet(t *testing.T) {
 // If we cancel the RPC before the RPC returns, the call should error quickly.
 func TestBServerRemotePutCanceled(t *testing.T) {
 	codec := NewCodecMsgpack()
-	localUsers := MakeLocalUsers([]string{"testuser"})
+	localUsers := MakeLocalUsers([]libkb.NormalizedUsername{"testuser"})
 	loggedInUser := localUsers[0]
 	kbpki := NewKBPKIMemory(loggedInUser.UID, localUsers)
 	config := &ConfigLocal{codec: codec, kbpki: kbpki}
@@ -147,7 +148,7 @@ func TestBServerRemotePutCanceled(t *testing.T) {
 
 		bID := fakeBlockID(1)
 		tlfID := FakeTlfID(2, false)
-		bCtx := BlockPointer{bID, 1, 1, kbpki.LoggedIn, "", zeroBlockRefNonce}
+		bCtx := BlockPointer{bID, 1, 1, kbpki.CurrentUID, "", zeroBlockRefNonce}
 		data := []byte{1, 2, 3, 4}
 		crypto := &CryptoCommon{codec, config.MakeLogger("")}
 		serverHalf, err := crypto.MakeRandomBlockCryptKeyServerHalf()

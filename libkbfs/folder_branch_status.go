@@ -3,6 +3,8 @@ package libkbfs
 import (
 	"sync"
 
+	"github.com/keybase/client/go/libkb"
+
 	"golang.org/x/net/context"
 )
 
@@ -11,7 +13,7 @@ import (
 // encoding directly as JSON.
 type FolderBranchStatus struct {
 	Staged     bool
-	HeadWriter string
+	HeadWriter libkb.NormalizedUsername
 	DiskUsage  uint64
 	// DirtyPaths are files that have been written, but not flushed.
 	// They do not represent unstaged changes in your local instance.
@@ -121,11 +123,11 @@ func (fbsk *folderBranchStatusKeeper) getStatus(ctx context.Context) (
 
 	if fbsk.md != nil {
 		fbs.Staged = (fbsk.md.Flags & MetadataFlagUnmerged) != 0
-		u, err := fbsk.config.KBPKI().GetUser(ctx, fbsk.md.data.LastWriter)
+		name, err := fbsk.config.KBPKI().GetNormalizedUsername(ctx, fbsk.md.data.LastWriter)
 		if err != nil {
 			return FolderBranchStatus{}, nil, err
 		}
-		fbs.HeadWriter = u.GetName()
+		fbs.HeadWriter = name
 		fbs.DiskUsage = fbsk.md.DiskUsage
 	}
 

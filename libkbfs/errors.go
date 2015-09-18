@@ -181,8 +181,8 @@ func (e WriteAccessError) Errno() fuse.Errno {
 func NewReadAccessError(ctx context.Context, config Config, dir *TlfHandle,
 	uid keybase1.UID) error {
 	dirname := dir.ToString(ctx, config)
-	if u, err2 := config.KBPKI().GetUser(ctx, uid); err2 == nil {
-		return ReadAccessError{u.GetName(), dirname}
+	if name, err2 := config.KBPKI().GetNormalizedUsername(ctx, uid); err2 == nil {
+		return ReadAccessError{string(name), dirname}
 	}
 	return ReadAccessError{uid.String(), dirname}
 }
@@ -192,8 +192,8 @@ func NewReadAccessError(ctx context.Context, config Config, dir *TlfHandle,
 func NewWriteAccessError(ctx context.Context, config Config, dir *TlfHandle,
 	uid keybase1.UID) error {
 	dirname := dir.ToString(ctx, config)
-	if u, err2 := config.KBPKI().GetUser(ctx, uid); err2 == nil {
-		return WriteAccessError{u.GetName(), dirname}
+	if name, err2 := config.KBPKI().GetNormalizedUsername(ctx, uid); err2 == nil {
+		return WriteAccessError{string(name), dirname}
 	}
 	return WriteAccessError{uid.String(), dirname}
 }

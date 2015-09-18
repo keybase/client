@@ -62,7 +62,7 @@ func (km *KeyManagerStandard) getTLFCryptKey(ctx context.Context,
 
 	// Get the encrypted version of this secret key for this device
 	kbpki := km.config.KBPKI()
-	user, err := kbpki.GetLoggedInUser(ctx)
+	uid, err := kbpki.GetCurrentUID(ctx)
 	if err != nil {
 		return
 	}
@@ -72,12 +72,12 @@ func (km *KeyManagerStandard) getTLFCryptKey(ctx context.Context,
 		return
 	}
 
-	info, ok, err := md.GetTLFCryptKeyInfo(keyGen, user, currentCryptPublicKey)
+	info, ok, err := md.GetTLFCryptKeyInfo(keyGen, uid, currentCryptPublicKey)
 	if err != nil {
 		return
 	}
 	if !ok {
-		err = NewReadAccessError(ctx, km.config, md.GetTlfHandle(), user)
+		err = NewReadAccessError(ctx, km.config, md.GetTlfHandle(), uid)
 		return
 	}
 
@@ -113,7 +113,7 @@ func (km *KeyManagerStandard) getTLFCryptKey(ctx context.Context,
 	return
 }
 
-func (km *KeyManagerStandard) secretKeysForUser(ctx context.Context,
+func (km *KeyManagerStandard) secretKeysForUID(ctx context.Context,
 	md *RootMetadata, uid keybase1.UID, tlfCryptKey TLFCryptKey,
 	ePrivKey TLFEphemeralPrivateKey) (
 	clientMap map[keybase1.KID]TLFCryptKeyInfo,
@@ -207,7 +207,7 @@ func (km *KeyManagerStandard) Rekey(ctx context.Context,
 
 	// TODO: parallelize
 	for _, w := range handle.Writers {
-		clientMap, serverMap, err := km.secretKeysForUser(ctx, md, w, tlfCryptKey, ePrivKey)
+		clientMap, serverMap, err := km.secretKeysForUID(ctx, md, w, tlfCryptKey, ePrivKey)
 		if err != nil {
 			return err
 		}
@@ -215,7 +215,7 @@ func (km *KeyManagerStandard) Rekey(ctx context.Context,
 		newServerKeys[w] = serverMap
 	}
 	for _, r := range handle.Readers {
-		clientMap, serverMap, err := km.secretKeysForUser(ctx, md, r, tlfCryptKey, ePrivKey)
+		clientMap, serverMap, err := km.secretKeysForUID(ctx, md, r, tlfCryptKey, ePrivKey)
 		if err != nil {
 			return err
 		}

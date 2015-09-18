@@ -76,7 +76,7 @@ func setTestLogger(config Config, t *testing.T) {
 
 // MakeTestConfigOrBust creates and returns a config suitable for
 // unit-testing with the given list of users.
-func MakeTestConfigOrBust(t *testing.T, blockServerRemoteAddr *string, users ...string) *ConfigLocal {
+func MakeTestConfigOrBust(t *testing.T, blockServerRemoteAddr *string, users ...libkb.NormalizedUsername) *ConfigLocal {
 	config := NewConfigLocal()
 	setTestLogger(config, t)
 
@@ -149,12 +149,12 @@ func MakeTestConfigOrBust(t *testing.T, blockServerRemoteAddr *string, users ...
 
 // ConfigAsUser clones a test configuration, setting another user as
 // the logged in user
-func ConfigAsUser(config *ConfigLocal, loggedInUser string) *ConfigLocal {
+func ConfigAsUser(config *ConfigLocal, loggedInUser libkb.NormalizedUsername) *ConfigLocal {
 	c := NewConfigLocal()
 	c.SetLoggerMaker(config.loggerFn)
 
 	pki := config.KBPKI().(*KBPKILocal)
-	loggedInUID, ok := pki.Asserts[loggedInUser]
+	loggedInUID, ok := pki.Asserts[string(loggedInUser)]
 	if !ok {
 		panic("bad test: unknown user: " + loggedInUser)
 	}

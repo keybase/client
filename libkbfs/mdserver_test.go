@@ -15,7 +15,7 @@ func TestMDServerBasics(t *testing.T) {
 	defer config.MDServer().Shutdown()
 	mdServer := config.MDServer()
 	ctx := context.Background()
-	user, err := config.KBPKI().GetLoggedInUser(ctx)
+	uid, err := config.KBPKI().GetCurrentUID(ctx)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -24,10 +24,10 @@ func TestMDServerBasics(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	keys := MakeDirWKeyBundle(user, key)
+	keys := MakeDirWKeyBundle(uid, key)
 
 	// (1) get metadata -- allocates an ID
-	handle, _ := NewFolderWithIDAndWriter(t, NullTlfID, 1, true, false, user)
+	handle, _ := NewFolderWithIDAndWriter(t, NullTlfID, 1, true, false, uid)
 	id, md, err := mdServer.GetForHandle(ctx, handle, false)
 	if err != nil {
 		t.Fatal(err)
@@ -40,7 +40,7 @@ func TestMDServerBasics(t *testing.T) {
 	prevRoot := MdID{}
 	middleRoot := MdID{}
 	for i := MetadataRevision(1); i <= 10; i++ {
-		_, md := NewFolderWithIDAndWriter(t, id, i, true, false, user)
+		_, md := NewFolderWithIDAndWriter(t, id, i, true, false, uid)
 		md.MD.SerializedPrivateMetadata = make([]byte, 1)
 		md.MD.SerializedPrivateMetadata[0] = 0x1
 		AddNewKeysOrBust(t, &md.MD, keys)
@@ -68,7 +68,7 @@ func TestMDServerBasics(t *testing.T) {
 	//     middle merged block.
 	prevRoot = middleRoot
 	for i := MetadataRevision(6); i < 41; i++ {
-		_, md := NewFolderWithIDAndWriter(t, id, i, true, false, user)
+		_, md := NewFolderWithIDAndWriter(t, id, i, true, false, uid)
 		md.MD.SerializedPrivateMetadata = make([]byte, 1)
 		md.MD.SerializedPrivateMetadata[0] = 0x1
 		md.MD.PrevRoot = prevRoot

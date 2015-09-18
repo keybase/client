@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"io/ioutil"
 
+	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/logger"
 	"github.com/keybase/kbfs/libkbfs"
 	"golang.org/x/net/context"
@@ -11,7 +12,7 @@ import (
 
 // StartOptions are options for starting up
 type StartOptions struct {
-	LocalUser     string
+	LocalUser     libkb.NormalizedUsername
 	ServerRootDir *string
 	CPUProfile    string
 	MemProfile    string

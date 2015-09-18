@@ -24,18 +24,18 @@ func mdCacheShutdown(mockCtrl *gomock.Controller, config *ConfigMock) {
 	mockCtrl.Finish()
 }
 
-func expectUserCall(u keybase1.UID, config *ConfigMock) {
-	user := libkb.NewUserThin(fmt.Sprintf("user_%s", u), u)
-	config.mockKbpki.EXPECT().GetUser(gomock.Any(), u).AnyTimes().
-		Return(user, nil)
+func expectUsernameCall(u keybase1.UID, config *ConfigMock) {
+	name := libkb.NewNormalizedUsername(fmt.Sprintf("user_%s", u))
+	config.mockKbpki.EXPECT().GetNormalizedUsername(gomock.Any(), u).AnyTimes().
+		Return(name, nil)
 }
 
-func expectUserCalls(handle *TlfHandle, config *ConfigMock) {
+func expectUsernameCalls(handle *TlfHandle, config *ConfigMock) {
 	for _, u := range handle.Writers {
-		expectUserCall(u, config)
+		expectUsernameCall(u, config)
 	}
 	for _, u := range handle.Readers {
-		expectUserCall(u, config)
+		expectUsernameCall(u, config)
 	}
 }
 
@@ -53,7 +53,7 @@ func testMdcachePut(t *testing.T, tlf TlfID, rev MetadataRevision,
 	}
 
 	// put the md
-	expectUserCalls(h, config)
+	expectUsernameCalls(h, config)
 	if err := config.MDCache().Put(rmd); err != nil {
 		t.Errorf("Got error on put on md %v: %v", tlf, err)
 	}
@@ -95,7 +95,7 @@ func TestMdcachePutPastCapacity(t *testing.T) {
 
 	// id 0 should no longer be in the cache
 	// make sure we can get it successfully
-	expectUserCalls(h0, config)
+	expectUsernameCalls(h0, config)
 	expectedErr := NoSuchMDError{id0, 0, Merged}
 	if _, err := config.MDCache().Get(id0, 0, Merged); err == nil {
 		t.Errorf("No expected error on get")

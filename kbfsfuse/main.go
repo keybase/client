@@ -9,6 +9,7 @@ import (
 
 	"bazil.org/fuse"
 
+	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/logger"
 	"github.com/keybase/kbfs/libfuse"
 	"github.com/keybase/kbfs/libkbfs"
@@ -47,11 +48,11 @@ func start() *libfuse.Error {
 		return libfuse.InitError("no mount specified")
 	}
 
-	var localUser string
+	var localUser libkb.NormalizedUsername
 	if *local {
-		localUser = *localUserFlag
+		localUser = libkb.NewNormalizedUsername(*localUserFlag)
 	} else if *clientFlag {
-		localUser = ""
+		localUser = libkb.NormalizedUsername("")
 	} else {
 		return libfuse.InitError("either -client or -local must be used")
 	}

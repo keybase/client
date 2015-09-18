@@ -17,7 +17,7 @@ import (
 type KBPKILocal struct {
 	Users      map[keybase1.UID]LocalUser
 	Asserts    map[string]keybase1.UID
-	LoggedIn   keybase1.UID
+	CurrentUID keybase1.UID
 	Favorites  *favcache.Cache
 	favoriteDb *leveldb.DB // favorite folders
 	codec      Codec
@@ -28,8 +28,8 @@ var _ KBPKI = (*KBPKILocal)(nil)
 // NewKBPKILocal constructs a KBPKILocal object given a set of
 // possible users, and one user that should be "logged in".
 // Any storage (e.g. the favorites) persists to disk.
-func NewKBPKILocal(loggedIn keybase1.UID, users []LocalUser, favDbFile string, codec Codec) (*KBPKILocal, error) {
-	k := newKBPKI(loggedIn, users)
+func NewKBPKILocal(currentUID keybase1.UID, users []LocalUser, favDbFile string, codec Codec) (*KBPKILocal, error) {
+	k := newKBPKI(currentUID, users)
 	k.codec = codec
 
 	favoriteStorage, err := storage.OpenFile(favDbFile)
@@ -48,59 +48,73 @@ func NewKBPKILocal(loggedIn keybase1.UID, users []LocalUser, favDbFile string, c
 // NewKBPKIMemory constructs a KBPKILocal object given a set of
 // possible users, and one user that should be "logged in".
 // Any storage (e.g. the favorites) is kept in memory only.
-func NewKBPKIMemory(loggedIn keybase1.UID, users []LocalUser) *KBPKILocal {
-	k := newKBPKI(loggedIn, users)
+func NewKBPKIMemory(currentUID keybase1.UID, users []LocalUser) *KBPKILocal {
+	k := newKBPKI(currentUID, users)
 	k.Favorites = favcache.New()
 	return k
 }
 
 // newKBPKI creates the base KBPKILocal object.
-func newKBPKI(loggedIn keybase1.UID, users []LocalUser) *KBPKILocal {
+func newKBPKI(currentUID keybase1.UID, users []LocalUser) *KBPKILocal {
 	k := &KBPKILocal{
-		Users:    make(map[keybase1.UID]LocalUser),
-		Asserts:  make(map[string]keybase1.UID),
-		LoggedIn: loggedIn,
+		Users:      make(map[keybase1.UID]LocalUser),
+		Asserts:    make(map[string]keybase1.UID),
+		CurrentUID: currentUID,
 	}
 	for _, u := range users {
 		k.Users[u.UID] = u
 		for _, a := range u.Asserts {
 			k.Asserts[a] = u.UID
 		}
-		k.Asserts[u.Name] = u.UID
+		k.Asserts[string(u.Name)] = u.UID
 		k.Asserts["uid:"+u.UID.String()] = u.UID
 	}
 	return k
 }
 
+// GetCurrentToken implements the KBPKI interface for KBPKILocal
+func (k *KBPKILocal) GetCurrentToken(ctx context.Context) (string, error) {
+	return "", nil
+}
+
+// GetCurrentUID implements the KBPKI interface for KBPKILocal
+func (k *KBPKILocal) GetCurrentUID(ctx context.Context) (
+	keybase1.UID, error) {
+	return k.CurrentUID, nil
+}
+
+// GetCurrentCryptPublicKey implements the KBPKI interface for KBPKILocal
+func (k *KBPKILocal) GetCurrentCryptPublicKey(ctx context.Context) (
+	CryptPublicKey, error) {
+	u, err := k.getLocalUser(k.CurrentUID)
+	if err != nil {
+		return CryptPublicKey{}, err
+	}
+	return u.GetCurrentCryptPublicKey(), nil
+}
+
 // ResolveAssertion implements the KBPKI interface for KBPKILocal
 func (k *KBPKILocal) ResolveAssertion(ctx context.Context, input string) (
-	*libkb.User, error) {
+	keybase1.UID, error) {
 	uid, ok := k.Asserts[input]
 	if !ok {
-		return nil, NoSuchUserError{input}
+		return keybase1.UID(""), NoSuchUserError{input}
 	}
-	return k.GetUser(ctx, uid)
-}
-
-// GetUser implements the KBPKI interface for KBPKILocal
-func (k *KBPKILocal) GetUser(ctx context.Context, uid keybase1.UID) (
-	*libkb.User, error) {
 	u, err := k.getLocalUser(uid)
 	if err != nil {
-		return nil, err
+		return keybase1.UID(""), err
 	}
-	return libkb.NewUserThin(u.Name, u.UID), nil
+	return u.UID, nil
 }
 
-// GetSession implements the KBPKI interface for KBPKILocal
-func (k *KBPKILocal) GetSession(ctx context.Context) (*libkb.Session, error) {
-	return nil, nil
-}
-
-// GetLoggedInUser implements the KBPKI interface for KBPKILocal
-func (k *KBPKILocal) GetLoggedInUser(ctx context.Context) (
-	keybase1.UID, error) {
-	return k.LoggedIn, nil
+// GetNormalizedUsername implements the KBPKI interface for KBPKILocal
+func (k *KBPKILocal) GetNormalizedUsername(ctx context.Context, uid keybase1.UID) (
+	libkb.NormalizedUsername, error) {
+	u, err := k.getLocalUser(uid)
+	if err != nil {
+		return libkb.NormalizedUsername(""), err
+	}
+	return u.Name, nil
 }
 
 // HasVerifyingKey implements the KBPKI interface for KBPKILocal
@@ -129,16 +143,6 @@ func (k *KBPKILocal) GetCryptPublicKeys(ctx context.Context, uid keybase1.UID) (
 	return u.CryptPublicKeys, nil
 }
 
-// GetCurrentCryptPublicKey implements the KBPKI interface for KBPKILocal
-func (k *KBPKILocal) GetCurrentCryptPublicKey(ctx context.Context) (
-	CryptPublicKey, error) {
-	u, err := k.getLocalUser(k.LoggedIn)
-	if err != nil {
-		return CryptPublicKey{}, err
-	}
-	return u.GetCurrentCryptPublicKey(), nil
-}
-
 func (k *KBPKILocal) getLocalUser(uid keybase1.UID) (LocalUser, error) {
 	user, ok := k.Users[uid]
 	if !ok {
@@ -152,7 +156,7 @@ func (k *KBPKILocal) getLocalUser(uid keybase1.UID) (LocalUser, error) {
 var ErrFavStorageUnavailable = errors.New("no favorite storage system available")
 
 func (k *KBPKILocal) favkey(folder keybase1.Folder) []byte {
-	return []byte(fmt.Sprintf("%s:%s", k.LoggedIn, folder.Name))
+	return []byte(fmt.Sprintf("%s:%s", k.CurrentUID, folder.Name))
 }
 
 // FavoriteAdd implements the KBPKI interface for KBPKILocal.
@@ -198,7 +202,7 @@ func (k *KBPKILocal) FavoriteList(ctx context.Context) ([]keybase1.Folder, error
 		return nil, ErrFavStorageUnavailable
 	}
 
-	iter := k.favoriteDb.NewIterator(util.BytesPrefix([]byte(k.LoggedIn+":")), nil)
+	iter := k.favoriteDb.NewIterator(util.BytesPrefix([]byte(k.CurrentUID+":")), nil)
 	defer iter.Release()
 	var folders []keybase1.Folder
 	for iter.Next() {
