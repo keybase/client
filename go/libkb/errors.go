@@ -1082,3 +1082,13 @@ type KeyVersionError struct{}
 func (k KeyVersionError) Error() string {
 	return "Invalid key version"
 }
+
+//=============================================================================
+
+type PIDFileLockError struct {
+	Filename string
+}
+
+func (e PIDFileLockError) Error() string {
+	return fmt.Sprintf("error locking %s: server already running", e.Filename)
+}

@@ -106,6 +106,7 @@ func (d *Service) Run() (err error) {
 	if err = d.GetExclusiveLock(); err != nil {
 		return
 	}
+
 	if err = d.OpenSocket(); err != nil {
 		return
 	}
@@ -124,6 +125,10 @@ func (d *Service) StartLoopbackServer(g *libkb.GlobalContext) error {
 
 	var l net.Listener
 	var err error
+
+	if err = d.GetExclusiveLock(); err != nil {
+		return err
+	}
 
 	if l, err = g.MakeLoopbackServer(); err != nil {
 		return err
@@ -150,6 +155,7 @@ func (d *Service) writeVersionFile() error {
 }
 
 func (d *Service) ReleaseLock() error {
+	G.Log.Debug("Releasing lock file")
 	return d.lockPid.Close()
 }
 
@@ -160,6 +166,9 @@ func (d *Service) GetExclusiveLock() error {
 	if err := d.lockPIDFile(); err != nil {
 		return err
 	}
+	G.PushShutdownHook(func() error {
+		return d.ReleaseLock()
+	})
 	return nil
 }
 
@@ -187,7 +196,7 @@ func (d *Service) lockPIDFile() (err error) {
 	}
 	d.lockPid = libkb.NewLockPIDFile(fn)
 	if err = d.lockPid.Lock(); err != nil {
-		return fmt.Errorf("error locking %s: server already running", fn)
+		return err
 	}
 	G.Log.Debug("Locking pidfile %s\n", fn)
 	return nil
@@ -199,10 +208,6 @@ func (d *Service) ConfigRPCServer() (l net.Listener, err error) {
 	}
 
 	G.PushShutdownHook(func() error {
-		G.Log.Info("Closing socket")
-		if err := d.lockPid.Close(); err != nil {
-			G.Log.Warning("error closing lock pid file: %s", err)
-		}
 		return l.Close()
 	})
 
