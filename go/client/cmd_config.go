@@ -173,7 +173,7 @@ func NewCmdConfigReset(cl *libcmdline.CommandLine) cli.Command {
 func NewCmdConfigInfo(cl *libcmdline.CommandLine) cli.Command {
 	return cli.Command{
 		Name:  "info",
-		Usage: "Show information about config",
+		Usage: "Show config file path",
 		Action: func(c *cli.Context) {
 			cl.ChooseCommand(&CmdConfigInfo{}, "info", c)
 		},
