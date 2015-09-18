@@ -50,7 +50,7 @@ type GlobalContext struct {
 	IdentifyCache    *IdentifyCache    // cache of IdentifyOutcomes
 	UI               UI                // Interact with the UI
 	Service          bool              // whether we're in server mode
-	shutdown         bool              // whether we've shut down or not
+	shutdownOnce     sync.Once         // whether we've shut down or not
 	loginStateMu     sync.RWMutex      // protects loginState pointer, which gets destroyed on logout
 	loginState       *LoginState       // What phase of login the user's in
 }
@@ -213,35 +213,50 @@ func (g *GlobalContext) ConfigureExportedStreams() error {
 	return nil
 }
 
+// Shutdown is called exactly once per-process and does whatever
+// cleanup is necessary to shut down the server.
 func (g *GlobalContext) Shutdown() error {
-	if g.shutdown {
-		return nil
+	var err error
+	didShutdown := false
+
+	// Wrap in a Once.Do so that we don't inadvertedly
+	// run this code twice.
+	g.shutdownOnce.Do(func() {
+		G.Log.Debug("Calling shutdown first time through")
+		didShutdown = true
+
+		epick := FirstErrorPicker{}
+
+		if g.UI != nil {
+			epick.Push(g.UI.Shutdown())
+		}
+		if g.LocalDb != nil {
+			epick.Push(g.LocalDb.Close())
+		}
+		if g.LoginState() != nil {
+			epick.Push(g.LoginState().Shutdown())
+		}
+
+		if g.IdentifyCache != nil {
+			g.IdentifyCache.Shutdown()
+		}
+
+		for _, hook := range g.ShutdownHooks {
+			epick.Push(hook())
+		}
+
+		epick.Push(g.writeConfig())
+
+		err = epick.Error()
+	})
+
+	// Make a little bit of a statement if we wind up here a second time
+	// (which is a bug).
+	if !didShutdown {
+		G.Log.Debug("Skipped shutdown on second call")
 	}
 
-	epick := FirstErrorPicker{}
-
-	if g.UI != nil {
-		epick.Push(g.UI.Shutdown())
-	}
-	if g.LocalDb != nil {
-		epick.Push(g.LocalDb.Close())
-	}
-	if g.LoginState() != nil {
-		epick.Push(g.LoginState().Shutdown())
-	}
-
-	if g.IdentifyCache != nil {
-		g.IdentifyCache.Shutdown()
-	}
-
-	for _, hook := range g.ShutdownHooks {
-		epick.Push(hook())
-	}
-
-	epick.Push(g.writeConfig())
-
-	g.shutdown = true
-	return epick.Error()
+	return err
 }
 
 func (u Usage) UseKeyring() bool {

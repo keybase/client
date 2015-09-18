@@ -87,7 +87,13 @@ func mainInner(g *libkb.GlobalContext) error {
 		if cl.IsNoStandalone() {
 			return fmt.Errorf("Can't run command in standalone mode")
 		}
-		service.NewService(false /* isDaemon */).StartLoopbackServer(g)
+		if err := service.NewService(false /* isDaemon */).StartLoopbackServer(g); err != nil {
+			if pflerr, ok := err.(libkb.PIDFileLockError); ok {
+				err = fmt.Errorf("Can't run in standalone mode with a service running (see %q)",
+					pflerr.Filename)
+			}
+			return err
+		}
 	} else {
 		// If this command warrants an autofork, do it now.
 		if fc := cl.GetForkCmd(); fc == libcmdline.ForceFork || (g.Env.GetAutoFork() && fc != libcmdline.NoFork) {

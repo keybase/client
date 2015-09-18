@@ -20,7 +20,7 @@ func NewLockPIDFile(s string) *LockPIDFile {
 func (f *LockPIDFile) Lock() (err error) {
 	// os.OpenFile adds syscall.O_CLOEXEC automatically
 	if f.file, err = os.OpenFile(f.name, os.O_CREATE|os.O_RDWR, 0600); err != nil {
-		return err
+		return PIDFileLockError{f.name}
 	}
 
 	// LOCK_EX = exclusive
@@ -28,7 +28,7 @@ func (f *LockPIDFile) Lock() (err error) {
 	if err = syscall.Flock(int(f.file.Fd()), syscall.LOCK_EX|syscall.LOCK_NB); err != nil {
 		f.file.Close()
 		f.file = nil
-		return err
+		return PIDFileLockError{f.name}
 	}
 
 	pid := os.Getpid()
