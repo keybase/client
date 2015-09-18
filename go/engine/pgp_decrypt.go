@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"io"
 
-	"github.com/dustin/go-humanize"
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/protocol/go"
 )
@@ -110,14 +109,7 @@ func (e *PGPDecrypt) Run(ctx *Context) (err error) {
 	}
 
 	bundle := libkb.NewPGPKeyBundle(e.signStatus.Entity)
-
-	if e.signStatus.SignatureTime.IsZero() {
-		ctx.LogUI.Notice("Signature verified. Signed by %s.", e.owner.GetName())
-	} else {
-		ctx.LogUI.Notice("Signature verified. Signed by %s %s (%s).", e.owner.GetName(), humanize.Time(e.signStatus.SignatureTime), e.signStatus.SignatureTime)
-	}
-	ctx.LogUI.Notice("PGP Fingerprint: %s.", bundle.GetFingerprint())
-
+	OutputSignatureSuccess(ctx, bundle.GetFingerprint(), e.owner, e.signStatus.SignatureTime)
 	return nil
 }
 
