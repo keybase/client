@@ -87,12 +87,13 @@ type MerkleUserLeaf struct {
 type PathSteps []*PathStep
 
 type VerificationPath struct {
-	uid       keybase1.UID
-	root      *MerkleRoot
-	path      PathSteps
-	uidPath   PathSteps
-	idVersion int64
-	username  string
+	uid           keybase1.UID
+	root          *MerkleRoot
+	path          PathSteps
+	uidPath       PathSteps
+	idVersion     int64
+	username      string
+	usernameCased string
 }
 
 type PathStep struct {
@@ -312,8 +313,9 @@ func (mc *MerkleClient) LookupPath(q HTTPArgs) (vp *VerificationPath, err error)
 	if err != nil {
 		return
 	}
+	usernameCased, _ := res.Body.AtKey("username_cased").GetString()
 
-	vp = &VerificationPath{uid, root, pathOut, uidPathOut, idv, username}
+	vp = &VerificationPath{uid, root, pathOut, uidPathOut, idv, username, usernameCased}
 	return
 }
 
@@ -543,6 +545,18 @@ func (vp *VerificationPath) VerifyUsername() (username string, err error) {
 		username = vp.username
 		return
 	}
+
+	G.Log.Debug("| Failed to map Username %s -> UID %s via direct hash", vp.username, vp.uid)
+
+	if vp.usernameCased != vp.username && strings.ToLower(vp.usernameCased) == vp.username {
+		G.Log.Debug("| Checking cased username difference: %s v %s", vp.username, vp.usernameCased)
+		if CheckUIDAgainstCasedUsername(vp.uid, vp.usernameCased) == nil {
+			G.Log.Debug("| Username %s mapped to %s via direct hash (w/ username casing)", vp.usernameCased, vp.uid)
+			username = vp.username
+			return
+		}
+	}
+
 	hsh := sha256.Sum256([]byte(strings.ToLower(vp.username)))
 	hshS := hex.EncodeToString(hsh[:])
 	var leaf *jsonw.Wrapper
