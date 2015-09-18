@@ -194,7 +194,7 @@ func (sc *SigChain) LoadFromServer(t *MerkleTriple, selfUID keybase1.UID) (dirty
 	return
 }
 
-func (sc *SigChain) VerifyChain() (err error) {
+func (sc *SigChain) VerifyChain(allKeys bool) (err error) {
 	G.Log.Debug("+ SigChain::VerifyChain()")
 	defer func() {
 		G.Log.Debug("- SigChain::VerifyChain() -> %s", ErrToOk(err))
@@ -215,7 +215,7 @@ func (sc *SigChain) VerifyChain() (err error) {
 			if prev.GetSeqno()+1 != curr.GetSeqno() {
 				return ChainLinkWrongSeqnoError{fmt.Errorf("Chain seqno mismatch at seqno=%d (previous=%d)", curr.GetSeqno(), prev.GetSeqno())}
 			}
-		} else if curr.GetSeqno() != 1 {
+		} else if curr.GetSeqno() != 1 && allKeys {
 			return ChainLinkWrongSeqnoError{fmt.Errorf("First seqno must be 1, not %d", curr.GetSeqno())}
 		}
 		if err = curr.CheckNameAndID(sc.username, sc.uid); err != nil {
@@ -442,7 +442,7 @@ func (sc *SigChain) verifySubchain(kf KeyFamily, links []*ChainLink) (cached boo
 	return
 }
 
-func (sc *SigChain) VerifySigsAndComputeKeys(eldest keybase1.KID, ckf *ComputedKeyFamily) (cached bool, err error) {
+func (sc *SigChain) VerifySigsAndComputeKeys(eldest keybase1.KID, ckf *ComputedKeyFamily, allKeys bool) (cached bool, err error) {
 
 	cached = false
 	G.Log.Debug("+ VerifySigsAndComputeKeys for user %s (eldest = %s)", sc.uid, eldest)
@@ -450,7 +450,7 @@ func (sc *SigChain) VerifySigsAndComputeKeys(eldest keybase1.KID, ckf *ComputedK
 		G.Log.Debug("- VerifySigsAndComputeKeys for user %s -> %s", sc.uid, ErrToOk(err))
 	}()
 
-	if err = sc.VerifyChain(); err != nil {
+	if err = sc.VerifyChain(allKeys); err != nil {
 		return
 	}
 
@@ -757,7 +757,7 @@ func (l *SigChainLoader) LoadFromServer() (err error) {
 func (l *SigChainLoader) VerifySigsAndComputeKeys() (err error) {
 	G.Log.Debug("VerifySigsAndComputeKeys(): l.leaf: %v, l.leaf.eldest: %v, l.ckf: %v", l.leaf, l.leaf.eldest, l.ckf)
 	if l.ckf.kf != nil {
-		_, err = l.chain.VerifySigsAndComputeKeys(l.leaf.eldest, &l.ckf)
+		_, err = l.chain.VerifySigsAndComputeKeys(l.leaf.eldest, &l.ckf, l.allKeys)
 	}
 	return
 }
@@ -830,7 +830,7 @@ func (l *SigChainLoader) Load() (ret *SigChain, err error) {
 	}
 	ret = l.chain
 	stage("VerifyChain")
-	if err = l.chain.VerifyChain(); err != nil {
+	if err = l.chain.VerifyChain(l.allKeys); err != nil {
 		return
 	}
 	stage("CheckFreshness")
@@ -852,7 +852,7 @@ func (l *SigChainLoader) Load() (ret *SigChain, err error) {
 	}
 
 	stage("VerifyChain")
-	if err = l.chain.VerifyChain(); err != nil {
+	if err = l.chain.VerifyChain(l.allKeys); err != nil {
 		return
 	}
 	stage("Store")
