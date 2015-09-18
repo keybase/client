@@ -81,6 +81,10 @@ func (e *TrackToken) Run(ctx *Context) error {
 		return err
 	}
 
+	if e.arg.Me.Equal(e.them) {
+		return libkb.SelfTrackError{}
+	}
+
 	ska := libkb.SecretKeyArg{
 		Me:      e.arg.Me,
 		KeyType: libkb.DeviceSigningKeyType,
