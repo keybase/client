@@ -1,36 +1,35 @@
 'use strict'
 /* @flow */
 
-var React = require('react-native')
-var {
+import React from 'react-native'
+
+const {
   Component,
   StyleSheet,
-  View,
-  Settings,
-  Text,
-  TextInput,
-  TouchableHighlight
+  View
 } = React
 
-var Switch = require('../commonAdapters/Switch')
+import DevicePrompt from './device-prompt'
+import SelectSigner from './select-signer'
+import DisplaySecretWords from './display-secret-words'
+import LoginForm from './form'
 
-var DevicePrompt = require('./device-prompt')
-var SelectSigner = require('./select-signer')
-var DisplaySecretWords = require('./display-secret-words')
+import engine from '../engine'
 
-var engine = require('../engine')
-var commonStyles = require('../styles/common')
+const { connect } = require('react-redux/native')
+const { bindActionCreators } = require('redux')
+const LoginActions = require('../actions/login')
 
-class LoginForm extends Component {
+import * as states from '../constants/loginStates'
+
+class LoginContainer extends Component {
   constructor (props) {
     super(props)
 
-    // TODO should everything be in the keychain?
-    this.state = {
-      username: Settings.get('LoginFormUsername'),
-      passphrase: 'okokokokokok',
-      storeSecret: Settings.get('LoginFormStoreSecret')
-    }
+    const { dispatch } = this.props
+    this.actions = bindActionCreators(LoginActions, dispatch)
+    // TODO move this into the router logic
+    this.showingLoginState = null
   }
 
   componentWillUnmount () {
@@ -39,185 +38,134 @@ class LoginForm extends Component {
     // stop login if not all the way through?
   }
 
-  showDevicePrompt (response) {
+  transitionPage () {
+    // TODO fix this in the router. have to defer so we don't mutate navigator in render below...
+    setTimeout(() => {
+      this.showingLoginState = this.props.loginState
+
+      // TODO use nice router / nav stack and not all these push/pops
+      switch (this.props.loginState) {
+        case states.ASK_USER_PASS:
+          this.showLoginForm()
+          break
+        case states.ASK_DEVICE_NAME:
+          this.showDevicePrompt()
+          break
+        case states.ASK_DEVICE_SIGNER:
+          this.showDeviceSigner()
+          break
+        case states.SHOW_SECRET_WORDS:
+          this.showSecretWords()
+          break
+        case states.LOGGED_IN:
+          this.showLoggedIn()
+          break
+      }
+    }, 1)
+  }
+
+  showLoginForm () {
+    const { username, passphrase, storeSecret, waitingForServer } = this.props
+
+    this.props.kbNavigator.push({
+      title: 'Login',
+      component: LoginForm,
+      leftButtonTitle: 'Cancel',
+      leftButtonPopN: 1,
+      props: {
+        onSubmit: (username, passphrase, storeSecret) => this.actions.submitUserPass(username, passphrase, storeSecret),
+        username,
+        passphrase,
+        storeSecret,
+        waitingForServer
+      }
+    })
+  }
+
+  showDevicePrompt () {
+    const { deviceName, response } = this.props
+
     this.props.kbNavigator.push({
       title: 'Device Name',
       component: DevicePrompt,
       leftButtonTitle: 'Cancel',
       leftButtonPopN: 2,
       props: {
-        response: response
+        onSubmit: (name) => this.actions.submitDeviceName(name, response),
+        deviceName
       }
     })
   }
 
-  showDeviceSetup (param, response) {
+  showDeviceSigner () {
+    const { signers, response } = this.props
+
     this.props.kbNavigator.push({
       title: 'Device Setup',
       leftButtonTitle: 'Cancel',
       leftButtonPopN: 3,
       component: SelectSigner,
       props: {
-        response: response,
-        ...param
+        onSubmit: (result) => this.actions.submitDeviceSigner(result, response),
+        ...signers
       }
     })
   }
 
-  showSecretWords (param, response) {
+  showSecretWords () {
+    const { secretWords, response } = this.props
+
     this.props.kbNavigator.push({
       title: 'Register Device',
       component: DisplaySecretWords,
       leftButtonTitle: 'Cancel',
       leftButtonPopN: 4,
       props: {
-        response: response,
-        ...param
+        onSubmit: () => this.actions.showedSecretWords(response),
+        secretWords
       }
     })
   }
 
-  log (param, response) {
-    console.log('LogUI: ', JSON.stringify(param, null, 2))
-    response.result()
-  }
-
-  submit () {
-    if (this.state.storeSecret) {
-      Settings.set({LoginFormUsername: this.state.username})
-    }
-
-    const param = {
-      username: this.state.username,
-      passphrase: this.state.passphrase,
-      storeSecret: this.state.storeSecret,
-      error: null
-    }
-
-    const incomingMap = {
-      'keybase.1.locksmithUi.promptDeviceName': (param, response) => { this.showDevicePrompt(response) },
-      'keybase.1.locksmithUi.selectSigner': (param, response) => { this.showDeviceSetup(param, response) },
-      'keybase.1.locksmithUi.displaySecretWords': (param, response) => { this.showSecretWords(param, response) },
-      'keybase.1.logUi.log': (param, response) => { this.log(param, response) },
-      'keybase.1.locksmithUi.kexStatus': (param, response) => { this.log(param, response) }
-    }
-
-    engine.rpc('login.loginWithPassphrase', param, incomingMap, (err, response) => {
-      if (err) {
-        console.log(err)
-        this.setState({error: err.toString()})
-      } else {
-        this.props.onLoggedIn()
-      }
-    })
+  showLoggedIn () {
+    this.props.onLoggedIn()
   }
 
   render () {
-    var error = null
-    if (this.state.error) {
-      error = <Text style={[{margin: 20, padding: 10}, commonStyles.error]} >Error: {this.state.error}</Text>
+    if (this.showingLoginState !== this.props.loginState) {
+      this.transitionPage()
     }
 
     return (
-      <View style={styles.container}>
-        <TextInput
-          style={styles.input}
-          placeholder='Username'
-          value={this.state.username}
-          enablesReturnKeyAutomatically
-          returnKeyType='next'
-          autoCorrect={false}
-          onChangeText={(username) => this.setState({username})}
-          onSubmitEditing={(event) => {
-            this.refs['passphrase'].focus()
-          }}
-          />
-
-        <TextInput
-          ref='passphrase'
-          style={styles.input}
-          placeholder='Passphrase'
-          value={this.state.passphrase}
-          secureTextEntry
-          enablesReturnKeyAutomatically
-          autoCorrect={false}
-          returnKeyType='done'
-          onChangeText={(passphrase) => this.setState({passphrase})}
-          onSubmitEditing={(event) => {
-            this.submit()
-          }}
-          />
-
-        <View style={[styles.horizontal, styles.rightSide]}>
-          <Text style={styles.switchText}>Remember me</Text>
-          <Switch
-            onValueChange={(value) => {
-              this.setState({storeSecret: value})
-              Settings.set({LoginFormStoreSecret: value})
-              Settings.set({LoginFormUsername: value ? this.state.username : ''})
-            }}
-            value={this.state.storeSecret}
-          />
-        </View>
-
-        {error}
-
-        <View style={styles.loginWrapper}>
-          <TouchableHighlight
-            underlayColor={commonStyles.buttonHighlight}
-            onPress={() => { this.submit() }}>
-            <Text style={loginButtonStyle} >Login</Text>
-          </TouchableHighlight>
-        </View>
-      </View>
+      <View style={styles.container}/>
     )
   }
 }
 
-LoginForm.propTypes = {
-  kbNavigator: React.PropTypes.object,
-  onLoggedIn: React.PropTypes.func
+LoginContainer.propTypes = {
+  kbNavigator: React.PropTypes.object.isRequired,
+  onLoggedIn: React.PropTypes.func.isRequired,
+  dispatch: React.PropTypes.func.isRequired,
+  loginState: React.PropTypes.string.isRequired,
+  loggedIn: React.PropTypes.bool.isRequired,
+  username: React.PropTypes.string,
+  passphrase: React.PropTypes.string,
+  storeSecret: React.PropTypes.bool.isRequired,
+  deviceName: React.PropTypes.string,
+  waitingForServer: React.PropTypes.bool.isRequired,
+  response: React.PropTypes.object,
+  signers: React.PropTypes.object,
+  secretWords: React.PropTypes.string,
+  error: React.PropTypes.string
 }
 
 var styles = StyleSheet.create({
   container: {
     flex: 1,
     justifyContent: 'center',
-    alignItems: 'stretch',
+    alignItems: 'center',
     backgroundColor: '#F5FCFF'
-  },
-  input: {
-    height: 40,
-    marginBottom: 5,
-    marginLeft: 10,
-    marginRight: 10,
-    borderWidth: 0.5,
-    borderColor: '#0f0f0f',
-    fontSize: 13,
-    padding: 4
-  },
-  switchText: {
-    fontSize: 14,
-    textAlign: 'center',
-    margin: 10
-  },
-  horizontal: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center'
-  },
-  rightSide: {
-    justifyContent: 'flex-end',
-    marginRight: 10
-  },
-  loginWrapper: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginTop: 10
   }
 })
 
-var loginButtonStyle = [commonStyles.actionButton, {width: 200}]
-
-module.exports = LoginForm
+module.exports = connect(state => state.login)(LoginContainer)
