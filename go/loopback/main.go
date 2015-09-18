@@ -36,17 +36,17 @@ func (n debuggingConfig) GetLocalRPCDebug() string {
 func (n debuggingConfig) GetRunMode() (libkb.RunMode, error) {
 	if n.runMode == nil {
 		return libkb.DevelRunMode, nil
-	} else {
-		return libkb.StringToRunMode(*n.runMode)
 	}
+
+	return libkb.StringToRunMode(*n.runMode)
 }
 
 func (n debuggingConfig) GetHome() string {
 	if n.homeDir == nil {
 		return ""
-	} else {
-		return *n.homeDir
 	}
+
+	return *n.homeDir
 }
 
 func (d dummyCmd) GetUsage() libkb.Usage {
@@ -74,7 +74,6 @@ func Init(homeDir string, runMode string) {
 func WriteB64(str string) {
 	data, err := base64.StdEncoding.DecodeString(str)
 	if err == nil {
-		start(debuggingConfig{})
 		con.Write(data)
 	} else {
 		fmt.Println("write error:", err, str)
@@ -84,7 +83,6 @@ func WriteB64(str string) {
 // Blocking read, returns base64 encoded msgpack rpc payload
 func ReadB64() string {
 	data := make([]byte, 50*1024)
-	start(debuggingConfig{})
 
 	n, err := con.Read(data)
 	if n > 0 && err == nil {
