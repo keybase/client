@@ -168,12 +168,17 @@ func (e *PGPVerify) runClearsign(ctx *Context) error {
 		return errors.New("Unable to decode clearsigned message")
 	}
 
+	sigBody, err := ioutil.ReadAll(b.ArmoredSignature.Body)
+	if err != nil {
+		return err
+	}
+
 	sk, err := NewScanKeys(ctx.SecretUI, ctx.IdentifyUI, &e.arg.TrackOptions, e.G())
 	if err != nil {
 		return err
 	}
 
-	signer, err := openpgp.CheckDetachedSignature(sk, bytes.NewReader(b.Bytes), b.ArmoredSignature.Body)
+	signer, err := openpgp.CheckDetachedSignature(sk, bytes.NewReader(b.Bytes), bytes.NewReader(sigBody))
 	if err != nil {
 		return fmt.Errorf("Check sig error: %s", err)
 	}
@@ -188,14 +193,11 @@ func (e *PGPVerify) runClearsign(ctx *Context) error {
 			return err
 		}
 
-		b2, _ := clearsign.Decode(msg)
-		if b2 == nil {
-			return errors.New("Unable to decode clearsigned message")
-		}
-		p, err := packet.Read(b2.ArmoredSignature.Body)
+		p, err := packet.Read(bytes.NewReader(sigBody))
 		if err != nil {
 			return err
 		}
+
 		if val, ok := p.(*packet.Signature); ok {
 			e.signStatus.SignatureTime = val.CreationTime
 		}
