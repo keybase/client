@@ -22,6 +22,9 @@ type MDServerRemote struct {
 	observers  map[TlfID]chan<- error
 
 	testClient keybase1.GenericClient // for testing
+
+	tickerCancel context.CancelFunc
+	tickerMu     sync.Mutex // protects the ticker cancel function
 }
 
 // Test that MDServerRemote fully implements the MDServer interface.
@@ -82,10 +85,54 @@ func (md *MDServerRemote) OnConnect(ctx context.Context,
 	md.conn = conn
 
 	// using conn.DoCommand here would cause problematic recursion
-	return runUnlessCanceled(ctx, func() error {
+	var pingIntervalSeconds int
+	err = runUnlessCanceled(ctx, func() error {
 		c := keybase1.MetadataClient{Cli: client}
-		return c.Authenticate(creds)
+		pingIntervalSeconds, err = c.Authenticate(creds)
+		return err
 	})
+
+	// start pinging
+	if err == nil {
+		md.resetPingTicker(pingIntervalSeconds)
+	}
+	return err
+}
+
+// Helper to reset a ping ticker.
+func (md *MDServerRemote) resetPingTicker(intervalSeconds int) {
+	md.tickerMu.Lock()
+	defer md.tickerMu.Unlock()
+
+	if md.tickerCancel != nil {
+		md.tickerCancel()
+		md.tickerCancel = nil
+	}
+	if intervalSeconds <= 0 {
+		return
+	}
+
+	md.log.Debug("MDServerRemote: starting new ping ticker with interval %d",
+		intervalSeconds)
+
+	var ctx context.Context
+	ctx, md.tickerCancel = context.WithCancel(context.Background())
+	go func() {
+		ticker := time.NewTicker(time.Duration(intervalSeconds) * time.Second)
+		for {
+			select {
+			case <-ticker.C:
+				// wrap with doCommand so failures trigger reconnects
+				md.doCommand(ctx, func() error {
+					return md.client().Ping()
+				})
+			case <-ctx.Done():
+				md.log.Debug("MDServerRemote: stopping ping ticker")
+				ticker.Stop()
+				return
+			}
+		}
+	}()
 }
 
 // OnConnectError implements the ConnectionHandler interface.
@@ -95,11 +142,13 @@ func (md *MDServerRemote) OnConnectError(err error, wait time.Duration) {
 	// TODO: it might make sense to show something to the user if this is
 	// due to authentication, for example.
 	md.cancelObservers()
+	md.resetPingTicker(0)
 }
 
 // OnDisconnected implements the ConnectionHandler interface.
 func (md *MDServerRemote) OnDisconnected() {
 	md.cancelObservers()
+	md.resetPingTicker(0)
 }
 
 // Signal errors and clear any registered observers.
@@ -335,6 +384,8 @@ func (md *MDServerRemote) Shutdown() {
 	md.conn.Shutdown()
 	// cancel pending observers
 	md.cancelObservers()
+	// cancel the ping ticker
+	md.resetPingTicker(0)
 }
 
 //
