@@ -7,11 +7,12 @@ var {
   StyleSheet,
   View,
   Settings,
-  SwitchIOS,
   Text,
   TextInput,
   TouchableHighlight
 } = React
+
+var Switch = require("../commonAdapters/Switch") ;
 
 var DevicePrompt = require('./device-prompt')
 var SelectSigner = require('./select-signer')
@@ -149,7 +150,7 @@ class LoginForm extends Component {
 
         <View style={[styles.horizontal, styles.rightSide]}>
           <Text style={styles.switchText}>Remember me</Text>
-          <SwitchIOS
+          <Switch
             onValueChange={(value) => {
               this.setState({storeSecret: value})
               Settings.set({LoginFormStoreSecret: value})

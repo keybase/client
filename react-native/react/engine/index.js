@@ -135,7 +135,8 @@ class Engine {
   }
 
   setupListener () {
-    this.subscription = NativeAppEventEmitter.addListener(
+    var NativeEventEmitter = require('../commonAdapters/NativeEventEmitter');
+    this.subscription = NativeEventEmitter.addListener(
       engine.eventName,
       (payload) => {
         if (!payload) {

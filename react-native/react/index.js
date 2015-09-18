@@ -106,8 +106,6 @@ class Keybase extends Component {
   }
 }
 
-AppRegistry.registerComponent('Keybase', () => Keybase)
-
 var styles = StyleSheet.create({
   navigator: {
     flex: 1
@@ -119,3 +117,4 @@ var styles = StyleSheet.create({
   }
 })
 
+AppRegistry.registerComponent('Keybase', () => Keybase);
