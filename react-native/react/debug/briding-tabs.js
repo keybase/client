@@ -1,20 +1,20 @@
 'use strict'
 
-var React = require('react-native')
-var {
+const React = require('react-native')
+const {
   Component,
   TabBarIOS
 } = React
 
-var SwiftTest = require('./swift-test')
-var GoTest = require('./go-test')
-var ReactTest = require('./react-test')
-var ObjcTest = require('./objc-test')
+const SwiftTest = require('./swift-test')
+const GoTest = require('./go-test')
+const ReactTest = require('./react-test')
+const ObjcTest = require('./objc-test')
 
 // Known bug in react causing message in chrome:
 // Warning: Failed propType: Invalid prop `icon` of type `string` supplied to `RCTTabBarItem`, expected `object`.
 // See: https://github.com/facebook/react-native/issues/2361
-var tabIcon = {
+const tabIcon = {
   uri: 'tab'
 }
 

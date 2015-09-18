@@ -1,8 +1,8 @@
 'use strict'
 /* @flow */
 
-var React = require('react-native')
-var {
+const React = require('react-native')
+const {
   Component,
   StyleSheet,
   View,
@@ -13,12 +13,12 @@ var {
   TouchableHighlight
 } = React
 
-var DevicePrompt = require('./device-prompt')
-var SelectSigner = require('./select-signer')
-var DisplaySecretWords = require('./display-secret-words')
+const DevicePrompt = require('./device-prompt')
+const SelectSigner = require('./select-signer')
+const DisplaySecretWords = require('./display-secret-words')
 
-var engine = require('../engine')
-var commonStyles = require('../styles/common')
+const engine = require('../engine')
+const commonStyles = require('../styles/common')
 
 class LoginForm extends Component {
   constructor (props) {
@@ -112,7 +112,7 @@ class LoginForm extends Component {
   }
 
   render () {
-    var error = null
+    let error = null
     if (this.state.error) {
       error = <Text style={[{margin: 20, padding: 10}, commonStyles.error]} >Error: {this.state.error}</Text>
     }
@@ -178,7 +178,7 @@ LoginForm.propTypes = {
   onLoggedIn: React.PropTypes.func
 }
 
-var styles = StyleSheet.create({
+const styles = StyleSheet.create({
   container: {
     flex: 1,
     justifyContent: 'center',
@@ -217,6 +217,6 @@ var styles = StyleSheet.create({
   }
 })
 
-var loginButtonStyle = [commonStyles.actionButton, {width: 200}]
+const loginButtonStyle = [commonStyles.actionButton, {width: 200}]
 
 module.exports = LoginForm

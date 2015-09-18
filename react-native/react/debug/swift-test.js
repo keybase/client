@@ -1,7 +1,7 @@
 'use strict'
 
-var React = require('react-native')
-var {
+const React = require('react-native')
+const {
   Component,
   StyleSheet,
   Text,
@@ -9,9 +9,9 @@ var {
   NativeModules
 } = React
 
-var swiftNative = NativeModules.SwiftTest
+const swiftNative = NativeModules.SwiftTest
 
-var styles = StyleSheet.create({
+const styles = StyleSheet.create({
   container: {
     flex: 1,
     justifyContent: 'center',

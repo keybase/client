@@ -1,8 +1,8 @@
 'use strict'
 /* @flow */
 
-var React = require('react-native')
-var {
+const React = require('react-native')
+const {
   AppRegistry,
   Component,
   StyleSheet,
@@ -11,8 +11,8 @@ var {
   View
 } = React
 
-var Navigator = require('./common/navigator')
-var commonStyles = require('./styles/common')
+const Navigator = require('./common/navigator')
+const commonStyles = require('./styles/common')
 
 class AppOrDebug extends Component {
   constructor () {
@@ -108,7 +108,7 @@ class Keybase extends Component {
 
 AppRegistry.registerComponent('Keybase', () => Keybase)
 
-var styles = StyleSheet.create({
+const styles = StyleSheet.create({
   navigator: {
     flex: 1
   },

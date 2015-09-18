@@ -1,7 +1,7 @@
 'use strict'
 
-var React = require('react-native')
-var {
+const React = require('react-native')
+const {
   StyleSheet,
   Text,
   View,
@@ -10,9 +10,9 @@ var {
   NativeAppEventEmitter
 } = React
 
-var objcNative = NativeModules.ObjcTest
+const objcNative = NativeModules.ObjcTest
 
-var styles = StyleSheet.create({
+const styles = StyleSheet.create({
   container: {
     flex: 1,
     justifyContent: 'center',

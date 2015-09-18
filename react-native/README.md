@@ -88,7 +88,7 @@ npm install -g flow
 See [the JS style guide](standardjs.com)
 Visit [standardjs.com](http://standardjs.com/#text-editor-plugins) to find plugins for your editor of choice
 
-Currently we're using ES6/7 extensions through babel
+Currently we're using ES6/7 extensions through babel. Please try and use these modern features (classes, destructuring, let/const, etc)
 
 If you run into weird issues with your packager this may be due to a stale cache. Run this command to wipe your local cache
 ```

@@ -1,7 +1,7 @@
 'use strict'
 
-var React = require('react-native')
-var {
+const React = require('react-native')
+const {
   Component,
   ListView,
   StyleSheet,
@@ -10,8 +10,8 @@ var {
   TouchableHighlight
 } = React
 
-var commonStyles = require('../styles/common')
-var enums = require('../keybase_v1')
+const commonStyles = require('../styles/common')
+const enums = require('../keybase_v1')
 
 class SelectSigner extends Component {
   constructor () {
@@ -19,10 +19,10 @@ class SelectSigner extends Component {
   }
 
   componentWillMount () {
-    var ds = new ListView.DataSource({rowHasChanged: (r1, r2) => r1 !== r2})
+    const ds = new ListView.DataSource({rowHasChanged: (r1, r2) => r1 !== r2})
 
-    var devices = this.props.devices.map(function (d) {
-      var desc = 'Use the device named ' + d.name + ' to authorize this installation'
+    const devices = this.props.devices.map(function (d) {
+      const desc = 'Use the device named ' + d.name + ' to authorize this installation'
 
       return {
         ...d,
@@ -43,7 +43,7 @@ class SelectSigner extends Component {
   }
 
   select (rowData) {
-    var signer = {
+    const signer = {
       deviceID: rowData.deviceID,
       deviceName: rowData.name,
       kind: enums.locksmithUi.DeviceSignerKind.device
@@ -60,7 +60,7 @@ class SelectSigner extends Component {
   }
 
   renderRow (rowData, sectionID, rowID) {
-    var sep = (rowID < (this.state.dataSource.getRowCount() - 1)) ? <View style={styles.separator} /> : null
+    const sep = (rowID < (this.state.dataSource.getRowCount() - 1)) ? <View style={styles.separator} /> : null
     return (
       <TouchableHighlight
         underlayColor={commonStyles.buttonHighlight}
@@ -100,7 +100,7 @@ SelectSigner.propTypes = {
 
 }
 
-var styles = StyleSheet.create({
+const styles = StyleSheet.create({
   container: {
     flex: 1,
     justifyContent: 'center',

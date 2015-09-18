@@ -2,19 +2,18 @@
 
 // Handles sending requests to objc (then go) and back
 
-var React = require('react-native')
+const React = require('react-native')
 
-var {
-  NativeModules,
+const {
   NativeAppEventEmitter
 } = React
 
-var engine = require("./native")
+const engine = require('./native')
 
-var rpc = require('../framed-msgpack-rpc/lib/main')
-var RpcTransport = rpc.transport.Transport
-var RpcClient = rpc.client.Client
-var Buffer = require('buffer').Buffer
+const rpc = require('../framed-msgpack-rpc/lib/main')
+const RpcTransport = rpc.transport.Transport
+const RpcClient = rpc.client.Client
+const Buffer = require('buffer').Buffer
 
 class EngineError extends Error {
   constructor (err) {
@@ -108,8 +107,8 @@ class DummyTransport extends RpcTransport {
   }
 
   _raw_write_bufs (len, buf) {
-    var buffer = Buffer.concat([new Buffer(len), new Buffer(buf)])
-    var data = buffer.toString('base64')
+    let buffer = Buffer.concat([new Buffer(len), new Buffer(buf)])
+    const data = buffer.toString('base64')
     this.writeCallback(data)
   }
 }
@@ -152,15 +151,15 @@ class Engine {
   }
 
   _rpcIncoming (payload) {
-    var {
+    const {
       method: method,
       param: [param],
       response: response
     } = payload
 
-    var {sessionID: sessionID} = param
+    const {sessionID: sessionID} = param
 
-    var callMap = this.sessionIDToIncomingCall[sessionID]
+    const callMap = this.sessionIDToIncomingCall[sessionID]
 
     if (callMap && callMap[method]) {
       callMap[method](param, response)
@@ -176,7 +175,7 @@ class Engine {
       param = {}
     }
 
-    var sessionID = param.sessionID = this.getSessionID()
+    const sessionID = param.sessionID = this.getSessionID()
     this.sessionIDToIncomingCall[sessionID] = incomingCallMap
 
     this.rpcClient.invoke(method, [param], (err, data) => {
