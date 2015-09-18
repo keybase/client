@@ -130,17 +130,16 @@ func (e *PGPVerify) runDetached(ctx *Context) error {
 			return err
 		}
 
-		r := e.arg.Signature
+		var r io.Reader = bytes.NewReader(e.arg.Signature)
 		if libkb.IsArmored(e.arg.Signature) {
-			b, err := armor.Decode(bytes.NewReader(e.arg.Signature))
+			block, err := armor.Decode(r)
 			if err != nil {
 				return err
 			}
-			rb := new(bytes.Buffer)
-			rb.ReadFrom(b.Body)
-			r = rb.Bytes()
+			r = block.Body
 		}
-		p, err := packet.Read(bytes.NewReader(r))
+
+		p, err := packet.Read(r)
 		if err != nil {
 			return err
 		}
