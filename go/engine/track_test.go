@@ -108,8 +108,8 @@ func TestTrack(t *testing.T) {
 	_, _, err := runTrack(tc, fu, "t_bob")
 	if err == nil {
 		t.Fatal("expected logout error; got no error")
-	} else if _, ok := err.(libkb.LoginRequiredError); !ok {
-		t.Fatalf("expected a LoginRequireError; got %s", err)
+	} else if _, ok := err.(libkb.DeviceRequiredError); !ok {
+		t.Fatalf("expected a DeviceRequireError; got %s", err)
 	}
 	fu.LoginOrBust(tc)
 	trackBob(tc, fu)
