@@ -123,8 +123,9 @@ func (sc *SigChain) Bump(mt MerkleTriple) {
 	sc.localChainUpdateTime = time.Now()
 }
 
-func (sc *SigChain) LoadFromServer(t *MerkleTriple, selfUID keybase1.UID) (dirtyTail *MerkleTriple, err error) {
+func (sc *SigChain) LoadFromServer(t *MerkleTriple, selfUID keybase1.UID) (dirtyTail *MerkleTriple, loadedFromHead bool, err error) {
 	low := sc.GetLastLoadedSeqno()
+	loadedFromHead = (low == Seqno(0) || low == Seqno(-1))
 
 	G.Log.Debug("+ Load SigChain from server (uid=%s, low=%d)", sc.uid, low)
 	defer func() { G.Log.Debug("- Loaded SigChain -> %s", ErrToOk(err)) }()
@@ -194,7 +195,14 @@ func (sc *SigChain) LoadFromServer(t *MerkleTriple, selfUID keybase1.UID) (dirty
 	return
 }
 
-func (sc *SigChain) VerifyChain(allKeys bool) (err error) {
+func (sc *SigChain) getFirstSeqno() (ret Seqno) {
+	if len(sc.chainLinks) > 0 {
+		ret = sc.chainLinks[0].GetSeqno()
+	}
+	return ret
+}
+
+func (sc *SigChain) VerifyChain() (err error) {
 	G.Log.Debug("+ SigChain::VerifyChain()")
 	defer func() {
 		G.Log.Debug("- SigChain::VerifyChain() -> %s", ErrToOk(err))
@@ -210,13 +218,11 @@ func (sc *SigChain) VerifyChain(allKeys bool) (err error) {
 		if i > 0 {
 			prev := sc.chainLinks[i-1]
 			if !prev.id.Eq(curr.GetPrev()) {
-				return ChainLinkPrevHashMismatchError{fmt.Errorf("Chain mismatch at seqno=%d", curr.GetSeqno())}
+				return ChainLinkPrevHashMismatchError{fmt.Sprintf("Chain mismatch at seqno=%d", curr.GetSeqno())}
 			}
 			if prev.GetSeqno()+1 != curr.GetSeqno() {
-				return ChainLinkWrongSeqnoError{fmt.Errorf("Chain seqno mismatch at seqno=%d (previous=%d)", curr.GetSeqno(), prev.GetSeqno())}
+				return ChainLinkWrongSeqnoError{fmt.Sprintf("Chain seqno mismatch at seqno=%d (previous=%d)", curr.GetSeqno(), prev.GetSeqno())}
 			}
-		} else if curr.GetSeqno() != 1 && allKeys {
-			return ChainLinkWrongSeqnoError{fmt.Errorf("First seqno must be 1, not %d", curr.GetSeqno())}
 		}
 		if err = curr.CheckNameAndID(sc.username, sc.uid); err != nil {
 			return
@@ -442,7 +448,7 @@ func (sc *SigChain) verifySubchain(kf KeyFamily, links []*ChainLink) (cached boo
 	return
 }
 
-func (sc *SigChain) VerifySigsAndComputeKeys(eldest keybase1.KID, ckf *ComputedKeyFamily, allKeys bool) (cached bool, err error) {
+func (sc *SigChain) VerifySigsAndComputeKeys(eldest keybase1.KID, ckf *ComputedKeyFamily) (cached bool, err error) {
 
 	cached = false
 	G.Log.Debug("+ VerifySigsAndComputeKeys for user %s (eldest = %s)", sc.uid, eldest)
@@ -450,7 +456,7 @@ func (sc *SigChain) VerifySigsAndComputeKeys(eldest keybase1.KID, ckf *ComputedK
 		G.Log.Debug("- VerifySigsAndComputeKeys for user %s -> %s", sc.uid, ErrToOk(err))
 	}()
 
-	if err = sc.VerifyChain(allKeys); err != nil {
+	if err = sc.VerifyChain(); err != nil {
 		return
 	}
 
@@ -531,6 +537,7 @@ type SigChainLoader struct {
 	links     []*ChainLink
 	ckf       ComputedKeyFamily
 	dirtyTail *MerkleTriple
+	loadedFromHead bool
 
 	// The preloaded sigchain; maybe we're loading a user that already was
 	// loaded, and here's the existing sigchain.
@@ -748,7 +755,7 @@ func (l *SigChainLoader) selfUID() (uid keybase1.UID) {
 
 func (l *SigChainLoader) LoadFromServer() (err error) {
 	srv := l.GetMerkleTriple()
-	l.dirtyTail, err = l.chain.LoadFromServer(srv, l.selfUID())
+	l.dirtyTail, l.loadedFromHead, err = l.chain.LoadFromServer(srv, l.selfUID())
 	return
 }
 
@@ -757,12 +764,10 @@ func (l *SigChainLoader) LoadFromServer() (err error) {
 func (l *SigChainLoader) VerifySigsAndComputeKeys() (err error) {
 	G.Log.Debug("VerifySigsAndComputeKeys(): l.leaf: %v, l.leaf.eldest: %v, l.ckf: %v", l.leaf, l.leaf.eldest, l.ckf)
 	if l.ckf.kf != nil {
-		_, err = l.chain.VerifySigsAndComputeKeys(l.leaf.eldest, &l.ckf, l.allKeys)
+		_, err = l.chain.VerifySigsAndComputeKeys(l.leaf.eldest, &l.ckf)
 	}
 	return
 }
-
-//========================================================================
 
 func (l *SigChainLoader) dbKey() DbKey {
 	return DbKeyUID(l.chainType.DbType, l.user.GetUID())
@@ -780,8 +785,22 @@ func (l *SigChainLoader) StoreTail() (err error) {
 	return
 }
 
-//========================================================================
 
+// checkChainHead ensures that we started loading at Seqno=1 for
+// loads in which we started with an empty local cache, or if we
+// wanted to load allKeys.
+func (l *SigChainLoader) checkChainHead() (err error) {
+	if (l.loadedFromHead || l.allKeys) {
+		first := l.chain.getFirstSeqno()
+		if first > Seqno(1) {
+			err = ChainLinkWrongSeqnoError{fmt.Sprintf("Wanted a chain from seqno=1, but got seqno=%d", first)}
+		}
+	}
+	return err
+}
+
+// Store a SigChain to local storage as a result of having loaded it.
+// We eagerly write loaded chain links to storage if they verify properly.
 func (l *SigChainLoader) Store() (err error) {
 	err = l.StoreTail()
 	if err == nil {
@@ -790,8 +809,9 @@ func (l *SigChainLoader) Store() (err error) {
 	return
 }
 
-//========================================================================
-
+// Load is the main entry point into the SigChain loader.  It runs through
+// all of the steps to load a chain in from storage, to refresh it against
+// the server, and to verify its integrity.
 func (l *SigChainLoader) Load() (ret *SigChain, err error) {
 	var current bool
 	var preload bool
@@ -830,7 +850,7 @@ func (l *SigChainLoader) Load() (ret *SigChain, err error) {
 	}
 	ret = l.chain
 	stage("VerifyChain")
-	if err = l.chain.VerifyChain(l.allKeys); err != nil {
+	if err = l.chain.VerifyChain(); err != nil {
 		return
 	}
 	stage("CheckFreshness")
@@ -844,6 +864,10 @@ func (l *SigChainLoader) Load() (ret *SigChain, err error) {
 		}
 	}
 
+	if err = l.checkChainHead(); err != nil {
+		return
+	}
+
 	if !current {
 	} else if l.chain.GetComputedKeyInfos() == nil {
 		G.Log.Debug("| Need to reverify chain since we don't have ComputedKeyInfos")
@@ -852,7 +876,7 @@ func (l *SigChainLoader) Load() (ret *SigChain, err error) {
 	}
 
 	stage("VerifyChain")
-	if err = l.chain.VerifyChain(l.allKeys); err != nil {
+	if err = l.chain.VerifyChain(); err != nil {
 		return
 	}
 	stage("Store")
