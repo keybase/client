@@ -264,7 +264,11 @@ func ShowStatus(label string) error {
 	if err != nil {
 		return err
 	}
-	log.Info(status.Description())
+	if status != nil {
+		log.Info(status.Description())
+	} else {
+		log.Info("No service found with label: %s", label)
+	}
 	return nil
 }
 
