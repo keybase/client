@@ -448,7 +448,16 @@ func (sc *SigChain) verifySubchain(kf KeyFamily, links []*ChainLink) (cached boo
 	return
 }
 
-func (sc *SigChain) VerifySigsAndComputeKeys(eldest keybase1.KID, ckf *ComputedKeyFamily) (cached bool, err error) {
+// CheckChainStartsAtOne checks that the sigchain starts at link Seqno=1
+func (sc *SigChain) CheckChainStartsAtOne() (err error) {
+	first := sc.getFirstSeqno()
+	if first > Seqno(1) {
+		err = ChainLinkWrongSeqnoError{fmt.Sprintf("Wanted a chain from seqno=1, but got seqno=%d", first)}
+	}
+	return
+}
+
+func (sc *SigChain) VerifySigsAndComputeKeys(eldest keybase1.KID, ckf *ComputedKeyFamily, needStartAtOneCheck bool) (cached bool, err error) {
 
 	cached = false
 	G.Log.Debug("+ VerifySigsAndComputeKeys for user %s (eldest = %s)", sc.uid, eldest)
@@ -458,6 +467,12 @@ func (sc *SigChain) VerifySigsAndComputeKeys(eldest keybase1.KID, ckf *ComputedK
 
 	if err = sc.VerifyChain(); err != nil {
 		return
+	}
+
+	if needStartAtOneCheck {
+		if err = sc.CheckChainStartsAtOne(); err != nil {
+			return
+		}
 	}
 
 	if ckf.kf == nil || eldest.IsNil() {
@@ -528,15 +543,15 @@ var PublicChain = &ChainType{
 //========================================================================
 
 type SigChainLoader struct {
-	user      *User
-	self      bool
-	allKeys   bool
-	leaf      *MerkleUserLeaf
-	chain     *SigChain
-	chainType *ChainType
-	links     []*ChainLink
-	ckf       ComputedKeyFamily
-	dirtyTail *MerkleTriple
+	user           *User
+	self           bool
+	allKeys        bool
+	leaf           *MerkleUserLeaf
+	chain          *SigChain
+	chainType      *ChainType
+	links          []*ChainLink
+	ckf            ComputedKeyFamily
+	dirtyTail      *MerkleTriple
 	loadedFromHead bool
 
 	// The preloaded sigchain; maybe we're loading a user that already was
@@ -764,7 +779,7 @@ func (l *SigChainLoader) LoadFromServer() (err error) {
 func (l *SigChainLoader) VerifySigsAndComputeKeys() (err error) {
 	G.Log.Debug("VerifySigsAndComputeKeys(): l.leaf: %v, l.leaf.eldest: %v, l.ckf: %v", l.leaf, l.leaf.eldest, l.ckf)
 	if l.ckf.kf != nil {
-		_, err = l.chain.VerifySigsAndComputeKeys(l.leaf.eldest, &l.ckf)
+		_, err = l.chain.VerifySigsAndComputeKeys(l.leaf.eldest, &l.ckf, l.needStartAtOneCheck())
 	}
 	return
 }
@@ -785,20 +800,6 @@ func (l *SigChainLoader) StoreTail() (err error) {
 	return
 }
 
-
-// checkChainHead ensures that we started loading at Seqno=1 for
-// loads in which we started with an empty local cache, or if we
-// wanted to load allKeys.
-func (l *SigChainLoader) checkChainHead() (err error) {
-	if (l.loadedFromHead || l.allKeys) {
-		first := l.chain.getFirstSeqno()
-		if first > Seqno(1) {
-			err = ChainLinkWrongSeqnoError{fmt.Sprintf("Wanted a chain from seqno=1, but got seqno=%d", first)}
-		}
-	}
-	return err
-}
-
 // Store a SigChain to local storage as a result of having loaded it.
 // We eagerly write loaded chain links to storage if they verify properly.
 func (l *SigChainLoader) Store() (err error) {
@@ -807,6 +808,10 @@ func (l *SigChainLoader) Store() (err error) {
 		err = l.chain.Store()
 	}
 	return
+}
+
+func (l *SigChainLoader) needStartAtOneCheck() bool {
+	return l.loadedFromHead || l.allKeys
 }
 
 // Load is the main entry point into the SigChain loader.  It runs through
@@ -864,8 +869,10 @@ func (l *SigChainLoader) Load() (ret *SigChain, err error) {
 		}
 	}
 
-	if err = l.checkChainHead(); err != nil {
-		return
+	if l.needStartAtOneCheck() {
+		if err = l.chain.CheckChainStartsAtOne(); err != nil {
+			return
+		}
 	}
 
 	if !current {
