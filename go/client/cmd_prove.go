@@ -88,7 +88,7 @@ func (p *CmdProve) installOutputHook(ui *ProveUI) {
 func NewCmdProve(cl *libcmdline.CommandLine) cli.Command {
 	return cli.Command{
 		Name:         "prove",
-		ArgumentHelp: "<service> [username]",
+		ArgumentHelp: "<service> [service username]",
 		Usage:        "Generate a new proof",
 		Flags: []cli.Flag{
 			cli.StringFlag{
