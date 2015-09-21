@@ -160,6 +160,15 @@ func (ccs *crChains) mostRecentFromOriginal(original BlockPointer) (
 	return chain.mostRecent, nil
 }
 
+func (ccs *crChains) originalFromMostRecent(mostRecent BlockPointer) (
+	BlockPointer, error) {
+	chain, ok := ccs.byMostRecent[mostRecent]
+	if !ok {
+		return BlockPointer{}, fmt.Errorf("No chain found for %v", mostRecent)
+	}
+	return chain.original, nil
+}
+
 func newCRChains(rmds []*RootMetadata) (ccs *crChains, err error) {
 	ccs = &crChains{
 		byOriginal:   make(map[BlockPointer]*crChain),
@@ -226,4 +235,9 @@ func (ccs *crChains) summary(identifyChains *crChains,
 	}
 
 	return res
+}
+
+func (ccs *crChains) removeChain(ptr BlockPointer) {
+	delete(ccs.byOriginal, ptr)
+	delete(ccs.byMostRecent, ptr)
 }

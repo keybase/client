@@ -253,6 +253,39 @@ func (cr *ConflictResolver) makeChains(ctx context.Context,
 	return unmergedChains, mergedChains, nil
 }
 
+func (cr *ConflictResolver) getUnmergedPaths(ctx context.Context,
+	unmergedChains *crChains, mostRecentUnmergedMD *RootMetadata) (
+	[]path, error) {
+	newPtrs := make(map[BlockPointer]bool)
+	ptrs := make([]BlockPointer, 0, len(unmergedChains.byMostRecent))
+	for ptr := range unmergedChains.byMostRecent {
+		newPtrs[ptr] = true
+		ptrs = append(ptrs, ptr)
+	}
+
+	nodeMap, err := cr.fbo.searchForNodes(ctx, ptrs, newPtrs,
+		mostRecentUnmergedMD)
+	if err != nil {
+		return nil, err
+	}
+
+	paths := make(map[BlockPointer]path)
+	for ptr, n := range nodeMap {
+		if n == nil {
+			cr.log.CDebugf(ctx, "Ignoring pointer with no found path: %v", ptr)
+			unmergedChains.removeChain(ptr)
+		} else {
+			p := cr.fbo.nodeCache.PathFromNode(n)
+			if p.tailPointer() != ptr {
+				return nil, NodeNotFoundError{ptr}
+			}
+			paths = append(paths, p)
+		}
+	}
+
+	return paths, nil
+}
+
 func (cr *ConflictResolver) doResolve(ctx context.Context, ci conflictInput) {
 	cr.log.CDebugf(ctx, "Starting conflict resolution with input %v", ci)
 	var err error
@@ -273,6 +306,12 @@ func (cr *ConflictResolver) doResolve(ctx context.Context, ci conflictInput) {
 		return
 	}
 
+	if u, m := len(unmerged), len(merged); u == 0 || m == 0 {
+		cr.log.CDebugf(ctx, "Skipping merge process due to empty MD list: "+
+			"%d unmerged, %d merged", u, m)
+		return
+	}
+
 	// Update the current input to reflect the MDs we'll actually be
 	// working with.
 	err = cr.updateCurrInput(ctx, unmerged, merged)
@@ -287,15 +326,19 @@ func (cr *ConflictResolver) doResolve(ctx context.Context, ci conflictInput) {
 	}
 
 	// Make the chains
-	_, _, err = cr.makeChains(ctx, unmerged, merged)
+	unmergedChains, _, err := cr.makeChains(ctx, unmerged, merged)
 	if err != nil {
 		return
 	}
 
-	// * Get the full path for every most recent pointer with a chain of
-	//   unmerged operations
-	//   * If the path doesn't exist, that means the whole node was deleted,
-	//     so skip.
+	// Get the full path for every most recent pointer with a chain of
+	// unmerged operations. If the path doesn't exist, that means the
+	// whole node was deleted, so skip.
+	_, err = cr.getUnmergedPaths(ctx, unmergedChains, unmerged[len(unmerged)-1])
+	if err != nil {
+		return
+	}
+
 	// * Order by descending path length.
 	// * Find the corresponding path in the merged/resolved branch
 	//   * Find the original pointer for the most recent pointer.
