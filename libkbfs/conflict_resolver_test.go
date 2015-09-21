@@ -137,7 +137,7 @@ func TestCRInputFracturedRange(t *testing.T) {
 	config.mockMdops.EXPECT().GetRange(gomock.Any(), cr.fbo.id(),
 		mergedHead+1, gomock.Any()).Return(nil, nil)
 
-	// First try a completely unknown revision
+	// Resolve the fractured revision list
 	cr.Resolve(unmergedHead, MetadataRevisionUninitialized)
 	cr.Wait(ctx)
 	// Make sure sure the input is up-to-date
