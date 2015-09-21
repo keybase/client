@@ -9,11 +9,12 @@ import (
 )
 
 type SigChain struct {
-	uid        keybase1.UID
-	username   NormalizedUsername
-	chainLinks []*ChainLink
-	idVerified bool
-	allKeys    bool
+	uid               keybase1.UID
+	username          NormalizedUsername
+	chainLinks        []*ChainLink
+	idVerified        bool
+	allKeys           bool
+	loadedFromLinkOne bool
 
 	// If we've locally delegated a key, it won't be reflected in our
 	// loaded chain, so we need to make a note of it here.
@@ -123,9 +124,9 @@ func (sc *SigChain) Bump(mt MerkleTriple) {
 	sc.localChainUpdateTime = time.Now()
 }
 
-func (sc *SigChain) LoadFromServer(t *MerkleTriple, selfUID keybase1.UID) (dirtyTail *MerkleTriple, loadedFromHead bool, err error) {
+func (sc *SigChain) LoadFromServer(t *MerkleTriple, selfUID keybase1.UID) (dirtyTail *MerkleTriple, err error) {
 	low := sc.GetLastLoadedSeqno()
-	loadedFromHead = (low == Seqno(0) || low == Seqno(-1))
+	sc.loadedFromLinkOne = (low == Seqno(0) || low == Seqno(-1))
 
 	G.Log.Debug("+ Load SigChain from server (uid=%s, low=%d)", sc.uid, low)
 	defer func() { G.Log.Debug("- Loaded SigChain -> %s", ErrToOk(err)) }()
@@ -448,16 +449,7 @@ func (sc *SigChain) verifySubchain(kf KeyFamily, links []*ChainLink) (cached boo
 	return
 }
 
-// CheckChainStartsAtOne checks that the sigchain starts at link Seqno=1
-func (sc *SigChain) CheckChainStartsAtOne() (err error) {
-	first := sc.getFirstSeqno()
-	if first > Seqno(1) {
-		err = ChainLinkWrongSeqnoError{fmt.Sprintf("Wanted a chain from seqno=1, but got seqno=%d", first)}
-	}
-	return
-}
-
-func (sc *SigChain) VerifySigsAndComputeKeys(eldest keybase1.KID, ckf *ComputedKeyFamily, needStartAtOneCheck bool) (cached bool, err error) {
+func (sc *SigChain) VerifySigsAndComputeKeys(eldest keybase1.KID, ckf *ComputedKeyFamily) (cached bool, err error) {
 
 	cached = false
 	G.Log.Debug("+ VerifySigsAndComputeKeys for user %s (eldest = %s)", sc.uid, eldest)
@@ -469,8 +461,9 @@ func (sc *SigChain) VerifySigsAndComputeKeys(eldest keybase1.KID, ckf *ComputedK
 		return
 	}
 
-	if needStartAtOneCheck {
-		if err = sc.CheckChainStartsAtOne(); err != nil {
+	if sc.allKeys || sc.loadedFromLinkOne {
+		if first := sc.getFirstSeqno(); first > Seqno(1) {
+			err = ChainLinkWrongSeqnoError{fmt.Sprintf("Wanted a chain from seqno=1, but got seqno=%d", first)}
 			return
 		}
 	}
@@ -543,16 +536,15 @@ var PublicChain = &ChainType{
 //========================================================================
 
 type SigChainLoader struct {
-	user           *User
-	self           bool
-	allKeys        bool
-	leaf           *MerkleUserLeaf
-	chain          *SigChain
-	chainType      *ChainType
-	links          []*ChainLink
-	ckf            ComputedKeyFamily
-	dirtyTail      *MerkleTriple
-	loadedFromHead bool
+	user      *User
+	self      bool
+	allKeys   bool
+	leaf      *MerkleUserLeaf
+	chain     *SigChain
+	chainType *ChainType
+	links     []*ChainLink
+	ckf       ComputedKeyFamily
+	dirtyTail *MerkleTriple
 
 	// The preloaded sigchain; maybe we're loading a user that already was
 	// loaded, and here's the existing sigchain.
@@ -770,7 +762,7 @@ func (l *SigChainLoader) selfUID() (uid keybase1.UID) {
 
 func (l *SigChainLoader) LoadFromServer() (err error) {
 	srv := l.GetMerkleTriple()
-	l.dirtyTail, l.loadedFromHead, err = l.chain.LoadFromServer(srv, l.selfUID())
+	l.dirtyTail, err = l.chain.LoadFromServer(srv, l.selfUID())
 	return
 }
 
@@ -779,7 +771,7 @@ func (l *SigChainLoader) LoadFromServer() (err error) {
 func (l *SigChainLoader) VerifySigsAndComputeKeys() (err error) {
 	G.Log.Debug("VerifySigsAndComputeKeys(): l.leaf: %v, l.leaf.eldest: %v, l.ckf: %v", l.leaf, l.leaf.eldest, l.ckf)
 	if l.ckf.kf != nil {
-		_, err = l.chain.VerifySigsAndComputeKeys(l.leaf.eldest, &l.ckf, l.needStartAtOneCheck())
+		_, err = l.chain.VerifySigsAndComputeKeys(l.leaf.eldest, &l.ckf)
 	}
 	return
 }
@@ -808,10 +800,6 @@ func (l *SigChainLoader) Store() (err error) {
 		err = l.chain.Store()
 	}
 	return
-}
-
-func (l *SigChainLoader) needStartAtOneCheck() bool {
-	return l.loadedFromHead || l.allKeys
 }
 
 // Load is the main entry point into the SigChain loader.  It runs through
@@ -865,12 +853,6 @@ func (l *SigChainLoader) Load() (ret *SigChain, err error) {
 	if !current {
 		stage("LoadFromServer")
 		if err = l.LoadFromServer(); err != nil {
-			return
-		}
-	}
-
-	if l.needStartAtOneCheck() {
-		if err = l.chain.CheckChainStartsAtOne(); err != nil {
 			return
 		}
 	}
