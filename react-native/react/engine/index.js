@@ -2,12 +2,12 @@
 
 // Handles sending requests to objc (then go) and back
 
-var engine = require('./native')
+import engine from './native'
 
-var rpc = require('../framed-msgpack-rpc/lib/main')
-var RpcTransport = rpc.transport.Transport
-var RpcClient = rpc.client.Client
-var Buffer = require('buffer').Buffer
+import rpc from '../framed-msgpack-rpc/lib/main'
+const RpcTransport = rpc.transport.Transport
+const RpcClient = rpc.client.Client
+const Buffer = require('buffer').Buffer
 
 class EngineError extends Error {
   constructor (err) {
@@ -101,8 +101,8 @@ class DummyTransport extends RpcTransport {
   }
 
   _raw_write_bufs (len, buf) {
-    var buffer = Buffer.concat([new Buffer(len), new Buffer(buf)])
-    var data = buffer.toString('base64')
+    const buffer = Buffer.concat([new Buffer(len), new Buffer(buf)])
+    const data = buffer.toString('base64')
     this.writeCallback(data)
   }
 }
@@ -128,7 +128,7 @@ class Engine {
   }
 
   setupListener () {
-    var NativeEventEmitter = require('../commonAdapters/NativeEventEmitter')
+    const NativeEventEmitter = require('../commonAdapters/NativeEventEmitter')
     this.subscription = NativeEventEmitter.addListener(
       engine.eventName,
       (payload) => {
@@ -146,15 +146,15 @@ class Engine {
   }
 
   _rpcIncoming (payload) {
-    var {
+    const {
       method: method,
       param: [param],
       response: response
     } = payload
 
-    var {sessionID: sessionID} = param
+    const {sessionID: sessionID} = param
 
-    var callMap = this.sessionIDToIncomingCall[sessionID]
+    const callMap = this.sessionIDToIncomingCall[sessionID]
 
     if (callMap && callMap[method]) {
       callMap[method](param, response)
@@ -170,7 +170,7 @@ class Engine {
       param = {}
     }
 
-    var sessionID = param.sessionID = this.getSessionID()
+    const sessionID = param.sessionID = this.getSessionID()
     this.sessionIDToIncomingCall[sessionID] = incomingCallMap
 
     this.rpcClient.invoke(method, [param], (err, data) => {
@@ -187,4 +187,4 @@ class Engine {
   }
 }
 
-module.exports = new Engine()
+export default new Engine()

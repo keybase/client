@@ -1,9 +1,7 @@
 'use strict'
 /* @flow */
 
-var React = require('react-native')
-var {
-  SwitchIOS
-} = React
+import React from 'react-native'
+const { SwitchIOS } = React
 
-module.exports = SwitchIOS
+export default SwitchIOS

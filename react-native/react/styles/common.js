@@ -1,6 +1,9 @@
-var StyleSheet = require('react-native').StyleSheet
+'use strict'
+/* @flow */
 
-module.exports = StyleSheet.create({
+import { StyleSheet } from 'react-native'
+
+export default StyleSheet.create({
   button: {
     textAlign: 'center',
     color: 'black',
@@ -32,4 +35,4 @@ module.exports = StyleSheet.create({
 })
 
 // non stylesheet styles
-module.exports.buttonHighlight = 'white'
+export const buttonHighlight = 'white'

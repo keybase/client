@@ -1,2 +1,5 @@
-var { NativeAppEventEmitter } = require('react-native')
-module.exports = NativeAppEventEmitter
+'use strict'
+/* @flow */
+
+import { NativeAppEventEmitter } from 'react-native'
+export default NativeAppEventEmitter

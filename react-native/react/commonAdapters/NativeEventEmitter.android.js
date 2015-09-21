@@ -1,2 +1,5 @@
-var RCTDeviceEventEmitter = require('RCTDeviceEventEmitter')
-module.exports = RCTDeviceEventEmitter
+'use strict'
+/* @flow */
+
+import RCTDeviceEventEmitter from 'RCTDeviceEventEmitter'
+export default RCTDeviceEventEmitter

@@ -16,9 +16,9 @@ import LoginForm from './form'
 
 import engine from '../engine'
 
-const { connect } = require('react-redux/native')
-const { bindActionCreators } = require('redux')
-const LoginActions = require('../actions/login')
+import { connect } from 'react-redux/native'
+import { bindActionCreators } from 'redux'
+import * as LoginActions from '../actions/login'
 
 import * as states from '../constants/loginStates'
 
@@ -159,7 +159,7 @@ LoginContainer.propTypes = {
   error: React.PropTypes.string
 }
 
-var styles = StyleSheet.create({
+const styles = StyleSheet.create({
   container: {
     flex: 1,
     justifyContent: 'center',
@@ -168,4 +168,4 @@ var styles = StyleSheet.create({
   }
 })
 
-module.exports = connect(state => state.login)(LoginContainer)
+export default connect(state => state.login)(LoginContainer)

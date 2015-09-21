@@ -13,7 +13,7 @@ const {
   TouchableHighlight
 } = React
 
-const commonStyles = require('../styles/common')
+import commonStyles from '../styles/common'
 import Switch from '../commonAdapters/Switch'
 
 class LoginForm extends Component {
@@ -32,12 +32,12 @@ class LoginForm extends Component {
   }
 
   render () {
-    var error = null
+    let error = null
     if (this.props.loginError) {
       error = <Text style={[{margin: 20, padding: 10}, commonStyles.error]} >Error: {this.props.loginError}</Text>
     }
 
-    var activity = null
+    let activity = null
     if (this.props.waitingForServer) {
       activity = <View style={styles.loginWrapper}>
         <ActivityIndicatorIOS
@@ -48,7 +48,7 @@ class LoginForm extends Component {
       </View>
     }
 
-    var button = this.props.waitingForServer ? <Text style={[loginButtonStyle, {color: 'gray', backgroundColor: 'white'}]} >Login</Text>
+    let button = this.props.waitingForServer ? <Text style={[loginButtonStyle, {color: 'gray', backgroundColor: 'white'}]} >Login</Text>
       : <TouchableHighlight
             underlayColor={commonStyles.buttonHighlight}
             onPress={() => this.submit()}>
@@ -110,7 +110,7 @@ LoginForm.propTypes = {
   waitingForServer: React.PropTypes.bool
 }
 
-var styles = StyleSheet.create({
+const styles = StyleSheet.create({
   container: {
     flex: 1,
     justifyContent: 'center',
@@ -149,6 +149,6 @@ var styles = StyleSheet.create({
   }
 })
 
-var loginButtonStyle = [commonStyles.actionButton, {width: 200}]
+const loginButtonStyle = [commonStyles.actionButton, {width: 200}]
 
 export default LoginForm
