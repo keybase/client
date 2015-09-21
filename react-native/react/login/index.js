@@ -9,7 +9,6 @@ const {
   View
 } = React
 
-import Switch from '../commonAdapters/Switch'
 import DevicePrompt from './device-prompt'
 import SelectSigner from './select-signer'
 import DisplaySecretWords from './display-secret-words'
