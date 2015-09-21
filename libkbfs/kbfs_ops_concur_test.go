@@ -39,7 +39,7 @@ func (cl *CounterLock) GetCount() int {
 
 func kbfsOpsConcurInit(t *testing.T, users ...libkb.NormalizedUsername) (
 	Config, keybase1.UID, context.Context) {
-	config := MakeTestConfigOrBust(t, nil, users...)
+	config := MakeTestConfigOrBust(t, users...)
 
 	currentUID, err := config.KBPKI().GetCurrentUID(context.Background())
 	if err != nil {

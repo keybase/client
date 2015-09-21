@@ -3,7 +3,7 @@ package libkbfs
 import "testing"
 
 func blockCacheTestInit(t *testing.T, capacity int) Config {
-	config := MakeTestConfigOrBust(t, nil, "test")
+	config := MakeTestConfigOrBust(t, "test")
 	b := NewBlockCacheStandard(config, capacity)
 	config.SetBlockCache(b)
 	return config

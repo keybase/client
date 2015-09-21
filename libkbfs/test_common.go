@@ -76,7 +76,7 @@ func setTestLogger(config Config, t *testing.T) {
 
 // MakeTestConfigOrBust creates and returns a config suitable for
 // unit-testing with the given list of users.
-func MakeTestConfigOrBust(t *testing.T, blockServerRemoteAddr *string, users ...libkb.NormalizedUsername) *ConfigLocal {
+func MakeTestConfigOrBust(t *testing.T, users ...libkb.NormalizedUsername) *ConfigLocal {
 	config := NewConfigLocal()
 	setTestLogger(config, t)
 
@@ -93,9 +93,11 @@ func MakeTestConfigOrBust(t *testing.T, blockServerRemoteAddr *string, users ...
 	crypto := NewCryptoLocal(config, signingKey, cryptPrivateKey)
 	config.SetCrypto(crypto)
 
-	if blockServerRemoteAddr != nil {
+	// see if a local remote server is specified
+	bserverAddr := os.Getenv(EnvBServerAddr)
+	if len(bserverAddr) != 0 {
 		blockServer :=
-			NewBlockServerRemote(context.TODO(), config, *blockServerRemoteAddr)
+			NewBlockServerRemote(context.TODO(), config, bserverAddr)
 		config.SetBlockServer(blockServer)
 	} else {
 		blockServer, err := NewBlockServerMemory(config)

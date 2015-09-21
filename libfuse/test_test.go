@@ -1,15 +1,16 @@
 package libfuse
 
 import (
-	"flag"
 	"fmt"
 	"math/rand"
 	"os"
+	"strings"
 	"testing"
 	"time"
 
 	"github.com/keybase/client/go/libkb"
 	bserver "github.com/keybase/kbfs/bserver"
+	"github.com/keybase/kbfs/libkbfs"
 )
 
 var BServerRemoteAddr *string
@@ -22,17 +23,10 @@ func TestMain(m *testing.M) {
 
 	rand.Seed(time.Now().UnixNano())
 
-	bserverPort := flag.String("kbfs.bserverPort", "", "specify the port of bserver on localhost, otherwise, only local server is used")
-	flag.Parse()
-
-	if *bserverPort != "" {
-		// TODO: do we still need the commented-out lines below?
-		//bserver.InitConfig("../bserver/testconfig.json")
-		srvAddr := "127.0.0.1:" + *bserverPort
-		fmt.Printf("Testing Using Remote Backend: %s\n", srvAddr)
-		BServerRemoteAddr = &srvAddr
-		//bserver.Config.TestNoSession = true
-		bserver.StartBServer(srvAddr)
+	bserverAddr := os.Getenv(libkbfs.EnvBServerAddr)
+	if len(bserverAddr) != 0 && strings.HasPrefix(bserverAddr, "127.0.0.1") {
+		fmt.Println("Starting bserver at ", bserverAddr)
+		bserver.StartBServer(bserverAddr)
 	}
 
 	os.Exit(m.Run())

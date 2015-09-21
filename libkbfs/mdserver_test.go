@@ -11,7 +11,7 @@ import (
 // This should pass for both local and remote servers.
 func TestMDServerBasics(t *testing.T) {
 	// setup
-	config := MakeTestConfigOrBust(t, nil, "test_user")
+	config := MakeTestConfigOrBust(t, "test_user")
 	defer config.MDServer().Shutdown()
 	mdServer := config.MDServer()
 	ctx := context.Background()
