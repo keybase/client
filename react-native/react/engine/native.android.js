@@ -2,6 +2,6 @@
  * @providesModule Engine
  */
 
-'use strict';
-var { NativeModules } = require('react-native');
-module.exports = NativeModules.KeybaseEngine;
+'use strict'
+const { NativeModules } = require('react-native')
+module.exports = NativeModules.KeybaseEngine

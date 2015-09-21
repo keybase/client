@@ -1,14 +1,14 @@
 'use strict'
 
-var React = require('react-native')
-var {
+const React = require('react-native')
+const {
   StyleSheet,
   Text,
   View,
   Component
 } = React
 
-var styles = StyleSheet.create({
+const styles = StyleSheet.create({
   container: {
     flex: 1,
     justifyContent: 'center',

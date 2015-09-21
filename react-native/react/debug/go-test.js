@@ -1,16 +1,16 @@
 'use strict'
 
-var React = require('react-native')
-var {
+const React = require('react-native')
+const {
   StyleSheet,
   Text,
   View,
   Component
 } = React
 
-var engine = require('../engine')
+const engine = require('../engine')
 
-var styles = StyleSheet.create({
+const styles = StyleSheet.create({
   container: {
     flex: 1,
     justifyContent: 'center',
@@ -71,7 +71,7 @@ class GoTest extends Component {
   }
 
   sendToGo () {
-    var toSend = this.state.data
+    const toSend = this.state.data
 
     if ((this.TEMP % 10) < 8) {
       engine.rpc('debugging.increment', {val: toSend}, null, (err, data) => { this.handleIncrement(err, data) })

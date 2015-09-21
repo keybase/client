@@ -4,12 +4,12 @@
  * A debug tab. Use this to jump directly to a part of the app outside of the flow for quick debugging
  */
 
-var React = require('react-native')
-var {
+const React = require('react-native')
+const {
   Component
 } = React
 
-var Temp = require('./briding-tabs')
+const Temp = require('./briding-tabs')
 
 class Debug extends Component {
   constructor () {
