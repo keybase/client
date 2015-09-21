@@ -567,13 +567,6 @@ func (s *SibkeyChainLink) insertIntoTable(tab *IdentityTable) {
 func (s *SibkeyChainLink) VerifyReverseSig(ckf ComputedKeyFamily) (err error) {
 	var key GenericKey
 
-	if len(s.reverseSig) == 0 {
-		G.Log.Warning("!! Sibkey delegations without reverse sigs are soon to be retired!!")
-		G.Log.Warning("!! We're leaving them on for now for testing purposes!!")
-		G.Log.Warning("!! SibkeyChainLink: %s (device: %+v)", s.ToDisplayString(), s.device)
-		return
-	}
-
 	if key, err = ckf.FindKeyWithKIDUnsafe(s.GetDelegatedKid()); err != nil {
 		return err
 	}
