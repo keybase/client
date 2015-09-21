@@ -215,7 +215,7 @@ func (c *CmdListTrackers) ParseArgv(ctx *cli.Context) error {
 			var err error
 			c.uid, err = libkb.UIDFromHex(ctx.Args()[0])
 			if err != nil {
-				return fmt.Errorf("UID must be a 16-character hex string")
+				return fmt.Errorf("UID must be a 32-character hex string")
 			}
 		} else {
 			c.username = ctx.Args()[0]
