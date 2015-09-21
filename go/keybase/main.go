@@ -51,6 +51,7 @@ func mainInner(g *libkb.GlobalContext) error {
 	cl := libcmdline.NewCommandLine(true, client.GetExtraFlags())
 	cl.AddCommands(client.GetCommands(cl))
 	cl.AddCommands(service.GetCommands(cl))
+	cl.AddHelpTopics(client.GetHelpTopics())
 
 	var err error
 	cmd, err = cl.Parse(os.Args)

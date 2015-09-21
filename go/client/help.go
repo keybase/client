@@ -4,6 +4,26 @@ import (
 	"github.com/keybase/cli"
 )
 
+func GetHelpTopics() []cli.HelpTopic {
+	return []cli.HelpTopic{
+		advancedHT,
+	}
+}
+
+var advancedHT = cli.HelpTopic{
+	Name:  "advanced",
+	Usage: "description of advanced global options",
+	Body: `Keybase commands can run with various command line flags to
+configure global options.  To use, add the flags before the command name:
+
+   {{ .Name }} [global options] command [command options]
+
+GLOBAL OPTIONS:
+   {{range .Flags}}{{ . }}
+   {{end}}
+	`,
+}
+
 // Custom help templates for cli package
 
 func init() {
@@ -24,9 +44,9 @@ VERSION:
    {{end}}{{if .Commands}}
 COMMANDS:
    {{range .Commands}}{{join .Names ", "}}{{ "\t" }}{{.Usage}}
-   {{end}}{{end}}{{if .Flags}}
-GLOBAL OPTIONS:
-   {{range .Flags}}{{.}}
+   {{end}}{{end}}{{if .HelpTopics}}
+ADDITIONAL HELP TOPICS:
+   {{range .HelpTopics}}{{.Name}}{{ "\t\t" }}{{.Usage}}
    {{end}}{{end}}{{if .Copyright }}
 COPYRIGHT:
    {{.Copyright}}

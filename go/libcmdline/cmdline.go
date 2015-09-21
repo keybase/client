@@ -329,14 +329,6 @@ func (p *CommandLine) PopulateApp(addHelp bool, extraFlags []cli.Flag) {
 		app.Flags = append(app.Flags, extraFlags...)
 	}
 
-	// Finally, add help if we asked for it
-	if addHelp {
-		app.Action = func(c *cli.Context) {
-			p.cmd = &CmdGeneralHelp{CmdBaseHelp{c}}
-			p.ctx = c
-			p.name = "help"
-		}
-	}
 	app.Commands = []cli.Command{}
 }
 
@@ -406,4 +398,10 @@ func (p *CommandLine) Parse(args []string) (cmd Command, err error) {
 
 func (p *CommandLine) SetOutputWriter(w io.Writer) {
 	p.app.Writer = w
+}
+
+// AddHelpTopics appends topics to the list of help topics for
+// this app.
+func (p *CommandLine) AddHelpTopics(topics []cli.HelpTopic) {
+	p.app.HelpTopics = append(p.app.HelpTopics, topics...)
 }
