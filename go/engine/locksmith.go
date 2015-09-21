@@ -520,7 +520,7 @@ func (d *Locksmith) deviceSignPGP(ctx *Context) error {
 		return fmt.Errorf("ImportKey error: %s", err)
 	}
 
-	if err := bundle.Unlock("Import of key into keybase keyring", ctx.SecretUI); err != nil {
+	if err := bundle.Unlock("adding this device to your account", ctx.SecretUI); err != nil {
 		return fmt.Errorf("bundle Unlock error: %s", err)
 	}
 
