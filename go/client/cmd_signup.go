@@ -27,6 +27,10 @@ func NewCmdSignup(cl *libcmdline.CommandLine) cli.Command {
 				Name:  "email",
 				Usage: "Specify an account email.",
 			},
+			cli.StringFlag{
+				Name:  "username",
+				Usage: "Specify a username.",
+			},
 		},
 	}
 	cmd.Flags = append(cmd.Flags, extraSignupFlags...)
@@ -71,12 +75,7 @@ func (s *CmdSignup) ParseArgv(ctx *cli.Context) error {
 	}
 
 	s.defaultEmail = ctx.String("email")
-
 	s.defaultUsername = ctx.String("username")
-	if s.defaultUsername == "" {
-		cl := G.Env.GetCommandLine()
-		s.defaultUsername = cl.GetUsername().String()
-	}
 
 	s.defaultPassphrase = ctx.String("passphrase")
 	if s.defaultPassphrase == "" {

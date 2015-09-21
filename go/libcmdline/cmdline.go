@@ -77,9 +77,6 @@ func (p CommandLine) GetPGPFingerprint() *libkb.PGPFingerprint {
 func (p CommandLine) GetProxy() string {
 	return p.GetGString("proxy")
 }
-func (p CommandLine) GetUsername() libkb.NormalizedUsername {
-	return libkb.NewNormalizedUsername(p.GetGString("username"))
-}
 func (p CommandLine) GetLogFormat() string {
 	return p.GetGString("log-format")
 }
@@ -242,10 +239,6 @@ func (p *CommandLine) PopulateApp(addHelp bool, extraFlags []cli.Flag) {
 		cli.StringFlag{
 			Name:  "api-uri-path-prefix",
 			Usage: "Specify an alternate API URI path prefix.",
-		},
-		cli.StringFlag{
-			Name:  "username, u",
-			Usage: "Specify Keybase username of the current user.",
 		},
 		cli.StringFlag{
 			Name:  "pinentry",
