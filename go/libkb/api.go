@@ -9,7 +9,6 @@ import (
 	"net/http"
 	"net/url"
 	"os/exec"
-	"runtime"
 	"strings"
 	"sync"
 	"time"
@@ -295,11 +294,6 @@ func (a *InternalAPIEngine) consumeHeaders(resp *http.Response) error {
 }
 
 func platformSpecificUpgradeInstructions() {
-	if runtime.GOOS != "linux" {
-		// TODO: Give brew instructions on OSX.
-		return
-	}
-
 	hasPackageManager := func(name string) bool {
 		// Not all package managers are in /usr/bin. (openSUSE for example puts
 		// Yast in /usr/sbin.) Better to just do the full check now than to get
@@ -318,6 +312,9 @@ func platformSpecificUpgradeInstructions() {
 		printInstructions("sudo dnf upgrade keybase")
 	} else if hasPackageManager("yum") {
 		printInstructions("sudo yum upgrade keybase")
+	} else if hasPackageManager("brew") {
+		// TODO: Detect whether keybase was installed without brew. (Sparkle?)
+		printInstructions("brew update && brew upgrade keybase")
 	}
 }
 
