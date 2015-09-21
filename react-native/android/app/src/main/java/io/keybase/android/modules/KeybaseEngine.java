@@ -11,6 +11,7 @@ import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 
 import static go.keybase.Keybase.ReadB64;
+import static go.keybase.Keybase.Reset;
 import static go.keybase.Keybase.WriteB64;
 
 public class KeybaseEngine extends ReactContextBaseJavaModule {
@@ -63,5 +64,10 @@ public class KeybaseEngine extends ReactContextBaseJavaModule {
     @ReactMethod
     public void runWithData(String data) {
         WriteB64(data);
+    }
+
+    @ReactMethod
+    public void reset() {
+        Reset();
     }
 }

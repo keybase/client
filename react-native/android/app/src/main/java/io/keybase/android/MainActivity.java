@@ -25,8 +25,8 @@ public class MainActivity extends Activity implements DefaultHardwareBackBtnHand
         mReactRootView = new ReactRootView(this);
         mReactInstanceManager = ReactInstanceManager.builder()
           .setApplication(getApplication())
-          .setBundleAssetName("index.android.bundle")
-          .setJSMainModuleName("react/index.android")
+          .setBundleAssetName("index.bundle")
+          .setJSMainModuleName("react/index")
           .addPackage(new MainReactPackage())
           .addPackage(new ReactPackage())
           .setUseDeveloperSupport(BuildConfig.DEBUG)

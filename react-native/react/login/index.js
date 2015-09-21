@@ -7,11 +7,12 @@ var {
   StyleSheet,
   View,
   Settings,
-  SwitchIOS,
   Text,
   TextInput,
   TouchableHighlight
 } = React
+
+var Switch = require('../commonAdapters/Switch')
 
 var DevicePrompt = require('./device-prompt')
 var SelectSigner = require('./select-signer')
@@ -123,7 +124,7 @@ class LoginForm extends Component {
           style={styles.input}
           placeholder='Username'
           value={this.state.username}
-          enablesReturnKeyAutomatically={true}
+          enablesReturnKeyAutomatically
           returnKeyType='next'
           autoCorrect={false}
           onChangeText={(username) => this.setState({username})}
@@ -137,8 +138,8 @@ class LoginForm extends Component {
           style={styles.input}
           placeholder='Passphrase'
           value={this.state.passphrase}
-          secureTextEntry={true}
-          enablesReturnKeyAutomatically={true}
+          secureTextEntry
+          enablesReturnKeyAutomatically
           autoCorrect={false}
           returnKeyType='done'
           onChangeText={(passphrase) => this.setState({passphrase})}
@@ -149,7 +150,7 @@ class LoginForm extends Component {
 
         <View style={[styles.horizontal, styles.rightSide]}>
           <Text style={styles.switchText}>Remember me</Text>
-          <SwitchIOS
+          <Switch
             onValueChange={(value) => {
               this.setState({storeSecret: value})
               Settings.set({LoginFormStoreSecret: value})

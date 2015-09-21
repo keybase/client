@@ -36,7 +36,7 @@ class DevicePrompt extends Component {
             style={styles.input}
             placeholder='Device name'
             value={this.state.deviceName}
-            enablesReturnKeyAutomatically={true}
+            enablesReturnKeyAutomatically
             returnKeyType='next'
             autoCorrect={false}
             onChangeText={(deviceName) => this.setState({deviceName})}

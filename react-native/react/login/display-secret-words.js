@@ -67,6 +67,4 @@ var styles = StyleSheet.create({
   }
 })
 
-var submitButtonStyle = [commonStyles.actionButton, {width: 200}]
-
 module.exports = DisplaySecretWords
