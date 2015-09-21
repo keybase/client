@@ -108,6 +108,7 @@ func (s *LKSec) Load(lctx LoginContext) error {
 		}
 
 		if err := s.apiServerHalf(lctx, devid); err != nil {
+			s.G().Log.Debug("apiServerHalf(%s) error: %s", devid, err)
 			return err
 		}
 		if len(s.serverHalf) == 0 {
@@ -165,9 +166,7 @@ func (s *LKSec) Encrypt(src []byte) ([]byte, error) {
 
 func (s *LKSec) Decrypt(lctx LoginContext, src []byte) ([]byte, PassphraseGeneration, error) {
 	s.G().Log.Debug("+ LKsec:Decrypt()")
-	defer func() {
-		s.G().Log.Debug("- LKSec::Decrypt()")
-	}()
+	defer s.G().Log.Debug("- LKSec::Decrypt()")
 
 	if err := s.Load(lctx); err != nil {
 		return nil, 0, fmt.Errorf("lksec decrypt Load err: %s", err)

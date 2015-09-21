@@ -141,7 +141,6 @@ func (pi *pinentryInstance) Set(cmd, val string, errp *error) {
 }
 
 func (pi *pinentryInstance) Init() (err error) {
-
 	parent := pi.parent
 
 	parent.log.Debug("+ pinentryInstance::Init()")

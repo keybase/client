@@ -182,11 +182,11 @@ func (k *ServerPrivateKey) FindActiveKey(ckf *ComputedKeyFamily) (ret *SKB, err 
 
 func (ss *SecretSyncer) FindDevice(id keybase1.DeviceID) (DeviceKey, error) {
 	if ss.keys == nil {
-		return DeviceKey{}, fmt.Errorf("No device found for ID = %s", id)
+		return DeviceKey{}, fmt.Errorf("SecretSyncer: no device found for ID = %s", id)
 	}
 	dev, ok := ss.keys.Devices[id]
 	if !ok {
-		return DeviceKey{}, fmt.Errorf("No device found for ID = %s", id)
+		return DeviceKey{}, fmt.Errorf("SecretSyncer: no device found for ID = %s", id)
 	}
 	return dev, nil
 }

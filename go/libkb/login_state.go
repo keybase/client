@@ -358,6 +358,13 @@ func (s *LoginState) pubkeyLoginHelper(lctx LoginContext, username string, getSe
 		return
 	}
 
+	lctx.RunSecretSyncer(me.GetUID())
+	if !lctx.SecretSyncer().HasDevices() {
+		s.G().Log.Debug("| No synced devices, pubkey login impossible.")
+		err = NoDeviceError{Reason: "no synced devices during pubkey login"}
+		return err
+	}
+
 	var key GenericKey
 	if key, err = getSecretKeyFn(s.G().Keyrings, me); err != nil {
 		return err
@@ -575,7 +582,10 @@ func (s *LoginState) passphraseLogin(lctx LoginContext, username, passphrase str
 }
 
 func (s *LoginState) stretchPassphraseIfNecessary(lctx LoginContext, un string, pp string, ui SecretUI, retry string) error {
+	s.G().Log.Debug("+ stretchPassphraseIfNecessary (%s)", un)
+	defer s.G().Log.Debug("- stretchPassphraseIfNecessary")
 	if lctx.PassphraseStreamCache().Valid() {
+		s.G().Log.Debug("| stretchPassphraseIfNecessary: passphrase stream cached")
 		// already have stretched passphrase cached
 		return nil
 	}
@@ -591,6 +601,7 @@ func (s *LoginState) stretchPassphraseIfNecessary(lctx LoginContext, un string, 
 		}
 
 		var err error
+		s.G().Log.Debug("| stretchPassphraseIfNecessary: getting keybase passphrase via ui")
 		if pp, err = ui.GetKeybasePassphrase(arg); err != nil {
 			return err
 		}
