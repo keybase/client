@@ -49,7 +49,7 @@ func NewCmdSigsRevoke(cl *libcmdline.CommandLine) cli.Command {
 	return cli.Command{
 		Name:         "revoke",
 		ArgumentHelp: "<id>",
-		Description:  "Revoke signature",
+		Usage:        "Revoke signature",
 		Action: func(c *cli.Context) {
 			cl.ChooseCommand(&CmdSigsRevoke{}, "revoke", c)
 		},
