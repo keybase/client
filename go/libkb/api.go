@@ -8,8 +8,6 @@ import (
 	"io/ioutil"
 	"net/http"
 	"net/url"
-	"os/exec"
-	"runtime"
 	"strings"
 	"sync"
 	"time"
@@ -292,33 +290,6 @@ func (a *InternalAPIEngine) consumeHeaders(resp *http.Response) error {
 		lastUpgradeWarningMu.Unlock()
 	}
 	return nil
-}
-
-func platformSpecificUpgradeInstructions() {
-	if runtime.GOOS != "linux" {
-		// TODO: Give brew instructions on OSX.
-		return
-	}
-
-	hasPackageManager := func(name string) bool {
-		// Not all package managers are in /usr/bin. (openSUSE for example puts
-		// Yast in /usr/sbin.) Better to just do the full check now than to get
-		// confused later.
-		_, err := exec.LookPath(name)
-		return err == nil
-	}
-	printInstructions := func(command string) {
-		G.Log.Warning("To upgrade, run the following command:")
-		G.Log.Warning("    " + command)
-	}
-
-	if hasPackageManager("apt-get") {
-		printInstructions("sudo apt-get update && sudo apt-get install keybase")
-	} else if hasPackageManager("dnf") {
-		printInstructions("sudo dnf upgrade keybase")
-	} else if hasPackageManager("yum") {
-		printInstructions("sudo yum upgrade keybase")
-	}
 }
 
 func (a *InternalAPIEngine) fixHeaders(arg APIArg, req *http.Request) {
