@@ -45,10 +45,6 @@ func GetCommands(cl *libcmdline.CommandLine) []cli.Command {
 
 var extraSignupFlags = []cli.Flag{
 	cli.StringFlag{
-		Name:  "u, username",
-		Usage: "Specify a username",
-	},
-	cli.StringFlag{
 		Name:  "p, passphrase",
 		Usage: "Specify a passphrase",
 	},

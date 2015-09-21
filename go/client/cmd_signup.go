@@ -76,12 +76,7 @@ func (s *CmdSignup) ParseArgv(ctx *cli.Context) error {
 
 	s.defaultEmail = ctx.String("email")
 	s.defaultUsername = ctx.String("username")
-
 	s.defaultPassphrase = ctx.String("passphrase")
-	if s.defaultPassphrase == "" {
-		s.defaultPassphrase = "home computer"
-	}
-
 	s.defaultDevice = ctx.String("device")
 	if s.defaultDevice == "" {
 		s.defaultDevice = "home computer"
