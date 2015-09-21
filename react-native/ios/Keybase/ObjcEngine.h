@@ -8,8 +8,6 @@
 
 #import <Foundation/Foundation.h>
 
-#import "RCTBridgeModule.h"
-
-@interface ObjcEngine : NSObject<RCTBridgeModule>
-
+@interface Engine : NSObject
+- (instancetype) initWithSettings:(NSDictionary*) settings;
 @end
