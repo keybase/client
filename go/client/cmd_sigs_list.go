@@ -189,7 +189,7 @@ func NewCmdSigsList(cl *libcmdline.CommandLine) cli.Command {
 		Flags: []cli.Flag{
 			cli.BoolFlag{
 				Name:  "r, revoked",
-				Usage: "Show revoked signatures.",
+				Usage: "Include revoked signatures.",
 			},
 			cli.BoolFlag{
 				Name:  "j, json",
