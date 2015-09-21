@@ -21,7 +21,6 @@ import (
 
 type CommandLine interface {
 	GetHome() string
-	GetUsername() NormalizedUsername
 	GetServerURI() string
 	GetConfigFilename() string
 	GetSessionFilename() string
