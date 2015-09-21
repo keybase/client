@@ -1008,21 +1008,21 @@ func (e DecryptionError) Error() string {
 //=============================================================================
 
 type ChainLinkPrevHashMismatchError struct {
-	err error
+	Msg string
 }
 
 func (e ChainLinkPrevHashMismatchError) Error() string {
-	return fmt.Sprintf("Chain link prev hash mismatch error: %s", e.err)
+	return fmt.Sprintf("Chain link prev hash mismatch error: %s", e.Msg)
 }
 
 //=============================================================================
 
 type ChainLinkWrongSeqnoError struct {
-	err error
+	Msg string
 }
 
 func (e ChainLinkWrongSeqnoError) Error() string {
-	return fmt.Sprintf("Chain link wrong seqno error: %s", e.err)
+	return fmt.Sprintf("Chain link wrong seqno error: %s", e.Msg)
 }
 
 //=============================================================================

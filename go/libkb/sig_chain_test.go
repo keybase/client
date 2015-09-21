@@ -165,7 +165,7 @@ func doChainTest(t *testing.T, testCase TestCase) {
 	// code that's actually being tested.
 	var sigchainErr error
 	ckf := ComputedKeyFamily{kf: keyFamily}
-	sigchain := SigChain{username: NewNormalizedUsername(input.Username), uid: uid}
+	sigchain := SigChain{username: NewNormalizedUsername(input.Username), uid: uid, loadedFromLinkOne: true}
 	for i := 0; i < chainLen; i++ {
 		linkBlob := inputBlob.AtKey("chain").AtIndex(i)
 		link, err := ImportLinkFromServer(&sigchain, linkBlob, uid)
