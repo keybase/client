@@ -152,7 +152,10 @@ type KBFSOps interface {
 	// Rename performs an atomic rename operation with a given
 	// top-level folder if the logged-in user has write permission to
 	// that folder, and will return an error if nodes from different
-	// folders are passed in.  This is a remote-sync operation.
+	// folders are passed in.  Also returns an error if the new name
+	// already has an entry corresponding to an existing directory
+	// (only non-dir types may be renamed over).  This is a
+	// remote-sync operation.
 	Rename(ctx context.Context, oldParent Node, oldName string, newParent Node,
 		newName string) error
 	// Read fills in the given buffer with data from the file at the

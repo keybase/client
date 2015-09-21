@@ -1606,6 +1606,42 @@ func (fbo *FolderBranchOps) CreateLink(
 	return fbo.createLinkLocked(ctx, dir, fromName, toPath)
 }
 
+// unrefEntry modifies md to unreference all relevant blocks for the
+// given entry.  It returns a path to child of dir with the given
+// name.
+func (fbo *FolderBranchOps) unrefEntry(ctx context.Context,
+	md *RootMetadata, dir path, de DirEntry, name string) (path, error) {
+	md.AddUnrefBlock(de.BlockInfo)
+	// construct a path for the child so we can unlink with it.
+	childPath := *dir.ChildPathNoPtr(name)
+	childPath.path[len(childPath.path)-1].BlockPointer = de.BlockPointer
+
+	// If this is an indirect block, we need to delete all of its
+	// children as well. (TODO: handle multiple levels of
+	// indirection.)  NOTE: non-empty directories can't be removed, so
+	// no need to check for indirect directory blocks here.
+	if de.Type == File || de.Type == Exec {
+		block, err := func() (Block, error) {
+			fbo.blockLock.RLock()
+			defer fbo.blockLock.RUnlock()
+			return fbo.getBlockLocked(ctx, md, childPath, NewFileBlock, write)
+		}()
+		if err != nil {
+			return path{}, NoSuchBlockError{de.ID}
+		}
+		fBlock, ok := block.(*FileBlock)
+		if !ok {
+			return path{}, &NotFileError{dir}
+		}
+		if fBlock.IsInd {
+			for _, ptr := range fBlock.IPtrs {
+				md.AddUnrefBlock(ptr.BlockInfo)
+			}
+		}
+	}
+	return childPath, nil
+}
+
 // writerLock must be taken by caller.
 func (fbo *FolderBranchOps) removeEntryLocked(ctx context.Context,
 	md *RootMetadata, dir path, name string) error {
@@ -1625,33 +1661,9 @@ func (fbo *FolderBranchOps) removeEntryLocked(ctx context.Context,
 	}
 
 	md.AddOp(newRmOp(name, dir.tailPointer()))
-	md.AddUnrefBlock(de.BlockInfo)
-	// construct a path for the child so we can unlink with it.
-	childPath := *dir.ChildPathNoPtr(name)
-	childPath.path[len(childPath.path)-1].BlockPointer = de.BlockPointer
-
-	// If this is an indirect block, we need to delete all of its
-	// children as well. (TODO: handle multiple levels of
-	// indirection.)  NOTE: non-empty directories can't be removed, so
-	// no need to check for indirect directory blocks here.
-	if de.Type == File || de.Type == Exec {
-		block, err := func() (Block, error) {
-			fbo.blockLock.RLock()
-			defer fbo.blockLock.RUnlock()
-			return fbo.getBlockLocked(ctx, md, childPath, NewFileBlock, write)
-		}()
-		if err != nil {
-			return NoSuchBlockError{de.ID}
-		}
-		fBlock, ok := block.(*FileBlock)
-		if !ok {
-			return &NotFileError{dir}
-		}
-		if fBlock.IsInd {
-			for _, ptr := range fBlock.IPtrs {
-				md.AddUnrefBlock(ptr.BlockInfo)
-			}
-		}
+	childPath, err := fbo.unrefEntry(ctx, md, dir, de, name)
+	if err != nil {
+		return err
 	}
 
 	// the actual unlink
@@ -1815,8 +1827,18 @@ func (fbo *FolderBranchOps) renameLocked(
 	fbo.blockLock.RUnlock()
 
 	// does name exist?
-	if _, ok := newPBlock.Children[newName]; ok {
-		// TODO: delete the old block pointed to by this direntry
+	if de, ok := newPBlock.Children[newName]; ok {
+		if de.Type == Dir {
+			fbo.log.CWarningf(ctx, "Renaming over a directory (%s/%s) is not "+
+				"allowed.", newParent, newName)
+			return NotFileError{*newParent.ChildPathNoPtr(newName)}
+		}
+
+		// Delete the old block pointed to by this direntry.
+		_, err := fbo.unrefEntry(ctx, md, newParent, de, newName)
+		if err != nil {
+			return err
+		}
 	}
 
 	newDe := oldPBlock.Children[oldName]

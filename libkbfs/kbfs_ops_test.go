@@ -1578,6 +1578,94 @@ func TestRenameInDirSuccess(t *testing.T) {
 	}
 }
 
+func TestRenameInDirOverEntrySuccess(t *testing.T) {
+	mockCtrl, config, ctx := kbfsOpsInit(t, true)
+	defer kbfsTestShutdown(mockCtrl, config)
+
+	uid, id, rmd := makeIDAndRMD(t, config)
+
+	rootID := fakeBlockID(41)
+	rmd.data.Dir.ID = rootID
+	aID := fakeBlockID(42)
+	bID := fakeBlockID(43)
+	cID := fakeBlockID(44)
+	rootBlock := NewDirBlock().(*DirBlock)
+	rootBlock.Children["a"] = DirEntry{
+		BlockInfo: makeBIFromID(aID, uid),
+		Type:      Dir,
+	}
+	aBlock := NewDirBlock().(*DirBlock)
+	aBlock.Children["b"] = DirEntry{
+		BlockInfo: makeBIFromID(bID, uid),
+		Type:      File,
+	}
+	aBlock.Children["c"] = DirEntry{
+		BlockInfo: makeBIFromID(cID, uid),
+		Type:      File,
+	}
+	cBlock := NewFileBlock().(*FileBlock)
+	node := pathNode{makeBP(rootID, rmd, config, uid), "p"}
+	aNode := pathNode{makeBP(aID, rmd, config, uid), "a"}
+	cNode := pathNode{makeBP(cID, rmd, config, uid), "c"}
+	p := path{FolderBranch{Tlf: id}, []pathNode{node, aNode}}
+	ops := getOps(config, id)
+	n := nodeFromPath(t, ops, p)
+
+	// renaming "a/b" to "a/c"
+	testPutBlockInCache(config, aNode.BlockPointer, id, aBlock)
+	testPutBlockInCache(config, node.BlockPointer, id, rootBlock)
+	testPutBlockInCache(config, cNode.BlockPointer, id, cBlock)
+	// sync block
+	var newRmd *RootMetadata
+	blocks := make([]BlockID, 3)
+	unrefBytes := uint64(1)
+	expectedPath, _ :=
+		expectSyncBlock(t, config, nil, uid, id, "", p, rmd, false,
+			0, 0, unrefBytes, &newRmd, blocks)
+
+	err := config.KBFSOps().Rename(ctx, n, "b", n, "c")
+	if err != nil {
+		t.Errorf("Got error on rename: %v", err)
+	}
+	newP := ops.nodeCache.PathFromNode(n)
+
+	checkNewPath(t, ctx, config, newP, expectedPath, newRmd, blocks,
+		File, "c", true)
+	b1 := getDirBlockFromCache(
+		t, config, newP.path[1].BlockPointer, newP.Branch)
+	if _, ok := b1.Children["b"]; ok {
+		t.Errorf("entry for b is still around after rename")
+	} else if len(config.observer.batchChanges) != 1 {
+		t.Errorf("Expected 1 batch notification, got %d",
+			len(config.observer.batchChanges))
+	}
+	blocks = blocks[:len(blocks)-1] // the last block is never in the cache
+	checkBlockCache(t, config, append(blocks, rootID, aID, cID), nil)
+
+	// make sure the renameOp is correct
+	ro, ok := newRmd.data.Changes.Ops[0].(*renameOp)
+	if !ok {
+		t.Errorf("Couldn't find the renameOp")
+	}
+	updates := []blockUpdate{
+		blockUpdate{rmd.data.Dir.BlockPointer, newP.path[0].BlockPointer},
+	}
+	checkOp(t, ro.OpCommon, nil, []BlockPointer{cNode.BlockPointer}, updates)
+	oldDirUpdate := blockUpdate{aNode.BlockPointer, newP.path[1].BlockPointer}
+	newDirUpdate := blockUpdate{}
+	if ro.OldDir != oldDirUpdate {
+		t.Errorf("Incorrect old dir update in op: %v vs. %v", ro.OldDir,
+			oldDirUpdate)
+	} else if ro.OldName != "b" {
+		t.Errorf("Incorrect old name in op: %v", ro.OldName)
+	} else if ro.NewDir != newDirUpdate {
+		t.Errorf("Incorrect new dir update in op: %v (expected empty)",
+			ro.NewDir)
+	} else if ro.NewName != "c" {
+		t.Errorf("Incorrect name in op: %v", ro.NewName)
+	}
+}
+
 func TestRenameInRootSuccess(t *testing.T) {
 	mockCtrl, config, ctx := kbfsOpsInit(t, true)
 	defer kbfsTestShutdown(mockCtrl, config)
