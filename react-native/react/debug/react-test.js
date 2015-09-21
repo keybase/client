@@ -1,26 +1,12 @@
 'use strict'
 
-var React = require('react-native')
-var {
+import React from 'react-native'
+const {
   StyleSheet,
   Text,
   View,
   Component
 } = React
-
-var styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: '#F5FCFF'
-  },
-  welcome: {
-    fontSize: 20,
-    textAlign: 'center',
-    margin: 10
-  }
-})
 
 class ReactTest extends Component {
   constructor () {
@@ -51,4 +37,18 @@ class ReactTest extends Component {
   }
 }
 
-module.exports = ReactTest
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#F5FCFF'
+  },
+  welcome: {
+    fontSize: 20,
+    textAlign: 'center',
+    margin: 10
+  }
+})
+
+export default ReactTest

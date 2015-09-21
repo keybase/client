@@ -1,7 +1,7 @@
+'use strict'
 /**
  * @providesModule Engine
  */
-'use strict'
 
-var { NativeModules } = require('react-native')
-module.exports = NativeModules.ObjcEngine
+import { NativeModules } from 'react-native'
+export default NativeModules.ObjcEngine

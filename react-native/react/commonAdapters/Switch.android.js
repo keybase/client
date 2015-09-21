@@ -1,9 +1,7 @@
 'use strict'
 /* @flow */
 
-var React = require('react-native')
-var {
-  SwitchAndroid
-} = React
+import React from 'react-native'
+const { SwitchAndroid } = React
 
-module.exports = SwitchAndroid
+export default SwitchAndroid

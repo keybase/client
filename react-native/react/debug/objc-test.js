@@ -1,7 +1,7 @@
 'use strict'
 
-var React = require('react-native')
-var {
+import React from 'react-native'
+const {
   StyleSheet,
   Text,
   View,
@@ -10,21 +10,7 @@ var {
   NativeAppEventEmitter
 } = React
 
-var objcNative = NativeModules.ObjcTest
-
-var styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: '#F5FCFF'
-  },
-  welcome: {
-    fontSize: 20,
-    textAlign: 'center',
-    margin: 10
-  }
-})
+const objcNative = NativeModules.ObjcTest
 
 class ObjcTest extends Component {
   constructor () {
@@ -60,4 +46,18 @@ class ObjcTest extends Component {
   }
 }
 
-module.exports = ObjcTest
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#F5FCFF'
+  },
+  welcome: {
+    fontSize: 20,
+    textAlign: 'center',
+    margin: 10
+  }
+})
+
+export default ObjcTest

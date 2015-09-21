@@ -1,15 +1,15 @@
 'use strict'
 /* @flow */
 
-var React = require('react-native')
-var {
+import React from 'react-native'
+const {
   Component,
   StyleSheet,
   View,
   Text
 } = React
 
-var commonStyles = require('../styles/common')
+import commonStyles from '../styles/common'
 
 class DisplaySecretWords extends Component {
   constructor (props) {
@@ -35,28 +35,12 @@ DisplaySecretWords.propTypes = {
   secretWords: React.PropTypes.string
 }
 
-var styles = StyleSheet.create({
+const styles = StyleSheet.create({
   container: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'stretch',
     backgroundColor: '#F5FCFF'
-  },
-  input: {
-    height: 40,
-    marginBottom: 5,
-    marginLeft: 10,
-    marginRight: 10,
-    borderWidth: 0.5,
-    borderColor: '#0f0f0f',
-    fontSize: 13,
-    padding: 4
-  },
-  submitWrapper: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginTop: 10
   },
   secret: {
     textAlign: 'center',
@@ -67,4 +51,4 @@ var styles = StyleSheet.create({
   }
 })
 
-module.exports = DisplaySecretWords
+export default DisplaySecretWords
