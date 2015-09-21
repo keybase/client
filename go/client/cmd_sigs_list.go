@@ -180,8 +180,9 @@ func (s *CmdSigsList) Run() error {
 
 func NewCmdSigsList(cl *libcmdline.CommandLine) cli.Command {
 	return cli.Command{
-		Name:  "list",
-		Usage: "List signatures",
+		Name:         "list",
+		Usage:        "List signatures",
+		ArgumentHelp: "[username]",
 		Action: func(c *cli.Context) {
 			cl.ChooseCommand(&CmdSigsList{}, "list", c)
 		},
