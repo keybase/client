@@ -2,6 +2,7 @@ package libkbfs
 
 import (
 	"fmt"
+	"sort"
 	"sync"
 
 	"github.com/keybase/client/go/logger"
@@ -253,6 +254,25 @@ func (cr *ConflictResolver) makeChains(ctx context.Context,
 	return unmergedChains, mergedChains, nil
 }
 
+// A helper class that implements sort.Interface to sort paths by
+// descending path length.
+type crSortedPaths []path
+
+// Len implements sort.Interface for crSortedPaths
+func (sp crSortedPaths) Len() int {
+	return len(sp)
+}
+
+// Less implements sort.Interface for crSortedPaths
+func (sp crSortedPaths) Less(i, j int) bool {
+	return len(sp[i].path) > len(sp[j].path)
+}
+
+// Swap implements sort.Interface for crSortedPaths
+func (sp crSortedPaths) Swap(i, j int) {
+	sp[j], sp[i] = sp[i], sp[j]
+}
+
 func (cr *ConflictResolver) getUnmergedPaths(ctx context.Context,
 	unmergedChains *crChains, mostRecentUnmergedMD *RootMetadata) (
 	[]path, error) {
@@ -269,7 +289,7 @@ func (cr *ConflictResolver) getUnmergedPaths(ctx context.Context,
 		return nil, err
 	}
 
-	paths := make(map[BlockPointer]path)
+	paths := make([]path, 0, len(nodeMap))
 	for ptr, n := range nodeMap {
 		if n == nil {
 			cr.log.CDebugf(ctx, "Ignoring pointer with no found path: %v", ptr)
@@ -283,7 +303,10 @@ func (cr *ConflictResolver) getUnmergedPaths(ctx context.Context,
 		}
 	}
 
-	return paths, nil
+	// Order by descending path length.
+	var sp crSortedPaths = paths
+	sort.Sort(sp)
+	return sp, nil
 }
 
 func (cr *ConflictResolver) doResolve(ctx context.Context, ci conflictInput) {
@@ -333,13 +356,13 @@ func (cr *ConflictResolver) doResolve(ctx context.Context, ci conflictInput) {
 
 	// Get the full path for every most recent pointer with a chain of
 	// unmerged operations. If the path doesn't exist, that means the
-	// whole node was deleted, so skip.
+	// whole node was deleted, so skip.  The returned paths are
+	// ordered by descending path length.
 	_, err = cr.getUnmergedPaths(ctx, unmergedChains, unmerged[len(unmerged)-1])
 	if err != nil {
 		return
 	}
 
-	// * Order by descending path length.
 	// * Find the corresponding path in the merged/resolved branch
 	//   * Find the original pointer for the most recent pointer.
 	//   * Find the merged most recent pointer of that original pointer.
