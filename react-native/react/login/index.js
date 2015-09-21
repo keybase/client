@@ -6,14 +6,9 @@ import React from 'react-native'
 const {
   Component,
   StyleSheet,
-  View,
-  Settings,
-  Text,
-  TextInput,
-  TouchableHighlight
+  View
 } = React
 
-import Switch from '../commonAdapters/Switch'
 import DevicePrompt from './device-prompt'
 import SelectSigner from './select-signer'
 import DisplaySecretWords from './display-secret-words'
@@ -170,36 +165,6 @@ var styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     backgroundColor: '#F5FCFF'
-  },
-  input: {
-    height: 40,
-    marginBottom: 5,
-    marginLeft: 10,
-    marginRight: 10,
-    borderWidth: 0.5,
-    borderColor: '#0f0f0f',
-    fontSize: 13,
-    padding: 4
-  },
-  switchText: {
-    fontSize: 14,
-    textAlign: 'center',
-    margin: 10
-  },
-  horizontal: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center'
-  },
-  rightSide: {
-    justifyContent: 'flex-end',
-    marginRight: 10
-  },
-  loginWrapper: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginTop: 10
   }
 })
 

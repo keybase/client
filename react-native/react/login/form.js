@@ -8,13 +8,13 @@ const {
   Component,
   StyleSheet,
   View,
-  SwitchIOS,
   Text,
   TextInput,
   TouchableHighlight
 } = React
 
 const commonStyles = require('../styles/common')
+import Switch from '../commonAdapters/Switch'
 
 class LoginForm extends Component {
   constructor (props) {
@@ -83,9 +83,7 @@ class LoginForm extends Component {
 
         <View style={[styles.horizontal, styles.rightSide]}>
           <Text style={styles.switchText}>Remember me</Text>
-          <SwitchIOS
-            onValueChange={(value) => {
-            }}
+          <Switch onValueChange={(value) => {}}
             value={this.state.storeSecret}
           />
         </View>
