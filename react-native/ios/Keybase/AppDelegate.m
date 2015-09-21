@@ -5,18 +5,33 @@
 //
 
 #import "AppDelegate.h"
-
 #import "RCTRootView.h"
+#import "ObjcEngine.h"
 
 // Set this to 1 to use the application bundle to hold the react JS
 #define REACT_EMBEDDED_BUNDLE 0
 
+// TODO load off of settings screen
+static NSString* const HOME_DIR = nil;
+static NSString* const RUN_MODE = @"devel";
 
 @implementation AppDelegate
 
 - (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions
 {
-    NSURL *jsCodeLocation;
+  [self setupEngine];
+  UIView * rootView = [self setupReactWithOptions:launchOptions];
+
+  self.window = [[UIWindow alloc] initWithFrame:[UIScreen mainScreen].bounds];
+  UIViewController *rootViewController = [[UIViewController alloc] init];
+  rootViewController.view = rootView;
+  self.window.rootViewController = rootViewController;
+  [self.window makeKeyAndVisible];
+  return YES;
+}
+
+- (UIView*) setupReactWithOptions:(NSDictionary *)options {
+  NSURL *jsCodeLocation;
 
 #if (REACT_EMBEDDED_BUNDLE)
   // http://facebook.github.io/react-native/docs/runningondevice.html
@@ -32,21 +47,38 @@
 
   // sanity check if you're running on device
   #if !(TARGET_IPHONE_SIMULATOR)
-#warning "You're testing dynamic react on your device. DON'T deploy a build like this"
+    #warning "You're testing dynamic react on your device. DON'T deploy a build like this"
   #endif
 #endif
 
-  RCTRootView *rootView = [[RCTRootView alloc] initWithBundleURL:jsCodeLocation
-                                                      moduleName:@"Keybase"
-                                               initialProperties:nil
-                                                   launchOptions:launchOptions];
+  return [[RCTRootView alloc] initWithBundleURL:jsCodeLocation
+                                     moduleName:@"Keybase"
+                              initialProperties:nil
+                                  launchOptions:options];
+}
 
-  self.window = [[UIWindow alloc] initWithFrame:[UIScreen mainScreen].bounds];
-  UIViewController *rootViewController = [[UIViewController alloc] init];
-  rootViewController.view = rootView;
-  self.window.rootViewController = rootViewController;
-  [self.window makeKeyAndVisible];
-  return YES;
+- (void) setupEngine {
+  NSFileManager* fileManager = [NSFileManager defaultManager];
+  NSArray* possibleURLs = [fileManager URLsForDirectory:NSApplicationSupportDirectory
+                                              inDomains:NSUserDomainMask];
+  NSString* appDirectory = @"";
+
+  if ([possibleURLs count] > 0) {
+    NSURL* appSupportDir = nil;
+
+    appSupportDir = [possibleURLs objectAtIndex:0];
+
+    if (HOME_DIR.length) {
+      appSupportDir = [appSupportDir URLByAppendingPathComponent:HOME_DIR];
+    }
+
+    appDirectory = [appSupportDir path];
+  }
+
+  NSDictionary * settings = @{ @"runmode": RUN_MODE,
+                               @"homedir": appDirectory};
+
+  self.engine = [[Engine alloc] initWithSettings:settings];
 }
 
 @end

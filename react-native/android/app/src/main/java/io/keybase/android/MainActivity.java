@@ -10,6 +10,8 @@ import com.facebook.react.ReactRootView;
 import com.facebook.react.modules.core.DefaultHardwareBackBtnHandler;
 import com.facebook.react.shell.MainReactPackage;
 
+import static go.keybase.Keybase.Init;
+
 public class MainActivity extends Activity implements DefaultHardwareBackBtnHandler {
 
     private ReactInstanceManager mReactInstanceManager;
@@ -18,8 +20,9 @@ public class MainActivity extends Activity implements DefaultHardwareBackBtnHand
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        mReactRootView = new ReactRootView(this);
+        Init(this.getFilesDir().getPath(), "staging");
 
+        mReactRootView = new ReactRootView(this);
         mReactInstanceManager = ReactInstanceManager.builder()
           .setApplication(getApplication())
           .setBundleAssetName("index.android.bundle")

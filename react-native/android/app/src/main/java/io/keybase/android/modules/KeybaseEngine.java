@@ -29,6 +29,8 @@ public class KeybaseEngine extends ReactContextBaseJavaModule {
         public void run() {
             // TODO: There may be a race condition here...
             // It will fail if you try to run .getJSModule
+            // before react has loaded.
+
             //noinspection InfiniteLoopStatement
             while (true) {
                 String data = ReadB64();

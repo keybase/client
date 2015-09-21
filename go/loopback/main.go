@@ -17,6 +17,8 @@ type dummyCmd struct{}
 
 type debuggingConfig struct {
 	libkb.NullConfiguration
+	homeDir *string
+	runMode *string
 }
 
 func (n debuggingConfig) GetDebug() (bool, bool) {
@@ -32,7 +34,19 @@ func (n debuggingConfig) GetLocalRPCDebug() string {
 }
 
 func (n debuggingConfig) GetRunMode() (libkb.RunMode, error) {
-	return libkb.DevelRunMode, nil
+	if n.runMode == nil {
+		return libkb.DevelRunMode, nil
+	}
+
+	return libkb.StringToRunMode(*n.runMode)
+}
+
+func (n debuggingConfig) GetHome() string {
+	if n.homeDir == nil {
+		return ""
+	}
+
+	return *n.homeDir
 }
 
 func (d dummyCmd) GetUsage() libkb.Usage {
@@ -43,20 +57,23 @@ func (d dummyCmd) GetUsage() libkb.Usage {
 	}
 }
 
-func start() {
+func start(cmdline libkb.CommandLine) {
 	startOnce.Do(func() {
 		libkb.G.Init()
-		libkb.G.ConfigureAll(debuggingConfig{}, dummyCmd{})
+		libkb.G.ConfigureAll(cmdline, dummyCmd{})
 		(service.NewService(false)).StartLoopbackServer(libkb.G)
 		Reset()
 	})
+}
+
+func Init(homeDir string, runMode string) {
+	start(debuggingConfig{libkb.NullConfiguration{}, &homeDir, &runMode})
 }
 
 // Takes base64 encoded msgpack rpc payload
 func WriteB64(str string) {
 	data, err := base64.StdEncoding.DecodeString(str)
 	if err == nil {
-		start()
 		con.Write(data)
 	} else {
 		fmt.Println("write error:", err, str)
@@ -66,7 +83,6 @@ func WriteB64(str string) {
 // Blocking read, returns base64 encoded msgpack rpc payload
 func ReadB64() string {
 	data := make([]byte, 50*1024)
-	start()
 
 	n, err := con.Read(data)
 	if n > 0 && err == nil {
