@@ -15,7 +15,7 @@ class DisplaySecretWords extends Component {
   constructor (props) {
     super(props)
 
-    props.response.result()
+    props.onSubmit()
   }
 
   render () {
@@ -23,7 +23,7 @@ class DisplaySecretWords extends Component {
         <View style={styles.container}>
           <Text style={[{textAlign: 'center', marginBottom: 75}, commonStyles.h1]}>Register Device</Text>
           <Text style={[{margin: 20, marginBottom: 20}, commonStyles.h2]}>In order to register this device you need to enter in the secret phrase generated on an existing device</Text>
-          <Text style={[styles.secret, commonStyles.h1]}>{this.props.secret}</Text>
+          <Text style={[styles.secret, commonStyles.h1]}>{this.props.secretWords}</Text>
         </View>
     )
   }
@@ -32,7 +32,7 @@ class DisplaySecretWords extends Component {
 DisplaySecretWords.propTypes = {
   navigator: React.PropTypes.object,
   response: React.PropTypes.object,
-  secret: React.PropTypes.string
+  secretWords: React.PropTypes.string
 }
 
 var styles = StyleSheet.create({

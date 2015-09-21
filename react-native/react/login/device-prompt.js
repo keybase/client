@@ -15,16 +15,16 @@ var commonStyles = require('../styles/common')
 var submitButtonStyle = [commonStyles.actionButton, {width: 200}]
 
 class DevicePrompt extends Component {
-  constructor () {
-    super()
+  constructor (props) {
+    super(props)
 
     this.state = {
-      deviceName: 'dev1'
+      deviceName: props.deviceName || ''
     }
   }
 
   submit () {
-    this.props.response.result(this.state.deviceName)
+    this.props.onSubmit(this.state.deviceName)
   }
 
   render () {
@@ -40,9 +40,7 @@ class DevicePrompt extends Component {
             returnKeyType='next'
             autoCorrect={false}
             onChangeText={(deviceName) => this.setState({deviceName})}
-            onSubmitEditing={(event) => {
-              this.submit()
-            }}
+            onSubmitEditing={(event) => { this.submit() }}
             />
 
           <View style={styles.submitWrapper}>
@@ -58,8 +56,9 @@ class DevicePrompt extends Component {
 }
 
 DevicePrompt.propTypes = {
-  navigator: React.PropTypes.object,
-  response: React.PropTypes.object
+  navigator: React.PropTypes.object.isRequired,
+  onSubmit: React.PropTypes.func.isRequired,
+  deviceName: React.PropTypes.string
 }
 
 var styles = StyleSheet.create({

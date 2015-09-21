@@ -14,8 +14,8 @@ var commonStyles = require('../styles/common')
 var enums = require('../keybase_v1')
 
 class SelectSigner extends Component {
-  constructor () {
-    super()
+  constructor (props) {
+    super(props)
   }
 
   componentWillMount () {
@@ -53,9 +53,9 @@ class SelectSigner extends Component {
       signer.kind = enums.locksmithUi.DeviceSignerKind.pgp
     }
 
-    this.props.response.result({
+    this.props.onSubmit({
       action: enums.locksmithUi.SelectSignerAction.sign,
-      signer: signer
+      signer
     })
   }
 
@@ -95,9 +95,7 @@ SelectSigner.propTypes = {
   navigator: React.PropTypes.object,
   devices: React.PropTypes.array,
   hasPGP: React.PropTypes.bool,
-  hasPaperBackupKey: React.PropTypes.bool,
-  response: React.PropTypes.object
-
+  hasPaperBackupKey: React.PropTypes.bool
 }
 
 var styles = StyleSheet.create({
