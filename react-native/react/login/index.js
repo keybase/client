@@ -142,57 +142,7 @@ class LoginContainer extends Component {
     }
 
     return (
-      <View style={styles.container}>
-        <TextInput
-          style={styles.input}
-          placeholder='Username'
-          value={this.state.username}
-          enablesReturnKeyAutomatically
-          returnKeyType='next'
-          autoCorrect={false}
-          onChangeText={(username) => this.setState({username})}
-          onSubmitEditing={(event) => {
-            this.refs['passphrase'].focus()
-          }}
-          />
-
-        <TextInput
-          ref='passphrase'
-          style={styles.input}
-          placeholder='Passphrase'
-          value={this.state.passphrase}
-          secureTextEntry
-          enablesReturnKeyAutomatically
-          autoCorrect={false}
-          returnKeyType='done'
-          onChangeText={(passphrase) => this.setState({passphrase})}
-          onSubmitEditing={(event) => {
-            this.submit()
-          }}
-          />
-
-        <View style={[styles.horizontal, styles.rightSide]}>
-          <Text style={styles.switchText}>Remember me</Text>
-          <Switch
-            onValueChange={(value) => {
-              this.setState({storeSecret: value})
-              Settings.set({LoginFormStoreSecret: value})
-              Settings.set({LoginFormUsername: value ? this.state.username : ''})
-            }}
-            value={this.state.storeSecret}
-          />
-        </View>
-
-        {error}
-
-        <View style={styles.loginWrapper}>
-          <TouchableHighlight
-            underlayColor={commonStyles.buttonHighlight}
-            onPress={() => { this.submit() }}>
-            <Text style={loginButtonStyle} >Login</Text>
-          </TouchableHighlight>
-        </View>
-      </View>
+      <View style={styles.container}/>
     )
   }
 }
@@ -203,10 +153,10 @@ LoginContainer.propTypes = {
   dispatch: React.PropTypes.func.isRequired,
   loginState: React.PropTypes.string.isRequired,
   loggedIn: React.PropTypes.bool.isRequired,
-  username: React.PropTypes.string.isRequired,
-  passphrase: React.PropTypes.string.isRequired,
+  username: React.PropTypes.string,
+  passphrase: React.PropTypes.string,
   storeSecret: React.PropTypes.bool.isRequired,
-  deviceName: React.PropTypes.string.isRequired,
+  deviceName: React.PropTypes.string,
   waitingForServer: React.PropTypes.bool.isRequired,
   response: React.PropTypes.object,
   signers: React.PropTypes.object,
