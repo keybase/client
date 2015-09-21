@@ -1,28 +1,14 @@
 'use strict'
 
-var React = require('react-native')
-var {
+import React from 'react-native'
+const {
   StyleSheet,
   Text,
   View,
   Component
 } = React
 
-var engine = require('../engine')
-
-var styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: '#F5FCFF'
-  },
-  welcome: {
-    fontSize: 20,
-    textAlign: 'center',
-    margin: 10
-  }
-})
+import engine from '../engine'
 
 class GoTest extends Component {
   constructor () {
@@ -71,7 +57,7 @@ class GoTest extends Component {
   }
 
   sendToGo () {
-    var toSend = this.state.data
+    const toSend = this.state.data
 
     if ((this.TEMP % 10) < 8) {
       engine.rpc('debugging.increment', {val: toSend}, null, (err, data) => { this.handleIncrement(err, data) })
@@ -92,4 +78,18 @@ class GoTest extends Component {
   }
 }
 
-module.exports = GoTest
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#F5FCFF'
+  },
+  welcome: {
+    fontSize: 20,
+    textAlign: 'center',
+    margin: 10
+  }
+})
+
+export default GoTest

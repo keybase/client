@@ -1,4 +1,5 @@
 'use strict'
+/* @flow */
 
 export const START_LOGIN = 'START_LOGIN'
 export const LOGGED_IN = 'LOGGED_IN'

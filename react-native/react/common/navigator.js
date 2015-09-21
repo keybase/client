@@ -1,9 +1,8 @@
 'use strict'
 
-var React = require('react-native')
-var {
+import React from 'react-native'
+const {
   Component,
-  PixelRatio,
   Navigator,
   Settings,
   StyleSheet,
@@ -11,7 +10,7 @@ var {
   TouchableOpacity
 } = React
 
-var NavigationBarRouteMapper = {
+const NavigationBarRouteMapper = {
   LeftButton: function (route, navigator, index, navState) {
     if (route.leftButton) {
       return route.leftButton
@@ -21,17 +20,15 @@ var NavigationBarRouteMapper = {
       return null
     }
 
-    var previousRoute = navState.routeStack[index - 1]
+    const previousRoute = navState.routeStack[index - 1]
     // for some reason popn doesn't work, we'll likely ditch this routing anyways...
-    var i = route.leftButtonPopN ? route.leftButtonPopN : 1
-    var routes = navigator.getCurrentRoutes()
-    var targetRoute = routes[routes.length - i - 1]
+    const i = route.leftButtonPopN ? route.leftButtonPopN : 1
+    const routes = navigator.getCurrentRoutes()
+    const targetRoute = routes[routes.length - i - 1]
 
     return (
       <TouchableOpacity
-        onPress={() => {
-          navigator.popToRoute(targetRoute)
-        }}
+        onPress={() => { navigator.popToRoute(targetRoute) }}
         style={styles.navBarLeftButton}>
         <Text style={[styles.navBarText, styles.navBarButtonText]}>
           {route.leftButtonTitle || previousRoute.title}
@@ -54,7 +51,6 @@ var NavigationBarRouteMapper = {
 }
 
 class KBNavigator extends Component {
-
   constructor () {
     super()
 
@@ -87,7 +83,7 @@ class KBNavigator extends Component {
   }
 
   decorateRoute (route) {
-    var decorated = {
+    const decorated = {
       ...route,
       navSavedPath: this.savedPath.concat()
     }
@@ -104,9 +100,9 @@ class KBNavigator extends Component {
       return
     }
 
-    var toSave = {}
+    let toSave = {}
 
-    var routes = this.navigator.getCurrentRoutes().slice(1).map(function (r) {
+    const routes = this.navigator.getCurrentRoutes().slice(1).map(function (r) {
       return {
         saveKey: r.saveKey,
         props: r.props
@@ -157,24 +153,7 @@ KBNavigator.propTypes = {
   saveName: React.PropTypes.string
 }
 
-var styles = StyleSheet.create({
-  messageText: {
-    fontSize: 17,
-    fontWeight: '500',
-    padding: 15,
-    marginTop: 50,
-    marginLeft: 15
-  },
-  button: {
-    backgroundColor: 'white',
-    padding: 15,
-    borderBottomWidth: 1 / PixelRatio.get(),
-    borderBottomColor: '#CDCDCD'
-  },
-  buttonText: {
-    fontSize: 17,
-    fontWeight: '500'
-  },
+const styles = StyleSheet.create({
   navBar: {
     backgroundColor: 'white'
   },
@@ -190,18 +169,9 @@ var styles = StyleSheet.create({
   navBarLeftButton: {
     paddingLeft: 10
   },
-  navBarRightButton: {
-    paddingRight: 10
-  },
   navBarButtonText: {
     color: 'blue'
-  },
-  scene: {
-    flex: 1,
-    paddingTop: 20,
-    backgroundColor: '#EAEAEA'
   }
 })
 
-module.exports = KBNavigator
-
+export default KBNavigator
