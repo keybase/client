@@ -12,7 +12,7 @@
 #define REACT_EMBEDDED_BUNDLE 0
 
 // TODO load off of settings screen
-static NSString* const HOME_DIR = nil; //@"home2";
+static NSString* const HOME_DIR = nil;
 static NSString* const RUN_MODE = @"devel";
 
 @implementation AppDelegate
