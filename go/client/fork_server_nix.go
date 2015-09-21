@@ -38,7 +38,7 @@ func ForkServerNix(cl libkb.CommandLine) error {
 	// If we try to get an exclusive lock and succeed, it means we
 	// need to relaunch the daemon since it's dead
 	G.Log.Debug("Getting flock")
-	err := srv.GetExclusiveLock()
+	err := srv.GetExclusiveLockWithoutAutoUnlock()
 	if err == nil {
 		G.Log.Debug("Flocked! Server must have died")
 		srv.ReleaseLock()

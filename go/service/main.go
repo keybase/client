@@ -154,16 +154,31 @@ func (d *Service) writeVersionFile() error {
 	return ioutil.WriteFile(versionFilePath, []byte(version), 0644)
 }
 
+// ReleaseLock releases the locking pidfile by closing, unlocking and
+// deleting it.
 func (d *Service) ReleaseLock() error {
 	G.Log.Debug("Releasing lock file")
 	return d.lockPid.Close()
 }
 
-func (d *Service) GetExclusiveLock() error {
+// GetExclusiveLockWithoutAutoUnlock grabs the exclusive lock over running
+// keybase and continues to hold the lock. The caller is then required to
+// manually release this lock via ReleaseLock()
+func (d *Service) GetExclusiveLockWithoutAutoUnlock() error {
 	if err := os.MkdirAll(G.Env.GetRuntimeDir(), libkb.PermDir); err != nil {
 		return err
 	}
 	if err := d.lockPIDFile(); err != nil {
+		return err
+	}
+	return nil
+}
+
+// GetExclusiveLock grabs the exclusive lock over running keybase
+// and then installs a shutdown hook to release the lock automatically
+// on shutdown.
+func (d *Service) GetExclusiveLock() error {
+	if err := d.GetExclusiveLockWithoutAutoUnlock(); err != nil {
 		return err
 	}
 	G.PushShutdownHook(func() error {
