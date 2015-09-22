@@ -4,16 +4,16 @@ import * as loginTypes from '../constants/loginActionTypes'
 import * as routerTypes from '../constants/routerActionTypes'
 
 const initialState = {
-  uri: ["home"],
+  uri: ['home'],
   // TODO(mm): when we have a splash screen set it here.
   // history is android's back button
-  history: [["home"]]
+  history: [['home']]
 }
 
 function pushIfTailIsDifferent (stack, thing) {
   // TODO: fix this equality check.
-  console.log("Maybe pushing", thing, "onto", stack)
-  if (stack[stack.length - 1].join('|') !== thing.join('|')){
+  console.log('Maybe pushing', thing, 'onto', stack)
+  if (stack[stack.length - 1].join('|') !== thing.join('|')) {
     stack.push(thing)
     return stack
   }
@@ -23,13 +23,13 @@ function pushIfTailIsDifferent (stack, thing) {
 export default function (state = initialState, action) {
   console.log('action in router', action)
   // TODO: use immutable js
-  const originalHistory = state.history.slice(0);
-  state.history = pushIfTailIsDifferent(state.history.slice(0),state.uri.slice(0))
+  const originalHistory = state.history.slice(0)
+  state.history = pushIfTailIsDifferent(state.history.slice(0), state.uri.slice(0))
   switch (action.type) {
     // TODO(MM): change the history so if we go up to something that is already in the history,
     // or a child of it
     // we get rid of everything after it
-    //TODO(mm): use immutable
+    // TODO(mm): use immutable
     case routerTypes.NAVIGATE_UP:
       let newUri = state.uri.slice(0)
       if (newUri.length > 1) {
@@ -51,47 +51,47 @@ export default function (state = initialState, action) {
     case loginTypes.START_LOGIN:
       return {
         ...state,
-        uri: ["login","loginform"]
+        uri: ['login', 'loginform']
       }
     case loginTypes.ASK_USER_PASS:
       return {
         ...state,
-        uri: ["login","loginform"]
+        uri: ['login', 'loginform']
       }
     case loginTypes.SUBMIT_USER_PASS:
       return {
         ...state,
-        uri: ["login","loginform"]
+        uri: ['login', 'loginform']
       }
     case loginTypes.ASK_DEVICE_NAME:
       return {
         ...state,
-        uri: ["login","device-prompt"]
+        uri: ['login', 'device-prompt']
       }
     case loginTypes.SUBMIT_DEVICE_NAME:
       return {
         ...state,
-        uri: ["login","device-prompt"]
+        uri: ['login', 'device-prompt']
       }
     case loginTypes.ASK_DEVICE_SIGNER:
       return {
         ...state,
-        uri: ["login","device-signer"]
+        uri: ['login', 'device-signer']
       }
     case loginTypes.SUBMIT_DEVICE_SIGNER:
       return {
         ...state,
-        uri: ["login","device-signer"]
+        uri: ['login', 'device-signer']
       }
     case loginTypes.SHOW_SECRET_WORDS:
       return {
         ...state,
-        uri: ["login","show-secret-words"]
+        uri: ['login', 'show-secret-words']
       }
     case loginTypes.LOGGED_IN:
       return {
         ...state,
-        uri: ["home"]
+        uri: ['home']
       }
     default:
       return state

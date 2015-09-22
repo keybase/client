@@ -17,11 +17,8 @@ import LoginForm from './form'
 
 import engine from '../engine'
 
-import { connect } from 'react-redux/native'
 import { bindActionCreators } from 'redux'
 import * as LoginActions from '../actions/login'
-
-import * as states from '../constants/loginStates'
 
 class LoginContainer extends Component {
   constructor (props) {
@@ -47,22 +44,22 @@ class LoginContainer extends Component {
     )
   }
 
-  static parseRoute(store, route) {
+  static parseRoute (store, route) {
     // TODO(mm): maybe these route names can be the constants we are already using?
     // e.g. state.SHOW_SECRET_WORDS
     const routes = {
       'loginform': LoginForm.parseRoute,
       'device-prompt': DevicePrompt.parseRoute,
-      'device-signer':SelectSigner.parseRoute,
-      'show-secret-words':DisplaySecretWords.parseRoute
+      'device-signer': SelectSigner.parseRoute,
+      'show-secret-words': DisplaySecretWords.parseRoute
     }
 
-    const [top, ...rest] = route;
+    const [top, ...rest] = route
 
     // TODO(mm): figure out how this interacts with redux
     const componentAtTop = {
       title: 'Keybase',
-      component : LoginContainer,
+      component: LoginContainer,
       saveKey: 'Login',
       leftButtonTitle: '¯\\_(ツ)_/¯',
       mapStateToProps: state => state.login,
@@ -86,7 +83,7 @@ class LoginContainer extends Component {
 }
 
 LoginContainer.propTypes = {
-  //kbNavigator: React.PropTypes.object.isRequired,
+  // kbNavigator: React.PropTypes.object.isRequired,
   onLoggedIn: React.PropTypes.func.isRequired,
   dispatch: React.PropTypes.func.isRequired,
   loginState: React.PropTypes.string.isRequired,

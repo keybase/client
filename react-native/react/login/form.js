@@ -16,7 +16,7 @@ const {
 import commonStyles from '../styles/common'
 import Switch from '../commonAdapters/Switch'
 
-import { submitUserPass } from "../actions/login"
+import { submitUserPass } from '../actions/login'
 
 class LoginForm extends Component {
   constructor (props) {
@@ -41,7 +41,7 @@ class LoginForm extends Component {
     const activity = this.props.waitingForServer
       ? <View style={styles.loginWrapper}>
           <ActivityIndicatorIOS
-          animating={true}
+          animating
           style={{height: 80}}
           size='large'
           />
@@ -60,7 +60,7 @@ class LoginForm extends Component {
       <View style={styles.container}>
         <TextInput
           autoCorrect={false}
-          enablesReturnKeyAutomatically={true}
+          enablesReturnKeyAutomatically
           onChangeText={(username) => this.setState({username})}
           onSubmitEditing={(event) => this.refs['passphrase'].focus()}
           placeholder='Username'
@@ -71,13 +71,13 @@ class LoginForm extends Component {
 
         <TextInput
           autoCorrect={false}
-          enablesReturnKeyAutomatically={true}
+          enablesReturnKeyAutomatically
           onChangeText={(passphrase) => this.setState({passphrase})}
           onSubmitEditing={() => this.submit() }
           placeholder='Passphrase'
           ref='passphrase'
           returnKeyType='done'
-          secureTextEntry={true}
+          secureTextEntry
           style={styles.input}
           value={this.state.passphrase}
           />
@@ -100,7 +100,7 @@ class LoginForm extends Component {
     )
   }
 
-  static parseRoute(store, route) {
+  static parseRoute (store, route) {
     // TODO(mm): figure out how this interacts with redux's connect/bindActions
     // TODO(mm): maybe we can just pass the state here instead of the store.
     const {username, passphrase, storeSecret, waitingForServer} = store.getState().login

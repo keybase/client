@@ -33,26 +33,26 @@ class Debug extends Component {
 
   render () {
     return (
-      <View style={{flex:1, marginTop:100}}>
-        <Text style={{textAlign:"center"}}>In debug</Text>
-        <Text style={{textAlign:"center"}}>URI: {JSON.stringify(this.props.uri)}</Text>
+      <View style={{flex: 1, marginTop: 100}}>
+        <Text style={{textAlign: 'center'}}>In debug</Text>
+        <Text style={{textAlign: 'center'}}>URI: {JSON.stringify(this.props.uri)}</Text>
         <Text
-          style={{textAlign:"center", color:"blue"}}
-          onPress={()=>this.props.dispatch(navigateTo(["debug","page2"]))}>Click here to go somewhere</Text>
+          style={{textAlign: 'center', color: 'blue'}}
+          onPress={() => this.props.dispatch(navigateTo(['debug', 'page2']))}>Click here to go somewhere</Text>
       </View>
     )
   }
 
   static parseRoute (store, route) {
     const routes = {
-      "page2":DebugPage2.parseRoute
+      'page2': DebugPage2.parseRoute
     }
 
-    const [top, ...rest] = route;
+    const [top, ...rest] = route
 
     const componentAtTop = {
       title: 'Debug',
-      mapStateToProps: (state => state.router),
+      mapStateToProps: state => state.router,
       component: Debug
     }
 
@@ -61,25 +61,24 @@ class Debug extends Component {
       restRoutes: rest,
       parseNextRoute: routes[top] || null
     }
-
   }
 }
 
 class DebugPage2 extends Component {
   render () {
     return (
-      <View style={{flex:1, marginTop:100}}>
-        <Text style={{textAlign:"center"}}>Page 2</Text>
-        <Text style={{textAlign:"center"}}>URI: {JSON.stringify(this.props.uri)}</Text>
+      <View style={{flex: 1, marginTop: 100}}>
+        <Text style={{textAlign: 'center'}}>Page 2</Text>
+        <Text style={{textAlign: 'center'}}>URI: {JSON.stringify(this.props.uri)}</Text>
         <Text
-          style={{textAlign:"center", color:"blue"}}
-          onPress={()=>this.props.dispatch(navigateUp())}>Go up the nav hierarchy</Text>
+          style={{textAlign: 'center', color: 'blue'}}
+          onPress={() => this.props.dispatch(navigateUp())}>Go up the nav hierarchy</Text>
         <Text
-          style={{textAlign:"center", color:"blue"}}
-          onPress={()=>this.props.dispatch(routeAppend("page3"))}>infinite recursion</Text>
+          style={{textAlign: 'center', color: 'blue'}}
+          onPress={() => this.props.dispatch(routeAppend('page3'))}>infinite recursion</Text>
         <Text
-          style={{textAlign:"center", color:"blue"}}
-          onPress={()=>this.props.dispatch(navigateTo(["debug"]))}>go back to debug</Text>
+          style={{textAlign: 'center', color: 'blue'}}
+          onPress={() => this.props.dispatch(navigateTo(['debug']))}>go back to debug</Text>
       </View>
     )
   }
@@ -89,11 +88,11 @@ class DebugPage2 extends Component {
       page3: DebugPage3.parseRoute
     }
 
-    const [top, ...rest] = route;
+    const [top, ...rest] = route
 
     const componentAtTop = {
       title: 'Debug Page 2',
-      mapStateToProps: (state => state.router),
+      mapStateToProps: state => state.router,
       component: DebugPage2
     }
 
@@ -102,25 +101,24 @@ class DebugPage2 extends Component {
       restRoutes: rest,
       parseNextRoute: routes[top] || null
     }
-
   }
 }
 
 class DebugPage3 extends Component {
   render () {
     return (
-      <View style={{flex:1, marginTop:100}}>
-        <Text style={{textAlign:"center"}}>Page 3</Text>
-        <Text style={{textAlign:"center"}}>URI: {JSON.stringify(this.props.uri)}</Text>
+      <View style={{flex: 1, marginTop: 100}}>
+        <Text style={{textAlign: 'center'}}>Page 3</Text>
+        <Text style={{textAlign: 'center'}}>URI: {JSON.stringify(this.props.uri)}</Text>
         <Text
-          style={{textAlign:"center", color:"blue"}}
-          onPress={()=>this.props.dispatch(navigateUp())}>Go up the nav hierarchy</Text>
+          style={{textAlign: 'center', color: 'blue'}}
+          onPress={() => this.props.dispatch(navigateUp())}>Go up the nav hierarchy</Text>
         <Text
-          style={{textAlign:"center", color:"blue"}}
-          onPress={()=>this.props.dispatch(routeAppend("page2"))}>infinite recursion</Text>
+          style={{textAlign: 'center', color: 'blue'}}
+          onPress={() => this.props.dispatch(routeAppend('page2'))}>infinite recursion</Text>
         <Text
-          style={{textAlign:"center", color:"blue"}}
-          onPress={()=>this.props.dispatch(navigateTo(["debug"]))}>go back to debug</Text>
+          style={{textAlign: 'center', color: 'blue'}}
+          onPress={() => this.props.dispatch(navigateTo(['debug']))}>go back to debug</Text>
       </View>
     )
   }
@@ -130,11 +128,11 @@ class DebugPage3 extends Component {
       page2: DebugPage2.parseRoute
     }
 
-    const [top, ...rest] = route;
+    const [top, ...rest] = route
 
     const componentAtTop = {
       title: 'Debug Page 3',
-      mapStateToProps: (state => state.router),
+      mapStateToProps: state => state.router,
       component: DebugPage3
     }
 
@@ -143,7 +141,6 @@ class DebugPage3 extends Component {
       restRoutes: rest,
       parseNextRoute: routes[top] || null
     }
-
   }
 }
 

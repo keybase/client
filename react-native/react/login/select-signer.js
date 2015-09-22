@@ -93,7 +93,7 @@ class SelectSigner extends Component {
     )
   }
 
-  static parseRoute(store, route) {
+  static parseRoute (store, route) {
     const {signers, response} = store.getState().login
     const componentAtTop = {
       title: 'Device Setup',

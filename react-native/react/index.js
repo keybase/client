@@ -34,17 +34,17 @@ class AppOrDebug extends Component {
   }
 
   showApp () {
-    //this.props.kbNavigator.push({
-    //  title: 'Keybase',
-    //  component: require('./login'),
-    //  saveKey: 'Login',
-    //  leftButtonTitle: '¯\\_(ツ)_/¯',
-    //  props: {
-    //    onLoggedIn: () => {
-    //      this.showSearch()
-    //    }
-    //  }
-    //})
+    // this.props.kbNavigator.push({
+    //   title: 'Keybase',
+    //   component: require('./login'),
+    //   saveKey: 'Login',
+    //   leftButtonTitle: '¯\\_(ツ)_/¯',
+    //   props: {
+    //     onLoggedIn: () => {
+    //       this.showSearch()
+    //     }
+    //   }
+    // })
   }
 
   showSearch () {
@@ -86,12 +86,12 @@ class AppOrDebug extends Component {
       <View style={styles.appDebug}>
         <TouchableHighlight
           underlayColor={commonStyles.buttonHighlight}
-          onPress={() => { dispatch(navigateTo(["login"])) }}>
+          onPress={() => { dispatch(navigateTo(['login'])) }}>
           <Text style={[commonStyles.button, {width: 200}]} >Keybase</Text>
         </TouchableHighlight>
         <TouchableHighlight
           underlayColor={commonStyles.buttonHighlight}
-          onPress={() => { dispatch(navigateTo(["debug"])) }}>
+          onPress={() => { dispatch(navigateTo(['debug'])) }}>
           <Text style={[commonStyles.button, {width: 200}]}>Debug Page</Text>
         </TouchableHighlight>
       </View>
@@ -100,7 +100,7 @@ class AppOrDebug extends Component {
 }
 
 AppOrDebug.propTypes = {
-  //kbNavigator: React.PropTypes.object.isRequired,
+  // kbNavigator: React.PropTypes.object.isRequired,
   appOrDebug: React.PropTypes.string,
   navSavedPath: React.PropTypes.array
 }
@@ -113,8 +113,8 @@ class Keybase extends Component {
   render () {
     return (
       <Provider store={store}>
-        {() =>
-        {// TODO(mm): maybe not pass in store? and use connect
+        {() => {
+          // TODO(mm): maybe not pass in store? and use connect
           return (
             <MetaNavigator
               store={store}
@@ -125,21 +125,21 @@ class Keybase extends Component {
     )
   }
 
-  //TODO(mm): annotate types
+  // TODO(mm): annotate types
   // store is our redux store
   // route is the array form of our route (e.g. ["foo","bar"] instead of "foo/bar")
-  static parseRoute(store, route) {
+  static parseRoute (store, route) {
     const routes = {
       'login': LoginComponent.parseRoute,
       'debug': DebugComponent.parseRoute
     }
 
-    const [top, ...rest] = route;
+    const [top, ...rest] = route
 
     const componentAtTop = {
       title: 'App or Debug',
       mapStateToProps: state => state.login,
-      component : AppOrDebug
+      component: AppOrDebug
     }
 
     return {

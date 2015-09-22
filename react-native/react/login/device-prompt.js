@@ -57,7 +57,7 @@ class DevicePrompt extends Component {
   }
 
   // TODO(mm): add types
-  static parseRoute(store, route) {
+  static parseRoute (store, route) {
     const {response, deviceName} = store.getState().login
     const componentAtTop = {
       title: 'Device Name',

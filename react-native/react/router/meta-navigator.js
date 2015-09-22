@@ -8,14 +8,10 @@
 import React from 'react-native'
 const {
   Component,
-  Navigator,
-  Text
+  Navigator
   } = React
 
 import { connect } from 'react-redux/native'
-//import Navigator from '../common/navigator'
-
-import engine from '../engine'
 
 class MetaNavigator extends Component {
   constructor () {
@@ -25,15 +21,15 @@ class MetaNavigator extends Component {
     }
   }
 
-  hasDeeperRoute(restRoutes, parseNextRoute){
-    return (parseNextRoute != null);
+  hasDeeperRoute (restRoutes, parseNextRoute) {
+    return (parseNextRoute != null)
   }
 
-  isParentOfRoute(routeParent, routeMaybeChild) {
-    return routeMaybeChild.slice(0,routeParent.length).join(",") === routeParent.join(",")
+  isParentOfRoute (routeParent, routeMaybeChild) {
+    return routeMaybeChild.slice(0, routeParent.length).join(',') === routeParent.join(',')
   }
 
-  shouldComponentUpdate(nextProps, nextState) {
+  shouldComponentUpdate (nextProps, nextState) {
     const { store, rootRouteParser } = this.props
     const route = this.props.router.uri
     const nextRoute = nextProps.router.uri
@@ -47,27 +43,26 @@ class MetaNavigator extends Component {
       return true
     // TODO: also check to see if this route exists in the navigator's route
     } else if (this.isParentOfRoute(nextRoute, route)) {
-      const routesToPop = route.length - nextRoute.length
       const navRoutes = this.refs.navigator.getCurrentRoutes()
       const targetRoute = navRoutes.find(navRoute => {
         return (
           navRoute.component === componentAtTop.component && navRoute.title === componentAtTop.title
         )
       })
-      this.refs.navigator.popToRoute(targetRoute);
-      return true;
+      this.refs.navigator.popToRoute(targetRoute)
+      return true
     } else {
       this.refs.navigator.immediatelyResetRouteStack(nextRouteStack)
-      return true;
+      return true
     }
   }
 
-  getComponentAtTop(rootRouteParser, store, route){
+  getComponentAtTop (rootRouteParser, store, route) {
     let {componentAtTop, restRoutes, parseNextRoute} = rootRouteParser(store, route)
     let routeStack = [componentAtTop]
 
-    while (this.hasDeeperRoute(restRoutes, parseNextRoute)){
-      console.log("rest routes", restRoutes)
+    while (this.hasDeeperRoute(restRoutes, parseNextRoute)) {
+      console.log('rest routes', restRoutes)
       const t = parseNextRoute(store, restRoutes)
       componentAtTop = t.componentAtTop
       restRoutes = t.restRoutes
@@ -91,17 +86,17 @@ class MetaNavigator extends Component {
 
     let {componentAtTop, routeStack} = this.getComponentAtTop(rootRouteParser, store, route)
 
-    console.log("Stack:", routeStack)
-    console.log("Rendering", componentAtTop)
+    console.log('Stack:', routeStack)
+    console.log('Rendering', componentAtTop)
     return (
-      //React.createElement(connect(componentAtTop.mapStateToProps || (state => state))(componentAtTop.component), {...componentAtTop.props})
+      // React.createElement(connect(componentAtTop.mapStateToProps || (state => state))(componentAtTop.component), {...componentAtTop.props})
       // TODO(mm): to focus on the navigation part and not the push/pop we're commenting this out for now.
       <Navigator
         saveName='main'
         ref='navigator'
         initialRouteStack={routeStack}
         renderScene={(route, navigator) => {
-          console.log("Doing route:", route)
+          console.log('Doing route:', route)
           return (
             React.createElement(connect(componentAtTop.mapStateToProps || (state => state))(route.component), {...route.props})
           )
