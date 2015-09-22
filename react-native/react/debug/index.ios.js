@@ -7,7 +7,7 @@
 import React from 'react-native'
 const { Component, View, Text } = React
 
-import { navigateTo } from '../actions/router'
+import { navigateTo, routeAppend } from '../actions/router'
 
 class Debug extends Component {
   constructor () {
@@ -70,13 +70,17 @@ class DebugPage2 extends Component {
         <Text style={{textAlign:"center"}}>Page 2</Text>
         <Text
           style={{textAlign:"center", color:"blue"}}
-          onPress={()=>this.props.dispatch(navigateTo(["debug"]))}>go back</Text>
+          onPress={()=>this.props.dispatch(routeAppend("page3"))}>infinite recursion</Text>
+        <Text
+          style={{textAlign:"center", color:"blue"}}
+          onPress={()=>this.props.dispatch(navigateTo(["debug"]))}>go back to debug</Text>
       </View>
     )
   }
 
   static parseRoute (store, route) {
     const routes = {
+      page3: DebugPage3.parseRoute
     }
 
     const [top, ...rest] = route;
@@ -94,6 +98,43 @@ class DebugPage2 extends Component {
 
   }
 }
+
+class DebugPage3 extends Component {
+  render () {
+    return (
+      <View style={{flex:1, marginTop:100}}>
+        <Text style={{textAlign:"center"}}>Page 3</Text>
+        <Text
+          style={{textAlign:"center", color:"blue"}}
+          onPress={()=>this.props.dispatch(routeAppend("page2"))}>infinite recursion</Text>
+        <Text
+          style={{textAlign:"center", color:"blue"}}
+          onPress={()=>this.props.dispatch(navigateTo(["debug"]))}>go back to debug</Text>
+      </View>
+    )
+  }
+
+  static parseRoute (store, route) {
+    const routes = {
+      page2: DebugPage2.parseRoute
+    }
+
+    const [top, ...rest] = route;
+
+    const componentAtTop = {
+      title: 'Debug Page 3',
+      component: DebugPage3
+    }
+
+    return {
+      componentAtTop,
+      restRoutes: rest,
+      parseNextRoute: routes[top] || null
+    }
+
+  }
+}
+
 Debug.propTypes = {
   navigator: React.PropTypes.object
 }

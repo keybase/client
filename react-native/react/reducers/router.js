@@ -26,6 +26,11 @@ export default function (state = initialState, action) {
         ...state,
         uri: action.uri
       }
+    case routerTypes.NAVIGATE_APPEND:
+      state.uri.push(action.topRoute)
+      return {
+        ...state
+      }
     case loginTypes.START_LOGIN:
       return {
         ...state,

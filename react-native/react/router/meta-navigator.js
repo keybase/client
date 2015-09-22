@@ -60,6 +60,7 @@ class MetaNavigator extends Component {
 
     return (
       React.createElement(connect(state => state.login)(componentAtTop.component), {...componentAtTop.props})
+      // TODO(mm): to focus on the navigation part and not the push/pop we're commenting this out for now.
       //<Navigator
       //  saveName='main'
       //  ref='navigator'

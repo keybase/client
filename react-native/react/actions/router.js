@@ -8,3 +8,10 @@ export function navigateTo (uri) {
     uri: uri
   }
 }
+
+export function routeAppend (routeStr) {
+  return {
+    type: types.NAVIGATE_APPEND,
+    topRoute: routeStr
+  }
+}
