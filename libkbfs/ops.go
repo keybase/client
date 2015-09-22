@@ -153,23 +153,28 @@ func (ro *rmOp) String() string {
 
 // renameOp is an op representing a rename of a file/subdirectory from
 // one directory to another.  If this is a rename within the same
-// directory, NewDir will be equivalent to blockUpdate{}.
+// directory, NewDir will be equivalent to blockUpdate{}.  renameOp
+// records the moved pointer, even though it doesn't change as part of
+// the operation, to make it possible to track the full path of
+// directories for the purposes of conflict resolution.
 type renameOp struct {
 	OpCommon
-	OldName string      `codec:"on"`
-	OldDir  blockUpdate `codec:"od"`
-	NewName string      `codec:"nn"`
-	NewDir  blockUpdate `codec:"nd"`
+	OldName string       `codec:"on"`
+	OldDir  blockUpdate  `codec:"od"`
+	NewName string       `codec:"nn"`
+	NewDir  blockUpdate  `codec:"nd"`
+	Renamed BlockPointer `codec:"re"`
 }
 
 func newRenameOp(oldName string, oldOldDir BlockPointer,
-	newName string, oldNewDir BlockPointer) *renameOp {
+	newName string, oldNewDir BlockPointer, renamed BlockPointer) *renameOp {
 	ro := &renameOp{
 		OpCommon: OpCommon{
 			customUpdates: make(map[BlockPointer]*blockUpdate),
 		},
 		OldName: oldName,
 		NewName: newName,
+		Renamed: renamed,
 	}
 	ro.OldDir.Unref = oldOldDir
 	ro.customUpdates[oldOldDir] = &ro.OldDir
@@ -349,7 +354,7 @@ func invertOpForLocalNotifications(oldOp op) op {
 		newOp = newCreateOp(op.OldName, op.Dir.Ref, File)
 	case *renameOp:
 		newOp = newRenameOp(op.NewName, op.NewDir.Ref,
-			op.OldName, op.OldDir.Ref)
+			op.OldName, op.OldDir.Ref, op.Renamed)
 	case *syncOp:
 		// Just replay the writes; for notifications purposes, they
 		// will do the right job of marking the right bytes as

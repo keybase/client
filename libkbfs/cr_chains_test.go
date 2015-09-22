@@ -146,10 +146,12 @@ func TestCRChainsRenameOp(t *testing.T) {
 	rootPtrUnref := ptrs[0]
 	dir1Unref := ptrs[1]
 	dir2Unref := ptrs[2]
+	filePtr := BlockPointer{ID: fakeBlockID(currPtr)}
+	currPtr++
 	expected := make(map[BlockPointer]BlockPointer)
 
 	oldName, newName := "old", "new"
-	ro := newRenameOp(oldName, dir1Unref, newName, dir2Unref)
+	ro := newRenameOp(oldName, dir1Unref, newName, dir2Unref, filePtr)
 	currPtr = testCRFillOpPtrs(currPtr, expected, revPtrs,
 		[]BlockPointer{rootPtrUnref, dir1Unref, dir2Unref}, ro)
 	rmd.AddOp(ro)
@@ -189,6 +191,8 @@ func TestCRChainsMultiOps(t *testing.T) {
 	dir2Unref := ptrs[2]
 	dir3Unref := ptrs[3]
 	file4Unref := ptrs[4]
+	file2Ptr := BlockPointer{ID: fakeBlockID(currPtr)}
+	currPtr++
 	expected := make(map[BlockPointer]BlockPointer)
 
 	bigRmd := &RootMetadata{}
@@ -216,7 +220,7 @@ func TestCRChainsMultiOps(t *testing.T) {
 
 	// rename root/dir3/file2 root/dir1/file4
 	op3 := newRenameOp(f2, expected[dir3Unref], f4,
-		expected[dir1Unref])
+		expected[dir1Unref], file2Ptr)
 	currPtr = testCRFillOpPtrs(currPtr, expected, revPtrs,
 		[]BlockPointer{expected[rootPtrUnref], expected[dir1Unref],
 			expected[dir3Unref]}, op3)
@@ -314,6 +318,10 @@ func TestCRChainsCollapse(t *testing.T) {
 	rootPtrUnref := ptrs[0]
 	dir1Unref := ptrs[1]
 	dir2Unref := ptrs[2]
+	file1Ptr := BlockPointer{ID: fakeBlockID(currPtr)}
+	currPtr++
+	file4Ptr := BlockPointer{ID: fakeBlockID(currPtr)}
+	currPtr++
 	expected := make(map[BlockPointer]BlockPointer)
 
 	rmd := &RootMetadata{}
@@ -349,7 +357,8 @@ func TestCRChainsCollapse(t *testing.T) {
 	rmd.AddOp(op5)
 
 	// rename root/dir2/file1 root/dir1/file3
-	op6 := newRenameOp(f1, expected[dir2Unref], f3, expected[dir1Unref])
+	op6 := newRenameOp(f1, expected[dir2Unref], f3, expected[dir1Unref],
+		file1Ptr)
 	currPtr = testCRFillOpPtrs(currPtr, expected, revPtrs,
 		[]BlockPointer{expected[rootPtrUnref], expected[dir1Unref],
 			expected[dir2Unref]}, op6)
@@ -362,7 +371,8 @@ func TestCRChainsCollapse(t *testing.T) {
 	rmd.AddOp(op7)
 
 	// rename root/dir1/file4 root/dir1/file3
-	op8 := newRenameOp(f4, expected[dir1Unref], f3, expected[dir1Unref])
+	op8 := newRenameOp(f4, expected[dir1Unref], f3, expected[dir1Unref],
+		file4Ptr)
 	currPtr = testCRFillOpPtrs(currPtr, expected, revPtrs,
 		[]BlockPointer{expected[rootPtrUnref], expected[dir1Unref]}, op8)
 	rmd.AddOp(op8)

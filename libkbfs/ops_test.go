@@ -51,6 +51,7 @@ func TestOpInversion(t *testing.T) {
 	newPtr1 := BlockPointer{ID: fakeBlockID(82)}
 	oldPtr2 := BlockPointer{ID: fakeBlockID(43)}
 	newPtr2 := BlockPointer{ID: fakeBlockID(83)}
+	filePtr := BlockPointer{ID: fakeBlockID(44)}
 
 	cop := newCreateOp("test1", oldPtr1, File)
 	cop.AddUpdate(oldPtr1, newPtr1)
@@ -74,10 +75,10 @@ func TestOpInversion(t *testing.T) {
 	}
 
 	// rename
-	rop := newRenameOp("old", oldPtr1, "new", oldPtr2)
+	rop := newRenameOp("old", oldPtr1, "new", oldPtr2, filePtr)
 	rop.AddUpdate(oldPtr1, newPtr1)
 	rop.AddUpdate(oldPtr2, newPtr2)
-	expectedIOp3 := newRenameOp("new", newPtr2, "old", newPtr1)
+	expectedIOp3 := newRenameOp("new", newPtr2, "old", newPtr1, filePtr)
 	expectedIOp3.AddUpdate(newPtr1, oldPtr1)
 	expectedIOp3.AddUpdate(newPtr2, oldPtr2)
 

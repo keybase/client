@@ -1778,13 +1778,14 @@ func (fbo *FolderBranchOps) renameLocked(
 	if err != nil {
 		return err
 	}
-	// does name exist?
-	if _, ok := oldPBlock.Children[oldName]; !ok {
+	newDe, ok := oldPBlock.Children[oldName]
+	// does the name exist?
+	if !ok {
 		return NoSuchNameError{oldName}
 	}
 
 	md.AddOp(newRenameOp(oldName, oldParent.tailPointer(), newName,
-		newParent.tailPointer()))
+		newParent.tailPointer(), newDe.BlockPointer))
 
 	lbc := make(localBcache)
 	// look up in the old path
@@ -1841,7 +1842,6 @@ func (fbo *FolderBranchOps) renameLocked(
 		}
 	}
 
-	newDe := oldPBlock.Children[oldName]
 	// only the ctime changes
 	newDe.Ctime = time.Now().UnixNano()
 	newPBlock.Children[newName] = newDe
@@ -3237,34 +3237,20 @@ func (fbo *FolderBranchOps) notifyOneOp(ctx context.Context, op op,
 		}
 
 		if oldNode != nil {
-			fbo.log.CDebugf(ctx, "notifyOneOp: rename %s/%p to %s/%p",
-				realOp.OldName, oldNode, realOp.NewName, newNode)
-			oldPath := *fbo.nodeCache.PathFromNode(oldNode).
-				ChildPathNoPtr(realOp.OldName)
-			// we want the non-updated old path, so we can look up the old name
-			oldPath.path[len(oldPath.path)-2].BlockPointer = realOp.OldDir.Unref
-			// find the node for the actual change; requires looking up
-			// the directory entry to get the BlockPointer, unfortunately.
-			var de DirEntry
-			var err error
-			func() {
-				fbo.blockLock.RLock()
-				defer fbo.blockLock.RUnlock()
-				_, de, err = fbo.getEntryLocked(ctx, md, oldPath)
-			}()
-			if err != nil {
-				return
-			}
+			fbo.log.CDebugf(ctx, "notifyOneOp: rename %v from %s/%p to %s/%p",
+				realOp.Renamed, realOp.OldName, oldNode, realOp.NewName,
+				newNode)
 
 			if newNode == nil {
 				if childNode :=
-					fbo.nodeCache.Get(de.BlockPointer); childNode != nil {
+					fbo.nodeCache.Get(realOp.Renamed); childNode != nil {
 					// if the childNode exists, we still have to update
 					// its path to go through the new node.  That means
 					// creating nodes for all the intervening paths.
 					// Unfortunately we don't have enough information to
 					// know what the newPath is; we have to guess it from
 					// the updates.
+					var err error
 					newNode, err =
 						fbo.searchForNode(ctx, realOp.NewDir.Ref, realOp, md)
 					if newNode == nil {
@@ -3276,8 +3262,8 @@ func (fbo *FolderBranchOps) notifyOneOp(ctx context.Context, op op,
 
 			if newNode != nil {
 				// if new node exists as well, move the node
-				err =
-					fbo.nodeCache.Move(de.BlockPointer, newNode, realOp.NewName)
+				err :=
+					fbo.nodeCache.Move(realOp.Renamed, newNode, realOp.NewName)
 				if err != nil {
 					return
 				}
