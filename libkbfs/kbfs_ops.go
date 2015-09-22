@@ -260,6 +260,14 @@ func (fs *KBFSOpsStandard) UnstageForTesting(
 	return ops.UnstageForTesting(ctx, folderBranch)
 }
 
+// RekeyForTesting implements the KBFSOps interface for KBFSOpsStandard
+// TODO: remove once we have automatic rekeying
+func (fs *KBFSOpsStandard) RekeyForTesting(
+	ctx context.Context, folderBranch FolderBranch) error {
+	ops := fs.getOps(folderBranch)
+	return ops.RekeyForTesting(ctx, folderBranch)
+}
+
 // SyncFromServer implements the KBFSOps interface for KBFSOpsStandard
 func (fs *KBFSOpsStandard) SyncFromServer(
 	ctx context.Context, folderBranch FolderBranch) error {

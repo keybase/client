@@ -1028,6 +1028,23 @@ func (fbo *FolderBranchOps) cacheBlockIfNotYetDirtyLocked(
 
 type localBcache map[BlockPointer]*DirBlock
 
+// writerLock must be taken by caller.
+func (fbo *FolderBranchOps) incrementMDLocked(md *RootMetadata) (err error) {
+	// no need to take headLock here, since we already have
+	// writerLock; no one else will be modifying the MD.
+	md.PrevRoot, err = fbo.head.MetadataID(fbo.config)
+	if err != nil {
+		return err
+	}
+	// bump revision
+	if md.Revision < MetadataRevisionInitial {
+		md.Revision = MetadataRevisionInitial
+	} else {
+		md.Revision++
+	}
+	return nil
+}
+
 // TODO: deal with multiple nodes for indirect blocks
 //
 // entryType must not be Sym.  writerLock must be taken by caller.
@@ -1073,17 +1090,9 @@ func (fbo *FolderBranchOps) syncBlockLocked(ctx context.Context,
 		if prevIdx < 0 {
 			// root dir, update the MD instead
 			de = md.data.Dir
-			// no need to take headLock here, since we already have
-			// writerLock; no one else will be modifying the MD.
-			md.PrevRoot, err = fbo.head.MetadataID(fbo.config)
+			err := fbo.incrementMDLocked(md)
 			if err != nil {
 				return path{}, DirEntry{}, nil, err
-			}
-			// bump revision
-			if md.Revision < MetadataRevisionInitial {
-				md.Revision = MetadataRevisionInitial
-			} else {
-				md.Revision++
 			}
 		} else {
 			prevDir := path{
@@ -3486,6 +3495,45 @@ func (fbo *FolderBranchOps) UnstageForTesting(
 	case <-ctx.Done():
 		return ctx.Err()
 	}
+}
+
+// RekeyForTesting implements the KBFSOps interface for FolderBranchOps
+// TODO: remove once we have automatic rekeying
+func (fbo *FolderBranchOps) RekeyForTesting(
+	ctx context.Context, folderBranch FolderBranch) (err error) {
+	fbo.log.CDebugf(ctx, "RekeyForTesting")
+	defer func() { fbo.log.CDebugf(ctx, "Done: %v", err) }()
+
+	if folderBranch != fbo.folderBranch {
+		return WrongOpsError{fbo.folderBranch, folderBranch}
+	}
+
+	fbo.writerLock.Lock()
+	defer fbo.writerLock.Unlock()
+
+	md, err := fbo.getMDForWriteLocked(ctx)
+	if err != nil {
+		return err
+	}
+
+	if err := fbo.config.KeyManager().Rekey(ctx, md); err != nil {
+		return err
+	}
+
+	err = fbo.incrementMDLocked(md)
+	if err != nil {
+		return err
+	}
+
+	// add an empty operation to satisfy assumptions elsewhere
+	md.AddOp(newGCOp())
+
+	err = fbo.finalizeWriteLocked(ctx, md, &blockPutState{})
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 // SyncFromServer implements the KBFSOps interface for FolderBranchOps

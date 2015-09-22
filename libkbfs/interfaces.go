@@ -212,6 +212,9 @@ type KBFSOps interface {
 	// folder-branch. TODO: remove this once we have automatic
 	// conflict resolution.
 	UnstageForTesting(ctx context.Context, folderBranch FolderBranch) error
+	// RekeyForTesting rekeys this folder. TODO: remove this once we
+	// have automatic rekeying.
+	RekeyForTesting(ctx context.Context, folderBranch FolderBranch) error
 	// SyncFromServer blocks until the local client has contacted the
 	// server and guaranteed that all known updates for the given
 	// top-level folder have been applied locally (and notifications
