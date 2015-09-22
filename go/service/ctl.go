@@ -49,7 +49,7 @@ func (c *CtlHandler) DbNuke(SessionID int) error {
 
 	fn, err := G.LocalDb.Nuke()
 	if err != nil {
-		ctx.LogUI.Warning("Failed to nuke DB %s: %s", fn, err)
+		ctx.LogUI.Warning("Failed to nuke DB: %s", err)
 		return err
 	}
 	ctx.LogUI.Warning("Nuking database %s", fn)
