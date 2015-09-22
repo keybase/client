@@ -80,9 +80,6 @@ func (p CommandLine) GetProxy() string {
 func (p CommandLine) GetLogFormat() string {
 	return p.GetGString("log-format")
 }
-func (p CommandLine) GetLabel() string {
-	return p.GetGString("label")
-}
 func (p CommandLine) GetGpgHome() string {
 	return p.GetGString("gpg-home")
 }
@@ -97,6 +94,9 @@ func (p CommandLine) GetPinentry() string {
 }
 func (p CommandLine) GetGString(s string) string {
 	return p.ctx.GlobalString(s)
+}
+func (p CommandLine) GetString(s string) string {
+	return p.ctx.String(s)
 }
 func (p CommandLine) GetGInt(s string) int {
 	return p.ctx.GlobalInt(s)

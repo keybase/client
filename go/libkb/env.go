@@ -56,6 +56,7 @@ func (n NullConfiguration) GetUserConfigForUsername(s NormalizedUsername) (*User
 	return nil, nil
 }
 func (n NullConfiguration) GetGString(string) string          { return "" }
+func (n NullConfiguration) GetString(string) string           { return "" }
 func (n NullConfiguration) GetBool(string, bool) (bool, bool) { return false, false }
 
 func (n NullConfiguration) GetAllUsernames() (NormalizedUsername, []NormalizedUsername, error) {
@@ -66,9 +67,6 @@ func (n NullConfiguration) GetDebug() (bool, bool) {
 	return false, false
 }
 func (n NullConfiguration) GetLogFormat() string {
-	return ""
-}
-func (n NullConfiguration) GetLabel() string {
 	return ""
 }
 func (n NullConfiguration) GetAPIDump() (bool, bool) {
@@ -381,9 +379,8 @@ func (e *Env) GetLogFormat() string {
 
 func (e *Env) GetLabel() string {
 	return e.GetString(
-		func() string { return e.cmd.GetLabel() },
+		func() string { return e.cmd.GetString("label") },
 		func() string { return os.Getenv("KEYBASE_LABEL") },
-		func() string { return e.config.GetLabel() },
 	)
 }
 
