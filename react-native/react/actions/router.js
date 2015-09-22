@@ -2,6 +2,12 @@
 
 import * as types from '../constants/routerActionTypes'
 
+export function navigateUp () {
+  return {
+    type: types.NAVIGATE_UP
+  }
+}
+
 export function navigateTo (uri) {
   return {
     type: types.NAVIGATE,

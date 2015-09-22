@@ -59,6 +59,7 @@ class MetaNavigator extends Component {
     console.log("Rendering", componentAtTop)
 
     return (
+      // TODO(mm) change this connect function so it's more versatile (not just login)
       React.createElement(connect(state => state.login)(componentAtTop.component), {...componentAtTop.props})
       // TODO(mm): to focus on the navigation part and not the push/pop we're commenting this out for now.
       //<Navigator

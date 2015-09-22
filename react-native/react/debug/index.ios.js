@@ -7,7 +7,7 @@
 import React from 'react-native'
 const { Component, View, Text } = React
 
-import { navigateTo, routeAppend } from '../actions/router'
+import { navigateTo, routeAppend, navigateUp } from '../actions/router'
 
 class Debug extends Component {
   constructor () {
@@ -70,6 +70,9 @@ class DebugPage2 extends Component {
         <Text style={{textAlign:"center"}}>Page 2</Text>
         <Text
           style={{textAlign:"center", color:"blue"}}
+          onPress={()=>this.props.dispatch(navigateUp())}>Go up the nav hierarchy</Text>
+        <Text
+          style={{textAlign:"center", color:"blue"}}
           onPress={()=>this.props.dispatch(routeAppend("page3"))}>infinite recursion</Text>
         <Text
           style={{textAlign:"center", color:"blue"}}
@@ -104,6 +107,9 @@ class DebugPage3 extends Component {
     return (
       <View style={{flex:1, marginTop:100}}>
         <Text style={{textAlign:"center"}}>Page 3</Text>
+        <Text
+          style={{textAlign:"center", color:"blue"}}
+          onPress={()=>this.props.dispatch(navigateUp())}>Go up the nav hierarchy</Text>
         <Text
           style={{textAlign:"center", color:"blue"}}
           onPress={()=>this.props.dispatch(routeAppend("page2"))}>infinite recursion</Text>
