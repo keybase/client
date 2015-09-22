@@ -32,23 +32,22 @@ class LoginForm extends Component {
   }
 
   render () {
-    let error = null
-    if (this.props.loginError) {
-      error = <Text style={[{margin: 20, padding: 10}, commonStyles.error]} >Error: {this.props.loginError}</Text>
-    }
+    const error = this.props.loginError
+      ? <Text style={[{margin: 20, padding: 10}, commonStyles.error]} >Error: {this.props.loginError}</Text>
+      : null
 
-    let activity = null
-    if (this.props.waitingForServer) {
-      activity = <View style={styles.loginWrapper}>
-        <ActivityIndicatorIOS
-        animating={true}
-        style={{height: 80}}
-        size='large'
-        />
-      </View>
-    }
+    const activity = this.props.waitingForServer
+      ? <View style={styles.loginWrapper}>
+          <ActivityIndicatorIOS
+          animating={true}
+          style={{height: 80}}
+          size='large'
+          />
+        </View>
+      : null
 
-    let button = this.props.waitingForServer ? <Text style={[loginButtonStyle, {color: 'gray', backgroundColor: 'white'}]} >Login</Text>
+    const button = this.props.waitingForServer
+      ? <Text style={[loginButtonStyle, {color: 'gray', backgroundColor: 'white'}]} >Login</Text>
       : <TouchableHighlight
             underlayColor={commonStyles.buttonHighlight}
             onPress={() => this.submit()}>
