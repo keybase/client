@@ -223,10 +223,11 @@ func (s *Session) IsRecent() bool {
 	return time.Since(t) < time.Hour
 }
 
-func (s *Session) Check() error {
+func (s *Session) check() error {
 	s.G().Log.Debug("+ Checking session")
 	if s.IsRecent() {
 		s.G().Log.Debug("- session is recent, short-circuiting")
+		s.valid = true
 		return nil
 	}
 
@@ -316,7 +317,7 @@ func (s *Session) loadAndCheck() (bool, error) {
 		return false, err
 	}
 	if s.HasSessionToken() {
-		err = s.Check()
+		err = s.check()
 	}
 	return s.IsValid(), err
 }
