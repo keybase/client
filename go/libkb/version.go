@@ -11,12 +11,12 @@ const Version = "1.0.0"
 const Build = "23"
 
 // VersionString returns semantic version string.
-// If devel, include build in version string (for development releases), for
-// example, "1.2.3-400". Otherwise only return version string as
-// MAJOR.MINOR.PATCH. For example, "1.2.3".
-func VersionString(devel bool) string {
-	if devel && Build != "" {
-		return fmt.Sprintf("%s-%s", Version, Build)
+// If short is true, don't include build in version string, e.g. "1.2.3".
+// Otherwise include build, e.g. "1.2.3-400".
+func VersionString(short bool) string {
+	if short || Build == "" {
+		return Version
 	}
-	return Version
+	return fmt.Sprintf("%s-%s", Version, Build)
+
 }

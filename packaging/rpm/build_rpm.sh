@@ -22,8 +22,7 @@ build_one_architecture() {
   echo "building Go client for $GOARCH"
   go build -o "$dest/usr/bin/keybase" github.com/keybase/client/go/keybase
 
-  # TODO: Make `keybase --version` behave better.
-  version="$("$dest/usr/bin/keybase" --version 2> /dev/null | cut -d " " -f 3 || true)"
+  version="$("$dest/usr/bin/keybase" version --format=s 2> /dev/null || true)"
 
   spec="$build_root/SPECS/keybase-$rpm_arch.spec"
   mkdir -p "$(dirname "$spec")"
