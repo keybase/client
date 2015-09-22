@@ -1,15 +1,20 @@
-## Exporting a Release
+## Exporting
 
-- Update the version or build in `go/libkb/version.go`.
-- Commit and tag this version:
+This script will export source from the client or kbfs private repositories to a public mirror for beta builds.
 
-        git add go/libkb/version.go
-        git commit -m "New version v1.0.0-15"
+- Update the version.go for the client (`go/libkb/version.go`) or kbfs (`libkbfs/version.go`), and commit it.
+- Tag this version:
+
         git tag -a v1.0.0-15 -m v1.0.0-15
-        git push
         git push --tags
 
-- Clone the client-beta repo (if you haven't already): `git clone https://github.com/keybase/client-beta.git /path/to/client-beta`        
-- Run export: `sh export.sh /path/to/client-beta v1.0.0-15`
-- Review and commit the changes to the client-beta repo, as instructed by the export script.
+- Run export:
+
+        # For client repo
+        sh export.sh client /path/to/client/beta v1.0.0-15
+
+        # For kbfs repo
+        sh export.sh kbfs /path/to/kbfs/beta v1.0.0-15
+
+- Review and commit the changes to the beta repo, as instructed by the export script.
 - See [Updating the Brew Formula](https://github.com/keybase/homebrew-beta/blob/master/GUIDE.md#updating-the-formula).
