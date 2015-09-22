@@ -100,8 +100,6 @@ class KBNavigator extends Component {
       return
     }
 
-    let toSave = {}
-
     const routes = this.navigator.getCurrentRoutes().slice(1).map(function (r) {
       return {
         saveKey: r.saveKey,
@@ -109,8 +107,9 @@ class KBNavigator extends Component {
       }
     })
 
-    toSave[this.props.saveName] = routes
-    Settings.set(toSave)
+    Settings.set({
+      [this.props.saveName]: routes
+    })
   }
 
   configureScene (route) {
