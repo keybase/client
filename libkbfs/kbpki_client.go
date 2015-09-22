@@ -96,7 +96,10 @@ func (k *KBPKIClient) ResolveAssertion(ctx context.Context, username string) (
 	// TODO: Consider caching the returned public key info from
 	// identify instead of dropping them.
 	user, _, err := k.identify(ctx, arg)
-	return user.GetUID(), err
+	if err != nil {
+		return keybase1.UID(""), err
+	}
+	return user.GetUID(), nil
 }
 
 // GetNormalizedUsername implements the KBPKI interface for
