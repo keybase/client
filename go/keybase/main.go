@@ -135,7 +135,7 @@ func registerGlobalLogUI(g *libkb.GlobalContext) error {
 		return err
 	}
 	arg := keybase1.SetLogLevelArg{Level: logLevel}
-        ctlClient.SetLogLevel(arg)
+	ctlClient.SetLogLevel(arg)
 	return nil
 }
 
