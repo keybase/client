@@ -122,6 +122,7 @@ func (r *RemoteLocksmithUI) PromptDeviceName(dummy int) (string, error) {
 }
 
 func (r *RemoteLocksmithUI) DeviceNameTaken(arg keybase1.DeviceNameTakenArg) error {
+	arg.SessionID = r.sessionID
 	return r.uicli.DeviceNameTaken(arg)
 }
 
