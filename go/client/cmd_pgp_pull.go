@@ -5,7 +5,6 @@ import (
 	"github.com/keybase/client/go/libcmdline"
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/protocol/go"
-	"github.com/maxtaco/go-framed-msgpack-rpc/rpc2"
 )
 
 type CmdPGPPull struct {
@@ -23,9 +22,7 @@ func (v *CmdPGPPull) Run() (err error) {
 		return err
 	}
 
-	protocols := []rpc2.Protocol{
-	}
-	if err = RegisterProtocols(protocols); err != nil {
+	if err = RegisterProtocols(nil); err != nil {
 		return err
 	}
 

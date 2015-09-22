@@ -9,7 +9,6 @@ import (
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/protocol/go"
 	jsonw "github.com/keybase/go-jsonw"
-	"github.com/maxtaco/go-framed-msgpack-rpc/rpc2"
 )
 
 type CmdSearch struct {
@@ -32,9 +31,7 @@ func (c *CmdSearch) Run() (err error) {
 		return err
 	}
 
-	protocols := []rpc2.Protocol{
-	}
-	if err = RegisterProtocols(protocols); err != nil {
+	if err = RegisterProtocols(nil); err != nil {
 		return err
 	}
 
