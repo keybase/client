@@ -253,6 +253,10 @@ func NewCmdService(cl *libcmdline.CommandLine) cli.Command {
 				Name:  "chdir",
 				Usage: "Specify where to run as a daemon (via chdir)",
 			},
+			cli.StringFlag{
+				Name:  "label",
+				Usage: "Specifying a label can help identify services.",
+			},
 		},
 		Action: func(c *cli.Context) {
 			cl.ChooseCommand(NewService(true /* isDaemon */), "service", c)

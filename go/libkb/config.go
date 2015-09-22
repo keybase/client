@@ -424,9 +424,6 @@ func (f JSONConfigFile) GetAutoFork() (bool, bool) {
 func (f JSONConfigFile) GetLogFormat() string {
 	return f.GetTopLevelString("log_format")
 }
-func (f JSONConfigFile) GetLabel() string {
-	return f.GetTopLevelString("label")
-}
 func (f JSONConfigFile) GetStandalone() (bool, bool) {
 	return f.GetTopLevelBool("standalone")
 }
