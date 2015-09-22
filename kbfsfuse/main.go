@@ -28,10 +28,13 @@ var versionFile = flag.String("version-file", "", "write version to file on succ
 var mountType = flag.String("mount-type", "", "mount type: default, force")
 var debug = flag.Bool("debug", false, "Print debug messages")
 var version = flag.Bool("version", false, "Print version")
+var bserverAddr = flag.String("bserver", "", "host:port of the block server (ex: bserver.dev.keybase.io:443)")
+var mdserverAddr = flag.String("mdserver", "", "host:port of the metadata server (ex: mdserver.dev.keybase.io:443)")
 
 const usageStr = `Usage:
   kbfsfuse [-client | -local [-localuser=<user>]] [-debug]
-    [-server-in-memory|-server-root=path/to/dir] /path/to/mountpoint
+    [-server-in-memory|-server-root=path/to/dir]
+    [-bserver=host:port] [-mdserver=host:port] /path/to/mountpoint
 
 `
 
@@ -85,6 +88,8 @@ func start() *libfuse.Error {
 		MemProfile:    *memprofile,
 		VersionFile:   *versionFile,
 		Debug:         *debug,
+		BServerAddr:   *bserverAddr,
+		MDServerAddr:  *mdserverAddr,
 	}
 
 	return libfuse.Start(mounter, options)

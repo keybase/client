@@ -12,17 +12,11 @@ import (
 )
 
 const (
-	// EnvMDServerAddr is the environment variable name for an mdserver address.
-	EnvMDServerAddr = "KEYBASE_MDSERVER_BIND_ADDR"
-	// EnvBServerAddr is the environment variable name for a block
+	// EnvTestMDServerAddr is the environment variable name for an mdserver address.
+	EnvTestMDServerAddr = "KEYBASE_TEST_MDSERVER_ADDR"
+	// EnvTestBServerAddr is the environment variable name for a block
 	// server address.
-	EnvBServerAddr = "KEYBASE_BSERVER_BIND_ADDR"
-	// EnvMDServerCACertPEM is the environment variable name for the CA cert
-	// PEM the client uses to verify the KBFS md servers.
-	EnvMDServerCACertPEM = "KEYBASE_MDSERVER_CA_CERT_PEM"
-	// EnvBServerCACertPEM is the environment variable name for the CA cert
-	// PEM the client uses to verify the KBFS block servers.
-	EnvBServerCACertPEM = "KEYBASE_BSERVER_CA_CERT_PEM"
+	EnvTestBServerAddr = "KEYBASE_TEST_BSERVER_ADDR"
 )
 
 // RandomBlockID returns a randomly-generated BlockID for testing.
@@ -98,7 +92,7 @@ func MakeTestConfigOrBust(t *testing.T, users ...libkb.NormalizedUsername) *Conf
 	config.SetCrypto(crypto)
 
 	// see if a local remote server is specified
-	bserverAddr := os.Getenv(EnvBServerAddr)
+	bserverAddr := os.Getenv(EnvTestBServerAddr)
 	if len(bserverAddr) != 0 {
 		blockServer :=
 			NewBlockServerRemote(context.TODO(), config, bserverAddr)
@@ -112,7 +106,7 @@ func MakeTestConfigOrBust(t *testing.T, users ...libkb.NormalizedUsername) *Conf
 	}
 
 	// see if a local remote server is specified
-	mdServerAddr := os.Getenv(EnvMDServerAddr)
+	mdServerAddr := os.Getenv(EnvTestMDServerAddr)
 
 	var err error
 	var mdServer MDServer
@@ -158,6 +152,7 @@ func MakeTestConfigOrBust(t *testing.T, users ...libkb.NormalizedUsername) *Conf
 func ConfigAsUser(config *ConfigLocal, loggedInUser libkb.NormalizedUsername) *ConfigLocal {
 	c := NewConfigLocal()
 	c.SetLoggerMaker(config.loggerFn)
+	c.SetRootCerts(config.RootCerts())
 
 	daemon := config.KeybaseDaemon().(KeybaseDaemonLocal)
 	loggedInUID, ok := daemon.asserts[string(loggedInUser)]
@@ -186,7 +181,7 @@ func ConfigAsUser(config *ConfigLocal, loggedInUser libkb.NormalizedUsername) *C
 	}
 
 	// see if a local remote server is specified
-	mdServerAddr := os.Getenv(EnvMDServerAddr)
+	mdServerAddr := os.Getenv(EnvTestMDServerAddr)
 
 	var mdServer MDServer
 	var keyServer KeyServer

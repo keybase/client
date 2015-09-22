@@ -1,8 +1,8 @@
 package libkbfs
 
-// TestCACert is a CA cert which can be used for testing TLS support.
+// TestRootCert is a CA cert which can be used for testing TLS support.
 // 127.0.0.1 is the only supported address.
-const TestCACert = `Certificate:
+const TestRootCert = `Certificate:
     Data:
         Version: 3 (0x2)
         Serial Number:
@@ -81,8 +81,8 @@ RFk92WE1AXVSCiz/9f7fE+XZeTp32dkRtEDgirHfpBlSH/G7O6w1lhfeeNztuHmh
 L/mdMRuebJMXt/7x/qQAReuF+IKFbw2Tk/DTjA==
 -----END CERTIFICATE-----`
 
-// TestCAKey can be used with the above cert+public key to test TLS support.
-const TestCAKey = `-----BEGIN RSA PRIVATE KEY-----
+// TestRootKey can be used with the above cert+public key to test TLS support.
+const TestRootKey = `-----BEGIN RSA PRIVATE KEY-----
 MIIEpQIBAAKCAQEA3KoIOvkDEViq0IHkyhGX70L7xoPi3t/AY64Oefa+63CN8Btz
 +/KZrwRW//LDJnz76/z8/SM+neXCZ95ZKUJxJPg/6JGCTWSBkKQwRu3EJXY9uk5w
 BrHueKxIlfHolH30m7cezZ2c/UhZUOvxKR+2NOTn0YURZ7sI+jvEKaGnEIoORIW+
@@ -109,3 +109,87 @@ wNFYwV0CgYEAqD+ojYP6i7shKJal7U8mi1pPrytjIx6DyMlqY4fl3MQ3IMGdZ1nI
 aOOhUtJxzorYWSCcNZKCUFu1esbmDO4PlkfnzaBVCqPZ3CThPnmUBZ2wg9rpZu2S
 7Q0sQ3FFXg9WqcsduaKRy5d8LKH8ikRooQw/Q5BpZ1tfKJStU6Xjf9U=
 -----END RSA PRIVATE KEY-----`
+
+// DevRootCerts are the root CA certificates for the dev VPC.
+// During rotation multiple certificates are expected in the PEM blob.
+const DevRootCerts = `Certificate:
+    Data:
+        Version: 3 (0x2)
+        Serial Number:
+            d4:4c:7a:84:73:dd:78:39:73:c9:13:d9:fe:64:f7:03
+        Signature Algorithm: sha256WithRSAEncryption
+        Issuer: DC=io, DC=dev.keybase, CN=Keybase KBFS CA dev
+        Validity
+            Not Before: Sep 23 19:47:37 2015 GMT
+            Not After : Sep 22 19:47:37 2017 GMT
+        Subject: DC=io, DC=dev.keybase, CN=Keybase KBFS CA dev
+        Subject Public Key Info:
+            Public Key Algorithm: rsaEncryption
+            RSA Public Key: (2048 bit)
+                Modulus (2048 bit):
+                    00:b5:82:4e:9a:3c:34:d7:86:33:a9:c8:90:d5:be:
+                    e2:a8:8c:f2:87:2e:16:30:f0:d8:4a:fa:5c:98:67:
+                    72:08:fb:c6:34:c6:7f:ff:72:66:a9:d7:78:61:f2:
+                    1c:64:fa:e8:0b:4a:97:96:dc:f2:ca:27:e3:e9:e9:
+                    5a:6b:ec:e3:b3:97:39:11:7b:60:68:bc:f5:df:4a:
+                    06:52:02:e0:d0:9e:b5:92:c1:49:55:a2:48:6f:97:
+                    5d:22:ab:98:87:df:8b:a0:f4:52:88:e9:65:cd:9b:
+                    96:7c:e0:7a:31:0e:8a:2d:6e:08:34:9a:8f:a4:d1:
+                    2d:c0:bc:cf:f7:97:2a:af:83:b4:f7:1f:36:73:cb:
+                    d2:9b:b9:0a:25:0d:ac:7d:5c:03:d3:d2:fa:33:b5:
+                    3a:89:c2:18:f1:b9:c9:58:d6:6c:1c:34:9d:07:d3:
+                    86:16:a9:9b:d2:28:86:d7:5b:63:39:50:89:26:c4:
+                    d7:ed:dc:b4:dc:02:3c:b6:ac:de:69:94:5a:47:2b:
+                    ad:56:e7:d4:56:b9:e0:b9:df:35:1d:ae:a6:76:51:
+                    35:9e:dc:cd:f0:7f:be:dc:a6:50:9e:bf:cb:c7:4b:
+                    61:39:a7:cc:c1:45:63:2e:35:e8:53:a6:be:be:0d:
+                    a8:b0:64:68:c5:a0:f7:1a:7e:29:e4:77:d3:4e:38:
+                    02:27
+                Exponent: 65537 (0x10001)
+        X509v3 extensions:
+            X509v3 Basic Constraints: critical
+                CA:TRUE
+            X509v3 Key Usage: critical
+                Certificate Sign, CRL Sign
+            X509v3 Subject Key Identifier: 
+                17:5B:EB:E8:7E:42:AE:6F:5D:45:A8:F7:D4:1B:6A:D4:13:5F:AB:BE
+            X509v3 Authority Key Identifier: 
+                keyid:17:5B:EB:E8:7E:42:AE:6F:5D:45:A8:F7:D4:1B:6A:D4:13:5F:AB:BE
+
+    Signature Algorithm: sha256WithRSAEncryption
+        2b:86:9d:0a:5d:f2:47:12:15:5c:51:7a:98:62:37:67:a5:94:
+        23:ab:7f:b4:68:a8:cc:8e:09:d5:59:e9:31:c3:00:40:46:1e:
+        32:73:2d:9e:ef:4e:ba:ae:ed:5e:0d:9a:fa:9b:21:98:2b:ef:
+        ef:8d:78:ad:b9:6b:6a:ef:f7:3f:16:27:de:ce:08:de:ea:8f:
+        65:07:54:cf:6a:68:10:78:4f:2c:96:aa:80:81:cd:ce:c5:3a:
+        9b:00:07:fe:af:12:5e:95:c2:3a:68:e9:bb:b6:a5:f4:e2:4f:
+        00:8a:e8:66:76:be:b8:70:cf:cd:b1:94:ca:51:ba:c2:1c:25:
+        4d:1c:f3:63:f3:05:a4:ad:bf:69:6d:71:ff:ab:4f:86:b7:f8:
+        30:e0:c8:8b:ea:9d:58:b9:2a:f8:48:81:0d:a8:3a:4f:54:58:
+        8e:09:c6:ce:4a:2c:39:38:73:de:fd:5c:0b:b6:cf:e0:dd:ed:
+        cd:49:7a:9d:e7:79:d0:5b:5f:c2:82:94:81:75:3e:f7:a1:6c:
+        3e:48:17:ef:db:52:ae:24:de:4a:ef:8e:52:f1:df:49:7d:b2:
+        c8:b5:68:0c:ef:7a:3d:e0:c4:8b:3a:95:04:97:61:7b:aa:a5:
+        e3:d9:e3:81:11:85:88:31:b4:63:30:c6:7b:57:39:ae:a3:9c:
+        28:dc:cf:22
+-----BEGIN CERTIFICATE-----
+MIIDjDCCAnSgAwIBAgIRANRMeoRz3Xg5c8kT2f5k9wMwDQYJKoZIhvcNAQELBQAw
+TzESMBAGCgmSJomT8ixkARkWAmlvMRswGQYKCZImiZPyLGQBGRYLZGV2LmtleWJh
+c2UxHDAaBgNVBAMME0tleWJhc2UgS0JGUyBDQSBkZXYwHhcNMTUwOTIzMTk0NzM3
+WhcNMTcwOTIyMTk0NzM3WjBPMRIwEAYKCZImiZPyLGQBGRYCaW8xGzAZBgoJkiaJ
+k/IsZAEZFgtkZXYua2V5YmFzZTEcMBoGA1UEAwwTS2V5YmFzZSBLQkZTIENBIGRl
+djCCASIwDQYJKoZIhvcNAQEBBQADggEPADCCAQoCggEBALWCTpo8NNeGM6nIkNW+
+4qiM8ocuFjDw2Er6XJhncgj7xjTGf/9yZqnXeGHyHGT66AtKl5bc8son4+npWmvs
+47OXORF7YGi89d9KBlIC4NCetZLBSVWiSG+XXSKrmIffi6D0UojpZc2blnzgejEO
+ii1uCDSaj6TRLcC8z/eXKq+DtPcfNnPL0pu5CiUNrH1cA9PS+jO1OonCGPG5yVjW
+bBw0nQfThhapm9IohtdbYzlQiSbE1+3ctNwCPLas3mmUWkcrrVbn1Fa54LnfNR2u
+pnZRNZ7czfB/vtymUJ6/y8dLYTmnzMFFYy416FOmvr4NqLBkaMWg9xp+KeR30044
+AicCAwEAAaNjMGEwDwYDVR0TAQH/BAUwAwEB/zAOBgNVHQ8BAf8EBAMCAQYwHQYD
+VR0OBBYEFBdb6+h+Qq5vXUWo99QbatQTX6u+MB8GA1UdIwQYMBaAFBdb6+h+Qq5v
+XUWo99QbatQTX6u+MA0GCSqGSIb3DQEBCwUAA4IBAQArhp0KXfJHEhVcUXqYYjdn
+pZQjq3+0aKjMjgnVWekxwwBARh4ycy2e7066ru1eDZr6myGYK+/vjXituWtq7/c/
+Fifezgje6o9lB1TPamgQeE8slqqAgc3OxTqbAAf+rxJelcI6aOm7tqX04k8Aiuhm
+dr64cM/NsZTKUbrCHCVNHPNj8wWkrb9pbXH/q0+Gt/gw4MiL6p1YuSr4SIENqDpP
+VFiOCcbOSiw5OHPe/VwLts/g3e3NSXqd53nQW1/CgpSBdT73oWw+SBfv21KuJN5K
+745S8d9JfbLItWgM73o94MSLOpUEl2F7qqXj2eOBEYWIMbRjMMZ7Vzmuo5wo3M8i
+-----END CERTIFICATE-----`

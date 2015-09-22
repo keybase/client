@@ -18,6 +18,8 @@ type StartOptions struct {
 	MemProfile    string
 	VersionFile   string
 	Debug         bool
+	BServerAddr   string
+	MDServerAddr  string
 }
 
 // Start the filesystem
@@ -45,7 +47,9 @@ func Start(mounter Mounter, options StartOptions) *Error {
 		}
 	}
 
-	config, err := libkbfs.Init(options.LocalUser, options.ServerRootDir, options.CPUProfile, options.MemProfile, onInterruptFn, options.Debug)
+	config, err := libkbfs.Init(options.LocalUser, options.ServerRootDir,
+		options.CPUProfile, options.MemProfile, onInterruptFn, options.Debug,
+		options.BServerAddr, options.MDServerAddr)
 	if err != nil {
 		return InitError(err.Error())
 	}

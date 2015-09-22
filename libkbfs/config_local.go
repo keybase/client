@@ -9,31 +9,39 @@ import (
 	"github.com/rcrowley/go-metrics"
 )
 
+const (
+	// EnvTestRootCertPEM is the environment variable name for the CA cert
+	// PEM the client uses to verify the KBFS servers when testing. Any
+	// certificate present here is the default. If none is specified we'll
+	// then default to the hardcoded test certificate. Individual run modes
+	// can override either of these.
+	EnvTestRootCertPEM = "KEYBASE_TEST_ROOT_CERT_PEM"
+)
+
 // ConfigLocal implements the Config interface using purely local
 // server objects (no KBFS operations used RPCs).
 type ConfigLocal struct {
-	kbfs           KBFSOps
-	kbpki          KBPKI
-	keyman         KeyManager
-	rep            Reporter
-	mdcache        MDCache
-	kcache         KeyCache
-	bcache         BlockCache
-	crypto         Crypto
-	codec          Codec
-	mdops          MDOps
-	kops           KeyOps
-	bops           BlockOps
-	mdserv         MDServer
-	bserv          BlockServer
-	keyserv        KeyServer
-	daemon         KeybaseDaemon
-	bsplit         BlockSplitter
-	notifier       Notifier
-	mdserverCAcert []byte
-	bserverCAcert  []byte
-	registry       metrics.Registry
-	loggerFn       func(prefix string) logger.Logger
+	kbfs      KBFSOps
+	kbpki     KBPKI
+	keyman    KeyManager
+	rep       Reporter
+	mdcache   MDCache
+	kcache    KeyCache
+	bcache    BlockCache
+	crypto    Crypto
+	codec     Codec
+	mdops     MDOps
+	kops      KeyOps
+	bops      BlockOps
+	mdserv    MDServer
+	bserv     BlockServer
+	keyserv   KeyServer
+	daemon    KeybaseDaemon
+	bsplit    BlockSplitter
+	notifier  Notifier
+	rootCerts []byte
+	registry  metrics.Registry
+	loggerFn  func(prefix string) logger.Logger
 }
 
 var _ Config = (*ConfigLocal)(nil)
@@ -144,19 +152,14 @@ func NewConfigLocal() *ConfigLocal {
 	config.SetBlockSplitter(&BlockSplitterSimple{64 * 1024, 8 * 1024})
 	config.SetNotifier(config.kbfs.(*KBFSOpsStandard))
 
-	// set the certs to be the environment variables, if they exist
-	envMDServerCACert := os.Getenv(EnvMDServerCACertPEM)
-	if len(envMDServerCACert) != 0 {
-		config.SetMDServerCACert([]byte(envMDServerCACert))
+	// Set the cert to be the environment variable, if it exists.
+	envTestRootCert := os.Getenv(EnvTestRootCertPEM)
+	if len(envTestRootCert) != 0 {
+		// Some integration tests specify this via the environment.
+		config.SetRootCerts([]byte(envTestRootCert))
 	} else {
-		config.SetMDServerCACert([]byte(TestCACert))
-	}
-
-	envBServerCACert := os.Getenv(EnvBServerCACertPEM)
-	if len(envBServerCACert) != 0 {
-		config.SetBServerCACert([]byte(envBServerCACert))
-	} else {
-		config.SetBServerCACert([]byte(TestCACert))
+		// If none specified use a hard-coded test certificate.
+		config.SetRootCerts([]byte(TestRootCert))
 	}
 
 	// Don't bother creating the registry if UseNilMetrics is set.
@@ -358,24 +361,14 @@ func (c *ConfigLocal) ReqsBufSize() int {
 	return 20
 }
 
-// MDServerCACert implements the Config interface for ConfigLocal.
-func (c *ConfigLocal) MDServerCACert() []byte {
-	return c.mdserverCAcert
+// RootCerts implements the Config interface for ConfigLocal.
+func (c *ConfigLocal) RootCerts() []byte {
+	return c.rootCerts
 }
 
-// BServerCACert implements the Config interface for ConfigLocal.
-func (c *ConfigLocal) BServerCACert() []byte {
-	return c.bserverCAcert
-}
-
-// SetMDServerCACert implements the Config interface for ConfigLocal.
-func (c *ConfigLocal) SetMDServerCACert(cert []byte) {
-	c.mdserverCAcert = cert
-}
-
-// SetBServerCACert implements the Config interface for ConfigLocal.
-func (c *ConfigLocal) SetBServerCACert(cert []byte) {
-	c.bserverCAcert = cert
+// SetRootCerts implements the Config interface for ConfigLocal.
+func (c *ConfigLocal) SetRootCerts(pem []byte) {
+	c.rootCerts = pem
 }
 
 // MakeLogger implements the Config interface for ConfigLocal.

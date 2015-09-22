@@ -832,10 +832,8 @@ type Config interface {
 	// ReqsBufSize indicates the number of read or write operations
 	// that can be buffered per folder
 	ReqsBufSize() int
-	MDServerCACert() []byte
-	SetMDServerCACert([]byte)
-	BServerCACert() []byte
-	SetBServerCACert([]byte)
+	RootCerts() []byte
+	SetRootCerts([]byte)
 	MakeLogger(module string) logger.Logger
 	SetLoggerMaker(func(module string) logger.Logger)
 	// MetricsRegistry may be nil, which should be interpreted as
@@ -886,7 +884,7 @@ type NodeCache interface {
 // used by a Connection instance.
 type ConnectionTransport interface {
 	// Dial is called to connect to the server.
-	Dial(ctx context.Context, srvAddr string, cert []byte) (keybase1.GenericClient, error)
+	Dial(ctx context.Context, srvAddr string) (keybase1.GenericClient, error)
 
 	// Serve is called when the client needs to act as a server on behalf
 	// of a server who wants to act as a client, e.g. push notifications.

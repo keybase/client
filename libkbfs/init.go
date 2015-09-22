@@ -14,28 +14,14 @@ import (
 	"golang.org/x/net/context"
 )
 
-func getMDServerAddr() string {
-	// XXX TODO: the source of this will likely change soon
-	return os.Getenv(EnvMDServerAddr)
-}
-
-func useLocalMDServer() bool {
-	return len(getMDServerAddr()) == 0
-}
-
-func useLocalKeyServer() bool {
-	// currently the remote MD server also acts as the key server.
-	return useLocalMDServer()
-}
-
-func makeMDServer(config Config, serverRootDir *string) (
+func makeMDServer(config Config, serverRootDir *string, mdserverAddr string) (
 	MDServer, error) {
 	if serverRootDir == nil {
 		// local in-memory MD server
 		return NewMDServerMemory(config)
 	}
 
-	if useLocalMDServer() {
+	if len(mdserverAddr) == 0 {
 		// local persistent MD server
 		handlePath := filepath.Join(*serverRootDir, "kbfs_handles")
 		mdPath := filepath.Join(*serverRootDir, "kbfs_md")
@@ -46,18 +32,18 @@ func makeMDServer(config Config, serverRootDir *string) (
 
 	// remote MD server. this can't fail. reconnection attempts
 	// will be automatic.
-	mdServer := NewMDServerRemote(context.TODO(), config, getMDServerAddr())
+	mdServer := NewMDServerRemote(context.TODO(), config, mdserverAddr)
 	return mdServer, nil
 }
 
-func makeKeyServer(config Config, serverRootDir *string) (
+func makeKeyServer(config Config, serverRootDir *string, keyserverAddr string) (
 	KeyServer, error) {
 	if serverRootDir == nil {
 		// local in-memory key server
 		return NewKeyServerMemory(config)
 	}
 
-	if useLocalKeyServer() {
+	if len(keyserverAddr) == 0 {
 		// local persistent key server
 		keyPath := filepath.Join(*serverRootDir, "kbfs_key")
 		return NewKeyServerLocal(config, keyPath)
@@ -68,9 +54,9 @@ func makeKeyServer(config Config, serverRootDir *string) (
 	return keyServer, nil
 }
 
-func makeBlockServer(config Config, serverRootDir *string) (BlockServer, error) {
-	bServerAddr := os.Getenv(EnvBServerAddr)
-	if len(bServerAddr) == 0 {
+func makeBlockServer(config Config, serverRootDir *string, bserverAddr string) (
+	BlockServer, error) {
+	if len(bserverAddr) == 0 {
 		if serverRootDir == nil {
 			return NewBlockServerMemory(config)
 		}
@@ -79,8 +65,8 @@ func makeBlockServer(config Config, serverRootDir *string) (BlockServer, error) 
 		return NewBlockServerLocal(config, blockPath)
 	}
 
-	fmt.Printf("Using remote bserver %s\n", bServerAddr)
-	return NewBlockServerRemote(context.TODO(), config, bServerAddr), nil
+	fmt.Printf("Using remote bserver %s\n", bserverAddr)
+	return NewBlockServerRemote(context.TODO(), config, bserverAddr), nil
 }
 
 func makeKeybaseDaemon(serverRootDir *string, localUser libkb.NormalizedUsername, codec Codec, log logger.Logger) (KeybaseDaemon, error) {
@@ -138,7 +124,8 @@ func makeKeybaseDaemon(serverRootDir *string, localUser libkb.NormalizedUsername
 // below) should then be called at the end of main (usually via
 // defer).
 func Init(localUser libkb.NormalizedUsername, serverRootDir *string, cpuProfilePath,
-	memProfilePath string, onInterruptFn func(), debug bool) (Config, error) {
+	memProfilePath string, onInterruptFn func(), debug bool,
+	bserverAddr, mdserverAddr string) (Config, error) {
 	if cpuProfilePath != "" {
 		// Let the GC/OS clean up the file handle.
 		f, err := os.Create(cpuProfilePath)
@@ -193,13 +180,19 @@ func Init(localUser libkb.NormalizedUsername, serverRootDir *string, cpuProfileP
 	libkb.G.ConfigureCaches()
 	libkb.G.ConfigureMerkleClient()
 
-	mdServer, err := makeMDServer(config, serverRootDir)
+	// TODO: handle production mode when it exists
+	if libkb.G.Env.GetRunMode() == libkb.StagingRunMode {
+		config.SetRootCerts([]byte(DevRootCerts))
+	}
+
+	mdServer, err := makeMDServer(config, serverRootDir, mdserverAddr)
 	if err != nil {
 		return nil, fmt.Errorf("problem creating MD server: %v", err)
 	}
 	config.SetMDServer(mdServer)
 
-	keyServer, err := makeKeyServer(config, serverRootDir)
+	// note: the mdserver is the keyserver at the moment.
+	keyServer, err := makeKeyServer(config, serverRootDir, mdserverAddr)
 	if err != nil {
 		return nil, fmt.Errorf("problem creating key server: %v", err)
 	}
@@ -239,7 +232,7 @@ func Init(localUser libkb.NormalizedUsername, serverRootDir *string, cpuProfileP
 		config.SetCrypto(NewCryptoLocal(config, signingKey, cryptPrivateKey))
 	}
 
-	bserv, err := makeBlockServer(config, serverRootDir)
+	bserv, err := makeBlockServer(config, serverRootDir, bserverAddr)
 	if err != nil {
 		return nil, fmt.Errorf("cannot open block database: %v", err)
 	}
