@@ -1,15 +1,37 @@
 'use strict'
 
-import * as types from '../constants/loginActionTypes'
-import engine from '../engine'
+const types = require('../constants/loginActionTypes')
+const engine = require('../engine')
 
-export function startLogin () {
-  return {
-    type: types.START_LOGIN
+module.exports.startLogin = function () {
+  return function (dispatch) {
+    dispatch({
+      type: types.START_LOGIN
+    })
+
+    const incomingMap = {
+      'keybase.1.secretUi.getSecret': (param, response) => {
+        response.result({
+          canceled: true
+        })
+      }
+    }
+
+    engine.rpc('login.loginWithPrompt', {}, incomingMap, (error, response) => {
+      if (error) {
+        dispatch({
+          type: types.ASK_USER_PASS
+        })
+      } else {
+        dispatch({
+          type: types.LOGGED_IN
+        })
+      }
+    })
   }
 }
 
-export function submitUserPass (username, passphrase, storeSecret) {
+module.exports.submitUserPass = function (username, passphrase, storeSecret) {
   return function (dispatch) {
     dispatch({
       type: types.SUBMIT_USER_PASS
@@ -70,7 +92,7 @@ export function submitUserPass (username, passphrase, storeSecret) {
   }
 }
 
-export function submitDeviceName (name, response) {
+module.exports.submitDeviceName = function (name, response) {
   return function (dispatch) {
     dispatch({
       type: types.SUBMIT_DEVICE_NAME
@@ -80,7 +102,7 @@ export function submitDeviceName (name, response) {
   }
 }
 
-export function submitDeviceSigner (result, response) {
+module.exports.submitDeviceSigner = function (result, response) {
   return function (dispatch) {
     dispatch({
       type: types.SUBMIT_DEVICE_SIGNER
@@ -90,7 +112,7 @@ export function submitDeviceSigner (result, response) {
   }
 }
 
-export function showedSecretWords (response) {
+module.exports.showedSecretWords = function (response) {
   return function (dispatch) {
     response.result()
   }

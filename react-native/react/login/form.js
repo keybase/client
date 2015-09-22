@@ -1,7 +1,7 @@
 'use strict'
 /* @flow */
 
-import React from 'react-native'
+const React = require('react-native')
 
 const {
   ActivityIndicatorIOS,
@@ -13,8 +13,8 @@ const {
   TouchableHighlight
 } = React
 
-import commonStyles from '../styles/common'
-import Switch from '../commonAdapters/Switch'
+const commonStyles = require('../styles/common')
+const Switch = require('../commonAdapters/Switch')
 
 class LoginForm extends Component {
   constructor (props) {
@@ -150,4 +150,4 @@ const styles = StyleSheet.create({
 
 const loginButtonStyle = [commonStyles.actionButton, {width: 200}]
 
-export default LoginForm
+module.exports = LoginForm

@@ -1,15 +1,15 @@
 'use strict'
 
-import React from 'react-native'
+const React = require('react-native')
 const {
   Component,
   TabBarIOS
 } = React
 
-import SwiftTest from './swift-test'
-import GoTest from './go-test'
-import ReactTest from './react-test'
-import ObjcTest from './objc-test'
+const SwiftTest = require('./swift-test')
+const GoTest = require('./go-test')
+const ReactTest = require('./react-test')
+const ObjcTest = require('./objc-test')
 
 // Known bug in react causing message in chrome:
 // Warning: Failed propType: Invalid prop `icon` of type `string` supplied to `RCTTabBarItem`, expected `object`.
@@ -81,4 +81,4 @@ class Debug extends Component {
   }
 }
 
-export default Debug
+module.exports = Debug

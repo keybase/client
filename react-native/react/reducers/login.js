@@ -1,7 +1,7 @@
 'use strict'
 
-import * as states from '../constants/loginStates'
-import * as types from '../constants/loginActionTypes'
+const states = require('../constants/loginStates')
+const types = require('../constants/loginActionTypes')
 
 const initialState = {
   loginState: states.ASK_USER_PASS,
@@ -10,19 +10,19 @@ const initialState = {
   passphrase: null,
   storeSecret: true,
   deviceName: null,
-  waitingForServer: false,
+  waitingForServer: true,
   secretWords: null,
   response: null,
   error: null
 }
 
-export default function (state = initialState, action) {
+module.exports = function (state = initialState, action) {
   console.log('login to action', action)
   switch (action.type) {
     case types.START_LOGIN:
       return {
         ...state,
-        loginState: states.CHECKING,
+        loginState: states.ASK_USER_PASS,
         waitingForServer: true
       }
     case types.ASK_USER_PASS:

@@ -1,17 +1,20 @@
+/**
+ * @providesModule Debug
+ */
 'use strict'
 
 /*
  * A debug tab. Use this to jump directly to a part of the app outside of the flow for quick debugging
  */
 
-import React from 'react-native'
+const React = require('react-native')
 const {
   Component,
   StyleSheet,
   View
 } = React
 
-import GoTest from './go-test'
+const GoTest = require('./go-test')
 
 class Debug extends Component {
   constructor () {
@@ -44,4 +47,4 @@ const styles = StyleSheet.create({
   }
 })
 
-export default Debug
+module.exports = Debug

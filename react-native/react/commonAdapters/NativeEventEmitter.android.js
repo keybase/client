@@ -1,5 +1,5 @@
 'use strict'
 /* @flow */
 
-import RCTDeviceEventEmitter from 'RCTDeviceEventEmitter'
-export default RCTDeviceEventEmitter
+const RCTDeviceEventEmitter = require('RCTDeviceEventEmitter')
+module.exports = RCTDeviceEventEmitter

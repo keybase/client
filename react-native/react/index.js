@@ -1,7 +1,7 @@
 'use strict'
 /* @flow */
 
-import React from 'react-native'
+const React = require('react-native')
 
 const {
   AppRegistry,
@@ -12,11 +12,13 @@ const {
   View
 } = React
 
-import Navigator from './common/navigator'
-import commonStyles from './styles/common'
+const Navigator = require('./common/navigator')
+const commonStyles = require('./styles/common')
 
-import { Provider } from 'react-redux/native'
-import configureStore from './store/configureStore'
+const { Provider } = require('react-redux/native')
+const configureStore = require('./store/configureStore')
+const { startLogin } = require('./actions/login')
+
 const store = configureStore()
 
 if (GLOBAL) {
@@ -61,6 +63,11 @@ class AppOrDebug extends Component {
   // Auto push to the next state, can't figure out a nicer way to do this
   componentDidMount () {
     this.showApp()
+
+    const { dispatch } = store
+
+    dispatch(startLogin())
+
     /*
     if (this.props.navSavedPath.length) {
       switch (this.props.navSavedPath[0].saveKey) {

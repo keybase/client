@@ -1,7 +1,7 @@
 'use strict'
 /* @flow */
 
-import React from 'react-native'
+const React = require('react-native')
 const {
   Component,
   Text,
@@ -36,4 +36,4 @@ const styles = StyleSheet.create({
   }
 })
 
-export default Search
+module.exports = Search
