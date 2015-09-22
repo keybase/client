@@ -25,18 +25,32 @@ func linuxUpgradeInstructions() {
 		return err == nil
 	}
 
+	packageName := "keybase"
+	if DefaultRunMode == DevelRunMode {
+		packageName = "kbdev"
+	} else if DefaultRunMode == StagingRunMode {
+		packageName = "kbstage"
+	}
+
 	if hasPackageManager("apt-get") {
-		printUpgradeCommand("sudo apt-get update && sudo apt-get install " + PackageName)
+		printUpgradeCommand("sudo apt-get update && sudo apt-get install " + packageName)
 	} else if hasPackageManager("dnf") {
-		printUpgradeCommand("sudo dnf upgrade " + PackageName)
+		printUpgradeCommand("sudo dnf upgrade " + packageName)
 	} else if hasPackageManager("yum") {
-		printUpgradeCommand("sudo yum upgrade " + PackageName)
+		printUpgradeCommand("sudo yum upgrade " + packageName)
 	}
 }
 
 func darwinUpgradeInstructions() {
+	packageName := "keybase"
+	if DefaultRunMode == DevelRunMode {
+		packageName = "keybase/beta/kbdev"
+	} else if DefaultRunMode == StagingRunMode {
+		packageName = "keybase/beta/kbstage"
+	}
+
 	if IsBrewBuild {
-		printUpgradeCommand("brew update && brew upgrade " + PackageName)
+		printUpgradeCommand("brew update && brew upgrade " + packageName)
 	}
 	// TODO: non-brew update instructions
 }

@@ -3,5 +3,3 @@
 package libkb
 
 const DefaultRunMode = StagingRunMode
-
-const PackageName = "kbstage"

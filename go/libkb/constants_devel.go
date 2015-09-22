@@ -3,5 +3,3 @@
 package libkb
 
 const DefaultRunMode = DevelRunMode
-
-const PackageName = "keybase"
