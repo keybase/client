@@ -8,10 +8,23 @@ set -e -u -o pipefail
 
 here="$(dirname "$BASH_SOURCE")"
 
+mode="${KEYBASE_BUILD_MODE:-}"  # :- because this might not be defined
+if [ "$mode" = "release" ] ; then
+  go_tags="release"
+  binary_name="keybase"
+elif [ "$mode" = "staging" ] ; then
+  go_tags="staging"
+  binary_name="kbstage"
+else
+  mode="devel"
+  go_tags=""
+  binary_name="kbdev"
+fi
+
 # Take the first argument, or a tmp dir if there is no first argument.
 build_root="${1:-$(mktemp -d)}"
 
-echo Building in: "$build_root"
+echo "Building $mode mode in $build_root"
 
 build_one_architecture() {
   # Everything gets laid out in $dest as it should be on the filesystem. The
@@ -20,9 +33,9 @@ build_one_architecture() {
 
   # `go build` reads $GOARCH
   echo "building Go client for $GOARCH"
-  go build -o "$dest/usr/bin/keybase" github.com/keybase/client/go/keybase
+  go build -o "$dest/usr/bin/$binary_name" github.com/keybase/client/go/keybase
 
-  version="$("$dest/usr/bin/keybase" version --format=s 2> /dev/null || true)"
+  version="$("$dest/usr/bin/$binary_name" version --format=s)"
 
   spec="$build_root/SPECS/keybase-$rpm_arch.spec"
   mkdir -p "$(dirname "$spec")"

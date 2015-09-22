@@ -8,10 +8,24 @@ set -e -u -o pipefail
 
 here="$(dirname "$BASH_SOURCE")"
 
-# Take the first argument, or a tmp dir if there is no first argument.
+mode="${KEYBASE_BUILD_MODE:-}"  # :- because this might not be defined
+if [ "$mode" = "release" ] ; then
+  go_tags="release"
+  binary_name="keybase"
+elif [ "$mode" = "staging" ] ; then
+  go_tags="staging"
+  binary_name="kbstage"
+else
+  mode="devel"
+  go_tags=""
+  binary_name="kbdev"
+fi
+
+# Take the first argument as the build root, or a tmp dir if there is no first
+# argument.
 build_root="${1:-$(mktemp -d)}"
 
-echo Building in: "$build_root"
+echo "Building $mode mode in $build_root"
 
 build_one_architecture() {
   echo "building Go client for $GOARCH"
@@ -20,9 +34,9 @@ build_one_architecture() {
   mkdir -p "$dest/build/DEBIAN"
 
   # `go build` reads $GOARCH
-  go build -o "$dest/build/usr/bin/keybase" github.com/keybase/client/go/keybase
+  go build -tags "$go_tags" -o "$dest/build/usr/bin/$binary_name" github.com/keybase/client/go/keybase
 
-  version="$("$dest/build/usr/bin/keybase" version --format=s 2> /dev/null || true)"
+  version="$("$dest/build/usr/bin/$binary_name" version --format=s)"
 
   cat "$here/control.template" \
     | sed "s/@@VERSION@@/$version/" \
