@@ -20,7 +20,6 @@ type Session struct {
 	csrf     string
 	inFile   bool
 	loaded   bool
-	checked  bool
 	deviceID keybase1.DeviceID
 	valid    bool
 	uid      keybase1.UID
@@ -104,14 +103,12 @@ func (s *Session) SetLoggedIn(sessionID, csrfToken string, username NormalizedUs
 	s.GetDictionary().SetKey("session", jsonw.NewString(sessionID))
 
 	s.SetCsrf(csrfToken)
-	s.SetDirty()
-
-	return nil
+	return s.save()
 }
 
-func (s *Session) SetDirty() {
-	s.file.dirty = true
+func (s *Session) save() error {
 	s.GetDictionary().SetKey("mtime", jsonw.NewInt64(time.Now().Unix()))
+	return s.file.Save(true, 0)
 }
 
 func (s *Session) SetCsrf(t string) {
@@ -120,7 +117,6 @@ func (s *Session) SetCsrf(t string) {
 		return
 	}
 	s.GetDictionary().SetKey("csrf", jsonw.NewString(t))
-	s.SetDirty()
 }
 
 func (s *Session) SetDeviceProvisioned(devid keybase1.DeviceID) {
@@ -130,7 +126,7 @@ func (s *Session) SetDeviceProvisioned(devid keybase1.DeviceID) {
 		return
 	}
 	s.GetDictionary().SetKey("device_provisioned", jsonw.NewString(devid.String()))
-	s.SetDirty()
+	s.save()
 }
 
 func (s *Session) isConfigLoggedIn() bool {
@@ -219,10 +215,6 @@ func (s *Session) GetDictionary() *jsonw.Wrapper {
 	return s.file.jw
 }
 
-func (s *Session) Write() error {
-	return s.file.MaybeSave(true, 0)
-}
-
 func (s *Session) IsRecent() bool {
 	if s.mtime == 0 {
 		return false
@@ -233,8 +225,8 @@ func (s *Session) IsRecent() bool {
 
 func (s *Session) Check() error {
 	s.G().Log.Debug("+ Checking session")
-	if s.checked {
-		s.G().Log.Debug("- already checked, short-circuting")
+	if s.IsRecent() {
+		s.G().Log.Debug("- session is recent, short-circuiting")
 		return nil
 	}
 
@@ -248,8 +240,6 @@ func (s *Session) Check() error {
 	if err != nil {
 		return err
 	}
-
-	s.checked = true
 
 	if res.AppStatus == "OK" {
 		s.G().Log.Debug("| Stored session checked out")
@@ -267,8 +257,9 @@ func (s *Session) Check() error {
 		s.uid = uid
 		nu := NewNormalizedUsername(username)
 		s.username = &nu
-		if !s.IsRecent() {
-			s.SetCsrf(csrf)
+		s.SetCsrf(csrf)
+		if err = s.save(); err != nil {
+			return err
 		}
 	} else {
 		s.G().Log.Notice("Stored session expired")
@@ -296,7 +287,7 @@ func (s *Session) postLogout() error {
 	})
 	if err == nil {
 		s.valid = false
-		s.checked = false
+		s.mtime = 0
 		s.token = ""
 		s.csrf = ""
 	}
