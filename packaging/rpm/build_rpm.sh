@@ -39,7 +39,10 @@ build_one_architecture() {
 
   spec="$build_root/SPECS/keybase-$rpm_arch.spec"
   mkdir -p "$(dirname "$spec")"
-  cat "$here/spec.template" | sed "s/@@VERSION@@/$version/" > "$spec"
+  cat "$here/spec.template" \
+    | sed "s/@@NAME@@/$binary_name/" \
+    | sed "s/@@VERSION@@/$version/" \
+    > "$spec"
   cat "$here/postinst.template" | sed "s/@@ARCH@@/$rpm_arch/" >> "$spec"
 
   rpmbuild --define "_topdir $build_root" --target "$rpm_arch" -bb "$spec"

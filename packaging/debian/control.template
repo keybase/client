@@ -1,4 +1,4 @@
-Package: keybase
+Package: @@NAME@@
 Version: @@VERSION@@
 Architecture: @@ARCHITECTURE@@
 Maintainer: bugs@keybase.io

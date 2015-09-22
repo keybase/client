@@ -39,12 +39,13 @@ build_one_architecture() {
   version="$("$dest/build/usr/bin/$binary_name" version --format=s)"
 
   cat "$here/control.template" \
+    | sed "s/@@NAME@@/$binary_name/" \
     | sed "s/@@VERSION@@/$version/" \
     | sed "s/@@ARCHITECTURE@@/$debian_arch/" \
     > "$dest/build/DEBIAN/control"
   cp "$here/postinst" "$dest/build/DEBIAN/"
 
-  dpkg-deb --build "$dest/build" "$dest/keybase.deb"
+  dpkg-deb --build "$dest/build" "$dest/$binary_name.deb"
 
   # Write the version number to a file for the caller's convenience.
   echo -n "$version" > "$dest/VERSION"
