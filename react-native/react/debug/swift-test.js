@@ -1,7 +1,7 @@
 'use strict'
 
-var React = require('react-native')
-var {
+import React from 'react-native'
+const {
   Component,
   StyleSheet,
   Text,
@@ -9,21 +9,7 @@ var {
   NativeModules
 } = React
 
-var swiftNative = NativeModules.SwiftTest
-
-var styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: '#F5FCFF'
-  },
-  welcome: {
-    fontSize: 20,
-    textAlign: 'center',
-    margin: 10
-  }
-})
+const swiftNative = NativeModules.SwiftTest
 
 class SwiftTest extends Component {
   constructor () {
@@ -47,5 +33,18 @@ class SwiftTest extends Component {
   }
 }
 
-module.exports = SwiftTest
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#F5FCFF'
+  },
+  welcome: {
+    fontSize: 20,
+    textAlign: 'center',
+    margin: 10
+  }
+})
 
+export default SwiftTest

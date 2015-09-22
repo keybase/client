@@ -1,8 +1,8 @@
 'use strict'
 /* @flow */
 
-var React = require('react-native')
-var {
+import React from 'react-native'
+const {
   Component,
   Text,
   StyleSheet,
@@ -27,7 +27,7 @@ Search.propTypes = {
   kbNavigator: React.PropTypes.object
 }
 
-var styles = StyleSheet.create({
+const styles = StyleSheet.create({
   container: {
     flex: 1,
     justifyContent: 'center',
@@ -36,4 +36,4 @@ var styles = StyleSheet.create({
   }
 })
 
-module.exports = Search
+export default Search

@@ -1,8 +1,8 @@
 'use strict'
 
-const { combineReducers } = require('redux')
-const login = require('./login')
+import { combineReducers } from 'redux'
+import login from './login'
 
-module.exports = combineReducers({
+export default combineReducers({
   login
 })

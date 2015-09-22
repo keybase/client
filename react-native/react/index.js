@@ -12,11 +12,11 @@ const {
   View
 } = React
 
-const Navigator = require('./common/navigator')
-const commonStyles = require('./styles/common')
+import Navigator from './common/navigator'
+import commonStyles from './styles/common'
 
-const { Provider } = require('react-redux/native')
-const configureStore = require('./store/configureStore')
+import { Provider } from 'react-redux/native'
+import configureStore from './store/configureStore'
 const store = configureStore()
 
 if (GLOBAL) {
@@ -94,7 +94,7 @@ class AppOrDebug extends Component {
 }
 
 AppOrDebug.propTypes = {
-  kbNavigator: React.PropTypes.object,
+  kbNavigator: React.PropTypes.object.isRequired,
   appOrDebug: React.PropTypes.string,
   navSavedPath: React.PropTypes.array
 }

@@ -4,12 +4,10 @@
  * A debug tab. Use this to jump directly to a part of the app outside of the flow for quick debugging
  */
 
-var React = require('react-native')
-var {
-  Component
-} = React
+import React from 'react-native'
+const { Component } = React
 
-var Temp = require('./briding-tabs')
+import Temp from './briding-tabs'
 
 class Debug extends Component {
   constructor () {
@@ -45,4 +43,4 @@ Debug.propTypes = {
   navigator: React.PropTypes.object
 }
 
-module.exports = Debug
+export default Debug

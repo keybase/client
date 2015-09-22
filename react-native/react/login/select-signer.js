@@ -1,7 +1,7 @@
 'use strict'
 
-var React = require('react-native')
-var {
+import React from 'react-native'
+const {
   Component,
   ListView,
   StyleSheet,
@@ -10,8 +10,8 @@ var {
   TouchableHighlight
 } = React
 
-var commonStyles = require('../styles/common')
-var enums = require('../keybase_v1')
+import commonStyles from '../styles/common'
+import enums from '../keybase_v1'
 
 class SelectSigner extends Component {
   constructor (props) {
@@ -19,10 +19,10 @@ class SelectSigner extends Component {
   }
 
   componentWillMount () {
-    var ds = new ListView.DataSource({rowHasChanged: (r1, r2) => r1 !== r2})
+    const ds = new ListView.DataSource({rowHasChanged: (r1, r2) => r1 !== r2})
 
-    var devices = this.props.devices.map(function (d) {
-      var desc = 'Use the device named ' + d.name + ' to authorize this installation'
+    const devices = this.props.devices.map(function (d) {
+      const desc = `Use the device named ${d.name} to authorize this installation`
 
       return {
         ...d,
@@ -43,7 +43,7 @@ class SelectSigner extends Component {
   }
 
   select (rowData) {
-    var signer = {
+    const signer = {
       deviceID: rowData.deviceID,
       deviceName: rowData.name,
       kind: enums.locksmithUi.DeviceSignerKind.device
@@ -60,7 +60,8 @@ class SelectSigner extends Component {
   }
 
   renderRow (rowData, sectionID, rowID) {
-    var sep = (rowID < (this.state.dataSource.getRowCount() - 1)) ? <View style={styles.separator} /> : null
+    const sep = (rowID < (this.state.dataSource.getRowCount() - 1)) ? <View style={styles.separator} /> : null
+
     return (
       <TouchableHighlight
         underlayColor={commonStyles.buttonHighlight}
@@ -95,10 +96,11 @@ SelectSigner.propTypes = {
   navigator: React.PropTypes.object,
   devices: React.PropTypes.array,
   hasPGP: React.PropTypes.bool,
-  hasPaperBackupKey: React.PropTypes.bool
+  hasPaperBackupKey: React.PropTypes.bool,
+  onSubmit: React.PropTypes.func.isRequired
 }
 
-var styles = StyleSheet.create({
+const styles = StyleSheet.create({
   container: {
     flex: 1,
     justifyContent: 'center',
@@ -111,4 +113,4 @@ var styles = StyleSheet.create({
   }
 })
 
-module.exports = SelectSigner
+export default SelectSigner

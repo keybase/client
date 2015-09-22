@@ -1,8 +1,8 @@
 'use strict'
 /* @flow */
 
-var React = require('react-native')
-var {
+import React from 'react-native'
+const {
   Component,
   StyleSheet,
   View,
@@ -11,8 +11,8 @@ var {
   TouchableHighlight
 } = React
 
-var commonStyles = require('../styles/common')
-var submitButtonStyle = [commonStyles.actionButton, {width: 200}]
+import commonStyles from '../styles/common'
+const submitButtonStyle = [commonStyles.actionButton, {width: 200}]
 
 class DevicePrompt extends Component {
   constructor (props) {
@@ -61,7 +61,7 @@ DevicePrompt.propTypes = {
   deviceName: React.PropTypes.string
 }
 
-var styles = StyleSheet.create({
+const styles = StyleSheet.create({
   container: {
     flex: 1,
     justifyContent: 'center',
@@ -86,4 +86,4 @@ var styles = StyleSheet.create({
   }
 })
 
-module.exports = DevicePrompt
+export default DevicePrompt

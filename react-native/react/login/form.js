@@ -13,7 +13,7 @@ const {
   TouchableHighlight
 } = React
 
-const commonStyles = require('../styles/common')
+import commonStyles from '../styles/common'
 import Switch from '../commonAdapters/Switch'
 
 class LoginForm extends Component {
@@ -32,23 +32,22 @@ class LoginForm extends Component {
   }
 
   render () {
-    var error = null
-    if (this.props.loginError) {
-      error = <Text style={[{margin: 20, padding: 10}, commonStyles.error]} >Error: {this.props.loginError}</Text>
-    }
+    const error = this.props.loginError
+      ? <Text style={[{margin: 20, padding: 10}, commonStyles.error]} >Error: {this.props.loginError}</Text>
+      : null
 
-    var activity = null
-    if (this.props.waitingForServer) {
-      activity = <View style={styles.loginWrapper}>
-        <ActivityIndicatorIOS
-        animating={true}
-        style={{height: 80}}
-        size='large'
-        />
-      </View>
-    }
+    const activity = this.props.waitingForServer
+      ? <View style={styles.loginWrapper}>
+          <ActivityIndicatorIOS
+          animating={true}
+          style={{height: 80}}
+          size='large'
+          />
+        </View>
+      : null
 
-    var button = this.props.waitingForServer ? <Text style={[loginButtonStyle, {color: 'gray', backgroundColor: 'white'}]} >Login</Text>
+    const button = this.props.waitingForServer
+      ? <Text style={[loginButtonStyle, {color: 'gray', backgroundColor: 'white'}]} >Login</Text>
       : <TouchableHighlight
             underlayColor={commonStyles.buttonHighlight}
             onPress={() => this.submit()}>
@@ -110,7 +109,7 @@ LoginForm.propTypes = {
   waitingForServer: React.PropTypes.bool
 }
 
-var styles = StyleSheet.create({
+const styles = StyleSheet.create({
   container: {
     flex: 1,
     justifyContent: 'center',
@@ -149,6 +148,6 @@ var styles = StyleSheet.create({
   }
 })
 
-var loginButtonStyle = [commonStyles.actionButton, {width: 200}]
+const loginButtonStyle = [commonStyles.actionButton, {width: 200}]
 
 export default LoginForm
