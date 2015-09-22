@@ -178,6 +178,10 @@
     "reload" : {
       "request" : [ ],
       "response" : "null"
+    },
+    "dbNuke" : {
+      "request" : [ ],
+      "response" : "null"
     }
   }
 }

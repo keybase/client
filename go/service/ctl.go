@@ -33,3 +33,14 @@ func (c CtlHandler) Reload() error {
 	G.Log.Info("Reloading config file")
 	return G.ConfigReload()
 }
+
+func (c CtlHandler) DbNuke() error {
+	err := G.LocalDb.Nuke()
+	if err != nil {
+		return err
+	}
+
+	// Now drop caches, since we had the DB's state in-memory too.
+	//return G.ConfigureCaches()
+	return err
+}

@@ -445,11 +445,15 @@ type SetLogLevelArg struct {
 type ReloadArg struct {
 }
 
+type DbNukeArg struct {
+}
+
 type CtlInterface interface {
 	Stop() error
 	LogRotate() error
 	SetLogLevel(LogLevel) error
 	Reload() error
+	DbNuke() error
 }
 
 func CtlProtocol(i CtlInterface) rpc2.Protocol {
@@ -484,6 +488,13 @@ func CtlProtocol(i CtlInterface) rpc2.Protocol {
 				}
 				return
 			},
+			"dbNuke": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
+				args := make([]DbNukeArg, 1)
+				if err = nxt(&args); err == nil {
+					err = i.DbNuke()
+				}
+				return
+			},
 		},
 	}
 
@@ -511,6 +522,11 @@ func (c CtlClient) SetLogLevel(level LogLevel) (err error) {
 
 func (c CtlClient) Reload() (err error) {
 	err = c.Cli.Call("keybase.1.ctl.reload", []interface{}{ReloadArg{}}, nil)
+	return
+}
+
+func (c CtlClient) DbNuke() (err error) {
+	err = c.Cli.Call("keybase.1.ctl.dbNuke", []interface{}{DbNukeArg{}}, nil)
 	return
 }
 

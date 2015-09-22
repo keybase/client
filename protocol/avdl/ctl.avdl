@@ -8,5 +8,5 @@ protocol ctl {
 	void logRotate();
 	void setLogLevel(LogLevel level);
 	void reload();
-
+	void dbNuke();
 }
