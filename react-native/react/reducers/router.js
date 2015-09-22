@@ -29,12 +29,15 @@ export default function (state = initialState, action) {
     // TODO(MM): change the history so if we go up to something that is already in the history,
     // or a child of it
     // we get rid of everything after it
+    //TODO(mm): use immutable
     case routerTypes.NAVIGATE_UP:
-      if (state.uri.length > 1) {
-        state.uri.pop()
+      let newUri = state.uri.slice(0)
+      if (newUri.length > 1) {
+        newUri.pop()
       }
       return {
         ...state,
+        uri: newUri,
         history: originalHistory
       }
     case routerTypes.NAVIGATE:
