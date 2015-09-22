@@ -44,7 +44,7 @@ class MetaNavigator extends Component {
     // TODO: also check to see if this route exists in the navigator's route
     } else if (this.isParentOfRoute(nextRoute, route)) {
       const navRoutes = this.refs.navigator.getCurrentRoutes()
-      const targetRoute = navRoutes.find(navRoute => {
+      const targetRoute = navRoutes.reverse().find(navRoute => {
         return (
           navRoute.component === componentAtTop.component && navRoute.title === componentAtTop.title
         )
