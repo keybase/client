@@ -53,6 +53,7 @@ class GoEmitter
         optional = true
         "*" + @go_primitive_type(t[1])
       else if t.type is "array" then "[]" + @go_primitive_type(t.items)
+      else if t.type is "map" then "map[string]" + @go_primitive_type(t.values)
       else "ERROR"
     else "ERROR"
     { type , optional }

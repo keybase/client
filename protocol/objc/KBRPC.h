@@ -844,6 +844,7 @@ typedef NS_ENUM (NSInteger, KBRPromptDefault) {
 @end
 @interface KBRPutMetadataRequestParams : KBRRequestParams
 @property NSData *mdBlock;
+@property KBRmap *logTags;
 @end
 @interface KBRGetMetadataRequestParams : KBRRequestParams
 @property NSString *folderID;
@@ -851,19 +852,24 @@ typedef NS_ENUM (NSInteger, KBRPromptDefault) {
 @property BOOL unmerged;
 @property long startRevision;
 @property long stopRevision;
+@property KBRmap *logTags;
 @end
 @interface KBRRegisterForUpdatesRequestParams : KBRRequestParams
 @property NSString *folderID;
 @property long currRevision;
+@property KBRmap *logTags;
 @end
 @interface KBRPruneUnmergedRequestParams : KBRRequestParams
 @property NSString *folderID;
+@property KBRmap *logTags;
 @end
 @interface KBRPutKeysRequestParams : KBRRequestParams
 @property NSArray *keyHalves;
+@property KBRmap *logTags;
 @end
 @interface KBRGetKeyRequestParams : KBRRequestParams
 @property NSData *keyHalfID;
+@property KBRmap *logTags;
 @end
 @interface KBRTruncateLockRequestParams : KBRRequestParams
 @property NSString *folderID;
@@ -1439,27 +1445,27 @@ typedef NS_ENUM (NSInteger, KBRPromptDefault) {
 
 - (void)putMetadata:(KBRPutMetadataRequestParams *)params completion:(void (^)(NSError *error))completion;
 
-- (void)putMetadataWithMdBlock:(NSData *)mdBlock completion:(void (^)(NSError *error))completion;
+- (void)putMetadataWithMdBlock:(NSData *)mdBlock logTags:(KBRmap *)logTags completion:(void (^)(NSError *error))completion;
 
 - (void)getMetadata:(KBRGetMetadataRequestParams *)params completion:(void (^)(NSError *error, KBRMetadataResponse *metadataResponse))completion;
 
-- (void)getMetadataWithFolderID:(NSString *)folderID folderHandle:(NSData *)folderHandle unmerged:(BOOL)unmerged startRevision:(long)startRevision stopRevision:(long)stopRevision completion:(void (^)(NSError *error, KBRMetadataResponse *metadataResponse))completion;
+- (void)getMetadataWithFolderID:(NSString *)folderID folderHandle:(NSData *)folderHandle unmerged:(BOOL)unmerged startRevision:(long)startRevision stopRevision:(long)stopRevision logTags:(KBRmap *)logTags completion:(void (^)(NSError *error, KBRMetadataResponse *metadataResponse))completion;
 
 - (void)registerForUpdates:(KBRRegisterForUpdatesRequestParams *)params completion:(void (^)(NSError *error))completion;
 
-- (void)registerForUpdatesWithFolderID:(NSString *)folderID currRevision:(long)currRevision completion:(void (^)(NSError *error))completion;
+- (void)registerForUpdatesWithFolderID:(NSString *)folderID currRevision:(long)currRevision logTags:(KBRmap *)logTags completion:(void (^)(NSError *error))completion;
 
 - (void)pruneUnmerged:(KBRPruneUnmergedRequestParams *)params completion:(void (^)(NSError *error))completion;
 
-- (void)pruneUnmergedWithFolderID:(NSString *)folderID completion:(void (^)(NSError *error))completion;
+- (void)pruneUnmergedWithFolderID:(NSString *)folderID logTags:(KBRmap *)logTags completion:(void (^)(NSError *error))completion;
 
 - (void)putKeys:(KBRPutKeysRequestParams *)params completion:(void (^)(NSError *error))completion;
 
-- (void)putKeysWithKeyHalves:(NSArray *)keyHalves completion:(void (^)(NSError *error))completion;
+- (void)putKeysWithKeyHalves:(NSArray *)keyHalves logTags:(KBRmap *)logTags completion:(void (^)(NSError *error))completion;
 
 - (void)getKey:(KBRGetKeyRequestParams *)params completion:(void (^)(NSError *error, NSData *bytes))completion;
 
-- (void)getKeyWithKeyHalfID:(NSData *)keyHalfID completion:(void (^)(NSError *error, NSData *bytes))completion;
+- (void)getKeyWithKeyHalfID:(NSData *)keyHalfID logTags:(KBRmap *)logTags completion:(void (^)(NSError *error, NSData *bytes))completion;
 
 - (void)truncateLock:(KBRTruncateLockRequestParams *)params completion:(void (^)(NSError *error, BOOL b))completion;
 

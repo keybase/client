@@ -1875,32 +1875,38 @@ type AuthenticateArg struct {
 }
 
 type PutMetadataArg struct {
-	MdBlock []byte `codec:"mdBlock" json:"mdBlock"`
+	MdBlock []byte            `codec:"mdBlock" json:"mdBlock"`
+	LogTags map[string]string `codec:"logTags" json:"logTags"`
 }
 
 type GetMetadataArg struct {
-	FolderID      string `codec:"folderID" json:"folderID"`
-	FolderHandle  []byte `codec:"folderHandle" json:"folderHandle"`
-	Unmerged      bool   `codec:"unmerged" json:"unmerged"`
-	StartRevision int64  `codec:"startRevision" json:"startRevision"`
-	StopRevision  int64  `codec:"stopRevision" json:"stopRevision"`
+	FolderID      string            `codec:"folderID" json:"folderID"`
+	FolderHandle  []byte            `codec:"folderHandle" json:"folderHandle"`
+	Unmerged      bool              `codec:"unmerged" json:"unmerged"`
+	StartRevision int64             `codec:"startRevision" json:"startRevision"`
+	StopRevision  int64             `codec:"stopRevision" json:"stopRevision"`
+	LogTags       map[string]string `codec:"logTags" json:"logTags"`
 }
 
 type RegisterForUpdatesArg struct {
-	FolderID     string `codec:"folderID" json:"folderID"`
-	CurrRevision int64  `codec:"currRevision" json:"currRevision"`
+	FolderID     string            `codec:"folderID" json:"folderID"`
+	CurrRevision int64             `codec:"currRevision" json:"currRevision"`
+	LogTags      map[string]string `codec:"logTags" json:"logTags"`
 }
 
 type PruneUnmergedArg struct {
-	FolderID string `codec:"folderID" json:"folderID"`
+	FolderID string            `codec:"folderID" json:"folderID"`
+	LogTags  map[string]string `codec:"logTags" json:"logTags"`
 }
 
 type PutKeysArg struct {
-	KeyHalves []KeyHalf `codec:"keyHalves" json:"keyHalves"`
+	KeyHalves []KeyHalf         `codec:"keyHalves" json:"keyHalves"`
+	LogTags   map[string]string `codec:"logTags" json:"logTags"`
 }
 
 type GetKeyArg struct {
-	KeyHalfID []byte `codec:"keyHalfID" json:"keyHalfID"`
+	KeyHalfID []byte            `codec:"keyHalfID" json:"keyHalfID"`
+	LogTags   map[string]string `codec:"logTags" json:"logTags"`
 }
 
 type TruncateLockArg struct {
@@ -1916,12 +1922,12 @@ type PingArg struct {
 
 type MetadataInterface interface {
 	Authenticate(AuthenticateArg) (int, error)
-	PutMetadata([]byte) error
+	PutMetadata(PutMetadataArg) error
 	GetMetadata(GetMetadataArg) (MetadataResponse, error)
 	RegisterForUpdates(RegisterForUpdatesArg) error
-	PruneUnmerged(string) error
-	PutKeys([]KeyHalf) error
-	GetKey([]byte) ([]byte, error)
+	PruneUnmerged(PruneUnmergedArg) error
+	PutKeys(PutKeysArg) error
+	GetKey(GetKeyArg) ([]byte, error)
 	TruncateLock(string) (bool, error)
 	TruncateUnlock(string) (bool, error)
 	Ping() error
@@ -1941,7 +1947,7 @@ func MetadataProtocol(i MetadataInterface) rpc2.Protocol {
 			"putMetadata": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
 				args := make([]PutMetadataArg, 1)
 				if err = nxt(&args); err == nil {
-					err = i.PutMetadata(args[0].MdBlock)
+					err = i.PutMetadata(args[0])
 				}
 				return
 			},
@@ -1962,21 +1968,21 @@ func MetadataProtocol(i MetadataInterface) rpc2.Protocol {
 			"pruneUnmerged": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
 				args := make([]PruneUnmergedArg, 1)
 				if err = nxt(&args); err == nil {
-					err = i.PruneUnmerged(args[0].FolderID)
+					err = i.PruneUnmerged(args[0])
 				}
 				return
 			},
 			"putKeys": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
 				args := make([]PutKeysArg, 1)
 				if err = nxt(&args); err == nil {
-					err = i.PutKeys(args[0].KeyHalves)
+					err = i.PutKeys(args[0])
 				}
 				return
 			},
 			"getKey": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
 				args := make([]GetKeyArg, 1)
 				if err = nxt(&args); err == nil {
-					ret, err = i.GetKey(args[0].KeyHalfID)
+					ret, err = i.GetKey(args[0])
 				}
 				return
 			},
@@ -2015,8 +2021,7 @@ func (c MetadataClient) Authenticate(__arg AuthenticateArg) (res int, err error)
 	return
 }
 
-func (c MetadataClient) PutMetadata(mdBlock []byte) (err error) {
-	__arg := PutMetadataArg{MdBlock: mdBlock}
+func (c MetadataClient) PutMetadata(__arg PutMetadataArg) (err error) {
 	err = c.Cli.Call("keybase.1.metadata.putMetadata", []interface{}{__arg}, nil)
 	return
 }
@@ -2031,20 +2036,17 @@ func (c MetadataClient) RegisterForUpdates(__arg RegisterForUpdatesArg) (err err
 	return
 }
 
-func (c MetadataClient) PruneUnmerged(folderID string) (err error) {
-	__arg := PruneUnmergedArg{FolderID: folderID}
+func (c MetadataClient) PruneUnmerged(__arg PruneUnmergedArg) (err error) {
 	err = c.Cli.Call("keybase.1.metadata.pruneUnmerged", []interface{}{__arg}, nil)
 	return
 }
 
-func (c MetadataClient) PutKeys(keyHalves []KeyHalf) (err error) {
-	__arg := PutKeysArg{KeyHalves: keyHalves}
+func (c MetadataClient) PutKeys(__arg PutKeysArg) (err error) {
 	err = c.Cli.Call("keybase.1.metadata.putKeys", []interface{}{__arg}, nil)
 	return
 }
 
-func (c MetadataClient) GetKey(keyHalfID []byte) (res []byte, err error) {
-	__arg := GetKeyArg{KeyHalfID: keyHalfID}
+func (c MetadataClient) GetKey(__arg GetKeyArg) (res []byte, err error) {
 	err = c.Cli.Call("keybase.1.metadata.getKey", []interface{}{__arg}, &res)
 	return
 }
