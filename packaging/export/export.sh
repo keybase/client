@@ -42,15 +42,17 @@ tar xpf $DIR/client.tar -C client ${dirs[@]}
 
 rm $DIR/client.tar
 
-echo "Now you should add, commit, tag and push the changes."
 echo "
+Now you should add, commit, tag and push the changes in the client-beta repository.
 
     cd $DEST
     git add .
-    git commit -m \"Importing $TAG\"
-    git tag -a $TAG -m $TAG
-
+    git commit -m \"Importing from $TAG\"
     git push
+
+If you tagged:
+
+    git tag -a $TAG -m $TAG
     git push --tags
 
 "
