@@ -37,6 +37,7 @@ class DisplaySecretWords extends Component {
       title: 'Register Device',
       component: DisplaySecretWords,
       leftButtonTitle: 'Cancel',
+      mapStateToProps: state => state.login,
       props: {
         onSubmit: () => store.dispatch(showedSecretWords(response)),
         secretWords

@@ -108,6 +108,7 @@ class LoginForm extends Component {
       title: 'Login',
       component: LoginForm,
       leftButtonTitle: 'Cancel',
+      mapStateToProps: state => state.login,
       props: {
         onSubmit: (username, passphrase, storeSecret) => store.dispatch(submitUserPass(username, passphrase, storeSecret)),
         username,

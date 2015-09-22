@@ -99,6 +99,7 @@ class SelectSigner extends Component {
       title: 'Device Setup',
       leftButtonTitle: 'Cancel',
       component: SelectSigner,
+      mapStateToProps: state => state.login,
       props: {
         onSubmit: (result) => store.dispatch(submitDeviceSigner(result, response)),
         ...signers

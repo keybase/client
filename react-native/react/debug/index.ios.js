@@ -35,6 +35,7 @@ class Debug extends Component {
     return (
       <View style={{flex:1, marginTop:100}}>
         <Text style={{textAlign:"center"}}>In debug</Text>
+        <Text style={{textAlign:"center"}}>URI: {JSON.stringify(this.props.uri)}</Text>
         <Text
           style={{textAlign:"center", color:"blue"}}
           onPress={()=>this.props.dispatch(navigateTo(["debug","page2"]))}>Click here to go somewhere</Text>
@@ -51,6 +52,7 @@ class Debug extends Component {
 
     const componentAtTop = {
       title: 'Debug',
+      mapStateToProps: (state => state.router),
       component: Debug
     }
 
@@ -68,6 +70,7 @@ class DebugPage2 extends Component {
     return (
       <View style={{flex:1, marginTop:100}}>
         <Text style={{textAlign:"center"}}>Page 2</Text>
+        <Text style={{textAlign:"center"}}>URI: {JSON.stringify(this.props.uri)}</Text>
         <Text
           style={{textAlign:"center", color:"blue"}}
           onPress={()=>this.props.dispatch(navigateUp())}>Go up the nav hierarchy</Text>
@@ -90,6 +93,7 @@ class DebugPage2 extends Component {
 
     const componentAtTop = {
       title: 'Debug Page 2',
+      mapStateToProps: (state => state.router),
       component: DebugPage2
     }
 
@@ -107,6 +111,7 @@ class DebugPage3 extends Component {
     return (
       <View style={{flex:1, marginTop:100}}>
         <Text style={{textAlign:"center"}}>Page 3</Text>
+        <Text style={{textAlign:"center"}}>URI: {JSON.stringify(this.props.uri)}</Text>
         <Text
           style={{textAlign:"center", color:"blue"}}
           onPress={()=>this.props.dispatch(navigateUp())}>Go up the nav hierarchy</Text>
@@ -129,6 +134,7 @@ class DebugPage3 extends Component {
 
     const componentAtTop = {
       title: 'Debug Page 3',
+      mapStateToProps: (state => state.router),
       component: DebugPage3
     }
 

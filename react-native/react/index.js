@@ -138,6 +138,7 @@ class Keybase extends Component {
 
     const componentAtTop = {
       title: 'App or Debug',
+      mapStateToProps: state => state.login,
       component : AppOrDebug
     }
 

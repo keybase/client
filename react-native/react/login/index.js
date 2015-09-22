@@ -65,6 +65,7 @@ class LoginContainer extends Component {
       component : LoginContainer,
       saveKey: 'Login',
       leftButtonTitle: '¯\\_(ツ)_/¯',
+      mapStateToProps: state => state.login,
       props: {
         onLoggedIn: () => {
           this.showSearch()

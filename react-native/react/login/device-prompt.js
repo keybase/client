@@ -63,6 +63,7 @@ class DevicePrompt extends Component {
       title: 'Device Name',
       component: DevicePrompt,
       leftButtonTitle: 'Cancel',
+      mapStateToProps: state => state.login,
       props: {
         onSubmit: (name) => store.dispatch(submitDeviceName(name, response)),
         deviceName
