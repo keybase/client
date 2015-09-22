@@ -70,7 +70,7 @@ type LocalDb interface {
 	Open() error
 	ForceOpen() error
 	Close() error
-	Nuke() error
+	Nuke() (string, error)
 	Put(id DbKey, aliases []DbKey, value []byte) error
 	Delete(id DbKey) error
 	Get(id DbKey) ([]byte, bool, error)

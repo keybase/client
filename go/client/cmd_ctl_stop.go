@@ -29,7 +29,7 @@ func (s *CmdCtlStop) Run() (err error) {
 	if err != nil {
 		return err
 	}
-	return cli.Stop()
+	return cli.Stop(0)
 }
 
 func (s *CmdCtlStop) GetUsage() libkb.Usage {

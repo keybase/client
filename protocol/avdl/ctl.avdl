@@ -4,9 +4,9 @@ protocol ctl {
 
 	import idl "common.avdl";
 
-	void stop();
-	void logRotate();
-	void setLogLevel(LogLevel level);
-	void reload();
-	void dbNuke();
+	void stop(int sessionID);
+	void logRotate(int sessionID);
+	void setLogLevel(int sessionID, LogLevel level);
+	void reload(int sessionID);
+	void dbNuke(int sessionID);
 }

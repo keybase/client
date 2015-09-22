@@ -67,17 +67,17 @@ func (l *LevelDb) close(doLock bool) error {
 	return err
 }
 
-func (l *LevelDb) Nuke() error {
+func (l *LevelDb) Nuke() (string, error) {
 	l.Lock()
 	defer l.Unlock()
 
 	err := l.close(false)
 	if err == nil {
 		fn := l.GetFilename()
-		G.Log.Warning("Nuking database %s", fn)
 		err = os.RemoveAll(fn)
+		return fn, err
 	}
-	return err
+	return "", err
 }
 
 func (l *LevelDb) Put(id DbKey, aliases []DbKey, value []byte) error {

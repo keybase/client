@@ -32,7 +32,7 @@ func (c *CmdDbNuke) Run() error {
 		if err = RegisterProtocols(protocols); err != nil {
 			return err
 		}
-		return cli.DbNuke()
+		return cli.DbNuke(0)
 	}
 	return err
 }

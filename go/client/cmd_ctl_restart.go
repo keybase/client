@@ -31,7 +31,7 @@ func (s *CmdCtlRestart) Run() error {
 	if err != nil {
 		return err
 	}
-	if err = cli.Stop(); err != nil {
+	if err = cli.Stop(0); err != nil {
 		G.Log.Warning("Stop failed: %s", err)
 		return err
 	}

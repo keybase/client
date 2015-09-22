@@ -3798,10 +3798,43 @@
 }
 @end
 
+@implementation KBRStopRequestParams
+
+- (instancetype)initWithParams:(NSArray *)params {
+  if ((self = [super initWithParams:params])) {
+    self.sessionID = [params[0][@"sessionID"] integerValue];
+  }
+  return self;
+}
+
++ (instancetype)params {
+  KBRStopRequestParams *p = [[self alloc] init];
+  // Add default values
+  return p;
+}
+@end
+
+@implementation KBRLogRotateRequestParams
+
+- (instancetype)initWithParams:(NSArray *)params {
+  if ((self = [super initWithParams:params])) {
+    self.sessionID = [params[0][@"sessionID"] integerValue];
+  }
+  return self;
+}
+
++ (instancetype)params {
+  KBRLogRotateRequestParams *p = [[self alloc] init];
+  // Add default values
+  return p;
+}
+@end
+
 @implementation KBRSetLogLevelRequestParams
 
 - (instancetype)initWithParams:(NSArray *)params {
   if ((self = [super initWithParams:params])) {
+    self.sessionID = [params[0][@"sessionID"] integerValue];
     self.level = [params[0][@"level"] integerValue];
   }
   return self;
@@ -3809,6 +3842,38 @@
 
 + (instancetype)params {
   KBRSetLogLevelRequestParams *p = [[self alloc] init];
+  // Add default values
+  return p;
+}
+@end
+
+@implementation KBRReloadRequestParams
+
+- (instancetype)initWithParams:(NSArray *)params {
+  if ((self = [super initWithParams:params])) {
+    self.sessionID = [params[0][@"sessionID"] integerValue];
+  }
+  return self;
+}
+
++ (instancetype)params {
+  KBRReloadRequestParams *p = [[self alloc] init];
+  // Add default values
+  return p;
+}
+@end
+
+@implementation KBRDbNukeRequestParams
+
+- (instancetype)initWithParams:(NSArray *)params {
+  if ((self = [super initWithParams:params])) {
+    self.sessionID = [params[0][@"sessionID"] integerValue];
+  }
+  return self;
+}
+
++ (instancetype)params {
+  KBRDbNukeRequestParams *p = [[self alloc] init];
   // Add default values
   return p;
 }

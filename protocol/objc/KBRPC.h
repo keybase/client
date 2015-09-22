@@ -989,8 +989,21 @@ typedef NS_ENUM (NSInteger, KBRSignMode) {
 @property NSInteger sessionID;
 @property NSString *sigID;
 @end
+@interface KBRStopRequestParams : KBRRequestParams
+@property NSInteger sessionID;
+@end
+@interface KBRLogRotateRequestParams : KBRRequestParams
+@property NSInteger sessionID;
+@end
 @interface KBRSetLogLevelRequestParams : KBRRequestParams
+@property NSInteger sessionID;
 @property KBRLogLevel level;
+@end
+@interface KBRReloadRequestParams : KBRRequestParams
+@property NSInteger sessionID;
+@end
+@interface KBRDbNukeRequestParams : KBRRequestParams
+@property NSInteger sessionID;
 @end
 @interface KBRVerifySessionRequestParams : KBRRequestParams
 @property NSString *session;

@@ -29,7 +29,7 @@ func (s *CmdCtlLogRotate) Run() (err error) {
 	if err != nil {
 		return err
 	}
-	return cli.LogRotate()
+	return cli.LogRotate(0)
 }
 
 func (s *CmdCtlLogRotate) GetUsage() libkb.Usage {
