@@ -18,7 +18,7 @@ func NewCtlHandler(xp *rpc2.Transport) *CtlHandler {
 }
 
 // Stop is called on the rpc keybase.1.ctl.stop, which shuts down the service.
-func (c *CtlHandler) Stop(SessionID int) error {
+func (c *CtlHandler) Stop(sessionID int) error {
 	G.Log.Info("Received stop() RPC; shutting down")
 	go func() {
 		time.Sleep(1 * time.Second)
@@ -28,7 +28,7 @@ func (c *CtlHandler) Stop(SessionID int) error {
 	return nil
 }
 
-func (c *CtlHandler) LogRotate(SessionID int) error {
+func (c *CtlHandler) LogRotate(sessionID int) error {
 	return G.Log.RotateLogFile()
 }
 
@@ -37,14 +37,14 @@ func (c *CtlHandler) SetLogLevel(arg keybase1.SetLogLevelArg) error {
 	return nil
 }
 
-func (c *CtlHandler) Reload(SessionID int) error {
+func (c *CtlHandler) Reload(sessionID int) error {
 	G.Log.Info("Reloading config file")
 	return G.ConfigReload()
 }
 
-func (c *CtlHandler) DbNuke(SessionID int) error {
+func (c *CtlHandler) DbNuke(sessionID int) error {
 	ctx := engine.Context{
-		LogUI: c.getLogUI(SessionID),
+		LogUI: c.getLogUI(sessionID),
 	}
 
 	fn, err := G.LocalDb.Nuke()
