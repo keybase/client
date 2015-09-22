@@ -22,8 +22,7 @@ build_one_architecture() {
   # `go build` reads $GOARCH
   go build -o "$dest/build/usr/bin/keybase" github.com/keybase/client/go/keybase
 
-  # TODO: Make `keybase --version` behave better.
-  version="$("$dest/build/usr/bin/keybase" --version 2> /dev/null | cut -d " " -f 3 || true)"
+  version="$("$dest/build/usr/bin/keybase" version --format=s 2> /dev/null || true)"
 
   cat "$here/control.template" \
     | sed "s/@@VERSION@@/$version/" \
