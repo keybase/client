@@ -17,9 +17,12 @@ const (
 	// EnvBServerAddr is the environment variable name for a block
 	// server address.
 	EnvBServerAddr = "KEYBASE_BSERVER_BIND_ADDR"
-	// EnvCACertPEM is the environment variable name for the CA cert
-	// PEM the client uses to verify the KBFS servers.
-	EnvCACertPEM = "KEYBASE_CA_CERT_PEM"
+	// EnvMDServerCACertPEM is the environment variable name for the CA cert
+	// PEM the client uses to verify the KBFS md servers.
+	EnvMDServerCACertPEM = "KEYBASE_MDSERVER_CA_CERT_PEM"
+	// EnvBServerCACertPEM is the environment variable name for the CA cert
+	// PEM the client uses to verify the KBFS block servers.
+	EnvBServerCACertPEM = "KEYBASE_BSERVER_CA_CERT_PEM"
 )
 
 // RandomBlockID returns a randomly-generated BlockID for testing.

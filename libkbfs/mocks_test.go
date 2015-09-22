@@ -2077,22 +2077,40 @@ func (_mr *_MockConfigRecorder) ReqsBufSize() *gomock.Call {
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "ReqsBufSize")
 }
 
-func (_m *MockConfig) CACert() []byte {
-	ret := _m.ctrl.Call(_m, "CACert")
+func (_m *MockConfig) MDServerCACert() []byte {
+	ret := _m.ctrl.Call(_m, "MDServerCACert")
 	ret0, _ := ret[0].([]byte)
 	return ret0
 }
 
-func (_mr *_MockConfigRecorder) CACert() *gomock.Call {
-	return _mr.mock.ctrl.RecordCall(_mr.mock, "CACert")
+func (_mr *_MockConfigRecorder) MDServerCACert() *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "MDServerCACert")
 }
 
-func (_m *MockConfig) SetCACert(_param0 []byte) {
-	_m.ctrl.Call(_m, "SetCACert", _param0)
+func (_m *MockConfig) SetMDServerCACert(_param0 []byte) {
+	_m.ctrl.Call(_m, "SetMDServerCACert", _param0)
 }
 
-func (_mr *_MockConfigRecorder) SetCACert(arg0 interface{}) *gomock.Call {
-	return _mr.mock.ctrl.RecordCall(_mr.mock, "SetCACert", arg0)
+func (_mr *_MockConfigRecorder) SetMDServerCACert(arg0 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "SetMDServerCACert", arg0)
+}
+
+func (_m *MockConfig) BServerCACert() []byte {
+	ret := _m.ctrl.Call(_m, "BServerCACert")
+	ret0, _ := ret[0].([]byte)
+	return ret0
+}
+
+func (_mr *_MockConfigRecorder) BServerCACert() *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "BServerCACert")
+}
+
+func (_m *MockConfig) SetBServerCACert(_param0 []byte) {
+	_m.ctrl.Call(_m, "SetBServerCACert", _param0)
+}
+
+func (_mr *_MockConfigRecorder) SetBServerCACert(arg0 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "SetBServerCACert", arg0)
 }
 
 func (_m *MockConfig) MakeLogger(module string) logger.Logger {
@@ -2238,15 +2256,15 @@ func (_m *MockConnectionTransport) EXPECT() *_MockConnectionTransportRecorder {
 	return _m.recorder
 }
 
-func (_m *MockConnectionTransport) Dial(ctx context.Context, srvAddr string) (go0.GenericClient, error) {
-	ret := _m.ctrl.Call(_m, "Dial", ctx, srvAddr)
+func (_m *MockConnectionTransport) Dial(ctx context.Context, srvAddr string, cert []byte) (go0.GenericClient, error) {
+	ret := _m.ctrl.Call(_m, "Dial", ctx, srvAddr, cert)
 	ret0, _ := ret[0].(go0.GenericClient)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-func (_mr *_MockConnectionTransportRecorder) Dial(arg0, arg1 interface{}) *gomock.Call {
-	return _mr.mock.ctrl.RecordCall(_mr.mock, "Dial", arg0, arg1)
+func (_mr *_MockConnectionTransportRecorder) Dial(arg0, arg1, arg2 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "Dial", arg0, arg1, arg2)
 }
 
 func (_m *MockConnectionTransport) Serve(server rpc2.Protocol) error {

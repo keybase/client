@@ -36,7 +36,7 @@ func (ut *unitTester) OnDisconnected() {
 }
 
 // Dial implements the ConnectionTransport interface.
-func (ut *unitTester) Dial(ctx context.Context, srvAddr string) (
+func (ut *unitTester) Dial(ctx context.Context, srvAddr string, cert []byte) (
 	keybase1.GenericClient, error) {
 	if ut.numConnectErrors == 0 {
 		return nil, errors.New("intentional error to trigger reconnect")
@@ -81,7 +81,7 @@ func TestReconnectBasic(t *testing.T) {
 	ctx := context.Background()
 	config := NewConfigLocal()
 	unitTester := &unitTester{doneChan: make(chan bool)}
-	conn := newConnectionWithTransport(ctx, config, "", unitTester, unitTester)
+	conn := newConnectionWithTransport(ctx, config, "", config.MDServerCACert(), unitTester, unitTester)
 	defer conn.Shutdown()
 	timeout := time.After(2 * time.Second)
 	select {

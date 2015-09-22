@@ -36,6 +36,7 @@ type ConnectionTransportTLS struct {
 	stagedTransport *rpc2.Transport
 	server          *rpc2.Server
 	conn            net.Conn
+	cert            []byte
 	mutex           sync.Mutex // protects transport and server
 }
 
@@ -43,13 +44,13 @@ type ConnectionTransportTLS struct {
 var _ ConnectionTransport = (*ConnectionTransportTLS)(nil)
 
 // Dial is an implementation of the ConnectionTransport interface.
-func (ct *ConnectionTransportTLS) Dial(ctx context.Context, srvAddr string) (
+func (ct *ConnectionTransportTLS) Dial(ctx context.Context, srvAddr string, cert []byte) (
 	keybase1.GenericClient, error) {
 	var err error
 	err = runUnlessCanceled(ctx, func() error {
 		// load CA certificate
 		certs := x509.NewCertPool()
-		if !certs.AppendCertsFromPEM(ct.config.CACert()) {
+		if !certs.AppendCertsFromPEM(cert) {
 			return errors.New("Unable to load CA certificate")
 		}
 		// connect
@@ -110,6 +111,7 @@ func (ct *ConnectionTransportTLS) Close() {
 type Connection struct {
 	config    Config
 	srvAddr   string
+	cert      []byte
 	handler   ConnectionHandler
 	transport ConnectionTransport
 
@@ -120,17 +122,18 @@ type Connection struct {
 }
 
 // NewConnection returns a newly connected connection.
-func NewConnection(ctx context.Context, config Config, srvAddr string,
+func NewConnection(ctx context.Context, config Config, srvAddr string, cert []byte,
 	handler ConnectionHandler, errFunc rpc2.UnwrapErrorFunc) *Connection {
 	transport := &ConnectionTransportTLS{config: config, unwrapErrFunc: errFunc}
-	return newConnectionWithTransport(ctx, config, srvAddr, handler, transport)
+	return newConnectionWithTransport(ctx, config, srvAddr, cert, handler, transport)
 }
 
 // Separate from NewConnection to allow for unit testing.
 func newConnectionWithTransport(ctx context.Context, config Config, srvAddr string,
-	handler ConnectionHandler, transport ConnectionTransport) *Connection {
+	cert []byte, handler ConnectionHandler, transport ConnectionTransport) *Connection {
 	connection := &Connection{
 		srvAddr:   srvAddr,
+		cert:      cert,
 		config:    config,
 		handler:   handler,
 		transport: transport,
@@ -142,7 +145,7 @@ func newConnectionWithTransport(ctx context.Context, config Config, srvAddr stri
 // connect performs the actual connect() and rpc setup.
 func (c *Connection) connect(ctx context.Context) error {
 	// connect
-	client, err := c.transport.Dial(ctx, c.srvAddr)
+	client, err := c.transport.Dial(ctx, c.srvAddr, c.cert)
 	if err != nil {
 		return err
 	}

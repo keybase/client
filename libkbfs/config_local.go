@@ -12,26 +12,27 @@ import (
 // ConfigLocal implements the Config interface using purely local
 // server objects (no KBFS operations used RPCs).
 type ConfigLocal struct {
-	kbfs     KBFSOps
-	kbpki    KBPKI
-	keyman   KeyManager
-	rep      Reporter
-	mdcache  MDCache
-	kcache   KeyCache
-	bcache   BlockCache
-	crypto   Crypto
-	codec    Codec
-	mdops    MDOps
-	kops     KeyOps
-	bops     BlockOps
-	mdserv   MDServer
-	bserv    BlockServer
-	keyserv  KeyServer
-	bsplit   BlockSplitter
-	notifier Notifier
-	cacert   []byte
-	registry metrics.Registry
-	loggerFn func(prefix string) logger.Logger
+	kbfs           KBFSOps
+	kbpki          KBPKI
+	keyman         KeyManager
+	rep            Reporter
+	mdcache        MDCache
+	kcache         KeyCache
+	bcache         BlockCache
+	crypto         Crypto
+	codec          Codec
+	mdops          MDOps
+	kops           KeyOps
+	bops           BlockOps
+	mdserv         MDServer
+	bserv          BlockServer
+	keyserv        KeyServer
+	bsplit         BlockSplitter
+	notifier       Notifier
+	mdserverCAcert []byte
+	bserverCAcert  []byte
+	registry       metrics.Registry
+	loggerFn       func(prefix string) logger.Logger
 }
 
 var _ Config = (*ConfigLocal)(nil)
@@ -142,12 +143,19 @@ func NewConfigLocal() *ConfigLocal {
 	config.SetBlockSplitter(&BlockSplitterSimple{64 * 1024, 8 * 1024})
 	config.SetNotifier(config.kbfs.(*KBFSOpsStandard))
 
-	// set the cert to be the environment variable, if it exists
-	envCACert := os.Getenv(EnvCACertPEM)
-	if len(envCACert) != 0 {
-		config.SetCACert([]byte(envCACert))
+	// set the certs to be the environment variables, if they exist
+	envMDServerCACert := os.Getenv(EnvMDServerCACertPEM)
+	if len(envMDServerCACert) != 0 {
+		config.SetMDServerCACert([]byte(envMDServerCACert))
 	} else {
-		config.SetCACert([]byte(TestCACert))
+		config.SetMDServerCACert([]byte(TestCACert))
+	}
+
+	envBServerCACert := os.Getenv(EnvBServerCACertPEM)
+	if len(envBServerCACert) != 0 {
+		config.SetBServerCACert([]byte(envBServerCACert))
+	} else {
+		config.SetBServerCACert([]byte(TestCACert))
 	}
 
 	// Don't bother creating the registry if UseNilMetrics is set.
@@ -339,14 +347,24 @@ func (c *ConfigLocal) ReqsBufSize() int {
 	return 20
 }
 
-// CACert implements the Config interface for ConfigLocal.
-func (c *ConfigLocal) CACert() []byte {
-	return c.cacert
+// MDServerCACert implements the Config interface for ConfigLocal.
+func (c *ConfigLocal) MDServerCACert() []byte {
+	return c.mdserverCAcert
 }
 
-// SetCACert implements the Config interface for ConfigLocal.
-func (c *ConfigLocal) SetCACert(cert []byte) {
-	c.cacert = cert
+// BServerCACert implements the Config interface for ConfigLocal.
+func (c *ConfigLocal) BServerCACert() []byte {
+	return c.bserverCAcert
+}
+
+// SetMDServerCACert implements the Config interface for ConfigLocal.
+func (c *ConfigLocal) SetMDServerCACert(cert []byte) {
+	c.mdserverCAcert = cert
+}
+
+// SetBServerCACert implements the Config interface for ConfigLocal.
+func (c *ConfigLocal) SetBServerCACert(cert []byte) {
+	c.bserverCAcert = cert
 }
 
 // MakeLogger implements the Config interface for ConfigLocal.
