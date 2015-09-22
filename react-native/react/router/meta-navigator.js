@@ -15,6 +15,8 @@ const {
 import { connect } from 'react-redux/native'
 //import Navigator from '../common/navigator'
 
+import engine from '../engine'
+
 class MetaNavigator extends Component {
   constructor () {
     super()
@@ -35,8 +37,8 @@ class MetaNavigator extends Component {
 
     // TODO (mm): specify the prop types
     const {store, rootRouteParser } = this.props;
-    // TODO (mm): put this in the store.
-    const route = ["login","loginform"]
+
+    const route = store.getState().router.uri
 
     let {componentAtTop, restRoutes, parseNextRoute} = rootRouteParser(store, route)
     // todo(mm): actually store the stack of routes
@@ -57,20 +59,21 @@ class MetaNavigator extends Component {
     console.log("Rendering", componentAtTop)
 
     return (
-      <Navigator
-        saveName='main'
-        ref='navigator'
-        initialRouteStack={routeStack}
-        renderScene={(route, navigator) => {
-          console.log("Doing route:", route)
-          return (
-            React.createElement(connect(state => state.login)(route.component), {...route.props})
-          )
-        }}
-        // TODO: render the nav bar
-      />
+      React.createElement(connect(state => state.login)(componentAtTop.component), {...componentAtTop.props})
+      //<Navigator
+      //  saveName='main'
+      //  ref='navigator'
+      //  initialRouteStack={routeStack}
+      //  renderScene={(route, navigator) => {
+      //    console.log("Doing route:", route)
+      //    return (
+      //      React.createElement(connect(state => state.login)(route.component), {...route.props})
+      //    )
+      //  }}
+      //  // TODO: render the nav bar
+      ///>
     )
   }
 }
 
-export default MetaNavigator
+export default connect(state => state)(MetaNavigator)

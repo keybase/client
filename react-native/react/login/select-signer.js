@@ -10,6 +10,8 @@ const {
   TouchableHighlight
 } = React
 
+import { submitDeviceSigner } from '../actions/login'
+
 import commonStyles from '../styles/common'
 import enums from '../keybase_v1'
 
@@ -89,6 +91,25 @@ class SelectSigner extends Component {
         />
       </View>
     )
+  }
+
+  static parseRoute(store, route) {
+    const {signers, response} = store.getState().login
+    const componentAtTop = {
+      title: 'Device Setup',
+      leftButtonTitle: 'Cancel',
+      component: SelectSigner,
+      props: {
+        onSubmit: (result) => store.dispatch(submitDeviceSigner(result, response)),
+        ...signers
+      }
+    }
+
+    return {
+      componentAtTop,
+      restRoutes: [],
+      parseNextRoute: null // terminal node, so no next route
+    }
   }
 }
 

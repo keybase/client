@@ -19,6 +19,8 @@ import { Provider } from 'react-redux/native'
 import configureStore from './store/configureStore'
 const store = configureStore()
 
+import { navigateTo } from './actions/router'
+
 import LoginComponent from './login'
 import DebugComponent from './debug'
 
@@ -79,16 +81,17 @@ class AppOrDebug extends Component {
   }
 
   render () {
+    const { dispatch } = this.props
     return (
       <View style={styles.appDebug}>
         <TouchableHighlight
           underlayColor={commonStyles.buttonHighlight}
-          onPress={() => { this.showApp() }}>
+          onPress={() => { dispatch(navigateTo(["login"])) }}>
           <Text style={[commonStyles.button, {width: 200}]} >Keybase</Text>
         </TouchableHighlight>
         <TouchableHighlight
           underlayColor={commonStyles.buttonHighlight}
-          onPress={() => { this.showDebug() }}>
+          onPress={() => { dispatch(navigateTo(["debug"])) }}>
           <Text style={[commonStyles.button, {width: 200}]}>Debug Page</Text>
         </TouchableHighlight>
       </View>
@@ -111,26 +114,12 @@ class Keybase extends Component {
     return (
       <Provider store={store}>
         {() =>
-        {
-
-          const {componentAtTop, restRoutes, parseNextRoute} = Keybase.parseRoute(store, ["login","loginForm"])
-          console.log(componentAtTop, restRoutes, parseNextRoute)
-          console.log(parseNextRoute(store, restRoutes))
-          // TODO(mm): maybe not pass in store? and use connect
+        {// TODO(mm): maybe not pass in store? and use connect
           return (
             <MetaNavigator
               store={store}
               rootRouteParser={Keybase.parseRoute}/>
           )
-          //return (
-          //<Navigator
-          //  saveName='main'
-          //  ref='navigator'
-          //  initialRoute = {{
-          //    title: 'App or Debug',
-          //    component: AppOrDebug
-          //  }}
-          ///>)
         }}
       </Provider>
     )

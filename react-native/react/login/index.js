@@ -39,105 +39,7 @@ class LoginContainer extends Component {
     // stop login if not all the way through?
   }
 
-  transitionPage () {
-    // TODO fix this in the router. have to defer so we don't mutate navigator in render below...
-    setTimeout(() => {
-      this.showingLoginState = this.props.loginState
-
-      // TODO use nice router / nav stack and not all these push/pops
-      switch (this.props.loginState) {
-        case states.ASK_USER_PASS:
-          console.log("Going to ask for user pass")
-          //this.showLoginForm()
-          break
-        case states.ASK_DEVICE_NAME:
-          this.showDevicePrompt()
-          break
-        case states.ASK_DEVICE_SIGNER:
-          this.showDeviceSigner()
-          break
-        case states.SHOW_SECRET_WORDS:
-          this.showSecretWords()
-          break
-        case states.LOGGED_IN:
-          this.showLoggedIn()
-          break
-      }
-    }, 1)
-  }
-
-  showLoginForm () {
-    const { username, passphrase, storeSecret, waitingForServer } = this.props
-
-    this.props.kbNavigator.push({
-      title: 'Login',
-      component: LoginForm,
-      leftButtonTitle: 'Cancel',
-      leftButtonPopN: 1,
-      props: {
-        onSubmit: (username, passphrase, storeSecret) => this.actions.submitUserPass(username, passphrase, storeSecret),
-        username,
-        passphrase,
-        storeSecret,
-        waitingForServer
-      }
-    })
-  }
-
-  showDevicePrompt () {
-    const { deviceName, response } = this.props
-
-    this.props.kbNavigator.push({
-      title: 'Device Name',
-      component: DevicePrompt,
-      leftButtonTitle: 'Cancel',
-      leftButtonPopN: 2,
-      props: {
-        onSubmit: (name) => this.actions.submitDeviceName(name, response),
-        deviceName
-      }
-    })
-  }
-
-  showDeviceSigner () {
-    const { signers, response } = this.props
-
-    this.props.kbNavigator.push({
-      title: 'Device Setup',
-      leftButtonTitle: 'Cancel',
-      leftButtonPopN: 3,
-      component: SelectSigner,
-      props: {
-        onSubmit: (result) => this.actions.submitDeviceSigner(result, response),
-        ...signers
-      }
-    })
-  }
-
-  showSecretWords () {
-    const { secretWords, response } = this.props
-
-    this.props.kbNavigator.push({
-      title: 'Register Device',
-      component: DisplaySecretWords,
-      leftButtonTitle: 'Cancel',
-      leftButtonPopN: 4,
-      props: {
-        onSubmit: () => this.actions.showedSecretWords(response),
-        secretWords
-      }
-    })
-  }
-
-  showLoggedIn () {
-    this.props.onLoggedIn()
-  }
-
   render () {
-    //if (this.showingLoginState !== this.props.loginState) {
-    //  this.transitionPage()
-    //}
-
     return (
       <View style={styles.container}>
         <Text>Welp, you shouldn't be here</Text>
@@ -146,8 +48,13 @@ class LoginContainer extends Component {
   }
 
   static parseRoute(store, route) {
+    // TODO(mm): maybe these route names can be the constants we are already using?
+    // e.g. state.SHOW_SECRET_WORDS
     const routes = {
-      'loginform': LoginForm.parseRoute
+      'loginform': LoginForm.parseRoute,
+      'device-prompt': DevicePrompt.parseRoute,
+      'device-signer':SelectSigner.parseRoute,
+      'show-secret-words':DisplaySecretWords.parseRoute
     }
 
     const [top, ...rest] = route;

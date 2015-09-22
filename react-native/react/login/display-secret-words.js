@@ -9,6 +9,8 @@ const {
   Text
 } = React
 
+import { showedSecretWords } from '../actions/login'
+
 import commonStyles from '../styles/common'
 
 class DisplaySecretWords extends Component {
@@ -26,6 +28,26 @@ class DisplaySecretWords extends Component {
           <Text style={[styles.secret, commonStyles.h1]}>{this.props.secretWords}</Text>
         </View>
     )
+  }
+
+  static parseRoute (store, route) {
+    const { secretWords, response } = store.getState().login
+
+    const componentAtTop = {
+      title: 'Register Device',
+      component: DisplaySecretWords,
+      leftButtonTitle: 'Cancel',
+      props: {
+        onSubmit: () => store.dispatch(showedSecretWords(response)),
+        secretWords
+      }
+    }
+
+    return {
+      componentAtTop,
+      restRoutes: [],
+      parseNextRoute: null // terminal node, so no next route
+    }
   }
 }
 

@@ -108,7 +108,6 @@ class LoginForm extends Component {
       title: 'Login',
       component: LoginForm,
       leftButtonTitle: 'Cancel',
-      leftButtonPopN: 1,
       props: {
         onSubmit: (username, passphrase, storeSecret) => store.dispatch(submitUserPass(username, passphrase, storeSecret)),
         username,

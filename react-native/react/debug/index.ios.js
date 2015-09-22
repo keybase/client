@@ -5,9 +5,9 @@
  */
 
 import React from 'react-native'
-const { Component } = React
+const { Component, View, Text } = React
 
-import Temp from './briding-tabs'
+import { navigateTo } from '../actions/router'
 
 class Debug extends Component {
   constructor () {
@@ -33,12 +33,67 @@ class Debug extends Component {
 
   render () {
     return (
-      <Temp navigator={this.props.navigator} {...this.state.mock} />
+      <View style={{flex:1, marginTop:100}}>
+        <Text style={{textAlign:"center"}}>In debug</Text>
+        <Text
+          style={{textAlign:"center", color:"blue"}}
+          onPress={()=>this.props.dispatch(navigateTo(["debug","page2"]))}>Click here to go somewhere</Text>
+      </View>
     )
-    // return React.createElement(require('./briding-tabs'))
+  }
+
+  static parseRoute (store, route) {
+    const routes = {
+      "page2":DebugPage2.parseRoute
+    }
+
+    const [top, ...rest] = route;
+
+    const componentAtTop = {
+      title: 'Debug',
+      component: Debug
+    }
+
+    return {
+      componentAtTop,
+      restRoutes: rest,
+      parseNextRoute: routes[top] || null
+    }
+
   }
 }
 
+class DebugPage2 extends Component {
+  render () {
+    return (
+      <View style={{flex:1, marginTop:100}}>
+        <Text style={{textAlign:"center"}}>Page 2</Text>
+        <Text
+          style={{textAlign:"center", color:"blue"}}
+          onPress={()=>this.props.dispatch(navigateTo(["debug"]))}>go back</Text>
+      </View>
+    )
+  }
+
+  static parseRoute (store, route) {
+    const routes = {
+    }
+
+    const [top, ...rest] = route;
+
+    const componentAtTop = {
+      title: 'Debug Page 2',
+      component: DebugPage2
+    }
+
+    return {
+      componentAtTop,
+      restRoutes: rest,
+      parseNextRoute: routes[top] || null
+    }
+
+  }
+}
 Debug.propTypes = {
   navigator: React.PropTypes.object
 }
