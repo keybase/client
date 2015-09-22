@@ -2,8 +2,10 @@ package libkbfs
 
 import (
 	"encoding/base64"
+	"fmt"
 	"strings"
 
+	"github.com/keybase/client/go/logger"
 	"golang.org/x/net/context"
 )
 
@@ -39,4 +41,26 @@ func MakeRandomRequestID() (string, error) {
 	}
 	// TODO: go1.5 has RawURLEncoding which leaves off the padding entirely
 	return strings.TrimSuffix(base64.URLEncoding.EncodeToString(buf), "=="), nil
+}
+
+// LogTagsFromContextToMap parses log tags from the context into a map of strings.
+func LogTagsFromContextToMap(ctx context.Context) (tags map[string]string) {
+	if ctx == nil {
+		return tags
+	}
+	logTags, ok := logger.LogTagsFromContext(ctx)
+	if !ok || len(logTags) == 0 {
+		return tags
+	}
+	tags = make(map[string]string)
+	for key, tag := range logTags {
+		if v := ctx.Value(key); v != nil {
+			if value, ok := v.(fmt.Stringer); ok {
+				tags[tag] = value.String()
+			} else if value, ok := v.(string); ok {
+				tags[tag] = value
+			}
+		}
+	}
+	return tags
 }

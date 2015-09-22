@@ -217,6 +217,7 @@ func (md *MDServerRemote) get(ctx context.Context, id TlfID, handle *TlfHandle,
 		StartRevision: start.Number(),
 		StopRevision:  stop.Number(),
 		Unmerged:      isUnmerged,
+		LogTags:       LogTagsFromContextToMap(ctx),
 	}
 	if id == NullTlfID {
 		arg.FolderHandle = handle.ToBytes(md.config)
@@ -296,16 +297,25 @@ func (md *MDServerRemote) Put(ctx context.Context, rmds *RootMetadataSigned) err
 	if err != nil {
 		return err
 	}
+
 	// put request
+	arg := keybase1.PutMetadataArg{
+		MdBlock: rmdsBytes,
+		LogTags: LogTagsFromContextToMap(ctx),
+	}
 	return md.doCommand(ctx, func() error {
-		return md.client().PutMetadata(rmdsBytes)
+		return md.client().PutMetadata(arg)
 	})
 }
 
 // PruneUnmerged implements the MDServer interface for MDServerRemote.
 func (md *MDServerRemote) PruneUnmerged(ctx context.Context, id TlfID) error {
+	arg := keybase1.PruneUnmergedArg{
+		FolderID: id.String(),
+		LogTags:  LogTagsFromContextToMap(ctx),
+	}
 	return md.doCommand(ctx, func() error {
-		return md.client().PruneUnmerged(id.String())
+		return md.client().PruneUnmerged(arg)
 	})
 }
 
@@ -335,6 +345,7 @@ func (md *MDServerRemote) RegisterForUpdate(ctx context.Context, id TlfID,
 	arg := keybase1.RegisterForUpdatesArg{
 		FolderID:     id.String(),
 		CurrRevision: currHead.Number(),
+		LogTags:      LogTagsFromContextToMap(ctx),
 	}
 
 	// register
@@ -404,9 +415,13 @@ func (md *MDServerRemote) GetTLFCryptKeyServerHalf(ctx context.Context,
 	}
 
 	// get the key
+	arg := keybase1.GetKeyArg{
+		KeyHalfID: idBytes,
+		LogTags:   LogTagsFromContextToMap(ctx),
+	}
 	var keyBytes []byte
 	err = md.doCommand(ctx, func() error {
-		keyBytes, err = md.client().GetKey(idBytes)
+		keyBytes, err = md.client().GetKey(arg)
 		return err
 	})
 	if err != nil {
@@ -443,7 +458,11 @@ func (md *MDServerRemote) PutTLFCryptKeyServerHalves(ctx context.Context,
 		}
 	}
 	// put the keys
+	arg := keybase1.PutKeysArg{
+		KeyHalves: keyHalves,
+		LogTags:   LogTagsFromContextToMap(ctx),
+	}
 	return md.doCommand(ctx, func() error {
-		return md.client().PutKeys(keyHalves)
+		return md.client().PutKeys(arg)
 	})
 }
