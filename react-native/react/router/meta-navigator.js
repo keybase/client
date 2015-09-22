@@ -26,7 +26,10 @@ class MetaNavigator extends Component {
   }
 
   isParentOfRoute (routeParent, routeMaybeChild) {
-    return routeMaybeChild.slice(0, routeParent.length).join(',') === routeParent.join(',')
+    return (
+      (routeMaybeChild.join(',') !== routeParent.join(',')
+      && routeMaybeChild.slice(0, routeParent.length).join(',') === routeParent.join(','))
+    )
   }
 
   shouldComponentUpdate (nextProps, nextState) {
