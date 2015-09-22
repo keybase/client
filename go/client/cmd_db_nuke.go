@@ -4,7 +4,6 @@ import (
 	"github.com/keybase/cli"
 	"github.com/keybase/client/go/libcmdline"
 	"github.com/keybase/client/go/libkb"
-	"github.com/maxtaco/go-framed-msgpack-rpc/rpc2"
 )
 
 type CmdDbNuke struct {
@@ -26,10 +25,7 @@ func (c *CmdDbNuke) Run() error {
 		if err != nil {
 			return err
 		}
-		protocols := []rpc2.Protocol{
-			NewLogUIProtocol(),
-		}
-		if err = RegisterProtocols(protocols); err != nil {
+		if err = RegisterProtocols(nil); err != nil {
 			return err
 		}
 		return cli.DbNuke(0)

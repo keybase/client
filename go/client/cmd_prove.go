@@ -58,7 +58,6 @@ func (p *CmdProve) Run() error {
 		newProveUIProtocol(proveUI),
 		NewLoginUIProtocol(),
 		NewSecretUIProtocol(),
-		NewLogUIProtocol(),
 	}
 
 	cli, err := GetProveClient()

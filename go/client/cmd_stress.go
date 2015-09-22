@@ -51,7 +51,6 @@ func (c *CmdStress) rpcClient() (*rpc2.Client, error) {
 		c.secretUIProtocol(),
 		NewIdentifyUIProtocol(),
 		c.gpgUIProtocol(),
-		NewLogUIProtocol(),
 		NewDoctorUIProtocol(),
 		NewLocksmithUIProtocol(),
 		NewLoginUIProtocol(),
