@@ -21,11 +21,11 @@ func NewCmdVersion(cl *libcmdline.CommandLine) cli.Command {
 		Action: func(c *cli.Context) {
 			switch c.String("format") {
 			case "":
-				GlobUI.Println(libkb.VersionString(false))
+				GlobUI.Println(libkb.VersionString())
 			case "s":
-				GlobUI.Println(libkb.VersionString(true))
+				GlobUI.Println(libkb.Version)
 			case "v":
-				libkb.VersionMessage(false, func(s string) { GlobUI.Println(s) })
+				libkb.VersionMessage(func(s string) { GlobUI.Println(s) })
 			}
 			os.Exit(0)
 		},
