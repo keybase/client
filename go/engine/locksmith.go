@@ -645,6 +645,11 @@ func (d *Locksmith) deviceName(ctx *Context) (string, error) {
 				errCh <- err
 				return
 			}
+			if !libkb.CheckDeviceName.F(name) {
+				errCh <- errors.New("Invalid device name")
+				return
+			}
+
 			if len(name) > 0 && !d.isDeviceNameTaken(ctx, name) {
 				nameCh <- name
 				return
