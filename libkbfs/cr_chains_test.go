@@ -6,13 +6,18 @@ import (
 )
 
 func checkExpectedChains(t *testing.T, expected map[BlockPointer]BlockPointer,
-	expectedRoot BlockPointer, cc *crChains, checkTailPtr bool) {
+	expectedRenames map[BlockPointer]renameInfo, expectedRoot BlockPointer,
+	cc *crChains, checkTailPtr bool) {
 	if g, e := len(cc.byOriginal), len(expected); g != e {
 		t.Errorf("Wrong number of originals, %v vs %v", g, e)
 	}
 
 	if g, e := len(cc.byMostRecent), len(expected); g != e {
 		t.Errorf("Wrong number of most recents, %v vs %v", g, e)
+	}
+
+	if g, e := len(cc.renamedOriginals), len(expectedRenames); g != e {
+		t.Errorf("Wrong number of renames, %v vs %v", g, e)
 	}
 
 	if cc.originalRoot != expectedRoot {
@@ -39,6 +44,11 @@ func checkExpectedChains(t *testing.T, expected map[BlockPointer]BlockPointer,
 			t.Fatalf("Chain from %v does not end in most recent %v "+
 				"(%v) vs. (%v)", original, mostRecent, chain, mrChain)
 		}
+	}
+
+	if !reflect.DeepEqual(cc.renamedOriginals, expectedRenames) {
+		t.Errorf("Actual renames don't match the expected renames: %v vs %v",
+			cc.renamedOriginals, expectedRenames)
 	}
 }
 
@@ -133,7 +143,8 @@ func TestCRChainsSingleOp(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Error making chains: %v", err)
 	}
-	checkExpectedChains(t, expected, rootPtrUnref, cc, true)
+	checkExpectedChains(t, expected, make(map[BlockPointer]renameInfo),
+		rootPtrUnref, cc, true)
 
 	// check for the create op
 	testCRCheckOps(t, cc, dir2Unref, []op{co})
@@ -149,9 +160,11 @@ func TestCRChainsRenameOp(t *testing.T) {
 	filePtr := BlockPointer{ID: fakeBlockID(currPtr)}
 	currPtr++
 	expected := make(map[BlockPointer]BlockPointer)
+	expectedRenames := make(map[BlockPointer]renameInfo)
 
 	oldName, newName := "old", "new"
 	ro := newRenameOp(oldName, dir1Unref, newName, dir2Unref, filePtr)
+	expectedRenames[filePtr] = renameInfo{dir2Unref, "new"}
 	currPtr = testCRFillOpPtrs(currPtr, expected, revPtrs,
 		[]BlockPointer{rootPtrUnref, dir1Unref, dir2Unref}, ro)
 	rmd.AddOp(ro)
@@ -161,7 +174,8 @@ func TestCRChainsRenameOp(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Error making chains: %v", err)
 	}
-	checkExpectedChains(t, expected, rootPtrUnref, cc, true)
+
+	checkExpectedChains(t, expected, expectedRenames, rootPtrUnref, cc, true)
 
 	co := newCreateOp(newName, dir2Unref, File)
 	co.renamed = true
@@ -194,6 +208,7 @@ func TestCRChainsMultiOps(t *testing.T) {
 	file2Ptr := BlockPointer{ID: fakeBlockID(currPtr)}
 	currPtr++
 	expected := make(map[BlockPointer]BlockPointer)
+	expectedRenames := make(map[BlockPointer]renameInfo)
 
 	bigRmd := &RootMetadata{}
 	var multiRmds []*RootMetadata
@@ -221,6 +236,7 @@ func TestCRChainsMultiOps(t *testing.T) {
 	// rename root/dir3/file2 root/dir1/file4
 	op3 := newRenameOp(f2, expected[dir3Unref], f4,
 		expected[dir1Unref], file2Ptr)
+	expectedRenames[file2Ptr] = renameInfo{dir1Unref, f4}
 	currPtr = testCRFillOpPtrs(currPtr, expected, revPtrs,
 		[]BlockPointer{expected[rootPtrUnref], expected[dir1Unref],
 			expected[dir3Unref]}, op3)
@@ -257,7 +273,7 @@ func TestCRChainsMultiOps(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Error making chains for big RMD: %v", err)
 	}
-	checkExpectedChains(t, expected, rootPtrUnref, cc, true)
+	checkExpectedChains(t, expected, expectedRenames, rootPtrUnref, cc, true)
 
 	// root should have no direct ops
 	testCRCheckOps(t, cc, rootPtrUnref, []op{})
@@ -323,6 +339,7 @@ func TestCRChainsCollapse(t *testing.T) {
 	file4Ptr := BlockPointer{ID: fakeBlockID(currPtr)}
 	currPtr++
 	expected := make(map[BlockPointer]BlockPointer)
+	expectedRenames := make(map[BlockPointer]renameInfo)
 
 	rmd := &RootMetadata{}
 
@@ -359,6 +376,7 @@ func TestCRChainsCollapse(t *testing.T) {
 	// rename root/dir2/file1 root/dir1/file3
 	op6 := newRenameOp(f1, expected[dir2Unref], f3, expected[dir1Unref],
 		file1Ptr)
+	expectedRenames[file1Ptr] = renameInfo{dir1Unref, f3}
 	currPtr = testCRFillOpPtrs(currPtr, expected, revPtrs,
 		[]BlockPointer{expected[rootPtrUnref], expected[dir1Unref],
 			expected[dir2Unref]}, op6)
@@ -373,6 +391,7 @@ func TestCRChainsCollapse(t *testing.T) {
 	// rename root/dir1/file4 root/dir1/file3
 	op8 := newRenameOp(f4, expected[dir1Unref], f3, expected[dir1Unref],
 		file4Ptr)
+	expectedRenames[file4Ptr] = renameInfo{dir1Unref, f3}
 	currPtr = testCRFillOpPtrs(currPtr, expected, revPtrs,
 		[]BlockPointer{expected[rootPtrUnref], expected[dir1Unref]}, op8)
 	rmd.AddOp(op8)
@@ -382,7 +401,7 @@ func TestCRChainsCollapse(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Error making chains: %v", err)
 	}
-	checkExpectedChains(t, expected, rootPtrUnref, cc,
+	checkExpectedChains(t, expected, expectedRenames, rootPtrUnref, cc,
 		false /*tail ref pointer won't match due to collapsing*/)
 
 	// root should have no direct ops

@@ -13,6 +13,8 @@ type op interface {
 	AddUpdate(oldPtr BlockPointer, newPtr BlockPointer)
 	SizeExceptUpdates() uint64
 	AllUpdates() []blockUpdate
+	Refs() []BlockPointer
+	Unrefs() []BlockPointer
 	String() string
 }
 
@@ -73,6 +75,18 @@ func (oc *OpCommon) AddUpdate(oldPtr BlockPointer, newPtr BlockPointer) {
 	} else {
 		oc.Updates = append(oc.Updates, blockUpdate{oldPtr, newPtr})
 	}
+}
+
+// Refs returns a slice containing all the blocks that were initially
+// referenced during this op.
+func (oc *OpCommon) Refs() []BlockPointer {
+	return oc.RefBlocks
+}
+
+// Unrefs returns a slice containing all the blocks that were
+// unreferenced during this op.
+func (oc *OpCommon) Unrefs() []BlockPointer {
+	return oc.UnrefBlocks
 }
 
 // createOp is an op representing a file or subdirectory creation

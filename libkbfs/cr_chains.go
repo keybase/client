@@ -55,6 +55,11 @@ func (cc *crChain) collapse() {
 	}
 }
 
+type renameInfo struct {
+	originalNewParent BlockPointer
+	newName           string
+}
+
 // crChains contains a crChain for every KBFS node affected by the
 // operations over a given set of MD updates.  The chains are indexed
 // by both the starting (original) and ending (most recent) pointers.
@@ -63,6 +68,15 @@ type crChains struct {
 	byOriginal   map[BlockPointer]*crChain
 	byMostRecent map[BlockPointer]*crChain
 	originalRoot BlockPointer
+
+	// The original blockpointers for nodes that have been
+	// unreferenced or initially referenced during this chain.
+	deletedOriginals map[BlockPointer]bool
+	createdOriginals map[BlockPointer]bool
+
+	// A map from original blockpointer to the original block pointer
+	// of the corresponding node's most recent parent.
+	renamedOriginals map[BlockPointer]renameInfo
 }
 
 func (ccs *crChains) addOp(ptr BlockPointer, op op) error {
@@ -76,9 +90,8 @@ func (ccs *crChains) addOp(ptr BlockPointer, op op) error {
 }
 
 func (ccs *crChains) makeChainForOp(op op) error {
-	// First set the pointers for all updates.  We only care
-	// about updates, because new blocks cannot conflict directly with
-	// anything else.
+	// First set the pointers for all updates, and track what's been
+	// created and destroyed.
 	for _, update := range op.AllUpdates() {
 		chain, ok := ccs.byMostRecent[update.Unref]
 		if !ok {
@@ -92,6 +105,21 @@ func (ccs *crChains) makeChainForOp(op op) error {
 		}
 		chain.mostRecent = update.Ref
 		ccs.byMostRecent[update.Ref] = chain
+	}
+
+	for _, ptr := range op.Refs() {
+		ccs.createdOriginals[ptr] = true
+	}
+
+	for _, ptr := range op.Unrefs() {
+		// Look up the original pointer corresponding to this most
+		// recent one.
+		original := ptr
+		if ptrChain, ok := ccs.byMostRecent[ptr]; ok {
+			original = ptrChain.original
+		}
+
+		ccs.deletedOriginals[original] = true
 	}
 
 	// then set the op depending on the actual op type
@@ -134,6 +162,23 @@ func (ccs *crChains) makeChainForOp(op op) error {
 		if err != nil {
 			return err
 		}
+
+		// also keep track of the new parent for the renamed node
+		if realOp.Renamed.IsInitialized() {
+			newParentChain, ok := ccs.byMostRecent[ndr]
+			if !ok {
+				return fmt.Errorf("While renaming, couldn't find the chain "+
+					"for the new parent %v", ndr)
+			}
+			renamedOriginal := realOp.Renamed
+			if renamedChain, ok := ccs.byMostRecent[realOp.Renamed]; ok {
+				renamedOriginal = renamedChain.original
+			}
+			ccs.renamedOriginals[renamedOriginal] = renameInfo{
+				originalNewParent: newParentChain.original,
+				newName:           realOp.NewName,
+			}
+		}
 	case *syncOp:
 		err := ccs.addOp(realOp.File.Ref, op)
 		if err != nil {
@@ -169,10 +214,30 @@ func (ccs *crChains) originalFromMostRecent(mostRecent BlockPointer) (
 	return chain.original, nil
 }
 
+func (ccs *crChains) isCreated(original BlockPointer) bool {
+	return ccs.createdOriginals[original]
+}
+
+func (ccs *crChains) isDeleted(original BlockPointer) bool {
+	return ccs.deletedOriginals[original]
+}
+
+func (ccs *crChains) renamedParentAndName(original BlockPointer) (
+	BlockPointer, string, bool) {
+	info, ok := ccs.renamedOriginals[original]
+	if !ok {
+		return BlockPointer{}, "", false
+	}
+	return info.originalNewParent, info.newName, true
+}
+
 func newCRChains(rmds []*RootMetadata) (ccs *crChains, err error) {
 	ccs = &crChains{
-		byOriginal:   make(map[BlockPointer]*crChain),
-		byMostRecent: make(map[BlockPointer]*crChain),
+		byOriginal:       make(map[BlockPointer]*crChain),
+		byMostRecent:     make(map[BlockPointer]*crChain),
+		deletedOriginals: make(map[BlockPointer]bool),
+		createdOriginals: make(map[BlockPointer]bool),
+		renamedOriginals: make(map[BlockPointer]renameInfo),
 	}
 
 	// For each MD update, turn each update in each op into map
