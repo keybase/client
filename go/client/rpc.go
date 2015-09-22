@@ -52,6 +52,8 @@ func RegisterProtocols(prots []rpc2.Protocol) (err error) {
 	if srv, _, err = GetRPCServer(); err != nil {
 		return
 	}
+
+	prots = append(prots, NewLogUIProtocol())
 	for _, p := range prots {
 		if err = srv.Register(p); err != nil {
 			if _, ok := err.(rpc2.AlreadyRegisteredError); !ok {

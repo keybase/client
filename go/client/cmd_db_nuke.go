@@ -21,7 +21,14 @@ func (c *CmdDbNuke) Run() error {
 		err = GlobUI.PromptForConfirmation("Really blast away your local database?")
 	}
 	if err == nil {
-		err = G.LocalDb.Nuke()
+		cli, err := GetCtlClient()
+		if err != nil {
+			return err
+		}
+		if err = RegisterProtocols(nil); err != nil {
+			return err
+		}
+		return cli.DbNuke(0)
 	}
 	return err
 }

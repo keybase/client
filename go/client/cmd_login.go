@@ -26,7 +26,6 @@ func NewLocksmithUIProtocol() rpc2.Protocol {
 func (v *CmdLogin) client() (*keybase1.LoginClient, error) {
 	protocols := []rpc2.Protocol{
 		NewLoginUIProtocol(),
-		NewLogUIProtocol(),
 		NewSecretUIProtocol(),
 		NewLocksmithUIProtocol(),
 		NewGPGUIProtocol(),

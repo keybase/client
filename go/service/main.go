@@ -33,7 +33,7 @@ func RegisterProtocols(srv *rpc2.Server, xp *rpc2.Transport) error {
 		keybase1.BTCProtocol(NewBTCHandler(xp)),
 		keybase1.ConfigProtocol(ConfigHandler{xp}),
 		keybase1.CryptoProtocol(NewCryptoHandler(xp)),
-		keybase1.CtlProtocol(CtlHandler{}),
+		keybase1.CtlProtocol(NewCtlHandler(xp)),
 		keybase1.DebuggingProtocol(NewDebuggingHandler(xp)),
 		keybase1.DeviceProtocol(NewDeviceHandler(xp)),
 		keybase1.DoctorProtocol(NewDoctorHandler(xp)),

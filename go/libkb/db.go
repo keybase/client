@@ -50,7 +50,10 @@ func NewJSONLocalDb(e LocalDb) *JSONLocalDb { return &JSONLocalDb{e} }
 func (j *JSONLocalDb) Open() error          { return j.engine.Open() }
 func (j *JSONLocalDb) ForceOpen() error     { return j.engine.ForceOpen() }
 func (j *JSONLocalDb) Close() error         { return j.engine.Close() }
-func (j *JSONLocalDb) Nuke() error          { return j.engine.Nuke() }
+func (j *JSONLocalDb) Nuke() (string, error) {
+	fn, err := j.engine.Nuke()
+	return fn, err
+}
 
 func (j *JSONLocalDb) Put(id DbKey, aliases []DbKey, val *jsonw.Wrapper) error {
 	bytes, err := val.Marshal()

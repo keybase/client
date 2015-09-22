@@ -41,7 +41,6 @@ func (v *CmdPGPSelect) Run() error {
 	}
 	protocols := []rpc2.Protocol{
 		NewGPGUIProtocol(),
-		NewLogUIProtocol(),
 		NewSecretUIProtocol(),
 	}
 	if err = RegisterProtocols(protocols); err != nil {

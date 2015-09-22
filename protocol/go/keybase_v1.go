@@ -433,23 +433,32 @@ func (c CryptoClient) UnboxBytes32(__arg UnboxBytes32Arg) (res Bytes32, err erro
 }
 
 type StopArg struct {
+	SessionID int `codec:"sessionID" json:"sessionID"`
 }
 
 type LogRotateArg struct {
+	SessionID int `codec:"sessionID" json:"sessionID"`
 }
 
 type SetLogLevelArg struct {
-	Level LogLevel `codec:"level" json:"level"`
+	SessionID int      `codec:"sessionID" json:"sessionID"`
+	Level     LogLevel `codec:"level" json:"level"`
 }
 
 type ReloadArg struct {
+	SessionID int `codec:"sessionID" json:"sessionID"`
+}
+
+type DbNukeArg struct {
+	SessionID int `codec:"sessionID" json:"sessionID"`
 }
 
 type CtlInterface interface {
-	Stop() error
-	LogRotate() error
-	SetLogLevel(LogLevel) error
-	Reload() error
+	Stop(int) error
+	LogRotate(int) error
+	SetLogLevel(SetLogLevelArg) error
+	Reload(int) error
+	DbNuke(int) error
 }
 
 func CtlProtocol(i CtlInterface) rpc2.Protocol {
@@ -459,28 +468,35 @@ func CtlProtocol(i CtlInterface) rpc2.Protocol {
 			"stop": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
 				args := make([]StopArg, 1)
 				if err = nxt(&args); err == nil {
-					err = i.Stop()
+					err = i.Stop(args[0].SessionID)
 				}
 				return
 			},
 			"logRotate": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
 				args := make([]LogRotateArg, 1)
 				if err = nxt(&args); err == nil {
-					err = i.LogRotate()
+					err = i.LogRotate(args[0].SessionID)
 				}
 				return
 			},
 			"setLogLevel": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
 				args := make([]SetLogLevelArg, 1)
 				if err = nxt(&args); err == nil {
-					err = i.SetLogLevel(args[0].Level)
+					err = i.SetLogLevel(args[0])
 				}
 				return
 			},
 			"reload": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
 				args := make([]ReloadArg, 1)
 				if err = nxt(&args); err == nil {
-					err = i.Reload()
+					err = i.Reload(args[0].SessionID)
+				}
+				return
+			},
+			"dbNuke": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
+				args := make([]DbNukeArg, 1)
+				if err = nxt(&args); err == nil {
+					err = i.DbNuke(args[0].SessionID)
 				}
 				return
 			},
@@ -493,24 +509,32 @@ type CtlClient struct {
 	Cli GenericClient
 }
 
-func (c CtlClient) Stop() (err error) {
-	err = c.Cli.Call("keybase.1.ctl.stop", []interface{}{StopArg{}}, nil)
+func (c CtlClient) Stop(sessionID int) (err error) {
+	__arg := StopArg{SessionID: sessionID}
+	err = c.Cli.Call("keybase.1.ctl.stop", []interface{}{__arg}, nil)
 	return
 }
 
-func (c CtlClient) LogRotate() (err error) {
-	err = c.Cli.Call("keybase.1.ctl.logRotate", []interface{}{LogRotateArg{}}, nil)
+func (c CtlClient) LogRotate(sessionID int) (err error) {
+	__arg := LogRotateArg{SessionID: sessionID}
+	err = c.Cli.Call("keybase.1.ctl.logRotate", []interface{}{__arg}, nil)
 	return
 }
 
-func (c CtlClient) SetLogLevel(level LogLevel) (err error) {
-	__arg := SetLogLevelArg{Level: level}
+func (c CtlClient) SetLogLevel(__arg SetLogLevelArg) (err error) {
 	err = c.Cli.Call("keybase.1.ctl.setLogLevel", []interface{}{__arg}, nil)
 	return
 }
 
-func (c CtlClient) Reload() (err error) {
-	err = c.Cli.Call("keybase.1.ctl.reload", []interface{}{ReloadArg{}}, nil)
+func (c CtlClient) Reload(sessionID int) (err error) {
+	__arg := ReloadArg{SessionID: sessionID}
+	err = c.Cli.Call("keybase.1.ctl.reload", []interface{}{__arg}, nil)
+	return
+}
+
+func (c CtlClient) DbNuke(sessionID int) (err error) {
+	__arg := DbNukeArg{SessionID: sessionID}
+	err = c.Cli.Call("keybase.1.ctl.dbNuke", []interface{}{__arg}, nil)
 	return
 }
 
