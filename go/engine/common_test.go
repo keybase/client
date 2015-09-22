@@ -177,9 +177,6 @@ func (fu *FakeUser) NewSecretUI() *libkb.TestSecretUI {
 }
 
 func AssertLoggedIn(tc libkb.TestContext) error {
-	if err := checkLocalSession(tc); err != nil {
-		return err
-	}
 	if !LoggedIn(tc) {
 		return libkb.LoginRequiredError{}
 	}
@@ -187,28 +184,15 @@ func AssertLoggedIn(tc libkb.TestContext) error {
 }
 
 func AssertLoggedOut(tc libkb.TestContext) error {
-	if err := checkLocalSession(tc); err != nil {
-		return err
-	}
 	if LoggedIn(tc) {
 		return libkb.LogoutError{}
 	}
 	return nil
 }
 
-func checkLocalSession(tc libkb.TestContext) error {
-	var err error
-	aerr := tc.G.LoginState().LocalSession(func(s *libkb.Session) {
-		err = s.Check()
-	}, "engine test - checkLocalSession")
-	if aerr != nil {
-		return aerr
-	}
-	return err
-}
-
 func LoggedIn(tc libkb.TestContext) bool {
-	return tc.G.LoginState().LoggedIn()
+	lin, _ := tc.G.LoginState().LoggedInLoad()
+	return lin
 }
 
 func Logout(tc libkb.TestContext) {
