@@ -24,7 +24,6 @@ func (v *CmdReset) Run() (err error) {
 	}
 
 	protocols := []rpc2.Protocol{
-		NewLogUIProtocol(),
 	}
 	if err = RegisterProtocols(protocols); err != nil {
 		return err

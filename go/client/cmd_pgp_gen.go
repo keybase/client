@@ -41,7 +41,6 @@ func (v *CmdPGPGen) ParseArgv(ctx *cli.Context) (err error) {
 // Why use CreatePGPIDs rather than MakeAllIds?
 func (v *CmdPGPGen) Run() (err error) {
 	protocols := []rpc2.Protocol{
-		NewLogUIProtocol(),
 		NewSecretUIProtocol(),
 	}
 	cli, err := GetPGPClient()

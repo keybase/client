@@ -52,7 +52,6 @@ func (v *CmdTrack) Run() error {
 	}
 
 	protocols := []rpc2.Protocol{
-		NewLogUIProtocol(),
 		NewIdentifyTrackUIProtocol(),
 		NewSecretUIProtocol(),
 	}

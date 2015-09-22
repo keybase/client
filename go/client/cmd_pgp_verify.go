@@ -63,7 +63,6 @@ func (c *CmdPGPVerify) Run() error {
 		NewStreamUIProtocol(),
 		NewSecretUIProtocol(),
 		NewIdentifyTrackUIProtocol(),
-		NewLogUIProtocol(),
 	}
 	if err := RegisterProtocols(protocols); err != nil {
 		return err

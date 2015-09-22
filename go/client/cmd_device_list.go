@@ -33,9 +33,7 @@ func (c *CmdDeviceList) Run() error {
 	if err != nil {
 		return err
 	}
-	protocols := []rpc2.Protocol{
-		NewLogUIProtocol(),
-	}
+	protocols := []rpc2.Protocol{}
 	if err := RegisterProtocols(protocols); err != nil {
 		return err
 	}

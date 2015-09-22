@@ -26,7 +26,6 @@ func (c *CmdPaperKey) Run() error {
 		return err
 	}
 	protocols := []rpc2.Protocol{
-		NewLogUIProtocol(),
 		NewLoginUIProtocol(),
 		NewSecretUIProtocol(),
 	}

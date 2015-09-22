@@ -83,7 +83,6 @@ func (c *CmdListTrackers) Run() error {
 		return err
 	}
 	protocols := []rpc2.Protocol{
-		NewLogUIProtocol(),
 	}
 	if err := RegisterProtocols(protocols); err != nil {
 		return err
