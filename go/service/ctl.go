@@ -55,6 +55,5 @@ func (c *CtlHandler) DbNuke(SessionID int) error {
 	ctx.LogUI.Warning("Nuking database %s", fn)
 
 	// Now drop caches, since we had the DB's state in-memory too.
-	//return G.ConfigureCaches()
-	return err
+	return G.ConfigureCaches()
 }
