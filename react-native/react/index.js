@@ -12,12 +12,15 @@ const {
   View
 } = React
 
-import Navigator from './common/navigator'
+import MetaNavigator from './router/meta-navigator'
 import commonStyles from './styles/common'
 
 import { Provider } from 'react-redux/native'
 import configureStore from './store/configureStore'
 const store = configureStore()
+
+import LoginComponent from './login'
+import DebugComponent from './debug'
 
 if (GLOBAL) {
   GLOBAL.store = store // TEMP to test
@@ -29,17 +32,17 @@ class AppOrDebug extends Component {
   }
 
   showApp () {
-    this.props.kbNavigator.push({
-      title: 'Keybase',
-      component: require('./login'),
-      saveKey: 'Login',
-      leftButtonTitle: '¯\\_(ツ)_/¯',
-      props: {
-        onLoggedIn: () => {
-          this.showSearch()
-        }
-      }
-    })
+    //this.props.kbNavigator.push({
+    //  title: 'Keybase',
+    //  component: require('./login'),
+    //  saveKey: 'Login',
+    //  leftButtonTitle: '¯\\_(ツ)_/¯',
+    //  props: {
+    //    onLoggedIn: () => {
+    //      this.showSearch()
+    //    }
+    //  }
+    //})
   }
 
   showSearch () {
@@ -94,7 +97,7 @@ class AppOrDebug extends Component {
 }
 
 AppOrDebug.propTypes = {
-  kbNavigator: React.PropTypes.object.isRequired,
+  //kbNavigator: React.PropTypes.object.isRequired,
   appOrDebug: React.PropTypes.string,
   navSavedPath: React.PropTypes.array
 }
@@ -108,17 +111,52 @@ class Keybase extends Component {
     return (
       <Provider store={store}>
         {() =>
-          <Navigator
-            saveName='main'
-            ref='navigator'
-            initialRoute = {{
-              title: 'App or Debug',
-              component: AppOrDebug
-            }}
-          />
-        }
+        {
+
+          const {componentAtTop, restRoutes, parseNextRoute} = Keybase.parseRoute(store, ["login","loginForm"])
+          console.log(componentAtTop, restRoutes, parseNextRoute)
+          console.log(parseNextRoute(store, restRoutes))
+          // TODO(mm): maybe not pass in store? and use connect
+          return (
+            <MetaNavigator
+              store={store}
+              rootRouteParser={Keybase.parseRoute}/>
+          )
+          //return (
+          //<Navigator
+          //  saveName='main'
+          //  ref='navigator'
+          //  initialRoute = {{
+          //    title: 'App or Debug',
+          //    component: AppOrDebug
+          //  }}
+          ///>)
+        }}
       </Provider>
     )
+  }
+
+  //TODO(mm): annotate types
+  // store is our redux store
+  // route is the array form of our route (e.g. ["foo","bar"] instead of "foo/bar")
+  static parseRoute(store, route) {
+    const routes = {
+      'login': LoginComponent.parseRoute,
+      'debug': DebugComponent.parseRoute
+    }
+
+    const [top, ...rest] = route;
+
+    const componentAtTop = {
+      title: 'App or Debug',
+      component : AppOrDebug
+    }
+
+    return {
+      componentAtTop,
+      restRoutes: rest,
+      parseNextRoute: routes[top] || null
+    }
   }
 }
 

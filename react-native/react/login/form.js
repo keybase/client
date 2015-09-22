@@ -16,6 +16,8 @@ const {
 import commonStyles from '../styles/common'
 import Switch from '../commonAdapters/Switch'
 
+import { submitUserPass } from "../actions/login"
+
 class LoginForm extends Component {
   constructor (props) {
     super(props)
@@ -96,6 +98,31 @@ class LoginForm extends Component {
         {activity}
       </View>
     )
+  }
+
+  static parseRoute(store, route) {
+    // TODO(mm): figure out how this interacts with redux's connect/bindActions
+    // TODO(mm): maybe we can just pass the state here instead of the store.
+    const {username, passphrase, storeSecret, waitingForServer} = store.getState().login
+    const componentAtTop = {
+      title: 'Login',
+      component: LoginForm,
+      leftButtonTitle: 'Cancel',
+      leftButtonPopN: 1,
+      props: {
+        onSubmit: (username, passphrase, storeSecret) => store.dispatch(submitUserPass(username, passphrase, storeSecret)),
+        username,
+        passphrase,
+        storeSecret,
+        waitingForServer
+      }
+    }
+
+    return {
+      componentAtTop,
+      restRoutes: [],
+      parseNextRoute: null // terminal node, so no next route
+    }
   }
 }
 

@@ -5,6 +5,7 @@ import React from 'react-native'
 
 const {
   Component,
+  Text,
   StyleSheet,
   View
 } = React
@@ -46,7 +47,8 @@ class LoginContainer extends Component {
       // TODO use nice router / nav stack and not all these push/pops
       switch (this.props.loginState) {
         case states.ASK_USER_PASS:
-          this.showLoginForm()
+          console.log("Going to ask for user pass")
+          //this.showLoginForm()
           break
         case states.ASK_DEVICE_NAME:
           this.showDevicePrompt()
@@ -132,18 +134,51 @@ class LoginContainer extends Component {
   }
 
   render () {
-    if (this.showingLoginState !== this.props.loginState) {
-      this.transitionPage()
-    }
+    //if (this.showingLoginState !== this.props.loginState) {
+    //  this.transitionPage()
+    //}
 
     return (
-      <View style={styles.container}/>
+      <View style={styles.container}>
+        <Text>Welp, you shouldn't be here</Text>
+      </View>
     )
   }
+
+  static parseRoute(store, route) {
+    const routes = {
+      'loginform': LoginForm.parseRoute
+    }
+
+    const [top, ...rest] = route;
+
+    // TODO(mm): figure out how this interacts with redux
+    const componentAtTop = {
+      title: 'Keybase',
+      component : LoginContainer,
+      saveKey: 'Login',
+      leftButtonTitle: '¯\\_(ツ)_/¯',
+      props: {
+        onLoggedIn: () => {
+          this.showSearch()
+        }
+      }
+    }
+
+    // Default the next route to the login form
+    const parseNextRoute = routes[top] || LoginForm.parseRoute
+
+    return {
+      componentAtTop,
+      parseNextRoute,
+      restRoutes: rest
+    }
+  }
+
 }
 
 LoginContainer.propTypes = {
-  kbNavigator: React.PropTypes.object.isRequired,
+  //kbNavigator: React.PropTypes.object.isRequired,
   onLoggedIn: React.PropTypes.func.isRequired,
   dispatch: React.PropTypes.func.isRequired,
   loginState: React.PropTypes.string.isRequired,
@@ -168,4 +203,4 @@ const styles = StyleSheet.create({
   }
 })
 
-export default connect(state => state.login)(LoginContainer)
+export default LoginContainer
