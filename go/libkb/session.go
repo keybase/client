@@ -1,6 +1,7 @@
 package libkb
 
 import (
+	"errors"
 	"fmt"
 	"os"
 	"time"
@@ -119,14 +120,14 @@ func (s *Session) SetCsrf(t string) {
 	s.GetDictionary().SetKey("csrf", jsonw.NewString(t))
 }
 
-func (s *Session) SetDeviceProvisioned(devid keybase1.DeviceID) {
+func (s *Session) SetDeviceProvisioned(devid keybase1.DeviceID) error {
 	s.G().Log.Debug("Local Session:  setting provisioned device id: %s", devid)
 	s.deviceID = devid
 	if s.file == nil {
-		return
+		return errors.New("no session file")
 	}
 	s.GetDictionary().SetKey("device_provisioned", jsonw.NewString(devid.String()))
-	s.save()
+	return s.save()
 }
 
 func (s *Session) isConfigLoggedIn() bool {

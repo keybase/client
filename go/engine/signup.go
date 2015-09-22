@@ -159,7 +159,10 @@ func (s *SignupEngine) registerDevice(a libkb.LoginContext, ctx *Context, device
 	}
 	s.signingKey = eng.SigningKey()
 
-	ctx.LoginContext.LocalSession().SetDeviceProvisioned(s.G().Env.GetDeviceID())
+	if err := ctx.LoginContext.LocalSession().SetDeviceProvisioned(s.G().Env.GetDeviceID()); err != nil {
+		// this isn't a fatal error, session will stay in memory...
+		s.G().Log.Warning("error saving session file: %s", err)
+	}
 
 	if s.arg.StoreSecret {
 		// Create the secret store as late as possible here
