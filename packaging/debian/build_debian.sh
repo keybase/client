@@ -45,7 +45,7 @@ build_one_architecture() {
     > "$dest/build/DEBIAN/control"
   cp "$here/postinst" "$dest/build/DEBIAN/"
 
-  dpkg-deb --build "$dest/build" "$dest/$binary_name.deb"
+  fakeroot dpkg-deb --build "$dest/build" "$dest/$binary_name.deb"
 
   # Write the version number to a file for the caller's convenience.
   echo -n "$version" > "$dest/VERSION"
