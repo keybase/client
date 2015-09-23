@@ -30,7 +30,7 @@ build_one_architecture() {
 
   # `go build` reads $GOARCH
   echo "building Go client for $GOARCH"
-  go build -o "$dest/usr/bin/$binary_name" github.com/keybase/client/go/keybase
+  go build -tags "$go_tags" -o "$dest/usr/bin/$binary_name" github.com/keybase/client/go/keybase
 
   version="$("$here/../version.sh")"
 
