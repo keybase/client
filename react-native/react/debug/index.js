@@ -35,33 +35,35 @@ class Debug extends Component {
     return (
       <View style={{flex: 1, marginTop: 100}}>
         <Text style={{textAlign: 'center'}}>In debug</Text>
-        <Text style={{textAlign: 'center'}}>URI: {JSON.stringify(this.props.uri)}</Text>
+        <Text style={{textAlign: 'center'}}>URI: {JSON.stringify(this.props.uri.toJSON())}</Text>
         <Text
           style={{textAlign: 'center', color: 'blue'}}
-          onPress={() => this.props.dispatch(navigateTo(['debug', 'page2']))}>Click here to go somewhere</Text>
+          onPress={() => this.props.dispatch(navigateTo(['root', 'debug', 'page2']))}>Click here to go somewhere</Text>
       </View>
     )
   }
 
-  static parseRoute (store, route) {
+  static parseRoute (store, currentPath, nextPath) {
     const routes = {
       'page2': DebugPage2.parseRoute
     }
 
-    const [top, ...rest] = route
-
     const componentAtTop = {
       title: 'Debug',
-      mapStateToProps: state => state.router,
+      mapStateToProps: state => state.router.toObject(),
       component: Debug
     }
 
     return {
       componentAtTop,
-      restRoutes: rest,
-      parseNextRoute: routes[top] || null
+      parseNextRoute: routes[nextPath.get('path')] || null
     }
   }
+}
+
+Debug.propTypes = {
+  dispatch: React.PropTypes.object.isRequired,
+  uri: React.PropTypes.object.isRequired
 }
 
 class DebugPage2 extends Component {
@@ -69,7 +71,7 @@ class DebugPage2 extends Component {
     return (
       <View style={{flex: 1, marginTop: 100}}>
         <Text style={{textAlign: 'center'}}>Page 2</Text>
-        <Text style={{textAlign: 'center'}}>URI: {JSON.stringify(this.props.uri)}</Text>
+        <Text style={{textAlign: 'center'}}>URI: {JSON.stringify(this.props.uri.toJSON())}</Text>
         <Text
           style={{textAlign: 'center', color: 'blue'}}
           onPress={() => this.props.dispatch(navigateUp())}>Go up the nav hierarchy</Text>
@@ -78,30 +80,32 @@ class DebugPage2 extends Component {
           onPress={() => this.props.dispatch(routeAppend('page3'))}>infinite recursion</Text>
         <Text
           style={{textAlign: 'center', color: 'blue'}}
-          onPress={() => this.props.dispatch(navigateTo(['debug']))}>go back to debug</Text>
+          onPress={() => this.props.dispatch(navigateTo(['root', 'debug']))}>go back to debug</Text>
       </View>
     )
   }
 
-  static parseRoute (store, route) {
+  static parseRoute (store, currentPath, nextPath) {
     const routes = {
       page3: DebugPage3.parseRoute
     }
 
-    const [top, ...rest] = route
-
     const componentAtTop = {
       title: 'Debug Page 2',
-      mapStateToProps: state => state.router,
+      mapStateToProps: state => state.router.toObject(),
       component: DebugPage2
     }
 
     return {
       componentAtTop,
-      restRoutes: rest,
-      parseNextRoute: routes[top] || null
+      parseNextRoute: routes[nextPath.get('path')] || null
     }
   }
+}
+
+DebugPage2.propTypes = {
+  dispatch: React.PropTypes.object.isRequired,
+  uri: React.PropTypes.object.isRequired
 }
 
 class DebugPage3 extends Component {
@@ -109,7 +113,7 @@ class DebugPage3 extends Component {
     return (
       <View style={{flex: 1, marginTop: 100}}>
         <Text style={{textAlign: 'center'}}>Page 3</Text>
-        <Text style={{textAlign: 'center'}}>URI: {JSON.stringify(this.props.uri)}</Text>
+        <Text style={{textAlign: 'center'}}>URI: {JSON.stringify(this.props.uri.toJSON())}</Text>
         <Text
           style={{textAlign: 'center', color: 'blue'}}
           onPress={() => this.props.dispatch(navigateUp())}>Go up the nav hierarchy</Text>
@@ -123,29 +127,27 @@ class DebugPage3 extends Component {
     )
   }
 
-  static parseRoute (store, route) {
+  static parseRoute (store, currentPath, nextPath) {
     const routes = {
       page2: DebugPage2.parseRoute
     }
 
-    const [top, ...rest] = route
-
     const componentAtTop = {
       title: 'Debug Page 3',
-      mapStateToProps: state => state.router,
+      mapStateToProps: state => state.router.toObject(),
       component: DebugPage3
     }
 
     return {
       componentAtTop,
-      restRoutes: rest,
-      parseNextRoute: routes[top] || null
+      parseNextRoute: routes[nextPath.get('path')] || null
     }
   }
 }
 
-Debug.propTypes = {
-  navigator: React.PropTypes.object
+DebugPage3.propTypes = {
+  dispatch: React.PropTypes.object.isRequired,
+  uri: React.PropTypes.object.isRequired
 }
 
 export default Debug
