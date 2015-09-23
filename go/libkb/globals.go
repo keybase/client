@@ -143,20 +143,7 @@ func (g *GlobalContext) ConfigureConfig() error {
 	return nil
 }
 
-func (g *GlobalContext) writeConfig() error {
-	cw := g.Env.GetConfigWriter()
-	if cw != nil {
-		return cw.Write()
-	}
-	return nil
-}
-
 func (g *GlobalContext) ConfigReload() error {
-	// write the existing config just to be safe
-	if err := g.writeConfig(); err != nil {
-		return err
-	}
-
 	return g.ConfigureConfig()
 }
 
@@ -244,8 +231,6 @@ func (g *GlobalContext) Shutdown() error {
 		for _, hook := range g.ShutdownHooks {
 			epick.Push(hook())
 		}
-
-		epick.Push(g.writeConfig())
 
 		err = epick.Error()
 	})
