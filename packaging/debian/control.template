@@ -1,6 +1,7 @@
 Package: @@NAME@@
 Version: @@VERSION@@
 Architecture: @@ARCHITECTURE@@
+Installed-Size: @@SIZE@@
 Maintainer: Keybase Bugs <bugs@keybase.io>
 Section: misc
 Priority: optional

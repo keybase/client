@@ -38,10 +38,15 @@ build_one_architecture() {
 
   version="$("$dest/build/usr/bin/$binary_name" version --format=s)"
 
+  # Installed-Size is a required field in the control file. Without it Ubuntu
+  # users will see warnings.
+  size="$(du --summarize --block-size=1024 "$dest/build" | awk '{print $1}')"
+
   cat "$here/control.template" \
     | sed "s/@@NAME@@/$binary_name/" \
     | sed "s/@@VERSION@@/$version/" \
     | sed "s/@@ARCHITECTURE@@/$debian_arch/" \
+    | sed "s/@@SIZE@@/$size/" \
     > "$dest/build/DEBIAN/control"
   cp "$here/postinst" "$dest/build/DEBIAN/"
 
