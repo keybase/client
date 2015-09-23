@@ -2,100 +2,78 @@
 
 import * as loginTypes from '../constants/loginActionTypes'
 import * as routerTypes from '../constants/routerActionTypes'
+import Immutable from 'immutable'
 
-const initialState = {
-  uri: ['home'],
+const initialState = Immutable.Map({
+  uri: parseUri(['root']),
   // TODO(mm): when we have a splash screen set it here.
   // history is android's back button
-  history: [['home']]
-}
+  history: Immutable.List([['home']].map(parseUri))
+})
 
-function pushIfTailIsDifferent (stack, thing) {
+function pushIfTailIsDifferent (thing, stack) {
   // TODO: fix this equality check.
   console.log('Maybe pushing', thing, 'onto', stack)
-  if (stack[stack.length - 1].join('|') !== thing.join('|')) {
-    stack.push(thing)
-    return stack
+  if (Immutable.is(stack.last(),thing)) {
+    return stack.push(thing)
   }
   return stack
 }
 
+// A path can either be a string or an object with the key path and extra arguments
+function parsePath (path) {
+  if (typeof path === 'string') {
+    return Immutable.Map({path})
+  } else if (Immutable.Map.isMap(path)) {
+    return path
+  }
+  return Immutable.Map(path)
+}
+
+// A path can either be a string or an object with the key path and extra arguments
+function parseUri (uri) {
+  if (Immutable.List.isList(uri)) {
+    return uri
+  }
+  if (uri[0] !== 'root') {
+    uri.unshift('root')
+  }
+
+  return Immutable.List(uri.map(parsePath))
+}
+
 export default function (state = initialState, action) {
   console.log('action in router', action)
-  // TODO: use immutable js
-  const originalHistory = state.history.slice(0)
-  state.history = pushIfTailIsDifferent(state.history.slice(0), state.uri.slice(0))
-  let uriClone = state.uri.slice(0)
+  const stateWithHistory = state.update('history', pushIfTailIsDifferent.bind(null, state.get('uri')))
   switch (action.type) {
     // TODO(MM): change the history so if we go up to something that is already in the history,
     // or a child of it
     // we get rid of everything after it
-    // TODO(mm): use immutable
     case routerTypes.NAVIGATE_UP:
-      if (uriClone.length > 1) {
-        uriClone.pop()
-      }
-      return {
-        ...state,
-        uri: uriClone,
-        history: originalHistory
-      }
+      return state.update('uri', (uri) => uri.count() > 1 ? uri.pop() : uri)
     case routerTypes.NAVIGATE:
-      return {
-        ...state,
-        uri: action.uri
-      }
+      return stateWithHistory.set('uri', parseUri(action.uri))
     case routerTypes.NAVIGATE_APPEND:
-      uriClone.push(action.topRoute)
-      return {
-        ...state,
-        uri: uriClone
-      }
+      return stateWithHistory.update('uri',(uri) => uri.push(parsePath(action.topRoute)))
+    // TODO(mm) remove these and replace them with NAVIGATE's
     case loginTypes.START_LOGIN:
-      return {
-        ...state,
-        uri: ['login', 'loginform']
-      }
+      return stateWithHistory.set('uri', parseUri(['login', 'loginform']))
     case loginTypes.ASK_USER_PASS:
-      return {
-        ...state,
-        uri: ['login', 'loginform']
-      }
+      return stateWithHistory.set('uri', parseUri(['login', 'loginform']))
     case loginTypes.SUBMIT_USER_PASS:
-      return {
-        ...state,
-        uri: ['login', 'loginform']
-      }
+      return stateWithHistory.set('uri', parseUri(['login', 'loginform']))
     case loginTypes.ASK_DEVICE_NAME:
-      return {
-        ...state,
-        uri: ['login', 'device-prompt']
-      }
+      return stateWithHistory.set('uri', parseUri(['login', 'device-prompt']))
     case loginTypes.SUBMIT_DEVICE_NAME:
-      return {
-        ...state,
-        uri: ['login', 'device-prompt']
-      }
+      return stateWithHistory.set('uri', parseUri(['login', 'device-prompt']))
     case loginTypes.ASK_DEVICE_SIGNER:
-      return {
-        ...state,
-        uri: ['login', 'device-signer']
-      }
+      return stateWithHistory.set('uri', parseUri(['login', 'device-signer']))
     case loginTypes.SUBMIT_DEVICE_SIGNER:
-      return {
-        ...state,
-        uri: ['login', 'device-signer']
-      }
+      return stateWithHistory.set('uri', parseUri(['login', 'device-signer']))
     case loginTypes.SHOW_SECRET_WORDS:
-      return {
-        ...state,
-        uri: ['login', 'show-secret-words']
-      }
+      return stateWithHistory.set('uri', parseUri(['login', 'show-secret-words']))
     case loginTypes.LOGGED_IN:
-      return {
-        ...state,
-        uri: ['home']
-      }
+      return stateWithHistory.set('uri', parseUri(['root']))
     default:
       return state
   }

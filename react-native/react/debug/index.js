@@ -38,7 +38,7 @@ class Debug extends Component {
         <Text style={{textAlign: 'center'}}>URI: {JSON.stringify(this.props.uri.toJSON())}</Text>
         <Text
           style={{textAlign: 'center', color: 'blue'}}
-          onPress={() => this.props.dispatch(navigateTo(['root', 'debug', 'page2']))}>Click here to go somewhere</Text>
+          onPress={() => this.props.dispatch(navigateTo(['debug', 'page2']))}>Click here to go somewhere</Text>
       </View>
     )
   }
@@ -80,7 +80,7 @@ class DebugPage2 extends Component {
           onPress={() => this.props.dispatch(routeAppend('page3'))}>infinite recursion</Text>
         <Text
           style={{textAlign: 'center', color: 'blue'}}
-          onPress={() => this.props.dispatch(navigateTo(['root', 'debug']))}>go back to debug</Text>
+          onPress={() => this.props.dispatch(navigateTo(['debug']))}>go back to debug</Text>
       </View>
     )
   }

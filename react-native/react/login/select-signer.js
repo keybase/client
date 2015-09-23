@@ -93,7 +93,7 @@ class SelectSigner extends Component {
     )
   }
 
-  static parseRoute (store, route) {
+  static parseRoute (store) {
     const {signers, response} = store.getState().login
     const componentAtTop = {
       title: 'Device Setup',
@@ -108,7 +108,6 @@ class SelectSigner extends Component {
 
     return {
       componentAtTop,
-      restRoutes: [],
       parseNextRoute: null // terminal node, so no next route
     }
   }

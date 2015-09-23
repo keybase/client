@@ -12,6 +12,7 @@ const {
   } = React
 
 import { connect } from 'react-redux/native'
+import Immutable from 'immutable'
 
 class MetaNavigator extends Component {
   constructor () {
@@ -21,24 +22,23 @@ class MetaNavigator extends Component {
     }
   }
 
-  hasDeeperRoute (restRoutes, parseNextRoute) {
+  hasDeeperRoute (parseNextRoute) {
     return (parseNextRoute != null)
   }
 
   isParentOfRoute (routeParent, routeMaybeChild) {
     return (
-      (routeMaybeChild.join(',') !== routeParent.join(',') &&
-      routeMaybeChild.slice(0, routeParent.length).join(',') === routeParent.join(','))
+      !Immutable.is(routeMaybeChild, routeParent) &&
+      Immutable.is(routeMaybeChild.slice(0, routeParent.count()), routeParent)
     )
   }
 
   shouldComponentUpdate (nextProps, nextState) {
     const { store, rootRouteParser } = this.props
-    const route = this.props.router.uri
-    const nextRoute = nextProps.router.uri
+    const route = this.props.router.get('uri')
+    const nextRoute = nextProps.router.get('uri')
 
     const { componentAtTop, routeStack: nextRouteStack } = this.getComponentAtTop(rootRouteParser, store, nextRoute)
-    // TODO(mm) use immutablejs
     if (nextProps === this.props && nextState === this.state) {
       return false
     } else if (this.isParentOfRoute(route, nextRoute)) {
@@ -53,49 +53,50 @@ class MetaNavigator extends Component {
       this.refs.navigator.popToRoute(targetRoute)
       return true
     } else {
-      this.refs.navigator.immediatelyResetRouteStack(nextRouteStack)
+      this.refs.navigator.immediatelyResetRouteStack(nextRouteStack.toJS())
       return true
     }
   }
 
-  getComponentAtTop (rootRouteParser, store, route) {
-    let {componentAtTop, restRoutes, parseNextRoute} = rootRouteParser(store, route)
-    let routeStack = [componentAtTop]
+  getComponentAtTop (rootRouteParser, store, uri) {
+    let currentPath = uri.first() || Immutable.Map()
+    let nextPath = uri.rest().first() || Immutable.Map()
+    let restPath = uri.rest().rest()
 
-    while (this.hasDeeperRoute(restRoutes, parseNextRoute)) {
-      console.log('rest routes', restRoutes)
-      const t = parseNextRoute(store, restRoutes)
+    let {componentAtTop, parseNextRoute} = rootRouteParser(store, currentPath, nextPath)
+    let routeStack = Immutable.List([componentAtTop])
+
+    while (this.hasDeeperRoute(parseNextRoute)) {
+      currentPath = nextPath
+      nextPath = restPath.first() || Immutable.Map()
+      restPath = restPath.rest()
+      const t = parseNextRoute(store, currentPath, nextPath)
+
       componentAtTop = t.componentAtTop
-      restRoutes = t.restRoutes
       parseNextRoute = t.parseNextRoute
-      routeStack.push(componentAtTop)
+      routeStack = routeStack.push(componentAtTop)
     }
 
     return {componentAtTop, routeStack}
   }
 
   render () {
-    // TODO (mm): figure out better push pop semantics instead of pwning this everytime
-    // use shouldComponentUpdate...
-
     // TODO (mm): know when to create a new navigator
 
     // TODO (mm): specify the prop types
     const { store, rootRouteParser } = this.props
 
-    const route = store.getState().router.uri
+    const uri = store.getState().router.get('uri')
 
-    let {componentAtTop, routeStack} = this.getComponentAtTop(rootRouteParser, store, route)
+    let {componentAtTop, routeStack} = this.getComponentAtTop(rootRouteParser, store, uri)
 
     console.log('Stack:', routeStack)
     console.log('Rendering', componentAtTop)
     return (
-      // React.createElement(connect(componentAtTop.mapStateToProps || (state => state))(componentAtTop.component), {...componentAtTop.props})
-      // TODO(mm): to focus on the navigation part and not the push/pop we're commenting this out for now.
       <Navigator
         saveName='main'
         ref='navigator'
-        initialRouteStack={routeStack}
+        initialRouteStack={routeStack.toJS()}
         renderScene={(route, navigator) => {
           console.log('Doing route:', route)
           return (
@@ -106,6 +107,12 @@ class MetaNavigator extends Component {
       />
     )
   }
+}
+
+MetaNavigator.propTypes = {
+  router: React.PropTypes.object.isRequired,
+  store: React.PropTypes.object.isRequired,
+  rootRouteParser: React.PropTypes.object.isRequired
 }
 
 export default connect(state => state)(MetaNavigator)

@@ -100,8 +100,7 @@ class LoginForm extends Component {
     )
   }
 
-  static parseRoute (store, route) {
-    // TODO(mm): figure out how this interacts with redux's connect/bindActions
+  static parseRoute (store) {
     // TODO(mm): maybe we can just pass the state here instead of the store.
     const {username, passphrase, storeSecret, waitingForServer} = store.getState().login
     const componentAtTop = {
@@ -120,14 +119,12 @@ class LoginForm extends Component {
 
     return {
       componentAtTop,
-      restRoutes: [],
       parseNextRoute: null // terminal node, so no next route
     }
   }
 }
 
 LoginForm.propTypes = {
-  kbNavigator: React.PropTypes.object,
   username: React.PropTypes.string,
   passphrase: React.PropTypes.string,
   storeSecret: React.PropTypes.bool,

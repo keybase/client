@@ -57,7 +57,7 @@ class DevicePrompt extends Component {
   }
 
   // TODO(mm): add types
-  static parseRoute (store, route) {
+  static parseRoute (store, currentPath, nextPath) {
     const {response, deviceName} = store.getState().login
     const componentAtTop = {
       title: 'Device Name',
@@ -72,14 +72,12 @@ class DevicePrompt extends Component {
 
     return {
       componentAtTop,
-      restRoutes: [],
       parseNextRoute: null // terminal node, so no next route
     }
   }
 }
 
 DevicePrompt.propTypes = {
-  navigator: React.PropTypes.object.isRequired,
   onSubmit: React.PropTypes.func.isRequired,
   deviceName: React.PropTypes.string
 }

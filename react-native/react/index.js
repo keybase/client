@@ -33,53 +33,6 @@ class AppOrDebug extends Component {
     super(props)
   }
 
-  showApp () {
-    // this.props.kbNavigator.push({
-    //   title: 'Keybase',
-    //   component: require('./login'),
-    //   saveKey: 'Login',
-    //   leftButtonTitle: '¯\\_(ツ)_/¯',
-    //   props: {
-    //     onLoggedIn: () => {
-    //       this.showSearch()
-    //     }
-    //   }
-    // })
-  }
-
-  showSearch () {
-    this.props.kbNavigator.push({
-      title: 'Search',
-      component: require('./search'),
-      saveKey: 'Search'
-    })
-  }
-
-  showDebug () {
-    this.props.kbNavigator.push({
-      title: 'Debug',
-      component: require('./debug'),
-      saveKey: 'Debug'
-    })
-  }
-
-  // Auto push to the next state, can't figure out a nicer way to do this
-  componentDidMount () {
-    this.showApp()
-    /*
-    if (this.props.navSavedPath.length) {
-      switch (this.props.navSavedPath[0].saveKey) {
-        case 'Login':
-          this.showApp()
-          break
-        case 'Debug':
-          this.showDebug()
-          break
-      }
-    }
-    */
-  }
-
   render () {
     const { dispatch } = this.props
     return (
@@ -97,12 +50,6 @@ class AppOrDebug extends Component {
       </View>
     )
   }
-}
-
-AppOrDebug.propTypes = {
-  // kbNavigator: React.PropTypes.object.isRequired,
-  appOrDebug: React.PropTypes.string,
-  navSavedPath: React.PropTypes.array
 }
 
 class Keybase extends Component {
@@ -128,13 +75,11 @@ class Keybase extends Component {
   // TODO(mm): annotate types
   // store is our redux store
   // route is the array form of our route (e.g. ["foo","bar"] instead of "foo/bar")
-  static parseRoute (store, route) {
+  static parseRoute (store, currentPath, nextPath) {
     const routes = {
       'login': LoginComponent.parseRoute,
       'debug': DebugComponent.parseRoute
     }
-
-    const [top, ...rest] = route
 
     const componentAtTop = {
       title: 'App or Debug',
@@ -144,8 +89,7 @@ class Keybase extends Component {
 
     return {
       componentAtTop,
-      restRoutes: rest,
-      parseNextRoute: routes[top] || null
+      parseNextRoute: routes[nextPath.get('path')] || null
     }
   }
 }

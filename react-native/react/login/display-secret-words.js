@@ -30,7 +30,7 @@ class DisplaySecretWords extends Component {
     )
   }
 
-  static parseRoute (store, route) {
+  static parseRoute (store) {
     const { secretWords, response } = store.getState().login
 
     const componentAtTop = {
@@ -46,7 +46,6 @@ class DisplaySecretWords extends Component {
 
     return {
       componentAtTop,
-      restRoutes: [],
       parseNextRoute: null // terminal node, so no next route
     }
   }
