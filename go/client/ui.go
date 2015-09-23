@@ -512,7 +512,7 @@ func (d LocksmithUI) SelectSigner(arg keybase1.SelectSignerArg) (res keybase1.Se
 		optcount++
 	}
 
-	fmt.Fprintf(w, "(999) cancel; I'll login later\t(cancel)\n")
+	fmt.Fprintf(w, "(999) Cancel, I'll login later\t(cancel)\n")
 
 	w.Flush()
 
