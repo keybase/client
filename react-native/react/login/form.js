@@ -25,12 +25,12 @@ class LoginForm extends Component {
     this.state = {
       username: props.username || '',
       passphrase: props.passphrase || '',
-      storeSecret: props.storeSecret || ''
+      storeSecret: props.storeSecret || true
     }
   }
 
   submit () {
-    this.props.onSubmit(this.state.username, this.state.passphrase)
+    this.props.onSubmit(this.state.username, this.state.passphrase, this.state.storeSecret)
   }
 
   render () {

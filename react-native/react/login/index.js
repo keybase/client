@@ -30,12 +30,6 @@ class LoginContainer extends Component {
     this.showingLoginState = null
   }
 
-  componentWillUnmount () {
-    // TEMP just to help debugging
-    engine.reset()
-    // stop login if not all the way through?
-  }
-
   render () {
     return (
       <View style={styles.container}>
