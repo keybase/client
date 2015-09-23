@@ -133,7 +133,7 @@ func makeServerCommandLine(cl libkb.CommandLine) (arg0 string, args []string, er
 		return
 	}
 
-	G.Log.Info("| Setting run directory for keybase service to %s", chdir)
+	G.Log.Debug("| Setting run directory for keybase service to %s", chdir)
 	args = append(args, "--chdir", chdir)
 
 	G.Log.Debug("| Made server args: %s %v", arg0, args)
@@ -189,7 +189,7 @@ func spawnServer(cl libkb.CommandLine) (err error) {
 	if err != nil {
 		err = fmt.Errorf("Error in ForkExec: %s", err)
 	} else {
-		G.Log.Info("Forking background server with pid=%d", pid)
+		G.Log.Debug("Forking background server with pid=%d", pid)
 	}
 	return err
 }
