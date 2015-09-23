@@ -31,7 +31,9 @@ build_one_architecture() {
   mkdir -p "$dest/build/DEBIAN"
 
   # `go build` reads $GOARCH
-  go build -tags "$go_tags" -o "$dest/build/usr/bin/$binary_name" github.com/keybase/client/go/keybase
+  # XXX: Go does not build tags reliably prior to 1.5 without -a. See:
+  #      https://github.com/golang/go/issues/11165
+  go build -a -tags "$go_tags" -o "$dest/build/usr/bin/$binary_name" github.com/keybase/client/go/keybase
 
   version="$("$here/../version.sh")"
 

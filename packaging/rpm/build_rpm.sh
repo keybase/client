@@ -28,9 +28,12 @@ build_one_architecture() {
   # spec file is set up to copy from there
   dest="$build_root/keybase_dest/$rpm_arch"
 
-  # `go build` reads $GOARCH
   echo "building Go client for $GOARCH"
-  go build -tags "$go_tags" -o "$dest/usr/bin/$binary_name" github.com/keybase/client/go/keybase
+
+  # `go build` reads $GOARCH
+  # XXX: Go does not build tags reliably prior to 1.5 without -a. See:
+  #      https://github.com/golang/go/issues/11165
+  go build -a -tags "$go_tags" -o "$dest/usr/bin/$binary_name" github.com/keybase/client/go/keybase
 
   version="$("$here/../version.sh")"
 
