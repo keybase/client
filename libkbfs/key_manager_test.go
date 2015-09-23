@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/golang/mock/gomock"
+	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/protocol/go"
 	"golang.org/x/net/context"
 )
@@ -213,7 +214,7 @@ func TestKeyManagerUncachedSecretKeyForBlockDecryptionSuccess(t *testing.T) {
 	}
 }
 
-func TestKeyManagerRekeySuccessPublic(t *testing.T) {
+func TestKeyManagerRekeyFailurePublic(t *testing.T) {
 	mockCtrl, config, ctx := keyManagerInit(t)
 	defer keyManagerShutdown(mockCtrl, config)
 
@@ -247,5 +248,149 @@ func TestKeyManagerRekeySuccessPrivate(t *testing.T) {
 		t.Errorf("Got error on rekey: %v", err)
 	} else if rmd.LatestKeyGeneration() != oldKeyGen+1 {
 		t.Errorf("Bad key generation after rekey: %d", rmd.LatestKeyGeneration())
+	}
+}
+
+func TestKeyManagerRekeyAddDevice(t *testing.T) {
+	var u1, u2 libkb.NormalizedUsername = "u1", "u2"
+	config1, uid1, ctx := kbfsOpsConcurInit(t, u1, u2)
+	defer config1.Shutdown()
+
+	config2 := ConfigAsUser(config1.(*ConfigLocal), u2)
+	defer config2.Shutdown()
+	uid2, err := config2.KBPKI().GetCurrentUID(context.Background())
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	// Create a shared folder
+	h := NewTlfHandle()
+	h.Writers = append(h.Writers, uid1)
+	h.Writers = append(h.Writers, uid2)
+
+	kbfsOps1 := config1.KBFSOps()
+	rootNode1, _, err :=
+		kbfsOps1.GetOrCreateRootNodeForHandle(ctx, h, MasterBranch)
+	if err != nil {
+		t.Fatalf("Couldn't create folder: %v", err)
+	}
+
+	// user 1 creates a file
+	_, _, err = kbfsOps1.CreateFile(ctx, rootNode1, "a", false)
+	if err != nil {
+		t.Fatalf("Couldn't create file: %v", err)
+	}
+
+	config2Dev2 := ConfigAsUser(config1.(*ConfigLocal), u2)
+	defer config2Dev2.Shutdown()
+
+	// Now give u2 a new device.  The configs don't share a Keybase
+	// Daemon so we have to do it in all places.
+	AddDeviceForLocalUserOrBust(t, config1, uid2)
+	AddDeviceForLocalUserOrBust(t, config2, uid2)
+	devIndex := AddDeviceForLocalUserOrBust(t, config2Dev2, uid2)
+	SwitchDeviceForLocalUserOrBust(t, config2Dev2, devIndex)
+
+	// user 2 should be unable to read the data now since its device
+	// wasn't registered when the folder was originally created.
+	kbfsOps2Dev2 := config2Dev2.KBFSOps()
+	_, _, err =
+		kbfsOps2Dev2.GetOrCreateRootNodeForHandle(ctx, h, MasterBranch)
+	if _, ok := err.(ReadAccessError); !ok {
+		t.Fatalf("Got unexpected error when reading with new key: %v", err)
+	}
+
+	// now user 1 should rekey
+	err = kbfsOps1.RekeyForTesting(ctx, rootNode1.GetFolderBranch())
+	if err != nil {
+		t.Fatalf("Couldn't rekey: %v", err)
+	}
+
+	// this device should be able to read now
+	_, _, err = kbfsOps2Dev2.GetOrCreateRootNodeForHandle(ctx, h, MasterBranch)
+	if err != nil {
+		t.Fatalf("Got unexpected error after rekey: %v", err)
+	}
+
+	// add a third device for user 2
+	config2Dev3 := ConfigAsUser(config1.(*ConfigLocal), u2)
+	defer config2Dev3.Shutdown()
+	AddDeviceForLocalUserOrBust(t, config1, uid2)
+	AddDeviceForLocalUserOrBust(t, config2, uid2)
+	AddDeviceForLocalUserOrBust(t, config2Dev2, uid2)
+	devIndex = AddDeviceForLocalUserOrBust(t, config2Dev3, uid2)
+	SwitchDeviceForLocalUserOrBust(t, config2Dev3, devIndex)
+
+	// Now revoke the original user 2 device
+	RevokeDeviceForLocalUserOrBust(t, config1, uid2, 0)
+	RevokeDeviceForLocalUserOrBust(t, config2Dev2, uid2, 0)
+	RevokeDeviceForLocalUserOrBust(t, config2Dev3, uid2, 0)
+
+	c := make(chan struct{})
+	config2Dev2.Notifier().RegisterForChanges(
+		[]FolderBranch{rootNode1.GetFolderBranch()}, &testCRObserver{c, nil})
+
+	// rekey again
+	err = kbfsOps1.RekeyForTesting(ctx, rootNode1.GetFolderBranch())
+	if err != nil {
+		t.Fatalf("Couldn't rekey: %v", err)
+	}
+
+	// force re-encryption of the root dir
+	_, _, err = kbfsOps1.CreateFile(ctx, rootNode1, "b", false)
+	if err != nil {
+		t.Fatalf("Couldn't create file: %v", err)
+	}
+
+	// wait for device 2 to see the file
+	<-c
+
+	// device 2 should still work
+	rootNode2, _, err :=
+		kbfsOps2Dev2.GetOrCreateRootNodeForHandle(ctx, h, MasterBranch)
+	if err != nil {
+		t.Fatalf("Got unexpected error after rekey: %v", err)
+	}
+
+	children, err := kbfsOps2Dev2.GetDirChildren(ctx, rootNode2)
+	if _, ok := children["b"]; !ok {
+		t.Fatalf("Device 2 couldn't see the new dir entry")
+	}
+
+	// but device 1 should now fail
+	kbfsOps2 := config2.KBFSOps()
+	_, _, err = kbfsOps2.GetOrCreateRootNodeForHandle(ctx, h, MasterBranch)
+	if _, ok := err.(ReadAccessError); !ok {
+		t.Fatalf("Got unexpected error when reading with revoked key: %v", err)
+	}
+
+	// meanwhile, device 3 should be able to read both the new and the
+	// old files
+	kbfsOps2Dev3 := config2Dev3.KBFSOps()
+	rootNode2Dev3, _, err :=
+		kbfsOps2Dev3.GetOrCreateRootNodeForHandle(ctx, h, MasterBranch)
+	if err != nil {
+		t.Fatalf("Device 3 couldn't read root: %v", err)
+	}
+
+	aNode, _, err := kbfsOps2Dev3.Lookup(ctx, rootNode2Dev3, "a")
+	if err != nil {
+		t.Fatalf("Device 3 couldn't lookup a: %v", err)
+	}
+
+	buf := []byte{0}
+	_, err = kbfsOps2Dev3.Read(ctx, aNode, buf, 0)
+	if err != nil {
+		t.Fatalf("Device 3 couldn't read a: %v", err)
+	}
+
+	bNode, _, err := kbfsOps2Dev3.Lookup(ctx, rootNode2Dev3, "b")
+	if err != nil {
+		t.Fatalf("Device 3 couldn't lookup b: %v", err)
+	}
+
+	_, err = kbfsOps2Dev3.Read(ctx, bNode, buf, 0)
+	if err != nil {
+		t.Fatalf("Device 3 couldn't read b: %v", err)
 	}
 }

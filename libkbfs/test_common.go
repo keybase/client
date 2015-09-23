@@ -278,6 +278,104 @@ func AddNewKeysOrBust(t *testing.T, rmd *RootMetadata, dkb DirKeyBundle) {
 	}
 }
 
+// AddDeviceForLocalUserOrBust creates a new device for a user and
+// returns the index for that device.
+func AddDeviceForLocalUserOrBust(t *testing.T, config Config,
+	uid keybase1.UID) int {
+	kbd, ok := config.KeybaseDaemon().(KeybaseDaemonLocal)
+	if !ok {
+		t.Fatalf("Bad keybase daemon")
+	}
+
+	user, ok := kbd.localUsers[uid]
+	if !ok {
+		t.Fatalf("No such user: %s", uid)
+	}
+
+	index := len(user.VerifyingKeys)
+	keySalt := libkb.NormalizedUsername(string(user.Name) + " " + string(index))
+	newVerifyingKey := MakeLocalUserVerifyingKeyOrBust(keySalt)
+	user.VerifyingKeys = append(user.VerifyingKeys, newVerifyingKey)
+	newCryptPublicKey := MakeLocalUserCryptPublicKeyOrBust(keySalt)
+	user.CryptPublicKeys = append(user.CryptPublicKeys, newCryptPublicKey)
+
+	// kbd is just a copy, but kbd.localUsers is the same map
+	kbd.localUsers[uid] = user
+
+	return index
+}
+
+// RevokeDeviceForLocalUserOrBust revokes a device for a user in the
+// given index.
+func RevokeDeviceForLocalUserOrBust(t *testing.T, config Config,
+	uid keybase1.UID, index int) {
+	kbd, ok := config.KeybaseDaemon().(KeybaseDaemonLocal)
+	if !ok {
+		t.Fatalf("Bad keybase daemon")
+	}
+
+	user, ok := kbd.localUsers[uid]
+	if !ok {
+		t.Fatalf("No such user: %s", uid)
+	}
+
+	if index >= len(user.VerifyingKeys) ||
+		(kbd.currentUID == uid && index == user.CurrentCryptPublicKeyIndex) {
+		t.Fatalf("Can't revoke index %d", index)
+	}
+
+	user.VerifyingKeys = append(user.VerifyingKeys[:index],
+		user.VerifyingKeys[index+1:]...)
+	user.CryptPublicKeys = append(user.CryptPublicKeys[:index],
+		user.CryptPublicKeys[index+1:]...)
+
+	if kbd.currentUID == uid && index < user.CurrentCryptPublicKeyIndex {
+		user.CurrentCryptPublicKeyIndex--
+	}
+
+	// kbd is just a copy, but kbd.localUsers is the same map
+	kbd.localUsers[uid] = user
+}
+
+// SwitchDeviceForLocalUserOrBust switches the current user's current device
+func SwitchDeviceForLocalUserOrBust(t *testing.T, config Config, index int) {
+	uid, err := config.KBPKI().GetCurrentUID(context.Background())
+	if err != nil {
+		t.Fatalf("Couldn't get UID: %v", err)
+	}
+
+	kbd, ok := config.KeybaseDaemon().(KeybaseDaemonLocal)
+	if !ok {
+		t.Fatalf("Bad keybase daemon")
+	}
+
+	user, ok := kbd.localUsers[uid]
+	if !ok {
+		t.Fatalf("No such user: %s", uid)
+	}
+
+	if index >= len(user.CryptPublicKeys) {
+		t.Fatalf("Wrong crypt public key index: %d", index)
+	}
+	user.CurrentCryptPublicKeyIndex = index
+
+	// kbd is just a copy, but kbd.localUsers is the same map
+	kbd.localUsers[uid] = user
+
+	crypto, ok := config.Crypto().(*CryptoLocal)
+	if !ok {
+		t.Fatalf("Bad crypto")
+	}
+
+	keySalt := user.Name
+	if index > 0 {
+		keySalt = libkb.NormalizedUsername(string(user.Name) + " " +
+			string(index))
+	}
+	crypto.signingKey = MakeLocalUserSigningKeyOrBust(keySalt)
+	crypto.cryptPrivateKey = MakeLocalUserCryptPrivateKeyOrBust(keySalt)
+}
+
 func testWithCanceledContext(t *testing.T, ctx context.Context,
 	readyChan <-chan struct{}, goChan chan<- struct{},
 	fn func(context.Context) error) {
