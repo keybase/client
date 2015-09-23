@@ -10,8 +10,6 @@ import (
 )
 
 type SignupJoinEngine struct {
-	signupState *SignupState
-
 	uid            keybase1.UID
 	session        string
 	csrf           string
