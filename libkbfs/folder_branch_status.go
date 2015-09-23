@@ -79,8 +79,7 @@ func (fbsk *folderBranchStatusKeeper) setCRChains(unmerged *crChains,
 	merged *crChains) {
 	fbsk.dataMutex.Lock()
 	defer fbsk.dataMutex.Unlock()
-	if unmerged == nil && fbsk.unmerged == nil &&
-		merged == nil && fbsk.merged == nil {
+	if unmerged == fbsk.unmerged && merged == fbsk.merged {
 		return
 	}
 	fbsk.unmerged = unmerged

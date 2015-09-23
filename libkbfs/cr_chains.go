@@ -1,9 +1,6 @@
 package libkbfs
 
-import (
-	"fmt"
-	"sync"
-)
+import "fmt"
 
 // crChain represents the set of operations that happened to a
 // particular KBFS node (e.g., individual file or directory) over a
@@ -14,28 +11,6 @@ type crChain struct {
 	original, mostRecent BlockPointer
 }
 
-func (cc *crChain) snipFromChain(
-	oldIndex int, removals []int, once *sync.Once) []int {
-	once.Do(func() {
-		// Make a local copy of the ops slice, because we could be
-		// modifying the underlying array while iterating.
-		localOps := make([]op, len(cc.ops))
-		copy(localOps, cc.ops)
-		cc.ops = localOps
-	})
-
-	index := oldIndex
-	// Need to fix up the old index if other things in front of it have been
-	// removed
-	for _, r := range removals {
-		if r < oldIndex {
-			index--
-		}
-	}
-	cc.ops = append(cc.ops[:index], cc.ops[index+1:]...)
-	return append(removals, oldIndex)
-}
-
 // collapse finds complementary pairs of operations that cancel each
 // other out, and remove the relevant operations from the chain.
 // Examples include:
@@ -43,34 +18,39 @@ func (cc *crChain) snipFromChain(
 //  * A create followed by a create (renamed == true) for the same name
 //    (delete the create op)
 func (cc *crChain) collapse() {
-	createsSeen := make(map[string]opWithIndex)
-	var removals []int
-	var once sync.Once
+	createsSeen := make(map[string]int)
+	indicesToRemove := make(map[int]bool)
 	for i, op := range cc.ops {
 		switch realOp := op.(type) {
 		case *createOp:
-			if prevCreate, ok :=
+			if prevCreateIndex, ok :=
 				createsSeen[realOp.NewName]; realOp.renamed && ok {
 				// A rename has papered over the first create, so
 				// just drop it.
-				removals = cc.snipFromChain(prevCreate.index, removals, &once)
+				indicesToRemove[prevCreateIndex] = true
 			}
-			createsSeen[realOp.NewName] = opWithIndex{op, i}
+			createsSeen[realOp.NewName] = i
 		case *rmOp:
-			if prevCreate, ok := createsSeen[realOp.OldName]; ok {
+			if prevCreateIndex, ok := createsSeen[realOp.OldName]; ok {
 				delete(createsSeen, realOp.OldName)
 				// The rm cancels out the create, so remove both.
-				removals = cc.snipFromChain(prevCreate.index, removals, &once)
-				removals = cc.snipFromChain(i, removals, &once)
+				indicesToRemove[prevCreateIndex] = true
+				indicesToRemove[i] = true
 			}
 		default:
 			// ignore other op types
 		}
 	}
 
-	// NOTE: even if we've removed all its ops, still keep the
-	// chain around so we can see the mapping between the original
-	// and most recent pointers.
+	if len(indicesToRemove) > 0 {
+		ops := make([]op, 0, len(cc.ops)-len(indicesToRemove))
+		for i, op := range cc.ops {
+			if !indicesToRemove[i] {
+				ops = append(ops, op)
+			}
+		}
+		cc.ops = ops
+	}
 }
 
 // crChains contains a crChain for every KBFS node affected by the
@@ -169,11 +149,6 @@ func (ccs *crChains) makeChainForOp(op op) error {
 	return nil
 }
 
-type opWithIndex struct {
-	op    op
-	index int
-}
-
 func (ccs *crChains) mostRecentFromOriginal(original BlockPointer) (
 	BlockPointer, error) {
 	chain, ok := ccs.byOriginal[original]
@@ -212,6 +187,9 @@ func newCRChains(rmds []*RootMetadata) (ccs *crChains, err error) {
 
 	for _, chain := range ccs.byOriginal {
 		chain.collapse()
+		// NOTE: even if we've removed all its ops, still keep the
+		// chain around so we can see the mapping between the original
+		// and most recent pointers.
 	}
 
 	return ccs, nil
