@@ -52,6 +52,10 @@ class AppOrDebug extends Component {
   }
 }
 
+AppOrDebug.propTypes = {
+  dispatch: React.PropTypes.func.isRequired
+}
+
 class Keybase extends Component {
   constructor () {
     super()

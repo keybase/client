@@ -95,3 +95,16 @@ export function showedSecretWords (response) {
     response.result()
   }
 }
+
+module.exports.logout = function () {
+  return function (dispatch) {
+    engine.rpc('login.logout', {}, {}, (error, response) => {
+      if (error) {
+        console.log(error)
+      } else {
+        // TODO something else
+        dispatch(startLogin())
+      }
+    })
+  }
+}

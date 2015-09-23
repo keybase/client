@@ -22,8 +22,8 @@ export default function (state = initialState, action) {
     case types.START_LOGIN:
       return {
         ...state,
-        loginState: states.CHECKING,
-        waitingForServer: true
+        loginState: states.ASK_USER_PASS,
+        waitingForServer: false
       }
     case types.ASK_USER_PASS:
       return {
