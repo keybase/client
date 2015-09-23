@@ -155,6 +155,9 @@ func (e *LoginEngine) postLogin(ctx *Context, lctx libkb.LoginContext) error {
 	larg.CheckOnly = false
 	e.locksmith = NewLocksmith(larg, e.G())
 	if err := RunEngine(e.locksmith, ctx); err != nil {
+		if _, canceled := err.(libkb.CanceledError); canceled {
+			lctx.Logout()
+		}
 		return err
 	}
 
