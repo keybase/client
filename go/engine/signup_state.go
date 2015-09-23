@@ -2,7 +2,7 @@ package engine
 
 import (
 	"github.com/keybase/client/go/libkb"
-	"github.com/keybase/go-triplesec"
+	triplesec "github.com/keybase/go-triplesec"
 )
 
 type SignupState struct {
