@@ -180,6 +180,8 @@ func Init(localUser libkb.NormalizedUsername, serverRootDir *string, cpuProfileP
 	libkb.G.ConfigureCaches()
 	libkb.G.ConfigureMerkleClient()
 
+	config.SetKeyManager(NewKeyManagerStandard(config))
+
 	// TODO: handle production mode when it exists
 	if libkb.G.Env.GetRunMode() == libkb.StagingRunMode {
 		config.SetRootCerts([]byte(DevRootCerts))

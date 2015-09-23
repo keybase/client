@@ -327,8 +327,12 @@ type KeyManager interface {
 	GetTLFCryptKeyForBlockDecryption(ctx context.Context, md *RootMetadata,
 		blockPtr BlockPointer) (TLFCryptKey, error)
 
-	// Rekey creates a new epoch of keys for the given TLF, which
-	// must not be public.
+	// Rekey checks the given MD object (which must not represent a
+	// public TLF) against the current set of device keys for all
+	// valid readers and writers.  If there are any new devices, it
+	// updates all existing key generations to include the new
+	// devices.  If there are devices that have been removed, it
+	// creates a new epoch of keys for the TLF.
 	Rekey(ctx context.Context, md *RootMetadata) error
 }
 

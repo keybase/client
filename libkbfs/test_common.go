@@ -77,6 +77,8 @@ func MakeTestConfigOrBust(t *testing.T, users ...libkb.NormalizedUsername) *Conf
 	config := NewConfigLocal()
 	setTestLogger(config, t)
 
+	config.SetKeyManager(NewKeyManagerStandard(config))
+
 	localUsers := MakeLocalUsers(users)
 	loggedInUser := localUsers[0]
 
@@ -153,6 +155,8 @@ func ConfigAsUser(config *ConfigLocal, loggedInUser libkb.NormalizedUsername) *C
 	c := NewConfigLocal()
 	c.SetLoggerMaker(config.loggerFn)
 	c.SetRootCerts(config.RootCerts())
+
+	c.SetKeyManager(NewKeyManagerStandard(c))
 
 	daemon := config.KeybaseDaemon().(KeybaseDaemonLocal)
 	loggedInUID, ok := daemon.asserts[string(loggedInUser)]

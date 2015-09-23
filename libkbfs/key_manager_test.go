@@ -14,7 +14,7 @@ func keyManagerInit(t *testing.T) (mockCtrl *gomock.Controller,
 	ctr := NewSafeTestReporter(t)
 	mockCtrl = gomock.NewController(ctr)
 	config = NewConfigMock(mockCtrl, ctr)
-	keyman := &KeyManagerStandard{config}
+	keyman := NewKeyManagerStandard(config)
 	config.SetKeyManager(keyman)
 	ctx = context.Background()
 	return

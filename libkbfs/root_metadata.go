@@ -100,8 +100,8 @@ type RootMetadata struct {
 }
 
 // GetKeyGeneration returns the current key generation for the current block.
-func (md *RootMetadata) GetKeyGeneration() int {
-	return len(md.Keys)
+func (md *RootMetadata) GetKeyGeneration() KeyGen {
+	return KeyGen(len(md.Keys))
 }
 
 // MergedStatus returns the status of this update -- has it been
@@ -248,12 +248,12 @@ func (md RootMetadata) GetTLFEphemeralPublicKey(
 	} else if u, ok1 = dkb.RKeys[user]; ok1 {
 		info, ok = u[key]
 	}
-	if !ok || info.ePubKeyIndex >= len(dkb.TLFEphemeralPublicKeys) {
+	if !ok || info.EPubKeyIndex >= len(dkb.TLFEphemeralPublicKeys) {
 		return TLFEphemeralPublicKey{},
 			TLFEphemeralPublicKeyNotFoundError{md.ID, keyGen, user, key}
 	}
 
-	return dkb.TLFEphemeralPublicKeys[info.ePubKeyIndex], nil
+	return dkb.TLFEphemeralPublicKeys[info.EPubKeyIndex], nil
 }
 
 // LatestKeyGeneration returns the newest key generation for this RootMetadata.
@@ -275,6 +275,20 @@ func (md *RootMetadata) AddNewKeys(keys DirKeyBundle) error {
 		return InvalidPublicTLFOperation{md.ID, "AddNewKeys"}
 	}
 	md.Keys = append(md.Keys, keys)
+	return nil
+}
+
+// SetKeys overwrites the given key generation for this RootMetadata
+// using the given DirKeyBundle.
+func (md *RootMetadata) SetKeys(keyGen KeyGen, keys DirKeyBundle) error {
+	if md.ID.IsPublic() {
+		return InvalidPublicTLFOperation{md.ID, "SetKeys"}
+	}
+	i := int(keyGen - FirstValidKeyGen)
+	if i >= len(md.Keys) {
+		return NewKeyGenerationError{md.GetTlfHandle(), keyGen}
+	}
+	md.Keys[i] = keys
 	return nil
 }
 

@@ -781,7 +781,7 @@ func (id TLFCryptKeyServerHalfID) String() string {
 type TLFCryptKeyInfo struct {
 	ClientHalf   EncryptedTLFCryptKeyClientHalf
 	ServerHalfID TLFCryptKeyServerHalfID
-	ePubKeyIndex int `codec:"i,omitempty"`
+	EPubKeyIndex int `codec:"i,omitempty"`
 }
 
 // DeepCopy returns a complete copy of a TLFCryptKeyInfo.
@@ -789,6 +789,7 @@ func (info TLFCryptKeyInfo) DeepCopy() TLFCryptKeyInfo {
 	return TLFCryptKeyInfo{
 		ClientHalf:   info.ClientHalf.DeepCopy(),
 		ServerHalfID: info.ServerHalfID.DeepCopy(),
+		EPubKeyIndex: info.EPubKeyIndex,
 	}
 }
 
@@ -805,6 +806,11 @@ type DirKeyBundle struct {
 	TLFPublicKey TLFPublicKey `codec:"pubKey"`
 
 	// M_e as described in 4.1.1 of https://keybase.io/blog/crypto.
+	// Because devices can be added into the key generation after it
+	// is initially created (so those devices can get access to
+	// existing data), we track multiple ephemeral public keys; the
+	// one used by a particular device is specified by EPubKeyIndex in
+	// its TLFCryptoKeyInfo struct.
 	TLFEphemeralPublicKeys []TLFEphemeralPublicKey `codec:"ePubKey"`
 }
 

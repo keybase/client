@@ -139,7 +139,6 @@ func MakeLocalUsers(users []libkb.NormalizedUsername) []LocalUser {
 func NewConfigLocal() *ConfigLocal {
 	config := &ConfigLocal{}
 	config.SetKBFSOps(NewKBFSOpsStandard(config))
-	config.SetKeyManager(&KeyManagerStandard{config})
 	config.SetReporter(NewReporterSimple(10))
 	config.SetMDCache(NewMDCacheStandard(5000))
 	config.SetKeyCache(NewKeyCacheStandard(5000))
