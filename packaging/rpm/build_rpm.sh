@@ -8,17 +8,14 @@ set -e -u -o pipefail
 
 here="$(dirname "$BASH_SOURCE")"
 
-mode="${KEYBASE_BUILD_MODE:-}"  # :- because this might not be defined
+mode="$("$here/../build_mode.sh")"
+binary_name="$("$here/../binary_name.sh")"
 if [ "$mode" = "release" ] ; then
   go_tags="release"
-  binary_name="keybase"
 elif [ "$mode" = "staging" ] ; then
   go_tags="staging"
-  binary_name="kbstage"
 else
-  mode="devel"
   go_tags=""
-  binary_name="kbdev"
 fi
 
 # Take the first argument, or a tmp dir if there is no first argument.
