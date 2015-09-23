@@ -35,7 +35,7 @@ build_one_architecture() {
   echo "building Go client for $GOARCH"
   go build -o "$dest/usr/bin/$binary_name" github.com/keybase/client/go/keybase
 
-  version="$("$dest/usr/bin/$binary_name" version --format=s)"
+  version="$("$here/../version.sh")"
 
   spec="$build_root/SPECS/keybase-$rpm_arch.spec"
   mkdir -p "$(dirname "$spec")"

@@ -36,7 +36,7 @@ build_one_architecture() {
   # `go build` reads $GOARCH
   go build -tags "$go_tags" -o "$dest/build/usr/bin/$binary_name" github.com/keybase/client/go/keybase
 
-  version="$("$dest/build/usr/bin/$binary_name" version --format=s)"
+  version="$("$here/../version.sh")"
 
   # Installed-Size is a required field in the control file. Without it Ubuntu
   # users will see warnings.
