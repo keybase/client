@@ -25,19 +25,19 @@ export default function (state = initialState, action) {
   // TODO: use immutable js
   const originalHistory = state.history.slice(0)
   state.history = pushIfTailIsDifferent(state.history.slice(0), state.uri.slice(0))
+  let uriClone = state.uri.slice(0)
   switch (action.type) {
     // TODO(MM): change the history so if we go up to something that is already in the history,
     // or a child of it
     // we get rid of everything after it
     // TODO(mm): use immutable
     case routerTypes.NAVIGATE_UP:
-      let newUri = state.uri.slice(0)
-      if (newUri.length > 1) {
-        newUri.pop()
+      if (uriClone.length > 1) {
+        uriClone.pop()
       }
       return {
         ...state,
-        uri: newUri,
+        uri: uriClone,
         history: originalHistory
       }
     case routerTypes.NAVIGATE:
@@ -46,8 +46,11 @@ export default function (state = initialState, action) {
         uri: action.uri
       }
     case routerTypes.NAVIGATE_APPEND:
-      state.uri.push(action.topRoute)
-      return {...state}
+      uriClone.push(action.topRoute)
+      return {
+        ...state,
+        uri: uriClone
+      }
     case loginTypes.START_LOGIN:
       return {
         ...state,

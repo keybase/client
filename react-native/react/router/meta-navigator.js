@@ -27,8 +27,8 @@ class MetaNavigator extends Component {
 
   isParentOfRoute (routeParent, routeMaybeChild) {
     return (
-      (routeMaybeChild.join(',') !== routeParent.join(',')
-      && routeMaybeChild.slice(0, routeParent.length).join(',') === routeParent.join(','))
+      (routeMaybeChild.join(',') !== routeParent.join(',') &&
+      routeMaybeChild.slice(0, routeParent.length).join(',') === routeParent.join(','))
     )
   }
 
@@ -47,11 +47,9 @@ class MetaNavigator extends Component {
     // TODO: also check to see if this route exists in the navigator's route
     } else if (this.isParentOfRoute(nextRoute, route)) {
       const navRoutes = this.refs.navigator.getCurrentRoutes()
-      const targetRoute = navRoutes.reverse().find(navRoute => {
-        return (
+      const targetRoute = navRoutes.reverse().find(navRoute =>
           navRoute.component === componentAtTop.component && navRoute.title === componentAtTop.title
-        )
-      })
+      )
       this.refs.navigator.popToRoute(targetRoute)
       return true
     } else {
