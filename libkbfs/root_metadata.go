@@ -233,12 +233,27 @@ func (md RootMetadata) GetTLFCryptKeyInfo(keyGen KeyGen, user keybase1.UID,
 // GetTLFEphemeralPublicKey returns the ephemeral public key for this
 // top-level folder.
 func (md RootMetadata) GetTLFEphemeralPublicKey(
-	keyGen KeyGen) (TLFEphemeralPublicKey, error) {
+	keyGen KeyGen, user keybase1.UID,
+	currentCryptPublicKey CryptPublicKey) (TLFEphemeralPublicKey, error) {
 	dkb, err := md.getDirKeyBundle(keyGen)
 	if err != nil {
 		return TLFEphemeralPublicKey{}, err
 	}
-	return dkb.TLFEphemeralPublicKey, nil
+
+	key := currentCryptPublicKey.KID
+	var info TLFCryptKeyInfo
+	var ok bool
+	if u, ok1 := dkb.WKeys[user]; ok1 {
+		info, ok = u[key]
+	} else if u, ok1 = dkb.RKeys[user]; ok1 {
+		info, ok = u[key]
+	}
+	if !ok || info.ePubKeyIndex >= len(dkb.TLFEphemeralPublicKeys) {
+		return TLFEphemeralPublicKey{},
+			TLFEphemeralPublicKeyNotFoundError{md.ID, keyGen, user, key}
+	}
+
+	return dkb.TLFEphemeralPublicKeys[info.ePubKeyIndex], nil
 }
 
 // LatestKeyGeneration returns the newest key generation for this RootMetadata.

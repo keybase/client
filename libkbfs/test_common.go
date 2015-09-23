@@ -300,6 +300,7 @@ func MakeDirRKeyBundle(uid keybase1.UID, cryptPublicKey CryptPublicKey) DirKeyBu
 				cryptPublicKey.KID: TLFCryptKeyInfo{},
 			},
 		},
+		TLFEphemeralPublicKeys: make([]TLFEphemeralPublicKey, 1),
 	}
 }
 
@@ -311,6 +312,7 @@ func MakeDirWKeyBundle(uid keybase1.UID, cryptPublicKey CryptPublicKey) DirKeyBu
 				cryptPublicKey.KID: TLFCryptKeyInfo{},
 			},
 		},
+		TLFEphemeralPublicKeys: make([]TLFEphemeralPublicKey, 1),
 	}
 }
 

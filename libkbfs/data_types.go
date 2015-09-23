@@ -781,6 +781,7 @@ func (id TLFCryptKeyServerHalfID) String() string {
 type TLFCryptKeyInfo struct {
 	ClientHalf   EncryptedTLFCryptKeyClientHalf
 	ServerHalfID TLFCryptKeyServerHalfID
+	ePubKeyIndex int `codec:"i,omitempty"`
 }
 
 // DeepCopy returns a complete copy of a TLFCryptKeyInfo.
@@ -800,17 +801,11 @@ type DirKeyBundle struct {
 	// (identified by the KID of the corresponding device CryptPublicKey).
 	RKeys map[keybase1.UID]map[keybase1.KID]TLFCryptKeyInfo
 
-	// M_f as described in 4.1.1 of https://keybase.io/blog/crypto
-	// .
+	// M_f as described in 4.1.1 of https://keybase.io/blog/crypto.
 	TLFPublicKey TLFPublicKey `codec:"pubKey"`
 
-	// M_e as described in 4.1.1 of https://keybase.io/blog/crypto
-	// .
-	//
-	// TODO: Prepend M_e to all entries of WKeys and RKeys above
-	// instead, so that we have the freedom to pick different
-	// ephemeral keys.
-	TLFEphemeralPublicKey TLFEphemeralPublicKey `codec:"ePubKey"`
+	// M_e as described in 4.1.1 of https://keybase.io/blog/crypto.
+	TLFEphemeralPublicKeys []TLFEphemeralPublicKey `codec:"ePubKey"`
 }
 
 // DeepCopy returns a complete copy of this DirKeyBundle.
@@ -831,7 +826,11 @@ func (dkb DirKeyBundle) DeepCopy() DirKeyBundle {
 		}
 	}
 	newDkb.TLFPublicKey = dkb.TLFPublicKey.DeepCopy()
-	newDkb.TLFEphemeralPublicKey = dkb.TLFEphemeralPublicKey.DeepCopy()
+	newDkb.TLFEphemeralPublicKeys =
+		make([]TLFEphemeralPublicKey, len(dkb.TLFEphemeralPublicKeys))
+	for i, k := range dkb.TLFEphemeralPublicKeys {
+		newDkb.TLFEphemeralPublicKeys[i] = k.DeepCopy()
+	}
 	return newDkb
 }
 

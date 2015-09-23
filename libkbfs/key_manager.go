@@ -81,7 +81,8 @@ func (km *KeyManagerStandard) getTLFCryptKey(ctx context.Context,
 		return
 	}
 
-	ePublicKey, err := md.GetTLFEphemeralPublicKey(keyGen)
+	ePublicKey, err := md.GetTLFEphemeralPublicKey(keyGen, uid,
+		currentCryptPublicKey)
 	if err != nil {
 		return
 	}
@@ -198,10 +199,10 @@ func (km *KeyManagerStandard) Rekey(ctx context.Context,
 
 	handle := md.GetTlfHandle()
 	newClientKeys := DirKeyBundle{
-		WKeys:                 make(map[keybase1.UID]map[keybase1.KID]TLFCryptKeyInfo),
-		RKeys:                 make(map[keybase1.UID]map[keybase1.KID]TLFCryptKeyInfo),
-		TLFPublicKey:          pubKey,
-		TLFEphemeralPublicKey: ePubKey,
+		WKeys:                  make(map[keybase1.UID]map[keybase1.KID]TLFCryptKeyInfo),
+		RKeys:                  make(map[keybase1.UID]map[keybase1.KID]TLFCryptKeyInfo),
+		TLFPublicKey:           pubKey,
+		TLFEphemeralPublicKeys: []TLFEphemeralPublicKey{ePubKey},
 	}
 	newServerKeys := make(map[keybase1.UID]map[keybase1.KID]TLFCryptKeyServerHalf)
 

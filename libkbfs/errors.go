@@ -422,6 +422,22 @@ func (e UnknownSigVer) Error() string {
 	return fmt.Sprintf("Unknown signature version %d", int(e.sigVer))
 }
 
+// TLFEphemeralPublicKeyNotFoundError indicates that an ephemeral
+// public key matching the given key gen, user and device KID couldn't
+// be found.
+type TLFEphemeralPublicKeyNotFoundError struct {
+	tlf    TlfID
+	keyGen KeyGen
+	uid    keybase1.UID
+	kid    keybase1.KID
+}
+
+// Error implements the error interface for TLFEphemeralPublicKeyNotFoundError.
+func (e TLFEphemeralPublicKeyNotFoundError) Error() string {
+	return fmt.Sprintf("Could not find ephemeral public key for folder %s, "+
+		"keygen %d, user %s, device KID %v", e.tlf, e.keyGen, e.uid, e.kid)
+}
+
 // KeyNotFoundError indicates that a key matching the given KID
 // couldn't be found.
 type KeyNotFoundError struct {
