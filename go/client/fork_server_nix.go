@@ -189,7 +189,7 @@ func spawnServer(cl libkb.CommandLine) (err error) {
 	if err != nil {
 		err = fmt.Errorf("Error in ForkExec: %s", err)
 	} else {
-		G.Log.Debug("Forking background server with pid=%d", pid)
+		G.Log.Info("Forking background server with pid=%d", pid)
 	}
 	return err
 }
