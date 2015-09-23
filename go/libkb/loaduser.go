@@ -176,7 +176,7 @@ func LoadUser(arg LoadUserArg) (ret *User, err error) {
 
 		var emsg string
 		if arg.Self {
-			emsg = "You don't have a public key; try `keybase push` if you have a key; or `keybase gen` if you don't"
+			emsg = "You don't have a public key; try `keybase push` if you have a key; or `keybase pgp gen` if you don't"
 		}
 		err = NoKeyError{emsg}
 	}
