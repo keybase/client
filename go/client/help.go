@@ -60,11 +60,11 @@ On signup - When you signup, you can also "select" a PGP key for use with keybas
   for use on keybase.  This will: (1) sign it into your signature chain with your
   local device key; (2) copy a version of secret key to your local keybase keychain;
   and (3) encrypt this copy with your keybase passphrase via local-key security
-  (see separate help topic). keybase takes steps (2) and (3) so that subsequent
+  (see separate help topic). Keybase takes steps (2) and (3) so that subsequent
   PGP operations (like sign and decrypt) don't need to access your GPG keyring again.
   Once running this command, you wind up in state similar to that following
-  "keybase pgp gen" above.  The difference is that you've used keybase to generate
-  the key rather than gpg.
+  "keybase pgp gen" above.  The difference is that you've used gpg to generate
+  the key rather than keybase.
 
 'keybase pgp sign/encrypt/verify/decrypt' - These commands don't access your local
   GPG keyring, they only access the local keybase keyring as described in "select".
