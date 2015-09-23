@@ -83,6 +83,12 @@ export default function (state = initialState, action) {
         ...state,
         loginState: states.LOGGED_IN
       }
+    case types.DEVICE_NAME_TAKEN:
+      return {
+        ...state,
+        error: `${action.name} is already in use, please choose another name`
+      }
+
     default:
       return state
   }

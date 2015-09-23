@@ -43,6 +43,13 @@ export function submitUserPass (username, passphrase, storeSecret) {
           response
         })
       },
+      'keybase.1.locksmithUi.deviceNameTaken': ({name}, response) => {
+        response.result()
+        dispatch({
+          type: types.DEVICE_NAME_TAKEN,
+          name
+        })
+      },
       'keybase.1.logUi.log': (param, response) => {
         console.log(param, response)
         response.result()
@@ -59,7 +66,7 @@ export function submitUserPass (username, passphrase, storeSecret) {
 
         dispatch({
           type: types.ASK_USER_PASS,
-          error
+          error: error ? error.desc : null
         })
       } else {
         dispatch({
