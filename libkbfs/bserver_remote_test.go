@@ -90,9 +90,8 @@ func (fc *FakeBServerClient) numBlocks() int {
 func TestBServerRemotePutAndGet(t *testing.T) {
 	codec := NewCodecMsgpack()
 	localUsers := MakeLocalUsers([]libkb.NormalizedUsername{"testuser"})
-	loggedInUser := localUsers[0]
-	kbpki := NewKBPKIMemory(loggedInUser.UID, localUsers)
-	config := &ConfigLocal{codec: codec, kbpki: kbpki}
+	currentUID := localUsers[0].UID
+	config := &ConfigLocal{codec: codec}
 	setTestLogger(config, t)
 	fc := NewFakeBServerClient(nil, nil, nil)
 	ctx := context.Background()
@@ -100,7 +99,7 @@ func TestBServerRemotePutAndGet(t *testing.T) {
 
 	bID := fakeBlockID(1)
 	tlfID := FakeTlfID(2, false)
-	bCtx := BlockPointer{bID, 1, 1, kbpki.CurrentUID, "", zeroBlockRefNonce}
+	bCtx := BlockPointer{bID, 1, 1, currentUID, "", zeroBlockRefNonce}
 	data := []byte{1, 2, 3, 4}
 	crypto := &CryptoCommon{codec, config.MakeLogger("")}
 	serverHalf, err := crypto.MakeRandomBlockCryptKeyServerHalf()
@@ -135,9 +134,8 @@ func TestBServerRemotePutAndGet(t *testing.T) {
 func TestBServerRemotePutCanceled(t *testing.T) {
 	codec := NewCodecMsgpack()
 	localUsers := MakeLocalUsers([]libkb.NormalizedUsername{"testuser"})
-	loggedInUser := localUsers[0]
-	kbpki := NewKBPKIMemory(loggedInUser.UID, localUsers)
-	config := &ConfigLocal{codec: codec, kbpki: kbpki}
+	currentUID := localUsers[0].UID
+	config := &ConfigLocal{codec: codec}
 	setTestLogger(config, t)
 	readyChan := make(chan struct{})
 	goChan := make(chan struct{})
@@ -148,7 +146,7 @@ func TestBServerRemotePutCanceled(t *testing.T) {
 
 		bID := fakeBlockID(1)
 		tlfID := FakeTlfID(2, false)
-		bCtx := BlockPointer{bID, 1, 1, kbpki.CurrentUID, "", zeroBlockRefNonce}
+		bCtx := BlockPointer{bID, 1, 1, currentUID, "", zeroBlockRefNonce}
 		data := []byte{1, 2, 3, 4}
 		crypto := &CryptoCommon{codec, config.MakeLogger("")}
 		serverHalf, err := crypto.MakeRandomBlockCryptKeyServerHalf()

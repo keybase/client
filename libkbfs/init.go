@@ -83,10 +83,10 @@ func makeBlockServer(config Config, serverRootDir *string) (BlockServer, error) 
 	return NewBlockServerRemote(context.TODO(), config, bServerAddr), nil
 }
 
-func makeKBPKIClient(config Config, serverRootDir *string, localUser libkb.NormalizedUsername) (KBPKI, error) {
+func makeKeybaseDaemon(serverRootDir *string, localUser libkb.NormalizedUsername, codec Codec, log logger.Logger) (KeybaseDaemon, error) {
 	if localUser == "" {
 		libkb.G.ConfigureSocketInfo()
-		return NewKBPKIClient(libkb.G, config.MakeLogger(""))
+		return NewKeybaseDaemonRPC(libkb.G, log)
 	}
 
 	users := []libkb.NormalizedUsername{"strib", "max", "chris", "fred"}
@@ -115,11 +115,11 @@ func makeKBPKIClient(config Config, serverRootDir *string, localUser libkb.Norma
 	}
 
 	if serverRootDir == nil {
-		return NewKBPKIMemory(localUID, localUsers), nil
+		return NewKeybaseDaemonMemory(localUID, localUsers), nil
 	}
 
 	favPath := filepath.Join(*serverRootDir, "kbfs_favs")
-	return NewKBPKILocal(localUID, localUsers, favPath, config.Codec())
+	return NewKeybaseDaemonDisk(localUID, localUsers, favPath, codec)
 }
 
 // Init initializes a config and returns it. If localUser is
@@ -213,15 +213,18 @@ func Init(localUser libkb.NormalizedUsername, serverRootDir *string, cpuProfileP
 	client.InitUI()
 	libkb.G.UI.Configure()
 
-	k, err := makeKBPKIClient(config, serverRootDir, localUser)
+	daemon, err := makeKeybaseDaemon(serverRootDir, localUser, config.Codec(), config.MakeLogger(""))
 	if err != nil {
-		return nil, fmt.Errorf("problem creating KBPKI client: %s", err)
+		return nil, fmt.Errorf("problem creating daemon: %s", err)
 	}
 
 	if registry := config.MetricsRegistry(); registry != nil {
-		k = NewKbpkiMeasured(k, registry)
+		daemon = NewKeybaseDaemonMeasured(daemon, registry)
 	}
 
+	config.SetKeybaseDaemon(daemon)
+
+	k := NewKBPKIClient(config)
 	config.SetKBPKI(k)
 
 	if localUser == "" {

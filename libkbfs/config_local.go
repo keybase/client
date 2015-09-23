@@ -27,6 +27,7 @@ type ConfigLocal struct {
 	mdserv         MDServer
 	bserv          BlockServer
 	keyserv        KeyServer
+	daemon         KeybaseDaemon
 	bsplit         BlockSplitter
 	notifier       Notifier
 	mdserverCAcert []byte
@@ -39,17 +40,15 @@ var _ Config = (*ConfigLocal)(nil)
 
 // LocalUser represents a fake KBFS user, useful for testing.
 type LocalUser struct {
-	Name                  libkb.NormalizedUsername
-	UID                   keybase1.UID
-	Asserts               []string
-	VerifyingKeys         []VerifyingKey
-	CryptPublicKeys       []CryptPublicKey
-	CurrentPublicKeyIndex int
+	UserInfo
+	Asserts []string
+	// Index into UserInfo.CryptPublicKeys.
+	CurrentCryptPublicKeyIndex int
 }
 
 // GetCurrentCryptPublicKey returns this LocalUser's public encryption key.
 func (lu *LocalUser) GetCurrentCryptPublicKey() CryptPublicKey {
-	return lu.CryptPublicKeys[lu.CurrentPublicKeyIndex]
+	return lu.CryptPublicKeys[lu.CurrentCryptPublicKeyIndex]
 }
 
 func verifyingKeysToPublicKeys(keys []VerifyingKey) []keybase1.PublicKey {
@@ -116,11 +115,13 @@ func MakeLocalUsers(users []libkb.NormalizedUsername) []LocalUser {
 		verifyingKey := MakeLocalUserVerifyingKeyOrBust(users[i])
 		cryptPublicKey := MakeLocalUserCryptPublicKeyOrBust(users[i])
 		localUsers[i] = LocalUser{
-			Name:                  users[i],
-			UID:                   keybase1.MakeTestUID(uint32(i + 1)),
-			VerifyingKeys:         []VerifyingKey{verifyingKey},
-			CryptPublicKeys:       []CryptPublicKey{cryptPublicKey},
-			CurrentPublicKeyIndex: 0,
+			UserInfo: UserInfo{
+				Name:            users[i],
+				UID:             keybase1.MakeTestUID(uint32(i + 1)),
+				VerifyingKeys:   []VerifyingKey{verifyingKey},
+				CryptPublicKeys: []CryptPublicKey{cryptPublicKey},
+			},
+			CurrentCryptPublicKeyIndex: 0,
 		}
 	}
 	return localUsers
@@ -317,6 +318,16 @@ func (c *ConfigLocal) SetKeyServer(k KeyServer) {
 	c.keyserv = k
 }
 
+// KeybaseDaemon implements the Config interface for ConfigLocal.
+func (c *ConfigLocal) KeybaseDaemon() KeybaseDaemon {
+	return c.daemon
+}
+
+// SetKeybaseDaemon implements the Config interface for ConfigLocal.
+func (c *ConfigLocal) SetKeybaseDaemon(k KeybaseDaemon) {
+	c.daemon = k
+}
+
 // BlockSplitter implements the Config interface for ConfigLocal.
 func (c *ConfigLocal) BlockSplitter() BlockSplitter {
 	return c.bsplit
@@ -406,6 +417,6 @@ func (c *ConfigLocal) Shutdown() {
 	c.KBFSOps().Shutdown()
 	c.MDServer().Shutdown()
 	c.KeyServer().Shutdown()
-	c.KBPKI().Shutdown()
+	c.KeybaseDaemon().Shutdown()
 	c.BlockServer().Shutdown()
 }

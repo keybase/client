@@ -223,6 +223,36 @@ type KBFSOps interface {
 	Shutdown()
 }
 
+// KeybaseDaemon is an interface for communicating with the local
+// Keybase daemon.
+type KeybaseDaemon interface {
+	// Identify, given an assertion, returns a UserInfo struct
+	// with the user that matches that assertion, or an error
+	// otherwise.
+	Identify(ctx context.Context, assertion string) (UserInfo, error)
+
+	// CurrentSession returns a SessionInfo struct with all the
+	// information for the current session, or an error otherwise.
+	CurrentSession(ctx context.Context, sessionID int) (SessionInfo, error)
+
+	// FavoriteAdd adds the given folder to the list of favorites.
+	FavoriteAdd(ctx context.Context, folder keybase1.Folder) error
+
+	// FavoriteAdd removes the given folder from the list of
+	// favorites.
+	FavoriteDelete(ctx context.Context, folder keybase1.Folder) error
+
+	// FavoriteList returns the current list of favorites.
+	FavoriteList(ctx context.Context, sessionID int) ([]keybase1.Folder, error)
+
+	// TODO: Add CryptoClient methods, too.
+
+	// Shutdown frees any resources associated with this
+	// instance. No other methods may be called after this is
+	// called.
+	Shutdown()
+}
+
 // KBPKI interacts with the Keybase daemon to fetch user info.
 type KBPKI interface {
 	// GetCurrentToken gets the current keybase session token.
@@ -252,6 +282,9 @@ type KBPKI interface {
 	GetCryptPublicKeys(ctx context.Context, uid keybase1.UID) (
 		[]CryptPublicKey, error)
 
+	// TODO: Split the methods below off into a separate
+	// FavoriteOps interface.
+
 	// FavoriteAdd adds folder to the list of the logged in user's
 	// favorite folders.  It is idempotent.
 	FavoriteAdd(ctx context.Context, folder keybase1.Folder) error
@@ -263,9 +296,6 @@ type KBPKI interface {
 	// FavoriteList returns the list of all favorite folders for
 	// the logged in user.
 	FavoriteList(ctx context.Context) ([]keybase1.Folder, error)
-
-	// Shutdown is called to free any KBPKI resources.
-	Shutdown()
 }
 
 // KeyManager fetches and constructs the keys needed for KBFS file
@@ -792,6 +822,8 @@ type Config interface {
 	SetBlockServer(BlockServer)
 	KeyServer() KeyServer
 	SetKeyServer(KeyServer)
+	KeybaseDaemon() KeybaseDaemon
+	SetKeybaseDaemon(KeybaseDaemon)
 	BlockSplitter() BlockSplitter
 	SetBlockSplitter(BlockSplitter)
 	Notifier() Notifier

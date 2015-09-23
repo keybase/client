@@ -86,9 +86,10 @@ func MakeTestConfigOrBust(t *testing.T, users ...libkb.NormalizedUsername) *Conf
 	localUsers := MakeLocalUsers(users)
 	loggedInUser := localUsers[0]
 
-	kbpki := NewKBPKIMemory(loggedInUser.UID, localUsers)
+	daemon := NewKeybaseDaemonMemory(loggedInUser.UID, localUsers)
+	config.SetKeybaseDaemon(daemon)
 
-	// TODO: Consider using fake BlockOps and MDOps instead.
+	kbpki := NewKBPKIClient(config)
 	config.SetKBPKI(kbpki)
 
 	signingKey := MakeLocalUserSigningKeyOrBust(loggedInUser.Name)
@@ -158,18 +159,19 @@ func ConfigAsUser(config *ConfigLocal, loggedInUser libkb.NormalizedUsername) *C
 	c := NewConfigLocal()
 	c.SetLoggerMaker(config.loggerFn)
 
-	pki := config.KBPKI().(*KBPKILocal)
-	loggedInUID, ok := pki.Asserts[string(loggedInUser)]
+	daemon := config.KeybaseDaemon().(KeybaseDaemonLocal)
+	loggedInUID, ok := daemon.asserts[string(loggedInUser)]
 	if !ok {
 		panic("bad test: unknown user: " + loggedInUser)
 	}
 
 	var localUsers []LocalUser
-	for _, u := range pki.Users {
+	for _, u := range daemon.localUsers {
 		localUsers = append(localUsers, u)
 	}
-	newPKI := NewKBPKIMemory(loggedInUID, localUsers)
-	c.SetKBPKI(newPKI)
+	newDaemon := NewKeybaseDaemonMemory(loggedInUID, localUsers)
+	c.SetKeybaseDaemon(newDaemon)
+	c.SetKBPKI(NewKBPKIClient(c))
 
 	signingKey := MakeLocalUserSigningKeyOrBust(loggedInUser)
 	cryptPrivateKey := MakeLocalUserCryptPrivateKeyOrBust(loggedInUser)

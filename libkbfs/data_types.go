@@ -24,6 +24,23 @@ const (
 	PublicUIDName = "public"
 )
 
+// UserInfo contains all the info about a keybase user that kbfs cares
+// about.
+type UserInfo struct {
+	Name            libkb.NormalizedUsername
+	UID             keybase1.UID
+	VerifyingKeys   []VerifyingKey
+	CryptPublicKeys []CryptPublicKey
+}
+
+// SessionInfo contains all the info about the keybase session that
+// kbfs cares about.
+type SessionInfo struct {
+	UID            keybase1.UID
+	Token          string
+	CryptPublicKey CryptPublicKey
+}
+
 // All section references below are to https://keybase.io/blog/crypto
 // (version 1.3).
 
