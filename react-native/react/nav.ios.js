@@ -3,7 +3,11 @@
 const React = require('react-native')
 const { connect } = require('react-redux/native')
 const MetaNavigator = require('./router/meta-navigator.js')
+
 const Folders = require('./tabs/folders')
+const Chat = require('./tabs/chat')
+const People = require('./tabs/people')
+const Devices = require('./tabs/devices')
 const NoTab = require('./tabs/no-tab')
 const More = require('./tabs/more')
 
@@ -20,9 +24,9 @@ const {
 
 const tabToRootRouteParse = {
   [FOLDER_TAB]: Folders.parseRoute,
-  [CHAT_TAB]: NoTab.parseRoute,
-  [PEOPLE_TAB]: NoTab.parseRoute,
-  [DEVICES_TAB]: NoTab.parseRoute,
+  [CHAT_TAB]: Chat.parseRoute,
+  [PEOPLE_TAB]: People.parseRoute,
+  [DEVICES_TAB]: Devices.parseRoute,
   [MORE_TAB]: More.parseRoute
 }
 
@@ -34,7 +38,7 @@ class Nav extends Component {
       <View style={[styles.tabContent, {backgroundColor: color}]}>
         {React.createElement(
           connect(state => state.tabbedRouter.getIn(['tabs', state.tabbedRouter.get('activeTab')]).toObject())(MetaNavigator),
-          {store: this.props.store, rootRouteParser: tabToRootRouteParse[activeTab]}
+          {store: this.props.store, rootRouteParser: tabToRootRouteParse[activeTab] || NoTab}
         )}
       </View>
     )
