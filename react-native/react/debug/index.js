@@ -9,6 +9,13 @@ const { Component, View, Text } = React
 
 import { navigateTo, routeAppend, navigateUp } from '../actions/router'
 
+function mapStateToGetURI (state) {
+  return state.tabbedRouter.getIn([
+    'tabs',
+    state.tabbedRouter.get('activeTab')
+  ]).toObject()
+}
+
 class Debug extends Component {
   constructor () {
     super()
@@ -50,7 +57,7 @@ class Debug extends Component {
 
     const componentAtTop = {
       title: 'Debug',
-      mapStateToProps: state => state.router.toObject(),
+      mapStateToProps: mapStateToGetURI,
       component: Debug
     }
 
@@ -92,7 +99,7 @@ class DebugPage2 extends Component {
 
     const componentAtTop = {
       title: 'Debug Page 2',
-      mapStateToProps: state => state.router.toObject(),
+      mapStateToProps: mapStateToGetURI,
       component: DebugPage2
     }
 
@@ -134,7 +141,7 @@ class DebugPage3 extends Component {
 
     const componentAtTop = {
       title: 'Debug Page 3',
-      mapStateToProps: state => state.router.toObject(),
+      mapStateToProps: mapStateToGetURI,
       component: DebugPage3
     }
 

@@ -1,0 +1,6 @@
+'use strict'
+module.exports.FOLDER_TAB = 'FOLDER_TAB'
+module.exports.CHAT_TAB = 'CHAT_TAB'
+module.exports.PEOPLE_TAB = 'PEOPLE_TAB'
+module.exports.DEVICES_TAB = 'DEVICES_TAB'
+module.exports.MORE_TAB = 'MORE_TAB'

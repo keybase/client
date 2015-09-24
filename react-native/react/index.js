@@ -12,10 +12,9 @@ const {
   View
 } = React
 
-import MetaNavigator from './router/meta-navigator'
 import commonStyles from './styles/common'
 
-import { Provider } from 'react-redux/native'
+import { Provider, connect } from 'react-redux/native'
 import configureStore from './store/configureStore'
 const store = configureStore()
 
@@ -48,15 +47,14 @@ class AppOrDebug extends Component {
           onPress={() => { dispatch(navigateTo(['debug'])) }}>
           <Text style={[commonStyles.button, {width: 200}]}>Debug Page</Text>
         </TouchableHighlight>
-        <TouchableHighlight
-          underlayColor={commonStyles.buttonHighlight}
-          // TODO(mm) figure out a better solution
-          onPress={() => { dispatch(navigateTo(['nav'])) }}>
-          <Text style={[commonStyles.button, {width: 200}]}>Nav</Text>
-        </TouchableHighlight>
       </View>
     )
   }
+}
+
+AppOrDebug.propTypes = {
+  dispatch: React.PropTypes.object.isRequired,
+  uri: React.PropTypes.object.isRequired
 }
 
 class Keybase extends Component {
@@ -68,12 +66,8 @@ class Keybase extends Component {
     return (
       <Provider store={store}>
         {() => {
-          // TODO(mm): maybe not pass in store? and use connect
-          return (
-            <MetaNavigator
-              store={store}
-              rootRouteParser={Keybase.parseRoute}/>
-          )
+          // TODO(mm): maybe not pass in store?
+          return React.createElement(connect(state => state)(Nav), {store: store})
         }}
       </Provider>
     )
@@ -85,7 +79,6 @@ class Keybase extends Component {
   static parseRoute (store, currentPath, nextPath) {
     const routes = {
       'login': LoginComponent.parseRoute,
-      'nav': Nav.parseRoute,
       'debug': DebugComponent.parseRoute
     }
 

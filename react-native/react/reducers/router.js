@@ -4,17 +4,21 @@ import * as loginTypes from '../constants/loginActionTypes'
 import * as routerTypes from '../constants/routerActionTypes'
 import Immutable from 'immutable'
 
-const initialState = Immutable.Map({
-  uri: parseUri(['root']),
+function createRouterState (uri, history) {
   // TODO(mm): when we have a splash screen set it here.
   // history is android's back button
-  history: Immutable.List([['home']].map(parseUri))
-})
+  return Immutable.Map({
+    uri: parseUri(uri),
+    history: Immutable.List(history.map(parseUri))
+  })
+}
+
+const initialState = createRouterState(['nav'], [])
 
 function pushIfTailIsDifferent (thing, stack) {
   // TODO: fix this equality check.
   console.log('Maybe pushing', thing, 'onto', stack)
-  if (Immutable.is(stack.last(),thing)) {
+  if (Immutable.is(stack.last(), thing)) {
     return stack.push(thing)
   }
   return stack
@@ -35,14 +39,14 @@ function parseUri (uri) {
   if (Immutable.List.isList(uri)) {
     return uri
   }
-  if (uri[0] !== 'root') {
+  if (uri.length === 0 || uri[0] !== 'root') {
     uri.unshift('root')
   }
 
   return Immutable.List(uri.map(parsePath))
 }
 
-export default function (state = initialState, action) {
+module.exports = function (state = initialState, action) {
   console.log('action in router', action)
   const stateWithHistory = state.update('history', pushIfTailIsDifferent.bind(null, state.get('uri')))
   switch (action.type) {
@@ -54,7 +58,7 @@ export default function (state = initialState, action) {
     case routerTypes.NAVIGATE:
       return stateWithHistory.set('uri', parseUri(action.uri))
     case routerTypes.NAVIGATE_APPEND:
-      return stateWithHistory.update('uri',(uri) => uri.push(parsePath(action.topRoute)))
+      return stateWithHistory.update('uri', (uri) => uri.push(parsePath(action.topRoute)))
     // TODO(mm) remove these and replace them with NAVIGATE's
     case loginTypes.START_LOGIN:
       return stateWithHistory.set('uri', parseUri(['login', 'loginform']))
@@ -78,3 +82,5 @@ export default function (state = initialState, action) {
       return state
   }
 }
+
+module.exports.createRouterState = createRouterState
