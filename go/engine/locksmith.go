@@ -240,10 +240,9 @@ func (d *Locksmith) checkKeys(ctx *Context) error {
 	return d.paperKey(ctx)
 }
 
-// addBasicKeys is used for accounts that have no device or det
-// keys.
+// addBasicKeys is used for accounts that have no keys.
 func (d *Locksmith) addBasicKeys(ctx *Context) error {
-	if err := d.addDeviceKey(ctx); err != nil {
+	if err := d.addEldestDeviceKey(ctx); err != nil {
 		return err
 	}
 
@@ -254,33 +253,15 @@ func (d *Locksmith) addBasicKeys(ctx *Context) error {
 	return nil
 }
 
-func (d *Locksmith) addDeviceKey(ctx *Context) error {
-	devname, err := d.deviceName(ctx)
-	if err != nil {
-		return err
-	}
-	pps, err := d.ppStream(ctx)
-	if err != nil {
-		return err
-	}
-
-	d.lks = libkb.NewLKSec(pps, d.arg.User.GetUID(), d.G())
-	args := &DeviceWrapArgs{
-		Me:         d.arg.User,
-		DeviceName: devname,
-		Lks:        d.lks,
-		IsEldest:   true,
-	}
-	eng := NewDeviceWrap(args, d.G())
-	if err := RunEngine(eng, ctx); err != nil {
-		return err
-	}
-
-	d.signingKey = eng.SigningKey()
-
-	return nil
+// addEldestDeviceKey adds a device sibkey/subkey as the eldest
+// key in an account.
+func (d *Locksmith) addEldestDeviceKey(ctx *Context) error {
+	var nilEldestKID keybase1.KID
+	return d.addDeviceKeyWithSigner(ctx, nil, nilEldestKID)
 }
 
+// To add a device key as the eldest key, signer and eldestKID
+// should be nil.
 func (d *Locksmith) addDeviceKeyWithSigner(ctx *Context, signer libkb.GenericKey, eldestKID keybase1.KID) error {
 	devname, err := d.deviceName(ctx)
 	if err != nil {
@@ -298,6 +279,9 @@ func (d *Locksmith) addDeviceKeyWithSigner(ctx *Context, signer libkb.GenericKey
 		IsEldest:   false,
 		Signer:     signer,
 		EldestKID:  eldestKID,
+	}
+	if signer == nil && eldestKID.IsNil() {
+		args.IsEldest = true
 	}
 	eng := NewDeviceWrap(args, d.G())
 	if err := RunEngine(eng, ctx); err != nil {
