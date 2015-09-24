@@ -2,9 +2,9 @@
 
 // Handles sending requests to objc (then go) and back
 
-import engine from './native'
+const engine = require('./native')
 
-import rpc from '../framed-msgpack-rpc/lib/main'
+const rpc = require('../framed-msgpack-rpc/lib/main')
 const RpcTransport = rpc.transport.Transport
 const RpcClient = rpc.client.Client
 const Buffer = require('buffer').Buffer
@@ -187,4 +187,4 @@ class Engine {
   }
 }
 
-export default new Engine()
+module.exports = new Engine()

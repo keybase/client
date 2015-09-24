@@ -1,6 +1,6 @@
 'use strict'
 
-import React from 'react-native'
+const React = require('react-native')
 const {
   StyleSheet,
   Text,
@@ -8,7 +8,7 @@ const {
   Component
 } = React
 
-import engine from '../engine'
+const engine = require('../engine')
 
 class GoTest extends Component {
   constructor () {
@@ -92,4 +92,4 @@ const styles = StyleSheet.create({
   }
 })
 
-export default GoTest
+module.exports = GoTest

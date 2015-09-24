@@ -1,6 +1,6 @@
 'use strict'
 
-import React from 'react-native'
+const React = require('react-native')
 const {
   StyleSheet,
   Text,
@@ -51,4 +51,4 @@ const styles = StyleSheet.create({
   }
 })
 
-export default ReactTest
+module.exports = ReactTest

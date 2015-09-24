@@ -5,14 +5,14 @@
  * todo(mm) explain why we need a meta navigator
  */
 
-import React from 'react-native'
+const React = require('react-native')
 const {
   Component,
   Navigator
   } = React
 
-import { connect } from 'react-redux/native'
-import Immutable from 'immutable'
+const { connect } = require('react-redux/native')
+const Immutable = require('immutable')
 
 class MetaNavigator extends Component {
   constructor () {
@@ -115,4 +115,4 @@ MetaNavigator.propTypes = {
   rootRouteParser: React.PropTypes.object.isRequired
 }
 
-export default connect(state => state)(MetaNavigator)
+module.exports = connect(state => state)(MetaNavigator)

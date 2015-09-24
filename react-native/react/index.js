@@ -1,7 +1,7 @@
 'use strict'
 /* @flow */
 
-import React from 'react-native'
+const React = require('react-native')
 
 const {
   AppRegistry,
@@ -12,17 +12,17 @@ const {
   View
 } = React
 
-import MetaNavigator from './router/meta-navigator'
-import commonStyles from './styles/common'
+const MetaNavigator = require('./router/meta-navigator')
+const commonStyles = require('./styles/common')
 
-import { Provider } from 'react-redux/native'
-import configureStore from './store/configureStore'
+const { Provider } = require('react-redux/native')
+const configureStore = require('./store/configureStore')
 const store = configureStore()
 
-import { navigateTo } from './actions/router'
+const { navigateTo } = require('./actions/router')
 
-import LoginComponent from './login'
-import DebugComponent from './debug'
+const LoginComponent = require('./login')
+const DebugComponent = require('./debug')
 
 if (GLOBAL) {
   GLOBAL.store = store // TEMP to test
