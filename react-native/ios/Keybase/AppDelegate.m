@@ -10,6 +10,7 @@
 
 // Set this to 1 to use the application bundle to hold the react JS
 #define REACT_EMBEDDED_BUNDLE 0
+#define REACT_HOST_HARDCODED 1
 
 // TODO load off of settings screen
 static NSString* const HOME_DIR = nil;
