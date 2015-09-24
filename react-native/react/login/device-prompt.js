@@ -1,7 +1,7 @@
 'use strict'
 /* @flow */
 
-import React from 'react-native'
+const React = require('react-native')
 const {
   Component,
   StyleSheet,
@@ -11,7 +11,7 @@ const {
   TouchableHighlight
 } = React
 
-import commonStyles from '../styles/common'
+const commonStyles = require('../styles/common')
 const submitButtonStyle = [commonStyles.actionButton, {width: 200}]
 
 class DevicePrompt extends Component {
@@ -86,4 +86,4 @@ const styles = StyleSheet.create({
   }
 })
 
-export default DevicePrompt
+module.exports = DevicePrompt

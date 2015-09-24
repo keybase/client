@@ -1,7 +1,7 @@
 'use strict'
 /* @flow */
 
-import React from 'react-native'
+const React = require('react-native')
 
 const {
   Component,
@@ -9,18 +9,18 @@ const {
   View
 } = React
 
-import DevicePrompt from './device-prompt'
-import SelectSigner from './select-signer'
-import DisplaySecretWords from './display-secret-words'
-import LoginForm from './form'
+const DevicePrompt = require('./device-prompt')
+const SelectSigner = require('./select-signer')
+const DisplaySecretWords = require('./display-secret-words')
+const LoginForm = require('./form')
 
-import engine from '../engine'
+const engine = require('../engine')
 
-import { connect } from 'react-redux/native'
-import { bindActionCreators } from 'redux'
-import * as LoginActions from '../actions/login'
+const { connect } = require('react-redux/native')
+const { bindActionCreators } = require('redux')
+const LoginActions = require('../actions/login')
 
-import * as states from '../constants/loginStates'
+const states = require('../constants/loginStates')
 
 class LoginContainer extends Component {
   constructor (props) {
@@ -168,4 +168,4 @@ const styles = StyleSheet.create({
   }
 })
 
-export default connect(state => state.login)(LoginContainer)
+module.exports = connect(state => state.login)(LoginContainer)

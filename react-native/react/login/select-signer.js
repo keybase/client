@@ -1,6 +1,6 @@
 'use strict'
 
-import React from 'react-native'
+const React = require('react-native')
 const {
   Component,
   ListView,
@@ -10,8 +10,8 @@ const {
   TouchableHighlight
 } = React
 
-import commonStyles from '../styles/common'
-import enums from '../keybase_v1'
+const commonStyles = require('../styles/common')
+const enums = require('../keybase_v1')
 
 class SelectSigner extends Component {
   constructor (props) {
@@ -113,4 +113,4 @@ const styles = StyleSheet.create({
   }
 })
 
-export default SelectSigner
+module.exports = SelectSigner

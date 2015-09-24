@@ -1,6 +1,6 @@
 'use strict'
 
-import React from 'react-native'
+const React = require('react-native')
 const {
   Component,
   Navigator,
@@ -9,6 +9,8 @@ const {
   Text,
   TouchableOpacity
 } = React
+
+const engine = require('../engine')
 
 const NavigationBarRouteMapper = {
   LeftButton: function (route, navigator, index, navState) {
@@ -38,7 +40,17 @@ const NavigationBarRouteMapper = {
   },
 
   RightButton: function (route, navigator, index, navState) {
-    return route.rightButton
+    if (route.rightButton) {
+      return route.rightButton
+    }
+
+    return (
+      <TouchableOpacity
+        onPress={() => { engine.reset() }}
+        style={styles.navBarRightButton}>
+        <Text style={[styles.navBarText, styles.navBarButtonText]}>DEBUG</Text>
+      </TouchableOpacity>
+    )
   },
 
   Title: function (route, navigator, index, navState) {
@@ -173,4 +185,4 @@ const styles = StyleSheet.create({
   }
 })
 
-export default KBNavigator
+module.exports = KBNavigator
