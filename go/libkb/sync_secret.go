@@ -83,22 +83,45 @@ func (ss *SecretSyncer) loadFromStorage(uid keybase1.UID) (err error) {
 	var found bool
 	found, err = ss.G().LocalDb.GetInto(&tmp, ss.dbKey(uid))
 	ss.G().Log.Debug("| loadFromStorage -> found=%v, err=%s", found, ErrToOk(err))
-	if found {
-		ss.G().Log.Debug("| Loaded version %d", tmp.Version)
-	} else if err == nil {
+	if err != nil {
+		return err
+	}
+	if !found {
 		ss.G().Log.Debug("| Loaded empty record set")
+		return nil
 	}
-	if err == nil {
-		ss.keys = &tmp
-	}
-	return
+
+	// only set ss.keys to something if found.
+	//
+	// This is part of keybase-issues#1783:  an (old) user with a synced
+	// private key fell back to gpg instead of using a synced key.
+	//
+
+	ss.G().Log.Debug("| Loaded version %d", tmp.Version)
+	ss.keys = &tmp
+
+	return nil
 }
 
 func (ss *SecretSyncer) syncFromServer(uid keybase1.UID, sr SessionReader) (err error) {
 	hargs := HTTPArgs{}
 
 	if ss.keys != nil {
-		hargs.Add("version", I{ss.keys.Version})
+		// just to be extra-safe:  a version of 0 is invalid and if specified could
+		// result in no keys returned for old users.
+		//
+		// this shouldn't hit anymore since ss.keys will be nil after loadFromStorage
+		// when there are no keys, but just in case, will check for a version of 0 here.
+		//
+		// this is part of keybase-issues#1783:  an (old) user with a synced
+		// private key fell back to gpg instead of using a synced key.
+		//
+		if ss.keys.Version > 0 {
+			ss.G().Log.Debug("| adding version %d to fetch_private call", ss.keys.Version)
+			hargs.Add("version", I{ss.keys.Version})
+		} else {
+			ss.G().Log.Warning("found invalid synced version: %d", ss.keys.Version)
+		}
 	}
 	var res *APIRes
 	res, err = ss.G().API.Get(APIArg{
@@ -121,6 +144,8 @@ func (ss *SecretSyncer) syncFromServer(uid keybase1.UID, sr SessionReader) (err 
 		ss.G().Log.Debug("| upgrade to version -> %d", obj.Version)
 		ss.keys = &obj
 		ss.dirty = true
+	} else {
+		ss.G().Log.Debug("| not changing synced keys: synced version %d not newer than existing version %d", obj.Version, ss.keys.Version)
 	}
 
 	return
