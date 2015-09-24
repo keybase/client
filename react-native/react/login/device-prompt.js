@@ -12,6 +12,8 @@ const {
 } = React
 
 import commonStyles from '../styles/common'
+import { submitDeviceName } from '../actions/login'
+
 const submitButtonStyle = [commonStyles.actionButton, {width: 200}]
 
 class DevicePrompt extends Component {
@@ -53,10 +55,29 @@ class DevicePrompt extends Component {
         </View>
     )
   }
+
+  // TODO(mm): add types
+  static parseRoute (store, currentPath, nextPath) {
+    const {response, deviceName} = store.getState().login
+    const componentAtTop = {
+      title: 'Device Name',
+      component: DevicePrompt,
+      leftButtonTitle: 'Cancel',
+      mapStateToProps: state => state.login,
+      props: {
+        onSubmit: (name) => store.dispatch(submitDeviceName(name, response)),
+        deviceName
+      }
+    }
+
+    return {
+      componentAtTop,
+      parseNextRoute: null // terminal node, so no next route
+    }
+  }
 }
 
 DevicePrompt.propTypes = {
-  navigator: React.PropTypes.object.isRequired,
   onSubmit: React.PropTypes.func.isRequired,
   deviceName: React.PropTypes.string
 }

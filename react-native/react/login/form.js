@@ -16,6 +16,8 @@ const {
 import commonStyles from '../styles/common'
 import Switch from '../commonAdapters/Switch'
 
+import { submitUserPass } from '../actions/login'
+
 class LoginForm extends Component {
   constructor (props) {
     super(props)
@@ -23,12 +25,12 @@ class LoginForm extends Component {
     this.state = {
       username: props.username || '',
       passphrase: props.passphrase || '',
-      storeSecret: props.storeSecret || ''
+      storeSecret: props.storeSecret || true
     }
   }
 
   submit () {
-    this.props.onSubmit(this.state.username, this.state.passphrase)
+    this.props.onSubmit(this.state.username, this.state.passphrase, this.state.storeSecret)
   }
 
   render () {
@@ -39,7 +41,7 @@ class LoginForm extends Component {
     const activity = this.props.waitingForServer
       ? <View style={styles.loginWrapper}>
           <ActivityIndicatorIOS
-          animating={true}
+          animating
           style={{height: 80}}
           size='large'
           />
@@ -58,7 +60,7 @@ class LoginForm extends Component {
       <View style={styles.container}>
         <TextInput
           autoCorrect={false}
-          enablesReturnKeyAutomatically={true}
+          enablesReturnKeyAutomatically
           onChangeText={(username) => this.setState({username})}
           onSubmitEditing={(event) => this.refs['passphrase'].focus()}
           placeholder='Username'
@@ -69,13 +71,13 @@ class LoginForm extends Component {
 
         <TextInput
           autoCorrect={false}
-          enablesReturnKeyAutomatically={true}
+          enablesReturnKeyAutomatically
           onChangeText={(passphrase) => this.setState({passphrase})}
           onSubmitEditing={() => this.submit() }
           placeholder='Passphrase'
           ref='passphrase'
           returnKeyType='done'
-          secureTextEntry={true}
+          secureTextEntry
           style={styles.input}
           value={this.state.passphrase}
           />
@@ -97,10 +99,32 @@ class LoginForm extends Component {
       </View>
     )
   }
+
+  static parseRoute (store) {
+    // TODO(mm): maybe we can just pass the state here instead of the store.
+    const {username, passphrase, storeSecret, waitingForServer} = store.getState().login
+    const componentAtTop = {
+      title: 'Login',
+      component: LoginForm,
+      leftButtonTitle: 'Cancel',
+      mapStateToProps: state => state.login,
+      props: {
+        onSubmit: (username, passphrase, storeSecret) => store.dispatch(submitUserPass(username, passphrase, storeSecret)),
+        username,
+        passphrase,
+        storeSecret,
+        waitingForServer
+      }
+    }
+
+    return {
+      componentAtTop,
+      parseNextRoute: null // terminal node, so no next route
+    }
+  }
 }
 
 LoginForm.propTypes = {
-  kbNavigator: React.PropTypes.object,
   username: React.PropTypes.string,
   passphrase: React.PropTypes.string,
   storeSecret: React.PropTypes.bool,

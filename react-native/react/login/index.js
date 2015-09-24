@@ -5,6 +5,7 @@ import React from 'react-native'
 
 const {
   Component,
+  Text,
   StyleSheet,
   View
 } = React
@@ -16,11 +17,8 @@ import LoginForm from './form'
 
 import engine from '../engine'
 
-import { connect } from 'react-redux/native'
 import { bindActionCreators } from 'redux'
 import * as LoginActions from '../actions/login'
-
-import * as states from '../constants/loginStates'
 
 class LoginContainer extends Component {
   constructor (props) {
@@ -32,118 +30,50 @@ class LoginContainer extends Component {
     this.showingLoginState = null
   }
 
-  componentWillUnmount () {
-    // TEMP just to help debugging
-    engine.reset()
-    // stop login if not all the way through?
-  }
-
-  transitionPage () {
-    // TODO fix this in the router. have to defer so we don't mutate navigator in render below...
-    setTimeout(() => {
-      this.showingLoginState = this.props.loginState
-
-      // TODO use nice router / nav stack and not all these push/pops
-      switch (this.props.loginState) {
-        case states.ASK_USER_PASS:
-          this.showLoginForm()
-          break
-        case states.ASK_DEVICE_NAME:
-          this.showDevicePrompt()
-          break
-        case states.ASK_DEVICE_SIGNER:
-          this.showDeviceSigner()
-          break
-        case states.SHOW_SECRET_WORDS:
-          this.showSecretWords()
-          break
-        case states.LOGGED_IN:
-          this.showLoggedIn()
-          break
-      }
-    }, 1)
-  }
-
-  showLoginForm () {
-    const { username, passphrase, storeSecret, waitingForServer } = this.props
-
-    this.props.kbNavigator.push({
-      title: 'Login',
-      component: LoginForm,
-      leftButtonTitle: 'Cancel',
-      leftButtonPopN: 1,
-      props: {
-        onSubmit: (username, passphrase, storeSecret) => this.actions.submitUserPass(username, passphrase, storeSecret),
-        username,
-        passphrase,
-        storeSecret,
-        waitingForServer
-      }
-    })
-  }
-
-  showDevicePrompt () {
-    const { deviceName, response } = this.props
-
-    this.props.kbNavigator.push({
-      title: 'Device Name',
-      component: DevicePrompt,
-      leftButtonTitle: 'Cancel',
-      leftButtonPopN: 2,
-      props: {
-        onSubmit: (name) => this.actions.submitDeviceName(name, response),
-        deviceName
-      }
-    })
-  }
-
-  showDeviceSigner () {
-    const { signers, response } = this.props
-
-    this.props.kbNavigator.push({
-      title: 'Device Setup',
-      leftButtonTitle: 'Cancel',
-      leftButtonPopN: 3,
-      component: SelectSigner,
-      props: {
-        onSubmit: (result) => this.actions.submitDeviceSigner(result, response),
-        ...signers
-      }
-    })
-  }
-
-  showSecretWords () {
-    const { secretWords, response } = this.props
-
-    this.props.kbNavigator.push({
-      title: 'Register Device',
-      component: DisplaySecretWords,
-      leftButtonTitle: 'Cancel',
-      leftButtonPopN: 4,
-      props: {
-        onSubmit: () => this.actions.showedSecretWords(response),
-        secretWords
-      }
-    })
-  }
-
-  showLoggedIn () {
-    this.props.onLoggedIn()
-  }
-
   render () {
-    if (this.showingLoginState !== this.props.loginState) {
-      this.transitionPage()
-    }
-
     return (
-      <View style={styles.container}/>
+      <View style={styles.container}>
+        <Text>Welp, you shouldn't be here</Text>
+      </View>
     )
   }
+
+  static parseRoute (store, currentPath, nextPath) {
+    // TODO(mm): maybe these route names can be the constants we are already using?
+    // e.g. state.SHOW_SECRET_WORDS
+    const routes = {
+      'loginform': LoginForm.parseRoute,
+      'device-prompt': DevicePrompt.parseRoute,
+      'device-signer': SelectSigner.parseRoute,
+      'show-secret-words': DisplaySecretWords.parseRoute
+    }
+
+    // TODO(mm): figure out how this interacts with redux
+    const componentAtTop = {
+      title: 'Keybase',
+      component: LoginContainer,
+      saveKey: 'Login',
+      leftButtonTitle: '¯\\_(ツ)_/¯',
+      mapStateToProps: state => state.login,
+      props: {
+        onLoggedIn: () => {
+          this.showSearch()
+        }
+      }
+    }
+
+    // Default the next route to the login form
+    const parseNextRoute = routes[nextPath.get('path')] || LoginForm.parseRoute
+
+    return {
+      componentAtTop,
+      parseNextRoute
+    }
+  }
+
 }
 
 LoginContainer.propTypes = {
-  kbNavigator: React.PropTypes.object.isRequired,
   onLoggedIn: React.PropTypes.func.isRequired,
   dispatch: React.PropTypes.func.isRequired,
   loginState: React.PropTypes.string.isRequired,
@@ -168,4 +98,4 @@ const styles = StyleSheet.create({
   }
 })
 
-export default connect(state => state.login)(LoginContainer)
+export default LoginContainer

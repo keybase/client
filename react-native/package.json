@@ -12,6 +12,7 @@
   "dependencies": {
     "buffer": "^3.4.3",
     "iced-runtime": "^1.0.3",
+    "immutable": "^3.7.5",
     "react-native": "^0.11.0",
     "react-redux": "^2.1.2",
     "redux": "^3.0.0",
