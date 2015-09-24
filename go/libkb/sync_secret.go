@@ -107,21 +107,8 @@ func (ss *SecretSyncer) syncFromServer(uid keybase1.UID, sr SessionReader) (err 
 	hargs := HTTPArgs{}
 
 	if ss.keys != nil {
-		// just to be extra-safe:  a version of 0 is invalid and if specified could
-		// result in no keys returned for old users.
-		//
-		// this shouldn't hit anymore since ss.keys will be nil after loadFromStorage
-		// when there are no keys, but just in case, will check for a version of 0 here.
-		//
-		// this is part of keybase-issues#1783:  an (old) user with a synced
-		// private key fell back to gpg instead of using a synced key.
-		//
-		if ss.keys.Version > 0 {
-			ss.G().Log.Debug("| adding version %d to fetch_private call", ss.keys.Version)
-			hargs.Add("version", I{ss.keys.Version})
-		} else {
-			ss.G().Log.Warning("found invalid synced version: %d", ss.keys.Version)
-		}
+		ss.G().Log.Debug("| adding version %d to fetch_private call", ss.keys.Version)
+		hargs.Add("version", I{ss.keys.Version})
 	}
 	var res *APIRes
 	res, err = ss.G().API.Get(APIArg{
