@@ -23,6 +23,7 @@ import { navigateTo } from './actions/router'
 
 import LoginComponent from './login'
 import DebugComponent from './debug'
+import Nav from './nav'
 
 if (GLOBAL) {
   GLOBAL.store = store // TEMP to test
@@ -46,6 +47,12 @@ class AppOrDebug extends Component {
           underlayColor={commonStyles.buttonHighlight}
           onPress={() => { dispatch(navigateTo(['debug'])) }}>
           <Text style={[commonStyles.button, {width: 200}]}>Debug Page</Text>
+        </TouchableHighlight>
+        <TouchableHighlight
+          underlayColor={commonStyles.buttonHighlight}
+          // TODO(mm) figure out a better solution
+          onPress={() => { dispatch(navigateTo(['nav'])) }}>
+          <Text style={[commonStyles.button, {width: 200}]}>Nav</Text>
         </TouchableHighlight>
       </View>
     )
@@ -78,6 +85,7 @@ class Keybase extends Component {
   static parseRoute (store, currentPath, nextPath) {
     const routes = {
       'login': LoginComponent.parseRoute,
+      'nav': Nav.parseRoute,
       'debug': DebugComponent.parseRoute
     }
 
