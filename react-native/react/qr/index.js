@@ -4,6 +4,7 @@
 const React = require('react-native')
 const {
   Component,
+  Image,
   StyleSheet,
   Text,
   TouchableHighlight,
@@ -12,15 +13,62 @@ const {
 
 const Camera = require('react-native-camera')
 const commonStyles = require('../styles/common')
+const qrCode = require('qrcode-generator')
+const countMax = 10
 
 class QR extends Component {
   constructor (props) {
     super(props)
 
     this.state = {
-      scanning: true,
-      readCode: null
+      scanning: false,
+      readCode: null,
+      countDown: countMax,
+      code: this.getNextCode()
     }
+
+    this.state.generatedCodeImage = this.generateCodeImage()
+  }
+
+  componentDidMount () {
+    clearInterval(this.state.timerId)
+    this.state.timerId = setInterval(() => {
+      this.countDown()
+    }, 1000)
+  }
+
+  countDown () {
+    let next = this.state.countDown - 1
+
+    if (next === 0) {
+      next = countMax
+      this.setState({
+        code: this.getNextCode(),
+        generatedCodeImage: this.generateCodeImage()
+      })
+    }
+
+    this.setState({countDown: next})
+  }
+
+  getNextCode () {
+    return `hiya from code: ${Math.floor(Math.random() * 1000)}`
+  }
+
+  generateCodeImage () {
+    if (!this.state.code) {
+      return null
+    }
+
+    const qr = qrCode(10, 'L')
+    qr.addData(this.state.code)
+    qr.make()
+    let tag = qr.createImgTag(10)
+    const [, src, width, height] = tag.split(' ')
+    const [, generatedCode,] = src.split('\"')
+    console.log(tag)
+    console.log(generatedCode)
+    return generatedCode
   }
 
   render () {
@@ -55,7 +103,8 @@ class QR extends Component {
       return (
         <View style={styles.camera}>
           <View style={styles.qrContainer}>
-            <Text>QR code here</Text>
+            <Image style={{width: 300, height: 300}}source={{uri: this.state.generatedCodeImage}} />
+            <Text>{this.state.countDown}</Text>
           </View>
           {scanSwitch}
         </View>
