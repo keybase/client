@@ -43,12 +43,6 @@ func (g *GpgCLI) Configure() (configExplicit bool, err error) {
 	g.mutex.Lock()
 	defer g.mutex.Unlock()
 
-	if g.configured {
-		configExplicit = g.configExplicit
-		err = g.configError
-		return
-	}
-
 	prog := G.Env.GetGpg()
 	opts := G.Env.GetGpgOptions()
 
@@ -67,9 +61,6 @@ func (g *GpgCLI) Configure() (configExplicit bool, err error) {
 
 	g.path = prog
 	g.options = opts
-	g.configured = true
-	g.configExplicit = configExplicit
-	g.configError = err
 
 	return
 }
