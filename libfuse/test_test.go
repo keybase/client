@@ -10,10 +10,15 @@ import (
 
 	"github.com/keybase/client/go/libkb"
 	bserver "github.com/keybase/kbfs/bserver"
-	"github.com/keybase/kbfs/libkbfs"
 )
 
 var BServerRemoteAddr *string
+
+const (
+	// EnvBServerAddr is the environment variable name for a block server
+	// address.
+	EnvBServerAddr = "KEYBASE_BSERVER_BIND_ADDR"
+)
 
 func TestMain(m *testing.M) {
 	libkb.G.Init()
@@ -23,7 +28,7 @@ func TestMain(m *testing.M) {
 
 	rand.Seed(time.Now().UnixNano())
 
-	bserverAddr := os.Getenv(libkbfs.EnvBServerAddr)
+	bserverAddr := os.Getenv(EnvBServerAddr)
 	if len(bserverAddr) != 0 && strings.HasPrefix(bserverAddr, "127.0.0.1") {
 		fmt.Println("Starting bserver at ", bserverAddr)
 		bserver.StartBServer(bserverAddr)

@@ -22,10 +22,13 @@ var clientFlag = flag.Bool("client", false, "use keybase daemon")
 var serverRootDirFlag = flag.String("server-root", "", "directory to put local server files (default is cwd)")
 var serverInMemoryFlag = flag.Bool("server-in-memory", false, "use in-memory server (and ignore -server-root)")
 var debug = flag.Bool("debug", false, "Print debug messages")
+var bserverAddr = flag.String("bserver", "", "host:port of the block server (ex: bserver.dev.keybase.io:443)")
+var mdserverAddr = flag.String("mdserver", "", "host:port of the metadata server (ex: mdserver.dev.keybase.io:443)")
 
 const usageStr = `Usage:
   kbfs [-client | -local [-localuser=<user>]]
-    [-server-in-memory|-server-root=path/to/dir] <command> [<args>]
+    [-server-in-memory|-server-root=path/to/dir]
+    [-bserver=host:port] [-mdserver=host:port] <command> [<args>]
 
 The possible commands are:
   stat		Display file status
@@ -61,7 +64,8 @@ func realMain() (exitStatus int) {
 		serverRootDir = serverRootDirFlag
 	}
 
-	config, err := libkbfs.Init(localUser, serverRootDir, *cpuprofile, *memprofile, nil, *debug)
+	config, err := libkbfs.Init(localUser, serverRootDir, *cpuprofile,
+		*memprofile, nil, *debug, *bserverAddr, *mdserverAddr)
 	if err != nil {
 		printError("kbfs", err)
 		exitStatus = 1
