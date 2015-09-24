@@ -26,7 +26,7 @@ class Developer extends Component {
           <TextInput
             style={styles.input}
             placeholder='Some setting'
-            value={this.state.deviceName}
+            value='TODO'
             enablesReturnKeyAutomatically
             returnKeyType='next'
             autoCorrect={false}
