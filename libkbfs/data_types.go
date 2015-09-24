@@ -793,14 +793,74 @@ func (info TLFCryptKeyInfo) DeepCopy() TLFCryptKeyInfo {
 	}
 }
 
+// UserCryptKeyBundle is a map from a user devices (identified by the
+// KID of the corresponding device CryptPublicKey) to the
+// corresponding crypt key information.
+type UserCryptKeyBundle map[keybase1.KID]TLFCryptKeyInfo
+
+func (uckb UserCryptKeyBundle) fillInDeviceInfo(crypto Crypto,
+	uid keybase1.UID, tlfCryptKey TLFCryptKey,
+	ePrivKey TLFEphemeralPrivateKey, ePubIndex int,
+	publicKeys []CryptPublicKey) (
+	serverMap map[keybase1.KID]TLFCryptKeyServerHalf, err error) {
+	serverMap = make(map[keybase1.KID]TLFCryptKeyServerHalf)
+	// for each device:
+	//    * create a new random server half
+	//    * mask it with the key to get the client half
+	//    * encrypt the client half
+	//
+	// TODO: parallelize
+	for _, k := range publicKeys {
+		// Skip existing entries, only fill in new ones
+		if _, ok := uckb[k.KID]; ok {
+			continue
+		}
+
+		var serverHalf TLFCryptKeyServerHalf
+		serverHalf, err = crypto.MakeRandomTLFCryptKeyServerHalf()
+		if err != nil {
+			return nil, err
+		}
+
+		var clientHalf TLFCryptKeyClientHalf
+		clientHalf, err = crypto.MaskTLFCryptKey(serverHalf, tlfCryptKey)
+		if err != nil {
+			return nil, err
+		}
+
+		var encryptedClientHalf EncryptedTLFCryptKeyClientHalf
+		encryptedClientHalf, err =
+			crypto.EncryptTLFCryptKeyClientHalf(ePrivKey, k, clientHalf)
+		if err != nil {
+			return nil, err
+		}
+
+		var serverHalfID TLFCryptKeyServerHalfID
+		serverHalfID, err =
+			crypto.GetTLFCryptKeyServerHalfID(uid, k.KID, serverHalf)
+		if err != nil {
+			return nil, err
+		}
+
+		uckb[k.KID] = TLFCryptKeyInfo{
+			ClientHalf:   encryptedClientHalf,
+			ServerHalfID: serverHalfID,
+			EPubKeyIndex: ePubIndex,
+		}
+		serverMap[k.KID] = serverHalf
+	}
+
+	return serverMap, nil
+}
+
 // DirKeyBundle is a bundle of all the keys for a directory
 type DirKeyBundle struct {
 	// Symmetric secret key, encrypted for each writer's device
 	// (identified by the KID of the corresponding device CryptPublicKey).
-	WKeys map[keybase1.UID]map[keybase1.KID]TLFCryptKeyInfo
+	WKeys map[keybase1.UID]UserCryptKeyBundle
 	// Symmetric secret key, encrypted for each reader's device
 	// (identified by the KID of the corresponding device CryptPublicKey).
-	RKeys map[keybase1.UID]map[keybase1.KID]TLFCryptKeyInfo
+	RKeys map[keybase1.UID]UserCryptKeyBundle
 
 	// M_f as described in 4.1.1 of https://keybase.io/blog/crypto.
 	TLFPublicKey TLFPublicKey `codec:"pubKey"`
@@ -817,16 +877,16 @@ type DirKeyBundle struct {
 // DeepCopy returns a complete copy of this DirKeyBundle.
 func (dkb DirKeyBundle) DeepCopy() DirKeyBundle {
 	newDkb := dkb
-	newDkb.WKeys = make(map[keybase1.UID]map[keybase1.KID]TLFCryptKeyInfo)
+	newDkb.WKeys = make(map[keybase1.UID]UserCryptKeyBundle)
 	for u, m := range dkb.WKeys {
-		newDkb.WKeys[u] = make(map[keybase1.KID]TLFCryptKeyInfo)
+		newDkb.WKeys[u] = UserCryptKeyBundle{}
 		for k, b := range m {
 			newDkb.WKeys[u][k] = b.DeepCopy()
 		}
 	}
-	newDkb.RKeys = make(map[keybase1.UID]map[keybase1.KID]TLFCryptKeyInfo)
+	newDkb.RKeys = make(map[keybase1.UID]UserCryptKeyBundle)
 	for u, m := range dkb.RKeys {
-		newDkb.RKeys[u] = make(map[keybase1.KID]TLFCryptKeyInfo)
+		newDkb.RKeys[u] = UserCryptKeyBundle{}
 		for k, b := range m {
 			newDkb.RKeys[u][k] = b.DeepCopy()
 		}
@@ -850,6 +910,53 @@ func (dkb *DirKeyBundle) IsWriter(user keybase1.UID, deviceKID keybase1.KID) boo
 func (dkb *DirKeyBundle) IsReader(user keybase1.UID, deviceKID keybase1.KID) bool {
 	_, ok := dkb.RKeys[user][deviceKID]
 	return ok
+}
+
+// fillInDevices ensures that every device for every writer and reader
+// in the provided lists has complete TLF crypt key info, and uses the
+// new ephemeral key pair to generate the info if it doesn't yet
+// exist.
+func (dkb *DirKeyBundle) fillInDevices(crypto Crypto,
+	wKeys map[keybase1.UID][]CryptPublicKey,
+	rKeys map[keybase1.UID][]CryptPublicKey, ePubKey TLFEphemeralPublicKey,
+	ePrivKey TLFEphemeralPrivateKey, tlfCryptKey TLFCryptKey) (
+	map[keybase1.UID]map[keybase1.KID]TLFCryptKeyServerHalf, error) {
+	dkb.TLFEphemeralPublicKeys =
+		append(dkb.TLFEphemeralPublicKeys, ePubKey)
+	newIndex := len(dkb.TLFEphemeralPublicKeys) - 1
+
+	// now fill in the secret keys as needed
+	newServerKeys :=
+		make(map[keybase1.UID]map[keybase1.KID]TLFCryptKeyServerHalf)
+	for w, keys := range wKeys {
+		if _, ok := dkb.WKeys[w]; !ok {
+			dkb.WKeys[w] = UserCryptKeyBundle{}
+		}
+
+		serverMap, err := dkb.WKeys[w].fillInDeviceInfo(
+			crypto, w, tlfCryptKey, ePrivKey, newIndex, keys)
+		if err != nil {
+			return nil, err
+		}
+		if len(serverMap) > 0 {
+			newServerKeys[w] = serverMap
+		}
+	}
+	for r, keys := range rKeys {
+		if _, ok := dkb.RKeys[r]; !ok {
+			dkb.RKeys[r] = UserCryptKeyBundle{}
+		}
+
+		serverMap, err := dkb.RKeys[r].fillInDeviceInfo(
+			crypto, r, tlfCryptKey, ePrivKey, newIndex, keys)
+		if err != nil {
+			return nil, err
+		}
+		if len(serverMap) > 0 {
+			newServerKeys[r] = serverMap
+		}
+	}
+	return newServerKeys, nil
 }
 
 // BlockChanges tracks the set of blocks that changed in a commit, and

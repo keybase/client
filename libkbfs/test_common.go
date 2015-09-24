@@ -397,8 +397,8 @@ func testWithCanceledContext(t *testing.T, ctx context.Context,
 // MakeDirRKeyBundle creates a new bundle with a reader key.
 func MakeDirRKeyBundle(uid keybase1.UID, cryptPublicKey CryptPublicKey) DirKeyBundle {
 	return DirKeyBundle{
-		RKeys: map[keybase1.UID]map[keybase1.KID]TLFCryptKeyInfo{
-			uid: map[keybase1.KID]TLFCryptKeyInfo{
+		RKeys: map[keybase1.UID]UserCryptKeyBundle{
+			uid: UserCryptKeyBundle{
 				cryptPublicKey.KID: TLFCryptKeyInfo{},
 			},
 		},
@@ -409,8 +409,8 @@ func MakeDirRKeyBundle(uid keybase1.UID, cryptPublicKey CryptPublicKey) DirKeyBu
 // MakeDirWKeyBundle creates a new bundle with a writer key.
 func MakeDirWKeyBundle(uid keybase1.UID, cryptPublicKey CryptPublicKey) DirKeyBundle {
 	return DirKeyBundle{
-		WKeys: map[keybase1.UID]map[keybase1.KID]TLFCryptKeyInfo{
-			uid: map[keybase1.KID]TLFCryptKeyInfo{
+		WKeys: map[keybase1.UID]UserCryptKeyBundle{
+			uid: UserCryptKeyBundle{
 				cryptPublicKey.KID: TLFCryptKeyInfo{},
 			},
 		},

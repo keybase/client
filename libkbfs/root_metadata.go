@@ -278,20 +278,6 @@ func (md *RootMetadata) AddNewKeys(keys DirKeyBundle) error {
 	return nil
 }
 
-// SetKeys overwrites the given key generation for this RootMetadata
-// using the given DirKeyBundle.
-func (md *RootMetadata) SetKeys(keyGen KeyGen, keys DirKeyBundle) error {
-	if md.ID.IsPublic() {
-		return InvalidPublicTLFOperation{md.ID, "SetKeys"}
-	}
-	i := int(keyGen - FirstValidKeyGen)
-	if i >= len(md.Keys) {
-		return NewKeyGenerationError{md.GetTlfHandle(), keyGen}
-	}
-	md.Keys[i] = keys
-	return nil
-}
-
 // GetTlfHandle computes and returns the TlfHandle for this
 // RootMetadata, caching it in the process.
 func (md *RootMetadata) GetTlfHandle() *TlfHandle {
