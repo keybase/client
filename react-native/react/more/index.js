@@ -36,17 +36,13 @@ class More extends Component {
     }
   }
 
-  select ({onClick}) {
-    onClick()
-  }
-
   renderRow (rowData, sectionID, rowID) {
     const sep = (rowID < (this.state.dataSource.getRowCount() - 1)) ? <View style={styles.separator} /> : null
 
     return (
       <TouchableHighlight
         underlayColor={commonStyles.buttonHighlight}
-        onPress={() => { this.select(rowData) }}>
+        onPress={rowData.onClick}>
         <View>
           <View style={{margin: 10, flexDirection: 'row', flex: 1, justifyContent: 'space-between'}}>
             <Text>{rowData.name}</Text>
@@ -63,7 +59,7 @@ class More extends Component {
       <View style={styles.container}>
         <ListView style={{}}
         dataSource={this.state.dataSource}
-        renderRow={(...args) => { return this.renderRow(...args) }}
+        renderRow={this.renderRow}
         />
       </View>
     )
