@@ -26,6 +26,7 @@ type Session struct {
 	uid      keybase1.UID
 	username *NormalizedUsername
 	mtime    int64
+	checked  bool
 }
 
 func newSession(g *GlobalContext) *Session {
@@ -226,7 +227,7 @@ func (s *Session) IsRecent() bool {
 
 func (s *Session) check() error {
 	s.G().Log.Debug("+ Checking session")
-	if s.IsRecent() {
+	if s.IsRecent() && s.checked {
 		s.G().Log.Debug("- session is recent, short-circuiting")
 		s.valid = true
 		return nil
@@ -242,6 +243,8 @@ func (s *Session) check() error {
 	if err != nil {
 		return err
 	}
+
+	s.checked = true
 
 	if res.AppStatus == "OK" {
 		s.G().Log.Debug("| Stored session checked out")
@@ -292,6 +295,7 @@ func (s *Session) postLogout() error {
 		s.mtime = 0
 		s.token = ""
 		s.csrf = ""
+		s.checked = false
 	}
 	return err
 }
