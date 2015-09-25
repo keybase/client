@@ -28,6 +28,13 @@ type blockingSession struct {
 
 var _ keybase1.SessionInterface = blockingSession{}
 
+func (b blockingSession) CurrentUID(int) (keybase1.UID, error) {
+	// Say we're ready, and wait for the signal to proceed.
+	b.ctlChan <- struct{}{}
+	<-b.ctlChan
+	return keybase1.UID(""), nil
+}
+
 func (b blockingSession) CurrentSession(int) (keybase1.Session, error) {
 	// Say we're ready, and wait for the signal to proceed.
 	b.ctlChan <- struct{}{}
