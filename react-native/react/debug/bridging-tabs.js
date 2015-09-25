@@ -18,7 +18,7 @@ const tabIcon = {
   uri: 'tab'
 }
 
-class Debug extends Component {
+class Bridging extends Component {
   constructor () {
     super()
     this.state = {
@@ -79,6 +79,19 @@ class Debug extends Component {
       </TabBarIOS>
     )
   }
+
+  static parseRoute (store, currentPath, nextPath) {
+    const componentAtTop = {
+      title: 'Bridging',
+      mapStateToProps: state => state.router.toObject(),
+      component: Bridging
+    }
+
+    return {
+      componentAtTop,
+      parseNextRoute: null
+    }
+  }
 }
 
-export default Debug
+export default Bridging

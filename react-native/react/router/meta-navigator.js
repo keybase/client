@@ -90,7 +90,8 @@ class MetaNavigator extends Component {
 
     let {componentAtTop, routeStack} = this.getComponentAtTop(rootRouteParser, store, uri)
 
-    console.log('Stack:', routeStack)
+    console.log('Uri:', uri.toJS())
+    console.log('Stack:', routeStack.toJS())
     console.log('Rendering', componentAtTop)
     return (
       <Navigator
