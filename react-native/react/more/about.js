@@ -26,6 +26,19 @@ class About extends Component {
         </View>
     )
   }
+
+  static parseRoute (store, currentPath, nextPath) {
+    const componentAtTop = {
+      title: 'About',
+      mapStateToProps: state => state.router.toObject(),
+      component: About
+    }
+
+    return {
+      componentAtTop,
+      parseNextRoute: null
+    }
+  }
 }
 
 About.propTypes = {}

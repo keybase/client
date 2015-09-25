@@ -35,6 +35,19 @@ class Developer extends Component {
         </View>
     )
   }
+
+  static parseRoute (store, currentPath, nextPath) {
+    const componentAtTop = {
+      title: 'Developer',
+      mapStateToProps: state => state.router.toObject(),
+      component: Developer
+    }
+
+    return {
+      componentAtTop,
+      parseNextRoute: null
+    }
+  }
 }
 
 Developer.propTypes = {

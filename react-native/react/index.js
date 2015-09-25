@@ -22,7 +22,7 @@ const store = configureStore()
 import { navigateTo } from './actions/router'
 
 import LoginComponent from './login'
-import DebugComponent from './debug'
+import MoreComponent from './more'
 
 if (GLOBAL) {
   GLOBAL.store = store // TEMP to test
@@ -44,7 +44,7 @@ class AppOrDebug extends Component {
         </TouchableHighlight>
         <TouchableHighlight
           underlayColor={commonStyles.buttonHighlight}
-          onPress={() => { dispatch(navigateTo(['debug'])) }}>
+          onPress={() => { dispatch(navigateTo(['more'])) }}>
           <Text style={[commonStyles.button, {width: 200}]}>Debug Page</Text>
         </TouchableHighlight>
       </View>
@@ -82,7 +82,7 @@ class Keybase extends Component {
   static parseRoute (store, currentPath, nextPath) {
     const routes = {
       'login': LoginComponent.parseRoute,
-      'debug': DebugComponent.parseRoute
+      'more': MoreComponent.parseRoute
     }
 
     const componentAtTop = {

@@ -1,6 +1,6 @@
 'use strict'
 
-const React = require('react-native')
+import React from 'react-native'
 const {
   Component,
   ListView,
@@ -10,8 +10,9 @@ const {
   TouchableHighlight
 } = React
 
-const commonStyles = require('../styles/common')
-const LoginActions = require('../actions/login')
+import commonStyles from '../styles/common'
+import LoginActions from '../actions/login'
+import { navigateTo } from '../actions/router'
 
 class More extends Component {
   constructor (props) {
@@ -27,10 +28,16 @@ class More extends Component {
           this.props.dispatch(LoginActions.logout())
         }},
         {name: 'About', hasChildren: true, onClick: () => {
-          this.props.navigator.push({ title: 'About', component: require('./about') })
+          this.props.dispatch(navigateTo(['more', 'about']))
         }},
         {name: 'Developer', hasChildren: true, onClick: () => {
-          this.props.navigator.push({ title: 'Developer', component: require('./developer') })
+          this.props.dispatch(navigateTo(['more', 'developer']))
+        }},
+        {name: 'Nav debug', hasChildren: true, onClick: () => {
+          this.props.dispatch(navigateTo(['more', 'navDebug']))
+        }},
+        {name: 'Bridging', hasChildren: true, onClick: () => {
+          this.props.dispatch(navigateTo(['more', 'bridging']))
         }}
       ])
     }
@@ -57,12 +64,32 @@ class More extends Component {
   render () {
     return (
       <View style={styles.container}>
-        <ListView style={{}}
+        <ListView
         dataSource={this.state.dataSource}
-        renderRow={this.renderRow}
+        renderRow={(...args) => { return this.renderRow(...args) }}
         />
       </View>
     )
+  }
+
+  static parseRoute (store, currentPath, nextPath) {
+    const routes = {
+      'about': require('./about').parseRoute,
+      'developer': require('./developer').parseRoute,
+      'navDebug': require('../debug/nav-debug').parseRoute,
+      'bridging': require('../debug/bridging-tabs').parseRoute
+    }
+
+    const componentAtTop = {
+      title: 'More',
+      mapStateToProps: state => state.router.toObject(),
+      component: More
+    }
+
+    return {
+      componentAtTop,
+      parseNextRoute: routes[nextPath.get('path')] || null
+    }
   }
 }
 
