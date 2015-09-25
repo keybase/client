@@ -11,7 +11,7 @@ const {
 export default class People extends Component {
   render () {
     return (
-      <View>
+      <View style={{flex: 1, justifyContent: 'center'}}>
         <Text> People goes here </Text>
         <Text> I mean, it’s one banana, Michael. What could it cost? Ten dollars? </Text>
       </View>
