@@ -795,8 +795,17 @@ func (info TLFCryptKeyInfo) DeepCopy() TLFCryptKeyInfo {
 
 // UserCryptKeyBundle is a map from a user devices (identified by the
 // KID of the corresponding device CryptPublicKey) to the
-// corresponding crypt key information.
+// TLF's symmetric secret key information.
 type UserCryptKeyBundle map[keybase1.KID]TLFCryptKeyInfo
+
+// DeepCopy returns a complete copy of a UserCryptKeyBundle
+func (uckb UserCryptKeyBundle) DeepCopy() UserCryptKeyBundle {
+	newUckb := UserCryptKeyBundle{}
+	for k, b := range uckb {
+		newUckb[k] = b.DeepCopy()
+	}
+	return newUckb
+}
 
 func (uckb UserCryptKeyBundle) fillInDeviceInfo(crypto Crypto,
 	uid keybase1.UID, tlfCryptKey TLFCryptKey,
@@ -855,11 +864,9 @@ func (uckb UserCryptKeyBundle) fillInDeviceInfo(crypto Crypto,
 
 // DirKeyBundle is a bundle of all the keys for a directory
 type DirKeyBundle struct {
-	// Symmetric secret key, encrypted for each writer's device
-	// (identified by the KID of the corresponding device CryptPublicKey).
+	// Maps from each writer to their crypt key bundle.
 	WKeys map[keybase1.UID]UserCryptKeyBundle
-	// Symmetric secret key, encrypted for each reader's device
-	// (identified by the KID of the corresponding device CryptPublicKey).
+	// Maps from each reader to their crypt key bundle.
 	RKeys map[keybase1.UID]UserCryptKeyBundle
 
 	// M_f as described in 4.1.1 of https://keybase.io/blog/crypto.
@@ -879,17 +886,11 @@ func (dkb DirKeyBundle) DeepCopy() DirKeyBundle {
 	newDkb := dkb
 	newDkb.WKeys = make(map[keybase1.UID]UserCryptKeyBundle)
 	for u, m := range dkb.WKeys {
-		newDkb.WKeys[u] = UserCryptKeyBundle{}
-		for k, b := range m {
-			newDkb.WKeys[u][k] = b.DeepCopy()
-		}
+		newDkb.WKeys[u] = m.DeepCopy()
 	}
 	newDkb.RKeys = make(map[keybase1.UID]UserCryptKeyBundle)
 	for u, m := range dkb.RKeys {
-		newDkb.RKeys[u] = UserCryptKeyBundle{}
-		for k, b := range m {
-			newDkb.RKeys[u][k] = b.DeepCopy()
-		}
+		newDkb.RKeys[u] = m.DeepCopy()
 	}
 	newDkb.TLFPublicKey = dkb.TLFPublicKey.DeepCopy()
 	newDkb.TLFEphemeralPublicKeys =
@@ -912,6 +913,30 @@ func (dkb *DirKeyBundle) IsReader(user keybase1.UID, deviceKID keybase1.KID) boo
 	return ok
 }
 
+type serverKeyMap map[keybase1.UID]map[keybase1.KID]TLFCryptKeyServerHalf
+
+func fillInDevicesAndServerMap(crypto Crypto, newIndex int,
+	cryptKeys map[keybase1.UID][]CryptPublicKey,
+	cryptBundles map[keybase1.UID]UserCryptKeyBundle,
+	ePubKey TLFEphemeralPublicKey, ePrivKey TLFEphemeralPrivateKey,
+	tlfCryptKey TLFCryptKey, newServerKeys serverKeyMap) error {
+	for u, keys := range cryptKeys {
+		if _, ok := cryptBundles[u]; !ok {
+			cryptBundles[u] = UserCryptKeyBundle{}
+		}
+
+		serverMap, err := cryptBundles[u].fillInDeviceInfo(
+			crypto, u, tlfCryptKey, ePrivKey, newIndex, keys)
+		if err != nil {
+			return err
+		}
+		if len(serverMap) > 0 {
+			newServerKeys[u] = serverMap
+		}
+	}
+	return nil
+}
+
 // fillInDevices ensures that every device for every writer and reader
 // in the provided lists has complete TLF crypt key info, and uses the
 // new ephemeral key pair to generate the info if it doesn't yet
@@ -920,41 +945,22 @@ func (dkb *DirKeyBundle) fillInDevices(crypto Crypto,
 	wKeys map[keybase1.UID][]CryptPublicKey,
 	rKeys map[keybase1.UID][]CryptPublicKey, ePubKey TLFEphemeralPublicKey,
 	ePrivKey TLFEphemeralPrivateKey, tlfCryptKey TLFCryptKey) (
-	map[keybase1.UID]map[keybase1.KID]TLFCryptKeyServerHalf, error) {
+	serverKeyMap, error) {
 	dkb.TLFEphemeralPublicKeys =
 		append(dkb.TLFEphemeralPublicKeys, ePubKey)
 	newIndex := len(dkb.TLFEphemeralPublicKeys) - 1
 
 	// now fill in the secret keys as needed
-	newServerKeys :=
-		make(map[keybase1.UID]map[keybase1.KID]TLFCryptKeyServerHalf)
-	for w, keys := range wKeys {
-		if _, ok := dkb.WKeys[w]; !ok {
-			dkb.WKeys[w] = UserCryptKeyBundle{}
-		}
-
-		serverMap, err := dkb.WKeys[w].fillInDeviceInfo(
-			crypto, w, tlfCryptKey, ePrivKey, newIndex, keys)
-		if err != nil {
-			return nil, err
-		}
-		if len(serverMap) > 0 {
-			newServerKeys[w] = serverMap
-		}
+	newServerKeys := serverKeyMap{}
+	err := fillInDevicesAndServerMap(crypto, newIndex, wKeys, dkb.WKeys,
+		ePubKey, ePrivKey, tlfCryptKey, newServerKeys)
+	if err != nil {
+		return nil, err
 	}
-	for r, keys := range rKeys {
-		if _, ok := dkb.RKeys[r]; !ok {
-			dkb.RKeys[r] = UserCryptKeyBundle{}
-		}
-
-		serverMap, err := dkb.RKeys[r].fillInDeviceInfo(
-			crypto, r, tlfCryptKey, ePrivKey, newIndex, keys)
-		if err != nil {
-			return nil, err
-		}
-		if len(serverMap) > 0 {
-			newServerKeys[r] = serverMap
-		}
+	err = fillInDevicesAndServerMap(crypto, newIndex, rKeys, dkb.RKeys,
+		ePubKey, ePrivKey, tlfCryptKey, newServerKeys)
+	if err != nil {
+		return nil, err
 	}
 	return newServerKeys, nil
 }

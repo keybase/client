@@ -413,7 +413,7 @@ func (fbo *FolderBranchOps) initMDLocked(
 		expectedKeyGen = PublicKeyGen
 	} else {
 		// create a new set of keys for this metadata
-		if err := fbo.config.KeyManager().Rekey(ctx, md); err != nil {
+		if _, err := fbo.config.KeyManager().Rekey(ctx, md); err != nil {
 			return err
 		}
 		expectedKeyGen = FirstValidKeyGen
@@ -3516,8 +3516,16 @@ func (fbo *FolderBranchOps) RekeyForTesting(
 		return err
 	}
 
-	if err := fbo.config.KeyManager().Rekey(ctx, md); err != nil {
+	rekeyDone, err := fbo.config.KeyManager().Rekey(ctx, md)
+	if err != nil {
 		return err
+	}
+
+	// TODO: implement a "forced" option that rekeys even when the
+	// devices haven't changed?
+	if !rekeyDone {
+		fbo.log.CDebugf(ctx, "No rekey necessary")
+		return nil
 	}
 
 	err = fbo.incrementMDLocked(md)

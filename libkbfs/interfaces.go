@@ -332,8 +332,10 @@ type KeyManager interface {
 	// valid readers and writers.  If there are any new devices, it
 	// updates all existing key generations to include the new
 	// devices.  If there are devices that have been removed, it
-	// creates a new epoch of keys for the TLF.
-	Rekey(ctx context.Context, md *RootMetadata) error
+	// creates a new epoch of keys for the TLF.  If no devices have
+	// changed, or if there was an error, it returns false.
+	// Otherwise, it returns true.
+	Rekey(ctx context.Context, md *RootMetadata) (bool, error)
 }
 
 // ReportingLevel indicate the severity of a reported event.

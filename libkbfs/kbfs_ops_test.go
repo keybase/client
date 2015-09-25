@@ -260,7 +260,7 @@ func fillInNewMD(t *testing.T, config *ConfigMock, rmd *RootMetadata) (
 		config.mockKeyman.EXPECT().Rekey(gomock.Any(), rmd).
 			Do(func(ctx context.Context, rmd *RootMetadata) {
 			AddNewKeysOrBust(t, rmd, DirKeyBundle{})
-		}).Return(nil)
+		}).Return(true, nil)
 	}
 	rootPtr = BlockPointer{
 		ID:      fakeBlockID(42),

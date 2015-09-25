@@ -224,7 +224,7 @@ func TestKeyManagerRekeyFailurePublic(t *testing.T) {
 		t.Errorf("Expected %d, got %d", rmd.LatestKeyGeneration(), PublicKeyGen)
 	}
 
-	if err := config.KeyManager().
+	if _, err := config.KeyManager().
 		Rekey(ctx, rmd); err != (InvalidPublicTLFOperation{id, "rekey"}) {
 		t.Errorf("Got unexpected error on rekey: %v", err)
 	}
@@ -244,8 +244,8 @@ func TestKeyManagerRekeySuccessPrivate(t *testing.T) {
 
 	expectRekey(config, rmd)
 
-	if err := config.KeyManager().Rekey(ctx, rmd); err != nil {
-		t.Errorf("Got error on rekey: %v", err)
+	if done, err := config.KeyManager().Rekey(ctx, rmd); !done || err != nil {
+		t.Errorf("Got error on rekey: %t, %v", done, err)
 	} else if rmd.LatestKeyGeneration() != oldKeyGen+1 {
 		t.Errorf("Bad key generation after rekey: %d", rmd.LatestKeyGeneration())
 	}

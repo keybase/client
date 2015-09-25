@@ -230,8 +230,8 @@ func (md RootMetadata) GetTLFCryptKeyInfo(keyGen KeyGen, user keybase1.UID,
 	return
 }
 
-// GetTLFEphemeralPublicKey returns the ephemeral public key for this
-// top-level folder.
+// GetTLFEphemeralPublicKey returns the ephemeral public key used for
+// the TLFCryptKeyInfo for the given user and device.
 func (md RootMetadata) GetTLFEphemeralPublicKey(
 	keyGen KeyGen, user keybase1.UID,
 	currentCryptPublicKey CryptPublicKey) (TLFEphemeralPublicKey, error) {
