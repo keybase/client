@@ -102,6 +102,11 @@ func (b *BlockServerRemote) OnDisconnected() {
 	b.log.Warning("BlockServerRemote is disconnected")
 }
 
+// ShouldThrottle implements the ConnectionHandler interface.
+func (b *BlockServerRemote) ShouldThrottle(error) bool {
+	return false
+}
+
 // Helper to call an rpc command.
 func (b *BlockServerRemote) doCommand(ctx context.Context, command func() error) error {
 	if b.testClient != nil {

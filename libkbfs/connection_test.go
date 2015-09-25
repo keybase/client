@@ -35,6 +35,11 @@ func (ut *unitTester) OnDisconnected() {
 	ut.numDisconnects++
 }
 
+// ShouldThrottle implements the ConnectionHandler interface.
+func (ut *unitTester) ShouldThrottle(err error) bool {
+	return err != nil && err.Error() == "throttle"
+}
+
 // Dial implements the ConnectionTransport interface.
 func (ut *unitTester) Dial(ctx context.Context, srvAddr string) (
 	keybase1.GenericClient, error) {
@@ -91,6 +96,31 @@ func TestReconnectBasic(t *testing.T) {
 		break
 	}
 	if err := unitTester.Err(); err != nil {
+		t.Fatal(err)
+	}
+}
+
+// Test DoCommand with throttling.
+func TestDoCommandThrottle(t *testing.T) {
+	ctx := context.Background()
+	config := NewConfigLocal()
+	unitTester := &unitTester{doneChan: make(chan bool)}
+
+	throttleErr := errors.New("throttle")
+	conn := newConnectionWithTransport(ctx, config, "", unitTester, unitTester)
+	defer conn.Shutdown()
+	<-unitTester.doneChan
+
+	throttle := true
+	err := conn.DoCommand(ctx, func() error {
+		if throttle {
+			throttle = false
+			return throttleErr
+		}
+		return nil
+	})
+
+	if err != nil {
 		t.Fatal(err)
 	}
 }

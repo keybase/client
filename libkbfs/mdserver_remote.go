@@ -5,8 +5,6 @@ import (
 	"sync"
 	"time"
 
-	"github.com/cenkalti/backoff"
-	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/logger"
 	keybase1 "github.com/keybase/client/protocol/go"
 	"golang.org/x/net/context"
@@ -151,6 +149,15 @@ func (md *MDServerRemote) OnDisconnected() {
 	md.resetPingTicker(0)
 }
 
+// ShouldThrottle implements the ConnectionHandler interface.
+func (md *MDServerRemote) ShouldThrottle(err error) bool {
+	if err == nil {
+		return false
+	}
+	_, shouldThrottle := err.(MDServerErrorThrottle)
+	return shouldThrottle
+}
+
 // Signal errors and clear any registered observers.
 func (md *MDServerRemote) cancelObservers() {
 	md.observerMu.Lock()
@@ -184,23 +191,7 @@ func (md *MDServerRemote) doCommand(ctx context.Context, command func() error) e
 		return runUnlessCanceled(ctx, command)
 	}
 
-	// retry throttle errors w/backoff
-	var err error
-	backoff.RetryNotify(func() error {
-		// this will retry connectivity errors w/backoff
-		err = md.conn.DoCommand(ctx, command)
-		_, throttle := err.(MDServerErrorThrottle)
-		if err != nil && throttle {
-			return err
-		}
-		// short circuit retry loop if no error/error isn't MDServerErrorThrottle.
-		return nil
-	}, backoff.NewExponentialBackOff(),
-		func(err error, nextTime time.Duration) {
-			libkb.G.Log.Warning("MDServerRemote: error: %q; will retry in %s",
-				err, nextTime)
-		})
-	return err
+	return md.conn.DoCommand(ctx, command)
 }
 
 // Helper used to retrieve metadata blocks from the MD server.

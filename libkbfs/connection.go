@@ -26,6 +26,12 @@ type ConnectionHandler interface {
 
 	// OnDisconnected is called whenever the connection notices it is disconnected.
 	OnDisconnected()
+
+	// ShouldThrottle is called whenever an error is returned by
+	// an RPC function passed to Connection.DoCommand(), and
+	// should return whether or not that error signifies that that
+	// RPC is throttled.
+	ShouldThrottle(error) bool
 }
 
 // ConnectionTransportTLS is a ConnectionTransport implementation that uses TLS+rpc2.
@@ -169,15 +175,38 @@ func (c *Connection) DoCommand(ctx context.Context, rpcFunc func() error) error 
 	for {
 		// we may or may not be in the process of reconnecting.
 		// if so we'll block here unless canceled by the caller.
-		err := c.waitForConnection(ctx)
-		if err != nil {
-			return err
+		connErr := c.waitForConnection(ctx)
+		if connErr != nil {
+			return connErr
 		}
-		// try the rpc call. this can also be canceled by the caller.
-		err = runUnlessCanceled(ctx, rpcFunc)
+
+		var rpcErr error
+
+		// retry throttle errors w/backoff
+		throttleErr := backoff.RetryNotify(func() error {
+			// try the rpc call. this can also be canceled
+			// by the caller, and will retry connectivity
+			// errors w/backoff.
+			throttleErr := runUnlessCanceled(ctx, rpcFunc)
+			if c.handler.ShouldThrottle(throttleErr) {
+				return throttleErr
+			}
+			rpcErr = throttleErr
+			return nil
+		}, backoff.NewExponentialBackOff(),
+			func(err error, nextTime time.Duration) {
+				libkb.G.Log.Warning(
+					"error: %q; will retry in %s",
+					err, nextTime)
+			})
+		// RetryNotify gave up.
+		if throttleErr != nil {
+			return throttleErr
+		}
+
 		// check to see if we need to retry it.
-		if !c.checkForRetry(err) {
-			return err
+		if !c.checkForRetry(rpcErr) {
+			return rpcErr
 		}
 	}
 }
