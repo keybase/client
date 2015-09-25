@@ -38,6 +38,9 @@ class More extends Component {
         }},
         {name: 'Bridging', hasChildren: true, onClick: () => {
           this.props.dispatch(navigateTo(['more', 'bridging']))
+        }},
+        {name: 'QR', hasChildren: true, onClick: () => {
+          this.props.dispatch(navigateTo(['more', 'qr']))
         }}
       ])
     }
@@ -77,7 +80,8 @@ class More extends Component {
       'about': require('./about').parseRoute,
       'developer': require('./developer').parseRoute,
       'navDebug': require('../debug/nav-debug').parseRoute,
-      'bridging': require('../debug/bridging-tabs').parseRoute
+      'bridging': require('../debug/bridging-tabs').parseRoute,
+      'qr': require('../qr').parseRoute,
     }
 
     const componentAtTop = {

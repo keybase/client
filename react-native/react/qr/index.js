@@ -143,6 +143,19 @@ class QR extends Component {
       )
     }
   }
+
+  static parseRoute (store, currentPath, nextPath) {
+    const componentAtTop = {
+      title: 'QR',
+      mapStateToProps: state => state.router.toObject(),
+      component: QR
+    }
+
+    return {
+      componentAtTop,
+      parseNextRoute: null
+    }
+  }
 }
 
 QR.propTypes = { }
