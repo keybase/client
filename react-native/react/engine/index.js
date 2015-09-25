@@ -5,9 +5,13 @@
 import engine from './native'
 
 import rpc from '../framed-msgpack-rpc/lib/main'
-const RpcTransport = rpc.transport.Transport
-const RpcClient = rpc.client.Client
-const Buffer = require('buffer').Buffer
+const {
+  client: { Client: RpcClient },
+  transport: { Transport: RpcTransport }
+} = rpc
+
+import { Buffer } from 'buffer'
+import NativeEventEmitter from '../commonAdapters/NativeEventEmitter'
 
 class EngineError extends Error {
   constructor (err) {
@@ -128,7 +132,6 @@ class Engine {
   }
 
   setupListener () {
-    const NativeEventEmitter = require('../commonAdapters/NativeEventEmitter')
     this.subscription = NativeEventEmitter.addListener(
       engine.eventName,
       (payload) => {
