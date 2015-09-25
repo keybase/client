@@ -221,13 +221,7 @@ func (md RootMetadata) GetTLFCryptKeyInfo(keyGen KeyGen, user keybase1.UID,
 		return
 	}
 
-	key := currentCryptPublicKey.KID
-	if u, ok1 := dkb.WKeys[user]; ok1 {
-		info, ok = u[key]
-	} else if u, ok1 = dkb.RKeys[user]; ok1 {
-		info, ok = u[key]
-	}
-	return
+	return dkb.GetTLFCryptKeyInfo(user, currentCryptPublicKey)
 }
 
 // GetTLFEphemeralPublicKey returns the ephemeral public key used for
@@ -240,20 +234,7 @@ func (md RootMetadata) GetTLFEphemeralPublicKey(
 		return TLFEphemeralPublicKey{}, err
 	}
 
-	key := currentCryptPublicKey.KID
-	var info TLFCryptKeyInfo
-	var ok bool
-	if u, ok1 := dkb.WKeys[user]; ok1 {
-		info, ok = u[key]
-	} else if u, ok1 = dkb.RKeys[user]; ok1 {
-		info, ok = u[key]
-	}
-	if !ok || info.EPubKeyIndex >= len(dkb.TLFEphemeralPublicKeys) {
-		return TLFEphemeralPublicKey{},
-			TLFEphemeralPublicKeyNotFoundError{md.ID, keyGen, user, key}
-	}
-
-	return dkb.TLFEphemeralPublicKeys[info.EPubKeyIndex], nil
+	return dkb.GetTLFEphemeralPublicKey(user, currentCryptPublicKey)
 }
 
 // LatestKeyGeneration returns the newest key generation for this RootMetadata.

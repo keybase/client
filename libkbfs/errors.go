@@ -423,19 +423,16 @@ func (e UnknownSigVer) Error() string {
 }
 
 // TLFEphemeralPublicKeyNotFoundError indicates that an ephemeral
-// public key matching the given key gen, user and device KID couldn't
-// be found.
+// public key matching the user and device KID couldn't be found.
 type TLFEphemeralPublicKeyNotFoundError struct {
-	tlf    TlfID
-	keyGen KeyGen
-	uid    keybase1.UID
-	kid    keybase1.KID
+	uid keybase1.UID
+	kid keybase1.KID
 }
 
 // Error implements the error interface for TLFEphemeralPublicKeyNotFoundError.
 func (e TLFEphemeralPublicKeyNotFoundError) Error() string {
-	return fmt.Sprintf("Could not find ephemeral public key for folder %s, "+
-		"keygen %d, user %s, device KID %v", e.tlf, e.keyGen, e.uid, e.kid)
+	return fmt.Sprintf("Could not find ephemeral public key for "+
+		"user %s, device KID %v", e.uid, e.kid)
 }
 
 // KeyNotFoundError indicates that a key matching the given KID
