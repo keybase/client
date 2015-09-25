@@ -30,6 +30,7 @@
 		DBDCF3531B8D04FD00BA95D8 /* ObjcTest.m in Sources */ = {isa = PBXBuildFile; fileRef = DBDCF3501B8D04FD00BA95D8 /* ObjcTest.m */; };
 		DBDCF3541B8D04FD00BA95D8 /* SwiftTest.m in Sources */ = {isa = PBXBuildFile; fileRef = DBDCF3511B8D04FD00BA95D8 /* SwiftTest.m */; };
 		DBDCF3551B8D04FD00BA95D8 /* SwiftTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = DBDCF3521B8D04FD00BA95D8 /* SwiftTest.swift */; };
+		DBF20EC41BB34AF00048BC26 /* libRCTCamera.a in Frameworks */ = {isa = PBXBuildFile; fileRef = DBF20EBA1BB34AD00048BC26 /* libRCTCamera.a */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -110,6 +111,13 @@
 			remoteGlobalIDString = 58B5119B1A9E6C1200147676;
 			remoteInfo = RCTText;
 		};
+		DBF20EB91BB34AD00048BC26 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = DBF20EB41BB34AD00048BC26 /* RCTCamera.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = 4107012F1ACB723B00C6AA39;
+			remoteInfo = RCTCamera;
+		};
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
@@ -146,6 +154,7 @@
 		DBDCF3501B8D04FD00BA95D8 /* ObjcTest.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ObjcTest.m; sourceTree = "<group>"; };
 		DBDCF3511B8D04FD00BA95D8 /* SwiftTest.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = SwiftTest.m; sourceTree = "<group>"; };
 		DBDCF3521B8D04FD00BA95D8 /* SwiftTest.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SwiftTest.swift; sourceTree = "<group>"; };
+		DBF20EB41BB34AD00048BC26 /* RCTCamera.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = RCTCamera.xcodeproj; path = "../node_modules/react-native-camera/ios/RCTCamera.xcodeproj"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -160,6 +169,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				DBF20EC41BB34AF00048BC26 /* libRCTCamera.a in Frameworks */,
 				146834051AC3E58100842450 /* libReact.a in Frameworks */,
 				00C302E51ABCBA2D00DB3ED1 /* libRCTActionSheet.a in Frameworks */,
 				00C302E71ABCBA2D00DB3ED1 /* libRCTGeolocation.a in Frameworks */,
@@ -270,6 +280,7 @@
 		832341AE1AAA6A7D00B99B32 /* Libraries */ = {
 			isa = PBXGroup;
 			children = (
+				DBF20EB41BB34AD00048BC26 /* RCTCamera.xcodeproj */,
 				146833FF1AC3E56700842450 /* React.xcodeproj */,
 				00C302A71ABCB8CE00DB3ED1 /* RCTActionSheet.xcodeproj */,
 				00C302B51ABCB90400DB3ED1 /* RCTGeolocation.xcodeproj */,
@@ -343,6 +354,14 @@
 				DBDCF3441B8D04FC00BA95D8 /* Keybase-Bridging-Header.h */,
 			);
 			path = Keybase;
+			sourceTree = "<group>";
+		};
+		DBF20EB51BB34AD00048BC26 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				DBF20EBA1BB34AD00048BC26 /* libRCTCamera.a */,
+			);
+			name = Products;
 			sourceTree = "<group>";
 		};
 		ED67C15B934A4DEB78BAB2E5 /* Pods */ = {
@@ -430,6 +449,10 @@
 				{
 					ProductGroup = 00C302A81ABCB8CE00DB3ED1 /* Products */;
 					ProjectRef = 00C302A71ABCB8CE00DB3ED1 /* RCTActionSheet.xcodeproj */;
+				},
+				{
+					ProductGroup = DBF20EB51BB34AD00048BC26 /* Products */;
+					ProjectRef = DBF20EB41BB34AD00048BC26 /* RCTCamera.xcodeproj */;
 				},
 				{
 					ProductGroup = 00C302B61ABCB90400DB3ED1 /* Products */;
@@ -545,6 +568,13 @@
 			fileType = archive.ar;
 			path = libRCTText.a;
 			remoteRef = 832341B41AAA6A8300B99B32 /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+		DBF20EBA1BB34AD00048BC26 /* libRCTCamera.a */ = {
+			isa = PBXReferenceProxy;
+			fileType = archive.ar;
+			path = libRCTCamera.a;
+			remoteRef = DBF20EB91BB34AD00048BC26 /* PBXContainerItemProxy */;
 			sourceTree = BUILT_PRODUCTS_DIR;
 		};
 /* End PBXReferenceProxy section */

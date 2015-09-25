@@ -13,7 +13,9 @@
     "buffer": "^3.4.3",
     "iced-runtime": "^1.0.3",
     "immutable": "^3.7.5",
+    "qrcode-generator": "^1.0.0",
     "react-native": "^0.11.0",
+    "react-native-camera": "^0.3.5",
     "react-redux": "^2.1.2",
     "redux": "^3.0.0",
     "redux-thunk": "^1.0.0",
@@ -21,7 +23,7 @@
   },
   "standard": {
     "parser": "babel-eslint",
-    "ignore":[
+    "ignore": [
       "purepack/",
       "iced-error/",
       "framed-msgpack-rpc/",
