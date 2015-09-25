@@ -445,21 +445,26 @@ func (d *Locksmith) deviceSign(ctx *Context, withPGPOption bool) error {
 	return fmt.Errorf("device sign process retry attempts exhausted")
 }
 
-func (d *Locksmith) deviceSignPGP(ctx *Context) error {
+func (d *Locksmith) deviceSignPGP(ctx *Context) (err error) {
+	d.G().Log.Debug("+ deviceSignPGP")
+	defer func() {
+		d.G().Log.Debug("- deviceSignPGP -> %s", libkb.ErrToOk(err))
+	}()
 	pgpKeys := d.arg.User.GetActivePGPKeys(false)
 	if len(pgpKeys) == 0 {
-		return errors.New("no active PGP keys unexpectedly")
+		err = errors.New("no active PGP keys unexpectedly")
+		return err
 	}
 	var selected *libkb.PGPKeyBundle
 	if len(pgpKeys) > 1 {
 		// show a list of pgp keys and let them select which one to use
-		var err error
 		selected, err = d.selectPGPKey(ctx, pgpKeys)
 		if err != nil {
 			return err
 		}
 		if selected == nil {
-			return fmt.Errorf("no key selected")
+			err = fmt.Errorf("no key selected")
+			return err
 		}
 	} else {
 		selected = pgpKeys[0]
@@ -473,7 +478,7 @@ func (d *Locksmith) deviceSignPGP(ctx *Context) error {
 	if ctx.LoginContext != nil {
 		pk, ok = ctx.LoginContext.SecretSyncer().FindPrivateKey(selected.GetKID().String())
 	} else {
-		err := d.G().LoginState().SecretSyncer(func(ss *libkb.SecretSyncer) {
+		err = d.G().LoginState().SecretSyncer(func(ss *libkb.SecretSyncer) {
 			pk, ok = ss.FindPrivateKey(selected.GetKID().String())
 		}, "Locksmith - deviceSignPGP - FindPrivateKey")
 		if err != nil {
@@ -481,13 +486,16 @@ func (d *Locksmith) deviceSignPGP(ctx *Context) error {
 		}
 	}
 	if ok {
-		skb, err := pk.ToSKB(d.G())
-		if err != nil {
+		d.G().Log.Debug("| found synced secret key, unlocking it")
+		skb, serr := pk.ToSKB(d.G())
+		if serr != nil {
+			err = serr
 			return err
 		}
 
-		pgpk, err := skb.PromptAndUnlock(ctx.LoginContext, "sign new device", "keybase", nil, ctx.SecretUI, nil, d.arg.User)
-		if err != nil {
+		pgpk, perr := skb.PromptAndUnlock(ctx.LoginContext, "sign new device", "keybase", nil, ctx.SecretUI, nil, d.arg.User)
+		if perr != nil {
+			err = perr
 			return err
 		}
 		return d.deviceSignPGPNext(ctx, pgpk)
@@ -495,17 +503,18 @@ func (d *Locksmith) deviceSignPGP(ctx *Context) error {
 
 	// use gpg to unlock it
 	gpg := d.G().GetGpgClient()
-	if err := gpg.Configure(); err != nil {
+	if err = gpg.Configure(); err != nil {
 		return err
 	}
 
-	bundle, err := gpg.ImportKey(true, selected.GetFingerprint())
-	if err != nil {
-		return fmt.Errorf("ImportKey error: %s", err)
+	bundle, ierr := gpg.ImportKey(true, selected.GetFingerprint())
+	if ierr != nil {
+		err = fmt.Errorf("ImportKey error: %s", ierr)
 	}
 
-	if err := bundle.Unlock("adding this device to your account", ctx.SecretUI); err != nil {
-		return fmt.Errorf("bundle Unlock error: %s", err)
+	if err = bundle.Unlock("adding this device to your account", ctx.SecretUI); err != nil {
+		err = fmt.Errorf("bundle Unlock error: %s", err)
+		return err
 	}
 
 	return d.deviceSignPGPNext(ctx, bundle)
@@ -638,7 +647,11 @@ func (d *Locksmith) deviceName(ctx *Context) (string, error) {
 				nameCh <- name
 				return
 			}
-			ctx.LocksmithUI.DeviceNameTaken(keybase1.DeviceNameTakenArg{Name: name})
+			err = ctx.LocksmithUI.DeviceNameTaken(keybase1.DeviceNameTakenArg{Name: name})
+			if err != nil {
+				errCh <- err
+				return
+			}
 		}
 		errCh <- ErrDeviceMustBeUnique
 	}()
