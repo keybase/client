@@ -1,14 +1,14 @@
 'use strict'
 /* @flow */
 
-const React = require('react-native')
+import React from 'react-native'
 const {
   Component,
   Text,
   View
 } = React
 
-class People extends Component {
+export default class People extends Component {
   render () {
     return (
       <View>
@@ -25,5 +25,3 @@ class People extends Component {
     }
   }
 }
-
-module.exports = People

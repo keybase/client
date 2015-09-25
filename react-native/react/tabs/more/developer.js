@@ -1,7 +1,7 @@
 'use strict'
 /* @flow */
 
-const React = require('react-native')
+import React from 'react-native'
 const {
   Component,
   StyleSheet,
@@ -12,7 +12,7 @@ const {
 
 import commonStyles from '../../styles/common'
 
-class Developer extends Component {
+export default class Developer extends Component {
   constructor (props) {
     super(props)
 
@@ -77,5 +77,3 @@ const styles = StyleSheet.create({
     marginTop: 10
   }
 })
-
-module.exports = Developer

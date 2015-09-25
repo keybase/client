@@ -1,7 +1,7 @@
 'use strict'
 /* @flow */
 
-const React = require('react-native')
+import React from 'react-native'
 
 const {
   Component,
@@ -9,7 +9,7 @@ const {
   View
 } = React
 
-class NoTab extends Component {
+export default class NoTab extends Component {
 
   render () {
     return (
@@ -30,5 +30,3 @@ class NoTab extends Component {
     }
   }
 }
-
-module.exports = NoTab

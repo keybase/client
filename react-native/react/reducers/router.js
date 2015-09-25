@@ -4,7 +4,9 @@ import * as loginTypes from '../constants/loginActionTypes'
 import * as routerTypes from '../constants/routerActionTypes'
 import Immutable from 'immutable'
 
-function createRouterState (uri, history) {
+const initialState = createRouterState(['nav'], [])
+
+export function createRouterState (uri, history) {
   // TODO(mm): when we have a splash screen set it here.
   // history is android's back button
   return Immutable.Map({
@@ -12,8 +14,6 @@ function createRouterState (uri, history) {
     history: Immutable.List(history.map(parseUri))
   })
 }
-
-const initialState = createRouterState(['nav'], [])
 
 function pushIfTailIsDifferent (thing, stack) {
   // TODO: fix this equality check.
@@ -46,7 +46,7 @@ function parseUri (uri) {
   return Immutable.List(uri.map(parsePath))
 }
 
-module.exports = function (state = initialState, action) {
+export default function (state = initialState, action) {
   console.log('action in router', action)
   const stateWithHistory = state.update('history', pushIfTailIsDifferent.bind(null, state.get('uri')))
   switch (action.type) {
@@ -82,5 +82,3 @@ module.exports = function (state = initialState, action) {
       return state
   }
 }
-
-module.exports.createRouterState = createRouterState

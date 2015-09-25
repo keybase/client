@@ -1,14 +1,14 @@
 'use strict'
 /* @flow */
 
-const React = require('react-native')
+import React from 'react-native'
 const {
   Component,
   Text,
   View
 } = React
 
-class Chat extends Component {
+export default class Chat extends Component {
   render () {
     return (
       <View>
@@ -25,5 +25,3 @@ class Chat extends Component {
     }
   }
 }
-
-module.exports = Chat

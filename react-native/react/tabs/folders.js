@@ -1,7 +1,7 @@
 'use strict'
 /* @flow */
 
-const React = require('react-native')
+import React from 'react-native'
 
 const {
   Component,
@@ -9,7 +9,7 @@ const {
   View
 } = React
 
-class Folders extends Component {
+export default class Folders extends Component {
 
   render () {
     return (
@@ -29,5 +29,3 @@ class Folders extends Component {
     }
   }
 }
-
-module.exports = Folders

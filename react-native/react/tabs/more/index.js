@@ -14,7 +14,7 @@ import commonStyles from '../../styles/common'
 import LoginActions from '../../actions/login'
 import { navigateTo } from '../../actions/router'
 
-class More extends Component {
+export default class More extends Component {
   constructor (props) {
     super(props)
   }
@@ -110,5 +110,3 @@ const styles = StyleSheet.create({
     backgroundColor: '#CCCCCC'
   }
 })
-
-module.exports = More

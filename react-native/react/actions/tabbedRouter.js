@@ -1,12 +1,10 @@
 'use strict'
 
-const types = require('../constants/tabbedRouterActionTypes')
+import * as types from '../constants/tabbedRouterActionTypes'
 
-function switchTab (tabName) {
+export function switchTab (tabName) {
   return {
     tabName,
     type: types.SWITCH_TAB
   }
 }
-
-module.exports.switchTab = switchTab

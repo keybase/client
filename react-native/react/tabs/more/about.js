@@ -11,7 +11,7 @@ const {
 
 import commonStyles from '../../styles/common'
 
-class About extends Component {
+export default class About extends Component {
   constructor (props) {
     super(props)
 
@@ -50,5 +50,3 @@ const styles = StyleSheet.create({
     backgroundColor: '#F5FCFF'
   }
 })
-
-module.exports = About
