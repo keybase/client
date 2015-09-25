@@ -346,10 +346,8 @@ func ParseWebServiceBinding(base GenericChainLink) (ret RemoteProofChainLink, e 
 	var sptf string
 	ptf := base.packed.AtKey("proof_text_full")
 	if !ptf.IsNil() {
-		sptf, e = ptf.GetString()
-		if e != nil {
-			return ret, e
-		}
+		// TODO: add test that returning on err here is ok:
+		sptf, _ = ptf.GetString()
 	}
 
 	if jw.IsNil() {
