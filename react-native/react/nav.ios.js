@@ -1,19 +1,19 @@
 'use strict'
 
-const React = require('react-native')
-const { connect } = require('react-redux/native')
-const MetaNavigator = require('./router/meta-navigator.js')
+import React from 'react-native'
+import { connect } from 'react-redux/native'
+import MetaNavigator from './router/meta-navigator.js'
 
-const Folders = require('./tabs/folders')
-const Chat = require('./tabs/chat')
-const People = require('./tabs/people')
-const Devices = require('./tabs/devices')
-const NoTab = require('./tabs/no-tab')
-const More = require('./tabs/more')
+import Folders from './tabs/folders'
+import Chat from './tabs/chat'
+import People from './tabs/people'
+import Devices from './tabs/devices'
+import NoTab from './tabs/no-tab'
+import More from './tabs/more'
 
-const { switchTab } = require('./actions/tabbedRouter')
+import { switchTab } from './actions/tabbedRouter'
 
-const {FOLDER_TAB, CHAT_TAB, PEOPLE_TAB, DEVICES_TAB, MORE_TAB} = require('./constants/tabs')
+import {FOLDER_TAB, CHAT_TAB, PEOPLE_TAB, DEVICES_TAB, MORE_TAB} from './constants/tabs'
 
 const {
   Component,

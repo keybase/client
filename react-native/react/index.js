@@ -22,7 +22,6 @@ import { navigateTo } from './actions/router'
 
 import LoginComponent from './login'
 import Nav from './nav'
-import MoreComponent from './more'
 
 if (GLOBAL) {
   GLOBAL.store = store // TEMP to test
@@ -77,8 +76,7 @@ class Keybase extends Component {
   // route is the array form of our route (e.g. ["foo","bar"] instead of "foo/bar")
   static parseRoute (store, currentPath, nextPath) {
     const routes = {
-      'login': LoginComponent.parseRoute,
-      'more': MoreComponent.parseRoute
+      'login': LoginComponent.parseRoute
     }
 
     const componentAtTop = {
@@ -95,9 +93,6 @@ class Keybase extends Component {
 }
 
 const styles = StyleSheet.create({
-  navigator: {
-    flex: 1
-  },
   appDebug: {
     flex: 1,
     justifyContent: 'center',

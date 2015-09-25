@@ -10,9 +10,9 @@ const {
   TouchableHighlight
 } = React
 
-import commonStyles from '../styles/common'
-import LoginActions from '../actions/login'
-import { navigateTo } from '../actions/router'
+import commonStyles from '../../styles/common'
+import LoginActions from '../../actions/login'
+import { navigateTo } from '../../actions/router'
 
 class More extends Component {
   constructor (props) {
@@ -28,16 +28,16 @@ class More extends Component {
           this.props.dispatch(LoginActions.logout())
         }},
         {name: 'About', hasChildren: true, onClick: () => {
-          this.props.dispatch(navigateTo(['more', 'about']))
+          this.props.dispatch(navigateTo(['about']))
         }},
         {name: 'Developer', hasChildren: true, onClick: () => {
-          this.props.dispatch(navigateTo(['more', 'developer']))
+          this.props.dispatch(navigateTo(['developer']))
         }},
         {name: 'Nav debug', hasChildren: true, onClick: () => {
-          this.props.dispatch(navigateTo(['more', 'navDebug']))
+          this.props.dispatch(navigateTo(['navDebug']))
         }},
         {name: 'Bridging', hasChildren: true, onClick: () => {
-          this.props.dispatch(navigateTo(['more', 'bridging']))
+          this.props.dispatch(navigateTo(['bridging']))
         }}
       ])
     }
@@ -76,13 +76,12 @@ class More extends Component {
     const routes = {
       'about': require('./about').parseRoute,
       'developer': require('./developer').parseRoute,
-      'navDebug': require('../debug/nav-debug').parseRoute,
-      'bridging': require('../debug/bridging-tabs').parseRoute
+      'navDebug': require('../../debug/nav-debug').parseRoute,
+      'bridging': require('../../debug/bridging-tabs').parseRoute
     }
 
     const componentAtTop = {
       title: 'More',
-      mapStateToProps: state => state.router.toObject(),
       component: More
     }
 
